@@ -18,6 +18,7 @@ export default function QuestionList() {
   const navigate = useNavigate();
   const [questions, setQuestions] = useState<Question[]>([]);
   const [selected, setSelected] = useState<Set<string>>(new Set());
+  const [copiedId, setCopiedId] = useState<string | null>(null);
   const [examType, setExamType] = useState('');
   const [expandedId, setExpandedId] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
@@ -65,7 +66,8 @@ export default function QuestionList() {
       q.explanation ? `【解説】${q.explanation}` : "",
     ].filter(Boolean).join("\n");
     navigator.clipboard.writeText(text);
-    alert("コピーしました");
+    setCopiedId(q.questionId);
+    setTimeout(() => setCopiedId(null), 1500);
   };
 
   const exportCSV = async () => {
@@ -127,7 +129,13 @@ export default function QuestionList() {
                 <button onClick={() => fetchDetail(q.questionId)} style={{ padding: "4px 12px", cursor: "pointer", borderRadius: 4, border: "1px solid #aaa" }}>
                   {expandedId === q.questionId ? "解説を閉じる" : "解説を見る"}
                 </button>
-                <button onClick={() => copyQuestion(q)} style={{ padding: "4px 12px", cursor: "pointer", borderRadius: 4, border: "1px solid #aaa" }}>コピー</button>
+                <button onClick={() => copyQuestion(q)}
+                  style={{ padding: "4px 12px", cursor: "pointer", borderRadius: 4,
+                    border: `1px solid ${copiedId === q.questionId ? '#27ae60' : '#aaa'}`,
+                    color: copiedId === q.questionId ? '#27ae60' : 'inherit',
+                    transition: 'color 0.2s, border-color 0.2s' }}>
+                  {copiedId === q.questionId ? '✓ コピーしました' : 'コピー'}
+                </button>
               </div>
             </div>
           </div>
