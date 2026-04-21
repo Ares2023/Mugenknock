@@ -113,7 +113,7 @@ export default function ExerciseSetup() {
   };
 
   return (
-    <div style={{ maxWidth: 960, margin: '0 auto', padding: 24, fontFamily: 'sans-serif' }}>
+    <div style={{ maxWidth: 960, margin: '0 auto', padding: '24px 32px', fontFamily: 'sans-serif' }}>
       <Breadcrumb items={[{ label: 'ホーム', path: '/' }, { label: '演習設定' }]} />
       <h1 style={{ color: '#232f3e' }}>演習設定</h1>
 

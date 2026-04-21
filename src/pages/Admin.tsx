@@ -1,5 +1,4 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { useNavigate } from 'react-router-dom';
 import { API_ENDPOINT, EXAM_TYPES } from '../constants';
 
 type Question = {
@@ -24,7 +23,6 @@ type Report = {
 type Tab = 'questions' | 'reports';
 
 export default function Admin() {
-  const navigate = useNavigate();
   const [tab, setTab] = useState<Tab>('questions');
 
   // 問題管理
@@ -113,14 +111,8 @@ export default function Admin() {
   );
 
   return (
-    <div style={{ maxWidth: 1000, margin: '0 auto', padding: 24, fontFamily: 'sans-serif' }}>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 24 }}>
-        <h1 style={{ margin: 0, color: '#232f3e' }}>管理画面</h1>
-        <button onClick={() => navigate('/')}
-          style={{ background: 'none', border: '1px solid #aaa', borderRadius: 4, padding: '6px 14px', cursor: 'pointer', color: '#555' }}>
-          ← ホーム
-        </button>
-      </div>
+    <div style={{ maxWidth: 1000, margin: '0 auto', padding: '24px 32px', fontFamily: 'sans-serif' }}>
+      <h2 style={{ marginTop: 0, color: '#232f3e' }}>管理画面</h2>
 
       {/* タブ */}
       <div style={{ borderBottom: '1px solid #e0e0e0', marginBottom: 24 }}>
