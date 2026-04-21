@@ -1,14 +1,15 @@
 import React, { useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
+import { ADMIN_EMAIL } from '../constants';
 
 const SIDEBAR_WIDTH = 220;
 
 const NAV_ITEMS = [
-  { path: '/',               label: 'ホーム',        icon: '⊞' },
-  { path: '/exercise/setup', label: '演習モード',    icon: '✎' },
-  { path: '/questions',      label: '問題一覧',      icon: '☰' },
-  { path: '/admin',          label: '管理画面',      icon: '⚙' },
+  { path: '/',               label: 'ホーム',     icon: '⊞', adminOnly: false },
+  { path: '/exercise/setup', label: '演習モード', icon: '✎', adminOnly: false },
+  { path: '/questions',      label: '問題一覧',   icon: '☰', adminOnly: false },
+  { path: '/admin',          label: '管理画面',   icon: '⚙', adminOnly: true  },
 ];
 
 export default function Layout({ children }: { children: React.ReactNode }) {
@@ -18,6 +19,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
   const [open, setOpen] = useState(() =>
     localStorage.getItem('sidebarOpen') !== 'false'
   );
+  const isAdmin = user?.username === ADMIN_EMAIL;
 
   const toggle = () => setOpen(prev => {
     localStorage.setItem('sidebarOpen', String(!prev));
@@ -88,7 +90,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
           display: 'flex', flexDirection: 'column',
         }}>
           <div style={{ width: SIDEBAR_WIDTH, paddingTop: 12 }}>
-            {NAV_ITEMS.map(item => {
+            {NAV_ITEMS.filter(item => !item.adminOnly || isAdmin).map(item => {
               const active = isActive(item.path);
               return (
                 <button
