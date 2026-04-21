@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { API_ENDPOINT, EXAM_TYPES, PASS_SCORES, PASS_RATE } from '../constants';
 import { useAuth } from '../contexts/AuthContext';
@@ -63,6 +63,15 @@ export default function ExerciseSetup() {
 
   const info = EXAM_INFO[examType];
   const passScore = PASS_SCORES[examType];
+  const [availableCount, setAvailableCount] = useState<number | null>(null);
+
+  useEffect(() => {
+    setAvailableCount(null);
+    fetch(`${API_ENDPOINT}/questions?examType=${examType}`)
+      .then(r => r.json())
+      .then(d => setAvailableCount(d.count ?? d.items?.length ?? 0))
+      .catch(() => setAvailableCount(0));
+  }, [examType]);
 
   const startSession = async () => {
     setLoading(true);
@@ -154,6 +163,13 @@ export default function ExerciseSetup() {
               {info.scoredQuestions < info.totalQuestions && (
                 <div style={{ fontSize: 11, color: '#aaa', marginTop: 2 }}>採点対象 {info.scoredQuestions}問</div>
               )}
+            </div>
+            <div style={{ background: 'white', border: '1px solid #e8e8e8', borderRadius: 8, padding: '12px 16px' }}>
+              <div style={{ fontSize: 11, color: '#888', marginBottom: 4 }}>用意されている問題数</div>
+              <div style={{ fontSize: 22, fontWeight: 'bold', color: availableCount === null ? '#ccc' : '#232f3e' }}>
+                {availableCount === null ? '…' : availableCount}
+                <span style={{ fontSize: 13, fontWeight: 'normal', marginLeft: 2 }}>問</span>
+              </div>
             </div>
             <div style={{ background: 'white', border: '1px solid #e8e8e8', borderRadius: 8, padding: '12px 16px' }}>
               <div style={{ fontSize: 11, color: '#888', marginBottom: 4 }}>制限時間</div>
