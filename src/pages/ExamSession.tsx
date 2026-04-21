@@ -285,18 +285,18 @@ export default function ExamSession() {
           {questions.map((_: any, i: number) => {
             const isCurrent = i === currentIndex;
             const isAnswered = !!answers[questions[i]?.questionId];
-            let bg = '#f2f3f3';
+            let bg = '#ffffff';
             let color = '#545b64';
             let border = '1px solid #d1d5db';
             
             if (isCurrent) {
-              bg = '#0073bb';
-              color = 'white';
-              border = '1px solid #0073bb';
+              bg = '#f2f8fd';
+              color = '#0073bb';
+              border = '2px solid #0073bb';
             } else if (isAnswered) {
-              bg = '#2980b9';
+              bg = '#545b64';
               color = 'white';
-              border = '1px solid #2980b9';
+              border = '1px solid #545b64';
             }
 
             return (
@@ -312,19 +312,43 @@ export default function ExamSession() {
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderTop: '1px solid #eaeded', paddingTop: 20 }}>
           <div style={{ display: 'flex', gap: 12 }}>
             <button onClick={() => setCurrentIndex(i => Math.max(0, i - 1))} disabled={currentIndex === 0}
-              style={{ padding: '8px 20px', border: '1px solid #545b64', borderRadius: 2, cursor: currentIndex === 0 ? 'default' : 'pointer',
-                background: 'white', color: currentIndex === 0 ? '#aab7b8' : '#16191f', fontWeight: 700, borderColor: currentIndex === 0 ? '#eaeded' : '#545b64' }}>
+              style={{
+                padding: '8px 20px',
+                border: '1px solid #545b64',
+                borderRadius: 2,
+                cursor: currentIndex === 0 ? 'default' : 'pointer',
+                background: 'white',
+                color: currentIndex === 0 ? '#aab7b8' : '#16191f',
+                fontWeight: 700,
+                borderColor: currentIndex === 0 ? '#eaeded' : '#545b64'
+              }}>
               ← 前の質問
             </button>
             <button onClick={() => setCurrentIndex(i => Math.min(questions.length - 1, i + 1))} disabled={currentIndex === questions.length - 1}
-              style={{ padding: '8px 20px', border: '1px solid #545b64', borderRadius: 2,
+              style={{
+                padding: '8px 20px',
+                border: '1px solid #545b64',
+                borderRadius: 2,
                 cursor: currentIndex === questions.length - 1 ? 'default' : 'pointer',
-                background: 'white', color: currentIndex === questions.length - 1 ? '#aab7b8' : '#16191f', fontWeight: 700, borderColor: currentIndex === questions.length - 1 ? '#eaeded' : '#545b64' }}>
+                background: 'white',
+                color: currentIndex === questions.length - 1 ? '#aab7b8' : '#16191f',
+                fontWeight: 700,
+                borderColor: currentIndex === questions.length - 1 ? '#eaeded' : '#545b64'
+              }}>
               次の質問 →
             </button>
           </div>
           <button onClick={() => setShowConfirm(true)}
-            style={{ padding: '8px 24px', background: '#ff9900', color: '#16191f', border: '1px solid transparent', borderRadius: 2, cursor: 'pointer', fontSize: 15, fontWeight: 700 }}
+            style={{
+              padding: '8px 24px',
+              background: '#ff9900',
+              color: '#16191f',
+              border: '1px solid transparent',
+              borderRadius: 2,
+              cursor: 'pointer',
+              fontSize: 15,
+              fontWeight: 700
+            }}
             onMouseEnter={e => e.currentTarget.style.background = '#ec7211'}
             onMouseLeave={e => e.currentTarget.style.background = '#ff9900'}
           >

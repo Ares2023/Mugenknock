@@ -171,24 +171,26 @@ export default function Admin() {
     borderBottom: tab === t ? '3px solid #0073bb' : '3px solid transparent',
     background: 'none',
     cursor: 'pointer',
-    fontWeight: (tab === t ? 'bold' : 'normal') as any,
-    color: tab === t ? '#232f3e' : '#888',
+    fontWeight: (tab === t ? 700 : 400) as any,
+    color: tab === t ? '#16191f' : '#545b64',
     fontSize: 15,
   });
 
+  const AWS_TAG_BG = '#232f3e';
+
   const examBadge = (type: string) => (
     <span style={{
-      background: type === 'SAP' ? '#8e44ad' : type === 'SAA' ? '#2980b9' : '#27ae60',
-      color: 'white', fontSize: 11, padding: '2px 7px', borderRadius: 4, marginRight: 8,
+      background: AWS_TAG_BG,
+      color: 'white', fontSize: 11, padding: '2px 8px', borderRadius: 12, marginRight: 8, fontWeight: 700
     }}>{type}</span>
   );
 
   return (
-    <div style={{ maxWidth: 1000, margin: '0 auto', padding: '24px 32px', fontFamily: 'sans-serif' }}>
-      <h2 style={{ marginTop: 0, color: '#232f3e' }}>管理画面</h2>
+    <div style={{ maxWidth: 1200, margin: '0 auto', padding: '24px 40px', color: '#16191f' }}>
+      <h2 style={{ fontSize: 24, fontWeight: 700, margin: '0 0 24px' }}>管理画面</h2>
 
       {/* タブ */}
-      <div style={{ borderBottom: '1px solid #e0e0e0', marginBottom: 24 }}>
+      <div style={{ borderBottom: '1px solid #eaeded', marginBottom: 24 }}>
         <button style={tabStyle('questions')} onClick={() => setTab('questions')}>問題管理</button>
         <button style={tabStyle('import')} onClick={() => setTab('import')}>問題追加</button>
         <button style={tabStyle('reports')} onClick={() => setTab('reports')}>通報確認</button>
@@ -199,14 +201,21 @@ export default function Admin() {
       {tab === 'questions' && (
         <div>
           {/* 検索バー */}
-          <form onSubmit={handleSearch} style={{ display: 'flex', gap: 8, marginBottom: 16, flexWrap: 'wrap' }}>
-            <div style={{ display: 'flex', gap: 4 }}>
+          <form onSubmit={handleSearch} style={{ display: 'flex', gap: 12, marginBottom: 20, flexWrap: 'wrap' }}>
+            <div style={{ display: 'flex', gap: 8 }}>
               {['ALL', ...EXAM_TYPES].map(type => (
                 <button key={type} type="button" onClick={() => setExamFilter(type)}
-                  style={{ padding: '6px 14px', border: 'none', borderRadius: 4, cursor: 'pointer',
-                    background: examFilter === type ? '#232f3e' : '#eee',
-                    color: examFilter === type ? 'white' : '#333',
-                    fontWeight: examFilter === type ? 'bold' : 'normal' }}>
+                  style={{
+                    padding: '6px 16px',
+                    border: '1px solid',
+                    borderRadius: 2,
+                    cursor: 'pointer',
+                    background: examFilter === type ? '#f2f8fd' : 'white',
+                    color: examFilter === type ? '#0073bb' : '#545b64',
+                    borderColor: examFilter === type ? '#0073bb' : '#d1d5db',
+                    fontWeight: examFilter === type ? 700 : 400,
+                    fontSize: 14
+                  }}>
                   {type}
                 </button>
               ))}
@@ -214,36 +223,48 @@ export default function Admin() {
             <input
               value={keyword} onChange={e => setKeyword(e.target.value)}
               placeholder="問題ID・問題文で検索"
-              style={{ flex: 1, minWidth: 200, padding: '6px 12px', border: '1px solid #ddd', borderRadius: 4, fontSize: 14 }}
+              style={{ flex: 1, minWidth: 200, padding: '6px 12px', border: '1px solid #d1d5db', borderRadius: 2, fontSize: 14, outline: 'none' }}
+              onFocus={e => e.currentTarget.style.borderColor = '#0073bb'}
+              onBlur={e => e.currentTarget.style.borderColor = '#d1d5db'}
             />
             <button type="submit"
-              style={{ padding: '6px 16px', background: '#0073bb', color: 'white', border: 'none', borderRadius: 4, cursor: 'pointer' }}>
+              style={{ padding: '6px 20px', background: 'white', color: '#0073bb', border: '1px solid #0073bb', borderRadius: 2, cursor: 'pointer', fontWeight: 700, fontSize: 14 }}>
               検索
             </button>
           </form>
 
           {/* 件数 */}
-          <p style={{ color: '#888', fontSize: 13, marginBottom: 12 }}>
+          <p style={{ color: '#545b64', fontSize: 13, marginBottom: 12 }}>
             {loadingQ ? '読み込み中...' : `${questions.length} 件`}
           </p>
 
           {/* 問題リスト */}
           {questions.map(q => (
-            <div key={q.questionId} style={{ border: '1px solid #e0e0e0', borderRadius: 8, marginBottom: 8, overflow: 'hidden' }}>
+            <div key={q.questionId} style={{ border: '1px solid #eaeded', borderRadius: 2, marginBottom: 8, overflow: 'hidden', boxShadow: '0 1px 1px 0 rgba(0,28,36,0.1)' }}>
               {/* ヘッダー行 */}
               <div
                 onClick={() => setExpandedId(expandedId === q.questionId ? null : q.questionId)}
-                style={{ display: 'flex', alignItems: 'center', padding: '10px 14px', cursor: 'pointer', background: expandedId === q.questionId ? '#f5f5f5' : 'white', gap: 8 }}>
-                <span style={{ color: '#bbb', fontSize: 13, flexShrink: 0 }}>{expandedId === q.questionId ? '▼' : '▶'}</span>
+                style={{ display: 'flex', alignItems: 'center', padding: '12px 16px', cursor: 'pointer', background: expandedId === q.questionId ? '#fbfbfb' : 'white', gap: 12 }}>
+                <span style={{ color: '#545b64', fontSize: 12, flexShrink: 0 }}>{expandedId === q.questionId ? '▼' : '▶'}</span>
                 {examBadge(q.examType)}
-                <span style={{ fontFamily: 'monospace', fontSize: 12, color: '#888', flexShrink: 0, minWidth: 100 }}>{q.questionId}</span>
-                <span style={{ fontSize: 14, color: '#333', flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                <span style={{ fontFamily: 'monospace', fontSize: 12, color: '#545b64', flexShrink: 0, minWidth: 100 }}>{q.questionId}</span>
+                <span style={{ fontSize: 14, color: '#16191f', flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                   {q.questionText}
                 </span>
                 <button
                   onClick={e => { e.stopPropagation(); handleDelete(q); }}
                   disabled={deletingId === q.questionId}
-                  style={{ padding: '4px 12px', background: deletingId === q.questionId ? '#ccc' : '#e74c3c', color: 'white', border: 'none', borderRadius: 4, cursor: 'pointer', fontSize: 12, flexShrink: 0 }}>
+                  style={{
+                    padding: '4px 12px',
+                    background: 'white',
+                    color: deletingId === q.questionId ? '#aab7b8' : '#d13212',
+                    border: `1px solid ${deletingId === q.questionId ? '#eaeded' : '#d13212'}`,
+                    borderRadius: 2,
+                    cursor: deletingId === q.questionId ? 'default' : 'pointer',
+                    fontSize: 12,
+                    fontWeight: 700,
+                    flexShrink: 0
+                  }}>
                   {deletingId === q.questionId ? '削除中...' : '削除'}
                 </button>
               </div>

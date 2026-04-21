@@ -70,11 +70,10 @@ export default function Home() {
     fetchAll();
   }, [user]);
 
-  const examColor = (et: string) =>
-    et === 'SAP' ? '#8e44ad' : et === 'SAA' ? '#2980b9' : '#27ae60';
-
   const fmt = (iso: string) =>
     new Date(iso).toLocaleString('ja-JP', { month: 'numeric', day: 'numeric', hour: '2-digit', minute: '2-digit' });
+
+  const AWS_TAG_BG = '#232f3e';
 
   return (
     <div style={{ maxWidth: 1000, margin: '0 auto', padding: '32px 40px', color: '#16191f' }}>
@@ -92,20 +91,20 @@ export default function Home() {
               const pct = stat.total > 0 ? Math.round((stat.answered / stat.total) * 100) : 0;
               const passRate = PASS_RATE[stat.examType];
               return (
-                <div key={stat.examType} style={{ background: 'white', border: '1px solid #eaeded', borderRadius: 2, padding: '24px', borderTop: `4px solid ${examColor(stat.examType)}`, boxShadow: '0 1px 1px 0 rgba(0,28,36,0.1)' }}>
+                <div key={stat.examType} style={{ background: 'white', border: '1px solid #eaeded', borderRadius: 2, padding: '24px', borderTop: `4px solid #0073bb`, boxShadow: '0 1px 1px 0 rgba(0,28,36,0.1)' }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 16 }}>
-                    <span style={{ background: examColor(stat.examType), color: 'white', fontSize: 13, padding: '2px 10px', borderRadius: 12, fontWeight: 700 }}>{stat.examType}</span>
+                    <span style={{ background: AWS_TAG_BG, color: 'white', fontSize: 13, padding: '2px 10px', borderRadius: 12, fontWeight: 700 }}>{stat.examType}</span>
                   </div>
 
                   <div style={{ marginBottom: 16 }}>
                     <div style={{ fontSize: 12, color: '#545b64', marginBottom: 8, fontWeight: 700 }}>演習進捗</div>
                     <div style={{ background: '#eaeded', borderRadius: 10, height: 6, overflow: 'hidden' }}>
-                      <div style={{ width: `${pct}%`, background: examColor(stat.examType), height: '100%', transition: 'width 0.4s' }} />
+                      <div style={{ width: `${pct}%`, background: '#0073bb', height: '100%', transition: 'width 0.4s' }} />
                     </div>
                     <div style={{ fontSize: 13, color: '#16191f', marginTop: 8 }}>
                       <strong>{stat.answered}</strong>
                       <span style={{ color: '#545b64' }}> / {stat.total} 問</span>
-                      <span style={{ float: 'right', color: examColor(stat.examType), fontWeight: 700 }}>{pct}%</span>
+                      <span style={{ float: 'right', color: '#0073bb', fontWeight: 700 }}>{pct}%</span>
                     </div>
                   </div>
 
@@ -161,6 +160,13 @@ export default function Home() {
                 </tr>
               ))}
             </tbody>
+          </table>
+        </div>
+      )}
+    </div>
+  );
+}
+      </tbody>
           </table>
         </div>
       )}

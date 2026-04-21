@@ -1,4 +1,4 @@
-import React, { useEffect, useRef } from 'react';
+import React, { useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Authenticator } from '@aws-amplify/ui-react';
 import '@aws-amplify/ui-react/styles.css';
@@ -10,29 +10,36 @@ export default function LoginPage() {
   const navigating = useRef(false);
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', minHeight: '100vh', background: '#f5f5f5', fontFamily: 'sans-serif' }}>
+    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', minHeight: '100vh', background: '#f2f3f3', fontFamily: 'sans-serif' }}>
       <div style={{ marginBottom: 24, textAlign: 'center' }}>
-        <h1 style={{ color: '#232f3e', margin: 0 }}>AWS資格問題サービス</h1>
-        <p style={{ color: '#666', marginTop: 8 }}>ログインして演習を始めましょう</p>
+        <h1 style={{ color: '#16191f', margin: 0, fontSize: 24, fontWeight: 700 }}>AWS Quiz Practice</h1>
+        <p style={{ color: '#545b64', marginTop: 8, fontSize: 14 }}>ログインして演習を始めましょう</p>
       </div>
 
-      <Authenticator
-        loginMechanisms={['email']}
-        signUpAttributes={['email']}
-      >
-        {({ user: cognitoUser }) => {
-          if (cognitoUser && !navigating.current) {
-            navigating.current = true;
-            refresh().then(() => navigate('/', { replace: true }));
-          }
-          return <></>;
-        }}
-      </Authenticator>
+      <div style={{ background: 'white', padding: '32px', borderRadius: 2, border: '1px solid #eaeded', boxShadow: '0 1px 1px 0 rgba(0,28,36,0.1)', width: '100%', maxWidth: 400 }}>
+        <Authenticator
+          loginMechanisms={['email']}
+          signUpAttributes={['email']}
+        >
+          {({ user: cognitoUser }) => {
+            if (cognitoUser && !navigating.current) {
+              navigating.current = true;
+              refresh().then(() => navigate('/', { replace: true }));
+            }
+            return <></>;
+          }}
+        </Authenticator>
+      </div>
 
       <div style={{ marginTop: 24 }}>
         <button
           onClick={() => navigate('/questions')}
-          style={{ background: 'none', border: 'none', color: '#666', cursor: 'pointer', textDecoration: 'underline', fontSize: 14 }}
+          style={{
+            background: 'none', border: 'none', color: '#0073bb', cursor: 'pointer',
+            fontSize: 14, fontWeight: 700, padding: '4px 8px'
+          }}
+          onMouseEnter={e => e.currentTarget.style.textDecoration = 'underline'}
+          onMouseLeave={e => e.currentTarget.style.textDecoration = 'none'}
         >
           ログインせず問題一覧を見る
         </button>
