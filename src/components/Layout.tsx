@@ -39,17 +39,21 @@ export default function Layout({ children }: { children: React.ReactNode }) {
 
       {/* ── ヘッダー ── */}
       <header style={{
-        height: 56, minHeight: 56, background: '#232f3e',
+        height: 56, minHeight: 56, background: '#0f1111',
         display: 'flex', alignItems: 'center', padding: '0 16px',
-        gap: 12, zIndex: 10, boxShadow: '0 2px 4px rgba(0,0,0,.3)',
+        gap: 12, zIndex: 10, boxShadow: '0 2px 4px rgba(0,0,0,.5)',
       }}>
-        {/* ハンバーガー */}
+        {/* ハンバーガー（丸） */}
         <button onClick={toggle} style={{
           background: 'none', border: 'none', cursor: 'pointer',
-          color: '#d5dbdb', fontSize: 22, padding: '4px 8px', lineHeight: 1,
-          borderRadius: 4, display: 'flex', alignItems: 'center',
+          color: '#d5dbdb', fontSize: 18, lineHeight: 1,
+          width: 36, height: 36, borderRadius: '50%',
+          display: 'flex', alignItems: 'center', justifyContent: 'center',
+          transition: 'background 0.15s', flexShrink: 0,
         }}
           title={open ? 'メニューを閉じる' : 'メニューを開く'}
+          onMouseEnter={e => { (e.currentTarget as HTMLElement).style.background = 'rgba(255,255,255,0.12)'; }}
+          onMouseLeave={e => { (e.currentTarget as HTMLElement).style.background = 'none'; }}
         >
           &#9776;
         </button>
@@ -84,12 +88,13 @@ export default function Layout({ children }: { children: React.ReactNode }) {
         <nav style={{
           width: open ? SIDEBAR_WIDTH : 0,
           minWidth: open ? SIDEBAR_WIDTH : 0,
-          background: '#16191f',
+          background: 'white',
+          borderRight: '1px solid #e0e0e0',
           overflow: 'hidden',
           transition: 'width 0.2s ease, min-width 0.2s ease',
           display: 'flex', flexDirection: 'column',
         }}>
-          <div style={{ width: SIDEBAR_WIDTH, paddingTop: 12 }}>
+          <div style={{ width: SIDEBAR_WIDTH, paddingTop: 8 }}>
             {NAV_ITEMS.filter(item => !item.adminOnly || isAdmin).map(item => {
               const active = isActive(item.path);
               return (
@@ -100,23 +105,22 @@ export default function Layout({ children }: { children: React.ReactNode }) {
                     width: '100%', textAlign: 'left',
                     display: 'flex', alignItems: 'center', gap: 12,
                     padding: '10px 20px',
-                    background: active ? '#2e3b4e' : 'none',
-                    borderLeft: `3px solid ${active ? '#ff9900' : 'transparent'}`,
+                    background: active ? '#fef6e8' : 'none',
                     border: 'none',
                     borderLeftColor: active ? '#ff9900' : 'transparent',
                     borderLeftWidth: 3,
                     borderLeftStyle: 'solid',
                     cursor: 'pointer',
-                    color: active ? 'white' : '#8a9bb0',
+                    color: active ? '#c45200' : '#555',
                     fontSize: 14,
                     fontWeight: active ? 'bold' : 'normal',
                     transition: 'background 0.15s',
                     whiteSpace: 'nowrap',
                   }}
-                  onMouseEnter={e => { if (!active) (e.currentTarget as HTMLElement).style.background = '#1e2a35'; }}
+                  onMouseEnter={e => { if (!active) (e.currentTarget as HTMLElement).style.background = '#f5f5f5'; }}
                   onMouseLeave={e => { if (!active) (e.currentTarget as HTMLElement).style.background = 'none'; }}
                 >
-                  <span style={{ fontSize: 16, opacity: 0.85 }}>{item.icon}</span>
+                  <span style={{ fontSize: 16, opacity: 0.7 }}>{item.icon}</span>
                   <span>{item.label}</span>
                 </button>
               );
