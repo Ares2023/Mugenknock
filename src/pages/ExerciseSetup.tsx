@@ -1,9 +1,11 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { API_ENDPOINT, EXAM_TYPES } from '../constants';
+import { useAuth } from '../contexts/AuthContext';
 
 export default function ExerciseSetup() {
   const navigate = useNavigate();
+  const { user } = useAuth();
   const [examType, setExamType] = useState('CLF');
   const [limit, setLimit] = useState(10);
   const [shuffle, setShuffle] = useState(true);
@@ -17,7 +19,7 @@ export default function ExerciseSetup() {
       const data = await res.json();
       const questionIds = data.items.map((q: any) => q.questionId);
 
-      const userId = 'guest';
+      const userId = user?.userId ?? 'guest';
       const sessionRes = await fetch(`${API_ENDPOINT}/sessions`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
