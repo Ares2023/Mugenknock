@@ -18,3 +18,15 @@ export const PASS_RATE: Record<string, number> = {
   SAA: 72,
   SAP: 75,
 };
+
+// 模試モードの設定
+export const EXAM_CONFIGS: Record<string, {
+  examCode: string;
+  fullName: string;
+  totalQuestions: number;
+  timeLimitMin: number;
+}> = {
+  CLF: { examCode: 'CLF-C02', fullName: 'AWS Certified Cloud Practitioner',             totalQuestions: 65, timeLimitMin: 90  },
+  SAA: { examCode: 'SAA-C03', fullName: 'AWS Certified Solutions Architect – Associate', totalQuestions: 65, timeLimitMin: 130 },
+  SAP: { examCode: 'SAP-C02', fullName: 'AWS Certified Solutions Architect – Professional', totalQuestions: 75, timeLimitMin: 180 },
+};

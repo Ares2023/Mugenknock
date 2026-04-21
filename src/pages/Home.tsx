@@ -17,8 +17,15 @@ export default function Home() {
           <div style={{ fontSize: 13, opacity: 0.85, marginTop: 4 }}>試験種別・問題数を設定して演習</div>
         </button>
         <button
-          onClick={() => navigate('/questions')}
+          onClick={() => navigate('/exam/setup')}
           style={{ padding: '18px', fontSize: 17, background: '#232f3e', color: 'white', border: 'none', borderRadius: 8, cursor: 'pointer', textAlign: 'left' }}
+        >
+          <div style={{ fontWeight: 'bold' }}>模試モードを始める</div>
+          <div style={{ fontSize: 13, opacity: 0.7, marginTop: 4 }}>本番同様の問題数・時間制限で模試</div>
+        </button>
+        <button
+          onClick={() => navigate('/questions')}
+          style={{ padding: '18px', fontSize: 17, background: '#eee', color: '#232f3e', border: 'none', borderRadius: 8, cursor: 'pointer', textAlign: 'left' }}
         >
           <div style={{ fontWeight: 'bold' }}>問題一覧を見る</div>
           <div style={{ fontSize: 13, opacity: 0.7, marginTop: 4 }}>全問題の閲覧・CSV出力・コピー</div>

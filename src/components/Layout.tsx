@@ -8,6 +8,7 @@ const SIDEBAR_WIDTH = 220;
 const NAV_ITEMS = [
   { path: '/',               label: 'ホーム',     icon: '⊞', adminOnly: false },
   { path: '/exercise/setup', label: '演習モード', icon: '✎', adminOnly: false },
+  { path: '/exam/setup',     label: '模試モード', icon: '⏱', adminOnly: false },
   { path: '/questions',      label: '問題一覧',   icon: '☰', adminOnly: false },
   { path: '/admin',          label: '管理画面',   icon: '⚙', adminOnly: true  },
 ];
@@ -19,7 +20,16 @@ export default function Layout({ children }: { children: React.ReactNode }) {
   const [open, setOpen] = useState(() =>
     localStorage.getItem('sidebarOpen') !== 'false'
   );
+  const [searchQuery, setSearchQuery] = useState('');
   const isAdmin = user?.username === ADMIN_EMAIL;
+
+  const handleSearch = (e: React.FormEvent) => {
+    e.preventDefault();
+    const q = searchQuery.trim();
+    if (!q) return;
+    navigate(`/questions?keyword=${encodeURIComponent(q)}`);
+    setSearchQuery('');
+  };
 
   const toggle = () => setOpen(prev => {
     localStorage.setItem('sidebarOpen', String(!prev));
@@ -61,14 +71,34 @@ export default function Layout({ children }: { children: React.ReactNode }) {
         {/* サービス名 */}
         <span
           onClick={() => navigate('/')}
-          style={{ color: 'white', fontWeight: 'bold', fontSize: 16, cursor: 'pointer', userSelect: 'none' }}
+          style={{ color: 'white', fontWeight: 'bold', fontSize: 16, cursor: 'pointer', userSelect: 'none', whiteSpace: 'nowrap' }}
         >
           AWS Quiz
         </span>
-        <span style={{ color: '#ff9900', fontSize: 11, marginTop: 2 }}>Practice</span>
+        <span style={{ color: '#ff9900', fontSize: 11, marginTop: 2, whiteSpace: 'nowrap' }}>Practice</span>
+
+        {/* 検索バー */}
+        <form onSubmit={handleSearch} style={{ flex: 1, maxWidth: 420, margin: '0 16px' }}>
+          <div style={{ position: 'relative', display: 'flex', alignItems: 'center' }}>
+            <span style={{ position: 'absolute', left: 10, color: '#aaa', fontSize: 14, pointerEvents: 'none' }}>🔍</span>
+            <input
+              value={searchQuery}
+              onChange={e => setSearchQuery(e.target.value)}
+              placeholder="サービス名・キーワードで検索"
+              style={{
+                width: '100%', padding: '6px 12px 6px 32px',
+                borderRadius: 4, border: '1px solid #4a5568',
+                background: '#1a2332', color: 'white',
+                fontSize: 13, outline: 'none',
+              }}
+              onFocus={e => { e.currentTarget.style.borderColor = '#ff9900'; }}
+              onBlur={e => { e.currentTarget.style.borderColor = '#4a5568'; }}
+            />
+          </div>
+        </form>
 
         {/* 右側ユーザー情報 */}
-        <div style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: 16 }}>
+        <div style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: 16, flexShrink: 0 }}>
           {user && (
             <span style={{ color: '#d5dbdb', fontSize: 13 }}>{user.username}</span>
           )}

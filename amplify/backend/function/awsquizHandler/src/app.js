@@ -36,7 +36,7 @@ app.get('/health', (req, res) => {
 app.get('/questions', async (req, res) => {
   try {
     const docClient = getClient();
-    const { examType, tagId, limit, shuffle: doShuffle } = req.query;
+    const { examType, tagId, limit, shuffle: doShuffle, keyword } = req.query;
     let items = [];
 
     if (tagId) {
@@ -61,6 +61,15 @@ app.get('/questions', async (req, res) => {
     } else {
       const result = await docClient.send(new ScanCommand({ TableName: 'Questions' }));
       items = result.Items;
+    }
+
+    if (keyword) {
+      const kw = keyword.toLowerCase();
+      items = items.filter(q =>
+        q.questionText.toLowerCase().includes(kw) ||
+        (q.tags || []).some(t => t.toLowerCase().includes(kw)) ||
+        q.questionId.toLowerCase().includes(kw)
+      );
     }
 
     if (doShuffle === 'true') items = shuffle(items);
@@ -402,6 +411,90 @@ app.get('/users/me/stats', async (req, res) => {
       ExpressionAttributeValues: { ':userId': userId }
     }));
     res.json({ stats: result.Items || [] });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+// ── Tips（コラム）──
+
+// 演習モード用：試験種別に合うコラムを全件返す
+app.get('/tips', async (req, res) => {
+  try {
+    const docClient = getClient();
+    const { examType } = req.query;
+    const result = await docClient.send(new ScanCommand({
+      TableName: 'Tips',
+      ...(examType ? {
+        FilterExpression: 'examType = :et OR examType = :all',
+        ExpressionAttributeValues: { ':et': examType, ':all': 'ALL' }
+      } : {})
+    }));
+    res.json({ items: result.Items || [] });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+// 管理者用：全件取得
+app.get('/admin/tips', async (req, res) => {
+  try {
+    const docClient = getClient();
+    const result = await docClient.send(new ScanCommand({ TableName: 'Tips' }));
+    const items = (result.Items || []).sort((a, b) => a.examType.localeCompare(b.examType));
+    res.json({ items });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+// 管理者用：追加
+app.post('/admin/tips', async (req, res) => {
+  try {
+    const docClient = getClient();
+    const { examType, title, content } = req.body;
+    const tipId = uuidv4();
+    await docClient.send(new PutCommand({
+      TableName: 'Tips',
+      Item: { tipId, examType, title, content, createdAt: new Date().toISOString() }
+    }));
+    res.json({ tipId });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+// 管理者用：更新
+app.put('/admin/tips/:id', async (req, res) => {
+  try {
+    const docClient = getClient();
+    const { examType, title, content } = req.body;
+    await docClient.send(new UpdateCommand({
+      TableName: 'Tips',
+      Key: { tipId: req.params.id },
+      UpdateExpression: 'SET examType = :et, title = :t, content = :c',
+      ExpressionAttributeValues: { ':et': examType, ':t': title, ':c': content }
+    }));
+    res.json({ success: true });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+// 管理者用：削除
+app.delete('/admin/tips/:id', async (req, res) => {
+  try {
+    const docClient = getClient();
+    await docClient.send(new DeleteCommand({
+      TableName: 'Tips',
+      Key: { tipId: req.params.id }
+    }));
+    res.json({ success: true });
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: 'Internal server error' });

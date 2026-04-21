@@ -1,7 +1,9 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { API_ENDPOINT, PASS_RATE } from '../constants';
 import Breadcrumb from '../components/Breadcrumb';
+
+type Tip = { tipId: string; title: string; content: string; examType: string };
 
 type Question = {
   questionId: string;
@@ -23,6 +25,14 @@ export default function ExerciseSession() {
   const [selectedAnswers, setSelectedAnswers] = useState<string[]>([]);
   const [answered, setAnswered] = useState(false);
   const [detail, setDetail] = useState<Question | null>(null);
+  const [tips, setTips] = useState<Tip[]>([]);
+
+  useEffect(() => {
+    fetch(`${API_ENDPOINT}/tips?examType=${examType}`)
+      .then(r => r.json())
+      .then(d => setTips(d.items ?? []))
+      .catch(() => {});
+  }, [examType]);
   const [results, setResults] = useState<{ questionId: string; isCorrect: boolean }[]>([]);
   const [loading, setLoading] = useState(false);
 
@@ -75,7 +85,6 @@ export default function ExerciseSession() {
 
   const nextQuestion = async () => {
     if (currentIndex + 1 >= questions.length) {
-      const correctCount = results.filter(r => r.isCorrect).length + (answered && detail ? 1 : 0);
       const score = Math.round((results.filter(r => r.isCorrect).length / questions.length) * 100);
       const passRate = PASS_RATE[examType] ?? PASS_RATE['SAA'];
       const isPassed = score >= passRate;
@@ -151,6 +160,20 @@ export default function ExerciseSession() {
           </button>
         )}
       </div>
+
+      {/* コラム（豆知識） */}
+      {tips.length > 0 && (() => {
+        const tip = tips[currentIndex % tips.length];
+        return (
+          <div style={{ marginTop: 32, borderTop: "1px solid #e8e8e8", paddingTop: 20 }}>
+            <div style={{ fontSize: 11, color: "#aaa", letterSpacing: 1, marginBottom: 8 }}>📖 COLUMN</div>
+            <div style={{ background: "#fffbf0", border: "1px solid #ffe8a0", borderRadius: 8, padding: "14px 18px" }}>
+              <p style={{ fontWeight: "bold", color: "#7a5500", margin: "0 0 6px", fontSize: 14 }}>{tip.title}</p>
+              <p style={{ color: "#555", margin: 0, fontSize: 13, lineHeight: 1.7 }}>{tip.content}</p>
+            </div>
+          </div>
+        );
+      })()}
     </div>
   );
 }

@@ -12,6 +12,8 @@ import ExerciseSetup from './pages/ExerciseSetup';
 import ExerciseSession from './pages/ExerciseSession';
 import Result from './pages/Result';
 import Admin from './pages/Admin';
+import ExamSetup from './pages/ExamSetup';
+import ExamSession from './pages/ExamSession';
 
 Amplify.configure(awsExports);
 
@@ -42,6 +44,16 @@ function App() {
           <Route path="/result" element={
             <PrivateRoute>
               <Layout><Result /></Layout>
+            </PrivateRoute>
+          } />
+          <Route path="/exam/setup" element={
+            <PrivateRoute>
+              <Layout><ExamSetup /></Layout>
+            </PrivateRoute>
+          } />
+          <Route path="/exam/session" element={
+            <PrivateRoute>
+              <Layout><ExamSession /></Layout>
             </PrivateRoute>
           } />
           <Route path="/admin" element={

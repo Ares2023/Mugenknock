@@ -20,7 +20,14 @@ type Report = {
   reportedAt: string;
 };
 
-type Tab = 'questions' | 'reports';
+type Tip = {
+  tipId: string;
+  examType: string;
+  title: string;
+  content: string;
+};
+
+type Tab = 'questions' | 'reports' | 'tips';
 
 export default function Admin() {
   const [tab, setTab] = useState<Tab>('questions');
@@ -36,6 +43,13 @@ export default function Admin() {
   // 通報
   const [reports, setReports] = useState<Report[]>([]);
   const [loadingR, setLoadingR] = useState(false);
+
+  // コラム管理
+  const [tips, setTips] = useState<Tip[]>([]);
+  const [loadingT, setLoadingT] = useState(false);
+  const [editingTip, setEditingTip] = useState<Tip | null>(null);
+  const [tipForm, setTipForm] = useState({ examType: 'ALL', title: '', content: '' });
+  const [showTipForm, setShowTipForm] = useState(false);
 
   const fetchQuestions = useCallback(async () => {
     setLoadingQ(true);
@@ -66,8 +80,47 @@ export default function Admin() {
     }
   }, []);
 
+  const fetchTips = useCallback(async () => {
+    setLoadingT(true);
+    try {
+      const res = await fetch(`${API_ENDPOINT}/admin/tips`);
+      const data = await res.json();
+      setTips(data.items || []);
+    } catch (err) { console.error(err); } finally { setLoadingT(false); }
+  }, []);
+
   useEffect(() => { fetchQuestions(); }, [examFilter]);
   useEffect(() => { if (tab === 'reports') fetchReports(); }, [tab]);
+  useEffect(() => { if (tab === 'tips') fetchTips(); }, [tab]);
+
+  const handleSaveTip = async () => {
+    if (!tipForm.title.trim() || !tipForm.content.trim()) return;
+    try {
+      if (editingTip) {
+        await fetch(`${API_ENDPOINT}/admin/tips/${editingTip.tipId}`, {
+          method: 'PUT', headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(tipForm)
+        });
+      } else {
+        await fetch(`${API_ENDPOINT}/admin/tips`, {
+          method: 'POST', headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(tipForm)
+        });
+      }
+      setShowTipForm(false);
+      setEditingTip(null);
+      setTipForm({ examType: 'ALL', title: '', content: '' });
+      fetchTips();
+    } catch (err) { console.error(err); }
+  };
+
+  const handleDeleteTip = async (tip: Tip) => {
+    if (!window.confirm(`「${tip.title}」を削除しますか？`)) return;
+    try {
+      await fetch(`${API_ENDPOINT}/admin/tips/${tip.tipId}`, { method: 'DELETE' });
+      setTips(prev => prev.filter(t => t.tipId !== tip.tipId));
+    } catch (err) { console.error(err); }
+  };
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
@@ -98,7 +151,7 @@ export default function Admin() {
     borderBottom: tab === t ? '3px solid #ff9900' : '3px solid transparent',
     background: 'none',
     cursor: 'pointer',
-    fontWeight: tab === t ? 'bold' : 'normal' as any,
+    fontWeight: (tab === t ? 'bold' : 'normal') as any,
     color: tab === t ? '#232f3e' : '#888',
     fontSize: 15,
   });
@@ -118,6 +171,7 @@ export default function Admin() {
       <div style={{ borderBottom: '1px solid #e0e0e0', marginBottom: 24 }}>
         <button style={tabStyle('questions')} onClick={() => setTab('questions')}>問題管理</button>
         <button style={tabStyle('reports')} onClick={() => setTab('reports')}>通報確認</button>
+        <button style={tabStyle('tips')} onClick={() => setTab('tips')}>コラム管理</button>
       </div>
 
       {/* ── 問題管理 ── */}
@@ -248,6 +302,92 @@ export default function Admin() {
 
           {!loadingR && reports.length === 0 && (
             <p style={{ color: '#aaa', textAlign: 'center', padding: 40 }}>通報はありません</p>
+          )}
+        </div>
+      )}
+
+      {/* ── コラム管理 ── */}
+      {tab === 'tips' && (
+        <div>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
+            <p style={{ color: '#888', fontSize: 13, margin: 0 }}>
+              {loadingT ? '読み込み中...' : `${tips.length} 件`}
+            </p>
+            <button onClick={() => { setEditingTip(null); setTipForm({ examType: 'ALL', title: '', content: '' }); setShowTipForm(true); }}
+              style={{ padding: '7px 18px', background: '#ff9900', color: 'white', border: 'none', borderRadius: 4, cursor: 'pointer', fontSize: 13 }}>
+              ＋ コラムを追加
+            </button>
+          </div>
+
+          {/* フォーム */}
+          {showTipForm && (
+            <div style={{ border: '1px solid #e0e0e0', borderRadius: 8, padding: 20, marginBottom: 20, background: '#fafafa' }}>
+              <h4 style={{ margin: '0 0 14px', color: '#232f3e' }}>{editingTip ? 'コラムを編集' : '新規コラム'}</h4>
+              <div style={{ display: 'flex', gap: 8, marginBottom: 10 }}>
+                {['ALL', 'CLF', 'SAA', 'SAP'].map(t => (
+                  <button key={t} type="button" onClick={() => setTipForm(f => ({ ...f, examType: t }))}
+                    style={{ padding: '5px 12px', border: 'none', borderRadius: 4, cursor: 'pointer',
+                      background: tipForm.examType === t ? '#232f3e' : '#eee',
+                      color: tipForm.examType === t ? 'white' : '#333',
+                      fontWeight: tipForm.examType === t ? 'bold' : 'normal' }}>
+                    {t}
+                  </button>
+                ))}
+              </div>
+              <input
+                value={tipForm.title}
+                onChange={e => setTipForm(f => ({ ...f, title: e.target.value }))}
+                placeholder="タイトル"
+                style={{ width: '100%', padding: '7px 10px', border: '1px solid #ddd', borderRadius: 4, fontSize: 14, marginBottom: 8, boxSizing: 'border-box' }}
+              />
+              <textarea
+                value={tipForm.content}
+                onChange={e => setTipForm(f => ({ ...f, content: e.target.value }))}
+                placeholder="内容"
+                rows={4}
+                style={{ width: '100%', padding: '7px 10px', border: '1px solid #ddd', borderRadius: 4, fontSize: 14, resize: 'vertical', boxSizing: 'border-box' }}
+              />
+              <div style={{ display: 'flex', gap: 8, marginTop: 10 }}>
+                <button onClick={handleSaveTip}
+                  style={{ padding: '7px 20px', background: '#232f3e', color: 'white', border: 'none', borderRadius: 4, cursor: 'pointer' }}>
+                  保存
+                </button>
+                <button onClick={() => { setShowTipForm(false); setEditingTip(null); }}
+                  style={{ padding: '7px 16px', border: '1px solid #ccc', borderRadius: 4, cursor: 'pointer', background: 'white' }}>
+                  キャンセル
+                </button>
+              </div>
+            </div>
+          )}
+
+          {/* コラム一覧 */}
+          {tips.map(tip => (
+            <div key={tip.tipId} style={{ border: '1px solid #e0e0e0', borderRadius: 8, padding: '12px 16px', marginBottom: 8, background: 'white' }}>
+              <div style={{ display: 'flex', alignItems: 'flex-start', gap: 10 }}>
+                <span style={{
+                  background: tip.examType === 'SAP' ? '#8e44ad' : tip.examType === 'SAA' ? '#2980b9' : tip.examType === 'CLF' ? '#27ae60' : '#888',
+                  color: 'white', fontSize: 11, padding: '2px 7px', borderRadius: 4, flexShrink: 0, marginTop: 2,
+                }}>{tip.examType}</span>
+                <div style={{ flex: 1 }}>
+                  <p style={{ margin: '0 0 4px', fontWeight: 'bold', fontSize: 14 }}>{tip.title}</p>
+                  <p style={{ margin: 0, fontSize: 13, color: '#555', lineHeight: 1.6 }}>{tip.content}</p>
+                </div>
+                <div style={{ display: 'flex', gap: 6, flexShrink: 0 }}>
+                  <button onClick={() => { setEditingTip(tip); setTipForm({ examType: tip.examType, title: tip.title, content: tip.content }); setShowTipForm(true); }}
+                    style={{ padding: '4px 10px', border: '1px solid #ccc', borderRadius: 4, cursor: 'pointer', background: 'white', fontSize: 12 }}>
+                    編集
+                  </button>
+                  <button onClick={() => handleDeleteTip(tip)}
+                    style={{ padding: '4px 10px', background: '#e74c3c', color: 'white', border: 'none', borderRadius: 4, cursor: 'pointer', fontSize: 12 }}>
+                    削除
+                  </button>
+                </div>
+              </div>
+            </div>
+          ))}
+
+          {!loadingT && tips.length === 0 && (
+            <p style={{ color: '#aaa', textAlign: 'center', padding: 40 }}>コラムはありません</p>
           )}
         </div>
       )}

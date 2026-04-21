@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { API_ENDPOINT } from '../constants';
 import Breadcrumb from '../components/Breadcrumb';
 
@@ -16,17 +16,22 @@ type Question = {
 
 export default function QuestionList() {
   const navigate = useNavigate();
+  const location = useLocation();
   const [questions, setQuestions] = useState<Question[]>([]);
   const [selected, setSelected] = useState<Set<string>>(new Set());
   const [copiedId, setCopiedId] = useState<string | null>(null);
   const [examType, setExamType] = useState('');
+  const [keyword, setKeyword] = useState('');
   const [expandedId, setExpandedId] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
 
-  const fetchQuestions = async (type: string) => {
+  const fetchQuestions = async (type: string, kw: string) => {
     setLoading(true);
     try {
-      const url = type ? `${API_ENDPOINT}/questions?examType=${type}` : `${API_ENDPOINT}/questions`;
+      const params = new URLSearchParams();
+      if (type) params.set('examType', type);
+      if (kw.trim()) params.set('keyword', kw.trim());
+      const url = `${API_ENDPOINT}/questions${params.toString() ? '?' + params : ''}`;
       const res = await fetch(url);
       const data = await res.json();
       setQuestions(data.items || []);
@@ -38,7 +43,17 @@ export default function QuestionList() {
     }
   };
 
-  useEffect(() => { fetchQuestions(''); }, []);
+  useEffect(() => {
+    const params = new URLSearchParams(location.search);
+    const kw = params.get('keyword') || '';
+    setKeyword(kw);
+    fetchQuestions('', kw);
+  }, [location.search]);
+
+  const handleSearch = (e: React.FormEvent) => {
+    e.preventDefault();
+    navigate(`/questions${keyword.trim() ? '?keyword=' + encodeURIComponent(keyword.trim()) : ''}`);
+  };
 
   const fetchDetail = async (id: string) => {
     if (expandedId === id) { setExpandedId(null); return; }
@@ -91,9 +106,27 @@ export default function QuestionList() {
         <h1 style={{ color: "#232f3e", margin: 0 }}>AWS資格問題一覧</h1>
       </div>
 
+      <form onSubmit={handleSearch} style={{ marginBottom: 16, display: "flex", gap: 8 }}>
+        <input
+          value={keyword}
+          onChange={e => setKeyword(e.target.value)}
+          placeholder="サービス名・キーワードで検索"
+          style={{ flex: 1, padding: "6px 12px", border: "1px solid #ddd", borderRadius: 4, fontSize: 14 }}
+        />
+        <button type="submit" style={{ padding: "6px 16px", background: "#ff9900", color: "white", border: "none", borderRadius: 4, cursor: "pointer" }}>
+          検索
+        </button>
+        {keyword && (
+          <button type="button" onClick={() => navigate('/questions')}
+            style={{ padding: "6px 12px", border: "1px solid #ddd", borderRadius: 4, cursor: "pointer", background: "white" }}>
+            クリア
+          </button>
+        )}
+      </form>
+
       <div style={{ marginBottom: 16, display: "flex", gap: 8 }}>
         {["", "CLF", "SAA", "SAP"].map(type => (
-          <button key={type} onClick={() => { setExamType(type); fetchQuestions(type); }}
+          <button key={type} onClick={() => { setExamType(type); fetchQuestions(type, keyword); }}
             style={{ padding: "6px 16px", background: examType === type ? "#ff9900" : "#eee", border: "none", borderRadius: 4, cursor: "pointer", fontWeight: examType === type ? "bold" : "normal" }}>
             {type || "全て"}
           </button>

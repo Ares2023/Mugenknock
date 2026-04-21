@@ -20,6 +20,11 @@
       "name": "/admin",
       "lambdaFunction": "awsquizHandler",
       "permissions": { "setting": "open" }
+    },
+    "/tips": {
+      "name": "/tips",
+      "lambdaFunction": "awsquizHandler",
+      "permissions": { "setting": "open" }
     }
   }
 }
