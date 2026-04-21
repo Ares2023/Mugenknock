@@ -352,10 +352,12 @@ export default function Admin() {
       {tab === 'import' && (() => {
         const EXAMPLE = JSON.stringify([
           {
+            examType: "SAA",
             questionText: "Amazon S3の特徴として正しいものはどれですか？",
             choices: ["A. リレーショナルデータベースサービス", "B. オブジェクトストレージサービス", "C. インメモリキャッシュサービス", "D. コンテナオーケストレーションサービス"],
             correctAnswers: ["B. オブジェクトストレージサービス"],
             explanation: "Amazon S3はオブジェクトストレージサービスです。",
+            tags: ["S3", "ストレージ", "知識問題"],
             isMultiple: false
           }
         ], null, 2);
@@ -513,6 +515,7 @@ export default function Admin() {
 ・correctAnswers の文字列は choices の文字列と完全一致させること
 ・解説は「正解の理由」と「各不正解の理由」を含めること（150字以上）
 ・本番試験と同等の難易度・文体で作成すること
+・tags 配列には、関連するAWSサービス名、分野（セキュリティ、高可用性など）、または問題の種類（シナリオ、知識）を含めること。
 
 【出力形式】
 [
@@ -521,7 +524,8 @@ export default function Admin() {
     "choices": ["A. 選択肢1", "B. 選択肢2", "C. 選択肢3", "D. 選択肢4"],
     "correctAnswers": ["A. 選択肢1"],
     "explanation": "解説文",
-    "isMultiple": false
+    "isMultiple": false,
+    "tags": ["関連サービス名", "問題の種類"]
   }
 ]`;
 

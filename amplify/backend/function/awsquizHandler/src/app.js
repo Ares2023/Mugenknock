@@ -166,26 +166,28 @@ app.post('/admin/questions', async (req, res) => {
 
     for (let i = 0; i < questions.length; i++) {
       const q = questions[i];
+      const itemExamType = q.examType || examType;
       const shortId = uuidv4().replace(/-/g, '').slice(0, 8);
-      const questionId = `${examType.toLowerCase()}-${shortId}`;
+      const questionId = `${itemExamType.toLowerCase()}-${shortId}`;
+      const itemTags = Array.from(new Set([...(tags || []), ...(q.tags || [])]));
 
       await docClient.send(new PutCommand({
         TableName: 'Questions',
         Item: {
           questionId,
-          examType,
+          examType: itemExamType,
           questionText: q.questionText,
           choices: q.choices,
           correctAnswers: q.correctAnswers,
           explanation: q.explanation || '',
-          tags: tags || [],
+          tags: itemTags,
           isMultiple: q.isMultiple ?? false,
           createdAt: now,
         }
       }));
 
-      if (tags && tags.length > 0) {
-        await Promise.all(tags.map(tagId =>
+      if (itemTags.length > 0) {
+        await Promise.all(itemTags.map(tagId =>
           docClient.send(new PutCommand({
             TableName: 'QuestionTagRelations',
             Item: { tagId, questionId }
