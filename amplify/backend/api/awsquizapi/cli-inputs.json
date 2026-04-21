@@ -15,6 +15,11 @@
       "name": "/users",
       "lambdaFunction": "awsquizHandler",
       "permissions": { "setting": "open" }
+    },
+    "/admin": {
+      "name": "/admin",
+      "lambdaFunction": "awsquizHandler",
+      "permissions": { "setting": "open" }
     }
   }
 }
