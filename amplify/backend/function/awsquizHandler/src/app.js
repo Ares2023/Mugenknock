@@ -400,6 +400,28 @@ app.get('/users/me/question-stats', async (req, res) => {
   }
 });
 
+// セッション履歴取得
+app.get('/users/me/sessions', async (req, res) => {
+  try {
+    const docClient = getClient();
+    const { userId, limit } = req.query;
+    const result = await docClient.send(new QueryCommand({
+      TableName: 'Sessions',
+      KeyConditionExpression: 'userId = :uid',
+      FilterExpression: '#s = :completed',
+      ExpressionAttributeNames: { '#s': 'status' },
+      ExpressionAttributeValues: { ':uid': userId, ':completed': 'completed' }
+    }));
+    const items = (result.Items || [])
+      .sort((a, b) => ((b.endedAt || b.startedAt) > (a.endedAt || a.startedAt) ? 1 : -1))
+      .slice(0, parseInt(limit) || 20);
+    res.json({ items });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
 // 統計取得
 app.get('/users/me/stats', async (req, res) => {
   try {

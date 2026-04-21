@@ -125,10 +125,10 @@ export default function QuestionList() {
       </form>
 
       <div style={{ marginBottom: 16, display: "flex", gap: 8 }}>
-        {["", "CLF", "SAA", "SAP"].map(type => (
+        {["CLF", "SAA", "SAP"].map(type => (
           <button key={type} onClick={() => { setExamType(type); fetchQuestions(type, keyword); }}
             style={{ padding: "6px 16px", background: examType === type ? "#ff9900" : "#eee", border: "none", borderRadius: 4, cursor: "pointer", fontWeight: examType === type ? "bold" : "normal" }}>
-            {type || "全て"}
+            {type}
           </button>
         ))}
       </div>
