@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { API_ENDPOINT, PASS_SCORE } from '../constants';
+import Breadcrumb from '../components/Breadcrumb';
 
 type Question = {
   questionId: string;
@@ -106,6 +107,7 @@ export default function ExerciseSession() {
 
   return (
     <div style={{ maxWidth: 700, margin: "0 auto", padding: 24, fontFamily: "sans-serif" }}>
+      <Breadcrumb items={[{ label: 'ホーム', path: '/' }, { label: '演習設定', path: '/exercise/setup' }, { label: '演習中' }]} />
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 16 }}>
         <span style={{ color: "#888" }}>{currentIndex + 1} / {questions.length} 問</span>
         <span style={{ background: "#ff9900", color: "white", padding: "2px 8px", borderRadius: 4, fontSize: 12 }}>{currentQuestion.examType}</span>

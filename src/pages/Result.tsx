@@ -1,6 +1,7 @@
 import React from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { PASS_SCORE } from '../constants';
+import Breadcrumb from '../components/Breadcrumb';
 
 export default function Result() {
   const navigate = useNavigate();
@@ -9,6 +10,7 @@ export default function Result() {
 
   return (
     <div style={{ maxWidth: 700, margin: "0 auto", padding: 24, fontFamily: "sans-serif" }}>
+      <Breadcrumb items={[{ label: 'ホーム', path: '/' }, { label: '演習設定', path: '/exercise/setup' }, { label: '演習中' }, { label: '結果' }]} />
       <h1 style={{ color: "#232f3e" }}>結果</h1>
 
       <div style={{ textAlign: "center", padding: 32, background: isPassed ? "#eafaf1" : "#fdf2f2", borderRadius: 12, marginBottom: 24 }}>

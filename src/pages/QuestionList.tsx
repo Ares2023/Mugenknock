@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { API_ENDPOINT } from '../constants';
+import Breadcrumb from '../components/Breadcrumb';
 
 type Question = {
   questionId: string;
@@ -83,9 +84,9 @@ export default function QuestionList() {
 
   return (
     <div style={{ maxWidth: 900, margin: "0 auto", padding: 24, fontFamily: "sans-serif" }}>
+      <Breadcrumb items={[{ label: 'ホーム', path: '/' }, { label: '問題一覧' }]} />
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 16 }}>
         <h1 style={{ color: "#232f3e", margin: 0 }}>AWS資格問題一覧</h1>
-        <button onClick={() => navigate("/")} style={{ padding: "6px 16px", cursor: "pointer" }}>ホームへ</button>
       </div>
 
       <div style={{ marginBottom: 16, display: "flex", gap: 8 }}>

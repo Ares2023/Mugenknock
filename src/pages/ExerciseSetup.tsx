@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { API_ENDPOINT, EXAM_TYPES } from '../constants';
 import { useAuth } from '../contexts/AuthContext';
+import Breadcrumb from '../components/Breadcrumb';
 
 export default function ExerciseSetup() {
   const navigate = useNavigate();
@@ -45,6 +46,7 @@ export default function ExerciseSetup() {
 
   return (
     <div style={{ maxWidth: 600, margin: "0 auto", padding: 24, fontFamily: "sans-serif" }}>
+      <Breadcrumb items={[{ label: 'ホーム', path: '/' }, { label: '演習設定' }]} />
       <h1 style={{ color: "#232f3e" }}>演習設定</h1>
 
       <div style={{ marginBottom: 24 }}>
@@ -75,7 +77,7 @@ export default function ExerciseSetup() {
       <div style={{ display: "flex", gap: 16 }}>
         <button onClick={() => navigate("/")}
           style={{ padding: "12px 24px", cursor: "pointer", borderRadius: 4, border: "1px solid #aaa" }}>
-          戻る
+          ホームへ戻る
         </button>
         <button onClick={startSession} disabled={loading}
           style={{ padding: "12px 24px", background: loading ? "#ccc" : "#ff9900", color: "white", border: "none", borderRadius: 4, cursor: loading ? "default" : "pointer", fontSize: 16 }}>

@@ -1,6 +1,7 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
+import Breadcrumb from '../components/Breadcrumb';
 
 export default function Home() {
   const navigate = useNavigate();
@@ -13,6 +14,7 @@ export default function Home() {
 
   return (
     <div style={{ maxWidth: 600, margin: '0 auto', padding: 24, fontFamily: 'sans-serif' }}>
+      <Breadcrumb items={[{ label: 'ホーム' }]} />
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
         <h1 style={{ color: '#232f3e', margin: 0 }}>AWS資格問題サービス</h1>
         <button
