@@ -124,7 +124,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
           transition: 'width 0.2s ease, min-width 0.2s ease',
           display: 'flex', flexDirection: 'column',
         }}>
-          <div style={{ width: SIDEBAR_WIDTH, paddingTop: 8 }}>
+          <div style={{ width: SIDEBAR_WIDTH, paddingTop: 8, display: 'flex', flexDirection: 'column', height: '100%' }}>
             {NAV_ITEMS.filter(item => !item.adminOnly || isAdmin).map(item => {
               const active = isActive(item.path);
               return (
@@ -155,6 +155,32 @@ export default function Layout({ children }: { children: React.ReactNode }) {
                 </button>
               );
             })}
+
+            {/* AI リンク */}
+            <div style={{ marginTop: 'auto', borderTop: '1px solid #e8e8e8', padding: '12px 16px' }}>
+              <div style={{ fontSize: 11, color: '#aaa', marginBottom: 8, paddingLeft: 4 }}>AI で調べる</div>
+              {[
+                { label: 'ChatGPT', url: 'https://chatgpt.com/', color: '#10a37f' },
+                { label: 'Gemini',  url: 'https://gemini.google.com/', color: '#4285f4' },
+                { label: 'Claude',  url: 'https://claude.ai/', color: '#d97757' },
+              ].map(ai => (
+                <a key={ai.label} href={ai.url} target="_blank" rel="noreferrer"
+                  style={{
+                    display: 'flex', alignItems: 'center', gap: 8,
+                    padding: '7px 10px', marginBottom: 4, borderRadius: 6,
+                    textDecoration: 'none', fontSize: 13, color: '#333',
+                    border: '1px solid #e8e8e8', background: 'white',
+                    transition: 'background 0.15s',
+                  }}
+                  onMouseEnter={e => { (e.currentTarget as HTMLElement).style.background = '#f5f5f5'; }}
+                  onMouseLeave={e => { (e.currentTarget as HTMLElement).style.background = 'white'; }}
+                >
+                  <span style={{ width: 8, height: 8, borderRadius: '50%', background: ai.color, flexShrink: 0 }} />
+                  {ai.label}
+                  <span style={{ marginLeft: 'auto', fontSize: 11, color: '#bbb' }}>↗</span>
+                </a>
+              ))}
+            </div>
           </div>
         </nav>
 
