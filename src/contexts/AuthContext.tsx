@@ -1,9 +1,10 @@
 import React, { createContext, useContext, useEffect, useState } from 'react';
-import { getCurrentUser, signOut as amplifySignOut } from 'aws-amplify/auth';
+import { getCurrentUser, fetchUserAttributes, signOut as amplifySignOut } from 'aws-amplify/auth';
 
 type AuthUser = {
   userId: string;
   username: string;
+  email: string;
 };
 
 type AuthContextType = {
@@ -27,7 +28,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const loadUser = async () => {
     try {
       const current = await getCurrentUser();
-      setUser({ userId: current.userId, username: current.username });
+      const attrs = await fetchUserAttributes();
+      const email = attrs.email ?? current.signInDetails?.loginId ?? current.username;
+      setUser({ userId: current.userId, username: current.username, email });
     } catch {
       setUser(null);
     } finally {

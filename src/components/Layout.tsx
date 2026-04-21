@@ -21,7 +21,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
     localStorage.getItem('sidebarOpen') !== 'false'
   );
   const [searchQuery, setSearchQuery] = useState('');
-  const isAdmin = user?.username === ADMIN_EMAIL;
+  const isAdmin = user?.email === ADMIN_EMAIL;
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
@@ -100,7 +100,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
         {/* 右側ユーザー情報 */}
         <div style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: 16, flexShrink: 0 }}>
           {user && (
-            <span style={{ color: '#d5dbdb', fontSize: 13 }}>{user.username}</span>
+            <span style={{ color: '#d5dbdb', fontSize: 13 }}>{user.email}</span>
           )}
           <button onClick={handleSignOut} style={{
             background: 'none', border: '1px solid #4a5568', borderRadius: 4,
