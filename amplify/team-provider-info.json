@@ -18,7 +18,7 @@
       "function": {
         "awsquizHandler": {
           "deploymentBucketName": "amplify-awsquizapp-dev-15ac9-deployment",
-          "s3Key": "amplify-builds/awsquizHandler-68432b506a6d4f51674a-build.zip"
+          "s3Key": "amplify-builds/awsquizHandler-70774874703353694c77-build.zip"
         }
       },
       "api": {

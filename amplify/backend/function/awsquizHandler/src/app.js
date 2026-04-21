@@ -1,14 +1,24 @@
 const express = require('express');
 const { DynamoDBClient } = require('@aws-sdk/client-dynamodb');
-const { DynamoDBDocumentClient, ScanCommand, GetCommand, QueryCommand } = require('@aws-sdk/lib-dynamodb');
+const { DynamoDBDocumentClient, ScanCommand, GetCommand, QueryCommand, PutCommand, UpdateCommand, TransactWriteCommand } = require('@aws-sdk/lib-dynamodb');
+const { v4: uuidv4 } = require('uuid');
 
 const app = express();
 app.use(express.json());
 
-const client = new DynamoDBClient({ region: 'ap-northeast-1' });
-const docClient = DynamoDBDocumentClient.from(client);
+const getClient = () => {
+  const client = new DynamoDBClient({ region: 'ap-northeast-1' });
+  return DynamoDBDocumentClient.from(client);
+};
 
-// シャッフル関数
+app.use((req, res, next) => {
+  res.header('Access-Control-Allow-Origin', '*');
+  res.header('Access-Control-Allow-Headers', 'Content-Type,Authorization');
+  res.header('Access-Control-Allow-Methods', 'GET,POST,PUT,DELETE,OPTIONS');
+  if (req.method === 'OPTIONS') return res.sendStatus(200);
+  next();
+});
+
 function shuffle(array) {
   for (let i = array.length - 1; i > 0; i--) {
     const j = Math.floor(Math.random() * (i + 1));
@@ -25,28 +35,22 @@ app.get('/health', (req, res) => {
 // 問題一覧取得
 app.get('/questions', async (req, res) => {
   try {
+    const docClient = getClient();
     const { examType, tagId, limit, shuffle: doShuffle } = req.query;
-
     let items = [];
 
     if (tagId) {
-      // タグで絞り込む場合はQuestionTagRelationsを経由
       const relResult = await docClient.send(new QueryCommand({
         TableName: 'QuestionTagRelations',
         KeyConditionExpression: 'tagId = :tagId',
         ExpressionAttributeValues: { ':tagId': tagId }
       }));
-      const questionIds = relResult.Items.map(i => i.questionId);
-
-      // 各questionIdで問題を取得
-      const promises = questionIds.map(qid =>
-        docClient.send(new GetCommand({ TableName: 'Questions', Key: { questionId: qid } }))
+      const promises = relResult.Items.map(i =>
+        docClient.send(new GetCommand({ TableName: 'Questions', Key: { questionId: i.questionId } }))
       );
       const results = await Promise.all(promises);
       items = results.map(r => r.Item).filter(Boolean);
-
     } else if (examType) {
-      // 試験種別で絞り込む
       const result = await docClient.send(new QueryCommand({
         TableName: 'Questions',
         IndexName: 'examType-index',
@@ -54,26 +58,14 @@ app.get('/questions', async (req, res) => {
         ExpressionAttributeValues: { ':examType': examType }
       }));
       items = result.Items;
-
     } else {
-      // 全件取得
       const result = await docClient.send(new ScanCommand({ TableName: 'Questions' }));
       items = result.Items;
     }
 
-    // シャッフル
-    if (doShuffle === 'true') {
-      items = shuffle(items);
-    }
-
-    // 件数制限
-    if (limit) {
-      items = items.slice(0, parseInt(limit));
-    }
-
-    // 正解・解説を除いて返す（一覧では不要）
+    if (doShuffle === 'true') items = shuffle(items);
+    if (limit) items = items.slice(0, parseInt(limit));
     const sanitized = items.map(({ correctAnswers, explanation, ...rest }) => rest);
-
     res.json({ items: sanitized, count: sanitized.length });
   } catch (err) {
     console.error(err);
@@ -81,17 +73,221 @@ app.get('/questions', async (req, res) => {
   }
 });
 
-// 問題1件取得（正解・解説含む）
+// 問題1件取得
 app.get('/questions/:id', async (req, res) => {
   try {
+    const docClient = getClient();
     const result = await docClient.send(new GetCommand({
       TableName: 'Questions',
       Key: { questionId: req.params.id }
     }));
-    if (!result.Item) {
-      return res.status(404).json({ error: 'Question not found' });
-    }
+    if (!result.Item) return res.status(404).json({ error: 'Question not found' });
     res.json(result.Item);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+// 通報
+app.post('/questions/:id/report', async (req, res) => {
+  try {
+    const docClient = getClient();
+    const { userId, message } = req.body;
+    await docClient.send(new PutCommand({
+      TableName: 'Reports',
+      Item: {
+        questionId: req.params.id,
+        reportId: uuidv4(),
+        userId: userId || 'anonymous',
+        message: message || '',
+        reportedAt: new Date().toISOString()
+      }
+    }));
+    res.json({ success: true });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+// セッション開始
+app.post('/sessions', async (req, res) => {
+  try {
+    const docClient = getClient();
+    const { userId, mode, examType, questionIds } = req.body;
+    const sessionId = uuidv4();
+    const now = new Date().toISOString();
+    await docClient.send(new PutCommand({
+      TableName: 'Sessions',
+      Item: {
+        userId,
+        sessionId,
+        mode,
+        examType,
+        questionIds,
+        status: 'active',
+        startedAt: now,
+        lastAnsweredAt: now,
+        score: 0,
+        isPassed: false
+      }
+    }));
+    res.json({ sessionId });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+// 未完了セッション確認
+app.get('/sessions/active', async (req, res) => {
+  try {
+    const docClient = getClient();
+    const { userId } = req.query;
+    const result = await docClient.send(new QueryCommand({
+      TableName: 'Sessions',
+      KeyConditionExpression: 'userId = :userId',
+      FilterExpression: '#s = :active',
+      ExpressionAttributeNames: { '#s': 'status' },
+      ExpressionAttributeValues: { ':userId': userId, ':active': 'active' }
+    }));
+    const active = result.Items && result.Items.length > 0 ? result.Items[0] : null;
+    res.json({ session: active });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+// セッション進捗取得
+app.get('/sessions/:id/progress', async (req, res) => {
+  try {
+    const docClient = getClient();
+    const { userId } = req.query;
+    const sessionResult = await docClient.send(new GetCommand({
+      TableName: 'Sessions',
+      Key: { userId, sessionId: req.params.id }
+    }));
+    if (!sessionResult.Item) return res.status(404).json({ error: 'Session not found' });
+
+    const answersResult = await docClient.send(new QueryCommand({
+      TableName: 'UserAnswers',
+      KeyConditionExpression: 'userId = :userId AND begins_with(questionIdTimestamp, :prefix)',
+      ExpressionAttributeValues: {
+        ':userId': userId,
+        ':prefix': req.params.id + '#'
+      }
+    }));
+    res.json({ session: sessionResult.Item, answers: answersResult.Items || [] });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+// 回答記録
+app.post('/sessions/:id/answers', async (req, res) => {
+  try {
+    const docClient = getClient();
+    const { userId, questionId, selectedAnswers, isCorrect, tags } = req.body;
+    const now = new Date().toISOString();
+    const questionIdTimestamp = `${req.params.id}#${questionId}#${now}`;
+
+    const transactItems = [
+      {
+        Put: {
+          TableName: 'UserAnswers',
+          Item: { userId, questionIdTimestamp, questionId, sessionId: req.params.id, selectedAnswers, isCorrect, answeredAt: now }
+        }
+      },
+      {
+        Update: {
+          TableName: 'UserQuestionStats',
+          Key: { userId, questionId },
+          UpdateExpression: isCorrect
+            ? 'ADD correctCount :one SET lastAnsweredAt = :now'
+            : 'ADD incorrectCount :one SET lastAnsweredAt = :now',
+          ExpressionAttributeValues: { ':one': 1, ':now': now }
+        }
+      }
+    ];
+
+    if (tags && tags.length > 0) {
+      tags.forEach(tagId => {
+        transactItems.push({
+          Update: {
+            TableName: 'UserTagStats',
+            Key: { userId, tagId },
+            UpdateExpression: isCorrect
+              ? 'ADD correctCount :one'
+              : 'ADD incorrectCount :one',
+            ExpressionAttributeValues: { ':one': 1 }
+          }
+        });
+      });
+    }
+
+    await docClient.send(new TransactWriteCommand({ TransactItems: transactItems }));
+    res.json({ success: true });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+// セッション終了
+app.put('/sessions/:id', async (req, res) => {
+  try {
+    const docClient = getClient();
+    const { userId, status, score, isPassed } = req.body;
+    await docClient.send(new UpdateCommand({
+      TableName: 'Sessions',
+      Key: { userId, sessionId: req.params.id },
+      UpdateExpression: 'SET #s = :status, score = :score, isPassed = :isPassed, endedAt = :now',
+      ExpressionAttributeNames: { '#s': 'status' },
+      ExpressionAttributeValues: {
+        ':status': status,
+        ':score': score,
+        ':isPassed': isPassed,
+        ':now': new Date().toISOString()
+      }
+    }));
+    res.json({ success: true });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+// セッション結果取得
+app.get('/sessions/:id', async (req, res) => {
+  try {
+    const docClient = getClient();
+    const { userId } = req.query;
+    const result = await docClient.send(new GetCommand({
+      TableName: 'Sessions',
+      Key: { userId, sessionId: req.params.id }
+    }));
+    if (!result.Item) return res.status(404).json({ error: 'Session not found' });
+    res.json(result.Item);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+// 統計取得
+app.get('/users/me/stats', async (req, res) => {
+  try {
+    const docClient = getClient();
+    const { userId } = req.query;
+    const result = await docClient.send(new QueryCommand({
+      TableName: 'UserTagStats',
+      KeyConditionExpression: 'userId = :userId',
+      ExpressionAttributeValues: { ':userId': userId }
+    }));
+    res.json({ stats: result.Items || [] });
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: 'Internal server error' });
