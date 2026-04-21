@@ -4,9 +4,17 @@
     "/questions": {
       "name": "/questions",
       "lambdaFunction": "awsquizHandler",
-      "permissions": {
-        "setting": "open"
-      }
+      "permissions": { "setting": "open" }
+    },
+    "/sessions": {
+      "name": "/sessions",
+      "lambdaFunction": "awsquizHandler",
+      "permissions": { "setting": "open" }
+    },
+    "/users": {
+      "name": "/users",
+      "lambdaFunction": "awsquizHandler",
+      "permissions": { "setting": "open" }
     }
   }
 }
