@@ -27,7 +27,15 @@ type Tip = {
   content: string;
 };
 
-type Tab = 'questions' | 'reports' | 'tips';
+type ImportQuestion = {
+  questionText: string;
+  choices: string[];
+  correctAnswers: string[];
+  explanation?: string;
+  isMultiple?: boolean;
+};
+
+type Tab = 'questions' | 'reports' | 'tips' | 'import';
 
 export default function Admin() {
   const [tab, setTab] = useState<Tab>('questions');
@@ -43,6 +51,15 @@ export default function Admin() {
   // 通報
   const [reports, setReports] = useState<Report[]>([]);
   const [loadingR, setLoadingR] = useState(false);
+
+  // 問題インポート
+  const [importExamType, setImportExamType] = useState('SAA');
+  const [importTags, setImportTags] = useState('');
+  const [importJson, setImportJson] = useState('');
+  const [importParsed, setImportParsed] = useState<ImportQuestion[] | null>(null);
+  const [importError, setImportError] = useState('');
+  const [importing, setImporting] = useState(false);
+  const [importResult, setImportResult] = useState<{ count: number; ids: string[] } | null>(null);
 
   // コラム管理
   const [tips, setTips] = useState<Tip[]>([]);
@@ -170,6 +187,7 @@ export default function Admin() {
       {/* タブ */}
       <div style={{ borderBottom: '1px solid #e0e0e0', marginBottom: 24 }}>
         <button style={tabStyle('questions')} onClick={() => setTab('questions')}>問題管理</button>
+        <button style={tabStyle('import')} onClick={() => setTab('import')}>問題追加</button>
         <button style={tabStyle('reports')} onClick={() => setTab('reports')}>通報確認</button>
         <button style={tabStyle('tips')} onClick={() => setTab('tips')}>コラム管理</button>
       </div>
@@ -305,6 +323,187 @@ export default function Admin() {
           )}
         </div>
       )}
+
+      {/* ── 問題追加 ── */}
+      {tab === 'import' && (() => {
+        const EXAMPLE = JSON.stringify([
+          {
+            questionText: "Amazon S3の特徴として正しいものはどれですか？",
+            choices: ["A. リレーショナルデータベースサービス", "B. オブジェクトストレージサービス", "C. インメモリキャッシュサービス", "D. コンテナオーケストレーションサービス"],
+            correctAnswers: ["B. オブジェクトストレージサービス"],
+            explanation: "Amazon S3はオブジェクトストレージサービスです。",
+            isMultiple: false
+          }
+        ], null, 2);
+
+        const handleParse = () => {
+          setImportError('');
+          setImportParsed(null);
+          setImportResult(null);
+          try {
+            const parsed = JSON.parse(importJson);
+            if (!Array.isArray(parsed)) throw new Error('配列形式にしてください');
+            for (const q of parsed) {
+              if (!q.questionText) throw new Error('questionText が必要です');
+              if (!Array.isArray(q.choices) || q.choices.length < 2) throw new Error('choices は2つ以上必要です');
+              if (!Array.isArray(q.correctAnswers) || q.correctAnswers.length === 0) throw new Error('correctAnswers が必要です');
+            }
+            setImportParsed(parsed);
+          } catch (e: any) {
+            setImportError(e.message || 'JSONの形式が正しくありません');
+          }
+        };
+
+        const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+          const file = e.target.files?.[0];
+          if (!file) return;
+          const reader = new FileReader();
+          reader.onload = ev => {
+            setImportJson(ev.target?.result as string);
+            setImportParsed(null);
+            setImportResult(null);
+            setImportError('');
+          };
+          reader.readAsText(file);
+          e.target.value = '';
+        };
+
+        const handleImport = async () => {
+          if (!importParsed) return;
+          setImporting(true);
+          setImportResult(null);
+          try {
+            const tags = importTags.split(',').map(t => t.trim()).filter(Boolean);
+            const res = await fetch(`${API_ENDPOINT}/admin/questions`, {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ examType: importExamType, tags, questions: importParsed })
+            });
+            const data = await res.json();
+            if (!res.ok) throw new Error(data.error || '失敗しました');
+            setImportResult({ count: data.count, ids: data.created });
+            setImportJson('');
+            setImportParsed(null);
+          } catch (e: any) {
+            setImportError(e.message);
+          } finally {
+            setImporting(false);
+          }
+        };
+
+        return (
+          <div>
+            {/* 設定 */}
+            <div style={{ display: 'flex', gap: 24, marginBottom: 20, flexWrap: 'wrap' }}>
+              <div>
+                <div style={{ fontSize: 12, color: '#888', marginBottom: 6 }}>試験種別</div>
+                <div style={{ display: 'flex', gap: 6 }}>
+                  {EXAM_TYPES.map(t => (
+                    <button key={t} onClick={() => setImportExamType(t)}
+                      style={{ padding: '6px 16px', border: 'none', borderRadius: 4, cursor: 'pointer',
+                        background: importExamType === t ? '#0073bb' : '#eee',
+                        color: importExamType === t ? 'white' : '#333',
+                        fontWeight: importExamType === t ? 'bold' : 'normal' }}>
+                      {t}
+                    </button>
+                  ))}
+                </div>
+              </div>
+              <div style={{ flex: 1, minWidth: 200 }}>
+                <div style={{ fontSize: 12, color: '#888', marginBottom: 6 }}>タグ（カンマ区切り・任意）</div>
+                <input value={importTags} onChange={e => setImportTags(e.target.value)}
+                  placeholder="例: EC2, VPC, セキュリティ"
+                  style={{ width: '100%', padding: '7px 10px', border: '1px solid #ddd', borderRadius: 4, fontSize: 14, boxSizing: 'border-box' }} />
+              </div>
+            </div>
+
+            {/* JSON入力 */}
+            <div style={{ marginBottom: 12 }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 6 }}>
+                <div style={{ fontSize: 12, color: '#888' }}>JSONを貼り付けまたはファイルをアップロード</div>
+                <label style={{ padding: '5px 12px', background: '#eee', borderRadius: 4, cursor: 'pointer', fontSize: 12 }}>
+                  ファイルを選択
+                  <input type="file" accept=".json" onChange={handleFileUpload} style={{ display: 'none' }} />
+                </label>
+              </div>
+              <textarea value={importJson} onChange={e => { setImportJson(e.target.value); setImportParsed(null); setImportResult(null); setImportError(''); }}
+                placeholder={EXAMPLE}
+                rows={12}
+                style={{ width: '100%', padding: '10px', border: '1px solid #ddd', borderRadius: 6,
+                  fontSize: 13, fontFamily: 'monospace', resize: 'vertical', boxSizing: 'border-box',
+                  background: '#fafafa' }} />
+            </div>
+
+            {/* フォーマット説明 */}
+            <details style={{ marginBottom: 16 }}>
+              <summary style={{ fontSize: 12, color: '#0073bb', cursor: 'pointer', userSelect: 'none' }}>JSONフォーマットの説明・AIへの指示例</summary>
+              <div style={{ marginTop: 8, padding: '12px 14px', background: '#f8f9fa', border: '1px solid #e0e0e0', borderRadius: 6, fontSize: 13 }}>
+                <p style={{ margin: '0 0 8px', fontWeight: 'bold', color: '#333' }}>フィールド説明</p>
+                <table style={{ borderCollapse: 'collapse', width: '100%', fontSize: 12 }}>
+                  {[
+                    ['questionText', 'string', '問題文（必須）'],
+                    ['choices', 'string[]', '選択肢の配列（2個以上、必須）'],
+                    ['correctAnswers', 'string[]', '正解の配列（choicesの値と完全一致、必須）'],
+                    ['explanation', 'string', '解説（省略可）'],
+                    ['isMultiple', 'boolean', '複数選択の場合 true（省略時 false）'],
+                  ].map(([k, t, d]) => (
+                    <tr key={k} style={{ borderBottom: '1px solid #e8e8e8' }}>
+                      <td style={{ padding: '4px 8px', fontFamily: 'monospace', color: '#0056a3' }}>{k}</td>
+                      <td style={{ padding: '4px 8px', color: '#888' }}>{t}</td>
+                      <td style={{ padding: '4px 8px', color: '#555' }}>{d}</td>
+                    </tr>
+                  ))}
+                </table>
+                <p style={{ margin: '12px 0 4px', fontWeight: 'bold', color: '#333' }}>AIへの指示例（ChatGPT / Claude / Gemini）</p>
+                <div style={{ background: 'white', border: '1px solid #ddd', borderRadius: 4, padding: '8px 12px', fontFamily: 'monospace', fontSize: 12, color: '#333', whiteSpace: 'pre-wrap' }}>{`以下の形式のJSONで、AWS ${importExamType}試験の問題を5問作成してください。
+IDや試験種別は不要です。
+
+[
+  {
+    "questionText": "問題文",
+    "choices": ["A. ...", "B. ...", "C. ...", "D. ..."],
+    "correctAnswers": ["A. ..."],
+    "explanation": "解説",
+    "isMultiple": false
+  }
+]`}</div>
+              </div>
+            </details>
+
+            <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+              <button onClick={handleParse} disabled={!importJson.trim()}
+                style={{ padding: '8px 20px', background: importJson.trim() ? '#555' : '#ccc',
+                  color: 'white', border: 'none', borderRadius: 4, cursor: importJson.trim() ? 'pointer' : 'default' }}>
+                構文チェック
+              </button>
+              {importParsed && (
+                <button onClick={handleImport} disabled={importing}
+                  style={{ padding: '8px 24px', background: importing ? '#ccc' : '#0073bb',
+                    color: 'white', border: 'none', borderRadius: 4, cursor: importing ? 'default' : 'pointer', fontWeight: 'bold' }}>
+                  {importing ? 'インポート中...' : `${importParsed.length}件をインポート`}
+                </button>
+              )}
+            </div>
+
+            {importParsed && !importResult && (
+              <div style={{ marginTop: 12, padding: '10px 14px', background: '#eaf3fa', borderRadius: 6, fontSize: 13, color: '#0056a3' }}>
+                ✓ {importParsed.length}件の問題を認識しました。「{importExamType}」としてインポートします。
+              </div>
+            )}
+            {importError && (
+              <div style={{ marginTop: 12, padding: '10px 14px', background: '#fdf2f2', borderRadius: 6, fontSize: 13, color: '#e74c3c' }}>
+                エラー: {importError}
+              </div>
+            )}
+            {importResult && (
+              <div style={{ marginTop: 12, padding: '14px 16px', background: '#eafaf1', border: '1px solid #a8e6c1', borderRadius: 6 }}>
+                <div style={{ fontWeight: 'bold', color: '#27ae60', marginBottom: 6 }}>✓ {importResult.count}件をインポートしました</div>
+                <div style={{ fontSize: 12, color: '#555', fontFamily: 'monospace' }}>{importResult.ids.join(', ')}</div>
+              </div>
+            )}
+          </div>
+        );
+      })()}
 
       {/* ── コラム管理 ── */}
       {tab === 'tips' && (

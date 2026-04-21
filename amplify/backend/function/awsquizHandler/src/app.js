@@ -152,6 +152,57 @@ app.delete('/questions/:id', async (req, res) => {
   }
 });
 
+// 問題一括インポート（管理者用）
+app.post('/admin/questions', async (req, res) => {
+  try {
+    const docClient = getClient();
+    const { examType, tags, questions } = req.body;
+    if (!Array.isArray(questions) || questions.length === 0) {
+      return res.status(400).json({ error: 'questions must be a non-empty array' });
+    }
+
+    const now = new Date().toISOString();
+    const created = [];
+
+    for (let i = 0; i < questions.length; i++) {
+      const q = questions[i];
+      const shortId = uuidv4().replace(/-/g, '').slice(0, 8);
+      const questionId = `${examType.toLowerCase()}-${shortId}`;
+
+      await docClient.send(new PutCommand({
+        TableName: 'Questions',
+        Item: {
+          questionId,
+          examType,
+          questionText: q.questionText,
+          choices: q.choices,
+          correctAnswers: q.correctAnswers,
+          explanation: q.explanation || '',
+          tags: tags || [],
+          isMultiple: q.isMultiple ?? false,
+          createdAt: now,
+        }
+      }));
+
+      if (tags && tags.length > 0) {
+        await Promise.all(tags.map(tagId =>
+          docClient.send(new PutCommand({
+            TableName: 'QuestionTagRelations',
+            Item: { tagId, questionId }
+          }))
+        ));
+      }
+
+      created.push(questionId);
+    }
+
+    res.json({ created, count: created.length });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
 // 問題一覧（管理者用・全フィールド返却）
 app.get('/admin/questions', async (req, res) => {
   try {
