@@ -9,7 +9,7 @@
       "UnauthRoleName": "amplify-awsquizapp-dev-15ac9-unauthRole",
       "StackName": "amplify-awsquizapp-dev-15ac9",
       "StackId": "arn:aws:cloudformation:ap-northeast-1:570827308321:stack/amplify-awsquizapp-dev-15ac9/578b8fe0-3cb4-11f1-b5db-0eb8d0f64b9d",
-      "AmplifyAppId": "d2d18cxfi0gc9l"
+      "AmplifyAppId": "d1umc53t1tpwd1"
     },
     "categories": {
       "auth": {
@@ -18,7 +18,7 @@
       "function": {
         "awsquizHandler": {
           "deploymentBucketName": "amplify-awsquizapp-dev-15ac9-deployment",
-          "s3Key": "amplify-builds/awsquizHandler-58585545305274735a62-build.zip"
+          "s3Key": "amplify-builds/awsquizHandler-7357356d4c7131493476-build.zip"
         }
       },
       "api": {
