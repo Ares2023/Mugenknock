@@ -10,6 +10,7 @@ import QuestionList from './pages/QuestionList';
 import ExerciseSetup from './pages/ExerciseSetup';
 import ExerciseSession from './pages/ExerciseSession';
 import Result from './pages/Result';
+import Admin from './pages/Admin';
 
 Amplify.configure(awsExports);
 
@@ -31,6 +32,9 @@ function App() {
           } />
           <Route path="/result" element={
             <PrivateRoute><Result /></PrivateRoute>
+          } />
+          <Route path="/admin" element={
+            <PrivateRoute><Admin /></PrivateRoute>
           } />
         </Routes>
       </BrowserRouter>

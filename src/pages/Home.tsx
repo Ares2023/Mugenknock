@@ -42,6 +42,12 @@ export default function Home() {
         >
           問題一覧を見る
         </button>
+        <button
+          onClick={() => navigate('/admin')}
+          style={{ padding: '12px', fontSize: 14, background: 'none', color: '#888', border: '1px solid #ddd', borderRadius: 8, cursor: 'pointer' }}
+        >
+          管理画面
+        </button>
       </div>
     </div>
   );

@@ -1,6 +1,6 @@
 const express = require('express');
 const { DynamoDBClient } = require('@aws-sdk/client-dynamodb');
-const { DynamoDBDocumentClient, ScanCommand, GetCommand, QueryCommand, PutCommand, UpdateCommand, TransactWriteCommand } = require('@aws-sdk/lib-dynamodb');
+const { DynamoDBDocumentClient, ScanCommand, GetCommand, QueryCommand, PutCommand, UpdateCommand, TransactWriteCommand, DeleteCommand } = require('@aws-sdk/lib-dynamodb');
 const { v4: uuidv4 } = require('uuid');
 
 const app = express();
@@ -105,6 +105,89 @@ app.post('/questions/:id/report', async (req, res) => {
       }
     }));
     res.json({ success: true });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+// 問題削除（管理者用）
+app.delete('/questions/:id', async (req, res) => {
+  try {
+    const docClient = getClient();
+    const questionId = req.params.id;
+
+    // QuestionTagRelations の関連レコードを取得して削除
+    const relResult = await docClient.send(new ScanCommand({
+      TableName: 'QuestionTagRelations',
+      FilterExpression: 'questionId = :qid',
+      ExpressionAttributeValues: { ':qid': questionId }
+    }));
+    const deleteRels = (relResult.Items || []).map(item =>
+      docClient.send(new DeleteCommand({
+        TableName: 'QuestionTagRelations',
+        Key: { tagId: item.tagId, questionId: item.questionId }
+      }))
+    );
+    await Promise.all(deleteRels);
+
+    await docClient.send(new DeleteCommand({
+      TableName: 'Questions',
+      Key: { questionId }
+    }));
+
+    res.json({ success: true });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+// 問題一覧（管理者用・全フィールド返却）
+app.get('/admin/questions', async (req, res) => {
+  try {
+    const docClient = getClient();
+    const { examType, keyword } = req.query;
+    let items = [];
+
+    if (examType && examType !== 'ALL') {
+      const result = await docClient.send(new QueryCommand({
+        TableName: 'Questions',
+        IndexName: 'examType-index',
+        KeyConditionExpression: 'examType = :examType',
+        ExpressionAttributeValues: { ':examType': examType }
+      }));
+      items = result.Items || [];
+    } else {
+      const result = await docClient.send(new ScanCommand({ TableName: 'Questions' }));
+      items = result.Items || [];
+    }
+
+    if (keyword) {
+      const kw = keyword.toLowerCase();
+      items = items.filter(q =>
+        q.questionId.toLowerCase().includes(kw) ||
+        q.questionText.toLowerCase().includes(kw)
+      );
+    }
+
+    items.sort((a, b) => a.questionId.localeCompare(b.questionId));
+    res.json({ items, count: items.length });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+// 通報一覧（管理者用）
+app.get('/admin/reports', async (req, res) => {
+  try {
+    const docClient = getClient();
+    const result = await docClient.send(new ScanCommand({ TableName: 'Reports' }));
+    const items = (result.Items || []).sort((a, b) =>
+      new Date(b.reportedAt).getTime() - new Date(a.reportedAt).getTime()
+    );
+    res.json({ items, count: items.length });
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: 'Internal server error' });
