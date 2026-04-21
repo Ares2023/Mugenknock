@@ -148,7 +148,7 @@ export default function Admin() {
   const tabStyle = (t: Tab) => ({
     padding: '10px 24px',
     border: 'none',
-    borderBottom: tab === t ? '3px solid #ff9900' : '3px solid transparent',
+    borderBottom: tab === t ? '3px solid #0073bb' : '3px solid transparent',
     background: 'none',
     cursor: 'pointer',
     fontWeight: (tab === t ? 'bold' : 'normal') as any,
@@ -196,7 +196,7 @@ export default function Admin() {
               style={{ flex: 1, minWidth: 200, padding: '6px 12px', border: '1px solid #ddd', borderRadius: 4, fontSize: 14 }}
             />
             <button type="submit"
-              style={{ padding: '6px 16px', background: '#ff9900', color: 'white', border: 'none', borderRadius: 4, cursor: 'pointer' }}>
+              style={{ padding: '6px 16px', background: '#0073bb', color: 'white', border: 'none', borderRadius: 4, cursor: 'pointer' }}>
               検索
             </button>
           </form>
@@ -314,7 +314,7 @@ export default function Admin() {
               {loadingT ? '読み込み中...' : `${tips.length} 件`}
             </p>
             <button onClick={() => { setEditingTip(null); setTipForm({ examType: 'ALL', title: '', content: '' }); setShowTipForm(true); }}
-              style={{ padding: '7px 18px', background: '#ff9900', color: 'white', border: 'none', borderRadius: 4, cursor: 'pointer', fontSize: 13 }}>
+              style={{ padding: '7px 18px', background: '#0073bb', color: 'white', border: 'none', borderRadius: 4, cursor: 'pointer', fontSize: 13 }}>
               ＋ コラムを追加
             </button>
           </div>

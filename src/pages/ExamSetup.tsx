@@ -61,7 +61,7 @@ export default function ExamSetup() {
           {EXAM_TYPES.map(type => (
             <button key={type} onClick={() => setExamType(type)}
               style={{ padding: '8px 24px', border: 'none', borderRadius: 4, cursor: 'pointer',
-                background: examType === type ? '#ff9900' : '#eee',
+                background: examType === type ? '#0073bb' : '#eee',
                 fontWeight: examType === type ? 'bold' : 'normal' }}>
               {type}
             </button>

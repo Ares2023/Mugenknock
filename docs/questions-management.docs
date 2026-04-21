@@ -1,0 +1,171 @@
+================================================================
+  AWS Quiz App  問題管理 運用手順書
+  作成日：2026年4月21日　最終更新：2026年4月21日
+================================================================
+
+
+1. 概要
+----------------------------------------------------------------
+本ドキュメントでは、AWS Quiz App に問題を追加・管理するための
+標準手順を定義します。問題の生成にはAIを活用し、JSON形式での
+管理、DynamoDB への一括インポートまでの一連のフローを説明します。
+
+
+2. ファイル管理構成
+----------------------------------------------------------------
+
+【2.1 ファイル構成】
+
+問題データはカテゴリ別のJSONファイルで管理します。
+Googleドライブで管理し、Penguin（Linux環境）と同期します。
+
+  questions/
+  ├── SAP/
+  │   ├── sap_governance.json     SCP・Organizations・ガバナンス
+  │   ├── sap_dr.json             ディザスタリカバリ・RTO/RPO
+  │   ├── sap_migration.json      移行・ハイブリッド構成
+  │   ├── sap_network.json        VPC・Direct Connect・ネットワーク
+  │   ├── sap_identity.json       IAM Identity Center・クロスアカウント
+  │   └── sap_cost.json           コスト最適化
+  ├── SAA/
+  │   ├── saa_network.json
+  │   └── saa_storage.json
+  └── CLF/
+      ├── clf_security.json
+      └── clf_billing.json
+
+
+【2.2 JSONフォーマット定義】
+
+各ファイルは以下の構造の配列です。
+
+  [
+    {
+      "questionId":    "sap-q-001",          ← 一意のID（命名規則参照）
+      "examType":      "SAP",                ← CLF / SAA / SAP
+      "questionText":  "問題文をここに記述",
+      "choices": [                           ← 選択肢（通常4つ）
+        "選択肢A",
+        "選択肢B",
+        "選択肢C",
+        "選択肢D"
+      ],
+      "correctAnswers": [                    ← 正解（複数可）
+        "選択肢A"
+      ],
+      "explanation":   "解説文をここに記述",
+      "tags": [                              ← タグ（複数可）
+        "sap-governance",
+        "sap-organizations"
+      ]
+    }
+  ]
+
+  ※ correctAnswers に複数記入した場合は複数選択問題として扱われる
+
+
+3. 問題追加フロー
+----------------------------------------------------------------
+
+  Step 1  AIで問題を生成する（後述のプロンプトを使用）
+  Step 2  該当カテゴリのJSONファイルを開く
+  Step 3  生成した問題を配列の末尾に追加する
+  Step 4  questionId の重複がないか確認する
+  Step 5  インポートスクリプトを実行してDynamoDBに登録する
+
+
+4. AI 問題生成
+----------------------------------------------------------------
+
+【4.1 プロンプトテンプレート】
+
+  「SAPの[カテゴリ名]に関する問題を[N]問、以下のJSON形式で
+  出力してください。questionIdはsap-q-[開始番号]から連番で。
+  コードブロックなしで配列のみ出力してください。
+
+  [
+    {
+      "questionId": "sap-q-001",
+      "examType": "SAP",
+      "questionText": "問題文",
+      "choices": ["選択肢A", "選択肢B", "選択肢C", "選択肢D"],
+      "correctAnswers": ["選択肢A"],
+      "explanation": "解説文",
+      "tags": ["sap-governance"]
+    }
+  ]」
+
+
+【4.2 生成時の注意事項】
+
+  - questionId は既存ファイルの末尾番号を確認してから指定する
+  - choices は必ず4つ用意する
+  - correctAnswers の値は choices のいずれかと完全一致させる
+  - explanation は正解だけでなく不正解の理由も含めると
+    学習効果が高い
+  - AIが出力したJSONは必ず構文チェックしてから追加する
+
+
+5. インポート手順
+----------------------------------------------------------------
+
+【5.1 ファイルの配置】
+
+  Googleドライブ経由でPenguinに取り込む場合:
+  $ cp /mnt/chromeos/GoogleDrive/MyDrive/questions/SAP/sap_governance.json \
+      ~/aws-quiz-app/questions/SAP/
+
+
+【5.2 インポート実行】
+
+  # 単一ファイル
+  $ python3 import_questions.py questions/SAP/sap_governance.json
+
+  # カテゴリ一括
+  $ python3 import_questions.py questions/SAP/*.json
+
+  # 全カテゴリ一括
+  $ python3 import_questions.py questions/**/*.json
+
+
+【5.3 実行結果の確認】
+
+  出力                                    意味
+  --------------------------------------- --------------------------
+  ✅ sap-q-001 を登録                     正常にDynamoDBへ登録完了
+  ⚠️  スキップ                            questionId または
+                                          questionText が空
+  ⚠️  警告: correctAnswer が choices に   データ不整合の可能性あり
+       存在しません                        JSONファイルを確認すること
+  ❌ エラー                               書き込み失敗。権限・接続確認
+
+
+6. 命名規則
+----------------------------------------------------------------
+
+【6.1 questionId】
+
+  試験種別    形式
+  --------- ----------------------
+  CLF       clf-q-001, clf-q-002, ...
+  SAA       saa-q-001, saa-q-002, ...
+  SAP       sap-q-001, sap-q-002, ...
+
+
+【6.2 タグ】
+
+  タグ                対象カテゴリ
+  ------------------- ----------------------------------------
+  sap-governance      SCP、Organizations、ガバナンス
+  sap-dr              ディザスタリカバリ、RTO/RPO
+  sap-migration       移行、ハイブリッド構成
+  sap-network         VPC、Direct Connect、ネットワーク
+  sap-identity        IAM Identity Center・クロスアカウント
+  sap-cost            コスト最適化
+  saa-network         SAA ネットワーク
+  clf-security        CLF セキュリティ
+
+
+================================================================
+  AWS Quiz App  |  問題管理 運用手順書  |  内部利用限り
+================================================================

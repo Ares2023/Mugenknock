@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { API_ENDPOINT, EXAM_CONFIGS, PASS_RATE } from '../constants';
+import Breadcrumb from '../components/Breadcrumb';
 
 type Question = {
   questionId: string;
@@ -124,7 +125,7 @@ export default function ExamSession() {
   const timerRed = timeLeft < 300; // 5分以下で赤
 
   const navBg = (i: number) => {
-    if (i === currentIndex) return '#ff9900';
+    if (i === currentIndex) return '#0073bb';
     if (answers[questions[i]?.questionId]) return '#2980b9';
     return '#e8e8e8';
   };
@@ -138,7 +139,8 @@ export default function ExamSession() {
   }
 
   return (
-    <div style={{ maxWidth: 780, margin: '0 auto', padding: '16px 24px', fontFamily: 'sans-serif', position: 'relative' }}>
+    <div style={{ maxWidth: 700, margin: '0 auto', padding: '24px', fontFamily: 'sans-serif', position: 'relative' }}>
+      <Breadcrumb items={[{ label: 'ホーム', path: '/' }, { label: '模試設定', path: '/exam/setup' }, { label: '模試中' }]} />
 
       {/* 一時停止オーバーレイ */}
       {paused && (
@@ -147,7 +149,7 @@ export default function ExamSession() {
           <div style={{ fontSize: 28, color: 'white', fontWeight: 'bold' }}>⏸ 一時停止中</div>
           <div style={{ fontSize: 14, color: '#ccc' }}>問題は隠されています</div>
           <button onClick={() => setPaused(false)}
-            style={{ padding: '14px 40px', background: '#ff9900', border: 'none', borderRadius: 8, fontSize: 18, fontWeight: 'bold', cursor: 'pointer' }}>
+            style={{ padding: '14px 40px', background: '#0073bb', border: 'none', borderRadius: 8, fontSize: 18, fontWeight: 'bold', cursor: 'pointer' }}>
             ▶ 再開する
           </button>
         </div>
@@ -214,8 +216,8 @@ export default function ExamSession() {
             <button key={choice} onClick={() => toggle(choice)}
               style={{ display: 'block', width: '100%', textAlign: 'left',
                 padding: '12px 16px', marginBottom: 8, borderRadius: 8,
-                border: `2px solid ${isSelected ? '#ff9900' : '#ddd'}`,
-                background: isSelected ? '#fff8ee' : 'white', cursor: 'pointer', fontSize: 14 }}>
+                border: `2px solid ${isSelected ? '#0073bb' : '#ddd'}`,
+                background: isSelected ? '#f0f7ff' : 'white', cursor: 'pointer', fontSize: 14 }}>
               {choice}
             </button>
           );
@@ -226,7 +228,7 @@ export default function ExamSession() {
       <div style={{ background: 'white', borderRadius: 8, padding: '14px 16px',
         border: '1px solid #e0e0e0', boxShadow: '0 1px 3px rgba(0,0,0,.06)' }}>
         <div style={{ fontSize: 12, color: '#888', marginBottom: 10, display: 'flex', gap: 16 }}>
-          <span><span style={{ display: 'inline-block', width: 12, height: 12, background: '#ff9900', borderRadius: 2, marginRight: 4, verticalAlign: 'middle' }} />現在</span>
+          <span><span style={{ display: 'inline-block', width: 12, height: 12, background: '#0073bb', borderRadius: 2, marginRight: 4, verticalAlign: 'middle' }} />現在</span>
           <span><span style={{ display: 'inline-block', width: 12, height: 12, background: '#2980b9', borderRadius: 2, marginRight: 4, verticalAlign: 'middle' }} />回答済み</span>
           <span><span style={{ display: 'inline-block', width: 12, height: 12, background: '#e8e8e8', borderRadius: 2, marginRight: 4, verticalAlign: 'middle' }} />未回答</span>
         </div>

@@ -113,7 +113,7 @@ export default function QuestionList() {
           placeholder="サービス名・キーワードで検索"
           style={{ flex: 1, padding: "6px 12px", border: "1px solid #ddd", borderRadius: 4, fontSize: 14 }}
         />
-        <button type="submit" style={{ padding: "6px 16px", background: "#ff9900", color: "white", border: "none", borderRadius: 4, cursor: "pointer" }}>
+        <button type="submit" style={{ padding: "6px 16px", background: "#0073bb", color: "white", border: "none", borderRadius: 4, cursor: "pointer" }}>
           検索
         </button>
         {keyword && (
@@ -127,7 +127,7 @@ export default function QuestionList() {
       <div style={{ marginBottom: 16, display: "flex", gap: 8 }}>
         {["CLF", "SAA", "SAP"].map(type => (
           <button key={type} onClick={() => { setExamType(type); fetchQuestions(type, keyword); }}
-            style={{ padding: "6px 16px", background: examType === type ? "#ff9900" : "#eee", border: "none", borderRadius: 4, cursor: "pointer", fontWeight: examType === type ? "bold" : "normal" }}>
+            style={{ padding: "6px 16px", background: examType === type ? "#0073bb" : "#eee", border: "none", borderRadius: 4, cursor: "pointer", fontWeight: examType === type ? "bold" : "normal" }}>
             {type}
           </button>
         ))}
@@ -148,7 +148,7 @@ export default function QuestionList() {
           <div style={{ display: "flex", alignItems: "flex-start", gap: 12 }}>
             <input type="checkbox" checked={selected.has(q.questionId)} onChange={() => toggleSelect(q.questionId)} style={{ marginTop: 4 }} />
             <div style={{ flex: 1 }}>
-              <span style={{ background: "#ff9900", color: "white", borderRadius: 4, padding: "2px 8px", fontSize: 12, marginRight: 8 }}>{q.examType}</span>
+              <span style={{ background: "#0073bb", color: "white", borderRadius: 4, padding: "2px 8px", fontSize: 12, marginRight: 8 }}>{q.examType}</span>
               {q.isMultiple && <span style={{ background: "#5a9fd4", color: "white", borderRadius: 4, padding: "2px 8px", fontSize: 12, marginRight: 8 }}>複数選択</span>}
               <p style={{ margin: "8px 0", fontWeight: "bold" }}>{q.questionText}</p>
               <ol style={{ margin: "8px 0", paddingLeft: 20 }}>{q.choices.map((c, i) => <li key={i}>{c}</li>)}</ol>

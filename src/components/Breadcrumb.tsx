@@ -21,7 +21,7 @@ export default function Breadcrumb({ items }: Props) {
           {item.path ? (
             <button
               onClick={() => navigate(item.path!)}
-              style={{ background: 'none', border: 'none', padding: 0, color: '#ff9900', cursor: 'pointer', fontSize: 13, textDecoration: 'underline' }}
+              style={{ background: 'none', border: 'none', padding: 0, color: '#0073bb', cursor: 'pointer', fontSize: 13, textDecoration: 'underline' }}
             >
               {item.label}
             </button>

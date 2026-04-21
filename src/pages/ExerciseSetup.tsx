@@ -115,18 +115,18 @@ export default function ExerciseSetup() {
   return (
     <div style={{ maxWidth: 960, margin: '0 auto', padding: '24px 32px', fontFamily: 'sans-serif' }}>
       <Breadcrumb items={[{ label: 'ホーム', path: '/' }, { label: '演習設定' }]} />
-      <h1 style={{ color: '#232f3e' }}>演習設定</h1>
 
       <div style={{ display: 'flex', gap: 32, alignItems: 'flex-start' }}>
 
         {/* 左：設定フォーム */}
         <div style={{ flex: '0 0 320px' }}>
+          <h1 style={{ color: '#232f3e', marginTop: 0, marginBottom: 24 }}>演習設定</h1>
           <div style={{ marginBottom: 24 }}>
             <label style={{ display: 'block', marginBottom: 8, fontWeight: 'bold' }}>試験種別</label>
             <div style={{ display: 'flex', gap: 8 }}>
               {EXAM_TYPES.map(type => (
                 <button key={type} onClick={() => setExamType(type)}
-                  style={{ padding: '8px 20px', background: examType === type ? '#ff9900' : '#eee', border: 'none', borderRadius: 4, cursor: 'pointer', fontWeight: examType === type ? 'bold' : 'normal' }}>
+                  style={{ padding: '8px 20px', background: examType === type ? '#0073bb' : '#eee', border: 'none', borderRadius: 4, cursor: 'pointer', fontWeight: examType === type ? 'bold' : 'normal' }}>
                   {type}
                 </button>
               ))}
@@ -152,7 +152,7 @@ export default function ExerciseSetup() {
               ホームへ戻る
             </button>
             <button onClick={startSession} disabled={loading}
-              style={{ padding: '12px 24px', background: loading ? '#ccc' : '#ff9900', color: 'white', border: 'none', borderRadius: 4, cursor: loading ? 'default' : 'pointer', fontSize: 16 }}>
+              style={{ padding: '12px 24px', background: loading ? '#ccc' : '#0073bb', color: 'white', border: 'none', borderRadius: 4, cursor: loading ? 'default' : 'pointer', fontSize: 16 }}>
               {loading ? '準備中...' : '演習開始'}
             </button>
           </div>
@@ -210,10 +210,10 @@ export default function ExerciseSetup() {
               <div key={cat.name} style={{ marginBottom: 8 }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 13, marginBottom: 3 }}>
                   <span style={{ color: '#333' }}>{cat.name}</span>
-                  <span style={{ fontWeight: 'bold', color: '#ff9900' }}>{cat.ratio}</span>
+                  <span style={{ fontWeight: 'bold', color: '#0073bb' }}>{cat.ratio}</span>
                 </div>
                 <div style={{ background: '#e8e8e8', borderRadius: 4, height: 6 }}>
-                  <div style={{ background: '#ff9900', borderRadius: 4, height: 6, width: cat.ratio, transition: 'width 0.3s' }} />
+                  <div style={{ background: '#0073bb', borderRadius: 4, height: 6, width: cat.ratio, transition: 'width 0.3s' }} />
                 </div>
               </div>
             ))}

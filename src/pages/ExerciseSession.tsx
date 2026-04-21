@@ -107,7 +107,7 @@ export default function ExerciseSession() {
   const getChoiceStyle = (choice: string) => {
     const base = { padding: "12px 16px", marginBottom: 8, borderRadius: 8, cursor: answered ? "default" : "pointer", border: "2px solid", display: "block", width: "100%", textAlign: "left" as const, fontSize: 15 };
     if (!answered) {
-      return { ...base, borderColor: selectedAnswers.includes(choice) ? "#ff9900" : "#ddd", background: selectedAnswers.includes(choice) ? "#fff8ee" : "white" };
+      return { ...base, borderColor: selectedAnswers.includes(choice) ? "#0073bb" : "#ddd", background: selectedAnswers.includes(choice) ? "#f0f7ff" : "white" };
     }
     const correctAnswers = detail?.correctAnswers || [];
     if (correctAnswers.includes(choice)) return { ...base, borderColor: "#27ae60", background: "#eafaf1" };
@@ -120,7 +120,7 @@ export default function ExerciseSession() {
       <Breadcrumb items={[{ label: 'ホーム', path: '/' }, { label: '演習設定', path: '/exercise/setup' }, { label: '演習中' }]} />
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 16 }}>
         <span style={{ color: "#888" }}>{currentIndex + 1} / {questions.length} 問</span>
-        <span style={{ background: "#ff9900", color: "white", padding: "2px 8px", borderRadius: 4, fontSize: 12 }}>{currentQuestion.examType}</span>
+        <span style={{ background: "#0073bb", color: "white", padding: "2px 8px", borderRadius: 4, fontSize: 12 }}>{currentQuestion.examType}</span>
       </div>
 
       <div style={{ background: "#f8f9fa", borderRadius: 8, padding: 16, marginBottom: 16 }}>
@@ -155,7 +155,7 @@ export default function ExerciseSession() {
         )}
         {answered && (
           <button onClick={nextQuestion}
-            style={{ padding: "12px 32px", background: "#ff9900", color: "white", border: "none", borderRadius: 4, cursor: "pointer", fontSize: 16 }}>
+            style={{ padding: "12px 32px", background: "#0073bb", color: "white", border: "none", borderRadius: 4, cursor: "pointer", fontSize: 16 }}>
             {currentIndex + 1 >= questions.length ? "結果を見る" : "次の問題"}
           </button>
         )}

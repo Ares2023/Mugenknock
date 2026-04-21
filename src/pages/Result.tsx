@@ -96,7 +96,7 @@ export default function Result() {
           ホームへ
         </button>
         <button onClick={() => navigate(isExam ? '/exam/setup' : '/exercise/setup')}
-          style={{ padding: '12px 24px', background: '#ff9900', color: 'white', border: 'none', borderRadius: 4, cursor: 'pointer', fontSize: 15 }}>
+          style={{ padding: '12px 24px', background: '#0073bb', color: 'white', border: 'none', borderRadius: 4, cursor: 'pointer', fontSize: 15 }}>
           もう一度
         </button>
       </div>

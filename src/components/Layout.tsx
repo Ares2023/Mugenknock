@@ -75,7 +75,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
         >
           AWS Quiz
         </span>
-        <span style={{ color: '#ff9900', fontSize: 11, marginTop: 2, whiteSpace: 'nowrap' }}>Practice</span>
+        <span style={{ color: '#0073bb', fontSize: 11, marginTop: 2, whiteSpace: 'nowrap' }}>Practice</span>
 
         {/* 検索バー */}
         <form onSubmit={handleSearch} style={{ flex: 1, maxWidth: 420, margin: '0 16px' }}>
@@ -91,7 +91,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
                 background: '#1a2332', color: 'white',
                 fontSize: 13, outline: 'none',
               }}
-              onFocus={e => { e.currentTarget.style.borderColor = '#ff9900'; }}
+              onFocus={e => { e.currentTarget.style.borderColor = '#0073bb'; }}
               onBlur={e => { e.currentTarget.style.borderColor = '#4a5568'; }}
             />
           </div>
@@ -135,13 +135,13 @@ export default function Layout({ children }: { children: React.ReactNode }) {
                     width: '100%', textAlign: 'left',
                     display: 'flex', alignItems: 'center', gap: 12,
                     padding: '10px 20px',
-                    background: active ? '#fef6e8' : 'none',
+                    background: active ? '#eaf3fa' : 'none',
                     border: 'none',
-                    borderLeftColor: active ? '#ff9900' : 'transparent',
+                    borderLeftColor: active ? '#0073bb' : 'transparent',
                     borderLeftWidth: 3,
                     borderLeftStyle: 'solid',
                     cursor: 'pointer',
-                    color: active ? '#c45200' : '#555',
+                    color: active ? '#0056a3' : '#555',
                     fontSize: 14,
                     fontWeight: active ? 'bold' : 'normal',
                     transition: 'background 0.15s',
