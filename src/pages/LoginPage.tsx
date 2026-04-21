@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Authenticator } from '@aws-amplify/ui-react';
 import '@aws-amplify/ui-react/styles.css';
@@ -7,6 +7,7 @@ import { useAuth } from '../contexts/AuthContext';
 export default function LoginPage() {
   const navigate = useNavigate();
   const { refresh } = useAuth();
+  const navigating = useRef(false);
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', minHeight: '100vh', background: '#f5f5f5', fontFamily: 'sans-serif' }}>
@@ -20,7 +21,8 @@ export default function LoginPage() {
         signUpAttributes={['email']}
       >
         {({ user: cognitoUser }) => {
-          if (cognitoUser) {
+          if (cognitoUser && !navigating.current) {
+            navigating.current = true;
             refresh().then(() => navigate('/', { replace: true }));
           }
           return <></>;
