@@ -64,14 +64,26 @@ export default function ExerciseSetup() {
   const info = EXAM_INFO[examType];
   const passScore = PASS_SCORES[examType];
   const [availableCount, setAvailableCount] = useState<number | null>(null);
+  const [answeredCount, setAnsweredCount] = useState<number | null>(null);
 
   useEffect(() => {
     setAvailableCount(null);
-    fetch(`${API_ENDPOINT}/questions?examType=${examType}`)
+    setAnsweredCount(null);
+
+    const fetchAvailable = fetch(`${API_ENDPOINT}/questions?examType=${examType}`)
       .then(r => r.json())
       .then(d => setAvailableCount(d.count ?? d.items?.length ?? 0))
       .catch(() => setAvailableCount(0));
-  }, [examType]);
+
+    const fetchAnswered = user
+      ? fetch(`${API_ENDPOINT}/users/me/question-stats?userId=${user.userId}&examType=${examType}`)
+          .then(r => r.json())
+          .then(d => setAnsweredCount(d.answeredCount ?? 0))
+          .catch(() => setAnsweredCount(0))
+      : Promise.resolve(setAnsweredCount(0));
+
+    Promise.all([fetchAvailable, fetchAnswered]);
+  }, [examType, user]);
 
   const startSession = async () => {
     setLoading(true);
@@ -165,9 +177,16 @@ export default function ExerciseSetup() {
               )}
             </div>
             <div style={{ background: 'white', border: '1px solid #e8e8e8', borderRadius: 8, padding: '12px 16px' }}>
-              <div style={{ fontSize: 11, color: '#888', marginBottom: 4 }}>用意されている問題数</div>
+              <div style={{ fontSize: 11, color: '#888', marginBottom: 4 }}>サイト内問題数</div>
               <div style={{ fontSize: 22, fontWeight: 'bold', color: availableCount === null ? '#ccc' : '#232f3e' }}>
                 {availableCount === null ? '…' : availableCount}
+                <span style={{ fontSize: 13, fontWeight: 'normal', marginLeft: 2 }}>問</span>
+              </div>
+            </div>
+            <div style={{ background: 'white', border: '1px solid #e8e8e8', borderRadius: 8, padding: '12px 16px' }}>
+              <div style={{ fontSize: 11, color: '#888', marginBottom: 4 }}>演習済み問題数</div>
+              <div style={{ fontSize: 22, fontWeight: 'bold', color: answeredCount === null ? '#ccc' : '#5a9fd4' }}>
+                {answeredCount === null ? '…' : answeredCount}
                 <span style={{ fontSize: 13, fontWeight: 'normal', marginLeft: 2 }}>問</span>
               </div>
             </div>

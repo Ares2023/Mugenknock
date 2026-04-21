@@ -360,6 +360,37 @@ app.get('/sessions/:id', async (req, res) => {
   }
 });
 
+// 演習済み問題数取得
+app.get('/users/me/question-stats', async (req, res) => {
+  try {
+    const docClient = getClient();
+    const { userId, examType } = req.query;
+
+    const [questionsResult, statsResult] = await Promise.all([
+      docClient.send(new QueryCommand({
+        TableName: 'Questions',
+        IndexName: 'examType-index',
+        KeyConditionExpression: 'examType = :et',
+        ExpressionAttributeValues: { ':et': examType },
+        ProjectionExpression: 'questionId'
+      })),
+      docClient.send(new QueryCommand({
+        TableName: 'UserQuestionStats',
+        KeyConditionExpression: 'userId = :uid',
+        ExpressionAttributeValues: { ':uid': userId }
+      }))
+    ]);
+
+    const examQuestionIds = new Set((questionsResult.Items || []).map(q => q.questionId));
+    const answeredCount = (statsResult.Items || []).filter(s => examQuestionIds.has(s.questionId)).length;
+
+    res.json({ answeredCount });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
 // 統計取得
 app.get('/users/me/stats', async (req, res) => {
   try {
