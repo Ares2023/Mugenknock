@@ -105,60 +105,152 @@ export default function ExerciseSession() {
   };
 
   const getChoiceStyle = (choice: string) => {
-    const base = { padding: "12px 16px", marginBottom: 8, borderRadius: 8, cursor: answered ? "default" : "pointer", border: "2px solid", display: "block", width: "100%", textAlign: "left" as const, fontSize: 15 };
+    const base = {
+      padding: "12px 20px",
+      marginBottom: 12,
+      borderRadius: 2,
+      cursor: answered ? "default" : "pointer",
+      border: "1px solid",
+      display: "flex",
+      alignItems: "center",
+      width: "100%",
+      textAlign: "left" as const,
+      fontSize: 14,
+      transition: "all 0.1s ease",
+    };
     if (!answered) {
-      return { ...base, borderColor: selectedAnswers.includes(choice) ? "#0073bb" : "#ddd", background: selectedAnswers.includes(choice) ? "#f0f7ff" : "white" };
+      const selected = selectedAnswers.includes(choice);
+      return {
+        ...base,
+        borderColor: selected ? "#0073bb" : "#d1d5db",
+        background: selected ? "#f2f8fd" : "white",
+        boxShadow: selected ? "inset 0 0 0 1px #0073bb" : "none",
+        fontWeight: selected ? 700 : 400,
+      };
     }
     const correctAnswers = detail?.correctAnswers || [];
-    if (correctAnswers.includes(choice)) return { ...base, borderColor: "#27ae60", background: "#eafaf1" };
-    if (selectedAnswers.includes(choice) && !correctAnswers.includes(choice)) return { ...base, borderColor: "#e74c3c", background: "#fdf2f2" };
-    return { ...base, borderColor: "#ddd", background: "white" };
+    const isCorrect = correctAnswers.includes(choice);
+    const isSelected = selectedAnswers.includes(choice);
+
+    if (isCorrect) {
+      return { ...base, borderColor: "#037f0c", background: "#f2fcf3", fontWeight: 700, color: "#037f0c" };
+    }
+    if (isSelected && !isCorrect) {
+      return { ...base, borderColor: "#d13212", background: "#fdf3f1", fontWeight: 700, color: "#d13212" };
+    }
+    return { ...base, borderColor: "#eaeded", background: "#fbfbfb", color: "#545b64" };
   };
 
   return (
-    <div style={{ maxWidth: 700, margin: "0 auto", padding: 24, fontFamily: "sans-serif" }}>
+    <div style={{ maxWidth: 900, margin: "0 auto", padding: "24px 40px", color: "#16191f" }}>
       <Breadcrumb items={[{ label: 'ホーム', path: '/' }, { label: '演習設定', path: '/exercise/setup' }, { label: '演習中' }]} />
-      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 16 }}>
-        <span style={{ color: "#888" }}>{currentIndex + 1} / {questions.length} 問</span>
-        <span style={{ background: "#0073bb", color: "white", padding: "2px 8px", borderRadius: 4, fontSize: 12 }}>{currentQuestion.examType}</span>
-      </div>
 
-      <div style={{ background: "#f8f9fa", borderRadius: 8, padding: 16, marginBottom: 16 }}>
-        {currentQuestion.isMultiple && <p style={{ color: "#5a9fd4", fontSize: 13, marginBottom: 8 }}>※複数選択</p>}
-        <p style={{ fontSize: 17, fontWeight: "bold", margin: 0 }}>{currentQuestion.questionText}</p>
-      </div>
-
-      <div style={{ marginBottom: 16 }}>
-        {currentQuestion.choices.map((choice: string) => (
-          <button key={choice} onClick={() => toggleAnswer(choice)} style={getChoiceStyle(choice)}>
-            {choice}
-          </button>
-        ))}
-      </div>
-
-      {answered && detail && (
-        <div style={{ background: "#f0f8ff", borderRadius: 8, padding: 16, marginBottom: 16 }}>
-          <p style={{ fontWeight: "bold", color: results[results.length - 1]?.isCorrect ? "#27ae60" : "#e74c3c" }}>
-            {results[results.length - 1]?.isCorrect ? "✓ 正解！" : "✗ 不正解"}
-          </p>
-          <p><strong>正解：</strong>{detail.correctAnswers?.join(", ")}</p>
-          <p><strong>解説：</strong>{detail.explanation}</p>
+      <div style={{ background: "white", border: "1px solid #eaeded", borderRadius: 2, padding: "24px 32px", boxShadow: "0 1px 1px 0 rgba(0,28,36,0.1), 1px 1px 1px 0 rgba(0,28,36,0.15)" }}>
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 20 }}>
+          <h1 style={{ fontSize: 20, fontWeight: 700, margin: 0 }}>
+            問題 {currentIndex + 1}
+            <span style={{ fontWeight: 400, fontSize: 14, color: "#545b64", marginLeft: 12 }}>
+              全 {questions.length} 問
+            </span>
+          </h1>
+          <span style={{ background: "#f2f3f3", color: "#545b64", padding: "4px 12px", borderRadius: 12, fontSize: 12, fontWeight: 700, border: "1px solid #d1d5db" }}>
+            {currentQuestion.examType}
+          </span>
         </div>
-      )}
 
-      <div style={{ display: "flex", gap: 16 }}>
-        {!answered && (
-          <button onClick={submitAnswer} disabled={selectedAnswers.length === 0 || loading}
-            style={{ padding: "12px 32px", background: selectedAnswers.length > 0 ? "#232f3e" : "#ccc", color: "white", border: "none", borderRadius: 4, cursor: selectedAnswers.length > 0 ? "pointer" : "default", fontSize: 16 }}>
-            {loading ? "送信中..." : "回答する"}
-          </button>
+        <div style={{ marginBottom: 24 }}>
+          {currentQuestion.isMultiple && (
+            <div style={{ display: "inline-block", background: "#f2f8fd", color: "#0073bb", padding: "2px 8px", borderRadius: 2, fontSize: 12, fontWeight: 700, marginBottom: 8 }}>
+              複数選択
+            </div>
+          )}
+          <p style={{ fontSize: 16, lineHeight: 1.6, fontWeight: 400, margin: 0, color: "#16191f" }}>
+            {currentQuestion.questionText}
+          </p>
+        </div>
+
+        <div style={{ marginBottom: 32 }}>
+          {currentQuestion.choices.map((choice: string) => (
+            <button key={choice} onClick={() => toggleAnswer(choice)} style={getChoiceStyle(choice)}>
+              <span style={{
+                width: 18, height: 18, border: "1px solid #545b64",
+                borderRadius: currentQuestion.isMultiple ? 2 : "50%",
+                marginRight: 12, display: "flex", alignItems: "center", justifyContent: "center",
+                background: selectedAnswers.includes(choice) ? "#0073bb" : "white",
+                borderColor: selectedAnswers.includes(choice) ? "#0073bb" : "#545b64",
+                flexShrink: 0
+              }}>
+                {selectedAnswers.includes(choice) && <span style={{ width: 6, height: 6, borderRadius: "50%", background: "white" }} />}
+              </span>
+              {choice}
+            </button>
+          ))}
+        </div>
+
+        {answered && detail && (
+          <div style={{
+            background: results[results.length - 1]?.isCorrect ? "#f2fcf3" : "#fdf3f1",
+            borderLeft: `8px solid ${results[results.length - 1]?.isCorrect ? "#037f0c" : "#d13212"}`,
+            padding: "16px 20px", marginBottom: 24
+          }}>
+            <h3 style={{
+              margin: "0 0 8px", fontSize: 16,
+              color: results[results.length - 1]?.isCorrect ? "#037f0c" : "#d13212",
+              display: "flex", alignItems: "center", gap: 8
+            }}>
+              {results[results.length - 1]?.isCorrect ? "✓ 正解" : "✗ 不正解"}
+            </h3>
+            <p style={{ margin: "0 0 12px", fontSize: 14 }}>
+              <strong>正解：</strong> {detail.correctAnswers?.join(", ")}
+            </p>
+            <div style={{ fontSize: 14, lineHeight: 1.6 }}>
+              <strong>解説：</strong>
+              <div style={{ marginTop: 4 }}>{detail.explanation}</div>
+            </div>
+          </div>
         )}
-        {answered && (
-          <button onClick={nextQuestion}
-            style={{ padding: "12px 32px", background: "#0073bb", color: "white", border: "none", borderRadius: 4, cursor: "pointer", fontSize: 16 }}>
-            {currentIndex + 1 >= questions.length ? "結果を見る" : "次の問題"}
-          </button>
-        )}
+
+        <div style={{ display: "flex", gap: 12, borderTop: "1px solid #eaeded", paddingTop: 24 }}>
+          {!answered ? (
+            <button
+              onClick={submitAnswer}
+              disabled={selectedAnswers.length === 0 || loading}
+              style={{
+                padding: "8px 20px",
+                background: selectedAnswers.length > 0 ? "#ff9900" : "#eaeded",
+                color: selectedAnswers.length > 0 ? "#16191f" : "#aab7b8",
+                border: "1px solid transparent",
+                borderRadius: 2,
+                cursor: selectedAnswers.length > 0 ? "pointer" : "not-allowed",
+                fontSize: 14,
+                fontWeight: 700,
+                transition: "background 0.1s"
+              }}
+              onMouseEnter={e => { if (selectedAnswers.length > 0) e.currentTarget.style.background = "#ec7211"; }}
+              onMouseLeave={e => { if (selectedAnswers.length > 0) e.currentTarget.style.background = "#ff9900"; }}
+            >
+              {loading ? "送信中..." : "回答する"}
+            </button>
+          ) : (
+            <button
+              onClick={nextQuestion}
+              style={{
+                padding: "8px 20px",
+                background: "#0073bb",
+                color: "white",
+                border: "1px solid transparent",
+                borderRadius: 2,
+                cursor: "pointer",
+                fontSize: 14,
+                fontWeight: 700,
+              }}
+              onMouseEnter={e => e.currentTarget.style.background = "#005a9e"}
+              onMouseLeave={e => e.currentTarget.style.background = "#0073bb"}
+            >
+              {currentIndex + 1 >= questions.length ? "結果を表示" : "次の問題へ"}
+            </button>
+          )}
+        </div>
       </div>
 
       {/* コラム（豆知識） */}

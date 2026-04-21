@@ -49,62 +49,65 @@ export default function Layout({ children }: { children: React.ReactNode }) {
 
       {/* ── ヘッダー ── */}
       <header style={{
-        height: 56, minHeight: 56, background: '#0f1111',
-        display: 'flex', alignItems: 'center', padding: '0 16px',
-        gap: 12, zIndex: 10, boxShadow: '0 2px 4px rgba(0,0,0,.5)',
+        height: 40, minHeight: 40, background: '#232f3e',
+        display: 'flex', alignItems: 'center', padding: '0 20px',
+        gap: 20, zIndex: 10,
       }}>
         {/* ハンバーガー（丸） */}
         <button onClick={toggle} style={{
           background: 'none', border: 'none', cursor: 'pointer',
-          color: '#d5dbdb', fontSize: 18, lineHeight: 1,
-          width: 36, height: 36, borderRadius: '50%',
+          color: '#d5dbdb', fontSize: 20, lineHeight: 1,
           display: 'flex', alignItems: 'center', justifyContent: 'center',
-          transition: 'background 0.15s', flexShrink: 0,
+          padding: 0,
         }}
           title={open ? 'メニューを閉じる' : 'メニューを開く'}
-          onMouseEnter={e => { (e.currentTarget as HTMLElement).style.background = 'rgba(255,255,255,0.12)'; }}
-          onMouseLeave={e => { (e.currentTarget as HTMLElement).style.background = 'none'; }}
         >
           &#9776;
         </button>
 
         {/* サービス名 */}
-        <span
+        <div
           onClick={() => navigate('/')}
-          style={{ color: 'white', fontWeight: 'bold', fontSize: 16, cursor: 'pointer', userSelect: 'none', whiteSpace: 'nowrap' }}
+          style={{ display: 'flex', alignItems: 'center', cursor: 'pointer', userSelect: 'none' }}
         >
-          AWS Quiz
-        </span>
-        <span style={{ color: '#0073bb', fontSize: 11, marginTop: 2, whiteSpace: 'nowrap' }}>Practice</span>
+          <span style={{ color: 'white', fontWeight: 800, fontSize: 15, letterSpacing: '0.2px' }}>
+            AWS
+          </span>
+          <span style={{ color: 'white', fontWeight: 400, fontSize: 15, marginLeft: 6 }}>
+            Quiz Practice
+          </span>
+        </div>
 
         {/* 検索バー */}
-        <form onSubmit={handleSearch} style={{ flex: 1, maxWidth: 420, margin: '0 16px' }}>
+        <form onSubmit={handleSearch} style={{ flex: 1, maxWidth: 540 }}>
           <div style={{ position: 'relative', display: 'flex', alignItems: 'center' }}>
-            <span style={{ position: 'absolute', left: 10, color: '#aaa', fontSize: 14, pointerEvents: 'none' }}>🔍</span>
             <input
               value={searchQuery}
               onChange={e => setSearchQuery(e.target.value)}
-              placeholder="サービス名・キーワードで検索"
+              placeholder="サービス、機能、ドキュメントなどを検索"
               style={{
-                width: '100%', padding: '6px 12px 6px 32px',
-                borderRadius: 4, border: '1px solid #4a5568',
-                background: '#1a2332', color: 'white',
-                fontSize: 13, outline: 'none',
+                width: '100%', padding: '4px 12px 4px 36px',
+                borderRadius: 2, border: '1px solid #545b64',
+                background: 'white', color: '#16191f',
+                fontSize: 14, outline: 'none',
               }}
-              onFocus={e => { e.currentTarget.style.borderColor = '#0073bb'; }}
-              onBlur={e => { e.currentTarget.style.borderColor = '#4a5568'; }}
             />
+            <span style={{ position: 'absolute', left: 12, color: '#545b64', fontSize: 14, pointerEvents: 'none' }}>🔍</span>
           </div>
         </form>
 
         {/* 右側ユーザー情報 */}
-        <div style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: 16, flexShrink: 0 }}>
+        <div style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: 20, flexShrink: 0 }}>
           {user && (
-            <span style={{ color: '#d5dbdb', fontSize: 13 }}>{user.email}</span>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+              <div style={{ width: 18, height: 18, borderRadius: '50%', background: '#545b64', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 10, color: 'white' }}>👤</div>
+              <span style={{ color: '#d5dbdb', fontSize: 12, fontWeight: 700 }}>{user.email?.split('@')[0]}</span>
+            </div>
           )}
           <button onClick={handleSignOut} style={{
-            background: 'none', border: '1px solid #4a5568', borderRadius: 4,
-            color: '#d5dbdb', fontSize: 13, padding: '4px 12px', cursor: 'pointer',
+            background: 'none', border: 'none',
+            color: '#d5dbdb', fontSize: 12, padding: '4px 0', cursor: 'pointer',
+            fontWeight: 700
           }}>
             ログアウト
           </button>
@@ -118,13 +121,13 @@ export default function Layout({ children }: { children: React.ReactNode }) {
         <nav style={{
           width: open ? SIDEBAR_WIDTH : 0,
           minWidth: open ? SIDEBAR_WIDTH : 0,
-          background: 'white',
-          borderRight: '1px solid #e0e0e0',
+          background: '#ffffff',
+          borderRight: '1px solid #eaeded',
           overflow: 'hidden',
-          transition: 'width 0.2s ease, min-width 0.2s ease',
+          transition: 'width 0.1s ease-out, min-width 0.1s ease-out',
           display: 'flex', flexDirection: 'column',
         }}>
-          <div style={{ width: SIDEBAR_WIDTH, paddingTop: 8, display: 'flex', flexDirection: 'column', height: '100%' }}>
+          <div style={{ width: SIDEBAR_WIDTH, paddingTop: 12, display: 'flex', flexDirection: 'column', height: '100%' }}>
             {NAV_ITEMS.filter(item => !item.adminOnly || isAdmin).map(item => {
               const active = isActive(item.path);
               return (
@@ -134,23 +137,23 @@ export default function Layout({ children }: { children: React.ReactNode }) {
                   style={{
                     width: '100%', textAlign: 'left',
                     display: 'flex', alignItems: 'center', gap: 12,
-                    padding: '10px 20px',
-                    background: active ? '#eaf3fa' : 'none',
+                    padding: '8px 20px',
+                    background: active ? '#f2f3f3' : 'none',
                     border: 'none',
                     borderLeftColor: active ? '#0073bb' : 'transparent',
-                    borderLeftWidth: 3,
+                    borderLeftWidth: 4,
                     borderLeftStyle: 'solid',
                     cursor: 'pointer',
-                    color: active ? '#0056a3' : '#555',
+                    color: active ? '#000' : '#545b64',
                     fontSize: 14,
-                    fontWeight: active ? 'bold' : 'normal',
-                    transition: 'background 0.15s',
+                    fontWeight: active ? 700 : 400,
+                    transition: 'background 0.1s',
                     whiteSpace: 'nowrap',
                   }}
-                  onMouseEnter={e => { if (!active) (e.currentTarget as HTMLElement).style.background = '#f5f5f5'; }}
+                  onMouseEnter={e => { if (!active) (e.currentTarget as HTMLElement).style.background = '#f2f3f3'; }}
                   onMouseLeave={e => { if (!active) (e.currentTarget as HTMLElement).style.background = 'none'; }}
                 >
-                  <span style={{ fontSize: 16, opacity: 0.7 }}>{item.icon}</span>
+                  <span style={{ fontSize: 16, opacity: active ? 1 : 0.6 }}>{item.icon}</span>
                   <span>{item.label}</span>
                 </button>
               );

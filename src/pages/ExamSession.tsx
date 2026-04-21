@@ -139,17 +139,17 @@ export default function ExamSession() {
   }
 
   return (
-    <div style={{ maxWidth: 700, margin: '0 auto', padding: '24px', fontFamily: 'sans-serif', position: 'relative' }}>
+    <div style={{ maxWidth: 900, margin: '0 auto', padding: '24px 40px', color: '#16191f' }}>
       <Breadcrumb items={[{ label: 'ホーム', path: '/' }, { label: '模試設定', path: '/exam/setup' }, { label: '模試中' }]} />
 
       {/* 一時停止オーバーレイ */}
       {paused && (
-        <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.7)', zIndex: 100,
+        <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,28,36,0.7)', zIndex: 100,
           display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 24 }}>
-          <div style={{ fontSize: 28, color: 'white', fontWeight: 'bold' }}>⏸ 一時停止中</div>
-          <div style={{ fontSize: 14, color: '#ccc' }}>問題は隠されています</div>
+          <div style={{ fontSize: 28, color: 'white', fontWeight: 700 }}>⏸ 一時停止中</div>
+          <div style={{ fontSize: 14, color: '#d5dbdb' }}>問題は隠されています</div>
           <button onClick={() => setPaused(false)}
-            style={{ padding: '14px 40px', background: '#0073bb', border: 'none', borderRadius: 8, fontSize: 18, fontWeight: 'bold', cursor: 'pointer' }}>
+            style={{ padding: '14px 40px', background: '#0073bb', border: 'none', borderRadius: 2, fontSize: 18, fontWeight: 700, cursor: 'pointer', color: 'white' }}>
             ▶ 再開する
           </button>
         </div>
@@ -159,18 +159,20 @@ export default function ExamSession() {
       {showConfirm && (
         <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', zIndex: 100,
           display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-          <div style={{ background: 'white', borderRadius: 12, padding: 32, maxWidth: 360, width: '90%', textAlign: 'center' }}>
-            <div style={{ fontSize: 18, fontWeight: 'bold', marginBottom: 12 }}>提出しますか？</div>
-            <div style={{ fontSize: 14, color: '#555', marginBottom: 24 }}>
-              回答済み <strong>{answeredCount}</strong> 問 / 未回答 <strong style={{ color: unansweredCount > 0 ? '#e74c3c' : '#27ae60' }}>{unansweredCount}</strong> 問
+          <div style={{ background: 'white', borderRadius: 2, padding: 32, maxWidth: 420, width: '90%', textAlign: 'center', boxShadow: '0 4px 20px rgba(0,0,0,0.2)' }}>
+            <div style={{ fontSize: 20, fontWeight: 700, marginBottom: 16 }}>提出の確認</div>
+            <div style={{ fontSize: 15, color: '#545b64', marginBottom: 24, lineHeight: 1.6 }}>
+              回答済み: <strong>{answeredCount}</strong> / {questions.length} 問<br />
+              未回答: <strong style={{ color: unansweredCount > 0 ? '#d13212' : '#037f0c' }}>{unansweredCount}</strong> 問<br /><br />
+              全ての回答を提出して採点しますか？
             </div>
             <div style={{ display: 'flex', gap: 12, justifyContent: 'center' }}>
               <button onClick={() => setShowConfirm(false)}
-                style={{ padding: '10px 24px', border: '1px solid #aaa', borderRadius: 4, cursor: 'pointer', background: 'white' }}>
-                戻る
+                style={{ padding: '8px 20px', border: '1px solid #545b64', borderRadius: 2, cursor: 'pointer', background: 'white', fontWeight: 700 }}>
+                キャンセル
               </button>
               <button onClick={() => { setShowConfirm(false); handleFinish(); }}
-                style={{ padding: '10px 24px', background: '#232f3e', color: 'white', border: 'none', borderRadius: 4, cursor: 'pointer' }}>
+                style={{ padding: '8px 20px', background: '#ff9900', color: '#16191f', border: '1px solid transparent', borderRadius: 2, cursor: 'pointer', fontWeight: 700 }}>
                 提出する
               </button>
             </div>
@@ -180,85 +182,131 @@ export default function ExamSession() {
 
       {/* タイマーバー */}
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-        background: 'white', borderRadius: 8, padding: '10px 16px', marginBottom: 16,
-        border: '1px solid #e0e0e0', boxShadow: '0 1px 3px rgba(0,0,0,.06)' }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-          <span style={{ fontSize: 12, color: '#888' }}>{examType} 模試</span>
-          <span style={{ fontSize: 24, fontWeight: 'bold', fontFamily: 'monospace',
-            color: timerRed ? '#e74c3c' : '#232f3e', transition: 'color 1s' }}>
+        background: 'white', borderRadius: 2, padding: '12px 24px', marginBottom: 20,
+        border: '1px solid #eaeded', boxShadow: '0 1px 1px 0 rgba(0,28,36,0.1)' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
+          <span style={{ fontSize: 13, fontWeight: 700, color: '#545b64', background: '#f2f3f3', padding: '2px 8px', borderRadius: 12, border: '1px solid #d1d5db' }}>{examType} 模試</span>
+          <span style={{ fontSize: 24, fontWeight: 700, fontFamily: 'monospace',
+            color: timerRed ? '#d13212' : '#16191f', transition: 'color 1s' }}>
             {formatTime(timeLeft)}
           </span>
-          {timerRed && <span style={{ fontSize: 11, color: '#e74c3c' }}>残り時間わずか</span>}
+          {timerRed && <span style={{ fontSize: 12, color: '#d13212', fontWeight: 700 }}>⚠️ 残り時間わずか</span>}
         </div>
-        <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
-          <span style={{ fontSize: 13, color: '#888' }}>{currentIndex + 1} / {questions.length}</span>
+        <div style={{ display: 'flex', gap: 12, alignItems: 'center' }}>
+          <span style={{ fontSize: 14, color: '#545b64' }}>問題 {currentIndex + 1} / {questions.length}</span>
           <button onClick={() => setPaused(true)}
-            style={{ padding: '6px 14px', border: '1px solid #ccc', borderRadius: 4,
-              cursor: 'pointer', background: 'white', fontSize: 13 }}>
+            style={{ padding: '6px 16px', border: '1px solid #545b64', borderRadius: 2,
+              cursor: 'pointer', background: 'white', fontSize: 13, fontWeight: 700 }}>
             ⏸ 一時停止
           </button>
         </div>
       </div>
 
-      {/* 問題 */}
-      <div style={{ background: 'white', borderRadius: 8, padding: 20, marginBottom: 16,
-        border: '1px solid #e0e0e0', boxShadow: '0 1px 3px rgba(0,0,0,.06)' }}>
-        {currentQ.isMultiple && (
-          <p style={{ color: '#2980b9', fontSize: 12, margin: '0 0 8px' }}>※ 複数選択</p>
-        )}
-        <p style={{ fontSize: 16, fontWeight: 'bold', margin: 0, lineHeight: 1.6 }}>{currentQ.questionText}</p>
-      </div>
+      <div style={{ background: "white", border: "1px solid #eaeded", borderRadius: 2, padding: "24px 32px", boxShadow: "0 1px 1px 0 rgba(0,28,36,0.1), 1px 1px 1px 0 rgba(0,28,36,0.15)", marginBottom: 24 }}>
+        {/* 問題 */}
+        <div style={{ marginBottom: 24 }}>
+          {currentQ.isMultiple && (
+            <div style={{ display: "inline-block", background: "#f2f8fd", color: "#0073bb", padding: "2px 8px", borderRadius: 2, fontSize: 12, fontWeight: 700, marginBottom: 8 }}>
+              複数選択
+            </div>
+          )}
+          <p style={{ fontSize: 16, lineHeight: 1.6, fontWeight: 400, margin: 0, color: "#16191f" }}>
+            {currentQ.questionText}
+          </p>
+        </div>
 
-      <div style={{ marginBottom: 16 }}>
-        {currentQ.choices.map((choice: string) => {
-          const isSelected = selected.includes(choice);
-          return (
-            <button key={choice} onClick={() => toggle(choice)}
-              style={{ display: 'block', width: '100%', textAlign: 'left',
-                padding: '12px 16px', marginBottom: 8, borderRadius: 8,
-                border: `2px solid ${isSelected ? '#0073bb' : '#ddd'}`,
-                background: isSelected ? '#f0f7ff' : 'white', cursor: 'pointer', fontSize: 14 }}>
-              {choice}
-            </button>
-          );
-        })}
+        <div style={{ marginBottom: 32 }}>
+          {currentQ.choices.map((choice: string) => {
+            const isSelected = selected.includes(choice);
+            return (
+              <button key={choice} onClick={() => toggle(choice)}
+                style={{
+                  display: 'flex', alignItems: 'center', width: '100%', textAlign: 'left',
+                  padding: '12px 20px', marginBottom: 12, borderRadius: 2,
+                  border: `1px solid ${isSelected ? '#0073bb' : '#d1d5db'}`,
+                  background: isSelected ? '#f2f8fd' : 'white',
+                  boxShadow: isSelected ? "inset 0 0 0 1px #0073bb" : "none",
+                  cursor: 'pointer', fontSize: 14, fontWeight: isSelected ? 700 : 400,
+                  transition: 'all 0.1s'
+                }}>
+                <span style={{
+                  width: 18, height: 18, border: "1px solid #545b64",
+                  borderRadius: currentQ.isMultiple ? 2 : "50%",
+                  marginRight: 12, display: "flex", alignItems: "center", justifyContent: "center",
+                  background: isSelected ? "#0073bb" : "white",
+                  borderColor: isSelected ? "#0073bb" : "#545b64",
+                  flexShrink: 0
+                }}>
+                  {isSelected && <span style={{ width: 6, height: 6, borderRadius: "50%", background: "white" }} />}
+                </span>
+                {choice}
+              </button>
+            );
+          })}
+        </div>
       </div>
 
       {/* ナビゲーションパネル */}
-      <div style={{ background: 'white', borderRadius: 8, padding: '14px 16px',
-        border: '1px solid #e0e0e0', boxShadow: '0 1px 3px rgba(0,0,0,.06)' }}>
-        <div style={{ fontSize: 12, color: '#888', marginBottom: 10, display: 'flex', gap: 16 }}>
-          <span><span style={{ display: 'inline-block', width: 12, height: 12, background: '#0073bb', borderRadius: 2, marginRight: 4, verticalAlign: 'middle' }} />現在</span>
-          <span><span style={{ display: 'inline-block', width: 12, height: 12, background: '#2980b9', borderRadius: 2, marginRight: 4, verticalAlign: 'middle' }} />回答済み</span>
-          <span><span style={{ display: 'inline-block', width: 12, height: 12, background: '#e8e8e8', borderRadius: 2, marginRight: 4, verticalAlign: 'middle' }} />未回答</span>
+      <div style={{ background: 'white', borderRadius: 2, padding: '20px 24px',
+        border: '1px solid #eaeded', boxShadow: '0 1px 1px 0 rgba(0,28,36,0.1)' }}>
+        <div style={{ fontSize: 12, color: '#545b64', marginBottom: 16, display: 'flex', gap: 20, fontWeight: 700 }}>
+          <span style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+            <span style={{ width: 12, height: 12, background: '#0073bb', borderRadius: 2 }} />現在
+          </span>
+          <span style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+            <span style={{ width: 12, height: 12, background: '#2980b9', borderRadius: 2 }} />回答済み
+          </span>
+          <span style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+            <span style={{ width: 12, height: 12, background: '#f2f3f3', borderRadius: 2, border: '1px solid #d1d5db' }} />未回答
+          </span>
         </div>
-        <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, marginBottom: 14 }}>
-          {questions.map((_: any, i: number) => (
-            <button key={i} onClick={() => setCurrentIndex(i)}
-              style={{ width: 34, height: 34, borderRadius: 4, border: 'none',
-                background: navBg(i), color: i === currentIndex || answers[questions[i]?.questionId] ? 'white' : '#555',
-                cursor: 'pointer', fontSize: 12, fontWeight: i === currentIndex ? 'bold' : 'normal' }}>
-              {i + 1}
-            </button>
-          ))}
+        <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, marginBottom: 24 }}>
+          {questions.map((_: any, i: number) => {
+            const isCurrent = i === currentIndex;
+            const isAnswered = !!answers[questions[i]?.questionId];
+            let bg = '#f2f3f3';
+            let color = '#545b64';
+            let border = '1px solid #d1d5db';
+            
+            if (isCurrent) {
+              bg = '#0073bb';
+              color = 'white';
+              border = '1px solid #0073bb';
+            } else if (isAnswered) {
+              bg = '#2980b9';
+              color = 'white';
+              border = '1px solid #2980b9';
+            }
+
+            return (
+              <button key={i} onClick={() => setCurrentIndex(i)}
+                style={{ width: 36, height: 36, borderRadius: 2, border,
+                  background: bg, color,
+                  cursor: 'pointer', fontSize: 13, fontWeight: isCurrent ? 700 : 400 }}>
+                {i + 1}
+              </button>
+            );
+          })}
         </div>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-          <div style={{ display: 'flex', gap: 8 }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderTop: '1px solid #eaeded', paddingTop: 20 }}>
+          <div style={{ display: 'flex', gap: 12 }}>
             <button onClick={() => setCurrentIndex(i => Math.max(0, i - 1))} disabled={currentIndex === 0}
-              style={{ padding: '8px 16px', border: '1px solid #ddd', borderRadius: 4, cursor: currentIndex === 0 ? 'default' : 'pointer',
-                background: currentIndex === 0 ? '#f5f5f5' : 'white', color: currentIndex === 0 ? '#bbb' : '#333' }}>
-              ← 前へ
+              style={{ padding: '8px 20px', border: '1px solid #545b64', borderRadius: 2, cursor: currentIndex === 0 ? 'default' : 'pointer',
+                background: 'white', color: currentIndex === 0 ? '#aab7b8' : '#16191f', fontWeight: 700, borderColor: currentIndex === 0 ? '#eaeded' : '#545b64' }}>
+              ← 前の質問
             </button>
             <button onClick={() => setCurrentIndex(i => Math.min(questions.length - 1, i + 1))} disabled={currentIndex === questions.length - 1}
-              style={{ padding: '8px 16px', border: '1px solid #ddd', borderRadius: 4,
+              style={{ padding: '8px 20px', border: '1px solid #545b64', borderRadius: 2,
                 cursor: currentIndex === questions.length - 1 ? 'default' : 'pointer',
-                background: currentIndex === questions.length - 1 ? '#f5f5f5' : 'white',
-                color: currentIndex === questions.length - 1 ? '#bbb' : '#333' }}>
-              次へ →
+                background: 'white', color: currentIndex === questions.length - 1 ? '#aab7b8' : '#16191f', fontWeight: 700, borderColor: currentIndex === questions.length - 1 ? '#eaeded' : '#545b64' }}>
+              次の質問 →
             </button>
           </div>
           <button onClick={() => setShowConfirm(true)}
-            style={{ padding: '10px 24px', background: '#232f3e', color: 'white', border: 'none', borderRadius: 4, cursor: 'pointer', fontSize: 15 }}>
+            style={{ padding: '8px 24px', background: '#ff9900', color: '#16191f', border: '1px solid transparent', borderRadius: 2, cursor: 'pointer', fontSize: 15, fontWeight: 700 }}
+            onMouseEnter={e => e.currentTarget.style.background = '#ec7211'}
+            onMouseLeave={e => e.currentTarget.style.background = '#ff9900'}
+          >
             提出する
           </button>
         </div>
