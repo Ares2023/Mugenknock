@@ -1,21 +1,23 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { API_ENDPOINT, EXAM_TYPES } from '../constants';
+import { API_ENDPOINT, EXAM_TYPES, PASS_SCORES, PASS_RATE } from '../constants';
 import { useAuth } from '../contexts/AuthContext';
 import Breadcrumb from '../components/Breadcrumb';
 
 const EXAM_INFO: Record<string, {
   fullName: string;
+  examCode: string;
   timeLimit: string;
   totalQuestions: number;
-  passingScore: string;
+  scoredQuestions: number;
   categories: { name: string; ratio: string }[];
 }> = {
   CLF: {
     fullName: 'AWS Certified Cloud Practitioner',
+    examCode: 'CLF-C02',
     timeLimit: '90分',
     totalQuestions: 65,
-    passingScore: '正答率 65% 以上',
+    scoredQuestions: 50,
     categories: [
       { name: 'クラウドのコンセプト', ratio: '24%' },
       { name: 'セキュリティとコンプライアンス', ratio: '30%' },
@@ -25,9 +27,10 @@ const EXAM_INFO: Record<string, {
   },
   SAA: {
     fullName: 'AWS Certified Solutions Architect – Associate',
+    examCode: 'SAA-C03',
     timeLimit: '130分',
     totalQuestions: 65,
-    passingScore: '正答率 65% 以上',
+    scoredQuestions: 65,
     categories: [
       { name: 'セキュアなアーキテクチャの設計', ratio: '30%' },
       { name: '弾力性に優れたアーキテクチャの設計', ratio: '26%' },
@@ -37,9 +40,10 @@ const EXAM_INFO: Record<string, {
   },
   SAP: {
     fullName: 'AWS Certified Solutions Architect – Professional',
+    examCode: 'SAP-C02',
     timeLimit: '180分',
     totalQuestions: 75,
-    passingScore: '正答率 65% 以上',
+    scoredQuestions: 65,
     categories: [
       { name: '組織の複雑さに対応したソリューションの設計', ratio: '26%' },
       { name: '新しいソリューションの設計', ratio: '29%' },
@@ -58,6 +62,7 @@ export default function ExerciseSetup() {
   const [loading, setLoading] = useState(false);
 
   const info = EXAM_INFO[examType];
+  const passScore = PASS_SCORES[examType];
 
   const startSession = async () => {
     setLoading(true);
@@ -76,7 +81,7 @@ export default function ExerciseSetup() {
       const sessionData = await sessionRes.json();
 
       navigate('/exercise/session', {
-        state: { sessionId: sessionData.sessionId, questions: data.items, userId, mode: 'exercise' }
+        state: { sessionId: sessionData.sessionId, questions: data.items, userId, mode: 'exercise', examType }
       });
     } catch (err) {
       console.error(err);
@@ -134,23 +139,33 @@ export default function ExerciseSetup() {
 
         {/* 右：試験情報パネル */}
         <div style={{ flex: 1, background: '#f8f9fa', border: '1px solid #e0e0e0', borderRadius: 10, padding: 24 }}>
-          <div style={{ marginBottom: 4 }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 4 }}>
             <span style={{ background: '#232f3e', color: 'white', fontSize: 12, padding: '2px 8px', borderRadius: 4 }}>{examType}</span>
+            <span style={{ fontSize: 12, color: '#888' }}>{info.examCode}</span>
           </div>
-          <p style={{ fontSize: 13, color: '#555', marginTop: 8, marginBottom: 20 }}>{info.fullName}</p>
+          <p style={{ fontSize: 13, color: '#555', marginTop: 6, marginBottom: 20 }}>{info.fullName}</p>
 
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, marginBottom: 24 }}>
             <div style={{ background: 'white', border: '1px solid #e8e8e8', borderRadius: 8, padding: '12px 16px' }}>
-              <div style={{ fontSize: 11, color: '#888', marginBottom: 4 }}>本番の問題数</div>
-              <div style={{ fontSize: 22, fontWeight: 'bold', color: '#232f3e' }}>{info.totalQuestions}<span style={{ fontSize: 13, fontWeight: 'normal', marginLeft: 2 }}>問</span></div>
+              <div style={{ fontSize: 11, color: '#888', marginBottom: 4 }}>問題数（本番）</div>
+              <div style={{ fontSize: 22, fontWeight: 'bold', color: '#232f3e' }}>
+                {info.totalQuestions}<span style={{ fontSize: 13, fontWeight: 'normal', marginLeft: 2 }}>問</span>
+              </div>
+              {info.scoredQuestions < info.totalQuestions && (
+                <div style={{ fontSize: 11, color: '#aaa', marginTop: 2 }}>採点対象 {info.scoredQuestions}問</div>
+              )}
             </div>
             <div style={{ background: 'white', border: '1px solid #e8e8e8', borderRadius: 8, padding: '12px 16px' }}>
               <div style={{ fontSize: 11, color: '#888', marginBottom: 4 }}>制限時間</div>
               <div style={{ fontSize: 22, fontWeight: 'bold', color: '#232f3e' }}>{info.timeLimit}</div>
             </div>
             <div style={{ background: 'white', border: '1px solid #e8e8e8', borderRadius: 8, padding: '12px 16px', gridColumn: '1 / -1' }}>
-              <div style={{ fontSize: 11, color: '#888', marginBottom: 4 }}>合格ライン</div>
-              <div style={{ fontSize: 16, fontWeight: 'bold', color: '#27ae60' }}>{info.passingScore}</div>
+              <div style={{ fontSize: 11, color: '#888', marginBottom: 4 }}>合格スコア（スケールスコア 100〜1000）</div>
+              <div style={{ display: 'flex', alignItems: 'baseline', gap: 4 }}>
+                <span style={{ fontSize: 26, fontWeight: 'bold', color: '#27ae60' }}>{passScore}</span>
+                <span style={{ fontSize: 13, color: '#888' }}>/ 1000</span>
+                <span style={{ fontSize: 12, color: '#aaa', marginLeft: 8 }}>（正答率 {PASS_RATE[examType]}% 相当）</span>
+              </div>
             </div>
           </div>
 

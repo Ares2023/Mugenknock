@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { API_ENDPOINT, PASS_SCORE } from '../constants';
+import { API_ENDPOINT, PASS_RATE } from '../constants';
 import Breadcrumb from '../components/Breadcrumb';
 
 type Question = {
@@ -17,7 +17,7 @@ type Question = {
 export default function ExerciseSession() {
   const navigate = useNavigate();
   const location = useLocation();
-  const { sessionId, questions, userId } = location.state as any;
+  const { sessionId, questions, userId, examType } = location.state as any;
 
   const [currentIndex, setCurrentIndex] = useState(0);
   const [selectedAnswers, setSelectedAnswers] = useState<string[]>([]);
@@ -77,7 +77,8 @@ export default function ExerciseSession() {
     if (currentIndex + 1 >= questions.length) {
       const correctCount = results.filter(r => r.isCorrect).length + (answered && detail ? 1 : 0);
       const score = Math.round((results.filter(r => r.isCorrect).length / questions.length) * 100);
-      const isPassed = score >= PASS_SCORE;
+      const passRate = PASS_RATE[examType] ?? PASS_RATE['SAA'];
+      const isPassed = score >= passRate;
       try {
         await fetch(`${API_ENDPOINT}/sessions/${sessionId}`, {
           method: 'PUT',
@@ -85,7 +86,7 @@ export default function ExerciseSession() {
           body: JSON.stringify({ userId, status: 'completed', score, isPassed })
         });
       } catch (err) { console.error(err); }
-      navigate('/result', { state: { results, questions, score, isPassed, sessionId, userId } });
+      navigate('/result', { state: { results, questions, score, isPassed, sessionId, userId, examType } });
     } else {
       setCurrentIndex(prev => prev + 1);
       setSelectedAnswers([]);
