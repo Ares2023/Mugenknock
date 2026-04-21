@@ -60,6 +60,9 @@ export default function Admin() {
   const [importError, setImportError] = useState('');
   const [importing, setImporting] = useState(false);
   const [importResult, setImportResult] = useState<{ count: number; ids: string[] } | null>(null);
+  const [promptTopic, setPromptTopic] = useState('');
+  const [promptCount, setPromptCount] = useState('5');
+  const [promptCopied, setPromptCopied] = useState(false);
 
   // コラム管理
   const [tips, setTips] = useState<Tip[]>([]);
@@ -434,41 +437,83 @@ export default function Admin() {
                   background: '#fafafa' }} />
             </div>
 
-            {/* フォーマット説明 */}
-            <details style={{ marginBottom: 16 }}>
-              <summary style={{ fontSize: 12, color: '#0073bb', cursor: 'pointer', userSelect: 'none' }}>JSONフォーマットの説明・AIへの指示例</summary>
-              <div style={{ marginTop: 8, padding: '12px 14px', background: '#f8f9fa', border: '1px solid #e0e0e0', borderRadius: 6, fontSize: 13 }}>
-                <p style={{ margin: '0 0 8px', fontWeight: 'bold', color: '#333' }}>フィールド説明</p>
-                <table style={{ borderCollapse: 'collapse', width: '100%', fontSize: 12 }}>
-                  {[
-                    ['questionText', 'string', '問題文（必須）'],
-                    ['choices', 'string[]', '選択肢の配列（2個以上、必須）'],
-                    ['correctAnswers', 'string[]', '正解の配列（choicesの値と完全一致、必須）'],
-                    ['explanation', 'string', '解説（省略可）'],
-                    ['isMultiple', 'boolean', '複数選択の場合 true（省略時 false）'],
-                  ].map(([k, t, d]) => (
-                    <tr key={k} style={{ borderBottom: '1px solid #e8e8e8' }}>
-                      <td style={{ padding: '4px 8px', fontFamily: 'monospace', color: '#0056a3' }}>{k}</td>
-                      <td style={{ padding: '4px 8px', color: '#888' }}>{t}</td>
-                      <td style={{ padding: '4px 8px', color: '#555' }}>{d}</td>
-                    </tr>
-                  ))}
-                </table>
-                <p style={{ margin: '12px 0 4px', fontWeight: 'bold', color: '#333' }}>AIへの指示例（ChatGPT / Claude / Gemini）</p>
-                <div style={{ background: 'white', border: '1px solid #ddd', borderRadius: 4, padding: '8px 12px', fontFamily: 'monospace', fontSize: 12, color: '#333', whiteSpace: 'pre-wrap' }}>{`以下の形式のJSONで、AWS ${importExamType}試験の問題を5問作成してください。
-IDや試験種別は不要です。
+            {/* AIプロンプト生成 */}
+            {(() => {
+              const EXAM_FULL: Record<string, string> = {
+                CLF: 'AWS Certified Cloud Practitioner (CLF-C02)',
+                SAA: 'AWS Certified Solutions Architect – Associate (SAA-C03)',
+                SAP: 'AWS Certified Solutions Architect – Professional (SAP-C02)',
+              };
+              const topic = promptTopic.trim() || '（トピックを入力してください）';
+              const count = parseInt(promptCount) || 5;
+              const prompt = `あなたはAWS認定試験の問題作成の専門家です。
+以下の条件に従い、試験問題を${count}問作成し、JSON配列のみを出力してください（前後の説明文は不要）。
 
+【試験】${EXAM_FULL[importExamType]}
+【トピック】${topic}
+
+【作問ルール】
+・選択肢は必ず4つ（A. B. C. D. の形式）
+・単一正解の場合は isMultiple: false、複数正解は isMultiple: true
+・correctAnswers の文字列は choices の文字列と完全一致させること
+・解説は「正解の理由」と「各不正解の理由」を含めること（150字以上）
+・本番試験と同等の難易度・文体で作成すること
+
+【出力形式】
 [
   {
     "questionText": "問題文",
-    "choices": ["A. ...", "B. ...", "C. ...", "D. ..."],
-    "correctAnswers": ["A. ..."],
-    "explanation": "解説",
+    "choices": ["A. 選択肢1", "B. 選択肢2", "C. 選択肢3", "D. 選択肢4"],
+    "correctAnswers": ["A. 選択肢1"],
+    "explanation": "解説文",
     "isMultiple": false
   }
-]`}</div>
-              </div>
-            </details>
+]`;
+
+              const copyPrompt = () => {
+                navigator.clipboard.writeText(prompt);
+                setPromptCopied(true);
+                setTimeout(() => setPromptCopied(false), 2000);
+              };
+
+              return (
+                <div style={{ marginBottom: 16, background: '#f8f9fa', border: '1px solid #e0e0e0', borderRadius: 8, padding: '16px' }}>
+                  <div style={{ fontWeight: 'bold', fontSize: 14, color: '#232f3e', marginBottom: 12 }}>AIプロンプト生成</div>
+
+                  <div style={{ display: 'flex', gap: 12, marginBottom: 12, flexWrap: 'wrap' }}>
+                    <div style={{ flex: 1, minWidth: 180 }}>
+                      <div style={{ fontSize: 11, color: '#888', marginBottom: 4 }}>トピック / サービス名</div>
+                      <input value={promptTopic} onChange={e => setPromptTopic(e.target.value)}
+                        placeholder="例: S3のセキュリティ、EC2のネットワーク"
+                        style={{ width: '100%', padding: '7px 10px', border: '1px solid #ddd', borderRadius: 4, fontSize: 14, boxSizing: 'border-box' }} />
+                    </div>
+                    <div style={{ width: 80 }}>
+                      <div style={{ fontSize: 11, color: '#888', marginBottom: 4 }}>問題数</div>
+                      <input type="number" value={promptCount} onChange={e => setPromptCount(e.target.value)}
+                        min={1} max={20}
+                        style={{ width: '100%', padding: '7px 10px', border: '1px solid #ddd', borderRadius: 4, fontSize: 14, boxSizing: 'border-box' }} />
+                    </div>
+                  </div>
+
+                  <div style={{ position: 'relative' }}>
+                    <pre style={{ background: 'white', border: '1px solid #ddd', borderRadius: 6, padding: '12px 14px',
+                      fontSize: 12, fontFamily: 'monospace', whiteSpace: 'pre-wrap', margin: 0,
+                      color: '#333', lineHeight: 1.6, maxHeight: 260, overflowY: 'auto' }}>
+                      {prompt}
+                    </pre>
+                    <button onClick={copyPrompt}
+                      style={{ position: 'absolute', top: 8, right: 8,
+                        padding: '4px 12px', fontSize: 12, borderRadius: 4, border: 'none', cursor: 'pointer',
+                        background: promptCopied ? '#27ae60' : '#0073bb', color: 'white', transition: 'background 0.2s' }}>
+                      {promptCopied ? '✓ コピー済み' : 'コピー'}
+                    </button>
+                  </div>
+                  <div style={{ fontSize: 11, color: '#aaa', marginTop: 6 }}>
+                    このプロンプトをChatGPT / Claude / Gemini に貼り付け → 出力JSONをそのまま上のテキストエリアへ
+                  </div>
+                </div>
+              );
+            })()}
 
             <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
               <button onClick={handleParse} disabled={!importJson.trim()}
