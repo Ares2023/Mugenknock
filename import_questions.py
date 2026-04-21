@@ -1,15 +1,26 @@
 #!/usr/bin/env python3
 """
-Google スプレッドシートからダウンロードしたCSVをDynamoDBにインポートする。
+JSONファイルをDynamoDB Questionsテーブルにインポートする。
 
 使い方:
-  python3 import_questions.py questions/sap_governance.csv
-  python3 import_questions.py questions/SAP/*.csv
-  python3 import_questions.py --dry-run questions/sap_governance.csv
+  python3 import_questions.py questions/sap_governance.json
+  python3 import_questions.py questions/*.json
+  python3 import_questions.py --dry-run questions/sap_governance.json
+
+JSONフォーマット（配列）:
+[
+  {
+    "questionId": "sap-q-001",
+    "examType": "SAP",
+    "questionText": "問題文",
+    "choices": ["選択肢A", "選択肢B", "選択肢C", "選択肢D"],
+    "correctAnswers": ["選択肢A"],
+    "explanation": "解説文",
+    "tags": ["sap-governance", "sap-organizations"]
+  }
+]
 """
 
-import sys
-import csv
 import json
 import argparse
 from pathlib import Path
@@ -21,69 +32,70 @@ TABLE_NAME = "Questions"
 REGION = "ap-northeast-1"
 
 
-def parse_pipe(value: str) -> list[str]:
-    """パイプ区切りの文字列をリストに変換する。"""
-    return [v.strip() for v in value.split("|") if v.strip()]
+def load_json(path: Path) -> list[dict]:
+    with open(path, encoding="utf-8") as f:
+        data = json.load(f)
+    if not isinstance(data, list):
+        raise ValueError(f"{path}: JSONのトップレベルは配列にしてください")
+    return data
 
 
-def load_csv(path: Path) -> list[dict]:
-    with open(path, newline="", encoding="utf-8-sig") as f:
-        reader = csv.DictReader(f)
-        return list(reader)
-
-
-def validate_row(row: dict, row_num: int) -> str | None:
+def validate_item(item: dict, index: int) -> str | None:
     """バリデーション失敗時はエラーメッセージを返す。"""
     required = ["questionId", "examType", "questionText", "choices", "correctAnswers", "explanation", "tags"]
-    for col in required:
-        if col not in row or not row[col].strip():
-            return f"行{row_num}: カラム '{col}' が空です"
+    for key in required:
+        if key not in item:
+            return f"[{index}] キー '{key}' がありません"
 
-    choices = parse_pipe(row["choices"])
-    correct = parse_pipe(row["correctAnswers"])
+    if not isinstance(item["choices"], list) or len(item["choices"]) < 2:
+        return f"[{index}] choices はリストで2つ以上必要です"
 
-    if len(choices) < 2:
-        return f"行{row_num}: choices が2つ未満です"
+    if not isinstance(item["correctAnswers"], list) or len(item["correctAnswers"]) == 0:
+        return f"[{index}] correctAnswers はリストで1つ以上必要です"
 
-    for ans in correct:
-        if ans not in choices:
-            return f"行{row_num}: correctAnswers '{ans}' が choices に存在しません"
+    for ans in item["correctAnswers"]:
+        if ans not in item["choices"]:
+            return f"[{index}] correctAnswers '{ans}' が choices に存在しません"
+
+    if not isinstance(item["tags"], list):
+        return f"[{index}] tags はリストにしてください"
 
     return None
 
 
-def build_item(row: dict) -> dict:
-    choices = parse_pipe(row["choices"])
-    correct = parse_pipe(row["correctAnswers"])
-    tags = parse_pipe(row["tags"])
-
+def build_item(item: dict) -> dict:
     return {
-        "questionId": row["questionId"].strip(),
-        "examType": row["examType"].strip().upper(),
-        "questionText": row["questionText"].strip(),
-        "choices": choices,
-        "correctAnswers": correct,
-        "explanation": row["explanation"].strip(),
-        "tags": tags,
-        "isMultiple": len(correct) > 1,
+        "questionId": item["questionId"].strip(),
+        "examType": item["examType"].strip().upper(),
+        "questionText": item["questionText"].strip(),
+        "choices": [c.strip() for c in item["choices"]],
+        "correctAnswers": [c.strip() for c in item["correctAnswers"]],
+        "explanation": item["explanation"].strip(),
+        "tags": [t.strip() for t in item["tags"]],
+        "isMultiple": len(item["correctAnswers"]) > 1,
     }
 
 
 def import_file(path: Path, table, dry_run: bool) -> tuple[int, int, int]:
     """(success, skip, error) を返す。"""
-    rows = load_csv(path)
+    try:
+        rows = load_json(path)
+    except (json.JSONDecodeError, ValueError) as e:
+        print(f"  ❌ JSONパースエラー: {e}")
+        return 0, 0, 1
+
     success = skip = error = 0
 
-    for i, row in enumerate(rows, start=2):
-        qid = row.get("questionId", "").strip()
-        qtext = row.get("questionText", "").strip()
+    for i, row in enumerate(rows):
+        qid = row.get("questionId", "").strip() if isinstance(row.get("questionId"), str) else ""
+        qtext = row.get("questionText", "").strip() if isinstance(row.get("questionText"), str) else ""
 
         if not qid or not qtext:
-            print(f"  スキップ (行{i}): questionId または questionText が空")
+            print(f"  スキップ [{i}]: questionId または questionText が空")
             skip += 1
             continue
 
-        err = validate_row(row, i)
+        err = validate_item(row, i)
         if err:
             print(f"  警告: {err}")
             error += 1
@@ -92,7 +104,8 @@ def import_file(path: Path, table, dry_run: bool) -> tuple[int, int, int]:
         item = build_item(row)
 
         if dry_run:
-            print(f"  [DRY-RUN] {item['questionId']} ({item['examType']}) - {item['questionText'][:40]}...")
+            multi = " (複数選択)" if item["isMultiple"] else ""
+            print(f"  [DRY-RUN] {item['questionId']} ({item['examType']}){multi} - {item['questionText'][:45]}...")
             success += 1
             continue
 
@@ -108,8 +121,8 @@ def import_file(path: Path, table, dry_run: bool) -> tuple[int, int, int]:
 
 
 def main():
-    parser = argparse.ArgumentParser(description="CSVをDynamoDB Questionsテーブルにインポート")
-    parser.add_argument("files", nargs="+", help="インポートするCSVファイル")
+    parser = argparse.ArgumentParser(description="JSONをDynamoDB Questionsテーブルにインポート")
+    parser.add_argument("files", nargs="+", help="インポートするJSONファイル")
     parser.add_argument("--dry-run", action="store_true", help="DynamoDBに書き込まず内容を確認する")
     args = parser.parse_args()
 
