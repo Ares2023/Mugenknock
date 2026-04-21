@@ -27,10 +27,11 @@ export default function ExerciseSession() {
 
   const currentQuestion = questions[currentIndex];
 
-  const fetchDetail = async (questionId: string) => {
+  const fetchDetail = async (questionId: string): Promise<Question> => {
     const res = await fetch(`${API_ENDPOINT}/questions/${questionId}`);
     const data = await res.json();
     setDetail(data);
+    return data;
   };
 
   const toggleAnswer = (choice: string) => {
@@ -47,8 +48,8 @@ export default function ExerciseSession() {
   const submitAnswer = async () => {
     if (selectedAnswers.length === 0) return;
     setLoading(true);
-    await fetchDetail(currentQuestion.questionId);
-    const correctAnswers = detail?.correctAnswers || [];
+    const fetched = await fetchDetail(currentQuestion.questionId);
+    const correctAnswers = fetched.correctAnswers || [];
     const isCorrect = correctAnswers.length === selectedAnswers.length &&
       correctAnswers.every(a => selectedAnswers.includes(a));
 
