@@ -149,7 +149,28 @@ export default function ExamSession() {
           <div style={{ fontSize: 28, color: 'white', fontWeight: 700 }}>⏸ 一時停止中</div>
           <div style={{ fontSize: 14, color: '#d5dbdb' }}>問題は隠されています</div>
           <button onClick={() => setPaused(false)}
-            style={{ padding: '14px 40px', background: '#0073bb', border: 'none', borderRadius: 2, fontSize: 18, fontWeight: 700, cursor: 'pointer', color: 'white' }}>
+            style={{
+              padding: '12px 32px',
+              background: 'white',
+              color: '#0073bb',
+              border: '2px solid #0073bb',
+              borderRadius: 2,
+              fontSize: 16,
+              fontWeight: 700,
+              cursor: 'pointer',
+              transition: 'all 0.1s'
+            }}
+            onMouseEnter={e => {
+              e.currentTarget.style.background = "#f2f8fd";
+              e.currentTarget.style.borderColor = "#005a9e";
+              e.currentTarget.style.color = "#005a9e";
+            }}
+            onMouseLeave={e => {
+              e.currentTarget.style.background = "white";
+              e.currentTarget.style.borderColor = "#0073bb";
+              e.currentTarget.style.color = "#0073bb";
+            }}
+          >
             ▶ 再開する
           </button>
         </div>

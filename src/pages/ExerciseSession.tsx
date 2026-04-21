@@ -236,16 +236,25 @@ export default function ExerciseSession() {
               onClick={nextQuestion}
               style={{
                 padding: "8px 20px",
-                background: "#0073bb",
-                color: "white",
-                border: "1px solid transparent",
+                background: "white",
+                color: "#0073bb",
+                border: "1px solid #0073bb",
                 borderRadius: 2,
                 cursor: "pointer",
                 fontSize: 14,
                 fontWeight: 700,
+                transition: "all 0.1s"
               }}
-              onMouseEnter={e => e.currentTarget.style.background = "#005a9e"}
-              onMouseLeave={e => e.currentTarget.style.background = "#0073bb"}
+              onMouseEnter={e => {
+                e.currentTarget.style.background = "#f2f8fd";
+                e.currentTarget.style.borderColor = "#005a9e";
+                e.currentTarget.style.color = "#005a9e";
+              }}
+              onMouseLeave={e => {
+                e.currentTarget.style.background = "white";
+                e.currentTarget.style.borderColor = "#0073bb";
+                e.currentTarget.style.color = "#0073bb";
+              }}
             >
               {currentIndex + 1 >= questions.length ? "結果を表示" : "次の問題へ"}
             </button>
