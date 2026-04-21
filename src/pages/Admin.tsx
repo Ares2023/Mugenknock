@@ -437,6 +437,40 @@ export default function Admin() {
                   background: '#fafafa' }} />
             </div>
 
+            <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 24 }}>
+              <button onClick={handleParse} disabled={!importJson.trim()}
+                style={{ padding: '8px 20px', background: importJson.trim() ? '#555' : '#ccc',
+                  color: 'white', border: 'none', borderRadius: 4, cursor: importJson.trim() ? 'pointer' : 'default' }}>
+                構文チェック
+              </button>
+              {importParsed && (
+                <button onClick={handleImport} disabled={importing}
+                  style={{ padding: '8px 24px', background: importing ? '#ccc' : '#0073bb',
+                    color: 'white', border: 'none', borderRadius: 4, cursor: importing ? 'default' : 'pointer', fontWeight: 'bold' }}>
+                  {importing ? 'インポート中...' : `${importParsed.length}件をインポート`}
+                </button>
+              )}
+            </div>
+
+            {importParsed && !importResult && (
+              <div style={{ marginBottom: 16, padding: '10px 14px', background: '#eaf3fa', borderRadius: 6, fontSize: 13, color: '#0056a3' }}>
+                ✓ {importParsed.length}件の問題を認識しました。「{importExamType}」としてインポートします。
+              </div>
+            )}
+            {importError && (
+              <div style={{ marginBottom: 16, padding: '10px 14px', background: '#fdf2f2', borderRadius: 6, fontSize: 13, color: '#e74c3c' }}>
+                エラー: {importError}
+              </div>
+            )}
+            {importResult && (
+              <div style={{ marginBottom: 16, padding: '14px 16px', background: '#eafaf1', border: '1px solid #a8e6c1', borderRadius: 6 }}>
+                <div style={{ fontWeight: 'bold', color: '#27ae60', marginBottom: 6 }}>✓ {importResult.count}件をインポートしました</div>
+                <div style={{ fontSize: 12, color: '#555', fontFamily: 'monospace' }}>{importResult.ids.join(', ')}</div>
+              </div>
+            )}
+
+            <hr style={{ border: 'none', borderTop: '1px solid #e0e0e0', marginBottom: 20 }} />
+
             {/* AIプロンプト生成 */}
             {(() => {
               const EXAM_FULL: Record<string, string> = {
@@ -514,38 +548,6 @@ export default function Admin() {
                 </div>
               );
             })()}
-
-            <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-              <button onClick={handleParse} disabled={!importJson.trim()}
-                style={{ padding: '8px 20px', background: importJson.trim() ? '#555' : '#ccc',
-                  color: 'white', border: 'none', borderRadius: 4, cursor: importJson.trim() ? 'pointer' : 'default' }}>
-                構文チェック
-              </button>
-              {importParsed && (
-                <button onClick={handleImport} disabled={importing}
-                  style={{ padding: '8px 24px', background: importing ? '#ccc' : '#0073bb',
-                    color: 'white', border: 'none', borderRadius: 4, cursor: importing ? 'default' : 'pointer', fontWeight: 'bold' }}>
-                  {importing ? 'インポート中...' : `${importParsed.length}件をインポート`}
-                </button>
-              )}
-            </div>
-
-            {importParsed && !importResult && (
-              <div style={{ marginTop: 12, padding: '10px 14px', background: '#eaf3fa', borderRadius: 6, fontSize: 13, color: '#0056a3' }}>
-                ✓ {importParsed.length}件の問題を認識しました。「{importExamType}」としてインポートします。
-              </div>
-            )}
-            {importError && (
-              <div style={{ marginTop: 12, padding: '10px 14px', background: '#fdf2f2', borderRadius: 6, fontSize: 13, color: '#e74c3c' }}>
-                エラー: {importError}
-              </div>
-            )}
-            {importResult && (
-              <div style={{ marginTop: 12, padding: '14px 16px', background: '#eafaf1', border: '1px solid #a8e6c1', borderRadius: 6 }}>
-                <div style={{ fontWeight: 'bold', color: '#27ae60', marginBottom: 6 }}>✓ {importResult.count}件をインポートしました</div>
-                <div style={{ fontSize: 12, color: '#555', fontFamily: 'monospace' }}>{importResult.ids.join(', ')}</div>
-              </div>
-            )}
           </div>
         );
       })()}
