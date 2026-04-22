@@ -53,6 +53,8 @@ export default function Admin() {
   const [loadingQ, setLoadingQ] = useState(false);
   const [expandedId, setExpandedId] = useState<string | null>(null);
   const [deletingId, setDeletingId] = useState<string | null>(null);
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
+  const [bulkDeleting, setBulkDeleting] = useState(false);
 
   // 通報
   const [reports, setReports] = useState<Report[]>([]);
@@ -124,7 +126,7 @@ export default function Admin() {
     } catch (err) { console.error(err); } finally { setLoadingT(false); }
   }, []);
 
-  useEffect(() => { fetchQuestions(); }, [examFilter, tagFilter, domainFilter]);
+  useEffect(() => { fetchQuestions(); setSelectedIds(new Set()); }, [examFilter, tagFilter, domainFilter]);
   useEffect(() => { if (tab === 'reports') fetchReports(); }, [tab]);
   useEffect(() => { if (tab === 'tips') fetchTips(); }, [tab]);
 
@@ -159,7 +161,45 @@ export default function Admin() {
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
+    setSelectedIds(new Set());
     fetchQuestions();
+  };
+
+  const toggleSelect = (id: string) => {
+    setSelectedIds(prev => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id); else next.add(id);
+      return next;
+    });
+  };
+
+  const toggleSelectAll = () => {
+    setSelectedIds(
+      selectedIds.size === questions.length && questions.length > 0
+        ? new Set()
+        : new Set(questions.map(q => q.questionId))
+    );
+  };
+
+  const handleBulkDelete = async () => {
+    if (selectedIds.size === 0) return;
+    if (!window.confirm(`${selectedIds.size}件の問題を削除しますか？\nこの操作は取り消せません。`)) return;
+    setBulkDeleting(true);
+    try {
+      await Promise.all(
+        Array.from(selectedIds).map(id =>
+          fetch(`${API_ENDPOINT}/questions/${id}`, { method: 'DELETE' })
+        )
+      );
+      const deleted = selectedIds;
+      setQuestions(prev => prev.filter(q => !deleted.has(q.questionId)));
+      if (expandedId && deleted.has(expandedId)) setExpandedId(null);
+      setSelectedIds(new Set());
+    } catch (err) {
+      alert('一部の削除に失敗しました');
+    } finally {
+      setBulkDeleting(false);
+    }
   };
 
   const handleDelete = async (q: Question) => {
@@ -280,18 +320,63 @@ export default function Admin() {
             </div>
           </form>
 
-          {/* 件数 */}
-          <p style={{ color: '#545b64', fontSize: 13, marginBottom: 12 }}>
-            {loadingQ ? '読み込み中...' : `${questions.length} 件`}
-          </p>
+          {/* 件数・一括削除バー */}
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
+            <p style={{ color: '#545b64', fontSize: 13, margin: 0 }}>
+              {loadingQ ? '読み込み中...' : `${questions.length} 件`}
+            </p>
+            {selectedIds.size > 0 && (
+              <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                <span style={{ fontSize: 13, color: '#0073bb', fontWeight: 700 }}>{selectedIds.size}件選択中</span>
+                <button
+                  onClick={handleBulkDelete}
+                  disabled={bulkDeleting}
+                  style={{
+                    padding: '6px 16px', fontSize: 13, fontWeight: 700, borderRadius: 2, cursor: bulkDeleting ? 'default' : 'pointer',
+                    background: bulkDeleting ? '#eaeded' : 'white',
+                    color: bulkDeleting ? '#aab7b8' : '#d13212',
+                    border: `1px solid ${bulkDeleting ? '#eaeded' : '#d13212'}`
+                  }}>
+                  {bulkDeleting ? '削除中...' : `${selectedIds.size}件を削除`}
+                </button>
+                <button
+                  onClick={() => setSelectedIds(new Set())}
+                  style={{ padding: '6px 12px', fontSize: 13, fontWeight: 700, borderRadius: 2, cursor: 'pointer', background: 'white', color: '#545b64', border: '1px solid #545b64' }}>
+                  選択解除
+                </button>
+              </div>
+            )}
+          </div>
+
+          {/* 全選択ヘッダー */}
+          {questions.length > 0 && (
+            <div style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '8px 16px', background: '#f2f3f3', border: '1px solid #eaeded', borderRadius: 2, marginBottom: 4 }}>
+              <input
+                type="checkbox"
+                checked={selectedIds.size === questions.length}
+                onChange={toggleSelectAll}
+                style={{ width: 16, height: 16, cursor: 'pointer', flexShrink: 0 }}
+              />
+              <span style={{ fontSize: 12, color: '#545b64', fontWeight: 700 }}>
+                {selectedIds.size === questions.length ? '全選択解除' : '全選択'}
+              </span>
+            </div>
+          )}
 
           {/* 問題リスト */}
           {questions.map(q => (
-            <div key={q.questionId} style={{ border: '1px solid #eaeded', borderRadius: 2, marginBottom: 8, overflow: 'hidden', boxShadow: '0 1px 1px 0 rgba(0,28,36,0.1)' }}>
+            <div key={q.questionId} style={{ border: '1px solid #eaeded', borderRadius: 2, marginBottom: 4, overflow: 'hidden', boxShadow: '0 1px 1px 0 rgba(0,28,36,0.1)', background: selectedIds.has(q.questionId) ? '#f2f8fd' : 'white' }}>
               {/* ヘッダー行 */}
               <div
                 onClick={() => setExpandedId(expandedId === q.questionId ? null : q.questionId)}
-                style={{ display: 'flex', alignItems: 'center', padding: '12px 16px', cursor: 'pointer', background: expandedId === q.questionId ? '#fbfbfb' : 'white', gap: 12 }}>
+                style={{ display: 'flex', alignItems: 'center', padding: '10px 16px', cursor: 'pointer', background: selectedIds.has(q.questionId) ? '#f2f8fd' : expandedId === q.questionId ? '#fbfbfb' : 'white', gap: 10 }}>
+                <input
+                  type="checkbox"
+                  checked={selectedIds.has(q.questionId)}
+                  onChange={() => toggleSelect(q.questionId)}
+                  onClick={e => e.stopPropagation()}
+                  style={{ width: 16, height: 16, cursor: 'pointer', flexShrink: 0 }}
+                />
                 <span style={{ color: '#545b64', fontSize: 12, flexShrink: 0 }}>{expandedId === q.questionId ? '▼' : '▶'}</span>
                 {examBadge(q.examType)}
                 <span style={{ fontFamily: 'monospace', fontSize: 12, color: '#545b64', flexShrink: 0, minWidth: 100 }}>{q.questionId}</span>
