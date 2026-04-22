@@ -736,4 +736,84 @@ app.get('/users/me/bookmarks', async (req, res) => {
   }
 });
 
+// ── Releases（リリースノート）──
+
+// 公開用：全件取得（日付降順）
+app.get('/releases', async (req, res) => {
+  try {
+    const docClient = getClient();
+    const result = await docClient.send(new ScanCommand({ TableName: 'Releases' }));
+    const items = (result.Items || []).sort((a, b) => b.date.localeCompare(a.date));
+    res.json({ items });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+// 管理者用：全件取得
+app.get('/admin/releases', async (req, res) => {
+  try {
+    const docClient = getClient();
+    const result = await docClient.send(new ScanCommand({ TableName: 'Releases' }));
+    const items = (result.Items || []).sort((a, b) => b.date.localeCompare(a.date));
+    res.json({ items });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+// 管理者用：追加
+app.post('/admin/releases', async (req, res) => {
+  try {
+    const docClient = getClient();
+    const { date, title, body } = req.body;
+    if (!date || !title || !body) return res.status(400).json({ error: 'date, title, body are required' });
+    const releaseId = uuidv4();
+    await docClient.send(new PutCommand({
+      TableName: 'Releases',
+      Item: { releaseId, date, title, body, createdAt: new Date().toISOString() }
+    }));
+    res.json({ releaseId });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+// 管理者用：更新
+app.put('/admin/releases/:id', async (req, res) => {
+  try {
+    const docClient = getClient();
+    const { date, title, body } = req.body;
+    await docClient.send(new UpdateCommand({
+      TableName: 'Releases',
+      Key: { releaseId: req.params.id },
+      UpdateExpression: 'SET #d = :date, title = :title, body = :body',
+      ExpressionAttributeNames: { '#d': 'date' },
+      ExpressionAttributeValues: { ':date': date, ':title': title, ':body': body }
+    }));
+    res.json({ success: true });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+// 管理者用：削除
+app.delete('/admin/releases/:id', async (req, res) => {
+  try {
+    const docClient = getClient();
+    await docClient.send(new DeleteCommand({
+      TableName: 'Releases',
+      Key: { releaseId: req.params.id }
+    }));
+    res.json({ success: true });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
 module.exports = app;

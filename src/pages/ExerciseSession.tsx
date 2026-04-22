@@ -177,7 +177,7 @@ export default function ExerciseSession() {
     const base = {
       padding: "12px 20px",
       marginBottom: 12,
-      borderRadius: 9999,
+      borderRadius: 8,
       cursor: answered ? "default" : "pointer",
       border: "1px solid",
       display: "flex",

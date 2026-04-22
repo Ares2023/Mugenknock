@@ -141,7 +141,7 @@ export default function QuestionList() {
               background: examType === type ? "#e0f2f2" : "white",
               border: "1px solid",
               borderColor: examType === type ? "#008c8c" : "#d1d5db",
-              borderRadius: 9999,
+              borderRadius: 6,
               cursor: "pointer",
               fontWeight: examType === type ? 700 : 400,
               color: examType === type ? "#008c8c" : "#545b64",

@@ -216,7 +216,7 @@ export default function ExerciseSetup() {
   const chipStyle = (active: boolean) => ({
     padding: '4px 12px',
     fontSize: 13,
-    borderRadius: 9999,
+    borderRadius: 6,
     border: '1px solid',
     borderColor: active ? '#008c8c' : '#d1d5db',
     background: active ? '#e0f2f2' : 'white',

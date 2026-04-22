@@ -321,7 +321,7 @@ export default function Admin() {
               {['ALL', ...EXAM_TYPES].map(type => (
                 <button key={type} type="button" onClick={() => { setExamFilter(type); setDomainFilter(''); }}
                   style={{
-                    padding: '6px 16px', border: '1px solid', borderRadius: 9999, cursor: 'pointer',
+                    padding: '6px 16px', border: '1px solid', borderRadius: 6, cursor: 'pointer',
                     background: examFilter === type ? '#e0f2f2' : 'white',
                     color: examFilter === type ? '#008c8c' : '#545b64',
                     borderColor: examFilter === type ? '#008c8c' : '#d1d5db',
@@ -336,7 +336,7 @@ export default function Admin() {
             {examFilter !== 'ALL' && (
               <div style={{ display: 'flex', gap: 6, marginBottom: 10, flexWrap: 'wrap' }}>
                 <button type="button" onClick={() => setDomainFilter('')}
-                  style={{ padding: '4px 10px', border: '1px solid', borderRadius: 9999, cursor: 'pointer', fontSize: 12,
+                  style={{ padding: '4px 10px', border: '1px solid', borderRadius: 6, cursor: 'pointer', fontSize: 12,
                     background: domainFilter === '' ? '#e0f2f2' : 'white',
                     color: domainFilter === '' ? '#008c8c' : '#545b64',
                     borderColor: domainFilter === '' ? '#008c8c' : '#d1d5db',
@@ -345,7 +345,7 @@ export default function Admin() {
                 </button>
                 {EXAM_DOMAINS[examFilter]?.map(d => (
                   <button key={d} type="button" onClick={() => setDomainFilter(domainFilter === d ? '' : d)}
-                    style={{ padding: '4px 10px', border: '1px solid', borderRadius: 9999, cursor: 'pointer', fontSize: 12,
+                    style={{ padding: '4px 10px', border: '1px solid', borderRadius: 6, cursor: 'pointer', fontSize: 12,
                       background: domainFilter === d ? '#e0f2f2' : 'white',
                       color: domainFilter === d ? '#008c8c' : '#545b64',
                       borderColor: domainFilter === d ? '#008c8c' : '#d1d5db',
@@ -625,7 +625,7 @@ export default function Admin() {
                 <div style={{ display: 'flex', gap: 6 }}>
                   {EXAM_TYPES.map(t => (
                     <button key={t} onClick={() => setImportExamType(t)}
-                      style={{ padding: '4px 12px', border: '1px solid', borderRadius: 9999, cursor: 'pointer', fontSize: 13,
+                      style={{ padding: '4px 12px', border: '1px solid', borderRadius: 6, cursor: 'pointer', fontSize: 13,
                         borderColor: importExamType === t ? '#008c8c' : '#d1d5db',
                         background: importExamType === t ? '#e0f2f2' : 'white',
                         color: importExamType === t ? '#008c8c' : '#545b64',
@@ -861,7 +861,7 @@ ${tipPromptExamType !== 'ALL' ? `・examType には "${tipPromptExamType}" を�
                     <div style={{ display: 'flex', gap: 6 }}>
                       {['ALL', 'CLF', 'SAA', 'SAP'].map(t => (
                         <button key={t} type="button" onClick={() => setTipPromptExamType(t)}
-                          style={{ padding: '4px 12px', border: '1px solid', borderRadius: 9999, cursor: 'pointer', fontSize: 13,
+                          style={{ padding: '4px 12px', border: '1px solid', borderRadius: 6, cursor: 'pointer', fontSize: 13,
                             borderColor: tipPromptExamType === t ? '#008c8c' : '#d1d5db',
                             background: tipPromptExamType === t ? '#e0f2f2' : 'white',
                             color: tipPromptExamType === t ? '#008c8c' : '#545b64',
@@ -927,7 +927,7 @@ ${tipPromptExamType !== 'ALL' ? `・examType には "${tipPromptExamType}" を�
                 <div style={{ display: 'flex', gap: 6 }}>
                   {['ALL', 'CLF', 'SAA', 'SAP'].map(t => (
                     <button key={t} type="button" onClick={() => setTipImportExamType(t)}
-                      style={{ padding: '5px 14px', border: '1px solid', borderRadius: 9999, cursor: 'pointer', fontSize: 13,
+                      style={{ padding: '5px 14px', border: '1px solid', borderRadius: 6, cursor: 'pointer', fontSize: 13,
                         background: tipImportExamType === t ? '#e0f2f2' : 'white',
                         color: tipImportExamType === t ? '#008c8c' : '#545b64',
                         borderColor: tipImportExamType === t ? '#008c8c' : '#d1d5db',
@@ -1038,7 +1038,7 @@ ${tipPromptExamType !== 'ALL' ? `・examType には "${tipPromptExamType}" を�
               <div style={{ display: 'flex', gap: 6, marginBottom: 10 }}>
                 {['ALL', 'CLF', 'SAA', 'SAP'].map(t => (
                   <button key={t} type="button" onClick={() => setTipForm(f => ({ ...f, examType: t }))}
-                    style={{ padding: '4px 12px', border: '1px solid', borderRadius: 9999, cursor: 'pointer', fontSize: 13,
+                    style={{ padding: '4px 12px', border: '1px solid', borderRadius: 6, cursor: 'pointer', fontSize: 13,
                       borderColor: tipForm.examType === t ? '#008c8c' : '#d1d5db',
                       background: tipForm.examType === t ? '#e0f2f2' : 'white',
                       color: tipForm.examType === t ? '#008c8c' : '#545b64',

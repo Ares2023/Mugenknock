@@ -161,7 +161,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
 
       {/* ── ヘッダー（グローバルナビ） ── */}
       <header style={{
-        height: 40, minHeight: 40, background: '#232f3e',
+        height: 48, minHeight: 48, background: '#232f3e',
         display: 'flex', alignItems: 'center', padding: '0 16px',
         gap: 12, zIndex: 200, flexShrink: 0,
       }}>
@@ -284,7 +284,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
         {/* モバイル: オーバーレイ背景 */}
         {isMobile && open && (
           <div onClick={() => setOpen(false)} style={{
-            position: 'fixed', inset: 0, top: 68, background: 'rgba(0,0,0,0.5)', zIndex: 150,
+            position: 'fixed', inset: 0, top: 76, background: 'rgba(0,0,0,0.5)', zIndex: 150,
           }} />
         )}
 
@@ -298,8 +298,8 @@ export default function Layout({ children }: { children: React.ReactNode }) {
           transition: 'width 0.15s ease-out, min-width 0.15s ease-out',
           display: 'flex', flexDirection: 'column',
           ...(isMobile ? {
-            position: 'fixed', top: 68, left: 0,
-            height: 'calc(100vh - 68px)', zIndex: 160,
+            position: 'fixed', top: 76, left: 0,
+            height: 'calc(100vh - 76px)', zIndex: 160,
             boxShadow: open ? '2px 0 8px rgba(0,0,0,0.15)' : 'none',
           } : {}),
         }}>

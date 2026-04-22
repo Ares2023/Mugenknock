@@ -290,7 +290,7 @@ export default function ExamSession() {
               <button key={choice} onClick={() => toggle(choice)}
                 style={{
                   display: 'flex', alignItems: 'center', width: '100%', textAlign: 'left',
-                  padding: '12px 20px', marginBottom: 12, borderRadius: 9999,
+                  padding: '12px 20px', marginBottom: 12, borderRadius: 8,
                   border: `1px solid ${isSelected ? '#008c8c' : '#d1d5db'}`,
                   background: isSelected ? '#e0f2f2' : 'white',
                   boxShadow: isSelected ? "inset 0 0 0 1px #008c8c" : "none",
