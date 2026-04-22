@@ -87,6 +87,7 @@ export default function ExerciseSetup() {
   const [shuffle, setShuffle] = useState(true);
   const [loading, setLoading] = useState(false);
   const [bookmarkOnly, setBookmarkOnly] = useState(false);
+  const [unansweredOnly, setUnansweredOnly] = useState(false);
 
   const info = EXAM_INFO[examType];
   const passScore = PASS_SCORES[examType];
@@ -109,14 +110,22 @@ export default function ExerciseSetup() {
         if (selectedDomain) params.set('domain', selectedDomain);
         if (selectedTag) params.set('tagId', selectedTag);
 
-        if (bookmarkOnly && user) {
-          const [bkmRes, qRes] = await Promise.all([
-            fetch(`${API_ENDPOINT}/users/me/bookmarks?userId=${user.userId}`).then(r => r.json()),
+        if (user && (bookmarkOnly || unansweredOnly)) {
+          const [qRes, bkmRes, answeredRes] = await Promise.all([
             fetch(`${API_ENDPOINT}/questions?${params}`).then(r => r.json()),
+            bookmarkOnly ? fetch(`${API_ENDPOINT}/users/me/bookmarks?userId=${user.userId}`).then(r => r.json()) : Promise.resolve(null),
+            unansweredOnly ? fetch(`${API_ENDPOINT}/users/me/answered-questions?userId=${user.userId}&examType=${examType}`).then(r => r.json()) : Promise.resolve(null),
           ]);
-          const bookmarkIds = new Set(bkmRes.questionIds ?? []);
-          const count = (qRes.items ?? []).filter((q: any) => bookmarkIds.has(q.questionId)).length;
-          setAvailableCount(count);
+          let items: any[] = qRes.items ?? [];
+          if (bookmarkOnly && bkmRes) {
+            const bookmarkIds = new Set(bkmRes.questionIds ?? []);
+            items = items.filter((q: any) => bookmarkIds.has(q.questionId));
+          }
+          if (unansweredOnly && answeredRes) {
+            const answeredIds = new Set(answeredRes.questionIds ?? []);
+            items = items.filter((q: any) => !answeredIds.has(q.questionId));
+          }
+          setAvailableCount(items.length);
         } else {
           const qRes = await fetch(`${API_ENDPOINT}/questions?${params}`).then(r => r.json());
           setAvailableCount(qRes.count ?? qRes.items?.length ?? 0);
@@ -134,7 +143,7 @@ export default function ExerciseSetup() {
     } else {
       setAnsweredCount(0);
     }
-  }, [examType, selectedDomain, selectedTag, user, bookmarkOnly]);
+  }, [examType, selectedDomain, selectedTag, user, bookmarkOnly, unansweredOnly]);
 
   useEffect(() => {
     fetch(`${API_ENDPOINT}/tags?examType=${examType}`)
@@ -149,17 +158,25 @@ export default function ExerciseSetup() {
       const userId = user?.userId ?? 'guest';
       let selectedItems: any[];
 
-      if (bookmarkOnly && user) {
+      if (user && (bookmarkOnly || unansweredOnly)) {
         const params = new URLSearchParams({ examType });
         if (selectedDomain) params.set('domain', selectedDomain);
         if (selectedTag) params.set('tagId', selectedTag);
 
-        const [bkmRes, qRes] = await Promise.all([
-          fetch(`${API_ENDPOINT}/users/me/bookmarks?userId=${userId}`).then(r => r.json()),
+        const [qRes, bkmRes, answeredRes] = await Promise.all([
           fetch(`${API_ENDPOINT}/questions?${params}`).then(r => r.json()),
+          bookmarkOnly ? fetch(`${API_ENDPOINT}/users/me/bookmarks?userId=${userId}`).then(r => r.json()) : Promise.resolve(null),
+          unansweredOnly ? fetch(`${API_ENDPOINT}/users/me/answered-questions?userId=${userId}&examType=${examType}`).then(r => r.json()) : Promise.resolve(null),
         ]);
-        const bookmarkIds = new Set(bkmRes.questionIds ?? []);
-        let filtered = (qRes.items ?? []).filter((q: any) => bookmarkIds.has(q.questionId));
+        let filtered: any[] = qRes.items ?? [];
+        if (bookmarkOnly && bkmRes) {
+          const bookmarkIds = new Set(bkmRes.questionIds ?? []);
+          filtered = filtered.filter((q: any) => bookmarkIds.has(q.questionId));
+        }
+        if (unansweredOnly && answeredRes) {
+          const answeredIds = new Set(answeredRes.questionIds ?? []);
+          filtered = filtered.filter((q: any) => !answeredIds.has(q.questionId));
+        }
         if (shuffle) filtered = shuffleArray(filtered);
         selectedItems = filtered.slice(0, limit);
       } else {
@@ -199,7 +216,7 @@ export default function ExerciseSetup() {
   const chipStyle = (active: boolean) => ({
     padding: '4px 12px',
     fontSize: 13,
-    borderRadius: 2,
+    borderRadius: 6,
     border: '1px solid',
     borderColor: active ? '#008c8c' : '#d1d5db',
     background: active ? '#e0f2f2' : 'white',
@@ -217,7 +234,7 @@ export default function ExerciseSetup() {
       <div className="setup-grid" style={{ display: 'grid', gridTemplateColumns: '1fr 380px', gap: 32, alignItems: 'flex-start' }}>
 
         {/* 左：設定フォーム */}
-        <div style={{ background: 'white', border: '1px solid #eaeded', borderRadius: 2, padding: '24px 32px', boxShadow: '0 1px 1px 0 rgba(0,28,36,0.1)' }}>
+        <div style={{ background: 'white', border: '1px solid #eaeded', borderRadius: 6, padding: '24px 32px', boxShadow: '0 1px 1px 0 rgba(0,28,36,0.1)' }}>
           <h2 style={{ fontSize: 18, fontWeight: 700, margin: '0 0 24px', borderBottom: '1px solid #eaeded', paddingBottom: 12 }}>
             演習パラメーター
           </h2>
@@ -270,7 +287,7 @@ export default function ExerciseSetup() {
           <div style={{ marginBottom: 24 }}>
             <label style={{ display: 'block', marginBottom: 8, fontWeight: 700, fontSize: 14 }}>問題数</label>
             <input type="number" value={limit} onChange={e => setLimit(Math.max(1, parseInt(e.target.value) || 1))} min={1} max={availableCount ?? 50}
-              style={{ padding: '6px 12px', width: 100, border: '1px solid #d1d5db', borderRadius: 2, fontSize: 14, outline: 'none' }}
+              style={{ padding: '6px 12px', width: 100, border: '1px solid #d1d5db', borderRadius: 6, fontSize: 14, outline: 'none' }}
               onFocus={e => e.currentTarget.style.borderColor = '#008c8c'}
               onBlur={e => e.currentTarget.style.borderColor = '#d1d5db'}
             />
@@ -279,8 +296,17 @@ export default function ExerciseSetup() {
             </span>
           </div>
 
-          {/* ブックマーク・シャッフル */}
-          <div style={{ marginBottom: 32, padding: '16px', background: '#f2f3f3', borderRadius: 2, display: 'flex', flexDirection: 'column', gap: 10 }}>
+          {/* フィルタ・シャッフル */}
+          <div style={{ marginBottom: 32, padding: '16px', background: '#f2f3f3', borderRadius: 6, display: 'flex', flexDirection: 'column', gap: 10 }}>
+            {user && (
+              <label style={{ display: 'flex', alignItems: 'center', gap: 10, cursor: 'pointer', fontSize: 14 }}>
+                <input type="checkbox" checked={unansweredOnly} onChange={e => setUnansweredOnly(e.target.checked)} style={{ width: 16, height: 16 }} />
+                <span style={{ fontWeight: 700 }}>
+                  未回答の問題のみ
+                  <span style={{ fontWeight: 400, fontSize: 12, color: '#545b64', marginLeft: 6 }}>（一度も解いていない問題）</span>
+                </span>
+              </label>
+            )}
             {user && (
               <label style={{ display: 'flex', alignItems: 'center', gap: 10, cursor: 'pointer', fontSize: 14 }}>
                 <input type="checkbox" checked={bookmarkOnly} onChange={e => setBookmarkOnly(e.target.checked)} style={{ width: 16, height: 16 }} />
@@ -298,7 +324,7 @@ export default function ExerciseSetup() {
 
           <div style={{ display: 'flex', gap: 12, borderTop: '1px solid #eaeded', paddingTop: 24, justifyContent: 'flex-end' }}>
             <button onClick={() => navigate('/')}
-              style={{ padding: '8px 20px', cursor: 'pointer', borderRadius: 2, border: '1px solid #545b64', background: 'white', fontWeight: 700, fontSize: 14 }}>
+              style={{ padding: '8px 20px', cursor: 'pointer', borderRadius: 6, border: '1px solid #545b64', background: 'white', fontWeight: 700, fontSize: 14 }}>
               キャンセル
             </button>
             <button onClick={startSession} disabled={loading || availableCount === 0}
@@ -307,7 +333,7 @@ export default function ExerciseSetup() {
                 background: loading || availableCount === 0 ? '#eaeded' : '#ff9900',
                 color: loading || availableCount === 0 ? '#aab7b8' : '#16191f',
                 border: '1px solid transparent',
-                borderRadius: 2,
+                borderRadius: 6,
                 cursor: loading || availableCount === 0 ? 'default' : 'pointer',
                 fontSize: 14,
                 fontWeight: 700
@@ -321,7 +347,7 @@ export default function ExerciseSetup() {
         </div>
 
         {/* 右：試験情報パネル */}
-        <div style={{ background: 'white', border: '1px solid #eaeded', borderRadius: 2, padding: '24px', boxShadow: '0 1px 1px 0 rgba(0,28,36,0.1)' }}>
+        <div style={{ background: 'white', border: '1px solid #eaeded', borderRadius: 6, padding: '24px', boxShadow: '0 1px 1px 0 rgba(0,28,36,0.1)' }}>
           {/* 試験ヘッダー */}
           <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 8 }}>
             <span style={{ background: '#232f3e', color: 'white', fontSize: 11, padding: '2px 8px', borderRadius: 12, fontWeight: 700 }}>{examType}</span>
@@ -332,7 +358,7 @@ export default function ExerciseSetup() {
           {/* ── 試験概要 ── */}
           <div style={{ marginBottom: 20 }}>
             <div style={{ fontSize: 11, fontWeight: 700, color: '#545b64', textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: 10 }}>試験概要</div>
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 1, background: '#eaeded', border: '1px solid #eaeded', borderRadius: 2, overflow: 'hidden' }}>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 1, background: '#eaeded', border: '1px solid #eaeded', borderRadius: 6, overflow: 'hidden' }}>
               <div style={{ background: 'white', padding: '10px 12px' }}>
                 <div style={{ fontSize: 11, color: '#545b64', marginBottom: 4 }}>問題数</div>
                 <div style={{ fontSize: 18, fontWeight: 700 }}>{info.totalQuestions}<span style={{ fontSize: 11, fontWeight: 400, marginLeft: 2 }}>問</span></div>
@@ -352,7 +378,7 @@ export default function ExerciseSetup() {
           </div>
 
           {/* ── あなたの進捗 ── */}
-          <div style={{ marginBottom: 20, padding: '14px 16px', background: '#e0f2f2', border: '1px solid #d4e9f5', borderRadius: 2 }}>
+          <div style={{ marginBottom: 20, padding: '14px 16px', background: '#e0f2f2', border: '1px solid #d4e9f5', borderRadius: 6 }}>
             <div style={{ fontSize: 11, fontWeight: 700, color: '#008c8c', textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: 10 }}>あなたの進捗</div>
             {answeredCount === null ? (
               <div style={{ fontSize: 13, color: '#545b64' }}>読み込み中...</div>
@@ -379,24 +405,36 @@ export default function ExerciseSetup() {
           </div>
 
           {/* ── 今回の出題 ── */}
-          <div style={{ marginBottom: 20, padding: '14px 16px', background: bookmarkOnly ? '#fffbf0' : '#fbfbfb', border: `1px solid ${bookmarkOnly ? '#ffe8a0' : '#eaeded'}`, borderRadius: 2 }}>
-            <div style={{ fontSize: 11, fontWeight: 700, color: '#545b64', textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: 10 }}>今回の出題</div>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline' }}>
-              <span style={{ fontSize: 13, color: '#16191f' }}>
-                {bookmarkOnly ? 'ブックマーク済み' : (selectedDomain || selectedTag ? 'フィルタ後の問題数' : 'サイト内問題数')}
-              </span>
-              <span style={{ fontSize: 20, fontWeight: 700, color: bookmarkOnly ? '#b85c00' : '#008c8c' }}>
-                {availableCount === null ? '...' : availableCount}
-                <span style={{ fontSize: 12, fontWeight: 400, marginLeft: 4 }}>問</span>
-              </span>
-            </div>
-            {(selectedDomain || selectedTag) && availableCount !== null && !bookmarkOnly && (
-              <div style={{ fontSize: 11, color: '#545b64', marginTop: 4 }}>
-                {selectedDomain && <span style={{ marginRight: 8 }}>ドメイン: {selectedDomain}</span>}
-                {selectedTag && <span>タグ: {selectedTag}</span>}
+          {(() => {
+            const hasFilter = bookmarkOnly || unansweredOnly;
+            const bg = unansweredOnly && bookmarkOnly ? '#f0fff4' : unansweredOnly ? '#f0fff4' : bookmarkOnly ? '#fffbf0' : '#fbfbfb';
+            const border = unansweredOnly && bookmarkOnly ? '#b7ebc8' : unansweredOnly ? '#b7ebc8' : bookmarkOnly ? '#ffe8a0' : '#eaeded';
+            const color = unansweredOnly ? '#1d7a3d' : bookmarkOnly ? '#b85c00' : '#008c8c';
+            const label = (() => {
+              if (unansweredOnly && bookmarkOnly) return '未回答 & ブックマーク';
+              if (unansweredOnly) return '未回答の問題';
+              if (bookmarkOnly) return 'ブックマーク済み';
+              return selectedDomain || selectedTag ? 'フィルタ後の問題数' : 'サイト内問題数';
+            })();
+            return (
+              <div style={{ marginBottom: 20, padding: '14px 16px', background: bg, border: `1px solid ${border}`, borderRadius: 6 }}>
+                <div style={{ fontSize: 11, fontWeight: 700, color: '#545b64', textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: 10 }}>今回の出題</div>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline' }}>
+                  <span style={{ fontSize: 13, color: '#16191f' }}>{label}</span>
+                  <span style={{ fontSize: 20, fontWeight: 700, color }}>
+                    {availableCount === null ? '...' : availableCount}
+                    <span style={{ fontSize: 12, fontWeight: 400, marginLeft: 4 }}>問</span>
+                  </span>
+                </div>
+                {(selectedDomain || selectedTag) && availableCount !== null && !hasFilter && (
+                  <div style={{ fontSize: 11, color: '#545b64', marginTop: 4 }}>
+                    {selectedDomain && <span style={{ marginRight: 8 }}>ドメイン: {selectedDomain}</span>}
+                    {selectedTag && <span>タグ: {selectedTag}</span>}
+                  </div>
+                )}
               </div>
-            )}
-          </div>
+            );
+          })()}
 
           {/* ── 出題範囲と比率 ── */}
           <div style={{ borderTop: '1px solid #eaeded', paddingTop: 16 }}>

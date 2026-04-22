@@ -647,6 +647,39 @@ app.delete('/admin/tips/:id', async (req, res) => {
   }
 });
 
+// 回答済み問題ID一覧取得
+app.get('/users/me/answered-questions', async (req, res) => {
+  try {
+    const docClient = getClient();
+    const { userId, examType } = req.query;
+
+    const statsResult = await docClient.send(new QueryCommand({
+      TableName: 'UserQuestionStats',
+      KeyConditionExpression: 'userId = :uid',
+      ExpressionAttributeValues: { ':uid': userId }
+    }));
+
+    let questionIds = (statsResult.Items || []).map(s => s.questionId);
+
+    if (examType) {
+      const questionsResult = await docClient.send(new QueryCommand({
+        TableName: 'Questions',
+        IndexName: 'examType-index',
+        KeyConditionExpression: 'examType = :et',
+        ExpressionAttributeValues: { ':et': examType },
+        ProjectionExpression: 'questionId'
+      }));
+      const examQuestionIds = new Set((questionsResult.Items || []).map(q => q.questionId));
+      questionIds = questionIds.filter(id => examQuestionIds.has(id));
+    }
+
+    res.json({ questionIds });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
 // ブックマーク追加
 app.post('/questions/:id/bookmark', async (req, res) => {
   try {
