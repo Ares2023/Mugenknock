@@ -59,6 +59,7 @@ export default function ExerciseSession() {
   const [tips, setTips] = useState<Tip[]>([]);
   const [bookmarkedIds, setBookmarkedIds] = useState<Set<string>>(new Set());
   const [bookmarkLoading, setBookmarkLoading] = useState(false);
+  const [currentTip, setCurrentTip] = useState<Tip | null>(null);
 
   useEffect(() => {
     fetch(`${API_ENDPOINT}/tips?examType=${examType}`)
@@ -66,6 +67,11 @@ export default function ExerciseSession() {
       .then(d => setTips(d.items ?? []))
       .catch(() => {});
   }, [examType]);
+
+  useEffect(() => {
+    if (tips.length === 0) return;
+    setCurrentTip(tips[Math.floor(Math.random() * tips.length)]);
+  }, [currentIndex, tips]);
 
   useEffect(() => {
     if (!userId) return;
@@ -351,18 +357,38 @@ export default function ExerciseSession() {
       </div>
 
       {/* コラム（豆知識） */}
-      {tips.length > 0 && (() => {
-        const tip = tips[currentIndex % tips.length];
-        return (
-          <div style={{ marginTop: 32, borderTop: "1px solid #e8e8e8", paddingTop: 20 }}>
-            <div style={{ fontSize: 11, color: "#aaa", letterSpacing: 1, marginBottom: 8 }}>📖 COLUMN</div>
-            <div style={{ background: "#fffbf0", border: "1px solid #ffe8a0", borderRadius: 8, padding: "14px 18px" }}>
-              <p style={{ fontWeight: "bold", color: "#7a5500", margin: "0 0 6px", fontSize: 14 }}>{tip.title}</p>
-              <p style={{ color: "#555", margin: 0, fontSize: 13, lineHeight: 1.7 }}>{tip.content}</p>
+      {currentTip && (
+        <div style={{ marginTop: 24 }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 10 }}>
+            <span style={{
+              background: "#b85c00", color: "white",
+              fontSize: 10, fontWeight: 700, letterSpacing: "1.5px",
+              padding: "3px 8px", borderRadius: 2,
+            }}>COLUMN</span>
+            <span style={{ flex: 1, height: 1, background: "#eaeded" }} />
+          </div>
+          <div style={{
+            background: "white",
+            border: "1px solid #eaeded",
+            borderLeft: "4px solid #ff9900",
+            borderRadius: 2,
+            padding: "16px 20px",
+            boxShadow: "0 1px 1px 0 rgba(0,28,36,0.07)",
+          }}>
+            <div style={{ display: "flex", alignItems: "flex-start", gap: 12 }}>
+              <span style={{ fontSize: 24, lineHeight: 1, flexShrink: 0 }}>📖</span>
+              <div>
+                <p style={{ fontWeight: 700, color: "#16191f", margin: "0 0 8px", fontSize: 14 }}>
+                  {currentTip.title}
+                </p>
+                <p style={{ color: "#545b64", margin: 0, fontSize: 13, lineHeight: 1.8 }}>
+                  {currentTip.content}
+                </p>
+              </div>
             </div>
           </div>
-        );
-      })()}
+        </div>
+      )}
     </div>
   );
 }
