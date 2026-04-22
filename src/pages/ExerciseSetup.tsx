@@ -251,51 +251,93 @@ export default function ExerciseSetup() {
 
         {/* 右：試験情報パネル */}
         <div style={{ background: 'white', border: '1px solid #eaeded', borderRadius: 2, padding: '24px', boxShadow: '0 1px 1px 0 rgba(0,28,36,0.1)' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 12 }}>
+          {/* 試験ヘッダー */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 8 }}>
             <span style={{ background: '#232f3e', color: 'white', fontSize: 11, padding: '2px 8px', borderRadius: 12, fontWeight: 700 }}>{examType}</span>
             <span style={{ fontSize: 13, color: '#545b64', fontWeight: 700 }}>{info.examCode}</span>
           </div>
           <h3 style={{ fontSize: 15, fontWeight: 700, margin: '0 0 20px', color: '#16191f', lineHeight: 1.4 }}>{info.fullName}</h3>
 
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, marginBottom: 24 }}>
-            <div style={{ background: '#fbfbfb', border: '1px solid #eaeded', borderRadius: 2, padding: '12px' }}>
-              <div style={{ fontSize: 11, color: '#545b64', fontWeight: 700, marginBottom: 4 }}>本番の問題数</div>
-              <div style={{ fontSize: 20, fontWeight: 700 }}>
-                {info.totalQuestions}<span style={{ fontSize: 12, fontWeight: 400, marginLeft: 4 }}>問</span>
+          {/* ── 試験概要 ── */}
+          <div style={{ marginBottom: 20 }}>
+            <div style={{ fontSize: 11, fontWeight: 700, color: '#545b64', textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: 10 }}>試験概要</div>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 1, background: '#eaeded', border: '1px solid #eaeded', borderRadius: 2, overflow: 'hidden' }}>
+              <div style={{ background: 'white', padding: '10px 12px' }}>
+                <div style={{ fontSize: 11, color: '#545b64', marginBottom: 4 }}>問題数</div>
+                <div style={{ fontSize: 18, fontWeight: 700 }}>{info.totalQuestions}<span style={{ fontSize: 11, fontWeight: 400, marginLeft: 2 }}>問</span></div>
+                {info.scoredQuestions < info.totalQuestions && (
+                  <div style={{ fontSize: 10, color: '#879596', marginTop: 2 }}>採点 {info.scoredQuestions}問</div>
+                )}
               </div>
-            </div>
-            <div style={{ background: '#fbfbfb', border: '1px solid #eaeded', borderRadius: 2, padding: '12px' }}>
-              <div style={{ fontSize: 11, color: '#545b64', fontWeight: 700, marginBottom: 4 }}>
-                {selectedDomain || selectedTag ? 'フィルタ後の問題数' : 'サイト内問題数'}
+              <div style={{ background: 'white', padding: '10px 12px' }}>
+                <div style={{ fontSize: 11, color: '#545b64', marginBottom: 4 }}>制限時間</div>
+                <div style={{ fontSize: 18, fontWeight: 700 }}>{info.timeLimit}</div>
               </div>
-              <div style={{ fontSize: 20, fontWeight: 700, color: '#0073bb' }}>
-                {availableCount === null ? '...' : availableCount}
-                <span style={{ fontSize: 12, fontWeight: 400, marginLeft: 4 }}>問</span>
+              <div style={{ background: 'white', padding: '10px 12px' }}>
+                <div style={{ fontSize: 11, color: '#545b64', marginBottom: 4 }}>合格スコア</div>
+                <div style={{ fontSize: 18, fontWeight: 700, color: '#037f0c' }}>{passScore}</div>
               </div>
-            </div>
-            <div style={{ background: '#fbfbfb', border: '1px solid #eaeded', borderRadius: 2, padding: '12px' }}>
-              <div style={{ fontSize: 11, color: '#545b64', fontWeight: 700, marginBottom: 4 }}>演習済み</div>
-              <div style={{ fontSize: 20, fontWeight: 700, color: '#037f0c' }}>
-                {answeredCount === null ? '...' : answeredCount}
-                <span style={{ fontSize: 12, fontWeight: 400, marginLeft: 4 }}>問</span>
-              </div>
-            </div>
-            <div style={{ background: '#fbfbfb', border: '1px solid #eaeded', borderRadius: 2, padding: '12px' }}>
-              <div style={{ fontSize: 11, color: '#545b64', fontWeight: 700, marginBottom: 4 }}>合格スコア</div>
-              <div style={{ fontSize: 20, fontWeight: 700 }}>{passScore}</div>
             </div>
           </div>
 
-          <div style={{ borderTop: '1px solid #eaeded', paddingTop: 20 }}>
-            <h4 style={{ fontSize: 12, fontWeight: 700, color: '#545b64', marginBottom: 12, textTransform: 'uppercase' }}>出題範囲と比率</h4>
+          {/* ── あなたの進捗 ── */}
+          <div style={{ marginBottom: 20, padding: '14px 16px', background: '#f2f8fd', border: '1px solid #d4e9f5', borderRadius: 2 }}>
+            <div style={{ fontSize: 11, fontWeight: 700, color: '#0073bb', textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: 10 }}>あなたの進捗</div>
+            {answeredCount === null ? (
+              <div style={{ fontSize: 13, color: '#545b64' }}>読み込み中...</div>
+            ) : (
+              <>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: 6 }}>
+                  <span style={{ fontSize: 13, color: '#16191f' }}>演習済み</span>
+                  <span style={{ fontSize: 16, fontWeight: 700, color: '#0073bb' }}>
+                    {answeredCount}
+                    <span style={{ fontSize: 12, fontWeight: 400, color: '#545b64' }}> / {info.totalQuestions} 問</span>
+                  </span>
+                </div>
+                <div style={{ background: '#d4e9f5', borderRadius: 10, height: 6, overflow: 'hidden' }}>
+                  <div style={{
+                    width: `${info.totalQuestions > 0 ? Math.min(100, Math.round((answeredCount / info.totalQuestions) * 100)) : 0}%`,
+                    background: '#0073bb', height: '100%', borderRadius: 10, transition: 'width 0.4s'
+                  }} />
+                </div>
+                <div style={{ fontSize: 11, color: '#0073bb', marginTop: 4, textAlign: 'right', fontWeight: 700 }}>
+                  {info.totalQuestions > 0 ? Math.min(100, Math.round((answeredCount / info.totalQuestions) * 100)) : 0}%
+                </div>
+              </>
+            )}
+          </div>
+
+          {/* ── 今回の出題 ── */}
+          <div style={{ marginBottom: 20, padding: '14px 16px', background: '#fbfbfb', border: '1px solid #eaeded', borderRadius: 2 }}>
+            <div style={{ fontSize: 11, fontWeight: 700, color: '#545b64', textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: 10 }}>今回の出題</div>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline' }}>
+              <span style={{ fontSize: 13, color: '#16191f' }}>
+                {selectedDomain || selectedTag ? 'フィルタ後の問題数' : 'サイト内問題数'}
+              </span>
+              <span style={{ fontSize: 20, fontWeight: 700, color: '#0073bb' }}>
+                {availableCount === null ? '...' : availableCount}
+                <span style={{ fontSize: 12, fontWeight: 400, marginLeft: 4 }}>問</span>
+              </span>
+            </div>
+            {(selectedDomain || selectedTag) && availableCount !== null && (
+              <div style={{ fontSize: 11, color: '#545b64', marginTop: 4 }}>
+                {selectedDomain && <span style={{ marginRight: 8 }}>ドメイン: {selectedDomain}</span>}
+                {selectedTag && <span>タグ: {selectedTag}</span>}
+              </div>
+            )}
+          </div>
+
+          {/* ── 出題範囲と比率 ── */}
+          <div style={{ borderTop: '1px solid #eaeded', paddingTop: 16 }}>
+            <div style={{ fontSize: 11, fontWeight: 700, color: '#545b64', textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: 12 }}>出題範囲と比率</div>
             {info.categories.map(cat => (
-              <div key={cat.name} style={{ marginBottom: 12 }}>
+              <div key={cat.name} style={{ marginBottom: 10 }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 12, marginBottom: 4 }}>
                   <span style={{
                     color: selectedDomain === cat.name ? '#0073bb' : '#16191f',
                     fontWeight: selectedDomain === cat.name ? 700 : 400,
                   }}>{cat.name}</span>
-                  <span style={{ fontWeight: 700, color: '#0073bb' }}>{cat.ratio}</span>
+                  <span style={{ fontWeight: 700, color: '#0073bb', flexShrink: 0, marginLeft: 8 }}>{cat.ratio}</span>
                 </div>
                 <div style={{ background: '#eaeded', borderRadius: 10, height: 4 }}>
                   <div style={{ background: selectedDomain === cat.name ? '#0073bb' : '#879596', borderRadius: 10, height: 4, width: cat.ratio }} />
