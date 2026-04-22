@@ -172,8 +172,8 @@ export default function Layout({ children }: { children: React.ReactNode }) {
 
         {/* サービス名 */}
         <div onClick={() => navigate('/')} style={{ display: 'flex', alignItems: 'center', cursor: 'pointer', userSelect: 'none', flexShrink: 0 }}>
-          <span style={{ color: 'white', fontWeight: 800, fontSize: 14 }}>AWS</span>
-          <span style={{ color: 'white', fontWeight: 400, fontSize: 14, marginLeft: 6, whiteSpace: 'nowrap' }}>
+          <span style={{ color: '#66ffcc', fontWeight: 800, fontSize: 14 }}>AWS</span>
+          <span style={{ color: '#66ffcc', fontWeight: 800, fontSize: 14, marginLeft: 6, whiteSpace: 'nowrap' }}>
             {isMobile ? 'Sherpa' : 'Waypoint Sherpa'}
           </span>
         </div>
