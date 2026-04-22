@@ -68,6 +68,15 @@ const EXAM_INFO: Record<string, {
   },
 };
 
+function shuffleArray<T>(arr: T[]): T[] {
+  const a = [...arr];
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [a[i], a[j]] = [a[j], a[i]];
+  }
+  return a;
+}
+
 export default function ExerciseSetup() {
   const navigate = useNavigate();
   const { user } = useAuth();
@@ -77,6 +86,7 @@ export default function ExerciseSetup() {
   const [limit, setLimit] = useState(10);
   const [shuffle, setShuffle] = useState(true);
   const [loading, setLoading] = useState(false);
+  const [bookmarkOnly, setBookmarkOnly] = useState(false);
 
   const info = EXAM_INFO[examType];
   const passScore = PASS_SCORES[examType];
@@ -93,14 +103,28 @@ export default function ExerciseSetup() {
     setAvailableCount(null);
     setAnsweredCount(null);
 
-    const params = new URLSearchParams({ examType });
-    if (selectedDomain) params.set('domain', selectedDomain);
-    if (selectedTag) params.set('tagId', selectedTag);
+    const fetchCounts = async () => {
+      try {
+        const params = new URLSearchParams({ examType });
+        if (selectedDomain) params.set('domain', selectedDomain);
+        if (selectedTag) params.set('tagId', selectedTag);
 
-    fetch(`${API_ENDPOINT}/questions?${params}`)
-      .then(r => r.json())
-      .then(d => setAvailableCount(d.count ?? d.items?.length ?? 0))
-      .catch(() => setAvailableCount(0));
+        if (bookmarkOnly && user) {
+          const [bkmRes, qRes] = await Promise.all([
+            fetch(`${API_ENDPOINT}/users/me/bookmarks?userId=${user.userId}`).then(r => r.json()),
+            fetch(`${API_ENDPOINT}/questions?${params}`).then(r => r.json()),
+          ]);
+          const bookmarkIds = new Set(bkmRes.questionIds ?? []);
+          const count = (qRes.items ?? []).filter((q: any) => bookmarkIds.has(q.questionId)).length;
+          setAvailableCount(count);
+        } else {
+          const qRes = await fetch(`${API_ENDPOINT}/questions?${params}`).then(r => r.json());
+          setAvailableCount(qRes.count ?? qRes.items?.length ?? 0);
+        }
+      } catch { setAvailableCount(0); }
+    };
+
+    fetchCounts();
 
     if (user) {
       fetch(`${API_ENDPOINT}/users/me/question-stats?userId=${user.userId}&examType=${examType}`)
@@ -110,7 +134,7 @@ export default function ExerciseSetup() {
     } else {
       setAnsweredCount(0);
     }
-  }, [examType, selectedDomain, selectedTag, user]);
+  }, [examType, selectedDomain, selectedTag, user, bookmarkOnly]);
 
   useEffect(() => {
     fetch(`${API_ENDPOINT}/tags?examType=${examType}`)
@@ -122,15 +146,38 @@ export default function ExerciseSetup() {
   const startSession = async () => {
     setLoading(true);
     try {
-      const params = new URLSearchParams({ examType, limit: String(limit), shuffle: String(shuffle) });
-      if (selectedDomain) params.set('domain', selectedDomain);
-      if (selectedTag) params.set('tagId', selectedTag);
-
-      const res = await fetch(`${API_ENDPOINT}/questions?${params}`);
-      const data = await res.json();
-      const questionIds = data.items.map((q: any) => q.questionId);
-
       const userId = user?.userId ?? 'guest';
+      let selectedItems: any[];
+
+      if (bookmarkOnly && user) {
+        const params = new URLSearchParams({ examType });
+        if (selectedDomain) params.set('domain', selectedDomain);
+        if (selectedTag) params.set('tagId', selectedTag);
+
+        const [bkmRes, qRes] = await Promise.all([
+          fetch(`${API_ENDPOINT}/users/me/bookmarks?userId=${userId}`).then(r => r.json()),
+          fetch(`${API_ENDPOINT}/questions?${params}`).then(r => r.json()),
+        ]);
+        const bookmarkIds = new Set(bkmRes.questionIds ?? []);
+        let filtered = (qRes.items ?? []).filter((q: any) => bookmarkIds.has(q.questionId));
+        if (shuffle) filtered = shuffleArray(filtered);
+        selectedItems = filtered.slice(0, limit);
+      } else {
+        const params = new URLSearchParams({ examType, limit: String(limit), shuffle: String(shuffle) });
+        if (selectedDomain) params.set('domain', selectedDomain);
+        if (selectedTag) params.set('tagId', selectedTag);
+        const res = await fetch(`${API_ENDPOINT}/questions?${params}`);
+        const data = await res.json();
+        selectedItems = data.items;
+      }
+
+      if (selectedItems.length === 0) {
+        alert('条件に合う問題がありません');
+        setLoading(false);
+        return;
+      }
+
+      const questionIds = selectedItems.map((q: any) => q.questionId);
       const sessionRes = await fetch(`${API_ENDPOINT}/sessions`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -139,7 +186,7 @@ export default function ExerciseSetup() {
       const sessionData = await sessionRes.json();
 
       navigate('/exercise/session', {
-        state: { sessionId: sessionData.sessionId, questions: data.items, userId, mode: 'exercise', examType }
+        state: { sessionId: sessionData.sessionId, questions: selectedItems, userId, mode: 'exercise', examType }
       });
     } catch (err) {
       console.error(err);
@@ -232,8 +279,15 @@ export default function ExerciseSetup() {
             </span>
           </div>
 
-          {/* シャッフル */}
-          <div style={{ marginBottom: 32, padding: '16px', background: '#f2f3f3', borderRadius: 2 }}>
+          {/* ブックマーク・シャッフル */}
+          <div style={{ marginBottom: 32, padding: '16px', background: '#f2f3f3', borderRadius: 2, display: 'flex', flexDirection: 'column', gap: 10 }}>
+            <label style={{ display: 'flex', alignItems: 'center', gap: 10, cursor: 'pointer', fontSize: 14 }}>
+              <input type="checkbox" checked={bookmarkOnly} onChange={e => setBookmarkOnly(e.target.checked)} style={{ width: 16, height: 16 }} />
+              <span style={{ fontWeight: 700 }}>
+                ブックマークした問題のみ
+                <span style={{ fontWeight: 400, fontSize: 12, color: '#545b64', marginLeft: 6 }}>（演習中に★でブックマーク）</span>
+              </span>
+            </label>
             <label style={{ display: 'flex', alignItems: 'center', gap: 10, cursor: 'pointer', fontSize: 14 }}>
               <input type="checkbox" checked={shuffle} onChange={e => setShuffle(e.target.checked)} style={{ width: 16, height: 16 }} />
               <span style={{ fontWeight: 700 }}>問題をシャッフルする</span>
@@ -323,18 +377,18 @@ export default function ExerciseSetup() {
           </div>
 
           {/* ── 今回の出題 ── */}
-          <div style={{ marginBottom: 20, padding: '14px 16px', background: '#fbfbfb', border: '1px solid #eaeded', borderRadius: 2 }}>
+          <div style={{ marginBottom: 20, padding: '14px 16px', background: bookmarkOnly ? '#fffbf0' : '#fbfbfb', border: `1px solid ${bookmarkOnly ? '#ffe8a0' : '#eaeded'}`, borderRadius: 2 }}>
             <div style={{ fontSize: 11, fontWeight: 700, color: '#545b64', textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: 10 }}>今回の出題</div>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline' }}>
               <span style={{ fontSize: 13, color: '#16191f' }}>
-                {selectedDomain || selectedTag ? 'フィルタ後の問題数' : 'サイト内問題数'}
+                {bookmarkOnly ? 'ブックマーク済み' : (selectedDomain || selectedTag ? 'フィルタ後の問題数' : 'サイト内問題数')}
               </span>
-              <span style={{ fontSize: 20, fontWeight: 700, color: '#0073bb' }}>
+              <span style={{ fontSize: 20, fontWeight: 700, color: bookmarkOnly ? '#b85c00' : '#0073bb' }}>
                 {availableCount === null ? '...' : availableCount}
                 <span style={{ fontSize: 12, fontWeight: 400, marginLeft: 4 }}>問</span>
               </span>
             </div>
-            {(selectedDomain || selectedTag) && availableCount !== null && (
+            {(selectedDomain || selectedTag) && availableCount !== null && !bookmarkOnly && (
               <div style={{ fontSize: 11, color: '#545b64', marginTop: 4 }}>
                 {selectedDomain && <span style={{ marginRight: 8 }}>ドメイン: {selectedDomain}</span>}
                 {selectedTag && <span>タグ: {selectedTag}</span>}

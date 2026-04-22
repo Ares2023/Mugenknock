@@ -14,6 +14,8 @@ import Result from './pages/Result';
 import Admin from './pages/Admin';
 import ExamSetup from './pages/ExamSetup';
 import ExamSession from './pages/ExamSession';
+import Stats from './pages/Stats';
+import Architecture from './pages/Architecture';
 
 Amplify.configure(awsExports);
 
@@ -60,6 +62,14 @@ function App() {
             <PrivateRoute>
               <Layout><Admin /></Layout>
             </PrivateRoute>
+          } />
+          <Route path="/stats" element={
+            <PrivateRoute>
+              <Layout><Stats /></Layout>
+            </PrivateRoute>
+          } />
+          <Route path="/architecture" element={
+            <Layout><Architecture /></Layout>
           } />
         </Routes>
       </BrowserRouter>

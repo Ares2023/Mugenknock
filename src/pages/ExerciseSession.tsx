@@ -41,6 +41,12 @@ const CopyButton = ({ getText }: { getText: () => string }) => {
   );
 };
 
+const IconBookmark = ({ filled }: { filled: boolean }) => (
+  <svg width="16" height="16" viewBox="0 0 16 16" fill={filled ? "#ff9900" : "none"} stroke={filled ? "#ff9900" : "#879596"} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M3 2h10v13l-5-3-5 3V2z"/>
+  </svg>
+);
+
 export default function ExerciseSession() {
   const navigate = useNavigate();
   const location = useLocation();
@@ -51,6 +57,8 @@ export default function ExerciseSession() {
   const [answered, setAnswered] = useState(false);
   const [detail, setDetail] = useState<Question | null>(null);
   const [tips, setTips] = useState<Tip[]>([]);
+  const [bookmarkedIds, setBookmarkedIds] = useState<Set<string>>(new Set());
+  const [bookmarkLoading, setBookmarkLoading] = useState(false);
 
   useEffect(() => {
     fetch(`${API_ENDPOINT}/tips?examType=${examType}`)
@@ -58,6 +66,34 @@ export default function ExerciseSession() {
       .then(d => setTips(d.items ?? []))
       .catch(() => {});
   }, [examType]);
+
+  useEffect(() => {
+    if (!userId) return;
+    fetch(`${API_ENDPOINT}/users/me/bookmarks?userId=${userId}`)
+      .then(r => r.json())
+      .then(d => setBookmarkedIds(new Set(d.questionIds ?? [])))
+      .catch(() => {});
+  }, [userId]);
+
+  const toggleBookmark = async () => {
+    const qid = currentQuestion.questionId;
+    const isBookmarked = bookmarkedIds.has(qid);
+    setBookmarkLoading(true);
+    try {
+      if (isBookmarked) {
+        await fetch(`${API_ENDPOINT}/questions/${qid}/bookmark?userId=${userId}`, { method: 'DELETE' });
+        setBookmarkedIds(prev => { const next = new Set(prev); next.delete(qid); return next; });
+      } else {
+        await fetch(`${API_ENDPOINT}/questions/${qid}/bookmark`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ userId }),
+        });
+        setBookmarkedIds(prev => new Set([...prev, qid]));
+      }
+    } catch (err) { console.error(err); }
+    setBookmarkLoading(false);
+  };
   const [results, setResults] = useState<{ questionId: string; isCorrect: boolean }[]>([]);
   const [loading, setLoading] = useState(false);
 
@@ -178,9 +214,22 @@ export default function ExerciseSession() {
               全 {questions.length} 問
             </span>
           </h1>
-          <span style={{ background: "#f2f3f3", color: "#545b64", padding: "4px 12px", borderRadius: 12, fontSize: 12, fontWeight: 700, border: "1px solid #d1d5db" }}>
-            {currentQuestion.examType}
-          </span>
+          <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+            <button
+              onClick={toggleBookmark}
+              disabled={bookmarkLoading}
+              title={bookmarkedIds.has(currentQuestion.questionId) ? "ブックマーク解除" : "ブックマーク"}
+              style={{
+                background: "none", border: "none", cursor: "pointer", padding: "4px", display: "flex", alignItems: "center",
+                opacity: bookmarkLoading ? 0.5 : 1,
+              }}
+            >
+              <IconBookmark filled={bookmarkedIds.has(currentQuestion.questionId)} />
+            </button>
+            <span style={{ background: "#f2f3f3", color: "#545b64", padding: "4px 12px", borderRadius: 12, fontSize: 12, fontWeight: 700, border: "1px solid #d1d5db" }}>
+              {currentQuestion.examType}
+            </span>
+          </div>
         </div>
 
         <div style={{ marginBottom: 24 }}>

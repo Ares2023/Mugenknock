@@ -20,6 +20,12 @@ const formatTime = (sec: number) => {
   return `${m}:${s}`;
 };
 
+const IconBookmark = ({ filled }: { filled: boolean }) => (
+  <svg width="16" height="16" viewBox="0 0 16 16" fill={filled ? "#ff9900" : "none"} stroke={filled ? "#ff9900" : "#879596"} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M3 2h10v13l-5-3-5 3V2z"/>
+  </svg>
+);
+
 export default function ExamSession() {
   const navigate = useNavigate();
   const location = useLocation();
@@ -35,6 +41,32 @@ export default function ExamSession() {
   const [submitting, setSubmitting] = useState(false);
   const [showConfirm, setShowConfirm] = useState(false);
   const finishedRef = useRef(false);
+  const [bookmarkedIds, setBookmarkedIds] = useState<Set<string>>(new Set());
+
+  useEffect(() => {
+    if (!userId) return;
+    fetch(`${API_ENDPOINT}/users/me/bookmarks?userId=${userId}`)
+      .then(r => r.json())
+      .then(d => setBookmarkedIds(new Set(d.questionIds ?? [])))
+      .catch(() => {});
+  }, [userId]);
+
+  const toggleBookmark = async (questionId: string) => {
+    const isBookmarked = bookmarkedIds.has(questionId);
+    try {
+      if (isBookmarked) {
+        await fetch(`${API_ENDPOINT}/questions/${questionId}/bookmark?userId=${userId}`, { method: 'DELETE' });
+        setBookmarkedIds(prev => { const next = new Set(prev); next.delete(questionId); return next; });
+      } else {
+        await fetch(`${API_ENDPOINT}/questions/${questionId}/bookmark`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ userId }),
+        });
+        setBookmarkedIds(prev => new Set([...prev, questionId]));
+      }
+    } catch (err) { console.error(err); }
+  };
 
   // タイマー
   useEffect(() => {
@@ -226,11 +258,22 @@ export default function ExamSession() {
       <div style={{ background: "white", border: "1px solid #eaeded", borderRadius: 2, padding: "24px 32px", boxShadow: "0 1px 1px 0 rgba(0,28,36,0.1), 1px 1px 1px 0 rgba(0,28,36,0.15)", marginBottom: 24 }}>
         {/* 問題 */}
         <div style={{ marginBottom: 24 }}>
-          {currentQ.isMultiple && (
-            <div style={{ display: "inline-block", background: "#f2f8fd", color: "#0073bb", padding: "2px 8px", borderRadius: 2, fontSize: 12, fontWeight: 700, marginBottom: 8 }}>
-              複数選択
+          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 8 }}>
+            <div>
+              {currentQ.isMultiple && (
+                <div style={{ display: "inline-block", background: "#f2f8fd", color: "#0073bb", padding: "2px 8px", borderRadius: 2, fontSize: 12, fontWeight: 700 }}>
+                  複数選択
+                </div>
+              )}
             </div>
-          )}
+            <button
+              onClick={() => toggleBookmark(currentQ.questionId)}
+              title={bookmarkedIds.has(currentQ.questionId) ? "ブックマーク解除" : "ブックマーク"}
+              style={{ background: "none", border: "none", cursor: "pointer", padding: "4px", display: "flex", alignItems: "center" }}
+            >
+              <IconBookmark filled={bookmarkedIds.has(currentQ.questionId)} />
+            </button>
+          </div>
           <p style={{ fontSize: 16, lineHeight: 1.6, fontWeight: 400, margin: 0, color: "#16191f" }}>
             {currentQ.questionText}
           </p>

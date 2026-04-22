@@ -51,13 +51,29 @@ const IconUser = () => (
     <path d="M1.5 14.5c0-3.5 3-5.5 6.5-5.5s6.5 2 6.5 5.5"/>
   </svg>
 );
+const IconChart = () => (
+  <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+    <rect x="1" y="9" width="3" height="6" rx="0.5"/>
+    <rect x="6" y="5" width="3" height="10" rx="0.5"/>
+    <rect x="11" y="2" width="3" height="13" rx="0.5"/>
+  </svg>
+);
+const IconInfo = () => (
+  <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+    <circle cx="8" cy="8" r="6.5"/>
+    <line x1="8" y1="7" x2="8" y2="12"/>
+    <circle cx="8" cy="4.5" r="0.75" fill="currentColor" stroke="none"/>
+  </svg>
+);
 
 const NAV_ITEMS = [
-  { path: '/',               label: 'ホーム',     Icon: IconHome    },
-  { path: '/exercise/setup', label: '演習モード', Icon: IconPencil  },
-  { path: '/exam/setup',     label: '模試モード', Icon: IconClock   },
-  { path: '/questions',      label: '問題一覧',   Icon: IconList    },
-  { path: '/admin',          label: '管理画面',   Icon: IconGear,  adminOnly: true },
+  { path: '/',               label: 'ホーム',         Icon: IconHome    },
+  { path: '/exercise/setup', label: '演習モード',     Icon: IconPencil  },
+  { path: '/exam/setup',     label: '模試モード',     Icon: IconClock   },
+  { path: '/questions',      label: '問題一覧',       Icon: IconList    },
+  { path: '/stats',          label: '統計・分析',     Icon: IconChart   },
+  { path: '/admin',          label: '管理画面',       Icon: IconGear,   adminOnly: true },
+  { path: '/architecture',   label: 'システム構成',   Icon: IconInfo,   bottom: true },
 ];
 
 const AI_LINKS = [
@@ -221,7 +237,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
           } : {}),
         }}>
           <div style={{ width: SIDEBAR_WIDTH, paddingTop: 8, display: 'flex', flexDirection: 'column', height: '100%' }}>
-            {navItems.map(({ path, label, Icon }) => {
+            {navItems.filter(item => !(item as any).bottom).map(({ path, label, Icon }) => {
               const active = isActive(path);
               return (
                 <button
@@ -251,9 +267,43 @@ export default function Layout({ children }: { children: React.ReactNode }) {
               );
             })}
 
+            {/* 下部固定ナビ（システム構成など） */}
+            <div style={{ marginTop: 'auto' }}>
+              {navItems.filter(item => (item as any).bottom).map(({ path, label, Icon }) => {
+                const active = isActive(path);
+                return (
+                  <button
+                    key={path}
+                    onClick={() => { navigate(path); if (isMobile) setOpen(false); }}
+                    style={{
+                      width: '100%', textAlign: 'left',
+                      display: 'flex', alignItems: 'center', gap: 10,
+                      padding: '9px 20px',
+                      background: active ? '#f2f3f3' : 'none',
+                      border: 'none',
+                      borderTop: '1px solid #eaeded',
+                      borderLeft: `3px solid ${active ? '#0073bb' : 'transparent'}`,
+                      cursor: 'pointer',
+                      color: active ? '#0073bb' : '#879596',
+                      fontSize: 13,
+                      fontWeight: active ? 700 : 400,
+                      whiteSpace: 'nowrap',
+                    }}
+                    onMouseEnter={e => { if (!active) (e.currentTarget as HTMLElement).style.background = '#f2f3f3'; }}
+                    onMouseLeave={e => { if (!active) (e.currentTarget as HTMLElement).style.background = 'none'; }}
+                  >
+                    <span style={{ display: 'flex', alignItems: 'center', opacity: active ? 1 : 0.6 }}>
+                      <Icon />
+                    </span>
+                    <span>{label}</span>
+                  </button>
+                );
+              })}
+            </div>
+
             {/* モバイルのみ: AI リンクをサイドバー下部に表示 */}
             {isMobile && (
-              <div style={{ marginTop: 'auto', borderTop: '1px solid #eaeded', padding: '12px 16px' }}>
+              <div style={{ borderTop: '1px solid #eaeded', padding: '12px 16px' }}>
                 <div style={{ fontSize: 11, color: '#aab7b8', marginBottom: 8, paddingLeft: 4 }}>AI で調べる</div>
                 {AI_LINKS.map(ai => (
                   <a key={ai.label} href={ai.url} target="_blank" rel="noreferrer"

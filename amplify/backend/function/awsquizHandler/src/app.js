@@ -647,4 +647,60 @@ app.delete('/admin/tips/:id', async (req, res) => {
   }
 });
 
+// ブックマーク追加
+app.post('/questions/:id/bookmark', async (req, res) => {
+  try {
+    const docClient = getClient();
+    const { userId } = req.body;
+    const now = new Date().toISOString();
+    await docClient.send(new UpdateCommand({
+      TableName: 'UserQuestionStats',
+      Key: { userId, questionId: req.params.id },
+      UpdateExpression: 'SET bookmarked = :b, lastAnsweredAt = if_not_exists(lastAnsweredAt, :now)',
+      ExpressionAttributeValues: { ':b': true, ':now': now }
+    }));
+    res.json({ success: true });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+// ブックマーク削除
+app.delete('/questions/:id/bookmark', async (req, res) => {
+  try {
+    const docClient = getClient();
+    const { userId } = req.query;
+    await docClient.send(new UpdateCommand({
+      TableName: 'UserQuestionStats',
+      Key: { userId, questionId: req.params.id },
+      UpdateExpression: 'SET bookmarked = :b',
+      ExpressionAttributeValues: { ':b': false }
+    }));
+    res.json({ success: true });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+// ブックマーク一覧取得
+app.get('/users/me/bookmarks', async (req, res) => {
+  try {
+    const docClient = getClient();
+    const { userId } = req.query;
+    const result = await docClient.send(new QueryCommand({
+      TableName: 'UserQuestionStats',
+      KeyConditionExpression: 'userId = :uid',
+      FilterExpression: 'bookmarked = :b',
+      ExpressionAttributeValues: { ':uid': userId, ':b': true }
+    }));
+    const questionIds = (result.Items || []).map(item => item.questionId);
+    res.json({ questionIds });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
 module.exports = app;
