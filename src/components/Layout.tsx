@@ -171,9 +171,11 @@ export default function Layout({ children }: { children: React.ReactNode }) {
         </button>
 
         {/* サービス名 */}
-        <div onClick={() => navigate('/')} style={{ display: 'flex', alignItems: 'center', cursor: 'pointer', userSelect: 'none', flexShrink: 0 }}>
-          <span style={{ color: '#66ffcc', fontWeight: 800, fontSize: 14 }}>AWS</span>
-          <span style={{ color: '#66ffcc', fontWeight: 800, fontSize: 14, marginLeft: 6, whiteSpace: 'nowrap' }}>
+        <div onClick={() => navigate('/')} style={{ display: 'flex', alignItems: 'center', cursor: 'pointer', userSelect: 'none', flexShrink: 0, padding: '0 12px' }}>
+          <span style={{ color: 'white', fontWeight: 700, fontSize: 15, fontFamily: "'Amazon Ember', 'Helvetica Neue', Arial, sans-serif", letterSpacing: '0.03em' }}>
+            AWS
+          </span>
+          <span style={{ color: 'white', fontWeight: 400, fontSize: 15, marginLeft: 7, whiteSpace: 'nowrap', fontFamily: "'Amazon Ember', 'Helvetica Neue', Arial, sans-serif", letterSpacing: '0.01em' }}>
             {isMobile ? 'Sherpa' : 'Waypoint Sherpa'}
           </span>
         </div>
