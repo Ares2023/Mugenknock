@@ -75,7 +75,7 @@ export default function Stats() {
     new Date(iso).toLocaleString('ja-JP', { month: 'numeric', day: 'numeric', hour: '2-digit', minute: '2-digit' });
 
   const AWS_TAG_BG = '#232f3e';
-  const AWS_BLUE = '#0073bb';
+  const AWS_BLUE = '#00cccc';
 
   // スコアの推移（模試のみ）
   const examSessions = sessions.filter(s => s.mode === 'exam');
@@ -160,7 +160,7 @@ export default function Stats() {
                     })}
                     {/* 合格ライン表示 */}
                     <div style={{ marginLeft: 8, display: 'flex', flexDirection: 'column', justifyContent: 'flex-end', paddingBottom: 20 }}>
-                      <div style={{ fontSize: 11, color: '#0073bb', fontWeight: 700, borderTop: '2px dashed #0073bb', paddingTop: 2, whiteSpace: 'nowrap' }}>合格ライン {passRate}%</div>
+                      <div style={{ fontSize: 11, color: '#00cccc', fontWeight: 700, borderTop: '2px dashed #00cccc', paddingTop: 2, whiteSpace: 'nowrap' }}>合格ライン {passRate}%</div>
                     </div>
                   </div>
                 </div>

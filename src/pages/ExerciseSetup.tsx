@@ -201,9 +201,9 @@ export default function ExerciseSetup() {
     fontSize: 13,
     borderRadius: 2,
     border: '1px solid',
-    borderColor: active ? '#0073bb' : '#d1d5db',
-    background: active ? '#f2f8fd' : 'white',
-    color: active ? '#0073bb' : '#545b64',
+    borderColor: active ? '#00cccc' : '#d1d5db',
+    background: active ? '#e6f9f9' : 'white',
+    color: active ? '#00cccc' : '#545b64',
     fontWeight: active ? 700 : 400,
     cursor: 'pointer',
   } as React.CSSProperties);
@@ -271,7 +271,7 @@ export default function ExerciseSetup() {
             <label style={{ display: 'block', marginBottom: 8, fontWeight: 700, fontSize: 14 }}>問題数</label>
             <input type="number" value={limit} onChange={e => setLimit(Math.max(1, parseInt(e.target.value) || 1))} min={1} max={availableCount ?? 50}
               style={{ padding: '6px 12px', width: 100, border: '1px solid #d1d5db', borderRadius: 2, fontSize: 14, outline: 'none' }}
-              onFocus={e => e.currentTarget.style.borderColor = '#0073bb'}
+              onFocus={e => e.currentTarget.style.borderColor = '#00cccc'}
               onBlur={e => e.currentTarget.style.borderColor = '#d1d5db'}
             />
             <span style={{ marginLeft: 12, fontSize: 12, color: '#545b64' }}>
@@ -350,15 +350,15 @@ export default function ExerciseSetup() {
           </div>
 
           {/* ── あなたの進捗 ── */}
-          <div style={{ marginBottom: 20, padding: '14px 16px', background: '#f2f8fd', border: '1px solid #d4e9f5', borderRadius: 2 }}>
-            <div style={{ fontSize: 11, fontWeight: 700, color: '#0073bb', textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: 10 }}>あなたの進捗</div>
+          <div style={{ marginBottom: 20, padding: '14px 16px', background: '#e6f9f9', border: '1px solid #d4e9f5', borderRadius: 2 }}>
+            <div style={{ fontSize: 11, fontWeight: 700, color: '#00cccc', textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: 10 }}>あなたの進捗</div>
             {answeredCount === null ? (
               <div style={{ fontSize: 13, color: '#545b64' }}>読み込み中...</div>
             ) : (
               <>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: 6 }}>
                   <span style={{ fontSize: 13, color: '#16191f' }}>演習済み</span>
-                  <span style={{ fontSize: 16, fontWeight: 700, color: '#0073bb' }}>
+                  <span style={{ fontSize: 16, fontWeight: 700, color: '#00cccc' }}>
                     {answeredCount}
                     <span style={{ fontSize: 12, fontWeight: 400, color: '#545b64' }}> / {info.totalQuestions} 問</span>
                   </span>
@@ -366,10 +366,10 @@ export default function ExerciseSetup() {
                 <div style={{ background: '#d4e9f5', borderRadius: 10, height: 6, overflow: 'hidden' }}>
                   <div style={{
                     width: `${info.totalQuestions > 0 ? Math.min(100, Math.round((answeredCount / info.totalQuestions) * 100)) : 0}%`,
-                    background: '#0073bb', height: '100%', borderRadius: 10, transition: 'width 0.4s'
+                    background: '#00cccc', height: '100%', borderRadius: 10, transition: 'width 0.4s'
                   }} />
                 </div>
-                <div style={{ fontSize: 11, color: '#0073bb', marginTop: 4, textAlign: 'right', fontWeight: 700 }}>
+                <div style={{ fontSize: 11, color: '#00cccc', marginTop: 4, textAlign: 'right', fontWeight: 700 }}>
                   {info.totalQuestions > 0 ? Math.min(100, Math.round((answeredCount / info.totalQuestions) * 100)) : 0}%
                 </div>
               </>
@@ -383,7 +383,7 @@ export default function ExerciseSetup() {
               <span style={{ fontSize: 13, color: '#16191f' }}>
                 {bookmarkOnly ? 'ブックマーク済み' : (selectedDomain || selectedTag ? 'フィルタ後の問題数' : 'サイト内問題数')}
               </span>
-              <span style={{ fontSize: 20, fontWeight: 700, color: bookmarkOnly ? '#b85c00' : '#0073bb' }}>
+              <span style={{ fontSize: 20, fontWeight: 700, color: bookmarkOnly ? '#b85c00' : '#00cccc' }}>
                 {availableCount === null ? '...' : availableCount}
                 <span style={{ fontSize: 12, fontWeight: 400, marginLeft: 4 }}>問</span>
               </span>
@@ -403,13 +403,13 @@ export default function ExerciseSetup() {
               <div key={cat.name} style={{ marginBottom: 10 }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 12, marginBottom: 4 }}>
                   <span style={{
-                    color: selectedDomain === cat.name ? '#0073bb' : '#16191f',
+                    color: selectedDomain === cat.name ? '#00cccc' : '#16191f',
                     fontWeight: selectedDomain === cat.name ? 700 : 400,
                   }}>{cat.name}</span>
-                  <span style={{ fontWeight: 700, color: '#0073bb', flexShrink: 0, marginLeft: 8 }}>{cat.ratio}</span>
+                  <span style={{ fontWeight: 700, color: '#00cccc', flexShrink: 0, marginLeft: 8 }}>{cat.ratio}</span>
                 </div>
                 <div style={{ background: '#eaeded', borderRadius: 10, height: 4 }}>
-                  <div style={{ background: selectedDomain === cat.name ? '#0073bb' : '#879596', borderRadius: 10, height: 4, width: cat.ratio }} />
+                  <div style={{ background: selectedDomain === cat.name ? '#00cccc' : '#879596', borderRadius: 10, height: 4, width: cat.ratio }} />
                 </div>
               </div>
             ))}

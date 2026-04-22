@@ -140,8 +140,8 @@ export default function Architecture() {
             ].map((row, i) => (
               <tr key={row.name} style={{ borderBottom: i < 6 ? '1px solid #eaeded' : 'none' }}>
                 <td style={{ padding: '10px 20px', fontWeight: 700, fontFamily: 'monospace', fontSize: 13 }}>{row.name}</td>
-                <td style={{ padding: '10px 20px', fontFamily: 'monospace', fontSize: 13, color: '#0073bb' }}>{row.pk}</td>
-                <td style={{ padding: '10px 20px', fontFamily: 'monospace', fontSize: 13, color: row.sk === '—' ? '#aab7b8' : '#0073bb' }}>{row.sk}</td>
+                <td style={{ padding: '10px 20px', fontFamily: 'monospace', fontSize: 13, color: '#00cccc' }}>{row.pk}</td>
+                <td style={{ padding: '10px 20px', fontFamily: 'monospace', fontSize: 13, color: row.sk === '—' ? '#aab7b8' : '#00cccc' }}>{row.sk}</td>
                 <td style={{ padding: '10px 20px', color: '#545b64', fontSize: 13 }}>{row.desc}</td>
               </tr>
             ))}
@@ -165,7 +165,7 @@ export default function Architecture() {
         />
       </Layer>
 
-      <div style={{ background: '#f2f8fd', border: '1px solid #d4e9f5', borderRadius: 2, padding: '16px 20px', fontSize: 13, color: '#0073bb', lineHeight: 1.7 }}>
+      <div style={{ background: '#e6f9f9', border: '1px solid #d4e9f5', borderRadius: 2, padding: '16px 20px', fontSize: 13, color: '#00cccc', lineHeight: 1.7 }}>
         <strong>注意：</strong> このページにはシステム設計の概要のみが記載されています。AWS アカウント ID、ARN、API キーなどの機密情報は一切含まれていません。
       </div>
     </div>

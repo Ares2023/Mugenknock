@@ -157,7 +157,7 @@ export default function ExamSession() {
   const timerRed = timeLeft < 300; // 5分以下で赤
 
   const navBg = (i: number) => {
-    if (i === currentIndex) return '#0073bb';
+    if (i === currentIndex) return '#00cccc';
     if (answers[questions[i]?.questionId]) return '#2980b9';
     return '#e8e8e8';
   };
@@ -184,8 +184,8 @@ export default function ExamSession() {
             style={{
               padding: '12px 32px',
               background: 'white',
-              color: '#0073bb',
-              border: '2px solid #0073bb',
+              color: '#00cccc',
+              border: '2px solid #00cccc',
               borderRadius: 2,
               fontSize: 16,
               fontWeight: 700,
@@ -193,14 +193,14 @@ export default function ExamSession() {
               transition: 'all 0.1s'
             }}
             onMouseEnter={e => {
-              e.currentTarget.style.background = "#f2f8fd";
-              e.currentTarget.style.borderColor = "#005a9e";
-              e.currentTarget.style.color = "#005a9e";
+              e.currentTarget.style.background = "#e6f9f9";
+              e.currentTarget.style.borderColor = "#009999";
+              e.currentTarget.style.color = "#009999";
             }}
             onMouseLeave={e => {
               e.currentTarget.style.background = "white";
-              e.currentTarget.style.borderColor = "#0073bb";
-              e.currentTarget.style.color = "#0073bb";
+              e.currentTarget.style.borderColor = "#00cccc";
+              e.currentTarget.style.color = "#00cccc";
             }}
           >
             ▶ 再開する
@@ -261,7 +261,7 @@ export default function ExamSession() {
           <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 8 }}>
             <div>
               {currentQ.isMultiple && (
-                <div style={{ display: "inline-block", background: "#f2f8fd", color: "#0073bb", padding: "2px 8px", borderRadius: 2, fontSize: 12, fontWeight: 700 }}>
+                <div style={{ display: "inline-block", background: "#e6f9f9", color: "#00cccc", padding: "2px 8px", borderRadius: 2, fontSize: 12, fontWeight: 700 }}>
                   複数選択
                 </div>
               )}
@@ -287,9 +287,9 @@ export default function ExamSession() {
                 style={{
                   display: 'flex', alignItems: 'center', width: '100%', textAlign: 'left',
                   padding: '12px 20px', marginBottom: 12, borderRadius: 2,
-                  border: `1px solid ${isSelected ? '#0073bb' : '#d1d5db'}`,
-                  background: isSelected ? '#f2f8fd' : 'white',
-                  boxShadow: isSelected ? "inset 0 0 0 1px #0073bb" : "none",
+                  border: `1px solid ${isSelected ? '#00cccc' : '#d1d5db'}`,
+                  background: isSelected ? '#e6f9f9' : 'white',
+                  boxShadow: isSelected ? "inset 0 0 0 1px #00cccc" : "none",
                   cursor: 'pointer', fontSize: 14, fontWeight: isSelected ? 700 : 400,
                   transition: 'all 0.1s'
                 }}>
@@ -297,8 +297,8 @@ export default function ExamSession() {
                   width: 18, height: 18, border: "1px solid #545b64",
                   borderRadius: currentQ.isMultiple ? 2 : "50%",
                   marginRight: 12, display: "flex", alignItems: "center", justifyContent: "center",
-                  background: isSelected ? "#0073bb" : "white",
-                  borderColor: isSelected ? "#0073bb" : "#545b64",
+                  background: isSelected ? "#00cccc" : "white",
+                  borderColor: isSelected ? "#00cccc" : "#545b64",
                   flexShrink: 0
                 }}>
                   {isSelected && <span style={{ width: 6, height: 6, borderRadius: "50%", background: "white" }} />}
@@ -315,7 +315,7 @@ export default function ExamSession() {
         border: '1px solid #eaeded', boxShadow: '0 1px 1px 0 rgba(0,28,36,0.1)' }}>
         <div style={{ fontSize: 12, color: '#545b64', marginBottom: 16, display: 'flex', gap: 20, fontWeight: 700 }}>
           <span style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-            <span style={{ width: 12, height: 12, background: '#0073bb', borderRadius: 2 }} />現在
+            <span style={{ width: 12, height: 12, background: '#00cccc', borderRadius: 2 }} />現在
           </span>
           <span style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
             <span style={{ width: 12, height: 12, background: '#2980b9', borderRadius: 2 }} />回答済み
@@ -333,9 +333,9 @@ export default function ExamSession() {
             let border = '1px solid #d1d5db';
             
             if (isCurrent) {
-              bg = '#f2f8fd';
-              color = '#0073bb';
-              border = '2px solid #0073bb';
+              bg = '#e6f9f9';
+              color = '#00cccc';
+              border = '2px solid #00cccc';
             } else if (isAnswered) {
               bg = '#545b64';
               color = 'white';

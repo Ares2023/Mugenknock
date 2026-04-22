@@ -77,9 +77,36 @@ const NAV_ITEMS = [
 ];
 
 const AI_LINKS = [
-  { label: 'ChatGPT', url: 'https://chatgpt.com/',          color: '#10a37f' },
-  { label: 'Gemini',  url: 'https://gemini.google.com/',    color: '#4285f4' },
-  { label: 'Claude',  url: 'https://claude.ai/',            color: '#d97757' },
+  { 
+    label: 'ChatGPT', 
+    url: 'https://chatgpt.com/',
+    icon: (
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+        <path d="M12 2a10 10 0 1 0 10 10H12V2z"></path>
+        <path d="M12 12 21.1 5"></path>
+        <path d="M12 12 2.9 5"></path>
+      </svg>
+    )
+  },
+  { 
+    label: 'Gemini',  
+    url: 'https://gemini.google.com/',
+    icon: (
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+        <path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path>
+      </svg>
+    )
+  },
+  { 
+    label: 'Claude',  
+    url: 'https://claude.ai/',
+    icon: (
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+        <path d="M12 2a10 10 0 1 0 10 10H12V2z"></path>
+        <circle cx="12" cy="12" r="3"></circle>
+      </svg>
+    )
+  },
 ];
 
 export default function Layout({ children }: { children: React.ReactNode }) {
@@ -173,27 +200,32 @@ export default function Layout({ children }: { children: React.ReactNode }) {
 
         {/* AI リンク（デスクトップのみ） */}
         {!isMobile && (
-          <div style={{ display: 'flex', alignItems: 'center', gap: 6, flexShrink: 0 }}>
-            <span style={{ color: '#879596', fontSize: 11, marginRight: 2, fontWeight: 700 }}>AI</span>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexShrink: 0, paddingLeft: 12, borderLeft: '1px solid #3a4a5a' }}>
             {AI_LINKS.map(ai => (
               <a key={ai.label} href={ai.url} target="_blank" rel="noreferrer"
                 style={{
-                  display: 'flex', alignItems: 'center', gap: 4,
-                  padding: '4px 8px', borderRadius: 2,
-                  textDecoration: 'none', fontSize: 12, color: '#d5dbdb', fontWeight: 700,
-                  transition: 'background 0.1s, color 0.1s',
+                  display: 'flex', alignItems: 'center', gap: 6,
+                  padding: '6px 10px', borderRadius: 4,
+                  textDecoration: 'none', fontSize: 12, color: '#16191f', fontWeight: 700,
+                  background: 'white', border: '1px solid transparent',
+                  boxShadow: '0 1px 2px rgba(0,0,0,0.1)',
+                  transition: 'all 0.15s ease',
                 }}
                 onMouseEnter={e => { 
-                  (e.currentTarget as HTMLElement).style.background = 'rgba(255,255,255,0.1)'; 
-                  (e.currentTarget as HTMLElement).style.color = '#ffffff'; 
+                  (e.currentTarget as HTMLElement).style.borderColor = '#00cccc'; 
+                  (e.currentTarget as HTMLElement).style.boxShadow = '0 2px 4px rgba(0, 204, 204, 0.2)';
+                  (e.currentTarget as HTMLElement).style.transform = 'translateY(-1px)';
                 }}
                 onMouseLeave={e => { 
-                  (e.currentTarget as HTMLElement).style.background = 'transparent'; 
-                  (e.currentTarget as HTMLElement).style.color = '#d5dbdb'; 
+                  (e.currentTarget as HTMLElement).style.borderColor = 'transparent'; 
+                  (e.currentTarget as HTMLElement).style.boxShadow = '0 1px 2px rgba(0,0,0,0.1)';
+                  (e.currentTarget as HTMLElement).style.transform = 'none';
                 }}
+                title={`${ai.label} を別タブで開く`}
               >
+                <span style={{ color: '#00cccc', display: 'flex' }}>{ai.icon}</span>
                 {ai.label}
-                <svg viewBox="0 0 16 16" width="10" height="10" fill="currentColor">
+                <svg viewBox="0 0 16 16" width="10" height="10" fill="#879596" style={{ marginLeft: 2 }}>
                   <path d="M12.5 11.5v-3h1v4a1 1 0 0 1-1 1h-10a1 1 0 0 1-1-1v-10a1 1 0 0 1 1-1h4v1h-4v10h10zm-6.15-5.15L11.8 1.8 10 1.8v-1h5v5h-1l-.01-1.8-5.44 5.45-.7-.7z" />
                 </svg>
               </a>
@@ -256,9 +288,9 @@ export default function Layout({ children }: { children: React.ReactNode }) {
                     padding: '9px 20px',
                     background: active ? '#f2f3f3' : 'none',
                     border: 'none',
-                    borderLeft: `3px solid ${active ? '#0073bb' : 'transparent'}`,
+                    borderLeft: `3px solid ${active ? '#00cccc' : 'transparent'}`,
                     cursor: 'pointer',
-                    color: active ? '#0073bb' : '#545b64',
+                    color: active ? '#00cccc' : '#545b64',
                     fontSize: 14,
                     fontWeight: active ? 700 : 400,
                     whiteSpace: 'nowrap',
@@ -289,9 +321,9 @@ export default function Layout({ children }: { children: React.ReactNode }) {
                       background: active ? '#f2f3f3' : 'none',
                       border: 'none',
                       borderTop: '1px solid #eaeded',
-                      borderLeft: `3px solid ${active ? '#0073bb' : 'transparent'}`,
+                      borderLeft: `3px solid ${active ? '#00cccc' : 'transparent'}`,
                       cursor: 'pointer',
-                      color: active ? '#0073bb' : '#879596',
+                      color: active ? '#00cccc' : '#879596',
                       fontSize: 13,
                       fontWeight: active ? 700 : 400,
                       whiteSpace: 'nowrap',
@@ -310,20 +342,30 @@ export default function Layout({ children }: { children: React.ReactNode }) {
 
             {/* モバイルのみ: AI リンクをサイドバー下部に表示 */}
             {isMobile && (
-              <div style={{ borderTop: '1px solid #eaeded', padding: '12px 16px', background: '#fbfbfb' }}>
-                <div style={{ fontSize: 11, color: '#545b64', marginBottom: 12, paddingLeft: 4, fontWeight: 700 }}>AI アシスタント</div>
+              <div style={{ borderTop: '1px solid #eaeded', padding: '16px 20px', background: '#fbfbfb' }}>
+                <div style={{ fontSize: 12, color: '#545b64', marginBottom: 12, fontWeight: 700 }}>AI アシスタント</div>
                 {AI_LINKS.map(ai => (
                   <a key={ai.label} href={ai.url} target="_blank" rel="noreferrer"
                     style={{
-                      display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-                      padding: '8px 12px', marginBottom: 8, borderRadius: 2,
-                      textDecoration: 'none', fontSize: 13, color: '#0073bb',
-                      border: '1px solid #d1d5db', background: 'white',
-                      fontWeight: 700
+                      display: 'flex', alignItems: 'center',
+                      padding: '10px 12px', marginBottom: 10, borderRadius: 4,
+                      textDecoration: 'none', fontSize: 14, color: '#16191f',
+                      border: '1px solid #eaeded', background: 'white',
+                      fontWeight: 700, boxShadow: '0 1px 2px rgba(0,0,0,0.05)',
+                      transition: 'all 0.15s ease'
+                    }}
+                    onMouseEnter={e => { 
+                      (e.currentTarget as HTMLElement).style.borderColor = '#00cccc';
+                      (e.currentTarget as HTMLElement).style.background = '#e6f9f9';
+                    }}
+                    onMouseLeave={e => { 
+                      (e.currentTarget as HTMLElement).style.borderColor = '#eaeded';
+                      (e.currentTarget as HTMLElement).style.background = 'white';
                     }}
                   >
-                    <span>{ai.label}</span>
-                    <svg viewBox="0 0 16 16" width="12" height="12" fill="currentColor">
+                    <span style={{ color: '#00cccc', display: 'flex', marginRight: 10 }}>{ai.icon}</span>
+                    <span style={{ flex: 1 }}>{ai.label}</span>
+                    <svg viewBox="0 0 16 16" width="12" height="12" fill="#879596">
                       <path d="M12.5 11.5v-3h1v4a1 1 0 0 1-1 1h-10a1 1 0 0 1-1-1v-10a1 1 0 0 1 1-1h4v1h-4v10h10zm-6.15-5.15L11.8 1.8 10 1.8v-1h5v5h-1l-.01-1.8-5.44 5.45-.7-.7z" />
                     </svg>
                   </a>

@@ -81,7 +81,7 @@ export default function Result() {
                   })}
                 </div>
                 {q.explanation && (
-                  <div style={{ background: '#f2f8fd', borderLeft: '4px solid #0073bb', borderRadius: 2, padding: '12px 16px', color: '#16191f', lineHeight: 1.6 }}>
+                  <div style={{ background: '#e6f9f9', borderLeft: '4px solid #00cccc', borderRadius: 2, padding: '12px 16px', color: '#16191f', lineHeight: 1.6 }}>
                     <strong>解説：</strong>
                     <div style={{ marginTop: 4 }}>{q.explanation}</div>
                   </div>
@@ -97,8 +97,8 @@ export default function Result() {
           style={{
             padding: '8px 24px',
             background: 'white',
-            color: '#0073bb',
-            border: '2px solid #0073bb',
+            color: '#00cccc',
+            border: '2px solid #00cccc',
             borderRadius: 2,
             cursor: 'pointer',
             fontSize: 14,
@@ -106,14 +106,14 @@ export default function Result() {
             transition: 'all 0.1s'
           }}
           onMouseEnter={e => {
-            e.currentTarget.style.background = "#f2f8fd";
-            e.currentTarget.style.borderColor = "#005a9e";
-            e.currentTarget.style.color = "#005a9e";
+            e.currentTarget.style.background = "#e6f9f9";
+            e.currentTarget.style.borderColor = "#009999";
+            e.currentTarget.style.color = "#009999";
           }}
           onMouseLeave={e => {
             e.currentTarget.style.background = "white";
-            e.currentTarget.style.borderColor = "#0073bb";
-            e.currentTarget.style.color = "#0073bb";
+            e.currentTarget.style.borderColor = "#00cccc";
+            e.currentTarget.style.color = "#00cccc";
           }}
         >
           ホームへ戻る
