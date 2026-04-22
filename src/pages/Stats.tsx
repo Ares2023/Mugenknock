@@ -1,7 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { API_ENDPOINT, EXAM_TYPES, PASS_RATE } from '../constants';
 import { useAuth } from '../contexts/AuthContext';
-import Breadcrumb from '../components/Breadcrumb';
 
 type ExamStat = {
   examType: string;
@@ -82,7 +81,6 @@ export default function Stats() {
 
   return (
     <div style={{ maxWidth: 1000, margin: '0 auto', padding: '32px 20px', color: '#16191f' }} className="page-container">
-      <Breadcrumb items={[{ label: 'ホーム', path: '/' }, { label: '統計・分析' }]} />
       <h2 style={{ fontSize: 24, fontWeight: 700, margin: '0 0 24px' }}>統計・分析</h2>
 
       {/* 試験別サマリーカード */}

@@ -1,7 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { API_ENDPOINT, EXAM_CONFIGS, PASS_RATE } from '../constants';
-import Breadcrumb from '../components/Breadcrumb';
 import { useAuth } from '../contexts/AuthContext';
 
 type Question = {
@@ -174,7 +173,6 @@ export default function ExamSession() {
 
   return (
     <div style={{ maxWidth: 900, margin: '0 auto', padding: '24px 20px', color: '#16191f' }} className="session-container">
-      <Breadcrumb items={[{ label: 'ホーム', path: '/' }, { label: '模試設定', path: '/exam/setup' }, { label: '模試中' }]} />
 
       {/* 一時停止オーバーレイ */}
       {paused && (

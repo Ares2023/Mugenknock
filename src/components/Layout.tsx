@@ -1,6 +1,21 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
+import Breadcrumb from './Breadcrumb';
+
+type BreadcrumbItem = { label: string; path?: string };
+
+const BREADCRUMBS: Record<string, BreadcrumbItem[]> = {
+  '/questions':        [{ label: 'ホーム', path: '/' }, { label: '問題一覧' }],
+  '/exercise/setup':   [{ label: 'ホーム', path: '/' }, { label: '演習設定' }],
+  '/exercise/session': [{ label: 'ホーム', path: '/' }, { label: '演習設定', path: '/exercise/setup' }, { label: '演習中' }],
+  '/exam/setup':       [{ label: 'ホーム', path: '/' }, { label: '模試設定' }],
+  '/exam/session':     [{ label: 'ホーム', path: '/' }, { label: '模試設定', path: '/exam/setup' }, { label: '模試中' }],
+  '/result':           [{ label: 'ホーム', path: '/' }, { label: '結果' }],
+  '/stats':            [{ label: 'ホーム', path: '/' }, { label: '統計・分析' }],
+  '/architecture':     [{ label: 'ホーム', path: '/' }, { label: 'システム構成' }],
+  '/release-notes':    [{ label: 'ホーム', path: '/' }, { label: 'リリースノート' }],
+};
 
 const SIDEBAR_WIDTH = 220;
 
@@ -258,24 +273,30 @@ export default function Layout({ children }: { children: React.ReactNode }) {
         </div>
       </header>
 
-      {/* ── サブバー（ハンバーガー） ── */}
+      {/* ── サブバー（ハンバーガー＋パンくず） ── */}
       <div style={{
-        height: 28, minHeight: 28, background: '#1a2433',
+        height: 36, minHeight: 36, background: 'white',
         display: 'flex', alignItems: 'center', padding: '0 8px',
-        zIndex: 199, flexShrink: 0, borderBottom: '1px solid #0f1923',
+        zIndex: 199, flexShrink: 0, borderBottom: '1px solid #eaeded',
       }}>
         <button onClick={toggle} style={{
           background: 'none', border: 'none', cursor: 'pointer',
-          color: '#879596', fontSize: 16, lineHeight: 1, padding: '2px 8px',
+          color: '#545b64', fontSize: 16, lineHeight: 1, padding: '2px 8px',
           display: 'flex', alignItems: 'center', borderRadius: 3,
-          transition: 'color 0.1s',
+          transition: 'color 0.1s', flexShrink: 0,
         }}
-          onMouseEnter={e => e.currentTarget.style.color = '#d5dbdb'}
-          onMouseLeave={e => e.currentTarget.style.color = '#879596'}
+          onMouseEnter={e => e.currentTarget.style.color = '#16191f'}
+          onMouseLeave={e => e.currentTarget.style.color = '#545b64'}
           title={open ? 'メニューを閉じる' : 'メニューを開く'}
         >
           &#9776;
         </button>
+        {BREADCRUMBS[location.pathname] && (
+          <Breadcrumb
+            items={BREADCRUMBS[location.pathname]}
+            style={{ marginBottom: 0, fontSize: 13 }}
+          />
+        )}
       </div>
 
       {/* ── ボディ（サイドバー + コンテンツ） ── */}
@@ -284,7 +305,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
         {/* モバイル: オーバーレイ背景 */}
         {isMobile && open && (
           <div onClick={() => setOpen(false)} style={{
-            position: 'fixed', inset: 0, top: 76, background: 'rgba(0,0,0,0.5)', zIndex: 150,
+            position: 'fixed', inset: 0, top: 84, background: 'rgba(0,0,0,0.5)', zIndex: 150,
           }} />
         )}
 
@@ -298,8 +319,8 @@ export default function Layout({ children }: { children: React.ReactNode }) {
           transition: 'width 0.15s ease-out, min-width 0.15s ease-out',
           display: 'flex', flexDirection: 'column',
           ...(isMobile ? {
-            position: 'fixed', top: 76, left: 0,
-            height: 'calc(100vh - 76px)', zIndex: 160,
+            position: 'fixed', top: 84, left: 0,
+            height: 'calc(100vh - 84px)', zIndex: 160,
             boxShadow: open ? '2px 0 8px rgba(0,0,0,0.15)' : 'none',
           } : {}),
         }}>

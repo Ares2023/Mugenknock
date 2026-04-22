@@ -8,13 +8,14 @@ type BreadcrumbItem = {
 
 type Props = {
   items: BreadcrumbItem[];
+  style?: React.CSSProperties;
 };
 
-export default function Breadcrumb({ items }: Props) {
+export default function Breadcrumb({ items, style }: Props) {
   const navigate = useNavigate();
 
   return (
-    <nav style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 14, color: '#545b64', marginBottom: 20, flexWrap: 'wrap', fontWeight: 400 }}>
+    <nav style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 14, color: '#545b64', marginBottom: 20, flexWrap: 'wrap', fontWeight: 400, ...style }}>
       {items.map((item, index) => (
         <React.Fragment key={index}>
           {index > 0 && <span style={{ color: '#879596', fontSize: 12 }}>❯</span>}

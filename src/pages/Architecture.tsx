@@ -1,5 +1,4 @@
 import React from 'react';
-import Breadcrumb from '../components/Breadcrumb';
 
 type ServiceCardProps = {
   name: string;
@@ -37,7 +36,6 @@ const Layer = ({ title, children }: LayerProps) => (
 export default function Architecture() {
   return (
     <div style={{ maxWidth: 1000, margin: '0 auto', padding: '32px 20px', color: '#16191f' }} className="page-container">
-      <Breadcrumb items={[{ label: 'ホーム', path: '/' }, { label: 'システム構成' }]} />
       <h2 style={{ fontSize: 24, fontWeight: 700, margin: '0 0 8px' }}>システム構成</h2>
       <p style={{ color: '#545b64', fontSize: 14, marginBottom: 32 }}>
         このアプリケーションは AWS のサービスを組み合わせて構築されたサーバーレス Web アプリです。

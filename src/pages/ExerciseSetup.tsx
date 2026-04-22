@@ -2,7 +2,6 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { API_ENDPOINT, EXAM_TYPES, EXAM_DOMAINS, PASS_SCORES, PASS_RATE } from '../constants';
 import { useAuth } from '../contexts/AuthContext';
-import Breadcrumb from '../components/Breadcrumb';
 
 const EXAM_INFO: Record<string, {
   fullName: string;
@@ -227,7 +226,6 @@ export default function ExerciseSetup() {
 
   return (
     <div style={{ maxWidth: 1200, margin: '0 auto', padding: '24px 20px', color: '#16191f' }} className="page-container">
-      <Breadcrumb items={[{ label: 'ホーム', path: '/' }, { label: '演習設定' }]} />
 
       <h1 style={{ fontSize: 24, fontWeight: 700, margin: '0 0 24px' }}>演習設定</h1>
 

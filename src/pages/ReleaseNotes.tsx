@@ -1,6 +1,5 @@
 import React, { useEffect, useState } from 'react';
 import { API_ENDPOINT } from '../constants';
-import Breadcrumb from '../components/Breadcrumb';
 
 type Release = {
   releaseId: string;
@@ -29,7 +28,6 @@ export default function ReleaseNotes() {
 
   return (
     <div style={{ maxWidth: 680, margin: '0 auto', padding: '24px 20px', color: '#16191f' }} className="page-container">
-      <Breadcrumb items={[{ label: 'ホーム', path: '/' }, { label: 'リリースノート' }]} />
       <h1 style={{ fontSize: 24, fontWeight: 700, margin: '0 0 32px' }}>リリースノート</h1>
 
       {loading && <p style={{ color: '#545b64', fontSize: 14 }}>読み込み中...</p>}
