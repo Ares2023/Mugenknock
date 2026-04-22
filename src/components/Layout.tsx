@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
-import { ADMIN_EMAIL } from '../constants';
 
 const SIDEBAR_WIDTH = 220;
 
@@ -78,7 +77,6 @@ const NAV_ITEMS = [
   { path: '/exam/setup',     label: '模試モード',     Icon: IconClock   },
   { path: '/questions',      label: '問題一覧',       Icon: IconList    },
   { path: '/stats',          label: '統計・分析',     Icon: IconChart   },
-  { path: '/admin',          label: '管理画面',       Icon: IconGear,   adminOnly: true },
   { path: '/release-notes',  label: 'リリースノート', Icon: IconBell,   bottom: true },
   { path: '/architecture',   label: 'システム構成',   Icon: IconInfo,   bottom: true },
 ];
@@ -123,7 +121,6 @@ export default function Layout({ children }: { children: React.ReactNode }) {
   const [open, setOpen] = useState(() => localStorage.getItem('sidebarOpen') !== 'false');
   const [searchQuery, setSearchQuery] = useState('');
   const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
-  const isAdmin = user?.email === ADMIN_EMAIL;
 
   useEffect(() => {
     const handler = () => {
@@ -157,7 +154,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
   const isActive = (path: string) =>
     path === '/' ? location.pathname === '/' : location.pathname.startsWith(path);
 
-  const navItems = NAV_ITEMS.filter(item => !(item as any).adminOnly || isAdmin);
+  const navItems = NAV_ITEMS;
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', height: '100vh', fontFamily: 'sans-serif' }}>

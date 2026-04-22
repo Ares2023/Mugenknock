@@ -4,8 +4,11 @@ import { Amplify } from 'aws-amplify';
 import awsExports from './aws-exports';
 import { AuthProvider } from './contexts/AuthContext';
 import PrivateRoute from './components/PrivateRoute';
+import AdminRoute from './components/AdminRoute';
 import Layout from './components/Layout';
+import AdminLayout from './components/AdminLayout';
 import LoginPage from './pages/LoginPage';
+import AdminLogin from './pages/AdminLogin';
 import Home from './pages/Home';
 import QuestionList from './pages/QuestionList';
 import ExerciseSetup from './pages/ExerciseSetup';
@@ -26,6 +29,7 @@ function App() {
       <BrowserRouter>
         <Routes>
           <Route path="/login" element={<LoginPage />} />
+          <Route path="/admin-login" element={<AdminLogin />} />
           <Route path="/" element={<Layout><Home /></Layout>} />
           <Route path="/questions" element={<Layout><QuestionList /></Layout>} />
           <Route path="/exercise/setup" element={<Layout><ExerciseSetup /></Layout>} />
@@ -36,7 +40,7 @@ function App() {
           <Route path="/architecture" element={<Layout><Architecture /></Layout>} />
           <Route path="/release-notes" element={<Layout><ReleaseNotes /></Layout>} />
           <Route path="/admin" element={
-            <PrivateRoute><Layout><Admin /></Layout></PrivateRoute>
+            <AdminRoute><AdminLayout><Admin /></AdminLayout></AdminRoute>
           } />
           <Route path="/stats" element={
             <PrivateRoute><Layout><Stats /></Layout></PrivateRoute>
