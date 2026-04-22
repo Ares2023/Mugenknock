@@ -89,7 +89,7 @@ export default function ExerciseSession() {
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ userId }),
         });
-        setBookmarkedIds(prev => new Set([...prev, qid]));
+        setBookmarkedIds(prev => { const next = new Set(prev); next.add(qid); return next; });
       }
     } catch (err) { console.error(err); }
     setBookmarkLoading(false);

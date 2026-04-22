@@ -63,7 +63,7 @@ export default function ExamSession() {
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ userId }),
         });
-        setBookmarkedIds(prev => new Set([...prev, questionId]));
+        setBookmarkedIds(prev => { const next = new Set(prev); next.add(questionId); return next; });
       }
     } catch (err) { console.error(err); }
   };
