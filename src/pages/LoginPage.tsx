@@ -12,7 +12,7 @@ export default function LoginPage() {
   return (
     <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', minHeight: '100vh', background: '#f2f3f3', fontFamily: 'sans-serif' }}>
       <div style={{ marginBottom: 24, textAlign: 'center' }}>
-        <h1 style={{ color: '#16191f', margin: 0, fontSize: 24, fontWeight: 700 }}>AWS Waypoint Sherpa</h1>
+        <h1 style={{ color: '#16191f', margin: 0, fontSize: 24, fontWeight: 700 }}>Sherpa</h1>
         <p style={{ color: '#545b64', marginTop: 8, fontSize: 14 }}>ログインして演習を始めましょう</p>
       </div>
 

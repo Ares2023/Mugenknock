@@ -21,7 +21,7 @@ export default function AdminLogin() {
         <div style={{ color: '#e47911', fontWeight: 700, fontSize: 11, letterSpacing: '0.12em', marginBottom: 6 }}>
           ADMINISTRATOR ACCESS
         </div>
-        <div style={{ color: '#d5dbdb', fontWeight: 700, fontSize: 20 }}>AWS Waypoint Sherpa</div>
+        <div style={{ color: '#d5dbdb', fontWeight: 700, fontSize: 20 }}>Sherpa</div>
         <div style={{ color: '#545b64', fontSize: 13, marginTop: 6 }}>管理者専用ページ</div>
       </div>
 
