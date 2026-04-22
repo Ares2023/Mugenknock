@@ -182,12 +182,11 @@ export default function Layout({ children }: { children: React.ReactNode }) {
       }}>
         {/* サービス名 */}
         <div onClick={() => navigate('/')} style={{ display: 'flex', alignItems: 'center', cursor: 'pointer', userSelect: 'none', flexShrink: 0, padding: '0 4px' }}>
-          <span style={{ color: 'white', fontWeight: 300, fontSize: 16, fontFamily: "'Open Sans', 'Helvetica Neue', Arial, sans-serif", letterSpacing: '0.08em' }}>
-            AWS
-          </span>
-          <span style={{ color: 'white', fontWeight: 300, fontSize: 16, marginLeft: 8, whiteSpace: 'nowrap', fontFamily: "'Open Sans', 'Helvetica Neue', Arial, sans-serif", letterSpacing: '0.04em' }}>
-            {isMobile ? 'Sherpa' : 'Waypoint Sherpa'}
-          </span>
+          <img
+            src={isMobile ? '/logo_sherpa_image.png' : '/logo_sherpa_text+icon.png'}
+            alt="AWS Waypoint Sherpa"
+            style={{ height: isMobile ? 32 : 36, width: 'auto', display: 'block' }}
+          />
         </div>
 
         {/* 検索バー */}
