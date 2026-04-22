@@ -76,6 +76,13 @@ export default function Admin() {
   const [editingTip, setEditingTip] = useState<Tip | null>(null);
   const [tipForm, setTipForm] = useState({ examType: 'ALL', title: '', content: '' });
   const [showTipForm, setShowTipForm] = useState(false);
+  const [tipImportJson, setTipImportJson] = useState('');
+  const [tipImportParsed, setTipImportParsed] = useState<{ examType?: string; title: string; content: string }[] | null>(null);
+  const [tipImportError, setTipImportError] = useState('');
+  const [tipImporting, setTipImporting] = useState(false);
+  const [tipImportResult, setTipImportResult] = useState<number | null>(null);
+  const [tipImportExamType, setTipImportExamType] = useState('ALL');
+  const [showTipImport, setShowTipImport] = useState(false);
 
   const fetchQuestions = useCallback(async () => {
     setLoadingQ(true);
@@ -641,11 +648,134 @@ export default function Admin() {
             <p style={{ color: '#888', fontSize: 13, margin: 0 }}>
               {loadingT ? '読み込み中...' : `${tips.length} 件`}
             </p>
-            <button onClick={() => { setEditingTip(null); setTipForm({ examType: 'ALL', title: '', content: '' }); setShowTipForm(true); }}
-              style={{ padding: '7px 18px', background: '#0073bb', color: 'white', border: 'none', borderRadius: 4, cursor: 'pointer', fontSize: 13 }}>
-              ＋ コラムを追加
-            </button>
+            <div style={{ display: 'flex', gap: 8 }}>
+              <button onClick={() => { setShowTipImport(v => !v); setShowTipForm(false); }}
+                style={{ padding: '7px 16px', background: 'white', color: '#0073bb', border: '1px solid #0073bb', borderRadius: 2, cursor: 'pointer', fontSize: 13, fontWeight: 700 }}>
+                JSONインポート
+              </button>
+              <button onClick={() => { setEditingTip(null); setTipForm({ examType: 'ALL', title: '', content: '' }); setShowTipForm(true); setShowTipImport(false); }}
+                style={{ padding: '7px 16px', background: '#0073bb', color: 'white', border: '1px solid transparent', borderRadius: 2, cursor: 'pointer', fontSize: 13, fontWeight: 700 }}>
+                ＋ 手動追加
+              </button>
+            </div>
           </div>
+
+          {/* JSONインポートフォーム */}
+          {showTipImport && (
+            <div style={{ border: '1px solid #eaeded', borderRadius: 2, padding: '20px 24px', marginBottom: 20, background: '#fbfbfb', boxShadow: '0 1px 1px 0 rgba(0,28,36,0.1)' }}>
+              <h4 style={{ margin: '0 0 16px', fontSize: 15, fontWeight: 700 }}>コラムJSONインポート</h4>
+
+              {/* デフォルト試験種別 */}
+              <div style={{ marginBottom: 14 }}>
+                <div style={{ fontSize: 12, color: '#545b64', fontWeight: 700, marginBottom: 6 }}>
+                  デフォルト試験種別 <span style={{ fontWeight: 400 }}>（JSON内に examType がない場合に使用）</span>
+                </div>
+                <div style={{ display: 'flex', gap: 6 }}>
+                  {['ALL', 'CLF', 'SAA', 'SAP'].map(t => (
+                    <button key={t} type="button" onClick={() => setTipImportExamType(t)}
+                      style={{ padding: '5px 14px', border: '1px solid', borderRadius: 2, cursor: 'pointer', fontSize: 13,
+                        background: tipImportExamType === t ? '#f2f8fd' : 'white',
+                        color: tipImportExamType === t ? '#0073bb' : '#545b64',
+                        borderColor: tipImportExamType === t ? '#0073bb' : '#d1d5db',
+                        fontWeight: tipImportExamType === t ? 700 : 400 }}>
+                      {t}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* JSON入力 */}
+              <div style={{ marginBottom: 12 }}>
+                <div style={{ fontSize: 12, color: '#545b64', fontWeight: 700, marginBottom: 6 }}>JSON</div>
+                <textarea
+                  value={tipImportJson}
+                  onChange={e => { setTipImportJson(e.target.value); setTipImportParsed(null); setTipImportError(''); setTipImportResult(null); }}
+                  placeholder={JSON.stringify([{ examType: 'SAA', title: 'S3の結果整合性について', content: 'Amazon S3は強力な結果整合性を提供しており...' }], null, 2)}
+                  rows={10}
+                  style={{ width: '100%', padding: '10px', border: '1px solid #d1d5db', borderRadius: 2, fontSize: 13, fontFamily: 'monospace', resize: 'vertical', boxSizing: 'border-box', background: 'white', outline: 'none' }}
+                  onFocus={e => e.currentTarget.style.borderColor = '#0073bb'}
+                  onBlur={e => e.currentTarget.style.borderColor = '#d1d5db'}
+                />
+              </div>
+
+              {/* エラー・結果 */}
+              {tipImportError && (
+                <div style={{ marginBottom: 12, padding: '10px 14px', background: '#fdf2f2', border: '1px solid #f5a09b', borderRadius: 2, fontSize: 13, color: '#d13212' }}>
+                  エラー: {tipImportError}
+                </div>
+              )}
+              {tipImportParsed && !tipImportResult && (
+                <div style={{ marginBottom: 12, padding: '10px 14px', background: '#f2f8fd', border: '1px solid #aab7b8', borderRadius: 2, fontSize: 13, color: '#0073bb' }}>
+                  ✓ {tipImportParsed.length}件を認識しました
+                </div>
+              )}
+              {tipImportResult !== null && (
+                <div style={{ marginBottom: 12, padding: '10px 14px', background: '#eafaf1', border: '1px solid #6eb57d', borderRadius: 2, fontSize: 13, color: '#037f0c', fontWeight: 700 }}>
+                  ✓ {tipImportResult}件をインポートしました
+                </div>
+              )}
+
+              {/* ボタン */}
+              <div style={{ display: 'flex', gap: 8 }}>
+                <button
+                  onClick={() => {
+                    setTipImportError('');
+                    setTipImportParsed(null);
+                    setTipImportResult(null);
+                    try {
+                      const parsed = JSON.parse(tipImportJson);
+                      if (!Array.isArray(parsed)) throw new Error('配列形式にしてください');
+                      for (const t of parsed) {
+                        if (!t.title?.trim()) throw new Error('title が必要です');
+                        if (!t.content?.trim()) throw new Error('content が必要です');
+                      }
+                      setTipImportParsed(parsed);
+                    } catch (e: any) {
+                      setTipImportError(e.message || 'JSONの形式が正しくありません');
+                    }
+                  }}
+                  disabled={!tipImportJson.trim()}
+                  style={{ padding: '7px 20px', background: tipImportJson.trim() ? '#545b64' : '#eaeded', color: tipImportJson.trim() ? 'white' : '#aab7b8', border: 'none', borderRadius: 2, cursor: tipImportJson.trim() ? 'pointer' : 'default', fontSize: 13, fontWeight: 700 }}>
+                  構文チェック
+                </button>
+                {tipImportParsed && (
+                  <button
+                    onClick={async () => {
+                      setTipImporting(true);
+                      setTipImportResult(null);
+                      try {
+                        const res = await fetch(`${API_ENDPOINT}/admin/tips/bulk`, {
+                          method: 'POST',
+                          headers: { 'Content-Type': 'application/json' },
+                          body: JSON.stringify({ tips: tipImportParsed, defaultExamType: tipImportExamType })
+                        });
+                        const data = await res.json();
+                        if (!res.ok) throw new Error(data.error || '失敗しました');
+                        setTipImportResult(data.count);
+                        setTipImportJson('');
+                        setTipImportParsed(null);
+                        fetchTips();
+                      } catch (e: any) {
+                        setTipImportError(e.message);
+                      } finally {
+                        setTipImporting(false);
+                      }
+                    }}
+                    disabled={tipImporting}
+                    style={{ padding: '7px 24px', background: tipImporting ? '#eaeded' : '#0073bb', color: tipImporting ? '#aab7b8' : 'white', border: '1px solid transparent', borderRadius: 2, cursor: tipImporting ? 'default' : 'pointer', fontSize: 13, fontWeight: 700 }}>
+                    {tipImporting ? 'インポート中...' : `${tipImportParsed.length}件をインポート`}
+                  </button>
+                )}
+              </div>
+
+              {/* フォーマット説明 */}
+              <div style={{ marginTop: 16, padding: '12px 16px', background: '#f2f3f3', borderRadius: 2, fontSize: 12, color: '#545b64' }}>
+                <strong style={{ display: 'block', marginBottom: 4 }}>JSONフォーマット</strong>
+                各オブジェクトに <code>title</code>（必須）、<code>content</code>（必須）、<code>examType</code>（任意: ALL / CLF / SAA / SAP）を含めてください。
+                examType を省略するとデフォルト試験種別が使用されます。
+              </div>
+            </div>
+          )}
 
           {/* フォーム */}
           {showTipForm && (

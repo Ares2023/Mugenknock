@@ -583,6 +583,37 @@ app.post('/admin/tips', async (req, res) => {
   }
 });
 
+// 管理者用：一括インポート
+app.post('/admin/tips/bulk', async (req, res) => {
+  try {
+    const docClient = getClient();
+    const { tips, defaultExamType } = req.body;
+    if (!Array.isArray(tips) || tips.length === 0) {
+      return res.status(400).json({ error: 'tips must be a non-empty array' });
+    }
+    const now = new Date().toISOString();
+    const created = [];
+    for (const tip of tips) {
+      const tipId = uuidv4();
+      await docClient.send(new PutCommand({
+        TableName: 'Tips',
+        Item: {
+          tipId,
+          examType: tip.examType || defaultExamType || 'ALL',
+          title: tip.title,
+          content: tip.content,
+          createdAt: now,
+        }
+      }));
+      created.push(tipId);
+    }
+    res.json({ created, count: created.length });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
 // 管理者用：更新
 app.put('/admin/tips/:id', async (req, res) => {
   try {
