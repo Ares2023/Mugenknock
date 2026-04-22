@@ -162,23 +162,14 @@ export default function Layout({ children }: { children: React.ReactNode }) {
   return (
     <div style={{ display: 'flex', flexDirection: 'column', height: '100vh', fontFamily: 'sans-serif' }}>
 
-      {/* ── ヘッダー ── */}
+      {/* ── ヘッダー（グローバルナビ） ── */}
       <header style={{
         height: 40, minHeight: 40, background: '#232f3e',
         display: 'flex', alignItems: 'center', padding: '0 16px',
         gap: 12, zIndex: 200, flexShrink: 0,
       }}>
-        {/* ハンバーガー */}
-        <button onClick={toggle} style={{
-          background: 'none', border: 'none', cursor: 'pointer',
-          color: '#d5dbdb', fontSize: 18, lineHeight: 1, padding: '0 4px',
-          display: 'flex', alignItems: 'center',
-        }} title={open ? 'メニューを閉じる' : 'メニューを開く'}>
-          &#9776;
-        </button>
-
         {/* サービス名 */}
-        <div onClick={() => navigate('/')} style={{ display: 'flex', alignItems: 'center', cursor: 'pointer', userSelect: 'none', flexShrink: 0, padding: '0 12px' }}>
+        <div onClick={() => navigate('/')} style={{ display: 'flex', alignItems: 'center', cursor: 'pointer', userSelect: 'none', flexShrink: 0, padding: '0 4px' }}>
           <span style={{ color: 'white', fontWeight: 300, fontSize: 16, fontFamily: "'Open Sans', 'Helvetica Neue', Arial, sans-serif", letterSpacing: '0.08em' }}>
             AWS
           </span>
@@ -188,20 +179,22 @@ export default function Layout({ children }: { children: React.ReactNode }) {
         </div>
 
         {/* 検索バー */}
-        <form onSubmit={handleSearch} style={{ flex: 1, maxWidth: isMobile ? 'none' : 500, minWidth: 0 }}>
+        <form onSubmit={handleSearch} style={{ flex: 1, maxWidth: isMobile ? 'none' : 480, minWidth: 0, marginLeft: 8 }}>
           <div style={{ position: 'relative', display: 'flex', alignItems: 'center' }}>
             <input
               value={searchQuery}
               onChange={e => setSearchQuery(e.target.value)}
               placeholder={isMobile ? '検索' : 'サービス、機能、ドキュメントなどを検索'}
               style={{
-                width: '100%', padding: '4px 10px 4px 32px',
-                borderRadius: 6, border: '1px solid #545b64',
-                background: 'white', color: '#16191f',
+                width: '100%', padding: '5px 10px 5px 30px',
+                borderRadius: 3, border: '1px solid #3a4a5a',
+                background: '#1a2433', color: '#d5dbdb',
                 fontSize: 13, outline: 'none', boxSizing: 'border-box',
               }}
+              onFocus={e => { e.currentTarget.style.border = '1px solid #879596'; e.currentTarget.style.background = '#1e2a3a'; }}
+              onBlur={e => { e.currentTarget.style.border = '1px solid #3a4a5a'; e.currentTarget.style.background = '#1a2433'; }}
             />
-            <span style={{ position: 'absolute', left: 9, color: '#545b64', pointerEvents: 'none', display: 'flex', alignItems: 'center' }}>
+            <span style={{ position: 'absolute', left: 8, color: '#879596', pointerEvents: 'none', display: 'flex', alignItems: 'center' }}>
               <IconSearch />
             </span>
           </div>
@@ -209,32 +202,29 @@ export default function Layout({ children }: { children: React.ReactNode }) {
 
         {/* AI リンク（デスクトップのみ） */}
         {!isMobile && (
-          <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexShrink: 0, paddingLeft: 12, borderLeft: '1px solid #3a4a5a' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 6, flexShrink: 0, paddingLeft: 10, borderLeft: '1px solid #3a4a5a' }}>
             {AI_LINKS.map(ai => (
               <a key={ai.label} href={ai.url} target="_blank" rel="noreferrer"
                 style={{
-                  display: 'flex', alignItems: 'center', gap: 6,
-                  padding: '6px 10px', borderRadius: 9999,
-                  textDecoration: 'none', fontSize: 12, color: '#16191f', fontWeight: 700,
-                  background: 'white', border: '1px solid transparent',
-                  boxShadow: '0 1px 2px rgba(0,0,0,0.1)',
+                  display: 'flex', alignItems: 'center', gap: 5,
+                  padding: '4px 10px', borderRadius: 9999,
+                  textDecoration: 'none', fontSize: 12, color: 'rgba(255,255,255,0.85)', fontWeight: 700,
+                  background: 'transparent', border: '1px solid rgba(255,255,255,0.35)',
                   transition: 'all 0.15s ease',
                 }}
-                onMouseEnter={e => { 
-                  (e.currentTarget as HTMLElement).style.borderColor = '#008c8c'; 
-                  (e.currentTarget as HTMLElement).style.boxShadow = '0 2px 4px rgba(0, 204, 204, 0.2)';
-                  (e.currentTarget as HTMLElement).style.transform = 'translateY(-1px)';
+                onMouseEnter={e => {
+                  (e.currentTarget as HTMLElement).style.background = 'rgba(255,255,255,0.1)';
+                  (e.currentTarget as HTMLElement).style.borderColor = 'rgba(255,255,255,0.65)';
                 }}
-                onMouseLeave={e => { 
-                  (e.currentTarget as HTMLElement).style.borderColor = 'transparent'; 
-                  (e.currentTarget as HTMLElement).style.boxShadow = '0 1px 2px rgba(0,0,0,0.1)';
-                  (e.currentTarget as HTMLElement).style.transform = 'none';
+                onMouseLeave={e => {
+                  (e.currentTarget as HTMLElement).style.background = 'transparent';
+                  (e.currentTarget as HTMLElement).style.borderColor = 'rgba(255,255,255,0.35)';
                 }}
                 title={`${ai.label} を別タブで開く`}
               >
-                <span style={{ color: '#008c8c', display: 'flex' }}>{ai.icon}</span>
+                <span style={{ color: 'rgba(255,255,255,0.7)', display: 'flex' }}>{ai.icon}</span>
                 {ai.label}
-                <svg viewBox="0 0 16 16" width="10" height="10" fill="#879596" style={{ marginLeft: 2 }}>
+                <svg viewBox="0 0 16 16" width="9" height="9" fill="rgba(255,255,255,0.45)" style={{ marginLeft: 1 }}>
                   <path d="M12.5 11.5v-3h1v4a1 1 0 0 1-1 1h-10a1 1 0 0 1-1-1v-10a1 1 0 0 1 1-1h4v1h-4v10h10zm-6.15-5.15L11.8 1.8 10 1.8v-1h5v5h-1l-.01-1.8-5.44 5.45-.7-.7z" />
                 </svg>
               </a>
@@ -247,7 +237,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
           {user ? (
             <>
               {!isMobile && (
-                <div style={{ display: 'flex', alignItems: 'center', gap: 5 }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 5, borderLeft: '1px solid #3a4a5a', paddingLeft: 12 }}>
                   <span style={{ color: '#879596', display: 'flex', alignItems: 'center' }}><IconUser /></span>
                   <span style={{ color: '#d5dbdb', fontSize: 12, fontWeight: 700 }}>{user.email?.split('@')[0]}</span>
                 </div>
@@ -261,8 +251,8 @@ export default function Layout({ children }: { children: React.ReactNode }) {
             </>
           ) : (
             <button onClick={() => navigate('/login')} style={{
-              background: 'none', border: '1px solid #3a4a5a',
-              color: '#d5dbdb', fontSize: 12, padding: '4px 12px',
+              background: 'none', border: '1px solid rgba(255,255,255,0.35)',
+              color: 'rgba(255,255,255,0.85)', fontSize: 12, padding: '4px 12px',
               borderRadius: 9999, cursor: 'pointer', fontWeight: 700,
             }}>
               ログイン
@@ -271,13 +261,33 @@ export default function Layout({ children }: { children: React.ReactNode }) {
         </div>
       </header>
 
+      {/* ── サブバー（ハンバーガー） ── */}
+      <div style={{
+        height: 28, minHeight: 28, background: '#1a2433',
+        display: 'flex', alignItems: 'center', padding: '0 8px',
+        zIndex: 199, flexShrink: 0, borderBottom: '1px solid #0f1923',
+      }}>
+        <button onClick={toggle} style={{
+          background: 'none', border: 'none', cursor: 'pointer',
+          color: '#879596', fontSize: 16, lineHeight: 1, padding: '2px 8px',
+          display: 'flex', alignItems: 'center', borderRadius: 3,
+          transition: 'color 0.1s',
+        }}
+          onMouseEnter={e => e.currentTarget.style.color = '#d5dbdb'}
+          onMouseLeave={e => e.currentTarget.style.color = '#879596'}
+          title={open ? 'メニューを閉じる' : 'メニューを開く'}
+        >
+          &#9776;
+        </button>
+      </div>
+
       {/* ── ボディ（サイドバー + コンテンツ） ── */}
       <div style={{ display: 'flex', flex: 1, overflow: 'hidden', position: 'relative' }}>
 
         {/* モバイル: オーバーレイ背景 */}
         {isMobile && open && (
           <div onClick={() => setOpen(false)} style={{
-            position: 'fixed', inset: 0, top: 40, background: 'rgba(0,0,0,0.5)', zIndex: 150,
+            position: 'fixed', inset: 0, top: 68, background: 'rgba(0,0,0,0.5)', zIndex: 150,
           }} />
         )}
 
@@ -291,8 +301,8 @@ export default function Layout({ children }: { children: React.ReactNode }) {
           transition: 'width 0.15s ease-out, min-width 0.15s ease-out',
           display: 'flex', flexDirection: 'column',
           ...(isMobile ? {
-            position: 'fixed', top: 40, left: 0,
-            height: 'calc(100vh - 40px)', zIndex: 160,
+            position: 'fixed', top: 68, left: 0,
+            height: 'calc(100vh - 68px)', zIndex: 160,
             boxShadow: open ? '2px 0 8px rgba(0,0,0,0.15)' : 'none',
           } : {}),
         }}>

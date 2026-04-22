@@ -9,7 +9,7 @@ type ServiceCardProps = {
 };
 
 const ServiceCard = ({ name, category, description, color }: ServiceCardProps) => (
-  <div style={{ background: 'white', border: '1px solid #eaeded', borderRadius: 2, padding: '16px 20px', borderLeft: `4px solid ${color}`, boxShadow: '0 1px 1px 0 rgba(0,28,36,0.1)' }}>
+  <div style={{ background: 'white', border: '1px solid #eaeded', borderRadius: 6, padding: '16px 20px', borderLeft: `4px solid ${color}`, boxShadow: '0 1px 1px 0 rgba(0,28,36,0.1)' }}>
     <div style={{ fontSize: 11, color: '#545b64', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: 4 }}>{category}</div>
     <div style={{ fontSize: 15, fontWeight: 700, color: '#16191f', marginBottom: 6 }}>{name}</div>
     <div style={{ fontSize: 13, color: '#545b64', lineHeight: 1.6 }}>{description}</div>
@@ -44,7 +44,7 @@ export default function Architecture() {
       </p>
 
       {/* アーキテクチャ概要図（テキストベース） */}
-      <div style={{ background: '#232f3e', borderRadius: 2, padding: '24px 32px', marginBottom: 40, color: 'white' }}>
+      <div style={{ background: '#232f3e', borderRadius: 6, padding: '24px 32px', marginBottom: 40, color: 'white' }}>
         <div style={{ fontSize: 13, color: '#879596', marginBottom: 16, fontWeight: 700, letterSpacing: '1px' }}>ARCHITECTURE OVERVIEW</div>
         <div style={{ display: 'flex', alignItems: 'center', gap: 0, overflowX: 'auto', fontSize: 13 }}>
           {[
@@ -63,7 +63,7 @@ export default function Architecture() {
             (item as any).arrow ? (
               <div key={i} style={{ color: '#ff9900', fontSize: 18, padding: '0 8px', flexShrink: 0 }}>→</div>
             ) : (
-              <div key={i} style={{ textAlign: 'center', padding: '12px 16px', background: 'rgba(255,255,255,0.05)', borderRadius: 2, flexShrink: 0 }}>
+              <div key={i} style={{ textAlign: 'center', padding: '12px 16px', background: 'rgba(255,255,255,0.05)', borderRadius: 6, flexShrink: 0 }}>
                 <div style={{ fontSize: 22, marginBottom: 4 }}>{(item as any).icon}</div>
                 <div style={{ fontWeight: 700, fontSize: 12, color: '#ff9900' }}>{(item as any).label}</div>
                 <div style={{ fontSize: 11, color: '#879596' }}>{(item as any).sub}</div>
@@ -119,7 +119,7 @@ export default function Architecture() {
 
       {/* DynamoDB テーブル */}
       <h3 style={{ fontSize: 16, fontWeight: 700, margin: '0 0 16px' }}>DynamoDB テーブル構成</h3>
-      <div style={{ background: 'white', border: '1px solid #eaeded', borderRadius: 2, overflow: 'hidden', marginBottom: 40, boxShadow: '0 1px 1px 0 rgba(0,28,36,0.1)' }}>
+      <div style={{ background: 'white', border: '1px solid #eaeded', borderRadius: 6, overflow: 'hidden', marginBottom: 40, boxShadow: '0 1px 1px 0 rgba(0,28,36,0.1)' }}>
         <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 14 }}>
           <thead>
             <tr style={{ background: '#fbfbfb', borderBottom: '1px solid #eaeded' }}>
@@ -165,7 +165,7 @@ export default function Architecture() {
         />
       </Layer>
 
-      <div style={{ background: '#e0f2f2', border: '1px solid #d4e9f5', borderRadius: 2, padding: '16px 20px', fontSize: 13, color: '#008c8c', lineHeight: 1.7 }}>
+      <div style={{ background: '#e0f2f2', border: '1px solid #d4e9f5', borderRadius: 6, padding: '16px 20px', fontSize: 13, color: '#008c8c', lineHeight: 1.7 }}>
         <strong>注意：</strong> このページにはシステム設計の概要のみが記載されています。AWS アカウント ID、ARN、API キーなどの機密情報は一切含まれていません。
       </div>
     </div>
