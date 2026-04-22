@@ -173,22 +173,29 @@ export default function Layout({ children }: { children: React.ReactNode }) {
 
         {/* AI リンク（デスクトップのみ） */}
         {!isMobile && (
-          <div style={{ display: 'flex', alignItems: 'center', gap: 4, flexShrink: 0 }}>
-            <span style={{ color: '#879596', fontSize: 11, marginRight: 4 }}>AI</span>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 6, flexShrink: 0 }}>
+            <span style={{ color: '#879596', fontSize: 11, marginRight: 2, fontWeight: 700 }}>AI</span>
             {AI_LINKS.map(ai => (
               <a key={ai.label} href={ai.url} target="_blank" rel="noreferrer"
                 style={{
                   display: 'flex', alignItems: 'center', gap: 4,
-                  padding: '3px 8px', borderRadius: 2,
-                  textDecoration: 'none', fontSize: 12, color: '#d5dbdb',
-                  border: '1px solid #3a4a5a',
-                  transition: 'background 0.1s',
+                  padding: '4px 8px', borderRadius: 2,
+                  textDecoration: 'none', fontSize: 12, color: '#d5dbdb', fontWeight: 700,
+                  transition: 'background 0.1s, color 0.1s',
                 }}
-                onMouseEnter={e => { (e.currentTarget as HTMLElement).style.background = '#3a4a5a'; }}
-                onMouseLeave={e => { (e.currentTarget as HTMLElement).style.background = 'transparent'; }}
+                onMouseEnter={e => { 
+                  (e.currentTarget as HTMLElement).style.background = 'rgba(255,255,255,0.1)'; 
+                  (e.currentTarget as HTMLElement).style.color = '#ffffff'; 
+                }}
+                onMouseLeave={e => { 
+                  (e.currentTarget as HTMLElement).style.background = 'transparent'; 
+                  (e.currentTarget as HTMLElement).style.color = '#d5dbdb'; 
+                }}
               >
-                <span style={{ width: 6, height: 6, borderRadius: '50%', background: ai.color, flexShrink: 0 }} />
                 {ai.label}
+                <svg viewBox="0 0 16 16" width="10" height="10" fill="currentColor">
+                  <path d="M12.5 11.5v-3h1v4a1 1 0 0 1-1 1h-10a1 1 0 0 1-1-1v-10a1 1 0 0 1 1-1h4v1h-4v10h10zm-6.15-5.15L11.8 1.8 10 1.8v-1h5v5h-1l-.01-1.8-5.44 5.45-.7-.7z" />
+                </svg>
               </a>
             ))}
           </div>
@@ -303,20 +310,22 @@ export default function Layout({ children }: { children: React.ReactNode }) {
 
             {/* モバイルのみ: AI リンクをサイドバー下部に表示 */}
             {isMobile && (
-              <div style={{ borderTop: '1px solid #eaeded', padding: '12px 16px' }}>
-                <div style={{ fontSize: 11, color: '#aab7b8', marginBottom: 8, paddingLeft: 4 }}>AI で調べる</div>
+              <div style={{ borderTop: '1px solid #eaeded', padding: '12px 16px', background: '#fbfbfb' }}>
+                <div style={{ fontSize: 11, color: '#545b64', marginBottom: 12, paddingLeft: 4, fontWeight: 700 }}>AI アシスタント</div>
                 {AI_LINKS.map(ai => (
                   <a key={ai.label} href={ai.url} target="_blank" rel="noreferrer"
                     style={{
-                      display: 'flex', alignItems: 'center', gap: 8,
-                      padding: '7px 10px', marginBottom: 4, borderRadius: 2,
-                      textDecoration: 'none', fontSize: 13, color: '#16191f',
-                      border: '1px solid #eaeded', background: 'white',
+                      display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+                      padding: '8px 12px', marginBottom: 8, borderRadius: 2,
+                      textDecoration: 'none', fontSize: 13, color: '#0073bb',
+                      border: '1px solid #d1d5db', background: 'white',
+                      fontWeight: 700
                     }}
                   >
-                    <span style={{ width: 7, height: 7, borderRadius: '50%', background: ai.color, flexShrink: 0 }} />
-                    {ai.label}
-                    <span style={{ marginLeft: 'auto', fontSize: 11, color: '#aab7b8' }}>↗</span>
+                    <span>{ai.label}</span>
+                    <svg viewBox="0 0 16 16" width="12" height="12" fill="currentColor">
+                      <path d="M12.5 11.5v-3h1v4a1 1 0 0 1-1 1h-10a1 1 0 0 1-1-1v-10a1 1 0 0 1 1-1h4v1h-4v10h10zm-6.15-5.15L11.8 1.8 10 1.8v-1h5v5h-1l-.01-1.8-5.44 5.45-.7-.7z" />
+                    </svg>
                   </a>
                 ))}
               </div>
