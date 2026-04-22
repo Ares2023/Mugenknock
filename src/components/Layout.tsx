@@ -90,8 +90,8 @@ const NAV_ITEMS = [
   { path: '/',               label: 'ホーム',         Icon: IconHome    },
   { path: '/exercise/setup', label: '演習モード',     Icon: IconPencil  },
   { path: '/exam/setup',     label: '模試モード',     Icon: IconClock   },
-  { path: '/questions',      label: '問題一覧',       Icon: IconList    },
   { path: '/stats',          label: '統計・分析',     Icon: IconChart   },
+  { path: '/questions',      label: '問題一覧',       Icon: IconList    },
   { path: '/release-notes',  label: 'リリースノート', Icon: IconBell,   bottom: true },
   { path: '/architecture',   label: 'システム構成',   Icon: IconInfo,   bottom: true },
 ];
@@ -136,6 +136,11 @@ export default function Layout({ children }: { children: React.ReactNode }) {
   const [open, setOpen] = useState(() => localStorage.getItem('sidebarOpen') !== 'false');
   const [searchQuery, setSearchQuery] = useState('');
   const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
+  const [targetExam, setTargetExam] = useState<string | null>(() => localStorage.getItem('targetExam'));
+
+  useEffect(() => {
+    setTargetExam(localStorage.getItem('targetExam'));
+  }, [location.pathname]);
 
   useEffect(() => {
     const handler = () => {
@@ -290,11 +295,21 @@ export default function Layout({ children }: { children: React.ReactNode }) {
         >
           &#9776;
         </button>
-        {BREADCRUMBS[location.pathname] && (
-          <Breadcrumb
-            items={BREADCRUMBS[location.pathname]}
-            style={{ marginBottom: 0, fontSize: 13 }}
-          />
+        <div style={{ flex: 1, minWidth: 0 }}>
+          {BREADCRUMBS[location.pathname] && (
+            <Breadcrumb
+              items={BREADCRUMBS[location.pathname]}
+              style={{ marginBottom: 0, fontSize: 13 }}
+            />
+          )}
+        </div>
+        {targetExam && (
+          <div style={{ display: 'flex', alignItems: 'center', gap: 5, flexShrink: 0, paddingRight: 8 }}>
+            <span style={{ fontSize: 11, color: '#879596' }}>目標</span>
+            <span style={{ background: '#232f3e', color: 'white', fontSize: 11, padding: '2px 8px', borderRadius: 12, fontWeight: 700 }}>
+              {targetExam}
+            </span>
+          </div>
         )}
       </div>
 

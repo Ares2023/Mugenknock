@@ -79,7 +79,8 @@ function shuffleArray<T>(arr: T[]): T[] {
 export default function ExerciseSetup() {
   const navigate = useNavigate();
   const { user } = useAuth();
-  const [examType, setExamType] = useState<string>(() => localStorage.getItem('lastExamType') || 'SAA');
+  const targetExam = localStorage.getItem('targetExam');
+  const [examType, setExamType] = useState<string>(() => targetExam || localStorage.getItem('lastExamType') || 'SAA');
   const [selectedDomain, setSelectedDomain] = useState('');
   const [selectedTag, setSelectedTag] = useState('');
   const [limit, setLimit] = useState(10);
@@ -238,16 +239,24 @@ export default function ExerciseSetup() {
           </h2>
 
           {/* 試験種別 */}
-          <div style={{ marginBottom: 24 }}>
-            <label style={{ display: 'block', marginBottom: 8, fontWeight: 700, fontSize: 14 }}>試験種別</label>
-            <div style={{ display: 'flex', gap: 8 }}>
-              {EXAM_TYPES.map(type => (
-                <button key={type} onClick={() => { setExamType(type); localStorage.setItem('lastExamType', type); }} style={chipStyle(examType === type)}>
-                  {type}
-                </button>
-              ))}
+          {targetExam ? (
+            <div style={{ marginBottom: 24, display: 'flex', alignItems: 'center', gap: 8 }}>
+              <span style={{ fontSize: 14, fontWeight: 700, color: '#545b64' }}>試験種別</span>
+              <span style={{ background: '#232f3e', color: 'white', fontSize: 12, padding: '2px 10px', borderRadius: 12, fontWeight: 700 }}>{examType}</span>
+              <span style={{ fontSize: 12, color: '#aab7b8' }}>（ホームで変更）</span>
             </div>
-          </div>
+          ) : (
+            <div style={{ marginBottom: 24 }}>
+              <label style={{ display: 'block', marginBottom: 8, fontWeight: 700, fontSize: 14 }}>試験種別</label>
+              <div style={{ display: 'flex', gap: 8 }}>
+                {EXAM_TYPES.map(type => (
+                  <button key={type} onClick={() => { setExamType(type); localStorage.setItem('lastExamType', type); }} style={chipStyle(examType === type)}>
+                    {type}
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
 
           {/* ドメインフィルタ */}
           <div style={{ marginBottom: 24 }}>
