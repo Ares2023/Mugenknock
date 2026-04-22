@@ -80,7 +80,7 @@ function shuffleArray<T>(arr: T[]): T[] {
 export default function ExerciseSetup() {
   const navigate = useNavigate();
   const { user } = useAuth();
-  const [examType, setExamType] = useState('CLF');
+  const [examType, setExamType] = useState<string>(() => localStorage.getItem('lastExamType') || 'SAA');
   const [selectedDomain, setSelectedDomain] = useState('');
   const [selectedTag, setSelectedTag] = useState('');
   const [limit, setLimit] = useState(10);
@@ -227,7 +227,7 @@ export default function ExerciseSetup() {
             <label style={{ display: 'block', marginBottom: 8, fontWeight: 700, fontSize: 14 }}>試験種別</label>
             <div style={{ display: 'flex', gap: 8 }}>
               {EXAM_TYPES.map(type => (
-                <button key={type} onClick={() => setExamType(type)} style={chipStyle(examType === type)}>
+                <button key={type} onClick={() => { setExamType(type); localStorage.setItem('lastExamType', type); }} style={chipStyle(examType === type)}>
                   {type}
                 </button>
               ))}
