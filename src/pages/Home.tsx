@@ -13,7 +13,7 @@ type FeatureCardProps = {
 const FeatureCard = ({ title, description, path, label, icon }: FeatureCardProps) => {
   const navigate = useNavigate();
   return (
-    <div style={{ background: 'white', border: '1px solid #eaeded', borderRadius: 2, padding: '24px', borderTop: `4px solid #008c8c`, boxShadow: '0 1px 1px 0 rgba(0,28,36,0.1)', display: 'flex', flexDirection: 'column', gap: 12 }}>
+    <div style={{ background: 'white', border: '1px solid #eaeded', borderRadius: 6, padding: '24px', borderTop: `4px solid #008c8c`, boxShadow: '0 1px 1px 0 rgba(0,28,36,0.1)', display: 'flex', flexDirection: 'column', gap: 12 }}>
       <div style={{ color: '#545b64', display: 'flex', alignItems: 'center', gap: 10 }}>
         {icon}
         <span style={{ fontSize: 16, fontWeight: 700, color: '#16191f' }}>{title}</span>
@@ -27,7 +27,7 @@ const FeatureCard = ({ title, description, path, label, icon }: FeatureCardProps
           background: 'white',
           color: '#008c8c',
           border: '1px solid #008c8c',
-          borderRadius: 2,
+          borderRadius: 9999,
           cursor: 'pointer',
           fontSize: 13,
           fontWeight: 700,
@@ -80,9 +80,6 @@ export default function Home() {
     <div style={{ maxWidth: 900, margin: '0 auto', padding: '40px 20px', color: '#16191f' }} className="page-container">
       {/* ヒーローセクション */}
       <div style={{ marginBottom: 48 }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 16 }}>
-          <span style={{ background: '#232f3e', color: 'white', fontSize: 12, padding: '3px 10px', borderRadius: 12, fontWeight: 700 }}>AWS Quiz Practice</span>
-        </div>
         <h1 style={{ fontSize: 28, fontWeight: 700, margin: '0 0 12px', lineHeight: 1.3 }}>
           {name ? `こんにちは、${name} さん` : 'AWS 資格学習を始めよう'}
         </h1>
@@ -126,7 +123,7 @@ export default function Home() {
       </div>
 
       {/* 対応試験 */}
-      <div style={{ background: 'white', border: '1px solid #eaeded', borderRadius: 2, padding: '24px 32px', boxShadow: '0 1px 1px 0 rgba(0,28,36,0.1)' }}>
+      <div style={{ background: 'white', border: '1px solid #eaeded', borderRadius: 6, padding: '24px 32px', boxShadow: '0 1px 1px 0 rgba(0,28,36,0.1)' }}>
         <h3 style={{ fontSize: 15, fontWeight: 700, margin: '0 0 16px', color: '#16191f' }}>対応している AWS 認定試験</h3>
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))', gap: 12 }}>
           {[
@@ -135,7 +132,7 @@ export default function Home() {
             { code: 'SAP', name: 'Solutions Architect Professional', level: 'Professional' },
             { code: 'DOP', name: 'DevOps Engineer Professional', level: 'Professional' },
           ].map(exam => (
-            <div key={exam.code} style={{ display: 'flex', alignItems: 'flex-start', gap: 10, padding: '12px 16px', background: '#fbfbfb', borderRadius: 2, border: '1px solid #eaeded' }}>
+            <div key={exam.code} style={{ display: 'flex', alignItems: 'flex-start', gap: 10, padding: '12px 16px', background: '#fbfbfb', borderRadius: 6, border: '1px solid #eaeded' }}>
               <span style={{ background: '#232f3e', color: 'white', fontSize: 11, padding: '2px 8px', borderRadius: 12, fontWeight: 700, flexShrink: 0, marginTop: 1 }}>{exam.code}</span>
               <div>
                 <div style={{ fontSize: 13, fontWeight: 700, lineHeight: 1.3, color: '#16191f' }}>{exam.name}</div>

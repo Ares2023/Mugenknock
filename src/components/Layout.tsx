@@ -65,6 +65,12 @@ const IconInfo = () => (
     <circle cx="8" cy="4.5" r="0.75" fill="currentColor" stroke="none"/>
   </svg>
 );
+const IconBell = () => (
+  <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M8 1.5a5 5 0 0 1 5 5v3l1 1.5H2L3 9.5v-3a5 5 0 0 1 5-5z"/>
+    <path d="M6.5 13a1.5 1.5 0 0 0 3 0"/>
+  </svg>
+);
 
 const NAV_ITEMS = [
   { path: '/',               label: 'ホーム',         Icon: IconHome    },
@@ -73,6 +79,7 @@ const NAV_ITEMS = [
   { path: '/questions',      label: '問題一覧',       Icon: IconList    },
   { path: '/stats',          label: '統計・分析',     Icon: IconChart   },
   { path: '/admin',          label: '管理画面',       Icon: IconGear,   adminOnly: true },
+  { path: '/release-notes',  label: 'リリースノート', Icon: IconBell,   bottom: true },
   { path: '/architecture',   label: 'システム構成',   Icon: IconInfo,   bottom: true },
 ];
 
@@ -189,7 +196,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
               placeholder={isMobile ? '検索' : 'サービス、機能、ドキュメントなどを検索'}
               style={{
                 width: '100%', padding: '4px 10px 4px 32px',
-                borderRadius: 2, border: '1px solid #545b64',
+                borderRadius: 6, border: '1px solid #545b64',
                 background: 'white', color: '#16191f',
                 fontSize: 13, outline: 'none', boxSizing: 'border-box',
               }}
@@ -207,7 +214,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
               <a key={ai.label} href={ai.url} target="_blank" rel="noreferrer"
                 style={{
                   display: 'flex', alignItems: 'center', gap: 6,
-                  padding: '6px 10px', borderRadius: 4,
+                  padding: '6px 10px', borderRadius: 9999,
                   textDecoration: 'none', fontSize: 12, color: '#16191f', fontWeight: 700,
                   background: 'white', border: '1px solid transparent',
                   boxShadow: '0 1px 2px rgba(0,0,0,0.1)',
@@ -256,7 +263,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
             <button onClick={() => navigate('/login')} style={{
               background: 'none', border: '1px solid #3a4a5a',
               color: '#d5dbdb', fontSize: 12, padding: '4px 12px',
-              borderRadius: 2, cursor: 'pointer', fontWeight: 700,
+              borderRadius: 9999, cursor: 'pointer', fontWeight: 700,
             }}>
               ログイン
             </button>

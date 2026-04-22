@@ -188,7 +188,7 @@ export default function ExamSession() {
               background: 'white',
               color: '#008c8c',
               border: '2px solid #008c8c',
-              borderRadius: 2,
+              borderRadius: 9999,
               fontSize: 16,
               fontWeight: 700,
               cursor: 'pointer',
@@ -214,7 +214,7 @@ export default function ExamSession() {
       {showConfirm && (
         <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', zIndex: 100,
           display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-          <div style={{ background: 'white', borderRadius: 2, padding: 32, maxWidth: 420, width: '90%', textAlign: 'center', boxShadow: '0 4px 20px rgba(0,0,0,0.2)' }}>
+          <div style={{ background: 'white', borderRadius: 6, padding: 32, maxWidth: 420, width: '90%', textAlign: 'center', boxShadow: '0 4px 20px rgba(0,0,0,0.2)' }}>
             <div style={{ fontSize: 20, fontWeight: 700, marginBottom: 16 }}>提出の確認</div>
             <div style={{ fontSize: 15, color: '#545b64', marginBottom: 24, lineHeight: 1.6 }}>
               回答済み: <strong>{answeredCount}</strong> / {questions.length} 問<br />
@@ -223,11 +223,11 @@ export default function ExamSession() {
             </div>
             <div style={{ display: 'flex', gap: 12, justifyContent: 'center' }}>
               <button onClick={() => setShowConfirm(false)}
-                style={{ padding: '8px 20px', border: '1px solid #545b64', borderRadius: 2, cursor: 'pointer', background: 'white', fontWeight: 700 }}>
+                style={{ padding: '8px 20px', border: '1px solid #545b64', borderRadius: 9999, cursor: 'pointer', background: 'white', fontWeight: 700 }}>
                 キャンセル
               </button>
               <button onClick={() => { setShowConfirm(false); handleFinish(); }}
-                style={{ padding: '8px 20px', background: '#ff9900', color: '#16191f', border: '1px solid transparent', borderRadius: 2, cursor: 'pointer', fontWeight: 700 }}>
+                style={{ padding: '8px 20px', background: '#ff9900', color: '#16191f', border: '1px solid transparent', borderRadius: 9999, cursor: 'pointer', fontWeight: 700 }}>
                 提出する
               </button>
             </div>
@@ -237,7 +237,7 @@ export default function ExamSession() {
 
       {/* タイマーバー */}
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-        background: 'white', borderRadius: 2, padding: '12px 24px', marginBottom: 20,
+        background: 'white', borderRadius: 6, padding: '12px 24px', marginBottom: 20,
         border: '1px solid #eaeded', boxShadow: '0 1px 1px 0 rgba(0,28,36,0.1)' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
           <span style={{ fontSize: 13, fontWeight: 700, color: '#545b64', background: '#f2f3f3', padding: '2px 8px', borderRadius: 12, border: '1px solid #d1d5db' }}>{examType} 模試</span>
@@ -250,20 +250,20 @@ export default function ExamSession() {
         <div style={{ display: 'flex', gap: 12, alignItems: 'center' }}>
           <span style={{ fontSize: 14, color: '#545b64' }}>問題 {currentIndex + 1} / {questions.length}</span>
           <button onClick={() => setPaused(true)}
-            style={{ padding: '6px 16px', border: '1px solid #545b64', borderRadius: 2,
+            style={{ padding: '6px 16px', border: '1px solid #545b64', borderRadius: 9999,
               cursor: 'pointer', background: 'white', fontSize: 13, fontWeight: 700 }}>
             ⏸ 一時停止
           </button>
         </div>
       </div>
 
-      <div style={{ background: "white", border: "1px solid #eaeded", borderRadius: 2, padding: "24px 32px", boxShadow: "0 1px 1px 0 rgba(0,28,36,0.1), 1px 1px 1px 0 rgba(0,28,36,0.15)", marginBottom: 24 }}>
+      <div style={{ background: "white", border: "1px solid #eaeded", borderRadius: 6, padding: "24px 32px", boxShadow: "0 1px 1px 0 rgba(0,28,36,0.1), 1px 1px 1px 0 rgba(0,28,36,0.15)", marginBottom: 24 }}>
         {/* 問題 */}
         <div style={{ marginBottom: 24 }}>
           <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 8 }}>
             <div>
               {currentQ.isMultiple && (
-                <div style={{ display: "inline-block", background: "#e0f2f2", color: "#008c8c", padding: "2px 8px", borderRadius: 2, fontSize: 12, fontWeight: 700 }}>
+                <div style={{ display: "inline-block", background: "#e0f2f2", color: "#008c8c", padding: "2px 8px", borderRadius: 6, fontSize: 12, fontWeight: 700 }}>
                   複数選択
                 </div>
               )}
@@ -290,7 +290,7 @@ export default function ExamSession() {
               <button key={choice} onClick={() => toggle(choice)}
                 style={{
                   display: 'flex', alignItems: 'center', width: '100%', textAlign: 'left',
-                  padding: '12px 20px', marginBottom: 12, borderRadius: 2,
+                  padding: '12px 20px', marginBottom: 12, borderRadius: 9999,
                   border: `1px solid ${isSelected ? '#008c8c' : '#d1d5db'}`,
                   background: isSelected ? '#e0f2f2' : 'white',
                   boxShadow: isSelected ? "inset 0 0 0 1px #008c8c" : "none",
@@ -315,17 +315,17 @@ export default function ExamSession() {
       </div>
 
       {/* ナビゲーションパネル */}
-      <div style={{ background: 'white', borderRadius: 2, padding: '20px 24px',
+      <div style={{ background: 'white', borderRadius: 6, padding: '20px 24px',
         border: '1px solid #eaeded', boxShadow: '0 1px 1px 0 rgba(0,28,36,0.1)' }}>
         <div style={{ fontSize: 12, color: '#545b64', marginBottom: 16, display: 'flex', gap: 20, fontWeight: 700 }}>
           <span style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-            <span style={{ width: 12, height: 12, background: '#008c8c', borderRadius: 2 }} />現在
+            <span style={{ width: 12, height: 12, background: '#008c8c', borderRadius: 6 }} />現在
           </span>
           <span style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-            <span style={{ width: 12, height: 12, background: '#2980b9', borderRadius: 2 }} />回答済み
+            <span style={{ width: 12, height: 12, background: '#2980b9', borderRadius: 6 }} />回答済み
           </span>
           <span style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-            <span style={{ width: 12, height: 12, background: '#f2f3f3', borderRadius: 2, border: '1px solid #d1d5db' }} />未回答
+            <span style={{ width: 12, height: 12, background: '#f2f3f3', borderRadius: 6, border: '1px solid #d1d5db' }} />未回答
           </span>
         </div>
         <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, marginBottom: 24 }}>
@@ -348,7 +348,7 @@ export default function ExamSession() {
 
             return (
               <button key={i} onClick={() => setCurrentIndex(i)}
-                style={{ width: 36, height: 36, borderRadius: 2, border,
+                style={{ width: 36, height: 36, borderRadius: 9999, border,
                   background: bg, color,
                   cursor: 'pointer', fontSize: 13, fontWeight: isCurrent ? 700 : 400 }}>
                 {i + 1}
@@ -362,7 +362,7 @@ export default function ExamSession() {
               style={{
                 padding: '8px 20px',
                 border: '1px solid #545b64',
-                borderRadius: 2,
+                borderRadius: 9999,
                 cursor: currentIndex === 0 ? 'default' : 'pointer',
                 background: 'white',
                 color: currentIndex === 0 ? '#aab7b8' : '#16191f',
@@ -375,7 +375,7 @@ export default function ExamSession() {
               style={{
                 padding: '8px 20px',
                 border: '1px solid #545b64',
-                borderRadius: 2,
+                borderRadius: 9999,
                 cursor: currentIndex === questions.length - 1 ? 'default' : 'pointer',
                 background: 'white',
                 color: currentIndex === questions.length - 1 ? '#aab7b8' : '#16191f',
@@ -391,7 +391,7 @@ export default function ExamSession() {
               background: '#ff9900',
               color: '#16191f',
               border: '1px solid transparent',
-              borderRadius: 2,
+              borderRadius: 9999,
               cursor: 'pointer',
               fontSize: 15,
               fontWeight: 700

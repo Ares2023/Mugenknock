@@ -22,7 +22,7 @@ export default function Result() {
 
       {/* スコアカード */}
       <div style={{ textAlign: 'center', padding: '32px 24px',
-        background: isPassed ? '#f2fcf3' : '#fdf3f1', border: `1px solid ${isPassed ? '#037f0c' : '#d13212'}`, borderRadius: 2, marginBottom: 32, boxShadow: '0 1px 1px 0 rgba(0,28,36,0.1)' }}>
+        background: isPassed ? '#f2fcf3' : '#fdf3f1', border: `1px solid ${isPassed ? '#037f0c' : '#d13212'}`, borderRadius: 6, marginBottom: 32, boxShadow: '0 1px 1px 0 rgba(0,28,36,0.1)' }}>
         {timeUp && <p style={{ color: '#d13212', fontSize: 13, margin: '0 0 12px', fontWeight: 700 }}>⏱ 制限時間終了</p>}
         <p style={{ fontSize: 56, fontWeight: 700, color: isPassed ? '#037f0c' : '#d13212', margin: 0 }}>{score}%</p>
         <p style={{ fontSize: 24, fontWeight: 700, color: isPassed ? '#037f0c' : '#d13212', margin: '8px 0' }}>
@@ -46,7 +46,7 @@ export default function Result() {
 
         return (
           <div key={q.questionId}
-            style={{ border: '1px solid #eaeded', borderRadius: 2, marginBottom: 8, overflow: 'hidden',
+            style={{ border: '1px solid #eaeded', borderRadius: 6, marginBottom: 8, overflow: 'hidden',
               borderLeft: `8px solid ${isCorrect ? '#037f0c' : '#d13212'}` }}>
             {/* ヘッダー行 */}
             <div onClick={() => setExpandedId(expanded ? null : q.questionId)}
@@ -70,7 +70,7 @@ export default function Result() {
                   {q.choices?.map((c: string) => {
                     const correct = q.correctAnswers?.includes(c);
                     return (
-                      <div key={c} style={{ padding: '8px 12px', marginBottom: 6, borderRadius: 2,
+                      <div key={c} style={{ padding: '8px 12px', marginBottom: 6, borderRadius: 6,
                         background: correct ? '#f2fcf3' : '#ffffff',
                         border: `1px solid ${correct ? '#037f0c' : '#eaeded'}`,
                         color: correct ? '#037f0c' : '#16191f',
@@ -81,7 +81,7 @@ export default function Result() {
                   })}
                 </div>
                 {q.explanation && (
-                  <div style={{ background: '#e0f2f2', borderLeft: '4px solid #008c8c', borderRadius: 2, padding: '12px 16px', color: '#16191f', lineHeight: 1.6 }}>
+                  <div style={{ background: '#e0f2f2', borderLeft: '4px solid #008c8c', borderRadius: 6, padding: '12px 16px', color: '#16191f', lineHeight: 1.6 }}>
                     <strong>解説：</strong>
                     <div style={{ marginTop: 4 }}>{q.explanation}</div>
                   </div>
@@ -99,7 +99,7 @@ export default function Result() {
             background: 'white',
             color: '#008c8c',
             border: '2px solid #008c8c',
-            borderRadius: 2,
+            borderRadius: 9999,
             cursor: 'pointer',
             fontSize: 14,
             fontWeight: 700,
@@ -124,7 +124,7 @@ export default function Result() {
             background: '#ff9900',
             color: '#16191f',
             border: '1px solid transparent',
-            borderRadius: 2,
+            borderRadius: 9999,
             cursor: 'pointer',
             fontSize: 14,
             fontWeight: 700

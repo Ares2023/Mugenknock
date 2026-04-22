@@ -110,7 +110,7 @@ export default function ExamSetup() {
   const chipStyle = (active: boolean) => ({
     padding: '4px 12px',
     fontSize: 13,
-    borderRadius: 2,
+    borderRadius: 9999,
     border: '1px solid',
     borderColor: active ? '#008c8c' : '#d1d5db',
     background: active ? '#e0f2f2' : 'white',
@@ -128,7 +128,7 @@ export default function ExamSetup() {
       <div className="setup-grid" style={{ display: 'grid', gridTemplateColumns: '1fr 380px', gap: 32, alignItems: 'flex-start' }}>
 
         {/* 左：設定フォーム */}
-        <div style={{ background: 'white', border: '1px solid #eaeded', borderRadius: 2, padding: '24px 32px', boxShadow: '0 1px 1px 0 rgba(0,28,36,0.1)' }}>
+        <div style={{ background: 'white', border: '1px solid #eaeded', borderRadius: 6, padding: '24px 32px', boxShadow: '0 1px 1px 0 rgba(0,28,36,0.1)' }}>
           <h2 style={{ fontSize: 18, fontWeight: 700, margin: '0 0 24px', borderBottom: '1px solid #eaeded', paddingBottom: 12 }}>
             模試パラメーター
           </h2>
@@ -178,14 +178,14 @@ export default function ExamSetup() {
           )}
 
           {/* 模試モード説明 */}
-          <div style={{ background: '#e0f2f2', borderLeft: '4px solid #008c8c', borderRadius: 2, padding: '12px 16px', fontSize: 14, color: '#16191f', marginBottom: 32 }}>
+          <div style={{ background: '#e0f2f2', borderLeft: '4px solid #008c8c', borderRadius: 6, padding: '12px 16px', fontSize: 14, color: '#16191f', marginBottom: 32 }}>
             <strong style={{ display: 'block', marginBottom: 4 }}>模試モードについて：</strong>
             回答ごとの正誤は表示されません。全問終了後にまとめて結果を確認できます。タイマーは一時停止可能です。
           </div>
 
           <div style={{ display: 'flex', gap: 12, borderTop: '1px solid #eaeded', paddingTop: 24, justifyContent: 'flex-end' }}>
             <button onClick={() => navigate('/')}
-              style={{ padding: '8px 20px', cursor: 'pointer', borderRadius: 2, border: '1px solid #545b64', background: 'white', fontWeight: 700, fontSize: 14 }}>
+              style={{ padding: '8px 20px', cursor: 'pointer', borderRadius: 9999, border: '1px solid #545b64', background: 'white', fontWeight: 700, fontSize: 14 }}>
               キャンセル
             </button>
             <button onClick={startExam} disabled={loading || availableCount === 0}
@@ -194,7 +194,7 @@ export default function ExamSetup() {
                 background: loading || availableCount === 0 ? '#eaeded' : '#ff9900',
                 color: loading || availableCount === 0 ? '#aab7b8' : '#16191f',
                 border: '1px solid transparent',
-                borderRadius: 2,
+                borderRadius: 9999,
                 cursor: loading || availableCount === 0 ? 'default' : 'pointer',
                 fontSize: 14,
                 fontWeight: 700
@@ -208,7 +208,7 @@ export default function ExamSetup() {
         </div>
 
         {/* 右：試験情報パネル */}
-        <div style={{ background: 'white', border: '1px solid #eaeded', borderRadius: 2, padding: '24px', boxShadow: '0 1px 1px 0 rgba(0,28,36,0.1)' }}>
+        <div style={{ background: 'white', border: '1px solid #eaeded', borderRadius: 6, padding: '24px', boxShadow: '0 1px 1px 0 rgba(0,28,36,0.1)' }}>
           {/* 試験ヘッダー */}
           <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 8 }}>
             <span style={{ background: '#232f3e', color: 'white', fontSize: 11, padding: '2px 8px', borderRadius: 12, fontWeight: 700 }}>{examType}</span>
@@ -219,7 +219,7 @@ export default function ExamSetup() {
           {/* ── 試験概要 ── */}
           <div style={{ marginBottom: 20 }}>
             <div style={{ fontSize: 11, fontWeight: 700, color: '#545b64', textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: 10 }}>試験概要</div>
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 1, background: '#eaeded', border: '1px solid #eaeded', borderRadius: 2, overflow: 'hidden' }}>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 1, background: '#eaeded', border: '1px solid #eaeded', borderRadius: 6, overflow: 'hidden' }}>
               <div style={{ background: 'white', padding: '10px 12px' }}>
                 <div style={{ fontSize: 11, color: '#545b64', marginBottom: 4 }}>問題数</div>
                 <div style={{ fontSize: 18, fontWeight: 700 }}>{config.totalQuestions}<span style={{ fontSize: 11, fontWeight: 400, marginLeft: 2 }}>問</span></div>
@@ -239,7 +239,7 @@ export default function ExamSetup() {
           </div>
 
           {/* ── 今回の出題 ── */}
-          <div style={{ marginBottom: 20, padding: '14px 16px', background: shortage !== null && shortage > 0 ? '#fdf3f1' : '#fbfbfb', border: `1px solid ${shortage !== null && shortage > 0 ? '#f5a09b' : '#eaeded'}`, borderRadius: 2 }}>
+          <div style={{ marginBottom: 20, padding: '14px 16px', background: shortage !== null && shortage > 0 ? '#fdf3f1' : '#fbfbfb', border: `1px solid ${shortage !== null && shortage > 0 ? '#f5a09b' : '#eaeded'}`, borderRadius: 6 }}>
             <div style={{ fontSize: 11, fontWeight: 700, color: '#545b64', textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: 10 }}>今回の出題</div>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: shortage !== null && shortage > 0 ? 8 : 0 }}>
               <span style={{ fontSize: 13, color: '#16191f' }}>
@@ -251,7 +251,7 @@ export default function ExamSetup() {
               </span>
             </div>
             {shortage !== null && shortage > 0 && (
-              <div style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '6px 10px', background: '#d13212', borderRadius: 2 }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '6px 10px', background: '#d13212', borderRadius: 6 }}>
                 <span style={{ fontSize: 12, color: 'white', fontWeight: 700 }}>⚠ {shortage}問不足 — 問題数が本番より少なくなります</span>
               </div>
             )}

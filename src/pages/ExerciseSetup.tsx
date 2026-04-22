@@ -216,7 +216,7 @@ export default function ExerciseSetup() {
   const chipStyle = (active: boolean) => ({
     padding: '4px 12px',
     fontSize: 13,
-    borderRadius: 6,
+    borderRadius: 9999,
     border: '1px solid',
     borderColor: active ? '#008c8c' : '#d1d5db',
     background: active ? '#e0f2f2' : 'white',
@@ -324,7 +324,7 @@ export default function ExerciseSetup() {
 
           <div style={{ display: 'flex', gap: 12, borderTop: '1px solid #eaeded', paddingTop: 24, justifyContent: 'flex-end' }}>
             <button onClick={() => navigate('/')}
-              style={{ padding: '8px 20px', cursor: 'pointer', borderRadius: 6, border: '1px solid #545b64', background: 'white', fontWeight: 700, fontSize: 14 }}>
+              style={{ padding: '8px 20px', cursor: 'pointer', borderRadius: 9999, border: '1px solid #545b64', background: 'white', fontWeight: 700, fontSize: 14 }}>
               キャンセル
             </button>
             <button onClick={startSession} disabled={loading || availableCount === 0}
@@ -333,7 +333,7 @@ export default function ExerciseSetup() {
                 background: loading || availableCount === 0 ? '#eaeded' : '#ff9900',
                 color: loading || availableCount === 0 ? '#aab7b8' : '#16191f',
                 border: '1px solid transparent',
-                borderRadius: 6,
+                borderRadius: 9999,
                 cursor: loading || availableCount === 0 ? 'default' : 'pointer',
                 fontSize: 14,
                 fontWeight: 700

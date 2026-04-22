@@ -111,12 +111,12 @@ export default function QuestionList() {
           value={keyword}
           onChange={e => setKeyword(e.target.value)}
           placeholder="サービス名・キーワードで検索"
-          style={{ flex: 1, padding: "6px 12px", border: "1px solid #d1d5db", borderRadius: 2, fontSize: 14, outline: 'none' }}
+          style={{ flex: 1, padding: "6px 12px", border: "1px solid #d1d5db", borderRadius: 6, fontSize: 14, outline: 'none' }}
           onFocus={e => e.currentTarget.style.borderColor = '#008c8c'}
           onBlur={e => e.currentTarget.style.borderColor = '#d1d5db'}
         />
         <button type="submit"
-          style={{ padding: "6px 20px", background: "white", color: "#008c8c", border: "1px solid #008c8c", borderRadius: 2, cursor: "pointer", fontWeight: 700, fontSize: 14 }}
+          style={{ padding: "6px 20px", background: "white", color: "#008c8c", border: "1px solid #008c8c", borderRadius: 9999, cursor: "pointer", fontWeight: 700, fontSize: 14 }}
           onMouseEnter={e => { e.currentTarget.style.background = "#e0f2f2"; e.currentTarget.style.borderColor = "#006666"; e.currentTarget.style.color = "#006666"; }}
           onMouseLeave={e => { e.currentTarget.style.background = "white"; e.currentTarget.style.borderColor = "#008c8c"; e.currentTarget.style.color = "#008c8c"; }}
         >
@@ -124,7 +124,7 @@ export default function QuestionList() {
         </button>
         {keyword && (
           <button type="button" onClick={() => navigate('/questions')}
-            style={{ padding: "6px 20px", background: "white", color: "#545b64", border: "1px solid #545b64", borderRadius: 2, cursor: "pointer", fontWeight: 700, fontSize: 14 }}
+            style={{ padding: "6px 20px", background: "white", color: "#545b64", border: "1px solid #545b64", borderRadius: 9999, cursor: "pointer", fontWeight: 700, fontSize: 14 }}
             onMouseEnter={e => { e.currentTarget.style.background = "#f2f3f3"; }}
             onMouseLeave={e => { e.currentTarget.style.background = "white"; }}
           >
@@ -141,7 +141,7 @@ export default function QuestionList() {
               background: examType === type ? "#e0f2f2" : "white",
               border: "1px solid",
               borderColor: examType === type ? "#008c8c" : "#d1d5db",
-              borderRadius: 2,
+              borderRadius: 9999,
               cursor: "pointer",
               fontWeight: examType === type ? 700 : 400,
               color: examType === type ? "#008c8c" : "#545b64",
@@ -154,7 +154,7 @@ export default function QuestionList() {
 
       <div style={{ marginBottom: 20, display: "flex", gap: 12, borderBottom: '1px solid #eaeded', paddingBottom: 16 }}>
         <button onClick={selectAll}
-          style={{ padding: "6px 20px", background: "white", color: "#008c8c", border: "1px solid #008c8c", borderRadius: 2, cursor: "pointer", fontWeight: 700, fontSize: 14 }}
+          style={{ padding: "6px 20px", background: "white", color: "#008c8c", border: "1px solid #008c8c", borderRadius: 9999, cursor: "pointer", fontWeight: 700, fontSize: 14 }}
           onMouseEnter={e => { e.currentTarget.style.background = "#e0f2f2"; e.currentTarget.style.borderColor = "#006666"; e.currentTarget.style.color = "#006666"; }}
           onMouseLeave={e => { e.currentTarget.style.background = "white"; e.currentTarget.style.borderColor = "#008c8c"; e.currentTarget.style.color = "#008c8c"; }}
         >
@@ -166,7 +166,7 @@ export default function QuestionList() {
             background: selected.size > 0 ? "white" : "#eaeded",
             color: selected.size > 0 ? "#16191f" : "#aab7b8",
             border: `1px solid ${selected.size > 0 ? "#545b64" : "transparent"}`,
-            borderRadius: 2,
+            borderRadius: 9999,
             cursor: selected.size > 0 ? "pointer" : "default",
             fontWeight: 700,
             fontSize: 14
@@ -176,30 +176,30 @@ export default function QuestionList() {
       </div>
 
       {loading ? <p style={{ color: '#545b64' }}>読み込み中...</p> : questions.map(q => (
-        <div key={q.questionId} style={{ border: "1px solid #eaeded", borderRadius: 2, marginBottom: 16, padding: 20, background: selected.has(q.questionId) ? "#e0f2f2" : "white", boxShadow: '0 1px 1px 0 rgba(0,28,36,0.1)' }}>
+        <div key={q.questionId} style={{ border: "1px solid #eaeded", borderRadius: 6, marginBottom: 16, padding: 20, background: selected.has(q.questionId) ? "#e0f2f2" : "white", boxShadow: '0 1px 1px 0 rgba(0,28,36,0.1)' }}>
           <div style={{ display: "flex", alignItems: "flex-start", gap: 16 }}>
             <input type="checkbox" checked={selected.has(q.questionId)} onChange={() => toggleSelect(q.questionId)} style={{ marginTop: 6, width: 16, height: 16 }} />
             <div style={{ flex: 1 }}>
               <div style={{ marginBottom: 12 }}>
                 <span style={{ background: "#232f3e", color: "white", borderRadius: 12, padding: "2px 8px", fontSize: 11, fontWeight: 700, marginRight: 10 }}>{q.examType}</span>
-                {q.isMultiple && <span style={{ background: "#e0f2f2", color: "#008c8c", borderRadius: 2, padding: "2px 8px", fontSize: 11, fontWeight: 700 }}>複数選択</span>}
+                {q.isMultiple && <span style={{ background: "#e0f2f2", color: "#008c8c", borderRadius: 6, padding: "2px 8px", fontSize: 11, fontWeight: 700 }}>複数選択</span>}
               </div>
               <p style={{ margin: "0 0 12px", fontWeight: 400, fontSize: 15, lineHeight: 1.6 }}>{q.questionText}</p>
               <ol style={{ margin: "0 0 16px", paddingLeft: 24, fontSize: 14, color: '#545b64', lineHeight: 1.6 }}>{q.choices.map((c, i) => <li key={i}>{c}</li>)}</ol>
               {expandedId === q.questionId && q.correctAnswers && (
-                <div style={{ background: "#f2fcf3", borderLeft: '4px solid #037f0c', borderRadius: 2, padding: "12px 16px", marginTop: 12, fontSize: 14 }}>
+                <div style={{ background: "#f2fcf3", borderLeft: '4px solid #037f0c', borderRadius: 6, padding: "12px 16px", marginTop: 12, fontSize: 14 }}>
                   <p style={{ margin: "0 0 8px" }}><strong style={{ color: '#037f0c' }}>正解：</strong>{q.correctAnswers.join(", ")}</p>
                   <div style={{ color: '#16191f', lineHeight: 1.6 }}><strong>解説：</strong><div style={{ marginTop: 4 }}>{q.explanation}</div></div>
                 </div>
               )}
               <div style={{ marginTop: 16, display: "flex", gap: 12 }}>
                 <button onClick={() => fetchDetail(q.questionId)}
-                  style={{ padding: "6px 16px", cursor: "pointer", borderRadius: 2, border: "1px solid #008c8c", background: "white", color: "#008c8c", fontWeight: 700, fontSize: 13 }}>
+                  style={{ padding: "6px 16px", cursor: "pointer", borderRadius: 9999, border: "1px solid #008c8c", background: "white", color: "#008c8c", fontWeight: 700, fontSize: 13 }}>
                   {expandedId === q.questionId ? "解説を隠す" : "解説を表示"}
                 </button>
                 <button onClick={() => copyQuestion(q)}
                   style={{
-                    padding: "6px 16px", cursor: "pointer", borderRadius: 2,
+                    padding: "6px 16px", cursor: "pointer", borderRadius: 9999,
                     border: `1px solid ${copiedId === q.questionId ? '#037f0c' : '#545b64'}`,
                     color: copiedId === q.questionId ? '#037f0c' : '#16191f',
                     background: copiedId === q.questionId ? '#f2fcf3' : 'white',

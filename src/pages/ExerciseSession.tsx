@@ -30,7 +30,7 @@ const CopyButton = ({ getText }: { getText: () => string }) => {
     <button
       onClick={handleCopy}
       style={{
-        padding: "2px 8px", fontSize: 11, borderRadius: 2, cursor: "pointer",
+        padding: "2px 8px", fontSize: 11, borderRadius: 9999, cursor: "pointer",
         border: `1px solid ${copied ? "#037f0c" : "#d1d5db"}`,
         background: copied ? "#f2fcf3" : "white",
         color: copied ? "#037f0c" : "#879596",
@@ -177,7 +177,7 @@ export default function ExerciseSession() {
     const base = {
       padding: "12px 20px",
       marginBottom: 12,
-      borderRadius: 2,
+      borderRadius: 9999,
       cursor: answered ? "default" : "pointer",
       border: "1px solid",
       display: "flex",
@@ -214,7 +214,7 @@ export default function ExerciseSession() {
     <div style={{ maxWidth: 900, margin: "0 auto", padding: "24px 20px", color: "#16191f" }} className="session-container">
       <Breadcrumb items={[{ label: 'ホーム', path: '/' }, { label: '演習設定', path: '/exercise/setup' }, { label: '演習中' }]} />
 
-      <div style={{ background: "white", border: "1px solid #eaeded", borderRadius: 2, padding: "24px 32px", boxShadow: "0 1px 1px 0 rgba(0,28,36,0.1), 1px 1px 1px 0 rgba(0,28,36,0.15)" }}>
+      <div style={{ background: "white", border: "1px solid #eaeded", borderRadius: 6, padding: "24px 32px", boxShadow: "0 1px 1px 0 rgba(0,28,36,0.1), 1px 1px 1px 0 rgba(0,28,36,0.15)" }}>
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 20 }}>
           <h1 style={{ fontSize: 20, fontWeight: 700, margin: 0 }}>
             問題 {currentIndex + 1}
@@ -246,7 +246,7 @@ export default function ExerciseSession() {
           <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 8, gap: 8 }}>
             <div>
               {currentQuestion.isMultiple && (
-                <span style={{ display: "inline-block", background: "#e0f2f2", color: "#008c8c", padding: "2px 8px", borderRadius: 2, fontSize: 12, fontWeight: 700 }}>
+                <span style={{ display: "inline-block", background: "#e0f2f2", color: "#008c8c", padding: "2px 8px", borderRadius: 6, fontSize: 12, fontWeight: 700 }}>
                   複数選択
                 </span>
               )}
@@ -318,7 +318,7 @@ export default function ExerciseSession() {
                 background: selectedAnswers.length > 0 ? "#ff9900" : "#eaeded",
                 color: selectedAnswers.length > 0 ? "#16191f" : "#aab7b8",
                 border: "1px solid transparent",
-                borderRadius: 2,
+                borderRadius: 9999,
                 cursor: selectedAnswers.length > 0 ? "pointer" : "not-allowed",
                 fontSize: 14,
                 fontWeight: 700,
@@ -337,7 +337,7 @@ export default function ExerciseSession() {
                 background: "white",
                 color: "#008c8c",
                 border: "1px solid #008c8c",
-                borderRadius: 2,
+                borderRadius: 9999,
                 cursor: "pointer",
                 fontSize: 14,
                 fontWeight: 700,
@@ -367,7 +367,7 @@ export default function ExerciseSession() {
             <span style={{
               background: "#b85c00", color: "white",
               fontSize: 10, fontWeight: 700, letterSpacing: "1.5px",
-              padding: "3px 8px", borderRadius: 2,
+              padding: "3px 8px", borderRadius: 6,
             }}>COLUMN</span>
             <span style={{ flex: 1, height: 1, background: "#eaeded" }} />
           </div>
@@ -375,7 +375,7 @@ export default function ExerciseSession() {
             background: "white",
             border: "1px solid #eaeded",
             borderLeft: "4px solid #ff9900",
-            borderRadius: 2,
+            borderRadius: 6,
             padding: "16px 20px",
             boxShadow: "0 1px 1px 0 rgba(0,28,36,0.07)",
           }}>
