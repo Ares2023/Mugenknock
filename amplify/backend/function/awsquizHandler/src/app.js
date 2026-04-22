@@ -2,6 +2,7 @@ const express = require('express');
 const { DynamoDBClient } = require('@aws-sdk/client-dynamodb');
 const { DynamoDBDocumentClient, ScanCommand, GetCommand, QueryCommand, PutCommand, UpdateCommand, TransactWriteCommand, DeleteCommand } = require('@aws-sdk/lib-dynamodb');
 const { v4: uuidv4 } = require('uuid');
+const { CognitoJwtVerifier } = require('aws-jwt-verify');
 
 const app = express();
 app.use(express.json());
@@ -11,13 +12,48 @@ const getClient = () => {
   return DynamoDBDocumentClient.from(client);
 };
 
+// ── CORS（localhost + Amplify Hosting ドメインのみ許可） ──
+const ALLOWED_ORIGINS = ['http://localhost:3000', 'http://localhost:3001'];
+const AMPLIFY_ORIGIN_RE = /^https:\/\/[^.]+\.amplifyapp\.com$/;
+
 app.use((req, res, next) => {
-  res.header('Access-Control-Allow-Origin', '*');
+  const origin = req.headers.origin;
+  if (origin && (ALLOWED_ORIGINS.includes(origin) || AMPLIFY_ORIGIN_RE.test(origin))) {
+    res.header('Access-Control-Allow-Origin', origin);
+    res.header('Vary', 'Origin');
+  }
   res.header('Access-Control-Allow-Headers', 'Content-Type,Authorization');
   res.header('Access-Control-Allow-Methods', 'GET,POST,PUT,DELETE,OPTIONS');
   if (req.method === 'OPTIONS') return res.sendStatus(200);
   next();
 });
+
+// ── 管理者JWT認証ミドルウェア ──
+const jwtVerifier = CognitoJwtVerifier.create({
+  userPoolId: 'ap-northeast-1_KIOFciGhQ',
+  tokenUse: 'id',
+  clientId: '16jjrj5m28o6s2k84og8kh2vh3',
+});
+const ADMIN_EMAIL_VALUE = 'yuzuki2002110@gmail.com';
+
+async function requireAdmin(req, res, next) {
+  const auth = req.headers.authorization || '';
+  if (!auth.startsWith('Bearer ')) {
+    return res.status(401).json({ error: 'Unauthorized' });
+  }
+  try {
+    const payload = await jwtVerifier.verify(auth.slice(7));
+    if (payload.email !== ADMIN_EMAIL_VALUE) {
+      return res.status(403).json({ error: 'Forbidden' });
+    }
+    next();
+  } catch {
+    return res.status(401).json({ error: 'Invalid token' });
+  }
+}
+
+// /admin/* へのすべてのリクエストに管理者認証を適用
+app.use('/admin', requireAdmin);
 
 function shuffle(array) {
   for (let i = array.length - 1; i > 0; i--) {
@@ -123,8 +159,8 @@ app.post('/questions/:id/report', async (req, res) => {
   }
 });
 
-// 問題削除（管理者用）
-app.delete('/questions/:id', async (req, res) => {
+// 問題削除（管理者用） ※/admin配下に置くことでrequireAdminが適用される
+app.delete('/admin/questions/:id', async (req, res) => {
   try {
     const docClient = getClient();
     const questionId = req.params.id;

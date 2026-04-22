@@ -1,5 +1,18 @@
 import React, { useState, useEffect, useCallback } from 'react';
+import { fetchAuthSession } from 'aws-amplify/auth';
 import { API_ENDPOINT, EXAM_TYPES, EXAM_DOMAINS } from '../constants';
+
+const adminFetch = async (url: string, options: RequestInit = {}): Promise<Response> => {
+  const session = await fetchAuthSession();
+  const token = session.tokens?.idToken?.toString();
+  return fetch(url, {
+    ...options,
+    headers: {
+      ...(options.headers as Record<string, string> ?? {}),
+      ...(token ? { Authorization: `Bearer ${token}` } : {}),
+    },
+  });
+};
 
 type Question = {
   questionId: string;
@@ -113,7 +126,7 @@ export default function Admin() {
       if (keyword.trim()) params.set('keyword', keyword.trim());
       if (tagFilter.trim()) params.set('tag', tagFilter.trim());
       if (domainFilter) params.set('domain', domainFilter);
-      const res = await fetch(`${API_ENDPOINT}/admin/questions?${params}`);
+      const res = await adminFetch(`${API_ENDPOINT}/admin/questions?${params}`);
       const data = await res.json();
       setQuestions(data.items || []);
     } catch (err) {
@@ -126,7 +139,7 @@ export default function Admin() {
   const fetchReports = useCallback(async () => {
     setLoadingR(true);
     try {
-      const res = await fetch(`${API_ENDPOINT}/admin/reports`);
+      const res = await adminFetch(`${API_ENDPOINT}/admin/reports`);
       const data = await res.json();
       setReports(data.items || []);
     } catch (err) {
@@ -139,7 +152,7 @@ export default function Admin() {
   const fetchTips = useCallback(async () => {
     setLoadingT(true);
     try {
-      const res = await fetch(`${API_ENDPOINT}/admin/tips`);
+      const res = await adminFetch(`${API_ENDPOINT}/admin/tips`);
       const data = await res.json();
       setTips(data.items || []);
     } catch (err) { console.error(err); } finally { setLoadingT(false); }
@@ -148,7 +161,7 @@ export default function Admin() {
   const fetchReleases = useCallback(async () => {
     setLoadingRel(true);
     try {
-      const res = await fetch(`${API_ENDPOINT}/admin/releases`);
+      const res = await adminFetch(`${API_ENDPOINT}/admin/releases`);
       const data = await res.json();
       setReleases(data.items || []);
     } catch (err) { console.error(err); } finally { setLoadingRel(false); }
@@ -158,12 +171,12 @@ export default function Admin() {
     if (!releaseForm.date || !releaseForm.title.trim() || !releaseForm.body.trim()) return;
     try {
       if (editingRelease) {
-        await fetch(`${API_ENDPOINT}/admin/releases/${editingRelease.releaseId}`, {
+        await adminFetch(`${API_ENDPOINT}/admin/releases/${editingRelease.releaseId}`, {
           method: 'PUT', headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(releaseForm),
         });
       } else {
-        await fetch(`${API_ENDPOINT}/admin/releases`, {
+        await adminFetch(`${API_ENDPOINT}/admin/releases`, {
           method: 'POST', headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(releaseForm),
         });
@@ -178,7 +191,7 @@ export default function Admin() {
   const handleDeleteRelease = async (r: Release) => {
     if (!window.confirm(`「${r.title}」を削除しますか？`)) return;
     try {
-      await fetch(`${API_ENDPOINT}/admin/releases/${r.releaseId}`, { method: 'DELETE' });
+      await adminFetch(`${API_ENDPOINT}/admin/releases/${r.releaseId}`, { method: 'DELETE' });
       setReleases(prev => prev.filter(x => x.releaseId !== r.releaseId));
     } catch (err) { console.error(err); }
   };
@@ -192,12 +205,12 @@ export default function Admin() {
     if (!tipForm.title.trim() || !tipForm.content.trim()) return;
     try {
       if (editingTip) {
-        await fetch(`${API_ENDPOINT}/admin/tips/${editingTip.tipId}`, {
+        await adminFetch(`${API_ENDPOINT}/admin/tips/${editingTip.tipId}`, {
           method: 'PUT', headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(tipForm)
         });
       } else {
-        await fetch(`${API_ENDPOINT}/admin/tips`, {
+        await adminFetch(`${API_ENDPOINT}/admin/tips`, {
           method: 'POST', headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(tipForm)
         });
@@ -212,7 +225,7 @@ export default function Admin() {
   const handleDeleteTip = async (tip: Tip) => {
     if (!window.confirm(`「${tip.title}」を削除しますか？`)) return;
     try {
-      await fetch(`${API_ENDPOINT}/admin/tips/${tip.tipId}`, { method: 'DELETE' });
+      await adminFetch(`${API_ENDPOINT}/admin/tips/${tip.tipId}`, { method: 'DELETE' });
       setTips(prev => prev.filter(t => t.tipId !== tip.tipId));
     } catch (err) { console.error(err); }
   };
@@ -246,7 +259,7 @@ export default function Admin() {
     try {
       await Promise.all(
         Array.from(selectedIds).map(id =>
-          fetch(`${API_ENDPOINT}/questions/${id}`, { method: 'DELETE' })
+          adminFetch(`${API_ENDPOINT}/admin/questions/${id}`, { method: 'DELETE' })
         )
       );
       const deleted = selectedIds;
@@ -264,7 +277,7 @@ export default function Admin() {
     if (!window.confirm(`「${q.questionId}」を削除しますか？\n\n${q.questionText.slice(0, 60)}…`)) return;
     setDeletingId(q.questionId);
     try {
-      const res = await fetch(`${API_ENDPOINT}/questions/${q.questionId}`, { method: 'DELETE' });
+      const res = await adminFetch(`${API_ENDPOINT}/admin/questions/${q.questionId}`, { method: 'DELETE' });
       if (res.ok) {
         setQuestions(prev => prev.filter(item => item.questionId !== q.questionId));
         if (expandedId === q.questionId) setExpandedId(null);
@@ -599,7 +612,7 @@ export default function Admin() {
           setImportResult(null);
           try {
             const tags = importTags.split(',').map(t => t.trim()).filter(Boolean);
-            const res = await fetch(`${API_ENDPOINT}/admin/questions`, {
+            const res = await adminFetch(`${API_ENDPOINT}/admin/questions`, {
               method: 'POST',
               headers: { 'Content-Type': 'application/json' },
               body: JSON.stringify({ examType: importExamType, tags, questions: importParsed })
@@ -998,7 +1011,7 @@ ${tipPromptExamType !== 'ALL' ? `・examType には "${tipPromptExamType}" を�
                       setTipImporting(true);
                       setTipImportResult(null);
                       try {
-                        const res = await fetch(`${API_ENDPOINT}/admin/tips/bulk`, {
+                        const res = await adminFetch(`${API_ENDPOINT}/admin/tips/bulk`, {
                           method: 'POST',
                           headers: { 'Content-Type': 'application/json' },
                           body: JSON.stringify({ tips: tipImportParsed, defaultExamType: tipImportExamType })
