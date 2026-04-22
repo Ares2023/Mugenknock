@@ -28,6 +28,13 @@ type Tip = {
   content: string;
 };
 
+type Release = {
+  releaseId: string;
+  date: string;
+  title: string;
+  body: string;
+};
+
 type ImportQuestion = {
   examType?: string;
   domain?: string;
@@ -39,7 +46,7 @@ type ImportQuestion = {
   tags?: string[];
 };
 
-type Tab = 'questions' | 'reports' | 'tips' | 'import';
+type Tab = 'questions' | 'reports' | 'tips' | 'import' | 'releases';
 
 export default function Admin() {
   const [tab, setTab] = useState<Tab>('questions');
@@ -91,6 +98,13 @@ export default function Admin() {
   const [tipPromptCopied, setTipPromptCopied] = useState(false);
   const [showTipPrompt, setShowTipPrompt] = useState(false);
 
+  // リリースノート管理
+  const [releases, setReleases] = useState<Release[]>([]);
+  const [loadingRel, setLoadingRel] = useState(false);
+  const [editingRelease, setEditingRelease] = useState<Release | null>(null);
+  const [releaseForm, setReleaseForm] = useState({ date: '', title: '', body: '' });
+  const [showReleaseForm, setShowReleaseForm] = useState(false);
+
   const fetchQuestions = useCallback(async () => {
     setLoadingQ(true);
     try {
@@ -131,9 +145,48 @@ export default function Admin() {
     } catch (err) { console.error(err); } finally { setLoadingT(false); }
   }, []);
 
+  const fetchReleases = useCallback(async () => {
+    setLoadingRel(true);
+    try {
+      const res = await fetch(`${API_ENDPOINT}/admin/releases`);
+      const data = await res.json();
+      setReleases(data.items || []);
+    } catch (err) { console.error(err); } finally { setLoadingRel(false); }
+  }, []);
+
+  const handleSaveRelease = async () => {
+    if (!releaseForm.date || !releaseForm.title.trim() || !releaseForm.body.trim()) return;
+    try {
+      if (editingRelease) {
+        await fetch(`${API_ENDPOINT}/admin/releases/${editingRelease.releaseId}`, {
+          method: 'PUT', headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(releaseForm),
+        });
+      } else {
+        await fetch(`${API_ENDPOINT}/admin/releases`, {
+          method: 'POST', headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(releaseForm),
+        });
+      }
+      setShowReleaseForm(false);
+      setEditingRelease(null);
+      setReleaseForm({ date: '', title: '', body: '' });
+      fetchReleases();
+    } catch (err) { console.error(err); }
+  };
+
+  const handleDeleteRelease = async (r: Release) => {
+    if (!window.confirm(`「${r.title}」を削除しますか？`)) return;
+    try {
+      await fetch(`${API_ENDPOINT}/admin/releases/${r.releaseId}`, { method: 'DELETE' });
+      setReleases(prev => prev.filter(x => x.releaseId !== r.releaseId));
+    } catch (err) { console.error(err); }
+  };
+
   useEffect(() => { fetchQuestions(); setSelectedIds(new Set()); }, [examFilter, tagFilter, domainFilter]);
   useEffect(() => { if (tab === 'reports') fetchReports(); }, [tab]);
   useEffect(() => { if (tab === 'tips') fetchTips(); }, [tab]);
+  useEffect(() => { if (tab === 'releases') fetchReleases(); }, [tab]);
 
   const handleSaveTip = async () => {
     if (!tipForm.title.trim() || !tipForm.content.trim()) return;
@@ -255,6 +308,7 @@ export default function Admin() {
         <button style={tabStyle('import')} onClick={() => setTab('import')}>問題追加</button>
         <button style={tabStyle('reports')} onClick={() => setTab('reports')}>通報確認</button>
         <button style={tabStyle('tips')} onClick={() => setTab('tips')}>コラム管理</button>
+        <button style={tabStyle('releases')} onClick={() => setTab('releases')}>リリースノート</button>
       </div>
 
       {/* ── 問題管理 ── */}
@@ -1051,6 +1105,105 @@ ${tipPromptExamType !== 'ALL' ? `・examType には "${tipPromptExamType}" を�
 
           {!loadingT && tips.length === 0 && (
             <p style={{ color: '#aaa', textAlign: 'center', padding: 40 }}>コラムはありません</p>
+          )}
+        </div>
+      )}
+
+      {/* ── リリースノート管理 ── */}
+      {tab === 'releases' && (
+        <div>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
+            <p style={{ color: '#888', fontSize: 13, margin: 0 }}>
+              {loadingRel ? '読み込み中...' : `${releases.length} 件`}
+            </p>
+            <button
+              onClick={() => {
+                setEditingRelease(null);
+                setReleaseForm({ date: new Date().toISOString().slice(0, 10), title: '', body: '' });
+                setShowReleaseForm(true);
+              }}
+              style={{ padding: '7px 16px', background: 'white', color: '#008c8c', border: '1px solid #008c8c', borderRadius: 9999, cursor: 'pointer', fontSize: 13, fontWeight: 700 }}>
+              ＋ 新規追加
+            </button>
+          </div>
+
+          {showReleaseForm && (
+            <div style={{ border: '1px solid #eaeded', borderRadius: 6, padding: '20px 24px', marginBottom: 20, background: '#fbfbfb', boxShadow: '0 1px 1px 0 rgba(0,28,36,0.1)' }}>
+              <h4 style={{ margin: '0 0 14px', fontSize: 15, fontWeight: 700, color: '#16191f' }}>
+                {editingRelease ? 'リリースノートを編集' : '新規リリースノート'}
+              </h4>
+              <div style={{ marginBottom: 10 }}>
+                <label style={{ display: 'block', fontSize: 12, color: '#545b64', fontWeight: 700, marginBottom: 4 }}>日付</label>
+                <input
+                  type="date" value={releaseForm.date}
+                  onChange={e => setReleaseForm(f => ({ ...f, date: e.target.value }))}
+                  style={{ padding: '7px 10px', border: '1px solid #d1d5db', borderRadius: 6, fontSize: 14, outline: 'none' }}
+                  onFocus={e => e.currentTarget.style.borderColor = '#008c8c'}
+                  onBlur={e => e.currentTarget.style.borderColor = '#d1d5db'}
+                />
+              </div>
+              <div style={{ marginBottom: 10 }}>
+                <label style={{ display: 'block', fontSize: 12, color: '#545b64', fontWeight: 700, marginBottom: 4 }}>タイトル</label>
+                <input
+                  value={releaseForm.title}
+                  onChange={e => setReleaseForm(f => ({ ...f, title: e.target.value }))}
+                  placeholder="例：問題追加・機能改善"
+                  style={{ width: '100%', padding: '7px 10px', border: '1px solid #d1d5db', borderRadius: 6, fontSize: 14, boxSizing: 'border-box', outline: 'none' }}
+                  onFocus={e => e.currentTarget.style.borderColor = '#008c8c'}
+                  onBlur={e => e.currentTarget.style.borderColor = '#d1d5db'}
+                />
+              </div>
+              <div style={{ marginBottom: 14 }}>
+                <label style={{ display: 'block', fontSize: 12, color: '#545b64', fontWeight: 700, marginBottom: 4 }}>本文</label>
+                <textarea
+                  value={releaseForm.body}
+                  onChange={e => setReleaseForm(f => ({ ...f, body: e.target.value }))}
+                  placeholder="変更内容を記入してください"
+                  rows={5}
+                  style={{ width: '100%', padding: '7px 10px', border: '1px solid #d1d5db', borderRadius: 6, fontSize: 14, resize: 'vertical', boxSizing: 'border-box', outline: 'none' }}
+                  onFocus={e => e.currentTarget.style.borderColor = '#008c8c'}
+                  onBlur={e => e.currentTarget.style.borderColor = '#d1d5db'}
+                />
+              </div>
+              <div style={{ display: 'flex', gap: 8 }}>
+                <button onClick={handleSaveRelease}
+                  style={{ padding: '7px 20px', background: '#ff9900', color: '#16191f', border: '1px solid transparent', borderRadius: 9999, cursor: 'pointer', fontWeight: 700, fontSize: 14 }}>
+                  保存
+                </button>
+                <button onClick={() => { setShowReleaseForm(false); setEditingRelease(null); }}
+                  style={{ padding: '7px 16px', border: '1px solid #545b64', borderRadius: 9999, cursor: 'pointer', background: 'white', fontWeight: 700, fontSize: 14 }}>
+                  キャンセル
+                </button>
+              </div>
+            </div>
+          )}
+
+          {releases.map(r => (
+            <div key={r.releaseId} style={{ border: '1px solid #eaeded', borderRadius: 6, padding: '14px 18px', marginBottom: 8, background: 'white', boxShadow: '0 1px 1px 0 rgba(0,28,36,0.1)' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 16 }}>
+                <div style={{ flex: 1 }}>
+                  <div style={{ fontSize: 12, color: '#879596', fontWeight: 700, marginBottom: 3 }}>{r.date}</div>
+                  <div style={{ fontSize: 14, fontWeight: 700, color: '#16191f', marginBottom: 4 }}>{r.title}</div>
+                  <div style={{ fontSize: 13, color: '#545b64', lineHeight: 1.6, whiteSpace: 'pre-wrap' }}>{r.body}</div>
+                </div>
+                <div style={{ display: 'flex', gap: 6, flexShrink: 0 }}>
+                  <button
+                    onClick={() => { setEditingRelease(r); setReleaseForm({ date: r.date, title: r.title, body: r.body }); setShowReleaseForm(true); }}
+                    style={{ padding: '4px 10px', border: '1px solid #545b64', borderRadius: 9999, cursor: 'pointer', background: 'white', fontSize: 12, fontWeight: 700 }}>
+                    編集
+                  </button>
+                  <button
+                    onClick={() => handleDeleteRelease(r)}
+                    style={{ padding: '4px 10px', background: 'white', color: '#d13212', border: '1px solid #d13212', borderRadius: 9999, cursor: 'pointer', fontSize: 12, fontWeight: 700 }}>
+                    削除
+                  </button>
+                </div>
+              </div>
+            </div>
+          ))}
+
+          {!loadingRel && releases.length === 0 && (
+            <p style={{ color: '#aaa', textAlign: 'center', padding: 40 }}>リリースノートはありません</p>
           )}
         </div>
       )}
