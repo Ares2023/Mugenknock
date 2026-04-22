@@ -281,13 +281,15 @@ export default function ExerciseSetup() {
 
           {/* ブックマーク・シャッフル */}
           <div style={{ marginBottom: 32, padding: '16px', background: '#f2f3f3', borderRadius: 2, display: 'flex', flexDirection: 'column', gap: 10 }}>
-            <label style={{ display: 'flex', alignItems: 'center', gap: 10, cursor: 'pointer', fontSize: 14 }}>
-              <input type="checkbox" checked={bookmarkOnly} onChange={e => setBookmarkOnly(e.target.checked)} style={{ width: 16, height: 16 }} />
-              <span style={{ fontWeight: 700 }}>
-                ブックマークした問題のみ
-                <span style={{ fontWeight: 400, fontSize: 12, color: '#545b64', marginLeft: 6 }}>（演習中に★でブックマーク）</span>
-              </span>
-            </label>
+            {user && (
+              <label style={{ display: 'flex', alignItems: 'center', gap: 10, cursor: 'pointer', fontSize: 14 }}>
+                <input type="checkbox" checked={bookmarkOnly} onChange={e => setBookmarkOnly(e.target.checked)} style={{ width: 16, height: 16 }} />
+                <span style={{ fontWeight: 700 }}>
+                  ブックマークした問題のみ
+                  <span style={{ fontWeight: 400, fontSize: 12, color: '#545b64', marginLeft: 6 }}>（演習中に★でブックマーク）</span>
+                </span>
+              </label>
+            )}
             <label style={{ display: 'flex', alignItems: 'center', gap: 10, cursor: 'pointer', fontSize: 14 }}>
               <input type="checkbox" checked={shuffle} onChange={e => setShuffle(e.target.checked)} style={{ width: 16, height: 16 }} />
               <span style={{ fontWeight: 700 }}>問題をシャッフルする</span>

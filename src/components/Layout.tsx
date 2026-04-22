@@ -237,18 +237,30 @@ export default function Layout({ children }: { children: React.ReactNode }) {
 
         {/* ユーザー情報 */}
         <div style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: 12, flexShrink: 0 }}>
-          {user && !isMobile && (
-            <div style={{ display: 'flex', alignItems: 'center', gap: 5 }}>
-              <span style={{ color: '#879596', display: 'flex', alignItems: 'center' }}><IconUser /></span>
-              <span style={{ color: '#d5dbdb', fontSize: 12, fontWeight: 700 }}>{user.email?.split('@')[0]}</span>
-            </div>
+          {user ? (
+            <>
+              {!isMobile && (
+                <div style={{ display: 'flex', alignItems: 'center', gap: 5 }}>
+                  <span style={{ color: '#879596', display: 'flex', alignItems: 'center' }}><IconUser /></span>
+                  <span style={{ color: '#d5dbdb', fontSize: 12, fontWeight: 700 }}>{user.email?.split('@')[0]}</span>
+                </div>
+              )}
+              <button onClick={handleSignOut} style={{
+                background: 'none', border: 'none',
+                color: '#d5dbdb', fontSize: 12, padding: '4px 0', cursor: 'pointer', fontWeight: 700,
+              }}>
+                {isMobile ? '↩' : 'ログアウト'}
+              </button>
+            </>
+          ) : (
+            <button onClick={() => navigate('/login')} style={{
+              background: 'none', border: '1px solid #3a4a5a',
+              color: '#d5dbdb', fontSize: 12, padding: '4px 12px',
+              borderRadius: 2, cursor: 'pointer', fontWeight: 700,
+            }}>
+              ログイン
+            </button>
           )}
-          <button onClick={handleSignOut} style={{
-            background: 'none', border: 'none',
-            color: '#d5dbdb', fontSize: 12, padding: '4px 0', cursor: 'pointer', fontWeight: 700,
-          }}>
-            {isMobile ? '↩' : 'ログアウト'}
-          </button>
         </div>
       </header>
 

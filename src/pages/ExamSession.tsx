@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { API_ENDPOINT, EXAM_CONFIGS, PASS_RATE } from '../constants';
 import Breadcrumb from '../components/Breadcrumb';
+import { useAuth } from '../contexts/AuthContext';
 
 type Question = {
   questionId: string;
@@ -30,6 +31,7 @@ export default function ExamSession() {
   const navigate = useNavigate();
   const location = useLocation();
   const { sessionId, questions, userId, examType } = location.state as any;
+  const { user } = useAuth();
 
   const config = EXAM_CONFIGS[examType];
   const totalSec = config.timeLimitMin * 60;
@@ -266,13 +268,15 @@ export default function ExamSession() {
                 </div>
               )}
             </div>
-            <button
-              onClick={() => toggleBookmark(currentQ.questionId)}
-              title={bookmarkedIds.has(currentQ.questionId) ? "ブックマーク解除" : "ブックマーク"}
-              style={{ background: "none", border: "none", cursor: "pointer", padding: "4px", display: "flex", alignItems: "center" }}
-            >
-              <IconBookmark filled={bookmarkedIds.has(currentQ.questionId)} />
-            </button>
+            {user && (
+              <button
+                onClick={() => toggleBookmark(currentQ.questionId)}
+                title={bookmarkedIds.has(currentQ.questionId) ? "ブックマーク解除" : "ブックマーク"}
+                style={{ background: "none", border: "none", cursor: "pointer", padding: "4px", display: "flex", alignItems: "center" }}
+              >
+                <IconBookmark filled={bookmarkedIds.has(currentQ.questionId)} />
+              </button>
+            )}
           </div>
           <p style={{ fontSize: 16, lineHeight: 1.6, fontWeight: 400, margin: 0, color: "#16191f" }}>
             {currentQ.questionText}

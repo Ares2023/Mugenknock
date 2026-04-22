@@ -25,51 +25,19 @@ function App() {
       <BrowserRouter>
         <Routes>
           <Route path="/login" element={<LoginPage />} />
-          <Route path="/" element={
-            <PrivateRoute>
-              <Layout><Home /></Layout>
-            </PrivateRoute>
-          } />
-          <Route path="/questions" element={
-            <Layout><QuestionList /></Layout>
-          } />
-          <Route path="/exercise/setup" element={
-            <PrivateRoute>
-              <Layout><ExerciseSetup /></Layout>
-            </PrivateRoute>
-          } />
-          <Route path="/exercise/session" element={
-            <PrivateRoute>
-              <Layout><ExerciseSession /></Layout>
-            </PrivateRoute>
-          } />
-          <Route path="/result" element={
-            <PrivateRoute>
-              <Layout><Result /></Layout>
-            </PrivateRoute>
-          } />
-          <Route path="/exam/setup" element={
-            <PrivateRoute>
-              <Layout><ExamSetup /></Layout>
-            </PrivateRoute>
-          } />
-          <Route path="/exam/session" element={
-            <PrivateRoute>
-              <Layout><ExamSession /></Layout>
-            </PrivateRoute>
-          } />
+          <Route path="/" element={<Layout><Home /></Layout>} />
+          <Route path="/questions" element={<Layout><QuestionList /></Layout>} />
+          <Route path="/exercise/setup" element={<Layout><ExerciseSetup /></Layout>} />
+          <Route path="/exercise/session" element={<Layout><ExerciseSession /></Layout>} />
+          <Route path="/result" element={<Layout><Result /></Layout>} />
+          <Route path="/exam/setup" element={<Layout><ExamSetup /></Layout>} />
+          <Route path="/exam/session" element={<Layout><ExamSession /></Layout>} />
+          <Route path="/architecture" element={<Layout><Architecture /></Layout>} />
           <Route path="/admin" element={
-            <PrivateRoute>
-              <Layout><Admin /></Layout>
-            </PrivateRoute>
+            <PrivateRoute><Layout><Admin /></Layout></PrivateRoute>
           } />
           <Route path="/stats" element={
-            <PrivateRoute>
-              <Layout><Stats /></Layout>
-            </PrivateRoute>
-          } />
-          <Route path="/architecture" element={
-            <Layout><Architecture /></Layout>
+            <PrivateRoute><Layout><Stats /></Layout></PrivateRoute>
           } />
         </Routes>
       </BrowserRouter>

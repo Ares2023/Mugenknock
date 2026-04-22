@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { API_ENDPOINT, PASS_RATE } from '../constants';
 import Breadcrumb from '../components/Breadcrumb';
+import { useAuth } from '../contexts/AuthContext';
 
 type Tip = { tipId: string; title: string; content: string; examType: string };
 
@@ -51,6 +52,7 @@ export default function ExerciseSession() {
   const navigate = useNavigate();
   const location = useLocation();
   const { sessionId, questions, userId, examType } = location.state as any;
+  const { user } = useAuth();
 
   const [currentIndex, setCurrentIndex] = useState(0);
   const [selectedAnswers, setSelectedAnswers] = useState<string[]>([]);
@@ -221,17 +223,19 @@ export default function ExerciseSession() {
             </span>
           </h1>
           <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-            <button
-              onClick={toggleBookmark}
-              disabled={bookmarkLoading}
-              title={bookmarkedIds.has(currentQuestion.questionId) ? "ブックマーク解除" : "ブックマーク"}
-              style={{
-                background: "none", border: "none", cursor: "pointer", padding: "4px", display: "flex", alignItems: "center",
-                opacity: bookmarkLoading ? 0.5 : 1,
-              }}
-            >
-              <IconBookmark filled={bookmarkedIds.has(currentQuestion.questionId)} />
-            </button>
+            {user && (
+              <button
+                onClick={toggleBookmark}
+                disabled={bookmarkLoading}
+                title={bookmarkedIds.has(currentQuestion.questionId) ? "ブックマーク解除" : "ブックマーク"}
+                style={{
+                  background: "none", border: "none", cursor: "pointer", padding: "4px", display: "flex", alignItems: "center",
+                  opacity: bookmarkLoading ? 0.5 : 1,
+                }}
+              >
+                <IconBookmark filled={bookmarkedIds.has(currentQuestion.questionId)} />
+              </button>
+            )}
             <span style={{ background: "#f2f3f3", color: "#545b64", padding: "4px 12px", borderRadius: 12, fontSize: 12, fontWeight: 700, border: "1px solid #d1d5db" }}>
               {currentQuestion.examType}
             </span>
