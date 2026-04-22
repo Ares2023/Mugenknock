@@ -13,7 +13,7 @@ type FeatureCardProps = {
 const FeatureCard = ({ title, description, path, label, icon }: FeatureCardProps) => {
   const navigate = useNavigate();
   return (
-    <div style={{ background: 'white', border: '1px solid #eaeded', borderRadius: 2, padding: '24px', borderTop: `4px solid #00cccc`, boxShadow: '0 1px 1px 0 rgba(0,28,36,0.1)', display: 'flex', flexDirection: 'column', gap: 12 }}>
+    <div style={{ background: 'white', border: '1px solid #eaeded', borderRadius: 2, padding: '24px', borderTop: `4px solid #008c8c`, boxShadow: '0 1px 1px 0 rgba(0,28,36,0.1)', display: 'flex', flexDirection: 'column', gap: 12 }}>
       <div style={{ color: '#545b64', display: 'flex', alignItems: 'center', gap: 10 }}>
         {icon}
         <span style={{ fontSize: 16, fontWeight: 700, color: '#16191f' }}>{title}</span>
@@ -25,8 +25,8 @@ const FeatureCard = ({ title, description, path, label, icon }: FeatureCardProps
           marginTop: 'auto',
           padding: '8px 20px',
           background: 'white',
-          color: '#00cccc',
-          border: '1px solid #00cccc',
+          color: '#008c8c',
+          border: '1px solid #008c8c',
           borderRadius: 2,
           cursor: 'pointer',
           fontSize: 13,
@@ -34,8 +34,8 @@ const FeatureCard = ({ title, description, path, label, icon }: FeatureCardProps
           alignSelf: 'flex-start',
           transition: 'all 0.1s',
         }}
-        onMouseEnter={e => { e.currentTarget.style.background = '#e6f9f9'; e.currentTarget.style.borderColor = '#009999'; e.currentTarget.style.color = '#009999'; }}
-        onMouseLeave={e => { e.currentTarget.style.background = 'white'; e.currentTarget.style.borderColor = '#00cccc'; e.currentTarget.style.color = '#00cccc'; }}
+        onMouseEnter={e => { e.currentTarget.style.background = '#e0f2f2'; e.currentTarget.style.borderColor = '#006666'; e.currentTarget.style.color = '#006666'; }}
+        onMouseLeave={e => { e.currentTarget.style.background = 'white'; e.currentTarget.style.borderColor = '#008c8c'; e.currentTarget.style.color = '#008c8c'; }}
       >
         {label} →
       </button>

@@ -189,9 +189,9 @@ export default function ExerciseSession() {
       const selected = selectedAnswers.includes(choice);
       return {
         ...base,
-        borderColor: selected ? "#00cccc" : "#d1d5db",
-        background: selected ? "#e6f9f9" : "white",
-        boxShadow: selected ? "inset 0 0 0 1px #00cccc" : "none",
+        borderColor: selected ? "#008c8c" : "#d1d5db",
+        background: selected ? "#e0f2f2" : "white",
+        boxShadow: selected ? "inset 0 0 0 1px #008c8c" : "none",
         fontWeight: selected ? 700 : 400,
       };
     }
@@ -242,7 +242,7 @@ export default function ExerciseSession() {
           <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 8, gap: 8 }}>
             <div>
               {currentQuestion.isMultiple && (
-                <span style={{ display: "inline-block", background: "#e6f9f9", color: "#00cccc", padding: "2px 8px", borderRadius: 2, fontSize: 12, fontWeight: 700 }}>
+                <span style={{ display: "inline-block", background: "#e0f2f2", color: "#008c8c", padding: "2px 8px", borderRadius: 2, fontSize: 12, fontWeight: 700 }}>
                   複数選択
                 </span>
               )}
@@ -265,8 +265,8 @@ export default function ExerciseSession() {
                 width: 18, height: 18, border: "1px solid #545b64",
                 borderRadius: currentQuestion.isMultiple ? 2 : "50%",
                 marginRight: 12, display: "flex", alignItems: "center", justifyContent: "center",
-                background: selectedAnswers.includes(choice) ? "#00cccc" : "white",
-                borderColor: selectedAnswers.includes(choice) ? "#00cccc" : "#545b64",
+                background: selectedAnswers.includes(choice) ? "#008c8c" : "white",
+                borderColor: selectedAnswers.includes(choice) ? "#008c8c" : "#545b64",
                 flexShrink: 0
               }}>
                 {selectedAnswers.includes(choice) && <span style={{ width: 6, height: 6, borderRadius: "50%", background: "white" }} />}
@@ -331,8 +331,8 @@ export default function ExerciseSession() {
               style={{
                 padding: "8px 20px",
                 background: "white",
-                color: "#00cccc",
-                border: "1px solid #00cccc",
+                color: "#008c8c",
+                border: "1px solid #008c8c",
                 borderRadius: 2,
                 cursor: "pointer",
                 fontSize: 14,
@@ -340,14 +340,14 @@ export default function ExerciseSession() {
                 transition: "all 0.1s"
               }}
               onMouseEnter={e => {
-                e.currentTarget.style.background = "#e6f9f9";
-                e.currentTarget.style.borderColor = "#009999";
-                e.currentTarget.style.color = "#009999";
+                e.currentTarget.style.background = "#e0f2f2";
+                e.currentTarget.style.borderColor = "#006666";
+                e.currentTarget.style.color = "#006666";
               }}
               onMouseLeave={e => {
                 e.currentTarget.style.background = "white";
-                e.currentTarget.style.borderColor = "#00cccc";
-                e.currentTarget.style.color = "#00cccc";
+                e.currentTarget.style.borderColor = "#008c8c";
+                e.currentTarget.style.color = "#008c8c";
               }}
             >
               {currentIndex + 1 >= questions.length ? "結果を表示" : "次の問題へ"}

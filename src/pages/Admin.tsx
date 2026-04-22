@@ -228,7 +228,7 @@ export default function Admin() {
   const tabStyle = (t: Tab) => ({
     padding: '10px 24px',
     border: 'none',
-    borderBottom: tab === t ? '3px solid #00cccc' : '3px solid transparent',
+    borderBottom: tab === t ? '3px solid #008c8c' : '3px solid transparent',
     background: 'none',
     cursor: 'pointer',
     fontWeight: (tab === t ? 700 : 400) as any,
@@ -268,9 +268,9 @@ export default function Admin() {
                 <button key={type} type="button" onClick={() => { setExamFilter(type); setDomainFilter(''); }}
                   style={{
                     padding: '6px 16px', border: '1px solid', borderRadius: 2, cursor: 'pointer',
-                    background: examFilter === type ? '#e6f9f9' : 'white',
-                    color: examFilter === type ? '#00cccc' : '#545b64',
-                    borderColor: examFilter === type ? '#00cccc' : '#d1d5db',
+                    background: examFilter === type ? '#e0f2f2' : 'white',
+                    color: examFilter === type ? '#008c8c' : '#545b64',
+                    borderColor: examFilter === type ? '#008c8c' : '#d1d5db',
                     fontWeight: examFilter === type ? 700 : 400, fontSize: 14
                   }}>
                   {type}
@@ -283,18 +283,18 @@ export default function Admin() {
               <div style={{ display: 'flex', gap: 6, marginBottom: 10, flexWrap: 'wrap' }}>
                 <button type="button" onClick={() => setDomainFilter('')}
                   style={{ padding: '4px 10px', border: '1px solid', borderRadius: 2, cursor: 'pointer', fontSize: 12,
-                    background: domainFilter === '' ? '#e6f9f9' : 'white',
-                    color: domainFilter === '' ? '#00cccc' : '#545b64',
-                    borderColor: domainFilter === '' ? '#00cccc' : '#d1d5db',
+                    background: domainFilter === '' ? '#e0f2f2' : 'white',
+                    color: domainFilter === '' ? '#008c8c' : '#545b64',
+                    borderColor: domainFilter === '' ? '#008c8c' : '#d1d5db',
                     fontWeight: domainFilter === '' ? 700 : 400 }}>
                   全ドメイン
                 </button>
                 {EXAM_DOMAINS[examFilter]?.map(d => (
                   <button key={d} type="button" onClick={() => setDomainFilter(domainFilter === d ? '' : d)}
                     style={{ padding: '4px 10px', border: '1px solid', borderRadius: 2, cursor: 'pointer', fontSize: 12,
-                      background: domainFilter === d ? '#e6f9f9' : 'white',
-                      color: domainFilter === d ? '#00cccc' : '#545b64',
-                      borderColor: domainFilter === d ? '#00cccc' : '#d1d5db',
+                      background: domainFilter === d ? '#e0f2f2' : 'white',
+                      color: domainFilter === d ? '#008c8c' : '#545b64',
+                      borderColor: domainFilter === d ? '#008c8c' : '#d1d5db',
                       fontWeight: domainFilter === d ? 700 : 400 }}>
                     {d}
                   </button>
@@ -308,18 +308,18 @@ export default function Admin() {
                 value={keyword} onChange={e => setKeyword(e.target.value)}
                 placeholder="問題ID・問題文で検索"
                 style={{ flex: 2, minWidth: 180, padding: '6px 12px', border: '1px solid #d1d5db', borderRadius: 2, fontSize: 14, outline: 'none' }}
-                onFocus={e => e.currentTarget.style.borderColor = '#00cccc'}
+                onFocus={e => e.currentTarget.style.borderColor = '#008c8c'}
                 onBlur={e => e.currentTarget.style.borderColor = '#d1d5db'}
               />
               <input
                 value={tagFilter} onChange={e => setTagFilter(e.target.value)}
                 placeholder="タグで絞り込み（例: S3）"
                 style={{ flex: 1, minWidth: 140, padding: '6px 12px', border: '1px solid #d1d5db', borderRadius: 2, fontSize: 14, outline: 'none' }}
-                onFocus={e => e.currentTarget.style.borderColor = '#00cccc'}
+                onFocus={e => e.currentTarget.style.borderColor = '#008c8c'}
                 onBlur={e => e.currentTarget.style.borderColor = '#d1d5db'}
               />
               <button type="submit"
-                style={{ padding: '6px 20px', background: 'white', color: '#00cccc', border: '1px solid #00cccc', borderRadius: 2, cursor: 'pointer', fontWeight: 700, fontSize: 14 }}>
+                style={{ padding: '6px 20px', background: 'white', color: '#008c8c', border: '1px solid #008c8c', borderRadius: 2, cursor: 'pointer', fontWeight: 700, fontSize: 14 }}>
                 検索
               </button>
             </div>
@@ -332,7 +332,7 @@ export default function Admin() {
             </p>
             {selectedIds.size > 0 && (
               <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-                <span style={{ fontSize: 13, color: '#00cccc', fontWeight: 700 }}>{selectedIds.size}件選択中</span>
+                <span style={{ fontSize: 13, color: '#008c8c', fontWeight: 700 }}>{selectedIds.size}件選択中</span>
                 <button
                   onClick={handleBulkDelete}
                   disabled={bulkDeleting}
@@ -370,11 +370,11 @@ export default function Admin() {
 
           {/* 問題リスト */}
           {questions.map(q => (
-            <div key={q.questionId} style={{ border: '1px solid #eaeded', borderRadius: 2, marginBottom: 4, overflow: 'hidden', boxShadow: '0 1px 1px 0 rgba(0,28,36,0.1)', background: selectedIds.has(q.questionId) ? '#e6f9f9' : 'white' }}>
+            <div key={q.questionId} style={{ border: '1px solid #eaeded', borderRadius: 2, marginBottom: 4, overflow: 'hidden', boxShadow: '0 1px 1px 0 rgba(0,28,36,0.1)', background: selectedIds.has(q.questionId) ? '#e0f2f2' : 'white' }}>
               {/* ヘッダー行 */}
               <div
                 onClick={() => setExpandedId(expandedId === q.questionId ? null : q.questionId)}
-                style={{ display: 'flex', alignItems: 'center', padding: '10px 16px', cursor: 'pointer', background: selectedIds.has(q.questionId) ? '#e6f9f9' : expandedId === q.questionId ? '#fbfbfb' : 'white', gap: 10 }}>
+                style={{ display: 'flex', alignItems: 'center', padding: '10px 16px', cursor: 'pointer', background: selectedIds.has(q.questionId) ? '#e0f2f2' : expandedId === q.questionId ? '#fbfbfb' : 'white', gap: 10 }}>
                 <input
                   type="checkbox"
                   checked={selectedIds.has(q.questionId)}
@@ -428,7 +428,7 @@ export default function Admin() {
                     })}
                   </div>
 
-                  <div style={{ background: '#e6f9f9', borderLeft: '4px solid #00cccc', borderRadius: 2, padding: '10px 12px', marginBottom: 10, color: '#16191f', lineHeight: 1.6 }}>
+                  <div style={{ background: '#e0f2f2', borderLeft: '4px solid #008c8c', borderRadius: 2, padding: '10px 12px', marginBottom: 10, color: '#16191f', lineHeight: 1.6 }}>
                     <strong>解説：</strong>{q.explanation}
                   </div>
 
@@ -477,7 +477,7 @@ export default function Admin() {
                     setKeyword(r.questionId);
                     setTimeout(() => fetchQuestions(), 100);
                   }}
-                  style={{ fontSize: 12, padding: '4px 12px', border: '1px solid #00cccc', borderRadius: 2, cursor: 'pointer', background: 'white', color: '#00cccc', fontWeight: 700 }}>
+                  style={{ fontSize: 12, padding: '4px 12px', border: '1px solid #008c8c', borderRadius: 2, cursor: 'pointer', background: 'white', color: '#008c8c', fontWeight: 700 }}>
                   問題を確認
                 </button>
               </div>
@@ -572,9 +572,9 @@ export default function Admin() {
                   {EXAM_TYPES.map(t => (
                     <button key={t} onClick={() => setImportExamType(t)}
                       style={{ padding: '4px 12px', border: '1px solid', borderRadius: 2, cursor: 'pointer', fontSize: 13,
-                        borderColor: importExamType === t ? '#00cccc' : '#d1d5db',
-                        background: importExamType === t ? '#e6f9f9' : 'white',
-                        color: importExamType === t ? '#00cccc' : '#545b64',
+                        borderColor: importExamType === t ? '#008c8c' : '#d1d5db',
+                        background: importExamType === t ? '#e0f2f2' : 'white',
+                        color: importExamType === t ? '#008c8c' : '#545b64',
                         fontWeight: importExamType === t ? 700 : 400 }}>
                       {t}
                     </button>
@@ -615,14 +615,14 @@ export default function Admin() {
               {importParsed && (
                 <button onClick={handleImport} disabled={importing}
                   style={{ padding: '8px 24px', background: importing ? '#eaeded' : 'white',
-                    color: importing ? '#aab7b8' : '#00cccc', border: `1px solid ${importing ? '#eaeded' : '#00cccc'}`, borderRadius: 2, cursor: importing ? 'default' : 'pointer', fontWeight: 700, fontSize: 14 }}>
+                    color: importing ? '#aab7b8' : '#008c8c', border: `1px solid ${importing ? '#eaeded' : '#008c8c'}`, borderRadius: 2, cursor: importing ? 'default' : 'pointer', fontWeight: 700, fontSize: 14 }}>
                   {importing ? 'インポート中...' : `${importParsed.length}件をインポート`}
                 </button>
               )}
             </div>
 
             {importParsed && !importResult && (
-              <div style={{ marginBottom: 16, padding: '10px 14px', background: '#e6f9f9', border: '1px solid #aab7b8', borderRadius: 2, fontSize: 13, color: '#00cccc' }}>
+              <div style={{ marginBottom: 16, padding: '10px 14px', background: '#e0f2f2', border: '1px solid #aab7b8', borderRadius: 2, fontSize: 13, color: '#008c8c' }}>
                 ✓ {importParsed.length}件の問題を認識しました。「{importExamType}」としてインポートします。
               </div>
             )}
@@ -719,8 +719,8 @@ export default function Admin() {
                       style={{ position: 'absolute', top: 8, right: 8,
                         padding: '4px 12px', fontSize: 12, borderRadius: 2, cursor: 'pointer',
                         background: promptCopied ? '#f2fcf3' : 'white',
-                        color: promptCopied ? '#037f0c' : '#00cccc',
-                        border: `1px solid ${promptCopied ? '#037f0c' : '#00cccc'}`,
+                        color: promptCopied ? '#037f0c' : '#008c8c',
+                        border: `1px solid ${promptCopied ? '#037f0c' : '#008c8c'}`,
                         transition: 'all 0.2s', fontWeight: 700 }}>
                       {promptCopied ? '✓ コピー済み' : 'コピー'}
                     </button>
@@ -744,15 +744,15 @@ export default function Admin() {
             </p>
             <div style={{ display: 'flex', gap: 8 }}>
               <button onClick={() => { setShowTipPrompt(v => !v); setShowTipImport(false); setShowTipForm(false); }}
-                style={{ padding: '7px 16px', background: showTipPrompt ? '#e6f9f9' : 'white', color: '#00cccc', border: '1px solid #00cccc', borderRadius: 2, cursor: 'pointer', fontSize: 13, fontWeight: 700 }}>
+                style={{ padding: '7px 16px', background: showTipPrompt ? '#e0f2f2' : 'white', color: '#008c8c', border: '1px solid #008c8c', borderRadius: 2, cursor: 'pointer', fontSize: 13, fontWeight: 700 }}>
                 AIプロンプト
               </button>
               <button onClick={() => { setShowTipImport(v => !v); setShowTipForm(false); setShowTipPrompt(false); }}
-                style={{ padding: '7px 16px', background: showTipImport ? '#e6f9f9' : 'white', color: '#00cccc', border: '1px solid #00cccc', borderRadius: 2, cursor: 'pointer', fontSize: 13, fontWeight: 700 }}>
+                style={{ padding: '7px 16px', background: showTipImport ? '#e0f2f2' : 'white', color: '#008c8c', border: '1px solid #008c8c', borderRadius: 2, cursor: 'pointer', fontSize: 13, fontWeight: 700 }}>
                 JSONインポート
               </button>
               <button onClick={() => { setEditingTip(null); setTipForm({ examType: 'ALL', title: '', content: '' }); setShowTipForm(true); setShowTipImport(false); setShowTipPrompt(false); }}
-                style={{ padding: '7px 16px', background: 'white', color: '#00cccc', border: '1px solid #00cccc', borderRadius: 2, cursor: 'pointer', fontSize: 13, fontWeight: 700 }}>
+                style={{ padding: '7px 16px', background: 'white', color: '#008c8c', border: '1px solid #008c8c', borderRadius: 2, cursor: 'pointer', fontSize: 13, fontWeight: 700 }}>
                 ＋ 手動追加
               </button>
             </div>
@@ -808,9 +808,9 @@ ${tipPromptExamType !== 'ALL' ? `・examType には "${tipPromptExamType}" を�
                       {['ALL', 'CLF', 'SAA', 'SAP'].map(t => (
                         <button key={t} type="button" onClick={() => setTipPromptExamType(t)}
                           style={{ padding: '4px 12px', border: '1px solid', borderRadius: 2, cursor: 'pointer', fontSize: 13,
-                            borderColor: tipPromptExamType === t ? '#00cccc' : '#d1d5db',
-                            background: tipPromptExamType === t ? '#e6f9f9' : 'white',
-                            color: tipPromptExamType === t ? '#00cccc' : '#545b64',
+                            borderColor: tipPromptExamType === t ? '#008c8c' : '#d1d5db',
+                            background: tipPromptExamType === t ? '#e0f2f2' : 'white',
+                            color: tipPromptExamType === t ? '#008c8c' : '#545b64',
                             fontWeight: tipPromptExamType === t ? 700 : 400 }}>
                           {t}
                         </button>
@@ -822,7 +822,7 @@ ${tipPromptExamType !== 'ALL' ? `・examType には "${tipPromptExamType}" を�
                     <input value={tipPromptTopic} onChange={e => setTipPromptTopic(e.target.value)}
                       placeholder="例: S3のライフサイクル、EC2のインスタンスタイプ"
                       style={{ width: '100%', padding: '7px 10px', border: '1px solid #d1d5db', borderRadius: 2, fontSize: 14, boxSizing: 'border-box', outline: 'none' }}
-                      onFocus={e => e.currentTarget.style.borderColor = '#00cccc'}
+                      onFocus={e => e.currentTarget.style.borderColor = '#008c8c'}
                       onBlur={e => e.currentTarget.style.borderColor = '#d1d5db'}
                     />
                   </div>
@@ -831,7 +831,7 @@ ${tipPromptExamType !== 'ALL' ? `・examType には "${tipPromptExamType}" を�
                     <input type="number" value={tipPromptCount} onChange={e => setTipPromptCount(e.target.value)}
                       min={1} max={20}
                       style={{ width: '100%', padding: '7px 10px', border: '1px solid #d1d5db', borderRadius: 2, fontSize: 14, boxSizing: 'border-box', outline: 'none' }}
-                      onFocus={e => e.currentTarget.style.borderColor = '#00cccc'}
+                      onFocus={e => e.currentTarget.style.borderColor = '#008c8c'}
                       onBlur={e => e.currentTarget.style.borderColor = '#d1d5db'}
                     />
                   </div>
@@ -847,8 +847,8 @@ ${tipPromptExamType !== 'ALL' ? `・examType には "${tipPromptExamType}" を�
                     style={{ position: 'absolute', top: 8, right: 8,
                       padding: '4px 12px', fontSize: 12, borderRadius: 2, cursor: 'pointer',
                       background: tipPromptCopied ? '#f2fcf3' : 'white',
-                      color: tipPromptCopied ? '#037f0c' : '#00cccc',
-                      border: `1px solid ${tipPromptCopied ? '#037f0c' : '#00cccc'}`,
+                      color: tipPromptCopied ? '#037f0c' : '#008c8c',
+                      border: `1px solid ${tipPromptCopied ? '#037f0c' : '#008c8c'}`,
                       transition: 'all 0.2s', fontWeight: 700 }}>
                     {tipPromptCopied ? '✓ コピー済み' : 'コピー'}
                   </button>
@@ -874,9 +874,9 @@ ${tipPromptExamType !== 'ALL' ? `・examType には "${tipPromptExamType}" を�
                   {['ALL', 'CLF', 'SAA', 'SAP'].map(t => (
                     <button key={t} type="button" onClick={() => setTipImportExamType(t)}
                       style={{ padding: '5px 14px', border: '1px solid', borderRadius: 2, cursor: 'pointer', fontSize: 13,
-                        background: tipImportExamType === t ? '#e6f9f9' : 'white',
-                        color: tipImportExamType === t ? '#00cccc' : '#545b64',
-                        borderColor: tipImportExamType === t ? '#00cccc' : '#d1d5db',
+                        background: tipImportExamType === t ? '#e0f2f2' : 'white',
+                        color: tipImportExamType === t ? '#008c8c' : '#545b64',
+                        borderColor: tipImportExamType === t ? '#008c8c' : '#d1d5db',
                         fontWeight: tipImportExamType === t ? 700 : 400 }}>
                       {t}
                     </button>
@@ -893,7 +893,7 @@ ${tipPromptExamType !== 'ALL' ? `・examType には "${tipPromptExamType}" を�
                   placeholder={JSON.stringify([{ examType: 'SAA', title: 'S3の結果整合性について', content: 'Amazon S3は強力な結果整合性を提供しており...' }], null, 2)}
                   rows={10}
                   style={{ width: '100%', padding: '10px', border: '1px solid #d1d5db', borderRadius: 2, fontSize: 13, fontFamily: 'monospace', resize: 'vertical', boxSizing: 'border-box', background: 'white', outline: 'none' }}
-                  onFocus={e => e.currentTarget.style.borderColor = '#00cccc'}
+                  onFocus={e => e.currentTarget.style.borderColor = '#008c8c'}
                   onBlur={e => e.currentTarget.style.borderColor = '#d1d5db'}
                 />
               </div>
@@ -905,7 +905,7 @@ ${tipPromptExamType !== 'ALL' ? `・examType には "${tipPromptExamType}" を�
                 </div>
               )}
               {tipImportParsed && !tipImportResult && (
-                <div style={{ marginBottom: 12, padding: '10px 14px', background: '#e6f9f9', border: '1px solid #aab7b8', borderRadius: 2, fontSize: 13, color: '#00cccc' }}>
+                <div style={{ marginBottom: 12, padding: '10px 14px', background: '#e0f2f2', border: '1px solid #aab7b8', borderRadius: 2, fontSize: 13, color: '#008c8c' }}>
                   ✓ {tipImportParsed.length}件を認識しました
                 </div>
               )}
@@ -962,7 +962,7 @@ ${tipPromptExamType !== 'ALL' ? `・examType には "${tipPromptExamType}" を�
                       }
                     }}
                     disabled={tipImporting}
-                    style={{ padding: '7px 24px', background: tipImporting ? '#eaeded' : 'white', color: tipImporting ? '#aab7b8' : '#00cccc', border: `1px solid ${tipImporting ? '#eaeded' : '#00cccc'}`, borderRadius: 2, cursor: tipImporting ? 'default' : 'pointer', fontSize: 13, fontWeight: 700 }}>
+                    style={{ padding: '7px 24px', background: tipImporting ? '#eaeded' : 'white', color: tipImporting ? '#aab7b8' : '#008c8c', border: `1px solid ${tipImporting ? '#eaeded' : '#008c8c'}`, borderRadius: 2, cursor: tipImporting ? 'default' : 'pointer', fontSize: 13, fontWeight: 700 }}>
                     {tipImporting ? 'インポート中...' : `${tipImportParsed.length}件をインポート`}
                   </button>
                 )}
@@ -985,9 +985,9 @@ ${tipPromptExamType !== 'ALL' ? `・examType には "${tipPromptExamType}" を�
                 {['ALL', 'CLF', 'SAA', 'SAP'].map(t => (
                   <button key={t} type="button" onClick={() => setTipForm(f => ({ ...f, examType: t }))}
                     style={{ padding: '4px 12px', border: '1px solid', borderRadius: 2, cursor: 'pointer', fontSize: 13,
-                      borderColor: tipForm.examType === t ? '#00cccc' : '#d1d5db',
-                      background: tipForm.examType === t ? '#e6f9f9' : 'white',
-                      color: tipForm.examType === t ? '#00cccc' : '#545b64',
+                      borderColor: tipForm.examType === t ? '#008c8c' : '#d1d5db',
+                      background: tipForm.examType === t ? '#e0f2f2' : 'white',
+                      color: tipForm.examType === t ? '#008c8c' : '#545b64',
                       fontWeight: tipForm.examType === t ? 700 : 400 }}>
                     {t}
                   </button>
@@ -998,7 +998,7 @@ ${tipPromptExamType !== 'ALL' ? `・examType には "${tipPromptExamType}" を�
                 onChange={e => setTipForm(f => ({ ...f, title: e.target.value }))}
                 placeholder="タイトル"
                 style={{ width: '100%', padding: '7px 10px', border: '1px solid #d1d5db', borderRadius: 2, fontSize: 14, marginBottom: 8, boxSizing: 'border-box', outline: 'none' }}
-                onFocus={e => e.currentTarget.style.borderColor = '#00cccc'}
+                onFocus={e => e.currentTarget.style.borderColor = '#008c8c'}
                 onBlur={e => e.currentTarget.style.borderColor = '#d1d5db'}
               />
               <textarea
@@ -1007,7 +1007,7 @@ ${tipPromptExamType !== 'ALL' ? `・examType には "${tipPromptExamType}" を�
                 placeholder="内容"
                 rows={4}
                 style={{ width: '100%', padding: '7px 10px', border: '1px solid #d1d5db', borderRadius: 2, fontSize: 14, resize: 'vertical', boxSizing: 'border-box', outline: 'none' }}
-                onFocus={e => e.currentTarget.style.borderColor = '#00cccc'}
+                onFocus={e => e.currentTarget.style.borderColor = '#008c8c'}
                 onBlur={e => e.currentTarget.style.borderColor = '#d1d5db'}
               />
               <div style={{ display: 'flex', gap: 8, marginTop: 12, borderTop: '1px solid #eaeded', paddingTop: 12 }}>

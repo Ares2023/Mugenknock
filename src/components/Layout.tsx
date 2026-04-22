@@ -212,7 +212,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
                   transition: 'all 0.15s ease',
                 }}
                 onMouseEnter={e => { 
-                  (e.currentTarget as HTMLElement).style.borderColor = '#00cccc'; 
+                  (e.currentTarget as HTMLElement).style.borderColor = '#008c8c'; 
                   (e.currentTarget as HTMLElement).style.boxShadow = '0 2px 4px rgba(0, 204, 204, 0.2)';
                   (e.currentTarget as HTMLElement).style.transform = 'translateY(-1px)';
                 }}
@@ -223,7 +223,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
                 }}
                 title={`${ai.label} を別タブで開く`}
               >
-                <span style={{ color: '#00cccc', display: 'flex' }}>{ai.icon}</span>
+                <span style={{ color: '#008c8c', display: 'flex' }}>{ai.icon}</span>
                 {ai.label}
                 <svg viewBox="0 0 16 16" width="10" height="10" fill="#879596" style={{ marginLeft: 2 }}>
                   <path d="M12.5 11.5v-3h1v4a1 1 0 0 1-1 1h-10a1 1 0 0 1-1-1v-10a1 1 0 0 1 1-1h4v1h-4v10h10zm-6.15-5.15L11.8 1.8 10 1.8v-1h5v5h-1l-.01-1.8-5.44 5.45-.7-.7z" />
@@ -288,9 +288,9 @@ export default function Layout({ children }: { children: React.ReactNode }) {
                     padding: '9px 20px',
                     background: active ? '#f2f3f3' : 'none',
                     border: 'none',
-                    borderLeft: `3px solid ${active ? '#00cccc' : 'transparent'}`,
+                    borderLeft: `3px solid ${active ? '#008c8c' : 'transparent'}`,
                     cursor: 'pointer',
-                    color: active ? '#00cccc' : '#545b64',
+                    color: active ? '#008c8c' : '#545b64',
                     fontSize: 14,
                     fontWeight: active ? 700 : 400,
                     whiteSpace: 'nowrap',
@@ -321,9 +321,9 @@ export default function Layout({ children }: { children: React.ReactNode }) {
                       background: active ? '#f2f3f3' : 'none',
                       border: 'none',
                       borderTop: '1px solid #eaeded',
-                      borderLeft: `3px solid ${active ? '#00cccc' : 'transparent'}`,
+                      borderLeft: `3px solid ${active ? '#008c8c' : 'transparent'}`,
                       cursor: 'pointer',
-                      color: active ? '#00cccc' : '#879596',
+                      color: active ? '#008c8c' : '#879596',
                       fontSize: 13,
                       fontWeight: active ? 700 : 400,
                       whiteSpace: 'nowrap',
@@ -355,15 +355,15 @@ export default function Layout({ children }: { children: React.ReactNode }) {
                       transition: 'all 0.15s ease'
                     }}
                     onMouseEnter={e => { 
-                      (e.currentTarget as HTMLElement).style.borderColor = '#00cccc';
-                      (e.currentTarget as HTMLElement).style.background = '#e6f9f9';
+                      (e.currentTarget as HTMLElement).style.borderColor = '#008c8c';
+                      (e.currentTarget as HTMLElement).style.background = '#e0f2f2';
                     }}
                     onMouseLeave={e => { 
                       (e.currentTarget as HTMLElement).style.borderColor = '#eaeded';
                       (e.currentTarget as HTMLElement).style.background = 'white';
                     }}
                   >
-                    <span style={{ color: '#00cccc', display: 'flex', marginRight: 10 }}>{ai.icon}</span>
+                    <span style={{ color: '#008c8c', display: 'flex', marginRight: 10 }}>{ai.icon}</span>
                     <span style={{ flex: 1 }}>{ai.label}</span>
                     <svg viewBox="0 0 16 16" width="12" height="12" fill="#879596">
                       <path d="M12.5 11.5v-3h1v4a1 1 0 0 1-1 1h-10a1 1 0 0 1-1-1v-10a1 1 0 0 1 1-1h4v1h-4v10h10zm-6.15-5.15L11.8 1.8 10 1.8v-1h5v5h-1l-.01-1.8-5.44 5.45-.7-.7z" />

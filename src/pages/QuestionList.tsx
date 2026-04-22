@@ -112,13 +112,13 @@ export default function QuestionList() {
           onChange={e => setKeyword(e.target.value)}
           placeholder="サービス名・キーワードで検索"
           style={{ flex: 1, padding: "6px 12px", border: "1px solid #d1d5db", borderRadius: 2, fontSize: 14, outline: 'none' }}
-          onFocus={e => e.currentTarget.style.borderColor = '#00cccc'}
+          onFocus={e => e.currentTarget.style.borderColor = '#008c8c'}
           onBlur={e => e.currentTarget.style.borderColor = '#d1d5db'}
         />
         <button type="submit"
-          style={{ padding: "6px 20px", background: "white", color: "#00cccc", border: "1px solid #00cccc", borderRadius: 2, cursor: "pointer", fontWeight: 700, fontSize: 14 }}
-          onMouseEnter={e => { e.currentTarget.style.background = "#e6f9f9"; e.currentTarget.style.borderColor = "#009999"; e.currentTarget.style.color = "#009999"; }}
-          onMouseLeave={e => { e.currentTarget.style.background = "white"; e.currentTarget.style.borderColor = "#00cccc"; e.currentTarget.style.color = "#00cccc"; }}
+          style={{ padding: "6px 20px", background: "white", color: "#008c8c", border: "1px solid #008c8c", borderRadius: 2, cursor: "pointer", fontWeight: 700, fontSize: 14 }}
+          onMouseEnter={e => { e.currentTarget.style.background = "#e0f2f2"; e.currentTarget.style.borderColor = "#006666"; e.currentTarget.style.color = "#006666"; }}
+          onMouseLeave={e => { e.currentTarget.style.background = "white"; e.currentTarget.style.borderColor = "#008c8c"; e.currentTarget.style.color = "#008c8c"; }}
         >
           検索
         </button>
@@ -138,13 +138,13 @@ export default function QuestionList() {
           <button key={type} onClick={() => { setExamType(type); fetchQuestions(type, keyword); }}
             style={{
               padding: "6px 20px",
-              background: examType === type ? "#e6f9f9" : "white",
+              background: examType === type ? "#e0f2f2" : "white",
               border: "1px solid",
-              borderColor: examType === type ? "#00cccc" : "#d1d5db",
+              borderColor: examType === type ? "#008c8c" : "#d1d5db",
               borderRadius: 2,
               cursor: "pointer",
               fontWeight: examType === type ? 700 : 400,
-              color: examType === type ? "#00cccc" : "#545b64",
+              color: examType === type ? "#008c8c" : "#545b64",
               transition: "all 0.1s"
             }}>
             {type}
@@ -154,9 +154,9 @@ export default function QuestionList() {
 
       <div style={{ marginBottom: 20, display: "flex", gap: 12, borderBottom: '1px solid #eaeded', paddingBottom: 16 }}>
         <button onClick={selectAll}
-          style={{ padding: "6px 20px", background: "white", color: "#00cccc", border: "1px solid #00cccc", borderRadius: 2, cursor: "pointer", fontWeight: 700, fontSize: 14 }}
-          onMouseEnter={e => { e.currentTarget.style.background = "#e6f9f9"; e.currentTarget.style.borderColor = "#009999"; e.currentTarget.style.color = "#009999"; }}
-          onMouseLeave={e => { e.currentTarget.style.background = "white"; e.currentTarget.style.borderColor = "#00cccc"; e.currentTarget.style.color = "#00cccc"; }}
+          style={{ padding: "6px 20px", background: "white", color: "#008c8c", border: "1px solid #008c8c", borderRadius: 2, cursor: "pointer", fontWeight: 700, fontSize: 14 }}
+          onMouseEnter={e => { e.currentTarget.style.background = "#e0f2f2"; e.currentTarget.style.borderColor = "#006666"; e.currentTarget.style.color = "#006666"; }}
+          onMouseLeave={e => { e.currentTarget.style.background = "white"; e.currentTarget.style.borderColor = "#008c8c"; e.currentTarget.style.color = "#008c8c"; }}
         >
           {selected.size === questions.length ? "全選択を解除" : "すべて選択"}
         </button>
@@ -176,13 +176,13 @@ export default function QuestionList() {
       </div>
 
       {loading ? <p style={{ color: '#545b64' }}>読み込み中...</p> : questions.map(q => (
-        <div key={q.questionId} style={{ border: "1px solid #eaeded", borderRadius: 2, marginBottom: 16, padding: 20, background: selected.has(q.questionId) ? "#e6f9f9" : "white", boxShadow: '0 1px 1px 0 rgba(0,28,36,0.1)' }}>
+        <div key={q.questionId} style={{ border: "1px solid #eaeded", borderRadius: 2, marginBottom: 16, padding: 20, background: selected.has(q.questionId) ? "#e0f2f2" : "white", boxShadow: '0 1px 1px 0 rgba(0,28,36,0.1)' }}>
           <div style={{ display: "flex", alignItems: "flex-start", gap: 16 }}>
             <input type="checkbox" checked={selected.has(q.questionId)} onChange={() => toggleSelect(q.questionId)} style={{ marginTop: 6, width: 16, height: 16 }} />
             <div style={{ flex: 1 }}>
               <div style={{ marginBottom: 12 }}>
                 <span style={{ background: "#232f3e", color: "white", borderRadius: 12, padding: "2px 8px", fontSize: 11, fontWeight: 700, marginRight: 10 }}>{q.examType}</span>
-                {q.isMultiple && <span style={{ background: "#e6f9f9", color: "#00cccc", borderRadius: 2, padding: "2px 8px", fontSize: 11, fontWeight: 700 }}>複数選択</span>}
+                {q.isMultiple && <span style={{ background: "#e0f2f2", color: "#008c8c", borderRadius: 2, padding: "2px 8px", fontSize: 11, fontWeight: 700 }}>複数選択</span>}
               </div>
               <p style={{ margin: "0 0 12px", fontWeight: 400, fontSize: 15, lineHeight: 1.6 }}>{q.questionText}</p>
               <ol style={{ margin: "0 0 16px", paddingLeft: 24, fontSize: 14, color: '#545b64', lineHeight: 1.6 }}>{q.choices.map((c, i) => <li key={i}>{c}</li>)}</ol>
@@ -194,7 +194,7 @@ export default function QuestionList() {
               )}
               <div style={{ marginTop: 16, display: "flex", gap: 12 }}>
                 <button onClick={() => fetchDetail(q.questionId)}
-                  style={{ padding: "6px 16px", cursor: "pointer", borderRadius: 2, border: "1px solid #00cccc", background: "white", color: "#00cccc", fontWeight: 700, fontSize: 13 }}>
+                  style={{ padding: "6px 16px", cursor: "pointer", borderRadius: 2, border: "1px solid #008c8c", background: "white", color: "#008c8c", fontWeight: 700, fontSize: 13 }}>
                   {expandedId === q.questionId ? "解説を隠す" : "解説を表示"}
                 </button>
                 <button onClick={() => copyQuestion(q)}

@@ -35,7 +35,7 @@ export default function LoginPage() {
         <button
           onClick={() => navigate('/questions')}
           style={{
-            background: 'none', border: 'none', color: '#00cccc', cursor: 'pointer',
+            background: 'none', border: 'none', color: '#008c8c', cursor: 'pointer',
             fontSize: 14, fontWeight: 700, padding: '4px 8px'
           }}
           onMouseEnter={e => e.currentTarget.style.textDecoration = 'underline'}

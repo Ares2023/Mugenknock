@@ -112,9 +112,9 @@ export default function ExamSetup() {
     fontSize: 13,
     borderRadius: 2,
     border: '1px solid',
-    borderColor: active ? '#00cccc' : '#d1d5db',
-    background: active ? '#e6f9f9' : 'white',
-    color: active ? '#00cccc' : '#545b64',
+    borderColor: active ? '#008c8c' : '#d1d5db',
+    background: active ? '#e0f2f2' : 'white',
+    color: active ? '#008c8c' : '#545b64',
     fontWeight: active ? 700 : 400,
     cursor: 'pointer',
   } as React.CSSProperties);
@@ -178,7 +178,7 @@ export default function ExamSetup() {
           )}
 
           {/* 模試モード説明 */}
-          <div style={{ background: '#e6f9f9', borderLeft: '4px solid #00cccc', borderRadius: 2, padding: '12px 16px', fontSize: 14, color: '#16191f', marginBottom: 32 }}>
+          <div style={{ background: '#e0f2f2', borderLeft: '4px solid #008c8c', borderRadius: 2, padding: '12px 16px', fontSize: 14, color: '#16191f', marginBottom: 32 }}>
             <strong style={{ display: 'block', marginBottom: 4 }}>模試モードについて：</strong>
             回答ごとの正誤は表示されません。全問終了後にまとめて結果を確認できます。タイマーは一時停止可能です。
           </div>
@@ -245,7 +245,7 @@ export default function ExamSetup() {
               <span style={{ fontSize: 13, color: '#16191f' }}>
                 {selectedDomain || selectedTag ? 'フィルタ後の出題数' : '出題数'}
               </span>
-              <span style={{ fontSize: 20, fontWeight: 700, color: '#00cccc' }}>
+              <span style={{ fontSize: 20, fontWeight: 700, color: '#008c8c' }}>
                 {useableCount === null ? '...' : useableCount}
                 <span style={{ fontSize: 12, fontWeight: 400, marginLeft: 4 }}>問</span>
               </span>
@@ -270,13 +270,13 @@ export default function ExamSetup() {
               <div key={cat.name} style={{ marginBottom: 10 }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 12, marginBottom: 4 }}>
                   <span style={{
-                    color: selectedDomain === cat.name ? '#00cccc' : '#16191f',
+                    color: selectedDomain === cat.name ? '#008c8c' : '#16191f',
                     fontWeight: selectedDomain === cat.name ? 700 : 400,
                   }}>{cat.name}</span>
-                  <span style={{ fontWeight: 700, color: '#00cccc', flexShrink: 0, marginLeft: 8 }}>{cat.ratio}</span>
+                  <span style={{ fontWeight: 700, color: '#008c8c', flexShrink: 0, marginLeft: 8 }}>{cat.ratio}</span>
                 </div>
                 <div style={{ background: '#eaeded', borderRadius: 10, height: 4 }}>
-                  <div style={{ background: selectedDomain === cat.name ? '#00cccc' : '#879596', borderRadius: 10, height: 4, width: cat.ratio }} />
+                  <div style={{ background: selectedDomain === cat.name ? '#008c8c' : '#879596', borderRadius: 10, height: 4, width: cat.ratio }} />
                 </div>
               </div>
             ))}

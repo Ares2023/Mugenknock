@@ -23,7 +23,7 @@ export default function Breadcrumb({ items }: Props) {
               onClick={() => navigate(item.path!)}
               style={{
                 background: 'none', border: 'none', padding: 0,
-                color: '#00cccc', cursor: 'pointer', fontSize: 14,
+                color: '#008c8c', cursor: 'pointer', fontSize: 14,
                 textDecoration: 'none',
               }}
               onMouseEnter={e => e.currentTarget.style.textDecoration = 'underline'}
