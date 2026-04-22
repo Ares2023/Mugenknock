@@ -1,9 +1,10 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { API_ENDPOINT, EXAM_TYPES } from '../constants';
+import { API_ENDPOINT, EXAM_TYPES, EXAM_DOMAINS } from '../constants';
 
 type Question = {
   questionId: string;
   examType: string;
+  domain?: string;
   questionText: string;
   choices: string[];
   correctAnswers: string[];
@@ -28,11 +29,14 @@ type Tip = {
 };
 
 type ImportQuestion = {
+  examType?: string;
+  domain?: string;
   questionText: string;
   choices: string[];
   correctAnswers: string[];
   explanation?: string;
   isMultiple?: boolean;
+  tags?: string[];
 };
 
 type Tab = 'questions' | 'reports' | 'tips' | 'import';
@@ -43,6 +47,8 @@ export default function Admin() {
   // 問題管理
   const [questions, setQuestions] = useState<Question[]>([]);
   const [examFilter, setExamFilter] = useState('ALL');
+  const [tagFilter, setTagFilter] = useState('');
+  const [domainFilter, setDomainFilter] = useState('');
   const [keyword, setKeyword] = useState('');
   const [loadingQ, setLoadingQ] = useState(false);
   const [expandedId, setExpandedId] = useState<string | null>(null);
@@ -77,6 +83,8 @@ export default function Admin() {
       const params = new URLSearchParams();
       if (examFilter !== 'ALL') params.set('examType', examFilter);
       if (keyword.trim()) params.set('keyword', keyword.trim());
+      if (tagFilter.trim()) params.set('tag', tagFilter.trim());
+      if (domainFilter) params.set('domain', domainFilter);
       const res = await fetch(`${API_ENDPOINT}/admin/questions?${params}`);
       const data = await res.json();
       setQuestions(data.items || []);
@@ -85,7 +93,7 @@ export default function Admin() {
     } finally {
       setLoadingQ(false);
     }
-  }, [examFilter, keyword]);
+  }, [examFilter, keyword, tagFilter, domainFilter]);
 
   const fetchReports = useCallback(async () => {
     setLoadingR(true);
@@ -109,7 +117,7 @@ export default function Admin() {
     } catch (err) { console.error(err); } finally { setLoadingT(false); }
   }, []);
 
-  useEffect(() => { fetchQuestions(); }, [examFilter]);
+  useEffect(() => { fetchQuestions(); }, [examFilter, tagFilter, domainFilter]);
   useEffect(() => { if (tab === 'reports') fetchReports(); }, [tab]);
   useEffect(() => { if (tab === 'tips') fetchTips(); }, [tab]);
 
@@ -201,36 +209,68 @@ export default function Admin() {
       {tab === 'questions' && (
         <div>
           {/* 検索バー */}
-          <form onSubmit={handleSearch} style={{ display: 'flex', gap: 12, marginBottom: 20, flexWrap: 'wrap' }}>
-            <div style={{ display: 'flex', gap: 8 }}>
+          <form onSubmit={handleSearch} style={{ marginBottom: 16 }}>
+            {/* 試験種別 */}
+            <div style={{ display: 'flex', gap: 8, marginBottom: 10, flexWrap: 'wrap' }}>
               {['ALL', ...EXAM_TYPES].map(type => (
-                <button key={type} type="button" onClick={() => setExamFilter(type)}
+                <button key={type} type="button" onClick={() => { setExamFilter(type); setDomainFilter(''); }}
                   style={{
-                    padding: '6px 16px',
-                    border: '1px solid',
-                    borderRadius: 2,
-                    cursor: 'pointer',
+                    padding: '6px 16px', border: '1px solid', borderRadius: 2, cursor: 'pointer',
                     background: examFilter === type ? '#f2f8fd' : 'white',
                     color: examFilter === type ? '#0073bb' : '#545b64',
                     borderColor: examFilter === type ? '#0073bb' : '#d1d5db',
-                    fontWeight: examFilter === type ? 700 : 400,
-                    fontSize: 14
+                    fontWeight: examFilter === type ? 700 : 400, fontSize: 14
                   }}>
                   {type}
                 </button>
               ))}
             </div>
-            <input
-              value={keyword} onChange={e => setKeyword(e.target.value)}
-              placeholder="問題ID・問題文で検索"
-              style={{ flex: 1, minWidth: 200, padding: '6px 12px', border: '1px solid #d1d5db', borderRadius: 2, fontSize: 14, outline: 'none' }}
-              onFocus={e => e.currentTarget.style.borderColor = '#0073bb'}
-              onBlur={e => e.currentTarget.style.borderColor = '#d1d5db'}
-            />
-            <button type="submit"
-              style={{ padding: '6px 20px', background: 'white', color: '#0073bb', border: '1px solid #0073bb', borderRadius: 2, cursor: 'pointer', fontWeight: 700, fontSize: 14 }}>
-              検索
-            </button>
+
+            {/* ドメインフィルタ（試験種別が選択されている場合のみ） */}
+            {examFilter !== 'ALL' && (
+              <div style={{ display: 'flex', gap: 6, marginBottom: 10, flexWrap: 'wrap' }}>
+                <button type="button" onClick={() => setDomainFilter('')}
+                  style={{ padding: '4px 10px', border: '1px solid', borderRadius: 2, cursor: 'pointer', fontSize: 12,
+                    background: domainFilter === '' ? '#f2f8fd' : 'white',
+                    color: domainFilter === '' ? '#0073bb' : '#545b64',
+                    borderColor: domainFilter === '' ? '#0073bb' : '#d1d5db',
+                    fontWeight: domainFilter === '' ? 700 : 400 }}>
+                  全ドメイン
+                </button>
+                {EXAM_DOMAINS[examFilter]?.map(d => (
+                  <button key={d} type="button" onClick={() => setDomainFilter(domainFilter === d ? '' : d)}
+                    style={{ padding: '4px 10px', border: '1px solid', borderRadius: 2, cursor: 'pointer', fontSize: 12,
+                      background: domainFilter === d ? '#f2f8fd' : 'white',
+                      color: domainFilter === d ? '#0073bb' : '#545b64',
+                      borderColor: domainFilter === d ? '#0073bb' : '#d1d5db',
+                      fontWeight: domainFilter === d ? 700 : 400 }}>
+                    {d}
+                  </button>
+                ))}
+              </div>
+            )}
+
+            {/* キーワード・タグ・検索ボタン */}
+            <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+              <input
+                value={keyword} onChange={e => setKeyword(e.target.value)}
+                placeholder="問題ID・問題文で検索"
+                style={{ flex: 2, minWidth: 180, padding: '6px 12px', border: '1px solid #d1d5db', borderRadius: 2, fontSize: 14, outline: 'none' }}
+                onFocus={e => e.currentTarget.style.borderColor = '#0073bb'}
+                onBlur={e => e.currentTarget.style.borderColor = '#d1d5db'}
+              />
+              <input
+                value={tagFilter} onChange={e => setTagFilter(e.target.value)}
+                placeholder="タグで絞り込み（例: S3）"
+                style={{ flex: 1, minWidth: 140, padding: '6px 12px', border: '1px solid #d1d5db', borderRadius: 2, fontSize: 14, outline: 'none' }}
+                onFocus={e => e.currentTarget.style.borderColor = '#0073bb'}
+                onBlur={e => e.currentTarget.style.borderColor = '#d1d5db'}
+              />
+              <button type="submit"
+                style={{ padding: '6px 20px', background: 'white', color: '#0073bb', border: '1px solid #0073bb', borderRadius: 2, cursor: 'pointer', fontWeight: 700, fontSize: 14 }}>
+                検索
+              </button>
+            </div>
           </form>
 
           {/* 件数 */}
@@ -295,8 +335,15 @@ export default function Admin() {
                     <strong>解説：</strong>{q.explanation}
                   </div>
 
+                  {q.domain && (
+                    <div style={{ fontSize: 12, color: '#545b64', marginBottom: 4 }}>
+                      ドメイン: <span style={{ fontWeight: 700 }}>{q.domain}</span>
+                    </div>
+                  )}
                   <div style={{ color: '#888', fontSize: 12 }}>
-                    タグ: {q.tags?.join(', ') || 'なし'}
+                    タグ: {q.tags?.length ? q.tags.map(t => (
+                      <span key={t} style={{ display: 'inline-block', background: '#f2f3f3', border: '1px solid #d1d5db', borderRadius: 2, padding: '1px 6px', marginRight: 4, fontSize: 11 }}>{t}</span>
+                    )) : 'なし'}
                   </div>
                 </div>
               )}
@@ -353,11 +400,12 @@ export default function Admin() {
         const EXAMPLE = JSON.stringify([
           {
             examType: "SAA",
-            questionText: "Amazon S3の特徴として正しいものはどれですか？",
-            choices: ["A. リレーショナルデータベースサービス", "B. オブジェクトストレージサービス", "C. インメモリキャッシュサービス", "D. コンテナオーケストレーションサービス"],
-            correctAnswers: ["B. オブジェクトストレージサービス"],
-            explanation: "Amazon S3はオブジェクトストレージサービスです。",
-            tags: ["S3", "ストレージ", "知識問題"],
+            domain: "セキュアなアーキテクチャの設計",
+            questionText: "Amazon S3バケットへのアクセスを特定のVPCからのみに制限するために使用すべきものはどれですか？",
+            choices: ["A. バケットACL", "B. S3バケットポリシーとVPCエンドポイント", "C. IAMユーザーポリシー", "D. セキュリティグループ"],
+            correctAnswers: ["B. S3バケットポリシーとVPCエンドポイント"],
+            explanation: "VPCエンドポイントを使用しS3バケットポリシーでaws:sourceVpceを条件にすることでVPC外からのアクセスを制限できます。",
+            tags: ["S3", "VPC", "セキュリティ"],
             isMultiple: false
           }
         ], null, 2);
@@ -503,6 +551,11 @@ export default function Admin() {
               };
               const topic = promptTopic.trim() || '（トピックを入力してください）';
               const count = parseInt(promptCount) || 5;
+              const EXAM_DOMAIN_LIST = {
+                CLF: ['クラウドのコンセプト', 'セキュリティとコンプライアンス', 'クラウドテクノロジーとサービス', '請求・料金・サポート'],
+                SAA: ['セキュアなアーキテクチャの設計', '弾力性に優れたアーキテクチャの設計', '高パフォーマンスなアーキテクチャの設計', 'コスト最適化されたアーキテクチャの設計'],
+                SAP: ['組織の複雑さに対応したソリューションの設計', '新しいソリューションの設計', '既存ソリューションの継続的改善', 'ワークロードの移行とモダナイゼーション'],
+              } as Record<string, string[]>;
               const prompt = `あなたはAWS認定試験の問題作成の専門家です。
 以下の条件に従い、試験問題を${count}問作成し、JSON配列のみを出力してください（前後の説明文は不要）。
 
@@ -515,17 +568,21 @@ export default function Admin() {
 ・correctAnswers の文字列は choices の文字列と完全一致させること
 ・解説は「正解の理由」と「各不正解の理由」を含めること（150字以上）
 ・本番試験と同等の難易度・文体で作成すること
-・tags 配列には、関連するAWSサービス名、分野（セキュリティ、高可用性など）、または問題の種類（シナリオ、知識）を含めること。
+・examType には "${importExamType}" を必ず設定すること
+・domain には以下のいずれかを設定すること: ${EXAM_DOMAIN_LIST[importExamType]?.join(' / ')}
+・tags 配列には関連するAWSサービス名のみを入れること（例: "S3", "IAM", "EC2"）
 
 【出力形式】
 [
   {
+    "examType": "${importExamType}",
+    "domain": "（上記ドメインのいずれか）",
     "questionText": "問題文",
     "choices": ["A. 選択肢1", "B. 選択肢2", "C. 選択肢3", "D. 選択肢4"],
     "correctAnswers": ["A. 選択肢1"],
     "explanation": "解説文",
     "isMultiple": false,
-    "tags": ["関連サービス名", "問題の種類"]
+    "tags": ["関連AWSサービス名"]
   }
 ]`;
 

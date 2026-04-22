@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { API_ENDPOINT, EXAM_TYPES, PASS_SCORES, PASS_RATE } from '../constants';
+import { API_ENDPOINT, EXAM_TYPES, EXAM_DOMAINS, PASS_SCORES, PASS_RATE } from '../constants';
 import { useAuth } from '../contexts/AuthContext';
 import Breadcrumb from '../components/Breadcrumb';
 
@@ -57,6 +57,8 @@ export default function ExerciseSetup() {
   const navigate = useNavigate();
   const { user } = useAuth();
   const [examType, setExamType] = useState('CLF');
+  const [selectedDomain, setSelectedDomain] = useState('');
+  const [selectedTag, setSelectedTag] = useState('');
   const [limit, setLimit] = useState(10);
   const [shuffle, setShuffle] = useState(true);
   const [loading, setLoading] = useState(false);
@@ -65,31 +67,51 @@ export default function ExerciseSetup() {
   const passScore = PASS_SCORES[examType];
   const [availableCount, setAvailableCount] = useState<number | null>(null);
   const [answeredCount, setAnsweredCount] = useState<number | null>(null);
+  const [availableTags, setAvailableTags] = useState<string[]>([]);
+
+  useEffect(() => {
+    setSelectedDomain('');
+    setSelectedTag('');
+  }, [examType]);
 
   useEffect(() => {
     setAvailableCount(null);
     setAnsweredCount(null);
 
-    const fetchAvailable = fetch(`${API_ENDPOINT}/questions?examType=${examType}`)
+    const params = new URLSearchParams({ examType });
+    if (selectedDomain) params.set('domain', selectedDomain);
+    if (selectedTag) params.set('tagId', selectedTag);
+
+    fetch(`${API_ENDPOINT}/questions?${params}`)
       .then(r => r.json())
       .then(d => setAvailableCount(d.count ?? d.items?.length ?? 0))
       .catch(() => setAvailableCount(0));
 
-    const fetchAnswered = user
-      ? fetch(`${API_ENDPOINT}/users/me/question-stats?userId=${user.userId}&examType=${examType}`)
-          .then(r => r.json())
-          .then(d => setAnsweredCount(d.answeredCount ?? 0))
-          .catch(() => setAnsweredCount(0))
-      : Promise.resolve(setAnsweredCount(0));
+    if (user) {
+      fetch(`${API_ENDPOINT}/users/me/question-stats?userId=${user.userId}&examType=${examType}`)
+        .then(r => r.json())
+        .then(d => setAnsweredCount(d.answeredCount ?? 0))
+        .catch(() => setAnsweredCount(0));
+    } else {
+      setAnsweredCount(0);
+    }
+  }, [examType, selectedDomain, selectedTag, user]);
 
-    Promise.all([fetchAvailable, fetchAnswered]);
-  }, [examType, user]);
+  useEffect(() => {
+    fetch(`${API_ENDPOINT}/tags?examType=${examType}`)
+      .then(r => r.json())
+      .then(d => setAvailableTags(d.tags || []))
+      .catch(() => setAvailableTags([]));
+  }, [examType]);
 
   const startSession = async () => {
     setLoading(true);
     try {
-      const url = `${API_ENDPOINT}/questions?examType=${examType}&limit=${limit}&shuffle=${shuffle}`;
-      const res = await fetch(url);
+      const params = new URLSearchParams({ examType, limit: String(limit), shuffle: String(shuffle) });
+      if (selectedDomain) params.set('domain', selectedDomain);
+      if (selectedTag) params.set('tagId', selectedTag);
+
+      const res = await fetch(`${API_ENDPOINT}/questions?${params}`);
       const data = await res.json();
       const questionIds = data.items.map((q: any) => q.questionId);
 
@@ -112,6 +134,18 @@ export default function ExerciseSetup() {
     }
   };
 
+  const chipStyle = (active: boolean) => ({
+    padding: '4px 12px',
+    fontSize: 13,
+    borderRadius: 2,
+    border: '1px solid',
+    borderColor: active ? '#0073bb' : '#d1d5db',
+    background: active ? '#f2f8fd' : 'white',
+    color: active ? '#0073bb' : '#545b64',
+    fontWeight: active ? 700 : 400,
+    cursor: 'pointer',
+  } as React.CSSProperties);
+
   return (
     <div style={{ maxWidth: 1200, margin: '0 auto', padding: '24px 40px', color: '#16191f' }}>
       <Breadcrumb items={[{ label: 'ホーム', path: '/' }, { label: '演習設定' }]} />
@@ -125,45 +159,70 @@ export default function ExerciseSetup() {
           <h2 style={{ fontSize: 18, fontWeight: 700, margin: '0 0 24px', borderBottom: '1px solid #eaeded', paddingBottom: 12 }}>
             演習パラメーター
           </h2>
-          
+
+          {/* 試験種別 */}
           <div style={{ marginBottom: 24 }}>
             <label style={{ display: 'block', marginBottom: 8, fontWeight: 700, fontSize: 14 }}>試験種別</label>
-            <div style={{ display: 'flex', gap: 12 }}>
+            <div style={{ display: 'flex', gap: 8 }}>
               {EXAM_TYPES.map(type => (
-                <button key={type} onClick={() => setExamType(type)}
-                  style={{
-                    padding: '8px 24px',
-                    background: examType === type ? '#f2f8fd' : 'white',
-                    border: '1px solid',
-                    borderColor: examType === type ? '#0073bb' : '#d1d5db',
-                    borderRadius: 2,
-                    cursor: 'pointer',
-                    fontWeight: examType === type ? 700 : 400,
-                    color: examType === type ? '#0073bb' : '#545b64',
-                    transition: 'all 0.1s'
-                  }}>
+                <button key={type} onClick={() => setExamType(type)} style={chipStyle(examType === type)}>
                   {type}
                 </button>
               ))}
             </div>
           </div>
 
+          {/* ドメインフィルタ */}
+          <div style={{ marginBottom: 24 }}>
+            <label style={{ display: 'block', marginBottom: 8, fontWeight: 700, fontSize: 14 }}>
+              出題ドメイン <span style={{ fontWeight: 400, fontSize: 12, color: '#545b64' }}>（任意）</span>
+            </label>
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
+              <button onClick={() => setSelectedDomain('')} style={chipStyle(selectedDomain === '')}>すべて</button>
+              {EXAM_DOMAINS[examType].map(d => (
+                <button key={d} onClick={() => setSelectedDomain(selectedDomain === d ? '' : d)} style={chipStyle(selectedDomain === d)}>
+                  {d}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* タグフィルタ */}
+          {availableTags.length > 0 && (
+            <div style={{ marginBottom: 24 }}>
+              <label style={{ display: 'block', marginBottom: 8, fontWeight: 700, fontSize: 14 }}>
+                タグ <span style={{ fontWeight: 400, fontSize: 12, color: '#545b64' }}>（任意）</span>
+              </label>
+              <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
+                <button onClick={() => setSelectedTag('')} style={chipStyle(selectedTag === '')}>すべて</button>
+                {availableTags.map(t => (
+                  <button key={t} onClick={() => setSelectedTag(selectedTag === t ? '' : t)} style={chipStyle(selectedTag === t)}>
+                    {t}
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* 問題数 */}
           <div style={{ marginBottom: 24 }}>
             <label style={{ display: 'block', marginBottom: 8, fontWeight: 700, fontSize: 14 }}>問題数</label>
-            <input type="number" value={limit} onChange={e => setLimit(parseInt(e.target.value))} min={1} max={50}
+            <input type="number" value={limit} onChange={e => setLimit(Math.max(1, parseInt(e.target.value) || 1))} min={1} max={availableCount ?? 50}
               style={{ padding: '6px 12px', width: 100, border: '1px solid #d1d5db', borderRadius: 2, fontSize: 14, outline: 'none' }}
               onFocus={e => e.currentTarget.style.borderColor = '#0073bb'}
               onBlur={e => e.currentTarget.style.borderColor = '#d1d5db'}
             />
-            <span style={{ marginLeft: 12, fontSize: 12, color: '#545b64' }}>最大 50 問</span>
+            <span style={{ marginLeft: 12, fontSize: 12, color: '#545b64' }}>
+              {availableCount !== null ? `最大 ${availableCount} 問` : '読込中...'}
+            </span>
           </div>
 
+          {/* シャッフル */}
           <div style={{ marginBottom: 32, padding: '16px', background: '#f2f3f3', borderRadius: 2 }}>
             <label style={{ display: 'flex', alignItems: 'center', gap: 10, cursor: 'pointer', fontSize: 14 }}>
               <input type="checkbox" checked={shuffle} onChange={e => setShuffle(e.target.checked)} style={{ width: 16, height: 16 }} />
               <span style={{ fontWeight: 700 }}>問題をシャッフルする</span>
             </label>
-            <p style={{ fontSize: 12, color: '#545b64', margin: '4px 0 0 26px' }}>チェックを入れると出題順がランダムになります。</p>
           </div>
 
           <div style={{ display: 'flex', gap: 12, borderTop: '1px solid #eaeded', paddingTop: 24, justifyContent: 'flex-end' }}>
@@ -171,19 +230,19 @@ export default function ExerciseSetup() {
               style={{ padding: '8px 20px', cursor: 'pointer', borderRadius: 2, border: '1px solid #545b64', background: 'white', fontWeight: 700, fontSize: 14 }}>
               キャンセル
             </button>
-            <button onClick={startSession} disabled={loading}
+            <button onClick={startSession} disabled={loading || availableCount === 0}
               style={{
                 padding: '8px 32px',
-                background: loading ? '#eaeded' : '#ff9900',
-                color: loading ? '#aab7b8' : '#16191f',
+                background: loading || availableCount === 0 ? '#eaeded' : '#ff9900',
+                color: loading || availableCount === 0 ? '#aab7b8' : '#16191f',
                 border: '1px solid transparent',
                 borderRadius: 2,
-                cursor: loading ? 'default' : 'pointer',
+                cursor: loading || availableCount === 0 ? 'default' : 'pointer',
                 fontSize: 14,
                 fontWeight: 700
               }}
-              onMouseEnter={e => { if (!loading) e.currentTarget.style.background = '#ec7211'; }}
-              onMouseLeave={e => { if (!loading) e.currentTarget.style.background = '#ff9900'; }}
+              onMouseEnter={e => { if (!loading && availableCount !== 0) e.currentTarget.style.background = '#ec7211'; }}
+              onMouseLeave={e => { if (!loading && availableCount !== 0) e.currentTarget.style.background = '#ff9900'; }}
             >
               {loading ? '準備中...' : '演習を開始する'}
             </button>
@@ -206,19 +265,24 @@ export default function ExerciseSetup() {
               </div>
             </div>
             <div style={{ background: '#fbfbfb', border: '1px solid #eaeded', borderRadius: 2, padding: '12px' }}>
-              <div style={{ fontSize: 11, color: '#545b64', fontWeight: 700, marginBottom: 4 }}>サイト内問題数</div>
+              <div style={{ fontSize: 11, color: '#545b64', fontWeight: 700, marginBottom: 4 }}>
+                {selectedDomain || selectedTag ? 'フィルタ後の問題数' : 'サイト内問題数'}
+              </div>
               <div style={{ fontSize: 20, fontWeight: 700, color: '#0073bb' }}>
                 {availableCount === null ? '...' : availableCount}
                 <span style={{ fontSize: 12, fontWeight: 400, marginLeft: 4 }}>問</span>
               </div>
             </div>
             <div style={{ background: '#fbfbfb', border: '1px solid #eaeded', borderRadius: 2, padding: '12px' }}>
-              <div style={{ fontSize: 11, color: '#545b64', fontWeight: 700, marginBottom: 4 }}>制限時間</div>
-              <div style={{ fontSize: 20, fontWeight: 700 }}>{info.timeLimit}</div>
+              <div style={{ fontSize: 11, color: '#545b64', fontWeight: 700, marginBottom: 4 }}>演習済み</div>
+              <div style={{ fontSize: 20, fontWeight: 700, color: '#037f0c' }}>
+                {answeredCount === null ? '...' : answeredCount}
+                <span style={{ fontSize: 12, fontWeight: 400, marginLeft: 4 }}>問</span>
+              </div>
             </div>
             <div style={{ background: '#fbfbfb', border: '1px solid #eaeded', borderRadius: 2, padding: '12px' }}>
               <div style={{ fontSize: 11, color: '#545b64', fontWeight: 700, marginBottom: 4 }}>合格スコア</div>
-              <div style={{ fontSize: 20, fontWeight: 700, color: '#037f0c' }}>{passScore}</div>
+              <div style={{ fontSize: 20, fontWeight: 700 }}>{passScore}</div>
             </div>
           </div>
 
@@ -227,11 +291,14 @@ export default function ExerciseSetup() {
             {info.categories.map(cat => (
               <div key={cat.name} style={{ marginBottom: 12 }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 12, marginBottom: 4 }}>
-                  <span style={{ color: '#16191f' }}>{cat.name}</span>
+                  <span style={{
+                    color: selectedDomain === cat.name ? '#0073bb' : '#16191f',
+                    fontWeight: selectedDomain === cat.name ? 700 : 400,
+                  }}>{cat.name}</span>
                   <span style={{ fontWeight: 700, color: '#0073bb' }}>{cat.ratio}</span>
                 </div>
                 <div style={{ background: '#eaeded', borderRadius: 10, height: 4 }}>
-                  <div style={{ background: '#0073bb', borderRadius: 10, height: 4, width: cat.ratio }} />
+                  <div style={{ background: selectedDomain === cat.name ? '#0073bb' : '#879596', borderRadius: 10, height: 4, width: cat.ratio }} />
                 </div>
               </div>
             ))}

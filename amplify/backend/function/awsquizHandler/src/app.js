@@ -36,7 +36,7 @@ app.get('/health', (req, res) => {
 app.get('/questions', async (req, res) => {
   try {
     const docClient = getClient();
-    const { examType, tagId, limit, shuffle: doShuffle, keyword } = req.query;
+    const { examType, tagId, domain, limit, shuffle: doShuffle, keyword } = req.query;
     let items = [];
 
     if (tagId) {
@@ -50,6 +50,8 @@ app.get('/questions', async (req, res) => {
       );
       const results = await Promise.all(promises);
       items = results.map(r => r.Item).filter(Boolean);
+      // tagId指定時もexamTypeで絞り込み可能
+      if (examType) items = items.filter(q => q.examType === examType);
     } else if (examType) {
       const result = await docClient.send(new QueryCommand({
         TableName: 'Questions',
@@ -63,6 +65,7 @@ app.get('/questions', async (req, res) => {
       items = result.Items;
     }
 
+    if (domain) items = items.filter(q => q.domain === domain);
     if (keyword) {
       const kw = keyword.toLowerCase();
       items = items.filter(q =>
@@ -156,7 +159,7 @@ app.delete('/questions/:id', async (req, res) => {
 app.post('/admin/questions', async (req, res) => {
   try {
     const docClient = getClient();
-    const { examType, tags, questions } = req.body;
+    const { examType, domain, tags, questions } = req.body;
     if (!Array.isArray(questions) || questions.length === 0) {
       return res.status(400).json({ error: 'questions must be a non-empty array' });
     }
@@ -167,24 +170,25 @@ app.post('/admin/questions', async (req, res) => {
     for (let i = 0; i < questions.length; i++) {
       const q = questions[i];
       const itemExamType = q.examType || examType;
+      const itemDomain = q.domain || domain || null;
       const shortId = uuidv4().replace(/-/g, '').slice(0, 8);
       const questionId = `${itemExamType.toLowerCase()}-${shortId}`;
       const itemTags = Array.from(new Set([...(tags || []), ...(q.tags || [])]));
 
-      await docClient.send(new PutCommand({
-        TableName: 'Questions',
-        Item: {
-          questionId,
-          examType: itemExamType,
-          questionText: q.questionText,
-          choices: q.choices,
-          correctAnswers: q.correctAnswers,
-          explanation: q.explanation || '',
-          tags: itemTags,
-          isMultiple: q.isMultiple ?? false,
-          createdAt: now,
-        }
-      }));
+      const item = {
+        questionId,
+        examType: itemExamType,
+        questionText: q.questionText,
+        choices: q.choices,
+        correctAnswers: q.correctAnswers,
+        explanation: q.explanation || '',
+        tags: itemTags,
+        isMultiple: q.isMultiple ?? false,
+        createdAt: now,
+      };
+      if (itemDomain) item.domain = itemDomain;
+
+      await docClient.send(new PutCommand({ TableName: 'Questions', Item: item }));
 
       if (itemTags.length > 0) {
         await Promise.all(itemTags.map(tagId =>
@@ -209,7 +213,7 @@ app.post('/admin/questions', async (req, res) => {
 app.get('/admin/questions', async (req, res) => {
   try {
     const docClient = getClient();
-    const { examType, keyword } = req.query;
+    const { examType, keyword, tag, domain } = req.query;
     let items = [];
 
     if (examType && examType !== 'ALL') {
@@ -225,6 +229,8 @@ app.get('/admin/questions', async (req, res) => {
       items = result.Items || [];
     }
 
+    if (tag) items = items.filter(q => (q.tags || []).includes(tag));
+    if (domain) items = items.filter(q => q.domain === domain);
     if (keyword) {
       const kw = keyword.toLowerCase();
       items = items.filter(q =>
@@ -235,6 +241,40 @@ app.get('/admin/questions', async (req, res) => {
 
     items.sort((a, b) => a.questionId.localeCompare(b.questionId));
     res.json({ items, count: items.length });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+// タグ一覧取得（examTypeで絞り込み可能）
+app.get('/tags', async (req, res) => {
+  try {
+    const docClient = getClient();
+    const { examType } = req.query;
+    let items = [];
+
+    if (examType) {
+      const result = await docClient.send(new QueryCommand({
+        TableName: 'Questions',
+        IndexName: 'examType-index',
+        KeyConditionExpression: 'examType = :examType',
+        ExpressionAttributeValues: { ':examType': examType },
+        ProjectionExpression: 'tags'
+      }));
+      items = result.Items || [];
+    } else {
+      const result = await docClient.send(new ScanCommand({
+        TableName: 'Questions',
+        ProjectionExpression: 'tags'
+      }));
+      items = result.Items || [];
+    }
+
+    const tagSet = new Set();
+    items.forEach(q => (q.tags || []).forEach(t => tagSet.add(t)));
+    const tags = Array.from(tagSet).sort();
+    res.json({ tags });
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: 'Internal server error' });

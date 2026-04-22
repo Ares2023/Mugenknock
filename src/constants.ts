@@ -19,6 +19,13 @@ export const PASS_RATE: Record<string, number> = {
   SAP: 75,
 };
 
+// 試験の出題ドメイン（出題範囲分類）
+export const EXAM_DOMAINS: Record<string, string[]> = {
+  CLF: ['クラウドのコンセプト', 'セキュリティとコンプライアンス', 'クラウドテクノロジーとサービス', '請求・料金・サポート'],
+  SAA: ['セキュアなアーキテクチャの設計', '弾力性に優れたアーキテクチャの設計', '高パフォーマンスなアーキテクチャの設計', 'コスト最適化されたアーキテクチャの設計'],
+  SAP: ['組織の複雑さに対応したソリューションの設計', '新しいソリューションの設計', '既存ソリューションの継続的改善', 'ワークロードの移行とモダナイゼーション'],
+};
+
 // 模試モードの設定
 export const EXAM_CONFIGS: Record<string, {
   examCode: string;

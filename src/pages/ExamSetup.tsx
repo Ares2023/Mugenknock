@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { API_ENDPOINT, EXAM_TYPES, EXAM_CONFIGS, PASS_SCORES, PASS_RATE } from '../constants';
+import { API_ENDPOINT, EXAM_TYPES, EXAM_CONFIGS, EXAM_DOMAINS, PASS_SCORES, PASS_RATE } from '../constants';
 import { useAuth } from '../contexts/AuthContext';
 import Breadcrumb from '../components/Breadcrumb';
 
@@ -25,35 +25,54 @@ const EXAM_CATEGORIES: Record<string, { name: string; ratio: string }[]> = {
   ],
 };
 
-const SCORED_QUESTIONS: Record<string, number> = {
-  CLF: 50,
-  SAA: 65,
-  SAP: 65,
-};
+const SCORED_QUESTIONS: Record<string, number> = { CLF: 50, SAA: 65, SAP: 65 };
 
 export default function ExamSetup() {
   const navigate = useNavigate();
   const { user } = useAuth();
   const [examType, setExamType] = useState('CLF');
+  const [selectedDomain, setSelectedDomain] = useState('');
+  const [selectedTag, setSelectedTag] = useState('');
   const [availableCount, setAvailableCount] = useState<number | null>(null);
+  const [availableTags, setAvailableTags] = useState<string[]>([]);
   const [loading, setLoading] = useState(false);
 
   const config = EXAM_CONFIGS[examType];
   const passScore = PASS_SCORES[examType];
 
   useEffect(() => {
+    setSelectedDomain('');
+    setSelectedTag('');
+  }, [examType]);
+
+  useEffect(() => {
     setAvailableCount(null);
-    fetch(`${API_ENDPOINT}/questions?examType=${examType}`)
+    const params = new URLSearchParams({ examType });
+    if (selectedDomain) params.set('domain', selectedDomain);
+    if (selectedTag) params.set('tagId', selectedTag);
+    fetch(`${API_ENDPOINT}/questions?${params}`)
       .then(r => r.json())
       .then(d => setAvailableCount(d.count ?? d.items?.length ?? 0))
       .catch(() => setAvailableCount(0));
+  }, [examType, selectedDomain, selectedTag]);
+
+  useEffect(() => {
+    fetch(`${API_ENDPOINT}/tags?examType=${examType}`)
+      .then(r => r.json())
+      .then(d => setAvailableTags(d.tags || []))
+      .catch(() => setAvailableTags([]));
   }, [examType]);
 
   const startExam = async () => {
     setLoading(true);
     try {
+      const params = new URLSearchParams({ examType, shuffle: 'true' });
+      if (selectedDomain) params.set('domain', selectedDomain);
+      if (selectedTag) params.set('tagId', selectedTag);
       const limit = Math.min(config.totalQuestions, availableCount ?? config.totalQuestions);
-      const res = await fetch(`${API_ENDPOINT}/questions?examType=${examType}&limit=${limit}&shuffle=true`);
+      params.set('limit', String(limit));
+
+      const res = await fetch(`${API_ENDPOINT}/questions?${params}`);
       const data = await res.json();
       const questionIds = data.items.map((q: any) => q.questionId);
 
@@ -77,7 +96,20 @@ export default function ExamSetup() {
   };
 
   const useableCount = availableCount !== null ? Math.min(config.totalQuestions, availableCount) : null;
-  const shortage = availableCount !== null ? Math.max(0, config.totalQuestions - availableCount) : null;
+  const shortage = availableCount !== null && !selectedDomain && !selectedTag
+    ? Math.max(0, config.totalQuestions - availableCount) : null;
+
+  const chipStyle = (active: boolean) => ({
+    padding: '4px 12px',
+    fontSize: 13,
+    borderRadius: 2,
+    border: '1px solid',
+    borderColor: active ? '#0073bb' : '#d1d5db',
+    background: active ? '#f2f8fd' : 'white',
+    color: active ? '#0073bb' : '#545b64',
+    fontWeight: active ? 700 : 400,
+    cursor: 'pointer',
+  } as React.CSSProperties);
 
   return (
     <div style={{ maxWidth: 1200, margin: '0 auto', padding: '24px 40px', color: '#16191f' }}>
@@ -93,28 +125,51 @@ export default function ExamSetup() {
             模試パラメーター
           </h2>
 
-          <div style={{ marginBottom: 32 }}>
+          {/* 試験種別 */}
+          <div style={{ marginBottom: 24 }}>
             <label style={{ display: 'block', marginBottom: 8, fontWeight: 700, fontSize: 14 }}>試験種別</label>
-            <div style={{ display: 'flex', gap: 12 }}>
+            <div style={{ display: 'flex', gap: 8 }}>
               {EXAM_TYPES.map(type => (
-                <button key={type} onClick={() => setExamType(type)}
-                  style={{
-                    padding: '8px 24px',
-                    background: examType === type ? '#f2f8fd' : 'white',
-                    border: '1px solid',
-                    borderColor: examType === type ? '#0073bb' : '#d1d5db',
-                    borderRadius: 2,
-                    cursor: 'pointer',
-                    fontWeight: examType === type ? 700 : 400,
-                    color: examType === type ? '#0073bb' : '#545b64',
-                    transition: 'all 0.1s'
-                  }}>
+                <button key={type} onClick={() => setExamType(type)} style={chipStyle(examType === type)}>
                   {type}
                 </button>
               ))}
             </div>
           </div>
 
+          {/* ドメインフィルタ */}
+          <div style={{ marginBottom: 24 }}>
+            <label style={{ display: 'block', marginBottom: 8, fontWeight: 700, fontSize: 14 }}>
+              出題ドメイン <span style={{ fontWeight: 400, fontSize: 12, color: '#545b64' }}>（任意）</span>
+            </label>
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
+              <button onClick={() => setSelectedDomain('')} style={chipStyle(selectedDomain === '')}>すべて</button>
+              {EXAM_DOMAINS[examType].map(d => (
+                <button key={d} onClick={() => setSelectedDomain(selectedDomain === d ? '' : d)} style={chipStyle(selectedDomain === d)}>
+                  {d}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* タグフィルタ */}
+          {availableTags.length > 0 && (
+            <div style={{ marginBottom: 24 }}>
+              <label style={{ display: 'block', marginBottom: 8, fontWeight: 700, fontSize: 14 }}>
+                タグ <span style={{ fontWeight: 400, fontSize: 12, color: '#545b64' }}>（任意）</span>
+              </label>
+              <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
+                <button onClick={() => setSelectedTag('')} style={chipStyle(selectedTag === '')}>すべて</button>
+                {availableTags.map(t => (
+                  <button key={t} onClick={() => setSelectedTag(selectedTag === t ? '' : t)} style={chipStyle(selectedTag === t)}>
+                    {t}
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* 模試モード説明 */}
           <div style={{ background: '#f2f8fd', borderLeft: '4px solid #0073bb', borderRadius: 2, padding: '12px 16px', fontSize: 14, color: '#16191f', marginBottom: 32 }}>
             <strong style={{ display: 'block', marginBottom: 4 }}>模試モードについて：</strong>
             回答ごとの正誤は表示されません。全問終了後にまとめて結果を確認できます。タイマーは一時停止可能です。
@@ -128,11 +183,11 @@ export default function ExamSetup() {
             <button onClick={startExam} disabled={loading || availableCount === 0}
               style={{
                 padding: '8px 32px',
-                background: (loading || availableCount === 0) ? '#eaeded' : '#ff9900',
-                color: (loading || availableCount === 0) ? '#aab7b8' : '#16191f',
+                background: loading || availableCount === 0 ? '#eaeded' : '#ff9900',
+                color: loading || availableCount === 0 ? '#aab7b8' : '#16191f',
                 border: '1px solid transparent',
                 borderRadius: 2,
-                cursor: (loading || availableCount === 0) ? 'default' : 'pointer',
+                cursor: loading || availableCount === 0 ? 'default' : 'pointer',
                 fontSize: 14,
                 fontWeight: 700
               }}
@@ -158,9 +213,14 @@ export default function ExamSetup() {
               <div style={{ fontSize: 20, fontWeight: 700 }}>
                 {config.totalQuestions}<span style={{ fontSize: 12, fontWeight: 400, marginLeft: 4 }}>問</span>
               </div>
+              {SCORED_QUESTIONS[examType] < config.totalQuestions && (
+                <div style={{ fontSize: 11, color: '#879596', marginTop: 2 }}>採点対象 {SCORED_QUESTIONS[examType]}問</div>
+              )}
             </div>
             <div style={{ background: '#fbfbfb', border: '1px solid #eaeded', borderRadius: 2, padding: '12px' }}>
-              <div style={{ fontSize: 11, color: '#545b64', fontWeight: 700, marginBottom: 4 }}>出題数</div>
+              <div style={{ fontSize: 11, color: '#545b64', fontWeight: 700, marginBottom: 4 }}>
+                {selectedDomain || selectedTag ? 'フィルタ後の出題数' : '出題数'}
+              </div>
               <div style={{ fontSize: 20, fontWeight: 700, color: '#0073bb' }}>
                 {useableCount === null ? '...' : useableCount}
                 <span style={{ fontSize: 12, fontWeight: 400, marginLeft: 4 }}>問</span>
@@ -184,11 +244,14 @@ export default function ExamSetup() {
             {EXAM_CATEGORIES[examType].map(cat => (
               <div key={cat.name} style={{ marginBottom: 12 }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 12, marginBottom: 4 }}>
-                  <span style={{ color: '#16191f' }}>{cat.name}</span>
+                  <span style={{
+                    color: selectedDomain === cat.name ? '#0073bb' : '#16191f',
+                    fontWeight: selectedDomain === cat.name ? 700 : 400,
+                  }}>{cat.name}</span>
                   <span style={{ fontWeight: 700, color: '#0073bb' }}>{cat.ratio}</span>
                 </div>
                 <div style={{ background: '#eaeded', borderRadius: 10, height: 4 }}>
-                  <div style={{ background: '#0073bb', borderRadius: 10, height: 4, width: cat.ratio }} />
+                  <div style={{ background: selectedDomain === cat.name ? '#0073bb' : '#879596', borderRadius: 10, height: 4, width: cat.ratio }} />
                 </div>
               </div>
             ))}
