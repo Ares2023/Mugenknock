@@ -100,7 +100,7 @@ export default function QuestionList() {
   };
 
   return (
-    <div style={{ maxWidth: 1000, margin: "0 auto", padding: "24px 40px", color: '#16191f' }}>
+    <div style={{ maxWidth: 1000, margin: "0 auto", padding: "24px 20px", color: '#16191f' }} className="page-container">
       <Breadcrumb items={[{ label: 'ホーム', path: '/' }, { label: '問題一覧' }]} />
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 24 }}>
         <h1 style={{ color: "#16191f", margin: 0, fontSize: 24, fontWeight: 700 }}>AWS資格問題一覧</h1>

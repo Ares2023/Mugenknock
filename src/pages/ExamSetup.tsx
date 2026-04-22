@@ -23,9 +23,17 @@ const EXAM_CATEGORIES: Record<string, { name: string; ratio: string }[]> = {
     { name: '既存ソリューションの継続的改善', ratio: '25%' },
     { name: 'ワークロードの移行とモダナイゼーション', ratio: '20%' },
   ],
+  DOP: [
+    { name: 'SDLCの自動化', ratio: '22%' },
+    { name: '設定管理とIaC', ratio: '17%' },
+    { name: '耐障害性の高いクラウドソリューションの設計と実装', ratio: '15%' },
+    { name: 'モニタリングとロギング', ratio: '15%' },
+    { name: 'インシデントおよびイベントへの対応', ratio: '14%' },
+    { name: 'セキュリティとコンプライアンス', ratio: '17%' },
+  ],
 };
 
-const SCORED_QUESTIONS: Record<string, number> = { CLF: 50, SAA: 65, SAP: 65 };
+const SCORED_QUESTIONS: Record<string, number> = { CLF: 50, SAA: 65, SAP: 65, DOP: 65 };
 
 export default function ExamSetup() {
   const navigate = useNavigate();
@@ -112,12 +120,12 @@ export default function ExamSetup() {
   } as React.CSSProperties);
 
   return (
-    <div style={{ maxWidth: 1200, margin: '0 auto', padding: '24px 40px', color: '#16191f' }}>
+    <div style={{ maxWidth: 1200, margin: '0 auto', padding: '24px 20px', color: '#16191f' }} className="page-container">
       <Breadcrumb items={[{ label: 'ホーム', path: '/' }, { label: '模試設定' }]} />
 
       <h1 style={{ fontSize: 24, fontWeight: 700, margin: '0 0 24px' }}>模試設定</h1>
 
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 380px', gap: 32, alignItems: 'flex-start' }}>
+      <div className="setup-grid" style={{ display: 'grid', gridTemplateColumns: '1fr 380px', gap: 32, alignItems: 'flex-start' }}>
 
         {/* 左：設定フォーム */}
         <div style={{ background: 'white', border: '1px solid #eaeded', borderRadius: 2, padding: '24px 32px', boxShadow: '0 1px 1px 0 rgba(0,28,36,0.1)' }}>

@@ -142,7 +142,7 @@ export default function ExerciseSession() {
   };
 
   return (
-    <div style={{ maxWidth: 900, margin: "0 auto", padding: "24px 40px", color: "#16191f" }}>
+    <div style={{ maxWidth: 900, margin: "0 auto", padding: "24px 20px", color: "#16191f" }} className="session-container">
       <Breadcrumb items={[{ label: 'ホーム', path: '/' }, { label: '演習設定', path: '/exercise/setup' }, { label: '演習中' }]} />
 
       <div style={{ background: "white", border: "1px solid #eaeded", borderRadius: 2, padding: "24px 32px", boxShadow: "0 1px 1px 0 rgba(0,28,36,0.1), 1px 1px 1px 0 rgba(0,28,36,0.15)" }}>

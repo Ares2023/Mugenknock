@@ -51,6 +51,21 @@ const EXAM_INFO: Record<string, {
       { name: 'ワークロードの移行とモダナイゼーション', ratio: '20%' },
     ],
   },
+  DOP: {
+    fullName: 'AWS Certified DevOps Engineer – Professional',
+    examCode: 'DOP-C02',
+    timeLimit: '180分',
+    totalQuestions: 75,
+    scoredQuestions: 65,
+    categories: [
+      { name: 'SDLCの自動化', ratio: '22%' },
+      { name: '設定管理とIaC', ratio: '17%' },
+      { name: '耐障害性の高いクラウドソリューションの設計と実装', ratio: '15%' },
+      { name: 'モニタリングとロギング', ratio: '15%' },
+      { name: 'インシデントおよびイベントへの対応', ratio: '14%' },
+      { name: 'セキュリティとコンプライアンス', ratio: '17%' },
+    ],
+  },
 };
 
 export default function ExerciseSetup() {
@@ -147,12 +162,12 @@ export default function ExerciseSetup() {
   } as React.CSSProperties);
 
   return (
-    <div style={{ maxWidth: 1200, margin: '0 auto', padding: '24px 40px', color: '#16191f' }}>
+    <div style={{ maxWidth: 1200, margin: '0 auto', padding: '24px 20px', color: '#16191f' }} className="page-container">
       <Breadcrumb items={[{ label: 'ホーム', path: '/' }, { label: '演習設定' }]} />
 
       <h1 style={{ fontSize: 24, fontWeight: 700, margin: '0 0 24px' }}>演習設定</h1>
 
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 380px', gap: 32, alignItems: 'flex-start' }}>
+      <div className="setup-grid" style={{ display: 'grid', gridTemplateColumns: '1fr 380px', gap: 32, alignItems: 'flex-start' }}>
 
         {/* 左：設定フォーム */}
         <div style={{ background: 'white', border: '1px solid #eaeded', borderRadius: 2, padding: '24px 32px', boxShadow: '0 1px 1px 0 rgba(0,28,36,0.1)' }}>

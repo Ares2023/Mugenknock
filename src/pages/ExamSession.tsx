@@ -139,7 +139,7 @@ export default function ExamSession() {
   }
 
   return (
-    <div style={{ maxWidth: 900, margin: '0 auto', padding: '24px 40px', color: '#16191f' }}>
+    <div style={{ maxWidth: 900, margin: '0 auto', padding: '24px 20px', color: '#16191f' }} className="session-container">
       <Breadcrumb items={[{ label: 'ホーム', path: '/' }, { label: '模試設定', path: '/exam/setup' }, { label: '模試中' }]} />
 
       {/* 一時停止オーバーレイ */}

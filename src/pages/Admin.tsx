@@ -246,7 +246,7 @@ export default function Admin() {
   );
 
   return (
-    <div style={{ maxWidth: 1200, margin: '0 auto', padding: '24px 40px', color: '#16191f' }}>
+    <div style={{ maxWidth: 1200, margin: "0 auto", padding: "24px 20px", color: "#16191f" }} className="admin-container">
       <h2 style={{ fontSize: 24, fontWeight: 700, margin: '0 0 24px' }}>管理画面</h2>
 
       {/* タブ */}

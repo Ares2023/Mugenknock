@@ -77,11 +77,11 @@ export default function Home() {
   const AWS_BLUE = '#0073bb';
 
   return (
-    <div style={{ maxWidth: 1000, margin: '0 auto', padding: '32px 40px', color: '#16191f' }}>
+    <div style={{ maxWidth: 1000, margin: '0 auto', padding: '32px 20px', color: '#16191f' }} className="page-container">
       <h2 style={{ fontSize: 24, fontWeight: 700, margin: '0 0 24px' }}>ダッシュボード</h2>
 
       {/* 試験別サマリーカード */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 20, marginBottom: 40 }}>
+      <div className="exam-stat-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(220px, 1fr))', gap: 20, marginBottom: 40 }}>
         {loading
           ? EXAM_TYPES.map(et => (
               <div key={et} style={{ background: 'white', border: '1px solid #eaeded', borderRadius: 2, padding: 24, minHeight: 140, boxShadow: '0 1px 1px 0 rgba(0,28,36,0.1)' }}>
