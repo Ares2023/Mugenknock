@@ -85,6 +85,11 @@ export default function Admin() {
   const [tipImportResult, setTipImportResult] = useState<number | null>(null);
   const [tipImportExamType, setTipImportExamType] = useState('ALL');
   const [showTipImport, setShowTipImport] = useState(false);
+  const [tipPromptTopic, setTipPromptTopic] = useState('');
+  const [tipPromptCount, setTipPromptCount] = useState('5');
+  const [tipPromptExamType, setTipPromptExamType] = useState('SAA');
+  const [tipPromptCopied, setTipPromptCopied] = useState(false);
+  const [showTipPrompt, setShowTipPrompt] = useState(false);
 
   const fetchQuestions = useCallback(async () => {
     setLoadingQ(true);
@@ -738,16 +743,122 @@ export default function Admin() {
               {loadingT ? '読み込み中...' : `${tips.length} 件`}
             </p>
             <div style={{ display: 'flex', gap: 8 }}>
-              <button onClick={() => { setShowTipImport(v => !v); setShowTipForm(false); }}
-                style={{ padding: '7px 16px', background: 'white', color: '#0073bb', border: '1px solid #0073bb', borderRadius: 2, cursor: 'pointer', fontSize: 13, fontWeight: 700 }}>
+              <button onClick={() => { setShowTipPrompt(v => !v); setShowTipImport(false); setShowTipForm(false); }}
+                style={{ padding: '7px 16px', background: showTipPrompt ? '#f2f8fd' : 'white', color: '#0073bb', border: '1px solid #0073bb', borderRadius: 2, cursor: 'pointer', fontSize: 13, fontWeight: 700 }}>
+                AIプロンプト
+              </button>
+              <button onClick={() => { setShowTipImport(v => !v); setShowTipForm(false); setShowTipPrompt(false); }}
+                style={{ padding: '7px 16px', background: showTipImport ? '#f2f8fd' : 'white', color: '#0073bb', border: '1px solid #0073bb', borderRadius: 2, cursor: 'pointer', fontSize: 13, fontWeight: 700 }}>
                 JSONインポート
               </button>
-              <button onClick={() => { setEditingTip(null); setTipForm({ examType: 'ALL', title: '', content: '' }); setShowTipForm(true); setShowTipImport(false); }}
+              <button onClick={() => { setEditingTip(null); setTipForm({ examType: 'ALL', title: '', content: '' }); setShowTipForm(true); setShowTipImport(false); setShowTipPrompt(false); }}
                 style={{ padding: '7px 16px', background: 'white', color: '#0073bb', border: '1px solid #0073bb', borderRadius: 2, cursor: 'pointer', fontSize: 13, fontWeight: 700 }}>
                 ＋ 手動追加
               </button>
             </div>
           </div>
+
+          {/* AIプロンプト生成 */}
+          {showTipPrompt && (() => {
+            const EXAM_FULL: Record<string, string> = {
+              ALL:  'AWS認定試験全般',
+              CLF: 'AWS Certified Cloud Practitioner (CLF-C02)',
+              SAA: 'AWS Certified Solutions Architect – Associate (SAA-C03)',
+              SAP: 'AWS Certified Solutions Architect – Professional (SAP-C02)',
+            };
+            const topic = tipPromptTopic.trim() || '（トピックを入力してください）';
+            const count = parseInt(tipPromptCount) || 5;
+            const prompt = `あなたはAWSクラウドの教育コンテンツ作成の専門家です。
+以下の条件に従い、学習コラム（豆知識）を${count}件作成し、JSON配列のみを出力してください（前後の説明文は不要）。
+
+【対象試験】${EXAM_FULL[tipPromptExamType]}
+【トピック】${topic}
+
+【作成ルール】
+・タイトルは30字以内で、内容を端的に表すこと
+・本文は100〜250字程度で、試験に役立つ実践的な知識を書くこと
+・「〜です。〜ます。」調の丁寧語で統一すること
+・AWSサービスの具体的な特徴・制限・ベストプラクティスを含めること
+・試験に出やすい落とし穴や覚え方のヒントがあれば含めること
+${tipPromptExamType !== 'ALL' ? `・examType には "${tipPromptExamType}" を設定すること` : '・examType には対象試験に応じて "CLF" / "SAA" / "SAP" / "ALL" のいずれかを設定すること'}
+
+【出力形式】
+[
+  {
+    "examType": "${tipPromptExamType === 'ALL' ? 'SAA' : tipPromptExamType}",
+    "title": "コラムタイトル",
+    "content": "コラム本文（100〜250字）"
+  }
+]`;
+
+            const copyPrompt = () => {
+              navigator.clipboard.writeText(prompt);
+              setTipPromptCopied(true);
+              setTimeout(() => setTipPromptCopied(false), 2000);
+            };
+
+            return (
+              <div style={{ border: '1px solid #eaeded', borderRadius: 2, padding: '20px 24px', marginBottom: 20, background: '#fbfbfb', boxShadow: '0 1px 1px 0 rgba(0,28,36,0.1)' }}>
+                <div style={{ fontWeight: 700, fontSize: 15, color: '#16191f', marginBottom: 14 }}>AIプロンプト生成</div>
+
+                <div style={{ display: 'flex', gap: 12, marginBottom: 12, flexWrap: 'wrap', alignItems: 'flex-end' }}>
+                  <div>
+                    <div style={{ fontSize: 12, color: '#545b64', fontWeight: 700, marginBottom: 6 }}>対象試験</div>
+                    <div style={{ display: 'flex', gap: 6 }}>
+                      {['ALL', 'CLF', 'SAA', 'SAP'].map(t => (
+                        <button key={t} type="button" onClick={() => setTipPromptExamType(t)}
+                          style={{ padding: '4px 12px', border: '1px solid', borderRadius: 2, cursor: 'pointer', fontSize: 13,
+                            borderColor: tipPromptExamType === t ? '#0073bb' : '#d1d5db',
+                            background: tipPromptExamType === t ? '#f2f8fd' : 'white',
+                            color: tipPromptExamType === t ? '#0073bb' : '#545b64',
+                            fontWeight: tipPromptExamType === t ? 700 : 400 }}>
+                          {t}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                  <div style={{ flex: 1, minWidth: 180 }}>
+                    <div style={{ fontSize: 12, color: '#545b64', fontWeight: 700, marginBottom: 6 }}>トピック / サービス名</div>
+                    <input value={tipPromptTopic} onChange={e => setTipPromptTopic(e.target.value)}
+                      placeholder="例: S3のライフサイクル、EC2のインスタンスタイプ"
+                      style={{ width: '100%', padding: '7px 10px', border: '1px solid #d1d5db', borderRadius: 2, fontSize: 14, boxSizing: 'border-box', outline: 'none' }}
+                      onFocus={e => e.currentTarget.style.borderColor = '#0073bb'}
+                      onBlur={e => e.currentTarget.style.borderColor = '#d1d5db'}
+                    />
+                  </div>
+                  <div style={{ width: 80 }}>
+                    <div style={{ fontSize: 12, color: '#545b64', fontWeight: 700, marginBottom: 6 }}>件数</div>
+                    <input type="number" value={tipPromptCount} onChange={e => setTipPromptCount(e.target.value)}
+                      min={1} max={20}
+                      style={{ width: '100%', padding: '7px 10px', border: '1px solid #d1d5db', borderRadius: 2, fontSize: 14, boxSizing: 'border-box', outline: 'none' }}
+                      onFocus={e => e.currentTarget.style.borderColor = '#0073bb'}
+                      onBlur={e => e.currentTarget.style.borderColor = '#d1d5db'}
+                    />
+                  </div>
+                </div>
+
+                <div style={{ position: 'relative' }}>
+                  <pre style={{ background: 'white', border: '1px solid #d1d5db', borderRadius: 2, padding: '12px 14px',
+                    fontSize: 12, fontFamily: 'monospace', whiteSpace: 'pre-wrap', margin: 0,
+                    color: '#16191f', lineHeight: 1.6, maxHeight: 280, overflowY: 'auto' }}>
+                    {prompt}
+                  </pre>
+                  <button onClick={copyPrompt}
+                    style={{ position: 'absolute', top: 8, right: 8,
+                      padding: '4px 12px', fontSize: 12, borderRadius: 2, cursor: 'pointer',
+                      background: tipPromptCopied ? '#f2fcf3' : 'white',
+                      color: tipPromptCopied ? '#037f0c' : '#0073bb',
+                      border: `1px solid ${tipPromptCopied ? '#037f0c' : '#0073bb'}`,
+                      transition: 'all 0.2s', fontWeight: 700 }}>
+                    {tipPromptCopied ? '✓ コピー済み' : 'コピー'}
+                  </button>
+                </div>
+                <div style={{ fontSize: 11, color: '#aab7b8', marginTop: 6 }}>
+                  このプロンプトをChatGPT / Claude / Gemini に貼り付け → 出力JSONを「JSONインポート」に貼り付けて登録
+                </div>
+              </div>
+            );
+          })()}
 
           {/* JSONインポートフォーム */}
           {showTipImport && (
