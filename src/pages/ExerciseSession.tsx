@@ -16,6 +16,31 @@ type Question = {
   isMultiple: boolean;
 };
 
+const CopyButton = ({ getText }: { getText: () => string }) => {
+  const [copied, setCopied] = useState(false);
+  const handleCopy = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    navigator.clipboard.writeText(getText()).then(() => {
+      setCopied(true);
+      setTimeout(() => setCopied(false), 1500);
+    });
+  };
+  return (
+    <button
+      onClick={handleCopy}
+      style={{
+        padding: "2px 8px", fontSize: 11, borderRadius: 2, cursor: "pointer",
+        border: `1px solid ${copied ? "#037f0c" : "#d1d5db"}`,
+        background: copied ? "#f2fcf3" : "white",
+        color: copied ? "#037f0c" : "#879596",
+        fontWeight: 700, transition: "all 0.15s", flexShrink: 0,
+      }}
+    >
+      {copied ? "✓ コピー済み" : "コピー"}
+    </button>
+  );
+};
+
 export default function ExerciseSession() {
   const navigate = useNavigate();
   const location = useLocation();
@@ -159,17 +184,26 @@ export default function ExerciseSession() {
         </div>
 
         <div style={{ marginBottom: 24 }}>
-          {currentQuestion.isMultiple && (
-            <div style={{ display: "inline-block", background: "#f2f8fd", color: "#0073bb", padding: "2px 8px", borderRadius: 2, fontSize: 12, fontWeight: 700, marginBottom: 8 }}>
-              複数選択
+          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 8, gap: 8 }}>
+            <div>
+              {currentQuestion.isMultiple && (
+                <span style={{ display: "inline-block", background: "#f2f8fd", color: "#0073bb", padding: "2px 8px", borderRadius: 2, fontSize: 12, fontWeight: 700 }}>
+                  複数選択
+                </span>
+              )}
             </div>
-          )}
+            <CopyButton getText={() => currentQuestion.questionText} />
+          </div>
           <p style={{ fontSize: 16, lineHeight: 1.6, fontWeight: 400, margin: 0, color: "#16191f" }}>
             {currentQuestion.questionText}
           </p>
         </div>
 
         <div style={{ marginBottom: 32 }}>
+          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 8 }}>
+            <span style={{ fontSize: 12, color: "#545b64", fontWeight: 700 }}>選択肢</span>
+            <CopyButton getText={() => currentQuestion.choices.join("\n")} />
+          </div>
           {currentQuestion.choices.map((choice: string) => (
             <button key={choice} onClick={() => toggleAnswer(choice)} style={getChoiceStyle(choice)}>
               <span style={{
@@ -193,13 +227,18 @@ export default function ExerciseSession() {
             borderLeft: `8px solid ${results[results.length - 1]?.isCorrect ? "#037f0c" : "#d13212"}`,
             padding: "16px 20px", marginBottom: 24
           }}>
-            <h3 style={{
-              margin: "0 0 8px", fontSize: 16,
-              color: results[results.length - 1]?.isCorrect ? "#037f0c" : "#d13212",
-              display: "flex", alignItems: "center", gap: 8
-            }}>
-              {results[results.length - 1]?.isCorrect ? "✓ 正解" : "✗ 不正解"}
-            </h3>
+            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 8, gap: 8 }}>
+              <h3 style={{
+                margin: 0, fontSize: 16,
+                color: results[results.length - 1]?.isCorrect ? "#037f0c" : "#d13212",
+                display: "flex", alignItems: "center", gap: 8
+              }}>
+                {results[results.length - 1]?.isCorrect ? "✓ 正解" : "✗ 不正解"}
+              </h3>
+              <CopyButton getText={() =>
+                `正解: ${detail.correctAnswers?.join(", ")}\n\n解説:\n${detail.explanation ?? ""}`
+              } />
+            </div>
             <p style={{ margin: "0 0 12px", fontSize: 14 }}>
               <strong>正解：</strong> {detail.correctAnswers?.join(", ")}
             </p>
