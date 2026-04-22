@@ -174,7 +174,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
         <div onClick={() => navigate('/')} style={{ display: 'flex', alignItems: 'center', cursor: 'pointer', userSelect: 'none', flexShrink: 0 }}>
           <span style={{ color: 'white', fontWeight: 800, fontSize: 14 }}>AWS</span>
           <span style={{ color: 'white', fontWeight: 400, fontSize: 14, marginLeft: 6, whiteSpace: 'nowrap' }}>
-            {isMobile ? 'Quiz' : 'Quiz Practice'}
+            {isMobile ? 'Sherpa' : 'Waypoint Sherpa'}
           </span>
         </div>
 
