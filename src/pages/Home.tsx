@@ -8,14 +8,13 @@ type FeatureCardProps = {
   path: string;
   label: string;
   icon: React.ReactNode;
-  color: string;
 };
 
-const FeatureCard = ({ title, description, path, label, icon, color }: FeatureCardProps) => {
+const FeatureCard = ({ title, description, path, label, icon }: FeatureCardProps) => {
   const navigate = useNavigate();
   return (
-    <div style={{ background: 'white', border: '1px solid #eaeded', borderRadius: 2, padding: '24px', borderTop: `4px solid ${color}`, boxShadow: '0 1px 1px 0 rgba(0,28,36,0.1)', display: 'flex', flexDirection: 'column', gap: 12 }}>
-      <div style={{ color, display: 'flex', alignItems: 'center', gap: 10 }}>
+    <div style={{ background: 'white', border: '1px solid #eaeded', borderRadius: 2, padding: '24px', borderTop: `4px solid #0073bb`, boxShadow: '0 1px 1px 0 rgba(0,28,36,0.1)', display: 'flex', flexDirection: 'column', gap: 12 }}>
+      <div style={{ color: '#545b64', display: 'flex', alignItems: 'center', gap: 10 }}>
         {icon}
         <span style={{ fontSize: 16, fontWeight: 700, color: '#16191f' }}>{title}</span>
       </div>
@@ -102,7 +101,6 @@ export default function Home() {
           path="/exercise/setup"
           label="演習を始める"
           icon={<IconPencil />}
-          color="#0073bb"
         />
         <FeatureCard
           title="模試モード"
@@ -110,7 +108,6 @@ export default function Home() {
           path="/exam/setup"
           label="模試を始める"
           icon={<IconClock />}
-          color="#d13212"
         />
         <FeatureCard
           title="問題一覧"
@@ -118,7 +115,6 @@ export default function Home() {
           path="/questions"
           label="問題を見る"
           icon={<IconList />}
-          color="#037f0c"
         />
         <FeatureCard
           title="統計・分析"
@@ -126,7 +122,6 @@ export default function Home() {
           path="/stats"
           label="統計を見る"
           icon={<IconChart />}
-          color="#7d4adf"
         />
       </div>
 
@@ -135,16 +130,16 @@ export default function Home() {
         <h3 style={{ fontSize: 15, fontWeight: 700, margin: '0 0 16px', color: '#16191f' }}>対応している AWS 認定試験</h3>
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))', gap: 12 }}>
           {[
-            { code: 'CLF', name: 'AWS Cloud Practitioner', level: 'Foundational', color: '#7d4adf' },
-            { code: 'SAA', name: 'Solutions Architect Associate', level: 'Associate', color: '#037f0c' },
-            { code: 'SAP', name: 'Solutions Architect Professional', level: 'Professional', color: '#0073bb' },
-            { code: 'DOP', name: 'DevOps Engineer Professional', level: 'Professional', color: '#d13212' },
+            { code: 'CLF', name: 'AWS Cloud Practitioner', level: 'Foundational' },
+            { code: 'SAA', name: 'Solutions Architect Associate', level: 'Associate' },
+            { code: 'SAP', name: 'Solutions Architect Professional', level: 'Professional' },
+            { code: 'DOP', name: 'DevOps Engineer Professional', level: 'Professional' },
           ].map(exam => (
             <div key={exam.code} style={{ display: 'flex', alignItems: 'flex-start', gap: 10, padding: '12px 16px', background: '#fbfbfb', borderRadius: 2, border: '1px solid #eaeded' }}>
               <span style={{ background: '#232f3e', color: 'white', fontSize: 11, padding: '2px 8px', borderRadius: 12, fontWeight: 700, flexShrink: 0, marginTop: 1 }}>{exam.code}</span>
               <div>
-                <div style={{ fontSize: 13, fontWeight: 700, lineHeight: 1.3 }}>{exam.name}</div>
-                <div style={{ fontSize: 11, color: exam.color, fontWeight: 700, marginTop: 2 }}>{exam.level}</div>
+                <div style={{ fontSize: 13, fontWeight: 700, lineHeight: 1.3, color: '#16191f' }}>{exam.name}</div>
+                <div style={{ fontSize: 11, color: '#545b64', fontWeight: 700, marginTop: 4 }}>{exam.level}</div>
               </div>
             </div>
           ))}
