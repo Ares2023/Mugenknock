@@ -1,6 +1,9 @@
 import React, { useEffect, useState } from 'react';
-import { API_ENDPOINT, EXAM_TYPES, PASS_RATE } from '../constants';
+import { useNavigate } from 'react-router-dom';
+import { API_ENDPOINT, EXAM_TYPES, PASS_RATE, EXAM_DOMAINS } from '../constants';
 import { useAuth } from '../contexts/AuthContext';
+
+const TARGET_EXAM_KEY = 'targetExam';
 
 type ExamStat = {
   examType: string;
@@ -20,11 +23,20 @@ type Session = {
   endedAt?: string;
 };
 
+type TagStat = {
+  tagId: string;
+  correctCount?: number;
+  incorrectCount?: number;
+};
+
 export default function Stats() {
   const { user } = useAuth();
+  const navigate = useNavigate();
   const [examStats, setExamStats] = useState<ExamStat[]>([]);
   const [sessions, setSessions] = useState<Session[]>([]);
+  const [tagStats, setTagStats] = useState<TagStat[]>([]);
   const [loading, setLoading] = useState(true);
+  const [targetExam, setTargetExam] = useState<string | null>(() => localStorage.getItem(TARGET_EXAM_KEY));
 
   useEffect(() => {
     if (!user) return;
@@ -33,8 +45,9 @@ export default function Stats() {
     const fetchAll = async () => {
       setLoading(true);
       try {
-        const [sessionsRes, ...statsRes] = await Promise.all([
+        const [sessionsRes, tagStatsRes, ...statsRes] = await Promise.all([
           fetch(`${API_ENDPOINT}/users/me/sessions?userId=${userId}&limit=50`).then(r => r.json()),
+          fetch(`${API_ENDPOINT}/users/me/stats?userId=${userId}`).then(r => r.json()),
           ...EXAM_TYPES.map(et =>
             Promise.all([
               fetch(`${API_ENDPOINT}/questions?examType=${et}`).then(r => r.json()),
@@ -45,6 +58,7 @@ export default function Stats() {
 
         const completedSessions: Session[] = sessionsRes.items || [];
         setSessions(completedSessions);
+        setTagStats(tagStatsRes.stats || []);
 
         const stats: ExamStat[] = EXAM_TYPES.map((et, i) => {
           const [qRes, sRes] = statsRes[i];
@@ -76,23 +90,70 @@ export default function Stats() {
   const AWS_TAG_BG = '#232f3e';
   const AWS_BLUE = '#008c8c';
 
-  // スコアの推移（模試のみ）
-  const examSessions = sessions.filter(s => s.mode === 'exam');
+  const visibleExamTypes = targetExam ? [targetExam] : [...EXAM_TYPES];
+  const visibleStats = examStats.filter(s => visibleExamTypes.includes(s.examType));
+  const visibleSessions = sessions.filter(s => visibleExamTypes.includes(s.examType));
+  const examSessions = visibleSessions.filter(s => s.mode === 'exam');
+
+  // ドメイン別正答率（目標資格のみ）
+  const domainStats = targetExam
+    ? (EXAM_DOMAINS[targetExam] ?? []).map(domain => {
+        const ts = tagStats.find(t => t.tagId === domain);
+        const correct = ts?.correctCount ?? 0;
+        const incorrect = ts?.incorrectCount ?? 0;
+        const total = correct + incorrect;
+        const rate = total > 0 ? Math.round((correct / total) * 100) : null;
+        return { domain, correct, incorrect, total, rate };
+      })
+    : [];
 
   return (
     <div style={{ maxWidth: 1000, margin: '0 auto', padding: '32px 20px', color: '#16191f' }} className="page-container">
-      <h2 style={{ fontSize: 24, fontWeight: 700, margin: '0 0 24px' }}>統計・分析</h2>
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 24, flexWrap: 'wrap', gap: 12 }}>
+        <h2 style={{ fontSize: 24, fontWeight: 700, margin: 0 }}>統計・分析</h2>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+          <span style={{ fontSize: 12, color: '#545b64' }}>表示中:</span>
+          {EXAM_TYPES.map(et => (
+            <button
+              key={et}
+              onClick={() => {
+                const next = targetExam === et ? null : et;
+                if (next) localStorage.setItem(TARGET_EXAM_KEY, next);
+                else localStorage.removeItem(TARGET_EXAM_KEY);
+                setTargetExam(next);
+              }}
+              style={{
+                padding: '4px 12px', borderRadius: 6, fontSize: 12, fontWeight: 700, cursor: 'pointer',
+                border: `1px solid ${targetExam === et ? AWS_BLUE : '#d1d5db'}`,
+                background: targetExam === et ? AWS_BLUE : 'white',
+                color: targetExam === et ? 'white' : '#545b64',
+                transition: 'all 0.1s',
+              }}
+            >
+              {et}
+            </button>
+          ))}
+          {targetExam && (
+            <button
+              onClick={() => { localStorage.removeItem(TARGET_EXAM_KEY); setTargetExam(null); }}
+              style={{ padding: '4px 10px', borderRadius: 6, fontSize: 12, border: '1px solid #eaeded', background: 'white', color: '#879596', cursor: 'pointer' }}
+            >
+              すべて
+            </button>
+          )}
+        </div>
+      </div>
 
       {/* 試験別サマリーカード */}
-      <h3 style={{ fontSize: 16, fontWeight: 700, margin: '0 0 16px', color: '#545b64' }}>試験別の演習進捗</h3>
+      <h3 style={{ fontSize: 16, fontWeight: 700, margin: '0 0 16px', color: '#545b64' }}>演習進捗</h3>
       <div className="exam-stat-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(220px, 1fr))', gap: 20, marginBottom: 40 }}>
         {loading
-          ? EXAM_TYPES.map(et => (
+          ? visibleExamTypes.map(et => (
               <div key={et} style={{ background: 'white', border: '1px solid #eaeded', borderRadius: 6, padding: 24, minHeight: 140, boxShadow: '0 1px 1px 0 rgba(0,28,36,0.1)' }}>
                 <div style={{ color: '#545b64', fontSize: 13 }}>読み込み中...</div>
               </div>
             ))
-          : examStats.map(stat => {
+          : visibleStats.map(stat => {
               const pct = stat.total > 0 ? Math.round((stat.answered / stat.total) * 100) : 0;
               const passRate = PASS_RATE[stat.examType];
               return (
@@ -130,12 +191,60 @@ export default function Stats() {
             })}
       </div>
 
+      {/* ドメイン別正答率（目標資格のみ） */}
+      {!loading && targetExam && domainStats.length > 0 && (
+        <>
+          <h3 style={{ fontSize: 16, fontWeight: 700, margin: '0 0 16px', color: '#545b64' }}>ドメイン別正答率</h3>
+          <div style={{ background: 'white', border: '1px solid #eaeded', borderRadius: 6, padding: '20px 24px', marginBottom: 40, boxShadow: '0 1px 1px 0 rgba(0,28,36,0.1)' }}>
+            {domainStats.map(({ domain, correct, total, rate }) => (
+              <div key={domain} style={{ marginBottom: 18 }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 6 }}>
+                  <span style={{ fontSize: 13, fontWeight: 700, color: '#16191f' }}>{domain}</span>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexShrink: 0 }}>
+                    {rate !== null ? (
+                      <>
+                        <span style={{ fontSize: 18, fontWeight: 700, color: rate >= 70 ? '#037f0c' : rate >= 50 ? '#d47500' : '#d13212' }}>
+                          {rate}%
+                        </span>
+                        <span style={{ fontSize: 11, color: '#879596' }}>{correct}/{total}問</span>
+                      </>
+                    ) : (
+                      <span style={{ fontSize: 12, color: '#aab7b8' }}>未回答</span>
+                    )}
+                  </div>
+                </div>
+                <div style={{ background: '#eaeded', borderRadius: 10, height: 8, overflow: 'hidden' }}>
+                  <div style={{
+                    width: rate !== null ? `${rate}%` : '0%',
+                    height: '100%',
+                    background: rate === null ? '#eaeded' : rate >= 70 ? '#037f0c' : rate >= 50 ? '#d47500' : '#d13212',
+                    transition: 'width 0.4s',
+                    borderRadius: 10,
+                  }} />
+                </div>
+              </div>
+            ))}
+            <div style={{ marginTop: 8, display: 'flex', gap: 16, fontSize: 11, color: '#879596' }}>
+              <span style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+                <span style={{ width: 10, height: 10, borderRadius: 2, background: '#037f0c', display: 'inline-block' }} />70%以上
+              </span>
+              <span style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+                <span style={{ width: 10, height: 10, borderRadius: 2, background: '#d47500', display: 'inline-block' }} />50〜69%
+              </span>
+              <span style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+                <span style={{ width: 10, height: 10, borderRadius: 2, background: '#d13212', display: 'inline-block' }} />50%未満
+              </span>
+            </div>
+          </div>
+        </>
+      )}
+
       {/* 模試スコア推移 */}
       {!loading && examSessions.length > 0 && (
         <>
           <h3 style={{ fontSize: 16, fontWeight: 700, margin: '0 0 16px', color: '#545b64' }}>模試スコアの推移</h3>
           <div style={{ background: 'white', border: '1px solid #eaeded', borderRadius: 6, padding: '20px 24px', marginBottom: 40, boxShadow: '0 1px 1px 0 rgba(0,28,36,0.1)' }}>
-            {EXAM_TYPES.map(et => {
+            {visibleExamTypes.map(et => {
               const etExams = examSessions.filter(s => s.examType === et).reverse();
               if (etExams.length === 0) return null;
               const passRate = PASS_RATE[et];
@@ -156,7 +265,6 @@ export default function Stats() {
                         </div>
                       );
                     })}
-                    {/* 合格ライン表示 */}
                     <div style={{ marginLeft: 8, display: 'flex', flexDirection: 'column', justifyContent: 'flex-end', paddingBottom: 20 }}>
                       <div style={{ fontSize: 11, color: '#008c8c', fontWeight: 700, borderTop: '2px dashed #008c8c', paddingTop: 2, whiteSpace: 'nowrap' }}>合格ライン {passRate}%</div>
                     </div>
@@ -172,8 +280,18 @@ export default function Stats() {
       <h3 style={{ fontSize: 16, fontWeight: 700, margin: '0 0 16px', color: '#545b64' }}>演習・模試の履歴</h3>
       {loading ? (
         <p style={{ color: '#545b64' }}>読み込み中...</p>
-      ) : sessions.length === 0 ? (
-        <p style={{ color: '#545b64', padding: '20px 0' }}>まだ演習・模試の記録がありません</p>
+      ) : visibleSessions.length === 0 ? (
+        <div style={{ color: '#545b64', padding: '20px 0' }}>
+          <p style={{ margin: '0 0 8px' }}>まだ演習・模試の記録がありません</p>
+          {targetExam && (
+            <button
+              onClick={() => navigate('/exercise/setup')}
+              style={{ fontSize: 13, color: AWS_BLUE, background: 'none', border: 'none', cursor: 'pointer', padding: 0, fontWeight: 700 }}
+            >
+              {targetExam} の演習を始める →
+            </button>
+          )}
+        </div>
       ) : (
         <div style={{ background: 'white', border: '1px solid #eaeded', borderRadius: 6, overflow: 'hidden', boxShadow: '0 1px 1px 0 rgba(0,28,36,0.1)' }}>
           <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 14 }}>
@@ -185,8 +303,8 @@ export default function Stats() {
               </tr>
             </thead>
             <tbody>
-              {sessions.map((s, i) => (
-                <tr key={s.sessionId} style={{ borderBottom: i < sessions.length - 1 ? '1px solid #eaeded' : 'none' }}>
+              {visibleSessions.map((s, i) => (
+                <tr key={s.sessionId} style={{ borderBottom: i < visibleSessions.length - 1 ? '1px solid #eaeded' : 'none' }}>
                   <td style={{ padding: '12px 24px', color: '#545b64', fontSize: 13 }}>{fmt(s.endedAt || s.startedAt)}</td>
                   <td style={{ padding: '12px 24px' }}>
                     <span style={{ background: AWS_TAG_BG, color: 'white', fontSize: 11, padding: '2px 8px', borderRadius: 12, fontWeight: 700 }}>{s.examType}</span>

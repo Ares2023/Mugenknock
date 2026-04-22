@@ -1,6 +1,9 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
+import { EXAM_TYPES, EXAM_CONFIGS, EXAM_DOMAINS } from '../constants';
+
+const TARGET_EXAM_KEY = 'targetExam';
 
 type FeatureCardProps = {
   title: string;
@@ -71,23 +74,146 @@ const IconChart = () => (
     <rect x="11" y="2" width="3" height="13" rx="0.5"/>
   </svg>
 );
+const IconTarget = () => (
+  <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round">
+    <circle cx="8" cy="8" r="6.5"/>
+    <circle cx="8" cy="8" r="3"/>
+    <circle cx="8" cy="8" r="0.75" fill="currentColor" stroke="none"/>
+  </svg>
+);
+
+const EXAM_LEVEL: Record<string, string> = {
+  CLF: 'Foundational',
+  SAA: 'Associate',
+  SAP: 'Professional',
+  DOP: 'Professional',
+};
 
 export default function Home() {
   const { user } = useAuth();
   const name = user?.email?.split('@')[0] ?? '';
+  const [targetExam, setTargetExam] = useState<string | null>(() => localStorage.getItem(TARGET_EXAM_KEY));
+
+  const handleSelectExam = (et: string) => {
+    if (targetExam === et) {
+      localStorage.removeItem(TARGET_EXAM_KEY);
+      setTargetExam(null);
+    } else {
+      localStorage.setItem(TARGET_EXAM_KEY, et);
+      setTargetExam(et);
+    }
+  };
+
+  const cfg = targetExam ? EXAM_CONFIGS[targetExam] : null;
+  const domains = targetExam ? EXAM_DOMAINS[targetExam] : [];
 
   return (
     <div style={{ maxWidth: 900, margin: '0 auto', padding: '40px 20px', color: '#16191f' }} className="page-container">
       {/* ヒーローセクション */}
-      <div style={{ marginBottom: 48 }}>
+      <div style={{ marginBottom: 32 }}>
         <h1 style={{ fontSize: 28, fontWeight: 700, margin: '0 0 12px', lineHeight: 1.3 }}>
           {name ? `こんにちは、${name} さん` : 'AWS 資格学習を始めよう'}
         </h1>
         <p style={{ fontSize: 15, color: '#545b64', lineHeight: 1.8, margin: 0, maxWidth: 640 }}>
           AWS 認定資格の取得を目指すための練習問題サービスです。
           CLF・SAA・SAP・DOP の問題を演習・模試の2つのモードで学習できます。
-          左メニューから各機能にアクセスしてください。
         </p>
+      </div>
+
+      {/* 目標資格セレクター */}
+      <div style={{ background: 'white', border: '1px solid #eaeded', borderRadius: 6, padding: '20px 24px', marginBottom: 40, boxShadow: '0 1px 1px 0 rgba(0,28,36,0.1)' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 14 }}>
+          <span style={{ color: '#008c8c', display: 'flex' }}><IconTarget /></span>
+          <span style={{ fontSize: 14, fontWeight: 700, color: '#16191f' }}>目標資格</span>
+          {targetExam && (
+            <span style={{ fontSize: 12, color: '#545b64', marginLeft: 4 }}>
+              — 統計・分析画面はこの資格に絞って表示されます
+            </span>
+          )}
+        </div>
+        <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+          {EXAM_TYPES.map(et => {
+            const selected = targetExam === et;
+            return (
+              <button
+                key={et}
+                onClick={() => handleSelectExam(et)}
+                style={{
+                  padding: '7px 20px',
+                  borderRadius: 6,
+                  border: `1px solid ${selected ? '#008c8c' : '#d1d5db'}`,
+                  background: selected ? '#008c8c' : 'white',
+                  color: selected ? 'white' : '#545b64',
+                  fontSize: 13, fontWeight: 700, cursor: 'pointer',
+                  transition: 'all 0.1s',
+                }}
+                onMouseEnter={e => {
+                  if (!selected) {
+                    e.currentTarget.style.borderColor = '#008c8c';
+                    e.currentTarget.style.color = '#008c8c';
+                  }
+                }}
+                onMouseLeave={e => {
+                  if (!selected) {
+                    e.currentTarget.style.borderColor = '#d1d5db';
+                    e.currentTarget.style.color = '#545b64';
+                  }
+                }}
+              >
+                {et}
+              </button>
+            );
+          })}
+          {targetExam && (
+            <button
+              onClick={() => handleSelectExam(targetExam)}
+              style={{
+                padding: '7px 14px',
+                borderRadius: 6,
+                border: '1px solid #eaeded',
+                background: 'white',
+                color: '#879596',
+                fontSize: 12, cursor: 'pointer',
+                marginLeft: 4,
+              }}
+            >
+              解除
+            </button>
+          )}
+        </div>
+
+        {cfg && targetExam && (
+          <div style={{ marginTop: 16, paddingTop: 16, borderTop: '1px solid #eaeded', display: 'flex', gap: 24, flexWrap: 'wrap', alignItems: 'flex-start' }}>
+            <div style={{ flex: '0 0 auto' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 6 }}>
+                <span style={{ background: '#232f3e', color: 'white', fontSize: 12, padding: '2px 10px', borderRadius: 12, fontWeight: 700 }}>{targetExam}</span>
+                <span style={{ fontSize: 12, color: '#545b64', fontWeight: 700 }}>{EXAM_LEVEL[targetExam]}</span>
+              </div>
+              <div style={{ fontSize: 14, fontWeight: 700, color: '#16191f', marginBottom: 8 }}>{cfg.fullName}</div>
+              <div style={{ display: 'flex', gap: 16, fontSize: 12, color: '#545b64' }}>
+                <span>試験コード: <strong style={{ color: '#16191f' }}>{cfg.examCode}</strong></span>
+                <span>問題数: <strong style={{ color: '#16191f' }}>{cfg.totalQuestions}問</strong></span>
+                <span>制限時間: <strong style={{ color: '#16191f' }}>{cfg.timeLimitMin}分</strong></span>
+              </div>
+            </div>
+            <div style={{ flex: 1, minWidth: 200 }}>
+              <div style={{ fontSize: 12, color: '#545b64', fontWeight: 700, marginBottom: 8 }}>出題ドメイン</div>
+              <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
+                {domains.map(d => (
+                  <span key={d} style={{ fontSize: 12, padding: '3px 10px', background: '#f2f3f3', borderRadius: 4, color: '#16191f', border: '1px solid #eaeded' }}>
+                    {d}
+                  </span>
+                ))}
+              </div>
+            </div>
+          </div>
+        )}
+
+        {!targetExam && (
+          <p style={{ margin: '12px 0 0', fontSize: 12, color: '#aab7b8' }}>
+            資格を選択すると統計画面が絞り込まれます
+          </p>
+        )}
       </div>
 
       {/* 機能カード */}
@@ -132,7 +258,15 @@ export default function Home() {
             { code: 'SAP', name: 'Solutions Architect Professional', level: 'Professional' },
             { code: 'DOP', name: 'DevOps Engineer Professional', level: 'Professional' },
           ].map(exam => (
-            <div key={exam.code} style={{ display: 'flex', alignItems: 'flex-start', gap: 10, padding: '12px 16px', background: '#fbfbfb', borderRadius: 6, border: '1px solid #eaeded' }}>
+            <div
+              key={exam.code}
+              style={{
+                display: 'flex', alignItems: 'flex-start', gap: 10,
+                padding: '12px 16px', background: targetExam === exam.code ? '#e0f2f2' : '#fbfbfb',
+                borderRadius: 6, border: `1px solid ${targetExam === exam.code ? '#008c8c' : '#eaeded'}`,
+                transition: 'all 0.15s',
+              }}
+            >
               <span style={{ background: '#232f3e', color: 'white', fontSize: 11, padding: '2px 8px', borderRadius: 12, fontWeight: 700, flexShrink: 0, marginTop: 1 }}>{exam.code}</span>
               <div>
                 <div style={{ fontSize: 13, fontWeight: 700, lineHeight: 1.3, color: '#16191f' }}>{exam.name}</div>
