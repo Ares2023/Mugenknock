@@ -91,7 +91,7 @@ const NAV_ITEMS = [
   { path: '/exercise/setup', label: '演習モード',     Icon: IconPencil  },
   { path: '/exam/setup',     label: '模試モード',     Icon: IconClock   },
   { path: '/stats',          label: '統計・分析',     Icon: IconChart   },
-  { path: '/questions',      label: '問題一覧',       Icon: IconList    },
+  { path: '/questions',      label: '問題一覧',       Icon: IconList,   bottom: true },
   { path: '/release-notes',  label: 'リリースノート', Icon: IconBell,   bottom: true },
   { path: '/architecture',   label: 'システム構成',   Icon: IconInfo,   bottom: true },
 ];
