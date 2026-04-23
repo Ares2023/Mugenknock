@@ -251,7 +251,7 @@ export const en: Translations = {
   // ── Home ──
   'home.startLearning': 'Start AWS Certification Practice',
   'home.greeting': 'Hello, {name}',
-  'home.heroDesc': 'A practice quiz service for AWS certification. Study CLF, SAA, SAP, and DOP with Practice and Mock Exam modes.',
+  'home.heroDesc': 'Sherpa is a practice quiz service for AWS certification. Study CLF, SAA, SAP, and DOP with Practice and Mock Exam modes.',
   'home.targetExam': 'Target Exam',
   'home.targetExamNote': '— Statistics will be filtered to this exam',
   'home.selectHint': 'Select an exam to filter the statistics page',
