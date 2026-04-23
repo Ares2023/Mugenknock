@@ -1,4 +1,6 @@
 import React from 'react';
+import Card from '../components/ui/Card';
+import Badge from '../components/ui/Badge';
 
 type ServiceCardProps = {
   name: string;
@@ -8,11 +10,11 @@ type ServiceCardProps = {
 };
 
 const ServiceCard = ({ name, category, description, color }: ServiceCardProps) => (
-  <div style={{ background: 'white', border: '1px solid #eaeded', borderRadius: 6, padding: '16px 20px', borderLeft: `4px solid ${color}`, boxShadow: '0 1px 1px 0 rgba(0,28,36,0.1)' }}>
-    <div style={{ fontSize: 11, color: '#545b64', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: 4 }}>{category}</div>
-    <div style={{ fontSize: 15, fontWeight: 700, color: '#16191f', marginBottom: 6 }}>{name}</div>
-    <div style={{ fontSize: 13, color: '#545b64', lineHeight: 1.6 }}>{description}</div>
-  </div>
+  <Card padding="16px 20px" style={{ borderLeft: `4px solid ${color}` }}>
+    <div style={{ fontSize: 'var(--font-size-xs)', color: 'var(--color-text-sub)', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: 'var(--spacing-xs)' }}>{category}</div>
+    <div style={{ fontSize: 'var(--font-size-md)', fontWeight: 700, color: 'var(--color-text-main)', marginBottom: 'var(--spacing-sm)' }}>{name}</div>
+    <div style={{ fontSize: 'var(--font-size-sm)', color: 'var(--color-text-sub)', lineHeight: 1.6 }}>{description}</div>
+  </Card>
 );
 
 type LayerProps = {
@@ -21,13 +23,13 @@ type LayerProps = {
 };
 
 const Layer = ({ title, children }: LayerProps) => (
-  <div style={{ marginBottom: 32 }}>
-    <h3 style={{ fontSize: 14, fontWeight: 700, color: '#545b64', textTransform: 'uppercase', letterSpacing: '1px', margin: '0 0 16px', display: 'flex', alignItems: 'center', gap: 10 }}>
-      <span style={{ flex: 1, height: 1, background: '#eaeded' }} />
+  <div style={{ marginBottom: 'var(--spacing-xl)' }}>
+    <h3 style={{ fontSize: 'var(--font-size-sm)', fontWeight: 700, color: 'var(--color-text-sub)', textTransform: 'uppercase', letterSpacing: '1px', margin: '0 0 var(--spacing-md)', display: 'flex', alignItems: 'center', gap: 'var(--spacing-md)' }}>
+      <span style={{ flex: 1, height: 1, background: 'var(--color-border)' }} />
       {title}
-      <span style={{ flex: 1, height: 1, background: '#eaeded' }} />
+      <span style={{ flex: 1, height: 1, background: 'var(--color-border)' }} />
     </h3>
-    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(260px, 1fr))', gap: 16 }}>
+    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(260px, 1fr))', gap: 'var(--spacing-md)' }}>
       {children}
     </div>
   </div>
@@ -35,16 +37,16 @@ const Layer = ({ title, children }: LayerProps) => (
 
 export default function Architecture() {
   return (
-    <div style={{ maxWidth: 1000, margin: '0 auto', padding: '32px 20px', color: '#16191f' }} className="page-container">
-      <h2 style={{ fontSize: 24, fontWeight: 700, margin: '0 0 8px' }}>システム構成</h2>
-      <p style={{ color: '#545b64', fontSize: 14, marginBottom: 32 }}>
+    <div style={{ maxWidth: 1000, margin: '0 auto', padding: 'var(--spacing-xl) var(--spacing-lg)', color: 'var(--color-text-main)' }} className="page-container">
+      <h2 style={{ fontSize: 'var(--font-size-xxl)', fontWeight: 700, margin: '0 0 var(--spacing-sm)' }}>システム構成</h2>
+      <p style={{ color: 'var(--color-text-sub)', fontSize: 'var(--font-size-base)', marginBottom: 'var(--spacing-xl)' }}>
         このアプリケーションは AWS のサービスを組み合わせて構築されたサーバーレス Web アプリです。
       </p>
 
       {/* アーキテクチャ概要図（テキストベース） */}
-      <div style={{ background: '#232f3e', borderRadius: 6, padding: '24px 32px', marginBottom: 40, color: 'white' }}>
-        <div style={{ fontSize: 13, color: '#879596', marginBottom: 16, fontWeight: 700, letterSpacing: '1px' }}>ARCHITECTURE OVERVIEW</div>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 0, overflowX: 'auto', fontSize: 13 }}>
+      <div style={{ background: 'var(--color-secondary)', borderRadius: 'var(--border-radius-md)', padding: 'var(--spacing-xl)', marginBottom: 40, color: 'var(--color-bg-white)' }}>
+        <div style={{ fontSize: 'var(--font-size-sm)', color: 'var(--color-text-light)', marginBottom: 'var(--spacing-lg)', fontWeight: 700, letterSpacing: '1px' }}>ARCHITECTURE OVERVIEW</div>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 0, overflowX: 'auto', fontSize: 'var(--font-size-sm)' }}>
           {[
             { label: 'ユーザー', sub: 'ブラウザ', icon: '👤' },
             { arrow: true },
@@ -59,12 +61,12 @@ export default function Architecture() {
             { label: 'DynamoDB', sub: 'NoSQL DB', icon: '🗄️' },
           ].map((item, i) =>
             (item as any).arrow ? (
-              <div key={i} style={{ color: '#ff9900', fontSize: 18, padding: '0 8px', flexShrink: 0 }}>→</div>
+              <div key={i} style={{ color: 'var(--color-accent)', fontSize: 18, padding: '0 var(--spacing-sm)', flexShrink: 0 }}>→</div>
             ) : (
-              <div key={i} style={{ textAlign: 'center', padding: '12px 16px', background: 'rgba(255,255,255,0.05)', borderRadius: 6, flexShrink: 0 }}>
+              <div key={i} style={{ textAlign: 'center', padding: '12px 16px', background: 'rgba(255,255,255,0.05)', borderRadius: 'var(--border-radius-md)', flexShrink: 0 }}>
                 <div style={{ fontSize: 22, marginBottom: 4 }}>{(item as any).icon}</div>
-                <div style={{ fontWeight: 700, fontSize: 12, color: '#ff9900' }}>{(item as any).label}</div>
-                <div style={{ fontSize: 11, color: '#879596' }}>{(item as any).sub}</div>
+                <div style={{ fontWeight: 700, fontSize: 'var(--font-size-sm)', color: 'var(--color-accent)' }}>{(item as any).label}</div>
+                <div style={{ fontSize: 'var(--font-size-xs)', color: 'var(--color-text-light)' }}>{(item as any).sub}</div>
               </div>
             )
           )}
@@ -77,7 +79,7 @@ export default function Architecture() {
           name="AWS Amplify Hosting"
           category="ホスティング / CDN"
           description="React SPA（シングルページアプリ）を静的ファイルとしてホスト。CloudFront 経由で配信し、コードをプッシュするたびに自動デプロイが走ります。"
-          color="#ff9900"
+          color="var(--color-accent)"
         />
         <ServiceCard
           name="React + TypeScript"
@@ -116,36 +118,38 @@ export default function Architecture() {
       </Layer>
 
       {/* DynamoDB テーブル */}
-      <h3 style={{ fontSize: 16, fontWeight: 700, margin: '0 0 16px' }}>DynamoDB テーブル構成</h3>
-      <div style={{ background: 'white', border: '1px solid #eaeded', borderRadius: 6, overflow: 'hidden', marginBottom: 40, boxShadow: '0 1px 1px 0 rgba(0,28,36,0.1)' }}>
-        <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 14 }}>
-          <thead>
-            <tr style={{ background: '#fbfbfb', borderBottom: '1px solid #eaeded' }}>
-              {['テーブル名', 'パーティションキー', 'ソートキー', '用途'].map(h => (
-                <th key={h} style={{ padding: '10px 20px', textAlign: 'left', fontSize: 12, color: '#545b64', fontWeight: 700 }}>{h}</th>
-              ))}
-            </tr>
-          </thead>
-          <tbody>
-            {[
-              { name: 'Questions', pk: 'questionId', sk: '—', desc: '問題文・選択肢・正解・解説' },
-              { name: 'Sessions', pk: 'userId', sk: 'sessionId', desc: '演習・模試のセッション管理' },
-              { name: 'UserAnswers', pk: 'userId', sk: 'questionIdTimestamp', desc: '各問への回答履歴' },
-              { name: 'UserQuestionStats', pk: 'userId', sk: 'questionId', desc: '正解数・不正解数・ブックマーク' },
-              { name: 'UserTagStats', pk: 'userId', sk: 'tagId', desc: 'タグ別の正解率統計' },
-              { name: 'Tips', pk: 'tipId', sk: '—', desc: '演習中に表示するコラム記事' },
-              { name: 'Reports', pk: 'questionId', sk: 'reportId', desc: '問題への通報内容' },
-            ].map((row, i) => (
-              <tr key={row.name} style={{ borderBottom: i < 6 ? '1px solid #eaeded' : 'none' }}>
-                <td style={{ padding: '10px 20px', fontWeight: 700, fontFamily: 'monospace', fontSize: 13 }}>{row.name}</td>
-                <td style={{ padding: '10px 20px', fontFamily: 'monospace', fontSize: 13, color: '#008c8c' }}>{row.pk}</td>
-                <td style={{ padding: '10px 20px', fontFamily: 'monospace', fontSize: 13, color: row.sk === '—' ? '#aab7b8' : '#008c8c' }}>{row.sk}</td>
-                <td style={{ padding: '10px 20px', color: '#545b64', fontSize: 13 }}>{row.desc}</td>
+      <h3 style={{ fontSize: 'var(--font-size-lg)', fontWeight: 700, margin: '0 0 var(--spacing-md)' }}>DynamoDB テーブル構成</h3>
+      <Card padding={0} style={{ overflow: 'hidden', marginBottom: 40 }}>
+        <div style={{ overflowX: 'auto' }}>
+          <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 'var(--font-size-base)' }}>
+            <thead>
+              <tr style={{ background: 'var(--color-bg-main)', borderBottom: '1px solid var(--color-border)' }}>
+                {['テーブル名', 'パーティションキー', 'ソートキー', '用途'].map(h => (
+                  <th key={h} style={{ padding: '10px 20px', textAlign: 'left', fontSize: 'var(--font-size-xs)', color: 'var(--color-text-sub)', fontWeight: 700 }}>{h}</th>
+                ))}
               </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
+            </thead>
+            <tbody>
+              {[
+                { name: 'Questions', pk: 'questionId', sk: '—', desc: '問題文・選択肢・正解・解説' },
+                { name: 'Sessions', pk: 'userId', sk: 'sessionId', desc: '演習・模試のセッション管理' },
+                { name: 'UserAnswers', pk: 'userId', sk: 'questionIdTimestamp', desc: '各問への回答履歴' },
+                { name: 'UserQuestionStats', pk: 'userId', sk: 'questionId', desc: '正解数・不正解数・ブックマーク' },
+                { name: 'UserTagStats', pk: 'userId', sk: 'tagId', desc: 'タグ別の正解率統計' },
+                { name: 'Tips', pk: 'tipId', sk: '—', desc: '演習中に表示するコラム記事' },
+                { name: 'Reports', pk: 'questionId', sk: 'reportId', desc: '問題への通報内容' },
+              ].map((row, i) => (
+                <tr key={row.name} style={{ borderBottom: i < 6 ? '1px solid var(--color-border)' : 'none' }}>
+                  <td style={{ padding: '10px 20px', fontWeight: 700, fontFamily: 'monospace', fontSize: 'var(--font-size-sm)' }}>{row.name}</td>
+                  <td style={{ padding: '10px 20px', fontFamily: 'monospace', fontSize: 'var(--font-size-sm)', color: 'var(--color-primary)' }}>{row.pk}</td>
+                  <td style={{ padding: '10px 20px', fontFamily: 'monospace', fontSize: 'var(--font-size-sm)', color: row.sk === '—' ? 'var(--color-text-light)' : 'var(--color-primary)' }}>{row.sk}</td>
+                  <td style={{ padding: '10px 20px', color: 'var(--color-text-sub)', fontSize: 'var(--font-size-sm)' }}>{row.desc}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </Card>
 
       {/* CI/CD */}
       <Layer title="CI / CD">
@@ -153,7 +157,7 @@ export default function Architecture() {
           name="AWS Amplify（CI/CD）"
           category="継続的デプロイ"
           description="メインブランチへのプッシュを検知して自動的にビルド・デプロイを実行。フロントエンドの変更は数分で本番環境に反映されます。"
-          color="#ff9900"
+          color="var(--color-accent)"
         />
         <ServiceCard
           name="AWS CLI / Python"
@@ -163,8 +167,8 @@ export default function Architecture() {
         />
       </Layer>
 
-      <div style={{ background: '#e0f2f2', border: '1px solid #d4e9f5', borderRadius: 6, padding: '16px 20px', fontSize: 13, color: '#008c8c', lineHeight: 1.7 }}>
-        <strong>注意：</strong> このページにはシステム設計の概要のみが記載されています。AWS アカウント ID、ARN、API キーなどの機密情報は一切含まれていません。
+      <div style={{ background: 'var(--color-primary-light)', borderLeft: '4px solid var(--color-primary)', borderRadius: 'var(--border-radius-md)', padding: '16px 20px', fontSize: 'var(--font-size-sm)', color: 'var(--color-text-main)', lineHeight: 1.7 }}>
+        <strong style={{ color: 'var(--color-primary)' }}>注意：</strong> このページにはシステム設計の概要のみが記載されています。AWS アカウント ID、ARN、API キーなどの機密情報は一切含まれていません。
       </div>
     </div>
   );

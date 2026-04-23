@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { API_ENDPOINT } from '../constants';
+import Button from '../components/ui/Button';
 
 type Release = {
   releaseId: string;
@@ -27,42 +28,33 @@ export default function ReleaseNotes() {
   const hiddenCount = releases.length - SHOW_DEFAULT;
 
   return (
-    <div style={{ maxWidth: 680, margin: '0 auto', padding: '24px 20px', color: '#16191f' }} className="page-container">
-      <h1 style={{ fontSize: 24, fontWeight: 700, margin: '0 0 32px' }}>リリースノート</h1>
+    <div style={{ maxWidth: 680, margin: '0 auto', padding: 'var(--spacing-xl) var(--spacing-lg)', color: 'var(--color-text-main)' }} className="page-container">
+      <h1 style={{ fontSize: 'var(--font-size-xxl)', fontWeight: 700, margin: '0 0 var(--spacing-xl)' }}>リリースノート</h1>
 
-      {loading && <p style={{ color: '#545b64', fontSize: 14 }}>読み込み中...</p>}
+      {loading && <p style={{ color: 'var(--color-text-sub)', fontSize: 'var(--font-size-base)' }}>読み込み中...</p>}
 
       {!loading && releases.length === 0 && (
-        <p style={{ color: '#545b64', fontSize: 14 }}>まだ情報はありません。</p>
+        <p style={{ color: 'var(--color-text-sub)', fontSize: 'var(--font-size-base)' }}>まだ情報はありません。</p>
       )}
 
       {visible.map((r, i) => (
         <div key={r.releaseId}>
-          <div style={{ marginBottom: 24 }}>
-            <div style={{ fontSize: 12, color: '#879596', fontWeight: 700, marginBottom: 5 }}>{r.date}</div>
-            <div style={{ fontSize: 16, fontWeight: 700, color: '#16191f', marginBottom: 8 }}>{r.title}</div>
-            <div style={{ fontSize: 14, color: '#545b64', lineHeight: 1.8, whiteSpace: 'pre-wrap' }}>{r.body}</div>
+          <div style={{ marginBottom: 'var(--spacing-lg)' }}>
+            <div style={{ fontSize: 'var(--font-size-xs)', color: 'var(--color-text-light)', fontWeight: 700, marginBottom: 'var(--spacing-xs)' }}>{r.date}</div>
+            <div style={{ fontSize: 'var(--font-size-lg)', fontWeight: 700, color: 'var(--color-text-main)', marginBottom: 'var(--spacing-sm)' }}>{r.title}</div>
+            <div style={{ fontSize: 'var(--font-size-base)', color: 'var(--color-text-sub)', lineHeight: 1.8, whiteSpace: 'pre-wrap' }}>{r.body}</div>
           </div>
           {i < visible.length - 1 && (
-            <div style={{ height: 1, background: '#eaeded', marginBottom: 24 }} />
+            <div style={{ height: 1, background: 'var(--color-border)', marginBottom: 'var(--spacing-lg)' }} />
           )}
         </div>
       ))}
 
       {!showAll && hiddenCount > 0 && (
-        <div style={{ borderTop: '1px solid #eaeded', paddingTop: 24, marginTop: 8 }}>
-          <button
-            onClick={() => setShowAll(true)}
-            style={{
-              padding: '8px 24px', background: 'white', color: '#008c8c',
-              border: '1px solid #008c8c', borderRadius: 9999,
-              cursor: 'pointer', fontSize: 14, fontWeight: 700,
-            }}
-            onMouseEnter={e => { e.currentTarget.style.background = '#e0f2f2'; }}
-            onMouseLeave={e => { e.currentTarget.style.background = 'white'; }}
-          >
+        <div style={{ borderTop: '1px solid var(--color-border)', paddingTop: 'var(--spacing-lg)', marginTop: 'var(--spacing-sm)' }}>
+          <Button variant="outline" onClick={() => setShowAll(true)}>
             過去の更新を見る（{hiddenCount}件）
-          </button>
+          </Button>
         </div>
       )}
     </div>

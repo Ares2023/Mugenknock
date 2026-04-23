@@ -3,6 +3,9 @@ import { useNavigate } from 'react-router-dom';
 import { API_ENDPOINT, EXAM_TYPES, EXAM_CONFIGS, EXAM_DOMAINS, PASS_SCORES, PASS_RATE, DOMAIN_NAME_EN } from '../constants';
 import { useAuth } from '../contexts/AuthContext';
 import { useLanguage } from '../contexts/LanguageContext';
+import Card from '../components/ui/Card';
+import Button from '../components/ui/Button';
+import Badge from '../components/ui/Badge';
 
 const EXAM_CATEGORIES: Record<string, { name: string; ratio: string }[]> = {
   CLF: [
@@ -109,176 +112,188 @@ export default function ExamSetup() {
   const shortage = availableCount !== null && !selectedDomain && !selectedTag
     ? Math.max(0, config.totalQuestions - availableCount) : null;
 
-  const chipStyle = (active: boolean) => ({
-    padding: '4px 12px',
-    fontSize: 13,
-    borderRadius: 6,
-    border: '1px solid',
-    borderColor: active ? '#008c8c' : '#d1d5db',
-    background: active ? '#e0f2f2' : 'white',
-    color: active ? '#008c8c' : '#545b64',
-    fontWeight: active ? 700 : 400,
-    cursor: 'pointer',
-  } as React.CSSProperties);
-
   return (
-    <div style={{ maxWidth: 1200, margin: '0 auto', padding: '24px 20px', color: '#16191f' }} className="page-container">
+    <div style={{ maxWidth: 1200, margin: '0 auto', padding: 'var(--spacing-xl) var(--spacing-lg)' }} className="page-container">
 
-      <h1 style={{ fontSize: 24, fontWeight: 700, margin: '0 0 24px' }}>{t('examSetup.title')}</h1>
+      <h1 style={{ fontSize: 'var(--font-size-xxl)', fontWeight: 700, margin: '0 0 var(--spacing-xl)', color: 'var(--color-text-main)' }}>{t('examSetup.title')}</h1>
 
-      <div className="setup-grid" style={{ display: 'grid', gridTemplateColumns: '1fr 380px', gap: 32, alignItems: 'flex-start' }}>
+      <div className="setup-grid" style={{ display: 'grid', gridTemplateColumns: '1fr 380px', gap: 'var(--spacing-xl)', alignItems: 'flex-start' }}>
 
         {/* 左：設定フォーム */}
-        <div style={{ background: 'white', border: '1px solid #eaeded', borderRadius: 6, padding: '24px 32px', boxShadow: '0 1px 1px 0 rgba(0,28,36,0.1)' }}>
-          <h2 style={{ fontSize: 18, fontWeight: 700, margin: '0 0 24px', borderBottom: '1px solid #eaeded', paddingBottom: 12 }}>
-            {t('examSetup.params')}
-          </h2>
-
+        <Card title={t('examSetup.params')} padding="var(--spacing-xl)">
           {/* 試験種別 */}
           {targetExam ? (
-            <div style={{ marginBottom: 24, display: 'flex', alignItems: 'center', gap: 8 }}>
-              <span style={{ fontSize: 14, fontWeight: 700, color: '#545b64' }}>{t('examSetup.examType')}</span>
-              <span style={{ background: '#232f3e', color: 'white', fontSize: 12, padding: '2px 10px', borderRadius: 12, fontWeight: 700 }}>{examType}</span>
-              <span style={{ fontSize: 12, color: '#aab7b8' }}>{t('examSetup.examTypeHome')}</span>
+            <div style={{ marginBottom: 'var(--spacing-lg)', display: 'flex', alignItems: 'center', gap: 'var(--spacing-md)' }}>
+              <span style={{ fontSize: 'var(--font-size-base)', fontWeight: 700, color: 'var(--color-text-sub)' }}>{t('examSetup.examType')}</span>
+              <Badge variant="secondary">{examType}</Badge>
+              <span style={{ fontSize: 'var(--font-size-sm)', color: 'var(--color-text-light)' }}>{t('examSetup.examTypeHome')}</span>
             </div>
           ) : (
-            <div style={{ marginBottom: 24 }}>
-              <label style={{ display: 'block', marginBottom: 8, fontWeight: 700, fontSize: 14 }}>{t('examSetup.examType')}</label>
-              <div style={{ display: 'flex', gap: 8 }}>
+            <div style={{ marginBottom: 'var(--spacing-lg)' }}>
+              <label style={{ display: 'block', marginBottom: 'var(--spacing-sm)', fontWeight: 700, fontSize: 'var(--font-size-base)' }}>{t('examSetup.examType')}</label>
+              <div style={{ display: 'flex', gap: 'var(--spacing-sm)' }}>
                 {EXAM_TYPES.map(type => (
-                  <button key={type} onClick={() => { setExamType(type); localStorage.setItem('lastExamType', type); }} style={chipStyle(examType === type)}>
+                  <Button
+                    key={type}
+                    variant={examType === type ? 'primary' : 'outline'}
+                    size="sm"
+                    onClick={() => { setExamType(type); localStorage.setItem('lastExamType', type); }}
+                  >
                     {type}
-                  </button>
+                  </Button>
                 ))}
               </div>
             </div>
           )}
 
           {/* ドメインフィルタ */}
-          <div style={{ marginBottom: 24 }}>
-            <label style={{ display: 'block', marginBottom: 8, fontWeight: 700, fontSize: 14 }}>
-              {t('examSetup.domain')} <span style={{ fontWeight: 400, fontSize: 12, color: '#545b64' }}>{t('examSetup.optional')}</span>
+          <div style={{ marginBottom: 'var(--spacing-lg)' }}>
+            <label style={{ display: 'block', marginBottom: 'var(--spacing-sm)', fontWeight: 700, fontSize: 'var(--font-size-base)' }}>
+              {t('examSetup.domain')} <span style={{ fontWeight: 400, fontSize: 'var(--font-size-sm)', color: 'var(--color-text-sub)' }}>{t('examSetup.optional')}</span>
             </label>
-            <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
-              <button onClick={() => setSelectedDomain('')} style={chipStyle(selectedDomain === '')}>{t('examSetup.all')}</button>
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: 'var(--spacing-sm)' }}>
+              <Button
+                variant={selectedDomain === '' ? 'primary' : 'outline'}
+                size="sm"
+                onClick={() => setSelectedDomain('')}
+              >
+                {t('examSetup.all')}
+              </Button>
               {EXAM_DOMAINS[examType].map(d => (
-                <button key={d} onClick={() => setSelectedDomain(selectedDomain === d ? '' : d)} style={chipStyle(selectedDomain === d)}>
+                <Button
+                  key={d}
+                  variant={selectedDomain === d ? 'primary' : 'outline'}
+                  size="sm"
+                  onClick={() => setSelectedDomain(selectedDomain === d ? '' : d)}
+                >
                   {lang === 'en' ? (DOMAIN_NAME_EN[d] ?? d) : d}
-                </button>
+                </Button>
               ))}
             </div>
           </div>
 
           {/* タグフィルタ */}
           {availableTags.length > 0 && (
-            <div style={{ marginBottom: 24 }}>
-              <label style={{ display: 'block', marginBottom: 8, fontWeight: 700, fontSize: 14 }}>
-                {t('examSetup.tag')} <span style={{ fontWeight: 400, fontSize: 12, color: '#545b64' }}>{t('examSetup.optional')}</span>
+            <div style={{ marginBottom: 'var(--spacing-lg)' }}>
+              <label style={{ display: 'block', marginBottom: 'var(--spacing-sm)', fontWeight: 700, fontSize: 'var(--font-size-base)' }}>
+                {t('examSetup.tag')} <span style={{ fontWeight: 400, fontSize: 'var(--font-size-sm)', color: 'var(--color-text-sub)' }}>{t('examSetup.optional')}</span>
               </label>
-              <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
-                <button onClick={() => setSelectedTag('')} style={chipStyle(selectedTag === '')}>{t('examSetup.all')}</button>
+              <div style={{ display: 'flex', flexWrap: 'wrap', gap: 'var(--spacing-sm)' }}>
+                <Button
+                  variant={selectedTag === '' ? 'primary' : 'outline'}
+                  size="sm"
+                  onClick={() => setSelectedTag('')}
+                >
+                  {t('examSetup.all')}
+                </Button>
                 {availableTags.map(tag => (
-                  <button key={tag} onClick={() => setSelectedTag(selectedTag === tag ? '' : tag)} style={chipStyle(selectedTag === tag)}>
+                  <Button
+                    key={tag}
+                    variant={selectedTag === tag ? 'primary' : 'outline'}
+                    size="sm"
+                    onClick={() => setSelectedTag(selectedTag === tag ? '' : tag)}
+                  >
                     {tag}
-                  </button>
+                  </Button>
                 ))}
               </div>
             </div>
           )}
 
-          <div style={{ background: '#e0f2f2', borderLeft: '4px solid #008c8c', borderRadius: 6, padding: '12px 16px', fontSize: 14, color: '#16191f', marginBottom: 16 }}>
+          <div style={{ background: 'var(--color-primary-light)', borderLeft: '4px solid var(--color-primary)', borderRadius: 'var(--border-radius-md)', padding: '12px 16px', fontSize: 'var(--font-size-base)', color: 'var(--color-text-main)', marginBottom: 'var(--spacing-lg)' }}>
             <strong style={{ display: 'block', marginBottom: 4 }}>{t('examSetup.aboutTitle')}</strong>
             {t('examSetup.aboutDesc')}
           </div>
 
-          <div style={{ display: 'flex', gap: 12, borderTop: '1px solid #eaeded', paddingTop: 24, justifyContent: 'flex-end' }}>
-            <button onClick={() => navigate('/')} style={{ padding: '8px 20px', cursor: 'pointer', borderRadius: 9999, border: '1px solid #545b64', background: 'white', fontWeight: 700, fontSize: 14 }}>
+          <div style={{ display: 'flex', gap: 'var(--spacing-md)', borderTop: '1px solid var(--color-border)', paddingTop: 'var(--spacing-lg)', justifyContent: 'flex-end' }}>
+            <Button variant="outline" onClick={() => navigate('/')}>
               {t('examSetup.cancel')}
-            </button>
-            <button onClick={startExam} disabled={loading || availableCount === 0}
-              style={{ padding: '8px 32px', background: loading || availableCount === 0 ? '#eaeded' : '#ff9900', color: loading || availableCount === 0 ? '#aab7b8' : '#16191f', border: '1px solid transparent', borderRadius: 9999, cursor: loading || availableCount === 0 ? 'default' : 'pointer', fontSize: 14, fontWeight: 700 }}
-              onMouseEnter={e => { if (!loading && availableCount !== 0) e.currentTarget.style.background = '#ec7211'; }}
-              onMouseLeave={e => { if (!loading && availableCount !== 0) e.currentTarget.style.background = '#ff9900'; }}
+            </Button>
+            <Button
+              variant="accent"
+              onClick={startExam}
+              disabled={loading || availableCount === 0}
+              style={{ minWidth: 120 }}
             >
               {loading ? t('examSetup.starting') : t('examSetup.start')}
-            </button>
+            </Button>
           </div>
-        </div>
+        </Card>
 
         {/* 右：試験情報パネル */}
-        <div style={{ background: 'white', border: '1px solid #eaeded', borderRadius: 6, padding: '24px', boxShadow: '0 1px 1px 0 rgba(0,28,36,0.1)' }}>
+        <Card padding="var(--spacing-lg)">
           {/* 試験ヘッダー */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 8 }}>
-            <span style={{ background: '#232f3e', color: 'white', fontSize: 11, padding: '2px 8px', borderRadius: 12, fontWeight: 700 }}>{examType}</span>
-            <span style={{ fontSize: 13, color: '#545b64', fontWeight: 700 }}>{config.examCode}</span>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--spacing-sm)', marginBottom: 'var(--spacing-sm)' }}>
+            <Badge variant="secondary">{examType}</Badge>
+            <span style={{ fontSize: 'var(--font-size-sm)', color: 'var(--color-text-sub)', fontWeight: 700 }}>{config.examCode}</span>
           </div>
-          <h3 style={{ fontSize: 15, fontWeight: 700, margin: '0 0 20px', color: '#16191f', lineHeight: 1.4 }}>{config.fullName}</h3>
+          <h3 style={{ fontSize: 'var(--font-size-md)', fontWeight: 700, margin: '0 0 var(--spacing-lg)', color: 'var(--color-text-main)', lineHeight: 1.4 }}>{config.fullName}</h3>
 
           {/* ── 試験概要 ── */}
-          <div style={{ marginBottom: 20 }}>
-            <div style={{ fontSize: 11, fontWeight: 700, color: '#545b64', textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: 10 }}>{t('examSetup.overview')}</div>
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 1, background: '#eaeded', border: '1px solid #eaeded', borderRadius: 6, overflow: 'hidden' }}>
-              <div style={{ background: 'white', padding: '10px 12px' }}>
-                <div style={{ fontSize: 11, color: '#545b64', marginBottom: 4 }}>{t('examSetup.totalQuestions')}</div>
-                <div style={{ fontSize: 18, fontWeight: 700 }}>{config.totalQuestions}<span style={{ fontSize: 11, fontWeight: 400, marginLeft: 2 }}>{t('examSetup.qUnit')}</span></div>
+          <div style={{ marginBottom: 'var(--spacing-lg)' }}>
+            <div style={{ fontSize: 'var(--font-size-xs)', fontWeight: 700, color: 'var(--color-text-sub)', textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: 'var(--spacing-sm)' }}>{t('examSetup.overview')}</div>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 1, background: 'var(--color-border)', border: '1px solid var(--color-border)', borderRadius: 'var(--border-radius-md)', overflow: 'hidden' }}>
+              <div style={{ background: 'var(--color-bg-white)', padding: '10px 12px' }}>
+                <div style={{ fontSize: 'var(--font-size-xs)', color: 'var(--color-text-sub)', marginBottom: 4 }}>{t('examSetup.totalQuestions')}</div>
+                <div style={{ fontSize: 'var(--font-size-xl)', fontWeight: 700 }}>{config.totalQuestions}<span style={{ fontSize: 'var(--font-size-xs)', fontWeight: 400, marginLeft: 2 }}>{t('examSetup.qUnit')}</span></div>
                 {SCORED_QUESTIONS[examType] < config.totalQuestions && (
-                  <div style={{ fontSize: 10, color: '#879596', marginTop: 2 }}>{t('examSetup.scored')} {SCORED_QUESTIONS[examType]}{t('examSetup.qUnit')}</div>
+                  <div style={{ fontSize: 'var(--font-size-xs)', color: 'var(--color-text-light)', marginTop: 2 }}>{t('examSetup.scored')} {SCORED_QUESTIONS[examType]}{t('examSetup.qUnit')}</div>
                 )}
               </div>
-              <div style={{ background: 'white', padding: '10px 12px' }}>
-                <div style={{ fontSize: 11, color: '#545b64', marginBottom: 4 }}>{t('examSetup.timeLimit')}</div>
-                <div style={{ fontSize: 18, fontWeight: 700 }}>{config.timeLimitMin}<span style={{ fontSize: 11, fontWeight: 400, marginLeft: 2 }}>{t('examSetup.minUnit')}</span></div>
+              <div style={{ background: 'var(--color-bg-white)', padding: '10px 12px' }}>
+                <div style={{ fontSize: 'var(--font-size-xs)', color: 'var(--color-text-sub)', marginBottom: 4 }}>{t('examSetup.timeLimit')}</div>
+                <div style={{ fontSize: 'var(--font-size-xl)', fontWeight: 700 }}>{config.timeLimitMin}<span style={{ fontSize: 'var(--font-size-xs)', fontWeight: 400, marginLeft: 2 }}>{t('examSetup.minUnit')}</span></div>
               </div>
-              <div style={{ background: 'white', padding: '10px 12px' }}>
-                <div style={{ fontSize: 11, color: '#545b64', marginBottom: 4 }}>{t('examSetup.passScore')}</div>
-                <div style={{ fontSize: 18, fontWeight: 700, color: '#037f0c' }}>{passScore}</div>
+              <div style={{ background: 'var(--color-bg-white)', padding: '10px 12px' }}>
+                <div style={{ fontSize: 'var(--font-size-xs)', color: 'var(--color-text-sub)', marginBottom: 4 }}>{t('examSetup.passScore')}</div>
+                <div style={{ fontSize: 'var(--font-size-xl)', fontWeight: 700, color: 'var(--color-success)' }}>{passScore}</div>
               </div>
             </div>
           </div>
 
           {/* ── 今回の出題 ── */}
-          <div style={{ marginBottom: 20, padding: '14px 16px', background: shortage !== null && shortage > 0 ? '#fdf3f1' : '#fbfbfb', border: `1px solid ${shortage !== null && shortage > 0 ? '#f5a09b' : '#eaeded'}`, borderRadius: 6 }}>
-            <div style={{ fontSize: 11, fontWeight: 700, color: '#545b64', textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: 10 }}>{t('examSetup.thisSession')}</div>
+          <div style={{ marginBottom: 'var(--spacing-lg)', padding: 'var(--spacing-md)', background: shortage !== null && shortage > 0 ? '#fdf3f1' : 'var(--color-bg-main)', border: `1px solid ${shortage !== null && shortage > 0 ? 'var(--color-danger)' : 'var(--color-border)'}`, borderRadius: 'var(--border-radius-md)' }}>
+            <div style={{ fontSize: 'var(--font-size-xs)', fontWeight: 700, color: 'var(--color-text-sub)', textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: 'var(--spacing-sm)' }}>{t('examSetup.thisSession')}</div>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: shortage !== null && shortage > 0 ? 8 : 0 }}>
-              <span style={{ fontSize: 13, color: '#16191f' }}>
+              <span style={{ fontSize: 'var(--font-size-sm)', color: 'var(--color-text-main)' }}>
                 {selectedDomain || selectedTag ? t('examSetup.filteredCount') : t('examSetup.questionCount')}
               </span>
-              <span style={{ fontSize: 20, fontWeight: 700, color: '#008c8c' }}>
+              <span style={{ fontSize: 'var(--font-size-xl)', fontWeight: 700, color: 'var(--color-primary)' }}>
                 {useableCount === null ? '...' : useableCount}
-                <span style={{ fontSize: 12, fontWeight: 400, marginLeft: 4 }}>{t('examSetup.qUnit')}</span>
+                <span style={{ fontSize: 'var(--font-size-sm)', fontWeight: 400, marginLeft: 4 }}>{t('examSetup.qUnit')}</span>
               </span>
             </div>
             {shortage !== null && shortage > 0 && (
-              <div style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '6px 10px', background: '#d13212', borderRadius: 6 }}>
-                <span style={{ fontSize: 12, color: 'white', fontWeight: 700 }}>⚠ {shortage}{t('examSetup.shortage')}</span>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '6px 10px', background: 'var(--color-danger)', borderRadius: 'var(--border-radius-md)' }}>
+                <span style={{ fontSize: 'var(--font-size-sm)', color: 'white', fontWeight: 700 }}>⚠ {shortage}{t('examSetup.shortage')}</span>
               </div>
             )}
             {(selectedDomain || selectedTag) && (
-              <div style={{ fontSize: 11, color: '#545b64', marginTop: 6 }}>
-                {selectedDomain && <span style={{ marginRight: 8 }}>{t('examSetup.domainLabel')}: {lang === 'en' ? (DOMAIN_NAME_EN[selectedDomain] ?? selectedDomain) : selectedDomain}</span>}
+              <div style={{ fontSize: 'var(--font-size-xs)', color: 'var(--color-text-sub)', marginTop: 6 }}>
+                {selectedDomain && <span style={{ marginRight: 'var(--spacing-sm)' }}>{t('examSetup.domainLabel')}: {lang === 'en' ? (DOMAIN_NAME_EN[selectedDomain] ?? selectedDomain) : selectedDomain}</span>}
                 {selectedTag && <span>{t('examSetup.tagLabel')}: {selectedTag}</span>}
               </div>
             )}
           </div>
 
           {/* ── 出題範囲と比率 ── */}
-          <div style={{ borderTop: '1px solid #eaeded', paddingTop: 16 }}>
-            <div style={{ fontSize: 11, fontWeight: 700, color: '#545b64', textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: 12 }}>{t('examSetup.distribution')}</div>
+          <div style={{ borderTop: '1px solid var(--color-border)', paddingTop: 'var(--spacing-md)' }}>
+            <div style={{ fontSize: 'var(--font-size-xs)', fontWeight: 700, color: 'var(--color-text-sub)', textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: 'var(--spacing-md)' }}>{t('examSetup.distribution')}</div>
             {EXAM_CATEGORIES[examType].map(cat => (
-              <div key={cat.name} style={{ marginBottom: 10 }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 12, marginBottom: 4 }}>
-                  <span style={{ color: selectedDomain === cat.name ? '#008c8c' : '#16191f', fontWeight: selectedDomain === cat.name ? 700 : 400 }}>
+              <div key={cat.name} style={{ marginBottom: 'var(--spacing-sm)' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 'var(--font-size-sm)', marginBottom: 4 }}>
+                  <span style={{ color: selectedDomain === cat.name ? 'var(--color-primary)' : 'var(--color-text-main)', fontWeight: selectedDomain === cat.name ? 700 : 400 }}>
                     {lang === 'en' ? (DOMAIN_NAME_EN[cat.name] ?? cat.name) : cat.name}
                   </span>
-                  <span style={{ fontWeight: 700, color: '#008c8c', flexShrink: 0, marginLeft: 8 }}>{cat.ratio}</span>
+                  <span style={{ fontWeight: 700, color: 'var(--color-primary)', flexShrink: 0, marginLeft: 'var(--spacing-sm)' }}>{cat.ratio}</span>
                 </div>
-                <div style={{ background: '#eaeded', borderRadius: 10, height: 4 }}>
-                  <div style={{ background: selectedDomain === cat.name ? '#008c8c' : '#879596', borderRadius: 10, height: 4, width: cat.ratio }} />
+                <div style={{ background: 'var(--color-border)', borderRadius: 10, height: 4 }}>
+                  <div style={{ background: selectedDomain === cat.name ? 'var(--color-primary)' : 'var(--color-text-light)', borderRadius: 10, height: 4, width: cat.ratio }} />
                 </div>
               </div>
             ))}
           </div>
-        </div>
+        </Card>
 
       </div>
     </div>

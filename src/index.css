@@ -1,19 +1,72 @@
+:root {
+  /* Colors */
+  --color-primary: #008c8c;
+  --color-primary-hover: #007373;
+  --color-primary-light: #e0f2f2;
+  --color-secondary: #232f3e;
+  --color-secondary-hover: #16191f;
+  --color-accent: #ff9900;
+  --color-accent-hover: #ec7211;
+  --color-bg-main: #f2f3f3;
+  --color-bg-white: #ffffff;
+  --color-text-main: #16191f;
+  --color-text-sub: #545b64;
+  --color-text-light: #879596;
+  --color-border: #eaeded;
+  --color-danger: #d13212;
+  --color-success: #037f0c;
+  --color-warning: #ff9900;
+
+  /* Spacing */
+  --spacing-xs: 4px;
+  --spacing-sm: 8px;
+  --spacing-md: 16px;
+  --spacing-lg: 24px;
+  --spacing-xl: 32px;
+
+  /* Typography */
+  --font-size-xs: 11px;
+  --font-size-sm: 12px;
+  --font-size-base: 14px;
+  --font-size-md: 15px;
+  --font-size-lg: 16px;
+  --font-size-xl: 20px;
+  --font-size-xxl: 28px;
+
+  /* Others */
+  --border-radius-sm: 4px;
+  --border-radius-md: 6px;
+  --border-radius-lg: 8px;
+  --border-radius-full: 9999px;
+  --box-shadow-sm: 0 1px 1px 0 rgba(0, 28, 36, 0.1);
+  --box-shadow-md: 0 4px 12px rgba(0, 0, 0, 0.08);
+  --sidebar-width: 240px;
+}
+
 body {
   margin: 0;
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
+  font-family: 'Public Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
     'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
     sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  background-color: var(--color-bg-main);
+  color: var(--color-text-main);
+  line-height: 1.5;
 }
 
 input[type="checkbox"] {
-  accent-color: #008c8c;
+  accent-color: var(--color-primary);
 }
 
 code {
   font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New',
     monospace;
+}
+
+/* Global Transitions */
+button, a {
+  transition: all 0.2s ease;
 }
 
 /* ── レスポンシブ ── */
@@ -26,7 +79,7 @@ code {
 
   /* ページコンテナのパディング */
   .page-container {
-    padding: 16px 12px !important;
+    padding: var(--spacing-md) var(--spacing-sm) !important;
   }
 
   /* ホーム画面の試験カード → 縦積み */
@@ -36,23 +89,23 @@ code {
 
   /* 管理画面のコンテナ */
   .admin-container {
-    padding: 16px 12px !important;
+    padding: var(--spacing-md) var(--spacing-sm) !important;
   }
 
   /* 演習・模試セッションのコンテナ */
   .session-container {
-    padding: 16px 12px !important;
+    padding: var(--spacing-md) var(--spacing-sm) !important;
   }
 
   /* 結果画面 */
   .result-container {
-    padding: 16px 12px !important;
+    padding: var(--spacing-md) var(--spacing-sm) !important;
   }
 
   /* テーブルのパディング縮小 */
   td, th {
-    padding-left: 12px !important;
-    padding-right: 12px !important;
+    padding-left: var(--spacing-sm) !important;
+    padding-right: var(--spacing-sm) !important;
   }
 }
 

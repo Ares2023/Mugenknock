@@ -3,6 +3,10 @@ import { useNavigate, useLocation } from 'react-router-dom';
 import { API_ENDPOINT, PASS_RATE } from '../constants';
 import { useAuth } from '../contexts/AuthContext';
 import { useLanguage } from '../contexts/LanguageContext';
+import Card from '../components/ui/Card';
+import Button from '../components/ui/Button';
+import Badge from '../components/ui/Badge';
+import { IconBookmark } from '../components/Icons';
 
 type Tip = { tipId: string; title: string; content: string; examType: string };
 
@@ -28,26 +32,16 @@ const CopyButton = ({ getText }: { getText: () => string }) => {
     });
   };
   return (
-    <button
+    <Button
       onClick={handleCopy}
-      style={{
-        padding: "2px 8px", fontSize: 11, borderRadius: 9999, cursor: "pointer",
-        border: `1px solid ${copied ? "#037f0c" : "#d1d5db"}`,
-        background: copied ? "#f2fcf3" : "white",
-        color: copied ? "#037f0c" : "#879596",
-        fontWeight: 700, transition: "all 0.15s", flexShrink: 0,
-      }}
+      variant={copied ? 'primary' : 'outline'}
+      size="sm"
+      style={{ padding: '2px 10px', fontSize: 'var(--font-size-xs)' }}
     >
       {copied ? t('exerciseSession.copied') : t('exerciseSession.copy')}
-    </button>
+    </Button>
   );
 };
-
-const IconBookmark = ({ filled }: { filled: boolean }) => (
-  <svg width="16" height="16" viewBox="0 0 16 16" fill={filled ? "#ff9900" : "none"} stroke={filled ? "#ff9900" : "#879596"} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-    <path d="M3 2h10v13l-5-3-5 3V2z"/>
-  </svg>
-);
 
 export default function ExerciseSession() {
   const navigate = useNavigate();
@@ -175,27 +169,29 @@ export default function ExerciseSession() {
     }
   };
 
-  const getChoiceStyle = (choice: string) => {
-    const base = {
-      padding: "12px 20px",
-      marginBottom: 12,
-      borderRadius: 8,
-      cursor: answered ? "default" : "pointer",
-      border: "1px solid",
-      display: "flex",
-      alignItems: "center",
-      width: "100%",
-      textAlign: "left" as const,
-      fontSize: 14,
-      transition: "all 0.1s ease",
+  const getChoiceStyle = (choice: string): React.CSSProperties => {
+    const base: React.CSSProperties = {
+      padding: 'var(--spacing-md) var(--spacing-lg)',
+      marginBottom: 'var(--spacing-sm)',
+      borderRadius: 'var(--border-radius-md)',
+      cursor: answered ? 'default' : 'pointer',
+      border: '1px solid',
+      display: 'flex',
+      alignItems: 'center',
+      width: '100%',
+      textAlign: 'left',
+      fontSize: 'var(--font-size-base)',
+      transition: 'all 0.15s ease',
+      background: 'var(--color-bg-white)',
+      borderColor: 'var(--color-border)',
     };
     if (!answered) {
       const selected = selectedAnswers.includes(choice);
       return {
         ...base,
-        borderColor: selected ? "#008c8c" : "#d1d5db",
-        background: selected ? "#e0f2f2" : "white",
-        boxShadow: selected ? "inset 0 0 0 1px #008c8c" : "none",
+        borderColor: selected ? 'var(--color-primary)' : 'var(--color-border)',
+        background: selected ? 'var(--color-primary-light)' : 'var(--color-bg-white)',
+        boxShadow: selected ? '0 0 0 1px var(--color-primary)' : 'none',
         fontWeight: selected ? 700 : 400,
       };
     }
@@ -204,77 +200,73 @@ export default function ExerciseSession() {
     const isSelected = selectedAnswers.includes(choice);
 
     if (isCorrect) {
-      return { ...base, borderColor: "#037f0c", background: "#f2fcf3", fontWeight: 700, color: "#037f0c" };
+      return { ...base, borderColor: 'var(--color-success)', background: '#f2fcf3', fontWeight: 700, color: 'var(--color-success)' };
     }
     if (isSelected && !isCorrect) {
-      return { ...base, borderColor: "#d13212", background: "#fdf3f1", fontWeight: 700, color: "#d13212" };
+      return { ...base, borderColor: 'var(--color-danger)', background: '#fdf3f1', fontWeight: 700, color: 'var(--color-danger)' };
     }
-    return { ...base, borderColor: "#eaeded", background: "#fbfbfb", color: "#545b64" };
+    return { ...base, borderColor: 'var(--color-border)', background: 'var(--color-bg-main)', color: 'var(--color-text-sub)' };
   };
 
   return (
-    <div style={{ maxWidth: 900, margin: "0 auto", padding: "24px 20px", color: "#16191f" }} className="session-container">
+    <div style={{ maxWidth: 900, margin: '0 auto', padding: 'var(--spacing-xl) var(--spacing-lg)' }} className="session-container">
 
-      <div className="session-question-panel" style={{ background: "white", border: "1px solid #eaeded", borderRadius: 6, padding: "24px 32px", boxShadow: "0 1px 1px 0 rgba(0,28,36,0.1), 1px 1px 1px 0 rgba(0,28,36,0.15)" }}>
-        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 20 }}>
-          <h1 style={{ fontSize: 20, fontWeight: 700, margin: 0 }}>
+      <Card padding="var(--spacing-xl)">
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 'var(--spacing-lg)' }}>
+          <h1 style={{ fontSize: 'var(--font-size-h2)', fontWeight: 700, margin: 0, color: 'var(--color-text-main)' }}>
             {t('exerciseSession.qLabel')} {currentIndex + 1}
-            <span style={{ fontWeight: 400, fontSize: 14, color: "#545b64", marginLeft: 12 }}>
+            <span style={{ fontWeight: 400, fontSize: 'var(--font-size-sm)', color: 'var(--color-text-sub)', marginLeft: 'var(--spacing-md)' }}>
               {t('exerciseSession.totalQ', { n: questions.length })}
             </span>
           </h1>
-          <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--spacing-md)' }}>
             {user && (
               <button
                 onClick={toggleBookmark}
                 disabled={bookmarkLoading}
                 title={bookmarkedIds.has(currentQuestion.questionId) ? t('exerciseSession.removeBookmark') : t('exerciseSession.bookmark')}
                 style={{
-                  background: "none", border: "none", cursor: "pointer", padding: "4px", display: "flex", alignItems: "center",
-                  opacity: bookmarkLoading ? 0.5 : 1,
+                  background: 'none', border: 'none', cursor: 'pointer', padding: '4px', display: 'flex', alignItems: 'center',
+                  opacity: bookmarkLoading ? 0.5 : 1, transition: 'all 0.2s',
                 }}
               >
                 <IconBookmark filled={bookmarkedIds.has(currentQuestion.questionId)} />
               </button>
             )}
-            <span style={{ background: "#f2f3f3", color: "#545b64", padding: "4px 12px", borderRadius: 12, fontSize: 12, fontWeight: 700, border: "1px solid #d1d5db" }}>
-              {currentQuestion.examType}
-            </span>
+            <Badge variant="secondary">{currentQuestion.examType}</Badge>
           </div>
         </div>
 
-        <div style={{ marginBottom: 24 }}>
-          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 8, gap: 8 }}>
+        <div style={{ marginBottom: 'var(--spacing-xl)' }}>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 'var(--spacing-sm)', gap: 'var(--spacing-md)' }}>
             <div>
               {currentQuestion.isMultiple && (
-                <span style={{ display: "inline-block", background: "#e0f2f2", color: "#008c8c", padding: "2px 8px", borderRadius: 6, fontSize: 12, fontWeight: 700 }}>
-                  {t('exerciseSession.multiple')}
-                </span>
+                <Badge variant="outline">{t('exerciseSession.multiple')}</Badge>
               )}
             </div>
             <CopyButton getText={() => currentQuestion.questionText} />
           </div>
-          <p style={{ fontSize: 16, lineHeight: 1.6, fontWeight: 400, margin: 0, color: "#16191f" }}>
+          <p style={{ fontSize: 'var(--font-size-lg)', lineHeight: 1.6, fontWeight: 400, margin: 0, color: 'var(--color-text-main)' }}>
             {lang === 'en' && (currentQuestion as any).questionTextEn ? (currentQuestion as any).questionTextEn : currentQuestion.questionText}
           </p>
         </div>
 
-        <div style={{ marginBottom: 32 }}>
-          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 8 }}>
-            <span style={{ fontSize: 12, color: "#545b64", fontWeight: 700 }}>{t('exerciseSession.choices')}</span>
-            <CopyButton getText={() => currentQuestion.choices.join("\n")} />
+        <div style={{ marginBottom: 'var(--spacing-xl)' }}>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 'var(--spacing-sm)' }}>
+            <span style={{ fontSize: 'var(--font-size-sm)', color: 'var(--color-text-sub)', fontWeight: 700 }}>{t('exerciseSession.choices')}</span>
+            <CopyButton getText={() => currentQuestion.choices.join('\n')} />
           </div>
           {currentQuestion.choices.map((choice: string) => (
             <button key={choice} onClick={() => toggleAnswer(choice)} style={getChoiceStyle(choice)}>
               <span style={{
-                width: 18, height: 18, border: "1px solid #545b64",
-                borderRadius: currentQuestion.isMultiple ? 2 : "50%",
-                marginRight: 12, display: "flex", alignItems: "center", justifyContent: "center",
-                background: selectedAnswers.includes(choice) ? "#008c8c" : "white",
-                borderColor: selectedAnswers.includes(choice) ? "#008c8c" : "#545b64",
+                width: 18, height: 18, border: '1px solid var(--color-text-sub)',
+                borderRadius: currentQuestion.isMultiple ? 2 : '50%',
+                marginRight: 12, display: 'flex', alignItems: 'center', justifyContent: 'center',
+                background: selectedAnswers.includes(choice) ? 'var(--color-primary)' : 'var(--color-bg-white)',
+                borderColor: selectedAnswers.includes(choice) ? 'var(--color-primary)' : 'var(--color-text-sub)',
                 flexShrink: 0
               }}>
-                {selectedAnswers.includes(choice) && <span style={{ width: 6, height: 6, borderRadius: "50%", background: "white" }} />}
+                {selectedAnswers.includes(choice) && <span style={{ width: 6, height: 6, borderRadius: '50%', background: 'white' }} />}
               </span>
               {choice}
             </button>
@@ -283,115 +275,82 @@ export default function ExerciseSession() {
 
         {answered && detail && (
           <div style={{
-            background: results[results.length - 1]?.isCorrect ? "#f2fcf3" : "#fdf3f1",
-            borderLeft: `8px solid ${results[results.length - 1]?.isCorrect ? "#037f0c" : "#d13212"}`,
-            padding: "16px 20px", marginBottom: 24
+            background: results[results.length - 1]?.isCorrect ? '#f2fcf3' : '#fdf3f1',
+            borderLeft: `8px solid ${results[results.length - 1]?.isCorrect ? 'var(--color-success)' : 'var(--color-danger)'}`,
+            padding: '16px 20px', marginBottom: 'var(--spacing-xl)',
+            borderRadius: 'var(--border-radius-sm)',
           }}>
-            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 8, gap: 8 }}>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 'var(--spacing-sm)', gap: 'var(--spacing-md)' }}>
               <h3 style={{
-                margin: 0, fontSize: 16,
-                color: results[results.length - 1]?.isCorrect ? "#037f0c" : "#d13212",
-                display: "flex", alignItems: "center", gap: 8
+                margin: 0, fontSize: 'var(--font-size-md)',
+                color: results[results.length - 1]?.isCorrect ? 'var(--color-success)' : 'var(--color-danger)',
+                display: 'flex', alignItems: 'center', gap: 'var(--spacing-sm)'
               }}>
                 {results[results.length - 1]?.isCorrect ? t('exerciseSession.correct') : t('exerciseSession.incorrect')}
               </h3>
               <CopyButton getText={() =>
-                `正解: ${detail.correctAnswers?.join(", ")}\n\n解説:\n${detail.explanation ?? ""}`
+                `正解: ${detail.correctAnswers?.join(', ')}\n\n解説:\n${detail.explanation ?? ''}`
               } />
             </div>
-            <p style={{ margin: "0 0 12px", fontSize: 14 }}>
-              <strong>{t('exerciseSession.correctAnswer')}</strong>{detail.correctAnswers?.join(", ")}
+            <p style={{ margin: '0 0 12px', fontSize: 'var(--font-size-base)' }}>
+              <strong>{t('exerciseSession.correctAnswer')}</strong>{detail.correctAnswers?.join(', ')}
             </p>
-            <div style={{ fontSize: 14, lineHeight: 1.6 }}>
+            <div style={{ fontSize: 'var(--font-size-base)', lineHeight: 1.6 }}>
               <strong>{t('exerciseSession.explanation')}</strong>
               <div style={{ marginTop: 4 }}>{lang === 'en' && (detail as any).explanationEn ? (detail as any).explanationEn : detail.explanation}</div>
             </div>
           </div>
         )}
 
-        <div style={{ display: "flex", gap: 12, borderTop: "1px solid #eaeded", paddingTop: 24 }}>
+        <div style={{ display: 'flex', gap: 'var(--spacing-md)', borderTop: '1px solid var(--color-border)', paddingTop: 'var(--spacing-lg)' }}>
           {!answered ? (
-            <button
+            <Button
               onClick={submitAnswer}
               disabled={selectedAnswers.length === 0 || loading}
-              style={{
-                padding: "8px 20px",
-                background: selectedAnswers.length > 0 ? "#ff9900" : "#eaeded",
-                color: selectedAnswers.length > 0 ? "#16191f" : "#aab7b8",
-                border: "1px solid transparent",
-                borderRadius: 9999,
-                cursor: selectedAnswers.length > 0 ? "pointer" : "not-allowed",
-                fontSize: 14,
-                fontWeight: 700,
-                transition: "background 0.1s"
-              }}
-              onMouseEnter={e => { if (selectedAnswers.length > 0) e.currentTarget.style.background = "#ec7211"; }}
-              onMouseLeave={e => { if (selectedAnswers.length > 0) e.currentTarget.style.background = "#ff9900"; }}
+              variant="accent"
+              style={{ minWidth: 120 }}
             >
               {loading ? t('exerciseSession.answering') : t('exerciseSession.answer')}
-            </button>
+            </Button>
           ) : (
-            <button
+            <Button
               onClick={nextQuestion}
-              style={{
-                padding: "8px 20px",
-                background: "white",
-                color: "#008c8c",
-                border: "1px solid #008c8c",
-                borderRadius: 9999,
-                cursor: "pointer",
-                fontSize: 14,
-                fontWeight: 700,
-                transition: "all 0.1s"
-              }}
-              onMouseEnter={e => {
-                e.currentTarget.style.background = "#e0f2f2";
-                e.currentTarget.style.borderColor = "#006666";
-                e.currentTarget.style.color = "#006666";
-              }}
-              onMouseLeave={e => {
-                e.currentTarget.style.background = "white";
-                e.currentTarget.style.borderColor = "#008c8c";
-                e.currentTarget.style.color = "#008c8c";
-              }}
+              variant="outline"
+              style={{ minWidth: 120 }}
             >
               {currentIndex + 1 >= questions.length ? t('exerciseSession.showResult') : t('exerciseSession.next')}
-            </button>
+            </Button>
           )}
         </div>
-      </div>
+      </Card>
 
       {/* コラム（豆知識） */}
       {currentTip && (
-        <div style={{ marginTop: 24 }}>
-          <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 10 }}>
+        <div style={{ marginTop: 'var(--spacing-xl)' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--spacing-md)', marginBottom: 'var(--spacing-sm)' }}>
             <span style={{
-              background: "#b85c00", color: "white",
-              fontSize: 10, fontWeight: 700, letterSpacing: "1.5px",
-              padding: "3px 8px", borderRadius: 6,
+              background: '#b85c00', color: 'white',
+              fontSize: 10, fontWeight: 700, letterSpacing: '1.5px',
+              padding: '3px 10px', borderRadius: 'var(--border-radius-sm)',
             }}>COLUMN</span>
-            <span style={{ flex: 1, height: 1, background: "#eaeded" }} />
+            <span style={{ flex: 1, height: 1, background: 'var(--color-border)' }} />
           </div>
-          <div style={{
-            background: "white",
-            border: "1px solid #eaeded",
-            borderLeft: "4px solid #ff9900",
-            borderRadius: 6,
-            padding: "16px 20px",
-            boxShadow: "0 1px 1px 0 rgba(0,28,36,0.07)",
-          }}>
-            <div style={{ display: "flex", alignItems: "flex-start", gap: 12 }}>
+          <Card
+            padding="var(--spacing-md) var(--spacing-lg)"
+            style={{ borderLeft: '4px solid var(--color-accent)' }}
+          >
+            <div style={{ display: 'flex', alignItems: 'flex-start', gap: 'var(--spacing-md)' }}>
               <span style={{ fontSize: 24, lineHeight: 1, flexShrink: 0 }}>📖</span>
               <div>
-                <p style={{ fontWeight: 700, color: "#16191f", margin: "0 0 8px", fontSize: 14 }}>
+                <p style={{ fontWeight: 700, color: 'var(--color-text-main)', margin: '0 0 var(--spacing-sm)', fontSize: 'var(--font-size-base)' }}>
                   {currentTip.title}
                 </p>
-                <p style={{ color: "#545b64", margin: 0, fontSize: 13, lineHeight: 1.8 }}>
+                <p style={{ color: 'var(--color-text-sub)', margin: 0, fontSize: 'var(--font-size-sm)', lineHeight: 1.8 }}>
                   {currentTip.content}
                 </p>
               </div>
             </div>
-          </div>
+          </Card>
         </div>
       )}
     </div>

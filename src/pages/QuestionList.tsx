@@ -2,6 +2,9 @@ import React, { useEffect, useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { API_ENDPOINT } from '../constants';
 import { useLanguage } from '../contexts/LanguageContext';
+import Card from '../components/ui/Card';
+import Button from '../components/ui/Button';
+import Badge from '../components/ui/Badge';
 
 type Question = {
   questionId: string;
@@ -80,10 +83,10 @@ export default function QuestionList() {
     const expl = lang === 'en' && (q as any).explanationEn ? (q as any).explanationEn : q.explanation;
     const text = [
       `[Q] ${qText}`,
-      choices.map((c: string, i: number) => `${i + 1}. ${c}`).join("\n"),
-      q.correctAnswers ? `[Answer] ${q.correctAnswers.join(", ")}` : "",
-      expl ? `[Explanation] ${expl}` : "",
-    ].filter(Boolean).join("\n");
+      choices.map((c: string, i: number) => `${i + 1}. ${c}`).join('\n'),
+      q.correctAnswers ? `[Answer] ${q.correctAnswers.join(', ')}` : '',
+      expl ? `[Explanation] ${expl}` : '',
+    ].filter(Boolean).join('\n');
     navigator.clipboard.writeText(text);
     setCopiedId(q.questionId);
     setTimeout(() => setCopiedId(null), 1500);
@@ -95,132 +98,152 @@ export default function QuestionList() {
     const fetched = await Promise.all(needFetch.map(q => fetch(`${API_ENDPOINT}/questions/${q.questionId}`).then(r => r.json())));
     const map = Object.fromEntries(fetched.map(q => [q.questionId, q]));
     const full = targets.map(q => ({ ...q, ...map[q.questionId] }));
-    const header = "問題ID,試験種別,問題文,選択肢,正解,解説\n";
-    const rows = full.map(q => [q.questionId, q.examType, `"${q.questionText}"`, `"${q.choices.join(" / ")}"`, `"${(q.correctAnswers || []).join(" / ")}"`, `"${q.explanation || ""}"`].join(",")).join("\n");
-    const blob = new Blob(["\uFEFF" + header + rows], { type: "text/csv" });
+    const header = '問題ID,試験種別,問題文,選択肢,正解,解説\n';
+    const rows = full.map(q => [q.questionId, q.examType, `"${q.questionText}"`, `"${q.choices.join(' / ')}"`, `"${(q.correctAnswers || []).join(' / ')}"`, `"${q.explanation || ''}"`].join(',')).join('\n');
+    const blob = new Blob(['\uFEFF' + header + rows], { type: 'text/csv' });
     const url = URL.createObjectURL(blob);
-    const a = document.createElement("a"); a.href = url; a.download = "questions.csv"; a.click();
+    const a = document.createElement('a'); a.href = url; a.download = 'questions.csv'; a.click();
     URL.revokeObjectURL(url);
   };
 
   return (
-    <div style={{ maxWidth: 900, margin: "0 auto", padding: "24px 20px", color: '#16191f' }} className="page-container">
-      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 24 }}>
-        <h1 style={{ color: "#16191f", margin: 0, fontSize: 24, fontWeight: 700 }}>{t('questions.title')}</h1>
+    <div style={{ maxWidth: 900, margin: '0 auto', padding: 'var(--spacing-xl) var(--spacing-lg)' }} className="page-container">
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 'var(--spacing-xl)' }}>
+        <h1 style={{ color: 'var(--color-text-main)', margin: 0, fontSize: 'var(--font-size-xxl)', fontWeight: 700 }}>{t('questions.title')}</h1>
       </div>
 
-      <form onSubmit={handleSearch} style={{ marginBottom: 20, display: "flex", gap: 12 }}>
-        <input
-          value={keyword}
-          onChange={e => setKeyword(e.target.value)}
-          placeholder={t('questions.searchPlaceholder')}
-          style={{ flex: 1, padding: "6px 12px", border: "1px solid #d1d5db", borderRadius: 6, fontSize: 14, outline: 'none' }}
-          onFocus={e => e.currentTarget.style.borderColor = '#008c8c'}
-          onBlur={e => e.currentTarget.style.borderColor = '#d1d5db'}
-        />
-        <button type="submit"
-          style={{ padding: "6px 20px", background: "white", color: "#008c8c", border: "1px solid #008c8c", borderRadius: 9999, cursor: "pointer", fontWeight: 700, fontSize: 14 }}
-          onMouseEnter={e => { e.currentTarget.style.background = "#e0f2f2"; e.currentTarget.style.borderColor = "#006666"; e.currentTarget.style.color = "#006666"; }}
-          onMouseLeave={e => { e.currentTarget.style.background = "white"; e.currentTarget.style.borderColor = "#008c8c"; e.currentTarget.style.color = "#008c8c"; }}
-        >
-          {t('questions.search')}
-        </button>
-        {keyword && (
-          <button type="button" onClick={() => navigate('/questions')}
-            style={{ padding: "6px 20px", background: "white", color: "#545b64", border: "1px solid #545b64", borderRadius: 9999, cursor: "pointer", fontWeight: 700, fontSize: 14 }}
-            onMouseEnter={e => { e.currentTarget.style.background = "#f2f3f3"; }}
-            onMouseLeave={e => { e.currentTarget.style.background = "white"; }}
-          >
-            {t('questions.clear')}
-          </button>
-        )}
-      </form>
-
-      <div style={{ marginBottom: 24, display: "flex", gap: 12 }}>
-        {["CLF", "SAA", "SAP"].map(type => (
-          <button key={type} onClick={() => { setExamType(type); fetchQuestions(type, keyword); }}
+      <Card padding="var(--spacing-lg)" style={{ marginBottom: 'var(--spacing-xl)' }}>
+        <form onSubmit={handleSearch} style={{ display: 'flex', gap: 'var(--spacing-md)', marginBottom: 'var(--spacing-md)' }}>
+          <input
+            value={keyword}
+            onChange={e => setKeyword(e.target.value)}
+            placeholder={t('questions.searchPlaceholder')}
             style={{
-              padding: "6px 20px",
-              background: examType === type ? "#e0f2f2" : "white",
-              border: "1px solid",
-              borderColor: examType === type ? "#008c8c" : "#d1d5db",
-              borderRadius: 6,
-              cursor: "pointer",
-              fontWeight: examType === type ? 700 : 400,
-              color: examType === type ? "#008c8c" : "#545b64",
-              transition: "all 0.1s"
-            }}>
-            {type}
-          </button>
-        ))}
-      </div>
+              flex: 1, padding: '8px 12px',
+              border: '1px solid var(--color-border)',
+              borderRadius: 'var(--border-radius-md)',
+              fontSize: 'var(--font-size-base)', outline: 'none',
+              transition: 'border-color 0.2s',
+            }}
+            onFocus={e => e.currentTarget.style.borderColor = 'var(--color-primary)'}
+            onBlur={e => e.currentTarget.style.borderColor = 'var(--color-border)'}
+          />
+          <Button type="submit">
+            {t('questions.search')}
+          </Button>
+          {keyword && (
+            <Button variant="ghost" type="button" onClick={() => navigate('/questions')} style={{ color: 'var(--color-text-light)' }}>
+              {t('questions.clear')}
+            </Button>
+          )}
+        </form>
 
-      <div style={{ marginBottom: 20, display: "flex", gap: 12, borderBottom: '1px solid #eaeded', paddingBottom: 16 }}>
-        <button onClick={selectAll}
-          style={{ padding: "6px 20px", background: "white", color: "#008c8c", border: "1px solid #008c8c", borderRadius: 9999, cursor: "pointer", fontWeight: 700, fontSize: 14 }}
-          onMouseEnter={e => { e.currentTarget.style.background = "#e0f2f2"; e.currentTarget.style.borderColor = "#006666"; e.currentTarget.style.color = "#006666"; }}
-          onMouseLeave={e => { e.currentTarget.style.background = "white"; e.currentTarget.style.borderColor = "#008c8c"; e.currentTarget.style.color = "#008c8c"; }}
-        >
+        <div style={{ display: 'flex', gap: 'var(--spacing-sm)', flexWrap: 'wrap' }}>
+          {['CLF', 'SAA', 'SAP', 'DOP'].map(type => (
+            <Button
+              key={type}
+              variant={examType === type ? 'primary' : 'outline'}
+              size="sm"
+              onClick={() => { setExamType(type === examType ? '' : type); fetchQuestions(type === examType ? '' : type, keyword); }}
+            >
+              {type}
+            </Button>
+          ))}
+        </div>
+      </Card>
+
+      <div style={{ marginBottom: 'var(--spacing-lg)', display: 'flex', gap: 'var(--spacing-md)', alignItems: 'center' }}>
+        <Button variant="outline" size="sm" onClick={selectAll}>
           {selected.size === questions.length ? t('questions.deselectAll') : t('questions.selectAll')}
-        </button>
-        <button onClick={exportCSV} disabled={selected.size === 0}
-          style={{
-            padding: "6px 20px",
-            background: selected.size > 0 ? "white" : "#eaeded",
-            color: selected.size > 0 ? "#16191f" : "#aab7b8",
-            border: `1px solid ${selected.size > 0 ? "#545b64" : "transparent"}`,
-            borderRadius: 9999,
-            cursor: selected.size > 0 ? "pointer" : "default",
-            fontWeight: 700,
-            fontSize: 14
-          }}>
+        </Button>
+        <Button variant="secondary" size="sm" onClick={exportCSV} disabled={selected.size === 0}>
           {t('questions.csvExport', { n: selected.size })}
-        </button>
+        </Button>
+        <span style={{ fontSize: 'var(--font-size-sm)', color: 'var(--color-text-sub)', marginLeft: 'auto' }}>
+          {t('questions.count', { n: questions.length })}
+        </span>
       </div>
 
-      {loading ? <p style={{ color: '#545b64' }}>{t('questions.loading')}</p> : questions.map(q => {
-        const qText = lang === 'en' && (q as any).questionTextEn ? (q as any).questionTextEn : q.questionText;
-        const choices = lang === 'en' && (q as any).choicesEn ? (q as any).choicesEn : q.choices;
-        const expl = lang === 'en' && (q as any).explanationEn ? (q as any).explanationEn : q.explanation;
-        return (
-          <div key={q.questionId} style={{ border: "1px solid #eaeded", borderRadius: 6, marginBottom: 16, padding: 20, background: selected.has(q.questionId) ? "#e0f2f2" : "white", boxShadow: '0 1px 1px 0 rgba(0,28,36,0.1)' }}>
-            <div style={{ display: "flex", alignItems: "flex-start", gap: 16 }}>
-              <input type="checkbox" checked={selected.has(q.questionId)} onChange={() => toggleSelect(q.questionId)} style={{ marginTop: 6, width: 16, height: 16 }} />
-              <div style={{ flex: 1 }}>
-                <div style={{ marginBottom: 12 }}>
-                  <span style={{ background: "#232f3e", color: "white", borderRadius: 12, padding: "2px 8px", fontSize: 11, fontWeight: 700, marginRight: 10 }}>{q.examType}</span>
-                  {q.isMultiple && <span style={{ background: "#e0f2f2", color: "#008c8c", borderRadius: 6, padding: "2px 8px", fontSize: 11, fontWeight: 700 }}>{t('questions.multiple')}</span>}
-                </div>
-                <p style={{ margin: "0 0 12px", fontWeight: 400, fontSize: 15, lineHeight: 1.6 }}>{qText}</p>
-                <ol style={{ margin: "0 0 16px", paddingLeft: 24, fontSize: 14, color: '#545b64', lineHeight: 1.6 }}>{choices.map((c: string, i: number) => <li key={i}>{c}</li>)}</ol>
-                {expandedId === q.questionId && q.correctAnswers && (
-                  <div style={{ background: "#f2fcf3", borderLeft: '4px solid #037f0c', borderRadius: 6, padding: "12px 16px", marginTop: 12, fontSize: 14 }}>
-                    <p style={{ margin: "0 0 8px" }}><strong style={{ color: '#037f0c' }}>{t('questions.correctAnswer')}</strong>{q.correctAnswers.join(", ")}</p>
-                    <div style={{ color: '#16191f', lineHeight: 1.6 }}><strong>{t('questions.explanation')}</strong><div style={{ marginTop: 4 }}>{expl}</div></div>
+      {loading ? (
+        <div style={{ textAlign: 'center', padding: 'var(--spacing-xl)' }}>
+          <p style={{ color: 'var(--color-text-sub)' }}>{t('questions.loading')}</p>
+        </div>
+      ) : (
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--spacing-md)' }}>
+          {questions.map(q => {
+            const qText = lang === 'en' && (q as any).questionTextEn ? (q as any).questionTextEn : q.questionText;
+            const choices = lang === 'en' && (q as any).choicesEn ? (q as any).choicesEn : q.choices;
+            const expl = lang === 'en' && (q as any).explanationEn ? (q as any).explanationEn : q.explanation;
+            const isSelected = selected.has(q.questionId);
+            const isExpanded = expandedId === q.questionId;
+
+            return (
+              <Card
+                key={q.questionId}
+                padding="var(--spacing-lg)"
+                style={{
+                  background: isSelected ? 'var(--color-primary-light)' : 'var(--color-bg-white)',
+                  transition: 'background-color 0.2s',
+                }}
+              >
+                <div style={{ display: 'flex', alignItems: 'flex-start', gap: 'var(--spacing-md)' }}>
+                  <input
+                    type="checkbox"
+                    checked={isSelected}
+                    onChange={() => toggleSelect(q.questionId)}
+                    style={{ marginTop: 4, width: 18, height: 18, cursor: 'pointer' }}
+                  />
+                  <div style={{ flex: 1 }}>
+                    <div style={{ marginBottom: 'var(--spacing-sm)', display: 'flex', gap: 'var(--spacing-sm)' }}>
+                      <Badge variant="secondary">{q.examType}</Badge>
+                      {q.isMultiple && <Badge variant="outline">{t('questions.multiple')}</Badge>}
+                    </div>
+                    <p style={{ margin: '0 0 var(--spacing-md)', fontWeight: 700, fontSize: 'var(--font-size-md)', lineHeight: 1.6, color: 'var(--color-text-main)' }}>
+                      {qText}
+                    </p>
+                    <ol style={{ margin: '0 0 var(--spacing-lg)', paddingLeft: 'var(--spacing-xl)', fontSize: 'var(--font-size-base)', color: 'var(--color-text-sub)', lineHeight: 1.6 }}>
+                      {choices.map((c: string, i: number) => <li key={i}>{c}</li>)}
+                    </ol>
+                    
+                    {isExpanded && q.correctAnswers && (
+                      <div style={{
+                        background: '#f2fcf3',
+                        borderLeft: '4px solid var(--color-success)',
+                        borderRadius: 'var(--border-radius-md)',
+                        padding: '16px 20px',
+                        marginBottom: 'var(--spacing-lg)',
+                        fontSize: 'var(--font-size-base)'
+                      }}>
+                        <p style={{ margin: '0 0 var(--spacing-sm)' }}>
+                          <strong style={{ color: 'var(--color-success)' }}>{t('questions.correctAnswer')}</strong>{q.correctAnswers.join(', ')}
+                        </p>
+                        <div style={{ color: 'var(--color-text-main)', lineHeight: 1.6 }}>
+                          <strong>{t('questions.explanation')}</strong>
+                          <div style={{ marginTop: 8, fontSize: 'var(--font-size-sm)' }}>{expl}</div>
+                        </div>
+                      </div>
+                    )}
+                    
+                    <div style={{ display: 'flex', gap: 'var(--spacing-md)' }}>
+                      <Button variant="outline" size="sm" onClick={() => fetchDetail(q.questionId)}>
+                        {isExpanded ? t('questions.hideExplanation') : t('questions.showExplanation')}
+                      </Button>
+                      <Button
+                        variant={copiedId === q.questionId ? 'primary' : 'outline'}
+                        size="sm"
+                        onClick={() => copyQuestion(q)}
+                        style={{ color: copiedId === q.questionId ? 'white' : 'var(--color-text-sub)', borderColor: copiedId === q.questionId ? 'var(--color-primary)' : 'var(--color-border)' }}
+                      >
+                        {copiedId === q.questionId ? t('questions.copied') : t('questions.copy')}
+                      </Button>
+                    </div>
                   </div>
-                )}
-                <div style={{ marginTop: 16, display: "flex", gap: 12 }}>
-                  <button onClick={() => fetchDetail(q.questionId)}
-                    style={{ padding: "6px 16px", cursor: "pointer", borderRadius: 9999, border: "1px solid #008c8c", background: "white", color: "#008c8c", fontWeight: 700, fontSize: 13 }}>
-                    {expandedId === q.questionId ? t('questions.hideExplanation') : t('questions.showExplanation')}
-                  </button>
-                  <button onClick={() => copyQuestion(q)}
-                    style={{
-                      padding: "6px 16px", cursor: "pointer", borderRadius: 9999,
-                      border: `1px solid ${copiedId === q.questionId ? '#037f0c' : '#545b64'}`,
-                      color: copiedId === q.questionId ? '#037f0c' : '#16191f',
-                      background: copiedId === q.questionId ? '#f2fcf3' : 'white',
-                      fontWeight: 700, fontSize: 13,
-                      transition: 'all 0.2s'
-                    }}>
-                    {copiedId === q.questionId ? t('questions.copied') : t('questions.copy')}
-                  </button>
                 </div>
-              </div>
-            </div>
-          </div>
-        );
-      })}
+              </Card>
+            );
+          })}
+        </div>
+      )}
     </div>
   );
 }

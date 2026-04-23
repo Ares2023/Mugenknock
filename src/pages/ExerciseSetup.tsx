@@ -1,8 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { API_ENDPOINT, EXAM_TYPES, EXAM_DOMAINS, PASS_SCORES, PASS_RATE, DOMAIN_NAME_EN } from '../constants';
+import { API_ENDPOINT, EXAM_TYPES, EXAM_DOMAINS, PASS_SCORES, DOMAIN_NAME_EN } from '../constants';
 import { useAuth } from '../contexts/AuthContext';
 import { useLanguage } from '../contexts/LanguageContext';
+import Card from '../components/ui/Card';
+import Button from '../components/ui/Button';
+import Badge from '../components/ui/Badge';
 
 const EXAM_INFO: Record<string, {
   fullName: string;
@@ -215,188 +218,210 @@ export default function ExerciseSetup() {
     }
   };
 
-  const chipStyle = (active: boolean) => ({
-    padding: '4px 12px',
-    fontSize: 13,
-    borderRadius: 6,
-    border: '1px solid',
-    borderColor: active ? '#008c8c' : '#d1d5db',
-    background: active ? '#e0f2f2' : 'white',
-    color: active ? '#008c8c' : '#545b64',
-    fontWeight: active ? 700 : 400,
-    cursor: 'pointer',
-  } as React.CSSProperties);
-
   return (
-    <div style={{ maxWidth: 1200, margin: '0 auto', padding: '24px 20px', color: '#16191f' }} className="page-container">
+    <div style={{ maxWidth: 1200, margin: '0 auto', padding: 'var(--spacing-xl) var(--spacing-lg)' }} className="page-container">
 
-      <h1 style={{ fontSize: 24, fontWeight: 700, margin: '0 0 24px' }}>{t('exerciseSetup.title')}</h1>
+      <h1 style={{ fontSize: 'var(--font-size-xxl)', fontWeight: 700, margin: '0 0 var(--spacing-xl)', color: 'var(--color-text-main)' }}>
+        {t('exerciseSetup.title')}
+      </h1>
 
-      <div className="setup-grid" style={{ display: 'grid', gridTemplateColumns: '1fr 380px', gap: 32, alignItems: 'flex-start' }}>
+      <div className="setup-grid" style={{ display: 'grid', gridTemplateColumns: '1fr 380px', gap: 'var(--spacing-xl)', alignItems: 'flex-start' }}>
 
         {/* 左：設定フォーム */}
-        <div style={{ background: 'white', border: '1px solid #eaeded', borderRadius: 6, padding: '24px 32px', boxShadow: '0 1px 1px 0 rgba(0,28,36,0.1)' }}>
-          <h2 style={{ fontSize: 18, fontWeight: 700, margin: '0 0 24px', borderBottom: '1px solid #eaeded', paddingBottom: 12 }}>
-            {t('exerciseSetup.params')}
-          </h2>
-
+        <Card title={t('exerciseSetup.params')} padding="var(--spacing-xl)">
           {/* 試験種別 */}
           {targetExam ? (
-            <div style={{ marginBottom: 24, display: 'flex', alignItems: 'center', gap: 8 }}>
-              <span style={{ fontSize: 14, fontWeight: 700, color: '#545b64' }}>{t('exerciseSetup.examType')}</span>
-              <span style={{ background: '#232f3e', color: 'white', fontSize: 12, padding: '2px 10px', borderRadius: 12, fontWeight: 700 }}>{examType}</span>
-              <span style={{ fontSize: 12, color: '#aab7b8' }}>{t('exerciseSetup.examTypeHome')}</span>
+            <div style={{ marginBottom: 'var(--spacing-lg)', display: 'flex', alignItems: 'center', gap: 'var(--spacing-md)' }}>
+              <span style={{ fontSize: 'var(--font-size-base)', fontWeight: 700, color: 'var(--color-text-sub)' }}>{t('exerciseSetup.examType')}</span>
+              <Badge variant="secondary">{examType}</Badge>
+              <span style={{ fontSize: 'var(--font-size-sm)', color: 'var(--color-text-light)' }}>{t('exerciseSetup.examTypeHome')}</span>
             </div>
           ) : (
-            <div style={{ marginBottom: 24 }}>
-              <label style={{ display: 'block', marginBottom: 8, fontWeight: 700, fontSize: 14 }}>{t('exerciseSetup.examType')}</label>
-              <div style={{ display: 'flex', gap: 8 }}>
+            <div style={{ marginBottom: 'var(--spacing-lg)' }}>
+              <label style={{ display: 'block', marginBottom: 'var(--spacing-sm)', fontWeight: 700, fontSize: 'var(--font-size-base)' }}>{t('exerciseSetup.examType')}</label>
+              <div style={{ display: 'flex', gap: 'var(--spacing-sm)' }}>
                 {EXAM_TYPES.map(type => (
-                  <button key={type} onClick={() => { setExamType(type); localStorage.setItem('lastExamType', type); }} style={chipStyle(examType === type)}>
+                  <Button
+                    key={type}
+                    variant={examType === type ? 'primary' : 'outline'}
+                    size="sm"
+                    onClick={() => { setExamType(type); localStorage.setItem('lastExamType', type); }}
+                  >
                     {type}
-                  </button>
+                  </Button>
                 ))}
               </div>
             </div>
           )}
 
           {/* ドメインフィルタ */}
-          <div style={{ marginBottom: 24 }}>
-            <label style={{ display: 'block', marginBottom: 8, fontWeight: 700, fontSize: 14 }}>
-              {t('exerciseSetup.domain')} <span style={{ fontWeight: 400, fontSize: 12, color: '#545b64' }}>{t('exerciseSetup.optional')}</span>
+          <div style={{ marginBottom: 'var(--spacing-lg)' }}>
+            <label style={{ display: 'block', marginBottom: 'var(--spacing-sm)', fontWeight: 700, fontSize: 'var(--font-size-base)' }}>
+              {t('exerciseSetup.domain')} <span style={{ fontWeight: 400, fontSize: 'var(--font-size-sm)', color: 'var(--color-text-sub)' }}>{t('exerciseSetup.optional')}</span>
             </label>
-            <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
-              <button onClick={() => setSelectedDomain('')} style={chipStyle(selectedDomain === '')}>{t('exerciseSetup.all')}</button>
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: 'var(--spacing-sm)' }}>
+              <Button
+                variant={selectedDomain === '' ? 'primary' : 'outline'}
+                size="sm"
+                onClick={() => setSelectedDomain('')}
+              >
+                {t('exerciseSetup.all')}
+              </Button>
               {EXAM_DOMAINS[examType].map(d => (
-                <button key={d} onClick={() => setSelectedDomain(selectedDomain === d ? '' : d)} style={chipStyle(selectedDomain === d)}>
+                <Button
+                  key={d}
+                  variant={selectedDomain === d ? 'primary' : 'outline'}
+                  size="sm"
+                  onClick={() => setSelectedDomain(selectedDomain === d ? '' : d)}
+                >
                   {lang === 'en' ? (DOMAIN_NAME_EN[d] ?? d) : d}
-                </button>
+                </Button>
               ))}
             </div>
           </div>
 
           {/* タグフィルタ */}
           {availableTags.length > 0 && (
-            <div style={{ marginBottom: 24 }}>
-              <label style={{ display: 'block', marginBottom: 8, fontWeight: 700, fontSize: 14 }}>
-                {t('exerciseSetup.tag')} <span style={{ fontWeight: 400, fontSize: 12, color: '#545b64' }}>{t('exerciseSetup.optional')}</span>
+            <div style={{ marginBottom: 'var(--spacing-lg)' }}>
+              <label style={{ display: 'block', marginBottom: 'var(--spacing-sm)', fontWeight: 700, fontSize: 'var(--font-size-base)' }}>
+                {t('exerciseSetup.tag')} <span style={{ fontWeight: 400, fontSize: 'var(--font-size-sm)', color: 'var(--color-text-sub)' }}>{t('exerciseSetup.optional')}</span>
               </label>
-              <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
-                <button onClick={() => setSelectedTag('')} style={chipStyle(selectedTag === '')}>{t('exerciseSetup.all')}</button>
+              <div style={{ display: 'flex', flexWrap: 'wrap', gap: 'var(--spacing-sm)' }}>
+                <Button
+                  variant={selectedTag === '' ? 'primary' : 'outline'}
+                  size="sm"
+                  onClick={() => setSelectedTag('')}
+                >
+                  {t('exerciseSetup.all')}
+                </Button>
                 {availableTags.map(tag => (
-                  <button key={tag} onClick={() => setSelectedTag(selectedTag === tag ? '' : tag)} style={chipStyle(selectedTag === tag)}>
+                  <Button
+                    key={tag}
+                    variant={selectedTag === tag ? 'primary' : 'outline'}
+                    size="sm"
+                    onClick={() => setSelectedTag(selectedTag === tag ? '' : tag)}
+                  >
                     {tag}
-                  </button>
+                  </Button>
                 ))}
               </div>
             </div>
           )}
 
           {/* 問題数 */}
-          <div style={{ marginBottom: 24 }}>
-            <label style={{ display: 'block', marginBottom: 8, fontWeight: 700, fontSize: 14 }}>{t('exerciseSetup.questionCount')}</label>
-            <input type="number" value={limit} onChange={e => setLimit(Math.max(1, parseInt(e.target.value) || 1))} min={1} max={availableCount ?? 50}
-              style={{ padding: '6px 12px', width: 100, border: '1px solid #d1d5db', borderRadius: 6, fontSize: 14, outline: 'none' }}
-              onFocus={e => e.currentTarget.style.borderColor = '#008c8c'}
-              onBlur={e => e.currentTarget.style.borderColor = '#d1d5db'}
-            />
-            <span style={{ marginLeft: 12, fontSize: 12, color: '#545b64' }}>
-              {availableCount !== null ? t('exerciseSetup.maxQ', { n: availableCount }) : t('exerciseSetup.loading')}
-            </span>
+          <div style={{ marginBottom: 'var(--spacing-lg)' }}>
+            <label style={{ display: 'block', marginBottom: 'var(--spacing-sm)', fontWeight: 700, fontSize: 'var(--font-size-base)' }}>{t('exerciseSetup.questionCount')}</label>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--spacing-md)' }}>
+              <input type="number" value={limit} onChange={e => setLimit(Math.max(1, parseInt(e.target.value) || 1))} min={1} max={availableCount ?? 50}
+                style={{
+                  padding: '8px 12px', width: 100,
+                  border: '1px solid var(--color-border)',
+                  borderRadius: 'var(--border-radius-md)',
+                  fontSize: 'var(--font-size-base)', outline: 'none',
+                  transition: 'border-color 0.2s',
+                }}
+                onFocus={e => e.currentTarget.style.borderColor = 'var(--color-primary)'}
+                onBlur={e => e.currentTarget.style.borderColor = 'var(--color-border)'}
+              />
+              <span style={{ fontSize: 'var(--font-size-sm)', color: 'var(--color-text-sub)' }}>
+                {availableCount !== null ? t('exerciseSetup.maxQ', { n: availableCount }) : t('exerciseSetup.loading')}
+              </span>
+            </div>
           </div>
 
           {/* フィルタ・シャッフル */}
-          <div style={{ marginBottom: 16, padding: '16px', background: '#f2f3f3', borderRadius: 6, display: 'flex', flexDirection: 'column', gap: 10 }}>
+          <div style={{ marginBottom: 'var(--spacing-lg)', padding: 'var(--spacing-md)', background: 'var(--color-bg-main)', borderRadius: 'var(--border-radius-md)', display: 'flex', flexDirection: 'column', gap: 'var(--spacing-sm)' }}>
             {user && (
-              <label style={{ display: 'flex', alignItems: 'center', gap: 10, cursor: 'pointer', fontSize: 14 }}>
-                <input type="checkbox" checked={unansweredOnly} onChange={e => setUnansweredOnly(e.target.checked)} style={{ width: 16, height: 16 }} />
+              <label style={{ display: 'flex', alignItems: 'center', gap: 'var(--spacing-md)', cursor: 'pointer', fontSize: 'var(--font-size-base)' }}>
+                <input type="checkbox" checked={unansweredOnly} onChange={e => setUnansweredOnly(e.target.checked)} style={{ width: 18, height: 18 }} />
                 <span style={{ fontWeight: 700 }}>
                   {t('exerciseSetup.unansweredOnly')}
-                  <span style={{ fontWeight: 400, fontSize: 12, color: '#545b64', marginLeft: 6 }}>{t('exerciseSetup.unansweredOnlyDesc')}</span>
+                  <span style={{ fontWeight: 400, fontSize: 'var(--font-size-sm)', color: 'var(--color-text-sub)', marginLeft: 'var(--spacing-sm)' }}>{t('exerciseSetup.unansweredOnlyDesc')}</span>
                 </span>
               </label>
             )}
             {user && (
-              <label style={{ display: 'flex', alignItems: 'center', gap: 10, cursor: 'pointer', fontSize: 14 }}>
-                <input type="checkbox" checked={bookmarkOnly} onChange={e => setBookmarkOnly(e.target.checked)} style={{ width: 16, height: 16 }} />
+              <label style={{ display: 'flex', alignItems: 'center', gap: 'var(--spacing-md)', cursor: 'pointer', fontSize: 'var(--font-size-base)' }}>
+                <input type="checkbox" checked={bookmarkOnly} onChange={e => setBookmarkOnly(e.target.checked)} style={{ width: 18, height: 18 }} />
                 <span style={{ fontWeight: 700 }}>
                   {t('exerciseSetup.bookmarkOnly')}
-                  <span style={{ fontWeight: 400, fontSize: 12, color: '#545b64', marginLeft: 6 }}>{t('exerciseSetup.bookmarkOnlyDesc')}</span>
+                  <span style={{ fontWeight: 400, fontSize: 'var(--font-size-sm)', color: 'var(--color-text-sub)', marginLeft: 'var(--spacing-sm)' }}>{t('exerciseSetup.bookmarkOnlyDesc')}</span>
                 </span>
               </label>
             )}
-            <label style={{ display: 'flex', alignItems: 'center', gap: 10, cursor: 'pointer', fontSize: 14 }}>
-              <input type="checkbox" checked={shuffle} onChange={e => setShuffle(e.target.checked)} style={{ width: 16, height: 16 }} />
+            <label style={{ display: 'flex', alignItems: 'center', gap: 'var(--spacing-md)', cursor: 'pointer', fontSize: 'var(--font-size-base)' }}>
+              <input type="checkbox" checked={shuffle} onChange={e => setShuffle(e.target.checked)} style={{ width: 18, height: 18 }} />
               <span style={{ fontWeight: 700 }}>{t('exerciseSetup.shuffle')}</span>
             </label>
           </div>
 
-          <div style={{ display: 'flex', gap: 12, borderTop: '1px solid #eaeded', paddingTop: 24, justifyContent: 'flex-end' }}>
-            <button onClick={() => navigate('/')} style={{ padding: '8px 20px', cursor: 'pointer', borderRadius: 9999, border: '1px solid #545b64', background: 'white', fontWeight: 700, fontSize: 14 }}>
+          <div style={{ display: 'flex', gap: 'var(--spacing-md)', borderTop: '1px solid var(--color-border)', paddingTop: 'var(--spacing-lg)', justifyContent: 'flex-end' }}>
+            <Button variant="outline" onClick={() => navigate('/')}>
               {t('exerciseSetup.cancel')}
-            </button>
-            <button onClick={startSession} disabled={loading || availableCount === 0}
-              style={{ padding: '8px 32px', background: loading || availableCount === 0 ? '#eaeded' : '#ff9900', color: loading || availableCount === 0 ? '#aab7b8' : '#16191f', border: '1px solid transparent', borderRadius: 9999, cursor: loading || availableCount === 0 ? 'default' : 'pointer', fontSize: 14, fontWeight: 700 }}
-              onMouseEnter={e => { if (!loading && availableCount !== 0) e.currentTarget.style.background = '#ec7211'; }}
-              onMouseLeave={e => { if (!loading && availableCount !== 0) e.currentTarget.style.background = '#ff9900'; }}
+            </Button>
+            <Button
+              variant="accent"
+              onClick={startSession}
+              disabled={loading || availableCount === 0}
+              style={{ minWidth: 120 }}
             >
               {loading ? t('exerciseSetup.starting') : t('exerciseSetup.start')}
-            </button>
+            </Button>
           </div>
-        </div>
+        </Card>
 
         {/* 右：試験情報パネル */}
-        <div style={{ background: 'white', border: '1px solid #eaeded', borderRadius: 6, padding: '24px', boxShadow: '0 1px 1px 0 rgba(0,28,36,0.1)' }}>
+        <Card padding="var(--spacing-lg)">
           {/* 試験ヘッダー */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 8 }}>
-            <span style={{ background: '#232f3e', color: 'white', fontSize: 11, padding: '2px 8px', borderRadius: 12, fontWeight: 700 }}>{examType}</span>
-            <span style={{ fontSize: 13, color: '#545b64', fontWeight: 700 }}>{info.examCode}</span>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--spacing-sm)', marginBottom: 'var(--spacing-sm)' }}>
+            <Badge variant="secondary">{examType}</Badge>
+            <span style={{ fontSize: 'var(--font-size-sm)', color: 'var(--color-text-sub)', fontWeight: 700 }}>{info.examCode}</span>
           </div>
-          <h3 style={{ fontSize: 15, fontWeight: 700, margin: '0 0 20px', color: '#16191f', lineHeight: 1.4 }}>{info.fullName}</h3>
+          <h3 style={{ fontSize: 'var(--font-size-md)', fontWeight: 700, margin: '0 0 var(--spacing-lg)', color: 'var(--color-text-main)', lineHeight: 1.4 }}>{info.fullName}</h3>
 
           {/* ── 試験概要 ── */}
-          <div style={{ marginBottom: 20 }}>
-            <div style={{ fontSize: 11, fontWeight: 700, color: '#545b64', textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: 10 }}>{t('exerciseSetup.overview')}</div>
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 1, background: '#eaeded', border: '1px solid #eaeded', borderRadius: 6, overflow: 'hidden' }}>
-              <div style={{ background: 'white', padding: '10px 12px' }}>
-                <div style={{ fontSize: 11, color: '#545b64', marginBottom: 4 }}>{t('exerciseSetup.totalQuestions')}</div>
-                <div style={{ fontSize: 18, fontWeight: 700 }}>{info.totalQuestions}<span style={{ fontSize: 11, fontWeight: 400, marginLeft: 2 }}>{t('exerciseSetup.qUnit')}</span></div>
+          <div style={{ marginBottom: 'var(--spacing-lg)' }}>
+            <div style={{ fontSize: 'var(--font-size-xs)', fontWeight: 700, color: 'var(--color-text-sub)', textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: 'var(--spacing-sm)' }}>{t('exerciseSetup.overview')}</div>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 1, background: 'var(--color-border)', border: '1px solid var(--color-border)', borderRadius: 'var(--border-radius-md)', overflow: 'hidden' }}>
+              <div style={{ background: 'var(--color-bg-white)', padding: '10px 12px' }}>
+                <div style={{ fontSize: 'var(--font-size-xs)', color: 'var(--color-text-sub)', marginBottom: 4 }}>{t('exerciseSetup.totalQuestions')}</div>
+                <div style={{ fontSize: 'var(--font-size-xl)', fontWeight: 700 }}>{info.totalQuestions}<span style={{ fontSize: 'var(--font-size-xs)', fontWeight: 400, marginLeft: 2 }}>{t('exerciseSetup.qUnit')}</span></div>
                 {info.scoredQuestions < info.totalQuestions && (
-                  <div style={{ fontSize: 10, color: '#879596', marginTop: 2 }}>{t('exerciseSetup.scored')} {info.scoredQuestions}{t('exerciseSetup.qUnit')}</div>
+                  <div style={{ fontSize: 'var(--font-size-xs)', color: 'var(--color-text-light)', marginTop: 2 }}>{t('exerciseSetup.scored')} {info.scoredQuestions}{t('exerciseSetup.qUnit')}</div>
                 )}
               </div>
-              <div style={{ background: 'white', padding: '10px 12px' }}>
-                <div style={{ fontSize: 11, color: '#545b64', marginBottom: 4 }}>{t('exerciseSetup.timeLimit')}</div>
-                <div style={{ fontSize: 18, fontWeight: 700 }}>{info.timeLimit}</div>
+              <div style={{ background: 'var(--color-bg-white)', padding: '10px 12px' }}>
+                <div style={{ fontSize: 'var(--font-size-xs)', color: 'var(--color-text-sub)', marginBottom: 4 }}>{t('exerciseSetup.timeLimit')}</div>
+                <div style={{ fontSize: 'var(--font-size-xl)', fontWeight: 700 }}>{info.timeLimit}</div>
               </div>
-              <div style={{ background: 'white', padding: '10px 12px' }}>
-                <div style={{ fontSize: 11, color: '#545b64', marginBottom: 4 }}>{t('exerciseSetup.passScore')}</div>
-                <div style={{ fontSize: 18, fontWeight: 700, color: '#037f0c' }}>{passScore}</div>
+              <div style={{ background: 'var(--color-bg-white)', padding: '10px 12px' }}>
+                <div style={{ fontSize: 'var(--font-size-xs)', color: 'var(--color-text-sub)', marginBottom: 4 }}>{t('exerciseSetup.passScore')}</div>
+                <div style={{ fontSize: 'var(--font-size-xl)', fontWeight: 700, color: 'var(--color-success)' }}>{passScore}</div>
               </div>
             </div>
           </div>
 
           {/* ── あなたの進捗 ── */}
-          <div style={{ marginBottom: 20, padding: '14px 16px', background: '#e0f2f2', border: '1px solid #d4e9f5', borderRadius: 6 }}>
-            <div style={{ fontSize: 11, fontWeight: 700, color: '#008c8c', textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: 10 }}>{t('exerciseSetup.progress')}</div>
+          <div style={{ marginBottom: 'var(--spacing-lg)', padding: 'var(--spacing-md)', background: 'var(--color-primary-light)', border: '1px solid var(--color-primary-light)', borderRadius: 'var(--border-radius-md)' }}>
+            <div style={{ fontSize: 'var(--font-size-xs)', fontWeight: 700, color: 'var(--color-primary)', textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: 'var(--spacing-sm)' }}>{t('exerciseSetup.progress')}</div>
             {answeredCount === null ? (
-              <div style={{ fontSize: 13, color: '#545b64' }}>{t('exerciseSetup.loadingProgress')}</div>
+              <div style={{ fontSize: 'var(--font-size-sm)', color: 'var(--color-text-sub)' }}>{t('exerciseSetup.loadingProgress')}</div>
             ) : (
               <>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: 6 }}>
-                  <span style={{ fontSize: 13, color: '#16191f' }}>{t('exerciseSetup.answered')}</span>
-                  <span style={{ fontSize: 16, fontWeight: 700, color: '#008c8c' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: 'var(--spacing-xs)' }}>
+                  <span style={{ fontSize: 'var(--font-size-sm)', color: 'var(--color-text-main)' }}>{t('exerciseSetup.answered')}</span>
+                  <span style={{ fontSize: 'var(--font-size-lg)', fontWeight: 700, color: 'var(--color-primary)' }}>
                     {answeredCount}
-                    <span style={{ fontSize: 12, fontWeight: 400, color: '#545b64' }}> / {info.totalQuestions} {t('exerciseSetup.qUnit')}</span>
+                    <span style={{ fontSize: 'var(--font-size-sm)', fontWeight: 400, color: 'var(--color-text-sub)' }}> / {info.totalQuestions} {t('exerciseSetup.qUnit')}</span>
                   </span>
                 </div>
-                <div style={{ background: '#d4e9f5', borderRadius: 10, height: 6, overflow: 'hidden' }}>
+                <div style={{ background: 'rgba(0,140,140,0.1)', borderRadius: 10, height: 6, overflow: 'hidden' }}>
                   <div style={{
                     width: `${info.totalQuestions > 0 ? Math.min(100, Math.round((answeredCount / info.totalQuestions) * 100)) : 0}%`,
-                    background: '#008c8c', height: '100%', borderRadius: 10, transition: 'width 0.4s'
+                    background: 'var(--color-primary)', height: '100%', borderRadius: 10, transition: 'width 0.4s'
                   }} />
                 </div>
-                <div style={{ fontSize: 11, color: '#008c8c', marginTop: 4, textAlign: 'right', fontWeight: 700 }}>
+                <div style={{ fontSize: 'var(--font-size-xs)', color: 'var(--color-primary)', marginTop: 4, textAlign: 'right', fontWeight: 700 }}>
                   {info.totalQuestions > 0 ? Math.min(100, Math.round((answeredCount / info.totalQuestions) * 100)) : 0}%
                 </div>
               </>
@@ -406,9 +431,18 @@ export default function ExerciseSetup() {
           {/* ── 今回の出題 ── */}
           {(() => {
             const hasFilter = bookmarkOnly || unansweredOnly;
-            const bg = unansweredOnly && bookmarkOnly ? '#f0fff4' : unansweredOnly ? '#f0fff4' : bookmarkOnly ? '#fffbf0' : '#fbfbfb';
-            const border = unansweredOnly && bookmarkOnly ? '#b7ebc8' : unansweredOnly ? '#b7ebc8' : bookmarkOnly ? '#ffe8a0' : '#eaeded';
-            const color = unansweredOnly ? '#1d7a3d' : bookmarkOnly ? '#b85c00' : '#008c8c';
+            let bg = 'var(--color-bg-main)';
+            let border = 'var(--color-border)';
+            let color = 'var(--color-primary)';
+            
+            if (unansweredOnly && bookmarkOnly) {
+              bg = '#f0fff4'; border = '#b7ebc8'; color = '#1d7a3d';
+            } else if (unansweredOnly) {
+              bg = '#f0fff4'; border = '#b7ebc8'; color = '#1d7a3d';
+            } else if (bookmarkOnly) {
+              bg = '#fffbf0'; border = '#ffe8a0'; color = '#b85c00';
+            }
+
             const label = (() => {
               if (unansweredOnly && bookmarkOnly) return t('exerciseSetup.unansweredBookmark');
               if (unansweredOnly) return t('exerciseSetup.unansweredLabel');
@@ -416,18 +450,18 @@ export default function ExerciseSetup() {
               return selectedDomain || selectedTag ? t('exerciseSetup.filteredCount') : t('exerciseSetup.siteCount');
             })();
             return (
-              <div style={{ marginBottom: 20, padding: '14px 16px', background: bg, border: `1px solid ${border}`, borderRadius: 6 }}>
-                <div style={{ fontSize: 11, fontWeight: 700, color: '#545b64', textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: 10 }}>{t('exerciseSetup.thisSession')}</div>
+              <div style={{ marginBottom: 'var(--spacing-lg)', padding: 'var(--spacing-md)', background: bg, border: `1px solid ${border}`, borderRadius: 'var(--border-radius-md)' }}>
+                <div style={{ fontSize: 'var(--font-size-xs)', fontWeight: 700, color: 'var(--color-text-sub)', textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: 'var(--spacing-sm)' }}>{t('exerciseSetup.thisSession')}</div>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline' }}>
-                  <span style={{ fontSize: 13, color: '#16191f' }}>{label}</span>
-                  <span style={{ fontSize: 20, fontWeight: 700, color }}>
+                  <span style={{ fontSize: 'var(--font-size-sm)', color: 'var(--color-text-main)' }}>{label}</span>
+                  <span style={{ fontSize: 'var(--font-size-xl)', fontWeight: 700, color }}>
                     {availableCount === null ? '...' : availableCount}
-                    <span style={{ fontSize: 12, fontWeight: 400, marginLeft: 4 }}>{t('exerciseSetup.qUnit')}</span>
+                    <span style={{ fontSize: 'var(--font-size-sm)', fontWeight: 400, marginLeft: 4 }}>{t('exerciseSetup.qUnit')}</span>
                   </span>
                 </div>
                 {(selectedDomain || selectedTag) && availableCount !== null && !hasFilter && (
-                  <div style={{ fontSize: 11, color: '#545b64', marginTop: 4 }}>
-                    {selectedDomain && <span style={{ marginRight: 8 }}>{lang === 'en' ? (DOMAIN_NAME_EN[selectedDomain] ?? selectedDomain) : selectedDomain}</span>}
+                  <div style={{ fontSize: 'var(--font-size-xs)', color: 'var(--color-text-sub)', marginTop: 4 }}>
+                    {selectedDomain && <span style={{ marginRight: 'var(--spacing-sm)' }}>{lang === 'en' ? (DOMAIN_NAME_EN[selectedDomain] ?? selectedDomain) : selectedDomain}</span>}
                     {selectedTag && <span>{selectedTag}</span>}
                   </div>
                 )}
@@ -436,23 +470,23 @@ export default function ExerciseSetup() {
           })()}
 
           {/* ── 出題範囲と比率 ── */}
-          <div style={{ borderTop: '1px solid #eaeded', paddingTop: 16 }}>
-            <div style={{ fontSize: 11, fontWeight: 700, color: '#545b64', textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: 12 }}>{t('exerciseSetup.distribution')}</div>
+          <div style={{ borderTop: '1px solid var(--color-border)', paddingTop: 'var(--spacing-md)' }}>
+            <div style={{ fontSize: 'var(--font-size-xs)', fontWeight: 700, color: 'var(--color-text-sub)', textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: 'var(--spacing-md)' }}>{t('exerciseSetup.distribution')}</div>
             {info.categories.map(cat => (
-              <div key={cat.name} style={{ marginBottom: 10 }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 12, marginBottom: 4 }}>
-                  <span style={{ color: selectedDomain === cat.name ? '#008c8c' : '#16191f', fontWeight: selectedDomain === cat.name ? 700 : 400 }}>
+              <div key={cat.name} style={{ marginBottom: 'var(--spacing-sm)' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 'var(--font-size-sm)', marginBottom: 4 }}>
+                  <span style={{ color: selectedDomain === cat.name ? 'var(--color-primary)' : 'var(--color-text-main)', fontWeight: selectedDomain === cat.name ? 700 : 400 }}>
                     {lang === 'en' ? (DOMAIN_NAME_EN[cat.name] ?? cat.name) : cat.name}
                   </span>
-                  <span style={{ fontWeight: 700, color: '#008c8c', flexShrink: 0, marginLeft: 8 }}>{cat.ratio}</span>
+                  <span style={{ fontWeight: 700, color: 'var(--color-primary)', flexShrink: 0, marginLeft: 'var(--spacing-sm)' }}>{cat.ratio}</span>
                 </div>
-                <div style={{ background: '#eaeded', borderRadius: 10, height: 4 }}>
-                  <div style={{ background: selectedDomain === cat.name ? '#008c8c' : '#879596', borderRadius: 10, height: 4, width: cat.ratio }} />
+                <div style={{ background: 'var(--color-border)', borderRadius: 10, height: 4 }}>
+                  <div style={{ background: selectedDomain === cat.name ? 'var(--color-primary)' : 'var(--color-text-light)', borderRadius: 10, height: 4, width: cat.ratio }} />
                 </div>
               </div>
             ))}
           </div>
-        </div>
+        </Card>
 
       </div>
     </div>

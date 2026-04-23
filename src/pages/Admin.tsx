@@ -1,6 +1,9 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { fetchAuthSession } from 'aws-amplify/auth';
 import { API_ENDPOINT, EXAM_TYPES, EXAM_DOMAINS } from '../constants';
+import Card from '../components/ui/Card';
+import Button from '../components/ui/Button';
+import Badge from '../components/ui/Badge';
 
 const adminFetch = async (url: string, options: RequestInit = {}): Promise<Response> => {
   const session = await fetchAuthSession();
@@ -448,97 +451,88 @@ export default function Admin() {
     }
   };
 
-  const tabStyle = (t: Tab) => ({
+  const tabStyle = (t: Tab): React.CSSProperties => ({
     padding: '10px 24px',
     border: 'none',
-    borderBottom: tab === t ? '3px solid #008c8c' : '3px solid transparent',
+    borderBottom: tab === t ? '3px solid var(--color-primary)' : '3px solid transparent',
     background: 'none',
     cursor: 'pointer',
-    fontWeight: (tab === t ? 700 : 400) as any,
-    color: tab === t ? '#16191f' : '#545b64',
-    fontSize: 15,
+    fontWeight: tab === t ? 700 : 400,
+    color: tab === t ? 'var(--color-text-main)' : 'var(--color-text-sub)',
+    fontSize: 'var(--font-size-md)',
   });
 
-  const AWS_TAG_BG = '#232f3e';
-
-  const examBadge = (type: string) => (
-    <span style={{
-      background: AWS_TAG_BG,
-      color: 'white', fontSize: 11, padding: '2px 8px', borderRadius: 12, marginRight: 8, fontWeight: 700
-    }}>{type}</span>
-  );
-
   return (
-    <div style={{ maxWidth: 1200, margin: "0 auto", padding: "24px 20px", color: "#16191f" }} className="admin-container">
+    <div style={{ maxWidth: 1200, margin: '0 auto', padding: 'var(--spacing-xl) var(--spacing-lg)', color: 'var(--color-text-main)' }} className="admin-container">
 
       {/* ── 問題編集モーダル ── */}
       {editingQuestion && (
-        <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.55)', zIndex: 1000, display: 'flex', alignItems: 'flex-start', justifyContent: 'center', overflowY: 'auto', padding: '32px 16px' }}
+        <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.6)', zIndex: 1000, display: 'flex', alignItems: 'flex-start', justifyContent: 'center', overflowY: 'auto', padding: 'var(--spacing-xl) var(--spacing-md)' }}
           onClick={e => { if (e.target === e.currentTarget) setEditingQuestion(null); }}>
-          <div style={{ background: 'white', borderRadius: 8, padding: '28px 32px', width: '100%', maxWidth: 780, boxShadow: '0 8px 32px rgba(0,0,0,0.24)', flexShrink: 0 }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 }}>
-              <h3 style={{ margin: 0, fontSize: 18, fontWeight: 700, color: '#16191f' }}>問題を編集</h3>
-              <button onClick={() => setEditingQuestion(null)} style={{ border: 'none', background: 'none', fontSize: 20, cursor: 'pointer', color: '#545b64', padding: '4px 8px' }}>✕</button>
+          <Card style={{ width: '100%', maxWidth: 780, flexShrink: 0, boxShadow: 'var(--box-shadow-md)' }} padding="var(--spacing-xl)">
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 'var(--spacing-lg)' }}>
+              <h3 style={{ margin: 0, fontSize: 'var(--font-size-h3)', fontWeight: 700, color: 'var(--color-text-main)' }}>問題を編集</h3>
+              <button onClick={() => setEditingQuestion(null)} style={{ border: 'none', background: 'none', fontSize: 20, cursor: 'pointer', color: 'var(--color-text-sub)', padding: '4px 8px' }}>✕</button>
             </div>
 
             {/* 試験種別 */}
-            <div style={{ marginBottom: 14 }}>
-              <div style={{ fontSize: 12, color: '#545b64', fontWeight: 700, marginBottom: 6 }}>試験種別</div>
-              <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
+            <div style={{ marginBottom: 'var(--spacing-md)' }}>
+              <div style={{ fontSize: 'var(--font-size-sm)', color: 'var(--color-text-sub)', fontWeight: 700, marginBottom: 6 }}>試験種別</div>
+              <div style={{ display: 'flex', gap: 'var(--spacing-sm)', flexWrap: 'wrap' }}>
                 {EXAM_TYPES.map(t => (
-                  <button key={t} type="button" onClick={() => setEditForm(f => ({ ...f, examType: t }))}
-                    style={{ padding: '4px 12px', border: '1px solid', borderRadius: 6, cursor: 'pointer', fontSize: 13,
-                      borderColor: editForm.examType === t ? '#008c8c' : '#d1d5db',
-                      background: editForm.examType === t ? '#e0f2f2' : 'white',
-                      color: editForm.examType === t ? '#008c8c' : '#545b64',
-                      fontWeight: editForm.examType === t ? 700 : 400 }}>
+                  <Button
+                    key={t}
+                    type="button"
+                    variant={editForm.examType === t ? 'primary' : 'outline'}
+                    size="sm"
+                    onClick={() => setEditForm(f => ({ ...f, examType: t }))}
+                  >
                     {t}
-                  </button>
+                  </Button>
                 ))}
               </div>
             </div>
 
             {/* ドメイン */}
-            <div style={{ marginBottom: 14 }}>
-              <div style={{ fontSize: 12, color: '#545b64', fontWeight: 700, marginBottom: 6 }}>ドメイン</div>
+            <div style={{ marginBottom: 'var(--spacing-md)' }}>
+              <div style={{ fontSize: 'var(--font-size-sm)', color: 'var(--color-text-sub)', fontWeight: 700, marginBottom: 6 }}>ドメイン</div>
               <input value={editForm.domain} onChange={e => setEditForm(f => ({ ...f, domain: e.target.value }))}
                 placeholder="例: セキュアなアーキテクチャの設計"
-                style={{ width: '100%', padding: '7px 10px', border: '1px solid #d1d5db', borderRadius: 6, fontSize: 14, boxSizing: 'border-box', outline: 'none' }}
-                onFocus={e => e.currentTarget.style.borderColor = '#008c8c'}
-                onBlur={e => e.currentTarget.style.borderColor = '#d1d5db'} />
+                style={{ width: '100%', padding: '8px 12px', border: '1px solid var(--color-border)', borderRadius: 'var(--border-radius-md)', fontSize: 'var(--font-size-base)', boxSizing: 'border-box', outline: 'none' }}
+                onFocus={e => e.currentTarget.style.borderColor = 'var(--color-primary)'}
+                onBlur={e => e.currentTarget.style.borderColor = 'var(--color-border)'} />
             </div>
 
             {/* 問題文 */}
-            <div style={{ marginBottom: 14 }}>
-              <div style={{ fontSize: 12, color: '#545b64', fontWeight: 700, marginBottom: 6 }}>問題文（日本語）</div>
+            <div style={{ marginBottom: 'var(--spacing-md)' }}>
+              <div style={{ fontSize: 'var(--font-size-sm)', color: 'var(--color-text-sub)', fontWeight: 700, marginBottom: 6 }}>問題文（日本語）</div>
               <textarea value={editForm.questionText} onChange={e => setEditForm(f => ({ ...f, questionText: e.target.value }))}
                 rows={4}
-                style={{ width: '100%', padding: '7px 10px', border: '1px solid #d1d5db', borderRadius: 6, fontSize: 14, resize: 'vertical', boxSizing: 'border-box', outline: 'none', lineHeight: 1.6 }}
-                onFocus={e => e.currentTarget.style.borderColor = '#008c8c'}
-                onBlur={e => e.currentTarget.style.borderColor = '#d1d5db'} />
+                style={{ width: '100%', padding: '8px 12px', border: '1px solid var(--color-border)', borderRadius: 'var(--border-radius-md)', fontSize: 'var(--font-size-base)', resize: 'vertical', boxSizing: 'border-box', outline: 'none', lineHeight: 1.6 }}
+                onFocus={e => e.currentTarget.style.borderColor = 'var(--color-primary)'}
+                onBlur={e => e.currentTarget.style.borderColor = 'var(--color-border)'} />
             </div>
 
             {/* 問題文（英語） */}
-            <div style={{ marginBottom: 14 }}>
-              <div style={{ fontSize: 12, color: '#545b64', fontWeight: 700, marginBottom: 6 }}>問題文（English・任意）</div>
+            <div style={{ marginBottom: 'var(--spacing-md)' }}>
+              <div style={{ fontSize: 'var(--font-size-sm)', color: 'var(--color-text-sub)', fontWeight: 700, marginBottom: 6 }}>問題文（English・任意）</div>
               <textarea value={editForm.questionTextEn} onChange={e => setEditForm(f => ({ ...f, questionTextEn: e.target.value }))}
                 rows={3} placeholder="English question text (optional)"
-                style={{ width: '100%', padding: '7px 10px', border: '1px solid #d1d5db', borderRadius: 6, fontSize: 14, resize: 'vertical', boxSizing: 'border-box', outline: 'none', lineHeight: 1.6 }}
-                onFocus={e => e.currentTarget.style.borderColor = '#008c8c'}
-                onBlur={e => e.currentTarget.style.borderColor = '#d1d5db'} />
+                style={{ width: '100%', padding: '8px 12px', border: '1px solid var(--color-border)', borderRadius: 'var(--border-radius-md)', fontSize: 'var(--font-size-base)', resize: 'vertical', boxSizing: 'border-box', outline: 'none', lineHeight: 1.6 }}
+                onFocus={e => e.currentTarget.style.borderColor = 'var(--color-primary)'}
+                onBlur={e => e.currentTarget.style.borderColor = 'var(--color-border)'} />
             </div>
 
             {/* 選択肢 */}
-            <div style={{ marginBottom: 14 }}>
+            <div style={{ marginBottom: 'var(--spacing-md)' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 6 }}>
-                <div style={{ fontSize: 12, color: '#545b64', fontWeight: 700 }}>選択肢（チェックで正解）</div>
-                <button type="button" onClick={() => setEditForm(f => ({ ...f, choices: [...f.choices, ''] }))}
-                  style={{ fontSize: 12, padding: '2px 10px', border: '1px solid #008c8c', borderRadius: 9999, color: '#008c8c', background: 'white', cursor: 'pointer', fontWeight: 700 }}>
+                <div style={{ fontSize: 'var(--font-size-sm)', color: 'var(--color-text-sub)', fontWeight: 700 }}>選択肢（チェックで正解）</div>
+                <Button type="button" variant="outline" size="sm" onClick={() => setEditForm(f => ({ ...f, choices: [...f.choices, ''] }))}>
                   ＋ 追加
-                </button>
+                </Button>
               </div>
               {editForm.choices.map((choice, i) => (
-                <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 6 }}>
+                <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 'var(--spacing-sm)', marginBottom: 'var(--spacing-xs)' }}>
                   <input type="checkbox"
                     checked={editForm.correctAnswers.includes(choice)}
                     onChange={() => setEditForm(f => ({
@@ -547,32 +541,32 @@ export default function Admin() {
                         ? f.correctAnswers.filter(c => c !== choice)
                         : [...f.correctAnswers, choice]
                     }))}
-                    style={{ width: 16, height: 16, cursor: 'pointer', flexShrink: 0, accentColor: '#008c8c' }} />
+                    style={{ width: 16, height: 16, cursor: 'pointer', flexShrink: 0, accentColor: 'var(--color-primary)' }} />
                   <input value={choice} onChange={e => updateChoice(i, e.target.value)}
                     placeholder={`選択肢 ${i + 1}`}
-                    style={{ flex: 1, padding: '6px 10px', border: `1px solid ${editForm.correctAnswers.includes(choice) ? '#037f0c' : '#d1d5db'}`, borderRadius: 6, fontSize: 13,
+                    style={{ flex: 1, padding: '8px 12px', border: `1px solid ${editForm.correctAnswers.includes(choice) ? 'var(--color-success)' : 'var(--color-border)'}`, borderRadius: 'var(--border-radius-md)', fontSize: 'var(--font-size-sm)',
                       background: editForm.correctAnswers.includes(choice) ? '#f2fcf3' : 'white',
-                      color: editForm.correctAnswers.includes(choice) ? '#037f0c' : '#16191f', outline: 'none' }}
-                    onFocus={e => { if (!editForm.correctAnswers.includes(choice)) e.currentTarget.style.borderColor = '#008c8c'; }}
-                    onBlur={e => { if (!editForm.correctAnswers.includes(choice)) e.currentTarget.style.borderColor = '#d1d5db'; }} />
+                      color: editForm.correctAnswers.includes(choice) ? 'var(--color-success)' : 'var(--color-text-main)', outline: 'none' }}
+                    onFocus={e => { if (!editForm.correctAnswers.includes(choice)) e.currentTarget.style.borderColor = 'var(--color-primary)'; }}
+                    onBlur={e => { if (!editForm.correctAnswers.includes(choice)) e.currentTarget.style.borderColor = 'var(--color-border)'; }} />
                   {editForm.choices.length > 2 && (
                     <button type="button" onClick={() => setEditForm(f => ({
                       ...f,
                       choices: f.choices.filter((_, idx) => idx !== i),
                       correctAnswers: f.correctAnswers.filter(c => c !== choice)
                     }))}
-                      style={{ fontSize: 16, border: 'none', background: 'none', cursor: 'pointer', color: '#aab7b8', padding: '0 4px', flexShrink: 0 }}>✕</button>
+                      style={{ fontSize: 16, border: 'none', background: 'none', cursor: 'pointer', color: 'var(--color-text-light)', padding: '0 4px', flexShrink: 0 }}>✕</button>
                   )}
                 </div>
               ))}
             </div>
 
             {/* 選択肢（英語） */}
-            <div style={{ marginBottom: 14 }}>
-              <div style={{ fontSize: 12, color: '#545b64', fontWeight: 700, marginBottom: 6 }}>選択肢（English・任意）</div>
+            <div style={{ marginBottom: 'var(--spacing-md)' }}>
+              <div style={{ fontSize: 'var(--font-size-sm)', color: 'var(--color-text-sub)', fontWeight: 700, marginBottom: 6 }}>選択肢（English・任意）</div>
               {editForm.choices.map((_, i) => (
-                <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 6 }}>
-                  <span style={{ fontSize: 12, color: '#aab7b8', width: 20, flexShrink: 0 }}>{i + 1}.</span>
+                <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 'var(--spacing-sm)', marginBottom: 'var(--spacing-xs)' }}>
+                  <span style={{ fontSize: 'var(--font-size-sm)', color: 'var(--color-text-light)', width: 20, flexShrink: 0 }}>{i + 1}.</span>
                   <input
                     value={editForm.choicesEn[i] ?? ''}
                     onChange={e => {
@@ -582,85 +576,83 @@ export default function Admin() {
                       setEditForm(f => ({ ...f, choicesEn: next }));
                     }}
                     placeholder={`Choice ${i + 1} in English (optional)`}
-                    style={{ flex: 1, padding: '6px 10px', border: '1px solid #d1d5db', borderRadius: 6, fontSize: 13, outline: 'none' }}
-                    onFocus={e => e.currentTarget.style.borderColor = '#008c8c'}
-                    onBlur={e => e.currentTarget.style.borderColor = '#d1d5db'} />
+                    style={{ flex: 1, padding: '8px 12px', border: '1px solid var(--color-border)', borderRadius: 'var(--border-radius-md)', fontSize: 'var(--font-size-sm)', outline: 'none' }}
+                    onFocus={e => e.currentTarget.style.borderColor = 'var(--color-primary)'}
+                    onBlur={e => e.currentTarget.style.borderColor = 'var(--color-border)'} />
                 </div>
               ))}
             </div>
 
             {/* 解説 */}
-            <div style={{ marginBottom: 14 }}>
-              <div style={{ fontSize: 12, color: '#545b64', fontWeight: 700, marginBottom: 6 }}>解説（日本語）</div>
+            <div style={{ marginBottom: 'var(--spacing-md)' }}>
+              <div style={{ fontSize: 'var(--font-size-sm)', color: 'var(--color-text-sub)', fontWeight: 700, marginBottom: 6 }}>解説（日本語）</div>
               <textarea value={editForm.explanation} onChange={e => setEditForm(f => ({ ...f, explanation: e.target.value }))}
                 rows={5}
-                style={{ width: '100%', padding: '7px 10px', border: '1px solid #d1d5db', borderRadius: 6, fontSize: 14, resize: 'vertical', boxSizing: 'border-box', outline: 'none', lineHeight: 1.6 }}
-                onFocus={e => e.currentTarget.style.borderColor = '#008c8c'}
-                onBlur={e => e.currentTarget.style.borderColor = '#d1d5db'} />
+                style={{ width: '100%', padding: '8px 12px', border: '1px solid var(--color-border)', borderRadius: 'var(--border-radius-md)', fontSize: 'var(--font-size-base)', resize: 'vertical', boxSizing: 'border-box', outline: 'none', lineHeight: 1.6 }}
+                onFocus={e => e.currentTarget.style.borderColor = 'var(--color-primary)'}
+                onBlur={e => e.currentTarget.style.borderColor = 'var(--color-border)'} />
             </div>
 
             {/* 解説（英語） */}
-            <div style={{ marginBottom: 14 }}>
-              <div style={{ fontSize: 12, color: '#545b64', fontWeight: 700, marginBottom: 6 }}>解説（English・任意）</div>
+            <div style={{ marginBottom: 'var(--spacing-md)' }}>
+              <div style={{ fontSize: 'var(--font-size-sm)', color: 'var(--color-text-sub)', fontWeight: 700, marginBottom: 6 }}>解説（English・任意）</div>
               <textarea value={editForm.explanationEn} onChange={e => setEditForm(f => ({ ...f, explanationEn: e.target.value }))}
                 rows={4} placeholder="English explanation (optional)"
-                style={{ width: '100%', padding: '7px 10px', border: '1px solid #d1d5db', borderRadius: 6, fontSize: 14, resize: 'vertical', boxSizing: 'border-box', outline: 'none', lineHeight: 1.6 }}
-                onFocus={e => e.currentTarget.style.borderColor = '#008c8c'}
-                onBlur={e => e.currentTarget.style.borderColor = '#d1d5db'} />
+                style={{ width: '100%', padding: '8px 12px', border: '1px solid var(--color-border)', borderRadius: 'var(--border-radius-md)', fontSize: 'var(--font-size-base)', resize: 'vertical', boxSizing: 'border-box', outline: 'none', lineHeight: 1.6 }}
+                onFocus={e => e.currentTarget.style.borderColor = 'var(--color-primary)'}
+                onBlur={e => e.currentTarget.style.borderColor = 'var(--color-border)'} />
             </div>
 
             {/* タグ・複数選択 */}
-            <div style={{ display: 'flex', gap: 16, marginBottom: 20, flexWrap: 'wrap' }}>
+            <div style={{ display: 'flex', gap: 'var(--spacing-md)', marginBottom: 'var(--spacing-lg)', flexWrap: 'wrap' }}>
               <div style={{ flex: 1, minWidth: 200 }}>
-                <div style={{ fontSize: 12, color: '#545b64', fontWeight: 700, marginBottom: 6 }}>タグ（カンマ区切り）</div>
+                <div style={{ fontSize: 'var(--font-size-sm)', color: 'var(--color-text-sub)', fontWeight: 700, marginBottom: 6 }}>タグ（カンマ区切り）</div>
                 <input value={editForm.tags} onChange={e => setEditForm(f => ({ ...f, tags: e.target.value }))}
                   placeholder="例: S3, IAM, EC2"
-                  style={{ width: '100%', padding: '7px 10px', border: '1px solid #d1d5db', borderRadius: 6, fontSize: 14, boxSizing: 'border-box', outline: 'none' }}
-                  onFocus={e => e.currentTarget.style.borderColor = '#008c8c'}
-                  onBlur={e => e.currentTarget.style.borderColor = '#d1d5db'} />
+                  style={{ width: '100%', padding: '8px 12px', border: '1px solid var(--color-border)', borderRadius: 'var(--border-radius-md)', fontSize: 'var(--font-size-base)', boxSizing: 'border-box', outline: 'none' }}
+                  onFocus={e => e.currentTarget.style.borderColor = 'var(--color-primary)'}
+                  onBlur={e => e.currentTarget.style.borderColor = 'var(--color-border)'} />
               </div>
               <div style={{ display: 'flex', alignItems: 'flex-end', paddingBottom: 4 }}>
-                <label style={{ display: 'flex', alignItems: 'center', gap: 8, cursor: 'pointer', fontSize: 14, color: '#16191f' }}>
+                <label style={{ display: 'flex', alignItems: 'center', gap: 'var(--spacing-sm)', cursor: 'pointer', fontSize: 'var(--font-size-base)', color: 'var(--color-text-main)' }}>
                   <input type="checkbox" checked={editForm.isMultiple} onChange={e => setEditForm(f => ({ ...f, isMultiple: e.target.checked }))}
-                    style={{ width: 16, height: 16, accentColor: '#008c8c' }} />
+                    style={{ width: 16, height: 16, accentColor: 'var(--color-primary)' }} />
                   複数選択問題
                 </label>
               </div>
             </div>
 
             {/* ボタン */}
-            <div style={{ display: 'flex', gap: 10, borderTop: '1px solid #eaeded', paddingTop: 16 }}>
-              <button onClick={handleSaveQuestion} disabled={saving}
-                style={{ padding: '8px 24px', background: saving ? '#eaeded' : '#ff9900', color: saving ? '#aab7b8' : '#16191f', border: '1px solid transparent', borderRadius: 9999, cursor: saving ? 'default' : 'pointer', fontWeight: 700, fontSize: 14 }}>
+            <div style={{ display: 'flex', gap: 'var(--spacing-sm)', borderTop: '1px solid var(--color-border)', paddingTop: 'var(--spacing-md)' }}>
+              <Button onClick={handleSaveQuestion} disabled={saving} variant="accent">
                 {saving ? '保存中...' : '保存'}
-              </button>
-              <button onClick={() => setEditingQuestion(null)}
-                style={{ padding: '8px 20px', border: '1px solid #545b64', borderRadius: 9999, cursor: 'pointer', background: 'white', fontWeight: 700, fontSize: 14 }}>
+              </Button>
+              <Button onClick={() => setEditingQuestion(null)} variant="outline">
                 キャンセル
-              </button>
+              </Button>
             </div>
-          </div>
+          </Card>
         </div>
       )}
 
-      <h2 style={{ fontSize: 24, fontWeight: 700, margin: '0 0 24px' }}>管理画面</h2>
+      <h2 style={{ fontSize: 'var(--font-size-xxl)', fontWeight: 700, margin: '0 0 var(--spacing-xl)' }}>管理画面</h2>
 
       {adminError && (
-        <div style={{ background: '#fdf3f1', border: '1px solid #f5a09b', borderRadius: 6, padding: '12px 16px', marginBottom: 20, display: 'flex', alignItems: 'center', gap: 10 }}>
-          <span style={{ fontSize: 18 }}>⚠️</span>
+        <Card padding="var(--spacing-md) var(--spacing-lg)" style={{ background: '#fdf3f1', borderColor: '#f5a09b', marginBottom: 'var(--spacing-xl)', display: 'flex', alignItems: 'center', gap: 'var(--spacing-md)' }}>
+          <span style={{ fontSize: 20 }}>⚠️</span>
           <div>
-            <div style={{ fontWeight: 700, color: '#d13212', fontSize: 14 }}>{adminError}</div>
-            <div style={{ fontSize: 12, color: '#545b64', marginTop: 2 }}>
+            <div style={{ fontWeight: 700, color: 'var(--color-danger)', fontSize: 'var(--font-size-base)' }}>{adminError}</div>
+            <div style={{ fontSize: 'var(--font-size-sm)', color: 'var(--color-text-sub)', marginTop: 2 }}>
               ヘッダー右上のアイコンからログインし、管理者アカウント（{' '}
               <span style={{ fontFamily: 'monospace' }}>yuzuki2002110@gmail.com</span>
               {' '}）でサインインしてください。
             </div>
           </div>
-        </div>
+        </Card>
       )}
 
       {/* タブ */}
-      <div style={{ borderBottom: '1px solid #eaeded', marginBottom: 24 }}>
+      <div style={{ borderBottom: '1px solid var(--color-border)', marginBottom: 'var(--spacing-xl)' }}>
         <button style={tabStyle('questions')} onClick={() => setTab('questions')}>問題管理</button>
         <button style={tabStyle('import')} onClick={() => setTab('import')}>問題追加</button>
         <button style={tabStyle('reports')} onClick={() => setTab('reports')}>通報確認</button>
