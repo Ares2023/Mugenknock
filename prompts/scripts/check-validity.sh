@@ -42,21 +42,20 @@ def deser(v):
 
 questions = [{ k: deser(v) for k, v in item.items() } for item in items]
 
-cutoff = datetime.now(timezone.utc) - timedelta(days=30)
+EPOCH_ZERO = datetime(1970, 1, 1, tzinfo=timezone.utc)
 candidates = []
 for q in questions:
     if q.get('isHidden'):
         continue
     checked = q.get('validityCheckedAt')
     if not checked:
-        candidates.append((0, q))
+        sort_key = EPOCH_ZERO
     else:
         try:
-            dt = datetime.fromisoformat(checked.replace('Z', '+00:00'))
-            if dt < cutoff:
-                candidates.append((1, q))
+            sort_key = datetime.fromisoformat(checked.replace('Z', '+00:00'))
         except:
-            candidates.append((1, q))
+            sort_key = EPOCH_ZERO
+    candidates.append((sort_key, q))
 
 candidates.sort(key=lambda x: x[0])
 result = [q for _, q in candidates]

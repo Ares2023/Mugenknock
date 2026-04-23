@@ -232,19 +232,12 @@ export default function ExerciseSetup() {
   return (
     <div style={{ maxWidth: 1200, margin: '0 auto', padding: 'var(--spacing-xl) var(--spacing-lg)' }} className="page-container">
 
-      <h1 style={{ fontSize: 'var(--font-size-xxl)', fontWeight: 700, margin: '0 0 var(--spacing-xs)', color: 'var(--color-text-main)' }}>
-        {t('exerciseSetup.title')}
-      </h1>
-      <p style={{ fontSize: 'var(--font-size-base)', color: 'var(--color-text-sub)', margin: '0 0 var(--spacing-lg)', lineHeight: 1.6 }}>
-        {t('exerciseSetup.description')}
-      </p>
-
       {showHint && (
         <div className="fade-slide-in" style={{
           display: 'flex', alignItems: 'center', gap: 'var(--spacing-md)',
           background: 'var(--color-hint-bg)', border: '1px solid var(--color-hint-border)',
           borderRadius: 'var(--border-radius-md)', padding: '10px var(--spacing-md)',
-          marginBottom: 'var(--spacing-xl)', fontSize: 'var(--font-size-sm)', color: 'var(--color-text-sub)',
+          marginBottom: 'var(--spacing-lg)', fontSize: 'var(--font-size-sm)', color: 'var(--color-text-sub)',
         }}>
           <span style={{ fontSize: 16, flexShrink: 0 }}>💡</span>
           <span style={{ flex: 1, lineHeight: 1.5 }}>{t('exerciseSetup.hint')}</span>
@@ -254,6 +247,13 @@ export default function ExerciseSetup() {
           >✕</button>
         </div>
       )}
+
+      <h1 style={{ fontSize: 'var(--font-size-xxl)', fontWeight: 700, margin: '0 0 var(--spacing-xs)', color: 'var(--color-text-main)' }}>
+        {t('exerciseSetup.title')}
+      </h1>
+      <p style={{ fontSize: 'var(--font-size-base)', color: 'var(--color-text-sub)', margin: '0 0 var(--spacing-lg)', lineHeight: 1.6 }}>
+        {t('exerciseSetup.description')}
+      </p>
 
       <div className="setup-grid" style={{ display: 'grid', gridTemplateColumns: '1fr 380px', gap: 'var(--spacing-xl)', alignItems: 'flex-start' }}>
 
