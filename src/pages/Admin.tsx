@@ -27,6 +27,12 @@ type Question = {
   explanation: string;
   tags: string[];
   isMultiple: boolean;
+  updatedAt?: string;
+};
+
+const fmtDate = (iso: string) => {
+  const d = new Date(iso);
+  return `${d.getFullYear()}/${String(d.getMonth()+1).padStart(2,'0')}/${String(d.getDate()).padStart(2,'0')} ${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}`;
 };
 
 type Report = {
@@ -301,7 +307,7 @@ export default function Admin() {
     setSaving(true);
     try {
       const tags = editForm.tags.split(',').map(t => t.trim()).filter(Boolean);
-      const payload: any = { ...editForm, tags };
+      const payload: any = { ...editForm, tags, updatedAt: new Date().toISOString() };
       if (!payload.questionTextEn?.trim()) delete payload.questionTextEn;
       if (!payload.explanationEn?.trim()) delete payload.explanationEn;
       const choicesEn = payload.choicesEn?.filter((c: string) => c.trim());
@@ -795,6 +801,11 @@ export default function Admin() {
                 <span style={{ fontSize: 14, color: '#16191f', flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                   {q.questionText}
                 </span>
+                {q.updatedAt && (
+                  <span style={{ fontSize: 11, color: '#aab7b8', flexShrink: 0, whiteSpace: 'nowrap' }}>
+                    {fmtDate(q.updatedAt)}
+                  </span>
+                )}
                 <button
                   onClick={e => { e.stopPropagation(); openEdit(q); }}
                   style={{ padding: '4px 12px', background: 'white', color: '#545b64', border: '1px solid #545b64', borderRadius: 9999, cursor: 'pointer', fontSize: 12, fontWeight: 700, flexShrink: 0 }}>

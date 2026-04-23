@@ -84,9 +84,12 @@ export default function ExamSession() {
   const currentQ = questions[currentIndex];
   const selected = answers[currentQ?.questionId] ?? [];
 
+  const [lastSelected, setLastSelected] = useState<string | null>(null);
+
   const toggle = (choice: string) => {
     const qid = currentQ.questionId;
     const cur = answers[qid] ?? [];
+    setLastSelected(choice);
     if (currentQ.isMultiple) {
       setAnswers(prev => ({
         ...prev,
@@ -249,7 +252,10 @@ export default function ExamSession() {
             const origChoice = currentQ.choices[ci] ?? choice;
             const isSelected = selected.includes(origChoice);
             return (
-              <button key={origChoice} onClick={() => toggle(origChoice)}
+              <button
+                key={origChoice}
+                onClick={() => toggle(origChoice)}
+                className={lastSelected === origChoice && selected.includes(origChoice) ? 'choice-select-anim' : ''}
                 style={{
                   display: 'flex', alignItems: 'center', width: '100%', textAlign: 'left',
                   padding: 'var(--spacing-md) var(--spacing-lg)', marginBottom: 'var(--spacing-sm)', borderRadius: 'var(--border-radius-md)',

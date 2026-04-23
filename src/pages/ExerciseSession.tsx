@@ -110,8 +110,11 @@ export default function ExerciseSession() {
     return data;
   };
 
+  const [lastSelected, setLastSelected] = useState<string | null>(null);
+
   const toggleAnswer = (choice: string) => {
     if (answered) return;
+    setLastSelected(choice);
     if (currentQuestion.isMultiple) {
       setSelectedAnswers(prev =>
         prev.includes(choice) ? prev.filter(a => a !== choice) : [...prev, choice]
@@ -257,7 +260,12 @@ export default function ExerciseSession() {
             <CopyButton getText={() => currentQuestion.choices.join('\n')} />
           </div>
           {currentQuestion.choices.map((choice: string) => (
-            <button key={choice} onClick={() => toggleAnswer(choice)} style={getChoiceStyle(choice)}>
+            <button
+              key={choice}
+              onClick={() => toggleAnswer(choice)}
+              style={getChoiceStyle(choice)}
+              className={lastSelected === choice && selectedAnswers.includes(choice) && !answered ? 'choice-select-anim' : ''}
+            >
               <span style={{
                 width: 18, height: 18, border: '1px solid var(--color-text-sub)',
                 borderRadius: currentQuestion.isMultiple ? 2 : '50%',
@@ -274,7 +282,7 @@ export default function ExerciseSession() {
         </div>
 
         {answered && detail && (
-          <div style={{
+          <div className="fade-slide-in" style={{
             background: results[results.length - 1]?.isCorrect ? '#f2fcf3' : '#fdf3f1',
             borderLeft: `8px solid ${results[results.length - 1]?.isCorrect ? 'var(--color-success)' : 'var(--color-danger)'}`,
             padding: '16px 20px', marginBottom: 'var(--spacing-xl)',

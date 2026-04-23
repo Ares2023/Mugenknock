@@ -15,7 +15,37 @@ type Question = {
   explanation?: string;
   tags: string[];
   isMultiple: boolean;
+  updatedAt?: string;
 };
+
+const formatDate = (iso: string) => {
+  const d = new Date(iso);
+  const mm = String(d.getMonth() + 1).padStart(2, '0');
+  const dd = String(d.getDate()).padStart(2, '0');
+  const hh = String(d.getHours()).padStart(2, '0');
+  const mi = String(d.getMinutes()).padStart(2, '0');
+  return `${mm}/${dd} ${hh}:${mi}`;
+};
+
+const SkeletonCard = () => (
+  <div style={{ border: '1px solid var(--color-border)', borderRadius: 'var(--border-radius-md)', padding: 'var(--spacing-lg)', background: 'var(--color-bg-white)', boxShadow: 'var(--box-shadow-sm)' }}>
+    <div style={{ display: 'flex', gap: 'var(--spacing-md)', marginBottom: 'var(--spacing-sm)' }}>
+      <div className="skeleton" style={{ width: 48, height: 20 }} />
+      <div className="skeleton" style={{ width: 64, height: 20 }} />
+    </div>
+    <div className="skeleton" style={{ width: '100%', height: 16, marginBottom: 8 }} />
+    <div className="skeleton" style={{ width: '85%', height: 16, marginBottom: 'var(--spacing-lg)' }} />
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 6, marginBottom: 'var(--spacing-lg)' }}>
+      {[90, 75, 80, 70].map((w, i) => (
+        <div key={i} className="skeleton" style={{ width: `${w}%`, height: 14 }} />
+      ))}
+    </div>
+    <div style={{ display: 'flex', gap: 8 }}>
+      <div className="skeleton" style={{ width: 80, height: 28 }} />
+      <div className="skeleton" style={{ width: 60, height: 28 }} />
+    </div>
+  </div>
+);
 
 export default function QuestionList() {
   const navigate = useNavigate();
@@ -166,8 +196,8 @@ export default function QuestionList() {
       </div>
 
       {loading ? (
-        <div style={{ textAlign: 'center', padding: 'var(--spacing-xl)' }}>
-          <p style={{ color: 'var(--color-text-sub)' }}>{t('questions.loading')}</p>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--spacing-md)' }}>
+          {[0, 1, 2].map(i => <SkeletonCard key={i} />)}
         </div>
       ) : (
         <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--spacing-md)' }}>
@@ -195,9 +225,14 @@ export default function QuestionList() {
                     style={{ marginTop: 4, width: 18, height: 18, cursor: 'pointer' }}
                   />
                   <div style={{ flex: 1 }}>
-                    <div style={{ marginBottom: 'var(--spacing-sm)', display: 'flex', gap: 'var(--spacing-sm)' }}>
+                    <div style={{ marginBottom: 'var(--spacing-sm)', display: 'flex', gap: 'var(--spacing-sm)', alignItems: 'center', flexWrap: 'wrap' }}>
                       <Badge variant="secondary">{q.examType}</Badge>
                       {q.isMultiple && <Badge variant="outline">{t('questions.multiple')}</Badge>}
+                      {q.updatedAt && (
+                        <span style={{ fontSize: 'var(--font-size-xs)', color: 'var(--color-text-light)', marginLeft: 'auto' }}>
+                          最終更新: {formatDate(q.updatedAt)}
+                        </span>
+                      )}
                     </div>
                     <p style={{ margin: '0 0 var(--spacing-md)', fontWeight: 700, fontSize: 'var(--font-size-md)', lineHeight: 1.6, color: 'var(--color-text-main)' }}>
                       {qText}

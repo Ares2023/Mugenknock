@@ -84,6 +84,41 @@ button:active:not(:disabled) {
   transform: translateY(-2px);
 }
 
+/* ── Animations ── */
+
+@keyframes fadeSlideIn {
+  from { opacity: 0; transform: translateY(8px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes shimmer {
+  0%   { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+
+@keyframes choiceSelect {
+  0%   { transform: scale(1); }
+  40%  { transform: scale(0.97); }
+  100% { transform: scale(1); }
+}
+
+.fade-slide-in {
+  animation: fadeSlideIn 0.25s ease both;
+}
+
+/* スケルトン読み込み */
+.skeleton {
+  background: linear-gradient(90deg, #ebebeb 25%, #d8d8d8 50%, #ebebeb 75%);
+  background-size: 200% 100%;
+  animation: shimmer 1.4s infinite;
+  border-radius: var(--border-radius-md);
+}
+
+/* 選択肢選択時のパルス */
+.choice-select-anim {
+  animation: choiceSelect 0.18s ease;
+}
+
 /* ── レスポンシブ ── */
 
 /* 設定画面の2カラムグリッド → スマホでは縦積み */
