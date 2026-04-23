@@ -1,0 +1,34 @@
+==========================================
+実行日時: 2026-04-24 03:30:41
+==========================================
+[bat-prompts] 実行するファイルなし
+
+▶ [tmp] 0424.txt
+------------------------------------------
+すべて完了。3回のプッシュの内容をまとめます。
+
+---
+
+**1回目のプッシュ**
+- `prompts/scripts/check-translation.sh` を新規作成。Questions・Tips・Releases の3テーブルを毎晩バッチで英訳チェックし、欠落/誤訳は Claude が自動修正・DynamoDB 書き戻し（30件/回）
+- Stats・ExerciseSetup・ExamSetup に Home と同じ一度きりヘルプバナー（💡）を追加
+
+**2回目のプッシュ**
+- Button バリアントを `primary` / `outline` / `danger` の3種に統一（accent/secondary/ghost を削除し全ページを更新）
+- Architecture ページの色をすべて CSS変数（`--color-primary` / `--color-text-light`）に統一
+- ExerciseSetup・ExamSetup のフォームセクションに ①②③ ステップバッジを追加して操作順序を明示
+- ブックマーク説明の「★」を「🔖」に統一
+
+**3回目のプッシュ**
+- `--color-hint-bg` / `--color-hint-border` を CSS変数として定義し、4ページ分のバナー色を一元管理
+- ReleaseNotes に `useLanguage` を導入し日本語ハードコードを翻訳キーへ置換、英語版（titleEn/bodyEn）の表示にも対応
+
+---
+
+check-translation.sh を毎晩スケジューラで自動実行したい場合、`./prompts/run-at 01:30` で今夜1時半に一度試すか、`systemd-run --on-calendar="*-*-* 01:00:00" ...` で定期タイマーを設定できます。やり方を /schedule で設定しますか？
+
+✓ 完了・削除: 0424.txt
+
+==========================================
+終了: 2026-04-24 03:48:12
+==========================================

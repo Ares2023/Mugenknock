@@ -6,7 +6,7 @@ import { EXAM_TYPES, EXAM_CONFIGS, EXAM_DOMAINS, DOMAIN_NAME_EN } from '../const
 import Button from '../components/ui/Button';
 import Card from '../components/ui/Card';
 import Badge from '../components/ui/Badge';
-import { IconPencil, IconClock, IconChart, IconTarget } from '../components/Icons';
+import { IconPencil, IconClock, IconTarget } from '../components/Icons';
 
 const TARGET_EXAM_KEY = 'targetExam';
 
@@ -52,10 +52,9 @@ export default function Home() {
   const domains = targetExam ? EXAM_DOMAINS[targetExam] : [];
   const examDesc = lang === 'en' ? EXAM_DESC_EN : EXAM_DESC_JA;
 
-  const features = [
-    { title: t('home.exerciseTitle'), description: t('home.exerciseDesc'), path: '/exercise/setup', label: t('home.exerciseLabel'), icon: <IconPencil size={22} />, btnVariant: 'primary' as const,  borderColor: 'var(--color-primary)' },
-    { title: t('home.examTitle'),     description: t('home.examDesc'),     path: '/exam/setup',     label: t('home.examLabel'),     icon: <IconClock size={22} />,  btnVariant: 'primary' as const,  borderColor: 'var(--color-primary)' },
-    { title: t('home.statsTitle'),    description: t('home.statsDesc'),    path: '/stats',          label: t('home.statsLabel'),    icon: <IconChart size={22} />,  btnVariant: 'outline' as const,  borderColor: 'var(--color-border)' },
+  const modes = [
+    { title: t('home.exerciseTitle'), description: t('home.exerciseDesc'), path: '/exercise/setup', label: t('home.exerciseLabel'), icon: <IconPencil size={22} /> },
+    { title: t('home.examTitle'),     description: t('home.examDesc'),     path: '/exam/setup',     label: t('home.examLabel'),     icon: <IconClock size={22} /> },
   ];
 
   return (
@@ -159,26 +158,26 @@ export default function Home() {
         </div>
       </Card>
 
-      {/* 機能カード（縦積み） */}
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--spacing-md)', marginBottom: 'var(--spacing-xl)' }}>
-        {features.map(f => (
+      {/* 演習・模試カード（左右2列） */}
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 'var(--spacing-md)', marginBottom: 'var(--spacing-xl)' }} className="home-modes-grid">
+        {modes.map(f => (
           <Card
             key={f.path}
             className="home-feature-card"
-            padding="var(--spacing-md) var(--spacing-lg)"
-            style={{ borderLeft: `4px solid ${f.borderColor}`, cursor: 'pointer' }}
+            padding="var(--spacing-lg)"
+            style={{ borderTop: `3px solid var(--color-primary)`, cursor: 'pointer' }}
             onClick={() => navigate(f.path)}
           >
-            <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--spacing-lg)' }}>
-              <div style={{ color: 'var(--color-text-sub)', display: 'flex', flexShrink: 0 }}>{f.icon}</div>
-              <div style={{ flex: 1, minWidth: 0 }}>
-                <div style={{ fontSize: 'var(--font-size-md)', fontWeight: 700, color: 'var(--color-text-main)', marginBottom: 'var(--spacing-xs)' }}>{f.title}</div>
-                <p style={{ fontSize: 'var(--font-size-sm)', color: 'var(--color-text-sub)', lineHeight: 1.5, margin: 0 }}>{f.description}</p>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--spacing-sm)', height: '100%' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--spacing-sm)' }}>
+                <span style={{ color: 'var(--color-primary)', display: 'flex', flexShrink: 0 }}>{f.icon}</span>
+                <span style={{ fontSize: 'var(--font-size-md)', fontWeight: 700, color: 'var(--color-text-main)' }}>{f.title}</span>
               </div>
+              <p style={{ fontSize: 'var(--font-size-sm)', color: 'var(--color-text-sub)', lineHeight: 1.5, margin: 0, flex: 1 }}>{f.description}</p>
               <Button
-                variant={f.btnVariant}
+                variant="primary"
                 onClick={e => { e.stopPropagation(); navigate(f.path); }}
-                className="home-feature-card-btn"
+                style={{ width: '100%' }}
               >
                 {f.label} →
               </Button>
