@@ -52,10 +52,10 @@ export default function Home() {
   ];
 
   return (
-    <div style={{ maxWidth: 860, margin: '0 auto', padding: '28px 20px', color: '#16191f' }} className="page-container">
+    <div style={{ maxWidth: 900, margin: '0 auto', padding: '28px 20px', color: '#16191f' }} className="page-container">
       {/* ヘッダー */}
       <div style={{ marginBottom: 20 }}>
-        <h1 style={{ fontSize: 28, fontWeight: 700, margin: '0 0 10px', lineHeight: 1.3 }}>
+        <h1 className="home-hero-title" style={{ fontSize: 28, fontWeight: 700, margin: '0 0 10px', lineHeight: 1.3 }}>
           {name ? t('home.greeting', { name }) : t('home.startLearning')}
         </h1>
         <p style={{ fontSize: 14, color: '#545b64', lineHeight: 1.8, margin: 0 }}>
@@ -65,7 +65,7 @@ export default function Home() {
 
       {/* 目標資格プレート */}
       <div style={{ background: 'white', border: '1px solid #eaeded', borderRadius: 6, padding: '20px 24px', marginBottom: 16, boxShadow: '0 1px 1px 0 rgba(0,28,36,0.1)' }}>
-        <div style={{ display: 'flex', gap: 24, alignItems: 'flex-start' }}>
+        <div className="home-exam-panel" style={{ display: 'flex', gap: 24, alignItems: 'flex-start' }}>
 
           {/* 左：試験選択ボタン（縦積み） */}
           <div style={{ display: 'flex', flexDirection: 'column', gap: 8, flexShrink: 0 }}>
@@ -91,7 +91,7 @@ export default function Home() {
                   >
                     {et}
                   </button>
-                  <span style={{ fontSize: 12, color: '#545b64', lineHeight: 1.4 }}>{examDesc[et]}</span>
+                  <span className="home-exam-btn-desc" style={{ fontSize: 12, color: '#545b64', lineHeight: 1.4 }}>{examDesc[et]}</span>
                 </div>
               );
             })}
@@ -140,6 +140,7 @@ export default function Home() {
         {features.map(f => (
           <div
             key={f.path}
+            className="home-feature-card"
             style={{
               background: 'white', border: '1px solid #eaeded', borderRadius: 6,
               borderLeft: '4px solid #008c8c', boxShadow: '0 1px 1px 0 rgba(0,28,36,0.1)',
@@ -153,6 +154,7 @@ export default function Home() {
             </div>
             <button
               onClick={() => navigate(f.path)}
+              className="home-feature-card-btn"
               style={{
                 flexShrink: 0, padding: '8px 20px', background: 'white', color: '#008c8c',
                 border: '1px solid #008c8c', borderRadius: 9999, cursor: 'pointer', fontSize: 13,

@@ -17,7 +17,7 @@ export default function Result() {
   const [expandedId, setExpandedId] = useState<string | null>(null);
 
   return (
-    <div style={{ maxWidth: 860, margin: '0 auto', padding: '32px 20px', color: '#16191f' }} className="result-container">
+    <div style={{ maxWidth: 900, margin: '0 auto', padding: '32px 20px', color: '#16191f' }} className="result-container">
       <h2 style={{ fontSize: 24, fontWeight: 700, margin: '0 0 24px' }}>
         {isExam ? t('result.examResult') : t('result.exerciseResult')}
       </h2>

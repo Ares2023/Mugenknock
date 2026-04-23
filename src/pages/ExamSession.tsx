@@ -234,28 +234,28 @@ export default function ExamSession() {
       )}
 
       {/* タイマーバー */}
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+      <div className="exam-timer-bar" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between',
         background: 'white', borderRadius: 6, padding: '12px 24px', marginBottom: 20,
         border: '1px solid #eaeded', boxShadow: '0 1px 1px 0 rgba(0,28,36,0.1)' }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
-          <span style={{ fontSize: 13, fontWeight: 700, color: '#545b64', background: '#f2f3f3', padding: '2px 8px', borderRadius: 12, border: '1px solid #d1d5db' }}>{examType} {t('examSession.mock')}</span>
-          <span style={{ fontSize: 24, fontWeight: 700, fontFamily: 'monospace',
-            color: timerRed ? '#d13212' : '#16191f', transition: 'color 1s' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+          <span style={{ fontSize: 13, fontWeight: 700, color: '#545b64', background: '#f2f3f3', padding: '2px 8px', borderRadius: 12, border: '1px solid #d1d5db', whiteSpace: 'nowrap' }}>{examType} {t('examSession.mock')}</span>
+          <span className="exam-timer-time" style={{ fontSize: 24, fontWeight: 700, fontFamily: 'monospace',
+            color: timerRed ? '#d13212' : '#16191f', transition: 'color 1s', whiteSpace: 'nowrap' }}>
             {formatTime(timeLeft)}
           </span>
-          {timerRed && <span style={{ fontSize: 12, color: '#d13212', fontWeight: 700 }}>{t('examSession.timeWarning')}</span>}
+          {timerRed && <span style={{ fontSize: 12, color: '#d13212', fontWeight: 700, whiteSpace: 'nowrap' }}>{t('examSession.timeWarning')}</span>}
         </div>
         <div style={{ display: 'flex', gap: 12, alignItems: 'center' }}>
-          <span style={{ fontSize: 14, color: '#545b64' }}>{t('examSession.qLabel')} {currentIndex + 1} / {questions.length}</span>
+          <span style={{ fontSize: 13, color: '#545b64', whiteSpace: 'nowrap' }}>{currentIndex + 1} / {questions.length}</span>
           <button onClick={() => setPaused(true)}
-            style={{ padding: '6px 16px', border: '1px solid #545b64', borderRadius: 9999,
-              cursor: 'pointer', background: 'white', fontSize: 13, fontWeight: 700 }}>
+            style={{ padding: '6px 14px', border: '1px solid #545b64', borderRadius: 9999,
+              cursor: 'pointer', background: 'white', fontSize: 13, fontWeight: 700, whiteSpace: 'nowrap' }}>
             {t('examSession.pause')}
           </button>
         </div>
       </div>
 
-      <div style={{ background: "white", border: "1px solid #eaeded", borderRadius: 6, padding: "24px 32px", boxShadow: "0 1px 1px 0 rgba(0,28,36,0.1), 1px 1px 1px 0 rgba(0,28,36,0.15)", marginBottom: 24 }}>
+      <div className="session-question-panel" style={{ background: "white", border: "1px solid #eaeded", borderRadius: 6, padding: "24px 32px", boxShadow: "0 1px 1px 0 rgba(0,28,36,0.1), 1px 1px 1px 0 rgba(0,28,36,0.15)", marginBottom: 24 }}>
         {/* 問題 */}
         <div style={{ marginBottom: 24 }}>
           <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 8 }}>

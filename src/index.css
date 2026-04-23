@@ -66,3 +66,53 @@ code {
     padding: 20px 24px !important;
   }
 }
+
+/* ── スマホ追加修正 ── */
+@media (max-width: 767px) {
+  /* ホーム：目標資格パネルを縦積みに */
+  .home-exam-panel {
+    flex-direction: column !important;
+  }
+  /* ボタン横の説明文はモバイルで非表示 */
+  .home-exam-btn-desc {
+    display: none !important;
+  }
+
+  /* 模試タイマーバー：折り返し＋パディング縮小 */
+  .exam-timer-bar {
+    padding: 10px 12px !important;
+    flex-wrap: wrap !important;
+    row-gap: 8px !important;
+  }
+  .exam-timer-time {
+    font-size: 20px !important;
+  }
+
+  /* 演習・模試セッション：問題カードの内側パディング縮小 */
+  .session-question-panel {
+    padding: 16px !important;
+  }
+
+  /* 統計：履歴テーブルを横スクロール */
+  .stats-table-scroll {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+  .stats-table-scroll table {
+    min-width: 460px;
+  }
+
+  /* ホーム h1 サイズ縮小 */
+  .home-hero-title {
+    font-size: 22px !important;
+  }
+
+  /* 機能カード：ボタンを右ではなく下に */
+  .home-feature-card {
+    flex-wrap: wrap !important;
+  }
+  .home-feature-card-btn {
+    width: 100% !important;
+    text-align: center !important;
+  }
+}

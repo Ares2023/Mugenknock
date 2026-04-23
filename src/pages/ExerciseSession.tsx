@@ -215,7 +215,7 @@ export default function ExerciseSession() {
   return (
     <div style={{ maxWidth: 900, margin: "0 auto", padding: "24px 20px", color: "#16191f" }} className="session-container">
 
-      <div style={{ background: "white", border: "1px solid #eaeded", borderRadius: 6, padding: "24px 32px", boxShadow: "0 1px 1px 0 rgba(0,28,36,0.1), 1px 1px 1px 0 rgba(0,28,36,0.15)" }}>
+      <div className="session-question-panel" style={{ background: "white", border: "1px solid #eaeded", borderRadius: 6, padding: "24px 32px", boxShadow: "0 1px 1px 0 rgba(0,28,36,0.1), 1px 1px 1px 0 rgba(0,28,36,0.15)" }}>
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 20 }}>
           <h1 style={{ fontSize: 20, fontWeight: 700, margin: 0 }}>
             {t('exerciseSession.qLabel')} {currentIndex + 1}

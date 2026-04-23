@@ -110,10 +110,10 @@ export default function Stats() {
     : [];
 
   return (
-    <div style={{ maxWidth: 1000, margin: '0 auto', padding: '32px 20px', color: '#16191f' }} className="page-container">
+    <div style={{ maxWidth: 900, margin: '0 auto', padding: '32px 20px', color: '#16191f' }} className="page-container">
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 24, flexWrap: 'wrap', gap: 12 }}>
         <h2 style={{ fontSize: 24, fontWeight: 700, margin: 0 }}>{t('stats.title')}</h2>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap', rowGap: 6 }}>
           <span style={{ fontSize: 12, color: '#545b64' }}>{t('stats.showing')}</span>
           {EXAM_TYPES.map(et => (
             <button
@@ -295,7 +295,7 @@ export default function Stats() {
           )}
         </div>
       ) : (
-        <div style={{ background: 'white', border: '1px solid #eaeded', borderRadius: 6, overflow: 'hidden', boxShadow: '0 1px 1px 0 rgba(0,28,36,0.1)' }}>
+        <div className="stats-table-scroll" style={{ background: 'white', border: '1px solid #eaeded', borderRadius: 6, overflow: 'hidden', boxShadow: '0 1px 1px 0 rgba(0,28,36,0.1)' }}>
           <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 14 }}>
             <thead>
               <tr style={{ background: '#fbfbfb', borderBottom: '1px solid #eaeded' }}>
