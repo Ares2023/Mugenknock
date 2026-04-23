@@ -21,7 +21,7 @@ export const ja: Translations = {
   'nav.aiAssistant': 'AI アシスタント',
 
   // ── Home ──
-  'home.startLearning': 'AWS 資格学習を始めよう
+  'home.startLearning': 'AWS 資格学習を始めよう',
   'home.greeting': 'こんにちは、{name} さん',
   'home.heroDesc': 'Sherpa はAWS 認定資格の取得を目指す方のための練習問題サービスです。CLF・SAA・SAP・DOP の問題を演習・模試の2つのモードで学習できます。',
   'home.targetExam': '目標資格',

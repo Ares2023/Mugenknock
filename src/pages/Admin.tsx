@@ -790,7 +790,7 @@ export default function Admin() {
                   style={{ width: 16, height: 16, cursor: 'pointer', flexShrink: 0 }}
                 />
                 <span style={{ color: '#545b64', fontSize: 12, flexShrink: 0 }}>{expandedId === q.questionId ? '▼' : '▶'}</span>
-                {examBadge(q.examType)}
+                <Badge variant="secondary">{q.examType}</Badge>
                 <span style={{ fontFamily: 'monospace', fontSize: 12, color: '#545b64', flexShrink: 0, minWidth: 100 }}>{q.questionId}</span>
                 <span style={{ fontSize: 14, color: '#16191f', flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                   {q.questionText}

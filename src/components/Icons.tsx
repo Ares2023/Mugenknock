@@ -110,3 +110,9 @@ export const IconTarget = ({ size = 16 }: { size?: number }) => (
     <circle cx="8" cy="8" r="0.75" fill="currentColor" stroke="none"/>
   </svg>
 );
+
+export const IconBookmark = ({ filled = false, size = 16 }: { filled?: boolean; size?: number }) => (
+  <svg width={size} height={size} viewBox="0 0 16 16" fill={filled ? "currentColor" : "none"} stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M3 2v13l5-3 5 3V2a1 1 0 0 0-1-1H4a1 1 0 0 0-1 1z" />
+  </svg>
+);
