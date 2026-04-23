@@ -502,7 +502,6 @@ export default function Layout({ children }: { children: React.ReactNode }) {
                   title={t('nav.closeMenu')}
                 >
                   <IconChevronLeft />
-                  <span>{t('nav.close')}</span>
                 </button>
               </div>
             )}
