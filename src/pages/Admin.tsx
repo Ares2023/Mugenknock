@@ -225,6 +225,8 @@ export default function Admin() {
 
   const [flaggedQuestions, setFlaggedQuestions] = useState<FlaggedQuestion[]>([]);
   const [loadingFlagged, setLoadingFlagged] = useState(false);
+  const [validityFilter, setValidityFilter] = useState<'all' | 'flagged' | 'hidden'>('all');
+  const [validityTotalCount, setValidityTotalCount] = useState(0);
 
   // 問題編集
   const EMPTY_EDIT_FORM: EditForm = { examType: 'SAA', domain: '', questionText: '', choices: ['', '', '', ''], correctAnswers: [], explanation: '', tags: '', isMultiple: false };
@@ -278,12 +280,14 @@ export default function Admin() {
     setEditForm(f => ({ ...f, choices: newChoices, correctAnswers: newCorrect }));
   };
 
-  const fetchFlagged = async () => {
+  const fetchFlagged = async (filter: 'all' | 'flagged' | 'hidden' = validityFilter) => {
     setLoadingFlagged(true);
     try {
-      const res = await adminFetch(`${API_ENDPOINT}/admin/questions/flagged`);
+      const params = filter !== 'all' ? `?filter=${filter}` : '';
+      const res = await adminFetch(`${API_ENDPOINT}/admin/questions/flagged${params}`);
       const data = await res.json();
       setFlaggedQuestions(data.items || []);
+      setValidityTotalCount(data.totalCount || 0);
     } catch (err) { console.error(err); }
     setLoadingFlagged(false);
   };
@@ -303,7 +307,7 @@ export default function Admin() {
   useEffect(() => { if (tab === 'reports') fetchReports(); }, [tab]);
   useEffect(() => { if (tab === 'tips') fetchTips(); }, [tab]);
   useEffect(() => { if (tab === 'releases') fetchReleases(); }, [tab]);
-  useEffect(() => { if (tab === 'validity') fetchFlagged(); }, [tab]);
+  useEffect(() => { if (tab === 'validity') fetchFlagged('all'); }, [tab]);
 
   const handleSaveTip = async () => {
     if (!tipForm.title.trim() || !tipForm.content.trim()) return;
@@ -1461,76 +1465,129 @@ ${tipPromptExamType !== 'ALL' ? `・examType には "${tipPromptExamType}" を�
           )}
         </div>
       )}
-      {tab === 'validity' && (
-        <div>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
-            <p style={{ color: '#545b64', fontSize: 13, margin: 0 }}>
-              {loadingFlagged ? '読み込み中...' : `${flaggedQuestions.length} 件（rating≤2 または非表示中）`}
-            </p>
-            <button onClick={fetchFlagged} style={{ padding: '6px 16px', background: 'white', color: '#008c8c', border: '1px solid #008c8c', borderRadius: 9999, cursor: 'pointer', fontSize: 13, fontWeight: 700 }}>
-              再読み込み
-            </button>
-          </div>
+      {tab === 'validity' && (() => {
+        const RATING_LABEL: Record<number, string> = { 1: '致命的', 2: '重大', 3: '軽微', 4: 'ほぼ問題なし', 5: '問題なし' };
+        const RATING_COLOR: Record<number, string> = { 1: '#d13212', 2: '#d47500', 3: '#8b6914', 4: '#545b64', 5: '#037f0c' };
+        const ratingDist = [1, 2, 3, 4, 5].map(r => ({
+          r, count: flaggedQuestions.filter(q => q.validityRating === r).length
+        }));
 
-          {!loadingFlagged && flaggedQuestions.length === 0 && (
-            <p style={{ color: '#aab7b8', textAlign: 'center', padding: 40 }}>要確認の問題はありません</p>
-          )}
-
-          {flaggedQuestions.map(q => {
-            const rating = q.validityRating;
-            const ratingColor = rating === 1 ? '#d13212' : rating === 2 ? '#d47500' : '#545b64';
-            const ratingLabel: Record<number, string> = { 1: '致命的', 2: '重大', 3: '軽微', 4: 'ほぼ問題なし', 5: '問題なし' };
-            return (
-              <div key={q.questionId} style={{ background: 'white', border: `1px solid ${q.isHidden ? '#d13212' : '#eaeded'}`, borderLeft: `4px solid ${ratingColor}`, borderRadius: 6, padding: '16px 20px', marginBottom: 12, boxShadow: '0 1px 1px 0 rgba(0,28,36,0.07)' }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 8, flexWrap: 'wrap' }}>
-                  <span style={{ background: '#232f3e', color: 'white', fontSize: 11, padding: '2px 8px', borderRadius: 12, fontWeight: 700 }}>{q.examType}</span>
-                  {rating !== undefined && (
-                    <span style={{ fontSize: 12, fontWeight: 700, color: ratingColor, background: ratingColor + '18', padding: '2px 8px', borderRadius: 6 }}>
-                      rating {rating} — {ratingLabel[rating] ?? ''}
-                    </span>
-                  )}
-                  {q.isHidden && (
-                    <span style={{ fontSize: 12, fontWeight: 700, color: 'white', background: '#d13212', padding: '2px 8px', borderRadius: 6 }}>非表示中</span>
-                  )}
-                  <span style={{ fontSize: 11, color: '#aab7b8', marginLeft: 'auto' }}>
-                    {q.validityCheckedAt ? new Date(q.validityCheckedAt).toLocaleDateString('ja-JP') : '未チェック'}
-                  </span>
+        return (
+          <div>
+            {/* 進捗・統計 */}
+            {!loadingFlagged && validityTotalCount > 0 && validityFilter === 'all' && (
+              <div style={{ background: '#f2f3f3', border: '1px solid #eaeded', borderRadius: 8, padding: '14px 18px', marginBottom: 16 }}>
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10, flexWrap: 'wrap', gap: 8 }}>
+                  <div style={{ fontSize: 13, color: '#545b64' }}>
+                    チェック済み <strong style={{ color: '#16191f', fontSize: 15 }}>{flaggedQuestions.length}</strong> / {validityTotalCount} 問
+                  </div>
+                  <div style={{ fontSize: 12, color: '#aab7b8' }}>
+                    残り {validityTotalCount - flaggedQuestions.length} 問未チェック
+                  </div>
                 </div>
-                <p style={{ fontSize: 13, color: '#16191f', margin: '0 0 6px', lineHeight: 1.6 }}>{q.questionText}</p>
-                {q.validityNote && (
-                  <p style={{ fontSize: 12, color: '#545b64', margin: '0 0 12px', padding: '8px 12px', background: '#fbfbfb', borderRadius: 4, lineHeight: 1.6 }}>
-                    💬 {q.validityNote}
-                  </p>
-                )}
-                <div style={{ display: 'flex', gap: 8 }}>
-                  <button onClick={() => openEdit(q)} style={{ padding: '5px 14px', fontSize: 12, fontWeight: 700, borderRadius: 9999, cursor: 'pointer', background: 'white', color: '#545b64', border: '1px solid #545b64' }}>
-                    編集
-                  </button>
-                  {q.isHidden ? (
-                    <button onClick={() => handleVisibility(q, false)} style={{ padding: '5px 14px', fontSize: 12, fontWeight: 700, borderRadius: 9999, cursor: 'pointer', background: 'white', color: '#037f0c', border: '1px solid #037f0c' }}>
-                      表示に戻す
-                    </button>
-                  ) : (
-                    <button onClick={() => handleVisibility(q, true)} style={{ padding: '5px 14px', fontSize: 12, fontWeight: 700, borderRadius: 9999, cursor: 'pointer', background: 'white', color: '#d47500', border: '1px solid #d47500' }}>
-                      非表示にする
-                    </button>
-                  )}
-                  <button
-                    onClick={async () => {
-                      if (!window.confirm('この問題を完全に削除しますか？')) return;
-                      await adminFetch(`${API_ENDPOINT}/admin/questions/${q.questionId}`, { method: 'DELETE' });
-                      setFlaggedQuestions(prev => prev.filter(x => x.questionId !== q.questionId));
-                    }}
-                    style={{ padding: '5px 14px', fontSize: 12, fontWeight: 700, borderRadius: 9999, cursor: 'pointer', background: 'white', color: '#d13212', border: '1px solid #d13212' }}
-                  >
-                    削除
-                  </button>
+                {/* プログレスバー */}
+                <div style={{ height: 8, background: '#d1d5db', borderRadius: 9999, overflow: 'hidden', marginBottom: 10 }}>
+                  <div style={{ height: '100%', background: '#008c8c', borderRadius: 9999, width: `${Math.min(100, (flaggedQuestions.length / validityTotalCount) * 100)}%`, transition: 'width 0.4s' }} />
+                </div>
+                {/* rating 分布 */}
+                <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
+                  {ratingDist.map(({ r, count }) => count > 0 && (
+                    <span key={r} style={{ fontSize: 12, fontWeight: 700, padding: '2px 10px', borderRadius: 9999, background: RATING_COLOR[r] + '18', color: RATING_COLOR[r], border: `1px solid ${RATING_COLOR[r]}40` }}>
+                      {r}: {RATING_LABEL[r]} {count}問
+                    </span>
+                  ))}
                 </div>
               </div>
-            );
-          })}
-        </div>
-      )}
+            )}
+
+            {/* フィルター・再読み込み */}
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16, flexWrap: 'wrap', gap: 8 }}>
+              <div style={{ display: 'flex', gap: 6 }}>
+                {([
+                  { key: 'all', label: '全チェック済み' },
+                  { key: 'flagged', label: '要確認 (rating≤2)' },
+                  { key: 'hidden', label: '非表示中' },
+                ] as const).map(({ key, label }) => (
+                  <button key={key} onClick={() => { setValidityFilter(key); fetchFlagged(key); }}
+                    style={{ padding: '6px 14px', border: '1px solid', borderRadius: 9999, cursor: 'pointer', fontSize: 13, fontWeight: validityFilter === key ? 700 : 400,
+                      background: validityFilter === key ? '#e0f2f2' : 'white',
+                      color: validityFilter === key ? '#008c8c' : '#545b64',
+                      borderColor: validityFilter === key ? '#008c8c' : '#d1d5db' }}>
+                    {label}
+                    {!loadingFlagged && validityFilter === key && ` (${flaggedQuestions.length})`}
+                  </button>
+                ))}
+              </div>
+              <button onClick={() => fetchFlagged(validityFilter)}
+                style={{ padding: '6px 16px', background: 'white', color: '#008c8c', border: '1px solid #008c8c', borderRadius: 9999, cursor: 'pointer', fontSize: 13, fontWeight: 700 }}>
+                再読み込み
+              </button>
+            </div>
+
+            {loadingFlagged && <p style={{ color: '#545b64', fontSize: 13, padding: 20, textAlign: 'center' }}>読み込み中...</p>}
+
+            {!loadingFlagged && flaggedQuestions.length === 0 && (
+              <p style={{ color: '#aab7b8', textAlign: 'center', padding: 40 }}>
+                {validityFilter === 'all' ? 'チェック済みの問題はありません' : validityFilter === 'flagged' ? '要確認の問題はありません' : '非表示中の問題はありません'}
+              </p>
+            )}
+
+            {flaggedQuestions.map(q => {
+              const rating = q.validityRating;
+              const ratingColor = rating !== undefined ? (RATING_COLOR[rating] ?? '#545b64') : '#aab7b8';
+              return (
+                <div key={q.questionId} style={{ background: 'white', border: `1px solid ${q.isHidden ? '#f5a09b' : '#eaeded'}`, borderLeft: `4px solid ${ratingColor}`, borderRadius: 6, padding: '14px 18px', marginBottom: 8, boxShadow: '0 1px 1px 0 rgba(0,28,36,0.07)' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 8, flexWrap: 'wrap' }}>
+                    <span style={{ background: '#232f3e', color: 'white', fontSize: 11, padding: '2px 8px', borderRadius: 12, fontWeight: 700 }}>{q.examType}</span>
+                    {rating !== undefined ? (
+                      <span style={{ fontSize: 12, fontWeight: 700, color: ratingColor, background: ratingColor + '18', padding: '2px 10px', borderRadius: 6 }}>
+                        rating {rating} — {RATING_LABEL[rating] ?? ''}
+                      </span>
+                    ) : (
+                      <span style={{ fontSize: 12, color: '#aab7b8' }}>未評価</span>
+                    )}
+                    {q.isHidden && (
+                      <span style={{ fontSize: 12, fontWeight: 700, color: 'white', background: '#d13212', padding: '2px 8px', borderRadius: 6 }}>非表示中</span>
+                    )}
+                    <span style={{ fontSize: 11, color: '#aab7b8', marginLeft: 'auto', flexShrink: 0 }}>
+                      {q.validityCheckedAt ? new Date(q.validityCheckedAt).toLocaleDateString('ja-JP') : '未チェック'}
+                    </span>
+                  </div>
+                  <p style={{ fontSize: 13, color: '#16191f', margin: '0 0 6px', lineHeight: 1.6 }}>{q.questionText}</p>
+                  {q.validityNote && (
+                    <p style={{ fontSize: 12, color: '#545b64', margin: '0 0 10px', padding: '7px 10px', background: '#fbfbfb', borderRadius: 4, lineHeight: 1.6, borderLeft: '3px solid #d1d5db' }}>
+                      {q.validityNote}
+                    </p>
+                  )}
+                  <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+                    <button onClick={() => openEdit(q)} style={{ padding: '4px 12px', fontSize: 12, fontWeight: 700, borderRadius: 9999, cursor: 'pointer', background: 'white', color: '#545b64', border: '1px solid #545b64' }}>
+                      編集
+                    </button>
+                    {q.isHidden ? (
+                      <button onClick={() => handleVisibility(q, false)} style={{ padding: '4px 12px', fontSize: 12, fontWeight: 700, borderRadius: 9999, cursor: 'pointer', background: 'white', color: '#037f0c', border: '1px solid #037f0c' }}>
+                        表示に戻す
+                      </button>
+                    ) : (
+                      <button onClick={() => handleVisibility(q, true)} style={{ padding: '4px 12px', fontSize: 12, fontWeight: 700, borderRadius: 9999, cursor: 'pointer', background: 'white', color: '#d47500', border: '1px solid #d47500' }}>
+                        非表示にする
+                      </button>
+                    )}
+                    <button
+                      onClick={async () => {
+                        if (!window.confirm('この問題を完全に削除しますか？')) return;
+                        await adminFetch(`${API_ENDPOINT}/admin/questions/${q.questionId}`, { method: 'DELETE' });
+                        setFlaggedQuestions(prev => prev.filter(x => x.questionId !== q.questionId));
+                      }}
+                      style={{ padding: '4px 12px', fontSize: 12, fontWeight: 700, borderRadius: 9999, cursor: 'pointer', background: 'white', color: '#d13212', border: '1px solid #d13212' }}>
+                      削除
+                    </button>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        );
+      })()}
     </div>
   );
 }

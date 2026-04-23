@@ -297,18 +297,33 @@ app.put('/admin/questions/:id', async (req, res) => {
   }
 });
 
-// 問題一覧（管理者用・全フィールド返却）
-// 要確認問題一覧（rating<=2 または isHidden=true）
+// 正当性チェック済み問題一覧
+// ?filter=flagged → rating<=2 または isHidden=true のみ
+// ?filter=hidden  → isHidden=true のみ
+// デフォルト      → validityCheckedAt があるもの全件
 app.get('/admin/questions/flagged', async (req, res) => {
   try {
     const docClient = getClient();
-    const result = await docClient.send(new ScanCommand({
-      TableName: 'Questions',
-      FilterExpression: 'validityRating <= :threshold OR isHidden = :hidden',
-      ExpressionAttributeValues: { ':threshold': 2, ':hidden': true },
-    }));
-    const items = (result.Items || []).sort((a, b) => (a.validityRating || 9) - (b.validityRating || 9));
-    res.json({ items, count: items.length });
+    const { filter } = req.query;
+
+    let scanParams = { TableName: 'Questions' };
+    if (filter === 'flagged') {
+      scanParams.FilterExpression = 'validityRating <= :threshold OR isHidden = :hidden';
+      scanParams.ExpressionAttributeValues = { ':threshold': 2, ':hidden': true };
+    } else if (filter === 'hidden') {
+      scanParams.FilterExpression = 'isHidden = :hidden';
+      scanParams.ExpressionAttributeValues = { ':hidden': true };
+    } else {
+      scanParams.FilterExpression = 'attribute_exists(validityCheckedAt)';
+    }
+
+    const [checkedResult, totalResult] = await Promise.all([
+      docClient.send(new ScanCommand(scanParams)),
+      docClient.send(new ScanCommand({ TableName: 'Questions', Select: 'COUNT' })),
+    ]);
+
+    const items = (checkedResult.Items || []).sort((a, b) => (a.validityRating || 9) - (b.validityRating || 9));
+    res.json({ items, count: items.length, totalCount: totalResult.Count || 0 });
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: 'Internal server error' });
