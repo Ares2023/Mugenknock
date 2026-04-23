@@ -213,7 +213,6 @@ export default function Layout({ children }: { children: React.ReactNode }) {
         body: JSON.stringify({
           subject: contactSubject.trim(),
           message: contactMessage.trim(),
-          userId: user?.email ?? 'anonymous',
         }),
       });
       setContactDone(true);
@@ -264,6 +263,9 @@ export default function Layout({ children }: { children: React.ReactNode }) {
               </div>
             ) : (
               <>
+                <p style={{ margin: '0 0 16px', fontSize: 12, color: '#879596', background: '#f2f3f3', borderRadius: 6, padding: '8px 12px', lineHeight: 1.6 }}>
+                  メッセージは匿名で送信されます。送信者の情報は管理者に通知されません。
+                </p>
                 <div style={{ marginBottom: 14 }}>
                   <div style={{ fontSize: 12, color: '#545b64', fontWeight: 700, marginBottom: 6 }}>件名（任意）</div>
                   <input

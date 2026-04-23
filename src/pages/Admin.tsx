@@ -1724,14 +1724,9 @@ ${tipPromptExamType !== 'ALL' ? `・examType には "${tipPromptExamType}" を�
           {messages.map(m => (
             <div key={m.messageId} style={{ border: '1px solid #eaeded', borderRadius: 6, padding: '16px 20px', marginBottom: 10, background: 'white', boxShadow: '0 1px 1px 0 rgba(0,28,36,0.1)' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 10 }}>
-                <div style={{ display: 'flex', gap: 10, alignItems: 'center', flexWrap: 'wrap' }}>
-                  <span style={{ fontSize: 12, fontFamily: 'monospace', background: '#f2f3f3', padding: '2px 8px', borderRadius: 6, color: '#545b64', border: '1px solid #d1d5db' }}>
-                    {m.userId}
-                  </span>
-                  <span style={{ fontSize: 12, color: '#879596' }}>
-                    {new Date(m.sentAt).toLocaleString('ja-JP')}
-                  </span>
-                </div>
+                <span style={{ fontSize: 12, color: '#879596' }}>
+                  {new Date(m.sentAt).toLocaleString('ja-JP')}
+                </span>
                 <button
                   onClick={() => handleDeleteMessage(m)}
                   style={{ padding: '4px 12px', background: 'white', color: '#d13212', border: '1px solid #d13212', borderRadius: 9999, cursor: 'pointer', fontSize: 12, fontWeight: 700, flexShrink: 0 }}
