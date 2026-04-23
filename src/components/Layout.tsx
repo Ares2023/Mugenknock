@@ -7,7 +7,7 @@ import Breadcrumb from './Breadcrumb';
 import Button from './ui/Button';
 import {
   IconHome, IconPencil, IconClock, IconList,
-  IconSearch, IconUser, IconChart, IconInfo,
+  IconUser, IconChart, IconInfo,
   IconBell, IconMenu, IconClose, IconChevronLeft, IconMail
 } from './Icons';
 
@@ -62,7 +62,6 @@ export default function Layout({ children }: { children: React.ReactNode }) {
   const navigate = useNavigate();
   const location = useLocation();
   const [open, setOpen] = useState(() => localStorage.getItem('sidebarOpen') !== 'false');
-  const [searchQuery, setSearchQuery] = useState('');
   const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
   const [targetExam, setTargetExam] = useState<string | null>(() => localStorage.getItem('targetExam'));
   const [showContact, setShowContact] = useState(false);
@@ -84,15 +83,6 @@ export default function Layout({ children }: { children: React.ReactNode }) {
     window.addEventListener('resize', handler);
     return () => window.removeEventListener('resize', handler);
   }, []);
-
-  const handleSearch = (e: React.FormEvent) => {
-    e.preventDefault();
-    const q = searchQuery.trim();
-    if (!q) return;
-    navigate(`/questions?keyword=${encodeURIComponent(q)}`);
-    setSearchQuery('');
-    if (isMobile) setOpen(false);
-  };
 
   const toggle = () => setOpen(prev => {
     if (!isMobile) localStorage.setItem('sidebarOpen', String(!prev));
@@ -236,58 +226,6 @@ export default function Layout({ children }: { children: React.ReactNode }) {
             style={{ height: isMobile ? 32 : 36, width: 'auto', display: 'block' }}
           />
         </div>
-
-        {/* 検索バー */}
-        <form onSubmit={handleSearch} style={{ flex: 1, maxWidth: isMobile ? 'none' : 480, minWidth: 0, marginLeft: 'var(--spacing-sm)' }}>
-          <div style={{ position: 'relative', display: 'flex', alignItems: 'center' }}>
-            <input
-              value={searchQuery}
-              onChange={e => setSearchQuery(e.target.value)}
-              placeholder={isMobile ? t('nav.searchShort') : t('nav.searchPlaceholder')}
-              style={{
-                width: '100%', padding: '6px 12px 6px 34px',
-                borderRadius: 'var(--border-radius-sm)', border: '1px solid #3a4a5a',
-                background: '#1a2433', color: '#d5dbdb',
-                fontSize: 'var(--font-size-sm)', outline: 'none', boxSizing: 'border-box',
-                transition: 'all 0.2s',
-              }}
-              onFocus={e => { e.currentTarget.style.border = '1px solid var(--color-text-light)'; e.currentTarget.style.background = '#1e2a3a'; }}
-              onBlur={e => { e.currentTarget.style.border = '1px solid #3a4a5a'; e.currentTarget.style.background = '#1a2433'; }}
-            />
-            <span style={{ position: 'absolute', left: 10, color: 'var(--color-text-light)', pointerEvents: 'none', display: 'flex', alignItems: 'center' }}>
-              <IconSearch />
-            </span>
-          </div>
-        </form>
-
-        {/* AI リンク（デスクトップのみ） */}
-        {!isMobile && (
-          <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--spacing-sm)', flexShrink: 0, paddingLeft: 'var(--spacing-md)', borderLeft: '1px solid #3a4a5a' }}>
-            {AI_LINKS.map(ai => (
-              <a key={ai.label} href={ai.url} target="_blank" rel="noreferrer"
-                style={{
-                  display: 'flex', alignItems: 'center', gap: 6,
-                  padding: '5px 12px', borderRadius: 'var(--border-radius-full)',
-                  textDecoration: 'none', fontSize: 'var(--font-size-xs)', color: 'rgba(255,255,255,0.85)', fontWeight: 700,
-                  background: 'transparent', border: '1px solid rgba(255,255,255,0.35)',
-                  transition: 'all 0.2s ease',
-                }}
-                onMouseEnter={e => {
-                  (e.currentTarget as HTMLElement).style.background = 'rgba(255,255,255,0.1)';
-                  (e.currentTarget as HTMLElement).style.borderColor = 'rgba(255,255,255,0.65)';
-                }}
-                onMouseLeave={e => {
-                  (e.currentTarget as HTMLElement).style.background = 'transparent';
-                  (e.currentTarget as HTMLElement).style.borderColor = 'rgba(255,255,255,0.35)';
-                }}
-                title={`${ai.label} を別タブで開く`}
-              >
-                <span style={{ color: 'rgba(255,255,255,0.7)', display: 'flex' }}>{ai.icon}</span>
-                {ai.label}
-              </a>
-            ))}
-          </div>
-        )}
 
         {/* 言語トグル + ユーザー情報 */}
         <div style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: 'var(--spacing-md)', flexShrink: 0 }}>

@@ -61,44 +61,33 @@ export default function Home() {
   return (
     <div style={{ maxWidth: 900, margin: '0 auto', padding: 'var(--spacing-xl) var(--spacing-lg)' }} className="page-container">
 
-      {/* オンボーディングバナー */}
+      {/* オンボーディング：初回のみ表示する一時的な案内 */}
       {showOnboarding && (
-        <div style={{
-          background: 'var(--color-primary-light)', color: 'var(--color-text-main)',
-          border: '1px solid var(--color-primary)',
-          borderRadius: 'var(--border-radius-lg)', padding: 'var(--spacing-md) var(--spacing-xl)',
-          marginBottom: 'var(--spacing-lg)', display: 'flex', alignItems: 'flex-start', gap: 'var(--spacing-lg)',
+        <div className="fade-slide-in" style={{
+          display: 'flex', alignItems: 'center', gap: 'var(--spacing-md)',
+          background: '#fffbe6', border: '1px solid #f0d080',
+          borderRadius: 'var(--border-radius-md)', padding: '10px var(--spacing-md)',
+          marginBottom: 'var(--spacing-lg)', fontSize: 'var(--font-size-sm)', color: 'var(--color-text-sub)',
         }}>
-          <div style={{ flex: 1 }}>
-            <div style={{ fontWeight: 700, fontSize: 'var(--font-size-base)', marginBottom: 'var(--spacing-xs)', color: 'var(--color-primary)' }}>
-              {lang === 'en' ? 'Welcome to Sherpa' : 'Sherpaへようこそ'}
-            </div>
-            <p style={{ fontSize: 'var(--font-size-sm)', color: 'var(--color-text-sub)', margin: 0, lineHeight: 1.6 }}>
-              {lang === 'en'
-                ? 'A practice app for AWS certifications. Pick your target exam below, then start with Exercise or Mock Exam. Copy any question in one click to ask your AI assistant.'
-                : 'AWS資格を目指す方のための演習アプリです。目標資格を選んで演習・模試を始めましょう。問題文はワンクリックでコピーしてAIに質問できます。'}
-            </p>
-          </div>
-          <Button
-            variant="ghost"
-            size="sm"
+          <span style={{ fontSize: 16, flexShrink: 0 }}>💡</span>
+          <span style={{ flex: 1, lineHeight: 1.5 }}>
+            {lang === 'en'
+              ? 'Pick your target exam, then start with Exercise or Mock Exam. Copy any question in one click to ask your AI assistant.'
+              : '目標資格を選んで演習・模試を始めましょう。問題文はワンクリックでコピーしてAIに質問できます。'}
+          </span>
+          <button
             onClick={dismissOnboarding}
-            style={{ color: 'var(--color-text-sub)', flexShrink: 0, whiteSpace: 'nowrap' }}
+            style={{
+              background: 'none', border: 'none', cursor: 'pointer',
+              color: 'var(--color-text-light)', fontSize: 18, lineHeight: 1,
+              padding: '0 4px', flexShrink: 0, display: 'flex', alignItems: 'center',
+            }}
+            title={lang === 'en' ? 'Dismiss' : '閉じる'}
           >
-            {lang === 'en' ? 'Got it' : 'わかった'}
-          </Button>
+            ✕
+          </button>
         </div>
       )}
-
-      {/* ヘッダー */}
-      <div style={{ marginBottom: 'var(--spacing-xl)' }}>
-        <h1 className="home-hero-title" style={{ fontSize: 'var(--font-size-xxl)', fontWeight: 700, margin: '0 0 var(--spacing-sm)', color: 'var(--color-text-main)' }}>
-          {name ? t('home.greeting', { name }) : t('home.startLearning')}
-        </h1>
-        <p style={{ fontSize: 'var(--font-size-base)', color: 'var(--color-text-sub)', lineHeight: 1.6, margin: 0 }}>
-          {t('home.heroDesc')}
-        </p>
-      </div>
 
       {/* 目標資格プレート */}
       <Card style={{ marginBottom: 'var(--spacing-lg)' }}>
