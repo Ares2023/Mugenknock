@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { useLanguage } from '../contexts/LanguageContext';
+import { API_ENDPOINT } from '../constants';
 import Breadcrumb from './Breadcrumb';
 
 type BreadcrumbItem = { label: string; path?: string };
@@ -104,6 +105,12 @@ const IconChevronLeft = () => (
     <polyline points="10 3 5 8 10 13"/>
   </svg>
 );
+const IconMail = () => (
+  <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+    <rect x="1" y="3" width="14" height="10" rx="1.5"/>
+    <polyline points="1,3 8,9.5 15,3"/>
+  </svg>
+);
 
 const NAV_KEYS = [
   { path: '/',               labelKey: 'nav.home',         Icon: IconHome    },
@@ -157,6 +164,11 @@ export default function Layout({ children }: { children: React.ReactNode }) {
   const [searchQuery, setSearchQuery] = useState('');
   const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
   const [targetExam, setTargetExam] = useState<string | null>(() => localStorage.getItem('targetExam'));
+  const [showContact, setShowContact] = useState(false);
+  const [contactSubject, setContactSubject] = useState('');
+  const [contactMessage, setContactMessage] = useState('');
+  const [contactSending, setContactSending] = useState(false);
+  const [contactDone, setContactDone] = useState(false);
 
   useEffect(() => {
     setTargetExam(localStorage.getItem('targetExam'));
@@ -191,6 +203,37 @@ export default function Layout({ children }: { children: React.ReactNode }) {
     navigate('/login', { replace: true });
   };
 
+  const handleContactSend = async () => {
+    if (!contactMessage.trim()) return;
+    setContactSending(true);
+    try {
+      await fetch(`${API_ENDPOINT}/contact`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          subject: contactSubject.trim(),
+          message: contactMessage.trim(),
+          userId: user?.email ?? 'anonymous',
+        }),
+      });
+      setContactDone(true);
+      setContactSubject('');
+      setContactMessage('');
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setContactSending(false);
+    }
+  };
+
+  const openContact = () => {
+    setContactDone(false);
+    setContactSubject('');
+    setContactMessage('');
+    setShowContact(true);
+    if (isMobile) setOpen(false);
+  };
+
   const isActive = (path: string) =>
     path === '/' ? location.pathname === '/' : location.pathname.startsWith(path);
 
@@ -198,6 +241,73 @@ export default function Layout({ children }: { children: React.ReactNode }) {
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', height: '100vh', fontFamily: 'sans-serif' }}>
+
+      {/* ── 連絡先モーダル ── */}
+      {showContact && (
+        <div
+          style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', zIndex: 1000, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16 }}
+          onClick={e => { if (e.target === e.currentTarget) { setShowContact(false); } }}
+        >
+          <div style={{ background: 'white', borderRadius: 8, padding: '28px 32px', width: '100%', maxWidth: 480, boxShadow: '0 8px 32px rgba(0,0,0,0.2)' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 }}>
+              <h3 style={{ margin: 0, fontSize: 17, fontWeight: 700, color: '#16191f' }}>管理者に連絡</h3>
+              <button onClick={() => setShowContact(false)} style={{ border: 'none', background: 'none', fontSize: 20, cursor: 'pointer', color: '#545b64', padding: '4px 8px' }}>✕</button>
+            </div>
+            {contactDone ? (
+              <div style={{ textAlign: 'center', padding: '24px 0' }}>
+                <div style={{ fontSize: 40, marginBottom: 12 }}>✓</div>
+                <p style={{ color: '#037f0c', fontWeight: 700, fontSize: 15, margin: '0 0 8px' }}>送信しました</p>
+                <p style={{ color: '#545b64', fontSize: 13, margin: '0 0 20px' }}>お問い合わせありがとうございます。</p>
+                <button onClick={() => setShowContact(false)} style={{ padding: '8px 24px', background: '#008c8c', color: 'white', border: 'none', borderRadius: 9999, cursor: 'pointer', fontWeight: 700, fontSize: 14 }}>
+                  閉じる
+                </button>
+              </div>
+            ) : (
+              <>
+                <div style={{ marginBottom: 14 }}>
+                  <div style={{ fontSize: 12, color: '#545b64', fontWeight: 700, marginBottom: 6 }}>件名（任意）</div>
+                  <input
+                    value={contactSubject}
+                    onChange={e => setContactSubject(e.target.value)}
+                    placeholder="例：機能の要望、不具合の報告"
+                    style={{ width: '100%', padding: '8px 10px', border: '1px solid #d1d5db', borderRadius: 6, fontSize: 14, boxSizing: 'border-box', outline: 'none' }}
+                    onFocus={e => e.currentTarget.style.borderColor = '#008c8c'}
+                    onBlur={e => e.currentTarget.style.borderColor = '#d1d5db'}
+                  />
+                </div>
+                <div style={{ marginBottom: 20 }}>
+                  <div style={{ fontSize: 12, color: '#545b64', fontWeight: 700, marginBottom: 6 }}>メッセージ <span style={{ color: '#d13212' }}>*</span></div>
+                  <textarea
+                    value={contactMessage}
+                    onChange={e => setContactMessage(e.target.value)}
+                    placeholder="ご意見・ご要望・不具合などをお気軽にどうぞ"
+                    rows={5}
+                    style={{ width: '100%', padding: '8px 10px', border: '1px solid #d1d5db', borderRadius: 6, fontSize: 14, resize: 'vertical', boxSizing: 'border-box', outline: 'none', lineHeight: 1.6 }}
+                    onFocus={e => e.currentTarget.style.borderColor = '#008c8c'}
+                    onBlur={e => e.currentTarget.style.borderColor = '#d1d5db'}
+                  />
+                </div>
+                <div style={{ display: 'flex', gap: 10 }}>
+                  <button
+                    onClick={handleContactSend}
+                    disabled={contactSending || !contactMessage.trim()}
+                    style={{
+                      padding: '8px 24px', borderRadius: 9999, border: '1px solid transparent', fontWeight: 700, fontSize: 14, cursor: contactSending || !contactMessage.trim() ? 'default' : 'pointer',
+                      background: contactSending || !contactMessage.trim() ? '#eaeded' : '#ff9900',
+                      color: contactSending || !contactMessage.trim() ? '#aab7b8' : '#16191f',
+                    }}
+                  >
+                    {contactSending ? '送信中...' : '送信する'}
+                  </button>
+                  <button onClick={() => setShowContact(false)} style={{ padding: '8px 20px', border: '1px solid #545b64', borderRadius: 9999, cursor: 'pointer', background: 'white', fontWeight: 700, fontSize: 14, color: '#545b64' }}>
+                    キャンセル
+                  </button>
+                </div>
+              </>
+            )}
+          </div>
+        </div>
+      )}
 
       {/* ── ヘッダー（グローバルナビ） ── */}
       <header style={{
@@ -456,6 +566,25 @@ export default function Layout({ children }: { children: React.ReactNode }) {
                   </button>
                 );
               })}
+              {/* 連絡先ボタン */}
+              <button
+                onClick={openContact}
+                style={{
+                  width: '100%', textAlign: 'left',
+                  display: 'flex', alignItems: 'center', gap: 10,
+                  padding: '9px 20px',
+                  background: 'none', border: 'none',
+                  borderTop: '1px solid #eaeded',
+                  borderLeft: '3px solid transparent',
+                  cursor: 'pointer', color: '#879596', fontSize: 13, fontWeight: 400,
+                  whiteSpace: 'nowrap',
+                }}
+                onMouseEnter={e => { (e.currentTarget as HTMLElement).style.background = '#f2f3f3'; }}
+                onMouseLeave={e => { (e.currentTarget as HTMLElement).style.background = 'none'; }}
+              >
+                <span style={{ display: 'flex', alignItems: 'center', opacity: 0.6 }}><IconMail /></span>
+                <span>連絡先</span>
+              </button>
             </div>
 
             {/* モバイルのみ: AI リンクをサイドバー下部に表示 */}

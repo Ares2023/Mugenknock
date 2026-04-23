@@ -972,4 +972,53 @@ app.delete('/admin/releases/:id', async (req, res) => {
   }
 });
 
+// ── 連絡先メッセージ送信（認証不要） ──
+app.post('/contact', async (req, res) => {
+  try {
+    const docClient = getClient();
+    const { subject, message, userId } = req.body;
+    if (!message?.trim()) return res.status(400).json({ error: 'message is required' });
+    const item = {
+      messageId: uuidv4(),
+      subject: subject?.trim() || '',
+      message: message.trim(),
+      userId: userId || 'anonymous',
+      sentAt: new Date().toISOString(),
+    };
+    await docClient.send(new PutCommand({ TableName: 'ContactMessages', Item: item }));
+    res.json({ success: true });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+// 管理者用：メッセージ一覧
+app.get('/admin/messages', requireAdmin, async (req, res) => {
+  try {
+    const docClient = getClient();
+    const data = await docClient.send(new ScanCommand({ TableName: 'ContactMessages' }));
+    const items = (data.Items || []).sort((a, b) => b.sentAt.localeCompare(a.sentAt));
+    res.json({ items });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+// 管理者用：メッセージ削除
+app.delete('/admin/messages/:id', requireAdmin, async (req, res) => {
+  try {
+    const docClient = getClient();
+    await docClient.send(new DeleteCommand({
+      TableName: 'ContactMessages',
+      Key: { messageId: req.params.id },
+    }));
+    res.json({ success: true });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
 module.exports = app;

@@ -59,7 +59,15 @@ type ImportQuestion = {
   tags?: string[];
 };
 
-type Tab = 'questions' | 'reports' | 'tips' | 'import' | 'releases' | 'scan';
+type Tab = 'questions' | 'reports' | 'tips' | 'import' | 'releases' | 'scan' | 'messages';
+
+type ContactMessage = {
+  messageId: string;
+  subject: string;
+  message: string;
+  userId: string;
+  sentAt: string;
+};
 
 type FlaggedQuestion = {
   questionId: string;
@@ -142,6 +150,10 @@ export default function Admin() {
   const [tipPromptCopied, setTipPromptCopied] = useState(false);
   const [showTipPrompt, setShowTipPrompt] = useState(false);
 
+  // メッセージ
+  const [messages, setMessages] = useState<ContactMessage[]>([]);
+  const [loadingMsg, setLoadingMsg] = useState(false);
+
   // リリースノート管理
   const [releases, setReleases] = useState<Release[]>([]);
   const [loadingRel, setLoadingRel] = useState(false);
@@ -204,6 +216,23 @@ export default function Admin() {
       setReleases(data.items || []);
     } catch (err) { console.error(err); } finally { setLoadingRel(false); }
   }, []);
+
+  const fetchMessages = useCallback(async () => {
+    setLoadingMsg(true);
+    try {
+      const res = await adminFetch(`${API_ENDPOINT}/admin/messages`);
+      const data = await res.json();
+      setMessages(data.items || []);
+    } catch (err) { console.error(err); } finally { setLoadingMsg(false); }
+  }, []);
+
+  const handleDeleteMessage = async (m: ContactMessage) => {
+    if (!window.confirm('このメッセージを削除しますか？')) return;
+    try {
+      await adminFetch(`${API_ENDPOINT}/admin/messages/${m.messageId}`, { method: 'DELETE' });
+      setMessages(prev => prev.filter(x => x.messageId !== m.messageId));
+    } catch (err) { console.error(err); }
+  };
 
   const handleSaveRelease = async () => {
     if (!releaseForm.date || !releaseForm.title.trim() || !releaseForm.body.trim()) return;
@@ -327,6 +356,7 @@ export default function Admin() {
   useEffect(() => { if (tab === 'tips') fetchTips(); }, [tab]);
   useEffect(() => { if (tab === 'releases') fetchReleases(); }, [tab]);
   useEffect(() => { if (tab === 'scan') fetchFlagged('all'); }, [tab]);
+  useEffect(() => { if (tab === 'messages') fetchMessages(); }, [tab]);
 
   const handleSaveTip = async () => {
     if (!tipForm.title.trim() || !tipForm.content.trim()) return;
@@ -637,6 +667,9 @@ export default function Admin() {
         <button style={tabStyle('tips')} onClick={() => setTab('tips')}>コラム管理</button>
         <button style={tabStyle('releases')} onClick={() => setTab('releases')}>リリースノート</button>
         <button style={tabStyle('scan')} onClick={() => setTab('scan')}>スキャン結果</button>
+        <button style={tabStyle('messages')} onClick={() => setTab('messages')}>
+          メッセージ{messages.length > 0 ? ` (${messages.length})` : ''}
+        </button>
       </div>
 
       {/* ── 問題管理 ── */}
@@ -1671,6 +1704,49 @@ ${tipPromptExamType !== 'ALL' ? `・examType には "${tipPromptExamType}" を�
           </div>
         );
       })()}
+
+      {/* ── メッセージ ── */}
+      {tab === 'messages' && (
+        <div>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
+            <p style={{ color: '#545b64', fontSize: 13, margin: 0 }}>
+              {loadingMsg ? '読み込み中...' : `${messages.length} 件`}
+            </p>
+            <button onClick={fetchMessages} style={{ padding: '6px 16px', background: 'white', color: '#008c8c', border: '1px solid #008c8c', borderRadius: 9999, cursor: 'pointer', fontSize: 13, fontWeight: 700 }}>
+              更新
+            </button>
+          </div>
+
+          {!loadingMsg && messages.length === 0 && (
+            <p style={{ color: '#aaa', textAlign: 'center', padding: 40 }}>メッセージはありません</p>
+          )}
+
+          {messages.map(m => (
+            <div key={m.messageId} style={{ border: '1px solid #eaeded', borderRadius: 6, padding: '16px 20px', marginBottom: 10, background: 'white', boxShadow: '0 1px 1px 0 rgba(0,28,36,0.1)' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 10 }}>
+                <div style={{ display: 'flex', gap: 10, alignItems: 'center', flexWrap: 'wrap' }}>
+                  <span style={{ fontSize: 12, fontFamily: 'monospace', background: '#f2f3f3', padding: '2px 8px', borderRadius: 6, color: '#545b64', border: '1px solid #d1d5db' }}>
+                    {m.userId}
+                  </span>
+                  <span style={{ fontSize: 12, color: '#879596' }}>
+                    {new Date(m.sentAt).toLocaleString('ja-JP')}
+                  </span>
+                </div>
+                <button
+                  onClick={() => handleDeleteMessage(m)}
+                  style={{ padding: '4px 12px', background: 'white', color: '#d13212', border: '1px solid #d13212', borderRadius: 9999, cursor: 'pointer', fontSize: 12, fontWeight: 700, flexShrink: 0 }}
+                >
+                  削除
+                </button>
+              </div>
+              {m.subject && (
+                <p style={{ margin: '0 0 8px', fontWeight: 700, fontSize: 14, color: '#16191f' }}>{m.subject}</p>
+              )}
+              <p style={{ margin: 0, fontSize: 14, color: '#16191f', lineHeight: 1.7, whiteSpace: 'pre-wrap' }}>{m.message}</p>
+            </div>
+          ))}
+        </div>
+      )}
     </div>
   );
 }
