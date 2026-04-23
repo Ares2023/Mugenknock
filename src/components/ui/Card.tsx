@@ -7,6 +7,7 @@ interface CardProps {
   style?: React.CSSProperties;
   className?: string;
   padding?: string | number;
+  onClick?: React.MouseEventHandler<HTMLDivElement>;
 }
 
 const Card: React.FC<CardProps> = ({
@@ -16,10 +17,12 @@ const Card: React.FC<CardProps> = ({
   style,
   className,
   padding = 'var(--spacing-lg)',
+  onClick,
 }) => {
   return (
     <div
       className={className}
+      onClick={onClick}
       style={{
         background: 'var(--color-bg-white)',
         border: '1px solid var(--color-border)',

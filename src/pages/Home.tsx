@@ -53,9 +53,9 @@ export default function Home() {
   const examDesc = lang === 'en' ? EXAM_DESC_EN : EXAM_DESC_JA;
 
   const features = [
-    { title: t('home.exerciseTitle'), description: t('home.exerciseDesc'), path: '/exercise/setup', label: t('home.exerciseLabel'), icon: <IconPencil size={22} /> },
-    { title: t('home.examTitle'),     description: t('home.examDesc'),     path: '/exam/setup',     label: t('home.examLabel'),     icon: <IconClock size={22} /> },
-    { title: t('home.statsTitle'),    description: t('home.statsDesc'),    path: '/stats',          label: t('home.statsLabel'),    icon: <IconChart size={22} /> },
+    { title: t('home.exerciseTitle'), description: t('home.exerciseDesc'), path: '/exercise/setup', label: t('home.exerciseLabel'), icon: <IconPencil size={22} />, btnVariant: 'accent' as const,   borderColor: 'var(--color-accent)' },
+    { title: t('home.examTitle'),     description: t('home.examDesc'),     path: '/exam/setup',     label: t('home.examLabel'),     icon: <IconClock size={22} />,  btnVariant: 'primary' as const,  borderColor: 'var(--color-primary)' },
+    { title: t('home.statsTitle'),    description: t('home.statsDesc'),    path: '/stats',          label: t('home.statsLabel'),    icon: <IconChart size={22} />,  btnVariant: 'outline' as const,  borderColor: 'var(--color-border)' },
   ];
 
   return (
@@ -64,16 +64,16 @@ export default function Home() {
       {/* オンボーディングバナー */}
       {showOnboarding && (
         <div style={{
-          background: 'var(--color-secondary)', color: 'white',
-          borderRadius: 'var(--border-radius-lg)', padding: 'var(--spacing-lg) var(--spacing-xl)',
+          background: 'var(--color-primary-light)', color: 'var(--color-text-main)',
+          border: '1px solid var(--color-primary)',
+          borderRadius: 'var(--border-radius-lg)', padding: 'var(--spacing-md) var(--spacing-xl)',
           marginBottom: 'var(--spacing-lg)', display: 'flex', alignItems: 'flex-start', gap: 'var(--spacing-lg)',
-          boxShadow: 'var(--box-shadow-md)',
         }}>
           <div style={{ flex: 1 }}>
-            <div style={{ fontWeight: 700, fontSize: 'var(--font-size-md)', marginBottom: 'var(--spacing-xs)' }}>
+            <div style={{ fontWeight: 700, fontSize: 'var(--font-size-base)', marginBottom: 'var(--spacing-xs)', color: 'var(--color-primary)' }}>
               {lang === 'en' ? 'Welcome to Sherpa' : 'Sherpaへようこそ'}
             </div>
-            <p style={{ fontSize: 'var(--font-size-sm)', color: 'rgba(255,255,255,0.75)', margin: 0, lineHeight: 1.6 }}>
+            <p style={{ fontSize: 'var(--font-size-sm)', color: 'var(--color-text-sub)', margin: 0, lineHeight: 1.6 }}>
               {lang === 'en'
                 ? 'A practice app for AWS certifications. Pick your target exam below, then start with Exercise or Mock Exam. Copy any question in one click to ask your AI assistant.'
                 : 'AWS資格を目指す方のための演習アプリです。目標資格を選んで演習・模試を始めましょう。問題文はワンクリックでコピーしてAIに質問できます。'}
@@ -83,7 +83,7 @@ export default function Home() {
             variant="ghost"
             size="sm"
             onClick={dismissOnboarding}
-            style={{ color: 'rgba(255,255,255,0.7)', flexShrink: 0, whiteSpace: 'nowrap' }}
+            style={{ color: 'var(--color-text-sub)', flexShrink: 0, whiteSpace: 'nowrap' }}
           >
             {lang === 'en' ? 'Got it' : 'わかった'}
           </Button>
@@ -177,7 +177,8 @@ export default function Home() {
             key={f.path}
             className="home-feature-card"
             padding="var(--spacing-md) var(--spacing-lg)"
-            style={{ borderLeft: '4px solid var(--color-primary)' }}
+            style={{ borderLeft: `4px solid ${f.borderColor}`, cursor: 'pointer' }}
+            onClick={() => navigate(f.path)}
           >
             <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--spacing-lg)' }}>
               <div style={{ color: 'var(--color-text-sub)', display: 'flex', flexShrink: 0 }}>{f.icon}</div>
@@ -186,8 +187,8 @@ export default function Home() {
                 <p style={{ fontSize: 'var(--font-size-sm)', color: 'var(--color-text-sub)', lineHeight: 1.5, margin: 0 }}>{f.description}</p>
               </div>
               <Button
-                variant="outline"
-                onClick={() => navigate(f.path)}
+                variant={f.btnVariant}
+                onClick={e => { e.stopPropagation(); navigate(f.path); }}
                 className="home-feature-card-btn"
               >
                 {f.label} →

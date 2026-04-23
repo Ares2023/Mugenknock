@@ -71,6 +71,19 @@ button, a {
   transition: all 0.2s ease;
 }
 
+button:active:not(:disabled) {
+  transform: scale(0.97);
+}
+
+/* ホーム機能カードのホバーリフト */
+.home-feature-card {
+  transition: box-shadow 0.2s ease, transform 0.2s ease !important;
+}
+.home-feature-card:hover {
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.1) !important;
+  transform: translateY(-2px);
+}
+
 /* ── レスポンシブ ── */
 
 /* 設定画面の2カラムグリッド → スマホでは縦積み */
