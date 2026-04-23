@@ -108,9 +108,9 @@ export default function Home() {
   const domains = targetExam ? EXAM_DOMAINS[targetExam] : [];
 
   return (
-    <div style={{ maxWidth: 900, margin: '0 auto', padding: '40px 20px', color: '#16191f' }} className="page-container">
+    <div style={{ maxWidth: 900, margin: '0 auto', padding: '28px 20px', color: '#16191f' }} className="page-container">
       {/* ヒーローセクション */}
-      <div style={{ marginBottom: 32 }}>
+      <div style={{ marginBottom: 20 }}>
         <h1 style={{ fontSize: 28, fontWeight: 700, margin: '0 0 12px', lineHeight: 1.3 }}>
           {name ? `こんにちは、${name} さん` : 'AWS 資格学習を始めよう'}
         </h1>
@@ -121,7 +121,7 @@ export default function Home() {
       </div>
 
       {/* 目標資格セレクター */}
-      <div style={{ background: 'white', border: '1px solid #eaeded', borderRadius: 6, padding: '20px 24px', marginBottom: 40, boxShadow: '0 1px 1px 0 rgba(0,28,36,0.1)' }}>
+      <div style={{ background: 'white', border: '1px solid #eaeded', borderRadius: 6, padding: '20px 24px', marginBottom: 16, boxShadow: '0 1px 1px 0 rgba(0,28,36,0.1)' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 14 }}>
           <span style={{ color: '#008c8c', display: 'flex' }}><IconTarget /></span>
           <span style={{ fontSize: 14, fontWeight: 700, color: '#16191f' }}>目標資格</span>
@@ -217,7 +217,7 @@ export default function Home() {
       </div>
 
       {/* 機能カード */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))', gap: 20, marginBottom: 48 }}>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))', gap: 12, marginBottom: 32 }}>
         <FeatureCard
           title="演習モード"
           description="試験種別やタグ・ドメインでフィルタして問題を解けます。ブックマークした問題だけを集中学習することも可能です。"

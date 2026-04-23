@@ -146,7 +146,7 @@ export default function Stats() {
 
       {/* 試験別サマリーカード */}
       <h3 style={{ fontSize: 16, fontWeight: 700, margin: '0 0 16px', color: '#545b64' }}>演習進捗</h3>
-      <div className="exam-stat-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(220px, 1fr))', gap: 20, marginBottom: 40 }}>
+      <div className="exam-stat-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(220px, 1fr))', gap: 12, marginBottom: 16 }}>
         {loading
           ? visibleExamTypes.map(et => (
               <div key={et} style={{ background: 'white', border: '1px solid #eaeded', borderRadius: 6, padding: 24, minHeight: 140, boxShadow: '0 1px 1px 0 rgba(0,28,36,0.1)' }}>
@@ -195,7 +195,7 @@ export default function Stats() {
       {!loading && targetExam && domainStats.length > 0 && (
         <>
           <h3 style={{ fontSize: 16, fontWeight: 700, margin: '0 0 16px', color: '#545b64' }}>ドメイン別正答率</h3>
-          <div style={{ background: 'white', border: '1px solid #eaeded', borderRadius: 6, padding: '20px 24px', marginBottom: 40, boxShadow: '0 1px 1px 0 rgba(0,28,36,0.1)' }}>
+          <div style={{ background: 'white', border: '1px solid #eaeded', borderRadius: 6, padding: '20px 24px', marginBottom: 16, boxShadow: '0 1px 1px 0 rgba(0,28,36,0.1)' }}>
             {domainStats.map(({ domain, correct, total, rate }) => (
               <div key={domain} style={{ marginBottom: 18 }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 6 }}>
@@ -243,7 +243,7 @@ export default function Stats() {
       {!loading && examSessions.length > 0 && (
         <>
           <h3 style={{ fontSize: 16, fontWeight: 700, margin: '0 0 16px', color: '#545b64' }}>模試スコアの推移</h3>
-          <div style={{ background: 'white', border: '1px solid #eaeded', borderRadius: 6, padding: '20px 24px', marginBottom: 40, boxShadow: '0 1px 1px 0 rgba(0,28,36,0.1)' }}>
+          <div style={{ background: 'white', border: '1px solid #eaeded', borderRadius: 6, padding: '20px 24px', marginBottom: 16, boxShadow: '0 1px 1px 0 rgba(0,28,36,0.1)' }}>
             {visibleExamTypes.map(et => {
               const etExams = examSessions.filter(s => s.examType === et).reverse();
               if (etExams.length === 0) return null;

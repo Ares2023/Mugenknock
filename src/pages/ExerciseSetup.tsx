@@ -304,7 +304,7 @@ export default function ExerciseSetup() {
           </div>
 
           {/* フィルタ・シャッフル */}
-          <div style={{ marginBottom: 32, padding: '16px', background: '#f2f3f3', borderRadius: 6, display: 'flex', flexDirection: 'column', gap: 10 }}>
+          <div style={{ marginBottom: 16, padding: '16px', background: '#f2f3f3', borderRadius: 6, display: 'flex', flexDirection: 'column', gap: 10 }}>
             {user && (
               <label style={{ display: 'flex', alignItems: 'center', gap: 10, cursor: 'pointer', fontSize: 14 }}>
                 <input type="checkbox" checked={unansweredOnly} onChange={e => setUnansweredOnly(e.target.checked)} style={{ width: 16, height: 16 }} />

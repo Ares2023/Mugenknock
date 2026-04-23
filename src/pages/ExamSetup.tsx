@@ -185,7 +185,7 @@ export default function ExamSetup() {
           )}
 
           {/* 模試モード説明 */}
-          <div style={{ background: '#e0f2f2', borderLeft: '4px solid #008c8c', borderRadius: 6, padding: '12px 16px', fontSize: 14, color: '#16191f', marginBottom: 32 }}>
+          <div style={{ background: '#e0f2f2', borderLeft: '4px solid #008c8c', borderRadius: 6, padding: '12px 16px', fontSize: 14, color: '#16191f', marginBottom: 16 }}>
             <strong style={{ display: 'block', marginBottom: 4 }}>模試モードについて：</strong>
             回答ごとの正誤は表示されません。全問終了後にまとめて結果を確認できます。タイマーは一時停止可能です。
           </div>
