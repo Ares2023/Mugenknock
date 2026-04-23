@@ -248,6 +248,11 @@ export const ja: Translations = {
   'login.tagline': 'ログインして演習を始めましょう',
   'login.skipLogin': 'ログインせず問題一覧を見る',
 
+  // ── Page hints (one-time dismissible banners) ──
+  'stats.hint': '上部のボタンで目標資格を絞り込めます。ドメイン別正答率から苦手分野を把握し、演習に活かしましょう。',
+  'exerciseSetup.hint': '① 試験種別を選んで → ② ドメイン・タグでフィルタ（任意）→ ③ 問題数を決めたら → ④「演習を開始する」を押してください。',
+  'examSetup.hint': '① 試験種別を選んで → ② ドメイン・タグでフィルタ（任意）→ ③「模試を開始する」を押してください。正誤は全問終了後に表示されます。',
+
   // ── Common ──
   'common.noEnglish': '英語版未登録',
 };
@@ -499,6 +504,11 @@ export const en: Translations = {
   // ── Login ──
   'login.tagline': 'Log in to start practicing',
   'login.skipLogin': 'Browse questions without logging in',
+
+  // ── Page hints (one-time dismissible banners) ──
+  'stats.hint': 'Use the buttons above to filter by exam. Check domain accuracy to identify weak areas and focus your practice.',
+  'exerciseSetup.hint': '① Pick exam type → ② Filter by domain or tag (optional) → ③ Set question count → ④ Press "Start Practice".',
+  'examSetup.hint': '① Pick exam type → ② Filter by domain or tag (optional) → ③ Press "Start Exam". Results are shown after completing all questions.',
 
   // ── Common ──
   'common.noEnglish': 'English version not available',

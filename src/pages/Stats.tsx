@@ -42,6 +42,7 @@ export default function Stats() {
   const [tagStats, setTagStats] = useState<TagStat[]>([]);
   const [loading, setLoading] = useState(true);
   const [targetExam, setTargetExam] = useState<string | null>(() => localStorage.getItem(TARGET_EXAM_KEY));
+  const [showHint, setShowHint] = useState(() => !localStorage.getItem('sherpaStatsHint'));
 
   useEffect(() => {
     if (!user) return;
@@ -110,6 +111,23 @@ export default function Stats() {
 
   return (
     <div style={{ maxWidth: 900, margin: '0 auto', padding: 'var(--spacing-xl) var(--spacing-lg)' }} className="page-container">
+
+      {showHint && (
+        <div className="fade-slide-in" style={{
+          display: 'flex', alignItems: 'center', gap: 'var(--spacing-md)',
+          background: '#fffbe6', border: '1px solid #f0d080',
+          borderRadius: 'var(--border-radius-md)', padding: '10px var(--spacing-md)',
+          marginBottom: 'var(--spacing-lg)', fontSize: 'var(--font-size-sm)', color: 'var(--color-text-sub)',
+        }}>
+          <span style={{ fontSize: 16, flexShrink: 0 }}>💡</span>
+          <span style={{ flex: 1, lineHeight: 1.5 }}>{t('stats.hint')}</span>
+          <button
+            onClick={() => { localStorage.setItem('sherpaStatsHint', '1'); setShowHint(false); }}
+            style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--color-text-light)', fontSize: 18, lineHeight: 1, padding: '0 4px', flexShrink: 0 }}
+          >✕</button>
+        </div>
+      )}
+
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 'var(--spacing-xl)', flexWrap: 'wrap', gap: 'var(--spacing-md)' }}>
         <div>
           <h2 style={{ fontSize: 'var(--font-size-xxl)', fontWeight: 700, margin: '0 0 var(--spacing-xs)', color: 'var(--color-text-main)' }}>{t('stats.title')}</h2>

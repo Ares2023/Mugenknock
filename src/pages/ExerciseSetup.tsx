@@ -93,6 +93,7 @@ export default function ExerciseSetup() {
   const [loading, setLoading] = useState(false);
   const [bookmarkOnly, setBookmarkOnly] = useState(false);
   const [unansweredOnly, setUnansweredOnly] = useState(false);
+  const [showHint, setShowHint] = useState(() => !localStorage.getItem('sherpaExerciseHint'));
 
   const info = EXAM_INFO[examType];
   const passScore = PASS_SCORES[examType];
@@ -224,9 +225,25 @@ export default function ExerciseSetup() {
       <h1 style={{ fontSize: 'var(--font-size-xxl)', fontWeight: 700, margin: '0 0 var(--spacing-xs)', color: 'var(--color-text-main)' }}>
         {t('exerciseSetup.title')}
       </h1>
-      <p style={{ fontSize: 'var(--font-size-base)', color: 'var(--color-text-sub)', margin: '0 0 var(--spacing-xl)', lineHeight: 1.6 }}>
+      <p style={{ fontSize: 'var(--font-size-base)', color: 'var(--color-text-sub)', margin: '0 0 var(--spacing-lg)', lineHeight: 1.6 }}>
         {t('exerciseSetup.description')}
       </p>
+
+      {showHint && (
+        <div className="fade-slide-in" style={{
+          display: 'flex', alignItems: 'center', gap: 'var(--spacing-md)',
+          background: '#fffbe6', border: '1px solid #f0d080',
+          borderRadius: 'var(--border-radius-md)', padding: '10px var(--spacing-md)',
+          marginBottom: 'var(--spacing-xl)', fontSize: 'var(--font-size-sm)', color: 'var(--color-text-sub)',
+        }}>
+          <span style={{ fontSize: 16, flexShrink: 0 }}>💡</span>
+          <span style={{ flex: 1, lineHeight: 1.5 }}>{t('exerciseSetup.hint')}</span>
+          <button
+            onClick={() => { localStorage.setItem('sherpaExerciseHint', '1'); setShowHint(false); }}
+            style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--color-text-light)', fontSize: 18, lineHeight: 1, padding: '0 4px', flexShrink: 0 }}
+          >✕</button>
+        </div>
+      )}
 
       <div className="setup-grid" style={{ display: 'grid', gridTemplateColumns: '1fr 380px', gap: 'var(--spacing-xl)', alignItems: 'flex-start' }}>
 

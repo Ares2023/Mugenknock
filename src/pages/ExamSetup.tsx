@@ -49,6 +49,7 @@ export default function ExamSetup() {
   const [availableCount, setAvailableCount] = useState<number | null>(null);
   const [availableTags, setAvailableTags] = useState<string[]>([]);
   const [loading, setLoading] = useState(false);
+  const [showHint, setShowHint] = useState(() => !localStorage.getItem('sherpaExamHint'));
 
   const config = EXAM_CONFIGS[examType];
   const passScore = PASS_SCORES[examType];
@@ -116,9 +117,25 @@ export default function ExamSetup() {
     <div style={{ maxWidth: 1200, margin: '0 auto', padding: 'var(--spacing-xl) var(--spacing-lg)' }} className="page-container">
 
       <h1 style={{ fontSize: 'var(--font-size-xxl)', fontWeight: 700, margin: '0 0 var(--spacing-xs)', color: 'var(--color-text-main)' }}>{t('examSetup.title')}</h1>
-      <p style={{ fontSize: 'var(--font-size-base)', color: 'var(--color-text-sub)', margin: '0 0 var(--spacing-xl)', lineHeight: 1.6 }}>
+      <p style={{ fontSize: 'var(--font-size-base)', color: 'var(--color-text-sub)', margin: '0 0 var(--spacing-lg)', lineHeight: 1.6 }}>
         {t('examSetup.description')}
       </p>
+
+      {showHint && (
+        <div className="fade-slide-in" style={{
+          display: 'flex', alignItems: 'center', gap: 'var(--spacing-md)',
+          background: '#fffbe6', border: '1px solid #f0d080',
+          borderRadius: 'var(--border-radius-md)', padding: '10px var(--spacing-md)',
+          marginBottom: 'var(--spacing-xl)', fontSize: 'var(--font-size-sm)', color: 'var(--color-text-sub)',
+        }}>
+          <span style={{ fontSize: 16, flexShrink: 0 }}>💡</span>
+          <span style={{ flex: 1, lineHeight: 1.5 }}>{t('examSetup.hint')}</span>
+          <button
+            onClick={() => { localStorage.setItem('sherpaExamHint', '1'); setShowHint(false); }}
+            style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--color-text-light)', fontSize: 18, lineHeight: 1, padding: '0 4px', flexShrink: 0 }}
+          >✕</button>
+        </div>
+      )}
 
       <div className="setup-grid" style={{ display: 'grid', gridTemplateColumns: '1fr 380px', gap: 'var(--spacing-xl)', alignItems: 'flex-start' }}>
 
