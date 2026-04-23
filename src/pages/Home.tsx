@@ -248,34 +248,6 @@ export default function Home() {
         />
       </div>
 
-      {/* 対応試験 */}
-      <div style={{ background: 'white', border: '1px solid #eaeded', borderRadius: 6, padding: '24px 32px', boxShadow: '0 1px 1px 0 rgba(0,28,36,0.1)' }}>
-        <h3 style={{ fontSize: 15, fontWeight: 700, margin: '0 0 16px', color: '#16191f' }}>対応している AWS 認定試験</h3>
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))', gap: 12 }}>
-          {[
-            { code: 'CLF', name: 'AWS Cloud Practitioner', level: 'Foundational' },
-            { code: 'SAA', name: 'Solutions Architect Associate', level: 'Associate' },
-            { code: 'SAP', name: 'Solutions Architect Professional', level: 'Professional' },
-            { code: 'DOP', name: 'DevOps Engineer Professional', level: 'Professional' },
-          ].map(exam => (
-            <div
-              key={exam.code}
-              style={{
-                display: 'flex', alignItems: 'flex-start', gap: 10,
-                padding: '12px 16px', background: targetExam === exam.code ? '#e0f2f2' : '#fbfbfb',
-                borderRadius: 6, border: `1px solid ${targetExam === exam.code ? '#008c8c' : '#eaeded'}`,
-                transition: 'all 0.15s',
-              }}
-            >
-              <span style={{ background: '#232f3e', color: 'white', fontSize: 11, padding: '2px 8px', borderRadius: 12, fontWeight: 700, flexShrink: 0, marginTop: 1 }}>{exam.code}</span>
-              <div>
-                <div style={{ fontSize: 13, fontWeight: 700, lineHeight: 1.3, color: '#16191f' }}>{exam.name}</div>
-                <div style={{ fontSize: 11, color: '#545b64', fontWeight: 700, marginTop: 4 }}>{exam.level}</div>
-              </div>
-            </div>
-          ))}
-        </div>
-      </div>
     </div>
   );
 }
