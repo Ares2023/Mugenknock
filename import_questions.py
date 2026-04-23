@@ -64,7 +64,7 @@ def validate_item(item: dict, index: int) -> str | None:
 
 
 def build_item(item: dict) -> dict:
-    return {
+    built = {
         "questionId": item["questionId"].strip(),
         "examType": item["examType"].strip().upper(),
         "questionText": item["questionText"].strip(),
@@ -74,6 +74,11 @@ def build_item(item: dict) -> dict:
         "tags": [t.strip() for t in item["tags"]],
         "isMultiple": len(item["correctAnswers"]) > 1,
     }
+    for opt in ("domain", "questionTextEn", "choicesEn", "explanationEn"):
+        if item.get(opt):
+            val = item[opt]
+            built[opt] = [c.strip() for c in val] if isinstance(val, list) else val.strip()
+    return built
 
 
 def import_file(path: Path, table, dry_run: bool) -> tuple[int, int, int]:
