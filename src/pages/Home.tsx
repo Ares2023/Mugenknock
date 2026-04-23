@@ -31,6 +31,12 @@ export default function Home() {
   const navigate = useNavigate();
   const name = user?.email?.split('@')[0] ?? '';
   const [targetExam, setTargetExam] = useState<string | null>(() => localStorage.getItem(TARGET_EXAM_KEY));
+  const [showOnboarding, setShowOnboarding] = useState(() => !localStorage.getItem('sherpaOnboarded'));
+
+  const dismissOnboarding = () => {
+    localStorage.setItem('sherpaOnboarded', '1');
+    setShowOnboarding(false);
+  };
 
   const handleSelectExam = (et: string) => {
     if (targetExam === et) {
@@ -54,6 +60,36 @@ export default function Home() {
 
   return (
     <div style={{ maxWidth: 900, margin: '0 auto', padding: 'var(--spacing-xl) var(--spacing-lg)' }} className="page-container">
+
+      {/* オンボーディングバナー */}
+      {showOnboarding && (
+        <div style={{
+          background: 'var(--color-secondary)', color: 'white',
+          borderRadius: 'var(--border-radius-lg)', padding: 'var(--spacing-lg) var(--spacing-xl)',
+          marginBottom: 'var(--spacing-lg)', display: 'flex', alignItems: 'flex-start', gap: 'var(--spacing-lg)',
+          boxShadow: 'var(--box-shadow-md)',
+        }}>
+          <div style={{ flex: 1 }}>
+            <div style={{ fontWeight: 700, fontSize: 'var(--font-size-md)', marginBottom: 'var(--spacing-xs)' }}>
+              {lang === 'en' ? 'Welcome to Sherpa' : 'Sherpaへようこそ'}
+            </div>
+            <p style={{ fontSize: 'var(--font-size-sm)', color: 'rgba(255,255,255,0.75)', margin: 0, lineHeight: 1.6 }}>
+              {lang === 'en'
+                ? 'A practice app for AWS certifications. Pick your target exam below, then start with Exercise or Mock Exam. Copy any question in one click to ask your AI assistant.'
+                : 'AWS資格を目指す方のための演習アプリです。目標資格を選んで演習・模試を始めましょう。問題文はワンクリックでコピーしてAIに質問できます。'}
+            </p>
+          </div>
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={dismissOnboarding}
+            style={{ color: 'rgba(255,255,255,0.7)', flexShrink: 0, whiteSpace: 'nowrap' }}
+          >
+            {lang === 'en' ? 'Got it' : 'わかった'}
+          </Button>
+        </div>
+      )}
+
       {/* ヘッダー */}
       <div style={{ marginBottom: 'var(--spacing-xl)' }}>
         <h1 className="home-hero-title" style={{ fontSize: 'var(--font-size-xxl)', fontWeight: 700, margin: '0 0 var(--spacing-sm)', color: 'var(--color-text-main)' }}>
