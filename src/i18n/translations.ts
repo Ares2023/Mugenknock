@@ -19,6 +19,24 @@ export const ja: Translations = {
   'nav.searchShort': '検索',
   'nav.goal': '目標',
   'nav.aiAssistant': 'AI アシスタント',
+  'nav.exerciseSession': '演習中',
+  'nav.examSession': '模試中',
+  'nav.result': '結果',
+
+  // ── Contact modal ──
+  'contact.sidebarLabel': '連絡先',
+  'contact.title': '管理者に連絡',
+  'contact.sent': '送信しました',
+  'contact.thankYou': 'お問い合わせありがとうございます。',
+  'contact.close': '閉じる',
+  'contact.anonymous': 'メッセージは匿名で送信されます。送信者の情報は管理者に通知されません。',
+  'contact.subject': '件名（任意）',
+  'contact.subjectPlaceholder': '例：機能の要望、不具合の報告',
+  'contact.message': 'メッセージ',
+  'contact.messagePlaceholder': 'ご意見・ご要望・不具合などをお気軽にどうぞ',
+  'contact.sending': '送信中...',
+  'contact.send': '送信する',
+  'contact.cancel': 'キャンセル',
 
   // ── Home ──
   'home.startLearning': 'AWS 資格学習を始めよう',
@@ -180,6 +198,7 @@ export const ja: Translations = {
   // ── Stats ──
   'stats.title': '統計・分析',
   'stats.description': '演習・模試の記録をもとに、進捗と習熟度を確認します。',
+  'stats.qUnit': '問',
   'stats.showing': '表示中:',
   'stats.all': 'すべて',
   'stats.exerciseProgress': '演習進捗',
@@ -252,6 +271,24 @@ export const en: Translations = {
   'nav.searchShort': 'Search',
   'nav.goal': 'Goal',
   'nav.aiAssistant': 'AI Assistant',
+  'nav.exerciseSession': 'In Progress',
+  'nav.examSession': 'In Progress',
+  'nav.result': 'Result',
+
+  // ── Contact modal ──
+  'contact.sidebarLabel': 'Contact',
+  'contact.title': 'Contact Admin',
+  'contact.sent': 'Message sent',
+  'contact.thankYou': 'Thank you for your message.',
+  'contact.close': 'Close',
+  'contact.anonymous': 'Your message is sent anonymously. Your identity will not be shared with the admin.',
+  'contact.subject': 'Subject (optional)',
+  'contact.subjectPlaceholder': 'e.g. Feature request, Bug report',
+  'contact.message': 'Message',
+  'contact.messagePlaceholder': 'Feel free to share your thoughts, requests, or bug reports',
+  'contact.sending': 'Sending...',
+  'contact.send': 'Send',
+  'contact.cancel': 'Cancel',
 
   // ── Home ──
   'home.startLearning': 'Start AWS Certification Practice',
@@ -413,6 +450,7 @@ export const en: Translations = {
   // ── Stats ──
   'stats.title': 'Statistics & Analytics',
   'stats.description': 'Review your practice progress, mock exam scores, and domain accuracy.',
+  'stats.qUnit': ' Q',
   'stats.showing': 'Showing:',
   'stats.all': 'All',
   'stats.exerciseProgress': 'Practice Progress',

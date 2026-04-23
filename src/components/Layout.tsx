@@ -13,18 +13,6 @@ import {
 
 type BreadcrumbItem = { label: string; path?: string };
 
-const BREADCRUMBS: Record<string, BreadcrumbItem[]> = {
-  '/questions':        [{ label: 'ホーム', path: '/' }, { label: '問題一覧' }],
-  '/exercise/setup':   [{ label: 'ホーム', path: '/' }, { label: '演習設定' }],
-  '/exercise/session': [{ label: 'ホーム', path: '/' }, { label: '演習設定', path: '/exercise/setup' }, { label: '演習中' }],
-  '/exam/setup':       [{ label: 'ホーム', path: '/' }, { label: '模試設定' }],
-  '/exam/session':     [{ label: 'ホーム', path: '/' }, { label: '模試設定', path: '/exam/setup' }, { label: '模試中' }],
-  '/result':           [{ label: 'ホーム', path: '/' }, { label: '結果' }],
-  '/stats':            [{ label: 'ホーム', path: '/' }, { label: '統計・分析' }],
-  '/architecture':     [{ label: 'ホーム', path: '/' }, { label: 'システム構成' }],
-  '/release-notes':    [{ label: 'ホーム', path: '/' }, { label: 'リリースノート' }],
-};
-
 const NAV_KEYS = [
   { path: '/',               labelKey: 'nav.home',         Icon: IconHome    },
   { path: '/exercise/setup', labelKey: 'nav.exercise',     Icon: IconPencil  },
@@ -151,6 +139,18 @@ export default function Layout({ children }: { children: React.ReactNode }) {
 
   const navItems = NAV_KEYS;
 
+  const breadcrumbs: Record<string, BreadcrumbItem[]> = {
+    '/questions':        [{ label: t('nav.home'), path: '/' }, { label: t('nav.questions') }],
+    '/exercise/setup':   [{ label: t('nav.home'), path: '/' }, { label: t('exerciseSetup.title') }],
+    '/exercise/session': [{ label: t('nav.home'), path: '/' }, { label: t('exerciseSetup.title'), path: '/exercise/setup' }, { label: t('nav.exerciseSession') }],
+    '/exam/setup':       [{ label: t('nav.home'), path: '/' }, { label: t('examSetup.title') }],
+    '/exam/session':     [{ label: t('nav.home'), path: '/' }, { label: t('examSetup.title'), path: '/exam/setup' }, { label: t('nav.examSession') }],
+    '/result':           [{ label: t('nav.home'), path: '/' }, { label: t('nav.result') }],
+    '/stats':            [{ label: t('nav.home'), path: '/' }, { label: t('stats.title') }],
+    '/architecture':     [{ label: t('nav.home'), path: '/' }, { label: t('nav.architecture') }],
+    '/release-notes':    [{ label: t('nav.home'), path: '/' }, { label: t('nav.releaseNotes') }],
+  };
+
   return (
     <div style={{ display: 'flex', flexDirection: 'column', height: '100vh', fontFamily: 'inherit' }}>
 
@@ -162,40 +162,40 @@ export default function Layout({ children }: { children: React.ReactNode }) {
         >
           <div style={{ background: 'var(--color-bg-white)', borderRadius: 'var(--border-radius-lg)', padding: '28px 32px', width: '100%', maxWidth: 480, boxShadow: 'var(--box-shadow-md)' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 'var(--spacing-lg)' }}>
-              <h3 style={{ margin: 0, fontSize: 'var(--font-size-h3)', fontWeight: 700, color: 'var(--color-text-main)' }}>管理者に連絡</h3>
+              <h3 style={{ margin: 0, fontSize: 'var(--font-size-h3)', fontWeight: 700, color: 'var(--color-text-main)' }}>{t('contact.title')}</h3>
               <button onClick={() => setShowContact(false)} style={{ border: 'none', background: 'none', fontSize: 20, cursor: 'pointer', color: 'var(--color-text-sub)', padding: '4px 8px' }}>✕</button>
             </div>
             {contactDone ? (
               <div style={{ textAlign: 'center', padding: '24px 0' }}>
                 <div style={{ fontSize: 40, marginBottom: 'var(--spacing-md)' }}>✓</div>
-                <p style={{ color: 'var(--color-success)', fontWeight: 700, fontSize: 'var(--font-size-md)', margin: '0 0 var(--spacing-sm)' }}>送信しました</p>
-                <p style={{ color: 'var(--color-text-sub)', fontSize: 'var(--font-size-sm)', margin: '0 0 var(--spacing-lg)' }}>お問い合わせありがとうございます。</p>
+                <p style={{ color: 'var(--color-success)', fontWeight: 700, fontSize: 'var(--font-size-md)', margin: '0 0 var(--spacing-sm)' }}>{t('contact.sent')}</p>
+                <p style={{ color: 'var(--color-text-sub)', fontSize: 'var(--font-size-sm)', margin: '0 0 var(--spacing-lg)' }}>{t('contact.thankYou')}</p>
                 <Button onClick={() => setShowContact(false)} size="md">
-                  閉じる
+                  {t('contact.close')}
                 </Button>
               </div>
             ) : (
               <>
                 <p style={{ margin: '0 0 var(--spacing-md)', fontSize: 'var(--font-size-sm)', color: 'var(--color-text-light)', background: 'var(--color-bg-main)', borderRadius: 'var(--border-radius-md)', padding: 'var(--spacing-sm) var(--spacing-md)', lineHeight: 1.6 }}>
-                  メッセージは匿名で送信されます。送信者の情報は管理者に通知されません。
+                  {t('contact.anonymous')}
                 </p>
                 <div style={{ marginBottom: 'var(--spacing-md)' }}>
-                  <div style={{ fontSize: 'var(--font-size-sm)', color: 'var(--color-text-sub)', fontWeight: 700, marginBottom: 'var(--spacing-xs)' }}>件名（任意）</div>
+                  <div style={{ fontSize: 'var(--font-size-sm)', color: 'var(--color-text-sub)', fontWeight: 700, marginBottom: 'var(--spacing-xs)' }}>{t('contact.subject')}</div>
                   <input
                     value={contactSubject}
                     onChange={e => setContactSubject(e.target.value)}
-                    placeholder="例：機能の要望、不具合の報告"
+                    placeholder={t('contact.subjectPlaceholder')}
                     style={{ width: '100%', padding: '8px 10px', border: '1px solid var(--color-border)', borderRadius: 'var(--border-radius-md)', fontSize: 'var(--font-size-base)', boxSizing: 'border-box', outline: 'none' }}
                     onFocus={e => e.currentTarget.style.borderColor = 'var(--color-primary)'}
                     onBlur={e => e.currentTarget.style.borderColor = 'var(--color-border)'}
                   />
                 </div>
                 <div style={{ marginBottom: 'var(--spacing-lg)' }}>
-                  <div style={{ fontSize: 'var(--font-size-sm)', color: 'var(--color-text-sub)', fontWeight: 700, marginBottom: 'var(--spacing-xs)' }}>メッセージ <span style={{ color: 'var(--color-danger)' }}>*</span></div>
+                  <div style={{ fontSize: 'var(--font-size-sm)', color: 'var(--color-text-sub)', fontWeight: 700, marginBottom: 'var(--spacing-xs)' }}>{t('contact.message')} <span style={{ color: 'var(--color-danger)' }}>*</span></div>
                   <textarea
                     value={contactMessage}
                     onChange={e => setContactMessage(e.target.value)}
-                    placeholder="ご意見・ご要望・不具合などをお気軽にどうぞ"
+                    placeholder={t('contact.messagePlaceholder')}
                     rows={5}
                     style={{ width: '100%', padding: '8px 10px', border: '1px solid var(--color-border)', borderRadius: 'var(--border-radius-md)', fontSize: 'var(--font-size-base)', resize: 'vertical', boxSizing: 'border-box', outline: 'none', lineHeight: 1.6 }}
                     onFocus={e => e.currentTarget.style.borderColor = 'var(--color-primary)'}
@@ -209,10 +209,10 @@ export default function Layout({ children }: { children: React.ReactNode }) {
                     variant="accent"
                     style={{ flex: 1 }}
                   >
-                    {contactSending ? '送信中...' : '送信する'}
+                    {contactSending ? t('contact.sending') : t('contact.send')}
                   </Button>
                   <Button onClick={() => setShowContact(false)} variant="outline">
-                    キャンセル
+                    {t('contact.cancel')}
                   </Button>
                 </div>
               </>
@@ -355,9 +355,9 @@ export default function Layout({ children }: { children: React.ReactNode }) {
           {open ? <IconClose /> : <IconMenu />}
         </button>
         <div style={{ flex: 1, minWidth: 0 }}>
-          {BREADCRUMBS[location.pathname] && (
+          {breadcrumbs[location.pathname] && (
             <Breadcrumb
-              items={BREADCRUMBS[location.pathname]}
+              items={breadcrumbs[location.pathname]}
               style={{ marginBottom: 0, fontSize: 'var(--font-size-sm)' }}
             />
           )}
@@ -496,7 +496,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
                 onMouseLeave={e => { (e.currentTarget as HTMLElement).style.background = 'none'; }}
               >
                 <span style={{ display: 'flex', alignItems: 'center', opacity: 0.6 }}><IconMail /></span>
-                <span>連絡先</span>
+                <span>{t('contact.sidebarLabel')}</span>
               </button>
             </div>
 

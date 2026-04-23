@@ -169,7 +169,7 @@ export default function Stats() {
                     </div>
                     <div style={{ fontSize: 'var(--font-size-sm)', color: 'var(--color-text-main)', marginTop: 'var(--spacing-sm)' }}>
                       <strong>{stat.answered}</strong>
-                      <span style={{ color: 'var(--color-text-sub)' }}> / {stat.total} 問</span>
+                      <span style={{ color: 'var(--color-text-sub)' }}> / {stat.total} {t('stats.qUnit')}</span>
                       <span style={{ float: 'right', color: 'var(--color-primary)', fontWeight: 700 }}>{pct}%</span>
                     </div>
                   </div>
@@ -207,7 +207,7 @@ export default function Stats() {
                         <span style={{ fontSize: 'var(--font-size-lg)', fontWeight: 700, color: rate >= 70 ? 'var(--color-success)' : rate >= 50 ? 'var(--color-warning)' : 'var(--color-danger)' }}>
                           {rate}%
                         </span>
-                        <span style={{ fontSize: 'var(--font-size-xs)', color: 'var(--color-text-light)' }}>{correct}/{total}問</span>
+                        <span style={{ fontSize: 'var(--font-size-xs)', color: 'var(--color-text-light)' }}>{correct}/{total}{t('stats.qUnit')}</span>
                       </>
                     ) : (
                       <span style={{ fontSize: 'var(--font-size-sm)', color: 'var(--color-text-light)', fontStyle: 'italic' }}>{t('stats.noAnswer')}</span>

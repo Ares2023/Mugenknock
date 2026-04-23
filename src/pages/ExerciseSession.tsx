@@ -289,7 +289,7 @@ export default function ExerciseSession() {
                 {results[results.length - 1]?.isCorrect ? t('exerciseSession.correct') : t('exerciseSession.incorrect')}
               </h3>
               <CopyButton getText={() =>
-                `正解: ${detail.correctAnswers?.join(', ')}\n\n解説:\n${detail.explanation ?? ''}`
+                `${t('exerciseSession.correctAnswer')}${detail.correctAnswers?.join(', ')}\n\n${t('exerciseSession.explanation')}\n${detail.explanation ?? ''}`
               } />
             </div>
             <p style={{ margin: '0 0 12px', fontSize: 'var(--font-size-base)' }}>
