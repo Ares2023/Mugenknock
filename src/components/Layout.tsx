@@ -85,6 +85,24 @@ const IconBell = () => (
     <path d="M6.5 13a1.5 1.5 0 0 0 3 0"/>
   </svg>
 );
+const IconMenu = () => (
+  <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round">
+    <line x1="2" y1="4" x2="14" y2="4"/>
+    <line x1="2" y1="8" x2="14" y2="8"/>
+    <line x1="2" y1="12" x2="14" y2="12"/>
+  </svg>
+);
+const IconClose = () => (
+  <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
+    <line x1="3" y1="3" x2="13" y2="13"/>
+    <line x1="13" y1="3" x2="3" y2="13"/>
+  </svg>
+);
+const IconChevronLeft = () => (
+  <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <polyline points="10 3 5 8 10 13"/>
+  </svg>
+);
 
 const NAV_ITEMS = [
   { path: '/',               label: 'ホーム',         Icon: IconHome    },
@@ -284,16 +302,16 @@ export default function Layout({ children }: { children: React.ReactNode }) {
         zIndex: 199, flexShrink: 0, borderBottom: '1px solid #eaeded',
       }}>
         <button onClick={toggle} style={{
-          background: 'none', border: 'none', cursor: 'pointer',
-          color: '#545b64', fontSize: 16, lineHeight: 1, padding: '2px 8px',
+          background: open ? '#f2f3f3' : 'none', border: 'none', cursor: 'pointer',
+          color: open ? '#16191f' : '#545b64', fontSize: 16, lineHeight: 1, padding: '4px 8px',
           display: 'flex', alignItems: 'center', borderRadius: 3,
-          transition: 'color 0.1s', flexShrink: 0,
+          transition: 'background 0.1s, color 0.1s', flexShrink: 0,
         }}
-          onMouseEnter={e => e.currentTarget.style.color = '#16191f'}
-          onMouseLeave={e => e.currentTarget.style.color = '#545b64'}
+          onMouseEnter={e => { e.currentTarget.style.background = '#eaeded'; e.currentTarget.style.color = '#16191f'; }}
+          onMouseLeave={e => { e.currentTarget.style.background = open ? '#f2f3f3' : 'none'; e.currentTarget.style.color = open ? '#16191f' : '#545b64'; }}
           title={open ? 'メニューを閉じる' : 'メニューを開く'}
         >
-          &#9776;
+          {open ? <IconClose /> : <IconMenu />}
         </button>
         <div style={{ flex: 1, minWidth: 0 }}>
           {BREADCRUMBS[location.pathname] && (
@@ -339,6 +357,23 @@ export default function Layout({ children }: { children: React.ReactNode }) {
           } : {}),
         }}>
           <div style={{ width: SIDEBAR_WIDTH, paddingTop: 8, display: 'flex', flexDirection: 'column', height: '100%' }}>
+            {!isMobile && (
+              <div style={{ display: 'flex', justifyContent: 'flex-end', padding: '0 8px 4px' }}>
+                <button onClick={toggle} style={{
+                  background: 'none', border: 'none', cursor: 'pointer',
+                  color: '#879596', padding: '4px 6px', borderRadius: 3,
+                  display: 'flex', alignItems: 'center', gap: 4,
+                  fontSize: 11, transition: 'color 0.1s, background 0.1s',
+                }}
+                  onMouseEnter={e => { e.currentTarget.style.color = '#545b64'; e.currentTarget.style.background = '#f2f3f3'; }}
+                  onMouseLeave={e => { e.currentTarget.style.color = '#879596'; e.currentTarget.style.background = 'none'; }}
+                  title="メニューを閉じる"
+                >
+                  <IconChevronLeft />
+                  <span>閉じる</span>
+                </button>
+              </div>
+            )}
             {navItems.filter(item => !(item as any).bottom).map(({ path, label, Icon }) => {
               const active = isActive(path);
               return (
