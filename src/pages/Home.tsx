@@ -67,41 +67,12 @@ export default function Home() {
       <div style={{ background: 'white', border: '1px solid #eaeded', borderRadius: 6, padding: '20px 24px', marginBottom: 16, boxShadow: '0 1px 1px 0 rgba(0,28,36,0.1)' }}>
         <div style={{ display: 'flex', gap: 24, alignItems: 'flex-start' }}>
 
-          {/* 左：タイトル + 選択中の資格情報 */}
-          <div style={{ flex: 1, minWidth: 0 }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 12 }}>
+          {/* 左：試験選択ボタン（縦積み） */}
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 8, flexShrink: 0 }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 4 }}>
               <span style={{ color: '#008c8c', display: 'flex' }}><IconTarget /></span>
               <span style={{ fontSize: 14, fontWeight: 700, color: '#16191f' }}>{t('home.targetExam')}</span>
             </div>
-
-            {cfg && targetExam ? (
-              <div>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 6 }}>
-                  <span style={{ background: '#232f3e', color: 'white', fontSize: 12, padding: '2px 10px', borderRadius: 12, fontWeight: 700 }}>{targetExam}</span>
-                  <span style={{ fontSize: 12, color: '#545b64', fontWeight: 700 }}>{EXAM_LEVEL[targetExam]}</span>
-                </div>
-                <div style={{ fontSize: 14, fontWeight: 700, color: '#16191f', marginBottom: 10 }}>{cfg.fullName}</div>
-                <div style={{ display: 'flex', gap: 16, fontSize: 12, color: '#545b64', flexWrap: 'wrap', marginBottom: 12 }}>
-                  <span>{t('home.examCode')}: <strong style={{ color: '#16191f' }}>{cfg.examCode}</strong></span>
-                  <span>{t('home.questionCount')}: <strong style={{ color: '#16191f' }}>{cfg.totalQuestions}{lang === 'ja' ? '問' : ' Q'}</strong></span>
-                  <span>{t('home.timeLimit')}: <strong style={{ color: '#16191f' }}>{cfg.timeLimitMin}{lang === 'ja' ? '分' : ' min'}</strong></span>
-                </div>
-                <div style={{ fontSize: 12, color: '#545b64', fontWeight: 700, marginBottom: 6 }}>{t('home.domains')}</div>
-                <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
-                  {domains.map(d => (
-                    <span key={d} style={{ fontSize: 12, padding: '3px 10px', background: '#f2f3f3', borderRadius: 4, color: '#16191f', border: '1px solid #eaeded' }}>
-                      {lang === 'en' ? (DOMAIN_NAME_EN[d] ?? d) : d}
-                    </span>
-                  ))}
-                </div>
-              </div>
-            ) : (
-              <p style={{ margin: 0, fontSize: 12, color: '#aab7b8' }}>{t('home.selectHint')}</p>
-            )}
-          </div>
-
-          {/* 右：試験選択ボタン（縦積み） */}
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 8, flexShrink: 0 }}>
             {EXAM_TYPES.map(et => {
               const selected = targetExam === et;
               return (
@@ -131,6 +102,34 @@ export default function Home() {
               >
                 {t('home.clear')}
               </button>
+            )}
+          </div>
+
+          {/* 右：選択中の資格情報 */}
+          <div style={{ flex: 1, minWidth: 0 }}>
+            {cfg && targetExam ? (
+              <div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 6 }}>
+                  <span style={{ background: '#232f3e', color: 'white', fontSize: 12, padding: '2px 10px', borderRadius: 12, fontWeight: 700 }}>{targetExam}</span>
+                  <span style={{ fontSize: 12, color: '#545b64', fontWeight: 700 }}>{EXAM_LEVEL[targetExam]}</span>
+                </div>
+                <div style={{ fontSize: 14, fontWeight: 700, color: '#16191f', marginBottom: 10 }}>{cfg.fullName}</div>
+                <div style={{ display: 'flex', gap: 16, fontSize: 12, color: '#545b64', flexWrap: 'wrap', marginBottom: 12 }}>
+                  <span>{t('home.examCode')}: <strong style={{ color: '#16191f' }}>{cfg.examCode}</strong></span>
+                  <span>{t('home.questionCount')}: <strong style={{ color: '#16191f' }}>{cfg.totalQuestions}{lang === 'ja' ? '問' : ' Q'}</strong></span>
+                  <span>{t('home.timeLimit')}: <strong style={{ color: '#16191f' }}>{cfg.timeLimitMin}{lang === 'ja' ? '分' : ' min'}</strong></span>
+                </div>
+                <div style={{ fontSize: 12, color: '#545b64', fontWeight: 700, marginBottom: 6 }}>{t('home.domains')}</div>
+                <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
+                  {domains.map(d => (
+                    <span key={d} style={{ fontSize: 12, padding: '3px 10px', background: '#f2f3f3', borderRadius: 4, color: '#16191f', border: '1px solid #eaeded' }}>
+                      {lang === 'en' ? (DOMAIN_NAME_EN[d] ?? d) : d}
+                    </span>
+                  ))}
+                </div>
+              </div>
+            ) : (
+              <p style={{ margin: 0, fontSize: 12, color: '#aab7b8' }}>{t('home.selectHint')}</p>
             )}
           </div>
         </div>
