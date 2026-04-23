@@ -21,13 +21,15 @@ echo "バッチサイズ: ${BATCH_SIZE}問"
 echo "=========================================="
 
 # ── 1. DynamoDBから問題を取得（正解・解説込み）──────────────
-QUESTIONS_JSON=$(aws dynamodb scan \
-  --table-name Questions \
-  --output json 2>/dev/null | python3 - << 'PYEOF'
-import json, sys
+DYNAMO_TMP=$(mktemp /tmp/dynamo_XXXX.json)
+aws dynamodb scan --table-name Questions --output json 2>/dev/null > "$DYNAMO_TMP"
+
+QUESTIONS_JSON=$(BATCH_SIZE=$BATCH_SIZE DYNAMO_TMP="$DYNAMO_TMP" python3 << 'PYEOF'
+import json, os
 from datetime import datetime, timezone, timedelta
 
-data = json.load(sys.stdin)
+with open(os.environ['DYNAMO_TMP']) as f:
+    data = json.load(f)
 items = data.get('Items', [])
 
 def deser(v):
@@ -40,8 +42,6 @@ def deser(v):
 
 questions = [{ k: deser(v) for k, v in item.items() } for item in items]
 
-# isHidden=True のものは除く（既に非表示）
-# 未チェック or 30日以上前にチェックしたもの を優先
 cutoff = datetime.now(timezone.utc) - timedelta(days=30)
 candidates = []
 for q in questions:
@@ -49,7 +49,7 @@ for q in questions:
         continue
     checked = q.get('validityCheckedAt')
     if not checked:
-        candidates.append((0, q))  # 未チェックを最優先
+        candidates.append((0, q))
     else:
         try:
             dt = datetime.fromisoformat(checked.replace('Z', '+00:00'))
@@ -61,11 +61,11 @@ for q in questions:
 candidates.sort(key=lambda x: x[0])
 result = [q for _, q in candidates]
 
-import os
 batch = int(os.environ.get('BATCH_SIZE', 30))
 print(json.dumps(result[:batch]))
 PYEOF
 )
+rm -f "$DYNAMO_TMP"
 
 COUNT=$(echo "$QUESTIONS_JSON" | python3 -c "import json,sys; print(len(json.load(sys.stdin)))" 2>/dev/null || echo 0)
 echo "チェック対象: ${COUNT}問"
