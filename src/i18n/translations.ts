@@ -46,8 +46,9 @@ export const ja: Translations = {
   'home.statsLabel': '統計を見る',
 
   // ── ExamSetup ──
-  'examSetup.title': '模試設定',
-  'examSetup.params': '模試パラメーター',
+  'examSetup.title': '模試モード',
+  'examSetup.description': '本番試験に近い形式で、制限時間内に全問を解きます。正誤は終了後にまとめて確認できます。',
+  'examSetup.params': '模試設定',
   'examSetup.examType': '試験種別',
   'examSetup.examTypeHome': '（ホームで変更）',
   'examSetup.domain': '出題ドメイン',
@@ -76,8 +77,9 @@ export const ja: Translations = {
   'examSetup.scored': '採点',
 
   // ── ExerciseSetup ──
-  'exerciseSetup.title': '演習設定',
-  'exerciseSetup.params': '演習パラメーター',
+  'exerciseSetup.title': '演習モード',
+  'exerciseSetup.description': '問題を1問ずつ解き、回答ごとに正誤と解説を確認しながら学習します。',
+  'exerciseSetup.params': '演習設定',
   'exerciseSetup.examType': '試験種別',
   'exerciseSetup.examTypeHome': '（ホームで変更）',
   'exerciseSetup.domain': '出題ドメイン',
@@ -177,6 +179,7 @@ export const ja: Translations = {
 
   // ── Stats ──
   'stats.title': '統計・分析',
+  'stats.description': '演習・模試の記録をもとに、進捗と習熟度を確認します。',
   'stats.showing': '表示中:',
   'stats.all': 'すべて',
   'stats.exerciseProgress': '演習進捗',
@@ -204,7 +207,9 @@ export const ja: Translations = {
   'stats.attempt': '回',
 
   // ── QuestionList ──
-  'questions.title': 'AWS資格問題一覧',
+  'questions.title': '問題一覧',
+  'questions.description': '全問題をキーワードや試験種別で検索・閲覧できます。問題のコピーや CSV エクスポートにも対応しています。',
+  'questions.count': '{n} 件',
   'questions.searchPlaceholder': 'サービス名・キーワードで検索',
   'questions.search': '検索',
   'questions.clear': 'クリア',
@@ -274,8 +279,9 @@ export const en: Translations = {
   'home.statsLabel': 'View Stats',
 
   // ── ExamSetup ──
-  'examSetup.title': 'Mock Exam Setup',
-  'examSetup.params': 'Exam Parameters',
+  'examSetup.title': 'Mock Exam',
+  'examSetup.description': 'Simulate the real exam within a time limit. Correct/incorrect results are shown after you finish.',
+  'examSetup.params': 'Exam Settings',
   'examSetup.examType': 'Exam Type',
   'examSetup.examTypeHome': '(change on Home)',
   'examSetup.domain': 'Domain',
@@ -304,8 +310,9 @@ export const en: Translations = {
   'examSetup.scored': 'Scored',
 
   // ── ExerciseSetup ──
-  'exerciseSetup.title': 'Practice Setup',
-  'exerciseSetup.params': 'Practice Parameters',
+  'exerciseSetup.title': 'Practice Mode',
+  'exerciseSetup.description': 'Answer questions one by one and review the explanation for each answer immediately.',
+  'exerciseSetup.params': 'Practice Settings',
   'exerciseSetup.examType': 'Exam Type',
   'exerciseSetup.examTypeHome': '(change on Home)',
   'exerciseSetup.domain': 'Domain',
@@ -405,6 +412,7 @@ export const en: Translations = {
 
   // ── Stats ──
   'stats.title': 'Statistics & Analytics',
+  'stats.description': 'Review your practice progress, mock exam scores, and domain accuracy.',
   'stats.showing': 'Showing:',
   'stats.all': 'All',
   'stats.exerciseProgress': 'Practice Progress',
@@ -432,7 +440,9 @@ export const en: Translations = {
   'stats.attempt': '#',
 
   // ── QuestionList ──
-  'questions.title': 'AWS Certification Questions',
+  'questions.title': 'Questions',
+  'questions.description': 'Search and browse all questions by keyword or exam type. Copy questions or export to CSV.',
+  'questions.count': '{n} questions',
   'questions.searchPlaceholder': 'Search by keyword or service name',
   'questions.search': 'Search',
   'questions.clear': 'Clear',

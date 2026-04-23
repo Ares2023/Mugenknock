@@ -221,9 +221,12 @@ export default function ExerciseSetup() {
   return (
     <div style={{ maxWidth: 1200, margin: '0 auto', padding: 'var(--spacing-xl) var(--spacing-lg)' }} className="page-container">
 
-      <h1 style={{ fontSize: 'var(--font-size-xxl)', fontWeight: 700, margin: '0 0 var(--spacing-xl)', color: 'var(--color-text-main)' }}>
+      <h1 style={{ fontSize: 'var(--font-size-xxl)', fontWeight: 700, margin: '0 0 var(--spacing-xs)', color: 'var(--color-text-main)' }}>
         {t('exerciseSetup.title')}
       </h1>
+      <p style={{ fontSize: 'var(--font-size-base)', color: 'var(--color-text-sub)', margin: '0 0 var(--spacing-xl)', lineHeight: 1.6 }}>
+        {t('exerciseSetup.description')}
+      </p>
 
       <div className="setup-grid" style={{ display: 'grid', gridTemplateColumns: '1fr 380px', gap: 'var(--spacing-xl)', alignItems: 'flex-start' }}>
 
