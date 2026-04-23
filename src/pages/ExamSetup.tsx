@@ -134,7 +134,7 @@ export default function ExamSetup() {
       {showHint && (
         <div className="fade-slide-in" style={{
           display: 'flex', alignItems: 'center', gap: 'var(--spacing-md)',
-          background: '#fffbe6', border: '1px solid #f0d080',
+          background: 'var(--color-hint-bg)', border: '1px solid var(--color-hint-border)',
           borderRadius: 'var(--border-radius-md)', padding: '10px var(--spacing-md)',
           marginBottom: 'var(--spacing-xl)', fontSize: 'var(--font-size-sm)', color: 'var(--color-text-sub)',
         }}>

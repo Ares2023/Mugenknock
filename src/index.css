@@ -35,6 +35,12 @@
   --font-size-h2: 22px;
   --font-size-xxl: 28px;
 
+  /* Semantic feedback colors */
+  --color-feedback-correct-bg: #f2fcf3;
+  --color-feedback-incorrect-bg: #fdf3f1;
+  --color-hint-bg: #fffbe6;
+  --color-hint-border: #f0d080;
+
   /* Others */
   --border-radius-sm: 4px;
   --border-radius-md: 6px;

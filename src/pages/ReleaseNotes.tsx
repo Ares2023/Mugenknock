@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { API_ENDPOINT } from '../constants';
+import { useLanguage } from '../contexts/LanguageContext';
 import Button from '../components/ui/Button';
 
 type Release = {
@@ -7,11 +8,14 @@ type Release = {
   date: string;
   title: string;
   body: string;
+  titleEn?: string;
+  bodyEn?: string;
 };
 
 const SHOW_DEFAULT = 5;
 
 export default function ReleaseNotes() {
+  const { lang, t } = useLanguage();
   const [releases, setReleases] = useState<Release[]>([]);
   const [loading, setLoading] = useState(true);
   const [showAll, setShowAll] = useState(false);
@@ -29,20 +33,24 @@ export default function ReleaseNotes() {
 
   return (
     <div style={{ maxWidth: 680, margin: '0 auto', padding: 'var(--spacing-xl) var(--spacing-lg)', color: 'var(--color-text-main)' }} className="page-container">
-      <h1 style={{ fontSize: 'var(--font-size-xxl)', fontWeight: 700, margin: '0 0 var(--spacing-xl)' }}>リリースノート</h1>
+      <h1 style={{ fontSize: 'var(--font-size-xxl)', fontWeight: 700, margin: '0 0 var(--spacing-xl)' }}>{t('releaseNotes.title')}</h1>
 
-      {loading && <p style={{ color: 'var(--color-text-sub)', fontSize: 'var(--font-size-base)' }}>読み込み中...</p>}
+      {loading && <p style={{ color: 'var(--color-text-sub)', fontSize: 'var(--font-size-base)' }}>{t('releaseNotes.loading')}</p>}
 
       {!loading && releases.length === 0 && (
-        <p style={{ color: 'var(--color-text-sub)', fontSize: 'var(--font-size-base)' }}>まだ情報はありません。</p>
+        <p style={{ color: 'var(--color-text-sub)', fontSize: 'var(--font-size-base)' }}>{t('releaseNotes.empty')}</p>
       )}
 
       {visible.map((r, i) => (
         <div key={r.releaseId}>
           <div style={{ marginBottom: 'var(--spacing-lg)' }}>
             <div style={{ fontSize: 'var(--font-size-xs)', color: 'var(--color-text-light)', fontWeight: 700, marginBottom: 'var(--spacing-xs)' }}>{r.date}</div>
-            <div style={{ fontSize: 'var(--font-size-lg)', fontWeight: 700, color: 'var(--color-text-main)', marginBottom: 'var(--spacing-sm)' }}>{r.title}</div>
-            <div style={{ fontSize: 'var(--font-size-base)', color: 'var(--color-text-sub)', lineHeight: 1.8, whiteSpace: 'pre-wrap' }}>{r.body}</div>
+            <div style={{ fontSize: 'var(--font-size-lg)', fontWeight: 700, color: 'var(--color-text-main)', marginBottom: 'var(--spacing-sm)' }}>
+              {lang === 'en' && r.titleEn ? r.titleEn : r.title}
+            </div>
+            <div style={{ fontSize: 'var(--font-size-base)', color: 'var(--color-text-sub)', lineHeight: 1.8, whiteSpace: 'pre-wrap' }}>
+              {lang === 'en' && r.bodyEn ? r.bodyEn : r.body}
+            </div>
           </div>
           {i < visible.length - 1 && (
             <div style={{ height: 1, background: 'var(--color-border)', marginBottom: 'var(--spacing-lg)' }} />
@@ -53,7 +61,7 @@ export default function ReleaseNotes() {
       {!showAll && hiddenCount > 0 && (
         <div style={{ borderTop: '1px solid var(--color-border)', paddingTop: 'var(--spacing-lg)', marginTop: 'var(--spacing-sm)' }}>
           <Button variant="outline" onClick={() => setShowAll(true)}>
-            過去の更新を見る（{hiddenCount}件）
+            {t('releaseNotes.showMore', { n: hiddenCount })}
           </Button>
         </div>
       )}

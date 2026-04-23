@@ -244,6 +244,12 @@ export const ja: Translations = {
   'questions.correctAnswer': '正解：',
   'questions.explanation': '解説：',
 
+  // ── ReleaseNotes ──
+  'releaseNotes.title': 'リリースノート',
+  'releaseNotes.loading': '読み込み中...',
+  'releaseNotes.empty': 'まだ情報はありません。',
+  'releaseNotes.showMore': '過去の更新を見る（{n}件）',
+
   // ── Login ──
   'login.tagline': 'ログインして演習を始めましょう',
   'login.skipLogin': 'ログインせず問題一覧を見る',
@@ -500,6 +506,12 @@ export const en: Translations = {
   'questions.copied': '✓ Copied',
   'questions.correctAnswer': 'Answer: ',
   'questions.explanation': 'Explanation: ',
+
+  // ── ReleaseNotes ──
+  'releaseNotes.title': 'Release Notes',
+  'releaseNotes.loading': 'Loading...',
+  'releaseNotes.empty': 'No updates yet.',
+  'releaseNotes.showMore': 'Show older updates ({n})',
 
   // ── Login ──
   'login.tagline': 'Log in to start practicing',
