@@ -111,12 +111,13 @@ export default function Home() {
     <div style={{ maxWidth: 900, margin: '0 auto', padding: '28px 20px', color: '#16191f' }} className="page-container">
       {/* ヒーローセクション */}
       <div style={{ marginBottom: 20 }}>
-        <h1 style={{ fontSize: 28, fontWeight: 700, margin: '0 0 12px', lineHeight: 1.3 }}>
+        <h1 style={{ fontSize: 28, fontWeight: 500, margin: '0 0 12px', lineHeight: 1.3 }}>
           {name ? `こんにちは、${name} さん` : 'AWS 資格学習を始めよう'}
         </h1>
         <p style={{ fontSize: 15, color: '#545b64', lineHeight: 1.8, margin: 0, maxWidth: 640 }}>
-          AWS 認定資格の取得を目指すための練習問題サービスです。
+          SherpaはAWS 認定資格の取得を目指すための練習問題サービスです。          
           CLF・SAA・SAP・DOP の問題を演習・模試の2つのモードで学習できます。
+          問題は定期的にAI（Claude）を用いて正当性の確認を行っております。
         </p>
       </div>
 
@@ -233,19 +234,19 @@ export default function Home() {
           icon={<IconClock />}
         />
         <FeatureCard
-          title="問題一覧"
-          description="全問題をキーワードや試験種別で検索・閲覧できます。CSV エクスポートや問題のコピーにも対応しています。"
-          path="/questions"
-          label="問題を見る"
-          icon={<IconList />}
-        />
-        <FeatureCard
           title="統計・分析"
           description="試験別の演習進捗、模試のスコア推移、演習履歴を確認できます。弱点分野の把握に活用してください。"
           path="/stats"
           label="統計を見る"
           icon={<IconChart />}
         />
+        <FeatureCard
+          title="問題一覧"
+          description="全問題をキーワードや試験種別で検索・閲覧できます。CSV エクスポートや問題のコピーにも対応しています。"
+          path="/questions"
+          label="問題を見る"
+          icon={<IconList />}
+        />      
       </div>
 
     </div>
