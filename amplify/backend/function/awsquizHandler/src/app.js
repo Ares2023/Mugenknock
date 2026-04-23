@@ -14,7 +14,7 @@ const getClient = () => {
 
 // ── CORS（localhost + Amplify Hosting ドメインのみ許可） ──
 const ALLOWED_ORIGINS = ['http://localhost:3000', 'http://localhost:3001'];
-const AMPLIFY_ORIGIN_RE = /^https:\/\/[^.]+\.amplifyapp\.com$/;
+const AMPLIFY_ORIGIN_RE = /^https:\/\/[a-zA-Z0-9][a-zA-Z0-9.-]*\.amplifyapp\.com$/;
 
 app.use((req, res, next) => {
   const origin = req.headers.origin;
