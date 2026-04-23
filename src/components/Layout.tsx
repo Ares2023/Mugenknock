@@ -188,7 +188,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
         {/* サービス名 */}
         <div onClick={() => navigate('/')} style={{ display: 'flex', alignItems: 'center', cursor: 'pointer', userSelect: 'none', flexShrink: 0, padding: '0 4px' }}>
           <img
-            src={isMobile ? '/logo_sherpa_image_t.png' : '/logo_sherpa_text+image_t.png'}
+            src={isMobile ? '/logo_sherpa_image_t.png' : '/logo_sherpa_txt+image_t.png'}
             alt="Sherpa"
             style={{ height: isMobile ? 32 : 36, width: 'auto', display: 'block' }}
           />
