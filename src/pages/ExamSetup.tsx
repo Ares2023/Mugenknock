@@ -123,6 +123,12 @@ export default function ExamSetup() {
   const shortage = availableCount !== null && !selectedDomain && !selectedTag
     ? Math.max(0, config.totalQuestions - availableCount) : null;
 
+  // Dynamic step numbering: skip exam type badge when locked
+  let _s = 0;
+  const examStep   = !targetExam ? ++_s : null;
+  const domainStep = ++_s;
+  const tagStep    = availableTags.length > 0 ? ++_s : null;
+
   return (
     <div style={{ maxWidth: 1200, margin: '0 auto', padding: 'var(--spacing-xl) var(--spacing-lg)' }} className="page-container">
 
@@ -154,7 +160,6 @@ export default function ExamSetup() {
           {/* 試験種別 */}
           {targetExam ? (
             <div style={{ marginBottom: 'var(--spacing-lg)', display: 'flex', alignItems: 'center', gap: 'var(--spacing-md)' }}>
-              <StepBadge n={1} />
               <span style={{ fontSize: 'var(--font-size-base)', fontWeight: 700, color: 'var(--color-text-sub)' }}>{t('examSetup.examType')}</span>
               <Badge variant="secondary">{examType}</Badge>
               <span style={{ fontSize: 'var(--font-size-sm)', color: 'var(--color-text-light)' }}>{t('examSetup.examTypeHome')}</span>
@@ -162,7 +167,7 @@ export default function ExamSetup() {
           ) : (
             <div style={{ marginBottom: 'var(--spacing-lg)' }}>
               <label style={{ display: 'flex', alignItems: 'center', gap: 'var(--spacing-sm)', marginBottom: 'var(--spacing-sm)', fontWeight: 700, fontSize: 'var(--font-size-base)' }}>
-                <StepBadge n={1} />{t('examSetup.examType')}
+                <StepBadge n={examStep!} />{t('examSetup.examType')}
               </label>
               <div style={{ display: 'flex', gap: 'var(--spacing-sm)' }}>
                 {EXAM_TYPES.map(type => (
@@ -182,7 +187,7 @@ export default function ExamSetup() {
           {/* ドメインフィルタ */}
           <div style={{ marginBottom: 'var(--spacing-lg)' }}>
             <label style={{ display: 'flex', alignItems: 'center', gap: 'var(--spacing-sm)', marginBottom: 'var(--spacing-sm)', fontWeight: 700, fontSize: 'var(--font-size-base)' }}>
-              <StepBadge n={2} />{t('examSetup.domain')} <span style={{ fontWeight: 400, fontSize: 'var(--font-size-sm)', color: 'var(--color-text-sub)' }}>{t('examSetup.optional')}</span>
+              <StepBadge n={domainStep} optional />{t('examSetup.domain')} <span style={{ fontWeight: 400, fontSize: 'var(--font-size-sm)', color: 'var(--color-text-sub)' }}>{t('examSetup.optional')}</span>
             </label>
             <div style={{ display: 'flex', flexWrap: 'wrap', gap: 'var(--spacing-sm)' }}>
               <Button
@@ -209,7 +214,7 @@ export default function ExamSetup() {
           {availableTags.length > 0 && (
             <div style={{ marginBottom: 'var(--spacing-lg)' }}>
               <label style={{ display: 'flex', alignItems: 'center', gap: 'var(--spacing-sm)', marginBottom: 'var(--spacing-sm)', fontWeight: 700, fontSize: 'var(--font-size-base)' }}>
-                <StepBadge n={3} optional />{t('examSetup.tag')} <span style={{ fontWeight: 400, fontSize: 'var(--font-size-sm)', color: 'var(--color-text-sub)' }}>{t('examSetup.optional')}</span>
+                <StepBadge n={tagStep!} optional />{t('examSetup.tag')} <span style={{ fontWeight: 400, fontSize: 'var(--font-size-sm)', color: 'var(--color-text-sub)' }}>{t('examSetup.optional')}</span>
               </label>
               <div style={{ display: 'flex', flexWrap: 'wrap', gap: 'var(--spacing-sm)' }}>
                 <Button

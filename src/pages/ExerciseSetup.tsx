@@ -229,6 +229,14 @@ export default function ExerciseSetup() {
     }
   };
 
+  // Dynamic step numbering: skip exam type badge when it's locked (targetExam set)
+  let _s = 0;
+  const examStep    = !targetExam ? ++_s : null;
+  const domainStep  = ++_s;
+  const tagStep     = availableTags.length > 0 ? ++_s : null;
+  const countStep   = ++_s;
+  const optionsStep = ++_s;
+
   return (
     <div style={{ maxWidth: 1200, margin: '0 auto', padding: 'var(--spacing-xl) var(--spacing-lg)' }} className="page-container">
 
@@ -262,7 +270,6 @@ export default function ExerciseSetup() {
           {/* 試験種別 */}
           {targetExam ? (
             <div style={{ marginBottom: 'var(--spacing-lg)', display: 'flex', alignItems: 'center', gap: 'var(--spacing-md)' }}>
-              <StepBadge n={1} />
               <span style={{ fontSize: 'var(--font-size-base)', fontWeight: 700, color: 'var(--color-text-sub)' }}>{t('exerciseSetup.examType')}</span>
               <Badge variant="secondary">{examType}</Badge>
               <span style={{ fontSize: 'var(--font-size-sm)', color: 'var(--color-text-light)' }}>{t('exerciseSetup.examTypeHome')}</span>
@@ -270,7 +277,7 @@ export default function ExerciseSetup() {
           ) : (
             <div style={{ marginBottom: 'var(--spacing-lg)' }}>
               <label style={{ display: 'flex', alignItems: 'center', gap: 'var(--spacing-sm)', marginBottom: 'var(--spacing-sm)', fontWeight: 700, fontSize: 'var(--font-size-base)' }}>
-                <StepBadge n={1} />{t('exerciseSetup.examType')}
+                <StepBadge n={examStep!} />{t('exerciseSetup.examType')}
               </label>
               <div style={{ display: 'flex', gap: 'var(--spacing-sm)' }}>
                 {EXAM_TYPES.map(type => (
@@ -290,7 +297,7 @@ export default function ExerciseSetup() {
           {/* ドメインフィルタ */}
           <div style={{ marginBottom: 'var(--spacing-lg)' }}>
             <label style={{ display: 'flex', alignItems: 'center', gap: 'var(--spacing-sm)', marginBottom: 'var(--spacing-sm)', fontWeight: 700, fontSize: 'var(--font-size-base)' }}>
-              <StepBadge n={2} />{t('exerciseSetup.domain')} <span style={{ fontWeight: 400, fontSize: 'var(--font-size-sm)', color: 'var(--color-text-sub)' }}>{t('exerciseSetup.optional')}</span>
+              <StepBadge n={domainStep} optional />{t('exerciseSetup.domain')} <span style={{ fontWeight: 400, fontSize: 'var(--font-size-sm)', color: 'var(--color-text-sub)' }}>{t('exerciseSetup.optional')}</span>
             </label>
             <div style={{ display: 'flex', flexWrap: 'wrap', gap: 'var(--spacing-sm)' }}>
               <Button
@@ -317,7 +324,7 @@ export default function ExerciseSetup() {
           {availableTags.length > 0 && (
             <div style={{ marginBottom: 'var(--spacing-lg)' }}>
               <label style={{ display: 'flex', alignItems: 'center', gap: 'var(--spacing-sm)', marginBottom: 'var(--spacing-sm)', fontWeight: 700, fontSize: 'var(--font-size-base)' }}>
-                <StepBadge n={3} optional />{t('exerciseSetup.tag')} <span style={{ fontWeight: 400, fontSize: 'var(--font-size-sm)', color: 'var(--color-text-sub)' }}>{t('exerciseSetup.optional')}</span>
+                <StepBadge n={tagStep!} optional />{t('exerciseSetup.tag')} <span style={{ fontWeight: 400, fontSize: 'var(--font-size-sm)', color: 'var(--color-text-sub)' }}>{t('exerciseSetup.optional')}</span>
               </label>
               <div style={{ display: 'flex', flexWrap: 'wrap', gap: 'var(--spacing-sm)' }}>
                 <Button
@@ -344,7 +351,7 @@ export default function ExerciseSetup() {
           {/* 問題数 */}
           <div style={{ marginBottom: 'var(--spacing-lg)' }}>
             <label style={{ display: 'flex', alignItems: 'center', gap: 'var(--spacing-sm)', marginBottom: 'var(--spacing-sm)', fontWeight: 700, fontSize: 'var(--font-size-base)' }}>
-              <StepBadge n={availableTags.length > 0 ? 4 : 3} />{t('exerciseSetup.questionCount')}
+              <StepBadge n={countStep} />{t('exerciseSetup.questionCount')}
             </label>
             <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--spacing-md)' }}>
               <input type="number" value={limit} onChange={e => setLimit(Math.max(1, parseInt(e.target.value) || 1))} min={1} max={availableCount ?? 50}
@@ -364,30 +371,35 @@ export default function ExerciseSetup() {
             </div>
           </div>
 
-          {/* フィルタ・シャッフル */}
-          <div style={{ marginBottom: 'var(--spacing-lg)', padding: 'var(--spacing-md)', background: 'var(--color-bg-main)', borderRadius: 'var(--border-radius-md)', display: 'flex', flexDirection: 'column', gap: 'var(--spacing-sm)' }}>
-            {user && (
-              <label style={{ display: 'flex', alignItems: 'center', gap: 'var(--spacing-md)', cursor: 'pointer', fontSize: 'var(--font-size-base)' }}>
-                <input type="checkbox" checked={unansweredOnly} onChange={e => setUnansweredOnly(e.target.checked)} style={{ width: 18, height: 18 }} />
-                <span style={{ fontWeight: 700 }}>
-                  {t('exerciseSetup.unansweredOnly')}
-                  <span style={{ fontWeight: 400, fontSize: 'var(--font-size-sm)', color: 'var(--color-text-sub)', marginLeft: 'var(--spacing-sm)' }}>{t('exerciseSetup.unansweredOnlyDesc')}</span>
-                </span>
-              </label>
-            )}
-            {user && (
-              <label style={{ display: 'flex', alignItems: 'center', gap: 'var(--spacing-md)', cursor: 'pointer', fontSize: 'var(--font-size-base)' }}>
-                <input type="checkbox" checked={bookmarkOnly} onChange={e => setBookmarkOnly(e.target.checked)} style={{ width: 18, height: 18 }} />
-                <span style={{ fontWeight: 700 }}>
-                  {t('exerciseSetup.bookmarkOnly')}
-                  <span style={{ fontWeight: 400, fontSize: 'var(--font-size-sm)', color: 'var(--color-text-sub)', marginLeft: 'var(--spacing-sm)' }}>{t('exerciseSetup.bookmarkOnlyDesc')}</span>
-                </span>
-              </label>
-            )}
-            <label style={{ display: 'flex', alignItems: 'center', gap: 'var(--spacing-md)', cursor: 'pointer', fontSize: 'var(--font-size-base)' }}>
-              <input type="checkbox" checked={shuffle} onChange={e => setShuffle(e.target.checked)} style={{ width: 18, height: 18 }} />
-              <span style={{ fontWeight: 700 }}>{t('exerciseSetup.shuffle')}</span>
+          {/* オプション */}
+          <div style={{ marginBottom: 'var(--spacing-lg)' }}>
+            <label style={{ display: 'flex', alignItems: 'center', gap: 'var(--spacing-sm)', marginBottom: 'var(--spacing-sm)', fontWeight: 700, fontSize: 'var(--font-size-base)' }}>
+              <StepBadge n={optionsStep} />{t('exerciseSetup.options')}
             </label>
+            <div style={{ padding: 'var(--spacing-md)', background: 'var(--color-bg-main)', borderRadius: 'var(--border-radius-md)', display: 'flex', flexDirection: 'column', gap: 'var(--spacing-sm)' }}>
+              {user && (
+                <label style={{ display: 'flex', alignItems: 'center', gap: 'var(--spacing-md)', cursor: 'pointer', fontSize: 'var(--font-size-base)' }}>
+                  <input type="checkbox" checked={unansweredOnly} onChange={e => setUnansweredOnly(e.target.checked)} style={{ width: 18, height: 18 }} />
+                  <span style={{ fontWeight: 700 }}>
+                    {t('exerciseSetup.unansweredOnly')}
+                    <span style={{ fontWeight: 400, fontSize: 'var(--font-size-sm)', color: 'var(--color-text-sub)', marginLeft: 'var(--spacing-sm)' }}>{t('exerciseSetup.unansweredOnlyDesc')}</span>
+                  </span>
+                </label>
+              )}
+              {user && (
+                <label style={{ display: 'flex', alignItems: 'center', gap: 'var(--spacing-md)', cursor: 'pointer', fontSize: 'var(--font-size-base)' }}>
+                  <input type="checkbox" checked={bookmarkOnly} onChange={e => setBookmarkOnly(e.target.checked)} style={{ width: 18, height: 18 }} />
+                  <span style={{ fontWeight: 700 }}>
+                    {t('exerciseSetup.bookmarkOnly')}
+                    <span style={{ fontWeight: 400, fontSize: 'var(--font-size-sm)', color: 'var(--color-text-sub)', marginLeft: 'var(--spacing-sm)' }}>{t('exerciseSetup.bookmarkOnlyDesc')}</span>
+                  </span>
+                </label>
+              )}
+              <label style={{ display: 'flex', alignItems: 'center', gap: 'var(--spacing-md)', cursor: 'pointer', fontSize: 'var(--font-size-base)' }}>
+                <input type="checkbox" checked={shuffle} onChange={e => setShuffle(e.target.checked)} style={{ width: 18, height: 18 }} />
+                <span style={{ fontWeight: 700 }}>{t('exerciseSetup.shuffle')}</span>
+              </label>
+            </div>
           </div>
 
           <div style={{ display: 'flex', gap: 'var(--spacing-md)', borderTop: '1px solid var(--color-border)', paddingTop: 'var(--spacing-lg)', justifyContent: 'flex-end' }}>

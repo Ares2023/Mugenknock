@@ -133,6 +133,7 @@ export const ja: Translations = {
   'exerciseSetup.siteCount': 'サイト内問題数',
   'exerciseSetup.qUnit': '問',
   'exerciseSetup.scored': '採点',
+  'exerciseSetup.options': 'オプション',
 
   // ── ExamSession ──
   'examSession.mock': '模試',
@@ -256,7 +257,7 @@ export const ja: Translations = {
 
   // ── Page hints (one-time dismissible banners) ──
   'stats.hint': '上部のボタンで目標資格を絞り込めます。ドメイン別正答率から苦手分野を把握し、演習に活かしましょう。',
-  'exerciseSetup.hint': '① 試験種別を選んで → ② ドメイン・タグでフィルタ（任意）→ ③ 問題数を決めたら → ④「演習を開始する」を押してください。',
+  'exerciseSetup.hint': '試験種別を選んで → ドメイン・タグでフィルタ（任意）→ 問題数とオプションを設定したら → 「演習を開始する」を押してください。',
   'examSetup.hint': '① 試験種別を選んで → ② ドメイン・タグでフィルタ（任意）→ ③「模試を開始する」を押してください。正誤は全問終了後に表示されます。',
 
   // ── Common ──
@@ -396,6 +397,7 @@ export const en: Translations = {
   'exerciseSetup.siteCount': 'Available Questions',
   'exerciseSetup.qUnit': ' Q',
   'exerciseSetup.scored': 'Scored',
+  'exerciseSetup.options': 'Options',
 
   // ── ExamSession ──
   'examSession.mock': 'Mock Exam',
@@ -519,7 +521,7 @@ export const en: Translations = {
 
   // ── Page hints (one-time dismissible banners) ──
   'stats.hint': 'Use the buttons above to filter by exam. Check domain accuracy to identify weak areas and focus your practice.',
-  'exerciseSetup.hint': '① Pick exam type → ② Filter by domain or tag (optional) → ③ Set question count → ④ Press "Start Practice".',
+  'exerciseSetup.hint': 'Pick exam type → filter by domain/tag (optional) → set question count and options → press "Start Practice".',
   'examSetup.hint': '① Pick exam type → ② Filter by domain or tag (optional) → ③ Press "Start Exam". Results are shown after completing all questions.',
 
   // ── Common ──
