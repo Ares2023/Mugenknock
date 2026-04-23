@@ -246,6 +246,57 @@ app.post('/admin/questions', async (req, res) => {
   }
 });
 
+// 管理者用：問題更新
+app.put('/admin/questions/:id', async (req, res) => {
+  try {
+    const docClient = getClient();
+    const questionId = req.params.id;
+    const { questionText, choices, correctAnswers, explanation, domain, tags, isMultiple, examType } = req.body;
+
+    // タグ関係を再構築（既存削除→新規挿入）
+    const relResult = await docClient.send(new ScanCommand({
+      TableName: 'QuestionTagRelations',
+      FilterExpression: 'questionId = :qid',
+      ExpressionAttributeValues: { ':qid': questionId }
+    }));
+    await Promise.all((relResult.Items || []).map(item =>
+      docClient.send(new DeleteCommand({
+        TableName: 'QuestionTagRelations',
+        Key: { tagId: item.tagId, questionId: item.questionId }
+      }))
+    ));
+    if (tags && tags.length > 0) {
+      await Promise.all(tags.map(tagId =>
+        docClient.send(new PutCommand({
+          TableName: 'QuestionTagRelations',
+          Item: { tagId, questionId }
+        }))
+      ));
+    }
+
+    await docClient.send(new UpdateCommand({
+      TableName: 'Questions',
+      Key: { questionId },
+      UpdateExpression: 'SET questionText = :qt, choices = :ch, correctAnswers = :ca, explanation = :ex, #d = :d, tags = :t, isMultiple = :im, examType = :et',
+      ExpressionAttributeNames: { '#d': 'domain' },
+      ExpressionAttributeValues: {
+        ':qt': questionText,
+        ':ch': choices,
+        ':ca': correctAnswers,
+        ':ex': explanation || '',
+        ':d': domain || '',
+        ':t': tags || [],
+        ':im': isMultiple ?? false,
+        ':et': examType,
+      }
+    }));
+    res.json({ success: true });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
 // 問題一覧（管理者用・全フィールド返却）
 // 要確認問題一覧（rating<=2 または isHidden=true）
 app.get('/admin/questions/flagged', async (req, res) => {
