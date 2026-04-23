@@ -124,14 +124,49 @@ echo ""
 echo "--- Claudeに送信中（${COUNT}問）---"
 
 # ── 3. Claude呼び出し ──────────────────────────────────────
-RESULT=$(claude --dangerously-skip-permissions -p "$(cat "$PROMPT_FILE")" 2>/dev/null)
+RESULT=$(claude --dangerously-skip-permissions -p "$(cat "$PROMPT_FILE")" 2>&1)
+CLAUDE_EXIT=$?
 rm -f "$PROMPT_FILE"
+
+# ── レート制限チェック ────────────────────────────────────
+if [ $CLAUDE_EXIT -ne 0 ] || echo "$RESULT" | grep -qiE "rate.?limit|too many requests|overload|529|quota exceeded|usage limit"; then
+  echo ""
+  echo "⚠️  Claudeのレート制限を検出しました"
+  echo "終了コード: ${CLAUDE_EXIT}"
+  echo "出力(先頭3行): $(echo "$RESULT" | head -3)"
+  echo ""
+
+  # 次のリセット時刻を計算（3:30 / 9:30 / 15:30 / 21:30 JST）
+  NEXT_RESET=$(python3 << 'PYEOF'
+from datetime import datetime, timezone, timedelta
+jst = timezone(timedelta(hours=9))
+now = datetime.now(jst)
+candidates = []
+for h in [3, 9, 15, 21]:
+    t = now.replace(hour=h, minute=30, second=0, microsecond=0)
+    if t <= now:
+        t += timedelta(days=1)
+    candidates.append(t)
+nxt = min(candidates)
+print(nxt.strftime('%H:%M'))
+PYEOF
+)
+
+  echo "次のリセット時刻: ${NEXT_RESET} JST にリスケジュールします..."
+  systemd-run --user \
+    --on-calendar="*-*-* ${NEXT_RESET}:00" \
+    --unit="claude-validity-retry.service" \
+    /home/sera/aws-quiz-app/prompts/scripts/check-validity.sh "$BATCH_SIZE" \
+    && echo "✓ スケジュール完了: ${NEXT_RESET} JST" \
+    || echo "✗ systemd-run 失敗。手動で再実行してください: ./check-validity.sh"
+
+  exit 1
+fi
 
 # JSON部分だけ抽出（前後に余計なテキストがある場合に対応）
 RESULT_JSON=$(echo "$RESULT" | python3 -c "
 import sys, json, re
 text = sys.stdin.read()
-# JSON ブロックを探す
 m = re.search(r'\{.*\"results\".*\}', text, re.DOTALL)
 if m:
     try:
