@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { API_ENDPOINT } from '../constants';
+import { useLanguage } from '../contexts/LanguageContext';
 
 type Question = {
   questionId: string;
@@ -16,6 +17,7 @@ type Question = {
 export default function QuestionList() {
   const navigate = useNavigate();
   const location = useLocation();
+  const { lang, t } = useLanguage();
   const [questions, setQuestions] = useState<Question[]>([]);
   const [selected, setSelected] = useState<Set<string>>(new Set());
   const [copiedId, setCopiedId] = useState<string | null>(null);
@@ -73,11 +75,14 @@ export default function QuestionList() {
   };
 
   const copyQuestion = (q: Question) => {
+    const qText = lang === 'en' && (q as any).questionTextEn ? (q as any).questionTextEn : q.questionText;
+    const choices = lang === 'en' && (q as any).choicesEn ? (q as any).choicesEn : q.choices;
+    const expl = lang === 'en' && (q as any).explanationEn ? (q as any).explanationEn : q.explanation;
     const text = [
-      `【問題】${q.questionText}`,
-      q.choices.map((c, i) => `${i + 1}. ${c}`).join("\n"),
-      q.correctAnswers ? `【正解】${q.correctAnswers.join(", ")}` : "",
-      q.explanation ? `【解説】${q.explanation}` : "",
+      `[Q] ${qText}`,
+      choices.map((c: string, i: number) => `${i + 1}. ${c}`).join("\n"),
+      q.correctAnswers ? `[Answer] ${q.correctAnswers.join(", ")}` : "",
+      expl ? `[Explanation] ${expl}` : "",
     ].filter(Boolean).join("\n");
     navigator.clipboard.writeText(text);
     setCopiedId(q.questionId);
@@ -101,14 +106,14 @@ export default function QuestionList() {
   return (
     <div style={{ maxWidth: 1000, margin: "0 auto", padding: "24px 20px", color: '#16191f' }} className="page-container">
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 24 }}>
-        <h1 style={{ color: "#16191f", margin: 0, fontSize: 24, fontWeight: 700 }}>AWS資格問題一覧</h1>
+        <h1 style={{ color: "#16191f", margin: 0, fontSize: 24, fontWeight: 700 }}>{t('questions.title')}</h1>
       </div>
 
       <form onSubmit={handleSearch} style={{ marginBottom: 20, display: "flex", gap: 12 }}>
         <input
           value={keyword}
           onChange={e => setKeyword(e.target.value)}
-          placeholder="サービス名・キーワードで検索"
+          placeholder={t('questions.searchPlaceholder')}
           style={{ flex: 1, padding: "6px 12px", border: "1px solid #d1d5db", borderRadius: 6, fontSize: 14, outline: 'none' }}
           onFocus={e => e.currentTarget.style.borderColor = '#008c8c'}
           onBlur={e => e.currentTarget.style.borderColor = '#d1d5db'}
@@ -118,7 +123,7 @@ export default function QuestionList() {
           onMouseEnter={e => { e.currentTarget.style.background = "#e0f2f2"; e.currentTarget.style.borderColor = "#006666"; e.currentTarget.style.color = "#006666"; }}
           onMouseLeave={e => { e.currentTarget.style.background = "white"; e.currentTarget.style.borderColor = "#008c8c"; e.currentTarget.style.color = "#008c8c"; }}
         >
-          検索
+          {t('questions.search')}
         </button>
         {keyword && (
           <button type="button" onClick={() => navigate('/questions')}
@@ -126,7 +131,7 @@ export default function QuestionList() {
             onMouseEnter={e => { e.currentTarget.style.background = "#f2f3f3"; }}
             onMouseLeave={e => { e.currentTarget.style.background = "white"; }}
           >
-            クリア
+            {t('questions.clear')}
           </button>
         )}
       </form>
@@ -156,7 +161,7 @@ export default function QuestionList() {
           onMouseEnter={e => { e.currentTarget.style.background = "#e0f2f2"; e.currentTarget.style.borderColor = "#006666"; e.currentTarget.style.color = "#006666"; }}
           onMouseLeave={e => { e.currentTarget.style.background = "white"; e.currentTarget.style.borderColor = "#008c8c"; e.currentTarget.style.color = "#008c8c"; }}
         >
-          {selected.size === questions.length ? "全選択を解除" : "すべて選択"}
+          {selected.size === questions.length ? t('questions.deselectAll') : t('questions.selectAll')}
         </button>
         <button onClick={exportCSV} disabled={selected.size === 0}
           style={{
@@ -169,48 +174,53 @@ export default function QuestionList() {
             fontWeight: 700,
             fontSize: 14
           }}>
-          {`CSV出力（${selected.size}件）`}
+          {t('questions.csvExport', { n: selected.size })}
         </button>
       </div>
 
-      {loading ? <p style={{ color: '#545b64' }}>読み込み中...</p> : questions.map(q => (
-        <div key={q.questionId} style={{ border: "1px solid #eaeded", borderRadius: 6, marginBottom: 16, padding: 20, background: selected.has(q.questionId) ? "#e0f2f2" : "white", boxShadow: '0 1px 1px 0 rgba(0,28,36,0.1)' }}>
-          <div style={{ display: "flex", alignItems: "flex-start", gap: 16 }}>
-            <input type="checkbox" checked={selected.has(q.questionId)} onChange={() => toggleSelect(q.questionId)} style={{ marginTop: 6, width: 16, height: 16 }} />
-            <div style={{ flex: 1 }}>
-              <div style={{ marginBottom: 12 }}>
-                <span style={{ background: "#232f3e", color: "white", borderRadius: 12, padding: "2px 8px", fontSize: 11, fontWeight: 700, marginRight: 10 }}>{q.examType}</span>
-                {q.isMultiple && <span style={{ background: "#e0f2f2", color: "#008c8c", borderRadius: 6, padding: "2px 8px", fontSize: 11, fontWeight: 700 }}>複数選択</span>}
-              </div>
-              <p style={{ margin: "0 0 12px", fontWeight: 400, fontSize: 15, lineHeight: 1.6 }}>{q.questionText}</p>
-              <ol style={{ margin: "0 0 16px", paddingLeft: 24, fontSize: 14, color: '#545b64', lineHeight: 1.6 }}>{q.choices.map((c, i) => <li key={i}>{c}</li>)}</ol>
-              {expandedId === q.questionId && q.correctAnswers && (
-                <div style={{ background: "#f2fcf3", borderLeft: '4px solid #037f0c', borderRadius: 6, padding: "12px 16px", marginTop: 12, fontSize: 14 }}>
-                  <p style={{ margin: "0 0 8px" }}><strong style={{ color: '#037f0c' }}>正解：</strong>{q.correctAnswers.join(", ")}</p>
-                  <div style={{ color: '#16191f', lineHeight: 1.6 }}><strong>解説：</strong><div style={{ marginTop: 4 }}>{q.explanation}</div></div>
+      {loading ? <p style={{ color: '#545b64' }}>{t('questions.loading')}</p> : questions.map(q => {
+        const qText = lang === 'en' && (q as any).questionTextEn ? (q as any).questionTextEn : q.questionText;
+        const choices = lang === 'en' && (q as any).choicesEn ? (q as any).choicesEn : q.choices;
+        const expl = lang === 'en' && (q as any).explanationEn ? (q as any).explanationEn : q.explanation;
+        return (
+          <div key={q.questionId} style={{ border: "1px solid #eaeded", borderRadius: 6, marginBottom: 16, padding: 20, background: selected.has(q.questionId) ? "#e0f2f2" : "white", boxShadow: '0 1px 1px 0 rgba(0,28,36,0.1)' }}>
+            <div style={{ display: "flex", alignItems: "flex-start", gap: 16 }}>
+              <input type="checkbox" checked={selected.has(q.questionId)} onChange={() => toggleSelect(q.questionId)} style={{ marginTop: 6, width: 16, height: 16 }} />
+              <div style={{ flex: 1 }}>
+                <div style={{ marginBottom: 12 }}>
+                  <span style={{ background: "#232f3e", color: "white", borderRadius: 12, padding: "2px 8px", fontSize: 11, fontWeight: 700, marginRight: 10 }}>{q.examType}</span>
+                  {q.isMultiple && <span style={{ background: "#e0f2f2", color: "#008c8c", borderRadius: 6, padding: "2px 8px", fontSize: 11, fontWeight: 700 }}>{t('questions.multiple')}</span>}
                 </div>
-              )}
-              <div style={{ marginTop: 16, display: "flex", gap: 12 }}>
-                <button onClick={() => fetchDetail(q.questionId)}
-                  style={{ padding: "6px 16px", cursor: "pointer", borderRadius: 9999, border: "1px solid #008c8c", background: "white", color: "#008c8c", fontWeight: 700, fontSize: 13 }}>
-                  {expandedId === q.questionId ? "解説を隠す" : "解説を表示"}
-                </button>
-                <button onClick={() => copyQuestion(q)}
-                  style={{
-                    padding: "6px 16px", cursor: "pointer", borderRadius: 9999,
-                    border: `1px solid ${copiedId === q.questionId ? '#037f0c' : '#545b64'}`,
-                    color: copiedId === q.questionId ? '#037f0c' : '#16191f',
-                    background: copiedId === q.questionId ? '#f2fcf3' : 'white',
-                    fontWeight: 700, fontSize: 13,
-                    transition: 'all 0.2s'
-                  }}>
-                  {copiedId === q.questionId ? '✓ コピー済み' : 'コピー'}
-                </button>
+                <p style={{ margin: "0 0 12px", fontWeight: 400, fontSize: 15, lineHeight: 1.6 }}>{qText}</p>
+                <ol style={{ margin: "0 0 16px", paddingLeft: 24, fontSize: 14, color: '#545b64', lineHeight: 1.6 }}>{choices.map((c: string, i: number) => <li key={i}>{c}</li>)}</ol>
+                {expandedId === q.questionId && q.correctAnswers && (
+                  <div style={{ background: "#f2fcf3", borderLeft: '4px solid #037f0c', borderRadius: 6, padding: "12px 16px", marginTop: 12, fontSize: 14 }}>
+                    <p style={{ margin: "0 0 8px" }}><strong style={{ color: '#037f0c' }}>{t('questions.correctAnswer')}</strong>{q.correctAnswers.join(", ")}</p>
+                    <div style={{ color: '#16191f', lineHeight: 1.6 }}><strong>{t('questions.explanation')}</strong><div style={{ marginTop: 4 }}>{expl}</div></div>
+                  </div>
+                )}
+                <div style={{ marginTop: 16, display: "flex", gap: 12 }}>
+                  <button onClick={() => fetchDetail(q.questionId)}
+                    style={{ padding: "6px 16px", cursor: "pointer", borderRadius: 9999, border: "1px solid #008c8c", background: "white", color: "#008c8c", fontWeight: 700, fontSize: 13 }}>
+                    {expandedId === q.questionId ? t('questions.hideExplanation') : t('questions.showExplanation')}
+                  </button>
+                  <button onClick={() => copyQuestion(q)}
+                    style={{
+                      padding: "6px 16px", cursor: "pointer", borderRadius: 9999,
+                      border: `1px solid ${copiedId === q.questionId ? '#037f0c' : '#545b64'}`,
+                      color: copiedId === q.questionId ? '#037f0c' : '#16191f',
+                      background: copiedId === q.questionId ? '#f2fcf3' : 'white',
+                      fontWeight: 700, fontSize: 13,
+                      transition: 'all 0.2s'
+                    }}>
+                    {copiedId === q.questionId ? t('questions.copied') : t('questions.copy')}
+                  </button>
+                </div>
               </div>
             </div>
           </div>
-        </div>
-      ))}
+        );
+      })}
     </div>
   );
 }

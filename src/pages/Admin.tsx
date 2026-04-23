@@ -81,9 +81,12 @@ type EditForm = {
   examType: string;
   domain: string;
   questionText: string;
+  questionTextEn: string;
   choices: string[];
+  choicesEn: string[];
   correctAnswers: string[];
   explanation: string;
+  explanationEn: string;
   tags: string;
   isMultiple: boolean;
 };
@@ -237,19 +240,23 @@ export default function Admin() {
   const [validityTotalCount, setValidityTotalCount] = useState(0);
 
   // 問題編集
-  const EMPTY_EDIT_FORM: EditForm = { examType: 'SAA', domain: '', questionText: '', choices: ['', '', '', ''], correctAnswers: [], explanation: '', tags: '', isMultiple: false };
+  const EMPTY_EDIT_FORM: EditForm = { examType: 'SAA', domain: '', questionText: '', questionTextEn: '', choices: ['', '', '', ''], choicesEn: ['', '', '', ''], correctAnswers: [], explanation: '', explanationEn: '', tags: '', isMultiple: false };
   const [editingQuestion, setEditingQuestion] = useState<{ id: string } | null>(null);
   const [editForm, setEditForm] = useState<EditForm>(EMPTY_EDIT_FORM);
   const [saving, setSaving] = useState(false);
 
   const openEdit = (q: Question | FlaggedQuestion) => {
+    const choices = (q as Question).choices || (q as FlaggedQuestion).choices || ['', '', '', ''];
     const form: EditForm = {
       examType: q.examType,
       domain: (q as Question).domain || (q as FlaggedQuestion).domain || '',
       questionText: q.questionText,
-      choices: (q as Question).choices || (q as FlaggedQuestion).choices || ['', '', '', ''],
+      questionTextEn: (q as any).questionTextEn || '',
+      choices,
+      choicesEn: (q as any).choicesEn || choices.map(() => ''),
       correctAnswers: (q as Question).correctAnswers || (q as FlaggedQuestion).correctAnswers || [],
       explanation: (q as Question).explanation || (q as FlaggedQuestion).explanation || '',
+      explanationEn: (q as any).explanationEn || '',
       tags: ((q as Question).tags || (q as FlaggedQuestion).tags || []).join(', '),
       isMultiple: (q as Question).isMultiple || (q as FlaggedQuestion).isMultiple || false,
     };
@@ -262,14 +269,18 @@ export default function Admin() {
     setSaving(true);
     try {
       const tags = editForm.tags.split(',').map(t => t.trim()).filter(Boolean);
+      const payload: any = { ...editForm, tags };
+      if (!payload.questionTextEn?.trim()) delete payload.questionTextEn;
+      if (!payload.explanationEn?.trim()) delete payload.explanationEn;
+      const choicesEn = payload.choicesEn?.filter((c: string) => c.trim());
+      if (!choicesEn?.length) delete payload.choicesEn;
       const res = await adminFetch(`${API_ENDPOINT}/admin/questions/${editingQuestion.id}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ ...editForm, tags }),
+        body: JSON.stringify(payload),
       });
       if (!res.ok) throw new Error('保存失敗');
-      // ローカルstate更新
-      const updated = { ...editForm, tags, questionId: editingQuestion.id };
+      const updated = { ...payload, tags, questionId: editingQuestion.id };
       setQuestions(prev => prev.map(q => q.questionId === editingQuestion.id ? { ...q, ...updated } : q));
       setFlaggedQuestions(prev => prev.map(q => q.questionId === editingQuestion.id ? { ...q, ...updated } : q));
       setEditingQuestion(null);
@@ -469,9 +480,19 @@ export default function Admin() {
 
             {/* 問題文 */}
             <div style={{ marginBottom: 14 }}>
-              <div style={{ fontSize: 12, color: '#545b64', fontWeight: 700, marginBottom: 6 }}>問題文</div>
+              <div style={{ fontSize: 12, color: '#545b64', fontWeight: 700, marginBottom: 6 }}>問題文（日本語）</div>
               <textarea value={editForm.questionText} onChange={e => setEditForm(f => ({ ...f, questionText: e.target.value }))}
                 rows={4}
+                style={{ width: '100%', padding: '7px 10px', border: '1px solid #d1d5db', borderRadius: 6, fontSize: 14, resize: 'vertical', boxSizing: 'border-box', outline: 'none', lineHeight: 1.6 }}
+                onFocus={e => e.currentTarget.style.borderColor = '#008c8c'}
+                onBlur={e => e.currentTarget.style.borderColor = '#d1d5db'} />
+            </div>
+
+            {/* 問題文（英語） */}
+            <div style={{ marginBottom: 14 }}>
+              <div style={{ fontSize: 12, color: '#545b64', fontWeight: 700, marginBottom: 6 }}>問題文（English・任意）</div>
+              <textarea value={editForm.questionTextEn} onChange={e => setEditForm(f => ({ ...f, questionTextEn: e.target.value }))}
+                rows={3} placeholder="English question text (optional)"
                 style={{ width: '100%', padding: '7px 10px', border: '1px solid #d1d5db', borderRadius: 6, fontSize: 14, resize: 'vertical', boxSizing: 'border-box', outline: 'none', lineHeight: 1.6 }}
                 onFocus={e => e.currentTarget.style.borderColor = '#008c8c'}
                 onBlur={e => e.currentTarget.style.borderColor = '#d1d5db'} />
@@ -516,11 +537,43 @@ export default function Admin() {
               ))}
             </div>
 
+            {/* 選択肢（英語） */}
+            <div style={{ marginBottom: 14 }}>
+              <div style={{ fontSize: 12, color: '#545b64', fontWeight: 700, marginBottom: 6 }}>選択肢（English・任意）</div>
+              {editForm.choices.map((_, i) => (
+                <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 6 }}>
+                  <span style={{ fontSize: 12, color: '#aab7b8', width: 20, flexShrink: 0 }}>{i + 1}.</span>
+                  <input
+                    value={editForm.choicesEn[i] ?? ''}
+                    onChange={e => {
+                      const next = [...editForm.choicesEn];
+                      while (next.length <= i) next.push('');
+                      next[i] = e.target.value;
+                      setEditForm(f => ({ ...f, choicesEn: next }));
+                    }}
+                    placeholder={`Choice ${i + 1} in English (optional)`}
+                    style={{ flex: 1, padding: '6px 10px', border: '1px solid #d1d5db', borderRadius: 6, fontSize: 13, outline: 'none' }}
+                    onFocus={e => e.currentTarget.style.borderColor = '#008c8c'}
+                    onBlur={e => e.currentTarget.style.borderColor = '#d1d5db'} />
+                </div>
+              ))}
+            </div>
+
             {/* 解説 */}
             <div style={{ marginBottom: 14 }}>
-              <div style={{ fontSize: 12, color: '#545b64', fontWeight: 700, marginBottom: 6 }}>解説</div>
+              <div style={{ fontSize: 12, color: '#545b64', fontWeight: 700, marginBottom: 6 }}>解説（日本語）</div>
               <textarea value={editForm.explanation} onChange={e => setEditForm(f => ({ ...f, explanation: e.target.value }))}
                 rows={5}
+                style={{ width: '100%', padding: '7px 10px', border: '1px solid #d1d5db', borderRadius: 6, fontSize: 14, resize: 'vertical', boxSizing: 'border-box', outline: 'none', lineHeight: 1.6 }}
+                onFocus={e => e.currentTarget.style.borderColor = '#008c8c'}
+                onBlur={e => e.currentTarget.style.borderColor = '#d1d5db'} />
+            </div>
+
+            {/* 解説（英語） */}
+            <div style={{ marginBottom: 14 }}>
+              <div style={{ fontSize: 12, color: '#545b64', fontWeight: 700, marginBottom: 6 }}>解説（English・任意）</div>
+              <textarea value={editForm.explanationEn} onChange={e => setEditForm(f => ({ ...f, explanationEn: e.target.value }))}
+                rows={4} placeholder="English explanation (optional)"
                 style={{ width: '100%', padding: '7px 10px', border: '1px solid #d1d5db', borderRadius: 6, fontSize: 14, resize: 'vertical', boxSizing: 'border-box', outline: 'none', lineHeight: 1.6 }}
                 onFocus={e => e.currentTarget.style.borderColor = '#008c8c'}
                 onBlur={e => e.currentTarget.style.borderColor = '#d1d5db'} />
@@ -833,9 +886,12 @@ export default function Admin() {
             examType: "SAA",
             domain: "セキュアなアーキテクチャの設計",
             questionText: "Amazon S3バケットへのアクセスを特定のVPCからのみに制限するために使用すべきものはどれですか？",
+            questionTextEn: "What should you use to restrict access to an Amazon S3 bucket to only a specific VPC?",
             choices: ["A. バケットACL", "B. S3バケットポリシーとVPCエンドポイント", "C. IAMユーザーポリシー", "D. セキュリティグループ"],
+            choicesEn: ["A. Bucket ACL", "B. S3 bucket policy with VPC endpoint", "C. IAM user policy", "D. Security group"],
             correctAnswers: ["B. S3バケットポリシーとVPCエンドポイント"],
             explanation: "VPCエンドポイントを使用しS3バケットポリシーでaws:sourceVpceを条件にすることでVPC外からのアクセスを制限できます。",
+            explanationEn: "By using a VPC endpoint and setting aws:sourceVpce as a condition in the S3 bucket policy, you can restrict access from outside the VPC.",
             tags: ["S3", "VPC", "セキュリティ"],
             isMultiple: false
           }
@@ -1003,16 +1059,21 @@ export default function Admin() {
 ・examType には "${importExamType}" を必ず設定すること
 ・domain には以下のいずれかを設定すること: ${EXAM_DOMAIN_LIST[importExamType]?.join(' / ')}
 ・tags 配列には関連するAWSサービス名のみを入れること（例: "S3", "IAM", "EC2"）
+・questionTextEn, choicesEn, explanationEn には日本語フィールドの英語訳を必ず含めること
+・choicesEn の要素数・順序は choices と完全に一致させること
 
 【出力形式】
 [
   {
     "examType": "${importExamType}",
     "domain": "（上記ドメインのいずれか）",
-    "questionText": "問題文",
+    "questionText": "問題文（日本語）",
+    "questionTextEn": "Question text in English",
     "choices": ["A. 選択肢1", "B. 選択肢2", "C. 選択肢3", "D. 選択肢4"],
+    "choicesEn": ["A. Choice 1", "B. Choice 2", "C. Choice 3", "D. Choice 4"],
     "correctAnswers": ["A. 選択肢1"],
-    "explanation": "解説文",
+    "explanation": "解説文（日本語）",
+    "explanationEn": "Explanation in English",
     "isMultiple": false,
     "tags": ["関連AWSサービス名"]
   }

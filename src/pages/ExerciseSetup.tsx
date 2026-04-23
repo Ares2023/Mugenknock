@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { API_ENDPOINT, EXAM_TYPES, EXAM_DOMAINS, PASS_SCORES, PASS_RATE } from '../constants';
+import { API_ENDPOINT, EXAM_TYPES, EXAM_DOMAINS, PASS_SCORES, PASS_RATE, DOMAIN_NAME_EN } from '../constants';
 import { useAuth } from '../contexts/AuthContext';
+import { useLanguage } from '../contexts/LanguageContext';
 
 const EXAM_INFO: Record<string, {
   fullName: string;
@@ -79,6 +80,7 @@ function shuffleArray<T>(arr: T[]): T[] {
 export default function ExerciseSetup() {
   const navigate = useNavigate();
   const { user } = useAuth();
+  const { lang, t } = useLanguage();
   const targetExam = localStorage.getItem('targetExam');
   const [examType, setExamType] = useState<string>(() => targetExam || localStorage.getItem('lastExamType') || 'SAA');
   const [selectedDomain, setSelectedDomain] = useState('');
@@ -189,7 +191,7 @@ export default function ExerciseSetup() {
       }
 
       if (selectedItems.length === 0) {
-        alert('条件に合う問題がありません');
+        alert(t('exerciseSetup.noQuestions'));
         setLoading(false);
         return;
       }
@@ -207,7 +209,7 @@ export default function ExerciseSetup() {
       });
     } catch (err) {
       console.error(err);
-      alert('セッション開始に失敗しました');
+      alert(t('exerciseSetup.startFailed'));
     } finally {
       setLoading(false);
     }
@@ -228,26 +230,26 @@ export default function ExerciseSetup() {
   return (
     <div style={{ maxWidth: 1200, margin: '0 auto', padding: '24px 20px', color: '#16191f' }} className="page-container">
 
-      <h1 style={{ fontSize: 24, fontWeight: 700, margin: '0 0 24px' }}>演習設定</h1>
+      <h1 style={{ fontSize: 24, fontWeight: 700, margin: '0 0 24px' }}>{t('exerciseSetup.title')}</h1>
 
       <div className="setup-grid" style={{ display: 'grid', gridTemplateColumns: '1fr 380px', gap: 32, alignItems: 'flex-start' }}>
 
         {/* 左：設定フォーム */}
         <div style={{ background: 'white', border: '1px solid #eaeded', borderRadius: 6, padding: '24px 32px', boxShadow: '0 1px 1px 0 rgba(0,28,36,0.1)' }}>
           <h2 style={{ fontSize: 18, fontWeight: 700, margin: '0 0 24px', borderBottom: '1px solid #eaeded', paddingBottom: 12 }}>
-            演習パラメーター
+            {t('exerciseSetup.params')}
           </h2>
 
           {/* 試験種別 */}
           {targetExam ? (
             <div style={{ marginBottom: 24, display: 'flex', alignItems: 'center', gap: 8 }}>
-              <span style={{ fontSize: 14, fontWeight: 700, color: '#545b64' }}>試験種別</span>
+              <span style={{ fontSize: 14, fontWeight: 700, color: '#545b64' }}>{t('exerciseSetup.examType')}</span>
               <span style={{ background: '#232f3e', color: 'white', fontSize: 12, padding: '2px 10px', borderRadius: 12, fontWeight: 700 }}>{examType}</span>
-              <span style={{ fontSize: 12, color: '#aab7b8' }}>（ホームで変更）</span>
+              <span style={{ fontSize: 12, color: '#aab7b8' }}>{t('exerciseSetup.examTypeHome')}</span>
             </div>
           ) : (
             <div style={{ marginBottom: 24 }}>
-              <label style={{ display: 'block', marginBottom: 8, fontWeight: 700, fontSize: 14 }}>試験種別</label>
+              <label style={{ display: 'block', marginBottom: 8, fontWeight: 700, fontSize: 14 }}>{t('exerciseSetup.examType')}</label>
               <div style={{ display: 'flex', gap: 8 }}>
                 {EXAM_TYPES.map(type => (
                   <button key={type} onClick={() => { setExamType(type); localStorage.setItem('lastExamType', type); }} style={chipStyle(examType === type)}>
@@ -261,13 +263,13 @@ export default function ExerciseSetup() {
           {/* ドメインフィルタ */}
           <div style={{ marginBottom: 24 }}>
             <label style={{ display: 'block', marginBottom: 8, fontWeight: 700, fontSize: 14 }}>
-              出題ドメイン <span style={{ fontWeight: 400, fontSize: 12, color: '#545b64' }}>（任意）</span>
+              {t('exerciseSetup.domain')} <span style={{ fontWeight: 400, fontSize: 12, color: '#545b64' }}>{t('exerciseSetup.optional')}</span>
             </label>
             <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
-              <button onClick={() => setSelectedDomain('')} style={chipStyle(selectedDomain === '')}>すべて</button>
+              <button onClick={() => setSelectedDomain('')} style={chipStyle(selectedDomain === '')}>{t('exerciseSetup.all')}</button>
               {EXAM_DOMAINS[examType].map(d => (
                 <button key={d} onClick={() => setSelectedDomain(selectedDomain === d ? '' : d)} style={chipStyle(selectedDomain === d)}>
-                  {d}
+                  {lang === 'en' ? (DOMAIN_NAME_EN[d] ?? d) : d}
                 </button>
               ))}
             </div>
@@ -277,13 +279,13 @@ export default function ExerciseSetup() {
           {availableTags.length > 0 && (
             <div style={{ marginBottom: 24 }}>
               <label style={{ display: 'block', marginBottom: 8, fontWeight: 700, fontSize: 14 }}>
-                タグ <span style={{ fontWeight: 400, fontSize: 12, color: '#545b64' }}>（任意）</span>
+                {t('exerciseSetup.tag')} <span style={{ fontWeight: 400, fontSize: 12, color: '#545b64' }}>{t('exerciseSetup.optional')}</span>
               </label>
               <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
-                <button onClick={() => setSelectedTag('')} style={chipStyle(selectedTag === '')}>すべて</button>
-                {availableTags.map(t => (
-                  <button key={t} onClick={() => setSelectedTag(selectedTag === t ? '' : t)} style={chipStyle(selectedTag === t)}>
-                    {t}
+                <button onClick={() => setSelectedTag('')} style={chipStyle(selectedTag === '')}>{t('exerciseSetup.all')}</button>
+                {availableTags.map(tag => (
+                  <button key={tag} onClick={() => setSelectedTag(selectedTag === tag ? '' : tag)} style={chipStyle(selectedTag === tag)}>
+                    {tag}
                   </button>
                 ))}
               </div>
@@ -292,14 +294,14 @@ export default function ExerciseSetup() {
 
           {/* 問題数 */}
           <div style={{ marginBottom: 24 }}>
-            <label style={{ display: 'block', marginBottom: 8, fontWeight: 700, fontSize: 14 }}>問題数</label>
+            <label style={{ display: 'block', marginBottom: 8, fontWeight: 700, fontSize: 14 }}>{t('exerciseSetup.questionCount')}</label>
             <input type="number" value={limit} onChange={e => setLimit(Math.max(1, parseInt(e.target.value) || 1))} min={1} max={availableCount ?? 50}
               style={{ padding: '6px 12px', width: 100, border: '1px solid #d1d5db', borderRadius: 6, fontSize: 14, outline: 'none' }}
               onFocus={e => e.currentTarget.style.borderColor = '#008c8c'}
               onBlur={e => e.currentTarget.style.borderColor = '#d1d5db'}
             />
             <span style={{ marginLeft: 12, fontSize: 12, color: '#545b64' }}>
-              {availableCount !== null ? `最大 ${availableCount} 問` : '読込中...'}
+              {availableCount !== null ? t('exerciseSetup.maxQ', { n: availableCount }) : t('exerciseSetup.loading')}
             </span>
           </div>
 
@@ -309,8 +311,8 @@ export default function ExerciseSetup() {
               <label style={{ display: 'flex', alignItems: 'center', gap: 10, cursor: 'pointer', fontSize: 14 }}>
                 <input type="checkbox" checked={unansweredOnly} onChange={e => setUnansweredOnly(e.target.checked)} style={{ width: 16, height: 16 }} />
                 <span style={{ fontWeight: 700 }}>
-                  未回答の問題のみ
-                  <span style={{ fontWeight: 400, fontSize: 12, color: '#545b64', marginLeft: 6 }}>（一度も解いていない問題）</span>
+                  {t('exerciseSetup.unansweredOnly')}
+                  <span style={{ fontWeight: 400, fontSize: 12, color: '#545b64', marginLeft: 6 }}>{t('exerciseSetup.unansweredOnlyDesc')}</span>
                 </span>
               </label>
             )}
@@ -318,37 +320,27 @@ export default function ExerciseSetup() {
               <label style={{ display: 'flex', alignItems: 'center', gap: 10, cursor: 'pointer', fontSize: 14 }}>
                 <input type="checkbox" checked={bookmarkOnly} onChange={e => setBookmarkOnly(e.target.checked)} style={{ width: 16, height: 16 }} />
                 <span style={{ fontWeight: 700 }}>
-                  ブックマークした問題のみ
-                  <span style={{ fontWeight: 400, fontSize: 12, color: '#545b64', marginLeft: 6 }}>（演習中に★でブックマーク）</span>
+                  {t('exerciseSetup.bookmarkOnly')}
+                  <span style={{ fontWeight: 400, fontSize: 12, color: '#545b64', marginLeft: 6 }}>{t('exerciseSetup.bookmarkOnlyDesc')}</span>
                 </span>
               </label>
             )}
             <label style={{ display: 'flex', alignItems: 'center', gap: 10, cursor: 'pointer', fontSize: 14 }}>
               <input type="checkbox" checked={shuffle} onChange={e => setShuffle(e.target.checked)} style={{ width: 16, height: 16 }} />
-              <span style={{ fontWeight: 700 }}>問題をシャッフルする</span>
+              <span style={{ fontWeight: 700 }}>{t('exerciseSetup.shuffle')}</span>
             </label>
           </div>
 
           <div style={{ display: 'flex', gap: 12, borderTop: '1px solid #eaeded', paddingTop: 24, justifyContent: 'flex-end' }}>
-            <button onClick={() => navigate('/')}
-              style={{ padding: '8px 20px', cursor: 'pointer', borderRadius: 9999, border: '1px solid #545b64', background: 'white', fontWeight: 700, fontSize: 14 }}>
-              キャンセル
+            <button onClick={() => navigate('/')} style={{ padding: '8px 20px', cursor: 'pointer', borderRadius: 9999, border: '1px solid #545b64', background: 'white', fontWeight: 700, fontSize: 14 }}>
+              {t('exerciseSetup.cancel')}
             </button>
             <button onClick={startSession} disabled={loading || availableCount === 0}
-              style={{
-                padding: '8px 32px',
-                background: loading || availableCount === 0 ? '#eaeded' : '#ff9900',
-                color: loading || availableCount === 0 ? '#aab7b8' : '#16191f',
-                border: '1px solid transparent',
-                borderRadius: 9999,
-                cursor: loading || availableCount === 0 ? 'default' : 'pointer',
-                fontSize: 14,
-                fontWeight: 700
-              }}
+              style={{ padding: '8px 32px', background: loading || availableCount === 0 ? '#eaeded' : '#ff9900', color: loading || availableCount === 0 ? '#aab7b8' : '#16191f', border: '1px solid transparent', borderRadius: 9999, cursor: loading || availableCount === 0 ? 'default' : 'pointer', fontSize: 14, fontWeight: 700 }}
               onMouseEnter={e => { if (!loading && availableCount !== 0) e.currentTarget.style.background = '#ec7211'; }}
               onMouseLeave={e => { if (!loading && availableCount !== 0) e.currentTarget.style.background = '#ff9900'; }}
             >
-              {loading ? '準備中...' : '演習を開始する'}
+              {loading ? t('exerciseSetup.starting') : t('exerciseSetup.start')}
             </button>
           </div>
         </div>
@@ -364,21 +356,21 @@ export default function ExerciseSetup() {
 
           {/* ── 試験概要 ── */}
           <div style={{ marginBottom: 20 }}>
-            <div style={{ fontSize: 11, fontWeight: 700, color: '#545b64', textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: 10 }}>試験概要</div>
+            <div style={{ fontSize: 11, fontWeight: 700, color: '#545b64', textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: 10 }}>{t('exerciseSetup.overview')}</div>
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 1, background: '#eaeded', border: '1px solid #eaeded', borderRadius: 6, overflow: 'hidden' }}>
               <div style={{ background: 'white', padding: '10px 12px' }}>
-                <div style={{ fontSize: 11, color: '#545b64', marginBottom: 4 }}>問題数</div>
-                <div style={{ fontSize: 18, fontWeight: 700 }}>{info.totalQuestions}<span style={{ fontSize: 11, fontWeight: 400, marginLeft: 2 }}>問</span></div>
+                <div style={{ fontSize: 11, color: '#545b64', marginBottom: 4 }}>{t('exerciseSetup.totalQuestions')}</div>
+                <div style={{ fontSize: 18, fontWeight: 700 }}>{info.totalQuestions}<span style={{ fontSize: 11, fontWeight: 400, marginLeft: 2 }}>{t('exerciseSetup.qUnit')}</span></div>
                 {info.scoredQuestions < info.totalQuestions && (
-                  <div style={{ fontSize: 10, color: '#879596', marginTop: 2 }}>採点 {info.scoredQuestions}問</div>
+                  <div style={{ fontSize: 10, color: '#879596', marginTop: 2 }}>{t('exerciseSetup.scored')} {info.scoredQuestions}{t('exerciseSetup.qUnit')}</div>
                 )}
               </div>
               <div style={{ background: 'white', padding: '10px 12px' }}>
-                <div style={{ fontSize: 11, color: '#545b64', marginBottom: 4 }}>制限時間</div>
+                <div style={{ fontSize: 11, color: '#545b64', marginBottom: 4 }}>{t('exerciseSetup.timeLimit')}</div>
                 <div style={{ fontSize: 18, fontWeight: 700 }}>{info.timeLimit}</div>
               </div>
               <div style={{ background: 'white', padding: '10px 12px' }}>
-                <div style={{ fontSize: 11, color: '#545b64', marginBottom: 4 }}>合格スコア</div>
+                <div style={{ fontSize: 11, color: '#545b64', marginBottom: 4 }}>{t('exerciseSetup.passScore')}</div>
                 <div style={{ fontSize: 18, fontWeight: 700, color: '#037f0c' }}>{passScore}</div>
               </div>
             </div>
@@ -386,16 +378,16 @@ export default function ExerciseSetup() {
 
           {/* ── あなたの進捗 ── */}
           <div style={{ marginBottom: 20, padding: '14px 16px', background: '#e0f2f2', border: '1px solid #d4e9f5', borderRadius: 6 }}>
-            <div style={{ fontSize: 11, fontWeight: 700, color: '#008c8c', textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: 10 }}>あなたの進捗</div>
+            <div style={{ fontSize: 11, fontWeight: 700, color: '#008c8c', textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: 10 }}>{t('exerciseSetup.progress')}</div>
             {answeredCount === null ? (
-              <div style={{ fontSize: 13, color: '#545b64' }}>読み込み中...</div>
+              <div style={{ fontSize: 13, color: '#545b64' }}>{t('exerciseSetup.loadingProgress')}</div>
             ) : (
               <>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: 6 }}>
-                  <span style={{ fontSize: 13, color: '#16191f' }}>演習済み</span>
+                  <span style={{ fontSize: 13, color: '#16191f' }}>{t('exerciseSetup.answered')}</span>
                   <span style={{ fontSize: 16, fontWeight: 700, color: '#008c8c' }}>
                     {answeredCount}
-                    <span style={{ fontSize: 12, fontWeight: 400, color: '#545b64' }}> / {info.totalQuestions} 問</span>
+                    <span style={{ fontSize: 12, fontWeight: 400, color: '#545b64' }}> / {info.totalQuestions} {t('exerciseSetup.qUnit')}</span>
                   </span>
                 </div>
                 <div style={{ background: '#d4e9f5', borderRadius: 10, height: 6, overflow: 'hidden' }}>
@@ -418,25 +410,25 @@ export default function ExerciseSetup() {
             const border = unansweredOnly && bookmarkOnly ? '#b7ebc8' : unansweredOnly ? '#b7ebc8' : bookmarkOnly ? '#ffe8a0' : '#eaeded';
             const color = unansweredOnly ? '#1d7a3d' : bookmarkOnly ? '#b85c00' : '#008c8c';
             const label = (() => {
-              if (unansweredOnly && bookmarkOnly) return '未回答 & ブックマーク';
-              if (unansweredOnly) return '未回答の問題';
-              if (bookmarkOnly) return 'ブックマーク済み';
-              return selectedDomain || selectedTag ? 'フィルタ後の問題数' : 'サイト内問題数';
+              if (unansweredOnly && bookmarkOnly) return t('exerciseSetup.unansweredBookmark');
+              if (unansweredOnly) return t('exerciseSetup.unansweredLabel');
+              if (bookmarkOnly) return t('exerciseSetup.bookmarkLabel');
+              return selectedDomain || selectedTag ? t('exerciseSetup.filteredCount') : t('exerciseSetup.siteCount');
             })();
             return (
               <div style={{ marginBottom: 20, padding: '14px 16px', background: bg, border: `1px solid ${border}`, borderRadius: 6 }}>
-                <div style={{ fontSize: 11, fontWeight: 700, color: '#545b64', textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: 10 }}>今回の出題</div>
+                <div style={{ fontSize: 11, fontWeight: 700, color: '#545b64', textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: 10 }}>{t('exerciseSetup.thisSession')}</div>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline' }}>
                   <span style={{ fontSize: 13, color: '#16191f' }}>{label}</span>
                   <span style={{ fontSize: 20, fontWeight: 700, color }}>
                     {availableCount === null ? '...' : availableCount}
-                    <span style={{ fontSize: 12, fontWeight: 400, marginLeft: 4 }}>問</span>
+                    <span style={{ fontSize: 12, fontWeight: 400, marginLeft: 4 }}>{t('exerciseSetup.qUnit')}</span>
                   </span>
                 </div>
                 {(selectedDomain || selectedTag) && availableCount !== null && !hasFilter && (
                   <div style={{ fontSize: 11, color: '#545b64', marginTop: 4 }}>
-                    {selectedDomain && <span style={{ marginRight: 8 }}>ドメイン: {selectedDomain}</span>}
-                    {selectedTag && <span>タグ: {selectedTag}</span>}
+                    {selectedDomain && <span style={{ marginRight: 8 }}>{lang === 'en' ? (DOMAIN_NAME_EN[selectedDomain] ?? selectedDomain) : selectedDomain}</span>}
+                    {selectedTag && <span>{selectedTag}</span>}
                   </div>
                 )}
               </div>
@@ -445,14 +437,13 @@ export default function ExerciseSetup() {
 
           {/* ── 出題範囲と比率 ── */}
           <div style={{ borderTop: '1px solid #eaeded', paddingTop: 16 }}>
-            <div style={{ fontSize: 11, fontWeight: 700, color: '#545b64', textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: 12 }}>出題範囲と比率</div>
+            <div style={{ fontSize: 11, fontWeight: 700, color: '#545b64', textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: 12 }}>{t('exerciseSetup.distribution')}</div>
             {info.categories.map(cat => (
               <div key={cat.name} style={{ marginBottom: 10 }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 12, marginBottom: 4 }}>
-                  <span style={{
-                    color: selectedDomain === cat.name ? '#008c8c' : '#16191f',
-                    fontWeight: selectedDomain === cat.name ? 700 : 400,
-                  }}>{cat.name}</span>
+                  <span style={{ color: selectedDomain === cat.name ? '#008c8c' : '#16191f', fontWeight: selectedDomain === cat.name ? 700 : 400 }}>
+                    {lang === 'en' ? (DOMAIN_NAME_EN[cat.name] ?? cat.name) : cat.name}
+                  </span>
                   <span style={{ fontWeight: 700, color: '#008c8c', flexShrink: 0, marginLeft: 8 }}>{cat.ratio}</span>
                 </div>
                 <div style={{ background: '#eaeded', borderRadius: 10, height: 4 }}>

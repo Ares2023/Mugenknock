@@ -3,6 +3,7 @@ import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import { Amplify } from 'aws-amplify';
 import awsExports from './aws-exports';
 import { AuthProvider } from './contexts/AuthContext';
+import { LanguageProvider } from './contexts/LanguageContext';
 import PrivateRoute from './components/PrivateRoute';
 import AdminRoute from './components/AdminRoute';
 import Layout from './components/Layout';
@@ -25,6 +26,7 @@ Amplify.configure(awsExports);
 
 function App() {
   return (
+    <LanguageProvider>
     <AuthProvider>
       <BrowserRouter>
         <Routes>
@@ -48,6 +50,7 @@ function App() {
         </Routes>
       </BrowserRouter>
     </AuthProvider>
+    </LanguageProvider>
   );
 }
 

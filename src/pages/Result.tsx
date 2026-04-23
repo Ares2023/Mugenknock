@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { PASS_SCORES, PASS_RATE } from '../constants';
+import { useLanguage } from '../contexts/LanguageContext';
 
 export default function Result() {
   const navigate = useNavigate();
@@ -12,33 +13,34 @@ export default function Result() {
   const passRate = PASS_RATE[resolvedExamType];
   const isExam = mode === 'exam';
 
+  const { lang, t } = useLanguage();
   const [expandedId, setExpandedId] = useState<string | null>(null);
 
   return (
     <div style={{ maxWidth: 860, margin: '0 auto', padding: '32px 20px', color: '#16191f' }} className="result-container">
       <h2 style={{ fontSize: 24, fontWeight: 700, margin: '0 0 24px' }}>
-        {isExam ? '模試結果' : '演習結果'}
+        {isExam ? t('result.examResult') : t('result.exerciseResult')}
       </h2>
 
       {/* スコアカード */}
       <div style={{ textAlign: 'center', padding: '32px 24px',
         background: isPassed ? '#f2fcf3' : '#fdf3f1', border: `1px solid ${isPassed ? '#037f0c' : '#d13212'}`, borderRadius: 6, marginBottom: 32, boxShadow: '0 1px 1px 0 rgba(0,28,36,0.1)' }}>
-        {timeUp && <p style={{ color: '#d13212', fontSize: 13, margin: '0 0 12px', fontWeight: 700 }}>⏱ 制限時間終了</p>}
+        {timeUp && <p style={{ color: '#d13212', fontSize: 13, margin: '0 0 12px', fontWeight: 700 }}>{t('result.timeUp')}</p>}
         <p style={{ fontSize: 56, fontWeight: 700, color: isPassed ? '#037f0c' : '#d13212', margin: 0 }}>{score}%</p>
         <p style={{ fontSize: 24, fontWeight: 700, color: isPassed ? '#037f0c' : '#d13212', margin: '8px 0' }}>
-          {isPassed ? '合格' : '不合格'}
+          {isPassed ? t('result.passed') : t('result.failed')}
         </p>
         <p style={{ color: '#545b64', fontSize: 14, margin: '8px 0 4px' }}>
-          合格ライン: <strong>{passRate}%</strong>
-          <span style={{ marginLeft: 12 }}>（公式スコア {passScore} / 1000 相当）</span>
+          {t('result.passLine')}: <strong>{passRate}%</strong>
+          <span style={{ marginLeft: 12 }}>{t('result.officialScore', { score: passScore })}</span>
         </p>
         <p style={{ color: '#16191f', marginTop: 12, fontSize: 16, fontWeight: 700 }}>
-          {results.filter((r: any) => r.isCorrect).length} / {questions.length} 問正解
+          {t('result.correctCount', { correct: results.filter((r: any) => r.isCorrect).length, total: questions.length })}
         </p>
       </div>
 
       {/* 問題ごとの結果 */}
-      <h3 style={{ fontSize: 18, fontWeight: 700, margin: '0 0 16px' }}>問題ごとの結果</h3>
+      <h3 style={{ fontSize: 18, fontWeight: 700, margin: '0 0 16px' }}>{t('result.perQuestion')}</h3>
       {questions.map((q: any, i: number) => {
         const result = results[i];
         const isCorrect = result?.isCorrect;
@@ -53,13 +55,13 @@ export default function Result() {
               style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '12px 16px',
                 cursor: 'pointer', background: expanded ? '#fbfbfb' : 'white' }}>
               <span style={{ fontSize: 12, color: '#545b64', flexShrink: 0 }}>{expanded ? '▼' : '▶'}</span>
-              <span style={{ fontSize: 14, color: '#545b64', flexShrink: 0, minWidth: 40, fontWeight: 700 }}>問 {i + 1}</span>
+              <span style={{ fontSize: 14, color: '#545b64', flexShrink: 0, minWidth: 40, fontWeight: 700 }}>{t('result.qLabel')} {i + 1}</span>
               <span style={{ flex: 1, fontSize: 14, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                 {q.questionText}
               </span>
               <span style={{ fontWeight: 700, fontSize: 14, flexShrink: 0,
                 color: isCorrect ? '#037f0c' : '#d13212' }}>
-                {isCorrect ? '✓ 正解' : '✗ 不正解'}
+                {isCorrect ? t('result.correct') : t('result.incorrect')}
               </span>
             </div>
 
@@ -82,8 +84,8 @@ export default function Result() {
                 </div>
                 {q.explanation && (
                   <div style={{ background: '#e0f2f2', borderLeft: '4px solid #008c8c', borderRadius: 6, padding: '12px 16px', color: '#16191f', lineHeight: 1.6 }}>
-                    <strong>解説：</strong>
-                    <div style={{ marginTop: 4 }}>{q.explanation}</div>
+                    <strong>{t('result.explanation')}</strong>
+                    <div style={{ marginTop: 4 }}>{lang === 'en' && q.explanationEn ? q.explanationEn : q.explanation}</div>
                   </div>
                 )}
               </div>
@@ -116,7 +118,7 @@ export default function Result() {
             e.currentTarget.style.color = "#008c8c";
           }}
         >
-          ホームへ戻る
+          {t('result.backHome')}
         </button>
         <button onClick={() => navigate(isExam ? '/exam/setup' : '/exercise/setup')}
           style={{
@@ -132,7 +134,7 @@ export default function Result() {
           onMouseEnter={e => e.currentTarget.style.background = '#ec7211'}
           onMouseLeave={e => e.currentTarget.style.background = '#ff9900'}
         >
-          もう一度挑戦する
+          {t('result.retry')}
         </button>
       </div>
     </div>

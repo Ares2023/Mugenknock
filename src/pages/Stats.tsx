@@ -1,7 +1,8 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { API_ENDPOINT, EXAM_TYPES, PASS_RATE, EXAM_DOMAINS } from '../constants';
+import { API_ENDPOINT, EXAM_TYPES, PASS_RATE, EXAM_DOMAINS, DOMAIN_NAME_EN } from '../constants';
 import { useAuth } from '../contexts/AuthContext';
+import { useLanguage } from '../contexts/LanguageContext';
 
 const TARGET_EXAM_KEY = 'targetExam';
 
@@ -31,6 +32,7 @@ type TagStat = {
 
 export default function Stats() {
   const { user } = useAuth();
+  const { lang, t } = useLanguage();
   const navigate = useNavigate();
   const [examStats, setExamStats] = useState<ExamStat[]>([]);
   const [sessions, setSessions] = useState<Session[]>([]);
@@ -85,7 +87,7 @@ export default function Stats() {
   }, [user]);
 
   const fmt = (iso: string) =>
-    new Date(iso).toLocaleString('ja-JP', { month: 'numeric', day: 'numeric', hour: '2-digit', minute: '2-digit' });
+    new Date(iso).toLocaleString(lang === 'en' ? 'en-US' : 'ja-JP', { month: 'numeric', day: 'numeric', hour: '2-digit', minute: '2-digit' });
 
   const AWS_TAG_BG = '#232f3e';
   const AWS_BLUE = '#008c8c';
@@ -110,9 +112,9 @@ export default function Stats() {
   return (
     <div style={{ maxWidth: 1000, margin: '0 auto', padding: '32px 20px', color: '#16191f' }} className="page-container">
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 24, flexWrap: 'wrap', gap: 12 }}>
-        <h2 style={{ fontSize: 24, fontWeight: 700, margin: 0 }}>統計・分析</h2>
+        <h2 style={{ fontSize: 24, fontWeight: 700, margin: 0 }}>{t('stats.title')}</h2>
         <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-          <span style={{ fontSize: 12, color: '#545b64' }}>表示中:</span>
+          <span style={{ fontSize: 12, color: '#545b64' }}>{t('stats.showing')}</span>
           {EXAM_TYPES.map(et => (
             <button
               key={et}
@@ -138,14 +140,14 @@ export default function Stats() {
               onClick={() => { localStorage.removeItem(TARGET_EXAM_KEY); setTargetExam(null); }}
               style={{ padding: '4px 10px', borderRadius: 6, fontSize: 12, border: '1px solid #eaeded', background: 'white', color: '#879596', cursor: 'pointer' }}
             >
-              すべて
+              {t('stats.all')}
             </button>
           )}
         </div>
       </div>
 
       {/* 試験別サマリーカード */}
-      <h3 style={{ fontSize: 16, fontWeight: 700, margin: '0 0 16px', color: '#545b64' }}>演習進捗</h3>
+      <h3 style={{ fontSize: 16, fontWeight: 700, margin: '0 0 16px', color: '#545b64' }}>{t('stats.exerciseProgress')}</h3>
       <div className="exam-stat-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(220px, 1fr))', gap: 12, marginBottom: 16 }}>
         {loading
           ? visibleExamTypes.map(et => (
@@ -162,7 +164,7 @@ export default function Stats() {
                     <span style={{ background: AWS_TAG_BG, color: 'white', fontSize: 13, padding: '2px 10px', borderRadius: 12, fontWeight: 700 }}>{stat.examType}</span>
                   </div>
                   <div style={{ marginBottom: 16 }}>
-                    <div style={{ fontSize: 12, color: '#545b64', marginBottom: 8, fontWeight: 700 }}>演習進捗</div>
+                    <div style={{ fontSize: 12, color: '#545b64', marginBottom: 8, fontWeight: 700 }}>{t('stats.exerciseProgressLabel')}</div>
                     <div style={{ background: '#eaeded', borderRadius: 10, height: 6, overflow: 'hidden' }}>
                       <div style={{ width: `${pct}%`, background: AWS_BLUE, height: '100%', transition: 'width 0.4s' }} />
                     </div>
@@ -173,17 +175,17 @@ export default function Stats() {
                     </div>
                   </div>
                   <div style={{ borderTop: '1px solid #eaeded', paddingTop: 16 }}>
-                    <div style={{ fontSize: 12, color: '#545b64', marginBottom: 4, fontWeight: 700 }}>直近の模試</div>
+                    <div style={{ fontSize: 12, color: '#545b64', marginBottom: 4, fontWeight: 700 }}>{t('stats.lastMock')}</div>
                     {stat.lastScore !== null ? (
                       <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
                         <span style={{ fontSize: 24, fontWeight: 700, color: stat.lastPassed ? '#037f0c' : '#d13212' }}>{stat.lastScore}%</span>
                         <span style={{ fontSize: 12, padding: '2px 8px', borderRadius: 6, background: stat.lastPassed ? '#f2fcf3' : '#fdf3f1', color: stat.lastPassed ? '#037f0c' : '#d13212', border: `1px solid ${stat.lastPassed ? '#037f0c' : '#d13212'}` }}>
-                          {stat.lastPassed ? '合格' : '不合格'}
+                          {stat.lastPassed ? t('stats.passed') : t('stats.failed')}
                         </span>
-                        <span style={{ fontSize: 12, color: '#545b64', marginLeft: 'auto' }}>基準 {passRate}%</span>
+                        <span style={{ fontSize: 12, color: '#545b64', marginLeft: 'auto' }}>{t('stats.passLine')} {passRate}%</span>
                       </div>
                     ) : (
-                      <span style={{ fontSize: 13, color: '#aab7b8' }}>まだ受験なし</span>
+                      <span style={{ fontSize: 13, color: '#aab7b8' }}>{t('stats.noExam')}</span>
                     )}
                   </div>
                 </div>
@@ -194,12 +196,12 @@ export default function Stats() {
       {/* ドメイン別正答率（目標資格のみ） */}
       {!loading && targetExam && domainStats.length > 0 && (
         <>
-          <h3 style={{ fontSize: 16, fontWeight: 700, margin: '0 0 16px', color: '#545b64' }}>ドメイン別正答率</h3>
+          <h3 style={{ fontSize: 16, fontWeight: 700, margin: '0 0 16px', color: '#545b64' }}>{t('stats.domainAccuracy')}</h3>
           <div style={{ background: 'white', border: '1px solid #eaeded', borderRadius: 6, padding: '20px 24px', marginBottom: 16, boxShadow: '0 1px 1px 0 rgba(0,28,36,0.1)' }}>
             {domainStats.map(({ domain, correct, total, rate }) => (
               <div key={domain} style={{ marginBottom: 18 }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 6 }}>
-                  <span style={{ fontSize: 13, fontWeight: 700, color: '#16191f' }}>{domain}</span>
+                  <span style={{ fontSize: 13, fontWeight: 700, color: '#16191f' }}>{lang === 'en' ? (DOMAIN_NAME_EN[domain] ?? domain) : domain}</span>
                   <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexShrink: 0 }}>
                     {rate !== null ? (
                       <>
@@ -209,7 +211,7 @@ export default function Stats() {
                         <span style={{ fontSize: 11, color: '#879596' }}>{correct}/{total}問</span>
                       </>
                     ) : (
-                      <span style={{ fontSize: 12, color: '#aab7b8' }}>未回答</span>
+                      <span style={{ fontSize: 12, color: '#aab7b8' }}>{t('stats.noAnswer')}</span>
                     )}
                   </div>
                 </div>
@@ -242,7 +244,7 @@ export default function Stats() {
       {/* 模試スコア推移 */}
       {!loading && examSessions.length > 0 && (
         <>
-          <h3 style={{ fontSize: 16, fontWeight: 700, margin: '0 0 16px', color: '#545b64' }}>模試スコアの推移</h3>
+          <h3 style={{ fontSize: 16, fontWeight: 700, margin: '0 0 16px', color: '#545b64' }}>{t('stats.scoreHistory')}</h3>
           <div style={{ background: 'white', border: '1px solid #eaeded', borderRadius: 6, padding: '20px 24px', marginBottom: 16, boxShadow: '0 1px 1px 0 rgba(0,28,36,0.1)' }}>
             {visibleExamTypes.map(et => {
               const etExams = examSessions.filter(s => s.examType === et).reverse();
@@ -252,7 +254,7 @@ export default function Stats() {
                 <div key={et} style={{ marginBottom: 24 }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 12 }}>
                     <span style={{ background: AWS_TAG_BG, color: 'white', fontSize: 11, padding: '2px 8px', borderRadius: 12, fontWeight: 700 }}>{et}</span>
-                    <span style={{ fontSize: 12, color: '#545b64' }}>合格ライン {passRate}%</span>
+                    <span style={{ fontSize: 12, color: '#545b64' }}>{t('stats.passTarget')} {passRate}%</span>
                   </div>
                   <div style={{ display: 'flex', gap: 8, alignItems: 'flex-end', overflowX: 'auto', paddingBottom: 8 }}>
                     {etExams.map((s, idx) => {
@@ -261,12 +263,12 @@ export default function Stats() {
                         <div key={s.sessionId} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4, flexShrink: 0 }}>
                           <div style={{ fontSize: 11, fontWeight: 700, color: s.isPassed ? '#037f0c' : '#d13212' }}>{s.score}%</div>
                           <div style={{ width: 28, height: barHeight, background: s.isPassed ? '#037f0c' : '#d13212', borderRadius: '2px 2px 0 0', opacity: 0.85 }} />
-                          <div style={{ fontSize: 10, color: '#879596', whiteSpace: 'nowrap' }}>回{idx + 1}</div>
+                          <div style={{ fontSize: 10, color: '#879596', whiteSpace: 'nowrap' }}>{t('stats.attempt')}{idx + 1}</div>
                         </div>
                       );
                     })}
                     <div style={{ marginLeft: 8, display: 'flex', flexDirection: 'column', justifyContent: 'flex-end', paddingBottom: 20 }}>
-                      <div style={{ fontSize: 11, color: '#008c8c', fontWeight: 700, borderTop: '2px dashed #008c8c', paddingTop: 2, whiteSpace: 'nowrap' }}>合格ライン {passRate}%</div>
+                      <div style={{ fontSize: 11, color: '#008c8c', fontWeight: 700, borderTop: '2px dashed #008c8c', paddingTop: 2, whiteSpace: 'nowrap' }}>{t('stats.passTarget')} {passRate}%</div>
                     </div>
                   </div>
                 </div>
@@ -277,18 +279,18 @@ export default function Stats() {
       )}
 
       {/* 演習履歴テーブル */}
-      <h3 style={{ fontSize: 16, fontWeight: 700, margin: '0 0 16px', color: '#545b64' }}>演習・模試の履歴</h3>
+      <h3 style={{ fontSize: 16, fontWeight: 700, margin: '0 0 16px', color: '#545b64' }}>{t('stats.history')}</h3>
       {loading ? (
-        <p style={{ color: '#545b64' }}>読み込み中...</p>
+        <p style={{ color: '#545b64' }}>{t('stats.loading')}</p>
       ) : visibleSessions.length === 0 ? (
         <div style={{ color: '#545b64', padding: '20px 0' }}>
-          <p style={{ margin: '0 0 8px' }}>まだ演習・模試の記録がありません</p>
+          <p style={{ margin: '0 0 8px' }}>{t('stats.noHistory')}</p>
           {targetExam && (
             <button
               onClick={() => navigate('/exercise/setup')}
               style={{ fontSize: 13, color: AWS_BLUE, background: 'none', border: 'none', cursor: 'pointer', padding: 0, fontWeight: 700 }}
             >
-              {targetExam} の演習を始める →
+              {t('stats.startExercise', { exam: targetExam })}
             </button>
           )}
         </div>
@@ -297,7 +299,7 @@ export default function Stats() {
           <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 14 }}>
             <thead>
               <tr style={{ background: '#fbfbfb', borderBottom: '1px solid #eaeded' }}>
-                {['日時', '試験', 'モード', 'スコア', '結果'].map(h => (
+                {[t('stats.colDate'), t('stats.colExam'), t('stats.colMode'), t('stats.colScore'), t('stats.colResult')].map(h => (
                   <th key={h} style={{ padding: '12px 24px', textAlign: 'left', fontSize: 12, color: '#545b64', fontWeight: 700 }}>{h}</th>
                 ))}
               </tr>
@@ -309,11 +311,11 @@ export default function Stats() {
                   <td style={{ padding: '12px 24px' }}>
                     <span style={{ background: AWS_TAG_BG, color: 'white', fontSize: 11, padding: '2px 8px', borderRadius: 12, fontWeight: 700 }}>{s.examType}</span>
                   </td>
-                  <td style={{ padding: '12px 24px', color: '#16191f' }}>{s.mode === 'exam' ? '模試' : '演習'}</td>
+                  <td style={{ padding: '12px 24px', color: '#16191f' }}>{s.mode === 'exam' ? t('stats.modeExam') : t('stats.modeExercise')}</td>
                   <td style={{ padding: '12px 24px', fontWeight: 700, color: s.isPassed ? '#037f0c' : '#d13212' }}>{s.score}%</td>
                   <td style={{ padding: '12px 24px' }}>
                     <span style={{ fontSize: 12, padding: '2px 8px', borderRadius: 6, background: s.isPassed ? '#f2fcf3' : '#fdf3f1', color: s.isPassed ? '#037f0c' : '#d13212', border: `1px solid ${s.isPassed ? '#037f0c' : '#d13212'}` }}>
-                      {s.isPassed ? '合格' : '不合格'}
+                      {s.isPassed ? t('stats.passed') : t('stats.failed')}
                     </span>
                   </td>
                 </tr>

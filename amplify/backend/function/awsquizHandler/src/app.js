@@ -224,6 +224,9 @@ app.post('/admin/questions', async (req, res) => {
         createdAt: now,
       };
       if (itemDomain) item.domain = itemDomain;
+      if (q.questionTextEn) item.questionTextEn = q.questionTextEn;
+      if (q.choicesEn && q.choicesEn.length > 0) item.choicesEn = q.choicesEn;
+      if (q.explanationEn) item.explanationEn = q.explanationEn;
 
       await docClient.send(new PutCommand({ TableName: 'Questions', Item: item }));
 
@@ -251,7 +254,7 @@ app.put('/admin/questions/:id', async (req, res) => {
   try {
     const docClient = getClient();
     const questionId = req.params.id;
-    const { questionText, choices, correctAnswers, explanation, domain, tags, isMultiple, examType } = req.body;
+    const { questionText, questionTextEn, choices, choicesEn, correctAnswers, explanation, explanationEn, domain, tags, isMultiple, examType } = req.body;
 
     // タグ関係を再構築（既存削除→新規挿入）
     const relResult = await docClient.send(new ScanCommand({
@@ -274,21 +277,36 @@ app.put('/admin/questions/:id', async (req, res) => {
       ));
     }
 
+    const setParts = ['questionText = :qt', 'choices = :ch', 'correctAnswers = :ca', 'explanation = :ex', '#d = :d', 'tags = :t', 'isMultiple = :im', 'examType = :et'];
+    const removeParts = [];
+    const exprNames = { '#d': 'domain' };
+    const exprValues = {
+      ':qt': questionText,
+      ':ch': choices,
+      ':ca': correctAnswers,
+      ':ex': explanation || '',
+      ':d': domain || '',
+      ':t': tags || [],
+      ':im': isMultiple ?? false,
+      ':et': examType,
+    };
+
+    if (questionTextEn) { setParts.push('questionTextEn = :qte'); exprValues[':qte'] = questionTextEn; }
+    else { removeParts.push('questionTextEn'); }
+    if (choicesEn && choicesEn.length > 0) { setParts.push('choicesEn = :che'); exprValues[':che'] = choicesEn; }
+    else { removeParts.push('choicesEn'); }
+    if (explanationEn) { setParts.push('explanationEn = :exe'); exprValues[':exe'] = explanationEn; }
+    else { removeParts.push('explanationEn'); }
+
+    let updateExpr = 'SET ' + setParts.join(', ');
+    if (removeParts.length > 0) updateExpr += ' REMOVE ' + removeParts.join(', ');
+
     await docClient.send(new UpdateCommand({
       TableName: 'Questions',
       Key: { questionId },
-      UpdateExpression: 'SET questionText = :qt, choices = :ch, correctAnswers = :ca, explanation = :ex, #d = :d, tags = :t, isMultiple = :im, examType = :et',
-      ExpressionAttributeNames: { '#d': 'domain' },
-      ExpressionAttributeValues: {
-        ':qt': questionText,
-        ':ch': choices,
-        ':ca': correctAnswers,
-        ':ex': explanation || '',
-        ':d': domain || '',
-        ':t': tags || [],
-        ':im': isMultiple ?? false,
-        ':et': examType,
-      }
+      UpdateExpression: updateExpr,
+      ExpressionAttributeNames: exprNames,
+      ExpressionAttributeValues: exprValues,
     }));
     res.json({ success: true });
   } catch (err) {

@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
+import { useLanguage } from '../contexts/LanguageContext';
 import Breadcrumb from './Breadcrumb';
 
 type BreadcrumbItem = { label: string; path?: string };
@@ -104,14 +105,14 @@ const IconChevronLeft = () => (
   </svg>
 );
 
-const NAV_ITEMS = [
-  { path: '/',               label: 'ホーム',         Icon: IconHome    },
-  { path: '/exercise/setup', label: '演習モード',     Icon: IconPencil  },
-  { path: '/exam/setup',     label: '模試モード',     Icon: IconClock   },
-  { path: '/stats',          label: '統計・分析',     Icon: IconChart   },
-  { path: '/questions',      label: '問題一覧',       Icon: IconList,   bottom: true },
-  { path: '/release-notes',  label: 'リリースノート', Icon: IconBell,   bottom: true },
-  { path: '/architecture',   label: 'システム構成',   Icon: IconInfo,   bottom: true },
+const NAV_KEYS = [
+  { path: '/',               labelKey: 'nav.home',         Icon: IconHome    },
+  { path: '/exercise/setup', labelKey: 'nav.exercise',     Icon: IconPencil  },
+  { path: '/exam/setup',     labelKey: 'nav.exam',         Icon: IconClock   },
+  { path: '/stats',          labelKey: 'nav.stats',        Icon: IconChart   },
+  { path: '/questions',      labelKey: 'nav.questions',    Icon: IconList,   bottom: true },
+  { path: '/release-notes',  labelKey: 'nav.releaseNotes', Icon: IconBell,   bottom: true },
+  { path: '/architecture',   labelKey: 'nav.architecture', Icon: IconInfo,   bottom: true },
 ];
 
 const AI_LINKS = [
@@ -149,6 +150,7 @@ const AI_LINKS = [
 
 export default function Layout({ children }: { children: React.ReactNode }) {
   const { user, signOut } = useAuth();
+  const { lang, setLang, t } = useLanguage();
   const navigate = useNavigate();
   const location = useLocation();
   const [open, setOpen] = useState(() => localStorage.getItem('sidebarOpen') !== 'false');
@@ -192,7 +194,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
   const isActive = (path: string) =>
     path === '/' ? location.pathname === '/' : location.pathname.startsWith(path);
 
-  const navItems = NAV_ITEMS;
+  const navItems = NAV_KEYS;
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', height: '100vh', fontFamily: 'sans-serif' }}>
@@ -218,7 +220,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
             <input
               value={searchQuery}
               onChange={e => setSearchQuery(e.target.value)}
-              placeholder={isMobile ? '検索' : 'サービス、機能、ドキュメントなどを検索'}
+              placeholder={isMobile ? t('nav.searchShort') : t('nav.searchPlaceholder')}
               style={{
                 width: '100%', padding: '5px 10px 5px 30px',
                 borderRadius: 3, border: '1px solid #3a4a5a',
@@ -266,8 +268,26 @@ export default function Layout({ children }: { children: React.ReactNode }) {
           </div>
         )}
 
-        {/* ユーザー情報 */}
-        <div style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: 12, flexShrink: 0 }}>
+        {/* 言語トグル + ユーザー情報 */}
+        <div style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: 8, flexShrink: 0 }}>
+          {/* 言語切替 */}
+          <div style={{ display: 'flex', borderRadius: 6, overflow: 'hidden', border: '1px solid rgba(255,255,255,0.25)', flexShrink: 0 }}>
+            {(['ja', 'en'] as const).map(l => (
+              <button
+                key={l}
+                onClick={() => setLang(l)}
+                style={{
+                  padding: '3px 8px', fontSize: 11, fontWeight: 700, cursor: 'pointer', border: 'none',
+                  background: lang === l ? 'rgba(255,255,255,0.2)' : 'transparent',
+                  color: lang === l ? 'white' : 'rgba(255,255,255,0.5)',
+                  transition: 'all 0.1s',
+                }}
+              >
+                {l.toUpperCase()}
+              </button>
+            ))}
+          </div>
+
           {user ? (
             <>
               {!isMobile && (
@@ -280,7 +300,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
                 background: 'none', border: 'none',
                 color: '#d5dbdb', fontSize: 12, padding: '4px 0', cursor: 'pointer', fontWeight: 700,
               }}>
-                {isMobile ? '↩' : 'ログアウト'}
+                {isMobile ? t('nav.logoutShort') : t('nav.logout')}
               </button>
             </>
           ) : (
@@ -289,7 +309,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
               color: 'rgba(255,255,255,0.85)', fontSize: 12, padding: '4px 12px',
               borderRadius: 9999, cursor: 'pointer', fontWeight: 700,
             }}>
-              ログイン
+              {t('nav.login')}
             </button>
           )}
         </div>
@@ -309,7 +329,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
         }}
           onMouseEnter={e => { e.currentTarget.style.background = '#eaeded'; e.currentTarget.style.color = '#16191f'; }}
           onMouseLeave={e => { e.currentTarget.style.background = open ? '#f2f3f3' : 'none'; e.currentTarget.style.color = open ? '#16191f' : '#545b64'; }}
-          title={open ? 'メニューを閉じる' : 'メニューを開く'}
+          title={open ? t('nav.closeMenu') : t('nav.openMenu')}
         >
           {open ? <IconClose /> : <IconMenu />}
         </button>
@@ -323,7 +343,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
         </div>
         {targetExam && (
           <div style={{ display: 'flex', alignItems: 'center', gap: 5, flexShrink: 0, paddingRight: 8 }}>
-            <span style={{ fontSize: 11, color: '#879596' }}>目標</span>
+            <span style={{ fontSize: 11, color: '#879596' }}>{t('nav.goal')}</span>
             <span style={{ background: '#232f3e', color: 'white', fontSize: 11, padding: '2px 8px', borderRadius: 12, fontWeight: 700 }}>
               {targetExam}
             </span>
@@ -367,14 +387,14 @@ export default function Layout({ children }: { children: React.ReactNode }) {
                 }}
                   onMouseEnter={e => { e.currentTarget.style.color = '#545b64'; e.currentTarget.style.background = '#f2f3f3'; }}
                   onMouseLeave={e => { e.currentTarget.style.color = '#879596'; e.currentTarget.style.background = 'none'; }}
-                  title="メニューを閉じる"
+                  title={t('nav.closeMenu')}
                 >
                   <IconChevronLeft />
-                  <span>閉じる</span>
+                  <span>{t('nav.close')}</span>
                 </button>
               </div>
             )}
-            {navItems.filter(item => !(item as any).bottom).map(({ path, label, Icon }) => {
+            {navItems.filter(item => !(item as any).bottom).map(({ path, labelKey, Icon }) => {
               const active = isActive(path);
               return (
                 <button
@@ -399,14 +419,14 @@ export default function Layout({ children }: { children: React.ReactNode }) {
                   <span style={{ display: 'flex', alignItems: 'center', opacity: active ? 1 : 0.7 }}>
                     <Icon />
                   </span>
-                  <span>{label}</span>
+                  <span>{t(labelKey)}</span>
                 </button>
               );
             })}
 
             {/* 下部固定ナビ（システム構成など） */}
             <div style={{ marginTop: 'auto' }}>
-              {navItems.filter(item => (item as any).bottom).map(({ path, label, Icon }) => {
+              {navItems.filter(item => (item as any).bottom).map(({ path, labelKey, Icon }) => {
                 const active = isActive(path);
                 return (
                   <button
@@ -432,7 +452,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
                     <span style={{ display: 'flex', alignItems: 'center', opacity: active ? 1 : 0.6 }}>
                       <Icon />
                     </span>
-                    <span>{label}</span>
+                    <span>{t(labelKey)}</span>
                   </button>
                 );
               })}
@@ -441,7 +461,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
             {/* モバイルのみ: AI リンクをサイドバー下部に表示 */}
             {isMobile && (
               <div style={{ borderTop: '1px solid #eaeded', padding: '16px 20px', background: '#fbfbfb' }}>
-                <div style={{ fontSize: 12, color: '#545b64', marginBottom: 12, fontWeight: 700 }}>AI アシスタント</div>
+                <div style={{ fontSize: 12, color: '#545b64', marginBottom: 12, fontWeight: 700 }}>{t('nav.aiAssistant')}</div>
                 {AI_LINKS.map(ai => (
                   <a key={ai.label} href={ai.url} target="_blank" rel="noreferrer"
                     style={{

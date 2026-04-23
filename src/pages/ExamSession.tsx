@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { API_ENDPOINT, EXAM_CONFIGS, PASS_RATE } from '../constants';
 import { useAuth } from '../contexts/AuthContext';
+import { useLanguage } from '../contexts/LanguageContext';
 
 type Question = {
   questionId: string;
@@ -33,6 +34,7 @@ export default function ExamSession() {
   const { user } = useAuth();
 
   const config = EXAM_CONFIGS[examType];
+  const { lang, t } = useLanguage();
   const totalSec = config.timeLimitMin * 60;
 
   const [currentIndex, setCurrentIndex] = useState(0);
@@ -147,7 +149,7 @@ export default function ExamSession() {
       });
     } catch (err) {
       console.error(err);
-      alert('提出に失敗しました');
+      alert(t('examSession.submitFailed'));
       finishedRef.current = false;
       setSubmitting(false);
     }
@@ -166,7 +168,7 @@ export default function ExamSession() {
   if (submitting) {
     return (
       <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: '60vh', gap: 16 }}>
-        <div style={{ fontSize: 18, color: '#555' }}>採点中...</div>
+        <div style={{ fontSize: 18, color: '#555' }}>{t('examSession.scoring')}</div>
       </div>
     );
   }
@@ -178,8 +180,8 @@ export default function ExamSession() {
       {paused && (
         <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,28,36,0.7)', zIndex: 100,
           display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 24 }}>
-          <div style={{ fontSize: 28, color: 'white', fontWeight: 700 }}>⏸ 一時停止中</div>
-          <div style={{ fontSize: 14, color: '#d5dbdb' }}>問題は隠されています</div>
+          <div style={{ fontSize: 28, color: 'white', fontWeight: 700 }}>{t('examSession.pausedTitle')}</div>
+          <div style={{ fontSize: 14, color: '#d5dbdb' }}>{t('examSession.pausedNote')}</div>
           <button onClick={() => setPaused(false)}
             style={{
               padding: '12px 32px',
@@ -203,7 +205,7 @@ export default function ExamSession() {
               e.currentTarget.style.color = "#008c8c";
             }}
           >
-            ▶ 再開する
+            {t('examSession.resume')}
           </button>
         </div>
       )}
@@ -213,20 +215,18 @@ export default function ExamSession() {
         <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', zIndex: 100,
           display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
           <div style={{ background: 'white', borderRadius: 6, padding: 32, maxWidth: 420, width: '90%', textAlign: 'center', boxShadow: '0 4px 20px rgba(0,0,0,0.2)' }}>
-            <div style={{ fontSize: 20, fontWeight: 700, marginBottom: 16 }}>提出の確認</div>
+            <div style={{ fontSize: 20, fontWeight: 700, marginBottom: 16 }}>{t('examSession.confirmTitle')}</div>
             <div style={{ fontSize: 15, color: '#545b64', marginBottom: 24, lineHeight: 1.6 }}>
-              回答済み: <strong>{answeredCount}</strong> / {questions.length} 問<br />
-              未回答: <strong style={{ color: unansweredCount > 0 ? '#d13212' : '#037f0c' }}>{unansweredCount}</strong> 問<br /><br />
-              全ての回答を提出して採点しますか？
+              {t('examSession.answered')}: <strong>{answeredCount}</strong> / {questions.length} {lang === 'ja' ? '問' : 'Q'}<br />
+              {t('examSession.unanswered')}: <strong style={{ color: unansweredCount > 0 ? '#d13212' : '#037f0c' }}>{unansweredCount}</strong> {lang === 'ja' ? '問' : 'Q'}<br /><br />
+              {t('examSession.confirmQ')}
             </div>
             <div style={{ display: 'flex', gap: 12, justifyContent: 'center' }}>
-              <button onClick={() => setShowConfirm(false)}
-                style={{ padding: '8px 20px', border: '1px solid #545b64', borderRadius: 9999, cursor: 'pointer', background: 'white', fontWeight: 700 }}>
-                キャンセル
+              <button onClick={() => setShowConfirm(false)} style={{ padding: '8px 20px', border: '1px solid #545b64', borderRadius: 9999, cursor: 'pointer', background: 'white', fontWeight: 700 }}>
+                {t('examSession.cancel')}
               </button>
-              <button onClick={() => { setShowConfirm(false); handleFinish(); }}
-                style={{ padding: '8px 20px', background: '#ff9900', color: '#16191f', border: '1px solid transparent', borderRadius: 9999, cursor: 'pointer', fontWeight: 700 }}>
-                提出する
+              <button onClick={() => { setShowConfirm(false); handleFinish(); }} style={{ padding: '8px 20px', background: '#ff9900', color: '#16191f', border: '1px solid transparent', borderRadius: 9999, cursor: 'pointer', fontWeight: 700 }}>
+                {t('examSession.submit')}
               </button>
             </div>
           </div>
@@ -238,19 +238,19 @@ export default function ExamSession() {
         background: 'white', borderRadius: 6, padding: '12px 24px', marginBottom: 20,
         border: '1px solid #eaeded', boxShadow: '0 1px 1px 0 rgba(0,28,36,0.1)' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
-          <span style={{ fontSize: 13, fontWeight: 700, color: '#545b64', background: '#f2f3f3', padding: '2px 8px', borderRadius: 12, border: '1px solid #d1d5db' }}>{examType} 模試</span>
+          <span style={{ fontSize: 13, fontWeight: 700, color: '#545b64', background: '#f2f3f3', padding: '2px 8px', borderRadius: 12, border: '1px solid #d1d5db' }}>{examType} {t('examSession.mock')}</span>
           <span style={{ fontSize: 24, fontWeight: 700, fontFamily: 'monospace',
             color: timerRed ? '#d13212' : '#16191f', transition: 'color 1s' }}>
             {formatTime(timeLeft)}
           </span>
-          {timerRed && <span style={{ fontSize: 12, color: '#d13212', fontWeight: 700 }}>⚠️ 残り時間わずか</span>}
+          {timerRed && <span style={{ fontSize: 12, color: '#d13212', fontWeight: 700 }}>{t('examSession.timeWarning')}</span>}
         </div>
         <div style={{ display: 'flex', gap: 12, alignItems: 'center' }}>
-          <span style={{ fontSize: 14, color: '#545b64' }}>問題 {currentIndex + 1} / {questions.length}</span>
+          <span style={{ fontSize: 14, color: '#545b64' }}>{t('examSession.qLabel')} {currentIndex + 1} / {questions.length}</span>
           <button onClick={() => setPaused(true)}
             style={{ padding: '6px 16px', border: '1px solid #545b64', borderRadius: 9999,
               cursor: 'pointer', background: 'white', fontSize: 13, fontWeight: 700 }}>
-            ⏸ 一時停止
+            {t('examSession.pause')}
           </button>
         </div>
       </div>
@@ -262,14 +262,14 @@ export default function ExamSession() {
             <div>
               {currentQ.isMultiple && (
                 <div style={{ display: "inline-block", background: "#e0f2f2", color: "#008c8c", padding: "2px 8px", borderRadius: 6, fontSize: 12, fontWeight: 700 }}>
-                  複数選択
+                  {t('examSession.multiple')}
                 </div>
               )}
             </div>
             {user && (
               <button
                 onClick={() => toggleBookmark(currentQ.questionId)}
-                title={bookmarkedIds.has(currentQ.questionId) ? "ブックマーク解除" : "ブックマーク"}
+                title={bookmarkedIds.has(currentQ.questionId) ? t('examSession.removeBookmark') : t('examSession.bookmark')}
                 style={{ background: "none", border: "none", cursor: "pointer", padding: "4px", display: "flex", alignItems: "center" }}
               >
                 <IconBookmark filled={bookmarkedIds.has(currentQ.questionId)} />
@@ -277,15 +277,16 @@ export default function ExamSession() {
             )}
           </div>
           <p style={{ fontSize: 16, lineHeight: 1.6, fontWeight: 400, margin: 0, color: "#16191f" }}>
-            {currentQ.questionText}
+            {lang === 'en' && (currentQ as any).questionTextEn ? (currentQ as any).questionTextEn : currentQ.questionText}
           </p>
         </div>
 
         <div style={{ marginBottom: 32 }}>
-          {currentQ.choices.map((choice: string) => {
-            const isSelected = selected.includes(choice);
+          {((lang === 'en' && (currentQ as any).choicesEn) ? (currentQ as any).choicesEn : currentQ.choices).map((choice: string, ci: number) => {
+            const origChoice = currentQ.choices[ci] ?? choice;
+            const isSelected = selected.includes(origChoice);
             return (
-              <button key={choice} onClick={() => toggle(choice)}
+              <button key={origChoice} onClick={() => toggle(origChoice)}
                 style={{
                   display: 'flex', alignItems: 'center', width: '100%', textAlign: 'left',
                   padding: '12px 20px', marginBottom: 12, borderRadius: 8,
@@ -307,6 +308,7 @@ export default function ExamSession() {
                 </span>
                 {choice}
               </button>
+
             );
           })}
         </div>
@@ -317,13 +319,13 @@ export default function ExamSession() {
         border: '1px solid #eaeded', boxShadow: '0 1px 1px 0 rgba(0,28,36,0.1)' }}>
         <div style={{ fontSize: 12, color: '#545b64', marginBottom: 16, display: 'flex', gap: 20, fontWeight: 700 }}>
           <span style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-            <span style={{ width: 12, height: 12, background: '#008c8c', borderRadius: 6 }} />現在
+            <span style={{ width: 12, height: 12, background: '#008c8c', borderRadius: 6 }} />{t('examSession.current')}
           </span>
           <span style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-            <span style={{ width: 12, height: 12, background: '#2980b9', borderRadius: 6 }} />回答済み
+            <span style={{ width: 12, height: 12, background: '#2980b9', borderRadius: 6 }} />{t('examSession.answeredLegend')}
           </span>
           <span style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-            <span style={{ width: 12, height: 12, background: '#f2f3f3', borderRadius: 6, border: '1px solid #d1d5db' }} />未回答
+            <span style={{ width: 12, height: 12, background: '#f2f3f3', borderRadius: 6, border: '1px solid #d1d5db' }} />{t('examSession.unansweredLegend')}
           </span>
         </div>
         <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, marginBottom: 24 }}>
@@ -367,7 +369,7 @@ export default function ExamSession() {
                 fontWeight: 700,
                 borderColor: currentIndex === 0 ? '#eaeded' : '#545b64'
               }}>
-              ← 前の質問
+              {t('examSession.prev')}
             </button>
             <button onClick={() => setCurrentIndex(i => Math.min(questions.length - 1, i + 1))} disabled={currentIndex === questions.length - 1}
               style={{
@@ -380,7 +382,7 @@ export default function ExamSession() {
                 fontWeight: 700,
                 borderColor: currentIndex === questions.length - 1 ? '#eaeded' : '#545b64'
               }}>
-              次の質問 →
+              {t('examSession.next')}
             </button>
           </div>
           <button onClick={() => setShowConfirm(true)}
@@ -397,7 +399,7 @@ export default function ExamSession() {
             onMouseEnter={e => e.currentTarget.style.background = '#ec7211'}
             onMouseLeave={e => e.currentTarget.style.background = '#ff9900'}
           >
-            提出する
+            {t('examSession.submit')}
           </button>
         </div>
       </div>

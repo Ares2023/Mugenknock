@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { API_ENDPOINT, PASS_RATE } from '../constants';
 import { useAuth } from '../contexts/AuthContext';
+import { useLanguage } from '../contexts/LanguageContext';
 
 type Tip = { tipId: string; title: string; content: string; examType: string };
 
@@ -17,6 +18,7 @@ type Question = {
 };
 
 const CopyButton = ({ getText }: { getText: () => string }) => {
+  const { t } = useLanguage();
   const [copied, setCopied] = useState(false);
   const handleCopy = (e: React.MouseEvent) => {
     e.stopPropagation();
@@ -36,7 +38,7 @@ const CopyButton = ({ getText }: { getText: () => string }) => {
         fontWeight: 700, transition: "all 0.15s", flexShrink: 0,
       }}
     >
-      {copied ? "✓ コピー済み" : "コピー"}
+      {copied ? t('exerciseSession.copied') : t('exerciseSession.copy')}
     </button>
   );
 };
@@ -52,6 +54,7 @@ export default function ExerciseSession() {
   const location = useLocation();
   const { sessionId, questions, userId, examType } = location.state as any;
   const { user } = useAuth();
+  const { lang, t } = useLanguage();
 
   const [currentIndex, setCurrentIndex] = useState(0);
   const [selectedAnswers, setSelectedAnswers] = useState<string[]>([]);
@@ -215,9 +218,9 @@ export default function ExerciseSession() {
       <div style={{ background: "white", border: "1px solid #eaeded", borderRadius: 6, padding: "24px 32px", boxShadow: "0 1px 1px 0 rgba(0,28,36,0.1), 1px 1px 1px 0 rgba(0,28,36,0.15)" }}>
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 20 }}>
           <h1 style={{ fontSize: 20, fontWeight: 700, margin: 0 }}>
-            問題 {currentIndex + 1}
+            {t('exerciseSession.qLabel')} {currentIndex + 1}
             <span style={{ fontWeight: 400, fontSize: 14, color: "#545b64", marginLeft: 12 }}>
-              全 {questions.length} 問
+              {t('exerciseSession.totalQ', { n: questions.length })}
             </span>
           </h1>
           <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
@@ -225,7 +228,7 @@ export default function ExerciseSession() {
               <button
                 onClick={toggleBookmark}
                 disabled={bookmarkLoading}
-                title={bookmarkedIds.has(currentQuestion.questionId) ? "ブックマーク解除" : "ブックマーク"}
+                title={bookmarkedIds.has(currentQuestion.questionId) ? t('exerciseSession.removeBookmark') : t('exerciseSession.bookmark')}
                 style={{
                   background: "none", border: "none", cursor: "pointer", padding: "4px", display: "flex", alignItems: "center",
                   opacity: bookmarkLoading ? 0.5 : 1,
@@ -245,20 +248,20 @@ export default function ExerciseSession() {
             <div>
               {currentQuestion.isMultiple && (
                 <span style={{ display: "inline-block", background: "#e0f2f2", color: "#008c8c", padding: "2px 8px", borderRadius: 6, fontSize: 12, fontWeight: 700 }}>
-                  複数選択
+                  {t('exerciseSession.multiple')}
                 </span>
               )}
             </div>
             <CopyButton getText={() => currentQuestion.questionText} />
           </div>
           <p style={{ fontSize: 16, lineHeight: 1.6, fontWeight: 400, margin: 0, color: "#16191f" }}>
-            {currentQuestion.questionText}
+            {lang === 'en' && (currentQuestion as any).questionTextEn ? (currentQuestion as any).questionTextEn : currentQuestion.questionText}
           </p>
         </div>
 
         <div style={{ marginBottom: 32 }}>
           <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 8 }}>
-            <span style={{ fontSize: 12, color: "#545b64", fontWeight: 700 }}>選択肢</span>
+            <span style={{ fontSize: 12, color: "#545b64", fontWeight: 700 }}>{t('exerciseSession.choices')}</span>
             <CopyButton getText={() => currentQuestion.choices.join("\n")} />
           </div>
           {currentQuestion.choices.map((choice: string) => (
@@ -290,18 +293,18 @@ export default function ExerciseSession() {
                 color: results[results.length - 1]?.isCorrect ? "#037f0c" : "#d13212",
                 display: "flex", alignItems: "center", gap: 8
               }}>
-                {results[results.length - 1]?.isCorrect ? "✓ 正解" : "✗ 不正解"}
+                {results[results.length - 1]?.isCorrect ? t('exerciseSession.correct') : t('exerciseSession.incorrect')}
               </h3>
               <CopyButton getText={() =>
                 `正解: ${detail.correctAnswers?.join(", ")}\n\n解説:\n${detail.explanation ?? ""}`
               } />
             </div>
             <p style={{ margin: "0 0 12px", fontSize: 14 }}>
-              <strong>正解：</strong> {detail.correctAnswers?.join(", ")}
+              <strong>{t('exerciseSession.correctAnswer')}</strong>{detail.correctAnswers?.join(", ")}
             </p>
             <div style={{ fontSize: 14, lineHeight: 1.6 }}>
-              <strong>解説：</strong>
-              <div style={{ marginTop: 4 }}>{detail.explanation}</div>
+              <strong>{t('exerciseSession.explanation')}</strong>
+              <div style={{ marginTop: 4 }}>{lang === 'en' && (detail as any).explanationEn ? (detail as any).explanationEn : detail.explanation}</div>
             </div>
           </div>
         )}
@@ -325,7 +328,7 @@ export default function ExerciseSession() {
               onMouseEnter={e => { if (selectedAnswers.length > 0) e.currentTarget.style.background = "#ec7211"; }}
               onMouseLeave={e => { if (selectedAnswers.length > 0) e.currentTarget.style.background = "#ff9900"; }}
             >
-              {loading ? "送信中..." : "回答する"}
+              {loading ? t('exerciseSession.answering') : t('exerciseSession.answer')}
             </button>
           ) : (
             <button
@@ -352,7 +355,7 @@ export default function ExerciseSession() {
                 e.currentTarget.style.color = "#008c8c";
               }}
             >
-              {currentIndex + 1 >= questions.length ? "結果を表示" : "次の問題へ"}
+              {currentIndex + 1 >= questions.length ? t('exerciseSession.showResult') : t('exerciseSession.next')}
             </button>
           )}
         </div>
