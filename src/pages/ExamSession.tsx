@@ -6,7 +6,6 @@ import { useLanguage } from '../contexts/LanguageContext';
 import Card from '../components/ui/Card';
 import Button from '../components/ui/Button';
 import Badge from '../components/ui/Badge';
-import { IconBookmark } from '../components/Icons';
 
 type Question = {
   questionId: string;
@@ -238,7 +237,9 @@ export default function ExamSession() {
                 title={bookmarkedIds.has(currentQ.questionId) ? t('examSession.removeBookmark') : t('examSession.bookmark')}
                 style={{ background: 'none', border: 'none', cursor: 'pointer', padding: '4px', display: 'flex', alignItems: 'center' }}
               >
-                <IconBookmark filled={bookmarkedIds.has(currentQ.questionId)} />
+                <span style={{ fontSize: 20, lineHeight: 1, color: bookmarkedIds.has(currentQ.questionId) ? 'var(--color-warning, #f59e0b)' : 'var(--color-text-light)' }}>
+                  {bookmarkedIds.has(currentQ.questionId) ? '★' : '☆'}
+                </span>
               </button>
             )}
           </div>
@@ -314,7 +315,7 @@ export default function ExamSession() {
             }
 
             return (
-              <button key={i} onClick={() => setCurrentIndex(i)}
+              <button key={i} onClick={() => { setCurrentIndex(i); window.scrollTo({ top: 0, behavior: 'smooth' }); }}
                 style={{ width: 36, height: 36, borderRadius: 'var(--border-radius-full)', border,
                   background: bg, color,
                   cursor: 'pointer', fontSize: 'var(--font-size-sm)', fontWeight: isCurrent ? 700 : 400, transition: 'all 0.2s' }}>
@@ -325,10 +326,10 @@ export default function ExamSession() {
         </div>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderTop: '1px solid var(--color-border)', paddingTop: 'var(--spacing-lg)' }}>
           <div style={{ display: 'flex', gap: 'var(--spacing-md)' }}>
-            <Button variant="outline" onClick={() => setCurrentIndex(i => Math.max(0, i - 1))} disabled={currentIndex === 0}>
+            <Button variant="outline" onClick={() => { setCurrentIndex(i => Math.max(0, i - 1)); window.scrollTo({ top: 0, behavior: 'smooth' }); }} disabled={currentIndex === 0}>
               {t('examSession.prev')}
             </Button>
-            <Button variant="outline" onClick={() => setCurrentIndex(i => Math.min(questions.length - 1, i + 1))} disabled={currentIndex === questions.length - 1}>
+            <Button variant="outline" onClick={() => { setCurrentIndex(i => Math.min(questions.length - 1, i + 1)); window.scrollTo({ top: 0, behavior: 'smooth' }); }} disabled={currentIndex === questions.length - 1}>
               {t('examSession.next')}
             </Button>
           </div>

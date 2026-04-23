@@ -417,8 +417,8 @@ export default function ExerciseSetup() {
           </div>
         </Card>
 
-        {/* 右：試験情報パネル */}
-        <Card padding="var(--spacing-lg)">
+        {/* 右：試験情報パネル（サブ） */}
+        <Card padding="var(--spacing-lg)" style={{ background: 'transparent', boxShadow: 'none' }}>
           {/* 試験ヘッダー */}
           <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--spacing-sm)', marginBottom: 'var(--spacing-sm)' }}>
             <Badge variant="secondary">{examType}</Badge>

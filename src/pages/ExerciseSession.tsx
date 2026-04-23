@@ -6,7 +6,6 @@ import { useLanguage } from '../contexts/LanguageContext';
 import Card from '../components/ui/Card';
 import Button from '../components/ui/Button';
 import Badge from '../components/ui/Badge';
-import { IconBookmark } from '../components/Icons';
 
 type Tip = { tipId: string; title: string; content: string; examType: string };
 
@@ -169,6 +168,7 @@ export default function ExerciseSession() {
       setSelectedAnswers([]);
       setAnswered(false);
       setDetail(null);
+      window.scrollTo({ top: 0, behavior: 'smooth' });
     }
   };
 
@@ -233,7 +233,9 @@ export default function ExerciseSession() {
                   opacity: bookmarkLoading ? 0.5 : 1, transition: 'all 0.2s',
                 }}
               >
-                <IconBookmark filled={bookmarkedIds.has(currentQuestion.questionId)} />
+                <span style={{ fontSize: 20, lineHeight: 1, color: bookmarkedIds.has(currentQuestion.questionId) ? 'var(--color-warning, #f59e0b)' : 'var(--color-text-light)' }}>
+                  {bookmarkedIds.has(currentQuestion.questionId) ? '★' : '☆'}
+                </span>
               </button>
             )}
             <Badge variant="secondary">{currentQuestion.examType}</Badge>
