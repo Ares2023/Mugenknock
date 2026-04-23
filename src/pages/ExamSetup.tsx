@@ -7,6 +7,16 @@ import Card from '../components/ui/Card';
 import Button from '../components/ui/Button';
 import Badge from '../components/ui/Badge';
 
+const StepBadge = ({ n, optional = false }: { n: number; optional?: boolean }) => (
+  <span style={{
+    display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
+    width: 20, height: 20, borderRadius: '50%', flexShrink: 0,
+    background: optional ? 'var(--color-border)' : 'var(--color-primary)',
+    color: optional ? 'var(--color-text-sub)' : 'white',
+    fontSize: 11, fontWeight: 700,
+  }}>{n}</span>
+);
+
 const EXAM_CATEGORIES: Record<string, { name: string; ratio: string }[]> = {
   CLF: [
     { name: 'クラウドのコンセプト', ratio: '24%' },
@@ -144,13 +154,16 @@ export default function ExamSetup() {
           {/* 試験種別 */}
           {targetExam ? (
             <div style={{ marginBottom: 'var(--spacing-lg)', display: 'flex', alignItems: 'center', gap: 'var(--spacing-md)' }}>
+              <StepBadge n={1} />
               <span style={{ fontSize: 'var(--font-size-base)', fontWeight: 700, color: 'var(--color-text-sub)' }}>{t('examSetup.examType')}</span>
               <Badge variant="secondary">{examType}</Badge>
               <span style={{ fontSize: 'var(--font-size-sm)', color: 'var(--color-text-light)' }}>{t('examSetup.examTypeHome')}</span>
             </div>
           ) : (
             <div style={{ marginBottom: 'var(--spacing-lg)' }}>
-              <label style={{ display: 'block', marginBottom: 'var(--spacing-sm)', fontWeight: 700, fontSize: 'var(--font-size-base)' }}>{t('examSetup.examType')}</label>
+              <label style={{ display: 'flex', alignItems: 'center', gap: 'var(--spacing-sm)', marginBottom: 'var(--spacing-sm)', fontWeight: 700, fontSize: 'var(--font-size-base)' }}>
+                <StepBadge n={1} />{t('examSetup.examType')}
+              </label>
               <div style={{ display: 'flex', gap: 'var(--spacing-sm)' }}>
                 {EXAM_TYPES.map(type => (
                   <Button
@@ -168,8 +181,8 @@ export default function ExamSetup() {
 
           {/* ドメインフィルタ */}
           <div style={{ marginBottom: 'var(--spacing-lg)' }}>
-            <label style={{ display: 'block', marginBottom: 'var(--spacing-sm)', fontWeight: 700, fontSize: 'var(--font-size-base)' }}>
-              {t('examSetup.domain')} <span style={{ fontWeight: 400, fontSize: 'var(--font-size-sm)', color: 'var(--color-text-sub)' }}>{t('examSetup.optional')}</span>
+            <label style={{ display: 'flex', alignItems: 'center', gap: 'var(--spacing-sm)', marginBottom: 'var(--spacing-sm)', fontWeight: 700, fontSize: 'var(--font-size-base)' }}>
+              <StepBadge n={2} />{t('examSetup.domain')} <span style={{ fontWeight: 400, fontSize: 'var(--font-size-sm)', color: 'var(--color-text-sub)' }}>{t('examSetup.optional')}</span>
             </label>
             <div style={{ display: 'flex', flexWrap: 'wrap', gap: 'var(--spacing-sm)' }}>
               <Button
@@ -195,8 +208,8 @@ export default function ExamSetup() {
           {/* タグフィルタ */}
           {availableTags.length > 0 && (
             <div style={{ marginBottom: 'var(--spacing-lg)' }}>
-              <label style={{ display: 'block', marginBottom: 'var(--spacing-sm)', fontWeight: 700, fontSize: 'var(--font-size-base)' }}>
-                {t('examSetup.tag')} <span style={{ fontWeight: 400, fontSize: 'var(--font-size-sm)', color: 'var(--color-text-sub)' }}>{t('examSetup.optional')}</span>
+              <label style={{ display: 'flex', alignItems: 'center', gap: 'var(--spacing-sm)', marginBottom: 'var(--spacing-sm)', fontWeight: 700, fontSize: 'var(--font-size-base)' }}>
+                <StepBadge n={3} optional />{t('examSetup.tag')} <span style={{ fontWeight: 400, fontSize: 'var(--font-size-sm)', color: 'var(--color-text-sub)' }}>{t('examSetup.optional')}</span>
               </label>
               <div style={{ display: 'flex', flexWrap: 'wrap', gap: 'var(--spacing-sm)' }}>
                 <Button
@@ -230,7 +243,7 @@ export default function ExamSetup() {
               {t('examSetup.cancel')}
             </Button>
             <Button
-              variant="accent"
+              variant="primary"
               onClick={startExam}
               disabled={loading || availableCount === 0}
               style={{ minWidth: 120 }}

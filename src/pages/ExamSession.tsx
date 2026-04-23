@@ -175,7 +175,7 @@ export default function ExamSession() {
           display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 'var(--spacing-xl)', padding: 'var(--spacing-lg)' }}>
           <div style={{ fontSize: 'var(--font-size-xxl)', color: 'white', fontWeight: 700 }}>{t('examSession.pausedTitle')}</div>
           <div style={{ fontSize: 'var(--font-size-base)', color: 'rgba(255,255,255,0.7)', textAlign: 'center' }}>{t('examSession.pausedNote')}</div>
-          <Button variant="accent" size="lg" onClick={() => setPaused(false)}>
+          <Button variant="primary" size="lg" onClick={() => setPaused(false)}>
             {t('examSession.resume')}
           </Button>
         </div>
@@ -195,7 +195,7 @@ export default function ExamSession() {
               <Button variant="outline" onClick={() => setShowConfirm(false)}>
                 {t('examSession.cancel')}
               </Button>
-              <Button variant="accent" onClick={() => { setShowConfirm(false); handleFinish(); }}>
+              <Button variant="primary" onClick={() => { setShowConfirm(false); handleFinish(); }}>
                 {t('examSession.submit')}
               </Button>
             </div>
@@ -332,7 +332,7 @@ export default function ExamSession() {
               {t('examSession.next')}
             </Button>
           </div>
-          <Button variant="accent" onClick={() => setShowConfirm(true)}>
+          <Button variant="primary" onClick={() => setShowConfirm(true)}>
             {t('examSession.submit')}
           </Button>
         </div>

@@ -53,7 +53,7 @@ export default function Home() {
   const examDesc = lang === 'en' ? EXAM_DESC_EN : EXAM_DESC_JA;
 
   const features = [
-    { title: t('home.exerciseTitle'), description: t('home.exerciseDesc'), path: '/exercise/setup', label: t('home.exerciseLabel'), icon: <IconPencil size={22} />, btnVariant: 'accent' as const,   borderColor: 'var(--color-accent)' },
+    { title: t('home.exerciseTitle'), description: t('home.exerciseDesc'), path: '/exercise/setup', label: t('home.exerciseLabel'), icon: <IconPencil size={22} />, btnVariant: 'primary' as const,  borderColor: 'var(--color-primary)' },
     { title: t('home.examTitle'),     description: t('home.examDesc'),     path: '/exam/setup',     label: t('home.examLabel'),     icon: <IconClock size={22} />,  btnVariant: 'primary' as const,  borderColor: 'var(--color-primary)' },
     { title: t('home.statsTitle'),    description: t('home.statsDesc'),    path: '/stats',          label: t('home.statsLabel'),    icon: <IconChart size={22} />,  btnVariant: 'outline' as const,  borderColor: 'var(--color-border)' },
   ];
@@ -117,7 +117,7 @@ export default function Home() {
             })}
             {targetExam && (
               <Button
-                variant="ghost"
+                variant="outline"
                 size="sm"
                 onClick={() => handleSelectExam(targetExam)}
                 style={{ marginTop: 'var(--spacing-xs)', color: 'var(--color-text-light)' }}

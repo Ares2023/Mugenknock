@@ -61,11 +61,11 @@ export default function Architecture() {
             { label: 'DynamoDB', sub: 'NoSQL DB', icon: '🗄️' },
           ].map((item, i) =>
             (item as any).arrow ? (
-              <div key={i} style={{ color: 'var(--color-accent)', fontSize: 18, padding: '0 var(--spacing-sm)', flexShrink: 0 }}>→</div>
+              <div key={i} style={{ color: 'rgba(255,255,255,0.5)', fontSize: 18, padding: '0 var(--spacing-sm)', flexShrink: 0 }}>→</div>
             ) : (
               <div key={i} style={{ textAlign: 'center', padding: '12px 16px', background: 'rgba(255,255,255,0.05)', borderRadius: 'var(--border-radius-md)', flexShrink: 0 }}>
                 <div style={{ fontSize: 22, marginBottom: 4 }}>{(item as any).icon}</div>
-                <div style={{ fontWeight: 700, fontSize: 'var(--font-size-sm)', color: 'var(--color-accent)' }}>{(item as any).label}</div>
+                <div style={{ fontWeight: 700, fontSize: 'var(--font-size-sm)', color: 'rgba(255,255,255,0.9)' }}>{(item as any).label}</div>
                 <div style={{ fontSize: 'var(--font-size-xs)', color: 'var(--color-text-light)' }}>{(item as any).sub}</div>
               </div>
             )
@@ -79,19 +79,19 @@ export default function Architecture() {
           name="AWS Amplify Hosting"
           category="ホスティング / CDN"
           description="React SPA（シングルページアプリ）を静的ファイルとしてホスト。CloudFront 経由で配信し、コードをプッシュするたびに自動デプロイが走ります。"
-          color="var(--color-accent)"
+          color="var(--color-primary)"
         />
         <ServiceCard
           name="React + TypeScript"
           category="フロントエンドフレームワーク"
           description="UI は React 18 + TypeScript で構築。CSS フレームワークは使わず、AWS マネジメントコンソールを参考にしたインラインスタイルで統一されています。"
-          color="#61dafb"
+          color="var(--color-primary)"
         />
         <ServiceCard
           name="Amazon Cognito"
           category="認証・認可"
           description="ユーザープールによるメール＋パスワード認証。JWT トークンを発行し、API リクエストの認証に使用します。管理者権限はメールアドレスで制御しています。"
-          color="#a855f7"
+          color="var(--color-primary)"
         />
       </Layer>
 
@@ -101,19 +101,19 @@ export default function Architecture() {
           name="Amazon API Gateway"
           category="API エンドポイント"
           description="REST API のエントリポイント。CORS の設定、リクエストルーティングを担当し、Lambda 関数にプロキシします。"
-          color="#e91e63"
+          color="var(--color-text-light)"
         />
         <ServiceCard
           name="AWS Lambda"
           category="サーバーレスコンピューティング"
           description="Node.js（Express.js）で書かれた API サーバーを Lambda 関数として実行。サーバーの管理が不要で、リクエスト数に応じて自動スケールします。"
-          color="#f4a261"
+          color="var(--color-text-light)"
         />
         <ServiceCard
           name="Amazon DynamoDB"
           category="NoSQL データベース"
           description="問題データ、セッション、ユーザーの回答履歴などをすべて DynamoDB に保存。キーバリュー＆ドキュメントモデルで高速な読み書きを実現します。"
-          color="#2a9d8f"
+          color="var(--color-text-light)"
         />
       </Layer>
 
@@ -157,13 +157,13 @@ export default function Architecture() {
           name="AWS Amplify（CI/CD）"
           category="継続的デプロイ"
           description="メインブランチへのプッシュを検知して自動的にビルド・デプロイを実行。フロントエンドの変更は数分で本番環境に反映されます。"
-          color="var(--color-accent)"
+          color="var(--color-primary)"
         />
         <ServiceCard
           name="AWS CLI / Python"
           category="Lambda デプロイ"
           description="バックエンドの Lambda 関数は、変更時に Python の zipfile モジュールでパッケージを作成し、AWS CLI で直接デプロイしています。"
-          color="#f4a261"
+          color="var(--color-text-light)"
         />
       </Layer>
 

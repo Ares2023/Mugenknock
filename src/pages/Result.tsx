@@ -134,7 +134,7 @@ export default function Result() {
         <Button variant="outline" onClick={() => navigate('/')}>
           {t('result.backHome')}
         </Button>
-        <Button variant="accent" onClick={() => navigate(isExam ? '/exam/setup' : '/exercise/setup')}>
+        <Button variant="primary" onClick={() => navigate(isExam ? '/exam/setup' : '/exercise/setup')}>
           {t('result.retry')}
         </Button>
       </div>

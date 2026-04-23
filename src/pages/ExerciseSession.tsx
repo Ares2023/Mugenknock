@@ -315,7 +315,7 @@ export default function ExerciseSession() {
             <Button
               onClick={submitAnswer}
               disabled={selectedAnswers.length === 0 || loading}
-              variant="accent"
+              variant="primary"
               style={{ minWidth: 120 }}
             >
               {loading ? t('exerciseSession.answering') : t('exerciseSession.answer')}

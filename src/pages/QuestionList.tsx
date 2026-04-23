@@ -163,7 +163,7 @@ export default function QuestionList() {
             {t('questions.search')}
           </Button>
           {keyword && (
-            <Button variant="ghost" type="button" onClick={() => navigate('/questions')} style={{ color: 'var(--color-text-light)' }}>
+            <Button variant="outline" type="button" onClick={() => navigate('/questions')} style={{ color: 'var(--color-text-light)' }}>
               {t('questions.clear')}
             </Button>
           )}
@@ -187,7 +187,7 @@ export default function QuestionList() {
         <Button variant="outline" size="sm" onClick={selectAll}>
           {selected.size === questions.length ? t('questions.deselectAll') : t('questions.selectAll')}
         </Button>
-        <Button variant="secondary" size="sm" onClick={exportCSV} disabled={selected.size === 0}>
+        <Button variant="outline" size="sm" onClick={exportCSV} disabled={selected.size === 0}>
           {t('questions.csvExport', { n: selected.size })}
         </Button>
         <span style={{ fontSize: 'var(--font-size-sm)', color: 'var(--color-text-sub)', marginLeft: 'auto' }}>

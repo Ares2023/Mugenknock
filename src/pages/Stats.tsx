@@ -152,7 +152,7 @@ export default function Stats() {
           ))}
           {targetExam && (
             <Button
-              variant="ghost"
+              variant="outline"
               size="sm"
               onClick={() => { localStorage.removeItem(TARGET_EXAM_KEY); setTargetExam(null); }}
               style={{ color: 'var(--color-text-light)' }}
@@ -303,7 +303,7 @@ export default function Stats() {
         <div style={{ color: 'var(--color-text-sub)', padding: 'var(--spacing-lg) 0' }}>
           <p style={{ margin: '0 0 var(--spacing-sm)' }}>{t('stats.noHistory')}</p>
           {targetExam && (
-            <Button variant="ghost" size="sm" onClick={() => navigate('/exercise/setup')} style={{ color: 'var(--color-primary)', padding: 0 }}>
+            <Button variant="outline" size="sm" onClick={() => navigate('/exercise/setup')} style={{ color: 'var(--color-primary)', padding: 0 }}>
               {t('stats.startExercise', { exam: targetExam })}
             </Button>
           )}

@@ -196,7 +196,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
                   <Button
                     onClick={handleContactSend}
                     disabled={contactSending || !contactMessage.trim()}
-                    variant="accent"
+                    variant="primary"
                     style={{ flex: 1 }}
                   >
                     {contactSending ? t('contact.sending') : t('contact.send')}

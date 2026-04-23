@@ -62,7 +62,7 @@ export default function AdminLogin() {
       </Card>
 
       <Button
-        variant="ghost"
+        variant="outline"
         onClick={() => navigate('/')}
         style={{ marginTop: 'var(--spacing-xl)', color: 'var(--color-text-light)' }}
       >

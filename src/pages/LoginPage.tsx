@@ -45,7 +45,7 @@ export default function LoginPage() {
 
       <div style={{ marginTop: 'var(--spacing-xl)' }}>
         <Button
-          variant="ghost"
+          variant="outline"
           onClick={() => navigate('/questions')}
           style={{ color: 'var(--color-primary)', fontWeight: 700 }}
         >

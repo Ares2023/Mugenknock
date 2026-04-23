@@ -630,7 +630,7 @@ export default function Admin() {
 
             {/* ボタン */}
             <div style={{ display: 'flex', gap: 'var(--spacing-sm)', borderTop: '1px solid var(--color-border)', paddingTop: 'var(--spacing-md)' }}>
-              <Button onClick={handleSaveQuestion} disabled={saving} variant="accent">
+              <Button onClick={handleSaveQuestion} disabled={saving} variant="primary">
                 {saving ? '保存中...' : '保存'}
               </Button>
               <Button onClick={() => setEditingQuestion(null)} variant="outline">

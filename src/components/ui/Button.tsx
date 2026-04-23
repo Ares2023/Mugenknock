@@ -1,7 +1,7 @@
 import React from 'react';
 
 interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
-  variant?: 'primary' | 'secondary' | 'outline' | 'ghost' | 'danger' | 'accent';
+  variant?: 'primary' | 'outline' | 'danger';
   size?: 'sm' | 'md' | 'lg';
   fullWidth?: boolean;
 }
@@ -24,23 +24,11 @@ const Button: React.FC<ButtonProps> = ({
           color: 'var(--color-bg-white)',
           border: '1px solid var(--color-primary)',
         };
-      case 'secondary':
-        return {
-          backgroundColor: 'var(--color-secondary)',
-          color: 'var(--color-bg-white)',
-          border: '1px solid var(--color-secondary)',
-        };
       case 'outline':
         return {
           backgroundColor: 'transparent',
           color: 'var(--color-primary)',
           border: '1px solid var(--color-primary)',
-        };
-      case 'ghost':
-        return {
-          backgroundColor: 'transparent',
-          color: 'var(--color-text-sub)',
-          border: '1px solid transparent',
         };
       case 'danger':
         return {
@@ -48,14 +36,12 @@ const Button: React.FC<ButtonProps> = ({
           color: 'var(--color-bg-white)',
           border: '1px solid var(--color-danger)',
         };
-      case 'accent':
-        return {
-          backgroundColor: 'var(--color-accent)',
-          color: 'var(--color-secondary)',
-          border: '1px solid var(--color-accent)',
-        };
       default:
-        return {};
+        return {
+          backgroundColor: 'var(--color-primary)',
+          color: 'var(--color-bg-white)',
+          border: '1px solid var(--color-primary)',
+        };
     }
   };
 
@@ -92,11 +78,9 @@ const Button: React.FC<ButtonProps> = ({
       disabled={disabled}
       onMouseEnter={(e) => {
         if (disabled) return;
-        if (variant === 'primary') e.currentTarget.style.backgroundColor = 'var(--color-primary-hover)';
-        if (variant === 'secondary') e.currentTarget.style.backgroundColor = 'var(--color-secondary-hover)';
+        if (variant === 'primary' || !variant) e.currentTarget.style.backgroundColor = 'var(--color-primary-hover)';
         if (variant === 'outline') e.currentTarget.style.backgroundColor = 'var(--color-primary-light)';
-        if (variant === 'ghost') e.currentTarget.style.backgroundColor = 'var(--color-bg-main)';
-        if (variant === 'accent') e.currentTarget.style.backgroundColor = 'var(--color-accent-hover)';
+        if (variant === 'danger') e.currentTarget.style.backgroundColor = 'var(--color-danger-hover, #c0392b)';
       }}
       onMouseLeave={(e) => {
         if (disabled) return;
