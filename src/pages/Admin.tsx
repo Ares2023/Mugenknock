@@ -59,7 +59,17 @@ type ImportQuestion = {
   tags?: string[];
 };
 
-type Tab = 'questions' | 'reports' | 'tips' | 'import' | 'releases';
+type Tab = 'questions' | 'reports' | 'tips' | 'import' | 'releases' | 'validity';
+
+type FlaggedQuestion = {
+  questionId: string;
+  examType: string;
+  questionText: string;
+  validityRating?: number;
+  validityNote?: string;
+  validityCheckedAt?: string;
+  isHidden?: boolean;
+};
 
 export default function Admin() {
   const [tab, setTab] = useState<Tab>('questions');
@@ -196,10 +206,35 @@ export default function Admin() {
     } catch (err) { console.error(err); }
   };
 
+  const [flaggedQuestions, setFlaggedQuestions] = useState<FlaggedQuestion[]>([]);
+  const [loadingFlagged, setLoadingFlagged] = useState(false);
+
+  const fetchFlagged = async () => {
+    setLoadingFlagged(true);
+    try {
+      const res = await adminFetch(`${API_ENDPOINT}/admin/questions/flagged`);
+      const data = await res.json();
+      setFlaggedQuestions(data.items || []);
+    } catch (err) { console.error(err); }
+    setLoadingFlagged(false);
+  };
+
+  const handleVisibility = async (q: FlaggedQuestion, hide: boolean) => {
+    await adminFetch(`${API_ENDPOINT}/admin/questions/${q.questionId}/visibility`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ isHidden: hide }),
+    });
+    setFlaggedQuestions(prev => prev.map(x =>
+      x.questionId === q.questionId ? { ...x, isHidden: hide } : x
+    ));
+  };
+
   useEffect(() => { fetchQuestions(); setSelectedIds(new Set()); }, [examFilter, tagFilter, domainFilter]);
   useEffect(() => { if (tab === 'reports') fetchReports(); }, [tab]);
   useEffect(() => { if (tab === 'tips') fetchTips(); }, [tab]);
   useEffect(() => { if (tab === 'releases') fetchReleases(); }, [tab]);
+  useEffect(() => { if (tab === 'validity') fetchFlagged(); }, [tab]);
 
   const handleSaveTip = async () => {
     if (!tipForm.title.trim() || !tipForm.content.trim()) return;
@@ -322,6 +357,7 @@ export default function Admin() {
         <button style={tabStyle('reports')} onClick={() => setTab('reports')}>通報確認</button>
         <button style={tabStyle('tips')} onClick={() => setTab('tips')}>コラム管理</button>
         <button style={tabStyle('releases')} onClick={() => setTab('releases')}>リリースノート</button>
+        <button style={tabStyle('validity')} onClick={() => setTab('validity')}>要確認</button>
       </div>
 
       {/* ── 問題管理 ── */}
@@ -1218,6 +1254,73 @@ ${tipPromptExamType !== 'ALL' ? `・examType には "${tipPromptExamType}" を�
           {!loadingRel && releases.length === 0 && (
             <p style={{ color: '#aaa', textAlign: 'center', padding: 40 }}>リリースノートはありません</p>
           )}
+        </div>
+      )}
+      {tab === 'validity' && (
+        <div>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
+            <p style={{ color: '#545b64', fontSize: 13, margin: 0 }}>
+              {loadingFlagged ? '読み込み中...' : `${flaggedQuestions.length} 件（rating≤2 または非表示中）`}
+            </p>
+            <button onClick={fetchFlagged} style={{ padding: '6px 16px', background: 'white', color: '#008c8c', border: '1px solid #008c8c', borderRadius: 9999, cursor: 'pointer', fontSize: 13, fontWeight: 700 }}>
+              再読み込み
+            </button>
+          </div>
+
+          {!loadingFlagged && flaggedQuestions.length === 0 && (
+            <p style={{ color: '#aab7b8', textAlign: 'center', padding: 40 }}>要確認の問題はありません</p>
+          )}
+
+          {flaggedQuestions.map(q => {
+            const rating = q.validityRating;
+            const ratingColor = rating === 1 ? '#d13212' : rating === 2 ? '#d47500' : '#545b64';
+            const ratingLabel: Record<number, string> = { 1: '致命的', 2: '重大', 3: '軽微', 4: 'ほぼ問題なし', 5: '問題なし' };
+            return (
+              <div key={q.questionId} style={{ background: 'white', border: `1px solid ${q.isHidden ? '#d13212' : '#eaeded'}`, borderLeft: `4px solid ${ratingColor}`, borderRadius: 6, padding: '16px 20px', marginBottom: 12, boxShadow: '0 1px 1px 0 rgba(0,28,36,0.07)' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 8, flexWrap: 'wrap' }}>
+                  <span style={{ background: '#232f3e', color: 'white', fontSize: 11, padding: '2px 8px', borderRadius: 12, fontWeight: 700 }}>{q.examType}</span>
+                  {rating !== undefined && (
+                    <span style={{ fontSize: 12, fontWeight: 700, color: ratingColor, background: ratingColor + '18', padding: '2px 8px', borderRadius: 6 }}>
+                      rating {rating} — {ratingLabel[rating] ?? ''}
+                    </span>
+                  )}
+                  {q.isHidden && (
+                    <span style={{ fontSize: 12, fontWeight: 700, color: 'white', background: '#d13212', padding: '2px 8px', borderRadius: 6 }}>非表示中</span>
+                  )}
+                  <span style={{ fontSize: 11, color: '#aab7b8', marginLeft: 'auto' }}>
+                    {q.validityCheckedAt ? new Date(q.validityCheckedAt).toLocaleDateString('ja-JP') : '未チェック'}
+                  </span>
+                </div>
+                <p style={{ fontSize: 13, color: '#16191f', margin: '0 0 6px', lineHeight: 1.6 }}>{q.questionText}</p>
+                {q.validityNote && (
+                  <p style={{ fontSize: 12, color: '#545b64', margin: '0 0 12px', padding: '8px 12px', background: '#fbfbfb', borderRadius: 4, lineHeight: 1.6 }}>
+                    💬 {q.validityNote}
+                  </p>
+                )}
+                <div style={{ display: 'flex', gap: 8 }}>
+                  {q.isHidden ? (
+                    <button onClick={() => handleVisibility(q, false)} style={{ padding: '5px 14px', fontSize: 12, fontWeight: 700, borderRadius: 9999, cursor: 'pointer', background: 'white', color: '#037f0c', border: '1px solid #037f0c' }}>
+                      表示に戻す
+                    </button>
+                  ) : (
+                    <button onClick={() => handleVisibility(q, true)} style={{ padding: '5px 14px', fontSize: 12, fontWeight: 700, borderRadius: 9999, cursor: 'pointer', background: 'white', color: '#d47500', border: '1px solid #d47500' }}>
+                      非表示にする
+                    </button>
+                  )}
+                  <button
+                    onClick={async () => {
+                      if (!window.confirm('この問題を完全に削除しますか？')) return;
+                      await adminFetch(`${API_ENDPOINT}/admin/questions/${q.questionId}`, { method: 'DELETE' });
+                      setFlaggedQuestions(prev => prev.filter(x => x.questionId !== q.questionId));
+                    }}
+                    style={{ padding: '5px 14px', fontSize: 12, fontWeight: 700, borderRadius: 9999, cursor: 'pointer', background: 'white', color: '#d13212', border: '1px solid #d13212' }}
+                  >
+                    削除
+                  </button>
+                </div>
+              </div>
+            );
+          })}
         </div>
       )}
     </div>

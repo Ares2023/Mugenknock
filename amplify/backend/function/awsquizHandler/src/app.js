@@ -111,6 +111,7 @@ app.get('/questions', async (req, res) => {
       );
     }
 
+    items = items.filter(q => !q.isHidden);
     if (doShuffle === 'true') items = shuffle(items);
     if (limit) items = items.slice(0, parseInt(limit));
     const sanitized = items.map(({ correctAnswers, explanation, ...rest }) => rest);
@@ -246,6 +247,41 @@ app.post('/admin/questions', async (req, res) => {
 });
 
 // 問題一覧（管理者用・全フィールド返却）
+// 要確認問題一覧（rating<=2 または isHidden=true）
+app.get('/admin/questions/flagged', async (req, res) => {
+  try {
+    const docClient = getClient();
+    const result = await docClient.send(new ScanCommand({
+      TableName: 'Questions',
+      FilterExpression: 'validityRating <= :threshold OR isHidden = :hidden',
+      ExpressionAttributeValues: { ':threshold': 2, ':hidden': true },
+    }));
+    const items = (result.Items || []).sort((a, b) => (a.validityRating || 9) - (b.validityRating || 9));
+    res.json({ items, count: items.length });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+// 表示/非表示切り替え
+app.put('/admin/questions/:id/visibility', async (req, res) => {
+  try {
+    const docClient = getClient();
+    const { isHidden } = req.body;
+    await docClient.send(new UpdateCommand({
+      TableName: 'Questions',
+      Key: { questionId: req.params.id },
+      UpdateExpression: 'SET isHidden = :v',
+      ExpressionAttributeValues: { ':v': !!isHidden },
+    }));
+    res.json({ success: true });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
 app.get('/admin/questions', async (req, res) => {
   try {
     const docClient = getClient();
