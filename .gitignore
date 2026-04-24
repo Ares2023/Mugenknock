@@ -25,6 +25,9 @@ yarn-error.log*
 # 問題JSONファイル（インポート用データ）
 questions/*.json
 
+# プロンプト・スクリプト（ローカル運用のみ）
+prompts/
+
 #amplify-do-not-edit-begin
 amplify/\#current-cloud-backend
 amplify/.config/local-*
