@@ -71,8 +71,8 @@ export default function Home() {
           <span style={{ fontSize: 16, flexShrink: 0 }}>💡</span>
           <span style={{ flex: 1, lineHeight: 1.5 }}>
             {lang === 'en'
-              ? 'Pick your target exam, then start with Exercise or Mock Exam. Copy any question in one click to ask your AI assistant.'
-              : '目標資格を選んで演習・模試を始めましょう。問題文はワンクリックでコピーしてAIに質問できます。'}
+              ? 'Pick your target exam, then start with Exercise or Mock Exam. You can copy any question in one click.'
+              : '目標資格を選んで演習・模試を始めましょう。問題文はワンクリックでコピーできます。'}
           </span>
           <button
             onClick={dismissOnboarding}

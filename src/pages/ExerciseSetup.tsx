@@ -288,32 +288,12 @@ export default function ExerciseSetup() {
 
         {/* 左：設定フォーム */}
         <Card title={t('exerciseSetup.params')} padding="var(--spacing-xl)">
-          {/* 試験種別 */}
-          {targetExam ? (
-            <div style={{ marginBottom: 'var(--spacing-lg)', display: 'flex', alignItems: 'center', gap: 'var(--spacing-md)' }}>
-              <span style={{ fontSize: 'var(--font-size-base)', fontWeight: 700, color: 'var(--color-text-sub)' }}>{t('exerciseSetup.examType')}</span>
-              <Badge variant="secondary">{examType}</Badge>
-              <span style={{ fontSize: 'var(--font-size-sm)', color: 'var(--color-text-light)' }}>{t('exerciseSetup.examTypeHome')}</span>
-            </div>
-          ) : (
-            <div style={{ marginBottom: 'var(--spacing-lg)' }}>
-              <label style={{ display: 'flex', alignItems: 'center', gap: 'var(--spacing-sm)', marginBottom: 'var(--spacing-sm)', fontWeight: 700, fontSize: 'var(--font-size-base)' }}>
-                {t('exerciseSetup.examType')}
-              </label>
-              <div style={{ display: 'flex', gap: 'var(--spacing-sm)' }}>
-                {EXAM_TYPES.map(type => (
-                  <Button
-                    key={type}
-                    variant={examType === type ? 'primary' : 'outline'}
-                    size="sm"
-                    onClick={() => { setExamType(type); localStorage.setItem('lastExamType', type); }}
-                  >
-                    {type}
-                  </Button>
-                ))}
-              </div>
-            </div>
-          )}
+          {/* 試験種別（表示のみ・変更はホーム画面） */}
+          <div style={{ marginBottom: 'var(--spacing-lg)', display: 'flex', alignItems: 'center', gap: 'var(--spacing-md)' }}>
+            <span style={{ fontSize: 'var(--font-size-base)', fontWeight: 700, color: 'var(--color-text-sub)' }}>{t('exerciseSetup.examType')}</span>
+            <Badge variant="secondary">{examType}</Badge>
+            <span style={{ fontSize: 'var(--font-size-sm)', color: 'var(--color-text-light)' }}>{t('exerciseSetup.examTypeHome')}</span>
+          </div>
 
           {/* ドメインフィルタ */}
           <div style={{ marginBottom: 'var(--spacing-lg)' }}>
