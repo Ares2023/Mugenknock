@@ -276,6 +276,9 @@ export default function Admin() {
   const [loadingFlagged, setLoadingFlagged] = useState(false);
   const [validityFilter, setValidityFilter] = useState<'all' | 'flagged' | 'hidden'>('all');
   const [validityTotalCount, setValidityTotalCount] = useState(0);
+  const [scanExamFilter, setScanExamFilter] = useState<string>('ALL');
+  const [scanRatingFilter, setScanRatingFilter] = useState<Set<number>>(new Set());
+  const [scanSort, setScanSort] = useState<'rating_asc' | 'rating_desc' | 'date_asc' | 'date_desc'>('rating_asc');
 
   // 問題編集
   const EMPTY_EDIT_FORM: EditForm = { examType: 'SAA', domain: '', questionText: '', questionTextEn: '', choices: ['', '', '', ''], choicesEn: ['', '', '', ''], correctAnswers: [], explanation: '', explanationEn: '', tags: '', isMultiple: false };
@@ -1591,6 +1594,25 @@ ${tipPromptExamType !== 'ALL' ? `・examType には "${tipPromptExamType}" を�
           r, count: flaggedQuestions.filter(q => q.validityRating === r).length
         }));
 
+        const toggleScanRating = (r: number) => {
+          setScanRatingFilter(prev => {
+            const next = new Set(prev);
+            if (next.has(r)) next.delete(r); else next.add(r);
+            return next;
+          });
+        };
+
+        const filteredFlagged = flaggedQuestions
+          .filter(q => scanExamFilter === 'ALL' || q.examType === scanExamFilter)
+          .filter(q => scanRatingFilter.size === 0 || (q.validityRating !== undefined && scanRatingFilter.has(q.validityRating)))
+          .sort((a, b) => {
+            if (scanSort === 'rating_asc') return (a.validityRating ?? 99) - (b.validityRating ?? 99);
+            if (scanSort === 'rating_desc') return (b.validityRating ?? 0) - (a.validityRating ?? 0);
+            const da = a.validityCheckedAt ? new Date(a.validityCheckedAt).getTime() : 0;
+            const db = b.validityCheckedAt ? new Date(b.validityCheckedAt).getTime() : 0;
+            return scanSort === 'date_asc' ? da - db : db - da;
+          });
+
         return (
           <div>
             {/* 進捗・統計 */}
@@ -1604,11 +1626,9 @@ ${tipPromptExamType !== 'ALL' ? `・examType には "${tipPromptExamType}" を�
                     残り {validityTotalCount - flaggedQuestions.length} 問未チェック
                   </div>
                 </div>
-                {/* プログレスバー */}
                 <div style={{ height: 8, background: '#d1d5db', borderRadius: 9999, overflow: 'hidden', marginBottom: 10 }}>
                   <div style={{ height: '100%', background: '#008c8c', borderRadius: 9999, width: `${Math.min(100, (flaggedQuestions.length / validityTotalCount) * 100)}%`, transition: 'width 0.4s' }} />
                 </div>
-                {/* rating 分布 */}
                 <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
                   {ratingDist.map(({ r, count }) => count > 0 && (
                     <span key={r} style={{ fontSize: 12, fontWeight: 700, padding: '2px 10px', borderRadius: 9999, background: RATING_COLOR[r] + '18', color: RATING_COLOR[r], border: `1px solid ${RATING_COLOR[r]}40` }}>
@@ -1619,8 +1639,8 @@ ${tipPromptExamType !== 'ALL' ? `・examType には "${tipPromptExamType}" を�
               </div>
             )}
 
-            {/* フィルター・再読み込み */}
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16, flexWrap: 'wrap', gap: 8 }}>
+            {/* サーバーサイドフィルター・再読み込み */}
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12, flexWrap: 'wrap', gap: 8 }}>
               <div style={{ display: 'flex', gap: 6 }}>
                 {([
                   { key: 'all', label: '全チェック済み' },
@@ -1643,6 +1663,78 @@ ${tipPromptExamType !== 'ALL' ? `・examType には "${tipPromptExamType}" を�
               </button>
             </div>
 
+            {/* クライアントサイドフィルター */}
+            {!loadingFlagged && flaggedQuestions.length > 0 && (
+              <div style={{ background: '#f8f9fa', border: '1px solid #eaeded', borderRadius: 8, padding: '12px 16px', marginBottom: 16, display: 'flex', flexWrap: 'wrap', gap: 16, alignItems: 'flex-start' }}>
+                {/* 試験種別 */}
+                <div>
+                  <div style={{ fontSize: 11, fontWeight: 700, color: '#879596', marginBottom: 6, textTransform: 'uppercase', letterSpacing: '0.05em' }}>試験種別</div>
+                  <div style={{ display: 'flex', gap: 4 }}>
+                    {(['ALL', ...EXAM_TYPES] as string[]).map(et => (
+                      <button key={et} onClick={() => setScanExamFilter(et)}
+                        style={{ padding: '3px 10px', border: '1px solid', borderRadius: 9999, cursor: 'pointer', fontSize: 12, fontWeight: scanExamFilter === et ? 700 : 400,
+                          background: scanExamFilter === et ? '#232f3e' : 'white',
+                          color: scanExamFilter === et ? 'white' : '#545b64',
+                          borderColor: scanExamFilter === et ? '#232f3e' : '#d1d5db' }}>
+                        {et}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                {/* 評価 */}
+                <div>
+                  <div style={{ fontSize: 11, fontWeight: 700, color: '#879596', marginBottom: 6, textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+                    評価
+                    {scanRatingFilter.size > 0 && (
+                      <button onClick={() => setScanRatingFilter(new Set())}
+                        style={{ marginLeft: 8, fontSize: 10, fontWeight: 700, padding: '1px 7px', borderRadius: 9999, border: 'none', background: '#d1d5db', color: '#545b64', cursor: 'pointer' }}>
+                        クリア
+                      </button>
+                    )}
+                  </div>
+                  <div style={{ display: 'flex', gap: 4 }}>
+                    {[1, 2, 3, 4, 5].map(r => (
+                      <button key={r} onClick={() => toggleScanRating(r)}
+                        style={{ padding: '3px 10px', border: '1px solid', borderRadius: 9999, cursor: 'pointer', fontSize: 12, fontWeight: scanRatingFilter.has(r) ? 700 : 400,
+                          background: scanRatingFilter.has(r) ? RATING_COLOR[r] + '20' : 'white',
+                          color: scanRatingFilter.has(r) ? RATING_COLOR[r] : '#545b64',
+                          borderColor: scanRatingFilter.has(r) ? RATING_COLOR[r] : '#d1d5db' }}
+                        title={RATING_LABEL[r]}>
+                        {r}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                {/* ソート */}
+                <div>
+                  <div style={{ fontSize: 11, fontWeight: 700, color: '#879596', marginBottom: 6, textTransform: 'uppercase', letterSpacing: '0.05em' }}>並べ替え</div>
+                  <div style={{ display: 'flex', gap: 4 }}>
+                    {([
+                      { key: 'rating_asc', label: '評価 低→高' },
+                      { key: 'rating_desc', label: '評価 高→低' },
+                      { key: 'date_desc', label: '日付 新→古' },
+                      { key: 'date_asc', label: '日付 古→新' },
+                    ] as const).map(({ key, label }) => (
+                      <button key={key} onClick={() => setScanSort(key)}
+                        style={{ padding: '3px 10px', border: '1px solid', borderRadius: 9999, cursor: 'pointer', fontSize: 12, fontWeight: scanSort === key ? 700 : 400,
+                          background: scanSort === key ? '#e0f2f2' : 'white',
+                          color: scanSort === key ? '#008c8c' : '#545b64',
+                          borderColor: scanSort === key ? '#008c8c' : '#d1d5db' }}>
+                        {label}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                {/* 件数表示 */}
+                <div style={{ marginLeft: 'auto', alignSelf: 'flex-end', fontSize: 12, color: '#879596' }}>
+                  {filteredFlagged.length} / {flaggedQuestions.length} 件
+                </div>
+              </div>
+            )}
+
             {loadingFlagged && <p style={{ color: '#545b64', fontSize: 13, padding: 20, textAlign: 'center' }}>読み込み中...</p>}
 
             {!loadingFlagged && flaggedQuestions.length === 0 && (
@@ -1651,13 +1743,20 @@ ${tipPromptExamType !== 'ALL' ? `・examType には "${tipPromptExamType}" を�
               </p>
             )}
 
-            {flaggedQuestions.map(q => {
+            {!loadingFlagged && flaggedQuestions.length > 0 && filteredFlagged.length === 0 && (
+              <p style={{ color: '#aab7b8', textAlign: 'center', padding: 40 }}>フィルター条件に一致する問題はありません</p>
+            )}
+
+            {filteredFlagged.map(q => {
               const rating = q.validityRating;
               const ratingColor = rating !== undefined ? (RATING_COLOR[rating] ?? '#545b64') : '#aab7b8';
               return (
                 <div key={q.questionId} style={{ background: 'white', border: `1px solid ${q.isHidden ? '#f5a09b' : '#eaeded'}`, borderLeft: `4px solid ${ratingColor}`, borderRadius: 6, padding: '14px 18px', marginBottom: 8, boxShadow: '0 1px 1px 0 rgba(0,28,36,0.07)' }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 8, flexWrap: 'wrap' }}>
                     <span style={{ background: '#232f3e', color: 'white', fontSize: 11, padding: '2px 8px', borderRadius: 12, fontWeight: 700 }}>{q.examType}</span>
+                    {q.domain && (
+                      <span style={{ fontSize: 11, color: '#879596', background: '#f2f3f3', padding: '2px 8px', borderRadius: 12 }}>{q.domain}</span>
+                    )}
                     {rating !== undefined ? (
                       <span style={{ fontSize: 12, fontWeight: 700, color: ratingColor, background: ratingColor + '18', padding: '2px 10px', borderRadius: 6 }}>
                         rating {rating} — {RATING_LABEL[rating] ?? ''}
