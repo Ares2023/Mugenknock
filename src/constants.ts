@@ -26,7 +26,7 @@ export const EXAM_DOMAINS: Record<string, string[]> = {
   CLF: ['クラウドのコンセプト', 'セキュリティとコンプライアンス', 'クラウドテクノロジーとサービス', '請求・料金・サポート'],
   SAA: ['セキュアなアーキテクチャの設計', '弾力性に優れたアーキテクチャの設計', '高パフォーマンスなアーキテクチャの設計', 'コスト最適化されたアーキテクチャの設計'],
   SAP: ['組織の複雑さに対応したソリューションの設計', '新しいソリューションの設計', '既存ソリューションの継続的改善', 'ワークロードの移行とモダナイゼーション'],
-  DOP: ['SDLCの自動化', '設定管理とIaC', '耐障害性の高いクラウドソリューションの設計と実装', 'モニタリングとロギング', 'インシデントおよびイベントへの対応', 'セキュリティとコンプライアンス'],
+  DOP: ['SDLC の自動化', '設定管理と IaC', '高可用性、耐障害性、およびディザスタリカバリ', 'モニタリングとログ', 'セキュリティとコンプライアンスの自動化'],
 };
 
 // ドメイン名の英語対応（日本語キー → 英語表示）
@@ -43,11 +43,11 @@ export const DOMAIN_NAME_EN: Record<string, string> = {
   '新しいソリューションの設計': 'Design for New Solutions',
   '既存ソリューションの継続的改善': 'Continuous Improvement for Existing Solutions',
   'ワークロードの移行とモダナイゼーション': 'Accelerate Workload Migration and Modernization',
-  'SDLCの自動化': 'SDLC Automation',
-  '設定管理とIaC': 'Configuration Management and IaC',
-  '耐障害性の高いクラウドソリューションの設計と実装': 'Resilient Cloud Solutions',
-  'モニタリングとロギング': 'Monitoring and Logging',
-  'インシデントおよびイベントへの対応': 'Incident and Event Response',
+  'SDLC の自動化': 'SDLC Automation',
+  '設定管理と IaC': 'Configuration Management and IaC',
+  '高可用性、耐障害性、およびディザスタリカバリ': 'High Availability, Fault Tolerance, and DR',
+  'モニタリングとログ': 'Monitoring and Logging',
+  'セキュリティとコンプライアンスの自動化': 'Security and Compliance Automation',
 };
 
 // 模試モードの設定

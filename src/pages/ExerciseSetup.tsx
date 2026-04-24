@@ -163,7 +163,8 @@ export default function ExerciseSetup() {
       if (selectedDomains.length === 0) { setAvailableCount(0); return; }
       try {
         const params = new URLSearchParams({ examType });
-        if (selectedDomains.length > 0) params.set('domain', selectedDomains.join(','));
+        const allSelected = EXAM_DOMAINS[examType].every(d => selectedDomains.includes(d));
+        if (!allSelected) params.set('domain', selectedDomains.join(','));
         if (selectedTag) params.set('tagId', selectedTag);
 
         if (user && (bookmarkOnly || unansweredOnly || incorrectOnly)) {
@@ -241,9 +242,10 @@ export default function ExerciseSetup() {
       const userId = user?.userId ?? 'guest';
       let selectedItems: any[];
 
+      const allSelected = EXAM_DOMAINS[examType].every(d => selectedDomains.includes(d));
       if (user && (bookmarkOnly || unansweredOnly || incorrectOnly)) {
         const params = new URLSearchParams({ examType });
-        if (selectedDomains.length > 0) params.set('domain', selectedDomains.join(','));
+        if (!allSelected) params.set('domain', selectedDomains.join(','));
         if (selectedTag) params.set('tagId', selectedTag);
 
         const [qRes, bkmRes, answeredRes, incorrectRes] = await Promise.all([
@@ -269,7 +271,7 @@ export default function ExerciseSetup() {
         selectedItems = filtered.slice(0, limit);
       } else {
         const params = new URLSearchParams({ examType, limit: String(limit), shuffle: String(shuffle) });
-        if (selectedDomains.length > 0) params.set('domain', selectedDomains.join(','));
+        if (!allSelected) params.set('domain', selectedDomains.join(','));
         if (selectedTag) params.set('tagId', selectedTag);
         const res = await fetch(`${API_ENDPOINT}/questions?${params}`);
         const data = await res.json();
