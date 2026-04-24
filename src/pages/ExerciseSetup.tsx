@@ -284,7 +284,7 @@ export default function ExerciseSetup() {
         {t('exerciseSetup.description')}
       </p>
 
-      <div className="setup-grid" style={{ display: 'grid', gridTemplateColumns: '1fr 380px', gap: 'var(--spacing-xl)', alignItems: 'flex-start' }}>
+      <div className="setup-grid" style={{ display: 'grid', gridTemplateColumns: '1fr 360px', gap: 'var(--spacing-lg)' }}>
 
         {/* 左：設定フォーム */}
         <Card title={t('exerciseSetup.params')} padding="var(--spacing-xl)">
@@ -447,7 +447,7 @@ export default function ExerciseSetup() {
         </Card>
 
         {/* 右：試験情報パネル（サブ） */}
-        <Card padding="var(--spacing-lg)" style={{ background: 'transparent', boxShadow: 'none' }}>
+        <Card padding="var(--spacing-lg)" style={{ background: 'transparent', boxShadow: 'none', height: '100%' }}>
           {/* 試験ヘッダー */}
           <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--spacing-sm)', marginBottom: 'var(--spacing-sm)' }}>
             <Badge variant="secondary">{examType}</Badge>

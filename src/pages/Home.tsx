@@ -90,7 +90,7 @@ export default function Home() {
 
       {/* 目標資格プレート */}
       <Card style={{ marginBottom: 'var(--spacing-lg)' }}>
-        <div className="home-exam-panel" style={{ display: 'flex', gap: 'var(--spacing-xl)', alignItems: 'flex-start' }}>
+        <div className="home-exam-panel" style={{ display: 'flex', gap: 'var(--spacing-lg)', alignItems: 'stretch' }}>
 
           {/* 左：試験選択ボタン（縦積み） */}
           <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--spacing-sm)', flexShrink: 0 }}>
@@ -127,7 +127,7 @@ export default function Home() {
           </div>
 
           {/* 右：選択中の資格情報 */}
-          <div style={{ flex: 1, minWidth: 0, borderLeft: '1px solid var(--color-border)', paddingLeft: 'var(--spacing-xl)' }} className="home-exam-info">
+          <div style={{ flex: 1, minWidth: 0, borderLeft: '1px solid var(--color-border)', paddingLeft: 'var(--spacing-lg)' }} className="home-exam-info">
             {cfg && targetExam ? (
               <div>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--spacing-sm)', marginBottom: 'var(--spacing-sm)' }}>
