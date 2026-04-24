@@ -312,27 +312,29 @@ export default function ExamSetup() {
             <label style={{ display: 'flex', alignItems: 'center', gap: 'var(--spacing-sm)', marginBottom: 'var(--spacing-sm)', fontWeight: 700, fontSize: 'var(--font-size-base)' }}>
               <StepBadge n={domainStep} />{t('examSetup.domain')} <span style={{ fontWeight: 400, fontSize: 'var(--font-size-sm)', color: 'var(--color-text-sub)' }}>{t('examSetup.optional')}</span>
             </label>
-            <div style={{ padding: 'var(--spacing-md)', background: 'var(--color-bg-main)', borderRadius: 'var(--border-radius-md)', display: 'flex', flexDirection: 'column', gap: 'var(--spacing-xs)' }}>
-              <label style={{ display: 'flex', alignItems: 'center', gap: 'var(--spacing-sm)', cursor: 'pointer', fontSize: 'var(--font-size-sm)', color: 'var(--color-text-sub)' }}>
-                <input type="checkbox" checked={selectedDomains.length === 0} onChange={() => setSelectedDomains([])} style={{ width: 16, height: 16 }} />
+            <div style={{ background: 'var(--color-bg-main)', borderRadius: 'var(--border-radius-md)', overflow: 'hidden' }}>
+              <label style={{ display: 'flex', alignItems: 'center', gap: 'var(--spacing-sm)', cursor: 'pointer', fontSize: 'var(--font-size-sm)', color: 'var(--color-text-sub)', padding: 'var(--spacing-sm) var(--spacing-md)', borderBottom: '1px solid var(--color-border)' }}>
+                <input type="checkbox" checked={selectedDomains.length === 0} onChange={() => setSelectedDomains([])} style={{ width: 15, height: 15 }} />
                 {t('examSetup.all')}
               </label>
-              {EXAM_DOMAINS[examType].map(d => {
-                const checked = selectedDomains.includes(d);
-                return (
-                  <label key={d} style={{ display: 'flex', alignItems: 'center', gap: 'var(--spacing-sm)', cursor: 'pointer', fontSize: 'var(--font-size-base)' }}>
-                    <input
-                      type="checkbox"
-                      checked={checked}
-                      onChange={() => setSelectedDomains(prev => checked ? prev.filter(x => x !== d) : [...prev, d])}
-                      style={{ width: 16, height: 16, flexShrink: 0 }}
-                    />
-                    <span style={{ color: checked ? 'var(--color-primary)' : 'var(--color-text-main)', fontWeight: checked ? 700 : 400 }}>
-                      {lang === 'en' ? (DOMAIN_NAME_EN[d] ?? d) : d}
-                    </span>
-                  </label>
-                );
-              })}
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 0, padding: 'var(--spacing-xs) var(--spacing-md)' }}>
+                {EXAM_DOMAINS[examType].map(d => {
+                  const checked = selectedDomains.includes(d);
+                  return (
+                    <label key={d} style={{ display: 'flex', alignItems: 'center', gap: 'var(--spacing-sm)', cursor: 'pointer', fontSize: 'var(--font-size-base)', padding: '3px 0 3px 8px' }}>
+                      <input
+                        type="checkbox"
+                        checked={checked}
+                        onChange={() => setSelectedDomains(prev => checked ? prev.filter(x => x !== d) : [...prev, d])}
+                        style={{ width: 16, height: 16, flexShrink: 0 }}
+                      />
+                      <span style={{ color: checked ? 'var(--color-primary)' : 'var(--color-text-main)', fontWeight: checked ? 600 : 400 }}>
+                        {lang === 'en' ? (DOMAIN_NAME_EN[d] ?? d) : d}
+                      </span>
+                    </label>
+                  );
+                })}
+              </div>
             </div>
           </div>
 
@@ -373,24 +375,24 @@ export default function ExamSetup() {
               {user && (
                 <label title={t('exerciseSetup.unansweredOnlyDesc')} style={{ display: 'flex', alignItems: 'center', gap: 'var(--spacing-sm)', cursor: 'pointer', fontSize: 'var(--font-size-base)' }}>
                   <input type="checkbox" checked={unansweredOnly} onChange={e => { setUnansweredOnly(e.target.checked); if (e.target.checked) setIncorrectOnly(false); }} style={{ width: 16, height: 16, flexShrink: 0 }} />
-                  <span style={{ fontWeight: 700 }}>{t('exerciseSetup.unansweredOnly')}</span>
+                  {t('exerciseSetup.unansweredOnly')}
                 </label>
               )}
               {user && (
                 <label title={t('exerciseSetup.incorrectOnlyDesc')} style={{ display: 'flex', alignItems: 'center', gap: 'var(--spacing-sm)', cursor: 'pointer', fontSize: 'var(--font-size-base)' }}>
                   <input type="checkbox" checked={incorrectOnly} onChange={e => { setIncorrectOnly(e.target.checked); if (e.target.checked) setUnansweredOnly(false); }} style={{ width: 16, height: 16, flexShrink: 0 }} />
-                  <span style={{ fontWeight: 700 }}>{t('exerciseSetup.incorrectOnly')}</span>
+                  {t('exerciseSetup.incorrectOnly')}
                 </label>
               )}
               {user && (
                 <label title={t('exerciseSetup.bookmarkOnlyDesc')} style={{ display: 'flex', alignItems: 'center', gap: 'var(--spacing-sm)', cursor: 'pointer', fontSize: 'var(--font-size-base)' }}>
                   <input type="checkbox" checked={bookmarkOnly} onChange={e => setBookmarkOnly(e.target.checked)} style={{ width: 16, height: 16, flexShrink: 0 }} />
-                  <span style={{ fontWeight: 700 }}>{t('exerciseSetup.bookmarkOnly')}</span>
+                  {t('exerciseSetup.bookmarkOnly')}
                 </label>
               )}
               <label style={{ display: 'flex', alignItems: 'center', gap: 'var(--spacing-sm)', cursor: 'pointer', fontSize: 'var(--font-size-base)' }}>
                 <input type="checkbox" checked={shuffle} onChange={e => setShuffle(e.target.checked)} style={{ width: 16, height: 16, flexShrink: 0 }} />
-                <span style={{ fontWeight: 700 }}>{t('exerciseSetup.shuffle')}</span>
+                {t('exerciseSetup.shuffle')}
               </label>
             </div>
           </div>
