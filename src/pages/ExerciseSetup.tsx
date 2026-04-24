@@ -116,7 +116,6 @@ export default function ExerciseSetup() {
     setExamType(et);
   };
   const [selectedDomains, setSelectedDomains] = useState<string[]>(() => loadExercisePrefs(localStorage.getItem('targetExam') || localStorage.getItem('lastExamType') || 'SAA').domains ?? []);
-  const [domainExpanded, setDomainExpanded] = useState(false);
   const [selectedTag, setSelectedTag] = useState<string>(() => loadExercisePrefs(localStorage.getItem('targetExam') || localStorage.getItem('lastExamType') || 'SAA').tag ?? '');
   const [limit, setLimit] = useState<number>(() => loadExercisePrefs(localStorage.getItem('targetExam') || localStorage.getItem('lastExamType') || 'SAA').limit ?? 10);
   const [shuffle, setShuffle] = useState<boolean>(() => loadExercisePrefs(localStorage.getItem('targetExam') || localStorage.getItem('lastExamType') || 'SAA').shuffle ?? true);
@@ -364,49 +363,27 @@ export default function ExerciseSetup() {
             <label style={{ display: 'flex', alignItems: 'center', gap: 'var(--spacing-sm)', marginBottom: 'var(--spacing-sm)', fontWeight: 700, fontSize: 'var(--font-size-base)' }}>
               <StepBadge n={domainStep} />{t('exerciseSetup.domain')} <span style={{ fontWeight: 400, fontSize: 'var(--font-size-sm)', color: 'var(--color-text-sub)' }}>{t('exerciseSetup.optional')}</span>
             </label>
-            <div style={{ border: '1px solid var(--color-border)', borderRadius: 'var(--border-radius-md)', overflow: 'hidden' }}>
-              <button
-                type="button"
-                onClick={() => setDomainExpanded(v => !v)}
-                style={{
-                  width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-                  padding: '10px var(--spacing-md)', border: 'none', cursor: 'pointer',
-                  background: selectedDomains.length > 0 ? 'var(--color-primary-light)' : 'var(--color-bg-white)',
-                  color: selectedDomains.length > 0 ? 'var(--color-primary)' : 'var(--color-text-main)',
-                  fontWeight: selectedDomains.length > 0 ? 700 : 400, fontSize: 'var(--font-size-base)',
-                }}
-              >
-                <span>
-                  {selectedDomains.length === 0
-                    ? t('exerciseSetup.all')
-                    : lang === 'ja' ? `${selectedDomains.length}ドメイン選択中` : `${selectedDomains.length} domain(s) selected`}
-                </span>
-                <span style={{ fontSize: 11, color: 'var(--color-text-light)', display: 'inline-block', transform: domainExpanded ? 'rotate(180deg)' : 'none', transition: 'transform 0.2s' }}>▼</span>
-              </button>
-              {domainExpanded && (
-                <div style={{ borderTop: '1px solid var(--color-border)', padding: 'var(--spacing-sm) var(--spacing-md)', background: 'var(--color-bg-main)', display: 'flex', flexDirection: 'column', gap: 'var(--spacing-xs)' }}>
-                  <label style={{ display: 'flex', alignItems: 'center', gap: 'var(--spacing-sm)', cursor: 'pointer', fontSize: 'var(--font-size-sm)', padding: '4px 0', color: 'var(--color-text-sub)' }}>
-                    <input type="checkbox" checked={selectedDomains.length === 0} onChange={() => setSelectedDomains([])} style={{ width: 16, height: 16 }} />
-                    {t('exerciseSetup.all')}（{lang === 'ja' ? 'クリア' : 'Clear'}）
+            <div style={{ padding: 'var(--spacing-md)', background: 'var(--color-bg-main)', borderRadius: 'var(--border-radius-md)', display: 'flex', flexDirection: 'column', gap: 'var(--spacing-xs)' }}>
+              <label style={{ display: 'flex', alignItems: 'center', gap: 'var(--spacing-sm)', cursor: 'pointer', fontSize: 'var(--font-size-sm)', color: 'var(--color-text-sub)' }}>
+                <input type="checkbox" checked={selectedDomains.length === 0} onChange={() => setSelectedDomains([])} style={{ width: 16, height: 16 }} />
+                {t('exerciseSetup.all')}
+              </label>
+              {EXAM_DOMAINS[examType].map(d => {
+                const checked = selectedDomains.includes(d);
+                return (
+                  <label key={d} style={{ display: 'flex', alignItems: 'center', gap: 'var(--spacing-sm)', cursor: 'pointer', fontSize: 'var(--font-size-base)' }}>
+                    <input
+                      type="checkbox"
+                      checked={checked}
+                      onChange={() => setSelectedDomains(prev => checked ? prev.filter(x => x !== d) : [...prev, d])}
+                      style={{ width: 16, height: 16, flexShrink: 0 }}
+                    />
+                    <span style={{ color: checked ? 'var(--color-primary)' : 'var(--color-text-main)', fontWeight: checked ? 700 : 400 }}>
+                      {lang === 'en' ? (DOMAIN_NAME_EN[d] ?? d) : d}
+                    </span>
                   </label>
-                  {EXAM_DOMAINS[examType].map(d => {
-                    const checked = selectedDomains.includes(d);
-                    return (
-                      <label key={d} style={{ display: 'flex', alignItems: 'center', gap: 'var(--spacing-sm)', cursor: 'pointer', fontSize: 'var(--font-size-base)', padding: '4px 0' }}>
-                        <input
-                          type="checkbox"
-                          checked={checked}
-                          onChange={() => setSelectedDomains(prev => checked ? prev.filter(x => x !== d) : [...prev, d])}
-                          style={{ width: 16, height: 16 }}
-                        />
-                        <span style={{ color: checked ? 'var(--color-primary)' : 'var(--color-text-main)', fontWeight: checked ? 700 : 400, lineHeight: 1.4 }}>
-                          {lang === 'en' ? (DOMAIN_NAME_EN[d] ?? d) : d}
-                        </span>
-                      </label>
-                    );
-                  })}
-                </div>
-              )}
+                );
+              })}
             </div>
           </div>
 
@@ -466,36 +443,27 @@ export default function ExerciseSetup() {
             <label style={{ display: 'flex', alignItems: 'center', gap: 'var(--spacing-sm)', marginBottom: 'var(--spacing-sm)', fontWeight: 700, fontSize: 'var(--font-size-base)' }}>
               <StepBadge n={optionsStep} />{t('exerciseSetup.options')}
             </label>
-            <div style={{ padding: 'var(--spacing-md)', background: 'var(--color-bg-main)', borderRadius: 'var(--border-radius-md)', display: 'flex', flexDirection: 'column', gap: 'var(--spacing-sm)' }}>
+            <div style={{ padding: 'var(--spacing-md)', background: 'var(--color-bg-main)', borderRadius: 'var(--border-radius-md)', display: 'flex', flexDirection: 'column', gap: 'var(--spacing-xs)' }}>
               {user && (
-                <label style={{ display: 'flex', alignItems: 'center', gap: 'var(--spacing-md)', cursor: 'pointer', fontSize: 'var(--font-size-base)' }}>
-                  <input type="checkbox" checked={unansweredOnly} onChange={e => { setUnansweredOnly(e.target.checked); if (e.target.checked) setIncorrectOnly(false); }} style={{ width: 18, height: 18 }} />
-                  <span style={{ fontWeight: 700 }}>
-                    {t('exerciseSetup.unansweredOnly')}
-                    <span style={{ fontWeight: 400, fontSize: 'var(--font-size-sm)', color: 'var(--color-text-sub)', marginLeft: 'var(--spacing-sm)' }}>{t('exerciseSetup.unansweredOnlyDesc')}</span>
-                  </span>
+                <label title={t('exerciseSetup.unansweredOnlyDesc')} style={{ display: 'flex', alignItems: 'center', gap: 'var(--spacing-sm)', cursor: 'pointer', fontSize: 'var(--font-size-base)' }}>
+                  <input type="checkbox" checked={unansweredOnly} onChange={e => { setUnansweredOnly(e.target.checked); if (e.target.checked) setIncorrectOnly(false); }} style={{ width: 16, height: 16, flexShrink: 0 }} />
+                  <span style={{ fontWeight: 700 }}>{t('exerciseSetup.unansweredOnly')}</span>
                 </label>
               )}
               {user && (
-                <label style={{ display: 'flex', alignItems: 'center', gap: 'var(--spacing-md)', cursor: 'pointer', fontSize: 'var(--font-size-base)' }}>
-                  <input type="checkbox" checked={incorrectOnly} onChange={e => { setIncorrectOnly(e.target.checked); if (e.target.checked) setUnansweredOnly(false); }} style={{ width: 18, height: 18 }} />
-                  <span style={{ fontWeight: 700 }}>
-                    {t('exerciseSetup.incorrectOnly')}
-                    <span style={{ fontWeight: 400, fontSize: 'var(--font-size-sm)', color: 'var(--color-text-sub)', marginLeft: 'var(--spacing-sm)' }}>{t('exerciseSetup.incorrectOnlyDesc')}</span>
-                  </span>
+                <label title={t('exerciseSetup.incorrectOnlyDesc')} style={{ display: 'flex', alignItems: 'center', gap: 'var(--spacing-sm)', cursor: 'pointer', fontSize: 'var(--font-size-base)' }}>
+                  <input type="checkbox" checked={incorrectOnly} onChange={e => { setIncorrectOnly(e.target.checked); if (e.target.checked) setUnansweredOnly(false); }} style={{ width: 16, height: 16, flexShrink: 0 }} />
+                  <span style={{ fontWeight: 700 }}>{t('exerciseSetup.incorrectOnly')}</span>
                 </label>
               )}
               {user && (
-                <label style={{ display: 'flex', alignItems: 'center', gap: 'var(--spacing-md)', cursor: 'pointer', fontSize: 'var(--font-size-base)' }}>
-                  <input type="checkbox" checked={bookmarkOnly} onChange={e => setBookmarkOnly(e.target.checked)} style={{ width: 18, height: 18 }} />
-                  <span style={{ fontWeight: 700 }}>
-                    {t('exerciseSetup.bookmarkOnly')}
-                    <span style={{ fontWeight: 400, fontSize: 'var(--font-size-sm)', color: 'var(--color-text-sub)', marginLeft: 'var(--spacing-sm)' }}>{t('exerciseSetup.bookmarkOnlyDesc')}</span>
-                  </span>
+                <label title={t('exerciseSetup.bookmarkOnlyDesc')} style={{ display: 'flex', alignItems: 'center', gap: 'var(--spacing-sm)', cursor: 'pointer', fontSize: 'var(--font-size-base)' }}>
+                  <input type="checkbox" checked={bookmarkOnly} onChange={e => setBookmarkOnly(e.target.checked)} style={{ width: 16, height: 16, flexShrink: 0 }} />
+                  <span style={{ fontWeight: 700 }}>{t('exerciseSetup.bookmarkOnly')}</span>
                 </label>
               )}
-              <label style={{ display: 'flex', alignItems: 'center', gap: 'var(--spacing-md)', cursor: 'pointer', fontSize: 'var(--font-size-base)' }}>
-                <input type="checkbox" checked={shuffle} onChange={e => setShuffle(e.target.checked)} style={{ width: 18, height: 18 }} />
+              <label style={{ display: 'flex', alignItems: 'center', gap: 'var(--spacing-sm)', cursor: 'pointer', fontSize: 'var(--font-size-base)' }}>
+                <input type="checkbox" checked={shuffle} onChange={e => setShuffle(e.target.checked)} style={{ width: 16, height: 16, flexShrink: 0 }} />
                 <span style={{ fontWeight: 700 }}>{t('exerciseSetup.shuffle')}</span>
               </label>
             </div>
@@ -537,7 +505,7 @@ export default function ExerciseSetup() {
         </Card>
 
         {/* 右：試験情報パネル（サブ） */}
-        <Card padding="var(--spacing-lg)" style={{ background: 'transparent', boxShadow: 'none', height: '100%' }}>
+        <Card padding="var(--spacing-lg)" style={{ border: '2px solid var(--color-border)', height: '100%' }}>
           {/* 試験ヘッダー */}
           <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--spacing-sm)', marginBottom: 'var(--spacing-sm)' }}>
             <Badge variant="secondary">{examType}</Badge>
