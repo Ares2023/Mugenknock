@@ -1558,7 +1558,7 @@ ${tipPromptExamType !== 'ALL' ? `・examType には "${tipPromptExamType}" を�
             </div>
           )}
 
-          {releases.map(r => (
+          {[...releases].sort((a, b) => b.date.localeCompare(a.date)).map(r => (
             <div key={r.releaseId} style={{ border: '1px solid #eaeded', borderRadius: 6, padding: '14px 18px', marginBottom: 8, background: 'white', boxShadow: '0 1px 1px 0 rgba(0,28,36,0.1)' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 16 }}>
                 <div style={{ flex: 1 }}>
