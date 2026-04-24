@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { API_ENDPOINT } from '../constants';
+import { API_ENDPOINT, EXAM_DOMAINS, DOMAIN_NAME_EN } from '../constants';
 import { useAuth } from '../contexts/AuthContext';
 import { useLanguage } from '../contexts/LanguageContext';
 import Card from '../components/ui/Card';
@@ -63,13 +63,16 @@ export default function QuestionList() {
   const [bookmarkedIds, setBookmarkedIds] = useState<Set<string>>(new Set());
   const [bookmarkLoading, setBookmarkLoading] = useState<Set<string>>(new Set());
   const [bookmarkOnly, setBookmarkOnly] = useState(false);
+  const [selectedDomains, setSelectedDomains] = useState<string[]>([]);
+  const [domainExpanded, setDomainExpanded] = useState(false);
 
-  const fetchQuestions = async (type: string, kw: string) => {
+  const fetchQuestions = async (type: string, kw: string, domains: string[]) => {
     setLoading(true);
     try {
       const params = new URLSearchParams();
       if (type) params.set('examType', type);
       if (kw.trim()) params.set('keyword', kw.trim());
+      if (domains.length > 0) params.set('domain', domains.join(','));
       const url = `${API_ENDPOINT}/questions${params.toString() ? '?' + params : ''}`;
       const res = await fetch(url);
       const data = await res.json();
@@ -94,7 +97,9 @@ export default function QuestionList() {
     const params = new URLSearchParams(location.search);
     const kw = params.get('keyword') || '';
     setKeyword(kw);
-    fetchQuestions('', kw);
+    fetchQuestions('', kw, []);
+    setSelectedDomains([]);
+    setExamType('');
   }, [location.search]);
 
   const handleSearch = (e: React.FormEvent) => {
@@ -208,13 +213,18 @@ export default function QuestionList() {
           )}
         </form>
 
-        <div style={{ display: 'flex', gap: 'var(--spacing-sm)', flexWrap: 'wrap', alignItems: 'center' }}>
+        <div style={{ display: 'flex', gap: 'var(--spacing-sm)', flexWrap: 'wrap', alignItems: 'center', marginBottom: 'var(--spacing-sm)' }}>
           {['CLF', 'SAA', 'SAP', 'DOP'].map(type => (
             <Button
               key={type}
               variant={examType === type ? 'primary' : 'outline'}
               size="sm"
-              onClick={() => { setExamType(type === examType ? '' : type); fetchQuestions(type === examType ? '' : type, keyword); }}
+              onClick={() => {
+                const next = type === examType ? '' : type;
+                setExamType(next);
+                setSelectedDomains([]);
+                fetchQuestions(next, keyword, []);
+              }}
             >
               {type}
             </Button>
@@ -230,6 +240,58 @@ export default function QuestionList() {
             </Button>
           )}
         </div>
+
+        {/* ドメインフィルタ（試験種別選択時のみ表示） */}
+        {examType && EXAM_DOMAINS[examType] && (
+          <div style={{ border: '1px solid var(--color-border)', borderRadius: 'var(--border-radius-md)', overflow: 'hidden' }}>
+            <button
+              type="button"
+              onClick={() => setDomainExpanded(v => !v)}
+              style={{
+                width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+                padding: '8px var(--spacing-md)', border: 'none', cursor: 'pointer',
+                background: selectedDomains.length > 0 ? 'var(--color-primary-light)' : 'var(--color-bg-white)',
+                color: selectedDomains.length > 0 ? 'var(--color-primary)' : 'var(--color-text-sub)',
+                fontWeight: selectedDomains.length > 0 ? 700 : 400, fontSize: 'var(--font-size-sm)',
+              }}
+            >
+              <span>
+                {t('questions.domainFilter')}：{selectedDomains.length === 0
+                  ? t('questions.all')
+                  : lang === 'ja' ? `${selectedDomains.length}ドメイン選択中` : `${selectedDomains.length} domain(s) selected`}
+              </span>
+              <span style={{ fontSize: 11, color: 'var(--color-text-light)', display: 'inline-block', transform: domainExpanded ? 'rotate(180deg)' : 'none', transition: 'transform 0.2s' }}>▼</span>
+            </button>
+            {domainExpanded && (
+              <div style={{ borderTop: '1px solid var(--color-border)', padding: 'var(--spacing-sm) var(--spacing-md)', background: 'var(--color-bg-main)', display: 'flex', flexDirection: 'column', gap: 'var(--spacing-xs)' }}>
+                <label style={{ display: 'flex', alignItems: 'center', gap: 'var(--spacing-sm)', cursor: 'pointer', fontSize: 'var(--font-size-sm)', padding: '3px 0', color: 'var(--color-text-sub)' }}>
+                  <input type="checkbox" checked={selectedDomains.length === 0} onChange={() => { setSelectedDomains([]); fetchQuestions(examType, keyword, []); }} style={{ width: 15, height: 15 }} />
+                  {t('questions.all')}（{lang === 'ja' ? 'クリア' : 'Clear'}）
+                </label>
+                {EXAM_DOMAINS[examType].map(d => {
+                  const checked = selectedDomains.includes(d);
+                  return (
+                    <label key={d} style={{ display: 'flex', alignItems: 'center', gap: 'var(--spacing-sm)', cursor: 'pointer', fontSize: 'var(--font-size-base)', padding: '3px 0' }}>
+                      <input
+                        type="checkbox"
+                        checked={checked}
+                        onChange={() => {
+                          const next = checked ? selectedDomains.filter(x => x !== d) : [...selectedDomains, d];
+                          setSelectedDomains(next);
+                          fetchQuestions(examType, keyword, next);
+                        }}
+                        style={{ width: 15, height: 15 }}
+                      />
+                      <span style={{ color: checked ? 'var(--color-primary)' : 'var(--color-text-main)', fontWeight: checked ? 700 : 400, lineHeight: 1.4 }}>
+                        {lang === 'en' ? (DOMAIN_NAME_EN[d] ?? d) : d}
+                      </span>
+                    </label>
+                  );
+                })}
+              </div>
+            )}
+          </div>
+        )}
       </Card>
 
       <div style={{ marginBottom: 'var(--spacing-lg)', display: 'flex', gap: 'var(--spacing-md)', alignItems: 'center' }}>

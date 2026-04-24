@@ -101,7 +101,10 @@ app.get('/questions', async (req, res) => {
       items = result.Items;
     }
 
-    if (domain) items = items.filter(q => q.domain === domain);
+    if (domain) {
+      const domainList = domain.split(',').map(d => d.trim()).filter(Boolean);
+      items = items.filter(q => domainList.includes(q.domain));
+    }
     if (keyword) {
       const kw = keyword.toLowerCase();
       items = items.filter(q =>
@@ -434,7 +437,10 @@ app.get('/admin/questions', async (req, res) => {
     }
 
     if (tag) items = items.filter(q => (q.tags || []).includes(tag));
-    if (domain) items = items.filter(q => q.domain === domain);
+    if (domain) {
+      const domainList = domain.split(',').map(d => d.trim()).filter(Boolean);
+      items = items.filter(q => domainList.includes(q.domain));
+    }
     if (keyword) {
       const kw = keyword.toLowerCase();
       items = items.filter(q =>

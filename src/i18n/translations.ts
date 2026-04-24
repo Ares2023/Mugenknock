@@ -251,6 +251,8 @@ export const ja: Translations = {
   'questions.bookmarkFilter': 'お気に入りのみ',
   'questions.bookmark': 'お気に入り登録',
   'questions.removeBookmark': 'お気に入り解除',
+  'questions.domainFilter': 'ドメイン',
+  'questions.all': '全て',
 
   // ── ReleaseNotes ──
   'releaseNotes.title': 'リリースノート',
@@ -522,6 +524,8 @@ export const en: Translations = {
   'questions.bookmarkFilter': 'Bookmarks only',
   'questions.bookmark': 'Bookmark',
   'questions.removeBookmark': 'Remove bookmark',
+  'questions.domainFilter': 'Domain',
+  'questions.all': 'All',
 
   // ── ReleaseNotes ──
   'releaseNotes.title': 'Release Notes',

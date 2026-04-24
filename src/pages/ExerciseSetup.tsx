@@ -115,7 +115,8 @@ export default function ExerciseSetup() {
     setTargetExamState(et);
     setExamType(et);
   };
-  const [selectedDomain, setSelectedDomain] = useState<string>(() => loadExercisePrefs(localStorage.getItem('targetExam') || localStorage.getItem('lastExamType') || 'SAA').domain ?? '');
+  const [selectedDomains, setSelectedDomains] = useState<string[]>(() => loadExercisePrefs(localStorage.getItem('targetExam') || localStorage.getItem('lastExamType') || 'SAA').domains ?? []);
+  const [domainExpanded, setDomainExpanded] = useState(false);
   const [selectedTag, setSelectedTag] = useState<string>(() => loadExercisePrefs(localStorage.getItem('targetExam') || localStorage.getItem('lastExamType') || 'SAA').tag ?? '');
   const [limit, setLimit] = useState<number>(() => loadExercisePrefs(localStorage.getItem('targetExam') || localStorage.getItem('lastExamType') || 'SAA').limit ?? 10);
   const [shuffle, setShuffle] = useState<boolean>(() => loadExercisePrefs(localStorage.getItem('targetExam') || localStorage.getItem('lastExamType') || 'SAA').shuffle ?? true);
@@ -138,7 +139,7 @@ export default function ExerciseSetup() {
   useEffect(() => {
     if (isFirstRender.current) { isFirstRender.current = false; return; }
     const prefs = loadExercisePrefs(examType);
-    setSelectedDomain(prefs.domain ?? '');
+    setSelectedDomains(prefs.domains ?? []);
     setSelectedTag(prefs.tag ?? '');
     setLimit(prefs.limit ?? 10);
     setShuffle(prefs.shuffle ?? true);
@@ -147,8 +148,8 @@ export default function ExerciseSetup() {
   }, [examType]);
 
   useEffect(() => {
-    saveExercisePrefs(examType, { domain: selectedDomain, tag: selectedTag, limit, shuffle, bookmarkOnly, unansweredOnly });
-  }, [examType, selectedDomain, selectedTag, limit, shuffle, bookmarkOnly, unansweredOnly]);
+    saveExercisePrefs(examType, { domains: selectedDomains, tag: selectedTag, limit, shuffle, bookmarkOnly, unansweredOnly });
+  }, [examType, selectedDomains, selectedTag, limit, shuffle, bookmarkOnly, unansweredOnly]);
 
   useEffect(() => {
     setAvailableCount(null);
@@ -157,7 +158,7 @@ export default function ExerciseSetup() {
     const fetchCounts = async () => {
       try {
         const params = new URLSearchParams({ examType });
-        if (selectedDomain) params.set('domain', selectedDomain);
+        if (selectedDomains.length > 0) params.set('domain', selectedDomains.join(','));
         if (selectedTag) params.set('tagId', selectedTag);
 
         if (user && (bookmarkOnly || unansweredOnly)) {
@@ -193,7 +194,7 @@ export default function ExerciseSetup() {
     } else {
       setAnsweredCount(0);
     }
-  }, [examType, selectedDomain, selectedTag, user, bookmarkOnly, unansweredOnly]);
+  }, [examType, selectedDomains, selectedTag, user, bookmarkOnly, unansweredOnly]);
 
   useEffect(() => {
     fetch(`${API_ENDPOINT}/tags?examType=${examType}`)
@@ -228,7 +229,7 @@ export default function ExerciseSetup() {
 
       if (user && (bookmarkOnly || unansweredOnly)) {
         const params = new URLSearchParams({ examType });
-        if (selectedDomain) params.set('domain', selectedDomain);
+        if (selectedDomains.length > 0) params.set('domain', selectedDomains.join(','));
         if (selectedTag) params.set('tagId', selectedTag);
 
         const [qRes, bkmRes, answeredRes] = await Promise.all([
@@ -249,7 +250,7 @@ export default function ExerciseSetup() {
         selectedItems = filtered.slice(0, limit);
       } else {
         const params = new URLSearchParams({ examType, limit: String(limit), shuffle: String(shuffle) });
-        if (selectedDomain) params.set('domain', selectedDomain);
+        if (selectedDomains.length > 0) params.set('domain', selectedDomains.join(','));
         if (selectedTag) params.set('tagId', selectedTag);
         const res = await fetch(`${API_ENDPOINT}/questions?${params}`);
         const data = await res.json();
@@ -351,24 +352,49 @@ export default function ExerciseSetup() {
             <label style={{ display: 'flex', alignItems: 'center', gap: 'var(--spacing-sm)', marginBottom: 'var(--spacing-sm)', fontWeight: 700, fontSize: 'var(--font-size-base)' }}>
               <StepBadge n={domainStep} />{t('exerciseSetup.domain')} <span style={{ fontWeight: 400, fontSize: 'var(--font-size-sm)', color: 'var(--color-text-sub)' }}>{t('exerciseSetup.optional')}</span>
             </label>
-            <div style={{ display: 'flex', flexWrap: 'wrap', gap: 'var(--spacing-sm)' }}>
-              <Button
-                variant={selectedDomain === '' ? 'primary' : 'outline'}
-                size="sm"
-                onClick={() => setSelectedDomain('')}
+            <div style={{ border: '1px solid var(--color-border)', borderRadius: 'var(--border-radius-md)', overflow: 'hidden' }}>
+              <button
+                type="button"
+                onClick={() => setDomainExpanded(v => !v)}
+                style={{
+                  width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+                  padding: '10px var(--spacing-md)', border: 'none', cursor: 'pointer',
+                  background: selectedDomains.length > 0 ? 'var(--color-primary-light)' : 'var(--color-bg-white)',
+                  color: selectedDomains.length > 0 ? 'var(--color-primary)' : 'var(--color-text-main)',
+                  fontWeight: selectedDomains.length > 0 ? 700 : 400, fontSize: 'var(--font-size-base)',
+                }}
               >
-                {t('exerciseSetup.all')}
-              </Button>
-              {EXAM_DOMAINS[examType].map(d => (
-                <Button
-                  key={d}
-                  variant={selectedDomain === d ? 'primary' : 'outline'}
-                  size="sm"
-                  onClick={() => setSelectedDomain(selectedDomain === d ? '' : d)}
-                >
-                  {lang === 'en' ? (DOMAIN_NAME_EN[d] ?? d) : d}
-                </Button>
-              ))}
+                <span>
+                  {selectedDomains.length === 0
+                    ? t('exerciseSetup.all')
+                    : lang === 'ja' ? `${selectedDomains.length}ドメイン選択中` : `${selectedDomains.length} domain(s) selected`}
+                </span>
+                <span style={{ fontSize: 11, color: 'var(--color-text-light)', display: 'inline-block', transform: domainExpanded ? 'rotate(180deg)' : 'none', transition: 'transform 0.2s' }}>▼</span>
+              </button>
+              {domainExpanded && (
+                <div style={{ borderTop: '1px solid var(--color-border)', padding: 'var(--spacing-sm) var(--spacing-md)', background: 'var(--color-bg-main)', display: 'flex', flexDirection: 'column', gap: 'var(--spacing-xs)' }}>
+                  <label style={{ display: 'flex', alignItems: 'center', gap: 'var(--spacing-sm)', cursor: 'pointer', fontSize: 'var(--font-size-sm)', padding: '4px 0', color: 'var(--color-text-sub)' }}>
+                    <input type="checkbox" checked={selectedDomains.length === 0} onChange={() => setSelectedDomains([])} style={{ width: 16, height: 16 }} />
+                    {t('exerciseSetup.all')}（{lang === 'ja' ? 'クリア' : 'Clear'}）
+                  </label>
+                  {EXAM_DOMAINS[examType].map(d => {
+                    const checked = selectedDomains.includes(d);
+                    return (
+                      <label key={d} style={{ display: 'flex', alignItems: 'center', gap: 'var(--spacing-sm)', cursor: 'pointer', fontSize: 'var(--font-size-base)', padding: '4px 0' }}>
+                        <input
+                          type="checkbox"
+                          checked={checked}
+                          onChange={() => setSelectedDomains(prev => checked ? prev.filter(x => x !== d) : [...prev, d])}
+                          style={{ width: 16, height: 16 }}
+                        />
+                        <span style={{ color: checked ? 'var(--color-primary)' : 'var(--color-text-main)', fontWeight: checked ? 700 : 400, lineHeight: 1.4 }}>
+                          {lang === 'en' ? (DOMAIN_NAME_EN[d] ?? d) : d}
+                        </span>
+                      </label>
+                    );
+                  })}
+                </div>
+              )}
             </div>
           </div>
 
@@ -554,7 +580,7 @@ export default function ExerciseSetup() {
               if (unansweredOnly && bookmarkOnly) return t('exerciseSetup.unansweredBookmark');
               if (unansweredOnly) return t('exerciseSetup.unansweredLabel');
               if (bookmarkOnly) return t('exerciseSetup.bookmarkLabel');
-              return selectedDomain || selectedTag ? t('exerciseSetup.filteredCount') : t('exerciseSetup.siteCount');
+              return selectedDomains.length > 0 || selectedTag ? t('exerciseSetup.filteredCount') : t('exerciseSetup.siteCount');
             })();
             return (
               <div style={{ marginBottom: 'var(--spacing-lg)', padding: 'var(--spacing-md)', background: bg, border: `1px solid ${border}`, borderRadius: 'var(--border-radius-md)' }}>
@@ -566,9 +592,9 @@ export default function ExerciseSetup() {
                     <span style={{ fontSize: 'var(--font-size-sm)', fontWeight: 400, marginLeft: 4 }}>{t('exerciseSetup.qUnit')}</span>
                   </span>
                 </div>
-                {(selectedDomain || selectedTag) && availableCount !== null && !hasFilter && (
+                {(selectedDomains.length > 0 || selectedTag) && availableCount !== null && !hasFilter && (
                   <div style={{ fontSize: 'var(--font-size-xs)', color: 'var(--color-text-sub)', marginTop: 4 }}>
-                    {selectedDomain && <span style={{ marginRight: 'var(--spacing-sm)' }}>{lang === 'en' ? (DOMAIN_NAME_EN[selectedDomain] ?? selectedDomain) : selectedDomain}</span>}
+                    {selectedDomains.length > 0 && <span style={{ marginRight: 'var(--spacing-sm)' }}>{selectedDomains.map(d => lang === 'en' ? (DOMAIN_NAME_EN[d] ?? d) : d).join(', ')}</span>}
                     {selectedTag && <span>{selectedTag}</span>}
                   </div>
                 )}
@@ -582,13 +608,13 @@ export default function ExerciseSetup() {
             {info.categories.map(cat => (
               <div key={cat.name} style={{ marginBottom: 'var(--spacing-sm)' }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 'var(--font-size-sm)', marginBottom: 4 }}>
-                  <span style={{ color: selectedDomain === cat.name ? 'var(--color-primary)' : 'var(--color-text-main)', fontWeight: selectedDomain === cat.name ? 700 : 400 }}>
+                  <span style={{ color: selectedDomains.includes(cat.name) ? 'var(--color-primary)' : 'var(--color-text-main)', fontWeight: selectedDomains.includes(cat.name) ? 700 : 400 }}>
                     {lang === 'en' ? (DOMAIN_NAME_EN[cat.name] ?? cat.name) : cat.name}
                   </span>
                   <span style={{ fontWeight: 700, color: 'var(--color-primary)', flexShrink: 0, marginLeft: 'var(--spacing-sm)' }}>{cat.ratio}</span>
                 </div>
                 <div style={{ background: 'var(--color-border)', borderRadius: 10, height: 4 }}>
-                  <div style={{ background: selectedDomain === cat.name ? 'var(--color-primary)' : 'var(--color-text-light)', borderRadius: 10, height: 4, width: cat.ratio }} />
+                  <div style={{ background: selectedDomains.includes(cat.name) ? 'var(--color-primary)' : 'var(--color-text-light)', borderRadius: 10, height: 4, width: cat.ratio }} />
                 </div>
               </div>
             ))}
