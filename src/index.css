@@ -207,6 +207,11 @@ button:active:not(:disabled) {
     font-size: 22px !important;
   }
 
+  /* 演習・模試カード：縦積み */
+  .home-modes-grid {
+    grid-template-columns: 1fr !important;
+  }
+
   /* 機能カード：ボタンを右ではなく下に */
   .home-feature-card {
     flex-wrap: wrap !important;
