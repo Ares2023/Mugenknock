@@ -118,7 +118,7 @@ export default function ExerciseSetup() {
   const [selectedDomains, setSelectedDomains] = useState<string[]>(() => loadExercisePrefs(localStorage.getItem('targetExam') || localStorage.getItem('lastExamType') || 'SAA').domains ?? []);
   const [selectedTag, setSelectedTag] = useState<string>(() => loadExercisePrefs(localStorage.getItem('targetExam') || localStorage.getItem('lastExamType') || 'SAA').tag ?? '');
   const [limit, setLimit] = useState<number>(() => loadExercisePrefs(localStorage.getItem('targetExam') || localStorage.getItem('lastExamType') || 'SAA').limit ?? 10);
-  const [shuffle, setShuffle] = useState<boolean>(() => loadExercisePrefs(localStorage.getItem('targetExam') || localStorage.getItem('lastExamType') || 'SAA').shuffle ?? true);
+  const [shuffle, setShuffle] = useState<boolean>(() => loadExercisePrefs(localStorage.getItem('targetExam') || localStorage.getItem('lastExamType') || 'SAA').shuffle ?? false);
   const [loading, setLoading] = useState(false);
   const [bookmarkOnly, setBookmarkOnly] = useState<boolean>(() => loadExercisePrefs(localStorage.getItem('targetExam') || localStorage.getItem('lastExamType') || 'SAA').bookmarkOnly ?? false);
   const [unansweredOnly, setUnansweredOnly] = useState<boolean>(() => loadExercisePrefs(localStorage.getItem('targetExam') || localStorage.getItem('lastExamType') || 'SAA').unansweredOnly ?? false);
@@ -142,7 +142,7 @@ export default function ExerciseSetup() {
     setSelectedDomains(prefs.domains ?? []);
     setSelectedTag(prefs.tag ?? '');
     setLimit(prefs.limit ?? 10);
-    setShuffle(prefs.shuffle ?? true);
+    setShuffle(prefs.shuffle ?? false);
     setBookmarkOnly(prefs.bookmarkOnly ?? false);
     setUnansweredOnly(prefs.unansweredOnly ?? false);
     setIncorrectOnly(prefs.incorrectOnly ?? false);
@@ -365,18 +365,26 @@ export default function ExerciseSetup() {
             </label>
             <div style={{ background: 'var(--color-bg-main)', borderRadius: 'var(--border-radius-md)', overflow: 'hidden' }}>
               <label style={{ display: 'flex', alignItems: 'center', gap: 'var(--spacing-sm)', cursor: 'pointer', fontSize: 'var(--font-size-sm)', color: 'var(--color-text-sub)', padding: 'var(--spacing-sm) var(--spacing-md)', borderBottom: '1px solid var(--color-border)' }}>
-                <input type="checkbox" checked={selectedDomains.length === 0} onChange={() => setSelectedDomains([])} style={{ width: 15, height: 15 }} />
+                <input type="checkbox" checked={selectedDomains.length === 0} onChange={() => { if (selectedDomains.length > 0) setSelectedDomains([]); }} style={{ width: 15, height: 15 }} />
                 {t('exerciseSetup.all')}
               </label>
               <div style={{ display: 'flex', flexDirection: 'column', gap: 0, padding: 'var(--spacing-xs) var(--spacing-md)' }}>
                 {EXAM_DOMAINS[examType].map(d => {
-                  const checked = selectedDomains.includes(d);
+                  const isAll = selectedDomains.length === 0;
+                  const checked = isAll || selectedDomains.includes(d);
                   return (
-                    <label key={d} style={{ display: 'flex', alignItems: 'center', gap: 'var(--spacing-sm)', cursor: 'pointer', fontSize: 'var(--font-size-base)', paddingLeft: 8, padding: '3px 0 3px 8px' }}>
+                    <label key={d} style={{ display: 'flex', alignItems: 'center', gap: 'var(--spacing-sm)', cursor: 'pointer', fontSize: 'var(--font-size-base)', padding: '3px 0 3px 8px' }}>
                       <input
                         type="checkbox"
                         checked={checked}
-                        onChange={() => setSelectedDomains(prev => checked ? prev.filter(x => x !== d) : [...prev, d])}
+                        onChange={() => {
+                          if (isAll) {
+                            setSelectedDomains(EXAM_DOMAINS[examType].filter(x => x !== d));
+                          } else {
+                            const next = checked ? selectedDomains.filter(x => x !== d) : [...selectedDomains, d];
+                            setSelectedDomains(next.length === EXAM_DOMAINS[examType].length ? [] : next);
+                          }
+                        }}
                         style={{ width: 16, height: 16, flexShrink: 0 }}
                       />
                       <span style={{ color: checked ? 'var(--color-primary)' : 'var(--color-text-main)', fontWeight: checked ? 600 : 400 }}>
