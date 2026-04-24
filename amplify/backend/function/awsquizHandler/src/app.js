@@ -142,13 +142,14 @@ app.get('/questions/:id', async (req, res) => {
 app.post('/questions/:id/report', async (req, res) => {
   try {
     const docClient = getClient();
-    const { userId, message } = req.body;
+    const { userId, category, message } = req.body;
     await docClient.send(new PutCommand({
       TableName: 'Reports',
       Item: {
         questionId: req.params.id,
         reportId: uuidv4(),
         userId: userId || 'anonymous',
+        category: category || 'other',
         message: message || '',
         reportedAt: new Date().toISOString()
       }
@@ -492,6 +493,21 @@ app.get('/admin/reports', async (req, res) => {
       new Date(b.reportedAt).getTime() - new Date(a.reportedAt).getTime()
     );
     res.json({ items, count: items.length });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+// 通報削除（管理者用・解決済みマーク）
+app.delete('/admin/reports/:id', async (req, res) => {
+  try {
+    const docClient = getClient();
+    await docClient.send(new DeleteCommand({
+      TableName: 'Reports',
+      Key: { reportId: req.params.id }
+    }));
+    res.json({ success: true });
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: 'Internal server error' });

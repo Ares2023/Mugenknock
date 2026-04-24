@@ -39,8 +39,16 @@ type Report = {
   questionId: string;
   reportId: string;
   userId: string;
+  category?: string;
   message: string;
   reportedAt: string;
+};
+
+const REPORT_CATEGORY_LABEL: Record<string, string> = {
+  question_error:    '問題文の誤り',
+  choice_error:      '選択肢・正解の誤り',
+  explanation_error: '解説の誤り',
+  other:             'その他',
 };
 
 type Tip = {
@@ -215,6 +223,13 @@ export default function Admin() {
       setLoadingR(false);
     }
   }, []);
+
+  const deleteReport = async (reportId: string) => {
+    try {
+      await adminFetch(`${API_ENDPOINT}/admin/reports/${reportId}`, { method: 'DELETE' });
+      setReports(prev => prev.filter(r => r.reportId !== reportId));
+    } catch (err) { console.error(err); }
+  };
 
   const fetchTips = useCallback(async () => {
     setLoadingT(true);
@@ -920,24 +935,37 @@ export default function Admin() {
 
           {reports.map(r => (
             <div key={r.reportId} style={{ border: '1px solid #eaeded', borderRadius: 6, padding: '14px 16px', marginBottom: 8, background: 'white', boxShadow: '0 1px 1px 0 rgba(0,28,36,0.1)' }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 8 }}>
-                <div>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 8, gap: 8 }}>
+                <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: 8 }}>
                   <span style={{ fontFamily: 'monospace', fontSize: 12, background: '#f2f3f3', padding: '2px 8px', borderRadius: 6, color: '#545b64', border: '1px solid #d1d5db' }}>
                     {r.questionId}
                   </span>
-                  <span style={{ fontSize: 12, color: '#545b64', marginLeft: 12 }}>
+                  {r.category && (
+                    <span style={{ fontSize: 11, background: '#fff3cd', color: '#856404', padding: '2px 8px', borderRadius: 9999, fontWeight: 700, border: '1px solid #ffc107' }}>
+                      {REPORT_CATEGORY_LABEL[r.category] ?? r.category}
+                    </span>
+                  )}
+                  <span style={{ fontSize: 12, color: '#545b64' }}>
                     {new Date(r.reportedAt).toLocaleString('ja-JP')}
                   </span>
                 </div>
-                <button
-                  onClick={() => {
-                    setTab('questions');
-                    setKeyword(r.questionId);
-                    setTimeout(() => fetchQuestions(), 100);
-                  }}
-                  style={{ fontSize: 12, padding: '4px 12px', border: '1px solid #008c8c', borderRadius: 9999, cursor: 'pointer', background: 'white', color: '#008c8c', fontWeight: 700 }}>
-                  問題を確認
-                </button>
+                <div style={{ display: 'flex', gap: 6, flexShrink: 0 }}>
+                  <button
+                    onClick={() => {
+                      setTab('questions');
+                      setKeyword(r.questionId);
+                      setTimeout(() => fetchQuestions(), 100);
+                    }}
+                    style={{ fontSize: 12, padding: '4px 12px', border: '1px solid #008c8c', borderRadius: 9999, cursor: 'pointer', background: 'white', color: '#008c8c', fontWeight: 700 }}>
+                    問題を確認
+                  </button>
+                  <button
+                    onClick={() => deleteReport(r.reportId)}
+                    style={{ fontSize: 12, padding: '4px 12px', border: '1px solid #d1d5db', borderRadius: 9999, cursor: 'pointer', background: 'white', color: '#545b64', fontWeight: 700 }}
+                    title="解決済みとして削除">
+                    ✓ 解決済み
+                  </button>
+                </div>
               </div>
               <p style={{ margin: '0 0 6px', color: '#16191f', fontSize: 14 }}>{r.message || '（メッセージなし）'}</p>
               <p style={{ margin: 0, fontSize: 12, color: '#545b64' }}>通報者: {r.userId}</p>

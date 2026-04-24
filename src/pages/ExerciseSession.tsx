@@ -6,6 +6,7 @@ import { useLanguage } from '../contexts/LanguageContext';
 import Card from '../components/ui/Card';
 import Button from '../components/ui/Button';
 import Badge from '../components/ui/Badge';
+import ReportModal from '../components/ReportModal';
 
 type Tip = { tipId: string; title: string; content: string; examType: string };
 
@@ -101,6 +102,7 @@ export default function ExerciseSession() {
   };
   const [results, setResults] = useState<{ questionId: string; isCorrect: boolean }[]>(resumeResults ?? []);
   const [loading, setLoading] = useState(false);
+  const [reportOpen, setReportOpen] = useState(false);
 
   // ドラフト保存
   useEffect(() => {
@@ -326,7 +328,7 @@ export default function ExerciseSession() {
           </div>
         )}
 
-        <div style={{ display: 'flex', gap: 'var(--spacing-md)', borderTop: '1px solid var(--color-border)', paddingTop: 'var(--spacing-lg)' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--spacing-md)', borderTop: '1px solid var(--color-border)', paddingTop: 'var(--spacing-lg)' }}>
           {!answered ? (
             <Button
               onClick={submitAnswer}
@@ -345,8 +347,27 @@ export default function ExerciseSession() {
               {currentIndex + 1 >= questions.length ? t('exerciseSession.showResult') : t('exerciseSession.next')}
             </Button>
           )}
+          <button
+            onClick={() => setReportOpen(true)}
+            style={{ marginLeft: 'auto', background: 'none', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 4, color: 'var(--color-text-light)', fontSize: 'var(--font-size-sm)', padding: '4px 8px', borderRadius: 'var(--border-radius-sm)', transition: 'all 0.2s' }}
+            onMouseEnter={e => { e.currentTarget.style.color = 'var(--color-danger)'; e.currentTarget.style.background = '#fdf3f1'; }}
+            onMouseLeave={e => { e.currentTarget.style.color = 'var(--color-text-light)'; e.currentTarget.style.background = 'none'; }}
+            title={lang === 'ja' ? '問題の不備を通報' : 'Report an issue'}
+          >
+            <span style={{ fontSize: 14 }}>⚑</span>
+            <span>{lang === 'ja' ? '通報' : 'Report'}</span>
+          </button>
         </div>
       </Card>
+
+      {reportOpen && (
+        <ReportModal
+          questionId={currentQuestion.questionId}
+          userId={userId}
+          lang={lang}
+          onClose={() => setReportOpen(false)}
+        />
+      )}
 
       {/* コラム（豆知識） */}
       {currentTip && (

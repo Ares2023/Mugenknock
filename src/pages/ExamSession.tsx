@@ -6,6 +6,7 @@ import { useLanguage } from '../contexts/LanguageContext';
 import Card from '../components/ui/Card';
 import Button from '../components/ui/Button';
 import Badge from '../components/ui/Badge';
+import ReportModal from '../components/ReportModal';
 
 type Question = {
   questionId: string;
@@ -169,6 +170,8 @@ export default function ExamSession() {
     }
   };
 
+  const [reportOpen, setReportOpen] = useState(false);
+
   const answeredCount = Object.keys(answers).length;
   const unansweredCount = questions.length - answeredCount;
   const timerRed = timeLeft < 300; // 5分以下で赤
@@ -247,17 +250,29 @@ export default function ExamSession() {
                 <Badge variant="outline">{t('examSession.multiple')}</Badge>
               )}
             </div>
-            {user && (
+            <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--spacing-sm)' }}>
+              {user && (
+                <button
+                  onClick={() => toggleBookmark(currentQ.questionId)}
+                  title={bookmarkedIds.has(currentQ.questionId) ? t('examSession.removeBookmark') : t('examSession.bookmark')}
+                  style={{ background: 'none', border: 'none', cursor: 'pointer', padding: '4px', display: 'flex', alignItems: 'center' }}
+                >
+                  <span style={{ fontSize: 20, lineHeight: 1, color: bookmarkedIds.has(currentQ.questionId) ? 'var(--color-warning, #f59e0b)' : 'var(--color-text-light)' }}>
+                    {bookmarkedIds.has(currentQ.questionId) ? '★' : '☆'}
+                  </span>
+                </button>
+              )}
               <button
-                onClick={() => toggleBookmark(currentQ.questionId)}
-                title={bookmarkedIds.has(currentQ.questionId) ? t('examSession.removeBookmark') : t('examSession.bookmark')}
-                style={{ background: 'none', border: 'none', cursor: 'pointer', padding: '4px', display: 'flex', alignItems: 'center' }}
+                onClick={() => setReportOpen(true)}
+                style={{ background: 'none', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 3, color: 'var(--color-text-light)', fontSize: 'var(--font-size-sm)', padding: '4px 6px', borderRadius: 'var(--border-radius-sm)', transition: 'all 0.2s' }}
+                onMouseEnter={e => { e.currentTarget.style.color = 'var(--color-danger)'; e.currentTarget.style.background = '#fdf3f1'; }}
+                onMouseLeave={e => { e.currentTarget.style.color = 'var(--color-text-light)'; e.currentTarget.style.background = 'none'; }}
+                title={lang === 'ja' ? '問題の不備を通報' : 'Report an issue'}
               >
-                <span style={{ fontSize: 20, lineHeight: 1, color: bookmarkedIds.has(currentQ.questionId) ? 'var(--color-warning, #f59e0b)' : 'var(--color-text-light)' }}>
-                  {bookmarkedIds.has(currentQ.questionId) ? '★' : '☆'}
-                </span>
+                <span style={{ fontSize: 13 }}>⚑</span>
+                <span>{lang === 'ja' ? '通報' : 'Report'}</span>
               </button>
-            )}
+            </div>
           </div>
           <p style={{ fontSize: 'var(--font-size-lg)', lineHeight: 1.6, fontWeight: 400, margin: 0, color: 'var(--color-text-main)' }}>
             {lang === 'en' && (currentQ as any).questionTextEn ? (currentQ as any).questionTextEn : currentQ.questionText}
@@ -354,6 +369,15 @@ export default function ExamSession() {
           </Button>
         </div>
       </Card>
+
+      {reportOpen && (
+        <ReportModal
+          questionId={currentQ.questionId}
+          userId={userId}
+          lang={lang}
+          onClose={() => setReportOpen(false)}
+        />
+      )}
     </div>
   );
 }
