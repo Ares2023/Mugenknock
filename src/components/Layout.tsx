@@ -278,6 +278,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
       <div style={{
         height: 40, minHeight: 40, background: 'var(--color-bg-white)',
         display: 'flex', alignItems: 'center', padding: '0 var(--spacing-sm)',
+        gap: 'var(--spacing-sm)',
         zIndex: 199, flexShrink: 0, borderBottom: '1px solid var(--color-border)',
       }}>
         <button onClick={toggle} style={{
@@ -300,14 +301,18 @@ export default function Layout({ children }: { children: React.ReactNode }) {
             />
           )}
         </div>
-        {targetExam && (
-          <div style={{ display: 'flex', alignItems: 'center', gap: 6, flexShrink: 0, paddingRight: 'var(--spacing-md)' }}>
-            <span style={{ fontSize: 'var(--font-size-xs)', color: 'var(--color-text-light)' }}>{t('nav.goal')}</span>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 6, flexShrink: 0, paddingRight: 'var(--spacing-sm)' }}>
+          <span style={{ fontSize: 'var(--font-size-xs)', color: 'var(--color-text-light)' }}>{t('nav.goal')}</span>
+          {targetExam ? (
             <span style={{ background: 'var(--color-secondary)', color: 'white', fontSize: 'var(--font-size-xs)', padding: '2px 10px', borderRadius: 'var(--border-radius-full)', fontWeight: 700 }}>
               {targetExam}
             </span>
-          </div>
-        )}
+          ) : (
+            <span style={{ fontSize: 'var(--font-size-xs)', color: 'var(--color-text-light)', fontStyle: 'italic' }}>
+              {lang === 'ja' ? '未設定' : 'not set'}
+            </span>
+          )}
+        </div>
       </div>
 
       {/* ── ボディ（サイドバー + コンテンツ） ── */}

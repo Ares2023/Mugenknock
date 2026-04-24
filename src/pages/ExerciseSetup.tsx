@@ -94,8 +94,14 @@ export default function ExerciseSetup() {
   const navigate = useNavigate();
   const { user } = useAuth();
   const { lang, t } = useLanguage();
-  const targetExam = localStorage.getItem('targetExam');
-  const [examType, setExamType] = useState<string>(() => targetExam || localStorage.getItem('lastExamType') || 'SAA');
+  const [targetExam, setTargetExamState] = useState<string | null>(() => localStorage.getItem('targetExam'));
+  const [examType, setExamType] = useState<string>(() => localStorage.getItem('targetExam') || localStorage.getItem('lastExamType') || 'SAA');
+
+  const handleSelectExamInSetup = (et: string) => {
+    localStorage.setItem('targetExam', et);
+    setTargetExamState(et);
+    setExamType(et);
+  };
   const [selectedDomain, setSelectedDomain] = useState('');
   const [selectedTag, setSelectedTag] = useState('');
   const [limit, setLimit] = useState(10);
@@ -251,8 +257,8 @@ export default function ExerciseSetup() {
     }
   };
 
-  // 試験種別は項番なし（ホーム画面で設定するため）
   let _s = 0;
+  const examStep    = targetExam ? null : ++_s;
   const domainStep  = ++_s;
   const tagStep     = availableTags.length > 0 ? ++_s : null;
   const countStep   = ++_s;
@@ -288,12 +294,33 @@ export default function ExerciseSetup() {
 
         {/* 左：設定フォーム */}
         <Card title={t('exerciseSetup.params')} padding="var(--spacing-xl)">
-          {/* 試験種別（表示のみ・変更はホーム画面） */}
-          <div style={{ marginBottom: 'var(--spacing-lg)', display: 'flex', alignItems: 'center', gap: 'var(--spacing-md)' }}>
-            <span style={{ fontSize: 'var(--font-size-base)', fontWeight: 700, color: 'var(--color-text-sub)' }}>{t('exerciseSetup.examType')}</span>
-            <Badge variant="secondary">{examType}</Badge>
-            <span style={{ fontSize: 'var(--font-size-sm)', color: 'var(--color-text-light)' }}>{t('exerciseSetup.examTypeHome')}</span>
-          </div>
+          {/* 試験種別 */}
+          {targetExam ? (
+            <div style={{ marginBottom: 'var(--spacing-lg)', display: 'flex', alignItems: 'center', gap: 'var(--spacing-md)' }}>
+              <span style={{ fontSize: 'var(--font-size-base)', fontWeight: 700, color: 'var(--color-text-sub)' }}>{t('exerciseSetup.examType')}</span>
+              <Badge variant="secondary">{examType}</Badge>
+              <span style={{ fontSize: 'var(--font-size-sm)', color: 'var(--color-text-light)' }}>{t('exerciseSetup.examTypeHome')}</span>
+            </div>
+          ) : (
+            <div style={{ marginBottom: 'var(--spacing-lg)' }}>
+              <label style={{ display: 'flex', alignItems: 'center', gap: 'var(--spacing-sm)', marginBottom: 'var(--spacing-sm)', fontWeight: 700, fontSize: 'var(--font-size-base)' }}>
+                <StepBadge n={examStep!} />{t('exerciseSetup.examType')}
+              </label>
+              <div style={{ display: 'flex', flexWrap: 'wrap', gap: 'var(--spacing-sm)' }}>
+                {EXAM_TYPES.map(et => (
+                  <Button
+                    key={et}
+                    variant={examType === et ? 'primary' : 'outline'}
+                    size="sm"
+                    onClick={() => handleSelectExamInSetup(et)}
+                    style={{ width: 72 }}
+                  >
+                    {et}
+                  </Button>
+                ))}
+              </div>
+            </div>
+          )}
 
           {/* ドメインフィルタ */}
           <div style={{ marginBottom: 'var(--spacing-lg)' }}>

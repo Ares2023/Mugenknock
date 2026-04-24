@@ -90,72 +90,78 @@ export default function Home() {
 
       {/* 目標資格プレート */}
       <Card style={{ marginBottom: 'var(--spacing-lg)' }}>
-        <div className="home-exam-panel" style={{ display: 'flex', gap: 'var(--spacing-lg)', alignItems: 'stretch' }}>
-
-          {/* 左：試験選択ボタン（縦積み） */}
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--spacing-sm)', flexShrink: 0 }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--spacing-sm)', marginBottom: 'var(--spacing-xs)' }}>
-              <span style={{ color: 'var(--color-primary)', display: 'flex' }}><IconTarget /></span>
-              <span style={{ fontSize: 'var(--font-size-base)', fontWeight: 700, color: 'var(--color-text-main)' }}>{t('home.targetExam')}</span>
-            </div>
-            {EXAM_TYPES.map(et => {
-              const selected = targetExam === et;
-              return (
-                <div key={et} style={{ display: 'flex', alignItems: 'center', gap: 'var(--spacing-md)' }}>
-                  <Button
-                    variant={selected ? 'primary' : 'outline'}
-                    size="sm"
-                    onClick={() => handleSelectExam(et)}
-                    style={{ width: 72, flexShrink: 0 }}
-                  >
-                    {et}
-                  </Button>
-                  <span className="home-exam-btn-desc" style={{ fontSize: 'var(--font-size-sm)', color: 'var(--color-text-sub)', lineHeight: 1.4 }}>{examDesc[et]}</span>
-                </div>
-              );
-            })}
-            {targetExam && (
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => handleSelectExam(targetExam)}
-                style={{ marginTop: 'var(--spacing-xs)', color: 'var(--color-text-light)' }}
-              >
-                {t('home.clear')}
-              </Button>
-            )}
-          </div>
-
-          {/* 右：選択中の資格情報 */}
-          <div style={{ flex: 1, minWidth: 0, borderLeft: '1px solid var(--color-border)', paddingLeft: 'var(--spacing-lg)' }} className="home-exam-info">
-            {cfg && targetExam ? (
-              <div>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--spacing-sm)', marginBottom: 'var(--spacing-sm)' }}>
-                  <Badge variant="secondary">{targetExam}</Badge>
-                  <span style={{ fontSize: 'var(--font-size-sm)', color: 'var(--color-text-sub)', fontWeight: 700 }}>{EXAM_LEVEL[targetExam]}</span>
-                </div>
-                <div style={{ fontSize: 'var(--font-size-lg)', fontWeight: 700, color: 'var(--color-text-main)', marginBottom: 'var(--spacing-md)' }}>{cfg.fullName}</div>
-                <div style={{ display: 'flex', gap: 'var(--spacing-lg)', fontSize: 'var(--font-size-sm)', color: 'var(--color-text-sub)', flexWrap: 'wrap', marginBottom: 'var(--spacing-lg)' }}>
-                  <span>{t('home.examCode')}: <strong style={{ color: 'var(--color-text-main)' }}>{cfg.examCode}</strong></span>
-                  <span>{t('home.questionCount')}: <strong style={{ color: 'var(--color-text-main)' }}>{cfg.totalQuestions}{lang === 'ja' ? '問' : ' Q'}</strong></span>
-                  <span>{t('home.timeLimit')}: <strong style={{ color: 'var(--color-text-main)' }}>{cfg.timeLimitMin}{lang === 'ja' ? '分' : ' min'}</strong></span>
-                </div>
-                <div style={{ fontSize: 'var(--font-size-sm)', color: 'var(--color-text-sub)', fontWeight: 700, marginBottom: 'var(--spacing-sm)' }}>{t('home.domains')}</div>
-                <div style={{ display: 'flex', flexWrap: 'wrap', gap: 'var(--spacing-sm)' }}>
-                  {domains.map(d => (
-                    <Badge key={d} variant="neutral">
-                      {lang === 'en' ? (DOMAIN_NAME_EN[d] ?? d) : d}
-                    </Badge>
-                  ))}
-                </div>
-              </div>
-            ) : (
-              <div style={{ height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                <p style={{ margin: 0, fontSize: 'var(--font-size-base)', color: 'var(--color-text-light)', fontStyle: 'italic' }}>{t('home.selectHint')}</p>
-              </div>
-            )}
-          </div>
+        {/* タイトル */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--spacing-sm)', marginBottom: 'var(--spacing-md)' }}>
+          <span style={{ color: 'var(--color-primary)', display: 'flex' }}><IconTarget /></span>
+          <span style={{ fontSize: 'var(--font-size-base)', fontWeight: 700, color: 'var(--color-text-main)' }}>{t('home.targetExam')}</span>
         </div>
+
+        {/* 試験選択ボタン（横並び） */}
+        <div style={{ display: 'flex', gap: 'var(--spacing-sm)', flexWrap: 'wrap', marginBottom: 'var(--spacing-md)' }}>
+          {EXAM_TYPES.map(et => {
+            const selected = targetExam === et;
+            return (
+              <Button
+                key={et}
+                variant={selected ? 'primary' : 'outline'}
+                size="sm"
+                onClick={() => handleSelectExam(et)}
+                style={{ width: 72 }}
+              >
+                {et}
+              </Button>
+            );
+          })}
+        </div>
+
+        {/* 資格情報エリア */}
+        {cfg && targetExam ? (
+          <div style={{ borderTop: '1px solid var(--color-border)', paddingTop: 'var(--spacing-md)' }} className="fade-slide-in">
+            <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--spacing-sm)', marginBottom: 'var(--spacing-sm)' }}>
+              <Badge variant="secondary">{targetExam}</Badge>
+              <span style={{ fontSize: 'var(--font-size-sm)', color: 'var(--color-text-sub)', fontWeight: 700 }}>{EXAM_LEVEL[targetExam]}</span>
+            </div>
+            <div style={{ fontSize: 'var(--font-size-lg)', fontWeight: 700, color: 'var(--color-text-main)', marginBottom: 'var(--spacing-sm)' }}>{cfg.fullName}</div>
+            <div style={{ fontSize: 'var(--font-size-sm)', color: 'var(--color-text-sub)', marginBottom: 'var(--spacing-md)', lineHeight: 1.5 }}>{examDesc[targetExam]}</div>
+            <div style={{ display: 'flex', gap: 'var(--spacing-lg)', fontSize: 'var(--font-size-sm)', color: 'var(--color-text-sub)', flexWrap: 'wrap', marginBottom: 'var(--spacing-md)' }}>
+              <span>{t('home.examCode')}: <strong style={{ color: 'var(--color-text-main)' }}>{cfg.examCode}</strong></span>
+              <span>{t('home.questionCount')}: <strong style={{ color: 'var(--color-text-main)' }}>{cfg.totalQuestions}{lang === 'ja' ? '問' : ' Q'}</strong></span>
+              <span>{t('home.timeLimit')}: <strong style={{ color: 'var(--color-text-main)' }}>{cfg.timeLimitMin}{lang === 'ja' ? '分' : ' min'}</strong></span>
+            </div>
+            <div style={{ fontSize: 'var(--font-size-sm)', color: 'var(--color-text-sub)', fontWeight: 700, marginBottom: 'var(--spacing-sm)' }}>{t('home.domains')}</div>
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: 'var(--spacing-sm)' }}>
+              {domains.map(d => (
+                <Badge key={d} variant="neutral">
+                  {lang === 'en' ? (DOMAIN_NAME_EN[d] ?? d) : d}
+                </Badge>
+              ))}
+            </div>
+          </div>
+        ) : (
+          <div style={{
+            borderTop: '1px solid var(--color-border)',
+            paddingTop: 'var(--spacing-md)',
+          }}>
+            <div style={{
+              border: '2px dashed var(--color-border)',
+              borderRadius: 'var(--border-radius-md)',
+              padding: 'var(--spacing-lg)',
+              display: 'flex',
+              flexDirection: 'column',
+              alignItems: 'center',
+              justifyContent: 'center',
+              gap: 'var(--spacing-sm)',
+              minHeight: 88,
+              color: 'var(--color-text-light)',
+              background: 'var(--color-bg-sub, rgba(0,0,0,0.02))',
+            }}>
+              <span style={{ fontSize: 20, opacity: 0.35 }}>☁️</span>
+              <p style={{ margin: 0, fontSize: 'var(--font-size-sm)', fontStyle: 'italic', textAlign: 'center' }}>
+                {lang === 'ja' ? '資格を選択すると詳細情報が表示されます' : 'Select a certification to view details'}
+              </p>
+            </div>
+          </div>
+        )}
       </Card>
 
       {/* 演習・模試カード（左右2列） */}

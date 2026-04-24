@@ -178,15 +178,6 @@ button:active:not(:disabled) {
 
 /* ── スマホ追加修正 ── */
 @media (max-width: 767px) {
-  /* ホーム：目標資格パネルを縦積みに */
-  .home-exam-panel {
-    flex-direction: column !important;
-  }
-  /* ボタン横の説明文はモバイルで非表示 */
-  .home-exam-btn-desc {
-    display: none !important;
-  }
-
   /* 模試タイマーバー：折り返し＋パディング縮小 */
   .exam-timer-bar {
     padding: 10px 12px !important;
