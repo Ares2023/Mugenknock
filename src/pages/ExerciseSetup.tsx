@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { API_ENDPOINT, EXAM_TYPES, EXAM_DOMAINS, PASS_SCORES, DOMAIN_NAME_EN } from '../constants';
 import { useAuth } from '../contexts/AuthContext';
@@ -90,6 +90,19 @@ function shuffleArray<T>(arr: T[]): T[] {
   return a;
 }
 
+const EXERCISE_PREFS_KEY = 'exercisePrefs';
+const loadExercisePrefs = (et: string) => {
+  try { return JSON.parse(localStorage.getItem(EXERCISE_PREFS_KEY) ?? '{}')[et] ?? {}; }
+  catch { return {}; }
+};
+const saveExercisePrefs = (et: string, prefs: object) => {
+  try {
+    const stored = JSON.parse(localStorage.getItem(EXERCISE_PREFS_KEY) ?? '{}');
+    stored[et] = prefs;
+    localStorage.setItem(EXERCISE_PREFS_KEY, JSON.stringify(stored));
+  } catch {}
+};
+
 export default function ExerciseSetup() {
   const navigate = useNavigate();
   const { user } = useAuth();
@@ -102,13 +115,13 @@ export default function ExerciseSetup() {
     setTargetExamState(et);
     setExamType(et);
   };
-  const [selectedDomain, setSelectedDomain] = useState('');
-  const [selectedTag, setSelectedTag] = useState('');
-  const [limit, setLimit] = useState(10);
-  const [shuffle, setShuffle] = useState(true);
+  const [selectedDomain, setSelectedDomain] = useState<string>(() => loadExercisePrefs(localStorage.getItem('targetExam') || localStorage.getItem('lastExamType') || 'SAA').domain ?? '');
+  const [selectedTag, setSelectedTag] = useState<string>(() => loadExercisePrefs(localStorage.getItem('targetExam') || localStorage.getItem('lastExamType') || 'SAA').tag ?? '');
+  const [limit, setLimit] = useState<number>(() => loadExercisePrefs(localStorage.getItem('targetExam') || localStorage.getItem('lastExamType') || 'SAA').limit ?? 10);
+  const [shuffle, setShuffle] = useState<boolean>(() => loadExercisePrefs(localStorage.getItem('targetExam') || localStorage.getItem('lastExamType') || 'SAA').shuffle ?? true);
   const [loading, setLoading] = useState(false);
-  const [bookmarkOnly, setBookmarkOnly] = useState(false);
-  const [unansweredOnly, setUnansweredOnly] = useState(false);
+  const [bookmarkOnly, setBookmarkOnly] = useState<boolean>(() => loadExercisePrefs(localStorage.getItem('targetExam') || localStorage.getItem('lastExamType') || 'SAA').bookmarkOnly ?? false);
+  const [unansweredOnly, setUnansweredOnly] = useState<boolean>(() => loadExercisePrefs(localStorage.getItem('targetExam') || localStorage.getItem('lastExamType') || 'SAA').unansweredOnly ?? false);
   const [showHint, setShowHint] = useState(() => !localStorage.getItem('sherpaExerciseHint'));
   const [exerciseDraft] = useState<any>(() => {
     try { return JSON.parse(localStorage.getItem('exerciseDraft') ?? 'null'); } catch { return null; }
@@ -121,10 +134,21 @@ export default function ExerciseSetup() {
   const [answeredCount, setAnsweredCount] = useState<number | null>(null);
   const [availableTags, setAvailableTags] = useState<string[]>([]);
 
+  const isFirstRender = useRef(true);
   useEffect(() => {
-    setSelectedDomain('');
-    setSelectedTag('');
+    if (isFirstRender.current) { isFirstRender.current = false; return; }
+    const prefs = loadExercisePrefs(examType);
+    setSelectedDomain(prefs.domain ?? '');
+    setSelectedTag(prefs.tag ?? '');
+    setLimit(prefs.limit ?? 10);
+    setShuffle(prefs.shuffle ?? true);
+    setBookmarkOnly(prefs.bookmarkOnly ?? false);
+    setUnansweredOnly(prefs.unansweredOnly ?? false);
   }, [examType]);
+
+  useEffect(() => {
+    saveExercisePrefs(examType, { domain: selectedDomain, tag: selectedTag, limit, shuffle, bookmarkOnly, unansweredOnly });
+  }, [examType, selectedDomain, selectedTag, limit, shuffle, bookmarkOnly, unansweredOnly]);
 
   useEffect(() => {
     setAvailableCount(null);
@@ -290,7 +314,7 @@ export default function ExerciseSetup() {
         {t('exerciseSetup.description')}
       </p>
 
-      <div className="setup-grid" style={{ display: 'grid', gridTemplateColumns: '1fr 360px', gap: 'var(--spacing-lg)' }}>
+      <div className="setup-grid" style={{ display: 'grid', gridTemplateColumns: '1fr 440px', gap: 'var(--spacing-lg)' }}>
 
         {/* 左：設定フォーム */}
         <Card title={t('exerciseSetup.params')} padding="var(--spacing-xl)">

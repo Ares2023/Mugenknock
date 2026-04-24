@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { API_ENDPOINT, EXAM_TYPES, EXAM_CONFIGS, EXAM_DOMAINS, PASS_SCORES, PASS_RATE, DOMAIN_NAME_EN } from '../constants';
 import { useAuth } from '../contexts/AuthContext';
@@ -48,6 +48,18 @@ const EXAM_CATEGORIES: Record<string, { name: string; ratio: string }[]> = {
 
 const SCORED_QUESTIONS: Record<string, number> = { CLF: 50, SAA: 65, SAP: 65, DOP: 65 };
 
+const EXAM_PREFS_KEY = 'examPrefs';
+const loadExamPrefs = (et: string) => {
+  try { return JSON.parse(localStorage.getItem(EXAM_PREFS_KEY) ?? '{}')[et] ?? {}; } catch { return {}; }
+};
+const saveExamPrefs = (et: string, prefs: object) => {
+  try {
+    const stored = JSON.parse(localStorage.getItem(EXAM_PREFS_KEY) ?? '{}');
+    stored[et] = prefs;
+    localStorage.setItem(EXAM_PREFS_KEY, JSON.stringify(stored));
+  } catch {}
+};
+
 export default function ExamSetup() {
   const navigate = useNavigate();
   const { user } = useAuth();
@@ -60,8 +72,8 @@ export default function ExamSetup() {
     setTargetExamState(et);
     setExamType(et);
   };
-  const [selectedDomain, setSelectedDomain] = useState('');
-  const [selectedTag, setSelectedTag] = useState('');
+  const [selectedDomain, setSelectedDomain] = useState<string>(() => loadExamPrefs(localStorage.getItem('targetExam') || localStorage.getItem('lastExamType') || 'SAA').domain ?? '');
+  const [selectedTag, setSelectedTag] = useState<string>(() => loadExamPrefs(localStorage.getItem('targetExam') || localStorage.getItem('lastExamType') || 'SAA').tag ?? '');
   const [availableCount, setAvailableCount] = useState<number | null>(null);
   const [availableTags, setAvailableTags] = useState<string[]>([]);
   const [loading, setLoading] = useState(false);
@@ -69,18 +81,28 @@ export default function ExamSetup() {
   const [examDraft, setExamDraft] = useState<any>(() => {
     try { return JSON.parse(localStorage.getItem('examDraft') ?? 'null'); } catch { return null; }
   });
-  const [bookmarkOnly, setBookmarkOnly] = useState(false);
-  const [unansweredOnly, setUnansweredOnly] = useState(false);
-  const [shuffle, setShuffle] = useState(true);
+  const [bookmarkOnly, setBookmarkOnly] = useState<boolean>(() => loadExamPrefs(localStorage.getItem('targetExam') || localStorage.getItem('lastExamType') || 'SAA').bookmarkOnly ?? false);
+  const [unansweredOnly, setUnansweredOnly] = useState<boolean>(() => loadExamPrefs(localStorage.getItem('targetExam') || localStorage.getItem('lastExamType') || 'SAA').unansweredOnly ?? false);
+  const [shuffle, setShuffle] = useState<boolean>(() => loadExamPrefs(localStorage.getItem('targetExam') || localStorage.getItem('lastExamType') || 'SAA').shuffle ?? true);
   const hasDraft = examDraft?.examType === examType;
 
   const config = EXAM_CONFIGS[examType];
   const passScore = PASS_SCORES[examType];
 
+  const isFirstRender = useRef(true);
   useEffect(() => {
-    setSelectedDomain('');
-    setSelectedTag('');
+    if (isFirstRender.current) { isFirstRender.current = false; return; }
+    const prefs = loadExamPrefs(examType);
+    setSelectedDomain(prefs.domain ?? '');
+    setSelectedTag(prefs.tag ?? '');
+    setBookmarkOnly(prefs.bookmarkOnly ?? false);
+    setUnansweredOnly(prefs.unansweredOnly ?? false);
+    setShuffle(prefs.shuffle ?? true);
   }, [examType]);
+
+  useEffect(() => {
+    saveExamPrefs(examType, { domain: selectedDomain, tag: selectedTag, bookmarkOnly, unansweredOnly, shuffle });
+  }, [examType, selectedDomain, selectedTag, bookmarkOnly, unansweredOnly, shuffle]);
 
   const resumeExam = () => {
     if (!examDraft) return;
@@ -241,7 +263,7 @@ export default function ExamSetup() {
         {t('examSetup.description')}
       </p>
 
-      <div className="setup-grid" style={{ display: 'grid', gridTemplateColumns: '1fr 360px', gap: 'var(--spacing-lg)' }}>
+      <div className="setup-grid" style={{ display: 'grid', gridTemplateColumns: '1fr 440px', gap: 'var(--spacing-lg)' }}>
 
         {/* 左：設定フォーム */}
         <Card title={t('examSetup.params')} padding="var(--spacing-xl)">

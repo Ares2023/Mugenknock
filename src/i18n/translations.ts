@@ -248,6 +248,9 @@ export const ja: Translations = {
   'questions.copied': '✓ コピー済み',
   'questions.correctAnswer': '正解：',
   'questions.explanation': '解説：',
+  'questions.bookmarkFilter': 'お気に入りのみ',
+  'questions.bookmark': 'お気に入り登録',
+  'questions.removeBookmark': 'お気に入り解除',
 
   // ── ReleaseNotes ──
   'releaseNotes.title': 'リリースノート',
@@ -516,6 +519,9 @@ export const en: Translations = {
   'questions.copied': '✓ Copied',
   'questions.correctAnswer': 'Answer: ',
   'questions.explanation': 'Explanation: ',
+  'questions.bookmarkFilter': 'Bookmarks only',
+  'questions.bookmark': 'Bookmark',
+  'questions.removeBookmark': 'Remove bookmark',
 
   // ── ReleaseNotes ──
   'releaseNotes.title': 'Release Notes',

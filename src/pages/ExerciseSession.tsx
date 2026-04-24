@@ -187,7 +187,7 @@ export default function ExerciseSession() {
       setSelectedAnswers([]);
       setAnswered(false);
       setDetail(null);
-      window.scrollTo({ top: 0, behavior: 'smooth' });
+      document.querySelector('main')?.scrollTo({ top: 0, behavior: 'smooth' });
     }
   };
 

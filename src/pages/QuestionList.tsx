@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { API_ENDPOINT } from '../constants';
+import { useAuth } from '../contexts/AuthContext';
 import { useLanguage } from '../contexts/LanguageContext';
 import Card from '../components/ui/Card';
 import Button from '../components/ui/Button';
@@ -51,6 +52,7 @@ export default function QuestionList() {
   const navigate = useNavigate();
   const location = useLocation();
   const { lang, t } = useLanguage();
+  const { user } = useAuth();
   const [questions, setQuestions] = useState<Question[]>([]);
   const [selected, setSelected] = useState<Set<string>>(new Set());
   const [copiedId, setCopiedId] = useState<string | null>(null);
@@ -58,6 +60,9 @@ export default function QuestionList() {
   const [keyword, setKeyword] = useState('');
   const [expandedId, setExpandedId] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+  const [bookmarkedIds, setBookmarkedIds] = useState<Set<string>>(new Set());
+  const [bookmarkLoading, setBookmarkLoading] = useState<Set<string>>(new Set());
+  const [bookmarkOnly, setBookmarkOnly] = useState(false);
 
   const fetchQuestions = async (type: string, kw: string) => {
     setLoading(true);
@@ -76,6 +81,14 @@ export default function QuestionList() {
       setLoading(false);
     }
   };
+
+  useEffect(() => {
+    if (!user) return;
+    fetch(`${API_ENDPOINT}/users/me/bookmarks?userId=${user.userId}`)
+      .then(r => r.json())
+      .then(d => setBookmarkedIds(new Set(d.questionIds ?? [])))
+      .catch(() => {});
+  }, [user]);
 
   useEffect(() => {
     const params = new URLSearchParams(location.search);
@@ -99,12 +112,34 @@ export default function QuestionList() {
     } catch (err) { console.error(err); }
   };
 
+  const toggleBookmark = async (qid: string) => {
+    if (!user) return;
+    const isBookmarked = bookmarkedIds.has(qid);
+    setBookmarkLoading(prev => new Set(prev).add(qid));
+    try {
+      if (isBookmarked) {
+        await fetch(`${API_ENDPOINT}/questions/${qid}/bookmark?userId=${user.userId}`, { method: 'DELETE' });
+        setBookmarkedIds(prev => { const next = new Set(prev); next.delete(qid); return next; });
+      } else {
+        await fetch(`${API_ENDPOINT}/questions/${qid}/bookmark`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ userId: user.userId }),
+        });
+        setBookmarkedIds(prev => new Set(prev).add(qid));
+      }
+    } catch (err) { console.error(err); }
+    setBookmarkLoading(prev => { const next = new Set(prev); next.delete(qid); return next; });
+  };
+
   const toggleSelect = (id: string) => {
     setSelected(prev => { const next = new Set(prev); next.has(id) ? next.delete(id) : next.add(id); return next; });
   };
 
   const selectAll = () => {
-    selected.size === questions.length ? setSelected(new Set()) : setSelected(new Set(questions.map(q => q.questionId)));
+    selected.size === displayedQuestions.length
+      ? setSelected(new Set())
+      : setSelected(new Set(displayedQuestions.map(q => q.questionId)));
   };
 
   const copyQuestion = (q: Question) => {
@@ -123,18 +158,22 @@ export default function QuestionList() {
   };
 
   const exportCSV = async () => {
-    const targets = questions.filter(q => selected.has(q.questionId));
+    const targets = displayedQuestions.filter(q => selected.has(q.questionId));
     const needFetch = targets.filter(q => !q.correctAnswers);
     const fetched = await Promise.all(needFetch.map(q => fetch(`${API_ENDPOINT}/questions/${q.questionId}`).then(r => r.json())));
     const map = Object.fromEntries(fetched.map(q => [q.questionId, q]));
     const full = targets.map(q => ({ ...q, ...map[q.questionId] }));
     const header = '問題ID,試験種別,問題文,選択肢,正解,解説\n';
     const rows = full.map(q => [q.questionId, q.examType, `"${q.questionText}"`, `"${q.choices.join(' / ')}"`, `"${(q.correctAnswers || []).join(' / ')}"`, `"${q.explanation || ''}"`].join(',')).join('\n');
-    const blob = new Blob(['\uFEFF' + header + rows], { type: 'text/csv' });
+    const blob = new Blob(['﻿' + header + rows], { type: 'text/csv' });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a'); a.href = url; a.download = 'questions.csv'; a.click();
     URL.revokeObjectURL(url);
   };
+
+  const displayedQuestions = bookmarkOnly
+    ? questions.filter(q => bookmarkedIds.has(q.questionId))
+    : questions;
 
   return (
     <div style={{ maxWidth: 900, margin: '0 auto', padding: 'var(--spacing-xl) var(--spacing-lg)' }} className="page-container">
@@ -169,7 +208,7 @@ export default function QuestionList() {
           )}
         </form>
 
-        <div style={{ display: 'flex', gap: 'var(--spacing-sm)', flexWrap: 'wrap' }}>
+        <div style={{ display: 'flex', gap: 'var(--spacing-sm)', flexWrap: 'wrap', alignItems: 'center' }}>
           {['CLF', 'SAA', 'SAP', 'DOP'].map(type => (
             <Button
               key={type}
@@ -180,18 +219,28 @@ export default function QuestionList() {
               {type}
             </Button>
           ))}
+          {user && (
+            <Button
+              variant={bookmarkOnly ? 'primary' : 'outline'}
+              size="sm"
+              onClick={() => setBookmarkOnly(v => !v)}
+              style={bookmarkOnly ? {} : { color: 'var(--color-warning, #f59e0b)', borderColor: 'var(--color-warning, #f59e0b)' }}
+            >
+              ★ {t('questions.bookmarkFilter')}
+            </Button>
+          )}
         </div>
       </Card>
 
       <div style={{ marginBottom: 'var(--spacing-lg)', display: 'flex', gap: 'var(--spacing-md)', alignItems: 'center' }}>
         <Button variant="outline" size="sm" onClick={selectAll}>
-          {selected.size === questions.length ? t('questions.deselectAll') : t('questions.selectAll')}
+          {selected.size === displayedQuestions.length && displayedQuestions.length > 0 ? t('questions.deselectAll') : t('questions.selectAll')}
         </Button>
         <Button variant="outline" size="sm" onClick={exportCSV} disabled={selected.size === 0}>
           {t('questions.csvExport', { n: selected.size })}
         </Button>
         <span style={{ fontSize: 'var(--font-size-sm)', color: 'var(--color-text-sub)', marginLeft: 'auto' }}>
-          {t('questions.count', { n: questions.length })}
+          {t('questions.count', { n: displayedQuestions.length })}
         </span>
       </div>
 
@@ -201,12 +250,14 @@ export default function QuestionList() {
         </div>
       ) : (
         <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--spacing-md)' }}>
-          {questions.map(q => {
+          {displayedQuestions.map(q => {
             const qText = lang === 'en' && (q as any).questionTextEn ? (q as any).questionTextEn : q.questionText;
             const choices = lang === 'en' && (q as any).choicesEn ? (q as any).choicesEn : q.choices;
             const expl = lang === 'en' && (q as any).explanationEn ? (q as any).explanationEn : q.explanation;
             const isSelected = selected.has(q.questionId);
             const isExpanded = expandedId === q.questionId;
+            const isBookmarked = bookmarkedIds.has(q.questionId);
+            const isBmLoading = bookmarkLoading.has(q.questionId);
 
             return (
               <Card
@@ -229,9 +280,29 @@ export default function QuestionList() {
                       <Badge variant="secondary">{q.examType}</Badge>
                       {q.isMultiple && <Badge variant="outline">{t('questions.multiple')}</Badge>}
                       {q.updatedAt && (
-                        <span style={{ fontSize: 'var(--font-size-xs)', color: 'var(--color-text-light)', marginLeft: 'auto' }}>
+                        <span style={{ fontSize: 'var(--font-size-xs)', color: 'var(--color-text-light)' }}>
                           最終更新: {formatDate(q.updatedAt)}
                         </span>
+                      )}
+                      {user && (
+                        <button
+                          onClick={() => toggleBookmark(q.questionId)}
+                          disabled={isBmLoading}
+                          title={isBookmarked ? t('questions.removeBookmark') : t('questions.bookmark')}
+                          style={{
+                            marginLeft: 'auto',
+                            background: 'none', border: 'none', cursor: isBmLoading ? 'default' : 'pointer',
+                            padding: '2px 4px', borderRadius: 4,
+                            fontSize: 20, lineHeight: 1,
+                            color: isBookmarked ? 'var(--color-warning, #f59e0b)' : 'var(--color-text-light)',
+                            opacity: isBmLoading ? 0.5 : 1,
+                            transition: 'color 0.15s, opacity 0.15s',
+                          }}
+                          onMouseEnter={e => { if (!isBmLoading) e.currentTarget.style.color = 'var(--color-warning, #f59e0b)'; }}
+                          onMouseLeave={e => { if (!isBmLoading) e.currentTarget.style.color = isBookmarked ? 'var(--color-warning, #f59e0b)' : 'var(--color-text-light)'; }}
+                        >
+                          {isBookmarked ? '★' : '☆'}
+                        </button>
                       )}
                     </div>
                     <p style={{ margin: '0 0 var(--spacing-md)', fontWeight: 700, fontSize: 'var(--font-size-md)', lineHeight: 1.6, color: 'var(--color-text-main)' }}>
@@ -240,7 +311,7 @@ export default function QuestionList() {
                     <ol style={{ margin: '0 0 var(--spacing-lg)', paddingLeft: 'var(--spacing-xl)', fontSize: 'var(--font-size-base)', color: 'var(--color-text-sub)', lineHeight: 1.6 }}>
                       {choices.map((c: string, i: number) => <li key={i}>{c}</li>)}
                     </ol>
-                    
+
                     {isExpanded && q.correctAnswers && (
                       <div style={{
                         background: '#f2fcf3',
@@ -259,7 +330,7 @@ export default function QuestionList() {
                         </div>
                       </div>
                     )}
-                    
+
                     <div style={{ display: 'flex', gap: 'var(--spacing-md)' }}>
                       <Button variant="outline" size="sm" onClick={() => fetchDetail(q.questionId)}>
                         {isExpanded ? t('questions.hideExplanation') : t('questions.showExplanation')}
