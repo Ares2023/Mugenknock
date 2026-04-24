@@ -142,9 +142,8 @@ export default function ExamSetup() {
   const shortage = availableCount !== null && !selectedDomain && !selectedTag
     ? Math.max(0, config.totalQuestions - availableCount) : null;
 
-  // Dynamic step numbering: skip exam type badge when locked
+  // 試験種別は項番なし（ホーム画面で設定するため）
   let _s = 0;
-  const examStep   = !targetExam ? ++_s : null;
   const domainStep = ++_s;
   const tagStep    = availableTags.length > 0 ? ++_s : null;
 
@@ -186,7 +185,7 @@ export default function ExamSetup() {
           ) : (
             <div style={{ marginBottom: 'var(--spacing-lg)' }}>
               <label style={{ display: 'flex', alignItems: 'center', gap: 'var(--spacing-sm)', marginBottom: 'var(--spacing-sm)', fontWeight: 700, fontSize: 'var(--font-size-base)' }}>
-                <StepBadge n={examStep!} />{t('examSetup.examType')}
+                {t('examSetup.examType')}
               </label>
               <div style={{ display: 'flex', gap: 'var(--spacing-sm)' }}>
                 {EXAM_TYPES.map(type => (
