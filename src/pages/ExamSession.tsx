@@ -27,16 +27,17 @@ const formatTime = (sec: number) => {
 export default function ExamSession() {
   const navigate = useNavigate();
   const location = useLocation();
-  const { sessionId, questions, userId, examType } = location.state as any;
+  const { sessionId, questions, userId, examType, resumeIndex, resumeAnswers, resumeTimeLeft } = location.state as any;
   const { user } = useAuth();
 
   const config = EXAM_CONFIGS[examType];
   const { lang, t } = useLanguage();
   const totalSec = config.timeLimitMin * 60;
 
-  const [currentIndex, setCurrentIndex] = useState(0);
-  const [answers, setAnswers] = useState<Record<string, string[]>>({});
-  const [timeLeft, setTimeLeft] = useState(totalSec);
+  const [currentIndex, setCurrentIndex] = useState<number>(resumeIndex ?? 0);
+  const [answers, setAnswers] = useState<Record<string, string[]>>(resumeAnswers ?? {});
+  const [timeLeft, setTimeLeft] = useState<number>(resumeTimeLeft ?? totalSec);
+  const timeLeftRef = useRef<number>(resumeTimeLeft ?? totalSec);
   const [paused, setPaused] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [showConfirm, setShowConfirm] = useState(false);
@@ -67,6 +68,20 @@ export default function ExamSession() {
       }
     } catch (err) { console.error(err); }
   };
+
+  // timeLeftRef を常に最新値に保つ
+  useEffect(() => { timeLeftRef.current = timeLeft; }, [timeLeft]);
+
+  // 回答・問題移動のたびにドラフト保存
+  useEffect(() => {
+    if (!sessionId) return;
+    try {
+      localStorage.setItem('examDraft', JSON.stringify({
+        sessionId, examType, questions, userId,
+        currentIndex, answers, timeLeft: timeLeftRef.current,
+      }));
+    } catch { /* quota over 等は無視 */ }
+  }, [answers, currentIndex]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // タイマー
   useEffect(() => {
@@ -104,6 +119,7 @@ export default function ExamSession() {
     finishedRef.current = true;
     setSubmitting(true);
     setPaused(false);
+    localStorage.removeItem('examDraft');
 
     try {
       const details = await Promise.all(

@@ -93,6 +93,8 @@ export const ja: Translations = {
   'examSetup.qUnit': '問',
   'examSetup.minUnit': '分',
   'examSetup.scored': '採点',
+  'examSetup.resume': '再開する',
+  'examSetup.resumeBadge': '中断中',
 
   // ── ExerciseSetup ──
   'exerciseSetup.title': '演習モード',
@@ -357,6 +359,8 @@ export const en: Translations = {
   'examSetup.qUnit': ' Q',
   'examSetup.minUnit': ' min',
   'examSetup.scored': 'Scored',
+  'examSetup.resume': 'Resume',
+  'examSetup.resumeBadge': 'In Progress',
 
   // ── ExerciseSetup ──
   'exerciseSetup.title': 'Practice Mode',

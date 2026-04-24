@@ -60,6 +60,10 @@ export default function ExamSetup() {
   const [availableTags, setAvailableTags] = useState<string[]>([]);
   const [loading, setLoading] = useState(false);
   const [showHint, setShowHint] = useState(() => !localStorage.getItem('sherpaExamHint'));
+  const [examDraft, setExamDraft] = useState<any>(() => {
+    try { return JSON.parse(localStorage.getItem('examDraft') ?? 'null'); } catch { return null; }
+  });
+  const hasDraft = examDraft?.examType === examType;
 
   const config = EXAM_CONFIGS[examType];
   const passScore = PASS_SCORES[examType];
@@ -68,6 +72,21 @@ export default function ExamSetup() {
     setSelectedDomain('');
     setSelectedTag('');
   }, [examType]);
+
+  const resumeExam = () => {
+    if (!examDraft) return;
+    navigate('/exam/session', {
+      state: {
+        sessionId: examDraft.sessionId,
+        questions: examDraft.questions,
+        userId: examDraft.userId,
+        examType: examDraft.examType,
+        resumeIndex: examDraft.currentIndex,
+        resumeAnswers: examDraft.answers,
+        resumeTimeLeft: examDraft.timeLeft,
+      }
+    });
+  };
 
   useEffect(() => {
     setAvailableCount(null);
@@ -243,10 +262,18 @@ export default function ExamSetup() {
             {t('examSetup.aboutDesc')}
           </div>
 
-          <div style={{ display: 'flex', gap: 'var(--spacing-md)', borderTop: '1px solid var(--color-border)', paddingTop: 'var(--spacing-lg)', justifyContent: 'flex-end' }}>
+          <div style={{ display: 'flex', gap: 'var(--spacing-md)', borderTop: '1px solid var(--color-border)', paddingTop: 'var(--spacing-lg)', justifyContent: 'flex-end', flexWrap: 'wrap' }}>
             <Button variant="outline" onClick={() => navigate('/')}>
               {t('examSetup.cancel')}
             </Button>
+            {hasDraft && (
+              <Button variant="outline" onClick={resumeExam} style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                <span style={{ fontSize: 11, fontWeight: 700, background: 'var(--color-primary)', color: 'white', borderRadius: 4, padding: '1px 5px' }}>
+                  {t('examSetup.resumeBadge')}
+                </span>
+                {t('examSetup.resume')}
+              </Button>
+            )}
             <Button
               variant="primary"
               onClick={startExam}
