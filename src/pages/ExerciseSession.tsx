@@ -45,14 +45,16 @@ const CopyButton = ({ getText }: { getText: () => string }) => {
 export default function ExerciseSession() {
   const navigate = useNavigate();
   const location = useLocation();
-  const { sessionId, questions, userId, examType } = location.state as any;
+  const { sessionId, questions, userId, examType,
+    resumeIndex, resumeResults, resumeAnswered, resumeSelectedAnswers, resumeDetail
+  } = location.state as any;
   const { user } = useAuth();
   const { lang, t } = useLanguage();
 
-  const [currentIndex, setCurrentIndex] = useState(0);
-  const [selectedAnswers, setSelectedAnswers] = useState<string[]>([]);
-  const [answered, setAnswered] = useState(false);
-  const [detail, setDetail] = useState<Question | null>(null);
+  const [currentIndex, setCurrentIndex] = useState<number>(resumeIndex ?? 0);
+  const [selectedAnswers, setSelectedAnswers] = useState<string[]>(resumeSelectedAnswers ?? []);
+  const [answered, setAnswered] = useState<boolean>(resumeAnswered ?? false);
+  const [detail, setDetail] = useState<Question | null>(resumeDetail ?? null);
   const [tips, setTips] = useState<Tip[]>([]);
   const [bookmarkedIds, setBookmarkedIds] = useState<Set<string>>(new Set());
   const [bookmarkLoading, setBookmarkLoading] = useState(false);
@@ -97,8 +99,19 @@ export default function ExerciseSession() {
     } catch (err) { console.error(err); }
     setBookmarkLoading(false);
   };
-  const [results, setResults] = useState<{ questionId: string; isCorrect: boolean }[]>([]);
+  const [results, setResults] = useState<{ questionId: string; isCorrect: boolean }[]>(resumeResults ?? []);
   const [loading, setLoading] = useState(false);
+
+  // ドラフト保存
+  useEffect(() => {
+    if (!sessionId) return;
+    try {
+      localStorage.setItem('exerciseDraft', JSON.stringify({
+        sessionId, examType, questions, userId,
+        currentIndex, results, answered, selectedAnswers, detail,
+      }));
+    } catch { /* quota over 等は無視 */ }
+  }, [currentIndex, results]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const currentQuestion = questions[currentIndex];
 
@@ -162,6 +175,7 @@ export default function ExerciseSession() {
           body: JSON.stringify({ userId, status: 'completed', score, isPassed })
         });
       } catch (err) { console.error(err); }
+      localStorage.removeItem('exerciseDraft');
       navigate('/result', { state: { results, questions, score, isPassed, sessionId, userId, examType } });
     } else {
       setCurrentIndex(prev => prev + 1);

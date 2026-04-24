@@ -136,6 +136,8 @@ export const ja: Translations = {
   'exerciseSetup.qUnit': '問',
   'exerciseSetup.scored': '採点',
   'exerciseSetup.options': 'オプション',
+  'exerciseSetup.resume': '再開する',
+  'exerciseSetup.resumeBadge': '中断中',
 
   // ── ExamSession ──
   'examSession.mock': '模試',
@@ -402,6 +404,8 @@ export const en: Translations = {
   'exerciseSetup.qUnit': ' Q',
   'exerciseSetup.scored': 'Scored',
   'exerciseSetup.options': 'Options',
+  'exerciseSetup.resume': 'Resume',
+  'exerciseSetup.resumeBadge': 'In Progress',
 
   // ── ExamSession ──
   'examSession.mock': 'Mock Exam',

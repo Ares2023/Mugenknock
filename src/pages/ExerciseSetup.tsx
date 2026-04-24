@@ -104,6 +104,10 @@ export default function ExerciseSetup() {
   const [bookmarkOnly, setBookmarkOnly] = useState(false);
   const [unansweredOnly, setUnansweredOnly] = useState(false);
   const [showHint, setShowHint] = useState(() => !localStorage.getItem('sherpaExerciseHint'));
+  const [exerciseDraft] = useState<any>(() => {
+    try { return JSON.parse(localStorage.getItem('exerciseDraft') ?? 'null'); } catch { return null; }
+  });
+  const hasDraft = exerciseDraft?.examType === examType;
 
   const info = EXAM_INFO[examType];
   const passScore = PASS_SCORES[examType];
@@ -167,6 +171,24 @@ export default function ExerciseSetup() {
       .then(d => setAvailableTags(d.tags || []))
       .catch(() => setAvailableTags([]));
   }, [examType]);
+
+  const resumeSession = () => {
+    if (!exerciseDraft) return;
+    navigate('/exercise/session', {
+      state: {
+        sessionId: exerciseDraft.sessionId,
+        questions: exerciseDraft.questions,
+        userId: exerciseDraft.userId,
+        examType: exerciseDraft.examType,
+        mode: 'exercise',
+        resumeIndex: exerciseDraft.currentIndex,
+        resumeResults: exerciseDraft.results,
+        resumeAnswered: exerciseDraft.answered,
+        resumeSelectedAnswers: exerciseDraft.selectedAnswers,
+        resumeDetail: exerciseDraft.detail,
+      }
+    });
+  };
 
   const startSession = async () => {
     setLoading(true);
@@ -402,10 +424,18 @@ export default function ExerciseSetup() {
             </div>
           </div>
 
-          <div style={{ display: 'flex', gap: 'var(--spacing-md)', borderTop: '1px solid var(--color-border)', paddingTop: 'var(--spacing-lg)', justifyContent: 'flex-end' }}>
+          <div style={{ display: 'flex', gap: 'var(--spacing-md)', borderTop: '1px solid var(--color-border)', paddingTop: 'var(--spacing-lg)', justifyContent: 'flex-end', flexWrap: 'wrap' }}>
             <Button variant="outline" onClick={() => navigate('/')}>
               {t('exerciseSetup.cancel')}
             </Button>
+            {hasDraft && (
+              <Button variant="outline" onClick={resumeSession} style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                <span style={{ fontSize: 11, fontWeight: 700, background: 'var(--color-primary)', color: 'white', borderRadius: 4, padding: '1px 5px' }}>
+                  {t('exerciseSetup.resumeBadge')}
+                </span>
+                {t('exerciseSetup.resume')}
+              </Button>
+            )}
             <Button
               variant="primary"
               onClick={startSession}
