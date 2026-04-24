@@ -69,6 +69,9 @@ export default function ExamSetup() {
   const [examDraft, setExamDraft] = useState<any>(() => {
     try { return JSON.parse(localStorage.getItem('examDraft') ?? 'null'); } catch { return null; }
   });
+  const [bookmarkOnly, setBookmarkOnly] = useState(false);
+  const [unansweredOnly, setUnansweredOnly] = useState(false);
+  const [shuffle, setShuffle] = useState(true);
   const hasDraft = examDraft?.examType === examType;
 
   const config = EXAM_CONFIGS[examType];
@@ -96,14 +99,39 @@ export default function ExamSetup() {
 
   useEffect(() => {
     setAvailableCount(null);
-    const params = new URLSearchParams({ examType });
-    if (selectedDomain) params.set('domain', selectedDomain);
-    if (selectedTag) params.set('tagId', selectedTag);
-    fetch(`${API_ENDPOINT}/questions?${params}`)
-      .then(r => r.json())
-      .then(d => setAvailableCount(d.count ?? d.items?.length ?? 0))
-      .catch(() => setAvailableCount(0));
-  }, [examType, selectedDomain, selectedTag]);
+
+    const fetchCounts = async () => {
+      try {
+        const params = new URLSearchParams({ examType });
+        if (selectedDomain) params.set('domain', selectedDomain);
+        if (selectedTag) params.set('tagId', selectedTag);
+
+        if (user && (bookmarkOnly || unansweredOnly)) {
+          const userId = user.userId;
+          const [qRes, bkmRes, answeredRes] = await Promise.all([
+            fetch(`${API_ENDPOINT}/questions?${params}`).then(r => r.json()),
+            bookmarkOnly ? fetch(`${API_ENDPOINT}/users/me/bookmarks?userId=${userId}`).then(r => r.json()) : Promise.resolve(null),
+            unansweredOnly ? fetch(`${API_ENDPOINT}/users/me/answered-questions?userId=${userId}&examType=${examType}`).then(r => r.json()) : Promise.resolve(null),
+          ]);
+          let items: any[] = qRes.items ?? [];
+          if (bookmarkOnly && bkmRes) {
+            const ids = new Set(bkmRes.questionIds ?? []);
+            items = items.filter((q: any) => ids.has(q.questionId));
+          }
+          if (unansweredOnly && answeredRes) {
+            const ids = new Set(answeredRes.questionIds ?? []);
+            items = items.filter((q: any) => !ids.has(q.questionId));
+          }
+          setAvailableCount(items.length);
+        } else {
+          const data = await fetch(`${API_ENDPOINT}/questions?${params}`).then(r => r.json());
+          setAvailableCount(data.count ?? data.items?.length ?? 0);
+        }
+      } catch { setAvailableCount(0); }
+    };
+
+    fetchCounts();
+  }, [examType, selectedDomain, selectedTag, user, bookmarkOnly, unansweredOnly]);
 
   useEffect(() => {
     fetch(`${API_ENDPOINT}/tags?examType=${examType}`)
@@ -115,17 +143,52 @@ export default function ExamSetup() {
   const startExam = async () => {
     setLoading(true);
     try {
-      const params = new URLSearchParams({ examType, shuffle: 'true' });
-      if (selectedDomain) params.set('domain', selectedDomain);
-      if (selectedTag) params.set('tagId', selectedTag);
-      const limit = Math.min(config.totalQuestions, availableCount ?? config.totalQuestions);
-      params.set('limit', String(limit));
-
-      const res = await fetch(`${API_ENDPOINT}/questions?${params}`);
-      const data = await res.json();
-      const questionIds = data.items.map((q: any) => q.questionId);
-
       const userId = user?.userId ?? 'guest';
+      const limit = Math.min(config.totalQuestions, availableCount ?? config.totalQuestions);
+      let selectedItems: any[];
+
+      if (user && (bookmarkOnly || unansweredOnly)) {
+        const params = new URLSearchParams({ examType });
+        if (selectedDomain) params.set('domain', selectedDomain);
+        if (selectedTag) params.set('tagId', selectedTag);
+
+        const [qRes, bkmRes, answeredRes] = await Promise.all([
+          fetch(`${API_ENDPOINT}/questions?${params}`).then(r => r.json()),
+          bookmarkOnly ? fetch(`${API_ENDPOINT}/users/me/bookmarks?userId=${userId}`).then(r => r.json()) : Promise.resolve(null),
+          unansweredOnly ? fetch(`${API_ENDPOINT}/users/me/answered-questions?userId=${userId}&examType=${examType}`).then(r => r.json()) : Promise.resolve(null),
+        ]);
+        let filtered: any[] = qRes.items ?? [];
+        if (bookmarkOnly && bkmRes) {
+          const ids = new Set(bkmRes.questionIds ?? []);
+          filtered = filtered.filter((q: any) => ids.has(q.questionId));
+        }
+        if (unansweredOnly && answeredRes) {
+          const ids = new Set(answeredRes.questionIds ?? []);
+          filtered = filtered.filter((q: any) => !ids.has(q.questionId));
+        }
+        if (shuffle) {
+          for (let i = filtered.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [filtered[i], filtered[j]] = [filtered[j], filtered[i]];
+          }
+        }
+        selectedItems = filtered.slice(0, limit);
+      } else {
+        const params = new URLSearchParams({ examType, shuffle: String(shuffle) });
+        if (selectedDomain) params.set('domain', selectedDomain);
+        if (selectedTag) params.set('tagId', selectedTag);
+        params.set('limit', String(limit));
+        const data = await fetch(`${API_ENDPOINT}/questions?${params}`).then(r => r.json());
+        selectedItems = data.items;
+      }
+
+      if (!selectedItems || selectedItems.length === 0) {
+        alert(t('examSetup.startFailed'));
+        setLoading(false);
+        return;
+      }
+
+      const questionIds = selectedItems.map((q: any) => q.questionId);
       const sessionRes = await fetch(`${API_ENDPOINT}/sessions`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -134,7 +197,7 @@ export default function ExamSetup() {
       const sessionData = await sessionRes.json();
 
       navigate('/exam/session', {
-        state: { sessionId: sessionData.sessionId, questions: data.items, userId, examType }
+        state: { sessionId: sessionData.sessionId, questions: selectedItems, userId, examType }
       });
     } catch (err) {
       console.error(err);
@@ -149,9 +212,10 @@ export default function ExamSetup() {
     ? Math.max(0, config.totalQuestions - availableCount) : null;
 
   let _s = 0;
-  const examStep   = targetExam ? null : ++_s;
-  const domainStep = ++_s;
-  const tagStep    = availableTags.length > 0 ? ++_s : null;
+  const examStep    = targetExam ? null : ++_s;
+  const domainStep  = ++_s;
+  const tagStep     = availableTags.length > 0 ? ++_s : null;
+  const optionsStep = ++_s;
 
   return (
     <div style={{ maxWidth: 1200, margin: '0 auto', padding: 'var(--spacing-xl) var(--spacing-lg)' }} className="page-container">
@@ -263,6 +327,37 @@ export default function ExamSetup() {
             </div>
           )}
 
+          {/* オプション */}
+          <div style={{ marginBottom: 'var(--spacing-lg)' }}>
+            <label style={{ display: 'flex', alignItems: 'center', gap: 'var(--spacing-sm)', marginBottom: 'var(--spacing-sm)', fontWeight: 700, fontSize: 'var(--font-size-base)' }}>
+              <StepBadge n={optionsStep} />{t('exerciseSetup.options')}
+            </label>
+            <div style={{ padding: 'var(--spacing-md)', background: 'var(--color-bg-main)', borderRadius: 'var(--border-radius-md)', display: 'flex', flexDirection: 'column', gap: 'var(--spacing-sm)' }}>
+              {user && (
+                <label style={{ display: 'flex', alignItems: 'center', gap: 'var(--spacing-md)', cursor: 'pointer', fontSize: 'var(--font-size-base)' }}>
+                  <input type="checkbox" checked={unansweredOnly} onChange={e => setUnansweredOnly(e.target.checked)} style={{ width: 18, height: 18 }} />
+                  <span style={{ fontWeight: 700 }}>
+                    {t('exerciseSetup.unansweredOnly')}
+                    <span style={{ fontWeight: 400, fontSize: 'var(--font-size-sm)', color: 'var(--color-text-sub)', marginLeft: 'var(--spacing-sm)' }}>{t('exerciseSetup.unansweredOnlyDesc')}</span>
+                  </span>
+                </label>
+              )}
+              {user && (
+                <label style={{ display: 'flex', alignItems: 'center', gap: 'var(--spacing-md)', cursor: 'pointer', fontSize: 'var(--font-size-base)' }}>
+                  <input type="checkbox" checked={bookmarkOnly} onChange={e => setBookmarkOnly(e.target.checked)} style={{ width: 18, height: 18 }} />
+                  <span style={{ fontWeight: 700 }}>
+                    {t('exerciseSetup.bookmarkOnly')}
+                    <span style={{ fontWeight: 400, fontSize: 'var(--font-size-sm)', color: 'var(--color-text-sub)', marginLeft: 'var(--spacing-sm)' }}>{t('exerciseSetup.bookmarkOnlyDesc')}</span>
+                  </span>
+                </label>
+              )}
+              <label style={{ display: 'flex', alignItems: 'center', gap: 'var(--spacing-md)', cursor: 'pointer', fontSize: 'var(--font-size-base)' }}>
+                <input type="checkbox" checked={shuffle} onChange={e => setShuffle(e.target.checked)} style={{ width: 18, height: 18 }} />
+                <span style={{ fontWeight: 700 }}>{t('exerciseSetup.shuffle')}</span>
+              </label>
+            </div>
+          </div>
+
           <div style={{ background: 'var(--color-primary-light)', borderLeft: '4px solid var(--color-primary)', borderRadius: 'var(--border-radius-md)', padding: '12px 16px', fontSize: 'var(--font-size-base)', color: 'var(--color-text-main)', marginBottom: 'var(--spacing-lg)' }}>
             <strong style={{ display: 'block', marginBottom: 4 }}>{t('examSetup.aboutTitle')}</strong>
             {t('examSetup.aboutDesc')}
@@ -327,7 +422,12 @@ export default function ExamSetup() {
             <div style={{ fontSize: 'var(--font-size-xs)', fontWeight: 700, color: 'var(--color-text-sub)', textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: 'var(--spacing-sm)' }}>{t('examSetup.thisSession')}</div>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: shortage !== null && shortage > 0 ? 8 : 0 }}>
               <span style={{ fontSize: 'var(--font-size-sm)', color: 'var(--color-text-main)' }}>
-                {selectedDomain || selectedTag ? t('examSetup.filteredCount') : t('examSetup.questionCount')}
+                {(() => {
+                  if (unansweredOnly && bookmarkOnly) return t('exerciseSetup.unansweredBookmark');
+                  if (unansweredOnly) return t('exerciseSetup.unansweredLabel');
+                  if (bookmarkOnly) return t('exerciseSetup.bookmarkLabel');
+                  return selectedDomain || selectedTag ? t('examSetup.filteredCount') : t('examSetup.questionCount');
+                })()}
               </span>
               <span style={{ fontSize: 'var(--font-size-xl)', fontWeight: 700, color: 'var(--color-primary)' }}>
                 {useableCount === null ? '...' : useableCount}
