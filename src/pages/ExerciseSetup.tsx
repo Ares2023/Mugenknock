@@ -115,7 +115,10 @@ export default function ExerciseSetup() {
     setTargetExamState(et);
     setExamType(et);
   };
-  const [selectedDomains, setSelectedDomains] = useState<string[]>(() => loadExercisePrefs(localStorage.getItem('targetExam') || localStorage.getItem('lastExamType') || 'SAA').domains ?? []);
+  const [selectedDomains, setSelectedDomains] = useState<string[]>(() => {
+    const et = localStorage.getItem('targetExam') || localStorage.getItem('lastExamType') || 'SAA';
+    return loadExercisePrefs(et).domains ?? EXAM_DOMAINS[et] ?? [];
+  });
   const [selectedTag, setSelectedTag] = useState<string>(() => loadExercisePrefs(localStorage.getItem('targetExam') || localStorage.getItem('lastExamType') || 'SAA').tag ?? '');
   const [limit, setLimit] = useState<number>(() => loadExercisePrefs(localStorage.getItem('targetExam') || localStorage.getItem('lastExamType') || 'SAA').limit ?? 10);
   const [shuffle, setShuffle] = useState<boolean>(() => loadExercisePrefs(localStorage.getItem('targetExam') || localStorage.getItem('lastExamType') || 'SAA').shuffle ?? false);
@@ -139,7 +142,7 @@ export default function ExerciseSetup() {
   useEffect(() => {
     if (isFirstRender.current) { isFirstRender.current = false; return; }
     const prefs = loadExercisePrefs(examType);
-    setSelectedDomains(prefs.domains ?? []);
+    setSelectedDomains(prefs.domains ?? EXAM_DOMAINS[examType]);
     setSelectedTag(prefs.tag ?? '');
     setLimit(prefs.limit ?? 10);
     setShuffle(prefs.shuffle ?? false);
@@ -157,6 +160,7 @@ export default function ExerciseSetup() {
     setAnsweredCount(null);
 
     const fetchCounts = async () => {
+      if (selectedDomains.length === 0) { setAvailableCount(0); return; }
       try {
         const params = new URLSearchParams({ examType });
         if (selectedDomains.length > 0) params.set('domain', selectedDomains.join(','));
@@ -228,6 +232,10 @@ export default function ExerciseSetup() {
   };
 
   const startSession = async () => {
+    if (selectedDomains.length === 0) {
+      alert(lang === 'ja' ? '出題ドメインを最低1つ選択してください' : 'Please select at least one domain');
+      return;
+    }
     setLoading(true);
     try {
       const userId = user?.userId ?? 'guest';
@@ -365,26 +373,26 @@ export default function ExerciseSetup() {
             </label>
             <div style={{ background: 'var(--color-bg-main)', borderRadius: 'var(--border-radius-md)', overflow: 'hidden' }}>
               <label style={{ display: 'flex', alignItems: 'center', gap: 'var(--spacing-sm)', cursor: 'pointer', fontSize: 'var(--font-size-sm)', color: 'var(--color-text-sub)', padding: 'var(--spacing-sm) var(--spacing-md)', borderBottom: '1px solid var(--color-border)' }}>
-                <input type="checkbox" checked={selectedDomains.length === 0} onChange={() => { if (selectedDomains.length > 0) setSelectedDomains([]); }} style={{ width: 15, height: 15 }} />
+                <input
+                  type="checkbox"
+                  checked={EXAM_DOMAINS[examType].every(d => selectedDomains.includes(d))}
+                  onChange={() => {
+                    const allSelected = EXAM_DOMAINS[examType].every(d => selectedDomains.includes(d));
+                    setSelectedDomains(allSelected ? [] : [...EXAM_DOMAINS[examType]]);
+                  }}
+                  style={{ width: 15, height: 15 }}
+                />
                 {t('exerciseSetup.all')}
               </label>
               <div style={{ display: 'flex', flexDirection: 'column', gap: 0, padding: 'var(--spacing-xs) var(--spacing-md)' }}>
                 {EXAM_DOMAINS[examType].map(d => {
-                  const isAll = selectedDomains.length === 0;
-                  const checked = isAll || selectedDomains.includes(d);
+                  const checked = selectedDomains.includes(d);
                   return (
                     <label key={d} style={{ display: 'flex', alignItems: 'center', gap: 'var(--spacing-sm)', cursor: 'pointer', fontSize: 'var(--font-size-base)', padding: '3px 0 3px 8px' }}>
                       <input
                         type="checkbox"
                         checked={checked}
-                        onChange={() => {
-                          if (isAll) {
-                            setSelectedDomains(EXAM_DOMAINS[examType].filter(x => x !== d));
-                          } else {
-                            const next = checked ? selectedDomains.filter(x => x !== d) : [...selectedDomains, d];
-                            setSelectedDomains(next.length === EXAM_DOMAINS[examType].length ? [] : next);
-                          }
-                        }}
+                        onChange={() => setSelectedDomains(prev => checked ? prev.filter(x => x !== d) : [...prev, d])}
                         style={{ width: 16, height: 16, flexShrink: 0 }}
                       />
                       <span style={{ color: checked ? 'var(--color-primary)' : 'var(--color-text-main)', fontWeight: checked ? 600 : 400 }}>
@@ -395,6 +403,11 @@ export default function ExerciseSetup() {
                 })}
               </div>
             </div>
+            {selectedDomains.length === 0 && (
+              <p style={{ margin: '4px 0 0', fontSize: 'var(--font-size-xs)', color: 'var(--color-danger)' }}>
+                {lang === 'ja' ? '最低1つのドメインを選択してください' : 'Please select at least one domain'}
+              </p>
+            )}
           </div>
 
           {/* タグフィルタ */}

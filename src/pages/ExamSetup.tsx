@@ -72,7 +72,7 @@ export default function ExamSetup() {
     setTargetExamState(et);
     setExamType(et);
   };
-  const [selectedDomains, setSelectedDomains] = useState<string[]>(() => loadExamPrefs(localStorage.getItem('targetExam') || localStorage.getItem('lastExamType') || 'SAA').domains ?? []);
+  const [selectedDomains, setSelectedDomains] = useState<string[]>(() => { const et = localStorage.getItem('targetExam') || localStorage.getItem('lastExamType') || 'SAA'; return loadExamPrefs(et).domains ?? EXAM_DOMAINS[et] ?? []; });
   const [selectedTag, setSelectedTag] = useState<string>(() => loadExamPrefs(localStorage.getItem('targetExam') || localStorage.getItem('lastExamType') || 'SAA').tag ?? '');
   const [availableCount, setAvailableCount] = useState<number | null>(null);
   const [availableTags, setAvailableTags] = useState<string[]>([]);
@@ -94,7 +94,7 @@ export default function ExamSetup() {
   useEffect(() => {
     if (isFirstRender.current) { isFirstRender.current = false; return; }
     const prefs = loadExamPrefs(examType);
-    setSelectedDomains(prefs.domains ?? []);
+    setSelectedDomains(prefs.domains ?? EXAM_DOMAINS[examType]);
     setSelectedTag(prefs.tag ?? '');
     setBookmarkOnly(prefs.bookmarkOnly ?? false);
     setUnansweredOnly(prefs.unansweredOnly ?? false);
@@ -125,6 +125,7 @@ export default function ExamSetup() {
     setAvailableCount(null);
 
     const fetchCounts = async () => {
+      if (selectedDomains.length === 0) { setAvailableCount(0); return; }
       try {
         const params = new URLSearchParams({ examType });
         if (selectedDomains.length > 0) params.set('domain', selectedDomains.join(','));
@@ -170,6 +171,10 @@ export default function ExamSetup() {
   }, [examType]);
 
   const startExam = async () => {
+    if (selectedDomains.length === 0) {
+      alert(lang === 'ja' ? '最低1つのドメインを選択してください' : 'Please select at least one domain');
+      return;
+    }
     setLoading(true);
     try {
       const userId = user?.userId ?? 'guest';
@@ -242,7 +247,8 @@ export default function ExamSetup() {
   };
 
   const useableCount = availableCount !== null ? Math.min(config.totalQuestions, availableCount) : null;
-  const shortage = availableCount !== null && selectedDomains.length === 0 && !selectedTag
+  const allDomainsSelected = EXAM_DOMAINS[examType].every(d => selectedDomains.includes(d));
+  const shortage = availableCount !== null && allDomainsSelected && !selectedTag
     ? Math.max(0, config.totalQuestions - availableCount) : null;
 
   let _s = 0;
@@ -314,26 +320,26 @@ export default function ExamSetup() {
             </label>
             <div style={{ background: 'var(--color-bg-main)', borderRadius: 'var(--border-radius-md)', overflow: 'hidden' }}>
               <label style={{ display: 'flex', alignItems: 'center', gap: 'var(--spacing-sm)', cursor: 'pointer', fontSize: 'var(--font-size-sm)', color: 'var(--color-text-sub)', padding: 'var(--spacing-sm) var(--spacing-md)', borderBottom: '1px solid var(--color-border)' }}>
-                <input type="checkbox" checked={selectedDomains.length === 0} onChange={() => { if (selectedDomains.length > 0) setSelectedDomains([]); }} style={{ width: 15, height: 15 }} />
+                <input
+                  type="checkbox"
+                  checked={EXAM_DOMAINS[examType].every(d => selectedDomains.includes(d))}
+                  onChange={() => {
+                    const allSelected = EXAM_DOMAINS[examType].every(d => selectedDomains.includes(d));
+                    setSelectedDomains(allSelected ? [] : [...EXAM_DOMAINS[examType]]);
+                  }}
+                  style={{ width: 15, height: 15 }}
+                />
                 {t('examSetup.all')}
               </label>
               <div style={{ display: 'flex', flexDirection: 'column', gap: 0, padding: 'var(--spacing-xs) var(--spacing-md)' }}>
                 {EXAM_DOMAINS[examType].map(d => {
-                  const isAll = selectedDomains.length === 0;
-                  const checked = isAll || selectedDomains.includes(d);
+                  const checked = selectedDomains.includes(d);
                   return (
                     <label key={d} style={{ display: 'flex', alignItems: 'center', gap: 'var(--spacing-sm)', cursor: 'pointer', fontSize: 'var(--font-size-base)', padding: '3px 0 3px 8px' }}>
                       <input
                         type="checkbox"
                         checked={checked}
-                        onChange={() => {
-                          if (isAll) {
-                            setSelectedDomains(EXAM_DOMAINS[examType].filter(x => x !== d));
-                          } else {
-                            const next = checked ? selectedDomains.filter(x => x !== d) : [...selectedDomains, d];
-                            setSelectedDomains(next.length === EXAM_DOMAINS[examType].length ? [] : next);
-                          }
-                        }}
+                        onChange={() => setSelectedDomains(prev => checked ? prev.filter(x => x !== d) : [...prev, d])}
                         style={{ width: 16, height: 16, flexShrink: 0 }}
                       />
                       <span style={{ color: checked ? 'var(--color-primary)' : 'var(--color-text-main)', fontWeight: checked ? 600 : 400 }}>
@@ -344,6 +350,11 @@ export default function ExamSetup() {
                 })}
               </div>
             </div>
+            {selectedDomains.length === 0 && (
+              <p style={{ margin: '4px 0 0', fontSize: 'var(--font-size-xs)', color: 'var(--color-danger)' }}>
+                {lang === 'ja' ? '最低1つのドメインを選択してください' : 'Please select at least one domain'}
+              </p>
+            )}
           </div>
 
           {/* タグフィルタ */}
@@ -487,7 +498,7 @@ export default function ExamSetup() {
                   if (incorrectOnly && bookmarkOnly) return t('exerciseSetup.incorrectBookmark');
                   if (incorrectOnly) return t('exerciseSetup.incorrectLabel');
                   if (bookmarkOnly) return t('exerciseSetup.bookmarkLabel');
-                  return selectedDomains.length > 0 || selectedTag ? t('examSetup.filteredCount') : t('examSetup.questionCount');
+                  return (!allDomainsSelected && selectedDomains.length > 0) || selectedTag ? t('examSetup.filteredCount') : t('examSetup.questionCount');
                 })()}
               </span>
               <span style={{ fontSize: 'var(--font-size-xl)', fontWeight: 700, color: 'var(--color-primary)' }}>
@@ -500,9 +511,9 @@ export default function ExamSetup() {
                 <span style={{ fontSize: 'var(--font-size-sm)', color: 'white', fontWeight: 700 }}>⚠ {shortage}{t('examSetup.shortage')}</span>
               </div>
             )}
-            {(selectedDomains.length > 0 || selectedTag) && (
+            {((!allDomainsSelected && selectedDomains.length > 0) || selectedTag) && (
               <div style={{ fontSize: 'var(--font-size-xs)', color: 'var(--color-text-sub)', marginTop: 6 }}>
-                {selectedDomains.length > 0 && <span style={{ marginRight: 'var(--spacing-sm)' }}>{t('examSetup.domainLabel')}: {selectedDomains.map(d => lang === 'en' ? (DOMAIN_NAME_EN[d] ?? d) : d).join(', ')}</span>}
+                {!allDomainsSelected && selectedDomains.length > 0 && <span style={{ marginRight: 'var(--spacing-sm)' }}>{t('examSetup.domainLabel')}: {selectedDomains.map(d => lang === 'en' ? (DOMAIN_NAME_EN[d] ?? d) : d).join(', ')}</span>}
                 {selectedTag && <span>{t('examSetup.tagLabel')}: {selectedTag}</span>}
               </div>
             )}
