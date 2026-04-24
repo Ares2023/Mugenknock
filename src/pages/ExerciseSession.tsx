@@ -19,6 +19,9 @@ type Question = {
   explanation?: string;
   tags: string[];
   isMultiple: boolean;
+  validityCheckedAt?: string;
+  updatedAt?: string;
+  createdAt?: string;
 };
 
 const CopyButton = ({ getText }: { getText: () => string }) => {
@@ -357,6 +360,26 @@ export default function ExerciseSession() {
             <span style={{ fontSize: 14 }}>⚑</span>
             <span>{lang === 'ja' ? '通報' : 'Report'}</span>
           </button>
+        </div>
+
+        {/* メタデータ */}
+        <div style={{ marginTop: 'var(--spacing-md)', paddingTop: 'var(--spacing-sm)', borderTop: '1px dashed var(--color-border)', display: 'flex', flexWrap: 'wrap', gap: 'var(--spacing-lg)', fontSize: 'var(--font-size-xs)', color: 'var(--color-text-light)' }}>
+          <span>
+            {lang === 'ja' ? 'AI確認' : 'AI review'}:{' '}
+            <strong style={{ color: currentQuestion.validityCheckedAt ? 'var(--color-text-sub)' : 'inherit' }}>
+              {currentQuestion.validityCheckedAt
+                ? new Date(currentQuestion.validityCheckedAt).toLocaleDateString('ja-JP', { year: 'numeric', month: '2-digit', day: '2-digit' })
+                : (lang === 'ja' ? '未確認' : 'not reviewed')}
+            </strong>
+          </span>
+          <span>
+            {lang === 'ja' ? '最終編集' : 'Last edited'}:{' '}
+            <strong style={{ color: (currentQuestion.updatedAt || currentQuestion.createdAt) ? 'var(--color-text-sub)' : 'inherit' }}>
+              {(currentQuestion.updatedAt || currentQuestion.createdAt)
+                ? new Date((currentQuestion.updatedAt || currentQuestion.createdAt)!).toLocaleDateString('ja-JP', { year: 'numeric', month: '2-digit', day: '2-digit' })
+                : '-'}
+            </strong>
+          </span>
         </div>
       </Card>
 

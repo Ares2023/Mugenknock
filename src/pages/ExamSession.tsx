@@ -17,6 +17,9 @@ type Question = {
   explanation?: string;
   isMultiple: boolean;
   tags: string[];
+  validityCheckedAt?: string;
+  updatedAt?: string;
+  createdAt?: string;
 };
 
 const formatTime = (sec: number) => {
@@ -311,6 +314,26 @@ export default function ExamSession() {
               </button>
             );
           })}
+        </div>
+
+        {/* メタデータ */}
+        <div style={{ paddingTop: 'var(--spacing-sm)', borderTop: '1px dashed var(--color-border)', display: 'flex', flexWrap: 'wrap', gap: 'var(--spacing-lg)', fontSize: 'var(--font-size-xs)', color: 'var(--color-text-light)' }}>
+          <span>
+            {lang === 'ja' ? 'AI確認' : 'AI review'}:{' '}
+            <strong style={{ color: currentQ.validityCheckedAt ? 'var(--color-text-sub)' : 'inherit' }}>
+              {currentQ.validityCheckedAt
+                ? new Date(currentQ.validityCheckedAt).toLocaleDateString('ja-JP', { year: 'numeric', month: '2-digit', day: '2-digit' })
+                : (lang === 'ja' ? '未確認' : 'not reviewed')}
+            </strong>
+          </span>
+          <span>
+            {lang === 'ja' ? '最終編集' : 'Last edited'}:{' '}
+            <strong style={{ color: (currentQ.updatedAt || currentQ.createdAt) ? 'var(--color-text-sub)' : 'inherit' }}>
+              {(currentQ.updatedAt || currentQ.createdAt)
+                ? new Date((currentQ.updatedAt || currentQ.createdAt)!).toLocaleDateString('ja-JP', { year: 'numeric', month: '2-digit', day: '2-digit' })
+                : '-'}
+            </strong>
+          </span>
         </div>
       </Card>
 

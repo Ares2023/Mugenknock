@@ -278,7 +278,7 @@ app.put('/admin/questions/:id', async (req, res) => {
       ));
     }
 
-    const setParts = ['questionText = :qt', 'choices = :ch', 'correctAnswers = :ca', 'explanation = :ex', '#d = :d', 'tags = :t', 'isMultiple = :im', 'examType = :et'];
+    const setParts = ['questionText = :qt', 'choices = :ch', 'correctAnswers = :ca', 'explanation = :ex', '#d = :d', 'tags = :t', 'isMultiple = :im', 'examType = :et', 'updatedAt = :ua'];
     const removeParts = [];
     const exprNames = { '#d': 'domain' };
     const exprValues = {
@@ -290,6 +290,7 @@ app.put('/admin/questions/:id', async (req, res) => {
       ':t': tags || [],
       ':im': isMultiple ?? false,
       ':et': examType,
+      ':ua': new Date().toISOString(),
     };
 
     if (questionTextEn) { setParts.push('questionTextEn = :qte'); exprValues[':qte'] = questionTextEn; }
