@@ -348,6 +348,52 @@ app.get('/admin/questions/flagged', async (req, res) => {
   }
 });
 
+// 修正案を適用
+app.post('/admin/questions/:id/apply-fix', async (req, res) => {
+  try {
+    const docClient = getClient();
+    const result = await docClient.send(new GetCommand({ TableName: 'Questions', Key: { questionId: req.params.id } }));
+    const q = result.Item;
+    if (!q || !q.fixProposalJson) return res.status(404).json({ error: 'Fix proposal not found' });
+
+    const fix = JSON.parse(q.fixProposalJson);
+    const sets = ['validityNote = :note'];
+    const vals = { ':note': '修正適用済' };
+
+    if (fix.questionText)  { sets.push('questionText = :qt');    vals[':qt'] = fix.questionText; }
+    if (fix.choices)       { sets.push('choices = :ch');         vals[':ch'] = fix.choices; }
+    if (fix.correctAnswers){ sets.push('correctAnswers = :ca');  vals[':ca'] = fix.correctAnswers; }
+    if (fix.explanation)   { sets.push('explanation = :ex');     vals[':ex'] = fix.explanation; }
+
+    await docClient.send(new UpdateCommand({
+      TableName: 'Questions',
+      Key: { questionId: req.params.id },
+      UpdateExpression: 'SET ' + sets.join(', ') + ' REMOVE fixProposalJson',
+      ExpressionAttributeValues: vals,
+    }));
+    res.json({ success: true });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+// 修正案を却下（クリア）
+app.post('/admin/questions/:id/reject-fix', async (req, res) => {
+  try {
+    const docClient = getClient();
+    await docClient.send(new UpdateCommand({
+      TableName: 'Questions',
+      Key: { questionId: req.params.id },
+      UpdateExpression: 'REMOVE fixProposalJson',
+    }));
+    res.json({ success: true });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
 // 表示/非表示切り替え
 app.put('/admin/questions/:id/visibility', async (req, res) => {
   try {

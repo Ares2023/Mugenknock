@@ -78,6 +78,13 @@ type ContactMessage = {
   sentAt: string;
 };
 
+type FixProposal = {
+  questionText?: string;
+  choices?: string[];
+  correctAnswers?: string[];
+  explanation?: string;
+};
+
 type FlaggedQuestion = {
   questionId: string;
   examType: string;
@@ -92,6 +99,7 @@ type FlaggedQuestion = {
   validityNote?: string;
   validityCheckedAt?: string;
   isHidden?: boolean;
+  fixProposalJson?: string;
 };
 
 type EditForm = {
@@ -350,6 +358,30 @@ export default function Admin() {
       setValidityTotalCount(data.totalCount || 0);
     } catch (err) { console.error(err); }
     setLoadingFlagged(false);
+  };
+
+  const handleApplyFix = async (q: FlaggedQuestion) => {
+    if (!q.fixProposalJson) return;
+    const fix: FixProposal = JSON.parse(q.fixProposalJson);
+    if (!window.confirm('修正案を適用しますか？\n問題文・選択肢・解説が上書きされます。')) return;
+    await adminFetch(`${API_ENDPOINT}/admin/questions/${q.questionId}/apply-fix`, { method: 'POST' });
+    setFlaggedQuestions(prev => prev.map(x =>
+      x.questionId === q.questionId
+        ? { ...x, fixProposalJson: undefined, validityNote: '修正適用済',
+            ...(fix.questionText  ? { questionText: fix.questionText }   : {}),
+            ...(fix.choices       ? { choices: fix.choices }             : {}),
+            ...(fix.correctAnswers? { correctAnswers: fix.correctAnswers }: {}),
+            ...(fix.explanation   ? { explanation: fix.explanation }     : {}),
+          }
+        : x
+    ));
+  };
+
+  const handleRejectFix = async (q: FlaggedQuestion) => {
+    await adminFetch(`${API_ENDPOINT}/admin/questions/${q.questionId}/reject-fix`, { method: 'POST' });
+    setFlaggedQuestions(prev => prev.map(x =>
+      x.questionId === q.questionId ? { ...x, fixProposalJson: undefined } : x
+    ));
   };
 
   const handleVisibility = async (q: FlaggedQuestion, hide: boolean) => {
@@ -1777,6 +1809,68 @@ ${tipPromptExamType !== 'ALL' ? `・examType には "${tipPromptExamType}" を�
                       {q.validityNote}
                     </p>
                   )}
+
+                  {/* 修正案 */}
+                  {q.fixProposalJson && (() => {
+                    const fix: FixProposal = (() => { try { return JSON.parse(q.fixProposalJson!); } catch { return {}; } })();
+                    return (
+                      <div style={{ margin: '0 0 12px', border: '1px solid #007d8a', borderRadius: 6, overflow: 'hidden' }}>
+                        <div style={{ background: '#e0f5f5', padding: '6px 12px', display: 'flex', alignItems: 'center', gap: 8 }}>
+                          <span style={{ fontSize: 11, fontWeight: 700, color: '#007d8a', textTransform: 'uppercase', letterSpacing: '0.05em' }}>修正案</span>
+                          <span style={{ fontSize: 11, color: '#007d8a' }}>
+                            {[fix.questionText && '問題文', fix.choices && '選択肢', fix.correctAnswers && '正解', fix.explanation && '解説'].filter(Boolean).join(' · ')}
+                          </span>
+                        </div>
+                        <div style={{ padding: '10px 12px', background: 'white' }}>
+                          {fix.questionText && (
+                            <div style={{ marginBottom: fix.choices || fix.explanation ? 10 : 0 }}>
+                              <div style={{ fontSize: 11, fontWeight: 700, color: '#879596', marginBottom: 4 }}>問題文（修正後）</div>
+                              <div style={{ fontSize: 12, color: '#16191f', lineHeight: 1.6, padding: '6px 10px', background: '#f0faf0', border: '1px solid #b7e5c0', borderRadius: 4, whiteSpace: 'pre-wrap' }}>
+                                {fix.questionText}
+                              </div>
+                            </div>
+                          )}
+                          {fix.choices && (
+                            <div style={{ marginBottom: fix.explanation ? 10 : 0 }}>
+                              <div style={{ fontSize: 11, fontWeight: 700, color: '#879596', marginBottom: 4 }}>選択肢（修正後）</div>
+                              <div style={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
+                                {fix.choices.map((c, i) => {
+                                  const isCorrect = fix.correctAnswers ? fix.correctAnswers.includes(c) : (q.correctAnswers || []).includes(c);
+                                  return (
+                                    <div key={i} style={{ fontSize: 12, padding: '4px 10px', borderRadius: 4,
+                                      background: isCorrect ? '#f0faf0' : '#fafafa',
+                                      border: `1px solid ${isCorrect ? '#b7e5c0' : '#eaeded'}`,
+                                      color: isCorrect ? '#037f0c' : '#16191f', fontWeight: isCorrect ? 700 : 400 }}>
+                                      {isCorrect ? '✓ ' : ''}{c}
+                                    </div>
+                                  );
+                                })}
+                              </div>
+                            </div>
+                          )}
+                          {fix.explanation && (
+                            <div>
+                              <div style={{ fontSize: 11, fontWeight: 700, color: '#879596', marginBottom: 4 }}>解説（修正後）</div>
+                              <div style={{ fontSize: 12, color: '#16191f', lineHeight: 1.6, padding: '6px 10px', background: '#f0faf0', border: '1px solid #b7e5c0', borderRadius: 4, whiteSpace: 'pre-wrap' }}>
+                                {fix.explanation}
+                              </div>
+                            </div>
+                          )}
+                          <div style={{ display: 'flex', gap: 8, marginTop: 10 }}>
+                            <button onClick={() => handleApplyFix(q)}
+                              style={{ padding: '5px 14px', fontSize: 12, fontWeight: 700, borderRadius: 9999, cursor: 'pointer', background: '#007d8a', color: 'white', border: 'none' }}>
+                              適用する
+                            </button>
+                            <button onClick={() => handleRejectFix(q)}
+                              style={{ padding: '5px 14px', fontSize: 12, fontWeight: 700, borderRadius: 9999, cursor: 'pointer', background: 'white', color: '#879596', border: '1px solid #d1d5db' }}>
+                              却下
+                            </button>
+                          </div>
+                        </div>
+                      </div>
+                    );
+                  })()}
+
                   <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
                     <button onClick={() => openEdit(q)} style={{ padding: '4px 12px', fontSize: 12, fontWeight: 700, borderRadius: 9999, cursor: 'pointer', background: 'white', color: '#545b64', border: '1px solid #545b64' }}>
                       編集
