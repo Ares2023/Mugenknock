@@ -70,6 +70,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
   const [contactMessage, setContactMessage] = useState('');
   const [contactSending, setContactSending] = useState(false);
   const [contactDone, setContactDone] = useState(false);
+  const [contactError, setContactError] = useState(false);
 
   useEffect(() => {
     setTargetExam(localStorage.getItem('targetExam'));
@@ -102,20 +103,24 @@ export default function Layout({ children }: { children: React.ReactNode }) {
   const handleContactSend = async () => {
     if (!contactMessage.trim()) return;
     setContactSending(true);
+    setContactError(false);
     try {
-      await fetch(`${API_ENDPOINT}/contact`, {
+      const res = await fetch(`${API_ENDPOINT}/contact`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
+          userId: user?.userId ?? 'anonymous',
           subject: contactSubject.trim(),
           message: contactMessage.trim(),
         }),
       });
+      if (!res.ok) throw new Error(`status ${res.status}`);
       setContactDone(true);
       setContactSubject('');
       setContactMessage('');
     } catch (err) {
       console.error(err);
+      setContactError(true);
     } finally {
       setContactSending(false);
     }
@@ -123,6 +128,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
 
   const openContact = () => {
     setContactDone(false);
+    setContactError(false);
     setContactSubject('');
     setContactMessage('');
     setShowContact(true);
@@ -197,6 +203,11 @@ export default function Layout({ children }: { children: React.ReactNode }) {
                     onBlur={e => e.currentTarget.style.borderColor = 'var(--color-border)'}
                   />
                 </div>
+                {contactError && (
+                  <p style={{ margin: '0 0 var(--spacing-sm)', fontSize: 'var(--font-size-sm)', color: 'var(--color-danger)' }}>
+                    {lang === 'ja' ? '送信に失敗しました。しばらく経ってから再試行してください。' : 'Failed to send. Please try again later.'}
+                  </p>
+                )}
                 <div style={{ display: 'flex', gap: 'var(--spacing-sm)' }}>
                   <Button
                     onClick={handleContactSend}

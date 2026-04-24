@@ -23,18 +23,22 @@ export default function ReportModal({ questionId, userId, lang, onClose }: Props
   const [message, setMessage] = useState('');
   const [sending, setSending] = useState(false);
   const [done, setDone] = useState(false);
+  const [error, setError] = useState(false);
 
   const handleSubmit = async () => {
     setSending(true);
+    setError(false);
     try {
-      await fetch(`${API_ENDPOINT}/questions/${questionId}/report`, {
+      const res = await fetch(`${API_ENDPOINT}/questions/${questionId}/report`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ userId: userId || 'anonymous', category, message }),
       });
+      if (!res.ok) throw new Error(`status ${res.status}`);
       setDone(true);
     } catch (err) {
       console.error(err);
+      setError(true);
     } finally {
       setSending(false);
     }
@@ -108,6 +112,11 @@ export default function ReportModal({ questionId, userId, lang, onClose }: Props
               />
             </div>
 
+            {error && (
+              <p style={{ margin: '0 0 var(--spacing-sm)', fontSize: 'var(--font-size-sm)', color: 'var(--color-danger)' }}>
+                {lang === 'ja' ? '送信に失敗しました。しばらく経ってから再試行してください。' : 'Failed to submit. Please try again later.'}
+              </p>
+            )}
             <div style={{ display: 'flex', gap: 'var(--spacing-sm)' }}>
               <Button variant="primary" onClick={handleSubmit} disabled={sending} style={{ flex: 1 }}>
                 {sending ? (lang === 'ja' ? '送信中...' : 'Sending…') : (lang === 'ja' ? '通報する' : 'Submit report')}

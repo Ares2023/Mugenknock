@@ -77,6 +77,10 @@ export default function ExerciseSession() {
   }, [currentIndex, tips]);
 
   useEffect(() => {
+    document.querySelector('main')?.scrollTo({ top: 0 });
+  }, [currentIndex]);
+
+  useEffect(() => {
     if (!userId) return;
     fetch(`${API_ENDPOINT}/users/me/bookmarks?userId=${userId}`)
       .then(r => r.json())
@@ -187,7 +191,6 @@ export default function ExerciseSession() {
       setSelectedAnswers([]);
       setAnswered(false);
       setDetail(null);
-      document.querySelector('main')?.scrollTo({ top: 0, behavior: 'smooth' });
     }
   };
 

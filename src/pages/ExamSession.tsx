@@ -56,6 +56,10 @@ export default function ExamSession() {
       .catch(() => {});
   }, [userId]);
 
+  useEffect(() => {
+    document.querySelector('main')?.scrollTo({ top: 0 });
+  }, [currentIndex]);
+
   const toggleBookmark = async (questionId: string) => {
     const isBookmarked = bookmarkedIds.has(questionId);
     try {
@@ -369,7 +373,7 @@ export default function ExamSession() {
             }
 
             return (
-              <button key={i} onClick={() => { setCurrentIndex(i); document.querySelector('main')?.scrollTo({ top: 0, behavior: 'smooth' }); }}
+              <button key={i} onClick={() => setCurrentIndex(i)}
                 style={{ width: 36, height: 36, borderRadius: 'var(--border-radius-full)', border,
                   background: bg, color,
                   cursor: 'pointer', fontSize: 'var(--font-size-sm)', fontWeight: isCurrent ? 700 : 400, transition: 'all 0.2s' }}>
@@ -380,10 +384,10 @@ export default function ExamSession() {
         </div>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderTop: '1px solid var(--color-border)', paddingTop: 'var(--spacing-lg)' }}>
           <div style={{ display: 'flex', gap: 'var(--spacing-md)' }}>
-            <Button variant="outline" onClick={() => { setCurrentIndex(i => Math.max(0, i - 1)); document.querySelector('main')?.scrollTo({ top: 0, behavior: 'smooth' }); }} disabled={currentIndex === 0}>
+            <Button variant="outline" onClick={() => setCurrentIndex(i => Math.max(0, i - 1))} disabled={currentIndex === 0}>
               {t('examSession.prev')}
             </Button>
-            <Button variant="outline" onClick={() => { setCurrentIndex(i => Math.min(questions.length - 1, i + 1)); document.querySelector('main')?.scrollTo({ top: 0, behavior: 'smooth' }); }} disabled={currentIndex === questions.length - 1}>
+            <Button variant="outline" onClick={() => setCurrentIndex(i => Math.min(questions.length - 1, i + 1))} disabled={currentIndex === questions.length - 1}>
               {t('examSession.next')}
             </Button>
           </div>
