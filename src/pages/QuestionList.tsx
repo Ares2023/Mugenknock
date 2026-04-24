@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { API_ENDPOINT, EXAM_DOMAINS, DOMAIN_NAME_EN } from '../constants';
 import { useAuth } from '../contexts/AuthContext';
@@ -64,7 +64,9 @@ export default function QuestionList() {
   const [bookmarkLoading, setBookmarkLoading] = useState<Set<string>>(new Set());
   const [bookmarkOnly, setBookmarkOnly] = useState(false);
   const [selectedDomains, setSelectedDomains] = useState<string[]>([]);
-  const [domainExpanded, setDomainExpanded] = useState(false);
+  const [quickFilterOpen, setQuickFilterOpen] = useState(false);
+  const [questionTypeFilter, setQuestionTypeFilter] = useState<'all' | 'single' | 'multiple'>('all');
+  const quickFilterRef = useRef<HTMLDivElement>(null);
 
   const fetchQuestions = async (type: string, kw: string, domains: string[]) => {
     setLoading(true);
@@ -94,12 +96,24 @@ export default function QuestionList() {
   }, [user]);
 
   useEffect(() => {
+    if (!quickFilterOpen) return;
+    const handler = (e: MouseEvent) => {
+      if (quickFilterRef.current && !quickFilterRef.current.contains(e.target as Node)) {
+        setQuickFilterOpen(false);
+      }
+    };
+    document.addEventListener('mousedown', handler);
+    return () => document.removeEventListener('mousedown', handler);
+  }, [quickFilterOpen]);
+
+  useEffect(() => {
     const params = new URLSearchParams(location.search);
     const kw = params.get('keyword') || '';
     setKeyword(kw);
     fetchQuestions('', kw, []);
     setSelectedDomains([]);
     setExamType('');
+    setQuestionTypeFilter('all');
   }, [location.search]);
 
   const handleSearch = (e: React.FormEvent) => {
@@ -176,9 +190,18 @@ export default function QuestionList() {
     URL.revokeObjectURL(url);
   };
 
-  const displayedQuestions = bookmarkOnly
-    ? questions.filter(q => bookmarkedIds.has(q.questionId))
-    : questions;
+  const activeFilterCount =
+    (examType ? 1 : 0) +
+    (selectedDomains.length > 0 ? 1 : 0) +
+    (bookmarkOnly ? 1 : 0) +
+    (questionTypeFilter !== 'all' ? 1 : 0);
+
+  const displayedQuestions = questions.filter(q => {
+    if (bookmarkOnly && !bookmarkedIds.has(q.questionId)) return false;
+    if (questionTypeFilter === 'single' && q.isMultiple) return false;
+    if (questionTypeFilter === 'multiple' && !q.isMultiple) return false;
+    return true;
+  });
 
   return (
     <div style={{ maxWidth: 900, margin: '0 auto', padding: 'var(--spacing-xl) var(--spacing-lg)' }} className="page-container">
@@ -188,108 +211,202 @@ export default function QuestionList() {
       </div>
 
       <Card padding="var(--spacing-lg)" style={{ marginBottom: 'var(--spacing-xl)' }}>
-        <form onSubmit={handleSearch} style={{ display: 'flex', gap: 'var(--spacing-md)', marginBottom: 'var(--spacing-md)' }}>
-          <input
-            value={keyword}
-            onChange={e => setKeyword(e.target.value)}
-            placeholder={t('questions.searchPlaceholder')}
-            style={{
-              flex: 1, padding: '8px 12px',
-              border: '1px solid var(--color-border)',
-              borderRadius: 'var(--border-radius-md)',
-              fontSize: 'var(--font-size-base)', outline: 'none',
-              transition: 'border-color 0.2s',
-            }}
-            onFocus={e => e.currentTarget.style.borderColor = 'var(--color-primary)'}
-            onBlur={e => e.currentTarget.style.borderColor = 'var(--color-border)'}
-          />
-          <Button type="submit">
-            {t('questions.search')}
-          </Button>
-          {keyword && (
-            <Button variant="outline" type="button" onClick={() => navigate('/questions')} style={{ color: 'var(--color-text-light)' }}>
-              {t('questions.clear')}
-            </Button>
-          )}
-        </form>
-
-        <div style={{ display: 'flex', gap: 'var(--spacing-sm)', flexWrap: 'wrap', alignItems: 'center', marginBottom: 'var(--spacing-sm)' }}>
-          {['CLF', 'SAA', 'SAP', 'DOP'].map(type => (
-            <Button
-              key={type}
-              variant={examType === type ? 'primary' : 'outline'}
-              size="sm"
-              onClick={() => {
-                const next = type === examType ? '' : type;
-                setExamType(next);
-                setSelectedDomains([]);
-                fetchQuestions(next, keyword, []);
+        {/* 検索バー + クイックフィルター */}
+        <div style={{ display: 'flex', gap: 'var(--spacing-sm)', alignItems: 'center', marginBottom: activeFilterCount > 0 ? 'var(--spacing-sm)' : 0 }}>
+          <form onSubmit={handleSearch} style={{ display: 'flex', gap: 'var(--spacing-sm)', flex: 1, minWidth: 0 }}>
+            <input
+              value={keyword}
+              onChange={e => setKeyword(e.target.value)}
+              placeholder={t('questions.searchPlaceholder')}
+              style={{
+                flex: 1, padding: '8px 12px',
+                border: '1px solid var(--color-border)',
+                borderRadius: 'var(--border-radius-md)',
+                fontSize: 'var(--font-size-base)', outline: 'none',
+                transition: 'border-color 0.2s', minWidth: 0,
               }}
-            >
-              {type}
-            </Button>
-          ))}
-          {user && (
-            <Button
-              variant={bookmarkOnly ? 'primary' : 'outline'}
-              size="sm"
-              onClick={() => setBookmarkOnly(v => !v)}
-              style={bookmarkOnly ? {} : { color: 'var(--color-warning, #f59e0b)', borderColor: 'var(--color-warning, #f59e0b)' }}
-            >
-              ★ {t('questions.bookmarkFilter')}
-            </Button>
-          )}
-        </div>
+              onFocus={e => e.currentTarget.style.borderColor = 'var(--color-primary)'}
+              onBlur={e => e.currentTarget.style.borderColor = 'var(--color-border)'}
+            />
+            <Button type="submit">{t('questions.search')}</Button>
+            {keyword && (
+              <Button variant="outline" type="button" onClick={() => navigate('/questions')} style={{ color: 'var(--color-text-light)' }}>
+                {t('questions.clear')}
+              </Button>
+            )}
+          </form>
 
-        {/* ドメインフィルタ（試験種別選択時のみ表示） */}
-        {examType && EXAM_DOMAINS[examType] && (
-          <div style={{ border: '1px solid var(--color-border)', borderRadius: 'var(--border-radius-md)', overflow: 'hidden' }}>
+          {/* クイックフィルターボタン + ドロップダウン */}
+          <div ref={quickFilterRef} style={{ position: 'relative', flexShrink: 0 }}>
             <button
               type="button"
-              onClick={() => setDomainExpanded(v => !v)}
+              onClick={() => setQuickFilterOpen(v => !v)}
               style={{
-                width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-                padding: '8px var(--spacing-md)', border: 'none', cursor: 'pointer',
-                background: selectedDomains.length > 0 ? 'var(--color-primary-light)' : 'var(--color-bg-white)',
-                color: selectedDomains.length > 0 ? 'var(--color-primary)' : 'var(--color-text-sub)',
-                fontWeight: selectedDomains.length > 0 ? 700 : 400, fontSize: 'var(--font-size-sm)',
+                display: 'flex', alignItems: 'center', gap: 6,
+                padding: '8px 12px',
+                border: `1px solid ${activeFilterCount > 0 ? 'var(--color-primary)' : 'var(--color-border)'}`,
+                borderRadius: 'var(--border-radius-md)',
+                background: activeFilterCount > 0 ? 'var(--color-primary-light)' : 'var(--color-bg-white)',
+                color: activeFilterCount > 0 ? 'var(--color-primary)' : 'var(--color-text-sub)',
+                cursor: 'pointer', fontSize: 'var(--font-size-sm)',
+                fontWeight: activeFilterCount > 0 ? 700 : 400, whiteSpace: 'nowrap',
               }}
             >
-              <span>
-                {t('questions.domainFilter')}：{selectedDomains.length === 0
-                  ? t('questions.all')
-                  : lang === 'ja' ? `${selectedDomains.length}ドメイン選択中` : `${selectedDomains.length} domain(s) selected`}
-              </span>
-              <span style={{ fontSize: 11, color: 'var(--color-text-light)', display: 'inline-block', transform: domainExpanded ? 'rotate(180deg)' : 'none', transition: 'transform 0.2s' }}>▼</span>
+              {activeFilterCount > 0 && (
+                <span style={{
+                  background: 'var(--color-primary)', color: 'white', borderRadius: '50%',
+                  width: 18, height: 18, display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
+                  fontSize: 11, fontWeight: 700, flexShrink: 0,
+                }}>{activeFilterCount}</span>
+              )}
+              {lang === 'ja' ? 'クイックフィルター' : 'Quick Filter'}
+              <span style={{ fontSize: 10, display: 'inline-block', transform: quickFilterOpen ? 'rotate(180deg)' : 'none', transition: 'transform 0.2s' }}>▼</span>
             </button>
-            {domainExpanded && (
-              <div style={{ borderTop: '1px solid var(--color-border)', padding: 'var(--spacing-sm) var(--spacing-md)', background: 'var(--color-bg-main)', display: 'flex', flexDirection: 'column', gap: 'var(--spacing-xs)' }}>
-                <label style={{ display: 'flex', alignItems: 'center', gap: 'var(--spacing-sm)', cursor: 'pointer', fontSize: 'var(--font-size-sm)', padding: '3px 0', color: 'var(--color-text-sub)' }}>
-                  <input type="checkbox" checked={selectedDomains.length === 0} onChange={() => { setSelectedDomains([]); fetchQuestions(examType, keyword, []); }} style={{ width: 15, height: 15 }} />
-                  {t('questions.all')}（{lang === 'ja' ? 'クリア' : 'Clear'}）
-                </label>
-                {EXAM_DOMAINS[examType].map(d => {
-                  const checked = selectedDomains.includes(d);
-                  return (
-                    <label key={d} style={{ display: 'flex', alignItems: 'center', gap: 'var(--spacing-sm)', cursor: 'pointer', fontSize: 'var(--font-size-base)', padding: '3px 0' }}>
-                      <input
-                        type="checkbox"
-                        checked={checked}
-                        onChange={() => {
-                          const next = checked ? selectedDomains.filter(x => x !== d) : [...selectedDomains, d];
-                          setSelectedDomains(next);
-                          fetchQuestions(examType, keyword, next);
+
+            {quickFilterOpen && (
+              <div style={{
+                position: 'absolute', right: 0, top: 'calc(100% + 6px)', zIndex: 1000,
+                background: 'var(--color-bg-white)', border: '1px solid var(--color-border)',
+                borderRadius: 'var(--border-radius-md)', boxShadow: '0 4px 20px rgba(0,0,0,0.12)',
+                width: 300, maxHeight: 520, overflowY: 'auto',
+              }}>
+                {/* 試験種別 */}
+                <div style={{ padding: '10px var(--spacing-md)', borderBottom: '1px solid var(--color-border)' }}>
+                  <div style={{ fontSize: 'var(--font-size-xs)', fontWeight: 700, color: 'var(--color-text-light)', textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: 8 }}>
+                    {lang === 'ja' ? '試験種別' : 'Exam Type'}
+                  </div>
+                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
+                    {['CLF', 'SAA', 'SAP', 'DOP'].map(type => (
+                      <button
+                        key={type}
+                        type="button"
+                        onClick={() => {
+                          const next = type === examType ? '' : type;
+                          setExamType(next);
+                          setSelectedDomains([]);
+                          fetchQuestions(next, keyword, []);
                         }}
-                        style={{ width: 15, height: 15 }}
-                      />
-                      <span style={{ color: checked ? 'var(--color-primary)' : 'var(--color-text-main)', fontWeight: checked ? 700 : 400, lineHeight: 1.4 }}>
-                        {lang === 'en' ? (DOMAIN_NAME_EN[d] ?? d) : d}
-                      </span>
+                        style={{
+                          padding: '3px 14px',
+                          border: `1px solid ${examType === type ? 'var(--color-primary)' : 'var(--color-border)'}`,
+                          borderRadius: 'var(--border-radius-sm)', cursor: 'pointer',
+                          fontSize: 'var(--font-size-sm)',
+                          background: examType === type ? 'var(--color-primary)' : 'transparent',
+                          color: examType === type ? 'white' : 'var(--color-text-main)',
+                          fontWeight: examType === type ? 700 : 400,
+                        }}
+                      >{type}</button>
+                    ))}
+                  </div>
+                </div>
+
+                {/* ドメイン（試験種別選択時のみ） */}
+                {examType && EXAM_DOMAINS[examType] && (
+                  <div style={{ padding: '10px var(--spacing-md)', borderBottom: '1px solid var(--color-border)' }}>
+                    <div style={{ fontSize: 'var(--font-size-xs)', fontWeight: 700, color: 'var(--color-text-light)', textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: 8 }}>
+                      {lang === 'ja' ? 'ドメイン' : 'Domain'}
+                    </div>
+                    <label style={{ display: 'flex', alignItems: 'center', gap: 6, cursor: 'pointer', fontSize: 'var(--font-size-sm)', color: 'var(--color-text-sub)', paddingBottom: 4, marginBottom: 4, borderBottom: '1px solid var(--color-border)' }}>
+                      <input type="checkbox" checked={selectedDomains.length === 0} onChange={() => { if (selectedDomains.length > 0) { setSelectedDomains([]); fetchQuestions(examType, keyword, []); } }} style={{ width: 14, height: 14 }} />
+                      {lang === 'ja' ? 'すべて' : 'All'}
                     </label>
-                  );
-                })}
+                    {EXAM_DOMAINS[examType].map(d => {
+                      const isAll = selectedDomains.length === 0;
+                      const checked = isAll || selectedDomains.includes(d);
+                      return (
+                        <label key={d} style={{ display: 'flex', alignItems: 'center', gap: 6, cursor: 'pointer', fontSize: 'var(--font-size-sm)', padding: '2px 0 2px 8px' }}>
+                          <input
+                            type="checkbox"
+                            checked={checked}
+                            onChange={() => {
+                              let next: string[];
+                              if (isAll) {
+                                next = EXAM_DOMAINS[examType].filter(x => x !== d);
+                              } else {
+                                const toggled = checked ? selectedDomains.filter(x => x !== d) : [...selectedDomains, d];
+                                next = toggled.length === EXAM_DOMAINS[examType].length ? [] : toggled;
+                              }
+                              setSelectedDomains(next);
+                              fetchQuestions(examType, keyword, next);
+                            }}
+                            style={{ width: 14, height: 14 }}
+                          />
+                          <span style={{ color: checked ? 'var(--color-primary)' : 'var(--color-text-main)', lineHeight: 1.4 }}>
+                            {lang === 'en' ? (DOMAIN_NAME_EN[d] ?? d) : d}
+                          </span>
+                        </label>
+                      );
+                    })}
+                  </div>
+                )}
+
+                {/* 問題の種類 */}
+                <div style={{ padding: '10px var(--spacing-md)', borderBottom: user ? '1px solid var(--color-border)' : 'none' }}>
+                  <div style={{ fontSize: 'var(--font-size-xs)', fontWeight: 700, color: 'var(--color-text-light)', textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: 8 }}>
+                    {lang === 'ja' ? '問題の種類' : 'Question Type'}
+                  </div>
+                  {(['all', 'single', 'multiple'] as const).map(type => (
+                    <label key={type} style={{ display: 'flex', alignItems: 'center', gap: 6, cursor: 'pointer', fontSize: 'var(--font-size-sm)', marginBottom: 4 }}>
+                      <input type="radio" name="qtype" checked={questionTypeFilter === type} onChange={() => setQuestionTypeFilter(type)} style={{ width: 14, height: 14 }} />
+                      {type === 'all'
+                        ? (lang === 'ja' ? 'すべて' : 'All')
+                        : type === 'single'
+                          ? (lang === 'ja' ? '単一選択' : 'Single Answer')
+                          : (lang === 'ja' ? '複数選択' : 'Multiple Answer')}
+                    </label>
+                  ))}
+                </div>
+
+                {/* その他（お気に入り） */}
+                {user && (
+                  <div style={{ padding: '10px var(--spacing-md)' }}>
+                    <div style={{ fontSize: 'var(--font-size-xs)', fontWeight: 700, color: 'var(--color-text-light)', textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: 8 }}>
+                      {lang === 'ja' ? 'その他' : 'Other'}
+                    </div>
+                    <label style={{ display: 'flex', alignItems: 'center', gap: 6, cursor: 'pointer', fontSize: 'var(--font-size-sm)' }}>
+                      <input type="checkbox" checked={bookmarkOnly} onChange={e => setBookmarkOnly(e.target.checked)} style={{ width: 14, height: 14 }} />
+                      ★ {t('questions.bookmarkFilter')}
+                    </label>
+                  </div>
+                )}
               </div>
             )}
+          </div>
+        </div>
+
+        {/* アクティブフィルターチップ */}
+        {activeFilterCount > 0 && (
+          <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', alignItems: 'center' }}>
+            {examType && (
+              <span style={{ display: 'inline-flex', alignItems: 'center', gap: 3, background: 'var(--color-primary-light)', color: 'var(--color-primary)', borderRadius: 20, padding: '2px 8px 2px 12px', fontSize: 'var(--font-size-xs)', fontWeight: 700 }}>
+                {examType}
+                <button onClick={() => { setExamType(''); setSelectedDomains([]); fetchQuestions('', keyword, []); }} style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: 13, color: 'var(--color-primary)', padding: '0 0 0 2px', lineHeight: 1 }}>✕</button>
+              </span>
+            )}
+            {selectedDomains.length > 0 && (
+              <span style={{ display: 'inline-flex', alignItems: 'center', gap: 3, background: 'var(--color-primary-light)', color: 'var(--color-primary)', borderRadius: 20, padding: '2px 8px 2px 12px', fontSize: 'var(--font-size-xs)', fontWeight: 700 }}>
+                {lang === 'ja' ? `${selectedDomains.length}ドメイン` : `${selectedDomains.length} domain(s)`}
+                <button onClick={() => { setSelectedDomains([]); fetchQuestions(examType, keyword, []); }} style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: 13, color: 'var(--color-primary)', padding: '0 0 0 2px', lineHeight: 1 }}>✕</button>
+              </span>
+            )}
+            {questionTypeFilter !== 'all' && (
+              <span style={{ display: 'inline-flex', alignItems: 'center', gap: 3, background: 'var(--color-primary-light)', color: 'var(--color-primary)', borderRadius: 20, padding: '2px 8px 2px 12px', fontSize: 'var(--font-size-xs)', fontWeight: 700 }}>
+                {questionTypeFilter === 'single' ? (lang === 'ja' ? '単一選択' : 'Single') : (lang === 'ja' ? '複数選択' : 'Multiple')}
+                <button onClick={() => setQuestionTypeFilter('all')} style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: 13, color: 'var(--color-primary)', padding: '0 0 0 2px', lineHeight: 1 }}>✕</button>
+              </span>
+            )}
+            {bookmarkOnly && (
+              <span style={{ display: 'inline-flex', alignItems: 'center', gap: 3, background: '#fffbf0', color: '#b85c00', borderRadius: 20, padding: '2px 8px 2px 12px', fontSize: 'var(--font-size-xs)', fontWeight: 700 }}>
+                ★ {lang === 'ja' ? 'お気に入り' : 'Bookmarked'}
+                <button onClick={() => setBookmarkOnly(false)} style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: 13, color: '#b85c00', padding: '0 0 0 2px', lineHeight: 1 }}>✕</button>
+              </span>
+            )}
+            <button
+              onClick={() => { setExamType(''); setSelectedDomains([]); setBookmarkOnly(false); setQuestionTypeFilter('all'); fetchQuestions('', keyword, []); }}
+              style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: 'var(--font-size-xs)', color: 'var(--color-text-light)', textDecoration: 'underline', padding: '2px 4px' }}
+            >
+              {lang === 'ja' ? 'すべてクリア' : 'Clear all'}
+            </button>
           </div>
         )}
       </Card>
