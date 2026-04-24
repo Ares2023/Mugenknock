@@ -123,6 +123,7 @@ export default function ExerciseSetup() {
   const [loading, setLoading] = useState(false);
   const [bookmarkOnly, setBookmarkOnly] = useState<boolean>(() => loadExercisePrefs(localStorage.getItem('targetExam') || localStorage.getItem('lastExamType') || 'SAA').bookmarkOnly ?? false);
   const [unansweredOnly, setUnansweredOnly] = useState<boolean>(() => loadExercisePrefs(localStorage.getItem('targetExam') || localStorage.getItem('lastExamType') || 'SAA').unansweredOnly ?? false);
+  const [incorrectOnly, setIncorrectOnly] = useState<boolean>(() => loadExercisePrefs(localStorage.getItem('targetExam') || localStorage.getItem('lastExamType') || 'SAA').incorrectOnly ?? false);
   const [showHint, setShowHint] = useState(() => !localStorage.getItem('sherpaExerciseHint'));
   const [exerciseDraft] = useState<any>(() => {
     try { return JSON.parse(localStorage.getItem('exerciseDraft') ?? 'null'); } catch { return null; }
@@ -145,11 +146,12 @@ export default function ExerciseSetup() {
     setShuffle(prefs.shuffle ?? true);
     setBookmarkOnly(prefs.bookmarkOnly ?? false);
     setUnansweredOnly(prefs.unansweredOnly ?? false);
+    setIncorrectOnly(prefs.incorrectOnly ?? false);
   }, [examType]);
 
   useEffect(() => {
-    saveExercisePrefs(examType, { domains: selectedDomains, tag: selectedTag, limit, shuffle, bookmarkOnly, unansweredOnly });
-  }, [examType, selectedDomains, selectedTag, limit, shuffle, bookmarkOnly, unansweredOnly]);
+    saveExercisePrefs(examType, { domains: selectedDomains, tag: selectedTag, limit, shuffle, bookmarkOnly, unansweredOnly, incorrectOnly });
+  }, [examType, selectedDomains, selectedTag, limit, shuffle, bookmarkOnly, unansweredOnly, incorrectOnly]);
 
   useEffect(() => {
     setAvailableCount(null);
@@ -161,11 +163,12 @@ export default function ExerciseSetup() {
         if (selectedDomains.length > 0) params.set('domain', selectedDomains.join(','));
         if (selectedTag) params.set('tagId', selectedTag);
 
-        if (user && (bookmarkOnly || unansweredOnly)) {
-          const [qRes, bkmRes, answeredRes] = await Promise.all([
+        if (user && (bookmarkOnly || unansweredOnly || incorrectOnly)) {
+          const [qRes, bkmRes, answeredRes, incorrectRes] = await Promise.all([
             fetch(`${API_ENDPOINT}/questions?${params}`).then(r => r.json()),
             bookmarkOnly ? fetch(`${API_ENDPOINT}/users/me/bookmarks?userId=${user.userId}`).then(r => r.json()) : Promise.resolve(null),
             unansweredOnly ? fetch(`${API_ENDPOINT}/users/me/answered-questions?userId=${user.userId}&examType=${examType}`).then(r => r.json()) : Promise.resolve(null),
+            incorrectOnly ? fetch(`${API_ENDPOINT}/users/me/incorrect-questions?userId=${user.userId}&examType=${examType}`).then(r => r.json()) : Promise.resolve(null),
           ]);
           let items: any[] = qRes.items ?? [];
           if (bookmarkOnly && bkmRes) {
@@ -175,6 +178,10 @@ export default function ExerciseSetup() {
           if (unansweredOnly && answeredRes) {
             const answeredIds = new Set(answeredRes.questionIds ?? []);
             items = items.filter((q: any) => !answeredIds.has(q.questionId));
+          }
+          if (incorrectOnly && incorrectRes) {
+            const incorrectIds = new Set(incorrectRes.questionIds ?? []);
+            items = items.filter((q: any) => incorrectIds.has(q.questionId));
           }
           setAvailableCount(items.length);
         } else {
@@ -194,7 +201,7 @@ export default function ExerciseSetup() {
     } else {
       setAnsweredCount(0);
     }
-  }, [examType, selectedDomains, selectedTag, user, bookmarkOnly, unansweredOnly]);
+  }, [examType, selectedDomains, selectedTag, user, bookmarkOnly, unansweredOnly, incorrectOnly]);
 
   useEffect(() => {
     fetch(`${API_ENDPOINT}/tags?examType=${examType}`)
@@ -227,15 +234,16 @@ export default function ExerciseSetup() {
       const userId = user?.userId ?? 'guest';
       let selectedItems: any[];
 
-      if (user && (bookmarkOnly || unansweredOnly)) {
+      if (user && (bookmarkOnly || unansweredOnly || incorrectOnly)) {
         const params = new URLSearchParams({ examType });
         if (selectedDomains.length > 0) params.set('domain', selectedDomains.join(','));
         if (selectedTag) params.set('tagId', selectedTag);
 
-        const [qRes, bkmRes, answeredRes] = await Promise.all([
+        const [qRes, bkmRes, answeredRes, incorrectRes] = await Promise.all([
           fetch(`${API_ENDPOINT}/questions?${params}`).then(r => r.json()),
           bookmarkOnly ? fetch(`${API_ENDPOINT}/users/me/bookmarks?userId=${userId}`).then(r => r.json()) : Promise.resolve(null),
           unansweredOnly ? fetch(`${API_ENDPOINT}/users/me/answered-questions?userId=${userId}&examType=${examType}`).then(r => r.json()) : Promise.resolve(null),
+          incorrectOnly ? fetch(`${API_ENDPOINT}/users/me/incorrect-questions?userId=${userId}&examType=${examType}`).then(r => r.json()) : Promise.resolve(null),
         ]);
         let filtered: any[] = qRes.items ?? [];
         if (bookmarkOnly && bkmRes) {
@@ -245,6 +253,10 @@ export default function ExerciseSetup() {
         if (unansweredOnly && answeredRes) {
           const answeredIds = new Set(answeredRes.questionIds ?? []);
           filtered = filtered.filter((q: any) => !answeredIds.has(q.questionId));
+        }
+        if (incorrectOnly && incorrectRes) {
+          const incorrectIds = new Set(incorrectRes.questionIds ?? []);
+          filtered = filtered.filter((q: any) => incorrectIds.has(q.questionId));
         }
         if (shuffle) filtered = shuffleArray(filtered);
         selectedItems = filtered.slice(0, limit);
@@ -457,10 +469,19 @@ export default function ExerciseSetup() {
             <div style={{ padding: 'var(--spacing-md)', background: 'var(--color-bg-main)', borderRadius: 'var(--border-radius-md)', display: 'flex', flexDirection: 'column', gap: 'var(--spacing-sm)' }}>
               {user && (
                 <label style={{ display: 'flex', alignItems: 'center', gap: 'var(--spacing-md)', cursor: 'pointer', fontSize: 'var(--font-size-base)' }}>
-                  <input type="checkbox" checked={unansweredOnly} onChange={e => setUnansweredOnly(e.target.checked)} style={{ width: 18, height: 18 }} />
+                  <input type="checkbox" checked={unansweredOnly} onChange={e => { setUnansweredOnly(e.target.checked); if (e.target.checked) setIncorrectOnly(false); }} style={{ width: 18, height: 18 }} />
                   <span style={{ fontWeight: 700 }}>
                     {t('exerciseSetup.unansweredOnly')}
                     <span style={{ fontWeight: 400, fontSize: 'var(--font-size-sm)', color: 'var(--color-text-sub)', marginLeft: 'var(--spacing-sm)' }}>{t('exerciseSetup.unansweredOnlyDesc')}</span>
+                  </span>
+                </label>
+              )}
+              {user && (
+                <label style={{ display: 'flex', alignItems: 'center', gap: 'var(--spacing-md)', cursor: 'pointer', fontSize: 'var(--font-size-base)' }}>
+                  <input type="checkbox" checked={incorrectOnly} onChange={e => { setIncorrectOnly(e.target.checked); if (e.target.checked) setUnansweredOnly(false); }} style={{ width: 18, height: 18 }} />
+                  <span style={{ fontWeight: 700 }}>
+                    {t('exerciseSetup.incorrectOnly')}
+                    <span style={{ fontWeight: 400, fontSize: 'var(--font-size-sm)', color: 'var(--color-text-sub)', marginLeft: 'var(--spacing-sm)' }}>{t('exerciseSetup.incorrectOnlyDesc')}</span>
                   </span>
                 </label>
               )}
@@ -480,18 +501,30 @@ export default function ExerciseSetup() {
             </div>
           </div>
 
+          {/* 中断中セッション通知 */}
+          {hasDraft && (
+            <div style={{
+              display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 'var(--spacing-md)',
+              padding: '12px var(--spacing-md)', marginBottom: 'var(--spacing-md)',
+              background: '#fffbeb', border: '1px solid #fcd34d', borderRadius: 'var(--border-radius-md)',
+            }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--spacing-sm)' }}>
+                <span style={{ fontSize: 18 }}>⏸</span>
+                <div>
+                  <div style={{ fontSize: 'var(--font-size-sm)', fontWeight: 700, color: '#92400e' }}>{t('exerciseSetup.resumeNotice')}</div>
+                  <div style={{ fontSize: 'var(--font-size-xs)', color: '#b45309' }}>{t('exerciseSetup.resumeNoticeDesc')}</div>
+                </div>
+              </div>
+              <Button size="sm" variant="outline" onClick={resumeSession} style={{ borderColor: '#f59e0b', color: '#92400e', whiteSpace: 'nowrap', flexShrink: 0 }}>
+                {t('exerciseSetup.resume')} →
+              </Button>
+            </div>
+          )}
+
           <div style={{ display: 'flex', gap: 'var(--spacing-md)', borderTop: '1px solid var(--color-border)', paddingTop: 'var(--spacing-lg)', justifyContent: 'flex-end', flexWrap: 'wrap' }}>
             <Button variant="outline" onClick={() => navigate('/')}>
               {t('exerciseSetup.cancel')}
             </Button>
-            {hasDraft && (
-              <Button variant="outline" onClick={resumeSession} style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                <span style={{ fontSize: 11, fontWeight: 700, background: 'var(--color-primary)', color: 'white', borderRadius: 4, padding: '1px 5px' }}>
-                  {t('exerciseSetup.resumeBadge')}
-                </span>
-                {t('exerciseSetup.resume')}
-              </Button>
-            )}
             <Button
               variant="primary"
               onClick={startSession}
@@ -563,15 +596,19 @@ export default function ExerciseSetup() {
 
           {/* ── 今回の出題 ── */}
           {(() => {
-            const hasFilter = bookmarkOnly || unansweredOnly;
+            const hasFilter = bookmarkOnly || unansweredOnly || incorrectOnly;
             let bg = 'var(--color-bg-main)';
             let border = 'var(--color-border)';
             let color = 'var(--color-primary)';
-            
+
             if (unansweredOnly && bookmarkOnly) {
               bg = '#f0fff4'; border = '#b7ebc8'; color = '#1d7a3d';
             } else if (unansweredOnly) {
               bg = '#f0fff4'; border = '#b7ebc8'; color = '#1d7a3d';
+            } else if (incorrectOnly && bookmarkOnly) {
+              bg = '#fff5f5'; border = '#fecaca'; color = '#dc2626';
+            } else if (incorrectOnly) {
+              bg = '#fff5f5'; border = '#fecaca'; color = '#dc2626';
             } else if (bookmarkOnly) {
               bg = '#fffbf0'; border = '#ffe8a0'; color = '#b85c00';
             }
@@ -579,6 +616,8 @@ export default function ExerciseSetup() {
             const label = (() => {
               if (unansweredOnly && bookmarkOnly) return t('exerciseSetup.unansweredBookmark');
               if (unansweredOnly) return t('exerciseSetup.unansweredLabel');
+              if (incorrectOnly && bookmarkOnly) return t('exerciseSetup.incorrectBookmark');
+              if (incorrectOnly) return t('exerciseSetup.incorrectLabel');
               if (bookmarkOnly) return t('exerciseSetup.bookmarkLabel');
               return selectedDomains.length > 0 || selectedTag ? t('exerciseSetup.filteredCount') : t('exerciseSetup.siteCount');
             })();

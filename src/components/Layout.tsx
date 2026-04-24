@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { useLanguage } from '../contexts/LanguageContext';
@@ -61,6 +61,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
   const { lang, setLang, t } = useLanguage();
   const navigate = useNavigate();
   const location = useLocation();
+  const mainRef = useRef<HTMLElement>(null);
   const [open, setOpen] = useState(() => localStorage.getItem('sidebarOpen') !== 'false');
   const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
   const [targetExam, setTargetExam] = useState<string | null>(() => localStorage.getItem('targetExam'));
@@ -72,6 +73,10 @@ export default function Layout({ children }: { children: React.ReactNode }) {
 
   useEffect(() => {
     setTargetExam(localStorage.getItem('targetExam'));
+  }, [location.pathname]);
+
+  useEffect(() => {
+    mainRef.current?.scrollTo({ top: 0 });
   }, [location.pathname]);
 
   useEffect(() => {
@@ -476,7 +481,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
         </nav>
 
         {/* メインコンテンツ */}
-        <main style={{
+        <main ref={mainRef} style={{
           flex: 1, overflow: 'auto',
           background: 'var(--color-bg-main)',
           width: isMobile ? '100%' : undefined,
