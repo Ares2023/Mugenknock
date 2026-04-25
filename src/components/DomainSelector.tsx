@@ -7,14 +7,15 @@ type Props = {
   selected: string[];
   onChange: (next: string[]) => void;
   lang: string;
-  label: React.ReactNode;
+  label?: React.ReactNode;
+  noMargin?: boolean;
 };
 
 const HR = () => (
   <div style={{ borderTop: '1px solid var(--color-border)', margin: 'var(--spacing-sm) 0' }} />
 );
 
-export default function DomainSelector({ domains, selected, onChange, lang, label }: Props) {
+export default function DomainSelector({ domains, selected, onChange, lang, label, noMargin }: Props) {
   const allSelected = domains.every(d => selected.includes(d));
   const dn = (d: string) => lang === 'en' ? (DOMAIN_NAME_EN[d] ?? d) : d;
 
@@ -28,7 +29,7 @@ export default function DomainSelector({ domains, selected, onChange, lang, labe
   };
 
   return (
-    <div style={{ marginBottom: 'var(--spacing-lg)' }}>
+    <div style={{ marginBottom: noMargin ? 0 : 'var(--spacing-lg)' }}>
       {label}
 
       {/* クイック選択ボタン行 */}

@@ -18,6 +18,27 @@ const StepBadge = ({ n, optional = false }: { n: number; optional?: boolean }) =
   }}>{n}</span>
 );
 
+const StepRow = ({ n, optional = false, isLast = false, title, children }: {
+  n: number;
+  optional?: boolean;
+  isLast?: boolean;
+  title: React.ReactNode;
+  children: React.ReactNode;
+}) => (
+  <div style={{ display: 'flex', gap: 14 }}>
+    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', width: 20, flexShrink: 0 }}>
+      <StepBadge n={n} optional={optional} />
+      {!isLast && <div style={{ width: 2, flex: 1, background: 'var(--color-border)', marginTop: 5, borderRadius: 1 }} />}
+    </div>
+    <div style={{ flex: 1, paddingBottom: isLast ? 0 : 'var(--spacing-xl)' }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--spacing-sm)', fontWeight: 700, fontSize: 'var(--font-size-base)', lineHeight: '20px', marginBottom: 'var(--spacing-sm)' }}>
+        {title}
+      </div>
+      {children}
+    </div>
+  </div>
+);
+
 const EXAM_INFO: Record<string, {
   fullName: string;
   examCode: string;
@@ -348,7 +369,7 @@ export default function ExerciseSetup() {
 
         {/* 左：設定フォーム */}
         <Card padding="var(--spacing-xl)">
-          {/* 試験種別 */}
+          {/* 試験種別（ホームで固定されている場合は表示のみ） */}
           {targetExam ? (
             <div style={{ marginBottom: 'var(--spacing-lg)', display: 'flex', alignItems: 'center', gap: 'var(--spacing-md)' }}>
               <span style={{ fontSize: 'var(--font-size-base)', fontWeight: 700, color: 'var(--color-text-sub)' }}>{t('exerciseSetup.examType')}</span>
@@ -356,81 +377,54 @@ export default function ExerciseSetup() {
               <span style={{ fontSize: 'var(--font-size-sm)', color: 'var(--color-text-light)' }}>{t('exerciseSetup.examTypeHome')}</span>
             </div>
           ) : (
-            <div style={{ marginBottom: 'var(--spacing-lg)' }}>
-              <label style={{ display: 'flex', alignItems: 'center', gap: 'var(--spacing-sm)', marginBottom: 'var(--spacing-sm)', fontWeight: 700, fontSize: 'var(--font-size-base)' }}>
-                <StepBadge n={examStep!} />{t('exerciseSetup.examType')}
-              </label>
+            <StepRow n={examStep!} title={t('exerciseSetup.examType')}>
               <div style={{ display: 'flex', flexWrap: 'wrap', gap: 'var(--spacing-sm)' }}>
                 {EXAM_TYPES.map(et => (
-                  <Button
-                    key={et}
-                    variant={examType === et ? 'primary' : 'outline'}
-                    size="sm"
-                    onClick={() => handleSelectExamInSetup(et)}
-                    style={{ width: 72 }}
-                  >
+                  <Button key={et} variant={examType === et ? 'primary' : 'outline'} size="sm"
+                    onClick={() => handleSelectExamInSetup(et)} style={{ width: 72 }}>
                     {et}
                   </Button>
                 ))}
               </div>
-            </div>
+            </StepRow>
           )}
 
           {/* ドメインフィルタ */}
-          <DomainSelector
-            domains={EXAM_DOMAINS[examType]}
-            selected={selectedDomains}
-            onChange={setSelectedDomains}
-            lang={lang}
-            label={
-              <label style={{ display: 'flex', alignItems: 'center', gap: 'var(--spacing-sm)', marginBottom: 'var(--spacing-sm)', fontWeight: 700, fontSize: 'var(--font-size-base)' }}>
-                <StepBadge n={domainStep} />{t('exerciseSetup.domain')} <span style={{ fontWeight: 400, fontSize: 'var(--font-size-sm)', color: 'var(--color-text-sub)' }}>{t('exerciseSetup.optional')}</span>
-              </label>
-            }
-          />
+          <StepRow n={domainStep} optional
+            title={<>{t('exerciseSetup.domain')} <span style={{ fontWeight: 400, fontSize: 'var(--font-size-sm)', color: 'var(--color-text-sub)' }}>{t('exerciseSetup.optional')}</span></>}>
+            <DomainSelector
+              domains={EXAM_DOMAINS[examType]}
+              selected={selectedDomains}
+              onChange={setSelectedDomains}
+              lang={lang}
+              noMargin
+            />
+          </StepRow>
 
           {/* タグフィルタ */}
           {availableTags.length > 0 && (
-            <div style={{ marginBottom: 'var(--spacing-lg)' }}>
-              <label style={{ display: 'flex', alignItems: 'center', gap: 'var(--spacing-sm)', marginBottom: 'var(--spacing-sm)', fontWeight: 700, fontSize: 'var(--font-size-base)' }}>
-                <StepBadge n={tagStep!} />{t('exerciseSetup.tag')} <span style={{ fontWeight: 400, fontSize: 'var(--font-size-sm)', color: 'var(--color-text-sub)' }}>{t('exerciseSetup.optional')}</span>
-              </label>
+            <StepRow n={tagStep!} optional
+              title={<>{t('exerciseSetup.tag')} <span style={{ fontWeight: 400, fontSize: 'var(--font-size-sm)', color: 'var(--color-text-sub)' }}>{t('exerciseSetup.optional')}</span></>}>
               <div style={{ display: 'flex', flexWrap: 'wrap', gap: 'var(--spacing-sm)' }}>
-                <Button
-                  variant={selectedTag === '' ? 'primary' : 'outline'}
-                  size="sm"
-                  onClick={() => setSelectedTag('')}
-                >
+                <Button variant={selectedTag === '' ? 'primary' : 'outline'} size="sm" onClick={() => setSelectedTag('')}>
                   {t('exerciseSetup.all')}
                 </Button>
                 {availableTags.map(tag => (
-                  <Button
-                    key={tag}
-                    variant={selectedTag === tag ? 'primary' : 'outline'}
-                    size="sm"
-                    onClick={() => setSelectedTag(selectedTag === tag ? '' : tag)}
-                  >
+                  <Button key={tag} variant={selectedTag === tag ? 'primary' : 'outline'} size="sm"
+                    onClick={() => setSelectedTag(selectedTag === tag ? '' : tag)}>
                     {tag}
                   </Button>
                 ))}
               </div>
-            </div>
+            </StepRow>
           )}
 
           {/* 問題数 */}
-          <div style={{ marginBottom: 'var(--spacing-lg)' }}>
-            <label style={{ display: 'flex', alignItems: 'center', gap: 'var(--spacing-sm)', marginBottom: 'var(--spacing-sm)', fontWeight: 700, fontSize: 'var(--font-size-base)' }}>
-              <StepBadge n={countStep} />{t('exerciseSetup.questionCount')}
-            </label>
+          <StepRow n={countStep} title={t('exerciseSetup.questionCount')}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--spacing-md)' }}>
-              <input type="number" value={limit} onChange={e => setLimit(Math.max(1, parseInt(e.target.value) || 1))} min={1} max={availableCount ?? 50}
-                style={{
-                  padding: '8px 12px', width: 100,
-                  border: '1px solid var(--color-border)',
-                  borderRadius: 'var(--border-radius-md)',
-                  fontSize: 'var(--font-size-base)', outline: 'none',
-                  transition: 'border-color 0.2s',
-                }}
+              <input type="number" value={limit} onChange={e => setLimit(Math.max(1, parseInt(e.target.value) || 1))}
+                min={1} max={availableCount ?? 50}
+                style={{ padding: '8px 12px', width: 100, border: '1px solid var(--color-border)', borderRadius: 'var(--border-radius-md)', fontSize: 'var(--font-size-base)', outline: 'none', transition: 'border-color 0.2s' }}
                 onFocus={e => e.currentTarget.style.borderColor = 'var(--color-primary)'}
                 onBlur={e => e.currentTarget.style.borderColor = 'var(--color-border)'}
               />
@@ -438,13 +432,10 @@ export default function ExerciseSetup() {
                 {availableCount !== null ? t('exerciseSetup.maxQ', { n: availableCount }) : t('exerciseSetup.loading')}
               </span>
             </div>
-          </div>
+          </StepRow>
 
           {/* オプション */}
-          <div style={{ marginBottom: 'var(--spacing-lg)' }}>
-            <label style={{ display: 'flex', alignItems: 'center', gap: 'var(--spacing-sm)', marginBottom: 'var(--spacing-sm)', fontWeight: 700, fontSize: 'var(--font-size-base)' }}>
-              <StepBadge n={optionsStep} />{t('exerciseSetup.options')}
-            </label>
+          <StepRow n={optionsStep} isLast title={t('exerciseSetup.options')}>
             <div style={{ padding: 'var(--spacing-md)', background: 'var(--color-bg-main)', borderRadius: 'var(--border-radius-md)', display: 'flex', flexDirection: 'column', gap: 'var(--spacing-xs)' }}>
               {user && (
                 <label title={t('exerciseSetup.unansweredOnlyDesc')} style={{ display: 'flex', alignItems: 'center', gap: 'var(--spacing-sm)', cursor: 'pointer', fontSize: 'var(--font-size-base)' }}>
@@ -469,7 +460,7 @@ export default function ExerciseSetup() {
                 {t('exerciseSetup.shuffle')}
               </label>
             </div>
-          </div>
+          </StepRow>
 
           {/* 中断中セッション通知 */}
           {hasDraft && (
