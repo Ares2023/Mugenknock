@@ -49,22 +49,19 @@ const CopyButton = ({ getText }: { getText: () => string }) => {
 export default function ExerciseSession() {
   const navigate = useNavigate();
   const location = useLocation();
-
-  if (!location.state) {
-    navigate('/exercise', { replace: true });
-    return null;
-  }
-
-  const { sessionId, questions, userId, examType,
-    resumeIndex, resumeResults, resumeAnswered, resumeSelectedAnswers, resumeDetail
-  } = location.state as any;
+  const state = location.state as any;
   const { user } = useAuth();
   const { lang, t } = useLanguage();
 
-  const [currentIndex, setCurrentIndex] = useState<number>(resumeIndex ?? 0);
-  const [selectedAnswers, setSelectedAnswers] = useState<string[]>(resumeSelectedAnswers ?? []);
-  const [answered, setAnswered] = useState<boolean>(resumeAnswered ?? false);
-  const [detail, setDetail] = useState<Question | null>(resumeDetail ?? null);
+  const sessionId: string = state?.sessionId ?? '';
+  const questions: Question[] = state?.questions ?? [];
+  const userId: string = state?.userId ?? '';
+  const examType: string = state?.examType ?? '';
+
+  const [currentIndex, setCurrentIndex] = useState<number>(state?.resumeIndex ?? 0);
+  const [selectedAnswers, setSelectedAnswers] = useState<string[]>(state?.resumeSelectedAnswers ?? []);
+  const [answered, setAnswered] = useState<boolean>(state?.resumeAnswered ?? false);
+  const [detail, setDetail] = useState<Question | null>(state?.resumeDetail ?? null);
   const [tips, setTips] = useState<Tip[]>([]);
   const [bookmarkedIds, setBookmarkedIds] = useState<Set<string>>(new Set());
   const [bookmarkLoading, setBookmarkLoading] = useState(false);
@@ -113,7 +110,7 @@ export default function ExerciseSession() {
     } catch (err) { console.error(err); }
     setBookmarkLoading(false);
   };
-  const [results, setResults] = useState<{ questionId: string; isCorrect: boolean }[]>(resumeResults ?? []);
+  const [results, setResults] = useState<{ questionId: string; isCorrect: boolean }[]>(state?.resumeResults ?? []);
   const [loading, setLoading] = useState(false);
   const [reportOpen, setReportOpen] = useState(false);
 
@@ -138,6 +135,12 @@ export default function ExerciseSession() {
   };
 
   const [lastSelected, setLastSelected] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (!state) navigate('/exercise', { replace: true });
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+
+  if (!state) return null;
 
   const toggleAnswer = (choice: string) => {
     if (answered) return;

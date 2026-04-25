@@ -31,23 +31,21 @@ const formatTime = (sec: number) => {
 export default function ExamSession() {
   const navigate = useNavigate();
   const location = useLocation();
-
-  if (!location.state) {
-    navigate('/exam', { replace: true });
-    return null;
-  }
-
-  const { sessionId, questions, userId, examType, resumeIndex, resumeAnswers, resumeTimeLeft } = location.state as any;
+  const state = location.state as any;
   const { user } = useAuth();
-
-  const config = EXAM_CONFIGS[examType];
   const { lang, t } = useLanguage();
+
+  const sessionId: string = state?.sessionId ?? '';
+  const questions: Question[] = state?.questions ?? [];
+  const userId: string = state?.userId ?? '';
+  const examType: string = state?.examType ?? '';
+  const config = EXAM_CONFIGS[examType] ?? Object.values(EXAM_CONFIGS)[0];
   const totalSec = config.timeLimitMin * 60;
 
-  const [currentIndex, setCurrentIndex] = useState<number>(resumeIndex ?? 0);
-  const [answers, setAnswers] = useState<Record<string, string[]>>(resumeAnswers ?? {});
-  const [timeLeft, setTimeLeft] = useState<number>(resumeTimeLeft ?? totalSec);
-  const timeLeftRef = useRef<number>(resumeTimeLeft ?? totalSec);
+  const [currentIndex, setCurrentIndex] = useState<number>(state?.resumeIndex ?? 0);
+  const [answers, setAnswers] = useState<Record<string, string[]>>(state?.resumeAnswers ?? {});
+  const [timeLeft, setTimeLeft] = useState<number>(state?.resumeTimeLeft ?? totalSec);
+  const timeLeftRef = useRef<number>(state?.resumeTimeLeft ?? totalSec);
   const [paused, setPaused] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [showConfirm, setShowConfirm] = useState(false);
@@ -184,6 +182,12 @@ export default function ExamSession() {
   };
 
   const [reportOpen, setReportOpen] = useState(false);
+
+  useEffect(() => {
+    if (!state) navigate('/exam', { replace: true });
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+
+  if (!state) return null;
 
   const answeredCount = Object.keys(answers).length;
   const unansweredCount = questions.length - answeredCount;
