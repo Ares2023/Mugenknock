@@ -36,7 +36,7 @@ export default function DomainSelector({ domains, selected, onChange, lang, labe
         <Button
           size="sm"
           variant={allSelected ? 'primary' : 'outline'}
-          onClick={() => onChange([...domains])}
+          onClick={() => onChange(allSelected ? [] : [...domains])}
         >
           {lang === 'ja' ? 'すべて' : 'All'}
         </Button>
@@ -82,26 +82,6 @@ export default function DomainSelector({ domains, selected, onChange, lang, labe
           <HR />
         </>
       )}
-
-      {/* チェックボックス一覧 */}
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-        {domains.map(d => {
-          const checked = selected.includes(d);
-          return (
-            <label key={d} style={{ display: 'flex', alignItems: 'center', gap: 'var(--spacing-sm)', cursor: 'pointer', fontSize: 'var(--font-size-base)', padding: '2px 0' }}>
-              <input
-                type="checkbox"
-                checked={checked}
-                onChange={() => toggle(d)}
-                style={{ width: 16, height: 16, flexShrink: 0, accentColor: 'var(--color-primary)' }}
-              />
-              <span style={{ color: checked ? 'var(--color-primary)' : 'var(--color-text-main)', fontWeight: checked ? 600 : 400 }}>
-                {dn(d)}
-              </span>
-            </label>
-          );
-        })}
-      </div>
 
       {selected.length === 0 && (
         <p style={{ margin: '4px 0 0', fontSize: 'var(--font-size-xs)', color: 'var(--color-danger)' }}>
