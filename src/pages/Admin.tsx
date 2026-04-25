@@ -133,8 +133,10 @@ export default function Admin() {
   const [questions, setQuestions] = useState<Question[]>([]);
   const [examFilter, setExamFilter] = useState('ALL');
   const [tagFilter, setTagFilter] = useState('');
+  const [tagInput, setTagInput] = useState('');
   const [domainFilter, setDomainFilter] = useState('');
   const [keyword, setKeyword] = useState('');
+  const [keywordInput, setKeywordInput] = useState('');
   const [loadingQ, setLoadingQ] = useState(false);
   const [expandedId, setExpandedId] = useState<string | null>(null);
   const [deletingId, setDeletingId] = useState<string | null>(null);
@@ -411,7 +413,7 @@ export default function Admin() {
     ));
   };
 
-  useEffect(() => { fetchQuestions(); setSelectedIds(new Set()); }, [examFilter, tagFilter, domainFilter]);
+  useEffect(() => { fetchQuestions(); setSelectedIds(new Set()); }, [examFilter, keyword, tagFilter, domainFilter]);
   useEffect(() => { if (tab === 'reports') fetchReports(); }, [tab]);
   useEffect(() => { if (tab === 'tips') fetchTips(); }, [tab]);
   useEffect(() => { if (tab === 'releases') fetchReleases(); }, [tab]);
@@ -766,26 +768,62 @@ export default function Admin() {
               </div>
             )}
 
-            {/* キーワード・タグ・検索ボタン */}
-            <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
-              <input
-                value={keyword} onChange={e => setKeyword(e.target.value)}
-                placeholder="問題ID・問題文で検索"
-                style={{ flex: 2, minWidth: 180, padding: '6px 12px', border: '1px solid #d1d5db', borderRadius: 6, fontSize: 14, outline: 'none' }}
-                onFocus={e => e.currentTarget.style.borderColor = '#008c8c'}
-                onBlur={e => e.currentTarget.style.borderColor = '#d1d5db'}
-              />
-              <input
-                value={tagFilter} onChange={e => setTagFilter(e.target.value)}
-                placeholder="タグで絞り込み（例: S3）"
-                style={{ flex: 1, minWidth: 140, padding: '6px 12px', border: '1px solid #d1d5db', borderRadius: 6, fontSize: 14, outline: 'none' }}
-                onFocus={e => e.currentTarget.style.borderColor = '#008c8c'}
-                onBlur={e => e.currentTarget.style.borderColor = '#d1d5db'}
-              />
-              <button type="submit"
-                style={{ padding: '6px 20px', background: 'white', color: '#008c8c', border: '1px solid #008c8c', borderRadius: 9999, cursor: 'pointer', fontWeight: 700, fontSize: 14 }}>
-                検索
-              </button>
+            {/* キーワード・タグ検索（チップ形式） */}
+            <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', alignItems: 'flex-start' }}>
+              <div style={{ flex: 2, minWidth: 180 }}>
+                <input
+                  value={keywordInput}
+                  onChange={e => setKeywordInput(e.target.value)}
+                  onKeyDown={e => {
+                    if (e.key === 'Enter') {
+                      e.preventDefault();
+                      const kw = keywordInput.trim();
+                      setKeyword(kw);
+                      setKeywordInput('');
+                    }
+                  }}
+                  placeholder="問題ID・問題文で検索 (Enter で確定)"
+                  style={{ width: '100%', padding: '6px 12px', border: '1px solid #d1d5db', borderRadius: 6, fontSize: 14, outline: 'none', boxSizing: 'border-box' }}
+                  onFocus={e => e.currentTarget.style.borderColor = '#008c8c'}
+                  onBlur={e => e.currentTarget.style.borderColor = '#d1d5db'}
+                />
+                {keyword && (
+                  <div style={{ display: 'flex', gap: 4, marginTop: 4, flexWrap: 'wrap' }}>
+                    <span style={{ display: 'inline-flex', alignItems: 'center', gap: 3, padding: '2px 8px 2px 10px', background: '#e0f2f2', color: '#008c8c', borderRadius: 9999, fontSize: 12, fontWeight: 600 }}>
+                      {keyword}
+                      <button onClick={() => setKeyword('')}
+                        style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#008c8c', fontSize: 15, lineHeight: 1, padding: '0 0 0 2px', display: 'flex', alignItems: 'center' }}>×</button>
+                    </span>
+                  </div>
+                )}
+              </div>
+              <div style={{ flex: 1, minWidth: 140 }}>
+                <input
+                  value={tagInput}
+                  onChange={e => setTagInput(e.target.value)}
+                  onKeyDown={e => {
+                    if (e.key === 'Enter') {
+                      e.preventDefault();
+                      const tag = tagInput.trim();
+                      setTagFilter(tag);
+                      setTagInput('');
+                    }
+                  }}
+                  placeholder="タグで絞り込み (Enter で確定)"
+                  style={{ width: '100%', padding: '6px 12px', border: '1px solid #d1d5db', borderRadius: 6, fontSize: 14, outline: 'none', boxSizing: 'border-box' }}
+                  onFocus={e => e.currentTarget.style.borderColor = '#008c8c'}
+                  onBlur={e => e.currentTarget.style.borderColor = '#d1d5db'}
+                />
+                {tagFilter && (
+                  <div style={{ display: 'flex', gap: 4, marginTop: 4, flexWrap: 'wrap' }}>
+                    <span style={{ display: 'inline-flex', alignItems: 'center', gap: 3, padding: '2px 8px 2px 10px', background: '#e0f2f2', color: '#008c8c', borderRadius: 9999, fontSize: 12, fontWeight: 600 }}>
+                      {tagFilter}
+                      <button onClick={() => setTagFilter('')}
+                        style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#008c8c', fontSize: 15, lineHeight: 1, padding: '0 0 0 2px', display: 'flex', alignItems: 'center' }}>×</button>
+                    </span>
+                  </div>
+                )}
+              </div>
             </div>
           </form>
 

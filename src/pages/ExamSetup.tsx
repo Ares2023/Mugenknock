@@ -98,6 +98,7 @@ export default function ExamSetup() {
   const [selectedTag, setSelectedTag] = useState<string>(() => loadExamPrefs(localStorage.getItem('targetExam') || localStorage.getItem('lastExamType') || 'SAA').tag ?? '');
   const [availableCount, setAvailableCount] = useState<number | null>(null);
   const [availableTags, setAvailableTags] = useState<string[]>([]);
+  const [tagInput, setTagInput] = useState('');
   const [loading, setLoading] = useState(false);
   const [showHint, setShowHint] = useState(() => !localStorage.getItem('sherpaExamHint'));
   const [examDraft, setExamDraft] = useState<any>(() => {
@@ -125,6 +126,7 @@ export default function ExamSetup() {
     const prefs = loadExamPrefs(examType);
     setSelectedDomains(prefs.domains ?? EXAM_DOMAINS[examType]);
     setSelectedTag(prefs.tag ?? '');
+    setTagInput('');
     setBookmarkOnly(prefs.bookmarkOnly ?? false);
     setUnansweredOnly(prefs.unansweredOnly ?? false);
     setIncorrectOnly(prefs.incorrectOnly ?? false);
@@ -395,30 +397,49 @@ export default function ExamSetup() {
             </div>
           </StepRow>
 
-          {/* タグフィルタ（最後） */}
+          {/* タグフィルタ（最後・チップ形式） */}
           {availableTags.length > 0 && (
             <StepRow n={tagStep!} isLast
               title={<>{t('examSetup.tag')} <span style={{ fontWeight: 400, fontSize: 'var(--font-size-sm)', color: 'var(--color-text-sub)' }}>{t('examSetup.optional')}</span></>}>
-              <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
-                <button type="button" onClick={() => setSelectedTag('')}
-                  style={{ padding: '3px 10px', border: '1px solid', borderRadius: 6, cursor: 'pointer', fontSize: 12,
-                    background: selectedTag === '' ? '#e0f2f2' : 'white',
-                    color: selectedTag === '' ? '#008c8c' : 'var(--color-text-sub)',
-                    borderColor: selectedTag === '' ? '#008c8c' : 'var(--color-border)',
-                    fontWeight: selectedTag === '' ? 700 : 400 }}>
-                  {t('examSetup.all')}
-                </button>
-                {availableTags.map(tag => (
-                  <button key={tag} type="button" onClick={() => setSelectedTag(selectedTag === tag ? '' : tag)}
-                    style={{ padding: '3px 10px', border: '1px solid', borderRadius: 6, cursor: 'pointer', fontSize: 12,
-                      background: selectedTag === tag ? '#e0f2f2' : 'white',
-                      color: selectedTag === tag ? '#008c8c' : 'var(--color-text-sub)',
-                      borderColor: selectedTag === tag ? '#008c8c' : 'var(--color-border)',
-                      fontWeight: selectedTag === tag ? 700 : 400 }}>
-                    {tag}
-                  </button>
-                ))}
-              </div>
+              {selectedTag ? (
+                <div style={{ display: 'flex', gap: 4, flexWrap: 'wrap' }}>
+                  <span style={{ display: 'inline-flex', alignItems: 'center', gap: 3, padding: '2px 8px 2px 10px', background: '#e0f2f2', color: '#008c8c', borderRadius: 9999, fontSize: 12, fontWeight: 600 }}>
+                    {selectedTag}
+                    <button onClick={() => { setSelectedTag(''); setTagInput(''); }}
+                      style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#008c8c', fontSize: 15, lineHeight: 1, padding: '0 0 0 2px', display: 'flex', alignItems: 'center' }}>×</button>
+                  </span>
+                </div>
+              ) : (
+                <div>
+                  <input
+                    value={tagInput}
+                    onChange={e => setTagInput(e.target.value)}
+                    onKeyDown={e => {
+                      if (e.key === 'Enter') {
+                        e.preventDefault();
+                        const kw = tagInput.trim().toLowerCase();
+                        const match = availableTags.find(t => t.toLowerCase() === kw) ?? availableTags.find(t => t.toLowerCase().includes(kw));
+                        if (match) { setSelectedTag(match); setTagInput(''); }
+                        else if (tagInput.trim()) { setSelectedTag(tagInput.trim()); setTagInput(''); }
+                      }
+                    }}
+                    placeholder={lang === 'ja' ? 'タグ名を入力 (Enter で確定)' : 'Type tag name (Enter to confirm)'}
+                    style={{ width: '100%', padding: '5px 10px', border: '1px solid var(--color-border)', borderRadius: 6, fontSize: 13, outline: 'none', boxSizing: 'border-box' }}
+                    onFocus={e => e.currentTarget.style.borderColor = '#008c8c'}
+                    onBlur={e => e.currentTarget.style.borderColor = 'var(--color-border)'}
+                  />
+                  {tagInput && (
+                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: 4, marginTop: 4 }}>
+                      {availableTags.filter(t => t.toLowerCase().includes(tagInput.trim().toLowerCase())).slice(0, 12).map(t => (
+                        <button key={t} type="button" onClick={() => { setSelectedTag(t); setTagInput(''); }}
+                          style={{ padding: '2px 8px', border: '1px solid #d1d5db', borderRadius: 6, cursor: 'pointer', fontSize: 11, background: 'white', color: 'var(--color-text-sub)' }}>
+                          {t}
+                        </button>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              )}
             </StepRow>
           )}
 
