@@ -281,12 +281,12 @@ export default function ExamSession() {
               )}
               <button
                 onClick={() => setReportOpen(true)}
-                style={{ background: 'none', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 3, color: 'var(--color-text-light)', fontSize: 'var(--font-size-sm)', padding: '4px 6px', borderRadius: 'var(--border-radius-sm)', transition: 'all 0.2s' }}
+                style={{ background: 'none', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 4, color: 'var(--color-text-light)', fontSize: 'var(--font-size-sm)', padding: '4px 8px', borderRadius: 'var(--border-radius-sm)', transition: 'all 0.2s' }}
                 onMouseEnter={e => { e.currentTarget.style.color = 'var(--color-danger)'; e.currentTarget.style.background = '#fdf3f1'; }}
                 onMouseLeave={e => { e.currentTarget.style.color = 'var(--color-text-light)'; e.currentTarget.style.background = 'none'; }}
                 title={lang === 'ja' ? '問題の不備を通報' : 'Report an issue'}
               >
-                <span style={{ fontSize: 13 }}>⚑</span>
+                <span style={{ fontSize: 14 }}>⚑</span>
                 <span>{lang === 'ja' ? '通報' : 'Report'}</span>
               </button>
             </div>

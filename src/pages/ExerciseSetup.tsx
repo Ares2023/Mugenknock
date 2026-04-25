@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { API_ENDPOINT, EXAM_TYPES, EXAM_DOMAINS, PASS_SCORES, DOMAIN_NAME_EN } from '../constants';
+import { API_ENDPOINT, EXAM_TYPES, EXAM_CONFIGS, EXAM_DOMAINS, PASS_SCORES, DOMAIN_NAME_EN } from '../constants';
 import { useAuth } from '../contexts/AuthContext';
 import { useLanguage } from '../contexts/LanguageContext';
 import Card from '../components/ui/Card';
@@ -39,69 +39,6 @@ const StepRow = ({ n, optional = false, isLast = false, title, children }: {
   </div>
 );
 
-const EXAM_INFO: Record<string, {
-  fullName: string;
-  examCode: string;
-  timeLimit: string;
-  totalQuestions: number;
-  scoredQuestions: number;
-  categories: { name: string; ratio: string }[];
-}> = {
-  CLF: {
-    fullName: 'AWS Certified Cloud Practitioner',
-    examCode: 'CLF-C02',
-    timeLimit: '90分',
-    totalQuestions: 65,
-    scoredQuestions: 50,
-    categories: [
-      { name: 'クラウドのコンセプト', ratio: '24%' },
-      { name: 'セキュリティとコンプライアンス', ratio: '30%' },
-      { name: 'クラウドテクノロジーとサービス', ratio: '34%' },
-      { name: '請求・料金・サポート', ratio: '12%' },
-    ],
-  },
-  SAA: {
-    fullName: 'AWS Certified Solutions Architect – Associate',
-    examCode: 'SAA-C03',
-    timeLimit: '130分',
-    totalQuestions: 65,
-    scoredQuestions: 65,
-    categories: [
-      { name: 'セキュアなアーキテクチャの設計', ratio: '30%' },
-      { name: '弾力性に優れたアーキテクチャの設計', ratio: '26%' },
-      { name: '高パフォーマンスなアーキテクチャの設計', ratio: '24%' },
-      { name: 'コスト最適化されたアーキテクチャの設計', ratio: '20%' },
-    ],
-  },
-  SAP: {
-    fullName: 'AWS Certified Solutions Architect – Professional',
-    examCode: 'SAP-C02',
-    timeLimit: '180分',
-    totalQuestions: 75,
-    scoredQuestions: 65,
-    categories: [
-      { name: '組織の複雑さに対応したソリューションの設計', ratio: '26%' },
-      { name: '新しいソリューションの設計', ratio: '29%' },
-      { name: '既存ソリューションの継続的改善', ratio: '25%' },
-      { name: 'ワークロードの移行とモダナイゼーション', ratio: '20%' },
-    ],
-  },
-  DOP: {
-    fullName: 'AWS Certified DevOps Engineer – Professional',
-    examCode: 'DOP-C02',
-    timeLimit: '180分',
-    totalQuestions: 75,
-    scoredQuestions: 65,
-    categories: [
-      { name: 'SDLCの自動化', ratio: '22%' },
-      { name: '設定管理とIaC', ratio: '17%' },
-      { name: '耐障害性の高いクラウドソリューションの設計と実装', ratio: '15%' },
-      { name: 'モニタリングとロギング', ratio: '15%' },
-      { name: 'インシデントおよびイベントへの対応', ratio: '14%' },
-      { name: 'セキュリティとコンプライアンス', ratio: '17%' },
-    ],
-  },
-};
 
 function shuffleArray<T>(arr: T[]): T[] {
   const a = [...arr];
@@ -154,7 +91,7 @@ export default function ExerciseSetup() {
   });
   const hasDraft = exerciseDraft?.examType === examType;
 
-  const info = EXAM_INFO[examType];
+  const info = EXAM_CONFIGS[examType];
   const passScore = PASS_SCORES[examType];
   const [availableCount, setAvailableCount] = useState<number | null>(null);
   const [answeredCount, setAnsweredCount] = useState<number | null>(null);

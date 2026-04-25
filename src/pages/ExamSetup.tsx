@@ -39,36 +39,6 @@ const StepRow = ({ n, optional = false, isLast = false, title, children }: {
   </div>
 );
 
-const EXAM_CATEGORIES: Record<string, { name: string; ratio: string }[]> = {
-  CLF: [
-    { name: 'クラウドのコンセプト', ratio: '24%' },
-    { name: 'セキュリティとコンプライアンス', ratio: '30%' },
-    { name: 'クラウドテクノロジーとサービス', ratio: '34%' },
-    { name: '請求・料金・サポート', ratio: '12%' },
-  ],
-  SAA: [
-    { name: 'セキュアなアーキテクチャの設計', ratio: '30%' },
-    { name: '弾力性に優れたアーキテクチャの設計', ratio: '26%' },
-    { name: '高パフォーマンスなアーキテクチャの設計', ratio: '24%' },
-    { name: 'コスト最適化されたアーキテクチャの設計', ratio: '20%' },
-  ],
-  SAP: [
-    { name: '組織の複雑さに対応したソリューションの設計', ratio: '26%' },
-    { name: '新しいソリューションの設計', ratio: '29%' },
-    { name: '既存ソリューションの継続的改善', ratio: '25%' },
-    { name: 'ワークロードの移行とモダナイゼーション', ratio: '20%' },
-  ],
-  DOP: [
-    { name: 'SDLCの自動化', ratio: '22%' },
-    { name: '設定管理とIaC', ratio: '17%' },
-    { name: '耐障害性の高いクラウドソリューションの設計と実装', ratio: '15%' },
-    { name: 'モニタリングとロギング', ratio: '15%' },
-    { name: 'インシデントおよびイベントへの対応', ratio: '14%' },
-    { name: 'セキュリティとコンプライアンス', ratio: '17%' },
-  ],
-};
-
-const SCORED_QUESTIONS: Record<string, number> = { CLF: 50, SAA: 65, SAP: 65, DOP: 65 };
 
 const EXAM_PREFS_KEY = 'examPrefs';
 const loadExamPrefs = (et: string) => {

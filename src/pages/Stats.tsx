@@ -182,7 +182,7 @@ export default function Stats() {
                   </div>
                   <div style={{ marginBottom: 'var(--spacing-lg)' }}>
                     <div style={{ fontSize: 'var(--font-size-xs)', color: 'var(--color-text-sub)', marginBottom: 'var(--spacing-sm)', fontWeight: 700 }}>{t('stats.exerciseProgressLabel')}</div>
-                    <div style={{ background: 'var(--color-bg-main)', borderRadius: 10, height: 6, overflow: 'hidden' }}>
+                    <div style={{ background: 'var(--color-bg-main)', borderRadius: 10, height: 8, overflow: 'hidden' }}>
                       <div style={{ width: `${pct}%`, background: 'var(--color-primary)', height: '100%', transition: 'width 0.4s' }} />
                     </div>
                     <div style={{ fontSize: 'var(--font-size-sm)', color: 'var(--color-text-main)', marginTop: 'var(--spacing-sm)' }}>
