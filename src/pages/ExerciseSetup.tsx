@@ -138,6 +138,8 @@ export default function ExerciseSetup() {
   const [availableCount, setAvailableCount] = useState<number | null>(null);
   const [answeredCount, setAnsweredCount] = useState<number | null>(null);
   const [incorrectCountTotal, setIncorrectCountTotal] = useState<number | null>(null);
+  type DomainStat = { tagId: string; correctCount: number; incorrectCount: number };
+  const [domainStats, setDomainStats] = useState<DomainStat[]>([]);
   const [availableTags, setAvailableTags] = useState<string[]>([]);
 
   const isFirstRender = useRef(true);
@@ -160,6 +162,7 @@ export default function ExerciseSetup() {
   useEffect(() => {
     setAvailableCount(null);
     setAnsweredCount(null);
+    setIncorrectCountTotal(null);
 
     const fetchCounts = async () => {
       if (selectedDomains.length === 0) { setAvailableCount(0); return; }
@@ -208,9 +211,14 @@ export default function ExerciseSetup() {
         .then(r => r.json())
         .then(d => setIncorrectCountTotal((d.questionIds ?? []).length))
         .catch(() => setIncorrectCountTotal(0));
+      fetch(`${API_ENDPOINT}/users/me/stats?userId=${user.userId}`)
+        .then(r => r.json())
+        .then(d => setDomainStats(d.stats ?? []))
+        .catch(() => setDomainStats([]));
     } else {
       setAnsweredCount(0);
       setIncorrectCountTotal(0);
+      setDomainStats([]);
     }
   }, [examType, selectedDomains, selectedTag, user, bookmarkOnly, unansweredOnly, incorrectOnly]);
 
@@ -501,27 +509,6 @@ export default function ExerciseSetup() {
         {/* 右：成績パネル */}
         <Card padding="var(--spacing-lg)" style={{ alignSelf: 'start' }}>
 
-          {/* 今回の出題 */}
-          <div style={{ marginBottom: 'var(--spacing-lg)' }}>
-            <div style={{ fontSize: 'var(--font-size-xs)', fontWeight: 700, color: 'var(--color-text-sub)', textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: 'var(--spacing-sm)' }}>{t('exerciseSetup.thisSession')}</div>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline' }}>
-              <span style={{ fontSize: 'var(--font-size-sm)', color: 'var(--color-text-main)' }}>
-                {(() => {
-                  if (unansweredOnly && bookmarkOnly) return t('exerciseSetup.unansweredBookmark');
-                  if (unansweredOnly) return t('exerciseSetup.unansweredLabel');
-                  if (incorrectOnly && bookmarkOnly) return t('exerciseSetup.incorrectBookmark');
-                  if (incorrectOnly) return t('exerciseSetup.incorrectLabel');
-                  if (bookmarkOnly) return t('exerciseSetup.bookmarkLabel');
-                  return t('exerciseSetup.filteredCount');
-                })()}
-              </span>
-              <span style={{ fontSize: 'var(--font-size-xl)', fontWeight: 700, color: 'var(--color-primary)' }}>
-                {availableCount === null ? '...' : availableCount}
-                <span style={{ fontSize: 'var(--font-size-sm)', fontWeight: 400, marginLeft: 4 }}>{t('exerciseSetup.qUnit')}</span>
-              </span>
-            </div>
-          </div>
-
           {/* 学習進捗 */}
           <div>
             <div style={{ fontSize: 'var(--font-size-xs)', fontWeight: 700, color: 'var(--color-text-sub)', textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: 'var(--spacing-sm)' }}>
@@ -558,6 +545,40 @@ export default function ExerciseSetup() {
                     </span>
                   </div>
                 )}
+                {/* 苦手ドメイン トップ3 */}
+                {(() => {
+                  const ranked = EXAM_DOMAINS[examType]
+                    .map(d => {
+                      const s = domainStats.find(x => x.tagId === d);
+                      const correct = s?.correctCount ?? 0;
+                      const incorrect = s?.incorrectCount ?? 0;
+                      const total = correct + incorrect;
+                      const rate = total > 0 ? correct / total : null;
+                      return { d, rate, total };
+                    })
+                    .filter(x => x.rate !== null)
+                    .sort((a, b) => a.rate! - b.rate!)
+                    .slice(0, 3);
+                  if (ranked.length === 0) return null;
+                  return (
+                    <div style={{ marginTop: 'var(--spacing-md)', paddingTop: 'var(--spacing-sm)', borderTop: '1px solid var(--color-border)' }}>
+                      <div style={{ fontSize: 'var(--font-size-xs)', fontWeight: 700, color: 'var(--color-text-sub)', marginBottom: 'var(--spacing-xs)' }}>
+                        {lang === 'ja' ? '苦手ドメイン' : 'Weakest Domains'}
+                      </div>
+                      {ranked.map(({ d, rate }, i) => (
+                        <div key={d} style={{ display: 'flex', alignItems: 'center', gap: 'var(--spacing-sm)', marginBottom: 4 }}>
+                          <span style={{ fontSize: 11, fontWeight: 700, color: 'var(--color-text-light)', width: 14, flexShrink: 0 }}>{i + 1}</span>
+                          <span style={{ fontSize: 'var(--font-size-xs)', color: 'var(--color-text-main)', flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                            {lang === 'en' ? (DOMAIN_NAME_EN[d] ?? d) : d}
+                          </span>
+                          <span style={{ fontSize: 'var(--font-size-xs)', fontWeight: 700, color: 'var(--color-danger)', flexShrink: 0 }}>
+                            {Math.round(rate! * 100)}%
+                          </span>
+                        </div>
+                      ))}
+                    </div>
+                  );
+                })()}
               </>
             )}
           </div>

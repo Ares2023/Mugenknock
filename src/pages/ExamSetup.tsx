@@ -437,25 +437,6 @@ export default function ExamSetup() {
         {/* 右：成績パネル */}
         <Card padding="var(--spacing-lg)" style={{ alignSelf: 'start' }}>
 
-          {/* 今回の出題 */}
-          <div style={{ marginBottom: 'var(--spacing-lg)' }}>
-            <div style={{ fontSize: 'var(--font-size-xs)', fontWeight: 700, color: 'var(--color-text-sub)', textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: 'var(--spacing-sm)' }}>{t('examSetup.thisSession')}</div>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: shortage !== null && shortage > 0 ? 8 : 0 }}>
-              <span style={{ fontSize: 'var(--font-size-sm)', color: 'var(--color-text-main)' }}>
-                {(!allDomainsSelected && selectedDomains.length > 0) || selectedTag ? t('examSetup.filteredCount') : t('examSetup.questionCount')}
-              </span>
-              <span style={{ fontSize: 'var(--font-size-xl)', fontWeight: 700, color: 'var(--color-primary)' }}>
-                {useableCount === null ? '...' : useableCount}
-                <span style={{ fontSize: 'var(--font-size-sm)', fontWeight: 400, marginLeft: 4 }}>{t('examSetup.qUnit')}</span>
-              </span>
-            </div>
-            {shortage !== null && shortage > 0 && (
-              <div style={{ padding: '6px 10px', background: 'var(--color-danger)', borderRadius: 'var(--border-radius-md)' }}>
-                <span style={{ fontSize: 'var(--font-size-sm)', color: 'white', fontWeight: 700 }}>⚠ {shortage}{t('examSetup.shortage')}</span>
-              </div>
-            )}
-          </div>
-
           {/* テスト履歴 */}
           <div>
             <div style={{ fontSize: 'var(--font-size-xs)', fontWeight: 700, color: 'var(--color-text-sub)', textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: 'var(--spacing-sm)' }}>
