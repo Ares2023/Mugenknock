@@ -137,6 +137,7 @@ export default function ExerciseSetup() {
   const passScore = PASS_SCORES[examType];
   const [availableCount, setAvailableCount] = useState<number | null>(null);
   const [answeredCount, setAnsweredCount] = useState<number | null>(null);
+  const [incorrectCountTotal, setIncorrectCountTotal] = useState<number | null>(null);
   const [availableTags, setAvailableTags] = useState<string[]>([]);
 
   const isFirstRender = useRef(true);
@@ -203,8 +204,13 @@ export default function ExerciseSetup() {
         .then(r => r.json())
         .then(d => setAnsweredCount(d.answeredCount ?? 0))
         .catch(() => setAnsweredCount(0));
+      fetch(`${API_ENDPOINT}/users/me/incorrect-questions?userId=${user.userId}&examType=${examType}`)
+        .then(r => r.json())
+        .then(d => setIncorrectCountTotal((d.questionIds ?? []).length))
+        .catch(() => setIncorrectCountTotal(0));
     } else {
       setAnsweredCount(0);
+      setIncorrectCountTotal(0);
     }
   }, [examType, selectedDomains, selectedTag, user, bookmarkOnly, unansweredOnly, incorrectOnly]);
 
@@ -330,7 +336,7 @@ export default function ExerciseSetup() {
         </div>
       )}
 
-      <div className="setup-grid" style={{ display: 'grid', gridTemplateColumns: '1fr 440px', gap: 'var(--spacing-lg)' }}>
+      <div className="setup-grid" style={{ display: 'grid', gridTemplateColumns: '1fr 280px', gap: 'var(--spacing-lg)' }}>
 
         {/* 左：設定フォーム */}
         <Card padding="var(--spacing-xl)">
@@ -492,127 +498,68 @@ export default function ExerciseSetup() {
           </div>
         </Card>
 
-        {/* 右：試験情報パネル（サブ） */}
-        <Card padding="var(--spacing-lg)" style={{ border: '2px solid var(--color-border)', height: '100%' }}>
-          {/* 試験ヘッダー */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--spacing-sm)', marginBottom: 'var(--spacing-sm)' }}>
-            <Badge variant="secondary">{examType}</Badge>
-            <span style={{ fontSize: 'var(--font-size-sm)', color: 'var(--color-text-sub)', fontWeight: 700 }}>{info.examCode}</span>
-          </div>
-          <h3 style={{ fontSize: 'var(--font-size-md)', fontWeight: 700, margin: '0 0 var(--spacing-lg)', color: 'var(--color-text-main)', lineHeight: 1.4 }}>{info.fullName}</h3>
+        {/* 右：成績パネル */}
+        <Card padding="var(--spacing-lg)" style={{ alignSelf: 'start' }}>
 
-          {/* ── 試験概要 ── */}
+          {/* 今回の出題 */}
           <div style={{ marginBottom: 'var(--spacing-lg)' }}>
-            <div style={{ fontSize: 'var(--font-size-xs)', fontWeight: 700, color: 'var(--color-text-sub)', textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: 'var(--spacing-sm)' }}>{t('exerciseSetup.overview')}</div>
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 1, background: 'var(--color-border)', border: '1px solid var(--color-border)', borderRadius: 'var(--border-radius-md)', overflow: 'hidden' }}>
-              <div style={{ background: 'var(--color-bg-white)', padding: '10px 12px' }}>
-                <div style={{ fontSize: 'var(--font-size-xs)', color: 'var(--color-text-sub)', marginBottom: 4 }}>{t('exerciseSetup.totalQuestions')}</div>
-                <div style={{ fontSize: 'var(--font-size-xl)', fontWeight: 700 }}>{info.totalQuestions}<span style={{ fontSize: 'var(--font-size-xs)', fontWeight: 400, marginLeft: 2 }}>{t('exerciseSetup.qUnit')}</span></div>
-                {info.scoredQuestions < info.totalQuestions && (
-                  <div style={{ fontSize: 'var(--font-size-xs)', color: 'var(--color-text-light)', marginTop: 2 }}>{t('exerciseSetup.scored')} {info.scoredQuestions}{t('exerciseSetup.qUnit')}</div>
-                )}
-              </div>
-              <div style={{ background: 'var(--color-bg-white)', padding: '10px 12px' }}>
-                <div style={{ fontSize: 'var(--font-size-xs)', color: 'var(--color-text-sub)', marginBottom: 4 }}>{t('exerciseSetup.timeLimit')}</div>
-                <div style={{ fontSize: 'var(--font-size-xl)', fontWeight: 700 }}>{info.timeLimit}</div>
-              </div>
-              <div style={{ background: 'var(--color-bg-white)', padding: '10px 12px' }}>
-                <div style={{ fontSize: 'var(--font-size-xs)', color: 'var(--color-text-sub)', marginBottom: 4 }}>{t('exerciseSetup.passScore')}</div>
-                <div style={{ fontSize: 'var(--font-size-xl)', fontWeight: 700, color: 'var(--color-success)' }}>{passScore}</div>
-              </div>
+            <div style={{ fontSize: 'var(--font-size-xs)', fontWeight: 700, color: 'var(--color-text-sub)', textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: 'var(--spacing-sm)' }}>{t('exerciseSetup.thisSession')}</div>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline' }}>
+              <span style={{ fontSize: 'var(--font-size-sm)', color: 'var(--color-text-main)' }}>
+                {(() => {
+                  if (unansweredOnly && bookmarkOnly) return t('exerciseSetup.unansweredBookmark');
+                  if (unansweredOnly) return t('exerciseSetup.unansweredLabel');
+                  if (incorrectOnly && bookmarkOnly) return t('exerciseSetup.incorrectBookmark');
+                  if (incorrectOnly) return t('exerciseSetup.incorrectLabel');
+                  if (bookmarkOnly) return t('exerciseSetup.bookmarkLabel');
+                  return t('exerciseSetup.filteredCount');
+                })()}
+              </span>
+              <span style={{ fontSize: 'var(--font-size-xl)', fontWeight: 700, color: 'var(--color-primary)' }}>
+                {availableCount === null ? '...' : availableCount}
+                <span style={{ fontSize: 'var(--font-size-sm)', fontWeight: 400, marginLeft: 4 }}>{t('exerciseSetup.qUnit')}</span>
+              </span>
             </div>
           </div>
 
-          {/* ── あなたの進捗 ── */}
-          <div style={{ marginBottom: 'var(--spacing-lg)', padding: 'var(--spacing-md)', background: 'var(--color-primary-light)', border: '1px solid var(--color-primary-light)', borderRadius: 'var(--border-radius-md)' }}>
-            <div style={{ fontSize: 'var(--font-size-xs)', fontWeight: 700, color: 'var(--color-primary)', textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: 'var(--spacing-sm)' }}>{t('exerciseSetup.progress')}</div>
-            {answeredCount === null ? (
-              <div style={{ fontSize: 'var(--font-size-sm)', color: 'var(--color-text-sub)' }}>{t('exerciseSetup.loadingProgress')}</div>
+          {/* 学習進捗 */}
+          <div>
+            <div style={{ fontSize: 'var(--font-size-xs)', fontWeight: 700, color: 'var(--color-text-sub)', textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: 'var(--spacing-sm)' }}>
+              {lang === 'ja' ? '学習進捗' : 'Progress'} — {examType}
+            </div>
+            {!user ? (
+              <div style={{ fontSize: 'var(--font-size-sm)', color: 'var(--color-text-light)' }}>
+                {lang === 'ja' ? 'ログインすると進捗を確認できます' : 'Log in to view your progress'}
+              </div>
+            ) : answeredCount === null ? (
+              <div style={{ fontSize: 'var(--font-size-sm)', color: 'var(--color-text-light)' }}>...</div>
             ) : (
               <>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: 'var(--spacing-xs)' }}>
-                  <span style={{ fontSize: 'var(--font-size-sm)', color: 'var(--color-text-main)' }}>{t('exerciseSetup.answered')}</span>
-                  <span style={{ fontSize: 'var(--font-size-lg)', fontWeight: 700, color: 'var(--color-primary)' }}>
-                    {answeredCount}
-                    <span style={{ fontSize: 'var(--font-size-sm)', fontWeight: 400, color: 'var(--color-text-sub)' }}> / {info.totalQuestions} {t('exerciseSetup.qUnit')}</span>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: 4 }}>
+                  <span style={{ fontSize: 'var(--font-size-sm)', color: 'var(--color-text-sub)' }}>{t('exerciseSetup.answered')}</span>
+                  <span style={{ fontSize: 'var(--font-size-base)', fontWeight: 700, color: 'var(--color-primary)' }}>
+                    {answeredCount}<span style={{ fontSize: 'var(--font-size-sm)', fontWeight: 400, color: 'var(--color-text-sub)' }}> / {info.totalQuestions} {t('exerciseSetup.qUnit')}</span>
                   </span>
                 </div>
-                <div style={{ background: 'rgba(0,140,140,0.1)', borderRadius: 10, height: 6, overflow: 'hidden' }}>
+                <div style={{ background: 'var(--color-border)', borderRadius: 10, height: 6, overflow: 'hidden', marginBottom: 4 }}>
                   <div style={{
                     width: `${info.totalQuestions > 0 ? Math.min(100, Math.round((answeredCount / info.totalQuestions) * 100)) : 0}%`,
-                    background: 'var(--color-primary)', height: '100%', borderRadius: 10, transition: 'width 0.4s'
+                    background: 'var(--color-primary)', height: '100%', borderRadius: 10, transition: 'width 0.4s',
                   }} />
                 </div>
-                <div style={{ fontSize: 'var(--font-size-xs)', color: 'var(--color-primary)', marginTop: 4, textAlign: 'right', fontWeight: 700 }}>
+                <div style={{ fontSize: 'var(--font-size-xs)', color: 'var(--color-primary)', textAlign: 'right', fontWeight: 700, marginBottom: 'var(--spacing-sm)' }}>
                   {info.totalQuestions > 0 ? Math.min(100, Math.round((answeredCount / info.totalQuestions) * 100)) : 0}%
                 </div>
-              </>
-            )}
-          </div>
-
-          {/* ── 今回の出題 ── */}
-          {(() => {
-            const hasFilter = bookmarkOnly || unansweredOnly || incorrectOnly;
-            let bg = 'var(--color-bg-main)';
-            let border = 'var(--color-border)';
-            let color = 'var(--color-primary)';
-
-            if (unansweredOnly && bookmarkOnly) {
-              bg = '#f0fff4'; border = '#b7ebc8'; color = '#1d7a3d';
-            } else if (unansweredOnly) {
-              bg = '#f0fff4'; border = '#b7ebc8'; color = '#1d7a3d';
-            } else if (incorrectOnly && bookmarkOnly) {
-              bg = '#fff5f5'; border = '#fecaca'; color = '#dc2626';
-            } else if (incorrectOnly) {
-              bg = '#fff5f5'; border = '#fecaca'; color = '#dc2626';
-            } else if (bookmarkOnly) {
-              bg = '#fffbf0'; border = '#ffe8a0'; color = '#b85c00';
-            }
-
-            const label = (() => {
-              if (unansweredOnly && bookmarkOnly) return t('exerciseSetup.unansweredBookmark');
-              if (unansweredOnly) return t('exerciseSetup.unansweredLabel');
-              if (incorrectOnly && bookmarkOnly) return t('exerciseSetup.incorrectBookmark');
-              if (incorrectOnly) return t('exerciseSetup.incorrectLabel');
-              if (bookmarkOnly) return t('exerciseSetup.bookmarkLabel');
-              return selectedDomains.length > 0 || selectedTag ? t('exerciseSetup.filteredCount') : t('exerciseSetup.siteCount');
-            })();
-            return (
-              <div style={{ marginBottom: 'var(--spacing-lg)', padding: 'var(--spacing-md)', background: bg, border: `1px solid ${border}`, borderRadius: 'var(--border-radius-md)' }}>
-                <div style={{ fontSize: 'var(--font-size-xs)', fontWeight: 700, color: 'var(--color-text-sub)', textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: 'var(--spacing-sm)' }}>{t('exerciseSetup.thisSession')}</div>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline' }}>
-                  <span style={{ fontSize: 'var(--font-size-sm)', color: 'var(--color-text-main)' }}>{label}</span>
-                  <span style={{ fontSize: 'var(--font-size-xl)', fontWeight: 700, color }}>
-                    {availableCount === null ? '...' : availableCount}
-                    <span style={{ fontSize: 'var(--font-size-sm)', fontWeight: 400, marginLeft: 4 }}>{t('exerciseSetup.qUnit')}</span>
-                  </span>
-                </div>
-                {(selectedDomains.length > 0 || selectedTag) && availableCount !== null && !hasFilter && (
-                  <div style={{ fontSize: 'var(--font-size-xs)', color: 'var(--color-text-sub)', marginTop: 4 }}>
-                    {selectedDomains.length > 0 && <span style={{ marginRight: 'var(--spacing-sm)' }}>{selectedDomains.map(d => lang === 'en' ? (DOMAIN_NAME_EN[d] ?? d) : d).join(', ')}</span>}
-                    {selectedTag && <span>{selectedTag}</span>}
+                {incorrectCountTotal !== null && (
+                  <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 'var(--font-size-sm)', paddingTop: 'var(--spacing-sm)', borderTop: '1px solid var(--color-border)' }}>
+                    <span style={{ color: 'var(--color-text-sub)' }}>{lang === 'ja' ? '要復習' : 'Incorrect'}</span>
+                    <span style={{ fontWeight: 700, color: incorrectCountTotal > 0 ? 'var(--color-danger)' : 'var(--color-text-sub)' }}>
+                      {incorrectCountTotal} {t('exerciseSetup.qUnit')}
+                    </span>
                   </div>
                 )}
-              </div>
-            );
-          })()}
-
-          {/* ── 出題範囲と比率 ── */}
-          <div style={{ borderTop: '1px solid var(--color-border)', paddingTop: 'var(--spacing-md)' }}>
-            <div style={{ fontSize: 'var(--font-size-xs)', fontWeight: 700, color: 'var(--color-text-sub)', textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: 'var(--spacing-md)' }}>{t('exerciseSetup.distribution')}</div>
-            {info.categories.map(cat => (
-              <div key={cat.name} style={{ marginBottom: 'var(--spacing-sm)' }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 'var(--font-size-sm)', marginBottom: 4 }}>
-                  <span style={{ color: selectedDomains.includes(cat.name) ? 'var(--color-primary)' : 'var(--color-text-main)', fontWeight: selectedDomains.includes(cat.name) ? 700 : 400 }}>
-                    {lang === 'en' ? (DOMAIN_NAME_EN[cat.name] ?? cat.name) : cat.name}
-                  </span>
-                  <span style={{ fontWeight: 700, color: 'var(--color-primary)', flexShrink: 0, marginLeft: 'var(--spacing-sm)' }}>{cat.ratio}</span>
-                </div>
-                <div style={{ background: 'var(--color-border)', borderRadius: 10, height: 4 }}>
-                  <div style={{ background: selectedDomains.includes(cat.name) ? 'var(--color-primary)' : 'var(--color-text-light)', borderRadius: 10, height: 4, width: cat.ratio }} />
-                </div>
-              </div>
-            ))}
+              </>
+            )}
           </div>
         </Card>
 

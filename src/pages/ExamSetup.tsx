@@ -88,6 +88,10 @@ export default function ExamSetup() {
   const [shuffle, setShuffle] = useState<boolean>(() => loadExamPrefs(localStorage.getItem('targetExam') || localStorage.getItem('lastExamType') || 'SAA').shuffle ?? false);
   const hasDraft = examDraft?.examType === examType;
 
+  type ExamSession = { sessionId: string; examType: string; mode: string; score: number; isPassed: boolean; startedAt: string; };
+  const [examSessions, setExamSessions] = useState<ExamSession[]>([]);
+  const [sessionsLoading, setSessionsLoading] = useState(false);
+
   const config = EXAM_CONFIGS[examType];
   const passScore = PASS_SCORES[examType];
 
@@ -171,6 +175,18 @@ export default function ExamSetup() {
       .then(d => setAvailableTags(d.tags || []))
       .catch(() => setAvailableTags([]));
   }, [examType]);
+
+  useEffect(() => {
+    if (!user) { setExamSessions([]); return; }
+    setSessionsLoading(true);
+    fetch(`${API_ENDPOINT}/users/me/sessions?userId=${user.userId}&limit=50`)
+      .then(r => r.json())
+      .then(d => setExamSessions(
+        (d.items ?? []).filter((s: ExamSession) => s.examType === examType && s.mode === 'exam').slice(0, 10)
+      ))
+      .catch(() => setExamSessions([]))
+      .finally(() => setSessionsLoading(false));
+  }, [user, examType]);
 
   const startExam = async () => {
     if (selectedDomains.length === 0) {
@@ -279,7 +295,7 @@ export default function ExamSetup() {
         </div>
       )}
 
-      <div className="setup-grid" style={{ display: 'grid', gridTemplateColumns: '1fr 440px', gap: 'var(--spacing-lg)' }}>
+      <div className="setup-grid" style={{ display: 'grid', gridTemplateColumns: '1fr 280px', gap: 'var(--spacing-lg)' }}>
 
         {/* 左：設定フォーム */}
         <Card padding="var(--spacing-xl)">
@@ -418,50 +434,15 @@ export default function ExamSetup() {
           </div>
         </Card>
 
-        {/* 右：試験情報パネル（サブ） */}
-        <Card padding="var(--spacing-lg)" style={{ border: '2px solid var(--color-border)', height: '100%' }}>
-          {/* 試験ヘッダー */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--spacing-sm)', marginBottom: 'var(--spacing-sm)' }}>
-            <Badge variant="secondary">{examType}</Badge>
-            <span style={{ fontSize: 'var(--font-size-sm)', color: 'var(--color-text-sub)', fontWeight: 700 }}>{config.examCode}</span>
-          </div>
-          <h3 style={{ fontSize: 'var(--font-size-md)', fontWeight: 700, margin: '0 0 var(--spacing-lg)', color: 'var(--color-text-main)', lineHeight: 1.4 }}>{config.fullName}</h3>
+        {/* 右：成績パネル */}
+        <Card padding="var(--spacing-lg)" style={{ alignSelf: 'start' }}>
 
-          {/* ── 試験概要 ── */}
+          {/* 今回の出題 */}
           <div style={{ marginBottom: 'var(--spacing-lg)' }}>
-            <div style={{ fontSize: 'var(--font-size-xs)', fontWeight: 700, color: 'var(--color-text-sub)', textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: 'var(--spacing-sm)' }}>{t('examSetup.overview')}</div>
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 1, background: 'var(--color-border)', border: '1px solid var(--color-border)', borderRadius: 'var(--border-radius-md)', overflow: 'hidden' }}>
-              <div style={{ background: 'var(--color-bg-white)', padding: '10px 12px' }}>
-                <div style={{ fontSize: 'var(--font-size-xs)', color: 'var(--color-text-sub)', marginBottom: 4 }}>{t('examSetup.totalQuestions')}</div>
-                <div style={{ fontSize: 'var(--font-size-xl)', fontWeight: 700 }}>{config.totalQuestions}<span style={{ fontSize: 'var(--font-size-xs)', fontWeight: 400, marginLeft: 2 }}>{t('examSetup.qUnit')}</span></div>
-                {SCORED_QUESTIONS[examType] < config.totalQuestions && (
-                  <div style={{ fontSize: 'var(--font-size-xs)', color: 'var(--color-text-light)', marginTop: 2 }}>{t('examSetup.scored')} {SCORED_QUESTIONS[examType]}{t('examSetup.qUnit')}</div>
-                )}
-              </div>
-              <div style={{ background: 'var(--color-bg-white)', padding: '10px 12px' }}>
-                <div style={{ fontSize: 'var(--font-size-xs)', color: 'var(--color-text-sub)', marginBottom: 4 }}>{t('examSetup.timeLimit')}</div>
-                <div style={{ fontSize: 'var(--font-size-xl)', fontWeight: 700 }}>{config.timeLimitMin}<span style={{ fontSize: 'var(--font-size-xs)', fontWeight: 400, marginLeft: 2 }}>{t('examSetup.minUnit')}</span></div>
-              </div>
-              <div style={{ background: 'var(--color-bg-white)', padding: '10px 12px' }}>
-                <div style={{ fontSize: 'var(--font-size-xs)', color: 'var(--color-text-sub)', marginBottom: 4 }}>{t('examSetup.passScore')}</div>
-                <div style={{ fontSize: 'var(--font-size-xl)', fontWeight: 700, color: 'var(--color-success)' }}>{passScore}</div>
-              </div>
-            </div>
-          </div>
-
-          {/* ── 今回の出題 ── */}
-          <div style={{ marginBottom: 'var(--spacing-lg)', padding: 'var(--spacing-md)', background: shortage !== null && shortage > 0 ? '#fdf3f1' : 'var(--color-bg-main)', border: `1px solid ${shortage !== null && shortage > 0 ? 'var(--color-danger)' : 'var(--color-border)'}`, borderRadius: 'var(--border-radius-md)' }}>
             <div style={{ fontSize: 'var(--font-size-xs)', fontWeight: 700, color: 'var(--color-text-sub)', textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: 'var(--spacing-sm)' }}>{t('examSetup.thisSession')}</div>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: shortage !== null && shortage > 0 ? 8 : 0 }}>
               <span style={{ fontSize: 'var(--font-size-sm)', color: 'var(--color-text-main)' }}>
-                {(() => {
-                  if (unansweredOnly && bookmarkOnly) return t('exerciseSetup.unansweredBookmark');
-                  if (unansweredOnly) return t('exerciseSetup.unansweredLabel');
-                  if (incorrectOnly && bookmarkOnly) return t('exerciseSetup.incorrectBookmark');
-                  if (incorrectOnly) return t('exerciseSetup.incorrectLabel');
-                  if (bookmarkOnly) return t('exerciseSetup.bookmarkLabel');
-                  return (!allDomainsSelected && selectedDomains.length > 0) || selectedTag ? t('examSetup.filteredCount') : t('examSetup.questionCount');
-                })()}
+                {(!allDomainsSelected && selectedDomains.length > 0) || selectedTag ? t('examSetup.filteredCount') : t('examSetup.questionCount')}
               </span>
               <span style={{ fontSize: 'var(--font-size-xl)', fontWeight: 700, color: 'var(--color-primary)' }}>
                 {useableCount === null ? '...' : useableCount}
@@ -469,34 +450,43 @@ export default function ExamSetup() {
               </span>
             </div>
             {shortage !== null && shortage > 0 && (
-              <div style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '6px 10px', background: 'var(--color-danger)', borderRadius: 'var(--border-radius-md)' }}>
+              <div style={{ padding: '6px 10px', background: 'var(--color-danger)', borderRadius: 'var(--border-radius-md)' }}>
                 <span style={{ fontSize: 'var(--font-size-sm)', color: 'white', fontWeight: 700 }}>⚠ {shortage}{t('examSetup.shortage')}</span>
-              </div>
-            )}
-            {((!allDomainsSelected && selectedDomains.length > 0) || selectedTag) && (
-              <div style={{ fontSize: 'var(--font-size-xs)', color: 'var(--color-text-sub)', marginTop: 6 }}>
-                {!allDomainsSelected && selectedDomains.length > 0 && <span style={{ marginRight: 'var(--spacing-sm)' }}>{t('examSetup.domainLabel')}: {selectedDomains.map(d => lang === 'en' ? (DOMAIN_NAME_EN[d] ?? d) : d).join(', ')}</span>}
-                {selectedTag && <span>{t('examSetup.tagLabel')}: {selectedTag}</span>}
               </div>
             )}
           </div>
 
-          {/* ── 出題範囲と比率 ── */}
-          <div style={{ borderTop: '1px solid var(--color-border)', paddingTop: 'var(--spacing-md)' }}>
-            <div style={{ fontSize: 'var(--font-size-xs)', fontWeight: 700, color: 'var(--color-text-sub)', textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: 'var(--spacing-md)' }}>{t('examSetup.distribution')}</div>
-            {EXAM_CATEGORIES[examType].map(cat => (
-              <div key={cat.name} style={{ marginBottom: 'var(--spacing-sm)' }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 'var(--font-size-sm)', marginBottom: 4 }}>
-                  <span style={{ color: selectedDomains.includes(cat.name) ? 'var(--color-primary)' : 'var(--color-text-main)', fontWeight: selectedDomains.includes(cat.name) ? 700 : 400 }}>
-                    {lang === 'en' ? (DOMAIN_NAME_EN[cat.name] ?? cat.name) : cat.name}
-                  </span>
-                  <span style={{ fontWeight: 700, color: 'var(--color-primary)', flexShrink: 0, marginLeft: 'var(--spacing-sm)' }}>{cat.ratio}</span>
-                </div>
-                <div style={{ background: 'var(--color-border)', borderRadius: 10, height: 4 }}>
-                  <div style={{ background: selectedDomains.includes(cat.name) ? 'var(--color-primary)' : 'var(--color-text-light)', borderRadius: 10, height: 4, width: cat.ratio }} />
-                </div>
+          {/* テスト履歴 */}
+          <div>
+            <div style={{ fontSize: 'var(--font-size-xs)', fontWeight: 700, color: 'var(--color-text-sub)', textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: 'var(--spacing-sm)' }}>
+              {lang === 'ja' ? 'テスト履歴' : 'Score History'} — {examType}
+            </div>
+            {!user ? (
+              <div style={{ fontSize: 'var(--font-size-sm)', color: 'var(--color-text-light)' }}>
+                {lang === 'ja' ? 'ログインすると履歴を確認できます' : 'Log in to view score history'}
               </div>
-            ))}
+            ) : sessionsLoading ? (
+              <div style={{ fontSize: 'var(--font-size-sm)', color: 'var(--color-text-light)' }}>...</div>
+            ) : examSessions.length === 0 ? (
+              <div style={{ fontSize: 'var(--font-size-sm)', color: 'var(--color-text-light)' }}>
+                {lang === 'ja' ? 'まだ模試を受けていません' : 'No exam sessions yet'}
+              </div>
+            ) : (
+              <div>
+                {examSessions.map(s => {
+                  const d = new Date(s.startedAt);
+                  const dateStr = `${d.getMonth() + 1}/${d.getDate()}`;
+                  return (
+                    <div key={s.sessionId} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '5px 0', borderBottom: '1px solid var(--color-border)' }}>
+                      <span style={{ fontSize: 'var(--font-size-sm)', color: 'var(--color-text-sub)' }}>{dateStr}</span>
+                      <span style={{ fontSize: 'var(--font-size-base)', fontWeight: 700, color: s.isPassed ? 'var(--color-success)' : 'var(--color-danger)' }}>
+                        {s.score}%
+                      </span>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
           </div>
         </Card>
 
