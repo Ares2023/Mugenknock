@@ -18,6 +18,27 @@ const StepBadge = ({ n, optional = false }: { n: number; optional?: boolean }) =
   }}>{n}</span>
 );
 
+const StepRow = ({ n, optional = false, isLast = false, title, children }: {
+  n: number;
+  optional?: boolean;
+  isLast?: boolean;
+  title: React.ReactNode;
+  children: React.ReactNode;
+}) => (
+  <div style={{ display: 'flex', gap: 14 }}>
+    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', width: 20, flexShrink: 0 }}>
+      <StepBadge n={n} optional={optional} />
+      {!isLast && <div style={{ width: 2, flex: 1, background: 'var(--color-border)', marginTop: 5, borderRadius: 1 }} />}
+    </div>
+    <div style={{ flex: 1, paddingBottom: isLast ? 0 : 'var(--spacing-xl)' }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--spacing-sm)', fontWeight: 700, fontSize: 'var(--font-size-base)', lineHeight: '20px', marginBottom: 'var(--spacing-sm)' }}>
+        {title}
+      </div>
+      {children}
+    </div>
+  </div>
+);
+
 const EXAM_CATEGORIES: Record<string, { name: string; ratio: string }[]> = {
   CLF: [
     { name: 'クラウドのコンセプト', ratio: '24%' },
@@ -307,10 +328,7 @@ export default function ExamSetup() {
               <span style={{ fontSize: 'var(--font-size-sm)', color: 'var(--color-text-light)' }}>{t('examSetup.examTypeHome')}</span>
             </div>
           ) : (
-            <div style={{ marginBottom: 'var(--spacing-lg)' }}>
-              <label style={{ display: 'flex', alignItems: 'center', gap: 'var(--spacing-sm)', marginBottom: 'var(--spacing-sm)', fontWeight: 700, fontSize: 'var(--font-size-base)' }}>
-                <StepBadge n={examStep!} />{t('examSetup.examType')}
-              </label>
+            <StepRow n={examStep!} title={t('examSetup.examType')}>
               <div style={{ display: 'flex', flexWrap: 'wrap', gap: 'var(--spacing-sm)' }}>
                 {EXAM_TYPES.map(et => (
                   <Button
@@ -324,28 +342,23 @@ export default function ExamSetup() {
                   </Button>
                 ))}
               </div>
-            </div>
+            </StepRow>
           )}
 
           {/* ドメインフィルタ */}
-          <DomainSelector
-            domains={EXAM_DOMAINS[examType]}
-            selected={selectedDomains}
-            onChange={setSelectedDomains}
-            lang={lang}
-            label={
-              <label style={{ display: 'flex', alignItems: 'center', gap: 'var(--spacing-sm)', marginBottom: 'var(--spacing-sm)', fontWeight: 700, fontSize: 'var(--font-size-base)' }}>
-                <StepBadge n={domainStep} />{t('examSetup.domain')} <span style={{ fontWeight: 400, fontSize: 'var(--font-size-sm)', color: 'var(--color-text-sub)' }}>{t('examSetup.optional')}</span>
-              </label>
-            }
-          />
+          <StepRow n={domainStep} title={<>{t('examSetup.domain')} <span style={{ fontWeight: 400, fontSize: 'var(--font-size-sm)', color: 'var(--color-text-sub)' }}>{t('examSetup.optional')}</span></>}>
+            <DomainSelector
+              domains={EXAM_DOMAINS[examType]}
+              selected={selectedDomains}
+              onChange={setSelectedDomains}
+              lang={lang}
+              noMargin
+            />
+          </StepRow>
 
           {/* タグフィルタ */}
           {availableTags.length > 0 && (
-            <div style={{ marginBottom: 'var(--spacing-lg)' }}>
-              <label style={{ display: 'flex', alignItems: 'center', gap: 'var(--spacing-sm)', marginBottom: 'var(--spacing-sm)', fontWeight: 700, fontSize: 'var(--font-size-base)' }}>
-                <StepBadge n={tagStep!} />{t('examSetup.tag')} <span style={{ fontWeight: 400, fontSize: 'var(--font-size-sm)', color: 'var(--color-text-sub)' }}>{t('examSetup.optional')}</span>
-              </label>
+            <StepRow n={tagStep!} title={<>{t('examSetup.tag')} <span style={{ fontWeight: 400, fontSize: 'var(--font-size-sm)', color: 'var(--color-text-sub)' }}>{t('examSetup.optional')}</span></>}>
               <div style={{ display: 'flex', flexWrap: 'wrap', gap: 'var(--spacing-sm)' }}>
                 <Button
                   variant={selectedTag === '' ? 'primary' : 'outline'}
@@ -365,14 +378,11 @@ export default function ExamSetup() {
                   </Button>
                 ))}
               </div>
-            </div>
+            </StepRow>
           )}
 
           {/* オプション */}
-          <div style={{ marginBottom: 'var(--spacing-lg)' }}>
-            <label style={{ display: 'flex', alignItems: 'center', gap: 'var(--spacing-sm)', marginBottom: 'var(--spacing-sm)', fontWeight: 700, fontSize: 'var(--font-size-base)' }}>
-              <StepBadge n={optionsStep} />{t('exerciseSetup.options')}
-            </label>
+          <StepRow n={optionsStep} isLast title={t('exerciseSetup.options')}>
             <div style={{ padding: 'var(--spacing-md)', background: 'var(--color-bg-main)', borderRadius: 'var(--border-radius-md)', display: 'flex', flexDirection: 'column', gap: 'var(--spacing-xs)' }}>
               {user && (
                 <label title={t('exerciseSetup.unansweredOnlyDesc')} style={{ display: 'flex', alignItems: 'center', gap: 'var(--spacing-sm)', cursor: 'pointer', fontSize: 'var(--font-size-base)' }}>
@@ -397,13 +407,13 @@ export default function ExamSetup() {
                 {t('exerciseSetup.shuffle')}
               </label>
             </div>
-          </div>
+          </StepRow>
 
           {/* 中断中セッション通知 */}
           {hasDraft && (
             <div style={{
               display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 'var(--spacing-md)',
-              padding: '12px var(--spacing-md)', marginBottom: 'var(--spacing-md)',
+              padding: '12px var(--spacing-md)', marginTop: 'var(--spacing-lg)', marginBottom: 'var(--spacing-md)',
               background: '#fffbeb', border: '1px solid #fcd34d', borderRadius: 'var(--border-radius-md)',
             }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--spacing-sm)' }}>

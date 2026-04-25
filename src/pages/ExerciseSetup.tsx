@@ -390,7 +390,7 @@ export default function ExerciseSetup() {
           )}
 
           {/* ドメインフィルタ */}
-          <StepRow n={domainStep} optional
+          <StepRow n={domainStep}
             title={<>{t('exerciseSetup.domain')} <span style={{ fontWeight: 400, fontSize: 'var(--font-size-sm)', color: 'var(--color-text-sub)' }}>{t('exerciseSetup.optional')}</span></>}>
             <DomainSelector
               domains={EXAM_DOMAINS[examType]}
@@ -403,7 +403,7 @@ export default function ExerciseSetup() {
 
           {/* タグフィルタ */}
           {availableTags.length > 0 && (
-            <StepRow n={tagStep!} optional
+            <StepRow n={tagStep!}
               title={<>{t('exerciseSetup.tag')} <span style={{ fontWeight: 400, fontSize: 'var(--font-size-sm)', color: 'var(--color-text-sub)' }}>{t('exerciseSetup.optional')}</span></>}>
               <div style={{ display: 'flex', flexWrap: 'wrap', gap: 'var(--spacing-sm)' }}>
                 <Button variant={selectedTag === '' ? 'primary' : 'outline'} size="sm" onClick={() => setSelectedTag('')}>
@@ -466,7 +466,7 @@ export default function ExerciseSetup() {
           {hasDraft && (
             <div style={{
               display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 'var(--spacing-md)',
-              padding: '12px var(--spacing-md)', marginBottom: 'var(--spacing-md)',
+              padding: '12px var(--spacing-md)', marginTop: 'var(--spacing-lg)', marginBottom: 'var(--spacing-md)',
               background: '#fffbeb', border: '1px solid #fcd34d', borderRadius: 'var(--border-radius-md)',
             }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--spacing-sm)' }}>
