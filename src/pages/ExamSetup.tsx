@@ -278,15 +278,10 @@ export default function ExamSetup() {
         </div>
       )}
 
-      <h1 style={{ fontSize: 'var(--font-size-xxl)', fontWeight: 700, margin: '0 0 var(--spacing-xs)', color: 'var(--color-text-main)' }}>{t('examSetup.title')}</h1>
-      <p style={{ fontSize: 'var(--font-size-base)', color: 'var(--color-text-sub)', margin: '0 0 var(--spacing-lg)', lineHeight: 1.6 }}>
-        {t('examSetup.description')}
-      </p>
-
       <div className="setup-grid" style={{ display: 'grid', gridTemplateColumns: '1fr 440px', gap: 'var(--spacing-lg)' }}>
 
         {/* 左：設定フォーム */}
-        <Card title={t('examSetup.params')} padding="var(--spacing-xl)">
+        <Card padding="var(--spacing-xl)">
           {/* 試験種別 */}
           {targetExam ? (
             <div style={{ marginBottom: 'var(--spacing-lg)', display: 'flex', alignItems: 'center', gap: 'var(--spacing-md)' }}>
