@@ -342,9 +342,9 @@ export default function ExerciseSetup() {
   let _s = 0;
   const examStep    = targetExam ? null : ++_s;
   const domainStep  = ++_s;
-  const tagStep     = availableTags.length > 0 ? ++_s : null;
   const countStep   = ++_s;
   const optionsStep = ++_s;
+  const tagStep     = availableTags.length > 0 ? ++_s : null;
 
   return (
     <div style={{ maxWidth: 1200, margin: '0 auto', padding: 'var(--spacing-xl) var(--spacing-lg)' }} className="page-container">
@@ -401,24 +401,6 @@ export default function ExerciseSetup() {
             />
           </StepRow>
 
-          {/* タグフィルタ */}
-          {availableTags.length > 0 && (
-            <StepRow n={tagStep!}
-              title={<>{t('exerciseSetup.tag')} <span style={{ fontWeight: 400, fontSize: 'var(--font-size-sm)', color: 'var(--color-text-sub)' }}>{t('exerciseSetup.optional')}</span></>}>
-              <div style={{ display: 'flex', flexWrap: 'wrap', gap: 'var(--spacing-sm)' }}>
-                <Button variant={selectedTag === '' ? 'primary' : 'outline'} size="sm" onClick={() => setSelectedTag('')}>
-                  {t('exerciseSetup.all')}
-                </Button>
-                {availableTags.map(tag => (
-                  <Button key={tag} variant={selectedTag === tag ? 'primary' : 'outline'} size="sm"
-                    onClick={() => setSelectedTag(selectedTag === tag ? '' : tag)}>
-                    {tag}
-                  </Button>
-                ))}
-              </div>
-            </StepRow>
-          )}
-
           {/* 問題数 */}
           <StepRow n={countStep} title={t('exerciseSetup.questionCount')}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--spacing-md)' }}>
@@ -435,7 +417,7 @@ export default function ExerciseSetup() {
           </StepRow>
 
           {/* オプション */}
-          <StepRow n={optionsStep} isLast title={t('exerciseSetup.options')}>
+          <StepRow n={optionsStep} isLast={availableTags.length === 0} title={t('exerciseSetup.options')}>
             <div style={{ padding: 'var(--spacing-md)', background: 'var(--color-bg-main)', borderRadius: 'var(--border-radius-md)', display: 'flex', flexDirection: 'column', gap: 'var(--spacing-xs)' }}>
               {user && (
                 <label title={t('exerciseSetup.unansweredOnlyDesc')} style={{ display: 'flex', alignItems: 'center', gap: 'var(--spacing-sm)', cursor: 'pointer', fontSize: 'var(--font-size-base)' }}>
@@ -461,6 +443,33 @@ export default function ExerciseSetup() {
               </label>
             </div>
           </StepRow>
+
+          {/* タグフィルタ（最後） */}
+          {availableTags.length > 0 && (
+            <StepRow n={tagStep!} isLast
+              title={<>{t('exerciseSetup.tag')} <span style={{ fontWeight: 400, fontSize: 'var(--font-size-sm)', color: 'var(--color-text-sub)' }}>{t('exerciseSetup.optional')}</span></>}>
+              <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
+                <button type="button" onClick={() => setSelectedTag('')}
+                  style={{ padding: '3px 10px', border: '1px solid', borderRadius: 6, cursor: 'pointer', fontSize: 12,
+                    background: selectedTag === '' ? '#e0f2f2' : 'white',
+                    color: selectedTag === '' ? '#008c8c' : 'var(--color-text-sub)',
+                    borderColor: selectedTag === '' ? '#008c8c' : 'var(--color-border)',
+                    fontWeight: selectedTag === '' ? 700 : 400 }}>
+                  {t('exerciseSetup.all')}
+                </button>
+                {availableTags.map(tag => (
+                  <button key={tag} type="button" onClick={() => setSelectedTag(selectedTag === tag ? '' : tag)}
+                    style={{ padding: '3px 10px', border: '1px solid', borderRadius: 6, cursor: 'pointer', fontSize: 12,
+                      background: selectedTag === tag ? '#e0f2f2' : 'white',
+                      color: selectedTag === tag ? '#008c8c' : 'var(--color-text-sub)',
+                      borderColor: selectedTag === tag ? '#008c8c' : 'var(--color-border)',
+                      fontWeight: selectedTag === tag ? 700 : 400 }}>
+                    {tag}
+                  </button>
+                ))}
+              </div>
+            </StepRow>
+          )}
 
           {/* 中断中セッション通知 */}
           {hasDraft && (
