@@ -49,6 +49,12 @@ const CopyButton = ({ getText }: { getText: () => string }) => {
 export default function ExerciseSession() {
   const navigate = useNavigate();
   const location = useLocation();
+
+  if (!location.state) {
+    navigate('/exercise', { replace: true });
+    return null;
+  }
+
   const { sessionId, questions, userId, examType,
     resumeIndex, resumeResults, resumeAnswered, resumeSelectedAnswers, resumeDetail
   } = location.state as any;

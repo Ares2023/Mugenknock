@@ -31,6 +31,12 @@ const formatTime = (sec: number) => {
 export default function ExamSession() {
   const navigate = useNavigate();
   const location = useLocation();
+
+  if (!location.state) {
+    navigate('/exam', { replace: true });
+    return null;
+  }
+
   const { sessionId, questions, userId, examType, resumeIndex, resumeAnswers, resumeTimeLeft } = location.state as any;
   const { user } = useAuth();
 
