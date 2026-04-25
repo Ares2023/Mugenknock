@@ -275,7 +275,7 @@ export const ja: Translations = {
   // ── Page hints (one-time dismissible banners) ──
   'stats.hint': '上部のボタンで目標資格を絞り込めます。ドメイン別正答率から苦手分野を把握し、演習に活かしましょう。',
   'exerciseSetup.hint': '試験種別を選んで → ドメイン・タグでフィルタ（任意）→ 問題数とオプションを設定したら → 「演習を開始する」を押してください。',
-  'examSetup.hint': '① 試験種別を選んで → ② ドメイン・タグでフィルタ（任意）→ ③「模試を開始する」を押してください。正誤は全問終了後に表示されます。',
+  'examSetup.hint': '① 試験種別を選んで → ② ドメイン・タグでフィルタ（任意）→ ③「模試を開始する」を押してください。回答ごとの正誤は表示されず、全問終了後にまとめて確認できます。タイマーは一時停止可能です。',
 
   // ── Common ──
   'common.noEnglish': '英語版未登録',
@@ -556,7 +556,7 @@ export const en: Translations = {
   // ── Page hints (one-time dismissible banners) ──
   'stats.hint': 'Use the buttons above to filter by exam. Check domain accuracy to identify weak areas and focus your practice.',
   'exerciseSetup.hint': 'Pick exam type → filter by domain/tag (optional) → set question count and options → press "Start Practice".',
-  'examSetup.hint': '① Pick exam type → ② Filter by domain or tag (optional) → ③ Press "Start Exam". Results are shown after completing all questions.',
+  'examSetup.hint': '① Pick exam type → ② Filter by domain or tag (optional) → ③ Press "Start Exam". Feedback is hidden per question — review results after finishing. Timer can be paused.',
 
   // ── Common ──
   'common.noEnglish': 'English version not available',

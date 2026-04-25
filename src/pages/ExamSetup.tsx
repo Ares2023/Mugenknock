@@ -413,11 +413,6 @@ export default function ExamSetup() {
             </div>
           </div>
 
-          <div style={{ background: 'var(--color-primary-light)', borderLeft: '4px solid var(--color-primary)', borderRadius: 'var(--border-radius-md)', padding: '12px 16px', fontSize: 'var(--font-size-base)', color: 'var(--color-text-main)', marginBottom: 'var(--spacing-lg)' }}>
-            <strong style={{ display: 'block', marginBottom: 4 }}>{t('examSetup.aboutTitle')}</strong>
-            {t('examSetup.aboutDesc')}
-          </div>
-
           {/* 中断中セッション通知 */}
           {hasDraft && (
             <div style={{
