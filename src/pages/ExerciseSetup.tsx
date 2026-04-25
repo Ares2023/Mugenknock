@@ -6,6 +6,7 @@ import { useLanguage } from '../contexts/LanguageContext';
 import Card from '../components/ui/Card';
 import Button from '../components/ui/Button';
 import Badge from '../components/ui/Badge';
+import DomainSelector from '../components/DomainSelector';
 
 const StepBadge = ({ n, optional = false }: { n: number; optional?: boolean }) => (
   <span style={{
@@ -362,48 +363,17 @@ export default function ExerciseSetup() {
           )}
 
           {/* ドメインフィルタ */}
-          <div style={{ marginBottom: 'var(--spacing-lg)' }}>
-            <label style={{ display: 'flex', alignItems: 'center', gap: 'var(--spacing-sm)', marginBottom: 'var(--spacing-sm)', fontWeight: 700, fontSize: 'var(--font-size-base)' }}>
-              <StepBadge n={domainStep} />{t('exerciseSetup.domain')} <span style={{ fontWeight: 400, fontSize: 'var(--font-size-sm)', color: 'var(--color-text-sub)' }}>{t('exerciseSetup.optional')}</span>
-            </label>
-            <div style={{ background: 'var(--color-bg-main)', borderRadius: 'var(--border-radius-md)', overflow: 'hidden' }}>
-              <label style={{ display: 'flex', alignItems: 'center', gap: 'var(--spacing-sm)', cursor: 'pointer', fontSize: 'var(--font-size-sm)', color: 'var(--color-text-sub)', padding: 'var(--spacing-sm) var(--spacing-md)', borderBottom: '1px solid var(--color-border)' }}>
-                <input
-                  type="checkbox"
-                  checked={EXAM_DOMAINS[examType].every(d => selectedDomains.includes(d))}
-                  onChange={() => {
-                    const allSelected = EXAM_DOMAINS[examType].every(d => selectedDomains.includes(d));
-                    setSelectedDomains(allSelected ? [] : [...EXAM_DOMAINS[examType]]);
-                  }}
-                  style={{ width: 15, height: 15 }}
-                />
-                {t('exerciseSetup.all')}
+          <DomainSelector
+            domains={EXAM_DOMAINS[examType]}
+            selected={selectedDomains}
+            onChange={setSelectedDomains}
+            lang={lang}
+            label={
+              <label style={{ display: 'flex', alignItems: 'center', gap: 'var(--spacing-sm)', marginBottom: 'var(--spacing-sm)', fontWeight: 700, fontSize: 'var(--font-size-base)' }}>
+                <StepBadge n={domainStep} />{t('exerciseSetup.domain')} <span style={{ fontWeight: 400, fontSize: 'var(--font-size-sm)', color: 'var(--color-text-sub)' }}>{t('exerciseSetup.optional')}</span>
               </label>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 0, padding: 'var(--spacing-xs) var(--spacing-md)' }}>
-                {EXAM_DOMAINS[examType].map(d => {
-                  const checked = selectedDomains.includes(d);
-                  return (
-                    <label key={d} style={{ display: 'flex', alignItems: 'center', gap: 'var(--spacing-sm)', cursor: 'pointer', fontSize: 'var(--font-size-base)', padding: '3px 0 3px 8px' }}>
-                      <input
-                        type="checkbox"
-                        checked={checked}
-                        onChange={() => setSelectedDomains(prev => checked ? prev.filter(x => x !== d) : [...prev, d])}
-                        style={{ width: 16, height: 16, flexShrink: 0 }}
-                      />
-                      <span style={{ color: checked ? 'var(--color-primary)' : 'var(--color-text-main)', fontWeight: checked ? 600 : 400 }}>
-                        {lang === 'en' ? (DOMAIN_NAME_EN[d] ?? d) : d}
-                      </span>
-                    </label>
-                  );
-                })}
-              </div>
-            </div>
-            {selectedDomains.length === 0 && (
-              <p style={{ margin: '4px 0 0', fontSize: 'var(--font-size-xs)', color: 'var(--color-danger)' }}>
-                {lang === 'ja' ? '最低1つのドメインを選択してください' : 'Please select at least one domain'}
-              </p>
-            )}
-          </div>
+            }
+          />
 
           {/* タグフィルタ */}
           {availableTags.length > 0 && (
