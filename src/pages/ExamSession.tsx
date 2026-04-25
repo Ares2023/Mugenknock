@@ -184,7 +184,7 @@ export default function ExamSession() {
   const [reportOpen, setReportOpen] = useState(false);
 
   useEffect(() => {
-    if (!state) navigate('/exam', { replace: true });
+    if (!state) navigate('/exam/setup', { replace: true });
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   if (!state) return null;

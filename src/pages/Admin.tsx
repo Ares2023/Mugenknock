@@ -28,6 +28,7 @@ type Question = {
   tags: string[];
   isMultiple: boolean;
   updatedAt?: string;
+  validityCheckedAt?: string;
 };
 
 const fmtDate = (iso: string) => {
@@ -851,9 +852,15 @@ export default function Admin() {
                 <span style={{ fontSize: 14, color: '#16191f', flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                   {q.questionText}
                 </span>
+                {q.validityCheckedAt && (
+                  <span style={{ fontSize: 11, color: '#687078', flexShrink: 0, whiteSpace: 'nowrap', display: 'flex', alignItems: 'center', gap: 3 }}>
+                    <span style={{ color: '#1d8348', fontWeight: 700 }}>✓</span>
+                    {fmtDate(q.validityCheckedAt)}
+                  </span>
+                )}
                 {q.updatedAt && (
                   <span style={{ fontSize: 11, color: '#aab7b8', flexShrink: 0, whiteSpace: 'nowrap' }}>
-                    {fmtDate(q.updatedAt)}
+                    編集: {fmtDate(q.updatedAt)}
                   </span>
                 )}
                 <button

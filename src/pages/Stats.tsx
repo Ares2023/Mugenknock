@@ -211,10 +211,18 @@ export default function Stats() {
       </div>
 
       {/* ドメイン別正答率（目標資格のみ） */}
-      {!loading && targetExam && domainStats.length > 0 && (
+      {!loading && targetExam && domainStats.length > 0 && (() => {
+        const targetAnswered = examStats.find(s => s.examType === targetExam)?.answered ?? 0;
+        return (
         <>
           <h3 style={{ fontSize: 'var(--font-size-h3)', fontWeight: 700, margin: '0 0 var(--spacing-md)', color: 'var(--color-text-sub)' }}>{t('stats.domainAccuracy')}</h3>
           <Card style={{ marginBottom: 'var(--spacing-xl)' }}>
+            {targetAnswered <= 10 && (
+              <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--spacing-sm)', padding: '8px 12px', marginBottom: 'var(--spacing-md)', background: 'var(--color-hint-bg)', border: '1px solid var(--color-hint-border)', borderRadius: 'var(--border-radius-sm)', fontSize: 'var(--font-size-xs)', color: 'var(--color-text-sub)' }}>
+                <span style={{ flexShrink: 0 }}>⚠️</span>
+                <span>{lang === 'ja' ? `回答数が足りません（${targetAnswered}問）。10問以上解くと精度が上がります。` : `Not enough answers (${targetAnswered} answered). Accuracy improves after 10+ answers.`}</span>
+              </div>
+            )}
             {domainStats.map(({ domain, correct, total, rate }) => (
               <div key={domain} style={{ marginBottom: 'var(--spacing-lg)' }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 'var(--spacing-xs)' }}>
@@ -256,7 +264,8 @@ export default function Stats() {
             </div>
           </Card>
         </>
-      )}
+        );
+      })()}
 
       {/* 模試スコア推移 */}
       {!loading && examSessions.length > 0 && (

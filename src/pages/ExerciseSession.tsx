@@ -137,7 +137,7 @@ export default function ExerciseSession() {
   const [lastSelected, setLastSelected] = useState<string | null>(null);
 
   useEffect(() => {
-    if (!state) navigate('/exercise', { replace: true });
+    if (!state) navigate('/exercise/setup', { replace: true });
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   if (!state) return null;

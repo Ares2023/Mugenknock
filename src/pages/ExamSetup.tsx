@@ -112,6 +112,9 @@ export default function ExamSetup() {
   type ExamSession = { sessionId: string; examType: string; mode: string; score: number; isPassed: boolean; startedAt: string; };
   const [examSessions, setExamSessions] = useState<ExamSession[]>([]);
   const [sessionsLoading, setSessionsLoading] = useState(false);
+  type DomainStat = { tagId: string; correctCount: number; incorrectCount: number };
+  const [domainStats, setDomainStats] = useState<DomainStat[]>([]);
+  const [answeredCount, setAnsweredCount] = useState<number | null>(null);
 
   const config = EXAM_CONFIGS[examType];
   const passScore = PASS_SCORES[examType];
@@ -198,7 +201,7 @@ export default function ExamSetup() {
   }, [examType]);
 
   useEffect(() => {
-    if (!user) { setExamSessions([]); return; }
+    if (!user) { setExamSessions([]); setDomainStats([]); setAnsweredCount(null); return; }
     setSessionsLoading(true);
     fetch(`${API_ENDPOINT}/users/me/sessions?userId=${user.userId}&limit=50`)
       .then(r => r.json())
@@ -207,6 +210,14 @@ export default function ExamSetup() {
       ))
       .catch(() => setExamSessions([]))
       .finally(() => setSessionsLoading(false));
+    fetch(`${API_ENDPOINT}/users/me/question-stats?userId=${user.userId}&examType=${examType}`)
+      .then(r => r.json())
+      .then(d => setAnsweredCount(d.answeredCount ?? 0))
+      .catch(() => setAnsweredCount(0));
+    fetch(`${API_ENDPOINT}/users/me/stats?userId=${user.userId}`)
+      .then(r => r.json())
+      .then(d => setDomainStats(d.stats ?? []))
+      .catch(() => setDomainStats([]));
   }, [user, examType]);
 
   const startExam = async () => {
@@ -479,6 +490,51 @@ export default function ExamSetup() {
               </div>
             )}
           </div>
+
+          {/* 苦手ドメイン トップ3 */}
+          {user && (
+            <div style={{ marginTop: 'var(--spacing-lg)', paddingTop: 'var(--spacing-md)', borderTop: '1px solid var(--color-border)' }}>
+              <div style={{ fontSize: 'var(--font-size-xs)', fontWeight: 700, color: 'var(--color-text-sub)', marginBottom: 'var(--spacing-xs)' }}>
+                {lang === 'ja' ? '苦手ドメイン' : 'Weakest Domains'}
+              </div>
+              {answeredCount === null ? (
+                <div style={{ fontSize: 'var(--font-size-xs)', color: 'var(--color-text-light)' }}>...</div>
+              ) : answeredCount <= 10 ? (
+                <div style={{ fontSize: 'var(--font-size-xs)', color: 'var(--color-text-light)', fontStyle: 'italic' }}>
+                  {lang === 'ja' ? `回答数が足りません（${answeredCount}問）` : `Not enough answers (${answeredCount} answered)`}
+                </div>
+              ) : (() => {
+                const ranked = EXAM_DOMAINS[examType]
+                  .map(d => {
+                    const s = domainStats.find(x => x.tagId === d);
+                    const correct = s?.correctCount ?? 0;
+                    const incorrect = s?.incorrectCount ?? 0;
+                    const total = correct + incorrect;
+                    const rate = total > 0 ? correct / total : null;
+                    return { d, rate };
+                  })
+                  .filter(x => x.rate !== null)
+                  .sort((a, b) => a.rate! - b.rate!)
+                  .slice(0, 3);
+                if (ranked.length === 0) return <div style={{ fontSize: 'var(--font-size-xs)', color: 'var(--color-text-light)', fontStyle: 'italic' }}>{lang === 'ja' ? 'データなし' : 'No data'}</div>;
+                return (
+                  <>
+                    {ranked.map(({ d, rate }, i) => (
+                      <div key={d} style={{ display: 'flex', alignItems: 'center', gap: 'var(--spacing-sm)', marginBottom: 4 }}>
+                        <span style={{ fontSize: 11, fontWeight: 700, color: 'var(--color-text-light)', width: 14, flexShrink: 0 }}>{i + 1}</span>
+                        <span style={{ fontSize: 'var(--font-size-xs)', color: 'var(--color-text-main)', flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                          {lang === 'en' ? (DOMAIN_NAME_EN[d] ?? d) : d}
+                        </span>
+                        <span style={{ fontSize: 'var(--font-size-xs)', fontWeight: 700, color: 'var(--color-danger)', flexShrink: 0 }}>
+                          {Math.round(rate! * 100)}%
+                        </span>
+                      </div>
+                    ))}
+                  </>
+                );
+              })()}
+            </div>
+          )}
         </Card>
 
       </div>
