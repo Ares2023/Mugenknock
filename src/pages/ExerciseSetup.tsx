@@ -300,7 +300,7 @@ export default function ExerciseSetup() {
   const tagStep     = availableTags.length > 0 ? ++_s : null;
 
   return (
-    <div style={{ maxWidth: 1200, margin: '0 auto', padding: 'var(--spacing-xl) var(--spacing-lg)' }} className="page-container">
+    <div style={{ maxWidth: 1100, margin: '0 auto', padding: 'var(--spacing-xl) var(--spacing-lg)' }} className="page-container">
 
       {showHint && (
         <div className="fade-slide-in" style={{
@@ -417,7 +417,7 @@ export default function ExerciseSetup() {
                         setTagInput('');
                       }
                     }}
-                    placeholder={lang === 'ja' ? '例: saa-security, saa-compute...' : 'e.g. saa-security, saa-compute...'}
+                    placeholder={lang === 'ja' ? '例: EC2、セキュリティ、コスト...' : 'e.g. EC2, security, cost...'}
                     style={{ width: '100%', padding: '5px 10px', border: '1px solid var(--color-border)', borderRadius: 6, fontSize: 13, outline: 'none', boxSizing: 'border-box' }}
                     onFocus={e => e.currentTarget.style.borderColor = '#008c8c'}
                     onBlur={e => e.currentTarget.style.borderColor = 'var(--color-border)'}

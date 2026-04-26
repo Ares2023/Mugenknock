@@ -58,7 +58,7 @@ export default function Home() {
   ];
 
   return (
-    <div style={{ maxWidth: 900, margin: '0 auto', padding: 'var(--spacing-xl) var(--spacing-lg)' }} className="page-container">
+    <div style={{ maxWidth: 1100, margin: '0 auto', padding: 'var(--spacing-xl) var(--spacing-lg)' }} className="page-container">
 
       {/* オンボーディング：初回のみ表示する一時的な案内 */}
       {showOnboarding && (
