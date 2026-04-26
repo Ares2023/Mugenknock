@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useRef } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { API_ENDPOINT, EXAM_DOMAINS, DOMAIN_NAME_EN } from '../constants';
 import { useAuth } from '../contexts/AuthContext';
@@ -68,8 +68,6 @@ export default function QuestionList() {
   const [availableTags, setAvailableTags] = useState<string[]>([]);
   const [quickFilterOpen, setQuickFilterOpen] = useState(false);
   const [questionTypeFilter, setQuestionTypeFilter] = useState<'all' | 'single' | 'multiple'>('all');
-  const quickFilterRef = useRef<HTMLDivElement>(null);
-
   const fetchQuestions = async (type: string, kw: string, domains: string[]) => {
     setLoading(true);
     try {
@@ -96,17 +94,6 @@ export default function QuestionList() {
       .then(d => setBookmarkedIds(new Set(d.questionIds ?? [])))
       .catch(() => {});
   }, [user]);
-
-  useEffect(() => {
-    if (!quickFilterOpen) return;
-    const handler = (e: MouseEvent) => {
-      if (quickFilterRef.current && !quickFilterRef.current.contains(e.target as Node)) {
-        setQuickFilterOpen(false);
-      }
-    };
-    document.addEventListener('mousedown', handler);
-    return () => document.removeEventListener('mousedown', handler);
-  }, [quickFilterOpen]);
 
   useEffect(() => {
     const params = new URLSearchParams(location.search);
@@ -215,8 +202,8 @@ export default function QuestionList() {
       </div>
 
       <Card padding="var(--spacing-lg)" style={{ marginBottom: 'var(--spacing-xl)' }}>
-        {/* 検索バー + クイックフィルター */}
-        <div style={{ display: 'flex', gap: 'var(--spacing-sm)', alignItems: 'center', marginBottom: activeFilterCount > 0 ? 'var(--spacing-sm)' : 0 }}>
+        {/* 検索バー + フィルタートグルボタン */}
+        <div style={{ display: 'flex', gap: 'var(--spacing-sm)', alignItems: 'center' }}>
           <form onSubmit={handleSearch} style={{ display: 'flex', gap: 'var(--spacing-sm)', flex: 1, minWidth: 0 }}>
             <input
               value={keyword}
@@ -240,229 +227,236 @@ export default function QuestionList() {
             )}
           </form>
 
-          {/* クイックフィルターボタン + ドロップダウン */}
-          <div ref={quickFilterRef} style={{ position: 'relative', flexShrink: 0 }}>
-            <button
-              type="button"
-              onClick={() => setQuickFilterOpen(v => !v)}
-              style={{
-                display: 'flex', alignItems: 'center', gap: 6,
-                padding: '8px 12px',
-                border: `1px solid ${activeFilterCount > 0 ? 'var(--color-primary)' : 'var(--color-border)'}`,
-                borderRadius: 'var(--border-radius-md)',
-                background: activeFilterCount > 0 ? 'var(--color-primary-light)' : 'var(--color-bg-white)',
-                color: activeFilterCount > 0 ? 'var(--color-primary)' : 'var(--color-text-sub)',
-                cursor: 'pointer', fontSize: 'var(--font-size-sm)',
-                fontWeight: activeFilterCount > 0 ? 700 : 400, whiteSpace: 'nowrap',
-              }}
-            >
-              {activeFilterCount > 0 && (
-                <span style={{
-                  background: 'var(--color-primary)', color: 'white', borderRadius: '50%',
-                  width: 18, height: 18, display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
-                  fontSize: 11, fontWeight: 700, flexShrink: 0,
-                }}>{activeFilterCount}</span>
-              )}
-              {lang === 'ja' ? 'クイックフィルター' : 'Quick Filter'}
-              <span style={{ fontSize: 10, display: 'inline-block', transform: quickFilterOpen ? 'rotate(180deg)' : 'none', transition: 'transform 0.2s' }}>▼</span>
-            </button>
-
-            {quickFilterOpen && (
-              <div style={{
-                position: 'absolute', right: 0, top: 'calc(100% + 6px)', zIndex: 1000,
-                background: 'var(--color-bg-white)', border: '1px solid var(--color-border)',
-                borderRadius: 'var(--border-radius-md)', boxShadow: '0 4px 20px rgba(0,0,0,0.12)',
-                width: 300, maxHeight: 520, overflowY: 'auto',
-              }}>
-                {/* 試験種別 */}
-                <div style={{ padding: '10px var(--spacing-md)', borderBottom: '1px solid var(--color-border)' }}>
-                  <div style={{ fontSize: 'var(--font-size-xs)', fontWeight: 700, color: 'var(--color-text-light)', textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: 8 }}>
-                    {lang === 'ja' ? '試験種別' : 'Exam Type'}
-                  </div>
-                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
-                    {['CLF', 'SAA', 'SAP', 'DOP'].map(type => (
-                      <button
-                        key={type}
-                        type="button"
-                        onClick={() => {
-                          const next = type === examType ? '' : type;
-                          setExamType(next);
-                          setSelectedDomains([]);
-                          setSelectedTags([]);
-                          if (next) {
-                            fetch(`${API_ENDPOINT}/tags?examType=${next}`)
-                              .then(r => r.json())
-                              .then(d => setAvailableTags(d.tags || []))
-                              .catch(() => setAvailableTags([]));
-                          } else {
-                            setAvailableTags([]);
-                          }
-                          fetchQuestions(next, keyword, []);
-                        }}
-                        style={{
-                          padding: '3px 14px',
-                          border: `1px solid ${examType === type ? 'var(--color-primary)' : 'var(--color-border)'}`,
-                          borderRadius: 'var(--border-radius-sm)', cursor: 'pointer',
-                          fontSize: 'var(--font-size-sm)',
-                          background: examType === type ? 'var(--color-primary)' : 'transparent',
-                          color: examType === type ? 'white' : 'var(--color-text-main)',
-                          fontWeight: examType === type ? 700 : 400,
-                        }}
-                      >{type}</button>
-                    ))}
-                  </div>
-                </div>
-
-                {/* ドメイン（試験種別選択時のみ） */}
-                {examType && EXAM_DOMAINS[examType] && (
-                  <div style={{ padding: '10px var(--spacing-md)', borderBottom: '1px solid var(--color-border)' }}>
-                    <div style={{ fontSize: 'var(--font-size-xs)', fontWeight: 700, color: 'var(--color-text-light)', textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: 8 }}>
-                      {lang === 'ja' ? 'ドメイン' : 'Domain'}
-                    </div>
-                    <label style={{ display: 'flex', alignItems: 'center', gap: 6, cursor: 'pointer', fontSize: 'var(--font-size-sm)', color: 'var(--color-text-sub)', paddingBottom: 4, marginBottom: 4, borderBottom: '1px solid var(--color-border)' }}>
-                      <input type="checkbox" checked={selectedDomains.length === 0} onChange={() => { if (selectedDomains.length > 0) { setSelectedDomains([]); fetchQuestions(examType, keyword, []); } }} style={{ width: 14, height: 14 }} />
-                      {lang === 'ja' ? 'すべて' : 'All'}
-                    </label>
-                    {EXAM_DOMAINS[examType].map(d => {
-                      const isAll = selectedDomains.length === 0;
-                      const checked = isAll || selectedDomains.includes(d);
-                      return (
-                        <label key={d} style={{ display: 'flex', alignItems: 'center', gap: 6, cursor: 'pointer', fontSize: 'var(--font-size-sm)', padding: '2px 0 2px 8px' }}>
-                          <input
-                            type="checkbox"
-                            checked={checked}
-                            onChange={() => {
-                              let next: string[];
-                              if (isAll) {
-                                next = EXAM_DOMAINS[examType].filter(x => x !== d);
-                              } else {
-                                const toggled = checked ? selectedDomains.filter(x => x !== d) : [...selectedDomains, d];
-                                next = toggled.length === EXAM_DOMAINS[examType].length ? [] : toggled;
-                              }
-                              setSelectedDomains(next);
-                              fetchQuestions(examType, keyword, next);
-                            }}
-                            style={{ width: 14, height: 14 }}
-                          />
-                          <span style={{ color: checked ? 'var(--color-primary)' : 'var(--color-text-main)', lineHeight: 1.4 }}>
-                            {lang === 'en' ? (DOMAIN_NAME_EN[d] ?? d) : d}
-                          </span>
-                        </label>
-                      );
-                    })}
-                  </div>
-                )}
-
-                {/* 問題の種類 */}
-                <div style={{ padding: '10px var(--spacing-md)', borderBottom: user ? '1px solid var(--color-border)' : 'none' }}>
-                  <div style={{ fontSize: 'var(--font-size-xs)', fontWeight: 700, color: 'var(--color-text-light)', textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: 8 }}>
-                    {lang === 'ja' ? '問題の種類' : 'Question Type'}
-                  </div>
-                  {(['all', 'single', 'multiple'] as const).map(type => (
-                    <label key={type} style={{ display: 'flex', alignItems: 'center', gap: 6, cursor: 'pointer', fontSize: 'var(--font-size-sm)', marginBottom: 4 }}>
-                      <input type="radio" name="qtype" checked={questionTypeFilter === type} onChange={() => setQuestionTypeFilter(type)} style={{ width: 14, height: 14 }} />
-                      {type === 'all'
-                        ? (lang === 'ja' ? 'すべて' : 'All')
-                        : type === 'single'
-                          ? (lang === 'ja' ? '単一選択' : 'Single Answer')
-                          : (lang === 'ja' ? '複数選択' : 'Multiple Answer')}
-                    </label>
-                  ))}
-                </div>
-
-                {/* その他（お気に入り） */}
-                {user && (
-                  <div style={{ padding: '10px var(--spacing-md)', borderBottom: availableTags.length > 0 ? '1px solid var(--color-border)' : 'none' }}>
-                    <div style={{ fontSize: 'var(--font-size-xs)', fontWeight: 700, color: 'var(--color-text-light)', textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: 8 }}>
-                      {lang === 'ja' ? 'その他' : 'Other'}
-                    </div>
-                    <label style={{ display: 'flex', alignItems: 'center', gap: 6, cursor: 'pointer', fontSize: 'var(--font-size-sm)' }}>
-                      <input type="checkbox" checked={bookmarkOnly} onChange={e => setBookmarkOnly(e.target.checked)} style={{ width: 14, height: 14 }} />
-                      ★ {t('questions.bookmarkFilter')}
-                    </label>
-                  </div>
-                )}
-
-                {/* タグ（試験種別選択時） */}
-                {availableTags.length > 0 && (
-                  <div style={{ padding: '10px var(--spacing-md)' }}>
-                    <div style={{ fontSize: 'var(--font-size-xs)', fontWeight: 700, color: 'var(--color-text-light)', textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: 8, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                      <span>{lang === 'ja' ? 'タグ' : 'Tags'}</span>
-                      {selectedTags.length > 0 && (
-                        <button onClick={() => setSelectedTags([])}
-                          style={{ fontSize: 10, color: 'var(--color-text-light)', background: 'none', border: 'none', cursor: 'pointer', textDecoration: 'underline', padding: 0 }}>
-                          {lang === 'ja' ? 'クリア' : 'Clear'}
-                        </button>
-                      )}
-                    </div>
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: 1, maxHeight: 200, overflowY: 'auto' }}>
-                      {availableTags.map(tag => {
-                        const isSelected = selectedTags.includes(tag);
-                        return (
-                          <button key={tag} type="button"
-                            onClick={() => setSelectedTags(prev => isSelected ? prev.filter(t => t !== tag) : [...prev, tag])}
-                            style={{
-                              display: 'flex', alignItems: 'center', gap: 6,
-                              padding: '4px 6px', border: 'none', borderRadius: 4,
-                              cursor: 'pointer', textAlign: 'left', width: '100%',
-                              background: isSelected ? '#e0f2f2' : 'transparent',
-                              color: isSelected ? '#008c8c' : 'var(--color-text-main)',
-                              fontSize: 'var(--font-size-sm)', fontWeight: isSelected ? 700 : 400,
-                              transition: 'background 0.15s',
-                            }}
-                          >
-                            <span style={{ width: 14, flexShrink: 0, fontSize: 10, color: '#008c8c' }}>{isSelected ? '✓' : ''}</span>
-                            {tag}
-                          </button>
-                        );
-                      })}
-                    </div>
-                  </div>
-                )}
-              </div>
+          {/* フィルタートグルボタン */}
+          <button
+            type="button"
+            onClick={() => setQuickFilterOpen(v => !v)}
+            style={{
+              flexShrink: 0,
+              display: 'flex', alignItems: 'center', gap: 6,
+              padding: '7px 14px',
+              border: `1px solid ${quickFilterOpen ? 'var(--color-primary)' : activeFilterCount > 0 ? 'var(--color-primary)' : '#d5dbdb'}`,
+              borderRadius: 4,
+              background: quickFilterOpen ? 'var(--color-primary)' : activeFilterCount > 0 ? 'var(--color-primary-light)' : 'white',
+              color: quickFilterOpen ? 'white' : activeFilterCount > 0 ? 'var(--color-primary)' : '#545b64',
+              cursor: 'pointer', fontSize: 13, fontWeight: 700,
+              whiteSpace: 'nowrap', transition: 'all 0.15s',
+            }}
+          >
+            <svg width="14" height="14" viewBox="0 0 14 14" fill="none" style={{ flexShrink: 0 }}>
+              <path d="M1 3h12M3 7h8M5 11h4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
+            </svg>
+            {lang === 'ja' ? 'フィルター' : 'Filter'}
+            {activeFilterCount > 0 && (
+              <span style={{
+                background: quickFilterOpen ? 'rgba(255,255,255,0.3)' : 'var(--color-primary)',
+                color: 'white', borderRadius: 9999,
+                minWidth: 18, height: 18, display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
+                fontSize: 11, fontWeight: 700, padding: '0 4px',
+              }}>{activeFilterCount}</span>
             )}
-          </div>
+            <span style={{
+              fontSize: 9, display: 'inline-block',
+              transform: quickFilterOpen ? 'rotate(180deg)' : 'none',
+              transition: 'transform 0.2s',
+            }}>▼</span>
+          </button>
         </div>
 
-        {/* アクティブフィルターチップ */}
+        {/* アクティブフィルターチップ（検索バー直下、常時表示） */}
         {activeFilterCount > 0 && (
-          <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', alignItems: 'center' }}>
+          <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', alignItems: 'center', marginTop: 10 }}>
             {examType && (
-              <span style={{ display: 'inline-flex', alignItems: 'center', gap: 3, background: 'var(--color-primary-light)', color: 'var(--color-primary)', borderRadius: 20, padding: '2px 8px 2px 12px', fontSize: 'var(--font-size-xs)', fontWeight: 700 }}>
+              <span style={{ display: 'inline-flex', alignItems: 'center', gap: 3, background: 'var(--color-primary-light)', color: 'var(--color-primary)', borderRadius: 20, padding: '3px 8px 3px 11px', fontSize: 12, fontWeight: 700 }}>
                 {examType}
-                <button onClick={() => { setExamType(''); setSelectedDomains([]); fetchQuestions('', keyword, []); }} style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: 13, color: 'var(--color-primary)', padding: '0 0 0 2px', lineHeight: 1 }}>✕</button>
+                <button onClick={() => { setExamType(''); setSelectedDomains([]); setAvailableTags([]); setSelectedTags([]); fetchQuestions('', keyword, []); }} style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: 13, color: 'var(--color-primary)', padding: '0 0 0 2px', lineHeight: 1 }}>✕</button>
               </span>
             )}
-            {selectedDomains.length > 0 && (
-              <span style={{ display: 'inline-flex', alignItems: 'center', gap: 3, background: 'var(--color-primary-light)', color: 'var(--color-primary)', borderRadius: 20, padding: '2px 8px 2px 12px', fontSize: 'var(--font-size-xs)', fontWeight: 700 }}>
-                {lang === 'ja' ? `${selectedDomains.length}ドメイン` : `${selectedDomains.length} domain(s)`}
-                <button onClick={() => { setSelectedDomains([]); fetchQuestions(examType, keyword, []); }} style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: 13, color: 'var(--color-primary)', padding: '0 0 0 2px', lineHeight: 1 }}>✕</button>
+            {selectedDomains.map(d => (
+              <span key={d} style={{ display: 'inline-flex', alignItems: 'center', gap: 3, background: 'var(--color-primary-light)', color: 'var(--color-primary)', borderRadius: 20, padding: '3px 8px 3px 11px', fontSize: 12, fontWeight: 700 }}>
+                {lang === 'en' ? (DOMAIN_NAME_EN[d] ?? d) : d}
+                <button onClick={() => { const next = selectedDomains.filter(x => x !== d); setSelectedDomains(next); fetchQuestions(examType, keyword, next); }} style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: 13, color: 'var(--color-primary)', padding: '0 0 0 2px', lineHeight: 1 }}>✕</button>
               </span>
-            )}
+            ))}
             {questionTypeFilter !== 'all' && (
-              <span style={{ display: 'inline-flex', alignItems: 'center', gap: 3, background: 'var(--color-primary-light)', color: 'var(--color-primary)', borderRadius: 20, padding: '2px 8px 2px 12px', fontSize: 'var(--font-size-xs)', fontWeight: 700 }}>
+              <span style={{ display: 'inline-flex', alignItems: 'center', gap: 3, background: 'var(--color-primary-light)', color: 'var(--color-primary)', borderRadius: 20, padding: '3px 8px 3px 11px', fontSize: 12, fontWeight: 700 }}>
                 {questionTypeFilter === 'single' ? (lang === 'ja' ? '単一選択' : 'Single') : (lang === 'ja' ? '複数選択' : 'Multiple')}
                 <button onClick={() => setQuestionTypeFilter('all')} style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: 13, color: 'var(--color-primary)', padding: '0 0 0 2px', lineHeight: 1 }}>✕</button>
               </span>
             )}
             {bookmarkOnly && (
-              <span style={{ display: 'inline-flex', alignItems: 'center', gap: 3, background: '#fffbf0', color: '#b85c00', borderRadius: 20, padding: '2px 8px 2px 12px', fontSize: 'var(--font-size-xs)', fontWeight: 700 }}>
+              <span style={{ display: 'inline-flex', alignItems: 'center', gap: 3, background: '#fffbf0', color: '#b85c00', borderRadius: 20, padding: '3px 8px 3px 11px', fontSize: 12, fontWeight: 700 }}>
                 ★ {lang === 'ja' ? 'お気に入り' : 'Bookmarked'}
                 <button onClick={() => setBookmarkOnly(false)} style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: 13, color: '#b85c00', padding: '0 0 0 2px', lineHeight: 1 }}>✕</button>
               </span>
             )}
-            {selectedTags.length > 0 && (
-              <span style={{ display: 'inline-flex', alignItems: 'center', gap: 3, background: '#e0f2f2', color: '#008c8c', borderRadius: 20, padding: '2px 8px 2px 12px', fontSize: 'var(--font-size-xs)', fontWeight: 700 }}>
-                {lang === 'ja' ? `${selectedTags.length}タグ` : `${selectedTags.length} tag(s)`}
-                <button onClick={() => setSelectedTags([])} style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: 13, color: '#008c8c', padding: '0 0 0 2px', lineHeight: 1 }}>✕</button>
+            {selectedTags.map(tag => (
+              <span key={tag} style={{ display: 'inline-flex', alignItems: 'center', gap: 3, background: '#e0f2f2', color: '#008c8c', borderRadius: 20, padding: '3px 8px 3px 11px', fontSize: 12, fontWeight: 700 }}>
+                {tag}
+                <button onClick={() => setSelectedTags(prev => prev.filter(t => t !== tag))} style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: 13, color: '#008c8c', padding: '0 0 0 2px', lineHeight: 1 }}>✕</button>
               </span>
-            )}
+            ))}
             <button
               onClick={() => { setExamType(''); setSelectedDomains([]); setSelectedTags([]); setAvailableTags([]); setBookmarkOnly(false); setQuestionTypeFilter('all'); fetchQuestions('', keyword, []); }}
-              style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: 'var(--font-size-xs)', color: 'var(--color-text-light)', textDecoration: 'underline', padding: '2px 4px' }}
+              style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: 12, color: 'var(--color-text-light)', textDecoration: 'underline', padding: '2px 4px' }}
             >
               {lang === 'ja' ? 'すべてクリア' : 'Clear all'}
             </button>
+          </div>
+        )}
+
+        {/* フィルターパネル（インライン展開・CW Alarm風） */}
+        {quickFilterOpen && (
+          <div style={{
+            marginTop: 12,
+            background: '#f2f3f3',
+            border: '1px solid #d5dbdb',
+            borderRadius: 6,
+            overflow: 'hidden',
+          }}>
+            {/* セクションヘッダー共通スタイル */}
+            {(() => {
+              const secLabel: React.CSSProperties = {
+                fontSize: 11, fontWeight: 700, color: '#879596',
+                textTransform: 'uppercase', letterSpacing: '0.6px', marginBottom: 8,
+              };
+              const pill = (active: boolean): React.CSSProperties => ({
+                padding: '3px 12px', border: `1px solid ${active ? 'var(--color-primary)' : '#aab7b8'}`,
+                borderRadius: 9999, cursor: 'pointer', fontSize: 12, fontWeight: active ? 700 : 400,
+                background: active ? 'var(--color-primary)' : 'white',
+                color: active ? 'white' : '#16191f',
+                transition: 'all 0.12s',
+              });
+
+              return (
+                <div style={{ display: 'flex', flexWrap: 'wrap', gap: 0 }}>
+
+                  {/* 試験種別 */}
+                  <div style={{ padding: '14px 20px', borderRight: '1px solid #d5dbdb', borderBottom: '1px solid #d5dbdb', minWidth: 160 }}>
+                    <div style={secLabel}>{lang === 'ja' ? '試験種別' : 'Exam Type'}</div>
+                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
+                      {['CLF', 'SAA', 'SAP', 'DOP'].map(type => (
+                        <button key={type} type="button"
+                          onClick={() => {
+                            const next = type === examType ? '' : type;
+                            setExamType(next);
+                            setSelectedDomains([]);
+                            setSelectedTags([]);
+                            if (next) {
+                              fetch(`${API_ENDPOINT}/tags?examType=${next}`)
+                                .then(r => r.json())
+                                .then(d => setAvailableTags(d.tags || []))
+                                .catch(() => setAvailableTags([]));
+                            } else {
+                              setAvailableTags([]);
+                            }
+                            fetchQuestions(next, keyword, []);
+                          }}
+                          style={pill(examType === type)}
+                        >{type}</button>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* 問題の種類 */}
+                  <div style={{ padding: '14px 20px', borderRight: '1px solid #d5dbdb', borderBottom: '1px solid #d5dbdb', minWidth: 160 }}>
+                    <div style={secLabel}>{lang === 'ja' ? '問題の種類' : 'Question Type'}</div>
+                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
+                      {(['all', 'single', 'multiple'] as const).map(type => (
+                        <button key={type} type="button"
+                          onClick={() => setQuestionTypeFilter(type)}
+                          style={pill(questionTypeFilter === type)}
+                        >
+                          {type === 'all' ? (lang === 'ja' ? 'すべて' : 'All') : type === 'single' ? (lang === 'ja' ? '単一選択' : 'Single') : (lang === 'ja' ? '複数選択' : 'Multiple')}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* お気に入り */}
+                  {user && (
+                    <div style={{ padding: '14px 20px', borderBottom: '1px solid #d5dbdb' }}>
+                      <div style={secLabel}>{lang === 'ja' ? 'その他' : 'Other'}</div>
+                      <button type="button"
+                        onClick={() => setBookmarkOnly(v => !v)}
+                        style={pill(bookmarkOnly)}
+                      >★ {lang === 'ja' ? 'お気に入りのみ' : 'Bookmarked only'}</button>
+                    </div>
+                  )}
+
+                  {/* ドメイン（試験種別選択時） */}
+                  {examType && EXAM_DOMAINS[examType] && (
+                    <div style={{ padding: '14px 20px', borderRight: '1px solid #d5dbdb', width: '100%', boxSizing: 'border-box', borderBottom: availableTags.length > 0 ? '1px solid #d5dbdb' : 'none' }}>
+                      <div style={{ ...secLabel, display: 'flex', alignItems: 'center', gap: 8 }}>
+                        {lang === 'ja' ? 'ドメイン' : 'Domain'}
+                        {selectedDomains.length > 0 && (
+                          <button onClick={() => { setSelectedDomains([]); fetchQuestions(examType, keyword, []); }}
+                            style={{ fontSize: 10, color: '#879596', background: 'none', border: 'none', cursor: 'pointer', textDecoration: 'underline', padding: 0, fontWeight: 400, textTransform: 'none', letterSpacing: 0 }}>
+                            {lang === 'ja' ? 'クリア' : 'Clear'}
+                          </button>
+                        )}
+                      </div>
+                      <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
+                        {EXAM_DOMAINS[examType].map(d => {
+                          const isAll = selectedDomains.length === 0;
+                          const active = isAll || selectedDomains.includes(d);
+                          return (
+                            <button key={d} type="button"
+                              onClick={() => {
+                                let next: string[];
+                                if (isAll) {
+                                  next = EXAM_DOMAINS[examType].filter(x => x !== d);
+                                } else {
+                                  const toggled = active ? selectedDomains.filter(x => x !== d) : [...selectedDomains, d];
+                                  next = toggled.length === EXAM_DOMAINS[examType].length ? [] : toggled;
+                                }
+                                setSelectedDomains(next);
+                                fetchQuestions(examType, keyword, next);
+                              }}
+                              style={pill(active)}
+                            >
+                              {lang === 'en' ? (DOMAIN_NAME_EN[d] ?? d) : d}
+                            </button>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* タグ（試験種別選択時） */}
+                  {availableTags.length > 0 && (
+                    <div style={{ padding: '14px 20px', width: '100%', boxSizing: 'border-box' }}>
+                      <div style={{ ...secLabel, display: 'flex', alignItems: 'center', gap: 8 }}>
+                        {lang === 'ja' ? 'タグ' : 'Tags'}
+                        {selectedTags.length > 0 && (
+                          <button onClick={() => setSelectedTags([])}
+                            style={{ fontSize: 10, color: '#879596', background: 'none', border: 'none', cursor: 'pointer', textDecoration: 'underline', padding: 0, fontWeight: 400, textTransform: 'none', letterSpacing: 0 }}>
+                            {lang === 'ja' ? 'クリア' : 'Clear'}
+                          </button>
+                        )}
+                      </div>
+                      <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, maxHeight: 140, overflowY: 'auto' }}>
+                        {availableTags.map(tag => {
+                          const isSelected = selectedTags.includes(tag);
+                          return (
+                            <button key={tag} type="button"
+                              onClick={() => setSelectedTags(prev => isSelected ? prev.filter(t => t !== tag) : [...prev, tag])}
+                              style={{
+                                padding: '3px 12px', border: `1px solid ${isSelected ? '#008c8c' : '#aab7b8'}`,
+                                borderRadius: 9999, cursor: 'pointer', fontSize: 12, fontWeight: isSelected ? 700 : 400,
+                                background: isSelected ? '#e0f2f2' : 'white',
+                                color: isSelected ? '#008c8c' : '#16191f',
+                                transition: 'all 0.12s',
+                              }}
+                            >{tag}</button>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  )}
+                </div>
+              );
+            })()}
           </div>
         )}
       </Card>
