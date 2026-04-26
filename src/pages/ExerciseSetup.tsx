@@ -100,6 +100,7 @@ export default function ExerciseSetup() {
   const [domainStats, setDomainStats] = useState<DomainStat[]>([]);
   const [availableTags, setAvailableTags] = useState<string[]>([]);
   const [tagInput, setTagInput] = useState('');
+  const [tagListOpen, setTagListOpen] = useState(false);
 
   const isFirstRender = useRef(true);
   useEffect(() => {
@@ -401,19 +402,8 @@ export default function ExerciseSetup() {
             <StepRow n={tagStep!} isLast
               title={<>{t('exerciseSetup.tag')} <span style={{ fontWeight: 400, fontSize: 'var(--font-size-sm)', color: 'var(--color-text-sub)' }}>{t('exerciseSetup.optional')}</span></>}>
               <div style={{ display: 'flex', gap: 12, alignItems: 'flex-start' }}>
-                {/* 左：入力 + 選択済みチップ */}
+                {/* 左：入力 + サジェスト + 選択済みチップ */}
                 <div style={{ flex: 1, minWidth: 0 }}>
-                  {selectedTags.length > 0 && (
-                    <div style={{ display: 'flex', gap: 4, flexWrap: 'wrap', marginBottom: 6 }}>
-                      {selectedTags.map(tag => (
-                        <span key={tag} style={{ display: 'inline-flex', alignItems: 'center', gap: 3, padding: '2px 8px 2px 10px', background: '#e0f2f2', color: '#008c8c', borderRadius: 9999, fontSize: 12, fontWeight: 600 }}>
-                          {tag}
-                          <button onClick={() => setSelectedTags(prev => prev.filter(t => t !== tag))}
-                            style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#008c8c', fontSize: 15, lineHeight: 1, padding: '0 0 0 2px', display: 'flex', alignItems: 'center' }}>×</button>
-                        </span>
-                      ))}
-                    </div>
-                  )}
                   <input
                     value={tagInput}
                     onChange={e => setTagInput(e.target.value)}
@@ -442,38 +432,67 @@ export default function ExerciseSetup() {
                       ))}
                     </div>
                   )}
+                  {selectedTags.length > 0 && (
+                    <div style={{ display: 'flex', gap: 4, flexWrap: 'wrap', marginTop: 6 }}>
+                      {selectedTags.map(tag => (
+                        <span key={tag} style={{ display: 'inline-flex', alignItems: 'center', gap: 3, padding: '2px 8px 2px 10px', background: '#e0f2f2', color: '#008c8c', borderRadius: 9999, fontSize: 12, fontWeight: 600 }}>
+                          {tag}
+                          <button onClick={() => setSelectedTags(prev => prev.filter(t => t !== tag))}
+                            style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#008c8c', fontSize: 15, lineHeight: 1, padding: '0 0 0 2px', display: 'flex', alignItems: 'center' }}>×</button>
+                        </span>
+                      ))}
+                    </div>
+                  )}
                 </div>
-                {/* 右：タグ一覧（クイックフィルタ） */}
-                <div style={{ width: 180, flexShrink: 0, border: '1px solid var(--color-border)', borderRadius: 6, maxHeight: 160, overflowY: 'auto' }}>
-                  <div style={{ fontSize: 10, fontWeight: 700, color: 'var(--color-text-light)', textTransform: 'uppercase', letterSpacing: '0.5px', padding: '5px 8px 3px', borderBottom: '1px solid var(--color-border)' }}>
-                    {lang === 'ja' ? 'タグ一覧' : 'Tags'}
-                    {selectedTags.length > 0 && (
-                      <button onClick={() => setSelectedTags([])}
-                        style={{ marginLeft: 6, fontSize: 10, color: 'var(--color-text-light)', background: 'none', border: 'none', cursor: 'pointer', textDecoration: 'underline', padding: 0 }}>
-                        {lang === 'ja' ? 'クリア' : 'Clear'}
-                      </button>
-                    )}
-                  </div>
-                  {availableTags.map(tag => {
-                    const isSelected = selectedTags.includes(tag);
-                    return (
-                      <button key={tag} type="button"
-                        onClick={() => setSelectedTags(prev => isSelected ? prev.filter(t => t !== tag) : [...prev, tag])}
-                        style={{
-                          display: 'flex', alignItems: 'center', gap: 5,
-                          padding: '5px 8px', border: 'none', width: '100%', textAlign: 'left',
-                          cursor: 'pointer',
-                          background: isSelected ? '#e0f2f2' : 'transparent',
-                          color: isSelected ? '#008c8c' : 'var(--color-text-sub)',
-                          fontSize: 12, fontWeight: isSelected ? 700 : 400,
-                          transition: 'background 0.15s',
-                        }}
-                      >
-                        <span style={{ width: 12, flexShrink: 0, fontSize: 10, color: '#008c8c' }}>{isSelected ? '✓' : ''}</span>
-                        {tag}
-                      </button>
-                    );
-                  })}
+                {/* 右：タグ一覧（折り畳み式） */}
+                <div style={{ width: 180, flexShrink: 0, border: '1px solid var(--color-border)', borderRadius: 6 }}>
+                  <button
+                    type="button"
+                    onClick={() => setTagListOpen(o => !o)}
+                    style={{
+                      display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+                      width: '100%', padding: '5px 8px', background: 'none', border: 'none',
+                      cursor: 'pointer', fontSize: 10, fontWeight: 700,
+                      color: 'var(--color-text-light)', textTransform: 'uppercase', letterSpacing: '0.5px',
+                    }}
+                  >
+                    <span>{lang === 'ja' ? 'タグ一覧' : 'Tags'}{selectedTags.length > 0 ? ` (${selectedTags.length})` : ''}</span>
+                    <span style={{ fontSize: 9 }}>{tagListOpen ? '▲' : '▼'}</span>
+                  </button>
+                  {tagListOpen && (
+                    <>
+                      {selectedTags.length > 0 && (
+                        <div style={{ borderTop: '1px solid var(--color-border)', padding: '3px 8px' }}>
+                          <button onClick={() => setSelectedTags([])}
+                            style={{ fontSize: 10, color: 'var(--color-text-light)', background: 'none', border: 'none', cursor: 'pointer', textDecoration: 'underline', padding: 0 }}>
+                            {lang === 'ja' ? 'すべてクリア' : 'Clear all'}
+                          </button>
+                        </div>
+                      )}
+                      <div style={{ borderTop: '1px solid var(--color-border)', maxHeight: 160, overflowY: 'auto' }}>
+                        {availableTags.map(tag => {
+                          const isSelected = selectedTags.includes(tag);
+                          return (
+                            <button key={tag} type="button"
+                              onClick={() => setSelectedTags(prev => isSelected ? prev.filter(t => t !== tag) : [...prev, tag])}
+                              style={{
+                                display: 'flex', alignItems: 'center', gap: 5,
+                                padding: '5px 8px', border: 'none', width: '100%', textAlign: 'left',
+                                cursor: 'pointer',
+                                background: isSelected ? '#e0f2f2' : 'transparent',
+                                color: isSelected ? '#008c8c' : 'var(--color-text-sub)',
+                                fontSize: 12, fontWeight: isSelected ? 700 : 400,
+                                transition: 'background 0.15s',
+                              }}
+                            >
+                              <span style={{ width: 12, flexShrink: 0, fontSize: 10, color: '#008c8c' }}>{isSelected ? '✓' : ''}</span>
+                              {tag}
+                            </button>
+                          );
+                        })}
+                      </div>
+                    </>
+                  )}
                 </div>
               </div>
             </StepRow>
