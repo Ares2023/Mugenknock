@@ -417,6 +417,32 @@ app.put('/admin/questions/:id/visibility', async (req, res) => {
   }
 });
 
+// 対応済フラグ切り替え
+app.put('/admin/questions/:id/resolve', async (req, res) => {
+  try {
+    const docClient = getClient();
+    const { isResolved } = req.body;
+    if (isResolved) {
+      await docClient.send(new UpdateCommand({
+        TableName: 'Questions',
+        Key: { questionId: req.params.id },
+        UpdateExpression: 'SET isResolved = :v, resolvedAt = :t',
+        ExpressionAttributeValues: { ':v': true, ':t': new Date().toISOString() },
+      }));
+    } else {
+      await docClient.send(new UpdateCommand({
+        TableName: 'Questions',
+        Key: { questionId: req.params.id },
+        UpdateExpression: 'REMOVE isResolved, resolvedAt',
+      }));
+    }
+    res.json({ success: true });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
 app.get('/admin/questions', async (req, res) => {
   try {
     const docClient = getClient();

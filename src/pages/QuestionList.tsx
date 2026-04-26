@@ -64,6 +64,8 @@ export default function QuestionList() {
   const [bookmarkLoading, setBookmarkLoading] = useState<Set<string>>(new Set());
   const [bookmarkOnly, setBookmarkOnly] = useState(false);
   const [selectedDomains, setSelectedDomains] = useState<string[]>([]);
+  const [selectedTags, setSelectedTags] = useState<string[]>([]);
+  const [availableTags, setAvailableTags] = useState<string[]>([]);
   const [quickFilterOpen, setQuickFilterOpen] = useState(false);
   const [questionTypeFilter, setQuestionTypeFilter] = useState<'all' | 'single' | 'multiple'>('all');
   const quickFilterRef = useRef<HTMLDivElement>(null);
@@ -194,12 +196,14 @@ export default function QuestionList() {
     (examType ? 1 : 0) +
     (selectedDomains.length > 0 ? 1 : 0) +
     (bookmarkOnly ? 1 : 0) +
-    (questionTypeFilter !== 'all' ? 1 : 0);
+    (questionTypeFilter !== 'all' ? 1 : 0) +
+    (selectedTags.length > 0 ? 1 : 0);
 
   const displayedQuestions = questions.filter(q => {
     if (bookmarkOnly && !bookmarkedIds.has(q.questionId)) return false;
     if (questionTypeFilter === 'single' && q.isMultiple) return false;
     if (questionTypeFilter === 'multiple' && !q.isMultiple) return false;
+    if (selectedTags.length > 0 && !selectedTags.some(t => (q.tags ?? []).includes(t))) return false;
     return true;
   });
 
@@ -284,6 +288,15 @@ export default function QuestionList() {
                           const next = type === examType ? '' : type;
                           setExamType(next);
                           setSelectedDomains([]);
+                          setSelectedTags([]);
+                          if (next) {
+                            fetch(`${API_ENDPOINT}/tags?examType=${next}`)
+                              .then(r => r.json())
+                              .then(d => setAvailableTags(d.tags || []))
+                              .catch(() => setAvailableTags([]));
+                          } else {
+                            setAvailableTags([]);
+                          }
                           fetchQuestions(next, keyword, []);
                         }}
                         style={{
@@ -359,7 +372,7 @@ export default function QuestionList() {
 
                 {/* その他（お気に入り） */}
                 {user && (
-                  <div style={{ padding: '10px var(--spacing-md)' }}>
+                  <div style={{ padding: '10px var(--spacing-md)', borderBottom: availableTags.length > 0 ? '1px solid var(--color-border)' : 'none' }}>
                     <div style={{ fontSize: 'var(--font-size-xs)', fontWeight: 700, color: 'var(--color-text-light)', textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: 8 }}>
                       {lang === 'ja' ? 'その他' : 'Other'}
                     </div>
@@ -367,6 +380,43 @@ export default function QuestionList() {
                       <input type="checkbox" checked={bookmarkOnly} onChange={e => setBookmarkOnly(e.target.checked)} style={{ width: 14, height: 14 }} />
                       ★ {t('questions.bookmarkFilter')}
                     </label>
+                  </div>
+                )}
+
+                {/* タグ（試験種別選択時） */}
+                {availableTags.length > 0 && (
+                  <div style={{ padding: '10px var(--spacing-md)' }}>
+                    <div style={{ fontSize: 'var(--font-size-xs)', fontWeight: 700, color: 'var(--color-text-light)', textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: 8, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                      <span>{lang === 'ja' ? 'タグ' : 'Tags'}</span>
+                      {selectedTags.length > 0 && (
+                        <button onClick={() => setSelectedTags([])}
+                          style={{ fontSize: 10, color: 'var(--color-text-light)', background: 'none', border: 'none', cursor: 'pointer', textDecoration: 'underline', padding: 0 }}>
+                          {lang === 'ja' ? 'クリア' : 'Clear'}
+                        </button>
+                      )}
+                    </div>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: 1, maxHeight: 200, overflowY: 'auto' }}>
+                      {availableTags.map(tag => {
+                        const isSelected = selectedTags.includes(tag);
+                        return (
+                          <button key={tag} type="button"
+                            onClick={() => setSelectedTags(prev => isSelected ? prev.filter(t => t !== tag) : [...prev, tag])}
+                            style={{
+                              display: 'flex', alignItems: 'center', gap: 6,
+                              padding: '4px 6px', border: 'none', borderRadius: 4,
+                              cursor: 'pointer', textAlign: 'left', width: '100%',
+                              background: isSelected ? '#e0f2f2' : 'transparent',
+                              color: isSelected ? '#008c8c' : 'var(--color-text-main)',
+                              fontSize: 'var(--font-size-sm)', fontWeight: isSelected ? 700 : 400,
+                              transition: 'background 0.15s',
+                            }}
+                          >
+                            <span style={{ width: 14, flexShrink: 0, fontSize: 10, color: '#008c8c' }}>{isSelected ? '✓' : ''}</span>
+                            {tag}
+                          </button>
+                        );
+                      })}
+                    </div>
                   </div>
                 )}
               </div>
@@ -401,8 +451,14 @@ export default function QuestionList() {
                 <button onClick={() => setBookmarkOnly(false)} style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: 13, color: '#b85c00', padding: '0 0 0 2px', lineHeight: 1 }}>✕</button>
               </span>
             )}
+            {selectedTags.length > 0 && (
+              <span style={{ display: 'inline-flex', alignItems: 'center', gap: 3, background: '#e0f2f2', color: '#008c8c', borderRadius: 20, padding: '2px 8px 2px 12px', fontSize: 'var(--font-size-xs)', fontWeight: 700 }}>
+                {lang === 'ja' ? `${selectedTags.length}タグ` : `${selectedTags.length} tag(s)`}
+                <button onClick={() => setSelectedTags([])} style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: 13, color: '#008c8c', padding: '0 0 0 2px', lineHeight: 1 }}>✕</button>
+              </span>
+            )}
             <button
-              onClick={() => { setExamType(''); setSelectedDomains([]); setBookmarkOnly(false); setQuestionTypeFilter('all'); fetchQuestions('', keyword, []); }}
+              onClick={() => { setExamType(''); setSelectedDomains([]); setSelectedTags([]); setAvailableTags([]); setBookmarkOnly(false); setQuestionTypeFilter('all'); fetchQuestions('', keyword, []); }}
               style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: 'var(--font-size-xs)', color: 'var(--color-text-light)', textDecoration: 'underline', padding: '2px 4px' }}
             >
               {lang === 'ja' ? 'すべてクリア' : 'Clear all'}
@@ -410,6 +466,9 @@ export default function QuestionList() {
           </div>
         )}
       </Card>
+
+      <div>
+      <div>
 
       <div style={{ marginBottom: 'var(--spacing-lg)', display: 'flex', gap: 'var(--spacing-md)', alignItems: 'center' }}>
         <Button variant="outline" size="sm" onClick={selectAll}>
@@ -530,6 +589,10 @@ export default function QuestionList() {
           })}
         </div>
       )}
+
+      </div>{/* メインカラム終了 */}
+
+      </div>{/* グリッド終了 */}
     </div>
   );
 }
