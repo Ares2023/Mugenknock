@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { useNavigate, useLocation } from 'react-router-dom';
+import { useLocation } from 'react-router-dom';
 import { API_ENDPOINT, EXAM_TYPES } from '../constants';
 import { useAuth } from '../contexts/AuthContext';
 import { useLanguage } from '../contexts/LanguageContext';
@@ -49,7 +49,6 @@ const SkeletonCard = () => (
 );
 
 export default function QuestionList() {
-  const navigate = useNavigate();
   const location = useLocation();
   const { lang, t } = useLanguage();
   const { user } = useAuth();
@@ -57,7 +56,8 @@ export default function QuestionList() {
   const [questions, setQuestions] = useState<Question[]>([]);
   const [selected, setSelected] = useState<Set<string>>(new Set());
   const [copiedId, setCopiedId] = useState<string | null>(null);
-  const [keyword, setKeyword] = useState('');
+  const [keywordInput, setKeywordInput] = useState('');
+  const [keywordChips, setKeywordChips] = useState<string[]>([]);
   const [expandedId, setExpandedId] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
 
@@ -87,20 +87,17 @@ export default function QuestionList() {
     return () => document.removeEventListener('mousedown', handler);
   }, []);
 
-  const fetchQuestions = async (types: string[], kw: string) => {
+  const fetchQuestions = async (types: string[]) => {
     setLoading(true);
     try {
       let items: Question[] = [];
       if (types.length === 0) {
-        const params = new URLSearchParams();
-        if (kw.trim()) params.set('keyword', kw.trim());
-        const res = await fetch(`${API_ENDPOINT}/questions${params.toString() ? '?' + params : ''}`);
+        const res = await fetch(`${API_ENDPOINT}/questions`);
         const data = await res.json();
         items = data.items || [];
       } else {
         const results = await Promise.all(types.map(async (type) => {
           const params = new URLSearchParams({ examType: type });
-          if (kw.trim()) params.set('keyword', kw.trim());
           const res = await fetch(`${API_ENDPOINT}/questions?${params}`);
           const data = await res.json();
           return (data.items || []) as Question[];
@@ -135,17 +132,25 @@ export default function QuestionList() {
   useEffect(() => {
     const params = new URLSearchParams(location.search);
     const kw = params.get('keyword') || '';
-    setKeyword(kw);
+    setKeywordChips(kw ? [kw] : []);
+    setKeywordInput('');
     setExamTypes([]);
     setBookmarkOnly(false);
     setFilterUnanswered(false);
     setFilterIncorrect(false);
-    fetchQuestions([], kw);
+    fetchQuestions([]);
   }, [location.search]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
-    navigate(`/questions${keyword.trim() ? '?keyword=' + encodeURIComponent(keyword.trim()) : ''}`);
+    const kw = keywordInput.trim();
+    if (!kw || keywordChips.includes(kw)) { setKeywordInput(''); return; }
+    setKeywordChips(prev => [...prev, kw]);
+    setKeywordInput('');
+  };
+
+  const removeKeywordChip = (chip: string) => {
+    setKeywordChips(prev => prev.filter(c => c !== chip));
   };
 
   const toggleExamType = (type: string) => {
@@ -153,7 +158,7 @@ export default function QuestionList() {
       ? examTypes.filter(t => t !== type)
       : [...examTypes, type];
     setExamTypes(next);
-    fetchQuestions(next, keyword);
+    fetchQuestions(next);
   };
 
   const toggleFilterUnanswered = async () => {
@@ -255,7 +260,15 @@ export default function QuestionList() {
     (filterIncorrect ? 1 : 0) +
     (bookmarkOnly ? 1 : 0);
 
+  const matchesKeyword = (q: Question, chip: string): boolean => {
+    const kw = chip.toLowerCase();
+    return q.questionText.toLowerCase().includes(kw) ||
+      q.choices.some(c => c.toLowerCase().includes(kw)) ||
+      (q.tags ?? []).some(tag => tag.toLowerCase().includes(kw));
+  };
+
   const displayedQuestions = questions.filter(q => {
+    if (keywordChips.length > 0 && !keywordChips.every(chip => matchesKeyword(q, chip))) return false;
     if (filterUnanswered && answeredIds.has(q.questionId)) return false;
     if (filterIncorrect && !incorrectIds.has(q.questionId)) return false;
     if (bookmarkOnly && !bookmarkedIds.has(q.questionId)) return false;
@@ -263,11 +276,13 @@ export default function QuestionList() {
   });
 
   const clearAll = () => {
+    setKeywordChips([]);
+    setKeywordInput('');
     setExamTypes([]);
     setBookmarkOnly(false);
     setFilterUnanswered(false);
     setFilterIncorrect(false);
-    fetchQuestions([], keyword);
+    fetchQuestions([]);
   };
 
   // チェックボックス行スタイル
@@ -294,8 +309,8 @@ export default function QuestionList() {
         <div style={{ display: 'flex', gap: 'var(--spacing-sm)', alignItems: 'center' }}>
           <form onSubmit={handleSearch} style={{ display: 'flex', gap: 'var(--spacing-sm)', flex: 1, minWidth: 0 }}>
             <input
-              value={keyword}
-              onChange={e => setKeyword(e.target.value)}
+              value={keywordInput}
+              onChange={e => setKeywordInput(e.target.value)}
               placeholder={t('questions.searchPlaceholder')}
               style={{
                 flex: 1, padding: '8px 12px',
@@ -308,11 +323,6 @@ export default function QuestionList() {
               onBlur={e => e.currentTarget.style.borderColor = 'var(--color-border)'}
             />
             <Button type="submit">{t('questions.search')}</Button>
-            {keyword && (
-              <Button variant="outline" type="button" onClick={() => navigate('/questions')} style={{ color: 'var(--color-text-light)' }}>
-                {t('questions.clear')}
-              </Button>
-            )}
           </form>
 
           {/* フィルターボタン + ドロップダウン */}
@@ -428,6 +438,35 @@ export default function QuestionList() {
             )}
           </div>
         </div>
+
+        {/* キーワードチップ */}
+        {keywordChips.length > 0 && (
+          <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', alignItems: 'center', marginTop: 10 }}>
+            {keywordChips.map(chip => (
+              <span key={chip} style={{
+                display: 'inline-flex', alignItems: 'center', gap: 4,
+                background: '#16191f', color: 'white',
+                borderRadius: 20, padding: '4px 10px 4px 12px',
+                fontSize: 12, fontWeight: 700,
+              }}>
+                <span style={{ fontSize: 10, opacity: 0.6, marginRight: 1 }}>🔍</span>
+                {chip}
+                <button
+                  onClick={() => removeKeywordChip(chip)}
+                  style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'rgba(255,255,255,0.7)', padding: '0 0 0 2px', lineHeight: 1, fontSize: 13 }}
+                >✕</button>
+              </span>
+            ))}
+            {keywordChips.length > 1 && (
+              <button
+                onClick={() => setKeywordChips([])}
+                style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: 12, color: 'var(--color-text-light)', textDecoration: 'underline', padding: '2px 4px' }}
+              >
+                {lang === 'ja' ? 'キーワードをクリア' : 'Clear keywords'}
+              </button>
+            )}
+          </div>
+        )}
 
         {/* アクティブフィルターチップ */}
         {activeFilterCount > 0 && (
