@@ -579,6 +579,11 @@ removed = lines.pop(idx).strip()
 open(path, 'w').writelines(lines)
 print(f"hook[{idx}] 削除: {removed}")
 PYEOF
+    # 全タイマーを停止し、残りフックを新インデックスで再登録
+    stop_hook_timers
+    _raw_next=$(systemctl --user list-timers "${UNIT_NAME}.timer" --all --no-legend 2>/dev/null \
+                | awk 'NR==1{print $2, $3}')
+    [ -n "$_raw_next" ] && schedule_hooks "$_raw_next"
     ;;
   log)
     if [ -f "$HISTORY_FILE" ]; then
