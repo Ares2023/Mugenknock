@@ -449,7 +449,6 @@ export default function QuestionList() {
                 borderRadius: 20, padding: '4px 10px 4px 12px',
                 fontSize: 12, fontWeight: 700,
               }}>
-                <span style={{ fontSize: 10, opacity: 0.6, marginRight: 1 }}>🔍</span>
                 {chip}
                 <button
                   onClick={() => removeKeywordChip(chip)}
@@ -457,7 +456,7 @@ export default function QuestionList() {
                 >✕</button>
               </span>
             ))}
-            {keywordChips.length > 1 && (
+            {keywordChips.length > 0 && (
               <button
                 onClick={() => setKeywordChips([])}
                 style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: 12, color: 'var(--color-text-light)', textDecoration: 'underline', padding: '2px 4px' }}
