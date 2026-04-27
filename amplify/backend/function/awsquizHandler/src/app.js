@@ -1,6 +1,6 @@
 const express = require('express');
 const { DynamoDBClient } = require('@aws-sdk/client-dynamodb');
-const { DynamoDBDocumentClient, ScanCommand, GetCommand, QueryCommand, PutCommand, UpdateCommand, TransactWriteCommand, DeleteCommand } = require('@aws-sdk/lib-dynamodb');
+const { DynamoDBDocumentClient, ScanCommand, GetCommand, QueryCommand, PutCommand, UpdateCommand, TransactWriteCommand, DeleteCommand, BatchWriteCommand } = require('@aws-sdk/lib-dynamodb');
 const { v4: uuidv4 } = require('uuid');
 const { CognitoJwtVerifier } = require('aws-jwt-verify');
 
@@ -777,6 +777,82 @@ app.get('/users/me/stats', async (req, res) => {
       ExpressionAttributeValues: { ':userId': userId }
     }));
     res.json({ stats: result.Items || [] });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+// ユーザー演習データ削除（試験種別ごと）
+app.delete('/users/me/data', async (req, res) => {
+  try {
+    const docClient = getClient();
+    const { userId, examType } = req.query;
+    if (!userId || !examType) return res.status(400).json({ error: 'userId and examType are required' });
+
+    const EXAM_DOMAINS_MAP = {
+      CLF: ['クラウドのコンセプト', 'セキュリティとコンプライアンス', 'クラウドテクノロジーとサービス', '請求・料金・サポート'],
+      SAA: ['セキュアなアーキテクチャの設計', '弾力性に優れたアーキテクチャの設計', '高パフォーマンスなアーキテクチャの設計', 'コスト最適化されたアーキテクチャの設計'],
+      SAP: ['組織の複雑さに対応したソリューションの設計', '新しいソリューションの設計', '既存ソリューションの継続的改善', 'ワークロードの移行とモダナイゼーション'],
+      DOP: ['SDLC の自動化', '設定管理と IaC', '高可用性、耐障害性、およびディザスタリカバリ', 'モニタリングとログ', 'セキュリティとコンプライアンスの自動化'],
+    };
+
+    const batchDeleteItems = async (table, keys) => {
+      if (keys.length === 0) return;
+      for (let i = 0; i < keys.length; i += 25) {
+        const chunk = keys.slice(i, i + 25);
+        await docClient.send(new BatchWriteCommand({
+          RequestItems: { [table]: chunk.map(key => ({ DeleteRequest: { Key: key } })) },
+        }));
+      }
+    };
+
+    // 1. examType の questionId 一覧を取得
+    const questionsResult = await docClient.send(new QueryCommand({
+      TableName: 'Questions',
+      IndexName: 'examType-index',
+      KeyConditionExpression: 'examType = :et',
+      ExpressionAttributeValues: { ':et': examType },
+      ProjectionExpression: 'questionId',
+    }));
+    const questionIds = (questionsResult.Items || []).map(q => q.questionId);
+
+    // 2. UserQuestionStats 削除
+    await batchDeleteItems('UserQuestionStats', questionIds.map(qid => ({ userId, questionId: qid })));
+
+    // 3. UserTagStats 削除（ドメインタグのみ）
+    const domains = EXAM_DOMAINS_MAP[examType] || [];
+    await batchDeleteItems('UserTagStats', domains.map(tagId => ({ userId, tagId })));
+
+    // 4. Sessions を取得
+    const sessionsResult = await docClient.send(new QueryCommand({
+      TableName: 'Sessions',
+      KeyConditionExpression: 'userId = :uid',
+      FilterExpression: 'examType = :et',
+      ExpressionAttributeValues: { ':uid': userId, ':et': examType },
+    }));
+    const sessionIds = (sessionsResult.Items || []).map(s => s.sessionId);
+
+    // 5. UserAnswers 削除（セッションごとにクエリ）
+    for (const sessionId of sessionIds) {
+      let lastKey;
+      do {
+        const answersResult = await docClient.send(new QueryCommand({
+          TableName: 'UserAnswers',
+          KeyConditionExpression: 'userId = :uid AND begins_with(questionIdTimestamp, :prefix)',
+          ExpressionAttributeValues: { ':uid': userId, ':prefix': `${sessionId}#` },
+          ExclusiveStartKey: lastKey,
+        }));
+        const answerKeys = (answersResult.Items || []).map(a => ({ userId: a.userId, questionIdTimestamp: a.questionIdTimestamp }));
+        await batchDeleteItems('UserAnswers', answerKeys);
+        lastKey = answersResult.LastEvaluatedKey;
+      } while (lastKey);
+    }
+
+    // 6. Sessions 削除
+    await batchDeleteItems('Sessions', sessionIds.map(sid => ({ userId, sessionId: sid })));
+
+    res.json({ success: true });
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: 'Internal server error' });

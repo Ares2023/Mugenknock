@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { API_ENDPOINT, EXAM_TYPES, PASS_RATE, EXAM_DOMAINS, DOMAIN_NAME_EN } from '../constants';
 import { useAuth } from '../contexts/AuthContext';
@@ -43,52 +43,53 @@ export default function Stats() {
   const [loading, setLoading] = useState(true);
   const [targetExam, setTargetExam] = useState<string | null>(() => localStorage.getItem(TARGET_EXAM_KEY));
   const [showHint, setShowHint] = useState(() => !localStorage.getItem('sherpaStatsHint'));
+  const [confirmDelete, setConfirmDelete] = useState<string | null>(null);
+  const [deleting, setDeleting] = useState(false);
 
-  useEffect(() => {
+  const fetchAll = useCallback(async () => {
     if (!user) return;
     const userId = user.userId;
+    setLoading(true);
+    try {
+      const [sessionsRes, tagStatsRes, ...statsRes] = await Promise.all([
+        fetch(`${API_ENDPOINT}/users/me/sessions?userId=${userId}&limit=50`).then(r => r.json()),
+        fetch(`${API_ENDPOINT}/users/me/stats?userId=${userId}`).then(r => r.json()),
+        ...EXAM_TYPES.map(et =>
+          Promise.all([
+            fetch(`${API_ENDPOINT}/questions?examType=${et}`).then(r => r.json()),
+            fetch(`${API_ENDPOINT}/users/me/question-stats?userId=${userId}&examType=${et}`).then(r => r.json()),
+          ])
+        ),
+      ]);
 
-    const fetchAll = async () => {
-      setLoading(true);
-      try {
-        const [sessionsRes, tagStatsRes, ...statsRes] = await Promise.all([
-          fetch(`${API_ENDPOINT}/users/me/sessions?userId=${userId}&limit=50`).then(r => r.json()),
-          fetch(`${API_ENDPOINT}/users/me/stats?userId=${userId}`).then(r => r.json()),
-          ...EXAM_TYPES.map(et =>
-            Promise.all([
-              fetch(`${API_ENDPOINT}/questions?examType=${et}`).then(r => r.json()),
-              fetch(`${API_ENDPOINT}/users/me/question-stats?userId=${userId}&examType=${et}`).then(r => r.json()),
-            ])
-          ),
-        ]);
+      const completedSessions: Session[] = sessionsRes.items || [];
+      setSessions(completedSessions);
+      setTagStats(tagStatsRes.stats || []);
 
-        const completedSessions: Session[] = sessionsRes.items || [];
-        setSessions(completedSessions);
-        setTagStats(tagStatsRes.stats || []);
-
-        const stats: ExamStat[] = EXAM_TYPES.map((et, i) => {
-          const [qRes, sRes] = statsRes[i];
-          const etSessions = completedSessions
-            .filter(s => s.examType === et)
-            .sort((a, b) => ((b.endedAt || b.startedAt) > (a.endedAt || a.startedAt) ? 1 : -1));
-          return {
-            examType: et,
-            total: qRes.count ?? 0,
-            answered: sRes.answeredCount ?? 0,
-            lastScore: etSessions[0]?.score ?? null,
-            lastPassed: etSessions[0]?.isPassed ?? null,
-          };
-        });
-        setExamStats(stats);
-      } catch (err) {
-        console.error(err);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchAll();
+      const stats: ExamStat[] = EXAM_TYPES.map((et, i) => {
+        const [qRes, sRes] = statsRes[i];
+        const etSessions = completedSessions
+          .filter(s => s.examType === et)
+          .sort((a, b) => ((b.endedAt || b.startedAt) > (a.endedAt || a.startedAt) ? 1 : -1));
+        return {
+          examType: et,
+          total: qRes.count ?? 0,
+          answered: sRes.answeredCount ?? 0,
+          lastScore: etSessions[0]?.score ?? null,
+          lastPassed: etSessions[0]?.isPassed ?? null,
+        };
+      });
+      setExamStats(stats);
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setLoading(false);
+    }
   }, [user]);
+
+  useEffect(() => {
+    fetchAll();
+  }, [fetchAll]);
 
   const fmt = (iso: string) =>
     new Date(iso).toLocaleString(lang === 'en' ? 'en-US' : 'ja-JP', { month: 'numeric', day: 'numeric', hour: '2-digit', minute: '2-digit' });
@@ -108,6 +109,20 @@ export default function Stats() {
         return { domain, correct, incorrect, total, rate };
       })
     : [];
+
+  const handleDelete = async (examType: string) => {
+    if (!user) return;
+    setDeleting(true);
+    try {
+      await fetch(`${API_ENDPOINT}/users/me/data?userId=${user.userId}&examType=${examType}`, { method: 'DELETE' });
+      setConfirmDelete(null);
+      await fetchAll();
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setDeleting(false);
+    }
+  };
 
   return (
     <div style={{ maxWidth: 1100, margin: '0 auto', padding: 'var(--spacing-xl) var(--spacing-lg)' }} className="page-container">
@@ -348,6 +363,63 @@ export default function Stats() {
             </table>
           </div>
         </Card>
+      )}
+      {/* データ管理 */}
+      {user && (
+        <div style={{ marginTop: 'var(--spacing-xxl)' }}>
+          <h3 style={{ fontSize: 'var(--font-size-h3)', fontWeight: 700, margin: '0 0 var(--spacing-xs)', color: 'var(--color-text-sub)' }}>
+            {lang === 'ja' ? 'データ管理' : 'Data Management'}
+          </h3>
+          <p style={{ fontSize: 'var(--font-size-sm)', color: 'var(--color-text-light)', margin: '0 0 var(--spacing-md)' }}>
+            {lang === 'ja' ? '資格ごとの演習・模試データをリセットします。この操作は取り消せません。' : 'Reset exercise and exam data per certification. This action cannot be undone.'}
+          </p>
+          <Card padding="var(--spacing-lg)" style={{ border: '1px solid var(--color-danger)', borderRadius: 'var(--border-radius-md)' }}>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--spacing-md)' }}>
+              {EXAM_TYPES.map(et => (
+                <div key={et} style={{ display: 'flex', alignItems: 'center', gap: 'var(--spacing-md)', flexWrap: 'wrap' }}>
+                  <Badge variant="secondary" style={{ flexShrink: 0 }}>{et}</Badge>
+                  <span style={{ fontSize: 'var(--font-size-sm)', color: 'var(--color-text-sub)', flex: 1 }}>
+                    {lang === 'ja' ? `${et} の演習・模試データをすべて削除` : `Delete all exercise and exam data for ${et}`}
+                  </span>
+                  {confirmDelete === et ? (
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--spacing-sm)', flexShrink: 0 }}>
+                      <span style={{ fontSize: 'var(--font-size-xs)', color: 'var(--color-danger)', fontWeight: 700 }}>
+                        {lang === 'ja' ? '本当に削除しますか？' : 'Are you sure?'}
+                      </span>
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={() => setConfirmDelete(null)}
+                        disabled={deleting}
+                        style={{ color: 'var(--color-text-sub)', borderColor: 'var(--color-border)' }}
+                      >
+                        {lang === 'ja' ? 'キャンセル' : 'Cancel'}
+                      </Button>
+                      <Button
+                        size="sm"
+                        variant="primary"
+                        onClick={() => handleDelete(et)}
+                        disabled={deleting}
+                        style={{ background: 'var(--color-danger)', borderColor: 'var(--color-danger)' }}
+                      >
+                        {deleting ? '...' : (lang === 'ja' ? '削除する' : 'Delete')}
+                      </Button>
+                    </div>
+                  ) : (
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      onClick={() => setConfirmDelete(et)}
+                      style={{ color: 'var(--color-danger)', borderColor: 'var(--color-danger)', flexShrink: 0 }}
+                    >
+                      {lang === 'ja' ? 'データを削除' : 'Delete Data'}
+                    </Button>
+                  )}
+                </div>
+              ))}
+            </div>
+          </Card>
+        </div>
       )}
     </div>
   );
