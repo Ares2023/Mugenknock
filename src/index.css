@@ -220,4 +220,39 @@ button:active:not(:disabled) {
     width: 100% !important;
     text-align: center !important;
   }
+
+  /* 管理画面のタブをスクロール可能に */
+  .admin-tabs {
+    overflow-x: auto !important;
+    -webkit-overflow-scrolling: touch;
+    flex-wrap: nowrap !important;
+  }
+  .admin-tabs button {
+    white-space: nowrap !important;
+    flex-shrink: 0 !important;
+  }
+
+  /* 問題一覧ページのフィルターを折り返し */
+  .question-filter-row {
+    flex-wrap: wrap !important;
+    gap: 8px !important;
+  }
+
+  /* フォームの入力欄をモバイルで16px以上にしてズームを防ぐ */
+  input[type="text"],
+  input[type="email"],
+  input[type="password"],
+  input[type="search"],
+  textarea,
+  select {
+    font-size: max(16px, var(--font-size-base)) !important;
+  }
+
+  /* ページ全体の下余白（モバイルのナビバー分） */
+  .page-container,
+  .admin-container,
+  .session-container,
+  .result-container {
+    padding-bottom: env(safe-area-inset-bottom, 16px) !important;
+  }
 }

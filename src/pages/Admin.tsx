@@ -94,6 +94,18 @@ type FixProposal = {
   explanation?: string;
 };
 
+type ValidityEditLog = {
+  action: 'fixed';
+  checkedAt: string;
+  reason: string;
+  changes?: {
+    questionText?: { before: string; after: string };
+    choices?: { before: string[]; after: string[] };
+    correctAnswers?: { before: string[]; after: string[] };
+    explanation?: { before: string; after: string };
+  };
+};
+
 type FlaggedQuestion = {
   questionId: string;
   examType: string;
@@ -104,12 +116,14 @@ type FlaggedQuestion = {
   domain?: string;
   tags?: string[];
   isMultiple?: boolean;
-  validityRating?: number;
-  validityNote?: string;
   validityCheckedAt?: string;
+  validityEditLog?: string;
   isHidden?: boolean;
   isResolved?: boolean;
   resolvedAt?: string;
+  // 旧フィールド（後方互換）
+  validityRating?: number;
+  validityNote?: string;
   fixProposalJson?: string;
 };
 
@@ -302,11 +316,10 @@ export default function Admin() {
 
   const [flaggedQuestions, setFlaggedQuestions] = useState<FlaggedQuestion[]>([]);
   const [loadingFlagged, setLoadingFlagged] = useState(false);
-  const [validityFilter, setValidityFilter] = useState<'all' | 'flagged' | 'hidden'>('all');
+  const [validityFilter, setValidityFilter] = useState<'all' | 'fixed' | 'hidden'>('all');
   const [validityTotalCount, setValidityTotalCount] = useState(0);
   const [scanExamFilter, setScanExamFilter] = useState<string>('ALL');
-  const [scanRatingFilter, setScanRatingFilter] = useState<Set<number>>(new Set());
-  const [scanSort, setScanSort] = useState<'rating_asc' | 'rating_desc' | 'date_asc' | 'date_desc'>('rating_asc');
+  const [scanSort, setScanSort] = useState<'date_desc' | 'date_asc'>('date_desc');
   const [scanResolvedFilter, setScanResolvedFilter] = useState<'all' | 'unresolved'>('all');
 
   // 問題編集
@@ -369,11 +382,11 @@ export default function Admin() {
     setEditForm(f => ({ ...f, choices: newChoices, correctAnswers: newCorrect }));
   };
 
-  const fetchFlagged = async (filter: 'all' | 'flagged' | 'hidden' = validityFilter) => {
+  const fetchFlagged = async (filter: 'all' | 'fixed' | 'hidden' = validityFilter) => {
     setLoadingFlagged(true);
     try {
-      const params = filter !== 'all' ? `?filter=${filter}` : '';
-      const res = await adminFetch(`${API_ENDPOINT}/admin/questions/flagged${params}`);
+      const apiParam = filter === 'hidden' ? '?filter=hidden' : '';
+      const res = await adminFetch(`${API_ENDPOINT}/admin/questions/flagged${apiParam}`);
       const data = await res.json();
       setFlaggedQuestions(data.items || []);
       setValidityTotalCount(data.totalCount || 0);
@@ -727,7 +740,7 @@ export default function Admin() {
       )}
 
       {/* タブ */}
-      <div style={{ borderBottom: '1px solid var(--color-border)', marginBottom: 'var(--spacing-xl)' }}>
+      <div className="admin-tabs" style={{ borderBottom: '1px solid var(--color-border)', marginBottom: 'var(--spacing-xl)', display: 'flex' }}>
         <button style={tabStyle('questions')} onClick={() => setTab('questions')}>問題管理</button>
         <button style={tabStyle('import')} onClick={() => setTab('import')}>問題追加</button>
         <button style={tabStyle('reports')} onClick={() => setTab('reports')}>通報確認</button>
@@ -1709,36 +1722,22 @@ ${tipPromptExamType !== 'ALL' ? `・examType には "${tipPromptExamType}" を�
         </div>
       )}
       {tab === 'scan' && (() => {
-        const RATING_LABEL: Record<number, string> = { 1: '致命的', 2: '重大', 3: '軽微', 4: 'ほぼ問題なし', 5: '問題なし' };
-        const RATING_COLOR: Record<number, string> = { 1: '#d13212', 2: '#d47500', 3: '#8b6914', 4: '#545b64', 5: '#037f0c' };
-        const ratingDist = [1, 2, 3, 4, 5].map(r => ({
-          r, count: flaggedQuestions.filter(q => q.validityRating === r).length
-        }));
-
-        const toggleScanRating = (r: number) => {
-          setScanRatingFilter(prev => {
-            const next = new Set(prev);
-            if (next.has(r)) next.delete(r); else next.add(r);
-            return next;
-          });
-        };
-
         const filteredFlagged = flaggedQuestions
           .filter(q => scanExamFilter === 'ALL' || q.examType === scanExamFilter)
-          .filter(q => scanRatingFilter.size === 0 || (q.validityRating !== undefined && scanRatingFilter.has(q.validityRating)))
+          .filter(q => validityFilter !== 'fixed' || !!q.validityEditLog)
           .filter(q => scanResolvedFilter === 'all' || !q.isResolved)
           .sort((a, b) => {
-            if (scanSort === 'rating_asc') return (a.validityRating ?? 99) - (b.validityRating ?? 99);
-            if (scanSort === 'rating_desc') return (b.validityRating ?? 0) - (a.validityRating ?? 0);
             const da = a.validityCheckedAt ? new Date(a.validityCheckedAt).getTime() : 0;
             const db = b.validityCheckedAt ? new Date(b.validityCheckedAt).getTime() : 0;
             return scanSort === 'date_asc' ? da - db : db - da;
           });
 
+        const fixedCount = flaggedQuestions.filter(q => !!q.validityEditLog).length;
+
         return (
           <div>
             {/* 進捗・統計 */}
-            {!loadingFlagged && validityTotalCount > 0 && validityFilter === 'all' && (
+            {!loadingFlagged && validityTotalCount > 0 && validityFilter !== 'hidden' && (
               <div style={{ background: '#f2f3f3', border: '1px solid #eaeded', borderRadius: 8, padding: '14px 18px', marginBottom: 16 }}>
                 <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10, flexWrap: 'wrap', gap: 8 }}>
                   <div style={{ fontSize: 13, color: '#545b64' }}>
@@ -1752,21 +1751,24 @@ ${tipPromptExamType !== 'ALL' ? `・examType には "${tipPromptExamType}" を�
                   <div style={{ height: '100%', background: '#008c8c', borderRadius: 9999, width: `${Math.min(100, (flaggedQuestions.length / validityTotalCount) * 100)}%`, transition: 'width 0.4s' }} />
                 </div>
                 <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
-                  {ratingDist.map(({ r, count }) => count > 0 && (
-                    <span key={r} style={{ fontSize: 12, fontWeight: 700, padding: '2px 10px', borderRadius: 9999, background: RATING_COLOR[r] + '18', color: RATING_COLOR[r], border: `1px solid ${RATING_COLOR[r]}40` }}>
-                      {r}: {RATING_LABEL[r]} {count}問
+                  <span style={{ fontSize: 12, fontWeight: 700, padding: '2px 10px', borderRadius: 9999, background: '#e0f2f2', color: '#008c8c', border: '1px solid #008c8c40' }}>
+                    問題なし {flaggedQuestions.length - fixedCount}問
+                  </span>
+                  {fixedCount > 0 && (
+                    <span style={{ fontSize: 12, fontWeight: 700, padding: '2px 10px', borderRadius: 9999, background: '#fdf3e118', color: '#d47500', border: '1px solid #d4750040' }}>
+                      AI修正済 {fixedCount}問
                     </span>
-                  ))}
+                  )}
                 </div>
               </div>
             )}
 
-            {/* サーバーサイドフィルター・再読み込み */}
+            {/* フィルター・再読み込み */}
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12, flexWrap: 'wrap', gap: 8 }}>
-              <div style={{ display: 'flex', gap: 6 }}>
+              <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
                 {([
                   { key: 'all', label: '全チェック済み' },
-                  { key: 'flagged', label: '要確認 (rating≤2)' },
+                  { key: 'fixed', label: `AI修正済み (${fixedCount})` },
                   { key: 'hidden', label: '非表示中' },
                 ] as const).map(({ key, label }) => (
                   <button key={key} onClick={() => { setValidityFilter(key); fetchFlagged(key); }}
@@ -1775,7 +1777,7 @@ ${tipPromptExamType !== 'ALL' ? `・examType には "${tipPromptExamType}" を�
                       color: validityFilter === key ? '#008c8c' : '#545b64',
                       borderColor: validityFilter === key ? '#008c8c' : '#d1d5db' }}>
                     {label}
-                    {!loadingFlagged && validityFilter === key && ` (${flaggedQuestions.length})`}
+                    {key === 'all' && !loadingFlagged && validityFilter === 'all' && ` (${flaggedQuestions.length})`}
                   </button>
                 ))}
               </div>
@@ -1791,7 +1793,7 @@ ${tipPromptExamType !== 'ALL' ? `・examType には "${tipPromptExamType}" を�
                 {/* 試験種別 */}
                 <div>
                   <div style={{ fontSize: 11, fontWeight: 700, color: '#879596', marginBottom: 6, textTransform: 'uppercase', letterSpacing: '0.05em' }}>試験種別</div>
-                  <div style={{ display: 'flex', gap: 4 }}>
+                  <div style={{ display: 'flex', gap: 4, flexWrap: 'wrap' }}>
                     {(['ALL', ...EXAM_TYPES] as string[]).map(et => (
                       <button key={et} onClick={() => setScanExamFilter(et)}
                         style={{ padding: '3px 10px', border: '1px solid', borderRadius: 9999, cursor: 'pointer', fontSize: 12, fontWeight: scanExamFilter === et ? 700 : 400,
@@ -1804,40 +1806,13 @@ ${tipPromptExamType !== 'ALL' ? `・examType には "${tipPromptExamType}" を�
                   </div>
                 </div>
 
-                {/* 評価 */}
-                <div>
-                  <div style={{ fontSize: 11, fontWeight: 700, color: '#879596', marginBottom: 6, textTransform: 'uppercase', letterSpacing: '0.05em' }}>
-                    評価
-                    {scanRatingFilter.size > 0 && (
-                      <button onClick={() => setScanRatingFilter(new Set())}
-                        style={{ marginLeft: 8, fontSize: 10, fontWeight: 700, padding: '1px 7px', borderRadius: 9999, border: 'none', background: '#d1d5db', color: '#545b64', cursor: 'pointer' }}>
-                        クリア
-                      </button>
-                    )}
-                  </div>
-                  <div style={{ display: 'flex', gap: 4 }}>
-                    {[1, 2, 3, 4, 5].map(r => (
-                      <button key={r} onClick={() => toggleScanRating(r)}
-                        style={{ padding: '3px 10px', border: '1px solid', borderRadius: 9999, cursor: 'pointer', fontSize: 12, fontWeight: scanRatingFilter.has(r) ? 700 : 400,
-                          background: scanRatingFilter.has(r) ? RATING_COLOR[r] + '20' : 'white',
-                          color: scanRatingFilter.has(r) ? RATING_COLOR[r] : '#545b64',
-                          borderColor: scanRatingFilter.has(r) ? RATING_COLOR[r] : '#d1d5db' }}
-                        title={RATING_LABEL[r]}>
-                        {r}
-                      </button>
-                    ))}
-                  </div>
-                </div>
-
                 {/* ソート */}
                 <div>
                   <div style={{ fontSize: 11, fontWeight: 700, color: '#879596', marginBottom: 6, textTransform: 'uppercase', letterSpacing: '0.05em' }}>並べ替え</div>
                   <div style={{ display: 'flex', gap: 4 }}>
                     {([
-                      { key: 'rating_asc', label: '評価 低→高' },
-                      { key: 'rating_desc', label: '評価 高→低' },
-                      { key: 'date_desc', label: '日付 新→古' },
-                      { key: 'date_asc', label: '日付 古→新' },
+                      { key: 'date_desc', label: '新→古' },
+                      { key: 'date_asc', label: '古→新' },
                     ] as const).map(({ key, label }) => (
                       <button key={key} onClick={() => setScanSort(key)}
                         style={{ padding: '3px 10px', border: '1px solid', borderRadius: 9999, cursor: 'pointer', fontSize: 12, fontWeight: scanSort === key ? 700 : 400,
@@ -1869,7 +1844,7 @@ ${tipPromptExamType !== 'ALL' ? `・examType には "${tipPromptExamType}" を�
                   </div>
                 </div>
 
-                {/* 件数表示 */}
+                {/* 件数 */}
                 <div style={{ marginLeft: 'auto', alignSelf: 'flex-end', fontSize: 12, color: '#879596' }}>
                   {filteredFlagged.length} / {flaggedQuestions.length} 件
                 </div>
@@ -1880,7 +1855,7 @@ ${tipPromptExamType !== 'ALL' ? `・examType には "${tipPromptExamType}" を�
 
             {!loadingFlagged && flaggedQuestions.length === 0 && (
               <p style={{ color: '#aab7b8', textAlign: 'center', padding: 40 }}>
-                {validityFilter === 'all' ? 'チェック済みの問題はありません' : validityFilter === 'flagged' ? '要確認の問題はありません' : '非表示中の問題はありません'}
+                {validityFilter === 'hidden' ? '非表示中の問題はありません' : 'チェック済みの問題はありません'}
               </p>
             )}
 
@@ -1889,107 +1864,90 @@ ${tipPromptExamType !== 'ALL' ? `・examType には "${tipPromptExamType}" を�
             )}
 
             {filteredFlagged.map(q => {
-              const rating = q.validityRating;
-              const ratingColor = rating !== undefined ? (RATING_COLOR[rating] ?? '#545b64') : '#aab7b8';
+              const editLog: ValidityEditLog | null = (() => {
+                if (!q.validityEditLog) return null;
+                try { return JSON.parse(q.validityEditLog); } catch { return null; }
+              })();
+              const hasEdit = !!editLog;
+              const borderColor = hasEdit ? '#d47500' : q.isHidden ? '#d13212' : '#008c8c';
               return (
-                <div key={q.questionId} style={{ background: 'white', border: `1px solid ${q.isHidden ? '#f5a09b' : '#eaeded'}`, borderLeft: `4px solid ${ratingColor}`, borderRadius: 6, padding: '14px 18px', marginBottom: 8, boxShadow: '0 1px 1px 0 rgba(0,28,36,0.07)' }}>
+                <div key={q.questionId} style={{ background: 'white', border: `1px solid ${q.isHidden ? '#f5a09b' : '#eaeded'}`, borderLeft: `4px solid ${borderColor}`, borderRadius: 6, padding: '14px 18px', marginBottom: 8, boxShadow: '0 1px 1px 0 rgba(0,28,36,0.07)' }}>
+                  {/* ヘッダー行 */}
                   <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 8, flexWrap: 'wrap' }}>
                     <span style={{ background: '#232f3e', color: 'white', fontSize: 11, padding: '2px 8px', borderRadius: 12, fontWeight: 700 }}>{q.examType}</span>
                     {q.domain && (
                       <span style={{ fontSize: 11, color: '#879596', background: '#f2f3f3', padding: '2px 8px', borderRadius: 12 }}>{q.domain}</span>
                     )}
-                    {rating !== undefined ? (
-                      <span style={{ fontSize: 12, fontWeight: 700, color: ratingColor, background: ratingColor + '18', padding: '2px 10px', borderRadius: 6 }}>
-                        rating {rating} — {RATING_LABEL[rating] ?? ''}
+                    {hasEdit ? (
+                      <span style={{ fontSize: 12, fontWeight: 700, color: '#d47500', background: '#fdf3e1', padding: '2px 10px', borderRadius: 6, border: '1px solid #f5c98a' }}>
+                        AI修正済
                       </span>
                     ) : (
-                      <span style={{ fontSize: 12, color: '#aab7b8' }}>未評価</span>
+                      <span style={{ fontSize: 12, fontWeight: 700, color: '#008c8c', background: '#e0f2f2', padding: '2px 10px', borderRadius: 6, border: '1px solid #008c8c40' }}>
+                        問題なし
+                      </span>
                     )}
                     {q.isHidden && (
                       <span style={{ fontSize: 12, fontWeight: 700, color: 'white', background: '#d13212', padding: '2px 8px', borderRadius: 6 }}>非表示中</span>
                     )}
                     {q.isResolved ? (
                       <span style={{ fontSize: 12, fontWeight: 700, color: '#037f0c', background: '#e6f4ea', padding: '2px 8px', borderRadius: 6, border: '1px solid #b7e5c0' }}>対応済</span>
-                    ) : (
+                    ) : hasEdit ? (
                       <span style={{ fontSize: 12, fontWeight: 700, color: '#d47500', background: '#fdf3e1', padding: '2px 8px', borderRadius: 6, border: '1px solid #f5c98a' }}>未対応</span>
-                    )}
+                    ) : null}
                     <span style={{ fontSize: 11, color: '#aab7b8', marginLeft: 'auto', flexShrink: 0 }}>
-                      {q.validityCheckedAt ? new Date(q.validityCheckedAt).toLocaleDateString('ja-JP') : '未チェック'}
+                      AI確認: {q.validityCheckedAt ? new Date(q.validityCheckedAt).toLocaleDateString('ja-JP') : '未チェック'}
                     </span>
                   </div>
-                  <p style={{ fontSize: 13, color: '#16191f', margin: '0 0 6px', lineHeight: 1.6 }}>{q.questionText}</p>
-                  {q.validityNote && (
-                    <p style={{ fontSize: 12, color: '#545b64', margin: '0 0 10px', padding: '7px 10px', background: '#fbfbfb', borderRadius: 4, lineHeight: 1.6, borderLeft: '3px solid #d1d5db' }}>
-                      {q.validityNote}
-                    </p>
+
+                  {/* 問題文 */}
+                  <p style={{ fontSize: 13, color: '#16191f', margin: '0 0 8px', lineHeight: 1.6 }}>{q.questionText}</p>
+
+                  {/* 修正ログ */}
+                  {editLog && (
+                    <div style={{ margin: '0 0 12px', border: '1px solid #d47500', borderRadius: 6, overflow: 'hidden' }}>
+                      <div style={{ background: '#fdf3e1', padding: '6px 12px', display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
+                        <span style={{ fontSize: 11, fontWeight: 700, color: '#d47500', textTransform: 'uppercase', letterSpacing: '0.05em' }}>AI修正ログ</span>
+                        <span style={{ fontSize: 11, color: '#879596' }}>
+                          {new Date(editLog.checkedAt).toLocaleString('ja-JP')}
+                        </span>
+                        {editLog.changes && (
+                          <span style={{ fontSize: 11, color: '#545b64' }}>
+                            変更: {Object.keys(editLog.changes).map(k => ({ questionText: '問題文', choices: '選択肢', correctAnswers: '正解', explanation: '解説' }[k] ?? k)).join(' · ')}
+                          </span>
+                        )}
+                      </div>
+                      <div style={{ padding: '10px 12px', background: 'white' }}>
+                        <p style={{ fontSize: 12, color: '#545b64', margin: '0 0 10px', lineHeight: 1.6 }}>{editLog.reason}</p>
+                        {editLog.changes && Object.entries(editLog.changes).map(([field, diff]) => {
+                          const fieldLabel: Record<string, string> = { questionText: '問題文', choices: '選択肢', correctAnswers: '正解', explanation: '解説' };
+                          const label = fieldLabel[field] ?? field;
+                          const before = Array.isArray((diff as any).before) ? (diff as any).before.join(' / ') : (diff as any).before;
+                          const after = Array.isArray((diff as any).after) ? (diff as any).after.join(' / ') : (diff as any).after;
+                          return (
+                            <div key={field} style={{ marginBottom: 8 }}>
+                              <div style={{ fontSize: 11, fontWeight: 700, color: '#879596', marginBottom: 4 }}>{label}</div>
+                              <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+                                <div style={{ fontSize: 12, padding: '5px 10px', borderRadius: 4, background: '#fff5f5', border: '1px solid #f5a09b', color: '#d13212', lineHeight: 1.5, whiteSpace: 'pre-wrap' }}>
+                                  <span style={{ fontWeight: 700, marginRight: 6 }}>前:</span>{before}
+                                </div>
+                                <div style={{ fontSize: 12, padding: '5px 10px', borderRadius: 4, background: '#f0faf0', border: '1px solid #b7e5c0', color: '#037f0c', lineHeight: 1.5, whiteSpace: 'pre-wrap' }}>
+                                  <span style={{ fontWeight: 700, marginRight: 6 }}>後:</span>{after}
+                                </div>
+                              </div>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    </div>
                   )}
 
-                  {/* 修正案 */}
-                  {q.fixProposalJson && (() => {
-                    const fix: FixProposal = (() => { try { return JSON.parse(q.fixProposalJson!); } catch { return {}; } })();
-                    return (
-                      <div style={{ margin: '0 0 12px', border: '1px solid #007d8a', borderRadius: 6, overflow: 'hidden' }}>
-                        <div style={{ background: '#e0f5f5', padding: '6px 12px', display: 'flex', alignItems: 'center', gap: 8 }}>
-                          <span style={{ fontSize: 11, fontWeight: 700, color: '#007d8a', textTransform: 'uppercase', letterSpacing: '0.05em' }}>修正案</span>
-                          <span style={{ fontSize: 11, color: '#007d8a' }}>
-                            {[fix.questionText && '問題文', fix.choices && '選択肢', fix.correctAnswers && '正解', fix.explanation && '解説'].filter(Boolean).join(' · ')}
-                          </span>
-                        </div>
-                        <div style={{ padding: '10px 12px', background: 'white' }}>
-                          {fix.questionText && (
-                            <div style={{ marginBottom: fix.choices || fix.explanation ? 10 : 0 }}>
-                              <div style={{ fontSize: 11, fontWeight: 700, color: '#879596', marginBottom: 4 }}>問題文（修正後）</div>
-                              <div style={{ fontSize: 12, color: '#16191f', lineHeight: 1.6, padding: '6px 10px', background: '#f0faf0', border: '1px solid #b7e5c0', borderRadius: 4, whiteSpace: 'pre-wrap' }}>
-                                {fix.questionText}
-                              </div>
-                            </div>
-                          )}
-                          {fix.choices && (
-                            <div style={{ marginBottom: fix.explanation ? 10 : 0 }}>
-                              <div style={{ fontSize: 11, fontWeight: 700, color: '#879596', marginBottom: 4 }}>選択肢（修正後）</div>
-                              <div style={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
-                                {fix.choices.map((c, i) => {
-                                  const isCorrect = fix.correctAnswers ? fix.correctAnswers.includes(c) : (q.correctAnswers || []).includes(c);
-                                  return (
-                                    <div key={i} style={{ fontSize: 12, padding: '4px 10px', borderRadius: 4,
-                                      background: isCorrect ? '#f0faf0' : '#fafafa',
-                                      border: `1px solid ${isCorrect ? '#b7e5c0' : '#eaeded'}`,
-                                      color: isCorrect ? '#037f0c' : '#16191f', fontWeight: isCorrect ? 700 : 400 }}>
-                                      {isCorrect ? '✓ ' : ''}{c}
-                                    </div>
-                                  );
-                                })}
-                              </div>
-                            </div>
-                          )}
-                          {fix.explanation && (
-                            <div>
-                              <div style={{ fontSize: 11, fontWeight: 700, color: '#879596', marginBottom: 4 }}>解説（修正後）</div>
-                              <div style={{ fontSize: 12, color: '#16191f', lineHeight: 1.6, padding: '6px 10px', background: '#f0faf0', border: '1px solid #b7e5c0', borderRadius: 4, whiteSpace: 'pre-wrap' }}>
-                                {fix.explanation}
-                              </div>
-                            </div>
-                          )}
-                          <div style={{ display: 'flex', gap: 8, marginTop: 10 }}>
-                            <button onClick={() => handleApplyFix(q)}
-                              style={{ padding: '5px 14px', fontSize: 12, fontWeight: 700, borderRadius: 9999, cursor: 'pointer', background: '#007d8a', color: 'white', border: 'none' }}>
-                              適用する
-                            </button>
-                            <button onClick={() => handleRejectFix(q)}
-                              style={{ padding: '5px 14px', fontSize: 12, fontWeight: 700, borderRadius: 9999, cursor: 'pointer', background: 'white', color: '#879596', border: '1px solid #d1d5db' }}>
-                              却下
-                            </button>
-                          </div>
-                        </div>
-                      </div>
-                    );
-                  })()}
-
+                  {/* アクションボタン */}
                   <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
                     <button onClick={() => openEdit(q)} style={{ padding: '4px 12px', fontSize: 12, fontWeight: 700, borderRadius: 9999, cursor: 'pointer', background: 'white', color: '#545b64', border: '1px solid #545b64' }}>
                       編集
                     </button>
-                    {q.isResolved ? (
+                    {hasEdit && (q.isResolved ? (
                       <button onClick={() => handleMarkResolved(q, false)} style={{ padding: '4px 12px', fontSize: 12, fontWeight: 700, borderRadius: 9999, cursor: 'pointer', background: 'white', color: '#d47500', border: '1px solid #d47500' }}>
                         未対応に戻す
                       </button>
@@ -1997,7 +1955,7 @@ ${tipPromptExamType !== 'ALL' ? `・examType には "${tipPromptExamType}" を�
                       <button onClick={() => handleMarkResolved(q, true)} style={{ padding: '4px 12px', fontSize: 12, fontWeight: 700, borderRadius: 9999, cursor: 'pointer', background: '#037f0c', color: 'white', border: '1px solid #037f0c' }}>
                         対応済にする
                       </button>
-                    )}
+                    ))}
                     {q.isHidden ? (
                       <button onClick={() => handleVisibility(q, false)} style={{ padding: '4px 12px', fontSize: 12, fontWeight: 700, borderRadius: 9999, cursor: 'pointer', background: 'white', color: '#037f0c', border: '1px solid #037f0c' }}>
                         表示に戻す

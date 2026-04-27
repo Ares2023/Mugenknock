@@ -62,8 +62,11 @@ export default function Layout({ children }: { children: React.ReactNode }) {
   const navigate = useNavigate();
   const location = useLocation();
   const mainRef = useRef<HTMLElement>(null);
-  const [open, setOpen] = useState(() => localStorage.getItem('sidebarOpen') !== 'false');
   const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
+  const [open, setOpen] = useState(() => {
+    if (window.innerWidth < 768) return false;
+    return localStorage.getItem('sidebarOpen') !== 'false';
+  });
   const [targetExam, setTargetExam] = useState<string | null>(() => localStorage.getItem('targetExam'));
   const [showContact, setShowContact] = useState(false);
   const [contactSubject, setContactSubject] = useState('');
@@ -161,7 +164,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
           style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', zIndex: 1000, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 'var(--spacing-md)' }}
           onClick={e => { if (e.target === e.currentTarget) { setShowContact(false); } }}
         >
-          <div style={{ background: 'var(--color-bg-white)', borderRadius: 'var(--border-radius-lg)', padding: '28px 32px', width: '100%', maxWidth: 480, boxShadow: 'var(--box-shadow-md)' }}>
+          <div style={{ background: 'var(--color-bg-white)', borderRadius: 'var(--border-radius-lg)', padding: isMobile ? '20px 18px' : '28px 32px', width: '100%', maxWidth: 480, boxShadow: 'var(--box-shadow-md)', maxHeight: '90vh', overflowY: 'auto' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 'var(--spacing-lg)' }}>
               <h3 style={{ margin: 0, fontSize: 'var(--font-size-h3)', fontWeight: 700, color: 'var(--color-text-main)' }}>{t('contact.title')}</h3>
               <button onClick={() => setShowContact(false)} style={{ border: 'none', background: 'none', fontSize: 20, cursor: 'pointer', color: 'var(--color-text-sub)', padding: '4px 8px' }}>✕</button>
@@ -299,7 +302,8 @@ export default function Layout({ children }: { children: React.ReactNode }) {
       }}>
         <button onClick={toggle} style={{
           background: open ? 'var(--color-bg-main)' : 'none', border: 'none', cursor: 'pointer',
-          color: open ? 'var(--color-text-main)' : 'var(--color-text-sub)', fontSize: 16, lineHeight: 1, padding: '6px 10px',
+          color: open ? 'var(--color-text-main)' : 'var(--color-text-sub)', fontSize: 16, lineHeight: 1,
+          padding: isMobile ? '8px 12px' : '6px 10px',
           display: 'flex', alignItems: 'center', borderRadius: 'var(--border-radius-sm)',
           transition: 'all 0.2s', flexShrink: 0,
         }}
@@ -309,7 +313,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
         >
           {open ? <IconClose /> : <IconMenu />}
         </button>
-        <div style={{ flex: 1, minWidth: 0 }}>
+        <div style={{ flex: 1, minWidth: 0, overflow: 'hidden' }}>
           {breadcrumbs[location.pathname] && (
             <Breadcrumb
               items={breadcrumbs[location.pathname]}
@@ -317,18 +321,13 @@ export default function Layout({ children }: { children: React.ReactNode }) {
             />
           )}
         </div>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 6, flexShrink: 0, paddingRight: 'var(--spacing-sm)' }}>
-          <span style={{ fontSize: 'var(--font-size-xs)', color: 'var(--color-text-light)' }}>{t('nav.goal')}</span>
-          {targetExam ? (
+        {targetExam && (
+          <div style={{ flexShrink: 0, paddingRight: 'var(--spacing-xs)' }}>
             <span style={{ background: 'var(--color-secondary)', color: 'white', fontSize: 'var(--font-size-xs)', padding: '2px 10px', borderRadius: 'var(--border-radius-full)', fontWeight: 700 }}>
               {targetExam}
             </span>
-          ) : (
-            <span style={{ fontSize: 'var(--font-size-xs)', color: 'var(--color-text-light)', fontStyle: 'italic' }}>
-              {lang === 'ja' ? '未設定' : 'not set'}
-            </span>
-          )}
-        </div>
+          </div>
+        )}
       </div>
 
       {/* ── ボディ（サイドバー + コンテンツ） ── */}
@@ -496,6 +495,8 @@ export default function Layout({ children }: { children: React.ReactNode }) {
           flex: 1, overflow: 'auto',
           background: 'var(--color-bg-main)',
           width: isMobile ? '100%' : undefined,
+          WebkitOverflowScrolling: 'touch',
+          minWidth: 0,
         }}>
           {children}
         </main>
