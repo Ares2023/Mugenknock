@@ -445,7 +445,7 @@ export default function QuestionList() {
             {keywordChips.map(chip => (
               <span key={chip} style={{
                 display: 'inline-flex', alignItems: 'center', gap: 4,
-                background: '#16191f', color: 'white',
+                background: '#0097a7', color: 'white',
                 borderRadius: 20, padding: '4px 10px 4px 12px',
                 fontSize: 12, fontWeight: 700,
               }}>
