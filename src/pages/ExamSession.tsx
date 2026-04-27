@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { API_ENDPOINT, EXAM_CONFIGS, PASS_RATE } from '../constants';
 import { useAuth } from '../contexts/AuthContext';
@@ -109,6 +109,16 @@ export default function ExamSession() {
 
   const currentQ = questions[currentIndex];
   const selected = answers[currentQ?.questionId] ?? [];
+
+  const shuffledIndices = useMemo(() => {
+    if (!currentQ?.choices) return [];
+    const idx = currentQ.choices.map((_: unknown, i: number) => i);
+    for (let i = idx.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [idx[i], idx[j]] = [idx[j], idx[i]];
+    }
+    return idx;
+  }, [currentQ?.questionId]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const [lastSelected, setLastSelected] = useState<string | null>(null);
 
@@ -297,8 +307,10 @@ export default function ExamSession() {
         </div>
 
         <div style={{ marginBottom: 'var(--spacing-xl)' }}>
-          {((lang === 'en' && (currentQ as any).choicesEn) ? (currentQ as any).choicesEn : currentQ.choices).map((choice: string, ci: number) => {
-            const origChoice = currentQ.choices[ci] ?? choice;
+          {shuffledIndices.map((ci: number) => {
+            const origChoice = currentQ.choices[ci];
+            const choicesEn = (currentQ as any).choicesEn;
+            const choice = (lang === 'en' && choicesEn) ? (choicesEn[ci] ?? origChoice) : origChoice;
             const isSelected = selected.includes(origChoice);
             return (
               <button

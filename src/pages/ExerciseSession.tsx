@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { API_ENDPOINT, PASS_RATE } from '../constants';
 import { useAuth } from '../contexts/AuthContext';
@@ -126,6 +126,16 @@ export default function ExerciseSession() {
   }, [currentIndex, results]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const currentQuestion = questions[currentIndex];
+
+  const shuffledChoices = useMemo(() => {
+    if (!currentQuestion?.choices) return [];
+    const arr = [...currentQuestion.choices];
+    for (let i = arr.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [arr[i], arr[j]] = [arr[j], arr[i]];
+    }
+    return arr;
+  }, [currentQuestion?.questionId]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const fetchDetail = async (questionId: string): Promise<Question> => {
     const res = await fetch(`${API_ENDPOINT}/questions/${questionId}`);
@@ -290,9 +300,9 @@ export default function ExerciseSession() {
         <div style={{ marginBottom: 'var(--spacing-xl)' }}>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 'var(--spacing-sm)' }}>
             <span style={{ fontSize: 'var(--font-size-sm)', color: 'var(--color-text-sub)', fontWeight: 700 }}>{t('exerciseSession.choices')}</span>
-            <CopyButton getText={() => currentQuestion.choices.join('\n')} />
+            <CopyButton getText={() => shuffledChoices.join('\n')} />
           </div>
-          {currentQuestion.choices.map((choice: string) => (
+          {shuffledChoices.map((choice: string) => (
             <button
               key={choice}
               onClick={() => toggleAnswer(choice)}
