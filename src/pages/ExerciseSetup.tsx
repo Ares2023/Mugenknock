@@ -99,7 +99,6 @@ export default function ExerciseSetup() {
   type DomainStat = { tagId: string; correctCount: number; incorrectCount: number };
   const [domainStats, setDomainStats] = useState<DomainStat[]>([]);
   const [availableTags, setAvailableTags] = useState<string[]>([]);
-  const [tagInput, setTagInput] = useState('');
   const [tagListOpen, setTagListOpen] = useState(false);
 
   const isFirstRender = useRef(true);
@@ -108,7 +107,6 @@ export default function ExerciseSetup() {
     const prefs = loadExercisePrefs(examType);
     setSelectedDomains(prefs.domains ?? EXAM_DOMAINS[examType]);
     setSelectedTags(prefs.tags ?? []);
-    setTagInput('');
     setLimit(prefs.limit ?? 10);
     setShuffle(prefs.shuffle ?? false);
     setBookmarkOnly(prefs.bookmarkOnly ?? false);
@@ -402,48 +400,17 @@ export default function ExerciseSetup() {
             <StepRow n={tagStep!} isLast
               title={<>{t('exerciseSetup.tag')} <span style={{ fontWeight: 400, fontSize: 'var(--font-size-sm)', color: 'var(--color-text-sub)' }}>{t('exerciseSetup.optional')}</span></>}>
               <div style={{ display: 'flex', gap: 12, alignItems: 'flex-start' }}>
-                {/* 左：入力 + サジェスト + 選択済みチップ */}
-                <div style={{ flex: 1, minWidth: 0 }}>
-                  <input
-                    value={tagInput}
-                    onChange={e => setTagInput(e.target.value)}
-                    onKeyDown={e => {
-                      if (e.key === 'Enter') {
-                        e.preventDefault();
-                        const kw = tagInput.trim().toLowerCase();
-                        const match = availableTags.find(t => t.toLowerCase() === kw) ?? availableTags.find(t => t.toLowerCase().includes(kw));
-                        const toAdd = match ?? (tagInput.trim() || null);
-                        if (toAdd && !selectedTags.includes(toAdd)) setSelectedTags(prev => [...prev, toAdd]);
-                        setTagInput('');
-                      }
-                    }}
-                    placeholder={lang === 'ja' ? '例: EC2、セキュリティ、コスト...' : 'e.g. EC2, security, cost...'}
-                    style={{ width: '100%', padding: '5px 10px', border: '1px solid var(--color-border)', borderRadius: 6, fontSize: 13, outline: 'none', boxSizing: 'border-box' }}
-                    onFocus={e => e.currentTarget.style.borderColor = '#008c8c'}
-                    onBlur={e => e.currentTarget.style.borderColor = 'var(--color-border)'}
-                  />
-                  {tagInput && (
-                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: 4, marginTop: 4 }}>
-                      {availableTags.filter(t => t.toLowerCase().includes(tagInput.trim().toLowerCase()) && !selectedTags.includes(t)).slice(0, 12).map(t => (
-                        <button key={t} type="button" onClick={() => { setSelectedTags(prev => [...prev, t]); setTagInput(''); }}
-                          style={{ padding: '2px 8px', border: '1px solid #d1d5db', borderRadius: 6, cursor: 'pointer', fontSize: 11, background: 'white', color: 'var(--color-text-sub)' }}>
-                          {t}
-                        </button>
-                      ))}
-                    </div>
-                  )}
-                  {selectedTags.length > 0 && (
-                    <div style={{ display: 'flex', gap: 4, flexWrap: 'wrap', marginTop: 6 }}>
-                      {selectedTags.map(tag => (
-                        <span key={tag} style={{ display: 'inline-flex', alignItems: 'center', gap: 3, padding: '2px 8px 2px 10px', background: '#e0f2f2', color: '#008c8c', borderRadius: 9999, fontSize: 12, fontWeight: 600 }}>
-                          {tag}
-                          <button onClick={() => setSelectedTags(prev => prev.filter(t => t !== tag))}
-                            style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#008c8c', fontSize: 15, lineHeight: 1, padding: '0 0 0 2px', display: 'flex', alignItems: 'center' }}>×</button>
-                        </span>
-                      ))}
-                    </div>
-                  )}
-                </div>
+                {selectedTags.length > 0 && (
+                  <div style={{ flex: 1, minWidth: 0, display: 'flex', gap: 4, flexWrap: 'wrap' }}>
+                    {selectedTags.map(tag => (
+                      <span key={tag} style={{ display: 'inline-flex', alignItems: 'center', gap: 3, padding: '2px 8px 2px 10px', background: '#e0f2f2', color: '#008c8c', borderRadius: 9999, fontSize: 12, fontWeight: 600 }}>
+                        {tag}
+                        <button onClick={() => setSelectedTags(prev => prev.filter(t => t !== tag))}
+                          style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#008c8c', fontSize: 15, lineHeight: 1, padding: '0 0 0 2px', display: 'flex', alignItems: 'center' }}>×</button>
+                      </span>
+                    ))}
+                  </div>
+                )}
                 {/* 右：タグ一覧（折り畳み式） */}
                 <div style={{ width: 180, flexShrink: 0, border: '1px solid var(--color-border)', borderRadius: 6 }}>
                   <button
