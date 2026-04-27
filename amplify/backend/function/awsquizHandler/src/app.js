@@ -1,6 +1,6 @@
 const express = require('express');
 const { DynamoDBClient } = require('@aws-sdk/client-dynamodb');
-const { DynamoDBDocumentClient, ScanCommand, GetCommand, QueryCommand, PutCommand, UpdateCommand, TransactWriteCommand, DeleteCommand, BatchWriteCommand } = require('@aws-sdk/lib-dynamodb');
+const { DynamoDBDocumentClient, ScanCommand, GetCommand, QueryCommand, PutCommand, UpdateCommand, TransactWriteCommand, DeleteCommand } = require('@aws-sdk/lib-dynamodb');
 const { v4: uuidv4 } = require('uuid');
 const { CognitoJwtVerifier } = require('aws-jwt-verify');
 
@@ -797,14 +797,9 @@ app.delete('/users/me/data', async (req, res) => {
       DOP: ['SDLC の自動化', '設定管理と IaC', '高可用性、耐障害性、およびディザスタリカバリ', 'モニタリングとログ', 'セキュリティとコンプライアンスの自動化'],
     };
 
-    const batchDeleteItems = async (table, keys) => {
+    const deleteItems = async (table, keys) => {
       if (keys.length === 0) return;
-      for (let i = 0; i < keys.length; i += 25) {
-        const chunk = keys.slice(i, i + 25);
-        await docClient.send(new BatchWriteCommand({
-          RequestItems: { [table]: chunk.map(key => ({ DeleteRequest: { Key: key } })) },
-        }));
-      }
+      await Promise.all(keys.map(key => docClient.send(new DeleteCommand({ TableName: table, Key: key }))));
     };
 
     // 1. examType の questionId 一覧を取得
@@ -818,11 +813,11 @@ app.delete('/users/me/data', async (req, res) => {
     const questionIds = (questionsResult.Items || []).map(q => q.questionId);
 
     // 2. UserQuestionStats 削除
-    await batchDeleteItems('UserQuestionStats', questionIds.map(qid => ({ userId, questionId: qid })));
+    await deleteItems('UserQuestionStats', questionIds.map(qid => ({ userId, questionId: qid })));
 
     // 3. UserTagStats 削除（ドメインタグのみ）
     const domains = EXAM_DOMAINS_MAP[examType] || [];
-    await batchDeleteItems('UserTagStats', domains.map(tagId => ({ userId, tagId })));
+    await deleteItems('UserTagStats', domains.map(tagId => ({ userId, tagId })));
 
     // 4. Sessions を取得
     const sessionsResult = await docClient.send(new QueryCommand({
@@ -844,13 +839,13 @@ app.delete('/users/me/data', async (req, res) => {
           ExclusiveStartKey: lastKey,
         }));
         const answerKeys = (answersResult.Items || []).map(a => ({ userId: a.userId, questionIdTimestamp: a.questionIdTimestamp }));
-        await batchDeleteItems('UserAnswers', answerKeys);
+        await deleteItems('UserAnswers', answerKeys);
         lastKey = answersResult.LastEvaluatedKey;
       } while (lastKey);
     }
 
     // 6. Sessions 削除
-    await batchDeleteItems('Sessions', sessionIds.map(sid => ({ userId, sessionId: sid })));
+    await deleteItems('Sessions', sessionIds.map(sid => ({ userId, sessionId: sid })));
 
     res.json({ success: true });
   } catch (err) {
