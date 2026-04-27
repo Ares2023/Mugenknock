@@ -537,7 +537,7 @@ export default function ExerciseSetup() {
         <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--spacing-lg)' }}>
 
         {/* 成績パネル */}
-        <Card padding="var(--spacing-lg)" style={{ alignSelf: 'start' }}>
+        <Card padding="var(--spacing-lg)">
 
           {/* 学習進捗 */}
           <div>

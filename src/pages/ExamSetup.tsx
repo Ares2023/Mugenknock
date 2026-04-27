@@ -525,7 +525,7 @@ export default function ExamSetup() {
         <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--spacing-lg)' }}>
 
         {/* 成績パネル */}
-        <Card padding="var(--spacing-lg)" style={{ alignSelf: 'start' }}>
+        <Card padding="var(--spacing-lg)">
 
           {/* テスト履歴 */}
           <div>
