@@ -541,6 +541,13 @@ case "$CMD" in
     printf '%s|%s\n' "$HOOK_OFFSET" "$HOOK_CMD" >> "$HOOKS_FILE"
     _sign=""; [ "$HOOK_OFFSET" -gt 0 ] && _sign="+"
     echo "hook 追加: ${_sign}${HOOK_OFFSET}分  $HOOK_CMD"
+    _raw_next=$(systemctl --user list-timers "${UNIT_NAME}.timer" --all --no-legend 2>/dev/null \
+                | awk 'NR==1{print $2, $3}')
+    if [ -n "$_raw_next" ]; then
+      schedule_hooks "$_raw_next"
+    else
+      echo "(メインタイマー未設定 — 次回 ct run/set で登録されます)"
+    fi
     ;;
   hook-ls)
     if [ ! -f "$HOOKS_FILE" ] || [ ! -s "$HOOKS_FILE" ]; then
