@@ -575,53 +575,54 @@ export default function ExerciseSetup() {
                     </span>
                   </div>
                 )}
-                {/* 苦手ドメイン トップ3 */}
-                {(() => {
-                  const THRESHOLD = 10;
-                  const label = lang === 'ja' ? '苦手ドメイン' : 'Weakest Domains';
-                  if (answeredCount !== null && answeredCount <= THRESHOLD) {
-                    return (
-                      <div style={{ marginTop: 'var(--spacing-md)', paddingTop: 'var(--spacing-sm)', borderTop: '1px solid var(--color-border)' }}>
-                        <div style={{ fontSize: 'var(--font-size-xs)', fontWeight: 700, color: 'var(--color-text-sub)', marginBottom: 'var(--spacing-xs)' }}>{label}</div>
-                        <div style={{ fontSize: 'var(--font-size-xs)', color: 'var(--color-text-light)', fontStyle: 'italic' }}>
-                          {lang === 'ja' ? `回答数が足りません（${answeredCount}問）` : `Not enough answers (${answeredCount} answered)`}
-                        </div>
-                      </div>
-                    );
-                  }
-                  const ranked = EXAM_DOMAINS[examType]
-                    .map(d => {
-                      const s = domainStats.find(x => x.tagId === d);
-                      const correct = s?.correctCount ?? 0;
-                      const incorrect = s?.incorrectCount ?? 0;
-                      const total = correct + incorrect;
-                      const rate = total > 0 ? correct / total : null;
-                      return { d, rate, total };
-                    })
-                    .filter(x => x.rate !== null)
-                    .sort((a, b) => a.rate! - b.rate!)
-                    .slice(0, 3);
-                  if (ranked.length === 0) return null;
-                  return (
-                    <div style={{ marginTop: 'var(--spacing-md)', paddingTop: 'var(--spacing-sm)', borderTop: '1px solid var(--color-border)' }}>
-                      <div style={{ fontSize: 'var(--font-size-xs)', fontWeight: 700, color: 'var(--color-text-sub)', marginBottom: 'var(--spacing-xs)' }}>{label}</div>
-                      {ranked.map(({ d, rate }, i) => (
-                        <div key={d} style={{ display: 'flex', alignItems: 'center', gap: 'var(--spacing-sm)', marginBottom: 4 }}>
-                          <span style={{ fontSize: 11, fontWeight: 700, color: 'var(--color-text-light)', width: 14, flexShrink: 0 }}>{i + 1}</span>
-                          <span style={{ fontSize: 'var(--font-size-xs)', color: 'var(--color-text-main)', flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                            {lang === 'en' ? (DOMAIN_NAME_EN[d] ?? d) : d}
-                          </span>
-                          <span style={{ fontSize: 'var(--font-size-xs)', fontWeight: 700, color: 'var(--color-danger)', flexShrink: 0 }}>
-                            {Math.round(rate! * 100)}%
-                          </span>
-                        </div>
-                      ))}
-                    </div>
-                  );
-                })()}
               </>
             )}
           </div>
+
+          {/* 苦手ドメイン トップ3 */}
+          {user && (
+            <div style={{ marginTop: 'var(--spacing-lg)', paddingTop: 'var(--spacing-md)', borderTop: '1px solid var(--color-border)' }}>
+              <div style={{ fontSize: 'var(--font-size-xs)', fontWeight: 700, color: 'var(--color-text-sub)', marginBottom: 'var(--spacing-xs)' }}>
+                {lang === 'ja' ? '苦手ドメイン' : 'Weakest Domains'}
+              </div>
+              {answeredCount === null ? (
+                <div style={{ fontSize: 'var(--font-size-xs)', color: 'var(--color-text-light)' }}>...</div>
+              ) : answeredCount <= 10 ? (
+                <div style={{ fontSize: 'var(--font-size-xs)', color: 'var(--color-text-light)', fontStyle: 'italic' }}>
+                  {lang === 'ja' ? `回答数が足りません（${answeredCount}問）` : `Not enough answers (${answeredCount} answered)`}
+                </div>
+              ) : (() => {
+                const ranked = EXAM_DOMAINS[examType]
+                  .map(d => {
+                    const s = domainStats.find(x => x.tagId === d);
+                    const correct = s?.correctCount ?? 0;
+                    const incorrect = s?.incorrectCount ?? 0;
+                    const total = correct + incorrect;
+                    const rate = total > 0 ? correct / total : null;
+                    return { d, rate };
+                  })
+                  .filter(x => x.rate !== null)
+                  .sort((a, b) => a.rate! - b.rate!)
+                  .slice(0, 3);
+                if (ranked.length === 0) return <div style={{ fontSize: 'var(--font-size-xs)', color: 'var(--color-text-light)', fontStyle: 'italic' }}>{lang === 'ja' ? 'データなし' : 'No data'}</div>;
+                return (
+                  <>
+                    {ranked.map(({ d, rate }, i) => (
+                      <div key={d} style={{ display: 'flex', alignItems: 'center', gap: 'var(--spacing-sm)', marginBottom: 4 }}>
+                        <span style={{ fontSize: 11, fontWeight: 700, color: 'var(--color-text-light)', width: 14, flexShrink: 0 }}>{i + 1}</span>
+                        <span style={{ fontSize: 'var(--font-size-xs)', color: 'var(--color-text-main)', flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                          {lang === 'en' ? (DOMAIN_NAME_EN[d] ?? d) : d}
+                        </span>
+                        <span style={{ fontSize: 'var(--font-size-xs)', fontWeight: 700, color: 'var(--color-danger)', flexShrink: 0 }}>
+                          {Math.round(rate! * 100)}%
+                        </span>
+                      </div>
+                    ))}
+                  </>
+                );
+              })()}
+            </div>
+          )}
         </Card>
 
         </div>{/* 右カラム終了 */}
