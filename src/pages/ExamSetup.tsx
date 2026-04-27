@@ -65,10 +65,7 @@ export default function ExamSetup() {
     setExamType(et);
   };
   const [selectedDomains, setSelectedDomains] = useState<string[]>(() => { const et = localStorage.getItem('targetExam') || localStorage.getItem('lastExamType') || 'SAA'; return loadExamPrefs(et).domains ?? EXAM_DOMAINS[et] ?? []; });
-  const [selectedTags, setSelectedTags] = useState<string[]>(() => loadExamPrefs(localStorage.getItem('targetExam') || localStorage.getItem('lastExamType') || 'SAA').tags ?? []);
   const [availableCount, setAvailableCount] = useState<number | null>(null);
-  const [availableTags, setAvailableTags] = useState<string[]>([]);
-  const [tagListOpen, setTagListOpen] = useState(false);
   const [loading, setLoading] = useState(false);
   const [showHint, setShowHint] = useState(() => !localStorage.getItem('sherpaExamHint'));
   const [examDraft, setExamDraft] = useState<any>(() => {
@@ -95,7 +92,6 @@ export default function ExamSetup() {
     if (isFirstRender.current) { isFirstRender.current = false; return; }
     const prefs = loadExamPrefs(examType);
     setSelectedDomains(prefs.domains ?? EXAM_DOMAINS[examType]);
-    setSelectedTags(prefs.tags ?? []);
     setBookmarkOnly(prefs.bookmarkOnly ?? false);
     setUnansweredOnly(prefs.unansweredOnly ?? false);
     setIncorrectOnly(prefs.incorrectOnly ?? false);
@@ -103,8 +99,8 @@ export default function ExamSetup() {
   }, [examType]);
 
   useEffect(() => {
-    saveExamPrefs(examType, { domains: selectedDomains, tags: selectedTags, bookmarkOnly, unansweredOnly, incorrectOnly, shuffle });
-  }, [examType, selectedDomains, selectedTags, bookmarkOnly, unansweredOnly, incorrectOnly, shuffle]);
+    saveExamPrefs(examType, { domains: selectedDomains, bookmarkOnly, unansweredOnly, incorrectOnly, shuffle });
+  }, [examType, selectedDomains, bookmarkOnly, unansweredOnly, incorrectOnly, shuffle]);
 
   const resumeExam = () => {
     if (!examDraft) return;
@@ -152,31 +148,16 @@ export default function ExamSetup() {
             const incorrectIds = new Set(incorrectRes.questionIds ?? []);
             items = items.filter((q: any) => incorrectIds.has(q.questionId));
           }
-          if (selectedTags.length > 0) {
-            items = items.filter((q: any) => selectedTags.some(t => (q.tags ?? []).includes(t)));
-          }
           setAvailableCount(items.length);
         } else {
           const data = await fetch(`${API_ENDPOINT}/questions?${params}`).then(r => r.json());
-          if (selectedTags.length > 0) {
-            const items: any[] = (data.items ?? []).filter((q: any) => selectedTags.some(t => (q.tags ?? []).includes(t)));
-            setAvailableCount(items.length);
-          } else {
-            setAvailableCount(data.count ?? data.items?.length ?? 0);
-          }
+          setAvailableCount(data.count ?? data.items?.length ?? 0);
         }
       } catch { setAvailableCount(0); }
     };
 
     fetchCounts();
-  }, [examType, selectedDomains, selectedTags, user, bookmarkOnly, unansweredOnly, incorrectOnly]);
-
-  useEffect(() => {
-    fetch(`${API_ENDPOINT}/tags?examType=${examType}`)
-      .then(r => r.json())
-      .then(d => setAvailableTags(d.tags || []))
-      .catch(() => setAvailableTags([]));
-  }, [examType]);
+  }, [examType, selectedDomains, user, bookmarkOnly, unansweredOnly, incorrectOnly]);
 
   useEffect(() => {
     if (!user) { setExamSessions([]); setDomainStats([]); setAnsweredCount(null); return; }
@@ -233,9 +214,6 @@ export default function ExamSetup() {
           const incorrectIds = new Set(incorrectRes.questionIds ?? []);
           filtered = filtered.filter((q: any) => incorrectIds.has(q.questionId));
         }
-        if (selectedTags.length > 0) {
-          filtered = filtered.filter((q: any) => selectedTags.some(t => (q.tags ?? []).includes(t)));
-        }
         if (shuffle) {
           for (let i = filtered.length - 1; i > 0; i--) {
             const j = Math.floor(Math.random() * (i + 1));
@@ -248,9 +226,6 @@ export default function ExamSetup() {
         if (!allSelected) params.set('domain', selectedDomains.join(','));
         const data = await fetch(`${API_ENDPOINT}/questions?${params}`).then(r => r.json());
         let allItems: any[] = data.items ?? [];
-        if (selectedTags.length > 0) {
-          allItems = allItems.filter((q: any) => selectedTags.some(t => (q.tags ?? []).includes(t)));
-        }
         if (shuffle) {
           for (let i = allItems.length - 1; i > 0; i--) {
             const j = Math.floor(Math.random() * (i + 1));
@@ -287,14 +262,13 @@ export default function ExamSetup() {
 
   const useableCount = availableCount !== null ? Math.min(config.totalQuestions, availableCount) : null;
   const allDomainsSelected = EXAM_DOMAINS[examType].every(d => selectedDomains.includes(d));
-  const shortage = availableCount !== null && allDomainsSelected && selectedTags.length === 0
+  const shortage = availableCount !== null && allDomainsSelected
     ? Math.max(0, config.totalQuestions - availableCount) : null;
 
   let _s = 0;
   const examStep    = targetExam ? null : ++_s;
   const domainStep  = ++_s;
   const optionsStep = ++_s;
-  const tagStep     = availableTags.length > 0 ? ++_s : null;
 
   return (
     <div style={{ maxWidth: 1100, margin: '0 auto', padding: 'var(--spacing-xl) var(--spacing-lg)' }} className="page-container">
@@ -356,7 +330,7 @@ export default function ExamSetup() {
           </StepRow>
 
           {/* オプション */}
-          <StepRow n={optionsStep} isLast={availableTags.length === 0} title={t('exerciseSetup.options')}>
+          <StepRow n={optionsStep} isLast title={t('exerciseSetup.options')}>
             <div style={{ padding: 'var(--spacing-md)', background: 'var(--color-bg-main)', borderRadius: 'var(--border-radius-md)', display: 'flex', flexDirection: 'column', gap: 'var(--spacing-xs)' }}>
               {user && (
                 <label title={t('exerciseSetup.unansweredOnlyDesc')} style={{ display: 'flex', alignItems: 'center', gap: 'var(--spacing-sm)', cursor: 'pointer', fontSize: 'var(--font-size-base)' }}>
@@ -382,76 +356,6 @@ export default function ExamSetup() {
               </label>
             </div>
           </StepRow>
-
-          {/* タグフィルタ（複数選択・チップ形式） */}
-          {availableTags.length > 0 && (
-            <StepRow n={tagStep!} isLast
-              title={<>{t('examSetup.tag')} <span style={{ fontWeight: 400, fontSize: 'var(--font-size-sm)', color: 'var(--color-text-sub)' }}>{t('examSetup.optional')}</span></>}>
-              <div style={{ display: 'flex', gap: 12, alignItems: 'flex-start' }}>
-                {selectedTags.length > 0 && (
-                  <div style={{ flex: 1, minWidth: 0, display: 'flex', gap: 4, flexWrap: 'wrap' }}>
-                    {selectedTags.map(tag => (
-                      <span key={tag} style={{ display: 'inline-flex', alignItems: 'center', gap: 3, padding: '2px 8px 2px 10px', background: '#e0f2f2', color: '#008c8c', borderRadius: 9999, fontSize: 12, fontWeight: 600 }}>
-                        {tag}
-                        <button onClick={() => setSelectedTags(prev => prev.filter(t => t !== tag))}
-                          style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#008c8c', fontSize: 15, lineHeight: 1, padding: '0 0 0 2px', display: 'flex', alignItems: 'center' }}>×</button>
-                      </span>
-                    ))}
-                  </div>
-                )}
-                {/* 右：タグ一覧（折り畳み式） */}
-                <div style={{ width: 180, flexShrink: 0, border: '1px solid var(--color-border)', borderRadius: 6 }}>
-                  <button
-                    type="button"
-                    onClick={() => setTagListOpen(o => !o)}
-                    style={{
-                      display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-                      width: '100%', padding: '5px 8px', background: 'none', border: 'none',
-                      cursor: 'pointer', fontSize: 10, fontWeight: 700,
-                      color: 'var(--color-text-light)', textTransform: 'uppercase', letterSpacing: '0.5px',
-                    }}
-                  >
-                    <span>{lang === 'ja' ? 'タグ一覧' : 'Tags'}{selectedTags.length > 0 ? ` (${selectedTags.length})` : ''}</span>
-                    <span style={{ fontSize: 9 }}>{tagListOpen ? '▲' : '▼'}</span>
-                  </button>
-                  {tagListOpen && (
-                    <>
-                      {selectedTags.length > 0 && (
-                        <div style={{ borderTop: '1px solid var(--color-border)', padding: '3px 8px' }}>
-                          <button onClick={() => setSelectedTags([])}
-                            style={{ fontSize: 10, color: 'var(--color-text-light)', background: 'none', border: 'none', cursor: 'pointer', textDecoration: 'underline', padding: 0 }}>
-                            {lang === 'ja' ? 'すべてクリア' : 'Clear all'}
-                          </button>
-                        </div>
-                      )}
-                      <div style={{ borderTop: '1px solid var(--color-border)', maxHeight: 160, overflowY: 'auto' }}>
-                        {availableTags.map(tag => {
-                          const isSelected = selectedTags.includes(tag);
-                          return (
-                            <button key={tag} type="button"
-                              onClick={() => setSelectedTags(prev => isSelected ? prev.filter(t => t !== tag) : [...prev, tag])}
-                              style={{
-                                display: 'flex', alignItems: 'center', gap: 5,
-                                padding: '5px 8px', border: 'none', width: '100%', textAlign: 'left',
-                                cursor: 'pointer',
-                                background: isSelected ? '#e0f2f2' : 'transparent',
-                                color: isSelected ? '#008c8c' : 'var(--color-text-sub)',
-                                fontSize: 12, fontWeight: isSelected ? 700 : 400,
-                                transition: 'background 0.15s',
-                              }}
-                            >
-                              <span style={{ width: 12, flexShrink: 0, fontSize: 10, color: '#008c8c' }}>{isSelected ? '✓' : ''}</span>
-                              {tag}
-                            </button>
-                          );
-                        })}
-                      </div>
-                    </>
-                  )}
-                </div>
-              </div>
-            </StepRow>
-          )}
 
           {/* 中断中セッション通知 */}
           {hasDraft && (

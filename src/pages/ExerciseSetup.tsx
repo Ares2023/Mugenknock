@@ -78,7 +78,6 @@ export default function ExerciseSetup() {
     const et = localStorage.getItem('targetExam') || localStorage.getItem('lastExamType') || 'SAA';
     return loadExercisePrefs(et).domains ?? EXAM_DOMAINS[et] ?? [];
   });
-  const [selectedTags, setSelectedTags] = useState<string[]>(() => loadExercisePrefs(localStorage.getItem('targetExam') || localStorage.getItem('lastExamType') || 'SAA').tags ?? []);
   const [limit, setLimit] = useState<number>(() => loadExercisePrefs(localStorage.getItem('targetExam') || localStorage.getItem('lastExamType') || 'SAA').limit ?? 10);
   const [shuffle, setShuffle] = useState<boolean>(() => loadExercisePrefs(localStorage.getItem('targetExam') || localStorage.getItem('lastExamType') || 'SAA').shuffle ?? false);
   const [loading, setLoading] = useState(false);
@@ -98,15 +97,12 @@ export default function ExerciseSetup() {
   const [incorrectCountTotal, setIncorrectCountTotal] = useState<number | null>(null);
   type DomainStat = { tagId: string; correctCount: number; incorrectCount: number };
   const [domainStats, setDomainStats] = useState<DomainStat[]>([]);
-  const [availableTags, setAvailableTags] = useState<string[]>([]);
-  const [tagListOpen, setTagListOpen] = useState(false);
 
   const isFirstRender = useRef(true);
   useEffect(() => {
     if (isFirstRender.current) { isFirstRender.current = false; return; }
     const prefs = loadExercisePrefs(examType);
     setSelectedDomains(prefs.domains ?? EXAM_DOMAINS[examType]);
-    setSelectedTags(prefs.tags ?? []);
     setLimit(prefs.limit ?? 10);
     setShuffle(prefs.shuffle ?? false);
     setBookmarkOnly(prefs.bookmarkOnly ?? false);
@@ -115,8 +111,8 @@ export default function ExerciseSetup() {
   }, [examType]);
 
   useEffect(() => {
-    saveExercisePrefs(examType, { domains: selectedDomains, tags: selectedTags, limit, shuffle, bookmarkOnly, unansweredOnly, incorrectOnly });
-  }, [examType, selectedDomains, selectedTags, limit, shuffle, bookmarkOnly, unansweredOnly, incorrectOnly]);
+    saveExercisePrefs(examType, { domains: selectedDomains, limit, shuffle, bookmarkOnly, unansweredOnly, incorrectOnly });
+  }, [examType, selectedDomains, limit, shuffle, bookmarkOnly, unansweredOnly, incorrectOnly]);
 
   useEffect(() => {
     setAvailableCount(null);
@@ -150,18 +146,10 @@ export default function ExerciseSetup() {
             const incorrectIds = new Set(incorrectRes.questionIds ?? []);
             items = items.filter((q: any) => incorrectIds.has(q.questionId));
           }
-          if (selectedTags.length > 0) {
-            items = items.filter((q: any) => selectedTags.some(t => (q.tags ?? []).includes(t)));
-          }
           setAvailableCount(items.length);
         } else {
           const qRes = await fetch(`${API_ENDPOINT}/questions?${params}`).then(r => r.json());
-          if (selectedTags.length > 0) {
-            const items: any[] = (qRes.items ?? []).filter((q: any) => selectedTags.some(t => (q.tags ?? []).includes(t)));
-            setAvailableCount(items.length);
-          } else {
-            setAvailableCount(qRes.count ?? qRes.items?.length ?? 0);
-          }
+          setAvailableCount(qRes.count ?? qRes.items?.length ?? 0);
         }
       } catch { setAvailableCount(0); }
     };
@@ -186,14 +174,7 @@ export default function ExerciseSetup() {
       setIncorrectCountTotal(0);
       setDomainStats([]);
     }
-  }, [examType, selectedDomains, selectedTags, user, bookmarkOnly, unansweredOnly, incorrectOnly]);
-
-  useEffect(() => {
-    fetch(`${API_ENDPOINT}/tags?examType=${examType}`)
-      .then(r => r.json())
-      .then(d => setAvailableTags(d.tags || []))
-      .catch(() => setAvailableTags([]));
-  }, [examType]);
+  }, [examType, selectedDomains, user, bookmarkOnly, unansweredOnly, incorrectOnly]);
 
   const resumeSession = () => {
     if (!exerciseDraft) return;
@@ -247,9 +228,6 @@ export default function ExerciseSetup() {
           const incorrectIds = new Set(incorrectRes.questionIds ?? []);
           filtered = filtered.filter((q: any) => incorrectIds.has(q.questionId));
         }
-        if (selectedTags.length > 0) {
-          filtered = filtered.filter((q: any) => selectedTags.some(t => (q.tags ?? []).includes(t)));
-        }
         if (shuffle) filtered = shuffleArray(filtered);
         selectedItems = filtered.slice(0, limit);
       } else {
@@ -258,9 +236,6 @@ export default function ExerciseSetup() {
         const res = await fetch(`${API_ENDPOINT}/questions?${params}`);
         const data = await res.json();
         let allItems: any[] = data.items ?? [];
-        if (selectedTags.length > 0) {
-          allItems = allItems.filter((q: any) => selectedTags.some(t => (q.tags ?? []).includes(t)));
-        }
         if (shuffle) allItems = shuffleArray(allItems);
         selectedItems = allItems.slice(0, limit);
       }
@@ -295,7 +270,6 @@ export default function ExerciseSetup() {
   const domainStep  = ++_s;
   const countStep   = ++_s;
   const optionsStep = ++_s;
-  const tagStep     = availableTags.length > 0 ? ++_s : null;
 
   return (
     <div style={{ maxWidth: 1100, margin: '0 auto', padding: 'var(--spacing-xl) var(--spacing-lg)' }} className="page-container">
@@ -368,7 +342,7 @@ export default function ExerciseSetup() {
           </StepRow>
 
           {/* オプション */}
-          <StepRow n={optionsStep} isLast={availableTags.length === 0} title={t('exerciseSetup.options')}>
+          <StepRow n={optionsStep} isLast title={t('exerciseSetup.options')}>
             <div style={{ padding: 'var(--spacing-md)', background: 'var(--color-bg-main)', borderRadius: 'var(--border-radius-md)', display: 'flex', flexDirection: 'column', gap: 'var(--spacing-xs)' }}>
               {user && (
                 <label title={t('exerciseSetup.unansweredOnlyDesc')} style={{ display: 'flex', alignItems: 'center', gap: 'var(--spacing-sm)', cursor: 'pointer', fontSize: 'var(--font-size-base)' }}>
@@ -394,76 +368,6 @@ export default function ExerciseSetup() {
               </label>
             </div>
           </StepRow>
-
-          {/* タグフィルタ（複数選択・チップ形式） */}
-          {availableTags.length > 0 && (
-            <StepRow n={tagStep!} isLast
-              title={<>{t('exerciseSetup.tag')} <span style={{ fontWeight: 400, fontSize: 'var(--font-size-sm)', color: 'var(--color-text-sub)' }}>{t('exerciseSetup.optional')}</span></>}>
-              <div style={{ display: 'flex', gap: 12, alignItems: 'flex-start' }}>
-                {selectedTags.length > 0 && (
-                  <div style={{ flex: 1, minWidth: 0, display: 'flex', gap: 4, flexWrap: 'wrap' }}>
-                    {selectedTags.map(tag => (
-                      <span key={tag} style={{ display: 'inline-flex', alignItems: 'center', gap: 3, padding: '2px 8px 2px 10px', background: '#e0f2f2', color: '#008c8c', borderRadius: 9999, fontSize: 12, fontWeight: 600 }}>
-                        {tag}
-                        <button onClick={() => setSelectedTags(prev => prev.filter(t => t !== tag))}
-                          style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#008c8c', fontSize: 15, lineHeight: 1, padding: '0 0 0 2px', display: 'flex', alignItems: 'center' }}>×</button>
-                      </span>
-                    ))}
-                  </div>
-                )}
-                {/* 右：タグ一覧（折り畳み式） */}
-                <div style={{ width: 180, flexShrink: 0, border: '1px solid var(--color-border)', borderRadius: 6 }}>
-                  <button
-                    type="button"
-                    onClick={() => setTagListOpen(o => !o)}
-                    style={{
-                      display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-                      width: '100%', padding: '5px 8px', background: 'none', border: 'none',
-                      cursor: 'pointer', fontSize: 10, fontWeight: 700,
-                      color: 'var(--color-text-light)', textTransform: 'uppercase', letterSpacing: '0.5px',
-                    }}
-                  >
-                    <span>{lang === 'ja' ? 'タグ一覧' : 'Tags'}{selectedTags.length > 0 ? ` (${selectedTags.length})` : ''}</span>
-                    <span style={{ fontSize: 9 }}>{tagListOpen ? '▲' : '▼'}</span>
-                  </button>
-                  {tagListOpen && (
-                    <>
-                      {selectedTags.length > 0 && (
-                        <div style={{ borderTop: '1px solid var(--color-border)', padding: '3px 8px' }}>
-                          <button onClick={() => setSelectedTags([])}
-                            style={{ fontSize: 10, color: 'var(--color-text-light)', background: 'none', border: 'none', cursor: 'pointer', textDecoration: 'underline', padding: 0 }}>
-                            {lang === 'ja' ? 'すべてクリア' : 'Clear all'}
-                          </button>
-                        </div>
-                      )}
-                      <div style={{ borderTop: '1px solid var(--color-border)', maxHeight: 160, overflowY: 'auto' }}>
-                        {availableTags.map(tag => {
-                          const isSelected = selectedTags.includes(tag);
-                          return (
-                            <button key={tag} type="button"
-                              onClick={() => setSelectedTags(prev => isSelected ? prev.filter(t => t !== tag) : [...prev, tag])}
-                              style={{
-                                display: 'flex', alignItems: 'center', gap: 5,
-                                padding: '5px 8px', border: 'none', width: '100%', textAlign: 'left',
-                                cursor: 'pointer',
-                                background: isSelected ? '#e0f2f2' : 'transparent',
-                                color: isSelected ? '#008c8c' : 'var(--color-text-sub)',
-                                fontSize: 12, fontWeight: isSelected ? 700 : 400,
-                                transition: 'background 0.15s',
-                              }}
-                            >
-                              <span style={{ width: 12, flexShrink: 0, fontSize: 10, color: '#008c8c' }}>{isSelected ? '✓' : ''}</span>
-                              {tag}
-                            </button>
-                          );
-                        })}
-                      </div>
-                    </>
-                  )}
-                </div>
-              </div>
-            </StepRow>
-          )}
 
           {/* 中断中セッション通知 */}
           {hasDraft && (
