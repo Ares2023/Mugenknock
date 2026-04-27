@@ -16,6 +16,7 @@ type Question = {
   correctAnswers?: string[];
   explanation?: string;
   isMultiple: boolean;
+  correctAnswerCount?: number;
   tags: string[];
   validityCheckedAt?: string;
   updatedAt?: string;
@@ -62,6 +63,7 @@ export default function ExamSession() {
 
   useEffect(() => {
     document.querySelector('main')?.scrollTo({ top: 0 });
+    setAnswerCountError(null);
   }, [currentIndex]);
 
   const toggleBookmark = async (questionId: string) => {
@@ -125,6 +127,7 @@ export default function ExamSession() {
   const toggle = (choice: string) => {
     const qid = currentQ.questionId;
     const cur = answers[qid] ?? [];
+    setAnswerCountError(null);
     setLastSelected(choice);
     if (currentQ.isMultiple) {
       setAnswers(prev => ({
@@ -134,6 +137,17 @@ export default function ExamSession() {
     } else {
       setAnswers(prev => ({ ...prev, [qid]: [choice] }));
     }
+  };
+
+  const handleNext = () => {
+    if (currentQ.isMultiple && currentQ.correctAnswerCount && selected.length > 0 &&
+        selected.length !== currentQ.correctAnswerCount) {
+      setAnswerCountError(lang === 'ja'
+        ? `${currentQ.correctAnswerCount}つ選択してください（現在${selected.length}つ）`
+        : `Select ${currentQ.correctAnswerCount} answers (currently ${selected.length})`);
+      return;
+    }
+    setCurrentIndex(i => Math.min(questions.length - 1, i + 1));
   };
 
   const handleFinish = async (timeUp = false) => {
@@ -192,6 +206,7 @@ export default function ExamSession() {
   };
 
   const [reportOpen, setReportOpen] = useState(false);
+  const [answerCountError, setAnswerCountError] = useState<string | null>(null);
 
   useEffect(() => {
     if (!state) navigate('/exam/setup', { replace: true });
@@ -274,7 +289,9 @@ export default function ExamSession() {
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 'var(--spacing-sm)' }}>
             <div>
               {currentQ.isMultiple && (
-                <Badge variant="outline">{t('examSession.multiple')}</Badge>
+                <Badge variant="outline">
+                  {t('examSession.multiple')}{currentQ.correctAnswerCount ? ` (${currentQ.correctAnswerCount})` : ''}
+                </Badge>
               )}
             </div>
             <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--spacing-sm)' }}>
@@ -346,11 +363,10 @@ export default function ExamSession() {
         <div style={{ paddingTop: 'var(--spacing-sm)', borderTop: '1px dashed var(--color-border)', display: 'flex', flexWrap: 'wrap', gap: 'var(--spacing-lg)', fontSize: 'var(--font-size-xs)', color: 'var(--color-text-light)' }}>
           <span>
             {lang === 'ja' ? 'AI確認' : 'AI review'}:{' '}
-            <strong style={{ color: currentQ.validityCheckedAt ? 'var(--color-text-sub)' : 'inherit' }}>
-              {currentQ.validityCheckedAt
-                ? new Date(currentQ.validityCheckedAt).toLocaleDateString('ja-JP', { year: 'numeric', month: '2-digit', day: '2-digit' })
-                : (lang === 'ja' ? '未確認' : 'not reviewed')}
-            </strong>
+            {currentQ.validityCheckedAt
+              ? <strong style={{ color: 'var(--color-success)' }}>✓</strong>
+              : <strong>{lang === 'ja' ? '未確認' : 'not reviewed'}</strong>
+            }
           </span>
           <span>
             {lang === 'ja' ? '最終編集' : 'Last edited'}:{' '}
@@ -405,13 +421,16 @@ export default function ExamSession() {
           })}
         </div>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderTop: '1px solid var(--color-border)', paddingTop: 'var(--spacing-lg)' }}>
-          <div style={{ display: 'flex', gap: 'var(--spacing-md)' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--spacing-md)' }}>
             <Button variant="outline" onClick={() => setCurrentIndex(i => Math.max(0, i - 1))} disabled={currentIndex === 0}>
               {t('examSession.prev')}
             </Button>
-            <Button variant="outline" onClick={() => setCurrentIndex(i => Math.min(questions.length - 1, i + 1))} disabled={currentIndex === questions.length - 1}>
+            <Button variant="outline" onClick={handleNext} disabled={currentIndex === questions.length - 1}>
               {t('examSession.next')}
             </Button>
+            {answerCountError && (
+              <span style={{ color: 'var(--color-danger)', fontSize: 'var(--font-size-sm)' }}>{answerCountError}</span>
+            )}
           </div>
           <Button variant="primary" onClick={() => setShowConfirm(true)}>
             {t('examSession.submit')}

@@ -94,7 +94,6 @@ export default function ExerciseSetup() {
   const passScore = PASS_SCORES[examType];
   const [availableCount, setAvailableCount] = useState<number | null>(null);
   const [answeredCount, setAnsweredCount] = useState<number | null>(null);
-  const [incorrectCountTotal, setIncorrectCountTotal] = useState<number | null>(null);
   type DomainStat = { tagId: string; correctCount: number; incorrectCount: number };
   const [domainStats, setDomainStats] = useState<DomainStat[]>([]);
 
@@ -117,7 +116,6 @@ export default function ExerciseSetup() {
   useEffect(() => {
     setAvailableCount(null);
     setAnsweredCount(null);
-    setIncorrectCountTotal(null);
 
     const fetchCounts = async () => {
       if (selectedDomains.length === 0) { setAvailableCount(0); return; }
@@ -161,17 +159,12 @@ export default function ExerciseSetup() {
         .then(r => r.json())
         .then(d => setAnsweredCount(d.answeredCount ?? 0))
         .catch(() => setAnsweredCount(0));
-      fetch(`${API_ENDPOINT}/users/me/incorrect-questions?userId=${user.userId}&examType=${examType}`)
-        .then(r => r.json())
-        .then(d => setIncorrectCountTotal((d.questionIds ?? []).length))
-        .catch(() => setIncorrectCountTotal(0));
       fetch(`${API_ENDPOINT}/users/me/stats?userId=${user.userId}`)
         .then(r => r.json())
         .then(d => setDomainStats(d.stats ?? []))
         .catch(() => setDomainStats([]));
     } else {
       setAnsweredCount(0);
-      setIncorrectCountTotal(0);
       setDomainStats([]);
     }
   }, [examType, selectedDomains, user, bookmarkOnly, unansweredOnly, incorrectOnly]);
@@ -438,14 +431,6 @@ export default function ExerciseSetup() {
                 <div style={{ fontSize: 'var(--font-size-xs)', color: 'var(--color-primary)', textAlign: 'right', fontWeight: 700, marginBottom: 'var(--spacing-sm)' }}>
                   {info.totalQuestions > 0 ? Math.min(100, Math.round((answeredCount / info.totalQuestions) * 100)) : 0}%
                 </div>
-                {incorrectCountTotal !== null && (
-                  <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 'var(--font-size-sm)', paddingTop: 'var(--spacing-sm)', borderTop: '1px solid var(--color-border)' }}>
-                    <span style={{ color: 'var(--color-text-sub)' }}>{lang === 'ja' ? '要復習' : 'Incorrect'}</span>
-                    <span style={{ fontWeight: 700, color: incorrectCountTotal > 0 ? 'var(--color-danger)' : 'var(--color-text-sub)' }}>
-                      {incorrectCountTotal} {t('exerciseSetup.qUnit')}
-                    </span>
-                  </div>
-                )}
               </>
             )}
           </div>

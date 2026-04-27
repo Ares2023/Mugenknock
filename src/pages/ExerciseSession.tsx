@@ -19,6 +19,7 @@ type Question = {
   explanation?: string;
   tags: string[];
   isMultiple: boolean;
+  correctAnswerCount?: number;
   validityCheckedAt?: string;
   updatedAt?: string;
   createdAt?: string;
@@ -113,6 +114,7 @@ export default function ExerciseSession() {
   const [results, setResults] = useState<{ questionId: string; isCorrect: boolean }[]>(state?.resumeResults ?? []);
   const [loading, setLoading] = useState(false);
   const [reportOpen, setReportOpen] = useState(false);
+  const [answerCountError, setAnswerCountError] = useState<string | null>(null);
 
   // ドラフト保存
   useEffect(() => {
@@ -154,6 +156,7 @@ export default function ExerciseSession() {
 
   const toggleAnswer = (choice: string) => {
     if (answered) return;
+    setAnswerCountError(null);
     setLastSelected(choice);
     if (currentQuestion.isMultiple) {
       setSelectedAnswers(prev =>
@@ -166,6 +169,14 @@ export default function ExerciseSession() {
 
   const submitAnswer = async () => {
     if (selectedAnswers.length === 0) return;
+    if (currentQuestion.isMultiple && currentQuestion.correctAnswerCount &&
+        selectedAnswers.length !== currentQuestion.correctAnswerCount) {
+      setAnswerCountError(lang === 'ja'
+        ? `${currentQuestion.correctAnswerCount}つ選択してください（現在${selectedAnswers.length}つ）`
+        : `Select ${currentQuestion.correctAnswerCount} answers (currently ${selectedAnswers.length})`);
+      return;
+    }
+    setAnswerCountError(null);
     setLoading(true);
     const fetched = await fetchDetail(currentQuestion.questionId);
     const correctAnswers = fetched.correctAnswers || [];
@@ -210,6 +221,7 @@ export default function ExerciseSession() {
       setSelectedAnswers([]);
       setAnswered(false);
       setDetail(null);
+      setAnswerCountError(null);
     }
   };
 
@@ -287,7 +299,9 @@ export default function ExerciseSession() {
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 'var(--spacing-sm)', gap: 'var(--spacing-md)' }}>
             <div>
               {currentQuestion.isMultiple && (
-                <Badge variant="outline">{t('exerciseSession.multiple')}</Badge>
+                <Badge variant="outline">
+                  {t('exerciseSession.multiple')}{currentQuestion.correctAnswerCount ? ` (${currentQuestion.correctAnswerCount})` : ''}
+                </Badge>
               )}
             </div>
             <CopyButton getText={() => currentQuestion.questionText} />
@@ -355,14 +369,19 @@ export default function ExerciseSession() {
 
         <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--spacing-md)', borderTop: '1px solid var(--color-border)', paddingTop: 'var(--spacing-lg)' }}>
           {!answered ? (
-            <Button
-              onClick={submitAnswer}
-              disabled={selectedAnswers.length === 0 || loading}
-              variant="primary"
-              style={{ minWidth: 120 }}
-            >
-              {loading ? t('exerciseSession.answering') : t('exerciseSession.answer')}
-            </Button>
+            <>
+              <Button
+                onClick={submitAnswer}
+                disabled={selectedAnswers.length === 0 || loading}
+                variant="primary"
+                style={{ minWidth: 120 }}
+              >
+                {loading ? t('exerciseSession.answering') : t('exerciseSession.answer')}
+              </Button>
+              {answerCountError && (
+                <span style={{ color: 'var(--color-danger)', fontSize: 'var(--font-size-sm)' }}>{answerCountError}</span>
+              )}
+            </>
           ) : (
             <Button
               onClick={nextQuestion}
@@ -388,11 +407,10 @@ export default function ExerciseSession() {
         <div style={{ marginTop: 'var(--spacing-md)', paddingTop: 'var(--spacing-sm)', borderTop: '1px dashed var(--color-border)', display: 'flex', flexWrap: 'wrap', gap: 'var(--spacing-lg)', fontSize: 'var(--font-size-xs)', color: 'var(--color-text-light)' }}>
           <span>
             {lang === 'ja' ? 'AI確認' : 'AI review'}:{' '}
-            <strong style={{ color: currentQuestion.validityCheckedAt ? 'var(--color-text-sub)' : 'inherit' }}>
-              {currentQuestion.validityCheckedAt
-                ? new Date(currentQuestion.validityCheckedAt).toLocaleDateString('ja-JP', { year: 'numeric', month: '2-digit', day: '2-digit' })
-                : (lang === 'ja' ? '未確認' : 'not reviewed')}
-            </strong>
+            {currentQuestion.validityCheckedAt
+              ? <strong style={{ color: 'var(--color-success)' }}>✓</strong>
+              : <strong>{lang === 'ja' ? '未確認' : 'not reviewed'}</strong>
+            }
           </span>
           <span>
             {lang === 'ja' ? '最終編集' : 'Last edited'}:{' '}
