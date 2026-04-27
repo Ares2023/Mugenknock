@@ -131,10 +131,14 @@ PYEOF
 
 # ── フックタイマーを全停止 ───────────────────────────────────
 stop_hook_timers() {
+  # ファイル行数より多くなっていても残骸を確実に消す上限を設ける
   local n=0
-  [ -f "$HOOKS_FILE" ] && n=$(grep -c . "$HOOKS_FILE" 2>/dev/null || echo 0)
-  for (( i=0; i<=n+1; i++ )); do
-    systemctl --user stop "${HOOK_PREFIX}-${i}.timer" 2>/dev/null || true
+  [ -f "$HOOKS_FILE" ] && n=$(wc -l < "$HOOKS_FILE" 2>/dev/null || echo 0)
+  local limit=$(( n > 20 ? n + 2 : 22 ))
+  for (( i=0; i<limit; i++ )); do
+    systemctl --user stop "${HOOK_PREFIX}-${i}.timer"     2>/dev/null || true
+    # schedule_next 経由の外側トランジェントタイマーも止める
+    systemctl --user stop "${HOOK_PREFIX}-reg-${i}.timer" 2>/dev/null || true
   done
 }
 
@@ -213,16 +217,19 @@ PYEOF
   fi
 
   systemctl --user stop "${UNIT_NAME}.timer" 2>/dev/null || true
-  # 現サービスのcgroupを脱出してから新タイマーを登録（sleep+disownはcgroup終了時にkillされるため）
+  # cgroup 脱出のため外側トランジェントタイマー経由で登録
   systemd-run --user --on-active=6 \
     -- bash -c "systemd-run --user --unit='${UNIT_NAME}' --on-calendar='${target_time}' \
       --description='${desc}' '${SCRIPT_DIR}/run-prompts.sh' --run"
-  schedule_hooks "$target_time"
+  schedule_hooks "$target_time" "service"
 }
 
 # ── フックコマンドをスケジュール ─────────────────────────────
+# $2 = "service" : systemd サービス内から呼ぶ場合 (cgroup 脱出が必要)
+# $2 = ""        : インタラクティブ端末から呼ぶ場合 (直接登録)
 schedule_hooks() {
   local main_time="$1"
+  local context="${2:-}"
   [ ! -f "$HOOKS_FILE" ] || [ ! -s "$HOOKS_FILE" ] && return 0
 
   stop_hook_timers
@@ -235,7 +242,14 @@ schedule_hooks() {
     hook_time=$(python3 - "$main_time" "$offset" << 'PYEOF'
 import sys
 from datetime import datetime, timedelta
-target = datetime.strptime(sys.argv[1], "%Y-%m-%d %H:%M:%S")
+# "YYYY-MM-DD HH:MM:SS" または "YYYY-MM-DD HH:MM:00" を両方受け付ける
+raw = sys.argv[1].strip()
+for fmt in ("%Y-%m-%d %H:%M:%S", "%Y-%m-%d %H:%M:00", "%Y-%m-%d %H:%M"):
+    try:
+        target = datetime.strptime(raw, fmt); break
+    except: pass
+else:
+    raise ValueError(f"parse error: {raw}")
 offset = int(sys.argv[2])
 t = target + timedelta(minutes=offset)
 now = datetime.now()
@@ -264,9 +278,18 @@ EOF
     chmod +x "$hook_script"
 
     local unit="${HOOK_PREFIX}-${idx}"
-    systemd-run --user --on-active=$(( 8 + idx )) \
-      -- bash -c "systemd-run --user --unit='${unit}' --on-calendar='${hook_time}' \
-        --description='Claude Hook ${idx}' bash '${hook_script}'"
+    if [ "$context" = "service" ]; then
+      # サービス内: cgroup 脱出のため外側トランジェントタイマー経由で登録
+      # 外側に名前をつけることで stop_hook_timers が止められる
+      systemctl --user stop "${HOOK_PREFIX}-reg-${idx}.timer" 2>/dev/null || true
+      systemd-run --user --unit="${HOOK_PREFIX}-reg-${idx}" --on-active=$(( 8 + idx )) \
+        -- bash -c "systemd-run --user --unit='${unit}' --on-calendar='${hook_time}' \
+          --description='Claude Hook ${idx}' bash '${hook_script}'"
+    else
+      # インタラクティブ: cgroup 問題なし、直接登録で即反映
+      systemd-run --user --unit="${unit}" --on-calendar="${hook_time}" \
+        --description="Claude Hook ${idx}" bash "${hook_script}"
+    fi
 
     echo "hook[$idx] 予約: $hook_time (${sign}${offset}分) | $cmd"
     idx=$(( idx + 1 ))
