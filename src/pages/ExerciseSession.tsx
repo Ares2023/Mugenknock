@@ -261,7 +261,19 @@ export default function ExerciseSession() {
       };
     }
     const displayQ = (currentQuestion.correctAnswers ? currentQuestion : detail) ?? currentQuestion;
-    const correctAnswers = displayQ.correctAnswers || [];
+    // 正解データ未ロードの間は色変えしない（フォールバックフェッチ待ち）
+    if (!displayQ.correctAnswers) {
+      const selected = selectedAnswers.includes(choice);
+      return {
+        ...base,
+        borderColor: selected ? 'var(--color-primary)' : 'var(--color-border)',
+        background: selected ? 'var(--color-primary-light)' : 'var(--color-bg-white)',
+        boxShadow: selected ? '0 0 0 1px var(--color-primary)' : 'none',
+        fontWeight: selected ? 700 : 400,
+        cursor: 'default',
+      };
+    }
+    const correctAnswers = displayQ.correctAnswers;
     const isCorrect = correctAnswers.includes(choice);
     const isSelected = selectedAnswers.includes(choice);
 
