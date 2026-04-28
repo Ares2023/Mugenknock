@@ -388,7 +388,7 @@ export default function ExerciseSetup() {
                   value={keywordInput}
                   onChange={e => setKeywordInput(e.target.value)}
                   onKeyDown={e => { if (e.key === 'Enter') { e.preventDefault(); handleAddChip(); } }}
-                  placeholder={lang === 'ja' ? 'キーワードを入力...' : 'Enter keyword...'}
+                  placeholder={t('questions.searchPlaceholder')}
                   style={{ flex: 1, padding: '8px 12px', border: '1px solid var(--color-border)', borderRadius: 'var(--border-radius-md)', fontSize: 'var(--font-size-base)', outline: 'none', transition: 'border-color 0.2s' }}
                   onFocus={e => e.currentTarget.style.borderColor = 'var(--color-primary)'}
                   onBlur={e => e.currentTarget.style.borderColor = 'var(--color-border)'}

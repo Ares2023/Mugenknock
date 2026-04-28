@@ -297,8 +297,8 @@ export default function ExamSetup() {
   let _s = 0;
   const examStep    = targetExam ? null : ++_s;
   const domainStep  = ++_s;
-  const keywordStep = ++_s;
   const optionsStep = ++_s;
+  const keywordStep = ++_s;
 
   return (
     <div style={{ maxWidth: 1100, margin: '0 auto', padding: 'var(--spacing-xl) var(--spacing-lg)' }} className="page-container">
@@ -359,43 +359,8 @@ export default function ExamSetup() {
             />
           </StepRow>
 
-          {/* キーワード検索 */}
-          <StepRow n={keywordStep} optional
-            title={<>{lang === 'ja' ? 'キーワード検索' : 'Keyword Search'} <span style={{ fontWeight: 400, fontSize: 'var(--font-size-sm)', color: 'var(--color-text-sub)' }}>{t('examSetup.optional')}</span></>}>
-            <div>
-              <div style={{ display: 'flex', gap: 'var(--spacing-sm)' }}>
-                <input
-                  type="text"
-                  value={keywordInput}
-                  onChange={e => setKeywordInput(e.target.value)}
-                  onKeyDown={e => { if (e.key === 'Enter') { e.preventDefault(); handleAddChip(); } }}
-                  placeholder={lang === 'ja' ? 'キーワードを入力...' : 'Enter keyword...'}
-                  style={{ flex: 1, padding: '8px 12px', border: '1px solid var(--color-border)', borderRadius: 'var(--border-radius-md)', fontSize: 'var(--font-size-base)', outline: 'none', transition: 'border-color 0.2s' }}
-                  onFocus={e => e.currentTarget.style.borderColor = 'var(--color-primary)'}
-                  onBlur={e => e.currentTarget.style.borderColor = 'var(--color-border)'}
-                />
-                <Button size="sm" variant="outline" onClick={handleAddChip}>
-                  {lang === 'ja' ? '追加' : 'Add'}
-                </Button>
-              </div>
-              {keywordChips.length > 0 && (
-                <div style={{ display: 'flex', flexWrap: 'wrap', gap: 'var(--spacing-xs)', marginTop: 'var(--spacing-sm)', alignItems: 'center' }}>
-                  {keywordChips.map((chip, i) => (
-                    <span key={i} style={{ display: 'inline-flex', alignItems: 'center', gap: 4, background: '#0097a7', color: 'white', borderRadius: 20, padding: '3px 10px', fontSize: 'var(--font-size-sm)' }}>
-                      {chip}
-                      <button onClick={() => removeChip(i)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'white', fontSize: 14, lineHeight: 1, padding: '0 0 0 2px' }}>✕</button>
-                    </span>
-                  ))}
-                  <button onClick={() => setKeywordChips([])} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--color-text-light)', fontSize: 'var(--font-size-sm)' }}>
-                    {lang === 'ja' ? 'クリア' : 'Clear'}
-                  </button>
-                </div>
-              )}
-            </div>
-          </StepRow>
-
           {/* オプション */}
-          <StepRow n={optionsStep} isLast title={t('exerciseSetup.options')}>
+          <StepRow n={optionsStep} optional title={<>{t('exerciseSetup.options')} <span style={{ fontWeight: 400, fontSize: 'var(--font-size-sm)', color: 'var(--color-text-sub)' }}>{t('examSetup.optional')}</span></>}>
             <div style={{ padding: 'var(--spacing-md)', background: 'var(--color-bg-main)', borderRadius: 'var(--border-radius-md)', display: 'flex', flexDirection: 'column', gap: 'var(--spacing-xs)' }}>
               {user && (
                 <label title={t('exerciseSetup.unansweredOnlyDesc')} style={{ display: 'flex', alignItems: 'center', gap: 'var(--spacing-sm)', cursor: 'pointer', fontSize: 'var(--font-size-base)' }}>
@@ -419,6 +384,41 @@ export default function ExamSetup() {
                 <input type="checkbox" checked={shuffle} onChange={e => setShuffle(e.target.checked)} style={{ width: 16, height: 16, flexShrink: 0 }} />
                 {t('exerciseSetup.shuffle')}
               </label>
+            </div>
+          </StepRow>
+
+          {/* キーワード検索 */}
+          <StepRow n={keywordStep} optional isLast
+            title={<>{lang === 'ja' ? 'キーワード検索' : 'Keyword Search'} <span style={{ fontWeight: 400, fontSize: 'var(--font-size-sm)', color: 'var(--color-text-sub)' }}>{t('examSetup.optional')}</span></>}>
+            <div>
+              <div style={{ display: 'flex', gap: 'var(--spacing-sm)' }}>
+                <input
+                  type="text"
+                  value={keywordInput}
+                  onChange={e => setKeywordInput(e.target.value)}
+                  onKeyDown={e => { if (e.key === 'Enter') { e.preventDefault(); handleAddChip(); } }}
+                  placeholder={t('questions.searchPlaceholder')}
+                  style={{ flex: 1, padding: '8px 12px', border: '1px solid var(--color-border)', borderRadius: 'var(--border-radius-md)', fontSize: 'var(--font-size-base)', outline: 'none', transition: 'border-color 0.2s' }}
+                  onFocus={e => e.currentTarget.style.borderColor = 'var(--color-primary)'}
+                  onBlur={e => e.currentTarget.style.borderColor = 'var(--color-border)'}
+                />
+                <Button size="sm" variant="outline" onClick={handleAddChip}>
+                  {lang === 'ja' ? '追加' : 'Add'}
+                </Button>
+              </div>
+              {keywordChips.length > 0 && (
+                <div style={{ display: 'flex', flexWrap: 'wrap', gap: 'var(--spacing-xs)', marginTop: 'var(--spacing-sm)', alignItems: 'center' }}>
+                  {keywordChips.map((chip, i) => (
+                    <span key={i} style={{ display: 'inline-flex', alignItems: 'center', gap: 4, background: '#0097a7', color: 'white', borderRadius: 20, padding: '3px 10px', fontSize: 'var(--font-size-sm)' }}>
+                      {chip}
+                      <button onClick={() => removeChip(i)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'white', fontSize: 14, lineHeight: 1, padding: '0 0 0 2px' }}>✕</button>
+                    </span>
+                  ))}
+                  <button onClick={() => setKeywordChips([])} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--color-text-light)', fontSize: 'var(--font-size-sm)' }}>
+                    {lang === 'ja' ? 'クリア' : 'Clear'}
+                  </button>
+                </div>
+              )}
             </div>
           </StepRow>
 
