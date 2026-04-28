@@ -62,7 +62,6 @@ export default function ExerciseSession() {
   const [currentIndex, setCurrentIndex] = useState<number>(state?.resumeIndex ?? 0);
   const [selectedAnswers, setSelectedAnswers] = useState<string[]>(state?.resumeSelectedAnswers ?? []);
   const [answered, setAnswered] = useState<boolean>(state?.resumeAnswered ?? false);
-  const [detail, setDetail] = useState<Question | null>(state?.resumeDetail ?? null);
   const [tips, setTips] = useState<Tip[]>([]);
   const [bookmarkedIds, setBookmarkedIds] = useState<Set<string>>(new Set());
   const [bookmarkLoading, setBookmarkLoading] = useState(false);
@@ -112,7 +111,6 @@ export default function ExerciseSession() {
     setBookmarkLoading(false);
   };
   const [results, setResults] = useState<{ questionId: string; isCorrect: boolean }[]>(state?.resumeResults ?? []);
-  const [loading, setLoading] = useState(false);
   const [reportOpen, setReportOpen] = useState(false);
   const [answerCountError, setAnswerCountError] = useState<string | null>(null);
 
@@ -122,7 +120,7 @@ export default function ExerciseSession() {
     try {
       localStorage.setItem('exerciseDraft', JSON.stringify({
         sessionId, examType, questions, userId,
-        currentIndex, results, answered, selectedAnswers, detail,
+        currentIndex, results, answered, selectedAnswers,
       }));
     } catch { /* quota over 等は無視 */ }
   }, [currentIndex, results]); // eslint-disable-line react-hooks/exhaustive-deps
@@ -138,13 +136,6 @@ export default function ExerciseSession() {
     }
     return arr;
   }, [currentQuestion?.questionId]); // eslint-disable-line react-hooks/exhaustive-deps
-
-  const fetchDetail = async (questionId: string): Promise<Question> => {
-    const res = await fetch(`${API_ENDPOINT}/questions/${questionId}`);
-    const data = await res.json();
-    setDetail(data);
-    return data;
-  };
 
   const [lastSelected, setLastSelected] = useState<string | null>(null);
 
@@ -167,7 +158,7 @@ export default function ExerciseSession() {
     }
   };
 
-  const submitAnswer = async () => {
+  const submitAnswer = () => {
     if (selectedAnswers.length === 0) return;
     if (currentQuestion.isMultiple && currentQuestion.correctAnswerCount &&
         selectedAnswers.length !== currentQuestion.correctAnswerCount) {
@@ -177,29 +168,25 @@ export default function ExerciseSession() {
       return;
     }
     setAnswerCountError(null);
-    setLoading(true);
-    const fetched = await fetchDetail(currentQuestion.questionId);
-    const correctAnswers = fetched.correctAnswers || [];
+
+    const correctAnswers = currentQuestion.correctAnswers || [];
     const isCorrect = correctAnswers.length === selectedAnswers.length &&
       correctAnswers.every(a => selectedAnswers.includes(a));
 
-    try {
-      await fetch(`${API_ENDPOINT}/sessions/${sessionId}/answers`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          userId,
-          questionId: currentQuestion.questionId,
-          selectedAnswers,
-          isCorrect,
-          tags: currentQuestion.tags
-        })
-      });
-    } catch (err) { console.error(err); }
-
     setResults(prev => [...prev, { questionId: currentQuestion.questionId, isCorrect }]);
     setAnswered(true);
-    setLoading(false);
+
+    fetch(`${API_ENDPOINT}/sessions/${sessionId}/answers`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        userId,
+        questionId: currentQuestion.questionId,
+        selectedAnswers,
+        isCorrect,
+        tags: currentQuestion.tags
+      })
+    }).catch(err => console.error(err));
   };
 
   const nextQuestion = async () => {
@@ -220,7 +207,6 @@ export default function ExerciseSession() {
       setCurrentIndex(prev => prev + 1);
       setSelectedAnswers([]);
       setAnswered(false);
-      setDetail(null);
       setAnswerCountError(null);
     }
   };
@@ -251,7 +237,7 @@ export default function ExerciseSession() {
         fontWeight: selected ? 700 : 400,
       };
     }
-    const correctAnswers = detail?.correctAnswers || [];
+    const correctAnswers = currentQuestion.correctAnswers || [];
     const isCorrect = correctAnswers.includes(choice);
     const isSelected = selectedAnswers.includes(choice);
 
@@ -338,7 +324,7 @@ export default function ExerciseSession() {
           ))}
         </div>
 
-        {answered && detail && (
+        {answered && (
           <div className="fade-slide-in" style={{
             background: results[results.length - 1]?.isCorrect ? '#f2fcf3' : '#fdf3f1',
             borderLeft: `8px solid ${results[results.length - 1]?.isCorrect ? 'var(--color-success)' : 'var(--color-danger)'}`,
@@ -354,15 +340,15 @@ export default function ExerciseSession() {
                 {results[results.length - 1]?.isCorrect ? t('exerciseSession.correct') : t('exerciseSession.incorrect')}
               </h3>
               <CopyButton getText={() =>
-                `${t('exerciseSession.correctAnswer')}${detail.correctAnswers?.join(', ')}\n\n${t('exerciseSession.explanation')}\n${detail.explanation ?? ''}`
+                `${t('exerciseSession.correctAnswer')}${currentQuestion.correctAnswers?.join(', ')}\n\n${t('exerciseSession.explanation')}\n${currentQuestion.explanation ?? ''}`
               } />
             </div>
             <p style={{ margin: '0 0 12px', fontSize: 'var(--font-size-base)' }}>
-              <strong>{t('exerciseSession.correctAnswer')}</strong>{detail.correctAnswers?.join(', ')}
+              <strong>{t('exerciseSession.correctAnswer')}</strong>{currentQuestion.correctAnswers?.join(', ')}
             </p>
             <div style={{ fontSize: 'var(--font-size-base)', lineHeight: 1.6 }}>
               <strong>{t('exerciseSession.explanation')}</strong>
-              <div style={{ marginTop: 4 }}>{lang === 'en' && (detail as any).explanationEn ? (detail as any).explanationEn : detail.explanation}</div>
+              <div style={{ marginTop: 4 }}>{lang === 'en' && (currentQuestion as any).explanationEn ? (currentQuestion as any).explanationEn : currentQuestion.explanation}</div>
             </div>
           </div>
         )}
@@ -372,11 +358,11 @@ export default function ExerciseSession() {
             <>
               <Button
                 onClick={submitAnswer}
-                disabled={selectedAnswers.length === 0 || loading}
+                disabled={selectedAnswers.length === 0}
                 variant="primary"
                 style={{ minWidth: 120 }}
               >
-                {loading ? t('exerciseSession.answering') : t('exerciseSession.answer')}
+                {t('exerciseSession.answer')}
               </Button>
               {answerCountError && (
                 <span style={{ color: 'var(--color-danger)', fontSize: 'var(--font-size-sm)' }}>{answerCountError}</span>

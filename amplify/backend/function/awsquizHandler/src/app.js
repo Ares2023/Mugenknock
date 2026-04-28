@@ -117,10 +117,13 @@ app.get('/questions', async (req, res) => {
     items = items.filter(q => !q.isHidden);
     if (doShuffle === 'true') items = shuffle(items);
     if (limit) items = items.slice(0, parseInt(limit));
-    const sanitized = items.map(({ correctAnswers, explanation, ...rest }) => ({
-      ...rest,
-      correctAnswerCount: Array.isArray(correctAnswers) ? correctAnswers.length : 1,
-    }));
+    const withAnswers = req.query.withAnswers === 'true';
+    const sanitized = withAnswers
+      ? items
+      : items.map(({ correctAnswers, explanation, explanationEn, ...rest }) => ({
+          ...rest,
+          correctAnswerCount: Array.isArray(correctAnswers) ? correctAnswers.length : 1,
+        }));
     res.json({ items: sanitized, count: sanitized.length });
   } catch (err) {
     console.error(err);

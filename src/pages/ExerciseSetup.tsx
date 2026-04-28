@@ -208,7 +208,6 @@ export default function ExerciseSetup() {
         resumeResults: exerciseDraft.results,
         resumeAnswered: exerciseDraft.answered,
         resumeSelectedAnswers: exerciseDraft.selectedAnswers,
-        resumeDetail: exerciseDraft.detail,
       }
     });
   };
@@ -225,7 +224,7 @@ export default function ExerciseSetup() {
 
       const allSelected = EXAM_DOMAINS[examType].every(d => selectedDomains.includes(d));
       if ((user && (bookmarkOnly || unansweredOnly || incorrectOnly)) || keywordChips.length > 0) {
-        const params = new URLSearchParams({ examType });
+        const params = new URLSearchParams({ examType, withAnswers: 'true' });
         if (!allSelected) params.set('domain', selectedDomains.join(','));
 
         const [qRes, bkmRes, answeredRes, incorrectRes] = await Promise.all([
@@ -253,7 +252,7 @@ export default function ExerciseSetup() {
         if (shuffle) filtered = shuffleArray(filtered);
         selectedItems = filtered.slice(0, limit);
       } else {
-        const params = new URLSearchParams({ examType });
+        const params = new URLSearchParams({ examType, withAnswers: 'true' });
         if (!allSelected) params.set('domain', selectedDomains.join(','));
         const res = await fetch(`${API_ENDPOINT}/questions?${params}`);
         const data = await res.json();

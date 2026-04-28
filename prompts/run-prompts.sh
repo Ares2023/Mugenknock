@@ -12,7 +12,8 @@ HISTORY_FILE="$SCRIPT_DIR/.claude_history"
 NIGHT_HISTORY_FILE="$SCRIPT_DIR/.night_history"
 UNIT_NAME="claude-cycle"
 HOOK_PREFIX="claude-cycle-hook"
-HOOKS_FILE="$SCRIPT_DIR/.ct-hooks"  # 1行 = "±N|command"
+HOOKS_FILE="$SCRIPT_DIR/.ct-hooks"        # 1行 = "±N|command"
+SKIP_HOOKS_FILE="$SCRIPT_DIR/.ct-skip-once" # 存在すれば次回フックをスキップ
 
 mkdir -p "$LOG_DIR"
 export PATH="/home/yuzuki/.npm-global/bin:/home/sera/.config/nvm/versions/node/v20.20.2/bin:$PATH"
@@ -48,6 +49,7 @@ commands:
   add [-t ±N] CMD add hook command (±N min from ping, default: 0)
   ls              list hook commands
   rm N            remove hook at index N
+  skip            skip hooks on next run (run again to cancel)
 
 flags:
   -d DIR          with "run": execute only DIR (*.txt files)
@@ -116,6 +118,7 @@ PYEOF
     next_time="none"
   fi
   printf "last  %s\nnext  %s\n" "$last" "$next_time"
+  [ -f "$SKIP_HOOKS_FILE" ] && echo "skip  ON  (次回フックをスキップ)"
   if [ -f "$HOOKS_FILE" ] && [ -s "$HOOKS_FILE" ]; then
     local idx=0
     while IFS='|' read -r offset cmd; do
@@ -231,6 +234,12 @@ schedule_hooks() {
   local main_time="$1"
   local context="${2:-}"
   [ ! -f "$HOOKS_FILE" ] || [ ! -s "$HOOKS_FILE" ] && return 0
+
+  if [ -f "$SKIP_HOOKS_FILE" ]; then
+    rm -f "$SKIP_HOOKS_FILE"
+    echo "⏭ フックスキップ (skip フラグ消費)"
+    return 0
+  fi
 
   stop_hook_timers
 
@@ -529,6 +538,7 @@ while [[ $# -gt 0 ]]; do
       [ -z "$HOOK_CMD" ] && { echo "ct: add requires CMD" >&2; exit 1; }
       ;;
     ls)      CMD="hook-ls";  shift ;;
+    skip)    CMD="skip";    shift ;;
     rm)
       CMD="hook-rm"
       HOOK_RM_IDX="${2:?ct: rm requires INDEX}"
@@ -586,6 +596,15 @@ case "$CMD" in
         printf "[%d] %-16s (%s%dmin)  %s\n" "$_idx" "$_hook_at" "$_sign" "$offset" "$cmd"
         _idx=$(( _idx + 1 ))
       done < "$HOOKS_FILE"
+    fi
+    ;;
+  skip)
+    if [ -f "$SKIP_HOOKS_FILE" ]; then
+      rm -f "$SKIP_HOOKS_FILE"
+      echo "スキップをキャンセルしました"
+    else
+      touch "$SKIP_HOOKS_FILE"
+      echo "次回のフック実行をスキップします"
     fi
     ;;
   hook-rm)

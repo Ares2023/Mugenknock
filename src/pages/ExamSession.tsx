@@ -158,31 +158,20 @@ export default function ExamSession() {
     localStorage.removeItem('examDraft');
 
     try {
-      const details = await Promise.all(
-        questions.map((q: Question) =>
-          fetch(`${API_ENDPOINT}/questions/${q.questionId}`).then(r => r.json())
-        )
-      );
-
-      const results: { questionId: string; isCorrect: boolean }[] = [];
-      const fullQuestions: Question[] = [];
-
-      for (let i = 0; i < questions.length; i++) {
-        const detail: Question = details[i];
-        const userAns = answers[detail.questionId] ?? [];
-        const correct = detail.correctAnswers ?? [];
+      const results = questions.map((q: Question) => {
+        const userAns = answers[q.questionId] ?? [];
+        const correct = q.correctAnswers ?? [];
         const isCorrect = correct.length === userAns.length && correct.every(a => userAns.includes(a));
-        results.push({ questionId: detail.questionId, isCorrect });
-        fullQuestions.push({ ...questions[i], ...detail });
+        return { questionId: q.questionId, isCorrect, userAns, tags: q.tags ?? [] };
+      });
 
-        try {
-          await fetch(`${API_ENDPOINT}/sessions/${sessionId}/answers`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ userId, questionId: detail.questionId, selectedAnswers: userAns, isCorrect, tags: detail.tags ?? [] })
-          });
-        } catch { /* ignore individual errors */ }
-      }
+      await Promise.all(results.map(r =>
+        fetch(`${API_ENDPOINT}/sessions/${sessionId}/answers`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ userId, questionId: r.questionId, selectedAnswers: r.userAns, isCorrect: r.isCorrect, tags: r.tags })
+        }).catch(() => {})
+      ));
 
       const correctCount = results.filter(r => r.isCorrect).length;
       const score = Math.round((correctCount / questions.length) * 100);
@@ -195,7 +184,7 @@ export default function ExamSession() {
       });
 
       navigate('/result', {
-        state: { results, questions: fullQuestions, score, isPassed, sessionId, userId, examType, mode: 'exam', timeUp }
+        state: { results: results.map(r => ({ questionId: r.questionId, isCorrect: r.isCorrect })), questions, score, isPassed, sessionId, userId, examType, mode: 'exam', timeUp }
       });
     } catch (err) {
       console.error(err);

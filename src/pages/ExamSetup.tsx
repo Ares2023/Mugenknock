@@ -218,7 +218,7 @@ export default function ExamSetup() {
 
       const allSelected = EXAM_DOMAINS[examType].every(d => selectedDomains.includes(d));
       if ((user && (bookmarkOnly || unansweredOnly || incorrectOnly)) || keywordChips.length > 0) {
-        const params = new URLSearchParams({ examType });
+        const params = new URLSearchParams({ examType, withAnswers: 'true' });
         if (!allSelected) params.set('domain', selectedDomains.join(','));
 
         const [qRes, bkmRes, answeredRes, incorrectRes] = await Promise.all([
@@ -251,7 +251,7 @@ export default function ExamSetup() {
         }
         selectedItems = filtered.slice(0, limit);
       } else {
-        const params = new URLSearchParams({ examType });
+        const params = new URLSearchParams({ examType, withAnswers: 'true' });
         if (!allSelected) params.set('domain', selectedDomains.join(','));
         const data = await fetch(`${API_ENDPOINT}/questions?${params}`).then(r => r.json());
         let allItems: any[] = data.items ?? [];
