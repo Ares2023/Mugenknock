@@ -63,6 +63,7 @@ export default function ExerciseSession() {
   const [currentIndex, setCurrentIndex] = useState<number>(state?.resumeIndex ?? 0);
   const [selectedAnswers, setSelectedAnswers] = useState<string[]>(state?.resumeSelectedAnswers ?? []);
   const [answered, setAnswered] = useState<boolean>(state?.resumeAnswered ?? false);
+  const [detail, setDetail] = useState<Question | null>(null);
   const [tips, setTips] = useState<Tip[]>([]);
   const [bookmarkedIds, setBookmarkedIds] = useState<Set<string>>(new Set());
   const [bookmarkLoading, setBookmarkLoading] = useState(false);
@@ -83,6 +84,26 @@ export default function ExerciseSession() {
   useEffect(() => {
     document.querySelector('main')?.scrollTo({ top: 0 });
   }, [currentIndex]);
+
+  // correctAnswers が事前ロードされていない場合のフォールバックフェッチ + 正解判定の補正
+  useEffect(() => {
+    const q = questions[currentIndex];
+    if (!answered || !q || q.correctAnswers) return;
+    fetch(`${API_ENDPOINT}/questions/${q.questionId}`)
+      .then(r => r.json())
+      .then(d => {
+        setDetail(d);
+        const correct: string[] = d.correctAnswers ?? [];
+        const isCorrect = correct.length === selectedAnswers.length &&
+          correct.every((a: string) => selectedAnswers.includes(a));
+        setResults(prev => {
+          const next = [...prev];
+          if (next.length > 0) next[next.length - 1] = { questionId: q.questionId, isCorrect };
+          return next;
+        });
+      })
+      .catch(() => {});
+  }, [answered, currentIndex]); // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
     if (!userId) return;
@@ -208,6 +229,7 @@ export default function ExerciseSession() {
       setCurrentIndex(prev => prev + 1);
       setSelectedAnswers([]);
       setAnswered(false);
+      setDetail(null);
       setAnswerCountError(null);
     }
   };
@@ -238,7 +260,8 @@ export default function ExerciseSession() {
         fontWeight: selected ? 700 : 400,
       };
     }
-    const correctAnswers = currentQuestion.correctAnswers || [];
+    const displayQ = (currentQuestion.correctAnswers ? currentQuestion : detail) ?? currentQuestion;
+    const correctAnswers = displayQ.correctAnswers || [];
     const isCorrect = correctAnswers.includes(choice);
     const isSelected = selectedAnswers.includes(choice);
 
@@ -325,52 +348,63 @@ export default function ExerciseSession() {
           ))}
         </div>
 
-        {answered && (
-          <div className="fade-slide-in" style={{
-            background: results[results.length - 1]?.isCorrect ? '#f2fcf3' : '#fdf3f1',
-            borderLeft: `8px solid ${results[results.length - 1]?.isCorrect ? 'var(--color-success)' : 'var(--color-danger)'}`,
-            padding: '16px 20px', marginBottom: 'var(--spacing-xl)',
-            borderRadius: 'var(--border-radius-sm)',
-          }}>
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 'var(--spacing-sm)', gap: 'var(--spacing-md)' }}>
-              <h3 style={{
-                margin: 0, fontSize: 'var(--font-size-md)',
-                color: results[results.length - 1]?.isCorrect ? 'var(--color-success)' : 'var(--color-danger)',
-                display: 'flex', alignItems: 'center', gap: 'var(--spacing-sm)'
-              }}>
-                {results[results.length - 1]?.isCorrect ? t('exerciseSession.correct') : t('exerciseSession.incorrect')}
-              </h3>
-              <CopyButton getText={() =>
-                `${t('exerciseSession.correctAnswer')}${currentQuestion.correctAnswers?.join(', ')}\n\n${t('exerciseSession.explanation')}\n${currentQuestion.explanation ?? ''}`
-              } />
+        {answered && (() => {
+          const displayQ = (currentQuestion.correctAnswers ? currentQuestion : detail) ?? currentQuestion;
+          const lastResult = results[results.length - 1];
+          if (!displayQ.correctAnswers) {
+            return (
+              <div style={{ padding: '12px 16px', marginBottom: 'var(--spacing-xl)', color: 'var(--color-text-light)', fontSize: 'var(--font-size-sm)' }}>
+                {lang === 'ja' ? '解説を読み込み中...' : 'Loading explanation...'}
+              </div>
+            );
+          }
+          return (
+            <div className="fade-slide-in" style={{
+              background: lastResult?.isCorrect ? '#f2fcf3' : '#fdf3f1',
+              borderLeft: `8px solid ${lastResult?.isCorrect ? 'var(--color-success)' : 'var(--color-danger)'}`,
+              padding: '16px 20px', marginBottom: 'var(--spacing-xl)',
+              borderRadius: 'var(--border-radius-sm)',
+            }}>
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 'var(--spacing-sm)', gap: 'var(--spacing-md)' }}>
+                <h3 style={{
+                  margin: 0, fontSize: 'var(--font-size-md)',
+                  color: lastResult?.isCorrect ? 'var(--color-success)' : 'var(--color-danger)',
+                  display: 'flex', alignItems: 'center', gap: 'var(--spacing-sm)'
+                }}>
+                  {lastResult?.isCorrect ? t('exerciseSession.correct') : t('exerciseSession.incorrect')}
+                </h3>
+                <CopyButton getText={() =>
+                  `${t('exerciseSession.correctAnswer')}${displayQ.correctAnswers?.join(', ')}\n\n${t('exerciseSession.explanation')}\n${displayQ.explanation ?? ''}`
+                } />
+              </div>
+              <p style={{ margin: '0 0 12px', fontSize: 'var(--font-size-base)' }}>
+                <strong>{t('exerciseSession.correctAnswer')}</strong>{displayQ.correctAnswers?.join(', ')}
+              </p>
+              <div style={{ fontSize: 'var(--font-size-base)', lineHeight: 1.6 }}>
+                <strong>{t('exerciseSession.explanation')}</strong>
+                <div style={{ marginTop: 4 }}>{lang === 'en' && (displayQ as any).explanationEn ? (displayQ as any).explanationEn : displayQ.explanation}</div>
+              </div>
+              {(() => {
+                const links = getServiceLinks(currentQuestion.tags ?? []);
+                if (links.length === 0) return null;
+                return (
+                  <div style={{ marginTop: 12, paddingTop: 10, borderTop: '1px solid rgba(0,0,0,0.08)', display: 'flex', flexWrap: 'wrap', gap: '6px 10px', alignItems: 'center' }}>
+                    <span style={{ fontSize: 'var(--font-size-xs)', color: 'var(--color-text-light)', flexShrink: 0 }}>
+                      {lang === 'ja' ? 'AWS公式' : 'AWS Docs'}:
+                    </span>
+                    {links.map(link => (
+                      <a key={link.url} href={link.url} target="_blank" rel="noopener noreferrer"
+                        style={{ fontSize: 'var(--font-size-xs)', color: '#0073bb', textDecoration: 'none', display: 'inline-flex', alignItems: 'center', gap: 3,
+                          padding: '2px 8px', borderRadius: 20, border: '1px solid #b3d9f0', background: '#f0f8ff', whiteSpace: 'nowrap' }}>
+                        {link.label} ↗
+                      </a>
+                    ))}
+                  </div>
+                );
+              })()}
             </div>
-            <p style={{ margin: '0 0 12px', fontSize: 'var(--font-size-base)' }}>
-              <strong>{t('exerciseSession.correctAnswer')}</strong>{currentQuestion.correctAnswers?.join(', ')}
-            </p>
-            <div style={{ fontSize: 'var(--font-size-base)', lineHeight: 1.6 }}>
-              <strong>{t('exerciseSession.explanation')}</strong>
-              <div style={{ marginTop: 4 }}>{lang === 'en' && (currentQuestion as any).explanationEn ? (currentQuestion as any).explanationEn : currentQuestion.explanation}</div>
-            </div>
-            {(() => {
-              const links = getServiceLinks(currentQuestion.tags ?? []);
-              if (links.length === 0) return null;
-              return (
-                <div style={{ marginTop: 12, paddingTop: 10, borderTop: '1px solid rgba(0,0,0,0.08)', display: 'flex', flexWrap: 'wrap', gap: '6px 10px', alignItems: 'center' }}>
-                  <span style={{ fontSize: 'var(--font-size-xs)', color: 'var(--color-text-light)', flexShrink: 0 }}>
-                    {lang === 'ja' ? 'AWS公式' : 'AWS Docs'}:
-                  </span>
-                  {links.map(link => (
-                    <a key={link.url} href={link.url} target="_blank" rel="noopener noreferrer"
-                      style={{ fontSize: 'var(--font-size-xs)', color: '#0073bb', textDecoration: 'none', display: 'inline-flex', alignItems: 'center', gap: 3,
-                        padding: '2px 8px', borderRadius: 20, border: '1px solid #b3d9f0', background: '#f0f8ff', whiteSpace: 'nowrap' }}>
-                      {link.label} ↗
-                    </a>
-                  ))}
-                </div>
-              );
-            })()}
-          </div>
-        )}
+          );
+        })()}
 
         <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--spacing-md)', borderTop: '1px solid var(--color-border)', paddingTop: 'var(--spacing-lg)' }}>
           {!answered ? (

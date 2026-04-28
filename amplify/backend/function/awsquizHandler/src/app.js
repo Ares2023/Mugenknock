@@ -119,7 +119,10 @@ app.get('/questions', async (req, res) => {
     if (limit) items = items.slice(0, parseInt(limit));
     const withAnswers = req.query.withAnswers === 'true';
     const sanitized = withAnswers
-      ? items
+      ? items.map(item => ({
+          ...item,
+          correctAnswerCount: Array.isArray(item.correctAnswers) ? item.correctAnswers.length : 1,
+        }))
       : items.map(({ correctAnswers, explanation, explanationEn, ...rest }) => ({
           ...rest,
           correctAnswerCount: Array.isArray(correctAnswers) ? correctAnswers.length : 1,
