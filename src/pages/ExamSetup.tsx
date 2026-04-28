@@ -75,6 +75,8 @@ export default function ExamSetup() {
   const [unansweredOnly, setUnansweredOnly] = useState<boolean>(() => loadExamPrefs(localStorage.getItem('targetExam') || localStorage.getItem('lastExamType') || 'SAA').unansweredOnly ?? false);
   const [incorrectOnly, setIncorrectOnly] = useState<boolean>(() => loadExamPrefs(localStorage.getItem('targetExam') || localStorage.getItem('lastExamType') || 'SAA').incorrectOnly ?? false);
   const [shuffle, setShuffle] = useState<boolean>(() => loadExamPrefs(localStorage.getItem('targetExam') || localStorage.getItem('lastExamType') || 'SAA').shuffle ?? false);
+  const [keywordChips, setKeywordChips] = useState<string[]>([]);
+  const [keywordInput, setKeywordInput] = useState('');
   const hasDraft = examDraft?.examType === examType;
 
   type ExamSession = { sessionId: string; examType: string; mode: string; score: number; isPassed: boolean; startedAt: string; };
@@ -86,6 +88,27 @@ export default function ExamSetup() {
 
   const config = EXAM_CONFIGS[examType];
   const passScore = PASS_SCORES[examType];
+
+  const matchesKeyword = (q: any, chip: string) => {
+    const lower = chip.toLowerCase();
+    if ((q.questionText ?? '').toLowerCase().includes(lower)) return true;
+    if (Array.isArray(q.choices) && q.choices.some((c: any) => {
+      const text = typeof c === 'string' ? c : (c.text ?? c.optionText ?? '');
+      return text.toLowerCase().includes(lower);
+    })) return true;
+    if (Array.isArray(q.tags) && q.tags.some((tag: string) => tag.toLowerCase().includes(lower))) return true;
+    return false;
+  };
+
+  const handleAddChip = () => {
+    const trimmed = keywordInput.trim();
+    if (trimmed && !keywordChips.includes(trimmed)) {
+      setKeywordChips(prev => [...prev, trimmed]);
+    }
+    setKeywordInput('');
+  };
+
+  const removeChip = (i: number) => setKeywordChips(prev => prev.filter((_, idx) => idx !== i));
 
   const isFirstRender = useRef(true);
   useEffect(() => {
@@ -127,13 +150,13 @@ export default function ExamSetup() {
         const allSelected = EXAM_DOMAINS[examType].every(d => selectedDomains.includes(d));
         if (!allSelected) params.set('domain', selectedDomains.join(','));
 
-        if (user && (bookmarkOnly || unansweredOnly || incorrectOnly)) {
-          const userId = user.userId;
+        if ((user && (bookmarkOnly || unansweredOnly || incorrectOnly)) || keywordChips.length > 0) {
+          const userId = user?.userId;
           const [qRes, bkmRes, answeredRes, incorrectRes] = await Promise.all([
             fetch(`${API_ENDPOINT}/questions?${params}`).then(r => r.json()),
-            bookmarkOnly ? fetch(`${API_ENDPOINT}/users/me/bookmarks?userId=${userId}`).then(r => r.json()) : Promise.resolve(null),
-            unansweredOnly ? fetch(`${API_ENDPOINT}/users/me/answered-questions?userId=${userId}&examType=${examType}`).then(r => r.json()) : Promise.resolve(null),
-            incorrectOnly ? fetch(`${API_ENDPOINT}/users/me/incorrect-questions?userId=${userId}&examType=${examType}`).then(r => r.json()) : Promise.resolve(null),
+            user && bookmarkOnly ? fetch(`${API_ENDPOINT}/users/me/bookmarks?userId=${userId}`).then(r => r.json()) : Promise.resolve(null),
+            user && unansweredOnly ? fetch(`${API_ENDPOINT}/users/me/answered-questions?userId=${userId}&examType=${examType}`).then(r => r.json()) : Promise.resolve(null),
+            user && incorrectOnly ? fetch(`${API_ENDPOINT}/users/me/incorrect-questions?userId=${userId}&examType=${examType}`).then(r => r.json()) : Promise.resolve(null),
           ]);
           let items: any[] = qRes.items ?? [];
           if (bookmarkOnly && bkmRes) {
@@ -148,6 +171,9 @@ export default function ExamSetup() {
             const incorrectIds = new Set(incorrectRes.questionIds ?? []);
             items = items.filter((q: any) => incorrectIds.has(q.questionId));
           }
+          if (keywordChips.length > 0) {
+            items = items.filter((q: any) => keywordChips.every(chip => matchesKeyword(q, chip)));
+          }
           setAvailableCount(items.length);
         } else {
           const data = await fetch(`${API_ENDPOINT}/questions?${params}`).then(r => r.json());
@@ -157,7 +183,7 @@ export default function ExamSetup() {
     };
 
     fetchCounts();
-  }, [examType, selectedDomains, user, bookmarkOnly, unansweredOnly, incorrectOnly]);
+  }, [examType, selectedDomains, user, bookmarkOnly, unansweredOnly, incorrectOnly, keywordChips]);
 
   useEffect(() => {
     if (!user) { setExamSessions([]); setDomainStats([]); setAnsweredCount(null); return; }
@@ -191,15 +217,15 @@ export default function ExamSetup() {
       let selectedItems: any[];
 
       const allSelected = EXAM_DOMAINS[examType].every(d => selectedDomains.includes(d));
-      if (user && (bookmarkOnly || unansweredOnly || incorrectOnly)) {
+      if ((user && (bookmarkOnly || unansweredOnly || incorrectOnly)) || keywordChips.length > 0) {
         const params = new URLSearchParams({ examType });
         if (!allSelected) params.set('domain', selectedDomains.join(','));
 
         const [qRes, bkmRes, answeredRes, incorrectRes] = await Promise.all([
           fetch(`${API_ENDPOINT}/questions?${params}`).then(r => r.json()),
-          bookmarkOnly ? fetch(`${API_ENDPOINT}/users/me/bookmarks?userId=${userId}`).then(r => r.json()) : Promise.resolve(null),
-          unansweredOnly ? fetch(`${API_ENDPOINT}/users/me/answered-questions?userId=${userId}&examType=${examType}`).then(r => r.json()) : Promise.resolve(null),
-          incorrectOnly ? fetch(`${API_ENDPOINT}/users/me/incorrect-questions?userId=${userId}&examType=${examType}`).then(r => r.json()) : Promise.resolve(null),
+          user && bookmarkOnly ? fetch(`${API_ENDPOINT}/users/me/bookmarks?userId=${userId}`).then(r => r.json()) : Promise.resolve(null),
+          user && unansweredOnly ? fetch(`${API_ENDPOINT}/users/me/answered-questions?userId=${userId}&examType=${examType}`).then(r => r.json()) : Promise.resolve(null),
+          user && incorrectOnly ? fetch(`${API_ENDPOINT}/users/me/incorrect-questions?userId=${userId}&examType=${examType}`).then(r => r.json()) : Promise.resolve(null),
         ]);
         let filtered: any[] = qRes.items ?? [];
         if (bookmarkOnly && bkmRes) {
@@ -214,6 +240,9 @@ export default function ExamSetup() {
           const incorrectIds = new Set(incorrectRes.questionIds ?? []);
           filtered = filtered.filter((q: any) => incorrectIds.has(q.questionId));
         }
+        if (keywordChips.length > 0) {
+          filtered = filtered.filter((q: any) => keywordChips.every(chip => matchesKeyword(q, chip)));
+        }
         if (shuffle) {
           for (let i = filtered.length - 1; i > 0; i--) {
             const j = Math.floor(Math.random() * (i + 1));
@@ -226,6 +255,9 @@ export default function ExamSetup() {
         if (!allSelected) params.set('domain', selectedDomains.join(','));
         const data = await fetch(`${API_ENDPOINT}/questions?${params}`).then(r => r.json());
         let allItems: any[] = data.items ?? [];
+        if (keywordChips.length > 0) {
+          allItems = allItems.filter((q: any) => keywordChips.every(chip => matchesKeyword(q, chip)));
+        }
         if (shuffle) {
           for (let i = allItems.length - 1; i > 0; i--) {
             const j = Math.floor(Math.random() * (i + 1));
@@ -260,14 +292,12 @@ export default function ExamSetup() {
     }
   };
 
-  const useableCount = availableCount !== null ? Math.min(config.totalQuestions, availableCount) : null;
   const allDomainsSelected = EXAM_DOMAINS[examType].every(d => selectedDomains.includes(d));
-  const shortage = availableCount !== null && allDomainsSelected
-    ? Math.max(0, config.totalQuestions - availableCount) : null;
 
   let _s = 0;
   const examStep    = targetExam ? null : ++_s;
   const domainStep  = ++_s;
+  const keywordStep = ++_s;
   const optionsStep = ++_s;
 
   return (
@@ -319,7 +349,7 @@ export default function ExamSetup() {
           )}
 
           {/* ドメインフィルタ */}
-          <StepRow n={domainStep} title={<>{t('examSetup.domain')} <span style={{ fontWeight: 400, fontSize: 'var(--font-size-sm)', color: 'var(--color-text-sub)' }}>{t('examSetup.optional')}</span></>}>
+          <StepRow n={domainStep} optional title={<>{t('examSetup.domain')} <span style={{ fontWeight: 400, fontSize: 'var(--font-size-sm)', color: 'var(--color-text-sub)' }}>{t('examSetup.optional')}</span></>}>
             <DomainSelector
               domains={EXAM_DOMAINS[examType]}
               selected={selectedDomains}
@@ -327,6 +357,41 @@ export default function ExamSetup() {
               lang={lang}
               noMargin
             />
+          </StepRow>
+
+          {/* キーワード検索 */}
+          <StepRow n={keywordStep} optional
+            title={<>{lang === 'ja' ? 'キーワード検索' : 'Keyword Search'} <span style={{ fontWeight: 400, fontSize: 'var(--font-size-sm)', color: 'var(--color-text-sub)' }}>{t('examSetup.optional')}</span></>}>
+            <div>
+              <div style={{ display: 'flex', gap: 'var(--spacing-sm)' }}>
+                <input
+                  type="text"
+                  value={keywordInput}
+                  onChange={e => setKeywordInput(e.target.value)}
+                  onKeyDown={e => { if (e.key === 'Enter') { e.preventDefault(); handleAddChip(); } }}
+                  placeholder={lang === 'ja' ? 'キーワードを入力...' : 'Enter keyword...'}
+                  style={{ flex: 1, padding: '8px 12px', border: '1px solid var(--color-border)', borderRadius: 'var(--border-radius-md)', fontSize: 'var(--font-size-base)', outline: 'none', transition: 'border-color 0.2s' }}
+                  onFocus={e => e.currentTarget.style.borderColor = 'var(--color-primary)'}
+                  onBlur={e => e.currentTarget.style.borderColor = 'var(--color-border)'}
+                />
+                <Button size="sm" variant="outline" onClick={handleAddChip}>
+                  {lang === 'ja' ? '追加' : 'Add'}
+                </Button>
+              </div>
+              {keywordChips.length > 0 && (
+                <div style={{ display: 'flex', flexWrap: 'wrap', gap: 'var(--spacing-xs)', marginTop: 'var(--spacing-sm)', alignItems: 'center' }}>
+                  {keywordChips.map((chip, i) => (
+                    <span key={i} style={{ display: 'inline-flex', alignItems: 'center', gap: 4, background: '#0097a7', color: 'white', borderRadius: 20, padding: '3px 10px', fontSize: 'var(--font-size-sm)' }}>
+                      {chip}
+                      <button onClick={() => removeChip(i)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'white', fontSize: 14, lineHeight: 1, padding: '0 0 0 2px' }}>✕</button>
+                    </span>
+                  ))}
+                  <button onClick={() => setKeywordChips([])} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--color-text-light)', fontSize: 'var(--font-size-sm)' }}>
+                    {lang === 'ja' ? 'クリア' : 'Clear'}
+                  </button>
+                </div>
+              )}
+            </div>
           </StepRow>
 
           {/* オプション */}
@@ -377,6 +442,15 @@ export default function ExamSetup() {
             </div>
           )}
 
+          {/* 問題数不足警告 */}
+          {availableCount !== null && availableCount > 0 && availableCount < config.totalQuestions && (
+            <div style={{ marginBottom: 'var(--spacing-sm)', fontSize: 'var(--font-size-sm)', color: '#92400e', background: '#fffbeb', border: '1px solid #fcd34d', borderRadius: 'var(--border-radius-md)', padding: '8px 12px' }}>
+              ⚠️ {lang === 'ja'
+                ? `条件に合う問題が${availableCount}問しかありません。${availableCount}問で開始します。`
+                : `Only ${availableCount} questions match the criteria. The exam will start with ${availableCount} questions.`}
+            </div>
+          )}
+
           <div style={{ display: 'flex', gap: 'var(--spacing-md)', borderTop: '1px solid var(--color-border)', paddingTop: 'var(--spacing-lg)', justifyContent: 'flex-end', flexWrap: 'wrap' }}>
             <Button variant="outline" onClick={() => navigate('/')}>
               {t('examSetup.cancel')}
@@ -392,10 +466,9 @@ export default function ExamSetup() {
           </div>
         </Card>
 
-        {/* 右：タグフィルター + 成績パネル */}
+        {/* 右：成績パネル */}
         <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--spacing-lg)' }}>
 
-        {/* 成績パネル */}
         <Card padding="var(--spacing-lg)">
 
           {/* テスト履歴 */}
