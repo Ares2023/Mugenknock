@@ -349,7 +349,7 @@ export default function ExamSetup() {
           )}
 
           {/* ドメインフィルタ */}
-          <StepRow n={domainStep} optional title={<>{t('examSetup.domain')} <span style={{ fontWeight: 400, fontSize: 'var(--font-size-sm)', color: 'var(--color-text-sub)' }}>{t('examSetup.optional')}</span></>}>
+          <StepRow n={domainStep} optional title={t('examSetup.domain')}>
             <DomainSelector
               domains={EXAM_DOMAINS[examType]}
               selected={selectedDomains}
@@ -360,7 +360,7 @@ export default function ExamSetup() {
           </StepRow>
 
           {/* オプション */}
-          <StepRow n={optionsStep} optional title={<>{t('exerciseSetup.options')} <span style={{ fontWeight: 400, fontSize: 'var(--font-size-sm)', color: 'var(--color-text-sub)' }}>{t('examSetup.optional')}</span></>}>
+          <StepRow n={optionsStep} optional title={t('exerciseSetup.options')}>
             <div style={{ padding: 'var(--spacing-md)', background: 'var(--color-bg-main)', borderRadius: 'var(--border-radius-md)', display: 'flex', flexDirection: 'column', gap: 'var(--spacing-xs)' }}>
               {user && (
                 <label title={t('exerciseSetup.unansweredOnlyDesc')} style={{ display: 'flex', alignItems: 'center', gap: 'var(--spacing-sm)', cursor: 'pointer', fontSize: 'var(--font-size-base)' }}>
@@ -389,7 +389,7 @@ export default function ExamSetup() {
 
           {/* キーワード検索 */}
           <StepRow n={keywordStep} optional isLast
-            title={<>{lang === 'ja' ? 'キーワード検索' : 'Keyword Search'} <span style={{ fontWeight: 400, fontSize: 'var(--font-size-sm)', color: 'var(--color-text-sub)' }}>{t('examSetup.optional')}</span></>}>
+            title={lang === 'ja' ? 'キーワード検索' : 'Keyword Search'}>
             <div>
               <div style={{ display: 'flex', gap: 'var(--spacing-sm)' }}>
                 <input
