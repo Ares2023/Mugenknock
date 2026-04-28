@@ -5,6 +5,7 @@ import { useLanguage } from '../contexts/LanguageContext';
 import Card from '../components/ui/Card';
 import Button from '../components/ui/Button';
 import Badge from '../components/ui/Badge';
+import { getServiceLinks } from '../awsServiceLinks';
 
 export default function Result() {
   const navigate = useNavigate();
@@ -121,6 +122,24 @@ export default function Result() {
                     }}>
                       <strong style={{ fontSize: 'var(--font-size-sm)', color: 'var(--color-primary)' }}>{t('result.explanation')}</strong>
                       <div style={{ marginTop: 8, fontSize: 'var(--font-size-sm)' }}>{lang === 'en' && q.explanationEn ? q.explanationEn : q.explanation}</div>
+                      {(() => {
+                        const links = getServiceLinks(q.tags ?? []);
+                        if (links.length === 0) return null;
+                        return (
+                          <div style={{ marginTop: 10, paddingTop: 8, borderTop: '1px solid rgba(0,0,0,0.08)', display: 'flex', flexWrap: 'wrap', gap: '6px 10px', alignItems: 'center' }}>
+                            <span style={{ fontSize: 'var(--font-size-xs)', color: 'var(--color-text-light)', flexShrink: 0 }}>
+                              {lang === 'ja' ? 'AWS公式' : 'AWS Docs'}:
+                            </span>
+                            {links.map((link: { label: string; url: string }) => (
+                              <a key={link.url} href={link.url} target="_blank" rel="noopener noreferrer"
+                                style={{ fontSize: 'var(--font-size-xs)', color: '#0073bb', textDecoration: 'none', display: 'inline-flex', alignItems: 'center', gap: 3,
+                                  padding: '2px 8px', borderRadius: 20, border: '1px solid #b3d9f0', background: '#f0f8ff', whiteSpace: 'nowrap' }}>
+                                {link.label} ↗
+                              </a>
+                            ))}
+                          </div>
+                        );
+                      })()}
                     </div>
                   )}
                 </div>

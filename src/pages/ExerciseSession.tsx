@@ -7,6 +7,7 @@ import Card from '../components/ui/Card';
 import Button from '../components/ui/Button';
 import Badge from '../components/ui/Badge';
 import ReportModal from '../components/ReportModal';
+import { getServiceLinks } from '../awsServiceLinks';
 
 type Tip = { tipId: string; title: string; content: string; examType: string };
 
@@ -350,6 +351,24 @@ export default function ExerciseSession() {
               <strong>{t('exerciseSession.explanation')}</strong>
               <div style={{ marginTop: 4 }}>{lang === 'en' && (currentQuestion as any).explanationEn ? (currentQuestion as any).explanationEn : currentQuestion.explanation}</div>
             </div>
+            {(() => {
+              const links = getServiceLinks(currentQuestion.tags ?? []);
+              if (links.length === 0) return null;
+              return (
+                <div style={{ marginTop: 12, paddingTop: 10, borderTop: '1px solid rgba(0,0,0,0.08)', display: 'flex', flexWrap: 'wrap', gap: '6px 10px', alignItems: 'center' }}>
+                  <span style={{ fontSize: 'var(--font-size-xs)', color: 'var(--color-text-light)', flexShrink: 0 }}>
+                    {lang === 'ja' ? 'AWS公式' : 'AWS Docs'}:
+                  </span>
+                  {links.map(link => (
+                    <a key={link.url} href={link.url} target="_blank" rel="noopener noreferrer"
+                      style={{ fontSize: 'var(--font-size-xs)', color: '#0073bb', textDecoration: 'none', display: 'inline-flex', alignItems: 'center', gap: 3,
+                        padding: '2px 8px', borderRadius: 20, border: '1px solid #b3d9f0', background: '#f0f8ff', whiteSpace: 'nowrap' }}>
+                      {link.label} ↗
+                    </a>
+                  ))}
+                </div>
+              );
+            })()}
           </div>
         )}
 
