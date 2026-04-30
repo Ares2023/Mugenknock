@@ -84,8 +84,6 @@ export default function ExerciseSetup() {
   const [bookmarkOnly, setBookmarkOnly] = useState<boolean>(() => loadExercisePrefs(localStorage.getItem('targetExam') || localStorage.getItem('lastExamType') || 'SAA').bookmarkOnly ?? false);
   const [unansweredOnly, setUnansweredOnly] = useState<boolean>(() => loadExercisePrefs(localStorage.getItem('targetExam') || localStorage.getItem('lastExamType') || 'SAA').unansweredOnly ?? false);
   const [incorrectOnly, setIncorrectOnly] = useState<boolean>(() => loadExercisePrefs(localStorage.getItem('targetExam') || localStorage.getItem('lastExamType') || 'SAA').incorrectOnly ?? false);
-  const [keywordChips, setKeywordChips] = useState<string[]>([]);
-  const [keywordInput, setKeywordInput] = useState('');
   const [showHint, setShowHint] = useState(() => !localStorage.getItem('sherpaExerciseHint'));
   const [exerciseDraft] = useState<any>(() => {
     try { return JSON.parse(localStorage.getItem('exerciseDraft') ?? 'null'); } catch { return null; }
@@ -98,27 +96,6 @@ export default function ExerciseSetup() {
   const [answeredCount, setAnsweredCount] = useState<number | null>(null);
   type DomainStat = { tagId: string; correctCount: number; incorrectCount: number };
   const [domainStats, setDomainStats] = useState<DomainStat[]>([]);
-
-  const matchesKeyword = (q: any, chip: string) => {
-    const lower = chip.toLowerCase();
-    if ((q.questionText ?? '').toLowerCase().includes(lower)) return true;
-    if (Array.isArray(q.choices) && q.choices.some((c: any) => {
-      const text = typeof c === 'string' ? c : (c.text ?? c.optionText ?? '');
-      return text.toLowerCase().includes(lower);
-    })) return true;
-    if (Array.isArray(q.tags) && q.tags.some((tag: string) => tag.toLowerCase().includes(lower))) return true;
-    return false;
-  };
-
-  const handleAddChip = () => {
-    const trimmed = keywordInput.trim();
-    if (trimmed && !keywordChips.includes(trimmed)) {
-      setKeywordChips(prev => [...prev, trimmed]);
-    }
-    setKeywordInput('');
-  };
-
-  const removeChip = (i: number) => setKeywordChips(prev => prev.filter((_, idx) => idx !== i));
 
   const isFirstRender = useRef(true);
   useEffect(() => {
@@ -147,7 +124,7 @@ export default function ExerciseSetup() {
         const allSelected = EXAM_DOMAINS[examType].every(d => selectedDomains.includes(d));
         if (!allSelected) params.set('domain', selectedDomains.join(','));
 
-        if ((user && (bookmarkOnly || unansweredOnly || incorrectOnly)) || keywordChips.length > 0) {
+        if (user && (bookmarkOnly || unansweredOnly || incorrectOnly)) {
           const [qRes, bkmRes, answeredRes, incorrectRes] = await Promise.all([
             fetch(`${API_ENDPOINT}/questions?${params}`).then(r => r.json()),
             user && bookmarkOnly ? fetch(`${API_ENDPOINT}/users/me/bookmarks?userId=${user.userId}`).then(r => r.json()) : Promise.resolve(null),
@@ -166,9 +143,6 @@ export default function ExerciseSetup() {
           if (incorrectOnly && incorrectRes) {
             const incorrectIds = new Set(incorrectRes.questionIds ?? []);
             items = items.filter((q: any) => incorrectIds.has(q.questionId));
-          }
-          if (keywordChips.length > 0) {
-            items = items.filter((q: any) => keywordChips.every(chip => matchesKeyword(q, chip)));
           }
           setAvailableCount(items.length);
         } else {
@@ -193,7 +167,7 @@ export default function ExerciseSetup() {
       setAnsweredCount(0);
       setDomainStats([]);
     }
-  }, [examType, selectedDomains, user, bookmarkOnly, unansweredOnly, incorrectOnly, keywordChips]);
+  }, [examType, selectedDomains, user, bookmarkOnly, unansweredOnly, incorrectOnly]);
 
   const resumeSession = () => {
     if (!exerciseDraft) return;
@@ -223,7 +197,7 @@ export default function ExerciseSetup() {
       let selectedItems: any[];
 
       const allSelected = EXAM_DOMAINS[examType].every(d => selectedDomains.includes(d));
-      if ((user && (bookmarkOnly || unansweredOnly || incorrectOnly)) || keywordChips.length > 0) {
+      if (user && (bookmarkOnly || unansweredOnly || incorrectOnly)) {
         const params = new URLSearchParams({ examType, withAnswers: 'true' });
         if (!allSelected) params.set('domain', selectedDomains.join(','));
 
@@ -245,9 +219,6 @@ export default function ExerciseSetup() {
         if (incorrectOnly && incorrectRes) {
           const incorrectIds = new Set(incorrectRes.questionIds ?? []);
           filtered = filtered.filter((q: any) => incorrectIds.has(q.questionId));
-        }
-        if (keywordChips.length > 0) {
-          filtered = filtered.filter((q: any) => keywordChips.every(chip => matchesKeyword(q, chip)));
         }
         if (shuffle) filtered = shuffleArray(filtered);
         selectedItems = filtered.slice(0, limit);
@@ -290,7 +261,6 @@ export default function ExerciseSetup() {
   const examStep    = targetExam ? null : ++_s;
   const domainStep  = ++_s;
   const optionsStep = ++_s;
-  const keywordStep = ++_s;
   const countStep   = ++_s;
 
   return (
@@ -374,41 +344,6 @@ export default function ExerciseSetup() {
                 <input type="checkbox" checked={shuffle} onChange={e => setShuffle(e.target.checked)} style={{ width: 16, height: 16, flexShrink: 0 }} />
                 {t('exerciseSetup.shuffle')}
               </label>
-            </div>
-          </StepRow>
-
-          {/* キーワード検索 */}
-          <StepRow n={keywordStep} optional
-            title={lang === 'ja' ? 'キーワード検索' : 'Keyword Search'}>
-            <div>
-              <div style={{ display: 'flex', gap: 'var(--spacing-sm)' }}>
-                <input
-                  type="text"
-                  value={keywordInput}
-                  onChange={e => setKeywordInput(e.target.value)}
-                  onKeyDown={e => { if (e.key === 'Enter') { e.preventDefault(); handleAddChip(); } }}
-                  placeholder={t('questions.searchPlaceholder')}
-                  style={{ flex: 1, padding: '8px 12px', border: '1px solid var(--color-border)', borderRadius: 'var(--border-radius-md)', fontSize: 'var(--font-size-base)', outline: 'none', transition: 'border-color 0.2s' }}
-                  onFocus={e => e.currentTarget.style.borderColor = 'var(--color-primary)'}
-                  onBlur={e => e.currentTarget.style.borderColor = 'var(--color-border)'}
-                />
-                <Button size="sm" variant="outline" onClick={handleAddChip}>
-                  {lang === 'ja' ? '追加' : 'Add'}
-                </Button>
-              </div>
-              {keywordChips.length > 0 && (
-                <div style={{ display: 'flex', flexWrap: 'wrap', gap: 'var(--spacing-xs)', marginTop: 'var(--spacing-sm)', alignItems: 'center' }}>
-                  {keywordChips.map((chip, i) => (
-                    <span key={i} style={{ display: 'inline-flex', alignItems: 'center', gap: 4, background: '#0097a7', color: 'white', borderRadius: 20, padding: '3px 10px', fontSize: 'var(--font-size-sm)' }}>
-                      {chip}
-                      <button onClick={() => removeChip(i)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'white', fontSize: 14, lineHeight: 1, padding: '0 0 0 2px' }}>✕</button>
-                    </span>
-                  ))}
-                  <button onClick={() => setKeywordChips([])} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--color-text-light)', fontSize: 'var(--font-size-sm)' }}>
-                    {lang === 'ja' ? 'クリア' : 'Clear'}
-                  </button>
-                </div>
-              )}
             </div>
           </StepRow>
 
