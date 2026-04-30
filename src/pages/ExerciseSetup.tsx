@@ -12,8 +12,8 @@ const StepBadge = ({ n, optional = false }: { n: number; optional?: boolean }) =
   <span style={{
     display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
     width: 20, height: 20, borderRadius: '50%', flexShrink: 0,
-    background: optional ? 'var(--color-border)' : 'var(--color-primary)',
-    color: optional ? 'var(--color-text-sub)' : 'white',
+    background: 'var(--color-border)',
+    color: 'var(--color-text-sub)',
     fontSize: 11, fontWeight: 700,
   }}>{n}</span>
 );
