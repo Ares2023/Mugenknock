@@ -133,6 +133,11 @@ button:active:not(:disabled) {
     grid-template-columns: 1fr !important;
   }
 
+  /* 成績パネル（右カラム）はスマホでは非表示（左サイドバーに同内容あり） */
+  .setup-grade-panel {
+    display: none !important;
+  }
+
   /* ページコンテナのパディング */
   .page-container {
     padding: var(--spacing-md) var(--spacing-sm) !important;
@@ -169,6 +174,10 @@ button:active:not(:disabled) {
 @media (min-width: 768px) and (max-width: 1199px) {
   .setup-grid {
     grid-template-columns: 1fr !important;
+  }
+
+  .setup-grade-panel {
+    display: none !important;
   }
 
   .page-container {

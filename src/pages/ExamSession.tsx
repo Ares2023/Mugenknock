@@ -342,7 +342,7 @@ export default function ExamSession() {
                 }}>
                   {isSelected && <span style={{ width: 6, height: 6, borderRadius: '50%', background: 'white' }} />}
                 </span>
-                {choice}
+                <span style={{ flex: 1, minWidth: 0, overflowWrap: 'break-word', wordBreak: 'break-word' }}>{choice}</span>
               </button>
             );
           })}

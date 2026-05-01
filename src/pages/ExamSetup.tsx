@@ -398,7 +398,7 @@ export default function ExamSetup() {
         </Card>
 
         {/* 右：成績パネル */}
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--spacing-lg)' }}>
+        <div className="setup-grade-panel" style={{ display: 'flex', flexDirection: 'column', gap: 'var(--spacing-lg)' }}>
 
         <Card padding="var(--spacing-lg)">
 

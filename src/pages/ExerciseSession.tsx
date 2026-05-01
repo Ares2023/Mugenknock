@@ -355,7 +355,7 @@ export default function ExerciseSession() {
               }}>
                 {selectedAnswers.includes(choice) && <span style={{ width: 6, height: 6, borderRadius: '50%', background: 'white' }} />}
               </span>
-              {choice}
+              <span style={{ flex: 1, minWidth: 0, overflowWrap: 'break-word', wordBreak: 'break-word' }}>{choice}</span>
             </button>
           ))}
         </div>
