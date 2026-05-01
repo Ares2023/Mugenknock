@@ -2,7 +2,7 @@ import React from 'react';
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import { Amplify } from 'aws-amplify';
 import awsExports from './aws-exports';
-import { AuthProvider } from './contexts/AuthContext';
+import { AuthProvider, useAuth } from './contexts/AuthContext';
 import { LanguageProvider } from './contexts/LanguageContext';
 import PrivateRoute from './components/PrivateRoute';
 import AdminRoute from './components/AdminRoute';
@@ -24,10 +24,30 @@ import ReleaseNotes from './pages/ReleaseNotes';
 
 Amplify.configure(awsExports);
 
+function AuthGate({ children }: { children: React.ReactNode }) {
+  const { loading } = useAuth();
+  if (loading) {
+    return (
+      <div style={{
+        position: 'fixed', inset: 0,
+        display: 'flex', flexDirection: 'column',
+        alignItems: 'center', justifyContent: 'center',
+        background: '#f2f3f3', gap: 28,
+        animation: 'sherpa-fade-in 0.2s ease-out',
+      }}>
+        <img src="/logo_sherpa_image_t.png" alt="Sherpa" style={{ width: 72, height: 72, objectFit: 'contain' }} />
+        <div className="sherpa-spinner" />
+      </div>
+    );
+  }
+  return <>{children}</>;
+}
+
 function App() {
   return (
     <LanguageProvider>
     <AuthProvider>
+      <AuthGate>
       <BrowserRouter>
         <Routes>
           <Route path="/login" element={<LoginPage />} />
@@ -49,6 +69,7 @@ function App() {
           } />
         </Routes>
       </BrowserRouter>
+      </AuthGate>
     </AuthProvider>
     </LanguageProvider>
   );
