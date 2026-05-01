@@ -392,7 +392,12 @@ export default function ExamSetup() {
               disabled={loading || availableCount === 0}
               style={{ minWidth: 120 }}
             >
-              {loading ? t('examSetup.starting') : t('examSetup.start')}
+              {loading ? (
+                <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}>
+                  <span style={{ width: 13, height: 13, border: '2px solid rgba(255,255,255,0.4)', borderTopColor: 'white', borderRadius: '50%', animation: 'sherpa-spin 0.7s linear infinite', flexShrink: 0 }} />
+                  {t('examSetup.starting')}
+                </span>
+              ) : t('examSetup.start')}
             </Button>
           </div>
         </Card>
@@ -412,7 +417,9 @@ export default function ExamSetup() {
                 {lang === 'ja' ? 'ログインすると履歴を確認できます' : 'Log in to view score history'}
               </div>
             ) : sessionsLoading ? (
-              <div style={{ fontSize: 'var(--font-size-sm)', color: 'var(--color-text-light)' }}>...</div>
+              <div style={{ display: 'flex', justifyContent: 'center', padding: '16px 0' }}>
+                <div className="sherpa-spinner" style={{ width: 24, height: 24, borderWidth: 2 }} />
+              </div>
             ) : examSessions.length === 0 ? (
               <div style={{ fontSize: 'var(--font-size-sm)', color: 'var(--color-text-light)' }}>
                 {lang === 'ja' ? 'まだ模試を受けていません' : 'No exam sessions yet'}

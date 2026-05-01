@@ -177,9 +177,10 @@ PYEOF
   if [ "$mode" = "cycle" ] && [ -n "$arg" ]; then
     target_time=$(python3 - "$arg" << 'PYEOF'
 import sys
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
+JST = timezone(timedelta(hours=9))
 arg_time = sys.argv[1].strip()
-now = datetime.now()
+now = datetime.now(JST).replace(tzinfo=None)
 try:
     t = datetime.strptime(arg_time, "%H:%M").time()
     target = datetime.combine(now.date(), t)
@@ -252,7 +253,8 @@ schedule_hooks() {
     local hook_time
     hook_time=$(python3 - "$main_time" "$offset" << 'PYEOF'
 import sys
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
+JST = timezone(timedelta(hours=9))
 # "YYYY-MM-DD HH:MM:SS" または "YYYY-MM-DD HH:MM:00" を両方受け付ける
 raw = sys.argv[1].strip()
 for fmt in ("%Y-%m-%d %H:%M:%S", "%Y-%m-%d %H:%M:00", "%Y-%m-%d %H:%M"):
@@ -263,13 +265,14 @@ else:
     raise ValueError(f"parse error: {raw}")
 offset = int(sys.argv[2])
 t = target + timedelta(minutes=offset)
-now = datetime.now()
+now = datetime.now(JST).replace(tzinfo=None)
 print("" if t <= now else t.strftime('%Y-%m-%d %H:%M:00'))
 PYEOF
     )
 
     if [ -z "$hook_time" ]; then
-      echo "⚠️ hook[$idx]: 過去の時刻のためスキップ (offset: ${offset}分)"
+      local _sign=""; [ "$offset" -gt 0 ] && _sign="+"
+      echo "ℹ️  hook[$idx] スキップ: メイン ${main_time} の ${_sign}${offset}min は過去のため (次回サイクルで自動登録)"
       idx=$(( idx + 1 ))
       continue
     fi
@@ -616,7 +619,25 @@ done
 case "$CMD" in
   status)    show_status ;;
   run)       run_main "$TARGET_DIR"; show_status ;;
-  set)       schedule_next "cycle" "$SET_TIME" && printf "scheduled  %s\n" "$SET_TIME" ;;
+  set)
+    _set_dt=$(python3 - "$SET_TIME" << 'PYEOF'
+import sys
+from datetime import datetime, timedelta, timezone
+JST = timezone(timedelta(hours=9))
+now = datetime.now(JST).replace(tzinfo=None)
+try:
+    t = datetime.strptime(sys.argv[1].strip(), "%H:%M").time()
+    target = datetime.combine(now.date(), t)
+    if target <= now:
+        target += timedelta(days=1)
+    print(target.strftime('%Y-%m-%d %H:%M JST'))
+except Exception:
+    print("")
+PYEOF
+)
+    if [ -z "$_set_dt" ]; then echo "❌ 形式不正 (HH:MM)"; exit 1; fi
+    schedule_next "cycle" "$SET_TIME" && printf "scheduled  %s\n" "$_set_dt"
+    ;;
   cancel)
     systemctl --user stop "${UNIT_NAME}.timer" 2>/dev/null || true
     stop_hook_timers

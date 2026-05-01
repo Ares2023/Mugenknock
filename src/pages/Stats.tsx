@@ -184,7 +184,9 @@ export default function Stats() {
         {loading
           ? visibleExamTypes.map(et => (
               <Card key={et} style={{ minHeight: 140 }}>
-                <div style={{ color: 'var(--color-text-sub)', fontSize: 'var(--font-size-sm)' }}>読み込み中...</div>
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: 100 }}>
+                  <div className="sherpa-spinner" style={{ width: 24, height: 24, borderWidth: 2 }} />
+                </div>
               </Card>
             ))
           : visibleStats.map(stat => {
@@ -322,7 +324,9 @@ export default function Stats() {
       {/* 演習履歴テーブル */}
       <h3 style={{ fontSize: 'var(--font-size-h3)', fontWeight: 700, margin: '0 0 var(--spacing-md)', color: 'var(--color-text-sub)' }}>{t('stats.history')}</h3>
       {loading ? (
-        <p style={{ color: 'var(--color-text-sub)' }}>{t('stats.loading')}</p>
+        <div style={{ display: 'flex', justifyContent: 'center', padding: '24px 0' }}>
+          <div className="sherpa-spinner" style={{ width: 24, height: 24, borderWidth: 2 }} />
+        </div>
       ) : visibleSessions.length === 0 ? (
         <div style={{ color: 'var(--color-text-sub)', padding: 'var(--spacing-lg) 0' }}>
           <p style={{ margin: '0 0 var(--spacing-sm)' }}>{t('stats.noHistory')}</p>

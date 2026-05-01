@@ -35,7 +35,11 @@ export default function ReleaseNotes() {
     <div style={{ maxWidth: 680, margin: '0 auto', padding: 'var(--spacing-xl) var(--spacing-lg)', color: 'var(--color-text-main)' }} className="page-container">
       <h1 style={{ fontSize: 'var(--font-size-xxl)', fontWeight: 700, margin: '0 0 var(--spacing-xl)' }}>{t('releaseNotes.title')}</h1>
 
-      {loading && <p style={{ color: 'var(--color-text-sub)', fontSize: 'var(--font-size-base)' }}>{t('releaseNotes.loading')}</p>}
+      {loading && (
+        <div style={{ display: 'flex', justifyContent: 'center', padding: '40px 0' }}>
+          <div className="sherpa-spinner" />
+        </div>
+      )}
 
       {!loading && releases.length === 0 && (
         <p style={{ color: 'var(--color-text-sub)', fontSize: 'var(--font-size-base)' }}>{t('releaseNotes.empty')}</p>

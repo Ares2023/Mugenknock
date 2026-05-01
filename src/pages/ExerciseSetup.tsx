@@ -399,7 +399,12 @@ export default function ExerciseSetup() {
               disabled={loading || availableCount === 0}
               style={{ minWidth: 120 }}
             >
-              {loading ? t('exerciseSetup.starting') : t('exerciseSetup.start')}
+              {loading ? (
+                <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}>
+                  <span style={{ width: 13, height: 13, border: '2px solid rgba(255,255,255,0.4)', borderTopColor: 'white', borderRadius: '50%', animation: 'sherpa-spin 0.7s linear infinite', flexShrink: 0 }} />
+                  {t('exerciseSetup.starting')}
+                </span>
+              ) : t('exerciseSetup.start')}
             </Button>
           </div>
         </Card>
