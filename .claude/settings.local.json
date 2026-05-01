@@ -82,7 +82,28 @@
       "Bash(npx claude *)",
       "Bash(aws amplify list-branches *)",
       "Bash(aws amplify start-job *)",
-      "Bash(aws amplify *)"
+      "Bash(aws amplify *)",
+      "Bash(systemctl --user list-timers)",
+      "Bash(/home/yuzuki/aws-quiz-app/prompts/run-prompts.sh -n)",
+      "Bash(systemctl --user list-timers claude-cycle.timer --all)",
+      "Bash(journalctl --user -n 30 --no-pager)",
+      "Bash(/home/yuzuki/aws-quiz-app/prompts/run-prompts.sh set *)",
+      "Bash(systemctl --user status claude-cycle-hook-reg-0.service)",
+      "Bash(systemctl --user stop claude-cycle-hook-reg-0.service claude-cycle-hook-reg-1.service claude-cycle-hook-reg-1.timer)",
+      "Bash(systemctl --user reset-failed claude-cycle-hook-reg-0.service claude-cycle-hook-reg-1.service)",
+      "Bash(systemctl --user stop claude-cycle-hook-1.service claude-cycle-hook-1.timer)",
+      "Bash(systemctl --user reset-failed claude-cycle-hook-1.service)",
+      "Bash(/home/yuzuki/aws-quiz-app/prompts/run-prompts.sh)",
+      "Bash(systemctl --user list-timers \"claude-cycle.timer\" --all --no-legend)",
+      "Bash(awk 'NR==1{print $2, $3}')",
+      "Read(//home/yuzuki/.claude/**)",
+      "Read(//home/yuzuki/.config/**)",
+      "Bash(xargs ls *)",
+      "Read(//home/yuzuki/.npm-global/lib/node_modules/@anthropic-ai/claude-code/bin/**)",
+      "Bash(systemctl --user list-timers --all --no-pager)",
+      "Bash(systemctl --user enable claude-cycle-init.service)",
+      "Bash(/home/yuzuki/aws-quiz-app/prompts/run-prompts.sh *)",
+      "Bash(systemctl --user stop claude-cycle.timer)"
     ]
   }
 }

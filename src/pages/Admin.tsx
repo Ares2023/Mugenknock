@@ -119,8 +119,6 @@ type FlaggedQuestion = {
   validityCheckedAt?: string;
   validityEditLog?: string;
   isHidden?: boolean;
-  isResolved?: boolean;
-  resolvedAt?: string;
   // 旧フィールド（後方互換）
   validityRating?: number;
   validityNote?: string;
@@ -320,7 +318,6 @@ export default function Admin() {
   const [validityTotalCount, setValidityTotalCount] = useState(0);
   const [scanExamFilter, setScanExamFilter] = useState<string>('ALL');
   const [scanSort, setScanSort] = useState<'date_desc' | 'date_asc'>('date_desc');
-  const [scanResolvedFilter, setScanResolvedFilter] = useState<'all' | 'unresolved'>('all');
 
   // 問題編集
   const EMPTY_EDIT_FORM: EditForm = { examType: 'SAA', domain: '', questionText: '', questionTextEn: '', choices: ['', '', '', ''], choicesEn: ['', '', '', ''], correctAnswers: [], explanation: '', explanationEn: '', tags: '', isMultiple: false };
@@ -426,19 +423,6 @@ export default function Admin() {
     });
     setFlaggedQuestions(prev => prev.map(x =>
       x.questionId === q.questionId ? { ...x, isHidden: hide } : x
-    ));
-  };
-
-  const handleMarkResolved = async (q: FlaggedQuestion, resolved: boolean) => {
-    await adminFetch(`${API_ENDPOINT}/admin/questions/${q.questionId}/resolve`, {
-      method: 'PUT',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ isResolved: resolved }),
-    });
-    setFlaggedQuestions(prev => prev.map(x =>
-      x.questionId === q.questionId
-        ? { ...x, isResolved: resolved, resolvedAt: resolved ? new Date().toISOString() : undefined }
-        : x
     ));
   };
 
@@ -1725,7 +1709,6 @@ ${tipPromptExamType !== 'ALL' ? `・examType には "${tipPromptExamType}" を�
         const filteredFlagged = flaggedQuestions
           .filter(q => scanExamFilter === 'ALL' || q.examType === scanExamFilter)
           .filter(q => validityFilter !== 'fixed' || !!q.validityEditLog)
-          .filter(q => scanResolvedFilter === 'all' || !q.isResolved)
           .sort((a, b) => {
             const da = a.validityCheckedAt ? new Date(a.validityCheckedAt).getTime() : 0;
             const db = b.validityCheckedAt ? new Date(b.validityCheckedAt).getTime() : 0;
@@ -1825,25 +1808,6 @@ ${tipPromptExamType !== 'ALL' ? `・examType には "${tipPromptExamType}" を�
                   </div>
                 </div>
 
-                {/* 対応状況 */}
-                <div>
-                  <div style={{ fontSize: 11, fontWeight: 700, color: '#879596', marginBottom: 6, textTransform: 'uppercase', letterSpacing: '0.05em' }}>対応状況</div>
-                  <div style={{ display: 'flex', gap: 4 }}>
-                    {([
-                      { key: 'all', label: 'すべて' },
-                      { key: 'unresolved', label: '未対応のみ' },
-                    ] as const).map(({ key, label }) => (
-                      <button key={key} onClick={() => setScanResolvedFilter(key)}
-                        style={{ padding: '3px 10px', border: '1px solid', borderRadius: 9999, cursor: 'pointer', fontSize: 12, fontWeight: scanResolvedFilter === key ? 700 : 400,
-                          background: scanResolvedFilter === key ? '#e0f2f2' : 'white',
-                          color: scanResolvedFilter === key ? '#008c8c' : '#545b64',
-                          borderColor: scanResolvedFilter === key ? '#008c8c' : '#d1d5db' }}>
-                        {label}
-                      </button>
-                    ))}
-                  </div>
-                </div>
-
                 {/* 件数 */}
                 <div style={{ marginLeft: 'auto', alignSelf: 'flex-end', fontSize: 12, color: '#879596' }}>
                   {filteredFlagged.length} / {flaggedQuestions.length} 件
@@ -1890,11 +1854,6 @@ ${tipPromptExamType !== 'ALL' ? `・examType には "${tipPromptExamType}" を�
                     {q.isHidden && (
                       <span style={{ fontSize: 12, fontWeight: 700, color: 'white', background: '#d13212', padding: '2px 8px', borderRadius: 6 }}>非表示中</span>
                     )}
-                    {q.isResolved ? (
-                      <span style={{ fontSize: 12, fontWeight: 700, color: '#037f0c', background: '#e6f4ea', padding: '2px 8px', borderRadius: 6, border: '1px solid #b7e5c0' }}>対応済</span>
-                    ) : hasEdit ? (
-                      <span style={{ fontSize: 12, fontWeight: 700, color: '#d47500', background: '#fdf3e1', padding: '2px 8px', borderRadius: 6, border: '1px solid #f5c98a' }}>未対応</span>
-                    ) : null}
                     <span style={{ fontSize: 11, color: '#aab7b8', marginLeft: 'auto', flexShrink: 0 }}>
                       AI確認: {q.validityCheckedAt ? new Date(q.validityCheckedAt).toLocaleDateString('ja-JP') : '未チェック'}
                     </span>
@@ -1947,15 +1906,6 @@ ${tipPromptExamType !== 'ALL' ? `・examType には "${tipPromptExamType}" を�
                     <button onClick={() => openEdit(q)} style={{ padding: '4px 12px', fontSize: 12, fontWeight: 700, borderRadius: 9999, cursor: 'pointer', background: 'white', color: '#545b64', border: '1px solid #545b64' }}>
                       編集
                     </button>
-                    {hasEdit && (q.isResolved ? (
-                      <button onClick={() => handleMarkResolved(q, false)} style={{ padding: '4px 12px', fontSize: 12, fontWeight: 700, borderRadius: 9999, cursor: 'pointer', background: 'white', color: '#d47500', border: '1px solid #d47500' }}>
-                        未対応に戻す
-                      </button>
-                    ) : (
-                      <button onClick={() => handleMarkResolved(q, true)} style={{ padding: '4px 12px', fontSize: 12, fontWeight: 700, borderRadius: 9999, cursor: 'pointer', background: '#037f0c', color: 'white', border: '1px solid #037f0c' }}>
-                        対応済にする
-                      </button>
-                    ))}
                     {q.isHidden ? (
                       <button onClick={() => handleVisibility(q, false)} style={{ padding: '4px 12px', fontSize: 12, fontWeight: 700, borderRadius: 9999, cursor: 'pointer', background: 'white', color: '#037f0c', border: '1px solid #037f0c' }}>
                         表示に戻す

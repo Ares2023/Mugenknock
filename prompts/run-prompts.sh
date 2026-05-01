@@ -16,7 +16,7 @@ HOOKS_FILE="$SCRIPT_DIR/.ct-hooks"        # 1行 = "±N|command"
 SKIP_HOOKS_FILE="$SCRIPT_DIR/.ct-skip-once" # 存在すれば次回フックをスキップ
 
 mkdir -p "$LOG_DIR"
-export PATH="/home/yuzuki/.npm-global/bin:/home/sera/.config/nvm/versions/node/v20.20.2/bin:$PATH"
+export PATH="/home/yuzuki/ai-router:/home/yuzuki/.npm-global/bin:/home/sera/.config/nvm/versions/node/v20.20.2/bin:$PATH"
 
 # ── 履歴の記録 ──────────────────────────────────────────────
 log_history() {
@@ -49,6 +49,7 @@ commands:
   add [-t ±N] CMD add hook command (±N min from ping, default: 0)
   ls              list hook commands
   rm N            remove hook at index N
+  mv N M          move hook at index N to index M
   skip            skip hooks on next run (run again to cancel)
 
 flags:
@@ -139,9 +140,10 @@ stop_hook_timers() {
   [ -f "$HOOKS_FILE" ] && n=$(wc -l < "$HOOKS_FILE" 2>/dev/null || echo 0)
   local limit=$(( n > 20 ? n + 2 : 22 ))
   for (( i=0; i<limit; i++ )); do
-    systemctl --user stop "${HOOK_PREFIX}-${i}.timer"     2>/dev/null || true
-    # schedule_next 経由の外側トランジェントタイマーも止める
-    systemctl --user stop "${HOOK_PREFIX}-reg-${i}.timer" 2>/dev/null || true
+    systemctl --user stop         "${HOOK_PREFIX}-${i}.timer"       2>/dev/null || true
+    systemctl --user stop         "${HOOK_PREFIX}-reg-${i}.timer"   2>/dev/null || true
+    systemctl --user stop         "${HOOK_PREFIX}-reg-${i}.service" 2>/dev/null || true
+    systemctl --user reset-failed "${HOOK_PREFIX}-reg-${i}.service" 2>/dev/null || true
   done
 }
 
@@ -194,17 +196,14 @@ PYEOF
   if [ "$mode" = "retry" ]; then
     target_time=$(python3 << 'PYEOF'
 from datetime import datetime, timedelta
-jst_offset = timedelta(hours=9)
-now_jst = datetime.utcnow() + jst_offset
+now = datetime.now()
 candidates = []
 for h in [3, 9, 15, 21]:
-    t = now_jst.replace(hour=h, minute=32, second=0, microsecond=0)
-    if t <= now_jst:
+    t = now.replace(hour=h, minute=32, second=0, microsecond=0)
+    if t <= now:
         t += timedelta(days=1)
     candidates.append(t)
-nxt_jst = min(candidates)
-nxt_utc = nxt_jst - jst_offset
-print(nxt_utc.strftime('%Y-%m-%d %H:%M:00'))
+print(min(candidates).strftime('%Y-%m-%d %H:%M:00'))
 PYEOF
 )
     desc="Claude Retry (Next Reset Slot)"
@@ -223,7 +222,10 @@ PYEOF
   # cgroup 脱出のため外側トランジェントタイマー経由で登録
   systemd-run --user --on-active=6 \
     -- bash -c "systemd-run --user --unit='${UNIT_NAME}' --on-calendar='${target_time}' \
-      --description='${desc}' '${SCRIPT_DIR}/run-prompts.sh' --run"
+      --description='${desc}' '${SCRIPT_DIR}/run-prompts.sh' --run \
+      2>>'${LOG_DIR}/run_\$(date +%Y%m%d).log' \
+      || echo \"\$(date '+%Y-%m-%d %H:%M:%S') ❌ タイマー登録失敗: ${target_time}\" \
+         >> '${LOG_DIR}/run_\$(date +%Y%m%d).log'"
   schedule_hooks "$target_time" "service"
 }
 
@@ -290,8 +292,10 @@ EOF
     if [ "$context" = "service" ]; then
       # サービス内: cgroup 脱出のため外側トランジェントタイマー経由で登録
       # 外側に名前をつけることで stop_hook_timers が止められる
-      systemctl --user stop "${HOOK_PREFIX}-reg-${idx}.timer" 2>/dev/null || true
-      systemd-run --user --unit="${HOOK_PREFIX}-reg-${idx}" --on-active=$(( 8 + idx )) \
+      systemctl --user stop         "${HOOK_PREFIX}-reg-${idx}.timer"   2>/dev/null || true
+      systemctl --user stop         "${HOOK_PREFIX}-reg-${idx}.service" 2>/dev/null || true
+      systemctl --user reset-failed "${HOOK_PREFIX}-reg-${idx}.service" 2>/dev/null || true
+      systemd-run --user --collect --unit="${HOOK_PREFIX}-reg-${idx}" --on-active=$(( 8 + idx )) \
         -- bash -c "systemd-run --user --unit='${unit}' --on-calendar='${hook_time}' \
           --description='Claude Hook ${idx}' bash '${hook_script}'"
     else
@@ -335,16 +339,16 @@ run_main() {
     echo "=========================================="
     cd "$PROJECT_DIR"
 
-    exec_claude() {
+    exec_ai() {
       local file="$1"
       local _t0=$(date +%s)
-      echo "▶ [claude] $(basename "$file")"
+      echo "▶ [ai-router] $(basename "$file")"
       local output
-      output=$(claude --dangerously-skip-permissions -p "$(cat "$file")" 2>&1)
+      output=$(ai "$(cat "$file")" 2>&1)
       local ec=$?
       printf "  → %ds\n" "$(( $(date +%s) - _t0 ))"
       echo "$output"
-      if [ $ec -ne 0 ] || echo "$output" | grep -qiE "rate.?limit|too many requests|overload|quota exceeded|hit your limit"; then
+      if [ $ec -ne 0 ] || echo "$output" | grep -qiE "rate.?limit|too many requests|overload|quota exceeded|hit your limit|resource_exhausted"; then
         local reset_match
         reset_match=$(echo "$output" | grep -ioE "resets [0-9]{1,2}:[0-9]{2}[ap]m" | grep -ioE "[0-9]{1,2}:[0-9]{2}[ap]m" | head -n 1)
         [ -n "$reset_match" ] && extracted_reset_time="$reset_match"
@@ -360,7 +364,7 @@ run_main() {
       _proc_ok=0; _proc_fail=0
       for f in "$dir"/*.txt; do
         [ -e "$f" ] || continue
-        if exec_claude "$f"; then
+        if exec_ai "$f"; then
           _proc_ok=$(( _proc_ok + 1 ))
           [ -n "$prefix" ] && night_processed+="$prefix$(basename "$f") (OK), "
           [ "$delete_on_success" -eq 1 ] && rm "$f"
@@ -491,13 +495,52 @@ run_main() {
   fi
 
   if [ $is_rate_limited -eq 1 ]; then
-    log_history "LIMIT  " "${_es} | reset:${extracted_reset_time:-不明} | ${_detail}"
+    log_history "LIMIT  " "${_es} | reset:${extracted_reset_time:-不明} | ${_detail}" || true
     schedule_next "$([ -n "$extracted_reset_time" ] && echo "reset" || echo "retry")" "$extracted_reset_time"
   else
-    log_history "SUCCESS" "${_es} | ${_detail}"
+    log_history "SUCCESS" "${_es} | ${_detail}" || true
     schedule_next "cycle"
   fi
   find "$LOG_DIR" -name "run_*.log" -mtime +30 -delete
+}
+
+# ── リブート後の自動復旧 ─────────────────────────────────────
+recover_schedule() {
+  if systemctl --user list-timers "${UNIT_NAME}.timer" --all --no-legend 2>/dev/null | grep -q "${UNIT_NAME}"; then
+    echo "claude-cycle.timer 稼働中 — スキップ"
+    return 0
+  fi
+
+  local last_run target_time
+  last_run=$(cat "$LAST_RUN_FILE" 2>/dev/null || echo "")
+
+  target_time=$(python3 - "$last_run" << 'PYEOF'
+import sys
+from datetime import datetime, timedelta
+last_str = sys.argv[1].strip() if len(sys.argv) > 1 else ""
+now = datetime.now()
+try:
+    if last_str:
+        last = datetime.strptime(last_str, "%Y-%m-%d %H:%M:%S")
+        base = last.replace(minute=(last.minute // 10) * 10, second=0, microsecond=0)
+        nxt = base + timedelta(hours=5, minutes=2)
+        if nxt <= now:
+            nxt = now.replace(second=0, microsecond=0) + timedelta(minutes=2)
+    else:
+        nxt = now.replace(second=0, microsecond=0) + timedelta(minutes=2)
+    print(nxt.strftime('%Y-%m-%d %H:%M:00'))
+except Exception:
+    nxt = now.replace(second=0, microsecond=0) + timedelta(minutes=2)
+    print(nxt.strftime('%Y-%m-%d %H:%M:00'))
+PYEOF
+)
+
+  echo "🔄 リブート後復旧: $target_time にスケジュール"
+  systemctl --user stop "${UNIT_NAME}.timer" 2>/dev/null || true
+  # 復旧時は recover サービスの cgroup 外なので直接登録可
+  systemd-run --user --unit="${UNIT_NAME}" --on-calendar="${target_time}" \
+    --description="Claude Cycle (recovered)" "${SCRIPT_DIR}/run-prompts.sh" --run
+  schedule_hooks "$target_time"
 }
 
 # ── 引数処理 ────────────────────────────────────────────────
@@ -507,6 +550,8 @@ SET_TIME=""
 HOOK_OFFSET=0
 HOOK_CMD=""
 HOOK_RM_IDX=""
+HOOK_MV_FROM=""
+HOOK_MV_TO=""
 LOG_DATE=""
 
 while [[ $# -gt 0 ]]; do
@@ -544,6 +589,12 @@ while [[ $# -gt 0 ]]; do
       HOOK_RM_IDX="${2:?ct: rm requires INDEX}"
       shift 2
       ;;
+    mv)
+      CMD="hook-mv"
+      HOOK_MV_FROM="${2:?ct: mv requires FROM INDEX}"
+      HOOK_MV_TO="${3:?ct: mv requires TO INDEX}"
+      shift 3
+      ;;
     cancel)  CMD="cancel";  shift ;;
     log)
       CMD="log"; shift
@@ -556,7 +607,8 @@ while [[ $# -gt 0 ]]; do
     -l)       CMD="last";   shift ;;
     -n)       CMD="next";   shift ;;
     -h|--help) CMD="help";  shift ;;
-    --run)    CMD="_run";   shift ;;  # systemd internal
+    --run)     CMD="_run";     shift ;;  # systemd internal
+    --recover) CMD="recover";  shift ;;  # systemd startup recovery
     *)        printf "ct: unknown: %s\n" "$1" >&2; exit 1 ;;
   esac
 done
@@ -627,6 +679,32 @@ PYEOF
                 | awk 'NR==1{print $2, $3}')
     [ -n "$_raw_next" ] && schedule_hooks "$_raw_next"
     ;;
+  hook-mv)
+    if [ ! -f "$HOOKS_FILE" ]; then
+      echo "フック未登録" >&2; exit 1
+    fi
+    python3 - "$HOOKS_FILE" "$HOOK_MV_FROM" "$HOOK_MV_TO" << 'PYEOF'
+import sys
+path, src, dst = sys.argv[1], int(sys.argv[2]), int(sys.argv[3])
+lines = open(path).readlines()
+n = len(lines)
+if src < 0 or src >= n:
+    print(f"インデックス範囲外: {src}", file=sys.stderr); sys.exit(1)
+if dst < 0 or dst >= n:
+    print(f"インデックス範囲外: {dst}", file=sys.stderr); sys.exit(1)
+if src == dst:
+    print("同じインデックスです"); sys.exit(0)
+item = lines.pop(src)
+lines.insert(dst, item)
+open(path, 'w').writelines(lines)
+print(f"hook[{src}] → [{dst}] 移動完了: {item.strip()}")
+PYEOF
+    # 全タイマーを停止し、新インデックスで再登録
+    stop_hook_timers
+    _raw_next=$(systemctl --user list-timers "${UNIT_NAME}.timer" --all --no-legend 2>/dev/null \
+                | awk 'NR==1{print $2, $3}')
+    [ -n "$_raw_next" ] && schedule_hooks "$_raw_next"
+    ;;
   log)
     if [ -f "$HISTORY_FILE" ]; then
       printf "%-19s  %-7s  %s\n" "datetime" "status" "elapsed | detail"
@@ -656,4 +734,5 @@ PYEOF
   next)      get_next_time || echo "none" ;;
   help)      show_help ;;
   _run)      run_main "$TARGET_DIR" ;;  # called by systemd
+  recover)   recover_schedule ;;       # called by systemd on boot
 esac
