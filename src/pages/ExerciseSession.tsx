@@ -71,7 +71,7 @@ const PromptMenu = ({ questionText, choices, explanation, lang }: { questionText
       text: `Please explain the following AWS certification exam question in detail.\n\n[Question]\n${questionText}\n\n[Choices]\n${choices.join('\n')}\n\nPlease provide a detailed explanation of the correct answer and each choice.`,
     },
     {
-      label: 'Verify question validity',
+      label: 'Check question accuracy',
       text: `Please verify whether the following AWS certification exam question and explanation are accurate and appropriate.\n\n[Question]\n${questionText}\n\n[Choices]\n${choices.join('\n')}\n\n[Explanation]\n${explanation ?? ''}\n\nPlease evaluate whether the content of this question and explanation is correct and appropriate.`,
     },
   ] : [
@@ -125,7 +125,7 @@ const PromptMenu = ({ questionText, choices, explanation, lang }: { questionText
             boxShadow: '0 2px 8px rgba(0,0,0,0.18)',
           }}>
             {isEn
-              ? 'Generate and copy prompt text for asking questions or verifying this problem.'
+              ? 'Generate and copy a prompt to ask about or verify this question.'
               : 'この問題に関する質問・確認をするためのプロンプト文を生成・コピーできます。'}
           </div>
         )}
