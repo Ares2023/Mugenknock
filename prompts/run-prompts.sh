@@ -306,13 +306,14 @@ PYEOF
   fi
 
   systemctl --user stop "${UNIT_NAME}.timer" 2>/dev/null || true
-  # cgroup 脱出のため外側トランジェントタイマー経由で登録
-  systemd-run --user --on-active=6 \
-    -- bash -c "systemd-run --user --unit='${UNIT_NAME}' --on-calendar='${target_time}' \
-      --description='${desc}' '${SCRIPT_DIR}/run-prompts.sh' --run \
-      2>>'${LOG_DIR}/run_\$(date +%Y%m%d).log' \
-      || echo \"\$(date '+%Y-%m-%d %H:%M:%S') ❌ タイマー登録失敗: ${target_time}\" \
-         >> '${LOG_DIR}/run_\$(date +%Y%m%d).log'"
+  local _sched_err="${LOG_DIR}/schedule_errors.log"
+  # --collect: 完了後にユニットを自動解放。reset-failed で前回残骸を排除してから登録。
+  systemd-run --user --collect --on-active=6 \
+    -- bash -c "systemctl --user reset-failed '${UNIT_NAME}.service' 2>/dev/null || true; \
+                systemd-run --user --collect --unit='${UNIT_NAME}' --on-calendar='${target_time}' \
+                  --description='${desc}' '${SCRIPT_DIR}/run-prompts.sh' --run \
+                  || echo \"\$(date '+%Y-%m-%d %H:%M:%S') ❌ タイマー登録失敗: ${target_time}\" \
+                     >> '${_sched_err}'"
   schedule_hooks "$target_time" "service"
 }
 
@@ -389,11 +390,12 @@ EOF
       systemctl --user stop         "${HOOK_PREFIX}-reg-${idx}.service" 2>/dev/null || true
       systemctl --user reset-failed "${HOOK_PREFIX}-reg-${idx}.service" 2>/dev/null || true
       systemd-run --user --collect --unit="${HOOK_PREFIX}-reg-${idx}" --on-active=$(( 8 + idx )) \
-        -- bash -c "systemd-run --user --unit='${unit}' --on-calendar='${hook_time}' \
-          --description='Claude Hook ${idx}' bash '${hook_script}'"
+        -- bash -c "systemctl --user reset-failed '${unit}.service' 2>/dev/null || true; \
+                    systemd-run --user --collect --unit='${unit}' --on-calendar='${hook_time}' \
+                      --description='Claude Hook ${idx}' bash '${hook_script}'"
     else
       # インタラクティブ: cgroup 問題なし、直接登録で即反映
-      systemd-run --user --unit="${unit}" --on-calendar="${hook_time}" \
+      systemd-run --user --collect --unit="${unit}" --on-calendar="${hook_time}" \
         --description="Claude Hook ${idx}" bash "${hook_script}"
     fi
 
