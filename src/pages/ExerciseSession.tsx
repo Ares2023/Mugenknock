@@ -518,20 +518,10 @@ export default function ExerciseSession() {
               {currentIndex + 1 >= questions.length ? t('exerciseSession.showResult') : t('exerciseSession.next')}
             </Button>
           )}
-          <button
-            onClick={() => setReportOpen(true)}
-            style={{ marginLeft: 'auto', background: 'none', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 4, color: 'var(--color-text-light)', fontSize: 'var(--font-size-sm)', padding: '4px 8px', borderRadius: 'var(--border-radius-sm)', transition: 'all 0.2s' }}
-            onMouseEnter={e => { e.currentTarget.style.color = 'var(--color-danger)'; e.currentTarget.style.background = '#fdf3f1'; }}
-            onMouseLeave={e => { e.currentTarget.style.color = 'var(--color-text-light)'; e.currentTarget.style.background = 'none'; }}
-            title={lang === 'ja' ? '問題の不備を通報' : 'Report an issue'}
-          >
-            <span style={{ fontSize: 14 }}>⚑</span>
-            <span>{lang === 'ja' ? '通報' : 'Report'}</span>
-          </button>
         </div>
 
         {/* メタデータ */}
-        <div style={{ marginTop: 'var(--spacing-md)', paddingTop: 'var(--spacing-sm)', borderTop: '1px dashed var(--color-border)', display: 'flex', flexWrap: 'wrap', gap: 'var(--spacing-lg)', fontSize: 'var(--font-size-xs)', color: 'var(--color-text-light)' }}>
+        <div style={{ marginTop: 'var(--spacing-md)', paddingTop: 'var(--spacing-sm)', borderTop: '1px dashed var(--color-border)', display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: 'var(--spacing-lg)', fontSize: 'var(--font-size-xs)', color: 'var(--color-text-light)' }}>
           <span>
             {lang === 'ja' ? 'AI確認' : 'AI review'}:{' '}
             {currentQuestion.validityCheckedAt
@@ -547,6 +537,16 @@ export default function ExerciseSession() {
                 : '-'}
             </strong>
           </span>
+          <button
+            onClick={() => setReportOpen(true)}
+            style={{ marginLeft: 'auto', background: 'none', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 4, color: 'var(--color-text-light)', fontSize: 'var(--font-size-xs)', padding: '2px 6px', borderRadius: 'var(--border-radius-sm)', transition: 'all 0.2s' }}
+            onMouseEnter={e => { e.currentTarget.style.color = 'var(--color-danger)'; e.currentTarget.style.background = '#fdf3f1'; }}
+            onMouseLeave={e => { e.currentTarget.style.color = 'var(--color-text-light)'; e.currentTarget.style.background = 'none'; }}
+            title={lang === 'ja' ? '問題の不備を通報' : 'Report an issue'}
+          >
+            <span style={{ fontSize: 12 }}>⚑</span>
+            <span>{lang === 'ja' ? '通報' : 'Report'}</span>
+          </button>
         </div>
       </Card>
 
