@@ -48,7 +48,7 @@ const CopyButton = ({ getText }: { getText: () => string }) => {
   );
 };
 
-const PromptMenu = ({ questionText, choices, explanation }: { questionText: string; choices: string[]; explanation?: string }) => {
+const PromptMenu = ({ questionText, choices, explanation, lang }: { questionText: string; choices: string[]; explanation?: string; lang: string }) => {
   const [open, setOpen] = useState(false);
   const [copiedIdx, setCopiedIdx] = useState<number | null>(null);
   const [infoHovered, setInfoHovered] = useState(false);
@@ -63,7 +63,18 @@ const PromptMenu = ({ questionText, choices, explanation }: { questionText: stri
     return () => document.removeEventListener('mousedown', handler);
   }, [open]);
 
-  const items = [
+  const isEn = lang === 'en';
+
+  const items = isEn ? [
+    {
+      label: 'Ask for a detailed explanation',
+      text: `Please explain the following AWS certification exam question in detail.\n\n[Question]\n${questionText}\n\n[Choices]\n${choices.join('\n')}\n\nPlease provide a detailed explanation of the correct answer and each choice.`,
+    },
+    {
+      label: 'Verify question validity',
+      text: `Please verify whether the following AWS certification exam question and explanation are accurate and appropriate.\n\n[Question]\n${questionText}\n\n[Choices]\n${choices.join('\n')}\n\n[Explanation]\n${explanation ?? ''}\n\nPlease evaluate whether the content of this question and explanation is correct and appropriate.`,
+    },
+  ] : [
     {
       label: 'この問題に関する詳しい解説を質問',
       text: `以下のAWS認定試験の問題について、詳しく解説してください。\n\n【問題文】\n${questionText}\n\n【選択肢】\n${choices.join('\n')}\n\n正解と各選択肢についての詳細な解説をお願いします。`,
@@ -89,7 +100,7 @@ const PromptMenu = ({ questionText, choices, explanation }: { questionText: stri
           fontSize: 'var(--font-size-xs)', color: 'var(--color-primary)',
           whiteSpace: 'nowrap', animation: 'sherpa-fade-in 0.15s ease',
         }}>
-          コピーしました ✓
+          {isEn ? 'Copied ✓' : 'コピーしました ✓'}
         </span>
       )}
       {/* info icon */}
@@ -113,13 +124,15 @@ const PromptMenu = ({ questionText, choices, explanation }: { questionText: stri
             pointerEvents: 'none', zIndex: 200,
             boxShadow: '0 2px 8px rgba(0,0,0,0.18)',
           }}>
-            {'この問題に関する質問・確認をするためのプロンプト文を生成・コピーできます。'}
+            {isEn
+              ? 'Generate and copy prompt text for asking questions or verifying this problem.'
+              : 'この問題に関する質問・確認をするためのプロンプト文を生成・コピーできます。'}
           </div>
         )}
       </div>
       <div ref={ref} style={{ position: 'relative' }}>
         <Button onClick={() => setOpen(o => !o)} variant="outline" size="sm" style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
-          質問プロンプト生成
+          {isEn ? 'Generate Prompt' : '質問プロンプト生成'}
           <span style={{ fontSize: 9 }}>{open ? '▲' : '▼'}</span>
         </Button>
         {open && (
@@ -530,6 +543,7 @@ export default function ExerciseSession() {
               questionText={currentQuestion.questionText}
               choices={shuffledChoices}
               explanation={((currentQuestion.correctAnswers ? currentQuestion : detail) ?? currentQuestion).explanation}
+              lang={lang}
             />
           </div>
         )}
