@@ -83,6 +83,14 @@ const PromptMenu = ({ questionText, choices, explanation }: { questionText: stri
 
   return (
     <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+      {copiedIdx !== null && (
+        <span style={{
+          fontSize: 'var(--font-size-xs)', color: 'var(--color-primary)',
+          whiteSpace: 'nowrap', animation: 'sherpa-fade-in 0.15s ease',
+        }}>
+          コピーしました ✓
+        </span>
+      )}
       {/* info icon */}
       <div
         style={{ position: 'relative', display: 'flex', alignItems: 'center' }}
@@ -126,16 +134,16 @@ const PromptMenu = ({ questionText, choices, explanation }: { questionText: stri
                 onClick={() => copy(item.text, i)}
                 style={{
                   display: 'block', width: '100%', textAlign: 'left', padding: '10px 14px',
-                  background: copiedIdx === i ? 'var(--color-bg-sub, #f5f5f5)' : 'none',
+                  background: 'none',
                   border: 'none', borderBottom: i === 0 ? '1px solid var(--color-border)' : 'none',
                   cursor: 'pointer', fontSize: 'var(--font-size-sm)',
-                  color: copiedIdx === i ? 'var(--color-primary)' : 'var(--color-text-main)',
+                  color: 'var(--color-text-main)',
                   transition: 'background 0.15s',
                 }}
                 onMouseEnter={e => { if (copiedIdx !== i) e.currentTarget.style.background = 'var(--color-bg-sub, #f5f5f5)'; }}
                 onMouseLeave={e => { if (copiedIdx !== i) e.currentTarget.style.background = 'none'; }}
               >
-                {copiedIdx === i ? 'コピーしました ✓' : item.label}
+                {item.label}
               </button>
             ))}
           </div>
