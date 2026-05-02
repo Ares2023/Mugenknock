@@ -42,11 +42,13 @@ commands:
   run             run now and reschedule
   set HH:MM       reschedule next run to HH:MM
   cancel          cancel scheduled run and all hooks
+  tonight         show projected night-run times for tonight
   log             show run history
   log -n          show night-prompts history
   log -f          show last run's full log file
   log -d DATE     show log for DATE (YYYYMMDD, e.g. 20260427)
   add [-t ±N] CMD add hook command (±N min from ping, default: 0)
+                  CMD 内の {NEXT} はメイン ping の HH:MM に展開される
   ls              list hook commands
   rm N            remove hook at index N
   mv N M          move hook at index N to index M
@@ -133,6 +135,76 @@ PYEOF
   fi
 }
 
+# ── 今夜の夜間実行予定時刻を表示 ────────────────────────────────
+show_tonight() {
+  local raw_next last_run
+  raw_next=$(systemctl --user list-timers "${UNIT_NAME}.timer" --all --no-legend 2>/dev/null \
+             | awk 'NR==1{print $2, $3}')
+  last_run=$(cat "$LAST_RUN_FILE" 2>/dev/null || echo "")
+
+  python3 - "$raw_next" "$last_run" << 'PYEOF'
+import sys
+from datetime import datetime, timedelta, timezone
+
+JST = timezone(timedelta(hours=9))
+now = datetime.now(JST).replace(tzinfo=None)
+
+raw_next = (sys.argv[1] if len(sys.argv) > 1 else "").strip()
+last_run  = (sys.argv[2] if len(sys.argv) > 2 else "").strip()
+
+# 起点: スケジュール済み時刻 > 最終実行+5h02m > now+5min の優先順
+def parse_dt(s):
+    for fmt in ("%Y-%m-%d %H:%M:%S", "%Y-%m-%d %H:%M"):
+        try: return datetime.strptime(s, fmt)
+        except: pass
+    return None
+
+def next_cycle(t):
+    base = t.replace(minute=(t.minute // 10) * 10, second=0, microsecond=0)
+    return base + timedelta(hours=5, minutes=2)
+
+cur = parse_dt(raw_next)
+if cur is None:
+    if last_run:
+        t = parse_dt(last_run)
+        cur = next_cycle(t) if t else None
+if cur is None:
+    cur = now.replace(second=0, microsecond=0) + timedelta(minutes=5)
+
+# 夜間ウィンドウ: 0:00-11:59 (夜間初回実行と同じ条件)
+NIGHT_START, NIGHT_END = 0, 12
+
+results = []
+seen = set()
+probe = cur
+for _ in range(40):  # 最大8日分
+    if probe > now and NIGHT_START <= probe.hour < NIGHT_END:
+        key = probe.date()
+        if key not in seen:
+            seen.add(key)
+            results.append(probe)
+        if len(results) >= 3:
+            break
+    probe = next_cycle(probe)
+
+if not results:
+    print("夜間実行の予定時刻を計算できませんでした")
+    sys.exit(0)
+
+today = now.date()
+tomorrow = today + timedelta(days=1)
+for r in results:
+    d = r.date()
+    if d == today:
+        label = f"今夜      ({r.strftime('%m/%d')})"
+    elif d == tomorrow:
+        label = f"明朝      ({r.strftime('%m/%d')})"
+    else:
+        label = f"{r.strftime('%m/%d')}    "
+    print(f"  {label}  {r.strftime('%H:%M')}")
+PYEOF
+}
+
 # ── フックタイマーを全停止 ───────────────────────────────────
 stop_hook_timers() {
   # ファイル行数より多くなっていても残骸を確実に消す上限を設ける
@@ -151,15 +223,17 @@ stop_hook_timers() {
 schedule_next() {
   local mode="${1:-cycle}"
   local arg="${2:-}"
+  local start_epoch="${3:-}"   # run開始時刻(epoch秒) — cycle自動スケジュール用
   local target_time=""
   local desc="Claude Cycle Trigger"
 
   if [ "$mode" = "reset" ] && [ -n "$arg" ]; then
     target_time=$(python3 - "$arg" << 'PYEOF'
 import sys
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
+JST = timezone(timedelta(hours=9))
 reset_str = sys.argv[1].strip()
-now = datetime.now()
+now = datetime.now(JST).replace(tzinfo=None)
 try:
     t = datetime.strptime(reset_str, "%I:%M%p").time()
     target = datetime.combine(now.date(), t)
@@ -196,8 +270,9 @@ PYEOF
 
   if [ "$mode" = "retry" ]; then
     target_time=$(python3 << 'PYEOF'
-from datetime import datetime, timedelta
-now = datetime.now()
+from datetime import datetime, timedelta, timezone
+JST = timezone(timedelta(hours=9))
+now = datetime.now(JST).replace(tzinfo=None)
 candidates = []
 for h in [3, 9, 15, 21]:
     t = now.replace(hour=h, minute=32, second=0, microsecond=0)
@@ -209,12 +284,23 @@ PYEOF
 )
     desc="Claude Retry (Next Reset Slot)"
   elif [ -z "$target_time" ]; then
-    target_time=$(python3 << 'PYEOF'
-from datetime import datetime, timedelta
-now = datetime.now()
-base_time = now.replace(minute=(now.minute // 10) * 10, second=0, microsecond=0)
-next_run = base_time + timedelta(hours=5, minutes=2)
-print(next_run.strftime('%Y-%m-%d %H:%M:00'))
+    # run開始時刻(epoch)を起点にする。なければ現在時刻
+    target_time=$(python3 - "${start_epoch}" << 'PYEOF'
+import sys
+from datetime import datetime, timedelta, timezone
+JST = timezone(timedelta(hours=9))
+epoch_str = sys.argv[1].strip() if len(sys.argv) > 1 else ""
+try:
+    if epoch_str:
+        base = datetime.fromtimestamp(int(epoch_str), JST).replace(tzinfo=None)
+    else:
+        base = datetime.now(JST).replace(tzinfo=None)
+    base_time = base.replace(minute=(base.minute // 10) * 10, second=0, microsecond=0)
+    next_run = base_time + timedelta(hours=5, minutes=2)
+    print(next_run.strftime('%Y-%m-%d %H:%M:00'))
+except Exception:
+    now = datetime.now(JST).replace(tzinfo=None)
+    print((now.replace(second=0, microsecond=0) + timedelta(minutes=2)).strftime('%Y-%m-%d %H:%M:00'))
 PYEOF
 )
   fi
@@ -250,6 +336,10 @@ schedule_hooks() {
   while IFS='|' read -r offset cmd; do
     [ -z "$cmd" ] && { idx=$(( idx + 1 )); continue; }
 
+    local next_hhmm
+    next_hhmm=$(echo "$main_time" | grep -oE '[0-9]{2}:[0-9]{2}' | head -1)
+    local resolved_cmd="${cmd/\{NEXT\}/$next_hhmm}"
+
     local hook_time
     hook_time=$(python3 - "$main_time" "$offset" << 'PYEOF'
 import sys
@@ -284,8 +374,8 @@ PYEOF
 _HOOKLOG="${LOG_DIR}/run_\$(date '+%Y%m%d').log"
 {
 echo ""
-echo "--- hook[${idx}] 開始: \$(date '+%Y-%m-%d %H:%M:%S') (${sign}${offset}min) | ${cmd} ---"
-${cmd}
+echo "--- hook[${idx}] 開始: \$(date '+%Y-%m-%d %H:%M:%S') (${sign}${offset}min) | ${resolved_cmd} ---"
+${resolved_cmd}
 echo "--- hook[${idx}] 完了: \$(date '+%Y-%m-%d %H:%M:%S') ---"
 } >> "\$_HOOKLOG" 2>&1
 EOF
@@ -502,7 +592,7 @@ run_main() {
     schedule_next "$([ -n "$extracted_reset_time" ] && echo "reset" || echo "retry")" "$extracted_reset_time"
   else
     log_history "SUCCESS" "${_es} | ${_detail}" || true
-    schedule_next "cycle"
+    schedule_next "cycle" "" "$_run_start"
   fi
   find "$LOG_DIR" -name "run_*.log" -mtime +30 -delete
 }
@@ -599,6 +689,7 @@ while [[ $# -gt 0 ]]; do
       shift 3
       ;;
     cancel)  CMD="cancel";  shift ;;
+    tonight) CMD="tonight"; shift ;;
     log)
       CMD="log"; shift
       case "${1:-}" in
@@ -751,6 +842,7 @@ PYEOF
       ls "$LOG_DIR"/run_*.log 2>/dev/null | xargs -I{} basename {} .log | sed 's/run_//' | sort
     fi
     ;;
+  tonight)   show_tonight ;;
   last)      cat "$LAST_RUN_FILE" 2>/dev/null || echo "never" ;;
   next)      get_next_time || echo "none" ;;
   help)      show_help ;;
