@@ -418,7 +418,7 @@ export default function ExerciseSession() {
           );
         })()}
 
-        <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--spacing-md)', borderTop: '1px solid var(--color-border)', paddingTop: 'var(--spacing-lg)' }}>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: 'var(--spacing-md)', borderTop: '1px solid var(--color-border)', paddingTop: 'var(--spacing-lg)' }}>
           {!answered ? (
             <>
               <Button
