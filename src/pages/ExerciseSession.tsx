@@ -51,7 +51,7 @@ const CopyButton = ({ getText }: { getText: () => string }) => {
 const PromptMenu = ({ questionText, choices, explanation }: { questionText: string; choices: string[]; explanation?: string }) => {
   const [open, setOpen] = useState(false);
   const [copiedIdx, setCopiedIdx] = useState<number | null>(null);
-  const [hoveredIdx, setHoveredIdx] = useState<number | null>(null);
+  const [infoHovered, setInfoHovered] = useState(false);
   const ref = React.useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -66,12 +66,10 @@ const PromptMenu = ({ questionText, choices, explanation }: { questionText: stri
   const items = [
     {
       label: 'この問題に関する詳しい解説を質問',
-      tooltip: '問題文と選択肢を含むプロンプトをコピー。AIに各選択肢の詳細な解説を求めます。',
       text: `以下のAWS認定試験の問題について、詳しく解説してください。\n\n【問題文】\n${questionText}\n\n【選択肢】\n${choices.join('\n')}\n\n正解と各選択肢についての詳細な解説をお願いします。`,
     },
     {
       label: 'この問題の正当性を確認',
-      tooltip: '問題文と解説を含むプロンプトをコピー。AIに問題・解説の正確さを検証させます。',
       text: `以下のAWS認定試験の問題と解説が適切かどうか確認してください。\n\n【問題文】\n${questionText}\n\n【解説】\n${explanation ?? ''}\n\nこの問題と解説の内容が正確で適切かどうかを評価してください。`,
     },
   ];
@@ -84,51 +82,65 @@ const PromptMenu = ({ questionText, choices, explanation }: { questionText: stri
   };
 
   return (
-    <div ref={ref} style={{ position: 'relative' }}>
-      <Button onClick={() => setOpen(o => !o)} variant="outline" size="sm" style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
-        質問プロンプト生成
-        <span style={{ fontSize: 9 }}>{open ? '▲' : '▼'}</span>
-      </Button>
-      {open && (
-        <div style={{
-          position: 'absolute', bottom: '100%', right: 0, marginBottom: 4,
-          background: 'var(--color-bg-white)', border: '1px solid var(--color-border)',
-          borderRadius: 'var(--border-radius-sm)', boxShadow: '0 4px 12px rgba(0,0,0,0.12)',
-          minWidth: 240, zIndex: 100,
-        }}>
-          {items.map((item, i) => (
-            <div key={i} style={{ position: 'relative' }}
-              onMouseEnter={() => setHoveredIdx(i)}
-              onMouseLeave={() => setHoveredIdx(null)}
-            >
-              {hoveredIdx === i && (
-                <div style={{
-                  position: 'absolute', right: '100%', top: '50%', transform: 'translateY(-50%)',
-                  marginRight: 8, background: 'rgba(30,30,30,0.88)', color: '#fff',
-                  fontSize: 11, lineHeight: 1.5, padding: '6px 10px',
-                  borderRadius: 6, whiteSpace: 'pre-wrap', maxWidth: 220,
-                  pointerEvents: 'none', zIndex: 200,
-                  boxShadow: '0 2px 8px rgba(0,0,0,0.18)',
-                }}>
-                  {item.tooltip}
-                </div>
-              )}
-            <button
-              onClick={() => copy(item.text, i)}
-              style={{
-                display: 'block', width: '100%', textAlign: 'left', padding: '10px 14px',
-                background: copiedIdx === i ? 'var(--color-bg-sub, #f5f5f5)' : hoveredIdx === i ? 'var(--color-bg-sub, #f5f5f5)' : 'none',
-                border: 'none', borderBottom: i === 0 ? '1px solid var(--color-border)' : 'none',
-                cursor: 'pointer', fontSize: 'var(--font-size-sm)',
-                color: copiedIdx === i ? 'var(--color-primary)' : 'var(--color-text-main)',
-              }}
-            >
-              {copiedIdx === i ? 'コピーしました ✓' : item.label}
-            </button>
-            </div>
-          ))}
-        </div>
-      )}
+    <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+      <div ref={ref} style={{ position: 'relative' }}>
+        <Button onClick={() => setOpen(o => !o)} variant="outline" size="sm" style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+          質問プロンプト生成
+          <span style={{ fontSize: 9 }}>{open ? '▲' : '▼'}</span>
+        </Button>
+        {open && (
+          <div style={{
+            position: 'absolute', bottom: '100%', right: 0, marginBottom: 4,
+            background: 'var(--color-bg-white)', border: '1px solid var(--color-border)',
+            borderRadius: 'var(--border-radius-sm)', boxShadow: '0 4px 12px rgba(0,0,0,0.12)',
+            minWidth: 240, zIndex: 100,
+          }}>
+            {items.map((item, i) => (
+              <button
+                key={i}
+                onClick={() => copy(item.text, i)}
+                style={{
+                  display: 'block', width: '100%', textAlign: 'left', padding: '10px 14px',
+                  background: copiedIdx === i ? 'var(--color-bg-sub, #f5f5f5)' : 'none',
+                  border: 'none', borderBottom: i === 0 ? '1px solid var(--color-border)' : 'none',
+                  cursor: 'pointer', fontSize: 'var(--font-size-sm)',
+                  color: copiedIdx === i ? 'var(--color-primary)' : 'var(--color-text-main)',
+                  transition: 'background 0.15s',
+                }}
+                onMouseEnter={e => { if (copiedIdx !== i) e.currentTarget.style.background = 'var(--color-bg-sub, #f5f5f5)'; }}
+                onMouseLeave={e => { if (copiedIdx !== i) e.currentTarget.style.background = 'none'; }}
+              >
+                {copiedIdx === i ? 'コピーしました ✓' : item.label}
+              </button>
+            ))}
+          </div>
+        )}
+      </div>
+      {/* info icon */}
+      <div
+        style={{ position: 'relative', display: 'flex', alignItems: 'center' }}
+        onMouseEnter={() => setInfoHovered(true)}
+        onMouseLeave={() => setInfoHovered(false)}
+      >
+        <span style={{
+          width: 16, height: 16, borderRadius: '50%', border: '1.5px solid var(--color-text-light)',
+          display: 'flex', alignItems: 'center', justifyContent: 'center',
+          fontSize: 10, fontWeight: 700, color: 'var(--color-text-light)',
+          cursor: 'default', lineHeight: 1, userSelect: 'none',
+        }}>i</span>
+        {infoHovered && (
+          <div style={{
+            position: 'absolute', bottom: '100%', right: 0, marginBottom: 6,
+            background: 'rgba(30,30,30,0.88)', color: '#fff',
+            fontSize: 11, lineHeight: 1.6, padding: '7px 11px',
+            borderRadius: 6, whiteSpace: 'pre-wrap', width: 230,
+            pointerEvents: 'none', zIndex: 200,
+            boxShadow: '0 2px 8px rgba(0,0,0,0.18)',
+          }}>
+            {'AIへの質問プロンプトを生成します。\n・詳しい解説を質問 — 問題文・選択肢を含むプロンプトをコピー\n・正当性を確認 — 問題文・解説を含むプロンプトをコピー'}
+          </div>
+        )}
+      </div>
     </div>
   );
 };
