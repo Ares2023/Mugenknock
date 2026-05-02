@@ -48,6 +48,72 @@ const CopyButton = ({ getText }: { getText: () => string }) => {
   );
 };
 
+const PromptMenu = ({ questionText, choices, explanation }: { questionText: string; choices: string[]; explanation?: string }) => {
+  const [open, setOpen] = useState(false);
+  const [copiedIdx, setCopiedIdx] = useState<number | null>(null);
+  const ref = React.useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (!open) return;
+    const handler = (e: MouseEvent) => {
+      if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false);
+    };
+    document.addEventListener('mousedown', handler);
+    return () => document.removeEventListener('mousedown', handler);
+  }, [open]);
+
+  const items = [
+    {
+      label: 'この問題に関する詳しい解説を質問',
+      text: `以下のAWS認定試験の問題について、詳しく解説してください。\n\n【問題文】\n${questionText}\n\n【選択肢】\n${choices.join('\n')}\n\n正解と各選択肢についての詳細な解説をお願いします。`,
+    },
+    {
+      label: 'この問題の正当性を確認',
+      text: `以下のAWS認定試験の問題と解説が適切かどうか確認してください。\n\n【問題文】\n${questionText}\n\n【解説】\n${explanation ?? ''}\n\nこの問題と解説の内容が正確で適切かどうかを評価してください。`,
+    },
+  ];
+
+  const copy = (text: string, idx: number) => {
+    navigator.clipboard.writeText(text).then(() => {
+      setCopiedIdx(idx);
+      setTimeout(() => { setCopiedIdx(null); setOpen(false); }, 1500);
+    });
+  };
+
+  return (
+    <div ref={ref} style={{ position: 'relative' }}>
+      <Button onClick={() => setOpen(o => !o)} variant="outline" size="sm" style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+        質問プロンプト生成
+        <span style={{ fontSize: 9 }}>{open ? '▲' : '▼'}</span>
+      </Button>
+      {open && (
+        <div style={{
+          position: 'absolute', bottom: '100%', right: 0, marginBottom: 4,
+          background: 'var(--color-bg-white)', border: '1px solid var(--color-border)',
+          borderRadius: 'var(--border-radius-sm)', boxShadow: '0 4px 12px rgba(0,0,0,0.12)',
+          minWidth: 240, zIndex: 100,
+        }}>
+          {items.map((item, i) => (
+            <button
+              key={i}
+              onClick={() => copy(item.text, i)}
+              style={{
+                display: 'block', width: '100%', textAlign: 'left', padding: '10px 14px',
+                background: copiedIdx === i ? 'var(--color-bg-sub, #f5f5f5)' : 'none',
+                border: 'none', borderBottom: i === 0 ? '1px solid var(--color-border)' : 'none',
+                cursor: 'pointer', fontSize: 'var(--font-size-sm)',
+                color: copiedIdx === i ? 'var(--color-primary)' : 'var(--color-text-main)',
+              }}
+            >
+              {copiedIdx === i ? 'コピーしました ✓' : item.label}
+            </button>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+};
+
 export default function ExerciseSession() {
   const navigate = useNavigate();
   const location = useLocation();
@@ -417,6 +483,16 @@ export default function ExerciseSession() {
             </div>
           );
         })()}
+
+        {answered && (
+          <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: 'var(--spacing-sm)' }}>
+            <PromptMenu
+              questionText={currentQuestion.questionText}
+              choices={shuffledChoices}
+              explanation={((currentQuestion.correctAnswers ? currentQuestion : detail) ?? currentQuestion).explanation}
+            />
+          </div>
+        )}
 
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: 'var(--spacing-md)', borderTop: '1px solid var(--color-border)', paddingTop: 'var(--spacing-lg)' }}>
           {!answered ? (
