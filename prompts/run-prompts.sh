@@ -219,6 +219,47 @@ stop_hook_timers() {
   done
 }
 
+# ── 永続ユニットファイルでタイマーを登録 ────────────────────────
+# transient systemd-run と違い、サービスが active(running) 中でも競合しない
+_setup_cycle_timer() {
+  local target_time="$1"
+  local desc="${2:-Claude Cycle Trigger}"
+  local _ud="${HOME}/.config/systemd/user"
+  mkdir -p "$_ud"
+
+  # サービスユニット (初回のみ作成)
+  if [ ! -f "${_ud}/${UNIT_NAME}.service" ]; then
+    cat > "${_ud}/${UNIT_NAME}.service" << EOF
+[Unit]
+Description=Claude Cycle
+
+[Service]
+Type=oneshot
+ExecStart=${SCRIPT_DIR}/run-prompts.sh --run
+StandardOutput=journal
+StandardError=journal
+EOF
+  fi
+
+  # タイマーファイルを上書き
+  cat > "${_ud}/${UNIT_NAME}.timer" << EOF
+[Unit]
+Description=${desc}
+
+[Timer]
+OnCalendar=${target_time}
+Unit=${UNIT_NAME}.service
+AccuracySec=1s
+
+[Install]
+WantedBy=timers.target
+EOF
+
+  systemctl --user daemon-reload
+  systemctl --user stop  "${UNIT_NAME}.timer" 2>/dev/null || true
+  systemctl --user start "${UNIT_NAME}.timer"
+}
+
 # ── 次の実行時刻を予約する ───────────────────────────────────
 schedule_next() {
   local mode="${1:-cycle}"
@@ -305,15 +346,7 @@ PYEOF
 )
   fi
 
-  systemctl --user stop "${UNIT_NAME}.timer" 2>/dev/null || true
-  local _sched_err="${LOG_DIR}/schedule_errors.log"
-  # --collect: 完了後にユニットを自動解放。reset-failed で前回残骸を排除してから登録。
-  systemd-run --user --collect --on-active=6 \
-    -- bash -c "systemctl --user reset-failed '${UNIT_NAME}.service' 2>/dev/null || true; \
-                systemd-run --user --collect --unit='${UNIT_NAME}' --on-calendar='${target_time}' \
-                  --description='${desc}' '${SCRIPT_DIR}/run-prompts.sh' --run \
-                  || echo \"\$(date '+%Y-%m-%d %H:%M:%S') ❌ タイマー登録失敗: ${target_time}\" \
-                     >> '${_sched_err}'"
+  _setup_cycle_timer "$target_time" "$desc"
   schedule_hooks "$target_time" "service"
 }
 
@@ -631,10 +664,7 @@ PYEOF
 )
 
   echo "🔄 リブート後復旧: $target_time にスケジュール"
-  systemctl --user stop "${UNIT_NAME}.timer" 2>/dev/null || true
-  # 復旧時は recover サービスの cgroup 外なので直接登録可
-  systemd-run --user --unit="${UNIT_NAME}" --on-calendar="${target_time}" \
-    --description="Claude Cycle (recovered)" "${SCRIPT_DIR}/run-prompts.sh" --run
+  _setup_cycle_timer "$target_time" "Claude Cycle (recovered)"
   schedule_hooks "$target_time"
 }
 
