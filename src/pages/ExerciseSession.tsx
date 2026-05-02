@@ -83,6 +83,31 @@ const PromptMenu = ({ questionText, choices, explanation }: { questionText: stri
 
   return (
     <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+      {/* info icon */}
+      <div
+        style={{ position: 'relative', display: 'flex', alignItems: 'center' }}
+        onMouseEnter={() => setInfoHovered(true)}
+        onMouseLeave={() => setInfoHovered(false)}
+      >
+        <span style={{
+          width: 16, height: 16, borderRadius: '50%', border: '1.5px solid var(--color-text-light)',
+          display: 'flex', alignItems: 'center', justifyContent: 'center',
+          fontSize: 10, fontWeight: 700, color: 'var(--color-text-light)',
+          cursor: 'default', lineHeight: 1, userSelect: 'none',
+        }}>i</span>
+        {infoHovered && (
+          <div style={{
+            position: 'absolute', bottom: '100%', left: 0, marginBottom: 6,
+            background: 'rgba(30,30,30,0.88)', color: '#fff',
+            fontSize: 11, lineHeight: 1.6, padding: '7px 11px',
+            borderRadius: 6, whiteSpace: 'pre-wrap', width: 230,
+            pointerEvents: 'none', zIndex: 200,
+            boxShadow: '0 2px 8px rgba(0,0,0,0.18)',
+          }}>
+            {'AIへの質問プロンプトを生成します。\n・詳しい解説を質問 — 問題文・選択肢を含むプロンプトをコピー\n・正当性を確認 — 問題文・解説を含むプロンプトをコピー'}
+          </div>
+        )}
+      </div>
       <div ref={ref} style={{ position: 'relative' }}>
         <Button onClick={() => setOpen(o => !o)} variant="outline" size="sm" style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
           質問プロンプト生成
@@ -113,31 +138,6 @@ const PromptMenu = ({ questionText, choices, explanation }: { questionText: stri
                 {copiedIdx === i ? 'コピーしました ✓' : item.label}
               </button>
             ))}
-          </div>
-        )}
-      </div>
-      {/* info icon */}
-      <div
-        style={{ position: 'relative', display: 'flex', alignItems: 'center' }}
-        onMouseEnter={() => setInfoHovered(true)}
-        onMouseLeave={() => setInfoHovered(false)}
-      >
-        <span style={{
-          width: 16, height: 16, borderRadius: '50%', border: '1.5px solid var(--color-text-light)',
-          display: 'flex', alignItems: 'center', justifyContent: 'center',
-          fontSize: 10, fontWeight: 700, color: 'var(--color-text-light)',
-          cursor: 'default', lineHeight: 1, userSelect: 'none',
-        }}>i</span>
-        {infoHovered && (
-          <div style={{
-            position: 'absolute', bottom: '100%', right: 0, marginBottom: 6,
-            background: 'rgba(30,30,30,0.88)', color: '#fff',
-            fontSize: 11, lineHeight: 1.6, padding: '7px 11px',
-            borderRadius: 6, whiteSpace: 'pre-wrap', width: 230,
-            pointerEvents: 'none', zIndex: 200,
-            boxShadow: '0 2px 8px rgba(0,0,0,0.18)',
-          }}>
-            {'AIへの質問プロンプトを生成します。\n・詳しい解説を質問 — 問題文・選択肢を含むプロンプトをコピー\n・正当性を確認 — 問題文・解説を含むプロンプトをコピー'}
           </div>
         )}
       </div>
