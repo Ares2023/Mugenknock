@@ -51,6 +51,7 @@ const CopyButton = ({ getText }: { getText: () => string }) => {
 const PromptMenu = ({ questionText, choices, explanation }: { questionText: string; choices: string[]; explanation?: string }) => {
   const [open, setOpen] = useState(false);
   const [copiedIdx, setCopiedIdx] = useState<number | null>(null);
+  const [hoveredIdx, setHoveredIdx] = useState<number | null>(null);
   const ref = React.useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -65,10 +66,12 @@ const PromptMenu = ({ questionText, choices, explanation }: { questionText: stri
   const items = [
     {
       label: 'この問題に関する詳しい解説を質問',
+      tooltip: '問題文と選択肢を含むプロンプトをコピー。AIに各選択肢の詳細な解説を求めます。',
       text: `以下のAWS認定試験の問題について、詳しく解説してください。\n\n【問題文】\n${questionText}\n\n【選択肢】\n${choices.join('\n')}\n\n正解と各選択肢についての詳細な解説をお願いします。`,
     },
     {
       label: 'この問題の正当性を確認',
+      tooltip: '問題文と解説を含むプロンプトをコピー。AIに問題・解説の正確さを検証させます。',
       text: `以下のAWS認定試験の問題と解説が適切かどうか確認してください。\n\n【問題文】\n${questionText}\n\n【解説】\n${explanation ?? ''}\n\nこの問題と解説の内容が正確で適切かどうかを評価してください。`,
     },
   ];
@@ -94,12 +97,27 @@ const PromptMenu = ({ questionText, choices, explanation }: { questionText: stri
           minWidth: 240, zIndex: 100,
         }}>
           {items.map((item, i) => (
+            <div key={i} style={{ position: 'relative' }}
+              onMouseEnter={() => setHoveredIdx(i)}
+              onMouseLeave={() => setHoveredIdx(null)}
+            >
+              {hoveredIdx === i && (
+                <div style={{
+                  position: 'absolute', right: '100%', top: '50%', transform: 'translateY(-50%)',
+                  marginRight: 8, background: 'rgba(30,30,30,0.88)', color: '#fff',
+                  fontSize: 11, lineHeight: 1.5, padding: '6px 10px',
+                  borderRadius: 6, whiteSpace: 'pre-wrap', maxWidth: 220,
+                  pointerEvents: 'none', zIndex: 200,
+                  boxShadow: '0 2px 8px rgba(0,0,0,0.18)',
+                }}>
+                  {item.tooltip}
+                </div>
+              )}
             <button
-              key={i}
               onClick={() => copy(item.text, i)}
               style={{
                 display: 'block', width: '100%', textAlign: 'left', padding: '10px 14px',
-                background: copiedIdx === i ? 'var(--color-bg-sub, #f5f5f5)' : 'none',
+                background: copiedIdx === i ? 'var(--color-bg-sub, #f5f5f5)' : hoveredIdx === i ? 'var(--color-bg-sub, #f5f5f5)' : 'none',
                 border: 'none', borderBottom: i === 0 ? '1px solid var(--color-border)' : 'none',
                 cursor: 'pointer', fontSize: 'var(--font-size-sm)',
                 color: copiedIdx === i ? 'var(--color-primary)' : 'var(--color-text-main)',
@@ -107,6 +125,7 @@ const PromptMenu = ({ questionText, choices, explanation }: { questionText: stri
             >
               {copiedIdx === i ? 'コピーしました ✓' : item.label}
             </button>
+            </div>
           ))}
         </div>
       )}
