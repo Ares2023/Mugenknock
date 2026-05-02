@@ -76,8 +76,9 @@ const PromptMenu = ({ questionText, choices, explanation }: { questionText: stri
 
   const copy = (text: string, idx: number) => {
     navigator.clipboard.writeText(text).then(() => {
+      setOpen(false);
       setCopiedIdx(idx);
-      setTimeout(() => { setCopiedIdx(null); setOpen(false); }, 1500);
+      setTimeout(() => { setCopiedIdx(null); }, 1500);
     });
   };
 
@@ -112,7 +113,7 @@ const PromptMenu = ({ questionText, choices, explanation }: { questionText: stri
             pointerEvents: 'none', zIndex: 200,
             boxShadow: '0 2px 8px rgba(0,0,0,0.18)',
           }}>
-            {'AIへの質問プロンプトを生成します。\n・詳しい解説を質問 — 問題文・選択肢を含むプロンプトをコピー\n・正当性を確認 — 問題文・解説を含むプロンプトをコピー'}
+            {'この問題に関する質問・確認をするためのプロンプト文を生成・コピーできます。'}
           </div>
         )}
       </div>
