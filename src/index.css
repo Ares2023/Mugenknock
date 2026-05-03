@@ -41,6 +41,15 @@
   --color-hint-bg: #fffbe6;
   --color-hint-border: #f0d080;
 
+  /* Info / Warning badge colors */
+  --color-bg-info: #f0f8ff;
+  --color-text-info: #0073bb;
+  --color-border-info: #b3d9f0;
+  --color-bg-warning: #fffbeb;
+  --color-text-warning: #92400e;
+  --color-text-warning-sub: #b45309;
+  --color-border-warning: #fcd34d;
+
   /* Others */
   --border-radius-sm: 4px;
   --border-radius-md: 6px;
@@ -54,19 +63,48 @@
 [data-theme="dark"] {
   --color-primary: #1ac6c6;
   --color-primary-hover: #14b0b0;
+  --color-success: #4ade80;
+  --color-danger: #f87171;
   --color-bg-main: #0d1117;
   --color-bg-white: #161b22;
   --color-text-main: #e6edf3;
   --color-text-sub: #8b949e;
   --color-text-light: #6e7681;
   --color-border: #30363d;
-  --color-secondary: #161b22;
+  --color-secondary: #1c2836;
   --color-primary-light: #0d2626;
   --color-feedback-correct-bg: #0d2114;
   --color-feedback-incorrect-bg: #2d0a07;
   --color-hint-bg: #2d2207;
   --color-hint-border: #5a4a10;
+  --color-bg-info: #0a1a2d;
+  --color-text-info: #4db8ff;
+  --color-border-info: #1a4a6a;
+  --color-bg-warning: #2a1f00;
+  --color-text-warning: #fbbf24;
+  --color-text-warning-sub: #f0c060;
+  --color-border-warning: #78610a;
   --box-shadow-md: 0 4px 12px rgba(0, 0, 0, 0.4);
+}
+
+/* ── フォーム要素のダークモード対応 ── */
+[data-theme="dark"] input:not([type="checkbox"]):not([type="radio"]),
+[data-theme="dark"] textarea,
+[data-theme="dark"] select {
+  background-color: var(--color-bg-white) !important;
+  color: var(--color-text-main) !important;
+  border-color: var(--color-border) !important;
+}
+
+[data-theme="dark"] input::placeholder,
+[data-theme="dark"] textarea::placeholder {
+  color: var(--color-text-light) !important;
+}
+
+[data-theme="dark"] pre {
+  background-color: var(--color-bg-white) !important;
+  color: var(--color-text-main) !important;
+  border-color: var(--color-border) !important;
 }
 
 [data-theme="dark"] .skeleton {

@@ -373,16 +373,16 @@ export default function ExamSetup() {
             <div style={{
               display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 'var(--spacing-md)',
               padding: '12px var(--spacing-md)', marginTop: 'var(--spacing-lg)', marginBottom: 'var(--spacing-md)',
-              background: '#fffbeb', border: '1px solid #fcd34d', borderRadius: 'var(--border-radius-md)',
+              background: 'var(--color-bg-warning)', border: '1px solid var(--color-border-warning)', borderRadius: 'var(--border-radius-md)',
             }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--spacing-sm)' }}>
                 <span style={{ fontSize: 18 }}>⏸</span>
                 <div>
-                  <div style={{ fontSize: 'var(--font-size-sm)', fontWeight: 700, color: '#92400e' }}>{t('examSetup.resumeNotice')}</div>
-                  <div style={{ fontSize: 'var(--font-size-xs)', color: '#b45309' }}>{t('examSetup.resumeNoticeDesc')}</div>
+                  <div style={{ fontSize: 'var(--font-size-sm)', fontWeight: 700, color: 'var(--color-text-warning)' }}>{t('examSetup.resumeNotice')}</div>
+                  <div style={{ fontSize: 'var(--font-size-xs)', color: 'var(--color-text-warning-sub)' }}>{t('examSetup.resumeNoticeDesc')}</div>
                 </div>
               </div>
-              <Button size="sm" variant="outline" onClick={resumeExam} style={{ borderColor: '#f59e0b', color: '#92400e', whiteSpace: 'nowrap', flexShrink: 0 }}>
+              <Button size="sm" variant="outline" onClick={resumeExam} style={{ borderColor: 'var(--color-border-warning)', color: 'var(--color-text-warning)', whiteSpace: 'nowrap', flexShrink: 0 }}>
                 {t('examSetup.resume')} →
               </Button>
             </div>
@@ -390,7 +390,7 @@ export default function ExamSetup() {
 
           {/* 問題数不足警告 */}
           {availableCount !== null && availableCount > 0 && availableCount < config.totalQuestions && (
-            <div style={{ marginBottom: 'var(--spacing-sm)', fontSize: 'var(--font-size-sm)', color: '#92400e', background: '#fffbeb', border: '1px solid #fcd34d', borderRadius: 'var(--border-radius-md)', padding: '8px 12px' }}>
+            <div style={{ marginBottom: 'var(--spacing-sm)', fontSize: 'var(--font-size-sm)', color: 'var(--color-text-warning)', background: 'var(--color-bg-warning)', border: '1px solid var(--color-border-warning)', borderRadius: 'var(--border-radius-md)', padding: '8px 12px' }}>
               ⚠️ {lang === 'ja'
                 ? `条件に合う問題が${availableCount}問しかありません。${availableCount}問で開始します。`
                 : `Only ${availableCount} questions match the criteria. The exam will start with ${availableCount} questions.`}

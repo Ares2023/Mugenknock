@@ -289,7 +289,7 @@ export default function QuestionList() {
   const checkRow: React.CSSProperties = {
     display: 'flex', alignItems: 'center', gap: 8,
     padding: '5px 0', cursor: 'pointer',
-    fontSize: 13, color: '#16191f',
+    fontSize: 13, color: 'var(--color-text-main)',
   };
   const secLabel: React.CSSProperties = {
     fontSize: 11, fontWeight: 700, color: '#879596',
@@ -333,10 +333,10 @@ export default function QuestionList() {
               style={{
                 display: 'flex', alignItems: 'center', gap: 6,
                 padding: '7px 14px',
-                border: `1px solid ${filterOpen || activeFilterCount > 0 ? 'var(--color-primary)' : '#d5dbdb'}`,
+                border: `1px solid ${filterOpen || activeFilterCount > 0 ? 'var(--color-primary)' : 'var(--color-border)'}`,
                 borderRadius: 4,
-                background: filterOpen ? 'var(--color-primary)' : activeFilterCount > 0 ? 'var(--color-primary-light)' : 'white',
-                color: filterOpen ? 'white' : activeFilterCount > 0 ? 'var(--color-primary)' : '#545b64',
+                background: filterOpen ? 'var(--color-primary)' : activeFilterCount > 0 ? 'var(--color-primary-light)' : 'var(--color-bg-white)',
+                color: filterOpen ? 'white' : activeFilterCount > 0 ? 'var(--color-primary)' : 'var(--color-text-sub)',
                 cursor: 'pointer', fontSize: 13, fontWeight: 700,
                 whiteSpace: 'nowrap', transition: 'all 0.15s',
               }}
@@ -362,8 +362,8 @@ export default function QuestionList() {
                 position: 'absolute',
                 top: 'calc(100% + 6px)',
                 right: 0,
-                background: 'white',
-                border: '1px solid #d5dbdb',
+                background: 'var(--color-bg-white)',
+                border: '1px solid var(--color-border)',
                 borderRadius: 6,
                 boxShadow: '0 4px 16px rgba(0,0,0,0.12)',
                 zIndex: 200,
@@ -489,9 +489,9 @@ export default function QuestionList() {
               </span>
             )}
             {bookmarkOnly && (
-              <span style={{ display: 'inline-flex', alignItems: 'center', gap: 3, background: '#fffbf0', color: '#b85c00', borderRadius: 20, padding: '3px 8px 3px 11px', fontSize: 12, fontWeight: 700 }}>
+              <span style={{ display: 'inline-flex', alignItems: 'center', gap: 3, background: 'var(--color-bg-warning)', color: 'var(--color-text-warning)', borderRadius: 20, padding: '3px 8px 3px 11px', fontSize: 12, fontWeight: 700 }}>
                 ★ {lang === 'ja' ? 'ブックマーク' : 'Bookmarked'}
-                <button onClick={() => setBookmarkOnly(false)} style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: 13, color: '#b85c00', padding: '0 0 0 2px', lineHeight: 1 }}>✕</button>
+                <button onClick={() => setBookmarkOnly(false)} style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: 13, color: 'var(--color-text-warning)', padding: '0 0 0 2px', lineHeight: 1 }}>✕</button>
               </span>
             )}
             <button
@@ -589,7 +589,7 @@ export default function QuestionList() {
 
                     {isExpanded && q.correctAnswers && (
                       <div style={{
-                        background: '#f2fcf3',
+                        background: 'var(--color-feedback-correct-bg)',
                         borderLeft: '4px solid var(--color-success)',
                         borderRadius: 'var(--border-radius-md)',
                         padding: '16px 20px',

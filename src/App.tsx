@@ -33,7 +33,7 @@ function AuthGate({ children }: { children: React.ReactNode }) {
         position: 'fixed', inset: 0,
         display: 'flex', flexDirection: 'column',
         alignItems: 'center', justifyContent: 'center',
-        background: '#f2f3f3', gap: 28,
+        background: 'var(--color-bg-main)', gap: 28,
         animation: 'sherpa-fade-in 0.2s ease-out',
       }}>
         <img src="/logo_sherpa_image_t.png" alt="Sherpa" style={{ width: 72, height: 72, objectFit: 'contain' }} />

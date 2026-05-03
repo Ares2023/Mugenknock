@@ -100,7 +100,7 @@ export default function Result() {
                         <div key={c} style={{
                           padding: '10px 16px',
                           borderRadius: 'var(--border-radius-md)',
-                          background: correct ? '#f2fcf3' : 'var(--color-bg-white)',
+                          background: correct ? 'var(--color-feedback-correct-bg)' : 'var(--color-bg-white)',
                           border: `1px solid ${correct ? 'var(--color-success)' : 'var(--color-border)'}`,
                           color: correct ? 'var(--color-success)' : 'var(--color-text-main)',
                           fontWeight: correct ? 700 : 400,
@@ -132,8 +132,8 @@ export default function Result() {
                             </span>
                             {links.map((link: { label: string; url: string }) => (
                               <a key={link.url} href={link.url} target="_blank" rel="noopener noreferrer"
-                                style={{ fontSize: 'var(--font-size-xs)', color: '#0073bb', textDecoration: 'none', display: 'inline-flex', alignItems: 'center', gap: 3,
-                                  padding: '2px 8px', borderRadius: 20, border: '1px solid #b3d9f0', background: '#f0f8ff', whiteSpace: 'nowrap' }}>
+                                style={{ fontSize: 'var(--font-size-xs)', color: 'var(--color-text-info)', textDecoration: 'none', display: 'inline-flex', alignItems: 'center', gap: 3,
+                                  padding: '2px 8px', borderRadius: 20, border: '1px solid var(--color-border-info)', background: 'var(--color-bg-info)', whiteSpace: 'nowrap' }}>
                                 {link.label} ↗
                               </a>
                             ))}

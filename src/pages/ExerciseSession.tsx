@@ -397,10 +397,10 @@ export default function ExerciseSession() {
     const isSelected = selectedAnswers.includes(choice);
 
     if (isCorrect) {
-      return { ...base, borderColor: 'var(--color-success)', background: '#f2fcf3', fontWeight: 700, color: 'var(--color-success)' };
+      return { ...base, borderColor: 'var(--color-success)', background: 'var(--color-feedback-correct-bg)', fontWeight: 700, color: 'var(--color-success)' };
     }
     if (isSelected && !isCorrect) {
-      return { ...base, borderColor: 'var(--color-danger)', background: '#fdf3f1', fontWeight: 700, color: 'var(--color-danger)' };
+      return { ...base, borderColor: 'var(--color-danger)', background: 'var(--color-feedback-incorrect-bg)', fontWeight: 700, color: 'var(--color-danger)' };
     }
     return { ...base, borderColor: 'var(--color-border)', background: 'var(--color-bg-main)', color: 'var(--color-text-sub)' };
   };
@@ -491,7 +491,7 @@ export default function ExerciseSession() {
           }
           return (
             <div className="fade-slide-in" style={{
-              background: lastResult?.isCorrect ? '#f2fcf3' : '#fdf3f1',
+              background: lastResult?.isCorrect ? 'var(--color-feedback-correct-bg)' : 'var(--color-feedback-incorrect-bg)',
               borderLeft: `8px solid ${lastResult?.isCorrect ? 'var(--color-success)' : 'var(--color-danger)'}`,
               padding: '16px 20px', marginBottom: 'var(--spacing-xl)',
               borderRadius: 'var(--border-radius-sm)',
@@ -525,8 +525,8 @@ export default function ExerciseSession() {
                     </span>
                     {links.map(link => (
                       <a key={link.url} href={link.url} target="_blank" rel="noopener noreferrer"
-                        style={{ fontSize: 'var(--font-size-xs)', color: '#0073bb', textDecoration: 'none', display: 'inline-flex', alignItems: 'center', gap: 3,
-                          padding: '2px 8px', borderRadius: 20, border: '1px solid #b3d9f0', background: '#f0f8ff', whiteSpace: 'nowrap' }}>
+                        style={{ fontSize: 'var(--font-size-xs)', color: 'var(--color-text-info)', textDecoration: 'none', display: 'inline-flex', alignItems: 'center', gap: 3,
+                          padding: '2px 8px', borderRadius: 20, border: '1px solid var(--color-border-info)', background: 'var(--color-bg-info)', whiteSpace: 'nowrap' }}>
                         {link.label} ↗
                       </a>
                     ))}

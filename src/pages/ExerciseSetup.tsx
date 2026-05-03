@@ -361,7 +361,7 @@ export default function ExerciseSetup() {
               </span>
             </div>
             {availableCount !== null && availableCount > 0 && availableCount < limit && (
-              <div style={{ marginTop: 'var(--spacing-sm)', fontSize: 'var(--font-size-sm)', color: '#92400e', background: '#fffbeb', border: '1px solid #fcd34d', borderRadius: 'var(--border-radius-md)', padding: '8px 12px' }}>
+              <div style={{ marginTop: 'var(--spacing-sm)', fontSize: 'var(--font-size-sm)', color: 'var(--color-text-warning)', background: 'var(--color-bg-warning)', border: '1px solid var(--color-border-warning)', borderRadius: 'var(--border-radius-md)', padding: '8px 12px' }}>
                 ⚠️ {lang === 'ja'
                   ? `条件に合う問題が${availableCount}問しかありません。${availableCount}問で開始します。`
                   : `Only ${availableCount} questions match the criteria. The session will start with ${availableCount} questions.`}
@@ -374,16 +374,16 @@ export default function ExerciseSetup() {
             <div style={{
               display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 'var(--spacing-md)',
               padding: '12px var(--spacing-md)', marginTop: 'var(--spacing-lg)', marginBottom: 'var(--spacing-md)',
-              background: '#fffbeb', border: '1px solid #fcd34d', borderRadius: 'var(--border-radius-md)',
+              background: 'var(--color-bg-warning)', border: '1px solid var(--color-border-warning)', borderRadius: 'var(--border-radius-md)',
             }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--spacing-sm)' }}>
                 <span style={{ fontSize: 18 }}>⏸</span>
                 <div>
-                  <div style={{ fontSize: 'var(--font-size-sm)', fontWeight: 700, color: '#92400e' }}>{t('exerciseSetup.resumeNotice')}</div>
-                  <div style={{ fontSize: 'var(--font-size-xs)', color: '#b45309' }}>{t('exerciseSetup.resumeNoticeDesc')}</div>
+                  <div style={{ fontSize: 'var(--font-size-sm)', fontWeight: 700, color: 'var(--color-text-warning)' }}>{t('exerciseSetup.resumeNotice')}</div>
+                  <div style={{ fontSize: 'var(--font-size-xs)', color: 'var(--color-text-warning-sub)' }}>{t('exerciseSetup.resumeNoticeDesc')}</div>
                 </div>
               </div>
-              <Button size="sm" variant="outline" onClick={resumeSession} style={{ borderColor: '#f59e0b', color: '#92400e', whiteSpace: 'nowrap', flexShrink: 0 }}>
+              <Button size="sm" variant="outline" onClick={resumeSession} style={{ borderColor: 'var(--color-border-warning)', color: 'var(--color-text-warning)', whiteSpace: 'nowrap', flexShrink: 0 }}>
                 {t('exerciseSetup.resume')} →
               </Button>
             </div>
