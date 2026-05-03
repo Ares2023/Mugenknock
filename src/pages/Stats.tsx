@@ -25,6 +25,7 @@ type Session = {
   isPassed: boolean;
   startedAt: string;
   endedAt?: string;
+  isMini?: boolean;
 };
 
 type TagStat = {
@@ -69,9 +70,12 @@ const ScoreLineChart = ({ sessions, passRate, lang }: { sessions: Session[]; pas
         const label = `${d.getMonth() + 1}/${d.getDate()}`;
         return (
           <g key={s.sessionId}>
-            <circle cx={cx} cy={cy} r={5} fill={color} />
+            {s.isMini
+              ? <circle cx={cx} cy={cy} r={5} fill="white" stroke={color} strokeWidth={2} strokeDasharray="3 2" />
+              : <circle cx={cx} cy={cy} r={5} fill={color} />}
             <text x={cx} y={cy - 8} textAnchor="middle" fontSize={9} fontWeight="700" fill={color}>{s.score}%</text>
             <text x={cx} y={H - padB + 12} textAnchor="middle" fontSize={9} fill="var(--color-text-light)">{label}</text>
+            {s.isMini && <text x={cx} y={H - padB + 21} textAnchor="middle" fontSize={8} fill="var(--color-text-light)">{lang === 'ja' ? 'ミニ' : 'mini'}</text>}
           </g>
         );
       })}
@@ -465,7 +469,11 @@ export default function Stats() {
                     <td style={{ padding: '12px 24px' }}>
                       <Badge variant="secondary">{s.examType}</Badge>
                     </td>
-                    <td style={{ padding: '12px 24px', color: 'var(--color-text-main)' }}>{s.mode === 'exam' ? t('stats.modeExam') : t('stats.modeExercise')}</td>
+                    <td style={{ padding: '12px 24px', color: 'var(--color-text-main)' }}>
+                      {s.mode === 'exam'
+                        ? <>{t('stats.modeExam')}{s.isMini && <span style={{ marginLeft: 6, fontSize: 'var(--font-size-xs)', background: 'var(--color-warning)', color: 'var(--color-secondary)', borderRadius: 4, padding: '1px 5px', fontWeight: 700 }}>{lang === 'ja' ? 'ミニ' : 'Mini'}</span>}</>
+                        : t('stats.modeExercise')}
+                    </td>
                     <td style={{ padding: '12px 24px', fontWeight: 700, color: s.isPassed ? 'var(--color-success)' : 'var(--color-danger)' }}>{s.score}%</td>
                     <td style={{ padding: '12px 24px' }}>
                       <Badge variant={s.isPassed ? 'success' : 'danger'}>

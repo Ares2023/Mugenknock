@@ -40,8 +40,10 @@ export default function ExamSession() {
   const questions: Question[] = state?.questions ?? [];
   const userId: string = state?.userId ?? '';
   const examType: string = state?.examType ?? '';
+  const isMini: boolean = state?.isMini ?? false;
   const config = EXAM_CONFIGS[examType] ?? Object.values(EXAM_CONFIGS)[0];
-  const totalSec = config.timeLimitMin * 60;
+  const timeLimitMin = isMini ? Math.ceil(config.timeLimitMin / 5) : config.timeLimitMin;
+  const totalSec = timeLimitMin * 60;
 
   const [currentIndex, setCurrentIndex] = useState<number>(state?.resumeIndex ?? 0);
   const [answers, setAnswers] = useState<Record<string, string[]>>(state?.resumeAnswers ?? {});
@@ -91,7 +93,7 @@ export default function ExamSession() {
     if (!sessionId) return;
     try {
       localStorage.setItem('examDraft', JSON.stringify({
-        sessionId, examType, questions, userId,
+        sessionId, examType, questions, userId, isMini,
         currentIndex, answers, timeLeft: timeLeftRef.current,
       }));
     } catch { /* quota over 等は無視 */ }
@@ -257,6 +259,7 @@ export default function ExamSession() {
         <div className="exam-timer-bar" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--spacing-md)' }}>
             <Badge variant="secondary">{examType} {t('examSession.mock')}</Badge>
+            {isMini && <Badge variant="warning">{lang === 'ja' ? 'ミニ' : 'Mini'}</Badge>}
             <span className="exam-timer-time" style={{ fontSize: 'var(--font-size-xxl)', fontWeight: 700, fontFamily: 'monospace',
               color: timerRed ? 'var(--color-danger)' : 'var(--color-text-main)', transition: 'color 1s', whiteSpace: 'nowrap' }}>
               {formatTime(timeLeft)}

@@ -75,9 +75,10 @@ export default function ExamSetup() {
   const [unansweredOnly, setUnansweredOnly] = useState<boolean>(() => loadExamPrefs(localStorage.getItem('targetExam') || localStorage.getItem('lastExamType') || 'SAA').unansweredOnly ?? false);
   const [incorrectOnly, setIncorrectOnly] = useState<boolean>(() => loadExamPrefs(localStorage.getItem('targetExam') || localStorage.getItem('lastExamType') || 'SAA').incorrectOnly ?? false);
   const [shuffle, setShuffle] = useState<boolean>(() => loadExamPrefs(localStorage.getItem('targetExam') || localStorage.getItem('lastExamType') || 'SAA').shuffle ?? false);
+  const [miniExam, setMiniExam] = useState<boolean>(false);
   const hasDraft = examDraft?.examType === examType;
 
-  type ExamSession = { sessionId: string; examType: string; mode: string; score: number; isPassed: boolean; startedAt: string; };
+  type ExamSession = { sessionId: string; examType: string; mode: string; score: number; isPassed: boolean; startedAt: string; isMini?: boolean; };
   const [examSessions, setExamSessions] = useState<ExamSession[]>([]);
   const [sessionsLoading, setSessionsLoading] = useState(false);
   type DomainStat = { tagId: string; correctCount: number; incorrectCount: number };
@@ -110,6 +111,7 @@ export default function ExamSetup() {
         questions: examDraft.questions,
         userId: examDraft.userId,
         examType: examDraft.examType,
+        isMini: examDraft.isMini ?? false,
         resumeIndex: examDraft.currentIndex,
         resumeAnswers: examDraft.answers,
         resumeTimeLeft: examDraft.timeLeft,
@@ -187,7 +189,8 @@ export default function ExamSetup() {
     setLoading(true);
     try {
       const userId = user?.userId ?? 'guest';
-      const limit = Math.min(config.totalQuestions, availableCount ?? config.totalQuestions);
+      const targetCount = miniExam ? Math.ceil(config.totalQuestions / 5) : config.totalQuestions;
+      const limit = Math.min(targetCount, availableCount ?? targetCount);
       let selectedItems: any[];
 
       const allSelected = EXAM_DOMAINS[examType].every(d => selectedDomains.includes(d));
@@ -245,12 +248,12 @@ export default function ExamSetup() {
       const sessionRes = await fetch(`${API_ENDPOINT}/sessions`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ userId, mode: 'exam', examType, questionIds })
+        body: JSON.stringify({ userId, mode: 'exam', examType, questionIds, ...(miniExam ? { isMini: true } : {}) })
       });
       const sessionData = await sessionRes.json();
 
       navigate('/exam/session', {
-        state: { sessionId: sessionData.sessionId, questions: selectedItems, userId, examType }
+        state: { sessionId: sessionData.sessionId, questions: selectedItems, userId, examType, isMini: miniExam }
       });
     } catch (err) {
       console.error(err);
@@ -350,6 +353,18 @@ export default function ExamSetup() {
                 <input type="checkbox" checked={shuffle} onChange={e => setShuffle(e.target.checked)} style={{ width: 16, height: 16, flexShrink: 0 }} />
                 {t('exerciseSetup.shuffle')}
               </label>
+              <div style={{ height: 1, background: 'var(--color-border)', margin: '4px 0' }} />
+              <label style={{ display: 'flex', alignItems: 'flex-start', gap: 'var(--spacing-sm)', cursor: 'pointer', fontSize: 'var(--font-size-base)' }}>
+                <input type="checkbox" checked={miniExam} onChange={e => setMiniExam(e.target.checked)} style={{ width: 16, height: 16, flexShrink: 0, marginTop: 2 }} />
+                <span>
+                  {lang === 'ja' ? 'ミニ模試モード' : 'Mini Exam Mode'}
+                  <span style={{ display: 'block', fontSize: 'var(--font-size-xs)', color: 'var(--color-text-light)', marginTop: 2 }}>
+                    {lang === 'ja'
+                      ? `問題数・時間を 1/5 に短縮（${Math.ceil(config.totalQuestions / 5)}問 / ${Math.ceil(config.timeLimitMin / 5)}分）`
+                      : `1/5 questions & time (${Math.ceil(config.totalQuestions / 5)} questions / ${Math.ceil(config.timeLimitMin / 5)} min)`}
+                  </span>
+                </span>
+              </label>
             </div>
           </StepRow>
 
@@ -397,7 +412,9 @@ export default function ExamSetup() {
                   <span style={{ width: 13, height: 13, border: '2px solid rgba(255,255,255,0.4)', borderTopColor: 'white', borderRadius: '50%', animation: 'sherpa-spin 0.7s linear infinite', flexShrink: 0 }} />
                   {t('examSetup.starting')}
                 </span>
-              ) : t('examSetup.start')}
+              ) : miniExam
+                ? (lang === 'ja' ? 'ミニ模試を開始' : 'Start Mini Exam')
+                : t('examSetup.start')}
             </Button>
           </div>
         </Card>
@@ -431,7 +448,10 @@ export default function ExamSetup() {
                   const dateStr = `${d.getMonth() + 1}/${d.getDate()}`;
                   return (
                     <div key={s.sessionId} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '5px 0', borderBottom: '1px solid var(--color-border)' }}>
-                      <span style={{ fontSize: 'var(--font-size-sm)', color: 'var(--color-text-sub)' }}>{dateStr}</span>
+                      <span style={{ fontSize: 'var(--font-size-sm)', color: 'var(--color-text-sub)', display: 'flex', alignItems: 'center', gap: 4 }}>
+                        {dateStr}
+                        {s.isMini && <span style={{ fontSize: 10, background: 'var(--color-warning)', color: 'var(--color-secondary)', borderRadius: 3, padding: '1px 4px', fontWeight: 700 }}>{lang === 'ja' ? 'ミニ' : 'Mini'}</span>}
+                      </span>
                       <span style={{ fontSize: 'var(--font-size-base)', fontWeight: 700, color: s.isPassed ? 'var(--color-success)' : 'var(--color-danger)' }}>
                         {s.score}%
                       </span>

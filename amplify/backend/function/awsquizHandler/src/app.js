@@ -534,24 +534,15 @@ app.delete('/admin/reports/:id', async (req, res) => {
 app.post('/sessions', async (req, res) => {
   try {
     const docClient = getClient();
-    const { userId, mode, examType, questionIds } = req.body;
+    const { userId, mode, examType, questionIds, isMini } = req.body;
     const sessionId = uuidv4();
     const now = new Date().toISOString();
-    await docClient.send(new PutCommand({
-      TableName: 'Sessions',
-      Item: {
-        userId,
-        sessionId,
-        mode,
-        examType,
-        questionIds,
-        status: 'active',
-        startedAt: now,
-        lastAnsweredAt: now,
-        score: 0,
-        isPassed: false
-      }
-    }));
+    const item = {
+      userId, sessionId, mode, examType, questionIds,
+      status: 'active', startedAt: now, lastAnsweredAt: now, score: 0, isPassed: false
+    };
+    if (isMini) item.isMini = true;
+    await docClient.send(new PutCommand({ TableName: 'Sessions', Item: item }));
     res.json({ sessionId });
   } catch (err) {
     console.error(err);
