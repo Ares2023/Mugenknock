@@ -10,17 +10,17 @@ const Badge: React.FC<BadgeProps> = ({ children, variant = 'neutral', style }) =
   const getVariantStyle = (): React.CSSProperties => {
     switch (variant) {
       case 'primary':
-        return { backgroundColor: 'var(--color-primary)', color: 'var(--color-bg-white)' };
+        return { backgroundColor: 'var(--color-primary)', color: 'white' };
       case 'secondary':
-        return { backgroundColor: 'var(--color-secondary)', color: 'var(--color-bg-white)' };
+        return { backgroundColor: 'var(--color-secondary)', color: 'white' };
       case 'outline':
         return { backgroundColor: 'transparent', color: 'var(--color-primary)', border: '1px solid var(--color-primary)' };
       case 'danger':
-        return { backgroundColor: 'var(--color-danger)', color: 'var(--color-bg-white)' };
+        return { backgroundColor: 'var(--color-danger)', color: 'white' };
       case 'success':
-        return { backgroundColor: 'var(--color-success)', color: 'var(--color-bg-white)' };
+        return { backgroundColor: 'var(--color-success)', color: 'white' };
       case 'warning':
-        return { backgroundColor: 'var(--color-warning)', color: 'var(--color-secondary)' };
+        return { backgroundColor: 'var(--color-warning)', color: '#1a1a1a' };
       case 'neutral':
       default:
         return { backgroundColor: 'var(--color-bg-main)', color: 'var(--color-text-main)', border: '1px solid var(--color-border)' };
