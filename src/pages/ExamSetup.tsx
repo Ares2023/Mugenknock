@@ -12,8 +12,8 @@ const StepBadge = ({ n, optional = false }: { n: number; optional?: boolean }) =
   <span style={{
     display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
     width: 20, height: 20, borderRadius: '50%', flexShrink: 0,
-    background: optional ? 'var(--color-border)' : 'var(--color-primary)',
-    color: optional ? 'var(--color-text-sub)' : 'white',
+    background: 'var(--color-primary)',
+    color: 'white',
     fontSize: 11, fontWeight: 700,
   }}>{n}</span>
 );
@@ -496,7 +496,7 @@ export default function ExamSetup() {
                   return { ...item, rankNum };
                 });
                 const rateColor = (r: number) =>
-                  r < 0.50 ? 'var(--color-danger)' : r < 0.65 ? 'var(--color-accent)' : 'var(--color-text-sub)';
+                  r < 0.50 ? 'var(--color-danger)' : r < 0.65 ? 'var(--color-caution)' : 'var(--color-text-sub)';
                 return (
                   <>
                     {withRanks.map(({ d, rate, rankNum: rn }) => (

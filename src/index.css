@@ -35,6 +35,11 @@
   --font-size-h2: 22px;
   --font-size-xxl: 28px;
 
+  /* Text-on-colored-bg tokens */
+  --color-on-success: white;
+  --color-on-danger: white;
+  --color-caution: #ca8a04;
+
   /* Semantic feedback colors */
   --color-feedback-correct-bg: #f2fcf3;
   --color-feedback-incorrect-bg: #fdf3f1;
@@ -89,6 +94,9 @@
   --color-text-warning-sub: #f0c060;
   --color-border-warning: #78610a;
   --box-shadow-md: 0 4px 12px rgba(0, 0, 0, 0.4);
+  --color-on-success: #052e16;
+  --color-on-danger: #450a0a;
+  --color-caution: #facc15;
 }
 
 /* ── フォーム要素のダークモード対応 ── */

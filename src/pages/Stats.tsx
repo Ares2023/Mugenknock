@@ -302,14 +302,14 @@ export default function Stats() {
                 <span>{lang === 'ja' ? `回答数が足りません（${targetAnswered}問）。10問以上解くと精度が上がります。` : `Not enough answers (${targetAnswered} answered). Accuracy improves after 10+ answers.`}</span>
               </div>
             )}
-            {domainStats.map(({ domain, correct, total, rate }) => (
+            {[...domainStats].sort((a, b) => (a.rate ?? 101) - (b.rate ?? 101)).map(({ domain, correct, total, rate }) => (
               <div key={domain} style={{ marginBottom: 'var(--spacing-lg)' }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 'var(--spacing-xs)' }}>
                   <span style={{ fontSize: 'var(--font-size-sm)', fontWeight: 700, color: 'var(--color-text-main)' }}>{lang === 'en' ? (DOMAIN_NAME_EN[domain] ?? domain) : domain}</span>
                   <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--spacing-md)', flexShrink: 0 }}>
                     {rate !== null ? (
                       <>
-                        <span style={{ fontSize: 'var(--font-size-lg)', fontWeight: 700, color: rate >= 70 ? 'var(--color-success)' : rate >= 50 ? 'var(--color-warning)' : 'var(--color-danger)' }}>
+                        <span style={{ fontSize: 'var(--font-size-lg)', fontWeight: 700, color: rate >= 70 ? 'var(--color-success)' : rate >= 50 ? 'var(--color-caution)' : 'var(--color-danger)' }}>
                           {rate}%
                         </span>
                         <span style={{ fontSize: 'var(--font-size-xs)', color: 'var(--color-text-light)' }}>{correct}/{total}{t('stats.qUnit')}</span>
@@ -323,7 +323,7 @@ export default function Stats() {
                   <div style={{
                     width: rate !== null ? `${rate}%` : '0%',
                     height: '100%',
-                    background: rate === null ? 'var(--color-border)' : rate >= 70 ? 'var(--color-success)' : rate >= 50 ? 'var(--color-warning)' : 'var(--color-danger)',
+                    background: rate === null ? 'var(--color-border)' : rate >= 70 ? 'var(--color-success)' : rate >= 50 ? 'var(--color-caution)' : 'var(--color-danger)',
                     transition: 'width 0.4s',
                     borderRadius: 10,
                   }} />
@@ -335,7 +335,7 @@ export default function Stats() {
                 <span style={{ width: 10, height: 10, borderRadius: 2, background: 'var(--color-success)', display: 'inline-block' }} />70%以上
               </span>
               <span style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                <span style={{ width: 10, height: 10, borderRadius: 2, background: 'var(--color-warning)', display: 'inline-block' }} />50〜69%
+                <span style={{ width: 10, height: 10, borderRadius: 2, background: 'var(--color-caution)', display: 'inline-block' }} />50〜69%
               </span>
               <span style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
                 <span style={{ width: 10, height: 10, borderRadius: 2, background: 'var(--color-danger)', display: 'inline-block' }} />50%未満

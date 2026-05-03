@@ -16,9 +16,9 @@ const Badge: React.FC<BadgeProps> = ({ children, variant = 'neutral', style }) =
       case 'outline':
         return { backgroundColor: 'transparent', color: 'var(--color-primary)', border: '1px solid var(--color-primary)' };
       case 'danger':
-        return { backgroundColor: 'var(--color-danger)', color: 'white' };
+        return { backgroundColor: 'var(--color-danger)', color: 'var(--color-on-danger)' };
       case 'success':
-        return { backgroundColor: 'var(--color-success)', color: 'white' };
+        return { backgroundColor: 'var(--color-success)', color: 'var(--color-on-success)' };
       case 'warning':
         return { backgroundColor: 'var(--color-warning)', color: '#1a1a1a' };
       case 'neutral':

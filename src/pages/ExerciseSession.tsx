@@ -595,7 +595,7 @@ export default function ExerciseSession() {
           <button
             onClick={() => setReportOpen(true)}
             style={{ marginLeft: 'auto', background: 'none', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 4, color: 'var(--color-text-light)', fontSize: 'var(--font-size-xs)', padding: '2px 6px', borderRadius: 'var(--border-radius-sm)', transition: 'all 0.2s' }}
-            onMouseEnter={e => { e.currentTarget.style.color = 'var(--color-danger)'; e.currentTarget.style.background = '#fdf3f1'; }}
+            onMouseEnter={e => { e.currentTarget.style.color = 'var(--color-danger)'; e.currentTarget.style.background = 'var(--color-feedback-incorrect-bg)'; }}
             onMouseLeave={e => { e.currentTarget.style.color = 'var(--color-text-light)'; e.currentTarget.style.background = 'none'; }}
             title={lang === 'ja' ? '問題の不備を通報' : 'Report an issue'}
           >

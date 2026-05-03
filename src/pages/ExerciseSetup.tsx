@@ -483,7 +483,7 @@ export default function ExerciseSetup() {
                   return { ...item, rankNum };
                 });
                 const rateColor = (r: number) =>
-                  r < 0.50 ? 'var(--color-danger)' : r < 0.65 ? 'var(--color-accent)' : 'var(--color-text-sub)';
+                  r < 0.50 ? 'var(--color-danger)' : r < 0.65 ? 'var(--color-caution)' : 'var(--color-text-sub)';
                 return (
                   <>
                     {withRanks.map(({ d, rate, rankNum: rn }) => (
