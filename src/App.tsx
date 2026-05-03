@@ -4,6 +4,7 @@ import { Amplify } from 'aws-amplify';
 import awsExports from './aws-exports';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
 import { LanguageProvider } from './contexts/LanguageContext';
+import { ThemeProvider } from './contexts/ThemeContext';
 import PrivateRoute from './components/PrivateRoute';
 import AdminRoute from './components/AdminRoute';
 import Layout from './components/Layout';
@@ -45,6 +46,7 @@ function AuthGate({ children }: { children: React.ReactNode }) {
 
 function App() {
   return (
+    <ThemeProvider>
     <LanguageProvider>
     <AuthProvider>
       <AuthGate>
@@ -72,6 +74,7 @@ function App() {
       </AuthGate>
     </AuthProvider>
     </LanguageProvider>
+    </ThemeProvider>
   );
 }
 
