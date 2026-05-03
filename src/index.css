@@ -128,8 +128,60 @@ body {
   line-height: 1.5;
 }
 
-input[type="checkbox"] {
+input[type="checkbox"],
+input[type="radio"] {
   accent-color: var(--color-primary);
+}
+
+/* ── ダークモード: チェックボックス・ラジオをカスタムスタイル ── */
+[data-theme="dark"] input[type="checkbox"],
+[data-theme="dark"] input[type="radio"] {
+  appearance: none;
+  -webkit-appearance: none;
+  background: transparent;
+  border: 2px solid rgba(255, 255, 255, 0.6);
+  border-radius: 3px;
+  cursor: pointer;
+  flex-shrink: 0;
+  display: inline-grid;
+  place-content: center;
+}
+
+[data-theme="dark"] input[type="radio"] {
+  border-radius: 50%;
+}
+
+[data-theme="dark"] input[type="checkbox"]::before,
+[data-theme="dark"] input[type="radio"]::before {
+  content: '';
+  display: block;
+  transform: scale(0);
+  transition: transform 0.1s ease;
+}
+
+[data-theme="dark"] input[type="checkbox"]:checked {
+  background: var(--color-primary);
+  border-color: var(--color-primary);
+}
+
+[data-theme="dark"] input[type="checkbox"]:checked::before {
+  width: 4px;
+  height: 8px;
+  border-right: 2px solid white;
+  border-bottom: 2px solid white;
+  transform: rotate(45deg) translate(0px, -2px);
+}
+
+[data-theme="dark"] input[type="radio"]:checked {
+  border-color: var(--color-primary);
+}
+
+[data-theme="dark"] input[type="radio"]:checked::before {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--color-primary);
+  transform: scale(1);
 }
 
 @keyframes sherpa-spin {

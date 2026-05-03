@@ -292,7 +292,7 @@ export default function QuestionList() {
     fontSize: 13, color: 'var(--color-text-main)',
   };
   const secLabel: React.CSSProperties = {
-    fontSize: 11, fontWeight: 700, color: '#879596',
+    fontSize: 11, fontWeight: 700, color: 'var(--color-text-light)',
     textTransform: 'uppercase', letterSpacing: '0.6px',
     marginBottom: 6,
   };

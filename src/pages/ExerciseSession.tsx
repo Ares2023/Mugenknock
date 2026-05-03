@@ -619,7 +619,7 @@ export default function ExerciseSession() {
         <div style={{ marginTop: 'var(--spacing-xl)' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--spacing-md)', marginBottom: 'var(--spacing-sm)' }}>
             <span style={{
-              background: '#b85c00', color: 'white',
+              background: 'var(--color-accent-hover)', color: 'white',
               fontSize: 10, fontWeight: 700, letterSpacing: '1.5px',
               padding: '3px 10px', borderRadius: 'var(--border-radius-sm)',
             }}>COLUMN</span>
