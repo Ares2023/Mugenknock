@@ -365,8 +365,9 @@ export default function ExerciseSession() {
       width: '100%',
       textAlign: 'left',
       fontSize: 'var(--font-size-base)',
+      color: 'var(--color-text-main)',
       transition: 'all 0.15s ease',
-      background: 'var(--color-bg-white)',
+      background: 'var(--color-bg-elevated)',
       borderColor: 'var(--color-border)',
     };
     if (!answered) {
@@ -374,7 +375,7 @@ export default function ExerciseSession() {
       return {
         ...base,
         borderColor: selected ? 'var(--color-primary)' : 'var(--color-border)',
-        background: selected ? 'var(--color-primary-light)' : 'var(--color-bg-white)',
+        background: selected ? 'var(--color-primary-light)' : 'var(--color-bg-elevated)',
         boxShadow: selected ? '0 0 0 1px var(--color-primary)' : 'none',
         fontWeight: selected ? 700 : 400,
       };
@@ -386,7 +387,7 @@ export default function ExerciseSession() {
       return {
         ...base,
         borderColor: selected ? 'var(--color-primary)' : 'var(--color-border)',
-        background: selected ? 'var(--color-primary-light)' : 'var(--color-bg-white)',
+        background: selected ? 'var(--color-primary-light)' : 'var(--color-bg-elevated)',
         boxShadow: selected ? '0 0 0 1px var(--color-primary)' : 'none',
         fontWeight: selected ? 700 : 400,
         cursor: 'default',
@@ -465,11 +466,11 @@ export default function ExerciseSession() {
               className={lastSelected === choice && selectedAnswers.includes(choice) && !answered ? 'choice-select-anim' : ''}
             >
               <span style={{
-                width: 18, height: 18, border: '1px solid var(--color-text-sub)',
+                width: 18, height: 18, border: '1.5px solid',
                 borderRadius: currentQuestion.isMultiple ? 2 : '50%',
                 marginRight: 12, display: 'flex', alignItems: 'center', justifyContent: 'center',
-                background: selectedAnswers.includes(choice) ? 'var(--color-primary)' : 'var(--color-bg-white)',
-                borderColor: selectedAnswers.includes(choice) ? 'var(--color-primary)' : 'var(--color-text-sub)',
+                background: selectedAnswers.includes(choice) ? 'var(--color-primary)' : 'transparent',
+                borderColor: selectedAnswers.includes(choice) ? 'var(--color-primary)' : 'var(--color-text-main)',
                 flexShrink: 0
               }}>
                 {selectedAnswers.includes(choice) && <span style={{ width: 6, height: 6, borderRadius: '50%', background: 'white' }} />}

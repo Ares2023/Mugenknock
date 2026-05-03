@@ -50,6 +50,9 @@
   --color-text-warning-sub: #b45309;
   --color-border-warning: #fcd34d;
 
+  /* Elevated surface (interactive items on top of cards) */
+  --color-bg-elevated: #ffffff;
+
   /* Others */
   --border-radius-sm: 4px;
   --border-radius-md: 6px;
@@ -63,6 +66,7 @@
 [data-theme="dark"] {
   --color-primary: #7dbdbd;
   --color-primary-hover: #6daeae;
+  --color-bg-elevated: #1e2a38;
   --color-success: #4ade80;
   --color-danger: #f87171;
   --color-bg-main: #0d1117;

@@ -330,17 +330,18 @@ export default function ExamSession() {
                   display: 'flex', alignItems: 'center', width: '100%', textAlign: 'left',
                   padding: 'var(--spacing-md) var(--spacing-lg)', marginBottom: 'var(--spacing-sm)', borderRadius: 'var(--border-radius-md)',
                   border: `1px solid ${isSelected ? 'var(--color-primary)' : 'var(--color-border)'}`,
-                  background: isSelected ? 'var(--color-primary-light)' : 'var(--color-bg-white)',
+                  background: isSelected ? 'var(--color-primary-light)' : 'var(--color-bg-elevated)',
                   boxShadow: isSelected ? '0 0 0 1px var(--color-primary)' : 'none',
                   cursor: 'pointer', fontSize: 'var(--font-size-base)', fontWeight: isSelected ? 700 : 400,
+                  color: 'var(--color-text-main)',
                   transition: 'all 0.15s ease'
                 }}>
                 <span style={{
-                  width: 18, height: 18, border: '1px solid var(--color-text-sub)',
+                  width: 18, height: 18, border: '1.5px solid',
                   borderRadius: currentQ.isMultiple ? 2 : '50%',
                   marginRight: 12, display: 'flex', alignItems: 'center', justifyContent: 'center',
-                  background: isSelected ? 'var(--color-primary)' : 'var(--color-bg-white)',
-                  borderColor: isSelected ? 'var(--color-primary)' : 'var(--color-text-sub)',
+                  background: isSelected ? 'var(--color-primary)' : 'transparent',
+                  borderColor: isSelected ? 'var(--color-primary)' : 'var(--color-text-main)',
                   flexShrink: 0
                 }}>
                   {isSelected && <span style={{ width: 6, height: 6, borderRadius: '50%', background: 'white' }} />}
@@ -381,16 +382,16 @@ export default function ExamSession() {
             <span style={{ width: 12, height: 12, background: 'var(--color-text-sub)', borderRadius: 6 }} />{t('examSession.answeredLegend')}
           </span>
           <span style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-            <span style={{ width: 12, height: 12, background: 'var(--color-bg-white)', borderRadius: 6, border: '1px solid var(--color-border)' }} />{t('examSession.unansweredLegend')}
+            <span style={{ width: 12, height: 12, background: 'var(--color-bg-elevated)', borderRadius: 6, border: '1px solid var(--color-text-sub)' }} />{t('examSession.unansweredLegend')}
           </span>
         </div>
         <div style={{ display: 'flex', flexWrap: 'wrap', gap: 'var(--spacing-sm)', marginBottom: 'var(--spacing-lg)' }}>
           {questions.map((_: any, i: number) => {
             const isCurrent = i === currentIndex;
             const isAnswered = !!answers[questions[i]?.questionId];
-            let bg = 'var(--color-bg-white)';
+            let bg = 'var(--color-bg-elevated)';
             let color = 'var(--color-text-sub)';
-            let border = '1px solid var(--color-border)';
+            let border = '1px solid var(--color-text-sub)';
             
             if (isCurrent) {
               bg = 'var(--color-primary-light)';
