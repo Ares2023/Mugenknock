@@ -12,8 +12,8 @@ const StepBadge = ({ n, optional = false }: { n: number; optional?: boolean }) =
   <span style={{
     display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
     width: 20, height: 20, borderRadius: '50%', flexShrink: 0,
-    background: 'var(--color-border)',
-    color: 'var(--color-text-sub)',
+    background: 'var(--color-primary)',
+    color: 'white',
     fontSize: 11, fontWeight: 700,
   }}>{n}</span>
 );
@@ -94,6 +94,7 @@ export default function ExerciseSetup() {
   const passScore = PASS_SCORES[examType];
   const [availableCount, setAvailableCount] = useState<number | null>(null);
   const [answeredCount, setAnsweredCount] = useState<number | null>(null);
+  const [totalDbCount, setTotalDbCount] = useState<number | null>(null);
   type DomainStat = { tagId: string; correctCount: number; incorrectCount: number };
   const [domainStats, setDomainStats] = useState<DomainStat[]>([]);
 
@@ -155,6 +156,10 @@ export default function ExerciseSetup() {
   }, [examType, selectedDomains, user, bookmarkOnly, unansweredOnly, incorrectOnly]);
 
   useEffect(() => {
+    fetch(`${API_ENDPOINT}/questions?examType=${examType}`)
+      .then(r => r.json())
+      .then(d => setTotalDbCount(d.count ?? d.items?.length ?? null))
+      .catch(() => setTotalDbCount(null));
     if (!user) { setAnsweredCount(0); setDomainStats([]); return; }
     setAnsweredCount(null);
     fetch(`${API_ENDPOINT}/users/me/question-stats?userId=${user.userId}&examType=${examType}`)
@@ -428,17 +433,17 @@ export default function ExerciseSetup() {
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: 4 }}>
                   <span style={{ fontSize: 'var(--font-size-sm)', color: 'var(--color-text-sub)' }}>{t('exerciseSetup.answered')}</span>
                   <span style={{ fontSize: 'var(--font-size-base)', fontWeight: 700, color: 'var(--color-primary)' }}>
-                    {answeredCount}<span style={{ fontSize: 'var(--font-size-sm)', fontWeight: 400, color: 'var(--color-text-sub)' }}> / {info.totalQuestions} {t('exerciseSetup.qUnit')}</span>
+                    {answeredCount}<span style={{ fontSize: 'var(--font-size-sm)', fontWeight: 400, color: 'var(--color-text-sub)' }}> / {totalDbCount ?? '…'} {t('exerciseSetup.qUnit')}</span>
                   </span>
                 </div>
                 <div style={{ background: 'var(--color-border)', borderRadius: 10, height: 6, overflow: 'hidden', marginBottom: 4 }}>
                   <div style={{
-                    width: `${info.totalQuestions > 0 ? Math.min(100, Math.round((answeredCount / info.totalQuestions) * 100)) : 0}%`,
+                    width: `${totalDbCount ? Math.min(100, Math.round((answeredCount / totalDbCount) * 100)) : 0}%`,
                     background: 'var(--color-primary)', height: '100%', borderRadius: 10, transition: 'width 0.4s',
                   }} />
                 </div>
                 <div style={{ fontSize: 'var(--font-size-xs)', color: 'var(--color-primary)', textAlign: 'right', fontWeight: 700, marginBottom: 'var(--spacing-sm)' }}>
-                  {info.totalQuestions > 0 ? Math.min(100, Math.round((answeredCount / info.totalQuestions) * 100)) : 0}%
+                  {totalDbCount ? Math.min(100, Math.round((answeredCount / totalDbCount) * 100)) : 0}%
                 </div>
               </>
             )}
