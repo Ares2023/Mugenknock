@@ -220,16 +220,20 @@ stop_hook_timers() {
 }
 
 # ── 永続ユニットファイルでタイマーを登録 ────────────────────────
-# transient systemd-run と違い、サービスが active(running) 中でも競合しない
+# daemon-reload はサービス実行中に呼ぶと transient unit を壊すため、
+# systemd-run --on-active=6 で 6秒後（サービス終了後）に実行する。
 _setup_cycle_timer() {
   local target_time="$1"
   local desc="${2:-Claude Cycle Trigger}"
   local _ud="${HOME}/.config/systemd/user"
+  local _svc="${_ud}/${UNIT_NAME}.service"
+  local _tmr="${_ud}/${UNIT_NAME}.timer"
+  local _tmr_tmp="${_ud}/${UNIT_NAME}.timer.tmp"
   mkdir -p "$_ud"
 
   # サービスユニット (初回のみ作成)
-  if [ ! -f "${_ud}/${UNIT_NAME}.service" ]; then
-    cat > "${_ud}/${UNIT_NAME}.service" << EOF
+  if [ ! -f "$_svc" ]; then
+    cat > "$_svc" << EOF
 [Unit]
 Description=Claude Cycle
 
@@ -241,8 +245,8 @@ StandardError=journal
 EOF
   fi
 
-  # タイマーファイルを上書き
-  cat > "${_ud}/${UNIT_NAME}.timer" << EOF
+  # タイマー内容を一時ファイルに書いておく
+  cat > "$_tmr_tmp" << EOF
 [Unit]
 Description=${desc}
 
@@ -255,9 +259,14 @@ AccuracySec=1s
 WantedBy=timers.target
 EOF
 
-  systemctl --user daemon-reload
-  systemctl --user stop  "${UNIT_NAME}.timer" 2>/dev/null || true
-  systemctl --user start "${UNIT_NAME}.timer"
+  # 6秒後に適用 (サービス終了後に daemon-reload することで transient unit 破壊を回避)
+  systemd-run --user --collect --on-active=6 \
+    -- bash -c "mv '${_tmr_tmp}' '${_tmr}'; \
+                systemctl --user daemon-reload; \
+                systemctl --user stop '${UNIT_NAME}.timer' 2>/dev/null || true; \
+                systemctl --user start '${UNIT_NAME}.timer' \
+                  || echo \"\$(date '+%Y-%m-%d %H:%M:%S') ❌ タイマー登録失敗: ${target_time}\" \
+                     >> '${LOG_DIR}/schedule_errors.log'"
 }
 
 # ── 次の実行時刻を予約する ───────────────────────────────────
