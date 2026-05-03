@@ -83,6 +83,18 @@ const ScoreLineChart = ({ sessions, passRate, lang }: { sessions: Session[]; pas
   );
 };
 
+const SectionDivider = ({ label, color }: { label: string; color: string }) => (
+  <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--spacing-md)', margin: 'var(--spacing-xl) 0 var(--spacing-md)' }}>
+    <span style={{
+      background: color, color: 'white',
+      fontSize: 'var(--font-size-xs)', fontWeight: 700,
+      padding: '3px 12px', borderRadius: 'var(--border-radius-full)',
+      letterSpacing: '0.5px', flexShrink: 0,
+    }}>{label}</span>
+    <div style={{ flex: 1, height: 1, background: 'var(--color-border)' }} />
+  </div>
+);
+
 export default function Stats() {
   const { user } = useAuth();
   const { lang, t } = useLanguage();
@@ -97,6 +109,7 @@ export default function Stats() {
   const [deleting, setDeleting] = useState(false);
   const [weakQuestions, setWeakQuestions] = useState<WeakQuestion[]>([]);
   const [weakLoading, setWeakLoading] = useState(false);
+  const [historyTab, setHistoryTab] = useState<'exercise' | 'exam'>('exercise');
 
   const fetchAll = useCallback(async () => {
     if (!user) return;
@@ -121,7 +134,7 @@ export default function Stats() {
       const stats: ExamStat[] = EXAM_TYPES.map((et, i) => {
         const [qRes, sRes] = statsRes[i];
         const etSessions = completedSessions
-          .filter(s => s.examType === et)
+          .filter(s => s.examType === et && s.mode === 'exam')
           .sort((a, b) => ((b.endedAt || b.startedAt) > (a.endedAt || a.startedAt) ? 1 : -1));
         return {
           examType: et,
@@ -139,9 +152,7 @@ export default function Stats() {
     }
   }, [user]);
 
-  useEffect(() => {
-    fetchAll();
-  }, [fetchAll]);
+  useEffect(() => { fetchAll(); }, [fetchAll]);
 
   useEffect(() => {
     if (!user || !targetExam) { setWeakQuestions([]); return; }
@@ -159,7 +170,9 @@ export default function Stats() {
   const visibleExamTypes = targetExam ? [targetExam] : [...EXAM_TYPES];
   const visibleStats = examStats.filter(s => visibleExamTypes.includes(s.examType));
   const visibleSessions = sessions.filter(s => visibleExamTypes.includes(s.examType));
+  const exerciseSessions = visibleSessions.filter(s => s.mode === 'exercise');
   const examSessions = visibleSessions.filter(s => s.mode === 'exam');
+  const historySessions = historyTab === 'exercise' ? exerciseSessions : examSessions;
 
   const domainStats = targetExam
     ? (EXAM_DOMAINS[targetExam] ?? []).map(domain => {
@@ -205,7 +218,8 @@ export default function Stats() {
         </div>
       )}
 
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 'var(--spacing-xl)', flexWrap: 'wrap', gap: 'var(--spacing-md)' }}>
+      {/* ── ヘッダー + 試験フィルター ── */}
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 'var(--spacing-lg)', flexWrap: 'wrap', gap: 'var(--spacing-md)' }}>
         <div>
           <h2 style={{ fontSize: 'var(--font-size-xxl)', fontWeight: 700, margin: '0 0 var(--spacing-xs)', color: 'var(--color-text-main)' }}>{t('stats.title')}</h2>
           <p style={{ fontSize: 'var(--font-size-base)', color: 'var(--color-text-sub)', margin: 0, lineHeight: 1.6 }}>{t('stats.description')}</p>
@@ -213,89 +227,78 @@ export default function Stats() {
         <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--spacing-sm)', flexWrap: 'wrap', rowGap: 'var(--spacing-xs)' }}>
           <span style={{ fontSize: 'var(--font-size-sm)', color: 'var(--color-text-sub)' }}>{t('stats.showing')}</span>
           {EXAM_TYPES.map(et => (
-            <Button
-              key={et}
-              variant={targetExam === et ? 'primary' : 'outline'}
-              size="sm"
+            <Button key={et} variant={targetExam === et ? 'primary' : 'outline'} size="sm"
               onClick={() => {
                 const next = targetExam === et ? null : et;
                 if (next) localStorage.setItem(TARGET_EXAM_KEY, next);
                 else localStorage.removeItem(TARGET_EXAM_KEY);
                 setTargetExam(next);
-              }}
-            >
+              }}>
               {et}
             </Button>
           ))}
           {targetExam && (
-            <Button
-              variant="outline"
-              size="sm"
+            <Button variant="outline" size="sm"
               onClick={() => { localStorage.removeItem(TARGET_EXAM_KEY); setTargetExam(null); }}
-              style={{ color: 'var(--color-text-light)' }}
-            >
+              style={{ color: 'var(--color-text-light)' }}>
               {t('stats.all')}
             </Button>
           )}
         </div>
       </div>
 
-      {/* 試験別サマリーカード */}
-      <h3 style={{ fontSize: 'var(--font-size-h3)', fontWeight: 700, margin: '0 0 var(--spacing-md)', color: 'var(--color-text-sub)' }}>{t('stats.exerciseProgress')}</h3>
+      {/* ━━━━━ 演習 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */}
+      <SectionDivider label={lang === 'ja' ? '演習' : 'Exercise'} color="var(--color-primary)" />
+
+      {/* 演習進捗カード */}
       <div className="exam-stat-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(220px, 1fr))', gap: 'var(--spacing-md)', marginBottom: 'var(--spacing-xl)' }}>
         {loading
           ? visibleExamTypes.map(et => (
-              <Card key={et} style={{ minHeight: 140 }}>
-                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: 100 }}>
+              <Card key={et} style={{ minHeight: 100 }}>
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: 80 }}>
                   <div className="sherpa-spinner" style={{ width: 24, height: 24, borderWidth: 2 }} />
                 </div>
               </Card>
             ))
+          : !user
+          ? (
+            <Card padding="var(--spacing-lg)" style={{ gridColumn: '1/-1' }}>
+              <p style={{ margin: 0, fontSize: 'var(--font-size-sm)', color: 'var(--color-text-light)' }}>
+                {lang === 'ja' ? 'ログインすると演習進捗を確認できます' : 'Log in to view your exercise progress'}
+              </p>
+            </Card>
+          )
           : visibleStats.map(stat => {
               const pct = stat.total > 0 ? Math.round((stat.answered / stat.total) * 100) : 0;
-              const passRate = PASS_RATE[stat.examType];
               return (
-                <Card key={stat.examType} padding="var(--spacing-lg)" style={{ borderTop: '4px solid var(--color-primary)' }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--spacing-sm)', marginBottom: 'var(--spacing-lg)' }}>
+                <Card key={stat.examType} padding="var(--spacing-lg)" style={{ borderTop: '3px solid var(--color-primary)' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--spacing-sm)', marginBottom: 'var(--spacing-md)' }}>
                     <Badge variant="secondary">{stat.examType}</Badge>
                   </div>
-                  <div style={{ marginBottom: 'var(--spacing-lg)' }}>
-                    <div style={{ fontSize: 'var(--font-size-xs)', color: 'var(--color-text-sub)', marginBottom: 'var(--spacing-sm)', fontWeight: 700 }}>{t('stats.exerciseProgressLabel')}</div>
-                    <div style={{ background: 'var(--color-bg-main)', borderRadius: 10, height: 8, overflow: 'hidden' }}>
-                      <div style={{ width: `${pct}%`, background: 'var(--color-primary)', height: '100%', transition: 'width 0.4s' }} />
-                    </div>
-                    <div style={{ fontSize: 'var(--font-size-sm)', color: 'var(--color-text-main)', marginTop: 'var(--spacing-sm)' }}>
-                      <strong>{stat.answered}</strong>
-                      <span style={{ color: 'var(--color-text-sub)' }}> / {stat.total} {t('stats.qUnit')}</span>
-                      <span style={{ float: 'right', color: 'var(--color-primary)', fontWeight: 700 }}>{pct}%</span>
-                    </div>
+                  <div style={{ fontSize: 'var(--font-size-xs)', color: 'var(--color-text-sub)', marginBottom: 'var(--spacing-sm)', fontWeight: 700 }}>
+                    {t('stats.exerciseProgressLabel')}
                   </div>
-                  <div style={{ borderTop: '1px solid var(--color-border)', paddingTop: 'var(--spacing-md)' }}>
-                    <div style={{ fontSize: 'var(--font-size-xs)', color: 'var(--color-text-sub)', marginBottom: 'var(--spacing-xs)', fontWeight: 700 }}>{t('stats.lastMock')}</div>
-                    {stat.lastScore !== null ? (
-                      <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--spacing-sm)' }}>
-                        <span style={{ fontSize: 'var(--font-size-xl)', fontWeight: 700, color: stat.lastPassed ? 'var(--color-success)' : 'var(--color-danger)' }}>{stat.lastScore}%</span>
-                        <Badge variant={stat.lastPassed ? 'success' : 'danger'}>
-                          {stat.lastPassed ? t('stats.passed') : t('stats.failed')}
-                        </Badge>
-                        <span style={{ fontSize: 'var(--font-size-xs)', color: 'var(--color-text-light)', marginLeft: 'auto' }}>{t('stats.passLine')} {passRate}%</span>
-                      </div>
-                    ) : (
-                      <span style={{ fontSize: 'var(--font-size-sm)', color: 'var(--color-text-light)', fontStyle: 'italic' }}>{t('stats.noExam')}</span>
-                    )}
+                  <div style={{ background: 'var(--color-bg-main)', borderRadius: 10, height: 8, overflow: 'hidden', marginBottom: 'var(--spacing-sm)' }}>
+                    <div style={{ width: `${pct}%`, background: 'var(--color-primary)', height: '100%', transition: 'width 0.4s' }} />
+                  </div>
+                  <div style={{ fontSize: 'var(--font-size-sm)', color: 'var(--color-text-main)' }}>
+                    <strong>{stat.answered}</strong>
+                    <span style={{ color: 'var(--color-text-sub)' }}> / {stat.total} {t('stats.qUnit')}</span>
+                    <span style={{ float: 'right', color: 'var(--color-primary)', fontWeight: 700 }}>{pct}%</span>
                   </div>
                 </Card>
               );
             })}
       </div>
 
-      {/* ドメイン別正答率（目標資格のみ） */}
-      {!loading && targetExam && domainStats.length > 0 && (() => {
+      {/* ドメイン別正答率（目標資格選択時のみ） */}
+      {!loading && user && targetExam && domainStats.length > 0 && (() => {
         const targetAnswered = examStats.find(s => s.examType === targetExam)?.answered ?? 0;
         return (
-        <>
-          <h3 style={{ fontSize: 'var(--font-size-h3)', fontWeight: 700, margin: '0 0 var(--spacing-md)', color: 'var(--color-text-sub)' }}>{t('stats.domainAccuracy')}</h3>
           <Card style={{ marginBottom: 'var(--spacing-xl)' }}>
+            <div style={{ fontSize: 'var(--font-size-xs)', fontWeight: 700, color: 'var(--color-text-sub)', textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: 'var(--spacing-md)' }}>
+              {t('stats.domainAccuracy')}
+            </div>
             {targetAnswered <= 10 && (
               <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--spacing-sm)', padding: '8px 12px', marginBottom: 'var(--spacing-md)', background: 'var(--color-hint-bg)', border: '1px solid var(--color-hint-border)', borderRadius: 'var(--border-radius-sm)', fontSize: 'var(--font-size-xs)', color: 'var(--color-text-sub)' }}>
                 <span style={{ flexShrink: 0 }}>⚠️</span>
@@ -321,11 +324,9 @@ export default function Stats() {
                 </div>
                 <div style={{ background: 'var(--color-bg-main)', borderRadius: 10, height: 8, overflow: 'hidden' }}>
                   <div style={{
-                    width: rate !== null ? `${rate}%` : '0%',
-                    height: '100%',
+                    width: rate !== null ? `${rate}%` : '0%', height: '100%',
                     background: rate === null ? 'var(--color-border)' : rate >= 70 ? 'var(--color-success)' : rate >= 50 ? 'var(--color-caution)' : 'var(--color-danger)',
-                    transition: 'width 0.4s',
-                    borderRadius: 10,
+                    transition: 'width 0.4s', borderRadius: 10,
                   }} />
                 </div>
               </div>
@@ -342,144 +343,248 @@ export default function Stats() {
               </span>
             </div>
           </Card>
-        </>
         );
       })()}
 
-      {/* 模試スコア推移 */}
-      {!loading && examSessions.length > 0 && (
-        <>
-          <h3 style={{ fontSize: 'var(--font-size-h3)', fontWeight: 700, margin: '0 0 var(--spacing-md)', color: 'var(--color-text-sub)' }}>{t('stats.scoreHistory')}</h3>
-          <Card style={{ marginBottom: 'var(--spacing-xl)' }}>
-            {visibleExamTypes.map(et => {
-              const etExams = examSessions.filter(s => s.examType === et).reverse();
-              if (etExams.length === 0) return null;
-              const passRate = PASS_RATE[et];
-              return (
-                <div key={et} style={{ marginBottom: 'var(--spacing-lg)' }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--spacing-sm)', marginBottom: 'var(--spacing-md)' }}>
-                    <Badge variant="secondary">{et}</Badge>
-                    <span style={{ fontSize: 'var(--font-size-xs)', color: 'var(--color-text-sub)' }}>
-                      {lang === 'ja' ? `合格ライン ${passRate}%` : `Pass line ${passRate}%`}
-                    </span>
-                    <span style={{ fontSize: 'var(--font-size-xs)', color: 'var(--color-text-light)', marginLeft: 'auto' }}>
-                      {etExams.length}{lang === 'ja' ? '回' : ' attempts'}
-                    </span>
-                  </div>
-                  <ScoreLineChart sessions={etExams} passRate={passRate} lang={lang} />
-                </div>
-              );
-            })}
-          </Card>
-        </>
+      {/* 頻出ミス問題（目標資格選択時のみ） */}
+      {!loading && user && targetExam && (
+        <Card style={{ marginBottom: 'var(--spacing-xl)' }}>
+          <div style={{ fontSize: 'var(--font-size-xs)', fontWeight: 700, color: 'var(--color-text-sub)', textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: 'var(--spacing-md)' }}>
+            {lang === 'ja' ? '頻出ミス問題' : 'Frequently Missed Questions'}
+          </div>
+          {weakLoading ? (
+            <div style={{ display: 'flex', justifyContent: 'center', padding: '16px 0' }}>
+              <div className="sherpa-spinner" style={{ width: 24, height: 24, borderWidth: 2 }} />
+            </div>
+          ) : weakQuestions.length === 0 ? (
+            <div style={{ fontSize: 'var(--font-size-sm)', color: 'var(--color-text-light)', fontStyle: 'italic', padding: 'var(--spacing-xs) 0' }}>
+              {lang === 'ja' ? '2回以上間違えた問題はありません' : 'No questions missed 2 or more times'}
+            </div>
+          ) : (
+            <>
+              <div style={{ fontSize: 'var(--font-size-xs)', color: 'var(--color-text-light)', marginBottom: 'var(--spacing-md)' }}>
+                {lang === 'ja' ? `2回以上間違えた問題 (${weakQuestions.length}問)` : `Questions missed 2+ times (${weakQuestions.length})`}
+              </div>
+              <div style={{ display: 'flex', flexDirection: 'column' }}>
+                {weakQuestions.map((q, i) => {
+                  const total = q.correctCount + q.incorrectCount;
+                  const acc = total > 0 ? Math.round((q.correctCount / total) * 100) : 0;
+                  return (
+                    <div key={q.questionId} style={{
+                      display: 'grid', gridTemplateColumns: '1fr auto', alignItems: 'center',
+                      gap: 'var(--spacing-md)', padding: '10px 0',
+                      borderBottom: i < weakQuestions.length - 1 ? '1px solid var(--color-border)' : 'none',
+                    }}>
+                      <div style={{ display: 'flex', alignItems: 'flex-start', gap: 'var(--spacing-sm)', minWidth: 0 }}>
+                        <span style={{ fontSize: 11, fontWeight: 700, color: 'var(--color-text-light)', flexShrink: 0, paddingTop: 1, width: 20 }}>{i + 1}</span>
+                        <span style={{ fontSize: 'var(--font-size-sm)', color: 'var(--color-text-main)', lineHeight: 1.5, overflow: 'hidden', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical' }}>
+                          {q.questionText}
+                        </span>
+                      </div>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--spacing-md)', flexShrink: 0 }}>
+                        <div style={{ textAlign: 'right' }}>
+                          <div style={{ fontSize: 'var(--font-size-xs)', color: 'var(--color-danger)', fontWeight: 700 }}>✕ {q.incorrectCount}</div>
+                          <div style={{ fontSize: 10, color: 'var(--color-text-light)' }}>{acc}%</div>
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </>
+          )}
+        </Card>
       )}
 
-      {/* 頻出ミス問題 */}
-      {!loading && targetExam && (
-        <>
-          <h3 style={{ fontSize: 'var(--font-size-h3)', fontWeight: 700, margin: '0 0 var(--spacing-md)', color: 'var(--color-text-sub)' }}>
-            {lang === 'ja' ? '頻出ミス問題' : 'Frequently Missed Questions'}
-          </h3>
-          <Card style={{ marginBottom: 'var(--spacing-xl)' }}>
-            {weakLoading ? (
-              <div style={{ display: 'flex', justifyContent: 'center', padding: '16px 0' }}>
-                <div className="sherpa-spinner" style={{ width: 24, height: 24, borderWidth: 2 }} />
-              </div>
-            ) : weakQuestions.length === 0 ? (
-              <div style={{ fontSize: 'var(--font-size-sm)', color: 'var(--color-text-light)', fontStyle: 'italic', padding: 'var(--spacing-sm) 0' }}>
-                {lang === 'ja' ? '2回以上間違えた問題はありません' : 'No questions missed 2 or more times'}
-              </div>
-            ) : (
-              <>
-                <div style={{ fontSize: 'var(--font-size-xs)', color: 'var(--color-text-light)', marginBottom: 'var(--spacing-md)' }}>
-                  {lang === 'ja' ? `2回以上間違えた問題 (${weakQuestions.length}問)` : `Questions missed 2+ times (${weakQuestions.length})`}
+      {/* ━━━━━ 模試 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */}
+      <SectionDivider label={lang === 'ja' ? '模試' : 'Mock Exam'} color="var(--color-accent)" />
+
+      {/* 模試成績サマリーカード */}
+      <div className="exam-stat-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(220px, 1fr))', gap: 'var(--spacing-md)', marginBottom: 'var(--spacing-xl)' }}>
+        {loading
+          ? visibleExamTypes.map(et => (
+              <Card key={et} style={{ minHeight: 100 }}>
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: 80 }}>
+                  <div className="sherpa-spinner" style={{ width: 24, height: 24, borderWidth: 2 }} />
                 </div>
-                <div style={{ display: 'flex', flexDirection: 'column', gap: 0 }}>
-                  {weakQuestions.map((q, i) => {
-                    const total = q.correctCount + q.incorrectCount;
-                    const acc = total > 0 ? Math.round((q.correctCount / total) * 100) : 0;
-                    return (
-                      <div
-                        key={q.questionId}
-                        style={{
-                          display: 'grid',
-                          gridTemplateColumns: '1fr auto',
-                          alignItems: 'center',
-                          gap: 'var(--spacing-md)',
-                          padding: '10px 0',
-                          borderBottom: i < weakQuestions.length - 1 ? '1px solid var(--color-border)' : 'none',
-                        }}
-                      >
-                        <div style={{ display: 'flex', alignItems: 'flex-start', gap: 'var(--spacing-sm)', minWidth: 0 }}>
-                          <span style={{ fontSize: 11, fontWeight: 700, color: 'var(--color-text-light)', flexShrink: 0, paddingTop: 1, width: 20 }}>{i + 1}</span>
-                          <span style={{ fontSize: 'var(--font-size-sm)', color: 'var(--color-text-main)', lineHeight: 1.5, overflow: 'hidden', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical' }}>
-                            {q.questionText}
-                          </span>
+              </Card>
+            ))
+          : !user
+          ? (
+            <Card padding="var(--spacing-lg)" style={{ gridColumn: '1/-1' }}>
+              <p style={{ margin: 0, fontSize: 'var(--font-size-sm)', color: 'var(--color-text-light)' }}>
+                {lang === 'ja' ? 'ログインすると模試成績を確認できます' : 'Log in to view your exam scores'}
+              </p>
+            </Card>
+          )
+          : visibleExamTypes.map(et => {
+              const etExamSessions = sessions
+                .filter(s => s.examType === et && s.mode === 'exam')
+                .sort((a, b) => ((b.endedAt || b.startedAt) > (a.endedAt || a.startedAt) ? 1 : -1));
+              const attempts = etExamSessions.length;
+              const passCount = etExamSessions.filter(s => s.isPassed).length;
+              const lastSess = etExamSessions[0];
+              const bestScore = attempts > 0 ? Math.max(...etExamSessions.map(s => s.score)) : null;
+              const passRate = PASS_RATE[et];
+              return (
+                <Card key={et} padding="var(--spacing-lg)" style={{ borderTop: '3px solid var(--color-accent)' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--spacing-sm)', marginBottom: 'var(--spacing-md)' }}>
+                    <Badge variant="secondary">{et}</Badge>
+                  </div>
+                  {attempts === 0 ? (
+                    <div style={{ fontSize: 'var(--font-size-sm)', color: 'var(--color-text-light)', fontStyle: 'italic' }}>
+                      {t('stats.noExam')}
+                    </div>
+                  ) : (
+                    <>
+                      <div style={{ marginBottom: 'var(--spacing-sm)' }}>
+                        <div style={{ fontSize: 'var(--font-size-xs)', color: 'var(--color-text-sub)', fontWeight: 700, marginBottom: 4 }}>
+                          {t('stats.lastMock')}
                         </div>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--spacing-md)', flexShrink: 0 }}>
-                          <div style={{ textAlign: 'right' }}>
-                            <div style={{ fontSize: 'var(--font-size-xs)', color: 'var(--color-danger)', fontWeight: 700 }}>
-                              ✕ {q.incorrectCount}
-                            </div>
-                            <div style={{ fontSize: 10, color: 'var(--color-text-light)' }}>
-                              {acc}%
-                            </div>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--spacing-sm)' }}>
+                          <span style={{ fontSize: 'var(--font-size-xl)', fontWeight: 700, color: lastSess.isPassed ? 'var(--color-success)' : 'var(--color-danger)' }}>
+                            {lastSess.score}%
+                          </span>
+                          <Badge variant={lastSess.isPassed ? 'success' : 'danger'}>
+                            {lastSess.isPassed ? t('stats.passed') : t('stats.failed')}
+                          </Badge>
+                        </div>
+                      </div>
+                      <div style={{ display: 'flex', gap: 'var(--spacing-lg)', borderTop: '1px solid var(--color-border)', paddingTop: 'var(--spacing-sm)', marginTop: 'var(--spacing-sm)' }}>
+                        <div>
+                          <div style={{ fontSize: 'var(--font-size-xs)', color: 'var(--color-text-light)' }}>
+                            {lang === 'ja' ? '最高' : 'Best'}
+                          </div>
+                          <div style={{ fontSize: 'var(--font-size-base)', fontWeight: 700, color: 'var(--color-text-main)' }}>
+                            {bestScore}%
+                          </div>
+                        </div>
+                        <div>
+                          <div style={{ fontSize: 'var(--font-size-xs)', color: 'var(--color-text-light)' }}>
+                            {lang === 'ja' ? '合格' : 'Passed'}
+                          </div>
+                          <div style={{ fontSize: 'var(--font-size-base)', fontWeight: 700, color: 'var(--color-text-main)' }}>
+                            {passCount}<span style={{ fontSize: 'var(--font-size-xs)', color: 'var(--color-text-sub)', fontWeight: 400 }}>/{attempts}{lang === 'ja' ? '回' : ''}</span>
+                          </div>
+                        </div>
+                        <div style={{ marginLeft: 'auto', textAlign: 'right' }}>
+                          <div style={{ fontSize: 'var(--font-size-xs)', color: 'var(--color-text-light)' }}>
+                            {lang === 'ja' ? '合格ライン' : 'Pass line'}
+                          </div>
+                          <div style={{ fontSize: 'var(--font-size-xs)', color: 'var(--color-text-sub)', fontWeight: 700 }}>
+                            {passRate}%
                           </div>
                         </div>
                       </div>
-                    );
-                  })}
+                    </>
+                  )}
+                </Card>
+              );
+            })}
+      </div>
+
+      {/* スコア推移グラフ */}
+      {!loading && user && examSessions.length > 0 && (
+        <Card style={{ marginBottom: 'var(--spacing-xl)' }}>
+          <div style={{ fontSize: 'var(--font-size-xs)', fontWeight: 700, color: 'var(--color-text-sub)', textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: 'var(--spacing-md)' }}>
+            {t('stats.scoreHistory')}
+          </div>
+          {visibleExamTypes.map(et => {
+            const etExams = sessions.filter(s => s.examType === et && s.mode === 'exam')
+              .sort((a, b) => ((a.endedAt || a.startedAt) > (b.endedAt || b.startedAt) ? 1 : -1));
+            if (etExams.length === 0) return null;
+            const passRate = PASS_RATE[et];
+            return (
+              <div key={et} style={{ marginBottom: 'var(--spacing-lg)' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--spacing-sm)', marginBottom: 'var(--spacing-md)' }}>
+                  <Badge variant="secondary">{et}</Badge>
+                  <span style={{ fontSize: 'var(--font-size-xs)', color: 'var(--color-text-light)', marginLeft: 'auto' }}>
+                    {etExams.length}{lang === 'ja' ? '回' : ' attempts'}
+                  </span>
                 </div>
-              </>
-            )}
-          </Card>
-        </>
+                <ScoreLineChart sessions={etExams} passRate={passRate} lang={lang} />
+              </div>
+            );
+          })}
+        </Card>
       )}
 
-      {/* 演習履歴テーブル */}
-      <h3 style={{ fontSize: 'var(--font-size-h3)', fontWeight: 700, margin: '0 0 var(--spacing-md)', color: 'var(--color-text-sub)' }}>{t('stats.history')}</h3>
+      {/* ━━━━━ 履歴 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */}
+      <SectionDivider label={lang === 'ja' ? '履歴' : 'History'} color="var(--color-text-sub)" />
+
+      {/* モード切り替えタブ */}
+      <div style={{ display: 'flex', gap: 0, marginBottom: 'var(--spacing-md)', borderBottom: '2px solid var(--color-border)' }}>
+        {(['exercise', 'exam'] as const).map(mode => {
+          const label = mode === 'exercise'
+            ? (lang === 'ja' ? `演習 (${exerciseSessions.length})` : `Exercise (${exerciseSessions.length})`)
+            : (lang === 'ja' ? `模試 (${examSessions.length})` : `Mock Exam (${examSessions.length})`);
+          const active = historyTab === mode;
+          return (
+            <button
+              key={mode}
+              onClick={() => setHistoryTab(mode)}
+              style={{
+                background: 'none', border: 'none', cursor: 'pointer',
+                padding: '8px 16px', fontSize: 'var(--font-size-sm)', fontWeight: active ? 700 : 400,
+                color: active ? 'var(--color-primary)' : 'var(--color-text-sub)',
+                borderBottom: active ? '2px solid var(--color-primary)' : '2px solid transparent',
+                marginBottom: -2, transition: 'all 0.15s',
+              }}
+            >
+              {label}
+            </button>
+          );
+        })}
+      </div>
+
       {loading ? (
         <div style={{ display: 'flex', justifyContent: 'center', padding: '24px 0' }}>
           <div className="sherpa-spinner" style={{ width: 24, height: 24, borderWidth: 2 }} />
         </div>
-      ) : visibleSessions.length === 0 ? (
+      ) : historySessions.length === 0 ? (
         <div style={{ color: 'var(--color-text-sub)', padding: 'var(--spacing-lg) 0' }}>
-          <p style={{ margin: '0 0 var(--spacing-sm)' }}>{t('stats.noHistory')}</p>
-          {targetExam && (
+          <p style={{ margin: '0 0 var(--spacing-sm)' }}>
+            {historyTab === 'exercise'
+              ? (lang === 'ja' ? '演習の履歴はありません' : 'No exercise history')
+              : (lang === 'ja' ? '模試の履歴はありません' : 'No exam history')}
+          </p>
+          {targetExam && historyTab === 'exercise' && (
             <Button variant="outline" onClick={() => navigate('/exercise/setup')}>
               {t('stats.startExercise', { exam: targetExam })}
             </Button>
           )}
         </div>
       ) : (
-        <Card padding={0} style={{ overflow: 'hidden' }}>
+        <Card padding={0} style={{ overflow: 'hidden', marginBottom: 'var(--spacing-xl)' }}>
           <div className="stats-table-scroll" style={{ overflowX: 'auto' }}>
             <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 'var(--font-size-base)' }}>
               <thead>
                 <tr style={{ background: 'var(--color-bg-main)', borderBottom: '1px solid var(--color-border)' }}>
-                  {[t('stats.colDate'), t('stats.colExam'), t('stats.colMode'), t('stats.colScore'), t('stats.colResult')].map(h => (
+                  {(historyTab === 'exam'
+                    ? [t('stats.colDate'), t('stats.colExam'), t('stats.colScore'), t('stats.colResult')]
+                    : [t('stats.colDate'), t('stats.colExam'), t('stats.colScore'), t('stats.colResult')]
+                  ).map(h => (
                     <th key={h} style={{ padding: '12px 24px', textAlign: 'left', fontSize: 'var(--font-size-xs)', color: 'var(--color-text-sub)', fontWeight: 700 }}>{h}</th>
                   ))}
+                  {historyTab === 'exam' && <th style={{ padding: '12px 24px', textAlign: 'left', fontSize: 'var(--font-size-xs)', color: 'var(--color-text-sub)', fontWeight: 700 }}></th>}
                 </tr>
               </thead>
               <tbody>
-                {visibleSessions.map((s, i) => (
-                  <tr key={s.sessionId} style={{ borderBottom: i < visibleSessions.length - 1 ? '1px solid var(--color-border)' : 'none' }}>
+                {historySessions.map((s, i) => (
+                  <tr key={s.sessionId} style={{ borderBottom: i < historySessions.length - 1 ? '1px solid var(--color-border)' : 'none' }}>
                     <td style={{ padding: '12px 24px', color: 'var(--color-text-sub)', fontSize: 'var(--font-size-sm)' }}>{fmt(s.endedAt || s.startedAt)}</td>
-                    <td style={{ padding: '12px 24px' }}>
-                      <Badge variant="secondary">{s.examType}</Badge>
-                    </td>
-                    <td style={{ padding: '12px 24px', color: 'var(--color-text-main)' }}>
-                      {s.mode === 'exam'
-                        ? <>{t('stats.modeExam')}{s.isMini && <span style={{ marginLeft: 6, fontSize: 'var(--font-size-xs)', background: 'var(--color-warning)', color: 'var(--color-secondary)', borderRadius: 4, padding: '1px 5px', fontWeight: 700 }}>{lang === 'ja' ? 'ミニ' : 'Mini'}</span>}</>
-                        : t('stats.modeExercise')}
-                    </td>
+                    <td style={{ padding: '12px 24px' }}><Badge variant="secondary">{s.examType}</Badge></td>
                     <td style={{ padding: '12px 24px', fontWeight: 700, color: s.isPassed ? 'var(--color-success)' : 'var(--color-danger)' }}>{s.score}%</td>
                     <td style={{ padding: '12px 24px' }}>
                       <Badge variant={s.isPassed ? 'success' : 'danger'}>
                         {s.isPassed ? t('stats.passed') : t('stats.failed')}
                       </Badge>
                     </td>
+                    {historyTab === 'exam' && (
+                      <td style={{ padding: '12px 24px' }}>
+                        {s.isMini && <span style={{ fontSize: 'var(--font-size-xs)', background: 'var(--color-warning)', color: '#1a1a1a', borderRadius: 4, padding: '1px 5px', fontWeight: 700 }}>{lang === 'ja' ? 'ミニ' : 'Mini'}</span>}
+                      </td>
+                    )}
                   </tr>
                 ))}
               </tbody>
@@ -487,16 +592,15 @@ export default function Stats() {
           </div>
         </Card>
       )}
-      {/* データ管理 */}
+
+      {/* ━━━━━ データ管理 ━━━━━━━━━━━━━━━━━━━━━━━━━━ */}
       {user && (
-        <div style={{ marginTop: 'var(--spacing-xxl)' }}>
-          <h3 style={{ fontSize: 'var(--font-size-h3)', fontWeight: 700, margin: '0 0 var(--spacing-xs)', color: 'var(--color-text-sub)' }}>
-            {lang === 'ja' ? 'データ管理' : 'Data Management'}
-          </h3>
+        <>
+          <SectionDivider label={lang === 'ja' ? 'データ管理' : 'Data Management'} color="var(--color-danger)" />
           <p style={{ fontSize: 'var(--font-size-sm)', color: 'var(--color-text-light)', margin: '0 0 var(--spacing-md)' }}>
             {lang === 'ja' ? '資格ごとの演習・模試データをリセットします。この操作は取り消せません。' : 'Reset exercise and exam data per certification. This action cannot be undone.'}
           </p>
-          <Card padding="var(--spacing-lg)" style={{ border: '1px solid var(--color-danger)', borderRadius: 'var(--border-radius-md)' }}>
+          <Card padding="var(--spacing-lg)" style={{ border: '1px solid var(--color-danger)', marginBottom: 'var(--spacing-xl)' }}>
             <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--spacing-md)' }}>
               {EXAM_TYPES.map(et => (
                 <div key={et} style={{ display: 'flex', alignItems: 'center', gap: 'var(--spacing-md)', flexWrap: 'wrap' }}>
@@ -509,32 +613,18 @@ export default function Stats() {
                       <span style={{ fontSize: 'var(--font-size-xs)', color: 'var(--color-danger)', fontWeight: 700 }}>
                         {lang === 'ja' ? '本当に削除しますか？' : 'Are you sure?'}
                       </span>
-                      <Button
-                        size="sm"
-                        variant="outline"
-                        onClick={() => setConfirmDelete(null)}
-                        disabled={deleting}
-                        style={{ color: 'var(--color-text-sub)', borderColor: 'var(--color-border)' }}
-                      >
+                      <Button size="sm" variant="outline" onClick={() => setConfirmDelete(null)} disabled={deleting}
+                        style={{ color: 'var(--color-text-sub)', borderColor: 'var(--color-border)' }}>
                         {lang === 'ja' ? 'キャンセル' : 'Cancel'}
                       </Button>
-                      <Button
-                        size="sm"
-                        variant="primary"
-                        onClick={() => handleDelete(et)}
-                        disabled={deleting}
-                        style={{ background: 'var(--color-danger)', borderColor: 'var(--color-danger)' }}
-                      >
+                      <Button size="sm" variant="primary" onClick={() => handleDelete(et)} disabled={deleting}
+                        style={{ background: 'var(--color-danger)', borderColor: 'var(--color-danger)' }}>
                         {deleting ? '...' : (lang === 'ja' ? '削除する' : 'Delete')}
                       </Button>
                     </div>
                   ) : (
-                    <Button
-                      size="sm"
-                      variant="outline"
-                      onClick={() => setConfirmDelete(et)}
-                      style={{ color: 'var(--color-danger)', borderColor: 'var(--color-danger)', flexShrink: 0 }}
-                    >
+                    <Button size="sm" variant="outline" onClick={() => setConfirmDelete(et)}
+                      style={{ color: 'var(--color-danger)', borderColor: 'var(--color-danger)', flexShrink: 0 }}>
                       {lang === 'ja' ? 'データを削除' : 'Delete Data'}
                     </Button>
                   )}
@@ -542,7 +632,7 @@ export default function Stats() {
               ))}
             </div>
           </Card>
-        </div>
+        </>
       )}
     </div>
   );
