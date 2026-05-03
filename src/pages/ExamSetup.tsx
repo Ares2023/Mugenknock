@@ -442,7 +442,7 @@ export default function ExamSetup() {
             )}
           </div>
 
-          {/* 苦手ドメイン トップ3 */}
+          {/* 苦手ドメイン */}
           {user && (
             <div style={{ marginTop: 'var(--spacing-lg)', paddingTop: 'var(--spacing-md)', borderTop: '1px solid var(--color-border)' }}>
               <div style={{ fontSize: 'var(--font-size-xs)', fontWeight: 700, color: 'var(--color-text-sub)', marginBottom: 'var(--spacing-xs)' }}>
@@ -465,8 +465,7 @@ export default function ExamSetup() {
                     return { d, rate };
                   })
                   .filter(x => x.rate !== null)
-                  .sort((a, b) => a.rate! - b.rate!)
-                  .slice(0, 3);
+                  .sort((a, b) => a.rate! - b.rate!);
                 if (ranked.length === 0) return <div style={{ fontSize: 'var(--font-size-xs)', color: 'var(--color-text-light)', fontStyle: 'italic' }}>{lang === 'ja' ? 'データなし' : 'No data'}</div>;
                 return (
                   <>

@@ -229,7 +229,6 @@ export default function Layout({ children }: { children: React.ReactNode }) {
         })
         .filter(x => x.rate !== null)
         .sort((a, b) => a.rate! - b.rate!)
-        .slice(0, 3)
     : [];
 
   return (
