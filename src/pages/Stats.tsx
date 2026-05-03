@@ -33,6 +33,52 @@ type TagStat = {
   incorrectCount?: number;
 };
 
+type WeakQuestion = {
+  questionId: string;
+  questionText: string;
+  correctCount: number;
+  incorrectCount: number;
+};
+
+const ScoreLineChart = ({ sessions, passRate, lang }: { sessions: Session[]; passRate: number; lang: string }) => {
+  const W = 500, H = 170;
+  const padL = 30, padR = 36, padT = 20, padB = 28;
+  const chartW = W - padL - padR;
+  const chartH = H - padT - padB;
+  const n = sessions.length;
+  const xOf = (i: number) => padL + (n > 1 ? (i / (n - 1)) * chartW : chartW / 2);
+  const yOf = (score: number) => padT + chartH * (1 - score / 100);
+  const passY = yOf(passRate);
+  const linePoints = sessions.map((s, i) => `${xOf(i)},${yOf(s.score)}`).join(' ');
+  const gridScores = [0, 25, 50, 75, 100];
+  return (
+    <svg viewBox={`0 0 ${W} ${H}`} style={{ width: '100%', height: 'auto', display: 'block' }} role="img">
+      {gridScores.map(v => (
+        <g key={v}>
+          <line x1={padL} y1={yOf(v)} x2={W - padR} y2={yOf(v)} stroke="var(--color-border)" strokeWidth={0.7} />
+          <text x={padL - 4} y={yOf(v) + 3.5} fontSize={9} textAnchor="end" fill="var(--color-text-light)">{v}</text>
+        </g>
+      ))}
+      <line x1={padL} y1={passY} x2={W - padR} y2={passY} stroke="var(--color-primary)" strokeWidth={1.2} strokeDasharray="5 3" />
+      <text x={W - padR + 3} y={passY + 3.5} fontSize={9} fill="var(--color-primary)" fontWeight="700">{passRate}%</text>
+      {n > 1 && <polyline points={linePoints} fill="none" stroke="var(--color-primary)" strokeWidth={2} strokeOpacity={0.35} strokeLinejoin="round" />}
+      {sessions.map((s, i) => {
+        const cx = xOf(i), cy = yOf(s.score);
+        const color = s.isPassed ? 'var(--color-success)' : 'var(--color-danger)';
+        const d = new Date(s.endedAt || s.startedAt);
+        const label = `${d.getMonth() + 1}/${d.getDate()}`;
+        return (
+          <g key={s.sessionId}>
+            <circle cx={cx} cy={cy} r={5} fill={color} />
+            <text x={cx} y={cy - 8} textAnchor="middle" fontSize={9} fontWeight="700" fill={color}>{s.score}%</text>
+            <text x={cx} y={H - padB + 12} textAnchor="middle" fontSize={9} fill="var(--color-text-light)">{label}</text>
+          </g>
+        );
+      })}
+    </svg>
+  );
+};
+
 export default function Stats() {
   const { user } = useAuth();
   const { lang, t } = useLanguage();
@@ -45,6 +91,8 @@ export default function Stats() {
   const [showHint, setShowHint] = useState(() => !localStorage.getItem('sherpaStatsHint'));
   const [confirmDelete, setConfirmDelete] = useState<string | null>(null);
   const [deleting, setDeleting] = useState(false);
+  const [weakQuestions, setWeakQuestions] = useState<WeakQuestion[]>([]);
+  const [weakLoading, setWeakLoading] = useState(false);
 
   const fetchAll = useCallback(async () => {
     if (!user) return;
@@ -90,6 +138,16 @@ export default function Stats() {
   useEffect(() => {
     fetchAll();
   }, [fetchAll]);
+
+  useEffect(() => {
+    if (!user || !targetExam) { setWeakQuestions([]); return; }
+    setWeakLoading(true);
+    fetch(`${API_ENDPOINT}/users/me/weak-questions?userId=${user.userId}&examType=${targetExam}&minIncorrect=2`)
+      .then(r => r.json())
+      .then(d => setWeakQuestions(d.items ?? []))
+      .catch(() => setWeakQuestions([]))
+      .finally(() => setWeakLoading(false));
+  }, [user, targetExam]);
 
   const fmt = (iso: string) =>
     new Date(iso).toLocaleString(lang === 'en' ? 'en-US' : 'ja-JP', { month: 'numeric', day: 'numeric', hour: '2-digit', minute: '2-digit' });
@@ -294,29 +352,82 @@ export default function Stats() {
               if (etExams.length === 0) return null;
               const passRate = PASS_RATE[et];
               return (
-                <div key={et} style={{ marginBottom: 'var(--spacing-xl)' }}>
+                <div key={et} style={{ marginBottom: 'var(--spacing-lg)' }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--spacing-sm)', marginBottom: 'var(--spacing-md)' }}>
                     <Badge variant="secondary">{et}</Badge>
-                    <span style={{ fontSize: 'var(--font-size-xs)', color: 'var(--color-text-sub)' }}>{t('stats.passTarget')} {passRate}%</span>
+                    <span style={{ fontSize: 'var(--font-size-xs)', color: 'var(--color-text-sub)' }}>
+                      {lang === 'ja' ? `合格ライン ${passRate}%` : `Pass line ${passRate}%`}
+                    </span>
+                    <span style={{ fontSize: 'var(--font-size-xs)', color: 'var(--color-text-light)', marginLeft: 'auto' }}>
+                      {etExams.length}{lang === 'ja' ? '回' : ' attempts'}
+                    </span>
                   </div>
-                  <div style={{ display: 'flex', gap: 'var(--spacing-sm)', alignItems: 'flex-end', overflowX: 'auto', paddingBottom: 'var(--spacing-sm)' }}>
-                    {etExams.map((s, idx) => {
-                      const barHeight = Math.max(4, Math.round(s.score * 1.5));
-                      return (
-                        <div key={s.sessionId} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 6, flexShrink: 0 }}>
-                          <div style={{ fontSize: 'var(--font-size-xs)', fontWeight: 700, color: s.isPassed ? 'var(--color-success)' : 'var(--color-danger)' }}>{s.score}%</div>
-                          <div style={{ width: 32, height: barHeight, background: s.isPassed ? 'var(--color-success)' : 'var(--color-danger)', borderRadius: '2px 2px 0 0', opacity: 0.8 }} />
-                          <div style={{ fontSize: 10, color: 'var(--color-text-light)', whiteSpace: 'nowrap' }}>{t('stats.attempt')}{idx + 1}</div>
-                        </div>
-                      );
-                    })}
-                    <div style={{ marginLeft: 'var(--spacing-md)', display: 'flex', flexDirection: 'column', justifyContent: 'flex-end', paddingBottom: 24 }}>
-                      <div style={{ fontSize: 'var(--font-size-xs)', color: 'var(--color-primary)', fontWeight: 700, borderTop: '2px dashed var(--color-primary)', paddingTop: 4, whiteSpace: 'nowrap' }}>{t('stats.passTarget')} {passRate}%</div>
-                    </div>
-                  </div>
+                  <ScoreLineChart sessions={etExams} passRate={passRate} lang={lang} />
                 </div>
               );
             })}
+          </Card>
+        </>
+      )}
+
+      {/* 頻出ミス問題 */}
+      {!loading && targetExam && (
+        <>
+          <h3 style={{ fontSize: 'var(--font-size-h3)', fontWeight: 700, margin: '0 0 var(--spacing-md)', color: 'var(--color-text-sub)' }}>
+            {lang === 'ja' ? '頻出ミス問題' : 'Frequently Missed Questions'}
+          </h3>
+          <Card style={{ marginBottom: 'var(--spacing-xl)' }}>
+            {weakLoading ? (
+              <div style={{ display: 'flex', justifyContent: 'center', padding: '16px 0' }}>
+                <div className="sherpa-spinner" style={{ width: 24, height: 24, borderWidth: 2 }} />
+              </div>
+            ) : weakQuestions.length === 0 ? (
+              <div style={{ fontSize: 'var(--font-size-sm)', color: 'var(--color-text-light)', fontStyle: 'italic', padding: 'var(--spacing-sm) 0' }}>
+                {lang === 'ja' ? '2回以上間違えた問題はありません' : 'No questions missed 2 or more times'}
+              </div>
+            ) : (
+              <>
+                <div style={{ fontSize: 'var(--font-size-xs)', color: 'var(--color-text-light)', marginBottom: 'var(--spacing-md)' }}>
+                  {lang === 'ja' ? `2回以上間違えた問題 (${weakQuestions.length}問)` : `Questions missed 2+ times (${weakQuestions.length})`}
+                </div>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 0 }}>
+                  {weakQuestions.map((q, i) => {
+                    const total = q.correctCount + q.incorrectCount;
+                    const acc = total > 0 ? Math.round((q.correctCount / total) * 100) : 0;
+                    return (
+                      <div
+                        key={q.questionId}
+                        style={{
+                          display: 'grid',
+                          gridTemplateColumns: '1fr auto',
+                          alignItems: 'center',
+                          gap: 'var(--spacing-md)',
+                          padding: '10px 0',
+                          borderBottom: i < weakQuestions.length - 1 ? '1px solid var(--color-border)' : 'none',
+                        }}
+                      >
+                        <div style={{ display: 'flex', alignItems: 'flex-start', gap: 'var(--spacing-sm)', minWidth: 0 }}>
+                          <span style={{ fontSize: 11, fontWeight: 700, color: 'var(--color-text-light)', flexShrink: 0, paddingTop: 1, width: 20 }}>{i + 1}</span>
+                          <span style={{ fontSize: 'var(--font-size-sm)', color: 'var(--color-text-main)', lineHeight: 1.5, overflow: 'hidden', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical' }}>
+                            {q.questionText}
+                          </span>
+                        </div>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--spacing-md)', flexShrink: 0 }}>
+                          <div style={{ textAlign: 'right' }}>
+                            <div style={{ fontSize: 'var(--font-size-xs)', color: 'var(--color-danger)', fontWeight: 700 }}>
+                              ✕ {q.incorrectCount}
+                            </div>
+                            <div style={{ fontSize: 10, color: 'var(--color-text-light)' }}>
+                              {acc}%
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </>
+            )}
           </Card>
         </>
       )}
