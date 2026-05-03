@@ -462,11 +462,11 @@ export default function ExamSetup() {
             )}
           </div>
 
-          {/* 苦手ドメイン */}
+          {/* 苦手ドメインランキング */}
           {user && (
             <div style={{ marginTop: 'var(--spacing-lg)', paddingTop: 'var(--spacing-md)', borderTop: '1px solid var(--color-border)' }}>
               <div style={{ fontSize: 'var(--font-size-xs)', fontWeight: 700, color: 'var(--color-text-sub)', marginBottom: 'var(--spacing-xs)' }}>
-                {lang === 'ja' ? '苦手ドメイン' : 'Weakest Domains'}
+                {lang === 'ja' ? '苦手ドメインランキング' : 'Weakest Domain Ranking'}
               </div>
               {answeredCount === null ? (
                 <div style={{ fontSize: 'var(--font-size-xs)', color: 'var(--color-text-light)' }}>...</div>
@@ -475,7 +475,7 @@ export default function ExamSetup() {
                   {lang === 'ja' ? `回答数が足りません（${answeredCount}問）` : `Not enough answers (${answeredCount} answered)`}
                 </div>
               ) : (() => {
-                const ranked = EXAM_DOMAINS[examType]
+                const sorted = EXAM_DOMAINS[examType]
                   .map(d => {
                     const s = domainStats.find(x => x.tagId === d);
                     const correct = s?.correctCount ?? 0;
@@ -486,16 +486,26 @@ export default function ExamSetup() {
                   })
                   .filter(x => x.rate !== null)
                   .sort((a, b) => a.rate! - b.rate!);
-                if (ranked.length === 0) return <div style={{ fontSize: 'var(--font-size-xs)', color: 'var(--color-text-light)', fontStyle: 'italic' }}>{lang === 'ja' ? 'データなし' : 'No data'}</div>;
+                if (sorted.length === 0) return <div style={{ fontSize: 'var(--font-size-xs)', color: 'var(--color-text-light)', fontStyle: 'italic' }}>{lang === 'ja' ? 'データなし' : 'No data'}</div>;
+                const base = sorted.slice(0, 3);
+                const cutoff = base[base.length - 1].rate;
+                const top3 = [...base, ...sorted.slice(3).filter(x => x.rate === cutoff)];
+                let rankNum = 1;
+                const withRanks = top3.map((item, i) => {
+                  if (i > 0 && item.rate !== top3[i - 1].rate) rankNum = i + 1;
+                  return { ...item, rankNum };
+                });
+                const rateColor = (r: number) =>
+                  r < 0.50 ? 'var(--color-danger)' : r < 0.65 ? 'var(--color-accent)' : 'var(--color-text-sub)';
                 return (
                   <>
-                    {ranked.map(({ d, rate }, i) => (
+                    {withRanks.map(({ d, rate, rankNum: rn }) => (
                       <div key={d} style={{ display: 'flex', alignItems: 'center', gap: 'var(--spacing-sm)', marginBottom: 4 }}>
-                        <span style={{ fontSize: 11, fontWeight: 700, color: 'var(--color-text-light)', width: 14, flexShrink: 0 }}>{i + 1}</span>
+                        <span style={{ fontSize: 11, fontWeight: 700, color: 'var(--color-text-light)', width: 14, flexShrink: 0 }}>{rn}</span>
                         <span style={{ fontSize: 'var(--font-size-xs)', color: 'var(--color-text-main)', flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                           {lang === 'en' ? (DOMAIN_NAME_EN[d] ?? d) : d}
                         </span>
-                        <span style={{ fontSize: 'var(--font-size-xs)', fontWeight: 700, color: 'var(--color-danger)', flexShrink: 0 }}>
+                        <span style={{ fontSize: 'var(--font-size-xs)', fontWeight: 700, color: rateColor(rate!), flexShrink: 0 }}>
                           {Math.round(rate! * 100)}%
                         </span>
                       </div>

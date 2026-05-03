@@ -115,7 +115,6 @@ export default function ExerciseSetup() {
 
   useEffect(() => {
     setAvailableCount(null);
-    setAnsweredCount(null);
 
     const fetchCounts = async () => {
       if (selectedDomains.length === 0) { setAvailableCount(0); return; }
@@ -153,21 +152,20 @@ export default function ExerciseSetup() {
     };
 
     fetchCounts();
-
-    if (user) {
-      fetch(`${API_ENDPOINT}/users/me/question-stats?userId=${user.userId}&examType=${examType}`)
-        .then(r => r.json())
-        .then(d => setAnsweredCount(d.answeredCount ?? 0))
-        .catch(() => setAnsweredCount(0));
-      fetch(`${API_ENDPOINT}/users/me/stats?userId=${user.userId}`)
-        .then(r => r.json())
-        .then(d => setDomainStats(d.stats ?? []))
-        .catch(() => setDomainStats([]));
-    } else {
-      setAnsweredCount(0);
-      setDomainStats([]);
-    }
   }, [examType, selectedDomains, user, bookmarkOnly, unansweredOnly, incorrectOnly]);
+
+  useEffect(() => {
+    if (!user) { setAnsweredCount(0); setDomainStats([]); return; }
+    setAnsweredCount(null);
+    fetch(`${API_ENDPOINT}/users/me/question-stats?userId=${user.userId}&examType=${examType}`)
+      .then(r => r.json())
+      .then(d => setAnsweredCount(d.answeredCount ?? 0))
+      .catch(() => setAnsweredCount(0));
+    fetch(`${API_ENDPOINT}/users/me/stats?userId=${user.userId}`)
+      .then(r => r.json())
+      .then(d => setDomainStats(d.stats ?? []))
+      .catch(() => setDomainStats([]));
+  }, [examType, user]);
 
   const resumeSession = () => {
     if (!exerciseDraft) return;
@@ -446,11 +444,11 @@ export default function ExerciseSetup() {
             )}
           </div>
 
-          {/* 苦手ドメイン */}
+          {/* 苦手ドメインランキング */}
           {user && (
             <div style={{ marginTop: 'var(--spacing-lg)', paddingTop: 'var(--spacing-md)', borderTop: '1px solid var(--color-border)' }}>
               <div style={{ fontSize: 'var(--font-size-xs)', fontWeight: 700, color: 'var(--color-text-sub)', marginBottom: 'var(--spacing-xs)' }}>
-                {lang === 'ja' ? '苦手ドメイン' : 'Weakest Domains'}
+                {lang === 'ja' ? '苦手ドメインランキング' : 'Weakest Domain Ranking'}
               </div>
               {answeredCount === null ? (
                 <div style={{ fontSize: 'var(--font-size-xs)', color: 'var(--color-text-light)' }}>...</div>
@@ -459,7 +457,7 @@ export default function ExerciseSetup() {
                   {lang === 'ja' ? `回答数が足りません（${answeredCount}問）` : `Not enough answers (${answeredCount} answered)`}
                 </div>
               ) : (() => {
-                const ranked = EXAM_DOMAINS[examType]
+                const sorted = EXAM_DOMAINS[examType]
                   .map(d => {
                     const s = domainStats.find(x => x.tagId === d);
                     const correct = s?.correctCount ?? 0;
@@ -470,16 +468,26 @@ export default function ExerciseSetup() {
                   })
                   .filter(x => x.rate !== null)
                   .sort((a, b) => a.rate! - b.rate!);
-                if (ranked.length === 0) return <div style={{ fontSize: 'var(--font-size-xs)', color: 'var(--color-text-light)', fontStyle: 'italic' }}>{lang === 'ja' ? 'データなし' : 'No data'}</div>;
+                if (sorted.length === 0) return <div style={{ fontSize: 'var(--font-size-xs)', color: 'var(--color-text-light)', fontStyle: 'italic' }}>{lang === 'ja' ? 'データなし' : 'No data'}</div>;
+                const base = sorted.slice(0, 3);
+                const cutoff = base[base.length - 1].rate;
+                const top3 = [...base, ...sorted.slice(3).filter(x => x.rate === cutoff)];
+                let rankNum = 1;
+                const withRanks = top3.map((item, i) => {
+                  if (i > 0 && item.rate !== top3[i - 1].rate) rankNum = i + 1;
+                  return { ...item, rankNum };
+                });
+                const rateColor = (r: number) =>
+                  r < 0.50 ? 'var(--color-danger)' : r < 0.65 ? 'var(--color-accent)' : 'var(--color-text-sub)';
                 return (
                   <>
-                    {ranked.map(({ d, rate }, i) => (
+                    {withRanks.map(({ d, rate, rankNum: rn }) => (
                       <div key={d} style={{ display: 'flex', alignItems: 'center', gap: 'var(--spacing-sm)', marginBottom: 4 }}>
-                        <span style={{ fontSize: 11, fontWeight: 700, color: 'var(--color-text-light)', width: 14, flexShrink: 0 }}>{i + 1}</span>
+                        <span style={{ fontSize: 11, fontWeight: 700, color: 'var(--color-text-light)', width: 14, flexShrink: 0 }}>{rn}</span>
                         <span style={{ fontSize: 'var(--font-size-xs)', color: 'var(--color-text-main)', flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                           {lang === 'en' ? (DOMAIN_NAME_EN[d] ?? d) : d}
                         </span>
-                        <span style={{ fontSize: 'var(--font-size-xs)', fontWeight: 700, color: 'var(--color-danger)', flexShrink: 0 }}>
+                        <span style={{ fontSize: 'var(--font-size-xs)', fontWeight: 700, color: rateColor(rate!), flexShrink: 0 }}>
                           {Math.round(rate! * 100)}%
                         </span>
                       </div>
