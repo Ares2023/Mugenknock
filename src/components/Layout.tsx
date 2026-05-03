@@ -145,7 +145,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
       setAccountAnsweredCount(qStats.answeredCount ?? 0);
       setAccountDomainStats(stats.stats ?? []);
       setAccountExamSessions(
-        (sessions.items ?? []).filter((s: any) => s.examType === et && s.mode === 'exam').slice(0, 5)
+        (sessions.items ?? []).filter((s: any) => s.examType === et && s.mode === 'exam').slice(0, 3)
       );
     });
   }, [accountOpen, user, targetExam]);

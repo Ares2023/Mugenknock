@@ -426,7 +426,7 @@ export default function ExamSetup() {
               </div>
             ) : (
               <div>
-                {examSessions.map(s => {
+                {examSessions.slice(0, 3).map(s => {
                   const d = new Date(s.startedAt);
                   const dateStr = `${d.getMonth() + 1}/${d.getDate()}`;
                   return (
