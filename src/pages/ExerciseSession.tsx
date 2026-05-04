@@ -473,7 +473,7 @@ export default function ExerciseSession() {
                 borderColor: selectedAnswers.includes(choice) ? 'var(--color-primary)' : 'var(--color-text-main)',
                 flexShrink: 0
               }}>
-                {selectedAnswers.includes(choice) && <span style={{ width: 6, height: 6, borderRadius: '50%', background: 'white' }} />}
+                {selectedAnswers.includes(choice) && <span style={{ width: 6, height: 6, borderRadius: '50%', background: 'var(--color-on-primary)' }} />}
               </span>
               <span style={{ flex: 1, minWidth: 0, overflowWrap: 'break-word', wordBreak: 'break-word' }}>{choice}</span>
             </button>

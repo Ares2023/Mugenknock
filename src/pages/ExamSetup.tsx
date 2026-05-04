@@ -13,7 +13,7 @@ const StepBadge = ({ n, optional = false }: { n: number; optional?: boolean }) =
     display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
     width: 20, height: 20, borderRadius: '50%', flexShrink: 0,
     background: 'var(--color-primary)',
-    color: 'white',
+    color: 'var(--color-on-primary)',
     fontSize: 11, fontWeight: 700,
   }}>{n}</span>
 );

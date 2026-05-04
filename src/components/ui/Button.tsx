@@ -21,7 +21,7 @@ const Button: React.FC<ButtonProps> = ({
       case 'primary':
         return {
           backgroundColor: 'var(--color-primary)',
-          color: 'var(--color-bg-white)',
+          color: 'var(--color-on-primary)',
           border: '1px solid var(--color-primary)',
         };
       case 'outline':
@@ -33,13 +33,13 @@ const Button: React.FC<ButtonProps> = ({
       case 'danger':
         return {
           backgroundColor: 'var(--color-danger)',
-          color: 'var(--color-bg-white)',
+          color: 'var(--color-on-danger)',
           border: '1px solid var(--color-danger)',
         };
       default:
         return {
           backgroundColor: 'var(--color-primary)',
-          color: 'var(--color-bg-white)',
+          color: 'var(--color-on-primary)',
           border: '1px solid var(--color-primary)',
         };
     }

@@ -344,7 +344,7 @@ export default function ExamSession() {
                   borderColor: isSelected ? 'var(--color-primary)' : 'var(--color-text-main)',
                   flexShrink: 0
                 }}>
-                  {isSelected && <span style={{ width: 6, height: 6, borderRadius: '50%', background: 'white' }} />}
+                  {isSelected && <span style={{ width: 6, height: 6, borderRadius: '50%', background: 'var(--color-on-primary)' }} />}
                 </span>
                 <span style={{ flex: 1, minWidth: 0, overflowWrap: 'break-word', wordBreak: 'break-word' }}>{choice}</span>
               </button>

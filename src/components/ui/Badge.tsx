@@ -10,7 +10,7 @@ const Badge: React.FC<BadgeProps> = ({ children, variant = 'neutral', style }) =
   const getVariantStyle = (): React.CSSProperties => {
     switch (variant) {
       case 'primary':
-        return { backgroundColor: 'var(--color-primary)', color: 'white' };
+        return { backgroundColor: 'var(--color-primary)', color: 'var(--color-on-primary)' };
       case 'secondary':
         return { backgroundColor: 'var(--color-secondary)', color: 'white' };
       case 'outline':
