@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { useLocation } from 'react-router-dom';
 import { API_ENDPOINT, EXAM_TYPES } from '../constants';
 import { useAuth } from '../contexts/AuthContext';
@@ -63,6 +63,7 @@ export default function QuestionList() {
 
   // フィルター状態
   const [examTypes, setExamTypes] = useState<string[]>([]);
+  const [domainFilter, setDomainFilter] = useState<string[]>([]);
   const [bookmarkOnly, setBookmarkOnly] = useState(false);
   const [filterUnanswered, setFilterUnanswered] = useState(false);
   const [filterIncorrect, setFilterIncorrect] = useState(false);
@@ -73,6 +74,11 @@ export default function QuestionList() {
   const [bookmarkLoading, setBookmarkLoading] = useState<Set<string>>(new Set());
   const [answeredIds, setAnsweredIds] = useState<Set<string>>(new Set());
   const [incorrectIds, setIncorrectIds] = useState<Set<string>>(new Set());
+
+  const availableDomains = useMemo(
+    () => Array.from(new Set(questions.flatMap(q => q.tags ?? []))).sort((a, b) => a.localeCompare(b, 'ja')),
+    [questions]
+  );
 
   const filterRef = useRef<HTMLDivElement>(null);
 
@@ -135,6 +141,7 @@ export default function QuestionList() {
     setKeywordChips(kw ? [kw] : []);
     setKeywordInput('');
     setExamTypes([]);
+    setDomainFilter([]);
     setBookmarkOnly(false);
     setFilterUnanswered(false);
     setFilterIncorrect(false);
@@ -254,8 +261,15 @@ export default function QuestionList() {
     URL.revokeObjectURL(url);
   };
 
+  const toggleDomain = (domain: string) => {
+    setDomainFilter(prev =>
+      prev.includes(domain) ? prev.filter(d => d !== domain) : [...prev, domain]
+    );
+  };
+
   const activeFilterCount =
     (examTypes.length > 0 ? 1 : 0) +
+    (domainFilter.length > 0 ? 1 : 0) +
     (filterUnanswered ? 1 : 0) +
     (filterIncorrect ? 1 : 0) +
     (bookmarkOnly ? 1 : 0);
@@ -269,6 +283,7 @@ export default function QuestionList() {
 
   const displayedQuestions = questions.filter(q => {
     if (keywordChips.length > 0 && !keywordChips.every(chip => matchesKeyword(q, chip))) return false;
+    if (domainFilter.length > 0 && !q.tags.some(tag => domainFilter.includes(tag))) return false;
     if (filterUnanswered && answeredIds.has(q.questionId)) return false;
     if (filterIncorrect && !incorrectIds.has(q.questionId)) return false;
     if (bookmarkOnly && !bookmarkedIds.has(q.questionId)) return false;
@@ -279,6 +294,7 @@ export default function QuestionList() {
     setKeywordChips([]);
     setKeywordInput('');
     setExamTypes([]);
+    setDomainFilter([]);
     setBookmarkOnly(false);
     setFilterUnanswered(false);
     setFilterIncorrect(false);
@@ -367,7 +383,8 @@ export default function QuestionList() {
                 borderRadius: 6,
                 boxShadow: '0 4px 16px rgba(0,0,0,0.12)',
                 zIndex: 200,
-                minWidth: 220,
+                minWidth: 260,
+                maxWidth: 340,
                 padding: '14px 16px',
               }}>
                 {/* 試験種別 */}
@@ -385,6 +402,24 @@ export default function QuestionList() {
                     </label>
                   ))}
                 </div>
+
+                {/* ドメイン */}
+                {availableDomains.length > 0 && (
+                  <div style={{ marginBottom: 14, borderTop: '1px solid var(--color-border)', paddingTop: 12 }}>
+                    <div style={secLabel}>{lang === 'ja' ? 'ドメイン' : 'Domain'}</div>
+                    {availableDomains.map(domain => (
+                      <label key={domain} style={checkRow}>
+                        <input
+                          type="checkbox"
+                          checked={domainFilter.includes(domain)}
+                          onChange={() => toggleDomain(domain)}
+                          style={{ width: 15, height: 15, cursor: 'pointer', accentColor: 'var(--color-primary)', flexShrink: 0 }}
+                        />
+                        <span style={{ lineHeight: 1.4 }}>{domain}</span>
+                      </label>
+                    ))}
+                  </div>
+                )}
 
                 {/* 回答状況・ブックマーク（要ログイン） */}
                 {user ? (
@@ -474,6 +509,12 @@ export default function QuestionList() {
               <span key={type} style={{ display: 'inline-flex', alignItems: 'center', gap: 3, background: 'var(--color-primary-light)', color: 'var(--color-primary)', borderRadius: 20, padding: '3px 8px 3px 11px', fontSize: 12, fontWeight: 700 }}>
                 {type}
                 <button onClick={() => toggleExamType(type)} style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: 13, color: 'var(--color-primary)', padding: '0 0 0 2px', lineHeight: 1 }}>✕</button>
+              </span>
+            ))}
+            {domainFilter.map(domain => (
+              <span key={domain} style={{ display: 'inline-flex', alignItems: 'center', gap: 3, background: 'var(--color-primary-light)', color: 'var(--color-primary)', borderRadius: 20, padding: '3px 8px 3px 11px', fontSize: 12, fontWeight: 700 }}>
+                {domain}
+                <button onClick={() => toggleDomain(domain)} style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: 13, color: 'var(--color-primary)', padding: '0 0 0 2px', lineHeight: 1 }}>✕</button>
               </span>
             ))}
             {filterUnanswered && (

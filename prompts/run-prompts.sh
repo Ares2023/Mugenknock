@@ -66,7 +66,7 @@ EOF
 get_next_time() {
   local next_info=$(systemctl --user list-timers "${UNIT_NAME}.timer" --all --no-legend)
   if [ -n "$next_info" ]; then
-    echo "$next_info" | awk '{print $2, $3}'
+    echo "$next_info" | awk 'NR==1{ if ($2 ~ /^[0-9]{4}-/) print $2, $3; else print "" }'
   else
     echo ""
   fi
@@ -98,7 +98,7 @@ show_status() {
   local last raw_next next_time left=""
   last=$(cat "$LAST_RUN_FILE" 2>/dev/null || echo "never")
   raw_next=$(systemctl --user list-timers "${UNIT_NAME}.timer" --all --no-legend 2>/dev/null \
-             | awk 'NR==1{print $2, $3}')
+             | awk 'NR==1{ if ($2 ~ /^[0-9]{4}-/) print $2, $3; else print "" }')
   next_time="$raw_next"
   if [ -n "$next_time" ]; then
     left=$(python3 - "$next_time" << 'PYEOF'
@@ -118,7 +118,28 @@ PYEOF
 )
     [ -n "$left" ] && next_time="$next_time  ($left)"
   else
-    next_time="none"
+    # タイマー未設定: サービス実行中なら推定次回時刻を表示
+    if systemctl --user is-active "${UNIT_NAME}.service" --quiet 2>/dev/null; then
+      local projected
+      projected=$(python3 - "$last" << 'PYEOF'
+import sys
+from datetime import datetime, timedelta
+last_str = (sys.argv[1] if len(sys.argv) > 1 else "").strip()
+try:
+    last = datetime.strptime(last_str, "%Y-%m-%d %H:%M:%S")
+    base = last.replace(minute=(last.minute // 10) * 10, second=0, microsecond=0)
+    print((base + timedelta(hours=5, minutes=2)).strftime('%Y-%m-%d %H:%M:00'))
+except: pass
+PYEOF
+)
+      if [ -n "$projected" ]; then
+        next_time="(実行中) → ${projected} 予定"
+      else
+        next_time="(実行中) → スケジュール待ち"
+      fi
+    else
+      next_time="none"
+    fi
   fi
   printf "last  %s\nnext  %s\n" "$last" "$next_time"
   [ -f "$SKIP_HOOKS_FILE" ] && echo "skip  ON  (次回フックをスキップ)"
@@ -139,7 +160,7 @@ PYEOF
 show_tonight() {
   local raw_next last_run
   raw_next=$(systemctl --user list-timers "${UNIT_NAME}.timer" --all --no-legend 2>/dev/null \
-             | awk 'NR==1{print $2, $3}')
+             | awk 'NR==1{ if ($2 ~ /^[0-9]{4}-/) print $2, $3; else print "" }')
   last_run=$(cat "$LAST_RUN_FILE" 2>/dev/null || echo "")
 
   python3 - "$raw_next" "$last_run" << 'PYEOF'
@@ -171,8 +192,8 @@ if cur is None:
 if cur is None:
     cur = now.replace(second=0, microsecond=0) + timedelta(minutes=5)
 
-# 夜間ウィンドウ: 0:00-11:59 (夜間初回実行と同じ条件)
-NIGHT_START, NIGHT_END = 0, 12
+# 夜間ウィンドウ: 0:00-6:59 (夜間初回実行と同じ条件)
+NIGHT_START, NIGHT_END = 0, 7
 
 results = []
 seen = set()
@@ -213,6 +234,8 @@ stop_hook_timers() {
   local limit=$(( n > 20 ? n + 2 : 22 ))
   for (( i=0; i<limit; i++ )); do
     systemctl --user stop         "${HOOK_PREFIX}-${i}.timer"       2>/dev/null || true
+    systemctl --user stop         "${HOOK_PREFIX}-${i}.service"     2>/dev/null || true
+    systemctl --user reset-failed "${HOOK_PREFIX}-${i}.service"     2>/dev/null || true
     systemctl --user stop         "${HOOK_PREFIX}-reg-${i}.timer"   2>/dev/null || true
     systemctl --user stop         "${HOOK_PREFIX}-reg-${i}.service" 2>/dev/null || true
     systemctl --user reset-failed "${HOOK_PREFIX}-reg-${i}.service" 2>/dev/null || true
@@ -231,8 +254,8 @@ _setup_cycle_timer() {
   local _tmr_tmp="${_ud}/${UNIT_NAME}.timer.tmp"
   mkdir -p "$_ud"
 
-  # サービスユニット (初回のみ作成)
-  if [ ! -f "$_svc" ]; then
+  # サービスユニット (初回 or ExecStopPost 未設定なら更新)
+  if [ ! -f "$_svc" ] || ! grep -q 'ExecStopPost' "$_svc" 2>/dev/null; then
     cat > "$_svc" << EOF
 [Unit]
 Description=Claude Cycle
@@ -240,6 +263,7 @@ Description=Claude Cycle
 [Service]
 Type=oneshot
 ExecStart=${SCRIPT_DIR}/run-prompts.sh --run
+ExecStopPost=/bin/bash -c 'sleep 15 && ${SCRIPT_DIR}/run-prompts.sh --recover'
 StandardOutput=journal
 StandardError=journal
 EOF
@@ -264,9 +288,11 @@ EOF
     -- bash -c "mv '${_tmr_tmp}' '${_tmr}'; \
                 systemctl --user daemon-reload; \
                 systemctl --user stop '${UNIT_NAME}.timer' 2>/dev/null || true; \
-                systemctl --user start '${UNIT_NAME}.timer' \
-                  || echo \"\$(date '+%Y-%m-%d %H:%M:%S') ❌ タイマー登録失敗: ${target_time}\" \
-                     >> '${LOG_DIR}/schedule_errors.log'"
+                if ! systemctl --user start '${UNIT_NAME}.timer' 2>/dev/null; then \
+                  sleep 3 && systemctl --user daemon-reload && systemctl --user start '${UNIT_NAME}.timer'; \
+                fi \
+                || echo \"\$(date '+%Y-%m-%d %H:%M:%S') ❌ タイマー登録失敗: ${target_time}\" \
+                   >> '${LOG_DIR}/schedule_errors.log'"
 }
 
 # ── 次の実行時刻を予約する ───────────────────────────────────
@@ -432,7 +458,9 @@ EOF
       systemctl --user stop         "${HOOK_PREFIX}-reg-${idx}.service" 2>/dev/null || true
       systemctl --user reset-failed "${HOOK_PREFIX}-reg-${idx}.service" 2>/dev/null || true
       systemd-run --user --collect --unit="${HOOK_PREFIX}-reg-${idx}" --on-active=$(( 8 + idx )) \
-        -- bash -c "systemctl --user reset-failed '${unit}.service' 2>/dev/null || true; \
+        -- bash -c "systemctl --user stop         '${unit}.timer'   2>/dev/null || true; \
+                    systemctl --user stop         '${unit}.service' 2>/dev/null || true; \
+                    systemctl --user reset-failed '${unit}.service' 2>/dev/null || true; \
                     systemd-run --user --collect --unit='${unit}' --on-calendar='${hook_time}' \
                       --description='Claude Hook ${idx}' bash '${hook_script}'"
     else
@@ -547,7 +575,7 @@ run_main() {
       if [ $is_rate_limited -eq 0 ]; then
         TODAY=$(date +%Y-%m-%d)
         HOUR=$(date +%-H)
-        if [ "$TODAY" != "$(cat "$SCRIPT_DIR/.last_run_date" 2>/dev/null)" ] && [ "$HOUR" -lt 12 ]; then
+        if [ "$TODAY" != "$(cat "$SCRIPT_DIR/.last_run_date" 2>/dev/null)" ] && [ "$HOUR" -lt 7 ]; then
           echo "🌙 夜間初回実行を開始します ($(date '+%H:%M'))"
 
           # 1. シェルスクリプト
@@ -780,7 +808,7 @@ PYEOF
     _sign=""; [ "$HOOK_OFFSET" -gt 0 ] && _sign="+"
     echo "hook 追加: ${_sign}${HOOK_OFFSET}分  $HOOK_CMD"
     _raw_next=$(systemctl --user list-timers "${UNIT_NAME}.timer" --all --no-legend 2>/dev/null \
-                | awk 'NR==1{print $2, $3}')
+                | awk 'NR==1{ if ($2 ~ /^[0-9]{4}-/) print $2, $3; else print "" }')
     if [ -n "$_raw_next" ]; then
       schedule_hooks "$_raw_next"
     else
@@ -792,7 +820,7 @@ PYEOF
       echo "フック未登録"
     else
       _raw_next=$(systemctl --user list-timers "${UNIT_NAME}.timer" --all --no-legend 2>/dev/null \
-                  | awk 'NR==1{print $2, $3}')
+                  | awk 'NR==1{ if ($2 ~ /^[0-9]{4}-/) print $2, $3; else print "" }')
       _idx=0
       while IFS='|' read -r offset cmd; do
         [ -z "$cmd" ] && { _idx=$(( _idx + 1 )); continue; }
@@ -829,7 +857,7 @@ PYEOF
     # 全タイマーを停止し、残りフックを新インデックスで再登録
     stop_hook_timers
     _raw_next=$(systemctl --user list-timers "${UNIT_NAME}.timer" --all --no-legend 2>/dev/null \
-                | awk 'NR==1{print $2, $3}')
+                | awk 'NR==1{ if ($2 ~ /^[0-9]{4}-/) print $2, $3; else print "" }')
     [ -n "$_raw_next" ] && schedule_hooks "$_raw_next"
     ;;
   hook-mv)
@@ -855,7 +883,7 @@ PYEOF
     # 全タイマーを停止し、新インデックスで再登録
     stop_hook_timers
     _raw_next=$(systemctl --user list-timers "${UNIT_NAME}.timer" --all --no-legend 2>/dev/null \
-                | awk 'NR==1{print $2, $3}')
+                | awk 'NR==1{ if ($2 ~ /^[0-9]{4}-/) print $2, $3; else print "" }')
     [ -n "$_raw_next" ] && schedule_hooks "$_raw_next"
     ;;
   log)
