@@ -1,6 +1,6 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { useLocation } from 'react-router-dom';
-import { API_ENDPOINT, EXAM_TYPES } from '../constants';
+import { API_ENDPOINT, EXAM_DOMAINS, EXAM_TYPES } from '../constants';
 import { useAuth } from '../contexts/AuthContext';
 import { useLanguage } from '../contexts/LanguageContext';
 import Card from '../components/ui/Card';
@@ -75,10 +75,12 @@ export default function QuestionList() {
   const [answeredIds, setAnsweredIds] = useState<Set<string>>(new Set());
   const [incorrectIds, setIncorrectIds] = useState<Set<string>>(new Set());
 
-  const availableDomains = useMemo(
-    () => Array.from(new Set(questions.flatMap(q => q.tags ?? []))).sort((a, b) => a.localeCompare(b, 'ja')),
-    [questions]
-  );
+  const availableDomains = useMemo(() => {
+    if (examTypes.length === 0) {
+      return Array.from(new Set(Object.values(EXAM_DOMAINS).flat()));
+    }
+    return Array.from(new Set(examTypes.flatMap(t => EXAM_DOMAINS[t] ?? [])));
+  }, [examTypes]);
 
   const filterRef = useRef<HTMLDivElement>(null);
 
