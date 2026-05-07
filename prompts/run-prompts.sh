@@ -508,8 +508,14 @@ run_main() {
       local file="$1"
       local _t0=$(date +%s)
       echo "▶ [ai-router] $(basename "$file")"
+      local _cb
+      _cb=$(
+        { _p=/home/yuzuki/.npm-global/lib/node_modules/@anthropic-ai/claude-code/bin/claude.exe; [ -x "$_p" ] && echo "$_p"; } ||
+        { _cv=$(command -v claude 2>/dev/null); [ -n "$_cv" ] && [ -x "$_cv" ] && echo "$_cv"; }
+      ) || true
+      if [ -z "${_cb:-}" ]; then echo "❌ claude コマンドが見つかりません" >&2; return 1; fi
       local output
-      output=$(ai "$(cat "$file")" 2>&1)
+      output=$("$_cb" -p < "$file" 2>&1)
       local ec=$?
       printf "  → %ds\n" "$(( $(date +%s) - _t0 ))"
       echo "$output"
