@@ -128,7 +128,7 @@ last_str = (sys.argv[1] if len(sys.argv) > 1 else "").strip()
 try:
     last = datetime.strptime(last_str, "%Y-%m-%d %H:%M:%S")
     base = last.replace(minute=(last.minute // 10) * 10, second=0, microsecond=0)
-    print((base + timedelta(hours=5, minutes=2)).strftime('%Y-%m-%d %H:%M:00'))
+    print((base + timedelta(hours=5)).strftime('%Y-%m-%d %H:%M:00'))
 except: pass
 PYEOF
 )
@@ -182,7 +182,7 @@ def parse_dt(s):
 
 def next_cycle(t):
     base = t.replace(minute=(t.minute // 10) * 10, second=0, microsecond=0)
-    return base + timedelta(hours=5, minutes=2)
+    return base + timedelta(hours=5)
 
 cur = parse_dt(raw_next)
 if cur is None:
@@ -372,7 +372,7 @@ try:
     else:
         base = datetime.now(JST).replace(tzinfo=None)
     base_time = base.replace(minute=(base.minute // 10) * 10, second=0, microsecond=0)
-    next_run = base_time + timedelta(hours=5, minutes=2)
+    next_run = base_time + timedelta(hours=5)
     print(next_run.strftime('%Y-%m-%d %H:%M:00'))
 except Exception:
     now = datetime.now(JST).replace(tzinfo=None)
@@ -661,7 +661,11 @@ run_main() {
 
   if [ $is_rate_limited -eq 1 ]; then
     log_history "LIMIT  " "${_es} | reset:${extracted_reset_time:-不明} | ${_detail}" || true
-    schedule_next "$([ -n "$extracted_reset_time" ] && echo "reset" || echo "retry")" "$extracted_reset_time"
+    if [ -n "$extracted_reset_time" ]; then
+      schedule_next "reset" "$extracted_reset_time"
+    else
+      schedule_next "cycle" "" "$_run_start"
+    fi
   else
     log_history "SUCCESS" "${_es} | ${_detail}" || true
     schedule_next "cycle" "" "$_run_start"
@@ -688,7 +692,7 @@ try:
     if last_str:
         last = datetime.strptime(last_str, "%Y-%m-%d %H:%M:%S")
         base = last.replace(minute=(last.minute // 10) * 10, second=0, microsecond=0)
-        nxt = base + timedelta(hours=5, minutes=2)
+        nxt = base + timedelta(hours=5)
         if nxt <= now:
             nxt = now.replace(second=0, microsecond=0) + timedelta(minutes=2)
     else:

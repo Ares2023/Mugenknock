@@ -63,6 +63,28 @@ function shuffle(array) {
   return array;
 }
 
+async function scanAll(docClient, params) {
+  const items = [];
+  let lastKey;
+  do {
+    const result = await docClient.send(new ScanCommand({ ...params, ...(lastKey ? { ExclusiveStartKey: lastKey } : {}) }));
+    items.push(...(result.Items || []));
+    lastKey = result.LastEvaluatedKey;
+  } while (lastKey);
+  return items;
+}
+
+async function queryAll(docClient, params) {
+  const items = [];
+  let lastKey;
+  do {
+    const result = await docClient.send(new QueryCommand({ ...params, ...(lastKey ? { ExclusiveStartKey: lastKey } : {}) }));
+    items.push(...(result.Items || []));
+    lastKey = result.LastEvaluatedKey;
+  } while (lastKey);
+  return items;
+}
+
 // ヘルスチェック
 app.get('/health', (req, res) => {
   res.json({ status: 'ok' });
@@ -89,21 +111,19 @@ app.get('/questions', async (req, res) => {
       // tagId指定時もexamTypeで絞り込み可能
       if (examType) items = items.filter(q => q.examType === examType);
     } else if (examType) {
-      const result = await docClient.send(new QueryCommand({
+      items = await queryAll(docClient, {
         TableName: 'Questions',
         IndexName: 'examType-index',
         KeyConditionExpression: 'examType = :examType',
         ExpressionAttributeValues: { ':examType': examType }
-      }));
-      items = result.Items;
+      });
     } else {
-      const result = await docClient.send(new ScanCommand({ TableName: 'Questions' }));
-      items = result.Items;
+      items = await scanAll(docClient, { TableName: 'Questions' });
     }
 
     if (domain) {
       const domainList = domain.split(',').map(d => d.trim()).filter(Boolean);
-      items = items.filter(q => domainList.includes(q.domain));
+      items = items.filter(q => (q.tags || []).some(t => domainList.includes(t)));
     }
     if (keyword) {
       const kw = keyword.toLowerCase();
@@ -349,12 +369,12 @@ app.get('/admin/questions/flagged', async (req, res) => {
       scanParams.FilterExpression = 'attribute_exists(validityCheckedAt)';
     }
 
-    const [checkedResult, totalResult] = await Promise.all([
-      docClient.send(new ScanCommand(scanParams)),
+    const [checkedItems, totalResult] = await Promise.all([
+      scanAll(docClient, scanParams),
       docClient.send(new ScanCommand({ TableName: 'Questions', Select: 'COUNT' })),
     ]);
 
-    const items = (checkedResult.Items || []).sort((a, b) => (a.validityRating || 9) - (b.validityRating || 9));
+    const items = checkedItems.sort((a, b) => (a.validityRating || 9) - (b.validityRating || 9));
     res.json({ items, count: items.length, totalCount: totalResult.Count || 0 });
   } catch (err) {
     console.error(err);
@@ -433,22 +453,20 @@ app.get('/admin/questions', async (req, res) => {
     let items = [];
 
     if (examType && examType !== 'ALL') {
-      const result = await docClient.send(new QueryCommand({
+      items = await queryAll(docClient, {
         TableName: 'Questions',
         IndexName: 'examType-index',
         KeyConditionExpression: 'examType = :examType',
         ExpressionAttributeValues: { ':examType': examType }
-      }));
-      items = result.Items || [];
+      });
     } else {
-      const result = await docClient.send(new ScanCommand({ TableName: 'Questions' }));
-      items = result.Items || [];
+      items = await scanAll(docClient, { TableName: 'Questions' });
     }
 
     if (tag) items = items.filter(q => (q.tags || []).includes(tag));
     if (domain) {
       const domainList = domain.split(',').map(d => d.trim()).filter(Boolean);
-      items = items.filter(q => domainList.includes(q.domain));
+      items = items.filter(q => (q.tags || []).some(t => domainList.includes(t)));
     }
     if (keyword) {
       const kw = keyword.toLowerCase();
@@ -474,20 +492,18 @@ app.get('/tags', async (req, res) => {
     let items = [];
 
     if (examType) {
-      const result = await docClient.send(new QueryCommand({
+      items = await queryAll(docClient, {
         TableName: 'Questions',
         IndexName: 'examType-index',
         KeyConditionExpression: 'examType = :examType',
         ExpressionAttributeValues: { ':examType': examType },
         ProjectionExpression: 'tags'
-      }));
-      items = result.Items || [];
+      });
     } else {
-      const result = await docClient.send(new ScanCommand({
+      items = await scanAll(docClient, {
         TableName: 'Questions',
         ProjectionExpression: 'tags'
-      }));
-      items = result.Items || [];
+      });
     }
 
     const tagSet = new Set();

@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { fetchAuthSession } from 'aws-amplify/auth';
 import { API_ENDPOINT, EXAM_TYPES, EXAM_DOMAINS } from '../constants';
 import Card from '../components/ui/Card';
@@ -228,6 +228,28 @@ export default function Admin() {
     }
   }, [examFilter, keyword, tagFilter, domainFilter]);
 
+  const fetchExamCounts = useCallback(async () => {
+    try {
+      const res = await adminFetch(`${API_ENDPOINT}/admin/questions`);
+      if (!res.ok) return;
+      const data = await res.json();
+      const all: Question[] = data.items || [];
+      const ec: Record<string, number> = {};
+      const dc: Record<string, Record<string, number>> = {};
+      for (const q of all) {
+        ec[q.examType] = (ec[q.examType] || 0) + 1;
+        if (!dc[q.examType]) dc[q.examType] = {};
+        for (const tag of ((q as any).tags || [])) {
+          if (EXAM_DOMAINS[q.examType]?.includes(tag)) {
+            dc[q.examType][tag] = (dc[q.examType][tag] || 0) + 1;
+          }
+        }
+      }
+      setExamCounts(ec);
+      setDomainCountsByExam(dc);
+    } catch { /* ignore */ }
+  }, []);
+
   const fetchReports = useCallback(async () => {
     setLoadingR(true);
     try {
@@ -318,6 +340,10 @@ export default function Admin() {
   const [validityTotalCount, setValidityTotalCount] = useState(0);
   const [scanExamFilter, setScanExamFilter] = useState<string>('ALL');
   const [scanSort, setScanSort] = useState<'date_desc' | 'date_asc'>('date_desc');
+
+  // 問題数カウント
+  const [examCounts, setExamCounts] = useState<Record<string, number>>({});
+  const [domainCountsByExam, setDomainCountsByExam] = useState<Record<string, Record<string, number>>>({});
 
   // 問題編集
   const EMPTY_EDIT_FORM: EditForm = { examType: 'SAA', domain: '', questionText: '', questionTextEn: '', choices: ['', '', '', ''], choicesEn: ['', '', '', ''], correctAnswers: [], explanation: '', explanationEn: '', tags: '', isMultiple: false };
@@ -427,6 +453,7 @@ export default function Admin() {
   };
 
   useEffect(() => { fetchQuestions(); setSelectedIds(new Set()); }, [examFilter, keyword, tagFilter, domainFilter]);
+  useEffect(() => { fetchExamCounts(); }, []);
   useEffect(() => { if (tab === 'reports') fetchReports(); }, [tab]);
   useEffect(() => { if (tab === 'tips') fetchTips(); }, [tab]);
   useEffect(() => { if (tab === 'releases') fetchReleases(); }, [tab]);
@@ -522,6 +549,8 @@ export default function Admin() {
       setDeletingId(null);
     }
   };
+
+  const totalCount = useMemo(() => Object.values(examCounts).reduce((a, b) => a + b, 0), [examCounts]);
 
   const tabStyle = (t: Tab): React.CSSProperties => ({
     padding: '10px 24px',
@@ -752,7 +781,9 @@ export default function Admin() {
                     borderColor: examFilter === type ? '#008c8c' : '#d1d5db',
                     fontWeight: examFilter === type ? 700 : 400, fontSize: 14
                   }}>
-                  {type}
+                  {type === 'ALL'
+                    ? `ALL${totalCount > 0 ? `(${totalCount})` : ''}`
+                    : `${type}${examCounts[type] != null ? `(${examCounts[type]})` : ''}`}
                 </button>
               ))}
             </div>
@@ -766,7 +797,7 @@ export default function Admin() {
                     color: domainFilter === '' ? '#008c8c' : '#545b64',
                     borderColor: domainFilter === '' ? '#008c8c' : '#d1d5db',
                     fontWeight: domainFilter === '' ? 700 : 400 }}>
-                  全ドメイン
+                  全ドメイン{examCounts[examFilter] != null ? `(${examCounts[examFilter]})` : ''}
                 </button>
                 {EXAM_DOMAINS[examFilter]?.map(d => (
                   <button key={d} type="button" onClick={() => setDomainFilter(domainFilter === d ? '' : d)}
@@ -775,7 +806,7 @@ export default function Admin() {
                       color: domainFilter === d ? '#008c8c' : '#545b64',
                       borderColor: domainFilter === d ? '#008c8c' : '#d1d5db',
                       fontWeight: domainFilter === d ? 700 : 400 }}>
-                    {d}
+                    {d}{domainCountsByExam[examFilter]?.[d] != null ? `(${domainCountsByExam[examFilter][d]})` : ''}
                   </button>
                 ))}
               </div>

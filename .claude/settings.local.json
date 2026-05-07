@@ -103,7 +103,13 @@
       "Bash(systemctl --user list-timers --all --no-pager)",
       "Bash(systemctl --user enable claude-cycle-init.service)",
       "Bash(/home/yuzuki/aws-quiz-app/prompts/run-prompts.sh *)",
-      "Bash(systemctl --user stop claude-cycle.timer)"
+      "Bash(systemctl --user stop claude-cycle.timer)",
+      "Bash(export PATH=\"/home/yuzuki/.npm-global/bin:/home/yuzuki/local/bin:/home/sera/.config/nvm/versions/node/v20.20.2/bin:$PATH\")",
+      "Bash(systemctl --user list-timers claude-cycle.timer --all --no-legend)",
+      "Bash(systemctl --user cat claude-cycle.timer)",
+      "Bash(systemctl --user show claude-cycle.timer --property=OnCalendar,NextElapseUSec)",
+      "Bash(systemd-run *)",
+      "Bash(systemctl --user list-timers --all --no-legend)"
     ]
   }
 }
