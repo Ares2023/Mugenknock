@@ -1751,28 +1751,18 @@ ${tipPromptExamType !== 'ALL' ? `・examType には "${tipPromptExamType}" を�
         return (
           <div>
             {/* 進捗・統計 */}
-            {!loadingFlagged && validityTotalCount > 0 && validityFilter !== 'hidden' && (
+            {!loadingFlagged && totalCount > 0 && validityFilter !== 'hidden' && (
               <div style={{ background: '#f2f3f3', border: '1px solid #eaeded', borderRadius: 8, padding: '14px 18px', marginBottom: 16 }}>
                 <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10, flexWrap: 'wrap', gap: 8 }}>
                   <div style={{ fontSize: 13, color: '#545b64' }}>
-                    チェック済み <strong style={{ color: '#16191f', fontSize: 15 }}>{flaggedQuestions.length}</strong> / {validityTotalCount} 問
+                    確認済み <strong style={{ color: '#16191f', fontSize: 15 }}>{flaggedQuestions.length}</strong> / {totalCount} 問
                   </div>
                   <div style={{ fontSize: 12, color: '#aab7b8' }}>
-                    残り {validityTotalCount - flaggedQuestions.length} 問未チェック
+                    未確認 {totalCount - flaggedQuestions.length} 問
                   </div>
                 </div>
-                <div style={{ height: 8, background: '#d1d5db', borderRadius: 9999, overflow: 'hidden', marginBottom: 10 }}>
-                  <div style={{ height: '100%', background: '#008c8c', borderRadius: 9999, width: `${Math.min(100, (flaggedQuestions.length / validityTotalCount) * 100)}%`, transition: 'width 0.4s' }} />
-                </div>
-                <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
-                  <span style={{ fontSize: 12, fontWeight: 700, padding: '2px 10px', borderRadius: 9999, background: '#e0f2f2', color: '#008c8c', border: '1px solid #008c8c40' }}>
-                    問題なし {flaggedQuestions.length - fixedCount}問
-                  </span>
-                  {fixedCount > 0 && (
-                    <span style={{ fontSize: 12, fontWeight: 700, padding: '2px 10px', borderRadius: 9999, background: '#fdf3e118', color: '#d47500', border: '1px solid #d4750040' }}>
-                      AI修正済 {fixedCount}問
-                    </span>
-                  )}
+                <div style={{ height: 8, background: '#d1d5db', borderRadius: 9999, overflow: 'hidden' }}>
+                  <div style={{ height: '100%', background: '#008c8c', borderRadius: 9999, width: `${Math.min(100, (flaggedQuestions.length / totalCount) * 100)}%`, transition: 'width 0.4s' }} />
                 </div>
               </div>
             )}

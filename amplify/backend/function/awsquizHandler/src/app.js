@@ -369,13 +369,13 @@ app.get('/admin/questions/flagged', async (req, res) => {
       scanParams.FilterExpression = 'attribute_exists(validityCheckedAt)';
     }
 
-    const [checkedItems, totalResult] = await Promise.all([
+    const [checkedItems, allItems] = await Promise.all([
       scanAll(docClient, scanParams),
-      docClient.send(new ScanCommand({ TableName: 'Questions', Select: 'COUNT' })),
+      scanAll(docClient, { TableName: 'Questions', ProjectionExpression: 'questionId' }),
     ]);
 
     const items = checkedItems.sort((a, b) => (a.validityRating || 9) - (b.validityRating || 9));
-    res.json({ items, count: items.length, totalCount: totalResult.Count || 0 });
+    res.json({ items, count: items.length, totalCount: allItems.length });
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: 'Internal server error' });
