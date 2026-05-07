@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { useLanguage } from '../contexts/LanguageContext';
-import { EXAM_TYPES, EXAM_CONFIGS, EXAM_DOMAINS, DOMAIN_NAME_EN, PASS_SCORES } from '../constants';
+import { EXAM_TYPES, EXAM_CONFIGS, EXAM_DOMAINS, DOMAIN_NAME_EN, PASS_SCORES, EXAM_LEVEL, EXAM_DESC_JA, EXAM_DESC_EN } from '../constants';
 import Button from '../components/ui/Button';
 import Card from '../components/ui/Card';
 import Badge from '../components/ui/Badge';
@@ -10,20 +10,6 @@ import { IconPencil, IconClock, IconTarget } from '../components/Icons';
 
 const TARGET_EXAM_KEY = 'targetExam';
 
-const EXAM_LEVEL: Record<string, string> = { CLF: 'Foundational', SAA: 'Associate', SAP: 'Professional', DOP: 'Professional' };
-
-const EXAM_DESC_JA: Record<string, string> = {
-  CLF: 'クラウドの基礎を問う入門レベルの認定',
-  SAA: '最も人気の高いアソシエイトレベル認定',
-  SAP: '高度な設計スキルを証明するプロ認定',
-  DOP: '開発・運用の高度なスキルを証明するプロ認定',
-};
-const EXAM_DESC_EN: Record<string, string> = {
-  CLF: 'Foundational certification covering cloud basics',
-  SAA: 'Most popular associate-level AWS certification',
-  SAP: 'Professional certification for advanced architects',
-  DOP: 'Professional certification for DevOps engineers',
-};
 
 export default function Home() {
   const { user } = useAuth();

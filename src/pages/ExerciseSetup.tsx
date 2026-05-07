@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { API_ENDPOINT, EXAM_TYPES, EXAM_CONFIGS, EXAM_DOMAINS, PASS_SCORES, DOMAIN_NAME_EN } from '../constants';
+import { API_ENDPOINT, EXAM_TYPES, EXAM_CONFIGS, EXAM_DOMAINS, PASS_SCORES, DOMAIN_NAME_EN, DOMAIN_RATE_WARNING, DOMAIN_RATE_CAUTION } from '../constants';
 import { useAuth } from '../contexts/AuthContext';
 import { useLanguage } from '../contexts/LanguageContext';
 import Card from '../components/ui/Card';
@@ -483,7 +483,7 @@ export default function ExerciseSetup() {
                   return { ...item, rankNum };
                 });
                 const rateColor = (r: number) =>
-                  r < 0.50 ? 'var(--color-danger)' : r < 0.65 ? 'var(--color-caution)' : 'var(--color-text-sub)';
+                  r < DOMAIN_RATE_WARNING ? 'var(--color-danger)' : r < DOMAIN_RATE_CAUTION ? 'var(--color-caution)' : 'var(--color-text-sub)';
                 return (
                   <>
                     {withRanks.map(({ d, rate, rankNum: rn }) => (

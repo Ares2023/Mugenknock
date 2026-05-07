@@ -9,6 +9,9 @@ import Badge from '../components/ui/Badge';
 
 const TARGET_EXAM_KEY = 'targetExam';
 
+const STATS_GOOD_RATE = 70;
+const STATS_FAIR_RATE = 50;
+
 type ExamStat = {
   examType: string;
   total: number;
@@ -312,7 +315,7 @@ export default function Stats() {
                   <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--spacing-md)', flexShrink: 0 }}>
                     {rate !== null ? (
                       <>
-                        <span style={{ fontSize: 'var(--font-size-lg)', fontWeight: 700, color: rate >= 70 ? 'var(--color-success)' : rate >= 50 ? 'var(--color-caution)' : 'var(--color-danger)' }}>
+                        <span style={{ fontSize: 'var(--font-size-lg)', fontWeight: 700, color: rate >= STATS_GOOD_RATE ? 'var(--color-success)' : rate >= STATS_FAIR_RATE ? 'var(--color-caution)' : 'var(--color-danger)' }}>
                           {rate}%
                         </span>
                         <span style={{ fontSize: 'var(--font-size-xs)', color: 'var(--color-text-light)' }}>{correct}/{total}{t('stats.qUnit')}</span>
@@ -325,7 +328,7 @@ export default function Stats() {
                 <div style={{ background: 'var(--color-bg-main)', borderRadius: 10, height: 8, overflow: 'hidden' }}>
                   <div style={{
                     width: rate !== null ? `${rate}%` : '0%', height: '100%',
-                    background: rate === null ? 'var(--color-border)' : rate >= 70 ? 'var(--color-success)' : rate >= 50 ? 'var(--color-caution)' : 'var(--color-danger)',
+                    background: rate === null ? 'var(--color-border)' : rate >= STATS_GOOD_RATE ? 'var(--color-success)' : rate >= STATS_FAIR_RATE ? 'var(--color-caution)' : 'var(--color-danger)',
                     transition: 'width 0.4s', borderRadius: 10,
                   }} />
                 </div>

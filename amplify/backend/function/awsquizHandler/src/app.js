@@ -3,6 +3,7 @@ const { DynamoDBClient } = require('@aws-sdk/client-dynamodb');
 const { DynamoDBDocumentClient, ScanCommand, GetCommand, QueryCommand, PutCommand, UpdateCommand, TransactWriteCommand, DeleteCommand } = require('@aws-sdk/lib-dynamodb');
 const { v4: uuidv4 } = require('uuid');
 const { CognitoJwtVerifier } = require('aws-jwt-verify');
+const { ADMIN_EMAIL, EXAM_DOMAINS } = require('./constants');
 
 const app = express();
 app.use(express.json());
@@ -34,7 +35,6 @@ const jwtVerifier = CognitoJwtVerifier.create({
   tokenUse: 'id',
   clientId: '16jjrj5m28o6s2k84og8kh2vh3',
 });
-const ADMIN_EMAIL_VALUE = 'yuzuki2002110@gmail.com';
 
 async function requireAdmin(req, res, next) {
   const auth = req.headers.authorization || '';
@@ -43,7 +43,7 @@ async function requireAdmin(req, res, next) {
   }
   try {
     const payload = await jwtVerifier.verify(auth.slice(7));
-    if (payload.email !== ADMIN_EMAIL_VALUE) {
+    if (payload.email !== ADMIN_EMAIL) {
       return res.status(403).json({ error: 'Forbidden' });
     }
     next();
@@ -780,13 +780,6 @@ app.delete('/users/me/data', async (req, res) => {
     const { userId, examType } = req.query;
     if (!userId || !examType) return res.status(400).json({ error: 'userId and examType are required' });
 
-    const EXAM_DOMAINS_MAP = {
-      CLF: ['クラウドのコンセプト', 'セキュリティとコンプライアンス', 'クラウドテクノロジーとサービス', '請求・料金・サポート'],
-      SAA: ['セキュアなアーキテクチャの設計', '弾力性に優れたアーキテクチャの設計', '高パフォーマンスなアーキテクチャの設計', 'コスト最適化されたアーキテクチャの設計'],
-      SAP: ['組織の複雑さに対応したソリューションの設計', '新しいソリューションの設計', '既存ソリューションの継続的改善', 'ワークロードの移行とモダナイゼーション'],
-      DOP: ['SDLC の自動化', '設定管理と IaC', '高可用性、耐障害性、およびディザスタリカバリ', 'モニタリングとログ', 'セキュリティとコンプライアンスの自動化'],
-    };
-
     const deleteItems = async (table, keys) => {
       if (keys.length === 0) return;
       await Promise.all(keys.map(key => docClient.send(new DeleteCommand({ TableName: table, Key: key }))));
@@ -806,7 +799,7 @@ app.delete('/users/me/data', async (req, res) => {
     await deleteItems('UserQuestionStats', questionIds.map(qid => ({ userId, questionId: qid })));
 
     // 3. UserTagStats 削除（ドメインタグのみ）
-    const domains = EXAM_DOMAINS_MAP[examType] || [];
+    const domains = EXAM_DOMAINS[examType] || [];
     await deleteItems('UserTagStats', domains.map(tagId => ({ userId, tagId })));
 
     // 4. Sessions を取得

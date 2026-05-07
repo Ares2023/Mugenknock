@@ -50,6 +50,32 @@ export const DOMAIN_NAME_EN: Record<string, string> = {
   'セキュリティとコンプライアンスの自動化': 'Security and Compliance Automation',
 };
 
+// 試験レベル表示
+export const EXAM_LEVEL: Record<string, string> = {
+  CLF: 'Foundational',
+  SAA: 'Associate',
+  SAP: 'Professional',
+  DOP: 'Professional',
+};
+
+// 試験の説明文
+export const EXAM_DESC_JA: Record<string, string> = {
+  CLF: 'クラウドの基礎を問う入門レベルの認定',
+  SAA: '最も人気の高いアソシエイトレベル認定',
+  SAP: '高度な設計スキルを証明するプロ認定',
+  DOP: '開発・運用の高度なスキルを証明するプロ認定',
+};
+export const EXAM_DESC_EN: Record<string, string> = {
+  CLF: 'Foundational certification covering cloud basics',
+  SAA: 'Most popular associate-level AWS certification',
+  SAP: 'Professional certification for advanced architects',
+  DOP: 'Professional certification for DevOps engineers',
+};
+
+// ドメイン正答率の色分けしきい値（0–1スケール）
+export const DOMAIN_RATE_WARNING = 0.50;
+export const DOMAIN_RATE_CAUTION = 0.65;
+
 // 模試モードの設定
 export const EXAM_CONFIGS: Record<string, {
   examCode: string;

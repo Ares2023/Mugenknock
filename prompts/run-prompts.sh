@@ -16,7 +16,7 @@ HOOKS_FILE="$SCRIPT_DIR/.ct-hooks"        # 1行 = "±N|command"
 SKIP_HOOKS_FILE="$SCRIPT_DIR/.ct-skip-once" # 存在すれば次回フックをスキップ
 
 mkdir -p "$LOG_DIR"
-export PATH="/home/yuzuki/ai-router:/home/yuzuki/.npm-global/bin:/home/sera/.config/nvm/versions/node/v20.20.2/bin:$PATH"
+export PATH="/home/yuzuki/local/bin:/home/yuzuki/.npm-global/bin:/home/sera/.config/nvm/versions/node/v20.20.2/bin:$PATH"
 
 # ── 履歴の記録 ──────────────────────────────────────────────
 log_history() {
@@ -510,6 +510,7 @@ run_main() {
       echo "▶ [ai-router] $(basename "$file")"
       local _cb
       _cb=$(
+        { _w=/home/yuzuki/local/bin/claude; [ -x "$_w" ] && echo "$_w"; } ||
         { _p=/home/yuzuki/.npm-global/lib/node_modules/@anthropic-ai/claude-code/bin/claude.exe; [ -x "$_p" ] && echo "$_p"; } ||
         { _cv=$(command -v claude 2>/dev/null); [ -n "$_cv" ] && [ -x "$_cv" ] && echo "$_cv"; }
       ) || true
@@ -561,7 +562,7 @@ run_main() {
       echo "▶ [ping] Claudeセッション確認..."
       local _pt0=$(date +%s)
       local _ping_out _ping_ec
-      _ping_out=$(claude --dangerously-skip-permissions -p "." 2>&1)
+      _ping_out=$(/home/yuzuki/local/bin/claude --dangerously-skip-permissions -p "." 2>&1)
       _ping_ec=$?
       local _ping_s=$(( $(date +%s) - _pt0 ))
       printf "  → %ds\n" "$_ping_s"
