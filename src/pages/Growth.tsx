@@ -29,7 +29,7 @@ function DualBarChart({ labels, s1, s2, label1, label2, color1, color2 }: {
   const chartH = H - MT - MB;
 
   const groupW = chartW / n;
-  const barW = Math.min(groupW * 0.33, 18);
+  const barW = Math.min(groupW * 0.165, 9);
   const barGap = 3;
   const groupOffset = (groupW - 2 * barW - barGap) / 2;
 
