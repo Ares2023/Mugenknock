@@ -83,7 +83,16 @@ export default function Home() {
         </div>
 
         {/* 試験選択ボタン（横並び） */}
-        <div style={{ display: 'flex', gap: 'var(--spacing-sm)', flexWrap: 'wrap', marginBottom: 'var(--spacing-md)' }}>
+        <div style={{ display: 'flex', gap: 'var(--spacing-sm)', flexWrap: 'wrap', marginBottom: 'var(--spacing-md)', alignItems: 'center' }}>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => { localStorage.removeItem(TARGET_EXAM_KEY); setTargetExam(null); }}
+            style={targetExam === null ? { background: 'var(--color-primary-light)', boxShadow: 'inset 0 0 0 2px var(--color-primary)' } : {}}
+          >
+            {lang === 'ja' ? 'すべて' : 'All'}
+          </Button>
+          <span style={{ width: 1, height: 20, background: 'var(--color-border)', display: 'inline-block', flexShrink: 0 }} />
           {EXAM_TYPES.map(et => {
             const selected = targetExam === et;
             return (
@@ -92,7 +101,7 @@ export default function Home() {
                 variant="outline"
                 size="sm"
                 onClick={() => handleSelectExam(et)}
-                style={{ width: 72, ...(selected ? { background: 'var(--color-primary-light)', color: 'var(--color-primary)', borderColor: 'var(--color-primary)', borderWidth: 2 } : {}) }}
+                style={{ width: 72, ...(selected ? { background: 'var(--color-primary-light)', boxShadow: 'inset 0 0 0 2px var(--color-primary)' } : {}) }}
               >
                 {et}
               </Button>

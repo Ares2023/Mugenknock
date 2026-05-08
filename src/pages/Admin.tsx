@@ -771,40 +771,47 @@ export default function Admin() {
           {/* 検索バー */}
           <form onSubmit={handleSearch} style={{ marginBottom: 16 }}>
             {/* 試験種別 */}
-            <div style={{ display: 'flex', gap: 8, marginBottom: 10, flexWrap: 'wrap' }}>
-              {['ALL', ...EXAM_TYPES].map(type => (
-                <button key={type} type="button" onClick={() => { setExamFilter(type); setDomainFilter(''); }}
-                  style={{
-                    padding: '6px 16px', border: examFilter === type ? '2px solid' : '1.5px solid', borderRadius: 6, cursor: 'pointer',
-                    background: examFilter === type ? 'var(--color-primary-light)' : 'transparent',
-                    color: examFilter === type ? 'var(--color-primary)' : 'var(--color-text-sub)',
-                    borderColor: examFilter === type ? 'var(--color-primary)' : 'var(--color-border)',
-                    fontWeight: examFilter === type ? 700 : 400, fontSize: 14
-                  }}>
-                  {type === 'ALL'
-                    ? `ALL${totalCount > 0 ? `(${totalCount})` : ''}`
-                    : `${type}${examCounts[type] != null ? `(${examCounts[type]})` : ''}`}
-                </button>
+            <div style={{ display: 'flex', gap: 8, marginBottom: 10, flexWrap: 'wrap', alignItems: 'center' }}>
+              {['ALL', ...EXAM_TYPES].map((type, i) => (
+                <React.Fragment key={type}>
+                  <button type="button" onClick={() => { setExamFilter(type); setDomainFilter(''); }}
+                    style={{
+                      padding: '6px 16px', border: '1.5px solid', borderRadius: 6, cursor: 'pointer',
+                      background: examFilter === type ? 'var(--color-primary-light)' : 'transparent',
+                      color: examFilter === type ? 'var(--color-primary)' : 'var(--color-text-sub)',
+                      borderColor: examFilter === type ? 'var(--color-primary)' : 'var(--color-border)',
+                      boxShadow: examFilter === type ? 'inset 0 0 0 2px var(--color-primary)' : 'none',
+                      fontWeight: examFilter === type ? 700 : 400, fontSize: 14
+                    }}>
+                    {type === 'ALL'
+                      ? `ALL${totalCount > 0 ? `(${totalCount})` : ''}`
+                      : `${type}${examCounts[type] != null ? `(${examCounts[type]})` : ''}`}
+                  </button>
+                  {type === 'ALL' && <span style={{ width: 1, height: 20, background: 'var(--color-border)', display: 'inline-block', flexShrink: 0 }} />}
+                </React.Fragment>
               ))}
             </div>
 
             {/* ドメインフィルタ（試験種別が選択されている場合のみ） */}
             {examFilter !== 'ALL' && (
-              <div style={{ display: 'flex', gap: 6, marginBottom: 10, flexWrap: 'wrap' }}>
+              <div style={{ display: 'flex', gap: 6, marginBottom: 10, flexWrap: 'wrap', alignItems: 'center' }}>
                 <button type="button" onClick={() => setDomainFilter('')}
-                  style={{ padding: '4px 10px', border: domainFilter === '' ? '2px solid' : '1.5px solid', borderRadius: 6, cursor: 'pointer', fontSize: 12,
+                  style={{ padding: '4px 10px', border: '1.5px solid', borderRadius: 6, cursor: 'pointer', fontSize: 12,
                     background: domainFilter === '' ? 'var(--color-primary-light)' : 'transparent',
                     color: domainFilter === '' ? 'var(--color-primary)' : 'var(--color-text-sub)',
                     borderColor: domainFilter === '' ? 'var(--color-primary)' : 'var(--color-border)',
+                    boxShadow: domainFilter === '' ? 'inset 0 0 0 2px var(--color-primary)' : 'none',
                     fontWeight: domainFilter === '' ? 700 : 400 }}>
                   全ドメイン{examCounts[examFilter] != null ? `(${examCounts[examFilter]})` : ''}
                 </button>
+                <span style={{ width: 1, height: 16, background: 'var(--color-border)', display: 'inline-block', flexShrink: 0 }} />
                 {EXAM_DOMAINS[examFilter]?.map(d => (
                   <button key={d} type="button" onClick={() => setDomainFilter(domainFilter === d ? '' : d)}
-                    style={{ padding: '4px 10px', border: domainFilter === d ? '2px solid' : '1.5px solid', borderRadius: 6, cursor: 'pointer', fontSize: 12,
+                    style={{ padding: '4px 10px', border: '1.5px solid', borderRadius: 6, cursor: 'pointer', fontSize: 12,
                       background: domainFilter === d ? 'var(--color-primary-light)' : 'transparent',
                       color: domainFilter === d ? 'var(--color-primary)' : 'var(--color-text-sub)',
                       borderColor: domainFilter === d ? 'var(--color-primary)' : 'var(--color-border)',
+                      boxShadow: domainFilter === d ? 'inset 0 0 0 2px var(--color-primary)' : 'none',
                       fontWeight: domainFilter === d ? 700 : 400 }}>
                     {d}{domainCountsByExam[examFilter]?.[d] != null ? `(${domainCountsByExam[examFilter][d]})` : ''}
                   </button>
@@ -1149,10 +1156,11 @@ export default function Admin() {
                 <div style={{ display: 'flex', gap: 6 }}>
                   {EXAM_TYPES.map(t => (
                     <button key={t} onClick={() => setImportExamType(t)}
-                      style={{ padding: '4px 12px', border: importExamType === t ? '2px solid' : '1.5px solid', borderRadius: 6, cursor: 'pointer', fontSize: 13,
+                      style={{ padding: '4px 12px', border: '1.5px solid', borderRadius: 6, cursor: 'pointer', fontSize: 13,
                         borderColor: importExamType === t ? 'var(--color-primary)' : 'var(--color-border)',
                         background: importExamType === t ? 'var(--color-primary-light)' : 'transparent',
                         color: importExamType === t ? 'var(--color-primary)' : 'var(--color-text-sub)',
+                        boxShadow: importExamType === t ? 'inset 0 0 0 2px var(--color-primary)' : 'none',
                         fontWeight: importExamType === t ? 700 : 400 }}>
                       {t}
                     </button>
@@ -1375,16 +1383,20 @@ ${tipPromptExamType !== 'ALL' ? `・examType には "${tipPromptExamType}" を�
                 <div style={{ display: 'flex', gap: 12, marginBottom: 12, flexWrap: 'wrap', alignItems: 'flex-end' }}>
                   <div>
                     <div style={{ fontSize: 12, color: 'var(--color-text-sub)', fontWeight: 700, marginBottom: 6 }}>対象試験</div>
-                    <div style={{ display: 'flex', gap: 6 }}>
+                    <div style={{ display: 'flex', gap: 6, alignItems: 'center' }}>
                       {['ALL', 'CLF', 'SAA', 'SAP'].map(t => (
-                        <button key={t} type="button" onClick={() => setTipPromptExamType(t)}
-                          style={{ padding: '4px 12px', border: tipPromptExamType === t ? '2px solid' : '1.5px solid', borderRadius: 6, cursor: 'pointer', fontSize: 13,
-                            borderColor: tipPromptExamType === t ? 'var(--color-primary)' : 'var(--color-border)',
-                            background: tipPromptExamType === t ? 'var(--color-primary-light)' : 'transparent',
-                            color: tipPromptExamType === t ? 'var(--color-primary)' : 'var(--color-text-sub)',
-                            fontWeight: tipPromptExamType === t ? 700 : 400 }}>
-                          {t}
-                        </button>
+                        <React.Fragment key={t}>
+                          <button type="button" onClick={() => setTipPromptExamType(t)}
+                            style={{ padding: '4px 12px', border: '1.5px solid', borderRadius: 6, cursor: 'pointer', fontSize: 13,
+                              borderColor: tipPromptExamType === t ? 'var(--color-primary)' : 'var(--color-border)',
+                              background: tipPromptExamType === t ? 'var(--color-primary-light)' : 'transparent',
+                              color: tipPromptExamType === t ? 'var(--color-primary)' : 'var(--color-text-sub)',
+                              boxShadow: tipPromptExamType === t ? 'inset 0 0 0 2px var(--color-primary)' : 'none',
+                              fontWeight: tipPromptExamType === t ? 700 : 400 }}>
+                            {t}
+                          </button>
+                          {t === 'ALL' && <span style={{ width: 1, height: 16, background: 'var(--color-border)', display: 'inline-block', flexShrink: 0 }} />}
+                        </React.Fragment>
                       ))}
                     </div>
                   </div>
@@ -1441,16 +1453,20 @@ ${tipPromptExamType !== 'ALL' ? `・examType には "${tipPromptExamType}" を�
                 <div style={{ fontSize: 12, color: 'var(--color-text-sub)', fontWeight: 700, marginBottom: 6 }}>
                   デフォルト試験種別 <span style={{ fontWeight: 400 }}>（JSON内に examType がない場合に使用）</span>
                 </div>
-                <div style={{ display: 'flex', gap: 6 }}>
+                <div style={{ display: 'flex', gap: 6, alignItems: 'center' }}>
                   {['ALL', 'CLF', 'SAA', 'SAP'].map(t => (
-                    <button key={t} type="button" onClick={() => setTipImportExamType(t)}
-                      style={{ padding: '5px 14px', border: tipImportExamType === t ? '2px solid' : '1.5px solid', borderRadius: 6, cursor: 'pointer', fontSize: 13,
-                        background: tipImportExamType === t ? 'var(--color-primary-light)' : 'transparent',
-                        color: tipImportExamType === t ? 'var(--color-primary)' : 'var(--color-text-sub)',
-                        borderColor: tipImportExamType === t ? 'var(--color-primary)' : 'var(--color-border)',
-                        fontWeight: tipImportExamType === t ? 700 : 400 }}>
-                      {t}
-                    </button>
+                    <React.Fragment key={t}>
+                      <button type="button" onClick={() => setTipImportExamType(t)}
+                        style={{ padding: '5px 14px', border: '1.5px solid', borderRadius: 6, cursor: 'pointer', fontSize: 13,
+                          background: tipImportExamType === t ? 'var(--color-primary-light)' : 'transparent',
+                          color: tipImportExamType === t ? 'var(--color-primary)' : 'var(--color-text-sub)',
+                          borderColor: tipImportExamType === t ? 'var(--color-primary)' : 'var(--color-border)',
+                          boxShadow: tipImportExamType === t ? 'inset 0 0 0 2px var(--color-primary)' : 'none',
+                          fontWeight: tipImportExamType === t ? 700 : 400 }}>
+                        {t}
+                      </button>
+                      {t === 'ALL' && <span style={{ width: 1, height: 16, background: 'var(--color-border)', display: 'inline-block', flexShrink: 0 }} />}
+                    </React.Fragment>
                   ))}
                 </div>
               </div>
@@ -1552,16 +1568,20 @@ ${tipPromptExamType !== 'ALL' ? `・examType には "${tipPromptExamType}" を�
           {showTipForm && (
             <div style={{ border: '1px solid #eaeded', borderRadius: 6, padding: 20, marginBottom: 20, background: '#fbfbfb', boxShadow: '0 1px 1px 0 rgba(0,28,36,0.1)' }}>
               <h4 style={{ margin: '0 0 14px', fontSize: 15, fontWeight: 700, color: '#16191f' }}>{editingTip ? 'コラムを編集' : '新規コラム'}</h4>
-              <div style={{ display: 'flex', gap: 6, marginBottom: 10 }}>
+              <div style={{ display: 'flex', gap: 6, marginBottom: 10, alignItems: 'center' }}>
                 {['ALL', 'CLF', 'SAA', 'SAP'].map(t => (
-                  <button key={t} type="button" onClick={() => setTipForm(f => ({ ...f, examType: t }))}
-                    style={{ padding: '4px 12px', border: tipForm.examType === t ? '2px solid' : '1.5px solid', borderRadius: 6, cursor: 'pointer', fontSize: 13,
-                      borderColor: tipForm.examType === t ? 'var(--color-primary)' : 'var(--color-border)',
-                      background: tipForm.examType === t ? 'var(--color-primary-light)' : 'transparent',
-                      color: tipForm.examType === t ? 'var(--color-primary)' : 'var(--color-text-sub)',
-                      fontWeight: tipForm.examType === t ? 700 : 400 }}>
-                    {t}
-                  </button>
+                  <React.Fragment key={t}>
+                    <button type="button" onClick={() => setTipForm(f => ({ ...f, examType: t }))}
+                      style={{ padding: '4px 12px', border: '1.5px solid', borderRadius: 6, cursor: 'pointer', fontSize: 13,
+                        borderColor: tipForm.examType === t ? 'var(--color-primary)' : 'var(--color-border)',
+                        background: tipForm.examType === t ? 'var(--color-primary-light)' : 'transparent',
+                        color: tipForm.examType === t ? 'var(--color-primary)' : 'var(--color-text-sub)',
+                        boxShadow: tipForm.examType === t ? 'inset 0 0 0 2px var(--color-primary)' : 'none',
+                        fontWeight: tipForm.examType === t ? 700 : 400 }}>
+                      {t}
+                    </button>
+                    {t === 'ALL' && <span style={{ width: 1, height: 16, background: 'var(--color-border)', display: 'inline-block', flexShrink: 0 }} />}
+                  </React.Fragment>
                 ))}
               </div>
               <input
@@ -1764,10 +1784,11 @@ ${tipPromptExamType !== 'ALL' ? `・examType には "${tipPromptExamType}" を�
                   { key: 'hidden', label: '非表示中' },
                 ] as const).map(({ key, label }) => (
                   <button key={key} onClick={() => { setValidityFilter(key); fetchFlagged(key); }}
-                    style={{ padding: '6px 14px', border: validityFilter === key ? '2px solid' : '1.5px solid', borderRadius: 9999, cursor: 'pointer', fontSize: 13, fontWeight: validityFilter === key ? 700 : 400,
+                    style={{ padding: '6px 14px', border: '1.5px solid', borderRadius: 9999, cursor: 'pointer', fontSize: 13, fontWeight: validityFilter === key ? 700 : 400,
                       background: validityFilter === key ? 'var(--color-primary-light)' : 'transparent',
                       color: validityFilter === key ? 'var(--color-primary)' : 'var(--color-text-sub)',
-                      borderColor: validityFilter === key ? 'var(--color-primary)' : 'var(--color-border)' }}>
+                      borderColor: validityFilter === key ? 'var(--color-primary)' : 'var(--color-border)',
+                      boxShadow: validityFilter === key ? 'inset 0 0 0 2px var(--color-primary)' : 'none' }}>
                     {label}
                     {key === 'all' && !loadingFlagged && validityFilter === 'all' && ` (${flaggedQuestions.length})`}
                   </button>
@@ -1785,15 +1806,19 @@ ${tipPromptExamType !== 'ALL' ? `・examType には "${tipPromptExamType}" を�
                 {/* 試験種別 */}
                 <div>
                   <div style={{ fontSize: 11, fontWeight: 700, color: '#879596', marginBottom: 6, textTransform: 'uppercase', letterSpacing: '0.05em' }}>試験種別</div>
-                  <div style={{ display: 'flex', gap: 4, flexWrap: 'wrap' }}>
+                  <div style={{ display: 'flex', gap: 4, flexWrap: 'wrap', alignItems: 'center' }}>
                     {(['ALL', ...EXAM_TYPES] as string[]).map(et => (
-                      <button key={et} onClick={() => setScanExamFilter(et)}
-                        style={{ padding: '3px 10px', border: scanExamFilter === et ? '2px solid' : '1.5px solid', borderRadius: 9999, cursor: 'pointer', fontSize: 12, fontWeight: scanExamFilter === et ? 700 : 400,
-                          background: scanExamFilter === et ? 'var(--color-secondary)' : 'transparent',
-                          color: scanExamFilter === et ? 'white' : 'var(--color-text-sub)',
-                          borderColor: scanExamFilter === et ? 'var(--color-secondary)' : 'var(--color-border)' }}>
-                        {et}
-                      </button>
+                      <React.Fragment key={et}>
+                        <button onClick={() => setScanExamFilter(et)}
+                          style={{ padding: '3px 10px', border: '1.5px solid', borderRadius: 9999, cursor: 'pointer', fontSize: 12, fontWeight: scanExamFilter === et ? 700 : 400,
+                            background: scanExamFilter === et ? 'var(--color-secondary)' : 'transparent',
+                            color: scanExamFilter === et ? 'white' : 'var(--color-text-sub)',
+                            borderColor: scanExamFilter === et ? 'var(--color-secondary)' : 'var(--color-border)',
+                            boxShadow: scanExamFilter === et ? 'inset 0 0 0 2px var(--color-secondary)' : 'none' }}>
+                          {et}
+                        </button>
+                        {et === 'ALL' && <span style={{ width: 1, height: 14, background: 'var(--color-border)', display: 'inline-block', flexShrink: 0 }} />}
+                      </React.Fragment>
                     ))}
                   </div>
                 </div>
@@ -1807,10 +1832,11 @@ ${tipPromptExamType !== 'ALL' ? `・examType には "${tipPromptExamType}" を�
                       { key: 'date_asc', label: '古→新' },
                     ] as const).map(({ key, label }) => (
                       <button key={key} onClick={() => setScanSort(key)}
-                        style={{ padding: '3px 10px', border: scanSort === key ? '2px solid' : '1.5px solid', borderRadius: 9999, cursor: 'pointer', fontSize: 12, fontWeight: scanSort === key ? 700 : 400,
+                        style={{ padding: '3px 10px', border: '1.5px solid', borderRadius: 9999, cursor: 'pointer', fontSize: 12, fontWeight: scanSort === key ? 700 : 400,
                           background: scanSort === key ? 'var(--color-primary-light)' : 'transparent',
                           color: scanSort === key ? 'var(--color-primary)' : 'var(--color-text-sub)',
-                          borderColor: scanSort === key ? 'var(--color-primary)' : 'var(--color-border)' }}>
+                          borderColor: scanSort === key ? 'var(--color-primary)' : 'var(--color-border)',
+                          boxShadow: scanSort === key ? 'inset 0 0 0 2px var(--color-primary)' : 'none' }}>
                         {label}
                       </button>
                     ))}

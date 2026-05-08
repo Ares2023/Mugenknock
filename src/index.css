@@ -236,7 +236,7 @@ code {
 .btn-primary:not(:disabled):active,
 .btn-outline:not(:disabled):active {
   background-color: var(--color-primary-light);
-  border-width: 2.5px;
+  box-shadow: inset 0 0 0 2px var(--color-primary);
 }
 
 .btn-danger {
@@ -251,7 +251,7 @@ code {
 
 .btn-danger:not(:disabled):active {
   background-color: var(--color-danger-light);
-  border-width: 2.5px;
+  box-shadow: inset 0 0 0 2px var(--color-danger);
 }
 
 /* Global Transitions */

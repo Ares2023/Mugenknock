@@ -229,9 +229,15 @@ export default function Stats() {
         </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--spacing-sm)', flexWrap: 'wrap', rowGap: 'var(--spacing-xs)' }}>
           <span style={{ fontSize: 'var(--font-size-sm)', color: 'var(--color-text-sub)' }}>{t('stats.showing')}</span>
+          <Button variant="outline" size="sm"
+            style={targetExam === null ? { background: 'var(--color-primary-light)', boxShadow: 'inset 0 0 0 2px var(--color-primary)' } : {}}
+            onClick={() => { localStorage.removeItem(TARGET_EXAM_KEY); setTargetExam(null); }}>
+            {lang === 'ja' ? 'すべて' : 'All'}
+          </Button>
+          <span style={{ width: 1, height: 20, background: 'var(--color-border)', display: 'inline-block', flexShrink: 0, alignSelf: 'center' }} />
           {EXAM_TYPES.map(et => (
             <Button key={et} variant="outline" size="sm"
-              style={targetExam === et ? { background: 'var(--color-primary-light)', color: 'var(--color-primary)', borderColor: 'var(--color-primary)', borderWidth: 2 } : {}}
+              style={targetExam === et ? { background: 'var(--color-primary-light)', boxShadow: 'inset 0 0 0 2px var(--color-primary)' } : {}}
               onClick={() => {
                 const next = targetExam === et ? null : et;
                 if (next) localStorage.setItem(TARGET_EXAM_KEY, next);
@@ -241,13 +247,6 @@ export default function Stats() {
               {et}
             </Button>
           ))}
-          {targetExam && (
-            <Button variant="outline" size="sm"
-              onClick={() => { localStorage.removeItem(TARGET_EXAM_KEY); setTargetExam(null); }}
-              style={{ color: 'var(--color-text-light)' }}>
-              {t('stats.all')}
-            </Button>
-          )}
         </div>
       </div>
 
