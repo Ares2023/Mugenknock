@@ -230,14 +230,14 @@ export default function Stats() {
         <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--spacing-sm)', flexWrap: 'wrap', rowGap: 'var(--spacing-xs)' }}>
           <span style={{ fontSize: 'var(--font-size-sm)', color: 'var(--color-text-sub)' }}>{t('stats.showing')}</span>
           <Button variant="outline" size="sm"
-            style={targetExam === null ? { background: 'var(--color-primary-light)', boxShadow: 'inset 0 0 0 1.5px var(--color-primary)' } : {}}
+            style={targetExam === null ? { background: 'var(--color-primary-light)', borderWidth: 2 } : {}}
             onClick={() => { localStorage.removeItem(TARGET_EXAM_KEY); setTargetExam(null); }}>
             {lang === 'ja' ? 'すべて' : 'All'}
           </Button>
           <span style={{ width: 1, height: 20, background: 'var(--color-border)', display: 'inline-block', flexShrink: 0, alignSelf: 'center' }} />
           {EXAM_TYPES.map(et => (
             <Button key={et} variant="outline" size="sm"
-              style={targetExam === et ? { background: 'var(--color-primary-light)', boxShadow: 'inset 0 0 0 1.5px var(--color-primary)' } : {}}
+              style={targetExam === et ? { background: 'var(--color-primary-light)', borderWidth: 2 } : {}}
               onClick={() => {
                 const next = targetExam === et ? null : et;
                 if (next) localStorage.setItem(TARGET_EXAM_KEY, next);
