@@ -89,10 +89,10 @@ export default function Home() {
             return (
               <Button
                 key={et}
-                variant={selected ? 'primary' : 'outline'}
+                variant="outline"
                 size="sm"
                 onClick={() => handleSelectExam(et)}
-                style={{ width: 72 }}
+                style={{ width: 72, ...(selected ? { background: 'var(--color-primary-light)', color: 'var(--color-primary)', borderColor: 'var(--color-primary)', borderWidth: 2 } : {}) }}
               >
                 {et}
               </Button>

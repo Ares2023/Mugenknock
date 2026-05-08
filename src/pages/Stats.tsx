@@ -230,7 +230,8 @@ export default function Stats() {
         <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--spacing-sm)', flexWrap: 'wrap', rowGap: 'var(--spacing-xs)' }}>
           <span style={{ fontSize: 'var(--font-size-sm)', color: 'var(--color-text-sub)' }}>{t('stats.showing')}</span>
           {EXAM_TYPES.map(et => (
-            <Button key={et} variant={targetExam === et ? 'primary' : 'outline'} size="sm"
+            <Button key={et} variant="outline" size="sm"
+              style={targetExam === et ? { background: 'var(--color-primary-light)', color: 'var(--color-primary)', borderColor: 'var(--color-primary)', borderWidth: 2 } : {}}
               onClick={() => {
                 const next = targetExam === et ? null : et;
                 if (next) localStorage.setItem(TARGET_EXAM_KEY, next);

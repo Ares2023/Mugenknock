@@ -302,7 +302,7 @@ export default function ExerciseSetup() {
                 {EXAM_TYPES.map(et => (
                   <Button key={et} variant="outline" size="sm"
                     onClick={() => handleSelectExamInSetup(et)}
-                    style={{ width: 72, ...(examType === et ? { background: 'var(--color-primary)', color: 'var(--color-on-primary)', borderColor: 'var(--color-primary)' } : {}) }}>
+                    style={{ width: 72, ...(examType === et ? { background: 'var(--color-primary-light)', color: 'var(--color-primary)', borderColor: 'var(--color-primary)', borderWidth: 2 } : {}) }}>
                     {et}
                   </Button>
                 ))}

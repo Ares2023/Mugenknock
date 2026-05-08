@@ -12,9 +12,10 @@ type Props = {
 };
 
 const activeStyle: React.CSSProperties = {
-  background: 'var(--color-primary)',
-  color: 'var(--color-on-primary)',
+  background: 'var(--color-primary-light)',
+  color: 'var(--color-primary)',
   borderColor: 'var(--color-primary)',
+  borderWidth: 2,
 };
 
 export default function DomainSelector({ domains, selected, onChange, lang, label, noMargin }: Props) {
