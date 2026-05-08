@@ -49,10 +49,10 @@ const NAV_KEYS = [
   { path: '/exercise/setup', labelKey: 'nav.exercise',     Icon: IconPencil       },
   { path: '/exam/setup',     labelKey: 'nav.exam',         Icon: IconClock        },
   { path: '/stats',          labelKey: 'nav.stats',        Icon: IconChart        },
-  { path: '/growth',         labelKey: 'nav.growth',       Icon: IconTrendingUp   },
-  { path: '/questions',      labelKey: 'nav.questions',    Icon: IconList,   bottom: true },
-  { path: '/release-notes',  labelKey: 'nav.releaseNotes', Icon: IconBell,   bottom: true },
-  { path: '/architecture',   labelKey: 'nav.architecture', Icon: IconInfo,   bottom: true },
+  { path: '/questions',      labelKey: 'nav.questions',    Icon: IconList,        bottom: true },
+  { path: '/growth',         labelKey: 'nav.growth',       Icon: IconTrendingUp,  bottom: true },
+  { path: '/release-notes',  labelKey: 'nav.releaseNotes', Icon: IconBell,        bottom: true },
+  { path: '/architecture',   labelKey: 'nav.architecture', Icon: IconInfo,        bottom: true },
 ];
 
 const BOTTOM_TABS = [
@@ -63,8 +63,8 @@ const BOTTOM_TABS = [
 ];
 
 const OTHERS_ITEMS = [
-  { path: '/growth',        Icon: IconTrendingUp, labelKey: 'nav.growth'       },
   { path: '/questions',     Icon: IconList,       labelKey: 'nav.questions'    },
+  { path: '/growth',        Icon: IconTrendingUp, labelKey: 'nav.growth'       },
   { path: '/release-notes', Icon: IconBell,       labelKey: 'nav.releaseNotes' },
   { path: '/architecture',  Icon: IconInfo,       labelKey: 'nav.architecture' },
 ];
