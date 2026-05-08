@@ -394,14 +394,15 @@ export default function ExerciseSetup() {
           )}
 
           <div style={{ display: 'flex', gap: 'var(--spacing-md)', borderTop: '1px solid var(--color-border)', paddingTop: 'var(--spacing-lg)', justifyContent: 'flex-end', flexWrap: 'wrap' }}>
-            <Button variant="outline" onClick={() => navigate('/')}>
+            <Button variant="outline" onClick={() => navigate('/')}
+              style={{ border: 'none', color: 'var(--color-text-sub)' }}>
               {t('exerciseSetup.cancel')}
             </Button>
             <Button
               variant="primary"
               onClick={startSession}
               disabled={loading || availableCount === 0}
-              style={{ minWidth: 120 }}
+              style={{ minWidth: 120, background: '#FF9900', color: '#16191f', borderColor: '#FF9900' }}
             >
               {loading ? (
                 <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}>
