@@ -780,7 +780,7 @@ export default function Admin() {
                       background: examFilter === type ? 'var(--color-primary-light)' : 'transparent',
                       color: examFilter === type ? 'var(--color-primary)' : 'var(--color-text-sub)',
                       borderColor: examFilter === type ? 'var(--color-primary)' : 'var(--color-border)',
-                      boxShadow: examFilter === type ? 'inset 0 0 0 2px var(--color-primary)' : 'none',
+                      boxShadow: examFilter === type ? 'inset 0 0 0 1.5px var(--color-primary)' : 'none',
                       fontWeight: examFilter === type ? 700 : 400, fontSize: 14
                     }}>
                     {type === 'ALL'
@@ -800,7 +800,7 @@ export default function Admin() {
                     background: domainFilter === '' ? 'var(--color-primary-light)' : 'transparent',
                     color: domainFilter === '' ? 'var(--color-primary)' : 'var(--color-text-sub)',
                     borderColor: domainFilter === '' ? 'var(--color-primary)' : 'var(--color-border)',
-                    boxShadow: domainFilter === '' ? 'inset 0 0 0 2px var(--color-primary)' : 'none',
+                    boxShadow: domainFilter === '' ? 'inset 0 0 0 1.5px var(--color-primary)' : 'none',
                     fontWeight: domainFilter === '' ? 700 : 400 }}>
                   全ドメイン{examCounts[examFilter] != null ? `(${examCounts[examFilter]})` : ''}
                 </button>
@@ -811,7 +811,7 @@ export default function Admin() {
                       background: domainFilter === d ? 'var(--color-primary-light)' : 'transparent',
                       color: domainFilter === d ? 'var(--color-primary)' : 'var(--color-text-sub)',
                       borderColor: domainFilter === d ? 'var(--color-primary)' : 'var(--color-border)',
-                      boxShadow: domainFilter === d ? 'inset 0 0 0 2px var(--color-primary)' : 'none',
+                      boxShadow: domainFilter === d ? 'inset 0 0 0 1.5px var(--color-primary)' : 'none',
                       fontWeight: domainFilter === d ? 700 : 400 }}>
                     {d}{domainCountsByExam[examFilter]?.[d] != null ? `(${domainCountsByExam[examFilter][d]})` : ''}
                   </button>
@@ -1160,7 +1160,7 @@ export default function Admin() {
                         borderColor: importExamType === t ? 'var(--color-primary)' : 'var(--color-border)',
                         background: importExamType === t ? 'var(--color-primary-light)' : 'transparent',
                         color: importExamType === t ? 'var(--color-primary)' : 'var(--color-text-sub)',
-                        boxShadow: importExamType === t ? 'inset 0 0 0 2px var(--color-primary)' : 'none',
+                        boxShadow: importExamType === t ? 'inset 0 0 0 1.5px var(--color-primary)' : 'none',
                         fontWeight: importExamType === t ? 700 : 400 }}>
                       {t}
                     </button>
@@ -1391,7 +1391,7 @@ ${tipPromptExamType !== 'ALL' ? `・examType には "${tipPromptExamType}" を�
                               borderColor: tipPromptExamType === t ? 'var(--color-primary)' : 'var(--color-border)',
                               background: tipPromptExamType === t ? 'var(--color-primary-light)' : 'transparent',
                               color: tipPromptExamType === t ? 'var(--color-primary)' : 'var(--color-text-sub)',
-                              boxShadow: tipPromptExamType === t ? 'inset 0 0 0 2px var(--color-primary)' : 'none',
+                              boxShadow: tipPromptExamType === t ? 'inset 0 0 0 1.5px var(--color-primary)' : 'none',
                               fontWeight: tipPromptExamType === t ? 700 : 400 }}>
                             {t}
                           </button>
@@ -1461,7 +1461,7 @@ ${tipPromptExamType !== 'ALL' ? `・examType には "${tipPromptExamType}" を�
                           background: tipImportExamType === t ? 'var(--color-primary-light)' : 'transparent',
                           color: tipImportExamType === t ? 'var(--color-primary)' : 'var(--color-text-sub)',
                           borderColor: tipImportExamType === t ? 'var(--color-primary)' : 'var(--color-border)',
-                          boxShadow: tipImportExamType === t ? 'inset 0 0 0 2px var(--color-primary)' : 'none',
+                          boxShadow: tipImportExamType === t ? 'inset 0 0 0 1.5px var(--color-primary)' : 'none',
                           fontWeight: tipImportExamType === t ? 700 : 400 }}>
                         {t}
                       </button>
@@ -1576,7 +1576,7 @@ ${tipPromptExamType !== 'ALL' ? `・examType には "${tipPromptExamType}" を�
                         borderColor: tipForm.examType === t ? 'var(--color-primary)' : 'var(--color-border)',
                         background: tipForm.examType === t ? 'var(--color-primary-light)' : 'transparent',
                         color: tipForm.examType === t ? 'var(--color-primary)' : 'var(--color-text-sub)',
-                        boxShadow: tipForm.examType === t ? 'inset 0 0 0 2px var(--color-primary)' : 'none',
+                        boxShadow: tipForm.examType === t ? 'inset 0 0 0 1.5px var(--color-primary)' : 'none',
                         fontWeight: tipForm.examType === t ? 700 : 400 }}>
                       {t}
                     </button>
@@ -1788,7 +1788,7 @@ ${tipPromptExamType !== 'ALL' ? `・examType には "${tipPromptExamType}" を�
                       background: validityFilter === key ? 'var(--color-primary-light)' : 'transparent',
                       color: validityFilter === key ? 'var(--color-primary)' : 'var(--color-text-sub)',
                       borderColor: validityFilter === key ? 'var(--color-primary)' : 'var(--color-border)',
-                      boxShadow: validityFilter === key ? 'inset 0 0 0 2px var(--color-primary)' : 'none' }}>
+                      boxShadow: validityFilter === key ? 'inset 0 0 0 1.5px var(--color-primary)' : 'none' }}>
                     {label}
                     {key === 'all' && !loadingFlagged && validityFilter === 'all' && ` (${flaggedQuestions.length})`}
                   </button>
@@ -1814,7 +1814,7 @@ ${tipPromptExamType !== 'ALL' ? `・examType には "${tipPromptExamType}" を�
                             background: scanExamFilter === et ? 'var(--color-secondary)' : 'transparent',
                             color: scanExamFilter === et ? 'white' : 'var(--color-text-sub)',
                             borderColor: scanExamFilter === et ? 'var(--color-secondary)' : 'var(--color-border)',
-                            boxShadow: scanExamFilter === et ? 'inset 0 0 0 2px var(--color-secondary)' : 'none' }}>
+                            boxShadow: scanExamFilter === et ? 'inset 0 0 0 1.5px var(--color-secondary)' : 'none' }}>
                           {et}
                         </button>
                         {et === 'ALL' && <span style={{ width: 1, height: 14, background: 'var(--color-border)', display: 'inline-block', flexShrink: 0 }} />}
@@ -1836,7 +1836,7 @@ ${tipPromptExamType !== 'ALL' ? `・examType には "${tipPromptExamType}" を�
                           background: scanSort === key ? 'var(--color-primary-light)' : 'transparent',
                           color: scanSort === key ? 'var(--color-primary)' : 'var(--color-text-sub)',
                           borderColor: scanSort === key ? 'var(--color-primary)' : 'var(--color-border)',
-                          boxShadow: scanSort === key ? 'inset 0 0 0 2px var(--color-primary)' : 'none' }}>
+                          boxShadow: scanSort === key ? 'inset 0 0 0 1.5px var(--color-primary)' : 'none' }}>
                         {label}
                       </button>
                     ))}

@@ -88,7 +88,7 @@ export default function Home() {
             variant="outline"
             size="sm"
             onClick={() => { localStorage.removeItem(TARGET_EXAM_KEY); setTargetExam(null); }}
-            style={targetExam === null ? { background: 'var(--color-primary-light)', boxShadow: 'inset 0 0 0 2px var(--color-primary)' } : {}}
+            style={targetExam === null ? { background: 'var(--color-primary-light)', boxShadow: 'inset 0 0 0 1.5px var(--color-primary)' } : {}}
           >
             {lang === 'ja' ? 'すべて' : 'All'}
           </Button>
@@ -101,7 +101,7 @@ export default function Home() {
                 variant="outline"
                 size="sm"
                 onClick={() => handleSelectExam(et)}
-                style={{ width: 72, ...(selected ? { background: 'var(--color-primary-light)', boxShadow: 'inset 0 0 0 2px var(--color-primary)' } : {}) }}
+                style={{ width: 72, ...(selected ? { background: 'var(--color-primary-light)', boxShadow: 'inset 0 0 0 1.5px var(--color-primary)' } : {}) }}
               >
                 {et}
               </Button>
