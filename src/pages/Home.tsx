@@ -84,15 +84,6 @@ export default function Home() {
 
         {/* 試験選択ボタン（横並び） */}
         <div style={{ display: 'flex', gap: 'var(--spacing-sm)', flexWrap: 'wrap', marginBottom: 'var(--spacing-md)', alignItems: 'center' }}>
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => { localStorage.removeItem(TARGET_EXAM_KEY); setTargetExam(null); }}
-            style={targetExam === null ? { background: 'var(--color-primary-light)', borderWidth: 2 } : {}}
-          >
-            {lang === 'ja' ? 'すべて' : 'All'}
-          </Button>
-          <span style={{ width: 1, height: 20, background: 'var(--color-border)', display: 'inline-block', flexShrink: 0 }} />
           {EXAM_TYPES.map(et => {
             const selected = targetExam === et;
             return (
