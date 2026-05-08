@@ -11,9 +11,11 @@ type Props = {
   noMargin?: boolean;
 };
 
-const HR = () => (
-  <div style={{ borderTop: '1px solid var(--color-border)', margin: 'var(--spacing-sm) 0' }} />
-);
+const activeStyle: React.CSSProperties = {
+  background: 'var(--color-primary)',
+  color: 'var(--color-on-primary)',
+  borderColor: 'var(--color-primary)',
+};
 
 export default function DomainSelector({ domains, selected, onChange, lang, label, noMargin }: Props) {
   const allSelected = domains.every(d => selected.includes(d));
@@ -21,7 +23,7 @@ export default function DomainSelector({ domains, selected, onChange, lang, labe
 
   const toggle = (d: string) => {
     if (selected.includes(d)) {
-      if (selected.length === 1) return; // keep at least 1
+      if (selected.length === 1) return;
       onChange(selected.filter(x => x !== d));
     } else {
       onChange([...selected, d]);
@@ -32,11 +34,11 @@ export default function DomainSelector({ domains, selected, onChange, lang, labe
     <div style={{ marginBottom: noMargin ? 0 : 'var(--spacing-lg)' }}>
       {label}
 
-      {/* クイック選択ボタン行 */}
-      <div style={{ display: 'flex', flexWrap: 'wrap', gap: 'var(--spacing-xs)', marginBottom: 'var(--spacing-sm)' }}>
+      <div style={{ display: 'flex', flexWrap: 'wrap', gap: 'var(--spacing-xs)' }}>
         <Button
           size="sm"
-          variant={allSelected ? 'primary' : 'outline'}
+          variant="outline"
+          style={allSelected ? activeStyle : {}}
           onClick={() => onChange(allSelected ? [] : [...domains])}
         >
           {lang === 'ja' ? 'すべて' : 'All'}
@@ -45,7 +47,8 @@ export default function DomainSelector({ domains, selected, onChange, lang, labe
           <Button
             key={d}
             size="sm"
-            variant={selected.includes(d) ? 'primary' : 'outline'}
+            variant="outline"
+            style={selected.includes(d) ? activeStyle : {}}
             onClick={() => toggle(d)}
           >
             {dn(d)}
@@ -53,39 +56,8 @@ export default function DomainSelector({ domains, selected, onChange, lang, labe
         ))}
       </div>
 
-      <HR />
-
-      {/* 選択中チップ（すべて選択時は非表示） */}
-      {!allSelected && selected.length > 0 && (
-        <>
-          <div style={{ marginBottom: 'var(--spacing-sm)' }}>
-            <div style={{ fontSize: 'var(--font-size-sm)', fontWeight: 700, color: 'var(--color-text-sub)', marginBottom: 'var(--spacing-xs)' }}>
-              {lang === 'ja' ? `選択中ドメイン（${selected.length}件）` : `Selected (${selected.length})`}
-            </div>
-            <div style={{ display: 'flex', flexWrap: 'wrap', gap: 'var(--spacing-xs)' }}>
-              {selected.map(d => (
-                <span key={d} style={{
-                  display: 'inline-flex', alignItems: 'center', gap: 4,
-                  fontSize: 'var(--font-size-sm)', fontWeight: 600,
-                  background: 'var(--color-primary-light)', color: 'var(--color-primary)',
-                  borderRadius: 'var(--border-radius-sm)', padding: '3px 8px',
-                }}>
-                  {dn(d)}
-                  <button
-                    onClick={() => toggle(d)}
-                    disabled={selected.length === 1}
-                    style={{ background: 'none', border: 'none', cursor: selected.length === 1 ? 'default' : 'pointer', color: 'var(--color-primary)', fontSize: 11, padding: '0 0 0 2px', lineHeight: 1, opacity: selected.length === 1 ? 0.4 : 1 }}
-                  >✕</button>
-                </span>
-              ))}
-            </div>
-          </div>
-          <HR />
-        </>
-      )}
-
       {selected.length === 0 && (
-        <p style={{ margin: '4px 0 0', fontSize: 'var(--font-size-xs)', color: 'var(--color-danger)' }}>
+        <p style={{ margin: '6px 0 0', fontSize: 'var(--font-size-xs)', color: 'var(--color-danger)' }}>
           {lang === 'ja' ? '最低1つのドメインを選択してください' : 'Please select at least one domain'}
         </p>
       )}

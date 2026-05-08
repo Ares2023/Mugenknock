@@ -305,10 +305,10 @@ export default function ExamSetup() {
                 {EXAM_TYPES.map(et => (
                   <Button
                     key={et}
-                    variant={examType === et ? 'primary' : 'outline'}
+                    variant="outline"
                     size="sm"
                     onClick={() => handleSelectExamInSetup(et)}
-                    style={{ width: 72 }}
+                    style={{ width: 72, ...(examType === et ? { background: 'var(--color-primary)', color: 'var(--color-on-primary)', borderColor: 'var(--color-primary)' } : {}) }}
                   >
                     {et}
                   </Button>

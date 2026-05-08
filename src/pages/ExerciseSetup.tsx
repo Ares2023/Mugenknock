@@ -300,8 +300,9 @@ export default function ExerciseSetup() {
             <StepRow n={examStep!} title={t('exerciseSetup.examType')}>
               <div style={{ display: 'flex', flexWrap: 'wrap', gap: 'var(--spacing-sm)' }}>
                 {EXAM_TYPES.map(et => (
-                  <Button key={et} variant={examType === et ? 'primary' : 'outline'} size="sm"
-                    onClick={() => handleSelectExamInSetup(et)} style={{ width: 72 }}>
+                  <Button key={et} variant="outline" size="sm"
+                    onClick={() => handleSelectExamInSetup(et)}
+                    style={{ width: 72, ...(examType === et ? { background: 'var(--color-primary)', color: 'var(--color-on-primary)', borderColor: 'var(--color-primary)' } : {}) }}>
                     {et}
                   </Button>
                 ))}
