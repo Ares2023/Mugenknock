@@ -17,6 +17,7 @@ type Question = {
   tags: string[];
   isMultiple: boolean;
   updatedAt?: string;
+  validityCheckedAt?: string;
 };
 
 const formatDate = (iso: string) => {
@@ -26,6 +27,13 @@ const formatDate = (iso: string) => {
   const hh = String(d.getHours()).padStart(2, '0');
   const mi = String(d.getMinutes()).padStart(2, '0');
   return `${mm}/${dd} ${hh}:${mi}`;
+};
+
+const formatDateOnly = (iso: string) => {
+  const d = new Date(iso);
+  const mm = String(d.getMonth() + 1).padStart(2, '0');
+  const dd = String(d.getDate()).padStart(2, '0');
+  return `${mm}/${dd}`;
 };
 
 const SkeletonCard = () => (
@@ -554,9 +562,14 @@ export default function QuestionList() {
                     <div style={{ marginBottom: 'var(--spacing-sm)', display: 'flex', gap: 'var(--spacing-sm)', alignItems: 'center', flexWrap: 'wrap' }}>
                       <Badge variant="secondary">{q.examType}</Badge>
                       {q.isMultiple && <Badge variant="outline">{t('questions.multiple')}</Badge>}
+                      {q.validityCheckedAt && (
+                        <span style={{ fontSize: 'var(--font-size-xs)', color: 'var(--color-text-light)' }}>
+                          {lang === 'ja' ? 'AI確認:' : 'AI:'} {formatDateOnly(q.validityCheckedAt)}
+                        </span>
+                      )}
                       {q.updatedAt && (
                         <span style={{ fontSize: 'var(--font-size-xs)', color: 'var(--color-text-light)' }}>
-                          最終更新: {formatDate(q.updatedAt)}
+                          {lang === 'ja' ? '更新:' : 'Updated:'} {formatDate(q.updatedAt)}
                         </span>
                       )}
                       {user && (
