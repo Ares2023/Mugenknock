@@ -94,7 +94,7 @@ const SectionDivider = ({ label, color }: { label: string; color: string }) => (
       padding: '3px 12px', borderRadius: 'var(--border-radius-full)',
       letterSpacing: '0.5px', flexShrink: 0,
     }}>{label}</span>
-    <div style={{ flex: 1, height: 1, background: 'var(--color-border)' }} />
+    <div style={{ flex: 1, height: 2, background: 'var(--color-border)' }} />
   </div>
 );
 
@@ -224,8 +224,7 @@ export default function Stats() {
       {/* ── ヘッダー + 試験フィルター ── */}
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 'var(--spacing-lg)', flexWrap: 'wrap', gap: 'var(--spacing-md)' }}>
         <div>
-          <h2 style={{ fontSize: 'var(--font-size-xxl)', fontWeight: 700, margin: '0 0 var(--spacing-xs)', color: 'var(--color-text-main)' }}>{t('stats.title')}</h2>
-          <p style={{ fontSize: 'var(--font-size-base)', color: 'var(--color-text-sub)', margin: 0, lineHeight: 1.6 }}>{t('stats.description')}</p>
+          <h2 style={{ fontSize: 'var(--font-size-xxl)', fontWeight: 700, margin: 0, color: 'var(--color-text-main)' }}>{t('stats.title')}</h2>
         </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--spacing-sm)', flexWrap: 'wrap', rowGap: 'var(--spacing-xs)' }}>
           <span style={{ fontSize: 'var(--font-size-sm)', color: 'var(--color-text-sub)' }}>{t('stats.showing')}</span>

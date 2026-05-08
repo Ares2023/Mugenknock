@@ -300,8 +300,7 @@ export default function QuestionList() {
   return (
     <div style={{ maxWidth: 1100, margin: '0 auto', padding: 'var(--spacing-xl) var(--spacing-lg)' }} className="page-container">
       <div style={{ marginBottom: 'var(--spacing-xl)' }}>
-        <h1 style={{ color: 'var(--color-text-main)', margin: '0 0 var(--spacing-xs)', fontSize: 'var(--font-size-xxl)', fontWeight: 700 }}>{t('questions.title')}</h1>
-        <p style={{ fontSize: 'var(--font-size-base)', color: 'var(--color-text-sub)', margin: 0, lineHeight: 1.6 }}>{t('questions.description')}</p>
+        <h1 style={{ color: 'var(--color-text-main)', margin: 0, fontSize: 'var(--font-size-xxl)', fontWeight: 700 }}>{t('questions.title')}</h1>
       </div>
 
       <Card padding="var(--spacing-lg)" style={{ marginBottom: 'var(--spacing-xl)' }}>
