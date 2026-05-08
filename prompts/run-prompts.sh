@@ -55,6 +55,7 @@ commands:
   skip            skip hooks on next run (run again to cancel)
 
 flags:
+  -d HH:MM        with "run": stop processing 3 min before HH:MM (deadline)
   -d DIR          with "run": execute only DIR (*.txt files)
   -l              last run time (bare)
   -n              next scheduled time (bare)
@@ -483,8 +484,28 @@ run_main() {
   LOG_FILE="$LOG_DIR/run_$(date '+%Y%m%d').log"
 
   local is_rate_limited=0
+  local is_deadline=0
+  local deadline_epoch=0
   local extracted_reset_time=""
   local night_processed=""
+
+  # ── 締切エポック秒を計算 (設定時刻の3分前) ──
+  if [ -n "$DEADLINE_TIME" ]; then
+    deadline_epoch=$(python3 - "$DEADLINE_TIME" << 'PYEOF'
+import sys, time
+from datetime import datetime, timedelta
+now = datetime.now()
+try:
+    t = datetime.strptime(sys.argv[1].strip(), "%H:%M")
+    cutoff = datetime.combine(now.date(), t.time()) - timedelta(minutes=3)
+    if cutoff <= now:
+        cutoff += timedelta(days=1)
+    print(int(cutoff.timestamp()))
+except:
+    print(0)
+PYEOF
+    )
+  fi
 
   # 詳細サマリー用カウンター (process_dir が _proc_ok/_proc_fail を上書きする)
   local _ping_result="(skip)"
@@ -501,11 +522,22 @@ run_main() {
     echo "=========================================="
     echo "実行開始: $DATE_STR"
     [ -n "$target_dir" ] && echo "対象ディレクトリ: $target_dir"
+    if [ -n "$DEADLINE_TIME" ] && [ "$deadline_epoch" -gt 0 ]; then
+      local _cutoff_hm
+      _cutoff_hm=$(python3 -c "import time; print(time.strftime('%H:%M', time.localtime(${deadline_epoch})))")
+      echo "⏰ 締切: ${DEADLINE_TIME} → 処理中断ライン: ${_cutoff_hm}"
+    fi
     echo "=========================================="
     cd "$PROJECT_DIR"
 
     exec_ai() {
       local file="$1"
+      # 締切チェック (設定時刻の3分前で中断)
+      if [ "$deadline_epoch" -gt 0 ] && [ "$(date +%s)" -ge "$deadline_epoch" ]; then
+        echo "⏰ 締切3分前のため処理を中断します ($(date '+%H:%M'))"
+        is_deadline=1
+        return 1
+      fi
       local _t0=$(date +%s)
       echo "▶ [ai-router] $(basename "$file")"
       local _cb
@@ -542,6 +574,10 @@ run_main() {
           [ "$delete_on_success" -eq 1 ] && rm "$f"
         else
           _proc_fail=$(( _proc_fail + 1 ))
+          if [ "${is_deadline:-0}" -eq 1 ]; then
+            [ -n "$prefix" ] && night_processed+="$prefix$(basename "$f") (DEADLINE), "
+            return 1
+          fi
           [ -n "$prefix" ] && night_processed+="$prefix$(basename "$f") (LIMIT), "
           is_rate_limited=1
           return 1
@@ -558,28 +594,36 @@ run_main() {
         echo "❌ ディレクトリ不在: $target_dir"
       fi
     else
-      # ── ping: Claudeセッションを開始させるための軽い呼び出し ──
-      echo "▶ [ping] Claudeセッション確認..."
-      local _pt0=$(date +%s)
-      local _ping_out _ping_ec
-      _ping_out=$(/home/yuzuki/local/bin/claude --dangerously-skip-permissions -p "." 2>&1)
-      _ping_ec=$?
-      local _ping_s=$(( $(date +%s) - _pt0 ))
-      printf "  → %ds\n" "$_ping_s"
-      echo "$_ping_out"
-      if [ $_ping_ec -ne 0 ] || echo "$_ping_out" | grep -qiE "rate.?limit|too many requests|overload|quota exceeded|hit your limit|usage limit"; then
-        local _reset
-        _reset=$(echo "$_ping_out" | grep -ioE "resets [0-9]{1,2}:[0-9]{2}[ap]m" | grep -ioE "[0-9]{1,2}:[0-9]{2}[ap]m" | head -n 1)
-        [ -n "$_reset" ] && extracted_reset_time="$_reset"
-        is_rate_limited=1
-        _ping_result="LIMIT(${extracted_reset_time:-?})"
-        echo "⚠️ レート制限 (reset: ${extracted_reset_time:-不明})"
-      else
-        _ping_result="OK(${_ping_s}s)"
-        echo "✓ ping OK"
+      # 締切チェック (ping前)
+      if [ "$deadline_epoch" -gt 0 ] && [ "$(date +%s)" -ge "$deadline_epoch" ]; then
+        echo "⏰ 締切3分前のため処理を中断します ($(date '+%H:%M'))"
+        is_deadline=1
       fi
 
-      if [ $is_rate_limited -eq 0 ]; then
+      # ── ping: Claudeセッションを開始させるための軽い呼び出し ──
+      if [ "${is_deadline:-0}" -eq 0 ]; then
+        echo "▶ [ping] Claudeセッション確認..."
+        local _pt0=$(date +%s)
+        local _ping_out _ping_ec
+        _ping_out=$(/home/yuzuki/local/bin/claude --dangerously-skip-permissions -p "." 2>&1)
+        _ping_ec=$?
+        local _ping_s=$(( $(date +%s) - _pt0 ))
+        printf "  → %ds\n" "$_ping_s"
+        echo "$_ping_out"
+        if [ $_ping_ec -ne 0 ] || echo "$_ping_out" | grep -qiE "rate.?limit|too many requests|overload|quota exceeded|hit your limit|usage limit"; then
+          local _reset
+          _reset=$(echo "$_ping_out" | grep -ioE "resets [0-9]{1,2}:[0-9]{2}[ap]m" | grep -ioE "[0-9]{1,2}:[0-9]{2}[ap]m" | head -n 1)
+          [ -n "$_reset" ] && extracted_reset_time="$_reset"
+          is_rate_limited=1
+          _ping_result="LIMIT(${extracted_reset_time:-?})"
+          echo "⚠️ レート制限 (reset: ${extracted_reset_time:-不明})"
+        else
+          _ping_result="OK(${_ping_s}s)"
+          echo "✓ ping OK"
+        fi
+      fi
+
+      if [ $is_rate_limited -eq 0 ] && [ "${is_deadline:-0}" -eq 0 ]; then
         TODAY=$(date +%Y-%m-%d)
         HOUR=$(date +%-H)
         if [ "$TODAY" != "$(cat "$SCRIPT_DIR/.last_run_date" 2>/dev/null)" ] && [ "$HOUR" -lt 7 ]; then
@@ -588,6 +632,9 @@ run_main() {
           # 1. シェルスクリプト
           for s in "$SCRIPT_DIR/night-prompts/scripts"/*.sh; do
             [ -e "$s" ] || continue
+            if [ "$deadline_epoch" -gt 0 ] && [ "$(date +%s)" -ge "$deadline_epoch" ]; then
+              echo "⏰ 締切3分前 — 夜間スクリプト中断 ($(date '+%H:%M'))"; is_deadline=1; break
+            fi
             local _st0=$(date +%s)
             echo "▶ [night-script] $(basename "$s")"
             if bash "$s"; then
@@ -603,6 +650,9 @@ run_main() {
           # 1.5 使い捨てスクリプト
           for s in "$SCRIPT_DIR/night-prompts/tmp-scripts"/*.sh; do
             [ -e "$s" ] || continue
+            if [ "${is_deadline:-0}" -eq 1 ] || { [ "$deadline_epoch" -gt 0 ] && [ "$(date +%s)" -ge "$deadline_epoch" ]; }; then
+              echo "⏰ 締切3分前 — 夜間tmpスクリプト中断 ($(date '+%H:%M'))"; is_deadline=1; break
+            fi
             local _st0=$(date +%s)
             echo "▶ [night-tmp-script] $(basename "$s")"
             if bash "$s"; then
@@ -617,11 +667,13 @@ run_main() {
           done
 
           # 2. Claudeプロンプト
-          if process_dir "$SCRIPT_DIR/night-prompts/texts" 0 "[txt]"; then
+          if [ "${is_deadline:-0}" -eq 0 ] && process_dir "$SCRIPT_DIR/night-prompts/texts" 0 "[txt]"; then
             _txt_ok=$_proc_ok; _txt_fail=$_proc_fail
-            process_dir "$SCRIPT_DIR/night-prompts/tmp-texts" 1 "[tmp-txt]" || true
-            _tmptxt_ok=$_proc_ok; _tmptxt_fail=$_proc_fail
-            if [ $is_rate_limited -eq 0 ]; then
+            if [ "${is_deadline:-0}" -eq 0 ]; then
+              process_dir "$SCRIPT_DIR/night-prompts/tmp-texts" 1 "[tmp-txt]" || true
+              _tmptxt_ok=$_proc_ok; _tmptxt_fail=$_proc_fail
+            fi
+            if [ $is_rate_limited -eq 0 ] && [ "${is_deadline:-0}" -eq 0 ]; then
               echo "$TODAY" > "$SCRIPT_DIR/.last_run_date"
             fi
           else
@@ -632,7 +684,7 @@ run_main() {
         fi
       fi
 
-      if [ $is_rate_limited -eq 0 ]; then
+      if [ $is_rate_limited -eq 0 ] && [ "${is_deadline:-0}" -eq 0 ]; then
         process_dir "$SCRIPT_DIR/tmp-prompts" 1
         _tmp_ok=$_proc_ok; _tmp_fail=$_proc_fail
       fi
@@ -666,7 +718,10 @@ run_main() {
     [ $(( _tmp_ok   + _tmp_fail   )) -gt 0 ] && _detail+=" tmp=${_tmp_ok}/$(( _tmp_ok + _tmp_fail ))"
   fi
 
-  if [ $is_rate_limited -eq 1 ]; then
+  if [ "${is_deadline:-0}" -eq 1 ]; then
+    log_history "DEADLINE" "${_es} | deadline:${DEADLINE_TIME} | ${_detail}" || true
+    schedule_next "cycle" "" "$_run_start"
+  elif [ $is_rate_limited -eq 1 ]; then
     log_history "LIMIT  " "${_es} | reset:${extracted_reset_time:-不明} | ${_detail}" || true
     if [ -n "$extracted_reset_time" ]; then
       schedule_next "reset" "$extracted_reset_time"
@@ -719,6 +774,7 @@ PYEOF
 # ── 引数処理 ────────────────────────────────────────────────
 CMD="status"
 TARGET_DIR=""
+DEADLINE_TIME=""
 SET_TIME=""
 HOOK_OFFSET=0
 HOOK_CMD=""
@@ -733,7 +789,14 @@ while [[ $# -gt 0 ]]; do
       CMD="run"; shift
       while [[ $# -gt 0 ]]; do
         case "$1" in
-          -d) TARGET_DIR="${2:?ct: -d requires DIR}"; shift 2 ;;
+          -d)
+            _d_arg="${2:?ct: -d requires HH:MM or DIR}"
+            if [[ "$_d_arg" =~ ^[0-9]{1,2}:[0-9]{2}$ ]]; then
+              DEADLINE_TIME="$_d_arg"
+            else
+              TARGET_DIR="$_d_arg"
+            fi
+            shift 2 ;;
           *)  break ;;
         esac
       done
