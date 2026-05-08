@@ -1,6 +1,6 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { API_ENDPOINT, EXAM_DOMAINS, DOMAIN_NAME_EN, PASS_RATE } from '../constants';
+import { API_ENDPOINT, EXAM_DOMAINS, DOMAIN_NAME_EN } from '../constants';
 import { useAuth } from '../contexts/AuthContext';
 import { useLanguage } from '../contexts/LanguageContext';
 import Card from '../components/ui/Card';
@@ -27,8 +27,10 @@ type TagStat = { tagId: string; correctCount?: number; incorrectCount?: number }
 
 // ── スコア推移折れ線グラフ ────────────────────────────────────────────
 const ScoreLineChart = ({ sessions, passRate, lang }: { sessions: Session[]; passRate?: number; lang: string }) => {
-  const W = 500, H = 170;
-  const padL = 30, padR = 36, padT = 20, padB = 28;
+  const [tooltip, setTooltip] = useState<{ x: number; y: number; session: Session } | null>(null);
+
+  const W = 500, H = 160;
+  const padL = 30, padR = 36, padT = 16, padB = 16;
   const chartW = W - padL - padR;
   const chartH = H - padT - padB;
   const n = sessions.length;
@@ -36,8 +38,9 @@ const ScoreLineChart = ({ sessions, passRate, lang }: { sessions: Session[]; pas
   const yOf = (score: number) => padT + chartH * (1 - score / 100);
   const linePoints = sessions.map((s, i) => `${xOf(i)},${yOf(s.score)}`).join(' ');
   const gridScores = [0, 25, 50, 75, 100];
+
   return (
-    <svg viewBox={`0 0 ${W} ${H}`} style={{ width: '100%', height: 'auto', display: 'block' }} role="img">
+    <svg viewBox={`0 0 ${W} ${H}`} style={{ width: '100%', height: 'auto', display: 'block', overflow: 'visible' }} role="img">
       {gridScores.map(v => (
         <g key={v}>
           <line x1={padL} y1={yOf(v)} x2={W - padR} y2={yOf(v)} stroke="var(--color-border)" strokeWidth={0.7} />
@@ -51,25 +54,49 @@ const ScoreLineChart = ({ sessions, passRate, lang }: { sessions: Session[]; pas
           <text x={W - padR + 3} y={yOf(passRate) + 3.5} fontSize={9} fill="var(--color-primary)" fontWeight="700">{passRate}%</text>
         </>
       )}
-      {n > 1 && <polyline points={linePoints} fill="none" stroke="var(--color-primary)" strokeWidth={2} strokeOpacity={0.35} strokeLinejoin="round" />}
+      {n > 1 && <polyline points={linePoints} fill="none" stroke="var(--color-primary)" strokeWidth={1.5} strokeOpacity={0.3} strokeLinejoin="round" />}
       {sessions.map((s, i) => {
         const cx = xOf(i), cy = yOf(s.score);
-        const color = s.isPassed ? 'var(--color-success)' : passRate === undefined
-          ? (s.score >= STATS_GOOD_RATE ? 'var(--color-success)' : s.score >= STATS_FAIR_RATE ? 'var(--color-caution)' : 'var(--color-danger)')
-          : 'var(--color-danger)';
-        const d = new Date(s.endedAt || s.startedAt);
-        const label = `${d.getMonth() + 1}/${d.getDate()}`;
+        const color = s.mode === 'exam'
+          ? (s.isPassed ? 'var(--color-success)' : 'var(--color-danger)')
+          : (s.score >= STATS_GOOD_RATE ? 'var(--color-success)' : s.score >= STATS_FAIR_RATE ? 'var(--color-caution)' : 'var(--color-danger)');
         return (
-          <g key={s.sessionId}>
-            {s.isMini
-              ? <circle cx={cx} cy={cy} r={5} fill="white" stroke={color} strokeWidth={2} strokeDasharray="3 2" />
-              : <circle cx={cx} cy={cy} r={5} fill={color} />}
-            <text x={cx} y={cy - 8} textAnchor="middle" fontSize={9} fontWeight="700" fill={color}>{s.score}%</text>
-            <text x={cx} y={H - padB + 12} textAnchor="middle" fontSize={9} fill="var(--color-text-light)">{label}</text>
-            {s.isMini && <text x={cx} y={H - padB + 21} textAnchor="middle" fontSize={8} fill="var(--color-text-light)">{lang === 'ja' ? 'ミニ' : 'mini'}</text>}
-          </g>
+          <circle key={s.sessionId}
+            cx={cx} cy={cy} r={3} fill={color}
+            style={{ cursor: 'pointer' }}
+            onMouseEnter={() => setTooltip({ x: cx, y: cy, session: s })}
+            onMouseLeave={() => setTooltip(null)}
+          />
         );
       })}
+      {tooltip && (() => {
+        const { x, y, session: s } = tooltip;
+        const modeLabel = s.mode === 'exercise'
+          ? (lang === 'ja' ? '演習' : 'Exercise')
+          : (s.isMini ? (lang === 'ja' ? 'ミニ模試' : 'Mini Exam') : (lang === 'ja' ? '模試' : 'Mock Exam'));
+        const d = new Date(s.endedAt || s.startedAt);
+        const dateLabel = `${d.getFullYear()}/${d.getMonth() + 1}/${d.getDate()} ${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`;
+        const lines: string[] = [modeLabel, `${lang === 'ja' ? 'スコア' : 'Score'}: ${s.score}%`, dateLabel];
+        if (s.mode === 'exam') lines.push(s.isPassed ? (lang === 'ja' ? '合格' : 'Passed') : (lang === 'ja' ? '不合格' : 'Failed'));
+        const lineH = 13, pad = 7, boxW = 128;
+        const boxH = lines.length * lineH + pad * 2;
+        const boxX = x > W * 0.6 ? x - boxW - 6 : x + 6;
+        const boxY = Math.min(y < padT + 40 ? y + 6 : y - boxH - 6, H + 10);
+        return (
+          <g style={{ pointerEvents: 'none' }}>
+            <rect x={boxX} y={boxY} width={boxW} height={boxH}
+              style={{ fill: 'var(--color-bg-white)', stroke: 'var(--color-border)', strokeWidth: 1, filter: 'drop-shadow(0 2px 4px rgba(0,0,0,0.1))' }}
+              rx={4} />
+            {lines.map((line, li) => (
+              <text key={li} x={boxX + pad} y={boxY + pad + (li + 1) * lineH - 2}
+                fontSize={9} fontWeight={li === 0 ? '700' : '400'}
+                style={{ fill: li === 0 ? 'var(--color-text-main)' : 'var(--color-text-sub)' }}>
+                {line}
+              </text>
+            ))}
+          </g>
+        );
+      })()}
     </svg>
   );
 };
@@ -137,8 +164,7 @@ export default function Stats() {
   const [loading, setLoading] = useState(true);
   const [perfLoading, setPerfLoading] = useState(false);
   const [perfLoaded, setPerfLoaded] = useState(false);
-  const [activityRange, setActivityRange] = useState<7 | 14 | 30>(7);
-  const [historyTab, setHistoryTab] = useState<'exercise' | 'exam'>('exercise');
+  const [activityRange, setActivityRange] = useState<7 | 14 | 30 | 'all'>(7);
   const [showHint, setShowHint] = useState(() => !localStorage.getItem('sherpaStatsHint'));
 
   // ── 初期ロード（ノック量に必要なデータのみ） ──
@@ -168,20 +194,32 @@ export default function Stats() {
   }, [tab, user, targetExam, perfLoaded]);
 
   // ── 派生データ ──
-  const exerciseSessions = useMemo(() => sessions.filter(s => s.mode === 'exercise'), [sessions]);
-  const examSessions = useMemo(() =>
-    sessions.filter(s => s.mode === 'exam').sort((a, b) =>
+  const allSortedSessions = useMemo(() =>
+    [...sessions].sort((a, b) =>
       (a.endedAt || a.startedAt) > (b.endedAt || b.startedAt) ? 1 : -1), [sessions]);
-  const historySessions = historyTab === 'exercise' ? exerciseSessions : examSessions;
 
   const pct = totalCount > 0 ? Math.round((answeredCount / totalCount) * 100) : 0;
 
   const dailyData = useMemo(() => {
     const today = new Date();
     const todayStr = today.toISOString().slice(0, 10);
-    return Array.from({ length: activityRange }, (_, i) => {
+    let range: number;
+    if (activityRange === 'all') {
+      if (sessions.length === 0) {
+        range = 7;
+      } else {
+        const earliest = sessions.reduce((min, s) => {
+          const d = (s.startedAt || '').slice(0, 10);
+          return d && d < min ? d : min;
+        }, todayStr);
+        range = Math.max(Math.floor((today.getTime() - new Date(earliest + 'T00:00:00Z').getTime()) / 86400000) + 1, 7);
+      }
+    } else {
+      range = activityRange;
+    }
+    return Array.from({ length: range }, (_, i) => {
       const d = new Date(today);
-      d.setDate(d.getDate() - (activityRange - 1 - i));
+      d.setDate(d.getDate() - (range - 1 - i));
       const dateStr = d.toISOString().slice(0, 10);
       const count = sessions.reduce((sum, s) => {
         const sDate = (s.endedAt || s.startedAt).slice(0, 10);
@@ -203,11 +241,9 @@ export default function Stats() {
     });
   }, [targetExam, tagStats]);
 
-  const fmt = (iso: string) =>
-    new Date(iso).toLocaleString(lang === 'en' ? 'en-US' : 'ja-JP', { month: 'numeric', day: 'numeric', hour: '2-digit', minute: '2-digit' });
-
   const totalActivity = dailyData.reduce((s, d) => s + d.count, 0);
-  const avgActivity = activityRange > 0 ? (totalActivity / activityRange).toFixed(1) : '0';
+  const effectiveRange = activityRange === 'all' ? dailyData.length : activityRange;
+  const avgActivity = effectiveRange > 0 ? (totalActivity / effectiveRange).toFixed(1) : '0';
 
   // ── 目標資格未設定 ──
   if (!targetExam) {
@@ -303,17 +339,11 @@ export default function Stats() {
                   </span>
                 </div>
                 {/* HP バー */}
-                <div style={{ position: 'relative', background: 'var(--color-bg-main)', borderRadius: 10, height: 18, overflow: 'hidden', marginBottom: 6 }}>
+                <div style={{ background: 'var(--color-bg-main)', borderRadius: 10, height: 10, overflow: 'hidden', marginBottom: 6 }}>
                   <div style={{
                     width: `${pct}%`, height: '100%', borderRadius: 10, transition: 'width 0.6s',
                     background: pct >= 60 ? 'var(--color-success)' : pct >= 30 ? 'var(--color-caution)' : 'var(--color-danger)',
                   }} />
-                  {pct > 8 && (
-                    <span style={{
-                      position: 'absolute', left: '50%', top: '50%', transform: 'translate(-50%, -50%)',
-                      fontSize: 11, fontWeight: 700, color: 'white', textShadow: '0 1px 2px rgba(0,0,0,0.3)',
-                    }}>{pct}%</span>
-                  )}
                 </div>
                 <div style={{ fontSize: 'var(--font-size-xs)', color: 'var(--color-text-light)', textAlign: 'right' }}>
                   {pct}% {lang === 'ja' ? '消化' : 'covered'}
@@ -329,7 +359,7 @@ export default function Stats() {
                 {lang === 'ja' ? '日次ノック量' : 'Daily Activity'}
               </div>
               <div style={{ display: 'flex', gap: 4 }}>
-                {([7, 14, 30] as const).map(r => (
+                {([7, 14, 30, 'all'] as const).map(r => (
                   <button key={r} onClick={() => setActivityRange(r)} style={{
                     padding: '3px 10px', fontSize: 'var(--font-size-xs)', fontWeight: 600, cursor: 'pointer',
                     borderRadius: 'var(--border-radius-full)',
@@ -337,7 +367,7 @@ export default function Stats() {
                     background: activityRange === r ? 'var(--color-primary-light)' : 'transparent',
                     color: activityRange === r ? 'var(--color-primary)' : 'var(--color-text-sub)',
                     transition: 'all 0.15s',
-                  }}>{r}{lang === 'ja' ? '日' : 'd'}</button>
+                  }}>{r === 'all' ? (lang === 'ja' ? '全' : 'All') : `${r}${lang === 'ja' ? '日' : 'd'}`}</button>
                 ))}
               </div>
             </div>
@@ -427,89 +457,27 @@ export default function Stats() {
             </Card>
           )}
 
-          {/* 演習スコア推移 */}
-          {!perfLoading && user && exerciseSessions.length > 0 && (
+          {/* 成績推移 */}
+          {!perfLoading && user && allSortedSessions.length > 0 && (
             <Card style={{ marginBottom: 'var(--spacing-lg)' }}>
               <div style={{ fontSize: 'var(--font-size-xs)', fontWeight: 700, color: 'var(--color-text-sub)', textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: 'var(--spacing-md)' }}>
-                {lang === 'ja' ? '演習スコア推移' : 'Exercise Score History'}
+                {lang === 'ja' ? '成績推移' : 'Score History'}
               </div>
-              <ScoreLineChart
-                sessions={[...exerciseSessions].sort((a, b) => (a.endedAt || a.startedAt) > (b.endedAt || b.startedAt) ? 1 : -1)}
-                passRate={STATS_GOOD_RATE}
-                lang={lang}
-              />
-            </Card>
-          )}
-
-          {/* 模試スコア推移 */}
-          {!perfLoading && user && examSessions.length > 0 && (
-            <Card style={{ marginBottom: 'var(--spacing-lg)' }}>
-              <div style={{ fontSize: 'var(--font-size-xs)', fontWeight: 700, color: 'var(--color-text-sub)', textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: 'var(--spacing-md)' }}>
-                {t('stats.scoreHistory')}
+              <ScoreLineChart sessions={allSortedSessions} passRate={STATS_GOOD_RATE} lang={lang} />
+              <div style={{ marginTop: 6, display: 'flex', gap: 'var(--spacing-lg)', fontSize: 'var(--font-size-xs)', color: 'var(--color-text-light)' }}>
+                <span style={{ display: 'flex', alignItems: 'center', gap: 5 }}>
+                  <span style={{ width: 8, height: 8, borderRadius: '50%', background: 'var(--color-success)', display: 'inline-block' }} />
+                  {lang === 'ja' ? '70%以上 / 合格' : '70%+ / Passed'}
+                </span>
+                <span style={{ display: 'flex', alignItems: 'center', gap: 5 }}>
+                  <span style={{ width: 8, height: 8, borderRadius: '50%', background: 'var(--color-caution)', display: 'inline-block' }} />
+                  {lang === 'ja' ? '50〜69%（演習）' : '50–69% (Exercise)'}
+                </span>
+                <span style={{ display: 'flex', alignItems: 'center', gap: 5 }}>
+                  <span style={{ width: 8, height: 8, borderRadius: '50%', background: 'var(--color-danger)', display: 'inline-block' }} />
+                  {lang === 'ja' ? '50%未満 / 不合格' : 'Below 50% / Failed'}
+                </span>
               </div>
-              <ScoreLineChart sessions={examSessions} passRate={PASS_RATE[targetExam]} lang={lang} />
-            </Card>
-          )}
-
-          {/* 履歴テーブル */}
-          {!perfLoading && user && (
-            <Card padding={0} style={{ overflow: 'hidden', marginBottom: 'var(--spacing-xl)' }}>
-              <div style={{ display: 'flex', gap: 0, borderBottom: '2px solid var(--color-border)' }}>
-                {(['exercise', 'exam'] as const).map(mode => {
-                  const cnt = mode === 'exercise' ? exerciseSessions.length : examSessions.length;
-                  const label = mode === 'exercise'
-                    ? (lang === 'ja' ? `演習 (${cnt})` : `Exercise (${cnt})`)
-                    : (lang === 'ja' ? `模試 (${cnt})` : `Mock Exam (${cnt})`);
-                  const active = historyTab === mode;
-                  return (
-                    <button key={mode} onClick={() => setHistoryTab(mode)} style={{
-                      background: 'none', border: 'none', cursor: 'pointer',
-                      padding: '10px 16px', fontSize: 'var(--font-size-sm)', fontWeight: active ? 700 : 400,
-                      color: active ? 'var(--color-primary)' : 'var(--color-text-sub)',
-                      borderBottom: active ? '2px solid var(--color-primary)' : '2px solid transparent',
-                      marginBottom: -2, transition: 'all 0.15s',
-                    }}>{label}</button>
-                  );
-                })}
-              </div>
-              {historySessions.length === 0 ? (
-                <div style={{ padding: 'var(--spacing-lg)', color: 'var(--color-text-sub)', fontSize: 'var(--font-size-sm)' }}>
-                  {historyTab === 'exercise'
-                    ? (lang === 'ja' ? '演習の履歴はありません' : 'No exercise history')
-                    : (lang === 'ja' ? '模試の履歴はありません' : 'No exam history')}
-                </div>
-              ) : (
-                <div className="stats-table-scroll" style={{ overflowX: 'auto' }}>
-                  <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 'var(--font-size-base)' }}>
-                    <thead>
-                      <tr style={{ background: 'var(--color-bg-main)', borderBottom: '1px solid var(--color-border)' }}>
-                        {[t('stats.colDate'), t('stats.colScore'), t('stats.colResult')].map(h => (
-                          <th key={h} style={{ padding: '10px 20px', textAlign: 'left', fontSize: 'var(--font-size-xs)', color: 'var(--color-text-sub)', fontWeight: 700 }}>{h}</th>
-                        ))}
-                        {historyTab === 'exam' && <th style={{ padding: '10px 20px' }} />}
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {historySessions.map((s, i) => (
-                        <tr key={s.sessionId} style={{ borderBottom: i < historySessions.length - 1 ? '1px solid var(--color-border)' : 'none' }}>
-                          <td style={{ padding: '10px 20px', color: 'var(--color-text-sub)', fontSize: 'var(--font-size-sm)' }}>{fmt(s.endedAt || s.startedAt)}</td>
-                          <td style={{ padding: '10px 20px', fontWeight: 700, color: s.score >= STATS_GOOD_RATE ? 'var(--color-success)' : s.score >= STATS_FAIR_RATE ? 'var(--color-caution)' : 'var(--color-danger)' }}>{s.score}%</td>
-                          <td style={{ padding: '10px 20px' }}>
-                            <Badge variant={s.isPassed ? 'success' : 'danger'}>
-                              {s.isPassed ? t('stats.passed') : t('stats.failed')}
-                            </Badge>
-                          </td>
-                          {historyTab === 'exam' && (
-                            <td style={{ padding: '10px 20px' }}>
-                              {s.isMini && <span style={{ fontSize: 'var(--font-size-xs)', background: 'var(--color-warning)', color: '#1a1a1a', borderRadius: 4, padding: '1px 5px', fontWeight: 700 }}>{lang === 'ja' ? 'ミニ' : 'Mini'}</span>}
-                            </td>
-                          )}
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
-              )}
             </Card>
           )}
 
