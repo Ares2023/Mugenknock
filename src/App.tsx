@@ -20,6 +20,7 @@ import Admin from './pages/Admin';
 import ExamSetup from './pages/ExamSetup';
 import ExamSession from './pages/ExamSession';
 import Stats from './pages/Stats';
+import Growth from './pages/Growth';
 import Architecture from './pages/Architecture';
 import ReleaseNotes from './pages/ReleaseNotes';
 
@@ -61,6 +62,7 @@ function App() {
           <Route path="/result" element={<Layout><Result /></Layout>} />
           <Route path="/exam/setup" element={<Layout><ExamSetup /></Layout>} />
           <Route path="/exam/session" element={<Layout><ExamSession /></Layout>} />
+          <Route path="/growth" element={<Layout><Growth /></Layout>} />
           <Route path="/architecture" element={<Layout><Architecture /></Layout>} />
           <Route path="/release-notes" element={<Layout><ReleaseNotes /></Layout>} />
           <Route path="/admin" element={

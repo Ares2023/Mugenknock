@@ -9,7 +9,7 @@ import Button from './ui/Button';
 import {
   IconHome, IconPencil, IconClock, IconList,
   IconUser, IconChart, IconInfo,
-  IconBell, IconMenu, IconClose, IconChevronLeft, IconMail
+  IconBell, IconMenu, IconClose, IconChevronLeft, IconMail, IconTrendingUp
 } from './Icons';
 
 type BreadcrumbItem = { label: string; path?: string };
@@ -45,10 +45,11 @@ const IconMore = () => (
 );
 
 const NAV_KEYS = [
-  { path: '/',               labelKey: 'nav.home',         Icon: IconHome    },
-  { path: '/exercise/setup', labelKey: 'nav.exercise',     Icon: IconPencil  },
-  { path: '/exam/setup',     labelKey: 'nav.exam',         Icon: IconClock   },
-  { path: '/stats',          labelKey: 'nav.stats',        Icon: IconChart   },
+  { path: '/',               labelKey: 'nav.home',         Icon: IconHome         },
+  { path: '/exercise/setup', labelKey: 'nav.exercise',     Icon: IconPencil       },
+  { path: '/exam/setup',     labelKey: 'nav.exam',         Icon: IconClock        },
+  { path: '/stats',          labelKey: 'nav.stats',        Icon: IconChart        },
+  { path: '/growth',         labelKey: 'nav.growth',       Icon: IconTrendingUp   },
   { path: '/questions',      labelKey: 'nav.questions',    Icon: IconList,   bottom: true },
   { path: '/release-notes',  labelKey: 'nav.releaseNotes', Icon: IconBell,   bottom: true },
   { path: '/architecture',   labelKey: 'nav.architecture', Icon: IconInfo,   bottom: true },
@@ -62,9 +63,10 @@ const BOTTOM_TABS = [
 ];
 
 const OTHERS_ITEMS = [
-  { path: '/questions',     Icon: IconList, labelKey: 'nav.questions'    },
-  { path: '/release-notes', Icon: IconBell, labelKey: 'nav.releaseNotes' },
-  { path: '/architecture',  Icon: IconInfo, labelKey: 'nav.architecture' },
+  { path: '/growth',        Icon: IconTrendingUp, labelKey: 'nav.growth'       },
+  { path: '/questions',     Icon: IconList,       labelKey: 'nav.questions'    },
+  { path: '/release-notes', Icon: IconBell,       labelKey: 'nav.releaseNotes' },
+  { path: '/architecture',  Icon: IconInfo,       labelKey: 'nav.architecture' },
 ];
 
 const AI_LINKS = [
@@ -226,6 +228,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
 
   const breadcrumbs: Record<string, BreadcrumbItem[]> = {
     '/questions':        [{ label: t('nav.home'), path: '/' }, { label: t('nav.questions') }],
+    '/growth':           [{ label: t('nav.home'), path: '/' }, { label: t('nav.growth') }],
     '/exercise/setup':   [{ label: t('nav.home'), path: '/' }, { label: t('exerciseSetup.title') }],
     '/exercise/session': [{ label: t('nav.home'), path: '/' }, { label: t('exerciseSetup.title'), path: '/exercise/setup' }, { label: t('nav.exerciseSession') }],
     '/exam/setup':       [{ label: t('nav.home'), path: '/' }, { label: t('examSetup.title') }],

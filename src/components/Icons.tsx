@@ -111,6 +111,13 @@ export const IconTarget = ({ size = 16 }: { size?: number }) => (
   </svg>
 );
 
+export const IconTrendingUp = ({ size = 16 }: { size?: number }) => (
+  <svg width={size} height={size} viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+    <polyline points="1,12 5,7 9,10 15,3"/>
+    <polyline points="11,3 15,3 15,7"/>
+  </svg>
+);
+
 export const IconBookmark = ({ filled = false, size = 16 }: { filled?: boolean; size?: number }) => (
   <svg width={size} height={size} viewBox="0 0 16 16" fill={filled ? "currentColor" : "none"} stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
     <path d="M3 2v13l5-3 5 3V2a1 1 0 0 0-1-1H4a1 1 0 0 0-1 1z" />

@@ -90,6 +90,75 @@ app.get('/health', (req, res) => {
   res.json({ status: 'ok' });
 });
 
+// 問題生成・チェック状況（日次/月次集計）
+app.get('/questions/growth-stats', async (req, res) => {
+  try {
+    const docClient = getClient();
+    const items = await scanAll(docClient, {
+      TableName: 'Questions',
+      ProjectionExpression: 'createdAt, validityCheckedAt',
+    });
+
+    // JST (UTC+9)
+    const jstMs = Date.now() + 9 * 60 * 60 * 1000;
+    const jstNow = new Date(jstMs);
+
+    // 直近7日
+    const daily = [];
+    for (let i = 6; i >= 0; i--) {
+      daily.push(new Date(jstMs - i * 86400000).toISOString().slice(0, 10));
+    }
+
+    // 直近6ヶ月
+    const monthly = [];
+    const jstYear = parseInt(jstNow.toISOString().slice(0, 4));
+    const jstMonthIdx = parseInt(jstNow.toISOString().slice(5, 7)) - 1;
+    for (let i = 5; i >= 0; i--) {
+      let m = jstMonthIdx - i;
+      let y = jstYear;
+      while (m < 0) { m += 12; y--; }
+      monthly.push(`${y}-${String(m + 1).padStart(2, '0')}`);
+    }
+
+    const createdByDay = Object.fromEntries(daily.map(d => [d, 0]));
+    const verifiedByDay = Object.fromEntries(daily.map(d => [d, 0]));
+    const createdByMonth = Object.fromEntries(monthly.map(m => [m, 0]));
+    const verifiedByMonth = Object.fromEntries(monthly.map(m => [m, 0]));
+
+    for (const item of items) {
+      if (item.createdAt) {
+        const day = item.createdAt.slice(0, 10);
+        const month = item.createdAt.slice(0, 7);
+        if (createdByDay[day] !== undefined) createdByDay[day]++;
+        if (createdByMonth[month] !== undefined) createdByMonth[month]++;
+      }
+      if (item.validityCheckedAt) {
+        const day = item.validityCheckedAt.slice(0, 10);
+        const month = item.validityCheckedAt.slice(0, 7);
+        if (verifiedByDay[day] !== undefined) verifiedByDay[day]++;
+        if (verifiedByMonth[month] !== undefined) verifiedByMonth[month]++;
+      }
+    }
+
+    res.json({
+      daily: {
+        dates: daily,
+        created: daily.map(d => createdByDay[d]),
+        verified: daily.map(d => verifiedByDay[d]),
+      },
+      monthly: {
+        months: monthly,
+        created: monthly.map(m => createdByMonth[m]),
+        verified: monthly.map(m => verifiedByMonth[m]),
+      },
+      total: items.length,
+    });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
 // 問題一覧取得
 app.get('/questions', async (req, res) => {
   try {
