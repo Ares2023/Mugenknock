@@ -20,7 +20,7 @@ const chipStyle: React.CSSProperties = {
   color: 'var(--color-primary)',
   border: '1px solid var(--color-primary)',
   borderRadius: 'var(--border-radius-full)',
-  lineHeight: 1.2,
+  lineHeight: 1,
 };
 
 const chipXStyle: React.CSSProperties = {
