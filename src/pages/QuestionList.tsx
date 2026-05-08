@@ -68,6 +68,8 @@ export default function QuestionList() {
   const [keywordChips, setKeywordChips] = useState<string[]>([]);
   const [expandedId, setExpandedId] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+  const [page, setPage] = useState(1);
+  const PAGE_SIZE = 10;
 
   // フィルター状態
   const [examTypes, setExamTypes] = useState<string[]>([]);
@@ -275,13 +277,18 @@ export default function QuestionList() {
       (q.tags ?? []).some(tag => tag.toLowerCase().includes(kw));
   };
 
-  const displayedQuestions = questions.filter(q => {
+  const displayedQuestions = useMemo(() => questions.filter(q => {
     if (keywordChips.length > 0 && !keywordChips.every(chip => matchesKeyword(q, chip))) return false;
     if (filterUnanswered && answeredIds.has(q.questionId)) return false;
     if (filterIncorrect && !incorrectIds.has(q.questionId)) return false;
     if (bookmarkOnly && !bookmarkedIds.has(q.questionId)) return false;
     return true;
-  });
+  }), [questions, keywordChips, filterUnanswered, answeredIds, filterIncorrect, incorrectIds, bookmarkOnly, bookmarkedIds]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  const totalPages = Math.max(1, Math.ceil(displayedQuestions.length / PAGE_SIZE));
+  const pagedQuestions = displayedQuestions.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
+
+  useEffect(() => { setPage(1); }, [keywordChips, filterUnanswered, filterIncorrect, bookmarkOnly, questions]);
 
   const clearAll = () => {
     setKeywordChips([]);
@@ -533,7 +540,7 @@ export default function QuestionList() {
         </div>
       ) : (
         <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--spacing-md)' }}>
-          {displayedQuestions.map(q => {
+          {pagedQuestions.map(q => {
             const qText = lang === 'en' && (q as any).questionTextEn ? (q as any).questionTextEn : q.questionText;
             const choices = lang === 'en' && (q as any).choicesEn ? (q as any).choicesEn : q.choices;
             const expl = lang === 'en' && (q as any).explanationEn ? (q as any).explanationEn : q.explanation;
@@ -637,6 +644,32 @@ export default function QuestionList() {
               </Card>
             );
           })}
+        </div>
+      )}
+
+      {/* ページネーション */}
+      {!loading && totalPages > 1 && (
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 'var(--spacing-sm)', marginTop: 'var(--spacing-xl)' }}>
+          <Button variant="outline" size="sm" onClick={() => setPage(p => Math.max(1, p - 1))} disabled={page === 1}>
+            ←
+          </Button>
+          {Array.from({ length: totalPages }, (_, i) => i + 1).map(p => (
+            <button
+              key={p}
+              onClick={() => setPage(p)}
+              style={{
+                minWidth: 32, height: 32, borderRadius: 'var(--border-radius-md)',
+                border: p === page ? '2px solid var(--color-primary)' : '1px solid var(--color-border)',
+                background: p === page ? 'var(--color-primary-light)' : 'transparent',
+                color: p === page ? 'var(--color-primary)' : 'var(--color-text-sub)',
+                fontWeight: p === page ? 700 : 400,
+                fontSize: 'var(--font-size-sm)', cursor: 'pointer',
+              }}
+            >{p}</button>
+          ))}
+          <Button variant="outline" size="sm" onClick={() => setPage(p => Math.min(totalPages, p + 1))} disabled={page === totalPages}>
+            →
+          </Button>
         </div>
       )}
 
