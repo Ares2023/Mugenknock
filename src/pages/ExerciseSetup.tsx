@@ -79,11 +79,11 @@ export default function ExerciseSetup() {
     return loadExercisePrefs(et).domains ?? EXAM_DOMAINS[et] ?? [];
   });
   const [limit, setLimit] = useState<number>(() => loadExercisePrefs(localStorage.getItem('targetExam') || localStorage.getItem('lastExamType') || 'SAA').limit ?? 10);
-  const [shuffle, setShuffle] = useState<boolean>(() => loadExercisePrefs(localStorage.getItem('targetExam') || localStorage.getItem('lastExamType') || 'SAA').shuffle ?? false);
   const [loading, setLoading] = useState(false);
   const [bookmarkOnly, setBookmarkOnly] = useState<boolean>(() => loadExercisePrefs(localStorage.getItem('targetExam') || localStorage.getItem('lastExamType') || 'SAA').bookmarkOnly ?? false);
   const [unansweredOnly, setUnansweredOnly] = useState<boolean>(() => loadExercisePrefs(localStorage.getItem('targetExam') || localStorage.getItem('lastExamType') || 'SAA').unansweredOnly ?? false);
   const [incorrectOnly, setIncorrectOnly] = useState<boolean>(() => loadExercisePrefs(localStorage.getItem('targetExam') || localStorage.getItem('lastExamType') || 'SAA').incorrectOnly ?? false);
+  const [aiVerifiedOnly, setAiVerifiedOnly] = useState<boolean>(() => loadExercisePrefs(localStorage.getItem('targetExam') || localStorage.getItem('lastExamType') || 'SAA').aiVerifiedOnly ?? false);
   const [showHint, setShowHint] = useState(() => !localStorage.getItem('sherpaExerciseHint'));
   const [exerciseDraft] = useState<any>(() => {
     try { return JSON.parse(localStorage.getItem('exerciseDraft') ?? 'null'); } catch { return null; }
@@ -104,15 +104,15 @@ export default function ExerciseSetup() {
     const prefs = loadExercisePrefs(examType);
     setSelectedDomains(prefs.domains ?? EXAM_DOMAINS[examType]);
     setLimit(prefs.limit ?? 10);
-    setShuffle(prefs.shuffle ?? false);
     setBookmarkOnly(prefs.bookmarkOnly ?? false);
     setUnansweredOnly(prefs.unansweredOnly ?? false);
     setIncorrectOnly(prefs.incorrectOnly ?? false);
+    setAiVerifiedOnly(prefs.aiVerifiedOnly ?? false);
   }, [examType]);
 
   useEffect(() => {
-    saveExercisePrefs(examType, { domains: selectedDomains, limit, shuffle, bookmarkOnly, unansweredOnly, incorrectOnly });
-  }, [examType, selectedDomains, limit, shuffle, bookmarkOnly, unansweredOnly, incorrectOnly]);
+    saveExercisePrefs(examType, { domains: selectedDomains, limit, bookmarkOnly, unansweredOnly, incorrectOnly, aiVerifiedOnly });
+  }, [examType, selectedDomains, limit, bookmarkOnly, unansweredOnly, incorrectOnly, aiVerifiedOnly]);
 
   useEffect(() => {
     setAvailableCount(null);
@@ -144,16 +144,19 @@ export default function ExerciseSetup() {
             const incorrectIds = new Set(incorrectRes.questionIds ?? []);
             items = items.filter((q: any) => incorrectIds.has(q.questionId));
           }
+          if (aiVerifiedOnly) items = items.filter((q: any) => q.aiVerified === true);
           setAvailableCount(items.length);
         } else {
           const qRes = await fetch(`${API_ENDPOINT}/questions?${params}`).then(r => r.json());
-          setAvailableCount(qRes.count ?? qRes.items?.length ?? 0);
+          let countItems: any[] = qRes.items ?? [];
+          if (aiVerifiedOnly) countItems = countItems.filter((q: any) => q.aiVerified === true);
+          setAvailableCount(aiVerifiedOnly ? countItems.length : (qRes.count ?? countItems.length));
         }
       } catch { setAvailableCount(0); }
     };
 
     fetchCounts();
-  }, [examType, selectedDomains, user, bookmarkOnly, unansweredOnly, incorrectOnly]);
+  }, [examType, selectedDomains, user, bookmarkOnly, unansweredOnly, incorrectOnly, aiVerifiedOnly]);
 
   useEffect(() => {
     fetch(`${API_ENDPOINT}/questions?examType=${examType}`)
@@ -223,7 +226,8 @@ export default function ExerciseSetup() {
           const incorrectIds = new Set(incorrectRes.questionIds ?? []);
           filtered = filtered.filter((q: any) => incorrectIds.has(q.questionId));
         }
-        if (shuffle) filtered = shuffleArray(filtered);
+        if (aiVerifiedOnly) filtered = filtered.filter((q: any) => q.aiVerified === true);
+        filtered = shuffleArray(filtered);
         selectedItems = filtered.slice(0, limit);
       } else {
         const params = new URLSearchParams({ examType, withAnswers: 'true' });
@@ -231,7 +235,8 @@ export default function ExerciseSetup() {
         const res = await fetch(`${API_ENDPOINT}/questions?${params}`);
         const data = await res.json();
         let allItems: any[] = data.items ?? [];
-        if (shuffle) allItems = shuffleArray(allItems);
+        if (aiVerifiedOnly) allItems = allItems.filter((q: any) => q.aiVerified === true);
+        allItems = shuffleArray(allItems);
         selectedItems = allItems.slice(0, limit);
       }
 
@@ -345,8 +350,8 @@ export default function ExerciseSetup() {
                 </label>
               )}
               <label style={{ display: 'flex', alignItems: 'center', gap: 'var(--spacing-sm)', cursor: 'pointer', fontSize: 'var(--font-size-base)' }}>
-                <input type="checkbox" checked={shuffle} onChange={e => setShuffle(e.target.checked)} style={{ width: 16, height: 16, flexShrink: 0 }} />
-                {t('exerciseSetup.shuffle')}
+                <input type="checkbox" checked={aiVerifiedOnly} onChange={e => setAiVerifiedOnly(e.target.checked)} style={{ width: 16, height: 16, flexShrink: 0 }} />
+                {lang === 'ja' ? 'AI確認済' : 'AI Verified'}
               </label>
             </div>
           </StepRow>

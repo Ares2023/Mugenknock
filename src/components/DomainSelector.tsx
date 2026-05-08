@@ -14,7 +14,7 @@ const chipStyle: React.CSSProperties = {
   display: 'inline-flex',
   alignItems: 'center',
   gap: 3,
-  padding: '3px 8px',
+  padding: '2px 8px 4px',
   fontSize: 11,
   background: 'var(--color-primary-light)',
   color: 'var(--color-primary)',

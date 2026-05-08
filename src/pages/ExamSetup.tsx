@@ -74,7 +74,7 @@ export default function ExamSetup() {
   const [bookmarkOnly, setBookmarkOnly] = useState<boolean>(() => loadExamPrefs(localStorage.getItem('targetExam') || localStorage.getItem('lastExamType') || 'SAA').bookmarkOnly ?? false);
   const [unansweredOnly, setUnansweredOnly] = useState<boolean>(() => loadExamPrefs(localStorage.getItem('targetExam') || localStorage.getItem('lastExamType') || 'SAA').unansweredOnly ?? false);
   const [incorrectOnly, setIncorrectOnly] = useState<boolean>(() => loadExamPrefs(localStorage.getItem('targetExam') || localStorage.getItem('lastExamType') || 'SAA').incorrectOnly ?? false);
-  const [shuffle, setShuffle] = useState<boolean>(() => loadExamPrefs(localStorage.getItem('targetExam') || localStorage.getItem('lastExamType') || 'SAA').shuffle ?? false);
+  const [aiVerifiedOnly, setAiVerifiedOnly] = useState<boolean>(() => loadExamPrefs(localStorage.getItem('targetExam') || localStorage.getItem('lastExamType') || 'SAA').aiVerifiedOnly ?? false);
   const [miniExam, setMiniExam] = useState<boolean>(false);
   const hasDraft = examDraft?.examType === examType;
 
@@ -96,12 +96,12 @@ export default function ExamSetup() {
     setBookmarkOnly(prefs.bookmarkOnly ?? false);
     setUnansweredOnly(prefs.unansweredOnly ?? false);
     setIncorrectOnly(prefs.incorrectOnly ?? false);
-    setShuffle(prefs.shuffle ?? false);
+    setAiVerifiedOnly(prefs.aiVerifiedOnly ?? false);
   }, [examType]);
 
   useEffect(() => {
-    saveExamPrefs(examType, { domains: selectedDomains, bookmarkOnly, unansweredOnly, incorrectOnly, shuffle });
-  }, [examType, selectedDomains, bookmarkOnly, unansweredOnly, incorrectOnly, shuffle]);
+    saveExamPrefs(examType, { domains: selectedDomains, bookmarkOnly, unansweredOnly, incorrectOnly, aiVerifiedOnly });
+  }, [examType, selectedDomains, bookmarkOnly, unansweredOnly, incorrectOnly, aiVerifiedOnly]);
 
   const resumeExam = () => {
     if (!examDraft) return;
@@ -150,16 +150,19 @@ export default function ExamSetup() {
             const incorrectIds = new Set(incorrectRes.questionIds ?? []);
             items = items.filter((q: any) => incorrectIds.has(q.questionId));
           }
+          if (aiVerifiedOnly) items = items.filter((q: any) => q.aiVerified === true);
           setAvailableCount(items.length);
         } else {
           const data = await fetch(`${API_ENDPOINT}/questions?${params}`).then(r => r.json());
-          setAvailableCount(data.count ?? data.items?.length ?? 0);
+          let countItems: any[] = data.items ?? [];
+          if (aiVerifiedOnly) countItems = countItems.filter((q: any) => q.aiVerified === true);
+          setAvailableCount(aiVerifiedOnly ? countItems.length : (data.count ?? countItems.length));
         }
       } catch { setAvailableCount(0); }
     };
 
     fetchCounts();
-  }, [examType, selectedDomains, user, bookmarkOnly, unansweredOnly, incorrectOnly]);
+  }, [examType, selectedDomains, user, bookmarkOnly, unansweredOnly, incorrectOnly, aiVerifiedOnly]);
 
   useEffect(() => {
     if (!user) { setExamSessions([]); setDomainStats([]); setAnsweredCount(null); return; }
@@ -217,11 +220,10 @@ export default function ExamSetup() {
           const incorrectIds = new Set(incorrectRes.questionIds ?? []);
           filtered = filtered.filter((q: any) => incorrectIds.has(q.questionId));
         }
-        if (shuffle) {
-          for (let i = filtered.length - 1; i > 0; i--) {
-            const j = Math.floor(Math.random() * (i + 1));
-            [filtered[i], filtered[j]] = [filtered[j], filtered[i]];
-          }
+        if (aiVerifiedOnly) filtered = filtered.filter((q: any) => q.aiVerified === true);
+        for (let i = filtered.length - 1; i > 0; i--) {
+          const j = Math.floor(Math.random() * (i + 1));
+          [filtered[i], filtered[j]] = [filtered[j], filtered[i]];
         }
         selectedItems = filtered.slice(0, limit);
       } else {
@@ -229,11 +231,10 @@ export default function ExamSetup() {
         if (!allSelected) params.set('domain', selectedDomains.join(','));
         const data = await fetch(`${API_ENDPOINT}/questions?${params}`).then(r => r.json());
         let allItems: any[] = data.items ?? [];
-        if (shuffle) {
-          for (let i = allItems.length - 1; i > 0; i--) {
-            const j = Math.floor(Math.random() * (i + 1));
-            [allItems[i], allItems[j]] = [allItems[j], allItems[i]];
-          }
+        if (aiVerifiedOnly) allItems = allItems.filter((q: any) => q.aiVerified === true);
+        for (let i = allItems.length - 1; i > 0; i--) {
+          const j = Math.floor(Math.random() * (i + 1));
+          [allItems[i], allItems[j]] = [allItems[j], allItems[i]];
         }
         selectedItems = allItems.slice(0, limit);
       }
@@ -350,8 +351,8 @@ export default function ExamSetup() {
                 </label>
               )}
               <label style={{ display: 'flex', alignItems: 'center', gap: 'var(--spacing-sm)', cursor: 'pointer', fontSize: 'var(--font-size-base)' }}>
-                <input type="checkbox" checked={shuffle} onChange={e => setShuffle(e.target.checked)} style={{ width: 16, height: 16, flexShrink: 0 }} />
-                {t('exerciseSetup.shuffle')}
+                <input type="checkbox" checked={aiVerifiedOnly} onChange={e => setAiVerifiedOnly(e.target.checked)} style={{ width: 16, height: 16, flexShrink: 0 }} />
+                {lang === 'ja' ? 'AI確認済' : 'AI Verified'}
               </label>
               <div style={{ height: 1, background: 'var(--color-border)', margin: '4px 0' }} />
               <label style={{ display: 'flex', alignItems: 'flex-start', gap: 'var(--spacing-sm)', cursor: 'pointer', fontSize: 'var(--font-size-base)' }}>
