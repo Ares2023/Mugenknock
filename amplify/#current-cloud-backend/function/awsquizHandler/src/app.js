@@ -3,6 +3,7 @@ const { DynamoDBClient } = require('@aws-sdk/client-dynamodb');
 const { DynamoDBDocumentClient, ScanCommand, GetCommand, QueryCommand, PutCommand, UpdateCommand, TransactWriteCommand, DeleteCommand } = require('@aws-sdk/lib-dynamodb');
 const { v4: uuidv4 } = require('uuid');
 const { CognitoJwtVerifier } = require('aws-jwt-verify');
+const { ADMIN_EMAIL, EXAM_DOMAINS } = require('./constants');
 
 const app = express();
 app.use(express.json());
@@ -34,7 +35,6 @@ const jwtVerifier = CognitoJwtVerifier.create({
   tokenUse: 'id',
   clientId: '16jjrj5m28o6s2k84og8kh2vh3',
 });
-const ADMIN_EMAIL_VALUE = 'yuzuki2002110@gmail.com';
 
 async function requireAdmin(req, res, next) {
   const auth = req.headers.authorization || '';
@@ -43,7 +43,7 @@ async function requireAdmin(req, res, next) {
   }
   try {
     const payload = await jwtVerifier.verify(auth.slice(7));
-    if (payload.email !== ADMIN_EMAIL_VALUE) {
+    if (payload.email !== ADMIN_EMAIL) {
       return res.status(403).json({ error: 'Forbidden' });
     }
     next();
@@ -90,11 +90,99 @@ app.get('/health', (req, res) => {
   res.json({ status: 'ok' });
 });
 
+// 問題生成・チェック状況（日次/月次集計）
+app.get('/questions/growth-stats', async (req, res) => {
+  try {
+    const docClient = getClient();
+    const items = await scanAll(docClient, {
+      TableName: 'Questions',
+      ProjectionExpression: 'createdAt, validityCheckedAt',
+    });
+
+    // JST (UTC+9)
+    const jstMs = Date.now() + 9 * 60 * 60 * 1000;
+    const jstNow = new Date(jstMs);
+
+    // 直近7日
+    const daily = [];
+    for (let i = 6; i >= 0; i--) {
+      daily.push(new Date(jstMs - i * 86400000).toISOString().slice(0, 10));
+    }
+
+    // 直近6ヶ月
+    const monthly = [];
+    const jstYear = parseInt(jstNow.toISOString().slice(0, 4));
+    const jstMonthIdx = parseInt(jstNow.toISOString().slice(5, 7)) - 1;
+    for (let i = 5; i >= 0; i--) {
+      let m = jstMonthIdx - i;
+      let y = jstYear;
+      while (m < 0) { m += 12; y--; }
+      monthly.push(`${y}-${String(m + 1).padStart(2, '0')}`);
+    }
+
+    const createdByDay = Object.fromEntries(daily.map(d => [d, 0]));
+    const verifiedByDay = Object.fromEntries(daily.map(d => [d, 0]));
+    const createdByMonth = Object.fromEntries(monthly.map(m => [m, 0]));
+    const verifiedByMonth = Object.fromEntries(monthly.map(m => [m, 0]));
+
+    let createdBeforeDaily = 0, verifiedBeforeDaily = 0;
+    let createdBeforeMonthly = 0, verifiedBeforeMonthly = 0;
+
+    for (const item of items) {
+      if (item.createdAt) {
+        const day = item.createdAt.slice(0, 10);
+        const month = item.createdAt.slice(0, 7);
+        if (createdByDay[day] !== undefined) createdByDay[day]++;
+        else if (day < daily[0]) createdBeforeDaily++;
+        if (createdByMonth[month] !== undefined) createdByMonth[month]++;
+        else if (month < monthly[0]) createdBeforeMonthly++;
+      }
+      if (item.validityCheckedAt) {
+        const day = item.validityCheckedAt.slice(0, 10);
+        const month = item.validityCheckedAt.slice(0, 7);
+        if (verifiedByDay[day] !== undefined) verifiedByDay[day]++;
+        else if (day < daily[0]) verifiedBeforeDaily++;
+        if (verifiedByMonth[month] !== undefined) verifiedByMonth[month]++;
+        else if (month < monthly[0]) verifiedBeforeMonthly++;
+      }
+    }
+
+    let cumC = createdBeforeDaily, cumV = verifiedBeforeDaily;
+    const dailyCreatedCum = daily.map(d => { cumC += createdByDay[d]; return cumC; });
+    const dailyVerifiedCum = daily.map(d => { cumV += verifiedByDay[d]; return cumV; });
+
+    cumC = createdBeforeMonthly; cumV = verifiedBeforeMonthly;
+    const monthlyCreatedCum = monthly.map(m => { cumC += createdByMonth[m]; return cumC; });
+    const monthlyVerifiedCum = monthly.map(m => { cumV += verifiedByMonth[m]; return cumV; });
+
+    res.json({
+      daily: {
+        dates: daily,
+        created: daily.map(d => createdByDay[d]),
+        verified: daily.map(d => verifiedByDay[d]),
+        createdCumulative: dailyCreatedCum,
+        verifiedCumulative: dailyVerifiedCum,
+      },
+      monthly: {
+        months: monthly,
+        created: monthly.map(m => createdByMonth[m]),
+        verified: monthly.map(m => verifiedByMonth[m]),
+        createdCumulative: monthlyCreatedCum,
+        verifiedCumulative: monthlyVerifiedCum,
+      },
+      total: items.length,
+    });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
 // 問題一覧取得
 app.get('/questions', async (req, res) => {
   try {
     const docClient = getClient();
-    const { examType, tagId, domain, limit, shuffle: doShuffle, keyword } = req.query;
+    const { examType, tagId, domain, limit, shuffle: doShuffle, keyword, offset, ids } = req.query;
     let items = [];
 
     if (tagId) {
@@ -108,7 +196,6 @@ app.get('/questions', async (req, res) => {
       );
       const results = await Promise.all(promises);
       items = results.map(r => r.Item).filter(Boolean);
-      // tagId指定時もexamTypeで絞り込み可能
       if (examType) items = items.filter(q => q.examType === examType);
     } else if (examType) {
       items = await queryAll(docClient, {
@@ -125,17 +212,26 @@ app.get('/questions', async (req, res) => {
       const domainList = domain.split(',').map(d => d.trim()).filter(Boolean);
       items = items.filter(q => (q.tags || []).some(t => domainList.includes(t)));
     }
+    if (ids) {
+      const idSet = new Set(ids.split(',').map(id => id.trim()).filter(Boolean));
+      items = items.filter(q => idSet.has(q.questionId));
+    }
     if (keyword) {
-      const kw = keyword.toLowerCase();
+      const keywords = keyword.split(',').map(k => k.trim().toLowerCase()).filter(Boolean);
       items = items.filter(q =>
-        q.questionText.toLowerCase().includes(kw) ||
-        (q.tags || []).some(t => t.toLowerCase().includes(kw)) ||
-        q.questionId.toLowerCase().includes(kw)
+        keywords.every(kw =>
+          q.questionText.toLowerCase().includes(kw) ||
+          (q.choices || []).some(c => c.toLowerCase().includes(kw)) ||
+          (q.tags || []).some(t => t.toLowerCase().includes(kw)) ||
+          q.questionId.toLowerCase().includes(kw)
+        )
       );
     }
 
     items = items.filter(q => !q.isHidden);
     if (doShuffle === 'true') items = shuffle(items);
+    const total = items.length;
+    if (offset) items = items.slice(parseInt(offset));
     if (limit) items = items.slice(0, parseInt(limit));
     const withAnswers = req.query.withAnswers === 'true';
     const sanitized = withAnswers
@@ -147,7 +243,7 @@ app.get('/questions', async (req, res) => {
           ...rest,
           correctAnswerCount: Array.isArray(correctAnswers) ? correctAnswers.length : 1,
         }));
-    res.json({ items: sanitized, count: sanitized.length });
+    res.json({ items: sanitized, count: sanitized.length, total });
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: 'Internal server error' });
@@ -369,13 +465,13 @@ app.get('/admin/questions/flagged', async (req, res) => {
       scanParams.FilterExpression = 'attribute_exists(validityCheckedAt)';
     }
 
-    const [checkedItems, totalResult] = await Promise.all([
+    const [checkedItems, allItems] = await Promise.all([
       scanAll(docClient, scanParams),
-      docClient.send(new ScanCommand({ TableName: 'Questions', Select: 'COUNT' })),
+      scanAll(docClient, { TableName: 'Questions', ProjectionExpression: 'questionId' }),
     ]);
 
     const items = checkedItems.sort((a, b) => (a.validityRating || 9) - (b.validityRating || 9));
-    res.json({ items, count: items.length, totalCount: totalResult.Count || 0 });
+    res.json({ items, count: items.length, totalCount: allItems.length });
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: 'Internal server error' });
@@ -780,13 +876,6 @@ app.delete('/users/me/data', async (req, res) => {
     const { userId, examType } = req.query;
     if (!userId || !examType) return res.status(400).json({ error: 'userId and examType are required' });
 
-    const EXAM_DOMAINS_MAP = {
-      CLF: ['クラウドのコンセプト', 'セキュリティとコンプライアンス', 'クラウドテクノロジーとサービス', '請求・料金・サポート'],
-      SAA: ['セキュアなアーキテクチャの設計', '弾力性に優れたアーキテクチャの設計', '高パフォーマンスなアーキテクチャの設計', 'コスト最適化されたアーキテクチャの設計'],
-      SAP: ['組織の複雑さに対応したソリューションの設計', '新しいソリューションの設計', '既存ソリューションの継続的改善', 'ワークロードの移行とモダナイゼーション'],
-      DOP: ['SDLC の自動化', '設定管理と IaC', '高可用性、耐障害性、およびディザスタリカバリ', 'モニタリングとログ', 'セキュリティとコンプライアンスの自動化'],
-    };
-
     const deleteItems = async (table, keys) => {
       if (keys.length === 0) return;
       await Promise.all(keys.map(key => docClient.send(new DeleteCommand({ TableName: table, Key: key }))));
@@ -806,7 +895,7 @@ app.delete('/users/me/data', async (req, res) => {
     await deleteItems('UserQuestionStats', questionIds.map(qid => ({ userId, questionId: qid })));
 
     // 3. UserTagStats 削除（ドメインタグのみ）
-    const domains = EXAM_DOMAINS_MAP[examType] || [];
+    const domains = EXAM_DOMAINS[examType] || [];
     await deleteItems('UserTagStats', domains.map(tagId => ({ userId, tagId })));
 
     // 4. Sessions を取得

@@ -5,8 +5,8 @@ import { useLanguage } from '../contexts/LanguageContext';
 type ViewMode = 'daily' | 'monthly';
 
 interface GrowthData {
-  daily: { dates: string[]; created: number[]; verified: number[] };
-  monthly: { months: string[]; created: number[]; verified: number[] };
+  daily: { dates: string[]; created: number[]; verified: number[]; createdCumulative: number[]; verifiedCumulative: number[] };
+  monthly: { months: string[]; created: number[]; verified: number[]; createdCumulative: number[]; verifiedCumulative: number[] };
   total: number;
 }
 
@@ -88,15 +88,80 @@ function DualBarChart({ labels, s1, s2, label1, label2, color1, color2 }: {
   );
 }
 
-function DiffBadge({ diff }: { diff: number }) {
-  const color = diff > 0 ? 'var(--color-success)' : diff < 0 ? 'var(--color-danger)' : 'var(--color-text-light)';
-  const label = diff > 0 ? `+${diff}` : diff < 0 ? `${diff}` : '±0';
+function DualLineChart({ labels, s1, s2, label1, label2, color1, color2 }: {
+  labels: string[];
+  s1: number[];
+  s2: number[];
+  label1: string;
+  label2: string;
+  color1: string;
+  color2: string;
+}) {
+  const n = labels.length;
+  if (n === 0) return null;
+
+  const maxVal = Math.max(...s1, ...s2, 1);
+  const rawStep = maxVal / 4;
+  const mag = Math.pow(10, Math.floor(Math.log10(rawStep)));
+  const norm = rawStep / mag;
+  const step = norm <= 1 ? mag : norm <= 2 ? 2 * mag : norm <= 5 ? 5 * mag : 10 * mag;
+  const maxY = Math.ceil(maxVal / step) * step;
+  const yTickCount = 4;
+  const yStep = step;
+
+  const W = 560, H = 200;
+  const ML = 42, MR = 10, MT = 28, MB = 28;
+  const chartW = W - ML - MR;
+  const chartH = H - MT - MB;
+
+  const px = (i: number) => ML + (n === 1 ? chartW / 2 : (i / (n - 1)) * chartW);
+  const py = (v: number) => MT + chartH - (v / maxY) * chartH;
+  const fmt = (v: number) => v >= 1000 ? `${+(v / 1000).toFixed(1)}k` : String(v);
+
+  const pts1 = s1.map((v, i) => `${px(i)},${py(v)}`).join(' ');
+  const pts2 = s2.map((v, i) => `${px(i)},${py(v)}`).join(' ');
+
   return (
-    <span style={{ fontSize: 'var(--font-size-sm)', fontWeight: 700, color }}>{label}</span>
+    <svg viewBox={`0 0 ${W} ${H}`} width="100%" style={{ display: 'block' }}>
+      {/* Legend */}
+      <line x1={ML} y1={8} x2={ML + 16} y2={8} stroke={color1} strokeWidth="2" strokeLinecap="round" />
+      <circle cx={ML + 8} cy={8} r={3} fill={color1} />
+      <text x={ML + 20} y={12} fontSize="9" fill="var(--color-text-sub)">{label1}</text>
+      <line x1={ML + 80} y1={8} x2={ML + 96} y2={8} stroke={color2} strokeWidth="2" strokeLinecap="round" />
+      <circle cx={ML + 88} cy={8} r={3} fill={color2} />
+      <text x={ML + 100} y={12} fontSize="9" fill="var(--color-text-sub)">{label2}</text>
+
+      {/* Y-axis grid */}
+      {Array.from({ length: yTickCount + 1 }, (_, i) => {
+        const val = i * yStep;
+        const y = py(val);
+        return (
+          <g key={i}>
+            <line x1={ML} y1={y} x2={ML + chartW} y2={y}
+              stroke="var(--color-border)" strokeWidth="1"
+              strokeDasharray={i === 0 ? undefined : '3,3'} />
+            <text x={ML - 4} y={y + 3.5} textAnchor="end" fontSize="8" fill="var(--color-text-light)">{fmt(val)}</text>
+          </g>
+        );
+      })}
+
+      {/* Lines */}
+      {n > 1 && <polyline points={pts1} fill="none" stroke={color1} strokeWidth="2" strokeLinejoin="round" strokeLinecap="round" />}
+      {n > 1 && <polyline points={pts2} fill="none" stroke={color2} strokeWidth="2" strokeLinejoin="round" strokeLinecap="round" />}
+
+      {/* Data points */}
+      {s1.map((v, i) => <circle key={i} cx={px(i)} cy={py(v)} r={3} fill={color1} />)}
+      {s2.map((v, i) => <circle key={i} cx={px(i)} cy={py(v)} r={3} fill={color2} />)}
+
+      {/* X-axis labels */}
+      {labels.map((label, i) => (
+        <text key={i} x={px(i)} y={H - MB + 14} textAnchor="middle" fontSize="9" fill="var(--color-text-sub)">{label}</text>
+      ))}
+    </svg>
   );
 }
 
-function SummaryCard({ title, value, diff, compLabel }: { title: string; value: number; diff: number; compLabel: string }) {
+function SummaryCard({ title, value }: { title: string; value: number }) {
   return (
     <div style={{
       background: 'var(--color-bg-white)',
@@ -108,26 +173,6 @@ function SummaryCard({ title, value, diff, compLabel }: { title: string; value: 
       <div style={{ fontSize: 28, fontWeight: 800, color: 'var(--color-text-main)', lineHeight: 1 }}>
         {value}<span style={{ fontSize: 'var(--font-size-sm)', fontWeight: 400, color: 'var(--color-text-sub)', marginLeft: 4 }}>件</span>
       </div>
-      <div style={{ marginTop: 6, fontSize: 'var(--font-size-xs)', color: 'var(--color-text-light)', display: 'flex', alignItems: 'center', gap: 4 }}>
-        {compLabel} <DiffBadge diff={diff} />
-      </div>
-    </div>
-  );
-}
-
-function TrendCallout({ text }: { text: string }) {
-  return (
-    <div style={{
-      background: 'var(--color-primary-light)',
-      border: '1px solid var(--color-primary)',
-      borderRadius: 'var(--border-radius-md)',
-      padding: '10px 14px',
-      fontSize: 'var(--font-size-sm)',
-      color: 'var(--color-primary)',
-      fontWeight: 600,
-      marginBottom: 16,
-    }}>
-      {text}
     </div>
   );
 }
@@ -164,31 +209,13 @@ export default function Growth() {
 
   const dailyLabels = data.daily.dates.map(d => `${parseInt(d.slice(5, 7))}/${parseInt(d.slice(8, 10))}`);
   const todayCreated = data.daily.created[6] ?? 0;
-  const yestCreated = data.daily.created[5] ?? 0;
   const todayVerified = data.daily.verified[6] ?? 0;
-  const yestVerified = data.daily.verified[5] ?? 0;
 
   const monthlyLabels = data.monthly.months.map(m => `${parseInt(m.slice(5, 7))}月`);
   const thisCreated = data.monthly.created[5] ?? 0;
-  const lastCreated = data.monthly.created[4] ?? 0;
   const thisVerified = data.monthly.verified[5] ?? 0;
-  const lastVerified = data.monthly.verified[4] ?? 0;
 
-  const prevMonthLabel = data.monthly.months[4] ? `${parseInt(data.monthly.months[4].slice(5, 7))}月` : '先月';
   const thisMonthLabel = data.monthly.months[5] ? `${parseInt(data.monthly.months[5].slice(5, 7))}月` : '今月';
-
-  const createdDiff = thisCreated - lastCreated;
-  const dailyTrendText = (() => {
-    const diff = todayCreated - yestCreated;
-    if (diff > 0) return `昨日より ${diff} 件多く生成されました`;
-    if (diff < 0) return `昨日より ${Math.abs(diff)} 件少ない生成数です`;
-    return `昨日と同じ生成数です（${todayCreated} 件）`;
-  })();
-  const monthlyTrendText = (() => {
-    if (createdDiff > 0) return `${prevMonthLabel}に比べて問題量が ${createdDiff} 件増えました（${lastCreated} 件 → ${thisCreated} 件）`;
-    if (createdDiff < 0) return `${prevMonthLabel}に比べて問題量が ${Math.abs(createdDiff)} 件減りました（${lastCreated} 件 → ${thisCreated} 件）`;
-    return `${prevMonthLabel}と同じ生成数です（${thisCreated} 件）`;
-  })();
 
   const cardGridStyle: React.CSSProperties = {
     display: 'grid',
@@ -243,19 +270,14 @@ export default function Growth() {
 
       {view === 'daily' ? (
         <>
-          <TrendCallout text={dailyTrendText} />
           <div style={cardGridStyle}>
             <SummaryCard
               title={lang === 'ja' ? '今日の生成数' : "Today's Generated"}
               value={todayCreated}
-              diff={todayCreated - yestCreated}
-              compLabel={lang === 'ja' ? '前日比' : 'vs yesterday'}
             />
             <SummaryCard
               title={lang === 'ja' ? '今日の確認数' : "Today's Verified"}
               value={todayVerified}
-              diff={todayVerified - yestVerified}
-              compLabel={lang === 'ja' ? '前日比' : 'vs yesterday'}
             />
           </div>
           <div style={chartBoxStyle}>
@@ -272,22 +294,31 @@ export default function Growth() {
               color2="var(--color-success)"
             />
           </div>
+          <div style={{ ...chartBoxStyle, marginTop: 16 }}>
+            <div style={{ fontSize: 'var(--font-size-sm)', fontWeight: 700, color: 'var(--color-text-sub)', marginBottom: 8 }}>
+              {lang === 'ja' ? '合計問題量・チェック済数の推移（日次）' : 'Cumulative total — daily'}
+            </div>
+            <DualLineChart
+              labels={dailyLabels}
+              s1={data.daily.createdCumulative}
+              s2={data.daily.verifiedCumulative}
+              label1={lang === 'ja' ? '合計問題数' : 'Total questions'}
+              label2={lang === 'ja' ? '合計チェック済' : 'Total verified'}
+              color1="var(--color-primary)"
+              color2="var(--color-success)"
+            />
+          </div>
         </>
       ) : (
         <>
-          <TrendCallout text={monthlyTrendText} />
           <div style={cardGridStyle}>
             <SummaryCard
               title={lang === 'ja' ? `${thisMonthLabel}の生成数` : `${thisMonthLabel} Generated`}
               value={thisCreated}
-              diff={thisCreated - lastCreated}
-              compLabel={lang === 'ja' ? `${prevMonthLabel}比` : `vs ${prevMonthLabel}`}
             />
             <SummaryCard
               title={lang === 'ja' ? `${thisMonthLabel}の確認数` : `${thisMonthLabel} Verified`}
               value={thisVerified}
-              diff={thisVerified - lastVerified}
-              compLabel={lang === 'ja' ? `${prevMonthLabel}比` : `vs ${prevMonthLabel}`}
             />
           </div>
           <div style={chartBoxStyle}>
@@ -300,6 +331,20 @@ export default function Growth() {
               s2={data.monthly.verified}
               label1={lang === 'ja' ? '生成' : 'Generated'}
               label2={lang === 'ja' ? '確認済' : 'Verified'}
+              color1="var(--color-primary)"
+              color2="var(--color-success)"
+            />
+          </div>
+          <div style={{ ...chartBoxStyle, marginTop: 16 }}>
+            <div style={{ fontSize: 'var(--font-size-sm)', fontWeight: 700, color: 'var(--color-text-sub)', marginBottom: 8 }}>
+              {lang === 'ja' ? '合計問題量・チェック済数の推移（月次）' : 'Cumulative total — monthly'}
+            </div>
+            <DualLineChart
+              labels={monthlyLabels}
+              s1={data.monthly.createdCumulative}
+              s2={data.monthly.verifiedCumulative}
+              label1={lang === 'ja' ? '合計問題数' : 'Total questions'}
+              label2={lang === 'ja' ? '合計チェック済' : 'Total verified'}
               color1="var(--color-primary)"
               color2="var(--color-success)"
             />

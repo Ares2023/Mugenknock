@@ -125,31 +125,50 @@ app.get('/questions/growth-stats', async (req, res) => {
     const createdByMonth = Object.fromEntries(monthly.map(m => [m, 0]));
     const verifiedByMonth = Object.fromEntries(monthly.map(m => [m, 0]));
 
+    let createdBeforeDaily = 0, verifiedBeforeDaily = 0;
+    let createdBeforeMonthly = 0, verifiedBeforeMonthly = 0;
+
     for (const item of items) {
       if (item.createdAt) {
         const day = item.createdAt.slice(0, 10);
         const month = item.createdAt.slice(0, 7);
         if (createdByDay[day] !== undefined) createdByDay[day]++;
+        else if (day < daily[0]) createdBeforeDaily++;
         if (createdByMonth[month] !== undefined) createdByMonth[month]++;
+        else if (month < monthly[0]) createdBeforeMonthly++;
       }
       if (item.validityCheckedAt) {
         const day = item.validityCheckedAt.slice(0, 10);
         const month = item.validityCheckedAt.slice(0, 7);
         if (verifiedByDay[day] !== undefined) verifiedByDay[day]++;
+        else if (day < daily[0]) verifiedBeforeDaily++;
         if (verifiedByMonth[month] !== undefined) verifiedByMonth[month]++;
+        else if (month < monthly[0]) verifiedBeforeMonthly++;
       }
     }
+
+    let cumC = createdBeforeDaily, cumV = verifiedBeforeDaily;
+    const dailyCreatedCum = daily.map(d => { cumC += createdByDay[d]; return cumC; });
+    const dailyVerifiedCum = daily.map(d => { cumV += verifiedByDay[d]; return cumV; });
+
+    cumC = createdBeforeMonthly; cumV = verifiedBeforeMonthly;
+    const monthlyCreatedCum = monthly.map(m => { cumC += createdByMonth[m]; return cumC; });
+    const monthlyVerifiedCum = monthly.map(m => { cumV += verifiedByMonth[m]; return cumV; });
 
     res.json({
       daily: {
         dates: daily,
         created: daily.map(d => createdByDay[d]),
         verified: daily.map(d => verifiedByDay[d]),
+        createdCumulative: dailyCreatedCum,
+        verifiedCumulative: dailyVerifiedCum,
       },
       monthly: {
         months: monthly,
         created: monthly.map(m => createdByMonth[m]),
         verified: monthly.map(m => verifiedByMonth[m]),
+        createdCumulative: monthlyCreatedCum,
+        verifiedCumulative: monthlyVerifiedCum,
       },
       total: items.length,
     });
