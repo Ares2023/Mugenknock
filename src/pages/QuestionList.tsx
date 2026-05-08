@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { useLocation } from 'react-router-dom';
 import { API_ENDPOINT, EXAM_TYPES } from '../constants';
 import { useAuth } from '../contexts/AuthContext';
@@ -19,6 +19,8 @@ type Question = {
   updatedAt?: string;
   validityCheckedAt?: string;
 };
+
+const PAGE_SIZE = 10;
 
 const formatDate = (iso: string) => {
   const d = new Date(iso);
@@ -61,15 +63,19 @@ export default function QuestionList() {
   const { lang, t } = useLanguage();
   const { user } = useAuth();
 
+  // 表示中のページ分のみ保持（サーバーモード）or ユーザーフィルタ後の全件（クライアントモード）
   const [questions, setQuestions] = useState<Question[]>([]);
+  const [clientAllItems, setClientAllItems] = useState<Question[]>([]);
+  const [totalCount, setTotalCount] = useState(0);
+  const [isClientMode, setIsClientMode] = useState(false);
+  const [page, setPage] = useState(1);
+
   const [selected, setSelected] = useState<Set<string>>(new Set());
   const [copiedId, setCopiedId] = useState<string | null>(null);
   const [keywordInput, setKeywordInput] = useState('');
   const [keywordChips, setKeywordChips] = useState<string[]>([]);
   const [expandedId, setExpandedId] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
-  const [page, setPage] = useState(1);
-  const PAGE_SIZE = 10;
 
   // フィルター状態
   const [examTypes, setExamTypes] = useState<string[]>([]);
@@ -78,7 +84,7 @@ export default function QuestionList() {
   const [filterIncorrect, setFilterIncorrect] = useState(false);
   const [filterOpen, setFilterOpen] = useState(false);
 
-  // ユーザーデータ
+  // ユーザーデータ（ID集合のみ保持）
   const [bookmarkedIds, setBookmarkedIds] = useState<Set<string>>(new Set());
   const [bookmarkLoading, setBookmarkLoading] = useState<Set<string>>(new Set());
   const [answeredIds, setAnsweredIds] = useState<Set<string>>(new Set());
@@ -86,7 +92,6 @@ export default function QuestionList() {
 
   const filterRef = useRef<HTMLDivElement>(null);
 
-  // ドロップダウン外クリックで閉じる
   useEffect(() => {
     const handler = (e: MouseEvent) => {
       if (filterRef.current && !filterRef.current.contains(e.target as Node)) {
@@ -97,40 +102,164 @@ export default function QuestionList() {
     return () => document.removeEventListener('mousedown', handler);
   }, []);
 
-  const fetchQuestions = async (types: string[]) => {
+  // 表示アイテム（クライアントモード時はスライス）
+  const displayedQuestions = isClientMode
+    ? clientAllItems.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE)
+    : questions;
+  const totalPages = Math.max(1, Math.ceil(totalCount / PAGE_SIZE));
+
+  // ── ユーザーIDセットのロード ──────────────────────────────
+  const ensureBookmarkIds = useCallback(async () => {
+    if (!user || bookmarkedIds.size > 0) return bookmarkedIds;
+    const d = await fetch(`${API_ENDPOINT}/users/me/bookmarks?userId=${user.userId}`).then(r => r.json());
+    const ids = new Set<string>(d.questionIds ?? []);
+    setBookmarkedIds(ids);
+    return ids;
+  }, [user, bookmarkedIds]);
+
+  const ensureAnsweredIds = useCallback(async (et: string) => {
+    if (!user) return answeredIds;
+    const d = await fetch(`${API_ENDPOINT}/users/me/answered-questions?userId=${user.userId}${et ? `&examType=${et}` : ''}`).then(r => r.json());
+    const ids = new Set<string>(d.questionIds ?? []);
+    setAnsweredIds(ids);
+    return ids;
+  }, [user, answeredIds]);
+
+  const ensureIncorrectIds = useCallback(async (et: string) => {
+    if (!user) return incorrectIds;
+    const d = await fetch(`${API_ENDPOINT}/users/me/incorrect-questions?userId=${user.userId}${et ? `&examType=${et}` : ''}`).then(r => r.json());
+    const ids = new Set<string>(d.questionIds ?? []);
+    setIncorrectIds(ids);
+    return ids;
+  }, [user, incorrectIds]);
+
+  // ── メイン取得関数 ──────────────────────────────────────
+  const doFetch = useCallback(async (
+    targetPage: number,
+    opts: {
+      examTypes: string[];
+      keywordChips: string[];
+      bookmarkOnly: boolean;
+      filterUnanswered: boolean;
+      filterIncorrect: boolean;
+    }
+  ) => {
+    const hasUserFilter = user && (opts.bookmarkOnly || opts.filterUnanswered || opts.filterIncorrect);
+
     setLoading(true);
     try {
-      let items: Question[] = [];
-      if (types.length === 0) {
-        const res = await fetch(`${API_ENDPOINT}/questions`);
-        const data = await res.json();
-        items = data.items || [];
-      } else {
-        const results = await Promise.all(types.map(async (type) => {
-          const params = new URLSearchParams({ examType: type });
-          const res = await fetch(`${API_ENDPOINT}/questions?${params}`);
-          const data = await res.json();
-          return (data.items || []) as Question[];
-        }));
-        const seen = new Set<string>();
-        for (const batch of results) {
-          for (const q of batch) {
-            if (!seen.has(q.questionId)) {
-              seen.add(q.questionId);
-              items.push(q);
+      if (hasUserFilter) {
+        // ── クライアントモード：全件取得 → ユーザーフィルタ → クライアント側ページネーション ──
+        setIsClientMode(true);
+
+        // ユーザーIDセットを確保
+        const [bmIds, ansIds, incIds] = await Promise.all([
+          opts.bookmarkOnly  ? ensureBookmarkIds()                           : Promise.resolve(new Set<string>()),
+          opts.filterUnanswered ? ensureAnsweredIds(opts.examTypes[0] ?? '') : Promise.resolve(new Set<string>()),
+          opts.filterIncorrect  ? ensureIncorrectIds(opts.examTypes[0] ?? ''): Promise.resolve(new Set<string>()),
+        ]);
+
+        // 全件取得（キーワード・試験種別フィルタはサーバーに任せる）
+        let allItems: Question[] = [];
+        if (opts.examTypes.length === 0 || opts.examTypes.length === 1) {
+          const params = new URLSearchParams();
+          if (opts.examTypes.length === 1) params.set('examType', opts.examTypes[0]);
+          if (opts.keywordChips.length > 0) params.set('keyword', opts.keywordChips.join(','));
+          const data = await fetch(`${API_ENDPOINT}/questions?${params}`).then(r => r.json());
+          allItems = data.items ?? [];
+        } else {
+          const results = await Promise.all(opts.examTypes.map(et => {
+            const params = new URLSearchParams({ examType: et });
+            if (opts.keywordChips.length > 0) params.set('keyword', opts.keywordChips.join(','));
+            return fetch(`${API_ENDPOINT}/questions?${params}`).then(r => r.json()).then(d => d.items ?? [] as Question[]);
+          }));
+          const seen = new Set<string>();
+          for (const batch of results) {
+            for (const q of batch as Question[]) {
+              if (!seen.has(q.questionId)) { seen.add(q.questionId); allItems.push(q); }
             }
           }
         }
+
+        // ユーザーフィルタ適用
+        let filtered = allItems;
+        if (opts.bookmarkOnly)     filtered = filtered.filter(q => bmIds.has(q.questionId));
+        if (opts.filterUnanswered) filtered = filtered.filter(q => !ansIds.has(q.questionId));
+        if (opts.filterIncorrect)  filtered = filtered.filter(q => incIds.has(q.questionId));
+
+        setClientAllItems(filtered);
+        setTotalCount(filtered.length);
+        setPage(targetPage);
+        setSelected(new Set());
+      } else {
+        // ── サーバーモード：ページ分だけ取得 ──
+        setIsClientMode(false);
+
+        if (opts.examTypes.length <= 1) {
+          // 単一 or 全件 → サーバー側ページネーション
+          const params = new URLSearchParams({
+            limit: String(PAGE_SIZE),
+            offset: String((targetPage - 1) * PAGE_SIZE),
+          });
+          if (opts.examTypes.length === 1) params.set('examType', opts.examTypes[0]);
+          if (opts.keywordChips.length > 0) params.set('keyword', opts.keywordChips.join(','));
+          const data = await fetch(`${API_ENDPOINT}/questions?${params}`).then(r => r.json());
+          setQuestions(data.items ?? []);
+          setTotalCount(data.total ?? data.count ?? 0);
+          setPage(targetPage);
+          setSelected(new Set());
+        } else {
+          // 複数試験種別 → 並列フェッチ（キーワードはサーバーへ）してクライアントページネーション
+          setIsClientMode(true);
+          const results = await Promise.all(opts.examTypes.map(et => {
+            const params = new URLSearchParams({ examType: et });
+            if (opts.keywordChips.length > 0) params.set('keyword', opts.keywordChips.join(','));
+            return fetch(`${API_ENDPOINT}/questions?${params}`).then(r => r.json()).then(d => d.items ?? [] as Question[]);
+          }));
+          const seen = new Set<string>();
+          const merged: Question[] = [];
+          for (const batch of results) {
+            for (const q of batch as Question[]) {
+              if (!seen.has(q.questionId)) { seen.add(q.questionId); merged.push(q); }
+            }
+          }
+          setClientAllItems(merged);
+          setTotalCount(merged.length);
+          setPage(targetPage);
+          setSelected(new Set());
+        }
       }
-      setQuestions(items);
-      setSelected(new Set());
     } catch (err) {
       console.error(err);
     } finally {
       setLoading(false);
     }
-  };
+  }, [user, ensureBookmarkIds, ensureAnsweredIds, ensureIncorrectIds]);
 
+  // ページ変更（サーバーモードは再フェッチ、クライアントモードはスライスのみ）
+  const changePage = useCallback((newPage: number) => {
+    if (isClientMode) {
+      setPage(newPage);
+    } else {
+      doFetch(newPage, { examTypes, keywordChips, bookmarkOnly, filterUnanswered, filterIncorrect });
+    }
+  }, [isClientMode, doFetch, examTypes, keywordChips, bookmarkOnly, filterUnanswered, filterIncorrect]);
+
+  // URL クエリから初期化
+  useEffect(() => {
+    const params = new URLSearchParams(location.search);
+    const kw = params.get('keyword') || '';
+    const chips = kw ? [kw] : [];
+    setKeywordChips(chips);
+    setKeywordInput('');
+    setExamTypes([]);
+    setBookmarkOnly(false);
+    setFilterUnanswered(false);
+    setFilterIncorrect(false);
+    doFetch(1, { examTypes: [], keywordChips: chips, bookmarkOnly: false, filterUnanswered: false, filterIncorrect: false });
+  }, [location.search]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // ブックマーク初期ロード
   useEffect(() => {
     if (!user) return;
     fetch(`${API_ENDPOINT}/users/me/bookmarks?userId=${user.userId}`)
@@ -139,68 +268,67 @@ export default function QuestionList() {
       .catch(() => {});
   }, [user]);
 
-  useEffect(() => {
-    const params = new URLSearchParams(location.search);
-    const kw = params.get('keyword') || '';
-    setKeywordChips(kw ? [kw] : []);
-    setKeywordInput('');
-    setExamTypes([]);
-    setBookmarkOnly(false);
-    setFilterUnanswered(false);
-    setFilterIncorrect(false);
-    fetchQuestions([]);
-  }, [location.search]); // eslint-disable-line react-hooks/exhaustive-deps
-
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
     const kw = keywordInput.trim();
     if (!kw || keywordChips.includes(kw)) { setKeywordInput(''); return; }
-    setKeywordChips(prev => [...prev, kw]);
+    const next = [...keywordChips, kw];
+    setKeywordChips(next);
     setKeywordInput('');
+    doFetch(1, { examTypes, keywordChips: next, bookmarkOnly, filterUnanswered, filterIncorrect });
   };
 
   const removeKeywordChip = (chip: string) => {
-    setKeywordChips(prev => prev.filter(c => c !== chip));
+    const next = keywordChips.filter(c => c !== chip);
+    setKeywordChips(next);
+    doFetch(1, { examTypes, keywordChips: next, bookmarkOnly, filterUnanswered, filterIncorrect });
   };
 
   const toggleExamType = (type: string) => {
-    const next = examTypes.includes(type)
-      ? examTypes.filter(t => t !== type)
-      : [...examTypes, type];
+    const next = examTypes.includes(type) ? examTypes.filter(t => t !== type) : [...examTypes, type];
     setExamTypes(next);
-    fetchQuestions(next);
+    doFetch(1, { examTypes: next, keywordChips, bookmarkOnly, filterUnanswered, filterIncorrect });
+  };
+
+  const toggleBookmarkOnly = () => {
+    const next = !bookmarkOnly;
+    setBookmarkOnly(next);
+    doFetch(1, { examTypes, keywordChips, bookmarkOnly: next, filterUnanswered, filterIncorrect });
   };
 
   const toggleFilterUnanswered = async () => {
     if (!user) return;
     if (!filterUnanswered && answeredIds.size === 0) {
       try {
-        const res = await fetch(`${API_ENDPOINT}/users/me/answered-questions?userId=${user.userId}`);
-        const data = await res.json();
-        setAnsweredIds(new Set(data.questionIds ?? []));
+        const d = await fetch(`${API_ENDPOINT}/users/me/answered-questions?userId=${user.userId}`).then(r => r.json());
+        setAnsweredIds(new Set(d.questionIds ?? []));
       } catch { /* ignore */ }
     }
-    setFilterUnanswered(v => !v);
+    const next = !filterUnanswered;
+    setFilterUnanswered(next);
+    doFetch(1, { examTypes, keywordChips, bookmarkOnly, filterUnanswered: next, filterIncorrect });
   };
 
   const toggleFilterIncorrect = async () => {
     if (!user) return;
     if (!filterIncorrect && incorrectIds.size === 0) {
       try {
-        const res = await fetch(`${API_ENDPOINT}/users/me/incorrect-questions?userId=${user.userId}`);
-        const data = await res.json();
-        setIncorrectIds(new Set(data.questionIds ?? []));
+        const d = await fetch(`${API_ENDPOINT}/users/me/incorrect-questions?userId=${user.userId}`).then(r => r.json());
+        setIncorrectIds(new Set(d.questionIds ?? []));
       } catch { /* ignore */ }
     }
-    setFilterIncorrect(v => !v);
+    const next = !filterIncorrect;
+    setFilterIncorrect(next);
+    doFetch(1, { examTypes, keywordChips, bookmarkOnly, filterUnanswered, filterIncorrect: next });
   };
 
   const fetchDetail = async (id: string) => {
     if (expandedId === id) { setExpandedId(null); return; }
     try {
-      const res = await fetch(`${API_ENDPOINT}/questions/${id}`);
-      const data = await res.json();
-      setQuestions(prev => prev.map(q => q.questionId === id ? { ...q, ...data } : q));
+      const data = await fetch(`${API_ENDPOINT}/questions/${id}`).then(r => r.json());
+      const update = (list: Question[]) => list.map(q => q.questionId === id ? { ...q, ...data } : q);
+      if (isClientMode) setClientAllItems(prev => update(prev));
+      else setQuestions(prev => update(prev));
       setExpandedId(id);
     } catch (err) { console.error(err); }
   };
@@ -230,7 +358,7 @@ export default function QuestionList() {
   };
 
   const selectAll = () => {
-    selected.size === displayedQuestions.length
+    selected.size === displayedQuestions.length && displayedQuestions.length > 0
       ? setSelected(new Set())
       : setSelected(new Set(displayedQuestions.map(q => q.questionId)));
   };
@@ -264,32 +392,6 @@ export default function QuestionList() {
     URL.revokeObjectURL(url);
   };
 
-  const activeFilterCount =
-    (examTypes.length > 0 ? 1 : 0) +
-    (filterUnanswered ? 1 : 0) +
-    (filterIncorrect ? 1 : 0) +
-    (bookmarkOnly ? 1 : 0);
-
-  const matchesKeyword = (q: Question, chip: string): boolean => {
-    const kw = chip.toLowerCase();
-    return q.questionText.toLowerCase().includes(kw) ||
-      q.choices.some(c => c.toLowerCase().includes(kw)) ||
-      (q.tags ?? []).some(tag => tag.toLowerCase().includes(kw));
-  };
-
-  const displayedQuestions = useMemo(() => questions.filter(q => {
-    if (keywordChips.length > 0 && !keywordChips.every(chip => matchesKeyword(q, chip))) return false;
-    if (filterUnanswered && answeredIds.has(q.questionId)) return false;
-    if (filterIncorrect && !incorrectIds.has(q.questionId)) return false;
-    if (bookmarkOnly && !bookmarkedIds.has(q.questionId)) return false;
-    return true;
-  }), [questions, keywordChips, filterUnanswered, answeredIds, filterIncorrect, incorrectIds, bookmarkOnly, bookmarkedIds]); // eslint-disable-line react-hooks/exhaustive-deps
-
-  const totalPages = Math.max(1, Math.ceil(displayedQuestions.length / PAGE_SIZE));
-  const pagedQuestions = displayedQuestions.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
-
-  useEffect(() => { setPage(1); }, [keywordChips, filterUnanswered, filterIncorrect, bookmarkOnly, questions]);
-
   const clearAll = () => {
     setKeywordChips([]);
     setKeywordInput('');
@@ -297,10 +399,16 @@ export default function QuestionList() {
     setBookmarkOnly(false);
     setFilterUnanswered(false);
     setFilterIncorrect(false);
-    fetchQuestions([]);
+    setFilterOpen(false);
+    doFetch(1, { examTypes: [], keywordChips: [], bookmarkOnly: false, filterUnanswered: false, filterIncorrect: false });
   };
 
-  // チェックボックス行スタイル
+  const activeFilterCount =
+    (examTypes.length > 0 ? 1 : 0) +
+    (filterUnanswered ? 1 : 0) +
+    (filterIncorrect ? 1 : 0) +
+    (bookmarkOnly ? 1 : 0);
+
   const checkRow: React.CSSProperties = {
     display: 'flex', alignItems: 'center', gap: 8,
     padding: '5px 0', cursor: 'pointer',
@@ -370,66 +478,40 @@ export default function QuestionList() {
               <span style={{ fontSize: 9, display: 'inline-block', transform: filterOpen ? 'rotate(180deg)' : 'none', transition: 'transform 0.2s' }}>▼</span>
             </button>
 
-            {/* ドロップダウンパネル */}
             {filterOpen && (
               <div style={{
-                position: 'absolute',
-                top: 'calc(100% + 6px)',
-                right: 0,
-                background: 'var(--color-bg-white)',
-                border: '1px solid var(--color-border)',
-                borderRadius: 6,
-                boxShadow: '0 4px 16px rgba(0,0,0,0.12)',
-                zIndex: 200,
-                minWidth: 260,
-                maxWidth: 340,
-                padding: '14px 16px',
+                position: 'absolute', top: 'calc(100% + 6px)', right: 0,
+                background: 'var(--color-bg-white)', border: '1px solid var(--color-border)',
+                borderRadius: 6, boxShadow: '0 4px 16px rgba(0,0,0,0.12)',
+                zIndex: 200, minWidth: 260, maxWidth: 340, padding: '14px 16px',
               }}>
-                {/* 試験種別 */}
                 <div style={{ marginBottom: 14 }}>
                   <div style={secLabel}>{lang === 'ja' ? '試験種別' : 'Exam Type'}</div>
                   {(EXAM_TYPES as readonly string[]).map(type => (
                     <label key={type} style={checkRow}>
-                      <input
-                        type="checkbox"
-                        checked={examTypes.includes(type)}
-                        onChange={() => toggleExamType(type)}
-                        style={{ width: 15, height: 15, cursor: 'pointer', accentColor: 'var(--color-primary)' }}
-                      />
+                      <input type="checkbox" checked={examTypes.includes(type)} onChange={() => toggleExamType(type)}
+                        style={{ width: 15, height: 15, cursor: 'pointer', accentColor: 'var(--color-primary)' }} />
                       {type}
                     </label>
                   ))}
                 </div>
 
-                {/* 回答状況・ブックマーク（要ログイン） */}
                 {user ? (
                   <div style={{ borderTop: '1px solid #eee', paddingTop: 12 }}>
                     <div style={secLabel}>{lang === 'ja' ? '絞り込み' : 'Filter by'}</div>
                     <label style={checkRow}>
-                      <input
-                        type="checkbox"
-                        checked={filterUnanswered}
-                        onChange={toggleFilterUnanswered}
-                        style={{ width: 15, height: 15, cursor: 'pointer', accentColor: 'var(--color-primary)' }}
-                      />
+                      <input type="checkbox" checked={filterUnanswered} onChange={toggleFilterUnanswered}
+                        style={{ width: 15, height: 15, cursor: 'pointer', accentColor: 'var(--color-primary)' }} />
                       {lang === 'ja' ? '未回答のみ' : 'Unanswered only'}
                     </label>
                     <label style={checkRow}>
-                      <input
-                        type="checkbox"
-                        checked={filterIncorrect}
-                        onChange={toggleFilterIncorrect}
-                        style={{ width: 15, height: 15, cursor: 'pointer', accentColor: 'var(--color-primary)' }}
-                      />
+                      <input type="checkbox" checked={filterIncorrect} onChange={toggleFilterIncorrect}
+                        style={{ width: 15, height: 15, cursor: 'pointer', accentColor: 'var(--color-primary)' }} />
                       {lang === 'ja' ? '未正解のみ' : 'Incorrect only'}
                     </label>
                     <label style={checkRow}>
-                      <input
-                        type="checkbox"
-                        checked={bookmarkOnly}
-                        onChange={() => setBookmarkOnly(v => !v)}
-                        style={{ width: 15, height: 15, cursor: 'pointer', accentColor: 'var(--color-primary)' }}
-                      />
+                      <input type="checkbox" checked={bookmarkOnly} onChange={toggleBookmarkOnly}
+                        style={{ width: 15, height: 15, cursor: 'pointer', accentColor: 'var(--color-primary)' }} />
                       ★ {lang === 'ja' ? 'ブックマークのみ' : 'Bookmarked only'}
                     </label>
                   </div>
@@ -441,10 +523,8 @@ export default function QuestionList() {
 
                 {activeFilterCount > 0 && (
                   <div style={{ borderTop: '1px solid #eee', marginTop: 12, paddingTop: 10 }}>
-                    <button
-                      onClick={() => { clearAll(); setFilterOpen(false); }}
-                      style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: 12, color: 'var(--color-text-light)', textDecoration: 'underline', padding: 0 }}
-                    >
+                    <button onClick={clearAll}
+                      style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: 12, color: 'var(--color-text-light)', textDecoration: 'underline', padding: 0 }}>
                       {lang === 'ja' ? 'すべてクリア' : 'Clear all'}
                     </button>
                   </div>
@@ -461,24 +541,17 @@ export default function QuestionList() {
               <span key={chip} style={{
                 display: 'inline-flex', alignItems: 'center', gap: 4,
                 background: '#0097a7', color: 'white',
-                borderRadius: 20, padding: '4px 10px 4px 12px',
-                fontSize: 12, fontWeight: 700,
+                borderRadius: 20, padding: '4px 10px 4px 12px', fontSize: 12, fontWeight: 700,
               }}>
                 {chip}
-                <button
-                  onClick={() => removeKeywordChip(chip)}
-                  style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'rgba(255,255,255,0.7)', padding: '0 0 0 2px', lineHeight: 1, fontSize: 13 }}
-                >✕</button>
+                <button onClick={() => removeKeywordChip(chip)}
+                  style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'rgba(255,255,255,0.7)', padding: '0 0 0 2px', lineHeight: 1, fontSize: 13 }}>✕</button>
               </span>
             ))}
-            {keywordChips.length > 0 && (
-              <button
-                onClick={() => setKeywordChips([])}
-                style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: 12, color: 'var(--color-text-light)', textDecoration: 'underline', padding: '2px 4px' }}
-              >
-                {lang === 'ja' ? 'キーワードをクリア' : 'Clear keywords'}
-              </button>
-            )}
+            <button onClick={() => { setKeywordChips([]); doFetch(1, { examTypes, keywordChips: [], bookmarkOnly, filterUnanswered, filterIncorrect }); }}
+              style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: 12, color: 'var(--color-text-light)', textDecoration: 'underline', padding: '2px 4px' }}>
+              {lang === 'ja' ? 'キーワードをクリア' : 'Clear keywords'}
+            </button>
           </div>
         )}
 
@@ -494,33 +567,28 @@ export default function QuestionList() {
             {filterUnanswered && (
               <span style={{ display: 'inline-flex', alignItems: 'center', gap: 3, background: 'var(--color-primary-light)', color: 'var(--color-primary)', borderRadius: 20, padding: '3px 8px 3px 11px', fontSize: 12, fontWeight: 700 }}>
                 {lang === 'ja' ? '未回答' : 'Unanswered'}
-                <button onClick={() => setFilterUnanswered(false)} style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: 13, color: 'var(--color-primary)', padding: '0 0 0 2px', lineHeight: 1 }}>✕</button>
+                <button onClick={toggleFilterUnanswered} style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: 13, color: 'var(--color-primary)', padding: '0 0 0 2px', lineHeight: 1 }}>✕</button>
               </span>
             )}
             {filterIncorrect && (
               <span style={{ display: 'inline-flex', alignItems: 'center', gap: 3, background: 'var(--color-primary-light)', color: 'var(--color-primary)', borderRadius: 20, padding: '3px 8px 3px 11px', fontSize: 12, fontWeight: 700 }}>
                 {lang === 'ja' ? '未正解' : 'Incorrect'}
-                <button onClick={() => setFilterIncorrect(false)} style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: 13, color: 'var(--color-primary)', padding: '0 0 0 2px', lineHeight: 1 }}>✕</button>
+                <button onClick={toggleFilterIncorrect} style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: 13, color: 'var(--color-primary)', padding: '0 0 0 2px', lineHeight: 1 }}>✕</button>
               </span>
             )}
             {bookmarkOnly && (
               <span style={{ display: 'inline-flex', alignItems: 'center', gap: 3, background: 'var(--color-bg-warning)', color: 'var(--color-text-warning)', borderRadius: 20, padding: '3px 8px 3px 11px', fontSize: 12, fontWeight: 700 }}>
                 ★ {lang === 'ja' ? 'ブックマーク' : 'Bookmarked'}
-                <button onClick={() => setBookmarkOnly(false)} style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: 13, color: 'var(--color-text-warning)', padding: '0 0 0 2px', lineHeight: 1 }}>✕</button>
+                <button onClick={toggleBookmarkOnly} style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: 13, color: 'var(--color-text-warning)', padding: '0 0 0 2px', lineHeight: 1 }}>✕</button>
               </span>
             )}
-            <button
-              onClick={clearAll}
-              style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: 12, color: 'var(--color-text-light)', textDecoration: 'underline', padding: '2px 4px' }}
-            >
+            <button onClick={clearAll}
+              style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: 12, color: 'var(--color-text-light)', textDecoration: 'underline', padding: '2px 4px' }}>
               {lang === 'ja' ? 'すべてクリア' : 'Clear all'}
             </button>
           </div>
         )}
       </Card>
-
-      <div>
-      <div>
 
       <div style={{ marginBottom: 'var(--spacing-lg)', display: 'flex', gap: 'var(--spacing-md)', alignItems: 'center' }}>
         <Button variant="outline" size="sm" onClick={selectAll}>
@@ -530,7 +598,7 @@ export default function QuestionList() {
           {t('questions.csvExport', { n: selected.size })}
         </Button>
         <span style={{ fontSize: 'var(--font-size-sm)', color: 'var(--color-text-sub)', marginLeft: 'auto' }}>
-          {t('questions.count', { n: displayedQuestions.length })}
+          {loading ? '…' : t('questions.count', { n: totalCount })}
         </span>
       </div>
 
@@ -540,7 +608,7 @@ export default function QuestionList() {
         </div>
       ) : (
         <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--spacing-md)' }}>
-          {pagedQuestions.map(q => {
+          {displayedQuestions.map(q => {
             const qText = lang === 'en' && (q as any).questionTextEn ? (q as any).questionTextEn : q.questionText;
             const choices = lang === 'en' && (q as any).choicesEn ? (q as any).choicesEn : q.choices;
             const expl = lang === 'en' && (q as any).explanationEn ? (q as any).explanationEn : q.explanation;
@@ -550,21 +618,11 @@ export default function QuestionList() {
             const isBmLoading = bookmarkLoading.has(q.questionId);
 
             return (
-              <Card
-                key={q.questionId}
-                padding="var(--spacing-lg)"
-                style={{
-                  background: isSelected ? 'var(--color-primary-light)' : 'var(--color-bg-white)',
-                  transition: 'background-color 0.2s',
-                }}
-              >
+              <Card key={q.questionId} padding="var(--spacing-lg)"
+                style={{ background: isSelected ? 'var(--color-primary-light)' : 'var(--color-bg-white)', transition: 'background-color 0.2s' }}>
                 <div style={{ display: 'flex', alignItems: 'flex-start', gap: 'var(--spacing-md)' }}>
-                  <input
-                    type="checkbox"
-                    checked={isSelected}
-                    onChange={() => toggleSelect(q.questionId)}
-                    style={{ marginTop: 4, width: 18, height: 18, cursor: 'pointer' }}
-                  />
+                  <input type="checkbox" checked={isSelected} onChange={() => toggleSelect(q.questionId)}
+                    style={{ marginTop: 4, width: 18, height: 18, cursor: 'pointer' }} />
                   <div style={{ flex: 1 }}>
                     <div style={{ marginBottom: 'var(--spacing-sm)', display: 'flex', gap: 'var(--spacing-sm)', alignItems: 'center', flexWrap: 'wrap' }}>
                       <Badge variant="secondary">{q.examType}</Badge>
@@ -580,18 +638,14 @@ export default function QuestionList() {
                         </span>
                       )}
                       {user && (
-                        <button
-                          onClick={() => toggleBookmark(q.questionId)}
-                          disabled={isBmLoading}
+                        <button onClick={() => toggleBookmark(q.questionId)} disabled={isBmLoading}
                           title={isBookmarked ? t('questions.removeBookmark') : t('questions.bookmark')}
                           style={{
-                            marginLeft: 'auto',
-                            background: 'none', border: 'none', cursor: isBmLoading ? 'default' : 'pointer',
-                            padding: '2px 4px', borderRadius: 4,
+                            marginLeft: 'auto', background: 'none', border: 'none',
+                            cursor: isBmLoading ? 'default' : 'pointer', padding: '2px 4px', borderRadius: 4,
                             fontSize: 20, lineHeight: 1,
                             color: isBookmarked ? 'var(--color-warning, #f59e0b)' : 'var(--color-text-light)',
-                            opacity: isBmLoading ? 0.5 : 1,
-                            transition: 'color 0.15s, opacity 0.15s',
+                            opacity: isBmLoading ? 0.5 : 1, transition: 'color 0.15s, opacity 0.15s',
                           }}
                           onMouseEnter={e => { if (!isBmLoading) e.currentTarget.style.color = 'var(--color-warning, #f59e0b)'; }}
                           onMouseLeave={e => { if (!isBmLoading) e.currentTarget.style.color = isBookmarked ? 'var(--color-warning, #f59e0b)' : 'var(--color-text-light)'; }}
@@ -609,12 +663,9 @@ export default function QuestionList() {
 
                     {isExpanded && q.correctAnswers && (
                       <div style={{
-                        background: 'var(--color-feedback-correct-bg)',
-                        borderLeft: '4px solid var(--color-success)',
-                        borderRadius: 'var(--border-radius-md)',
-                        padding: '16px 20px',
-                        marginBottom: 'var(--spacing-lg)',
-                        fontSize: 'var(--font-size-base)'
+                        background: 'var(--color-feedback-correct-bg)', borderLeft: '4px solid var(--color-success)',
+                        borderRadius: 'var(--border-radius-md)', padding: '16px 20px',
+                        marginBottom: 'var(--spacing-lg)', fontSize: 'var(--font-size-base)',
                       }}>
                         <p style={{ margin: '0 0 var(--spacing-sm)' }}>
                           <strong style={{ color: 'var(--color-success)' }}>{t('questions.correctAnswer')}</strong>{q.correctAnswers.join(', ')}
@@ -630,12 +681,9 @@ export default function QuestionList() {
                       <Button variant="outline" size="sm" onClick={() => fetchDetail(q.questionId)}>
                         {isExpanded ? t('questions.hideExplanation') : t('questions.showExplanation')}
                       </Button>
-                      <Button
-                        variant={copiedId === q.questionId ? 'primary' : 'outline'}
-                        size="sm"
+                      <Button variant={copiedId === q.questionId ? 'primary' : 'outline'} size="sm"
                         onClick={() => copyQuestion(q)}
-                        style={{ color: copiedId === q.questionId ? 'white' : 'var(--color-text-sub)', borderColor: copiedId === q.questionId ? 'var(--color-primary)' : 'var(--color-border)' }}
-                      >
+                        style={{ color: copiedId === q.questionId ? 'white' : 'var(--color-text-sub)', borderColor: copiedId === q.questionId ? 'var(--color-primary)' : 'var(--color-border)' }}>
                         {copiedId === q.questionId ? t('questions.copied') : t('questions.copy')}
                       </Button>
                     </div>
@@ -650,32 +698,33 @@ export default function QuestionList() {
       {/* ページネーション */}
       {!loading && totalPages > 1 && (
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 'var(--spacing-sm)', marginTop: 'var(--spacing-xl)' }}>
-          <Button variant="outline" size="sm" onClick={() => setPage(p => Math.max(1, p - 1))} disabled={page === 1}>
-            ←
-          </Button>
-          {Array.from({ length: totalPages }, (_, i) => i + 1).map(p => (
-            <button
-              key={p}
-              onClick={() => setPage(p)}
-              style={{
-                minWidth: 32, height: 32, borderRadius: 'var(--border-radius-md)',
-                border: p === page ? '2px solid var(--color-primary)' : '1px solid var(--color-border)',
-                background: p === page ? 'var(--color-primary-light)' : 'transparent',
-                color: p === page ? 'var(--color-primary)' : 'var(--color-text-sub)',
-                fontWeight: p === page ? 700 : 400,
-                fontSize: 'var(--font-size-sm)', cursor: 'pointer',
-              }}
-            >{p}</button>
-          ))}
-          <Button variant="outline" size="sm" onClick={() => setPage(p => Math.min(totalPages, p + 1))} disabled={page === totalPages}>
-            →
-          </Button>
+          <Button variant="outline" size="sm" onClick={() => changePage(Math.max(1, page - 1))} disabled={page === 1}>←</Button>
+          {(() => {
+            // 多ページ時は現在ページ周辺だけ表示
+            const delta = 2;
+            const range: number[] = [];
+            for (let i = Math.max(1, page - delta); i <= Math.min(totalPages, page + delta); i++) range.push(i);
+            const withEdges: (number | '…')[] = [];
+            if (range[0] > 1) { withEdges.push(1); if (range[0] > 2) withEdges.push('…'); }
+            range.forEach(p => withEdges.push(p));
+            if (range[range.length - 1] < totalPages) { if (range[range.length - 1] < totalPages - 1) withEdges.push('…'); withEdges.push(totalPages); }
+            return withEdges.map((p, i) =>
+              p === '…' ? (
+                <span key={`e${i}`} style={{ padding: '0 4px', color: 'var(--color-text-light)', fontSize: 'var(--font-size-sm)' }}>…</span>
+              ) : (
+                <button key={p} onClick={() => changePage(p as number)} style={{
+                  minWidth: 32, height: 32, borderRadius: 'var(--border-radius-md)',
+                  border: p === page ? '2px solid var(--color-primary)' : '1px solid var(--color-border)',
+                  background: p === page ? 'var(--color-primary-light)' : 'transparent',
+                  color: p === page ? 'var(--color-primary)' : 'var(--color-text-sub)',
+                  fontWeight: p === page ? 700 : 400, fontSize: 'var(--font-size-sm)', cursor: 'pointer',
+                }}>{p}</button>
+              )
+            );
+          })()}
+          <Button variant="outline" size="sm" onClick={() => changePage(Math.min(totalPages, page + 1))} disabled={page === totalPages}>→</Button>
         </div>
       )}
-
-      </div>{/* メインカラム終了 */}
-
-      </div>{/* グリッド終了 */}
     </div>
   );
 }

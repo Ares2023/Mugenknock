@@ -94,7 +94,7 @@ app.get('/health', (req, res) => {
 app.get('/questions', async (req, res) => {
   try {
     const docClient = getClient();
-    const { examType, tagId, domain, limit, shuffle: doShuffle, keyword } = req.query;
+    const { examType, tagId, domain, limit, shuffle: doShuffle, keyword, offset, ids } = req.query;
     let items = [];
 
     if (tagId) {
@@ -108,7 +108,6 @@ app.get('/questions', async (req, res) => {
       );
       const results = await Promise.all(promises);
       items = results.map(r => r.Item).filter(Boolean);
-      // tagId指定時もexamTypeで絞り込み可能
       if (examType) items = items.filter(q => q.examType === examType);
     } else if (examType) {
       items = await queryAll(docClient, {
@@ -125,17 +124,26 @@ app.get('/questions', async (req, res) => {
       const domainList = domain.split(',').map(d => d.trim()).filter(Boolean);
       items = items.filter(q => (q.tags || []).some(t => domainList.includes(t)));
     }
+    if (ids) {
+      const idSet = new Set(ids.split(',').map(id => id.trim()).filter(Boolean));
+      items = items.filter(q => idSet.has(q.questionId));
+    }
     if (keyword) {
-      const kw = keyword.toLowerCase();
+      const keywords = keyword.split(',').map(k => k.trim().toLowerCase()).filter(Boolean);
       items = items.filter(q =>
-        q.questionText.toLowerCase().includes(kw) ||
-        (q.tags || []).some(t => t.toLowerCase().includes(kw)) ||
-        q.questionId.toLowerCase().includes(kw)
+        keywords.every(kw =>
+          q.questionText.toLowerCase().includes(kw) ||
+          (q.choices || []).some(c => c.toLowerCase().includes(kw)) ||
+          (q.tags || []).some(t => t.toLowerCase().includes(kw)) ||
+          q.questionId.toLowerCase().includes(kw)
+        )
       );
     }
 
     items = items.filter(q => !q.isHidden);
     if (doShuffle === 'true') items = shuffle(items);
+    const total = items.length;
+    if (offset) items = items.slice(parseInt(offset));
     if (limit) items = items.slice(0, parseInt(limit));
     const withAnswers = req.query.withAnswers === 'true';
     const sanitized = withAnswers
@@ -147,7 +155,7 @@ app.get('/questions', async (req, res) => {
           ...rest,
           correctAnswerCount: Array.isArray(correctAnswers) ? correctAnswers.length : 1,
         }));
-    res.json({ items: sanitized, count: sanitized.length });
+    res.json({ items: sanitized, count: sanitized.length, total });
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: 'Internal server error' });
