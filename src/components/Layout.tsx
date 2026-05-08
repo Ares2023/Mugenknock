@@ -495,7 +495,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
               ) : (
                 <button
                   onClick={() => { setAccountOpen(false); navigate('/login'); }}
-                  style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 10, padding: '10px 12px', borderRadius: 'var(--border-radius-md)', background: 'var(--color-primary)', border: 'none', cursor: 'pointer', fontSize: 'var(--font-size-sm)', color: 'white', width: '100%', fontWeight: 700 }}
+                  style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 10, padding: '10px 12px', borderRadius: 'var(--border-radius-md)', background: 'transparent', border: '1.5px solid var(--color-primary)', cursor: 'pointer', fontSize: 'var(--font-size-sm)', color: 'var(--color-primary)', width: '100%', fontWeight: 700 }}
                 >
                   {t('nav.login')}
                 </button>

@@ -40,6 +40,7 @@
   --color-on-success: white;
   --color-on-danger: white;
   --color-caution: #ca8a04;
+  --color-danger-light: rgba(209, 50, 18, 0.08);
 
   /* Semantic feedback colors */
   --color-feedback-correct-bg: #f2fcf3;
@@ -99,6 +100,7 @@
   --color-on-success: #052e16;
   --color-on-danger: #450a0a;
   --color-caution: #facc15;
+  --color-danger-light: rgba(248, 113, 113, 0.1);
 }
 
 /* ── フォーム要素のダークモード対応 ── */
@@ -215,6 +217,41 @@ input[type="radio"] {
 code {
   font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New',
     monospace;
+}
+
+/* ── ボタン バリアント（アウトラインスタイル） ── */
+
+.btn-primary,
+.btn-outline {
+  background-color: transparent;
+  color: var(--color-primary);
+  border: 1.5px solid var(--color-primary);
+}
+
+.btn-primary:not(:disabled):hover,
+.btn-outline:not(:disabled):hover {
+  background-color: var(--color-primary-light);
+}
+
+.btn-primary:not(:disabled):active,
+.btn-outline:not(:disabled):active {
+  background-color: var(--color-primary-light);
+  border-width: 2.5px;
+}
+
+.btn-danger {
+  background-color: transparent;
+  color: var(--color-danger);
+  border: 1.5px solid var(--color-danger);
+}
+
+.btn-danger:not(:disabled):hover {
+  background-color: var(--color-danger-light);
+}
+
+.btn-danger:not(:disabled):active {
+  background-color: var(--color-danger-light);
+  border-width: 2.5px;
 }
 
 /* Global Transitions */
