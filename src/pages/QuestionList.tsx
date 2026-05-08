@@ -38,6 +38,56 @@ const formatDateOnly = (iso: string) => {
   return `${mm}/${dd}`;
 };
 
+const Pagination = ({ page, totalPages, onChangePage }: { page: number; totalPages: number; onChangePage: (p: number) => void }) => {
+  const delta = 2;
+  const range: number[] = [];
+  for (let i = Math.max(1, page - delta); i <= Math.min(totalPages, page + delta); i++) range.push(i);
+  const items: (number | '…')[] = [];
+  if (range[0] > 1) { items.push(1); if (range[0] > 2) items.push('…'); }
+  range.forEach(p => items.push(p));
+  if (range[range.length - 1] < totalPages) {
+    if (range[range.length - 1] < totalPages - 1) items.push('…');
+    items.push(totalPages);
+  }
+  return (
+    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 4, margin: 'var(--spacing-md) 0' }}>
+      <button
+        onClick={() => onChangePage(Math.max(1, page - 1))}
+        disabled={page === 1}
+        style={{
+          padding: '5px 12px', borderRadius: 'var(--border-radius-md)',
+          border: '1px solid var(--color-border)', background: 'transparent',
+          color: page === 1 ? 'var(--color-text-light)' : 'var(--color-text-sub)',
+          cursor: page === 1 ? 'default' : 'pointer', fontSize: 'var(--font-size-sm)',
+        }}
+      >←</button>
+      {items.map((p, i) =>
+        p === '…' ? (
+          <span key={`e${i}`} style={{ padding: '0 4px', color: 'var(--color-text-light)', fontSize: 'var(--font-size-sm)' }}>…</span>
+        ) : (
+          <button key={p} onClick={() => onChangePage(p as number)} style={{
+            minWidth: 32, height: 32, borderRadius: 'var(--border-radius-md)',
+            border: p === page ? '2px solid var(--color-primary)' : '1px solid var(--color-border)',
+            background: p === page ? 'var(--color-primary-light)' : 'transparent',
+            color: p === page ? 'var(--color-primary)' : 'var(--color-text-sub)',
+            fontWeight: p === page ? 700 : 400, fontSize: 'var(--font-size-sm)', cursor: 'pointer',
+          }}>{p}</button>
+        )
+      )}
+      <button
+        onClick={() => onChangePage(Math.min(totalPages, page + 1))}
+        disabled={page === totalPages}
+        style={{
+          padding: '5px 12px', borderRadius: 'var(--border-radius-md)',
+          border: '1px solid var(--color-border)', background: 'transparent',
+          color: page === totalPages ? 'var(--color-text-light)' : 'var(--color-text-sub)',
+          cursor: page === totalPages ? 'default' : 'pointer', fontSize: 'var(--font-size-sm)',
+        }}
+      >→</button>
+    </div>
+  );
+};
+
 const SkeletonCard = () => (
   <div style={{ border: '1px solid var(--color-border)', borderRadius: 'var(--border-radius-md)', padding: 'var(--spacing-lg)', background: 'var(--color-bg-white)', boxShadow: 'var(--box-shadow-sm)' }}>
     <div style={{ display: 'flex', gap: 'var(--spacing-md)', marginBottom: 'var(--spacing-sm)' }}>
@@ -602,6 +652,9 @@ export default function QuestionList() {
         </span>
       </div>
 
+      {/* ページネーション（上） */}
+      {!loading && totalPages > 1 && <Pagination page={page} totalPages={totalPages} onChangePage={changePage} />}
+
       {loading ? (
         <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--spacing-md)' }}>
           {[0, 1, 2].map(i => <SkeletonCard key={i} />)}
@@ -695,36 +748,8 @@ export default function QuestionList() {
         </div>
       )}
 
-      {/* ページネーション */}
-      {!loading && totalPages > 1 && (
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 'var(--spacing-sm)', marginTop: 'var(--spacing-xl)' }}>
-          <Button variant="outline" size="sm" onClick={() => changePage(Math.max(1, page - 1))} disabled={page === 1}>←</Button>
-          {(() => {
-            // 多ページ時は現在ページ周辺だけ表示
-            const delta = 2;
-            const range: number[] = [];
-            for (let i = Math.max(1, page - delta); i <= Math.min(totalPages, page + delta); i++) range.push(i);
-            const withEdges: (number | '…')[] = [];
-            if (range[0] > 1) { withEdges.push(1); if (range[0] > 2) withEdges.push('…'); }
-            range.forEach(p => withEdges.push(p));
-            if (range[range.length - 1] < totalPages) { if (range[range.length - 1] < totalPages - 1) withEdges.push('…'); withEdges.push(totalPages); }
-            return withEdges.map((p, i) =>
-              p === '…' ? (
-                <span key={`e${i}`} style={{ padding: '0 4px', color: 'var(--color-text-light)', fontSize: 'var(--font-size-sm)' }}>…</span>
-              ) : (
-                <button key={p} onClick={() => changePage(p as number)} style={{
-                  minWidth: 32, height: 32, borderRadius: 'var(--border-radius-md)',
-                  border: p === page ? '2px solid var(--color-primary)' : '1px solid var(--color-border)',
-                  background: p === page ? 'var(--color-primary-light)' : 'transparent',
-                  color: p === page ? 'var(--color-primary)' : 'var(--color-text-sub)',
-                  fontWeight: p === page ? 700 : 400, fontSize: 'var(--font-size-sm)', cursor: 'pointer',
-                }}>{p}</button>
-              )
-            );
-          })()}
-          <Button variant="outline" size="sm" onClick={() => changePage(Math.min(totalPages, page + 1))} disabled={page === totalPages}>→</Button>
-        </div>
-      )}
+      {/* ページネーション（下） */}
+      {!loading && totalPages > 1 && <Pagination page={page} totalPages={totalPages} onChangePage={changePage} />}
     </div>
   );
 }
