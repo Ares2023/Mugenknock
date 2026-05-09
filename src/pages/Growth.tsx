@@ -182,49 +182,6 @@ function SummaryCard({ title, value }: { title: string; value: number }) {
   );
 }
 
-function CheckRatePanel({ total, totalVerified, lang }: {
-  total: number;
-  totalVerified: number;
-  lang: string;
-}) {
-  const pct = total > 0 ? Math.min(100, (totalVerified / total) * 100) : 0;
-  return (
-    <div style={{
-      background: 'var(--color-bg-white)',
-      border: '1px solid var(--color-border)',
-      borderRadius: 'var(--border-radius-lg)',
-      padding: '14px 16px',
-      marginTop: 16,
-      display: 'flex',
-      alignItems: 'center',
-      gap: 16,
-    }}>
-      <div style={{ minWidth: 0 }}>
-        <div style={{ fontSize: 'var(--font-size-xs)', fontWeight: 600, color: 'var(--color-text-sub)', marginBottom: 3 }}>
-          {lang === 'ja' ? 'チェック済割合（全期間）' : 'Verification Rate (all time)'}
-        </div>
-        <div style={{ display: 'flex', alignItems: 'baseline', gap: 8, flexWrap: 'wrap' }}>
-          <span style={{ fontSize: '1.75rem', fontWeight: 800, color: 'var(--color-success)', lineHeight: 1 }}>
-            {pct.toFixed(1)}%
-          </span>
-          <span style={{ fontSize: 'var(--font-size-sm)', color: 'var(--color-text-sub)' }}>
-            {totalVerified.toLocaleString()} / {total.toLocaleString()} {lang === 'ja' ? '問' : 'questions'}
-          </span>
-        </div>
-      </div>
-      <div style={{ flex: 1, height: 8, background: 'var(--color-border)', borderRadius: 4, minWidth: 60 }}>
-        <div style={{
-          height: '100%',
-          width: `${pct}%`,
-          background: 'var(--color-success)',
-          borderRadius: 4,
-          transition: 'width 0.4s ease',
-        }} />
-      </div>
-    </div>
-  );
-}
-
 export default function Growth() {
   const { lang } = useLanguage();
   const [view, setView] = useState<ViewMode>('daily');
@@ -343,7 +300,6 @@ export default function Growth() {
               color2="var(--color-success)"
             />
           </div>
-          <CheckRatePanel total={data.total} totalVerified={data.totalVerified ?? 0} lang={lang} />
           <div style={{ ...chartBoxStyle, marginTop: 16 }}>
             <div style={{ fontSize: 'var(--font-size-sm)', fontWeight: 700, color: 'var(--color-text-sub)', marginBottom: 8 }}>
               {lang === 'ja' ? '合計問題量・チェック済数の推移（日次）' : 'Cumulative total — daily'}
@@ -385,7 +341,6 @@ export default function Growth() {
               color2="var(--color-success)"
             />
           </div>
-          <CheckRatePanel total={data.total} totalVerified={data.totalVerified ?? 0} lang={lang} />
           <div style={{ ...chartBoxStyle, marginTop: 16 }}>
             <div style={{ fontSize: 'var(--font-size-sm)', fontWeight: 700, color: 'var(--color-text-sub)', marginBottom: 8 }}>
               {lang === 'ja' ? '合計問題量・チェック済数の推移（月次）' : 'Cumulative total — monthly'}
