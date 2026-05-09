@@ -133,9 +133,12 @@ app.get('/questions/growth-stats', async (req, res) => {
         const day = item.createdAt.slice(0, 10);
         const month = item.createdAt.slice(0, 7);
         if (createdByDay[day] !== undefined) createdByDay[day]++;
-        else if (day < daily[0]) createdBeforeDaily++;
+        else createdBeforeDaily++;
         if (createdByMonth[month] !== undefined) createdByMonth[month]++;
-        else if (month < monthly[0]) createdBeforeMonthly++;
+        else createdBeforeMonthly++;
+      } else {
+        createdBeforeDaily++;
+        createdBeforeMonthly++;
       }
       if (item.validityCheckedAt) {
         const day = item.validityCheckedAt.slice(0, 10);
