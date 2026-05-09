@@ -8,7 +8,7 @@ import Breadcrumb from './Breadcrumb';
 import Button from './ui/Button';
 import {
   IconHome, IconPencil, IconClock, IconList,
-  IconUser, IconChart, IconInfo,
+  IconUser, IconChart, IconInfo, IconGear,
   IconBell, IconMenu, IconClose, IconChevronLeft, IconMail, IconTrendingUp
 } from './Icons';
 
@@ -53,6 +53,7 @@ const NAV_KEYS = [
   { path: '/growth',         labelKey: 'nav.growth',       Icon: IconTrendingUp,  bottom: true },
   { path: '/release-notes',  labelKey: 'nav.releaseNotes', Icon: IconBell,        bottom: true },
   { path: '/architecture',   labelKey: 'nav.architecture', Icon: IconInfo,        bottom: true },
+  { path: '/account',        labelKey: 'nav.account',      Icon: IconGear,        bottom: true },
 ];
 
 const BOTTOM_TABS = [
@@ -67,6 +68,7 @@ const OTHERS_ITEMS = [
   { path: '/growth',        Icon: IconTrendingUp, labelKey: 'nav.growth'       },
   { path: '/release-notes', Icon: IconBell,       labelKey: 'nav.releaseNotes' },
   { path: '/architecture',  Icon: IconInfo,       labelKey: 'nav.architecture' },
+  { path: '/account',       Icon: IconGear,       labelKey: 'nav.account'      },
 ];
 
 const AI_LINKS = [
@@ -237,6 +239,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
     '/stats':            [{ label: t('nav.home'), path: '/' }, { label: t('stats.title') }],
     '/architecture':     [{ label: t('nav.home'), path: '/' }, { label: t('nav.architecture') }],
     '/release-notes':    [{ label: t('nav.home'), path: '/' }, { label: t('nav.releaseNotes') }],
+    '/account':          [{ label: t('nav.home'), path: '/' }, { label: t('nav.account') }],
   };
 
   // アカウントドロワー用: 苦手ドメイン計算

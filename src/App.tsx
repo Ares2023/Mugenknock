@@ -23,6 +23,7 @@ import Stats from './pages/Stats';
 import Growth from './pages/Growth';
 import Architecture from './pages/Architecture';
 import ReleaseNotes from './pages/ReleaseNotes';
+import Account from './pages/Account';
 
 Amplify.configure(awsExports);
 
@@ -70,6 +71,9 @@ function App() {
           } />
           <Route path="/stats" element={
             <PrivateRoute><Layout><Stats /></Layout></PrivateRoute>
+          } />
+          <Route path="/account" element={
+            <PrivateRoute><Layout><Account /></Layout></PrivateRoute>
           } />
         </Routes>
       </BrowserRouter>

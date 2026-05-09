@@ -23,6 +23,7 @@ export const ja: Translations = {
   'nav.exerciseSession': '演習中',
   'nav.examSession': '模試中',
   'nav.result': '結果',
+  'nav.account': 'アカウント管理',
 
   // ── Contact modal ──
   'contact.sidebarLabel': '連絡先',
@@ -307,6 +308,7 @@ export const en: Translations = {
   'nav.exerciseSession': 'In Progress',
   'nav.examSession': 'In Progress',
   'nav.result': 'Result',
+  'nav.account': 'Account',
 
   // ── Contact modal ──
   'contact.sidebarLabel': 'Contact',
