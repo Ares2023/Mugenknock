@@ -82,22 +82,31 @@ export default function Home() {
           <span style={{ fontSize: 'var(--font-size-base)', fontWeight: 700, color: 'var(--color-text-main)' }}>{t('home.targetExam')}</span>
         </div>
 
-        {/* 試験選択ボタン（横並び） */}
-        <div style={{ display: 'flex', gap: 'var(--spacing-sm)', flexWrap: 'wrap', marginBottom: 'var(--spacing-md)', alignItems: 'center' }}>
-          {EXAM_TYPES.map(et => {
-            const selected = targetExam === et;
-            return (
-              <Button
-                key={et}
-                variant="outline"
-                size="sm"
-                onClick={() => handleSelectExam(et)}
-                style={{ width: 72, ...(selected ? { background: 'var(--color-primary-light)', borderWidth: 2 } : {}) }}
-              >
-                {et}
-              </Button>
-            );
-          })}
+        {/* 試験選択ボタン（レベル別3列） */}
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 'var(--spacing-sm)', marginBottom: 'var(--spacing-md)' }}>
+          {(['Foundational', 'Associate', 'Professional'] as const).map(level => (
+            <div key={level}>
+              <div style={{ fontSize: 'var(--font-size-xs)', fontWeight: 700, color: 'var(--color-text-light)', textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: 6 }}>
+                {level}
+              </div>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+                {EXAM_TYPES.filter(et => EXAM_LEVEL[et] === level).map(et => {
+                  const selected = targetExam === et;
+                  return (
+                    <Button
+                      key={et}
+                      variant="outline"
+                      size="sm"
+                      onClick={() => handleSelectExam(et)}
+                      style={{ width: '100%', ...(selected ? { background: 'var(--color-primary-light)', borderWidth: 2 } : {}) }}
+                    >
+                      {et}
+                    </Button>
+                  );
+                })}
+              </div>
+            </div>
+          ))}
         </div>
 
         {/* 資格情報エリア */}
