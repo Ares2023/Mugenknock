@@ -327,10 +327,10 @@ export default function Stats() {
                   </span>
                 </div>
                 {/* HP バー */}
-                <div style={{ background: 'var(--color-bg-main)', borderRadius: 10, height: 10, overflow: 'hidden', marginBottom: 6 }}>
+                <div style={{ background: 'var(--color-bg-main)', borderRadius: 10, height: 8, overflow: 'hidden', marginBottom: 6 }}>
                   <div style={{
                     width: `${pct}%`, height: '100%', borderRadius: 10, transition: 'width 0.6s',
-                    background: pct >= 60 ? 'var(--color-success)' : pct >= 30 ? 'var(--color-caution)' : 'var(--color-danger)',
+                    background: pct >= 60 ? 'var(--color-success)' : pct >= 30 ? 'var(--color-caution)' : 'var(--color-primary)',
                   }} />
                 </div>
                 <div style={{ fontSize: 'var(--font-size-xs)', color: 'var(--color-text-light)', textAlign: 'right' }}>

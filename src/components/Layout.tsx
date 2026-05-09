@@ -407,7 +407,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
                           </span>
                         </span>
                       </div>
-                      <div style={{ background: 'var(--color-border)', borderRadius: 10, height: 6, overflow: 'hidden', marginBottom: 4 }}>
+                      <div style={{ background: 'var(--color-border)', borderRadius: 10, height: 8, overflow: 'hidden', marginBottom: 4 }}>
                         <div style={{
                           width: `${accountExamInfo?.totalQuestions > 0 ? Math.min(100, Math.round((accountAnsweredCount / accountExamInfo.totalQuestions) * 100)) : 0}%`,
                           background: 'var(--color-primary)', height: '100%', borderRadius: 10, transition: 'width 0.4s',

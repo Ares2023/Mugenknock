@@ -443,7 +443,7 @@ export default function ExerciseSetup() {
                     {answeredCount}<span style={{ fontSize: 'var(--font-size-sm)', fontWeight: 400, color: 'var(--color-text-sub)' }}> / {totalDbCount ?? '…'} {t('exerciseSetup.qUnit')}</span>
                   </span>
                 </div>
-                <div style={{ background: 'var(--color-border)', borderRadius: 10, height: 6, overflow: 'hidden', marginBottom: 4 }}>
+                <div style={{ background: 'var(--color-border)', borderRadius: 10, height: 8, overflow: 'hidden', marginBottom: 4 }}>
                   <div style={{
                     width: `${totalDbCount ? Math.min(100, Math.round((answeredCount / totalDbCount) * 100)) : 0}%`,
                     background: 'var(--color-primary)', height: '100%', borderRadius: 10, transition: 'width 0.4s',
