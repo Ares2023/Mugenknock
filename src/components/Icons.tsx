@@ -123,3 +123,11 @@ export const IconBookmark = ({ filled = false, size = 16 }: { filled?: boolean; 
     <path d="M3 2v13l5-3 5 3V2a1 1 0 0 0-1-1H4a1 1 0 0 0-1 1z" />
   </svg>
 );
+
+export const IconBrain = ({ size = 16 }: { size?: number }) => (
+  <svg width={size} height={size} viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M8 14.5v-3.5h2.5a2.5 2.5 0 0 0 0-5H8V2.5a2.5 2.5 0 0 0-5 0V6a2.5 2.5 0 0 0 2.5 2.5H8" />
+    <path d="M10.5 11a2.5 2.5 0 0 0 2.5-2.5 2.5 2.5 0 0 0-2.5-2.5" />
+    <path d="M5.5 11A2.5 2.5 0 0 1 3 8.5 2.5 2.5 0 0 1 5.5 6" />
+  </svg>
+);

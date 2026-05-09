@@ -9,7 +9,8 @@ import Button from './ui/Button';
 import {
   IconHome, IconPencil, IconClock, IconList,
   IconUser, IconChart, IconInfo, IconGear,
-  IconBell, IconMenu, IconClose, IconChevronLeft, IconMail, IconTrendingUp
+  IconBell, IconMenu, IconClose, IconChevronLeft, IconMail, IconTrendingUp,
+  IconBrain
 } from './Icons';
 
 type BreadcrumbItem = { label: string; path?: string };
@@ -50,7 +51,7 @@ const NAV_KEYS = [
   { path: '/exam/setup',     labelKey: 'nav.exam',         Icon: IconClock        },
   { path: '/stats',          labelKey: 'nav.stats',        Icon: IconChart        },
   { path: '/questions',      labelKey: 'nav.questions',    Icon: IconList,        bottom: true },
-  { path: '/growth',         labelKey: 'nav.growth',       Icon: IconTrendingUp,  bottom: true },
+  { path: '/growth',         labelKey: 'nav.growth',       Icon: IconBrain,       bottom: true },
   { path: '/release-notes',  labelKey: 'nav.releaseNotes', Icon: IconBell,        bottom: true },
   { path: '/architecture',   labelKey: 'nav.architecture', Icon: IconInfo,        bottom: true },
 ];
@@ -64,7 +65,7 @@ const BOTTOM_TABS = [
 
 const OTHERS_ITEMS = [
   { path: '/questions',     Icon: IconList,       labelKey: 'nav.questions'    },
-  { path: '/growth',        Icon: IconTrendingUp, labelKey: 'nav.growth'       },
+  { path: '/growth',        Icon: IconBrain,      labelKey: 'nav.growth'       },
   { path: '/release-notes', Icon: IconBell,       labelKey: 'nav.releaseNotes' },
   { path: '/architecture',  Icon: IconInfo,       labelKey: 'nav.architecture' },
 ];
