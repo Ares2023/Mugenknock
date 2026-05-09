@@ -108,7 +108,7 @@ export default function Home() {
                 ? `${EXAM_LEVEL[targetExam]} / ${targetExam}`
                 : (lang === 'ja' ? '資格を選択...' : 'Select certification...')}
             </span>
-            <span style={{ fontSize: 10, color: 'var(--color-text-light)', transform: dropdownOpen ? 'rotate(180deg)' : 'none', transition: 'transform 0.2s', flexShrink: 0 }}>▼</span>
+            <span style={{ fontSize: 10, color: 'var(--color-primary)', transform: dropdownOpen ? 'rotate(180deg)' : 'none', transition: 'transform 0.2s', flexShrink: 0 }}>▼</span>
           </button>
 
           {dropdownOpen && (

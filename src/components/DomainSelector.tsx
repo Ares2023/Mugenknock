@@ -79,20 +79,20 @@ export default function DomainSelector({ domains, selected, onChange, lang, labe
               display: 'inline-flex',
               alignItems: 'center',
               gap: 6,
-              padding: '5px 12px',
+              padding: '7px 12px',
               fontSize: 'var(--font-size-sm)',
               fontWeight: 600,
-              color: 'var(--color-primary)',
-              border: '1.5px solid var(--color-primary)',
-              borderRadius: 'var(--border-radius-full)',
-              background: open ? 'var(--color-primary-light)' : 'transparent',
+              color: open ? 'var(--color-text-main)' : 'var(--color-text-sub)',
+              border: `1.5px solid ${open ? 'var(--color-primary)' : 'var(--color-border)'}`,
+              borderRadius: 'var(--border-radius-md)',
+              background: 'var(--color-bg-white)',
               cursor: 'pointer',
               whiteSpace: 'nowrap',
-              transition: 'background 0.15s',
+              transition: 'border-color 0.15s, color 0.15s',
             }}
           >
             {lang === 'ja' ? '出題ドメイン' : 'Domains'}
-            <span style={{ fontSize: 9, lineHeight: 1 }}>{open ? '▲' : '▼'}</span>
+            <span style={{ fontSize: 9, lineHeight: 1, color: 'var(--color-primary)', transform: open ? 'rotate(180deg)' : 'none', transition: 'transform 0.2s', display: 'inline-block' }}>▼</span>
           </button>
 
           {/* Dropdown panel — positioned relative to trigger */}

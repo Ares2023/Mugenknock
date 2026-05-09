@@ -131,10 +131,23 @@ const PromptMenu = ({ questionText, choices, explanation, lang }: { questionText
         )}
       </div>
       <div ref={ref} style={{ position: 'relative' }}>
-        <Button onClick={() => setOpen(o => !o)} variant="outline" size="sm" style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+        <button
+          onClick={() => setOpen(o => !o)}
+          style={{
+            display: 'inline-flex', alignItems: 'center', gap: 6,
+            padding: '5px 10px',
+            border: `1.5px solid ${open ? 'var(--color-primary)' : 'var(--color-border)'}`,
+            borderRadius: 'var(--border-radius-md)',
+            background: 'var(--color-bg-white)',
+            color: open ? 'var(--color-text-main)' : 'var(--color-text-sub)',
+            cursor: 'pointer',
+            fontSize: 'var(--font-size-sm)', fontWeight: 600,
+            whiteSpace: 'nowrap', transition: 'border-color 0.15s, color 0.15s',
+          }}
+        >
           {isEn ? 'Generate Prompt' : '質問プロンプト生成'}
-          <span style={{ fontSize: 9 }}>{open ? '▲' : '▼'}</span>
-        </Button>
+          <span style={{ fontSize: 9, color: 'var(--color-primary)' }}>{open ? '▲' : '▼'}</span>
+        </button>
         {open && (
           <div style={{
             position: 'absolute', bottom: '100%', right: 0, marginBottom: 4,

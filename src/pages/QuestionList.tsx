@@ -516,12 +516,12 @@ export default function QuestionList() {
               style={{
                 display: 'flex', alignItems: 'center', gap: 6,
                 padding: '7px 14px',
-                border: `1px solid ${filterOpen || activeFilterCount > 0 ? 'var(--color-primary)' : 'var(--color-border)'}`,
-                borderRadius: 4,
-                background: filterOpen ? 'var(--color-primary)' : activeFilterCount > 0 ? 'var(--color-primary-light)' : 'var(--color-bg-white)',
-                color: filterOpen ? 'white' : activeFilterCount > 0 ? 'var(--color-primary)' : 'var(--color-text-sub)',
-                cursor: 'pointer', fontSize: 13, fontWeight: 700,
-                whiteSpace: 'nowrap', transition: 'all 0.15s',
+                border: `1.5px solid ${filterOpen || activeFilterCount > 0 ? 'var(--color-primary)' : 'var(--color-border)'}`,
+                borderRadius: 'var(--border-radius-md)',
+                background: 'var(--color-bg-white)',
+                color: filterOpen || activeFilterCount > 0 ? 'var(--color-text-main)' : 'var(--color-text-sub)',
+                cursor: 'pointer', fontSize: 'var(--font-size-sm)', fontWeight: 700,
+                whiteSpace: 'nowrap', transition: 'border-color 0.15s, color 0.15s',
               }}
             >
               <svg width="14" height="14" viewBox="0 0 14 14" fill="none" style={{ flexShrink: 0 }}>
@@ -530,13 +530,13 @@ export default function QuestionList() {
               {lang === 'ja' ? 'フィルター' : 'Filter'}
               {activeFilterCount > 0 && (
                 <span style={{
-                  background: filterOpen ? 'rgba(255,255,255,0.3)' : 'var(--color-primary)',
+                  background: 'var(--color-primary)',
                   color: 'white', borderRadius: 9999,
                   minWidth: 18, height: 18, display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
                   fontSize: 11, fontWeight: 700, padding: '0 4px',
                 }}>{activeFilterCount}</span>
               )}
-              <span style={{ fontSize: 9, display: 'inline-block', transform: filterOpen ? 'rotate(180deg)' : 'none', transition: 'transform 0.2s' }}>▼</span>
+              <span style={{ fontSize: 9, display: 'inline-block', color: 'var(--color-primary)', transform: filterOpen ? 'rotate(180deg)' : 'none', transition: 'transform 0.2s' }}>▼</span>
             </button>
 
             {filterOpen && (
