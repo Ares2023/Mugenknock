@@ -5,7 +5,6 @@ import { useAuth } from '../contexts/AuthContext';
 import { useLanguage } from '../contexts/LanguageContext';
 import Card from '../components/ui/Card';
 import Button from '../components/ui/Button';
-import Badge from '../components/ui/Badge';
 
 const TARGET_EXAM_KEY = 'targetExam';
 const STATS_GOOD_RATE = 70;
@@ -289,17 +288,6 @@ export default function Stats() {
             style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--color-text-light)', fontSize: 18, lineHeight: 1, padding: '0 4px', flexShrink: 0 }}>✕</button>
         </div>
       )}
-
-      {/* ── ヘッダー ── */}
-      <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--spacing-md)', marginBottom: 'var(--spacing-lg)', flexWrap: 'wrap' }}>
-        <h2 style={{ fontSize: 'var(--font-size-xxl)', fontWeight: 700, margin: 0, color: 'var(--color-text-main)' }}>{t('stats.title')}</h2>
-        <Badge variant="secondary">{targetExam}</Badge>
-        {!user && (
-          <span style={{ fontSize: 'var(--font-size-sm)', color: 'var(--color-text-light)', fontStyle: 'italic' }}>
-            {lang === 'ja' ? '（ログインすると詳細統計が表示されます）' : '(Log in to view detailed stats)'}
-          </span>
-        )}
-      </div>
 
       {/* ── タブ ── */}
       <div style={{ display: 'flex', borderBottom: '2px solid var(--color-border)', marginBottom: 'var(--spacing-xl)' }}>

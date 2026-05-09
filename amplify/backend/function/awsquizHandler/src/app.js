@@ -155,6 +155,8 @@ app.get('/questions/growth-stats', async (req, res) => {
     const monthlyCreatedCum = monthly.map(m => { cumC += createdByMonth[m]; return cumC; });
     const monthlyVerifiedCum = monthly.map(m => { cumV += verifiedByMonth[m]; return cumV; });
 
+    const totalVerified = items.filter(item => item.validityCheckedAt).length;
+
     res.json({
       daily: {
         dates: daily,
@@ -171,6 +173,7 @@ app.get('/questions/growth-stats', async (req, res) => {
         verifiedCumulative: monthlyVerifiedCum,
       },
       total: items.length,
+      totalVerified,
     });
   } catch (err) {
     console.error(err);

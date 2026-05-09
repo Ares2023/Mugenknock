@@ -40,6 +40,7 @@ usage: ct [command] [-d DIR] [-lnh]
 commands:
   (none)          show status
   run             run now and reschedule
+  night           run nightly tasks now (bypass time check; resumes if interrupted)
   set HH:MM       reschedule next run to HH:MM
   cancel          cancel scheduled run and all hooks
   tonight         show projected night-run times for tonight
@@ -478,9 +479,10 @@ EOF
 # ── 実行メインロジック ──────────────────────────────────────
 run_main() {
   local target_dir="${1:-}"
+  local force_night="${2:-0}"
   local _run_start=$(date +%s)
   DATE_STR=$(date '+%Y-%m-%d %H:%M:%S')
-  echo "$DATE_STR" > "$LAST_RUN_FILE"
+  [ "$force_night" -ne 1 ] && echo "$DATE_STR" > "$LAST_RUN_FILE"
   LOG_FILE="$LOG_DIR/run_$(date '+%Y%m%d').log"
 
   local is_rate_limited=0
@@ -626,8 +628,12 @@ PYEOF
       if [ $is_rate_limited -eq 0 ] && [ "${is_deadline:-0}" -eq 0 ]; then
         TODAY=$(date +%Y-%m-%d)
         HOUR=$(date +%-H)
-        if [ "$TODAY" != "$(cat "$SCRIPT_DIR/.last_run_date" 2>/dev/null)" ] && [ "$HOUR" -lt 7 ]; then
-          echo "🌙 夜間初回実行を開始します ($(date '+%H:%M'))"
+        if [ "$force_night" -eq 1 ] || { [ "$TODAY" != "$(cat "$SCRIPT_DIR/.last_run_date" 2>/dev/null)" ] && [ "$HOUR" -lt 7 ]; }; then
+          if [ "$force_night" -eq 1 ]; then
+            echo "🌙 夜間タスク手動実行 ($(date '+%H:%M'))$([ "$TODAY" = "$(cat "$SCRIPT_DIR/.last_run_date" 2>/dev/null)" ] && echo " ※本日完了済みのため再実行")"
+          else
+            echo "🌙 夜間初回実行を開始します ($(date '+%H:%M'))"
+          fi
 
           # 1. シェルスクリプト
           for s in "$SCRIPT_DIR/night-prompts/scripts"/*.sh; do
@@ -718,7 +724,16 @@ PYEOF
     [ $(( _tmp_ok   + _tmp_fail   )) -gt 0 ] && _detail+=" tmp=${_tmp_ok}/$(( _tmp_ok + _tmp_fail ))"
   fi
 
-  if [ "${is_deadline:-0}" -eq 1 ]; then
+  if [ "$force_night" -eq 1 ]; then
+    # ct night: スケジュールには一切手を加えない
+    if [ "${is_deadline:-0}" -eq 1 ]; then
+      log_history "NIGHT-DL" "${_es} | deadline:${DEADLINE_TIME} | ${_detail}" || true
+    elif [ $is_rate_limited -eq 1 ]; then
+      log_history "NIGHT-LMT" "${_es} | reset:${extracted_reset_time:-不明} | ${_detail}" || true
+    else
+      log_history "NIGHT-OK" "${_es} | ${_detail}" || true
+    fi
+  elif [ "${is_deadline:-0}" -eq 1 ]; then
     log_history "DEADLINE" "${_es} | deadline:${DEADLINE_TIME} | ${_detail}" || true
     schedule_next "cycle" "" "$_run_start"
   elif [ $is_rate_limited -eq 1 ]; then
@@ -832,6 +847,7 @@ while [[ $# -gt 0 ]]; do
       shift 3
       ;;
     cancel)  CMD="cancel";  shift ;;
+    night)   CMD="night";   shift ;;
     tonight) CMD="tonight"; shift ;;
     log)
       CMD="log"; shift
@@ -853,6 +869,7 @@ done
 case "$CMD" in
   status)    show_status ;;
   run)       run_main "$TARGET_DIR"; show_status ;;
+  night)     run_main "" 1; show_status ;;
   set)
     _set_dt=$(python3 - "$SET_TIME" << 'PYEOF'
 import sys

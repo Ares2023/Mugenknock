@@ -8,6 +8,7 @@ interface GrowthData {
   daily: { dates: string[]; created: number[]; verified: number[]; createdCumulative: number[]; verifiedCumulative: number[] };
   monthly: { months: string[]; created: number[]; verified: number[]; createdCumulative: number[]; verifiedCumulative: number[] };
   total: number;
+  totalVerified: number;
 }
 
 function DualBarChart({ labels, s1, s2, label1, label2, color1, color2 }: {
@@ -20,7 +21,9 @@ function DualBarChart({ labels, s1, s2, label1, label2, color1, color2 }: {
   color2: string;
 }) {
   const n = labels.length;
-  const maxVal = Math.max(...s1, ...s2, 1);
+  const safe1 = s1 ?? [];
+  const safe2 = s2 ?? [];
+  const maxVal = Math.max(...safe1, ...safe2, 1);
   const maxY = Math.ceil(maxVal / 5) * 5;
 
   const W = 560, H = 200;
@@ -67,19 +70,19 @@ function DualBarChart({ labels, s1, s2, label1, label2, color1, color2 }: {
       {/* Bars */}
       {labels.map((label, i) => (
         <g key={i}>
-          <rect x={bx1(i)} y={MT + by(s1[i])} width={barW}
-            height={Math.max(bh(s1[i]), s1[i] > 0 ? 2 : 0)}
+          <rect x={bx1(i)} y={MT + by(safe1[i])} width={barW}
+            height={Math.max(bh(safe1[i]), safe1[i] > 0 ? 2 : 0)}
             fill={color1} rx={2} />
-          {s1[i] > 0 && (
-            <text x={bx1(i) + barW / 2} y={MT + by(s1[i]) - 3}
-              textAnchor="middle" fontSize="8" fill={color1} fontWeight="600">{s1[i]}</text>
+          {safe1[i] > 0 && (
+            <text x={bx1(i) + barW / 2} y={MT + by(safe1[i]) - 3}
+              textAnchor="middle" fontSize="8" fill={color1} fontWeight="600">{safe1[i]}</text>
           )}
-          <rect x={bx2(i)} y={MT + by(s2[i])} width={barW}
-            height={Math.max(bh(s2[i]), s2[i] > 0 ? 2 : 0)}
+          <rect x={bx2(i)} y={MT + by(safe2[i])} width={barW}
+            height={Math.max(bh(safe2[i]), safe2[i] > 0 ? 2 : 0)}
             fill={color2} rx={2} />
-          {s2[i] > 0 && (
-            <text x={bx2(i) + barW / 2} y={MT + by(s2[i]) - 3}
-              textAnchor="middle" fontSize="8" fill={color2} fontWeight="600">{s2[i]}</text>
+          {safe2[i] > 0 && (
+            <text x={bx2(i) + barW / 2} y={MT + by(safe2[i]) - 3}
+              textAnchor="middle" fontSize="8" fill={color2} fontWeight="600">{safe2[i]}</text>
           )}
           <text x={lx(i)} y={H - MB + 14} textAnchor="middle" fontSize="9" fill="var(--color-text-sub)">{label}</text>
         </g>
@@ -97,10 +100,12 @@ function DualLineChart({ labels, s1, s2, label1, label2, color1, color2 }: {
   color1: string;
   color2: string;
 }) {
+  const safe1 = s1 ?? [];
+  const safe2 = s2 ?? [];
   const n = labels.length;
   if (n === 0) return null;
 
-  const maxVal = Math.max(...s1, ...s2, 1);
+  const maxVal = Math.max(...safe1, ...safe2, 1);
   const rawStep = maxVal / 4;
   const mag = Math.pow(10, Math.floor(Math.log10(rawStep)));
   const norm = rawStep / mag;
@@ -118,8 +123,8 @@ function DualLineChart({ labels, s1, s2, label1, label2, color1, color2 }: {
   const py = (v: number) => MT + chartH - (v / maxY) * chartH;
   const fmt = (v: number) => v >= 1000 ? `${+(v / 1000).toFixed(1)}k` : String(v);
 
-  const pts1 = s1.map((v, i) => `${px(i)},${py(v)}`).join(' ');
-  const pts2 = s2.map((v, i) => `${px(i)},${py(v)}`).join(' ');
+  const pts1 = safe1.map((v, i) => `${px(i)},${py(v)}`).join(' ');
+  const pts2 = safe2.map((v, i) => `${px(i)},${py(v)}`).join(' ');
 
   return (
     <svg viewBox={`0 0 ${W} ${H}`} width="100%" style={{ display: 'block' }}>
@@ -150,8 +155,8 @@ function DualLineChart({ labels, s1, s2, label1, label2, color1, color2 }: {
       {n > 1 && <polyline points={pts2} fill="none" stroke={color2} strokeWidth="2" strokeLinejoin="round" strokeLinecap="round" />}
 
       {/* Data points */}
-      {s1.map((v, i) => <circle key={i} cx={px(i)} cy={py(v)} r={3} fill={color1} />)}
-      {s2.map((v, i) => <circle key={i} cx={px(i)} cy={py(v)} r={3} fill={color2} />)}
+      {safe1.map((v, i) => <circle key={i} cx={px(i)} cy={py(v)} r={3} fill={color1} />)}
+      {safe2.map((v, i) => <circle key={i} cx={px(i)} cy={py(v)} r={3} fill={color2} />)}
 
       {/* X-axis labels */}
       {labels.map((label, i) => (
@@ -172,6 +177,49 @@ function SummaryCard({ title, value }: { title: string; value: number }) {
       <div style={{ fontSize: 'var(--font-size-xs)', color: 'var(--color-text-sub)', fontWeight: 600, marginBottom: 6 }}>{title}</div>
       <div style={{ fontSize: 28, fontWeight: 800, color: 'var(--color-text-main)', lineHeight: 1 }}>
         {value}<span style={{ fontSize: 'var(--font-size-sm)', fontWeight: 400, color: 'var(--color-text-sub)', marginLeft: 4 }}>件</span>
+      </div>
+    </div>
+  );
+}
+
+function CheckRatePanel({ total, totalVerified, lang }: {
+  total: number;
+  totalVerified: number;
+  lang: string;
+}) {
+  const pct = total > 0 ? Math.min(100, (totalVerified / total) * 100) : 0;
+  return (
+    <div style={{
+      background: 'var(--color-bg-white)',
+      border: '1px solid var(--color-border)',
+      borderRadius: 'var(--border-radius-lg)',
+      padding: '14px 16px',
+      marginTop: 16,
+      display: 'flex',
+      alignItems: 'center',
+      gap: 16,
+    }}>
+      <div style={{ minWidth: 0 }}>
+        <div style={{ fontSize: 'var(--font-size-xs)', fontWeight: 600, color: 'var(--color-text-sub)', marginBottom: 3 }}>
+          {lang === 'ja' ? 'チェック済割合（全期間）' : 'Verification Rate (all time)'}
+        </div>
+        <div style={{ display: 'flex', alignItems: 'baseline', gap: 8, flexWrap: 'wrap' }}>
+          <span style={{ fontSize: '1.75rem', fontWeight: 800, color: 'var(--color-success)', lineHeight: 1 }}>
+            {pct.toFixed(1)}%
+          </span>
+          <span style={{ fontSize: 'var(--font-size-sm)', color: 'var(--color-text-sub)' }}>
+            {totalVerified.toLocaleString()} / {total.toLocaleString()} {lang === 'ja' ? '問' : 'questions'}
+          </span>
+        </div>
+      </div>
+      <div style={{ flex: 1, height: 8, background: 'var(--color-border)', borderRadius: 4, minWidth: 60 }}>
+        <div style={{
+          height: '100%',
+          width: `${pct}%`,
+          background: 'var(--color-success)',
+          borderRadius: 4,
+          transition: 'width 0.4s ease',
+        }} />
       </div>
     </div>
   );
@@ -257,8 +305,8 @@ export default function Growth() {
               border: '1.5px solid',
               borderColor: view === v ? 'var(--color-primary)' : 'var(--color-border)',
               borderRadius: 'var(--border-radius-full)',
-              background: view === v ? 'var(--color-primary)' : 'transparent',
-              color: view === v ? 'white' : 'var(--color-text-sub)',
+              background: view === v ? 'var(--color-primary-light)' : 'transparent',
+              color: view === v ? 'var(--color-primary)' : 'var(--color-text-sub)',
               cursor: 'pointer',
               transition: 'all 0.15s',
             }}
@@ -294,6 +342,7 @@ export default function Growth() {
               color2="var(--color-success)"
             />
           </div>
+          <CheckRatePanel total={data.total} totalVerified={data.totalVerified ?? 0} lang={lang} />
           <div style={{ ...chartBoxStyle, marginTop: 16 }}>
             <div style={{ fontSize: 'var(--font-size-sm)', fontWeight: 700, color: 'var(--color-text-sub)', marginBottom: 8 }}>
               {lang === 'ja' ? '合計問題量・チェック済数の推移（日次）' : 'Cumulative total — daily'}
@@ -335,6 +384,7 @@ export default function Growth() {
               color2="var(--color-success)"
             />
           </div>
+          <CheckRatePanel total={data.total} totalVerified={data.totalVerified ?? 0} lang={lang} />
           <div style={{ ...chartBoxStyle, marginTop: 16 }}>
             <div style={{ fontSize: 'var(--font-size-sm)', fontWeight: 700, color: 'var(--color-text-sub)', marginBottom: 8 }}>
               {lang === 'ja' ? '合計問題量・チェック済数の推移（月次）' : 'Cumulative total — monthly'}

@@ -2,7 +2,7 @@ export const API_ENDPOINT = 'https://a0q3656qw4.execute-api.ap-northeast-1.amazo
 
 export const ADMIN_EMAIL = 'yuzuki2002110@gmail.com';
 
-export const EXAM_TYPES = ['CLF', 'SAA', 'SAP', 'DOP'] as const;
+export const EXAM_TYPES = ['CLF', 'SAA', 'SAP', 'DOP', 'AIF', 'MLA', 'GAI'] as const;
 export type ExamType = typeof EXAM_TYPES[number];
 
 // 合格スコア（スケールスコア 100〜1000 での公式合格ライン）
@@ -11,6 +11,9 @@ export const PASS_SCORES: Record<string, number> = {
   SAA: 720,
   SAP: 750,
   DOP: 750,
+  AIF: 700,
+  MLA: 720,
+  GAI: 750,
 };
 
 // 演習モードでの合否判定に使う正答率の目安（スケールスコアの近似値）
@@ -19,6 +22,9 @@ export const PASS_RATE: Record<string, number> = {
   SAA: 72,
   SAP: 75,
   DOP: 75,
+  AIF: 70,
+  MLA: 72,
+  GAI: 75,
 };
 
 // 試験の出題ドメイン（出題範囲分類）
@@ -27,6 +33,9 @@ export const EXAM_DOMAINS: Record<string, string[]> = {
   SAA: ['セキュアなアーキテクチャの設計', '弾力性に優れたアーキテクチャの設計', '高パフォーマンスなアーキテクチャの設計', 'コスト最適化されたアーキテクチャの設計'],
   SAP: ['組織の複雑さに対応したソリューションの設計', '新しいソリューションの設計', '既存ソリューションの継続的改善', 'ワークロードの移行とモダナイゼーション'],
   DOP: ['SDLC の自動化', '設定管理と IaC', '高可用性、耐障害性、およびディザスタリカバリ', 'モニタリングとログ', 'セキュリティとコンプライアンスの自動化'],
+  AIF: ['AIとMLの基礎', '生成AIの基礎', '基盤モデルのアプリケーション', '責任あるAIのガイドライン', 'AIソリューションのセキュリティ、コンプライアンス、ガバナンス'],
+  MLA: ['機械学習のためのデータ準備', 'MLモデルの開発', 'MLワークフローのデプロイとオーケストレーション', 'MLソリューションの監視、メンテナンス、セキュリティ'],
+  GAI: ['生成AIソリューションの設計と評価', '基盤モデルのカスタマイズとファインチューニング', '生成AIアプリケーションの実装とデプロイ', 'エージェントとオーケストレーションのアーキテクチャ', 'セキュリティ、ガバナンス、責任あるAI'],
 };
 
 // ドメイン名の英語対応（日本語キー → 英語表示）
@@ -48,6 +57,20 @@ export const DOMAIN_NAME_EN: Record<string, string> = {
   '高可用性、耐障害性、およびディザスタリカバリ': 'High Availability, Fault Tolerance, and DR',
   'モニタリングとログ': 'Monitoring and Logging',
   'セキュリティとコンプライアンスの自動化': 'Security and Compliance Automation',
+  'AIとMLの基礎': 'Fundamentals of AI and ML',
+  '生成AIの基礎': 'Fundamentals of Generative AI',
+  '基盤モデルのアプリケーション': 'Applications of Foundation Models',
+  '責任あるAIのガイドライン': 'Guidelines for Responsible AI',
+  'AIソリューションのセキュリティ、コンプライアンス、ガバナンス': 'Security, Compliance, and Governance for AI',
+  '機械学習のためのデータ準備': 'Data Preparation for ML',
+  'MLモデルの開発': 'ML Model Development',
+  'MLワークフローのデプロイとオーケストレーション': 'Deployment and Orchestration of ML Workflows',
+  'MLソリューションの監視、メンテナンス、セキュリティ': 'ML Solution Monitoring, Maintenance, and Security',
+  '生成AIソリューションの設計と評価': 'Design and Evaluation of Gen AI Solutions',
+  '基盤モデルのカスタマイズとファインチューニング': 'Foundation Model Customization and Fine-tuning',
+  '生成AIアプリケーションの実装とデプロイ': 'Build and Deploy Gen AI Applications',
+  'エージェントとオーケストレーションのアーキテクチャ': 'Agent and Orchestration Architecture',
+  'セキュリティ、ガバナンス、責任あるAI': 'Security, Governance, and Responsible AI',
 };
 
 // 試験レベル表示
@@ -56,6 +79,9 @@ export const EXAM_LEVEL: Record<string, string> = {
   SAA: 'Associate',
   SAP: 'Professional',
   DOP: 'Professional',
+  AIF: 'Foundational',
+  MLA: 'Associate',
+  GAI: 'Professional',
 };
 
 // 試験の説明文
@@ -64,12 +90,18 @@ export const EXAM_DESC_JA: Record<string, string> = {
   SAA: '最も人気の高いアソシエイトレベル認定',
   SAP: '高度な設計スキルを証明するプロ認定',
   DOP: '開発・運用の高度なスキルを証明するプロ認定',
+  AIF: 'AI/MLの概念とAWSサービスを幅広くカバーする入門認定',
+  MLA: 'MLモデルの構築・デプロイ・運用を問うアソシエイト認定',
+  GAI: '生成AIソリューションの設計・実装を問うプロ認定',
 };
 export const EXAM_DESC_EN: Record<string, string> = {
   CLF: 'Foundational certification covering cloud basics',
   SAA: 'Most popular associate-level AWS certification',
   SAP: 'Professional certification for advanced architects',
   DOP: 'Professional certification for DevOps engineers',
+  AIF: 'Foundational certification covering AI/ML concepts and AWS services',
+  MLA: 'Associate certification for building and operating ML solutions',
+  GAI: 'Professional certification for generative AI solution design and implementation',
 };
 
 // ドメイン正答率の色分けしきい値（0–1スケール）
@@ -83,8 +115,11 @@ export const EXAM_CONFIGS: Record<string, {
   totalQuestions: number;
   timeLimitMin: number;
 }> = {
-  CLF: { examCode: 'CLF-C02', fullName: 'AWS Certified Cloud Practitioner',             totalQuestions: 65, timeLimitMin: 90  },
-  SAA: { examCode: 'SAA-C03', fullName: 'AWS Certified Solutions Architect – Associate', totalQuestions: 65, timeLimitMin: 130 },
-  SAP: { examCode: 'SAP-C02', fullName: 'AWS Certified Solutions Architect – Professional', totalQuestions: 75, timeLimitMin: 180 },
-  DOP: { examCode: 'DOP-C02', fullName: 'AWS Certified DevOps Engineer – Professional',  totalQuestions: 75, timeLimitMin: 180 },
+  CLF: { examCode: 'CLF-C02', fullName: 'AWS Certified Cloud Practitioner',                       totalQuestions: 65, timeLimitMin: 90  },
+  SAA: { examCode: 'SAA-C03', fullName: 'AWS Certified Solutions Architect – Associate',           totalQuestions: 65, timeLimitMin: 130 },
+  SAP: { examCode: 'SAP-C02', fullName: 'AWS Certified Solutions Architect – Professional',        totalQuestions: 75, timeLimitMin: 180 },
+  DOP: { examCode: 'DOP-C02', fullName: 'AWS Certified DevOps Engineer – Professional',            totalQuestions: 75, timeLimitMin: 180 },
+  AIF: { examCode: 'AIF-C01', fullName: 'AWS Certified AI Practitioner',                          totalQuestions: 85, timeLimitMin: 120 },
+  MLA: { examCode: 'MLA-C01', fullName: 'AWS Certified Machine Learning Engineer – Associate',    totalQuestions: 65, timeLimitMin: 130 },
+  GAI: { examCode: 'GAI-C01', fullName: 'AWS Certified Generative AI Developer – Professional',   totalQuestions: 75, timeLimitMin: 170 },
 };
