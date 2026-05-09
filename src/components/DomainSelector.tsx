@@ -63,7 +63,7 @@ export default function DomainSelector({ domains, selected, onChange, lang, labe
   };
 
   const handleAllChange = () => {
-    onChange(allSelected ? [domains[0]] : [...domains]);
+    onChange(allSelected ? [] : [...domains]);
   };
 
   return (
