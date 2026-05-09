@@ -642,22 +642,25 @@ export default function Layout({ children }: { children: React.ReactNode }) {
             </button>
           </div>
 
-          {/* デスクトップのみ: ユーザー情報 */}
-          {!isMobile && user && (
-            <div style={{ display: 'flex', alignItems: 'center', gap: 6, borderLeft: '1px solid #3a4a5a', paddingLeft: 'var(--spacing-md)' }}>
-              <span style={{ color: 'var(--color-text-light)', display: 'flex', alignItems: 'center' }}><IconUser /></span>
-              <span style={{ color: '#d5dbdb', fontSize: 'var(--font-size-sm)', fontWeight: 700 }}>{user.email?.split('@')[0]}</span>
-            </div>
-          )}
-
-          {/* デスクトップ: ログアウト/ログインボタン */}
+          {/* デスクトップ: アカウントボタン */}
           {!isMobile && (
             user ? (
-              <button onClick={handleSignOut} style={{
-                background: 'none', border: 'none',
-                color: '#d5dbdb', fontSize: 'var(--font-size-sm)', padding: '4px 0', cursor: 'pointer', fontWeight: 700,
-              }}>
-                {t('nav.logout')}
+              <button
+                onClick={() => navigate('/account')}
+                style={{
+                  width: 36, height: 36, borderRadius: '50%',
+                  background: 'rgba(255,255,255,0.15)',
+                  border: '1.5px solid rgba(255,255,255,0.35)',
+                  display: 'flex', alignItems: 'center', justifyContent: 'center',
+                  cursor: 'pointer', color: 'white',
+                  transition: 'background 0.2s',
+                  flexShrink: 0,
+                }}
+                onMouseEnter={e => e.currentTarget.style.background = 'rgba(255,255,255,0.25)'}
+                onMouseLeave={e => e.currentTarget.style.background = 'rgba(255,255,255,0.15)'}
+                title={user.email}
+              >
+                <IconUser />
               </button>
             ) : (
               <button onClick={() => navigate('/login')} style={{
