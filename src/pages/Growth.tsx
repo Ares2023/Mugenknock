@@ -293,22 +293,23 @@ export default function Growth() {
       </div>
 
       {/* Tab switcher */}
-      <div style={{ display: 'flex', gap: 8, marginBottom: 20 }}>
+      <div style={{ display: 'flex', borderBottom: '2px solid var(--color-border)', marginBottom: 20 }}>
         {(['daily', 'monthly'] as ViewMode[]).map(v => (
           <button
             key={v}
             onClick={() => setView(v)}
             style={{
-              padding: '6px 18px',
-              fontSize: 'var(--font-size-sm)',
-              fontWeight: 700,
-              border: '1.5px solid',
-              borderColor: view === v ? 'var(--color-primary)' : 'var(--color-border)',
-              borderRadius: 'var(--border-radius-full)',
-              background: view === v ? 'var(--color-primary-light)' : 'transparent',
-              color: view === v ? 'var(--color-primary)' : 'var(--color-text-sub)',
+              background: 'none',
+              border: 'none',
               cursor: 'pointer',
+              padding: '10px 20px',
+              fontSize: 'var(--font-size-base)',
+              fontWeight: view === v ? 700 : 400,
+              color: view === v ? 'var(--color-primary)' : 'var(--color-text-sub)',
+              borderBottom: view === v ? '2px solid var(--color-primary)' : '2px solid transparent',
+              marginBottom: -2,
               transition: 'all 0.15s',
+              whiteSpace: 'nowrap',
             }}
           >
             {v === 'daily' ? (lang === 'ja' ? '日次（直近7日）' : 'Daily (7 days)') : (lang === 'ja' ? '月次（直近6ヶ月）' : 'Monthly (6 months)')}
