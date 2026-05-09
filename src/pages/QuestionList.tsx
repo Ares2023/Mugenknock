@@ -411,10 +411,28 @@ export default function QuestionList() {
     setSelected(prev => { const next = new Set(prev); next.has(id) ? next.delete(id) : next.add(id); return next; });
   };
 
-  const selectAll = () => {
-    selected.size === displayedQuestions.length && displayedQuestions.length > 0
-      ? setSelected(new Set())
-      : setSelected(new Set(displayedQuestions.map(q => q.questionId)));
+  const selectAll = async () => {
+    if (selected.size === totalCount && totalCount > 0) {
+      setSelected(new Set());
+      return;
+    }
+    if (isClientMode) {
+      setSelected(new Set(clientAllItems.map(q => q.questionId)));
+      return;
+    }
+    // サーバーモード: 全件取得してから全選択
+    setLoading(true);
+    try {
+      const params = new URLSearchParams();
+      if (examTypes.length === 1) params.set('examType', examTypes[0]);
+      if (keywordChips.length > 0) params.set('keyword', keywordChips.join(','));
+      const data = await fetch(`${API_ENDPOINT}/questions?${params}`).then(r => r.json());
+      const items: Question[] = data.items ?? [];
+      setClientAllItems(items);
+      setIsClientMode(true);
+      setSelected(new Set(items.map(q => q.questionId)));
+    } catch (err) { console.error(err); }
+    finally { setLoading(false); }
   };
 
   const copyQuestion = (q: Question) => {
@@ -433,7 +451,8 @@ export default function QuestionList() {
   };
 
   const exportCSV = async () => {
-    const targets = displayedQuestions.filter(q => selected.has(q.questionId));
+    const allAvailable = isClientMode ? clientAllItems : questions;
+    const targets = allAvailable.filter(q => selected.has(q.questionId));
     const needFetch = targets.filter(q => !q.correctAnswers);
     const fetched = await Promise.all(needFetch.map(q => fetch(`${API_ENDPOINT}/questions/${q.questionId}`).then(r => r.json())));
     const map = Object.fromEntries(fetched.map(q => [q.questionId, q]));
@@ -653,7 +672,11 @@ export default function QuestionList() {
 
       <div style={{ marginBottom: 'var(--spacing-lg)', display: 'flex', gap: 'var(--spacing-md)', alignItems: 'center' }}>
         <Button variant="outline" size="sm" onClick={selectAll}>
-          {selected.size === displayedQuestions.length && displayedQuestions.length > 0 ? t('questions.deselectAll') : t('questions.selectAll')}
+          {selected.size === totalCount && totalCount > 0
+            ? t('questions.deselectAll')
+            : lang === 'ja'
+              ? `すべて選択（${totalCount.toLocaleString()}件）`
+              : `Select all (${totalCount.toLocaleString()})`}
         </Button>
         <Button variant="outline" size="sm" onClick={exportCSV} disabled={selected.size === 0}>
           {t('questions.csvExport', { n: selected.size })}
