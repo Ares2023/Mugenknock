@@ -20,7 +20,7 @@ type Question = {
   validityCheckedAt?: string;
 };
 
-const PAGE_SIZE = 10;
+const PAGE_SIZE_OPTIONS = [10, 25, 50] as const;
 
 const formatDate = (iso: string) => {
   const d = new Date(iso);
@@ -119,6 +119,9 @@ export default function QuestionList() {
   const [totalCount, setTotalCount] = useState(0);
   const [isClientMode, setIsClientMode] = useState(false);
   const [page, setPage] = useState(1);
+  const [pageSize, setPageSize] = useState<number>(() => Number(localStorage.getItem('questionListPageSize') || 10));
+  const pageSizeRef = useRef(pageSize);
+  pageSizeRef.current = pageSize;
 
   const [selected, setSelected] = useState<Set<string>>(new Set());
   const [copiedId, setCopiedId] = useState<string | null>(null);
@@ -154,9 +157,9 @@ export default function QuestionList() {
 
   // 表示アイテム（クライアントモード時はスライス）
   const displayedQuestions = isClientMode
-    ? clientAllItems.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE)
+    ? clientAllItems.slice((page - 1) * pageSize, page * pageSize)
     : questions;
-  const totalPages = Math.max(1, Math.ceil(totalCount / PAGE_SIZE));
+  const totalPages = Math.max(1, Math.ceil(totalCount / pageSize));
 
   // ── ユーザーIDセットのロード ──────────────────────────────
   const ensureBookmarkIds = useCallback(async () => {
@@ -247,9 +250,10 @@ export default function QuestionList() {
 
         if (opts.examTypes.length <= 1) {
           // 単一 or 全件 → サーバー側ページネーション
+          const ps = pageSizeRef.current;
           const params = new URLSearchParams({
-            limit: String(PAGE_SIZE),
-            offset: String((targetPage - 1) * PAGE_SIZE),
+            limit: String(ps),
+            offset: String((targetPage - 1) * ps),
           });
           if (opts.examTypes.length === 1) params.set('examType', opts.examTypes[0]);
           if (opts.keywordChips.length > 0) params.set('keyword', opts.keywordChips.join(','));
@@ -440,6 +444,13 @@ export default function QuestionList() {
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a'); a.href = url; a.download = 'questions.csv'; a.click();
     URL.revokeObjectURL(url);
+  };
+
+  const changePageSize = (ps: number) => {
+    pageSizeRef.current = ps;
+    setPageSize(ps);
+    localStorage.setItem('questionListPageSize', String(ps));
+    doFetch(1, { examTypes, keywordChips, bookmarkOnly, filterUnanswered, filterIncorrect });
   };
 
   const clearAll = () => {
@@ -647,9 +658,24 @@ export default function QuestionList() {
         <Button variant="outline" size="sm" onClick={exportCSV} disabled={selected.size === 0}>
           {t('questions.csvExport', { n: selected.size })}
         </Button>
-        <span style={{ fontSize: 'var(--font-size-sm)', color: 'var(--color-text-sub)', marginLeft: 'auto' }}>
-          {loading ? '…' : t('questions.count', { n: totalCount })}
-        </span>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginLeft: 'auto' }}>
+          <span style={{ fontSize: 'var(--font-size-xs)', color: 'var(--color-text-light)' }}>
+            {lang === 'ja' ? '表示件数' : 'Per page'}
+          </span>
+          {PAGE_SIZE_OPTIONS.map(n => (
+            <button key={n} onClick={() => changePageSize(n)} style={{
+              padding: '3px 8px', fontSize: 'var(--font-size-xs)', fontWeight: 600, cursor: 'pointer',
+              borderRadius: 'var(--border-radius-full)',
+              border: pageSize === n ? '1.5px solid var(--color-primary)' : '1px solid var(--color-border)',
+              background: pageSize === n ? 'var(--color-primary-light)' : 'transparent',
+              color: pageSize === n ? 'var(--color-primary)' : 'var(--color-text-sub)',
+              transition: 'all 0.15s',
+            }}>{n}</button>
+          ))}
+          <span style={{ fontSize: 'var(--font-size-sm)', color: 'var(--color-text-sub)', marginLeft: 4 }}>
+            {loading ? '…' : t('questions.count', { n: totalCount })}
+          </span>
+        </div>
       </div>
 
       {/* ページネーション（上） */}
