@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { useLanguage } from '../contexts/LanguageContext';
@@ -18,6 +18,18 @@ export default function Home() {
   const name = user?.email?.split('@')[0] ?? '';
   const [targetExam, setTargetExam] = useState<string | null>(() => localStorage.getItem(TARGET_EXAM_KEY));
   const [showOnboarding, setShowOnboarding] = useState(() => !localStorage.getItem('sherpaOnboarded'));
+  const [dropdownOpen, setDropdownOpen] = useState(false);
+  const dropdownRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const handler = (e: MouseEvent) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(e.target as Node)) {
+        setDropdownOpen(false);
+      }
+    };
+    document.addEventListener('mousedown', handler);
+    return () => document.removeEventListener('mousedown', handler);
+  }, []);
 
   const dismissOnboarding = () => {
     localStorage.setItem('sherpaOnboarded', '1');
@@ -25,13 +37,9 @@ export default function Home() {
   };
 
   const handleSelectExam = (et: string) => {
-    if (targetExam === et) {
-      localStorage.removeItem(TARGET_EXAM_KEY);
-      setTargetExam(null);
-    } else {
-      localStorage.setItem(TARGET_EXAM_KEY, et);
-      setTargetExam(et);
-    }
+    localStorage.setItem(TARGET_EXAM_KEY, et);
+    setTargetExam(et);
+    setDropdownOpen(false);
   };
 
   const cfg = targetExam ? EXAM_CONFIGS[targetExam] : null;
@@ -82,31 +90,72 @@ export default function Home() {
           <span style={{ fontSize: 'var(--font-size-base)', fontWeight: 700, color: 'var(--color-text-main)' }}>{t('home.targetExam')}</span>
         </div>
 
-        {/* 試験選択ボタン（レベル別行） */}
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 8, marginBottom: 'var(--spacing-md)' }}>
-          {(['Foundational', 'Associate', 'Professional'] as const).map(level => (
-            <div key={level} style={{ display: 'flex', alignItems: 'center', gap: 'var(--spacing-sm)' }}>
-              <div style={{ fontSize: 'var(--font-size-xs)', fontWeight: 700, color: 'var(--color-text-light)', textTransform: 'uppercase', letterSpacing: '0.5px', width: 90, flexShrink: 0 }}>
-                {level}
-              </div>
-              <div style={{ display: 'flex', gap: 6 }}>
-                {EXAM_TYPES.filter(et => EXAM_LEVEL[et] === level).map(et => {
-                  const selected = targetExam === et;
-                  return (
-                    <Button
-                      key={et}
-                      variant="outline"
-                      size="sm"
-                      onClick={() => handleSelectExam(et)}
-                      style={{ width: 72, ...(selected ? { background: 'var(--color-primary-light)', borderWidth: 2 } : {}) }}
-                    >
-                      {et}
-                    </Button>
-                  );
-                })}
-              </div>
+        {/* 試験選択ドロップダウン */}
+        <div ref={dropdownRef} style={{ position: 'relative', marginBottom: 'var(--spacing-md)', maxWidth: 320 }}>
+          <button
+            onClick={() => setDropdownOpen(v => !v)}
+            style={{
+              width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8,
+              padding: '8px 12px', border: `1.5px solid ${dropdownOpen ? 'var(--color-primary)' : 'var(--color-border)'}`,
+              borderRadius: 'var(--border-radius-md)', background: 'var(--color-bg-white)',
+              cursor: 'pointer', fontSize: 'var(--font-size-base)', fontWeight: 600,
+              color: targetExam ? 'var(--color-text-main)' : 'var(--color-text-light)',
+              transition: 'border-color 0.15s',
+            }}
+          >
+            <span>
+              {targetExam
+                ? `${EXAM_LEVEL[targetExam]} / ${targetExam}`
+                : (lang === 'ja' ? '資格を選択...' : 'Select certification...')}
+            </span>
+            <span style={{ fontSize: 10, color: 'var(--color-text-light)', transform: dropdownOpen ? 'rotate(180deg)' : 'none', transition: 'transform 0.2s', flexShrink: 0 }}>▼</span>
+          </button>
+
+          {dropdownOpen && (
+            <div style={{
+              position: 'absolute', top: 'calc(100% + 4px)', left: 0, right: 0,
+              background: 'var(--color-bg-white)', border: '1px solid var(--color-border)',
+              borderRadius: 'var(--border-radius-md)', boxShadow: '0 4px 16px rgba(0,0,0,0.12)',
+              zIndex: 300, overflow: 'hidden',
+            }}>
+              {(['Foundational', 'Associate', 'Professional'] as const).map((level, li) => (
+                <div key={level}>
+                  {li > 0 && <div style={{ height: 1, background: 'var(--color-border)', margin: '4px 0' }} />}
+                  <div style={{
+                    padding: '6px 12px 2px',
+                    fontSize: 'var(--font-size-xs)', fontWeight: 700,
+                    color: 'var(--color-text-light)', textTransform: 'uppercase', letterSpacing: '0.5px',
+                  }}>
+                    {level}
+                  </div>
+                  {EXAM_TYPES.filter(et => EXAM_LEVEL[et] === level).map(et => {
+                    const selected = targetExam === et;
+                    return (
+                      <button
+                        key={et}
+                        onClick={() => handleSelectExam(et)}
+                        style={{
+                          width: '100%', display: 'flex', alignItems: 'center', gap: 8,
+                          padding: '7px 12px', border: 'none', cursor: 'pointer', textAlign: 'left',
+                          background: selected ? 'var(--color-primary-light)' : 'transparent',
+                          color: selected ? 'var(--color-primary)' : 'var(--color-text-main)',
+                          fontSize: 'var(--font-size-sm)', transition: 'background 0.1s',
+                        }}
+                        onMouseEnter={e => { if (!selected) e.currentTarget.style.background = 'var(--color-bg-main)'; }}
+                        onMouseLeave={e => { if (!selected) e.currentTarget.style.background = 'transparent'; }}
+                      >
+                        <span style={{ fontWeight: 700, minWidth: 36, flexShrink: 0 }}>{et}</span>
+                        <span style={{ color: selected ? 'var(--color-primary)' : 'var(--color-text-sub)', fontSize: 'var(--font-size-xs)' }}>
+                          — {EXAM_CONFIGS[et].fullName}
+                        </span>
+                        {selected && <span style={{ marginLeft: 'auto', fontSize: 12, flexShrink: 0 }}>✓</span>}
+                      </button>
+                    );
+                  })}
+                </div>
+              ))}
             </div>
-          ))}
+          )}
         </div>
 
         {/* 資格情報エリア */}
