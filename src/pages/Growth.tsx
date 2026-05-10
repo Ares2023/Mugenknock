@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { API_ENDPOINT } from '../constants';
 import { useLanguage } from '../contexts/LanguageContext';
 
+type MainTab = 'generation' | 'check';
 type ViewMode = 'daily' | 'monthly';
 
 interface GrowthData {
@@ -11,21 +12,23 @@ interface GrowthData {
   totalVerified: number;
 }
 
+// s2/label2/color2 は optional（省略時は単系列表示）
 function DualBarChart({ labels, s1, s2, label1, label2, color1, color2, breakdown }: {
   labels: string[];
   s1: number[];
-  s2: number[];
+  s2?: number[];
   label1: string;
-  label2: string;
+  label2?: string;
   color1: string;
-  color2: string;
+  color2?: string;
   breakdown?: Array<Record<string, number>>;
 }) {
-  const [tooltip, setTooltip] = useState<{ x: number; y: number; label: string; v1: number; v2: number; examRows: [string, number][] } | null>(null);
+  const [tooltip, setTooltip] = useState<{ x: number; y: number; label: string; v1: number; v2?: number; examRows: [string, number][] } | null>(null);
   const n = labels.length;
   const safe1 = s1 ?? [];
   const safe2 = s2 ?? [];
-  const maxVal = Math.max(...safe1, ...safe2, 1);
+  const dual = !!s2 && !!label2 && !!color2;
+  const maxVal = Math.max(...safe1, ...(dual ? safe2 : []), 1);
   const maxY = Math.ceil(maxVal / 5) * 5;
 
   const W = 560, H = 200;
@@ -34,9 +37,9 @@ function DualBarChart({ labels, s1, s2, label1, label2, color1, color2, breakdow
   const chartH = H - MT - MB;
 
   const groupW = chartW / n;
-  const barW = Math.min(groupW * 0.165, 8);
+  const barW = dual ? Math.min(groupW * 0.165, 8) : Math.min(groupW * 0.4, 12);
   const barGap = 3;
-  const groupOffset = (groupW - 2 * barW - barGap) / 2;
+  const groupOffset = dual ? (groupW - 2 * barW - barGap) / 2 : (groupW - barW) / 2;
 
   const yTickCount = 4;
   const yStep = maxY / yTickCount;
@@ -52,8 +55,12 @@ function DualBarChart({ labels, s1, s2, label1, label2, color1, color2, breakdow
       {/* Legend */}
       <rect x={ML} y={4} width={9} height={9} fill={color1} rx={2} />
       <text x={ML + 12} y={12} fontSize="9" fill="var(--color-text-sub)">{label1}</text>
-      <rect x={ML + 55} y={4} width={9} height={9} fill={color2} rx={2} />
-      <text x={ML + 68} y={12} fontSize="9" fill="var(--color-text-sub)">{label2}</text>
+      {dual && color2 && label2 && (
+        <>
+          <rect x={ML + 55} y={4} width={9} height={9} fill={color2} rx={2} />
+          <text x={ML + 68} y={12} fontSize="9" fill="var(--color-text-sub)">{label2}</text>
+        </>
+      )}
 
       {/* Y-axis grid */}
       {Array.from({ length: yTickCount + 1 }, (_, i) => {
@@ -76,7 +83,8 @@ function DualBarChart({ labels, s1, s2, label1, label2, color1, color2, breakdow
             const examRows: [string, number][] = breakdown?.[i]
               ? Object.entries(breakdown[i]).sort((a, b) => b[1] - a[1]).filter(([, v]) => v > 0)
               : [];
-            setTooltip({ x: lx(i), y: MT + Math.min(by(safe1[i]), by(safe2[i])), label, v1: safe1[i], v2: safe2[i], examRows });
+            const minY = dual ? Math.min(by(safe1[i]), by(safe2[i])) : by(safe1[i]);
+            setTooltip({ x: lx(i), y: MT + minY, label, v1: safe1[i], v2: dual ? safe2[i] : undefined, examRows });
           }}
           onMouseLeave={() => setTooltip(null)}
           style={{ cursor: 'default' }}
@@ -89,23 +97,29 @@ function DualBarChart({ labels, s1, s2, label1, label2, color1, color2, breakdow
             <text x={bx1(i) + barW / 2} y={MT + by(safe1[i]) - 3}
               textAnchor="middle" fontSize="8" fill={color1} fontWeight="600">{safe1[i]}</text>
           )}
-          <rect x={bx2(i)} y={MT + by(safe2[i])} width={barW}
-            height={Math.max(bh(safe2[i]), safe2[i] > 0 ? 2 : 0)}
-            fill={color2} rx={2} />
-          {safe2[i] > 0 && (
-            <text x={bx2(i) + barW / 2} y={MT + by(safe2[i]) - 3}
-              textAnchor="middle" fontSize="8" fill={color2} fontWeight="600">{safe2[i]}</text>
+          {dual && color2 && (
+            <>
+              <rect x={bx2(i)} y={MT + by(safe2[i])} width={barW}
+                height={Math.max(bh(safe2[i]), safe2[i] > 0 ? 2 : 0)}
+                fill={color2} rx={2} />
+              {safe2[i] > 0 && (
+                <text x={bx2(i) + barW / 2} y={MT + by(safe2[i]) - 3}
+                  textAnchor="middle" fontSize="8" fill={color2} fontWeight="600">{safe2[i]}</text>
+              )}
+            </>
           )}
           <text x={lx(i)} y={H - MB + 14} textAnchor="middle" fontSize="9" fill="var(--color-text-sub)">{label}</text>
         </g>
       ))}
+
+      {/* Tooltip */}
       {tooltip && (() => {
         const { x, y, label, v1, v2, examRows } = tooltip;
-        const headerLines = [label, `${label1}: ${v1}`, `${label2}: ${v2}`];
+        const baseLen = 1 + 1 + (v2 !== undefined ? 1 : 0);
         const allLines: { text: string; bold: boolean; indent: boolean }[] = [
           { text: label, bold: true, indent: false },
           { text: `${label1}: ${v1}`, bold: false, indent: false },
-          { text: `${label2}: ${v2}`, bold: false, indent: false },
+          ...(v2 !== undefined && label2 ? [{ text: `${label2}: ${v2}`, bold: false, indent: false }] : []),
           ...examRows.map(([exam, cnt]) => ({ text: `${exam}: ${cnt}`, bold: false, indent: true })),
         ];
         const lineH = 13, pad = 7;
@@ -120,7 +134,7 @@ function DualBarChart({ labels, s1, s2, label1, label2, color1, color2, breakdow
               style={{ fill: 'var(--color-bg-white)', stroke: 'var(--color-border)', strokeWidth: 1, filter: 'drop-shadow(0 2px 4px rgba(0,0,0,0.12))' }} />
             {allLines.map((item, li) => {
               lineY += lineH;
-              const isFirstExam = li === headerLines.length && examRows.length > 0;
+              const isFirstExam = li === baseLen && examRows.length > 0;
               return (
                 <text key={li} x={boxX + pad + (item.indent ? 6 : 0)} y={lineY - 2 + (isFirstExam ? 4 : 0)}
                   fontSize={9} fontWeight={item.bold ? '700' : '400'}
@@ -136,22 +150,24 @@ function DualBarChart({ labels, s1, s2, label1, label2, color1, color2, breakdow
   );
 }
 
+// s2/label2/color2 は optional（省略時は単系列表示）
 function DualLineChart({ labels, s1, s2, label1, label2, color1, color2 }: {
   labels: string[];
   s1: number[];
-  s2: number[];
+  s2?: number[];
   label1: string;
-  label2: string;
+  label2?: string;
   color1: string;
-  color2: string;
+  color2?: string;
 }) {
   const [tooltip, setTooltip] = useState<{ i: number } | null>(null);
   const safe1 = s1 ?? [];
   const safe2 = s2 ?? [];
+  const dual = !!s2 && !!label2 && !!color2;
   const n = labels.length;
   if (n === 0) return null;
 
-  const maxVal = Math.max(...safe1, ...safe2, 1);
+  const maxVal = Math.max(...safe1, ...(dual ? safe2 : []), 1);
   const rawStep = maxVal / 4;
   const mag = Math.pow(10, Math.floor(Math.log10(rawStep)));
   const norm = rawStep / mag;
@@ -170,7 +186,7 @@ function DualLineChart({ labels, s1, s2, label1, label2, color1, color2 }: {
   const fmt = (v: number) => v >= 1000 ? `${+(v / 1000).toFixed(1)}k` : String(v);
 
   const pts1 = safe1.map((v, i) => `${px(i)},${py(v)}`).join(' ');
-  const pts2 = safe2.map((v, i) => `${px(i)},${py(v)}`).join(' ');
+  const pts2 = dual ? safe2.map((v, i) => `${px(i)},${py(v)}`).join(' ') : '';
 
   return (
     <svg viewBox={`0 0 ${W} ${H}`} width="100%" style={{ display: 'block' }}>
@@ -178,9 +194,13 @@ function DualLineChart({ labels, s1, s2, label1, label2, color1, color2 }: {
       <line x1={ML} y1={8} x2={ML + 16} y2={8} stroke={color1} strokeWidth="2" strokeLinecap="round" />
       <circle cx={ML + 8} cy={8} r={3} fill={color1} />
       <text x={ML + 20} y={12} fontSize="9" fill="var(--color-text-sub)">{label1}</text>
-      <line x1={ML + 80} y1={8} x2={ML + 96} y2={8} stroke={color2} strokeWidth="2" strokeLinecap="round" />
-      <circle cx={ML + 88} cy={8} r={3} fill={color2} />
-      <text x={ML + 100} y={12} fontSize="9" fill="var(--color-text-sub)">{label2}</text>
+      {dual && color2 && label2 && (
+        <>
+          <line x1={ML + 80} y1={8} x2={ML + 96} y2={8} stroke={color2} strokeWidth="2" strokeLinecap="round" />
+          <circle cx={ML + 88} cy={8} r={3} fill={color2} />
+          <text x={ML + 100} y={12} fontSize="9" fill="var(--color-text-sub)">{label2}</text>
+        </>
+      )}
 
       {/* Y-axis grid */}
       {Array.from({ length: yTickCount + 1 }, (_, i) => {
@@ -198,11 +218,11 @@ function DualLineChart({ labels, s1, s2, label1, label2, color1, color2 }: {
 
       {/* Lines */}
       {n > 1 && <polyline points={pts1} fill="none" stroke={color1} strokeWidth="2" strokeLinejoin="round" strokeLinecap="round" />}
-      {n > 1 && <polyline points={pts2} fill="none" stroke={color2} strokeWidth="2" strokeLinejoin="round" strokeLinecap="round" />}
+      {dual && n > 1 && <polyline points={pts2} fill="none" stroke={color2} strokeWidth="2" strokeLinejoin="round" strokeLinecap="round" />}
 
       {/* Data points */}
       {safe1.map((v, i) => <circle key={i} cx={px(i)} cy={py(v)} r={3} fill={color1} />)}
-      {safe2.map((v, i) => <circle key={i} cx={px(i)} cy={py(v)} r={3} fill={color2} />)}
+      {dual && color2 && safe2.map((v, i) => <circle key={i} cx={px(i)} cy={py(v)} r={3} fill={color2} />)}
 
       {/* X-axis labels */}
       {labels.map((label, i) => (
@@ -232,9 +252,13 @@ function DualLineChart({ labels, s1, s2, label1, label2, color1, color2 }: {
       {tooltip !== null && (() => {
         const { i } = tooltip;
         const x = px(i);
-        const y = Math.min(py(safe1[i]), py(safe2[i]));
-        const lines = [labels[i], `${label1}: ${fmt(safe1[i])}`, `${label2}: ${fmt(safe2[i])}`];
-        const lineH = 13, pad = 7, boxW = 130;
+        const y = Math.min(py(safe1[i]), dual ? py(safe2[i]) : Infinity);
+        const lines = [
+          labels[i],
+          `${label1}: ${fmt(safe1[i])}`,
+          ...(dual && label2 ? [`${label2}: ${fmt(safe2[i])}`] : []),
+        ];
+        const lineH = 13, pad = 7, boxW = 140;
         const boxH = lines.length * lineH + pad * 2;
         const boxX = x > W * 0.65 ? x - boxW - 8 : x + 8;
         const boxY = Math.max(MT, Math.min(y - boxH / 2, H - MB - boxH));
@@ -266,7 +290,7 @@ function SummaryCard({ title, value }: { title: string; value: number }) {
     }}>
       <div style={{ fontSize: 'var(--font-size-xs)', color: 'var(--color-text-sub)', fontWeight: 600, marginBottom: 6 }}>{title}</div>
       <div style={{ fontSize: 28, fontWeight: 800, color: 'var(--color-text-main)', lineHeight: 1 }}>
-        {value}<span style={{ fontSize: 'var(--font-size-sm)', fontWeight: 400, color: 'var(--color-text-sub)', marginLeft: 4 }}>件</span>
+        {value.toLocaleString()}<span style={{ fontSize: 'var(--font-size-sm)', fontWeight: 400, color: 'var(--color-text-sub)', marginLeft: 4 }}>件</span>
       </div>
     </div>
   );
@@ -274,6 +298,7 @@ function SummaryCard({ title, value }: { title: string; value: number }) {
 
 export default function Growth() {
   const { lang } = useLanguage();
+  const [mainTab, setMainTab] = useState<MainTab>('generation');
   const [view, setView] = useState<ViewMode>('daily');
   const [data, setData] = useState<GrowthData | null>(null);
   const [loading, setLoading] = useState(true);
@@ -303,21 +328,23 @@ export default function Growth() {
   }
 
   const dailyLabels = data.daily.dates.map(d => `${parseInt(d.slice(5, 7))}/${parseInt(d.slice(8, 10))}`);
-  const todayCreated = data.daily.created[6] ?? 0;
-  const todayVerified = data.daily.verified[6] ?? 0;
-
   const monthlyLabels = data.monthly.months.map(m => `${parseInt(m.slice(5, 7))}月`);
-  const thisCreated = data.monthly.created[5] ?? 0;
-  const thisVerified = data.monthly.verified[5] ?? 0;
 
-  const thisMonthLabel = data.monthly.months[5] ? `${parseInt(data.monthly.months[5].slice(5, 7))}月` : '今月';
+  const isDaily = view === 'daily';
+  const labels = isDaily ? dailyLabels : monthlyLabels;
+  const src = isDaily ? data.daily : data.monthly;
 
-  const cardGridStyle: React.CSSProperties = {
-    display: 'grid',
-    gridTemplateColumns: 'repeat(2, 1fr)',
-    gap: 12,
-    marginBottom: 20,
-  };
+  const checkRate = data.total > 0 ? (data.totalVerified / data.total) * 100 : 0;
+
+  const lastDaily = data.daily.created.length - 1;
+  const lastMonthly = data.monthly.created.length - 1;
+  const summaryCreated = isDaily ? (data.daily.created[lastDaily] ?? 0) : (data.monthly.created[lastMonthly] ?? 0);
+  const summaryVerified = isDaily ? (data.daily.verified[lastDaily] ?? 0) : (data.monthly.verified[lastMonthly] ?? 0);
+  const summaryPeriodLabel = isDaily
+    ? (lang === 'ja' ? '今日' : 'Today')
+    : (data.monthly.months[lastMonthly]
+        ? `${parseInt(data.monthly.months[lastMonthly].slice(5, 7))}${lang === 'ja' ? '月' : ''}`
+        : (lang === 'ja' ? '今月' : 'This month'));
 
   const chartBoxStyle: React.CSSProperties = {
     background: 'var(--color-bg-white)',
@@ -325,6 +352,11 @@ export default function Growth() {
     borderRadius: 'var(--border-radius-lg)',
     padding: '16px 12px 12px',
   };
+
+  const MAIN_TABS: { key: MainTab; label: string }[] = [
+    { key: 'generation', label: lang === 'ja' ? '問題生成' : 'Generation' },
+    { key: 'check', label: lang === 'ja' ? '問題チェック' : 'Verification' },
+  ];
 
   return (
     <div style={{ padding: '28px 24px', maxWidth: 860, margin: '0 auto' }}>
@@ -339,112 +371,145 @@ export default function Growth() {
         </p>
       </div>
 
-      {/* Tab switcher */}
-      <div style={{ display: 'flex', borderBottom: '2px solid var(--color-border)', marginBottom: 20 }}>
-        {(['daily', 'monthly'] as ViewMode[]).map(v => (
-          <button
-            key={v}
-            onClick={() => setView(v)}
-            style={{
-              background: 'none',
-              border: 'none',
-              cursor: 'pointer',
-              padding: '10px 20px',
-              fontSize: 'var(--font-size-base)',
-              fontWeight: view === v ? 700 : 400,
-              color: view === v ? 'var(--color-primary)' : 'var(--color-text-sub)',
-              borderBottom: view === v ? '2px solid var(--color-primary)' : '2px solid transparent',
-              marginBottom: -2,
-              transition: 'all 0.15s',
-              whiteSpace: 'nowrap',
-            }}
-          >
-            {v === 'daily' ? (lang === 'ja' ? '日次（直近7日）' : 'Daily (7 days)') : (lang === 'ja' ? '月次（直近6ヶ月）' : 'Monthly (6 months)')}
-          </button>
-        ))}
+      {/* メインタブ */}
+      <div style={{ display: 'flex', alignItems: 'flex-end', justifyContent: 'space-between', borderBottom: '2px solid var(--color-border)', marginBottom: 20 }}>
+        <div style={{ display: 'flex' }}>
+          {MAIN_TABS.map(tab => (
+            <button
+              key={tab.key}
+              onClick={() => setMainTab(tab.key)}
+              style={{
+                background: 'none', border: 'none', cursor: 'pointer',
+                padding: '10px 20px',
+                fontSize: 'var(--font-size-base)',
+                fontWeight: mainTab === tab.key ? 700 : 400,
+                color: mainTab === tab.key ? 'var(--color-primary)' : 'var(--color-text-sub)',
+                borderBottom: mainTab === tab.key ? '2px solid var(--color-primary)' : '2px solid transparent',
+                marginBottom: -2, transition: 'all 0.15s', whiteSpace: 'nowrap',
+              }}
+            >
+              {tab.label}
+            </button>
+          ))}
+        </div>
+
+        {/* 日次/月次 トグル */}
+        <div style={{ display: 'flex', borderRadius: 'var(--border-radius-md)', overflow: 'hidden', border: '1px solid var(--color-border)', marginBottom: 2 }}>
+          {(['daily', 'monthly'] as ViewMode[]).map(v => (
+            <button
+              key={v}
+              onClick={() => setView(v)}
+              style={{
+                padding: '4px 12px', fontSize: 'var(--font-size-sm)', fontWeight: 600,
+                border: 'none', cursor: 'pointer',
+                background: view === v ? 'var(--color-primary)' : 'transparent',
+                color: view === v ? 'white' : 'var(--color-text-sub)',
+                transition: 'all 0.15s',
+              }}
+            >
+              {v === 'daily' ? (lang === 'ja' ? '日次' : 'Daily') : (lang === 'ja' ? '月次' : 'Monthly')}
+            </button>
+          ))}
+        </div>
       </div>
 
-      {view === 'daily' ? (
+      {/* 問題生成タブ */}
+      {mainTab === 'generation' && (
         <>
-          <div style={cardGridStyle}>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 12, marginBottom: 20 }}>
             <SummaryCard
-              title={lang === 'ja' ? '今日の生成数' : "Today's Generated"}
-              value={todayCreated}
+              title={lang === 'ja' ? `${summaryPeriodLabel}の生成数` : `${summaryPeriodLabel} Generated`}
+              value={summaryCreated}
             />
             <SummaryCard
-              title={lang === 'ja' ? '今日の確認数' : "Today's Verified"}
-              value={todayVerified}
+              title={lang === 'ja' ? '累計生成数' : 'Total Generated'}
+              value={data.total}
             />
           </div>
           <div style={chartBoxStyle}>
             <div style={{ fontSize: 'var(--font-size-sm)', fontWeight: 700, color: 'var(--color-text-sub)', marginBottom: 8 }}>
-              {lang === 'ja' ? '直近7日の推移' : 'Last 7 days'}
+              {lang === 'ja' ? '生成数の推移' : 'Generated per period'}
             </div>
             <DualBarChart
-              labels={dailyLabels}
-              s1={data.daily.created}
-              s2={data.daily.verified}
-              label1={lang === 'ja' ? '生成' : 'Generated'}
-              label2={lang === 'ja' ? '確認済' : 'Verified'}
+              labels={labels}
+              s1={src.created}
+              label1={lang === 'ja' ? '生成数' : 'Generated'}
               color1="var(--color-primary)"
-              color2="var(--color-success)"
-              breakdown={data.daily.createdByExam}
+              breakdown={src.createdByExam}
             />
           </div>
           <div style={{ ...chartBoxStyle, marginTop: 16 }}>
             <div style={{ fontSize: 'var(--font-size-sm)', fontWeight: 700, color: 'var(--color-text-sub)', marginBottom: 8 }}>
-              {lang === 'ja' ? '合計問題量・チェック済数の推移（日次）' : 'Cumulative total — daily'}
+              {lang === 'ja' ? '累計生成数の推移' : 'Cumulative generated'}
             </div>
             <DualLineChart
-              labels={dailyLabels}
-              s1={data.daily.createdCumulative}
-              s2={data.daily.verifiedCumulative}
-              label1={lang === 'ja' ? '合計問題数' : 'Total questions'}
-              label2={lang === 'ja' ? '合計チェック済' : 'Total verified'}
+              labels={labels}
+              s1={src.createdCumulative}
+              label1={lang === 'ja' ? '累計生成数' : 'Cumulative'}
               color1="var(--color-primary)"
-              color2="var(--color-success)"
             />
           </div>
         </>
-      ) : (
+      )}
+
+      {/* 問題チェックタブ */}
+      {mainTab === 'check' && (
         <>
-          <div style={cardGridStyle}>
+          {/* チェック率 */}
+          <div style={{
+            background: 'var(--color-bg-white)', border: '1px solid var(--color-border)',
+            borderRadius: 'var(--border-radius-lg)', padding: '16px 18px', marginBottom: 20,
+          }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: 8 }}>
+              <span style={{ fontSize: 'var(--font-size-sm)', fontWeight: 700, color: 'var(--color-text-sub)' }}>
+                {lang === 'ja' ? 'チェック率（全問題に対する既チェック割合）' : 'Verification rate (checked / total)'}
+              </span>
+              <span style={{ fontSize: 22, fontWeight: 800, color: 'var(--color-success)', flexShrink: 0, marginLeft: 12 }}>
+                {checkRate.toFixed(1)}%
+              </span>
+            </div>
+            <div style={{ background: 'var(--color-bg-main)', borderRadius: 10, height: 10, overflow: 'hidden' }}>
+              <div style={{
+                width: `${Math.min(100, checkRate)}%`, height: '100%',
+                background: 'var(--color-success)', borderRadius: 10, transition: 'width 0.6s',
+              }} />
+            </div>
+            <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: 6, fontSize: 'var(--font-size-xs)', color: 'var(--color-text-light)' }}>
+              <span>{lang === 'ja' ? `チェック済 ${data.totalVerified.toLocaleString()} 件` : `${data.totalVerified.toLocaleString()} checked`}</span>
+              <span>{lang === 'ja' ? `全 ${data.total.toLocaleString()} 件` : `Total ${data.total.toLocaleString()}`}</span>
+            </div>
+          </div>
+
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 12, marginBottom: 20 }}>
             <SummaryCard
-              title={lang === 'ja' ? `${thisMonthLabel}の生成数` : `${thisMonthLabel} Generated`}
-              value={thisCreated}
+              title={lang === 'ja' ? `${summaryPeriodLabel}のチェック数` : `${summaryPeriodLabel} Verified`}
+              value={summaryVerified}
             />
             <SummaryCard
-              title={lang === 'ja' ? `${thisMonthLabel}の確認数` : `${thisMonthLabel} Verified`}
-              value={thisVerified}
+              title={lang === 'ja' ? '累計チェック数' : 'Total Verified'}
+              value={data.totalVerified}
             />
           </div>
           <div style={chartBoxStyle}>
             <div style={{ fontSize: 'var(--font-size-sm)', fontWeight: 700, color: 'var(--color-text-sub)', marginBottom: 8 }}>
-              {lang === 'ja' ? '直近6ヶ月の推移' : 'Last 6 months'}
+              {lang === 'ja' ? 'チェック数の推移' : 'Verified per period'}
             </div>
             <DualBarChart
-              labels={monthlyLabels}
-              s1={data.monthly.created}
-              s2={data.monthly.verified}
-              label1={lang === 'ja' ? '生成' : 'Generated'}
-              label2={lang === 'ja' ? '確認済' : 'Verified'}
-              color1="var(--color-primary)"
-              color2="var(--color-success)"
-              breakdown={data.monthly.createdByExam}
+              labels={labels}
+              s1={src.verified}
+              label1={lang === 'ja' ? 'チェック数' : 'Verified'}
+              color1="var(--color-success)"
             />
           </div>
           <div style={{ ...chartBoxStyle, marginTop: 16 }}>
             <div style={{ fontSize: 'var(--font-size-sm)', fontWeight: 700, color: 'var(--color-text-sub)', marginBottom: 8 }}>
-              {lang === 'ja' ? '合計問題量・チェック済数の推移（月次）' : 'Cumulative total — monthly'}
+              {lang === 'ja' ? '累計チェック数の推移' : 'Cumulative verified'}
             </div>
             <DualLineChart
-              labels={monthlyLabels}
-              s1={data.monthly.createdCumulative}
-              s2={data.monthly.verifiedCumulative}
-              label1={lang === 'ja' ? '合計問題数' : 'Total questions'}
-              label2={lang === 'ja' ? '合計チェック済' : 'Total verified'}
-              color1="var(--color-primary)"
-              color2="var(--color-success)"
+              labels={labels}
+              s1={src.verifiedCumulative}
+              label1={lang === 'ja' ? '累計チェック数' : 'Cumulative'}
+              color1="var(--color-success)"
             />
           </div>
         </>
