@@ -10,7 +10,7 @@ import {
   IconHome, IconPencil, IconClock, IconList,
   IconUser, IconChart, IconInfo, IconGear,
   IconBell, IconMenu, IconClose, IconChevronLeft, IconMail, IconTrendingUp,
-  IconBrain
+  IconSparkles
 } from './Icons';
 
 type BreadcrumbItem = { label: string; path?: string };
@@ -51,7 +51,7 @@ const NAV_KEYS = [
   { path: '/exam/setup',     labelKey: 'nav.exam',         Icon: IconClock        },
   { path: '/stats',          labelKey: 'nav.stats',        Icon: IconChart        },
   { path: '/questions',      labelKey: 'nav.questions',    Icon: IconList,        bottom: true },
-  { path: '/growth',         labelKey: 'nav.growth',       Icon: IconBrain,       bottom: true },
+  { path: '/growth',         labelKey: 'nav.growth',       Icon: IconSparkles,       bottom: true },
   { path: '/release-notes',  labelKey: 'nav.releaseNotes', Icon: IconBell,        bottom: true },
   { path: '/architecture',   labelKey: 'nav.architecture', Icon: IconInfo,        bottom: true },
 ];
@@ -65,7 +65,7 @@ const BOTTOM_TABS = [
 
 const OTHERS_ITEMS = [
   { path: '/questions',     Icon: IconList,       labelKey: 'nav.questions'    },
-  { path: '/growth',        Icon: IconBrain,      labelKey: 'nav.growth'       },
+  { path: '/growth',        Icon: IconSparkles,      labelKey: 'nav.growth'       },
   { path: '/release-notes', Icon: IconBell,       labelKey: 'nav.releaseNotes' },
   { path: '/architecture',  Icon: IconInfo,       labelKey: 'nav.architecture' },
 ];
@@ -123,6 +123,10 @@ export default function Layout({ children }: { children: React.ReactNode }) {
   const [contactDone, setContactDone] = useState(false);
   const [contactError, setContactError] = useState(false);
 
+  // デスクトップ: アカウントドロップダウン
+  const [accountDropdownOpen, setAccountDropdownOpen] = useState(false);
+  const accountDropdownRef = useRef<HTMLDivElement>(null);
+
   // モバイル専用: アカウントドロワー
   const [accountOpen, setAccountOpen] = useState(false);
   const [othersOpen, setOthersOpen] = useState(false);
@@ -142,8 +146,21 @@ export default function Layout({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     setAccountOpen(false);
     setOthersOpen(false);
+    setAccountDropdownOpen(false);
     if (isMobile) setOpen(false);
   }, [location.pathname]);
+
+  // デスクトップドロップダウン: 外クリックで閉じる
+  useEffect(() => {
+    if (!accountDropdownOpen) return;
+    const handler = (e: MouseEvent) => {
+      if (accountDropdownRef.current && !accountDropdownRef.current.contains(e.target as Node)) {
+        setAccountDropdownOpen(false);
+      }
+    };
+    document.addEventListener('mousedown', handler);
+    return () => document.removeEventListener('mousedown', handler);
+  }, [accountDropdownOpen]);
 
   useEffect(() => {
     const handler = () => {
@@ -643,23 +660,89 @@ export default function Layout({ children }: { children: React.ReactNode }) {
           {/* デスクトップ: アカウントボタン */}
           {!isMobile && (
             user ? (
-              <button
-                onClick={() => navigate('/account')}
-                style={{
-                  width: 36, height: 36, borderRadius: '50%',
-                  background: 'rgba(255,255,255,0.15)',
-                  border: '1.5px solid rgba(255,255,255,0.35)',
-                  display: 'flex', alignItems: 'center', justifyContent: 'center',
-                  cursor: 'pointer', color: 'white',
-                  transition: 'background 0.2s',
-                  flexShrink: 0,
-                }}
-                onMouseEnter={e => e.currentTarget.style.background = 'rgba(255,255,255,0.25)'}
-                onMouseLeave={e => e.currentTarget.style.background = 'rgba(255,255,255,0.15)'}
-                title={user.email}
-              >
-                <IconUser />
-              </button>
+              <div ref={accountDropdownRef} style={{ position: 'relative', flexShrink: 0 }}>
+                <button
+                  onClick={() => setAccountDropdownOpen(prev => !prev)}
+                  style={{
+                    display: 'flex', alignItems: 'center', gap: 6,
+                    background: accountDropdownOpen ? 'rgba(255,255,255,0.25)' : 'rgba(255,255,255,0.12)',
+                    border: '1px solid rgba(255,255,255,0.35)',
+                    borderRadius: 'var(--border-radius-md)',
+                    cursor: 'pointer', color: 'white',
+                    padding: '5px 10px',
+                    fontSize: 'var(--font-size-sm)', fontWeight: 600,
+                    transition: 'background 0.2s', flexShrink: 0,
+                    maxWidth: 160, overflow: 'hidden',
+                  }}
+                  onMouseEnter={e => { if (!accountDropdownOpen) e.currentTarget.style.background = 'rgba(255,255,255,0.22)'; }}
+                  onMouseLeave={e => { if (!accountDropdownOpen) e.currentTarget.style.background = 'rgba(255,255,255,0.12)'; }}
+                >
+                  <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                    {user.email?.split('@')[0]}
+                  </span>
+                  <span style={{ fontSize: 10, color: 'var(--color-primary)', flexShrink: 0, transform: accountDropdownOpen ? 'rotate(180deg)' : 'none', transition: 'transform 0.2s' }}>▼</span>
+                </button>
+
+                {accountDropdownOpen && (
+                  <div style={{
+                    position: 'absolute', top: 'calc(100% + 8px)', right: 0,
+                    background: 'var(--color-bg-white)',
+                    border: '1px solid var(--color-border)',
+                    borderRadius: 'var(--border-radius-lg)',
+                    boxShadow: '0 8px 24px rgba(0,0,0,0.15)',
+                    minWidth: 220,
+                    zIndex: 500,
+                    overflow: 'hidden',
+                  }}>
+                    {/* ユーザー情報 */}
+                    <div style={{ padding: '14px 16px', borderBottom: '1px solid var(--color-border)', background: 'var(--color-bg-main)' }}>
+                      <div style={{ fontWeight: 700, fontSize: 'var(--font-size-base)', color: 'var(--color-text-main)', marginBottom: 2 }}>
+                        {user.email?.split('@')[0]}
+                      </div>
+                      <div style={{ fontSize: 'var(--font-size-xs)', color: 'var(--color-text-light)', wordBreak: 'break-all' }}>
+                        {user.email}
+                      </div>
+                    </div>
+
+                    {/* アカウント管理リンク */}
+                    <button
+                      onClick={() => { setAccountDropdownOpen(false); navigate('/account'); }}
+                      style={{
+                        width: '100%', textAlign: 'left',
+                        display: 'flex', alignItems: 'center', gap: 10,
+                        padding: '11px 16px',
+                        border: 'none', background: 'none', cursor: 'pointer',
+                        fontSize: 'var(--font-size-sm)', color: 'var(--color-text-main)',
+                        transition: 'background 0.15s',
+                      }}
+                      onMouseEnter={e => e.currentTarget.style.background = 'var(--color-bg-main)'}
+                      onMouseLeave={e => e.currentTarget.style.background = 'none'}
+                    >
+                      <span style={{ color: 'var(--color-text-sub)', display: 'flex', alignItems: 'center' }}><IconGear /></span>
+                      <span>{lang === 'ja' ? 'アカウント管理' : 'Account Settings'}</span>
+                    </button>
+
+                    <div style={{ height: 1, background: 'var(--color-border)' }} />
+
+                    {/* ログアウト */}
+                    <button
+                      onClick={() => { setAccountDropdownOpen(false); handleSignOut(); }}
+                      style={{
+                        width: '100%', textAlign: 'left',
+                        display: 'flex', alignItems: 'center', gap: 10,
+                        padding: '11px 16px',
+                        border: 'none', background: 'none', cursor: 'pointer',
+                        fontSize: 'var(--font-size-sm)', color: 'var(--color-danger)', fontWeight: 700,
+                        transition: 'background 0.15s',
+                      }}
+                      onMouseEnter={e => e.currentTarget.style.background = 'var(--color-bg-main)'}
+                      onMouseLeave={e => e.currentTarget.style.background = 'none'}
+                    >
+                      {t('nav.logout')}
+                    </button>
+                  </div>
+                )}
+              </div>
             ) : (
               <button onClick={() => navigate('/login')} style={{
                 background: 'none', border: '1px solid rgba(255,255,255,0.35)',
