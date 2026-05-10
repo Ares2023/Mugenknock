@@ -664,23 +664,22 @@ export default function Layout({ children }: { children: React.ReactNode }) {
                 <button
                   onClick={() => setAccountDropdownOpen(prev => !prev)}
                   style={{
-                    display: 'flex', alignItems: 'center', gap: 6,
-                    background: accountDropdownOpen ? 'rgba(255,255,255,0.25)' : 'rgba(255,255,255,0.12)',
+                    display: 'flex', alignItems: 'center',
+                    background: 'transparent',
                     border: '1px solid rgba(255,255,255,0.35)',
                     borderRadius: 'var(--border-radius-md)',
                     cursor: 'pointer', color: 'white',
                     padding: '5px 10px',
                     fontSize: 'var(--font-size-sm)', fontWeight: 600,
-                    transition: 'background 0.2s', flexShrink: 0,
+                    transition: 'color 0.2s', flexShrink: 0,
                     maxWidth: 160, overflow: 'hidden',
                   }}
-                  onMouseEnter={e => { if (!accountDropdownOpen) e.currentTarget.style.background = 'rgba(255,255,255,0.22)'; }}
-                  onMouseLeave={e => { if (!accountDropdownOpen) e.currentTarget.style.background = 'rgba(255,255,255,0.12)'; }}
+                  onMouseEnter={e => { e.currentTarget.style.color = 'var(--color-primary)'; }}
+                  onMouseLeave={e => { e.currentTarget.style.color = 'white'; }}
                 >
                   <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                     {user.email?.split('@')[0]}
                   </span>
-                  <span style={{ fontSize: 10, color: 'var(--color-primary)', flexShrink: 0, transform: accountDropdownOpen ? 'rotate(180deg)' : 'none', transition: 'transform 0.2s' }}>▼</span>
                 </button>
 
                 {accountDropdownOpen && (
@@ -818,20 +817,18 @@ export default function Layout({ children }: { children: React.ReactNode }) {
             display: 'flex', flexDirection: 'column',
           }}>
             <div style={{ width: 'var(--sidebar-width)', paddingTop: 'var(--spacing-sm)', display: 'flex', flexDirection: 'column', height: '100%' }}>
-              <div style={{ display: 'flex', justifyContent: 'flex-end', padding: '0 var(--spacing-sm) var(--spacing-xs)' }}>
-                <button onClick={toggle} style={{
-                  background: 'none', border: 'none', cursor: 'pointer',
-                  color: 'var(--color-text-light)', padding: '4px 6px', borderRadius: 'var(--border-radius-sm)',
-                  display: 'flex', alignItems: 'center', gap: 4,
-                  fontSize: 'var(--font-size-xs)', transition: 'all 0.2s',
-                }}
-                  onMouseEnter={e => { e.currentTarget.style.color = 'var(--color-text-sub)'; e.currentTarget.style.background = 'var(--color-bg-main)'; }}
-                  onMouseLeave={e => { e.currentTarget.style.color = 'var(--color-text-light)'; e.currentTarget.style.background = 'none'; }}
-                  title={t('nav.closeMenu')}
-                >
-                  <IconChevronLeft />
-                </button>
-              </div>
+              <button onClick={toggle} style={{
+                width: '100%', background: 'none', border: 'none', cursor: 'pointer',
+                color: 'var(--color-text-light)', padding: '8px 24px',
+                display: 'flex', alignItems: 'center', justifyContent: 'flex-end',
+                fontSize: 'var(--font-size-xs)', transition: 'all 0.2s',
+              }}
+                onMouseEnter={e => { e.currentTarget.style.color = 'var(--color-text-sub)'; e.currentTarget.style.background = 'var(--color-bg-main)'; }}
+                onMouseLeave={e => { e.currentTarget.style.color = 'var(--color-text-light)'; e.currentTarget.style.background = 'none'; }}
+                title={t('nav.closeMenu')}
+              >
+                <IconChevronLeft />
+              </button>
               {navItems.filter(item => !(item as any).bottom).map(({ path, labelKey, Icon }) => {
                 const active = isActive(path);
                 return (

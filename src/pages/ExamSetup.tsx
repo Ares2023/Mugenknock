@@ -354,6 +354,13 @@ export default function ExamSetup() {
                 <input type="checkbox" checked={aiVerifiedOnly} onChange={e => setAiVerifiedOnly(e.target.checked)} style={{ width: 16, height: 16, flexShrink: 0 }} />
                 {lang === 'ja' ? 'AI確認済' : 'AI Verified'}
               </label>
+              {!user && (
+                <div style={{ fontSize: 'var(--font-size-xs)', color: 'var(--color-text-light)', paddingTop: 6, borderTop: '1px solid var(--color-border)' }}>
+                  {lang === 'ja'
+                    ? '※ ログインするとブックマーク・未回答・誤答フィルタが使えます'
+                    : '* Log in to filter by bookmarks, unanswered, or incorrect'}
+                </div>
+              )}
               <div style={{ height: 1, background: 'var(--color-border)', margin: '4px 0' }} />
               <label style={{ display: 'flex', alignItems: 'flex-start', gap: 'var(--spacing-sm)', cursor: 'pointer', fontSize: 'var(--font-size-base)' }}>
                 <input type="checkbox" checked={miniExam} onChange={e => setMiniExam(e.target.checked)} style={{ width: 16, height: 16, flexShrink: 0, marginTop: 2 }} />
@@ -398,6 +405,13 @@ export default function ExamSetup() {
             </div>
           )}
 
+          {!user && (
+            <div style={{ marginBottom: 'var(--spacing-md)', fontSize: 'var(--font-size-xs)', color: 'var(--color-text-light)' }}>
+              {lang === 'ja'
+                ? '※ ログインすると結果が保存されます'
+                : '* Log in to save your results'}
+            </div>
+          )}
           <div style={{ display: 'flex', gap: 'var(--spacing-md)', borderTop: '1px solid var(--color-border)', paddingTop: 'var(--spacing-lg)', justifyContent: 'flex-end', flexWrap: 'wrap' }}>
             <Button variant="outline" onClick={() => navigate('/')}
               style={{ border: 'none', color: 'var(--color-text-sub)' }}>

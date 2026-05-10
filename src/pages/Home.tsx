@@ -241,6 +241,28 @@ export default function Home() {
           </Card>
         ))}
       </div>
+
+      {/* 非ログイン時: ログイン促進バナー */}
+      {!user && (
+        <div style={{
+          display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap',
+          gap: 'var(--spacing-md)',
+          background: 'var(--color-primary-light)',
+          border: '1px solid var(--color-primary)',
+          borderRadius: 'var(--border-radius-md)',
+          padding: '10px var(--spacing-md)',
+          fontSize: 'var(--font-size-sm)', color: 'var(--color-text-main)',
+        }}>
+          <span style={{ lineHeight: 1.6 }}>
+            {lang === 'ja'
+              ? 'ログインすると演習・模試の結果が保存され、統計・成績・アカウント管理が利用できます。'
+              : 'Log in to save your results and access stats, performance history, and account management.'}
+          </span>
+          <Button variant="primary" size="sm" onClick={() => navigate('/login')} style={{ flexShrink: 0 }}>
+            {lang === 'ja' ? 'ログイン →' : 'Log in →'}
+          </Button>
+        </div>
+      )}
     </div>
   );
 }
