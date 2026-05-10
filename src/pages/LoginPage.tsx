@@ -131,14 +131,11 @@ export default function LoginPage() {
 
         {/* ロゴ・タイトル */}
         <div style={{ marginBottom: 'var(--spacing-xl)', textAlign: 'center', position: 'relative', zIndex: 1 }}>
-          <h1 style={{
-            color: 'var(--color-text-main)',
-            margin: 0,
-            fontSize: 'var(--font-size-xxl)',
-            fontWeight: 700,
-          }}>
-            Sherpa
-          </h1>
+          <img
+            src="/mugen-header.png"
+            alt="AWS資格無限ノック"
+            style={{ height: 44, width: 'auto', objectFit: 'contain', display: 'block', margin: '0 auto' }}
+          />
           <p style={{
             color: 'var(--color-text-sub)',
             marginTop: 'var(--spacing-sm)',

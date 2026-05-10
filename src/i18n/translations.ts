@@ -43,7 +43,7 @@ export const ja: Translations = {
   // ── Home ──
   'home.startLearning': 'AWS 資格学習を始めよう',
   'home.greeting': 'こんにちは、{name} さん',
-  'home.heroDesc': 'Sherpa はAWS 認定資格の取得を目指す方のための練習問題サービスです。CLF・SAA・SAP・DOP・AIF・MLA・GAI の問題を演習・模試の2つのモードで学習できます。',
+  'home.heroDesc': 'AWS資格無限ノック はAWS 認定資格の取得を目指す方のための練習問題サービスです。CLF・SAA・SAP・DOP・AIF・MLA・GAI の問題を演習・模試の2つのモードで学習できます。',
   'home.targetExam': '目標資格',
   'home.targetExamNote': '— 統計・分析画面はこの資格に絞って表示されます',
   'home.selectHint': '資格を選択すると統計画面が絞り込まれます',
@@ -328,7 +328,7 @@ export const en: Translations = {
   // ── Home ──
   'home.startLearning': 'Start AWS Certification Practice',
   'home.greeting': 'Hello, {name}',
-  'home.heroDesc': 'Sherpa is a practice quiz service for AWS certification. Study CLF, SAA, SAP, and DOP with Practice and Mock Exam modes.',
+  'home.heroDesc': 'AWS資格無限ノック is a practice quiz service for AWS certification. Study CLF, SAA, SAP, and DOP with Practice and Mock Exam modes.',
   'home.targetExam': 'Target Exam',
   'home.targetExamNote': '— Statistics will be filtered to this exam',
   'home.selectHint': 'Select an exam to filter the statistics page',

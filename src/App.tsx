@@ -38,7 +38,7 @@ function AuthGate({ children }: { children: React.ReactNode }) {
         background: 'var(--color-bg-main)', gap: 28,
         animation: 'sherpa-fade-in 0.2s ease-out',
       }}>
-        <img src="/logo_sherpa_image_t.png" alt="Sherpa" style={{ width: 72, height: 72, objectFit: 'contain' }} />
+        <img src="/mugen-icon.png" alt="AWS資格無限ノック" style={{ width: 'auto', height: 56, objectFit: 'contain' }} />
         <div className="sherpa-spinner" />
       </div>
     );

@@ -1,14 +1,14 @@
 {
-  "short_name": "Sherpa",
-  "name": "Sherpa",
+  "short_name": "無限ノック",
+  "name": "AWS資格無限ノック",
   "icons": [
     {
-      "src": "logo_sherpa_image_t.png",
+      "src": "mugen-icon.png",
       "type": "image/png",
       "sizes": "192x192"
     },
     {
-      "src": "logo_sherpa_image_t.png",
+      "src": "mugen-icon.png",
       "type": "image/png",
       "sizes": "512x512"
     }
