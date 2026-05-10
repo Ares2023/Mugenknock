@@ -102,6 +102,7 @@ const ScoreLineChart = ({ sessions, passRate, lang }: { sessions: Session[]; pas
 
 // ── 日次活動棒グラフ（万歩計） ───────────────────────────────────────
 const ActivityChart = ({ data, lang }: { data: { label: string; count: number; isToday: boolean }[]; lang: string }) => {
+  const [tooltip, setTooltip] = useState<{ x: number; y: number; label: string; count: number; isToday: boolean } | null>(null);
   const W = 600, H = 160;
   const padL = 28, padR = 8, padT = 24, padB = 30;
   const chartW = W - padL - padR;
@@ -109,7 +110,7 @@ const ActivityChart = ({ data, lang }: { data: { label: string; count: number; i
   const n = data.length;
   const maxCount = Math.max(...data.map(d => d.count), 1);
   const slotW = chartW / n;
-  const barW = Math.max(6, Math.min(28, slotW * 0.65));
+  const barW = Math.max(4, Math.min(8, slotW * 0.65));
   const showEvery = n <= 7 ? 1 : n <= 14 ? 2 : 5;
 
   return (
@@ -126,7 +127,12 @@ const ActivityChart = ({ data, lang }: { data: { label: string; count: number; i
         const barH = d.count > 0 ? Math.max(3, (d.count / maxCount) * chartH) : 0;
         const y = padT + chartH - barH;
         return (
-          <g key={i}>
+          <g key={i}
+            onMouseEnter={() => d.count > 0 && setTooltip({ x: cx, y, label: d.label, count: d.count, isToday: d.isToday })}
+            onMouseLeave={() => setTooltip(null)}
+            style={{ cursor: d.count > 0 ? 'default' : 'default' }}
+          >
+            <rect x={padL + slotW * i} y={padT} width={slotW} height={chartH} fill="transparent" />
             {d.count > 0 && (
               <rect x={cx - barW / 2} y={y} width={barW} height={barH} rx={3}
                 fill={d.isToday ? 'var(--color-primary)' : 'var(--color-primary)'} opacity={d.isToday ? 1 : 0.55} />
@@ -144,6 +150,28 @@ const ActivityChart = ({ data, lang }: { data: { label: string; count: number; i
           </g>
         );
       })}
+      {tooltip && (() => {
+        const { x, y, label, count, isToday } = tooltip;
+        const todayLabel = lang === 'ja' ? '今日' : 'Today';
+        const lines = [label + (isToday ? ` (${todayLabel})` : ''), `${lang === 'ja' ? '回答数' : 'Answered'}: ${count}`];
+        const lineH = 13, pad = 7, boxW = 110;
+        const boxH = lines.length * lineH + pad * 2;
+        const boxX = Math.min(x + 8, W - padR - boxW);
+        const boxY = Math.max(padT, Math.min(y - boxH / 2, H - padB - boxH));
+        return (
+          <g style={{ pointerEvents: 'none' }}>
+            <rect x={boxX} y={boxY} width={boxW} height={boxH} rx={4}
+              style={{ fill: 'var(--color-bg-white)', stroke: 'var(--color-border)', strokeWidth: 1, filter: 'drop-shadow(0 2px 4px rgba(0,0,0,0.12))' }} />
+            {lines.map((line, li) => (
+              <text key={li} x={boxX + pad} y={boxY + pad + (li + 1) * lineH - 2}
+                fontSize={9} fontWeight={li === 0 ? '700' : '400'}
+                style={{ fill: li === 0 ? 'var(--color-text-main)' : 'var(--color-text-sub)' }}>
+                {line}
+              </text>
+            ))}
+          </g>
+        );
+      })()}
     </svg>
   );
 };

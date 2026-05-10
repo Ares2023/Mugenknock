@@ -20,6 +20,7 @@ function DualBarChart({ labels, s1, s2, label1, label2, color1, color2 }: {
   color1: string;
   color2: string;
 }) {
+  const [tooltip, setTooltip] = useState<{ x: number; y: number; label: string; v1: number; v2: number } | null>(null);
   const n = labels.length;
   const safe1 = s1 ?? [];
   const safe2 = s2 ?? [];
@@ -69,7 +70,12 @@ function DualBarChart({ labels, s1, s2, label1, label2, color1, color2 }: {
 
       {/* Bars */}
       {labels.map((label, i) => (
-        <g key={i}>
+        <g key={i}
+          onMouseEnter={() => setTooltip({ x: lx(i), y: MT + Math.min(by(safe1[i]), by(safe2[i])), label, v1: safe1[i], v2: safe2[i] })}
+          onMouseLeave={() => setTooltip(null)}
+          style={{ cursor: 'default' }}
+        >
+          <rect x={ML + i * groupW} y={MT} width={groupW} height={chartH} fill="transparent" />
           <rect x={bx1(i)} y={MT + by(safe1[i])} width={barW}
             height={Math.max(bh(safe1[i]), safe1[i] > 0 ? 2 : 0)}
             fill={color1} rx={2} />
@@ -87,6 +93,27 @@ function DualBarChart({ labels, s1, s2, label1, label2, color1, color2 }: {
           <text x={lx(i)} y={H - MB + 14} textAnchor="middle" fontSize="9" fill="var(--color-text-sub)">{label}</text>
         </g>
       ))}
+      {tooltip && (() => {
+        const { x, y, label, v1, v2 } = tooltip;
+        const lines = [label, `${label1}: ${v1}`, `${label2}: ${v2}`];
+        const lineH = 13, pad = 7, boxW = 112;
+        const boxH = lines.length * lineH + pad * 2;
+        const boxX = Math.min(x + 8, W - MR - boxW);
+        const boxY = Math.max(MT, Math.min(y - boxH / 2, H - MB - boxH));
+        return (
+          <g style={{ pointerEvents: 'none' }}>
+            <rect x={boxX} y={boxY} width={boxW} height={boxH} rx={4}
+              style={{ fill: 'var(--color-bg-white)', stroke: 'var(--color-border)', strokeWidth: 1, filter: 'drop-shadow(0 2px 4px rgba(0,0,0,0.12))' }} />
+            {lines.map((line, li) => (
+              <text key={li} x={boxX + pad} y={boxY + pad + (li + 1) * lineH - 2}
+                fontSize={9} fontWeight={li === 0 ? '700' : '400'}
+                style={{ fill: li === 0 ? 'var(--color-text-main)' : 'var(--color-text-sub)' }}>
+                {line}
+              </text>
+            ))}
+          </g>
+        );
+      })()}
     </svg>
   );
 }
@@ -100,6 +127,7 @@ function DualLineChart({ labels, s1, s2, label1, label2, color1, color2 }: {
   color1: string;
   color2: string;
 }) {
+  const [tooltip, setTooltip] = useState<{ i: number } | null>(null);
   const safe1 = s1 ?? [];
   const safe2 = s2 ?? [];
   const n = labels.length;
@@ -162,6 +190,50 @@ function DualLineChart({ labels, s1, s2, label1, label2, color1, color2 }: {
       {labels.map((label, i) => (
         <text key={i} x={px(i)} y={H - MB + 14} textAnchor="middle" fontSize="9" fill="var(--color-text-sub)">{label}</text>
       ))}
+
+      {/* Crosshair */}
+      {tooltip !== null && (
+        <line x1={px(tooltip.i)} y1={MT} x2={px(tooltip.i)} y2={MT + chartH}
+          stroke="var(--color-border)" strokeWidth={1} strokeDasharray="3,2" style={{ pointerEvents: 'none' }} />
+      )}
+
+      {/* Column hover areas */}
+      {labels.map((_, i) => {
+        const x0 = i === 0 ? ML : (px(i - 1) + px(i)) / 2;
+        const x1 = i === n - 1 ? ML + chartW : (px(i) + px(i + 1)) / 2;
+        return (
+          <rect key={i} x={x0} y={MT} width={x1 - x0} height={chartH} fill="transparent"
+            style={{ cursor: 'default' }}
+            onMouseEnter={() => setTooltip({ i })}
+            onMouseLeave={() => setTooltip(null)}
+          />
+        );
+      })}
+
+      {/* Tooltip */}
+      {tooltip !== null && (() => {
+        const { i } = tooltip;
+        const x = px(i);
+        const y = Math.min(py(safe1[i]), py(safe2[i]));
+        const lines = [labels[i], `${label1}: ${fmt(safe1[i])}`, `${label2}: ${fmt(safe2[i])}`];
+        const lineH = 13, pad = 7, boxW = 130;
+        const boxH = lines.length * lineH + pad * 2;
+        const boxX = x > W * 0.65 ? x - boxW - 8 : x + 8;
+        const boxY = Math.max(MT, Math.min(y - boxH / 2, H - MB - boxH));
+        return (
+          <g style={{ pointerEvents: 'none' }}>
+            <rect x={boxX} y={boxY} width={boxW} height={boxH} rx={4}
+              style={{ fill: 'var(--color-bg-white)', stroke: 'var(--color-border)', strokeWidth: 1, filter: 'drop-shadow(0 2px 4px rgba(0,0,0,0.12))' }} />
+            {lines.map((line, li) => (
+              <text key={li} x={boxX + pad} y={boxY + pad + (li + 1) * lineH - 2}
+                fontSize={9} fontWeight={li === 0 ? '700' : '400'}
+                style={{ fill: li === 0 ? 'var(--color-text-main)' : 'var(--color-text-sub)' }}>
+                {line}
+              </text>
+            ))}
+          </g>
+        );
+      })()}
     </svg>
   );
 }
