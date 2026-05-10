@@ -672,7 +672,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
           width: '100%',
           WebkitOverflowScrolling: 'touch',
           minWidth: 0,
-          paddingBottom: isMobile ? 56 : 0,
+          paddingBottom: isMobile ? 120 : 0,
         }}>
           {children}
         </main>
