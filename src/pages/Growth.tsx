@@ -264,14 +264,14 @@ function DualLineChart({ labels, s1, s2, label1, label2, color1, color2 }: {
         />
       )}
 
-      {/* Data points */}
+      {/* Data points — each dot appears as the line reaches it */}
       {safe1.map((v, i) => (
         <circle key={i} cx={px(i)} cy={py(v)} r={3} fill={color1}
-          style={{ animation: `sherpa-fade-in 0.3s ease ${0.6 + i * 0.04}s both` }} />
+          style={{ animation: `sherpa-fade-in 0.12s ease ${(i / Math.max(n - 1, 1)) * 1.0}s both` }} />
       ))}
       {dual && color2 && safe2.map((v, i) => (
         <circle key={i} cx={px(i)} cy={py(v)} r={3} fill={color2}
-          style={{ animation: `sherpa-fade-in 0.3s ease ${0.7 + i * 0.04}s both` }} />
+          style={{ animation: `sherpa-fade-in 0.12s ease ${0.1 + (i / Math.max(n - 1, 1)) * 1.0}s both` }} />
       ))}
 
       {/* X-axis labels */}
