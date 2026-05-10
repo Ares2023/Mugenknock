@@ -32,7 +32,7 @@ interface GrowthData {
   totalVerified: number;
 }
 
-// s2/label2/color2 は optional（省略時は単系列表示）
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 function DualBarChart({ labels, s1, s2, label1, label2, color1, color2, breakdown }: {
   labels: string[];
   s1: number[];
@@ -443,18 +443,6 @@ export default function Growth() {
             />
           </div>
           <div style={chartBoxStyle}>
-            <div style={{ fontSize: 'var(--font-size-sm)', fontWeight: 700, color: 'var(--color-text-sub)', marginBottom: 8 }}>
-              {lang === 'ja' ? '生成数の推移' : 'Generated per period'}
-            </div>
-            <DualBarChart
-              labels={labels}
-              s1={src.created}
-              label1={lang === 'ja' ? '生成数' : 'Generated'}
-              color1={COLOR_GENERATION}
-              breakdown={src.createdByExam}
-            />
-          </div>
-          <div style={{ ...chartBoxStyle, marginTop: 16 }}>
             <div style={{ fontSize: 'var(--font-size-sm)', fontWeight: 700, color: 'var(--color-text-sub)', marginBottom: 8 }}>
               {lang === 'ja' ? '累計生成数の推移' : 'Cumulative generated'}
             </div>

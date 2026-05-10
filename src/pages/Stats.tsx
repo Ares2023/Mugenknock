@@ -135,15 +135,15 @@ const ActivityChart = ({ data, lang }: { data: { label: string; count: number; i
             <rect x={padL + slotW * i} y={padT} width={slotW} height={chartH} fill="transparent" />
             {d.count > 0 && (
               <rect x={cx - barW / 2} y={y} width={barW} height={barH} rx={3}
-                fill={d.isToday ? 'var(--color-primary)' : 'var(--color-primary)'} opacity={d.isToday ? 1 : 0.55} />
+                fill={d.isToday ? 'var(--color-success)' : 'var(--color-primary)'} opacity={d.isToday ? 1 : 0.55} />
             )}
             {d.count > 0 && (
-              <text x={cx} y={y - 5} textAnchor="middle" fontSize={9} fontWeight="700" fill={d.isToday ? 'var(--color-primary)' : 'var(--color-text-sub)'}>
+              <text x={cx} y={y - 5} textAnchor="middle" fontSize={9} fontWeight="700" fill={d.isToday ? 'var(--color-success)' : 'var(--color-text-sub)'}>
                 {d.count}
               </text>
             )}
             {i % showEvery === 0 && (
-              <text x={cx} y={H - padB + 12} textAnchor="middle" fontSize={9} fill={d.isToday ? 'var(--color-primary)' : 'var(--color-text-light)'} fontWeight={d.isToday ? '700' : '400'}>
+              <text x={cx} y={H - padB + 12} textAnchor="middle" fontSize={9} fill={d.isToday ? 'var(--color-success)' : 'var(--color-text-light)'} fontWeight={d.isToday ? '700' : '400'}>
                 {d.label}
               </text>
             )}
@@ -333,7 +333,7 @@ export default function Stats() {
           {/* 消化進捗 */}
           <Card padding="var(--spacing-lg)" style={{ marginBottom: 'var(--spacing-lg)' }}>
             <div style={{ fontSize: 'var(--font-size-xs)', fontWeight: 700, color: 'var(--color-text-sub)', textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: 'var(--spacing-md)' }}>
-              {lang === 'ja' ? '消化進捗' : 'Coverage'}
+              {lang === 'ja' ? '合計ノック量' : 'Total Practice'}
             </div>
             {loading ? (
               <div style={{ display: 'flex', justifyContent: 'center', padding: 'var(--spacing-lg) 0' }}>
@@ -362,7 +362,7 @@ export default function Stats() {
                   }} />
                 </div>
                 <div style={{ fontSize: 'var(--font-size-xs)', color: 'var(--color-text-light)', textAlign: 'right' }}>
-                  {pct}% {lang === 'ja' ? '消化' : 'covered'}
+                  {pct}% {lang === 'ja' ? '解答済' : 'covered'}
                 </div>
               </>
             )}

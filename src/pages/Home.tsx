@@ -120,8 +120,9 @@ export default function Home() {
           <span style={{ fontSize: 'var(--font-size-base)', fontWeight: 700, color: 'var(--color-text-main)' }}>{t('home.targetExam')}</span>
         </div>
 
-        {/* 試験選択ドロップダウン */}
-        <div ref={dropdownRef} style={{ position: 'relative', marginBottom: 'var(--spacing-md)', maxWidth: 320 }}>
+        {/* 試験選択ドロップダウン + サイト内問題数 */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--spacing-md)', marginBottom: 'var(--spacing-md)', flexWrap: 'wrap' }}>
+          <div ref={dropdownRef} style={{ position: 'relative', maxWidth: 320, minWidth: 220 }}>
           <button
             onClick={() => setDropdownOpen(v => !v)}
             style={{
@@ -251,6 +252,29 @@ export default function Home() {
               </div>
             </div>
           )}
+          </div>
+          {/* サイト内問題数（ドロップダウン右） */}
+          <div style={{ flexShrink: 0, lineHeight: 1 }}>
+            {targetExam ? (
+              countLoading ? (
+                <span style={{ fontSize: 'var(--font-size-sm)', color: 'var(--color-text-light)' }}>…</span>
+              ) : (
+                <span>
+                  <span style={{ display: 'block', fontSize: 'var(--font-size-xs)', color: 'var(--color-text-sub)', marginBottom: 2 }}>
+                    {lang === 'ja' ? 'サイト内問題数' : 'Site Questions'}
+                  </span>
+                  <strong style={{ color: 'var(--color-success)', fontSize: 'var(--font-size-xl)', fontWeight: 800 }}>
+                    {siteQuestionCount !== null ? siteQuestionCount.toLocaleString() : '—'}
+                    <span style={{ fontSize: 'var(--font-size-sm)', fontWeight: 400 }}>{lang === 'ja' ? '問' : ' Q'}</span>
+                  </strong>
+                </span>
+              )
+            ) : (
+              <span style={{ color: 'var(--color-text-light)', fontStyle: 'italic', fontSize: 'var(--font-size-sm)' }}>
+                {lang === 'ja' ? '— （資格を選択すると表示）' : '— (select an exam)'}
+              </span>
+            )}
+          </div>
         </div>
 
         {/* 資格情報エリア */}
@@ -272,15 +296,6 @@ export default function Home() {
                   {t('home.passingScoreNote')}
                 </span>
               </span>
-              <span>
-                {lang === 'ja' ? 'サイト内問題数' : 'Site Questions'}:{' '}
-                {countLoading
-                  ? <strong style={{ color: 'var(--color-text-light)' }}>…</strong>
-                  : <strong style={{ color: 'var(--color-primary)', fontSize: 'var(--font-size-md)' }}>
-                      {siteQuestionCount !== null ? siteQuestionCount.toLocaleString() : '—'}{lang === 'ja' ? '問' : ' Q'}
-                    </strong>
-                }
-              </span>
             </div>
             <div style={{ fontSize: 'var(--font-size-sm)', color: 'var(--color-text-sub)', fontWeight: 700, marginBottom: 'var(--spacing-sm)' }}>{t('home.domains')}</div>
             <div style={{ display: 'flex', flexWrap: 'wrap', gap: 'var(--spacing-sm)' }}>
@@ -296,12 +311,6 @@ export default function Home() {
             borderTop: '1px solid var(--color-border)',
             paddingTop: 'var(--spacing-md)',
           }}>
-            <div style={{ fontSize: 'var(--font-size-sm)', color: 'var(--color-text-sub)', marginBottom: 'var(--spacing-md)' }}>
-              {lang === 'ja' ? 'サイト内問題数' : 'Site Questions'}:{' '}
-              <strong style={{ color: 'var(--color-text-light)', fontStyle: 'italic' }}>
-                {lang === 'ja' ? '— （資格を選択すると表示）' : '— (select an exam)'}
-              </strong>
-            </div>
             <div style={{
               border: '2px dashed var(--color-border)',
               borderRadius: 'var(--border-radius-md)',

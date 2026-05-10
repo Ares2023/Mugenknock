@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { API_ENDPOINT, EXAM_TYPES, EXAM_CONFIGS, EXAM_DOMAINS, PASS_SCORES } from '../constants';
+import { API_ENDPOINT, EXAM_TYPES, EXAM_DOMAINS } from '../constants';
 import { useAuth } from '../contexts/AuthContext';
 import { useLanguage } from '../contexts/LanguageContext';
 import Card from '../components/ui/Card';
@@ -277,6 +277,9 @@ export default function ExerciseSetup() {
     domainRates[d] = total > 0 ? s.correctCount / total : null;
   }
 
+  const exercisePct = (answeredCount !== null && totalDbCount !== null && totalDbCount > 0)
+    ? Math.round((answeredCount / totalDbCount) * 100) : 0;
+
   return (
     <div style={{ maxWidth: 1100, margin: '0 auto', padding: 'var(--spacing-xl) var(--spacing-lg)' }} className="page-container">
 
@@ -317,6 +320,55 @@ export default function ExerciseSetup() {
                 ))}
               </div>
             </StepRow>
+          )}
+
+          {/* 合計ノック量 */}
+          {user && (
+            <div style={{
+              marginBottom: 'var(--spacing-lg)',
+              padding: 'var(--spacing-md)',
+              background: 'var(--color-bg-main)',
+              borderRadius: 'var(--border-radius-md)',
+              border: '1px solid var(--color-border)',
+            }}>
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 'var(--spacing-sm)' }}>
+                <span style={{ fontSize: 'var(--font-size-xs)', fontWeight: 700, color: 'var(--color-text-sub)', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+                  {lang === 'ja' ? '合計ノック量' : 'Total Practice'}
+                </span>
+                <button
+                  onClick={() => navigate('/stats')}
+                  style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: 'var(--font-size-xs)', color: 'var(--color-primary)', padding: 0, fontWeight: 600 }}
+                >
+                  {lang === 'ja' ? '統計分析 →' : 'Stats →'}
+                </button>
+              </div>
+              {answeredCount === null || totalDbCount === null ? (
+                <div style={{ display: 'flex', justifyContent: 'center', padding: '8px 0' }}>
+                  <div className="sherpa-spinner" style={{ width: 16, height: 16, borderWidth: 2 }} />
+                </div>
+              ) : (
+                <>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: 'var(--spacing-xs)' }}>
+                    <span style={{ fontSize: 'var(--font-size-sm)', color: 'var(--color-text-sub)' }}>
+                      {lang === 'ja' ? '1回以上解いた問題' : 'Questions attempted'}
+                    </span>
+                    <span style={{ fontSize: 'var(--font-size-lg)', fontWeight: 700, color: 'var(--color-primary)' }}>
+                      {answeredCount}
+                      <span style={{ fontSize: 'var(--font-size-xs)', fontWeight: 400, color: 'var(--color-text-sub)' }}> / {totalDbCount}{lang === 'ja' ? '問' : ' Q'}</span>
+                    </span>
+                  </div>
+                  <div style={{ background: 'var(--color-bg-white)', borderRadius: 10, height: 6, overflow: 'hidden', marginBottom: 4 }}>
+                    <div style={{
+                      width: `${exercisePct}%`, height: '100%', borderRadius: 10, transition: 'width 0.6s',
+                      background: exercisePct >= 60 ? 'var(--color-success)' : exercisePct >= 30 ? 'var(--color-caution)' : 'var(--color-primary)',
+                    }} />
+                  </div>
+                  <div style={{ fontSize: 'var(--font-size-xs)', color: 'var(--color-text-light)', textAlign: 'right' }}>
+                    {exercisePct}% {lang === 'ja' ? '解答済' : 'attempted'}
+                  </div>
+                </>
+              )}
+            </div>
           )}
 
           {/* ドメインフィルタ */}
