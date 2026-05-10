@@ -494,31 +494,6 @@ export default function Growth() {
       {/* 問題チェックタブ */}
       {mainTab === 'check' && (
         <>
-          {/* チェック率 */}
-          <div style={{
-            background: 'var(--color-bg-white)', border: '1px solid var(--color-border)',
-            borderRadius: 'var(--border-radius-lg)', padding: '16px 18px', marginBottom: 20,
-          }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: 8 }}>
-              <span style={{ fontSize: 'var(--font-size-sm)', fontWeight: 700, color: 'var(--color-text-sub)' }}>
-                {lang === 'ja' ? 'チェック率（全問題に対する既チェック割合）' : 'Verification rate (checked / total)'}
-              </span>
-              <span style={{ fontSize: 22, fontWeight: 800, color: COLOR_CHECK, flexShrink: 0, marginLeft: 12 }}>
-                {checkRate.toFixed(1)}%
-              </span>
-            </div>
-            <div style={{ background: 'var(--color-bg-main)', borderRadius: 10, height: 10, overflow: 'hidden' }}>
-              <div style={{
-                width: `${Math.min(100, checkRate)}%`, height: '100%',
-                background: COLOR_CHECK, borderRadius: 10, transition: 'width 0.6s',
-              }} />
-            </div>
-            <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: 6, fontSize: 'var(--font-size-xs)', color: 'var(--color-text-light)' }}>
-              <span>{lang === 'ja' ? `チェック済 ${data.totalVerified.toLocaleString()} 件` : `${data.totalVerified.toLocaleString()} checked`}</span>
-              <span>{lang === 'ja' ? `全 ${data.total.toLocaleString()} 件` : `Total ${data.total.toLocaleString()}`}</span>
-            </div>
-          </div>
-
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 12, marginBottom: 20 }}>
             <SummaryCard
               title={lang === 'ja' ? `${summaryPeriodLabel}のチェック数` : `${summaryPeriodLabel} Verified`}
@@ -530,8 +505,16 @@ export default function Growth() {
             />
           </div>
           <div style={chartBoxStyle}>
-            <div style={{ fontSize: 'var(--font-size-sm)', fontWeight: 700, color: 'var(--color-text-sub)', marginBottom: 8 }}>
-              {lang === 'ja' ? '累計チェック数の推移' : 'Cumulative verified'}
+            <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', marginBottom: 8 }}>
+              <span style={{ fontSize: 'var(--font-size-sm)', fontWeight: 700, color: 'var(--color-text-sub)' }}>
+                {lang === 'ja' ? '累計チェック数の推移' : 'Cumulative verified'}
+              </span>
+              <span style={{ fontSize: 'var(--font-size-xs)', color: 'var(--color-text-light)', flexShrink: 0, marginLeft: 12 }}>
+                {lang === 'ja'
+                  ? `全 ${data.total.toLocaleString()} 件中 ${data.totalVerified.toLocaleString()} 件チェック済`
+                  : `${data.totalVerified.toLocaleString()} / ${data.total.toLocaleString()} checked`}
+                <strong style={{ color: COLOR_CHECK, marginLeft: 6 }}>{checkRate.toFixed(1)}%</strong>
+              </span>
             </div>
             <DualLineChart
               labels={labels}
