@@ -14,8 +14,6 @@ import {
 } from './Icons';
 
 type BreadcrumbItem = { label: string; path?: string };
-type DomainStat = { tagId: string; correctCount: number; incorrectCount: number };
-type AccountExamSession = { sessionId: string; examType: string; mode: string; score: number; isPassed: boolean; startedAt: string };
 
 const IconSun = () => (
   <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -127,12 +125,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
   const [accountDropdownOpen, setAccountDropdownOpen] = useState(false);
   const accountDropdownRef = useRef<HTMLDivElement>(null);
 
-  // モバイル専用: アカウントドロワー
-  const [accountOpen, setAccountOpen] = useState(false);
   const [othersOpen, setOthersOpen] = useState(false);
-  const [accountAnsweredCount, setAccountAnsweredCount] = useState<number | null>(null);
-  const [accountDomainStats, setAccountDomainStats] = useState<DomainStat[]>([]);
-  const [accountExamSessions, setAccountExamSessions] = useState<AccountExamSession[]>([]);
 
   useEffect(() => {
     setTargetExam(localStorage.getItem('targetExam'));
@@ -144,7 +137,6 @@ export default function Layout({ children }: { children: React.ReactNode }) {
 
   // ルート変更でドロワー/シートを閉じる
   useEffect(() => {
-    setAccountOpen(false);
     setOthersOpen(false);
     setAccountDropdownOpen(false);
     if (isMobile) setOpen(false);
@@ -172,25 +164,6 @@ export default function Layout({ children }: { children: React.ReactNode }) {
     return () => window.removeEventListener('resize', handler);
   }, []);
 
-  // アカウントドロワーを開いたとき統計データをフェッチ
-  useEffect(() => {
-    if (!accountOpen || !user) return;
-    const et = targetExam || 'SAA';
-    setAccountAnsweredCount(null);
-    setAccountDomainStats([]);
-    setAccountExamSessions([]);
-    Promise.all([
-      fetch(`${API_ENDPOINT}/users/me/question-stats?userId=${user.userId}&examType=${et}`).then(r => r.json()).catch(() => ({})),
-      fetch(`${API_ENDPOINT}/users/me/stats?userId=${user.userId}`).then(r => r.json()).catch(() => ({})),
-      fetch(`${API_ENDPOINT}/users/me/sessions?userId=${user.userId}&limit=20`).then(r => r.json()).catch(() => ({})),
-    ]).then(([qStats, stats, sessions]) => {
-      setAccountAnsweredCount(qStats.answeredCount ?? 0);
-      setAccountDomainStats(stats.stats ?? []);
-      setAccountExamSessions(
-        (sessions.items ?? []).filter((s: any) => s.examType === et && s.mode === 'exam').slice(0, 3)
-      );
-    });
-  }, [accountOpen, user, targetExam]);
 
   const toggle = () => setOpen(prev => {
     if (!isMobile) localStorage.setItem('sidebarOpen', String(!prev));
@@ -234,7 +207,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
     setContactSubject('');
     setContactMessage('');
     setShowContact(true);
-    if (isMobile) { setOpen(false); setAccountOpen(false); setOthersOpen(false); }
+    if (isMobile) { setOpen(false); setOthersOpen(false); }
   };
 
   const isActive = (path: string) =>
@@ -256,23 +229,6 @@ export default function Layout({ children }: { children: React.ReactNode }) {
     '/architecture':     [{ label: t('nav.home'), path: '/' }, { label: t('nav.architecture') }],
     '/release-notes':    [{ label: t('nav.home'), path: '/' }, { label: t('nav.releaseNotes') }],
   };
-
-  // アカウントドロワー用: 苦手ドメイン計算
-  const accountExamType = targetExam || 'SAA';
-  const accountExamInfo = EXAM_CONFIGS[accountExamType];
-  const rankedWeakDomains = EXAM_DOMAINS[accountExamType]
-    ? EXAM_DOMAINS[accountExamType]
-        .map(d => {
-          const s = accountDomainStats.find(x => x.tagId === d);
-          const correct = s?.correctCount ?? 0;
-          const incorrect = s?.incorrectCount ?? 0;
-          const total = correct + incorrect;
-          const rate = total > 0 ? correct / total : null;
-          return { d, rate };
-        })
-        .filter(x => x.rate !== null)
-        .sort((a, b) => a.rate! - b.rate!)
-    : [];
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', height: '100vh', fontFamily: 'inherit' }}>
@@ -349,191 +305,6 @@ export default function Layout({ children }: { children: React.ReactNode }) {
         </div>
       )}
 
-      {/* ── モバイル: アカウントドロワー ── */}
-      {isMobile && accountOpen && (
-        <>
-          <div
-            onClick={() => setAccountOpen(false)}
-            style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', zIndex: 399 }}
-          />
-          <div style={{
-            position: 'fixed', top: 0, left: 0, bottom: 0,
-            width: Math.min(300, window.innerWidth * 0.85),
-            background: 'var(--color-bg-white)',
-            zIndex: 400,
-            display: 'flex', flexDirection: 'column',
-            boxShadow: '4px 0 16px rgba(0,0,0,0.2)',
-            overflowY: 'auto',
-          }}>
-            {/* ドロワーヘッダー */}
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '16px 20px', borderBottom: '1px solid var(--color-border)', background: 'var(--color-secondary)', flexShrink: 0 }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-                <div style={{ width: 36, height: 36, borderRadius: '50%', background: 'rgba(255,255,255,0.2)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'white' }}>
-                  <IconUser />
-                </div>
-                <div>
-                  {user ? (
-                    <>
-                      <div style={{ color: 'white', fontWeight: 700, fontSize: 'var(--font-size-base)' }}>{user.email?.split('@')[0]}</div>
-                      <div style={{ color: 'rgba(255,255,255,0.6)', fontSize: 'var(--font-size-xs)' }}>{user.email}</div>
-                    </>
-                  ) : (
-                    <div style={{ color: 'rgba(255,255,255,0.8)', fontSize: 'var(--font-size-sm)' }}>
-                      {lang === 'ja' ? 'ゲスト' : 'Guest'}
-                    </div>
-                  )}
-                </div>
-              </div>
-              <button
-                onClick={() => setAccountOpen(false)}
-                style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'rgba(255,255,255,0.7)', fontSize: 18, lineHeight: 1, padding: '4px 8px' }}
-              >✕</button>
-            </div>
-
-            <div style={{ flex: 1, padding: '20px 20px', display: 'flex', flexDirection: 'column', gap: 20 }}>
-
-              {/* 目標試験 */}
-              {targetExam && (
-                <div>
-                  <div style={{ fontSize: 'var(--font-size-xs)', fontWeight: 700, color: 'var(--color-text-sub)', textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: 6 }}>
-                    {lang === 'ja' ? '目標試験' : 'Target Exam'}
-                  </div>
-                  <span style={{ background: 'var(--color-secondary)', color: 'white', fontSize: 'var(--font-size-sm)', padding: '3px 12px', borderRadius: 'var(--border-radius-full)', fontWeight: 700 }}>
-                    {targetExam}
-                  </span>
-                </div>
-              )}
-
-              {/* 学習進捗 */}
-              {user ? (
-                <div>
-                  <div style={{ fontSize: 'var(--font-size-xs)', fontWeight: 700, color: 'var(--color-text-sub)', textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: 8 }}>
-                    {lang === 'ja' ? '学習進捗' : 'Progress'} — {accountExamType}
-                  </div>
-                  {accountAnsweredCount === null ? (
-                    <div style={{ fontSize: 'var(--font-size-sm)', color: 'var(--color-text-light)' }}>...</div>
-                  ) : (
-                    <>
-                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: 4 }}>
-                        <span style={{ fontSize: 'var(--font-size-sm)', color: 'var(--color-text-sub)' }}>
-                          {lang === 'ja' ? '回答済み' : 'Answered'}
-                        </span>
-                        <span style={{ fontSize: 'var(--font-size-base)', fontWeight: 700, color: 'var(--color-primary)' }}>
-                          {accountAnsweredCount}
-                          <span style={{ fontSize: 'var(--font-size-sm)', fontWeight: 400, color: 'var(--color-text-sub)' }}>
-                            {' / '}{accountExamInfo?.totalQuestions ?? '?'}{lang === 'ja' ? '問' : 'Q'}
-                          </span>
-                        </span>
-                      </div>
-                      <div style={{ background: 'var(--color-border)', borderRadius: 10, height: 8, overflow: 'hidden', marginBottom: 4 }}>
-                        <div style={{
-                          width: `${accountExamInfo?.totalQuestions > 0 ? Math.min(100, Math.round((accountAnsweredCount / accountExamInfo.totalQuestions) * 100)) : 0}%`,
-                          background: 'var(--color-primary)', height: '100%', borderRadius: 10, transition: 'width 0.4s',
-                        }} />
-                      </div>
-                      <div style={{ fontSize: 'var(--font-size-xs)', color: 'var(--color-primary)', textAlign: 'right', fontWeight: 700 }}>
-                        {accountExamInfo?.totalQuestions > 0 ? Math.min(100, Math.round((accountAnsweredCount / accountExamInfo.totalQuestions) * 100)) : 0}%
-                      </div>
-                    </>
-                  )}
-                </div>
-              ) : (
-                <div style={{ fontSize: 'var(--font-size-sm)', color: 'var(--color-text-light)', background: 'var(--color-bg-main)', borderRadius: 'var(--border-radius-md)', padding: '12px 14px' }}>
-                  {lang === 'ja' ? 'ログインすると進捗・成績を確認できます' : 'Log in to view your progress and stats'}
-                </div>
-              )}
-
-              {/* 苦手ドメイン */}
-              {user && (
-                <div>
-                  <div style={{ fontSize: 'var(--font-size-xs)', fontWeight: 700, color: 'var(--color-text-sub)', textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: 8 }}>
-                    {lang === 'ja' ? '苦手ドメイン' : 'Weakest Domains'}
-                  </div>
-                  {accountAnsweredCount === null ? (
-                    <div style={{ fontSize: 'var(--font-size-xs)', color: 'var(--color-text-light)' }}>...</div>
-                  ) : accountAnsweredCount <= 10 ? (
-                    <div style={{ fontSize: 'var(--font-size-xs)', color: 'var(--color-text-light)', fontStyle: 'italic' }}>
-                      {lang === 'ja' ? `回答数が足りません（${accountAnsweredCount}問）` : `Not enough answers yet (${accountAnsweredCount})`}
-                    </div>
-                  ) : rankedWeakDomains.length === 0 ? (
-                    <div style={{ fontSize: 'var(--font-size-xs)', color: 'var(--color-text-light)', fontStyle: 'italic' }}>
-                      {lang === 'ja' ? 'データなし' : 'No data'}
-                    </div>
-                  ) : (
-                    rankedWeakDomains.map(({ d, rate }, i) => (
-                      <div key={d} style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 6 }}>
-                        <span style={{ fontSize: 11, fontWeight: 700, color: 'var(--color-text-light)', width: 14, flexShrink: 0 }}>{i + 1}</span>
-                        <span style={{ fontSize: 'var(--font-size-xs)', color: 'var(--color-text-main)', flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                          {lang === 'en' ? (DOMAIN_NAME_EN[d] ?? d) : d}
-                        </span>
-                        <span style={{ fontSize: 'var(--font-size-xs)', fontWeight: 700, color: 'var(--color-danger)', flexShrink: 0 }}>
-                          {Math.round(rate! * 100)}%
-                        </span>
-                      </div>
-                    ))
-                  )}
-                </div>
-              )}
-
-              {/* テスト履歴 */}
-              {user && accountExamSessions.length > 0 && (
-                <div>
-                  <div style={{ fontSize: 'var(--font-size-xs)', fontWeight: 700, color: 'var(--color-text-sub)', textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: 8 }}>
-                    {lang === 'ja' ? 'テスト履歴' : 'Exam History'} — {accountExamType}
-                  </div>
-                  {accountExamSessions.map(s => {
-                    const d = new Date(s.startedAt);
-                    const dateStr = `${d.getMonth() + 1}/${d.getDate()}`;
-                    return (
-                      <div key={s.sessionId} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '5px 0', borderBottom: '1px solid var(--color-border)' }}>
-                        <span style={{ fontSize: 'var(--font-size-sm)', color: 'var(--color-text-sub)' }}>{dateStr}</span>
-                        <span style={{ fontSize: 'var(--font-size-base)', fontWeight: 700, color: s.isPassed ? 'var(--color-success)' : 'var(--color-danger)' }}>
-                          {s.score}%
-                        </span>
-                      </div>
-                    );
-                  })}
-                </div>
-              )}
-            </div>
-
-            {/* ドロワーフッター */}
-            <div style={{ padding: '16px 20px', borderTop: '1px solid var(--color-border)', display: 'flex', flexDirection: 'column', gap: 8, flexShrink: 0 }}>
-              {user && (
-                <button
-                  onClick={() => { setAccountOpen(false); navigate('/account'); }}
-                  style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '10px 12px', borderRadius: 'var(--border-radius-md)', border: '1px solid var(--color-border)', background: 'none', cursor: 'pointer', fontSize: 'var(--font-size-base)', color: 'var(--color-text-main)', width: '100%', textAlign: 'left' }}
-                >
-                  <span style={{ color: 'var(--color-text-sub)', display: 'flex', alignItems: 'center' }}><IconUserCircle /></span>
-                  <span>{lang === 'ja' ? 'アカウント管理' : 'Account Settings'}</span>
-                </button>
-              )}
-              <button
-                onClick={openContact}
-                style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '10px 12px', borderRadius: 'var(--border-radius-md)', border: '1px solid var(--color-border)', background: 'none', cursor: 'pointer', fontSize: 'var(--font-size-base)', color: 'var(--color-text-sub)', width: '100%', textAlign: 'left' }}
-              >
-                <IconMail />
-                <span>{t('contact.sidebarLabel')}</span>
-              </button>
-              {user ? (
-                <button
-                  onClick={() => { setAccountOpen(false); handleSignOut(); }}
-                  style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 10, padding: '10px 12px', borderRadius: 'var(--border-radius-md)', border: '1px solid var(--color-border)', background: 'none', cursor: 'pointer', fontSize: 'var(--font-size-base)', color: 'var(--color-danger)', width: '100%', fontWeight: 700 }}
-                >
-                  {t('nav.logout')}
-                </button>
-              ) : (
-                <button
-                  onClick={() => { setAccountOpen(false); navigate('/login'); }}
-                  style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 10, padding: '10px 12px', borderRadius: 'var(--border-radius-md)', background: 'transparent', border: '1.5px solid var(--color-primary)', cursor: 'pointer', fontSize: 'var(--font-size-base)', color: 'var(--color-primary)', width: '100%', fontWeight: 700 }}
-                >
-                  {t('nav.login')}
-                </button>
-              )}
-            </div>
-          </div>
-        </>
-      )}
 
       {/* ── モバイル: その他シート ── */}
       {isMobile && othersOpen && (
@@ -596,25 +367,6 @@ export default function Layout({ children }: { children: React.ReactNode }) {
         boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
       }}>
 
-        {/* モバイル: アカウントアイコン */}
-        {isMobile && (
-          <button
-            onClick={() => setAccountOpen(true)}
-            style={{
-              width: 36, height: 36, borderRadius: '50%', flexShrink: 0,
-              background: 'rgba(255,255,255,0.15)',
-              border: '1.5px solid rgba(255,255,255,0.35)',
-              display: 'flex', alignItems: 'center', justifyContent: 'center',
-              cursor: 'pointer', color: 'white',
-              transition: 'background 0.2s',
-            }}
-            onMouseEnter={e => e.currentTarget.style.background = 'rgba(255,255,255,0.25)'}
-            onMouseLeave={e => e.currentTarget.style.background = 'rgba(255,255,255,0.15)'}
-          >
-            <IconUser />
-          </button>
-        )}
-
         {/* サービス名 */}
         <div onClick={() => navigate('/')} style={{ display: 'flex', alignItems: 'center', cursor: 'pointer', userSelect: 'none', flexShrink: 0, padding: '0 4px' }}>
           <img
@@ -624,143 +376,132 @@ export default function Layout({ children }: { children: React.ReactNode }) {
           />
         </div>
 
-        {/* 言語トグル + ユーザー情報 */}
-        <div style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: 'var(--spacing-md)', flexShrink: 0 }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexShrink: 0 }}>
-            <div style={{ display: 'flex', borderRadius: 'var(--border-radius-md)', overflow: 'hidden', border: '1px solid rgba(255,255,255,0.25)' }}>
-              {(['ja', 'en'] as const).map(l => (
-                <button
-                  key={l}
-                  onClick={() => setLang(l)}
-                  style={{
-                    padding: '4px 10px', fontSize: 'var(--font-size-xs)', fontWeight: 700, cursor: 'pointer', border: 'none',
-                    background: lang === l ? 'rgba(255,255,255,0.2)' : 'transparent',
-                    color: lang === l ? 'white' : 'rgba(255,255,255,0.5)',
-                    transition: 'all 0.2s',
-                  }}
-                >
-                  {l.toUpperCase()}
-                </button>
-              ))}
-            </div>
+        {/* アカウントボタン（モバイル・デスクトップ共通） */}
+        <div style={{ marginLeft: 'auto', flexShrink: 0 }}>
+          <div ref={accountDropdownRef} style={{ position: 'relative' }}>
             <button
-              onClick={toggleTheme}
-              title={theme === 'dark'
-                ? (lang === 'ja' ? 'ライトモードに切り替え' : 'Switch to light mode')
-                : (lang === 'ja' ? 'ダークモードに切り替え' : 'Switch to dark mode')}
+              onClick={() => setAccountDropdownOpen(prev => !prev)}
               style={{
-                width: 32, height: 32,
+                display: 'flex', alignItems: 'center', gap: 6,
                 background: 'rgba(255,255,255,0.1)',
-                border: '1px solid rgba(255,255,255,0.25)',
-                borderRadius: 'var(--border-radius-md)',
-                cursor: 'pointer',
-                display: 'flex', alignItems: 'center', justifyContent: 'center',
-                color: 'rgba(255,255,255,0.85)',
+                border: '1px solid rgba(255,255,255,0.35)',
+                borderRadius: isMobile ? '50%' : 'var(--border-radius-md)',
+                cursor: 'pointer', color: 'white',
+                width: isMobile ? 36 : 'auto',
+                height: isMobile ? 36 : 'auto',
+                padding: isMobile ? '0' : '5px 10px',
+                justifyContent: 'center',
+                fontSize: 'var(--font-size-sm)', fontWeight: 600,
                 flexShrink: 0,
-                transition: 'all 0.2s',
+                transition: 'background 0.2s',
               }}
               onMouseEnter={e => e.currentTarget.style.background = 'rgba(255,255,255,0.2)'}
               onMouseLeave={e => e.currentTarget.style.background = 'rgba(255,255,255,0.1)'}
             >
-              {theme === 'dark' ? <IconSun /> : <IconMoon />}
+              {isMobile ? <IconUser /> : (
+                user
+                  ? <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', maxWidth: 140 }}>{user.email?.split('@')[0]}</span>
+                  : <IconUser />
+              )}
             </button>
-          </div>
 
-          {/* デスクトップ: アカウントボタン */}
-          {!isMobile && (
-            user ? (
-              <div ref={accountDropdownRef} style={{ position: 'relative', flexShrink: 0 }}>
-                <button
-                  onClick={() => setAccountDropdownOpen(prev => !prev)}
-                  style={{
-                    display: 'flex', alignItems: 'center',
-                    background: 'transparent',
-                    border: '1px solid rgba(255,255,255,0.35)',
-                    borderRadius: 'var(--border-radius-md)',
-                    cursor: 'pointer', color: 'white',
-                    padding: '5px 10px',
-                    fontSize: 'var(--font-size-sm)', fontWeight: 600,
-                    transition: 'color 0.2s', flexShrink: 0,
-                    maxWidth: 160, overflow: 'hidden',
-                  }}
-                  onMouseEnter={e => { e.currentTarget.style.color = 'var(--color-primary)'; }}
-                  onMouseLeave={e => { e.currentTarget.style.color = 'white'; }}
-                >
-                  <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                    {user.email?.split('@')[0]}
-                  </span>
-                </button>
-
-                {accountDropdownOpen && (
-                  <div style={{
-                    position: 'absolute', top: 'calc(100% + 8px)', right: 0,
-                    background: 'var(--color-bg-white)',
-                    border: '1px solid var(--color-border)',
-                    borderRadius: 'var(--border-radius-lg)',
-                    boxShadow: '0 8px 24px rgba(0,0,0,0.15)',
-                    minWidth: 220,
-                    zIndex: 500,
-                    overflow: 'hidden',
-                  }}>
-                    {/* ユーザー情報 */}
-                    <div style={{ padding: '14px 16px', borderBottom: '1px solid var(--color-border)', background: 'var(--color-bg-main)' }}>
-                      <div style={{ fontWeight: 700, fontSize: 'var(--font-size-base)', color: 'var(--color-text-main)', marginBottom: 2 }}>
-                        {user.email?.split('@')[0]}
-                      </div>
-                      <div style={{ fontSize: 'var(--font-size-xs)', color: 'var(--color-text-light)', wordBreak: 'break-all' }}>
-                        {user.email}
-                      </div>
+            {accountDropdownOpen && (
+              <div style={{
+                position: 'absolute', top: 'calc(100% + 8px)', right: 0,
+                background: 'var(--color-bg-white)',
+                border: '1px solid var(--color-border)',
+                borderRadius: 'var(--border-radius-lg)',
+                boxShadow: '0 8px 24px rgba(0,0,0,0.15)',
+                minWidth: 240,
+                zIndex: 500,
+                overflow: 'hidden',
+              }}>
+                {/* ユーザー情報（ログイン時） */}
+                {user && (
+                  <div style={{ padding: '14px 16px', borderBottom: '1px solid var(--color-border)', background: 'var(--color-bg-main)' }}>
+                    <div style={{ fontWeight: 700, fontSize: 'var(--font-size-base)', color: 'var(--color-text-main)', marginBottom: 2 }}>
+                      {user.email?.split('@')[0]}
                     </div>
+                    <div style={{ fontSize: 'var(--font-size-xs)', color: 'var(--color-text-light)', wordBreak: 'break-all' }}>
+                      {user.email}
+                    </div>
+                  </div>
+                )}
 
-                    {/* アカウント管理リンク */}
+                {/* 言語・外観設定 */}
+                <div style={{ padding: '12px 16px', borderBottom: '1px solid var(--color-border)', display: 'flex', flexDirection: 'column', gap: 10 }}>
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                    <span style={{ fontSize: 'var(--font-size-sm)', color: 'var(--color-text-sub)' }}>
+                      {lang === 'ja' ? '言語' : 'Language'}
+                    </span>
+                    <div style={{ display: 'flex', borderRadius: 'var(--border-radius-md)', overflow: 'hidden', border: '1px solid var(--color-border)' }}>
+                      {(['ja', 'en'] as const).map(l => (
+                        <button key={l} onClick={() => setLang(l)} style={{
+                          padding: '3px 10px', fontSize: 'var(--font-size-xs)', fontWeight: 700, cursor: 'pointer', border: 'none',
+                          background: lang === l ? 'var(--color-primary)' : 'transparent',
+                          color: lang === l ? 'white' : 'var(--color-text-sub)',
+                          transition: 'all 0.15s',
+                        }}>{l.toUpperCase()}</button>
+                      ))}
+                    </div>
+                  </div>
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                    <span style={{ fontSize: 'var(--font-size-sm)', color: 'var(--color-text-sub)' }}>
+                      {lang === 'ja' ? '外観' : 'Appearance'}
+                    </span>
+                    <div style={{ display: 'flex', borderRadius: 'var(--border-radius-md)', overflow: 'hidden', border: '1px solid var(--color-border)' }}>
+                      {(['light', 'dark'] as const).map(th => (
+                        <button key={th} onClick={() => { if (theme !== th) toggleTheme(); }} style={{
+                          padding: '3px 8px', fontSize: 'var(--font-size-xs)', fontWeight: 700, cursor: 'pointer', border: 'none',
+                          background: theme === th ? 'var(--color-primary)' : 'transparent',
+                          color: theme === th ? 'white' : 'var(--color-text-sub)',
+                          transition: 'all 0.15s',
+                          display: 'flex', alignItems: 'center', gap: 3,
+                        }}>
+                          {th === 'light' ? <IconSun /> : <IconMoon />}
+                          {th === 'light' ? (lang === 'ja' ? 'ライト' : 'Light') : (lang === 'ja' ? 'ダーク' : 'Dark')}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+
+                {/* ログイン時: アカウント管理・ログアウト */}
+                {user ? (
+                  <>
                     <button
                       onClick={() => { setAccountDropdownOpen(false); navigate('/account'); }}
-                      style={{
-                        width: '100%', textAlign: 'left',
-                        display: 'flex', alignItems: 'center', gap: 10,
-                        padding: '11px 16px',
-                        border: 'none', background: 'none', cursor: 'pointer',
-                        fontSize: 'var(--font-size-sm)', color: 'var(--color-text-main)',
-                        transition: 'background 0.15s',
-                      }}
+                      style={{ width: '100%', textAlign: 'left', display: 'flex', alignItems: 'center', gap: 10, padding: '11px 16px', border: 'none', background: 'none', cursor: 'pointer', fontSize: 'var(--font-size-sm)', color: 'var(--color-text-main)', transition: 'background 0.15s' }}
                       onMouseEnter={e => e.currentTarget.style.background = 'var(--color-bg-main)'}
                       onMouseLeave={e => e.currentTarget.style.background = 'none'}
                     >
                       <span style={{ color: 'var(--color-text-sub)', display: 'flex', alignItems: 'center' }}><IconUserCircle /></span>
                       <span>{lang === 'ja' ? 'アカウント管理' : 'Account Settings'}</span>
                     </button>
-
                     <div style={{ height: 1, background: 'var(--color-border)' }} />
-
-                    {/* ログアウト */}
                     <button
                       onClick={() => { setAccountDropdownOpen(false); handleSignOut(); }}
-                      style={{
-                        width: '100%', textAlign: 'left',
-                        display: 'flex', alignItems: 'center', gap: 10,
-                        padding: '11px 16px',
-                        border: 'none', background: 'none', cursor: 'pointer',
-                        fontSize: 'var(--font-size-sm)', color: 'var(--color-danger)', fontWeight: 700,
-                        transition: 'background 0.15s',
-                      }}
+                      style={{ width: '100%', textAlign: 'left', display: 'flex', alignItems: 'center', gap: 10, padding: '11px 16px', border: 'none', background: 'none', cursor: 'pointer', fontSize: 'var(--font-size-sm)', color: 'var(--color-danger)', fontWeight: 700, transition: 'background 0.15s' }}
                       onMouseEnter={e => e.currentTarget.style.background = 'var(--color-bg-main)'}
                       onMouseLeave={e => e.currentTarget.style.background = 'none'}
                     >
                       {t('nav.logout')}
                     </button>
-                  </div>
+                  </>
+                ) : (
+                  /* 未ログイン時: ログインボタン */
+                  <button
+                    onClick={() => { setAccountDropdownOpen(false); navigate('/login'); }}
+                    style={{ width: '100%', textAlign: 'left', display: 'flex', alignItems: 'center', gap: 10, padding: '11px 16px', border: 'none', background: 'none', cursor: 'pointer', fontSize: 'var(--font-size-sm)', color: 'var(--color-primary)', fontWeight: 700, transition: 'background 0.15s' }}
+                    onMouseEnter={e => e.currentTarget.style.background = 'var(--color-bg-main)'}
+                    onMouseLeave={e => e.currentTarget.style.background = 'none'}
+                  >
+                    {t('nav.login')}
+                  </button>
                 )}
               </div>
-            ) : (
-              <button onClick={() => navigate('/login')} style={{
-                background: 'none', border: '1px solid rgba(255,255,255,0.35)',
-                color: 'rgba(255,255,255,0.85)', fontSize: 'var(--font-size-sm)', padding: '5px 14px',
-                borderRadius: 'var(--border-radius-full)', cursor: 'pointer', fontWeight: 700,
-              }}>
-                {t('nav.login')}
-              </button>
-            )
-          )}
+            )}
+          </div>
         </div>
       </header>
 
