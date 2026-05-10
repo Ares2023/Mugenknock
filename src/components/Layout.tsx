@@ -57,10 +57,10 @@ const NAV_KEYS = [
 ];
 
 const BOTTOM_TABS = [
-  { path: '/',               Icon: IconHome,    ja: 'ホーム',    en: 'Home'     },
-  { path: '/exercise/setup', Icon: IconPencil,  ja: '演習',      en: 'Practice' },
-  { path: '/exam/setup',     Icon: IconClock,   ja: '模試',      en: 'Exam'     },
-  { path: '/stats',          Icon: IconChart,   ja: '統計・分析', en: 'Stats'    },
+  { path: '/',               Icon: IconHome,    ja: 'ホーム', en: 'Home'     },
+  { path: '/exercise/setup', Icon: IconPencil,  ja: '演習',   en: 'Practice' },
+  { path: '/exam/setup',     Icon: IconClock,   ja: '模試',   en: 'Exam'     },
+  { path: '/stats',          Icon: IconChart,   ja: '統計',   en: 'Stats'    },
 ];
 
 const OTHERS_ITEMS = [
@@ -499,9 +499,18 @@ export default function Layout({ children }: { children: React.ReactNode }) {
 
             {/* ドロワーフッター */}
             <div style={{ padding: '16px 20px', borderTop: '1px solid var(--color-border)', display: 'flex', flexDirection: 'column', gap: 8, flexShrink: 0 }}>
+              {user && (
+                <button
+                  onClick={() => { setAccountOpen(false); navigate('/account'); }}
+                  style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '10px 12px', borderRadius: 'var(--border-radius-md)', border: '1px solid var(--color-border)', background: 'none', cursor: 'pointer', fontSize: 'var(--font-size-base)', color: 'var(--color-text-main)', width: '100%', textAlign: 'left' }}
+                >
+                  <span style={{ color: 'var(--color-text-sub)', display: 'flex', alignItems: 'center' }}><IconUserCircle /></span>
+                  <span>{lang === 'ja' ? 'アカウント管理' : 'Account Settings'}</span>
+                </button>
+              )}
               <button
                 onClick={openContact}
-                style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '10px 12px', borderRadius: 'var(--border-radius-md)', border: '1px solid var(--color-border)', background: 'none', cursor: 'pointer', fontSize: 'var(--font-size-sm)', color: 'var(--color-text-sub)', width: '100%', textAlign: 'left' }}
+                style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '10px 12px', borderRadius: 'var(--border-radius-md)', border: '1px solid var(--color-border)', background: 'none', cursor: 'pointer', fontSize: 'var(--font-size-base)', color: 'var(--color-text-sub)', width: '100%', textAlign: 'left' }}
               >
                 <IconMail />
                 <span>{t('contact.sidebarLabel')}</span>
@@ -509,14 +518,14 @@ export default function Layout({ children }: { children: React.ReactNode }) {
               {user ? (
                 <button
                   onClick={() => { setAccountOpen(false); handleSignOut(); }}
-                  style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 10, padding: '10px 12px', borderRadius: 'var(--border-radius-md)', border: '1px solid var(--color-border)', background: 'none', cursor: 'pointer', fontSize: 'var(--font-size-sm)', color: 'var(--color-danger)', width: '100%', fontWeight: 700 }}
+                  style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 10, padding: '10px 12px', borderRadius: 'var(--border-radius-md)', border: '1px solid var(--color-border)', background: 'none', cursor: 'pointer', fontSize: 'var(--font-size-base)', color: 'var(--color-danger)', width: '100%', fontWeight: 700 }}
                 >
                   {t('nav.logout')}
                 </button>
               ) : (
                 <button
                   onClick={() => { setAccountOpen(false); navigate('/login'); }}
-                  style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 10, padding: '10px 12px', borderRadius: 'var(--border-radius-md)', background: 'transparent', border: '1.5px solid var(--color-primary)', cursor: 'pointer', fontSize: 'var(--font-size-sm)', color: 'var(--color-primary)', width: '100%', fontWeight: 700 }}
+                  style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 10, padding: '10px 12px', borderRadius: 'var(--border-radius-md)', background: 'transparent', border: '1.5px solid var(--color-primary)', cursor: 'pointer', fontSize: 'var(--font-size-base)', color: 'var(--color-primary)', width: '100%', fontWeight: 700 }}
                 >
                   {t('nav.login')}
                 </button>
@@ -953,10 +962,10 @@ export default function Layout({ children }: { children: React.ReactNode }) {
                   padding: '6px 4px',
                 }}
               >
-                <span style={{ display: 'flex', alignItems: 'center', transform: 'scale(1.3)', marginBottom: 1 }}>
+                <span style={{ display: 'flex', alignItems: 'center', transform: 'scale(1.2)', marginBottom: 2 }}>
                   <Icon />
                 </span>
-                <span style={{ fontSize: 9, fontWeight: active ? 700 : 400, lineHeight: 1, whiteSpace: 'nowrap' }}>
+                <span style={{ fontSize: 11, fontWeight: active ? 700 : 400, lineHeight: 1, whiteSpace: 'nowrap' }}>
                   {label}
                 </span>
               </button>
@@ -975,7 +984,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
             <span style={{ display: 'flex', alignItems: 'center' }}>
               <IconMore />
             </span>
-            <span style={{ fontSize: 9, fontWeight: isOthersActive || othersOpen ? 700 : 400, lineHeight: 1 }}>
+            <span style={{ fontSize: 11, fontWeight: isOthersActive || othersOpen ? 700 : 400, lineHeight: 1 }}>
               {lang === 'ja' ? 'その他' : 'More'}
             </span>
           </button>

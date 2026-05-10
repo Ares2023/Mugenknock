@@ -387,36 +387,36 @@ export default function Growth() {
         </p>
       </div>
 
-      {/* メインタブ + 日次/月次トグル */}
-      <div style={{ display: 'flex', alignItems: 'flex-end', justifyContent: 'space-between', borderBottom: '2px solid var(--color-border)', marginBottom: 20 }}>
-        <div style={{ display: 'flex' }}>
-          {MAIN_TABS.map(tab => (
-            <button
-              key={tab.key}
-              onClick={() => setMainTab(tab.key)}
-              style={{
-                background: 'none', border: 'none', cursor: 'pointer',
-                padding: '10px 20px',
-                fontSize: 'var(--font-size-base)',
-                fontWeight: mainTab === tab.key ? 700 : 400,
-                color: mainTab === tab.key ? 'var(--color-primary)' : 'var(--color-text-sub)',
-                borderBottom: mainTab === tab.key ? '2px solid var(--color-primary)' : '2px solid transparent',
-                marginBottom: -2, transition: 'all 0.15s', whiteSpace: 'nowrap',
-              }}
-            >
-              {tab.label}
-            </button>
-          ))}
-        </div>
+      {/* メインタブ */}
+      <div style={{ display: 'flex', borderBottom: '2px solid var(--color-border)', marginBottom: 0 }}>
+        {MAIN_TABS.map(tab => (
+          <button
+            key={tab.key}
+            onClick={() => setMainTab(tab.key)}
+            style={{
+              background: 'none', border: 'none', cursor: 'pointer',
+              padding: '10px 20px',
+              fontSize: 'var(--font-size-base)',
+              fontWeight: mainTab === tab.key ? 700 : 400,
+              color: mainTab === tab.key ? 'var(--color-primary)' : 'var(--color-text-sub)',
+              borderBottom: mainTab === tab.key ? '2px solid var(--color-primary)' : '2px solid transparent',
+              marginBottom: -2, transition: 'all 0.15s', whiteSpace: 'nowrap',
+            }}
+          >
+            {tab.label}
+          </button>
+        ))}
+      </div>
 
-        {/* 日次/月次トグル */}
-        <div style={{ display: 'flex', borderRadius: 'var(--border-radius-md)', overflow: 'hidden', border: '1px solid var(--color-border)', marginBottom: 2 }}>
+      {/* 日次/月次トグル（タブの下） */}
+      <div style={{ display: 'flex', justifyContent: 'flex-end', padding: '10px 0', marginBottom: 12 }}>
+        <div style={{ display: 'flex', borderRadius: 'var(--border-radius-md)', overflow: 'hidden', border: '1px solid var(--color-border)' }}>
           {(['daily', 'monthly'] as ViewMode[]).map(v => (
             <button
               key={v}
               onClick={() => setView(v)}
               style={{
-                padding: '4px 12px', fontSize: 'var(--font-size-sm)', fontWeight: 600,
+                padding: '4px 14px', fontSize: 'var(--font-size-sm)', fontWeight: 600,
                 border: 'none', cursor: 'pointer',
                 background: view === v ? 'var(--color-primary)' : 'transparent',
                 color: view === v ? 'white' : 'var(--color-text-sub)',
