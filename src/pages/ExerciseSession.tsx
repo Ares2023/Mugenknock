@@ -498,8 +498,11 @@ export default function ExerciseSession() {
           const lastResult = results[results.length - 1];
           if (!displayQ.correctAnswers) {
             return (
-              <div style={{ padding: '12px 16px', marginBottom: 'var(--spacing-xl)', color: 'var(--color-text-light)', fontSize: 'var(--font-size-sm)' }}>
-                {lang === 'ja' ? '解説を読み込み中...' : 'Loading explanation...'}
+              <div style={{ padding: '12px 16px', marginBottom: 'var(--spacing-xl)', display: 'flex', alignItems: 'center', gap: 10 }}>
+                <div className="sherpa-spinner" style={{ width: 18, height: 18, borderWidth: 2, flexShrink: 0 }} />
+                <span style={{ color: 'var(--color-text-light)', fontSize: 'var(--font-size-sm)' }}>
+                  {lang === 'ja' ? '解説を読み込み中...' : 'Loading explanation...'}
+                </span>
               </div>
             );
           }

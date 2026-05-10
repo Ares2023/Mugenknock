@@ -5,13 +5,13 @@ import { useLanguage } from '../contexts/LanguageContext';
 type ViewMode = 'daily' | 'monthly';
 
 interface GrowthData {
-  daily: { dates: string[]; created: number[]; verified: number[]; createdCumulative: number[]; verifiedCumulative: number[] };
-  monthly: { months: string[]; created: number[]; verified: number[]; createdCumulative: number[]; verifiedCumulative: number[] };
+  daily: { dates: string[]; created: number[]; verified: number[]; createdCumulative: number[]; verifiedCumulative: number[]; createdByExam?: Array<Record<string, number>> };
+  monthly: { months: string[]; created: number[]; verified: number[]; createdCumulative: number[]; verifiedCumulative: number[]; createdByExam?: Array<Record<string, number>> };
   total: number;
   totalVerified: number;
 }
 
-function DualBarChart({ labels, s1, s2, label1, label2, color1, color2 }: {
+function DualBarChart({ labels, s1, s2, label1, label2, color1, color2, breakdown }: {
   labels: string[];
   s1: number[];
   s2: number[];
@@ -19,8 +19,9 @@ function DualBarChart({ labels, s1, s2, label1, label2, color1, color2 }: {
   label2: string;
   color1: string;
   color2: string;
+  breakdown?: Array<Record<string, number>>;
 }) {
-  const [tooltip, setTooltip] = useState<{ x: number; y: number; label: string; v1: number; v2: number } | null>(null);
+  const [tooltip, setTooltip] = useState<{ x: number; y: number; label: string; v1: number; v2: number; examRows: [string, number][] } | null>(null);
   const n = labels.length;
   const safe1 = s1 ?? [];
   const safe2 = s2 ?? [];
@@ -71,7 +72,12 @@ function DualBarChart({ labels, s1, s2, label1, label2, color1, color2 }: {
       {/* Bars */}
       {labels.map((label, i) => (
         <g key={i}
-          onMouseEnter={() => setTooltip({ x: lx(i), y: MT + Math.min(by(safe1[i]), by(safe2[i])), label, v1: safe1[i], v2: safe2[i] })}
+          onMouseEnter={() => {
+            const examRows: [string, number][] = breakdown?.[i]
+              ? Object.entries(breakdown[i]).sort((a, b) => b[1] - a[1]).filter(([, v]) => v > 0)
+              : [];
+            setTooltip({ x: lx(i), y: MT + Math.min(by(safe1[i]), by(safe2[i])), label, v1: safe1[i], v2: safe2[i], examRows });
+          }}
           onMouseLeave={() => setTooltip(null)}
           style={{ cursor: 'default' }}
         >
@@ -94,23 +100,35 @@ function DualBarChart({ labels, s1, s2, label1, label2, color1, color2 }: {
         </g>
       ))}
       {tooltip && (() => {
-        const { x, y, label, v1, v2 } = tooltip;
-        const lines = [label, `${label1}: ${v1}`, `${label2}: ${v2}`];
-        const lineH = 13, pad = 7, boxW = 112;
-        const boxH = lines.length * lineH + pad * 2;
+        const { x, y, label, v1, v2, examRows } = tooltip;
+        const headerLines = [label, `${label1}: ${v1}`, `${label2}: ${v2}`];
+        const allLines: { text: string; bold: boolean; indent: boolean }[] = [
+          { text: label, bold: true, indent: false },
+          { text: `${label1}: ${v1}`, bold: false, indent: false },
+          { text: `${label2}: ${v2}`, bold: false, indent: false },
+          ...examRows.map(([exam, cnt]) => ({ text: `${exam}: ${cnt}`, bold: false, indent: true })),
+        ];
+        const lineH = 13, pad = 7;
+        const boxW = examRows.length > 0 ? 130 : 112;
+        const boxH = allLines.length * lineH + pad * 2 + (examRows.length > 0 ? 4 : 0);
         const boxX = Math.min(x + 8, W - MR - boxW);
         const boxY = Math.max(MT, Math.min(y - boxH / 2, H - MB - boxH));
+        let lineY = boxY + pad;
         return (
           <g style={{ pointerEvents: 'none' }}>
             <rect x={boxX} y={boxY} width={boxW} height={boxH} rx={4}
               style={{ fill: 'var(--color-bg-white)', stroke: 'var(--color-border)', strokeWidth: 1, filter: 'drop-shadow(0 2px 4px rgba(0,0,0,0.12))' }} />
-            {lines.map((line, li) => (
-              <text key={li} x={boxX + pad} y={boxY + pad + (li + 1) * lineH - 2}
-                fontSize={9} fontWeight={li === 0 ? '700' : '400'}
-                style={{ fill: li === 0 ? 'var(--color-text-main)' : 'var(--color-text-sub)' }}>
-                {line}
-              </text>
-            ))}
+            {allLines.map((item, li) => {
+              lineY += lineH;
+              const isFirstExam = li === headerLines.length && examRows.length > 0;
+              return (
+                <text key={li} x={boxX + pad + (item.indent ? 6 : 0)} y={lineY - 2 + (isFirstExam ? 4 : 0)}
+                  fontSize={9} fontWeight={item.bold ? '700' : '400'}
+                  style={{ fill: item.bold ? 'var(--color-text-main)' : item.indent ? 'var(--color-text-light)' : 'var(--color-text-sub)' }}>
+                  {item.text}
+                </text>
+              );
+            })}
           </g>
         );
       })()}
@@ -271,8 +289,8 @@ export default function Growth() {
 
   if (loading) {
     return (
-      <div style={{ padding: '48px 24px', textAlign: 'center', color: 'var(--color-text-light)' }}>
-        {lang === 'ja' ? '読み込み中...' : 'Loading...'}
+      <div style={{ padding: '48px 24px', display: 'flex', justifyContent: 'center' }}>
+        <div className="sherpa-spinner" style={{ width: 32, height: 32, borderWidth: 3 }} />
       </div>
     );
   }
@@ -370,6 +388,7 @@ export default function Growth() {
               label2={lang === 'ja' ? '確認済' : 'Verified'}
               color1="var(--color-primary)"
               color2="var(--color-success)"
+              breakdown={data.daily.createdByExam}
             />
           </div>
           <div style={{ ...chartBoxStyle, marginTop: 16 }}>
@@ -411,6 +430,7 @@ export default function Growth() {
               label2={lang === 'ja' ? '確認済' : 'Verified'}
               color1="var(--color-primary)"
               color2="var(--color-success)"
+              breakdown={data.monthly.createdByExam}
             />
           </div>
           <div style={{ ...chartBoxStyle, marginTop: 16 }}>
