@@ -8,8 +8,8 @@ import Breadcrumb from './Breadcrumb';
 import Button from './ui/Button';
 import {
   IconHome, IconPencil, IconClock, IconList,
-  IconUser, IconChart, IconInfo, IconGear,
-  IconBell, IconMenu, IconClose, IconChevronLeft, IconMail, IconTrendingUp,
+  IconUser, IconChart, IconInfo, IconUserCircle,
+  IconFire, IconMenu, IconClose, IconChevronLeft, IconMail, IconTrendingUp,
   IconSparkles
 } from './Icons';
 
@@ -52,7 +52,7 @@ const NAV_KEYS = [
   { path: '/stats',          labelKey: 'nav.stats',        Icon: IconChart        },
   { path: '/questions',      labelKey: 'nav.questions',    Icon: IconList,        bottom: true },
   { path: '/growth',         labelKey: 'nav.growth',       Icon: IconSparkles,       bottom: true },
-  { path: '/release-notes',  labelKey: 'nav.releaseNotes', Icon: IconBell,        bottom: true },
+  { path: '/release-notes',  labelKey: 'nav.releaseNotes', Icon: IconFire,        bottom: true },
   { path: '/architecture',   labelKey: 'nav.architecture', Icon: IconInfo,        bottom: true },
 ];
 
@@ -66,7 +66,7 @@ const BOTTOM_TABS = [
 const OTHERS_ITEMS = [
   { path: '/questions',     Icon: IconList,       labelKey: 'nav.questions'    },
   { path: '/growth',        Icon: IconSparkles,      labelKey: 'nav.growth'       },
-  { path: '/release-notes', Icon: IconBell,       labelKey: 'nav.releaseNotes' },
+  { path: '/release-notes', Icon: IconFire,       labelKey: 'nav.releaseNotes' },
   { path: '/architecture',  Icon: IconInfo,       labelKey: 'nav.architecture' },
 ];
 
@@ -718,7 +718,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
                       onMouseEnter={e => e.currentTarget.style.background = 'var(--color-bg-main)'}
                       onMouseLeave={e => e.currentTarget.style.background = 'none'}
                     >
-                      <span style={{ color: 'var(--color-text-sub)', display: 'flex', alignItems: 'center' }}><IconGear /></span>
+                      <span style={{ color: 'var(--color-text-sub)', display: 'flex', alignItems: 'center' }}><IconUserCircle /></span>
                       <span>{lang === 'ja' ? 'アカウント管理' : 'Account Settings'}</span>
                     </button>
 
