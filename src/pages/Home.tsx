@@ -19,7 +19,9 @@ export default function Home() {
   const [targetExam, setTargetExam] = useState<string | null>(() => localStorage.getItem(TARGET_EXAM_KEY));
   const [showOnboarding, setShowOnboarding] = useState(() => !localStorage.getItem('sherpaOnboarded'));
   const [dropdownOpen, setDropdownOpen] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
   const dropdownRef = useRef<HTMLDivElement>(null);
+  const searchInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     const handler = (e: MouseEvent) => {
@@ -31,6 +33,14 @@ export default function Home() {
     return () => document.removeEventListener('mousedown', handler);
   }, []);
 
+  useEffect(() => {
+    if (dropdownOpen) {
+      setTimeout(() => searchInputRef.current?.focus(), 0);
+    } else {
+      setSearchQuery('');
+    }
+  }, [dropdownOpen]);
+
   const dismissOnboarding = () => {
     localStorage.setItem('sherpaOnboarded', '1');
     setShowOnboarding(false);
@@ -41,6 +51,14 @@ export default function Home() {
     setTargetExam(et);
     setDropdownOpen(false);
   };
+
+  const filteredExamTypes = EXAM_TYPES.filter(et => {
+    if (!searchQuery) return true;
+    const q = searchQuery.toLowerCase();
+    return et.toLowerCase().includes(q)
+      || EXAM_CONFIGS[et].fullName.toLowerCase().includes(q)
+      || EXAM_LEVEL[et].toLowerCase().includes(q);
+  });
 
   const cfg = targetExam ? EXAM_CONFIGS[targetExam] : null;
   const domains = targetExam ? EXAM_DOMAINS[targetExam] : [];
@@ -117,43 +135,108 @@ export default function Home() {
               background: 'var(--color-bg-white)', border: '1px solid var(--color-border)',
               borderRadius: 'var(--border-radius-md)', boxShadow: '0 4px 16px rgba(0,0,0,0.12)',
               zIndex: 300, overflow: 'hidden',
-            }}>
-              {(['Foundational', 'Associate', 'Professional'] as const).map((level, li) => (
-                <div key={level}>
-                  {li > 0 && <div style={{ height: 1, background: 'var(--color-border)', margin: '4px 0' }} />}
-                  <div style={{
-                    padding: '6px 12px 2px',
-                    fontSize: 'var(--font-size-xs)', fontWeight: 700,
-                    color: 'var(--color-text-light)', textTransform: 'uppercase', letterSpacing: '0.5px',
-                  }}>
-                    {level}
-                  </div>
-                  {EXAM_TYPES.filter(et => EXAM_LEVEL[et] === level).map(et => {
-                    const selected = targetExam === et;
+            }}
+              onKeyDown={e => { if (e.key === 'Escape') setDropdownOpen(false); }}
+            >
+              {/* 検索入力 */}
+              <div style={{ padding: '8px 8px 4px', borderBottom: '1px solid var(--color-border)' }}>
+                <input
+                  ref={searchInputRef}
+                  type="text"
+                  value={searchQuery}
+                  onChange={e => setSearchQuery(e.target.value)}
+                  placeholder={lang === 'ja' ? '資格名・コードで検索...' : 'Search by name or code...'}
+                  style={{
+                    width: '100%', boxSizing: 'border-box',
+                    padding: '6px 10px',
+                    border: '1px solid var(--color-border)',
+                    borderRadius: 'var(--border-radius-sm)',
+                    fontSize: 'var(--font-size-sm)',
+                    outline: 'none',
+                    background: 'var(--color-bg-main)',
+                    color: 'var(--color-text-main)',
+                  }}
+                  onFocus={e => e.currentTarget.style.borderColor = 'var(--color-primary)'}
+                  onBlur={e => e.currentTarget.style.borderColor = 'var(--color-border)'}
+                />
+              </div>
+
+              {/* リスト */}
+              <div style={{ maxHeight: 260, overflowY: 'auto' }}>
+                {searchQuery ? (
+                  filteredExamTypes.length === 0 ? (
+                    <div style={{ padding: '14px 12px', textAlign: 'center', color: 'var(--color-text-light)', fontSize: 'var(--font-size-sm)' }}>
+                      {lang === 'ja' ? '該当なし' : 'No results'}
+                    </div>
+                  ) : (
+                    filteredExamTypes.map(et => {
+                      const selected = targetExam === et;
+                      return (
+                        <button
+                          key={et}
+                          onClick={() => handleSelectExam(et)}
+                          style={{
+                            width: '100%', display: 'flex', alignItems: 'center', gap: 8,
+                            padding: '7px 12px', border: 'none', cursor: 'pointer', textAlign: 'left',
+                            background: selected ? 'var(--color-primary-light)' : 'transparent',
+                            color: selected ? 'var(--color-primary)' : 'var(--color-text-main)',
+                            fontSize: 'var(--font-size-sm)', transition: 'background 0.1s',
+                          }}
+                          onMouseEnter={e => { if (!selected) e.currentTarget.style.background = 'var(--color-bg-main)'; }}
+                          onMouseLeave={e => { if (!selected) e.currentTarget.style.background = 'transparent'; }}
+                        >
+                          <span style={{ fontWeight: 700, minWidth: 36, flexShrink: 0 }}>{et}</span>
+                          <span style={{ color: selected ? 'var(--color-primary)' : 'var(--color-text-sub)', fontSize: 'var(--font-size-xs)' }}>
+                            — {EXAM_CONFIGS[et].fullName}
+                          </span>
+                          {selected && <span style={{ marginLeft: 'auto', fontSize: 12, flexShrink: 0 }}>✓</span>}
+                        </button>
+                      );
+                    })
+                  )
+                ) : (
+                  (['Foundational', 'Associate', 'Professional'] as const).map((level, li) => {
+                    const items = EXAM_TYPES.filter(et => EXAM_LEVEL[et] === level);
+                    if (items.length === 0) return null;
                     return (
-                      <button
-                        key={et}
-                        onClick={() => handleSelectExam(et)}
-                        style={{
-                          width: '100%', display: 'flex', alignItems: 'center', gap: 8,
-                          padding: '7px 12px', border: 'none', cursor: 'pointer', textAlign: 'left',
-                          background: selected ? 'var(--color-primary-light)' : 'transparent',
-                          color: selected ? 'var(--color-primary)' : 'var(--color-text-main)',
-                          fontSize: 'var(--font-size-sm)', transition: 'background 0.1s',
-                        }}
-                        onMouseEnter={e => { if (!selected) e.currentTarget.style.background = 'var(--color-bg-main)'; }}
-                        onMouseLeave={e => { if (!selected) e.currentTarget.style.background = 'transparent'; }}
-                      >
-                        <span style={{ fontWeight: 700, minWidth: 36, flexShrink: 0 }}>{et}</span>
-                        <span style={{ color: selected ? 'var(--color-primary)' : 'var(--color-text-sub)', fontSize: 'var(--font-size-xs)' }}>
-                          — {EXAM_CONFIGS[et].fullName}
-                        </span>
-                        {selected && <span style={{ marginLeft: 'auto', fontSize: 12, flexShrink: 0 }}>✓</span>}
-                      </button>
+                      <div key={level}>
+                        {li > 0 && <div style={{ height: 1, background: 'var(--color-border)', margin: '4px 0' }} />}
+                        <div style={{
+                          padding: '6px 12px 2px',
+                          fontSize: 'var(--font-size-xs)', fontWeight: 700,
+                          color: 'var(--color-text-light)', textTransform: 'uppercase', letterSpacing: '0.5px',
+                        }}>
+                          {level}
+                        </div>
+                        {items.map(et => {
+                          const selected = targetExam === et;
+                          return (
+                            <button
+                              key={et}
+                              onClick={() => handleSelectExam(et)}
+                              style={{
+                                width: '100%', display: 'flex', alignItems: 'center', gap: 8,
+                                padding: '7px 12px', border: 'none', cursor: 'pointer', textAlign: 'left',
+                                background: selected ? 'var(--color-primary-light)' : 'transparent',
+                                color: selected ? 'var(--color-primary)' : 'var(--color-text-main)',
+                                fontSize: 'var(--font-size-sm)', transition: 'background 0.1s',
+                              }}
+                              onMouseEnter={e => { if (!selected) e.currentTarget.style.background = 'var(--color-bg-main)'; }}
+                              onMouseLeave={e => { if (!selected) e.currentTarget.style.background = 'transparent'; }}
+                            >
+                              <span style={{ fontWeight: 700, minWidth: 36, flexShrink: 0 }}>{et}</span>
+                              <span style={{ color: selected ? 'var(--color-primary)' : 'var(--color-text-sub)', fontSize: 'var(--font-size-xs)' }}>
+                                — {EXAM_CONFIGS[et].fullName}
+                              </span>
+                              {selected && <span style={{ marginLeft: 'auto', fontSize: 12, flexShrink: 0 }}>✓</span>}
+                            </button>
+                          );
+                        })}
+                      </div>
                     );
-                  })}
-                </div>
-              ))}
+                  })
+                )}
+              </div>
             </div>
           )}
         </div>
