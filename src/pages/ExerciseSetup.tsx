@@ -330,8 +330,10 @@ export default function ExerciseSetup() {
               </div>
               <div style={{ background: 'var(--color-bg-main)', borderRadius: 10, height: 8, overflow: 'hidden', marginBottom: 6 }}>
                 <div style={{
-                  width: `${exercisePct}%`, height: '100%', borderRadius: 10, transition: 'width 0.6s',
+                  width: `${exercisePct}%`, height: '100%', borderRadius: 10,
                   background: exercisePct >= 60 ? 'var(--color-success)' : exercisePct >= 30 ? 'var(--color-caution)' : 'var(--color-primary)',
+                  transformOrigin: 'left center',
+                  animation: 'growWidth 0.9s cubic-bezier(0.4, 0, 0.2, 1) 0.1s both',
                 }} />
               </div>
               <div style={{ fontSize: 'var(--font-size-xs)', color: 'var(--color-text-light)', textAlign: 'right' }}>

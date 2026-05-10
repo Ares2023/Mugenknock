@@ -274,6 +274,14 @@ button:active:not(:disabled) {
 
 /* ── Animations ── */
 
+@keyframes growBar {
+  from { transform: scaleY(0); }
+}
+
+@keyframes growWidth {
+  from { transform: scaleX(0); }
+}
+
 @keyframes fadeSlideIn {
   from { opacity: 0; transform: translateY(8px); }
   to   { opacity: 1; transform: translateY(0); }

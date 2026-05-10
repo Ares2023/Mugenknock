@@ -103,6 +103,7 @@ const ScoreLineChart = ({ sessions, passRate, lang }: { sessions: Session[]; pas
 // ── 日次活動棒グラフ（万歩計） ───────────────────────────────────────
 const ActivityChart = ({ data, lang }: { data: { label: string; count: number; isToday: boolean }[]; lang: string }) => {
   const [tooltip, setTooltip] = useState<{ x: number; y: number; label: string; count: number; isToday: boolean } | null>(null);
+  const chartKey = data.length + '-' + data.map(d => d.count).join(',');
   const W = 600, H = 160;
   const padL = 28, padR = 8, padT = 24, padB = 30;
   const chartW = W - padL - padR;
@@ -114,7 +115,7 @@ const ActivityChart = ({ data, lang }: { data: { label: string; count: number; i
   const showEvery = n <= 7 ? 1 : n <= 14 ? 2 : 5;
 
   return (
-    <svg viewBox={`0 0 ${W} ${H}`} style={{ width: '100%', height: 'auto', display: 'block' }} role="img">
+    <svg key={chartKey} viewBox={`0 0 ${W} ${H}`} style={{ width: '100%', height: 'auto', display: 'block' }} role="img">
       {[0, Math.round(maxCount / 2), maxCount].filter((v, i, a) => a.indexOf(v) === i).map(v => (
         <g key={v}>
           <line x1={padL} y1={padT + chartH * (1 - v / maxCount)} x2={W - padR} y2={padT + chartH * (1 - v / maxCount)}
@@ -135,10 +136,17 @@ const ActivityChart = ({ data, lang }: { data: { label: string; count: number; i
             <rect x={padL + slotW * i} y={padT} width={slotW} height={chartH} fill="transparent" />
             {d.count > 0 && (
               <rect x={cx - barW / 2} y={y} width={barW} height={barH} rx={3}
-                fill={d.isToday ? 'var(--color-success)' : 'var(--color-primary)'} opacity={d.isToday ? 1 : 0.55} />
+                fill={d.isToday ? 'var(--color-success)' : 'var(--color-primary)'} opacity={d.isToday ? 1 : 0.55}
+                style={{
+                  transformBox: 'fill-box',
+                  transformOrigin: 'center bottom',
+                  animation: `growBar 0.45s cubic-bezier(0.34, 1.56, 0.64, 1) ${i * 22}ms both`,
+                }}
+              />
             )}
             {d.count > 0 && (
-              <text x={cx} y={y - 5} textAnchor="middle" fontSize={9} fontWeight="700" fill={d.isToday ? 'var(--color-success)' : 'var(--color-text-sub)'}>
+              <text x={cx} y={y - 5} textAnchor="middle" fontSize={9} fontWeight="700" fill={d.isToday ? 'var(--color-success)' : 'var(--color-text-sub)'}
+                style={{ animation: `sherpa-fade-in 0.3s ease ${0.25 + i * 0.022}s both` }}>
                 {d.count}
               </text>
             )}
@@ -357,8 +365,10 @@ export default function Stats() {
                 {/* HP バー */}
                 <div style={{ background: 'var(--color-bg-main)', borderRadius: 10, height: 8, overflow: 'hidden', marginBottom: 6 }}>
                   <div style={{
-                    width: `${pct}%`, height: '100%', borderRadius: 10, transition: 'width 0.6s',
+                    width: `${pct}%`, height: '100%', borderRadius: 10,
                     background: pct >= 60 ? 'var(--color-success)' : pct >= 30 ? 'var(--color-caution)' : 'var(--color-primary)',
+                    transformOrigin: 'left center',
+                    animation: 'growWidth 0.8s cubic-bezier(0.4, 0, 0.2, 1) both',
                   }} />
                 </div>
                 <div style={{ fontSize: 'var(--font-size-xs)', color: 'var(--color-text-light)', textAlign: 'right' }}>
@@ -454,8 +464,10 @@ export default function Stats() {
                       </div>
                       <div style={{ background: 'var(--color-bg-main)', borderRadius: 10, height: 8, overflow: 'hidden' }}>
                         <div style={{
-                          width: rate !== null ? `${rate}%` : '0%', height: '100%', borderRadius: 10, transition: 'width 0.4s',
+                          width: rate !== null ? `${rate}%` : '0%', height: '100%', borderRadius: 10,
                           background: rate === null ? 'var(--color-border)' : rate >= STATS_GOOD_RATE ? 'var(--color-success)' : rate >= STATS_FAIR_RATE ? 'var(--color-caution)' : 'var(--color-danger)',
+                          transformOrigin: 'left center',
+                          animation: 'growWidth 0.6s cubic-bezier(0.4, 0, 0.2, 1) both',
                         }} />
                       </div>
                     </div>
