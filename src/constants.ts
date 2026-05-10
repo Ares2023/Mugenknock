@@ -27,12 +27,12 @@ export const PASS_RATE: Record<string, number> = {
   GAI: 75,
 };
 
-// 試験の出題ドメイン（出題範囲分類）
+// 試験の出題ドメイン（公式試験ガイドの表記に完全一致）
 export const EXAM_DOMAINS: Record<string, string[]> = {
-  CLF: ['クラウドのコンセプト', 'セキュリティとコンプライアンス', 'クラウドテクノロジーとサービス', '請求・料金・サポート'],
-  SAA: ['セキュアなアーキテクチャの設計', '弾力性に優れたアーキテクチャの設計', '高パフォーマンスなアーキテクチャの設計', 'コスト最適化されたアーキテクチャの設計'],
-  SAP: ['組織の複雑さに対応したソリューションの設計', '新しいソリューションの設計', '既存ソリューションの継続的改善', 'ワークロードの移行とモダナイゼーション'],
-  DOP: ['SDLC の自動化', '設定管理と IaC', '高可用性、耐障害性、およびディザスタリカバリ', 'モニタリングとログ', 'セキュリティとコンプライアンスの自動化'],
+  CLF: ['クラウドの概念', 'セキュリティとコンプライアンス', 'クラウドのテクノロジーとサービス', '請求、料金、およびサポート'],
+  SAA: ['セキュアなアーキテクチャの設計', '弾力性に優れたアーキテクチャの設計', '高性能なアーキテクチャの設計', 'コスト最適化されたアーキテクチャの設計'],
+  SAP: ['組織の複雑さに対応する設計', '新しいソリューションのための設計', '既存のソリューションの継続的改善', 'ワークロードの移行とモダン化の加速'],
+  DOP: ['SDLC の自動化', '構成管理と Infrastructure as Code (IaC)', '弾力性に優れたクラウドソリューション', 'モニタリングとロギング', 'インシデントとイベントへの対応', 'セキュリティとコンプライアンス'],
   AIF: ['AIとMLの基礎', '生成AIの基礎', '基盤モデルのアプリケーション', '責任あるAIのガイドライン', 'AIソリューションのセキュリティ、コンプライアンス、ガバナンス'],
   MLA: ['機械学習のためのデータ準備', 'MLモデルの開発', 'MLワークフローのデプロイとオーケストレーション', 'MLソリューションの監視、メンテナンス、セキュリティ'],
   GAI: ['生成AIソリューションの設計と評価', '基盤モデルのカスタマイズとファインチューニング', '生成AIアプリケーションの実装とデプロイ', 'エージェントとオーケストレーションのアーキテクチャ', 'セキュリティ、ガバナンス、責任あるAI'],
@@ -40,32 +40,40 @@ export const EXAM_DOMAINS: Record<string, string[]> = {
 
 // ドメイン名の英語対応（日本語キー → 英語表示）
 export const DOMAIN_NAME_EN: Record<string, string> = {
-  'クラウドのコンセプト': 'Cloud Concepts',
+  // CLF
+  'クラウドの概念': 'Cloud Concepts',
   'セキュリティとコンプライアンス': 'Security and Compliance',
-  'クラウドテクノロジーとサービス': 'Cloud Technology and Services',
-  '請求・料金・サポート': 'Billing, Pricing, and Support',
+  'クラウドのテクノロジーとサービス': 'Cloud Technology and Services',
+  '請求、料金、およびサポート': 'Billing, Pricing, and Support',
+  // SAA
   'セキュアなアーキテクチャの設計': 'Design Secure Architectures',
   '弾力性に優れたアーキテクチャの設計': 'Design Resilient Architectures',
-  '高パフォーマンスなアーキテクチャの設計': 'Design High-Performing Architectures',
+  '高性能なアーキテクチャの設計': 'Design High-Performing Architectures',
   'コスト最適化されたアーキテクチャの設計': 'Design Cost-Optimized Architectures',
-  '組織の複雑さに対応したソリューションの設計': 'Design for Organizational Complexity',
-  '新しいソリューションの設計': 'Design for New Solutions',
-  '既存ソリューションの継続的改善': 'Continuous Improvement for Existing Solutions',
-  'ワークロードの移行とモダナイゼーション': 'Accelerate Workload Migration and Modernization',
+  // SAP
+  '組織の複雑さに対応する設計': 'Design for Organizational Complexity',
+  '新しいソリューションのための設計': 'Design for New Solutions',
+  '既存のソリューションの継続的改善': 'Continuous Improvement for Existing Solutions',
+  'ワークロードの移行とモダン化の加速': 'Accelerate Workload Migration and Modernization',
+  // DOP
   'SDLC の自動化': 'SDLC Automation',
-  '設定管理と IaC': 'Configuration Management and IaC',
-  '高可用性、耐障害性、およびディザスタリカバリ': 'High Availability, Fault Tolerance, and DR',
-  'モニタリングとログ': 'Monitoring and Logging',
-  'セキュリティとコンプライアンスの自動化': 'Security and Compliance Automation',
+  '構成管理と Infrastructure as Code (IaC)': 'Configuration Management and IaC',
+  '弾力性に優れたクラウドソリューション': 'Resilient Cloud Solutions',
+  'モニタリングとロギング': 'Monitoring and Logging',
+  'インシデントとイベントへの対応': 'Incident and Event Response',
+  // 'セキュリティとコンプライアンス' は CLF と共通キーのため CLF 側で定義済み
+  // AIF
   'AIとMLの基礎': 'Fundamentals of AI and ML',
   '生成AIの基礎': 'Fundamentals of Generative AI',
   '基盤モデルのアプリケーション': 'Applications of Foundation Models',
   '責任あるAIのガイドライン': 'Guidelines for Responsible AI',
   'AIソリューションのセキュリティ、コンプライアンス、ガバナンス': 'Security, Compliance, and Governance for AI',
+  // MLA
   '機械学習のためのデータ準備': 'Data Preparation for ML',
   'MLモデルの開発': 'ML Model Development',
   'MLワークフローのデプロイとオーケストレーション': 'Deployment and Orchestration of ML Workflows',
   'MLソリューションの監視、メンテナンス、セキュリティ': 'ML Solution Monitoring, Maintenance, and Security',
+  // GAI
   '生成AIソリューションの設計と評価': 'Design and Evaluation of Gen AI Solutions',
   '基盤モデルのカスタマイズとファインチューニング': 'Foundation Model Customization and Fine-tuning',
   '生成AIアプリケーションの実装とデプロイ': 'Build and Deploy Gen AI Applications',
