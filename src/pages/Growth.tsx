@@ -508,18 +508,6 @@ export default function Growth() {
           </div>
           <div style={chartBoxStyle}>
             <div style={{ fontSize: 'var(--font-size-sm)', fontWeight: 700, color: 'var(--color-text-sub)', marginBottom: 8 }}>
-              {lang === 'ja' ? 'チェック数の推移' : 'Verified per period'}
-            </div>
-            <DualBarChart
-              labels={labels}
-              s1={src.verified}
-              label1={lang === 'ja' ? 'チェック数' : 'Verified'}
-              color1={COLOR_CHECK}
-              breakdown={src.verifiedByExam}
-            />
-          </div>
-          <div style={{ ...chartBoxStyle, marginTop: 16 }}>
-            <div style={{ fontSize: 'var(--font-size-sm)', fontWeight: 700, color: 'var(--color-text-sub)', marginBottom: 8 }}>
               {lang === 'ja' ? '累計チェック数の推移' : 'Cumulative verified'}
             </div>
             <DualLineChart

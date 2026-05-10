@@ -2,7 +2,7 @@ import React, { useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { useLanguage } from '../contexts/LanguageContext';
-import { EXAM_TYPES, EXAM_CONFIGS, EXAM_DOMAINS, DOMAIN_NAME_EN, PASS_SCORES, EXAM_LEVEL, EXAM_DESC_JA, EXAM_DESC_EN } from '../constants';
+import { API_ENDPOINT, EXAM_TYPES, EXAM_CONFIGS, EXAM_DOMAINS, DOMAIN_NAME_EN, PASS_SCORES, EXAM_LEVEL, EXAM_DESC_JA, EXAM_DESC_EN } from '../constants';
 import Button from '../components/ui/Button';
 import Card from '../components/ui/Card';
 import Badge from '../components/ui/Badge';
@@ -19,6 +19,8 @@ export default function Home() {
   const [targetExam, setTargetExam] = useState<string | null>(() => localStorage.getItem(TARGET_EXAM_KEY));
   const [showOnboarding, setShowOnboarding] = useState(() => !localStorage.getItem('sherpaOnboarded'));
   const [dropdownOpen, setDropdownOpen] = useState(false);
+  const [siteQuestionCount, setSiteQuestionCount] = useState<number | null>(null);
+  const [countLoading, setCountLoading] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const dropdownRef = useRef<HTMLDivElement>(null);
   const searchInputRef = useRef<HTMLInputElement>(null);
@@ -40,6 +42,16 @@ export default function Home() {
       setSearchQuery('');
     }
   }, [dropdownOpen]);
+
+  useEffect(() => {
+    if (!targetExam) { setSiteQuestionCount(null); return; }
+    setCountLoading(true);
+    fetch(`${API_ENDPOINT}/questions?examType=${targetExam}&limit=0`)
+      .then(r => r.json())
+      .then(d => setSiteQuestionCount(d.total ?? d.count ?? 0))
+      .catch(() => setSiteQuestionCount(null))
+      .finally(() => setCountLoading(false));
+  }, [targetExam]);
 
   const dismissOnboarding = () => {
     localStorage.setItem('sherpaOnboarded', '1');
@@ -260,6 +272,15 @@ export default function Home() {
                   {t('home.passingScoreNote')}
                 </span>
               </span>
+              <span>
+                {lang === 'ja' ? 'サイト内問題数' : 'Site Questions'}:{' '}
+                {countLoading
+                  ? <strong style={{ color: 'var(--color-text-light)' }}>…</strong>
+                  : <strong style={{ color: 'var(--color-primary)', fontSize: 'var(--font-size-md)' }}>
+                      {siteQuestionCount !== null ? siteQuestionCount.toLocaleString() : '—'}{lang === 'ja' ? '問' : ' Q'}
+                    </strong>
+                }
+              </span>
             </div>
             <div style={{ fontSize: 'var(--font-size-sm)', color: 'var(--color-text-sub)', fontWeight: 700, marginBottom: 'var(--spacing-sm)' }}>{t('home.domains')}</div>
             <div style={{ display: 'flex', flexWrap: 'wrap', gap: 'var(--spacing-sm)' }}>
@@ -275,6 +296,12 @@ export default function Home() {
             borderTop: '1px solid var(--color-border)',
             paddingTop: 'var(--spacing-md)',
           }}>
+            <div style={{ fontSize: 'var(--font-size-sm)', color: 'var(--color-text-sub)', marginBottom: 'var(--spacing-md)' }}>
+              {lang === 'ja' ? 'サイト内問題数' : 'Site Questions'}:{' '}
+              <strong style={{ color: 'var(--color-text-light)', fontStyle: 'italic' }}>
+                {lang === 'ja' ? '— （資格を選択すると表示）' : '— (select an exam)'}
+              </strong>
+            </div>
             <div style={{
               border: '2px dashed var(--color-border)',
               borderRadius: 'var(--border-radius-md)',
