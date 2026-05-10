@@ -356,12 +356,29 @@ export default function Home() {
                 variant="primary"
                 onClick={e => { e.stopPropagation(); navigate(f.path); }}
                 style={{ width: '100%' }}
+                className="home-mode-card-btn"
               >
                 {f.label} →
               </Button>
             </div>
           </Card>
         ))}
+      </div>
+
+      {/* 演習・模試スティッキーバー（モバイルのみ） */}
+      <div className="sticky-page-action-mobile">
+        <div style={{ display: 'flex', gap: 'var(--spacing-sm)' }}>
+          {modes.map(f => (
+            <Button
+              key={f.path}
+              variant="primary"
+              onClick={() => navigate(f.path)}
+              style={{ flex: 1, background: '#FF9900', color: '#16191f', borderColor: '#FF9900' }}
+            >
+              {f.label} →
+            </Button>
+          ))}
+        </div>
       </div>
 
       {/* 非ログイン時: ログイン促進バナー */}

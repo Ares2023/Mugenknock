@@ -460,35 +460,29 @@ export default function ExamSetup() {
             </div>
           )}
 
-          {!user && (
-            <div style={{ marginBottom: 'var(--spacing-md)', fontSize: 'var(--font-size-xs)', color: 'var(--color-text-light)' }}>
-              {lang === 'ja'
-                ? '※ ログインすると結果が保存されます'
-                : '* Log in to save your results'}
-            </div>
-          )}
-          <div style={{ display: 'flex', gap: 'var(--spacing-md)', borderTop: '1px solid var(--color-border)', paddingTop: 'var(--spacing-lg)', justifyContent: 'flex-end', flexWrap: 'wrap' }}>
-            <Button variant="outline" onClick={() => navigate('/')}
-              style={{ border: 'none', color: 'var(--color-text-sub)' }}>
-              {t('examSetup.cancel')}
-            </Button>
-            <Button
-              variant="primary"
-              onClick={startExam}
-              disabled={loading || availableCount === 0}
-              style={{ minWidth: 120, background: '#FF9900', color: '#16191f', borderColor: '#FF9900' }}
-            >
-              {loading ? (
-                <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}>
-                  <span style={{ width: 13, height: 13, border: '2px solid rgba(255,255,255,0.4)', borderTopColor: 'white', borderRadius: '50%', animation: 'sherpa-spin 0.7s linear infinite', flexShrink: 0 }} />
-                  {t('examSetup.starting')}
-                </span>
-              ) : miniExam
-                ? (lang === 'ja' ? 'ミニ模試を開始' : 'Start Mini Exam')
-                : t('examSetup.start')}
-            </Button>
-          </div>
         </Card>
+      <div className="sticky-page-action">
+        {!user && (
+          <div style={{ fontSize: 'var(--font-size-xs)', color: 'var(--color-text-light)', marginBottom: 6, textAlign: 'center' }}>
+            {lang === 'ja' ? '※ ログインすると結果が保存されます' : '* Log in to save your results'}
+          </div>
+        )}
+        <Button
+          variant="primary"
+          onClick={startExam}
+          disabled={loading || availableCount === 0}
+          style={{ width: '100%', background: '#FF9900', color: '#16191f', borderColor: '#FF9900' }}
+        >
+          {loading ? (
+            <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}>
+              <span style={{ width: 13, height: 13, border: '2px solid rgba(255,255,255,0.4)', borderTopColor: 'white', borderRadius: '50%', animation: 'sherpa-spin 0.7s linear infinite', flexShrink: 0 }} />
+              {t('examSetup.starting')}
+            </span>
+          ) : miniExam
+            ? (lang === 'ja' ? 'ミニ模試を開始' : 'Start Mini Exam')
+            : t('examSetup.start')}
+        </Button>
+      </div>
     </div>
   );
 }
