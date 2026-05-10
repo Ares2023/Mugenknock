@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { DOMAIN_NAME_EN } from '../constants';
+import { DOMAIN_NAME_EN, DOMAIN_RATE_WARNING, DOMAIN_RATE_CAUTION } from '../constants';
 
 type Props = {
   domains: string[];
@@ -8,6 +8,7 @@ type Props = {
   lang: string;
   label?: React.ReactNode;
   noMargin?: boolean;
+  weakRates?: Record<string, number | null>;
 };
 
 const chipStyle: React.CSSProperties = {
@@ -30,7 +31,29 @@ const chipXStyle: React.CSSProperties = {
   padding: 0, width: 14, height: 14, flexShrink: 0,
 };
 
-export default function DomainSelector({ domains, selected, onChange, lang, label, noMargin }: Props) {
+function WeakBadge({ rate }: { rate: number }) {
+  const pct = Math.round(rate * 100);
+  const isWeak = rate < DOMAIN_RATE_WARNING;
+  const isCaution = rate < DOMAIN_RATE_CAUTION;
+  if (!isWeak && !isCaution) return null;
+
+  const bg    = isWeak ? 'rgba(209,50,18,0.1)'  : 'rgba(202,138,4,0.1)';
+  const color = isWeak ? 'var(--color-danger)'   : 'var(--color-caution)';
+  const border = isWeak ? 'rgba(209,50,18,0.35)' : 'rgba(202,138,4,0.35)';
+
+  return (
+    <span style={{
+      display: 'inline-flex', alignItems: 'center', gap: 3,
+      padding: '1px 6px', borderRadius: 10,
+      background: bg, border: `1px solid ${border}`,
+      fontSize: 10, fontWeight: 700, color, flexShrink: 0,
+    }}>
+      {pct}%
+    </span>
+  );
+}
+
+export default function DomainSelector({ domains, selected, onChange, lang, label, noMargin, weakRates }: Props) {
   const [open, setOpen] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
   const allSelected = domains.every(d => selected.includes(d));
@@ -95,7 +118,7 @@ export default function DomainSelector({ domains, selected, onChange, lang, labe
             <span style={{ fontSize: 9, lineHeight: 1, color: 'var(--color-primary)', transform: open ? 'rotate(180deg)' : 'none', transition: 'transform 0.2s', display: 'inline-block' }}>▼</span>
           </button>
 
-          {/* Dropdown panel — positioned relative to trigger */}
+          {/* Dropdown panel */}
           {open && (
             <div style={{
               position: 'absolute',
@@ -107,7 +130,7 @@ export default function DomainSelector({ domains, selected, onChange, lang, labe
               borderRadius: 'var(--border-radius-md)',
               boxShadow: 'var(--box-shadow-md)',
               padding: '6px 0',
-              minWidth: 220,
+              minWidth: 260,
               maxHeight: 320,
               overflowY: 'auto',
             }}>
@@ -127,23 +150,27 @@ export default function DomainSelector({ domains, selected, onChange, lang, labe
                 {lang === 'ja' ? 'すべて' : 'All'}
               </label>
               <div style={{ height: 1, background: 'var(--color-border)', margin: '2px 0 4px' }} />
-              {domains.map(d => (
-                <label key={d} style={{
-                  display: 'flex', alignItems: 'center', gap: 8,
-                  padding: '7px 14px', cursor: 'pointer',
-                  fontSize: 'var(--font-size-sm)',
-                  color: 'var(--color-text-main)',
-                  userSelect: 'none',
-                }}>
-                  <input
-                    type="checkbox"
-                    checked={selected.includes(d)}
-                    onChange={() => toggle(d)}
-                    style={{ cursor: 'pointer', width: 14, height: 14, flexShrink: 0 }}
-                  />
-                  {dn(d)}
-                </label>
-              ))}
+              {domains.map(d => {
+                const rate = weakRates?.[d] ?? null;
+                return (
+                  <label key={d} style={{
+                    display: 'flex', alignItems: 'center', gap: 8,
+                    padding: '7px 14px', cursor: 'pointer',
+                    fontSize: 'var(--font-size-sm)',
+                    color: 'var(--color-text-main)',
+                    userSelect: 'none',
+                  }}>
+                    <input
+                      type="checkbox"
+                      checked={selected.includes(d)}
+                      onChange={() => toggle(d)}
+                      style={{ cursor: 'pointer', width: 14, height: 14, flexShrink: 0 }}
+                    />
+                    <span style={{ flex: 1 }}>{dn(d)}</span>
+                    {rate !== null && <WeakBadge rate={rate} />}
+                  </label>
+                );
+              })}
             </div>
           )}
         </div>

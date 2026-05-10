@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { API_ENDPOINT, EXAM_TYPES, EXAM_CONFIGS, EXAM_DOMAINS, PASS_SCORES, PASS_RATE, DOMAIN_NAME_EN, DOMAIN_RATE_WARNING, DOMAIN_RATE_CAUTION } from '../constants';
+import { API_ENDPOINT, EXAM_TYPES, EXAM_CONFIGS, EXAM_DOMAINS, PASS_SCORES, PASS_RATE } from '../constants';
 import { useAuth } from '../contexts/AuthContext';
 import { useLanguage } from '../contexts/LanguageContext';
 import Card from '../components/ui/Card';
@@ -68,7 +68,7 @@ export default function ExamSetup() {
   const [availableCount, setAvailableCount] = useState<number | null>(null);
   const [loading, setLoading] = useState(false);
   const [showHint, setShowHint] = useState(() => !localStorage.getItem('sherpaExamHint'));
-  const [examDraft, setExamDraft] = useState<any>(() => {
+  const [examDraft] = useState<any>(() => {
     try { return JSON.parse(localStorage.getItem('examDraft') ?? 'null'); } catch { return null; }
   });
   const [bookmarkOnly, setBookmarkOnly] = useState<boolean>(() => loadExamPrefs(localStorage.getItem('targetExam') || localStorage.getItem('lastExamType') || 'SAA').bookmarkOnly ?? false);
@@ -270,6 +270,14 @@ export default function ExamSetup() {
   const examStep    = targetExam ? null : ++_s;
   const domainStep  = ++_s;
   const optionsStep = ++_s;
+  const domainRates: Record<string, number | null> = {};
+  for (const d of EXAM_DOMAINS[examType]) {
+    const s = domainStats.find(x => x.tagId === d);
+    if (!s) { domainRates[d] = null; continue; }
+    const total = s.correctCount + s.incorrectCount;
+    domainRates[d] = total > 0 ? s.correctCount / total : null;
+  }
+
   return (
     <div style={{ maxWidth: 1100, margin: '0 auto', padding: 'var(--spacing-xl) var(--spacing-lg)' }} className="page-container">
 
@@ -289,9 +297,7 @@ export default function ExamSetup() {
         </div>
       )}
 
-      <div className="setup-grid" style={{ display: 'grid', gridTemplateColumns: '1fr 280px', gap: 'var(--spacing-lg)' }}>
-
-        {/* 左：設定フォーム */}
+        {/* 設定フォーム */}
         <Card padding="var(--spacing-xl)">
           {/* 試験種別 */}
           {targetExam ? (
@@ -326,6 +332,7 @@ export default function ExamSetup() {
               onChange={setSelectedDomains}
               lang={lang}
               noMargin
+              weakRates={user ? domainRates : undefined}
             />
           </StepRow>
 
@@ -434,108 +441,6 @@ export default function ExamSetup() {
             </Button>
           </div>
         </Card>
-
-        {/* 右：成績パネル */}
-        <div className="setup-grade-panel" style={{ display: 'flex', flexDirection: 'column', gap: 'var(--spacing-lg)' }}>
-
-        <Card padding="var(--spacing-lg)">
-
-          {/* テスト履歴 */}
-          <div>
-            <div style={{ fontSize: 'var(--font-size-xs)', fontWeight: 700, color: 'var(--color-text-sub)', textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: 'var(--spacing-sm)' }}>
-              {lang === 'ja' ? 'テスト履歴' : 'Score History'} — {examType}
-            </div>
-            {!user ? (
-              <div style={{ fontSize: 'var(--font-size-sm)', color: 'var(--color-text-light)' }}>
-                {lang === 'ja' ? 'ログインすると履歴を確認できます' : 'Log in to view score history'}
-              </div>
-            ) : sessionsLoading ? (
-              <div style={{ display: 'flex', justifyContent: 'center', padding: '16px 0' }}>
-                <div className="sherpa-spinner" style={{ width: 24, height: 24, borderWidth: 2 }} />
-              </div>
-            ) : examSessions.length === 0 ? (
-              <div style={{ fontSize: 'var(--font-size-sm)', color: 'var(--color-text-light)' }}>
-                {lang === 'ja' ? 'まだ模試を受けていません' : 'No exam sessions yet'}
-              </div>
-            ) : (
-              <div>
-                {examSessions.slice(0, 3).map(s => {
-                  const d = new Date(s.startedAt);
-                  const dateStr = `${d.getMonth() + 1}/${d.getDate()}`;
-                  return (
-                    <div key={s.sessionId} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '5px 0', borderBottom: '1px solid var(--color-border)' }}>
-                      <span style={{ fontSize: 'var(--font-size-sm)', color: 'var(--color-text-sub)', display: 'flex', alignItems: 'center', gap: 4 }}>
-                        {dateStr}
-                        {s.isMini && <span style={{ fontSize: 10, background: 'var(--color-warning)', color: 'var(--color-secondary)', borderRadius: 3, padding: '1px 4px', fontWeight: 700 }}>{lang === 'ja' ? 'ミニ' : 'Mini'}</span>}
-                      </span>
-                      <span style={{ fontSize: 'var(--font-size-base)', fontWeight: 700, color: s.isPassed ? 'var(--color-success)' : 'var(--color-danger)' }}>
-                        {s.score}%
-                      </span>
-                    </div>
-                  );
-                })}
-              </div>
-            )}
-          </div>
-
-          {/* 苦手ドメインランキング */}
-          {user && (
-            <div style={{ marginTop: 'var(--spacing-lg)', paddingTop: 'var(--spacing-md)', borderTop: '1px solid var(--color-border)' }}>
-              <div style={{ fontSize: 'var(--font-size-xs)', fontWeight: 700, color: 'var(--color-text-sub)', marginBottom: 'var(--spacing-xs)' }}>
-                {lang === 'ja' ? '苦手ドメインランキング' : 'Weakest Domain Ranking'}
-              </div>
-              {answeredCount === null ? (
-                <div style={{ fontSize: 'var(--font-size-xs)', color: 'var(--color-text-light)' }}>...</div>
-              ) : answeredCount <= 10 ? (
-                <div style={{ fontSize: 'var(--font-size-xs)', color: 'var(--color-text-light)', fontStyle: 'italic' }}>
-                  {lang === 'ja' ? `回答数が足りません（${answeredCount}問）` : `Not enough answers (${answeredCount} answered)`}
-                </div>
-              ) : (() => {
-                const sorted = EXAM_DOMAINS[examType]
-                  .map(d => {
-                    const s = domainStats.find(x => x.tagId === d);
-                    const correct = s?.correctCount ?? 0;
-                    const incorrect = s?.incorrectCount ?? 0;
-                    const total = correct + incorrect;
-                    const rate = total > 0 ? correct / total : null;
-                    return { d, rate };
-                  })
-                  .filter(x => x.rate !== null)
-                  .sort((a, b) => a.rate! - b.rate!);
-                if (sorted.length === 0) return <div style={{ fontSize: 'var(--font-size-xs)', color: 'var(--color-text-light)', fontStyle: 'italic' }}>{lang === 'ja' ? 'データなし' : 'No data'}</div>;
-                const base = sorted.slice(0, 3);
-                const cutoff = base[base.length - 1].rate;
-                const top3 = [...base, ...sorted.slice(3).filter(x => x.rate === cutoff)];
-                let rankNum = 1;
-                const withRanks = top3.map((item, i) => {
-                  if (i > 0 && item.rate !== top3[i - 1].rate) rankNum = i + 1;
-                  return { ...item, rankNum };
-                });
-                const rateColor = (r: number) =>
-                  r < DOMAIN_RATE_WARNING ? 'var(--color-danger)' : r < DOMAIN_RATE_CAUTION ? 'var(--color-caution)' : 'var(--color-text-sub)';
-                return (
-                  <>
-                    {withRanks.map(({ d, rate, rankNum: rn }) => (
-                      <div key={d} style={{ display: 'flex', alignItems: 'center', gap: 'var(--spacing-sm)', marginBottom: 4 }}>
-                        <span style={{ fontSize: 11, fontWeight: 700, color: 'var(--color-text-light)', width: 14, flexShrink: 0 }}>{rn}</span>
-                        <span style={{ fontSize: 'var(--font-size-xs)', color: 'var(--color-text-main)', flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                          {lang === 'en' ? (DOMAIN_NAME_EN[d] ?? d) : d}
-                        </span>
-                        <span style={{ fontSize: 'var(--font-size-xs)', fontWeight: 700, color: rateColor(rate!), flexShrink: 0 }}>
-                          {Math.round(rate! * 100)}%
-                        </span>
-                      </div>
-                    ))}
-                  </>
-                );
-              })()}
-            </div>
-          )}
-        </Card>
-
-        </div>{/* 右カラム終了 */}
-
-      </div>
     </div>
   );
 }

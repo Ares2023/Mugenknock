@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { API_ENDPOINT, EXAM_TYPES, EXAM_CONFIGS, EXAM_DOMAINS, PASS_SCORES, DOMAIN_NAME_EN, DOMAIN_RATE_WARNING, DOMAIN_RATE_CAUTION } from '../constants';
+import { API_ENDPOINT, EXAM_TYPES, EXAM_CONFIGS, EXAM_DOMAINS, PASS_SCORES } from '../constants';
 import { useAuth } from '../contexts/AuthContext';
 import { useLanguage } from '../contexts/LanguageContext';
 import Card from '../components/ui/Card';
@@ -90,8 +90,6 @@ export default function ExerciseSetup() {
   });
   const hasDraft = exerciseDraft?.examType === examType;
 
-  const info = EXAM_CONFIGS[examType];
-  const passScore = PASS_SCORES[examType];
   const [availableCount, setAvailableCount] = useState<number | null>(null);
   const [answeredCount, setAnsweredCount] = useState<number | null>(null);
   const [totalDbCount, setTotalDbCount] = useState<number | null>(null);
@@ -271,6 +269,14 @@ export default function ExerciseSetup() {
   const optionsStep = ++_s;
   const countStep   = ++_s;
 
+  const domainRates: Record<string, number | null> = {};
+  for (const d of EXAM_DOMAINS[examType]) {
+    const s = domainStats.find(x => x.tagId === d);
+    if (!s) { domainRates[d] = null; continue; }
+    const total = s.correctCount + s.incorrectCount;
+    domainRates[d] = total > 0 ? s.correctCount / total : null;
+  }
+
   return (
     <div style={{ maxWidth: 1100, margin: '0 auto', padding: 'var(--spacing-xl) var(--spacing-lg)' }} className="page-container">
 
@@ -290,9 +296,7 @@ export default function ExerciseSetup() {
         </div>
       )}
 
-      <div className="setup-grid" style={{ display: 'grid', gridTemplateColumns: '1fr 280px', gap: 'var(--spacing-lg)' }}>
-
-        {/* 左：設定フォーム */}
+        {/* 設定フォーム */}
         <Card padding="var(--spacing-xl)">
           {/* 試験種別 */}
           {targetExam ? (
@@ -324,6 +328,7 @@ export default function ExerciseSetup() {
               onChange={setSelectedDomains}
               lang={lang}
               noMargin
+              weakRates={user ? domainRates : undefined}
             />
           </StepRow>
 
@@ -432,102 +437,6 @@ export default function ExerciseSetup() {
             </Button>
           </div>
         </Card>
-
-        {/* 右：成績パネル */}
-        <div className="setup-grade-panel" style={{ display: 'flex', flexDirection: 'column', gap: 'var(--spacing-lg)' }}>
-
-        <Card padding="var(--spacing-lg)">
-
-          {/* 学習進捗 */}
-          <div>
-            <div style={{ fontSize: 'var(--font-size-xs)', fontWeight: 700, color: 'var(--color-text-sub)', textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: 'var(--spacing-sm)' }}>
-              {lang === 'ja' ? '学習進捗' : 'Progress'} — {examType}
-            </div>
-            {!user ? (
-              <div style={{ fontSize: 'var(--font-size-sm)', color: 'var(--color-text-light)' }}>
-                {lang === 'ja' ? 'ログインすると進捗を確認できます' : 'Log in to view your progress'}
-              </div>
-            ) : answeredCount === null ? (
-              <div style={{ fontSize: 'var(--font-size-sm)', color: 'var(--color-text-light)' }}>...</div>
-            ) : (
-              <>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: 4 }}>
-                  <span style={{ fontSize: 'var(--font-size-sm)', color: 'var(--color-text-sub)' }}>{t('exerciseSetup.answered')}</span>
-                  <span style={{ fontSize: 'var(--font-size-base)', fontWeight: 700, color: 'var(--color-primary)' }}>
-                    {answeredCount}<span style={{ fontSize: 'var(--font-size-sm)', fontWeight: 400, color: 'var(--color-text-sub)' }}> / {totalDbCount ?? '…'} {t('exerciseSetup.qUnit')}</span>
-                  </span>
-                </div>
-                <div style={{ background: 'var(--color-border)', borderRadius: 10, height: 8, overflow: 'hidden', marginBottom: 4 }}>
-                  <div style={{
-                    width: `${totalDbCount ? Math.min(100, Math.round((answeredCount / totalDbCount) * 100)) : 0}%`,
-                    background: 'var(--color-primary)', height: '100%', borderRadius: 10, transition: 'width 0.4s',
-                  }} />
-                </div>
-                <div style={{ fontSize: 'var(--font-size-xs)', color: 'var(--color-primary)', textAlign: 'right', fontWeight: 700, marginBottom: 'var(--spacing-sm)' }}>
-                  {totalDbCount ? Math.min(100, Math.round((answeredCount / totalDbCount) * 100)) : 0}%
-                </div>
-              </>
-            )}
-          </div>
-
-          {/* 苦手ドメインランキング */}
-          {user && (
-            <div style={{ marginTop: 'var(--spacing-lg)', paddingTop: 'var(--spacing-md)', borderTop: '1px solid var(--color-border)' }}>
-              <div style={{ fontSize: 'var(--font-size-xs)', fontWeight: 700, color: 'var(--color-text-sub)', marginBottom: 'var(--spacing-xs)' }}>
-                {lang === 'ja' ? '苦手ドメインランキング' : 'Weakest Domain Ranking'}
-              </div>
-              {answeredCount === null ? (
-                <div style={{ fontSize: 'var(--font-size-xs)', color: 'var(--color-text-light)' }}>...</div>
-              ) : answeredCount <= 10 ? (
-                <div style={{ fontSize: 'var(--font-size-xs)', color: 'var(--color-text-light)', fontStyle: 'italic' }}>
-                  {lang === 'ja' ? `回答数が足りません（${answeredCount}問）` : `Not enough answers (${answeredCount} answered)`}
-                </div>
-              ) : (() => {
-                const sorted = EXAM_DOMAINS[examType]
-                  .map(d => {
-                    const s = domainStats.find(x => x.tagId === d);
-                    const correct = s?.correctCount ?? 0;
-                    const incorrect = s?.incorrectCount ?? 0;
-                    const total = correct + incorrect;
-                    const rate = total > 0 ? correct / total : null;
-                    return { d, rate };
-                  })
-                  .filter(x => x.rate !== null)
-                  .sort((a, b) => a.rate! - b.rate!);
-                if (sorted.length === 0) return <div style={{ fontSize: 'var(--font-size-xs)', color: 'var(--color-text-light)', fontStyle: 'italic' }}>{lang === 'ja' ? 'データなし' : 'No data'}</div>;
-                const base = sorted.slice(0, 3);
-                const cutoff = base[base.length - 1].rate;
-                const top3 = [...base, ...sorted.slice(3).filter(x => x.rate === cutoff)];
-                let rankNum = 1;
-                const withRanks = top3.map((item, i) => {
-                  if (i > 0 && item.rate !== top3[i - 1].rate) rankNum = i + 1;
-                  return { ...item, rankNum };
-                });
-                const rateColor = (r: number) =>
-                  r < DOMAIN_RATE_WARNING ? 'var(--color-danger)' : r < DOMAIN_RATE_CAUTION ? 'var(--color-caution)' : 'var(--color-text-sub)';
-                return (
-                  <>
-                    {withRanks.map(({ d, rate, rankNum: rn }) => (
-                      <div key={d} style={{ display: 'flex', alignItems: 'center', gap: 'var(--spacing-sm)', marginBottom: 4 }}>
-                        <span style={{ fontSize: 11, fontWeight: 700, color: 'var(--color-text-light)', width: 14, flexShrink: 0 }}>{rn}</span>
-                        <span style={{ fontSize: 'var(--font-size-xs)', color: 'var(--color-text-main)', flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                          {lang === 'en' ? (DOMAIN_NAME_EN[d] ?? d) : d}
-                        </span>
-                        <span style={{ fontSize: 'var(--font-size-xs)', fontWeight: 700, color: rateColor(rate!), flexShrink: 0 }}>
-                          {Math.round(rate! * 100)}%
-                        </span>
-                      </div>
-                    ))}
-                  </>
-                );
-              })()}
-            </div>
-          )}
-        </Card>
-
-        </div>{/* 右カラム終了 */}
-
-      </div>
     </div>
   );
 }
