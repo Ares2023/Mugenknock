@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { useLanguage } from '../contexts/LanguageContext';
 import { API_ENDPOINT, EXAM_TYPES, EXAM_CONFIGS, EXAM_DOMAINS, DOMAIN_NAME_EN, PASS_SCORES, EXAM_LEVEL, EXAM_DESC_JA, EXAM_DESC_EN } from '../constants';
+import { getCached, setCached } from '../utils/cache';
 import Button from '../components/ui/Button';
 import Card from '../components/ui/Card';
 import Badge from '../components/ui/Badge';
@@ -45,10 +46,16 @@ export default function Home() {
 
   useEffect(() => {
     if (!targetExam) { setSiteQuestionCount(null); return; }
+    const cached = getCached<number>(`qcount_${targetExam}`);
+    if (cached !== null) { setSiteQuestionCount(cached); setCountLoading(false); return; }
     setCountLoading(true);
     fetch(`${API_ENDPOINT}/questions?examType=${targetExam}&limit=0`)
       .then(r => r.json())
-      .then(d => setSiteQuestionCount(d.total ?? d.count ?? 0))
+      .then(d => {
+        const count = d.total ?? d.count ?? 0;
+        setSiteQuestionCount(count);
+        setCached(`qcount_${targetExam}`, count);
+      })
       .catch(() => setSiteQuestionCount(null))
       .finally(() => setCountLoading(false));
   }, [targetExam]);
@@ -256,19 +263,15 @@ export default function Home() {
           {/* サイト内問題数（ドロップダウン右） */}
           <div style={{ flexShrink: 0, lineHeight: 1 }}>
             {targetExam ? (
-              countLoading ? (
-                <span style={{ fontSize: 'var(--font-size-sm)', color: 'var(--color-text-light)' }}>…</span>
-              ) : (
-                <span>
-                  <span style={{ display: 'block', fontSize: 'var(--font-size-xs)', color: 'var(--color-text-sub)', marginBottom: 2 }}>
-                    {lang === 'ja' ? 'サイト内問題数' : 'Site Questions'}
-                  </span>
-                  <strong style={{ color: 'var(--color-success)', fontSize: 'var(--font-size-xl)', fontWeight: 800 }}>
-                    {siteQuestionCount !== null ? siteQuestionCount.toLocaleString() : '—'}
-                    <span style={{ fontSize: 'var(--font-size-sm)', fontWeight: 400 }}>{lang === 'ja' ? '問' : ' Q'}</span>
-                  </strong>
+              <span>
+                <span style={{ display: 'block', fontSize: 'var(--font-size-xs)', color: 'var(--color-text-sub)', marginBottom: 2 }}>
+                  {lang === 'ja' ? 'サイト内問題数' : 'Site Questions'}
                 </span>
-              )
+                <strong style={{ color: 'var(--color-success)', fontSize: 'var(--font-size-xl)', fontWeight: 800 }}>
+                  {countLoading ? '…' : (siteQuestionCount !== null ? siteQuestionCount.toLocaleString() : '—')}
+                  <span style={{ fontSize: 'var(--font-size-sm)', fontWeight: 400 }}>{lang === 'ja' ? '問' : ' Q'}</span>
+                </strong>
+              </span>
             ) : (
               <span style={{ color: 'var(--color-text-light)', fontStyle: 'italic', fontSize: 'var(--font-size-sm)' }}>
                 {lang === 'ja' ? '— （資格を選択すると表示）' : '— (select an exam)'}

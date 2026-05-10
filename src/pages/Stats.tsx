@@ -5,6 +5,7 @@ import { useAuth } from '../contexts/AuthContext';
 import { useLanguage } from '../contexts/LanguageContext';
 import Card from '../components/ui/Card';
 import Button from '../components/ui/Button';
+import { getCached, setCached, SHORT_TTL } from '../utils/cache';
 
 const TARGET_EXAM_KEY = 'targetExam';
 const STATS_GOOD_RATE = 70;
@@ -205,14 +206,23 @@ export default function Stats() {
   // ── 初期ロード（ノック量に必要なデータのみ） ──
   useEffect(() => {
     if (!user || !targetExam) { setLoading(false); return; }
+    const cachedTotal = getCached<number>(`qcount_${targetExam}`);
+    if (cachedTotal !== null) setTotalCount(cachedTotal);
     setLoading(true);
-    Promise.all([
+    const fetches: Promise<any>[] = [
       fetch(`${API_ENDPOINT}/users/me/sessions?userId=${user.userId}&limit=200`).then(r => r.json()),
-      fetch(`${API_ENDPOINT}/questions?examType=${targetExam}&limit=0`).then(r => r.json()),
+      cachedTotal !== null
+        ? Promise.resolve(null)
+        : fetch(`${API_ENDPOINT}/questions?examType=${targetExam}&limit=0`).then(r => r.json()),
       fetch(`${API_ENDPOINT}/users/me/question-stats?userId=${user.userId}&examType=${targetExam}`).then(r => r.json()),
-    ]).then(([sessRes, qRes, statsRes]) => {
+    ];
+    Promise.all(fetches).then(([sessRes, qRes, statsRes]) => {
       setSessions((sessRes.items ?? []).filter((s: Session) => s.examType === targetExam));
-      setTotalCount(qRes.total ?? qRes.count ?? 0);
+      if (qRes !== null) {
+        const count = qRes.total ?? qRes.count ?? 0;
+        setTotalCount(count);
+        setCached(`qcount_${targetExam}`, count);
+      }
       setAnsweredCount(statsRes.answeredCount ?? 0);
     }).catch(console.error).finally(() => setLoading(false));
   }, [user, targetExam]);
@@ -220,10 +230,16 @@ export default function Stats() {
   // ── ノック成績タブを開いたときに遅延ロード ──
   useEffect(() => {
     if (tab !== 'performance' || perfLoaded || !user || !targetExam) return;
+    const cachedStats = getCached<any[]>(`ustats_${user.userId}`);
+    if (cachedStats !== null) { setTagStats(cachedStats); setPerfLoaded(true); return; }
     setPerfLoading(true);
     fetch(`${API_ENDPOINT}/users/me/stats?userId=${user.userId}`)
       .then(r => r.json())
-      .then(d => { setTagStats(d.stats ?? []); setPerfLoaded(true); })
+      .then(d => {
+        setTagStats(d.stats ?? []);
+        setCached(`ustats_${user.userId}`, d.stats ?? [], SHORT_TTL);
+        setPerfLoaded(true);
+      })
       .catch(console.error)
       .finally(() => setPerfLoading(false));
   }, [tab, user, targetExam, perfLoaded]);
@@ -344,9 +360,14 @@ export default function Stats() {
               {lang === 'ja' ? '合計ノック量' : 'Total Practice'}
             </div>
             {loading ? (
-              <div style={{ display: 'flex', justifyContent: 'center', padding: 'var(--spacing-lg) 0' }}>
-                <div className="sherpa-spinner" style={{ width: 24, height: 24, borderWidth: 2 }} />
-              </div>
+              <>
+                <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 'var(--spacing-sm)' }}>
+                  <div className="skeleton" style={{ height: 14, width: '55%', borderRadius: 4 }} />
+                  <div className="skeleton" style={{ height: 20, width: '25%', borderRadius: 4 }} />
+                </div>
+                <div className="skeleton" style={{ height: 8, borderRadius: 10, marginBottom: 6 }} />
+                <div className="skeleton" style={{ height: 12, width: '20%', borderRadius: 4, marginLeft: 'auto' }} />
+              </>
             ) : !user ? (
               <p style={{ margin: 0, fontSize: 'var(--font-size-sm)', color: 'var(--color-text-light)' }}>
                 {lang === 'ja' ? 'ログインすると表示されます' : 'Log in to view'}
@@ -399,8 +420,8 @@ export default function Stats() {
             </div>
 
             {loading ? (
-              <div style={{ display: 'flex', justifyContent: 'center', padding: 'var(--spacing-lg) 0' }}>
-                <div className="sherpa-spinner" style={{ width: 24, height: 24, borderWidth: 2 }} />
+              <div style={{ position: 'relative', paddingBottom: '26.7%' }}>
+                <div className="skeleton" style={{ position: 'absolute', inset: 0, borderRadius: 'var(--border-radius-md)' }} />
               </div>
             ) : !user ? (
               <p style={{ margin: 0, fontSize: 'var(--font-size-sm)', color: 'var(--color-text-light)' }}>

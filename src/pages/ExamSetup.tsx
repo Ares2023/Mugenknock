@@ -7,6 +7,7 @@ import Card from '../components/ui/Card';
 import Button from '../components/ui/Button';
 import Badge from '../components/ui/Badge';
 import DomainSelector from '../components/DomainSelector';
+import { getCached, setCached, SHORT_TTL } from '../utils/cache';
 
 const StepBadge = ({ n, optional = false }: { n: number; optional?: boolean }) => (
   <span style={{
@@ -172,10 +173,18 @@ export default function ExamSetup() {
       ))
       .catch(() => setExamSessions([]))
       .finally(() => setSessionsLoading(false));
-    fetch(`${API_ENDPOINT}/users/me/stats?userId=${user.userId}`)
-      .then(r => r.json())
-      .then(d => setDomainStats(d.stats ?? []))
-      .catch(() => setDomainStats([]));
+    const cachedStats = getCached<any[]>(`ustats_${user.userId}`);
+    if (cachedStats !== null) {
+      setDomainStats(cachedStats);
+    } else {
+      fetch(`${API_ENDPOINT}/users/me/stats?userId=${user.userId}`)
+        .then(r => r.json())
+        .then(d => {
+          setDomainStats(d.stats ?? []);
+          setCached(`ustats_${user.userId}`, d.stats ?? [], SHORT_TTL);
+        })
+        .catch(() => setDomainStats([]));
+    }
   }, [user, examType]);
 
   const startExam = async () => {
@@ -306,8 +315,12 @@ export default function ExamSetup() {
             </button>
           </div>
           {sessionsLoading ? (
-            <div style={{ display: 'flex', justifyContent: 'center', padding: '8px 0' }}>
-              <div className="sherpa-spinner" style={{ width: 16, height: 16, borderWidth: 2 }} />
+            <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--spacing-lg)' }}>
+              <div className="skeleton" style={{ height: 36, width: 68, borderRadius: 4 }} />
+              <div>
+                <div className="skeleton" style={{ height: 14, width: 48, borderRadius: 4, marginBottom: 6 }} />
+                <div className="skeleton" style={{ height: 12, width: 80, borderRadius: 4 }} />
+              </div>
             </div>
           ) : !lastExam ? (
             <p style={{ margin: 0, fontSize: 'var(--font-size-sm)', color: 'var(--color-text-light)', fontStyle: 'italic' }}>

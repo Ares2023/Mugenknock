@@ -7,6 +7,7 @@ import Card from '../components/ui/Card';
 import Button from '../components/ui/Button';
 import Badge from '../components/ui/Badge';
 import DomainSelector from '../components/DomainSelector';
+import { getCached, setCached, SHORT_TTL } from '../utils/cache';
 
 const StepBadge = ({ n, optional = false }: { n: number; optional?: boolean }) => (
   <span style={{
@@ -144,6 +145,13 @@ export default function ExerciseSetup() {
           }
           if (aiVerifiedOnly) items = items.filter((q: any) => q.aiVerified === true);
           setAvailableCount(items.length);
+        } else if (allSelected && !aiVerifiedOnly) {
+          const cached = getCached<number>(`qcount_${examType}`);
+          if (cached !== null) { setAvailableCount(cached); return; }
+          const qRes = await fetch(`${API_ENDPOINT}/questions?examType=${examType}`).then(r => r.json());
+          const count = qRes.count ?? qRes.items?.length ?? 0;
+          setCached(`qcount_${examType}`, count);
+          setAvailableCount(count);
         } else {
           const qRes = await fetch(`${API_ENDPOINT}/questions?${params}`).then(r => r.json());
           let countItems: any[] = qRes.items ?? [];
@@ -157,20 +165,37 @@ export default function ExerciseSetup() {
   }, [examType, selectedDomains, user, bookmarkOnly, unansweredOnly, incorrectOnly, aiVerifiedOnly]);
 
   useEffect(() => {
-    fetch(`${API_ENDPOINT}/questions?examType=${examType}`)
-      .then(r => r.json())
-      .then(d => setTotalDbCount(d.count ?? d.items?.length ?? null))
-      .catch(() => setTotalDbCount(null));
+    const cachedCount = getCached<number>(`qcount_${examType}`);
+    if (cachedCount !== null) {
+      setTotalDbCount(cachedCount);
+    } else {
+      fetch(`${API_ENDPOINT}/questions?examType=${examType}`)
+        .then(r => r.json())
+        .then(d => {
+          const count = d.count ?? d.items?.length ?? null;
+          setTotalDbCount(count);
+          if (count !== null) setCached(`qcount_${examType}`, count);
+        })
+        .catch(() => setTotalDbCount(null));
+    }
     if (!user) { setAnsweredCount(0); setDomainStats([]); return; }
     setAnsweredCount(null);
     fetch(`${API_ENDPOINT}/users/me/question-stats?userId=${user.userId}&examType=${examType}`)
       .then(r => r.json())
       .then(d => setAnsweredCount(d.answeredCount ?? 0))
       .catch(() => setAnsweredCount(0));
-    fetch(`${API_ENDPOINT}/users/me/stats?userId=${user.userId}`)
-      .then(r => r.json())
-      .then(d => setDomainStats(d.stats ?? []))
-      .catch(() => setDomainStats([]));
+    const cachedStats = getCached<any[]>(`ustats_${user.userId}`);
+    if (cachedStats !== null) {
+      setDomainStats(cachedStats);
+    } else {
+      fetch(`${API_ENDPOINT}/users/me/stats?userId=${user.userId}`)
+        .then(r => r.json())
+        .then(d => {
+          setDomainStats(d.stats ?? []);
+          setCached(`ustats_${user.userId}`, d.stats ?? [], SHORT_TTL);
+        })
+        .catch(() => setDomainStats([]));
+    }
   }, [examType, user]);
 
   const resumeSession = () => {
@@ -314,9 +339,14 @@ export default function ExerciseSetup() {
             </button>
           </div>
           {answeredCount === null || totalDbCount === null ? (
-            <div style={{ display: 'flex', justifyContent: 'center', padding: '8px 0' }}>
-              <div className="sherpa-spinner" style={{ width: 16, height: 16, borderWidth: 2 }} />
-            </div>
+            <>
+              <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 'var(--spacing-xs)' }}>
+                <div className="skeleton" style={{ height: 14, width: '55%', borderRadius: 4 }} />
+                <div className="skeleton" style={{ height: 14, width: '25%', borderRadius: 4 }} />
+              </div>
+              <div className="skeleton" style={{ height: 8, borderRadius: 10, marginBottom: 6 }} />
+              <div className="skeleton" style={{ height: 12, width: '20%', borderRadius: 4, marginLeft: 'auto' }} />
+            </>
           ) : (
             <>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: 'var(--spacing-xs)' }}>
