@@ -5,9 +5,29 @@ import { useLanguage } from '../contexts/LanguageContext';
 type MainTab = 'generation' | 'check';
 type ViewMode = 'daily' | 'monthly';
 
+// チャート色の定義
+const COLOR_GENERATION = 'var(--color-primary)';
+const COLOR_CHECK = 'var(--color-primary)';
+
 interface GrowthData {
-  daily: { dates: string[]; created: number[]; verified: number[]; createdCumulative: number[]; verifiedCumulative: number[]; createdByExam?: Array<Record<string, number>> };
-  monthly: { months: string[]; created: number[]; verified: number[]; createdCumulative: number[]; verifiedCumulative: number[]; createdByExam?: Array<Record<string, number>> };
+  daily: {
+    dates: string[];
+    created: number[];
+    verified: number[];
+    createdCumulative: number[];
+    verifiedCumulative: number[];
+    createdByExam?: Array<Record<string, number>>;
+    verifiedByExam?: Array<Record<string, number>>;
+  };
+  monthly: {
+    months: string[];
+    created: number[];
+    verified: number[];
+    createdCumulative: number[];
+    verifiedCumulative: number[];
+    createdByExam?: Array<Record<string, number>>;
+    verifiedByExam?: Array<Record<string, number>>;
+  };
   total: number;
   totalVerified: number;
 }
@@ -112,37 +132,32 @@ function DualBarChart({ labels, s1, s2, label1, label2, color1, color2, breakdow
         </g>
       ))}
 
-      {/* Tooltip */}
+      {/* Tooltip: 試験別内訳があれば優先表示、なければ総数 */}
       {tooltip && (() => {
         const { x, y, label, v1, v2, examRows } = tooltip;
-        const baseLen = 1 + 1 + (v2 !== undefined ? 1 : 0);
-        const allLines: { text: string; bold: boolean; indent: boolean }[] = [
-          { text: label, bold: true, indent: false },
-          { text: `${label1}: ${v1}`, bold: false, indent: false },
-          ...(v2 !== undefined && label2 ? [{ text: `${label2}: ${v2}`, bold: false, indent: false }] : []),
-          ...examRows.map(([exam, cnt]) => ({ text: `${exam}: ${cnt}`, bold: false, indent: true })),
-        ];
-        const lineH = 13, pad = 7;
-        const boxW = examRows.length > 0 ? 130 : 112;
-        const boxH = allLines.length * lineH + pad * 2 + (examRows.length > 0 ? 4 : 0);
+        const showBreakdown = examRows.length > 0;
+        const bodyLines: { text: string }[] = showBreakdown
+          ? examRows.map(([exam, cnt]) => ({ text: `${exam}: ${cnt}` }))
+          : [
+              { text: `${label1}: ${v1}` },
+              ...(v2 !== undefined && label2 ? [{ text: `${label2}: ${v2}` }] : []),
+            ];
+        const allLines = [{ text: label, bold: true }, ...bodyLines.map(l => ({ ...l, bold: false }))];
+        const lineH = 13, pad = 7, boxW = showBreakdown ? 120 : 112;
+        const boxH = allLines.length * lineH + pad * 2;
         const boxX = Math.min(x + 8, W - MR - boxW);
         const boxY = Math.max(MT, Math.min(y - boxH / 2, H - MB - boxH));
-        let lineY = boxY + pad;
         return (
           <g style={{ pointerEvents: 'none' }}>
             <rect x={boxX} y={boxY} width={boxW} height={boxH} rx={4}
               style={{ fill: 'var(--color-bg-white)', stroke: 'var(--color-border)', strokeWidth: 1, filter: 'drop-shadow(0 2px 4px rgba(0,0,0,0.12))' }} />
-            {allLines.map((item, li) => {
-              lineY += lineH;
-              const isFirstExam = li === baseLen && examRows.length > 0;
-              return (
-                <text key={li} x={boxX + pad + (item.indent ? 6 : 0)} y={lineY - 2 + (isFirstExam ? 4 : 0)}
-                  fontSize={9} fontWeight={item.bold ? '700' : '400'}
-                  style={{ fill: item.bold ? 'var(--color-text-main)' : item.indent ? 'var(--color-text-light)' : 'var(--color-text-sub)' }}>
-                  {item.text}
-                </text>
-              );
-            })}
+            {allLines.map((item, li) => (
+              <text key={li} x={boxX + pad} y={boxY + pad + (li + 1) * lineH - 2}
+                fontSize={9} fontWeight={item.bold ? '700' : '400'}
+                style={{ fill: item.bold ? 'var(--color-text-main)' : 'var(--color-text-sub)' }}>
+                {item.text}
+              </text>
+            ))}
           </g>
         );
       })()}
@@ -305,7 +320,8 @@ export default function Growth() {
   const [error, setError] = useState(false);
 
   useEffect(() => {
-    fetch(`${API_ENDPOINT}/questions/growth-stats`)
+    // 日次: 14日、月次: 12ヶ月
+    fetch(`${API_ENDPOINT}/questions/growth-stats?dailyDays=14&monthlyMonths=12`)
       .then(r => { if (!r.ok) throw new Error(); return r.json(); })
       .then(setData)
       .catch(() => setError(true))
@@ -371,7 +387,7 @@ export default function Growth() {
         </p>
       </div>
 
-      {/* メインタブ */}
+      {/* メインタブ + 日次/月次トグル */}
       <div style={{ display: 'flex', alignItems: 'flex-end', justifyContent: 'space-between', borderBottom: '2px solid var(--color-border)', marginBottom: 20 }}>
         <div style={{ display: 'flex' }}>
           {MAIN_TABS.map(tab => (
@@ -393,7 +409,7 @@ export default function Growth() {
           ))}
         </div>
 
-        {/* 日次/月次 トグル */}
+        {/* 日次/月次トグル */}
         <div style={{ display: 'flex', borderRadius: 'var(--border-radius-md)', overflow: 'hidden', border: '1px solid var(--color-border)', marginBottom: 2 }}>
           {(['daily', 'monthly'] as ViewMode[]).map(v => (
             <button
@@ -434,7 +450,7 @@ export default function Growth() {
               labels={labels}
               s1={src.created}
               label1={lang === 'ja' ? '生成数' : 'Generated'}
-              color1="var(--color-primary)"
+              color1={COLOR_GENERATION}
               breakdown={src.createdByExam}
             />
           </div>
@@ -446,7 +462,7 @@ export default function Growth() {
               labels={labels}
               s1={src.createdCumulative}
               label1={lang === 'ja' ? '累計生成数' : 'Cumulative'}
-              color1="var(--color-primary)"
+              color1={COLOR_GENERATION}
             />
           </div>
         </>
@@ -464,14 +480,14 @@ export default function Growth() {
               <span style={{ fontSize: 'var(--font-size-sm)', fontWeight: 700, color: 'var(--color-text-sub)' }}>
                 {lang === 'ja' ? 'チェック率（全問題に対する既チェック割合）' : 'Verification rate (checked / total)'}
               </span>
-              <span style={{ fontSize: 22, fontWeight: 800, color: 'var(--color-success)', flexShrink: 0, marginLeft: 12 }}>
+              <span style={{ fontSize: 22, fontWeight: 800, color: COLOR_CHECK, flexShrink: 0, marginLeft: 12 }}>
                 {checkRate.toFixed(1)}%
               </span>
             </div>
             <div style={{ background: 'var(--color-bg-main)', borderRadius: 10, height: 10, overflow: 'hidden' }}>
               <div style={{
                 width: `${Math.min(100, checkRate)}%`, height: '100%',
-                background: 'var(--color-success)', borderRadius: 10, transition: 'width 0.6s',
+                background: COLOR_CHECK, borderRadius: 10, transition: 'width 0.6s',
               }} />
             </div>
             <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: 6, fontSize: 'var(--font-size-xs)', color: 'var(--color-text-light)' }}>
@@ -498,7 +514,8 @@ export default function Growth() {
               labels={labels}
               s1={src.verified}
               label1={lang === 'ja' ? 'チェック数' : 'Verified'}
-              color1="var(--color-success)"
+              color1={COLOR_CHECK}
+              breakdown={src.verifiedByExam}
             />
           </div>
           <div style={{ ...chartBoxStyle, marginTop: 16 }}>
@@ -509,7 +526,7 @@ export default function Growth() {
               labels={labels}
               s1={src.verifiedCumulative}
               label1={lang === 'ja' ? '累計チェック数' : 'Cumulative'}
-              color1="var(--color-success)"
+              color1={COLOR_CHECK}
             />
           </div>
         </>
