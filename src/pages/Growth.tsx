@@ -519,8 +519,11 @@ export default function Growth() {
             <DualLineChart
               labels={labels}
               s1={src.verifiedCumulative}
-              label1={lang === 'ja' ? '累計チェック数' : 'Cumulative'}
+              label1={lang === 'ja' ? '累計チェック数' : 'Cumulative checked'}
               color1={COLOR_CHECK}
+              s2={src.createdCumulative}
+              label2={lang === 'ja' ? '累計生成数' : 'Cumulative generated'}
+              color2="#94a3b8"
             />
           </div>
         </>
