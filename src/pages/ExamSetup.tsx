@@ -291,6 +291,47 @@ export default function ExamSetup() {
         </div>
       )}
 
+      {/* 前回の模試成績 */}
+      {user && (
+        <Card padding="var(--spacing-md)" style={{ marginBottom: 'var(--spacing-lg)' }}>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 'var(--spacing-sm)' }}>
+            <span style={{ fontSize: 'var(--font-size-xs)', fontWeight: 700, color: 'var(--color-text-sub)', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+              {lang === 'ja' ? '前回の模試成績' : 'Last Exam Result'}
+            </span>
+            <button
+              onClick={() => navigate('/stats')}
+              style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: 'var(--font-size-sm)', color: 'var(--color-primary)', padding: 0, fontWeight: 600 }}
+            >
+              {lang === 'ja' ? 'ノック成績 →' : 'Performance →'}
+            </button>
+          </div>
+          {sessionsLoading ? (
+            <div style={{ display: 'flex', justifyContent: 'center', padding: '8px 0' }}>
+              <div className="sherpa-spinner" style={{ width: 16, height: 16, borderWidth: 2 }} />
+            </div>
+          ) : !lastExam ? (
+            <p style={{ margin: 0, fontSize: 'var(--font-size-sm)', color: 'var(--color-text-light)', fontStyle: 'italic' }}>
+              {lang === 'ja' ? 'まだ模試を受けていません' : 'No exam history yet'}
+            </p>
+          ) : (
+            <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--spacing-lg)' }}>
+              <span style={{ fontSize: 'var(--font-size-xxl)', fontWeight: 800, color: lastExam.isPassed ? 'var(--color-success)' : 'var(--color-danger)' }}>
+                {lastExam.score}%
+              </span>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+                <span style={{ fontSize: 'var(--font-size-sm)', fontWeight: 700, color: lastExam.isPassed ? 'var(--color-success)' : 'var(--color-danger)' }}>
+                  {lastExam.isPassed ? (lang === 'ja' ? '合格' : 'Passed') : (lang === 'ja' ? '不合格' : 'Failed')}
+                </span>
+                <span style={{ fontSize: 'var(--font-size-xs)', color: 'var(--color-text-light)' }}>
+                  {new Date(lastExam.startedAt).toLocaleDateString(lang === 'ja' ? 'ja-JP' : 'en-US')}
+                  {lastExam.isMini ? (lang === 'ja' ? '（ミニ）' : ' (Mini)') : ''}
+                </span>
+              </div>
+            </div>
+          )}
+        </Card>
+      )}
+
         {/* 設定フォーム */}
         <Card padding="var(--spacing-xl)">
           {/* 試験種別 */}
@@ -316,53 +357,6 @@ export default function ExamSetup() {
                 ))}
               </div>
             </StepRow>
-          )}
-
-          {/* 前回の模試成績 */}
-          {user && (
-            <div style={{
-              marginBottom: 'var(--spacing-lg)',
-              padding: 'var(--spacing-md)',
-              background: 'var(--color-bg-main)',
-              borderRadius: 'var(--border-radius-md)',
-              border: '1px solid var(--color-border)',
-            }}>
-              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 'var(--spacing-sm)' }}>
-                <span style={{ fontSize: 'var(--font-size-xs)', fontWeight: 700, color: 'var(--color-text-sub)', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
-                  {lang === 'ja' ? '前回の模試成績' : 'Last Exam Result'}
-                </span>
-                <button
-                  onClick={() => navigate('/stats')}
-                  style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: 'var(--font-size-xs)', color: 'var(--color-primary)', padding: 0, fontWeight: 600 }}
-                >
-                  {lang === 'ja' ? 'ノック成績 →' : 'Performance →'}
-                </button>
-              </div>
-              {sessionsLoading ? (
-                <div style={{ display: 'flex', justifyContent: 'center', padding: '8px 0' }}>
-                  <div className="sherpa-spinner" style={{ width: 16, height: 16, borderWidth: 2 }} />
-                </div>
-              ) : !lastExam ? (
-                <p style={{ margin: 0, fontSize: 'var(--font-size-sm)', color: 'var(--color-text-light)', fontStyle: 'italic' }}>
-                  {lang === 'ja' ? 'まだ模試を受けていません' : 'No exam history yet'}
-                </p>
-              ) : (
-                <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--spacing-lg)' }}>
-                  <span style={{ fontSize: 'var(--font-size-xxl)', fontWeight: 800, color: lastExam.isPassed ? 'var(--color-success)' : 'var(--color-danger)' }}>
-                    {lastExam.score}%
-                  </span>
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-                    <span style={{ fontSize: 'var(--font-size-sm)', fontWeight: 700, color: lastExam.isPassed ? 'var(--color-success)' : 'var(--color-danger)' }}>
-                      {lastExam.isPassed ? (lang === 'ja' ? '合格' : 'Passed') : (lang === 'ja' ? '不合格' : 'Failed')}
-                    </span>
-                    <span style={{ fontSize: 'var(--font-size-xs)', color: 'var(--color-text-light)' }}>
-                      {new Date(lastExam.startedAt).toLocaleDateString(lang === 'ja' ? 'ja-JP' : 'en-US')}
-                      {lastExam.isMini ? (lang === 'ja' ? '（ミニ）' : ' (Mini)') : ''}
-                    </span>
-                  </div>
-                </div>
-              )}
-            </div>
           )}
 
           {/* ドメインフィルタ */}
