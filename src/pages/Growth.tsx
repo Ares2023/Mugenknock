@@ -166,7 +166,7 @@ function DualBarChart({ labels, s1, s2, label1, label2, color1, color2, breakdow
 }
 
 // s2/label2/color2 は optional（省略時は単系列表示）
-function DualLineChart({ labels, s1, s2, label1, label2, color1, color2 }: {
+function DualLineChart({ labels, s1, s2, label1, label2, color1, color2, markerLabel }: {
   labels: string[];
   s1: number[];
   s2?: number[];
@@ -174,6 +174,7 @@ function DualLineChart({ labels, s1, s2, label1, label2, color1, color2 }: {
   label2?: string;
   color1: string;
   color2?: string;
+  markerLabel?: string;
 }) {
   const [tooltip, setTooltip] = useState<{ i: number } | null>(null);
   const line1Ref = useRef<SVGPolylineElement>(null);
@@ -228,9 +229,9 @@ function DualLineChart({ labels, s1, s2, label1, label2, color1, color2 }: {
       <text x={ML + 20} y={12} fontSize="9" fill="var(--color-text-sub)">{label1}</text>
       {dual && color2 && label2 && (
         <>
-          <line x1={ML + 80} y1={8} x2={ML + 96} y2={8} stroke={color2} strokeWidth="2" strokeLinecap="round" />
-          <circle cx={ML + 88} cy={8} r={3} fill={color2} />
-          <text x={ML + 100} y={12} fontSize="9" fill="var(--color-text-sub)">{label2}</text>
+          <line x1={ML + 115} y1={8} x2={ML + 131} y2={8} stroke={color2} strokeWidth="2" strokeLinecap="round" />
+          <circle cx={ML + 123} cy={8} r={3} fill={color2} />
+          <text x={ML + 135} y={12} fontSize="9" fill="var(--color-text-sub)">{label2}</text>
         </>
       )}
 
@@ -278,6 +279,17 @@ function DualLineChart({ labels, s1, s2, label1, label2, color1, color2 }: {
       {labels.map((label, i) => (
         <text key={i} x={px(i)} y={H - MB + 14} textAnchor="middle" fontSize="9" fill="var(--color-text-sub)">{label}</text>
       ))}
+
+      {/* Last-point vertical marker */}
+      {markerLabel && n > 0 && (
+        <g style={{ pointerEvents: 'none' }}>
+          <line x1={px(n - 1)} y1={MT - 10} x2={px(n - 1)} y2={MT + chartH}
+            stroke={color1} strokeWidth={1.5} strokeDasharray="4,3" opacity={0.5} />
+          <text x={px(n - 1) - 4} y={MT - 13} textAnchor="end" fontSize={10} fontWeight="700" fill={color1}>
+            {markerLabel}
+          </text>
+        </g>
+      )}
 
       {/* Crosshair */}
       {tooltip !== null && (
@@ -524,6 +536,7 @@ export default function Growth() {
               s2={src.createdCumulative}
               label2={lang === 'ja' ? '累計生成数' : 'Cumulative generated'}
               color2="#94a3b8"
+              markerLabel={`${checkRate.toFixed(1)}%`}
             />
           </div>
         </>
