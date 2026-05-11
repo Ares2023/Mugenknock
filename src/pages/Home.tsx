@@ -11,21 +11,6 @@ import Card from '../components/ui/Card';
 import Button from '../components/ui/Button';
 import { IconPencil, IconClock, IconTarget } from '../components/Icons';
 
-// ── SVG ドーナツグラフ ──────────────────────────────────────────────
-function polarToCartesian(cx: number, cy: number, r: number, deg: number) {
-  const rad = ((deg - 90) * Math.PI) / 180;
-  return { x: cx + r * Math.cos(rad), y: cy + r * Math.sin(rad) };
-}
-
-function donutSlicePath(cx: number, cy: number, outerR: number, innerR: number, s: number, e: number) {
-  const os = polarToCartesian(cx, cy, outerR, s);
-  const oe = polarToCartesian(cx, cy, outerR, e);
-  const is = polarToCartesian(cx, cy, innerR, s);
-  const ie = polarToCartesian(cx, cy, innerR, e);
-  const large = e - s > 180 ? 1 : 0;
-  return `M ${os.x} ${os.y} A ${outerR} ${outerR} 0 ${large} 1 ${oe.x} ${oe.y} L ${ie.x} ${ie.y} A ${innerR} ${innerR} 0 ${large} 0 ${is.x} ${is.y} Z`;
-}
-
 function getAccColor(acc: number | null) {
   if (acc === null) return 'var(--color-border)';
   if (acc >= 0.70) return 'var(--color-success)';
@@ -35,91 +20,45 @@ function getAccColor(acc: number | null) {
 
 type DomainStat = { tagId: string; correctCount?: number; incorrectCount?: number };
 
-function DomainPieChart({ targetExam, domainStats, lang }: {
+function DomainProgressRings({ targetExam, domainStats, lang }: {
   targetExam: string;
   domainStats: DomainStat[];
   lang: string;
 }) {
-  const [hovered, setHovered] = useState<number | null>(null);
   const domains = EXAM_DOMAINS[targetExam] ?? [];
-  const rawWeights = DOMAIN_WEIGHTS[targetExam] ?? domains.map(() => 100 / domains.length);
-  const totalWeight = rawWeights.reduce((a, b) => a + b, 0);
-
-  const domainData = domains.map((d, i) => {
-    const stat = domainStats.find(s => s.tagId === d);
-    const total = stat ? (stat.correctCount ?? 0) + (stat.incorrectCount ?? 0) : 0;
-    const accuracy = total > 0 ? (stat?.correctCount ?? 0) / total : null;
-    return { domain: d, weight: rawWeights[i], accuracy };
-  });
-
-  let weightedSum = 0, dataWeight = 0;
-  for (const d of domainData) {
-    if (d.accuracy !== null) { weightedSum += d.accuracy * d.weight; dataWeight += d.weight; }
-  }
-  const overallAcc = dataWeight > 0 ? weightedSum / dataWeight : null;
-
-  const size = 140;
-  const cx = size / 2, cy = size / 2;
-  const outerR = size * 0.43, innerR = size * 0.28;
-
-  const slices: { path: string; color: string; i: number }[] = [];
-  let cumDeg = 0;
-  for (let i = 0; i < domainData.length; i++) {
-    const sweep = (domainData[i].weight / totalWeight) * 360;
-    if (sweep < 0.1) { cumDeg += sweep; continue; }
-    const startDeg = cumDeg;
-    const endDeg = cumDeg + sweep;
-    slices.push({ path: donutSlicePath(cx, cy, outerR, innerR, startDeg, endDeg - 0.5), color: getAccColor(domainData[i].accuracy), i });
-    cumDeg += sweep;
-  }
-
-  const centerText = overallAcc !== null ? `${Math.round(overallAcc * 100)}%` : '—';
-  const centerColor = getAccColor(overallAcc);
+  const sz = 56, r = 21;
+  const circ = 2 * Math.PI * r;
 
   return (
-    <div>
-      <svg viewBox={`0 0 ${size} ${size}`} width={size} height={size} style={{ display: 'block' }}>
-        {slices.map(s => (
-          <path
-            key={s.i}
-            d={s.path}
-            fill={s.color}
-            stroke="var(--color-bg-white)"
-            strokeWidth="2"
-            opacity={hovered === null || hovered === s.i ? 1 : 0.55}
-            style={{ cursor: 'default', transition: 'opacity 0.15s' }}
-            onMouseEnter={() => setHovered(s.i)}
-            onMouseLeave={() => setHovered(null)}
-          />
-        ))}
-        <text x={cx} y={cy - 2} textAnchor="middle" dominantBaseline="middle"
-          fontSize={size * 0.15} fontWeight="800" fill={centerColor}>
-          {centerText}
-        </text>
-        <text x={cx} y={cy + size * 0.13} textAnchor="middle" dominantBaseline="middle"
-          fontSize={size * 0.09} fill="var(--color-text-light)">
-          {lang === 'ja' ? '正答率' : 'Accuracy'}
-        </text>
-      </svg>
-
-      {/* ホバー情報 */}
-      <div style={{ minHeight: 28, textAlign: 'center' }}>
-        {hovered !== null && domainData[hovered] ? (
-          <div style={{ fontSize: 11, color: 'var(--color-text-sub)', lineHeight: 1.3 }}>
-            <span style={{ fontWeight: 700, color: getAccColor(domainData[hovered].accuracy) }}>
-              {domainData[hovered].accuracy !== null ? `${Math.round(domainData[hovered].accuracy! * 100)}%` : '—'}
-            </span>
-            {'  '}
-            <span style={{ color: 'var(--color-text-light)' }}>
-              {lang === 'en' ? (DOMAIN_NAME_EN[domainData[hovered].domain] ?? domainData[hovered].domain) : domainData[hovered].domain}
-            </span>
+    <div style={{ display: 'flex', gap: 8, overflowX: 'auto', paddingBottom: 2 }}>
+      {domains.map((d, i) => {
+        const stat = domainStats.find(s => s.tagId === d);
+        const total = (stat?.correctCount ?? 0) + (stat?.incorrectCount ?? 0);
+        const acc = total > 0 ? (stat?.correctCount ?? 0) / total : null;
+        const color = getAccColor(acc);
+        const label = lang === 'en' ? (DOMAIN_NAME_EN[d] ?? d) : d;
+        return (
+          <div key={d} title={label}
+            style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 3, minWidth: sz, flexShrink: 0 }}>
+            <svg width={sz} height={sz} viewBox={`0 0 ${sz} ${sz}`}>
+              <circle cx={sz / 2} cy={sz / 2} r={r} fill="none" stroke="var(--color-border)" strokeWidth={5} />
+              {acc !== null && (
+                <circle
+                  cx={sz / 2} cy={sz / 2} r={r} fill="none" stroke={color} strokeWidth={5}
+                  strokeDasharray={`${acc * circ} ${circ}`}
+                  transform={`rotate(-90 ${sz / 2} ${sz / 2})`}
+                  strokeLinecap="round"
+                />
+              )}
+              <text x={sz / 2} y={sz / 2} textAnchor="middle" dominantBaseline="middle"
+                fontSize={11} fontWeight={700} fill={acc !== null ? color : 'var(--color-text-light)'}>
+                {acc !== null ? `${Math.round(acc * 100)}%` : '—'}
+              </text>
+            </svg>
+            <div style={{ fontSize: 9, color: 'var(--color-text-sub)', fontWeight: 600 }}>D{i + 1}</div>
           </div>
-        ) : (
-          <div style={{ fontSize: 10, color: 'var(--color-text-light)' }}>
-            {lang === 'ja' ? 'ドメインにカーソルを合わせると詳細表示' : 'Hover over a slice for details'}
-          </div>
-        )}
-      </div>
+        );
+      })}
     </div>
   );
 }
@@ -732,28 +671,7 @@ export default function Home() {
               <div className="sherpa-spinner" style={{ width: 24, height: 24, borderWidth: 2 }} />
             </div>
           ) : (
-            <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--spacing-md)', flexWrap: 'wrap' }}>
-              <DomainPieChart targetExam={targetExam} domainStats={domainStats} lang={lang} />
-              {/* ドメイン凡例 */}
-              <div style={{ flex: 1, minWidth: 0 }}>
-                {(EXAM_DOMAINS[targetExam] ?? []).map((d, i) => {
-                  const stat = domainStats.find(s => s.tagId === d);
-                  const total = stat ? (stat.correctCount ?? 0) + (stat.incorrectCount ?? 0) : 0;
-                  const acc = total > 0 ? (stat?.correctCount ?? 0) / total : null;
-                  return (
-                    <div key={d} style={{ display: 'flex', alignItems: 'center', gap: 5, marginBottom: 4 }}>
-                      <span style={{ width: 8, height: 8, borderRadius: '50%', background: getAccColor(acc), flexShrink: 0 }} />
-                      <span style={{ fontSize: 10, color: 'var(--color-text-sub)', flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                        {lang === 'en' ? (DOMAIN_NAME_EN[d] ?? d) : d}
-                      </span>
-                      <span style={{ fontSize: 10, fontWeight: 700, color: getAccColor(acc), flexShrink: 0 }}>
-                        {acc !== null ? `${Math.round(acc * 100)}%` : '—'}
-                      </span>
-                    </div>
-                  );
-                })}
-              </div>
-            </div>
+            <DomainProgressRings targetExam={targetExam} domainStats={domainStats} lang={lang} />
           )}
         </Card>
       </div>
