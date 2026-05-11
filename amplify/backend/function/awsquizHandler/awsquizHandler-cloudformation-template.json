@@ -165,6 +165,19 @@
         }
       }
     },
+    "DailyServicesTable": {
+      "Type": "AWS::DynamoDB::Table",
+      "Properties": {
+        "TableName": "DailyServices",
+        "AttributeDefinitions": [
+          { "AttributeName": "serviceId", "AttributeType": "S" }
+        ],
+        "KeySchema": [
+          { "AttributeName": "serviceId", "KeyType": "HASH" }
+        ],
+        "BillingMode": "PAY_PER_REQUEST"
+      }
+    },
     "CustomLambdaExecutionPolicy": {
       "Type": "AWS::IAM::Policy",
       "Properties": {
@@ -195,7 +208,7 @@
                 "arn:aws:dynamodb:ap-northeast-1:*:table/Releases",
                 "arn:aws:dynamodb:ap-northeast-1:*:table/ContactMessages",
                 "arn:aws:dynamodb:ap-northeast-1:*:table/Bookmarks",
-                "arn:aws:dynamodb:ap-northeast-1:*:table/DailyServices"
+                { "Fn::GetAtt": ["DailyServicesTable", "Arn"] }
               ],
               "Effect": "Allow"
             }
@@ -207,7 +220,7 @@
           }
         ]
       },
-      "DependsOn": "LambdaExecutionRole"
+      "DependsOn": ["LambdaExecutionRole", "DailyServicesTable"]
     }
   },
   "Outputs": {
