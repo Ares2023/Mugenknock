@@ -73,7 +73,7 @@ function App() {
             <PrivateRoute><Layout><Stats /></Layout></PrivateRoute>
           } />
           <Route path="/account" element={
-            <PrivateRoute><Layout><Account /></Layout></PrivateRoute>
+            <PrivateRoute><Account /></PrivateRoute>
           } />
         </Routes>
       </BrowserRouter>

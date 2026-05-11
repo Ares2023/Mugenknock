@@ -202,7 +202,6 @@ export default function Layout({ children }: { children: React.ReactNode }) {
   const navItems = NAV_KEYS;
 
   const breadcrumbs: Record<string, BreadcrumbItem[]> = {
-    '/account':          [{ label: t('nav.home'), path: '/' }, { label: lang === 'ja' ? 'アカウント' : 'Account' }],
     '/questions':        [{ label: t('nav.home'), path: '/' }, { label: t('nav.questions') }],
     '/growth':           [{ label: t('nav.home'), path: '/' }, { label: t('nav.growth') }],
     '/exercise/setup':   [{ label: t('nav.home'), path: '/' }, { label: t('exerciseSetup.title') }],

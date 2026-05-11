@@ -8,6 +8,12 @@ import { useTheme } from '../contexts/ThemeContext';
 import Badge from '../components/ui/Badge';
 import Button from '../components/ui/Button';
 
+const IconChevronLeft = () => (
+  <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M15 18l-6-6 6-6"/>
+  </svg>
+);
+
 type SessionSummary = { examType: string; count: number; lastDate: string | null };
 
 const formatDate = (iso: string) => {
@@ -243,7 +249,38 @@ export default function Account() {
   const ja = lang === 'ja';
 
   return (
-    <div style={{ maxWidth: 600, margin: '0 auto', padding: '24px 16px 40px' }} className="page-container">
+    <div style={{ display: 'flex', flexDirection: 'column', minHeight: '100vh', background: 'var(--color-bg-main)', fontFamily: 'inherit' }}>
+
+      {/* ── ヘッダー ── */}
+      <header style={{
+        height: 56, minHeight: 56, background: 'var(--color-secondary)',
+        display: 'flex', alignItems: 'center',
+        padding: '0 8px 0 4px',
+        boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
+        flexShrink: 0,
+        position: 'sticky', top: 0, zIndex: 100,
+      }}>
+        <button
+          onClick={() => navigate('/')}
+          style={{
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            width: 44, height: 44, border: 'none', background: 'none',
+            cursor: 'pointer', color: 'white', borderRadius: 8,
+            flexShrink: 0,
+            transition: 'background 0.15s',
+          }}
+          onMouseEnter={e => e.currentTarget.style.background = 'rgba(255,255,255,0.15)'}
+          onMouseLeave={e => e.currentTarget.style.background = 'none'}
+        >
+          <IconChevronLeft />
+        </button>
+        <div onClick={() => navigate('/')} style={{ cursor: 'pointer', display: 'flex', alignItems: 'center' }}>
+          <img src="/mugen-header.png" alt="AWS資格無限ノック" style={{ height: 32, width: 'auto', display: 'block' }} />
+        </div>
+      </header>
+
+    <div style={{ flex: 1, overflowY: 'auto' }}>
+    <div style={{ maxWidth: 600, margin: '0 auto', padding: '24px 16px 48px' }} className="page-container">
 
       {/* ユーザー情報ヘッダー */}
       {user && (
@@ -560,6 +597,8 @@ export default function Account() {
           </div>
         </Modal>
       )}
+    </div>
+    </div>
     </div>
   );
 }
