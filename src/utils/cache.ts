@@ -18,3 +18,7 @@ export function setCached<T>(key: string, value: T, ttl = DEFAULT_TTL): void {
     sessionStorage.setItem(`_sc_${key}`, JSON.stringify({ v: value, exp: Date.now() + ttl }));
   } catch {}
 }
+
+export function deleteCached(key: string): void {
+  try { sessionStorage.removeItem(`_sc_${key}`); } catch {}
+}

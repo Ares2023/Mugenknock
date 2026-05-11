@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { API_ENDPOINT, PASS_RATE } from '../constants';
+import { deleteCached } from '../utils/cache';
 import { useAuth } from '../contexts/AuthContext';
 import { useLanguage } from '../contexts/LanguageContext';
 import Card from '../components/ui/Card';
@@ -356,6 +357,7 @@ export default function ExerciseSession() {
         });
       } catch (err) { console.error(err); }
       localStorage.removeItem('exerciseDraft');
+      deleteCached(`ustats_${userId}`);
       navigate('/result', { state: { results, questions, score, isPassed, sessionId, userId, examType } });
     } else {
       setCurrentIndex(prev => prev + 1);

@@ -1362,4 +1362,112 @@ app.delete('/admin/messages/:id', requireAdmin, async (req, res) => {
   }
 });
 
+// ── DailyServices（今日のサービス）──
+
+// 公開用：アクティブなサービス一覧（日替わり選択用）
+app.get('/daily-service', async (req, res) => {
+  try {
+    const docClient = getClient();
+    const result = await docClient.send(new ScanCommand({
+      TableName: 'DailyServices',
+      FilterExpression: 'isActive = :t',
+      ExpressionAttributeValues: { ':t': true },
+    }));
+    const items = (result.Items || []).sort((a, b) => (a.order || 0) - (b.order || 0));
+    if (items.length === 0) return res.json({ service: null });
+    // 日本時間の日付を基にインデックスを決定（JST = UTC+9）
+    const jstDay = Math.floor((Date.now() + 9 * 3600 * 1000) / 86400000);
+    const service = items[jstDay % items.length];
+    res.json({ service });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+// 管理者用：全件取得
+app.get('/admin/daily-services', async (req, res) => {
+  try {
+    const docClient = getClient();
+    const result = await docClient.send(new ScanCommand({ TableName: 'DailyServices' }));
+    const items = (result.Items || []).sort((a, b) => (a.order || 0) - (b.order || 0));
+    res.json({ items });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+// 管理者用：追加
+app.post('/admin/daily-services', async (req, res) => {
+  try {
+    const docClient = getClient();
+    const { name, shortName, category, icon, description, trivia, order, isActive } = req.body;
+    if (!name || !description) return res.status(400).json({ error: 'name and description are required' });
+    const serviceId = uuidv4();
+    await docClient.send(new PutCommand({
+      TableName: 'DailyServices',
+      Item: {
+        serviceId,
+        name: name.trim(),
+        shortName: (shortName || '').trim(),
+        category: (category || '').trim(),
+        icon: (icon || '☁️').trim(),
+        description: description.trim(),
+        trivia: (trivia || '').trim(),
+        order: Number(order) || 0,
+        isActive: isActive !== false,
+        createdAt: new Date().toISOString(),
+      },
+    }));
+    res.json({ serviceId });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+// 管理者用：更新
+app.put('/admin/daily-services/:id', async (req, res) => {
+  try {
+    const docClient = getClient();
+    const { name, shortName, category, icon, description, trivia, order, isActive } = req.body;
+    await docClient.send(new UpdateCommand({
+      TableName: 'DailyServices',
+      Key: { serviceId: req.params.id },
+      UpdateExpression: 'SET #n = :name, shortName = :sn, category = :cat, icon = :icon, description = :desc, trivia = :tv, #o = :order, isActive = :active',
+      ExpressionAttributeNames: { '#n': 'name', '#o': 'order' },
+      ExpressionAttributeValues: {
+        ':name': (name || '').trim(),
+        ':sn': (shortName || '').trim(),
+        ':cat': (category || '').trim(),
+        ':icon': (icon || '☁️').trim(),
+        ':desc': (description || '').trim(),
+        ':tv': (trivia || '').trim(),
+        ':order': Number(order) || 0,
+        ':active': isActive !== false,
+      },
+    }));
+    res.json({ success: true });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+// 管理者用：削除
+app.delete('/admin/daily-services/:id', async (req, res) => {
+  try {
+    const docClient = getClient();
+    await docClient.send(new DeleteCommand({
+      TableName: 'DailyServices',
+      Key: { serviceId: req.params.id },
+    }));
+    res.json({ success: true });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
 module.exports = app;

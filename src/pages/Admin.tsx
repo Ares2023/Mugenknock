@@ -77,7 +77,20 @@ type ImportQuestion = {
   tags?: string[];
 };
 
-type Tab = 'questions' | 'reports' | 'tips' | 'import' | 'releases' | 'scan' | 'messages';
+type Tab = 'questions' | 'reports' | 'tips' | 'import' | 'releases' | 'scan' | 'messages' | 'dailyservice';
+
+type DailyServiceItem = {
+  serviceId: string;
+  name: string;
+  shortName?: string;
+  category?: string;
+  icon: string;
+  description: string;
+  trivia?: string;
+  order: number;
+  isActive: boolean;
+  createdAt?: string;
+};
 
 type ContactMessage = {
   messageId: string;
@@ -196,6 +209,14 @@ export default function Admin() {
   const [messages, setMessages] = useState<ContactMessage[]>([]);
   const [loadingMsg, setLoadingMsg] = useState(false);
 
+  // 今日のサービス
+  const [dailyServices, setDailyServices] = useState<DailyServiceItem[]>([]);
+  const [loadingDS, setLoadingDS] = useState(false);
+  const [editingDS, setEditingDS] = useState<DailyServiceItem | null>(null);
+  const [showDSForm, setShowDSForm] = useState(false);
+  const emptyDSForm = { name: '', shortName: '', category: '', icon: '☁️', description: '', trivia: '', order: 0, isActive: true };
+  const [dsForm, setDsForm] = useState(emptyDSForm);
+
   // リリースノート管理
   const [releases, setReleases] = useState<Release[]>([]);
   const [loadingRel, setLoadingRel] = useState(false);
@@ -296,6 +317,57 @@ export default function Admin() {
       setMessages(data.items || []);
     } catch (err) { console.error(err); } finally { setLoadingMsg(false); }
   }, []);
+
+  const fetchDailyServices = useCallback(async () => {
+    setLoadingDS(true);
+    try {
+      const res = await adminFetch(`${API_ENDPOINT}/admin/daily-services`);
+      const data = await res.json();
+      setDailyServices(data.items || []);
+    } catch (err) { console.error(err); } finally { setLoadingDS(false); }
+  }, []);
+
+  const saveDailyService = async () => {
+    if (!dsForm.name.trim() || !dsForm.description.trim()) {
+      alert('サービス名と説明は必須です');
+      return;
+    }
+    try {
+      if (editingDS) {
+        await adminFetch(`${API_ENDPOINT}/admin/daily-services/${editingDS.serviceId}`, {
+          method: 'PUT', headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(dsForm),
+        });
+      } else {
+        await adminFetch(`${API_ENDPOINT}/admin/daily-services`, {
+          method: 'POST', headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(dsForm),
+        });
+      }
+      setShowDSForm(false);
+      setEditingDS(null);
+      setDsForm(emptyDSForm);
+      fetchDailyServices();
+    } catch (err) { console.error(err); }
+  };
+
+  const deleteDailyService = async (serviceId: string) => {
+    if (!window.confirm('このサービスを削除しますか？')) return;
+    try {
+      await adminFetch(`${API_ENDPOINT}/admin/daily-services/${serviceId}`, { method: 'DELETE' });
+      setDailyServices(prev => prev.filter(s => s.serviceId !== serviceId));
+    } catch (err) { console.error(err); }
+  };
+
+  const toggleDSActive = async (ds: DailyServiceItem) => {
+    try {
+      await adminFetch(`${API_ENDPOINT}/admin/daily-services/${ds.serviceId}`, {
+        method: 'PUT', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ ...ds, isActive: !ds.isActive }),
+      });
+      setDailyServices(prev => prev.map(s => s.serviceId === ds.serviceId ? { ...s, isActive: !s.isActive } : s));
+    } catch (err) { console.error(err); }
+  };
 
   const handleDeleteMessage = async (m: ContactMessage) => {
     if (!window.confirm('このメッセージを削除しますか？')) return;
@@ -459,6 +531,7 @@ export default function Admin() {
   useEffect(() => { if (tab === 'releases') fetchReleases(); }, [tab]);
   useEffect(() => { if (tab === 'scan') fetchFlagged('all'); }, [tab]);
   useEffect(() => { if (tab === 'messages') fetchMessages(); }, [tab]);
+  useEffect(() => { if (tab === 'dailyservice') fetchDailyServices(); }, [tab]);
 
   const handleSaveTip = async () => {
     if (!tipForm.title.trim() || !tipForm.content.trim()) return;
@@ -760,6 +833,7 @@ export default function Admin() {
         <button style={tabStyle('tips')} onClick={() => setTab('tips')}>コラム管理</button>
         <button style={tabStyle('releases')} onClick={() => setTab('releases')}>リリースノート</button>
         <button style={tabStyle('scan')} onClick={() => setTab('scan')}>スキャン結果</button>
+        <button style={tabStyle('dailyservice')} onClick={() => setTab('dailyservice')}>今日のサービス</button>
         <button style={tabStyle('messages')} onClick={() => setTab('messages')}>
           メッセージ{messages.length > 0 ? ` (${messages.length})` : ''}
         </button>
@@ -1990,6 +2064,147 @@ ${tipPromptExamType !== 'ALL' ? `・examType には "${tipPromptExamType}" を�
                 <p style={{ margin: '0 0 8px', fontWeight: 700, fontSize: 14, color: 'var(--color-text-main)' }}>{m.subject}</p>
               )}
               <p style={{ margin: 0, fontSize: 14, color: 'var(--color-text-main)', lineHeight: 1.7, whiteSpace: 'pre-wrap' }}>{m.message}</p>
+            </div>
+          ))}
+        </div>
+      )}
+      {/* ── 今日のサービス管理 ── */}
+      {tab === 'dailyservice' && (
+        <div>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
+            <p style={{ color: 'var(--color-text-sub)', fontSize: 13, margin: 0 }}>
+              {loadingDS ? '読み込み中...' : `${dailyServices.length} 件（有効: ${dailyServices.filter(s => s.isActive).length} 件）`}
+            </p>
+            <div style={{ display: 'flex', gap: 8 }}>
+              <button onClick={fetchDailyServices}
+                style={{ padding: '6px 14px', background: 'transparent', color: 'var(--color-primary)', border: '1.5px solid var(--color-primary)', borderRadius: 9999, cursor: 'pointer', fontSize: 13, fontWeight: 700 }}>
+                更新
+              </button>
+              <button
+                onClick={() => { setEditingDS(null); setDsForm(emptyDSForm); setShowDSForm(true); }}
+                style={{ padding: '6px 16px', background: '#ff9900', color: '#16191f', border: 'none', borderRadius: 9999, cursor: 'pointer', fontSize: 13, fontWeight: 700 }}>
+                + 追加
+              </button>
+            </div>
+          </div>
+
+          {showDSForm && (
+            <div style={{ border: '2px solid var(--color-primary)', borderRadius: 8, padding: '20px 20px 16px', marginBottom: 20, background: 'var(--color-bg-main)' }}>
+              <h4 style={{ margin: '0 0 14px', fontSize: 15, color: 'var(--color-text-main)' }}>
+                {editingDS ? 'サービス編集' : '新規サービス'}
+              </h4>
+
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, marginBottom: 10 }}>
+                <div>
+                  <div style={{ fontSize: 11, fontWeight: 700, color: 'var(--color-text-sub)', marginBottom: 4 }}>アイコン（絵文字）</div>
+                  <input value={dsForm.icon} onChange={e => setDsForm(f => ({ ...f, icon: e.target.value }))}
+                    placeholder="☁️" style={{ width: '100%', padding: '7px 10px', border: '1px solid var(--color-border)', borderRadius: 6, fontSize: 20, boxSizing: 'border-box', outline: 'none', textAlign: 'center' }} />
+                </div>
+                <div>
+                  <div style={{ fontSize: 11, fontWeight: 700, color: 'var(--color-text-sub)', marginBottom: 4 }}>表示順（小さいほど前）</div>
+                  <input type="number" value={dsForm.order} onChange={e => setDsForm(f => ({ ...f, order: Number(e.target.value) }))}
+                    style={{ width: '100%', padding: '7px 10px', border: '1px solid var(--color-border)', borderRadius: 6, fontSize: 14, boxSizing: 'border-box', outline: 'none' }} />
+                </div>
+              </div>
+
+              <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr', gap: 10, marginBottom: 10 }}>
+                <div>
+                  <div style={{ fontSize: 11, fontWeight: 700, color: 'var(--color-text-sub)', marginBottom: 4 }}>サービス名 *</div>
+                  <input value={dsForm.name} onChange={e => setDsForm(f => ({ ...f, name: e.target.value }))}
+                    placeholder="例: Amazon S3" style={{ width: '100%', padding: '7px 10px', border: '1px solid var(--color-border)', borderRadius: 6, fontSize: 14, boxSizing: 'border-box', outline: 'none' }} />
+                </div>
+                <div>
+                  <div style={{ fontSize: 11, fontWeight: 700, color: 'var(--color-text-sub)', marginBottom: 4 }}>略称</div>
+                  <input value={dsForm.shortName} onChange={e => setDsForm(f => ({ ...f, shortName: e.target.value }))}
+                    placeholder="例: S3" style={{ width: '100%', padding: '7px 10px', border: '1px solid var(--color-border)', borderRadius: 6, fontSize: 14, boxSizing: 'border-box', outline: 'none' }} />
+                </div>
+              </div>
+
+              <div style={{ marginBottom: 10 }}>
+                <div style={{ fontSize: 11, fontWeight: 700, color: 'var(--color-text-sub)', marginBottom: 4 }}>カテゴリ</div>
+                <input value={dsForm.category} onChange={e => setDsForm(f => ({ ...f, category: e.target.value }))}
+                  placeholder="例: ストレージ / コンピューティング / データベース" style={{ width: '100%', padding: '7px 10px', border: '1px solid var(--color-border)', borderRadius: 6, fontSize: 14, boxSizing: 'border-box', outline: 'none' }} />
+              </div>
+
+              <div style={{ marginBottom: 10 }}>
+                <div style={{ fontSize: 11, fontWeight: 700, color: 'var(--color-text-sub)', marginBottom: 4 }}>説明 *（カジュアルに）</div>
+                <textarea value={dsForm.description} onChange={e => setDsForm(f => ({ ...f, description: e.target.value }))}
+                  placeholder="このサービスが何をするか、どんな場面で使うかを簡潔に"
+                  rows={3} style={{ width: '100%', padding: '7px 10px', border: '1px solid var(--color-border)', borderRadius: 6, fontSize: 14, resize: 'vertical', boxSizing: 'border-box', outline: 'none' }} />
+              </div>
+
+              <div style={{ marginBottom: 14 }}>
+                <div style={{ fontSize: 11, fontWeight: 700, color: 'var(--color-text-sub)', marginBottom: 4 }}>💡 豆知識・意外な用途（任意）</div>
+                <textarea value={dsForm.trivia} onChange={e => setDsForm(f => ({ ...f, trivia: e.target.value }))}
+                  placeholder="「実はこんな使い方も！」「名前の由来は〇〇」など"
+                  rows={2} style={{ width: '100%', padding: '7px 10px', border: '1px solid var(--color-border)', borderRadius: 6, fontSize: 14, resize: 'vertical', boxSizing: 'border-box', outline: 'none' }} />
+              </div>
+
+              <div style={{ display: 'flex', alignItems: 'center', gap: 16, borderTop: '1px solid var(--color-border)', paddingTop: 12 }}>
+                <label style={{ display: 'flex', alignItems: 'center', gap: 8, cursor: 'pointer', fontSize: 14 }}>
+                  <input type="checkbox" checked={dsForm.isActive} onChange={e => setDsForm(f => ({ ...f, isActive: e.target.checked }))} style={{ width: 16, height: 16 }} />
+                  有効（ホームに表示）
+                </label>
+                <div style={{ marginLeft: 'auto', display: 'flex', gap: 8 }}>
+                  <button onClick={saveDailyService}
+                    style={{ padding: '7px 20px', background: '#ff9900', color: '#16191f', border: 'none', borderRadius: 9999, cursor: 'pointer', fontWeight: 700, fontSize: 14 }}>
+                    保存
+                  </button>
+                  <button onClick={() => { setShowDSForm(false); setEditingDS(null); setDsForm(emptyDSForm); }}
+                    style={{ padding: '7px 16px', border: '1px solid var(--color-border)', borderRadius: 9999, cursor: 'pointer', background: 'transparent', fontWeight: 700, fontSize: 14 }}>
+                    キャンセル
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {!loadingDS && dailyServices.length === 0 && (
+            <p style={{ color: 'var(--color-text-light)', textAlign: 'center', padding: 40 }}>サービスが登録されていません</p>
+          )}
+
+          {dailyServices.map(ds => (
+            <div key={ds.serviceId} style={{
+              border: `1px solid ${ds.isActive ? 'var(--color-border)' : 'var(--color-border)'}`,
+              borderLeft: `4px solid ${ds.isActive ? 'var(--color-success)' : 'var(--color-border)'}`,
+              borderRadius: 6, padding: '12px 16px', marginBottom: 8,
+              background: ds.isActive ? 'var(--color-bg-white)' : 'var(--color-bg-main)',
+              opacity: ds.isActive ? 1 : 0.65,
+            }}>
+              <div style={{ display: 'flex', alignItems: 'flex-start', gap: 12 }}>
+                <div style={{ fontSize: 28, width: 40, textAlign: 'center', flexShrink: 0 }}>{ds.icon}</div>
+                <div style={{ flex: 1, minWidth: 0 }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap', marginBottom: 4 }}>
+                    <span style={{ fontWeight: 700, fontSize: 15, color: 'var(--color-text-main)' }}>{ds.name}</span>
+                    {ds.shortName && <span style={{ fontSize: 11, color: 'var(--color-text-light)', background: 'var(--color-bg-main)', padding: '1px 6px', borderRadius: 4 }}>{ds.shortName}</span>}
+                    {ds.category && <span style={{ fontSize: 11, color: 'var(--color-primary)', background: 'var(--color-primary-light)', padding: '1px 7px', borderRadius: 12, fontWeight: 700 }}>{ds.category}</span>}
+                    <span style={{ fontSize: 11, color: 'var(--color-text-light)' }}>順: {ds.order}</span>
+                  </div>
+                  <p style={{ margin: '0 0 4px', fontSize: 13, color: 'var(--color-text-sub)', lineHeight: 1.5 }}>{ds.description}</p>
+                  {ds.trivia && <p style={{ margin: 0, fontSize: 12, color: 'var(--color-text-light)', lineHeight: 1.5 }}>💡 {ds.trivia}</p>}
+                </div>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 6, flexShrink: 0 }}>
+                  <button
+                    onClick={() => toggleDSActive(ds)}
+                    style={{
+                      padding: '4px 10px', fontSize: 11, fontWeight: 700, cursor: 'pointer', borderRadius: 9999,
+                      border: `1px solid ${ds.isActive ? 'var(--color-success)' : 'var(--color-border)'}`,
+                      background: ds.isActive ? 'rgba(28,181,110,0.1)' : 'transparent',
+                      color: ds.isActive ? 'var(--color-success)' : 'var(--color-text-light)',
+                    }}>
+                    {ds.isActive ? '有効' : '無効'}
+                  </button>
+                  <button
+                    onClick={() => { setEditingDS(ds); setDsForm({ name: ds.name, shortName: ds.shortName ?? '', category: ds.category ?? '', icon: ds.icon, description: ds.description, trivia: ds.trivia ?? '', order: ds.order, isActive: ds.isActive }); setShowDSForm(true); }}
+                    style={{ padding: '4px 10px', border: '1px solid var(--color-border)', borderRadius: 9999, cursor: 'pointer', background: 'transparent', fontSize: 11, fontWeight: 700 }}>
+                    編集
+                  </button>
+                  <button onClick={() => deleteDailyService(ds.serviceId)}
+                    style={{ padding: '4px 10px', background: 'transparent', color: 'var(--color-danger)', border: '1px solid #d13212', borderRadius: 9999, cursor: 'pointer', fontSize: 11, fontWeight: 700 }}>
+                    削除
+                  </button>
+                </div>
+              </div>
             </div>
           ))}
         </div>

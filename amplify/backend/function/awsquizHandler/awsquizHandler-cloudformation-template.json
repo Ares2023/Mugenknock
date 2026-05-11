@@ -190,7 +190,12 @@
                 "arn:aws:dynamodb:ap-northeast-1:*:table/UserQuestionStats",
                 "arn:aws:dynamodb:ap-northeast-1:*:table/UserTagStats",
                 "arn:aws:dynamodb:ap-northeast-1:*:table/Sessions",
-                "arn:aws:dynamodb:ap-northeast-1:*:table/Reports"
+                "arn:aws:dynamodb:ap-northeast-1:*:table/Reports",
+                "arn:aws:dynamodb:ap-northeast-1:*:table/Tips",
+                "arn:aws:dynamodb:ap-northeast-1:*:table/Releases",
+                "arn:aws:dynamodb:ap-northeast-1:*:table/ContactMessages",
+                "arn:aws:dynamodb:ap-northeast-1:*:table/Bookmarks",
+                "arn:aws:dynamodb:ap-northeast-1:*:table/DailyServices"
               ],
               "Effect": "Allow"
             }

@@ -200,6 +200,118 @@ function ExamConfirmModal({ targetExam, lang, onConfirm, onCancel, loading }: {
   );
 }
 
+// ── 今日のサービス ─────────────────────────────────────────────────
+type DailyService = {
+  serviceId: string;
+  name: string;
+  shortName?: string;
+  category?: string;
+  icon: string;
+  description: string;
+  trivia?: string;
+};
+
+function TodayServiceSection({ lang }: { lang: string }) {
+  const [service, setService] = useState<DailyService | null>(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const cached = getCached<DailyService | null>('daily_service_today');
+    if (cached !== undefined) { setService(cached); setLoading(false); return; }
+    fetch(`${API_ENDPOINT}/daily-service`)
+      .then(r => r.json())
+      .then(d => {
+        const s = d.service ?? null;
+        setCached('daily_service_today', s, 60 * 60 * 1000); // 1時間キャッシュ
+        setService(s);
+      })
+      .catch(() => setService(null))
+      .finally(() => setLoading(false));
+  }, []);
+
+  if (loading) return (
+    <Card padding="var(--spacing-md)" style={{ marginBottom: 'var(--spacing-md)' }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 12 }}>
+        <div className="skeleton" style={{ width: 120, height: 16, borderRadius: 4 }} />
+      </div>
+      <div style={{ display: 'flex', gap: 16, alignItems: 'flex-start' }}>
+        <div className="skeleton" style={{ width: 56, height: 56, borderRadius: 12, flexShrink: 0 }} />
+        <div style={{ flex: 1 }}>
+          <div className="skeleton" style={{ width: '50%', height: 20, borderRadius: 4, marginBottom: 8 }} />
+          <div className="skeleton" style={{ width: '100%', height: 14, borderRadius: 4, marginBottom: 6 }} />
+          <div className="skeleton" style={{ width: '80%', height: 14, borderRadius: 4 }} />
+        </div>
+      </div>
+    </Card>
+  );
+
+  if (!service) return null;
+
+  return (
+    <Card padding="var(--spacing-md)" style={{ marginBottom: 'var(--spacing-md)', borderLeft: '3px solid var(--color-primary)' }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 12 }}>
+        <span style={{ fontSize: 14 }}>✨</span>
+        <span style={{ fontWeight: 700, fontSize: 'var(--font-size-base)', color: 'var(--color-text-main)' }}>
+          {lang === 'ja' ? '今日のサービス' : "Today's Service"}
+        </span>
+        {service.category && (
+          <span style={{
+            marginLeft: 4, fontSize: 10, fontWeight: 700, padding: '2px 8px',
+            borderRadius: 'var(--border-radius-full)',
+            background: 'var(--color-primary-light)', color: 'var(--color-primary)',
+          }}>
+            {service.category}
+          </span>
+        )}
+      </div>
+
+      <div style={{ display: 'flex', gap: 16, alignItems: 'flex-start' }}>
+        {/* アイコン */}
+        <div style={{
+          width: 56, height: 56, borderRadius: 12, flexShrink: 0,
+          background: 'var(--color-primary-light)',
+          display: 'flex', alignItems: 'center', justifyContent: 'center',
+          fontSize: 28,
+        }}>
+          {service.icon}
+        </div>
+
+        <div style={{ flex: 1, minWidth: 0 }}>
+          {/* サービス名 */}
+          <div style={{ display: 'flex', alignItems: 'baseline', gap: 8, flexWrap: 'wrap', marginBottom: 6 }}>
+            <span style={{ fontWeight: 800, fontSize: 'var(--font-size-lg)', color: 'var(--color-text-main)' }}>
+              {service.name}
+            </span>
+            {service.shortName && (
+              <span style={{ fontSize: 'var(--font-size-xs)', fontWeight: 700, color: 'var(--color-text-light)', background: 'var(--color-bg-main)', borderRadius: 4, padding: '1px 6px' }}>
+                {service.shortName}
+              </span>
+            )}
+          </div>
+
+          {/* 説明文 */}
+          <p style={{ margin: '0 0 10px', fontSize: 'var(--font-size-sm)', color: 'var(--color-text-sub)', lineHeight: 1.6 }}>
+            {service.description}
+          </p>
+
+          {/* 豆知識 */}
+          {service.trivia && (
+            <div style={{
+              background: 'var(--color-bg-main)', borderRadius: 'var(--border-radius-md)',
+              padding: '8px 12px', display: 'flex', gap: 8, alignItems: 'flex-start',
+            }}>
+              <span style={{ fontSize: 14, flexShrink: 0 }}>💡</span>
+              <span style={{ fontSize: 'var(--font-size-sm)', color: 'var(--color-text-sub)', lineHeight: 1.6 }}>
+                {service.trivia}
+              </span>
+            </div>
+          )}
+        </div>
+      </div>
+    </Card>
+  );
+}
+
 // ── ニュースセクション ──────────────────────────────────────────────
 const NEWS_RSS_API = `https://api.rss2json.com/v1/api.json?rss_url=${encodeURIComponent('https://aws.amazon.com/jp/about-aws/whats-new/recent/feed/')}`;
 
@@ -370,12 +482,13 @@ export default function Home() {
       .then(r => r.json())
       .then(d => {
         const stats = d.stats ?? [];
-        setCached(`ustats_${user.userId}`, stats, SHORT_TTL);
+        // 空の場合はキャッシュしない（演習後に即反映されるよう）
+        if (stats.length > 0) setCached(`ustats_${user.userId}`, stats, SHORT_TTL);
         setDomainStats(stats);
       })
       .catch(() => setDomainStats([]))
       .finally(() => setStatsLoading(false));
-  }, [user, targetExam]);
+  }, [user]);
 
   // モバイル試験選択
   const handleMobileExamSelect = (et: string) => {
@@ -738,6 +851,9 @@ export default function Home() {
           </Card>
         </div>
       </div>
+
+      {/* ── 三.五段目: 今日のサービス ── */}
+      <TodayServiceSection lang={lang} />
 
       {/* ── 四段目: ニュース ── */}
       <NewsSection lang={lang} />
