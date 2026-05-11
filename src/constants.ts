@@ -2,7 +2,7 @@ export const API_ENDPOINT = 'https://a0q3656qw4.execute-api.ap-northeast-1.amazo
 
 export const ADMIN_EMAIL = 'yuzuki2002110@gmail.com';
 
-export const EXAM_TYPES = ['CLF', 'SAA', 'SAP', 'DVA', 'DOP', 'AIF', 'MLA', 'GAI'] as const;
+export const EXAM_TYPES = ['CLF', 'SAA', 'SAP', 'DVA', 'SOA', 'DOP', 'AIF', 'MLA', 'GAI'] as const;
 export type ExamType = typeof EXAM_TYPES[number];
 
 // 合格スコア（スケールスコア 100〜1000 での公式合格ライン）
@@ -11,6 +11,7 @@ export const PASS_SCORES: Record<string, number> = {
   SAA: 720,
   SAP: 750,
   DVA: 720,
+  SOA: 720,
   DOP: 750,
   AIF: 700,
   MLA: 720,
@@ -23,6 +24,7 @@ export const PASS_RATE: Record<string, number> = {
   SAA: 72,
   SAP: 75,
   DVA: 72,
+  SOA: 72,
   DOP: 75,
   AIF: 70,
   MLA: 72,
@@ -35,6 +37,7 @@ export const EXAM_DOMAINS: Record<string, string[]> = {
   SAA: ['セキュアなアーキテクチャの設計', '弾力性に優れたアーキテクチャの設計', '高性能なアーキテクチャの設計', 'コスト最適化されたアーキテクチャの設計'],
   SAP: ['組織の複雑さに対応する設計', '新しいソリューションのための設計', '既存のソリューションの継続的改善', 'ワークロードの移行とモダン化の加速'],
   DVA: ['AWSのサービスを使用した開発', 'セキュリティ', 'デプロイ', 'トラブルシューティングと最適化'],
+  SOA: ['モニタリング、ロギング、および修復', '信頼性とビジネス継続性', 'デプロイ、プロビジョニング、および自動化', 'セキュリティとコンプライアンス', 'ネットワークとコンテンツ配信', 'コストとパフォーマンスの最適化'],
   DOP: ['SDLC の自動化', '構成管理と Infrastructure as Code (IaC)', '弾力性に優れたクラウドソリューション', 'モニタリングとロギング', 'インシデントとイベントへの対応', 'セキュリティとコンプライアンス'],
   AIF: ['AIとMLの基礎', '生成AIの基礎', '基盤モデルのアプリケーション', '責任あるAIのガイドライン', 'AIソリューションのセキュリティ、コンプライアンス、ガバナンス'],
   MLA: ['機械学習のためのデータ準備', 'MLモデルの開発', 'MLワークフローのデプロイとオーケストレーション', 'MLソリューションの監視、メンテナンス、セキュリティ'],
@@ -63,6 +66,13 @@ export const DOMAIN_NAME_EN: Record<string, string> = {
   'セキュリティ': 'Security',
   'デプロイ': 'Deployment',
   'トラブルシューティングと最適化': 'Troubleshooting and Optimization',
+  // SOA
+  'モニタリング、ロギング、および修復': 'Monitoring, Logging, and Remediation',
+  '信頼性とビジネス継続性': 'Reliability and Business Continuity',
+  'デプロイ、プロビジョニング、および自動化': 'Deployment, Provisioning, and Automation',
+  'ネットワークとコンテンツ配信': 'Networking and Content Delivery',
+  'コストとパフォーマンスの最適化': 'Cost and Performance Optimization',
+  // 'セキュリティとコンプライアンス' は CLF と共通キーのため CLF 側で定義済み
   // DOP
   'SDLC の自動化': 'SDLC Automation',
   '構成管理と Infrastructure as Code (IaC)': 'Configuration Management and IaC',
@@ -95,6 +105,7 @@ export const EXAM_LEVEL: Record<string, string> = {
   SAA: 'Associate',
   SAP: 'Professional',
   DVA: 'Associate',
+  SOA: 'Associate',
   DOP: 'Professional',
   AIF: 'Foundational',
   MLA: 'Associate',
@@ -107,6 +118,7 @@ export const EXAM_DESC_JA: Record<string, string> = {
   SAA: '最も人気の高いアソシエイトレベル認定',
   SAP: '高度な設計スキルを証明するプロ認定',
   DVA: 'AWSを使ったアプリケーション開発スキルを問うアソシエイト認定',
+  SOA: 'AWSインフラの運用・監視・自動化スキルを問うアソシエイト認定',
   DOP: '開発・運用の高度なスキルを証明するプロ認定',
   AIF: 'AI/MLの概念とAWSサービスを幅広くカバーする入門認定',
   MLA: 'MLモデルの構築・デプロイ・運用を問うアソシエイト認定',
@@ -117,6 +129,7 @@ export const EXAM_DESC_EN: Record<string, string> = {
   SAA: 'Most popular associate-level AWS certification',
   SAP: 'Professional certification for advanced architects',
   DVA: 'Associate certification for AWS application developers',
+  SOA: 'Associate certification for AWS infrastructure operations and administration',
   DOP: 'Professional certification for DevOps engineers',
   AIF: 'Foundational certification covering AI/ML concepts and AWS services',
   MLA: 'Associate certification for building and operating ML solutions',
@@ -138,6 +151,7 @@ export const EXAM_CONFIGS: Record<string, {
   SAA: { examCode: 'SAA-C03', fullName: 'AWS Certified Solutions Architect – Associate',           totalQuestions: 65, timeLimitMin: 130 },
   SAP: { examCode: 'SAP-C02', fullName: 'AWS Certified Solutions Architect – Professional',        totalQuestions: 75, timeLimitMin: 180 },
   DVA: { examCode: 'DVA-C02', fullName: 'AWS Certified Developer – Associate',                    totalQuestions: 65, timeLimitMin: 130 },
+  SOA: { examCode: 'SOA-C02', fullName: 'AWS Certified SysOps Administrator – Associate',         totalQuestions: 65, timeLimitMin: 130 },
   DOP: { examCode: 'DOP-C02', fullName: 'AWS Certified DevOps Engineer – Professional',            totalQuestions: 75, timeLimitMin: 180 },
   AIF: { examCode: 'AIF-C01', fullName: 'AWS Certified AI Practitioner',                          totalQuestions: 85, timeLimitMin: 120 },
   MLA: { examCode: 'MLA-C01', fullName: 'AWS Certified Machine Learning Engineer – Associate',    totalQuestions: 65, timeLimitMin: 130 },
