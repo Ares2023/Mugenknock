@@ -147,6 +147,7 @@ type DailyService = {
   icon: string;
   description: string;
   trivia?: string;
+  docUrl?: string;
 };
 
 function TodayServiceSection({ lang }: { lang: string }) {
@@ -209,9 +210,11 @@ function TodayServiceSection({ lang }: { lang: string }) {
           width: 56, height: 56, borderRadius: 12, flexShrink: 0,
           background: 'var(--color-primary-light)',
           display: 'flex', alignItems: 'center', justifyContent: 'center',
-          fontSize: 28,
+          fontSize: 28, overflow: 'hidden',
         }}>
-          {service.icon}
+          {service.icon.startsWith('/') || service.icon.startsWith('http')
+            ? <img src={service.icon} alt={service.name} style={{ width: 40, height: 40, objectFit: 'contain' }} />
+            : service.icon}
         </div>
 
         <div style={{ flex: 1, minWidth: 0 }}>
@@ -237,12 +240,25 @@ function TodayServiceSection({ lang }: { lang: string }) {
             <div style={{
               background: 'var(--color-bg-main)', borderRadius: 'var(--border-radius-md)',
               padding: '8px 12px', display: 'flex', gap: 8, alignItems: 'flex-start',
+              marginBottom: 10,
             }}>
               <span style={{ fontSize: 14, flexShrink: 0 }}>💡</span>
               <span style={{ fontSize: 'var(--font-size-sm)', color: 'var(--color-text-sub)', lineHeight: 1.6 }}>
                 {service.trivia}
               </span>
             </div>
+          )}
+
+          {/* 公式ページリンク */}
+          {service.docUrl && (
+            <a
+              href={service.docUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              style={{ fontSize: 'var(--font-size-sm)', color: 'var(--color-primary)', textDecoration: 'none', fontWeight: 600 }}
+            >
+              {lang === 'ja' ? '公式ページを見る →' : 'Official page →'}
+            </a>
           )}
         </div>
       </div>
@@ -473,10 +489,10 @@ export default function Home() {
     setQuickLoading(true);
     try {
       const userId = user?.userId ?? 'guest';
-      const params = new URLSearchParams({ examType: targetExam, withAnswers: 'true' });
+      const params = new URLSearchParams({ examType: targetExam, withAnswers: 'true', withValidity: 'true' });
       const data = await fetch(`${API_ENDPOINT}/questions?${params}`).then(r => r.json());
       let items: any[] = data.items ?? [];
-      items = items.filter((q: any) => q.aiVerified === true);
+      items = items.filter((q: any) => !!q.validityCheckedAt);
       if (prefs.unansweredOnly && user) {
         const res = await fetch(`${API_ENDPOINT}/users/me/answered-questions?userId=${userId}&examType=${targetExam}`).then(r => r.json());
         const answered = new Set(res.questionIds ?? []);
@@ -512,10 +528,10 @@ export default function Home() {
     setExamLoading(true);
     try {
       const userId = user?.userId ?? 'guest';
-      const params = new URLSearchParams({ examType: targetExam, withAnswers: 'true' });
+      const params = new URLSearchParams({ examType: targetExam, withAnswers: 'true', withValidity: 'true' });
       const data = await fetch(`${API_ENDPOINT}/questions?${params}`).then(r => r.json());
       let items: any[] = data.items ?? [];
-      items = items.filter((q: any) => q.aiVerified === true);
+      items = items.filter((q: any) => !!q.validityCheckedAt);
       if (user) {
         const res = await fetch(`${API_ENDPOINT}/users/me/answered-questions?userId=${userId}&examType=${targetExam}`).then(r => r.json());
         const answered = new Set(res.questionIds ?? []);
