@@ -25,6 +25,31 @@
       "name": "/tips",
       "lambdaFunction": "awsquizHandler",
       "permissions": { "setting": "open" }
+    },
+    "/tags": {
+      "name": "/tags",
+      "lambdaFunction": "awsquizHandler",
+      "permissions": { "setting": "open" }
+    },
+    "/releases": {
+      "name": "/releases",
+      "lambdaFunction": "awsquizHandler",
+      "permissions": { "setting": "open" }
+    },
+    "/contact": {
+      "name": "/contact",
+      "lambdaFunction": "awsquizHandler",
+      "permissions": { "setting": "open" }
+    },
+    "/daily-service": {
+      "name": "/daily-service",
+      "lambdaFunction": "awsquizHandler",
+      "permissions": { "setting": "open" }
+    },
+    "/health": {
+      "name": "/health",
+      "lambdaFunction": "awsquizHandler",
+      "permissions": { "setting": "open" }
     }
   }
 }
