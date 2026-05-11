@@ -9,7 +9,7 @@ import {
 import { getCached, setCached, SHORT_TTL } from '../utils/cache';
 import Card from '../components/ui/Card';
 import Button from '../components/ui/Button';
-import { IconPencil, IconClock, IconTarget } from '../components/Icons';
+import { IconTarget } from '../components/Icons';
 
 function getAccColor(acc: number | null) {
   if (acc === null) return 'var(--color-border)';
@@ -678,72 +678,33 @@ export default function Home() {
 
       {/* ── 演習・模試ボタン行 ── */}
       <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr', gap: 'var(--spacing-sm)', marginBottom: 'var(--spacing-md)' }}>
-        {/* サクッと演習 */}
-        <button
+        <Button
+          variant="primary"
+          fullWidth
           disabled={!targetExam || quickLoading}
           onClick={() => { if (targetExam && !quickLoading) startQuickExercise(); }}
-          style={{
-            display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
-            padding: '14px 16px', borderRadius: 'var(--border-radius-md)', border: 'none',
-            background: targetExam ? '#FF9900' : 'var(--color-border)',
-            color: targetExam ? '#16191f' : 'var(--color-text-light)',
-            fontWeight: 700, fontSize: 'var(--font-size-base)', cursor: targetExam && !quickLoading ? 'pointer' : 'default',
-            transition: 'opacity 0.15s',
-            opacity: quickLoading ? 0.7 : 1,
-          }}
+          style={{ background: '#FF9900', color: '#16191f', borderColor: '#FF9900' }}
         >
-          {quickLoading ? (
-            <>
-              <span style={{ width: 14, height: 14, border: '2px solid rgba(0,0,0,0.25)', borderTopColor: '#16191f', borderRadius: '50%', animation: 'sherpa-spin 0.7s linear infinite', flexShrink: 0 }} />
-              {ja ? '準備中...' : 'Loading...'}
-            </>
-          ) : (
-            <>
-              <span style={{ display: 'flex', flexShrink: 0 }}><IconPencil size={16} /></span>
-              {ja ? `サクッと演習 (${quickCount}問)` : `Quick (${quickCount}Q)`}
-            </>
-          )}
-        </button>
+          {quickLoading ? (ja ? '準備中...' : 'Loading...') : (ja ? 'サクッと演習' : 'Quick Practice')}
+        </Button>
 
-        {/* カスタム演習 */}
-        <button
+        <Button
+          variant="outline"
+          fullWidth
           onClick={() => navigate('/exercise/setup')}
-          style={{
-            display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
-            padding: '14px 16px', borderRadius: 'var(--border-radius-md)',
-            border: '1.5px solid var(--color-border)',
-            background: 'var(--color-bg-white)', color: 'var(--color-text-main)',
-            fontWeight: 700, fontSize: 'var(--font-size-base)', cursor: 'pointer',
-            transition: 'border-color 0.15s',
-          }}
         >
-          <span style={{ display: 'flex', flexShrink: 0 }}><IconPencil size={16} /></span>
           {ja ? 'カスタム演習' : 'Custom'}
-        </button>
+        </Button>
 
-        {/* 模試（全幅） */}
-        <button
-          disabled={!targetExam || examLoading}
+        <Button
+          variant="outline"
+          fullWidth
+          disabled={!targetExam}
           onClick={() => { if (targetExam) setShowExamConfirm(true); }}
-          style={{
-            gridColumn: '1 / -1',
-            display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
-            padding: '14px 16px', borderRadius: 'var(--border-radius-md)',
-            border: `1.5px solid ${targetExam ? 'var(--color-secondary)' : 'var(--color-border)'}`,
-            background: 'var(--color-bg-white)',
-            color: targetExam ? 'var(--color-secondary)' : 'var(--color-text-light)',
-            fontWeight: 700, fontSize: 'var(--font-size-base)', cursor: targetExam ? 'pointer' : 'default',
-            transition: 'border-color 0.15s',
-          }}
+          style={{ gridColumn: '1 / -1' }}
         >
-          <span style={{ display: 'flex', flexShrink: 0 }}><IconClock size={16} /></span>
           {ja ? '模試' : 'Mock Exam'}
-          {cfg && (
-            <span style={{ fontWeight: 400, fontSize: 'var(--font-size-sm)', color: 'var(--color-text-sub)', marginLeft: 4 }}>
-              {ja ? `${cfg.totalQuestions}問 · ${cfg.timeLimitMin}分` : `${cfg.totalQuestions}Q · ${cfg.timeLimitMin}min`}
-            </span>
-          )}
-        </button>
+        </Button>
       </div>
 
       {/* ── 三.五段目: 今日のサービス ── */}
