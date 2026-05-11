@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { updatePassword, deleteUser, updateUserAttributes } from 'aws-amplify/auth';
-import { API_ENDPOINT, EXAM_TYPES, EXAM_CONFIGS, EXAM_LEVEL } from '../constants';
+import { API_ENDPOINT, EXAM_TYPES, EXAM_LEVEL } from '../constants';
 import { useAuth } from '../contexts/AuthContext';
 import { useLanguage } from '../contexts/LanguageContext';
 import { useTheme } from '../contexts/ThemeContext';
@@ -174,6 +174,19 @@ export default function Account() {
   const [showDataSection, setShowDataSection] = useState(false);
   const [showLangModal, setShowLangModal] = useState(false);
   const [showThemeModal, setShowThemeModal] = useState(false);
+  const [showQuickModal, setShowQuickModal] = useState(false);
+
+  const QUICK_PREFS_KEY = 'quickExercisePrefs';
+  const loadQuickPrefs = () => {
+    try { return JSON.parse(localStorage.getItem(QUICK_PREFS_KEY) ?? '{}'); } catch { return {}; }
+  };
+  const [quickPrefs, setQuickPrefs] = useState(() => loadQuickPrefs());
+
+  const saveQuickPref = (key: string, value: any) => {
+    const next = { ...loadQuickPrefs(), [key]: value };
+    localStorage.setItem(QUICK_PREFS_KEY, JSON.stringify(next));
+    setQuickPrefs(next);
+  };
 
   useEffect(() => {
     if (!user) return;
@@ -324,6 +337,27 @@ export default function Account() {
           </div>
         )}
 
+        {/* サクッと演習設定 */}
+        <div>
+          <SectionTitle>{ja ? 'サクッと演習 設定' : 'Quick Practice Settings'}</SectionTitle>
+          <SettingsGroup>
+            <SettingsRow
+              label={ja ? '問題数' : 'Question Count'}
+              value={`${quickPrefs.questionCount ?? 5}${ja ? '問' : 'Q'}`}
+              onClick={() => setShowQuickModal(true)}
+            />
+            <SettingsRow
+              label={ja ? '未回答のみ' : 'Unanswered Only'}
+              value={quickPrefs.unansweredOnly ? (ja ? 'ON' : 'ON') : (ja ? 'OFF' : 'OFF')}
+              onClick={() => saveQuickPref('unansweredOnly', !(quickPrefs.unansweredOnly ?? false))}
+              last
+            />
+          </SettingsGroup>
+          <div style={{ marginTop: 6, fontSize: 'var(--font-size-xs)', color: 'var(--color-text-light)', padding: '0 4px' }}>
+            {ja ? '※ AI確認済み問題のみが常に対象です' : '* AI-verified questions are always included'}
+          </div>
+        </div>
+
         {/* 表示設定 */}
         <div>
           <SectionTitle>{ja ? '表示設定' : 'Display'}</SectionTitle>
@@ -452,6 +486,30 @@ export default function Account() {
           </div>
         )}
       </div>
+
+      {/* ── サクッと演習 問題数モーダル ── */}
+      {showQuickModal && (
+        <Modal onClose={() => setShowQuickModal(false)} title={ja ? 'サクッと演習の問題数' : 'Quick Practice Question Count'}>
+          <p style={{ margin: '0 0 16px', fontSize: 'var(--font-size-sm)', color: 'var(--color-text-sub)', lineHeight: 1.6 }}>
+            {ja ? 'ホーム画面の「サクッと演習」で出題する問題数を設定します。' : 'Set the number of questions for Quick Practice on the home screen.'}
+          </p>
+          <div style={{ marginBottom: 20 }}>
+            <FieldLabel>{ja ? '問題数（1〜20問）' : 'Count (1–20)'}</FieldLabel>
+            <input
+              type="number"
+              min={1} max={20}
+              value={quickPrefs.questionCount ?? 5}
+              onChange={e => saveQuickPref('questionCount', Math.min(20, Math.max(1, parseInt(e.target.value) || 5)))}
+              style={{ width: '100%', padding: '9px 12px', border: '1px solid var(--color-border)', borderRadius: 'var(--border-radius-md)', fontSize: 'var(--font-size-base)', boxSizing: 'border-box', outline: 'none' }}
+              onFocus={e => e.currentTarget.style.borderColor = 'var(--color-primary)'}
+              onBlur={e => e.currentTarget.style.borderColor = 'var(--color-border)'}
+            />
+          </div>
+          <Button onClick={() => setShowQuickModal(false)} variant="primary" style={{ width: '100%' }}>
+            {ja ? '保存する' : 'Save'}
+          </Button>
+        </Modal>
+      )}
 
       {/* ── メールアドレス変更モーダル ── */}
       {showEmailModal && (

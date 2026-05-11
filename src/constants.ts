@@ -139,6 +139,19 @@ export const EXAM_DESC_EN: Record<string, string> = {
 export const DOMAIN_RATE_WARNING = 0.50;
 export const DOMAIN_RATE_CAUTION = 0.65;
 
+// ドメイン配点（公式試験ガイドの割合 %）
+export const DOMAIN_WEIGHTS: Record<string, number[]> = {
+  CLF: [24, 30, 34, 12],
+  SAA: [30, 26, 24, 20],
+  SAP: [26, 29, 25, 20],
+  DVA: [32, 26, 24, 18],
+  SOA: [20, 16, 24, 16, 24],
+  DOP: [22, 17, 15, 15, 14, 17],
+  AIF: [20, 24, 28, 14, 14],
+  MLA: [28, 26, 22, 24],
+  GAI: [22, 18, 24, 18, 18],
+};
+
 // 模試モードの設定
 export const EXAM_CONFIGS: Record<string, {
   examCode: string;

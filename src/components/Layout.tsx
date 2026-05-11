@@ -3,7 +3,7 @@ import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { useLanguage } from '../contexts/LanguageContext';
 import { useTheme } from '../contexts/ThemeContext';
-import { API_ENDPOINT, EXAM_CONFIGS, EXAM_DOMAINS, DOMAIN_NAME_EN } from '../constants';
+import { API_ENDPOINT, EXAM_TYPES, EXAM_CONFIGS, EXAM_LEVEL } from '../constants';
 import Breadcrumb from './Breadcrumb';
 import Button from './ui/Button';
 import {
@@ -123,10 +123,29 @@ export default function Layout({ children }: { children: React.ReactNode }) {
 
 
   const [othersOpen, setOthersOpen] = useState(false);
+  const [sidebarExamOpen, setSidebarExamOpen] = useState(false);
+  const sidebarExamRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     setTargetExam(localStorage.getItem('targetExam'));
   }, [location.pathname]);
+
+  useEffect(() => {
+    const handler = (e: MouseEvent) => {
+      if (sidebarExamRef.current && !sidebarExamRef.current.contains(e.target as Node)) {
+        setSidebarExamOpen(false);
+      }
+    };
+    document.addEventListener('mousedown', handler);
+    return () => document.removeEventListener('mousedown', handler);
+  }, []);
+
+  const handleSidebarExamSelect = (et: string) => {
+    localStorage.setItem('targetExam', et);
+    setTargetExam(et);
+    setSidebarExamOpen(false);
+    window.dispatchEvent(new CustomEvent('targetExamChanged', { detail: et }));
+  };
 
   useEffect(() => {
     mainRef.current?.scrollTo({ top: 0 });
@@ -464,6 +483,78 @@ export default function Layout({ children }: { children: React.ReactNode }) {
               >
                 <IconChevronLeft />
               </button>
+
+              {/* 試験選択ドロップダウン */}
+              <div style={{ padding: '4px 12px 10px', borderBottom: '1px solid var(--color-border)' }}>
+                <div style={{ fontSize: 10, fontWeight: 700, color: 'var(--color-text-light)', textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: 5 }}>
+                  {lang === 'ja' ? '目標試験' : 'Target Exam'}
+                </div>
+                <div ref={sidebarExamRef} style={{ position: 'relative' }}>
+                  <button
+                    onClick={() => setSidebarExamOpen(v => !v)}
+                    style={{
+                      width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 6,
+                      padding: '6px 10px', border: `1.5px solid ${sidebarExamOpen ? 'var(--color-primary)' : 'var(--color-border)'}`,
+                      borderRadius: 'var(--border-radius-md)', background: 'var(--color-bg-main)',
+                      cursor: 'pointer', fontSize: 'var(--font-size-sm)', fontWeight: 600,
+                      color: targetExam ? 'var(--color-text-main)' : 'var(--color-text-light)',
+                      transition: 'border-color 0.15s',
+                    }}
+                  >
+                    <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                      {targetExam ?? (lang === 'ja' ? '未選択' : 'Not selected')}
+                    </span>
+                    <span style={{ fontSize: 9, color: 'var(--color-primary)', flexShrink: 0, transform: sidebarExamOpen ? 'rotate(180deg)' : 'none', transition: 'transform 0.2s' }}>▼</span>
+                  </button>
+                  {sidebarExamOpen && (
+                    <div style={{
+                      position: 'absolute', top: 'calc(100% + 4px)', left: 0, right: 0,
+                      background: 'var(--color-bg-white)', border: '1px solid var(--color-border)',
+                      borderRadius: 'var(--border-radius-md)', boxShadow: '0 4px 16px rgba(0,0,0,0.12)',
+                      zIndex: 400, maxHeight: 220, overflowY: 'auto',
+                    }}>
+                      {(['Foundational', 'Associate', 'Professional'] as const).map((level, li) => {
+                        const items = EXAM_TYPES.filter(et => EXAM_LEVEL[et] === level);
+                        if (items.length === 0) return null;
+                        return (
+                          <div key={level}>
+                            {li > 0 && <div style={{ height: 1, background: 'var(--color-border)' }} />}
+                            <div style={{ padding: '4px 10px 2px', fontSize: 9, fontWeight: 700, color: 'var(--color-text-light)', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+                              {level}
+                            </div>
+                            {items.map(et => {
+                              const selected = targetExam === et;
+                              return (
+                                <button
+                                  key={et}
+                                  onClick={() => handleSidebarExamSelect(et)}
+                                  style={{
+                                    width: '100%', textAlign: 'left', display: 'flex', alignItems: 'center', gap: 6,
+                                    padding: '6px 10px', border: 'none',
+                                    background: selected ? 'var(--color-primary-light)' : 'transparent',
+                                    cursor: 'pointer', fontSize: 'var(--font-size-sm)',
+                                    color: selected ? 'var(--color-primary)' : 'var(--color-text-main)',
+                                    fontWeight: selected ? 700 : 400,
+                                  }}
+                                  onMouseEnter={e => { if (!selected) e.currentTarget.style.background = 'var(--color-bg-main)'; }}
+                                  onMouseLeave={e => { if (!selected) e.currentTarget.style.background = 'transparent'; }}
+                                >
+                                  <span style={{ fontWeight: 700, minWidth: 32, flexShrink: 0 }}>{et}</span>
+                                  <span style={{ fontSize: 10, color: selected ? 'var(--color-primary)' : 'var(--color-text-sub)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                                    {EXAM_CONFIGS[et].examCode}
+                                  </span>
+                                  {selected && <span style={{ marginLeft: 'auto', fontSize: 11, flexShrink: 0 }}>✓</span>}
+                                </button>
+                              );
+                            })}
+                          </div>
+                        );
+                      })}
+                    </div>
+                  )}
+                </div>
+              </div>
+
               {navItems.filter(item => !(item as any).bottom).map(({ path, labelKey, Icon }) => {
                 const active = isActive(path);
                 return (
