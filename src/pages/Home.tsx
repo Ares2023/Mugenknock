@@ -26,11 +26,11 @@ function DomainProgressRings({ targetExam, domainStats, lang }: {
   lang: string;
 }) {
   const domains = EXAM_DOMAINS[targetExam] ?? [];
-  const sz = 56, r = 21;
+  const sz = 48, r = 18;
   const circ = 2 * Math.PI * r;
 
   return (
-    <div style={{ display: 'flex', gap: 8, overflowX: 'auto', paddingBottom: 2 }}>
+    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '6px 12px' }}>
       {domains.map((d, i) => {
         const stat = domainStats.find(s => s.tagId === d);
         const total = (stat?.correctCount ?? 0) + (stat?.incorrectCount ?? 0);
@@ -38,24 +38,26 @@ function DomainProgressRings({ targetExam, domainStats, lang }: {
         const color = getAccColor(acc);
         const label = lang === 'en' ? (DOMAIN_NAME_EN[d] ?? d) : d;
         return (
-          <div key={d} title={label}
-            style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 3, minWidth: sz, flexShrink: 0 }}>
-            <svg width={sz} height={sz} viewBox={`0 0 ${sz} ${sz}`}>
-              <circle cx={sz / 2} cy={sz / 2} r={r} fill="none" stroke="var(--color-border)" strokeWidth={5} />
+          <div key={d} style={{ display: 'flex', alignItems: 'center', gap: 8, minWidth: 0 }}>
+            <svg width={sz} height={sz} viewBox={`0 0 ${sz} ${sz}`} style={{ flexShrink: 0 }}>
+              <circle cx={sz / 2} cy={sz / 2} r={r} fill="none" stroke="var(--color-border)" strokeWidth={4} />
               {acc !== null && (
                 <circle
-                  cx={sz / 2} cy={sz / 2} r={r} fill="none" stroke={color} strokeWidth={5}
+                  cx={sz / 2} cy={sz / 2} r={r} fill="none" stroke={color} strokeWidth={4}
                   strokeDasharray={`${acc * circ} ${circ}`}
                   transform={`rotate(-90 ${sz / 2} ${sz / 2})`}
                   strokeLinecap="round"
                 />
               )}
               <text x={sz / 2} y={sz / 2} textAnchor="middle" dominantBaseline="middle"
-                fontSize={11} fontWeight={700} fill={acc !== null ? color : 'var(--color-text-light)'}>
+                fontSize={10} fontWeight={700} fill={acc !== null ? color : 'var(--color-text-light)'}>
                 {acc !== null ? `${Math.round(acc * 100)}%` : '—'}
               </text>
             </svg>
-            <div style={{ fontSize: 9, color: 'var(--color-text-sub)', fontWeight: 600 }}>D{i + 1}</div>
+            <div style={{ minWidth: 0 }}>
+              <div style={{ fontSize: 9, color: 'var(--color-text-light)', fontWeight: 600, marginBottom: 1 }}>D{i + 1}</div>
+              <div style={{ fontSize: 10, color: 'var(--color-text-sub)', lineHeight: 1.3, wordBreak: 'break-all' }}>{label}</div>
+            </div>
           </div>
         );
       })}
@@ -155,13 +157,15 @@ function TodayServiceSection({ lang }: { lang: string }) {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const cached = getCached<DailyService | null>('daily_service_today');
+    const jstDate = new Date(Date.now() + 9 * 3600 * 1000).toISOString().slice(0, 10);
+    const cacheKey = `daily_service_${jstDate}`;
+    const cached = getCached<DailyService>(`${cacheKey}`);
     if (cached !== undefined) { setService(cached); setLoading(false); return; }
     fetch(`${API_ENDPOINT}/daily-service`)
       .then(r => r.json())
       .then(d => {
         const s = d.service ?? null;
-        if (s) setCached('daily_service_today', s, 60 * 60 * 1000); // nullはキャッシュしない
+        if (s) setCached(cacheKey, s, 60 * 60 * 1000);
         setService(s);
       })
       .catch(() => setService(null))
