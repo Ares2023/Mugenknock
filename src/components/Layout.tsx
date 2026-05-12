@@ -45,8 +45,8 @@ const IconMore = () => (
 
 const NAV_KEYS = [
   { path: '/',          labelKey: 'nav.home',      Icon: IconHome      },
-  { path: '/aws-news',  labelKey: 'nav.news',      Icon: IconNewspaper },
   { path: '/stats',     labelKey: 'nav.stats',     Icon: IconFootprint },
+  { path: '/aws-news',  labelKey: 'nav.news',      Icon: IconNewspaper },
   { path: '/questions',     labelKey: 'nav.questions',    Icon: IconList,     bottom: true },
   { path: '/growth',        labelKey: 'nav.growth',       Icon: IconSparkles, bottom: true },
   { path: '/release-notes', labelKey: 'nav.releaseNotes', Icon: IconFire,     bottom: true },
@@ -55,8 +55,8 @@ const NAV_KEYS = [
 
 const BOTTOM_TABS = [
   { path: '/',          Icon: IconHome,        ja: 'ホーム',     en: 'Home'    },
-  { path: '/aws-news',  Icon: IconNewspaper,   ja: 'AWSニュース', en: 'News'   },
   { path: '/stats',     Icon: IconFootprint,   ja: '足あと',     en: 'History' },
+  { path: '/aws-news',  Icon: IconNewspaper,   ja: 'AWSニュース', en: 'News'   },
 ];
 
 const OTHERS_ITEMS = [
