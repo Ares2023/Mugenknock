@@ -30,7 +30,7 @@ function DomainProgressRings({ targetExam, domainStats, lang }: {
   const circ = 2 * Math.PI * r;
 
   return (
-    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '6px 12px' }}>
+    <div style={{ display: 'grid', gridTemplateRows: 'repeat(2, auto)', gridAutoFlow: 'column', gridAutoColumns: '1fr', gap: '6px 12px' }}>
       {domains.map((d, i) => {
         const stat = domainStats.find(s => s.tagId === d);
         const total = (stat?.correctCount ?? 0) + (stat?.incorrectCount ?? 0);
@@ -56,7 +56,7 @@ function DomainProgressRings({ targetExam, domainStats, lang }: {
             </svg>
             <div style={{ minWidth: 0 }}>
               <div style={{ fontSize: 9, color: 'var(--color-text-light)', fontWeight: 600, marginBottom: 1 }}>D{i + 1}</div>
-              <div style={{ fontSize: 10, color: 'var(--color-text-sub)', lineHeight: 1.3, wordBreak: 'break-all' }}>{label}</div>
+              <div style={{ fontSize: 10, color: 'var(--color-text-sub)', lineHeight: 1.3, overflowWrap: 'break-word' }}>{label}</div>
             </div>
           </div>
         );
@@ -633,7 +633,7 @@ export default function Home() {
       )}
 
       {/* ── 一段目: 予想点数 + ドメイン円グラフ ── */}
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 'var(--spacing-md)', marginBottom: 'var(--spacing-md)' }} className="home-row1-grid">
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 2fr', gap: 'var(--spacing-md)', marginBottom: 'var(--spacing-md)' }} className="home-row1-grid">
         {/* 予想点数 */}
         <Card padding="var(--spacing-md)">
           <div style={{ fontSize: 11, fontWeight: 700, color: 'var(--color-text-sub)', textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: 8 }}>
