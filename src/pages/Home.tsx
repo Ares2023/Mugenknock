@@ -161,7 +161,7 @@ function TodayServiceSection({ lang }: { lang: string }) {
       .then(r => r.json())
       .then(d => {
         const s = d.service ?? null;
-        setCached('daily_service_today', s, 60 * 60 * 1000); // 1時間キャッシュ
+        if (s) setCached('daily_service_today', s, 60 * 60 * 1000); // nullはキャッシュしない
         setService(s);
       })
       .catch(() => setService(null))
