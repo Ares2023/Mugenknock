@@ -241,7 +241,23 @@ export default function Admin() {
         return;
       }
       const data = await res.json();
-      setQuestions(data.items || []);
+      const items: Question[] = data.items || [];
+      setQuestions(items);
+      if (examFilter === 'ALL' && !keyword.trim() && !tagFilter.trim() && !domainFilter) {
+        const ec: Record<string, number> = {};
+        const dc: Record<string, Record<string, number>> = {};
+        for (const q of items) {
+          ec[q.examType] = (ec[q.examType] || 0) + 1;
+          if (!dc[q.examType]) dc[q.examType] = {};
+          for (const tag of ((q as any).tags || [])) {
+            if (EXAM_DOMAINS[q.examType]?.includes(tag)) {
+              dc[q.examType][tag] = (dc[q.examType][tag] || 0) + 1;
+            }
+          }
+        }
+        setExamCounts(ec);
+        setDomainCountsByExam(dc);
+      }
     } catch (err) {
       console.error(err);
       setAdminError('APIの接続に失敗しました。');
@@ -250,27 +266,6 @@ export default function Admin() {
     }
   }, [examFilter, keyword, tagFilter, domainFilter]);
 
-  const fetchExamCounts = useCallback(async () => {
-    try {
-      const res = await adminFetch(`${API_ENDPOINT}/admin/questions`);
-      if (!res.ok) return;
-      const data = await res.json();
-      const all: Question[] = data.items || [];
-      const ec: Record<string, number> = {};
-      const dc: Record<string, Record<string, number>> = {};
-      for (const q of all) {
-        ec[q.examType] = (ec[q.examType] || 0) + 1;
-        if (!dc[q.examType]) dc[q.examType] = {};
-        for (const tag of ((q as any).tags || [])) {
-          if (EXAM_DOMAINS[q.examType]?.includes(tag)) {
-            dc[q.examType][tag] = (dc[q.examType][tag] || 0) + 1;
-          }
-        }
-      }
-      setExamCounts(ec);
-      setDomainCountsByExam(dc);
-    } catch { /* ignore */ }
-  }, []);
 
   const fetchReports = useCallback(async () => {
     setLoadingR(true);
@@ -517,7 +512,6 @@ export default function Admin() {
   };
 
   useEffect(() => { fetchQuestions(); setSelectedIds(new Set()); }, [examFilter, keyword, tagFilter, domainFilter]);
-  useEffect(() => { fetchExamCounts(); }, []);
   useEffect(() => { if (tab === 'reports') fetchReports(); }, [tab]);
   useEffect(() => { if (tab === 'tips') fetchTips(); }, [tab]);
   useEffect(() => { if (tab === 'releases') fetchReleases(); }, [tab]);
@@ -827,7 +821,7 @@ export default function Admin() {
         <button style={tabStyle('tips')} onClick={() => setTab('tips')}>コラム管理</button>
         <button style={tabStyle('releases')} onClick={() => setTab('releases')}>リリースノート</button>
         <button style={tabStyle('scan')} onClick={() => setTab('scan')}>スキャン結果</button>
-        <button style={tabStyle('dailyservice')} onClick={() => setTab('dailyservice')}>今日のサービス</button>
+        <button style={tabStyle('dailyservice')} onClick={() => setTab('dailyservice')}>今日のAWSサービス</button>
         <button style={tabStyle('messages')} onClick={() => setTab('messages')}>
           メッセージ{messages.length > 0 ? ` (${messages.length})` : ''}
         </button>
@@ -987,7 +981,21 @@ export default function Admin() {
           )}
 
           {/* 問題リスト */}
-          {questions.map(q => (
+          {loadingQ && (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+              {[0, 1, 2, 3, 4].map(i => (
+                <div key={i} style={{ border: '1px solid #eaeded', borderRadius: 6, padding: '14px 16px', background: 'var(--color-bg-white)' }}>
+                  <div style={{ display: 'flex', gap: 12, alignItems: 'center' }}>
+                    <div className="skeleton" style={{ width: 16, height: 16, borderRadius: 3, flexShrink: 0 }} />
+                    <div className="skeleton" style={{ width: 52, height: 18, borderRadius: 4 }} />
+                    <div className="skeleton" style={{ flex: 1, height: 16, borderRadius: 4 }} />
+                    <div className="skeleton" style={{ width: 80, height: 14, borderRadius: 4 }} />
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+          {!loadingQ && questions.map(q => (
             <div key={q.questionId} style={{ border: '1px solid #eaeded', borderRadius: 6, marginBottom: 4, overflow: 'hidden', boxShadow: '0 1px 1px 0 rgba(0,28,36,0.1)', background: selectedIds.has(q.questionId) ? 'var(--color-primary-light)' : 'transparent' }}>
               {/* ヘッダー行 */}
               <div
@@ -2062,12 +2070,12 @@ ${tipPromptExamType !== 'ALL' ? `・examType には "${tipPromptExamType}" を�
           ))}
         </div>
       )}
-      {/* ── 今日のサービス管理 ── */}
+      {/* ── 今日のAWSサービス管理 ── */}
       {tab === 'dailyservice' && (
         <div>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
             <p style={{ color: 'var(--color-text-sub)', fontSize: 13, margin: 0 }}>
-              {loadingDS ? '読み込み中...' : `${dailyServices.length} 件`}
+              {loadingDS ? '' : `${dailyServices.length} 件`}
             </p>
             <div style={{ display: 'flex', gap: 8 }}>
               <button onClick={fetchDailyServices}
@@ -2155,11 +2163,31 @@ ${tipPromptExamType !== 'ALL' ? `・examType には "${tipPromptExamType}" を�
             </div>
           )}
 
+          {loadingDS && (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+              {[0, 1, 2, 3].map(i => (
+                <div key={i} style={{ border: '1px solid var(--color-border)', borderLeft: '4px solid var(--color-border)', borderRadius: 6, padding: '14px 16px', background: 'var(--color-bg-white)' }}>
+                  <div style={{ display: 'flex', gap: 12, alignItems: 'center' }}>
+                    <div className="skeleton" style={{ width: 36, height: 36, borderRadius: 6, flexShrink: 0 }} />
+                    <div style={{ flex: 1, minWidth: 0 }}>
+                      <div className="skeleton" style={{ width: 140, height: 16, borderRadius: 4, marginBottom: 8 }} />
+                      <div className="skeleton" style={{ width: '80%', height: 13, borderRadius: 4 }} />
+                    </div>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: 6, flexShrink: 0 }}>
+                      <div className="skeleton" style={{ width: 44, height: 26, borderRadius: 9999 }} />
+                      <div className="skeleton" style={{ width: 44, height: 26, borderRadius: 9999 }} />
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+
           {!loadingDS && dailyServices.length === 0 && (
             <p style={{ color: 'var(--color-text-light)', textAlign: 'center', padding: 40 }}>サービスが登録されていません</p>
           )}
 
-          {dailyServices.map(ds => (
+          {!loadingDS && dailyServices.map(ds => (
             <div key={ds.serviceId} style={{
               border: '1px solid var(--color-border)',
               borderLeft: '4px solid var(--color-primary)',
@@ -2167,16 +2195,16 @@ ${tipPromptExamType !== 'ALL' ? `・examType には "${tipPromptExamType}" を�
               background: 'var(--color-bg-white)',
             }}>
               <div style={{ display: 'flex', alignItems: 'flex-start', gap: 12 }}>
-                <div style={{ fontSize: 28, width: 40, textAlign: 'center', flexShrink: 0 }}>{ds.icon}</div>
-                <div style={{ flex: 1, minWidth: 0 }}>
+                <div style={{ fontSize: 26, width: 36, height: 36, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, background: 'var(--color-bg-main)', borderRadius: 6 }}>{ds.icon}</div>
+                <div style={{ flex: 1, minWidth: 0, overflow: 'hidden' }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap', marginBottom: 4 }}>
                     <span style={{ fontWeight: 700, fontSize: 15, color: 'var(--color-text-main)' }}>{ds.name}</span>
                     {ds.shortName && <span style={{ fontSize: 11, color: 'var(--color-text-light)', background: 'var(--color-bg-main)', padding: '1px 6px', borderRadius: 4 }}>{ds.shortName}</span>}
                     {ds.category && <span style={{ fontSize: 11, color: 'var(--color-primary)', background: 'var(--color-primary-light)', padding: '1px 7px', borderRadius: 12, fontWeight: 700 }}>{ds.category}</span>}
-                    <span style={{ fontSize: 11, color: 'var(--color-text-light)' }}>順: {ds.order}</span>
+                    <span style={{ fontSize: 11, color: 'var(--color-text-light)', marginLeft: 'auto' }}>順: {ds.order}</span>
                   </div>
-                  <p style={{ margin: '0 0 4px', fontSize: 13, color: 'var(--color-text-sub)', lineHeight: 1.5 }}>{ds.description}</p>
-                  {ds.trivia && <p style={{ margin: 0, fontSize: 12, color: 'var(--color-text-light)', lineHeight: 1.5 }}>💡 {ds.trivia}</p>}
+                  <p style={{ margin: '0 0 4px', fontSize: 13, color: 'var(--color-text-sub)', lineHeight: 1.5, wordBreak: 'break-word' }}>{ds.description}</p>
+                  {ds.trivia && <p style={{ margin: 0, fontSize: 12, color: 'var(--color-text-light)', lineHeight: 1.5, wordBreak: 'break-word' }}>💡 {ds.trivia}</p>}
                 </div>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 6, flexShrink: 0 }}>
                   <button
