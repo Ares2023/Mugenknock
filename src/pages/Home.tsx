@@ -153,7 +153,7 @@ function TodayServiceSection({ lang }: { lang: string }) {
     const jstDate = new Date(Date.now() + 9 * 3600 * 1000).toISOString().slice(0, 10);
     const cacheKey = `daily_service_${jstDate}`;
     const cached = getCached<DailyService>(`${cacheKey}`);
-    if (cached !== undefined) { setService(cached); setLoading(false); return; }
+    if (cached !== null) { setService(cached); setLoading(false); return; }
     fetch(`${API_ENDPOINT}/daily-service`)
       .then(r => r.json())
       .then(d => {
