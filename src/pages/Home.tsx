@@ -9,7 +9,7 @@ import {
 import { getCached, setCached, SHORT_TTL } from '../utils/cache';
 import Card from '../components/ui/Card';
 import Button from '../components/ui/Button';
-import { IconTarget } from '../components/Icons';
+import { IconTarget, IconLightbulb } from '../components/Icons';
 
 
 type DomainStat = { tagId: string; correctCount?: number; incorrectCount?: number };
@@ -188,7 +188,7 @@ function TodayServiceSection({ lang }: { lang: string }) {
       <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 12 }}>
         <span style={{ fontSize: 14 }}>✨</span>
         <span style={{ fontWeight: 700, fontSize: 'var(--font-size-base)', color: 'var(--color-text-main)' }}>
-          {lang === 'ja' ? '今日のサービス' : "Today's Service"}
+          {lang === 'ja' ? '今日のAWSサービス' : "Today's AWS Service"}
         </span>
         {service.category && (
           <span style={{
@@ -239,7 +239,7 @@ function TodayServiceSection({ lang }: { lang: string }) {
               padding: '8px 12px', display: 'flex', gap: 8, alignItems: 'flex-start',
               marginBottom: 10,
             }}>
-              <span style={{ fontSize: 14, flexShrink: 0 }}>💡</span>
+              <span style={{ color: 'var(--color-text-sub)', display: 'flex', alignItems: 'center' }}><IconLightbulb size={14} /></span>
               <span style={{ fontSize: 'var(--font-size-sm)', color: 'var(--color-text-sub)', lineHeight: 1.6 }}>
                 {service.trivia}
               </span>
@@ -371,6 +371,9 @@ const QUICK_PREFS_KEY = 'quickExercisePrefs';
 function loadQuickPrefs() {
   try { return JSON.parse(localStorage.getItem(QUICK_PREFS_KEY) ?? '{}'); } catch { return {}; }
 }
+function saveQuickPrefs(patch: object) {
+  localStorage.setItem(QUICK_PREFS_KEY, JSON.stringify({ ...loadQuickPrefs(), ...patch }));
+}
 
 function shuffleArray<T>(arr: T[]): T[] {
   const a = [...arr];
@@ -394,6 +397,14 @@ export default function Home() {
   const [quickLoading, setQuickLoading] = useState(false);
   const [examLoading, setExamLoading] = useState(false);
   const [showExamConfirm, setShowExamConfirm] = useState(false);
+
+  // サクッと演習設定パネル
+  const [showQuickSettings, setShowQuickSettings] = useState(false);
+  const quickSettingsRef = useRef<HTMLDivElement>(null);
+  const [quickCount, setQuickCount] = useState<number>(() => loadQuickPrefs().questionCount ?? 5);
+  const [quickUnanswered, setQuickUnanswered] = useState<boolean>(() => loadQuickPrefs().unansweredOnly ?? false);
+  const [quickIncorrect, setQuickIncorrect] = useState<boolean>(() => loadQuickPrefs().incorrectOnly ?? false);
+  const [quickBookmark, setQuickBookmark] = useState<boolean>(() => loadQuickPrefs().bookmarkOnly ?? false);
 
   // モバイル試験選択ドロップダウン
   const [mobileDropdownOpen, setMobileDropdownOpen] = useState(false);
