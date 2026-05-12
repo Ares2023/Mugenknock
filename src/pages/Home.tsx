@@ -30,7 +30,7 @@ function DomainProgressRings({ targetExam, domainStats, lang }: {
   const circ = 2 * Math.PI * r;
 
   return (
-    <div style={{ display: 'grid', gridTemplateRows: 'repeat(2, auto)', gridAutoFlow: 'column', gridAutoColumns: '1fr', gap: '6px 12px' }}>
+    <div style={{ display: 'grid', gridTemplateColumns: `repeat(${Math.ceil(domains.length / 2)}, 1fr)`, gap: '6px 12px' }}>
       {domains.map((d, i) => {
         const stat = domainStats.find(s => s.tagId === d);
         const total = (stat?.correctCount ?? 0) + (stat?.incorrectCount ?? 0);
