@@ -145,3 +145,12 @@ export const IconLightbulb = ({ size = 16 }: { size?: number }) => (
   </svg>
 );
 
+export const IconNewspaper = ({ size = 16 }: { size?: number }) => (
+  <svg width={size} height={size} viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+    <rect x="1" y="2" width="14" height="12" rx="1.5"/>
+    <line x1="4" y1="5.5" x2="12" y2="5.5"/>
+    <line x1="4" y1="8" x2="12" y2="8"/>
+    <line x1="4" y1="10.5" x2="8" y2="10.5"/>
+  </svg>
+);
+

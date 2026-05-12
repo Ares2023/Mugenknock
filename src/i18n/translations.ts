@@ -3,9 +3,10 @@ type Translations = Record<string, string>;
 export const ja: Translations = {
   // ── Navigation ──
   'nav.home': 'ホーム',
+  'nav.news': 'AWSニュース',
   'nav.exercise': '演習モード',
   'nav.exam': '模試モード',
-  'nav.stats': '統計・分析',
+  'nav.stats': '足あと',
   'nav.questions': '問題一覧',
   'nav.growth': '問題生成・チェック状況',
   'nav.releaseNotes': 'リリースノート',
@@ -288,9 +289,10 @@ export const ja: Translations = {
 export const en: Translations = {
   // ── Navigation ──
   'nav.home': 'Home',
+  'nav.news': 'AWS News',
   'nav.exercise': 'Practice',
   'nav.exam': 'Mock Exam',
-  'nav.stats': 'Statistics',
+  'nav.stats': 'History',
   'nav.questions': 'Questions',
   'nav.growth': 'Generation & Verification',
   'nav.releaseNotes': 'Release Notes',

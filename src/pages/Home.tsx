@@ -263,109 +263,6 @@ function TodayServiceSection({ lang }: { lang: string }) {
   );
 }
 
-// ── ニュースセクション ──────────────────────────────────────────────
-const NEWS_RSS_API = `https://api.rss2json.com/v1/api.json?rss_url=${encodeURIComponent('https://aws.amazon.com/jp/about-aws/whats-new/recent/feed/')}`;
-
-function NewsSection({ lang }: { lang: string }) {
-  const [items, setItems] = useState<any[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(false);
-
-  useEffect(() => {
-    const cached = getCached<any[]>('aws_home_news');
-    if (cached) { setItems(cached); setLoading(false); return; }
-    fetch(NEWS_RSS_API)
-      .then(r => r.json())
-      .then(d => {
-        const news = (d.items ?? []).slice(0, 5);
-        setItems(news);
-        setCached('aws_home_news', news, 30 * 60 * 1000);
-      })
-      .catch(() => setError(true))
-      .finally(() => setLoading(false));
-  }, []);
-
-  const formatDate = (dateStr: string) => {
-    try {
-      const d = new Date(dateStr);
-      return `${d.getFullYear()}/${String(d.getMonth() + 1).padStart(2, '0')}/${String(d.getDate()).padStart(2, '0')}`;
-    } catch { return ''; }
-  };
-
-  const stripHtml = (html: string) => html.replace(/<[^>]+>/g, '').slice(0, 80);
-
-  return (
-    <Card padding="var(--spacing-md)">
-      <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 12 }}>
-        <span style={{ fontSize: 14 }}>📰</span>
-        <span style={{ fontWeight: 700, fontSize: 'var(--font-size-base)', color: 'var(--color-text-main)' }}>
-          AWS {lang === 'ja' ? '最新情報' : 'What\'s New'}
-        </span>
-        <a
-          href="https://aws.amazon.com/jp/about-aws/whats-new/recent/"
-          target="_blank"
-          rel="noopener noreferrer"
-          style={{ marginLeft: 'auto', fontSize: 'var(--font-size-xs)', color: 'var(--color-primary)', textDecoration: 'none' }}
-        >
-          {lang === 'ja' ? 'すべて見る →' : 'View all →'}
-        </a>
-      </div>
-
-      {loading && (
-        <div style={{ display: 'flex', justifyContent: 'center', padding: '16px 0' }}>
-          <div className="sherpa-spinner" style={{ width: 20, height: 20, borderWidth: 2 }} />
-        </div>
-      )}
-      {error && !loading && (
-        <div style={{ fontSize: 'var(--font-size-sm)', color: 'var(--color-text-light)', fontStyle: 'italic', padding: '8px 0' }}>
-          {lang === 'ja' ? 'ニュースを読み込めませんでした' : 'Failed to load news'}
-        </div>
-      )}
-      {!loading && !error && items.length === 0 && (
-        <div style={{ fontSize: 'var(--font-size-sm)', color: 'var(--color-text-light)', fontStyle: 'italic' }}>
-          {lang === 'ja' ? 'ニュースがありません' : 'No news available'}
-        </div>
-      )}
-
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 0 }}>
-        {items.map((item, i) => (
-          <a
-            key={i}
-            href={item.link}
-            target="_blank"
-            rel="noopener noreferrer"
-            style={{
-              display: 'block', textDecoration: 'none', color: 'inherit',
-              padding: '10px 0',
-              borderBottom: i < items.length - 1 ? '1px solid var(--color-border)' : 'none',
-            }}
-          >
-            <div style={{ display: 'flex', alignItems: 'flex-start', gap: 8 }}>
-              <div style={{ flex: 1, minWidth: 0 }}>
-                <div style={{
-                  fontSize: 'var(--font-size-sm)', fontWeight: 600, color: 'var(--color-primary)',
-                  overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
-                  marginBottom: 2,
-                }}>
-                  {item.title}
-                </div>
-                {item.description && (
-                  <div style={{ fontSize: 11, color: 'var(--color-text-sub)', lineHeight: 1.4 }}>
-                    {stripHtml(item.description)}…
-                  </div>
-                )}
-              </div>
-              <div style={{ fontSize: 10, color: 'var(--color-text-light)', flexShrink: 0, marginTop: 2 }}>
-                {formatDate(item.pubDate)}
-              </div>
-            </div>
-          </a>
-        ))}
-      </div>
-    </Card>
-  );
-}
-
 // ── メインコンポーネント ────────────────────────────────────────────
 const QUICK_PREFS_KEY = 'quickExercisePrefs';
 function loadQuickPrefs() {
@@ -827,9 +724,6 @@ export default function Home() {
 
       {/* ── 三.五段目: 今日のサービス ── */}
       <TodayServiceSection lang={lang} />
-
-      {/* ── 四段目: ニュース ── */}
-      <NewsSection lang={lang} />
 
       {/* ── 非ログイン時バナー ── */}
       {!user && (

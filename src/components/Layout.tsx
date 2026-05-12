@@ -7,10 +7,10 @@ import { API_ENDPOINT, EXAM_TYPES, EXAM_CONFIGS, EXAM_LEVEL } from '../constants
 import Breadcrumb from './Breadcrumb';
 import Button from './ui/Button';
 import {
-  IconHome, IconPencil, IconClock, IconList,
+  IconHome, IconList,
   IconUser, IconChart, IconInfo,
   IconFire, IconMenu, IconClose, IconChevronLeft, IconMail,
-  IconSparkles
+  IconSparkles, IconNewspaper
 } from './Icons';
 
 type BreadcrumbItem = { label: string; path?: string };
@@ -44,21 +44,19 @@ const IconMore = () => (
 );
 
 const NAV_KEYS = [
-  { path: '/',               labelKey: 'nav.home',         Icon: IconHome         },
-  { path: '/exercise/setup', labelKey: 'nav.exercise',     Icon: IconPencil       },
-  { path: '/exam/setup',     labelKey: 'nav.exam',         Icon: IconClock        },
-  { path: '/stats',          labelKey: 'nav.stats',        Icon: IconChart        },
-  { path: '/questions',      labelKey: 'nav.questions',    Icon: IconList,        bottom: true },
-  { path: '/growth',         labelKey: 'nav.growth',       Icon: IconSparkles,       bottom: true },
-  { path: '/release-notes',  labelKey: 'nav.releaseNotes', Icon: IconFire,        bottom: true },
-  { path: '/architecture',   labelKey: 'nav.architecture', Icon: IconInfo,        bottom: true },
+  { path: '/',          labelKey: 'nav.home',      Icon: IconHome      },
+  { path: '/aws-news',  labelKey: 'nav.news',      Icon: IconNewspaper },
+  { path: '/stats',     labelKey: 'nav.stats',     Icon: IconChart     },
+  { path: '/questions',     labelKey: 'nav.questions',    Icon: IconList,     bottom: true },
+  { path: '/growth',        labelKey: 'nav.growth',       Icon: IconSparkles, bottom: true },
+  { path: '/release-notes', labelKey: 'nav.releaseNotes', Icon: IconFire,     bottom: true },
+  { path: '/architecture',  labelKey: 'nav.architecture', Icon: IconInfo,     bottom: true },
 ];
 
 const BOTTOM_TABS = [
-  { path: '/',               Icon: IconHome,    ja: 'ホーム', en: 'Home'     },
-  { path: '/exercise/setup', Icon: IconPencil,  ja: '演習',   en: 'Practice' },
-  { path: '/exam/setup',     Icon: IconClock,   ja: '模試',   en: 'Exam'     },
-  { path: '/stats',          Icon: IconChart,   ja: '統計',   en: 'Stats'    },
+  { path: '/',          Icon: IconHome,        ja: 'ホーム',     en: 'Home'    },
+  { path: '/aws-news',  Icon: IconNewspaper,   ja: 'AWSニュース', en: 'News'   },
+  { path: '/stats',     Icon: IconChart,       ja: '足あと',     en: 'History' },
 ];
 
 const OTHERS_ITEMS = [
@@ -221,6 +219,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
   const navItems = NAV_KEYS;
 
   const breadcrumbs: Record<string, BreadcrumbItem[]> = {
+    '/aws-news':         [{ label: t('nav.home'), path: '/' }, { label: t('nav.news') }],
     '/questions':        [{ label: t('nav.home'), path: '/' }, { label: t('nav.questions') }],
     '/growth':           [{ label: t('nav.home'), path: '/' }, { label: t('nav.growth') }],
     '/exercise/setup':   [{ label: t('nav.home'), path: '/' }, { label: t('exerciseSetup.title') }],
