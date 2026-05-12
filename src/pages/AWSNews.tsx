@@ -2,14 +2,16 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { useLanguage } from '../contexts/LanguageContext';
 import Card from '../components/ui/Card';
 
-const WHATS_NEW_URL = `https://api.rss2json.com/v1/api.json?rss_url=${encodeURIComponent('https://aws.amazon.com/jp/about-aws/whats-new/recent/feed/')}&count=50`;
-const BLOG_URL = `https://api.rss2json.com/v1/api.json?rss_url=${encodeURIComponent('https://aws.amazon.com/jp/blogs/news/feed/')}&count=50`;
+// count パラメータは API キーなしでは使用不可 (無料プランは10件まで)
+const WHATS_NEW_URL = `https://api.rss2json.com/v1/api.json?rss_url=${encodeURIComponent('https://aws.amazon.com/jp/about-aws/whats-new/recent/feed/')}`;
+const BLOG_URL      = `https://api.rss2json.com/v1/api.json?rss_url=${encodeURIComponent('https://aws.amazon.com/jp/blogs/news/feed/')}`;
 
 interface NewsItem {
   title: string;
   link: string;
   pubDate: string;
   description: string;
+  thumbnail: string;
   categories: string[];
 }
 
@@ -21,7 +23,7 @@ function formatDate(dateStr: string) {
 }
 
 function stripHtml(html: string) {
-  return html.replace(/<[^>]+>/g, '').replace(/\s+/g, ' ').trim().slice(0, 120);
+  return html.replace(/<[^>]+>/g, '').replace(/\s+/g, ' ').trim().slice(0, 100);
 }
 
 function IconRefresh({ spinning }: { spinning: boolean }) {
@@ -37,6 +39,22 @@ function IconRefresh({ spinning }: { spinning: boolean }) {
   );
 }
 
+// What's New には画像がないのでAWSロゴ代わりの色付きプレースホルダー
+function AWSPlaceholder() {
+  return (
+    <div style={{
+      width: 80, height: 60, flexShrink: 0, borderRadius: 6,
+      background: 'linear-gradient(135deg, #232f3e 60%, #FF9900 100%)',
+      display: 'flex', alignItems: 'center', justifyContent: 'center',
+      overflow: 'hidden',
+    }}>
+      <svg width="36" height="22" viewBox="0 0 80 50" fill="none">
+        <text x="4" y="36" fontSize="28" fontWeight="900" fontFamily="Arial,sans-serif" fill="#FF9900">aws</text>
+      </svg>
+    </div>
+  );
+}
+
 function useNewsFeed(url: string) {
   const [items, setItems] = useState<NewsItem[]>([]);
   const [loading, setLoading] = useState(true);
@@ -47,13 +65,16 @@ function useNewsFeed(url: string) {
     setLoading(true);
     setError(false);
     try {
-      const res = await fetch(url + (force ? `&_t=${Date.now()}` : ''));
+      const fetchUrl = force ? `${url}&_t=${Date.now()}` : url;
+      const res = await fetch(fetchUrl);
       const data = await res.json();
+      if (data.status === 'error') throw new Error(data.message);
       const raw: NewsItem[] = (data.items ?? []).map((it: any) => ({
         title: it.title ?? '',
         link: it.link ?? '',
         pubDate: it.pubDate ?? '',
         description: it.description ?? '',
+        thumbnail: it.thumbnail ?? '',
         categories: Array.isArray(it.categories) ? it.categories.filter(Boolean) : [],
       }));
       setItems(raw);
@@ -70,16 +91,13 @@ function useNewsFeed(url: string) {
   return { items, loading, error, lastUpdated, refresh: () => fetch_(true) };
 }
 
-function NewsList({ items, loading, error, lang }: { items: NewsItem[]; loading: boolean; error: boolean; lang: string }) {
+function NewsList({ items, loading, error, lang, showThumbnail }: {
+  items: NewsItem[]; loading: boolean; error: boolean; lang: string; showThumbnail: boolean;
+}) {
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
 
-  const categories = Array.from(
-    new Set(items.flatMap(it => it.categories))
-  ).sort();
-
-  const filtered = selectedCategory
-    ? items.filter(it => it.categories.includes(selectedCategory))
-    : items;
+  const categories = Array.from(new Set(items.flatMap(it => it.categories))).sort();
+  const filtered = selectedCategory ? items.filter(it => it.categories.includes(selectedCategory)) : items;
 
   if (loading) {
     return (
@@ -104,7 +122,8 @@ function NewsList({ items, loading, error, lang }: { items: NewsItem[]; loading:
           <button
             onClick={() => setSelectedCategory(null)}
             style={{
-              padding: '4px 12px', borderRadius: 20, fontSize: 'var(--font-size-xs)', fontWeight: selectedCategory === null ? 700 : 400,
+              padding: '4px 12px', borderRadius: 20, fontSize: 'var(--font-size-xs)',
+              fontWeight: selectedCategory === null ? 700 : 400,
               border: '1px solid var(--color-border)',
               background: selectedCategory === null ? 'var(--color-primary)' : 'var(--color-bg-white)',
               color: selectedCategory === null ? 'white' : 'var(--color-text-sub)',
@@ -118,7 +137,8 @@ function NewsList({ items, loading, error, lang }: { items: NewsItem[]; loading:
               key={cat}
               onClick={() => setSelectedCategory(cat === selectedCategory ? null : cat)}
               style={{
-                padding: '4px 12px', borderRadius: 20, fontSize: 'var(--font-size-xs)', fontWeight: selectedCategory === cat ? 700 : 400,
+                padding: '4px 12px', borderRadius: 20, fontSize: 'var(--font-size-xs)',
+                fontWeight: selectedCategory === cat ? 700 : 400,
                 border: '1px solid var(--color-border)',
                 background: selectedCategory === cat ? 'var(--color-primary)' : 'var(--color-bg-white)',
                 color: selectedCategory === cat ? 'white' : 'var(--color-text-sub)',
@@ -151,16 +171,35 @@ function NewsList({ items, loading, error, lang }: { items: NewsItem[]; loading:
             }}
           >
             <div style={{ display: 'flex', alignItems: 'flex-start', gap: 12 }}>
+              {/* サムネイル */}
+              {showThumbnail && (
+                item.thumbnail
+                  ? (
+                    <img
+                      src={item.thumbnail}
+                      alt=""
+                      style={{ width: 80, height: 60, objectFit: 'cover', borderRadius: 6, flexShrink: 0, background: 'var(--color-bg-main)' }}
+                      onError={e => { (e.target as HTMLImageElement).style.display = 'none'; }}
+                    />
+                  )
+                  : <AWSPlaceholder />
+              )}
+
               <div style={{ flex: 1, minWidth: 0 }}>
-                <div style={{
-                  fontSize: 'var(--font-size-base)', fontWeight: 600, color: 'var(--color-primary)',
-                  lineHeight: 1.4, marginBottom: 4,
-                }}>
-                  {item.title}
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 8, marginBottom: 4 }}>
+                  <div style={{
+                    fontSize: 'var(--font-size-base)', fontWeight: 600, color: 'var(--color-primary)',
+                    lineHeight: 1.4, flex: 1,
+                  }}>
+                    {item.title}
+                  </div>
+                  <div style={{ fontSize: 11, color: 'var(--color-text-light)', flexShrink: 0, marginTop: 2, whiteSpace: 'nowrap' }}>
+                    {formatDate(item.pubDate)}
+                  </div>
                 </div>
                 {item.description && (
                   <div style={{ fontSize: 'var(--font-size-sm)', color: 'var(--color-text-sub)', lineHeight: 1.5, marginBottom: 6 }}>
-                    {stripHtml(item.description)}{item.description.length > 120 ? '…' : ''}
+                    {stripHtml(item.description)}{item.description.length > 100 ? '…' : ''}
                   </div>
                 )}
                 {item.categories.length > 0 && (
@@ -180,9 +219,6 @@ function NewsList({ items, loading, error, lang }: { items: NewsItem[]; loading:
                   </div>
                 )}
               </div>
-              <div style={{ fontSize: 11, color: 'var(--color-text-light)', flexShrink: 0, marginTop: 2, whiteSpace: 'nowrap' }}>
-                {formatDate(item.pubDate)}
-              </div>
             </div>
           </a>
         ))}
@@ -197,9 +233,10 @@ export default function AWSNews() {
   const [tab, setTab] = useState<'whats-new' | 'blog'>('whats-new');
 
   const whatsNew = useNewsFeed(WHATS_NEW_URL);
-  const blog = useNewsFeed(BLOG_URL);
+  const blog     = useNewsFeed(BLOG_URL);
 
   const active = tab === 'whats-new' ? whatsNew : blog;
+  const showThumbnail = tab === 'blog' || tab === 'whats-new'; // Both show thumbnails (What's New uses placeholder)
 
   const fmtTime = (d: Date | null) => {
     if (!d) return '';
@@ -238,9 +275,9 @@ export default function AWSNews() {
       {/* タブ */}
       <div style={{ display: 'flex', gap: 0, marginBottom: 'var(--spacing-lg)', borderBottom: '2px solid var(--color-border)' }}>
         {([
-          { key: 'whats-new', label: ja ? 'What\'s New' : 'What\'s New', count: whatsNew.items.length },
-          { key: 'blog', label: 'AWS Blog', count: blog.items.length },
-        ] as const).map(({ key, label, count }) => (
+          { key: 'whats-new' as const, label: "What's New", count: whatsNew.items.length },
+          { key: 'blog'      as const, label: 'AWS Blog',   count: blog.items.length     },
+        ]).map(({ key, label, count }) => (
           <button
             key={key}
             onClick={() => setTab(key)}
@@ -273,6 +310,7 @@ export default function AWSNews() {
           loading={active.loading}
           error={active.error}
           lang={lang}
+          showThumbnail={showThumbnail}
         />
       </Card>
     </div>
