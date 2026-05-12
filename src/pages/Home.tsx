@@ -115,7 +115,7 @@ function ExamConfirmModal({ targetExam, lang, onConfirm, onCancel, loading }: {
             variant="primary"
             onClick={onConfirm}
             disabled={loading}
-            style={{ flex: 1, background: '#FF9900', color: '#16191f', borderColor: '#FF9900' }}
+            style={{ flex: 1 }}
           >
             {loading ? (
               <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}>
@@ -602,19 +602,14 @@ export default function Home() {
       <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr', gap: 'var(--spacing-sm)', marginBottom: 'var(--spacing-md)' }}>
 
         {/* サクッと演習 */}
-        <button
+        <Button
+          variant="primary"
+          fullWidth
           disabled={!targetExam || quickLoading}
           onClick={() => { if (targetExam && !quickLoading) startQuickExercise(); }}
-          style={{
-            padding: '10px 12px', border: '1.5px solid #FF9900',
-            borderRadius: 'var(--border-radius-md)',
-            background: (!targetExam || quickLoading) ? 'rgba(255,153,0,0.4)' : '#FF9900',
-            color: '#16191f', cursor: (!targetExam || quickLoading) ? 'not-allowed' : 'pointer',
-            fontWeight: 700, fontSize: 'var(--font-size-base)',
-          }}
         >
           {quickLoading ? (ja ? '準備中...' : 'Loading...') : (ja ? `サクッと演習 (${loadQuickPrefs().questionCount ?? 5}問)` : `Quick (${loadQuickPrefs().questionCount ?? 5}Q)`)}
-        </button>
+        </Button>
 
         <Button
           variant="outline"

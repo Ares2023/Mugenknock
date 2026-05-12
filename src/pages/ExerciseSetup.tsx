@@ -499,11 +499,11 @@ export default function ExerciseSetup() {
           variant="primary"
           onClick={startSession}
           disabled={loading || availableCount === 0}
-          style={{ width: '100%', background: '#FF9900', color: '#16191f', borderColor: '#FF9900' }}
+          style={{ width: '100%' }}
         >
           {loading ? (
             <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}>
-              <span style={{ width: 13, height: 13, border: '2px solid rgba(255,255,255,0.4)', borderTopColor: 'white', borderRadius: '50%', animation: 'sherpa-spin 0.7s linear infinite', flexShrink: 0 }} />
+              <span style={{ width: 13, height: 13, border: '2px solid rgba(0,0,0,0.25)', borderTopColor: '#16191f', borderRadius: '50%', animation: 'sherpa-spin 0.7s linear infinite', flexShrink: 0 }} />
               {t('exerciseSetup.starting')}
             </span>
           ) : t('exerciseSetup.start')}

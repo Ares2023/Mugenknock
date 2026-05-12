@@ -219,21 +219,32 @@ code {
     monospace;
 }
 
-/* ── ボタン バリアント（アウトラインスタイル） ── */
+/* ── ボタン バリアント ── */
 
-.btn-primary,
+/* Primary: オレンジ（メインアクション） */
+.btn-primary {
+  background-color: #FF9900;
+  color: #16191f;
+  border: 1.5px solid #FF9900;
+}
+.btn-primary:not(:disabled):hover {
+  background-color: #e68a00;
+  border-color: #e68a00;
+}
+.btn-primary:not(:disabled):active {
+  background-color: #cc7a00;
+  border-color: #cc7a00;
+}
+
+/* Outline: 青輪郭（サブアクション・ナビゲーション） */
 .btn-outline {
   background-color: transparent;
   color: var(--color-primary);
   border: 1.5px solid var(--color-primary);
 }
-
-.btn-primary:not(:disabled):hover,
 .btn-outline:not(:disabled):hover {
   background-color: var(--color-primary-light);
 }
-
-.btn-primary:not(:disabled):active,
 .btn-outline:not(:disabled):active {
   background-color: var(--color-primary-light);
   border-width: 2px;
