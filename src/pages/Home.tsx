@@ -35,7 +35,6 @@ function DomainProgressRings({ targetExam, domainStats, lang }: {
         const stat = domainStats.find(s => s.tagId === d);
         const total = (stat?.correctCount ?? 0) + (stat?.incorrectCount ?? 0);
         const acc = total > 0 ? (stat?.correctCount ?? 0) / total : null;
-        const color = getAccColor(acc);
         const label = lang === 'en' ? (DOMAIN_NAME_EN[d] ?? d) : d;
         return (
           <div key={d} style={{ display: 'flex', alignItems: 'center', gap: 8, minWidth: 0 }}>
@@ -43,14 +42,14 @@ function DomainProgressRings({ targetExam, domainStats, lang }: {
               <circle cx={sz / 2} cy={sz / 2} r={r} fill="none" stroke="var(--color-border)" strokeWidth={4} />
               {acc !== null && (
                 <circle
-                  cx={sz / 2} cy={sz / 2} r={r} fill="none" stroke={color} strokeWidth={4}
+                  cx={sz / 2} cy={sz / 2} r={r} fill="none" stroke="var(--color-primary)" strokeWidth={4}
                   strokeDasharray={`${acc * circ} ${circ}`}
                   transform={`rotate(-90 ${sz / 2} ${sz / 2})`}
                   strokeLinecap="round"
                 />
               )}
               <text x={sz / 2} y={sz / 2} textAnchor="middle" dominantBaseline="middle"
-                fontSize={10} fontWeight={700} fill={acc !== null ? color : 'var(--color-text-light)'}>
+                fontSize={10} fontWeight={700} fill={acc !== null ? 'var(--color-primary)' : 'var(--color-text-light)'}>
                 {acc !== null ? `${Math.round(acc * 100)}%` : '—'}
               </text>
             </svg>
