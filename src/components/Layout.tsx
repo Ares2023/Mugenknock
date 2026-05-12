@@ -434,7 +434,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
         {targetExam && (
           <div style={{ flexShrink: 0, paddingRight: 'var(--spacing-xs)' }}>
             <span style={{ background: 'var(--color-secondary)', color: 'white', fontSize: 'var(--font-size-xs)', padding: '2px 10px', borderRadius: 'var(--border-radius-full)', fontWeight: 700 }}>
-              {targetExam}
+              {EXAM_CONFIGS[targetExam]?.fullName ?? targetExam}
             </span>
           </div>
         )}

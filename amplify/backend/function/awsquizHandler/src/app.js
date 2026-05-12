@@ -1473,4 +1473,34 @@ app.delete('/admin/daily-services/:id', async (req, res) => {
   }
 });
 
+// ─── テーマ設定 ───────────────────────────────────────────────────────────────
+app.get('/settings/theme', async (req, res) => {
+  try {
+    const docClient = getClient();
+    const result = await docClient.send(new GetCommand({ TableName: 'AppSettings', Key: { settingId: 'theme' } }));
+    if (!result.Item) return res.json({ colors: {} });
+    const colors = JSON.parse(result.Item.colors || '{}');
+    res.json({ colors });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+app.put('/admin/settings/theme', requireAdmin, async (req, res) => {
+  try {
+    const docClient = getClient();
+    const { colors } = req.body;
+    if (!colors || typeof colors !== 'object') return res.status(400).json({ error: 'colors required' });
+    await docClient.send(new PutCommand({
+      TableName: 'AppSettings',
+      Item: { settingId: 'theme', colors: JSON.stringify(colors), updatedAt: new Date().toISOString() },
+    }));
+    res.json({ success: true });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
 module.exports = app;
