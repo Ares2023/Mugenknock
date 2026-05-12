@@ -1373,11 +1373,7 @@ app.delete('/admin/messages/:id', requireAdmin, async (req, res) => {
 app.get('/daily-service', async (req, res) => {
   try {
     const docClient = getClient();
-    const result = await docClient.send(new ScanCommand({
-      TableName: 'DailyServices',
-      FilterExpression: 'isActive = :t',
-      ExpressionAttributeValues: { ':t': true },
-    }));
+    const result = await docClient.send(new ScanCommand({ TableName: 'DailyServices' }));
     const items = (result.Items || []).sort((a, b) => (a.order || 0) - (b.order || 0));
     if (items.length === 0) return res.json({ service: null });
     // 日本時間の日付を基にインデックスを決定（JST = UTC+9）

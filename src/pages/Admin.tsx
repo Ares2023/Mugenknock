@@ -360,15 +360,6 @@ export default function Admin() {
     } catch (err) { console.error(err); }
   };
 
-  const toggleDSActive = async (ds: DailyServiceItem) => {
-    try {
-      await adminFetch(`${API_ENDPOINT}/admin/daily-services/${ds.serviceId}`, {
-        method: 'PUT', headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ ...ds, isActive: !ds.isActive }),
-      });
-      setDailyServices(prev => prev.map(s => s.serviceId === ds.serviceId ? { ...s, isActive: !s.isActive } : s));
-    } catch (err) { console.error(err); }
-  };
 
   const handleDeleteMessage = async (m: ContactMessage) => {
     if (!window.confirm('このメッセージを削除しますか？')) return;
@@ -2076,7 +2067,7 @@ ${tipPromptExamType !== 'ALL' ? `・examType には "${tipPromptExamType}" を�
         <div>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
             <p style={{ color: 'var(--color-text-sub)', fontSize: 13, margin: 0 }}>
-              {loadingDS ? '読み込み中...' : `${dailyServices.length} 件（有効: ${dailyServices.filter(s => s.isActive).length} 件）`}
+              {loadingDS ? '読み込み中...' : `${dailyServices.length} 件`}
             </p>
             <div style={{ display: 'flex', gap: 8 }}>
               <button onClick={fetchDailyServices}
@@ -2150,10 +2141,6 @@ ${tipPromptExamType !== 'ALL' ? `・examType には "${tipPromptExamType}" を�
               </div>
 
               <div style={{ display: 'flex', alignItems: 'center', gap: 16, borderTop: '1px solid var(--color-border)', paddingTop: 12 }}>
-                <label style={{ display: 'flex', alignItems: 'center', gap: 8, cursor: 'pointer', fontSize: 14 }}>
-                  <input type="checkbox" checked={dsForm.isActive} onChange={e => setDsForm(f => ({ ...f, isActive: e.target.checked }))} style={{ width: 16, height: 16 }} />
-                  有効（ホームに表示）
-                </label>
                 <div style={{ marginLeft: 'auto', display: 'flex', gap: 8 }}>
                   <button onClick={saveDailyService}
                     style={{ padding: '7px 20px', background: '#ff9900', color: '#16191f', border: 'none', borderRadius: 9999, cursor: 'pointer', fontWeight: 700, fontSize: 14 }}>
@@ -2174,11 +2161,10 @@ ${tipPromptExamType !== 'ALL' ? `・examType には "${tipPromptExamType}" を�
 
           {dailyServices.map(ds => (
             <div key={ds.serviceId} style={{
-              border: `1px solid ${ds.isActive ? 'var(--color-border)' : 'var(--color-border)'}`,
-              borderLeft: `4px solid ${ds.isActive ? 'var(--color-success)' : 'var(--color-border)'}`,
+              border: '1px solid var(--color-border)',
+              borderLeft: '4px solid var(--color-primary)',
               borderRadius: 6, padding: '12px 16px', marginBottom: 8,
-              background: ds.isActive ? 'var(--color-bg-white)' : 'var(--color-bg-main)',
-              opacity: ds.isActive ? 1 : 0.65,
+              background: 'var(--color-bg-white)',
             }}>
               <div style={{ display: 'flex', alignItems: 'flex-start', gap: 12 }}>
                 <div style={{ fontSize: 28, width: 40, textAlign: 'center', flexShrink: 0 }}>{ds.icon}</div>
@@ -2194,17 +2180,7 @@ ${tipPromptExamType !== 'ALL' ? `・examType には "${tipPromptExamType}" を�
                 </div>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 6, flexShrink: 0 }}>
                   <button
-                    onClick={() => toggleDSActive(ds)}
-                    style={{
-                      padding: '4px 10px', fontSize: 11, fontWeight: 700, cursor: 'pointer', borderRadius: 9999,
-                      border: `1px solid ${ds.isActive ? 'var(--color-success)' : 'var(--color-border)'}`,
-                      background: ds.isActive ? 'rgba(28,181,110,0.1)' : 'transparent',
-                      color: ds.isActive ? 'var(--color-success)' : 'var(--color-text-light)',
-                    }}>
-                    {ds.isActive ? '有効' : '無効'}
-                  </button>
-                  <button
-                    onClick={() => { setEditingDS(ds); setDsForm({ name: ds.name, shortName: ds.shortName ?? '', category: ds.category ?? '', icon: ds.icon, description: ds.description, trivia: ds.trivia ?? '', docUrl: ds.docUrl ?? '', order: ds.order, isActive: ds.isActive }); setShowDSForm(true); }}
+                    onClick={() => { setEditingDS(ds); setDsForm({ name: ds.name, shortName: ds.shortName ?? '', category: ds.category ?? '', icon: ds.icon, description: ds.description, trivia: ds.trivia ?? '', docUrl: ds.docUrl ?? '', order: ds.order, isActive: true }); setShowDSForm(true); }}
                     style={{ padding: '4px 10px', border: '1px solid var(--color-border)', borderRadius: 9999, cursor: 'pointer', background: 'transparent', fontSize: 11, fontWeight: 700 }}>
                     編集
                   </button>

@@ -11,12 +11,6 @@ import Card from '../components/ui/Card';
 import Button from '../components/ui/Button';
 import { IconTarget } from '../components/Icons';
 
-function getAccColor(acc: number | null) {
-  if (acc === null) return 'var(--color-border)';
-  if (acc >= 0.70) return 'var(--color-success)';
-  if (acc >= 0.50) return 'var(--color-caution)';
-  return 'var(--color-danger)';
-}
 
 type DomainStat = { tagId: string; correctCount?: number; incorrectCount?: number };
 
@@ -476,10 +470,7 @@ export default function Home() {
   }, [targetExam, domainStats]);
 
   const passScore = targetExam ? PASS_SCORES[targetExam] : null;
-  const scoreColor = estimatedScore === null ? 'var(--color-text-light)'
-    : passScore !== null && estimatedScore >= passScore ? 'var(--color-success)'
-    : passScore !== null && estimatedScore >= passScore - 50 ? 'var(--color-caution)'
-    : 'var(--color-danger)';
+  const scoreColor = estimatedScore === null ? 'var(--color-text-light)' : 'var(--color-primary)';
 
   // サクッと演習開始
   const startQuickExercise = async () => {
