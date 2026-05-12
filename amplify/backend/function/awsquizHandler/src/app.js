@@ -108,9 +108,9 @@ app.get('/questions/growth-stats', async (req, res) => {
     const jstMs = Date.now() + 9 * 60 * 60 * 1000;
     const jstNow = new Date(jstMs);
 
-    // 直近7日
+    // 直近14日
     const daily = [];
-    for (let i = 6; i >= 0; i--) {
+    for (let i = 13; i >= 0; i--) {
       daily.push(new Date(jstMs - i * 86400000).toISOString().slice(0, 10));
     }
 
@@ -1407,7 +1407,7 @@ app.get('/admin/daily-services', async (req, res) => {
 app.post('/admin/daily-services', async (req, res) => {
   try {
     const docClient = getClient();
-    const { name, shortName, category, icon, description, trivia, order, isActive } = req.body;
+    const { name, shortName, category, icon, description, trivia, docUrl, order, isActive } = req.body;
     if (!name || !description) return res.status(400).json({ error: 'name and description are required' });
     const serviceId = uuidv4();
     await docClient.send(new PutCommand({
@@ -1420,6 +1420,7 @@ app.post('/admin/daily-services', async (req, res) => {
         icon: (icon || '☁️').trim(),
         description: description.trim(),
         trivia: (trivia || '').trim(),
+        docUrl: (docUrl || '').trim(),
         order: Number(order) || 0,
         isActive: isActive !== false,
         createdAt: new Date().toISOString(),
@@ -1436,11 +1437,11 @@ app.post('/admin/daily-services', async (req, res) => {
 app.put('/admin/daily-services/:id', async (req, res) => {
   try {
     const docClient = getClient();
-    const { name, shortName, category, icon, description, trivia, order, isActive } = req.body;
+    const { name, shortName, category, icon, description, trivia, docUrl, order, isActive } = req.body;
     await docClient.send(new UpdateCommand({
       TableName: 'DailyServices',
       Key: { serviceId: req.params.id },
-      UpdateExpression: 'SET #n = :name, shortName = :sn, category = :cat, icon = :icon, description = :desc, trivia = :tv, #o = :order, isActive = :active',
+      UpdateExpression: 'SET #n = :name, shortName = :sn, category = :cat, icon = :icon, description = :desc, trivia = :tv, docUrl = :url, #o = :order, isActive = :active',
       ExpressionAttributeNames: { '#n': 'name', '#o': 'order' },
       ExpressionAttributeValues: {
         ':name': (name || '').trim(),
@@ -1449,6 +1450,7 @@ app.put('/admin/daily-services/:id', async (req, res) => {
         ':icon': (icon || '☁️').trim(),
         ':desc': (description || '').trim(),
         ':tv': (trivia || '').trim(),
+        ':url': (docUrl || '').trim(),
         ':order': Number(order) || 0,
         ':active': isActive !== false,
       },

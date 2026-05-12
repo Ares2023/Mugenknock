@@ -244,15 +244,27 @@
                 "arn:aws:dynamodb:ap-northeast-1:*:table/Releases",
                 "arn:aws:dynamodb:ap-northeast-1:*:table/ContactMessages",
                 "arn:aws:dynamodb:ap-northeast-1:*:table/Bookmarks",
-                { "Fn::GetAtt": ["DailyServicesTable", "Arn"] }
+                {
+                  "Fn::GetAtt": [
+                    "DailyServicesTable",
+                    "Arn"
+                  ]
+                }
               ],
               "Effect": "Allow"
             }
           ]
         },
-        "Roles": [{ "Ref": "LambdaExecutionRole" }]
+        "Roles": [
+          {
+            "Ref": "LambdaExecutionRole"
+          }
+        ]
       },
-      "DependsOn": ["LambdaExecutionRole", "DailyServicesTable"]
+      "DependsOn": [
+        "LambdaExecutionRole",
+        "DailyServicesTable"
+      ]
     }
   },
   "Outputs": {
