@@ -384,27 +384,19 @@ export default function Layout({ children }: { children: React.ReactNode }) {
           <button
             onClick={() => navigate('/account')}
             style={{
-              display: 'flex', alignItems: 'center', gap: 6,
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
               background: 'rgba(255,255,255,0.1)',
               border: '1px solid rgba(255,255,255,0.35)',
-              borderRadius: isMobile ? '50%' : 'var(--border-radius-md)',
+              borderRadius: '50%',
               cursor: 'pointer', color: 'white',
-              width: isMobile ? 36 : 'auto',
-              height: isMobile ? 36 : 'auto',
-              padding: isMobile ? '0' : '5px 10px',
-              justifyContent: 'center',
-              fontSize: 'var(--font-size-sm)', fontWeight: 600,
+              width: 36, height: 36, padding: 0,
               flexShrink: 0,
               transition: 'background 0.2s',
             }}
             onMouseEnter={e => e.currentTarget.style.background = 'rgba(255,255,255,0.2)'}
             onMouseLeave={e => e.currentTarget.style.background = 'rgba(255,255,255,0.1)'}
           >
-            {isMobile ? <IconUser /> : (
-              user
-                ? <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', maxWidth: 140 }}>{user.email?.split('@')[0]}</span>
-                : <IconUser />
-            )}
+            <IconUser />
           </button>
         </div>
       </header>
