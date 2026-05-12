@@ -626,7 +626,7 @@ export default function Admin() {
   const totalCount = useMemo(() => Object.values(examCounts).reduce((a, b) => a + b, 0), [examCounts]);
 
   const tabStyle = (t: Tab): React.CSSProperties => ({
-    padding: '10px 24px',
+    padding: '10px 16px',
     border: 'none',
     borderBottom: tab === t ? '3px solid var(--color-primary)' : '3px solid transparent',
     background: 'none',
@@ -634,6 +634,8 @@ export default function Admin() {
     fontWeight: tab === t ? 700 : 400,
     color: tab === t ? 'var(--color-text-main)' : 'var(--color-text-sub)',
     fontSize: 'var(--font-size-md)',
+    whiteSpace: 'nowrap',
+    flexShrink: 0,
   });
 
   return (
@@ -826,7 +828,7 @@ export default function Admin() {
       )}
 
       {/* タブ */}
-      <div className="admin-tabs" style={{ borderBottom: '1px solid var(--color-border)', marginBottom: 'var(--spacing-xl)', display: 'flex' }}>
+      <div className="admin-tabs" style={{ borderBottom: '1px solid var(--color-border)', marginBottom: 'var(--spacing-xl)', display: 'flex', overflowX: 'auto', flexWrap: 'nowrap' }}>
         <button style={tabStyle('questions')} onClick={() => setTab('questions')}>問題管理</button>
         <button style={tabStyle('import')} onClick={() => setTab('import')}>問題追加</button>
         <button style={tabStyle('reports')} onClick={() => setTab('reports')}>通報確認</button>
