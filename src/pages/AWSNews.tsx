@@ -12,7 +12,6 @@ interface NewsItem {
   pubDate: string;
   description: string;
   thumbnail: string;
-  categories: string[];
 }
 
 function formatDate(dateStr: string) {
@@ -75,7 +74,6 @@ function useNewsFeed(url: string) {
         pubDate: it.pubDate ?? '',
         description: it.description ?? '',
         thumbnail: it.thumbnail ?? '',
-        categories: Array.isArray(it.categories) ? it.categories.filter(Boolean) : [],
       }));
       setItems(raw);
       setLastUpdated(new Date());
@@ -94,11 +92,6 @@ function useNewsFeed(url: string) {
 function NewsList({ items, loading, error, lang, showThumbnail }: {
   items: NewsItem[]; loading: boolean; error: boolean; lang: string; showThumbnail: boolean;
 }) {
-  const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
-
-  const categories = Array.from(new Set(items.flatMap(it => it.categories))).sort();
-  const filtered = selectedCategory ? items.filter(it => it.categories.includes(selectedCategory)) : items;
-
   if (loading) {
     return (
       <div style={{ display: 'flex', justifyContent: 'center', padding: '40px 0' }}>
@@ -117,48 +110,14 @@ function NewsList({ items, loading, error, lang, showThumbnail }: {
 
   return (
     <div>
-      {categories.length > 0 && (
-        <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, marginBottom: 16 }}>
-          <button
-            onClick={() => setSelectedCategory(null)}
-            style={{
-              padding: '4px 12px', borderRadius: 20, fontSize: 'var(--font-size-xs)',
-              fontWeight: selectedCategory === null ? 700 : 400,
-              border: '1px solid var(--color-border)',
-              background: selectedCategory === null ? 'var(--color-primary)' : 'var(--color-bg-white)',
-              color: selectedCategory === null ? 'white' : 'var(--color-text-sub)',
-              cursor: 'pointer', transition: 'all 0.15s',
-            }}
-          >
-            {lang === 'ja' ? 'すべて' : 'All'}
-          </button>
-          {categories.map(cat => (
-            <button
-              key={cat}
-              onClick={() => setSelectedCategory(cat === selectedCategory ? null : cat)}
-              style={{
-                padding: '4px 12px', borderRadius: 20, fontSize: 'var(--font-size-xs)',
-                fontWeight: selectedCategory === cat ? 700 : 400,
-                border: '1px solid var(--color-border)',
-                background: selectedCategory === cat ? 'var(--color-primary)' : 'var(--color-bg-white)',
-                color: selectedCategory === cat ? 'white' : 'var(--color-text-sub)',
-                cursor: 'pointer', transition: 'all 0.15s', whiteSpace: 'nowrap',
-              }}
-            >
-              {cat}
-            </button>
-          ))}
-        </div>
-      )}
-
-      {filtered.length === 0 && (
+      {items.length === 0 && (
         <div style={{ textAlign: 'center', padding: '32px 0', color: 'var(--color-text-light)', fontSize: 'var(--font-size-sm)' }}>
           {lang === 'ja' ? '記事がありません' : 'No articles'}
         </div>
       )}
 
       <div style={{ display: 'flex', flexDirection: 'column', gap: 0 }}>
-        {filtered.map((item, i) => (
+        {items.map((item, i) => (
           <a
             key={i}
             href={item.link}
@@ -167,11 +126,10 @@ function NewsList({ items, loading, error, lang, showThumbnail }: {
             style={{
               display: 'block', textDecoration: 'none', color: 'inherit',
               padding: '14px 0',
-              borderBottom: i < filtered.length - 1 ? '1px solid var(--color-border)' : 'none',
+              borderBottom: i < items.length - 1 ? '1px solid var(--color-border)' : 'none',
             }}
           >
             <div style={{ display: 'flex', alignItems: 'flex-start', gap: 12 }}>
-              {/* サムネイル */}
               {showThumbnail && (
                 item.thumbnail
                   ? (
@@ -198,24 +156,8 @@ function NewsList({ items, loading, error, lang, showThumbnail }: {
                   </div>
                 </div>
                 {item.description && (
-                  <div style={{ fontSize: 'var(--font-size-sm)', color: 'var(--color-text-sub)', lineHeight: 1.5, marginBottom: 6 }}>
+                  <div style={{ fontSize: 'var(--font-size-sm)', color: 'var(--color-text-sub)', lineHeight: 1.5 }}>
                     {stripHtml(item.description)}{item.description.length > 100 ? '…' : ''}
-                  </div>
-                )}
-                {item.categories.length > 0 && (
-                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: 4 }}>
-                    {item.categories.map(cat => (
-                      <span
-                        key={cat}
-                        style={{
-                          fontSize: 10, padding: '2px 8px', borderRadius: 10,
-                          background: 'var(--color-bg-main)', border: '1px solid var(--color-border)',
-                          color: 'var(--color-text-light)',
-                        }}
-                      >
-                        {cat}
-                      </span>
-                    ))}
                   </div>
                 )}
               </div>

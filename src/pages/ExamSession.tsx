@@ -216,6 +216,7 @@ export default function ExamSession() {
   if (submitting) {
     return (
       <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: '60vh', gap: 16 }}>
+        <div className="sherpa-spinner" style={{ width: 36, height: 36, borderWidth: 3 }} />
         <div style={{ fontSize: 18, color: 'var(--color-text-sub)' }}>{t('examSession.scoring')}</div>
       </div>
     );

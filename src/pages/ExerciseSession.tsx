@@ -268,6 +268,7 @@ export default function ExerciseSession() {
   const [results, setResults] = useState<{ questionId: string; isCorrect: boolean }[]>(state?.resumeResults ?? []);
   const [reportOpen, setReportOpen] = useState(false);
   const [answerCountError, setAnswerCountError] = useState<string | null>(null);
+  const [finishing, setFinishing] = useState(false);
 
   // ドラフト保存
   useEffect(() => {
@@ -353,6 +354,7 @@ export default function ExerciseSession() {
 
   const nextQuestion = async () => {
     if (currentIndex + 1 >= questions.length) {
+      setFinishing(true);
       const score = Math.round((results.filter(r => r.isCorrect).length / questions.length) * 100);
       const passRate = PASS_RATE[examType] ?? PASS_RATE['SAA'];
       const isPassed = score >= passRate;
@@ -427,6 +429,15 @@ export default function ExerciseSession() {
     }
     return { ...base, borderColor: 'var(--color-border)', background: 'var(--color-bg-main)', color: 'var(--color-text-sub)' };
   };
+
+  if (finishing) {
+    return (
+      <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: '60vh', gap: 16 }}>
+        <div className="sherpa-spinner" style={{ width: 36, height: 36, borderWidth: 3 }} />
+        <div style={{ fontSize: 18, color: 'var(--color-text-sub)' }}>{lang === 'ja' ? '結果を集計中...' : 'Calculating results...'}</div>
+      </div>
+    );
+  }
 
   return (
     <div style={{ maxWidth: 900, margin: '0 auto', padding: 'var(--spacing-xl) var(--spacing-lg)' }} className="session-container">
