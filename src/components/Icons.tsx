@@ -145,6 +145,13 @@ export const IconLightbulb = ({ size = 16 }: { size?: number }) => (
   </svg>
 );
 
+export const IconFootprint = ({ size = 16 }: { size?: number }) => (
+  <svg width={size} height={size} viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+    <ellipse cx="5.5" cy="11.5" rx="2" ry="3" transform="rotate(-10 5.5 11.5)"/>
+    <ellipse cx="10.5" cy="4.5" rx="2" ry="3" transform="rotate(10 10.5 4.5)"/>
+  </svg>
+);
+
 export const IconNewspaper = ({ size = 16 }: { size?: number }) => (
   <svg width={size} height={size} viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
     <rect x="1" y="2" width="14" height="12" rx="1.5"/>
