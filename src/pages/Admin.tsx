@@ -4,6 +4,7 @@ import { API_ENDPOINT, EXAM_TYPES, EXAM_DOMAINS, EXAM_CONFIGS } from '../constan
 import Card from '../components/ui/Card';
 import Button from '../components/ui/Button';
 import Badge from '../components/ui/Badge';
+import { ServiceIcon, isServiceIconKey } from '../components/Icons';
 
 const adminFetch = async (url: string, options: RequestInit = {}): Promise<Response> => {
   const session = await fetchAuthSession();
@@ -2195,7 +2196,13 @@ ${tipPromptExamType !== 'ALL' ? `・examType には "${tipPromptExamType}" を�
               background: 'var(--color-bg-white)',
             }}>
               <div style={{ display: 'flex', alignItems: 'flex-start', gap: 12 }}>
-                <div style={{ fontSize: 26, width: 36, height: 36, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, background: 'var(--color-bg-main)', borderRadius: 6 }}>{ds.icon}</div>
+                <div style={{ width: 36, height: 36, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, background: 'var(--color-bg-main)', borderRadius: 6, color: 'var(--color-primary)', fontSize: 22 }}>
+                  {ds.icon.startsWith('/') || ds.icon.startsWith('http')
+                    ? <img src={ds.icon} alt={ds.name} style={{ width: 26, height: 26, objectFit: 'contain' }} />
+                    : isServiceIconKey(ds.icon)
+                      ? <ServiceIcon name={ds.icon} size={22} />
+                      : ds.icon}
+                </div>
                 <div style={{ flex: 1, minWidth: 0, overflow: 'hidden' }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap', marginBottom: 4 }}>
                     <span style={{ fontWeight: 700, fontSize: 15, color: 'var(--color-text-main)' }}>{ds.name}</span>

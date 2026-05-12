@@ -9,7 +9,7 @@ import {
 import { getCached, setCached, SHORT_TTL } from '../utils/cache';
 import Card from '../components/ui/Card';
 import Button from '../components/ui/Button';
-import { IconTarget, IconLightbulb } from '../components/Icons';
+import { IconTarget, IconLightbulb, ServiceIcon, isServiceIconKey } from '../components/Icons';
 
 
 type DomainStat = { tagId: string; correctCount?: number; incorrectCount?: number };
@@ -211,7 +211,9 @@ function TodayServiceSection({ lang }: { lang: string }) {
         }}>
           {service.icon.startsWith('/') || service.icon.startsWith('http')
             ? <img src={service.icon} alt={service.name} style={{ width: 40, height: 40, objectFit: 'contain' }} />
-            : service.icon}
+            : isServiceIconKey(service.icon)
+              ? <ServiceIcon name={service.icon} size={32} />
+              : service.icon}
         </div>
 
         <div style={{ flex: 1, minWidth: 0 }}>
