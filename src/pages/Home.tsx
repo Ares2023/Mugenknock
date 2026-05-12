@@ -188,7 +188,7 @@ function TodayServiceSection({ lang }: { lang: string }) {
       <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 12 }}>
         <span style={{ fontSize: 14 }}>✨</span>
         <span style={{ fontWeight: 700, fontSize: 'var(--font-size-base)', color: 'var(--color-text-main)' }}>
-          {lang === 'ja' ? '今日のAWSサービス' : "Today's AWS Service"}
+          {lang === 'ja' ? '日めくりAWSサービス' : "Daily AWS Service"}
         </span>
         {service.category && (
           <span style={{
