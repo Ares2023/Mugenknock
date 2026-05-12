@@ -468,7 +468,10 @@ export default function ExerciseSession() {
                 </Badge>
               )}
             </div>
-            <CopyButton getText={() => currentQuestion.questionText} />
+            <CopyButton getText={() => {
+              const choicesText = shuffledChoices.map((c: string, idx: number) => `${CHOICE_LABELS[idx]}. ${c}`).join('\n');
+              return `${currentQuestion.questionText}\n\n${choicesText}`;
+            }} />
           </div>
           <p style={{ fontSize: 'var(--font-size-lg)', lineHeight: 1.6, fontWeight: 400, margin: 0, color: 'var(--color-text-main)' }}>
             {lang === 'en' && (currentQuestion as any).questionTextEn ? (currentQuestion as any).questionTextEn : currentQuestion.questionText}
@@ -476,9 +479,8 @@ export default function ExerciseSession() {
         </div>
 
         <div style={{ marginBottom: 'var(--spacing-xl)' }}>
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 'var(--spacing-sm)' }}>
+          <div style={{ marginBottom: 'var(--spacing-sm)' }}>
             <span style={{ fontSize: 'var(--font-size-sm)', color: 'var(--color-text-sub)', fontWeight: 700 }}>{t('exerciseSession.choices')}</span>
-            <CopyButton getText={() => shuffledChoices.join('\n')} />
           </div>
           {shuffledChoices.map((choice: string, idx: number) => (
             <button

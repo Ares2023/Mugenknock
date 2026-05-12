@@ -348,8 +348,18 @@ export default function Account() {
             />
             <SettingsRow
               label={ja ? '未回答のみ' : 'Unanswered Only'}
-              value={quickPrefs.unansweredOnly ? (ja ? 'ON' : 'ON') : (ja ? 'OFF' : 'OFF')}
+              value={quickPrefs.unansweredOnly ? 'ON' : 'OFF'}
               onClick={() => saveQuickPref('unansweredOnly', !(quickPrefs.unansweredOnly ?? false))}
+            />
+            <SettingsRow
+              label={ja ? '不正解のみ' : 'Incorrect Only'}
+              value={quickPrefs.incorrectOnly ? 'ON' : 'OFF'}
+              onClick={() => saveQuickPref('incorrectOnly', !(quickPrefs.incorrectOnly ?? false))}
+            />
+            <SettingsRow
+              label={ja ? 'ブックマークのみ' : 'Bookmarked Only'}
+              value={quickPrefs.bookmarkOnly ? 'ON' : 'OFF'}
+              onClick={() => saveQuickPref('bookmarkOnly', !(quickPrefs.bookmarkOnly ?? false))}
               last
             />
           </SettingsGroup>
