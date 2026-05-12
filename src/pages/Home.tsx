@@ -434,6 +434,16 @@ export default function Home() {
     return () => document.removeEventListener('mousedown', handler);
   }, []);
 
+  useEffect(() => {
+    const handler = (e: MouseEvent) => {
+      if (quickSettingsRef.current && !quickSettingsRef.current.contains(e.target as Node)) {
+        setShowQuickSettings(false);
+      }
+    };
+    document.addEventListener('mousedown', handler);
+    return () => document.removeEventListener('mousedown', handler);
+  }, []);
+
   // ドメイン統計取得
   useEffect(() => {
     if (!user) { setDomainStats([]); return; }
@@ -489,23 +499,36 @@ export default function Home() {
       alert(ja ? '試験を選択してください' : 'Please select an exam');
       return;
     }
-    const prefs = loadQuickPrefs();
-    const count = prefs.questionCount ?? 5;
     setQuickLoading(true);
+    setShowQuickSettings(false);
     try {
       const userId = user?.userId ?? 'guest';
       const params = new URLSearchParams({ examType: targetExam, withAnswers: 'true', withValidity: 'true' });
       const data = await fetch(`${API_ENDPOINT}/questions?${params}`).then(r => r.json());
       let items: any[] = data.items ?? [];
       items = items.filter((q: any) => !!q.validityCheckedAt);
-      if (prefs.unansweredOnly && user) {
-        const res = await fetch(`${API_ENDPOINT}/users/me/answered-questions?userId=${userId}&examType=${targetExam}`).then(r => r.json());
-        const answered = new Set(res.questionIds ?? []);
-        items = items.filter((q: any) => !answered.has(q.questionId));
+      if (user && (quickUnanswered || quickIncorrect || quickBookmark)) {
+        const [answeredRes, incorrectRes, bkmRes] = await Promise.all([
+          quickUnanswered ? fetch(`${API_ENDPOINT}/users/me/answered-questions?userId=${userId}&examType=${targetExam}`).then(r => r.json()) : null,
+          quickIncorrect  ? fetch(`${API_ENDPOINT}/users/me/incorrect-questions?userId=${userId}&examType=${targetExam}`).then(r => r.json()) : null,
+          quickBookmark   ? fetch(`${API_ENDPOINT}/users/me/bookmarks?userId=${userId}`).then(r => r.json()) : null,
+        ]);
+        if (quickUnanswered && answeredRes) {
+          const answered = new Set(answeredRes.questionIds ?? []);
+          items = items.filter((q: any) => !answered.has(q.questionId));
+        }
+        if (quickIncorrect && incorrectRes) {
+          const incorrect = new Set(incorrectRes.questionIds ?? []);
+          items = items.filter((q: any) => incorrect.has(q.questionId));
+        }
+        if (quickBookmark && bkmRes) {
+          const bookmarks = new Set(bkmRes.questionIds ?? []);
+          items = items.filter((q: any) => bookmarks.has(q.questionId));
+        }
       }
-      items = shuffleArray(items).slice(0, count);
+      items = shuffleArray(items).slice(0, quickCount);
       if (items.length === 0) {
-        alert(ja ? 'AI確認済みの問題がありません' : 'No AI-verified questions available');
+        alert(ja ? '条件に合う問題がありません' : 'No questions match the criteria');
         return;
       }
       const questionIds = items.map((q: any) => q.questionId);
@@ -568,8 +591,6 @@ export default function Home() {
     }
   };
 
-  const prefs = loadQuickPrefs();
-  const quickCount = prefs.questionCount ?? 5;
   const cfg = targetExam ? EXAM_CONFIGS[targetExam] : null;
 
   return (
@@ -699,15 +720,91 @@ export default function Home() {
 
       {/* ── 演習・模試ボタン行 ── */}
       <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr', gap: 'var(--spacing-sm)', marginBottom: 'var(--spacing-md)' }}>
-        <Button
-          variant="primary"
-          fullWidth
-          disabled={!targetExam || quickLoading}
-          onClick={() => { if (targetExam && !quickLoading) startQuickExercise(); }}
-          style={{ background: '#FF9900', color: '#16191f', borderColor: '#FF9900' }}
-        >
-          {quickLoading ? (ja ? '準備中...' : 'Loading...') : (ja ? 'サクッと演習' : 'Quick Practice')}
-        </Button>
+
+        {/* サクッと演習（設定パネル付きスプリットボタン） */}
+        <div style={{ position: 'relative' }} ref={quickSettingsRef}>
+          <div style={{ display: 'flex', gap: 2 }}>
+            <button
+              disabled={!targetExam || quickLoading}
+              onClick={() => { if (targetExam && !quickLoading) startQuickExercise(); }}
+              style={{
+                flex: 1, padding: '10px 12px', border: '1.5px solid #FF9900',
+                borderRadius: 'var(--border-radius-md) 0 0 var(--border-radius-md)',
+                background: (!targetExam || quickLoading) ? 'rgba(255,153,0,0.4)' : '#FF9900',
+                color: '#16191f', cursor: (!targetExam || quickLoading) ? 'not-allowed' : 'pointer',
+                fontWeight: 700, fontSize: 'var(--font-size-base)',
+              }}
+            >
+              {quickLoading ? (ja ? '準備中...' : 'Loading...') : (ja ? `サクッと演習 (${quickCount}問)` : `Quick (${quickCount}Q)`)}
+            </button>
+            <button
+              onClick={() => setShowQuickSettings(s => !s)}
+              style={{
+                padding: '0 10px', border: '1.5px solid #FF9900', borderLeft: 'none',
+                borderRadius: '0 var(--border-radius-md) var(--border-radius-md) 0',
+                background: showQuickSettings ? 'rgba(255,153,0,0.15)' : 'transparent',
+                cursor: 'pointer', color: '#FF9900', display: 'flex', alignItems: 'center',
+              }}
+              aria-label={ja ? '設定' : 'Settings'}
+            >
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/>
+              </svg>
+            </button>
+          </div>
+
+          {/* 設定パネル */}
+          {showQuickSettings && (
+            <div style={{
+              position: 'absolute', top: 'calc(100% + 6px)', left: 0, right: 0,
+              background: 'var(--color-bg-white)', border: '1px solid var(--color-border)',
+              borderRadius: 'var(--border-radius-md)', boxShadow: '0 4px 20px rgba(0,0,0,0.13)',
+              zIndex: 300, padding: '14px 16px',
+            }}>
+              {/* 問題数 */}
+              <div style={{ marginBottom: 12 }}>
+                <div style={{ fontSize: 11, fontWeight: 700, color: 'var(--color-text-sub)', marginBottom: 7, textTransform: 'uppercase', letterSpacing: '0.4px' }}>
+                  {ja ? '問題数' : 'Questions'}
+                </div>
+                <div style={{ display: 'flex', gap: 6 }}>
+                  {[5, 10, 15, 20].map(n => (
+                    <button key={n}
+                      onClick={() => { setQuickCount(n); saveQuickPrefs({ questionCount: n }); }}
+                      style={{
+                        flex: 1, padding: '5px 0', border: '1.5px solid',
+                        borderColor: quickCount === n ? '#FF9900' : 'var(--color-border)',
+                        borderRadius: 'var(--border-radius-sm)', cursor: 'pointer',
+                        fontWeight: quickCount === n ? 700 : 400, fontSize: 13,
+                        background: quickCount === n ? 'rgba(255,153,0,0.1)' : 'transparent',
+                        color: quickCount === n ? '#FF9900' : 'var(--color-text-main)',
+                      }}
+                    >{n}</button>
+                  ))}
+                </div>
+              </div>
+
+              {/* フィルター */}
+              <div style={{ borderTop: '1px solid var(--color-border)', paddingTop: 11 }}>
+                <div style={{ fontSize: 11, fontWeight: 700, color: 'var(--color-text-sub)', marginBottom: 8, textTransform: 'uppercase', letterSpacing: '0.4px' }}>
+                  {ja ? 'フィルター' : 'Filter'}
+                  {!user && <span style={{ fontSize: 10, color: 'var(--color-text-light)', fontWeight: 400, marginLeft: 6, textTransform: 'none' }}>（{ja ? 'ログイン必要' : 'login required'}）</span>}
+                </div>
+                {([
+                  { label: ja ? '未回答のみ' : 'Unanswered', val: quickUnanswered, set: setQuickUnanswered, key: 'unansweredOnly' },
+                  { label: ja ? '不正解のみ' : 'Incorrect', val: quickIncorrect, set: setQuickIncorrect, key: 'incorrectOnly' },
+                  { label: ja ? 'ブックマーク' : 'Bookmarked', val: quickBookmark, set: setQuickBookmark, key: 'bookmarkOnly' },
+                ] as const).map(({ label, val, set, key }) => (
+                  <label key={key} style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 7, cursor: user ? 'pointer' : 'default', opacity: user ? 1 : 0.45 }}>
+                    <input type="checkbox" checked={val} disabled={!user}
+                      onChange={e => { set(e.target.checked as any); saveQuickPrefs({ [key]: e.target.checked }); }}
+                      style={{ width: 15, height: 15, accentColor: '#FF9900' }} />
+                    <span style={{ fontSize: 13, color: 'var(--color-text-main)' }}>{label}</span>
+                  </label>
+                ))}
+              </div>
+            </div>
+          )}
+        </div>
 
         <Button
           variant="outline"
