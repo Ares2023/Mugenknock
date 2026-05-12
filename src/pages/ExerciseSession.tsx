@@ -282,15 +282,22 @@ export default function ExerciseSession() {
 
   const currentQuestion = questions[currentIndex];
 
-  const shuffledChoices = useMemo(() => {
-    if (!currentQuestion?.choices) return [];
-    const arr = [...currentQuestion.choices];
-    for (let i = arr.length - 1; i > 0; i--) {
+  const CHOICE_LABELS = ['A', 'B', 'C', 'D', 'E'];
+
+  const { shuffledChoices, labelRemap } = useMemo(() => {
+    if (!currentQuestion?.choices) return { shuffledChoices: [], labelRemap: {} as Record<string, string> };
+    const indexed = currentQuestion.choices.map((c: string, i: number) => ({ text: c, origLabel: CHOICE_LABELS[i] }));
+    for (let i = indexed.length - 1; i > 0; i--) {
       const j = Math.floor(Math.random() * (i + 1));
-      [arr[i], arr[j]] = [arr[j], arr[i]];
+      [indexed[i], indexed[j]] = [indexed[j], indexed[i]];
     }
-    return arr;
+    const remap: Record<string, string> = {};
+    indexed.forEach((item, newIdx) => { remap[item.origLabel] = CHOICE_LABELS[newIdx]; });
+    return { shuffledChoices: indexed.map(x => x.text), labelRemap: remap };
   }, [currentQuestion?.questionId]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  const remapLabels = (text: string) =>
+    text.replace(/(?<![A-Za-z])([A-E])(?![A-Za-z])/g, (_, l) => labelRemap[l] ?? l);
 
   const [lastSelected, setLastSelected] = useState<string | null>(null);
 
@@ -473,7 +480,7 @@ export default function ExerciseSession() {
             <span style={{ fontSize: 'var(--font-size-sm)', color: 'var(--color-text-sub)', fontWeight: 700 }}>{t('exerciseSession.choices')}</span>
             <CopyButton getText={() => shuffledChoices.join('\n')} />
           </div>
-          {shuffledChoices.map((choice: string) => (
+          {shuffledChoices.map((choice: string, idx: number) => (
             <button
               key={choice}
               onClick={() => toggleAnswer(choice)}
@@ -490,6 +497,7 @@ export default function ExerciseSession() {
               }}>
                 {selectedAnswers.includes(choice) && <span style={{ width: 6, height: 6, borderRadius: '50%', background: 'var(--color-on-primary)' }} />}
               </span>
+              <span style={{ fontWeight: 700, marginRight: 10, flexShrink: 0, color: 'var(--color-text-sub)' }}>{CHOICE_LABELS[idx]}.</span>
               <span style={{ flex: 1, minWidth: 0, overflowWrap: 'break-word', wordBreak: 'break-word' }}>{choice}</span>
             </button>
           ))}
@@ -532,7 +540,7 @@ export default function ExerciseSession() {
               </p>
               <div style={{ fontSize: 'var(--font-size-base)', lineHeight: 1.6 }}>
                 <strong>{t('exerciseSession.explanation')}</strong>
-                <div style={{ marginTop: 4 }}>{lang === 'en' && (displayQ as any).explanationEn ? (displayQ as any).explanationEn : displayQ.explanation}</div>
+                <div style={{ marginTop: 4 }}>{remapLabels(lang === 'en' && (displayQ as any).explanationEn ? (displayQ as any).explanationEn : (displayQ.explanation ?? ''))}</div>
               </div>
               {(() => {
                 const links = getServiceLinks(currentQuestion.tags ?? []);

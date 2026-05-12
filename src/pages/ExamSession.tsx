@@ -115,6 +115,8 @@ export default function ExamSession() {
   const currentQ = questions[currentIndex];
   const selected = answers[currentQ?.questionId] ?? [];
 
+  const CHOICE_LABELS = ['A', 'B', 'C', 'D', 'E'];
+
   const shuffledIndices = useMemo(() => {
     if (!currentQ?.choices) return [];
     const idx = currentQ.choices.map((_: unknown, i: number) => i);
@@ -318,7 +320,7 @@ export default function ExamSession() {
         </div>
 
         <div style={{ marginBottom: 'var(--spacing-xl)' }}>
-          {shuffledIndices.map((ci: number) => {
+          {shuffledIndices.map((ci: number, displayIdx: number) => {
             const origChoice = currentQ.choices[ci];
             const choicesEn = (currentQ as any).choicesEn;
             const choice = (lang === 'en' && choicesEn) ? (choicesEn[ci] ?? origChoice) : origChoice;
@@ -348,6 +350,7 @@ export default function ExamSession() {
                 }}>
                   {isSelected && <span style={{ width: 6, height: 6, borderRadius: '50%', background: 'var(--color-on-primary)' }} />}
                 </span>
+                <span style={{ fontWeight: 700, marginRight: 10, flexShrink: 0, color: 'var(--color-text-sub)' }}>{CHOICE_LABELS[displayIdx]}.</span>
                 <span style={{ flex: 1, minWidth: 0, overflowWrap: 'break-word', wordBreak: 'break-word' }}>{choice}</span>
               </button>
             );

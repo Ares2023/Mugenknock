@@ -94,8 +94,9 @@ export default function Result() {
               {expanded && (
                 <div style={{ padding: 'var(--spacing-lg) var(--spacing-xl)', borderTop: '1px solid var(--color-border)', background: '#fbfbfb', fontSize: 'var(--font-size-base)' }}>
                   <div style={{ marginBottom: 'var(--spacing-lg)', display: 'flex', flexDirection: 'column', gap: 'var(--spacing-sm)' }}>
-                    {q.choices?.map((c: string) => {
+                    {q.choices?.map((c: string, ci: number) => {
                       const correct = q.correctAnswers?.includes(c);
+                      const label = ['A', 'B', 'C', 'D', 'E'][ci];
                       return (
                         <div key={c} style={{
                           padding: '10px 16px',
@@ -105,8 +106,10 @@ export default function Result() {
                           color: correct ? 'var(--color-success)' : 'var(--color-text-main)',
                           fontWeight: correct ? 700 : 400,
                           fontSize: 'var(--font-size-sm)',
+                          display: 'flex', alignItems: 'flex-start', gap: 8,
                         }}>
-                          {correct ? '✓ ' : ''}{c}
+                          <span style={{ fontWeight: 700, flexShrink: 0 }}>{label}.</span>
+                          <span>{correct ? '✓ ' : ''}{c}</span>
                         </div>
                       );
                     })}
