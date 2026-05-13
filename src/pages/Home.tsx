@@ -372,25 +372,32 @@ export default function Home() {
   const scoreColor = estimatedScore === null ? 'var(--color-text-light)' : 'var(--color-primary)';
 
   // 前日比スコア
+  // score_today_${exam}: { date, score } — 当日スコア（毎回上書き）
+  // score_prev_${exam}: number           — 直前の別日スコア（日付が変わった時に昇格、以降永続）
   const jstDate = useMemo(() => new Date(Date.now() + 9 * 3600 * 1000).toISOString().slice(0, 10), []);
-  const yesterdayDate = useMemo(() => {
-    const d = new Date(Date.now() + 9 * 3600 * 1000);
-    d.setDate(d.getDate() - 1);
-    return d.toISOString().slice(0, 10);
-  }, []);
+  const [prevScore, setPrevScore] = useState<number | null>(null);
 
   useEffect(() => {
-    if (targetExam && estimatedScore !== null) {
-      localStorage.setItem(`score_${targetExam}_${jstDate}`, String(estimatedScore));
+    if (!targetExam || estimatedScore === null) { setPrevScore(null); return; }
+
+    const todayKey = `score_today_${targetExam}`;
+    const prevKey  = `score_prev_${targetExam}`;
+
+    const todayRaw  = localStorage.getItem(todayKey);
+    const todayData = todayRaw ? JSON.parse(todayRaw) as { date: string; score: number } : null;
+
+    // 日付が変わっていたら前日スコアとして昇格（一度昇格したら上書きしない）
+    if (todayData && todayData.date !== jstDate && !localStorage.getItem(prevKey)) {
+      localStorage.setItem(prevKey, String(todayData.score));
     }
+
+    localStorage.setItem(todayKey, JSON.stringify({ date: jstDate, score: estimatedScore }));
+
+    const prevRaw = localStorage.getItem(prevKey);
+    setPrevScore(prevRaw ? parseInt(prevRaw, 10) : null);
   }, [targetExam, estimatedScore, jstDate]);
 
-  const scoreDelta = useMemo(() => {
-    if (!targetExam || estimatedScore === null) return null;
-    const prev = localStorage.getItem(`score_${targetExam}_${yesterdayDate}`);
-    if (!prev) return null;
-    return estimatedScore - parseInt(prev, 10);
-  }, [targetExam, estimatedScore, yesterdayDate]);
+  const scoreDelta = prevScore !== null && estimatedScore !== null ? estimatedScore - prevScore : null;
 
   // サクッと演習開始
   const startQuickExercise = async () => {
