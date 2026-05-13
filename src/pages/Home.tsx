@@ -371,6 +371,27 @@ export default function Home() {
   const passScore = targetExam ? PASS_SCORES[targetExam] : null;
   const scoreColor = estimatedScore === null ? 'var(--color-text-light)' : 'var(--color-primary)';
 
+  // 前日比スコア
+  const jstDate = useMemo(() => new Date(Date.now() + 9 * 3600 * 1000).toISOString().slice(0, 10), []);
+  const yesterdayDate = useMemo(() => {
+    const d = new Date(Date.now() + 9 * 3600 * 1000);
+    d.setDate(d.getDate() - 1);
+    return d.toISOString().slice(0, 10);
+  }, []);
+
+  useEffect(() => {
+    if (targetExam && estimatedScore !== null) {
+      localStorage.setItem(`score_${targetExam}_${jstDate}`, String(estimatedScore));
+    }
+  }, [targetExam, estimatedScore, jstDate]);
+
+  const scoreDelta = useMemo(() => {
+    if (!targetExam || estimatedScore === null) return null;
+    const prev = localStorage.getItem(`score_${targetExam}_${yesterdayDate}`);
+    if (!prev) return null;
+    return estimatedScore - parseInt(prev, 10);
+  }, [targetExam, estimatedScore, yesterdayDate]);
+
   // サクッと演習開始
   const startQuickExercise = async () => {
     if (!targetExam) {
@@ -558,11 +579,26 @@ export default function Home() {
             </div>
           ) : (
             <>
-              <div style={{ fontSize: 48, fontWeight: 800, color: scoreColor, lineHeight: 1, letterSpacing: '-1px' }}>
-                {estimatedScore}
+              <div style={{ display: 'flex', alignItems: 'flex-end', gap: 8 }}>
+                <div style={{ fontSize: 48, fontWeight: 800, color: scoreColor, lineHeight: 1, letterSpacing: '-1px' }}>
+                  {estimatedScore}
+                </div>
+                {scoreDelta !== null && (
+                  <div style={{
+                    fontSize: 13, fontWeight: 700, lineHeight: 1, paddingBottom: 4,
+                    color: scoreDelta > 0 ? 'var(--color-success)' : scoreDelta < 0 ? 'var(--color-danger)' : 'var(--color-text-light)',
+                  }}>
+                    {scoreDelta > 0 ? `+${scoreDelta}` : scoreDelta === 0 ? '±0' : `${scoreDelta}`}
+                  </div>
+                )}
               </div>
               <div style={{ fontSize: 11, color: 'var(--color-text-sub)', marginTop: 2 }}>
                 / 1000 {ja ? 'スケールスコア' : 'scaled score'}
+                {scoreDelta !== null && (
+                  <span style={{ marginLeft: 6, color: 'var(--color-text-light)' }}>
+                    ({ja ? '前日比' : 'vs yesterday'})
+                  </span>
+                )}
               </div>
               {passScore !== null && (
                 <div style={{ marginTop: 10, display: 'flex', alignItems: 'center', gap: 6 }}>
