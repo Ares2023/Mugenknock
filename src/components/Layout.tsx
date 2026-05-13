@@ -120,7 +120,6 @@ export default function Layout({ children }: { children: React.ReactNode }) {
   const [contactError, setContactError] = useState(false);
 
 
-  const [othersOpen, setOthersOpen] = useState(false);
   const [sidebarExamOpen, setSidebarExamOpen] = useState(false);
   const sidebarExamRef = useRef<HTMLDivElement>(null);
 
@@ -149,9 +148,8 @@ export default function Layout({ children }: { children: React.ReactNode }) {
     mainRef.current?.scrollTo({ top: 0 });
   }, [location.pathname]);
 
-  // ルート変更でドロワー/シートを閉じる
+  // ルート変更でサイドバーを閉じる
   useEffect(() => {
-    setOthersOpen(false);
     if (isMobile) setOpen(false);
   }, [location.pathname]);
 
@@ -208,13 +206,13 @@ export default function Layout({ children }: { children: React.ReactNode }) {
     setContactSubject('');
     setContactMessage('');
     setShowContact(true);
-    if (isMobile) { setOpen(false); setOthersOpen(false); }
+    if (isMobile) setOpen(false);
   };
 
   const isActive = (path: string) =>
     path === '/' ? location.pathname === '/' : location.pathname.startsWith(path);
 
-  const isOthersActive = OTHERS_ITEMS.some(item => isActive(item.path));
+  const isOthersActive = location.pathname === '/others' || OTHERS_ITEMS.some(item => isActive(item.path));
 
   const navItems = NAV_KEYS;
 
@@ -308,57 +306,6 @@ export default function Layout({ children }: { children: React.ReactNode }) {
       )}
 
 
-      {/* ── モバイル: その他シート ── */}
-      {isMobile && othersOpen && (
-        <>
-          <div
-            onClick={() => setOthersOpen(false)}
-            style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', zIndex: 399 }}
-          />
-          <div style={{
-            position: 'fixed', bottom: 56, left: 0, right: 0,
-            background: 'var(--color-bg-white)',
-            borderRadius: '16px 16px 0 0',
-            zIndex: 400,
-            boxShadow: '0 -4px 24px rgba(0,0,0,0.15)',
-            paddingBottom: 8,
-          }}>
-            <div style={{ width: 40, height: 4, borderRadius: 2, background: 'var(--color-border)', margin: '12px auto 8px' }} />
-            {OTHERS_ITEMS.map(({ path, Icon, labelKey }) => {
-              const active = isActive(path);
-              return (
-                <button
-                  key={path}
-                  onClick={() => { navigate(path); setOthersOpen(false); }}
-                  style={{
-                    width: '100%', display: 'flex', alignItems: 'center', gap: 14,
-                    padding: '14px 24px', border: 'none', background: 'none',
-                    cursor: 'pointer', fontSize: 'var(--font-size-base)',
-                    color: active ? 'var(--color-primary)' : 'var(--color-text-main)',
-                    fontWeight: active ? 700 : 400, textAlign: 'left',
-                  }}
-                >
-                  <span style={{ color: active ? 'var(--color-primary)' : 'var(--color-text-sub)', display: 'flex', alignItems: 'center' }}><Icon /></span>
-                  <span>{t(labelKey)}</span>
-                </button>
-              );
-            })}
-            <button
-              onClick={() => { openContact(); setOthersOpen(false); }}
-              style={{
-                width: '100%', display: 'flex', alignItems: 'center', gap: 14,
-                padding: '14px 24px', border: 'none',
-                borderTop: '1px solid var(--color-border)',
-                background: 'none', cursor: 'pointer',
-                fontSize: 'var(--font-size-base)', color: 'var(--color-text-main)', textAlign: 'left',
-              }}
-            >
-              <span style={{ color: 'var(--color-text-sub)', display: 'flex', alignItems: 'center' }}><IconMail /></span>
-              <span>{t('contact.sidebarLabel')}</span>
-            </button>
-          </div>
-        </>
-      )}
 
       {/* ── ヘッダー ── */}
       <header style={{
@@ -432,8 +379,15 @@ export default function Layout({ children }: { children: React.ReactNode }) {
           )}
         </div>
         {targetExam && (
-          <div style={{ flexShrink: 0, paddingRight: 'var(--spacing-xs)' }}>
-            <span style={{ background: 'var(--color-secondary)', color: 'white', fontSize: 'var(--font-size-xs)', padding: '2px 10px', borderRadius: 'var(--border-radius-full)', fontWeight: 700 }}>
+          <div style={{ flexShrink: 0, display: 'flex', alignItems: 'center', paddingRight: 'var(--spacing-xs)' }}>
+            <span style={{
+              background: 'var(--color-secondary)', color: 'white',
+              fontSize: 'var(--font-size-xs)', padding: '5px 12px',
+              borderRadius: 'var(--border-radius-full)', fontWeight: 700,
+              lineHeight: 1, display: 'inline-block', whiteSpace: 'nowrap',
+              maxWidth: isMobile ? '55vw' : '40vw',
+              overflow: 'hidden', textOverflow: 'ellipsis',
+            }}>
               {EXAM_CONFIGS[targetExam]?.fullName ?? targetExam}
             </span>
           </div>
@@ -662,7 +616,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
             return (
               <button
                 key={path}
-                onClick={() => { setOthersOpen(false); navigate(path); }}
+                onClick={() => navigate(path)}
                 style={{
                   flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
                   gap: 3, border: 'none', background: 'none', cursor: 'pointer',
@@ -681,18 +635,18 @@ export default function Layout({ children }: { children: React.ReactNode }) {
           })}
           {/* その他タブ */}
           <button
-            onClick={() => setOthersOpen(prev => !prev)}
+            onClick={() => navigate('/others')}
             style={{
               flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
               gap: 3, border: 'none', background: 'none', cursor: 'pointer',
-              color: isOthersActive || othersOpen ? 'var(--color-primary)' : 'var(--color-text-light)',
+              color: isOthersActive ? 'var(--color-primary)' : 'var(--color-text-light)',
               padding: '6px 4px',
             }}
           >
             <span style={{ display: 'flex', alignItems: 'center' }}>
               <IconMore />
             </span>
-            <span style={{ fontSize: 11, fontWeight: isOthersActive || othersOpen ? 700 : 400, lineHeight: 1 }}>
+            <span style={{ fontSize: 11, fontWeight: isOthersActive ? 700 : 400, lineHeight: 1 }}>
               {lang === 'ja' ? 'その他' : 'More'}
             </span>
           </button>

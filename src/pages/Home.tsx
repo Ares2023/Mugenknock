@@ -537,7 +537,7 @@ export default function Home() {
       )}
 
       {/* ── 一段目: 予想点数 + ドメイン円グラフ ── */}
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 2fr', gap: 'var(--spacing-md)', marginBottom: 'var(--spacing-md)' }} className="home-row1-grid">
+      <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 2fr', gap: 'var(--spacing-md)', marginBottom: 'var(--spacing-md)' }}>
         {/* 予想点数 */}
         <Card padding="var(--spacing-md)">
           <div style={{ fontSize: 11, fontWeight: 700, color: 'var(--color-text-sub)', textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: 8 }}>
@@ -600,37 +600,61 @@ export default function Home() {
         </Card>
       </div>
 
-      {/* ── 演習・模試ボタン行 ── */}
-      <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr', gap: 'var(--spacing-sm)', marginBottom: 'var(--spacing-md)' }}>
+      {/* ── 演習・模試ボタン行（デスクトップ） ── */}
+      {!isMobile && (
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr auto auto', gap: 'var(--spacing-sm)', marginBottom: 'var(--spacing-md)', alignItems: 'stretch' }}>
+          <Button
+            variant="primary"
+            fullWidth
+            disabled={!targetExam || quickLoading}
+            onClick={() => { if (targetExam && !quickLoading) startQuickExercise(); }}
+          >
+            {quickLoading ? (ja ? '準備中...' : 'Loading...') : (ja ? `サクッと演習 (${loadQuickPrefs().questionCount ?? 5}問)` : `Quick (${loadQuickPrefs().questionCount ?? 5}Q)`)}
+          </Button>
+          <Button variant="outline" style={{ whiteSpace: 'nowrap' }} onClick={() => navigate('/exercise/setup')}>
+            {ja ? 'カスタム演習' : 'Custom'}
+          </Button>
+          <Button variant="outline" style={{ whiteSpace: 'nowrap' }} disabled={!targetExam} onClick={() => { if (targetExam) setShowExamConfirm(true); }}>
+            {ja ? '模試' : 'Mock Exam'}
+          </Button>
+        </div>
+      )}
 
-        {/* サクッと演習 */}
-        <Button
-          variant="primary"
-          fullWidth
-          disabled={!targetExam || quickLoading}
-          onClick={() => { if (targetExam && !quickLoading) startQuickExercise(); }}
-        >
-          {quickLoading ? (ja ? '準備中...' : 'Loading...') : (ja ? `サクッと演習 (${loadQuickPrefs().questionCount ?? 5}問)` : `Quick (${loadQuickPrefs().questionCount ?? 5}Q)`)}
-        </Button>
-
-        <Button
-          variant="outline"
-          fullWidth
-          onClick={() => navigate('/exercise/setup')}
-        >
-          {ja ? 'カスタム演習' : 'Custom'}
-        </Button>
-
-        <Button
-          variant="outline"
-          fullWidth
-          disabled={!targetExam}
-          onClick={() => { if (targetExam) setShowExamConfirm(true); }}
-          style={{ gridColumn: '1 / -1' }}
-        >
-          {ja ? '模試' : 'Mock Exam'}
-        </Button>
-      </div>
+      {/* ── 演習・模試ボタン行（モバイル: タブバー上部に固定） ── */}
+      {isMobile && (
+        <div style={{
+          position: 'fixed', bottom: 56, left: 0, right: 0, zIndex: 150,
+          background: 'var(--color-bg-white)',
+          borderTop: '1px solid var(--color-border)',
+          padding: '8px 12px',
+          display: 'flex', gap: 6,
+          boxShadow: '0 -2px 8px rgba(0,0,0,0.08)',
+        }}>
+          <Button
+            variant="primary"
+            style={{ flex: 1, minWidth: 0, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}
+            disabled={!targetExam || quickLoading}
+            onClick={() => { if (targetExam && !quickLoading) startQuickExercise(); }}
+          >
+            {quickLoading ? (ja ? '準備中...' : 'Loading...') : (ja ? `サクッと演習` : `Quick`)}
+          </Button>
+          <Button
+            variant="outline"
+            style={{ flex: '0 0 auto', whiteSpace: 'nowrap' }}
+            onClick={() => navigate('/exercise/setup')}
+          >
+            {ja ? 'カスタム演習' : 'Custom'}
+          </Button>
+          <Button
+            variant="outline"
+            style={{ flex: '0 0 auto', whiteSpace: 'nowrap' }}
+            disabled={!targetExam}
+            onClick={() => { if (targetExam) setShowExamConfirm(true); }}
+          >
+            {ja ? '模試' : 'Mock Exam'}
+          </Button>
+        </div>
+      )}
 
       {/* ── 三.五段目: 今日のサービス ── */}
       <TodayServiceSection lang={lang} />

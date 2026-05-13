@@ -7,6 +7,8 @@
   --color-secondary-hover: #16191f;
   --color-accent: #ff9900;
   --color-accent-hover: #ec7211;
+  --color-accent-dark: #cc7a00;
+  --color-btn-primary-text: #16191f;
   --color-bg-main: #f2f3f3;
   --color-bg-white: #ffffff;
   --color-text-main: #16191f;
@@ -223,17 +225,17 @@ code {
 
 /* Primary: オレンジ（メインアクション） */
 .btn-primary {
-  background-color: #FF9900;
-  color: #16191f;
-  border: 1.5px solid #FF9900;
+  background-color: var(--color-accent);
+  color: var(--color-btn-primary-text);
+  border: 1.5px solid var(--color-accent);
 }
 .btn-primary:not(:disabled):hover {
-  background-color: #e68a00;
-  border-color: #e68a00;
+  background-color: var(--color-accent-hover);
+  border-color: var(--color-accent-hover);
 }
 .btn-primary:not(:disabled):active {
-  background-color: #cc7a00;
-  border-color: #cc7a00;
+  background-color: var(--color-accent-dark);
+  border-color: var(--color-accent-dark);
 }
 
 /* Outline: 青輪郭（サブアクション・ナビゲーション） */
