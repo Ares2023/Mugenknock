@@ -1,59 +1,111 @@
-import React, { useEffect, useRef, useState, useMemo } from 'react';
+import React, { useEffect, useState, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { useLanguage } from '../contexts/LanguageContext';
 import {
-  API_ENDPOINT, EXAM_TYPES, EXAM_CONFIGS, EXAM_DOMAINS,
-  DOMAIN_WEIGHTS, DOMAIN_NAME_EN, PASS_SCORES, EXAM_LEVEL,
+  API_ENDPOINT, EXAM_CONFIGS, EXAM_DOMAINS,
+  DOMAIN_WEIGHTS, DOMAIN_NAME_EN, PASS_SCORES,
 } from '../constants';
 import { getCached, setCached, SHORT_TTL } from '../utils/cache';
 import Card from '../components/ui/Card';
 import Button from '../components/ui/Button';
-import { IconTarget, IconLightbulb, ServiceIcon, isServiceIconKey } from '../components/Icons';
+import { IconLightbulb, ServiceIcon, isServiceIconKey } from '../components/Icons';
 
 
 type DomainStat = { tagId: string; correctCount?: number; incorrectCount?: number };
 
-function DomainProgressRings({ targetExam, domainStats, lang }: {
+function DomainBarChart({ targetExam, domainStats, lang, onDomainClick }: {
   targetExam: string;
   domainStats: DomainStat[];
   lang: string;
+  onDomainClick: (domain: string) => void;
 }) {
   const domains = EXAM_DOMAINS[targetExam] ?? [];
-  const sz = 48, r = 18;
-  const circ = 2 * Math.PI * r;
-
   return (
-    <div style={{ display: 'grid', gridTemplateColumns: `repeat(${Math.ceil(domains.length / 2)}, 1fr)`, gap: '6px 12px' }}>
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 7 }}>
       {domains.map((d, i) => {
         const stat = domainStats.find(s => s.tagId === d);
         const total = (stat?.correctCount ?? 0) + (stat?.incorrectCount ?? 0);
         const acc = total > 0 ? (stat?.correctCount ?? 0) / total : null;
+        const pct = acc !== null ? Math.round(acc * 100) : null;
         const label = lang === 'en' ? (DOMAIN_NAME_EN[d] ?? d) : d;
+        const barColor = pct === null ? 'var(--color-border)' : pct >= 70 ? 'var(--color-success)' : pct >= 50 ? 'var(--color-warning)' : 'var(--color-danger)';
         return (
-          <div key={d} style={{ display: 'flex', alignItems: 'center', gap: 8, minWidth: 0 }}>
-            <svg width={sz} height={sz} viewBox={`0 0 ${sz} ${sz}`} style={{ flexShrink: 0 }}>
-              <circle cx={sz / 2} cy={sz / 2} r={r} fill="none" stroke="var(--color-border)" strokeWidth={4} />
-              {acc !== null && (
-                <circle
-                  cx={sz / 2} cy={sz / 2} r={r} fill="none" stroke="var(--color-primary)" strokeWidth={4}
-                  strokeDasharray={`${acc * circ} ${circ}`}
-                  transform={`rotate(-90 ${sz / 2} ${sz / 2})`}
-                  strokeLinecap="round"
-                />
+          <div key={d} onClick={() => onDomainClick(d)} style={{ cursor: 'pointer' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 3 }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 5, minWidth: 0 }}>
+                <span style={{ fontSize: 9, fontWeight: 700, color: 'var(--color-text-light)', flexShrink: 0 }}>D{i + 1}</span>
+                <span style={{ fontSize: 11, color: 'var(--color-text-sub)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{label}</span>
+              </div>
+              <span style={{ fontSize: 11, fontWeight: 700, flexShrink: 0, marginLeft: 8, color: pct !== null ? barColor : 'var(--color-text-light)' }}>
+                {pct !== null ? `${pct}%` : '—'}
+              </span>
+            </div>
+            <div style={{ height: 5, background: 'var(--color-border)', borderRadius: 3, overflow: 'hidden' }}>
+              {pct !== null && (
+                <div style={{ width: `${pct}%`, height: '100%', borderRadius: 3, background: barColor, transition: 'width 0.4s ease' }} />
               )}
-              <text x={sz / 2} y={sz / 2} textAnchor="middle" dominantBaseline="middle"
-                fontSize={10} fontWeight={700} fill={acc !== null ? 'var(--color-primary)' : 'var(--color-text-light)'}>
-                {acc !== null ? `${Math.round(acc * 100)}%` : '—'}
-              </text>
-            </svg>
-            <div style={{ minWidth: 0 }}>
-              <div style={{ fontSize: 9, color: 'var(--color-text-light)', fontWeight: 600, marginBottom: 1 }}>D{i + 1}</div>
-              <div style={{ fontSize: 10, color: 'var(--color-text-sub)', lineHeight: 1.3, overflowWrap: 'break-word' }}>{label}</div>
             </div>
           </div>
         );
       })}
+    </div>
+  );
+}
+
+function DomainDetailModal({ domain, stat, lang, onClose }: {
+  domain: string;
+  stat: DomainStat | undefined;
+  lang: string;
+  onClose: () => void;
+}) {
+  const ja = lang === 'ja';
+  const correct = stat?.correctCount ?? 0;
+  const incorrect = stat?.incorrectCount ?? 0;
+  const total = correct + incorrect;
+  const pct = total > 0 ? Math.round((correct / total) * 100) : null;
+  const barColor = pct === null ? 'var(--color-border)' : pct >= 70 ? 'var(--color-success)' : pct >= 50 ? 'var(--color-warning)' : 'var(--color-danger)';
+  const label = lang === 'en' ? (DOMAIN_NAME_EN[domain] ?? domain) : domain;
+  return (
+    <div
+      style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', zIndex: 1000, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16 }}
+      onClick={e => { if (e.target === e.currentTarget) onClose(); }}
+    >
+      <div style={{ background: 'var(--color-bg-white)', borderRadius: 'var(--border-radius-lg)', padding: '20px 24px', width: '100%', maxWidth: 360, boxShadow: '0 8px 32px rgba(0,0,0,0.2)' }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 16 }}>
+          <div style={{ fontSize: 'var(--font-size-base)', fontWeight: 700, color: 'var(--color-text-main)', lineHeight: 1.4, flex: 1, marginRight: 12 }}>
+            {label}
+          </div>
+          <button onClick={onClose} style={{ border: 'none', background: 'none', fontSize: 18, cursor: 'pointer', color: 'var(--color-text-sub)', padding: '0 4px', lineHeight: 1, flexShrink: 0 }}>✕</button>
+        </div>
+        <div style={{ display: 'flex', gap: 20, marginBottom: 16 }}>
+          {[
+            { label: ja ? '正解' : 'Correct', value: correct, color: 'var(--color-success)' },
+            { label: ja ? '不正解' : 'Wrong', value: incorrect, color: 'var(--color-danger)' },
+            { label: ja ? '合計' : 'Total', value: total, color: 'var(--color-text-main)' },
+          ].map(({ label: l, value, color }) => (
+            <div key={l}>
+              <div style={{ fontSize: 10, color: 'var(--color-text-light)', marginBottom: 2 }}>{l}</div>
+              <div style={{ fontSize: 28, fontWeight: 800, color, lineHeight: 1 }}>{value}</div>
+            </div>
+          ))}
+        </div>
+        {pct !== null ? (
+          <>
+            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 5 }}>
+              <span style={{ fontSize: 12, color: 'var(--color-text-sub)' }}>{ja ? '正答率' : 'Accuracy'}</span>
+              <span style={{ fontSize: 14, fontWeight: 800, color: barColor }}>{pct}%</span>
+            </div>
+            <div style={{ height: 8, background: 'var(--color-border)', borderRadius: 4, overflow: 'hidden' }}>
+              <div style={{ width: `${pct}%`, height: '100%', borderRadius: 4, background: barColor }} />
+            </div>
+          </>
+        ) : (
+          <div style={{ color: 'var(--color-text-light)', fontSize: 'var(--font-size-sm)', fontStyle: 'italic' }}>
+            {ja ? 'まだデータがありません' : 'No data yet'}
+          </div>
+        )}
+      </div>
     </div>
   );
 }
@@ -300,9 +352,7 @@ export default function Home() {
   const [examLoading, setExamLoading] = useState(false);
   const [showExamConfirm, setShowExamConfirm] = useState(false);
 
-  // モバイル試験選択ドロップダウン
-  const [mobileDropdownOpen, setMobileDropdownOpen] = useState(false);
-  const mobileDropdownRef = useRef<HTMLDivElement>(null);
+  const [selectedDomain, setSelectedDomain] = useState<string | null>(null);
 
   useEffect(() => {
     const handler = () => setIsMobile(window.innerWidth < 768);
@@ -310,22 +360,11 @@ export default function Home() {
     return () => window.removeEventListener('resize', handler);
   }, []);
 
-  // サイドバーからの試験変更イベント
+  // サイドバー/ヘッダーからの試験変更イベント
   useEffect(() => {
     const handler = (e: Event) => setTargetExam((e as CustomEvent).detail);
     window.addEventListener('targetExamChanged', handler);
     return () => window.removeEventListener('targetExamChanged', handler);
-  }, []);
-
-  // モバイルドロップダウン外クリックで閉じる
-  useEffect(() => {
-    const handler = (e: MouseEvent) => {
-      if (mobileDropdownRef.current && !mobileDropdownRef.current.contains(e.target as Node)) {
-        setMobileDropdownOpen(false);
-      }
-    };
-    document.addEventListener('mousedown', handler);
-    return () => document.removeEventListener('mousedown', handler);
   }, []);
 
   // ドメイン統計取得
@@ -345,14 +384,6 @@ export default function Home() {
       .catch(() => setDomainStats([]))
       .finally(() => setStatsLoading(false));
   }, [user]);
-
-  // モバイル試験選択
-  const handleMobileExamSelect = (et: string) => {
-    localStorage.setItem('targetExam', et);
-    setTargetExam(et);
-    setMobileDropdownOpen(false);
-    window.dispatchEvent(new CustomEvent('targetExamChanged', { detail: et }));
-  };
 
   // 予想スコア計算
   const { estimatedScore } = useMemo(() => {
@@ -507,122 +538,57 @@ export default function Home() {
     }
   };
 
-  const cfg = targetExam ? EXAM_CONFIGS[targetExam] : null;
-
   return (
     <div style={{ maxWidth: 1100, margin: '0 auto', padding: 'var(--spacing-lg) var(--spacing-lg)' }} className="page-container">
 
-      {/* モバイルのみ: 試験選択セレクタ */}
-      {isMobile && (
-        <div ref={mobileDropdownRef} style={{ position: 'relative', marginBottom: 'var(--spacing-md)' }}>
-          <button
-            onClick={() => setMobileDropdownOpen(v => !v)}
-            style={{
-              width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8,
-              padding: '9px 14px', border: `1.5px solid ${mobileDropdownOpen ? 'var(--color-primary)' : 'var(--color-border)'}`,
-              borderRadius: 'var(--border-radius-md)', background: 'var(--color-bg-white)',
-              cursor: 'pointer', fontSize: 'var(--font-size-base)', fontWeight: 600,
-              color: targetExam ? 'var(--color-text-main)' : 'var(--color-text-light)',
-            }}
-          >
-            <span style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-              <span style={{ color: 'var(--color-primary)' }}><IconTarget size={16} /></span>
-              <span>{targetExam ? `${EXAM_LEVEL[targetExam]} / ${targetExam}` : (ja ? '目標試験を選択...' : 'Select target exam...')}</span>
-            </span>
-            <span style={{ fontSize: 10, color: 'var(--color-primary)', transform: mobileDropdownOpen ? 'rotate(180deg)' : 'none', transition: 'transform 0.2s', flexShrink: 0 }}>▼</span>
-          </button>
-          {mobileDropdownOpen && (
-            <div style={{
-              position: 'absolute', top: 'calc(100% + 4px)', left: 0, right: 0,
-              background: 'var(--color-bg-white)', border: '1px solid var(--color-border)',
-              borderRadius: 'var(--border-radius-md)', boxShadow: '0 4px 16px rgba(0,0,0,0.12)',
-              zIndex: 300, maxHeight: 260, overflowY: 'auto',
-            }}>
-              {(['Foundational', 'Associate', 'Professional'] as const).map((level, li) => {
-                const items = EXAM_TYPES.filter(et => EXAM_LEVEL[et] === level);
-                if (items.length === 0) return null;
-                return (
-                  <div key={level}>
-                    {li > 0 && <div style={{ height: 1, background: 'var(--color-border)' }} />}
-                    <div style={{ padding: '5px 12px 2px', fontSize: 10, fontWeight: 700, color: 'var(--color-text-light)', textTransform: 'uppercase', letterSpacing: '0.5px' }}>{level}</div>
-                    {items.map(et => {
-                      const sel = targetExam === et;
-                      return (
-                        <button key={et} onClick={() => handleMobileExamSelect(et)} style={{
-                          width: '100%', textAlign: 'left', display: 'flex', alignItems: 'center', gap: 8,
-                          padding: '8px 12px', border: 'none',
-                          background: sel ? 'var(--color-primary-light)' : 'transparent',
-                          cursor: 'pointer', fontSize: 'var(--font-size-sm)',
-                          color: sel ? 'var(--color-primary)' : 'var(--color-text-main)',
-                          fontWeight: sel ? 700 : 400,
-                        }}>
-                          <span style={{ fontWeight: 700, minWidth: 36, flexShrink: 0 }}>{et}</span>
-                          <span style={{ fontSize: 11, color: sel ? 'var(--color-primary)' : 'var(--color-text-sub)' }}>— {EXAM_CONFIGS[et].fullName}</span>
-                          {sel && <span style={{ marginLeft: 'auto', fontSize: 12 }}>✓</span>}
-                        </button>
-                      );
-                    })}
-                  </div>
-                );
-              })}
-            </div>
-          )}
-        </div>
-      )}
-
-      {/* ── 一段目: 予想点数 + ドメイン円グラフ ── */}
+      {/* ── 一段目: 予想点数 + ドメイン横棒グラフ ── */}
       <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 2fr', gap: 'var(--spacing-md)', marginBottom: 'var(--spacing-md)' }}>
         {/* 予想点数 */}
         <Card padding="var(--spacing-md)">
-          <div style={{ fontSize: 11, fontWeight: 700, color: 'var(--color-text-sub)', textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: 8 }}>
+          <div style={{ fontSize: 11, fontWeight: 700, color: 'var(--color-text-sub)', textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: 6 }}>
             {ja ? '予想スコア' : 'Est. Score'}
           </div>
           {!targetExam ? (
-            <div style={{ color: 'var(--color-text-light)', fontSize: 'var(--font-size-sm)', fontStyle: 'italic', padding: '8px 0' }}>
+            <div style={{ color: 'var(--color-text-light)', fontSize: 'var(--font-size-sm)', fontStyle: 'italic' }}>
               {ja ? '試験を選択してください' : 'Select an exam'}
             </div>
           ) : statsLoading ? (
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 8, padding: '4px 0' }}>
-              <div className="skeleton" style={{ height: 44, width: '60%', borderRadius: 6 }} />
-              <div className="skeleton" style={{ height: 14, width: '40%', borderRadius: 4 }} />
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+              <div className="skeleton" style={{ height: 36, width: '60%', borderRadius: 6 }} />
+              <div className="skeleton" style={{ height: 6, width: '100%', borderRadius: 4 }} />
             </div>
           ) : estimatedScore === null ? (
-            <div style={{ color: 'var(--color-text-light)', fontSize: 'var(--font-size-sm)', fontStyle: 'italic', padding: '8px 0' }}>
+            <div style={{ color: 'var(--color-text-light)', fontSize: 'var(--font-size-sm)', fontStyle: 'italic' }}>
               {ja ? '演習データがありません' : 'No practice data yet'}
             </div>
           ) : (
             <>
-              <div style={{ display: 'flex', alignItems: 'flex-end', gap: 8 }}>
-                <div style={{ fontSize: 48, fontWeight: 800, color: scoreColor, lineHeight: 1, letterSpacing: '-1px' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 2 }}>
+                <div style={{ fontSize: 36, fontWeight: 800, color: scoreColor, lineHeight: 1, letterSpacing: '-1px' }}>
                   {estimatedScore}
                 </div>
-                {scoreDelta !== null && (
-                  <div style={{
-                    fontSize: 13, fontWeight: 700, lineHeight: 1, paddingBottom: 4,
-                    color: scoreDelta > 0 ? 'var(--color-success)' : scoreDelta < 0 ? 'var(--color-danger)' : 'var(--color-text-light)',
-                  }}>
-                    {scoreDelta > 0 ? `+${scoreDelta}` : scoreDelta === 0 ? '±0' : `${scoreDelta}`}
-                  </div>
-                )}
-              </div>
-              <div style={{ fontSize: 11, color: 'var(--color-text-sub)', marginTop: 2 }}>
-                / 1000 {ja ? 'スケールスコア' : 'scaled score'}
-                {scoreDelta !== null && (
-                  <span style={{ marginLeft: 6, color: 'var(--color-text-light)' }}>
-                    ({ja ? '前日比' : 'vs yesterday'})
-                  </span>
-                )}
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
+                  <span style={{ fontSize: 10, color: 'var(--color-text-light)' }}>/ 1000</span>
+                  {scoreDelta !== null && (
+                    <span style={{
+                      fontSize: 12, fontWeight: 700,
+                      color: scoreDelta > 0 ? 'var(--color-success)' : scoreDelta < 0 ? 'var(--color-danger)' : 'var(--color-text-light)',
+                    }}>
+                      {scoreDelta > 0 ? `+${scoreDelta}` : scoreDelta === 0 ? '±0' : `${scoreDelta}`}
+                    </span>
+                  )}
+                </div>
               </div>
               {passScore !== null && (
-                <div style={{ marginTop: 10, display: 'flex', alignItems: 'center', gap: 6 }}>
-                  <div style={{ flex: 1, background: 'var(--color-bg-main)', borderRadius: 10, height: 6, overflow: 'hidden' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginTop: 6 }}>
+                  <div style={{ flex: 1, background: 'var(--color-bg-main)', borderRadius: 10, height: 5, overflow: 'hidden' }}>
                     <div style={{
                       width: `${Math.min(100, (estimatedScore / 1000) * 100)}%`, height: '100%',
                       borderRadius: 10, background: scoreColor,
                     }} />
                   </div>
                   <span style={{ fontSize: 10, color: 'var(--color-text-light)', flexShrink: 0 }}>
-                    {ja ? `合格ライン ${passScore}` : `Pass: ${passScore}`}
+                    {ja ? `合格 ${passScore}` : `Pass: ${passScore}`}
                   </span>
                 </div>
               )}
@@ -630,21 +596,23 @@ export default function Home() {
           )}
         </Card>
 
-        {/* ドメイン円グラフ */}
+        {/* ドメイン横棒グラフ */}
         <Card padding="var(--spacing-md)">
           <div style={{ fontSize: 11, fontWeight: 700, color: 'var(--color-text-sub)', textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: 8 }}>
             {ja ? 'ドメイン別成績' : 'Domain Results'}
           </div>
           {!targetExam ? (
-            <div style={{ color: 'var(--color-text-light)', fontSize: 'var(--font-size-sm)', fontStyle: 'italic', padding: '8px 0' }}>
+            <div style={{ color: 'var(--color-text-light)', fontSize: 'var(--font-size-sm)', fontStyle: 'italic' }}>
               {ja ? '試験を選択してください' : 'Select an exam'}
             </div>
           ) : statsLoading ? (
-            <div style={{ display: 'flex', justifyContent: 'center', padding: '16px 0' }}>
-              <div className="sherpa-spinner" style={{ width: 24, height: 24, borderWidth: 2 }} />
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+              {[70, 55, 80, 40, 65].map((w, i) => (
+                <div key={i} className="skeleton" style={{ height: 14, width: `${w}%`, borderRadius: 4 }} />
+              ))}
             </div>
           ) : (
-            <DomainProgressRings targetExam={targetExam} domainStats={domainStats} lang={lang} />
+            <DomainBarChart targetExam={targetExam} domainStats={domainStats} lang={lang} onDomainClick={d => setSelectedDomain(d)} />
           )}
         </Card>
       </div>
@@ -742,6 +710,16 @@ export default function Home() {
           onConfirm={startExamFromHome}
           onCancel={() => setShowExamConfirm(false)}
           loading={examLoading}
+        />
+      )}
+
+      {/* ドメイン詳細モーダル */}
+      {selectedDomain && targetExam && (
+        <DomainDetailModal
+          domain={selectedDomain}
+          stat={domainStats.find(s => s.tagId === selectedDomain)}
+          lang={lang}
+          onClose={() => setSelectedDomain(null)}
         />
       )}
     </div>

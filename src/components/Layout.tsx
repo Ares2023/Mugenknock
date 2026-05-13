@@ -122,6 +122,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
 
   const [sidebarExamOpen, setSidebarExamOpen] = useState(false);
   const sidebarExamRef = useRef<HTMLDivElement>(null);
+  const [mobileExamPanelOpen, setMobileExamPanelOpen] = useState(false);
 
   useEffect(() => {
     setTargetExam(localStorage.getItem('targetExam'));
@@ -148,9 +149,9 @@ export default function Layout({ children }: { children: React.ReactNode }) {
     mainRef.current?.scrollTo({ top: 0 });
   }, [location.pathname]);
 
-  // ルート変更でサイドバーを閉じる
+  // ルート変更でサイドバー・モバイルパネルを閉じる
   useEffect(() => {
-    if (isMobile) setOpen(false);
+    if (isMobile) { setOpen(false); setMobileExamPanelOpen(false); }
   }, [location.pathname]);
 
   useEffect(() => {
@@ -325,8 +326,34 @@ export default function Layout({ children }: { children: React.ReactNode }) {
           />
         </div>
 
+        {/* モバイルのみ: 目標試験ボタン */}
+        {isMobile && (
+          <button
+            onClick={() => setMobileExamPanelOpen(v => !v)}
+            style={{
+              marginLeft: 'auto',
+              display: 'flex', alignItems: 'center', gap: 4,
+              background: 'rgba(255,255,255,0.12)',
+              border: '1px solid rgba(255,255,255,0.3)',
+              borderRadius: 'var(--border-radius-md)',
+              cursor: 'pointer', color: 'white',
+              padding: '5px 10px', fontSize: 'var(--font-size-sm)', fontWeight: 700,
+              maxWidth: '45vw', overflow: 'hidden',
+              transition: 'background 0.2s',
+              flexShrink: 0,
+            }}
+            onMouseEnter={e => e.currentTarget.style.background = 'rgba(255,255,255,0.2)'}
+            onMouseLeave={e => e.currentTarget.style.background = 'rgba(255,255,255,0.12)'}
+          >
+            <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+              {targetExam ?? (lang === 'ja' ? '試験選択' : 'Exam')}
+            </span>
+            <span style={{ fontSize: 8, opacity: 0.8, flexShrink: 0, transform: mobileExamPanelOpen ? 'rotate(180deg)' : 'none', transition: 'transform 0.2s' }}>▼</span>
+          </button>
+        )}
+
         {/* アカウントボタン（モバイル・デスクトップ共通） */}
-        <div style={{ marginLeft: 'auto', flexShrink: 0 }}>
+        <div style={{ marginLeft: isMobile ? 'var(--spacing-sm)' : 'auto', flexShrink: 0 }}>
           <button
             onClick={() => navigate('/account')}
             style={{
@@ -346,6 +373,70 @@ export default function Layout({ children }: { children: React.ReactNode }) {
           </button>
         </div>
       </header>
+
+      {/* ── モバイル試験選択スライドアップパネル ── */}
+      {isMobile && mobileExamPanelOpen && (
+        <>
+          <div
+            onClick={() => setMobileExamPanelOpen(false)}
+            style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.4)', zIndex: 250 }}
+          />
+          <div style={{
+            position: 'fixed', bottom: 56, left: 0, right: 0, zIndex: 260,
+            background: 'var(--color-bg-white)',
+            borderRadius: '16px 16px 0 0',
+            boxShadow: '0 -4px 20px rgba(0,0,0,0.15)',
+            maxHeight: '55vh', overflowY: 'auto',
+            animation: 'slideUp 0.22s ease',
+          }}>
+            <div style={{ padding: '12px 16px 10px', borderBottom: '1px solid var(--color-border)', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+              <span style={{ fontWeight: 700, fontSize: 'var(--font-size-base)', color: 'var(--color-text-main)' }}>
+                {lang === 'ja' ? '目標試験を選択' : 'Select Target Exam'}
+              </span>
+              <button
+                onClick={() => setMobileExamPanelOpen(false)}
+                style={{ border: 'none', background: 'none', fontSize: 18, cursor: 'pointer', color: 'var(--color-text-sub)', padding: '0 4px', lineHeight: 1 }}
+              >✕</button>
+            </div>
+            {(['Foundational', 'Associate', 'Professional'] as const).map((level, li) => {
+              const levelItems = EXAM_TYPES.filter(et => EXAM_LEVEL[et] === level);
+              if (levelItems.length === 0) return null;
+              return (
+                <div key={level}>
+                  {li > 0 && <div style={{ height: 1, background: 'var(--color-border)' }} />}
+                  <div style={{ padding: '8px 16px 4px', fontSize: 10, fontWeight: 700, color: 'var(--color-text-light)', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+                    {level}
+                  </div>
+                  {levelItems.map(et => {
+                    const sel = targetExam === et;
+                    return (
+                      <button
+                        key={et}
+                        onClick={() => { handleSidebarExamSelect(et); setMobileExamPanelOpen(false); }}
+                        style={{
+                          width: '100%', textAlign: 'left', display: 'flex', alignItems: 'center', gap: 10,
+                          padding: '11px 16px', border: 'none',
+                          background: sel ? 'var(--color-primary-light)' : 'transparent',
+                          cursor: 'pointer', fontSize: 'var(--font-size-base)',
+                          color: sel ? 'var(--color-primary)' : 'var(--color-text-main)',
+                          fontWeight: sel ? 700 : 400,
+                        }}
+                      >
+                        <span style={{ fontWeight: 700, minWidth: 40, flexShrink: 0 }}>{et}</span>
+                        <span style={{ fontSize: 'var(--font-size-sm)', color: sel ? 'var(--color-primary)' : 'var(--color-text-sub)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                          {EXAM_CONFIGS[et].fullName}
+                        </span>
+                        {sel && <span style={{ marginLeft: 'auto', color: 'var(--color-primary)', flexShrink: 0, fontSize: 14 }}>✓</span>}
+                      </button>
+                    );
+                  })}
+                </div>
+              );
+            })}
+            <div style={{ height: 12 }} />
+          </div>
+        </>
+      )}
 
       {/* ── サブバー（ハンバーガー＋パンくず） ── */}
       <div style={{

@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { API_ENDPOINT, PASS_RATE } from '../constants';
-import { deleteCached } from '../utils/cache';
+import { getCached, setCached, SHORT_TTL, deleteCached } from '../utils/cache';
 import { useAuth } from '../contexts/AuthContext';
 import { useLanguage } from '../contexts/LanguageContext';
 import Card from '../components/ui/Card';
@@ -11,6 +11,8 @@ import ReportModal from '../components/ReportModal';
 import { getServiceLinks } from '../awsServiceLinks';
 
 type Tip = { tipId: string; title: string; content: string; examType: string };
+
+const WAKARANAI = 'わからない';
 
 type Question = {
   questionId: string;
@@ -200,7 +202,6 @@ export default function ExerciseSession() {
   const [tips, setTips] = useState<Tip[]>([]);
   const [bookmarkedIds, setBookmarkedIds] = useState<Set<string>>(new Set());
   const [bookmarkLoading, setBookmarkLoading] = useState(false);
-  const [currentTip, setCurrentTip] = useState<Tip | null>(null);
 
   useEffect(() => {
     fetch(`${API_ENDPOINT}/tips?examType=${examType}`)
@@ -208,6 +209,8 @@ export default function ExerciseSession() {
       .then(d => setTips(d.items ?? []))
       .catch(() => {});
   }, [examType]);
+
+  const [currentTip, setCurrentTip] = useState<Tip | null>(null);
 
   useEffect(() => {
     if (tips.length === 0) return;
@@ -287,7 +290,9 @@ export default function ExerciseSession() {
 
   const { shuffledChoices, labelRemap } = useMemo(() => {
     if (!currentQuestion?.choices) return { shuffledChoices: [], labelRemap: {} as Record<string, string> };
-    const indexed = currentQuestion.choices.map((c: string, i: number) => ({ text: c, origLabel: CHOICE_LABELS[i] }));
+    const indexed = currentQuestion.choices
+      .filter((c: string) => c !== WAKARANAI)
+      .map((c: string, i: number) => ({ text: c, origLabel: CHOICE_LABELS[i] }));
     for (let i = indexed.length - 1; i > 0; i--) {
       const j = Math.floor(Math.random() * (i + 1));
       [indexed[i], indexed[j]] = [indexed[j], indexed[i]];
@@ -312,9 +317,13 @@ export default function ExerciseSession() {
     if (answered) return;
     setAnswerCountError(null);
     setLastSelected(choice);
-    if (currentQuestion.isMultiple) {
+    if (choice === WAKARANAI) {
+      setSelectedAnswers(prev => prev.includes(WAKARANAI) ? [] : [WAKARANAI]);
+    } else if (currentQuestion.isMultiple) {
       setSelectedAnswers(prev =>
-        prev.includes(choice) ? prev.filter(a => a !== choice) : [...prev, choice]
+        prev.includes(choice)
+          ? prev.filter(a => a !== choice)
+          : [...prev.filter(a => a !== WAKARANAI), choice]
       );
     } else {
       setSelectedAnswers([choice]);
@@ -323,7 +332,8 @@ export default function ExerciseSession() {
 
   const submitAnswer = () => {
     if (selectedAnswers.length === 0) return;
-    if (currentQuestion.isMultiple && currentQuestion.correctAnswerCount &&
+    const isWakaranai = selectedAnswers.includes(WAKARANAI);
+    if (!isWakaranai && currentQuestion.isMultiple && currentQuestion.correctAnswerCount &&
         selectedAnswers.length !== currentQuestion.correctAnswerCount) {
       setAnswerCountError(lang === 'ja'
         ? `${currentQuestion.correctAnswerCount}つ選択してください（現在${selectedAnswers.length}つ）`
@@ -366,7 +376,31 @@ export default function ExerciseSession() {
         });
       } catch (err) { console.error(err); }
       localStorage.removeItem('exerciseDraft');
-      deleteCached(`ustats_${userId}`);
+      // セッション結果をdomainStats キャッシュに即時反映（APIレスポンス待ちなしでHomeに表示）
+      if (userId !== 'guest') {
+        const delta: Record<string, { c: number; i: number }> = {};
+        for (const r of results) {
+          const q = questions.find((q: Question) => q.questionId === r.questionId);
+          for (const tag of (q?.tags ?? [])) {
+            if (!delta[tag]) delta[tag] = { c: 0, i: 0 };
+            if (r.isCorrect) delta[tag].c++; else delta[tag].i++;
+          }
+        }
+        type DS = { tagId: string; correctCount?: number; incorrectCount?: number };
+        const prev = getCached<DS[]>(`ustats_${userId}`) ?? [];
+        const merged = [...prev];
+        for (const [tag, d] of Object.entries(delta)) {
+          const idx = merged.findIndex(s => s.tagId === tag);
+          if (idx >= 0) {
+            merged[idx] = { tagId: tag, correctCount: (merged[idx].correctCount ?? 0) + d.c, incorrectCount: (merged[idx].incorrectCount ?? 0) + d.i };
+          } else {
+            merged.push({ tagId: tag, correctCount: d.c, incorrectCount: d.i });
+          }
+        }
+        setCached(`ustats_${userId}`, merged, SHORT_TTL);
+      } else {
+        deleteCached(`ustats_${userId}`);
+      }
       navigate('/result', { state: { results, questions, score, isPassed, sessionId, userId, examType } });
     } else {
       setCurrentIndex(prev => prev + 1);
@@ -514,6 +548,32 @@ export default function ExerciseSession() {
               <span style={{ flex: 1, minWidth: 0, overflowWrap: 'break-word', wordBreak: 'break-word' }}>{choice}</span>
             </button>
           ))}
+          {(() => {
+            const wSelected = selectedAnswers.includes(WAKARANAI);
+            const wAnsweredIncorrect = answered && wSelected;
+            return (
+              <button
+                onClick={() => toggleAnswer(WAKARANAI)}
+                disabled={answered}
+                style={{
+                  padding: 'var(--spacing-sm) var(--spacing-lg)',
+                  marginTop: 'var(--spacing-sm)',
+                  borderRadius: 'var(--border-radius-md)',
+                  cursor: answered ? 'default' : 'pointer',
+                  border: `1px ${wSelected ? 'solid' : 'dashed'}`,
+                  display: 'flex', alignItems: 'center', width: '100%', textAlign: 'left',
+                  fontSize: 'var(--font-size-sm)',
+                  transition: 'all 0.15s ease',
+                  background: wAnsweredIncorrect ? 'var(--color-feedback-incorrect-bg)' : wSelected ? 'var(--color-bg-main)' : 'transparent',
+                  borderColor: wAnsweredIncorrect ? 'var(--color-danger)' : wSelected ? 'var(--color-text-sub)' : 'var(--color-border)',
+                  color: wAnsweredIncorrect ? 'var(--color-danger)' : 'var(--color-text-light)',
+                }}
+              >
+                <span style={{ marginRight: 10, fontSize: 12, flexShrink: 0 }}>？</span>
+                <span>{WAKARANAI}</span>
+              </button>
+            );
+          })()}
         </div>
 
         {answered && (() => {

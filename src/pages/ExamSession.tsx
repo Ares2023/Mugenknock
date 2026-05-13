@@ -1,13 +1,15 @@
 import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { API_ENDPOINT, EXAM_CONFIGS, PASS_RATE } from '../constants';
-import { deleteCached } from '../utils/cache';
+import { getCached, setCached, SHORT_TTL, deleteCached } from '../utils/cache';
 import { useAuth } from '../contexts/AuthContext';
 import { useLanguage } from '../contexts/LanguageContext';
 import Card from '../components/ui/Card';
 import Button from '../components/ui/Button';
 import Badge from '../components/ui/Badge';
 import ReportModal from '../components/ReportModal';
+
+const WAKARANAI = 'わからない';
 
 type Question = {
   questionId: string;
@@ -119,7 +121,9 @@ export default function ExamSession() {
 
   const shuffledIndices = useMemo(() => {
     if (!currentQ?.choices) return [];
-    const idx = currentQ.choices.map((_: unknown, i: number) => i);
+    const idx = currentQ.choices
+      .map((_: unknown, i: number) => i)
+      .filter((i: number) => currentQ.choices[i] !== WAKARANAI);
     for (let i = idx.length - 1; i > 0; i--) {
       const j = Math.floor(Math.random() * (i + 1));
       [idx[i], idx[j]] = [idx[j], idx[i]];
@@ -134,10 +138,12 @@ export default function ExamSession() {
     const cur = answers[qid] ?? [];
     setAnswerCountError(null);
     setLastSelected(choice);
-    if (currentQ.isMultiple) {
+    if (choice === WAKARANAI) {
+      setAnswers(prev => ({ ...prev, [qid]: cur.includes(WAKARANAI) ? [] : [WAKARANAI] }));
+    } else if (currentQ.isMultiple) {
       setAnswers(prev => ({
         ...prev,
-        [qid]: cur.includes(choice) ? cur.filter(c => c !== choice) : [...cur, choice]
+        [qid]: cur.includes(choice) ? cur.filter(c => c !== choice) : [...cur.filter(c => c !== WAKARANAI), choice]
       }));
     } else {
       setAnswers(prev => ({ ...prev, [qid]: [choice] }));
@@ -145,7 +151,8 @@ export default function ExamSession() {
   };
 
   const handleNext = () => {
-    if (currentQ.isMultiple && currentQ.correctAnswerCount && selected.length > 0 &&
+    const isWakaranai = selected.includes(WAKARANAI);
+    if (!isWakaranai && currentQ.isMultiple && currentQ.correctAnswerCount && selected.length > 0 &&
         selected.length !== currentQ.correctAnswerCount) {
       setAnswerCountError(lang === 'ja'
         ? `${currentQ.correctAnswerCount}つ選択してください（現在${selected.length}つ）`
@@ -188,7 +195,30 @@ export default function ExamSession() {
         body: JSON.stringify({ userId, status: 'completed', score, isPassed })
       });
 
-      deleteCached(`ustats_${userId}`);
+      // セッション結果をdomainStats キャッシュに即時反映
+      if (userId !== 'guest') {
+        const delta: Record<string, { c: number; i: number }> = {};
+        for (const r of results) {
+          for (const tag of (r.tags ?? [])) {
+            if (!delta[tag]) delta[tag] = { c: 0, i: 0 };
+            if (r.isCorrect) delta[tag].c++; else delta[tag].i++;
+          }
+        }
+        type DS = { tagId: string; correctCount?: number; incorrectCount?: number };
+        const prev = getCached<DS[]>(`ustats_${userId}`) ?? [];
+        const merged = [...prev];
+        for (const [tag, d] of Object.entries(delta)) {
+          const idx = merged.findIndex(s => s.tagId === tag);
+          if (idx >= 0) {
+            merged[idx] = { tagId: tag, correctCount: (merged[idx].correctCount ?? 0) + d.c, incorrectCount: (merged[idx].incorrectCount ?? 0) + d.i };
+          } else {
+            merged.push({ tagId: tag, correctCount: d.c, incorrectCount: d.i });
+          }
+        }
+        setCached(`ustats_${userId}`, merged, SHORT_TTL);
+      } else {
+        deleteCached(`ustats_${userId}`);
+      }
       navigate('/result', {
         state: { results: results.map(r => ({ questionId: r.questionId, isCorrect: r.isCorrect })), questions, score, isPassed, sessionId, userId, examType, mode: 'exam', timeUp }
       });
@@ -356,6 +386,26 @@ export default function ExamSession() {
               </button>
             );
           })}
+          {(() => {
+            const wSelected = selected.includes(WAKARANAI);
+            return (
+              <button
+                onClick={() => toggle(WAKARANAI)}
+                style={{
+                  display: 'flex', alignItems: 'center', width: '100%', textAlign: 'left',
+                  padding: 'var(--spacing-sm) var(--spacing-lg)', marginTop: 'var(--spacing-sm)', borderRadius: 'var(--border-radius-md)',
+                  border: `1px ${wSelected ? 'solid' : 'dashed'}`,
+                  borderColor: wSelected ? 'var(--color-text-sub)' : 'var(--color-border)',
+                  background: wSelected ? 'var(--color-bg-main)' : 'transparent',
+                  cursor: 'pointer', fontSize: 'var(--font-size-sm)',
+                  color: 'var(--color-text-light)',
+                  transition: 'all 0.15s ease',
+                }}>
+                <span style={{ marginRight: 10, fontSize: 12, flexShrink: 0 }}>？</span>
+                <span>{WAKARANAI}</span>
+              </button>
+            );
+          })()}
         </div>
 
         {/* メタデータ */}

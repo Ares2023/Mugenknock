@@ -278,9 +278,9 @@ export const ja: Translations = {
   'login.skipLogin': 'ログインせず問題一覧を見る',
 
   // ── Page hints (one-time dismissible banners) ──
-  'stats.hint': '上部のボタンで目標資格を絞り込めます。ドメイン別正答率から苦手分野を把握し、演習に活かしましょう。',
-  'exerciseSetup.hint': '試験種別を選んで → ドメイン・タグでフィルタ（任意）→ 問題数とオプションを設定したら → 「演習を開始する」を押してください。',
-  'examSetup.hint': '① 試験種別を選んで → ② ドメイン・タグでフィルタ（任意）→ ③「模試を開始する」を押してください。回答ごとの正誤は表示されず、全問終了後にまとめて確認できます。タイマーは一時停止可能です。',
+  'stats.hint': '「ノック量」タブで演習の進捗と日次活動を、「ノック成績」タブでドメイン別正答率と模試の成績を確認できます。目標資格の切り替えはホーム画面から。',
+  'exerciseSetup.hint': 'ドメイン（任意）・出題オプション（任意）・問題数を設定して「演習を開始する」を押してください。試験種別はホーム画面で変更できます。',
+  'examSetup.hint': 'ドメイン（任意）・出題オプション（任意）を設定して「模試を開始する」を押してください。回答ごとの正誤は全問終了後にまとめて確認できます。タイマーは一時停止可能です。試験種別はホーム画面で変更できます。',
 
   // ── Common ──
   'common.noEnglish': '英語版未登録',
@@ -564,9 +564,9 @@ export const en: Translations = {
   'login.skipLogin': 'Browse questions without logging in',
 
   // ── Page hints (one-time dismissible banners) ──
-  'stats.hint': 'Use the buttons above to filter by exam. Check domain accuracy to identify weak areas and focus your practice.',
-  'exerciseSetup.hint': 'Pick exam type → filter by domain/tag (optional) → set question count and options → press "Start Practice".',
-  'examSetup.hint': '① Pick exam type → ② Filter by domain or tag (optional) → ③ Press "Start Exam". Feedback is hidden per question — review results after finishing. Timer can be paused.',
+  'stats.hint': 'Switch between "Volume" (practice progress & daily activity) and "Performance" (domain accuracy & exam results) tabs. Change target exam from the Home screen.',
+  'exerciseSetup.hint': 'Set domain filter (optional), options (optional), and question count, then press "Start Practice". Exam type can be changed on the Home screen.',
+  'examSetup.hint': 'Set domain filter (optional) and options (optional), then press "Start Exam". Per-question feedback is hidden — review all results after finishing. Timer can be paused. Exam type can be changed on the Home screen.',
 
   // ── Common ──
   'common.noEnglish': 'English version not available',
