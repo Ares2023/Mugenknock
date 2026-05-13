@@ -602,7 +602,7 @@ export default function Home() {
 
       {/* ── 演習・模試ボタン行（デスクトップ） ── */}
       {!isMobile && (
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr auto auto', gap: 'var(--spacing-sm)', marginBottom: 'var(--spacing-md)', alignItems: 'stretch' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr', gap: 'var(--spacing-sm)', marginBottom: 'var(--spacing-md)' }}>
           <Button
             variant="primary"
             fullWidth
@@ -611,10 +611,16 @@ export default function Home() {
           >
             {quickLoading ? (ja ? '準備中...' : 'Loading...') : (ja ? `サクッと演習 (${loadQuickPrefs().questionCount ?? 5}問)` : `Quick (${loadQuickPrefs().questionCount ?? 5}Q)`)}
           </Button>
-          <Button variant="outline" style={{ whiteSpace: 'nowrap' }} onClick={() => navigate('/exercise/setup')}>
+          <Button variant="outline" fullWidth style={{ whiteSpace: 'nowrap' }} onClick={() => navigate('/exercise/setup')}>
             {ja ? 'カスタム演習' : 'Custom'}
           </Button>
-          <Button variant="outline" style={{ whiteSpace: 'nowrap' }} disabled={!targetExam} onClick={() => { if (targetExam) setShowExamConfirm(true); }}>
+          <Button
+            variant="outline"
+            fullWidth
+            disabled={!targetExam}
+            onClick={() => { if (targetExam) setShowExamConfirm(true); }}
+            style={{ gridColumn: '1 / -1' }}
+          >
             {ja ? '模試' : 'Mock Exam'}
           </Button>
         </div>
