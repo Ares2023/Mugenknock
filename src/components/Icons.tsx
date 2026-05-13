@@ -69,9 +69,7 @@ export const IconInfo = () => (
 
 export const IconFire = ({ size = 16 }: { size?: number }) => (
   <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-    <path d="M14 9.536V7a4 4 0 0 1 4-4h1.5a.5.5 0 0 1 .5.5V5a4 4 0 0 1-4 4 4 4 0 0 0-4 4c0 2 1 3 1 5a5 5 0 0 1-1 3"/>
-    <path d="M4 9a5 5 0 0 1 8 4 5 5 0 0 1-8-4"/>
-    <path d="M5 21h14"/>
+    <path d="M12 3q1 4 4 6.5t3 5.5a1 1 0 0 1-14 0 5 5 0 0 1 1-3 1 1 0 0 0 5 0c0-2-1.5-3-1.5-5q0-2 2.5-4"/>
   </svg>
 );
 
@@ -134,19 +132,18 @@ export const IconBrain = ({ size = 16 }: { size?: number }) => (
 
 export const IconSparkles = ({ size = 16 }: { size?: number }) => (
   <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-    <path d="M3 20a2 2 0 0 0 2 2h10a2.4 2.4 0 0 0 1.706-.706l3.588-3.588A2.4 2.4 0 0 0 21 16V6a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2z"/>
-    <path d="M15 22v-5a1 1 0 0 1 1-1h5"/>
-    <path d="M8 2v4"/>
-    <path d="M16 2v4"/>
-    <path d="M3 10h18"/>
+    <path d="M11.017 2.814a1 1 0 0 1 1.966 0l1.051 5.558a2 2 0 0 0 1.594 1.594l5.558 1.051a1 1 0 0 1 0 1.966l-5.558 1.051a2 2 0 0 0-1.594 1.594l-1.051 5.558a1 1 0 0 1-1.966 0l-1.051-5.558a2 2 0 0 0-1.594-1.594l-5.558-1.051a1 1 0 0 1 0-1.966l5.558-1.051a2 2 0 0 0 1.594-1.594z"/>
+    <path d="M20 2v4"/>
+    <path d="M22 4h-4"/>
+    <circle cx="4" cy="20" r="2"/>
   </svg>
 );
 
 export const IconLightbulb = ({ size = 16 }: { size?: number }) => (
-  <svg width={size} height={size} viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-    <path d="M5.5 11.5h5" />
-    <path d="M8 14.5v-3" />
-    <path d="M4.5 8.5a4 4 0 1 1 7 0c0 1.5-1 3-2 4h-3c-1-1-2-2.5-2-4z" />
+  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M14 9.536V7a4 4 0 0 1 4-4h1.5a.5.5 0 0 1 .5.5V5a4 4 0 0 1-4 4 4 4 0 0 0-4 4c0 2 1 3 1 5a5 5 0 0 1-1 3"/>
+    <path d="M4 9a5 5 0 0 1 8 4 5 5 0 0 1-8-4"/>
+    <path d="M5 21h14"/>
   </svg>
 );
 

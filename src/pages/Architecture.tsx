@@ -167,7 +167,7 @@ export default function Architecture() {
         />
       </Layer>
 
-      <div style={{ background: 'var(--color-primary-light)', borderLeft: '4px solid var(--color-primary)', borderRadius: 'var(--border-radius-md)', padding: '16px 20px', fontSize: 'var(--font-size-sm)', color: 'var(--color-text-main)', lineHeight: 1.7 }}>
+      <div style={{ background: 'var(--color-primary-light)', borderRadius: 'var(--border-radius-md)', padding: '16px 20px', fontSize: 'var(--font-size-sm)', color: 'var(--color-text-main)', lineHeight: 1.7 }}>
         <strong style={{ color: 'var(--color-primary)' }}>注意：</strong> このページにはシステム設計の概要のみが記載されています。AWS アカウント ID、ARN、API キーなどの機密情報は一切含まれていません。
       </div>
     </div>

@@ -117,7 +117,6 @@ export default function Result() {
                   {q.explanation && (
                     <div style={{
                       background: 'var(--color-primary-light)',
-                      borderLeft: '4px solid var(--color-primary)',
                       borderRadius: 'var(--border-radius-md)',
                       padding: '16px 20px',
                       color: 'var(--color-text-main)',

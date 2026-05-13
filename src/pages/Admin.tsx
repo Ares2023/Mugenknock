@@ -1115,7 +1115,7 @@ export default function Admin() {
                     })}
                   </div>
 
-                  <div style={{ background: 'var(--color-primary-light)', borderLeft: '4px solid var(--color-primary)', borderRadius: 6, padding: '10px 12px', marginBottom: 10, color: 'var(--color-text-main)', lineHeight: 1.6 }}>
+                  <div style={{ background: 'var(--color-primary-light)', borderRadius: 6, padding: '10px 12px', marginBottom: 10, color: 'var(--color-text-main)', lineHeight: 1.6 }}>
                     <strong>解説：</strong>{q.explanation}
                   </div>
 
@@ -2235,7 +2235,6 @@ ${tipPromptExamType !== 'ALL' ? `・examType には "${tipPromptExamType}" を�
           {!loadingDS && dailyServices.map(ds => (
             <div key={ds.serviceId} style={{
               border: '1px solid var(--color-border)',
-              borderLeft: '4px solid var(--color-primary)',
               borderRadius: 6, padding: '12px 16px', marginBottom: 8,
               background: 'var(--color-bg-white)',
             }}>
