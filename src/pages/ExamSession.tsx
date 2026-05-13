@@ -195,15 +195,27 @@ export default function ExamSession() {
         body: JSON.stringify({ userId, status: 'completed', score, isPassed })
       });
 
-      // セッション結果をdomainStats キャッシュに即時反映
-      if (userId !== 'guest') {
-        const delta: Record<string, { c: number; i: number }> = {};
-        for (const r of results) {
-          for (const tag of (r.tags ?? [])) {
-            if (!delta[tag]) delta[tag] = { c: 0, i: 0 };
-            if (r.isCorrect) delta[tag].c++; else delta[tag].i++;
-          }
+      // ドメイン別 delta 計算
+      const delta: Record<string, { c: number; i: number }> = {};
+      for (const r of results) {
+        for (const tag of (r.tags ?? [])) {
+          if (!delta[tag]) delta[tag] = { c: 0, i: 0 };
+          if (r.isCorrect) delta[tag].c++; else delta[tag].i++;
         }
+      }
+      // domain_history に追加（直近10セッション、ゲストでも保存）
+      try {
+        const dh: Record<string, { correct: number; total: number }[]> =
+          JSON.parse(localStorage.getItem(`domain_history_${examType}`) ?? '{}');
+        for (const [tag, d] of Object.entries(delta)) {
+          if (d.c + d.i === 0) continue;
+          if (!dh[tag]) dh[tag] = [];
+          dh[tag] = [...dh[tag], { correct: d.c, total: d.c + d.i }].slice(-10);
+        }
+        localStorage.setItem(`domain_history_${examType}`, JSON.stringify(dh));
+      } catch {}
+      // ustats キャッシュ更新（ログイン時のみ）
+      if (userId !== 'guest') {
         type DS = { tagId: string; correctCount?: number; incorrectCount?: number };
         const prev = getCached<DS[]>(`ustats_${userId}`) ?? [];
         const merged = [...prev];
