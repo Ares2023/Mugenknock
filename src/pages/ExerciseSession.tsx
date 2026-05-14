@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { API_ENDPOINT, PASS_RATE } from '../constants';
+import { API_ENDPOINT, PASS_RATE, EXAM_DOMAINS, DOMAIN_NAME_EN } from '../constants';
 import { getCached, setCached, SHORT_TTL, deleteCached } from '../utils/cache';
 import { useAuth } from '../contexts/AuthContext';
 import { useLanguage } from '../contexts/LanguageContext';
@@ -514,7 +514,7 @@ export default function ExerciseSession() {
               {t('exerciseSession.totalQ', { n: questions.length })}
             </span>
           </h1>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--spacing-md)' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--spacing-sm)', flexWrap: 'wrap', justifyContent: 'flex-end' }}>
             {user && (
               <button
                 onClick={toggleBookmark}
@@ -531,6 +531,16 @@ export default function ExerciseSession() {
               </button>
             )}
             <Badge variant="secondary">{currentQuestion.examType}</Badge>
+            {(() => {
+              const domainTag = currentQuestion.tags.find(tag => EXAM_DOMAINS[examType]?.includes(tag));
+              if (!domainTag) return null;
+              const label = lang === 'en' ? (DOMAIN_NAME_EN[domainTag] ?? domainTag) : domainTag;
+              return (
+                <span style={{ fontSize: 10, fontWeight: 600, color: 'var(--color-primary)', background: 'var(--color-primary-light)', border: '1px solid var(--color-primary)', borderRadius: 4, padding: '2px 6px', maxWidth: 180, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', display: 'inline-block' }} title={label}>
+                  {label}
+                </span>
+              );
+            })()}
           </div>
         </div>
 

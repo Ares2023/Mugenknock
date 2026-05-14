@@ -58,10 +58,13 @@ function ScoreLineChart({ data, passScore }: { data: ScoreEntry[]; passScore: nu
         <text key={i} x={PL - 4} y={i === 0 ? PT + iH + 4 : PT + 4} fontSize={9} fill="var(--color-text-light)" textAnchor="end">{s}</text>
       ))}
       {passScore !== null && passScore >= minS && passScore <= maxS && (
-        <line
-          x1={PL} x2={PL + iW} y1={cy(passScore)} y2={cy(passScore)}
-          stroke="var(--color-text-light)" strokeWidth={1} strokeDasharray="3,3"
-        />
+        <>
+          <line
+            x1={PL} x2={PL + iW} y1={cy(passScore)} y2={cy(passScore)}
+            stroke="#f59e0b" strokeWidth={1.5} strokeDasharray="4,3"
+          />
+          <text x={PL + iW + 2} y={cy(passScore) + 3} fontSize={8} fill="#f59e0b" fontWeight="bold">合格</text>
+        </>
       )}
       <path d={pathD} fill="none" stroke="var(--color-primary)" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" />
       {data.map((d, i) => (
@@ -577,17 +580,19 @@ export default function Home() {
                   </span>
                 )}
               </div>
-              <div style={{ position: 'relative', height: 7, background: 'var(--color-border)', borderRadius: 4, overflow: 'visible' }}>
+              <div style={{ position: 'relative', height: 7, background: 'var(--color-border)', borderRadius: 4, overflow: 'visible', marginTop: passScore !== null ? 18 : 0 }}>
                 {passScore !== null && (
-                  <div style={{ position: 'absolute', left: `${(passScore / 1000) * 100}%`, top: -1, bottom: -1, width: 2, background: 'var(--color-text-light)', borderRadius: 1, zIndex: 1 }} />
+                  <div style={{ position: 'absolute', left: `${(passScore / 1000) * 100}%`, transform: 'translateX(-50%)', top: 0, bottom: 0, zIndex: 2, display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+                    {/* ラベルチップ（バーの上） */}
+                    <div style={{ position: 'absolute', bottom: '100%', marginBottom: 3, background: '#f59e0b', color: '#fff', fontSize: 9, fontWeight: 700, padding: '1px 5px', borderRadius: 3, whiteSpace: 'nowrap', lineHeight: 1.5 }}>
+                      {ja ? `合格 ${passScore}` : `Pass ${passScore}`}
+                    </div>
+                    {/* 縦線 */}
+                    <div style={{ width: 2, height: '100%', background: '#f59e0b', borderRadius: 1 }} />
+                  </div>
                 )}
                 <div style={{ width: `${Math.min(100, (estimatedScore / 1000) * 100)}%`, height: '100%', borderRadius: 4, background: 'var(--color-primary)', transition: 'width 0.5s ease' }} />
               </div>
-              {passScore !== null && (
-                <div style={{ fontSize: 10, color: 'var(--color-text-light)', marginTop: 3 }}>
-                  {ja ? `合格ライン ${passScore}` : `Pass: ${passScore}`}
-                </div>
-              )}
             </>
           )}
         </Card>
