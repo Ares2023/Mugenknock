@@ -6,7 +6,7 @@ import {
   API_ENDPOINT, EXAM_CONFIGS, EXAM_DOMAINS,
   DOMAIN_WEIGHTS, DOMAIN_NAME_EN, PASS_SCORES,
 } from '../constants';
-import { getCached, setCached, SHORT_TTL } from '../utils/cache';
+import { getCached, setCached, deleteCached, SHORT_TTL } from '../utils/cache';
 import Card from '../components/ui/Card';
 import Button from '../components/ui/Button';
 import { IconLightbulb, ServiceIcon, isServiceIconKey } from '../components/Icons';
@@ -381,15 +381,9 @@ export default function Home() {
     return () => window.removeEventListener('targetExamChanged', handler);
   }, []);
 
-  useEffect(() => {
-    if (!user) { setDomainStats([]); return; }
+  const fetchStats = (delay = 0) => {
+    if (!user) return;
     setStatsLoading(true);
-    const cached = getCached<DomainStat[]>(`ustats_${user.userId}`);
-    if (cached !== null) { setDomainStats(cached); setStatsLoading(false); return; }
-    // キャッシュなし = セッション完了直後の可能性。サーバー側集計の時間差を吸収するため少し待つ
-    const afterSession = !!localStorage.getItem('postSessionRefresh');
-    if (afterSession) localStorage.removeItem('postSessionRefresh');
-    const delay = afterSession ? 1500 : 0;
     const timer = setTimeout(() => {
       fetch(`${API_ENDPOINT}/users/me/stats?userId=${user.userId}`)
         .then(r => r.json())
@@ -401,7 +395,25 @@ export default function Home() {
         .catch(() => setDomainStats([]))
         .finally(() => setStatsLoading(false));
     }, delay);
-    return () => clearTimeout(timer);
+    return timer;
+  };
+
+  const refreshStats = () => {
+    if (!user || statsLoading) return;
+    deleteCached(`ustats_${user.userId}`);
+    fetchStats();
+  };
+
+  useEffect(() => {
+    if (!user) { setDomainStats([]); return; }
+    const cached = getCached<DomainStat[]>(`ustats_${user.userId}`);
+    if (cached !== null) { setDomainStats(cached); return; }
+    // キャッシュなし = セッション完了直後の可能性。サーバー側集計の時間差を吸収するため少し待つ
+    const afterSession = !!localStorage.getItem('postSessionRefresh');
+    if (afterSession) localStorage.removeItem('postSessionRefresh');
+    const timer = fetchStats(afterSession ? 1500 : 0);
+    return () => { if (timer) clearTimeout(timer); };
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user]);
 
   // 予想スコア計算（直近10セッション優先、フォールバック: 累計）
@@ -607,15 +619,40 @@ export default function Home() {
             <span style={{ fontSize: 11, fontWeight: 700, color: 'var(--color-text-sub)', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
               {ja ? 'ドメイン別正答率' : 'Domain Accuracy'}
             </span>
-            {targetExam && !statsLoading && (
-              <button
-                style={CHEVRON_BTN}
-                onClick={() => setShowDomainDetail(true)}
-                onMouseEnter={e => e.currentTarget.style.color = 'var(--color-text-sub)'}
-                onMouseLeave={e => e.currentTarget.style.color = 'var(--color-text-light)'}
-                aria-label="詳細を見る"
-              >›</button>
-            )}
+            <div style={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+              {user && (
+                <button
+                  onClick={refreshStats}
+                  disabled={statsLoading}
+                  title={ja ? '成績を更新' : 'Refresh stats'}
+                  style={{
+                    border: 'none', background: 'none', cursor: statsLoading ? 'default' : 'pointer',
+                    color: 'var(--color-text-light)', padding: '2px 4px', borderRadius: 4,
+                    fontSize: 14, lineHeight: 1, opacity: statsLoading ? 0.4 : 1,
+                    display: 'flex', alignItems: 'center', justifyContent: 'center',
+                    transition: 'color 0.15s, transform 0.3s',
+                  }}
+                  onMouseEnter={e => { if (!statsLoading) e.currentTarget.style.color = 'var(--color-text-sub)'; }}
+                  onMouseLeave={e => { e.currentTarget.style.color = 'var(--color-text-light)'; }}
+                  aria-label={ja ? '成績を更新' : 'Refresh stats'}
+                >
+                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"
+                    style={{ animation: statsLoading ? 'sherpa-spin 0.8s linear infinite' : 'none' }}>
+                    <polyline points="23 4 23 10 17 10"/>
+                    <path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/>
+                  </svg>
+                </button>
+              )}
+              {targetExam && !statsLoading && (
+                <button
+                  style={CHEVRON_BTN}
+                  onClick={() => setShowDomainDetail(true)}
+                  onMouseEnter={e => e.currentTarget.style.color = 'var(--color-text-sub)'}
+                  onMouseLeave={e => e.currentTarget.style.color = 'var(--color-text-light)'}
+                  aria-label="詳細を見る"
+                >›</button>
+              )}
+            </div>
           </div>
           {!targetExam ? (
             <div style={{ color: 'var(--color-text-light)', fontSize: 'var(--font-size-sm)', fontStyle: 'italic' }}>
