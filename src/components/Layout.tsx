@@ -358,18 +358,19 @@ export default function Layout({ children }: { children: React.ReactNode }) {
             onClick={() => navigate('/account')}
             style={{
               display: 'flex', alignItems: 'center', justifyContent: 'center',
-              background: 'rgba(255,255,255,0.1)',
+              background: user ? 'rgba(255,255,255,0.25)' : 'rgba(255,255,255,0.1)',
               border: '1px solid rgba(255,255,255,0.35)',
               borderRadius: '50%',
               cursor: 'pointer', color: 'white',
               width: 36, height: 36, padding: 0,
               flexShrink: 0,
               transition: 'background 0.2s',
+              fontSize: 14, fontWeight: 700, letterSpacing: 0,
             }}
-            onMouseEnter={e => e.currentTarget.style.background = 'rgba(255,255,255,0.2)'}
-            onMouseLeave={e => e.currentTarget.style.background = 'rgba(255,255,255,0.1)'}
+            onMouseEnter={e => e.currentTarget.style.background = 'rgba(255,255,255,0.35)'}
+            onMouseLeave={e => e.currentTarget.style.background = user ? 'rgba(255,255,255,0.25)' : 'rgba(255,255,255,0.1)'}
           >
-            <IconUser />
+            {user?.email ? (user.email[0].toUpperCase()) : <IconUser />}
           </button>
         </div>
       </header>
