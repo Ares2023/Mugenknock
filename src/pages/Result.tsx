@@ -1,16 +1,22 @@
 import React, { useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { PASS_SCORES, PASS_RATE } from '../constants';
+import { PASS_SCORES, PASS_RATE, API_ENDPOINT } from '../constants';
 import { useLanguage } from '../contexts/LanguageContext';
+import { useAuth } from '../contexts/AuthContext';
 import Card from '../components/ui/Card';
 import Button from '../components/ui/Button';
 import Badge from '../components/ui/Badge';
 import { getServiceLinks } from '../awsServiceLinks';
 
+const QUICK_PREFS_KEY = 'quickExercisePrefs';
+const loadQuickPrefs = () => { try { return JSON.parse(localStorage.getItem(QUICK_PREFS_KEY) ?? '{}'); } catch { return {}; } };
+function shuffleArray<T>(arr: T[]): T[] { const a = [...arr]; for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; }
+
 export default function Result() {
   const navigate = useNavigate();
   const location = useLocation();
-  const { results, questions, score, isPassed, examType, mode, timeUp } = location.state as any;
+  const { results, questions, score, isPassed, examType, mode, timeUp, isQuick } = location.state as any;
+  const { user } = useAuth();
 
   const resolvedExamType = examType ?? questions?.[0]?.examType ?? 'SAA';
   const passScore = PASS_SCORES[resolvedExamType];
@@ -18,7 +24,36 @@ export default function Result() {
   const isExam = mode === 'exam';
 
   const { lang, t } = useLanguage();
+  const ja = lang === 'ja';
   const [expandedId, setExpandedId] = useState<string | null>(null);
+  const [quickLoading, setQuickLoading] = useState(false);
+
+  const restartQuick = async () => {
+    setQuickLoading(true);
+    const qPrefs = loadQuickPrefs();
+    try {
+      const userId = user?.userId ?? 'guest';
+      const params = new URLSearchParams({ examType: resolvedExamType, withAnswers: 'true', withValidity: 'true' });
+      const data = await fetch(`${API_ENDPOINT}/questions?${params}`).then(r => r.json());
+      let items: any[] = (data.items ?? []).filter((q: any) => !!q.validityCheckedAt);
+      if (user && (qPrefs.unansweredOnly || qPrefs.incorrectOnly || qPrefs.bookmarkOnly)) {
+        const [answeredRes, incorrectRes, bkmRes] = await Promise.all([
+          qPrefs.unansweredOnly ? fetch(`${API_ENDPOINT}/users/me/answered-questions?userId=${userId}&examType=${resolvedExamType}`).then(r => r.json()) : null,
+          qPrefs.incorrectOnly  ? fetch(`${API_ENDPOINT}/users/me/incorrect-questions?userId=${userId}&examType=${resolvedExamType}`).then(r => r.json()) : null,
+          qPrefs.bookmarkOnly   ? fetch(`${API_ENDPOINT}/users/me/bookmarks?userId=${userId}`).then(r => r.json()) : null,
+        ]);
+        if (qPrefs.unansweredOnly && answeredRes) { const s = new Set(answeredRes.questionIds ?? []); items = items.filter((q: any) => !s.has(q.questionId)); }
+        if (qPrefs.incorrectOnly  && incorrectRes) { const s = new Set(incorrectRes.questionIds ?? []); items = items.filter((q: any) => s.has(q.questionId)); }
+        if (qPrefs.bookmarkOnly   && bkmRes)       { const s = new Set(bkmRes.questionIds ?? []);      items = items.filter((q: any) => s.has(q.questionId)); }
+      }
+      items = shuffleArray(items).slice(0, qPrefs.questionCount ?? 5);
+      if (items.length === 0) { alert(ja ? '条件に合う問題がありません' : 'No questions match the criteria'); return; }
+      const sessionRes = await fetch(`${API_ENDPOINT}/sessions`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ userId, mode: 'exercise', examType: resolvedExamType, questionIds: items.map((q: any) => q.questionId) }) });
+      const sessionData = await sessionRes.json();
+      navigate('/exercise/session', { state: { sessionId: sessionData.sessionId, questions: items, userId, mode: 'exercise', examType: resolvedExamType, isQuick: true } });
+    } catch (err) { console.error(err); alert(ja ? '演習の開始に失敗しました' : 'Failed to start exercise'); }
+    finally { setQuickLoading(false); }
+  };
 
   return (
     <div style={{ maxWidth: 1100, margin: '0 auto', padding: 'var(--spacing-xl) var(--spacing-lg)' }} className="result-container">
@@ -155,9 +190,15 @@ export default function Result() {
         <Button variant="outline" onClick={() => navigate('/')}>
           {t('result.backHome')}
         </Button>
-        <Button variant="primary" onClick={() => navigate(isExam ? '/exam/setup' : '/exercise/setup')}>
-          {t('result.retry')}
-        </Button>
+        {isQuick ? (
+          <Button variant="primary" disabled={quickLoading} onClick={restartQuick}>
+            {quickLoading ? (ja ? '準備中...' : 'Loading...') : (ja ? 'もう一度（サクッと演習）' : 'Again (Quick)')}
+          </Button>
+        ) : (
+          <Button variant="primary" onClick={() => navigate(isExam ? '/exam/setup' : '/exercise/setup')}>
+            {t('result.retry')}
+          </Button>
+        )}
       </div>
     </div>
   );

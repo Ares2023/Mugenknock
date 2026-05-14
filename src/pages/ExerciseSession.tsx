@@ -197,6 +197,7 @@ export default function ExerciseSession() {
   const questions: Question[] = state?.questions ?? [];
   const userId: string = state?.userId ?? '';
   const examType: string = state?.examType ?? '';
+  const isQuick: boolean = state?.isQuick ?? false;
 
   const [currentIndex, setCurrentIndex] = useState<number>(state?.resumeIndex ?? 0);
   const [selectedAnswers, setSelectedAnswers] = useState<string[]>(state?.resumeSelectedAnswers ?? []);
@@ -426,7 +427,7 @@ export default function ExerciseSession() {
       } else {
         deleteCached(`ustats_${userId}`);
       }
-      navigate('/result', { state: { results, questions, score, isPassed, sessionId, userId, examType } });
+      navigate('/result', { state: { results, questions, score, isPassed, sessionId, userId, examType, isQuick } });
     } else {
       setCurrentIndex(prev => prev + 1);
       setSelectedAnswers([]);
