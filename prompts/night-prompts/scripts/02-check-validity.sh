@@ -209,25 +209,50 @@ for q in questions:
 print('\n'.join(lines))
 PYEOF
 
-  RESULT=$("$CLAUDE_CMD" -p < "$PROMPT_FILE" 2>&1)
+  _STDOUT_F=$(mktemp /tmp/claude_out_XXXX)
+  _STDERR_F=$(mktemp /tmp/claude_err_XXXX)
+  "$CLAUDE_CMD" -p < "$PROMPT_FILE" > "$_STDOUT_F" 2> "$_STDERR_F"
   AI_EXIT=$?
+  RESULT=$(cat "$_STDOUT_F")
+  _STDERR=$(cat "$_STDERR_F")
+  rm -f "$_STDOUT_F" "$_STDERR_F"
+
   # npm更新による一時的なバイナリ消失 → 再探索してリトライ
-  if [ $AI_EXIT -ne 0 ] && echo "$RESULT" | grep -q "No such file"; then
+  if [ $AI_EXIT -ne 0 ] && echo "$_STDERR" | grep -q "No such file"; then
     CLAUDE_CMD=$(_find_claude)
-    [ -x "${CLAUDE_CMD:-}" ] && { RESULT=$("$CLAUDE_CMD" -p < "$PROMPT_FILE" 2>&1); AI_EXIT=$?; }
+    if [ -x "${CLAUDE_CMD:-}" ]; then
+      _STDOUT_F=$(mktemp /tmp/claude_out_XXXX)
+      _STDERR_F=$(mktemp /tmp/claude_err_XXXX)
+      "$CLAUDE_CMD" -p < "$PROMPT_FILE" > "$_STDOUT_F" 2> "$_STDERR_F"
+      AI_EXIT=$?
+      RESULT=$(cat "$_STDOUT_F")
+      _STDERR=$(cat "$_STDERR_F")
+      rm -f "$_STDOUT_F" "$_STDERR_F"
+    fi
   fi
   rm -f "$PROMPT_FILE"
 
-  if [ $AI_EXIT -ne 0 ] || echo "$RESULT" | grep -qiE "rate.?limit|too many requests|overload|529|quota exceeded|usage limit|resource_exhausted"; then
-    if echo "$RESULT" | grep -qiE "command not found|No such file|GEMINI_API_KEY|API.?key"; then
-      echo "❌ claude 実行エラー（認証またはコマンド問題）。スクリプトを終了します"
-      echo "出力: $(echo "$RESULT" | head -3)"
-      exit 1
-    fi
+  # 致命的エラー（認証・コマンド問題）→ 即終了
+  if echo "$_STDERR" | grep -qiE "command not found|No such file|GEMINI_API_KEY|API.?key"; then
+    echo "❌ claude 実行エラー（認証またはコマンド問題）。スクリプトを終了します"
+    echo "stderr: $(echo "$_STDERR" | head -3)"
+    exit 1
+  fi
+
+  # レート制限 → stderrのみで判定（AI応答テキストはfalse positiveを避けるため除外）
+  if echo "$_STDERR" | grep -qiE "rate.?limit|too many requests|529|quota exceeded|usage limit|resource_exhausted"; then
     echo "⚠️  レート制限を検出。残りチャンクをスキップ"
-    echo "出力(先頭3行): $(echo "$RESULT" | head -3)"
+    echo "stderr: $(echo "$_STDERR" | head -3)"
     RATE_LIMITED=1
     break
+  fi
+
+  # その他の非ゼロ終了 → このチャンクのみスキップして続行
+  if [ $AI_EXIT -ne 0 ]; then
+    echo "⚠️  チャンク $((CHUNK_IDX+1)) でエラー（exit $AI_EXIT）。このチャンクをスキップして続行"
+    echo "stderr: $(echo "$_STDERR" | head -5)"
+    echo "stdout: $(echo "$RESULT" | head -3)"
+    continue
   fi
 
   RESULT_JSON=$(echo "$RESULT" | python3 -c "
