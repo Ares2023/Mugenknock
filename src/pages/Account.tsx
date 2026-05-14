@@ -173,7 +173,7 @@ export default function Account() {
   const [accountDeleting, setAccountDeleting] = useState(false);
   const [deleteError, setDeleteError] = useState('');
 
-  const [showDataSection, setShowDataSection] = useState(false);
+  const [showDataModal, setShowDataModal] = useState(false);
   const [showLangModal, setShowLangModal] = useState(false);
   const [showThemeModal, setShowThemeModal] = useState(false);
   const [showQuickModal, setShowQuickModal] = useState(false);
@@ -425,73 +425,14 @@ export default function Account() {
             <SettingsGroup>
               <SettingsRow
                 label={ja ? '試験データの管理' : 'Manage Exam Data'}
-                onClick={() => setShowDataSection(prev => !prev)}
-                last={!showDataSection}
+                value={(() => {
+                  const hasTagData = (et: string) => (EXAM_DOMAINS[et] ?? []).some(tag => tagStats[tag] > 0);
+                  const count = EXAM_TYPES.filter(et => !deletedExams.has(et) && (summaries[et] || hasLocalData(et) || hasTagData(et))).length;
+                  return count > 0 ? `${count}${ja ? '資格' : ' exams'}` : (ja ? 'データなし' : 'No data');
+                })()}
+                onClick={() => { setConfirmingExam(null); setShowDataModal(true); }}
+                last
               />
-              {showDataSection && (
-                <div style={{ padding: '4px 0 8px', borderTop: '1px solid var(--color-border)' }}>
-                  <p style={{ margin: '12px 16px 8px', fontSize: 'var(--font-size-sm)', color: 'var(--color-text-sub)', lineHeight: 1.6 }}>
-                    {ja
-                      ? '各資格の回答履歴・セッション・統計データを削除できます。削除したデータは復元できません。'
-                      : 'Delete answer history, sessions, and stats for each certification. This action cannot be undone.'}
-                  </p>
-                  {loading ? (
-                    <div style={{ display: 'flex', justifyContent: 'center', padding: '16px 0' }}>
-                      <div className="sherpa-spinner" style={{ width: 24, height: 24, borderWidth: 2 }} />
-                    </div>
-                  ) : (
-                    <div>
-                      {(() => {
-                        // Sessions・localStorage・UserTagStats いずれかにデータがある資格を表示
-                        const hasTagData = (et: string) => (EXAM_DOMAINS[et] ?? []).some(tag => tagStats[tag] > 0);
-                        const visible = EXAM_TYPES.filter(et =>
-                          !deletedExams.has(et) && (summaries[et] || hasLocalData(et) || hasTagData(et))
-                        );
-                        if (visible.length === 0) return (
-                          <div style={{ padding: '12px 16px', fontSize: 'var(--font-size-sm)', color: 'var(--color-text-light)', fontStyle: 'italic' }}>
-                            {ja ? '削除可能なデータがありません' : 'No data to delete'}
-                          </div>
-                        );
-                        return visible.map((et, i) => {
-                          const summary = summaries[et];
-                          const isConfirming = confirmingExam === et;
-                          const isDeleting = deleting === et;
-                          return (
-                            <div key={et} style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '10px 16px', borderTop: i > 0 ? '1px solid var(--color-border)' : 'none' }}>
-                              <div style={{ flex: 1, minWidth: 0 }}>
-                                <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 2 }}>
-                                  <Badge variant="secondary">{et}</Badge>
-                                  <span style={{ fontSize: 'var(--font-size-xs)', color: 'var(--color-text-light)' }}>{EXAM_LEVEL[et]}</span>
-                                </div>
-                                <div style={{ fontSize: 'var(--font-size-xs)', color: 'var(--color-text-light)' }}>
-                                  {summary
-                                    ? `${summary.count}${ja ? 'セッション' : ' sessions'}${summary.lastDate ? ` · ${ja ? '最終' : 'Last'}: ${formatDate(summary.lastDate)}` : ''}`
-                                    : (ja ? 'セッションなし（成績データあり）' : 'No sessions (stats data exists)')}
-                                </div>
-                              </div>
-                              {isConfirming ? (
-                                <div style={{ display: 'flex', alignItems: 'center', gap: 6, flexShrink: 0 }}>
-                                  <span style={{ fontSize: 'var(--font-size-xs)', color: 'var(--color-text-sub)' }}>{ja ? '削除しますか？' : 'Delete?'}</span>
-                                  <button onClick={() => handleDelete(et)} disabled={isDeleting} style={{ padding: '4px 10px', fontSize: 'var(--font-size-xs)', fontWeight: 700, cursor: 'pointer', border: '1.5px solid var(--color-danger)', borderRadius: 'var(--border-radius-md)', background: 'var(--color-danger)', color: 'white', opacity: isDeleting ? 0.6 : 1 }}>
-                                    {isDeleting ? '…' : (ja ? 'はい' : 'Yes')}
-                                  </button>
-                                  <button onClick={() => setConfirmingExam(null)} disabled={isDeleting} style={{ padding: '4px 10px', fontSize: 'var(--font-size-xs)', fontWeight: 700, cursor: 'pointer', border: '1.5px solid var(--color-border)', borderRadius: 'var(--border-radius-md)', background: 'transparent', color: 'var(--color-text-sub)' }}>
-                                    {ja ? 'キャンセル' : 'Cancel'}
-                                  </button>
-                                </div>
-                              ) : (
-                                <button onClick={() => setConfirmingExam(et)} style={{ padding: '5px 12px', fontSize: 'var(--font-size-xs)', fontWeight: 700, cursor: 'pointer', border: '1.5px solid var(--color-danger)', borderRadius: 'var(--border-radius-md)', background: 'transparent', color: 'var(--color-danger)', flexShrink: 0 }}>
-                                  {ja ? 'データを削除' : 'Delete data'}
-                                </button>
-                              )}
-                            </div>
-                          );
-                        });
-                      })()}
-                    </div>
-                  )}
-                </div>
-              )}
             </SettingsGroup>
           </div>
         )}
@@ -584,6 +525,89 @@ export default function Account() {
           >
             {ja ? '保存する' : 'Save'}
           </Button>
+        </Modal>
+      )}
+
+      {/* ── 試験データ管理モーダル ── */}
+      {showDataModal && (
+        <Modal onClose={() => { setShowDataModal(false); setConfirmingExam(null); }} title={ja ? '試験データの管理' : 'Manage Exam Data'}>
+          <p style={{ margin: '0 0 16px', fontSize: 'var(--font-size-sm)', color: 'var(--color-text-sub)', lineHeight: 1.6 }}>
+            {ja
+              ? '各資格の回答履歴・セッション・統計データを削除できます。削除したデータは復元できません。'
+              : 'Delete answer history, sessions, and stats for each certification. This action cannot be undone.'}
+          </p>
+          {loading ? (
+            <div style={{ display: 'flex', justifyContent: 'center', padding: '24px 0' }}>
+              <div className="sherpa-spinner" style={{ width: 24, height: 24, borderWidth: 2 }} />
+            </div>
+          ) : (() => {
+            const hasTagData = (et: string) => (EXAM_DOMAINS[et] ?? []).some(tag => tagStats[tag] > 0);
+            const visible = EXAM_TYPES.filter(et =>
+              !deletedExams.has(et) && (summaries[et] || hasLocalData(et) || hasTagData(et))
+            );
+            if (visible.length === 0) return (
+              <div style={{ padding: '16px 0', fontSize: 'var(--font-size-sm)', color: 'var(--color-text-light)', fontStyle: 'italic', textAlign: 'center' }}>
+                {ja ? '削除可能なデータがありません' : 'No data to delete'}
+              </div>
+            );
+            return (
+              <div style={{ border: '1px solid var(--color-border)', borderRadius: 'var(--border-radius-lg)', overflow: 'hidden' }}>
+                {visible.map((et, i) => {
+                  const summary = summaries[et];
+                  const isConfirming = confirmingExam === et;
+                  const isDeleting = deleting === et;
+                  return (
+                    <div key={et} style={{ padding: '12px 16px', borderBottom: i < visible.length - 1 ? '1px solid var(--color-border)' : 'none' }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                        <div style={{ flex: 1, minWidth: 0 }}>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 2 }}>
+                            <Badge variant="secondary">{et}</Badge>
+                            <span style={{ fontSize: 'var(--font-size-xs)', color: 'var(--color-text-light)' }}>{EXAM_LEVEL[et]}</span>
+                          </div>
+                          <div style={{ fontSize: 'var(--font-size-xs)', color: 'var(--color-text-light)' }}>
+                            {summary
+                              ? `${summary.count}${ja ? 'セッション' : ' sessions'}${summary.lastDate ? ` · ${ja ? '最終' : 'Last'}: ${formatDate(summary.lastDate)}` : ''}`
+                              : (ja ? 'セッションなし（成績データあり）' : 'No sessions (stats data exists)')}
+                          </div>
+                        </div>
+                        {!isConfirming && (
+                          <button
+                            onClick={() => setConfirmingExam(et)}
+                            style={{ padding: '5px 12px', fontSize: 'var(--font-size-xs)', fontWeight: 700, cursor: 'pointer', border: '1.5px solid var(--color-danger)', borderRadius: 'var(--border-radius-md)', background: 'transparent', color: 'var(--color-danger)', flexShrink: 0 }}
+                          >
+                            {ja ? 'データを削除' : 'Delete'}
+                          </button>
+                        )}
+                      </div>
+                      {isConfirming && (
+                        <div style={{ marginTop: 10, padding: '10px 12px', background: '#fdf3f1', borderRadius: 'var(--border-radius-md)', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8 }}>
+                          <span style={{ fontSize: 'var(--font-size-sm)', color: 'var(--color-danger)', fontWeight: 500 }}>
+                            {ja ? `${et} のデータを削除しますか？` : `Delete all data for ${et}?`}
+                          </span>
+                          <div style={{ display: 'flex', gap: 6, flexShrink: 0 }}>
+                            <button
+                              onClick={() => handleDelete(et)}
+                              disabled={isDeleting}
+                              style={{ padding: '5px 14px', fontSize: 'var(--font-size-xs)', fontWeight: 700, cursor: 'pointer', border: '1.5px solid var(--color-danger)', borderRadius: 'var(--border-radius-md)', background: 'var(--color-danger)', color: 'white', opacity: isDeleting ? 0.6 : 1 }}
+                            >
+                              {isDeleting ? '…' : (ja ? '削除する' : 'Delete')}
+                            </button>
+                            <button
+                              onClick={() => setConfirmingExam(null)}
+                              disabled={isDeleting}
+                              style={{ padding: '5px 12px', fontSize: 'var(--font-size-xs)', fontWeight: 700, cursor: 'pointer', border: '1.5px solid var(--color-border)', borderRadius: 'var(--border-radius-md)', background: 'transparent', color: 'var(--color-text-sub)' }}
+                            >
+                              {ja ? 'キャンセル' : 'Cancel'}
+                            </button>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
+            );
+          })()}
         </Modal>
       )}
 
