@@ -22,6 +22,7 @@ type Question = {
   questionText: string;
   choices: string[];
   correctAnswers?: string[];
+  correctAnswerIndices?: number[];
   explanation?: string;
   tags: string[];
   isMultiple: boolean;
@@ -231,9 +232,14 @@ export default function ExerciseSession() {
       .then(r => r.json())
       .then(d => {
         setDetail(d);
+        const correctIdx: number[] | undefined = d.correctAnswerIndices;
         const correct: string[] = d.correctAnswers ?? [];
-        const isCorrect = correct.length === selectedAnswers.length &&
-          correct.every((a: string) => selectedAnswers.map(stripLabel).includes(stripLabel(a)));
+        const isCorrect = correctIdx && correctIdx.length > 0
+          ? (() => {
+              const selOrigIdx = selectedAnswers.map(t => { const si = shuffledChoices.indexOf(t); return si >= 0 ? origIndices[si] : -1; });
+              return correctIdx.length === selOrigIdx.length && correctIdx.every(i => selOrigIdx.includes(i));
+            })()
+          : correct.length === selectedAnswers.length && correct.every((a: string) => selectedAnswers.map(stripLabel).includes(stripLabel(a)));
         setResults(prev => {
           const next = [...prev];
           if (next.length > 0) next[next.length - 1] = { questionId: q.questionId, isCorrect };
@@ -290,18 +296,18 @@ export default function ExerciseSession() {
 
   const CHOICE_LABELS = ['A', 'B', 'C', 'D', 'E'];
 
-  const { shuffledChoices, labelRemap } = useMemo(() => {
-    if (!currentQuestion?.choices) return { shuffledChoices: [], labelRemap: {} as Record<string, string> };
+  const { shuffledChoices, origIndices, labelRemap } = useMemo(() => {
+    if (!currentQuestion?.choices) return { shuffledChoices: [], origIndices: [] as number[], labelRemap: {} as Record<string, string> };
     const indexed = currentQuestion.choices
       .filter((c: string) => c !== WAKARANAI)
-      .map((c: string, i: number) => ({ text: c, origLabel: CHOICE_LABELS[i] }));
+      .map((c: string, i: number) => ({ text: c, origIdx: i, origLabel: CHOICE_LABELS[i] }));
     for (let i = indexed.length - 1; i > 0; i--) {
       const j = Math.floor(Math.random() * (i + 1));
       [indexed[i], indexed[j]] = [indexed[j], indexed[i]];
     }
     const remap: Record<string, string> = {};
     indexed.forEach((item, newIdx) => { remap[item.origLabel] = CHOICE_LABELS[newIdx]; });
-    return { shuffledChoices: indexed.map(x => x.text), labelRemap: remap };
+    return { shuffledChoices: indexed.map(x => x.text), origIndices: indexed.map(x => x.origIdx), labelRemap: remap };
   }, [currentQuestion?.questionId]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const remapLabels = (text: string) =>
@@ -345,8 +351,13 @@ export default function ExerciseSession() {
     setAnswerCountError(null);
 
     const correctAnswers = currentQuestion.correctAnswers || [];
-    const isCorrect = correctAnswers.length === selectedAnswers.length &&
-      correctAnswers.every(a => selectedAnswers.map(stripLabel).includes(stripLabel(a)));
+    const correctAnswerIndices = currentQuestion.correctAnswerIndices;
+    const isCorrect = correctAnswerIndices && correctAnswerIndices.length > 0
+      ? (() => {
+          const selOrigIdx = selectedAnswers.map(t => { const si = shuffledChoices.indexOf(t); return si >= 0 ? origIndices[si] : -1; });
+          return correctAnswerIndices.length === selOrigIdx.length && correctAnswerIndices.every(i => selOrigIdx.includes(i));
+        })()
+      : correctAnswers.length === selectedAnswers.length && correctAnswers.every(a => selectedAnswers.map(stripLabel).includes(stripLabel(a)));
 
     setResults(prev => [...prev, { questionId: currentQuestion.questionId, isCorrect }]);
     setAnswered(true);
@@ -465,8 +476,13 @@ export default function ExerciseSession() {
         cursor: 'default',
       };
     }
-    const correctAnswers = displayQ.correctAnswers;
-    const isCorrect = correctAnswers.map(stripLabel).includes(stripLabel(choice));
+    const correctAnswers = displayQ.correctAnswers ?? [];
+    const correctAnswerIndices = displayQ.correctAnswerIndices;
+    const shuffledIdx = shuffledChoices.indexOf(choice);
+    const origIdx = shuffledIdx >= 0 ? origIndices[shuffledIdx] : -1;
+    const isCorrect = correctAnswerIndices && correctAnswerIndices.length > 0
+      ? correctAnswerIndices.includes(origIdx)
+      : correctAnswers.map(stripLabel).includes(stripLabel(choice));
     const isSelected = selectedAnswers.includes(choice);
 
     if (isCorrect) {

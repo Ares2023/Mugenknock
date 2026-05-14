@@ -18,6 +18,7 @@ type Question = {
   questionText: string;
   choices: string[];
   correctAnswers?: string[];
+  correctAnswerIndices?: number[];
   explanation?: string;
   isMultiple: boolean;
   correctAnswerCount?: number;
@@ -173,8 +174,14 @@ export default function ExamSession() {
     try {
       const results = questions.map((q: Question) => {
         const userAns = answers[q.questionId] ?? [];
+        const correctIdx = q.correctAnswerIndices;
         const correct = q.correctAnswers ?? [];
-        const isCorrect = correct.length === userAns.length && correct.every(a => userAns.map(stripLabel).includes(stripLabel(a)));
+        const isCorrect = correctIdx && correctIdx.length > 0
+          ? (() => {
+              const userOrigIdx = userAns.map(t => q.choices.indexOf(t));
+              return correctIdx.length === userOrigIdx.length && correctIdx.every(i => userOrigIdx.includes(i));
+            })()
+          : correct.length === userAns.length && correct.every(a => userAns.map(stripLabel).includes(stripLabel(a)));
         return { questionId: q.questionId, isCorrect, userAns, tags: q.tags ?? [] };
       });
 
