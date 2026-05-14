@@ -47,6 +47,7 @@ const NAV_KEYS = [
   { path: '/',          labelKey: 'nav.home',      Icon: IconHome      },
   { path: '/stats',     labelKey: 'nav.stats',     Icon: IconFootprint },
   { path: '/aws-news',  labelKey: 'nav.news',      Icon: IconNewspaper },
+  { path: '/practice',  labelKey: 'nav.practice',  Icon: IconFire      },
   { path: '/questions',     labelKey: 'nav.questions',    Icon: IconList,     bottom: true },
   { path: '/growth',        labelKey: 'nav.growth',       Icon: IconSparkles, bottom: true },
   { path: '/release-notes', labelKey: 'nav.releaseNotes', Icon: IconFire,     bottom: true },
@@ -60,6 +61,7 @@ const BOTTOM_TABS = [
 ];
 
 const OTHERS_ITEMS = [
+  { path: '/practice',      Icon: IconFire,       labelKey: 'nav.practice'     },
   { path: '/questions',     Icon: IconList,       labelKey: 'nav.questions'    },
   { path: '/growth',        Icon: IconSparkles,      labelKey: 'nav.growth'       },
   { path: '/release-notes', Icon: IconFire,       labelKey: 'nav.releaseNotes' },

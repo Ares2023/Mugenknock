@@ -3,6 +3,7 @@ type Translations = Record<string, string>;
 export const ja: Translations = {
   // ── Navigation ──
   'nav.home': 'ホーム',
+  'nav.practice': '演習・テスト',
   'nav.news': 'AWSニュース',
   'nav.exercise': '演習モード',
   'nav.exam': '模試モード',
@@ -289,6 +290,7 @@ export const ja: Translations = {
 export const en: Translations = {
   // ── Navigation ──
   'nav.home': 'Home',
+  'nav.practice': 'Practice & Tests',
   'nav.news': 'AWS News',
   'nav.exercise': 'Practice',
   'nav.exam': 'Mock Exam',
