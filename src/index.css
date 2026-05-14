@@ -45,10 +45,10 @@
   --color-danger-light: rgba(209, 50, 18, 0.08);
 
   /* Horizontal bar gradients (left=bright, right=base color) */
-  --bar-gradient-primary: linear-gradient(90deg, #3b9eff, #006CE0);
-  --bar-gradient-success: linear-gradient(90deg, #22c55e, #037f0c);
-  --bar-gradient-caution: linear-gradient(90deg, #fbbf24, #ca8a04);
-  --bar-gradient-danger:  linear-gradient(90deg, #f87171, #d13212);
+  --bar-gradient-primary: linear-gradient(90deg, #006CE0, #3b9eff);
+  --bar-gradient-success: linear-gradient(90deg, #037f0c, #22c55e);
+  --bar-gradient-caution: linear-gradient(90deg, #ca8a04, #fbbf24);
+  --bar-gradient-danger:  linear-gradient(90deg, #d13212, #f87171);
 
   /* Semantic feedback colors */
   --color-feedback-correct-bg: #f2fcf3;
@@ -111,10 +111,10 @@
   --color-danger-light: rgba(248, 113, 113, 0.1);
 
   /* Horizontal bar gradients – dark theme */
-  --bar-gradient-primary: linear-gradient(90deg, #7dd3fc, #42B4FF);
-  --bar-gradient-success: linear-gradient(90deg, #86efac, #4ade80);
-  --bar-gradient-caution: linear-gradient(90deg, #fef08a, #facc15);
-  --bar-gradient-danger:  linear-gradient(90deg, #fca5a5, #f87171);
+  --bar-gradient-primary: linear-gradient(90deg, #42B4FF, #7dd3fc);
+  --bar-gradient-success: linear-gradient(90deg, #4ade80, #86efac);
+  --bar-gradient-caution: linear-gradient(90deg, #facc15, #fef08a);
+  --bar-gradient-danger:  linear-gradient(90deg, #f87171, #fca5a5);
 }
 
 /* ── フォーム要素のダークモード対応 ── */
