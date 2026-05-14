@@ -212,6 +212,11 @@ export default function Account() {
     setDeleting(et);
     try {
       await fetch(`${API_ENDPOINT}/users/me/data?userId=${user.userId}&examType=${et}`, { method: 'DELETE' });
+      // ローカルの成績・スコア履歴もリセット
+      localStorage.removeItem(`domain_history_${et}`);
+      localStorage.removeItem(`score_history_${et}`);
+      localStorage.removeItem(`score_today_${et}`);
+      localStorage.removeItem(`score_prev_${et}`);
       setDeletedExams(prev => new Set(prev).add(et));
       setSummaries(prev => { const next = { ...prev }; delete next[et]; return next; });
     } catch (err) { console.error(err); }
@@ -251,6 +256,8 @@ export default function Account() {
     setAccountDeleting(true); setDeleteError('');
     try {
       await deleteUser();
+      localStorage.clear();
+      sessionStorage.clear();
       await signOut();
       navigate('/login', { replace: true });
     } catch (err: any) {

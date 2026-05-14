@@ -123,8 +123,8 @@ function ScoreDetailModal({ targetExam, estimatedScore, passScore, lang, onClose
           {showTip && (
             <p style={{ fontSize: 11, color: 'var(--color-text-sub)', margin: '8px 0 0', lineHeight: 1.7 }}>
               {ja
-                ? '各ドメインの直近10セッション分の正答率をAWS試験の配点比率で加重平均して算出。古いデータは計算に含まれません。スコア = 100 + 加重正答率 × 900'
-                : "Weighted average of each domain's last 10 session accuracies using AWS exam domain weights. Old data is excluded. Score = 100 + weighted_accuracy × 900"}
+                ? '各ドメインの直近10セッション分の正答率 × 出題比率を合計して算出。未演習ドメインは0点扱い（スコアを過大評価しない）。スコア = Σ(正答率 × 出題比率%) × 1000'
+                : "Sum of each domain's (accuracy × exam weight%). Unpracticed domains count as 0. Score = Σ(accuracy × domain_weight%) × 1000"}
             </p>
           )}
         </div>
@@ -399,33 +399,36 @@ export default function Home() {
   }, [user]);
 
   // 予想スコア計算（直近10セッション優先、フォールバック: 累計）
+  // 未演習ドメインは0点扱い。スコア = sum(正答率 × 出題比率) × 1000
   const estimatedScore = useMemo(() => {
     if (!targetExam) return null;
-    const domains = EXAM_DOMAINS[targetExam] ?? [];
-    const weights = DOMAIN_WEIGHTS[targetExam] ?? domains.map(() => 100 / domains.length);
+    const domainList = EXAM_DOMAINS[targetExam] ?? [];
+    const weights = DOMAIN_WEIGHTS[targetExam] ?? domainList.map(() => 100 / domainList.length);
+    const totalAllWeights = weights.reduce((s, w) => s + w, 0);
+    if (totalAllWeights === 0) return null;
     const hist = readDomainHistory(targetExam);
-    const hasLocalHistory = domains.some(d => (hist[d]?.length ?? 0) > 0);
+    const hasLocalHistory = domainList.some(d => (hist[d]?.length ?? 0) > 0);
 
-    let weightedSum = 0, dataWeight = 0;
-    for (let i = 0; i < domains.length; i++) {
-      const sessions = hist[domains[i]];
+    let weightedSum = 0, hasAnyData = false;
+    for (let i = 0; i < domainList.length; i++) {
+      const sessions = hist[domainList[i]];
       if (sessions && sessions.length > 0) {
         const totalCorrect = sessions.reduce((s, r) => s + r.correct, 0);
         const totalAnswered = sessions.reduce((s, r) => s + r.total, 0);
         if (totalAnswered === 0) continue;
         weightedSum += (totalCorrect / totalAnswered) * weights[i];
-        dataWeight += weights[i];
+        hasAnyData = true;
       } else if (!hasLocalHistory) {
-        const stat = domainStats.find(s => s.tagId === domains[i]);
+        const stat = domainStats.find(s => s.tagId === domainList[i]);
         if (!stat) continue;
         const total = (stat.correctCount ?? 0) + (stat.incorrectCount ?? 0);
         if (total === 0) continue;
         weightedSum += ((stat.correctCount ?? 0) / total) * weights[i];
-        dataWeight += weights[i];
+        hasAnyData = true;
       }
     }
-    if (dataWeight === 0) return null;
-    return Math.round(100 + (weightedSum / dataWeight) * 900);
+    if (!hasAnyData) return null;
+    return Math.round((weightedSum / totalAllWeights) * 1000);
   }, [targetExam, domainStats]);
 
   const passScore = targetExam ? PASS_SCORES[targetExam] : null;
