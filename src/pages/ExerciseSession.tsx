@@ -412,7 +412,7 @@ export default function ExerciseSession() {
       } catch {}
       // セッション完了でキャッシュ破棄 → ホーム画面が最新データをサーバーから再取得
       deleteCached(`ustats_${userId}`);
-      localStorage.setItem('postSessionRefresh', '1');
+      localStorage.setItem('postSessionRefresh', String(Date.now()));
       navigate('/result', { state: { results, questions, score, isPassed, sessionId, userId, examType, isQuick } });
     } else {
       setCurrentIndex(prev => prev + 1);

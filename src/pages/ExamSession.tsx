@@ -224,7 +224,7 @@ export default function ExamSession() {
       } catch {}
       // セッション完了でキャッシュ破棄 → ホーム画面が最新データをサーバーから再取得
       deleteCached(`ustats_${userId}`);
-      localStorage.setItem('postSessionRefresh', '1');
+      localStorage.setItem('postSessionRefresh', String(Date.now()));
       navigate('/result', {
         state: { results: results.map(r => ({ questionId: r.questionId, isCorrect: r.isCorrect })), questions, score, isPassed, sessionId, userId, examType, mode: 'exam', timeUp }
       });

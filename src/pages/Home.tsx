@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useMemo } from 'react';
+import React, { useEffect, useState, useMemo, useRef, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { useLanguage } from '../contexts/LanguageContext';
@@ -6,7 +6,7 @@ import {
   API_ENDPOINT, EXAM_CONFIGS, EXAM_DOMAINS,
   DOMAIN_WEIGHTS, DOMAIN_NAME_EN, PASS_SCORES,
 } from '../constants';
-import { getCached, setCached, deleteCached, SHORT_TTL } from '../utils/cache';
+import { getCached, setCached, deleteCached, DEFAULT_TTL } from '../utils/cache';
 import Card from '../components/ui/Card';
 import Button from '../components/ui/Button';
 import { IconLightbulb, ServiceIcon, isServiceIconKey } from '../components/Icons';
@@ -363,11 +363,14 @@ export default function Home() {
   const [targetExam, setTargetExam] = useState<string | null>(() => localStorage.getItem('targetExam'));
   const [domainStats, setDomainStats] = useState<DomainStat[]>([]);
   const [statsLoading, setStatsLoading] = useState(false);
+  const [statsRefreshing, setStatsRefreshing] = useState(false);
+  const [lastUpdated, setLastUpdated] = useState<Date | null>(null);
   const [quickLoading, setQuickLoading] = useState(false);
   const [examLoading, setExamLoading] = useState(false);
   const [showExamConfirm, setShowExamConfirm] = useState(false);
   const [showScoreDetail, setShowScoreDetail] = useState(false);
   const [showDomainDetail, setShowDomainDetail] = useState(false);
+  const abortRef = useRef<AbortController | null>(null);
 
   useEffect(() => {
     const handler = () => setIsMobile(window.innerWidth < 768);
@@ -381,43 +384,66 @@ export default function Home() {
     return () => window.removeEventListener('targetExamChanged', handler);
   }, []);
 
-  const fetchStats = (delay = 0) => {
-    if (!user) return;
-    setStatsLoading(true);
-    const timer = setTimeout(() => {
-      fetch(`${API_ENDPOINT}/users/me/stats?userId=${user.userId}`)
-        .then(r => r.json())
-        .then(d => {
-          const stats = d.stats ?? [];
-          if (stats.length > 0) setCached(`ustats_${user.userId}`, stats, SHORT_TTL);
-          setDomainStats(stats);
-        })
-        .catch(() => setDomainStats([]))
-        .finally(() => setStatsLoading(false));
-    }, delay);
-    return timer;
-  };
+  // ── 成績フェッチ（stale-while-revalidate） ─────────────────────────
+  const TS_KEY = (uid: string) => `_ts_ustats_${uid}`;
 
-  const refreshStats = () => {
-    if (!user || statsLoading) return;
+  const doFetchStats = useCallback(async (userId: string, background: boolean, delayMs = 0) => {
+    abortRef.current?.abort();
+    const ctrl = new AbortController();
+    abortRef.current = ctrl;
+    if (background) setStatsRefreshing(true); else setStatsLoading(true);
+    try {
+      if (delayMs > 0) {
+        await new Promise<void>((res, rej) => {
+          const t = setTimeout(res, delayMs);
+          ctrl.signal.addEventListener('abort', () => { clearTimeout(t); rej(new Error('aborted')); });
+        });
+      }
+      const r = await fetch(`${API_ENDPOINT}/users/me/stats?userId=${userId}`, { signal: ctrl.signal });
+      const d = await r.json();
+      const stats: DomainStat[] = d.stats ?? [];
+      setCached(`ustats_${userId}`, stats, DEFAULT_TTL);
+      sessionStorage.setItem(TS_KEY(userId), String(Date.now()));
+      setDomainStats(stats);
+      setLastUpdated(new Date());
+    } catch { /* abort or network error */ }
+    finally {
+      if (!ctrl.signal.aborted) { setStatsLoading(false); setStatsRefreshing(false); }
+    }
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+
+  const refreshStats = useCallback(() => {
+    if (!user || statsLoading || statsRefreshing) return;
     deleteCached(`ustats_${user.userId}`);
-    fetchStats();
-  };
+    sessionStorage.removeItem(TS_KEY(user.userId));
+    doFetchStats(user.userId, false);
+  }, [user, statsLoading, statsRefreshing, doFetchStats]);
 
   useEffect(() => {
-    if (!user) { setDomainStats([]); return; }
+    if (!user) { setDomainStats([]); setLastUpdated(null); return; }
     const cached = getCached<DomainStat[]>(`ustats_${user.userId}`);
-    if (cached !== null) { setDomainStats(cached); return; }
-    // キャッシュなし = セッション完了直後の可能性。サーバー側集計の時間差を吸収するため少し待つ
-    const afterSession = !!localStorage.getItem('postSessionRefresh');
-    if (afterSession) localStorage.removeItem('postSessionRefresh');
-    const timer = fetchStats(afterSession ? 1500 : 0);
-    return () => { if (timer) clearTimeout(timer); };
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [user]);
+    const tsRaw = sessionStorage.getItem(TS_KEY(user.userId));
+    if (tsRaw) setLastUpdated(new Date(parseInt(tsRaw)));
 
-  // 予想スコア計算（直近10セッション優先、フォールバック: 累計）
-  // 未演習ドメインは0点扱い。スコア = sum(正答率 × 出題比率) × 1000
+    if (cached !== null) {
+      setDomainStats(cached);
+      // キャッシュがあっても常にバックグラウンドで最新化
+      doFetchStats(user.userId, true);
+    } else {
+      // キャッシュなし：セッション完了直後かチェックして遅延
+      const flagRaw = localStorage.getItem('postSessionRefresh');
+      let delay = 0;
+      if (flagRaw) {
+        localStorage.removeItem('postSessionRefresh');
+        const age = Date.now() - parseInt(flagRaw);
+        if (age < 30000) delay = 1500; // 30秒以内なら1.5秒待つ
+      }
+      doFetchStats(user.userId, false, delay);
+    }
+    return () => { abortRef.current?.abort(); };
+  }, [user, doFetchStats]);
+
+  // ── 予想スコア計算（直近10セッション優先、ドメインごとにAPIフォールバック） ──
   const estimatedScore = useMemo(() => {
     if (!targetExam) return null;
     const domainList = EXAM_DOMAINS[targetExam] ?? [];
@@ -425,18 +451,19 @@ export default function Home() {
     const totalAllWeights = weights.reduce((s, w) => s + w, 0);
     if (totalAllWeights === 0) return null;
     const hist = readDomainHistory(targetExam);
-    const hasLocalHistory = domainList.some(d => (hist[d]?.length ?? 0) > 0);
 
     let weightedSum = 0, hasAnyData = false;
     for (let i = 0; i < domainList.length; i++) {
       const sessions = hist[domainList[i]];
       if (sessions && sessions.length > 0) {
+        // ローカル直近セッション優先
         const totalCorrect = sessions.reduce((s, r) => s + r.correct, 0);
         const totalAnswered = sessions.reduce((s, r) => s + r.total, 0);
         if (totalAnswered === 0) continue;
         weightedSum += (totalCorrect / totalAnswered) * weights[i];
         hasAnyData = true;
-      } else if (!hasLocalHistory) {
+      } else {
+        // ドメインごとに個別判定でAPIフォールバック
         const stat = domainStats.find(s => s.tagId === domainList[i]);
         if (!stat) continue;
         const total = (stat.correctCount ?? 0) + (stat.incorrectCount ?? 0);
@@ -619,25 +646,36 @@ export default function Home() {
             <span style={{ fontSize: 11, fontWeight: 700, color: 'var(--color-text-sub)', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
               {ja ? 'ドメイン別正答率' : 'Domain Accuracy'}
             </span>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+              {user && lastUpdated && !statsLoading && (
+                <span style={{ fontSize: 10, color: 'var(--color-text-light)', letterSpacing: 0 }}>
+                  {(() => {
+                    const now = new Date();
+                    const hhmm = `${String(lastUpdated.getHours()).padStart(2, '0')}:${String(lastUpdated.getMinutes()).padStart(2, '0')}`;
+                    const sameDay = lastUpdated.toDateString() === now.toDateString();
+                    return sameDay ? hhmm : `${lastUpdated.getMonth() + 1}/${lastUpdated.getDate()} ${hhmm}`;
+                  })()}
+                </span>
+              )}
               {user && (
                 <button
                   onClick={refreshStats}
-                  disabled={statsLoading}
+                  disabled={statsLoading || statsRefreshing}
                   title={ja ? '成績を更新' : 'Refresh stats'}
                   style={{
-                    border: 'none', background: 'none', cursor: statsLoading ? 'default' : 'pointer',
+                    border: 'none', background: 'none',
+                    cursor: (statsLoading || statsRefreshing) ? 'default' : 'pointer',
                     color: 'var(--color-text-light)', padding: '2px 4px', borderRadius: 4,
-                    fontSize: 14, lineHeight: 1, opacity: statsLoading ? 0.4 : 1,
+                    fontSize: 14, lineHeight: 1,
                     display: 'flex', alignItems: 'center', justifyContent: 'center',
-                    transition: 'color 0.15s, transform 0.3s',
+                    transition: 'color 0.15s',
                   }}
-                  onMouseEnter={e => { if (!statsLoading) e.currentTarget.style.color = 'var(--color-text-sub)'; }}
+                  onMouseEnter={e => { if (!statsLoading && !statsRefreshing) e.currentTarget.style.color = 'var(--color-text-sub)'; }}
                   onMouseLeave={e => { e.currentTarget.style.color = 'var(--color-text-light)'; }}
                   aria-label={ja ? '成績を更新' : 'Refresh stats'}
                 >
                   <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"
-                    style={{ animation: statsLoading ? 'sherpa-spin 0.8s linear infinite' : 'none' }}>
+                    style={{ animation: (statsLoading || statsRefreshing) ? 'sherpa-spin 0.8s linear infinite' : 'none' }}>
                     <polyline points="23 4 23 10 17 10"/>
                     <path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/>
                   </svg>

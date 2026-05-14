@@ -1,7 +1,7 @@
 const DEFAULT_TTL = 5 * 60 * 1000;
 const SHORT_TTL = 60 * 1000;
 
-export { SHORT_TTL };
+export { SHORT_TTL, DEFAULT_TTL };
 
 export function getCached<T>(key: string): T | null {
   try {
