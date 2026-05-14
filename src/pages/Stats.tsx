@@ -387,7 +387,7 @@ export default function Stats() {
                 <div style={{ background: 'var(--color-bg-main)', borderRadius: 10, height: 8, overflow: 'hidden', marginBottom: 6 }}>
                   <div style={{
                     width: `${pct}%`, height: '100%', borderRadius: 10,
-                    background: pct >= 60 ? 'var(--color-success)' : pct >= 30 ? 'var(--color-caution)' : 'var(--color-primary)',
+                    background: pct >= 60 ? 'var(--bar-gradient-success)' : pct >= 30 ? 'var(--bar-gradient-caution)' : 'var(--bar-gradient-primary)',
                     transformOrigin: 'left center',
                     animation: 'growWidth 0.8s cubic-bezier(0.4, 0, 0.2, 1) both',
                   }} />

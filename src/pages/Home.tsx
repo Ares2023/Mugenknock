@@ -177,7 +177,7 @@ function DomainDetailModal({ targetExam, domainAccList, lang, onClose }: {
               </div>
               {pct !== null && (
                 <div style={{ height: 6, background: 'var(--color-border)', borderRadius: 3, overflow: 'hidden' }}>
-                  <div style={{ width: `${pct}%`, height: '100%', borderRadius: 3, background: 'var(--color-primary)' }} />
+                  <div style={{ width: `${pct}%`, height: '100%', borderRadius: 3, background: 'var(--bar-gradient-primary)' }} />
                 </div>
               )}
             </div>
@@ -588,7 +588,7 @@ export default function Home() {
                     <div style={{ width: 2, height: '100%', background: '#f59e0b', borderRadius: 1 }} />
                   </div>
                 )}
-                <div style={{ width: `${Math.min(100, (estimatedScore / 1000) * 100)}%`, height: '100%', borderRadius: 4, background: 'var(--color-primary)', transition: 'width 0.5s ease' }} />
+                <div style={{ width: `${Math.min(100, (estimatedScore / 1000) * 100)}%`, height: '100%', borderRadius: 4, background: 'var(--bar-gradient-primary)', transition: 'width 0.5s ease' }} />
               </div>
             </>
           )}
@@ -633,7 +633,7 @@ export default function Home() {
                       <span style={{ fontSize: 11, color: 'var(--color-text-sub)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', flex: 1 }}>{label}</span>
                     </div>
                     <div style={{ height: 5, background: 'var(--color-border)', borderRadius: 3, overflow: 'hidden' }}>
-                      {pct !== null && <div style={{ width: `${pct}%`, height: '100%', borderRadius: 3, background: 'var(--color-primary)', transition: 'width 0.4s ease' }} />}
+                      {pct !== null && <div style={{ width: `${pct}%`, height: '100%', borderRadius: 3, background: 'var(--bar-gradient-primary)', transition: 'width 0.4s ease' }} />}
                     </div>
                   </div>
                 );
