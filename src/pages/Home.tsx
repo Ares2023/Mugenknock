@@ -386,15 +386,22 @@ export default function Home() {
     setStatsLoading(true);
     const cached = getCached<DomainStat[]>(`ustats_${user.userId}`);
     if (cached !== null) { setDomainStats(cached); setStatsLoading(false); return; }
-    fetch(`${API_ENDPOINT}/users/me/stats?userId=${user.userId}`)
-      .then(r => r.json())
-      .then(d => {
-        const stats = d.stats ?? [];
-        if (stats.length > 0) setCached(`ustats_${user.userId}`, stats, SHORT_TTL);
-        setDomainStats(stats);
-      })
-      .catch(() => setDomainStats([]))
-      .finally(() => setStatsLoading(false));
+    // キャッシュなし = セッション完了直後の可能性。サーバー側集計の時間差を吸収するため少し待つ
+    const afterSession = !!localStorage.getItem('postSessionRefresh');
+    if (afterSession) localStorage.removeItem('postSessionRefresh');
+    const delay = afterSession ? 1500 : 0;
+    const timer = setTimeout(() => {
+      fetch(`${API_ENDPOINT}/users/me/stats?userId=${user.userId}`)
+        .then(r => r.json())
+        .then(d => {
+          const stats = d.stats ?? [];
+          if (stats.length > 0) setCached(`ustats_${user.userId}`, stats, SHORT_TTL);
+          setDomainStats(stats);
+        })
+        .catch(() => setDomainStats([]))
+        .finally(() => setStatsLoading(false));
+    }, delay);
+    return () => clearTimeout(timer);
   }, [user]);
 
   // 予想スコア計算（直近10セッション優先、フォールバック: 累計）

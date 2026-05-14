@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { API_ENDPOINT, PASS_RATE, EXAM_DOMAINS, DOMAIN_NAME_EN } from '../constants';
-import { getCached, setCached, SHORT_TTL, deleteCached } from '../utils/cache';
+import { deleteCached } from '../utils/cache';
 import { useAuth } from '../contexts/AuthContext';
 import { useLanguage } from '../contexts/LanguageContext';
 import Card from '../components/ui/Card';
@@ -410,23 +410,9 @@ export default function ExerciseSession() {
         }
         localStorage.setItem(`domain_history_${examType}`, JSON.stringify(dh));
       } catch {}
-      // ustats キャッシュ更新（ログイン時のみ）
-      if (userId !== 'guest') {
-        type DS = { tagId: string; correctCount?: number; incorrectCount?: number };
-        const prev = getCached<DS[]>(`ustats_${userId}`) ?? [];
-        const merged = [...prev];
-        for (const [tag, d] of Object.entries(delta)) {
-          const idx = merged.findIndex(s => s.tagId === tag);
-          if (idx >= 0) {
-            merged[idx] = { tagId: tag, correctCount: (merged[idx].correctCount ?? 0) + d.c, incorrectCount: (merged[idx].incorrectCount ?? 0) + d.i };
-          } else {
-            merged.push({ tagId: tag, correctCount: d.c, incorrectCount: d.i });
-          }
-        }
-        setCached(`ustats_${userId}`, merged, SHORT_TTL);
-      } else {
-        deleteCached(`ustats_${userId}`);
-      }
+      // セッション完了でキャッシュ破棄 → ホーム画面が最新データをサーバーから再取得
+      deleteCached(`ustats_${userId}`);
+      localStorage.setItem('postSessionRefresh', '1');
       navigate('/result', { state: { results, questions, score, isPassed, sessionId, userId, examType, isQuick } });
     } else {
       setCurrentIndex(prev => prev + 1);
