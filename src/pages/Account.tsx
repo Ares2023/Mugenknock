@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { updatePassword, deleteUser, updateUserAttributes } from 'aws-amplify/auth';
 import { API_ENDPOINT, EXAM_TYPES, EXAM_LEVEL } from '../constants';
+import { deleteCached } from '../utils/cache';
 import { useAuth } from '../contexts/AuthContext';
 import { useLanguage } from '../contexts/LanguageContext';
 import { useTheme } from '../contexts/ThemeContext';
@@ -217,6 +218,8 @@ export default function Account() {
       localStorage.removeItem(`score_history_${et}`);
       localStorage.removeItem(`score_today_${et}`);
       localStorage.removeItem(`score_prev_${et}`);
+      // domainStats のセッションキャッシュを無効化（Home等が次回再フェッチする）
+      deleteCached(`ustats_${user.userId}`);
       setDeletedExams(prev => new Set(prev).add(et));
       setSummaries(prev => { const next = { ...prev }; delete next[et]; return next; });
     } catch (err) { console.error(err); }

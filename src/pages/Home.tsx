@@ -137,8 +137,8 @@ function ScoreDetailModal({ targetExam, estimatedScore, passScore, lang, onClose
 }
 
 // ── ドメイン別詳細モーダル ──────────────────────────────────────
-function DomainDetailModal({ targetExam, domainStats, lang, onClose }: {
-  targetExam: string; domainStats: DomainStat[]; lang: string; onClose: () => void;
+function DomainDetailModal({ targetExam, domainAccList, lang, onClose }: {
+  targetExam: string; domainAccList: { correct: number; total: number; pct: number | null }[]; lang: string; onClose: () => void;
 }) {
   const ja = lang === 'ja';
   const domains = EXAM_DOMAINS[targetExam] ?? [];
@@ -155,11 +155,7 @@ function DomainDetailModal({ targetExam, domainStats, lang, onClose }: {
           <button onClick={onClose} style={{ border: 'none', background: 'none', fontSize: 18, cursor: 'pointer', color: 'var(--color-text-sub)', padding: '0 4px', lineHeight: 1 }}>✕</button>
         </div>
         {domains.map((d, i) => {
-          const stat = domainStats.find(s => s.tagId === d);
-          const correct = stat?.correctCount ?? 0;
-          const incorrect = stat?.incorrectCount ?? 0;
-          const total = correct + incorrect;
-          const pct = total > 0 ? Math.round((correct / total) * 100) : null;
+          const { correct, total, pct } = domainAccList[i] ?? { correct: 0, total: 0, pct: null };
           const label = lang === 'en' ? (DOMAIN_NAME_EN[d] ?? d) : d;
           return (
             <div key={d} style={{ marginBottom: 16, paddingBottom: 16, borderBottom: i < domains.length - 1 ? '1px solid var(--color-border)' : 'none' }}>
@@ -513,24 +509,25 @@ export default function Home() {
     finally { setExamLoading(false); setShowExamConfirm(false); }
   };
 
-  // ドメイン別成績（表示用）
+  // ドメイン別成績（表示用）— ローカル履歴優先、なければAPI累計
   const domains = useMemo(() => targetExam ? (EXAM_DOMAINS[targetExam] ?? []) : [], [targetExam]);
   const domainAccList = useMemo(() => {
-    if (!targetExam) return [];
+    if (!targetExam) return [] as { correct: number; total: number; pct: number | null }[];
     const hist = readDomainHistory(targetExam);
     const hasLocalHistory = domains.some(d => (hist[d]?.length ?? 0) > 0);
     return domains.map(d => {
       const sessions = hist[d];
       if (sessions && sessions.length > 0) {
-        const tc = sessions.reduce((s, r) => s + r.correct, 0);
-        const ta = sessions.reduce((s, r) => s + r.total, 0);
-        return ta > 0 ? Math.round((tc / ta) * 100) : null;
+        const correct = sessions.reduce((s, r) => s + r.correct, 0);
+        const total = sessions.reduce((s, r) => s + r.total, 0);
+        return { correct, total, pct: total > 0 ? Math.round(correct / total * 100) : null };
       } else if (!hasLocalHistory) {
         const stat = domainStats.find(s => s.tagId === d);
-        const total = (stat?.correctCount ?? 0) + (stat?.incorrectCount ?? 0);
-        return total > 0 ? Math.round((stat!.correctCount ?? 0) / total * 100) : null;
+        const correct = stat?.correctCount ?? 0;
+        const total = correct + (stat?.incorrectCount ?? 0);
+        return { correct, total, pct: total > 0 ? Math.round(correct / total * 100) : null };
       }
-      return null;
+      return { correct: 0, total: 0, pct: null };
     });
   }, [targetExam, domainStats, domains]);
 
@@ -626,7 +623,7 @@ export default function Home() {
           ) : (
             <div style={{ display: 'flex', flexDirection: 'column', gap: 7 }}>
               {domains.map((d, i) => {
-                const pct = domainAccList[i];
+                const pct = domainAccList[i]?.pct ?? null;
                 const grade = getGrade(pct);
                 const label = lang === 'en' ? (DOMAIN_NAME_EN[d] ?? d) : d;
                 return (
@@ -689,7 +686,7 @@ export default function Home() {
         <ScoreDetailModal targetExam={targetExam} estimatedScore={estimatedScore} passScore={passScore} lang={lang} onClose={() => setShowScoreDetail(false)} />
       )}
       {showDomainDetail && targetExam && (
-        <DomainDetailModal targetExam={targetExam} domainStats={domainStats} lang={lang} onClose={() => setShowDomainDetail(false)} />
+        <DomainDetailModal targetExam={targetExam} domainAccList={domainAccList} lang={lang} onClose={() => setShowDomainDetail(false)} />
       )}
     </div>
   );
