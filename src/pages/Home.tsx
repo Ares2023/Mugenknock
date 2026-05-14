@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { useLanguage } from '../contexts/LanguageContext';
 import {
-  API_ENDPOINT, EXAM_CONFIGS, EXAM_DOMAINS,
+  API_ENDPOINT, EXAM_DOMAINS,
   DOMAIN_WEIGHTS, DOMAIN_NAME_EN, PASS_SCORES,
 } from '../constants';
 import { getCached, setCached, deleteCached, DEFAULT_TTL } from '../utils/cache';
@@ -188,50 +188,6 @@ function DomainDetailModal({ targetExam, domainAccList, lang, onClose }: {
   );
 }
 
-// ── 模試確認モーダル ────────────────────────────────────────────
-function ExamConfirmModal({ targetExam, lang, onConfirm, onCancel, loading }: {
-  targetExam: string; lang: string; onConfirm: () => void; onCancel: () => void; loading: boolean;
-}) {
-  const cfg = EXAM_CONFIGS[targetExam];
-  const ja = lang === 'ja';
-  const rules = ja
-    ? ['タイマーは開始後にカウントダウン', '正誤は全問終了後に確認', '途中で一時停止・再開が可能', 'AI確認済み問題・未回答問題のみ出題']
-    : ['Timer counts down after start', 'Results shown after finishing all questions', 'You can pause and resume', 'Only AI-verified and unanswered questions'];
-  return (
-    <div
-      style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', zIndex: 1000, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16 }}
-      onClick={e => { if (e.target === e.currentTarget) onCancel(); }}
-    >
-      <div style={{ background: 'var(--color-bg-white)', borderRadius: 'var(--border-radius-lg)', padding: '28px 28px 24px', width: '100%', maxWidth: 440, boxShadow: '0 8px 32px rgba(0,0,0,0.2)' }}>
-        <h3 style={{ margin: '0 0 4px', fontSize: 'var(--font-size-h3)', fontWeight: 700, color: 'var(--color-text-main)' }}>
-          {ja ? '模試を開始しますか？' : 'Start Mock Exam?'}
-        </h3>
-        <div style={{ fontSize: 'var(--font-size-sm)', color: 'var(--color-text-sub)', marginBottom: 20 }}>{cfg.fullName}</div>
-        <div style={{ display: 'flex', gap: 24, marginBottom: 20, flexWrap: 'wrap' }}>
-          <div><div style={{ fontSize: 11, color: 'var(--color-text-light)', marginBottom: 2 }}>{ja ? '問題数' : 'Questions'}</div><div style={{ fontWeight: 700, fontSize: 'var(--font-size-lg)' }}>{cfg.totalQuestions}<span style={{ fontSize: 12, fontWeight: 400 }}>{ja ? '問' : ' Q'}</span></div></div>
-          <div><div style={{ fontSize: 11, color: 'var(--color-text-light)', marginBottom: 2 }}>{ja ? '制限時間' : 'Time Limit'}</div><div style={{ fontWeight: 700, fontSize: 'var(--font-size-lg)' }}>{cfg.timeLimitMin}<span style={{ fontSize: 12, fontWeight: 400 }}>{ja ? '分' : ' min'}</span></div></div>
-          <div><div style={{ fontSize: 11, color: 'var(--color-text-light)', marginBottom: 2 }}>{ja ? '合格点' : 'Pass Score'}</div><div style={{ fontWeight: 700, fontSize: 'var(--font-size-lg)' }}>{PASS_SCORES[targetExam]}</div></div>
-        </div>
-        <div style={{ background: 'var(--color-bg-main)', borderRadius: 'var(--border-radius-md)', padding: '10px 14px', marginBottom: 20 }}>
-          <div style={{ fontSize: 11, fontWeight: 700, color: 'var(--color-text-sub)', marginBottom: 6 }}>{ja ? 'ルール' : 'Rules'}</div>
-          {rules.map((r, i) => (
-            <div key={i} style={{ fontSize: 'var(--font-size-sm)', color: 'var(--color-text-sub)', display: 'flex', gap: 6, alignItems: 'flex-start', marginBottom: i < rules.length - 1 ? 4 : 0 }}>
-              <span style={{ color: 'var(--color-primary)', flexShrink: 0, marginTop: 1 }}>•</span>
-              <span>{r}</span>
-            </div>
-          ))}
-        </div>
-        <div style={{ display: 'flex', gap: 8 }}>
-          <Button variant="primary" onClick={onConfirm} disabled={loading} style={{ flex: 1 }}>
-            {loading ? <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}><span style={{ width: 12, height: 12, border: '2px solid rgba(0,0,0,0.3)', borderTopColor: '#16191f', borderRadius: '50%', animation: 'sherpa-spin 0.7s linear infinite' }} />{ja ? '準備中...' : 'Preparing...'}</span> : (ja ? '開始する' : 'Start')}
-          </Button>
-          <Button variant="outline" onClick={onCancel} disabled={loading}>{ja ? 'キャンセル' : 'Cancel'}</Button>
-        </div>
-      </div>
-    </div>
-  );
-}
-
 // ── 日めくりAWSサービス ─────────────────────────────────────────
 type DailyService = {
   serviceId: string; name: string; shortName?: string; category?: string;
@@ -366,7 +322,6 @@ export default function Home() {
   const [statsRefreshing, setStatsRefreshing] = useState(false);
   const [lastUpdated, setLastUpdated] = useState<Date | null>(null);
   const [quickLoading, setQuickLoading] = useState(false);
-  const [examLoading, setExamLoading] = useState(false);
 
   // サクッと演習ドラフト（24時間以内のquickセッションのみ）
   const readQuickDraft = () => {
@@ -377,7 +332,8 @@ export default function Home() {
     } catch { return null; }
   };
   const [quickDraft, setQuickDraft] = useState<any>(() => readQuickDraft());
-  const [showExamConfirm, setShowExamConfirm] = useState(false);
+  const [showQuickModal, setShowQuickModal] = useState(false);
+  const [draftPrefs, setDraftPrefs] = useState<Record<string, any>>({});
   const [showScoreDetail, setShowScoreDetail] = useState(false);
   const [showDomainDetail, setShowDomainDetail] = useState(false);
   const abortRef = useRef<AbortController | null>(null);
@@ -572,26 +528,6 @@ export default function Home() {
     finally { setQuickLoading(false); }
   };
 
-  // 模試開始
-  const startExamFromHome = async () => {
-    if (!targetExam) return;
-    const cfg = EXAM_CONFIGS[targetExam];
-    setExamLoading(true);
-    try {
-      const userId = user?.userId ?? 'guest';
-      const params = new URLSearchParams({ examType: targetExam, withAnswers: 'true', withValidity: 'true' });
-      const data = await fetch(`${API_ENDPOINT}/questions?${params}`).then(r => r.json());
-      let items: any[] = (data.items ?? []).filter((q: any) => !!q.validityCheckedAt);
-      if (user) { const res = await fetch(`${API_ENDPOINT}/users/me/answered-questions?userId=${userId}&examType=${targetExam}`).then(r => r.json()); const answered = new Set(res.questionIds ?? []); items = items.filter((q: any) => !answered.has(q.questionId)); }
-      items = shuffleArray(items).slice(0, cfg.totalQuestions);
-      if (items.length === 0) { alert(ja ? '条件に合う問題がありません（AI確認済み・未回答問題が0件）' : 'No questions match'); setExamLoading(false); setShowExamConfirm(false); return; }
-      const sessionRes = await fetch(`${API_ENDPOINT}/sessions`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ userId, mode: 'exam', examType: targetExam, questionIds: items.map((q: any) => q.questionId) }) });
-      const sessionData = await sessionRes.json();
-      navigate('/exam/session', { state: { sessionId: sessionData.sessionId, questions: items, userId, examType: targetExam, isMini: false } });
-    } catch (err) { console.error(err); alert(ja ? '模試の開始に失敗しました' : 'Failed to start exam'); }
-    finally { setExamLoading(false); setShowExamConfirm(false); }
-  };
-
   // ドメイン別成績（表示用）— ローカル履歴優先、なければAPI累計
   const domains = useMemo(() => targetExam ? (EXAM_DOMAINS[targetExam] ?? []) : [], [targetExam]);
   const domainAccList = useMemo(() => {
@@ -766,36 +702,40 @@ export default function Home() {
         </Card>
       </div>
 
-      {/* ── 演習・模試ボタン行（デスクトップ） ── */}
+      {/* ── サクッと演習ボタン行（デスクトップ） ── */}
       {!isMobile && (
-        <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr', gap: 'var(--spacing-sm)', marginBottom: 'var(--spacing-md)' }}>
-          {hasQuickDraft ? (
-            <div style={{ display: 'flex', gap: 6 }}>
-              <Button variant="primary" style={{ flex: 1 }} disabled={quickLoading} onClick={resumeQuickExercise}>
-                {ja ? 'サクッと演習（途中から）' : 'Quick (Resume)'}
+        <>
+          <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr', gap: 'var(--spacing-sm)', marginBottom: 8 }}>
+            {hasQuickDraft ? (
+              <div style={{ display: 'flex', gap: 6 }}>
+                <Button variant="primary" style={{ flex: 1 }} disabled={quickLoading} onClick={resumeQuickExercise}>
+                  {ja ? 'サクッと演習（途中から）' : 'Quick (Resume)'}
+                </Button>
+                <Button variant="outline" style={{ whiteSpace: 'nowrap', padding: '0 14px', fontSize: 'var(--font-size-sm)' }} disabled={quickLoading} onClick={() => { if (!quickLoading) startQuickExercise(); }}>
+                  {ja ? '新規' : 'New'}
+                </Button>
+              </div>
+            ) : (
+              <Button variant="primary" fullWidth disabled={!targetExam || quickLoading} onClick={() => { if (targetExam && !quickLoading) startQuickExercise(); }}>
+                {quickLoading ? (ja ? '準備中...' : 'Loading...') : (ja ? `サクッと演習 (${loadQuickPrefs().questionCount ?? 5}問)` : `Quick (${loadQuickPrefs().questionCount ?? 5}Q)`)}
               </Button>
-              <Button variant="outline" style={{ whiteSpace: 'nowrap', padding: '0 14px', fontSize: 'var(--font-size-sm)' }} disabled={quickLoading} onClick={() => { if (!quickLoading) startQuickExercise(); }}>
-                {ja ? '新規' : 'New'}
-              </Button>
-            </div>
-          ) : (
-            <Button variant="primary" fullWidth disabled={!targetExam || quickLoading} onClick={() => { if (targetExam && !quickLoading) startQuickExercise(); }}>
-              {quickLoading ? (ja ? '準備中...' : 'Loading...') : (ja ? `サクッと演習 (${loadQuickPrefs().questionCount ?? 5}問)` : `Quick (${loadQuickPrefs().questionCount ?? 5}Q)`)}
+            )}
+            <Button variant="outline" fullWidth onClick={() => { setDraftPrefs({ ...loadQuickPrefs() }); setShowQuickModal(true); }}>
+              ⚙ {ja ? '設定' : 'Settings'}
             </Button>
-          )}
-          <Button variant="outline" fullWidth style={{ whiteSpace: 'nowrap' }} onClick={() => navigate('/exercise/setup')}>{ja ? 'カスタム演習' : 'Custom'}</Button>
-          <Button variant="outline" fullWidth disabled={!targetExam} onClick={() => { if (targetExam) setShowExamConfirm(true); }} style={{ gridColumn: '1 / -1' }}>
-            {ja ? '模試' : 'Mock Exam'}
+          </div>
+          <Button variant="outline" fullWidth onClick={() => navigate('/practice')} style={{ marginBottom: 'var(--spacing-md)' }}>
+            {ja ? '演習・テスト →' : 'Practice & Tests →'}
           </Button>
-        </div>
+        </>
       )}
 
-      {/* ── 演習・模試ボタン（モバイル固定） ── */}
+      {/* ── サクッと演習ボタン（モバイル固定） ── */}
       {isMobile && (
         <div style={{ position: 'fixed', bottom: 56, left: 0, right: 0, zIndex: 150, background: 'var(--color-bg-white)', borderTop: '1px solid var(--color-border)', padding: '8px 12px', display: 'flex', gap: 6, boxShadow: '0 -2px 8px rgba(0,0,0,0.08)' }}>
           {hasQuickDraft ? (
             <>
-              <Button variant="primary" style={{ flex: 1, minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }} disabled={quickLoading} onClick={resumeQuickExercise}>
+              <Button variant="primary" style={{ flex: 2, minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }} disabled={quickLoading} onClick={resumeQuickExercise}>
                 {ja ? '途中から' : 'Resume'}
               </Button>
               <Button variant="outline" style={{ flexShrink: 0, padding: '0 10px', fontSize: 'var(--font-size-sm)', whiteSpace: 'nowrap' }} disabled={quickLoading} onClick={() => { if (!quickLoading) startQuickExercise(); }}>
@@ -803,12 +743,18 @@ export default function Home() {
               </Button>
             </>
           ) : (
-            <Button variant="primary" style={{ flex: 1, minWidth: 0, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }} disabled={!targetExam || quickLoading} onClick={() => { if (targetExam && !quickLoading) startQuickExercise(); }}>
-              {quickLoading ? (ja ? '準備中...' : 'Loading...') : (ja ? 'サクッと演習' : 'Quick')}
-            </Button>
+            <>
+              <Button variant="primary" style={{ flex: 2, minWidth: 0, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }} disabled={!targetExam || quickLoading} onClick={() => { if (targetExam && !quickLoading) startQuickExercise(); }}>
+                {quickLoading ? (ja ? '準備中...' : 'Loading...') : (ja ? 'サクッと演習' : 'Quick')}
+              </Button>
+              <Button variant="outline" style={{ flex: 1, whiteSpace: 'nowrap' }} onClick={() => { setDraftPrefs({ ...loadQuickPrefs() }); setShowQuickModal(true); }}>
+                ⚙
+              </Button>
+            </>
           )}
-          <Button variant="outline" style={{ flex: '0 0 auto', whiteSpace: 'nowrap' }} onClick={() => navigate('/exercise/setup')}>{ja ? 'カスタム演習' : 'Custom'}</Button>
-          <Button variant="outline" style={{ flex: '0 0 auto', whiteSpace: 'nowrap' }} disabled={!targetExam} onClick={() => { if (targetExam) setShowExamConfirm(true); }}>{ja ? '模試' : 'Mock Exam'}</Button>
+          <Button variant="outline" style={{ flex: '0 0 auto', whiteSpace: 'nowrap' }} onClick={() => navigate('/practice')}>
+            {ja ? '演習・テスト' : 'Practice'}
+          </Button>
         </div>
       )}
 
@@ -823,10 +769,71 @@ export default function Home() {
         </div>
       )}
 
-      {/* モーダル類 */}
-      {showExamConfirm && targetExam && (
-        <ExamConfirmModal targetExam={targetExam} lang={lang} onConfirm={startExamFromHome} onCancel={() => setShowExamConfirm(false)} loading={examLoading} />
+      {/* ── サクッと演習 設定モーダル ── */}
+      {showQuickModal && (
+        <div
+          style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', zIndex: 1000, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16 }}
+          onClick={e => { if (e.target === e.currentTarget) setShowQuickModal(false); }}
+        >
+          <div style={{ background: 'var(--color-bg-white)', borderRadius: 'var(--border-radius-lg)', padding: '24px 24px 20px', width: '100%', maxWidth: 420, boxShadow: 'var(--box-shadow-md)', maxHeight: '90vh', overflowY: 'auto' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 }}>
+              <h3 style={{ margin: 0, fontSize: 'var(--font-size-h3)', fontWeight: 700, color: 'var(--color-text-main)' }}>
+                {ja ? 'サクッと演習 設定' : 'Quick Practice Settings'}
+              </h3>
+              <button onClick={() => setShowQuickModal(false)} style={{ border: 'none', background: 'none', fontSize: 20, cursor: 'pointer', color: 'var(--color-text-sub)', padding: '4px 8px', lineHeight: 1 }}>✕</button>
+            </div>
+            <div style={{ marginBottom: 20 }}>
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '14px 0', borderBottom: '1px solid var(--color-border)' }}>
+                <div>
+                  <div style={{ fontWeight: 500, fontSize: 'var(--font-size-base)', color: 'var(--color-text-main)' }}>{ja ? '問題数' : 'Question Count'}</div>
+                  <div style={{ fontSize: 'var(--font-size-xs)', color: 'var(--color-text-light)', marginTop: 2 }}>{ja ? '1〜20問' : '1–20'}</div>
+                </div>
+                <input
+                  type="number" min={1} max={20}
+                  value={draftPrefs.questionCount ?? 5}
+                  onChange={e => setDraftPrefs(p => ({ ...p, questionCount: Math.min(20, Math.max(1, parseInt(e.target.value) || 5)) }))}
+                  style={{ width: 64, padding: '7px 10px', border: '1px solid var(--color-border)', borderRadius: 'var(--border-radius-md)', fontSize: 'var(--font-size-base)', textAlign: 'center', outline: 'none', background: 'var(--color-bg-white)', color: 'var(--color-text-main)' }}
+                  onFocus={e => e.currentTarget.style.borderColor = 'var(--color-primary)'}
+                  onBlur={e => e.currentTarget.style.borderColor = 'var(--color-border)'}
+                />
+              </div>
+              {([
+                ['unansweredOnly', ja ? '未回答のみ' : 'Unanswered Only', ja ? '一度も回答していない問題のみ出題' : 'Only questions not yet answered'],
+                ['incorrectOnly',  ja ? '不正解のみ'  : 'Incorrect Only',  ja ? '過去に不正解だった問題のみ出題'   : 'Only previously incorrect questions'],
+                ['bookmarkOnly',   ja ? 'ブックマークのみ' : 'Bookmarked Only', ja ? 'ブックマークした問題のみ出題'  : 'Only bookmarked questions'],
+              ] as [string, string, string][]).map(([key, label, desc], i, arr) => {
+                const on = !!(draftPrefs[key]);
+                return (
+                  <div key={key} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '14px 0', borderBottom: i < arr.length - 1 ? '1px solid var(--color-border)' : 'none' }}>
+                    <div>
+                      <div style={{ fontWeight: 500, fontSize: 'var(--font-size-base)', color: 'var(--color-text-main)' }}>{label}</div>
+                      <div style={{ fontSize: 'var(--font-size-xs)', color: 'var(--color-text-light)', marginTop: 2 }}>{desc}</div>
+                    </div>
+                    <button
+                      onClick={() => setDraftPrefs(p => ({ ...p, [key]: !on }))}
+                      aria-label={label}
+                      style={{ display: 'inline-flex', alignItems: 'center', width: 44, height: 26, borderRadius: 13, border: 'none', cursor: 'pointer', background: on ? 'var(--color-primary)' : 'var(--color-border)', transition: 'background 0.2s', flexShrink: 0, position: 'relative', padding: 0 }}
+                    >
+                      <span style={{ position: 'absolute', width: 20, height: 20, borderRadius: '50%', background: 'white', boxShadow: '0 1px 3px rgba(0,0,0,0.25)', left: on ? 22 : 2, transition: 'left 0.2s' }} />
+                    </button>
+                  </div>
+                );
+              })}
+            </div>
+            <div style={{ fontSize: 'var(--font-size-xs)', color: 'var(--color-text-light)', marginBottom: 16 }}>
+              {ja ? '※ AI確認済み問題のみが常に対象です' : '* AI-verified questions are always included'}
+            </div>
+            <Button
+              onClick={() => { localStorage.setItem(QUICK_PREFS_KEY, JSON.stringify(draftPrefs)); setShowQuickModal(false); }}
+              variant="primary" style={{ width: '100%' }}
+            >
+              {ja ? '保存する' : 'Save'}
+            </Button>
+          </div>
+        </div>
       )}
+
+      {/* モーダル類 */}
       {showScoreDetail && targetExam && (
         <ScoreDetailModal targetExam={targetExam} estimatedScore={estimatedScore} passScore={passScore} lang={lang} onClose={() => setShowScoreDetail(false)} />
       )}
