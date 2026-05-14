@@ -678,17 +678,6 @@ export default function ExerciseSession() {
           );
         })()}
 
-        {answered && (
-          <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: 'var(--spacing-sm)' }}>
-            <PromptMenu
-              questionText={currentQuestion.questionText}
-              choices={shuffledChoices}
-              explanation={((currentQuestion.correctAnswers ? currentQuestion : detail) ?? currentQuestion).explanation}
-              lang={lang}
-            />
-          </div>
-        )}
-
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: 'var(--spacing-md)', borderTop: '1px solid var(--color-border)', paddingTop: 'var(--spacing-lg)' }}>
           {!answered ? (
             <>
@@ -714,6 +703,17 @@ export default function ExerciseSession() {
             </Button>
           )}
         </div>
+
+        {answered && (
+          <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: 'var(--spacing-sm)' }}>
+            <PromptMenu
+              questionText={currentQuestion.questionText}
+              choices={shuffledChoices}
+              explanation={((currentQuestion.correctAnswers ? currentQuestion : detail) ?? currentQuestion).explanation}
+              lang={lang}
+            />
+          </div>
+        )}
 
         {/* メタデータ */}
         <div style={{ marginTop: 'var(--spacing-md)', paddingTop: 'var(--spacing-sm)', borderTop: '1px dashed var(--color-border)', display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: 'var(--spacing-lg)', fontSize: 'var(--font-size-xs)', color: 'var(--color-text-light)' }}>

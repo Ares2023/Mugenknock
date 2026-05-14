@@ -463,7 +463,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
           </button>
         )}
         <div style={{ flex: 1, minWidth: 0, overflow: 'hidden' }}>
-          {breadcrumbs[location.pathname] && (
+          {!isMobile && breadcrumbs[location.pathname] && (
             <Breadcrumb
               items={breadcrumbs[location.pathname]}
               style={{ marginBottom: 0, fontSize: 'var(--font-size-sm)' }}
