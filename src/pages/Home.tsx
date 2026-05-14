@@ -580,6 +580,46 @@ export default function Home() {
   return (
     <div style={{ maxWidth: 1100, margin: '0 auto', padding: 'var(--spacing-lg) var(--spacing-lg)' }} className="page-container">
 
+      {/* ── 成績セクションヘッダー ── */}
+      {user && (
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: 6, marginBottom: 6 }}>
+          {lastUpdated && !statsLoading && (
+            <span style={{ fontSize: 10, color: 'var(--color-text-light)' }}>
+              {(() => {
+                const now = new Date();
+                const hhmm = `${String(lastUpdated.getHours()).padStart(2, '0')}:${String(lastUpdated.getMinutes()).padStart(2, '0')}`;
+                const sameDay = lastUpdated.toDateString() === now.toDateString();
+                const label = ja ? '更新' : 'Updated';
+                return `${label} ${sameDay ? hhmm : `${lastUpdated.getMonth() + 1}/${lastUpdated.getDate()} ${hhmm}`}`;
+              })()}
+            </span>
+          )}
+          <button
+            onClick={refreshStats}
+            disabled={statsLoading || statsRefreshing}
+            title={ja ? '成績を更新' : 'Refresh stats'}
+            style={{
+              border: 'none', background: 'none',
+              cursor: (statsLoading || statsRefreshing) ? 'default' : 'pointer',
+              color: 'var(--color-text-light)', padding: '2px 4px', borderRadius: 4,
+              display: 'flex', alignItems: 'center', gap: 4,
+              fontSize: 11, fontWeight: 500,
+              transition: 'color 0.15s',
+            }}
+            onMouseEnter={e => { if (!statsLoading && !statsRefreshing) { e.currentTarget.style.color = 'var(--color-text-sub)'; } }}
+            onMouseLeave={e => { e.currentTarget.style.color = 'var(--color-text-light)'; }}
+            aria-label={ja ? '成績を更新' : 'Refresh stats'}
+          >
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"
+              style={{ animation: (statsLoading || statsRefreshing) ? 'sherpa-spin 0.8s linear infinite' : 'none', flexShrink: 0 }}>
+              <polyline points="23 4 23 10 17 10"/>
+              <path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/>
+            </svg>
+            {ja ? '成績を更新' : 'Refresh'}
+          </button>
+        </div>
+      )}
+
       {/* ── スコア + ドメイン (等幅2カラム on desktop, 1カラム on mobile) ── */}
       <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr', gap: 'var(--spacing-md)', marginBottom: 'var(--spacing-md)' }}>
 
@@ -646,51 +686,15 @@ export default function Home() {
             <span style={{ fontSize: 11, fontWeight: 700, color: 'var(--color-text-sub)', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
               {ja ? 'ドメイン別正答率' : 'Domain Accuracy'}
             </span>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
-              {user && lastUpdated && !statsLoading && (
-                <span style={{ fontSize: 10, color: 'var(--color-text-light)', letterSpacing: 0 }}>
-                  {(() => {
-                    const now = new Date();
-                    const hhmm = `${String(lastUpdated.getHours()).padStart(2, '0')}:${String(lastUpdated.getMinutes()).padStart(2, '0')}`;
-                    const sameDay = lastUpdated.toDateString() === now.toDateString();
-                    return sameDay ? hhmm : `${lastUpdated.getMonth() + 1}/${lastUpdated.getDate()} ${hhmm}`;
-                  })()}
-                </span>
-              )}
-              {user && (
-                <button
-                  onClick={refreshStats}
-                  disabled={statsLoading || statsRefreshing}
-                  title={ja ? '成績を更新' : 'Refresh stats'}
-                  style={{
-                    border: 'none', background: 'none',
-                    cursor: (statsLoading || statsRefreshing) ? 'default' : 'pointer',
-                    color: 'var(--color-text-light)', padding: '2px 4px', borderRadius: 4,
-                    fontSize: 14, lineHeight: 1,
-                    display: 'flex', alignItems: 'center', justifyContent: 'center',
-                    transition: 'color 0.15s',
-                  }}
-                  onMouseEnter={e => { if (!statsLoading && !statsRefreshing) e.currentTarget.style.color = 'var(--color-text-sub)'; }}
-                  onMouseLeave={e => { e.currentTarget.style.color = 'var(--color-text-light)'; }}
-                  aria-label={ja ? '成績を更新' : 'Refresh stats'}
-                >
-                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"
-                    style={{ animation: (statsLoading || statsRefreshing) ? 'sherpa-spin 0.8s linear infinite' : 'none' }}>
-                    <polyline points="23 4 23 10 17 10"/>
-                    <path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/>
-                  </svg>
-                </button>
-              )}
-              {targetExam && !statsLoading && (
-                <button
-                  style={CHEVRON_BTN}
-                  onClick={() => setShowDomainDetail(true)}
-                  onMouseEnter={e => e.currentTarget.style.color = 'var(--color-text-sub)'}
-                  onMouseLeave={e => e.currentTarget.style.color = 'var(--color-text-light)'}
-                  aria-label="詳細を見る"
-                >›</button>
-              )}
-            </div>
+            {targetExam && !statsLoading && (
+              <button
+                style={CHEVRON_BTN}
+                onClick={() => setShowDomainDetail(true)}
+                onMouseEnter={e => e.currentTarget.style.color = 'var(--color-text-sub)'}
+                onMouseLeave={e => e.currentTarget.style.color = 'var(--color-text-light)'}
+                aria-label="詳細を見る"
+              >›</button>
+            )}
           </div>
           {!targetExam ? (
             <div style={{ color: 'var(--color-text-light)', fontSize: 'var(--font-size-sm)', fontStyle: 'italic' }}>
