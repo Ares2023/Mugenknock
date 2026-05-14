@@ -749,7 +749,7 @@ export default function Home() {
           )}
           <button
             onClick={() => { setDraftPrefs({ ...loadQuickPrefs() }); setShowQuickModal(true); }}
-            style={{ flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', width: 44, border: '1px solid var(--color-border)', borderRadius: 'var(--border-radius-md)', background: 'transparent', cursor: 'pointer', color: 'var(--color-text-sub)' }}
+            style={{ flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', width: 44, height: 44, border: '1px solid var(--color-border)', borderRadius: '50%', background: 'transparent', cursor: 'pointer', color: 'var(--color-text-sub)' }}
             aria-label={ja ? '設定' : 'Settings'}
           >
             <IconSettings size={18} />
