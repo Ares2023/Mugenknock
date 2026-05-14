@@ -1,8 +1,8 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { updatePassword, deleteUser, updateUserAttributes } from 'aws-amplify/auth';
-import { API_ENDPOINT, EXAM_TYPES, EXAM_LEVEL } from '../constants';
-import { deleteCached } from '../utils/cache';
+import { API_ENDPOINT, EXAM_TYPES, EXAM_LEVEL, EXAM_DOMAINS } from '../constants';
+import { getCached, setCached, deleteCached, SHORT_TTL } from '../utils/cache';
 import { useAuth } from '../contexts/AuthContext';
 import { useLanguage } from '../contexts/LanguageContext';
 import { useTheme } from '../contexts/ThemeContext';
@@ -148,6 +148,7 @@ export default function Account() {
   const navigate = useNavigate();
 
   const [summaries, setSummaries] = useState<Record<string, SessionSummary>>({});
+  const [tagStats, setTagStats] = useState<Record<string, number>>({}); // tagId → total answers
   const [loading, setLoading] = useState(true);
   const [confirmingExam, setConfirmingExam] = useState<string | null>(null);
   const [deleting, setDeleting] = useState<string | null>(null);
@@ -190,9 +191,21 @@ export default function Account() {
     setQuickPrefs(next);
   };
 
+  // localStorage にそのexamTypeのデータが残っているか確認
+  const hasLocalData = (et: string): boolean => {
+    try {
+      const hist = JSON.parse(localStorage.getItem(`domain_history_${et}`) ?? '{}');
+      if (Object.values(hist).some((s: any) => (s as any[]).length > 0)) return true;
+      const scoreHist = JSON.parse(localStorage.getItem(`score_history_${et}`) ?? '[]');
+      if (scoreHist.length > 0) return true;
+      return false;
+    } catch { return false; }
+  };
+
   useEffect(() => {
     if (!user) return;
-    fetch(`${API_ENDPOINT}/users/me/sessions?userId=${user.userId}&limit=1000`)
+    // Sessions と UserTagStats を並行取得
+    const sessionsFetch = fetch(`${API_ENDPOINT}/users/me/sessions?userId=${user.userId}&limit=1000`)
       .then(r => r.json())
       .then(d => {
         const map: Record<string, SessionSummary> = {};
@@ -204,9 +217,24 @@ export default function Account() {
           if (!map[et].lastDate || date > map[et].lastDate!) map[et].lastDate = date;
         }
         setSummaries(map);
-      })
-      .catch(console.error)
-      .finally(() => setLoading(false));
+      });
+
+    const cached = getCached<any[]>(`ustats_${user.userId}`);
+    const statsFetch = cached
+      ? Promise.resolve(cached)
+      : fetch(`${API_ENDPOINT}/users/me/stats?userId=${user.userId}`)
+          .then(r => r.json())
+          .then(d => { const s = d.stats ?? []; if (s.length) setCached(`ustats_${user.userId}`, s, SHORT_TTL); return s; });
+    statsFetch.then(stats => {
+      const map: Record<string, number> = {};
+      for (const s of stats) {
+        const total = (s.correctCount ?? 0) + (s.incorrectCount ?? 0);
+        if (total > 0) map[s.tagId] = total;
+      }
+      setTagStats(map);
+    });
+
+    Promise.all([sessionsFetch, statsFetch]).catch(console.error).finally(() => setLoading(false));
   }, [user]);
 
   const handleDelete = async (et: string) => {
@@ -413,50 +441,53 @@ export default function Account() {
                     </div>
                   ) : (
                     <div>
-                      {EXAM_TYPES.filter(et => summaries[et] && !deletedExams.has(et)).map((et, i, arr) => {
-                        const summary = summaries[et];
-                        const isConfirming = confirmingExam === et;
-                        const isDeleting = deleting === et;
-                        const hasData = !!summary;
-                        return (
-                          <div key={et} style={{
-                            display: 'flex', alignItems: 'center', gap: 12,
-                            padding: '10px 16px',
-                            borderTop: i > 0 ? '1px solid var(--color-border)' : 'none',
-                          }}>
-                            <div style={{ flex: 1, minWidth: 0 }}>
-                              <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 2 }}>
-                                <Badge variant="secondary">{et}</Badge>
-                                <span style={{ fontSize: 'var(--font-size-xs)', color: 'var(--color-text-light)' }}>{EXAM_LEVEL[et]}</span>
-                              </div>
-                              <div style={{ fontSize: 'var(--font-size-xs)', color: 'var(--color-text-light)' }}>
-                                {ja ? `${summary.count}セッション` : `${summary.count} sessions`}
-                                {summary.lastDate && ` · ${ja ? '最終' : 'Last'}: ${formatDate(summary.lastDate)}`}
-                              </div>
-                            </div>
-                            {isConfirming ? (
-                              <div style={{ display: 'flex', alignItems: 'center', gap: 6, flexShrink: 0 }}>
-                                <span style={{ fontSize: 'var(--font-size-xs)', color: 'var(--color-text-sub)' }}>{ja ? '削除しますか？' : 'Delete?'}</span>
-                                <button onClick={() => handleDelete(et)} disabled={isDeleting} style={{ padding: '4px 10px', fontSize: 'var(--font-size-xs)', fontWeight: 700, cursor: 'pointer', border: '1.5px solid var(--color-danger)', borderRadius: 'var(--border-radius-md)', background: 'var(--color-danger)', color: 'white', opacity: isDeleting ? 0.6 : 1 }}>
-                                  {isDeleting ? '…' : (ja ? 'はい' : 'Yes')}
-                                </button>
-                                <button onClick={() => setConfirmingExam(null)} disabled={isDeleting} style={{ padding: '4px 10px', fontSize: 'var(--font-size-xs)', fontWeight: 700, cursor: 'pointer', border: '1.5px solid var(--color-border)', borderRadius: 'var(--border-radius-md)', background: 'transparent', color: 'var(--color-text-sub)' }}>
-                                  {ja ? 'キャンセル' : 'Cancel'}
-                                </button>
-                              </div>
-                            ) : (
-                              <button onClick={() => setConfirmingExam(et)} disabled={!hasData} style={{ padding: '5px 12px', fontSize: 'var(--font-size-xs)', fontWeight: 700, cursor: hasData ? 'pointer' : 'default', border: `1.5px solid ${hasData ? 'var(--color-danger)' : 'var(--color-border)'}`, borderRadius: 'var(--border-radius-md)', background: 'transparent', color: hasData ? 'var(--color-danger)' : 'var(--color-text-light)', flexShrink: 0 }}>
-                                {ja ? 'データを削除' : 'Delete data'}
-                              </button>
-                            )}
+                      {(() => {
+                        // Sessions・localStorage・UserTagStats いずれかにデータがある資格を表示
+                        const hasTagData = (et: string) => (EXAM_DOMAINS[et] ?? []).some(tag => tagStats[tag] > 0);
+                        const visible = EXAM_TYPES.filter(et =>
+                          !deletedExams.has(et) && (summaries[et] || hasLocalData(et) || hasTagData(et))
+                        );
+                        if (visible.length === 0) return (
+                          <div style={{ padding: '12px 16px', fontSize: 'var(--font-size-sm)', color: 'var(--color-text-light)', fontStyle: 'italic' }}>
+                            {ja ? '削除可能なデータがありません' : 'No data to delete'}
                           </div>
                         );
-                      })}
-                      {EXAM_TYPES.filter(et => summaries[et] && !deletedExams.has(et)).length === 0 && (
-                        <div style={{ padding: '12px 16px', fontSize: 'var(--font-size-sm)', color: 'var(--color-text-light)', fontStyle: 'italic' }}>
-                          {ja ? '削除可能なデータがありません' : 'No data to delete'}
-                        </div>
-                      )}
+                        return visible.map((et, i) => {
+                          const summary = summaries[et];
+                          const isConfirming = confirmingExam === et;
+                          const isDeleting = deleting === et;
+                          return (
+                            <div key={et} style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '10px 16px', borderTop: i > 0 ? '1px solid var(--color-border)' : 'none' }}>
+                              <div style={{ flex: 1, minWidth: 0 }}>
+                                <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 2 }}>
+                                  <Badge variant="secondary">{et}</Badge>
+                                  <span style={{ fontSize: 'var(--font-size-xs)', color: 'var(--color-text-light)' }}>{EXAM_LEVEL[et]}</span>
+                                </div>
+                                <div style={{ fontSize: 'var(--font-size-xs)', color: 'var(--color-text-light)' }}>
+                                  {summary
+                                    ? `${summary.count}${ja ? 'セッション' : ' sessions'}${summary.lastDate ? ` · ${ja ? '最終' : 'Last'}: ${formatDate(summary.lastDate)}` : ''}`
+                                    : (ja ? 'セッションなし（成績データあり）' : 'No sessions (stats data exists)')}
+                                </div>
+                              </div>
+                              {isConfirming ? (
+                                <div style={{ display: 'flex', alignItems: 'center', gap: 6, flexShrink: 0 }}>
+                                  <span style={{ fontSize: 'var(--font-size-xs)', color: 'var(--color-text-sub)' }}>{ja ? '削除しますか？' : 'Delete?'}</span>
+                                  <button onClick={() => handleDelete(et)} disabled={isDeleting} style={{ padding: '4px 10px', fontSize: 'var(--font-size-xs)', fontWeight: 700, cursor: 'pointer', border: '1.5px solid var(--color-danger)', borderRadius: 'var(--border-radius-md)', background: 'var(--color-danger)', color: 'white', opacity: isDeleting ? 0.6 : 1 }}>
+                                    {isDeleting ? '…' : (ja ? 'はい' : 'Yes')}
+                                  </button>
+                                  <button onClick={() => setConfirmingExam(null)} disabled={isDeleting} style={{ padding: '4px 10px', fontSize: 'var(--font-size-xs)', fontWeight: 700, cursor: 'pointer', border: '1.5px solid var(--color-border)', borderRadius: 'var(--border-radius-md)', background: 'transparent', color: 'var(--color-text-sub)' }}>
+                                    {ja ? 'キャンセル' : 'Cancel'}
+                                  </button>
+                                </div>
+                              ) : (
+                                <button onClick={() => setConfirmingExam(et)} style={{ padding: '5px 12px', fontSize: 'var(--font-size-xs)', fontWeight: 700, cursor: 'pointer', border: '1.5px solid var(--color-danger)', borderRadius: 'var(--border-radius-md)', background: 'transparent', color: 'var(--color-danger)', flexShrink: 0 }}>
+                                  {ja ? 'データを削除' : 'Delete data'}
+                                </button>
+                              )}
+                            </div>
+                          );
+                        });
+                      })()}
                     </div>
                   )}
                 </div>
