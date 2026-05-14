@@ -24,7 +24,6 @@ import Growth from './pages/Growth';
 import Architecture from './pages/Architecture';
 import ReleaseNotes from './pages/ReleaseNotes';
 import Account from './pages/Account';
-import AWSNews from './pages/AWSNews';
 import Others from './pages/Others';
 import Practice from './pages/Practice';
 
@@ -67,7 +66,6 @@ function App() {
           <Route path="/exam/setup" element={<Layout><ExamSetup /></Layout>} />
           <Route path="/exam/session" element={<Layout><ExamSession /></Layout>} />
           <Route path="/practice" element={<Layout><Practice /></Layout>} />
-          <Route path="/aws-news" element={<Layout><AWSNews /></Layout>} />
           <Route path="/growth" element={<Layout><Growth /></Layout>} />
           <Route path="/architecture" element={<Layout><Architecture /></Layout>} />
           <Route path="/release-notes" element={<Layout><ReleaseNotes /></Layout>} />

@@ -10,7 +10,7 @@ import {
   IconHome, IconList,
   IconUser, IconChart, IconInfo,
   IconFire, IconMenu, IconClose, IconChevronLeft, IconMail,
-  IconSparkles, IconNewspaper, IconFootprint
+  IconSparkles, IconFootprint
 } from './Icons';
 
 type BreadcrumbItem = { label: string; path?: string };
@@ -47,7 +47,6 @@ const NAV_KEYS = [
   { path: '/',          labelKey: 'nav.home',      Icon: IconHome      },
   { path: '/practice',  labelKey: 'nav.practice',  Icon: IconFire      },
   { path: '/stats',     labelKey: 'nav.stats',     Icon: IconFootprint },
-  { path: '/aws-news',  labelKey: 'nav.news',      Icon: IconNewspaper },
   { path: '/questions',     labelKey: 'nav.questions',    Icon: IconList,     bottom: true },
   { path: '/growth',        labelKey: 'nav.growth',       Icon: IconSparkles, bottom: true },
   { path: '/release-notes', labelKey: 'nav.releaseNotes', Icon: IconFire,     bottom: true },
@@ -61,7 +60,6 @@ const BOTTOM_TABS = [
 ];
 
 const OTHERS_ITEMS = [
-  { path: '/aws-news',      Icon: IconNewspaper,  labelKey: 'nav.news'         },
   { path: '/questions',     Icon: IconList,       labelKey: 'nav.questions'    },
   { path: '/growth',        Icon: IconSparkles,   labelKey: 'nav.growth'       },
   { path: '/release-notes', Icon: IconFire,       labelKey: 'nav.releaseNotes' },
@@ -221,7 +219,6 @@ export default function Layout({ children }: { children: React.ReactNode }) {
 
   const breadcrumbs: Record<string, BreadcrumbItem[]> = {
     '/practice':         [{ label: t('nav.home'), path: '/' }, { label: '演習・テスト' }],
-    '/aws-news':         [{ label: t('nav.home'), path: '/' }, { label: t('nav.news') }],
     '/questions':        [{ label: t('nav.home'), path: '/' }, { label: t('nav.questions') }],
     '/growth':           [{ label: t('nav.home'), path: '/' }, { label: t('nav.growth') }],
     '/exercise/setup':   [{ label: t('nav.home'), path: '/' }, { label: t('exerciseSetup.title') }],
