@@ -9,7 +9,7 @@ import {
 import { getCached, setCached, deleteCached, DEFAULT_TTL } from '../utils/cache';
 import Card from '../components/ui/Card';
 import Button from '../components/ui/Button';
-import { IconLightbulb, ServiceIcon, isServiceIconKey } from '../components/Icons';
+import { IconLightbulb, IconSettings, ServiceIcon, isServiceIconKey } from '../components/Icons';
 
 type DomainStat = { tagId: string; correctCount?: number; incorrectCount?: number };
 type SessionEntry = { correct: number; total: number };
@@ -743,18 +743,17 @@ export default function Home() {
               </Button>
             </>
           ) : (
-            <>
-              <Button variant="primary" style={{ flex: 2, minWidth: 0, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }} disabled={!targetExam || quickLoading} onClick={() => { if (targetExam && !quickLoading) startQuickExercise(); }}>
-                {quickLoading ? (ja ? '準備中...' : 'Loading...') : (ja ? 'サクッと演習' : 'Quick')}
-              </Button>
-              <Button variant="outline" style={{ flex: 1, whiteSpace: 'nowrap' }} onClick={() => { setDraftPrefs({ ...loadQuickPrefs() }); setShowQuickModal(true); }}>
-                ⚙
-              </Button>
-            </>
+            <Button variant="primary" style={{ flex: 1, minWidth: 0, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }} disabled={!targetExam || quickLoading} onClick={() => { if (targetExam && !quickLoading) startQuickExercise(); }}>
+              {quickLoading ? (ja ? '準備中...' : 'Loading...') : (ja ? 'サクッと演習' : 'Quick')}
+            </Button>
           )}
-          <Button variant="outline" style={{ flex: '0 0 auto', whiteSpace: 'nowrap' }} onClick={() => navigate('/practice')}>
-            {ja ? '演習・テスト' : 'Practice'}
-          </Button>
+          <button
+            onClick={() => { setDraftPrefs({ ...loadQuickPrefs() }); setShowQuickModal(true); }}
+            style={{ flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', width: 44, border: '1px solid var(--color-border)', borderRadius: 'var(--border-radius-md)', background: 'transparent', cursor: 'pointer', color: 'var(--color-text-sub)' }}
+            aria-label={ja ? '設定' : 'Settings'}
+          >
+            <IconSettings size={18} />
+          </button>
         </div>
       )}
 
