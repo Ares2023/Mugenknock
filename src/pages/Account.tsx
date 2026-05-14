@@ -176,6 +176,7 @@ export default function Account() {
   const [showLangModal, setShowLangModal] = useState(false);
   const [showThemeModal, setShowThemeModal] = useState(false);
   const [showQuickModal, setShowQuickModal] = useState(false);
+  const [draftPrefs, setDraftPrefs] = useState<Record<string, any>>({});
 
   const QUICK_PREFS_KEY = 'quickExercisePrefs';
   const loadQuickPrefs = () => {
@@ -347,37 +348,6 @@ export default function Account() {
           </div>
         )}
 
-        {/* サクッと演習設定 */}
-        <div>
-          <SectionTitle>{ja ? 'サクッと演習 設定' : 'Quick Practice Settings'}</SectionTitle>
-          <SettingsGroup>
-            <SettingsRow
-              label={ja ? '問題数' : 'Question Count'}
-              value={`${quickPrefs.questionCount ?? 5}${ja ? '問' : 'Q'}`}
-              onClick={() => setShowQuickModal(true)}
-            />
-            <SettingsRow
-              label={ja ? '未回答のみ' : 'Unanswered Only'}
-              value={quickPrefs.unansweredOnly ? 'ON' : 'OFF'}
-              onClick={() => saveQuickPref('unansweredOnly', !(quickPrefs.unansweredOnly ?? false))}
-            />
-            <SettingsRow
-              label={ja ? '不正解のみ' : 'Incorrect Only'}
-              value={quickPrefs.incorrectOnly ? 'ON' : 'OFF'}
-              onClick={() => saveQuickPref('incorrectOnly', !(quickPrefs.incorrectOnly ?? false))}
-            />
-            <SettingsRow
-              label={ja ? 'ブックマークのみ' : 'Bookmarked Only'}
-              value={quickPrefs.bookmarkOnly ? 'ON' : 'OFF'}
-              onClick={() => saveQuickPref('bookmarkOnly', !(quickPrefs.bookmarkOnly ?? false))}
-              last
-            />
-          </SettingsGroup>
-          <div style={{ marginTop: 6, fontSize: 'var(--font-size-xs)', color: 'var(--color-text-light)', padding: '0 4px' }}>
-            {ja ? '※ AI確認済み問題のみが常に対象です' : '* AI-verified questions are always included'}
-          </div>
-        </div>
-
         {/* 表示設定 */}
         <div>
           <SectionTitle>{ja ? '表示設定' : 'Display'}</SectionTitle>
@@ -394,6 +364,30 @@ export default function Account() {
               last
             />
           </SettingsGroup>
+        </div>
+
+        {/* サクッと演習設定 */}
+        <div>
+          <SectionTitle>{ja ? 'サクッと演習 設定' : 'Quick Practice Settings'}</SectionTitle>
+          <SettingsGroup>
+            <SettingsRow
+              label={ja ? 'サクッと演習の設定' : 'Quick Practice'}
+              value={(() => {
+                const count = quickPrefs.questionCount ?? 5;
+                const filters = [
+                  quickPrefs.unansweredOnly && (ja ? '未回答' : 'Unanswered'),
+                  quickPrefs.incorrectOnly && (ja ? '不正解' : 'Incorrect'),
+                  quickPrefs.bookmarkOnly && (ja ? 'ブックマーク' : 'Bookmarked'),
+                ].filter(Boolean);
+                return `${count}${ja ? '問' : 'Q'}${filters.length > 0 ? ' · ' + filters.join(' · ') : ''}`;
+              })()}
+              onClick={() => { setDraftPrefs({ ...loadQuickPrefs() }); setShowQuickModal(true); }}
+              last
+            />
+          </SettingsGroup>
+          <div style={{ marginTop: 6, fontSize: 'var(--font-size-xs)', color: 'var(--color-text-light)', padding: '0 4px' }}>
+            {ja ? '※ AI確認済み問題のみが常に対象です' : '* AI-verified questions are always included'}
+          </div>
         </div>
 
         {/* データ管理 */}
@@ -507,25 +501,56 @@ export default function Account() {
         )}
       </div>
 
-      {/* ── サクッと演習 問題数モーダル ── */}
+      {/* ── サクッと演習 設定モーダル ── */}
       {showQuickModal && (
-        <Modal onClose={() => setShowQuickModal(false)} title={ja ? 'サクッと演習の問題数' : 'Quick Practice Question Count'}>
-          <p style={{ margin: '0 0 16px', fontSize: 'var(--font-size-sm)', color: 'var(--color-text-sub)', lineHeight: 1.6 }}>
-            {ja ? 'ホーム画面の「サクッと演習」で出題する問題数を設定します。' : 'Set the number of questions for Quick Practice on the home screen.'}
-          </p>
+        <Modal onClose={() => setShowQuickModal(false)} title={ja ? 'サクッと演習 設定' : 'Quick Practice Settings'}>
           <div style={{ marginBottom: 20 }}>
-            <FieldLabel>{ja ? '問題数（1〜20問）' : 'Count (1–20)'}</FieldLabel>
-            <input
-              type="number"
-              min={1} max={20}
-              value={quickPrefs.questionCount ?? 5}
-              onChange={e => saveQuickPref('questionCount', Math.min(20, Math.max(1, parseInt(e.target.value) || 5)))}
-              style={{ width: '100%', padding: '9px 12px', border: '1px solid var(--color-border)', borderRadius: 'var(--border-radius-md)', fontSize: 'var(--font-size-base)', boxSizing: 'border-box', outline: 'none' }}
-              onFocus={e => e.currentTarget.style.borderColor = 'var(--color-primary)'}
-              onBlur={e => e.currentTarget.style.borderColor = 'var(--color-border)'}
-            />
+            {/* 問題数 */}
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '14px 0', borderBottom: '1px solid var(--color-border)' }}>
+              <div>
+                <div style={{ fontWeight: 500, fontSize: 'var(--font-size-base)', color: 'var(--color-text-main)' }}>{ja ? '問題数' : 'Question Count'}</div>
+                <div style={{ fontSize: 'var(--font-size-xs)', color: 'var(--color-text-light)', marginTop: 2 }}>{ja ? '1〜20問' : '1–20'}</div>
+              </div>
+              <input
+                type="number" min={1} max={20}
+                value={draftPrefs.questionCount ?? 5}
+                onChange={e => setDraftPrefs(p => ({ ...p, questionCount: Math.min(20, Math.max(1, parseInt(e.target.value) || 5)) }))}
+                style={{ width: 64, padding: '7px 10px', border: '1px solid var(--color-border)', borderRadius: 'var(--border-radius-md)', fontSize: 'var(--font-size-base)', textAlign: 'center', outline: 'none', background: 'var(--color-bg-white)', color: 'var(--color-text-main)' }}
+                onFocus={e => e.currentTarget.style.borderColor = 'var(--color-primary)'}
+                onBlur={e => e.currentTarget.style.borderColor = 'var(--color-border)'}
+              />
+            </div>
+            {/* トグル項目 */}
+            {([
+              ['unansweredOnly', ja ? '未回答のみ' : 'Unanswered Only', ja ? '一度も回答していない問題のみ出題' : 'Only questions not yet answered'],
+              ['incorrectOnly', ja ? '不正解のみ' : 'Incorrect Only', ja ? '過去に不正解だった問題のみ出題' : 'Only previously incorrect questions'],
+              ['bookmarkOnly', ja ? 'ブックマークのみ' : 'Bookmarked Only', ja ? 'ブックマークした問題のみ出題' : 'Only bookmarked questions'],
+            ] as [string, string, string][]).map(([key, label, desc], i, arr) => {
+              const on = !!(draftPrefs[key]);
+              return (
+                <div key={key} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '14px 0', borderBottom: i < arr.length - 1 ? '1px solid var(--color-border)' : 'none' }}>
+                  <div>
+                    <div style={{ fontWeight: 500, fontSize: 'var(--font-size-base)', color: 'var(--color-text-main)' }}>{label}</div>
+                    <div style={{ fontSize: 'var(--font-size-xs)', color: 'var(--color-text-light)', marginTop: 2 }}>{desc}</div>
+                  </div>
+                  <button
+                    onClick={() => setDraftPrefs(p => ({ ...p, [key]: !on }))}
+                    aria-label={label}
+                    style={{ display: 'inline-flex', alignItems: 'center', width: 44, height: 26, borderRadius: 13, border: 'none', cursor: 'pointer', background: on ? 'var(--color-primary)' : 'var(--color-border)', transition: 'background 0.2s', flexShrink: 0, position: 'relative', padding: 0 }}
+                  >
+                    <span style={{ position: 'absolute', width: 20, height: 20, borderRadius: '50%', background: 'white', boxShadow: '0 1px 3px rgba(0,0,0,0.25)', left: on ? 22 : 2, transition: 'left 0.2s' }} />
+                  </button>
+                </div>
+              );
+            })}
           </div>
-          <Button onClick={() => setShowQuickModal(false)} variant="primary" style={{ width: '100%' }}>
+          <div style={{ fontSize: 'var(--font-size-xs)', color: 'var(--color-text-light)', marginBottom: 16 }}>
+            {ja ? '※ AI確認済み問題のみが常に対象です' : '* AI-verified questions are always included'}
+          </div>
+          <Button
+            onClick={() => { localStorage.setItem(QUICK_PREFS_KEY, JSON.stringify(draftPrefs)); setQuickPrefs(draftPrefs); setShowQuickModal(false); }}
+            variant="primary" style={{ width: '100%' }}
+          >
             {ja ? '保存する' : 'Save'}
           </Button>
         </Modal>
