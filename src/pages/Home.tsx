@@ -367,6 +367,16 @@ export default function Home() {
   const [lastUpdated, setLastUpdated] = useState<Date | null>(null);
   const [quickLoading, setQuickLoading] = useState(false);
   const [examLoading, setExamLoading] = useState(false);
+
+  // サクッと演習ドラフト（24時間以内のquickセッションのみ）
+  const readQuickDraft = () => {
+    try {
+      const d = JSON.parse(localStorage.getItem('exerciseDraft') ?? 'null');
+      if (!d?.isQuick || !d?.savedAt || Date.now() - d.savedAt > 24 * 3600 * 1000) return null;
+      return d;
+    } catch { return null; }
+  };
+  const [quickDraft, setQuickDraft] = useState<any>(() => readQuickDraft());
   const [showExamConfirm, setShowExamConfirm] = useState(false);
   const [showScoreDetail, setShowScoreDetail] = useState(false);
   const [showDomainDetail, setShowDomainDetail] = useState(false);
@@ -506,9 +516,36 @@ export default function Home() {
 
   const scoreDelta = prevScore !== null && estimatedScore !== null ? estimatedScore - prevScore : null;
 
+  // サクッと演習ドラフトから再開
+  const hasQuickDraft = !!(quickDraft && quickDraft.examType === targetExam);
+
+  const resumeQuickExercise = () => {
+    if (!quickDraft) return;
+    navigate('/exercise/session', {
+      state: {
+        sessionId: quickDraft.sessionId,
+        questions: quickDraft.questions,
+        userId: quickDraft.userId,
+        examType: quickDraft.examType,
+        mode: 'exercise',
+        isQuick: true,
+        resumeIndex: quickDraft.currentIndex,
+        resumeResults: quickDraft.results,
+        resumeAnswered: quickDraft.answered,
+        resumeSelectedAnswers: quickDraft.selectedAnswers,
+      }
+    });
+  };
+
+  const discardQuickDraft = () => {
+    localStorage.removeItem('exerciseDraft');
+    setQuickDraft(null);
+  };
+
   // サクッと演習
   const startQuickExercise = async () => {
     if (!targetExam) { alert(ja ? '試験を選択してください' : 'Please select an exam'); return; }
+    discardQuickDraft();
     setQuickLoading(true);
     const qPrefs = loadQuickPrefs();
     try {
@@ -732,9 +769,20 @@ export default function Home() {
       {/* ── 演習・模試ボタン行（デスクトップ） ── */}
       {!isMobile && (
         <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr', gap: 'var(--spacing-sm)', marginBottom: 'var(--spacing-md)' }}>
-          <Button variant="primary" fullWidth disabled={!targetExam || quickLoading} onClick={() => { if (targetExam && !quickLoading) startQuickExercise(); }}>
-            {quickLoading ? (ja ? '準備中...' : 'Loading...') : (ja ? `サクッと演習 (${loadQuickPrefs().questionCount ?? 5}問)` : `Quick (${loadQuickPrefs().questionCount ?? 5}Q)`)}
-          </Button>
+          {hasQuickDraft ? (
+            <div style={{ display: 'flex', gap: 6 }}>
+              <Button variant="primary" style={{ flex: 1 }} disabled={quickLoading} onClick={resumeQuickExercise}>
+                {ja ? 'サクッと演習（途中から）' : 'Quick (Resume)'}
+              </Button>
+              <Button variant="outline" style={{ whiteSpace: 'nowrap', padding: '0 14px', fontSize: 'var(--font-size-sm)' }} disabled={quickLoading} onClick={() => { if (!quickLoading) startQuickExercise(); }}>
+                {ja ? '新規' : 'New'}
+              </Button>
+            </div>
+          ) : (
+            <Button variant="primary" fullWidth disabled={!targetExam || quickLoading} onClick={() => { if (targetExam && !quickLoading) startQuickExercise(); }}>
+              {quickLoading ? (ja ? '準備中...' : 'Loading...') : (ja ? `サクッと演習 (${loadQuickPrefs().questionCount ?? 5}問)` : `Quick (${loadQuickPrefs().questionCount ?? 5}Q)`)}
+            </Button>
+          )}
           <Button variant="outline" fullWidth style={{ whiteSpace: 'nowrap' }} onClick={() => navigate('/exercise/setup')}>{ja ? 'カスタム演習' : 'Custom'}</Button>
           <Button variant="outline" fullWidth disabled={!targetExam} onClick={() => { if (targetExam) setShowExamConfirm(true); }} style={{ gridColumn: '1 / -1' }}>
             {ja ? '模試' : 'Mock Exam'}
@@ -745,9 +793,20 @@ export default function Home() {
       {/* ── 演習・模試ボタン（モバイル固定） ── */}
       {isMobile && (
         <div style={{ position: 'fixed', bottom: 56, left: 0, right: 0, zIndex: 150, background: 'var(--color-bg-white)', borderTop: '1px solid var(--color-border)', padding: '8px 12px', display: 'flex', gap: 6, boxShadow: '0 -2px 8px rgba(0,0,0,0.08)' }}>
-          <Button variant="primary" style={{ flex: 1, minWidth: 0, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }} disabled={!targetExam || quickLoading} onClick={() => { if (targetExam && !quickLoading) startQuickExercise(); }}>
-            {quickLoading ? (ja ? '準備中...' : 'Loading...') : (ja ? 'サクッと演習' : 'Quick')}
-          </Button>
+          {hasQuickDraft ? (
+            <>
+              <Button variant="primary" style={{ flex: 1, minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }} disabled={quickLoading} onClick={resumeQuickExercise}>
+                {ja ? '途中から' : 'Resume'}
+              </Button>
+              <Button variant="outline" style={{ flexShrink: 0, padding: '0 10px', fontSize: 'var(--font-size-sm)', whiteSpace: 'nowrap' }} disabled={quickLoading} onClick={() => { if (!quickLoading) startQuickExercise(); }}>
+                {ja ? '新規' : 'New'}
+              </Button>
+            </>
+          ) : (
+            <Button variant="primary" style={{ flex: 1, minWidth: 0, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }} disabled={!targetExam || quickLoading} onClick={() => { if (targetExam && !quickLoading) startQuickExercise(); }}>
+              {quickLoading ? (ja ? '準備中...' : 'Loading...') : (ja ? 'サクッと演習' : 'Quick')}
+            </Button>
+          )}
           <Button variant="outline" style={{ flex: '0 0 auto', whiteSpace: 'nowrap' }} onClick={() => navigate('/exercise/setup')}>{ja ? 'カスタム演習' : 'Custom'}</Button>
           <Button variant="outline" style={{ flex: '0 0 auto', whiteSpace: 'nowrap' }} disabled={!targetExam} onClick={() => { if (targetExam) setShowExamConfirm(true); }}>{ja ? '模試' : 'Mock Exam'}</Button>
         </div>

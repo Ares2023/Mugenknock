@@ -289,6 +289,7 @@ export default function ExerciseSession() {
       localStorage.setItem('exerciseDraft', JSON.stringify({
         sessionId, examType, questions, userId,
         currentIndex, results, answered, selectedAnswers,
+        isQuick, savedAt: Date.now(),
       }));
     } catch { /* quota over 等は無視 */ }
   }, [currentIndex, results]); // eslint-disable-line react-hooks/exhaustive-deps
