@@ -10,6 +10,7 @@ import Badge from '../components/ui/Badge';
 import ReportModal from '../components/ReportModal';
 
 const WAKARANAI = 'わからない';
+const stripLabel = (s: string) => s.replace(/^[A-E]\.\s*/, '');
 
 type Question = {
   questionId: string;
@@ -173,7 +174,7 @@ export default function ExamSession() {
       const results = questions.map((q: Question) => {
         const userAns = answers[q.questionId] ?? [];
         const correct = q.correctAnswers ?? [];
-        const isCorrect = correct.length === userAns.length && correct.every(a => userAns.includes(a));
+        const isCorrect = correct.length === userAns.length && correct.every(a => userAns.map(stripLabel).includes(stripLabel(a)));
         return { questionId: q.questionId, isCorrect, userAns, tags: q.tags ?? [] };
       });
 

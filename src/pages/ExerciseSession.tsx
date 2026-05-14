@@ -13,6 +13,8 @@ import { getServiceLinks } from '../awsServiceLinks';
 type Tip = { tipId: string; title: string; content: string; examType: string };
 
 const WAKARANAI = 'わからない';
+// DBによっては correctAnswers に "B. テキスト" のようなラベル接頭辞が付いている場合がある
+const stripLabel = (s: string) => s.replace(/^[A-E]\.\s*/, '');
 
 type Question = {
   questionId: string;
@@ -231,7 +233,7 @@ export default function ExerciseSession() {
         setDetail(d);
         const correct: string[] = d.correctAnswers ?? [];
         const isCorrect = correct.length === selectedAnswers.length &&
-          correct.every((a: string) => selectedAnswers.includes(a));
+          correct.every((a: string) => selectedAnswers.map(stripLabel).includes(stripLabel(a)));
         setResults(prev => {
           const next = [...prev];
           if (next.length > 0) next[next.length - 1] = { questionId: q.questionId, isCorrect };
@@ -344,7 +346,7 @@ export default function ExerciseSession() {
 
     const correctAnswers = currentQuestion.correctAnswers || [];
     const isCorrect = correctAnswers.length === selectedAnswers.length &&
-      correctAnswers.every(a => selectedAnswers.includes(a));
+      correctAnswers.every(a => selectedAnswers.map(stripLabel).includes(stripLabel(a)));
 
     setResults(prev => [...prev, { questionId: currentQuestion.questionId, isCorrect }]);
     setAnswered(true);
@@ -464,7 +466,7 @@ export default function ExerciseSession() {
       };
     }
     const correctAnswers = displayQ.correctAnswers;
-    const isCorrect = correctAnswers.includes(choice);
+    const isCorrect = correctAnswers.map(stripLabel).includes(stripLabel(choice));
     const isSelected = selectedAnswers.includes(choice);
 
     if (isCorrect) {
