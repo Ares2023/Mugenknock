@@ -192,7 +192,12 @@ export default function Result() {
         </Button>
         {isQuick ? (
           <Button variant="primary" disabled={quickLoading} onClick={restartQuick}>
-            {quickLoading ? (ja ? '準備中...' : 'Loading...') : (ja ? 'もう一度（サクッと演習）' : 'Again (Quick)')}
+            {quickLoading ? (
+              <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}>
+                <span style={{ width: 14, height: 14, border: '2px solid rgba(0,0,0,0.2)', borderTopColor: '#16191f', borderRadius: '50%', animation: 'sherpa-spin 0.7s linear infinite', flexShrink: 0 }} />
+                {ja ? '準備中...' : 'Loading...'}
+              </span>
+            ) : (ja ? 'もう一度（サクッと演習）' : 'Again (Quick)')}
           </Button>
         ) : (
           <Button variant="primary" onClick={() => navigate(isExam ? '/exam/setup' : '/exercise/setup')}>

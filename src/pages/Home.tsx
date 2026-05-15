@@ -697,7 +697,12 @@ export default function Home() {
         <>
           <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr', gap: 'var(--spacing-sm)', marginBottom: 8 }}>
             <Button variant="primary" fullWidth disabled={!targetExam || quickLoading} onClick={() => { if (hasQuickDraft) resumeQuickExercise(); else if (targetExam && !quickLoading) startQuickExercise(); }}>
-              {quickLoading ? (ja ? '準備中...' : 'Loading...') : hasQuickDraft ? (ja ? 'サクッと演習（途中から）' : 'Quick (Resume)') : (ja ? `サクッと演習 (${loadQuickPrefs().questionCount ?? 5}問)` : `Quick (${loadQuickPrefs().questionCount ?? 5}Q)`)}
+              {quickLoading ? (
+                <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}>
+                  <span style={{ width: 14, height: 14, border: '2px solid rgba(0,0,0,0.2)', borderTopColor: '#16191f', borderRadius: '50%', animation: 'sherpa-spin 0.7s linear infinite', flexShrink: 0 }} />
+                  {ja ? '準備中...' : 'Loading...'}
+                </span>
+              ) : hasQuickDraft ? (ja ? 'サクッと演習（途中から）' : 'Quick (Resume)') : (ja ? `サクッと演習 (${loadQuickPrefs().questionCount ?? 5}問)` : `Quick (${loadQuickPrefs().questionCount ?? 5}Q)`)}
             </Button>
             <Button variant="outline" fullWidth onClick={() => { setDraftPrefs({ ...loadQuickPrefs() }); setShowQuickModal(true); }}>
               <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4 }}><IconSettings size={14} />{ja ? '設定' : 'Settings'}</span>
@@ -712,8 +717,13 @@ export default function Home() {
       {/* ── サクッと演習ボタン（モバイル固定） ── */}
       {isMobile && (
         <div style={{ position: 'fixed', bottom: 56, left: 0, right: 0, zIndex: 150, background: 'var(--color-bg-white)', borderTop: '1px solid var(--color-border)', padding: '8px 12px', display: 'flex', gap: 6, boxShadow: '0 -2px 8px rgba(0,0,0,0.08)' }}>
-          <Button variant="primary" style={{ flex: 1, minWidth: 0, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }} disabled={!targetExam || quickLoading} onClick={() => { if (hasQuickDraft) resumeQuickExercise(); else if (targetExam && !quickLoading) startQuickExercise(); }}>
-            {quickLoading ? (ja ? '準備中...' : 'Loading...') : hasQuickDraft ? (ja ? 'サクッと演習（続きから）' : 'Quick (Resume)') : (ja ? 'サクッと演習' : 'Quick')}
+          <Button variant="primary" style={{ flex: 1, minWidth: 0 }} disabled={!targetExam || quickLoading} onClick={() => { if (hasQuickDraft) resumeQuickExercise(); else if (targetExam && !quickLoading) startQuickExercise(); }}>
+            {quickLoading ? (
+              <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}>
+                <span style={{ width: 14, height: 14, border: '2px solid rgba(0,0,0,0.2)', borderTopColor: '#16191f', borderRadius: '50%', animation: 'sherpa-spin 0.7s linear infinite', flexShrink: 0 }} />
+                {ja ? '準備中...' : 'Loading...'}
+              </span>
+            ) : hasQuickDraft ? (ja ? 'サクッと演習（続きから）' : 'Quick (Resume)') : (ja ? 'サクッと演習' : 'Quick')}
           </Button>
           <button
             onClick={() => { setDraftPrefs({ ...loadQuickPrefs() }); setShowQuickModal(true); }}
