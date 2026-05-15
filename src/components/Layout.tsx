@@ -127,7 +127,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
   const swipeStartX = useRef<number>(0);
   const swipeStartY = useRef<number>(0);
   const SWIPE_THRESHOLD = 72;
-  const TAB_PATHS = BOTTOM_TABS.map(t => t.path);
+  const TAB_PATHS = [...BOTTOM_TABS.map(t => t.path), '/others'];
 
   const handleTouchStart = (e: React.TouchEvent) => {
     swipeStartX.current = e.touches[0].clientX;
