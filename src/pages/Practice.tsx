@@ -5,6 +5,7 @@ import { useLanguage } from '../contexts/LanguageContext';
 import { API_ENDPOINT, EXAM_CONFIGS, EXAM_DOMAINS, EXAM_TYPES, PASS_SCORES } from '../constants';
 import Button from '../components/ui/Button';
 import DomainSelector from '../components/DomainSelector';
+import { IconCirclePause, IconCirclePlay } from '../components/Icons';
 import { getCached, setCached, SHORT_TTL } from '../utils/cache';
 
 function shuffleArray<T>(arr: T[]): T[] {
@@ -448,26 +449,26 @@ export default function Practice() {
         <div style={{ position: 'fixed', bottom: 56, left: 0, right: 0, zIndex: 150, background: 'var(--color-bg-white)', borderTop: '1px solid var(--color-border)', padding: '8px 12px', display: 'flex', gap: 6, boxShadow: '0 -2px 8px rgba(0,0,0,0.08)' }}>
           {hasDraft ? (
             <>
-              <Button variant="primary" style={{ flex: 2, minWidth: 0, height: 44 }} onClick={resumeExercise}>
-                {ja ? '続きから再開' : 'Resume'}
+              <Button variant="primary" style={{ flex: 2, minWidth: 0, height: 44, gap: 6 }} onClick={resumeExercise}>
+                {ja ? '続きから再開' : 'Resume'}<IconCirclePlay size={17} />
               </Button>
-              <Button variant="outline" style={{ flex: 1, minWidth: 0, height: 44 }} onClick={startExercise} disabled={exerciseLoading || availableCount === 0}>
+              <Button variant="outline" style={{ flex: 1, minWidth: 0, height: 44, gap: 6 }} onClick={startExercise} disabled={exerciseLoading || availableCount === 0}>
                 {exerciseLoading ? (
                   <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}>
                     <span style={{ width: 13, height: 13, border: '2px solid rgba(0,0,0,0.25)', borderTopColor: '#16191f', borderRadius: '50%', animation: 'sherpa-spin 0.7s linear infinite', flexShrink: 0 }} />
                     {t('exerciseSetup.starting')}
                   </span>
-                ) : (ja ? '演習を開始' : 'New')}
+                ) : <>{ja ? '演習を開始' : 'New'}<IconCirclePause size={17} /></>}
               </Button>
             </>
           ) : (
-            <Button variant="primary" style={{ flex: 1, minWidth: 0, height: 44 }} onClick={startExercise} disabled={exerciseLoading || availableCount === 0}>
+            <Button variant="primary" style={{ flex: 1, minWidth: 0, height: 44, gap: 6 }} onClick={startExercise} disabled={exerciseLoading || availableCount === 0}>
               {exerciseLoading ? (
                 <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}>
                   <span style={{ width: 13, height: 13, border: '2px solid rgba(0,0,0,0.25)', borderTopColor: '#16191f', borderRadius: '50%', animation: 'sherpa-spin 0.7s linear infinite', flexShrink: 0 }} />
                   {t('exerciseSetup.starting')}
                 </span>
-              ) : t('exerciseSetup.start')}
+              ) : <>{t('exerciseSetup.start')}<IconCirclePause size={17} /></>}
             </Button>
           )}
         </div>
@@ -476,13 +477,13 @@ export default function Practice() {
       {/* ── モバイル固定底バー（模試） ── */}
       {isMobile && tab === 'exam' && targetExam && (
         <div style={{ position: 'fixed', bottom: 56, left: 0, right: 0, zIndex: 150, background: 'var(--color-bg-white)', borderTop: '1px solid var(--color-border)', padding: '8px 12px', display: 'flex', boxShadow: '0 -2px 8px rgba(0,0,0,0.08)' }}>
-          <Button variant="primary" style={{ flex: 1, minWidth: 0 }} onClick={startExam} disabled={examLoading}>
+          <Button variant="primary" style={{ flex: 1, minWidth: 0, height: 44, gap: 6 }} onClick={startExam} disabled={examLoading}>
             {examLoading ? (
               <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}>
                 <span style={{ width: 12, height: 12, border: '2px solid rgba(0,0,0,0.3)', borderTopColor: '#16191f', borderRadius: '50%', animation: 'sherpa-spin 0.7s linear infinite' }} />
                 {ja ? '準備中...' : 'Preparing...'}
               </span>
-            ) : (ja ? '模試を開始する' : 'Start Mock Exam')}
+            ) : <>{ja ? '模試を開始する' : 'Start Mock Exam'}<IconCirclePause size={17} /></>}
           </Button>
         </div>
       )}

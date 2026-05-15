@@ -182,6 +182,21 @@ export const IconNewspaper = ({ size = 16 }: { size?: number }) => (
   </svg>
 );
 
+export const IconCirclePause = ({ size = 16 }: { size?: number }) => (
+  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <circle cx="12" cy="12" r="10"/>
+    <line x1="10" x2="10" y1="15" y2="9"/>
+    <line x1="14" x2="14" y1="15" y2="9"/>
+  </svg>
+);
+
+export const IconCirclePlay = ({ size = 16 }: { size?: number }) => (
+  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M9 9.003a1 1 0 0 1 1.517-.859l4.997 2.997a1 1 0 0 1 0 1.718l-4.997 2.997A1 1 0 0 1 9 14.996z"/>
+    <circle cx="12" cy="12" r="10"/>
+  </svg>
+);
+
 const SERVICE_ICON_PATHS: Record<string, React.ReactNode> = {
   'server': <><rect width="20" height="8" x="2" y="2" rx="2"/><rect width="20" height="8" x="2" y="14" rx="2"/><line x1="6" x2="6.01" y1="6" y2="6"/><line x1="6" x2="6.01" y1="18" y2="18"/></>,
   'database': <><ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M3 5V19A9 3 0 0 0 21 19V5"/><path d="M3 12A9 3 0 0 0 21 12"/></>,
