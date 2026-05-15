@@ -440,7 +440,7 @@ export default function Practice() {
                   {ja ? '現在のセッションを破棄して新規開始します' : 'Discard current session and start new'}
                 </div>
                 <Button variant="primary" fullWidth style={{ height: 44, gap: 6 }} onClick={() => { localStorage.removeItem('exerciseDraft'); setExerciseDraft(null); setShowNewPanel(false); startExercise(); }}>
-                  {ja ? '新規で開始' : 'Start New'}<IconCirclePlay size={17} />
+                  {ja ? '新規に開始' : 'Start New'}<IconCirclePlay size={17} />
                 </Button>
               </div>
             </>

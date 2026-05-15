@@ -727,7 +727,7 @@ export default function Home() {
                   {ja ? '現在のセッションを破棄して新規開始します' : 'Discard current session and start new'}
                 </div>
                 <Button variant="primary" fullWidth style={{ height: 44 }} onClick={() => { setShowNewPanel(false); discardQuickDraft(); startQuickExercise(); }}>
-                  {ja ? '新規で開始' : 'Start New'}
+                  {ja ? '新規に開始' : 'Start New'}
                 </Button>
               </div>
             </>
@@ -750,13 +750,15 @@ export default function Home() {
                 <IconChevronUp size={18} />
               </button>
             )}
-            <button
-              onClick={() => { setDraftPrefs({ ...loadQuickPrefs() }); setShowQuickModal(true); }}
-              style={{ flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', width: 44, height: 44, border: '1.5px solid var(--color-primary)', borderRadius: '50%', background: 'transparent', cursor: 'pointer', color: 'var(--color-primary)' }}
-              aria-label={ja ? '設定' : 'Settings'}
-            >
-              <IconSettings size={18} />
-            </button>
+            {!hasQuickDraft && (
+              <button
+                onClick={() => { setDraftPrefs({ ...loadQuickPrefs() }); setShowQuickModal(true); }}
+                style={{ flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', width: 44, height: 44, border: '1.5px solid var(--color-primary)', borderRadius: '50%', background: 'transparent', cursor: 'pointer', color: 'var(--color-primary)' }}
+                aria-label={ja ? '設定' : 'Settings'}
+              >
+                <IconSettings size={18} />
+              </button>
+            )}
           </div>
         </>
       )}
