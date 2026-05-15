@@ -317,11 +317,11 @@ export default function Stats() {
   }
 
   const tabStyle = (active: boolean): React.CSSProperties => ({
-    background: 'none', border: 'none', cursor: 'pointer',
-    padding: '10px 20px', fontSize: 'var(--font-size-base)', fontWeight: active ? 700 : 400,
+    flex: 1, padding: '10px 0', border: 'none', background: 'none', cursor: 'pointer',
+    fontSize: 'var(--font-size-base)', fontWeight: active ? 700 : 500,
     color: active ? 'var(--color-primary)' : 'var(--color-text-sub)',
-    borderBottom: active ? '2px solid var(--color-primary)' : '2px solid transparent',
-    marginBottom: -2, transition: 'all 0.15s', whiteSpace: 'nowrap',
+    borderBottom: `2px solid ${active ? 'var(--color-primary)' : 'transparent'}`,
+    transition: 'color 0.15s, border-color 0.15s',
   });
 
   return (
@@ -342,7 +342,7 @@ export default function Stats() {
       )}
 
       {/* ── タブ ── */}
-      <div style={{ display: 'flex', borderBottom: '2px solid var(--color-border)', marginBottom: 'var(--spacing-xl)' }}>
+      <div style={{ display: 'flex', borderBottom: '1px solid var(--color-border)', marginBottom: 'var(--spacing-lg)' }}>
         <button style={tabStyle(tab === 'volume')} onClick={() => setTab('volume')}>
           {lang === 'ja' ? 'ノック量' : 'Volume'}
         </button>

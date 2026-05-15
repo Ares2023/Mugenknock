@@ -54,7 +54,7 @@ const NAV_KEYS = [
 ];
 
 const BOTTOM_TABS = [
-  { path: '/',          Icon: IconHome,        ja: 'サクッと演習', en: 'Quick'    },
+  { path: '/',          Icon: IconHome,        ja: 'ホーム',       en: 'Home'     },
   { path: '/practice',  Icon: IconDumbbell,    ja: 'トレーニング', en: 'Training' },
   { path: '/stats',     Icon: IconFootprint,   ja: '足あと',      en: 'History'  },
 ];
