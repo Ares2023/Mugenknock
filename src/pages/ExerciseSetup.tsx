@@ -92,8 +92,6 @@ export default function ExerciseSetup() {
   const hasDraft = exerciseDraft?.examType === examType;
 
   const [availableCount, setAvailableCount] = useState<number | null>(null);
-  const [answeredCount, setAnsweredCount] = useState<number | null>(null);
-  const [totalDbCount, setTotalDbCount] = useState<number | null>(null);
   type DomainStat = { tagId: string; correctCount: number; incorrectCount: number };
   const [domainStats, setDomainStats] = useState<DomainStat[]>([]);
 
@@ -165,38 +163,14 @@ export default function ExerciseSetup() {
   }, [examType, selectedDomains, user, bookmarkOnly, unansweredOnly, incorrectOnly, aiVerifiedOnly]);
 
   useEffect(() => {
-    const cachedCount = getCached<number>(`qcount_${examType}`);
-    if (cachedCount !== null) {
-      setTotalDbCount(cachedCount);
-    } else {
-      fetch(`${API_ENDPOINT}/questions?examType=${examType}`)
-        .then(r => r.json())
-        .then(d => {
-          const count = d.count ?? d.items?.length ?? null;
-          setTotalDbCount(count);
-          if (count !== null) setCached(`qcount_${examType}`, count);
-        })
-        .catch(() => setTotalDbCount(null));
-    }
-    if (!user) { setAnsweredCount(0); setDomainStats([]); return; }
-    setAnsweredCount(null);
-    fetch(`${API_ENDPOINT}/users/me/question-stats?userId=${user.userId}&examType=${examType}`)
-      .then(r => r.json())
-      .then(d => setAnsweredCount(d.answeredCount ?? 0))
-      .catch(() => setAnsweredCount(0));
+    if (!user) { setDomainStats([]); return; }
     const cachedStats = getCached<any[]>(`ustats_${user.userId}`);
-    if (cachedStats !== null) {
-      setDomainStats(cachedStats);
-    } else {
-      fetch(`${API_ENDPOINT}/users/me/stats?userId=${user.userId}`)
-        .then(r => r.json())
-        .then(d => {
-          setDomainStats(d.stats ?? []);
-          setCached(`ustats_${user.userId}`, d.stats ?? [], SHORT_TTL);
-        })
-        .catch(() => setDomainStats([]));
-    }
-  }, [examType, user]);
+    if (cachedStats !== null) { setDomainStats(cachedStats); return; }
+    fetch(`${API_ENDPOINT}/users/me/stats?userId=${user.userId}`)
+      .then(r => r.json())
+      .then(d => { setDomainStats(d.stats ?? []); setCached(`ustats_${user.userId}`, d.stats ?? [], SHORT_TTL); })
+      .catch(() => setDomainStats([]));
+  }, [user]);
 
   const resumeSession = () => {
     if (!exerciseDraft) return;
@@ -302,9 +276,6 @@ export default function ExerciseSetup() {
     domainRates[d] = total > 0 ? s.correctCount / total : null;
   }
 
-  const exercisePct = (answeredCount !== null && totalDbCount !== null && totalDbCount > 0)
-    ? Math.round((answeredCount / totalDbCount) * 100) : 0;
-
   return (
     <div style={{ maxWidth: 1100, margin: '0 auto', padding: 'var(--spacing-xl) var(--spacing-lg)' }} className="page-container">
 
@@ -322,56 +293,6 @@ export default function ExerciseSetup() {
             style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--color-text-light)', fontSize: 18, lineHeight: 1, padding: '0 4px', flexShrink: 0 }}
           >✕</button>
         </div>
-      )}
-
-      {/* 合計ノック量 */}
-      {user && (
-        <Card padding="var(--spacing-md)" style={{ marginBottom: 'var(--spacing-lg)' }}>
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 'var(--spacing-sm)' }}>
-            <span style={{ fontSize: 'var(--font-size-xs)', fontWeight: 700, color: 'var(--color-text-sub)', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
-              {lang === 'ja' ? '合計ノック量' : 'Total Practice'}
-            </span>
-            <button
-              onClick={() => navigate('/stats')}
-              style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: 'var(--font-size-sm)', color: 'var(--color-primary)', padding: 0, fontWeight: 600 }}
-            >
-              {lang === 'ja' ? '統計分析 →' : 'Stats →'}
-            </button>
-          </div>
-          {answeredCount === null || totalDbCount === null ? (
-            <>
-              <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 'var(--spacing-xs)' }}>
-                <div className="skeleton" style={{ height: 14, width: '55%', borderRadius: 4 }} />
-                <div className="skeleton" style={{ height: 14, width: '25%', borderRadius: 4 }} />
-              </div>
-              <div className="skeleton" style={{ height: 8, borderRadius: 10, marginBottom: 6 }} />
-              <div className="skeleton" style={{ height: 12, width: '20%', borderRadius: 4, marginLeft: 'auto' }} />
-            </>
-          ) : (
-            <>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: 'var(--spacing-xs)' }}>
-                <span style={{ fontSize: 'var(--font-size-sm)', color: 'var(--color-text-sub)' }}>
-                  {lang === 'ja' ? '1回以上解いた問題' : 'Questions attempted'}
-                </span>
-                <span style={{ fontSize: 'var(--font-size-lg)', fontWeight: 700, color: 'var(--color-primary)' }}>
-                  {answeredCount}
-                  <span style={{ fontSize: 'var(--font-size-xs)', fontWeight: 400, color: 'var(--color-text-sub)' }}> / {totalDbCount}{lang === 'ja' ? '問' : ' Q'}</span>
-                </span>
-              </div>
-              <div style={{ background: 'var(--color-bg-main)', borderRadius: 10, height: 8, overflow: 'hidden', marginBottom: 6 }}>
-                <div style={{
-                  width: `${exercisePct}%`, height: '100%', borderRadius: 10,
-                  background: exercisePct >= 60 ? 'var(--color-success)' : exercisePct >= 30 ? 'var(--color-caution)' : 'var(--color-primary)',
-                  transformOrigin: 'left center',
-                  animation: 'growWidth 0.9s cubic-bezier(0.4, 0, 0.2, 1) 0.1s both',
-                }} />
-              </div>
-              <div style={{ fontSize: 'var(--font-size-xs)', color: 'var(--color-text-light)', textAlign: 'right' }}>
-                {exercisePct}% {lang === 'ja' ? '解答済' : 'attempted'}
-              </div>
-            </>
-          )}
-        </Card>
       )}
 
         {/* 設定フォーム */}
