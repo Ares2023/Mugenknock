@@ -436,7 +436,7 @@ export default function Practice() {
                       <span style={{ width: 12, height: 12, border: '2px solid rgba(0,0,0,0.3)', borderTopColor: '#16191f', borderRadius: '50%', animation: 'sherpa-spin 0.7s linear infinite' }} />
                       {ja ? '準備中...' : 'Preparing...'}
                     </span>
-                  ) : (ja ? '模試を開始する' : 'Start Mock Exam')}
+                  ) : (ja ? '試験を開始' : 'Start Mock Exam')}
                 </Button>
               )}
             </>
@@ -458,7 +458,7 @@ export default function Practice() {
                     <span style={{ width: 13, height: 13, border: '2px solid rgba(0,0,0,0.25)', borderTopColor: '#16191f', borderRadius: '50%', animation: 'sherpa-spin 0.7s linear infinite', flexShrink: 0 }} />
                     {t('exerciseSetup.starting')}
                   </span>
-                ) : <>{ja ? '演習を開始' : 'New'}<IconCirclePlay size={17} /></>}
+                ) : <>{ja ? '試験を開始' : 'New'}<IconCirclePlay size={17} /></>}
               </Button>
             </>
           ) : (
@@ -483,7 +483,7 @@ export default function Practice() {
                 <span style={{ width: 12, height: 12, border: '2px solid rgba(0,0,0,0.3)', borderTopColor: '#16191f', borderRadius: '50%', animation: 'sherpa-spin 0.7s linear infinite' }} />
                 {ja ? '準備中...' : 'Preparing...'}
               </span>
-            ) : <>{ja ? '模試を開始する' : 'Start Mock Exam'}<IconCirclePlay size={17} /></>}
+            ) : <>{ja ? '試験を開始' : 'Start Mock Exam'}<IconCirclePlay size={17} /></>}
           </Button>
         </div>
       )}

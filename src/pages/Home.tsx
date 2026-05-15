@@ -702,7 +702,7 @@ export default function Home() {
                   <span style={{ width: 14, height: 14, border: '2px solid rgba(0,0,0,0.2)', borderTopColor: '#16191f', borderRadius: '50%', animation: 'sherpa-spin 0.7s linear infinite', flexShrink: 0 }} />
                   {ja ? '準備中...' : 'Loading...'}
                 </span>
-              ) : hasQuickDraft ? (ja ? 'サクッと演習（途中から）' : 'Quick (Resume)') : (ja ? `サクッと演習 (${loadQuickPrefs().questionCount ?? 5}問)` : `Quick (${loadQuickPrefs().questionCount ?? 5}Q)`)}
+              ) : hasQuickDraft ? (ja ? 'サクッと演習（続きから再開）' : 'Quick (Resume)') : (ja ? `サクッと演習 (${loadQuickPrefs().questionCount ?? 5}問)` : `Quick (${loadQuickPrefs().questionCount ?? 5}Q)`)}
             </Button>
             <Button variant="outline" fullWidth onClick={() => { setDraftPrefs({ ...loadQuickPrefs() }); setShowQuickModal(true); }}>
               <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4 }}><IconSettings size={14} />{ja ? '設定' : 'Settings'}</span>
@@ -723,7 +723,7 @@ export default function Home() {
                 <span style={{ width: 14, height: 14, border: '2px solid rgba(0,0,0,0.2)', borderTopColor: '#16191f', borderRadius: '50%', animation: 'sherpa-spin 0.7s linear infinite', flexShrink: 0 }} />
                 {ja ? '準備中...' : 'Loading...'}
               </span>
-            ) : hasQuickDraft ? (ja ? 'サクッと演習（続きから）' : 'Quick (Resume)') : (ja ? 'サクッと演習' : 'Quick')}
+            ) : hasQuickDraft ? (ja ? 'サクッと演習（続きから再開）' : 'Quick (Resume)') : (ja ? 'サクッと演習' : 'Quick')}
           </Button>
           <button
             onClick={() => { setDraftPrefs({ ...loadQuickPrefs() }); setShowQuickModal(true); }}

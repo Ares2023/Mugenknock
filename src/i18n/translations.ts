@@ -125,7 +125,7 @@ export const ja: Translations = {
   'exerciseSetup.bookmarkOnlyDesc': '（演習中に☆でブックマーク）',
   'exerciseSetup.shuffle': '問題をシャッフルする',
   'exerciseSetup.cancel': 'キャンセル',
-  'exerciseSetup.start': '演習を開始',
+  'exerciseSetup.start': '試験を開始',
   'exerciseSetup.starting': '準備中...',
   'exerciseSetup.noQuestions': '条件に合う問題がありません',
   'exerciseSetup.startFailed': 'セッション開始に失敗しました',
