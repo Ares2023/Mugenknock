@@ -126,22 +126,63 @@ export default function Layout({ children }: { children: React.ReactNode }) {
 
   const swipeStartX = useRef<number>(0);
   const swipeStartY = useRef<number>(0);
+  const isDraggingH = useRef<boolean>(false);
   const SWIPE_THRESHOLD = 72;
   const TAB_PATHS = [...BOTTOM_TABS.map(t => t.path), '/others'];
+  const [swipeOffset, setSwipeOffset] = useState(0);
+  const [swipeTrans, setSwipeTrans] = useState(false);
+
+  const doTabNavigate = (nextPath: string, dir: 'left' | 'right') => {
+    const outX = dir === 'left' ? -window.innerWidth : window.innerWidth;
+    const inX  = dir === 'left' ?  window.innerWidth : -window.innerWidth;
+    setSwipeTrans(true);
+    setSwipeOffset(outX);
+    setTimeout(() => {
+      navigate(nextPath);
+      setSwipeTrans(false);
+      setSwipeOffset(inX);
+      requestAnimationFrame(() => requestAnimationFrame(() => {
+        setSwipeTrans(true);
+        setSwipeOffset(0);
+      }));
+    }, 240);
+    setTimeout(() => { setSwipeTrans(false); setSwipeOffset(0); }, 560);
+  };
 
   const handleTouchStart = (e: React.TouchEvent) => {
     swipeStartX.current = e.touches[0].clientX;
     swipeStartY.current = e.touches[0].clientY;
+    isDraggingH.current = false;
+  };
+
+  const handleTouchMove = (e: React.TouchEvent) => {
+    const dx = e.touches[0].clientX - swipeStartX.current;
+    const dy = e.touches[0].clientY - swipeStartY.current;
+    if (!isDraggingH.current) {
+      if (Math.abs(dy) > Math.abs(dx) + 4 || Math.abs(dx) < 6) return;
+      isDraggingH.current = true;
+    }
+    const idx = TAB_PATHS.indexOf(location.pathname);
+    if (idx === -1) return;
+    const atStart = idx === 0 && dx > 0;
+    const atEnd   = idx === TAB_PATHS.length - 1 && dx < 0;
+    setSwipeOffset(atStart || atEnd ? dx * 0.15 : dx);
   };
 
   const handleTouchEnd = (e: React.TouchEvent) => {
+    if (!isDraggingH.current) return;
+    isDraggingH.current = false;
     const dx = e.changedTouches[0].clientX - swipeStartX.current;
     const dy = e.changedTouches[0].clientY - swipeStartY.current;
-    if (Math.abs(dx) < SWIPE_THRESHOLD || Math.abs(dx) < Math.abs(dy)) return;
     const idx = TAB_PATHS.indexOf(location.pathname);
-    if (idx === -1) return;
-    if (dx < 0 && idx < TAB_PATHS.length - 1) navigate(TAB_PATHS[idx + 1]);
-    else if (dx > 0 && idx > 0) navigate(TAB_PATHS[idx - 1]);
+    if (idx !== -1 && Math.abs(dx) >= SWIPE_THRESHOLD && Math.abs(dx) > Math.abs(dy)) {
+      if (dx < 0 && idx < TAB_PATHS.length - 1) doTabNavigate(TAB_PATHS[idx + 1], 'left');
+      else if (dx > 0 && idx > 0)               doTabNavigate(TAB_PATHS[idx - 1], 'right');
+      else { setSwipeTrans(true); setSwipeOffset(0); }
+    } else {
+      setSwipeTrans(true);
+      setSwipeOffset(0);
+    }
   };
 
   useEffect(() => {
@@ -702,6 +743,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
         <main
           ref={mainRef}
           onTouchStart={isMobile ? handleTouchStart : undefined}
+          onTouchMove={isMobile ? handleTouchMove : undefined}
           onTouchEnd={isMobile ? handleTouchEnd : undefined}
           style={{
             flex: 1, overflow: 'auto',
@@ -710,6 +752,9 @@ export default function Layout({ children }: { children: React.ReactNode }) {
             WebkitOverflowScrolling: 'touch',
             minWidth: 0,
             paddingBottom: isMobile ? 120 : 0,
+            transform: swipeOffset !== 0 ? `translateX(${swipeOffset}px)` : undefined,
+            transition: swipeTrans ? 'transform 0.24s ease' : 'none',
+            willChange: swipeOffset !== 0 ? 'transform' : undefined,
           }}
         >
           {children}
