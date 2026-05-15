@@ -73,6 +73,7 @@ export default function Practice() {
   });
   const hasDraft = exerciseDraft?.examType === examType;
   const [showNewPanel, setShowNewPanel] = useState(false);
+  const [showStartConfirm, setShowStartConfirm] = useState(false);
 
   const isFirstRender = useRef(true);
   useEffect(() => {
@@ -353,7 +354,7 @@ export default function Practice() {
                   {ja ? '※ ログインすると結果が保存されます' : '* Log in to save your results'}
                 </div>
               )}
-              <Button variant="primary" fullWidth onClick={startExercise} disabled={exerciseLoading || availableCount === 0}>
+              <Button variant="primary" fullWidth onClick={() => hasDraft ? setShowStartConfirm(true) : startExercise()} disabled={exerciseLoading || availableCount === 0}>
                 {exerciseLoading ? (
                   <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}>
                     <span style={{ width: 13, height: 13, border: '2px solid rgba(0,0,0,0.25)', borderTopColor: '#16191f', borderRadius: '50%', animation: 'sherpa-spin 0.7s linear infinite', flexShrink: 0 }} />
@@ -437,7 +438,7 @@ export default function Practice() {
               <div onClick={() => setShowNewPanel(false)} style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.4)', zIndex: 210 }} />
               <div style={{ position: 'fixed', bottom: 116, left: 0, right: 0, zIndex: 211, background: 'var(--color-bg-white)', borderRadius: '14px 14px 0 0', padding: '14px 12px 12px', boxShadow: '0 -4px 20px rgba(0,0,0,0.18)', animation: 'slideUp 0.22s ease' }}>
                 <div style={{ fontSize: 'var(--font-size-sm)', color: 'var(--color-text-sub)', textAlign: 'center', marginBottom: 10 }}>
-                  {ja ? '現在のセッションを破棄して新規開始します' : 'Discard current session and start new'}
+                  {ja ? 'セッションを上書きして開始します' : 'This will overwrite the current session'}
                 </div>
                 <Button variant="primary" fullWidth style={{ height: 44, gap: 6 }} onClick={() => { localStorage.removeItem('exerciseDraft'); setExerciseDraft(null); setShowNewPanel(false); startExercise(); }}>
                   {ja ? '新規に開始' : 'Start New'}<IconCirclePlay size={17} />
@@ -484,6 +485,25 @@ export default function Practice() {
               </span>
             ) : <>{ja ? '試験を開始' : 'Start Mock Exam'}<IconCirclePlay size={17} /></>}
           </Button>
+        </div>
+      )}
+
+      {/* ── 開始確認モーダル ── */}
+      {showStartConfirm && (
+        <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', zIndex: 300, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 20 }}>
+          <div style={{ background: 'var(--color-bg-white)', borderRadius: 'var(--border-radius-lg)', padding: '24px 20px', width: '100%', maxWidth: 360, boxShadow: 'var(--box-shadow-md)' }}>
+            <p style={{ margin: '0 0 20px', fontSize: 'var(--font-size-base)', color: 'var(--color-text-main)', lineHeight: 1.6 }}>
+              {ja ? '現在の演習セッションを上書きして新しく始めます。よろしいですか？' : 'This will overwrite the current session. Continue?'}
+            </p>
+            <div style={{ display: 'flex', gap: 8 }}>
+              <Button variant="outline" style={{ flex: 1 }} onClick={() => setShowStartConfirm(false)}>
+                {ja ? 'キャンセル' : 'Cancel'}
+              </Button>
+              <Button variant="primary" style={{ flex: 1 }} onClick={() => { setShowStartConfirm(false); startExercise(); }}>
+                {ja ? '開始する' : 'Start'}
+              </Button>
+            </div>
+          </div>
         </div>
       )}
     </div>

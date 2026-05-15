@@ -81,6 +81,7 @@ export default function ExerciseSetup() {
   });
   const [limit, setLimit] = useState<number>(() => loadExercisePrefs(localStorage.getItem('targetExam') || localStorage.getItem('lastExamType') || 'SAA').limit ?? 10);
   const [loading, setLoading] = useState(false);
+  const [showStartConfirm, setShowStartConfirm] = useState(false);
   const [bookmarkOnly, setBookmarkOnly] = useState<boolean>(() => loadExercisePrefs(localStorage.getItem('targetExam') || localStorage.getItem('lastExamType') || 'SAA').bookmarkOnly ?? false);
   const [unansweredOnly, setUnansweredOnly] = useState<boolean>(() => loadExercisePrefs(localStorage.getItem('targetExam') || localStorage.getItem('lastExamType') || 'SAA').unansweredOnly ?? false);
   const [incorrectOnly, setIncorrectOnly] = useState<boolean>(() => loadExercisePrefs(localStorage.getItem('targetExam') || localStorage.getItem('lastExamType') || 'SAA').incorrectOnly ?? false);
@@ -398,7 +399,7 @@ export default function ExerciseSetup() {
         )}
         <Button
           variant="primary"
-          onClick={startSession}
+          onClick={() => hasDraft ? setShowStartConfirm(true) : startSession()}
           disabled={loading || availableCount === 0}
           style={{ width: '100%' }}
         >
@@ -410,6 +411,25 @@ export default function ExerciseSetup() {
           ) : t('exerciseSetup.start')}
         </Button>
       </div>
+
+      {/* ── 開始確認モーダル ── */}
+      {showStartConfirm && (
+        <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', zIndex: 300, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 20 }}>
+          <div style={{ background: 'var(--color-bg-white)', borderRadius: 'var(--border-radius-lg)', padding: '24px 20px', width: '100%', maxWidth: 360, boxShadow: 'var(--box-shadow-md)' }}>
+            <p style={{ margin: '0 0 20px', fontSize: 'var(--font-size-base)', color: 'var(--color-text-main)', lineHeight: 1.6 }}>
+              {lang === 'ja' ? '現在の演習セッションを上書きして新しく始めます。よろしいですか？' : 'This will overwrite the current session. Continue?'}
+            </p>
+            <div style={{ display: 'flex', gap: 8 }}>
+              <Button variant="outline" style={{ flex: 1 }} onClick={() => setShowStartConfirm(false)}>
+                {lang === 'ja' ? 'キャンセル' : 'Cancel'}
+              </Button>
+              <Button variant="primary" style={{ flex: 1 }} onClick={() => { setShowStartConfirm(false); startSession(); }}>
+                {lang === 'ja' ? '開始する' : 'Start'}
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

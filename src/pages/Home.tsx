@@ -724,7 +724,7 @@ export default function Home() {
               <div onClick={() => setShowNewPanel(false)} style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.4)', zIndex: 210 }} />
               <div style={{ position: 'fixed', bottom: 116, left: 0, right: 0, zIndex: 211, background: 'var(--color-bg-white)', borderRadius: '14px 14px 0 0', padding: '14px 12px 12px', boxShadow: '0 -4px 20px rgba(0,0,0,0.18)', animation: 'slideUp 0.22s ease' }}>
                 <div style={{ fontSize: 'var(--font-size-sm)', color: 'var(--color-text-sub)', textAlign: 'center', marginBottom: 10 }}>
-                  {ja ? '現在のセッションを破棄して新規開始します' : 'Discard current session and start new'}
+                  {ja ? 'セッションを上書きして開始します' : 'This will overwrite the current session'}
                 </div>
                 <Button variant="primary" fullWidth style={{ height: 44 }} onClick={() => { setShowNewPanel(false); discardQuickDraft(); startQuickExercise(); }}>
                   {ja ? '新規に開始' : 'Start New'}
