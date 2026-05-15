@@ -265,17 +265,17 @@ code {
 }
 
 .btn-danger {
-  background-color: transparent;
-  color: var(--color-danger);
+  background-color: var(--color-danger);
+  color: #fff;
   border: 1.5px solid var(--color-danger);
 }
 
 .btn-danger:not(:disabled):hover {
-  background-color: var(--color-danger-light);
+  filter: brightness(1.1);
 }
 
 .btn-danger:not(:disabled):active {
-  background-color: var(--color-danger-light);
+  filter: brightness(0.95);
   border-width: 2px;
 }
 

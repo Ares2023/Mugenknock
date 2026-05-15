@@ -478,12 +478,9 @@ export default function Account() {
                           </div>
                         </div>
                         {!isConfirming && (
-                          <button
-                            onClick={() => setConfirmingExam(et)}
-                            style={{ padding: '5px 12px', fontSize: 'var(--font-size-xs)', fontWeight: 700, cursor: 'pointer', border: '1.5px solid var(--color-danger)', borderRadius: 'var(--border-radius-md)', background: 'transparent', color: 'var(--color-danger)', flexShrink: 0 }}
-                          >
+                          <Button variant="danger" size="sm" onClick={() => setConfirmingExam(et)} style={{ flexShrink: 0 }}>
                             {ja ? 'データを削除' : 'Delete'}
-                          </button>
+                          </Button>
                         )}
                       </div>
                       {isConfirming && (
@@ -492,20 +489,12 @@ export default function Account() {
                             {ja ? `${et} のデータを削除しますか？` : `Delete all data for ${et}?`}
                           </span>
                           <div style={{ display: 'flex', gap: 6, flexShrink: 0 }}>
-                            <button
-                              onClick={() => handleDelete(et)}
-                              disabled={isDeleting}
-                              style={{ padding: '5px 14px', fontSize: 'var(--font-size-xs)', fontWeight: 700, cursor: 'pointer', border: '1.5px solid var(--color-danger)', borderRadius: 'var(--border-radius-md)', background: 'var(--color-danger)', color: 'white', opacity: isDeleting ? 0.6 : 1 }}
-                            >
+                            <Button variant="danger" size="sm" onClick={() => handleDelete(et)} disabled={isDeleting}>
                               {isDeleting ? '…' : (ja ? '削除する' : 'Delete')}
-                            </button>
-                            <button
-                              onClick={() => setConfirmingExam(null)}
-                              disabled={isDeleting}
-                              style={{ padding: '5px 12px', fontSize: 'var(--font-size-xs)', fontWeight: 700, cursor: 'pointer', border: '1.5px solid var(--color-border)', borderRadius: 'var(--border-radius-md)', background: 'transparent', color: 'var(--color-text-sub)' }}
-                            >
+                            </Button>
+                            <Button variant="outline" size="sm" onClick={() => setConfirmingExam(null)} disabled={isDeleting}>
                               {ja ? 'キャンセル' : 'Cancel'}
-                            </button>
+                            </Button>
                           </div>
                         </div>
                       )}
@@ -655,7 +644,7 @@ export default function Account() {
           </div>
           {deleteError && <p style={{ margin: '0 0 12px', fontSize: 'var(--font-size-sm)', color: 'var(--color-danger)' }}>{deleteError}</p>}
           <div style={{ display: 'flex', gap: 8 }}>
-            <Button onClick={handleAccountDelete} disabled={accountDeleting || deleteConfirmation.toLowerCase() !== 'delete'} variant="primary" style={{ flex: 1, background: 'var(--color-danger)', borderColor: 'var(--color-danger)' }}>
+            <Button onClick={handleAccountDelete} disabled={accountDeleting || deleteConfirmation.toLowerCase() !== 'delete'} variant="danger" style={{ flex: 1 }}>
               {accountDeleting ? (ja ? '削除中...' : 'Deleting...') : (ja ? '削除する' : 'Delete')}
             </Button>
             <Button onClick={() => setShowDeleteModal(false)} variant="outline" disabled={accountDeleting}>{ja ? 'キャンセル' : 'Cancel'}</Button>
