@@ -696,20 +696,9 @@ export default function Home() {
       {!isMobile && (
         <>
           <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr', gap: 'var(--spacing-sm)', marginBottom: 8 }}>
-            {hasQuickDraft ? (
-              <div style={{ display: 'flex', gap: 6 }}>
-                <Button variant="primary" style={{ flex: 1 }} disabled={quickLoading} onClick={resumeQuickExercise}>
-                  {ja ? 'サクッと演習（途中から）' : 'Quick (Resume)'}
-                </Button>
-                <Button variant="outline" style={{ whiteSpace: 'nowrap', padding: '0 14px', fontSize: 'var(--font-size-sm)' }} disabled={quickLoading} onClick={() => { if (!quickLoading) startQuickExercise(); }}>
-                  {ja ? '新規' : 'New'}
-                </Button>
-              </div>
-            ) : (
-              <Button variant="primary" fullWidth disabled={!targetExam || quickLoading} onClick={() => { if (targetExam && !quickLoading) startQuickExercise(); }}>
-                {quickLoading ? (ja ? '準備中...' : 'Loading...') : (ja ? `サクッと演習 (${loadQuickPrefs().questionCount ?? 5}問)` : `Quick (${loadQuickPrefs().questionCount ?? 5}Q)`)}
-              </Button>
-            )}
+            <Button variant="primary" fullWidth disabled={!targetExam || quickLoading} onClick={() => { if (hasQuickDraft) resumeQuickExercise(); else if (targetExam && !quickLoading) startQuickExercise(); }}>
+              {quickLoading ? (ja ? '準備中...' : 'Loading...') : hasQuickDraft ? (ja ? 'サクッと演習（途中から）' : 'Quick (Resume)') : (ja ? `サクッと演習 (${loadQuickPrefs().questionCount ?? 5}問)` : `Quick (${loadQuickPrefs().questionCount ?? 5}Q)`)}
+            </Button>
             <Button variant="outline" fullWidth onClick={() => { setDraftPrefs({ ...loadQuickPrefs() }); setShowQuickModal(true); }}>
               <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4 }}><IconSettings size={14} />{ja ? '設定' : 'Settings'}</span>
             </Button>
@@ -723,20 +712,9 @@ export default function Home() {
       {/* ── サクッと演習ボタン（モバイル固定） ── */}
       {isMobile && (
         <div style={{ position: 'fixed', bottom: 56, left: 0, right: 0, zIndex: 150, background: 'var(--color-bg-white)', borderTop: '1px solid var(--color-border)', padding: '8px 12px', display: 'flex', gap: 6, boxShadow: '0 -2px 8px rgba(0,0,0,0.08)' }}>
-          {hasQuickDraft ? (
-            <>
-              <Button variant="primary" style={{ flex: 2, minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }} disabled={quickLoading} onClick={resumeQuickExercise}>
-                {ja ? '途中から' : 'Resume'}
-              </Button>
-              <Button variant="outline" style={{ flexShrink: 0, padding: '0 10px', fontSize: 'var(--font-size-sm)', whiteSpace: 'nowrap' }} disabled={quickLoading} onClick={() => { if (!quickLoading) startQuickExercise(); }}>
-                {ja ? '新規' : 'New'}
-              </Button>
-            </>
-          ) : (
-            <Button variant="primary" style={{ flex: 1, minWidth: 0, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }} disabled={!targetExam || quickLoading} onClick={() => { if (targetExam && !quickLoading) startQuickExercise(); }}>
-              {quickLoading ? (ja ? '準備中...' : 'Loading...') : (ja ? 'サクッと演習' : 'Quick')}
-            </Button>
-          )}
+          <Button variant="primary" style={{ flex: 1, minWidth: 0, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }} disabled={!targetExam || quickLoading} onClick={() => { if (hasQuickDraft) resumeQuickExercise(); else if (targetExam && !quickLoading) startQuickExercise(); }}>
+            {quickLoading ? (ja ? '準備中...' : 'Loading...') : hasQuickDraft ? (ja ? '途中から' : 'Resume') : (ja ? 'サクッと演習' : 'Quick')}
+          </Button>
           <button
             onClick={() => { setDraftPrefs({ ...loadQuickPrefs() }); setShowQuickModal(true); }}
             style={{ flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', width: 44, height: 44, border: '1px solid var(--color-border)', borderRadius: '50%', background: 'transparent', cursor: 'pointer', color: 'var(--color-text-sub)' }}
