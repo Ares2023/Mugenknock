@@ -713,7 +713,7 @@ export default function Home() {
       {isMobile && (
         <div style={{ position: 'fixed', bottom: 56, left: 0, right: 0, zIndex: 150, background: 'var(--color-bg-white)', borderTop: '1px solid var(--color-border)', padding: '8px 12px', display: 'flex', gap: 6, boxShadow: '0 -2px 8px rgba(0,0,0,0.08)' }}>
           <Button variant="primary" style={{ flex: 1, minWidth: 0, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }} disabled={!targetExam || quickLoading} onClick={() => { if (hasQuickDraft) resumeQuickExercise(); else if (targetExam && !quickLoading) startQuickExercise(); }}>
-            {quickLoading ? (ja ? '準備中...' : 'Loading...') : hasQuickDraft ? (ja ? '途中から' : 'Resume') : (ja ? 'サクッと演習' : 'Quick')}
+            {quickLoading ? (ja ? '準備中...' : 'Loading...') : hasQuickDraft ? (ja ? 'サクッと演習（続きから）' : 'Quick (Resume)') : (ja ? 'サクッと演習' : 'Quick')}
           </Button>
           <button
             onClick={() => { setDraftPrefs({ ...loadQuickPrefs() }); setShowQuickModal(true); }}

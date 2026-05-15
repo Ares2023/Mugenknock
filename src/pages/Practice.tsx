@@ -32,6 +32,12 @@ export default function Practice() {
   const { lang, t } = useLanguage();
   const navigate = useNavigate();
   const ja = lang === 'ja';
+  const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
+  useEffect(() => {
+    const handler = () => setIsMobile(window.innerWidth < 768);
+    window.addEventListener('resize', handler);
+    return () => window.removeEventListener('resize', handler);
+  }, []);
 
   const [tab, setTab] = useState<Tab>('exercise');
   const [targetExam, setTargetExam] = useState<string | null>(() => localStorage.getItem('targetExam'));
@@ -347,26 +353,31 @@ export default function Practice() {
                   <div style={{ fontSize: 'var(--font-size-xs)', color: 'var(--color-text-warning-sub)' }}>{t('exerciseSetup.resumeNoticeDesc')}</div>
                 </div>
               </div>
-              <Button size="sm" variant="outline" onClick={resumeExercise} style={{ borderColor: 'var(--color-border-warning)', color: 'var(--color-text-warning)', whiteSpace: 'nowrap', flexShrink: 0 }}>
-                {t('exerciseSetup.resume')} →
+              {!isMobile && (
+                <Button size="sm" variant="outline" onClick={resumeExercise} style={{ borderColor: 'var(--color-border-warning)', color: 'var(--color-text-warning)', whiteSpace: 'nowrap', flexShrink: 0 }}>
+                  {t('exerciseSetup.resume')} →
+                </Button>
+              )}
+            </div>
+          )}
+
+          {!isMobile && (
+            <>
+              {!user && (
+                <div style={{ fontSize: 'var(--font-size-xs)', color: 'var(--color-text-light)', marginBottom: 6, textAlign: 'center' }}>
+                  {ja ? '※ ログインすると結果が保存されます' : '* Log in to save your results'}
+                </div>
+              )}
+              <Button variant="primary" fullWidth onClick={startExercise} disabled={exerciseLoading || availableCount === 0}>
+                {exerciseLoading ? (
+                  <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}>
+                    <span style={{ width: 13, height: 13, border: '2px solid rgba(0,0,0,0.25)', borderTopColor: '#16191f', borderRadius: '50%', animation: 'sherpa-spin 0.7s linear infinite', flexShrink: 0 }} />
+                    {t('exerciseSetup.starting')}
+                  </span>
+                ) : t('exerciseSetup.start')}
               </Button>
-            </div>
+            </>
           )}
-
-          {!user && (
-            <div style={{ fontSize: 'var(--font-size-xs)', color: 'var(--color-text-light)', marginBottom: 6, textAlign: 'center' }}>
-              {ja ? '※ ログインすると結果が保存されます' : '* Log in to save your results'}
-            </div>
-          )}
-
-          <Button variant="primary" fullWidth onClick={startExercise} disabled={exerciseLoading || availableCount === 0}>
-            {exerciseLoading ? (
-              <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}>
-                <span style={{ width: 13, height: 13, border: '2px solid rgba(0,0,0,0.25)', borderTopColor: '#16191f', borderRadius: '50%', animation: 'sherpa-spin 0.7s linear infinite', flexShrink: 0 }} />
-                {t('exerciseSetup.starting')}
-              </span>
-            ) : t('exerciseSetup.start')}
-          </Button>
         </>
       )}
 
@@ -417,17 +428,52 @@ export default function Practice() {
                   </div>
                 ))}
               </div>
-              <Button variant="primary" fullWidth onClick={startExam} disabled={examLoading}>
-                {examLoading ? (
-                  <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}>
-                    <span style={{ width: 12, height: 12, border: '2px solid rgba(0,0,0,0.3)', borderTopColor: '#16191f', borderRadius: '50%', animation: 'sherpa-spin 0.7s linear infinite' }} />
-                    {ja ? '準備中...' : 'Preparing...'}
-                  </span>
-                ) : (ja ? '模試を開始する' : 'Start Mock Exam')}
-              </Button>
+              {!isMobile && (
+                <Button variant="primary" fullWidth onClick={startExam} disabled={examLoading}>
+                  {examLoading ? (
+                    <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}>
+                      <span style={{ width: 12, height: 12, border: '2px solid rgba(0,0,0,0.3)', borderTopColor: '#16191f', borderRadius: '50%', animation: 'sherpa-spin 0.7s linear infinite' }} />
+                      {ja ? '準備中...' : 'Preparing...'}
+                    </span>
+                  ) : (ja ? '模試を開始する' : 'Start Mock Exam')}
+                </Button>
+              )}
             </>
           )}
         </>
+      )}
+
+      {/* ── モバイル固定底バー（演習） ── */}
+      {isMobile && tab === 'exercise' && (
+        <div style={{ position: 'fixed', bottom: 56, left: 0, right: 0, zIndex: 150, background: 'var(--color-bg-white)', borderTop: '1px solid var(--color-border)', padding: '8px 12px', display: 'flex', gap: 6, boxShadow: '0 -2px 8px rgba(0,0,0,0.08)' }}>
+          {hasDraft && (
+            <Button variant="outline" style={{ flexShrink: 0, padding: '0 14px', whiteSpace: 'nowrap', fontSize: 'var(--font-size-sm)' }} onClick={resumeExercise}>
+              {ja ? '途中から' : 'Resume'}
+            </Button>
+          )}
+          <Button variant="primary" style={{ flex: 1, minWidth: 0 }} onClick={startExercise} disabled={exerciseLoading || availableCount === 0}>
+            {exerciseLoading ? (
+              <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}>
+                <span style={{ width: 13, height: 13, border: '2px solid rgba(0,0,0,0.25)', borderTopColor: '#16191f', borderRadius: '50%', animation: 'sherpa-spin 0.7s linear infinite', flexShrink: 0 }} />
+                {t('exerciseSetup.starting')}
+              </span>
+            ) : t('exerciseSetup.start')}
+          </Button>
+        </div>
+      )}
+
+      {/* ── モバイル固定底バー（模試） ── */}
+      {isMobile && tab === 'exam' && targetExam && (
+        <div style={{ position: 'fixed', bottom: 56, left: 0, right: 0, zIndex: 150, background: 'var(--color-bg-white)', borderTop: '1px solid var(--color-border)', padding: '8px 12px', display: 'flex', boxShadow: '0 -2px 8px rgba(0,0,0,0.08)' }}>
+          <Button variant="primary" style={{ flex: 1, minWidth: 0 }} onClick={startExam} disabled={examLoading}>
+            {examLoading ? (
+              <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}>
+                <span style={{ width: 12, height: 12, border: '2px solid rgba(0,0,0,0.3)', borderTopColor: '#16191f', borderRadius: '50%', animation: 'sherpa-spin 0.7s linear infinite' }} />
+                {ja ? '準備中...' : 'Preparing...'}
+              </span>
+            ) : (ja ? '模試を開始する' : 'Start Mock Exam')}
+          </Button>
+        </div>
       )}
     </div>
   );
