@@ -450,7 +450,7 @@ export default function Practice() {
           {hasDraft ? (
             <>
               <Button variant="primary" style={{ flex: 2, minWidth: 0, height: 44, gap: 6 }} onClick={resumeExercise}>
-                {ja ? '続きから再開' : 'Resume'}<IconCirclePlay size={17} />
+                {ja ? '続きから再開' : 'Resume'}<IconCirclePause size={17} />
               </Button>
               <Button variant="outline" style={{ flex: 1, minWidth: 0, height: 44, gap: 6 }} onClick={startExercise} disabled={exerciseLoading || availableCount === 0}>
                 {exerciseLoading ? (
@@ -458,7 +458,7 @@ export default function Practice() {
                     <span style={{ width: 13, height: 13, border: '2px solid rgba(0,0,0,0.25)', borderTopColor: '#16191f', borderRadius: '50%', animation: 'sherpa-spin 0.7s linear infinite', flexShrink: 0 }} />
                     {t('exerciseSetup.starting')}
                   </span>
-                ) : <>{ja ? '演習を開始' : 'New'}<IconCirclePause size={17} /></>}
+                ) : <>{ja ? '演習を開始' : 'New'}<IconCirclePlay size={17} /></>}
               </Button>
             </>
           ) : (
@@ -468,7 +468,7 @@ export default function Practice() {
                   <span style={{ width: 13, height: 13, border: '2px solid rgba(0,0,0,0.25)', borderTopColor: '#16191f', borderRadius: '50%', animation: 'sherpa-spin 0.7s linear infinite', flexShrink: 0 }} />
                   {t('exerciseSetup.starting')}
                 </span>
-              ) : <>{t('exerciseSetup.start')}<IconCirclePause size={17} /></>}
+              ) : <>{t('exerciseSetup.start')}<IconCirclePlay size={17} /></>}
             </Button>
           )}
         </div>
@@ -483,7 +483,7 @@ export default function Practice() {
                 <span style={{ width: 12, height: 12, border: '2px solid rgba(0,0,0,0.3)', borderTopColor: '#16191f', borderRadius: '50%', animation: 'sherpa-spin 0.7s linear infinite' }} />
                 {ja ? '準備中...' : 'Preparing...'}
               </span>
-            ) : <>{ja ? '模試を開始する' : 'Start Mock Exam'}<IconCirclePause size={17} /></>}
+            ) : <>{ja ? '模試を開始する' : 'Start Mock Exam'}<IconCirclePlay size={17} /></>}
           </Button>
         </div>
       )}
