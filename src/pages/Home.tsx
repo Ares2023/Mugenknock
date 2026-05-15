@@ -721,7 +721,7 @@ export default function Home() {
               </Button>
             )}
             <Button variant="outline" fullWidth onClick={() => { setDraftPrefs({ ...loadQuickPrefs() }); setShowQuickModal(true); }}>
-              ⚙ {ja ? '設定' : 'Settings'}
+              <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4 }}><IconSettings size={14} />{ja ? '設定' : 'Settings'}</span>
             </Button>
           </div>
           <Button variant="outline" fullWidth onClick={() => navigate('/practice')} style={{ marginBottom: 'var(--spacing-md)' }}>
