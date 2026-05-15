@@ -141,7 +141,7 @@ export default function ExerciseSetup() {
             const incorrectIds = new Set(incorrectRes.questionIds ?? []);
             items = items.filter((q: any) => incorrectIds.has(q.questionId));
           }
-          if (aiVerifiedOnly) items = items.filter((q: any) => q.aiVerified === true);
+          if (aiVerifiedOnly) items = items.filter((q: any) => !!q.validityCheckedAt);
           setAvailableCount(items.length);
         } else if (allSelected && !aiVerifiedOnly) {
           const cached = getCached<number>(`qcount_${examType}`);
@@ -153,7 +153,7 @@ export default function ExerciseSetup() {
         } else {
           const qRes = await fetch(`${API_ENDPOINT}/questions?${params}`).then(r => r.json());
           let countItems: any[] = qRes.items ?? [];
-          if (aiVerifiedOnly) countItems = countItems.filter((q: any) => q.aiVerified === true);
+          if (aiVerifiedOnly) countItems = countItems.filter((q: any) => !!q.validityCheckedAt);
           setAvailableCount(aiVerifiedOnly ? countItems.length : (qRes.count ?? countItems.length));
         }
       } catch { setAvailableCount(0); }
@@ -223,7 +223,7 @@ export default function ExerciseSetup() {
           const incorrectIds = new Set(incorrectRes.questionIds ?? []);
           filtered = filtered.filter((q: any) => incorrectIds.has(q.questionId));
         }
-        if (aiVerifiedOnly) filtered = filtered.filter((q: any) => q.aiVerified === true);
+        if (aiVerifiedOnly) filtered = filtered.filter((q: any) => !!q.validityCheckedAt);
         filtered = shuffleArray(filtered);
         selectedItems = filtered.slice(0, limit);
       } else {
@@ -232,7 +232,7 @@ export default function ExerciseSetup() {
         const res = await fetch(`${API_ENDPOINT}/questions?${params}`);
         const data = await res.json();
         let allItems: any[] = data.items ?? [];
-        if (aiVerifiedOnly) allItems = allItems.filter((q: any) => q.aiVerified === true);
+        if (aiVerifiedOnly) allItems = allItems.filter((q: any) => !!q.validityCheckedAt);
         allItems = shuffleArray(allItems);
         selectedItems = allItems.slice(0, limit);
       }

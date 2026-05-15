@@ -101,7 +101,7 @@ export default function Practice() {
           if (bookmarkOnly && bkmRes) { const ids = new Set(bkmRes.questionIds ?? []); items = items.filter((q: any) => ids.has(q.questionId)); }
           if (unansweredOnly && answeredRes) { const ids = new Set(answeredRes.questionIds ?? []); items = items.filter((q: any) => !ids.has(q.questionId)); }
           if (incorrectOnly && incorrectRes) { const ids = new Set(incorrectRes.questionIds ?? []); items = items.filter((q: any) => ids.has(q.questionId)); }
-          if (aiVerifiedOnly) items = items.filter((q: any) => q.aiVerified === true);
+          if (aiVerifiedOnly) items = items.filter((q: any) => !!q.validityCheckedAt);
           setAvailableCount(items.length);
         } else if (allSelected && !aiVerifiedOnly) {
           const cached = getCached<number>(`qcount_${examType}`);
@@ -113,7 +113,7 @@ export default function Practice() {
         } else {
           const qRes = await fetch(`${API_ENDPOINT}/questions?${params}`).then(r => r.json());
           let countItems: any[] = qRes.items ?? [];
-          if (aiVerifiedOnly) countItems = countItems.filter((q: any) => q.aiVerified === true);
+          if (aiVerifiedOnly) countItems = countItems.filter((q: any) => !!q.validityCheckedAt);
           setAvailableCount(aiVerifiedOnly ? countItems.length : (qRes.count ?? countItems.length));
         }
       } catch { setAvailableCount(0); }
@@ -159,14 +159,14 @@ export default function Practice() {
         if (bookmarkOnly && bkmRes) { const ids = new Set(bkmRes.questionIds ?? []); filtered = filtered.filter((q: any) => ids.has(q.questionId)); }
         if (unansweredOnly && answeredRes) { const ids = new Set(answeredRes.questionIds ?? []); filtered = filtered.filter((q: any) => !ids.has(q.questionId)); }
         if (incorrectOnly && incorrectRes) { const ids = new Set(incorrectRes.questionIds ?? []); filtered = filtered.filter((q: any) => ids.has(q.questionId)); }
-        if (aiVerifiedOnly) filtered = filtered.filter((q: any) => q.aiVerified === true);
+        if (aiVerifiedOnly) filtered = filtered.filter((q: any) => !!q.validityCheckedAt);
         selectedItems = shuffleArray(filtered).slice(0, limit);
       } else {
         const params = new URLSearchParams({ examType, withAnswers: 'true' });
         if (!allSelected) params.set('domain', selectedDomains.join(','));
         const data = await fetch(`${API_ENDPOINT}/questions?${params}`).then(r => r.json());
         let allItems: any[] = data.items ?? [];
-        if (aiVerifiedOnly) allItems = allItems.filter((q: any) => q.aiVerified === true);
+        if (aiVerifiedOnly) allItems = allItems.filter((q: any) => !!q.validityCheckedAt);
         selectedItems = shuffleArray(allItems).slice(0, limit);
       }
       if (selectedItems.length === 0) { alert(t('exerciseSetup.noQuestions')); setExerciseLoading(false); return; }
