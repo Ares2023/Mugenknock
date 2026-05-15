@@ -446,19 +446,30 @@ export default function Practice() {
       {/* ── モバイル固定底バー（演習） ── */}
       {isMobile && tab === 'exercise' && (
         <div style={{ position: 'fixed', bottom: 56, left: 0, right: 0, zIndex: 150, background: 'var(--color-bg-white)', borderTop: '1px solid var(--color-border)', padding: '8px 12px', display: 'flex', gap: 6, boxShadow: '0 -2px 8px rgba(0,0,0,0.08)' }}>
-          {hasDraft && (
-            <Button variant="outline" style={{ flexShrink: 0, padding: '0 14px', whiteSpace: 'nowrap', fontSize: 'var(--font-size-sm)' }} onClick={resumeExercise}>
-              {ja ? '途中から' : 'Resume'}
+          {hasDraft ? (
+            <>
+              <Button variant="primary" style={{ flex: 2, minWidth: 0, height: 44 }} onClick={resumeExercise}>
+                {ja ? '続きから再開' : 'Resume'}
+              </Button>
+              <Button variant="outline" style={{ flex: 1, minWidth: 0, height: 44 }} onClick={startExercise} disabled={exerciseLoading || availableCount === 0}>
+                {exerciseLoading ? (
+                  <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}>
+                    <span style={{ width: 13, height: 13, border: '2px solid rgba(0,0,0,0.25)', borderTopColor: '#16191f', borderRadius: '50%', animation: 'sherpa-spin 0.7s linear infinite', flexShrink: 0 }} />
+                    {t('exerciseSetup.starting')}
+                  </span>
+                ) : (ja ? '演習を開始' : 'New')}
+              </Button>
+            </>
+          ) : (
+            <Button variant="primary" style={{ flex: 1, minWidth: 0, height: 44 }} onClick={startExercise} disabled={exerciseLoading || availableCount === 0}>
+              {exerciseLoading ? (
+                <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}>
+                  <span style={{ width: 13, height: 13, border: '2px solid rgba(0,0,0,0.25)', borderTopColor: '#16191f', borderRadius: '50%', animation: 'sherpa-spin 0.7s linear infinite', flexShrink: 0 }} />
+                  {t('exerciseSetup.starting')}
+                </span>
+              ) : t('exerciseSetup.start')}
             </Button>
           )}
-          <Button variant="primary" style={{ flex: 1, minWidth: 0 }} onClick={startExercise} disabled={exerciseLoading || availableCount === 0}>
-            {exerciseLoading ? (
-              <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}>
-                <span style={{ width: 13, height: 13, border: '2px solid rgba(0,0,0,0.25)', borderTopColor: '#16191f', borderRadius: '50%', animation: 'sherpa-spin 0.7s linear infinite', flexShrink: 0 }} />
-                {t('exerciseSetup.starting')}
-              </span>
-            ) : t('exerciseSetup.start')}
-          </Button>
         </div>
       )}
 

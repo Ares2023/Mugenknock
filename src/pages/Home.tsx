@@ -717,7 +717,7 @@ export default function Home() {
       {/* ── サクッと演習ボタン（モバイル固定） ── */}
       {isMobile && (
         <div style={{ position: 'fixed', bottom: 56, left: 0, right: 0, zIndex: 150, background: 'var(--color-bg-white)', borderTop: '1px solid var(--color-border)', padding: '8px 12px', display: 'flex', gap: 6, boxShadow: '0 -2px 8px rgba(0,0,0,0.08)' }}>
-          <Button variant="primary" style={{ flex: 1, minWidth: 0 }} disabled={!targetExam || quickLoading} onClick={() => { if (hasQuickDraft) resumeQuickExercise(); else if (targetExam && !quickLoading) startQuickExercise(); }}>
+          <Button variant="primary" style={{ flex: 1, minWidth: 0, height: 44 }} disabled={!targetExam || quickLoading} onClick={() => { if (hasQuickDraft) resumeQuickExercise(); else if (targetExam && !quickLoading) startQuickExercise(); }}>
             {quickLoading ? (
               <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}>
                 <span style={{ width: 14, height: 14, border: '2px solid rgba(0,0,0,0.2)', borderTopColor: '#16191f', borderRadius: '50%', animation: 'sherpa-spin 0.7s linear infinite', flexShrink: 0 }} />
@@ -727,7 +727,7 @@ export default function Home() {
           </Button>
           <button
             onClick={() => { setDraftPrefs({ ...loadQuickPrefs() }); setShowQuickModal(true); }}
-            style={{ flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', width: 44, height: 44, border: '1px solid var(--color-border)', borderRadius: '50%', background: 'transparent', cursor: 'pointer', color: 'var(--color-text-sub)' }}
+            style={{ flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', width: 44, height: 44, border: '1.5px solid var(--color-primary)', borderRadius: '50%', background: 'transparent', cursor: 'pointer', color: 'var(--color-primary)' }}
             aria-label={ja ? '設定' : 'Settings'}
           >
             <IconSettings size={18} />
