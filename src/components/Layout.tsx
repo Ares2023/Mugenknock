@@ -375,9 +375,9 @@ export default function Layout({ children }: { children: React.ReactNode }) {
         {/* サービス名 */}
         <div onClick={() => navigate('/')} style={{ display: 'flex', alignItems: 'center', cursor: 'pointer', userSelect: 'none', flexShrink: 0, padding: '0 4px' }}>
           <img
-            src="/mugen-header.png"
+            src={isMobile ? '/mugen-icon.png' : '/mugen-header.png'}
             alt="AWS資格無限ノック"
-            style={{ height: 36, width: 'auto', display: 'block' }}
+            style={{ height: isMobile ? 32 : 36, width: 'auto', display: 'block' }}
           />
         </div>
 
