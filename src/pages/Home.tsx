@@ -715,7 +715,7 @@ export default function Home() {
             </Button>
           </div>
           <Button variant="outline" fullWidth onClick={() => navigate('/practice')} style={{ marginBottom: 'var(--spacing-md)' }}>
-            {ja ? '演習・テスト →' : 'Practice & Tests →'}
+            {ja ? 'トレーニング →' : 'Training →'}
           </Button>
         </>
       )}

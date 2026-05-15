@@ -9,7 +9,7 @@ import Button from './ui/Button';
 import {
   IconHome, IconList,
   IconUser, IconChart, IconInfo,
-  IconFire, IconMenu, IconClose, IconChevronLeft, IconMail,
+  IconDumbbell, IconFire, IconMenu, IconClose, IconChevronLeft, IconMail,
   IconSparkles, IconFootprint
 } from './Icons';
 
@@ -45,7 +45,7 @@ const IconMore = () => (
 
 const NAV_KEYS = [
   { path: '/',          labelKey: 'nav.home',      Icon: IconHome      },
-  { path: '/practice',  labelKey: 'nav.practice',  Icon: IconFire      },
+  { path: '/practice',  labelKey: 'nav.practice',  Icon: IconDumbbell  },
   { path: '/stats',     labelKey: 'nav.stats',     Icon: IconFootprint },
   { path: '/questions',     labelKey: 'nav.questions',    Icon: IconList,     bottom: true },
   { path: '/growth',        labelKey: 'nav.growth',       Icon: IconSparkles, bottom: true },
@@ -55,7 +55,7 @@ const NAV_KEYS = [
 
 const BOTTOM_TABS = [
   { path: '/',          Icon: IconHome,        ja: 'サクッと演習', en: 'Quick'    },
-  { path: '/practice',  Icon: IconFire,        ja: '演習・テスト', en: 'Practice' },
+  { path: '/practice',  Icon: IconDumbbell,    ja: 'トレーニング', en: 'Training' },
   { path: '/stats',     Icon: IconFootprint,   ja: '足あと',      en: 'History'  },
 ];
 
@@ -218,7 +218,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
   const navItems = NAV_KEYS;
 
   const breadcrumbs: Record<string, BreadcrumbItem[]> = {
-    '/practice':         [{ label: t('nav.home'), path: '/' }, { label: '演習・テスト' }],
+    '/practice':         [{ label: t('nav.home'), path: '/' }, { label: t('nav.practice') }],
     '/questions':        [{ label: t('nav.home'), path: '/' }, { label: t('nav.questions') }],
     '/growth':           [{ label: t('nav.home'), path: '/' }, { label: t('nav.growth') }],
     '/exercise/setup':   [{ label: t('nav.home'), path: '/' }, { label: t('exerciseSetup.title') }],
