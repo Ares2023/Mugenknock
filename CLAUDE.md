@@ -23,3 +23,6 @@
 - React + TypeScript (Create React App)
 - AWS Amplify Gen1
 - AWS CLI: `/home/yuzuki/local/bin/aws`（グローバルにインストールされていない）
+
+## アイコンの取得先
+- https://lucide.dev/icons/flame
