@@ -389,26 +389,6 @@ export default function ExerciseSetup() {
             )}
           </StepRow>
 
-          {/* 中断中セッション通知 */}
-          {hasDraft && (
-            <div style={{
-              display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 'var(--spacing-md)',
-              padding: '12px var(--spacing-md)', marginTop: 'var(--spacing-lg)', marginBottom: 'var(--spacing-md)',
-              background: 'var(--color-bg-warning)', border: '1px solid var(--color-border-warning)', borderRadius: 'var(--border-radius-md)',
-            }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--spacing-sm)' }}>
-                <span style={{ fontSize: 18 }}>⏸</span>
-                <div>
-                  <div style={{ fontSize: 'var(--font-size-sm)', fontWeight: 700, color: 'var(--color-text-warning)' }}>{t('exerciseSetup.resumeNotice')}</div>
-                  <div style={{ fontSize: 'var(--font-size-xs)', color: 'var(--color-text-warning-sub)' }}>{t('exerciseSetup.resumeNoticeDesc')}</div>
-                </div>
-              </div>
-              <Button size="sm" variant="outline" onClick={resumeSession} style={{ borderColor: 'var(--color-border-warning)', color: 'var(--color-text-warning)', whiteSpace: 'nowrap', flexShrink: 0 }}>
-                {t('exerciseSetup.resume')} →
-              </Button>
-            </div>
-          )}
-
         </Card>
       <div className="sticky-page-action">
         {!user && (
