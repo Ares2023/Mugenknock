@@ -381,25 +381,16 @@ export default function Practice() {
             <>
               <div style={{ fontSize: 'var(--font-size-sm)', color: 'var(--color-text-sub)', marginBottom: 16 }}>{examCfg?.fullName}</div>
 
-              {/* モード切り替え */}
-              <div style={{ display: 'flex', gap: 8, marginBottom: 20 }}>
-                {(['full', 'mini'] as const).map(mode => (
-                  <button
-                    key={mode}
-                    onClick={() => setExamMode(mode)}
-                    style={{
-                      flex: 1, padding: '10px 0', border: `1px solid ${examMode === mode ? 'var(--color-primary)' : 'var(--color-border)'}`,
-                      borderRadius: 'var(--border-radius-full)', cursor: 'pointer', fontSize: 'var(--font-size-sm)',
-                      fontWeight: examMode === mode ? 700 : 400,
-                      background: examMode === mode ? 'var(--color-primary-light)' : 'transparent',
-                      color: examMode === mode ? 'var(--color-primary)' : 'var(--color-text-sub)',
-                      transition: 'all 0.15s',
-                    }}
-                  >
-                    {mode === 'full' ? (ja ? '本番形式' : 'Full') : (ja ? 'ミニ模試（1/5）' : 'Mini (1/5)')}
-                  </button>
-                ))}
-              </div>
+              {/* ミニ模試チェックボックス */}
+              <label style={{ display: 'inline-flex', alignItems: 'center', gap: 'var(--spacing-sm)', cursor: 'pointer', fontSize: 'var(--font-size-base)', marginBottom: 20 }}>
+                <input
+                  type="checkbox"
+                  checked={examMode === 'mini'}
+                  onChange={e => setExamMode(e.target.checked ? 'mini' : 'full')}
+                  style={{ width: 16, height: 16, flexShrink: 0 }}
+                />
+                {ja ? 'ミニ模試（問題数・時間を1/5に短縮）' : 'Mini mode (1/5 questions & time)'}
+              </label>
 
               <div style={{ display: 'flex', gap: 24, marginBottom: 20, flexWrap: 'wrap' }}>
                 <div>
