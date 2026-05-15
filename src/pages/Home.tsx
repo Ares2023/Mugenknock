@@ -9,7 +9,7 @@ import {
 import { getCached, setCached, deleteCached, DEFAULT_TTL } from '../utils/cache';
 import Card from '../components/ui/Card';
 import Button from '../components/ui/Button';
-import { IconLightbulb, IconSettings, ServiceIcon, isServiceIconKey } from '../components/Icons';
+import { IconLightbulb, IconSettings, IconChevronUp, ServiceIcon, isServiceIconKey } from '../components/Icons';
 
 type DomainStat = { tagId: string; correctCount?: number; incorrectCount?: number };
 type SessionEntry = { correct: number; total: number };
@@ -333,6 +333,7 @@ export default function Home() {
   };
   const [quickDraft, setQuickDraft] = useState<any>(() => readQuickDraft());
   const [showQuickModal, setShowQuickModal] = useState(false);
+  const [showNewPanel, setShowNewPanel] = useState(false);
   const [draftPrefs, setDraftPrefs] = useState<Record<string, any>>({});
   const [showScoreDetail, setShowScoreDetail] = useState(false);
   const [showDomainDetail, setShowDomainDetail] = useState(false);
@@ -716,23 +717,48 @@ export default function Home() {
 
       {/* ── サクッと演習ボタン（モバイル固定） ── */}
       {isMobile && (
-        <div style={{ position: 'fixed', bottom: 56, left: 0, right: 0, zIndex: 150, background: 'var(--color-bg-white)', borderTop: '1px solid var(--color-border)', padding: '8px 12px', display: 'flex', gap: 6, boxShadow: '0 -2px 8px rgba(0,0,0,0.08)' }}>
-          <Button variant="primary" style={{ flex: 1, minWidth: 0, height: 44 }} disabled={!targetExam || quickLoading} onClick={() => { if (hasQuickDraft) resumeQuickExercise(); else if (targetExam && !quickLoading) startQuickExercise(); }}>
-            {quickLoading ? (
-              <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}>
-                <span style={{ width: 14, height: 14, border: '2px solid rgba(0,0,0,0.2)', borderTopColor: '#16191f', borderRadius: '50%', animation: 'sherpa-spin 0.7s linear infinite', flexShrink: 0 }} />
-                {ja ? '準備中...' : 'Loading...'}
-              </span>
-            ) : hasQuickDraft ? (ja ? 'サクッと演習（続きから再開）' : 'Quick (Resume)') : (ja ? 'サクッと演習' : 'Quick')}
-          </Button>
-          <button
-            onClick={() => { setDraftPrefs({ ...loadQuickPrefs() }); setShowQuickModal(true); }}
-            style={{ flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', width: 44, height: 44, border: '1.5px solid var(--color-primary)', borderRadius: '50%', background: 'transparent', cursor: 'pointer', color: 'var(--color-primary)' }}
-            aria-label={ja ? '設定' : 'Settings'}
-          >
-            <IconSettings size={18} />
-          </button>
-        </div>
+        <>
+          {/* プルアップパネル：新規で開始 */}
+          {showNewPanel && (
+            <>
+              <div onClick={() => setShowNewPanel(false)} style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.4)', zIndex: 210 }} />
+              <div style={{ position: 'fixed', bottom: 116, left: 0, right: 0, zIndex: 211, background: 'var(--color-bg-white)', borderRadius: '14px 14px 0 0', padding: '14px 12px 12px', boxShadow: '0 -4px 20px rgba(0,0,0,0.18)', animation: 'slideUp 0.22s ease' }}>
+                <div style={{ fontSize: 'var(--font-size-sm)', color: 'var(--color-text-sub)', textAlign: 'center', marginBottom: 10 }}>
+                  {ja ? '現在のセッションを破棄して新規開始します' : 'Discard current session and start new'}
+                </div>
+                <Button variant="primary" fullWidth style={{ height: 44 }} onClick={() => { setShowNewPanel(false); discardQuickDraft(); startQuickExercise(); }}>
+                  {ja ? '新規で開始' : 'Start New'}
+                </Button>
+              </div>
+            </>
+          )}
+          <div style={{ position: 'fixed', bottom: 56, left: 0, right: 0, zIndex: 150, background: 'var(--color-bg-white)', borderTop: '1px solid var(--color-border)', padding: '8px 12px', display: 'flex', gap: 6, boxShadow: '0 -2px 8px rgba(0,0,0,0.08)' }}>
+            <Button variant="primary" style={{ flex: 1, minWidth: 0, height: 44 }} disabled={!targetExam || quickLoading} onClick={() => { if (hasQuickDraft) resumeQuickExercise(); else if (targetExam && !quickLoading) startQuickExercise(); }}>
+              {quickLoading ? (
+                <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}>
+                  <span style={{ width: 14, height: 14, border: '2px solid rgba(0,0,0,0.2)', borderTopColor: '#16191f', borderRadius: '50%', animation: 'sherpa-spin 0.7s linear infinite', flexShrink: 0 }} />
+                  {ja ? '準備中...' : 'Loading...'}
+                </span>
+              ) : hasQuickDraft ? (ja ? 'サクッと演習（続きから）' : 'Quick (Resume)') : (ja ? 'サクッと演習' : 'Quick')}
+            </Button>
+            {hasQuickDraft && (
+              <button
+                onClick={() => setShowNewPanel(v => !v)}
+                style={{ flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', width: 44, height: 44, border: '1.5px solid var(--color-primary)', borderRadius: '50%', background: 'transparent', cursor: 'pointer', color: 'var(--color-primary)' }}
+                aria-label={ja ? '新規で開始' : 'Start new'}
+              >
+                <IconChevronUp size={18} />
+              </button>
+            )}
+            <button
+              onClick={() => { setDraftPrefs({ ...loadQuickPrefs() }); setShowQuickModal(true); }}
+              style={{ flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', width: 44, height: 44, border: '1.5px solid var(--color-primary)', borderRadius: '50%', background: 'transparent', cursor: 'pointer', color: 'var(--color-primary)' }}
+              aria-label={ja ? '設定' : 'Settings'}
+            >
+              <IconSettings size={18} />
+            </button>
+          </div>
+        </>
       )}
 
       {/* ── 日めくりAWSサービス ── */}

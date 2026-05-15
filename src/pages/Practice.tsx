@@ -5,7 +5,7 @@ import { useLanguage } from '../contexts/LanguageContext';
 import { API_ENDPOINT, EXAM_CONFIGS, EXAM_DOMAINS, EXAM_TYPES, PASS_SCORES } from '../constants';
 import Button from '../components/ui/Button';
 import DomainSelector from '../components/DomainSelector';
-import { IconCirclePause, IconCirclePlay } from '../components/Icons';
+import { IconCirclePause, IconCirclePlay, IconChevronUp } from '../components/Icons';
 import { getCached, setCached, SHORT_TTL } from '../utils/cache';
 
 function shuffleArray<T>(arr: T[]): T[] {
@@ -68,10 +68,11 @@ export default function Practice() {
   type DomainStat = { tagId: string; correctCount: number; incorrectCount: number };
   const [domainStats, setDomainStats] = useState<DomainStat[]>([]);
 
-  const exerciseDraft = (() => {
+  const [exerciseDraft, setExerciseDraft] = useState<any>(() => {
     try { return JSON.parse(localStorage.getItem('exerciseDraft') ?? 'null'); } catch { return null; }
-  })();
+  });
   const hasDraft = exerciseDraft?.examType === examType;
+  const [showNewPanel, setShowNewPanel] = useState(false);
 
   const isFirstRender = useRef(true);
   useEffect(() => {
@@ -429,32 +430,47 @@ export default function Practice() {
 
       {/* ── モバイル固定底バー（演習） ── */}
       {isMobile && tab === 'exercise' && (
-        <div style={{ position: 'fixed', bottom: 56, left: 0, right: 0, zIndex: 150, background: 'var(--color-bg-white)', borderTop: '1px solid var(--color-border)', padding: '8px 12px', display: 'flex', gap: 6, boxShadow: '0 -2px 8px rgba(0,0,0,0.08)' }}>
-          {hasDraft ? (
+        <>
+          {/* プルアップパネル：新規で開始 */}
+          {showNewPanel && (
             <>
-              <Button variant="primary" style={{ flex: 2, minWidth: 0, height: 44, gap: 6 }} onClick={resumeExercise}>
-                {ja ? '続きから再開' : 'Resume'}<IconCirclePause size={17} />
-              </Button>
-              <Button variant="outline" style={{ flex: 1, minWidth: 0, height: 44, gap: 6 }} onClick={startExercise} disabled={exerciseLoading || availableCount === 0}>
+              <div onClick={() => setShowNewPanel(false)} style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.4)', zIndex: 210 }} />
+              <div style={{ position: 'fixed', bottom: 116, left: 0, right: 0, zIndex: 211, background: 'var(--color-bg-white)', borderRadius: '14px 14px 0 0', padding: '14px 12px 12px', boxShadow: '0 -4px 20px rgba(0,0,0,0.18)', animation: 'slideUp 0.22s ease' }}>
+                <div style={{ fontSize: 'var(--font-size-sm)', color: 'var(--color-text-sub)', textAlign: 'center', marginBottom: 10 }}>
+                  {ja ? '現在のセッションを破棄して新規開始します' : 'Discard current session and start new'}
+                </div>
+                <Button variant="primary" fullWidth style={{ height: 44, gap: 6 }} onClick={() => { localStorage.removeItem('exerciseDraft'); setExerciseDraft(null); setShowNewPanel(false); startExercise(); }}>
+                  {ja ? '新規で開始' : 'Start New'}<IconCirclePlay size={17} />
+                </Button>
+              </div>
+            </>
+          )}
+          <div style={{ position: 'fixed', bottom: 56, left: 0, right: 0, zIndex: 150, background: 'var(--color-bg-white)', borderTop: '1px solid var(--color-border)', padding: '8px 12px', display: 'flex', gap: 6, boxShadow: '0 -2px 8px rgba(0,0,0,0.08)' }}>
+            {hasDraft ? (
+              <>
+                <Button variant="primary" style={{ flex: 1, minWidth: 0, height: 44, gap: 6 }} onClick={resumeExercise}>
+                  {ja ? '試験を再開' : 'Resume'}<IconCirclePause size={17} />
+                </Button>
+                <button
+                  onClick={() => setShowNewPanel(v => !v)}
+                  style={{ flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', width: 44, height: 44, border: '1.5px solid var(--color-primary)', borderRadius: '50%', background: 'transparent', cursor: 'pointer', color: 'var(--color-primary)' }}
+                  aria-label={ja ? '新規で開始' : 'Start new'}
+                >
+                  <IconChevronUp size={18} />
+                </button>
+              </>
+            ) : (
+              <Button variant="primary" style={{ flex: 1, minWidth: 0, height: 44, gap: 6 }} onClick={startExercise} disabled={exerciseLoading || availableCount === 0}>
                 {exerciseLoading ? (
                   <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}>
                     <span style={{ width: 13, height: 13, border: '2px solid rgba(0,0,0,0.25)', borderTopColor: '#16191f', borderRadius: '50%', animation: 'sherpa-spin 0.7s linear infinite', flexShrink: 0 }} />
                     {t('exerciseSetup.starting')}
                   </span>
-                ) : <>{ja ? '試験を開始' : 'New'}<IconCirclePlay size={17} /></>}
+                ) : <>{ja ? '試験を始める' : 'Start'}<IconCirclePlay size={17} /></>}
               </Button>
-            </>
-          ) : (
-            <Button variant="primary" style={{ flex: 1, minWidth: 0, height: 44, gap: 6 }} onClick={startExercise} disabled={exerciseLoading || availableCount === 0}>
-              {exerciseLoading ? (
-                <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}>
-                  <span style={{ width: 13, height: 13, border: '2px solid rgba(0,0,0,0.25)', borderTopColor: '#16191f', borderRadius: '50%', animation: 'sherpa-spin 0.7s linear infinite', flexShrink: 0 }} />
-                  {t('exerciseSetup.starting')}
-                </span>
-              ) : <>{t('exerciseSetup.start')}<IconCirclePlay size={17} /></>}
-            </Button>
-          )}
-        </div>
+            )}
+          </div>
+        </>
       )}
 
       {/* ── モバイル固定底バー（模試） ── */}
