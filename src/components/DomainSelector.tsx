@@ -33,17 +33,16 @@ const chipXStyle: React.CSSProperties = {
 
 function WeakBadge({ rate }: { rate: number }) {
   const pct = Math.round(rate * 100);
-  const isWeak = rate < DOMAIN_RATE_WARNING;
+  const isWeak    = rate < DOMAIN_RATE_WARNING;
   const isCaution = rate < DOMAIN_RATE_CAUTION;
-  if (!isWeak && !isCaution) return null;
 
-  const bg    = isWeak ? 'rgba(209,50,18,0.1)'  : 'rgba(202,138,4,0.1)';
-  const color = isWeak ? 'var(--color-danger)'   : 'var(--color-caution)';
-  const border = isWeak ? 'rgba(209,50,18,0.35)' : 'rgba(202,138,4,0.35)';
+  const bg     = isWeak ? 'rgba(209,50,18,0.1)'  : isCaution ? 'rgba(202,138,4,0.1)'  : 'var(--color-bg-main)';
+  const color  = isWeak ? 'var(--color-danger)'   : isCaution ? 'var(--color-caution)' : 'var(--color-text-sub)';
+  const border = isWeak ? 'rgba(209,50,18,0.35)'  : isCaution ? 'rgba(202,138,4,0.35)' : 'var(--color-border)';
 
   return (
     <span style={{
-      display: 'inline-flex', alignItems: 'center', gap: 3,
+      display: 'inline-flex', alignItems: 'center',
       padding: '1px 6px', borderRadius: 10,
       background: bg, border: `1px solid ${border}`,
       fontSize: 10, fontWeight: 700, color, flexShrink: 0,
