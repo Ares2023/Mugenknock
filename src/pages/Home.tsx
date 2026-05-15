@@ -528,25 +528,15 @@ export default function Home() {
     finally { setQuickLoading(false); }
   };
 
-  // ドメイン別成績（表示用）— ローカル履歴優先、なければAPI累計
+  // ドメイン別成績（表示用）— API累計統計を使用
   const domains = useMemo(() => targetExam ? (EXAM_DOMAINS[targetExam] ?? []) : [], [targetExam]);
   const domainAccList = useMemo(() => {
     if (!targetExam) return [] as { correct: number; total: number; pct: number | null }[];
-    const hist = readDomainHistory(targetExam);
-    const hasLocalHistory = domains.some(d => (hist[d]?.length ?? 0) > 0);
     return domains.map(d => {
-      const sessions = hist[d];
-      if (sessions && sessions.length > 0) {
-        const correct = sessions.reduce((s, r) => s + r.correct, 0);
-        const total = sessions.reduce((s, r) => s + r.total, 0);
-        return { correct, total, pct: total > 0 ? Math.round(correct / total * 100) : null };
-      } else if (!hasLocalHistory) {
-        const stat = domainStats.find(s => s.tagId === d);
-        const correct = stat?.correctCount ?? 0;
-        const total = correct + (stat?.incorrectCount ?? 0);
-        return { correct, total, pct: total > 0 ? Math.round(correct / total * 100) : null };
-      }
-      return { correct: 0, total: 0, pct: null };
+      const stat = domainStats.find(s => s.tagId === d);
+      const correct = stat?.correctCount ?? 0;
+      const total = correct + (stat?.incorrectCount ?? 0);
+      return { correct, total, pct: total > 0 ? Math.round(correct / total * 100) : null };
     });
   }, [targetExam, domainStats, domains]);
 
