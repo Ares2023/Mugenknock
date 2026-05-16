@@ -49,7 +49,6 @@ const NAV_KEYS = [
   { path: '/stats',     labelKey: 'nav.stats',     Icon: IconFootprint },
   { path: '/growth',        labelKey: 'nav.growth',       Icon: IconSparkles, bottom: true },
   { path: '/release-notes', labelKey: 'nav.releaseNotes', Icon: IconFire,     bottom: true },
-  { path: '/about',         labelKey: 'nav.about',        Icon: IconFileText, bottom: true },
 ];
 
 const BOTTOM_TABS = [
@@ -61,7 +60,6 @@ const BOTTOM_TABS = [
 const OTHERS_ITEMS = [
   { path: '/growth',        Icon: IconSparkles,   labelKey: 'nav.growth'       },
   { path: '/release-notes', Icon: IconFire,       labelKey: 'nav.releaseNotes' },
-  { path: '/about',         Icon: IconFileText,   labelKey: 'nav.about'        },
 ];
 
 const AI_LINKS = [
