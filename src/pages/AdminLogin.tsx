@@ -2,9 +2,9 @@ import React, { useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Authenticator } from '@aws-amplify/ui-react';
 import '@aws-amplify/ui-react/styles.css';
-import { signOut as amplifySignOut } from 'aws-amplify/auth';
+import { signOut as amplifySignOut, fetchAuthSession } from 'aws-amplify/auth';
 import { useAuth } from '../contexts/AuthContext';
-import { ADMIN_EMAIL } from '../constants';
+import { ADMIN_EMAIL, API_ENDPOINT } from '../constants';
 import Card from '../components/ui/Card';
 import Button from '../components/ui/Button';
 
@@ -49,11 +49,24 @@ export default function AdminLogin() {
                 const email = cognitoUser.signInDetails?.loginId ?? '';
                 if (email === ADMIN_EMAIL) {
                   navigate('/admin', { replace: true });
-                } else {
-                  await amplifySignOut();
-                  navigating.current = false;
-                  setAccessDenied(true);
+                  return;
                 }
+                // 追加管理者リストをバックエンドで検証
+                try {
+                  const session = await fetchAuthSession();
+                  const token = session.tokens?.idToken?.toString();
+                  const res = await fetch(`${API_ENDPOINT}/admin/settings/admins`, {
+                    headers: token ? { Authorization: `Bearer ${token}` } : {},
+                  });
+                  if (res.ok) {
+                    // requireAdmin を通過できた = 管理者として認証済み
+                    navigate('/admin', { replace: true });
+                    return;
+                  }
+                } catch { /* fall through */ }
+                await amplifySignOut();
+                navigating.current = false;
+                setAccessDenied(true);
               });
             }
             return <></>;
