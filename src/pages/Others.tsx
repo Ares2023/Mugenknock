@@ -3,14 +3,12 @@ import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { useLanguage } from '../contexts/LanguageContext';
 import { API_ENDPOINT } from '../constants';
-import { IconList, IconSparkles, IconFire, IconInfo, IconMail } from '../components/Icons';
+import { IconSparkles, IconFire, IconMail } from '../components/Icons';
 import Button from '../components/ui/Button';
 
 const ITEMS = [
-  { path: '/questions',     Icon: IconList,      ja: '問題一覧',       en: 'Question List',   desc_ja: 'すべての問題を参照・検索',      desc_en: 'Browse all questions'    },
   { path: '/growth',        Icon: IconSparkles,  ja: '問題生成・チェック状況', en: 'Generation & Verification', desc_ja: 'AI問題生成・チェックの進捗',   desc_en: 'AI question generation & verification stats' },
   { path: '/release-notes', Icon: IconFire,      ja: 'リリースノート',         en: 'Release Notes',             desc_ja: 'アップデート情報',             desc_en: 'App update history'       },
-  { path: '/architecture',  Icon: IconInfo,      ja: 'システム構成',           en: 'System Architecture',       desc_ja: 'アプリのシステム構成',         desc_en: 'App system architecture'  },
 ];
 
 export default function Others() {

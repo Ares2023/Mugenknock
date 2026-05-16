@@ -7,8 +7,8 @@ import { API_ENDPOINT, EXAM_TYPES, EXAM_CONFIGS, EXAM_LEVEL } from '../constants
 import Breadcrumb from './Breadcrumb';
 import Button from './ui/Button';
 import {
-  IconHome, IconList,
-  IconUser, IconChart, IconInfo,
+  IconHome,
+  IconUser, IconChart,
   IconDumbbell, IconFire, IconMenu, IconClose, IconChevronLeft, IconMail,
   IconSparkles, IconFootprint
 } from './Icons';
@@ -47,10 +47,8 @@ const NAV_KEYS = [
   { path: '/',          labelKey: 'nav.home',      Icon: IconHome      },
   { path: '/practice',  labelKey: 'nav.practice',  Icon: IconDumbbell  },
   { path: '/stats',     labelKey: 'nav.stats',     Icon: IconFootprint },
-  { path: '/questions',     labelKey: 'nav.questions',    Icon: IconList,     bottom: true },
   { path: '/growth',        labelKey: 'nav.growth',       Icon: IconSparkles, bottom: true },
   { path: '/release-notes', labelKey: 'nav.releaseNotes', Icon: IconFire,     bottom: true },
-  { path: '/architecture',  labelKey: 'nav.architecture', Icon: IconInfo,     bottom: true },
 ];
 
 const BOTTOM_TABS = [
@@ -60,10 +58,8 @@ const BOTTOM_TABS = [
 ];
 
 const OTHERS_ITEMS = [
-  { path: '/questions',     Icon: IconList,       labelKey: 'nav.questions'    },
   { path: '/growth',        Icon: IconSparkles,   labelKey: 'nav.growth'       },
   { path: '/release-notes', Icon: IconFire,       labelKey: 'nav.releaseNotes' },
-  { path: '/architecture',  Icon: IconInfo,       labelKey: 'nav.architecture' },
 ];
 
 const AI_LINKS = [
@@ -274,7 +270,6 @@ export default function Layout({ children }: { children: React.ReactNode }) {
 
   const breadcrumbs: Record<string, BreadcrumbItem[]> = {
     '/practice':         [{ label: t('nav.home'), path: '/' }, { label: t('nav.practice') }],
-    '/questions':        [{ label: t('nav.home'), path: '/' }, { label: t('nav.questions') }],
     '/growth':           [{ label: t('nav.home'), path: '/' }, { label: t('nav.growth') }],
     '/exercise/setup':   [{ label: t('nav.home'), path: '/' }, { label: t('exerciseSetup.title') }],
     '/exercise/session': [{ label: t('nav.home'), path: '/' }, { label: t('exerciseSetup.title'), path: '/exercise/setup' }, { label: t('nav.exerciseSession') }],
@@ -282,7 +277,6 @@ export default function Layout({ children }: { children: React.ReactNode }) {
     '/exam/session':     [{ label: t('nav.home'), path: '/' }, { label: t('examSetup.title'), path: '/exam/setup' }, { label: t('nav.examSession') }],
     '/result':           [{ label: t('nav.home'), path: '/' }, { label: t('nav.result') }],
     '/stats':            [{ label: t('nav.home'), path: '/' }, { label: t('stats.title') }],
-    '/architecture':     [{ label: t('nav.home'), path: '/' }, { label: t('nav.architecture') }],
     '/release-notes':    [{ label: t('nav.home'), path: '/' }, { label: t('nav.releaseNotes') }],
   };
 

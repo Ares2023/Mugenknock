@@ -12,7 +12,6 @@ import AdminLayout from './components/AdminLayout';
 import LoginPage from './pages/LoginPage';
 import AdminLogin from './pages/AdminLogin';
 import Home from './pages/Home';
-import QuestionList from './pages/QuestionList';
 import ExerciseSetup from './pages/ExerciseSetup';
 import ExerciseSession from './pages/ExerciseSession';
 import Result from './pages/Result';
@@ -21,7 +20,6 @@ import ExamSetup from './pages/ExamSetup';
 import ExamSession from './pages/ExamSession';
 import Stats from './pages/Stats';
 import Growth from './pages/Growth';
-import Architecture from './pages/Architecture';
 import ReleaseNotes from './pages/ReleaseNotes';
 import Account from './pages/Account';
 import Others from './pages/Others';
@@ -59,7 +57,6 @@ function App() {
           <Route path="/login" element={<LoginPage />} />
           <Route path="/admin-login" element={<AdminLogin />} />
           <Route path="/" element={<Layout><Home /></Layout>} />
-          <Route path="/questions" element={<Layout><QuestionList /></Layout>} />
           <Route path="/exercise/setup" element={<Layout><ExerciseSetup /></Layout>} />
           <Route path="/exercise/session" element={<Layout><ExerciseSession /></Layout>} />
           <Route path="/result" element={<Layout><Result /></Layout>} />
@@ -67,7 +64,6 @@ function App() {
           <Route path="/exam/session" element={<Layout><ExamSession /></Layout>} />
           <Route path="/practice" element={<Layout><Practice /></Layout>} />
           <Route path="/growth" element={<Layout><Growth /></Layout>} />
-          <Route path="/architecture" element={<Layout><Architecture /></Layout>} />
           <Route path="/release-notes" element={<Layout><ReleaseNotes /></Layout>} />
           <Route path="/others" element={<Layout><Others /></Layout>} />
           <Route path="/admin" element={
