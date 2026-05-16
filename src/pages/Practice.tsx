@@ -5,7 +5,7 @@ import { useLanguage } from '../contexts/LanguageContext';
 import { API_ENDPOINT, EXAM_CONFIGS, EXAM_DOMAINS, EXAM_TYPES, PASS_SCORES } from '../constants';
 import Button from '../components/ui/Button';
 import DomainSelector from '../components/DomainSelector';
-import { IconCirclePause, IconCirclePlay, IconChevronUp } from '../components/Icons';
+import { IconChevronUp } from '../components/Icons';
 import { getCached, setCached, SHORT_TTL } from '../utils/cache';
 
 function shuffleArray<T>(arr: T[]): T[] {
@@ -461,11 +461,11 @@ export default function Practice() {
                     <span style={{ width: 13, height: 13, border: '2px solid rgba(0,0,0,0.2)', borderTopColor: '#16191f', borderRadius: '50%', animation: 'sherpa-spin 0.7s linear infinite', flexShrink: 0 }} />
                     {t('exerciseSetup.starting')}
                   </span>
-                ) : hasDraft ? <>{ja ? '試験を再開' : 'Resume'}<IconCirclePause size={17} /></> : <>{ja ? '試験を始める' : 'Start'}<IconCirclePlay size={17} /></>}
+                ) : hasDraft ? (ja ? '試験を再開' : 'Resume') : (ja ? '試験を始める' : 'Start')}
               </button>
               <button
                 onClick={() => setShowNewPanel(v => !v)}
-                style={{ width: 44, height: 44, border: 'none', borderLeft: '1px solid rgba(255,255,255,0.4)', background: 'var(--color-accent)', color: 'var(--color-btn-primary-text)', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}
+                style={{ width: 44, height: 44, border: 'none', borderLeft: '2px solid rgba(255,255,255,0.4)', background: 'var(--color-accent)', color: 'var(--color-btn-primary-text)', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}
                 aria-label={ja ? '新規で開始メニュー' : 'Start new menu'}
               >
                 <IconChevronUp size={18} />
@@ -503,11 +503,11 @@ export default function Practice() {
                     <span style={{ width: 12, height: 12, border: '2px solid rgba(0,0,0,0.2)', borderTopColor: '#16191f', borderRadius: '50%', animation: 'sherpa-spin 0.7s linear infinite' }} />
                     {ja ? '準備中...' : 'Preparing...'}
                   </span>
-                ) : <>{ja ? '試験を開始' : 'Start Mock Exam'}<IconCirclePlay size={17} /></>}
+                ) : (ja ? '試験を開始' : 'Start Mock Exam')}
               </button>
               <button
                 onClick={() => setShowExamPanel(v => !v)}
-                style={{ width: 44, height: 44, border: 'none', borderLeft: '1px solid rgba(255,255,255,0.4)', background: 'var(--color-accent)', color: 'var(--color-btn-primary-text)', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}
+                style={{ width: 44, height: 44, border: 'none', borderLeft: '2px solid rgba(255,255,255,0.4)', background: 'var(--color-accent)', color: 'var(--color-btn-primary-text)', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}
                 aria-label={ja ? '新規で開始メニュー' : 'Start new menu'}
               >
                 <IconChevronUp size={18} />

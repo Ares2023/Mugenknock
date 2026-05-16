@@ -927,7 +927,7 @@ export default function Home() {
                 onClick={() => setShowNewPanel(v => !v)}
                 style={{
                   width: 44, height: 44, border: 'none',
-                  borderLeft: '1px solid rgba(255,255,255,0.4)',
+                  borderLeft: '2px solid rgba(255,255,255,0.4)',
                   background: 'var(--color-accent)',
                   color: 'var(--color-btn-primary-text)', cursor: 'pointer',
                   display: 'flex', alignItems: 'center', justifyContent: 'center',
