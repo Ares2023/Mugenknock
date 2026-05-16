@@ -465,7 +465,7 @@ export default function Practice() {
               </button>
               <button
                 onClick={() => setShowNewPanel(v => !v)}
-                style={{ width: 44, height: 44, border: 'none', borderLeft: '1px solid rgba(0,0,0,0.12)', background: 'var(--color-accent)', color: 'var(--color-btn-primary-text)', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}
+                style={{ width: 44, height: 44, border: 'none', borderLeft: '1px solid rgba(255,255,255,0.4)', background: 'var(--color-accent)', color: 'var(--color-btn-primary-text)', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}
                 aria-label={ja ? '新規で開始メニュー' : 'Start new menu'}
               >
                 <IconChevronUp size={18} />
@@ -507,7 +507,7 @@ export default function Practice() {
               </button>
               <button
                 onClick={() => setShowExamPanel(v => !v)}
-                style={{ width: 44, height: 44, border: 'none', borderLeft: '1px solid rgba(0,0,0,0.12)', background: 'var(--color-accent)', color: 'var(--color-btn-primary-text)', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}
+                style={{ width: 44, height: 44, border: 'none', borderLeft: '1px solid rgba(255,255,255,0.4)', background: 'var(--color-accent)', color: 'var(--color-btn-primary-text)', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}
                 aria-label={ja ? '新規で開始メニュー' : 'Start new menu'}
               >
                 <IconChevronUp size={18} />
