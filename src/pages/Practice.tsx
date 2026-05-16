@@ -6,6 +6,7 @@ import { API_ENDPOINT, EXAM_CONFIGS, EXAM_DOMAINS, EXAM_TYPES, PASS_SCORES } fro
 import Button from '../components/ui/Button';
 import DomainSelector from '../components/DomainSelector';
 import { getCached, setCached, SHORT_TTL } from '../utils/cache';
+import { IconChevronUp } from '../components/Icons';
 
 function shuffleArray<T>(arr: T[]): T[] {
   const a = [...arr];
@@ -392,7 +393,7 @@ export default function Practice() {
                       onClick={() => setShowStartConfirm(true)}
                       style={{ width: 40, height: 40, border: 'none', borderLeft: '2px solid rgba(255,255,255,0.4)', background: 'var(--color-accent)', color: 'var(--color-btn-primary-text)', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}
                     >
-                      ↑
+                      <IconChevronUp size={16} />
                     </button>
                   </div>
                 </div>
@@ -478,7 +479,7 @@ export default function Practice() {
                         onClick={startExam}
                         style={{ width: 40, height: 40, border: 'none', borderLeft: '2px solid rgba(255,255,255,0.4)', background: 'var(--color-accent)', color: 'var(--color-btn-primary-text)', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}
                       >
-                        ↑
+                        <IconChevronUp size={16} />
                       </button>
                     </div>
                   </div>
@@ -536,7 +537,7 @@ export default function Practice() {
                   style={{ width: 44, height: 44, border: 'none', borderLeft: '2px solid rgba(255,255,255,0.4)', background: 'var(--color-accent)', color: 'var(--color-btn-primary-text)', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}
                   aria-label={ja ? '新規で開始メニュー' : 'Start new menu'}
                 >
-                  ↑
+                  <IconChevronUp size={16} />
                 </button>
               </div>
             ) : (
@@ -581,7 +582,7 @@ export default function Practice() {
                   style={{ width: 44, height: 44, border: 'none', borderLeft: '2px solid rgba(255,255,255,0.4)', background: 'var(--color-accent)', color: 'var(--color-btn-primary-text)', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}
                   aria-label={ja ? '新規で試験を開始' : 'Start new exam'}
                 >
-                  ↑
+                  <IconChevronUp size={16} />
                 </button>
               </div>
             ) : (
