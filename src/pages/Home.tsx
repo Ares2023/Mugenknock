@@ -93,7 +93,8 @@ function CombinedDetailModal({ targetExam, domainAccList, estimatedScore, passSc
   const domains = EXAM_DOMAINS[targetExam] ?? [];
   const history = readScoreHistory(targetExam);
   const [tab, setTab] = useState<'domain' | 'score'>('domain');
-  const [showCalc, setShowCalc] = useState(false);
+  const [showDomainCalc, setShowDomainCalc] = useState(false);
+  const [showScoreCalc, setShowScoreCalc] = useState(false);
 
   useEffect(() => {
     const prev = document.body.style.overflow;
@@ -101,23 +102,39 @@ function CombinedDetailModal({ targetExam, domainAccList, estimatedScore, passSc
     return () => { document.body.style.overflow = prev; };
   }, []);
 
-  const calcNote = (style?: React.CSSProperties) => (
+  const domainCalcNote = (style?: React.CSSProperties) => (
     <div style={{ marginTop: 16, background: 'var(--color-bg-main)', borderRadius: 8, overflow: 'hidden', ...style }}>
       <button
-        onClick={() => setShowCalc(v => !v)}
+        onClick={() => setShowDomainCalc(v => !v)}
         style={{ width: '100%', display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: 'none', border: 'none', cursor: 'pointer', padding: '8px 12px' }}
       >
         <span style={{ fontSize: 12, fontWeight: 600, color: 'var(--color-text-sub)' }}>{ja ? '計算方法' : 'How calculated'}</span>
-        <span style={{ fontSize: 10, color: 'var(--color-text-light)' }}>{showCalc ? '▲' : '▼'}</span>
+        <span style={{ fontSize: 10, color: 'var(--color-text-light)' }}>{showDomainCalc ? '▲' : '▼'}</span>
       </button>
-      {showCalc && (
+      {showDomainCalc && (
         <div style={{ padding: '0 12px 10px' }}>
           <p style={{ fontSize: 11, color: 'var(--color-text-sub)', margin: 0, lineHeight: 1.7 }}>
             {ja
               ? '直近10セッション分のドメインごとの正答数・回答数を合算して算出。未演習ドメインはデータなし扱い。'
               : "Sum of correct/total answers per domain across the last 10 sessions. Unpracticed domains show no data."}
           </p>
-          <p style={{ fontSize: 11, color: 'var(--color-text-sub)', margin: '6px 0 0', lineHeight: 1.7 }}>
+        </div>
+      )}
+    </div>
+  );
+
+  const scoreCalcNote = (style?: React.CSSProperties) => (
+    <div style={{ marginTop: 16, background: 'var(--color-bg-main)', borderRadius: 8, overflow: 'hidden', ...style }}>
+      <button
+        onClick={() => setShowScoreCalc(v => !v)}
+        style={{ width: '100%', display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: 'none', border: 'none', cursor: 'pointer', padding: '8px 12px' }}
+      >
+        <span style={{ fontSize: 12, fontWeight: 600, color: 'var(--color-text-sub)' }}>{ja ? '計算方法' : 'How calculated'}</span>
+        <span style={{ fontSize: 10, color: 'var(--color-text-light)' }}>{showScoreCalc ? '▲' : '▼'}</span>
+      </button>
+      {showScoreCalc && (
+        <div style={{ padding: '0 12px 10px' }}>
+          <p style={{ fontSize: 11, color: 'var(--color-text-sub)', margin: 0, lineHeight: 1.7 }}>
             {ja
               ? '各ドメインの直近10セッション分の正答率 × 出題比率を合計して算出。未演習ドメインは0点扱い。スコア = Σ(正答率 × 出題比率%) × 1000'
               : "Estimated score = Σ(domain accuracy × exam weight%) × 1000. Unpracticed domains count as 0."}
@@ -159,7 +176,7 @@ function CombinedDetailModal({ targetExam, domainAccList, estimatedScore, passSc
           </div>
         );
       })}
-      {!isMobile && calcNote()}
+      {!isMobile && domainCalcNote()}
     </div>
   );
 
@@ -181,7 +198,7 @@ function CombinedDetailModal({ targetExam, domainAccList, estimatedScore, passSc
         {ja ? 'スコア推移' : 'Score History'}
       </div>
       <ScoreLineChart data={history} passScore={passScore} />
-      {!isMobile && calcNote({ marginTop: 20 })}
+      {!isMobile && scoreCalcNote({ marginTop: 20 })}
     </div>
   );
 
@@ -215,11 +232,11 @@ function CombinedDetailModal({ targetExam, domainAccList, estimatedScore, passSc
             <div style={{ position: 'relative' }}>
               <div style={{ visibility: tab === 'domain' ? 'visible' : 'hidden' }}>
                 {domainSection}
-                {calcNote()}
+                {domainCalcNote()}
               </div>
               <div style={{ position: 'absolute', top: 0, left: 0, right: 0, visibility: tab === 'score' ? 'visible' : 'hidden', pointerEvents: tab === 'score' ? 'auto' : 'none' }}>
                 {scoreSection}
-                {calcNote()}
+                {scoreCalcNote()}
               </div>
             </div>
           </>
