@@ -137,21 +137,19 @@ function CombinedDetailModal({ targetExam, domainAccList, estimatedScore, passSc
         const label = lang === 'en' ? (DOMAIN_NAME_EN[d] ?? d) : d;
         return (
           <div key={d} style={{ marginBottom: 16, paddingBottom: 16, borderBottom: i < domains.length - 1 ? '1px solid var(--color-border)' : 'none' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 8 }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 6 }}>
               <span style={{ fontSize: 10, fontWeight: 700, color: 'var(--color-text-light)', flexShrink: 0 }}>D{i + 1}</span>
               <span style={{ fontSize: 12, fontWeight: 600, color: 'var(--color-text-main)', lineHeight: 1.4 }}>{label}</span>
             </div>
-            <div style={{ display: 'flex', gap: 24, marginBottom: 8 }}>
-              {[
-                { label: ja ? '演習数' : 'Total', value: total, color: 'var(--color-text-main)' },
-                { label: ja ? '正解数' : 'Correct', value: correct, color: 'var(--color-success)' },
-                { label: ja ? '正答率' : 'Accuracy', value: pct !== null ? `${pct}%` : '—', color: 'var(--color-primary)' },
-              ].map(({ label: l, value, color }) => (
-                <div key={l}>
-                  <div style={{ fontSize: 10, color: 'var(--color-text-light)', marginBottom: 2 }}>{l}</div>
-                  <div style={{ fontSize: 20, fontWeight: 800, color, lineHeight: 1 }}>{value}</div>
-                </div>
-              ))}
+            <div style={{ display: 'flex', alignItems: 'baseline', gap: 6, marginBottom: 8 }}>
+              <span style={{ fontSize: 13, fontWeight: 700, color: 'var(--color-primary)' }}>
+                {ja ? '正答率' : 'Accuracy'} {pct !== null ? `${pct}%` : '—'}
+              </span>
+              {total > 0 && (
+                <span style={{ fontSize: 12, color: 'var(--color-text-light)' }}>
+                  ({ja ? `${correct}問正解/${total}` : `${correct}/${total} correct`})
+                </span>
+              )}
             </div>
             {pct !== null && (
               <div style={{ height: 6, background: 'var(--color-border)', borderRadius: 3, overflow: 'hidden' }}>
@@ -192,7 +190,7 @@ function CombinedDetailModal({ targetExam, domainAccList, estimatedScore, passSc
       style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', zIndex: 1000, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16 }}
       onClick={e => { if (e.target === e.currentTarget) onClose(); }}
     >
-      <div style={{ background: 'var(--color-bg-white)', borderRadius: 'var(--border-radius-lg)', padding: isMobile ? '16px' : '20px 28px', width: '100%', maxWidth: isMobile ? 480 : 820, maxHeight: '82vh', overflowY: 'auto', boxShadow: '0 8px 32px rgba(0,0,0,0.2)' }}>
+      <div style={{ background: 'var(--color-bg-white)', borderRadius: 'var(--border-radius-lg)', padding: isMobile ? '16px' : '20px 28px', width: '100%', maxWidth: isMobile ? 480 : 820, maxHeight: isMobile ? '82vh' : '90vh', overflowY: 'auto', boxShadow: '0 8px 32px rgba(0,0,0,0.2)' }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: isMobile ? 12 : 16 }}>
           <span style={{ fontWeight: 700, fontSize: 'var(--font-size-base)', color: 'var(--color-text-main)' }}>
             {ja ? '成績詳細' : 'Performance Detail'}
