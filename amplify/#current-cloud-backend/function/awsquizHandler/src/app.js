@@ -41,6 +41,17 @@ const jwtVerifier = CognitoJwtVerifier.create({
   clientId: '16jjrj5m28o6s2k84og8kh2vh3',
 });
 
+async function getAdminEmails() {
+  try {
+    const docClient = getClient();
+    const result = await docClient.send(new GetCommand({ TableName: 'AppSettings', Key: { settingId: 'admins' } }));
+    if (!result.Item) return [];
+    return JSON.parse(result.Item.emails || '[]');
+  } catch {
+    return [];
+  }
+}
+
 async function requireAdmin(req, res, next) {
   const auth = req.headers.authorization || '';
   if (!auth.startsWith('Bearer ')) {
@@ -48,8 +59,12 @@ async function requireAdmin(req, res, next) {
   }
   try {
     const payload = await jwtVerifier.verify(auth.slice(7));
-    if (payload.email !== ADMIN_EMAIL) {
-      return res.status(403).json({ error: 'Forbidden' });
+    const email = payload.email;
+    if (email !== ADMIN_EMAIL) {
+      const extraAdmins = await getAdminEmails();
+      if (!extraAdmins.includes(email)) {
+        return res.status(403).json({ error: 'Forbidden' });
+      }
     }
     next();
   } catch {
@@ -1474,6 +1489,33 @@ app.delete('/admin/daily-services/:id', async (req, res) => {
 });
 
 // ─── テーマ設定 ───────────────────────────────────────────────────────────────
+app.get('/admin/settings/admins', async (req, res) => {
+  try {
+    const emails = await getAdminEmails();
+    res.json({ emails });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+app.put('/admin/settings/admins', requireAdmin, async (req, res) => {
+  try {
+    const docClient = getClient();
+    const { emails } = req.body;
+    if (!Array.isArray(emails)) return res.status(400).json({ error: 'emails must be an array' });
+    const filtered = emails.map(e => String(e).trim().toLowerCase()).filter(e => e && e.includes('@'));
+    await docClient.send(new PutCommand({
+      TableName: 'AppSettings',
+      Item: { settingId: 'admins', emails: JSON.stringify(filtered), updatedAt: new Date().toISOString() },
+    }));
+    res.json({ success: true, emails: filtered });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
 app.get('/settings/theme', async (req, res) => {
   try {
     const docClient = getClient();
