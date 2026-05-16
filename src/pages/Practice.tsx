@@ -5,7 +5,6 @@ import { useLanguage } from '../contexts/LanguageContext';
 import { API_ENDPOINT, EXAM_CONFIGS, EXAM_DOMAINS, EXAM_TYPES, PASS_SCORES } from '../constants';
 import Button from '../components/ui/Button';
 import DomainSelector from '../components/DomainSelector';
-import { IconChevronUp } from '../components/Icons';
 import { getCached, setCached, SHORT_TTL } from '../utils/cache';
 
 function shuffleArray<T>(arr: T[]): T[] {
@@ -537,7 +536,7 @@ export default function Practice() {
                   style={{ width: 44, height: 44, border: 'none', borderLeft: '2px solid rgba(255,255,255,0.4)', background: 'var(--color-accent)', color: 'var(--color-btn-primary-text)', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}
                   aria-label={ja ? '新規で開始メニュー' : 'Start new menu'}
                 >
-                  <IconChevronUp size={18} />
+                  ↑
                 </button>
               </div>
             ) : (
