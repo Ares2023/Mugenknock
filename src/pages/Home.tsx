@@ -9,7 +9,7 @@ import {
 import { getCached, setCached, deleteCached, DEFAULT_TTL } from '../utils/cache';
 import Card from '../components/ui/Card';
 import Button from '../components/ui/Button';
-import { IconLightbulb, IconSettings, IconChevronUp, ServiceIcon, isServiceIconKey } from '../components/Icons';
+import { IconLightbulb, IconSettings, IconChevronUp, IconInfo, ServiceIcon, isServiceIconKey } from '../components/Icons';
 
 type DomainStat = { tagId: string; correctCount?: number; incorrectCount?: number };
 type SessionEntry = { correct: number; total: number };
@@ -73,6 +73,91 @@ function ScoreLineChart({ data, passScore }: { data: ScoreEntry[]; passScore: nu
       <text x={cx(0)} y={H - 2} fontSize={9} fill="var(--color-text-light)" textAnchor="middle">{data[0].date.slice(5)}</text>
       <text x={cx(data.length - 1)} y={H - 2} fontSize={9} fill="var(--color-text-light)" textAnchor="middle">{data[data.length - 1].date.slice(5)}</text>
     </svg>
+  );
+}
+
+// ── 成績詳細モーダル（ドメイン別 + 予想スコア 統合） ───────────
+function CombinedDetailModal({ targetExam, domainAccList, estimatedScore, passScore, lang, onClose }: {
+  targetExam: string;
+  domainAccList: { correct: number; total: number; pct: number | null }[];
+  estimatedScore: number | null;
+  passScore: number | null;
+  lang: string;
+  onClose: () => void;
+}) {
+  const ja = lang === 'ja';
+  const domains = EXAM_DOMAINS[targetExam] ?? [];
+  const history = readScoreHistory(targetExam);
+  return (
+    <div
+      style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', zIndex: 1000, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16 }}
+      onClick={e => { if (e.target === e.currentTarget) onClose(); }}
+    >
+      <div style={{ background: 'var(--color-bg-white)', borderRadius: 'var(--border-radius-lg)', padding: '20px 24px', width: '100%', maxWidth: 480, maxHeight: '82vh', overflowY: 'auto', boxShadow: '0 8px 32px rgba(0,0,0,0.2)' }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
+          <span style={{ fontWeight: 700, fontSize: 'var(--font-size-base)', color: 'var(--color-text-main)' }}>
+            {ja ? '成績詳細' : 'Performance Detail'}
+          </span>
+          <button onClick={onClose} style={{ border: 'none', background: 'none', fontSize: 18, cursor: 'pointer', color: 'var(--color-text-sub)', padding: '0 4px', lineHeight: 1 }}>✕</button>
+        </div>
+
+        {/* ドメイン別成績 */}
+        <div style={{ fontSize: 11, fontWeight: 700, color: 'var(--color-text-sub)', marginBottom: 12, textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+          {ja ? 'ドメイン別成績' : 'Domain Accuracy'}
+        </div>
+        {domains.map((d, i) => {
+          const { correct, total, pct } = domainAccList[i] ?? { correct: 0, total: 0, pct: null };
+          const label = lang === 'en' ? (DOMAIN_NAME_EN[d] ?? d) : d;
+          return (
+            <div key={d} style={{ marginBottom: 16, paddingBottom: 16, borderBottom: i < domains.length - 1 ? '1px solid var(--color-border)' : 'none' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 8 }}>
+                <span style={{ fontSize: 10, fontWeight: 700, color: 'var(--color-text-light)', flexShrink: 0 }}>D{i + 1}</span>
+                <span style={{ fontSize: 12, fontWeight: 600, color: 'var(--color-text-main)', lineHeight: 1.4 }}>{label}</span>
+              </div>
+              <div style={{ display: 'flex', gap: 24, marginBottom: 8 }}>
+                {[
+                  { label: ja ? '演習数' : 'Total', value: total, color: 'var(--color-text-main)' },
+                  { label: ja ? '正解数' : 'Correct', value: correct, color: 'var(--color-success)' },
+                  { label: ja ? '正答率' : 'Accuracy', value: pct !== null ? `${pct}%` : '—', color: 'var(--color-primary)' },
+                ].map(({ label: l, value, color }) => (
+                  <div key={l}>
+                    <div style={{ fontSize: 10, color: 'var(--color-text-light)', marginBottom: 2 }}>{l}</div>
+                    <div style={{ fontSize: 20, fontWeight: 800, color, lineHeight: 1 }}>{value}</div>
+                  </div>
+                ))}
+              </div>
+              {pct !== null && (
+                <div style={{ height: 6, background: 'var(--color-border)', borderRadius: 3, overflow: 'hidden' }}>
+                  <div style={{ width: `${pct}%`, height: '100%', borderRadius: 3, background: 'var(--bar-gradient-primary)' }} />
+                </div>
+              )}
+            </div>
+          );
+        })}
+
+        <div style={{ height: 1, background: 'var(--color-border)', margin: '20px 0' }} />
+
+        {/* 予想スコア */}
+        <div style={{ fontSize: 11, fontWeight: 700, color: 'var(--color-text-sub)', marginBottom: 12, textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+          {ja ? '予想スコア' : 'Estimated Score'}
+        </div>
+        <div style={{ marginBottom: 4 }}>
+          <span style={{ fontSize: 32, fontWeight: 800, color: 'var(--color-primary)', letterSpacing: '-1px' }}>{estimatedScore ?? '—'}</span>
+          <span style={{ fontSize: 13, color: 'var(--color-text-light)', marginLeft: 6 }}>/1000</span>
+          {passScore !== null && (
+            <span style={{ fontSize: 11, color: 'var(--color-text-light)', marginLeft: 10 }}>
+              {ja ? `合格ライン: ${passScore}` : `Pass: ${passScore}`}
+            </span>
+          )}
+        </div>
+        <div>
+          <div style={{ fontSize: 11, fontWeight: 600, color: 'var(--color-text-sub)', marginBottom: 10 }}>
+            {ja ? 'スコア推移' : 'Score History'}
+          </div>
+          <ScoreLineChart data={history} passScore={passScore} />
+        </div>
+      </div>
+    </div>
   );
 }
 
@@ -335,8 +420,9 @@ export default function Home() {
   const [showQuickModal, setShowQuickModal] = useState(false);
   const [showNewPanel, setShowNewPanel] = useState(false);
   const [draftPrefs, setDraftPrefs] = useState<Record<string, any>>({});
-  const [showScoreDetail, setShowScoreDetail] = useState(false);
-  const [showDomainDetail, setShowDomainDetail] = useState(false);
+  const [showCombinedDetail, setShowCombinedDetail] = useState(false);
+  const [showDomainInfo, setShowDomainInfo] = useState(false);
+  const [showScoreInfo, setShowScoreInfo] = useState(false);
   const abortRef = useRef<AbortController | null>(null);
 
   useEffect(() => {
@@ -591,24 +677,33 @@ export default function Home() {
         </div>
       )}
 
-      {/* ── ドメイン別正答率 + 予想スコア（1パネル） ── */}
-      <Card padding="var(--spacing-md)" style={{ marginBottom: 'var(--spacing-md)' }}>
+      {/* ── ドメイン別正答率 + 予想スコア（1パネル、クリックで詳細） ── */}
+      <Card
+        padding="var(--spacing-md)"
+        style={{ marginBottom: 'var(--spacing-md)', cursor: (targetExam && !statsLoading) ? 'pointer' : 'default' }}
+        onClick={() => { if (targetExam && !statsLoading) setShowCombinedDetail(true); }}
+      >
 
         {/* ドメイン別正答率 */}
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 4, marginBottom: 8 }}>
           <span style={{ fontSize: 11, fontWeight: 700, color: 'var(--color-text-sub)', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
             {ja ? 'ドメイン別正答率' : 'Domain Accuracy'}
           </span>
-          {targetExam && !statsLoading && (
-            <button
-              style={CHEVRON_BTN}
-              onClick={() => setShowDomainDetail(true)}
-              onMouseEnter={e => e.currentTarget.style.color = 'var(--color-text-sub)'}
-              onMouseLeave={e => e.currentTarget.style.color = 'var(--color-text-light)'}
-              aria-label="詳細を見る"
-            >›</button>
-          )}
+          <button
+            onClick={e => { e.stopPropagation(); setShowDomainInfo(v => !v); setShowScoreInfo(false); }}
+            style={{ border: 'none', background: 'none', cursor: 'pointer', color: showDomainInfo ? 'var(--color-primary)' : 'var(--color-text-light)', padding: '0 2px', display: 'flex', alignItems: 'center', lineHeight: 1, transition: 'color 0.15s' }}
+            aria-label={ja ? '計算方法' : 'How calculated'}
+          >
+            <IconInfo size={13} />
+          </button>
         </div>
+        {showDomainInfo && (
+          <div style={{ background: 'var(--color-bg-main)', borderRadius: 8, padding: '8px 12px', marginBottom: 10, fontSize: 11, color: 'var(--color-text-sub)', lineHeight: 1.7 }}>
+            {ja
+              ? '直近10セッション分のドメインごとの正答数・回答数を合算して算出。未演習ドメインはデータなし扱い。'
+              : "Sum of correct/total answers per domain across the last 10 sessions. Unpracticed domains show no data."}
+          </div>
+        )}
         {!targetExam ? (
           <div style={{ color: 'var(--color-text-light)', fontSize: 'var(--font-size-sm)', fontStyle: 'italic' }}>
             {ja ? '試験を選択してください' : 'Select an exam'}
@@ -644,20 +739,25 @@ export default function Home() {
         <div style={{ height: 1, background: 'var(--color-border)', margin: '14px 0' }} />
 
         {/* 予想スコア */}
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 4, marginBottom: 8 }}>
           <span style={{ fontSize: 11, fontWeight: 700, color: 'var(--color-text-sub)', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
             {ja ? '予想スコア' : 'Est. Score'}
           </span>
-          {estimatedScore !== null && (
-            <button
-              style={CHEVRON_BTN}
-              onClick={() => setShowScoreDetail(true)}
-              onMouseEnter={e => e.currentTarget.style.color = 'var(--color-text-sub)'}
-              onMouseLeave={e => e.currentTarget.style.color = 'var(--color-text-light)'}
-              aria-label="詳細を見る"
-            >›</button>
-          )}
+          <button
+            onClick={e => { e.stopPropagation(); setShowScoreInfo(v => !v); setShowDomainInfo(false); }}
+            style={{ border: 'none', background: 'none', cursor: 'pointer', color: showScoreInfo ? 'var(--color-primary)' : 'var(--color-text-light)', padding: '0 2px', display: 'flex', alignItems: 'center', lineHeight: 1, transition: 'color 0.15s' }}
+            aria-label={ja ? '計算方法' : 'How calculated'}
+          >
+            <IconInfo size={13} />
+          </button>
         </div>
+        {showScoreInfo && (
+          <div style={{ background: 'var(--color-bg-main)', borderRadius: 8, padding: '8px 12px', marginBottom: 10, fontSize: 11, color: 'var(--color-text-sub)', lineHeight: 1.7 }}>
+            {ja
+              ? '各ドメインの直近10セッション分の正答率 × 出題比率を合計して算出。未演習ドメインは0点扱い（スコアを過大評価しない）。スコア = Σ(正答率 × 出題比率%) × 1000'
+              : "Sum of each domain's (accuracy × exam weight%). Unpracticed domains count as 0. Score = Σ(accuracy × domain_weight%) × 1000"}
+          </div>
+        )}
         {!targetExam ? (
           <div style={{ color: 'var(--color-text-light)', fontSize: 'var(--font-size-sm)', fontStyle: 'italic' }}>
             {ja ? '試験を選択してください' : 'Select an exam'}
@@ -861,12 +961,9 @@ export default function Home() {
         </div>
       )}
 
-      {/* モーダル類 */}
-      {showScoreDetail && targetExam && (
-        <ScoreDetailModal targetExam={targetExam} estimatedScore={estimatedScore} passScore={passScore} lang={lang} onClose={() => setShowScoreDetail(false)} />
-      )}
-      {showDomainDetail && targetExam && (
-        <DomainDetailModal targetExam={targetExam} domainAccList={domainAccList} lang={lang} onClose={() => setShowDomainDetail(false)} />
+      {/* 成績詳細モーダル */}
+      {showCombinedDetail && targetExam && (
+        <CombinedDetailModal targetExam={targetExam} domainAccList={domainAccList} estimatedScore={estimatedScore} passScore={passScore} lang={lang} onClose={() => setShowCombinedDetail(false)} />
       )}
     </div>
   );

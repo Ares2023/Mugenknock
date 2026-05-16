@@ -59,8 +59,8 @@ export const IconChart = ({ size = 16 }: { size?: number }) => (
   </svg>
 );
 
-export const IconInfo = () => (
-  <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+export const IconInfo = ({ size = 16 }: { size?: number }) => (
+  <svg width={size} height={size} viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
     <circle cx="8" cy="8" r="6.5"/>
     <line x1="8" y1="7" x2="8" y2="12"/>
     <circle cx="8" cy="4.5" r="0.75" fill="currentColor" stroke="none"/>
