@@ -1,4 +1,4 @@
-const ADMIN_EMAIL = 'yuzuki2002110@gmail.com';
+const ADMIN_EMAIL = 'mugenknock@gmail.com';
 
 const EXAM_DOMAINS = {
   CLF: ['クラウドの概念', 'セキュリティとコンプライアンス', 'クラウドのテクノロジーとサービス', '請求、料金、およびサポート'],

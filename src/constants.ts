@@ -1,6 +1,6 @@
 export const API_ENDPOINT = 'https://a0q3656qw4.execute-api.ap-northeast-1.amazonaws.com/dev';
 
-export const ADMIN_EMAIL = 'yuzuki2002110@gmail.com';
+export const ADMIN_EMAIL = 'mugenknock@gmail.com';
 
 export const EXAM_TYPES = ['CLF', 'SAA', 'SAP', 'DVA', 'SOA', 'DOP', 'AIF', 'MLA', 'GAI'] as const;
 export type ExamType = typeof EXAM_TYPES[number];
