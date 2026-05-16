@@ -9,7 +9,7 @@ import {
 import { getCached, setCached, deleteCached, DEFAULT_TTL } from '../utils/cache';
 import Card from '../components/ui/Card';
 import Button from '../components/ui/Button';
-import { IconLightbulb, IconSettings, IconChevronUp, IconInfo, ServiceIcon, isServiceIconKey } from '../components/Icons';
+import { IconLightbulb, IconSettings, IconChevronUp, ServiceIcon, isServiceIconKey } from '../components/Icons';
 
 type DomainStat = { tagId: string; correctCount?: number; incorrectCount?: number };
 type SessionEntry = { correct: number; total: number };
@@ -94,6 +94,30 @@ function CombinedDetailModal({ targetExam, domainAccList, estimatedScore, passSc
   const history = readScoreHistory(targetExam);
   const [tab, setTab] = useState<'domain' | 'score'>('domain');
 
+  useEffect(() => {
+    const prev = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+    return () => { document.body.style.overflow = prev; };
+  }, []);
+
+  const calcNote = (style?: React.CSSProperties) => (
+    <div style={{ marginTop: 16, padding: '10px 12px', background: 'var(--color-bg-main)', borderRadius: 8, ...style }}>
+      <div style={{ fontSize: 10, fontWeight: 700, color: 'var(--color-text-light)', marginBottom: 4, textTransform: 'uppercase', letterSpacing: '0.3px' }}>
+        {ja ? '計算方法' : 'How calculated'}
+      </div>
+      <p style={{ fontSize: 11, color: 'var(--color-text-sub)', margin: 0, lineHeight: 1.7 }}>
+        {ja
+          ? '直近10セッション分のドメインごとの正答数・回答数を合算して算出。未演習ドメインはデータなし扱い。'
+          : "Sum of correct/total answers per domain across the last 10 sessions. Unpracticed domains show no data."}
+      </p>
+      <p style={{ fontSize: 11, color: 'var(--color-text-sub)', margin: '8px 0 0', lineHeight: 1.7 }}>
+        {ja
+          ? '各ドメインの直近10セッション分の正答率 × 出題比率を合計して算出。未演習ドメインは0点扱い。スコア = Σ(正答率 × 出題比率%) × 1000'
+          : "Estimated score = Σ(domain accuracy × exam weight%) × 1000. Unpracticed domains count as 0."}
+      </p>
+    </div>
+  );
+
   const domainSection = (
     <div>
       <div style={{ fontSize: 11, fontWeight: 700, color: 'var(--color-text-sub)', marginBottom: 12, textTransform: 'uppercase', letterSpacing: '0.5px' }}>
@@ -128,6 +152,7 @@ function CombinedDetailModal({ targetExam, domainAccList, estimatedScore, passSc
           </div>
         );
       })}
+      {!isMobile && calcNote()}
     </div>
   );
 
@@ -149,6 +174,7 @@ function CombinedDetailModal({ targetExam, domainAccList, estimatedScore, passSc
         {ja ? 'スコア推移' : 'Score History'}
       </div>
       <ScoreLineChart data={history} passScore={passScore} />
+      {!isMobile && calcNote({ marginTop: 20 })}
     </div>
   );
 
@@ -178,7 +204,17 @@ function CombinedDetailModal({ targetExam, domainAccList, estimatedScore, passSc
                 </button>
               ))}
             </div>
-            {tab === 'domain' ? domainSection : scoreSection}
+            {/* domain section は常にフローに残して高さを確定、score は absolute overlay */}
+            <div style={{ position: 'relative' }}>
+              <div style={{ visibility: tab === 'domain' ? 'visible' : 'hidden' }}>
+                {domainSection}
+                {calcNote()}
+              </div>
+              <div style={{ position: 'absolute', top: 0, left: 0, right: 0, visibility: tab === 'score' ? 'visible' : 'hidden', pointerEvents: tab === 'score' ? 'auto' : 'none' }}>
+                {scoreSection}
+                {calcNote()}
+              </div>
+            </div>
           </>
         ) : (
           <div style={{ display: 'flex', gap: 0 }}>
@@ -455,8 +491,6 @@ export default function Home() {
   const [showNewPanel, setShowNewPanel] = useState(false);
   const [draftPrefs, setDraftPrefs] = useState<Record<string, any>>({});
   const [showCombinedDetail, setShowCombinedDetail] = useState(false);
-  const [showDomainInfo, setShowDomainInfo] = useState(false);
-  const [showScoreInfo, setShowScoreInfo] = useState(false);
   const abortRef = useRef<AbortController | null>(null);
 
   useEffect(() => {
@@ -719,25 +753,11 @@ export default function Home() {
       >
 
         {/* ドメイン別正答率 */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: 4, marginBottom: 8 }}>
+        <div style={{ marginBottom: 8 }}>
           <span style={{ fontSize: 11, fontWeight: 700, color: 'var(--color-text-sub)', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
             {ja ? 'ドメイン別正答率' : 'Domain Accuracy'}
           </span>
-          <button
-            onClick={e => { e.stopPropagation(); setShowDomainInfo(v => !v); setShowScoreInfo(false); }}
-            style={{ border: 'none', background: 'none', cursor: 'pointer', color: showDomainInfo ? 'var(--color-primary)' : 'var(--color-text-light)', padding: '0 2px', display: 'flex', alignItems: 'center', lineHeight: 1, transition: 'color 0.15s' }}
-            aria-label={ja ? '計算方法' : 'How calculated'}
-          >
-            <IconInfo size={13} />
-          </button>
         </div>
-        {showDomainInfo && (
-          <div style={{ background: 'var(--color-bg-main)', borderRadius: 8, padding: '8px 12px', marginBottom: 10, fontSize: 11, color: 'var(--color-text-sub)', lineHeight: 1.7 }}>
-            {ja
-              ? '直近10セッション分のドメインごとの正答数・回答数を合算して算出。未演習ドメインはデータなし扱い。'
-              : "Sum of correct/total answers per domain across the last 10 sessions. Unpracticed domains show no data."}
-          </div>
-        )}
         {!targetExam ? (
           <div style={{ color: 'var(--color-text-light)', fontSize: 'var(--font-size-sm)', fontStyle: 'italic' }}>
             {ja ? '試験を選択してください' : 'Select an exam'}
@@ -773,25 +793,11 @@ export default function Home() {
         <div style={{ height: 1, background: 'var(--color-border)', margin: '14px 0' }} />
 
         {/* 予想スコア */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: 4, marginBottom: 8 }}>
+        <div style={{ marginBottom: 8 }}>
           <span style={{ fontSize: 11, fontWeight: 700, color: 'var(--color-text-sub)', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
             {ja ? '予想スコア' : 'Est. Score'}
           </span>
-          <button
-            onClick={e => { e.stopPropagation(); setShowScoreInfo(v => !v); setShowDomainInfo(false); }}
-            style={{ border: 'none', background: 'none', cursor: 'pointer', color: showScoreInfo ? 'var(--color-primary)' : 'var(--color-text-light)', padding: '0 2px', display: 'flex', alignItems: 'center', lineHeight: 1, transition: 'color 0.15s' }}
-            aria-label={ja ? '計算方法' : 'How calculated'}
-          >
-            <IconInfo size={13} />
-          </button>
         </div>
-        {showScoreInfo && (
-          <div style={{ background: 'var(--color-bg-main)', borderRadius: 8, padding: '8px 12px', marginBottom: 10, fontSize: 11, color: 'var(--color-text-sub)', lineHeight: 1.7 }}>
-            {ja
-              ? '各ドメインの直近10セッション分の正答率 × 出題比率を合計して算出。未演習ドメインは0点扱い（スコアを過大評価しない）。スコア = Σ(正答率 × 出題比率%) × 1000'
-              : "Sum of each domain's (accuracy × exam weight%). Unpracticed domains count as 0. Score = Σ(accuracy × domain_weight%) × 1000"}
-          </div>
-        )}
         {!targetExam ? (
           <div style={{ color: 'var(--color-text-light)', fontSize: 'var(--font-size-sm)', fontStyle: 'italic' }}>
             {ja ? '試験を選択してください' : 'Select an exam'}
