@@ -43,7 +43,7 @@ function ScoreLineChart({ data, passScore }: { data: ScoreEntry[]; passScore: nu
       </p>
     );
   }
-  const W = 300, H = 100, PL = 36, PR = 8, PT = 10, PB = 22;
+  const W = 300, H = 110, PL = 36, PR = 8, PT = 20, PB = 22;
   const iW = W - PL - PR, iH = H - PT - PB;
   const scores = data.map(d => d.score);
   const minS = Math.max(0, Math.min(...scores) - 50);
@@ -68,7 +68,10 @@ function ScoreLineChart({ data, passScore }: { data: ScoreEntry[]; passScore: nu
       )}
       <path d={pathD} fill="none" stroke="var(--color-primary)" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" />
       {data.map((d, i) => (
-        <circle key={i} cx={cx(i)} cy={cy(d.score)} r={3} fill="var(--color-primary)" />
+        <g key={i}>
+          <text x={cx(i)} y={cy(d.score) - 6} fontSize={8} fill="var(--color-primary)" textAnchor="middle" fontWeight="bold">{d.score}</text>
+          <circle cx={cx(i)} cy={cy(d.score)} r={3} fill="var(--color-primary)" />
+        </g>
       ))}
       <text x={cx(0)} y={H - 2} fontSize={9} fill="var(--color-text-light)" textAnchor="middle">{data[0].date.slice(5)}</text>
       <text x={cx(data.length - 1)} y={H - 2} fontSize={9} fill="var(--color-text-light)" textAnchor="middle">{data[data.length - 1].date.slice(5)}</text>
@@ -77,85 +80,116 @@ function ScoreLineChart({ data, passScore }: { data: ScoreEntry[]; passScore: nu
 }
 
 // ── 成績詳細モーダル（ドメイン別 + 予想スコア 統合） ───────────
-function CombinedDetailModal({ targetExam, domainAccList, estimatedScore, passScore, lang, onClose }: {
+function CombinedDetailModal({ targetExam, domainAccList, estimatedScore, passScore, lang, isMobile, onClose }: {
   targetExam: string;
   domainAccList: { correct: number; total: number; pct: number | null }[];
   estimatedScore: number | null;
   passScore: number | null;
   lang: string;
+  isMobile: boolean;
   onClose: () => void;
 }) {
   const ja = lang === 'ja';
   const domains = EXAM_DOMAINS[targetExam] ?? [];
   const history = readScoreHistory(targetExam);
+  const [tab, setTab] = useState<'domain' | 'score'>('domain');
+
+  const domainSection = (
+    <div>
+      <div style={{ fontSize: 11, fontWeight: 700, color: 'var(--color-text-sub)', marginBottom: 12, textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+        {ja ? 'ドメイン別成績' : 'Domain Accuracy'}
+      </div>
+      {domains.map((d, i) => {
+        const { correct, total, pct } = domainAccList[i] ?? { correct: 0, total: 0, pct: null };
+        const label = lang === 'en' ? (DOMAIN_NAME_EN[d] ?? d) : d;
+        return (
+          <div key={d} style={{ marginBottom: 16, paddingBottom: 16, borderBottom: i < domains.length - 1 ? '1px solid var(--color-border)' : 'none' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 8 }}>
+              <span style={{ fontSize: 10, fontWeight: 700, color: 'var(--color-text-light)', flexShrink: 0 }}>D{i + 1}</span>
+              <span style={{ fontSize: 12, fontWeight: 600, color: 'var(--color-text-main)', lineHeight: 1.4 }}>{label}</span>
+            </div>
+            <div style={{ display: 'flex', gap: 24, marginBottom: 8 }}>
+              {[
+                { label: ja ? '演習数' : 'Total', value: total, color: 'var(--color-text-main)' },
+                { label: ja ? '正解数' : 'Correct', value: correct, color: 'var(--color-success)' },
+                { label: ja ? '正答率' : 'Accuracy', value: pct !== null ? `${pct}%` : '—', color: 'var(--color-primary)' },
+              ].map(({ label: l, value, color }) => (
+                <div key={l}>
+                  <div style={{ fontSize: 10, color: 'var(--color-text-light)', marginBottom: 2 }}>{l}</div>
+                  <div style={{ fontSize: 20, fontWeight: 800, color, lineHeight: 1 }}>{value}</div>
+                </div>
+              ))}
+            </div>
+            {pct !== null && (
+              <div style={{ height: 6, background: 'var(--color-border)', borderRadius: 3, overflow: 'hidden' }}>
+                <div style={{ width: `${pct}%`, height: '100%', borderRadius: 3, background: 'var(--bar-gradient-primary)', transformOrigin: 'left center', animation: `growWidth 0.45s cubic-bezier(0.34, 1.56, 0.64, 1) ${i * 40}ms both` }} />
+              </div>
+            )}
+          </div>
+        );
+      })}
+    </div>
+  );
+
+  const scoreSection = (
+    <div>
+      <div style={{ fontSize: 11, fontWeight: 700, color: 'var(--color-text-sub)', marginBottom: 12, textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+        {ja ? '予想スコア' : 'Estimated Score'}
+      </div>
+      <div style={{ marginBottom: 16 }}>
+        <span style={{ fontSize: 36, fontWeight: 800, color: 'var(--color-primary)', letterSpacing: '-1px' }}>{estimatedScore ?? '—'}</span>
+        <span style={{ fontSize: 13, color: 'var(--color-text-light)', marginLeft: 6 }}>/1000</span>
+        {passScore !== null && (
+          <span style={{ fontSize: 11, color: 'var(--color-text-light)', marginLeft: 10 }}>
+            {ja ? `合格ライン: ${passScore}` : `Pass: ${passScore}`}
+          </span>
+        )}
+      </div>
+      <div style={{ fontSize: 11, fontWeight: 600, color: 'var(--color-text-sub)', marginBottom: 10 }}>
+        {ja ? 'スコア推移' : 'Score History'}
+      </div>
+      <ScoreLineChart data={history} passScore={passScore} />
+    </div>
+  );
+
   return (
     <div
       style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', zIndex: 1000, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16 }}
       onClick={e => { if (e.target === e.currentTarget) onClose(); }}
     >
-      <div style={{ background: 'var(--color-bg-white)', borderRadius: 'var(--border-radius-lg)', padding: '20px 24px', width: '100%', maxWidth: 480, maxHeight: '82vh', overflowY: 'auto', boxShadow: '0 8px 32px rgba(0,0,0,0.2)' }}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
+      <div style={{ background: 'var(--color-bg-white)', borderRadius: 'var(--border-radius-lg)', padding: isMobile ? '16px' : '20px 28px', width: '100%', maxWidth: isMobile ? 480 : 820, maxHeight: '82vh', overflowY: 'auto', boxShadow: '0 8px 32px rgba(0,0,0,0.2)' }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: isMobile ? 12 : 16 }}>
           <span style={{ fontWeight: 700, fontSize: 'var(--font-size-base)', color: 'var(--color-text-main)' }}>
             {ja ? '成績詳細' : 'Performance Detail'}
           </span>
           <button onClick={onClose} style={{ border: 'none', background: 'none', fontSize: 18, cursor: 'pointer', color: 'var(--color-text-sub)', padding: '0 4px', lineHeight: 1 }}>✕</button>
         </div>
 
-        {/* ドメイン別成績 */}
-        <div style={{ fontSize: 11, fontWeight: 700, color: 'var(--color-text-sub)', marginBottom: 12, textTransform: 'uppercase', letterSpacing: '0.5px' }}>
-          {ja ? 'ドメイン別成績' : 'Domain Accuracy'}
-        </div>
-        {domains.map((d, i) => {
-          const { correct, total, pct } = domainAccList[i] ?? { correct: 0, total: 0, pct: null };
-          const label = lang === 'en' ? (DOMAIN_NAME_EN[d] ?? d) : d;
-          return (
-            <div key={d} style={{ marginBottom: 16, paddingBottom: 16, borderBottom: i < domains.length - 1 ? '1px solid var(--color-border)' : 'none' }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 8 }}>
-                <span style={{ fontSize: 10, fontWeight: 700, color: 'var(--color-text-light)', flexShrink: 0 }}>D{i + 1}</span>
-                <span style={{ fontSize: 12, fontWeight: 600, color: 'var(--color-text-main)', lineHeight: 1.4 }}>{label}</span>
-              </div>
-              <div style={{ display: 'flex', gap: 24, marginBottom: 8 }}>
-                {[
-                  { label: ja ? '演習数' : 'Total', value: total, color: 'var(--color-text-main)' },
-                  { label: ja ? '正解数' : 'Correct', value: correct, color: 'var(--color-success)' },
-                  { label: ja ? '正答率' : 'Accuracy', value: pct !== null ? `${pct}%` : '—', color: 'var(--color-primary)' },
-                ].map(({ label: l, value, color }) => (
-                  <div key={l}>
-                    <div style={{ fontSize: 10, color: 'var(--color-text-light)', marginBottom: 2 }}>{l}</div>
-                    <div style={{ fontSize: 20, fontWeight: 800, color, lineHeight: 1 }}>{value}</div>
-                  </div>
-                ))}
-              </div>
-              {pct !== null && (
-                <div style={{ height: 6, background: 'var(--color-border)', borderRadius: 3, overflow: 'hidden' }}>
-                  <div style={{ width: `${pct}%`, height: '100%', borderRadius: 3, background: 'var(--bar-gradient-primary)' }} />
-                </div>
-              )}
+        {isMobile ? (
+          <>
+            <div style={{ display: 'flex', borderBottom: '2px solid var(--color-border)', marginBottom: 16 }}>
+              {(['domain', 'score'] as const).map(t => (
+                <button
+                  key={t}
+                  onClick={() => setTab(t)}
+                  style={{ flex: 1, background: 'none', border: 'none', cursor: 'pointer', padding: '8px 0', fontSize: 12, fontWeight: tab === t ? 700 : 400, color: tab === t ? 'var(--color-primary)' : 'var(--color-text-sub)', borderBottom: `2px solid ${tab === t ? 'var(--color-primary)' : 'transparent'}`, marginBottom: -2, transition: 'color 0.15s' }}
+                >
+                  {t === 'domain' ? (ja ? 'ドメイン別正答率' : 'Domain Accuracy') : (ja ? '予想スコア' : 'Est. Score')}
+                </button>
+              ))}
             </div>
-          );
-        })}
-
-        <div style={{ height: 1, background: 'var(--color-border)', margin: '20px 0' }} />
-
-        {/* 予想スコア */}
-        <div style={{ fontSize: 11, fontWeight: 700, color: 'var(--color-text-sub)', marginBottom: 12, textTransform: 'uppercase', letterSpacing: '0.5px' }}>
-          {ja ? '予想スコア' : 'Estimated Score'}
-        </div>
-        <div style={{ marginBottom: 4 }}>
-          <span style={{ fontSize: 32, fontWeight: 800, color: 'var(--color-primary)', letterSpacing: '-1px' }}>{estimatedScore ?? '—'}</span>
-          <span style={{ fontSize: 13, color: 'var(--color-text-light)', marginLeft: 6 }}>/1000</span>
-          {passScore !== null && (
-            <span style={{ fontSize: 11, color: 'var(--color-text-light)', marginLeft: 10 }}>
-              {ja ? `合格ライン: ${passScore}` : `Pass: ${passScore}`}
-            </span>
-          )}
-        </div>
-        <div>
-          <div style={{ fontSize: 11, fontWeight: 600, color: 'var(--color-text-sub)', marginBottom: 10 }}>
-            {ja ? 'スコア推移' : 'Score History'}
+            {tab === 'domain' ? domainSection : scoreSection}
+          </>
+        ) : (
+          <div style={{ display: 'flex', gap: 0 }}>
+            <div style={{ flex: 1, paddingRight: 24, borderRight: '1px solid var(--color-border)', minWidth: 0 }}>
+              {domainSection}
+            </div>
+            <div style={{ flex: 1, paddingLeft: 24, minWidth: 0 }}>
+              {scoreSection}
+            </div>
           </div>
-          <ScoreLineChart data={history} passScore={passScore} />
-        </div>
+        )}
       </div>
     </div>
   );
@@ -262,7 +296,7 @@ function DomainDetailModal({ targetExam, domainAccList, lang, onClose }: {
               </div>
               {pct !== null && (
                 <div style={{ height: 6, background: 'var(--color-border)', borderRadius: 3, overflow: 'hidden' }}>
-                  <div style={{ width: `${pct}%`, height: '100%', borderRadius: 3, background: 'var(--bar-gradient-primary)' }} />
+                  <div style={{ width: `${pct}%`, height: '100%', borderRadius: 3, background: 'var(--bar-gradient-primary)', transformOrigin: 'left center', animation: `growWidth 0.45s cubic-bezier(0.34, 1.56, 0.64, 1) ${i * 40}ms both` }} />
                 </div>
               )}
             </div>
@@ -727,7 +761,7 @@ export default function Home() {
                     <span style={{ fontSize: 11, color: 'var(--color-text-sub)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', flex: 1 }}>{label}</span>
                   </div>
                   <div style={{ height: 5, background: 'var(--color-border)', borderRadius: 3, overflow: 'hidden' }}>
-                    {pct !== null && <div style={{ width: `${pct}%`, height: '100%', borderRadius: 3, background: 'var(--bar-gradient-primary)', transition: 'width 0.4s ease' }} />}
+                    {pct !== null && <div style={{ width: `${pct}%`, height: '100%', borderRadius: 3, background: 'var(--bar-gradient-primary)', transformOrigin: 'left center', animation: `growWidth 0.45s cubic-bezier(0.34, 1.56, 0.64, 1) ${i * 30}ms both` }} />}
                   </div>
                 </div>
               );
@@ -791,7 +825,7 @@ export default function Home() {
                   <div style={{ width: 2, height: '100%', background: '#f59e0b', borderRadius: 1 }} />
                 </div>
               )}
-              <div style={{ width: `${Math.min(100, (estimatedScore / 1000) * 100)}%`, height: '100%', borderRadius: 4, background: 'var(--bar-gradient-primary)', transition: 'width 0.5s ease' }} />
+              <div style={{ width: `${Math.min(100, (estimatedScore / 1000) * 100)}%`, height: '100%', borderRadius: 4, background: 'var(--bar-gradient-primary)', transformOrigin: 'left center', animation: 'growWidth 0.6s cubic-bezier(0.34, 1.56, 0.64, 1) both' }} />
             </div>
           </>
         )}
@@ -838,7 +872,7 @@ export default function Home() {
               </div>
             </>
           )}
-          <div style={{ position: 'fixed', bottom: 56, left: 0, right: 0, zIndex: 150, background: 'var(--color-bg-white)', borderTop: '1px solid var(--color-border)', padding: '8px 12px', display: 'flex', gap: 6, boxShadow: '0 -2px 8px rgba(0,0,0,0.08)' }}>
+          <div style={{ position: 'fixed', bottom: 56, left: 0, right: 0, zIndex: 150, background: 'var(--color-bg-white)', borderTop: '1px solid var(--color-border)', padding: '8px 12px', display: 'flex', gap: 6, boxShadow: '0 -2px 8px rgba(0,0,0,0.08)', transform: 'translateZ(0)' }}>
             {/* スプリットボタン：メイン + ↑ */}
             <div style={{ flex: 1, display: 'flex', height: 44, borderRadius: 22, overflow: 'hidden', opacity: !targetExam ? 0.5 : 1 }}>
               <button
@@ -963,7 +997,7 @@ export default function Home() {
 
       {/* 成績詳細モーダル */}
       {showCombinedDetail && targetExam && (
-        <CombinedDetailModal targetExam={targetExam} domainAccList={domainAccList} estimatedScore={estimatedScore} passScore={passScore} lang={lang} onClose={() => setShowCombinedDetail(false)} />
+        <CombinedDetailModal targetExam={targetExam} domainAccList={domainAccList} estimatedScore={estimatedScore} passScore={passScore} lang={lang} isMobile={isMobile} onClose={() => setShowCombinedDetail(false)} />
       )}
     </div>
   );
