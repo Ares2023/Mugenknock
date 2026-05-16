@@ -73,7 +73,6 @@ export default function Practice() {
   });
   const hasDraft = exerciseDraft?.examType === examType;
   const [showNewPanel, setShowNewPanel] = useState(false);
-  const [showExamPanel, setShowExamPanel] = useState(false);
   const [showStartConfirm, setShowStartConfirm] = useState(false);
 
   const isFirstRender = useRef(true);
@@ -433,44 +432,59 @@ export default function Practice() {
       {/* ── モバイル固定底バー（演習） ── */}
       {isMobile && tab === 'exercise' && (
         <>
-          {showNewPanel && (
+          {hasDraft && showNewPanel && (
             <>
               <div onClick={() => setShowNewPanel(false)} style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.4)', zIndex: 210 }} />
               <div style={{ position: 'fixed', bottom: 116, left: 0, right: 0, zIndex: 211, background: 'var(--color-bg-white)', borderRadius: '14px 14px 0 0', padding: '14px 12px 12px', boxShadow: '0 -4px 20px rgba(0,0,0,0.18)', animation: 'slideUp 0.22s ease' }}>
                 <div style={{ fontSize: 'var(--font-size-sm)', color: 'var(--color-text-sub)', textAlign: 'center', marginBottom: 10 }}>
-                  {hasDraft
-                    ? (ja ? 'セッションを上書きして開始します' : 'This will overwrite the current session')
-                    : (ja ? '現在進行中のセッションはありません' : 'No active session')}
+                  {ja ? 'セッションを上書きして開始します' : 'This will overwrite the current session'}
                 </div>
-                <Button variant="outline" fullWidth style={{ height: 44 }} disabled={!hasDraft}
-                  onClick={hasDraft ? () => { localStorage.removeItem('exerciseDraft'); setExerciseDraft(null); setShowNewPanel(false); startExercise(); } : undefined}>
+                <Button variant="outline" fullWidth style={{ height: 44 }}
+                  onClick={() => { localStorage.removeItem('exerciseDraft'); setExerciseDraft(null); setShowNewPanel(false); startExercise(); }}>
                   {ja ? '新規に開始' : 'Start New'}
                 </Button>
               </div>
             </>
           )}
           <div style={{ position: 'fixed', bottom: 56, left: 0, right: 0, zIndex: 150, background: 'var(--color-bg-white)', borderTop: '1px solid var(--color-border)', padding: '8px 12px', display: 'flex', gap: 6, boxShadow: '0 -2px 8px rgba(0,0,0,0.08)', transform: 'translateZ(0)' }}>
-            <div style={{ flex: 1, display: 'flex', height: 44, borderRadius: 22, overflow: 'hidden', opacity: availableCount === 0 ? 0.5 : 1 }}>
+            {hasDraft ? (
+              /* スプリットピル：再開 + ↑ */
+              <div style={{ flex: 1, display: 'flex', height: 44, borderRadius: 22, overflow: 'hidden', opacity: availableCount === 0 ? 0.5 : 1 }}>
+                <button
+                  disabled={exerciseLoading || availableCount === 0}
+                  onClick={resumeExercise}
+                  style={{ flex: 1, height: 44, border: 'none', background: 'var(--color-accent)', color: 'var(--color-btn-primary-text)', fontWeight: 600, fontSize: 'var(--font-size-base)', cursor: (exerciseLoading || availableCount === 0) ? 'default' : 'pointer', paddingLeft: 16, paddingRight: 8, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6 }}
+                >
+                  {exerciseLoading ? (
+                    <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}>
+                      <span style={{ width: 13, height: 13, border: '2px solid rgba(0,0,0,0.2)', borderTopColor: '#16191f', borderRadius: '50%', animation: 'sherpa-spin 0.7s linear infinite', flexShrink: 0 }} />
+                      {t('exerciseSetup.starting')}
+                    </span>
+                  ) : (ja ? '試験を再開' : 'Resume')}
+                </button>
+                <button
+                  onClick={() => setShowNewPanel(v => !v)}
+                  style={{ width: 44, height: 44, border: 'none', borderLeft: '2px solid rgba(255,255,255,0.4)', background: 'var(--color-accent)', color: 'var(--color-btn-primary-text)', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}
+                  aria-label={ja ? '新規で開始メニュー' : 'Start new menu'}
+                >
+                  <IconChevronUp size={18} />
+                </button>
+              </div>
+            ) : (
+              /* シンプルピル：新規開始 */
               <button
                 disabled={exerciseLoading || availableCount === 0}
-                onClick={() => hasDraft ? resumeExercise() : startExercise()}
-                style={{ flex: 1, height: 44, border: 'none', background: 'var(--color-accent)', color: 'var(--color-btn-primary-text)', fontWeight: 600, fontSize: 'var(--font-size-base)', cursor: (exerciseLoading || availableCount === 0) ? 'default' : 'pointer', paddingLeft: 16, paddingRight: 8, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6 }}
+                onClick={startExercise}
+                style={{ flex: 1, height: 44, border: 'none', borderRadius: 22, background: 'var(--color-accent)', color: 'var(--color-btn-primary-text)', fontWeight: 600, fontSize: 'var(--font-size-base)', cursor: (exerciseLoading || availableCount === 0) ? 'default' : 'pointer', opacity: availableCount === 0 ? 0.5 : 1 }}
               >
                 {exerciseLoading ? (
                   <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}>
                     <span style={{ width: 13, height: 13, border: '2px solid rgba(0,0,0,0.2)', borderTopColor: '#16191f', borderRadius: '50%', animation: 'sherpa-spin 0.7s linear infinite', flexShrink: 0 }} />
                     {t('exerciseSetup.starting')}
                   </span>
-                ) : hasDraft ? (ja ? '試験を再開' : 'Resume') : (ja ? '試験を始める' : 'Start')}
+                ) : (ja ? '試験を始める' : 'Start')}
               </button>
-              <button
-                onClick={() => setShowNewPanel(v => !v)}
-                style={{ width: 44, height: 44, border: 'none', borderLeft: '2px solid rgba(255,255,255,0.4)', background: 'var(--color-accent)', color: 'var(--color-btn-primary-text)', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}
-                aria-label={ja ? '新規で開始メニュー' : 'Start new menu'}
-              >
-                <IconChevronUp size={18} />
-              </button>
-            </div>
+            )}
           </div>
         </>
       )}
@@ -478,41 +492,19 @@ export default function Practice() {
       {/* ── モバイル固定底バー（模試） ── */}
       {isMobile && tab === 'exam' && targetExam && (
         <>
-          {showExamPanel && (
-            <>
-              <div onClick={() => setShowExamPanel(false)} style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.4)', zIndex: 210 }} />
-              <div style={{ position: 'fixed', bottom: 116, left: 0, right: 0, zIndex: 211, background: 'var(--color-bg-white)', borderRadius: '14px 14px 0 0', padding: '14px 12px 12px', boxShadow: '0 -4px 20px rgba(0,0,0,0.18)', animation: 'slideUp 0.22s ease' }}>
-                <div style={{ fontSize: 'var(--font-size-sm)', color: 'var(--color-text-sub)', textAlign: 'center', marginBottom: 10 }}>
-                  {ja ? '現在進行中のセッションはありません' : 'No active session'}
-                </div>
-                <Button variant="outline" fullWidth style={{ height: 44 }} disabled>
-                  {ja ? '新規に開始' : 'Start New'}
-                </Button>
-              </div>
-            </>
-          )}
           <div style={{ position: 'fixed', bottom: 56, left: 0, right: 0, zIndex: 150, background: 'var(--color-bg-white)', borderTop: '1px solid var(--color-border)', padding: '8px 12px', display: 'flex', boxShadow: '0 -2px 8px rgba(0,0,0,0.08)', transform: 'translateZ(0)' }}>
-            <div style={{ flex: 1, display: 'flex', height: 44, borderRadius: 22, overflow: 'hidden' }}>
-              <button
-                disabled={examLoading}
-                onClick={startExam}
-                style={{ flex: 1, height: 44, border: 'none', background: 'var(--color-accent)', color: 'var(--color-btn-primary-text)', fontWeight: 600, fontSize: 'var(--font-size-base)', cursor: examLoading ? 'default' : 'pointer', paddingLeft: 16, paddingRight: 8, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6 }}
-              >
-                {examLoading ? (
-                  <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}>
-                    <span style={{ width: 12, height: 12, border: '2px solid rgba(0,0,0,0.2)', borderTopColor: '#16191f', borderRadius: '50%', animation: 'sherpa-spin 0.7s linear infinite' }} />
-                    {ja ? '準備中...' : 'Preparing...'}
-                  </span>
-                ) : (ja ? '試験を開始' : 'Start Mock Exam')}
-              </button>
-              <button
-                onClick={() => setShowExamPanel(v => !v)}
-                style={{ width: 44, height: 44, border: 'none', borderLeft: '2px solid rgba(255,255,255,0.4)', background: 'var(--color-accent)', color: 'var(--color-btn-primary-text)', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}
-                aria-label={ja ? '新規で開始メニュー' : 'Start new menu'}
-              >
-                <IconChevronUp size={18} />
-              </button>
-            </div>
+            <button
+              disabled={examLoading}
+              onClick={startExam}
+              style={{ flex: 1, height: 44, border: 'none', borderRadius: 22, background: 'var(--color-accent)', color: 'var(--color-btn-primary-text)', fontWeight: 600, fontSize: 'var(--font-size-base)', cursor: examLoading ? 'default' : 'pointer' }}
+            >
+              {examLoading ? (
+                <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}>
+                  <span style={{ width: 12, height: 12, border: '2px solid rgba(0,0,0,0.2)', borderTopColor: '#16191f', borderRadius: '50%', animation: 'sherpa-spin 0.7s linear infinite' }} />
+                  {ja ? '準備中...' : 'Preparing...'}
+                </span>
+              ) : (ja ? '試験を開始' : 'Start Mock Exam')}
+            </button>
           </div>
         </>
       )}

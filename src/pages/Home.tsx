@@ -886,58 +886,59 @@ export default function Home() {
       {/* ── サクッと演習ボタン（モバイル固定） ── */}
       {isMobile && (
         <>
-          {/* プルアップパネル：新規で開始 */}
-          {showNewPanel && (
+          {/* プルアップパネル：新規で開始（セッションあり時のみ） */}
+          {hasQuickDraft && showNewPanel && (
             <>
               <div onClick={() => setShowNewPanel(false)} style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.4)', zIndex: 210 }} />
               <div style={{ position: 'fixed', bottom: 116, left: 0, right: 0, zIndex: 211, background: 'var(--color-bg-white)', borderRadius: '14px 14px 0 0', padding: '14px 12px 12px', boxShadow: '0 -4px 20px rgba(0,0,0,0.18)', animation: 'slideUp 0.22s ease' }}>
                 <div style={{ fontSize: 'var(--font-size-sm)', color: 'var(--color-text-sub)', textAlign: 'center', marginBottom: 10 }}>
-                  {hasQuickDraft
-                    ? (ja ? 'セッションを上書きして開始します' : 'This will overwrite the current session')
-                    : (ja ? '現在進行中のセッションはありません' : 'No active session')}
+                  {ja ? 'セッションを上書きして開始します' : 'This will overwrite the current session'}
                 </div>
-                <Button variant="outline" fullWidth style={{ height: 44 }} disabled={!hasQuickDraft} onClick={hasQuickDraft ? () => { setShowNewPanel(false); discardQuickDraft(); startQuickExercise(); } : undefined}>
+                <Button variant="outline" fullWidth style={{ height: 44 }} onClick={() => { setShowNewPanel(false); discardQuickDraft(); startQuickExercise(); }}>
                   {ja ? '新規に開始' : 'Start New'}
                 </Button>
               </div>
             </>
           )}
           <div style={{ position: 'fixed', bottom: 56, left: 0, right: 0, zIndex: 150, background: 'var(--color-bg-white)', borderTop: '1px solid var(--color-border)', padding: '8px 12px', display: 'flex', gap: 6, boxShadow: '0 -2px 8px rgba(0,0,0,0.08)', transform: 'translateZ(0)' }}>
-            {/* スプリットボタン：メイン + ↑ */}
-            <div style={{ flex: 1, display: 'flex', height: 44, borderRadius: 22, overflow: 'hidden', opacity: !targetExam ? 0.5 : 1 }}>
+            {hasQuickDraft ? (
+              /* スプリットピル：続きから再開 + ↑ */
+              <div style={{ flex: 1, display: 'flex', height: 44, borderRadius: 22, overflow: 'hidden', opacity: !targetExam ? 0.5 : 1 }}>
+                <button
+                  disabled={!targetExam || quickLoading}
+                  onClick={resumeQuickExercise}
+                  style={{ flex: 1, height: 44, border: 'none', background: 'var(--color-accent)', color: 'var(--color-btn-primary-text)', fontWeight: 600, fontSize: 'var(--font-size-base)', cursor: !targetExam || quickLoading ? 'default' : 'pointer', paddingLeft: 16, paddingRight: 8 }}
+                >
+                  {quickLoading ? (
+                    <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}>
+                      <span style={{ width: 14, height: 14, border: '2px solid rgba(0,0,0,0.2)', borderTopColor: '#16191f', borderRadius: '50%', animation: 'sherpa-spin 0.7s linear infinite', flexShrink: 0 }} />
+                      {ja ? '準備中...' : 'Loading...'}
+                    </span>
+                  ) : (ja ? 'サクッと演習（続きから）' : 'Quick (Resume)')}
+                </button>
+                <button
+                  onClick={() => setShowNewPanel(v => !v)}
+                  style={{ width: 44, height: 44, border: 'none', borderLeft: '2px solid rgba(255,255,255,0.4)', background: 'var(--color-accent)', color: 'var(--color-btn-primary-text)', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}
+                  aria-label={ja ? '新規で開始メニュー' : 'Start new menu'}
+                >
+                  <IconChevronUp size={18} />
+                </button>
+              </div>
+            ) : (
+              /* シンプルピル：新規開始 */
               <button
                 disabled={!targetExam || quickLoading}
-                onClick={() => { if (hasQuickDraft) resumeQuickExercise(); else if (targetExam && !quickLoading) startQuickExercise(); }}
-                style={{
-                  flex: 1, height: 44, border: 'none',
-                  background: 'var(--color-accent)',
-                  color: 'var(--color-btn-primary-text)', fontWeight: 600, fontSize: 'var(--font-size-base)',
-                  cursor: !targetExam || quickLoading ? 'default' : 'pointer',
-                  paddingLeft: 16, paddingRight: 8,
-                }}
+                onClick={() => { if (targetExam && !quickLoading) startQuickExercise(); }}
+                style={{ flex: 1, height: 44, border: 'none', borderRadius: 22, background: 'var(--color-accent)', color: 'var(--color-btn-primary-text)', fontWeight: 600, fontSize: 'var(--font-size-base)', cursor: !targetExam || quickLoading ? 'default' : 'pointer', opacity: !targetExam ? 0.5 : 1 }}
               >
                 {quickLoading ? (
                   <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}>
                     <span style={{ width: 14, height: 14, border: '2px solid rgba(0,0,0,0.2)', borderTopColor: '#16191f', borderRadius: '50%', animation: 'sherpa-spin 0.7s linear infinite', flexShrink: 0 }} />
                     {ja ? '準備中...' : 'Loading...'}
                   </span>
-                ) : hasQuickDraft ? (ja ? 'サクッと演習（続きから）' : 'Quick (Resume)') : (ja ? 'サクッと演習' : 'Quick')}
+                ) : (ja ? 'サクッと演習' : 'Quick')}
               </button>
-              <button
-                onClick={() => setShowNewPanel(v => !v)}
-                style={{
-                  width: 44, height: 44, border: 'none',
-                  borderLeft: '2px solid rgba(255,255,255,0.4)',
-                  background: 'var(--color-accent)',
-                  color: 'var(--color-btn-primary-text)', cursor: 'pointer',
-                  display: 'flex', alignItems: 'center', justifyContent: 'center',
-                  flexShrink: 0,
-                }}
-                aria-label={ja ? '新規で開始メニュー' : 'Start new menu'}
-              >
-                <IconChevronUp size={18} />
-              </button>
-            </div>
+            )}
             {/* 設定アイコン（常に表示） */}
             <button
               onClick={() => { setDraftPrefs({ ...loadQuickPrefs() }); setShowQuickModal(true); }}
