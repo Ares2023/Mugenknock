@@ -23,6 +23,7 @@ import Growth from './pages/Growth';
 import ReleaseNotes from './pages/ReleaseNotes';
 import Account from './pages/Account';
 import Others from './pages/Others';
+import About from './pages/About';
 import Practice from './pages/Practice';
 
 Amplify.configure(awsExports);
@@ -66,6 +67,7 @@ function App() {
           <Route path="/growth" element={<Layout><Growth /></Layout>} />
           <Route path="/release-notes" element={<Layout><ReleaseNotes /></Layout>} />
           <Route path="/others" element={<Layout><Others /></Layout>} />
+          <Route path="/about" element={<Layout><About /></Layout>} />
           <Route path="/admin" element={
             <AdminRoute><AdminLayout><Admin /></AdminLayout></AdminRoute>
           } />
