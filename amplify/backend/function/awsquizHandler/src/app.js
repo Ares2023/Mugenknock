@@ -1516,6 +1516,35 @@ app.put('/admin/settings/admins', async (req, res) => {
   }
 });
 
+app.get('/settings/about', async (req, res) => {
+  try {
+    const docClient = getClient();
+    const result = await docClient.send(new GetCommand({ TableName: 'AppSettings', Key: { settingId: 'about' } }));
+    if (!result.Item) return res.json({ sections: {} });
+    const sections = JSON.parse(result.Item.sections || '{}');
+    res.json({ sections });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+app.put('/admin/settings/about', requireAdmin, async (req, res) => {
+  try {
+    const docClient = getClient();
+    const { sections } = req.body;
+    if (!sections || typeof sections !== 'object') return res.status(400).json({ error: 'sections required' });
+    await docClient.send(new PutCommand({
+      TableName: 'AppSettings',
+      Item: { settingId: 'about', sections: JSON.stringify(sections), updatedAt: new Date().toISOString() },
+    }));
+    res.json({ success: true, sections });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
 app.get('/settings/theme', async (req, res) => {
   try {
     const docClient = getClient();

@@ -1,5 +1,6 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useLanguage } from '../contexts/LanguageContext';
+import { API_ENDPOINT } from '../constants';
 
 type Section = 'privacy' | 'terms' | 'operator';
 
@@ -9,10 +10,20 @@ const SECTIONS: { key: Section; ja: string; en: string }[] = [
   { key: 'operator', ja: '運営者情報',           en: 'About Us' },
 ];
 
+type CustomSections = Partial<Record<Section, string>>;
+
 export default function About() {
   const { lang } = useLanguage();
   const ja = lang === 'ja';
   const [section, setSection] = useState<Section>('privacy');
+  const [custom, setCustom] = useState<CustomSections>({});
+
+  useEffect(() => {
+    fetch(`${API_ENDPOINT}/settings/about`)
+      .then(r => r.ok ? r.json() : { sections: {} })
+      .then(data => setCustom(data.sections ?? {}))
+      .catch(() => {});
+  }, []);
 
   return (
     <div style={{ maxWidth: 760, margin: '0 auto', padding: 'var(--spacing-lg)' }}>
@@ -40,9 +51,12 @@ export default function About() {
       </div>
 
       <div style={{ lineHeight: 1.8, color: 'var(--color-text-main)', fontSize: 'var(--font-size-base)' }}>
-        {section === 'privacy' && <PrivacyPolicy />}
-        {section === 'terms'   && <TermsOfService />}
-        {section === 'operator' && <OperatorInfo />}
+        {custom[section]
+          ? <pre style={{ whiteSpace: 'pre-wrap', wordBreak: 'break-word', margin: 0, fontFamily: 'inherit', fontSize: 'inherit', lineHeight: 'inherit' }}>{custom[section]}</pre>
+          : section === 'privacy' ? <PrivacyPolicy />
+          : section === 'terms'   ? <TermsOfService />
+          : <OperatorInfo />
+        }
       </div>
     </div>
   );

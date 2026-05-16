@@ -242,10 +242,17 @@ from collections import Counter
 data = json.load(sys.stdin)
 counts = Counter()
 for item in data.get('Items', []):
-    for tag in item.get('tags', {}).get('L', []):
-        val = tag.get('S', '').strip()
-        if val:
-            counts[val] += 1
+    tags_raw = item.get('tags', {})
+    if 'L' in tags_raw:
+        for tag in tags_raw['L']:
+            val = tag.get('S', '').strip()
+            if val:
+                counts[val] += 1
+    elif 'SS' in tags_raw:
+        for val in tags_raw['SS']:
+            val = str(val).strip()
+            if val:
+                counts[val] += 1
 print('__JSON__' + json.dumps(dict(counts)))
 if counts:
     for k, v in sorted(counts.items(), key=lambda x: x[1]):

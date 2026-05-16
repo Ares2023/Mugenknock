@@ -79,7 +79,24 @@ type ImportQuestion = {
   tags?: string[];
 };
 
-type Tab = 'questions' | 'reports' | 'tips' | 'import' | 'releases' | 'scan' | 'messages' | 'dailyservice' | 'theme' | 'admins';
+type Tab = 'questions' | 'reports' | 'tips' | 'import' | 'releases' | 'scan' | 'messages' | 'dailyservice' | 'theme' | 'admins' | 'about';
+type Group = 'content' | 'ops' | 'settings';
+
+const TAB_GROUPS: { key: Group; label: string; tabs: Tab[] }[] = [
+  { key: 'content',  label: 'コンテンツ', tabs: ['questions', 'import', 'tips', 'releases', 'dailyservice'] },
+  { key: 'ops',      label: '運営',       tabs: ['reports', 'scan', 'messages'] },
+  { key: 'settings', label: '設定',       tabs: ['theme', 'admins', 'about'] },
+];
+const TAB_LABELS: Record<Tab, string> = {
+  questions: '問題管理', import: '問題追加', tips: 'コラム管理',
+  releases: 'リリースノート', dailyservice: '日めくりAWSサービス',
+  reports: '通報確認', scan: 'スキャン結果', messages: 'メッセージ',
+  theme: 'テーマ設定', admins: '管理者設定', about: 'サイト情報',
+};
+function getGroupForTab(t: Tab): Group {
+  for (const g of TAB_GROUPS) if ((g.tabs as Tab[]).includes(t)) return g.key;
+  return 'content';
+}
 
 type DailyServiceItem = {
   serviceId: string;
@@ -200,6 +217,12 @@ export default function Admin() {
   const [themeColors, setThemeColors] = useState<CustomColors>(() => ({ ...DEFAULT_COLORS, ...customColors }));
   const [themeSaving, setThemeSaving] = useState(false);
   const [themeSaved, setThemeSaved] = useState(false);
+
+  // サイト情報
+  const [aboutSections, setAboutSections] = useState<Record<string, string>>({ privacy: '', terms: '', operator: '' });
+  const [aboutSaving, setAboutSaving] = useState(false);
+  const [aboutSaved, setAboutSaved] = useState(false);
+  const [aboutLoading, setAboutLoading] = useState(false);
 
   // 管理者設定
   const [adminEmails, setAdminEmails] = useState<string[]>([]);
@@ -571,6 +594,7 @@ export default function Admin() {
   useEffect(() => { if (tab === 'messages') fetchMessages(); }, [tab]);
   useEffect(() => { if (tab === 'dailyservice') fetchDailyServices(); }, [tab]);
   useEffect(() => { if (tab === 'admins') fetchAdminEmails(); }, [tab]);
+  useEffect(() => { if (tab === 'about') fetchAboutContent(); }, [tab]);
 
   const fetchAdminEmails = async () => {
     setAdminEmailsLoading(true);
@@ -613,6 +637,34 @@ export default function Admin() {
 
   const removeAdminEmail = (email: string) => {
     saveAdminEmails(adminEmails.filter(e => e !== email));
+  };
+
+  const fetchAboutContent = async () => {
+    setAboutLoading(true);
+    try {
+      const res = await fetch(`${API_ENDPOINT}/settings/about`);
+      if (!res.ok) throw new Error();
+      const data = await res.json();
+      setAboutSections(prev => ({ ...prev, ...data.sections }));
+    } catch {}
+    setAboutLoading(false);
+  };
+
+  const saveAboutSection = async (key: string, value: string) => {
+    setAboutSaving(true);
+    setAboutSaved(false);
+    try {
+      const next = { ...aboutSections, [key]: value };
+      await adminFetch(`${API_ENDPOINT}/admin/settings/about`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ sections: next }),
+      });
+      setAboutSections(next);
+      setAboutSaved(true);
+      setTimeout(() => setAboutSaved(false), 3000);
+    } catch { alert('保存に失敗しました'); }
+    setAboutSaving(false);
   };
 
   const handleSaveTip = async () => {
@@ -909,21 +961,40 @@ export default function Admin() {
         </Card>
       )}
 
-      {/* タブ */}
-      <div className="admin-tabs" style={{ borderBottom: '1px solid var(--color-border)', marginBottom: 'var(--spacing-xl)', display: 'flex', overflowX: 'auto', flexWrap: 'nowrap' }}>
-        <button style={tabStyle('questions')} onClick={() => setTab('questions')}>問題管理</button>
-        <button style={tabStyle('import')} onClick={() => setTab('import')}>問題追加</button>
-        <button style={tabStyle('reports')} onClick={() => setTab('reports')}>通報確認</button>
-        <button style={tabStyle('tips')} onClick={() => setTab('tips')}>コラム管理</button>
-        <button style={tabStyle('releases')} onClick={() => setTab('releases')}>リリースノート</button>
-        <button style={tabStyle('scan')} onClick={() => setTab('scan')}>スキャン結果</button>
-        <button style={tabStyle('dailyservice')} onClick={() => setTab('dailyservice')}>日めくりAWSサービス</button>
-        <button style={tabStyle('messages')} onClick={() => setTab('messages')}>
-          メッセージ{messages.length > 0 ? ` (${messages.length})` : ''}
-        </button>
-        <button style={tabStyle('theme')} onClick={() => setTab('theme')}>テーマ設定</button>
-        <button style={tabStyle('admins')} onClick={() => setTab('admins')}>管理者設定</button>
-      </div>
+      {/* ── グループナビゲーション ── */}
+      {(() => {
+        const activeGroup = getGroupForTab(tab);
+        return (
+          <div style={{ marginBottom: 'var(--spacing-xl)' }}>
+            {/* グループ選択 */}
+            <div style={{ display: 'flex', gap: 6, marginBottom: 'var(--spacing-sm)' }}>
+              {TAB_GROUPS.map(g => (
+                <button
+                  key={g.key}
+                  onClick={() => setTab(g.tabs[0])}
+                  style={{
+                    padding: '5px 16px', border: 'none', borderRadius: 9999, cursor: 'pointer',
+                    fontWeight: 600, fontSize: 'var(--font-size-sm)',
+                    background: activeGroup === g.key ? 'var(--color-primary)' : 'var(--color-bg-main)',
+                    color: activeGroup === g.key ? '#fff' : 'var(--color-text-sub)',
+                    transition: 'background 0.15s',
+                  }}
+                >
+                  {g.label}
+                </button>
+              ))}
+            </div>
+            {/* サブタブ */}
+            <div className="admin-tabs" style={{ borderBottom: '1px solid var(--color-border)', display: 'flex', overflowX: 'auto', flexWrap: 'nowrap' }}>
+              {TAB_GROUPS.find(g => g.key === activeGroup)!.tabs.map(t => (
+                <button key={t} style={tabStyle(t)} onClick={() => setTab(t)}>
+                  {t === 'messages' && messages.length > 0 ? `メッセージ (${messages.length})` : TAB_LABELS[t]}
+                </button>
+              ))}
+            </div>
+          </div>
+        );
+      })()}
 
       {/* ── 問題管理 ── */}
       {tab === 'questions' && (
@@ -2462,6 +2533,57 @@ ${tipPromptExamType !== 'ALL' ? `・examType には "${tipPromptExamType}" を�
           )}
 
           {adminSaved && <p style={{ marginTop: 16, fontSize: 13, color: 'var(--color-success)', fontWeight: 700 }}>✓ 保存しました</p>}
+        </div>
+      )}
+
+      {/* ── サイト情報 ── */}
+      {tab === 'about' && (
+        <div style={{ maxWidth: 760 }}>
+          <p style={{ fontSize: 13, color: 'var(--color-text-sub)', marginBottom: 24 }}>
+            「このサイトについて」ページの各セクションを編集できます。空白のままにすると、デフォルトのコンテンツが表示されます。
+          </p>
+          {aboutLoading ? (
+            <p style={{ color: 'var(--color-text-sub)', fontSize: 14 }}>読み込み中...</p>
+          ) : (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--spacing-xl)' }}>
+              {[
+                { key: 'privacy', label: 'プライバシーポリシー' },
+                { key: 'terms', label: '利用規約' },
+                { key: 'operator', label: '運営者情報' },
+              ].map(({ key, label }) => (
+                <div key={key}>
+                  <div style={{ fontWeight: 700, fontSize: 'var(--font-size-md)', color: 'var(--color-text-main)', marginBottom: 8 }}>{label}</div>
+                  <textarea
+                    value={aboutSections[key] ?? ''}
+                    onChange={e => setAboutSections(prev => ({ ...prev, [key]: e.target.value }))}
+                    rows={12}
+                    style={{
+                      width: '100%', boxSizing: 'border-box', padding: '10px 12px',
+                      border: '1px solid var(--color-border)', borderRadius: 8,
+                      fontSize: 13, lineHeight: 1.7, fontFamily: 'inherit',
+                      background: 'var(--color-bg-white)', color: 'var(--color-text-main)',
+                      resize: 'vertical',
+                    }}
+                    placeholder={`${label}のテキストを入力（空欄=デフォルト表示）`}
+                  />
+                  <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: 8 }}>
+                    <button
+                      onClick={() => saveAboutSection(key, aboutSections[key] ?? '')}
+                      disabled={aboutSaving}
+                      style={{
+                        padding: '7px 20px', background: 'var(--color-primary)', color: '#fff',
+                        border: 'none', borderRadius: 8, cursor: aboutSaving ? 'default' : 'pointer',
+                        fontWeight: 700, fontSize: 13, opacity: aboutSaving ? 0.7 : 1,
+                      }}
+                    >
+                      {aboutSaving ? '保存中...' : '保存'}
+                    </button>
+                  </div>
+                </div>
+              ))}
+              {aboutSaved && <p style={{ fontSize: 13, color: 'var(--color-success)', fontWeight: 700 }}>✓ 保存しました</p>}
+            </div>
+          )}
         </div>
       )}
     </div>
