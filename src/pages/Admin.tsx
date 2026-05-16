@@ -576,7 +576,7 @@ export default function Admin() {
     setAdminEmailsLoading(true);
     setAdminEmailsError(null);
     try {
-      const res = await fetch(`${API_ENDPOINT}/settings/admins`);
+      const res = await adminFetch(`${API_ENDPOINT}/admin/settings/admins`);
       if (!res.ok) throw new Error(`${res.status}`);
       const data = await res.json();
       setAdminEmails(data.emails ?? []);

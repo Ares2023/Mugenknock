@@ -1489,7 +1489,7 @@ app.delete('/admin/daily-services/:id', async (req, res) => {
 });
 
 // ─── テーマ設定 ───────────────────────────────────────────────────────────────
-app.get('/settings/admins', async (req, res) => {
+app.get('/admin/settings/admins', async (req, res) => {
   try {
     const emails = await getAdminEmails();
     res.json({ emails });
@@ -1499,7 +1499,7 @@ app.get('/settings/admins', async (req, res) => {
   }
 });
 
-app.put('/admin/settings/admins', requireAdmin, async (req, res) => {
+app.put('/admin/settings/admins', async (req, res) => {
   try {
     const docClient = getClient();
     const { emails } = req.body;
