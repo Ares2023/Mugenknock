@@ -93,6 +93,7 @@ function CombinedDetailModal({ targetExam, domainAccList, estimatedScore, passSc
   const domains = EXAM_DOMAINS[targetExam] ?? [];
   const history = readScoreHistory(targetExam);
   const [tab, setTab] = useState<'domain' | 'score'>('domain');
+  const [showCalc, setShowCalc] = useState(false);
 
   useEffect(() => {
     const prev = document.body.style.overflow;
@@ -101,20 +102,28 @@ function CombinedDetailModal({ targetExam, domainAccList, estimatedScore, passSc
   }, []);
 
   const calcNote = (style?: React.CSSProperties) => (
-    <div style={{ marginTop: 16, padding: '10px 12px', background: 'var(--color-bg-main)', borderRadius: 8, ...style }}>
-      <div style={{ fontSize: 10, fontWeight: 700, color: 'var(--color-text-light)', marginBottom: 4, textTransform: 'uppercase', letterSpacing: '0.3px' }}>
-        {ja ? '計算方法' : 'How calculated'}
-      </div>
-      <p style={{ fontSize: 11, color: 'var(--color-text-sub)', margin: 0, lineHeight: 1.7 }}>
-        {ja
-          ? '直近10セッション分のドメインごとの正答数・回答数を合算して算出。未演習ドメインはデータなし扱い。'
-          : "Sum of correct/total answers per domain across the last 10 sessions. Unpracticed domains show no data."}
-      </p>
-      <p style={{ fontSize: 11, color: 'var(--color-text-sub)', margin: '8px 0 0', lineHeight: 1.7 }}>
-        {ja
-          ? '各ドメインの直近10セッション分の正答率 × 出題比率を合計して算出。未演習ドメインは0点扱い。スコア = Σ(正答率 × 出題比率%) × 1000'
-          : "Estimated score = Σ(domain accuracy × exam weight%) × 1000. Unpracticed domains count as 0."}
-      </p>
+    <div style={{ marginTop: 16, background: 'var(--color-bg-main)', borderRadius: 8, overflow: 'hidden', ...style }}>
+      <button
+        onClick={() => setShowCalc(v => !v)}
+        style={{ width: '100%', display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: 'none', border: 'none', cursor: 'pointer', padding: '8px 12px' }}
+      >
+        <span style={{ fontSize: 12, fontWeight: 600, color: 'var(--color-text-sub)' }}>{ja ? '計算方法' : 'How calculated'}</span>
+        <span style={{ fontSize: 10, color: 'var(--color-text-light)' }}>{showCalc ? '▲' : '▼'}</span>
+      </button>
+      {showCalc && (
+        <div style={{ padding: '0 12px 10px' }}>
+          <p style={{ fontSize: 11, color: 'var(--color-text-sub)', margin: 0, lineHeight: 1.7 }}>
+            {ja
+              ? '直近10セッション分のドメインごとの正答数・回答数を合算して算出。未演習ドメインはデータなし扱い。'
+              : "Sum of correct/total answers per domain across the last 10 sessions. Unpracticed domains show no data."}
+          </p>
+          <p style={{ fontSize: 11, color: 'var(--color-text-sub)', margin: '6px 0 0', lineHeight: 1.7 }}>
+            {ja
+              ? '各ドメインの直近10セッション分の正答率 × 出題比率を合計して算出。未演習ドメインは0点扱い。スコア = Σ(正答率 × 出題比率%) × 1000'
+              : "Estimated score = Σ(domain accuracy × exam weight%) × 1000. Unpracticed domains count as 0."}
+          </p>
+        </div>
+      )}
     </div>
   );
 
