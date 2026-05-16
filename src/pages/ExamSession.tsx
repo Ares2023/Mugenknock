@@ -50,6 +50,13 @@ export default function ExamSession() {
   const timeLimitMin = isMini ? Math.ceil(config.timeLimitMin / 5) : config.timeLimitMin;
   const totalSec = timeLimitMin * 60;
 
+  const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
+  useEffect(() => {
+    const handler = () => setIsMobile(window.innerWidth < 768);
+    window.addEventListener('resize', handler);
+    return () => window.removeEventListener('resize', handler);
+  }, []);
+
   const [currentIndex, setCurrentIndex] = useState<number>(state?.resumeIndex ?? 0);
   const [answers, setAnswers] = useState<Record<string, string[]>>(state?.resumeAnswers ?? {});
   const [timeLeft, setTimeLeft] = useState<number>(state?.resumeTimeLeft ?? totalSec);
@@ -164,6 +171,16 @@ export default function ExamSession() {
     setCurrentIndex(i => Math.min(questions.length - 1, i + 1));
   };
 
+  const handleSaveAndExit = () => {
+    try {
+      localStorage.setItem('examDraft', JSON.stringify({
+        sessionId, examType, questions, userId, isMini,
+        currentIndex, answers, timeLeft: timeLeftRef.current,
+      }));
+    } catch {}
+    navigate('/practice');
+  };
+
   const handleFinish = async (timeUp = false) => {
     if (finishedRef.current) return;
     finishedRef.current = true;
@@ -259,7 +276,7 @@ export default function ExamSession() {
   }
 
   return (
-    <div style={{ maxWidth: 900, margin: '0 auto', padding: 'var(--spacing-xl) var(--spacing-lg)' }} className="session-container">
+    <div style={{ maxWidth: 900, margin: '0 auto', padding: 'var(--spacing-xl) var(--spacing-lg)', paddingBottom: isMobile ? 120 : undefined }} className="session-container">
 
       {/* 一時停止オーバーレイ */}
       {paused && (
@@ -309,6 +326,9 @@ export default function ExamSession() {
           </div>
           <div style={{ display: 'flex', gap: 'var(--spacing-lg)', alignItems: 'center' }}>
             <span style={{ fontSize: 'var(--font-size-sm)', color: 'var(--color-text-sub)', fontWeight: 700 }}>{currentIndex + 1} / {questions.length}</span>
+            <Button variant="outline" size="sm" onClick={handleSaveAndExit}>
+              {lang === 'ja' ? '中断' : 'Pause & Save'}
+            </Button>
             <Button variant="outline" size="sm" onClick={() => setPaused(true)}>
               {t('examSession.pause')}
             </Button>
@@ -492,6 +512,31 @@ export default function ExamSession() {
           </Button>
         </div>
       </Card>
+
+      {isMobile && (
+        <div style={{ position: 'fixed', bottom: 56, left: 0, right: 0, zIndex: 150, background: 'var(--color-bg-white)', borderTop: '1px solid var(--color-border)', padding: '8px 12px', display: 'flex', gap: 8, boxShadow: '0 -2px 8px rgba(0,0,0,0.08)', transform: 'translateZ(0)' }}>
+          <button
+            disabled={currentIndex === 0}
+            onClick={() => setCurrentIndex(i => Math.max(0, i - 1))}
+            style={{ flex: 1, height: 44, border: '1.5px solid var(--color-primary)', borderRadius: 22, background: 'transparent', color: 'var(--color-primary)', fontWeight: 600, fontSize: 'var(--font-size-base)', cursor: currentIndex === 0 ? 'default' : 'pointer', opacity: currentIndex === 0 ? 0.4 : 1 }}
+          >
+            {lang === 'ja' ? '前へ' : 'Prev'}
+          </button>
+          <button
+            disabled={currentIndex === questions.length - 1}
+            onClick={handleNext}
+            style={{ flex: 1, height: 44, border: '1.5px solid var(--color-primary)', borderRadius: 22, background: 'transparent', color: 'var(--color-primary)', fontWeight: 600, fontSize: 'var(--font-size-base)', cursor: currentIndex === questions.length - 1 ? 'default' : 'pointer', opacity: currentIndex === questions.length - 1 ? 0.4 : 1 }}
+          >
+            {lang === 'ja' ? '次へ' : 'Next'}
+          </button>
+          <button
+            onClick={() => setShowConfirm(true)}
+            style={{ flex: 1, height: 44, border: 'none', borderRadius: 22, background: 'var(--color-accent)', color: 'var(--color-btn-primary-text)', fontWeight: 600, fontSize: 'var(--font-size-base)', cursor: 'pointer' }}
+          >
+            {lang === 'ja' ? '提出' : 'Submit'}
+          </button>
+        </div>
+      )}
 
       {reportOpen && (
         <ReportModal

@@ -513,6 +513,7 @@ export default function Home() {
   const [quickDraft, setQuickDraft] = useState<any>(() => readQuickDraft());
   const [showQuickModal, setShowQuickModal] = useState(false);
   const [showNewPanel, setShowNewPanel] = useState(false);
+  const [showWebQuickMenu, setShowWebQuickMenu] = useState(false);
   const [draftPrefs, setDraftPrefs] = useState<Record<string, any>>({});
   const [showCombinedDetail, setShowCombinedDetail] = useState(false);
   const abortRef = useRef<AbortController | null>(null);
@@ -865,16 +866,55 @@ export default function Home() {
       {!isMobile && (
         <>
           <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr', gap: 'var(--spacing-sm)', marginBottom: 8 }}>
-            <Button variant="primary" fullWidth disabled={!targetExam || quickLoading} onClick={() => { if (hasQuickDraft) resumeQuickExercise(); else if (targetExam && !quickLoading) startQuickExercise(); }}>
-              {quickLoading ? (
-                <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}>
-                  <span style={{ width: 14, height: 14, border: '2px solid rgba(0,0,0,0.2)', borderTopColor: '#16191f', borderRadius: '50%', animation: 'sherpa-spin 0.7s linear infinite', flexShrink: 0 }} />
-                  {ja ? '準備中...' : 'Loading...'}
-                </span>
-              ) : hasQuickDraft ? (ja ? 'サクッと演習（続きから再開）' : 'Quick (Resume)') : (ja ? `サクッと演習 (${loadQuickPrefs().questionCount ?? 5}問)` : `Quick (${loadQuickPrefs().questionCount ?? 5}Q)`)}
-            </Button>
+            {hasQuickDraft ? (
+              <div style={{ position: 'relative' }}>
+                {showWebQuickMenu && (
+                  <>
+                    <div onClick={() => setShowWebQuickMenu(false)} style={{ position: 'fixed', inset: 0, zIndex: 199 }} />
+                    <div style={{ position: 'absolute', bottom: '110%', left: 0, right: 0, zIndex: 200, background: 'var(--color-bg-white)', borderRadius: 'var(--border-radius-md)', boxShadow: '0 -4px 16px rgba(0,0,0,0.15)', border: '1px solid var(--color-border)', padding: '8px' }}>
+                      <div style={{ fontSize: 'var(--font-size-xs)', color: 'var(--color-text-sub)', textAlign: 'center', marginBottom: 8 }}>
+                        {ja ? 'セッションを上書きして新しく開始します' : 'This will overwrite the current session'}
+                      </div>
+                      <Button variant="outline" fullWidth onClick={() => { setShowWebQuickMenu(false); discardQuickDraft(); startQuickExercise(); }}>
+                        {ja ? '新規に開始' : 'Start New'}
+                      </Button>
+                    </div>
+                  </>
+                )}
+                <div style={{ display: 'flex', height: 40, borderRadius: 20, overflow: 'hidden' }}>
+                  <button
+                    disabled={!targetExam || quickLoading}
+                    onClick={resumeQuickExercise}
+                    style={{ flex: 1, height: 40, border: 'none', background: 'var(--color-accent)', color: 'var(--color-btn-primary-text)', fontWeight: 600, fontSize: 'var(--font-size-base)', cursor: (!targetExam || quickLoading) ? 'default' : 'pointer', paddingLeft: 16, paddingRight: 8 }}
+                  >
+                    {quickLoading ? (
+                      <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}>
+                        <span style={{ width: 14, height: 14, border: '2px solid rgba(0,0,0,0.2)', borderTopColor: '#16191f', borderRadius: '50%', animation: 'sherpa-spin 0.7s linear infinite', flexShrink: 0 }} />
+                        {ja ? '準備中...' : 'Loading...'}
+                      </span>
+                    ) : (ja ? 'サクッと演習（続きから再開）' : 'Quick (Resume)')}
+                  </button>
+                  <button
+                    onClick={() => setShowWebQuickMenu(v => !v)}
+                    style={{ width: 40, height: 40, border: 'none', borderLeft: '2px solid rgba(255,255,255,0.4)', background: 'var(--color-accent)', color: 'var(--color-btn-primary-text)', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}
+                    aria-label={ja ? '新規で開始メニュー' : 'Start new menu'}
+                  >
+                    ↑
+                  </button>
+                </div>
+              </div>
+            ) : (
+              <Button variant="primary" fullWidth disabled={!targetExam || quickLoading} onClick={() => { if (targetExam && !quickLoading) startQuickExercise(); }}>
+                {quickLoading ? (
+                  <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}>
+                    <span style={{ width: 14, height: 14, border: '2px solid rgba(0,0,0,0.2)', borderTopColor: '#16191f', borderRadius: '50%', animation: 'sherpa-spin 0.7s linear infinite', flexShrink: 0 }} />
+                    {ja ? '準備中...' : 'Loading...'}
+                  </span>
+                ) : (ja ? `サクッと演習 (${loadQuickPrefs().questionCount ?? 5}問)` : `Quick (${loadQuickPrefs().questionCount ?? 5}Q)`)}
+              </Button>
+            )}
             <Button variant="outline" fullWidth onClick={() => { setDraftPrefs({ ...loadQuickPrefs() }); setShowQuickModal(true); }}>
-              <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4 }}><IconSettings size={14} />{ja ? '設定' : 'Settings'}</span>
+              {ja ? '設定' : 'Settings'}
             </Button>
           </div>
           <Button variant="outline" fullWidth onClick={() => navigate('/practice')} style={{ marginBottom: 'var(--spacing-md)' }}>
