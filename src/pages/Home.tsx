@@ -732,7 +732,7 @@ export default function Home() {
                     ? (ja ? 'セッションを上書きして開始します' : 'This will overwrite the current session')
                     : (ja ? '現在進行中のセッションはありません' : 'No active session')}
                 </div>
-                <Button variant="primary" fullWidth style={{ height: 44 }} disabled={!hasQuickDraft} onClick={hasQuickDraft ? () => { setShowNewPanel(false); discardQuickDraft(); startQuickExercise(); } : undefined}>
+                <Button variant="outline" fullWidth style={{ height: 44 }} disabled={!hasQuickDraft} onClick={hasQuickDraft ? () => { setShowNewPanel(false); discardQuickDraft(); startQuickExercise(); } : undefined}>
                   {ja ? '新規に開始' : 'Start New'}
                 </Button>
               </div>
@@ -746,15 +746,15 @@ export default function Home() {
                 onClick={() => { if (hasQuickDraft) resumeQuickExercise(); else if (targetExam && !quickLoading) startQuickExercise(); }}
                 style={{
                   flex: 1, height: 44, border: 'none',
-                  background: 'var(--color-primary)',
-                  color: 'white', fontWeight: 600, fontSize: 'var(--font-size-base)',
+                  background: 'var(--color-accent)',
+                  color: 'var(--color-btn-primary-text)', fontWeight: 600, fontSize: 'var(--font-size-base)',
                   cursor: !targetExam || quickLoading ? 'default' : 'pointer',
                   paddingLeft: 16, paddingRight: 8,
                 }}
               >
                 {quickLoading ? (
                   <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}>
-                    <span style={{ width: 14, height: 14, border: '2px solid rgba(255,255,255,0.4)', borderTopColor: 'white', borderRadius: '50%', animation: 'sherpa-spin 0.7s linear infinite', flexShrink: 0 }} />
+                    <span style={{ width: 14, height: 14, border: '2px solid rgba(0,0,0,0.2)', borderTopColor: '#16191f', borderRadius: '50%', animation: 'sherpa-spin 0.7s linear infinite', flexShrink: 0 }} />
                     {ja ? '準備中...' : 'Loading...'}
                   </span>
                 ) : hasQuickDraft ? (ja ? 'サクッと演習（続きから）' : 'Quick (Resume)') : (ja ? 'サクッと演習' : 'Quick')}
@@ -763,9 +763,9 @@ export default function Home() {
                 onClick={() => setShowNewPanel(v => !v)}
                 style={{
                   width: 44, height: 44, border: 'none',
-                  borderLeft: '1px solid rgba(255,255,255,0.3)',
-                  background: 'var(--color-primary)',
-                  color: 'white', cursor: 'pointer',
+                  borderLeft: '1px solid rgba(0,0,0,0.12)',
+                  background: 'var(--color-accent)',
+                  color: 'var(--color-btn-primary-text)', cursor: 'pointer',
                   display: 'flex', alignItems: 'center', justifyContent: 'center',
                   flexShrink: 0,
                 }}
