@@ -148,10 +148,13 @@ app.get('/questions/growth-stats', async (req, res) => {
     let createdBeforeDaily = 0, verifiedBeforeDaily = 0;
     let createdBeforeMonthly = 0, verifiedBeforeMonthly = 0;
 
+    const toJstDay = (iso) => new Date(new Date(iso).getTime() + 9 * 60 * 60 * 1000).toISOString().slice(0, 10);
+    const toJstMonth = (iso) => new Date(new Date(iso).getTime() + 9 * 60 * 60 * 1000).toISOString().slice(0, 7);
+
     for (const item of items) {
       if (item.createdAt) {
-        const day = item.createdAt.slice(0, 10);
-        const month = item.createdAt.slice(0, 7);
+        const day = toJstDay(item.createdAt);
+        const month = toJstMonth(item.createdAt);
         if (createdByDay[day] !== undefined) createdByDay[day]++;
         else createdBeforeDaily++;
         if (createdByMonth[month] !== undefined) createdByMonth[month]++;
@@ -161,8 +164,8 @@ app.get('/questions/growth-stats', async (req, res) => {
         createdBeforeMonthly++;
       }
       if (item.validityCheckedAt) {
-        const day = item.validityCheckedAt.slice(0, 10);
-        const month = item.validityCheckedAt.slice(0, 7);
+        const day = toJstDay(item.validityCheckedAt);
+        const month = toJstMonth(item.validityCheckedAt);
         if (verifiedByDay[day] !== undefined) verifiedByDay[day]++;
         else if (day < daily[0]) verifiedBeforeDaily++;
         if (verifiedByMonth[month] !== undefined) verifiedByMonth[month]++;
@@ -471,6 +474,31 @@ app.put('/admin/questions/:id', async (req, res) => {
   }
 });
 
+// 問題数サマリー（examCounts・domainCounts）— 軽量スキャン
+app.get('/admin/questions/summary', async (req, res) => {
+  try {
+    const docClient = getClient();
+    const items = await scanAll(docClient, {
+      TableName: 'Questions',
+      ProjectionExpression: 'examType, tags, isHidden',
+    });
+    const examCounts = {};
+    const domainCounts = {};
+    for (const item of items) {
+      const { examType, tags = [] } = item;
+      examCounts[examType] = (examCounts[examType] || 0) + 1;
+      if (!domainCounts[examType]) domainCounts[examType] = {};
+      for (const tag of tags) {
+        domainCounts[examType][tag] = (domainCounts[examType][tag] || 0) + 1;
+      }
+    }
+    res.json({ examCounts, domainCounts, totalCount: items.length });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
 // 正当性チェック済み問題一覧
 // ?filter=flagged → rating<=2 または isHidden=true のみ
 // ?filter=hidden  → isHidden=true のみ
@@ -568,13 +596,31 @@ app.put('/admin/questions/:id/visibility', async (req, res) => {
   }
 });
 
+app.get('/admin/questions/:id', async (req, res) => {
+  try {
+    const docClient = getClient();
+    const result = await docClient.send(new GetCommand({
+      TableName: 'Questions',
+      Key: { questionId: req.params.id },
+    }));
+    if (!result.Item) return res.status(404).json({ error: 'Question not found' });
+    res.json(result.Item);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
 app.get('/admin/questions', async (req, res) => {
   try {
     const docClient = getClient();
-    const { examType, keyword, tag, domain } = req.query;
+    const { examType, keyword, tag, domain, page, pageSize } = req.query;
+    const pageNum = Math.max(0, parseInt(page) || 0);
+    const pageSz = Math.min(500, Math.max(1, parseInt(pageSize) || 100));
+    const isAll = !examType || examType === 'ALL';
     let items = [];
 
-    if (examType && examType !== 'ALL') {
+    if (!isAll) {
       items = await queryAll(docClient, {
         TableName: 'Questions',
         IndexName: 'examType-index',
@@ -582,7 +628,11 @@ app.get('/admin/questions', async (req, res) => {
         ExpressionAttributeValues: { ':examType': examType }
       });
     } else {
-      items = await scanAll(docClient, { TableName: 'Questions' });
+      // explanation・validityEditLog を除外して 6MB 上限を回避（編集時は GET /admin/questions/:id で取得）
+      items = await scanAll(docClient, {
+        TableName: 'Questions',
+        ProjectionExpression: 'questionId, examType, questionText, choices, correctAnswers, correctAnswerIndices, tags, isMultiple, isHidden, createdAt, updatedAt, validityCheckedAt',
+      });
     }
 
     if (tag) items = items.filter(q => (q.tags || []).includes(tag));
@@ -594,12 +644,16 @@ app.get('/admin/questions', async (req, res) => {
       const kw = keyword.toLowerCase();
       items = items.filter(q =>
         q.questionId.toLowerCase().includes(kw) ||
-        q.questionText.toLowerCase().includes(kw)
+        (q.questionText || '').toLowerCase().includes(kw)
       );
     }
 
     items.sort((a, b) => a.questionId.localeCompare(b.questionId));
-    res.json({ items, count: items.length });
+
+    const total = items.length;
+    const pagedItems = isAll ? items.slice(pageNum * pageSz, (pageNum + 1) * pageSz) : items;
+
+    res.json({ items: pagedItems, count: pagedItems.length, total, page: pageNum, pageSize: pageSz });
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: 'Internal server error' });

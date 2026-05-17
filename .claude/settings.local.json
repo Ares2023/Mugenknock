@@ -109,7 +109,20 @@
       "Bash(systemctl --user cat claude-cycle.timer)",
       "Bash(systemctl --user show claude-cycle.timer --property=OnCalendar,NextElapseUSec)",
       "Bash(systemd-run *)",
-      "Bash(systemctl --user list-timers --all --no-legend)"
+      "Bash(systemctl --user list-timers --all --no-legend)",
+      "Bash(chmod *)",
+      "Bash(/home/yuzuki/local/bin/aws dynamodb *)",
+      "Bash(sudo apt-get update)",
+      "Bash(sudo apt-get install -y openjdk-17-jdk)",
+      "Bash(/home/yuzuki/local/bin/aws lambda *)",
+      "Bash(unzip -p /tmp/lambda-code.zip src/app.js)",
+      "Bash(unzip -l /tmp/lambda-code.zip)",
+      "Bash(unzip -p /tmp/lambda-code.zip app.js)",
+      "Bash(/home/yuzuki/local/bin/aws logs *)",
+      "Bash(/home/yuzuki/local/bin/aws s3 *)",
+      "Bash(/home/yuzuki/local/bin/aws amplify *)",
+      "Bash(/home/yuzuki/local/bin/aws s3api *)",
+      "Bash(/home/yuzuki/local/bin/aws cloudfront *)"
     ]
   }
 }

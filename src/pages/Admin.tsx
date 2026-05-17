@@ -245,6 +245,9 @@ export default function Admin() {
   const [deletingId, setDeletingId] = useState<string | null>(null);
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   const [bulkDeleting, setBulkDeleting] = useState(false);
+  const [currentPage, setCurrentPage] = useState(0);
+  const [totalQuestions, setTotalQuestions] = useState(0);
+  const PAGE_SIZE = 100;
 
   // 通報
   const [reports, setReports] = useState<Report[]>([]);
@@ -300,7 +303,19 @@ export default function Admin() {
   const [releaseForm, setReleaseForm] = useState({ date: '', title: '', body: '' });
   const [showReleaseForm, setShowReleaseForm] = useState(false);
 
-  const fetchQuestions = useCallback(async () => {
+  const fetchSummary = useCallback(async () => {
+    try {
+      const res = await adminFetch(`${API_ENDPOINT}/admin/questions/summary`);
+      if (!res.ok) return;
+      const data = await res.json();
+      setExamCounts(data.examCounts || {});
+      setDomainCountsByExam(data.domainCounts || {});
+    } catch (err) {
+      console.error(err);
+    }
+  }, []);
+
+  const fetchQuestions = useCallback(async (page = 0) => {
     setLoadingQ(true);
     setAdminError(null);
     try {
@@ -309,6 +324,10 @@ export default function Admin() {
       if (keyword.trim()) params.set('keyword', keyword.trim());
       if (tagFilter.trim()) params.set('tag', tagFilter.trim());
       if (domainFilter) params.set('domain', domainFilter);
+      if (examFilter === 'ALL') {
+        params.set('page', String(page));
+        params.set('pageSize', String(PAGE_SIZE));
+      }
       const res = await adminFetch(`${API_ENDPOINT}/admin/questions?${params}`);
       if (res.status === 401 || res.status === 403) {
         setAdminError('管理者アカウントでログインしてください。');
@@ -318,28 +337,15 @@ export default function Admin() {
       const data = await res.json();
       const items: Question[] = data.items || [];
       setQuestions(items);
-      if (examFilter === 'ALL' && !keyword.trim() && !tagFilter.trim() && !domainFilter) {
-        const ec: Record<string, number> = {};
-        const dc: Record<string, Record<string, number>> = {};
-        for (const q of items) {
-          ec[q.examType] = (ec[q.examType] || 0) + 1;
-          if (!dc[q.examType]) dc[q.examType] = {};
-          for (const tag of ((q as any).tags || [])) {
-            if (EXAM_DOMAINS[q.examType]?.includes(tag)) {
-              dc[q.examType][tag] = (dc[q.examType][tag] || 0) + 1;
-            }
-          }
-        }
-        setExamCounts(ec);
-        setDomainCountsByExam(dc);
-      }
+      setCurrentPage(data.page ?? page);
+      setTotalQuestions(data.total ?? items.length);
     } catch (err) {
       console.error(err);
       setAdminError('APIの接続に失敗しました。');
     } finally {
       setLoadingQ(false);
     }
-  }, [examFilter, keyword, tagFilter, domainFilter]);
+  }, [examFilter, keyword, tagFilter, domainFilter, PAGE_SIZE]);
 
 
   const fetchReports = useCallback(async () => {
@@ -485,23 +491,31 @@ export default function Admin() {
   const [editForm, setEditForm] = useState<EditForm>(EMPTY_EDIT_FORM);
   const [saving, setSaving] = useState(false);
 
-  const openEdit = (q: Question | FlaggedQuestion) => {
-    const choices = (q as Question).choices || (q as FlaggedQuestion).choices || ['', '', '', ''];
-    const form: EditForm = {
-      examType: q.examType,
-      domain: (q as Question).domain || (q as FlaggedQuestion).domain || '',
-      questionText: q.questionText,
-      questionTextEn: (q as any).questionTextEn || '',
-      choices,
-      choicesEn: (q as any).choicesEn || choices.map(() => ''),
-      correctAnswers: (q as Question).correctAnswers || (q as FlaggedQuestion).correctAnswers || [],
-      explanation: (q as Question).explanation || (q as FlaggedQuestion).explanation || '',
-      explanationEn: (q as any).explanationEn || '',
-      tags: ((q as Question).tags || (q as FlaggedQuestion).tags || []).join(', '),
-      isMultiple: (q as Question).isMultiple || (q as FlaggedQuestion).isMultiple || false,
-    };
-    setEditForm(form);
+  const openEdit = async (q: Question | FlaggedQuestion) => {
     setEditingQuestion({ id: q.questionId });
+    setEditForm(EMPTY_EDIT_FORM);
+    // ALLスキャン時はexplanationが省略されているため個別取得する
+    let full: any = q;
+    if ((q as Question).explanation === undefined) {
+      try {
+        const res = await adminFetch(`${API_ENDPOINT}/admin/questions/${q.questionId}`);
+        if (res.ok) full = await res.json();
+      } catch {}
+    }
+    const choices = full.choices || ['', '', '', ''];
+    setEditForm({
+      examType: full.examType,
+      domain: full.domain || '',
+      questionText: full.questionText,
+      questionTextEn: full.questionTextEn || '',
+      choices,
+      choicesEn: full.choicesEn || choices.map(() => ''),
+      correctAnswers: full.correctAnswers || [],
+      explanation: full.explanation || '',
+      explanationEn: full.explanationEn || '',
+      tags: (full.tags || []).join(', '),
+      isMultiple: full.isMultiple || false,
+    });
   };
 
   const handleSaveQuestion = async () => {
@@ -586,7 +600,12 @@ export default function Admin() {
     ));
   };
 
-  useEffect(() => { fetchQuestions(); setSelectedIds(new Set()); }, [examFilter, keyword, tagFilter, domainFilter]);
+  useEffect(() => {
+    setCurrentPage(0);
+    fetchQuestions(0);
+    setSelectedIds(new Set());
+    if (examFilter === 'ALL') fetchSummary();
+  }, [examFilter, keyword, tagFilter, domainFilter]);
   useEffect(() => { if (tab === 'reports') fetchReports(); }, [tab]);
   useEffect(() => { if (tab === 'tips') fetchTips(); }, [tab]);
   useEffect(() => { if (tab === 'releases') fetchReleases(); }, [tab]);
@@ -1109,7 +1128,9 @@ export default function Admin() {
           {/* 件数・一括削除バー */}
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
             <p style={{ color: 'var(--color-text-sub)', fontSize: 13, margin: 0 }}>
-              {loadingQ ? '読み込み中...' : `${questions.length} 件`}
+              {loadingQ ? '読み込み中...' : examFilter === 'ALL'
+                ? `${totalQuestions} 件中 ${currentPage * PAGE_SIZE + 1}–${Math.min((currentPage + 1) * PAGE_SIZE, totalQuestions)} 件表示`
+                : `${questions.length} 件`}
             </p>
             {selectedIds.size > 0 && (
               <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
@@ -1260,6 +1281,27 @@ export default function Admin() {
 
           {!loadingQ && questions.length === 0 && (
             <p style={{ color: 'var(--color-text-light)', textAlign: 'center', padding: 40 }}>問題が見つかりません</p>
+          )}
+
+          {/* ページネーション（ALL表示時のみ） */}
+          {examFilter === 'ALL' && totalQuestions > PAGE_SIZE && !loadingQ && (
+            <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', gap: 12, marginTop: 20, padding: '12px 0' }}>
+              <button
+                onClick={() => { fetchQuestions(currentPage - 1); setSelectedIds(new Set()); }}
+                disabled={currentPage === 0}
+                style={{ padding: '6px 16px', borderRadius: 9999, border: '1px solid var(--color-border)', background: currentPage === 0 ? 'var(--color-bg-main)' : 'var(--color-bg-white)', color: currentPage === 0 ? 'var(--color-text-light)' : 'var(--color-text-main)', cursor: currentPage === 0 ? 'default' : 'pointer', fontWeight: 700, fontSize: 13 }}>
+                ← 前
+              </button>
+              <span style={{ fontSize: 13, color: 'var(--color-text-sub)' }}>
+                {currentPage + 1} / {Math.ceil(totalQuestions / PAGE_SIZE)} ページ
+              </span>
+              <button
+                onClick={() => { fetchQuestions(currentPage + 1); setSelectedIds(new Set()); }}
+                disabled={(currentPage + 1) * PAGE_SIZE >= totalQuestions}
+                style={{ padding: '6px 16px', borderRadius: 9999, border: '1px solid var(--color-border)', background: (currentPage + 1) * PAGE_SIZE >= totalQuestions ? 'var(--color-bg-main)' : 'var(--color-bg-white)', color: (currentPage + 1) * PAGE_SIZE >= totalQuestions ? 'var(--color-text-light)' : 'var(--color-text-main)', cursor: (currentPage + 1) * PAGE_SIZE >= totalQuestions ? 'default' : 'pointer', fontWeight: 700, fontSize: 13 }}>
+                次 →
+              </button>
+            </div>
           )}
         </div>
       )}
