@@ -108,34 +108,43 @@ function PrivacyPolicy() {
         'アクセスログ（IPアドレス、ブラウザ種別等）：サービスの改善・不正利用防止のため',
       ]} />
 
-      <H3>2. Google AdSense・広告について</H3>
+      <H3>2. 広告について</H3>
       <P>
-        本サービスは、Google LLC が提供する広告配信サービス「Google AdSense」を利用しています。
-        Google AdSense は、ユーザーの興味・関心に合わせたパーソナライズ広告を表示するため、
-        Cookie（クッキー）および広告識別子を使用します。
+        本サービスは、Google LLC が提供する広告配信サービスを利用しています。
       </P>
+      <Ul items={[
+        'Webブラウザ版：Google AdSense を利用。Cookie および広告識別子を使用してパーソナライズ広告を配信します。',
+        'Android / iOS アプリ版：Google AdMob を利用。デバイスの広告識別子（IDFA / GAID）を使用してパーソナライズ広告を配信します。',
+      ]} />
       <P>
         Google によるデータ収集・利用を希望しない場合は、
         <a href="https://adssettings.google.com/" target="_blank" rel="noopener noreferrer" style={{ color: 'var(--color-primary)' }}>Google 広告設定</a>
         からオプトアウトできます。
-        また、<a href="https://www.aboutads.info/choices/" target="_blank" rel="noopener noreferrer" style={{ color: 'var(--color-primary)' }}>www.aboutads.info</a>
-        からも設定変更が可能です。
+        また、スマートフォンの設定からデバイスの「広告トラッキングを制限」または「広告 ID をリセット」することでも制限できます。
       </P>
 
       <H3>3. アクセス解析（Google Analytics）</H3>
       <P>
         本サービスは、サービス改善を目的としてアクセス解析ツール「Google Analytics」を利用する場合があります。
-        Google Analytics はトラフィックデータ収集のために Cookie を使用します。
+        Google Analytics はトラフィックデータ収集のために Cookie または類似技術を使用します。
         収集されるデータは匿名であり、個人を特定するものではありません。
         Google Analytics のデータ収集については
         <a href="https://policies.google.com/privacy" target="_blank" rel="noopener noreferrer" style={{ color: 'var(--color-primary)' }}>Google プライバシーポリシー</a>
         をご確認ください。
       </P>
 
-      <H3>4. Cookie（クッキー）について</H3>
+      <H3>4. Cookie・広告識別子について</H3>
       <P>
-        本サービスは、ログイン状態の維持・設定の保存・広告配信の最適化を目的として Cookie を使用します。
-        ブラウザの設定から Cookie を無効にすることができますが、一部の機能がご利用いただけなくなる場合があります。
+        本サービスは、以下の目的で Cookie およびデバイス識別子を使用します。
+      </P>
+      <Ul items={[
+        'ログイン状態の維持・設定の保存',
+        '広告配信の最適化（AdSense / AdMob）',
+        'アクセス解析',
+      ]} />
+      <P>
+        Webブラウザ版ではブラウザの設定から Cookie を無効にできます（一部機能が利用不可になる場合があります）。
+        アプリ版ではデバイスの設定から広告識別子のリセットまたはトラッキング制限が可能です。
       </P>
 
       <H3>5. 第三者への提供</H3>
