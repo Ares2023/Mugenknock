@@ -514,6 +514,9 @@ export default function Home() {
   const [showQuickModal, setShowQuickModal] = useState(false);
   const [showNewPanel, setShowNewPanel] = useState(false);
   const [showWebQuickMenu, setShowWebQuickMenu] = useState(false);
+  const [showFocusedMenu, setShowFocusedMenu] = useState(false);
+  const [focusedLoading, setFocusedLoading] = useState(false);
+  const [focusedUnlocked, setFocusedUnlocked] = useState(() => !!localStorage.getItem('focusedModeUnlocked'));
   const [draftPrefs, setDraftPrefs] = useState<Record<string, any>>({});
   const [showCombinedDetail, setShowCombinedDetail] = useState(false);
   const abortRef = useRef<AbortController | null>(null);
@@ -588,6 +591,24 @@ export default function Home() {
     }
     return () => { abortRef.current?.abort(); };
   }, [user, doFetchStats]);
+
+  useEffect(() => {
+    if (focusedUnlocked || !user) return;
+    const cacheKey = `focusedUnlock_${user.userId}`;
+    const cached = getCached<number>(cacheKey);
+    if (cached !== null) {
+      if (cached >= 30) { setFocusedUnlocked(true); localStorage.setItem('focusedModeUnlocked', '1'); }
+      return;
+    }
+    fetch(`${API_ENDPOINT}/users/me/sessions?userId=${user.userId}&limit=200`)
+      .then(r => r.json())
+      .then(d => {
+        const count = (d.items ?? []).filter((s: any) => s.mode === 'exercise').length;
+        setCached(cacheKey, count, DEFAULT_TTL);
+        if (count >= 30) { setFocusedUnlocked(true); localStorage.setItem('focusedModeUnlocked', '1'); }
+      })
+      .catch(() => {});
+  }, [user, focusedUnlocked]);
 
   // ── 予想スコア計算（直近10セッション優先、ドメインごとにAPIフォールバック） ──
   const estimatedScore = useMemo(() => {
@@ -710,6 +731,47 @@ export default function Home() {
       navigate('/exercise/session', { state: { sessionId: sessionData.sessionId, questions: items, userId, mode: 'exercise', examType: targetExam, isQuick: true } });
     } catch (err) { console.error(err); alert(ja ? '演習の開始に失敗しました' : 'Failed to start exercise'); }
     finally { setQuickLoading(false); }
+  };
+
+  // しっかり対策
+  const startFocusedExercise = async () => {
+    if (!targetExam) { alert(ja ? '試験を選択してください' : 'Please select an exam'); return; }
+    if (!user) { alert(ja ? 'ログインが必要です' : 'Login required'); return; }
+    discardQuickDraft();
+    setFocusedLoading(true);
+    const qPrefs = loadQuickPrefs();
+    try {
+      const userId = user.userId;
+      const params = new URLSearchParams({ examType: targetExam, withAnswers: 'true', withValidity: 'true' });
+      const [data, incorrectRes] = await Promise.all([
+        fetch(`${API_ENDPOINT}/questions?${params}`).then(r => r.json()),
+        fetch(`${API_ENDPOINT}/users/me/incorrect-questions?userId=${userId}&examType=${targetExam}`).then(r => r.json()),
+      ]);
+      const allItems: any[] = (data.items ?? []).filter((q: any) => !!q.validityCheckedAt);
+      const incorrectIds = new Set<string>(incorrectRes.questionIds ?? []);
+      const examDomains = EXAM_DOMAINS[targetExam] ?? [];
+      const weakDomains = new Set<string>(
+        domainStats.length === 0
+          ? examDomains
+          : examDomains.filter(domain => {
+              const stat = domainStats.find(s => s.tagId === domain);
+              if (!stat) return true;
+              const total = (stat.correctCount ?? 0) + (stat.incorrectCount ?? 0);
+              return total === 0 || (stat.correctCount ?? 0) / total < 0.70;
+            })
+      );
+      let items = allItems.filter((q: any) => {
+        const tags: string[] = q.tags ?? [];
+        return tags.some(t => weakDomains.has(t)) || incorrectIds.has(q.questionId);
+      });
+      if (items.length === 0) items = allItems;
+      items = shuffleArray(items).slice(0, qPrefs.questionCount ?? 5);
+      if (items.length === 0) { alert(ja ? '条件に合う問題がありません' : 'No questions match the criteria'); return; }
+      const sessionRes = await fetch(`${API_ENDPOINT}/sessions`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ userId, mode: 'exercise', examType: targetExam, questionIds: items.map((q: any) => q.questionId) }) });
+      const sessionData = await sessionRes.json();
+      navigate('/exercise/session', { state: { sessionId: sessionData.sessionId, questions: items, userId, mode: 'exercise', examType: targetExam, isQuick: true } });
+    } catch (err) { console.error(err); alert(ja ? '演習の開始に失敗しました' : 'Failed to start exercise'); }
+    finally { setFocusedLoading(false); }
   };
 
   // ドメイン別成績（表示用）— API累計統計を使用
@@ -882,6 +944,15 @@ export default function Home() {
                       <Button variant="outline" fullWidth onClick={() => { setShowWebQuickMenu(false); discardQuickDraft(); startQuickExercise(); }}>
                         {ja ? '新規に開始' : 'Start New'}
                       </Button>
+                      <button
+                        disabled={!targetExam || !user || !focusedUnlocked || focusedLoading}
+                        onClick={() => { setShowWebQuickMenu(false); startFocusedExercise(); }}
+                        style={{ width: '100%', marginTop: 6, padding: '8px 12px', border: 'none', borderRadius: 6, cursor: (!targetExam || !user || !focusedUnlocked) ? 'default' : 'pointer', background: (!targetExam || !user || !focusedUnlocked) ? 'var(--color-border)' : '#009E9E', color: (!targetExam || !user || !focusedUnlocked) ? 'var(--color-text-light)' : '#fff', fontWeight: 600, fontSize: 'var(--font-size-sm)', display: 'flex', alignItems: 'center', gap: 6 }}
+                      >
+                        {!focusedUnlocked && <span>🔒</span>}
+                        {ja ? 'しっかり対策' : 'Focused Practice'}
+                        {!focusedUnlocked && <span style={{ fontSize: 10, fontWeight: 400 }}>{!user ? (ja ? '（要ログイン）' : '(Login required)') : (ja ? '（30回の演習で解放）' : '(Unlocks at 30 exercises)')}</span>}
+                      </button>
                     </div>
                   </>
                 )}
@@ -908,14 +979,45 @@ export default function Home() {
                 </div>
               </div>
             ) : (
-              <Button variant="primary" fullWidth disabled={!targetExam || quickLoading} onClick={() => { if (targetExam && !quickLoading) startQuickExercise(); }}>
-                {quickLoading ? (
-                  <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}>
-                    <span style={{ width: 14, height: 14, border: '2px solid rgba(0,0,0,0.2)', borderTopColor: '#16191f', borderRadius: '50%', animation: 'sherpa-spin 0.7s linear infinite', flexShrink: 0 }} />
-                    {ja ? '準備中...' : 'Loading...'}
-                  </span>
-                ) : (ja ? `サクッと演習 (${loadQuickPrefs().questionCount ?? 5}問)` : `Quick (${loadQuickPrefs().questionCount ?? 5}Q)`)}
-              </Button>
+              <div style={{ position: 'relative' }}>
+                {showFocusedMenu && (
+                  <>
+                    <div onClick={() => setShowFocusedMenu(false)} style={{ position: 'fixed', inset: 0, zIndex: 199 }} />
+                    <div style={{ position: 'absolute', bottom: '110%', left: 0, right: 0, zIndex: 200, background: 'var(--color-bg-white)', borderRadius: 'var(--border-radius-md)', boxShadow: '0 -4px 16px rgba(0,0,0,0.15)', border: '1px solid var(--color-border)', padding: '8px' }}>
+                      <button
+                        disabled={!targetExam || !user || !focusedUnlocked || focusedLoading}
+                        onClick={() => { setShowFocusedMenu(false); startFocusedExercise(); }}
+                        style={{ width: '100%', padding: '9px 12px', border: 'none', borderRadius: 6, cursor: (!targetExam || !user || !focusedUnlocked) ? 'default' : 'pointer', background: (!targetExam || !user || !focusedUnlocked) ? 'var(--color-border)' : '#009E9E', color: (!targetExam || !user || !focusedUnlocked) ? 'var(--color-text-light)' : '#fff', fontWeight: 600, fontSize: 'var(--font-size-sm)', display: 'flex', alignItems: 'center', gap: 6 }}
+                      >
+                        {!focusedUnlocked && <span>🔒</span>}
+                        {ja ? 'しっかり対策' : 'Focused Practice'}
+                        {!focusedUnlocked && <span style={{ fontSize: 10, fontWeight: 400 }}>{!user ? (ja ? '（要ログイン）' : '(Login required)') : (ja ? '（30回の演習で解放）' : '(Unlocks at 30 exercises)')}</span>}
+                      </button>
+                    </div>
+                  </>
+                )}
+                <div style={{ display: 'flex', height: 40, borderRadius: 20, overflow: 'hidden' }}>
+                  <button
+                    disabled={!targetExam || quickLoading}
+                    onClick={() => { if (targetExam && !quickLoading) startQuickExercise(); }}
+                    style={{ flex: 1, height: 40, border: 'none', background: 'var(--color-accent)', color: 'var(--color-btn-primary-text)', fontWeight: 600, fontSize: 'var(--font-size-base)', cursor: (!targetExam || quickLoading) ? 'default' : 'pointer', paddingLeft: 16, paddingRight: 8 }}
+                  >
+                    {quickLoading ? (
+                      <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}>
+                        <span style={{ width: 14, height: 14, border: '2px solid rgba(0,0,0,0.2)', borderTopColor: '#16191f', borderRadius: '50%', animation: 'sherpa-spin 0.7s linear infinite', flexShrink: 0 }} />
+                        {ja ? '準備中...' : 'Loading...'}
+                      </span>
+                    ) : (ja ? `サクッと演習 (${loadQuickPrefs().questionCount ?? 5}問)` : `Quick (${loadQuickPrefs().questionCount ?? 5}Q)`)}
+                  </button>
+                  <button
+                    onClick={() => setShowFocusedMenu(v => !v)}
+                    style={{ width: 36, height: 40, border: 'none', borderLeft: '2px solid rgba(255,255,255,0.4)', background: 'var(--color-accent)', color: 'var(--color-btn-primary-text)', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}
+                    aria-label={ja ? 'しっかり対策' : 'Focused practice'}
+                  >
+                    <IconChevronUp size={16} />
+                  </button>
+                </div>
+              </div>
             )}
             <Button variant="outline" fullWidth onClick={() => { setDraftPrefs({ ...loadQuickPrefs() }); setShowQuickModal(true); }}>
               {ja ? '設定' : 'Settings'}
@@ -941,6 +1043,32 @@ export default function Home() {
                 <Button variant="outline" fullWidth style={{ height: 44 }} onClick={() => { setShowNewPanel(false); discardQuickDraft(); startQuickExercise(); }}>
                   {ja ? '新規に開始' : 'Start New'}
                 </Button>
+                <button
+                  disabled={!targetExam || !user || !focusedUnlocked || focusedLoading}
+                  onClick={() => { setShowNewPanel(false); startFocusedExercise(); }}
+                  style={{ width: '100%', height: 44, marginTop: 8, border: 'none', borderRadius: 8, cursor: (!targetExam || !user || !focusedUnlocked) ? 'default' : 'pointer', background: (!targetExam || !user || !focusedUnlocked) ? 'var(--color-border)' : '#009E9E', color: (!targetExam || !user || !focusedUnlocked) ? 'var(--color-text-light)' : '#fff', fontWeight: 600, fontSize: 'var(--font-size-base)', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6 }}
+                >
+                  {!focusedUnlocked && <span>🔒</span>}
+                  {ja ? 'しっかり対策' : 'Focused Practice'}
+                  {!focusedUnlocked && <span style={{ fontSize: 11, fontWeight: 400 }}>{!user ? (ja ? '（要ログイン）' : '') : (ja ? '（30回の演習で解放）' : '')}</span>}
+                </button>
+              </div>
+            </>
+          )}
+          {/* プルアップパネル：しっかり対策（セッションなし時） */}
+          {!hasQuickDraft && showFocusedMenu && (
+            <>
+              <div onClick={() => setShowFocusedMenu(false)} style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.4)', zIndex: 210 }} />
+              <div style={{ position: 'fixed', bottom: 116, left: 0, right: 0, zIndex: 211, background: 'var(--color-bg-white)', borderRadius: '14px 14px 0 0', padding: '14px 12px 12px', boxShadow: '0 -4px 20px rgba(0,0,0,0.18)', animation: 'slideUp 0.22s ease' }}>
+                <button
+                  disabled={!targetExam || !user || !focusedUnlocked || focusedLoading}
+                  onClick={() => { setShowFocusedMenu(false); startFocusedExercise(); }}
+                  style={{ width: '100%', height: 44, border: 'none', borderRadius: 8, cursor: (!targetExam || !user || !focusedUnlocked) ? 'default' : 'pointer', background: (!targetExam || !user || !focusedUnlocked) ? 'var(--color-border)' : '#009E9E', color: (!targetExam || !user || !focusedUnlocked) ? 'var(--color-text-light)' : '#fff', fontWeight: 600, fontSize: 'var(--font-size-base)', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6 }}
+                >
+                  {!focusedUnlocked && <span>🔒</span>}
+                  {ja ? 'しっかり対策' : 'Focused Practice'}
+                  {!focusedUnlocked && <span style={{ fontSize: 11, fontWeight: 400 }}>{!user ? (ja ? '（要ログイン）' : '') : (ja ? '（30回の演習で解放）' : '')}</span>}
+                </button>
               </div>
             </>
           )}
@@ -969,19 +1097,28 @@ export default function Home() {
                 </button>
               </div>
             ) : (
-              /* シンプルピル：新規開始 */
-              <button
-                disabled={!targetExam || quickLoading}
-                onClick={() => { if (targetExam && !quickLoading) startQuickExercise(); }}
-                style={{ flex: 1, height: 44, border: 'none', borderRadius: 22, background: 'var(--color-accent)', color: 'var(--color-btn-primary-text)', fontWeight: 600, fontSize: 'var(--font-size-base)', cursor: !targetExam || quickLoading ? 'default' : 'pointer', opacity: !targetExam ? 0.5 : 1 }}
-              >
-                {quickLoading ? (
-                  <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}>
-                    <span style={{ width: 14, height: 14, border: '2px solid rgba(0,0,0,0.2)', borderTopColor: '#16191f', borderRadius: '50%', animation: 'sherpa-spin 0.7s linear infinite', flexShrink: 0 }} />
-                    {ja ? '準備中...' : 'Loading...'}
-                  </span>
-                ) : (ja ? 'サクッと演習' : 'Quick')}
-              </button>
+              /* スプリットピル：新規開始 + しっかり対策 */
+              <div style={{ flex: 1, display: 'flex', height: 44, borderRadius: 22, overflow: 'hidden', opacity: !targetExam ? 0.5 : 1 }}>
+                <button
+                  disabled={!targetExam || quickLoading}
+                  onClick={() => { if (targetExam && !quickLoading) startQuickExercise(); }}
+                  style={{ flex: 1, height: 44, border: 'none', background: 'var(--color-accent)', color: 'var(--color-btn-primary-text)', fontWeight: 600, fontSize: 'var(--font-size-base)', cursor: !targetExam || quickLoading ? 'default' : 'pointer', paddingLeft: 16, paddingRight: 8 }}
+                >
+                  {quickLoading ? (
+                    <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}>
+                      <span style={{ width: 14, height: 14, border: '2px solid rgba(0,0,0,0.2)', borderTopColor: '#16191f', borderRadius: '50%', animation: 'sherpa-spin 0.7s linear infinite', flexShrink: 0 }} />
+                      {ja ? '準備中...' : 'Loading...'}
+                    </span>
+                  ) : (ja ? 'サクッと演習' : 'Quick')}
+                </button>
+                <button
+                  onClick={() => setShowFocusedMenu(v => !v)}
+                  style={{ width: 44, height: 44, border: 'none', borderLeft: '2px solid rgba(255,255,255,0.4)', background: 'var(--color-accent)', color: 'var(--color-btn-primary-text)', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}
+                  aria-label={ja ? 'しっかり対策' : 'Focused practice'}
+                >
+                  <IconChevronUp size={16} />
+                </button>
+              </div>
             )}
             {/* 設定アイコン（常に表示） */}
             <button
