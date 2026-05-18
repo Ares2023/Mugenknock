@@ -1012,7 +1012,7 @@ export default function Home() {
                         {ja ? 'セッションを上書きして新しく開始します' : 'This will overwrite the current session'}
                       </div>
                       <Button variant="outline" fullWidth onClick={() => { setShowWebQuickMenu(false); discardPrimaryDraft(); startPrimary(); }}>
-                        {ja ? '新規に開始' : 'Start New'}
+                        {ja ? `新規に開始（${primaryMode === 'focused' ? 'しっかり対策' : 'サクッと演習'}）` : `Start New (${primaryMode === 'focused' ? 'Focused' : 'Quick'})`}
                       </Button>
                       <div style={{ marginTop: 6 }}>
                         {primaryMode === 'quick' ? (
@@ -1162,7 +1162,7 @@ export default function Home() {
                   {ja ? 'セッションを上書きして開始します' : 'This will overwrite the current session'}
                 </div>
                 <Button variant="outline" fullWidth style={{ height: 44 }} onClick={() => { setShowNewPanel(false); discardPrimaryDraft(); startPrimary(); }}>
-                  {ja ? '新規に開始' : 'Start New'}
+                  {ja ? `新規に開始（${primaryMode === 'focused' ? 'しっかり対策' : 'サクッと演習'}）` : `Start New (${primaryMode === 'focused' ? 'Focused' : 'Quick'})`}
                 </Button>
                 <div style={{ marginTop: 8 }}>
                   {primaryMode === 'quick' ? (
