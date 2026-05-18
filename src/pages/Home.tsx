@@ -1011,7 +1011,7 @@ export default function Home() {
                       <div style={{ fontSize: 'var(--font-size-xs)', color: 'var(--color-text-sub)', textAlign: 'center', marginBottom: 8 }}>
                         {ja ? 'セッションを上書きして新しく開始します' : 'This will overwrite the current session'}
                       </div>
-                      <Button variant="outline" fullWidth onClick={() => { setShowWebQuickMenu(false); discardPrimaryDraft(); startPrimary(); }}>
+                      <Button variant="outline" fullWidth style={{ borderColor: primaryMode === 'focused' ? '#009E9E' : 'var(--color-accent)', color: primaryMode === 'focused' ? '#009E9E' : 'var(--color-accent)' }} onClick={() => { setShowWebQuickMenu(false); discardPrimaryDraft(); startPrimary(); }}>
                         {ja ? `新規に開始（${primaryMode === 'focused' ? 'しっかり対策' : 'サクッと演習'}）` : `Start New (${primaryMode === 'focused' ? 'Focused' : 'Quick'})`}
                       </Button>
                       <div style={{ marginTop: 6 }}>
@@ -1161,7 +1161,7 @@ export default function Home() {
                 <div style={{ fontSize: 'var(--font-size-sm)', color: 'var(--color-text-sub)', textAlign: 'center', marginBottom: 10 }}>
                   {ja ? 'セッションを上書きして開始します' : 'This will overwrite the current session'}
                 </div>
-                <Button variant="outline" fullWidth style={{ height: 44 }} onClick={() => { setShowNewPanel(false); discardPrimaryDraft(); startPrimary(); }}>
+                <Button variant="outline" fullWidth style={{ height: 44, borderColor: primaryMode === 'focused' ? '#009E9E' : 'var(--color-accent)', color: primaryMode === 'focused' ? '#009E9E' : 'var(--color-accent)' }} onClick={() => { setShowNewPanel(false); discardPrimaryDraft(); startPrimary(); }}>
                   {ja ? `新規に開始（${primaryMode === 'focused' ? 'しっかり対策' : 'サクッと演習'}）` : `Start New (${primaryMode === 'focused' ? 'Focused' : 'Quick'})`}
                 </Button>
                 <div style={{ marginTop: 8 }}>
