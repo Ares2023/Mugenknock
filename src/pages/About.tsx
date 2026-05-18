@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useLocation } from 'react-router-dom';
 import { useLanguage } from '../contexts/LanguageContext';
 import { API_ENDPOINT } from '../constants';
 
@@ -15,8 +16,17 @@ type CustomSections = Partial<Record<Section, string>>;
 export default function About() {
   const { lang } = useLanguage();
   const ja = lang === 'ja';
-  const [section, setSection] = useState<Section>('privacy');
+  const location = useLocation();
+  const hashSection = location.hash.replace('#', '') as Section;
+  const [section, setSection] = useState<Section>(
+    SECTIONS.some(s => s.key === hashSection) ? hashSection : 'privacy'
+  );
   const [custom, setCustom] = useState<CustomSections>({});
+
+  useEffect(() => {
+    const h = location.hash.replace('#', '') as Section;
+    if (SECTIONS.some(s => s.key === h)) setSection(h);
+  }, [location.hash]);
 
   useEffect(() => {
     fetch(`${API_ENDPOINT}/settings/about`)
@@ -83,7 +93,7 @@ function Ul({ items }: { items: string[] }) {
 function PrivacyPolicy() {
   return (
     <div>
-      <P>制定日：2025年1月1日　最終更新日：2025年6月1日</P>
+      <P>制定日：2025年1月1日　最終更新日：2026年5月18日</P>
       <P>
         AWS資格無限ノック（以下「本サービス」）は、ユーザーのプライバシーを尊重し、個人情報の保護に努めます。
         本プライバシーポリシーは、本サービスにおける個人情報の取り扱い方針を定めるものです。
@@ -156,7 +166,7 @@ function PrivacyPolicy() {
 function TermsOfService() {
   return (
     <div>
-      <P>制定日：2025年1月1日　最終更新日：2025年6月1日</P>
+      <P>制定日：2025年1月1日　最終更新日：2026年5月18日</P>
       <P>
         本利用規約（以下「本規約」）は、AWS資格無限ノック（以下「本サービス」）の利用条件を定めるものです。
         本サービスをご利用いただくことで、本規約に同意いただいたものとみなします。

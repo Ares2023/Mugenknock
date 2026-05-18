@@ -765,6 +765,32 @@ export default function Layout({ children }: { children: React.ReactNode }) {
           }}
         >
           {children}
+          <footer style={{
+            borderTop: '1px solid var(--color-border)',
+            padding: '16px var(--spacing-lg)',
+            display: 'flex',
+            flexWrap: 'wrap',
+            alignItems: 'center',
+            justifyContent: 'center',
+            gap: '8px 24px',
+            fontSize: 'var(--font-size-xs)',
+            color: 'var(--color-text-light)',
+            marginTop: 'auto',
+          }}>
+            <span>© {new Date().getFullYear()} AWS資格無限ノック</span>
+            <button
+              onClick={() => navigate('/about#privacy')}
+              style={{ background: 'none', border: 'none', padding: 0, cursor: 'pointer', color: 'var(--color-primary)', fontSize: 'var(--font-size-xs)', textDecoration: 'underline' }}
+            >
+              {lang === 'ja' ? 'プライバシーポリシー' : 'Privacy Policy'}
+            </button>
+            <button
+              onClick={() => navigate('/about#terms')}
+              style={{ background: 'none', border: 'none', padding: 0, cursor: 'pointer', color: 'var(--color-primary)', fontSize: 'var(--font-size-xs)', textDecoration: 'underline' }}
+            >
+              {lang === 'ja' ? '利用規約' : 'Terms of Service'}
+            </button>
+          </footer>
         </main>
       </div>
 
