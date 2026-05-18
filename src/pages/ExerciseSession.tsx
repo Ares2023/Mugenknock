@@ -198,6 +198,7 @@ export default function ExerciseSession() {
   const userId: string = state?.userId ?? '';
   const examType: string = state?.examType ?? '';
   const isQuick: boolean = state?.isQuick ?? false;
+  const isFocused: boolean = state?.isFocused ?? false;
 
   const [currentIndex, setCurrentIndex] = useState<number>(state?.resumeIndex ?? 0);
   const [selectedAnswers, setSelectedAnswers] = useState<string[]>(state?.resumeSelectedAnswers ?? []);
@@ -286,10 +287,11 @@ export default function ExerciseSession() {
   useEffect(() => {
     if (!sessionId) return;
     try {
-      localStorage.setItem('exerciseDraft', JSON.stringify({
+      const draftKey = isFocused ? 'focusedExerciseDraft' : 'exerciseDraft';
+      localStorage.setItem(draftKey, JSON.stringify({
         sessionId, examType, questions, userId,
         currentIndex, results, answered, selectedAnswers,
-        isQuick, savedAt: Date.now(),
+        isQuick, isFocused, savedAt: Date.now(),
       }));
     } catch { /* quota over 等は無視 */ }
   }, [currentIndex, results]); // eslint-disable-line react-hooks/exhaustive-deps
@@ -391,6 +393,7 @@ export default function ExerciseSession() {
         });
       } catch (err) { console.error(err); }
       localStorage.removeItem('exerciseDraft');
+      localStorage.removeItem('focusedExerciseDraft');
       // ドメイン別 delta 計算（全ユーザー共通）
       const delta: Record<string, { c: number; i: number }> = {};
       for (const r of results) {
