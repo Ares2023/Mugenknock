@@ -699,6 +699,10 @@ export default function Home() {
         if (qPrefs.incorrectOnly  && incorrectRes) { const s = new Set(incorrectRes.questionIds ?? []); items = items.filter((q: any) => s.has(q.questionId)); }
         if (qPrefs.bookmarkOnly   && bkmRes)       { const s = new Set(bkmRes.questionIds ?? []);      items = items.filter((q: any) => s.has(q.questionId)); }
       }
+      const selDomains: string[] = qPrefs.domains ?? [];
+      if (selDomains.length > 0) {
+        items = items.filter((q: any) => (q.tags ?? []).some((t: string) => selDomains.includes(t)));
+      }
       items = shuffleArray(items).slice(0, qPrefs.questionCount ?? 5);
       if (items.length === 0) { alert(ja ? '条件に合う問題がありません' : 'No questions match the criteria'); return; }
       const sessionRes = await fetch(`${API_ENDPOINT}/sessions`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ userId, mode: 'exercise', examType: targetExam, questionIds: items.map((q: any) => q.questionId) }) });
@@ -1030,6 +1034,46 @@ export default function Home() {
                   onBlur={e => e.currentTarget.style.borderColor = 'var(--color-border)'}
                 />
               </div>
+              {targetExam && (EXAM_DOMAINS[targetExam] ?? []).length > 0 && (
+                <div style={{ padding: '14px 0', borderBottom: '1px solid var(--color-border)' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
+                    <div>
+                      <div style={{ fontWeight: 500, fontSize: 'var(--font-size-base)', color: 'var(--color-text-main)' }}>
+                        {ja ? 'ドメイン' : 'Domains'}
+                      </div>
+                      <div style={{ fontSize: 'var(--font-size-xs)', color: 'var(--color-text-light)', marginTop: 2 }}>
+                        {ja ? '未選択 = すべて対象' : 'None selected = all domains'}
+                      </div>
+                    </div>
+                    {(draftPrefs.domains ?? []).length > 0 && (
+                      <button
+                        onClick={() => setDraftPrefs(p => ({ ...p, domains: [] }))}
+                        style={{ border: 'none', background: 'none', cursor: 'pointer', fontSize: 'var(--font-size-xs)', color: 'var(--color-primary)', padding: '2px 4px', textDecoration: 'underline' }}
+                      >
+                        {ja ? 'すべて解除' : 'Clear'}
+                      </button>
+                    )}
+                  </div>
+                  {(EXAM_DOMAINS[targetExam] ?? []).map(domain => {
+                    const selDoms: string[] = draftPrefs.domains ?? [];
+                    const checked = selDoms.includes(domain);
+                    return (
+                      <label key={domain} style={{ display: 'flex', alignItems: 'flex-start', gap: 8, padding: '4px 0', cursor: 'pointer' }}>
+                        <input
+                          type="checkbox"
+                          checked={checked}
+                          onChange={() => setDraftPrefs(p => {
+                            const cur: string[] = p.domains ?? [];
+                            return { ...p, domains: checked ? cur.filter(d => d !== domain) : [...cur, domain] };
+                          })}
+                          style={{ width: 16, height: 16, flexShrink: 0, marginTop: 2, accentColor: 'var(--color-primary)' }}
+                        />
+                        <span style={{ fontSize: 'var(--font-size-sm)', color: 'var(--color-text-main)', lineHeight: 1.4 }}>{domain}</span>
+                      </label>
+                    );
+                  })}
+                </div>
+              )}
               {([
                 ['unansweredOnly', ja ? '未回答のみ' : 'Unanswered Only', ja ? '一度も回答していない問題のみ出題' : 'Only questions not yet answered'],
                 ['incorrectOnly',  ja ? '不正解のみ'  : 'Incorrect Only',  ja ? '過去に不正解だった問題のみ出題'   : 'Only previously incorrect questions'],
