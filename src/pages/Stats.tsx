@@ -59,7 +59,7 @@ const ScoreLineChart = ({ sessions, passRate, lang }: { sessions: Session[]; pas
         const cx = xOf(i), cy = yOf(s.score);
         const color = s.mode === 'exam'
           ? (s.isPassed ? 'var(--color-success)' : 'var(--color-danger)')
-          : (s.score >= STATS_GOOD_RATE ? 'var(--color-success)' : s.score >= STATS_FAIR_RATE ? 'var(--color-caution)' : 'var(--color-danger)');
+          : (s.score >= STATS_GOOD_RATE ? 'var(--color-success)' : 'var(--color-danger)');
         return (
           <circle key={s.sessionId}
             cx={cx} cy={cy} r={3} fill={color}
@@ -137,7 +137,7 @@ const ActivityChart = ({ data, lang }: { data: { label: string; count: number; i
             <rect x={padL + slotW * i} y={padT} width={slotW} height={chartH} fill="transparent" />
             {d.count > 0 && (
               <rect x={cx - barW / 2} y={y} width={barW} height={barH} rx={3}
-                fill={d.isToday ? 'var(--color-success)' : 'var(--color-primary)'} opacity={d.isToday ? 1 : 0.55}
+                fill="var(--color-primary)" opacity={d.isToday ? 1 : 0.45}
                 style={{
                   transformBox: 'fill-box',
                   transformOrigin: 'center bottom',
@@ -146,13 +146,13 @@ const ActivityChart = ({ data, lang }: { data: { label: string; count: number; i
               />
             )}
             {d.count > 0 && (
-              <text x={cx} y={y - 5} textAnchor="middle" fontSize={9} fontWeight="700" fill={d.isToday ? 'var(--color-success)' : 'var(--color-text-sub)'}
+              <text x={cx} y={y - 5} textAnchor="middle" fontSize={9} fontWeight="700" fill={d.isToday ? 'var(--color-primary)' : 'var(--color-text-sub)'}
                 style={{ animation: `sherpa-fade-in 0.3s ease ${0.25 + i * 0.022}s both` }}>
                 {d.count}
               </text>
             )}
             {i % showEvery === 0 && (
-              <text x={cx} y={H - padB + 12} textAnchor="middle" fontSize={9} fill={d.isToday ? 'var(--color-success)' : 'var(--color-text-light)'} fontWeight={d.isToday ? '700' : '400'}>
+              <text x={cx} y={H - padB + 12} textAnchor="middle" fontSize={9} fill={d.isToday ? 'var(--color-text-main)' : 'var(--color-text-light)'} fontWeight={d.isToday ? '700' : '400'}>
                 {d.label}
               </text>
             )}
@@ -473,7 +473,7 @@ export default function Stats() {
                         <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--spacing-md)', flexShrink: 0 }}>
                           {rate !== null ? (
                             <>
-                              <span style={{ fontSize: 'var(--font-size-lg)', fontWeight: 700, color: rate >= STATS_GOOD_RATE ? 'var(--color-success)' : rate >= STATS_FAIR_RATE ? 'var(--color-caution)' : 'var(--color-danger)' }}>
+                              <span style={{ fontSize: 'var(--font-size-lg)', fontWeight: 700, color: 'var(--color-text-main)' }}>
                                 {rate}%
                               </span>
                               <span style={{ fontSize: 'var(--font-size-xs)', color: 'var(--color-text-light)' }}>{correct}/{total}{t('stats.qUnit')}</span>
@@ -486,21 +486,13 @@ export default function Stats() {
                       <div style={{ background: 'var(--color-bg-main)', borderRadius: 10, height: 8, overflow: 'hidden' }}>
                         <div style={{
                           width: rate !== null ? `${rate}%` : '0%', height: '100%', borderRadius: 10,
-                          background: rate === null ? 'var(--color-border)' : rate >= STATS_GOOD_RATE ? 'var(--color-success)' : rate >= STATS_FAIR_RATE ? 'var(--color-caution)' : 'var(--color-danger)',
+                          background: rate === null ? 'var(--color-border)' : 'var(--color-primary)',
                           transformOrigin: 'left center',
                           animation: 'growWidth 0.6s cubic-bezier(0.4, 0, 0.2, 1) both',
                         }} />
                       </div>
                     </div>
                   ))}
-                  <div style={{ marginTop: 'var(--spacing-sm)', display: 'flex', gap: 'var(--spacing-lg)', fontSize: 'var(--font-size-xs)', color: 'var(--color-text-light)' }}>
-                    {[['var(--color-success)', '70%以上'], ['var(--color-caution)', '50〜69%'], ['var(--color-danger)', '50%未満']].map(([bg, label]) => (
-                      <span key={label} style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                        <span style={{ width: 10, height: 10, borderRadius: 2, background: bg, display: 'inline-block' }} />
-                        {label}
-                      </span>
-                    ))}
-                  </div>
                 </>
               )}
             </Card>
@@ -519,12 +511,8 @@ export default function Stats() {
                   {lang === 'ja' ? '70%以上 / 合格' : '70%+ / Passed'}
                 </span>
                 <span style={{ display: 'flex', alignItems: 'center', gap: 5 }}>
-                  <span style={{ width: 8, height: 8, borderRadius: '50%', background: 'var(--color-caution)', display: 'inline-block' }} />
-                  {lang === 'ja' ? '50〜69%（演習）' : '50–69% (Exercise)'}
-                </span>
-                <span style={{ display: 'flex', alignItems: 'center', gap: 5 }}>
                   <span style={{ width: 8, height: 8, borderRadius: '50%', background: 'var(--color-danger)', display: 'inline-block' }} />
-                  {lang === 'ja' ? '50%未満 / 不合格' : 'Below 50% / Failed'}
+                  {lang === 'ja' ? '70%未満 / 不合格' : 'Below 70% / Failed'}
                 </span>
               </div>
             </Card>
