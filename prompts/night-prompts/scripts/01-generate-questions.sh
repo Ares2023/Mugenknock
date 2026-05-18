@@ -230,39 +230,56 @@ echo "✓ 認証完了"
 # ── ドメイン別問題数を取得 → 逆数重み付き割り当て計算 ───────────────────────
 echo ""
 echo "--- ドメイン別問題数を取得・割り当て計算中 ---"
-COUNTS_RAW=$(aws dynamodb query \
+# questionText も一緒に取得し、既存問題リストとドメインカウントを同時に構築
+_EXISTING_TMP=$(mktemp /tmp/existing_XXXX.json)
+aws dynamodb query \
   --table-name Questions \
   --index-name examType-index \
   --key-condition-expression "examType = :e" \
   --expression-attribute-values "{\":e\": {\"S\": \"$NEXT_EXAM\"}}" \
-  --projection-expression "tags" \
-  --output json 2>/dev/null | python3 -c "
+  --projection-expression "tags, questionText" \
+  --output json 2>/dev/null > "$_EXISTING_TMP" || echo '{"Items":[]}' > "$_EXISTING_TMP"
+
+EXISTING_QS_FILE=$(mktemp /tmp/existing_qs_XXXX.json)
+_COUNTS_TMP_EARLY=$(mktemp /tmp/domain_counts_XXXX.json)
+
+TAG_COUNT_TEXT=$(python3 - "$_EXISTING_TMP" "$EXISTING_QS_FILE" "$_COUNTS_TMP_EARLY" << 'PYEOF'
 import json, sys
-from collections import Counter
-data = json.load(sys.stdin)
+from collections import Counter, defaultdict
+
+with open(sys.argv[1]) as f:
+    data = json.load(f)
+
 counts = Counter()
+domain_qs = defaultdict(list)
+
 for item in data.get('Items', []):
     tags_raw = item.get('tags', {})
+    qt = item.get('questionText', {}).get('S', '')
+    tags = []
     if 'L' in tags_raw:
-        for tag in tags_raw['L']:
-            val = tag.get('S', '').strip()
-            if val:
-                counts[val] += 1
+        tags = [t.get('S', '').strip() for t in tags_raw['L'] if t.get('S', '').strip()]
     elif 'SS' in tags_raw:
-        for val in tags_raw['SS']:
-            val = str(val).strip()
-            if val:
-                counts[val] += 1
-print('__JSON__' + json.dumps(dict(counts)))
+        tags = [str(v).strip() for v in tags_raw['SS'] if str(v).strip()]
+    for tag in tags:
+        counts[tag] += 1
+        if qt:
+            domain_qs[tag].append(qt)
+
+# QS データとカウントを直接ファイルに書き込む（巨大変数→grep パイプを避けるため）
+with open(sys.argv[2], 'w', encoding='utf-8') as f:
+    json.dump({k: v[-60:] for k, v in domain_qs.items()}, f, ensure_ascii=False)
+with open(sys.argv[3], 'w', encoding='utf-8') as f:
+    json.dump(dict(counts), f, ensure_ascii=False)
+
 if counts:
     for k, v in sorted(counts.items(), key=lambda x: x[1]):
         print(f'  {k}: {v}問')
 else:
     print('  （まだ問題がありません）')
-" 2>/dev/null || echo "__JSON__{}")
-DOMAIN_COUNTS_JSON=$(echo "$COUNTS_RAW" | grep '^__JSON__' | sed 's/^__JSON__//')
-DOMAIN_COUNTS_JSON="${DOMAIN_COUNTS_JSON:-{}}"
-TAG_COUNT_TEXT=$(echo "$COUNTS_RAW" | grep -v '^__JSON__')
+PYEOF
+)
+rm -f "$_EXISTING_TMP"
 echo "$TAG_COUNT_TEXT"
 
 # ── 逆数重みによるドメイン別問題数割り当て ──────────────────────────────────
@@ -271,12 +288,8 @@ echo "$TAG_COUNT_TEXT"
 # 表示はstderrへ(outer 2>&1|teeでログに記録)、JSONはstdoutへ($()でキャプチャ)
 echo ""
 echo "ドメイン別生成数（逆数重み付き割り当て）:"
-# シェル引数経由だと文字コード・エスケープの問題でjson.loadsが失敗する場合があるため
-# 一時ファイル経由でPythonに渡す
-_COUNTS_TMP=$(mktemp /tmp/domain_counts_XXXX.json)
-echo "$DOMAIN_COUNTS_JSON" > "$_COUNTS_TMP"
 
-DOMAIN_ALLOC_JSON=$(PYTHONIOENCODING=utf-8 python3 - "$DOMAIN_STR" "$_COUNTS_TMP" "$TOTAL_QUESTIONS" << 'PYEOF'
+DOMAIN_ALLOC_JSON=$(PYTHONIOENCODING=utf-8 python3 - "$DOMAIN_STR" "$_COUNTS_TMP_EARLY" "$TOTAL_QUESTIONS" << 'PYEOF'
 import json, sys, re
 
 def norm(s):
@@ -321,7 +334,7 @@ print(f'  合計: {sum(alloc.values())}問', file=sys.stderr)
 print(json.dumps(alloc))
 PYEOF
 )
-rm -f "$_COUNTS_TMP"
+rm -f "$_COUNTS_TMP_EARLY"
 DOMAIN_ALLOC_JSON="${DOMAIN_ALLOC_JSON:-{}}"
 
 # ── ドメインごとに生成 → 即インポート ──────────────────────────
@@ -348,6 +361,23 @@ print(alloc.get('${domain}', ${QUESTIONS_PER_DOMAIN}))
   echo ""
   echo "--- [${domain}] ${Q_FOR_DOMAIN}問 生成中 --- 開始=$(date '+%H:%M:%S')"
 
+  # このドメインの既存問題テキスト（先頭80文字）を抽出
+  EXISTING_TEXTS=$(PYTHONIOENCODING=utf-8 python3 - "$EXISTING_QS_FILE" "$domain" << 'PYEOF'
+import json, sys
+try:
+    with open(sys.argv[1]) as f:
+        qs_by_domain = json.load(f)
+except Exception:
+    qs_by_domain = {}
+texts = qs_by_domain.get(sys.argv[2], [])
+if not texts:
+    print('（まだ問題はありません）')
+else:
+    for t in texts[-50:]:
+        print('・' + t.replace('\n', ' ')[:80])
+PYEOF
+)
+
   PROMPT_FILE=$(mktemp /tmp/gen_prompt_XXXX.txt)
   cat > "$PROMPT_FILE" << PROMPT
 ${INSTRUCTION}
@@ -361,6 +391,10 @@ ${INSTRUCTION}
 ${TAG_COUNT_TEXT}
 → 上記はドメインごとの総数です。今回の対象ドメイン「${domain}」の中で、まだカバーできていないAWSサービス・概念・ユースケースを中心に出題してください。
 
+【このドメインの既存問題（重複・類似を避けること）】
+${EXISTING_TEXTS}
+→ 上記とは異なるAWSサービス・機能・ユースケース・出題角度の問題を作成してください。同じサービスを扱う場合でも、別の機能・設定・ユースケース・落とし穴に焦点を当ててください。
+
 【出力形式】
 以下の JSON 形式のみで出力してください。説明文・前置き・コードブロックは不要です。
 
@@ -369,7 +403,7 @@ ${TAG_COUNT_TEXT}
     "questionText": "問題文（日本語）",
     "choices": ["選択肢A", "選択肢B", "選択肢C", "選択肢D"],
     "correctAnswers": ["正解の選択肢"],
-    "explanation": "解説（日本語、200字程度）",
+    "explanation": "解説（日本語）正解の根拠＋各不正解選択肢がなぜ誤りかを必ず含めること",
     "tags": ["${domain}"],
     "isMultiple": false
   },
@@ -381,6 +415,8 @@ ${TAG_COUNT_TEXT}
 ※ ${Q_FOR_DOMAIN} 問を1つの JSON で返す
 ※ AWSに直接関係しない一般的でない略語には注釈・解説をつけること（AWSの資格勉強とは直接関係しないため）
 ※ correctAnswers は choices 配列の該当要素テキストと完全一致させること（「A. 」「B. 」などの記号接頭辞を付けないこと）
+※ 解説は正解の根拠だけでなく、各不正解選択肢がなぜ誤りかを個別に説明すること（200〜400字程度）
+※ 現行のAWSサービス・機能のみを出題すること（廃止・EOL済みのサービスは使わないこと）
 PROMPT
 
   RESULT=$("$CLAUDE_CMD" -p < "$PROMPT_FILE" 2>&1)
@@ -498,6 +534,8 @@ print(f'{len(ids)}件: ' + ', '.join(ids[:3]) + ('...' if len(ids) > 3 else ''))
   echo "  終了=$(date '+%H:%M:%S')  経過=$(( $(date +%s) - _DOMAIN_T0 ))秒"
   _DOMAIN_OFFSET=$(( _DOMAIN_OFFSET + 1 ))
 done
+
+rm -f "$EXISTING_QS_FILE"
 
 echo ""
 echo "合計インポート: ${TOTAL_IMPORTED}問 / ${TOTAL_QUESTIONS}問"

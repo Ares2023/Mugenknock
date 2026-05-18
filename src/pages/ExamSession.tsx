@@ -439,7 +439,7 @@ export default function ExamSession() {
           <span>
             {lang === 'ja' ? 'AI確認' : 'AI review'}:{' '}
             {currentQ.validityCheckedAt
-              ? <strong style={{ color: 'var(--color-success)' }}>✓</strong>
+              ? <strong style={{ color: 'var(--color-success)' }}>✓ {new Date(currentQ.validityCheckedAt).toLocaleDateString('ja-JP', { year: 'numeric', month: '2-digit', day: '2-digit' })}</strong>
               : <strong>{lang === 'ja' ? '未確認' : 'not reviewed'}</strong>
             }
           </span>

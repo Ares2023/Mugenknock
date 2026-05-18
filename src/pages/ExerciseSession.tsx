@@ -707,7 +707,7 @@ export default function ExerciseSession() {
           <span>
             {lang === 'ja' ? 'AI確認' : 'AI review'}:{' '}
             {currentQuestion.validityCheckedAt
-              ? <strong style={{ color: 'var(--color-success)' }}>✓</strong>
+              ? <strong style={{ color: 'var(--color-success)' }}>✓ {new Date(currentQuestion.validityCheckedAt).toLocaleDateString('ja-JP', { year: 'numeric', month: '2-digit', day: '2-digit' })}</strong>
               : <strong>{lang === 'ja' ? '未確認' : 'not reviewed'}</strong>
             }
           </span>
