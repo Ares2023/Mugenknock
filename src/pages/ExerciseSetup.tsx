@@ -211,7 +211,9 @@ export default function ExerciseSetup() {
           user && unansweredOnly ? fetch(`${API_ENDPOINT}/users/me/answered-questions?userId=${userId}&examType=${examType}`).then(r => r.json()) : Promise.resolve(null),
           user && incorrectOnly ? fetch(`${API_ENDPOINT}/users/me/incorrect-questions?userId=${userId}&examType=${examType}`).then(r => r.json()) : Promise.resolve(null),
         ]);
-        let filtered: any[] = qRes.items ?? [];
+        let pool: any[] = qRes.items ?? [];
+        if (aiVerifiedOnly) pool = pool.filter((q: any) => !!q.validityCheckedAt);
+        let filtered = [...pool];
         if (bookmarkOnly && bkmRes) {
           const bookmarkIds = new Set(bkmRes.questionIds ?? []);
           filtered = filtered.filter((q: any) => bookmarkIds.has(q.questionId));
@@ -224,9 +226,15 @@ export default function ExerciseSetup() {
           const incorrectIds = new Set(incorrectRes.questionIds ?? []);
           filtered = filtered.filter((q: any) => incorrectIds.has(q.questionId));
         }
-        if (aiVerifiedOnly) filtered = filtered.filter((q: any) => !!q.validityCheckedAt);
         filtered = shuffleArray(filtered);
+        let usedFallback = false;
+        if (filtered.length < limit && filtered.length < pool.length) {
+          const usedIds = new Set(filtered.map((q: any) => q.questionId));
+          filtered = [...filtered, ...shuffleArray(pool.filter((q: any) => !usedIds.has(q.questionId)))];
+          usedFallback = true;
+        }
         selectedItems = filtered.slice(0, limit);
+        if (usedFallback) alert(lang === 'ja' ? 'フィルタ条件に合う問題が不足したため、条件外の問題も含めて出題します。' : 'Not enough questions matched your filters. Including additional questions.');
       } else {
         const params = new URLSearchParams({ examType, withAnswers: 'true' });
         if (!allSelected) params.set('domain', selectedDomains.join(','));

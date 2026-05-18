@@ -9,7 +9,7 @@ import {
 import { getCached, setCached, deleteCached, DEFAULT_TTL } from '../utils/cache';
 import Card from '../components/ui/Card';
 import Button from '../components/ui/Button';
-import { IconLightbulb, IconSettings, IconChevronUp, ServiceIcon, isServiceIconKey } from '../components/Icons';
+import { IconLightbulb, IconSettings, IconChevronUp, IconLock, ServiceIcon, isServiceIconKey } from '../components/Icons';
 
 type DomainStat = { tagId: string; correctCount?: number; incorrectCount?: number };
 type SessionEntry = { correct: number; total: number };
@@ -472,6 +472,7 @@ function TodayServiceSection({ lang }: { lang: string }) {
 
 // ── メインコンポーネント ────────────────────────────────────────
 const QUICK_PREFS_KEY = 'quickExercisePrefs';
+const FOCUSED_UNLOCK_THRESHOLD = 30;
 function loadQuickPrefs() {
   try { return JSON.parse(localStorage.getItem(QUICK_PREFS_KEY) ?? '{}'); } catch { return {}; }
 }
@@ -516,7 +517,7 @@ export default function Home() {
   const [showWebQuickMenu, setShowWebQuickMenu] = useState(false);
   const [showFocusedMenu, setShowFocusedMenu] = useState(false);
   const [focusedLoading, setFocusedLoading] = useState(false);
-  const [focusedUnlocked, setFocusedUnlocked] = useState(() => !!localStorage.getItem('focusedModeUnlocked'));
+  const [answeredCount, setAnsweredCount] = useState(0);
   const [draftPrefs, setDraftPrefs] = useState<Record<string, any>>({});
   const [showCombinedDetail, setShowCombinedDetail] = useState(false);
   const abortRef = useRef<AbortController | null>(null);
@@ -593,22 +594,19 @@ export default function Home() {
   }, [user, doFetchStats]);
 
   useEffect(() => {
-    if (focusedUnlocked || !user) return;
-    const cacheKey = `focusedUnlock_${user.userId}`;
+    if (!user || !targetExam) { setAnsweredCount(0); return; }
+    const cacheKey = `qstats_${user.userId}_${targetExam}`;
     const cached = getCached<number>(cacheKey);
-    if (cached !== null) {
-      if (cached >= 30) { setFocusedUnlocked(true); localStorage.setItem('focusedModeUnlocked', '1'); }
-      return;
-    }
-    fetch(`${API_ENDPOINT}/users/me/sessions?userId=${user.userId}&limit=200`)
+    if (cached !== null) { setAnsweredCount(cached); return; }
+    fetch(`${API_ENDPOINT}/users/me/question-stats?userId=${user.userId}&examType=${targetExam}`)
       .then(r => r.json())
       .then(d => {
-        const count = (d.items ?? []).filter((s: any) => s.mode === 'exercise').length;
+        const count = d.answeredCount ?? 0;
         setCached(cacheKey, count, DEFAULT_TTL);
-        if (count >= 30) { setFocusedUnlocked(true); localStorage.setItem('focusedModeUnlocked', '1'); }
+        setAnsweredCount(count);
       })
       .catch(() => {});
-  }, [user, focusedUnlocked]);
+  }, [user, targetExam]);
 
   // ── 予想スコア計算（直近10セッション優先、ドメインごとにAPIフォールバック） ──
   const estimatedScore = useMemo(() => {
@@ -642,6 +640,8 @@ export default function Home() {
     if (!hasAnyData) return null;
     return Math.round((weightedSum / totalAllWeights) * 1000);
   }, [targetExam, domainStats]);
+
+  const focusedUnlocked = !!user && answeredCount >= FOCUSED_UNLOCK_THRESHOLD;
 
   const passScore = targetExam ? PASS_SCORES[targetExam] : null;
 
@@ -709,7 +709,8 @@ export default function Home() {
       const userId = user?.userId ?? 'guest';
       const params = new URLSearchParams({ examType: targetExam, withAnswers: 'true', withValidity: 'true' });
       const data = await fetch(`${API_ENDPOINT}/questions?${params}`).then(r => r.json());
-      let items: any[] = (data.items ?? []).filter((q: any) => !!q.validityCheckedAt);
+      const pool: any[] = (data.items ?? []).filter((q: any) => !!q.validityCheckedAt);
+      let items = [...pool];
       if (user && (qPrefs.unansweredOnly || qPrefs.incorrectOnly || qPrefs.bookmarkOnly)) {
         const [answeredRes, incorrectRes, bkmRes] = await Promise.all([
           qPrefs.unansweredOnly ? fetch(`${API_ENDPOINT}/users/me/answered-questions?userId=${userId}&examType=${targetExam}`).then(r => r.json()) : null,
@@ -724,8 +725,17 @@ export default function Home() {
       if (selDomains.length > 0) {
         items = items.filter((q: any) => (q.tags ?? []).some((t: string) => selDomains.includes(t)));
       }
-      items = shuffleArray(items).slice(0, qPrefs.questionCount ?? 5);
+      const count = qPrefs.questionCount ?? 5;
+      items = shuffleArray(items);
+      let usedFallback = false;
+      if (items.length < count && items.length < pool.length) {
+        const usedIds = new Set(items.map((q: any) => q.questionId));
+        items = [...items, ...shuffleArray(pool.filter((q: any) => !usedIds.has(q.questionId)))];
+        usedFallback = true;
+      }
+      items = items.slice(0, count);
       if (items.length === 0) { alert(ja ? '条件に合う問題がありません' : 'No questions match the criteria'); return; }
+      if (usedFallback) alert(ja ? 'フィルタ条件に合う問題が不足したため、条件外の問題も含めて出題します。' : 'Not enough questions matched your filters. Including additional questions.');
       const sessionRes = await fetch(`${API_ENDPOINT}/sessions`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ userId, mode: 'exercise', examType: targetExam, questionIds: items.map((q: any) => q.questionId) }) });
       const sessionData = await sessionRes.json();
       navigate('/exercise/session', { state: { sessionId: sessionData.sessionId, questions: items, userId, mode: 'exercise', examType: targetExam, isQuick: true } });
@@ -764,9 +774,17 @@ export default function Home() {
         const tags: string[] = q.tags ?? [];
         return tags.some(t => weakDomains.has(t)) || incorrectIds.has(q.questionId);
       });
-      if (items.length === 0) items = allItems;
-      items = shuffleArray(items).slice(0, qPrefs.questionCount ?? 5);
+      const count = qPrefs.questionCount ?? 5;
+      items = shuffleArray(items);
+      let usedFallback = false;
+      if (items.length < count && items.length < allItems.length) {
+        const usedIds = new Set(items.map((q: any) => q.questionId));
+        items = [...items, ...shuffleArray(allItems.filter((q: any) => !usedIds.has(q.questionId)))];
+        usedFallback = true;
+      }
+      items = items.slice(0, count);
       if (items.length === 0) { alert(ja ? '条件に合う問題がありません' : 'No questions match the criteria'); return; }
+      if (usedFallback) alert(ja ? '苦手・不正解問題が不足したため、条件外の問題も含めて出題します。' : 'Not enough weak/incorrect questions. Including additional questions.');
       const sessionRes = await fetch(`${API_ENDPOINT}/sessions`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ userId, mode: 'exercise', examType: targetExam, questionIds: items.map((q: any) => q.questionId) }) });
       const sessionData = await sessionRes.json();
       navigate('/exercise/session', { state: { sessionId: sessionData.sessionId, questions: items, userId, mode: 'exercise', examType: targetExam, isQuick: true } });
@@ -944,15 +962,22 @@ export default function Home() {
                       <Button variant="outline" fullWidth onClick={() => { setShowWebQuickMenu(false); discardQuickDraft(); startQuickExercise(); }}>
                         {ja ? '新規に開始' : 'Start New'}
                       </Button>
-                      <button
-                        disabled={!targetExam || !user || !focusedUnlocked || focusedLoading}
-                        onClick={() => { setShowWebQuickMenu(false); startFocusedExercise(); }}
-                        style={{ width: '100%', marginTop: 6, padding: '8px 12px', border: 'none', borderRadius: 6, cursor: (!targetExam || !user || !focusedUnlocked) ? 'default' : 'pointer', background: (!targetExam || !user || !focusedUnlocked) ? 'var(--color-border)' : '#009E9E', color: (!targetExam || !user || !focusedUnlocked) ? 'var(--color-text-light)' : '#fff', fontWeight: 600, fontSize: 'var(--font-size-sm)', display: 'flex', alignItems: 'center', gap: 6 }}
-                      >
-                        {!focusedUnlocked && <span>🔒</span>}
-                        {ja ? 'しっかり対策' : 'Focused Practice'}
-                        {!focusedUnlocked && <span style={{ fontSize: 10, fontWeight: 400 }}>{!user ? (ja ? '（要ログイン）' : '(Login required)') : (ja ? '（30回の演習で解放）' : '(Unlocks at 30 exercises)')}</span>}
-                      </button>
+                      <div style={{ marginTop: 6 }}>
+                        <button
+                          disabled={!targetExam || !user || !focusedUnlocked || focusedLoading}
+                          onClick={() => { setShowWebQuickMenu(false); startFocusedExercise(); }}
+                          style={{ width: '100%', padding: '8px 12px', border: `1.5px solid ${(!targetExam || !user || !focusedUnlocked) ? 'var(--color-border)' : '#009E9E'}`, borderRadius: 'var(--border-radius-full)', cursor: (!targetExam || !user || !focusedUnlocked || focusedLoading) ? 'default' : 'pointer', background: 'transparent', color: (!targetExam || !user || !focusedUnlocked) ? 'var(--color-text-light)' : '#009E9E', fontWeight: 600, fontSize: 'var(--font-size-sm)', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 5 }}
+                        >
+                          {!focusedUnlocked && <IconLock size={13} />}
+                          {ja ? 'しっかり対策' : 'Focused Practice'}
+                        </button>
+                        {!focusedUnlocked && user && (
+                          <div style={{ textAlign: 'center', fontSize: 10, color: 'var(--color-text-light)', marginTop: 3 }}>
+                            {ja ? `現在${answeredCount}問 / あと${FOCUSED_UNLOCK_THRESHOLD - answeredCount}問で解放` : `${answeredCount} answered / ${FOCUSED_UNLOCK_THRESHOLD - answeredCount} more to unlock`}
+                          </div>
+                        )}
+                        {!user && <div style={{ textAlign: 'center', fontSize: 10, color: 'var(--color-text-light)', marginTop: 3 }}>{ja ? 'ログインが必要です' : 'Login required'}</div>}
+                      </div>
                     </div>
                   </>
                 )}
@@ -987,12 +1012,17 @@ export default function Home() {
                       <button
                         disabled={!targetExam || !user || !focusedUnlocked || focusedLoading}
                         onClick={() => { setShowFocusedMenu(false); startFocusedExercise(); }}
-                        style={{ width: '100%', padding: '9px 12px', border: 'none', borderRadius: 6, cursor: (!targetExam || !user || !focusedUnlocked) ? 'default' : 'pointer', background: (!targetExam || !user || !focusedUnlocked) ? 'var(--color-border)' : '#009E9E', color: (!targetExam || !user || !focusedUnlocked) ? 'var(--color-text-light)' : '#fff', fontWeight: 600, fontSize: 'var(--font-size-sm)', display: 'flex', alignItems: 'center', gap: 6 }}
+                        style={{ width: '100%', padding: '8px 12px', border: `1.5px solid ${(!targetExam || !user || !focusedUnlocked) ? 'var(--color-border)' : '#009E9E'}`, borderRadius: 'var(--border-radius-full)', cursor: (!targetExam || !user || !focusedUnlocked || focusedLoading) ? 'default' : 'pointer', background: 'transparent', color: (!targetExam || !user || !focusedUnlocked) ? 'var(--color-text-light)' : '#009E9E', fontWeight: 600, fontSize: 'var(--font-size-sm)', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 5 }}
                       >
-                        {!focusedUnlocked && <span>🔒</span>}
+                        {!focusedUnlocked && <IconLock size={13} />}
                         {ja ? 'しっかり対策' : 'Focused Practice'}
-                        {!focusedUnlocked && <span style={{ fontSize: 10, fontWeight: 400 }}>{!user ? (ja ? '（要ログイン）' : '(Login required)') : (ja ? '（30回の演習で解放）' : '(Unlocks at 30 exercises)')}</span>}
                       </button>
+                      {!focusedUnlocked && user && (
+                        <div style={{ textAlign: 'center', fontSize: 10, color: 'var(--color-text-light)', marginTop: 3 }}>
+                          {ja ? `現在${answeredCount}問 / あと${FOCUSED_UNLOCK_THRESHOLD - answeredCount}問で解放` : `${answeredCount} answered / ${FOCUSED_UNLOCK_THRESHOLD - answeredCount} more to unlock`}
+                        </div>
+                      )}
+                      {!user && <div style={{ textAlign: 'center', fontSize: 10, color: 'var(--color-text-light)', marginTop: 3 }}>{ja ? 'ログインが必要です' : 'Login required'}</div>}
                     </div>
                   </>
                 )}
@@ -1043,15 +1073,22 @@ export default function Home() {
                 <Button variant="outline" fullWidth style={{ height: 44 }} onClick={() => { setShowNewPanel(false); discardQuickDraft(); startQuickExercise(); }}>
                   {ja ? '新規に開始' : 'Start New'}
                 </Button>
-                <button
-                  disabled={!targetExam || !user || !focusedUnlocked || focusedLoading}
-                  onClick={() => { setShowNewPanel(false); startFocusedExercise(); }}
-                  style={{ width: '100%', height: 44, marginTop: 8, border: 'none', borderRadius: 8, cursor: (!targetExam || !user || !focusedUnlocked) ? 'default' : 'pointer', background: (!targetExam || !user || !focusedUnlocked) ? 'var(--color-border)' : '#009E9E', color: (!targetExam || !user || !focusedUnlocked) ? 'var(--color-text-light)' : '#fff', fontWeight: 600, fontSize: 'var(--font-size-base)', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6 }}
-                >
-                  {!focusedUnlocked && <span>🔒</span>}
-                  {ja ? 'しっかり対策' : 'Focused Practice'}
-                  {!focusedUnlocked && <span style={{ fontSize: 11, fontWeight: 400 }}>{!user ? (ja ? '（要ログイン）' : '') : (ja ? '（30回の演習で解放）' : '')}</span>}
-                </button>
+                <div style={{ marginTop: 8 }}>
+                  <button
+                    disabled={!targetExam || !user || !focusedUnlocked || focusedLoading}
+                    onClick={() => { setShowNewPanel(false); startFocusedExercise(); }}
+                    style={{ width: '100%', height: 44, border: `1.5px solid ${(!targetExam || !user || !focusedUnlocked) ? 'var(--color-border)' : '#009E9E'}`, borderRadius: 'var(--border-radius-full)', cursor: (!targetExam || !user || !focusedUnlocked || focusedLoading) ? 'default' : 'pointer', background: 'transparent', color: (!targetExam || !user || !focusedUnlocked) ? 'var(--color-text-light)' : '#009E9E', fontWeight: 600, fontSize: 'var(--font-size-base)', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6 }}
+                  >
+                    {!focusedUnlocked && <IconLock size={15} />}
+                    {ja ? 'しっかり対策' : 'Focused Practice'}
+                  </button>
+                  {!focusedUnlocked && user && (
+                    <div style={{ textAlign: 'center', fontSize: 11, color: 'var(--color-text-light)', marginTop: 4 }}>
+                      {ja ? `現在${answeredCount}問 / あと${FOCUSED_UNLOCK_THRESHOLD - answeredCount}問で解放` : `${answeredCount} answered / ${FOCUSED_UNLOCK_THRESHOLD - answeredCount} more to unlock`}
+                    </div>
+                  )}
+                  {!user && <div style={{ textAlign: 'center', fontSize: 11, color: 'var(--color-text-light)', marginTop: 4 }}>{ja ? 'ログインが必要です' : 'Login required'}</div>}
+                </div>
               </div>
             </>
           )}
@@ -1063,12 +1100,17 @@ export default function Home() {
                 <button
                   disabled={!targetExam || !user || !focusedUnlocked || focusedLoading}
                   onClick={() => { setShowFocusedMenu(false); startFocusedExercise(); }}
-                  style={{ width: '100%', height: 44, border: 'none', borderRadius: 8, cursor: (!targetExam || !user || !focusedUnlocked) ? 'default' : 'pointer', background: (!targetExam || !user || !focusedUnlocked) ? 'var(--color-border)' : '#009E9E', color: (!targetExam || !user || !focusedUnlocked) ? 'var(--color-text-light)' : '#fff', fontWeight: 600, fontSize: 'var(--font-size-base)', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6 }}
+                  style={{ width: '100%', height: 44, border: `1.5px solid ${(!targetExam || !user || !focusedUnlocked) ? 'var(--color-border)' : '#009E9E'}`, borderRadius: 'var(--border-radius-full)', cursor: (!targetExam || !user || !focusedUnlocked || focusedLoading) ? 'default' : 'pointer', background: 'transparent', color: (!targetExam || !user || !focusedUnlocked) ? 'var(--color-text-light)' : '#009E9E', fontWeight: 600, fontSize: 'var(--font-size-base)', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6 }}
                 >
-                  {!focusedUnlocked && <span>🔒</span>}
+                  {!focusedUnlocked && <IconLock size={15} />}
                   {ja ? 'しっかり対策' : 'Focused Practice'}
-                  {!focusedUnlocked && <span style={{ fontSize: 11, fontWeight: 400 }}>{!user ? (ja ? '（要ログイン）' : '') : (ja ? '（30回の演習で解放）' : '')}</span>}
                 </button>
+                {!focusedUnlocked && user && (
+                  <div style={{ textAlign: 'center', fontSize: 11, color: 'var(--color-text-light)', marginTop: 4 }}>
+                    {ja ? `現在${answeredCount}問 / あと${FOCUSED_UNLOCK_THRESHOLD - answeredCount}問で解放` : `${answeredCount} answered / ${FOCUSED_UNLOCK_THRESHOLD - answeredCount} more to unlock`}
+                  </div>
+                )}
+                {!user && <div style={{ textAlign: 'center', fontSize: 11, color: 'var(--color-text-light)', marginTop: 4 }}>{ja ? 'ログインが必要です' : 'Login required'}</div>}
               </div>
             </>
           )}
