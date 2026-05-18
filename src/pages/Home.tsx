@@ -608,27 +608,27 @@ export default function Home() {
       .catch(() => {});
   }, [user, targetExam]);
 
-  // ── 予想スコア計算（直近10セッション優先、ドメインごとにAPIフォールバック） ──
+  // ── 予想スコア計算 ──
+  // ログイン済み：API統計（デバイス共通）のみ使用
+  // ゲスト：ローカル履歴にフォールバック
   const estimatedScore = useMemo(() => {
     if (!targetExam) return null;
     const domainList = EXAM_DOMAINS[targetExam] ?? [];
     const weights = DOMAIN_WEIGHTS[targetExam] ?? domainList.map(() => 100 / domainList.length);
     const totalAllWeights = weights.reduce((s, w) => s + w, 0);
     if (totalAllWeights === 0) return null;
-    const hist = readDomainHistory(targetExam);
+    const hist = user ? {} : readDomainHistory(targetExam);
 
     let weightedSum = 0, hasAnyData = false;
     for (let i = 0; i < domainList.length; i++) {
       const sessions = hist[domainList[i]];
       if (sessions && sessions.length > 0) {
-        // ローカル直近セッション優先
         const totalCorrect = sessions.reduce((s, r) => s + r.correct, 0);
         const totalAnswered = sessions.reduce((s, r) => s + r.total, 0);
         if (totalAnswered === 0) continue;
         weightedSum += (totalCorrect / totalAnswered) * weights[i];
         hasAnyData = true;
       } else {
-        // ドメインごとに個別判定でAPIフォールバック
         const stat = domainStats.find(s => s.tagId === domainList[i]);
         if (!stat) continue;
         const total = (stat.correctCount ?? 0) + (stat.incorrectCount ?? 0);
@@ -639,7 +639,7 @@ export default function Home() {
     }
     if (!hasAnyData) return null;
     return Math.round((weightedSum / totalAllWeights) * 1000);
-  }, [targetExam, domainStats]);
+  }, [targetExam, domainStats, user]);
 
   const focusedUnlocked = !!user && answeredCount >= FOCUSED_UNLOCK_THRESHOLD;
 
@@ -792,11 +792,13 @@ export default function Home() {
     finally { setFocusedLoading(false); }
   };
 
-  // ドメイン別成績（表示用）— API累計統計を使用
+  // ドメイン別成績（表示用）
+  // ログイン済み：API統計のみ（デバイス共通）
+  // ゲスト：ローカル履歴にフォールバック
   const domains = useMemo(() => targetExam ? (EXAM_DOMAINS[targetExam] ?? []) : [], [targetExam]);
   const domainAccList = useMemo(() => {
     if (!targetExam) return [] as { correct: number; total: number; pct: number | null }[];
-    const hist = readDomainHistory(targetExam);
+    const hist = user ? {} : readDomainHistory(targetExam);
     return domains.map(d => {
       const sessions = hist[d];
       if (sessions && sessions.length > 0) {
@@ -809,7 +811,7 @@ export default function Home() {
       const total = correct + (stat?.incorrectCount ?? 0);
       return { correct, total, pct: total > 0 ? Math.round(correct / total * 100) : null };
     });
-  }, [targetExam, domainStats, domains]);
+  }, [targetExam, domainStats, domains, user]);
 
   return (
     <div style={{ maxWidth: 1100, margin: '0 auto', padding: 'var(--spacing-lg) var(--spacing-lg)' }} className="page-container">
