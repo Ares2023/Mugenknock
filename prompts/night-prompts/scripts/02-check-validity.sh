@@ -34,6 +34,71 @@ mkdir -p "$LOG_DIR"
 DATE=$(date '+%Y%m%d_%H%M%S')
 LOG_FILE="$LOG_DIR/validity_${DATE}.log"
 
+RATE_LIMIT_FILE="$(dirname "$SCRIPT_DIR")/.claude_rate_limit_reset"
+
+check_rate_limit() {
+  [ -f "$RATE_LIMIT_FILE" ] || return 0
+  local _rst _now _rep _disp
+  _rst=$(cat "$RATE_LIMIT_FILE" 2>/dev/null)
+  [ -z "$_rst" ] && { rm -f "$RATE_LIMIT_FILE"; return 0; }
+  _now=$(date +%s)
+  _rep=$(python3 -c "
+from datetime import datetime
+try: print(int(datetime.fromisoformat('$_rst').timestamp()))
+except: print(0)
+" 2>/dev/null || echo 0)
+  if [ "$_now" -lt "$_rep" ]; then
+    _disp=$(python3 -c "
+from datetime import datetime, timezone, timedelta
+jst = timezone(timedelta(hours=9))
+try: print(datetime.fromisoformat('$_rst').astimezone(jst).strftime('%H:%M JST'))
+except: print('$_rst')
+" 2>/dev/null || echo "$_rst")
+    echo "⏸  Claude レート制限中 — 復活予定: ${_disp}（$(basename "$0") をスキップ）"
+    exit 2
+  fi
+  rm -f "$RATE_LIMIT_FILE"
+}
+
+record_rate_limit() {
+  local _c="$1" _tmp _rst _disp
+  _tmp=$(mktemp /tmp/rl_XXXX.txt)
+  printf '%s' "$_c" > "$_tmp"
+  _rst=$(python3 - "$_tmp" << 'PYEOF'
+import sys, re
+from datetime import datetime, timezone, timedelta
+jst = timezone(timedelta(hours=9))
+with open(sys.argv[1]) as f:
+    text = f.read()
+m = re.search(r'resets\s+(\d{1,2})(?::(\d{2}))?\s*(am|pm)', text, re.IGNORECASE)
+if not m:
+    print((datetime.now(jst) + timedelta(hours=6)).isoformat())
+    sys.exit(0)
+hour = int(m.group(1))
+minute = int(m.group(2)) if m.group(2) else 0
+mer = m.group(3).lower()
+if mer == 'pm' and hour != 12: hour += 12
+elif mer == 'am' and hour == 12: hour = 0
+now = datetime.now(jst)
+reset_dt = now.replace(hour=hour, minute=minute, second=0, microsecond=0)
+if reset_dt <= now:
+    reset_dt += timedelta(days=1)
+print(reset_dt.isoformat())
+PYEOF
+)
+  rm -f "$_tmp"
+  if [ -n "$_rst" ]; then
+    echo "$_rst" > "$RATE_LIMIT_FILE"
+    _disp=$(python3 -c "
+from datetime import datetime, timezone, timedelta
+jst = timezone(timedelta(hours=9))
+try: print(datetime.fromisoformat('$_rst').astimezone(jst).strftime('%Y-%m-%d %H:%M JST'))
+except: print('$_rst')
+" 2>/dev/null || echo "$_rst")
+    echo "  🔒 レート制限ロックファイル記録: $_disp"
+  fi
+}
+
 show_help() {
   cat << 'EOF'
 usage: check-validity.sh [-n N] [-D HH:MM] [-h]
@@ -83,6 +148,7 @@ PYEOF
 fi
 
 {
+check_rate_limit
 echo "=========================================="
 echo "正当性チェック開始: $(date)"
 echo "バッチサイズ: ${BATCH_SIZE}問 / チャンクサイズ: ${CHUNK_SIZE}問"
@@ -243,6 +309,7 @@ PYEOF
   if echo "$_STDERR" | grep -qiE "rate.?limit|too many requests|529|quota exceeded|usage limit|resource_exhausted"; then
     echo "⚠️  レート制限を検出。残りチャンクをスキップ"
     echo "stderr: $(echo "$_STDERR" | head -3)"
+    record_rate_limit "$(echo "${RESULT:-} ${_STDERR:-}" | head -10)"
     RATE_LIMITED=1
     break
   fi

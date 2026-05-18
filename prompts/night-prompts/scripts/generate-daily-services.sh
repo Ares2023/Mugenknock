@@ -38,6 +38,71 @@ COUNT=5
 AWS_ICON_KIT_URL="${AWS_ICON_KIT_URL:-https://d1.awsstatic.com/onedam/marketing-channels/website/aws/en_US/architecture/approved/architecture-icons/Icon-package_04302026.4705b90f5aa45b019271a2699e9ce9b97b941ee1.zip}"
 AWS_ICON_KIT_CACHE="${AWS_ICON_KIT_CACHE:-/tmp/aws-icon-kit-cache.zip}"
 
+RATE_LIMIT_FILE="$(dirname "$SCRIPT_DIR")/.claude_rate_limit_reset"
+
+check_rate_limit() {
+  [ -f "$RATE_LIMIT_FILE" ] || return 0
+  local _rst _now _rep _disp
+  _rst=$(cat "$RATE_LIMIT_FILE" 2>/dev/null)
+  [ -z "$_rst" ] && { rm -f "$RATE_LIMIT_FILE"; return 0; }
+  _now=$(date +%s)
+  _rep=$(python3 -c "
+from datetime import datetime
+try: print(int(datetime.fromisoformat('$_rst').timestamp()))
+except: print(0)
+" 2>/dev/null || echo 0)
+  if [ "$_now" -lt "$_rep" ]; then
+    _disp=$(python3 -c "
+from datetime import datetime, timezone, timedelta
+jst = timezone(timedelta(hours=9))
+try: print(datetime.fromisoformat('$_rst').astimezone(jst).strftime('%H:%M JST'))
+except: print('$_rst')
+" 2>/dev/null || echo "$_rst")
+    echo "⏸  Claude レート制限中 — 復活予定: ${_disp}（$(basename "$0") をスキップ）"
+    exit 2
+  fi
+  rm -f "$RATE_LIMIT_FILE"
+}
+
+record_rate_limit() {
+  local _c="$1" _tmp _rst _disp
+  _tmp=$(mktemp /tmp/rl_XXXX.txt)
+  printf '%s' "$_c" > "$_tmp"
+  _rst=$(python3 - "$_tmp" << 'PYEOF'
+import sys, re
+from datetime import datetime, timezone, timedelta
+jst = timezone(timedelta(hours=9))
+with open(sys.argv[1]) as f:
+    text = f.read()
+m = re.search(r'resets\s+(\d{1,2})(?::(\d{2}))?\s*(am|pm)', text, re.IGNORECASE)
+if not m:
+    print((datetime.now(jst) + timedelta(hours=6)).isoformat())
+    sys.exit(0)
+hour = int(m.group(1))
+minute = int(m.group(2)) if m.group(2) else 0
+mer = m.group(3).lower()
+if mer == 'pm' and hour != 12: hour += 12
+elif mer == 'am' and hour == 12: hour = 0
+now = datetime.now(jst)
+reset_dt = now.replace(hour=hour, minute=minute, second=0, microsecond=0)
+if reset_dt <= now:
+    reset_dt += timedelta(days=1)
+print(reset_dt.isoformat())
+PYEOF
+)
+  rm -f "$_tmp"
+  if [ -n "$_rst" ]; then
+    echo "$_rst" > "$RATE_LIMIT_FILE"
+    _disp=$(python3 -c "
+from datetime import datetime, timezone, timedelta
+jst = timezone(timedelta(hours=9))
+try: print(datetime.fromisoformat('$_rst').astimezone(jst).strftime('%Y-%m-%d %H:%M JST'))
+except: print('$_rst')
+" 2>/dev/null || echo "$_rst")
+    echo "  🔒 レート制限ロックファイル記録: $_disp"
+  fi
+}
+
 show_help() {
   cat << 'EOF'
 usage: generate-daily-services.sh [-n N] [-h]
@@ -65,6 +130,7 @@ while [[ $# -gt 0 ]]; do
   esac
 done
 
+check_rate_limit
 echo "=========================================="
 echo "日めくりAWSサービス生成"
 echo "生成件数: ${COUNT}件"
@@ -218,9 +284,11 @@ if [ $AI_EXIT -ne 0 ]; then
   exit 1
 fi
 
-if echo "$_STDERR_OUT" | grep -qiE "rate.?limit|too many requests|overload|quota exceeded"; then
+if echo "$_STDERR_OUT" | grep -qiE "rate.?limit|too many requests|overload|quota exceeded" || \
+   echo "$RESULT" | grep -qiE "You've hit|rate.?limit|too many requests"; then
   echo "⚠️  レート制限を検出"
   echo "stderr: $(echo "$_STDERR_OUT" | head -3)"
+  record_rate_limit "$(echo "$RESULT $_STDERR_OUT" | head -10)"
   exit 1
 fi
 
