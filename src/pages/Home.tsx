@@ -414,10 +414,10 @@ function TodayServiceSection({ lang }: { lang: string }) {
   if (!service) return null;
 
   const iconEl = service.icon.startsWith('/') || service.icon.startsWith('http')
-    ? <img src={service.icon} alt={service.name} style={{ width: 28, height: 28, objectFit: 'contain' }} />
+    ? <img src={service.icon} alt={service.name} style={{ width: 44, height: 44, objectFit: 'contain' }} />
     : isServiceIconKey(service.icon)
-      ? <ServiceIcon name={service.icon} size={24} />
-      : <span style={{ fontSize: 22 }}>{service.icon}</span>;
+      ? <ServiceIcon name={service.icon} size={44} />
+      : <span style={{ fontSize: 38, lineHeight: 1 }}>{service.icon}</span>;
 
   return (
     <Card padding="var(--spacing-md)" style={{ marginBottom: 'var(--spacing-md)' }}>
@@ -436,7 +436,7 @@ function TodayServiceSection({ lang }: { lang: string }) {
 
       {/* アイコン＋名前 横並び */}
       <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 10 }}>
-        <div style={{ width: 44, height: 44, borderRadius: 10, flexShrink: 0, background: 'var(--color-primary-light)', display: 'flex', alignItems: 'center', justifyContent: 'center', overflow: 'hidden' }}>
+        <div style={{ width: 44, height: 44, flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
           {iconEl}
         </div>
         <div>
