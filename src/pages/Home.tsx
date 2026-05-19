@@ -374,6 +374,14 @@ type DailyService = {
   icon: string; description: string; trivia?: string; docUrl?: string;
 };
 
+function saveToEncyclopedia(svc: DailyService) {
+  try {
+    const stored = JSON.parse(localStorage.getItem('encyclopediaServices') ?? '{}');
+    stored[svc.serviceId] = svc;
+    localStorage.setItem('encyclopediaServices', JSON.stringify(stored));
+  } catch {}
+}
+
 function TodayServiceSection({ lang }: { lang: string }) {
   const [service, setService] = useState<DailyService | null>(null);
   const [loading, setLoading] = useState(true);
@@ -382,10 +390,10 @@ function TodayServiceSection({ lang }: { lang: string }) {
     const jstDate = new Date(Date.now() + 9 * 3600 * 1000).toISOString().slice(0, 10);
     const cacheKey = `daily_service_${jstDate}`;
     const cached = getCached<DailyService>(cacheKey);
-    if (cached !== null) { setService(cached); setLoading(false); return; }
+    if (cached !== null) { setService(cached); setLoading(false); saveToEncyclopedia(cached); return; }
     fetch(`${API_ENDPOINT}/daily-service`)
       .then(r => r.json())
-      .then(d => { const s = d.service ?? null; if (s) setCached(cacheKey, s, 60 * 60 * 1000); setService(s); })
+      .then(d => { const s = d.service ?? null; if (s) { setCached(cacheKey, s, 60 * 60 * 1000); saveToEncyclopedia(s); } setService(s); })
       .catch(() => setService(null))
       .finally(() => setLoading(false));
   }, []);
@@ -442,11 +450,6 @@ function TodayServiceSection({ lang }: { lang: string }) {
         </div>
         <div>
           <span style={{ fontWeight: 800, fontSize: 'var(--font-size-md)', color: 'var(--color-text-main)' }}>{service.name}</span>
-          {service.shortName && (
-            <span style={{ marginLeft: 8, fontSize: 'var(--font-size-xs)', fontWeight: 700, color: 'var(--color-text-light)', background: 'var(--color-bg-main)', borderRadius: 4, padding: '1px 6px' }}>
-              {service.shortName}
-            </span>
-          )}
         </div>
       </div>
 
@@ -1094,6 +1097,7 @@ export default function Home() {
                         </>
                       ) : (
                         <>
+                          <div style={{ textAlign: 'center', fontSize: 10, color: 'var(--color-text-light)', marginBottom: 4 }}>{ja ? '苦手・不正解問題を重点演習' : 'Focuses on weak/incorrect questions'}</div>
                           <Button variant="outline" size="sm" fullWidth style={{ height: 36, marginBottom: 6, borderColor: '#009E9E', color: '#009E9E' }} onClick={() => { setShowFocusedMenu(false); startFocusedExercise(); }}>
                             {ja ? '新規に開始（しっかり対策）' : 'Start New (Focused)'}
                           </Button>
@@ -1224,6 +1228,7 @@ export default function Home() {
                   </>
                 ) : (
                   <>
+                    <div style={{ textAlign: 'center', fontSize: 11, color: 'var(--color-text-light)', marginBottom: 4 }}>{ja ? '苦手・不正解問題を重点演習' : 'Focuses on weak/incorrect questions'}</div>
                     <Button variant="outline" fullWidth style={{ height: 44, marginBottom: 8, borderColor: '#009E9E', color: '#009E9E' }} onClick={() => { setShowFocusedMenu(false); startFocusedExercise(); }}>
                       {ja ? '新規に開始（しっかり対策）' : 'Start New (Focused)'}
                     </Button>

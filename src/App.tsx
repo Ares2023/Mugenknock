@@ -25,6 +25,7 @@ import Account from './pages/Account';
 import Others from './pages/Others';
 import About from './pages/About';
 import Practice from './pages/Practice';
+import ServiceEncyclopedia from './pages/ServiceEncyclopedia';
 
 Amplify.configure(awsExports);
 
@@ -64,6 +65,7 @@ function App() {
           <Route path="/exam/setup" element={<Layout><ExamSetup /></Layout>} />
           <Route path="/exam/session" element={<Layout><ExamSession /></Layout>} />
           <Route path="/practice" element={<Layout><Practice /></Layout>} />
+          <Route path="/encyclopedia" element={<Layout><ServiceEncyclopedia /></Layout>} />
           <Route path="/growth" element={<Layout><Growth /></Layout>} />
           <Route path="/release-notes" element={<Layout><ReleaseNotes /></Layout>} />
           <Route path="/others" element={<Layout><Others /></Layout>} />
