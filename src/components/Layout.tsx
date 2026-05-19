@@ -10,7 +10,7 @@ import {
   IconHome,
   IconUser, IconChart,
   IconDumbbell, IconFire, IconMenu, IconClose, IconChevronLeft, IconMail,
-  IconSparkles, IconFootprint, IconFileText
+  IconSparkles, IconFootprint, IconFileText, IconBookOpen
 } from './Icons';
 
 type BreadcrumbItem = { label: string; path?: string };
@@ -47,6 +47,7 @@ const NAV_KEYS = [
   { path: '/',          labelKey: 'nav.home',      Icon: IconHome      },
   { path: '/practice',  labelKey: 'nav.practice',  Icon: IconDumbbell  },
   { path: '/stats',     labelKey: 'nav.stats',     Icon: IconFootprint },
+  { path: '/encyclopedia',   labelKey: 'nav.encyclopedia', Icon: IconBookOpen, bottom: true },
   { path: '/growth',        labelKey: 'nav.growth',       Icon: IconSparkles, bottom: true },
   { path: '/release-notes', labelKey: 'nav.releaseNotes', Icon: IconFire,     bottom: true },
 ];
@@ -58,6 +59,7 @@ const BOTTOM_TABS = [
 ];
 
 const OTHERS_ITEMS = [
+  { path: '/encyclopedia',  Icon: IconBookOpen,   labelKey: 'nav.encyclopedia' },
   { path: '/growth',        Icon: IconSparkles,   labelKey: 'nav.growth'       },
   { path: '/release-notes', Icon: IconFire,       labelKey: 'nav.releaseNotes' },
 ];
@@ -270,6 +272,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
 
   const breadcrumbs: Record<string, BreadcrumbItem[]> = {
     '/practice':         [{ label: t('nav.home'), path: '/' }, { label: t('nav.practice') }],
+    '/encyclopedia':     [{ label: t('nav.home'), path: '/' }, { label: t('nav.encyclopedia') }],
     '/growth':           [{ label: t('nav.home'), path: '/' }, { label: t('nav.growth') }],
     '/exercise/setup':   [{ label: t('nav.home'), path: '/' }, { label: t('exerciseSetup.title') }],
     '/exercise/session': [{ label: t('nav.home'), path: '/' }, { label: t('exerciseSetup.title'), path: '/exercise/setup' }, { label: t('nav.exerciseSession') }],
