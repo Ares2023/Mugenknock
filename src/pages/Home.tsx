@@ -8,6 +8,7 @@ import {
   DOMAIN_WEIGHTS, DOMAIN_NAME_EN, PASS_SCORES,
 } from '../constants';
 import { getCached, setCached, deleteCached, DEFAULT_TTL } from '../utils/cache';
+import { markTodayUnlock } from '../data/awsServiceCatalog';
 import Card from '../components/ui/Card';
 import Button from '../components/ui/Button';
 import { IconLightbulb, IconSettings, IconChevronUp, IconLock, ServiceIcon, isServiceIconKey } from '../components/Icons';
@@ -540,6 +541,8 @@ export default function Home() {
     window.addEventListener('resize', handler);
     return () => window.removeEventListener('resize', handler);
   }, []);
+
+  useEffect(() => { markTodayUnlock(); }, []);
 
   useEffect(() => {
     const handler = (e: Event) => setTargetExam((e as CustomEvent).detail);
