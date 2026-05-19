@@ -356,34 +356,36 @@ export const CATALOG: Category[] = [
   },
 ];
 
-/** 今日（JST）のサービスを決定論的に返す */
+/**
+ * 今日の図鑑サービスを返す。
+ * ホーム画面でDynamoDBサービスがロード済みならそれを優先し、
+ * 未ロードの場合はDynamoDB対応済みサービスのみから日付シードで決定論的に選出。
+ */
 export function getDailyService(): ServiceEntry & { category: string } {
   const jstDate = new Date(Date.now() + 9 * 3600 * 1000).toISOString().slice(0, 10);
+
+  // ホーム画面でロードされた今日のDynamoDBサービスを優先
+  const unlockDate = localStorage.getItem('encyclopediaUnlockDate');
+  const todayId = localStorage.getItem('encyclopediaTodayServiceId');
+  if (unlockDate === jstDate && todayId) {
+    for (const cat of CATALOG) {
+      for (const svc of cat.services) {
+        if (svc.serviceIds?.includes(todayId)) {
+          return { ...svc, category: cat.category };
+        }
+      }
+    }
+  }
+
+  // フォールバック: DynamoDB対応済み（serviceIds あり）のサービスのみから選出
   let hash = 0;
   for (let i = 0; i < jstDate.length; i++) {
     hash = (hash * 31 + jstDate.charCodeAt(i)) & 0x7fffffff;
   }
-  // flatten with category info
-  const all: (ServiceEntry & { category: string })[] = CATALOG.flatMap(cat =>
-    cat.services.map(svc => ({ ...svc, category: cat.category }))
+  const mapped = CATALOG.flatMap(cat =>
+    cat.services
+      .filter(svc => svc.serviceIds?.length)
+      .map(svc => ({ ...svc, category: cat.category }))
   );
-  return all[hash % all.length];
-}
-
-/** 今日まだ解放されていなければ1サービス解放する */
-export function markTodayUnlock(): void {
-  const jstDate = new Date(Date.now() + 9 * 3600 * 1000).toISOString().slice(0, 10);
-  if (localStorage.getItem('encyclopediaUnlockDate') === jstDate) return;
-
-  const svc = getDailyService();
-  const key = svc.serviceIds?.[0] ?? svc.name;
-
-  try {
-    const unlocked: Record<string, string> = JSON.parse(
-      localStorage.getItem('encyclopediaUnlocked') ?? '{}'
-    );
-    unlocked[key] = jstDate;
-    localStorage.setItem('encyclopediaUnlocked', JSON.stringify(unlocked));
-    localStorage.setItem('encyclopediaUnlockDate', jstDate);
-  } catch {}
+  return mapped[hash % mapped.length];
 }

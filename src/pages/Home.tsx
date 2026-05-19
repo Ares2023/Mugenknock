@@ -8,7 +8,6 @@ import {
   DOMAIN_WEIGHTS, DOMAIN_NAME_EN, PASS_SCORES,
 } from '../constants';
 import { getCached, setCached, deleteCached, DEFAULT_TTL } from '../utils/cache';
-import { markTodayUnlock } from '../data/awsServiceCatalog';
 import Card from '../components/ui/Card';
 import Button from '../components/ui/Button';
 import { IconLightbulb, IconSettings, IconChevronUp, IconLock, ServiceIcon, isServiceIconKey } from '../components/Icons';
@@ -377,9 +376,18 @@ type DailyService = {
 
 function saveToEncyclopedia(svc: DailyService) {
   try {
+    const jstDate = new Date(Date.now() + 9 * 3600 * 1000).toISOString().slice(0, 10);
     const stored = JSON.parse(localStorage.getItem('encyclopediaServices') ?? '{}');
     stored[svc.serviceId] = svc;
     localStorage.setItem('encyclopediaServices', JSON.stringify(stored));
+    // 今日のサービスとして記録（図鑑と同期するため）
+    if (localStorage.getItem('encyclopediaUnlockDate') !== jstDate) {
+      const unlocked = JSON.parse(localStorage.getItem('encyclopediaUnlocked') ?? '{}');
+      unlocked[svc.serviceId] = jstDate;
+      localStorage.setItem('encyclopediaUnlocked', JSON.stringify(unlocked));
+      localStorage.setItem('encyclopediaUnlockDate', jstDate);
+    }
+    localStorage.setItem('encyclopediaTodayServiceId', svc.serviceId);
   } catch {}
 }
 
@@ -542,7 +550,6 @@ export default function Home() {
     return () => window.removeEventListener('resize', handler);
   }, []);
 
-  useEffect(() => { markTodayUnlock(); }, []);
 
   useEffect(() => {
     const handler = (e: Event) => setTargetExam((e as CustomEvent).detail);
