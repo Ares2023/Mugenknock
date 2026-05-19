@@ -58,9 +58,18 @@ export default function ServiceEncyclopedia() {
   const [selected, setSelected] = useState<EncyclopediaService | null>(null);
 
   const todaySvc = getDailyService();
-  const todayKey = unlockKey(todaySvc);
-  const todayUnlocked = todayKey in unlockedMap || (todaySvc.serviceIds?.some(id => id in unlockedMap) ?? false);
-  const todayStoreData = todaySvc.serviceIds?.map(id => storedServices[id]).find(Boolean);
+  const todayId = localStorage.getItem('encyclopediaTodayServiceId');
+
+  // Check unlock via direct todayId (most reliable) OR via catalog-based keys
+  const todayUnlocked =
+    (todayId !== null && todayId in unlockedMap) ||
+    (todaySvc.serviceIds?.some(id => id in unlockedMap) ?? false) ||
+    (unlockKey(todaySvc) in unlockedMap);
+
+  // Prefer data from the exact todayId saved on the home screen
+  const todayStoreData: EncyclopediaService | null =
+    (todayId ? storedServices[todayId] ?? null : null) ??
+    (todaySvc.serviceIds?.map(id => storedServices[id]).find(Boolean) ?? null);
 
   const jstDate = new Date(Date.now() + 9 * 3600 * 1000).toISOString().slice(0, 10);
   const todayAlreadyDone = localStorage.getItem('encyclopediaUnlockDate') === jstDate;
@@ -112,7 +121,7 @@ export default function ServiceEncyclopedia() {
           </div>
           <div>
             <div style={{ fontWeight: 800, fontSize: 'var(--font-size-md)', color: 'var(--color-text-main)' }}>
-              {todayUnlocked ? todaySvc.name : '???'}
+              {todayUnlocked ? (todayStoreData?.name ?? todaySvc.name) : '???'}
             </div>
             <div style={{ fontSize: 'var(--font-size-xs)', color: 'var(--color-primary)', fontWeight: 600, marginTop: 2 }}>
               {todayUnlocked ? todaySvc.category : ''}
@@ -148,42 +157,45 @@ export default function ServiceEncyclopedia() {
                 {catUnlocked}/{cat.services.length}
               </span>
             </div>
-            <div>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 6 }}>
               {cat.services.map(svc => {
                 const unlocked = isUnlocked(svc, unlockedMap);
                 const serviceData = svc.serviceIds?.map(id => storedServices[id]).find(Boolean);
+                const clickable = unlocked && !!serviceData;
 
                 return (
                   <div
                     key={svc.name}
-                    onClick={() => { if (unlocked && serviceData) setSelected(serviceData); }}
+                    onClick={() => { if (clickable) setSelected(serviceData!); }}
                     style={{
-                      display: 'flex', alignItems: 'center', gap: 10,
-                      padding: '6px 8px', borderRadius: 'var(--border-radius-md)',
-                      cursor: (unlocked && serviceData) ? 'pointer' : 'default',
+                      display: 'flex', flexDirection: 'column', alignItems: 'center',
+                      gap: 4, padding: '8px 4px',
+                      borderRadius: 'var(--border-radius-md)',
+                      cursor: clickable ? 'pointer' : 'default',
                       transition: 'background 0.1s',
+                      minWidth: 0,
                     }}
-                    onMouseEnter={e => { if (unlocked && serviceData) e.currentTarget.style.background = 'var(--color-bg-main)'; }}
+                    onMouseEnter={e => { if (clickable) e.currentTarget.style.background = 'var(--color-bg-main)'; }}
                     onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; }}
                   >
-                    <div style={{ width: 28, height: 28, flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                    <div style={{ width: 32, height: 32, display: 'flex', alignItems: 'center', justifyContent: 'center', opacity: unlocked ? 1 : 0.4 }}>
                       {unlocked && serviceData
-                        ? renderIcon(serviceData, 28)
+                        ? renderIcon(serviceData, 32)
                         : unlocked
-                          ? <span style={{ fontSize: 18 }}>☁️</span>
-                          : <IconLock size={13} />}
+                          ? <span style={{ fontSize: 20 }}>☁️</span>
+                          : <IconLock size={14} />}
                     </div>
                     <span style={{
-                      fontSize: 'var(--font-size-sm)',
+                      fontSize: 10,
                       color: unlocked ? 'var(--color-text-main)' : 'var(--color-text-light)',
                       fontWeight: unlocked ? 600 : 400,
-                      flex: 1,
+                      textAlign: 'center',
+                      lineHeight: 1.3,
+                      wordBreak: 'break-word',
+                      width: '100%',
                     }}>
                       {unlocked ? svc.name : '???'}
                     </span>
-                    {unlocked && serviceData && (
-                      <span style={{ color: 'var(--color-text-light)', fontSize: 14 }}>›</span>
-                    )}
                   </div>
                 );
               })}

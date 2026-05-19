@@ -50,6 +50,11 @@
       "name": "/health",
       "lambdaFunction": "awsquizHandler",
       "permissions": { "setting": "open" }
+    },
+    "/settings": {
+      "name": "/settings",
+      "lambdaFunction": "awsquizHandler",
+      "permissions": { "setting": "open" }
     }
   }
 }

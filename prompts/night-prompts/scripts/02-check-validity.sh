@@ -54,8 +54,8 @@ jst = timezone(timedelta(hours=9))
 try: print(datetime.fromisoformat('$_rst').astimezone(jst).strftime('%H:%M JST'))
 except: print('$_rst')
 " 2>/dev/null || echo "$_rst")
-    echo "⏸  Claude レート制限中 — 復活予定: ${_disp}（$(basename "$0") をスキップ）"
-    exit 2
+    echo "  🔒 レート制限中: リセット予定 $_disp"
+    return 1
   fi
   rm -f "$RATE_LIMIT_FILE"
 }

@@ -137,8 +137,8 @@ function CombinedDetailModal({ targetExam, domainAccList, estimatedScore, passSc
         <div style={{ padding: '0 12px 10px' }}>
           <p style={{ fontSize: 11, color: 'var(--color-text-sub)', margin: 0, lineHeight: 1.7 }}>
             {ja
-              ? '各ドメインの直近10セッション分の正答率 × 出題比率を合計して算出。未演習ドメインは0点扱い。スコア = Σ(正答率 × 出題比率%) × 1000'
-              : "Estimated score = Σ(domain accuracy × exam weight%) × 1000. Unpracticed domains count as 0."}
+              ? '各ドメインの上限10問分の正答率 × 出題比率で算出。10問未満の場合は正答率×(N/10)で計算（上限を下げる）。未演習ドメインは0点扱い。スコア = Σ(正答率 × N/10 × 出題比率%) × 1000'
+              : 'Score = Σ(accuracy × min(N,10)/10 × domain_weight%) × 1000. Fewer than 10 answers reduces the max contribution proportionally. Unpracticed domains count as 0.'}
           </p>
         </div>
       )}
@@ -306,8 +306,8 @@ function ScoreDetailModal({ targetExam, estimatedScore, passScore, lang, onClose
           {showTip && (
             <p style={{ fontSize: 11, color: 'var(--color-text-sub)', margin: '8px 0 0', lineHeight: 1.7 }}>
               {ja
-                ? '各ドメインの直近10セッション分の正答率 × 出題比率を合計して算出。未演習ドメインは0点扱い（スコアを過大評価しない）。スコア = Σ(正答率 × 出題比率%) × 1000'
-                : "Sum of each domain's (accuracy × exam weight%). Unpracticed domains count as 0. Score = Σ(accuracy × domain_weight%) × 1000"}
+                ? '各ドメインの上限10問分で算出。10問未満は正答率×(N/10)で計算。未演習は0点扱い。スコア = Σ(正答率 × N/10 × 出題比率%) × 1000'
+                : 'Score = Σ(accuracy × min(N,10)/10 × domain_weight%) × 1000. <10 answers reduces max contribution. Unpracticed domains = 0.'}
             </p>
           )}
         </div>
@@ -489,6 +489,10 @@ const FOCUSED_UNLOCK_THRESHOLD = 30;
 function loadQuickPrefs() {
   try { return JSON.parse(localStorage.getItem(QUICK_PREFS_KEY) ?? '{}'); } catch { return {}; }
 }
+const FOCUSED_PREFS_KEY = 'focusedExercisePrefs';
+function loadFocusedPrefs() {
+  try { return JSON.parse(localStorage.getItem(FOCUSED_PREFS_KEY) ?? '{}'); } catch { return {}; }
+}
 function shuffleArray<T>(arr: T[]): T[] {
   const a = [...arr];
   for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; }
@@ -540,7 +544,10 @@ export default function Home() {
   const [focusedLoading, setFocusedLoading] = useState(false);
   const [lastMode, setLastMode] = useState<'quick' | 'focused'>(() => (localStorage.getItem('lastQuickMode') as 'quick' | 'focused') ?? 'quick');
   const [answeredCount, setAnsweredCount] = useState(0);
+  const [answeredCountReady, setAnsweredCountReady] = useState(false);
   const [draftPrefs, setDraftPrefs] = useState<Record<string, any>>({});
+  const [showFocusedModal, setShowFocusedModal] = useState(false);
+  const [draftFocusedPrefs, setDraftFocusedPrefs] = useState<Record<string, any>>({});
   const [showCombinedDetail, setShowCombinedDetail] = useState(false);
   const abortRef = useRef<AbortController | null>(null);
 
@@ -617,10 +624,10 @@ export default function Home() {
   }, [user, doFetchStats]);
 
   useEffect(() => {
-    if (!user || !targetExam) { setAnsweredCount(0); return; }
+    if (!user || !targetExam) { setAnsweredCount(0); setAnsweredCountReady(true); return; }
     const cacheKey = `qstats_${user.userId}_${targetExam}`;
     const cached = getCached<number>(cacheKey);
-    if (cached !== null) { setAnsweredCount(cached); return; }
+    if (cached !== null) { setAnsweredCount(cached); setAnsweredCountReady(true); return; }
     fetch(`${API_ENDPOINT}/users/me/question-stats?userId=${user.userId}&examType=${targetExam}`)
       .then(r => r.json())
       .then(d => {
@@ -628,7 +635,8 @@ export default function Home() {
         setCached(cacheKey, count, DEFAULT_TTL);
         setAnsweredCount(count);
       })
-      .catch(() => {});
+      .catch(() => {})
+      .finally(() => setAnsweredCountReady(true));
   }, [user, targetExam]);
 
   // ── 予想スコア計算 ──
@@ -642,30 +650,39 @@ export default function Home() {
     if (totalAllWeights === 0) return null;
     const hist = user ? {} : readDomainHistory(targetExam);
 
+    const MAX_Q = 10;
     let weightedSum = 0, hasAnyData = false;
     for (let i = 0; i < domainList.length; i++) {
+      let correct = 0, total = 0;
       const sessions = hist[domainList[i]];
       if (sessions && sessions.length > 0) {
-        const totalCorrect = sessions.reduce((s, r) => s + r.correct, 0);
-        const totalAnswered = sessions.reduce((s, r) => s + r.total, 0);
-        if (totalAnswered === 0) continue;
-        weightedSum += (totalCorrect / totalAnswered) * weights[i];
-        hasAnyData = true;
+        correct = sessions.reduce((s, r) => s + r.correct, 0);
+        total = sessions.reduce((s, r) => s + r.total, 0);
       } else {
         const stat = domainStats.find(s => s.tagId === domainList[i]);
         if (!stat) continue;
-        const total = (stat.correctCount ?? 0) + (stat.incorrectCount ?? 0);
-        if (total === 0) continue;
-        weightedSum += ((stat.correctCount ?? 0) / total) * weights[i];
-        hasAnyData = true;
+        correct = stat.correctCount ?? 0;
+        total = correct + (stat.incorrectCount ?? 0);
       }
+      if (total === 0) continue;
+      const nEff = Math.min(total, MAX_Q);
+      weightedSum += (correct / total) * (nEff / MAX_Q) * weights[i];
+      hasAnyData = true;
     }
     if (!hasAnyData) return null;
     return Math.round((weightedSum / totalAllWeights) * 1000);
   }, [targetExam, domainStats, user]);
 
   const focusedUnlocked = !!user && answeredCount >= FOCUSED_UNLOCK_THRESHOLD;
-  const primaryMode: 'quick' | 'focused' = lastMode === 'focused' && focusedUnlocked ? 'focused' : 'quick';
+  const focusedUnlockedCached = localStorage.getItem('focusedUnlockedCache') === '1';
+  const effectiveFocusedUnlocked = !user ? false : answeredCountReady ? focusedUnlocked : focusedUnlockedCached;
+  const primaryMode: 'quick' | 'focused' = lastMode === 'focused' && effectiveFocusedUnlocked ? 'focused' : 'quick';
+
+  useEffect(() => {
+    if (answeredCountReady) {
+      localStorage.setItem('focusedUnlockedCache', focusedUnlocked ? '1' : '0');
+    }
+  }, [answeredCountReady, focusedUnlocked]);
 
   const passScore = targetExam ? PASS_SCORES[targetExam] : null;
 
@@ -803,7 +820,7 @@ export default function Home() {
     setLastMode('focused');
     localStorage.setItem('lastQuickMode', 'focused');
     setFocusedLoading(true);
-    const qPrefs = loadQuickPrefs();
+    const fPrefs = loadFocusedPrefs();
     try {
       const userId = user.userId;
       const params = new URLSearchParams({ examType: targetExam, withAnswers: 'true', withValidity: 'true' });
@@ -814,21 +831,35 @@ export default function Home() {
       const allItems: any[] = (data.items ?? []).filter((q: any) => !!q.validityCheckedAt);
       const incorrectIds = new Set<string>(incorrectRes.questionIds ?? []);
       const examDomains = EXAM_DOMAINS[targetExam] ?? [];
-      const weakDomains = new Set<string>(
-        domainStats.length === 0
-          ? examDomains
-          : examDomains.filter(domain => {
-              const stat = domainStats.find(s => s.tagId === domain);
-              if (!stat) return true;
-              const total = (stat.correctCount ?? 0) + (stat.incorrectCount ?? 0);
-              return total === 0 || (stat.correctCount ?? 0) / total < 0.70;
-            })
-      );
-      let items = allItems.filter((q: any) => {
-        const tags: string[] = q.tags ?? [];
-        return tags.some(t => weakDomains.has(t)) || incorrectIds.has(q.questionId);
-      });
-      const count = qPrefs.questionCount ?? 5;
+      const focusTarget: string = fPrefs.focusTarget ?? 'below70';
+      const selDomains: string[] = fPrefs.domains ?? [];
+      const targetDomains = selDomains.length > 0 ? selDomains : examDomains;
+
+      let poolItems = selDomains.length > 0
+        ? allItems.filter((q: any) => (q.tags ?? []).some((t: string) => selDomains.includes(t)))
+        : allItems;
+
+      let items: any[];
+      if (focusTarget === 'incorrect') {
+        items = poolItems.filter((q: any) => incorrectIds.has(q.questionId));
+      } else {
+        const threshold = focusTarget === 'below50' ? 0.50 : 0.70;
+        const weakDomains = new Set<string>(
+          domainStats.length === 0
+            ? targetDomains
+            : targetDomains.filter(domain => {
+                const stat = domainStats.find(s => s.tagId === domain);
+                if (!stat) return true;
+                const total = (stat.correctCount ?? 0) + (stat.incorrectCount ?? 0);
+                return total === 0 || (stat.correctCount ?? 0) / total < threshold;
+              })
+        );
+        items = poolItems.filter((q: any) => {
+          const tags: string[] = q.tags ?? [];
+          return tags.some(t => weakDomains.has(t)) || incorrectIds.has(q.questionId);
+        });
+      }
+      const count = fPrefs.questionCount ?? 20;
       items = shuffleArray(items);
       let usedFallback = false;
       if (items.length < count && items.length < allItems.length) {
@@ -1158,7 +1189,10 @@ export default function Home() {
                 </div>
               </div>
             )}
-            <Button variant="outline" fullWidth onClick={() => { setDraftPrefs({ ...loadQuickPrefs() }); setShowQuickModal(true); }}>
+            <Button variant="outline" fullWidth onClick={() => {
+              if (primaryMode === 'focused') { setDraftFocusedPrefs({ ...loadFocusedPrefs() }); setShowFocusedModal(true); }
+              else { setDraftPrefs({ ...loadQuickPrefs() }); setShowQuickModal(true); }
+            }}>
               {ja ? '設定' : 'Settings'}
             </Button>
           </div>
@@ -1316,8 +1350,11 @@ export default function Home() {
             )}
             {/* 設定アイコン（常に表示） */}
             <button
-              onClick={() => { setDraftPrefs({ ...loadQuickPrefs() }); setShowQuickModal(true); }}
-              style={{ flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', width: 44, height: 44, border: '1.5px solid var(--color-primary)', borderRadius: '50%', background: 'transparent', cursor: 'pointer', color: 'var(--color-primary)' }}
+              onClick={() => {
+                if (primaryMode === 'focused') { setDraftFocusedPrefs({ ...loadFocusedPrefs() }); setShowFocusedModal(true); }
+                else { setDraftPrefs({ ...loadQuickPrefs() }); setShowQuickModal(true); }
+              }}
+              style={{ flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', width: 44, height: 44, border: `1.5px solid ${primaryMode === 'focused' ? '#009E9E' : 'var(--color-primary)'}`, borderRadius: '50%', background: 'transparent', cursor: 'pointer', color: primaryMode === 'focused' ? '#009E9E' : 'var(--color-primary)' }}
               aria-label={ja ? '設定' : 'Settings'}
             >
               <IconSettings size={18} />
@@ -1420,6 +1457,120 @@ export default function Home() {
             <Button
               onClick={() => { localStorage.setItem(QUICK_PREFS_KEY, JSON.stringify(draftPrefs)); setShowQuickModal(false); }}
               variant="primary" style={{ width: '100%' }}
+            >
+              {ja ? '保存する' : 'Save'}
+            </Button>
+          </div>
+        </div>
+      )}
+
+      {/* ── しっかり対策 設定モーダル ── */}
+      {showFocusedModal && (
+        <div
+          style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', zIndex: 1000, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16 }}
+          onClick={e => { if (e.target === e.currentTarget) setShowFocusedModal(false); }}
+        >
+          <div style={{ background: 'var(--color-bg-white)', borderRadius: 'var(--border-radius-lg)', padding: '24px 24px 20px', width: '100%', maxWidth: 420, boxShadow: 'var(--box-shadow-md)', maxHeight: '90vh', overflowY: 'auto' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 }}>
+              <h3 style={{ margin: 0, fontSize: 'var(--font-size-h3)', fontWeight: 700, color: '#009E9E' }}>
+                {ja ? 'しっかり対策 設定' : 'Focused Practice Settings'}
+              </h3>
+              <button onClick={() => setShowFocusedModal(false)} style={{ border: 'none', background: 'none', fontSize: 20, cursor: 'pointer', color: 'var(--color-text-sub)', padding: '4px 8px', lineHeight: 1 }}>✕</button>
+            </div>
+            <div style={{ marginBottom: 20 }}>
+              {/* 重点対象 */}
+              <div style={{ padding: '14px 0', borderBottom: '1px solid var(--color-border)' }}>
+                <div style={{ fontWeight: 500, fontSize: 'var(--font-size-base)', color: 'var(--color-text-main)', marginBottom: 8 }}>
+                  {ja ? '重点対象' : 'Focus Target'}
+                </div>
+                {([
+                  ['incorrect', ja ? '不正解のみ' : 'Incorrect Only', ja ? '過去に不正解だった問題のみ出題' : 'Only previously incorrect questions'],
+                  ['below50', ja ? '正答率50%以下のドメイン' : 'Domains below 50%', ja ? '正答率50%未満のドメインを重点出題（不正解も含む）' : 'Focus on domains below 50% accuracy (incl. incorrect)'],
+                  ['below70', ja ? '正答率70%以下のドメイン' : 'Domains below 70%', ja ? '正答率70%未満のドメインを重点出題（不正解も含む）' : 'Focus on domains below 70% accuracy (incl. incorrect)'],
+                ] as [string, string, string][]).map(([val, label, desc]) => {
+                  const selected = (draftFocusedPrefs.focusTarget ?? 'below70') === val;
+                  return (
+                    <label key={val} style={{ display: 'flex', alignItems: 'flex-start', gap: 10, padding: '8px 0', cursor: 'pointer' }}>
+                      <input
+                        type="radio"
+                        name="focusTarget"
+                        checked={selected}
+                        onChange={() => setDraftFocusedPrefs(p => ({ ...p, focusTarget: val }))}
+                        style={{ width: 16, height: 16, flexShrink: 0, marginTop: 3, accentColor: '#009E9E' }}
+                      />
+                      <div>
+                        <div style={{ fontSize: 'var(--font-size-sm)', fontWeight: selected ? 600 : 400, color: 'var(--color-text-main)' }}>{label}</div>
+                        <div style={{ fontSize: 'var(--font-size-xs)', color: 'var(--color-text-light)', marginTop: 1 }}>{desc}</div>
+                      </div>
+                    </label>
+                  );
+                })}
+              </div>
+              {/* 出題数 */}
+              <div style={{ padding: '14px 0', borderBottom: '1px solid var(--color-border)' }}>
+                <div style={{ fontWeight: 500, fontSize: 'var(--font-size-base)', color: 'var(--color-text-main)', marginBottom: 8 }}>
+                  {ja ? '出題数' : 'Question Count'}
+                </div>
+                <div style={{ display: 'flex', gap: 8 }}>
+                  {[10, 20, 30].map(n => {
+                    const sel = (draftFocusedPrefs.questionCount ?? 20) === n;
+                    return (
+                      <button
+                        key={n}
+                        onClick={() => setDraftFocusedPrefs(p => ({ ...p, questionCount: n }))}
+                        style={{ flex: 1, height: 36, border: `1.5px solid ${sel ? '#009E9E' : 'var(--color-border)'}`, borderRadius: 'var(--border-radius-full)', cursor: 'pointer', background: sel ? '#009E9E' : 'transparent', color: sel ? '#fff' : 'var(--color-text-sub)', fontWeight: 600, fontSize: 'var(--font-size-sm)', transition: 'all 0.15s' }}
+                      >
+                        {n}{ja ? '問' : 'Q'}
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+              {/* ドメイン絞り込み */}
+              {targetExam && (EXAM_DOMAINS[targetExam] ?? []).length > 0 && (
+                <div style={{ padding: '14px 0' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
+                    <div>
+                      <div style={{ fontWeight: 500, fontSize: 'var(--font-size-base)', color: 'var(--color-text-main)' }}>
+                        {ja ? 'ドメイン絞り込み' : 'Domain Filter'}
+                      </div>
+                      <div style={{ fontSize: 'var(--font-size-xs)', color: 'var(--color-text-light)', marginTop: 2 }}>
+                        {ja ? '未選択 = すべて対象' : 'None selected = all domains'}
+                      </div>
+                    </div>
+                    {(draftFocusedPrefs.domains ?? []).length > 0 && (
+                      <button
+                        onClick={() => setDraftFocusedPrefs(p => ({ ...p, domains: [] }))}
+                        style={{ border: 'none', background: 'none', cursor: 'pointer', fontSize: 'var(--font-size-xs)', color: '#009E9E', padding: '2px 4px', textDecoration: 'underline' }}
+                      >
+                        {ja ? 'すべて解除' : 'Clear'}
+                      </button>
+                    )}
+                  </div>
+                  {(EXAM_DOMAINS[targetExam] ?? []).map(domain => {
+                    const selDoms: string[] = draftFocusedPrefs.domains ?? [];
+                    const checked = selDoms.includes(domain);
+                    return (
+                      <label key={domain} style={{ display: 'flex', alignItems: 'flex-start', gap: 8, padding: '4px 0', cursor: 'pointer' }}>
+                        <input
+                          type="checkbox"
+                          checked={checked}
+                          onChange={() => setDraftFocusedPrefs(p => {
+                            const cur: string[] = p.domains ?? [];
+                            return { ...p, domains: checked ? cur.filter(d => d !== domain) : [...cur, domain] };
+                          })}
+                          style={{ width: 16, height: 16, flexShrink: 0, marginTop: 2, accentColor: '#009E9E' }}
+                        />
+                        <span style={{ fontSize: 'var(--font-size-sm)', color: 'var(--color-text-main)', lineHeight: 1.4 }}>{domain}</span>
+                      </label>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
+            <Button
+              onClick={() => { localStorage.setItem(FOCUSED_PREFS_KEY, JSON.stringify(draftFocusedPrefs)); setShowFocusedModal(false); }}
+              variant="primary" style={{ width: '100%', background: '#009E9E', borderColor: '#009E9E' }}
             >
               {ja ? '保存する' : 'Save'}
             </Button>
