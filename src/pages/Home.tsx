@@ -137,8 +137,8 @@ function CombinedDetailModal({ targetExam, domainAccList, estimatedScore, passSc
         <div style={{ padding: '0 12px 10px' }}>
           <p style={{ fontSize: 11, color: 'var(--color-text-sub)', margin: 0, lineHeight: 1.7 }}>
             {ja
-              ? '各ドメインの上限10問分の正答率 × 出題比率で算出。10問未満の場合は正答率×(N/10)で計算（上限を下げる）。未演習ドメインは0点扱い。スコア = Σ(正答率 × N/10 × 出題比率%) × 1000'
-              : 'Score = Σ(accuracy × min(N,10)/10 × domain_weight%) × 1000. Fewer than 10 answers reduces the max contribution proportionally. Unpracticed domains count as 0.'}
+              ? '直近10セッション分の回答を集計。各ドメインの上限10問分で算出（10問未満は正答率×(N/10)で計算）。未演習ドメインは0点扱い。スコア = Σ(正答率 × N/10 × 出題比率%) × 1000'
+              : 'Based on last 10 sessions. Score = Σ(accuracy × min(N,10)/10 × domain_weight%) × 1000. Fewer than 10 answers reduces the max contribution. Unpracticed domains count as 0.'}
           </p>
         </div>
       )}
@@ -306,8 +306,8 @@ function ScoreDetailModal({ targetExam, estimatedScore, passScore, lang, onClose
           {showTip && (
             <p style={{ fontSize: 11, color: 'var(--color-text-sub)', margin: '8px 0 0', lineHeight: 1.7 }}>
               {ja
-                ? '各ドメインの上限10問分で算出。10問未満は正答率×(N/10)で計算。未演習は0点扱い。スコア = Σ(正答率 × N/10 × 出題比率%) × 1000'
-                : 'Score = Σ(accuracy × min(N,10)/10 × domain_weight%) × 1000. <10 answers reduces max contribution. Unpracticed domains = 0.'}
+                ? '直近10セッション分の回答を集計。各ドメインの上限10問分で算出（10問未満は正答率×(N/10)で計算）。未演習は0点扱い。スコア = Σ(正答率 × N/10 × 出題比率%) × 1000'
+                : 'Based on last 10 sessions. Score = Σ(accuracy × min(N,10)/10 × domain_weight%) × 1000. <10 answers reduces max contribution. Unpracticed domains = 0.'}
             </p>
           )}
         </div>
@@ -675,31 +675,22 @@ export default function Home() {
       .finally(() => setAnsweredCountReady(true));
   }, [user, targetExam]);
 
-  // ── 予想スコア計算 ──
-  // ログイン済み：API統計（デバイス共通）のみ使用
-  // ゲスト：ローカル履歴にフォールバック
+  // ── 予想スコア計算（直近10セッション分のローカル履歴を使用）──
   const estimatedScore = useMemo(() => {
     if (!targetExam) return null;
     const domainList = EXAM_DOMAINS[targetExam] ?? [];
     const weights = DOMAIN_WEIGHTS[targetExam] ?? domainList.map(() => 100 / domainList.length);
     const totalAllWeights = weights.reduce((s, w) => s + w, 0);
     if (totalAllWeights === 0) return null;
-    const hist = user ? {} : readDomainHistory(targetExam);
+    const hist = readDomainHistory(targetExam);
 
     const MAX_Q = 10;
     let weightedSum = 0, hasAnyData = false;
     for (let i = 0; i < domainList.length; i++) {
-      let correct = 0, total = 0;
       const sessions = hist[domainList[i]];
-      if (sessions && sessions.length > 0) {
-        correct = sessions.reduce((s, r) => s + r.correct, 0);
-        total = sessions.reduce((s, r) => s + r.total, 0);
-      } else {
-        const stat = domainStats.find(s => s.tagId === domainList[i]);
-        if (!stat) continue;
-        correct = stat.correctCount ?? 0;
-        total = correct + (stat.incorrectCount ?? 0);
-      }
+      if (!sessions || sessions.length === 0) continue;
+      const correct = sessions.reduce((s, r) => s + r.correct, 0);
+      const total = sessions.reduce((s, r) => s + r.total, 0);
       if (total === 0) continue;
       const nEff = Math.min(total, MAX_Q);
       weightedSum += (correct / total) * (nEff / MAX_Q) * weights[i];
@@ -707,7 +698,7 @@ export default function Home() {
     }
     if (!hasAnyData) return null;
     return Math.round((weightedSum / totalAllWeights) * 1000);
-  }, [targetExam, domainStats, user]);
+  }, [targetExam]);
 
   const focusedUnlocked = !!user && answeredCount >= FOCUSED_UNLOCK_THRESHOLD;
   const focusedUnlockedCached = localStorage.getItem('focusedUnlockedCache') === '1';
@@ -880,16 +871,16 @@ export default function Home() {
         items = poolItems.filter((q: any) => incorrectIds.has(q.questionId));
       } else {
         const threshold = focusTarget === 'below50' ? 0.50 : 0.70;
-        const weakDomains = new Set<string>(
-          domainStats.length === 0
-            ? targetDomains
-            : targetDomains.filter(domain => {
-                const stat = domainStats.find(s => s.tagId === domain);
-                if (!stat) return true;
-                const total = (stat.correctCount ?? 0) + (stat.incorrectCount ?? 0);
-                return total === 0 || (stat.correctCount ?? 0) / total < threshold;
-              })
-        );
+        const weakDomains = new Set<string>(((): string[] => {
+          const hist = readDomainHistory(targetExam);
+          return targetDomains.filter(domain => {
+            const sessions = hist[domain];
+            if (!sessions || sessions.length === 0) return true;
+            const correct = sessions.reduce((s, r) => s + r.correct, 0);
+            const total = sessions.reduce((s, r) => s + r.total, 0);
+            return total === 0 || correct / total < threshold;
+          });
+        })());
         items = poolItems.filter((q: any) => {
           const tags: string[] = q.tags ?? [];
           return tags.some(t => weakDomains.has(t)) || incorrectIds.has(q.questionId);
@@ -913,26 +904,19 @@ export default function Home() {
     finally { setFocusedLoading(false); }
   };
 
-  // ドメイン別成績（表示用）
-  // ログイン済み：API統計のみ（デバイス共通）
-  // ゲスト：ローカル履歴にフォールバック
+  // ドメイン別成績（直近10セッション分のローカル履歴を使用）
   const domains = useMemo(() => targetExam ? (EXAM_DOMAINS[targetExam] ?? []) : [], [targetExam]);
   const domainAccList = useMemo(() => {
     if (!targetExam) return [] as { correct: number; total: number; pct: number | null }[];
-    const hist = user ? {} : readDomainHistory(targetExam);
+    const hist = readDomainHistory(targetExam);
     return domains.map(d => {
       const sessions = hist[d];
-      if (sessions && sessions.length > 0) {
-        const correct = sessions.reduce((s, r) => s + r.correct, 0);
-        const total = sessions.reduce((s, r) => s + r.total, 0);
-        return { correct, total, pct: total > 0 ? Math.round(correct / total * 100) : null };
-      }
-      const stat = domainStats.find(s => s.tagId === d);
-      const correct = stat?.correctCount ?? 0;
-      const total = correct + (stat?.incorrectCount ?? 0);
+      if (!sessions || sessions.length === 0) return { correct: 0, total: 0, pct: null };
+      const correct = sessions.reduce((s, r) => s + r.correct, 0);
+      const total = sessions.reduce((s, r) => s + r.total, 0);
       return { correct, total, pct: total > 0 ? Math.round(correct / total * 100) : null };
     });
-  }, [targetExam, domainStats, domains, user]);
+  }, [targetExam, domains]);
 
   const hasPrimaryDraft = primaryMode === 'focused' ? hasFocusedDraft : hasQuickDraft;
   const resumePrimary = primaryMode === 'focused' ? resumeFocusedExercise : resumeQuickExercise;

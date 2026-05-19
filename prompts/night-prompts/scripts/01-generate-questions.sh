@@ -309,12 +309,18 @@ aws dynamodb query \
 EXISTING_QS_FILE=$(mktemp /tmp/existing_qs_XXXX.json)
 _COUNTS_TMP_EARLY=$(mktemp /tmp/domain_counts_XXXX.json)
 
-TAG_COUNT_TEXT=$(python3 - "$_EXISTING_TMP" "$EXISTING_QS_FILE" "$_COUNTS_TMP_EARLY" << 'PYEOF'
-import json, sys
+TAG_COUNT_TEXT=$(python3 - "$_EXISTING_TMP" "$EXISTING_QS_FILE" "$_COUNTS_TMP_EARLY" "$DOMAIN_STR" << 'PYEOF'
+import json, sys, re
 from collections import Counter, defaultdict
+
+def norm(s):
+    return re.sub(r'[\s　]+', ' ', s).strip()
 
 with open(sys.argv[1]) as f:
     data = json.load(f)
+
+# ドメイン名セット（正規化済み）― これ以外のタグは割り当て計算・プロンプト表示から除外
+domain_set = {norm(d.strip()) for d in sys.argv[4].split(',')} if len(sys.argv) > 4 else set()
 
 counts = Counter()
 domain_qs = defaultdict(list)
@@ -332,14 +338,19 @@ for item in data.get('Items', []):
         if qt:
             domain_qs[tag].append(qt)
 
-# QS データとカウントを直接ファイルに書き込む（巨大変数→grep パイプを避けるため）
+# ドメイン名のみのカウント（逆数割り当て計算用）
+domain_counts = {k: v for k, v in counts.items() if norm(k) in domain_set} if domain_set else dict(counts)
+
+# EXISTING_QS_FILE は全タグ保持（EXISTING_TEXTS のルックアップで使うため）
 with open(sys.argv[2], 'w', encoding='utf-8') as f:
     json.dump({k: v[-60:] for k, v in domain_qs.items()}, f, ensure_ascii=False)
+# _COUNTS_TMP_EARLY はドメイン名のみ（割り当て計算の入力）
 with open(sys.argv[3], 'w', encoding='utf-8') as f:
-    json.dump(dict(counts), f, ensure_ascii=False)
+    json.dump(domain_counts, f, ensure_ascii=False)
 
-if counts:
-    for k, v in sorted(counts.items(), key=lambda x: x[1]):
+# プロンプトへの表示もドメイン名のみ
+if domain_counts:
+    for k, v in sorted(domain_counts.items(), key=lambda x: x[1]):
         print(f'  {k}: {v}問')
 else:
     print('  （まだ問題がありません）')
