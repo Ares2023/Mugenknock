@@ -377,17 +377,27 @@ type DailyService = {
 function saveToEncyclopedia(svc: DailyService) {
   try {
     const jstDate = new Date(Date.now() + 9 * 3600 * 1000).toISOString().slice(0, 10);
+
     const stored = JSON.parse(localStorage.getItem('encyclopediaServices') ?? '{}');
     stored[svc.serviceId] = svc;
     localStorage.setItem('encyclopediaServices', JSON.stringify(stored));
-    // 今日のサービスとして記録（図鑑と同期するため）
-    if (localStorage.getItem('encyclopediaUnlockDate') !== jstDate) {
-      const unlocked = JSON.parse(localStorage.getItem('encyclopediaUnlocked') ?? '{}');
+
+    // 今日のサービスを常に encyclopediaUnlocked に記録（日付チェックでスキップしない）
+    const unlocked = JSON.parse(localStorage.getItem('encyclopediaUnlocked') ?? '{}');
+    if (!(svc.serviceId in unlocked)) {
       unlocked[svc.serviceId] = jstDate;
       localStorage.setItem('encyclopediaUnlocked', JSON.stringify(unlocked));
+    }
+
+    // 今日の初回解放日時を記録
+    if (localStorage.getItem('encyclopediaUnlockDate') !== jstDate) {
       localStorage.setItem('encyclopediaUnlockDate', jstDate);
     }
+
     localStorage.setItem('encyclopediaTodayServiceId', svc.serviceId);
+
+    // 図鑑が開かれていれば状態を即時更新させる
+    window.dispatchEvent(new CustomEvent('encyclopediaUpdated'));
   } catch {}
 }
 

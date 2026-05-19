@@ -48,14 +48,23 @@ export default function ServiceEncyclopedia() {
   const { lang } = useLanguage();
   const ja = lang === 'ja';
 
-  const [unlockedMap] = useState<Record<string, string>>(() => {
+  const [unlockedMap, setUnlockedMap] = useState<Record<string, string>>(() => {
     migrateIfNeeded();
     try { return JSON.parse(localStorage.getItem('encyclopediaUnlocked') ?? '{}'); } catch { return {}; }
   });
-  const [storedServices] = useState<Record<string, EncyclopediaService>>(() => {
+  const [storedServices, setStoredServices] = useState<Record<string, EncyclopediaService>>(() => {
     try { return JSON.parse(localStorage.getItem('encyclopediaServices') ?? '{}'); } catch { return {}; }
   });
   const [selected, setSelected] = useState<EncyclopediaService | null>(null);
+
+  useEffect(() => {
+    const refresh = () => {
+      try { setUnlockedMap(JSON.parse(localStorage.getItem('encyclopediaUnlocked') ?? '{}')); } catch {}
+      try { setStoredServices(JSON.parse(localStorage.getItem('encyclopediaServices') ?? '{}')); } catch {}
+    };
+    window.addEventListener('encyclopediaUpdated', refresh);
+    return () => window.removeEventListener('encyclopediaUpdated', refresh);
+  }, []);
 
   const todaySvc = getDailyService();
   const todayId = localStorage.getItem('encyclopediaTodayServiceId');
@@ -117,7 +126,7 @@ export default function ServiceEncyclopedia() {
           <div style={{ width: 44, height: 44, flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'var(--color-bg-main)', borderRadius: 10 }}>
             {todayUnlocked && todayStoreData
               ? renderIcon(todayStoreData, 36)
-              : <span style={{ fontSize: 22 }}>🔓</span>}
+              : <IconLock size={22} />}
           </div>
           <div>
             <div style={{ fontWeight: 800, fontSize: 'var(--font-size-md)', color: 'var(--color-text-main)' }}>
