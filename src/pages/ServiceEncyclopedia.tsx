@@ -48,17 +48,14 @@ export default function ServiceEncyclopedia() {
   const { lang } = useLanguage();
   const ja = lang === 'ja';
 
-  const [unlockedMap, setUnlockedMap] = useState<Record<string, string>>({});
-  const [storedServices, setStoredServices] = useState<Record<string, EncyclopediaService>>({});
-  const [selected, setSelected] = useState<EncyclopediaService | null>(null);
-
-  useEffect(() => {
+  const [unlockedMap] = useState<Record<string, string>>(() => {
     migrateIfNeeded();
-    try {
-      setUnlockedMap(JSON.parse(localStorage.getItem('encyclopediaUnlocked') ?? '{}'));
-      setStoredServices(JSON.parse(localStorage.getItem('encyclopediaServices') ?? '{}'));
-    } catch {}
-  }, []);
+    try { return JSON.parse(localStorage.getItem('encyclopediaUnlocked') ?? '{}'); } catch { return {}; }
+  });
+  const [storedServices] = useState<Record<string, EncyclopediaService>>(() => {
+    try { return JSON.parse(localStorage.getItem('encyclopediaServices') ?? '{}'); } catch { return {}; }
+  });
+  const [selected, setSelected] = useState<EncyclopediaService | null>(null);
 
   const todaySvc = getDailyService();
   const todayKey = unlockKey(todaySvc);
