@@ -1,4 +1,5 @@
 import React, { useEffect, useState, useMemo, useRef, useCallback } from 'react';
+import { createPortal } from 'react-dom';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { useLanguage } from '../contexts/LanguageContext';
@@ -1093,6 +1094,9 @@ export default function Home() {
                         </>
                       ) : (
                         <>
+                          <Button variant="outline" size="sm" fullWidth style={{ height: 36, marginBottom: 6, borderColor: '#009E9E', color: '#009E9E' }} onClick={() => { setShowFocusedMenu(false); startFocusedExercise(); }}>
+                            {ja ? '新規に開始（しっかり対策）' : 'Start New (Focused)'}
+                          </Button>
                           <div style={{ textAlign: 'center', fontSize: 10, color: 'var(--color-text-light)', marginBottom: 4 }}>{ja ? 'ランダム出題（設定に従う）' : 'Random questions (uses settings)'}</div>
                           <button disabled={!targetExam || quickLoading} onClick={() => { setShowFocusedMenu(false); startQuickExercise(); }} style={{ width: '100%', height: 36, padding: '0 12px', border: '1.5px solid var(--color-accent)', borderRadius: 'var(--border-radius-full)', cursor: (!targetExam || quickLoading) ? 'default' : 'pointer', background: 'transparent', color: 'var(--color-accent)', fontWeight: 600, fontSize: 'var(--font-size-sm)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                             {ja ? `サクッと演習 (${loadQuickPrefs().questionCount ?? 5}問)` : `Quick (${loadQuickPrefs().questionCount ?? 5}Q)`}
@@ -1220,6 +1224,9 @@ export default function Home() {
                   </>
                 ) : (
                   <>
+                    <Button variant="outline" fullWidth style={{ height: 44, marginBottom: 8, borderColor: '#009E9E', color: '#009E9E' }} onClick={() => { setShowFocusedMenu(false); startFocusedExercise(); }}>
+                      {ja ? '新規に開始（しっかり対策）' : 'Start New (Focused)'}
+                    </Button>
                     <div style={{ textAlign: 'center', fontSize: 11, color: 'var(--color-text-light)', marginBottom: 4 }}>{ja ? 'ランダム出題（設定に従う）' : 'Random questions (uses settings)'}</div>
                     <button disabled={!targetExam || quickLoading} onClick={() => { setShowFocusedMenu(false); startQuickExercise(); }} style={{ width: '100%', height: 44, border: '1.5px solid var(--color-accent)', borderRadius: 'var(--border-radius-full)', cursor: (!targetExam || quickLoading) ? 'default' : 'pointer', background: 'transparent', color: 'var(--color-accent)', fontWeight: 600, fontSize: 'var(--font-size-base)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                       {ja ? 'サクッと演習' : 'Quick Practice'}
@@ -1229,7 +1236,7 @@ export default function Home() {
               </div>
             </>
           )}
-          <div style={{ position: 'fixed', bottom: 56, left: 0, right: 0, zIndex: 150, background: 'var(--color-bg-white)', borderTop: '1px solid var(--color-border)', padding: '8px 12px', display: 'flex', gap: 6, boxShadow: '0 -2px 8px rgba(0,0,0,0.08)', transform: 'translateZ(0)' }}>
+          {createPortal(<div style={{ position: 'fixed', bottom: 56, left: 0, right: 0, zIndex: 150, background: 'var(--color-bg-white)', borderTop: '1px solid var(--color-border)', padding: '8px 12px', display: 'flex', gap: 6, boxShadow: '0 -2px 8px rgba(0,0,0,0.08)' }}>
             {hasPrimaryDraft ? (
               /* スプリットピル：続きから再開 + ↑ */
               <div style={{ flex: 1, display: 'flex', height: 44, borderRadius: 22, overflow: 'hidden', opacity: !targetExam ? 0.5 : 1 }}>
@@ -1300,7 +1307,7 @@ export default function Home() {
             >
               <IconSettings size={18} />
             </button>
-          </div>
+          </div>, document.body)}
         </>
       )}
 
@@ -1329,20 +1336,6 @@ export default function Home() {
               <button onClick={() => setShowQuickModal(false)} style={{ border: 'none', background: 'none', fontSize: 20, cursor: 'pointer', color: 'var(--color-text-sub)', padding: '4px 8px', lineHeight: 1 }}>✕</button>
             </div>
             <div style={{ marginBottom: 20 }}>
-              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '14px 0', borderBottom: '1px solid var(--color-border)' }}>
-                <div>
-                  <div style={{ fontWeight: 500, fontSize: 'var(--font-size-base)', color: 'var(--color-text-main)' }}>{ja ? '問題数' : 'Question Count'}</div>
-                  <div style={{ fontSize: 'var(--font-size-xs)', color: 'var(--color-text-light)', marginTop: 2 }}>{ja ? '1〜20問' : '1–20'}</div>
-                </div>
-                <input
-                  type="number" min={1} max={20}
-                  value={draftPrefs.questionCount ?? 5}
-                  onChange={e => setDraftPrefs(p => ({ ...p, questionCount: Math.min(20, Math.max(1, parseInt(e.target.value) || 5)) }))}
-                  style={{ width: 64, padding: '7px 10px', border: '1px solid var(--color-border)', borderRadius: 'var(--border-radius-md)', fontSize: 'var(--font-size-base)', textAlign: 'center', outline: 'none', background: 'var(--color-bg-white)', color: 'var(--color-text-main)' }}
-                  onFocus={e => e.currentTarget.style.borderColor = 'var(--color-primary)'}
-                  onBlur={e => e.currentTarget.style.borderColor = 'var(--color-border)'}
-                />
-              </div>
               {targetExam && (EXAM_DOMAINS[targetExam] ?? []).length > 0 && (
                 <div style={{ padding: '14px 0', borderBottom: '1px solid var(--color-border)' }}>
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
