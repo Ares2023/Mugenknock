@@ -401,7 +401,20 @@ function saveToEncyclopedia(svc: DailyService) {
   } catch {}
 }
 
-function TodayServiceSection({ lang }: { lang: string }) {
+function syncEncyclopediaToServer(userId: string): void {
+  try {
+    const unlocks = JSON.parse(localStorage.getItem('encyclopediaUnlocked') ?? '{}');
+    const unlockDate = localStorage.getItem('encyclopediaUnlockDate');
+    const todayServiceId = localStorage.getItem('encyclopediaTodayServiceId');
+    fetch(`${API_ENDPOINT}/users/me/encyclopedia-unlocks`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ userId, unlocks, unlockDate, todayServiceId }),
+    }).catch(() => {});
+  } catch {}
+}
+
+function TodayServiceSection({ lang, userId }: { lang: string; userId?: string }) {
   const [service, setService] = useState<DailyService | null>(null);
   const [loading, setLoading] = useState(true);
 
@@ -409,13 +422,26 @@ function TodayServiceSection({ lang }: { lang: string }) {
     const jstDate = new Date(Date.now() + 9 * 3600 * 1000).toISOString().slice(0, 10);
     const cacheKey = `daily_service_${jstDate}`;
     const cached = getCached<DailyService>(cacheKey);
-    if (cached !== null) { setService(cached); setLoading(false); saveToEncyclopedia(cached); return; }
+    if (cached !== null) {
+      setService(cached); setLoading(false);
+      saveToEncyclopedia(cached);
+      if (userId) syncEncyclopediaToServer(userId);
+      return;
+    }
     fetch(`${API_ENDPOINT}/daily-service`)
       .then(r => r.json())
-      .then(d => { const s = d.service ?? null; if (s) { setCached(cacheKey, s, 60 * 60 * 1000); saveToEncyclopedia(s); } setService(s); })
+      .then(d => {
+        const s = d.service ?? null;
+        if (s) {
+          setCached(cacheKey, s, 60 * 60 * 1000);
+          saveToEncyclopedia(s);
+          if (userId) syncEncyclopediaToServer(userId);
+        }
+        setService(s);
+      })
       .catch(() => setService(null))
       .finally(() => setLoading(false));
-  }, []);
+  }, [userId]);
 
   const calIcon = (
     <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ color: 'var(--color-primary)', flexShrink: 0 }}>
@@ -1374,7 +1400,7 @@ export default function Home() {
       )}
 
       {/* ── 日めくりAWSサービス ── */}
-      <TodayServiceSection lang={lang} />
+      <TodayServiceSection lang={lang} userId={user?.userId} />
 
       {/* ── 非ログイン時バナー ── */}
       {!user && (

@@ -23,6 +23,7 @@ export const CATALOG: Category[] = [
     services: [
       { name: 'Elastic Container Service',            serviceIds: ['svc-ecs-12'] },
       { name: 'Elastic Kubernetes Service',           serviceIds: ['svc-eks-13'] },
+      { name: 'AWS Fargate',                          serviceIds: ['svc-fargate-37'] },
       { name: 'Red Hat OpenShift Service on AWS' },
       { name: 'Elastic Container Registry' },
     ],
@@ -75,6 +76,7 @@ export const CATALOG: Category[] = [
     category: 'ネットワーキングとコンテンツ配信',
     services: [
       { name: 'VPC',                                  serviceIds: ['svc-vpc-8'] },
+      { name: 'Elastic Load Balancing',              serviceIds: ['svc-elb-35'] },
       { name: 'CloudFront',                           serviceIds: ['b3d71a09-b495-4573-933f-34be6cbdb9b5'] },
       { name: 'API Gateway',                          serviceIds: ['svc-api-gateway-15'] },
       { name: 'Direct Connect' },
@@ -140,7 +142,7 @@ export const CATALOG: Category[] = [
   {
     category: '管理とガバナンス',
     services: [
-      { name: 'AWS Organizations' },
+      { name: 'AWS Organizations',                    serviceIds: ['svc-organizations-38'] },
       { name: 'CloudWatch',                           serviceIds: ['svc-cloudwatch-10'] },
       { name: 'AWS Auto Scaling' },
       { name: 'CloudFormation',                       serviceIds: ['svc-cloudformation-16'] },
@@ -224,7 +226,7 @@ export const CATALOG: Category[] = [
   {
     category: '分析',
     services: [
-      { name: 'Athena' },
+      { name: 'Athena',                               serviceIds: ['svc-athena-36'] },
       { name: 'Amazon Redshift',                      serviceIds: ['svc-redshift-19'] },
       { name: 'CloudSearch' },
       { name: 'Amazon OpenSearch Service' },
@@ -257,7 +259,7 @@ export const CATALOG: Category[] = [
       { name: 'Amazon Macie' },
       { name: 'IAM Identity Center',                  serviceIds: ['svc-iam-identity-center-27'] },
       { name: 'Certificate Manager' },
-      { name: 'Key Management Service' },
+      { name: 'Key Management Service',              serviceIds: ['svc-kms-34'] },
       { name: 'CloudHSM' },
       { name: 'Directory Service' },
       { name: 'AWS Firewall Manager' },

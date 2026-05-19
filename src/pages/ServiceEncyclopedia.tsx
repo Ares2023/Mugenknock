@@ -1,7 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { useLanguage } from '../contexts/LanguageContext';
+import { useAuth } from '../contexts/AuthContext';
 import { IconLock, IconLightbulb } from '../components/Icons';
 import { CATALOG, getDailyService, ServiceEntry } from '../data/awsServiceCatalog';
+import { API_ENDPOINT } from '../constants';
 
 type EncyclopediaService = {
   serviceId: string;
@@ -47,6 +49,7 @@ function renderIcon(service: EncyclopediaService, size: number): React.ReactNode
 export default function ServiceEncyclopedia() {
   const { lang } = useLanguage();
   const ja = lang === 'ja';
+  const { user } = useAuth();
 
   const [unlockedMap, setUnlockedMap] = useState<Record<string, string>>(() => {
     migrateIfNeeded();
@@ -65,6 +68,32 @@ export default function ServiceEncyclopedia() {
     window.addEventListener('encyclopediaUpdated', refresh);
     return () => window.removeEventListener('encyclopediaUpdated', refresh);
   }, []);
+
+  // サーバーから解放済みデータを取得してローカルとマージ
+  useEffect(() => {
+    if (!user?.userId) return;
+    fetch(`${API_ENDPOINT}/users/me/encyclopedia-unlocks?userId=${encodeURIComponent(user.userId)}`)
+      .then(r => r.json())
+      .then(data => {
+        if (!data.unlocks || typeof data.unlocks !== 'object') return;
+        const local = (() => { try { return JSON.parse(localStorage.getItem('encyclopediaUnlocked') ?? '{}'); } catch { return {}; } })();
+        const merged: Record<string, string> = { ...data.unlocks, ...local };
+        const changed = Object.keys(merged).some(k => !(k in local));
+        if (changed) {
+          localStorage.setItem('encyclopediaUnlocked', JSON.stringify(merged));
+          setUnlockedMap(merged);
+          // サーバーにもマージ結果を反映
+          const unlockDate = localStorage.getItem('encyclopediaUnlockDate') ?? data.unlockDate;
+          const todayServiceId = localStorage.getItem('encyclopediaTodayServiceId') ?? data.todayServiceId;
+          fetch(`${API_ENDPOINT}/users/me/encyclopedia-unlocks`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ userId: user.userId, unlocks: merged, unlockDate, todayServiceId }),
+          }).catch(() => {});
+        }
+      })
+      .catch(() => {});
+  }, [user?.userId]);
 
   const todaySvc = getDailyService();
   const todayId = localStorage.getItem('encyclopediaTodayServiceId');

@@ -1628,4 +1628,48 @@ app.put('/admin/settings/theme', requireAdmin, async (req, res) => {
   }
 });
 
+// ── Encyclopedia unlocks sync ──
+app.get('/users/me/encyclopedia-unlocks', async (req, res) => {
+  try {
+    const { userId } = req.query;
+    if (!userId) return res.status(400).json({ error: 'userId required' });
+    const docClient = getClient();
+    const result = await docClient.send(new GetCommand({
+      TableName: 'EncyclopediaUnlocks',
+      Key: { userId },
+    }));
+    if (!result.Item) return res.json({ unlocks: {}, unlockDate: null, todayServiceId: null });
+    res.json({
+      unlocks: JSON.parse(result.Item.unlocks || '{}'),
+      unlockDate: result.Item.unlockDate || null,
+      todayServiceId: result.Item.todayServiceId || null,
+    });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+app.post('/users/me/encyclopedia-unlocks', async (req, res) => {
+  try {
+    const { userId, unlocks, unlockDate, todayServiceId } = req.body;
+    if (!userId) return res.status(400).json({ error: 'userId required' });
+    const docClient = getClient();
+    await docClient.send(new PutCommand({
+      TableName: 'EncyclopediaUnlocks',
+      Item: {
+        userId,
+        unlocks: JSON.stringify(unlocks || {}),
+        unlockDate: unlockDate || null,
+        todayServiceId: todayServiceId || null,
+        updatedAt: new Date().toISOString(),
+      },
+    }));
+    res.json({ success: true });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
 module.exports = app;
