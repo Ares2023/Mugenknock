@@ -1392,12 +1392,32 @@ export default function Home() {
         >
           <div style={{ background: 'var(--color-bg-white)', borderRadius: 'var(--border-radius-lg)', padding: '24px 24px 20px', width: '100%', maxWidth: 420, boxShadow: 'var(--box-shadow-md)', maxHeight: '90vh', overflowY: 'auto' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 }}>
-              <h3 style={{ margin: 0, fontSize: 'var(--font-size-h3)', fontWeight: 700, color: 'var(--color-text-main)' }}>
+              <h3 style={{ margin: 0, fontSize: 'var(--font-size-h3)', fontWeight: 700, color: 'var(--color-accent)' }}>
                 {ja ? 'サクッと演習 設定' : 'Quick Practice Settings'}
               </h3>
               <button onClick={() => setShowQuickModal(false)} style={{ border: 'none', background: 'none', fontSize: 20, cursor: 'pointer', color: 'var(--color-text-sub)', padding: '4px 8px', lineHeight: 1 }}>✕</button>
             </div>
             <div style={{ marginBottom: 20 }}>
+              {/* 出題数 */}
+              <div style={{ padding: '14px 0', borderBottom: '1px solid var(--color-border)' }}>
+                <div style={{ fontWeight: 500, fontSize: 'var(--font-size-base)', color: 'var(--color-text-main)', marginBottom: 8 }}>
+                  {ja ? '出題数' : 'Question Count'}
+                </div>
+                <div style={{ display: 'flex', gap: 8 }}>
+                  {[5, 10, 20].map(n => {
+                    const sel = (draftPrefs.questionCount ?? 5) === n;
+                    return (
+                      <button
+                        key={n}
+                        onClick={() => setDraftPrefs(p => ({ ...p, questionCount: n }))}
+                        style={{ flex: 1, height: 36, border: `1.5px solid ${sel ? 'var(--color-accent)' : 'var(--color-border)'}`, borderRadius: 'var(--border-radius-full)', cursor: 'pointer', background: sel ? 'var(--color-accent)' : 'transparent', color: sel ? 'var(--color-btn-primary-text)' : 'var(--color-text-sub)', fontWeight: 600, fontSize: 'var(--font-size-sm)', transition: 'all 0.15s' }}
+                      >
+                        {n}{ja ? '問' : 'Q'}
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
               {targetExam && (EXAM_DOMAINS[targetExam] ?? []).length > 0 && (
                 <div style={{ padding: '14px 0', borderBottom: '1px solid var(--color-border)' }}>
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
@@ -1438,28 +1458,32 @@ export default function Home() {
                   })}
                 </div>
               )}
-              {([
-                ['unansweredOnly', ja ? '未回答のみ' : 'Unanswered Only', ja ? '一度も回答していない問題のみ出題' : 'Only questions not yet answered'],
-                ['incorrectOnly',  ja ? '不正解のみ'  : 'Incorrect Only',  ja ? '過去に不正解だった問題のみ出題'   : 'Only previously incorrect questions'],
-                ['bookmarkOnly',   ja ? 'ブックマークのみ' : 'Bookmarked Only', ja ? 'ブックマークした問題のみ出題'  : 'Only bookmarked questions'],
-              ] as [string, string, string][]).map(([key, label, desc], i, arr) => {
-                const on = !!(draftPrefs[key]);
-                return (
-                  <div key={key} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '14px 0', borderBottom: i < arr.length - 1 ? '1px solid var(--color-border)' : 'none' }}>
-                    <div>
-                      <div style={{ fontWeight: 500, fontSize: 'var(--font-size-base)', color: 'var(--color-text-main)' }}>{label}</div>
-                      <div style={{ fontSize: 'var(--font-size-xs)', color: 'var(--color-text-light)', marginTop: 2 }}>{desc}</div>
-                    </div>
-                    <button
-                      onClick={() => setDraftPrefs(p => ({ ...p, [key]: !on }))}
-                      aria-label={label}
-                      style={{ display: 'inline-flex', alignItems: 'center', width: 44, height: 26, borderRadius: 13, border: 'none', cursor: 'pointer', background: on ? 'var(--color-primary)' : 'var(--color-border)', transition: 'background 0.2s', flexShrink: 0, position: 'relative', padding: 0 }}
-                    >
-                      <span style={{ position: 'absolute', width: 20, height: 20, borderRadius: '50%', background: 'white', boxShadow: '0 1px 3px rgba(0,0,0,0.25)', left: on ? 22 : 2, transition: 'left 0.2s' }} />
-                    </button>
-                  </div>
-                );
-              })}
+              <div style={{ padding: '14px 0' }}>
+                <div style={{ fontWeight: 500, fontSize: 'var(--font-size-base)', color: 'var(--color-text-main)', marginBottom: 8 }}>
+                  {ja ? '重点フィルタ' : 'Focus Filter'}
+                </div>
+                {([
+                  ['unansweredOnly', ja ? '未回答のみ' : 'Unanswered Only', ja ? '一度も回答していない問題のみ出題' : 'Only questions not yet answered'],
+                  ['incorrectOnly',  ja ? '不正解のみ'  : 'Incorrect Only',  ja ? '過去に不正解だった問題のみ出題'   : 'Only previously incorrect questions'],
+                  ['bookmarkOnly',   ja ? 'ブックマークのみ' : 'Bookmarked Only', ja ? 'ブックマークした問題のみ出題'  : 'Only bookmarked questions'],
+                ] as [string, string, string][]).map(([key, label, desc]) => {
+                  const on = !!(draftPrefs[key]);
+                  return (
+                    <label key={key} style={{ display: 'flex', alignItems: 'flex-start', gap: 10, padding: '8px 0', cursor: 'pointer' }}>
+                      <input
+                        type="checkbox"
+                        checked={on}
+                        onChange={() => setDraftPrefs(p => ({ ...p, [key]: !on }))}
+                        style={{ width: 16, height: 16, flexShrink: 0, marginTop: 3, accentColor: 'var(--color-accent)' }}
+                      />
+                      <div>
+                        <div style={{ fontSize: 'var(--font-size-sm)', fontWeight: on ? 600 : 400, color: 'var(--color-text-main)' }}>{label}</div>
+                        <div style={{ fontSize: 'var(--font-size-xs)', color: 'var(--color-text-light)', marginTop: 1 }}>{desc}</div>
+                      </div>
+                    </label>
+                  );
+                })}
+              </div>
             </div>
             <div style={{ fontSize: 'var(--font-size-xs)', color: 'var(--color-text-light)', marginBottom: 16 }}>
               {ja ? '※ AI確認済み問題のみが常に対象です' : '* AI-verified questions are always included'}

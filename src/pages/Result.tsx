@@ -66,7 +66,7 @@ export default function Result() {
         padding="var(--spacing-xl) var(--spacing-lg)"
         style={{
           textAlign: 'center',
-          background: isPassed ? 'var(--color-primary-light)' : '#fdf3f1',
+          background: isPassed ? 'var(--color-primary-light)' : 'var(--color-feedback-incorrect-bg)',
           borderColor: isPassed ? 'var(--color-primary)' : 'var(--color-danger)',
           marginBottom: 'var(--spacing-xl)',
         }}
@@ -127,7 +127,7 @@ export default function Result() {
 
               {/* 展開：選択肢・解説 */}
               {expanded && (
-                <div style={{ padding: 'var(--spacing-lg) var(--spacing-xl)', borderTop: '1px solid var(--color-border)', background: '#fbfbfb', fontSize: 'var(--font-size-base)' }}>
+                <div style={{ padding: 'var(--spacing-lg) var(--spacing-xl)', borderTop: '1px solid var(--color-border)', background: 'var(--color-bg-main)', fontSize: 'var(--font-size-base)' }}>
                   <div style={{ marginBottom: 'var(--spacing-lg)', display: 'flex', flexDirection: 'column', gap: 'var(--spacing-sm)' }}>
                     {q.choices?.map((c: string, ci: number) => {
                       const correct = q.correctAnswers?.includes(c);
@@ -163,7 +163,7 @@ export default function Result() {
                         const links = getServiceLinks(q.tags ?? []);
                         if (links.length === 0) return null;
                         return (
-                          <div style={{ marginTop: 10, paddingTop: 8, borderTop: '1px solid rgba(0,0,0,0.08)', display: 'flex', flexWrap: 'wrap', gap: '6px 10px', alignItems: 'center' }}>
+                          <div style={{ marginTop: 10, paddingTop: 8, borderTop: '1px solid var(--color-border)', display: 'flex', flexWrap: 'wrap', gap: '6px 10px', alignItems: 'center' }}>
                             <span style={{ fontSize: 'var(--font-size-xs)', color: 'var(--color-text-light)', flexShrink: 0 }}>
                               {lang === 'ja' ? 'AWS公式' : 'AWS Docs'}:
                             </span>

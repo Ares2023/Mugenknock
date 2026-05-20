@@ -650,7 +650,7 @@ export default function ExerciseSession() {
                 const links = getServiceLinks(currentQuestion.tags ?? []);
                 if (links.length === 0) return null;
                 return (
-                  <div style={{ marginTop: 12, paddingTop: 10, borderTop: '1px solid rgba(0,0,0,0.08)', display: 'flex', flexWrap: 'wrap', gap: '6px 10px', alignItems: 'center' }}>
+                  <div style={{ marginTop: 12, paddingTop: 10, borderTop: '1px solid var(--color-border)', display: 'flex', flexWrap: 'wrap', gap: '6px 10px', alignItems: 'center' }}>
                     <span style={{ fontSize: 'var(--font-size-xs)', color: 'var(--color-text-light)', flexShrink: 0 }}>
                       {lang === 'ja' ? 'AWS公式' : 'AWS Docs'}:
                     </span>

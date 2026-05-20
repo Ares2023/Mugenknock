@@ -484,7 +484,7 @@ export default function Account() {
                         )}
                       </div>
                       {isConfirming && (
-                        <div style={{ marginTop: 10, padding: '10px 12px', background: '#fdf3f1', borderRadius: 'var(--border-radius-md)', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8 }}>
+                        <div style={{ marginTop: 10, padding: '10px 12px', background: 'var(--color-feedback-incorrect-bg)', borderRadius: 'var(--border-radius-md)', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8 }}>
                           <span style={{ fontSize: 'var(--font-size-sm)', color: 'var(--color-danger)', fontWeight: 500 }}>
                             {ja ? `${et} のデータを削除しますか？` : `Delete all data for ${et}?`}
                           </span>
