@@ -1450,7 +1450,7 @@ export default function Home() {
                         type="checkbox"
                         checked={on}
                         onChange={() => setDraftPrefs(p => ({ ...p, [key]: !on }))}
-                        style={{ width: 16, height: 16, flexShrink: 0, marginTop: 3, accentColor: 'var(--color-accent)' }}
+                        style={{ width: 16, height: 16, flexShrink: 0, marginTop: 3, accentColor: 'var(--color-primary)' }}
                       />
                       <div>
                         <div style={{ fontSize: 'var(--font-size-sm)', fontWeight: on ? 600 : 400, color: 'var(--color-text-main)' }}>{label}</div>
@@ -1518,7 +1518,7 @@ export default function Home() {
                     type="checkbox"
                     checked={draftFocusedPrefs.focusIncorrect !== false}
                     onChange={() => setDraftFocusedPrefs(p => ({ ...p, focusIncorrect: p.focusIncorrect === false }))}
-                    style={{ width: 16, height: 16, flexShrink: 0, marginTop: 3, accentColor: '#009E9E' }}
+                    style={{ width: 16, height: 16, flexShrink: 0, marginTop: 3, accentColor: 'var(--color-primary)' }}
                   />
                   <div>
                     <div style={{ fontSize: 'var(--font-size-sm)', fontWeight: 600, color: 'var(--color-text-main)' }}>
@@ -1548,7 +1548,7 @@ export default function Home() {
                         name="focusDomain"
                         checked={selected}
                         onChange={() => setDraftFocusedPrefs(p => ({ ...p, focusDomain: val }))}
-                        style={{ width: 16, height: 16, flexShrink: 0, marginTop: 3, accentColor: '#009E9E' }}
+                        style={{ width: 16, height: 16, flexShrink: 0, marginTop: 3, accentColor: 'var(--color-primary)' }}
                       />
                       <div>
                         <div style={{ fontSize: 'var(--font-size-sm)', fontWeight: selected ? 600 : 400, color: 'var(--color-text-main)' }}>{label}</div>
