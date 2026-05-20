@@ -1512,6 +1512,26 @@ export default function Home() {
               <button onClick={() => setShowFocusedModal(false)} style={{ border: 'none', background: 'none', fontSize: 20, cursor: 'pointer', color: 'var(--color-text-sub)', padding: '4px 8px', lineHeight: 1 }}>✕</button>
             </div>
             <div style={{ marginBottom: 20 }}>
+              {/* 出題数 */}
+              <div style={{ padding: '14px 0', borderBottom: '1px solid var(--color-border)' }}>
+                <div style={{ fontWeight: 500, fontSize: 'var(--font-size-base)', color: 'var(--color-text-main)', marginBottom: 8 }}>
+                  {ja ? '出題数' : 'Question Count'}
+                </div>
+                <div style={{ display: 'flex', gap: 8 }}>
+                  {[5, 10, 20, 30].map(n => {
+                    const sel = (draftFocusedPrefs.questionCount ?? 5) === n;
+                    return (
+                      <button
+                        key={n}
+                        onClick={() => setDraftFocusedPrefs(p => ({ ...p, questionCount: n }))}
+                        style={{ flex: 1, height: 36, border: `1.5px solid ${sel ? '#009E9E' : 'var(--color-border)'}`, borderRadius: 'var(--border-radius-full)', cursor: 'pointer', background: sel ? '#009E9E' : 'transparent', color: sel ? '#fff' : 'var(--color-text-sub)', fontWeight: 600, fontSize: 'var(--font-size-sm)', transition: 'all 0.15s' }}
+                      >
+                        {n}{ja ? '問' : 'Q'}
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
               {/* 不正解問題フィルタ */}
               <div style={{ padding: '14px 0', borderBottom: '1px solid var(--color-border)' }}>
                 <div style={{ fontWeight: 500, fontSize: 'var(--font-size-base)', color: 'var(--color-text-main)', marginBottom: 8 }}>
@@ -1535,7 +1555,7 @@ export default function Home() {
                 </label>
               </div>
               {/* 苦手ドメインフィルタ */}
-              <div style={{ padding: '14px 0', borderBottom: '1px solid var(--color-border)' }}>
+              <div style={{ padding: '14px 0' }}>
                 <div style={{ fontWeight: 500, fontSize: 'var(--font-size-base)', color: 'var(--color-text-main)', marginBottom: 8 }}>
                   {ja ? '苦手ドメインフィルタ' : 'Weak Domain Filter'}
                 </div>
@@ -1561,26 +1581,6 @@ export default function Home() {
                     </label>
                   );
                 })}
-              </div>
-              {/* 出題数 */}
-              <div style={{ padding: '14px 0' }}>
-                <div style={{ fontWeight: 500, fontSize: 'var(--font-size-base)', color: 'var(--color-text-main)', marginBottom: 8 }}>
-                  {ja ? '出題数' : 'Question Count'}
-                </div>
-                <div style={{ display: 'flex', gap: 8 }}>
-                  {[5, 10, 20, 30].map(n => {
-                    const sel = (draftFocusedPrefs.questionCount ?? 5) === n;
-                    return (
-                      <button
-                        key={n}
-                        onClick={() => setDraftFocusedPrefs(p => ({ ...p, questionCount: n }))}
-                        style={{ flex: 1, height: 36, border: `1.5px solid ${sel ? '#009E9E' : 'var(--color-border)'}`, borderRadius: 'var(--border-radius-full)', cursor: 'pointer', background: sel ? '#009E9E' : 'transparent', color: sel ? '#fff' : 'var(--color-text-sub)', fontWeight: 600, fontSize: 'var(--font-size-sm)', transition: 'all 0.15s' }}
-                      >
-                        {n}{ja ? '問' : 'Q'}
-                      </button>
-                    );
-                  })}
-                </div>
               </div>
             </div>
             <Button
