@@ -292,7 +292,7 @@ export default function ExamSetup() {
   const lastExam = examSessions.length > 0 ? examSessions[0] : null;
 
   return (
-    <div style={{ maxWidth: 1100, margin: '0 auto', padding: 'var(--spacing-xl) var(--spacing-lg)' }} className="page-container">
+    <div style={{ maxWidth: 820, margin: '0 auto', padding: 'var(--spacing-xl) var(--spacing-lg)' }} className="page-container">
 
       {showHint && (
         <div className="fade-slide-in" style={{

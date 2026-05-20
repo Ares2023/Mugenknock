@@ -954,7 +954,7 @@ export default function Home() {
   const startPrimary = primaryMode === 'focused' ? startFocusedExercise : startQuickExercise;
 
   return (
-    <div style={{ maxWidth: 1100, margin: '0 auto', padding: 'var(--spacing-lg) var(--spacing-lg)' }} className="page-container">
+    <div style={{ maxWidth: 820, margin: '0 auto', padding: 'var(--spacing-lg) var(--spacing-lg)' }} className="page-container">
 
       {/* ── 成績セクションヘッダー ── */}
       {user && (
