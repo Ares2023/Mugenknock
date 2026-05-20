@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef, useMemo } from 'react';
+import { createPortal } from 'react-dom';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { API_ENDPOINT, EXAM_CONFIGS, PASS_RATE } from '../constants';
 import { deleteCached } from '../utils/cache';
@@ -513,29 +514,41 @@ export default function ExamSession() {
         </div>
       </Card>
 
-      {isMobile && (
-        <div style={{ position: 'fixed', bottom: 56, left: 0, right: 0, zIndex: 150, background: 'var(--color-bg-white)', borderTop: '1px solid var(--color-border)', padding: '8px 12px', display: 'flex', gap: 8, boxShadow: '0 -2px 8px rgba(0,0,0,0.08)', transform: 'translateZ(0)' }}>
-          <button
-            disabled={currentIndex === 0}
-            onClick={() => setCurrentIndex(i => Math.max(0, i - 1))}
-            style={{ flex: 1, height: 44, border: '1.5px solid var(--color-primary)', borderRadius: 22, background: 'transparent', color: 'var(--color-primary)', fontWeight: 600, fontSize: 'var(--font-size-base)', cursor: currentIndex === 0 ? 'default' : 'pointer', opacity: currentIndex === 0 ? 0.4 : 1 }}
-          >
-            {lang === 'ja' ? '前へ' : 'Prev'}
-          </button>
-          <button
-            disabled={currentIndex === questions.length - 1}
-            onClick={handleNext}
-            style={{ flex: 1, height: 44, border: '1.5px solid var(--color-primary)', borderRadius: 22, background: 'transparent', color: 'var(--color-primary)', fontWeight: 600, fontSize: 'var(--font-size-base)', cursor: currentIndex === questions.length - 1 ? 'default' : 'pointer', opacity: currentIndex === questions.length - 1 ? 0.4 : 1 }}
-          >
-            {lang === 'ja' ? '次へ' : 'Next'}
-          </button>
-          <button
-            onClick={() => setShowConfirm(true)}
-            style={{ flex: 1, height: 44, border: 'none', borderRadius: 22, background: 'var(--color-accent)', color: 'var(--color-btn-primary-text)', fontWeight: 600, fontSize: 'var(--font-size-base)', cursor: 'pointer' }}
-          >
-            {lang === 'ja' ? '提出' : 'Submit'}
-          </button>
-        </div>
+      {createPortal(
+        isMobile ? (
+          <div style={{ position: 'fixed', bottom: 56, left: 0, right: 0, zIndex: 150, padding: '8px 12px', display: 'flex', gap: 8 }}>
+            <button
+              disabled={currentIndex === 0}
+              onClick={() => setCurrentIndex(i => Math.max(0, i - 1))}
+              style={{ flex: 1, height: 44, border: '1.5px solid var(--color-primary)', borderRadius: 22, background: 'var(--color-bg-white)', color: 'var(--color-primary)', fontWeight: 600, fontSize: 'var(--font-size-base)', cursor: currentIndex === 0 ? 'default' : 'pointer', opacity: currentIndex === 0 ? 0.4 : 1 }}
+            >
+              {lang === 'ja' ? '前へ' : 'Prev'}
+            </button>
+            <button
+              disabled={currentIndex === questions.length - 1}
+              onClick={handleNext}
+              style={{ flex: 1, height: 44, border: '1.5px solid var(--color-primary)', borderRadius: 22, background: 'var(--color-bg-white)', color: 'var(--color-primary)', fontWeight: 600, fontSize: 'var(--font-size-base)', cursor: currentIndex === questions.length - 1 ? 'default' : 'pointer', opacity: currentIndex === questions.length - 1 ? 0.4 : 1 }}
+            >
+              {lang === 'ja' ? '次へ' : 'Next'}
+            </button>
+            <button
+              onClick={() => setShowConfirm(true)}
+              style={{ flex: 1, height: 44, border: 'none', borderRadius: 22, background: 'var(--color-accent)', color: 'var(--color-btn-primary-text)', fontWeight: 600, fontSize: 'var(--font-size-base)', cursor: 'pointer' }}
+            >
+              {t('examSession.submit')}
+            </button>
+          </div>
+        ) : (
+          <div style={{ position: 'fixed', right: 24, top: '50%', transform: 'translateY(-50%)', zIndex: 150 }}>
+            <button
+              onClick={() => setShowConfirm(true)}
+              style={{ height: 44, padding: '0 24px', border: 'none', borderRadius: 22, background: 'var(--color-accent)', color: 'var(--color-btn-primary-text)', fontWeight: 600, fontSize: 'var(--font-size-base)', cursor: 'pointer', whiteSpace: 'nowrap', boxShadow: '0 2px 8px rgba(0,0,0,0.15)' }}
+            >
+              {t('examSession.submit')}
+            </button>
+          </div>
+        ),
+        document.body
       )}
 
       {reportOpen && (

@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useMemo } from 'react';
+import { createPortal } from 'react-dom';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { API_ENDPOINT, PASS_RATE, EXAM_DOMAINS, DOMAIN_NAME_EN } from '../constants';
 import { deleteCached } from '../utils/cache';
@@ -200,6 +201,13 @@ export default function ExerciseSession() {
   const isQuick: boolean = state?.isQuick ?? false;
   const isFocused: boolean = state?.isFocused ?? false;
   const isMini: boolean = state?.isMini ?? false;
+
+  const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
+  useEffect(() => {
+    const handler = () => setIsMobile(window.innerWidth < 768);
+    window.addEventListener('resize', handler);
+    return () => window.removeEventListener('resize', handler);
+  }, []);
 
   const [currentIndex, setCurrentIndex] = useState<number>(state?.resumeIndex ?? 0);
   const [selectedAnswers, setSelectedAnswers] = useState<string[]>(state?.resumeSelectedAnswers ?? []);
@@ -745,6 +753,49 @@ export default function ExerciseSession() {
           lang={lang}
           onClose={() => setReportOpen(false)}
         />
+      )}
+
+      {createPortal(
+        isMobile ? (
+          <div style={{ position: 'fixed', bottom: 56, left: 0, right: 0, zIndex: 150, padding: '8px 16px', display: 'flex', gap: 8 }}>
+            {!answered ? (
+              <button
+                onClick={submitAnswer}
+                disabled={selectedAnswers.length === 0}
+                style={{ flex: 1, height: 44, border: 'none', borderRadius: 22, background: selectedAnswers.length === 0 ? 'var(--color-text-light)' : 'var(--color-accent)', color: 'var(--color-btn-primary-text)', fontWeight: 600, fontSize: 'var(--font-size-base)', cursor: selectedAnswers.length === 0 ? 'default' : 'pointer', opacity: selectedAnswers.length === 0 ? 0.5 : 1 }}
+              >
+                {t('exerciseSession.answer')}
+              </button>
+            ) : (
+              <button
+                onClick={nextQuestion}
+                style={{ flex: 1, height: 44, border: 'none', borderRadius: 22, background: 'var(--color-accent)', color: 'var(--color-btn-primary-text)', fontWeight: 600, fontSize: 'var(--font-size-base)', cursor: 'pointer' }}
+              >
+                {currentIndex + 1 >= questions.length ? t('exerciseSession.showResult') : t('exerciseSession.next')}
+              </button>
+            )}
+          </div>
+        ) : (
+          <div style={{ position: 'fixed', right: 24, top: '50%', transform: 'translateY(-50%)', zIndex: 150, display: 'flex', flexDirection: 'column', gap: 8 }}>
+            {!answered ? (
+              <button
+                onClick={submitAnswer}
+                disabled={selectedAnswers.length === 0}
+                style={{ height: 44, padding: '0 24px', border: 'none', borderRadius: 22, background: selectedAnswers.length === 0 ? 'var(--color-text-light)' : 'var(--color-accent)', color: 'var(--color-btn-primary-text)', fontWeight: 600, fontSize: 'var(--font-size-base)', cursor: selectedAnswers.length === 0 ? 'default' : 'pointer', opacity: selectedAnswers.length === 0 ? 0.5 : 1, whiteSpace: 'nowrap', boxShadow: '0 2px 8px rgba(0,0,0,0.15)' }}
+              >
+                {t('exerciseSession.answer')}
+              </button>
+            ) : (
+              <button
+                onClick={nextQuestion}
+                style={{ height: 44, padding: '0 24px', border: '1.5px solid var(--color-primary)', borderRadius: 22, background: 'var(--color-bg-white)', color: 'var(--color-primary)', fontWeight: 600, fontSize: 'var(--font-size-base)', cursor: 'pointer', whiteSpace: 'nowrap', boxShadow: '0 2px 8px rgba(0,0,0,0.15)' }}
+              >
+                {currentIndex + 1 >= questions.length ? t('exerciseSession.showResult') : t('exerciseSession.next')}
+              </button>
+            )}
+          </div>
+        ),
+        document.body
       )}
 
       {/* コラム（豆知識） */}

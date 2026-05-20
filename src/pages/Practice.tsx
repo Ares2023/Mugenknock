@@ -270,7 +270,7 @@ export default function Practice() {
   });
 
   return (
-    <div style={{ maxWidth: 615, margin: '0 auto', padding: 'var(--spacing-lg)', paddingBottom: 80 }} className="page-container">
+    <div style={{ maxWidth: 900, margin: '0 auto', padding: 'var(--spacing-lg)', paddingBottom: 80 }} className="page-container">
 
       {/* タブ */}
       <div style={{ display: 'flex', borderBottom: '1px solid var(--color-border)', marginBottom: 'var(--spacing-lg)' }}>
@@ -443,7 +443,7 @@ export default function Practice() {
             </>
           )}
           <div style={{ position: 'fixed', bottom: isMobile ? 64 : 16, left: 'var(--content-left, 0px)', right: 0, zIndex: 150 }}>
-          <div style={{ maxWidth: 615, margin: '0 auto', padding: '0 var(--spacing-lg)', display: 'flex', gap: 6 }}>
+          <div style={{ maxWidth: 900, margin: '0 auto', padding: '0 var(--spacing-lg)', display: 'flex', gap: 6 }}>
             {hasDraft ? (
               /* スプリットピル：再開 + 新規 */
               <div style={{ flex: 1, display: 'flex', height: 44, borderRadius: 22, overflow: 'hidden', opacity: availableCount === 0 ? 0.5 : 1 }}>
@@ -510,7 +510,7 @@ export default function Practice() {
             </>
           )}
           <div style={{ position: 'fixed', bottom: isMobile ? 64 : 16, left: 'var(--content-left, 0px)', right: 0, zIndex: 150 }}>
-          <div style={{ maxWidth: 615, margin: '0 auto', padding: '0 var(--spacing-lg)', display: 'flex' }}>
+          <div style={{ maxWidth: 900, margin: '0 auto', padding: '0 var(--spacing-lg)', display: 'flex' }}>
             {hasExamDraft ? (
               <div style={{ flex: 1, display: 'flex', height: 44, borderRadius: 22, overflow: 'hidden' }}>
                 <button

@@ -52,7 +52,7 @@ export default function Others() {
   };
 
   return (
-    <div style={{ maxWidth: 615, margin: '0 auto', padding: 'var(--spacing-lg)' }}>
+    <div style={{ maxWidth: 900, margin: '0 auto', padding: 'var(--spacing-lg)' }}>
       <h2 style={{ margin: '0 0 var(--spacing-lg)', fontSize: 'var(--font-size-h2)', fontWeight: 700, color: 'var(--color-text-main)' }}>
         {ja ? 'その他' : 'More'}
       </h2>
