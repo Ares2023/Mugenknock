@@ -271,7 +271,7 @@ export default function Practice() {
   });
 
   return (
-    <div style={{ maxWidth: 720, margin: '0 auto', padding: 'var(--spacing-lg)' }} className="page-container">
+    <div style={{ maxWidth: 1100, margin: '0 auto', padding: 'var(--spacing-lg)', paddingBottom: 80 }} className="page-container">
 
       {/* タブ */}
       <div style={{ display: 'flex', borderBottom: '1px solid var(--color-border)', marginBottom: 'var(--spacing-lg)' }}>
@@ -369,48 +369,6 @@ export default function Practice() {
             </div>
           )}
 
-          {!isMobile && (
-            <>
-              {!user && (
-                <div style={{ fontSize: 'var(--font-size-xs)', color: 'var(--color-text-light)', marginBottom: 6, textAlign: 'center' }}>
-                  {ja ? '※ ログインすると結果が保存されます' : '* Log in to save your results'}
-                </div>
-              )}
-              {hasDraft ? (
-                <div style={{ position: 'relative' }}>
-                  <div style={{ display: 'flex', height: 40, borderRadius: 20, overflow: 'hidden' }}>
-                    <button
-                      disabled={exerciseLoading || availableCount === 0}
-                      onClick={resumeExercise}
-                      style={{ flex: 1, height: 40, border: 'none', background: 'var(--color-accent)', color: 'var(--color-btn-primary-text)', fontWeight: 600, fontSize: 'var(--font-size-base)', cursor: (exerciseLoading || availableCount === 0) ? 'default' : 'pointer', paddingLeft: 16, paddingRight: 8 }}
-                    >
-                      {exerciseLoading ? (
-                        <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}>
-                          <span style={{ width: 13, height: 13, border: '2px solid rgba(0,0,0,0.2)', borderTopColor: '#16191f', borderRadius: '50%', animation: 'sherpa-spin 0.7s linear infinite', flexShrink: 0 }} />
-                          {t('exerciseSetup.starting')}
-                        </span>
-                      ) : (ja ? '演習を再開' : 'Resume')}
-                    </button>
-                    <button
-                      onClick={() => setShowStartConfirm(true)}
-                      style={{ width: 40, height: 40, border: 'none', borderLeft: '2px solid rgba(255,255,255,0.4)', background: 'var(--color-accent)', color: 'var(--color-btn-primary-text)', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}
-                    >
-                      <IconChevronUp size={16} />
-                    </button>
-                  </div>
-                </div>
-              ) : (
-                <Button variant="primary" fullWidth onClick={startExercise} disabled={exerciseLoading || availableCount === 0}>
-                  {exerciseLoading ? (
-                    <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}>
-                      <span style={{ width: 13, height: 13, border: '2px solid rgba(0,0,0,0.25)', borderTopColor: '#16191f', borderRadius: '50%', animation: 'sherpa-spin 0.7s linear infinite', flexShrink: 0 }} />
-                      {t('exerciseSetup.starting')}
-                    </span>
-                  ) : t('exerciseSetup.start')}
-                </Button>
-              )}
-            </>
-          )}
         </>
       )}
 
@@ -461,68 +419,18 @@ export default function Practice() {
                   </div>
                 ))}
               </div>
-              {!isMobile && (
-                hasExamDraft ? (
-                  <div style={{ position: 'relative' }}>
-                    <div style={{ display: 'flex', height: 40, borderRadius: 20, overflow: 'hidden' }}>
-                      <button
-                        disabled={examLoading}
-                        onClick={resumeExam}
-                        style={{ flex: 1, height: 40, border: 'none', background: 'var(--color-accent)', color: 'var(--color-btn-primary-text)', fontWeight: 600, fontSize: 'var(--font-size-base)', cursor: examLoading ? 'default' : 'pointer', paddingLeft: 16, paddingRight: 8 }}
-                      >
-                        {examLoading ? (
-                          <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}>
-                            <span style={{ width: 13, height: 13, border: '2px solid rgba(0,0,0,0.2)', borderTopColor: '#16191f', borderRadius: '50%', animation: 'sherpa-spin 0.7s linear infinite', flexShrink: 0 }} />
-                            {ja ? '準備中...' : 'Preparing...'}
-                          </span>
-                        ) : (ja ? '試験を再開' : 'Resume')}
-                      </button>
-                      <button
-                        onClick={() => setShowNewExamPanel(v => !v)}
-                        style={{ width: 40, height: 40, border: 'none', borderLeft: '2px solid rgba(255,255,255,0.4)', background: 'var(--color-accent)', color: 'var(--color-btn-primary-text)', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}
-                        aria-label={ja ? '新規で試験を開始' : 'Start new exam'}
-                      >
-                        <IconChevronUp size={16} />
-                      </button>
-                    </div>
-                    {showNewExamPanel && (
-                      <>
-                        <div onClick={() => setShowNewExamPanel(false)} style={{ position: 'fixed', inset: 0, zIndex: 9 }} />
-                        <div style={{ position: 'absolute', bottom: 'calc(100% + 6px)', left: 0, right: 0, zIndex: 10, background: 'var(--color-bg-white)', border: '1px solid var(--color-border)', borderRadius: 10, padding: '10px 12px', boxShadow: 'var(--box-shadow-md)' }}>
-                          <div style={{ fontSize: 'var(--font-size-xs)', color: 'var(--color-text-sub)', marginBottom: 8 }}>
-                            {ja ? 'セッションを上書きして開始します' : 'This will overwrite the current session'}
-                          </div>
-                          <Button variant="outline" fullWidth style={{ height: 36 }}
-                            onClick={() => { localStorage.removeItem('examDraft'); setExamDraft(null); setShowNewExamPanel(false); startExam(); }}>
-                            {ja ? '新規に開始' : 'Start New'}
-                          </Button>
-                        </div>
-                      </>
-                    )}
-                  </div>
-                ) : (
-                  <Button variant="primary" fullWidth onClick={startExam} disabled={examLoading}>
-                    {examLoading ? (
-                      <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}>
-                        <span style={{ width: 12, height: 12, border: '2px solid rgba(0,0,0,0.3)', borderTopColor: '#16191f', borderRadius: '50%', animation: 'sherpa-spin 0.7s linear infinite' }} />
-                        {ja ? '準備中...' : 'Preparing...'}
-                      </span>
-                    ) : (ja ? '試験を開始' : 'Start Mock Exam')}
-                  </Button>
-                )
-              )}
             </>
           )}
         </>
       )}
 
-      {/* ── モバイル固定底バー（演習） ── */}
-      {isMobile && tab === 'exercise' && (
+      {/* ── 固定底バー（演習） ── */}
+      {tab === 'exercise' && (
         <>
           {hasDraft && showNewPanel && (
             <>
               <div onClick={() => setShowNewPanel(false)} style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.4)', zIndex: 210 }} />
-              <div style={{ position: 'fixed', bottom: 116, left: 0, right: 0, zIndex: 211, background: 'var(--color-bg-white)', borderRadius: '14px 14px 0 0', padding: '14px 12px 12px', boxShadow: '0 -4px 20px rgba(0,0,0,0.18)', animation: 'slideUp 0.22s ease' }}>
+              <div style={{ position: 'fixed', bottom: isMobile ? 116 : 68, left: 0, right: 0, zIndex: 211, background: 'var(--color-bg-white)', borderRadius: '14px 14px 0 0', padding: '14px 12px 12px', boxShadow: '0 -4px 20px rgba(0,0,0,0.18)', animation: 'slideUp 0.22s ease' }}>
                 <div style={{ fontSize: 'var(--font-size-sm)', color: 'var(--color-text-sub)', textAlign: 'center', marginBottom: 10 }}>
                   {ja ? 'セッションを上書きして開始します' : 'This will overwrite the current session'}
                 </div>
@@ -533,7 +441,7 @@ export default function Practice() {
               </div>
             </>
           )}
-          <div style={{ position: 'fixed', bottom: 56, left: 0, right: 0, zIndex: 150, background: 'var(--color-bg-white)', borderTop: '1px solid var(--color-border)', padding: '8px 12px', display: 'flex', gap: 6, boxShadow: '0 -2px 8px rgba(0,0,0,0.08)', transform: 'translateZ(0)' }}>
+          <div style={{ position: 'fixed', bottom: isMobile ? 56 : 0, left: 0, right: 0, zIndex: 150, background: 'var(--color-bg-white)', borderTop: '1px solid var(--color-border)', padding: '8px 12px', display: 'flex', gap: 6, boxShadow: '0 -2px 8px rgba(0,0,0,0.08)', transform: 'translateZ(0)' }}>
             {hasDraft ? (
               /* スプリットピル：再開 + ↑ */
               <div style={{ flex: 1, display: 'flex', height: 44, borderRadius: 22, overflow: 'hidden', opacity: availableCount === 0 ? 0.5 : 1 }}>
@@ -576,13 +484,13 @@ export default function Practice() {
         </>
       )}
 
-      {/* ── モバイル固定底バー（模試） ── */}
-      {isMobile && tab === 'exam' && targetExam && (
+      {/* ── 固定底バー（模試） ── */}
+      {tab === 'exam' && targetExam && (
         <>
           {hasExamDraft && showNewExamPanel && (
             <>
               <div onClick={() => setShowNewExamPanel(false)} style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.4)', zIndex: 210 }} />
-              <div style={{ position: 'fixed', bottom: 116, left: 0, right: 0, zIndex: 211, background: 'var(--color-bg-white)', borderRadius: '14px 14px 0 0', padding: '14px 12px 12px', boxShadow: '0 -4px 20px rgba(0,0,0,0.18)', animation: 'slideUp 0.22s ease' }}>
+              <div style={{ position: 'fixed', bottom: isMobile ? 116 : 68, left: 0, right: 0, zIndex: 211, background: 'var(--color-bg-white)', borderRadius: '14px 14px 0 0', padding: '14px 12px 12px', boxShadow: '0 -4px 20px rgba(0,0,0,0.18)', animation: 'slideUp 0.22s ease' }}>
                 <div style={{ fontSize: 'var(--font-size-sm)', color: 'var(--color-text-sub)', textAlign: 'center', marginBottom: 10 }}>
                   {ja ? 'セッションを上書きして開始します' : 'This will overwrite the current session'}
                 </div>
@@ -593,7 +501,7 @@ export default function Practice() {
               </div>
             </>
           )}
-          <div style={{ position: 'fixed', bottom: 56, left: 0, right: 0, zIndex: 150, background: 'var(--color-bg-white)', borderTop: '1px solid var(--color-border)', padding: '8px 12px', display: 'flex', boxShadow: '0 -2px 8px rgba(0,0,0,0.08)', transform: 'translateZ(0)' }}>
+          <div style={{ position: 'fixed', bottom: isMobile ? 56 : 0, left: 0, right: 0, zIndex: 150, background: 'var(--color-bg-white)', borderTop: '1px solid var(--color-border)', padding: '8px 12px', display: 'flex', boxShadow: '0 -2px 8px rgba(0,0,0,0.08)', transform: 'translateZ(0)' }}>
             {hasExamDraft ? (
               <div style={{ flex: 1, display: 'flex', height: 44, borderRadius: 22, overflow: 'hidden' }}>
                 <button
