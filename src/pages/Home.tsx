@@ -168,7 +168,7 @@ function CombinedDetailModal({ targetExam, domainAccList, estimatedScore, passSc
       style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', zIndex: 1000, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16 }}
       onClick={e => { if (e.target === e.currentTarget) onClose(); }}
     >
-      <div style={{ background: 'var(--color-bg-white)', borderRadius: 'var(--border-radius-lg)', padding: isMobile ? '16px' : '20px 28px', width: '100%', maxWidth: isMobile ? 480 : 900, maxHeight: isMobile ? '82vh' : '90vh', overflowY: 'auto', boxShadow: '0 8px 32px rgba(0,0,0,0.2)' }}>
+      <div style={{ background: 'var(--color-bg-white)', borderRadius: 'var(--border-radius-lg)', padding: isMobile ? '16px' : '20px 28px', width: '100%', maxWidth: 540, maxHeight: isMobile ? '82vh' : '90vh', overflowY: 'auto', boxShadow: '0 8px 32px rgba(0,0,0,0.2)' }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: showCalc ? 8 : (isMobile ? 12 : 16) }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
             <span style={{ fontWeight: 700, fontSize: 'var(--font-size-base)', color: 'var(--color-text-main)' }}>
@@ -199,39 +199,25 @@ function CombinedDetailModal({ targetExam, domainAccList, estimatedScore, passSc
           </div>
         )}
 
-        {isMobile ? (
-          <>
-            <div style={{ display: 'flex', borderBottom: '2px solid var(--color-border)', marginBottom: 16 }}>
-              {(['domain', 'score'] as const).map(t => (
-                <button
-                  key={t}
-                  onClick={() => setTab(t)}
-                  style={{ flex: 1, background: 'none', border: 'none', cursor: 'pointer', padding: '8px 0', fontSize: 12, fontWeight: tab === t ? 700 : 400, color: tab === t ? 'var(--color-primary)' : 'var(--color-text-sub)', borderBottom: `2px solid ${tab === t ? 'var(--color-primary)' : 'transparent'}`, marginBottom: -2, transition: 'color 0.15s' }}
-                >
-                  {t === 'domain' ? (ja ? 'ドメイン別正答率' : 'Domain Accuracy') : (ja ? '予想スコア' : 'Est. Score')}
-                </button>
-              ))}
-            </div>
-            {/* domain section は常にフローに残して高さを確定、score は absolute overlay */}
-            <div style={{ position: 'relative' }}>
-              <div style={{ visibility: tab === 'domain' ? 'visible' : 'hidden' }}>
-                {domainSection}
-              </div>
-              <div style={{ position: 'absolute', top: 0, left: 0, right: 0, visibility: tab === 'score' ? 'visible' : 'hidden', pointerEvents: tab === 'score' ? 'auto' : 'none' }}>
-                {scoreSection}
-              </div>
-            </div>
-          </>
-        ) : (
-          <div style={{ display: 'flex', gap: 0 }}>
-            <div style={{ flex: 1, paddingRight: 24, borderRight: '1px solid var(--color-border)', minWidth: 0 }}>
-              {domainSection}
-            </div>
-            <div style={{ flex: 1, paddingLeft: 24, minWidth: 0 }}>
-              {scoreSection}
-            </div>
+        <div style={{ display: 'flex', borderBottom: '2px solid var(--color-border)', marginBottom: 16 }}>
+          {(['domain', 'score'] as const).map(t => (
+            <button
+              key={t}
+              onClick={() => setTab(t)}
+              style={{ flex: 1, background: 'none', border: 'none', cursor: 'pointer', padding: '8px 0', fontSize: 12, fontWeight: tab === t ? 700 : 400, color: tab === t ? 'var(--color-primary)' : 'var(--color-text-sub)', borderBottom: `2px solid ${tab === t ? 'var(--color-primary)' : 'transparent'}`, marginBottom: -2, transition: 'color 0.15s' }}
+            >
+              {t === 'domain' ? (ja ? 'ドメイン別正答率' : 'Domain Accuracy') : (ja ? '予想スコア' : 'Est. Score')}
+            </button>
+          ))}
+        </div>
+        <div style={{ position: 'relative' }}>
+          <div style={{ visibility: tab === 'domain' ? 'visible' : 'hidden' }}>
+            {domainSection}
           </div>
-        )}
+          <div style={{ position: 'absolute', top: 0, left: 0, right: 0, visibility: tab === 'score' ? 'visible' : 'hidden', pointerEvents: tab === 'score' ? 'auto' : 'none' }}>
+            {scoreSection}
+          </div>
+        </div>
       </div>
     </div>
   );
