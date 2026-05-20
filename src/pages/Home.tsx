@@ -379,14 +379,23 @@ function saveToEncyclopedia(svc: DailyService) {
 
 function syncEncyclopediaToServer(userId: string): void {
   try {
-    const unlocks = JSON.parse(localStorage.getItem('encyclopediaUnlocked') ?? '{}');
+    const local: Record<string, string> = JSON.parse(localStorage.getItem('encyclopediaUnlocked') ?? '{}');
     const unlockDate = localStorage.getItem('encyclopediaUnlockDate');
     const todayServiceId = localStorage.getItem('encyclopediaTodayServiceId');
-    fetch(`${API_ENDPOINT}/users/me/encyclopedia-unlocks`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ userId, unlocks, unlockDate, todayServiceId }),
-    }).catch(() => {});
+    fetch(`${API_ENDPOINT}/users/me/encyclopedia-unlocks?userId=${encodeURIComponent(userId)}`)
+      .then(r => r.ok ? r.json() : { unlocks: {} })
+      .then(data => {
+        const server: Record<string, string> = data.unlocks ?? {};
+        const merged: Record<string, string> = { ...server, ...local };
+        localStorage.setItem('encyclopediaUnlocked', JSON.stringify(merged));
+        window.dispatchEvent(new CustomEvent('encyclopediaUpdated'));
+        return fetch(`${API_ENDPOINT}/users/me/encyclopedia-unlocks`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ userId, unlocks: merged, unlockDate, todayServiceId }),
+        });
+      })
+      .catch(() => {});
   } catch {}
 }
 
