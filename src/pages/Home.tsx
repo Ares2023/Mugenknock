@@ -1237,10 +1237,9 @@ export default function Home() {
                 if (primaryMode === 'focused') { setDraftFocusedPrefs({ ...loadFocusedPrefs() }); setShowFocusedModal(true); }
                 else { setDraftPrefs({ ...loadQuickPrefs() }); setShowQuickModal(true); }
               }}
-              style={{ flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', width: 44, height: 44, border: `1.5px solid ${primaryMode === 'focused' ? '#009E9E' : 'var(--color-primary)'}`, borderRadius: '50%', background: 'transparent', cursor: 'pointer', color: primaryMode === 'focused' ? '#009E9E' : 'var(--color-primary)' }}
-              aria-label={ja ? '設定' : 'Settings'}
+              style={{ flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', height: 44, width: 132, border: `1.5px solid ${primaryMode === 'focused' ? '#009E9E' : 'var(--color-primary)'}`, borderRadius: 'var(--border-radius-full)', background: 'var(--color-bg-white)', cursor: 'pointer', color: primaryMode === 'focused' ? '#009E9E' : 'var(--color-primary)', fontWeight: 600, fontSize: 'var(--font-size-base)' }}
             >
-              <IconSettings size={18} />
+              {ja ? '設定' : 'Settings'}
             </button>
           </div>
         </div>
