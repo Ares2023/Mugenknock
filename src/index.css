@@ -144,6 +144,7 @@
 
 html {
   overflow-x: hidden;
+  background-color: var(--color-bg-main);
 }
 
 body {

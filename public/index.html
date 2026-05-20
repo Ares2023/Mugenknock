@@ -5,6 +5,20 @@
     <link rel="icon" type="image/png" href="%PUBLIC_URL%/mugen-icon.png" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta name="theme-color" content="#232f3e" />
+    <script>
+      (function(){
+        var t=localStorage.getItem('theme');
+        if(t==='dark'){
+          document.documentElement.setAttribute('data-theme','dark');
+          document.addEventListener('DOMContentLoaded',function(){
+            var el=document.getElementById('initial-loader');
+            if(el) el.style.background='#0d1117';
+            var ring=document.getElementById('initial-loader-ring');
+            if(ring){ ring.style.borderColor='#30363d'; ring.style.borderTopColor='#42B4FF'; }
+          });
+        }
+      })();
+    </script>
     <meta
       name="description"
       content="AWS 認定資格の練習問題サービス"
