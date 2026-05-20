@@ -496,22 +496,11 @@ export default function ExamSession() {
             );
           })}
         </div>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderTop: '1px solid var(--color-border)', paddingTop: 'var(--spacing-lg)' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--spacing-md)' }}>
-            <Button variant="outline" onClick={() => setCurrentIndex(i => Math.max(0, i - 1))} disabled={currentIndex === 0}>
-              {t('examSession.prev')}
-            </Button>
-            <Button variant="outline" onClick={handleNext} disabled={currentIndex === questions.length - 1}>
-              {t('examSession.next')}
-            </Button>
-            {answerCountError && (
-              <span style={{ color: 'var(--color-danger)', fontSize: 'var(--font-size-sm)' }}>{answerCountError}</span>
-            )}
+        {answerCountError && (
+          <div style={{ borderTop: '1px solid var(--color-border)', paddingTop: 'var(--spacing-sm)' }}>
+            <span style={{ color: 'var(--color-danger)', fontSize: 'var(--font-size-sm)' }}>{answerCountError}</span>
           </div>
-          <Button variant="primary" onClick={() => setShowConfirm(true)}>
-            {t('examSession.submit')}
-          </Button>
-        </div>
+        )}
       </Card>
 
       {createPortal(

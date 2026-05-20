@@ -679,31 +679,11 @@ export default function ExerciseSession() {
           );
         })()}
 
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: 'var(--spacing-md)', borderTop: '1px solid var(--color-border)', paddingTop: 'var(--spacing-lg)' }}>
-          {!answered ? (
-            <>
-              <Button
-                onClick={submitAnswer}
-                disabled={selectedAnswers.length === 0}
-                variant="primary"
-                style={{ minWidth: 120 }}
-              >
-                {t('exerciseSession.answer')}
-              </Button>
-              {answerCountError && (
-                <span style={{ color: 'var(--color-danger)', fontSize: 'var(--font-size-sm)' }}>{answerCountError}</span>
-              )}
-            </>
-          ) : (
-            <Button
-              onClick={nextQuestion}
-              variant="outline"
-              style={{ minWidth: 120 }}
-            >
-              {currentIndex + 1 >= questions.length ? t('exerciseSession.showResult') : t('exerciseSession.next')}
-            </Button>
-          )}
-        </div>
+        {answerCountError && (
+          <div style={{ display: 'flex', justifyContent: 'flex-end', paddingTop: 'var(--spacing-sm)', borderTop: '1px solid var(--color-border)' }}>
+            <span style={{ color: 'var(--color-danger)', fontSize: 'var(--font-size-sm)' }}>{answerCountError}</span>
+          </div>
+        )}
 
         {answered && (
           <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: 'var(--spacing-sm)' }}>
