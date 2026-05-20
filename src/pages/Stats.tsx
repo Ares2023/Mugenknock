@@ -20,7 +20,16 @@ type Session = {
   startedAt: string;
   endedAt?: string;
   isMini?: boolean;
+  isFocused?: boolean;
   questionIds?: string[];
+};
+
+type AnswerRecord = {
+  questionId: string;
+  questionText: string;
+  tags: string[];
+  isCorrect: boolean;
+  answeredAt: string;
 };
 
 type TagStat = { tagId: string; correctCount?: number; incorrectCount?: number };
@@ -191,7 +200,10 @@ export default function Stats() {
   const { lang, t } = useLanguage();
   const navigate = useNavigate();
 
-  const [tab, setTab] = useState<'volume' | 'performance'>('volume');
+  const [tab, setTab] = useState<'volume' | 'performance' | 'history'>('volume');
+  const [expandedSession, setExpandedSession] = useState<string | null>(null);
+  const [sessionAnswers, setSessionAnswers] = useState<Record<string, AnswerRecord[]>>({});
+  const [answersLoading, setAnswersLoading] = useState<string | null>(null);
   const [targetExam] = useState<string | null>(() => localStorage.getItem(TARGET_EXAM_KEY));
   const [sessions, setSessions] = useState<Session[]>([]);
   const [totalCount, setTotalCount] = useState(0);
@@ -348,6 +360,9 @@ export default function Stats() {
         </button>
         <button style={tabStyle(tab === 'performance')} onClick={() => setTab('performance')}>
           {lang === 'ja' ? 'ノック成績' : 'Performance'}
+        </button>
+        <button style={tabStyle(tab === 'history')} onClick={() => setTab('history')}>
+          {lang === 'ja' ? 'ノック履歴' : 'History'}
         </button>
       </div>
 
@@ -525,6 +540,118 @@ export default function Stats() {
               </p>
             </Card>
           )}
+        </>
+      )}
+
+      {/* ════════ ノック履歴タブ ════════ */}
+      {tab === 'history' && (
+        <>
+          {!user ? (
+            <Card padding="var(--spacing-xl)">
+              <p style={{ margin: 0, textAlign: 'center', fontSize: 'var(--font-size-sm)', color: 'var(--color-text-light)' }}>
+                {lang === 'ja' ? 'ログインすると履歴が表示されます' : 'Log in to view your history'}
+              </p>
+            </Card>
+          ) : loading ? (
+            <div style={{ display: 'flex', justifyContent: 'center', padding: 'var(--spacing-xl) 0' }}>
+              <div className="sherpa-spinner" style={{ width: 28, height: 28, borderWidth: 3 }} />
+            </div>
+          ) : (() => {
+            const recentSessions = [...sessions]
+              .sort((a, b) => (a.endedAt || a.startedAt) > (b.endedAt || b.startedAt) ? -1 : 1)
+              .slice(0, 5);
+            if (recentSessions.length === 0) {
+              return (
+                <Card padding="var(--spacing-xl)">
+                  <p style={{ margin: 0, textAlign: 'center', fontSize: 'var(--font-size-sm)', color: 'var(--color-text-light)' }}>
+                    {lang === 'ja' ? 'まだセッションがありません' : 'No sessions yet'}
+                  </p>
+                </Card>
+              );
+            }
+            return (
+              <>
+                {recentSessions.map(s => {
+                  const modeLabel = s.mode === 'exam'
+                    ? (s.isMini ? (lang === 'ja' ? 'ミニ模試' : 'Mini Exam') : (lang === 'ja' ? '模試' : 'Mock Exam'))
+                    : s.isFocused
+                      ? (lang === 'ja' ? 'しっかり対策' : 'Focused')
+                      : (lang === 'ja' ? 'サクッと演習' : 'Quick');
+                  const modeBg = s.mode === 'exam' ? 'var(--color-danger-light, #fff0f0)' : s.isFocused ? '#e6f4f4' : 'var(--color-primary-light)';
+                  const modeColor = s.mode === 'exam' ? 'var(--color-danger)' : s.isFocused ? '#009E9E' : 'var(--color-primary)';
+                  const d = new Date(s.endedAt || s.startedAt);
+                  const dateLabel = `${d.getFullYear()}/${d.getMonth() + 1}/${d.getDate()} ${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`;
+                  const isExpanded = expandedSession === s.sessionId;
+                  const answers = sessionAnswers[s.sessionId];
+                  const qCount = s.questionIds?.length ?? 0;
+                  const scoreColor = s.mode === 'exam'
+                    ? (s.isPassed ? 'var(--color-success)' : 'var(--color-danger)')
+                    : (s.score >= 70 ? 'var(--color-success)' : 'var(--color-danger)');
+
+                  const handleToggle = async () => {
+                    if (isExpanded) { setExpandedSession(null); return; }
+                    setExpandedSession(s.sessionId);
+                    if (answers || answersLoading === s.sessionId) return;
+                    setAnswersLoading(s.sessionId);
+                    try {
+                      const res = await fetch(`${API_ENDPOINT}/sessions/${s.sessionId}/answers?userId=${encodeURIComponent(user.userId)}`);
+                      const data = await res.json();
+                      setSessionAnswers(prev => ({ ...prev, [s.sessionId]: data.answers ?? [] }));
+                    } catch { setSessionAnswers(prev => ({ ...prev, [s.sessionId]: [] })); }
+                    finally { setAnswersLoading(null); }
+                  };
+
+                  return (
+                    <Card key={s.sessionId} style={{ marginBottom: 'var(--spacing-md)' }}>
+                      <div
+                        style={{ display: 'flex', alignItems: 'center', gap: 10, cursor: 'pointer', userSelect: 'none' }}
+                        onClick={handleToggle}
+                      >
+                        <span style={{ fontSize: 10, fontWeight: 700, padding: '2px 8px', borderRadius: 'var(--border-radius-full)', background: modeBg, color: modeColor, flexShrink: 0 }}>
+                          {modeLabel}
+                        </span>
+                        <span style={{ fontSize: 'var(--font-size-xs)', color: 'var(--color-text-sub)', flex: 1, minWidth: 0 }}>
+                          {dateLabel}
+                          {qCount > 0 && <span style={{ marginLeft: 6, color: 'var(--color-text-light)' }}>{qCount}{lang === 'ja' ? '問' : 'Q'}</span>}
+                        </span>
+                        <span style={{ fontWeight: 700, fontSize: 'var(--font-size-base)', color: scoreColor, flexShrink: 0 }}>
+                          {s.score}%
+                        </span>
+                        <span style={{ color: 'var(--color-text-light)', fontSize: 14, transition: 'transform 0.2s', transform: isExpanded ? 'rotate(90deg)' : 'none', flexShrink: 0 }}>›</span>
+                      </div>
+
+                      {isExpanded && (
+                        <div style={{ marginTop: 12, borderTop: '1px solid var(--color-border)', paddingTop: 10 }}>
+                          {answersLoading === s.sessionId ? (
+                            <div style={{ display: 'flex', justifyContent: 'center', padding: '12px 0' }}>
+                              <div className="sherpa-spinner" style={{ width: 20, height: 20, borderWidth: 2 }} />
+                            </div>
+                          ) : !answers || answers.length === 0 ? (
+                            <p style={{ margin: 0, fontSize: 'var(--font-size-xs)', color: 'var(--color-text-light)', textAlign: 'center' }}>
+                              {lang === 'ja' ? '回答データがありません' : 'No answer data available'}
+                            </p>
+                          ) : (
+                            <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+                              {answers.map((a, idx) => (
+                                <div key={a.questionId + idx} style={{ display: 'flex', gap: 8, alignItems: 'flex-start', fontSize: 'var(--font-size-xs)' }}>
+                                  <span style={{ flexShrink: 0, width: 16, height: 16, borderRadius: '50%', background: a.isCorrect ? 'var(--color-success)' : 'var(--color-danger)', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', color: '#fff', fontSize: 9, fontWeight: 700, marginTop: 1 }}>
+                                    {a.isCorrect ? '○' : '×'}
+                                  </span>
+                                  <span style={{ color: 'var(--color-text-sub)', lineHeight: 1.5, flex: 1 }}>
+                                    {a.questionText || a.questionId}
+                                  </span>
+                                </div>
+                              ))}
+                            </div>
+                          )}
+                        </div>
+                      )}
+                    </Card>
+                  );
+                })}
+              </>
+            );
+          })()}
         </>
       )}
     </div>

@@ -828,7 +828,7 @@ export default function Home() {
         items = [...items, ...shuffleArray(pool.filter((q: any) => !usedIds.has(q.questionId)))];
         usedFallback = true;
       }
-      items = items.slice(0, count);
+      items = Array.from(new Map(items.map((q: any) => [q.questionId, q])).values()).slice(0, count);
       if (items.length === 0) { alert(ja ? '条件に合う問題がありません' : 'No questions match the criteria'); return; }
       if (usedFallback) alert(ja ? 'フィルタ条件に合う問題が不足したため、条件外の問題も含めて出題します。' : 'Not enough questions matched your filters. Including additional questions.');
       const sessionRes = await fetch(`${API_ENDPOINT}/sessions`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ userId, mode: 'exercise', examType: targetExam, questionIds: items.map((q: any) => q.questionId) }) });
@@ -857,23 +857,19 @@ export default function Home() {
       ]);
       const allItems: any[] = (data.items ?? []).filter((q: any) => !!q.validityCheckedAt);
       const incorrectIds = new Set<string>(incorrectRes.questionIds ?? []);
-      const examDomains = EXAM_DOMAINS[targetExam] ?? [];
-      const focusTarget: string = fPrefs.focusTarget ?? 'below70';
-      const selDomains: string[] = fPrefs.domains ?? [];
-      const targetDomains = selDomains.length > 0 ? selDomains : examDomains;
+      const focusIncorrect: boolean = fPrefs.focusIncorrect !== false;
+      const focusDomain: string = fPrefs.focusDomain ?? 'below70';
 
-      let poolItems = selDomains.length > 0
-        ? allItems.filter((q: any) => (q.tags ?? []).some((t: string) => selDomains.includes(t)))
-        : allItems;
-
-      let items: any[];
-      if (focusTarget === 'incorrect') {
-        items = poolItems.filter((q: any) => incorrectIds.has(q.questionId));
-      } else {
-        const threshold = focusTarget === 'below50' ? 0.50 : 0.70;
+      let items: any[] = [];
+      if (focusIncorrect) {
+        items = allItems.filter((q: any) => incorrectIds.has(q.questionId));
+      }
+      if (focusDomain !== 'none') {
+        const threshold = focusDomain === 'below50' ? 0.50 : 0.70;
+        const examDomains = EXAM_DOMAINS[targetExam] ?? [];
         const weakDomains = new Set<string>(((): string[] => {
           const hist = readDomainHistory(targetExam);
-          return targetDomains.filter(domain => {
+          return examDomains.filter(domain => {
             const sessions = hist[domain];
             if (!sessions || sessions.length === 0) return true;
             const correct = sessions.reduce((s, r) => s + r.correct, 0);
@@ -881,12 +877,14 @@ export default function Home() {
             return total === 0 || correct / total < threshold;
           });
         })());
-        items = poolItems.filter((q: any) => {
-          const tags: string[] = q.tags ?? [];
-          return tags.some(t => weakDomains.has(t)) || incorrectIds.has(q.questionId);
-        });
+        const seenIds = new Set(items.map((q: any) => q.questionId));
+        const domainItems = allItems.filter((q: any) => (q.tags ?? []).some((t: string) => weakDomains.has(t)) && !seenIds.has(q.questionId));
+        items = [...items, ...domainItems];
       }
-      const count = fPrefs.questionCount ?? 20;
+      if (items.length === 0 && !focusIncorrect && focusDomain === 'none') {
+        items = [...allItems];
+      }
+      const count = fPrefs.questionCount ?? 5;
       items = shuffleArray(items);
       let usedFallback = false;
       if (items.length < count && items.length < allItems.length) {
@@ -894,10 +892,10 @@ export default function Home() {
         items = [...items, ...shuffleArray(allItems.filter((q: any) => !usedIds.has(q.questionId)))];
         usedFallback = true;
       }
-      items = items.slice(0, count);
+      items = Array.from(new Map(items.map((q: any) => [q.questionId, q])).values()).slice(0, count);
       if (items.length === 0) { alert(ja ? '条件に合う問題がありません' : 'No questions match the criteria'); return; }
       if (usedFallback) alert(ja ? '苦手・不正解問題が不足したため、条件外の問題も含めて出題します。' : 'Not enough weak/incorrect questions. Including additional questions.');
-      const sessionRes = await fetch(`${API_ENDPOINT}/sessions`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ userId, mode: 'exercise', examType: targetExam, questionIds: items.map((q: any) => q.questionId) }) });
+      const sessionRes = await fetch(`${API_ENDPOINT}/sessions`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ userId, mode: 'exercise', examType: targetExam, questionIds: items.map((q: any) => q.questionId), isFocused: true }) });
       const sessionData = await sessionRes.json();
       navigate('/exercise/session', { state: { sessionId: sessionData.sessionId, questions: items, userId, mode: 'exercise', examType: targetExam, isQuick: true, isFocused: true } });
     } catch (err) { console.error(err); alert(ja ? '演習の開始に失敗しました' : 'Failed to start exercise'); }
@@ -1158,10 +1156,6 @@ export default function Home() {
                         </>
                       ) : (
                         <>
-                          <div style={{ textAlign: 'center', fontSize: 10, color: 'var(--color-text-light)', marginBottom: 4 }}>{ja ? '苦手・不正解問題を重点演習' : 'Focuses on weak/incorrect questions'}</div>
-                          <Button variant="outline" size="sm" fullWidth style={{ height: 36, marginBottom: 6, borderColor: '#009E9E', color: '#009E9E' }} onClick={() => { setShowFocusedMenu(false); startFocusedExercise(); }}>
-                            {ja ? '新規に開始（しっかり対策）' : 'Start New (Focused)'}
-                          </Button>
                           <div style={{ textAlign: 'center', fontSize: 10, color: 'var(--color-text-light)', marginBottom: 4 }}>{ja ? 'ランダム出題（設定に従う）' : 'Random questions (uses settings)'}</div>
                           <button disabled={!targetExam || quickLoading} onClick={() => { setShowFocusedMenu(false); startQuickExercise(); }} style={{ width: '100%', height: 36, padding: '0 12px', border: '1.5px solid var(--color-accent)', borderRadius: 'var(--border-radius-full)', cursor: (!targetExam || quickLoading) ? 'default' : 'pointer', background: 'transparent', color: 'var(--color-accent)', fontWeight: 600, fontSize: 'var(--font-size-sm)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                             {ja ? `サクッと演習 (${loadQuickPrefs().questionCount ?? 5}問)` : `Quick (${loadQuickPrefs().questionCount ?? 5}Q)`}
@@ -1292,10 +1286,6 @@ export default function Home() {
                   </>
                 ) : (
                   <>
-                    <div style={{ textAlign: 'center', fontSize: 11, color: 'var(--color-text-light)', marginBottom: 4 }}>{ja ? '苦手・不正解問題を重点演習' : 'Focuses on weak/incorrect questions'}</div>
-                    <Button variant="outline" fullWidth style={{ height: 44, marginBottom: 8, borderColor: '#009E9E', color: '#009E9E' }} onClick={() => { setShowFocusedMenu(false); startFocusedExercise(); }}>
-                      {ja ? '新規に開始（しっかり対策）' : 'Start New (Focused)'}
-                    </Button>
                     <div style={{ textAlign: 'center', fontSize: 11, color: 'var(--color-text-light)', marginBottom: 4 }}>{ja ? 'ランダム出題（設定に従う）' : 'Random questions (uses settings)'}</div>
                     <button disabled={!targetExam || quickLoading} onClick={() => { setShowFocusedMenu(false); startQuickExercise(); }} style={{ width: '100%', height: 44, border: '1.5px solid var(--color-accent)', borderRadius: 'var(--border-radius-full)', cursor: (!targetExam || quickLoading) ? 'default' : 'pointer', background: 'transparent', color: 'var(--color-accent)', fontWeight: 600, fontSize: 'var(--font-size-base)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                       {ja ? 'サクッと演習' : 'Quick Practice'}
@@ -1498,24 +1488,46 @@ export default function Home() {
               <button onClick={() => setShowFocusedModal(false)} style={{ border: 'none', background: 'none', fontSize: 20, cursor: 'pointer', color: 'var(--color-text-sub)', padding: '4px 8px', lineHeight: 1 }}>✕</button>
             </div>
             <div style={{ marginBottom: 20 }}>
-              {/* 重点対象 */}
+              {/* 不正解問題フィルタ */}
               <div style={{ padding: '14px 0', borderBottom: '1px solid var(--color-border)' }}>
                 <div style={{ fontWeight: 500, fontSize: 'var(--font-size-base)', color: 'var(--color-text-main)', marginBottom: 8 }}>
-                  {ja ? '重点対象' : 'Focus Target'}
+                  {ja ? '不正解問題フィルタ' : 'Incorrect Filter'}
+                </div>
+                <label style={{ display: 'flex', alignItems: 'flex-start', gap: 10, cursor: 'pointer' }}>
+                  <input
+                    type="checkbox"
+                    checked={draftFocusedPrefs.focusIncorrect !== false}
+                    onChange={() => setDraftFocusedPrefs(p => ({ ...p, focusIncorrect: p.focusIncorrect === false }))}
+                    style={{ width: 16, height: 16, flexShrink: 0, marginTop: 3, accentColor: '#009E9E' }}
+                  />
+                  <div>
+                    <div style={{ fontSize: 'var(--font-size-sm)', fontWeight: 600, color: 'var(--color-text-main)' }}>
+                      {ja ? '過去に不正解だった問題を含める' : 'Include previously incorrect questions'}
+                    </div>
+                    <div style={{ fontSize: 'var(--font-size-xs)', color: 'var(--color-text-light)', marginTop: 1 }}>
+                      {ja ? '一度でも不正解になった問題を優先出題' : 'Prioritize questions you got wrong before'}
+                    </div>
+                  </div>
+                </label>
+              </div>
+              {/* 苦手ドメインフィルタ */}
+              <div style={{ padding: '14px 0', borderBottom: '1px solid var(--color-border)' }}>
+                <div style={{ fontWeight: 500, fontSize: 'var(--font-size-base)', color: 'var(--color-text-main)', marginBottom: 8 }}>
+                  {ja ? '苦手ドメインフィルタ' : 'Weak Domain Filter'}
                 </div>
                 {([
-                  ['incorrect', ja ? '不正解のみ' : 'Incorrect Only', ja ? '過去に不正解だった問題のみ出題' : 'Only previously incorrect questions'],
-                  ['below50', ja ? '正答率50%以下のドメイン' : 'Domains below 50%', ja ? '正答率50%未満のドメインを重点出題（不正解も含む）' : 'Focus on domains below 50% accuracy (incl. incorrect)'],
-                  ['below70', ja ? '正答率70%以下のドメイン' : 'Domains below 70%', ja ? '正答率70%未満のドメインを重点出題（不正解も含む）' : 'Focus on domains below 70% accuracy (incl. incorrect)'],
+                  ['none',    ja ? '絞り込まない' : 'Off',              ja ? 'ドメインによる絞り込みをしない' : 'No domain filtering'],
+                  ['below70', ja ? '正答率70%以下のドメイン' : 'Below 70%', ja ? '正答率70%未満のドメインの問題を優先出題' : 'Prioritize questions from domains below 70%'],
+                  ['below50', ja ? '正答率50%以下のドメイン' : 'Below 50%', ja ? '正答率50%未満のドメインの問題を優先出題' : 'Prioritize questions from domains below 50%'],
                 ] as [string, string, string][]).map(([val, label, desc]) => {
-                  const selected = (draftFocusedPrefs.focusTarget ?? 'below70') === val;
+                  const selected = (draftFocusedPrefs.focusDomain ?? 'below70') === val;
                   return (
                     <label key={val} style={{ display: 'flex', alignItems: 'flex-start', gap: 10, padding: '8px 0', cursor: 'pointer' }}>
                       <input
                         type="radio"
-                        name="focusTarget"
+                        name="focusDomain"
                         checked={selected}
-                        onChange={() => setDraftFocusedPrefs(p => ({ ...p, focusTarget: val }))}
+                        onChange={() => setDraftFocusedPrefs(p => ({ ...p, focusDomain: val }))}
                         style={{ width: 16, height: 16, flexShrink: 0, marginTop: 3, accentColor: '#009E9E' }}
                       />
                       <div>
@@ -1527,13 +1539,13 @@ export default function Home() {
                 })}
               </div>
               {/* 出題数 */}
-              <div style={{ padding: '14px 0', borderBottom: '1px solid var(--color-border)' }}>
+              <div style={{ padding: '14px 0' }}>
                 <div style={{ fontWeight: 500, fontSize: 'var(--font-size-base)', color: 'var(--color-text-main)', marginBottom: 8 }}>
                   {ja ? '出題数' : 'Question Count'}
                 </div>
                 <div style={{ display: 'flex', gap: 8 }}>
-                  {[10, 20, 30].map(n => {
-                    const sel = (draftFocusedPrefs.questionCount ?? 20) === n;
+                  {[5, 10, 20, 30].map(n => {
+                    const sel = (draftFocusedPrefs.questionCount ?? 5) === n;
                     return (
                       <button
                         key={n}
@@ -1546,47 +1558,6 @@ export default function Home() {
                   })}
                 </div>
               </div>
-              {/* ドメイン絞り込み */}
-              {targetExam && (EXAM_DOMAINS[targetExam] ?? []).length > 0 && (
-                <div style={{ padding: '14px 0' }}>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
-                    <div>
-                      <div style={{ fontWeight: 500, fontSize: 'var(--font-size-base)', color: 'var(--color-text-main)' }}>
-                        {ja ? 'ドメイン絞り込み' : 'Domain Filter'}
-                      </div>
-                      <div style={{ fontSize: 'var(--font-size-xs)', color: 'var(--color-text-light)', marginTop: 2 }}>
-                        {ja ? '未選択 = すべて対象' : 'None selected = all domains'}
-                      </div>
-                    </div>
-                    {(draftFocusedPrefs.domains ?? []).length > 0 && (
-                      <button
-                        onClick={() => setDraftFocusedPrefs(p => ({ ...p, domains: [] }))}
-                        style={{ border: 'none', background: 'none', cursor: 'pointer', fontSize: 'var(--font-size-xs)', color: '#009E9E', padding: '2px 4px', textDecoration: 'underline' }}
-                      >
-                        {ja ? 'すべて解除' : 'Clear'}
-                      </button>
-                    )}
-                  </div>
-                  {(EXAM_DOMAINS[targetExam] ?? []).map(domain => {
-                    const selDoms: string[] = draftFocusedPrefs.domains ?? [];
-                    const checked = selDoms.includes(domain);
-                    return (
-                      <label key={domain} style={{ display: 'flex', alignItems: 'flex-start', gap: 8, padding: '4px 0', cursor: 'pointer' }}>
-                        <input
-                          type="checkbox"
-                          checked={checked}
-                          onChange={() => setDraftFocusedPrefs(p => {
-                            const cur: string[] = p.domains ?? [];
-                            return { ...p, domains: checked ? cur.filter(d => d !== domain) : [...cur, domain] };
-                          })}
-                          style={{ width: 16, height: 16, flexShrink: 0, marginTop: 2, accentColor: '#009E9E' }}
-                        />
-                        <span style={{ fontSize: 'var(--font-size-sm)', color: 'var(--color-text-main)', lineHeight: 1.4 }}>{domain}</span>
-                      </label>
-                    );
-                  })}
-                </div>
-              )}
             </div>
             <Button
               onClick={() => { localStorage.setItem(FOCUSED_PREFS_KEY, JSON.stringify(draftFocusedPrefs)); setShowFocusedModal(false); }}

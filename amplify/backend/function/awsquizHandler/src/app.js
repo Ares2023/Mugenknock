@@ -726,7 +726,7 @@ app.delete('/admin/reports/:id', async (req, res) => {
 app.post('/sessions', async (req, res) => {
   try {
     const docClient = getClient();
-    const { userId, mode, examType, questionIds, isMini } = req.body;
+    const { userId, mode, examType, questionIds, isMini, isFocused } = req.body;
     const sessionId = uuidv4();
     const now = new Date().toISOString();
     const item = {
@@ -734,6 +734,7 @@ app.post('/sessions', async (req, res) => {
       status: 'active', startedAt: now, lastAnsweredAt: now, score: 0, isPassed: false
     };
     if (isMini) item.isMini = true;
+    if (isFocused) item.isFocused = true;
     await docClient.send(new PutCommand({ TableName: 'Sessions', Item: item }));
     res.json({ sessionId });
   } catch (err) {
@@ -832,6 +833,51 @@ app.post('/sessions/:id/answers', async (req, res) => {
 
     await docClient.send(new TransactWriteCommand({ TransactItems: transactItems }));
     res.json({ success: true });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+// セッション別回答詳細取得
+app.get('/sessions/:id/answers', async (req, res) => {
+  try {
+    const docClient = getClient();
+    const { userId } = req.query;
+    const sessionId = req.params.id;
+
+    const answersResult = await docClient.send(new QueryCommand({
+      TableName: 'UserAnswers',
+      KeyConditionExpression: 'userId = :uid',
+      FilterExpression: 'sessionId = :sid',
+      ExpressionAttributeValues: { ':uid': userId, ':sid': sessionId },
+    }));
+
+    const answers = answersResult.Items || [];
+    const questionIds = [...new Set(answers.map(a => a.questionId))];
+
+    const questions = await Promise.all(
+      questionIds.map(qid =>
+        docClient.send(new GetCommand({
+          TableName: 'Questions',
+          Key: { questionId: qid },
+          ProjectionExpression: 'questionId, questionText, tags',
+        })).then(r => r.Item).catch(() => null)
+      )
+    );
+    const qMap = Object.fromEntries(questions.filter(Boolean).map(q => [q.questionId, q]));
+
+    const result = answers
+      .map(a => ({
+        questionId: a.questionId,
+        questionText: qMap[a.questionId]?.questionText ?? '',
+        tags: qMap[a.questionId]?.tags ?? [],
+        isCorrect: a.isCorrect,
+        answeredAt: a.answeredAt,
+      }))
+      .sort((a, b) => (a.answeredAt > b.answeredAt ? 1 : -1));
+
+    res.json({ answers: result });
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: 'Internal server error' });

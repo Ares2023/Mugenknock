@@ -122,7 +122,30 @@
       "Bash(/home/yuzuki/local/bin/aws s3 *)",
       "Bash(/home/yuzuki/local/bin/aws amplify *)",
       "Bash(/home/yuzuki/local/bin/aws s3api *)",
-      "Bash(/home/yuzuki/local/bin/aws cloudfront *)"
+      "Bash(/home/yuzuki/local/bin/aws cloudfront *)",
+      "Bash(/home/yuzuki/local/bin/aws ses *)",
+      "Bash(/home/yuzuki/local/bin/aws ce *)",
+      "Bash(/home/yuzuki/local/bin/aws iam *)",
+      "WebFetch(domain:aws.amazon.com)",
+      "Bash(unzip -q aws-icons.zip -d aws-icons)",
+      "Bash(cp /tmp/aws-icons/Architecture-Service-Icons_04302026/Arch_Management-Tools/48/Arch_AWS-CloudTrail_48.png /home/yuzuki/aws-quiz-app/public/icons/aws/CloudTrail.png)",
+      "Bash(cp /tmp/aws-icons/Architecture-Service-Icons_04302026/Arch_Application-Integration/48/Arch_Amazon-EventBridge_48.png /home/yuzuki/aws-quiz-app/public/icons/aws/EventBridge.png)",
+      "Bash(grep -n \"^# ── \\\\|^{$\\\\|^} 2>&1\\\\|Cognito\\\\|LOG_FILE\" /home/yuzuki/aws-quiz-app/prompts/night-prompts/scripts/01-generate-questions.sh)",
+      "Bash(grep -n \"^{$\\\\|^} 2>&1 | tee\\\\|^} 2>&1\" /home/yuzuki/aws-quiz-app/prompts/night-prompts/scripts/02-check-validity.sh)",
+      "Bash(grep -n \"^{$\\\\|^} 2>&1 | tee\\\\|^} 2>&1\" /home/yuzuki/aws-quiz-app/prompts/night-prompts/scripts/03-check-translation.sh)",
+      "Bash(sed *)",
+      "Bash(grep -n \"^{$\" /home/yuzuki/aws-quiz-app/prompts/night-prompts/scripts/02-check-validity.sh)",
+      "Bash(grep -n \"^{$\" /home/yuzuki/aws-quiz-app/prompts/night-prompts/scripts/03-check-translation.sh)",
+      "Bash(grep -n \"日めくりAWSサービス生成$\\\\|^echo \\\\\"==========\" /home/yuzuki/aws-quiz-app/prompts/night-prompts/scripts/generate-daily-services.sh)",
+      "Bash(unzip -o aws-icons.zip -d aws-icons-extracted)",
+      "Bash(cp /tmp/aws-icons-extracted/Architecture-Service-Icons_04302026/Arch_Storage/48/Arch_Amazon-Simple-Storage-Service_48.png /home/yuzuki/aws-quiz-app/public/icons/aws/S3.png)",
+      "Bash(cp /tmp/aws-icons-extracted/Architecture-Service-Icons_04302026/Arch_Storage/48/Arch_Amazon-Elastic-Block-Store_48.png /home/yuzuki/aws-quiz-app/public/icons/aws/EBS.png)",
+      "Bash(cp /tmp/aws-icons-extracted/Architecture-Service-Icons_04302026/Arch_Business-Applications/48/Arch_Amazon-Quick_48.png /home/yuzuki/aws-quiz-app/public/icons/aws/QuickSight.png)",
+      "Bash(/home/yuzuki/local/bin/amplify push *)",
+      "Bash(/home/yuzuki/.npm-global/bin/amplify push *)",
+      "Bash(/home/yuzuki/local/bin/aws apigateway *)",
+      "Bash(/home/yuzuki/local/bin/aws cloudformation *)",
+      "Bash(zip -r /tmp/awsquiz-lambda.zip .)"
     ]
   }
 }
