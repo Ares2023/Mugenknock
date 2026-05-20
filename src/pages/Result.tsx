@@ -15,12 +15,14 @@ function shuffleArray<T>(arr: T[]): T[] { const a = [...arr]; for (let i = a.len
 export default function Result() {
   const navigate = useNavigate();
   const location = useLocation();
-  const { results, questions, score, isPassed, examType, mode, timeUp, isQuick } = location.state as any;
+  const { results, questions, score, isPassed, examType, mode, timeUp, isQuick, isMini } = location.state as any;
   const { user } = useAuth();
 
   const resolvedExamType = examType ?? questions?.[0]?.examType ?? 'SAA';
-  const passScore = PASS_SCORES[resolvedExamType];
-  const passRate = PASS_RATE[resolvedExamType];
+  const basePassScore = PASS_SCORES[resolvedExamType];
+  const basePassRate = PASS_RATE[resolvedExamType];
+  const passScore = isMini ? Math.ceil(basePassScore / 5) : basePassScore;
+  const passRate = isMini ? Math.ceil(basePassRate / 5) : basePassRate;
   const isExam = mode === 'exam';
 
   const { lang, t } = useLanguage();

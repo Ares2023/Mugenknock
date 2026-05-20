@@ -199,6 +199,7 @@ export default function ExerciseSession() {
   const examType: string = state?.examType ?? '';
   const isQuick: boolean = state?.isQuick ?? false;
   const isFocused: boolean = state?.isFocused ?? false;
+  const isMini: boolean = state?.isMini ?? false;
 
   const [currentIndex, setCurrentIndex] = useState<number>(state?.resumeIndex ?? 0);
   const [selectedAnswers, setSelectedAnswers] = useState<string[]>(state?.resumeSelectedAnswers ?? []);
@@ -383,7 +384,8 @@ export default function ExerciseSession() {
     if (currentIndex + 1 >= questions.length) {
       setFinishing(true);
       const score = Math.round((results.filter(r => r.isCorrect).length / questions.length) * 100);
-      const passRate = PASS_RATE[examType] ?? PASS_RATE['SAA'];
+      const basePassRate = PASS_RATE[examType] ?? PASS_RATE['SAA'];
+      const passRate = isMini ? Math.ceil(basePassRate / 5) : basePassRate;
       const isPassed = score >= passRate;
       try {
         await fetch(`${API_ENDPOINT}/sessions/${sessionId}`, {
@@ -417,7 +419,7 @@ export default function ExerciseSession() {
       // セッション完了でキャッシュ破棄 → ホーム画面が最新データをサーバーから再取得
       deleteCached(`ustats_${userId}`);
       localStorage.setItem('postSessionRefresh', String(Date.now()));
-      navigate('/result', { state: { results, questions, score, isPassed, sessionId, userId, examType, isQuick } });
+      navigate('/result', { state: { results, questions, score, isPassed, sessionId, userId, examType, isQuick, isMini } });
     } else {
       setCurrentIndex(prev => prev + 1);
       setSelectedAnswers([]);
