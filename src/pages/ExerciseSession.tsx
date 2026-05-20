@@ -756,7 +756,7 @@ export default function ExerciseSession() {
             )}
           </div>
         ) : (
-          <div style={{ position: 'fixed', right: 24, top: '50%', transform: 'translateY(-50%)', zIndex: 150, display: 'flex', flexDirection: 'column', gap: 8 }}>
+          <div style={{ position: 'fixed', right: 24, bottom: 24, zIndex: 150, display: 'flex', flexDirection: 'column', gap: 8 }}>
             {!answered ? (
               <button
                 onClick={submitAnswer}

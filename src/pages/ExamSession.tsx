@@ -528,7 +528,7 @@ export default function ExamSession() {
             </button>
           </div>
         ) : (
-          <div style={{ position: 'fixed', right: 24, top: '50%', transform: 'translateY(-50%)', zIndex: 150 }}>
+          <div style={{ position: 'fixed', right: 24, bottom: 24, zIndex: 150 }}>
             <button
               onClick={() => setShowConfirm(true)}
               style={{ height: 44, padding: '0 24px', border: 'none', borderRadius: 22, background: 'var(--color-accent)', color: 'var(--color-btn-primary-text)', fontWeight: 600, fontSize: 'var(--font-size-base)', cursor: 'pointer', whiteSpace: 'nowrap', boxShadow: '0 2px 8px rgba(0,0,0,0.15)' }}
