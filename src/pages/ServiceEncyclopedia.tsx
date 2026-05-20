@@ -59,6 +59,7 @@ export default function ServiceEncyclopedia() {
     try { return JSON.parse(localStorage.getItem('encyclopediaServices') ?? '{}'); } catch { return {}; }
   });
   const [selected, setSelected] = useState<EncyclopediaService | null>(null);
+  const [activeTab, setActiveTab] = useState<'all' | 'unlocked'>('all');
 
   useEffect(() => {
     const refresh = () => {
@@ -134,6 +135,24 @@ export default function ServiceEncyclopedia() {
           : `1 service unlocked per day you use the app. ${unlockedCount} / ${totalServices} unlocked`}
       </p>
 
+      {/* タブ */}
+      <div style={{ display: 'flex', borderBottom: '2px solid var(--color-border)', marginBottom: 'var(--spacing-md)' }}>
+        {(['all', 'unlocked'] as const).map(t => {
+          const label = t === 'all' ? (ja ? '一覧' : 'All') : (ja ? '解放済み' : 'Unlocked');
+          const active = activeTab === t;
+          return (
+            <button
+              key={t}
+              onClick={() => setActiveTab(t)}
+              style={{ flex: 1, background: 'none', border: 'none', cursor: 'pointer', padding: '8px 0', fontSize: 'var(--font-size-sm)', fontWeight: active ? 700 : 400, color: active ? 'var(--color-primary)' : 'var(--color-text-sub)', borderBottom: `2px solid ${active ? 'var(--color-primary)' : 'transparent'}`, marginBottom: -2, transition: 'color 0.15s' }}
+            >
+              {label}
+              {t === 'unlocked' && <span style={{ marginLeft: 4, fontSize: 10, color: active ? 'var(--color-primary)' : 'var(--color-text-light)' }}>{unlockedCount}</span>}
+            </button>
+          );
+        })}
+      </div>
+
       {/* 今日の日めくりサービス */}
       <div style={{ background: 'var(--color-bg-white)', border: '1px solid var(--color-border)', borderRadius: 'var(--border-radius-lg)', padding: 'var(--spacing-md)', marginBottom: 'var(--spacing-md)' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 10 }}>
@@ -184,6 +203,10 @@ export default function ServiceEncyclopedia() {
 
       {/* カテゴリ別サービス一覧 */}
       {CATALOG.map(cat => {
+        const displayServices = activeTab === 'unlocked'
+          ? cat.services.filter(s => isUnlocked(s, unlockedMap))
+          : cat.services;
+        if (displayServices.length === 0) return null;
         const catUnlocked = cat.services.filter(s => isUnlocked(s, unlockedMap)).length;
         return (
           <div key={cat.category} style={{ marginBottom: 20 }}>
@@ -191,12 +214,14 @@ export default function ServiceEncyclopedia() {
               <span style={{ fontWeight: 700, fontSize: 'var(--font-size-sm)', color: 'var(--color-text-main)' }}>
                 {cat.category}
               </span>
-              <span style={{ fontSize: 11, color: 'var(--color-text-light)', marginLeft: 2 }}>
-                {catUnlocked}/{cat.services.length}
-              </span>
+              {activeTab === 'all' && (
+                <span style={{ fontSize: 11, color: 'var(--color-text-light)', marginLeft: 2 }}>
+                  {catUnlocked}/{cat.services.length}
+                </span>
+              )}
             </div>
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 6 }}>
-              {cat.services.map(svc => {
+              {displayServices.map(svc => {
                 const unlocked = isUnlocked(svc, unlockedMap);
                 const serviceData = svc.serviceIds?.map(id => storedServices[id]).find(Boolean);
                 const clickable = unlocked && !!serviceData;
