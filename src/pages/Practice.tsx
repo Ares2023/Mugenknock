@@ -431,6 +431,7 @@ export default function Practice() {
             <>
               <div onClick={() => setShowNewPanel(false)} style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.4)', zIndex: 210 }} />
               <div style={{ position: 'fixed', bottom: isMobile ? 116 : 68, left: 0, right: 0, zIndex: 211, background: 'var(--color-bg-white)', borderRadius: '14px 14px 0 0', padding: '14px 12px 12px', boxShadow: '0 -4px 20px rgba(0,0,0,0.18)', animation: 'slideUp 0.22s ease' }}>
+              <div style={{ maxWidth: 1100, margin: '0 auto' }}>
                 <div style={{ fontSize: 'var(--font-size-sm)', color: 'var(--color-text-sub)', textAlign: 'center', marginBottom: 10 }}>
                   {ja ? 'セッションを上書きして開始します' : 'This will overwrite the current session'}
                 </div>
@@ -439,9 +440,11 @@ export default function Practice() {
                   {ja ? '新規に開始' : 'Start New'}
                 </Button>
               </div>
+              </div>
             </>
           )}
-          <div style={{ position: 'fixed', bottom: isMobile ? 56 : 0, left: 0, right: 0, zIndex: 150, background: 'var(--color-bg-white)', borderTop: '1px solid var(--color-border)', padding: '8px 12px', display: 'flex', gap: 6, boxShadow: '0 -2px 8px rgba(0,0,0,0.08)', transform: 'translateZ(0)' }}>
+          <div style={{ position: 'fixed', bottom: isMobile ? 56 : 0, left: 0, right: 0, zIndex: 150, background: 'var(--color-bg-white)', borderTop: '1px solid var(--color-border)', padding: '8px 12px', boxShadow: '0 -2px 8px rgba(0,0,0,0.08)', transform: 'translateZ(0)' }}>
+          <div style={{ maxWidth: 1100, margin: '0 auto', display: 'flex', gap: 6 }}>
             {hasDraft ? (
               /* スプリットピル：再開 + ↑ */
               <div style={{ flex: 1, display: 'flex', height: 44, borderRadius: 22, overflow: 'hidden', opacity: availableCount === 0 ? 0.5 : 1 }}>
@@ -481,6 +484,7 @@ export default function Practice() {
               </button>
             )}
           </div>
+          </div>
         </>
       )}
 
@@ -491,6 +495,7 @@ export default function Practice() {
             <>
               <div onClick={() => setShowNewExamPanel(false)} style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.4)', zIndex: 210 }} />
               <div style={{ position: 'fixed', bottom: isMobile ? 116 : 68, left: 0, right: 0, zIndex: 211, background: 'var(--color-bg-white)', borderRadius: '14px 14px 0 0', padding: '14px 12px 12px', boxShadow: '0 -4px 20px rgba(0,0,0,0.18)', animation: 'slideUp 0.22s ease' }}>
+              <div style={{ maxWidth: 1100, margin: '0 auto' }}>
                 <div style={{ fontSize: 'var(--font-size-sm)', color: 'var(--color-text-sub)', textAlign: 'center', marginBottom: 10 }}>
                   {ja ? 'セッションを上書きして開始します' : 'This will overwrite the current session'}
                 </div>
@@ -499,9 +504,11 @@ export default function Practice() {
                   {ja ? '新規に開始' : 'Start New'}
                 </Button>
               </div>
+              </div>
             </>
           )}
-          <div style={{ position: 'fixed', bottom: isMobile ? 56 : 0, left: 0, right: 0, zIndex: 150, background: 'var(--color-bg-white)', borderTop: '1px solid var(--color-border)', padding: '8px 12px', display: 'flex', boxShadow: '0 -2px 8px rgba(0,0,0,0.08)', transform: 'translateZ(0)' }}>
+          <div style={{ position: 'fixed', bottom: isMobile ? 56 : 0, left: 0, right: 0, zIndex: 150, background: 'var(--color-bg-white)', borderTop: '1px solid var(--color-border)', padding: '8px 12px', boxShadow: '0 -2px 8px rgba(0,0,0,0.08)', transform: 'translateZ(0)' }}>
+          <div style={{ maxWidth: 1100, margin: '0 auto', display: 'flex' }}>
             {hasExamDraft ? (
               <div style={{ flex: 1, display: 'flex', height: 44, borderRadius: 22, overflow: 'hidden' }}>
                 <button
@@ -538,6 +545,7 @@ export default function Practice() {
                 ) : (ja ? '試験を開始' : 'Start Mock Exam')}
               </button>
             )}
+          </div>
           </div>
         </>
       )}

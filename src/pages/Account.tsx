@@ -318,7 +318,7 @@ export default function Account() {
       </header>
 
     <div style={{ flex: 1, overflowY: 'auto' }}>
-    <div style={{ maxWidth: 600, margin: '0 auto', padding: '24px 16px 48px' }} className="page-container">
+    <div style={{ maxWidth: 1100, margin: '0 auto', padding: '24px 16px 48px' }} className="page-container">
 
       {/* ユーザー情報ヘッダー */}
       {user && (

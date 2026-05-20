@@ -32,7 +32,7 @@ export default function ReleaseNotes() {
   const hiddenCount = releases.length - SHOW_DEFAULT;
 
   return (
-    <div style={{ maxWidth: 680, margin: '0 auto', padding: 'var(--spacing-xl) var(--spacing-lg)', color: 'var(--color-text-main)' }} className="page-container">
+    <div style={{ maxWidth: 1100, margin: '0 auto', padding: 'var(--spacing-xl) var(--spacing-lg)', color: 'var(--color-text-main)' }} className="page-container">
       <h1 style={{ fontSize: 'var(--font-size-xxl)', fontWeight: 700, margin: '0 0 var(--spacing-xl)' }}>{t('releaseNotes.title')}</h1>
 
       {loading && (

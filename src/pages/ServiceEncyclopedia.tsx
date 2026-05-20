@@ -125,7 +125,7 @@ export default function ServiceEncyclopedia() {
   );
 
   return (
-    <div style={{ maxWidth: 600, margin: '0 auto', padding: 'var(--spacing-lg)' }}>
+    <div style={{ maxWidth: 1100, margin: '0 auto', padding: 'var(--spacing-lg)' }}>
       <h2 style={{ margin: '0 0 4px', fontSize: 'var(--font-size-h2)', fontWeight: 700, color: 'var(--color-text-main)' }}>
         {ja ? 'サービス図鑑' : 'Service Encyclopedia'}
       </h2>
@@ -192,7 +192,7 @@ export default function ServiceEncyclopedia() {
             <button
               key={t}
               onClick={() => setActiveTab(t)}
-              style={{ flex: 1, background: 'none', border: 'none', cursor: 'pointer', padding: '8px 0', fontSize: 'var(--font-size-sm)', fontWeight: active ? 700 : 400, color: active ? 'var(--color-primary)' : 'var(--color-text-sub)', borderBottom: `2px solid ${active ? 'var(--color-primary)' : 'transparent'}`, marginBottom: -2, transition: 'color 0.15s' }}
+              style={{ flex: 1, background: 'none', border: 'none', cursor: 'pointer', padding: '10px 0', fontSize: 'var(--font-size-base)', fontWeight: active ? 700 : 500, color: active ? 'var(--color-primary)' : 'var(--color-text-sub)', borderBottom: `2px solid ${active ? 'var(--color-primary)' : 'transparent'}`, transition: 'color 0.15s, border-color 0.15s' }}
             >
               {label}
               {t === 'unlocked' && <span style={{ marginLeft: 4, fontSize: 10, color: active ? 'var(--color-primary)' : 'var(--color-text-light)' }}>{unlockedCount}</span>}
