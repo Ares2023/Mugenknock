@@ -163,7 +163,7 @@ function CombinedDetailModal({ targetExam, domainAccList, estimatedScore, passSc
       style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', zIndex: 1000, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16 }}
       onClick={e => { if (e.target === e.currentTarget) onClose(); }}
     >
-      <div style={{ background: 'var(--color-bg-white)', borderRadius: 'var(--border-radius-lg)', padding: isMobile ? '16px' : '20px 28px', width: '100%', maxWidth: isMobile ? 480 : 820, maxHeight: isMobile ? '82vh' : '90vh', overflowY: 'auto', boxShadow: '0 8px 32px rgba(0,0,0,0.2)' }}>
+      <div style={{ background: 'var(--color-bg-white)', borderRadius: 'var(--border-radius-lg)', padding: isMobile ? '16px' : '20px 28px', width: '100%', maxWidth: isMobile ? 480 : 615, maxHeight: isMobile ? '82vh' : '90vh', overflowY: 'auto', boxShadow: '0 8px 32px rgba(0,0,0,0.2)' }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: showCalc ? 8 : (isMobile ? 12 : 16) }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
             <span style={{ fontWeight: 700, fontSize: 'var(--font-size-base)', color: 'var(--color-text-main)' }}>
@@ -954,7 +954,7 @@ export default function Home() {
   const startPrimary = primaryMode === 'focused' ? startFocusedExercise : startQuickExercise;
 
   return (
-    <div style={{ maxWidth: 820, margin: '0 auto', padding: 'var(--spacing-lg) var(--spacing-lg)' }} className="page-container">
+    <div style={{ maxWidth: 615, margin: '0 auto', padding: 'var(--spacing-lg) var(--spacing-lg)' }} className="page-container">
 
       {/* ── 成績セクションヘッダー ── */}
       {user && (
@@ -1088,16 +1088,27 @@ export default function Home() {
         )}
       </Card>
 
-      {/* ── サクッと演習ボタン行（デスクトップ） ── */}
-      {!isMobile && (
-        <>
-          <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr', gap: 'var(--spacing-sm)', marginBottom: 8 }}>
+      {/* ── 日めくりAWSサービス ── */}
+      <TodayServiceSection lang={lang} userId={user?.userId} onNavigateEncyclopedia={() => navigate('/encyclopedia')} />
+
+      {/* ── 非ログイン時バナー ── */}
+      {!user && (
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 'var(--spacing-md)', marginTop: 'var(--spacing-md)', background: 'var(--color-primary-light)', border: '1px solid var(--color-primary)', borderRadius: 'var(--border-radius-md)', padding: '10px var(--spacing-md)', fontSize: 'var(--font-size-sm)', color: 'var(--color-text-main)' }}>
+          <span style={{ lineHeight: 1.6 }}>{ja ? 'ログインすると演習・模試の結果が保存され、予想スコアが表示されます。' : 'Log in to save results and view your estimated score.'}</span>
+          <Button variant="primary" size="sm" onClick={() => navigate('/login')} style={{ flexShrink: 0 }}>{ja ? 'ログイン →' : 'Log in →'}</Button>
+        </div>
+      )}
+
+      {/* ── サクッと演習ボタン（デスクトップ固定） ── */}
+      {!isMobile && createPortal(
+        <div style={{ position: 'fixed', bottom: 16, left: 'var(--content-left, 0px)', right: 0, zIndex: 150 }}>
+          <div style={{ maxWidth: 615, margin: '0 auto', padding: '0 var(--spacing-lg)', display: 'flex', gap: 6 }}>
             {hasPrimaryDraft ? (
-              <div style={{ position: 'relative' }}>
+              <div style={{ flex: 1, position: 'relative' }}>
                 {showWebQuickMenu && (
                   <>
                     <div onClick={() => setShowWebQuickMenu(false)} style={{ position: 'fixed', inset: 0, zIndex: 199 }} />
-                    <div style={{ position: 'absolute', bottom: '110%', left: 0, right: 0, zIndex: 200, background: 'var(--color-bg-white)', borderRadius: 'var(--border-radius-md)', boxShadow: '0 -4px 16px rgba(0,0,0,0.15)', border: '1px solid var(--color-border)', padding: '8px' }}>
+                    <div style={{ position: 'absolute', bottom: '110%', left: 0, right: 0, zIndex: 200, background: 'var(--color-bg-white)', borderRadius: 'var(--border-radius-md)', boxShadow: '0 -4px 16px rgba(0,0,0,0.15)', border: '1px solid var(--color-border)', padding: '8px', marginBottom: 6 }}>
                       <div style={{ fontSize: 'var(--font-size-xs)', color: 'var(--color-text-sub)', textAlign: 'center', marginBottom: 8 }}>
                         {ja ? 'セッションを上書きして新しく開始します' : 'This will overwrite the current session'}
                       </div>
@@ -1135,11 +1146,11 @@ export default function Home() {
                     </div>
                   </>
                 )}
-                <div style={{ display: 'flex', height: 40, borderRadius: 20, overflow: 'hidden' }}>
+                <div style={{ display: 'flex', height: 44, borderRadius: 22, overflow: 'hidden' }}>
                   <button
                     disabled={!targetExam || primaryLoading}
                     onClick={resumePrimary}
-                    style={{ flex: 1, height: 40, border: 'none', background: primaryBg, color: primaryColor, fontWeight: 600, fontSize: 'var(--font-size-base)', cursor: (!targetExam || primaryLoading) ? 'default' : 'pointer', paddingLeft: 16, paddingRight: 8 }}
+                    style={{ flex: 1, height: 44, border: 'none', background: primaryBg, color: primaryColor, fontWeight: 600, fontSize: 'var(--font-size-base)', cursor: (!targetExam || primaryLoading) ? 'default' : 'pointer', paddingLeft: 16, paddingRight: 8 }}
                   >
                     {primaryLoading ? (
                       <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}>
@@ -1150,7 +1161,7 @@ export default function Home() {
                   </button>
                   <button
                     onClick={() => setShowWebQuickMenu(v => !v)}
-                    style={{ width: 40, height: 40, border: 'none', borderLeft: '2px solid rgba(255,255,255,0.4)', background: primaryBg, color: primaryColor, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}
+                    style={{ width: 44, height: 44, border: 'none', borderLeft: '2px solid rgba(255,255,255,0.4)', background: primaryBg, color: primaryColor, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}
                     aria-label={ja ? '新規で開始メニュー' : 'Start new menu'}
                   >
                     <IconChevronUp size={16} />
@@ -1158,11 +1169,11 @@ export default function Home() {
                 </div>
               </div>
             ) : (
-              <div style={{ position: 'relative' }}>
+              <div style={{ flex: 1, position: 'relative' }}>
                 {showFocusedMenu && (
                   <>
                     <div onClick={() => setShowFocusedMenu(false)} style={{ position: 'fixed', inset: 0, zIndex: 199 }} />
-                    <div style={{ position: 'absolute', bottom: '110%', left: 0, right: 0, zIndex: 200, background: 'var(--color-bg-white)', borderRadius: 'var(--border-radius-md)', boxShadow: '0 -4px 16px rgba(0,0,0,0.15)', border: '1px solid var(--color-border)', padding: '8px' }}>
+                    <div style={{ position: 'absolute', bottom: '110%', left: 0, right: 0, zIndex: 200, background: 'var(--color-bg-white)', borderRadius: 'var(--border-radius-md)', boxShadow: '0 -4px 16px rgba(0,0,0,0.15)', border: '1px solid var(--color-border)', padding: '8px', marginBottom: 6 }}>
                       {primaryMode === 'quick' ? (
                         <>
                           {focusedUnlocked && <div style={{ textAlign: 'center', fontSize: 10, color: 'var(--color-text-light)', marginBottom: 4 }}>{ja ? '苦手・不正解問題を重点演習' : 'Focuses on weak/incorrect questions'}</div>}
@@ -1192,12 +1203,12 @@ export default function Home() {
                     </div>
                   </>
                 )}
-                <div style={{ display: 'flex', height: 40, borderRadius: 20, overflow: 'hidden' }}>
+                <div style={{ display: 'flex', height: 44, borderRadius: 22, overflow: 'hidden' }}>
                   {primaryMode === 'quick' ? (
                     <button
                       disabled={!targetExam || quickLoading}
                       onClick={() => { if (targetExam && !quickLoading) startQuickExercise(); }}
-                      style={{ flex: 1, height: 40, border: 'none', background: 'var(--color-accent)', color: 'var(--color-btn-primary-text)', fontWeight: 600, fontSize: 'var(--font-size-base)', cursor: (!targetExam || quickLoading) ? 'default' : 'pointer', paddingLeft: 16, paddingRight: 8 }}
+                      style={{ flex: 1, height: 44, border: 'none', background: 'var(--color-accent)', color: 'var(--color-btn-primary-text)', fontWeight: 600, fontSize: 'var(--font-size-base)', cursor: (!targetExam || quickLoading) ? 'default' : 'pointer', paddingLeft: 16, paddingRight: 8 }}
                     >
                       {quickLoading ? (
                         <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}>
@@ -1210,7 +1221,7 @@ export default function Home() {
                     <button
                       disabled={!targetExam || focusedLoading}
                       onClick={() => { if (targetExam && !focusedLoading) startFocusedExercise(); }}
-                      style={{ flex: 1, height: 40, border: 'none', background: '#009E9E', color: '#fff', fontWeight: 600, fontSize: 'var(--font-size-base)', cursor: (!targetExam || focusedLoading) ? 'default' : 'pointer', paddingLeft: 16, paddingRight: 8 }}
+                      style={{ flex: 1, height: 44, border: 'none', background: '#009E9E', color: '#fff', fontWeight: 600, fontSize: 'var(--font-size-base)', cursor: (!targetExam || focusedLoading) ? 'default' : 'pointer', paddingLeft: 16, paddingRight: 8 }}
                     >
                       {focusedLoading ? (
                         <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}>
@@ -1222,7 +1233,7 @@ export default function Home() {
                   )}
                   <button
                     onClick={() => setShowFocusedMenu(v => !v)}
-                    style={{ width: 36, height: 40, border: 'none', borderLeft: '2px solid rgba(255,255,255,0.4)', background: primaryMode === 'focused' ? '#009E9E' : 'var(--color-accent)', color: '#fff', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}
+                    style={{ width: 44, height: 44, border: 'none', borderLeft: '2px solid rgba(255,255,255,0.4)', background: primaryMode === 'focused' ? '#009E9E' : 'var(--color-accent)', color: '#fff', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}
                     aria-label={primaryMode === 'quick' ? (ja ? 'しっかり対策' : 'Focused practice') : (ja ? 'サクッと演習' : 'Quick practice')}
                   >
                     <IconChevronUp size={16} />
@@ -1230,18 +1241,19 @@ export default function Home() {
                 </div>
               </div>
             )}
-            <Button variant="outline" fullWidth onClick={() => {
-              if (primaryMode === 'focused') { setDraftFocusedPrefs({ ...loadFocusedPrefs() }); setShowFocusedModal(true); }
-              else { setDraftPrefs({ ...loadQuickPrefs() }); setShowQuickModal(true); }
-            }}>
-              {ja ? '設定' : 'Settings'}
-            </Button>
+            <button
+              onClick={() => {
+                if (primaryMode === 'focused') { setDraftFocusedPrefs({ ...loadFocusedPrefs() }); setShowFocusedModal(true); }
+                else { setDraftPrefs({ ...loadQuickPrefs() }); setShowQuickModal(true); }
+              }}
+              style={{ flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', width: 44, height: 44, border: `1.5px solid ${primaryMode === 'focused' ? '#009E9E' : 'var(--color-primary)'}`, borderRadius: '50%', background: 'transparent', cursor: 'pointer', color: primaryMode === 'focused' ? '#009E9E' : 'var(--color-primary)' }}
+              aria-label={ja ? '設定' : 'Settings'}
+            >
+              <IconSettings size={18} />
+            </button>
           </div>
-          <Button variant="outline" fullWidth onClick={() => navigate('/practice')} style={{ marginBottom: 'var(--spacing-md)' }}>
-            {ja ? 'トレーニング →' : 'Training →'}
-          </Button>
-        </>
-      )}
+        </div>
+      , document.body)}
 
       {/* ── サクッと演習ボタン（モバイル固定） ── */}
       {isMobile && (
@@ -1398,17 +1410,6 @@ export default function Home() {
             </button>
           </div>, document.body)}
         </>
-      )}
-
-      {/* ── 日めくりAWSサービス ── */}
-      <TodayServiceSection lang={lang} userId={user?.userId} onNavigateEncyclopedia={() => navigate('/encyclopedia')} />
-
-      {/* ── 非ログイン時バナー ── */}
-      {!user && (
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 'var(--spacing-md)', marginTop: 'var(--spacing-md)', background: 'var(--color-primary-light)', border: '1px solid var(--color-primary)', borderRadius: 'var(--border-radius-md)', padding: '10px var(--spacing-md)', fontSize: 'var(--font-size-sm)', color: 'var(--color-text-main)' }}>
-          <span style={{ lineHeight: 1.6 }}>{ja ? 'ログインすると演習・模試の結果が保存され、予想スコアが表示されます。' : 'Log in to save results and view your estimated score.'}</span>
-          <Button variant="primary" size="sm" onClick={() => navigate('/login')} style={{ flexShrink: 0 }}>{ja ? 'ログイン →' : 'Log in →'}</Button>
-        </div>
       )}
 
       {/* ── サクッと演習 設定モーダル ── */}

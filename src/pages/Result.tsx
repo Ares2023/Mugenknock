@@ -58,7 +58,7 @@ export default function Result() {
   };
 
   return (
-    <div style={{ maxWidth: 820, margin: '0 auto', padding: 'var(--spacing-xl) var(--spacing-lg)' }} className="result-container">
+    <div style={{ maxWidth: 615, margin: '0 auto', padding: 'var(--spacing-xl) var(--spacing-lg)' }} className="result-container">
       <h2 style={{ fontSize: 'var(--font-size-xxl)', fontWeight: 700, margin: '0 0 var(--spacing-xl)', color: 'var(--color-text-main)' }}>
         {isExam ? t('result.examResult') : t('result.exerciseResult')}
       </h2>

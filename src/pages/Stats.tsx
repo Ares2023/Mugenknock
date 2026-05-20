@@ -326,7 +326,7 @@ export default function Stats() {
   // ── 目標資格未設定 ──
   if (!targetExam) {
     return (
-      <div style={{ maxWidth: 820, margin: '0 auto', padding: 'var(--spacing-xl) var(--spacing-lg)' }} className="page-container">
+      <div style={{ maxWidth: 615, margin: '0 auto', padding: 'var(--spacing-xl) var(--spacing-lg)' }} className="page-container">
         <h2 style={{ fontSize: 'var(--font-size-xxl)', fontWeight: 700, margin: '0 0 var(--spacing-xl)', color: 'var(--color-text-main)' }}>{t('stats.title')}</h2>
         <Card padding="var(--spacing-xl)">
           <div style={{ textAlign: 'center', padding: 'var(--spacing-xl) 0' }}>
@@ -352,7 +352,7 @@ export default function Stats() {
   });
 
   return (
-    <div style={{ maxWidth: 820, margin: '0 auto', padding: 'var(--spacing-xl) var(--spacing-lg)' }} className="page-container">
+    <div style={{ maxWidth: 615, margin: '0 auto', padding: 'var(--spacing-xl) var(--spacing-lg)' }} className="page-container">
 
       {showHint && (
         <div className="fade-slide-in" style={{

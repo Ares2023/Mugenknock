@@ -286,7 +286,7 @@ export default function ExerciseSetup() {
   }
 
   return (
-    <div style={{ maxWidth: 820, margin: '0 auto', padding: 'var(--spacing-xl) var(--spacing-lg)' }} className="page-container">
+    <div style={{ maxWidth: 615, margin: '0 auto', padding: 'var(--spacing-xl) var(--spacing-lg)' }} className="page-container">
 
       {showHint && (
         <div className="fade-slide-in" style={{

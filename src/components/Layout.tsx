@@ -768,7 +768,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
             width: '100%',
             WebkitOverflowScrolling: 'touch',
             minWidth: 0,
-            paddingBottom: isMobile ? 120 : 0,
+            paddingBottom: isMobile ? 120 : (['/practice', '/'].includes(location.pathname) ? 80 : 0),
             transform: swipeOffset !== 0 ? `translateX(${swipeOffset}px)` : undefined,
             transition: swipeTrans ? 'transform 0.24s ease' : 'none',
             willChange: swipeOffset !== 0 ? 'transform' : undefined,
