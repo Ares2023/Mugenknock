@@ -1489,11 +1489,42 @@ app.get('/daily-service', async (req, res) => {
   try {
     const docClient = getClient();
     const result = await docClient.send(new ScanCommand({ TableName: 'DailyServices' }));
-    const items = (result.Items || []).sort((a, b) => (a.order || 0) - (b.order || 0));
+    const allItems = result.Items || [];
+
+    // '_schedule_' は日付→serviceId のスケジュール管理用アイテム（一般アイテムから除外）
+    const scheduleItem = allItems.find(i => i.serviceId === '_schedule_');
+    const items = allItems
+      .filter(i => i.serviceId !== '_schedule_')
+      .sort((a, b) => (a.order || 0) - (b.order || 0));
+
     if (items.length === 0) return res.json({ service: null });
-    // 日本時間の日付を基にインデックスを決定（JST = UTC+9）
+
+    // 今日の日付（JST）
+    const jstDate = new Date(Date.now() + 9 * 3600 * 1000).toISOString().slice(0, 10);
+
+    // スケジュールにすでに今日の結果があればそれを返す
+    const schedule = JSON.parse(scheduleItem?.schedule || '{}');
+    if (schedule[jstDate]) {
+      const locked = items.find(s => s.serviceId === schedule[jstDate]);
+      if (locked) return res.json({ service: locked });
+    }
+
+    // まだ決まっていない → 今日の index を確定してスケジュールに保存
     const jstDay = Math.floor((Date.now() + 9 * 3600 * 1000) / 86400000);
     const service = items[jstDay % items.length];
+    schedule[jstDate] = service.serviceId;
+
+    // 古いエントリを削除（直近90日分のみ保持）
+    const cutoff = new Date(Date.now() + 9 * 3600 * 1000 - 90 * 86400000).toISOString().slice(0, 10);
+    for (const d of Object.keys(schedule)) {
+      if (d < cutoff) delete schedule[d];
+    }
+
+    await docClient.send(new PutCommand({
+      TableName: 'DailyServices',
+      Item: { serviceId: '_schedule_', schedule: JSON.stringify(schedule) },
+    }));
+
     res.json({ service });
   } catch (err) {
     console.error(err);
@@ -1506,7 +1537,9 @@ app.get('/admin/daily-services', async (req, res) => {
   try {
     const docClient = getClient();
     const result = await docClient.send(new ScanCommand({ TableName: 'DailyServices' }));
-    const items = (result.Items || []).sort((a, b) => (a.order || 0) - (b.order || 0));
+    const items = (result.Items || [])
+      .filter(i => i.serviceId !== '_schedule_')
+      .sort((a, b) => (a.order || 0) - (b.order || 0));
     res.json({ items });
   } catch (err) {
     console.error(err);
