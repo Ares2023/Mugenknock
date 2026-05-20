@@ -119,6 +119,37 @@ export default function Others() {
           </div>
           <span style={{ color: 'var(--color-text-light)', fontSize: 16, flexShrink: 0 }}>›</span>
         </button>
+
+        {/* ポータルへ */}
+        <button
+          onClick={() => navigate('/')}
+          style={{
+            width: '100%', display: 'flex', alignItems: 'center', gap: 16,
+            padding: '16px var(--spacing-md)', border: '1px solid var(--color-border)',
+            borderRadius: 'var(--border-radius-lg)', background: 'var(--color-bg-white)',
+            cursor: 'pointer', textAlign: 'left', transition: 'box-shadow 0.15s, border-color 0.15s',
+            marginTop: 8,
+          }}
+          onMouseEnter={e => { e.currentTarget.style.borderColor = 'var(--color-primary)'; e.currentTarget.style.boxShadow = '0 2px 8px rgba(0,108,224,0.1)'; }}
+          onMouseLeave={e => { e.currentTarget.style.borderColor = 'var(--color-border)'; e.currentTarget.style.boxShadow = 'none'; }}
+        >
+          <div style={{
+            width: 44, height: 44, borderRadius: 'var(--border-radius-md)', flexShrink: 0,
+            background: 'var(--color-bg-main)', border: '1px solid var(--color-border)',
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+          }}>
+            <img src="/mugen-icon.png" alt="" style={{ width: 28, height: 28, objectFit: 'contain' }} />
+          </div>
+          <div style={{ flex: 1, minWidth: 0 }}>
+            <div style={{ fontSize: 'var(--font-size-base)', fontWeight: 700, color: 'var(--color-text-main)', marginBottom: 2 }}>
+              無限ノック
+            </div>
+            <div style={{ fontSize: 'var(--font-size-sm)', color: 'var(--color-text-sub)' }}>
+              {ja ? '資格試験一覧に戻る' : 'Back to certification list'}
+            </div>
+          </div>
+          <span style={{ color: 'var(--color-text-light)', fontSize: 16, flexShrink: 0 }}>›</span>
+        </button>
       </div>
 
       {/* お問い合わせモーダル */}
