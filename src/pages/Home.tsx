@@ -390,7 +390,7 @@ function syncEncyclopediaToServer(userId: string): void {
   } catch {}
 }
 
-function TodayServiceSection({ lang, userId }: { lang: string; userId?: string }) {
+function TodayServiceSection({ lang, userId, onNavigateEncyclopedia }: { lang: string; userId?: string; onNavigateEncyclopedia: () => void }) {
   const [service, setService] = useState<DailyService | null>(null);
   const [loading, setLoading] = useState(true);
 
@@ -450,7 +450,7 @@ function TodayServiceSection({ lang, userId }: { lang: string; userId?: string }
       : <span style={{ fontSize: 38, lineHeight: 1 }}>{service.icon}</span>;
 
   return (
-    <Card padding="var(--spacing-md)" style={{ marginBottom: 'var(--spacing-md)' }}>
+    <Card padding="var(--spacing-md)" style={{ marginBottom: 'var(--spacing-md)', cursor: 'pointer' }} onClick={onNavigateEncyclopedia}>
       {/* ヘッダー行 */}
       <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 10 }}>
         {calIcon}
@@ -487,7 +487,7 @@ function TodayServiceSection({ lang, userId }: { lang: string; userId?: string }
       )}
 
       {service.docUrl && (
-        <a href={service.docUrl} target="_blank" rel="noopener noreferrer" style={{ fontSize: 'var(--font-size-sm)', color: 'var(--color-primary)', textDecoration: 'none', fontWeight: 600 }}>
+        <a href={service.docUrl} target="_blank" rel="noopener noreferrer" onClick={e => e.stopPropagation()} style={{ fontSize: 'var(--font-size-sm)', color: 'var(--color-primary)', textDecoration: 'none', fontWeight: 600 }}>
           {lang === 'ja' ? '公式ページを見る →' : 'Official page →'}
         </a>
       )}
@@ -1350,7 +1350,7 @@ export default function Home() {
       )}
 
       {/* ── 日めくりAWSサービス ── */}
-      <TodayServiceSection lang={lang} userId={user?.userId} />
+      <TodayServiceSection lang={lang} userId={user?.userId} onNavigateEncyclopedia={() => navigate('/encyclopedia')} />
 
       {/* ── 非ログイン時バナー ── */}
       {!user && (
