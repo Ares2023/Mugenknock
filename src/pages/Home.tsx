@@ -535,8 +535,8 @@ export default function Home() {
   // サクッと演習ドラフト（24時間以内のquickセッションのみ）
   const readQuickDraft = () => {
     try {
-      const d = JSON.parse(localStorage.getItem('exerciseDraft') ?? 'null');
-      if (!d?.isQuick || !d?.savedAt || Date.now() - d.savedAt > 24 * 3600 * 1000) return null;
+      const d = JSON.parse(localStorage.getItem('quickExerciseDraft') ?? 'null');
+      if (!d?.savedAt || Date.now() - d.savedAt > 24 * 3600 * 1000) return null;
       return d;
     } catch { return null; }
   };
@@ -759,7 +759,7 @@ export default function Home() {
   };
 
   const discardQuickDraft = () => {
-    localStorage.removeItem('exerciseDraft');
+    localStorage.removeItem('quickExerciseDraft');
     setQuickDraft(null);
   };
   const discardFocusedDraft = () => {

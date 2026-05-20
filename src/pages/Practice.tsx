@@ -69,7 +69,7 @@ export default function Practice() {
   const [domainStats, setDomainStats] = useState<DomainStat[]>([]);
 
   const [exerciseDraft, setExerciseDraft] = useState<any>(() => {
-    try { return JSON.parse(localStorage.getItem('exerciseDraft') ?? 'null'); } catch { return null; }
+    try { return JSON.parse(localStorage.getItem('practiceExerciseDraft') ?? 'null'); } catch { return null; }
   });
   const hasDraft = exerciseDraft?.examType === examType;
   const [examDraft, setExamDraft] = useState<any>(() => {
@@ -77,6 +77,7 @@ export default function Practice() {
   });
   const hasExamDraft = examDraft?.examType === examType;
   const [showNewPanel, setShowNewPanel] = useState(false);
+  const [showNewExamPanel, setShowNewExamPanel] = useState(false);
   const [showStartConfirm, setShowStartConfirm] = useState(false);
 
   const isFirstRender = useRef(true);
@@ -476,12 +477,27 @@ export default function Practice() {
                         ) : (ja ? '試験を再開' : 'Resume')}
                       </button>
                       <button
-                        onClick={startExam}
+                        onClick={() => setShowNewExamPanel(v => !v)}
                         style={{ width: 40, height: 40, border: 'none', borderLeft: '2px solid rgba(255,255,255,0.4)', background: 'var(--color-accent)', color: 'var(--color-btn-primary-text)', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}
+                        aria-label={ja ? '新規で試験を開始' : 'Start new exam'}
                       >
                         <IconChevronUp size={16} />
                       </button>
                     </div>
+                    {showNewExamPanel && (
+                      <>
+                        <div onClick={() => setShowNewExamPanel(false)} style={{ position: 'fixed', inset: 0, zIndex: 9 }} />
+                        <div style={{ position: 'absolute', bottom: 'calc(100% + 6px)', left: 0, right: 0, zIndex: 10, background: 'var(--color-bg-white)', border: '1px solid var(--color-border)', borderRadius: 10, padding: '10px 12px', boxShadow: 'var(--box-shadow-md)' }}>
+                          <div style={{ fontSize: 'var(--font-size-xs)', color: 'var(--color-text-sub)', marginBottom: 8 }}>
+                            {ja ? 'セッションを上書きして開始します' : 'This will overwrite the current session'}
+                          </div>
+                          <Button variant="outline" fullWidth style={{ height: 36 }}
+                            onClick={() => { localStorage.removeItem('examDraft'); setExamDraft(null); setShowNewExamPanel(false); startExam(); }}>
+                            {ja ? '新規に開始' : 'Start New'}
+                          </Button>
+                        </div>
+                      </>
+                    )}
                   </div>
                 ) : (
                   <Button variant="primary" fullWidth onClick={startExam} disabled={examLoading}>
@@ -510,7 +526,7 @@ export default function Practice() {
                   {ja ? 'セッションを上書きして開始します' : 'This will overwrite the current session'}
                 </div>
                 <Button variant="outline" fullWidth style={{ height: 44 }}
-                  onClick={() => { localStorage.removeItem('exerciseDraft'); setExerciseDraft(null); setShowNewPanel(false); startExercise(); }}>
+                  onClick={() => { localStorage.removeItem('practiceExerciseDraft'); setExerciseDraft(null); setShowNewPanel(false); startExercise(); }}>
                   {ja ? '新規に開始' : 'Start New'}
                 </Button>
               </div>
@@ -562,6 +578,20 @@ export default function Practice() {
       {/* ── モバイル固定底バー（模試） ── */}
       {isMobile && tab === 'exam' && targetExam && (
         <>
+          {hasExamDraft && showNewExamPanel && (
+            <>
+              <div onClick={() => setShowNewExamPanel(false)} style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.4)', zIndex: 210 }} />
+              <div style={{ position: 'fixed', bottom: 116, left: 0, right: 0, zIndex: 211, background: 'var(--color-bg-white)', borderRadius: '14px 14px 0 0', padding: '14px 12px 12px', boxShadow: '0 -4px 20px rgba(0,0,0,0.18)', animation: 'slideUp 0.22s ease' }}>
+                <div style={{ fontSize: 'var(--font-size-sm)', color: 'var(--color-text-sub)', textAlign: 'center', marginBottom: 10 }}>
+                  {ja ? 'セッションを上書きして開始します' : 'This will overwrite the current session'}
+                </div>
+                <Button variant="outline" fullWidth style={{ height: 44 }}
+                  onClick={() => { localStorage.removeItem('examDraft'); setExamDraft(null); setShowNewExamPanel(false); startExam(); }}>
+                  {ja ? '新規に開始' : 'Start New'}
+                </Button>
+              </div>
+            </>
+          )}
           <div style={{ position: 'fixed', bottom: 56, left: 0, right: 0, zIndex: 150, background: 'var(--color-bg-white)', borderTop: '1px solid var(--color-border)', padding: '8px 12px', display: 'flex', boxShadow: '0 -2px 8px rgba(0,0,0,0.08)', transform: 'translateZ(0)' }}>
             {hasExamDraft ? (
               <div style={{ flex: 1, display: 'flex', height: 44, borderRadius: 22, overflow: 'hidden' }}>
@@ -578,7 +608,7 @@ export default function Practice() {
                   ) : (ja ? '試験を再開' : 'Resume')}
                 </button>
                 <button
-                  onClick={startExam}
+                  onClick={() => setShowNewExamPanel(v => !v)}
                   style={{ width: 44, height: 44, border: 'none', borderLeft: '2px solid rgba(255,255,255,0.4)', background: 'var(--color-accent)', color: 'var(--color-btn-primary-text)', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}
                   aria-label={ja ? '新規で試験を開始' : 'Start new exam'}
                 >

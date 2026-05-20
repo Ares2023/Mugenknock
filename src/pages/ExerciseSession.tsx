@@ -288,7 +288,7 @@ export default function ExerciseSession() {
   useEffect(() => {
     if (!sessionId) return;
     try {
-      const draftKey = isFocused ? 'focusedExerciseDraft' : 'exerciseDraft';
+      const draftKey = isQuick ? 'quickExerciseDraft' : isFocused ? 'focusedExerciseDraft' : 'practiceExerciseDraft';
       localStorage.setItem(draftKey, JSON.stringify({
         sessionId, examType, questions, userId,
         currentIndex, results, answered, selectedAnswers,
@@ -394,8 +394,9 @@ export default function ExerciseSession() {
           body: JSON.stringify({ userId, status: 'completed', score, isPassed })
         });
       } catch (err) { console.error(err); }
-      localStorage.removeItem('exerciseDraft');
+      localStorage.removeItem('quickExerciseDraft');
       localStorage.removeItem('focusedExerciseDraft');
+      localStorage.removeItem('practiceExerciseDraft');
       // ドメイン別 delta 計算（全ユーザー共通）
       const delta: Record<string, { c: number; i: number }> = {};
       for (const r of results) {
