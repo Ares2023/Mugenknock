@@ -543,7 +543,7 @@ export default function Home() {
   const readFocusedDraft = () => {
     try {
       const d = JSON.parse(localStorage.getItem('focusedExerciseDraft') ?? 'null');
-      if (!d?.isFocused || !d?.savedAt || Date.now() - d.savedAt > 24 * 3600 * 1000) return null;
+      if (!d?.savedAt || Date.now() - d.savedAt > 24 * 3600 * 1000) return null;
       return d;
     } catch { return null; }
   };

@@ -6,6 +6,7 @@ import { useLanguage } from '../contexts/LanguageContext';
 import Card from '../components/ui/Card';
 import Button from '../components/ui/Button';
 import { getCached, setCached, SHORT_TTL } from '../utils/cache';
+import { IconBookmark } from '../components/Icons';
 
 const TARGET_EXAM_KEY = 'targetExam';
 const STATS_GOOD_RATE = 70;
@@ -204,6 +205,11 @@ export default function Stats() {
   const [expandedSession, setExpandedSession] = useState<string | null>(null);
   const [sessionAnswers, setSessionAnswers] = useState<Record<string, AnswerRecord[]>>({});
   const [answersLoading, setAnswersLoading] = useState<string | null>(null);
+  const [expandedQuestion, setExpandedQuestion] = useState<string | null>(null);
+  const [questionDetails, setQuestionDetails] = useState<Record<string, any>>({});
+  const [questionDetailLoading, setQuestionDetailLoading] = useState<string | null>(null);
+  const [bookmarkedIds, setBookmarkedIds] = useState<Set<string>>(new Set());
+  const [bookmarkLoadingId, setBookmarkLoadingId] = useState<string | null>(null);
   const [targetExam] = useState<string | null>(() => localStorage.getItem(TARGET_EXAM_KEY));
   const [sessions, setSessions] = useState<Session[]>([]);
   const [totalCount, setTotalCount] = useState(0);
@@ -238,6 +244,15 @@ export default function Stats() {
       setAnsweredCount(statsRes.answeredCount ?? 0);
     }).catch(console.error).finally(() => setLoading(false));
   }, [user, targetExam]);
+
+  // ── ノック履歴タブを開いたときにブックマーク一覧をロード ──
+  useEffect(() => {
+    if (tab !== 'history' || !user) return;
+    fetch(`${API_ENDPOINT}/users/me/bookmarks?userId=${user.userId}`)
+      .then(r => r.json())
+      .then(d => setBookmarkedIds(new Set(d.questionIds ?? [])))
+      .catch(() => {});
+  }, [tab, user]);
 
   // ── ノック成績タブを開いたときに遅延ロード ──
   useEffect(() => {
@@ -631,17 +646,113 @@ export default function Stats() {
                               {lang === 'ja' ? '回答データがありません' : 'No answer data available'}
                             </p>
                           ) : (
-                            <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-                              {answers.map((a, idx) => (
-                                <div key={a.questionId + idx} style={{ display: 'flex', gap: 8, alignItems: 'flex-start', fontSize: 'var(--font-size-xs)' }}>
-                                  <span style={{ flexShrink: 0, width: 16, height: 16, borderRadius: '50%', background: a.isCorrect ? 'var(--color-success)' : 'var(--color-danger)', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', color: '#fff', fontSize: 9, fontWeight: 700, marginTop: 1 }}>
-                                    {a.isCorrect ? '○' : '×'}
-                                  </span>
-                                  <span style={{ color: 'var(--color-text-sub)', lineHeight: 1.5, flex: 1 }}>
-                                    {a.questionText || a.questionId}
-                                  </span>
-                                </div>
-                              ))}
+                            <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+                              {answers.map((a, idx) => {
+                                const qExpanded = expandedQuestion === a.questionId + s.sessionId + idx;
+                                const detail = questionDetails[a.questionId];
+                                const isBookmarked = bookmarkedIds.has(a.questionId);
+
+                                const handleQuestionToggle = async () => {
+                                  const key = a.questionId + s.sessionId + idx;
+                                  if (qExpanded) { setExpandedQuestion(null); return; }
+                                  setExpandedQuestion(key);
+                                  if (detail || questionDetailLoading === a.questionId) return;
+                                  setQuestionDetailLoading(a.questionId);
+                                  try {
+                                    const res = await fetch(`${API_ENDPOINT}/questions/${a.questionId}`);
+                                    const d = await res.json();
+                                    setQuestionDetails(prev => ({ ...prev, [a.questionId]: d }));
+                                  } catch {}
+                                  finally { setQuestionDetailLoading(null); }
+                                };
+
+                                const handleBookmark = async (e: React.MouseEvent) => {
+                                  e.stopPropagation();
+                                  if (!user || bookmarkLoadingId === a.questionId) return;
+                                  setBookmarkLoadingId(a.questionId);
+                                  try {
+                                    if (isBookmarked) {
+                                      await fetch(`${API_ENDPOINT}/questions/${a.questionId}/bookmark?userId=${user.userId}`, { method: 'DELETE' });
+                                      setBookmarkedIds(prev => { const n = new Set(prev); n.delete(a.questionId); return n; });
+                                    } else {
+                                      await fetch(`${API_ENDPOINT}/questions/${a.questionId}/bookmark`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ userId: user.userId }) });
+                                      setBookmarkedIds(prev => { const n = new Set(prev); n.add(a.questionId); return n; });
+                                    }
+                                  } catch {}
+                                  finally { setBookmarkLoadingId(null); }
+                                };
+
+                                return (
+                                  <div key={a.questionId + s.sessionId + idx} style={{ borderRadius: 8, border: '1px solid var(--color-border)', overflow: 'hidden' }}>
+                                    {/* 問題行 */}
+                                    <div
+                                      onClick={handleQuestionToggle}
+                                      style={{ display: 'flex', gap: 8, alignItems: 'flex-start', padding: '8px 10px', cursor: 'pointer', background: qExpanded ? 'var(--color-bg-main)' : 'transparent' }}
+                                    >
+                                      <span style={{ flexShrink: 0, width: 16, height: 16, borderRadius: '50%', background: a.isCorrect ? 'var(--color-success)' : 'var(--color-danger)', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', color: '#fff', fontSize: 9, fontWeight: 700, marginTop: 1 }}>
+                                        {a.isCorrect ? '○' : '×'}
+                                      </span>
+                                      <span style={{ color: 'var(--color-text-sub)', lineHeight: 1.5, flex: 1, fontSize: 'var(--font-size-xs)' }}>
+                                        {a.questionText || a.questionId}
+                                      </span>
+                                      <span style={{ color: 'var(--color-text-light)', fontSize: 11, flexShrink: 0, marginTop: 2, transition: 'transform 0.2s', transform: qExpanded ? 'rotate(90deg)' : 'none' }}>›</span>
+                                    </div>
+
+                                    {/* 展開：選択肢 + 解説 + ブックマーク */}
+                                    {qExpanded && (
+                                      <div style={{ padding: '8px 10px 10px', borderTop: '1px solid var(--color-border)', background: 'var(--color-bg-main)' }}>
+                                        {questionDetailLoading === a.questionId ? (
+                                          <div style={{ display: 'flex', justifyContent: 'center', padding: '8px 0' }}>
+                                            <div className="sherpa-spinner" style={{ width: 16, height: 16, borderWidth: 2 }} />
+                                          </div>
+                                        ) : detail ? (
+                                          <>
+                                            {/* 選択肢 */}
+                                            {(detail.choices ?? []).length > 0 && (
+                                              <div style={{ marginBottom: 8 }}>
+                                                {(detail.choices as string[]).map((c, ci) => {
+                                                  const label = String.fromCharCode(65 + ci);
+                                                  const isCorrect = (detail.correctAnswerIndices ?? []).includes(ci) ||
+                                                    (detail.correctAnswers ?? []).some((ans: string) => ans.replace(/^[A-Z]\.\s*/, '') === c.replace(/^[A-Z]\.\s*/, ''));
+                                                  return (
+                                                    <div key={ci} style={{ display: 'flex', gap: 6, marginBottom: 4, alignItems: 'flex-start' }}>
+                                                      <span style={{ flexShrink: 0, fontWeight: 700, fontSize: 10, color: isCorrect ? 'var(--color-success)' : 'var(--color-text-light)', minWidth: 14, marginTop: 1 }}>{label}.</span>
+                                                      <span style={{ fontSize: 'var(--font-size-xs)', color: isCorrect ? 'var(--color-text-main)' : 'var(--color-text-sub)', fontWeight: isCorrect ? 600 : 400, lineHeight: 1.5 }}>{c.replace(/^[A-Z]\.\s*/, '')}</span>
+                                                    </div>
+                                                  );
+                                                })}
+                                              </div>
+                                            )}
+                                            {/* 解説 */}
+                                            {detail.explanation && (
+                                              <p style={{ margin: '0 0 8px', fontSize: 'var(--font-size-xs)', color: 'var(--color-text-sub)', lineHeight: 1.6, borderTop: '1px solid var(--color-border)', paddingTop: 8 }}>
+                                                {detail.explanation}
+                                              </p>
+                                            )}
+                                          </>
+                                        ) : (
+                                          <p style={{ margin: 0, fontSize: 'var(--font-size-xs)', color: 'var(--color-text-light)' }}>
+                                            {lang === 'ja' ? '詳細を取得できませんでした' : 'Could not load details'}
+                                          </p>
+                                        )}
+                                        {/* ブックマーク */}
+                                        {user && (
+                                          <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
+                                            <button
+                                              onClick={handleBookmark}
+                                              disabled={bookmarkLoadingId === a.questionId}
+                                              style={{ display: 'flex', alignItems: 'center', gap: 4, border: 'none', background: 'none', cursor: bookmarkLoadingId === a.questionId ? 'default' : 'pointer', color: isBookmarked ? 'var(--color-primary)' : 'var(--color-text-light)', fontSize: 'var(--font-size-xs)', padding: '2px 4px', opacity: bookmarkLoadingId === a.questionId ? 0.5 : 1 }}
+                                            >
+                                              <IconBookmark filled={isBookmarked} size={14} />
+                                              {isBookmarked ? (lang === 'ja' ? 'ブックマーク済' : 'Bookmarked') : (lang === 'ja' ? 'ブックマーク' : 'Bookmark')}
+                                            </button>
+                                          </div>
+                                        )}
+                                      </div>
+                                    )}
+                                  </div>
+                                );
+                              })}
                             </div>
                           )}
                         </div>

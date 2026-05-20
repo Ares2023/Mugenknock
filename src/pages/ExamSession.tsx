@@ -106,7 +106,7 @@ export default function ExamSession() {
     try {
       localStorage.setItem('examDraft', JSON.stringify({
         sessionId, examType, questions, userId, isMini,
-        currentIndex, answers, timeLeft: timeLeftRef.current,
+        currentIndex, answers, timeLeft: timeLeftRef.current, savedAt: Date.now(),
       }));
     } catch { /* quota over 等は無視 */ }
   }, [answers, currentIndex]); // eslint-disable-line react-hooks/exhaustive-deps
@@ -175,7 +175,7 @@ export default function ExamSession() {
     try {
       localStorage.setItem('examDraft', JSON.stringify({
         sessionId, examType, questions, userId, isMini,
-        currentIndex, answers, timeLeft: timeLeftRef.current,
+        currentIndex, answers, timeLeft: timeLeftRef.current, savedAt: Date.now(),
       }));
     } catch {}
     navigate('/practice');
