@@ -135,24 +135,6 @@ export default function ServiceEncyclopedia() {
           : `1 service unlocked per day you use the app. ${unlockedCount} / ${totalServices} unlocked`}
       </p>
 
-      {/* タブ */}
-      <div style={{ display: 'flex', borderBottom: '2px solid var(--color-border)', marginBottom: 'var(--spacing-md)' }}>
-        {(['all', 'unlocked'] as const).map(t => {
-          const label = t === 'all' ? (ja ? '一覧' : 'All') : (ja ? '解放済み' : 'Unlocked');
-          const active = activeTab === t;
-          return (
-            <button
-              key={t}
-              onClick={() => setActiveTab(t)}
-              style={{ flex: 1, background: 'none', border: 'none', cursor: 'pointer', padding: '8px 0', fontSize: 'var(--font-size-sm)', fontWeight: active ? 700 : 400, color: active ? 'var(--color-primary)' : 'var(--color-text-sub)', borderBottom: `2px solid ${active ? 'var(--color-primary)' : 'transparent'}`, marginBottom: -2, transition: 'color 0.15s' }}
-            >
-              {label}
-              {t === 'unlocked' && <span style={{ marginLeft: 4, fontSize: 10, color: active ? 'var(--color-primary)' : 'var(--color-text-light)' }}>{unlockedCount}</span>}
-            </button>
-          );
-        })}
-      </div>
-
       {/* 今日の日めくりサービス */}
       <div style={{ background: 'var(--color-bg-white)', border: '1px solid var(--color-border)', borderRadius: 'var(--border-radius-lg)', padding: 'var(--spacing-md)', marginBottom: 'var(--spacing-md)' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 10 }}>
@@ -199,6 +181,24 @@ export default function ServiceEncyclopedia() {
             {ja ? '詳細情報は近日公開予定です' : 'Details coming soon'}
           </div>
         )}
+      </div>
+
+      {/* タブ */}
+      <div style={{ display: 'flex', borderBottom: '2px solid var(--color-border)', margin: 'var(--spacing-md) 0' }}>
+        {(['all', 'unlocked'] as const).map(t => {
+          const label = t === 'all' ? (ja ? '一覧' : 'All') : (ja ? '解放済み' : 'Unlocked');
+          const active = activeTab === t;
+          return (
+            <button
+              key={t}
+              onClick={() => setActiveTab(t)}
+              style={{ flex: 1, background: 'none', border: 'none', cursor: 'pointer', padding: '8px 0', fontSize: 'var(--font-size-sm)', fontWeight: active ? 700 : 400, color: active ? 'var(--color-primary)' : 'var(--color-text-sub)', borderBottom: `2px solid ${active ? 'var(--color-primary)' : 'transparent'}`, marginBottom: -2, transition: 'color 0.15s' }}
+            >
+              {label}
+              {t === 'unlocked' && <span style={{ marginLeft: 4, fontSize: 10, color: active ? 'var(--color-primary)' : 'var(--color-text-light)' }}>{unlockedCount}</span>}
+            </button>
+          );
+        })}
       </div>
 
       {/* カテゴリ別サービス一覧 */}
