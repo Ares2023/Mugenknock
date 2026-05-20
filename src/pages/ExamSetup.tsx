@@ -104,7 +104,7 @@ export default function ExamSetup() {
 
   const resumeExam = () => {
     if (!examDraft) return;
-    navigate('/exam/session', {
+    navigate('/aws/exam/session', {
       state: {
         sessionId: examDraft.sessionId,
         questions: examDraft.questions,
@@ -266,7 +266,7 @@ export default function ExamSetup() {
       });
       const sessionData = await sessionRes.json();
 
-      navigate('/exam/session', {
+      navigate('/aws/exam/session', {
         state: { sessionId: sessionData.sessionId, questions: selectedItems, userId, examType, isMini: miniExam }
       });
     } catch (err) {
@@ -318,7 +318,7 @@ export default function ExamSetup() {
               {lang === 'ja' ? '前回の模試成績' : 'Last Exam Result'}
             </span>
             <button
-              onClick={() => navigate('/stats')}
+              onClick={() => navigate('/aws/stats')}
               style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: 'var(--font-size-sm)', color: 'var(--color-primary)', padding: 0, fontWeight: 600 }}
             >
               {lang === 'ja' ? 'ノック成績 →' : 'Performance →'}

@@ -154,7 +154,7 @@ export default function LoginPage() {
             {({ user: cognitoUser }) => {
               if (cognitoUser && !navigating.current) {
                 navigating.current = true;
-                refresh().then(() => navigate('/', { replace: true }));
+                refresh().then(() => navigate('/aws/', { replace: true }));
               }
               return <></>;
             }}

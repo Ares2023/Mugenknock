@@ -175,7 +175,7 @@ export default function ExerciseSetup() {
 
   const resumeSession = () => {
     if (!exerciseDraft) return;
-    navigate('/exercise/session', {
+    navigate('/aws/exercise/session', {
       state: {
         sessionId: exerciseDraft.sessionId,
         questions: exerciseDraft.questions,
@@ -260,7 +260,7 @@ export default function ExerciseSetup() {
       });
       const sessionData = await sessionRes.json();
 
-      navigate('/exercise/session', {
+      navigate('/aws/exercise/session', {
         state: { sessionId: sessionData.sessionId, questions: selectedItems, userId, mode: 'exercise', examType }
       });
     } catch (err) {

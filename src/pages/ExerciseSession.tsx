@@ -329,7 +329,7 @@ export default function ExerciseSession() {
   const [lastSelected, setLastSelected] = useState<string | null>(null);
 
   useEffect(() => {
-    if (!state) navigate('/exercise/setup', { replace: true });
+    if (!state) navigate('/aws/exercise/setup', { replace: true });
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   if (!state) return null;
@@ -428,7 +428,7 @@ export default function ExerciseSession() {
       // セッション完了でキャッシュ破棄 → ホーム画面が最新データをサーバーから再取得
       deleteCached(`ustats_${userId}`);
       localStorage.setItem('postSessionRefresh', String(Date.now()));
-      navigate('/result', { state: { results, questions, score, isPassed, sessionId, userId, examType, isQuick, isMini } });
+      navigate('/aws/result', { state: { results, questions, score, isPassed, sessionId, userId, examType, isQuick, isMini } });
     } else {
       setCurrentIndex(prev => prev + 1);
       setSelectedAnswers([]);

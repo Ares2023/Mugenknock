@@ -739,7 +739,7 @@ export default function Home() {
 
   const resumeQuickExercise = () => {
     if (!quickDraft) return;
-    navigate('/exercise/session', {
+    navigate('/aws/exercise/session', {
       state: {
         sessionId: quickDraft.sessionId,
         questions: quickDraft.questions,
@@ -757,7 +757,7 @@ export default function Home() {
 
   const resumeFocusedExercise = () => {
     if (!focusedDraft) return;
-    navigate('/exercise/session', {
+    navigate('/aws/exercise/session', {
       state: {
         sessionId: focusedDraft.sessionId,
         questions: focusedDraft.questions,
@@ -825,7 +825,7 @@ export default function Home() {
       if (usedFallback) alert(ja ? 'フィルタ条件に合う問題が不足したため、条件外の問題も含めて出題します。' : 'Not enough questions matched your filters. Including additional questions.');
       const sessionRes = await fetch(`${API_ENDPOINT}/sessions`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ userId, mode: 'exercise', examType: targetExam, questionIds: items.map((q: any) => q.questionId) }) });
       const sessionData = await sessionRes.json();
-      navigate('/exercise/session', { state: { sessionId: sessionData.sessionId, questions: items, userId, mode: 'exercise', examType: targetExam, isQuick: true } });
+      navigate('/aws/exercise/session', { state: { sessionId: sessionData.sessionId, questions: items, userId, mode: 'exercise', examType: targetExam, isQuick: true } });
     } catch (err) { console.error(err); alert(ja ? '演習の開始に失敗しました' : 'Failed to start exercise'); }
     finally { setQuickLoading(false); }
   };
@@ -889,7 +889,7 @@ export default function Home() {
       if (usedFallback) alert(ja ? '苦手・不正解問題が不足したため、条件外の問題も含めて出題します。' : 'Not enough weak/incorrect questions. Including additional questions.');
       const sessionRes = await fetch(`${API_ENDPOINT}/sessions`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ userId, mode: 'exercise', examType: targetExam, questionIds: items.map((q: any) => q.questionId), isFocused: true }) });
       const sessionData = await sessionRes.json();
-      navigate('/exercise/session', { state: { sessionId: sessionData.sessionId, questions: items, userId, mode: 'exercise', examType: targetExam, isQuick: true, isFocused: true } });
+      navigate('/aws/exercise/session', { state: { sessionId: sessionData.sessionId, questions: items, userId, mode: 'exercise', examType: targetExam, isQuick: true, isFocused: true } });
     } catch (err) { console.error(err); alert(ja ? '演習の開始に失敗しました' : 'Failed to start exercise'); }
     finally { setFocusedLoading(false); }
   };
@@ -1071,7 +1071,7 @@ export default function Home() {
       </Card>
 
       {/* ── 日めくりAWSサービス ── */}
-      <TodayServiceSection lang={lang} userId={user?.userId} onNavigateEncyclopedia={() => navigate('/encyclopedia')} />
+      <TodayServiceSection lang={lang} userId={user?.userId} onNavigateEncyclopedia={() => navigate('/aws/encyclopedia')} />
 
       {/* ── 非ログイン時バナー ── */}
       {!user && (

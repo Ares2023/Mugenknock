@@ -179,7 +179,7 @@ export default function ExamSession() {
         currentIndex, answers, timeLeft: timeLeftRef.current, savedAt: Date.now(),
       }));
     } catch {}
-    navigate('/practice');
+    navigate('/aws/practice');
   };
 
   const handleFinish = async (timeUp = false) => {
@@ -243,7 +243,7 @@ export default function ExamSession() {
       // セッション完了でキャッシュ破棄 → ホーム画面が最新データをサーバーから再取得
       deleteCached(`ustats_${userId}`);
       localStorage.setItem('postSessionRefresh', String(Date.now()));
-      navigate('/result', {
+      navigate('/aws/result', {
         state: { results: results.map(r => ({ questionId: r.questionId, isCorrect: r.isCorrect })), questions, score, isPassed, sessionId, userId, examType, mode: 'exam', timeUp }
       });
     } catch (err) {
@@ -258,7 +258,7 @@ export default function ExamSession() {
   const [answerCountError, setAnswerCountError] = useState<string | null>(null);
 
   useEffect(() => {
-    if (!state) navigate('/exam/setup', { replace: true });
+    if (!state) navigate('/aws/exam/setup', { replace: true });
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   if (!state) return null;

@@ -44,24 +44,24 @@ const IconMore = () => (
 );
 
 const NAV_KEYS = [
-  { path: '/',          labelKey: 'nav.home',      Icon: IconHome      },
-  { path: '/practice',  labelKey: 'nav.practice',  Icon: IconDumbbell  },
-  { path: '/stats',     labelKey: 'nav.stats',     Icon: IconFootprint },
-  { path: '/encyclopedia',   labelKey: 'nav.encyclopedia', Icon: IconBookOpen, bottom: true },
-  { path: '/growth',        labelKey: 'nav.growth',       Icon: IconSparkles, bottom: true },
-  { path: '/release-notes', labelKey: 'nav.releaseNotes', Icon: IconFire,     bottom: true },
+  { path: '/aws/',          labelKey: 'nav.home',         Icon: IconHome      },
+  { path: '/aws/practice',  labelKey: 'nav.practice',     Icon: IconDumbbell  },
+  { path: '/aws/stats',     labelKey: 'nav.stats',        Icon: IconFootprint },
+  { path: '/aws/encyclopedia',   labelKey: 'nav.encyclopedia', Icon: IconBookOpen, bottom: true },
+  { path: '/aws/growth',        labelKey: 'nav.growth',       Icon: IconSparkles, bottom: true },
+  { path: '/aws/release-notes', labelKey: 'nav.releaseNotes', Icon: IconFire,     bottom: true },
 ];
 
 const BOTTOM_TABS = [
-  { path: '/',          Icon: IconHome,        ja: 'ホーム',       en: 'Home'     },
-  { path: '/practice',  Icon: IconDumbbell,    ja: 'トレーニング', en: 'Training' },
-  { path: '/stats',     Icon: IconFootprint,   ja: '足あと',      en: 'History'  },
+  { path: '/aws/',          Icon: IconHome,        ja: 'ホーム',       en: 'Home'     },
+  { path: '/aws/practice',  Icon: IconDumbbell,    ja: 'トレーニング', en: 'Training' },
+  { path: '/aws/stats',     Icon: IconFootprint,   ja: '足あと',      en: 'History'  },
 ];
 
 const OTHERS_ITEMS = [
-  { path: '/encyclopedia',  Icon: IconBookOpen,   labelKey: 'nav.encyclopedia' },
-  { path: '/growth',        Icon: IconSparkles,   labelKey: 'nav.growth'       },
-  { path: '/release-notes', Icon: IconFire,       labelKey: 'nav.releaseNotes' },
+  { path: '/aws/encyclopedia',  Icon: IconBookOpen,   labelKey: 'nav.encyclopedia' },
+  { path: '/aws/growth',        Icon: IconSparkles,   labelKey: 'nav.growth'       },
+  { path: '/aws/release-notes', Icon: IconFire,       labelKey: 'nav.releaseNotes' },
 ];
 
 const AI_LINKS = [
@@ -126,7 +126,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
   const swipeStartY = useRef<number>(0);
   const isDraggingH = useRef<boolean>(false);
   const SWIPE_THRESHOLD = 72;
-  const TAB_PATHS = [...BOTTOM_TABS.map(t => t.path), '/others'];
+  const TAB_PATHS = [...BOTTOM_TABS.map(t => t.path), '/aws/others'];
   const [swipeOffset, setSwipeOffset] = useState(0);
   const [swipeTrans, setSwipeTrans] = useState(false);
 
@@ -271,24 +271,26 @@ export default function Layout({ children }: { children: React.ReactNode }) {
   };
 
   const isActive = (path: string) =>
-    path === '/' ? location.pathname === '/' : location.pathname.startsWith(path);
+    (path === '/aws/' || path === '/aws')
+      ? (location.pathname === '/aws/' || location.pathname === '/aws')
+      : location.pathname.startsWith(path);
 
-  const isOthersActive = location.pathname === '/others' || OTHERS_ITEMS.some(item => isActive(item.path));
+  const isOthersActive = location.pathname === '/aws/others' || OTHERS_ITEMS.some(item => isActive(item.path));
 
   const navItems = NAV_KEYS;
 
   const breadcrumbs: Record<string, BreadcrumbItem[]> = {
-    '/practice':         [{ label: t('nav.home'), path: '/' }, { label: t('nav.practice') }],
-    '/encyclopedia':     [{ label: t('nav.home'), path: '/' }, { label: t('nav.encyclopedia') }],
-    '/growth':           [{ label: t('nav.home'), path: '/' }, { label: t('nav.growth') }],
-    '/exercise/setup':   [{ label: t('nav.home'), path: '/' }, { label: t('exerciseSetup.title') }],
-    '/exercise/session': [{ label: t('nav.home'), path: '/' }, { label: t('exerciseSetup.title'), path: '/exercise/setup' }, { label: t('nav.exerciseSession') }],
-    '/exam/setup':       [{ label: t('nav.home'), path: '/' }, { label: t('examSetup.title') }],
-    '/exam/session':     [{ label: t('nav.home'), path: '/' }, { label: t('examSetup.title'), path: '/exam/setup' }, { label: t('nav.examSession') }],
-    '/result':           [{ label: t('nav.home'), path: '/' }, { label: t('nav.result') }],
-    '/stats':            [{ label: t('nav.home'), path: '/' }, { label: t('stats.title') }],
-    '/release-notes':    [{ label: t('nav.home'), path: '/' }, { label: t('nav.releaseNotes') }],
-    '/about':            [{ label: t('nav.home'), path: '/' }, { label: t('nav.about') }],
+    '/aws/practice':         [{ label: t('nav.home'), path: '/aws/' }, { label: t('nav.practice') }],
+    '/aws/encyclopedia':     [{ label: t('nav.home'), path: '/aws/' }, { label: t('nav.encyclopedia') }],
+    '/aws/growth':           [{ label: t('nav.home'), path: '/aws/' }, { label: t('nav.growth') }],
+    '/aws/exercise/setup':   [{ label: t('nav.home'), path: '/aws/' }, { label: t('exerciseSetup.title') }],
+    '/aws/exercise/session': [{ label: t('nav.home'), path: '/aws/' }, { label: t('exerciseSetup.title'), path: '/aws/exercise/setup' }, { label: t('nav.exerciseSession') }],
+    '/aws/exam/setup':       [{ label: t('nav.home'), path: '/aws/' }, { label: t('examSetup.title') }],
+    '/aws/exam/session':     [{ label: t('nav.home'), path: '/aws/' }, { label: t('examSetup.title'), path: '/aws/exam/setup' }, { label: t('nav.examSession') }],
+    '/aws/result':           [{ label: t('nav.home'), path: '/aws/' }, { label: t('nav.result') }],
+    '/aws/stats':            [{ label: t('nav.home'), path: '/aws/' }, { label: t('stats.title') }],
+    '/aws/release-notes':    [{ label: t('nav.home'), path: '/aws/' }, { label: t('nav.releaseNotes') }],
+    '/about':                [{ label: t('nav.home'), path: '/aws/' }, { label: t('nav.about') }],
   };
 
   return (
@@ -378,7 +380,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
       }}>
 
         {/* サービス名 */}
-        <div onClick={() => navigate('/')} style={{ display: 'flex', alignItems: 'center', cursor: 'pointer', userSelect: 'none', flexShrink: 0, padding: '0 4px' }}>
+        <div onClick={() => navigate('/aws/')} style={{ display: 'flex', alignItems: 'center', cursor: 'pointer', userSelect: 'none', flexShrink: 0, padding: '0 4px' }}>
           <img
             src={isMobile ? '/mugen-icon.png' : '/mugen-header.png'}
             alt="AWS資格無限ノック"
@@ -768,7 +770,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
             width: '100%',
             WebkitOverflowScrolling: 'touch',
             minWidth: 0,
-            paddingBottom: isMobile ? 120 : (['/practice', '/'].includes(location.pathname) ? 80 : 0),
+            paddingBottom: isMobile ? 120 : (['/aws/practice', '/aws/', '/aws'].includes(location.pathname) ? 80 : 0),
             transform: swipeOffset !== 0 ? `translateX(${swipeOffset}px)` : undefined,
             transition: swipeTrans ? 'transform 0.24s ease' : 'none',
             willChange: swipeOffset !== 0 ? 'transform' : undefined,
@@ -840,7 +842,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
           })}
           {/* その他タブ */}
           <button
-            onClick={() => navigate('/others')}
+            onClick={() => navigate('/aws/others')}
             style={{
               flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
               gap: 3, border: 'none', background: 'none', cursor: 'pointer',

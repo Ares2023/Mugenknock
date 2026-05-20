@@ -11,6 +11,7 @@ import Layout from './components/Layout';
 import AdminLayout from './components/AdminLayout';
 import LoginPage from './pages/LoginPage';
 import AdminLogin from './pages/AdminLogin';
+import Portal from './pages/Portal';
 import Home from './pages/Home';
 import ExerciseSetup from './pages/ExerciseSetup';
 import ExerciseSession from './pages/ExerciseSession';
@@ -56,24 +57,25 @@ function App() {
       <AuthGate>
       <BrowserRouter>
         <Routes>
+          <Route path="/" element={<Portal />} />
           <Route path="/login" element={<LoginPage />} />
           <Route path="/admin-login" element={<AdminLogin />} />
-          <Route path="/" element={<Layout><Home /></Layout>} />
-          <Route path="/exercise/setup" element={<Layout><ExerciseSetup /></Layout>} />
-          <Route path="/exercise/session" element={<Layout><ExerciseSession /></Layout>} />
-          <Route path="/result" element={<Layout><Result /></Layout>} />
-          <Route path="/exam/setup" element={<Layout><ExamSetup /></Layout>} />
-          <Route path="/exam/session" element={<Layout><ExamSession /></Layout>} />
-          <Route path="/practice" element={<Layout><Practice /></Layout>} />
-          <Route path="/encyclopedia" element={<Layout><ServiceEncyclopedia /></Layout>} />
-          <Route path="/growth" element={<Layout><Growth /></Layout>} />
-          <Route path="/release-notes" element={<Layout><ReleaseNotes /></Layout>} />
-          <Route path="/others" element={<Layout><Others /></Layout>} />
+          <Route path="/aws/" element={<Layout><Home /></Layout>} />
+          <Route path="/aws/exercise/setup" element={<Layout><ExerciseSetup /></Layout>} />
+          <Route path="/aws/exercise/session" element={<Layout><ExerciseSession /></Layout>} />
+          <Route path="/aws/result" element={<Layout><Result /></Layout>} />
+          <Route path="/aws/exam/setup" element={<Layout><ExamSetup /></Layout>} />
+          <Route path="/aws/exam/session" element={<Layout><ExamSession /></Layout>} />
+          <Route path="/aws/practice" element={<Layout><Practice /></Layout>} />
+          <Route path="/aws/encyclopedia" element={<Layout><ServiceEncyclopedia /></Layout>} />
+          <Route path="/aws/growth" element={<Layout><Growth /></Layout>} />
+          <Route path="/aws/release-notes" element={<Layout><ReleaseNotes /></Layout>} />
+          <Route path="/aws/others" element={<Layout><Others /></Layout>} />
           <Route path="/about" element={<Layout><About /></Layout>} />
           <Route path="/admin" element={
             <AdminRoute><AdminLayout><Admin /></AdminLayout></AdminRoute>
           } />
-          <Route path="/stats" element={
+          <Route path="/aws/stats" element={
             <PrivateRoute><Layout><Stats /></Layout></PrivateRoute>
           } />
           <Route path="/account" element={

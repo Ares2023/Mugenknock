@@ -52,7 +52,7 @@ export default function Result() {
       if (items.length === 0) { alert(ja ? '条件に合う問題がありません' : 'No questions match the criteria'); return; }
       const sessionRes = await fetch(`${API_ENDPOINT}/sessions`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ userId, mode: 'exercise', examType: resolvedExamType, questionIds: items.map((q: any) => q.questionId) }) });
       const sessionData = await sessionRes.json();
-      navigate('/exercise/session', { state: { sessionId: sessionData.sessionId, questions: items, userId, mode: 'exercise', examType: resolvedExamType, isQuick: true } });
+      navigate('/aws/exercise/session', { state: { sessionId: sessionData.sessionId, questions: items, userId, mode: 'exercise', examType: resolvedExamType, isQuick: true } });
     } catch (err) { console.error(err); alert(ja ? '演習の開始に失敗しました' : 'Failed to start exercise'); }
     finally { setQuickLoading(false); }
   };
@@ -189,7 +189,7 @@ export default function Result() {
       </div>
 
       <div style={{ display: 'flex', gap: 'var(--spacing-md)', marginTop: 'var(--spacing-xl)' }}>
-        <Button variant="outline" onClick={() => navigate('/')}>
+        <Button variant="outline" onClick={() => navigate('/aws/')}>
           {t('result.backHome')}
         </Button>
         {isQuick ? (
@@ -202,7 +202,7 @@ export default function Result() {
             ) : (ja ? 'もう一度（サクッと演習）' : 'Again (Quick)')}
           </Button>
         ) : (
-          <Button variant="primary" onClick={() => navigate(isExam ? '/exam/setup' : '/exercise/setup')}>
+          <Button variant="primary" onClick={() => navigate(isExam ? '/aws/exam/setup' : '/aws/exercise/setup')}>
             {t('result.retry')}
           </Button>
         )}

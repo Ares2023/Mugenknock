@@ -334,7 +334,7 @@ export default function Stats() {
             <p style={{ fontSize: 'var(--font-size-base)', color: 'var(--color-text-sub)', margin: '0 0 var(--spacing-lg)' }}>
               {lang === 'ja' ? '目標資格を設定すると統計が表示されます' : 'Set a target certification to view your stats'}
             </p>
-            <Button variant="primary" onClick={() => navigate('/')}>
+            <Button variant="primary" onClick={() => navigate('/aws/')}>
               {lang === 'ja' ? 'ホームで資格を設定する' : 'Set a certification on Home'}
             </Button>
           </div>

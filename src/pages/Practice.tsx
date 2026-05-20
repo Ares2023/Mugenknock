@@ -189,7 +189,7 @@ export default function Practice() {
         body: JSON.stringify({ userId, mode: 'exercise', examType, questionIds: selectedItems.map((q: any) => q.questionId) }),
       });
       const sessionData = await sessionRes.json();
-      navigate('/exercise/session', { state: { sessionId: sessionData.sessionId, questions: selectedItems, userId, mode: 'exercise', examType } });
+      navigate('/aws/exercise/session', { state: { sessionId: sessionData.sessionId, questions: selectedItems, userId, mode: 'exercise', examType } });
     } catch (err) {
       console.error(err);
       alert(t('exerciseSetup.startFailed'));
@@ -198,7 +198,7 @@ export default function Practice() {
 
   const resumeExercise = () => {
     if (!exerciseDraft) return;
-    navigate('/exercise/session', {
+    navigate('/aws/exercise/session', {
       state: {
         sessionId: exerciseDraft.sessionId, questions: exerciseDraft.questions,
         userId: exerciseDraft.userId, examType: exerciseDraft.examType, mode: 'exercise',
@@ -220,7 +220,7 @@ export default function Practice() {
 
   const resumeExam = () => {
     if (!examDraft) return;
-    navigate('/exam/session', {
+    navigate('/aws/exam/session', {
       state: {
         sessionId: examDraft.sessionId,
         questions: examDraft.questions,
@@ -254,7 +254,7 @@ export default function Practice() {
         body: JSON.stringify({ userId, mode: 'exam', examType: targetExam, questionIds: items.map((q: any) => q.questionId) }),
       });
       const sessionData = await sessionRes.json();
-      navigate('/exam/session', { state: { sessionId: sessionData.sessionId, questions: items, userId, examType: targetExam, isMini: examMode === 'mini', timeLimitMin: examTimeMin } });
+      navigate('/aws/exam/session', { state: { sessionId: sessionData.sessionId, questions: items, userId, examType: targetExam, isMini: examMode === 'mini', timeLimitMin: examTimeMin } });
     } catch (err) {
       console.error(err);
       alert(ja ? '模試の開始に失敗しました' : 'Failed to start exam');
