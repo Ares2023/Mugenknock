@@ -1682,9 +1682,10 @@ app.get('/settings/theme', async (req, res) => {
   try {
     const docClient = getClient();
     const result = await docClient.send(new GetCommand({ TableName: 'AppSettings', Key: { settingId: 'theme' } }));
-    if (!result.Item) return res.json({ colors: {} });
+    if (!result.Item) return res.json({ colors: {}, enabled: true });
     const colors = JSON.parse(result.Item.colors || '{}');
-    res.json({ colors });
+    const enabled = result.Item.enabled !== false; // default true
+    res.json({ colors, enabled });
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: 'Internal server error' });
@@ -1694,11 +1695,16 @@ app.get('/settings/theme', async (req, res) => {
 app.put('/admin/settings/theme', requireAdmin, async (req, res) => {
   try {
     const docClient = getClient();
-    const { colors } = req.body;
+    const { colors, enabled } = req.body;
     if (!colors || typeof colors !== 'object') return res.status(400).json({ error: 'colors required' });
     await docClient.send(new PutCommand({
       TableName: 'AppSettings',
-      Item: { settingId: 'theme', colors: JSON.stringify(colors), updatedAt: new Date().toISOString() },
+      Item: {
+        settingId: 'theme',
+        colors: JSON.stringify(colors),
+        enabled: enabled !== false,
+        updatedAt: new Date().toISOString(),
+      },
     }));
     res.json({ success: true });
   } catch (err) {

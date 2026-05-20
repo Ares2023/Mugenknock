@@ -9,26 +9,28 @@ interface ThemeContextType {
   theme: Theme;
   toggleTheme: () => void;
   customColors: CustomColors;
+  customColorsEnabled: boolean;
   applyColors: (colors: CustomColors) => void;
+  setCustomColorsEnabled: (enabled: boolean) => void;
 }
 
 const ThemeContext = createContext<ThemeContextType>({
   theme: 'light',
   toggleTheme: () => {},
   customColors: {},
+  customColorsEnabled: true,
   applyColors: () => {},
+  setCustomColorsEnabled: () => {},
 });
 
 export const useTheme = () => useContext(ThemeContext);
 
-const CACHE_KEY = 'customColors_v1';
-const CACHE_TTL = 5 * 60 * 1000; // 5 minutes
+const CACHE_KEY = 'customColors_v2';
+const CACHE_TTL = 5 * 60 * 1000;
 
 function applyToRoot(colors: CustomColors) {
   const root = document.documentElement;
-  Object.entries(colors).forEach(([key, val]) => {
-    root.style.setProperty(key, val);
-  });
+  Object.entries(colors).forEach(([key, val]) => root.style.setProperty(key, val));
 }
 
 function clearFromRoot(colors: CustomColors) {
@@ -47,30 +49,41 @@ export const ThemeProvider = ({ children }: { children: React.ReactNode }) => {
       const cached = localStorage.getItem(CACHE_KEY);
       if (cached) {
         const { colors, ts } = JSON.parse(cached);
-        if (Date.now() - ts < CACHE_TTL) return colors;
+        if (Date.now() - ts < CACHE_TTL) return colors ?? {};
       }
     } catch {}
     return {};
   });
 
+  const [customColorsEnabled, setCustomColorsEnabledState] = useState<boolean>(() => {
+    try {
+      const cached = localStorage.getItem(CACHE_KEY);
+      if (cached) {
+        const { enabled, ts } = JSON.parse(cached);
+        if (Date.now() - ts < CACHE_TTL && typeof enabled === 'boolean') return enabled;
+      }
+    } catch {}
+    return true;
+  });
+
   useLayoutEffect(() => {
     document.documentElement.setAttribute('data-theme', theme);
-    if (theme === 'dark') {
-      // Inline styles override CSS rules, so remove them to let dark theme CSS apply
+    if (theme === 'dark' || !customColorsEnabled) {
       clearFromRoot(customColors);
     } else {
       if (Object.keys(customColors).length > 0) applyToRoot(customColors);
     }
-  }, [theme, customColors]);
+  }, [theme, customColors, customColorsEnabled]);
 
   useEffect(() => {
     fetch(`${API_ENDPOINT}/settings/theme`)
       .then(r => r.json())
       .then(data => {
         const colors: CustomColors = data.colors ?? {};
-        if (Object.keys(colors).length === 0) return;
+        const enabled: boolean = data.enabled !== false; // default true
         setCustomColors(colors);
-        localStorage.setItem(CACHE_KEY, JSON.stringify({ colors, ts: Date.now() }));
+        setCustomColorsEnabledState(enabled);
+        localStorage.setItem(CACHE_KEY, JSON.stringify({ colors, enabled, ts: Date.now() }));
       })
       .catch(() => {});
   }, []);
@@ -85,12 +98,17 @@ export const ThemeProvider = ({ children }: { children: React.ReactNode }) => {
 
   const applyColors = useCallback((colors: CustomColors) => {
     setCustomColors(colors);
-    if (theme !== 'dark') applyToRoot(colors);
-    localStorage.setItem(CACHE_KEY, JSON.stringify({ colors, ts: Date.now() }));
-  }, [theme]);
+    if (theme !== 'dark' && customColorsEnabled) applyToRoot(colors);
+    localStorage.setItem(CACHE_KEY, JSON.stringify({ colors, enabled: customColorsEnabled, ts: Date.now() }));
+  }, [theme, customColorsEnabled]);
+
+  const setCustomColorsEnabled = useCallback((enabled: boolean) => {
+    setCustomColorsEnabledState(enabled);
+    localStorage.setItem(CACHE_KEY, JSON.stringify({ colors: customColors, enabled, ts: Date.now() }));
+  }, [customColors]);
 
   return (
-    <ThemeContext.Provider value={{ theme, toggleTheme, customColors, applyColors }}>
+    <ThemeContext.Provider value={{ theme, toggleTheme, customColors, customColorsEnabled, applyColors, setCustomColorsEnabled }}>
       {children}
     </ThemeContext.Provider>
   );
