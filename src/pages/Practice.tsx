@@ -443,7 +443,7 @@ export default function Practice() {
               </div>
             </>
           )}
-          <div style={{ position: 'fixed', bottom: isMobile ? 56 : 0, left: 'var(--content-left, 0px)', right: 0, zIndex: 150, background: 'var(--color-bg-white)', borderTop: '1px solid var(--color-border)', padding: '8px 0', boxShadow: '0 -2px 8px rgba(0,0,0,0.08)', transform: 'translateZ(0)' }}>
+          <div style={{ position: 'fixed', bottom: isMobile ? 64 : 16, left: 'var(--content-left, 0px)', right: 0, zIndex: 150 }}>
           <div style={{ maxWidth: 820, margin: '0 auto', padding: '0 var(--spacing-lg)', display: 'flex', gap: 6 }}>
             {hasDraft ? (
               /* スプリットピル：再開 + 新規 */
@@ -510,7 +510,7 @@ export default function Practice() {
               </div>
             </>
           )}
-          <div style={{ position: 'fixed', bottom: isMobile ? 56 : 0, left: 'var(--content-left, 0px)', right: 0, zIndex: 150, background: 'var(--color-bg-white)', borderTop: '1px solid var(--color-border)', padding: '8px 0', boxShadow: '0 -2px 8px rgba(0,0,0,0.08)', transform: 'translateZ(0)' }}>
+          <div style={{ position: 'fixed', bottom: isMobile ? 64 : 16, left: 'var(--content-left, 0px)', right: 0, zIndex: 150 }}>
           <div style={{ maxWidth: 820, margin: '0 auto', padding: '0 var(--spacing-lg)', display: 'flex' }}>
             {hasExamDraft ? (
               <div style={{ flex: 1, display: 'flex', height: 44, borderRadius: 22, overflow: 'hidden' }}>

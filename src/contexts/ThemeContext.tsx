@@ -31,6 +31,11 @@ function applyToRoot(colors: CustomColors) {
   });
 }
 
+function clearFromRoot(colors: CustomColors) {
+  const root = document.documentElement;
+  Object.keys(colors).forEach(key => root.style.removeProperty(key));
+}
+
 export const ThemeProvider = ({ children }: { children: React.ReactNode }) => {
   const [theme, setTheme] = useState<Theme>(() => {
     const saved = localStorage.getItem('theme');
@@ -50,11 +55,13 @@ export const ThemeProvider = ({ children }: { children: React.ReactNode }) => {
 
   useLayoutEffect(() => {
     document.documentElement.setAttribute('data-theme', theme);
-  }, [theme]);
-
-  useLayoutEffect(() => {
-    if (Object.keys(customColors).length > 0) applyToRoot(customColors);
-  }, [customColors]);
+    if (theme === 'dark') {
+      // Inline styles override CSS rules, so remove them to let dark theme CSS apply
+      clearFromRoot(customColors);
+    } else {
+      if (Object.keys(customColors).length > 0) applyToRoot(customColors);
+    }
+  }, [theme, customColors]);
 
   useEffect(() => {
     fetch(`${API_ENDPOINT}/settings/theme`)
@@ -78,9 +85,9 @@ export const ThemeProvider = ({ children }: { children: React.ReactNode }) => {
 
   const applyColors = useCallback((colors: CustomColors) => {
     setCustomColors(colors);
-    applyToRoot(colors);
+    if (theme !== 'dark') applyToRoot(colors);
     localStorage.setItem(CACHE_KEY, JSON.stringify({ colors, ts: Date.now() }));
-  }, []);
+  }, [theme]);
 
   return (
     <ThemeContext.Provider value={{ theme, toggleTheme, customColors, applyColors }}>
