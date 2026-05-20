@@ -94,56 +94,13 @@ function CombinedDetailModal({ targetExam, domainAccList, estimatedScore, passSc
   const domains = EXAM_DOMAINS[targetExam] ?? [];
   const history = readScoreHistory(targetExam);
   const [tab, setTab] = useState<'domain' | 'score'>('domain');
-  const [showDomainCalc, setShowDomainCalc] = useState(false);
-  const [showScoreCalc, setShowScoreCalc] = useState(false);
+  const [showCalc, setShowCalc] = useState(false);
 
   useEffect(() => {
     const prev = document.body.style.overflow;
     document.body.style.overflow = 'hidden';
     return () => { document.body.style.overflow = prev; };
   }, []);
-
-  const domainCalcNote = (style?: React.CSSProperties) => (
-    <div style={{ marginTop: 16, background: 'var(--color-bg-main)', borderRadius: 8, overflow: 'hidden', ...style }}>
-      <button
-        onClick={() => setShowDomainCalc(v => !v)}
-        style={{ width: '100%', display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: 'none', border: 'none', cursor: 'pointer', padding: '8px 12px' }}
-      >
-        <span style={{ fontSize: 12, fontWeight: 600, color: 'var(--color-text-sub)' }}>{ja ? '計算方法' : 'How calculated'}</span>
-        <span style={{ fontSize: 10, color: 'var(--color-text-light)' }}>{showDomainCalc ? '▲' : '▼'}</span>
-      </button>
-      {showDomainCalc && (
-        <div style={{ padding: '0 12px 10px' }}>
-          <p style={{ fontSize: 11, color: 'var(--color-text-sub)', margin: 0, lineHeight: 1.7 }}>
-            {ja
-              ? '直近10セッション分のドメインごとの正答数・回答数を合算して算出。未演習ドメインはデータなし扱い。'
-              : "Sum of correct/total answers per domain across the last 10 sessions. Unpracticed domains show no data."}
-          </p>
-        </div>
-      )}
-    </div>
-  );
-
-  const scoreCalcNote = (style?: React.CSSProperties) => (
-    <div style={{ marginTop: 16, background: 'var(--color-bg-main)', borderRadius: 8, overflow: 'hidden', ...style }}>
-      <button
-        onClick={() => setShowScoreCalc(v => !v)}
-        style={{ width: '100%', display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: 'none', border: 'none', cursor: 'pointer', padding: '8px 12px' }}
-      >
-        <span style={{ fontSize: 12, fontWeight: 600, color: 'var(--color-text-sub)' }}>{ja ? '計算方法' : 'How calculated'}</span>
-        <span style={{ fontSize: 10, color: 'var(--color-text-light)' }}>{showScoreCalc ? '▲' : '▼'}</span>
-      </button>
-      {showScoreCalc && (
-        <div style={{ padding: '0 12px 10px' }}>
-          <p style={{ fontSize: 11, color: 'var(--color-text-sub)', margin: 0, lineHeight: 1.7 }}>
-            {ja
-              ? '直近10セッション分の回答を集計。各ドメインの上限10問分で算出（10問未満は正答率×(N/10)で計算）。未演習ドメインは0点扱い。スコア = Σ(正答率 × N/10 × 出題比率%) × 1000'
-              : 'Based on last 10 sessions. Score = Σ(accuracy × min(N,10)/10 × domain_weight%) × 1000. Fewer than 10 answers reduces the max contribution. Unpracticed domains count as 0.'}
-          </p>
-        </div>
-      )}
-    </div>
-  );
 
   const domainSection = (
     <div>
@@ -177,7 +134,6 @@ function CombinedDetailModal({ targetExam, domainAccList, estimatedScore, passSc
           </div>
         );
       })}
-      {!isMobile && domainCalcNote()}
     </div>
   );
 
@@ -199,7 +155,6 @@ function CombinedDetailModal({ targetExam, domainAccList, estimatedScore, passSc
         {ja ? 'スコア推移' : 'Score History'}
       </div>
       <ScoreLineChart data={history} passScore={passScore} />
-      {!isMobile && scoreCalcNote({ marginTop: 20 })}
     </div>
   );
 
@@ -209,12 +164,35 @@ function CombinedDetailModal({ targetExam, domainAccList, estimatedScore, passSc
       onClick={e => { if (e.target === e.currentTarget) onClose(); }}
     >
       <div style={{ background: 'var(--color-bg-white)', borderRadius: 'var(--border-radius-lg)', padding: isMobile ? '16px' : '20px 28px', width: '100%', maxWidth: isMobile ? 480 : 820, maxHeight: isMobile ? '82vh' : '90vh', overflowY: 'auto', boxShadow: '0 8px 32px rgba(0,0,0,0.2)' }}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: isMobile ? 12 : 16 }}>
-          <span style={{ fontWeight: 700, fontSize: 'var(--font-size-base)', color: 'var(--color-text-main)' }}>
-            {ja ? '成績詳細' : 'Performance Detail'}
-          </span>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: showCalc ? 8 : (isMobile ? 12 : 16) }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+            <span style={{ fontWeight: 700, fontSize: 'var(--font-size-base)', color: 'var(--color-text-main)' }}>
+              {ja ? '成績詳細' : 'Performance Detail'}
+            </span>
+            <button
+              onClick={() => setShowCalc(v => !v)}
+              style={{ width: 20, height: 20, borderRadius: '50%', border: `1.5px solid ${showCalc ? 'var(--color-primary)' : 'var(--color-border)'}`, background: showCalc ? 'var(--color-primary)' : 'transparent', color: showCalc ? '#fff' : 'var(--color-text-light)', fontSize: 11, fontWeight: 700, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, lineHeight: 1 }}
+              aria-label={ja ? '計算方法' : 'How calculated'}
+            >?</button>
+          </div>
           <button onClick={onClose} style={{ border: 'none', background: 'none', fontSize: 18, cursor: 'pointer', color: 'var(--color-text-sub)', padding: '0 4px', lineHeight: 1 }}>✕</button>
         </div>
+        {showCalc && (
+          <div style={{ background: 'var(--color-bg-main)', borderRadius: 8, padding: '10px 12px', marginBottom: isMobile ? 12 : 16, fontSize: 11, color: 'var(--color-text-sub)', lineHeight: 1.7 }}>
+            <div style={{ fontWeight: 700, marginBottom: 4 }}>{ja ? 'ドメイン別正答率' : 'Domain Accuracy'}</div>
+            <p style={{ margin: '0 0 10px' }}>
+              {ja
+                ? '直近10セッション分のドメインごとの正答数・回答数を合算して算出。未演習ドメインはデータなし扱い。'
+                : 'Sum of correct/total answers per domain across the last 10 sessions. Unpracticed domains show no data.'}
+            </p>
+            <div style={{ fontWeight: 700, marginBottom: 4 }}>{ja ? '予想スコア' : 'Estimated Score'}</div>
+            <p style={{ margin: 0 }}>
+              {ja
+                ? '直近10セッション分の回答を集計。各ドメインの上限10問分で算出（10問未満は正答率×(N/10)で計算）。未演習ドメインは0点扱い。スコア = Σ(正答率 × N/10 × 出題比率%) × 1000'
+                : 'Based on last 10 sessions. Score = Σ(accuracy × min(N,10)/10 × domain_weight%) × 1000. Fewer than 10 answers reduces the max contribution. Unpracticed domains count as 0.'}
+            </p>
+          </div>
+        )}
 
         {isMobile ? (
           <>
@@ -233,11 +211,9 @@ function CombinedDetailModal({ targetExam, domainAccList, estimatedScore, passSc
             <div style={{ position: 'relative' }}>
               <div style={{ visibility: tab === 'domain' ? 'visible' : 'hidden' }}>
                 {domainSection}
-                {domainCalcNote()}
               </div>
               <div style={{ position: 'absolute', top: 0, left: 0, right: 0, visibility: tab === 'score' ? 'visible' : 'hidden', pointerEvents: tab === 'score' ? 'auto' : 'none' }}>
                 {scoreSection}
-                {scoreCalcNote()}
               </div>
             </div>
           </>
