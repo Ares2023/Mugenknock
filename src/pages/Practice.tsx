@@ -68,13 +68,12 @@ export default function Practice() {
   type DomainStat = { tagId: string; correctCount: number; incorrectCount: number };
   const [domainStats, setDomainStats] = useState<DomainStat[]>([]);
 
-  const DRAFT_TTL = 24 * 3600 * 1000;
   const [exerciseDraft, setExerciseDraft] = useState<any>(() => {
-    try { const d = JSON.parse(localStorage.getItem('practiceExerciseDraft') ?? 'null'); return d?.savedAt && Date.now() - d.savedAt < DRAFT_TTL ? d : null; } catch { return null; }
+    try { return JSON.parse(localStorage.getItem('practiceExerciseDraft') ?? 'null'); } catch { return null; }
   });
   const hasDraft = exerciseDraft?.examType === examType;
   const [examDraft, setExamDraft] = useState<any>(() => {
-    try { const d = JSON.parse(localStorage.getItem('examDraft') ?? 'null'); return d?.savedAt && Date.now() - d.savedAt < DRAFT_TTL ? d : null; } catch { return null; }
+    try { return JSON.parse(localStorage.getItem('examDraft') ?? 'null'); } catch { return null; }
   });
   const hasExamDraft = examDraft?.examType === examType;
   const [showNewPanel, setShowNewPanel] = useState(false);

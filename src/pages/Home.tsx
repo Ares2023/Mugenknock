@@ -541,20 +541,11 @@ export default function Home() {
   const [lastUpdated, setLastUpdated] = useState<Date | null>(null);
   const [quickLoading, setQuickLoading] = useState(false);
 
-  // サクッと演習ドラフト（24時間以内のquickセッションのみ）
   const readQuickDraft = () => {
-    try {
-      const d = JSON.parse(localStorage.getItem('quickExerciseDraft') ?? 'null');
-      if (!d?.savedAt || Date.now() - d.savedAt > 24 * 3600 * 1000) return null;
-      return d;
-    } catch { return null; }
+    try { return JSON.parse(localStorage.getItem('quickExerciseDraft') ?? 'null'); } catch { return null; }
   };
   const readFocusedDraft = () => {
-    try {
-      const d = JSON.parse(localStorage.getItem('focusedExerciseDraft') ?? 'null');
-      if (!d?.savedAt || Date.now() - d.savedAt > 24 * 3600 * 1000) return null;
-      return d;
-    } catch { return null; }
+    try { return JSON.parse(localStorage.getItem('focusedExerciseDraft') ?? 'null'); } catch { return null; }
   };
   const [quickDraft, setQuickDraft] = useState<any>(() => readQuickDraft());
   const [focusedDraft, setFocusedDraft] = useState<any>(() => readFocusedDraft());
