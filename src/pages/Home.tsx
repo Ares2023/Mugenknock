@@ -1410,7 +1410,7 @@ export default function Home() {
                       <button
                         key={n}
                         onClick={() => setDraftPrefs(p => ({ ...p, questionCount: n }))}
-                        style={{ flex: 1, height: 36, border: `1.5px solid ${sel ? 'var(--color-accent)' : 'var(--color-border)'}`, borderRadius: 'var(--border-radius-full)', cursor: 'pointer', background: sel ? 'var(--color-accent)' : 'transparent', color: 'var(--color-text-main)', fontWeight: 600, fontSize: 'var(--font-size-sm)', transition: 'all 0.15s' }}
+                        style={{ flex: 1, height: 36, border: `1.5px solid ${sel ? 'var(--color-primary)' : 'var(--color-border)'}`, borderRadius: 'var(--border-radius-full)', cursor: 'pointer', background: 'transparent', color: 'var(--color-text-main)', fontWeight: sel ? 700 : 600, fontSize: 'var(--font-size-sm)', transition: 'all 0.15s' }}
                       >
                         {n}{ja ? '問' : 'Q'}
                       </button>
@@ -1524,7 +1524,7 @@ export default function Home() {
                       <button
                         key={n}
                         onClick={() => setDraftFocusedPrefs(p => ({ ...p, questionCount: n }))}
-                        style={{ flex: 1, height: 36, border: `1.5px solid ${sel ? '#009E9E' : 'var(--color-border)'}`, borderRadius: 'var(--border-radius-full)', cursor: 'pointer', background: sel ? '#009E9E' : 'transparent', color: 'var(--color-text-main)', fontWeight: 600, fontSize: 'var(--font-size-sm)', transition: 'all 0.15s' }}
+                        style={{ flex: 1, height: 36, border: `1.5px solid ${sel ? 'var(--color-primary)' : 'var(--color-border)'}`, borderRadius: 'var(--border-radius-full)', cursor: 'pointer', background: 'transparent', color: 'var(--color-text-main)', fontWeight: sel ? 700 : 600, fontSize: 'var(--font-size-sm)', transition: 'all 0.15s' }}
                       >
                         {n}{ja ? '問' : 'Q'}
                       </button>
