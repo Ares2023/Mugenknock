@@ -668,12 +668,23 @@ export default function Home() {
     const totalAllWeights = weights.reduce((s, w) => s + w, 0);
     if (totalAllWeights === 0) return null;
 
+    const hist = readDomainHistory(targetExam);
     if (domainStats.length > 0) {
       let weightedSum = 0, hasAnyData = false;
       for (let i = 0; i < domainList.length; i++) {
         const stat = domainStats.find(s => s.tagId === domainList[i]);
-        const correct = stat?.correctCount ?? 0;
-        const total = (stat?.correctCount ?? 0) + (stat?.incorrectCount ?? 0);
+        let correct = 0, total = 0;
+        if (stat) {
+          correct = stat.correctCount ?? 0;
+          total = (stat.correctCount ?? 0) + (stat.incorrectCount ?? 0);
+        } else {
+          // サーバーに欠損しているドメインはローカル履歴で補完
+          const sessions = hist[domainList[i]];
+          if (sessions && sessions.length > 0) {
+            correct = sessions.reduce((s, r) => s + r.correct, 0);
+            total = sessions.reduce((s, r) => s + r.total, 0);
+          }
+        }
         if (total === 0) continue;
         weightedSum += (correct / total) * weights[i];
         hasAnyData = true;
@@ -682,8 +693,7 @@ export default function Home() {
       return Math.round((weightedSum / totalAllWeights) * 1000);
     }
 
-    // ゲスト/オフライン時はローカル履歴にフォールバック
-    const hist = readDomainHistory(targetExam);
+    // ゲスト/オフライン時はローカル履歴のみ
     const MAX_Q = 10;
     let weightedSum = 0, hasAnyData = false;
     for (let i = 0; i < domainList.length; i++) {
@@ -902,19 +912,28 @@ export default function Home() {
     finally { setFocusedLoading(false); }
   };
 
-  // ドメイン別成績（直近10セッション分のローカル履歴を使用）
+  // ドメイン別成績（サーバー優先、ドメインが欠損している場合はローカル履歴で補完）
   const domains = useMemo(() => targetExam ? (EXAM_DOMAINS[targetExam] ?? []) : [], [targetExam]);
   const domainAccList = useMemo(() => {
     if (!targetExam) return [] as { correct: number; total: number; pct: number | null }[];
+    const hist = readDomainHistory(targetExam);
     if (domainStats.length > 0) {
       return domains.map(d => {
         const stat = domainStats.find(s => s.tagId === d);
-        const correct = stat?.correctCount ?? 0;
-        const total = (stat?.correctCount ?? 0) + (stat?.incorrectCount ?? 0);
+        if (stat) {
+          const correct = stat.correctCount ?? 0;
+          const total = (stat.correctCount ?? 0) + (stat.incorrectCount ?? 0);
+          return { correct, total, pct: total > 0 ? Math.round(correct / total * 100) : null };
+        }
+        // サーバーにこのドメインのデータがなければローカル履歴で補完
+        const sessions = hist[d];
+        if (!sessions || sessions.length === 0) return { correct: 0, total: 0, pct: null };
+        const correct = sessions.reduce((s, r) => s + r.correct, 0);
+        const total = sessions.reduce((s, r) => s + r.total, 0);
         return { correct, total, pct: total > 0 ? Math.round(correct / total * 100) : null };
       });
     }
-    const hist = readDomainHistory(targetExam);
+    // domainStats 未取得（ゲスト/オフライン）はローカル履歴のみ
     return domains.map(d => {
       const sessions = hist[d];
       if (!sessions || sessions.length === 0) return { correct: 0, total: 0, pct: null };
