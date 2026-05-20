@@ -430,7 +430,7 @@ export default function Practice() {
           {hasDraft && showNewPanel && (
             <>
               <div onClick={() => setShowNewPanel(false)} style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.4)', zIndex: 210 }} />
-              <div style={{ position: 'fixed', bottom: isMobile ? 116 : 68, left: 0, right: 0, zIndex: 211, background: 'var(--color-bg-white)', borderRadius: '14px 14px 0 0', padding: '14px 0 12px', boxShadow: '0 -4px 20px rgba(0,0,0,0.18)', animation: 'slideUp 0.22s ease' }}>
+              <div style={{ position: 'fixed', bottom: isMobile ? 116 : 68, left: 'var(--content-left, 0px)', right: 0, zIndex: 211, background: 'var(--color-bg-white)', borderRadius: '14px 14px 0 0', padding: '14px 0 12px', boxShadow: '0 -4px 20px rgba(0,0,0,0.18)', animation: 'slideUp 0.22s ease' }}>
               <div style={{ maxWidth: 1100, margin: '0 auto', padding: '0 var(--spacing-lg)' }}>
                 <div style={{ fontSize: 'var(--font-size-sm)', color: 'var(--color-text-sub)', textAlign: 'center', marginBottom: 10 }}>
                   {ja ? 'セッションを上書きして開始します' : 'This will overwrite the current session'}
@@ -443,7 +443,7 @@ export default function Practice() {
               </div>
             </>
           )}
-          <div style={{ position: 'fixed', bottom: isMobile ? 56 : 0, left: 0, right: 0, zIndex: 150, background: 'var(--color-bg-white)', borderTop: '1px solid var(--color-border)', padding: '8px 0', boxShadow: '0 -2px 8px rgba(0,0,0,0.08)', transform: 'translateZ(0)' }}>
+          <div style={{ position: 'fixed', bottom: isMobile ? 56 : 0, left: 'var(--content-left, 0px)', right: 0, zIndex: 150, background: 'var(--color-bg-white)', borderTop: '1px solid var(--color-border)', padding: '8px 0', boxShadow: '0 -2px 8px rgba(0,0,0,0.08)', transform: 'translateZ(0)' }}>
           <div style={{ maxWidth: 1100, margin: '0 auto', padding: '0 var(--spacing-lg)', display: 'flex', gap: 6 }}>
             {hasDraft ? (
               /* スプリットピル：再開 + ↑ */
@@ -494,7 +494,7 @@ export default function Practice() {
           {hasExamDraft && showNewExamPanel && (
             <>
               <div onClick={() => setShowNewExamPanel(false)} style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.4)', zIndex: 210 }} />
-              <div style={{ position: 'fixed', bottom: isMobile ? 116 : 68, left: 0, right: 0, zIndex: 211, background: 'var(--color-bg-white)', borderRadius: '14px 14px 0 0', padding: '14px 0 12px', boxShadow: '0 -4px 20px rgba(0,0,0,0.18)', animation: 'slideUp 0.22s ease' }}>
+              <div style={{ position: 'fixed', bottom: isMobile ? 116 : 68, left: 'var(--content-left, 0px)', right: 0, zIndex: 211, background: 'var(--color-bg-white)', borderRadius: '14px 14px 0 0', padding: '14px 0 12px', boxShadow: '0 -4px 20px rgba(0,0,0,0.18)', animation: 'slideUp 0.22s ease' }}>
               <div style={{ maxWidth: 1100, margin: '0 auto', padding: '0 var(--spacing-lg)' }}>
                 <div style={{ fontSize: 'var(--font-size-sm)', color: 'var(--color-text-sub)', textAlign: 'center', marginBottom: 10 }}>
                   {ja ? 'セッションを上書きして開始します' : 'This will overwrite the current session'}
@@ -507,7 +507,7 @@ export default function Practice() {
               </div>
             </>
           )}
-          <div style={{ position: 'fixed', bottom: isMobile ? 56 : 0, left: 0, right: 0, zIndex: 150, background: 'var(--color-bg-white)', borderTop: '1px solid var(--color-border)', padding: '8px 0', boxShadow: '0 -2px 8px rgba(0,0,0,0.08)', transform: 'translateZ(0)' }}>
+          <div style={{ position: 'fixed', bottom: isMobile ? 56 : 0, left: 'var(--content-left, 0px)', right: 0, zIndex: 150, background: 'var(--color-bg-white)', borderTop: '1px solid var(--color-border)', padding: '8px 0', boxShadow: '0 -2px 8px rgba(0,0,0,0.08)', transform: 'translateZ(0)' }}>
           <div style={{ maxWidth: 1100, margin: '0 auto', padding: '0 var(--spacing-lg)', display: 'flex' }}>
             {hasExamDraft ? (
               <div style={{ flex: 1, display: 'flex', height: 44, borderRadius: 22, overflow: 'hidden' }}>

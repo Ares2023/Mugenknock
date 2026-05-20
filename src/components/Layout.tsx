@@ -218,6 +218,13 @@ export default function Layout({ children }: { children: React.ReactNode }) {
   }, []);
 
 
+  useEffect(() => {
+    document.documentElement.style.setProperty(
+      '--content-left',
+      (!isMobile && open) ? 'var(--sidebar-width)' : '0px'
+    );
+  }, [open, isMobile]);
+
   const toggle = () => setOpen(prev => {
     if (!isMobile) localStorage.setItem('sidebarOpen', String(!prev));
     return !prev;
