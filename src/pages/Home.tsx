@@ -660,15 +660,30 @@ export default function Home() {
       .finally(() => setAnsweredCountReady(true));
   }, [user, targetExam]);
 
-  // ── 予想スコア計算（直近10セッション分のローカル履歴を使用）──
+  // ── 予想スコア計算（サーバー統計優先、オフライン/ゲスト時はローカル履歴）──
   const estimatedScore = useMemo(() => {
     if (!targetExam) return null;
     const domainList = EXAM_DOMAINS[targetExam] ?? [];
     const weights = DOMAIN_WEIGHTS[targetExam] ?? domainList.map(() => 100 / domainList.length);
     const totalAllWeights = weights.reduce((s, w) => s + w, 0);
     if (totalAllWeights === 0) return null;
-    const hist = readDomainHistory(targetExam);
 
+    if (domainStats.length > 0) {
+      let weightedSum = 0, hasAnyData = false;
+      for (let i = 0; i < domainList.length; i++) {
+        const stat = domainStats.find(s => s.tagId === domainList[i]);
+        const correct = stat?.correctCount ?? 0;
+        const total = (stat?.correctCount ?? 0) + (stat?.incorrectCount ?? 0);
+        if (total === 0) continue;
+        weightedSum += (correct / total) * weights[i];
+        hasAnyData = true;
+      }
+      if (!hasAnyData) return null;
+      return Math.round((weightedSum / totalAllWeights) * 1000);
+    }
+
+    // ゲスト/オフライン時はローカル履歴にフォールバック
+    const hist = readDomainHistory(targetExam);
     const MAX_Q = 10;
     let weightedSum = 0, hasAnyData = false;
     for (let i = 0; i < domainList.length; i++) {
@@ -683,7 +698,7 @@ export default function Home() {
     }
     if (!hasAnyData) return null;
     return Math.round((weightedSum / totalAllWeights) * 1000);
-  }, [targetExam]);
+  }, [targetExam, domainStats]);
 
   const focusedUnlocked = !!user && answeredCount >= FOCUSED_UNLOCK_THRESHOLD;
   const focusedUnlockedCached = localStorage.getItem('focusedUnlockedCache') === '1';
@@ -891,6 +906,14 @@ export default function Home() {
   const domains = useMemo(() => targetExam ? (EXAM_DOMAINS[targetExam] ?? []) : [], [targetExam]);
   const domainAccList = useMemo(() => {
     if (!targetExam) return [] as { correct: number; total: number; pct: number | null }[];
+    if (domainStats.length > 0) {
+      return domains.map(d => {
+        const stat = domainStats.find(s => s.tagId === d);
+        const correct = stat?.correctCount ?? 0;
+        const total = (stat?.correctCount ?? 0) + (stat?.incorrectCount ?? 0);
+        return { correct, total, pct: total > 0 ? Math.round(correct / total * 100) : null };
+      });
+    }
     const hist = readDomainHistory(targetExam);
     return domains.map(d => {
       const sessions = hist[d];
@@ -899,7 +922,7 @@ export default function Home() {
       const total = sessions.reduce((s, r) => s + r.total, 0);
       return { correct, total, pct: total > 0 ? Math.round(correct / total * 100) : null };
     });
-  }, [targetExam, domains]);
+  }, [targetExam, domains, domainStats]);
 
   const hasPrimaryDraft = primaryMode === 'focused' ? hasFocusedDraft : hasQuickDraft;
   const resumePrimary = primaryMode === 'focused' ? resumeFocusedExercise : resumeQuickExercise;
