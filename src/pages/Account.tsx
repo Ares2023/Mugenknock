@@ -1,8 +1,8 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { updatePassword, deleteUser, updateUserAttributes } from 'aws-amplify/auth';
-import { API_ENDPOINT, EXAM_TYPES, EXAM_LEVEL, EXAM_DOMAINS } from '../constants';
-import { getCached, setCached, deleteCached, SHORT_TTL } from '../utils/cache';
+import { API_ENDPOINT, EXAM_TYPES, EXAM_LEVEL } from '../constants';
+import { deleteCached } from '../utils/cache';
 import { useAuth } from '../contexts/AuthContext';
 import { useLanguage } from '../contexts/LanguageContext';
 import { useTheme } from '../contexts/ThemeContext';
@@ -148,7 +148,6 @@ export default function Account() {
   const navigate = useNavigate();
 
   const [summaries, setSummaries] = useState<Record<string, SessionSummary>>({});
-  const [tagStats, setTagStats] = useState<Record<string, number>>({}); // tagId → total answers
   const [loading, setLoading] = useState(true);
   const [confirmingExam, setConfirmingExam] = useState<string | null>(null);
   const [deleting, setDeleting] = useState<string | null>(null);
@@ -205,22 +204,7 @@ export default function Account() {
         setSummaries(map);
       });
 
-    const cached = getCached<any[]>(`ustats_${user.userId}`);
-    const statsFetch = cached
-      ? Promise.resolve(cached)
-      : fetch(`${API_ENDPOINT}/users/me/stats?userId=${user.userId}`)
-          .then(r => r.json())
-          .then(d => { const s = d.stats ?? []; if (s.length) setCached(`ustats_${user.userId}`, s, SHORT_TTL); return s; });
-    statsFetch.then(stats => {
-      const map: Record<string, number> = {};
-      for (const s of stats) {
-        const total = (s.correctCount ?? 0) + (s.incorrectCount ?? 0);
-        if (total > 0) map[s.tagId] = total;
-      }
-      setTagStats(map);
-    });
-
-    Promise.all([sessionsFetch, statsFetch]).catch(console.error).finally(() => setLoading(false));
+    sessionsFetch.catch(console.error).finally(() => setLoading(false));
   }, [user]);
 
   const handleDelete = async (et: string) => {
@@ -388,8 +372,7 @@ export default function Account() {
               <SettingsRow
                 label={ja ? '試験データの管理' : 'Manage Exam Data'}
                 value={(() => {
-                  const hasTagData = (et: string) => (EXAM_DOMAINS[et] ?? []).some(tag => tagStats[tag] > 0);
-                  const count = EXAM_TYPES.filter(et => !deletedExams.has(et) && (summaries[et] || hasLocalData(et) || hasTagData(et))).length;
+                  const count = EXAM_TYPES.filter(et => !deletedExams.has(et) && (summaries[et] || hasLocalData(et))).length;
                   return count > 0 ? `${count}${ja ? '資格' : ' exams'}` : (ja ? 'データなし' : 'No data');
                 })()}
                 onClick={() => { setConfirmingExam(null); setShowDataModal(true); }}
@@ -448,9 +431,8 @@ export default function Account() {
               <div className="sherpa-spinner" style={{ width: 24, height: 24, borderWidth: 2 }} />
             </div>
           ) : (() => {
-            const hasTagData = (et: string) => (EXAM_DOMAINS[et] ?? []).some(tag => tagStats[tag] > 0);
             const visible = EXAM_TYPES.filter(et =>
-              !deletedExams.has(et) && (summaries[et] || hasLocalData(et) || hasTagData(et))
+              !deletedExams.has(et) && (summaries[et] || hasLocalData(et))
             );
             if (visible.length === 0) return (
               <div style={{ padding: '16px 0', fontSize: 'var(--font-size-sm)', color: 'var(--color-text-light)', fontStyle: 'italic', textAlign: 'center' }}>

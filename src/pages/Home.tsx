@@ -1399,110 +1399,117 @@ export default function Home() {
           style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', zIndex: 1000, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16 }}
           onClick={e => { if (e.target === e.currentTarget) setShowQuickModal(false); }}
         >
-          <div style={{ background: 'var(--color-bg-white)', borderRadius: 'var(--border-radius-lg)', padding: '24px 24px 20px', width: '100%', maxWidth: 420, boxShadow: 'var(--box-shadow-md)', maxHeight: '90vh', overflowY: 'auto' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 }}>
+          <div style={{ background: 'var(--color-bg-white)', borderRadius: 'var(--border-radius-lg)', width: '100%', maxWidth: 420, boxShadow: 'var(--box-shadow-md)', maxHeight: isMobile ? '66vh' : '90vh', display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
+            {/* ヘッダー固定 */}
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '20px 24px 0', flexShrink: 0 }}>
               <h3 style={{ margin: 0, fontSize: 'var(--font-size-h3)', fontWeight: 700, color: 'var(--color-accent)' }}>
                 {ja ? 'サクッと演習 設定' : 'Quick Practice Settings'}
               </h3>
               <button onClick={() => setShowQuickModal(false)} style={{ border: 'none', background: 'none', fontSize: 20, cursor: 'pointer', color: 'var(--color-text-sub)', padding: '4px 8px', lineHeight: 1 }}>✕</button>
             </div>
-            <div style={{ marginBottom: 20 }}>
-              {/* 出題数 */}
-              <div style={{ padding: '14px 0', borderBottom: '1px solid var(--color-border)' }}>
-                <div style={{ fontWeight: 500, fontSize: 'var(--font-size-base)', color: 'var(--color-text-main)', marginBottom: 8 }}>
-                  {ja ? '出題数' : 'Question Count'}
-                </div>
-                <div style={{ display: 'flex', gap: 8 }}>
-                  {[5, 10, 20].map(n => {
-                    const sel = (draftPrefs.questionCount ?? 5) === n;
-                    return (
-                      <button
-                        key={n}
-                        onClick={() => setDraftPrefs(p => ({ ...p, questionCount: n }))}
-                        style={{ flex: 1, height: 36, border: `1.5px solid ${sel ? 'var(--color-primary)' : 'var(--color-border)'}`, borderRadius: 'var(--border-radius-full)', cursor: 'pointer', background: 'transparent', color: 'var(--color-text-main)', fontWeight: sel ? 700 : 600, fontSize: 'var(--font-size-sm)', transition: 'all 0.15s' }}
-                      >
-                        {n}{ja ? '問' : 'Q'}
-                      </button>
-                    );
-                  })}
-                </div>
-              </div>
-              {targetExam && (EXAM_DOMAINS[targetExam] ?? []).length > 0 && (
+            {/* スクロール可能なコンテンツ */}
+            <div style={{ flex: 1, overflowY: 'auto', padding: '0 24px' }}>
+              <div style={{ marginBottom: 16, paddingTop: 16 }}>
+                {/* 出題数 */}
                 <div style={{ padding: '14px 0', borderBottom: '1px solid var(--color-border)' }}>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
-                    <div>
-                      <div style={{ fontWeight: 500, fontSize: 'var(--font-size-base)', color: 'var(--color-text-main)' }}>
-                        {ja ? 'ドメイン' : 'Domains'}
-                      </div>
-                      <div style={{ fontSize: 'var(--font-size-xs)', color: 'var(--color-text-light)', marginTop: 2 }}>
-                        {ja ? '未選択 = すべて対象' : 'None selected = all domains'}
-                      </div>
-                    </div>
-                    {(draftPrefs.domains ?? []).length > 0 && (
-                      <button
-                        onClick={() => setDraftPrefs(p => ({ ...p, domains: [] }))}
-                        style={{ border: 'none', background: 'none', cursor: 'pointer', fontSize: 'var(--font-size-xs)', color: 'var(--color-primary)', padding: '2px 4px', textDecoration: 'underline' }}
-                      >
-                        {ja ? 'すべて解除' : 'Clear'}
-                      </button>
-                    )}
+                  <div style={{ fontWeight: 500, fontSize: 'var(--font-size-base)', color: 'var(--color-text-main)', marginBottom: 8 }}>
+                    {ja ? '出題数' : 'Question Count'}
                   </div>
-                  {(EXAM_DOMAINS[targetExam] ?? []).map(domain => {
-                    const selDoms: string[] = draftPrefs.domains ?? [];
-                    const checked = selDoms.includes(domain);
+                  <div style={{ display: 'flex', gap: 8 }}>
+                    {[5, 10, 20].map(n => {
+                      const sel = (draftPrefs.questionCount ?? 5) === n;
+                      return (
+                        <button
+                          key={n}
+                          onClick={() => setDraftPrefs(p => ({ ...p, questionCount: n }))}
+                          style={{ flex: 1, height: 36, border: `1.5px solid ${sel ? 'var(--color-primary)' : 'var(--color-border)'}`, borderRadius: 'var(--border-radius-full)', cursor: 'pointer', background: 'transparent', color: 'var(--color-text-main)', fontWeight: sel ? 700 : 600, fontSize: 'var(--font-size-sm)', transition: 'all 0.15s' }}
+                        >
+                          {n}{ja ? '問' : 'Q'}
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+                {targetExam && (EXAM_DOMAINS[targetExam] ?? []).length > 0 && (
+                  <div style={{ padding: '14px 0', borderBottom: '1px solid var(--color-border)' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
+                      <div>
+                        <div style={{ fontWeight: 500, fontSize: 'var(--font-size-base)', color: 'var(--color-text-main)' }}>
+                          {ja ? 'ドメイン' : 'Domains'}
+                        </div>
+                        <div style={{ fontSize: 'var(--font-size-xs)', color: 'var(--color-text-light)', marginTop: 2 }}>
+                          {ja ? '未選択 = すべて対象' : 'None selected = all domains'}
+                        </div>
+                      </div>
+                      {(draftPrefs.domains ?? []).length > 0 && (
+                        <button
+                          onClick={() => setDraftPrefs(p => ({ ...p, domains: [] }))}
+                          style={{ border: 'none', background: 'none', cursor: 'pointer', fontSize: 'var(--font-size-xs)', color: 'var(--color-primary)', padding: '2px 4px', textDecoration: 'underline' }}
+                        >
+                          {ja ? 'すべて解除' : 'Clear'}
+                        </button>
+                      )}
+                    </div>
+                    {(EXAM_DOMAINS[targetExam] ?? []).map(domain => {
+                      const selDoms: string[] = draftPrefs.domains ?? [];
+                      const checked = selDoms.includes(domain);
+                      return (
+                        <label key={domain} style={{ display: 'flex', alignItems: 'flex-start', gap: 8, padding: '4px 0', cursor: 'pointer' }}>
+                          <input
+                            type="checkbox"
+                            checked={checked}
+                            onChange={() => setDraftPrefs(p => {
+                              const cur: string[] = p.domains ?? [];
+                              return { ...p, domains: checked ? cur.filter(d => d !== domain) : [...cur, domain] };
+                            })}
+                            style={{ width: 16, height: 16, flexShrink: 0, marginTop: 2, accentColor: 'var(--color-primary)' }}
+                          />
+                          <span style={{ fontSize: 'var(--font-size-sm)', color: 'var(--color-text-main)', lineHeight: 1.4 }}>{domain}</span>
+                        </label>
+                      );
+                    })}
+                  </div>
+                )}
+                <div style={{ padding: '14px 0' }}>
+                  <div style={{ fontWeight: 500, fontSize: 'var(--font-size-base)', color: 'var(--color-text-main)', marginBottom: 8 }}>
+                    {ja ? '重点フィルタ' : 'Focus Filter'}
+                  </div>
+                  {([
+                    ['unansweredOnly', ja ? '未回答のみ' : 'Unanswered Only', ja ? '一度も回答していない問題のみ出題' : 'Only questions not yet answered'],
+                    ['incorrectOnly',  ja ? '不正解のみ'  : 'Incorrect Only',  ja ? '過去に不正解だった問題のみ出題'   : 'Only previously incorrect questions'],
+                    ['bookmarkOnly',   ja ? 'ブックマークのみ' : 'Bookmarked Only', ja ? 'ブックマークした問題のみ出題'  : 'Only bookmarked questions'],
+                  ] as [string, string, string][]).map(([key, label, desc]) => {
+                    const on = !!(draftPrefs[key]);
                     return (
-                      <label key={domain} style={{ display: 'flex', alignItems: 'flex-start', gap: 8, padding: '4px 0', cursor: 'pointer' }}>
+                      <label key={key} style={{ display: 'flex', alignItems: 'flex-start', gap: 10, padding: '8px 0', cursor: 'pointer' }}>
                         <input
                           type="checkbox"
-                          checked={checked}
-                          onChange={() => setDraftPrefs(p => {
-                            const cur: string[] = p.domains ?? [];
-                            return { ...p, domains: checked ? cur.filter(d => d !== domain) : [...cur, domain] };
-                          })}
-                          style={{ width: 16, height: 16, flexShrink: 0, marginTop: 2, accentColor: 'var(--color-primary)' }}
+                          checked={on}
+                          onChange={() => setDraftPrefs(p => ({ ...p, [key]: !on }))}
+                          style={{ width: 16, height: 16, flexShrink: 0, marginTop: 3, accentColor: 'var(--color-primary)' }}
                         />
-                        <span style={{ fontSize: 'var(--font-size-sm)', color: 'var(--color-text-main)', lineHeight: 1.4 }}>{domain}</span>
+                        <div>
+                          <div style={{ fontSize: 'var(--font-size-sm)', fontWeight: on ? 600 : 400, color: 'var(--color-text-main)' }}>{label}</div>
+                          <div style={{ fontSize: 'var(--font-size-xs)', color: 'var(--color-text-light)', marginTop: 1 }}>{desc}</div>
+                        </div>
                       </label>
                     );
                   })}
                 </div>
-              )}
-              <div style={{ padding: '14px 0' }}>
-                <div style={{ fontWeight: 500, fontSize: 'var(--font-size-base)', color: 'var(--color-text-main)', marginBottom: 8 }}>
-                  {ja ? '重点フィルタ' : 'Focus Filter'}
-                </div>
-                {([
-                  ['unansweredOnly', ja ? '未回答のみ' : 'Unanswered Only', ja ? '一度も回答していない問題のみ出題' : 'Only questions not yet answered'],
-                  ['incorrectOnly',  ja ? '不正解のみ'  : 'Incorrect Only',  ja ? '過去に不正解だった問題のみ出題'   : 'Only previously incorrect questions'],
-                  ['bookmarkOnly',   ja ? 'ブックマークのみ' : 'Bookmarked Only', ja ? 'ブックマークした問題のみ出題'  : 'Only bookmarked questions'],
-                ] as [string, string, string][]).map(([key, label, desc]) => {
-                  const on = !!(draftPrefs[key]);
-                  return (
-                    <label key={key} style={{ display: 'flex', alignItems: 'flex-start', gap: 10, padding: '8px 0', cursor: 'pointer' }}>
-                      <input
-                        type="checkbox"
-                        checked={on}
-                        onChange={() => setDraftPrefs(p => ({ ...p, [key]: !on }))}
-                        style={{ width: 16, height: 16, flexShrink: 0, marginTop: 3, accentColor: 'var(--color-primary)' }}
-                      />
-                      <div>
-                        <div style={{ fontSize: 'var(--font-size-sm)', fontWeight: on ? 600 : 400, color: 'var(--color-text-main)' }}>{label}</div>
-                        <div style={{ fontSize: 'var(--font-size-xs)', color: 'var(--color-text-light)', marginTop: 1 }}>{desc}</div>
-                      </div>
-                    </label>
-                  );
-                })}
+              </div>
+              <div style={{ fontSize: 'var(--font-size-xs)', color: 'var(--color-text-light)', marginBottom: 16 }}>
+                {ja ? '※ AI確認済み問題のみが常に対象です' : '* AI-verified questions are always included'}
               </div>
             </div>
-            <div style={{ fontSize: 'var(--font-size-xs)', color: 'var(--color-text-light)', marginBottom: 16 }}>
-              {ja ? '※ AI確認済み問題のみが常に対象です' : '* AI-verified questions are always included'}
+            {/* 保存ボタン固定 */}
+            <div style={{ flexShrink: 0, padding: '12px 24px 20px', borderTop: '1px solid var(--color-border)' }}>
+              <Button
+                onClick={() => { localStorage.setItem(QUICK_PREFS_KEY, JSON.stringify(draftPrefs)); setShowQuickModal(false); }}
+                variant="primary" style={{ width: '100%' }}
+              >
+                {ja ? '保存する' : 'Save'}
+              </Button>
             </div>
-            <Button
-              onClick={() => { localStorage.setItem(QUICK_PREFS_KEY, JSON.stringify(draftPrefs)); setShowQuickModal(false); }}
-              variant="primary" style={{ width: '100%' }}
-            >
-              {ja ? '保存する' : 'Save'}
-            </Button>
           </div>
         </div>
       )}
@@ -1513,91 +1520,98 @@ export default function Home() {
           style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', zIndex: 1000, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16 }}
           onClick={e => { if (e.target === e.currentTarget) setShowFocusedModal(false); }}
         >
-          <div style={{ background: 'var(--color-bg-white)', borderRadius: 'var(--border-radius-lg)', padding: '24px 24px 20px', width: '100%', maxWidth: 420, boxShadow: 'var(--box-shadow-md)', maxHeight: '90vh', overflowY: 'auto' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 }}>
+          <div style={{ background: 'var(--color-bg-white)', borderRadius: 'var(--border-radius-lg)', width: '100%', maxWidth: 420, boxShadow: 'var(--box-shadow-md)', maxHeight: isMobile ? '66vh' : '90vh', display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
+            {/* ヘッダー固定 */}
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '20px 24px 0', flexShrink: 0 }}>
               <h3 style={{ margin: 0, fontSize: 'var(--font-size-h3)', fontWeight: 700, color: '#009E9E' }}>
                 {ja ? 'しっかり対策 設定' : 'Focused Practice Settings'}
               </h3>
               <button onClick={() => setShowFocusedModal(false)} style={{ border: 'none', background: 'none', fontSize: 20, cursor: 'pointer', color: 'var(--color-text-sub)', padding: '4px 8px', lineHeight: 1 }}>✕</button>
             </div>
-            <div style={{ marginBottom: 20 }}>
-              {/* 出題数 */}
-              <div style={{ padding: '14px 0', borderBottom: '1px solid var(--color-border)' }}>
-                <div style={{ fontWeight: 500, fontSize: 'var(--font-size-base)', color: 'var(--color-text-main)', marginBottom: 8 }}>
-                  {ja ? '出題数' : 'Question Count'}
+            {/* スクロール可能なコンテンツ */}
+            <div style={{ flex: 1, overflowY: 'auto', padding: '0 24px' }}>
+              <div style={{ marginBottom: 20, paddingTop: 16 }}>
+                {/* 出題数 */}
+                <div style={{ padding: '14px 0', borderBottom: '1px solid var(--color-border)' }}>
+                  <div style={{ fontWeight: 500, fontSize: 'var(--font-size-base)', color: 'var(--color-text-main)', marginBottom: 8 }}>
+                    {ja ? '出題数' : 'Question Count'}
+                  </div>
+                  <div style={{ display: 'flex', gap: 8 }}>
+                    {[5, 10, 20, 30].map(n => {
+                      const sel = (draftFocusedPrefs.questionCount ?? 5) === n;
+                      return (
+                        <button
+                          key={n}
+                          onClick={() => setDraftFocusedPrefs(p => ({ ...p, questionCount: n }))}
+                          style={{ flex: 1, height: 36, border: `1.5px solid ${sel ? 'var(--color-primary)' : 'var(--color-border)'}`, borderRadius: 'var(--border-radius-full)', cursor: 'pointer', background: 'transparent', color: 'var(--color-text-main)', fontWeight: sel ? 700 : 600, fontSize: 'var(--font-size-sm)', transition: 'all 0.15s' }}
+                        >
+                          {n}{ja ? '問' : 'Q'}
+                        </button>
+                      );
+                    })}
+                  </div>
                 </div>
-                <div style={{ display: 'flex', gap: 8 }}>
-                  {[5, 10, 20, 30].map(n => {
-                    const sel = (draftFocusedPrefs.questionCount ?? 5) === n;
+                {/* 不正解問題フィルタ */}
+                <div style={{ padding: '14px 0', borderBottom: '1px solid var(--color-border)' }}>
+                  <div style={{ fontWeight: 500, fontSize: 'var(--font-size-base)', color: 'var(--color-text-main)', marginBottom: 8 }}>
+                    {ja ? '不正解問題フィルタ' : 'Incorrect Filter'}
+                  </div>
+                  <label style={{ display: 'flex', alignItems: 'flex-start', gap: 10, cursor: 'pointer' }}>
+                    <input
+                      type="checkbox"
+                      checked={draftFocusedPrefs.focusIncorrect !== false}
+                      onChange={() => setDraftFocusedPrefs(p => ({ ...p, focusIncorrect: p.focusIncorrect === false }))}
+                      style={{ width: 16, height: 16, flexShrink: 0, marginTop: 3, accentColor: 'var(--color-primary)' }}
+                    />
+                    <div>
+                      <div style={{ fontSize: 'var(--font-size-sm)', fontWeight: 600, color: 'var(--color-text-main)' }}>
+                        {ja ? '過去に不正解だった問題を含める' : 'Include previously incorrect questions'}
+                      </div>
+                      <div style={{ fontSize: 'var(--font-size-xs)', color: 'var(--color-text-light)', marginTop: 1 }}>
+                        {ja ? '一度でも不正解になった問題を優先出題' : 'Prioritize questions you got wrong before'}
+                      </div>
+                    </div>
+                  </label>
+                </div>
+                {/* 苦手ドメインフィルタ */}
+                <div style={{ padding: '14px 0' }}>
+                  <div style={{ fontWeight: 500, fontSize: 'var(--font-size-base)', color: 'var(--color-text-main)', marginBottom: 8 }}>
+                    {ja ? '苦手ドメインフィルタ' : 'Weak Domain Filter'}
+                  </div>
+                  {([
+                    ['none',    ja ? '絞り込まない' : 'Off',              ja ? 'ドメインによる絞り込みをしない' : 'No domain filtering'],
+                    ['below70', ja ? '正答率70%以下のドメイン' : 'Below 70%', ja ? '正答率70%未満のドメインの問題を優先出題' : 'Prioritize questions from domains below 70%'],
+                    ['below50', ja ? '正答率50%以下のドメイン' : 'Below 50%', ja ? '正答率50%未満のドメインの問題を優先出題' : 'Prioritize questions from domains below 50%'],
+                  ] as [string, string, string][]).map(([val, label, desc]) => {
+                    const selected = (draftFocusedPrefs.focusDomain ?? 'below70') === val;
                     return (
-                      <button
-                        key={n}
-                        onClick={() => setDraftFocusedPrefs(p => ({ ...p, questionCount: n }))}
-                        style={{ flex: 1, height: 36, border: `1.5px solid ${sel ? 'var(--color-primary)' : 'var(--color-border)'}`, borderRadius: 'var(--border-radius-full)', cursor: 'pointer', background: 'transparent', color: 'var(--color-text-main)', fontWeight: sel ? 700 : 600, fontSize: 'var(--font-size-sm)', transition: 'all 0.15s' }}
-                      >
-                        {n}{ja ? '問' : 'Q'}
-                      </button>
+                      <label key={val} style={{ display: 'flex', alignItems: 'flex-start', gap: 10, padding: '8px 0', cursor: 'pointer' }}>
+                        <input
+                          type="radio"
+                          name="focusDomain"
+                          checked={selected}
+                          onChange={() => setDraftFocusedPrefs(p => ({ ...p, focusDomain: val }))}
+                          style={{ width: 16, height: 16, flexShrink: 0, marginTop: 3, accentColor: 'var(--color-primary)' }}
+                        />
+                        <div>
+                          <div style={{ fontSize: 'var(--font-size-sm)', fontWeight: selected ? 600 : 400, color: 'var(--color-text-main)' }}>{label}</div>
+                          <div style={{ fontSize: 'var(--font-size-xs)', color: 'var(--color-text-light)', marginTop: 1 }}>{desc}</div>
+                        </div>
+                      </label>
                     );
                   })}
                 </div>
               </div>
-              {/* 不正解問題フィルタ */}
-              <div style={{ padding: '14px 0', borderBottom: '1px solid var(--color-border)' }}>
-                <div style={{ fontWeight: 500, fontSize: 'var(--font-size-base)', color: 'var(--color-text-main)', marginBottom: 8 }}>
-                  {ja ? '不正解問題フィルタ' : 'Incorrect Filter'}
-                </div>
-                <label style={{ display: 'flex', alignItems: 'flex-start', gap: 10, cursor: 'pointer' }}>
-                  <input
-                    type="checkbox"
-                    checked={draftFocusedPrefs.focusIncorrect !== false}
-                    onChange={() => setDraftFocusedPrefs(p => ({ ...p, focusIncorrect: p.focusIncorrect === false }))}
-                    style={{ width: 16, height: 16, flexShrink: 0, marginTop: 3, accentColor: 'var(--color-primary)' }}
-                  />
-                  <div>
-                    <div style={{ fontSize: 'var(--font-size-sm)', fontWeight: 600, color: 'var(--color-text-main)' }}>
-                      {ja ? '過去に不正解だった問題を含める' : 'Include previously incorrect questions'}
-                    </div>
-                    <div style={{ fontSize: 'var(--font-size-xs)', color: 'var(--color-text-light)', marginTop: 1 }}>
-                      {ja ? '一度でも不正解になった問題を優先出題' : 'Prioritize questions you got wrong before'}
-                    </div>
-                  </div>
-                </label>
-              </div>
-              {/* 苦手ドメインフィルタ */}
-              <div style={{ padding: '14px 0' }}>
-                <div style={{ fontWeight: 500, fontSize: 'var(--font-size-base)', color: 'var(--color-text-main)', marginBottom: 8 }}>
-                  {ja ? '苦手ドメインフィルタ' : 'Weak Domain Filter'}
-                </div>
-                {([
-                  ['none',    ja ? '絞り込まない' : 'Off',              ja ? 'ドメインによる絞り込みをしない' : 'No domain filtering'],
-                  ['below70', ja ? '正答率70%以下のドメイン' : 'Below 70%', ja ? '正答率70%未満のドメインの問題を優先出題' : 'Prioritize questions from domains below 70%'],
-                  ['below50', ja ? '正答率50%以下のドメイン' : 'Below 50%', ja ? '正答率50%未満のドメインの問題を優先出題' : 'Prioritize questions from domains below 50%'],
-                ] as [string, string, string][]).map(([val, label, desc]) => {
-                  const selected = (draftFocusedPrefs.focusDomain ?? 'below70') === val;
-                  return (
-                    <label key={val} style={{ display: 'flex', alignItems: 'flex-start', gap: 10, padding: '8px 0', cursor: 'pointer' }}>
-                      <input
-                        type="radio"
-                        name="focusDomain"
-                        checked={selected}
-                        onChange={() => setDraftFocusedPrefs(p => ({ ...p, focusDomain: val }))}
-                        style={{ width: 16, height: 16, flexShrink: 0, marginTop: 3, accentColor: 'var(--color-primary)' }}
-                      />
-                      <div>
-                        <div style={{ fontSize: 'var(--font-size-sm)', fontWeight: selected ? 600 : 400, color: 'var(--color-text-main)' }}>{label}</div>
-                        <div style={{ fontSize: 'var(--font-size-xs)', color: 'var(--color-text-light)', marginTop: 1 }}>{desc}</div>
-                      </div>
-                    </label>
-                  );
-                })}
-              </div>
             </div>
-            <Button
-              onClick={() => { localStorage.setItem(FOCUSED_PREFS_KEY, JSON.stringify(draftFocusedPrefs)); setShowFocusedModal(false); }}
-              variant="primary" style={{ width: '100%', background: '#009E9E', borderColor: '#009E9E' }}
-            >
-              {ja ? '保存する' : 'Save'}
-            </Button>
+            {/* 保存ボタン固定 */}
+            <div style={{ flexShrink: 0, padding: '12px 24px 20px', borderTop: '1px solid var(--color-border)' }}>
+              <Button
+                onClick={() => { localStorage.setItem(FOCUSED_PREFS_KEY, JSON.stringify(draftFocusedPrefs)); setShowFocusedModal(false); }}
+                variant="primary" style={{ width: '100%', background: '#009E9E', borderColor: '#009E9E' }}
+              >
+                {ja ? '保存する' : 'Save'}
+              </Button>
+            </div>
           </div>
         </div>
       )}

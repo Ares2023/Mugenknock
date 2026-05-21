@@ -6,7 +6,7 @@ import { API_ENDPOINT, EXAM_CONFIGS, EXAM_DOMAINS, EXAM_TYPES, PASS_SCORES } fro
 import Button from '../components/ui/Button';
 import DomainSelector from '../components/DomainSelector';
 import { getCached, setCached, SHORT_TTL } from '../utils/cache';
-import { IconChevronUp } from '../components/Icons';
+import { IconChevronUp, IconSettings } from '../components/Icons';
 
 function shuffleArray<T>(arr: T[]): T[] {
   const a = [...arr];
@@ -78,6 +78,7 @@ export default function Practice() {
   const hasExamDraft = examDraft?.examType === examType;
   const [showNewPanel, setShowNewPanel] = useState(false);
   const [showNewExamPanel, setShowNewExamPanel] = useState(false);
+  const [showExamOptionsPanel, setShowExamOptionsPanel] = useState(false);
   const [showStartConfirm, setShowStartConfirm] = useState(false);
 
   const isFirstRender = useRef(true);
@@ -493,6 +494,7 @@ export default function Practice() {
       {/* ── 固定底バー（模試） ── */}
       {tab === 'exam' && targetExam && (
         <>
+          {/* 新規開始確認パネル（ドラフトあり時） */}
           {hasExamDraft && showNewExamPanel && isMobile && (
             <>
               <div onClick={() => setShowNewExamPanel(false)} style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.4)', zIndex: 210 }} />
@@ -509,49 +511,113 @@ export default function Practice() {
               </div>
             </>
           )}
-          <div style={{ position: 'fixed', bottom: isMobile ? 64 : 16, left: 'var(--content-left, 0px)', right: 0, zIndex: 150 }}>
-          <div style={{ maxWidth: 900, margin: '0 auto', padding: '0 var(--spacing-lg)', display: 'flex' }}>
-            {hasExamDraft ? (
-              <div style={{ flex: 1, display: 'flex', height: 44, borderRadius: 22, overflow: 'hidden' }}>
+          {/* 設定パネル（モバイルのみ） */}
+          {showExamOptionsPanel && isMobile && (
+            <>
+              <div onClick={() => setShowExamOptionsPanel(false)} style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.4)', zIndex: 210 }} />
+              <div style={{ position: 'fixed', bottom: 116, left: 0, right: 0, zIndex: 211, background: 'var(--color-bg-white)', borderRadius: '14px 14px 0 0', padding: '14px 12px 12px', boxShadow: '0 -4px 20px rgba(0,0,0,0.18)', animation: 'slideUp 0.22s ease' }}>
+                <label style={{ display: 'flex', alignItems: 'flex-start', gap: 'var(--spacing-sm)', cursor: 'pointer', fontSize: 'var(--font-size-base)', padding: '4px 0' }}>
+                  <input type="checkbox" checked={examMode === 'mini'} onChange={e => { setExamMode(e.target.checked ? 'mini' : 'full'); setShowExamOptionsPanel(false); }} style={{ width: 18, height: 18, flexShrink: 0, marginTop: 2 }} />
+                  <span>
+                    <span style={{ fontWeight: 600, display: 'block', marginBottom: 2 }}>{ja ? 'ミニ模試モード' : 'Mini Exam Mode'}</span>
+                    <span style={{ fontSize: 'var(--font-size-xs)', color: 'var(--color-text-light)' }}>
+                      {ja ? `問題数・時間を1/5に短縮（${examCfg ? Math.ceil(examCfg.totalQuestions / 5) : ''}問 / ${examCfg ? Math.ceil(examCfg.timeLimitMin / 5) : ''}分）` : `1/5 questions & time (${examCfg ? Math.ceil(examCfg.totalQuestions / 5) : ''}Q / ${examCfg ? Math.ceil(examCfg.timeLimitMin / 5) : ''}min)`}
+                    </span>
+                  </span>
+                </label>
+              </div>
+            </>
+          )}
+          {isMobile ? (
+            /* モバイル：ホーム画面と同じスタイルの固定バー */
+            <div style={{ position: 'fixed', bottom: 56, left: 0, right: 0, zIndex: 150, background: 'var(--color-bg-white)', borderTop: '1px solid var(--color-border)', padding: '8px 12px', display: 'flex', gap: 6, boxShadow: '0 -2px 8px rgba(0,0,0,0.08)' }}>
+              {hasExamDraft ? (
+                <div style={{ flex: 1, display: 'flex', height: 44, borderRadius: 22, overflow: 'hidden' }}>
+                  <button
+                    disabled={examLoading}
+                    onClick={resumeExam}
+                    style={{ flex: 1, height: 44, border: 'none', background: 'var(--color-accent)', color: 'var(--color-btn-primary-text)', fontWeight: 600, fontSize: 'var(--font-size-base)', cursor: examLoading ? 'default' : 'pointer', paddingLeft: 16, paddingRight: 8, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6 }}
+                  >
+                    {examLoading ? (
+                      <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}>
+                        <span style={{ width: 12, height: 12, border: '2px solid rgba(0,0,0,0.2)', borderTopColor: '#16191f', borderRadius: '50%', animation: 'sherpa-spin 0.7s linear infinite' }} />
+                        {ja ? '準備中...' : 'Preparing...'}
+                      </span>
+                    ) : (ja ? '試験を再開' : 'Resume')}
+                  </button>
+                  <button
+                    onClick={() => setShowNewExamPanel(v => !v)}
+                    style={{ width: 44, height: 44, border: 'none', borderLeft: '2px solid rgba(255,255,255,0.4)', background: 'var(--color-accent)', color: 'var(--color-btn-primary-text)', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}
+                    aria-label={ja ? '新規で試験を開始' : 'Start new exam'}
+                  >
+                    <IconChevronUp size={16} />
+                  </button>
+                </div>
+              ) : (
                 <button
                   disabled={examLoading}
-                  onClick={resumeExam}
-                  style={{ flex: 1, height: 44, border: 'none', background: 'var(--color-accent)', color: 'var(--color-btn-primary-text)', fontWeight: 600, fontSize: 'var(--font-size-base)', cursor: examLoading ? 'default' : 'pointer', paddingLeft: 16, paddingRight: 8, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6 }}
+                  onClick={startExam}
+                  style={{ flex: 1, height: 44, border: 'none', borderRadius: 22, background: 'var(--color-accent)', color: 'var(--color-btn-primary-text)', fontWeight: 600, fontSize: 'var(--font-size-base)', cursor: examLoading ? 'default' : 'pointer' }}
                 >
                   {examLoading ? (
                     <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}>
                       <span style={{ width: 12, height: 12, border: '2px solid rgba(0,0,0,0.2)', borderTopColor: '#16191f', borderRadius: '50%', animation: 'sherpa-spin 0.7s linear infinite' }} />
                       {ja ? '準備中...' : 'Preparing...'}
                     </span>
-                  ) : (ja ? '試験を再開' : 'Resume')}
+                  ) : (ja ? `試験を開始${examMode === 'mini' ? '（ミニ）' : ''}` : `Start${examMode === 'mini' ? ' Mini' : ''} Exam`)}
                 </button>
-                <button
-                  onClick={() => {
-                    if (isMobile) { setShowNewExamPanel(v => !v); }
-                    else { localStorage.removeItem('examDraft'); setExamDraft(null); startExam(); }
-                  }}
-                  style={{ width: 44, height: 44, border: 'none', borderLeft: '2px solid rgba(255,255,255,0.4)', background: 'var(--color-accent)', color: 'var(--color-btn-primary-text)', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}
-                  aria-label={ja ? '新規で試験を開始' : 'Start new exam'}
-                >
-                  <IconChevronUp size={16} />
-                </button>
-              </div>
-            ) : (
+              )}
               <button
-                disabled={examLoading}
-                onClick={startExam}
-                style={{ flex: 1, height: 44, border: 'none', borderRadius: 22, background: 'var(--color-accent)', color: 'var(--color-btn-primary-text)', fontWeight: 600, fontSize: 'var(--font-size-base)', cursor: examLoading ? 'default' : 'pointer' }}
+                onClick={() => setShowExamOptionsPanel(v => !v)}
+                style={{ flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', width: 44, height: 44, border: `1.5px solid ${showExamOptionsPanel ? 'var(--color-accent)' : 'var(--color-primary)'}`, borderRadius: '50%', background: showExamOptionsPanel ? 'var(--color-primary-light)' : 'transparent', cursor: 'pointer', color: showExamOptionsPanel ? 'var(--color-accent)' : 'var(--color-primary)' }}
+                aria-label={ja ? '設定' : 'Settings'}
               >
-                {examLoading ? (
-                  <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}>
-                    <span style={{ width: 12, height: 12, border: '2px solid rgba(0,0,0,0.2)', borderTopColor: '#16191f', borderRadius: '50%', animation: 'sherpa-spin 0.7s linear infinite' }} />
-                    {ja ? '準備中...' : 'Preparing...'}
-                  </span>
-                ) : (ja ? '試験を開始' : 'Start Mock Exam')}
+                <IconSettings size={18} />
               </button>
-            )}
-          </div>
-          </div>
+            </div>
+          ) : (
+            /* デスクトップ：従来のスタイル */
+            <div style={{ position: 'fixed', bottom: 16, left: 'var(--content-left, 0px)', right: 0, zIndex: 150 }}>
+            <div style={{ maxWidth: 900, margin: '0 auto', padding: '0 var(--spacing-lg)', display: 'flex' }}>
+              {hasExamDraft ? (
+                <div style={{ flex: 1, display: 'flex', height: 44, borderRadius: 22, overflow: 'hidden' }}>
+                  <button
+                    disabled={examLoading}
+                    onClick={resumeExam}
+                    style={{ flex: 1, height: 44, border: 'none', background: 'var(--color-accent)', color: 'var(--color-btn-primary-text)', fontWeight: 600, fontSize: 'var(--font-size-base)', cursor: examLoading ? 'default' : 'pointer', paddingLeft: 16, paddingRight: 8, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6 }}
+                  >
+                    {examLoading ? (
+                      <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}>
+                        <span style={{ width: 12, height: 12, border: '2px solid rgba(0,0,0,0.2)', borderTopColor: '#16191f', borderRadius: '50%', animation: 'sherpa-spin 0.7s linear infinite' }} />
+                        {ja ? '準備中...' : 'Preparing...'}
+                      </span>
+                    ) : (ja ? '試験を再開' : 'Resume')}
+                  </button>
+                  <button
+                    onClick={() => { localStorage.removeItem('examDraft'); setExamDraft(null); startExam(); }}
+                    style={{ width: 44, height: 44, border: 'none', borderLeft: '2px solid rgba(255,255,255,0.4)', background: 'var(--color-accent)', color: 'var(--color-btn-primary-text)', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}
+                    aria-label={ja ? '新規で試験を開始' : 'Start new exam'}
+                  >
+                    <IconChevronUp size={16} />
+                  </button>
+                </div>
+              ) : (
+                <button
+                  disabled={examLoading}
+                  onClick={startExam}
+                  style={{ flex: 1, height: 44, border: 'none', borderRadius: 22, background: 'var(--color-accent)', color: 'var(--color-btn-primary-text)', fontWeight: 600, fontSize: 'var(--font-size-base)', cursor: examLoading ? 'default' : 'pointer' }}
+                >
+                  {examLoading ? (
+                    <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}>
+                      <span style={{ width: 12, height: 12, border: '2px solid rgba(0,0,0,0.2)', borderTopColor: '#16191f', borderRadius: '50%', animation: 'sherpa-spin 0.7s linear infinite' }} />
+                      {ja ? '準備中...' : 'Preparing...'}
+                    </span>
+                  ) : (ja ? '試験を開始' : 'Start Mock Exam')}
+                </button>
+              )}
+            </div>
+            </div>
+          )}
         </>
       )}
 

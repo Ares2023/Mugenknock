@@ -33,8 +33,8 @@ type Question = {
   createdAt?: string;
 };
 
-const CopyButton = ({ getText }: { getText: () => string }) => {
-  const { t } = useLanguage();
+const CopyButton = ({ getText, label }: { getText: () => string; label?: string }) => {
+  const { lang } = useLanguage();
   const [copied, setCopied] = useState(false);
   const handleCopy = (e: React.MouseEvent) => {
     e.stopPropagation();
@@ -48,9 +48,11 @@ const CopyButton = ({ getText }: { getText: () => string }) => {
       onClick={handleCopy}
       variant={copied ? 'primary' : 'outline'}
       size="sm"
-      style={{ padding: '2px 10px', fontSize: 'var(--font-size-xs)' }}
+      style={{ padding: '2px 10px', fontSize: 'var(--font-size-xs)', whiteSpace: 'nowrap' }}
     >
-      {copied ? t('exerciseSession.copied') : t('exerciseSession.copy')}
+      {copied
+        ? (lang === 'ja' ? '✓ コピー済み' : '✓ Copied')
+        : (label ?? (lang === 'ja' ? 'コピー' : 'Copy'))}
     </Button>
   );
 };
@@ -506,9 +508,9 @@ export default function ExerciseSession() {
   }
 
   return (
-    <div style={{ maxWidth: 900, margin: '0 auto', padding: 'var(--spacing-xl) var(--spacing-lg)' }} className="session-container">
+    <div style={{ maxWidth: 900, margin: '0 auto', padding: isMobile ? 'var(--spacing-sm) 0' : 'var(--spacing-xl) var(--spacing-lg)' }} className="session-container">
 
-      <Card padding="var(--spacing-xl)">
+      <Card padding={isMobile ? 'var(--spacing-md) var(--spacing-sm)' : 'var(--spacing-xl)'}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 'var(--spacing-lg)' }}>
           <h1 style={{ fontSize: 'var(--font-size-h2)', fontWeight: 700, margin: 0, color: 'var(--color-text-main)' }}>
             {t('exerciseSession.qLabel')} {currentIndex + 1}
@@ -558,7 +560,7 @@ export default function ExerciseSession() {
             <CopyButton getText={() => {
               const choicesText = shuffledChoices.map((c: string, idx: number) => `${CHOICE_LABELS[idx]}. ${c}`).join('\n');
               return `${currentQuestion.questionText}\n\n${choicesText}`;
-            }} />
+            }} label={lang === 'ja' ? '問題をコピー' : 'Copy Q+Choices'} />
           </div>
           <p style={{ fontSize: 'var(--font-size-lg)', lineHeight: 1.6, fontWeight: 400, margin: 0, color: 'var(--color-text-main)' }}>
             {lang === 'en' && (currentQuestion as any).questionTextEn ? (currentQuestion as any).questionTextEn : currentQuestion.questionText}
@@ -569,27 +571,66 @@ export default function ExerciseSession() {
           <div style={{ marginBottom: 'var(--spacing-sm)' }}>
             <span style={{ fontSize: 'var(--font-size-sm)', color: 'var(--color-text-sub)', fontWeight: 700 }}>{t('exerciseSession.choices')}</span>
           </div>
-          {shuffledChoices.map((choice: string, idx: number) => (
-            <button
-              key={choice}
-              onClick={() => toggleAnswer(choice)}
-              style={getChoiceStyle(choice)}
-              className={lastSelected === choice && selectedAnswers.includes(choice) && !answered ? 'choice-select-anim' : ''}
-            >
-              <span style={{
-                width: 18, height: 18, border: '1.5px solid',
-                borderRadius: currentQuestion.isMultiple ? 2 : '50%',
-                marginRight: 12, display: 'flex', alignItems: 'center', justifyContent: 'center',
-                background: selectedAnswers.includes(choice) ? 'var(--color-primary)' : 'transparent',
-                borderColor: selectedAnswers.includes(choice) ? 'var(--color-primary)' : 'var(--color-text-main)',
-                flexShrink: 0
-              }}>
-                {selectedAnswers.includes(choice) && <span style={{ width: 6, height: 6, borderRadius: '50%', background: 'var(--color-on-primary)' }} />}
-              </span>
-              <span style={{ fontWeight: 700, marginRight: 10, flexShrink: 0, color: 'var(--color-text-sub)' }}>{CHOICE_LABELS[idx]}.</span>
-              <span style={{ flex: 1, minWidth: 0, overflowWrap: 'break-word', wordBreak: 'break-word' }}>{choice}</span>
-            </button>
-          ))}
+          {shuffledChoices.map((choice: string, idx: number) => {
+            // モバイル用バッジスタイルの計算（ラジオ+文字ラベルを統合した26pxバッジ）
+            let badgeBg = 'transparent', badgeBorder = 'var(--color-border)', badgeColor = 'var(--color-text-sub)';
+            if (isMobile) {
+              const displayQ2 = (currentQuestion.correctAnswers ? currentQuestion : detail) ?? currentQuestion;
+              if (!answered || !displayQ2.correctAnswers) {
+                const sel = selectedAnswers.includes(choice);
+                if (sel) { badgeBg = 'var(--color-primary)'; badgeBorder = 'var(--color-primary)'; badgeColor = '#fff'; }
+              } else {
+                const cAI = displayQ2.correctAnswerIndices;
+                const si = shuffledChoices.indexOf(choice);
+                const oi = si >= 0 ? origIndices[si] : -1;
+                const isC = cAI?.length ? cAI.includes(oi) : (displayQ2.correctAnswers ?? []).map(stripLabel).includes(stripLabel(choice));
+                const isSel = selectedAnswers.includes(choice);
+                if (isC) { badgeBg = 'var(--color-success)'; badgeBorder = 'var(--color-success)'; badgeColor = '#fff'; }
+                else if (isSel) { badgeBg = 'var(--color-danger)'; badgeBorder = 'var(--color-danger)'; badgeColor = '#fff'; }
+                else { badgeBorder = 'var(--color-border)'; badgeColor = 'var(--color-text-light)'; }
+              }
+            }
+            return (
+              <button
+                key={choice}
+                onClick={() => toggleAnswer(choice)}
+                style={{ ...getChoiceStyle(choice), ...(isMobile && { padding: '10px 8px', alignItems: 'flex-start' }) }}
+                className={lastSelected === choice && selectedAnswers.includes(choice) && !answered ? 'choice-select-anim' : ''}
+              >
+                {isMobile ? (
+                  <>
+                    <span style={{
+                      width: 26, height: 26,
+                      borderRadius: currentQuestion.isMultiple ? 4 : '50%',
+                      marginRight: 8, marginTop: 1, flexShrink: 0,
+                      display: 'flex', alignItems: 'center', justifyContent: 'center',
+                      fontWeight: 700, fontSize: 11, lineHeight: 1,
+                      background: badgeBg, border: `1.5px solid ${badgeBorder}`, color: badgeColor,
+                      transition: 'all 0.15s',
+                    }}>
+                      {CHOICE_LABELS[idx]}
+                    </span>
+                    <span style={{ flex: 1, minWidth: 0, overflowWrap: 'break-word', wordBreak: 'break-word', lineHeight: 1.55 }}>{choice}</span>
+                  </>
+                ) : (
+                  <>
+                    <span style={{
+                      width: 18, height: 18, border: '1.5px solid',
+                      borderRadius: currentQuestion.isMultiple ? 2 : '50%',
+                      marginRight: 12, display: 'flex', alignItems: 'center', justifyContent: 'center',
+                      background: selectedAnswers.includes(choice) ? 'var(--color-primary)' : 'transparent',
+                      borderColor: selectedAnswers.includes(choice) ? 'var(--color-primary)' : 'var(--color-text-main)',
+                      flexShrink: 0,
+                    }}>
+                      {selectedAnswers.includes(choice) && <span style={{ width: 6, height: 6, borderRadius: '50%', background: 'var(--color-on-primary)' }} />}
+                    </span>
+                    <span style={{ fontWeight: 700, marginRight: 10, flexShrink: 0, color: 'var(--color-text-sub)' }}>{CHOICE_LABELS[idx]}.</span>
+                    <span style={{ flex: 1, minWidth: 0, overflowWrap: 'break-word', wordBreak: 'break-word' }}>{choice}</span>
+                  </>
+                )}
+              </button>
+            );
+          })}
           {(() => {
             const wSelected = selectedAnswers.includes(WAKARANAI);
             const wAnsweredIncorrect = answered && wSelected;
@@ -648,7 +689,7 @@ export default function ExerciseSession() {
                 </h3>
                 <CopyButton getText={() =>
                   `${t('exerciseSession.correctAnswer')}${displayQ.correctAnswers?.join(', ')}\n\n${t('exerciseSession.explanation')}\n${displayQ.explanation ?? ''}`
-                } />
+                } label={lang === 'ja' ? '解説をコピー' : 'Copy Explanation'} />
               </div>
               <p style={{ margin: '0 0 12px', fontSize: 'var(--font-size-base)' }}>
                 <strong>{t('exerciseSession.correctAnswer')}</strong>{displayQ.correctAnswers?.join(', ')}
