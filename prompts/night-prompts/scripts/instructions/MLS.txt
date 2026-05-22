@@ -1,0 +1,43 @@
+あなたはAWS認定試験の問題作成者です。
+AWS Certified Machine Learning – Specialty (MLS-C01) の模擬試験問題を作成してください。
+
+【難易度】
+- Specialty レベル：機械学習のエンドツーエンドのスキルを証明する高度な専門知識
+- データ準備から特徴量エンジニアリング、モデル訓練・評価・デプロイ・運用まで幅広くカバー
+- AWSのMLサービス（SageMaker中心）の実践的な使い方と設計判断力を重視
+
+【問題スタイル】
+- 4択（単一正解）を基本とし、一部複数正解（2択）を含めてよい
+- 実際のMLユースケースや本番運用を想定したシナリオで出題する
+- AWSの正式サービス名を使用する
+- 選択肢は紛らわしくなるよう類似サービスや設定を含める
+- プロンプト末尾の【現在のドメイン別問題数】は参考情報（ドメイン選択はスクリプトが自動で行う）。まだカバーが薄いサービス・概念を優先して出題すること
+- MLエンジニアリングの幅広いサービス・概念を網羅すること
+
+【避けること】
+- 廃止・非推奨のサービス（Amazon Machine Learning等）
+- MLA/AIFレベルの単純な概念説明問題
+- 正解が自明すぎる問題
+
+---
+【公式試験ガイド概要 (MLS-C01)】
+■ 試験の配分
+- 第1ドメイン：データエンジニアリング (20%)
+- 第2ドメイン：探索的データ分析 (24%)
+- 第3ドメイン：モデリング (36%)
+- 第4ドメイン：機械学習の実装とオペレーション (20%)
+
+■ 出題範囲の主要サービスと概念
+- データ取り込み・準備: S3, AWS Glue, Kinesis Data Streams, Kinesis Data Firehose, EMR, AWS Batch, AWS DMS, Lake Formation
+- 特徴量エンジニアリング: SageMaker Data Wrangler, SageMaker Feature Store, SageMaker Processing, Apache Spark
+- モデル訓練: SageMaker Training, Built-in Algorithms (XGBoost, Linear Learner, BlazingText, Object Detection等), カスタムコンテナ, 分散訓練
+- ハイパーパラメータ最適化: SageMaker Automatic Model Tuning, Bayesian最適化
+- モデル評価: 混同行列, 精度・再現率・F1・AUC-ROC, バイアス検出 (SageMaker Clarify)
+- モデルデプロイ: SageMaker Endpoints (リアルタイム推論), SageMaker Batch Transform, マルチモデルエンドポイント, Shadow Testing
+- モデル管理・ガバナンス: SageMaker Model Registry, SageMaker Pipelines, MLフロー, モデルカード
+- MLOps: SageMaker Projects, CodePipeline, SageMaker Model Monitor, データドリフト検出
+- 説明可能性: SageMaker Clarify, SHAP値
+- セキュリティ: IAM, KMS, VPC, SageMaker Private Endpoint, ネットワーク分離
+- コスト最適化: SageMaker Spot Training, マネージドスポット訓練, Savings Plans, インスタンスタイプ選択
+- 統計・数学: 主成分分析(PCA), クラスタリング(k-means), 回帰・分類・推薦システム, 正則化（L1/L2）, 過学習・未学習
+- フレームワーク: TensorFlow, PyTorch, MXNet, scikit-learn, Hugging Face

@@ -2,7 +2,7 @@ export const API_ENDPOINT = 'https://a0q3656qw4.execute-api.ap-northeast-1.amazo
 
 export const ADMIN_EMAIL = 'mugenknock@gmail.com';
 
-export const EXAM_TYPES = ['CLF', 'SAA', 'SAP', 'DVA', 'SOA', 'DEA', 'DOP', 'AIF', 'MLA', 'GAI', 'ANS', 'SCS'] as const;
+export const EXAM_TYPES = ['CLF', 'SAA', 'SAP', 'DVA', 'SOA', 'DEA', 'DOP', 'AIF', 'MLA', 'GAI', 'ANS', 'SCS', 'MLS'] as const;
 export type ExamType = typeof EXAM_TYPES[number];
 
 // 合格スコア（スケールスコア 100〜1000 での公式合格ライン）
@@ -19,6 +19,7 @@ export const PASS_SCORES: Record<string, number> = {
   GAI: 750,
   ANS: 700,
   SCS: 750,
+  MLS: 750,
 };
 
 // 演習モードでの合否判定に使う正答率の目安（スケールスコアの近似値）
@@ -35,6 +36,7 @@ export const PASS_RATE: Record<string, number> = {
   GAI: 75,
   ANS: 70,
   SCS: 75,
+  MLS: 75,
 };
 
 // 試験の出題ドメイン（公式試験ガイドの表記に完全一致）
@@ -51,6 +53,7 @@ export const EXAM_DOMAINS: Record<string, string[]> = {
   DEA: ['データの取り込みと変換', 'データストアの管理', 'データオペレーションとサポート', 'データのセキュリティとガバナンス'],
   ANS: ['ネットワーク設計', 'ネットワーク実装', 'ネットワーク管理と運用', 'ネットワークのセキュリティ、コンプライアンス、ガバナンス'],
   SCS: ['検出', 'インシデント対応', 'インフラストラクチャのセキュリティ', 'アイデンティティとアクセス管理', 'データ保護', 'セキュリティの基盤とガバナンス'],
+  MLS: ['データエンジニアリング', '探索的データ分析', 'モデリング', '機械学習の実装とオペレーション'],
 };
 
 // ドメイン名の英語対応（日本語キー → 英語表示）
@@ -122,6 +125,11 @@ export const DOMAIN_NAME_EN: Record<string, string> = {
   'アイデンティティとアクセス管理': 'Identity and Access Management',
   'データ保護': 'Data Protection',
   'セキュリティの基盤とガバナンス': 'Security Foundations and Governance',
+  // MLS
+  'データエンジニアリング': 'Data Engineering',
+  '探索的データ分析': 'Exploratory Data Analysis',
+  'モデリング': 'Modeling',
+  '機械学習の実装とオペレーション': 'ML Implementation and Operations',
 };
 
 // 試験レベル表示
@@ -138,6 +146,7 @@ export const EXAM_LEVEL: Record<string, string> = {
   GAI: 'Professional',
   ANS: 'Specialty',
   SCS: 'Specialty',
+  MLS: 'Specialty',
 };
 
 // 試験の説明文
@@ -154,6 +163,7 @@ export const EXAM_DESC_JA: Record<string, string> = {
   GAI: 'AWSで生成AIソリューションを実装・デプロイするプロフェッショナル認定',
   ANS: 'AWSとハイブリッドネットワークの高度な設計・実装スキルを問うスペシャリティ認定',
   SCS: 'AWSクラウドのセキュリティ専門知識を証明するスペシャリティ認定',
+  MLS: '機械学習のエンドツーエンドのスキルを証明するスペシャリティ認定',
 };
 export const EXAM_DESC_EN: Record<string, string> = {
   CLF: 'Foundational certification covering cloud basics',
@@ -168,6 +178,7 @@ export const EXAM_DESC_EN: Record<string, string> = {
   GAI: 'Professional certification for integrating and deploying generative AI solutions on AWS',
   ANS: 'Specialty certification for advanced AWS and hybrid network architecture design',
   SCS: 'Specialty certification for AWS cloud security expertise',
+  MLS: 'Specialty certification validating end-to-end machine learning skills on AWS',
 };
 
 // ドメイン正答率の色分けしきい値（0–1スケール）
@@ -188,6 +199,7 @@ export const DOMAIN_WEIGHTS: Record<string, number[]> = {
   GAI: [31, 26, 20, 12, 11],
   ANS: [30, 26, 20, 24],
   SCS: [16, 14, 18, 20, 18, 14],
+  MLS: [20, 24, 36, 20],
 };
 
 // 模試モードの設定
@@ -209,4 +221,5 @@ export const EXAM_CONFIGS: Record<string, {
   GAI: { examCode: 'AIP-C01', fullName: 'AWS Certified Generative AI Developer – Professional',   totalQuestions: 75, timeLimitMin: 170 },
   ANS: { examCode: 'ANS-C01', fullName: 'AWS Certified Advanced Networking – Specialty',           totalQuestions: 65, timeLimitMin: 170 },
   SCS: { examCode: 'SCS-C03', fullName: 'AWS Certified Security – Specialty',                     totalQuestions: 65, timeLimitMin: 170 },
+  MLS: { examCode: 'MLS-C01', fullName: 'AWS Certified Machine Learning – Specialty',              totalQuestions: 65, timeLimitMin: 180 },
 };

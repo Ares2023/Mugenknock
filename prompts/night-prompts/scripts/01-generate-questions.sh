@@ -183,7 +183,11 @@ DOMAINS[SOA]="モニタリング、ロギング、分析、修復、およびパ
 DOMAINS[DOP]="SDLC の自動化,構成管理と Infrastructure as Code (IaC),弾力性に優れたクラウドソリューション,モニタリングとロギング,インシデントとイベントへの対応,セキュリティとコンプライアンス"
 DOMAINS[AIF]="AIとMLの基礎,生成AIの基礎,基盤モデルのアプリケーション,責任あるAIのガイドライン,AIソリューションのセキュリティ、コンプライアンス、ガバナンス"
 DOMAINS[MLA]="機械学習のためのデータ準備,MLモデルの開発,MLワークフローのデプロイとオーケストレーション,MLソリューションの監視、メンテナンス、セキュリティ"
-DOMAINS[GAI]="生成AIソリューションの設計と評価,基盤モデルのカスタマイズとファインチューニング,生成AIアプリケーションの実装とデプロイ,エージェントとオーケストレーションのアーキテクチャ,セキュリティ、ガバナンス、責任あるAI"
+DOMAINS[GAI]="基盤モデルの統合、データ管理、コンプライアンス,実装と統合,AIの安全性、セキュリティ、ガバナンス,生成AIアプリケーションの運用効率と最適化,テスト、検証、トラブルシューティング"
+DOMAINS[DEA]="データの取り込みと変換,データストアの管理,データオペレーションとサポート,データのセキュリティとガバナンス"
+DOMAINS[ANS]="ネットワーク設計,ネットワーク実装,ネットワーク管理と運用,ネットワークのセキュリティ、コンプライアンス、ガバナンス"
+DOMAINS[SCS]="検出,インシデント対応,インフラストラクチャのセキュリティ,アイデンティティとアクセス管理,データ保護,セキュリティの基盤とガバナンス"
+DOMAINS[MLS]="データエンジニアリング,探索的データ分析,モデリング,機械学習の実装とオペレーション"
 
 {
 check_rate_limit
@@ -197,7 +201,7 @@ mapfile -t EXAM_TYPES < <(
     | xargs -I{} basename {} .txt \
     | python3 -c "
 import sys
-ORDER = ['CLF', 'SAA', 'SAP', 'DVA', 'SOA', 'DOP', 'SCS', 'ANS', 'DAS', 'MLS', 'PAS', 'AIF', 'MLA', 'GAI']
+ORDER = ['CLF', 'SAA', 'SAP', 'DVA', 'SOA', 'DEA', 'DOP', 'AIF', 'MLA', 'GAI', 'ANS', 'SCS', 'MLS']
 items = [l.strip() for l in sys.stdin if l.strip()]
 known   = [x for x in ORDER if x in items]
 unknown = sorted(x for x in items if x not in ORDER)
@@ -435,7 +439,6 @@ if [ "$DOMAIN_ALLOC_SKIP" -eq 0 ]; then
 import json, sys, re
 
 def norm(s):
-    # 全角スペース・連続空白を正規化してトリム
     return re.sub(r'[\s　]+', ' ', s).strip()
 
 domains = [d.strip() for d in sys.argv[1].split(',')]
@@ -447,29 +450,49 @@ try:
 except Exception:
     counts = {}
 
-# 逆数重み: count が少ないほど weight が大きい
-weights = {d: 1.0 / (counts.get(norm(d), 0) + 1) for d in domains}
-total_w = sum(weights.values())
-raw     = {d: (weights[d] / total_w) * total for d in domains}
-alloc   = {d: max(1, int(raw[d])) for d in domains}
+# 最小数0（全予算を格差解消に充てる）
+alloc = {d: 0 for d in domains}
+remaining = total
 
-# 端数補充: 小数部が大きい順に +1
-remaining = total - sum(alloc.values())
-fracs = sorted(domains, key=lambda d: raw[d] - int(raw[d]), reverse=True)
-i = 0
+# レベル埋めアルゴリズム:
+#   最も問題数が少ないドメイン群を「次のティア」まで引き上げることを繰り返し、
+#   差を積極的に縮める（逆数重みより格差解消効果が大きい）
+def cur(d):
+    return counts.get(norm(d), 0) + alloc[d]
+
 while remaining > 0:
-    alloc[fracs[i % len(fracs)]] += 1; remaining -= 1; i += 1
+    min_val  = min(cur(d) for d in domains)
+    at_min   = [d for d in domains if cur(d) == min_val]
+    above    = [d for d in domains if cur(d) > min_val]
 
-# 最低保証超過分を多い方から削減
-while remaining < 0:
-    reducible = sorted([d for d in domains if alloc[d] > 1], key=lambda d: -alloc[d])
-    if not reducible: break
-    alloc[reducible[0]] -= 1; remaining += 1
+    if not above:
+        # 全ドメイン同じ水準 → 現在の少ない順に1問ずつ配分
+        sorted_d = sorted(domains, key=lambda d: counts.get(norm(d), 0))
+        for i in range(remaining):
+            alloc[sorted_d[i % len(sorted_d)]] += 1
+        remaining = 0
+        break
+
+    next_level   = min(cur(d) for d in above)
+    needed_per   = next_level - min_val
+    needed_total = needed_per * len(at_min)
+
+    if needed_total <= remaining:
+        # at_min 全員を next_level まで引き上げる
+        for d in at_min:
+            alloc[d] += needed_per
+        remaining -= needed_total
+    else:
+        # 予算不足: at_min に均等配分（余り分は現在数の少ない順に +1）
+        each  = remaining // len(at_min)
+        extra = remaining % len(at_min)
+        for i, d in enumerate(sorted(at_min, key=lambda d: counts.get(norm(d), 0))):
+            alloc[d] += each + (1 if i < extra else 0)
+        remaining = 0
 
 # 表示をstderrに出力(ログに記録される)
 for d, n in sorted(alloc.items(), key=lambda x: -x[1]):
-    cur = counts.get(norm(d), 0)
-    print(f'  {n}問 → {d} (現在{cur}問)', file=sys.stderr)
+    print(f'  {n}問 → {d} (現在{counts.get(norm(d), 0)}問)', file=sys.stderr)
 print(f'  合計: {sum(alloc.values())}問', file=sys.stderr)
 
 # JSONをstdoutに出力($()でキャプチャ)
@@ -485,7 +508,7 @@ fi
 
 # 割り当て結果をファイルに保存（ループ内で sys.argv 経由でルックアップするため）
 _ALLOC_FILE=$(mktemp /tmp/alloc_XXXX.json)
-echo "$DOMAIN_ALLOC_JSON" > "$_ALLOC_FILE"
+printf '%s\n' "$DOMAIN_ALLOC_JSON" > "$_ALLOC_FILE"
 
 # ── ドメインごとに生成 → 即インポート ──────────────────────────
 RATE_LIMITED=0
@@ -506,8 +529,13 @@ for domain in "${ROTATED_LIST[@]}"; do
   Q_FOR_DOMAIN=$(PYTHONIOENCODING=utf-8 python3 - "$domain" "$QUESTIONS_PER_DOMAIN" "$_ALLOC_FILE" << 'PYEOF'
 import json, sys
 domain, default, alloc_file = sys.argv[1], int(sys.argv[2]), sys.argv[3]
-with open(alloc_file, encoding='utf-8') as f:
-    alloc = json.load(f)
+try:
+    with open(alloc_file, encoding='utf-8') as f:
+        content = f.read().strip()
+    alloc, _ = json.JSONDecoder().raw_decode(content)
+except Exception as e:
+    print(f'[WARN] alloc parse error: {e}', file=sys.stderr)
+    alloc = {}
 print(alloc.get(domain, default))
 PYEOF
   )
@@ -575,7 +603,7 @@ ${EXISTING_TEXTS}
     "questionText": "問題文（日本語）",
     "choices": ["選択肢A", "選択肢B", "選択肢C", "選択肢D"],
     "correctAnswers": ["正解の選択肢"],
-    "explanation": "解説（日本語）正解の根拠＋各不正解選択肢がなぜ誤りかを必ず含めること",
+    "explanation": "解説（日本語）",
     "tags": ["${domain}"],
     "isMultiple": false
   },
@@ -587,7 +615,8 @@ ${EXISTING_TEXTS}
 ※ ${_CHUNK_Q} 問を1つの JSON で返す
 ※ AWSに直接関係しない一般的でない略語には注釈・解説をつけること（AWSの資格勉強とは直接関係しないため）
 ※ correctAnswers は choices 配列の該当要素テキストと完全一致させること（「A. 」「B. 」などの記号接頭辞を付けないこと）
-※ 解説は正解の根拠だけでなく、各不正解選択肢がなぜ誤りかを個別に説明すること（200〜400字程度）
+※ 解説は正解の根拠と各不正解選択肢がなぜ誤りかを個別に説明すること（全体200〜400字程度）
+※ 解説は適宜改行を入れて読みやすくすること。特に各選択肢の説明は「選択肢Aは〜」「選択肢Bは〜」のように選択肢ごとに改行して記述すること
 ※ 現行のAWSサービス・機能のみを出題すること（廃止・EOL済みのサービスは使わないこと）
 PROMPT
 
