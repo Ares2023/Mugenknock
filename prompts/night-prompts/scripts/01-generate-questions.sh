@@ -108,6 +108,8 @@ usage: $(basename "$0") [options]
 
   -e, --exam EXAM       生成する資格を指定（例: SAA, CLF, DOP）
                         省略時は問題数が最も少ない資格を自動選択
+  -d, --domain DOMAIN   生成するドメインを指定（-e と組み合わせて使用）
+                        部分一致で検索（例: "セキュリティ"）。省略時は全ドメインを処理
   -n, --questions N     1ドメインあたりの問題数（デフォルト: ${QUESTIONS_PER_DOMAIN}）
   -D, --deadline HH:MM  処理終了時間（JST）。この時刻を過ぎたドメインはスキップ
   -h, --help            このヘルプを表示
@@ -118,12 +120,17 @@ EOF
 
 # ── 引数処理 ─────────────────────────────────────────────────
 FORCE_EXAM=""
+FORCE_DOMAIN=""
 DEADLINE=""
 
 while [[ $# -gt 0 ]]; do
   case "$1" in
     -e|--exam)
       FORCE_EXAM="${2:?--exam requires EXAM}"
+      shift 2
+      ;;
+    -d|--domain)
+      FORCE_DOMAIN="${2:?--domain requires DOMAIN}"
       shift 2
       ;;
     -n|--questions)
@@ -247,15 +254,55 @@ fi
 
 IFS=',' read -ra DOMAIN_LIST <<< "$DOMAIN_STR"
 DOMAIN_COUNT=${#DOMAIN_LIST[@]}
-TOTAL_QUESTIONS=$(( QUESTIONS_PER_DOMAIN * DOMAIN_COUNT ))
-echo "ドメイン数: $DOMAIN_COUNT  /  基本 ${QUESTIONS_PER_DOMAIN}問/ドメイン（重み付きで配分）  /  合計予算 ${TOTAL_QUESTIONS}問"
 
-# ── ドメインのラウンドロビン開始位置を決定 ────────────────────
+# ── ドメイン指定の解決 ────────────────────────────────────────
 STATE_DIR="$SCRIPT_DIR/state"
 STATE_FILE="$STATE_DIR/last_domain_idx.json"
 mkdir -p "$STATE_DIR"
 
-START_IDX=$(python3 - "$STATE_FILE" "$NEXT_EXAM" "$DOMAIN_COUNT" << 'PYEOF'
+if [ -n "$FORCE_DOMAIN" ]; then
+  # 完全一致 → 部分一致（大文字小文字無視）の順で検索
+  MATCHED_DOMAIN=""
+  for d in "${DOMAIN_LIST[@]}"; do
+    if [ "$d" = "$FORCE_DOMAIN" ]; then
+      MATCHED_DOMAIN="$d"
+      break
+    fi
+  done
+  if [ -z "$MATCHED_DOMAIN" ]; then
+    MATCH_COUNT=0
+    for d in "${DOMAIN_LIST[@]}"; do
+      if echo "$d" | grep -qiF "$FORCE_DOMAIN"; then
+        MATCHED_DOMAIN="$d"
+        MATCH_COUNT=$(( MATCH_COUNT + 1 ))
+      fi
+    done
+    if [ "$MATCH_COUNT" -gt 1 ]; then
+      echo "❌ --domain '$FORCE_DOMAIN' が複数のドメインに一致します。より具体的なキーワードを指定してください:"
+      for d in "${DOMAIN_LIST[@]}"; do
+        echo "$d" | grep -qiF "$FORCE_DOMAIN" && echo "  - $d"
+      done
+      exit 1
+    fi
+  fi
+  if [ -z "$MATCHED_DOMAIN" ]; then
+    echo "❌ --domain '$FORCE_DOMAIN' が $NEXT_EXAM のどのドメインにも一致しません"
+    echo "利用可能なドメイン:"
+    printf '  - %s\n' "${DOMAIN_LIST[@]}"
+    exit 1
+  fi
+  ROTATED_LIST=("$MATCHED_DOMAIN")
+  START_IDX=0
+  TOTAL_QUESTIONS=$QUESTIONS_PER_DOMAIN
+  echo "対象ドメイン: $MATCHED_DOMAIN  /  ${QUESTIONS_PER_DOMAIN}問"
+  # ドメイン手動指定時は重み付け割り当て不要（ループ内でデフォルト値を使用）
+  DOMAIN_ALLOC_SKIP=1
+else
+  DOMAIN_ALLOC_SKIP=0
+  TOTAL_QUESTIONS=$(( QUESTIONS_PER_DOMAIN * DOMAIN_COUNT ))
+  echo "ドメイン数: $DOMAIN_COUNT  /  基本 ${QUESTIONS_PER_DOMAIN}問/ドメイン（重み付きで配分）  /  合計予算 ${TOTAL_QUESTIONS}問"
+
+  START_IDX=$(python3 - "$STATE_FILE" "$NEXT_EXAM" "$DOMAIN_COUNT" << 'PYEOF'
 import json, sys
 sf, exam, count = sys.argv[1], sys.argv[2], int(sys.argv[3])
 try:
@@ -268,11 +315,12 @@ except:
 PYEOF
 )
 
-ROTATED_LIST=()
-for (( _i = 0; _i < DOMAIN_COUNT; _i++ )); do
-  ROTATED_LIST+=("${DOMAIN_LIST[$(( (START_IDX + _i) % DOMAIN_COUNT ))]}")
-done
-echo "開始ドメイン: [${START_IDX}] ${ROTATED_LIST[0]}"
+  ROTATED_LIST=()
+  for (( _i = 0; _i < DOMAIN_COUNT; _i++ )); do
+    ROTATED_LIST+=("${DOMAIN_LIST[$(( (START_IDX + _i) % DOMAIN_COUNT ))]}")
+  done
+  echo "開始ドメイン: [${START_IDX}] ${ROTATED_LIST[0]}"
+fi
 
 # ── 指示ファイルを読み込む ────────────────────────────────────
 INSTRUCTION=$(cat "$INSTRUCTION_DIR/${NEXT_EXAM}.txt")
@@ -316,8 +364,23 @@ from collections import Counter, defaultdict
 def norm(s):
     return re.sub(r'[\s　]+', ' ', s).strip()
 
-with open(sys.argv[1]) as f:
-    data = json.load(f)
+# AWS CLI paginates DynamoDB output as multiple concatenated JSON objects
+_all_items = []
+with open(sys.argv[1]) as _f:
+    _content = _f.read()
+_dec = json.JSONDecoder()
+_pos = 0
+while _pos < len(_content):
+    _skip = _content.find('{', _pos)
+    if _skip == -1:
+        break
+    try:
+        _obj, _end = _dec.raw_decode(_content, _skip)
+        _all_items.extend(_obj.get('Items', []))
+        _pos = _end
+    except Exception:
+        break
+data = {'Items': _all_items}
 
 # ドメイン名セット（正規化済み）― これ以外のタグは割り当て計算・プロンプト表示から除外
 domain_set = {norm(d.strip()) for d in sys.argv[4].split(',')} if len(sys.argv) > 4 else set()
@@ -360,13 +423,15 @@ rm -f "$_EXISTING_TMP"
 echo "$TAG_COUNT_TEXT"
 
 # ── 逆数重みによるドメイン別問題数割り当て ──────────────────────────────────
-# 総予算 (TOTAL_QUESTIONS) を各ドメインの現在問題数の逆数で按分する
-# 問題数が少ないドメインほど多く割り当て、最低1問/ドメインを保証
-# 表示はstderrへ(outer 2>&1|teeでログに記録)、JSONはstdoutへ($()でキャプチャ)
-echo ""
-echo "ドメイン別生成数（逆数重み付き割り当て）:"
+# ドメイン指定時はスキップ（QUESTIONS_PER_DOMAIN をそのまま使用）
+if [ "$DOMAIN_ALLOC_SKIP" -eq 0 ]; then
+  # 総予算 (TOTAL_QUESTIONS) を各ドメインの現在問題数の逆数で按分する
+  # 問題数が少ないドメインほど多く割り当て、最低1問/ドメインを保証
+  # 表示はstderrへ(outer 2>&1|teeでログに記録)、JSONはstdoutへ($()でキャプチャ)
+  echo ""
+  echo "ドメイン別生成数（逆数重み付き割り当て）:"
 
-DOMAIN_ALLOC_JSON=$(PYTHONIOENCODING=utf-8 python3 - "$DOMAIN_STR" "$_COUNTS_TMP_EARLY" "$TOTAL_QUESTIONS" << 'PYEOF'
+  DOMAIN_ALLOC_JSON=$(PYTHONIOENCODING=utf-8 python3 - "$DOMAIN_STR" "$_COUNTS_TMP_EARLY" "$TOTAL_QUESTIONS" << 'PYEOF'
 import json, sys, re
 
 def norm(s):
@@ -410,9 +475,17 @@ print(f'  合計: {sum(alloc.values())}問', file=sys.stderr)
 # JSONをstdoutに出力($()でキャプチャ)
 print(json.dumps(alloc))
 PYEOF
-)
-rm -f "$_COUNTS_TMP_EARLY"
-DOMAIN_ALLOC_JSON="${DOMAIN_ALLOC_JSON:-{}}"
+  )
+  rm -f "$_COUNTS_TMP_EARLY"
+  DOMAIN_ALLOC_JSON="${DOMAIN_ALLOC_JSON:-{}}"
+else
+  rm -f "$_COUNTS_TMP_EARLY"
+  DOMAIN_ALLOC_JSON="{}"
+fi
+
+# 割り当て結果をファイルに保存（ループ内で sys.argv 経由でルックアップするため）
+_ALLOC_FILE=$(mktemp /tmp/alloc_XXXX.json)
+echo "$DOMAIN_ALLOC_JSON" > "$_ALLOC_FILE"
 
 # ── ドメインごとに生成 → 即インポート ──────────────────────────
 RATE_LIMITED=0
@@ -429,14 +502,25 @@ for domain in "${ROTATED_LIST[@]}"; do
   fi
 
   _DOMAIN_T0=$(date +%s)
-  # このドメインの割り当て問題数を取得（計算失敗時はデフォルト値）
-  Q_FOR_DOMAIN=$(echo "$DOMAIN_ALLOC_JSON" | python3 -c "
-import json,sys
-alloc=json.load(sys.stdin)
-print(alloc.get('${domain}', ${QUESTIONS_PER_DOMAIN}))
-" 2>/dev/null || echo "$QUESTIONS_PER_DOMAIN")
+  # このドメインの割り当て問題数を取得（日本語をソースコードに埋め込まず sys.argv で渡す）
+  Q_FOR_DOMAIN=$(PYTHONIOENCODING=utf-8 python3 - "$domain" "$QUESTIONS_PER_DOMAIN" "$_ALLOC_FILE" << 'PYEOF'
+import json, sys
+domain, default, alloc_file = sys.argv[1], int(sys.argv[2]), sys.argv[3]
+with open(alloc_file, encoding='utf-8') as f:
+    alloc = json.load(f)
+print(alloc.get(domain, default))
+PYEOF
+  )
+
+  # チャンク分割（出力トークン上限回避のため5問ずつ生成）
+  CHUNK_SIZE=5
+  CHUNKS_TOTAL=$(( (Q_FOR_DOMAIN + CHUNK_SIZE - 1) / CHUNK_SIZE ))
   echo ""
-  echo "--- [${domain}] ${Q_FOR_DOMAIN}問 生成中 --- 開始=$(date '+%H:%M:%S')"
+  if [ "$CHUNKS_TOTAL" -gt 1 ]; then
+    echo "--- [${domain}] ${Q_FOR_DOMAIN}問 生成中 (${CHUNK_SIZE}問×${CHUNKS_TOTAL}チャンク) --- 開始=$(date '+%H:%M:%S')"
+  else
+    echo "--- [${domain}] ${Q_FOR_DOMAIN}問 生成中 --- 開始=$(date '+%H:%M:%S')"
+  fi
 
   # このドメインの既存問題テキスト（先頭80文字）を抽出
   EXISTING_TEXTS=$(PYTHONIOENCODING=utf-8 python3 - "$EXISTING_QS_FILE" "$domain" << 'PYEOF'
@@ -455,13 +539,24 @@ else:
 PYEOF
 )
 
-  PROMPT_FILE=$(mktemp /tmp/gen_prompt_XXXX.txt)
-  cat > "$PROMPT_FILE" << PROMPT
+  DOMAIN_IMPORTED=0
+  STATE_UPDATED=0
+  DOMAIN_RATE_LIMITED=0
+
+  for (( _chunk=1; _chunk<=CHUNKS_TOTAL; _chunk++ )); do
+    # このチャンクで生成する問題数（端数対応）
+    _CHUNK_Q=$(( Q_FOR_DOMAIN - (_chunk - 1) * CHUNK_SIZE ))
+    [ "$_CHUNK_Q" -gt "$CHUNK_SIZE" ] && _CHUNK_Q=$CHUNK_SIZE
+
+    [ "$CHUNKS_TOTAL" -gt 1 ] && echo "  チャンク ${_chunk}/${CHUNKS_TOTAL}: ${_CHUNK_Q}問 生成中..."
+
+    PROMPT_FILE=$(mktemp /tmp/gen_prompt_XXXX.txt)
+    cat > "$PROMPT_FILE" << PROMPT
 ${INSTRUCTION}
 
 【対象資格】${NEXT_EXAM}
 【対象ドメイン】${domain}
-【作成問題数】${Q_FOR_DOMAIN} 問
+【作成問題数】${_CHUNK_Q} 問
 
 【現在のドメイン別問題数 — 参考情報】
 ※ 対象ドメインはスクリプトが自動選択しています。今回は【対象ドメイン】の問題を作成してください。
@@ -489,38 +584,41 @@ ${EXISTING_TEXTS}
 
 ※ 複数正解の場合は isMultiple: true、correctAnswers に複数入れる
 ※ tags は必ず ["${domain}"] にする
-※ ${Q_FOR_DOMAIN} 問を1つの JSON で返す
+※ ${_CHUNK_Q} 問を1つの JSON で返す
 ※ AWSに直接関係しない一般的でない略語には注釈・解説をつけること（AWSの資格勉強とは直接関係しないため）
 ※ correctAnswers は choices 配列の該当要素テキストと完全一致させること（「A. 」「B. 」などの記号接頭辞を付けないこと）
 ※ 解説は正解の根拠だけでなく、各不正解選択肢がなぜ誤りかを個別に説明すること（200〜400字程度）
 ※ 現行のAWSサービス・機能のみを出題すること（廃止・EOL済みのサービスは使わないこと）
 PROMPT
 
-  RESULT=$("$CLAUDE_CMD" -p < "$PROMPT_FILE" 2>&1)
-  AI_EXIT=$?
-  # npm更新による一時的なバイナリ消失 → 再探索してリトライ
-  if [ $AI_EXIT -ne 0 ] && echo "$RESULT" | grep -q "No such file"; then
-    CLAUDE_CMD=$(_find_claude)
-    [ -x "${CLAUDE_CMD:-}" ] && { RESULT=$("$CLAUDE_CMD" -p < "$PROMPT_FILE" 2>&1); AI_EXIT=$?; }
-  fi
-  rm -f "$PROMPT_FILE"
-
-  if [ $AI_EXIT -ne 0 ] || echo "$RESULT" | grep -qiE "rate.?limit|too many requests|overload|quota exceeded|usage limit|resource_exhausted"; then
-    if echo "$RESULT" | grep -qiE "command not found|No such file|GEMINI_API_KEY|API.?key"; then
-      echo "❌ claude 実行エラー（認証またはコマンド問題）。スクリプトを終了します"
-      echo "出力: $(echo "$RESULT" | head -3)"
-      exit 1
+    RESULT=$("$CLAUDE_CMD" -p < "$PROMPT_FILE" 2>&1)
+    AI_EXIT=$?
+    # npm更新による一時的なバイナリ消失 → 再探索してリトライ
+    if [ $AI_EXIT -ne 0 ] && echo "$RESULT" | grep -q "No such file"; then
+      CLAUDE_CMD=$(_find_claude)
+      [ -x "${CLAUDE_CMD:-}" ] && { RESULT=$("$CLAUDE_CMD" -p < "$PROMPT_FILE" 2>&1); AI_EXIT=$?; }
     fi
-    echo "⚠️  レート制限を検出。残りドメインをスキップ"
-    echo "出力: $(echo "$RESULT" | head -3)"
-    record_rate_limit "$(echo "$RESULT" | head -5)"
-    echo "  終了=$(date '+%H:%M:%S')  経過=$(( $(date +%s) - _DOMAIN_T0 ))秒"
-    RATE_LIMITED=1
-    break
-  fi
+    rm -f "$PROMPT_FILE"
 
-  # Claude呼び出し成功 → 次回このドメインはスキップ（state更新）
-  python3 - "$STATE_FILE" "$NEXT_EXAM" "$_DOMAIN_IDX" << 'PYEOF' 2>/dev/null || true
+    # エラー判定は出力の先頭3行のみを対象にする
+    # （問題文・解説中に rate limit / API key 等のフレーズが含まれても誤検知しないため）
+    _RESULT_HEAD=$(echo "$RESULT" | head -3)
+    if [ $AI_EXIT -ne 0 ] || echo "$_RESULT_HEAD" | grep -qiE "rate.?limit|too many requests|overload|quota exceeded|usage limit|resource_exhausted"; then
+      if echo "$_RESULT_HEAD" | grep -qiE "command not found|No such file|GEMINI_API_KEY|API.?key"; then
+        echo "❌ claude 実行エラー（認証またはコマンド問題）。スクリプトを終了します"
+        echo "出力: $_RESULT_HEAD"
+        exit 1
+      fi
+      echo "⚠️  レート制限を検出。残りをスキップ"
+      echo "出力: $_RESULT_HEAD"
+      record_rate_limit "$(echo "$RESULT" | head -5)"
+      DOMAIN_RATE_LIMITED=1
+      break
+    fi
+
+    # 1チャンク目成功時のみ state を更新（ドメイン手動指定時は更新しない）
+    if [ "$DOMAIN_ALLOC_SKIP" -eq 0 ] && [ "$STATE_UPDATED" -eq 0 ]; then
+      python3 - "$STATE_FILE" "$NEXT_EXAM" "$_DOMAIN_IDX" << 'PYEOF' 2>/dev/null || true
 import json, sys
 sf, exam, idx = sys.argv[1], sys.argv[2], int(sys.argv[3])
 try:
@@ -530,8 +628,10 @@ except:
 state[exam] = idx
 with open(sf, 'w') as f: json.dump(state, f)
 PYEOF
+      STATE_UPDATED=1
+    fi
 
-  DOMAIN_JSON=$(echo "$RESULT" | python3 -c "
+    DOMAIN_JSON=$(echo "$RESULT" | python3 -c "
 import sys, json, re
 text = sys.stdin.read()
 
@@ -555,23 +655,21 @@ except:
     print('{}')
 ")
 
-  Q_COUNT=$(echo "$DOMAIN_JSON" | python3 -c "
+    Q_COUNT=$(echo "$DOMAIN_JSON" | python3 -c "
 import sys, json
 d = json.loads(sys.stdin.read())
 print(len(d.get('questions', [])))
 " 2>/dev/null || echo 0)
 
-  if [ "$Q_COUNT" -eq 0 ]; then
-    echo "❌ [${domain}] JSON 抽出失敗。スキップ"
-    echo "$RESULT" | head -c 300
-    echo "  終了=$(date '+%H:%M:%S')  経過=$(( $(date +%s) - _DOMAIN_T0 ))秒"
-    _DOMAIN_OFFSET=$(( _DOMAIN_OFFSET + 1 ))
-    continue
-  fi
+    if [ "$Q_COUNT" -eq 0 ]; then
+      echo "❌ [${domain}] チャンク${_chunk} JSON抽出失敗。スキップ"
+      echo "$RESULT" | head -c 300
+      continue
+    fi
 
-  echo "抽出: ${Q_COUNT}問 → APIインポート中..."
+    echo "  抽出: ${Q_COUNT}問 → APIインポート中..."
 
-  API_PAYLOAD=$(echo "$DOMAIN_JSON" | python3 -c "
+    API_PAYLOAD=$(echo "$DOMAIN_JSON" | python3 -c "
 import sys, json, re
 d = json.loads(sys.stdin.read())
 label_re = re.compile(r'^[A-E]\.\s*')
@@ -587,33 +685,43 @@ for q in d.get('questions', []):
 print(json.dumps({'examType': '${NEXT_EXAM}', 'questions': d.get('questions', [])}, ensure_ascii=False))
 ")
 
-  HTTP_RESPONSE=$(curl -s -w "\n%{http_code}" \
-    -X POST \
-    -H "Content-Type: application/json" \
-    -H "Authorization: Bearer ${ID_TOKEN}" \
-    -d "$API_PAYLOAD" \
-    "${API_ENDPOINT}/admin/questions")
+    HTTP_RESPONSE=$(curl -s -w "\n%{http_code}" \
+      -X POST \
+      -H "Content-Type: application/json" \
+      -H "Authorization: Bearer ${ID_TOKEN}" \
+      -d "$API_PAYLOAD" \
+      "${API_ENDPOINT}/admin/questions")
 
-  HTTP_BODY=$(echo "$HTTP_RESPONSE" | head -n -1)
-  HTTP_CODE=$(echo "$HTTP_RESPONSE" | tail -n 1)
+    HTTP_BODY=$(echo "$HTTP_RESPONSE" | head -n -1)
+    HTTP_CODE=$(echo "$HTTP_RESPONSE" | tail -n 1)
 
-  if [ "$HTTP_CODE" -eq 200 ] || [ "$HTTP_CODE" -eq 201 ]; then
-    CREATED_IDS=$(echo "$HTTP_BODY" | python3 -c "
+    if [ "$HTTP_CODE" -eq 200 ] || [ "$HTTP_CODE" -eq 201 ]; then
+      CREATED_IDS=$(echo "$HTTP_BODY" | python3 -c "
 import sys, json
 d = json.loads(sys.stdin.read())
 ids = d.get('created', [])
 print(f'{len(ids)}件: ' + ', '.join(ids[:3]) + ('...' if len(ids) > 3 else ''))
 " 2>/dev/null || echo "$HTTP_BODY")
-    echo "✓ [${domain}] インポート成功: $CREATED_IDS"
-    TOTAL_IMPORTED=$(( TOTAL_IMPORTED + Q_COUNT ))
-  else
-    echo "❌ [${domain}] API エラー (HTTP $HTTP_CODE): $HTTP_BODY"
+      echo "  ✓ チャンク${_chunk} インポート成功: $CREATED_IDS"
+      DOMAIN_IMPORTED=$(( DOMAIN_IMPORTED + Q_COUNT ))
+    else
+      echo "  ❌ チャンク${_chunk} API エラー (HTTP $HTTP_CODE): $HTTP_BODY"
+    fi
+  done  # チャンクループ終了
+
+  if [ "$DOMAIN_RATE_LIMITED" -eq 1 ]; then
+    echo "  終了=$(date '+%H:%M:%S')  経過=$(( $(date +%s) - _DOMAIN_T0 ))秒"
+    RATE_LIMITED=1
+    break
   fi
+
+  echo "  [${domain}] 合計 ${DOMAIN_IMPORTED}/${Q_FOR_DOMAIN}問 インポート"
+  TOTAL_IMPORTED=$(( TOTAL_IMPORTED + DOMAIN_IMPORTED ))
   echo "  終了=$(date '+%H:%M:%S')  経過=$(( $(date +%s) - _DOMAIN_T0 ))秒"
   _DOMAIN_OFFSET=$(( _DOMAIN_OFFSET + 1 ))
 done
 
-rm -f "$EXISTING_QS_FILE"
+rm -f "$EXISTING_QS_FILE" "$_ALLOC_FILE"
 
 echo ""
 echo "合計インポート: ${TOTAL_IMPORTED}問 / ${TOTAL_QUESTIONS}問"
