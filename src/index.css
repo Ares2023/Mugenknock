@@ -377,6 +377,23 @@ button:active:not(:disabled) {
   100% { transform: scale(1); }
 }
 
+/* ── 正誤判定アニメーション ── */
+@keyframes judgment-ok {
+  0%   { transform: scale(0.3); opacity: 0; }
+  40%  { transform: scale(1.15); opacity: 1; }
+  65%  { transform: scale(0.95); opacity: 1; }
+  80%  { transform: scale(1);    opacity: 1; }
+  100% { transform: scale(1.1); opacity: 0; }
+}
+@keyframes judgment-ng {
+  0%   { transform: scale(0.3); opacity: 0; }
+  35%  { transform: scale(1.1); opacity: 1; }
+  50%  { transform: scale(1) translateX(-6px); opacity: 1; }
+  65%  { transform: scale(1) translateX(6px);  opacity: 1; }
+  80%  { transform: scale(1) translateX(-3px); opacity: 0.9; }
+  100% { transform: scale(1.05) translateX(0); opacity: 0; }
+}
+
 .fade-slide-in {
   animation: fadeSlideIn 0.25s ease both;
 }

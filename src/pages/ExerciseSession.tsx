@@ -293,6 +293,7 @@ export default function ExerciseSession() {
   const [reportOpen, setReportOpen] = useState(false);
   const [answerCountError, setAnswerCountError] = useState<string | null>(null);
   const [finishing, setFinishing] = useState(false);
+  const [judgmentAnim, setJudgmentAnim] = useState<'correct' | 'incorrect' | null>(null);
 
   // ドラフト保存
   useEffect(() => {
@@ -376,6 +377,8 @@ export default function ExerciseSession() {
 
     setResults(prev => [...prev, { questionId: currentQuestion.questionId, isCorrect }]);
     setAnswered(true);
+    setJudgmentAnim(isCorrect ? 'correct' : 'incorrect');
+    setTimeout(() => setJudgmentAnim(null), 600);
 
     fetch(`${API_ENDPOINT}/sessions/${sessionId}/answers`, {
       method: 'POST',
@@ -509,6 +512,32 @@ export default function ExerciseSession() {
 
   return (
     <div style={{ maxWidth: 900, margin: '0 auto', padding: isMobile ? 'var(--spacing-sm) 0' : 'var(--spacing-xl) var(--spacing-lg)' }} className="session-container">
+      {/* 正誤アニメーション */}
+      {judgmentAnim && (
+        <div style={{
+          position: 'fixed', inset: 0, zIndex: 800,
+          display: 'flex', alignItems: 'center', justifyContent: 'center',
+          pointerEvents: 'none',
+        }}>
+          <div style={{
+            width: 110, height: 110,
+            borderRadius: '50%',
+            background: judgmentAnim === 'correct' ? 'rgba(47,164,79,0.92)' : 'rgba(220,53,69,0.92)',
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            animation: judgmentAnim === 'correct' ? 'judgment-ok 0.55s ease forwards' : 'judgment-ng 0.55s ease forwards',
+            boxShadow: judgmentAnim === 'correct'
+              ? '0 0 0 0 rgba(47,164,79,0.4), 0 4px 24px rgba(47,164,79,0.5)'
+              : '0 0 0 0 rgba(220,53,69,0.4), 0 4px 24px rgba(220,53,69,0.5)',
+          }}>
+            <svg width="52" height="52" viewBox="0 0 52 52" fill="none">
+              {judgmentAnim === 'correct'
+                ? <polyline points="10,27 21,38 42,16" stroke="white" strokeWidth="5.5" strokeLinecap="round" strokeLinejoin="round" />
+                : <><line x1="14" y1="14" x2="38" y2="38" stroke="white" strokeWidth="5.5" strokeLinecap="round" /><line x1="38" y1="14" x2="14" y2="38" stroke="white" strokeWidth="5.5" strokeLinecap="round" /></>
+              }
+            </svg>
+          </div>
+        </div>
+      )}
 
       <Card padding={isMobile ? 'var(--spacing-md) var(--spacing-sm)' : 'var(--spacing-xl)'}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 'var(--spacing-lg)' }}>

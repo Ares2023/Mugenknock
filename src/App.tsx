@@ -1,11 +1,9 @@
-import React, { useEffect } from 'react';
-import { BrowserRouter, Routes, Route } from 'react-router-dom';
+import React, { useEffect, useState } from 'react';
+import { BrowserRouter, Routes, Route, useNavigate } from 'react-router-dom';
 import { Amplify } from 'aws-amplify';
 import awsExports from './aws-exports';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
-import { API_ENDPOINT } from './constants';
-import { getCached, setCached } from './utils/cache';
-import { LanguageProvider } from './contexts/LanguageContext';
+import { LanguageProvider, useLanguage } from './contexts/LanguageContext';
 import { ThemeProvider } from './contexts/ThemeContext';
 import PrivateRoute from './components/PrivateRoute';
 import AdminRoute from './components/AdminRoute';
@@ -29,16 +27,20 @@ import Others from './pages/Others';
 import About from './pages/About';
 import Practice from './pages/Practice';
 import ServiceEncyclopedia from './pages/ServiceEncyclopedia';
+import DailyServiceRevealModal from './components/DailyServiceRevealModal';
+import { API_ENDPOINT } from './constants';
+import { getCached, setCached } from './utils/cache';
 
 Amplify.configure(awsExports);
 
-// 日めくりAWSサービスの解放をアプリ起動時に行う（どの画面からでも解放されるようにする）
-function DailyServiceUnlocker() {
+// ── 日めくりサービス解放（どの画面でも・アプリ起動時に実行） ──────────────────
+function DailyServiceUnlocker({ onNewUnlock }: { onNewUnlock: (svc: any) => void }) {
   const { user } = useAuth();
 
   useEffect(() => {
     const jstDate = new Date(Date.now() + 9 * 3600 * 1000).toISOString().slice(0, 10);
     const cacheKey = `daily_service_${jstDate}`;
+    const isNewDay = localStorage.getItem('encyclopediaUnlockDate') !== jstDate;
 
     const unlock = (svc: any) => {
       try {
@@ -78,7 +80,7 @@ function DailyServiceUnlocker() {
     };
 
     // 今日すでに解放済みならサーバー同期だけ行う
-    if (localStorage.getItem('encyclopediaUnlockDate') === jstDate) {
+    if (!isNewDay) {
       if (user) syncToServer(user.userId);
       return;
     }
@@ -87,6 +89,7 @@ function DailyServiceUnlocker() {
     const cached = getCached<any>(cacheKey);
     if (cached !== null) {
       unlock(cached);
+      if (isNewDay) onNewUnlock(cached);
       if (user) syncToServer(user.userId);
       return;
     }
@@ -99,10 +102,11 @@ function DailyServiceUnlocker() {
         if (!s) return;
         setCached(cacheKey, s, 60 * 60 * 1000);
         unlock(s);
+        onNewUnlock(s);
         if (user) syncToServer(user.userId);
       })
       .catch(() => {});
-  }, [user?.userId]);
+  }, [user?.userId]); // eslint-disable-line react-hooks/exhaustive-deps
 
   return null;
 }
@@ -126,14 +130,16 @@ function AuthGate({ children }: { children: React.ReactNode }) {
   return <>{children}</>;
 }
 
-function App() {
+// BrowserRouter 内で useNavigate が使えるように内部コンポーネントに分離
+function AppInner() {
+  const navigate = useNavigate();
+  const { lang } = useLanguage();
+  const [revealService, setRevealService] = useState<any>(null);
+
   return (
-    <ThemeProvider>
-    <LanguageProvider>
-    <AuthProvider>
-      <DailyServiceUnlocker />
+    <>
+      <DailyServiceUnlocker onNewUnlock={setRevealService} />
       <AuthGate>
-      <BrowserRouter>
         <Routes>
           <Route path="/" element={<Portal />} />
           <Route path="/login" element={<LoginPage />} />
@@ -160,8 +166,31 @@ function App() {
             <PrivateRoute><Account /></PrivateRoute>
           } />
         </Routes>
-      </BrowserRouter>
       </AuthGate>
+
+      {revealService && (
+        <DailyServiceRevealModal
+          service={revealService}
+          lang={lang}
+          onClose={() => setRevealService(null)}
+          onNavigateEncyclopedia={() => {
+            setRevealService(null);
+            navigate('/aws/encyclopedia');
+          }}
+        />
+      )}
+    </>
+  );
+}
+
+function App() {
+  return (
+    <ThemeProvider>
+    <LanguageProvider>
+    <AuthProvider>
+      <BrowserRouter>
+        <AppInner />
+      </BrowserRouter>
     </AuthProvider>
     </LanguageProvider>
     </ThemeProvider>
