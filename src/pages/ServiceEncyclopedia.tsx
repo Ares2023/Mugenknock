@@ -15,16 +15,29 @@ type EncyclopediaService = {
   docUrl?: string;
 };
 
-/** encyclopediaUnlocked から旧 encyclopediaServices へのマイグレーション */
-function migrateIfNeeded(): void {
-  if (localStorage.getItem('encyclopediaUnlocked') !== null) return;
+function migrateIfNeeded(uid: string): void {
+  const userKey = `encyclopediaUnlocked_${uid}`;
+  if (localStorage.getItem(userKey) !== null) return;
+
+  // 旧共有キーがあればユーザー別キーへコピー
+  const shared = localStorage.getItem('encyclopediaUnlocked');
+  if (shared !== null) {
+    localStorage.setItem(userKey, shared);
+    const sharedDate = localStorage.getItem('encyclopediaUnlockDate');
+    if (sharedDate !== null) localStorage.setItem(`encyclopediaUnlockDate_${uid}`, sharedDate);
+    const sharedTodayId = localStorage.getItem('encyclopediaTodayServiceId');
+    if (sharedTodayId !== null) localStorage.setItem(`encyclopediaTodayServiceId_${uid}`, sharedTodayId);
+    return;
+  }
+
+  // さらに旧い encyclopediaServices からの移行
   try {
     const legacy = JSON.parse(localStorage.getItem('encyclopediaServices') ?? '{}');
     const keys = Object.keys(legacy);
     if (keys.length === 0) return;
     const migrated: Record<string, string> = {};
     keys.forEach(k => { migrated[k] = 'migrated'; });
-    localStorage.setItem('encyclopediaUnlocked', JSON.stringify(migrated));
+    localStorage.setItem(userKey, JSON.stringify(migrated));
   } catch {}
 }
 
@@ -50,10 +63,11 @@ export default function ServiceEncyclopedia() {
   const { lang } = useLanguage();
   const ja = lang === 'ja';
   const { user } = useAuth();
+  const uid = user?.userId ?? 'guest';
 
   const [unlockedMap, setUnlockedMap] = useState<Record<string, string>>(() => {
-    migrateIfNeeded();
-    try { return JSON.parse(localStorage.getItem('encyclopediaUnlocked') ?? '{}'); } catch { return {}; }
+    migrateIfNeeded(uid);
+    try { return JSON.parse(localStorage.getItem(`encyclopediaUnlocked_${uid}`) ?? '{}'); } catch { return {}; }
   });
   const [storedServices, setStoredServices] = useState<Record<string, EncyclopediaService>>(() => {
     try { return JSON.parse(localStorage.getItem('encyclopediaServices') ?? '{}'); } catch { return {}; }
@@ -61,14 +75,20 @@ export default function ServiceEncyclopedia() {
   const [selected, setSelected] = useState<EncyclopediaService | null>(null);
   const [activeTab, setActiveTab] = useState<'all' | 'unlocked'>('all');
 
+  // uidが変わった時（ログイン/ログアウト）にlocalStorageから再読み込み
+  useEffect(() => {
+    migrateIfNeeded(uid);
+    try { setUnlockedMap(JSON.parse(localStorage.getItem(`encyclopediaUnlocked_${uid}`) ?? '{}')); } catch {}
+  }, [uid]); // eslint-disable-line react-hooks/exhaustive-deps
+
   useEffect(() => {
     const refresh = () => {
-      try { setUnlockedMap(JSON.parse(localStorage.getItem('encyclopediaUnlocked') ?? '{}')); } catch {}
+      try { setUnlockedMap(JSON.parse(localStorage.getItem(`encyclopediaUnlocked_${uid}`) ?? '{}')); } catch {}
       try { setStoredServices(JSON.parse(localStorage.getItem('encyclopediaServices') ?? '{}')); } catch {}
     };
     window.addEventListener('encyclopediaUpdated', refresh);
     return () => window.removeEventListener('encyclopediaUpdated', refresh);
-  }, []);
+  }, [uid]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // サーバーから解放済みデータを取得してローカルとマージ
   useEffect(() => {
@@ -77,15 +97,14 @@ export default function ServiceEncyclopedia() {
       .then(r => r.json())
       .then(data => {
         if (!data.unlocks || typeof data.unlocks !== 'object') return;
-        const local = (() => { try { return JSON.parse(localStorage.getItem('encyclopediaUnlocked') ?? '{}'); } catch { return {}; } })();
+        const local = (() => { try { return JSON.parse(localStorage.getItem(`encyclopediaUnlocked_${uid}`) ?? '{}'); } catch { return {}; } })();
         const merged: Record<string, string> = { ...data.unlocks, ...local };
         const changed = Object.keys(merged).some(k => !(k in local));
         if (changed) {
-          localStorage.setItem('encyclopediaUnlocked', JSON.stringify(merged));
+          localStorage.setItem(`encyclopediaUnlocked_${uid}`, JSON.stringify(merged));
           setUnlockedMap(merged);
-          // サーバーにもマージ結果を反映
-          const unlockDate = localStorage.getItem('encyclopediaUnlockDate') ?? data.unlockDate;
-          const todayServiceId = localStorage.getItem('encyclopediaTodayServiceId') ?? data.todayServiceId;
+          const unlockDate = localStorage.getItem(`encyclopediaUnlockDate_${uid}`) ?? data.unlockDate;
+          const todayServiceId = localStorage.getItem(`encyclopediaTodayServiceId_${uid}`) ?? data.todayServiceId;
           fetch(`${API_ENDPOINT}/users/me/encyclopedia-unlocks`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
@@ -94,10 +113,10 @@ export default function ServiceEncyclopedia() {
         }
       })
       .catch(() => {});
-  }, [user?.userId]);
+  }, [user?.userId]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const todaySvc = getDailyService();
-  const todayId = localStorage.getItem('encyclopediaTodayServiceId');
+  const todayId = localStorage.getItem(`encyclopediaTodayServiceId_${uid}`);
 
   // Check unlock via direct todayId (most reliable) OR via catalog-based keys
   const todayUnlocked =
@@ -111,7 +130,7 @@ export default function ServiceEncyclopedia() {
     (todaySvc.serviceIds?.map(id => storedServices[id]).find(Boolean) ?? null);
 
   const jstDate = new Date(Date.now() + 9 * 3600 * 1000).toISOString().slice(0, 10);
-  const todayAlreadyDone = localStorage.getItem('encyclopediaUnlockDate') === jstDate;
+  const todayAlreadyDone = localStorage.getItem(`encyclopediaUnlockDate_${uid}`) === jstDate;
 
   const allServices = CATALOG.flatMap(c => c.services);
   const totalServices = allServices.length;

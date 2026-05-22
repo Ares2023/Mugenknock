@@ -342,7 +342,7 @@ type DailyService = {
   icon: string; description: string; trivia?: string; docUrl?: string;
 };
 
-function saveToEncyclopedia(svc: DailyService) {
+function saveToEncyclopedia(svc: DailyService, uid: string) {
   try {
     const jstDate = new Date(Date.now() + 9 * 3600 * 1000).toISOString().slice(0, 10);
 
@@ -350,36 +350,34 @@ function saveToEncyclopedia(svc: DailyService) {
     stored[svc.serviceId] = svc;
     localStorage.setItem('encyclopediaServices', JSON.stringify(stored));
 
-    // 今日のサービスを常に encyclopediaUnlocked に記録（日付チェックでスキップしない）
-    const unlocked = JSON.parse(localStorage.getItem('encyclopediaUnlocked') ?? '{}');
+    const unlocked = JSON.parse(localStorage.getItem(`encyclopediaUnlocked_${uid}`) ?? '{}');
     if (!(svc.serviceId in unlocked)) {
       unlocked[svc.serviceId] = jstDate;
-      localStorage.setItem('encyclopediaUnlocked', JSON.stringify(unlocked));
+      localStorage.setItem(`encyclopediaUnlocked_${uid}`, JSON.stringify(unlocked));
     }
 
-    // 今日の初回解放日時を記録
-    if (localStorage.getItem('encyclopediaUnlockDate') !== jstDate) {
-      localStorage.setItem('encyclopediaUnlockDate', jstDate);
+    if (localStorage.getItem(`encyclopediaUnlockDate_${uid}`) !== jstDate) {
+      localStorage.setItem(`encyclopediaUnlockDate_${uid}`, jstDate);
     }
 
-    localStorage.setItem('encyclopediaTodayServiceId', svc.serviceId);
+    localStorage.setItem(`encyclopediaTodayServiceId_${uid}`, svc.serviceId);
 
-    // 図鑑が開かれていれば状態を即時更新させる
     window.dispatchEvent(new CustomEvent('encyclopediaUpdated'));
   } catch {}
 }
 
 function syncEncyclopediaToServer(userId: string): void {
+  const uid = userId;
   try {
-    const local: Record<string, string> = JSON.parse(localStorage.getItem('encyclopediaUnlocked') ?? '{}');
-    const unlockDate = localStorage.getItem('encyclopediaUnlockDate');
-    const todayServiceId = localStorage.getItem('encyclopediaTodayServiceId');
+    const local: Record<string, string> = JSON.parse(localStorage.getItem(`encyclopediaUnlocked_${uid}`) ?? '{}');
+    const unlockDate = localStorage.getItem(`encyclopediaUnlockDate_${uid}`);
+    const todayServiceId = localStorage.getItem(`encyclopediaTodayServiceId_${uid}`);
     fetch(`${API_ENDPOINT}/users/me/encyclopedia-unlocks?userId=${encodeURIComponent(userId)}`)
       .then(r => r.ok ? r.json() : { unlocks: {} })
       .then(data => {
         const server: Record<string, string> = data.unlocks ?? {};
         const merged: Record<string, string> = { ...server, ...local };
-        localStorage.setItem('encyclopediaUnlocked', JSON.stringify(merged));
+        localStorage.setItem(`encyclopediaUnlocked_${uid}`, JSON.stringify(merged));
         window.dispatchEvent(new CustomEvent('encyclopediaUpdated'));
         return fetch(`${API_ENDPOINT}/users/me/encyclopedia-unlocks`, {
           method: 'POST',
@@ -396,22 +394,26 @@ function TodayServiceSection({ lang, userId, onNavigateEncyclopedia }: { lang: s
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    const uid = userId ?? 'guest';
     const jstDate = new Date(Date.now() + 9 * 3600 * 1000).toISOString().slice(0, 10);
-    const cacheKey = `daily_service_${jstDate}`;
+    const cacheKey = `daily_service_${uid}_${jstDate}`;
     const cached = getCached<DailyService>(cacheKey);
     if (cached !== null) {
       setService(cached); setLoading(false);
-      saveToEncyclopedia(cached);
+      saveToEncyclopedia(cached, uid);
       if (userId) syncEncyclopediaToServer(userId);
       return;
     }
-    fetch(`${API_ENDPOINT}/daily-service`)
+    const apiUrl = userId
+      ? `${API_ENDPOINT}/daily-service?userId=${encodeURIComponent(userId)}`
+      : `${API_ENDPOINT}/daily-service`;
+    fetch(apiUrl)
       .then(r => r.json())
       .then(d => {
         const s = d.service ?? null;
         if (s) {
           setCached(cacheKey, s, 60 * 60 * 1000);
-          saveToEncyclopedia(s);
+          saveToEncyclopedia(s, uid);
           if (userId) syncEncyclopediaToServer(userId);
         }
         setService(s);

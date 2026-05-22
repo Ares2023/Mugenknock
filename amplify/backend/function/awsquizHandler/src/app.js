@@ -1502,6 +1502,17 @@ app.get('/daily-service', async (req, res) => {
     // 今日の日付（JST）
     const jstDate = new Date(Date.now() + 9 * 3600 * 1000).toISOString().slice(0, 10);
 
+    // userIdが指定された場合はユーザー別のハッシュで決定（スケジュール不使用）
+    if (req.query.userId) {
+      const str = req.query.userId + jstDate;
+      let hash = 0;
+      for (let i = 0; i < str.length; i++) {
+        hash = ((hash << 5) - hash) + str.charCodeAt(i);
+        hash |= 0;
+      }
+      return res.json({ service: items[Math.abs(hash) % items.length] });
+    }
+
     // スケジュールにすでに今日の結果があればそれを返す
     const schedule = JSON.parse(scheduleItem?.schedule || '{}');
     if (schedule[jstDate]) {

@@ -38,36 +38,48 @@ function DailyServiceUnlocker({ onNewUnlock }: { onNewUnlock: (svc: any) => void
   const { user } = useAuth();
 
   useEffect(() => {
+    const uid = user?.userId ?? 'guest';
     const jstDate = new Date(Date.now() + 9 * 3600 * 1000).toISOString().slice(0, 10);
-    const cacheKey = `daily_service_${jstDate}`;
-    const isNewDay = localStorage.getItem('encyclopediaUnlockDate') !== jstDate;
+    const cacheKey = `daily_service_${uid}_${jstDate}`;
+
+    // 旧共有キー → ユーザー別キーへの移行
+    if (localStorage.getItem(`encyclopediaUnlocked_${uid}`) === null) {
+      const shared = localStorage.getItem('encyclopediaUnlocked');
+      if (shared !== null) localStorage.setItem(`encyclopediaUnlocked_${uid}`, shared);
+      const sharedDate = localStorage.getItem('encyclopediaUnlockDate');
+      if (sharedDate !== null) localStorage.setItem(`encyclopediaUnlockDate_${uid}`, sharedDate);
+      const sharedTodayId = localStorage.getItem('encyclopediaTodayServiceId');
+      if (sharedTodayId !== null) localStorage.setItem(`encyclopediaTodayServiceId_${uid}`, sharedTodayId);
+    }
+
+    const isNewDay = localStorage.getItem(`encyclopediaUnlockDate_${uid}`) !== jstDate;
 
     const unlock = (svc: any) => {
       try {
         const stored = JSON.parse(localStorage.getItem('encyclopediaServices') ?? '{}');
         stored[svc.serviceId] = svc;
         localStorage.setItem('encyclopediaServices', JSON.stringify(stored));
-        const unlocked = JSON.parse(localStorage.getItem('encyclopediaUnlocked') ?? '{}');
+        const unlocked = JSON.parse(localStorage.getItem(`encyclopediaUnlocked_${uid}`) ?? '{}');
         if (!(svc.serviceId in unlocked)) {
           unlocked[svc.serviceId] = jstDate;
-          localStorage.setItem('encyclopediaUnlocked', JSON.stringify(unlocked));
+          localStorage.setItem(`encyclopediaUnlocked_${uid}`, JSON.stringify(unlocked));
         }
-        localStorage.setItem('encyclopediaUnlockDate', jstDate);
-        localStorage.setItem('encyclopediaTodayServiceId', svc.serviceId);
+        localStorage.setItem(`encyclopediaUnlockDate_${uid}`, jstDate);
+        localStorage.setItem(`encyclopediaTodayServiceId_${uid}`, svc.serviceId);
         window.dispatchEvent(new CustomEvent('encyclopediaUpdated'));
       } catch {}
     };
 
     const syncToServer = (userId: string) => {
       try {
-        const local: Record<string, string> = JSON.parse(localStorage.getItem('encyclopediaUnlocked') ?? '{}');
-        const unlockDate = localStorage.getItem('encyclopediaUnlockDate');
-        const todayServiceId = localStorage.getItem('encyclopediaTodayServiceId');
+        const local: Record<string, string> = JSON.parse(localStorage.getItem(`encyclopediaUnlocked_${uid}`) ?? '{}');
+        const unlockDate = localStorage.getItem(`encyclopediaUnlockDate_${uid}`);
+        const todayServiceId = localStorage.getItem(`encyclopediaTodayServiceId_${uid}`);
         fetch(`${API_ENDPOINT}/users/me/encyclopedia-unlocks?userId=${encodeURIComponent(userId)}`)
           .then(r => r.ok ? r.json() : { unlocks: {} })
           .then(data => {
             const merged: Record<string, string> = { ...(data.unlocks ?? {}), ...local };
-            localStorage.setItem('encyclopediaUnlocked', JSON.stringify(merged));
+            localStorage.setItem(`encyclopediaUnlocked_${uid}`, JSON.stringify(merged));
             window.dispatchEvent(new CustomEvent('encyclopediaUpdated'));
             return fetch(`${API_ENDPOINT}/users/me/encyclopedia-unlocks`, {
               method: 'POST',
@@ -94,8 +106,11 @@ function DailyServiceUnlocker({ onNewUnlock }: { onNewUnlock: (svc: any) => void
       return;
     }
 
-    // APIから取得して解放
-    fetch(`${API_ENDPOINT}/daily-service`)
+    // APIから取得して解放（ログイン済みならuserIdを渡してユーザー別サービスを取得）
+    const apiUrl = user?.userId
+      ? `${API_ENDPOINT}/daily-service?userId=${encodeURIComponent(user.userId)}`
+      : `${API_ENDPOINT}/daily-service`;
+    fetch(apiUrl)
       .then(r => r.json())
       .then(d => {
         const s = d.service ?? null;
