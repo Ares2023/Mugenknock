@@ -187,7 +187,6 @@ DOMAINS[GAI]="基盤モデルの統合、データ管理、コンプライアン
 DOMAINS[DEA]="データの取り込みと変換,データストアの管理,データオペレーションとサポート,データのセキュリティとガバナンス"
 DOMAINS[ANS]="ネットワーク設計,ネットワーク実装,ネットワーク管理と運用,ネットワークのセキュリティ、コンプライアンス、ガバナンス"
 DOMAINS[SCS]="検出,インシデント対応,インフラストラクチャのセキュリティ,アイデンティティとアクセス管理,データ保護,セキュリティの基盤とガバナンス"
-DOMAINS[MLS]="データエンジニアリング,探索的データ分析,モデリング,機械学習の実装とオペレーション"
 
 {
 check_rate_limit
@@ -201,7 +200,7 @@ mapfile -t EXAM_TYPES < <(
     | xargs -I{} basename {} .txt \
     | python3 -c "
 import sys
-ORDER = ['CLF', 'SAA', 'SAP', 'DVA', 'SOA', 'DEA', 'DOP', 'AIF', 'MLA', 'GAI', 'ANS', 'SCS', 'MLS']
+ORDER = ['CLF', 'SAA', 'SAP', 'DVA', 'SOA', 'DEA', 'DOP', 'AIF', 'MLA', 'GAI', 'ANS', 'SCS']
 items = [l.strip() for l in sys.stdin if l.strip()]
 known   = [x for x in ORDER if x in items]
 unknown = sorted(x for x in items if x not in ORDER)

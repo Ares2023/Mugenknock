@@ -461,7 +461,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
                 style={{ border: 'none', background: 'none', fontSize: 18, cursor: 'pointer', color: 'var(--color-text-sub)', padding: '0 4px', lineHeight: 1 }}
               >✕</button>
             </div>
-            {(['Foundational', 'Associate', 'Professional'] as const).map((level, li) => {
+            {(['Foundational', 'Associate', 'Professional', 'Specialty'] as const).map((level, li) => {
               const levelItems = EXAM_TYPES.filter(et => EXAM_LEVEL[et] === level);
               if (levelItems.length === 0) return null;
               return (
@@ -612,7 +612,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
                       borderRadius: 'var(--border-radius-md)', boxShadow: '0 4px 16px rgba(0,0,0,0.12)',
                       zIndex: 400, maxHeight: 220, overflowY: 'auto',
                     }}>
-                      {(['Foundational', 'Associate', 'Professional'] as const).map((level, li) => {
+                      {(['Foundational', 'Associate', 'Professional', 'Specialty'] as const).map((level, li) => {
                         const items = EXAM_TYPES.filter(et => EXAM_LEVEL[et] === level);
                         if (items.length === 0) return null;
                         return (
