@@ -44,7 +44,11 @@ export default function Practice() {
   const [targetExam, setTargetExam] = useState<string | null>(() => localStorage.getItem(`targetExam_${uid}`));
 
   useEffect(() => {
-    const handler = (e: Event) => setTargetExam((e as CustomEvent).detail);
+    const handler = (e: Event) => {
+      const et = (e as CustomEvent).detail;
+      setTargetExam(et);
+      setExamType(et);
+    };
     window.addEventListener('targetExamChanged', handler);
     return () => window.removeEventListener('targetExamChanged', handler);
   }, []);
@@ -285,28 +289,11 @@ export default function Practice() {
       {/* ── カスタム演習タブ ── */}
       {tab === 'exercise' && (
         <>
-          {/* 試験種別（targetExam未設定時のみ） */}
-          {!targetExam && (
-            <div style={{ marginBottom: 'var(--spacing-lg)', display: 'flex', flexWrap: 'wrap', gap: 'var(--spacing-sm)', alignItems: 'center' }}>
-              <span style={{ fontSize: 'var(--font-size-sm)', fontWeight: 700, color: 'var(--color-text-sub)', whiteSpace: 'nowrap' }}>
-                {ja ? '試験種別' : 'Exam Type'}
-              </span>
-              {EXAM_TYPES.map(et => (
-                <button
-                  key={et}
-                  onClick={() => { setExamType(et); localStorage.setItem(`targetExam_${uid}`, et); setTargetExam(et); window.dispatchEvent(new CustomEvent('targetExamChanged', { detail: et })); }}
-                  style={{
-                    padding: '4px 14px', border: `1px solid ${examType === et ? 'var(--color-primary)' : 'var(--color-border)'}`,
-                    borderRadius: 'var(--border-radius-full)', fontSize: 'var(--font-size-sm)', cursor: 'pointer',
-                    background: examType === et ? 'var(--color-primary-light)' : 'transparent',
-                    color: examType === et ? 'var(--color-primary)' : 'var(--color-text-sub)',
-                    fontWeight: examType === et ? 700 : 400,
-                  }}
-                >{et}</button>
-              ))}
+          {!targetExam ? (
+            <div style={{ padding: 24, background: 'var(--color-primary-light)', border: '1px solid var(--color-primary)', borderRadius: 'var(--border-radius-md)', fontSize: 'var(--font-size-sm)', color: 'var(--color-text-main)', textAlign: 'center' }}>
+              {ja ? '上部メニューから試験を選択してください' : 'Select your target exam from the top menu'}
             </div>
-          )}
-
+          ) : (<>
           {/* ドメイン選択 */}
           <div style={{ marginBottom: 'var(--spacing-lg)' }}>
             <div style={{ fontSize: 'var(--font-size-sm)', fontWeight: 700, color: 'var(--color-text-sub)', marginBottom: 'var(--spacing-sm)' }}>
@@ -367,7 +354,7 @@ export default function Practice() {
               ⚠️ {ja ? `条件に合う問題が${availableCount}問しかありません。${availableCount}問で開始します。` : `Only ${availableCount} questions match. Session will start with ${availableCount} questions.`}
             </div>
           )}
-
+          </>)}
         </>
       )}
 
