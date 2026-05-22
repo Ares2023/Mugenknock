@@ -79,18 +79,18 @@ type ImportQuestion = {
   tags?: string[];
 };
 
-type Tab = 'questions' | 'reports' | 'tips' | 'import' | 'releases' | 'scan' | 'messages' | 'dailyservice' | 'theme' | 'admins' | 'about';
+type Tab = 'questions' | 'reports' | 'tips' | 'import' | 'releases' | 'scan' | 'messages' | 'dailyservice' | 'theme' | 'admins' | 'about' | 'deleteuser';
 type Group = 'content' | 'ops' | 'settings';
 
 const TAB_GROUPS: { key: Group; label: string; tabs: Tab[] }[] = [
   { key: 'content',  label: 'コンテンツ', tabs: ['questions', 'import', 'tips', 'releases', 'dailyservice'] },
-  { key: 'ops',      label: '運営',       tabs: ['reports', 'scan', 'messages'] },
+  { key: 'ops',      label: '運営',       tabs: ['reports', 'scan', 'messages', 'deleteuser'] },
   { key: 'settings', label: '設定',       tabs: ['theme', 'admins', 'about'] },
 ];
 const TAB_LABELS: Record<Tab, string> = {
   questions: '問題管理', import: '問題追加', tips: 'コラム管理',
   releases: 'リリースノート', dailyservice: '日めくりAWSサービス',
-  reports: '通報確認', scan: 'スキャン結果', messages: 'メッセージ',
+  reports: '通報確認', scan: 'スキャン結果', messages: 'メッセージ', deleteuser: 'データ削除',
   theme: 'テーマ設定', admins: '管理者設定', about: 'サイト情報',
 };
 function getGroupForTab(t: Tab): Group {
@@ -224,6 +224,17 @@ export default function Admin() {
   const [aboutSaving, setAboutSaving] = useState(false);
   const [aboutSaved, setAboutSaved] = useState(false);
   const [aboutLoading, setAboutLoading] = useState(false);
+
+  // データ削除
+  const [delEmail, setDelEmail] = useState('');
+  const [delSending, setDelSending] = useState(false);
+  const [delStatus, setDelStatus] = useState<'none' | 'pending' | 'confirmed'>('none');
+  const [delToken, setDelToken] = useState('');
+  const [delUserId, setDelUserId] = useState('');
+  const [delExpiresAt, setDelExpiresAt] = useState('');
+  const [delExecuting, setDelExecuting] = useState(false);
+  const [delDone, setDelDone] = useState(false);
+  const [delError, setDelError] = useState('');
 
   // 管理者設定
   const [adminEmails, setAdminEmails] = useState<string[]>([]);
@@ -657,6 +668,60 @@ export default function Admin() {
 
   const removeAdminEmail = (email: string) => {
     saveAdminEmails(adminEmails.filter(e => e !== email));
+  };
+
+  const fetchDeletionStatus = async (email: string) => {
+    if (!email) return;
+    try {
+      const res = await adminFetch(`${API_ENDPOINT}/admin/deletion-requests/status?email=${encodeURIComponent(email)}`);
+      if (!res.ok) return;
+      const data = await res.json();
+      setDelStatus(data.status || 'none');
+      setDelToken(data.token || '');
+      setDelUserId(data.userId || '');
+      setDelExpiresAt(data.expiresAt || '');
+    } catch {}
+  };
+
+  const sendDeletionRequest = async () => {
+    if (!delEmail.trim()) return;
+    setDelSending(true);
+    setDelError('');
+    setDelStatus('none');
+    setDelDone(false);
+    try {
+      const res = await adminFetch(`${API_ENDPOINT}/admin/deletion-requests`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: delEmail.trim() }),
+      });
+      const data = await res.json();
+      if (!res.ok) { setDelError(data.error || '送信に失敗しました'); setDelSending(false); return; }
+      setDelStatus('pending');
+      setDelUserId(data.userId || '');
+      await fetchDeletionStatus(delEmail.trim());
+    } catch { setDelError('通信エラーが発生しました'); }
+    setDelSending(false);
+  };
+
+  const executeDeletion = async () => {
+    if (!delToken || delStatus !== 'confirmed') return;
+    if (!window.confirm(`${delEmail} のすべてのデータを削除します。この操作は取り消せません。\n\n続行しますか？`)) return;
+    setDelExecuting(true);
+    setDelError('');
+    try {
+      const res = await adminFetch(`${API_ENDPOINT}/admin/deletion-requests/execute`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ token: delToken }),
+      });
+      const data = await res.json();
+      if (!res.ok) { setDelError(data.error || '削除に失敗しました'); setDelExecuting(false); return; }
+      setDelDone(true);
+      setDelStatus('none');
+      setDelToken('');
+    } catch { setDelError('通信エラーが発生しました'); }
+    setDelExecuting(false);
   };
 
   const fetchAboutContent = async () => {
@@ -2661,6 +2726,89 @@ ${tipPromptExamType !== 'ALL' ? `・examType には "${tipPromptExamType}" を�
                 </div>
               ))}
               {aboutSaved && <p style={{ fontSize: 13, color: 'var(--color-success)', fontWeight: 700 }}>✓ 保存しました</p>}
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* ── データ削除 ── */}
+      {tab === 'deleteuser' && (
+        <div style={{ maxWidth: 560 }}>
+          <p style={{ fontSize: 13, color: 'var(--color-text-sub)', marginBottom: 24, lineHeight: 1.7 }}>
+            指定したメールアドレスのユーザーのアプリデータ（演習履歴・成績・ブックマーク等）を削除します。<br />
+            Cognitoアカウントは削除されません。確認メールを送信し、承認後に削除を実行します。
+          </p>
+
+          <div style={{ display: 'flex', gap: 8, marginBottom: 16 }}>
+            <input
+              type="email"
+              value={delEmail}
+              onChange={e => { setDelEmail(e.target.value); setDelStatus('none'); setDelToken(''); setDelDone(false); setDelError(''); }}
+              placeholder="削除対象のメールアドレス"
+              style={{ flex: 1, padding: '8px 12px', border: '1px solid var(--color-border)', borderRadius: 8, fontSize: 13, background: 'var(--color-bg-white)', color: 'var(--color-text-main)' }}
+            />
+            <button
+              onClick={sendDeletionRequest}
+              disabled={!delEmail.trim() || delSending}
+              style={{ padding: '8px 18px', background: 'var(--color-primary)', color: '#fff', border: 'none', borderRadius: 8, cursor: (!delEmail.trim() || delSending) ? 'default' : 'pointer', fontWeight: 700, fontSize: 13, opacity: (!delEmail.trim() || delSending) ? 0.6 : 1, whiteSpace: 'nowrap' }}
+            >
+              {delSending ? '送信中...' : '確認メール送信'}
+            </button>
+            {delEmail && delStatus === 'none' && !delSending && (
+              <button
+                onClick={() => fetchDeletionStatus(delEmail)}
+                style={{ padding: '8px 14px', background: 'transparent', border: '1px solid var(--color-border)', borderRadius: 8, cursor: 'pointer', fontSize: 13, color: 'var(--color-text-sub)' }}
+              >
+                状態確認
+              </button>
+            )}
+          </div>
+
+          {delError && (
+            <div style={{ padding: '10px 14px', background: '#fef2f2', border: '1px solid #fca5a5', borderRadius: 8, color: '#c00', fontSize: 13, marginBottom: 16 }}>
+              {delError}
+            </div>
+          )}
+
+          {delDone && (
+            <div style={{ padding: '10px 14px', background: '#f0fdf4', border: '1px solid #86efac', borderRadius: 8, color: '#166534', fontSize: 13, marginBottom: 16, fontWeight: 700 }}>
+              ✓ データを削除しました
+            </div>
+          )}
+
+          {delStatus !== 'none' && !delDone && (
+            <div style={{ padding: '14px 16px', background: 'var(--color-bg-main)', border: '1px solid var(--color-border)', borderRadius: 8, marginBottom: 16 }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: delStatus === 'confirmed' ? 14 : 0 }}>
+                <span style={{ fontSize: 20 }}>{delStatus === 'confirmed' ? '✅' : '⏳'}</span>
+                <div>
+                  <div style={{ fontWeight: 700, fontSize: 14, color: delStatus === 'confirmed' ? '#166534' : 'var(--color-text-main)' }}>
+                    {delStatus === 'confirmed' ? '承認済み – 削除可能' : '確認メール送信済み – 承認待ち'}
+                  </div>
+                  {delExpiresAt && (
+                    <div style={{ fontSize: 12, color: 'var(--color-text-sub)', marginTop: 2 }}>
+                      有効期限: {new Date(delExpiresAt).toLocaleString('ja-JP')}
+                    </div>
+                  )}
+                </div>
+                {delStatus === 'pending' && (
+                  <button
+                    onClick={() => fetchDeletionStatus(delEmail)}
+                    style={{ marginLeft: 'auto', padding: '5px 12px', background: 'transparent', border: '1px solid var(--color-border)', borderRadius: 6, cursor: 'pointer', fontSize: 12, color: 'var(--color-text-sub)' }}
+                  >
+                    再確認
+                  </button>
+                )}
+              </div>
+
+              {delStatus === 'confirmed' && (
+                <button
+                  onClick={executeDeletion}
+                  disabled={delExecuting}
+                  style={{ width: '100%', padding: '10px', background: '#dc2626', color: '#fff', border: 'none', borderRadius: 8, cursor: delExecuting ? 'default' : 'pointer', fontWeight: 700, fontSize: 14, opacity: delExecuting ? 0.6 : 1 }}
+                >
+                  {delExecuting ? '削除中...' : `${delEmail} のデータを削除する`}
+                </button>
+              )}
             </div>
           )}
         </div>

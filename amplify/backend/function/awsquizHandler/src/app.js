@@ -1,6 +1,8 @@
 const express = require('express');
 const { DynamoDBClient } = require('@aws-sdk/client-dynamodb');
 const { DynamoDBDocumentClient, ScanCommand, GetCommand, QueryCommand, PutCommand, UpdateCommand, TransactWriteCommand, DeleteCommand } = require('@aws-sdk/lib-dynamodb');
+const { CognitoIdentityProviderClient, ListUsersCommand } = require('@aws-sdk/client-cognito-identity-provider');
+const { SESClient, SendEmailCommand } = require('@aws-sdk/client-ses');
 const { v4: uuidv4 } = require('uuid');
 const { CognitoJwtVerifier } = require('aws-jwt-verify');
 const { ADMIN_EMAIL, EXAM_DOMAINS } = require('./constants');
@@ -1762,6 +1764,229 @@ app.post('/users/me/encyclopedia-unlocks', async (req, res) => {
       },
     }));
     res.json({ success: true });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+// ── 管理者によるユーザーデータ削除（確認メール付き） ──
+
+const USER_POOL_ID = 'ap-northeast-1_KIOFciGhQ';
+const SITE_URL = 'https://www.mugenknock.com';
+const DEL_REQ_PREFIX = 'delReq_';
+const DEL_REQ_TTL_MS = 24 * 60 * 60 * 1000;
+
+async function findCognitoUserByEmail(email) {
+  const client = new CognitoIdentityProviderClient({ region: 'ap-northeast-1' });
+  const result = await client.send(new ListUsersCommand({
+    UserPoolId: USER_POOL_ID,
+    Filter: `email = "${email}"`,
+    Limit: 1,
+  }));
+  const users = result.Users || [];
+  if (users.length === 0) return null;
+  const user = users[0];
+  const sub = (user.Attributes || []).find(a => a.Name === 'sub')?.Value;
+  return sub ? { userId: sub, username: user.Username } : null;
+}
+
+async function sendDeletionConfirmEmail(toEmail, token) {
+  const sesClient = new SESClient({ region: 'ap-northeast-1' });
+  const confirmUrl = `${SITE_URL}/confirm-delete?token=${token}`;
+  await sesClient.send(new SendEmailCommand({
+    Source: ADMIN_EMAIL,
+    Destination: { ToAddresses: [toEmail] },
+    Message: {
+      Subject: { Data: '【MugenKnock】データ削除の確認', Charset: 'UTF-8' },
+      Body: {
+        Text: {
+          Data: `データ削除リクエストを受信しました。\n\n以下のリンクをクリックして削除を承認してください（24時間有効）：\n\n${confirmUrl}\n\n心当たりがない場合は、このメールを無視してください。`,
+          Charset: 'UTF-8',
+        },
+      },
+    },
+  }));
+}
+
+// 管理者: 削除リクエスト作成 → 確認メール送信
+app.post('/admin/deletion-requests', async (req, res) => {
+  try {
+    const { email } = req.body;
+    if (!email) return res.status(400).json({ error: 'email required' });
+
+    const cognitoUser = await findCognitoUserByEmail(email);
+    if (!cognitoUser) return res.status(404).json({ error: 'User not found' });
+
+    const token = uuidv4();
+    const now = new Date().toISOString();
+    const expiresAt = new Date(Date.now() + DEL_REQ_TTL_MS).toISOString();
+
+    const docClient = getClient();
+
+    // 既存のリクエストを削除
+    const existing = await docClient.send(new ScanCommand({
+      TableName: 'AppSettings',
+      FilterExpression: 'begins_with(settingId, :prefix) AND #em = :email',
+      ExpressionAttributeNames: { '#em': 'email' },
+      ExpressionAttributeValues: { ':prefix': DEL_REQ_PREFIX, ':email': email },
+    }));
+    for (const item of (existing.Items || [])) {
+      await docClient.send(new DeleteCommand({ TableName: 'AppSettings', Key: { settingId: item.settingId } }));
+    }
+
+    await docClient.send(new PutCommand({
+      TableName: 'AppSettings',
+      Item: { settingId: `${DEL_REQ_PREFIX}${token}`, userId: cognitoUser.userId, email, confirmedAt: null, createdAt: now, expiresAt },
+    }));
+
+    await sendDeletionConfirmEmail(email, token);
+
+    res.json({ success: true, userId: cognitoUser.userId });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: String(err.message || err) });
+  }
+});
+
+// 管理者: 削除リクエストの状態確認
+app.get('/admin/deletion-requests/status', async (req, res) => {
+  try {
+    const { email } = req.query;
+    if (!email) return res.status(400).json({ error: 'email required' });
+
+    const docClient = getClient();
+    const scanResult = await docClient.send(new ScanCommand({
+      TableName: 'AppSettings',
+      FilterExpression: 'begins_with(settingId, :prefix) AND #em = :email',
+      ExpressionAttributeNames: { '#em': 'email' },
+      ExpressionAttributeValues: { ':prefix': DEL_REQ_PREFIX, ':email': email },
+    }));
+    const items = (scanResult.Items || []).filter(i => new Date(i.expiresAt) > new Date());
+    if (items.length === 0) return res.json({ status: 'none' });
+    const item = items[0];
+    res.json({
+      status: item.confirmedAt ? 'confirmed' : 'pending',
+      token: item.settingId.replace(DEL_REQ_PREFIX, ''),
+      userId: item.userId,
+      confirmedAt: item.confirmedAt || null,
+      expiresAt: item.expiresAt,
+    });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+// 管理者: データ削除実行
+app.post('/admin/deletion-requests/execute', async (req, res) => {
+  try {
+    const { token } = req.body;
+    if (!token) return res.status(400).json({ error: 'token required' });
+
+    const docClient = getClient();
+    const reqResult = await docClient.send(new GetCommand({
+      TableName: 'AppSettings',
+      Key: { settingId: `${DEL_REQ_PREFIX}${token}` },
+    }));
+    if (!reqResult.Item) return res.status(404).json({ error: 'Request not found' });
+    if (!reqResult.Item.confirmedAt) return res.status(403).json({ error: 'Not confirmed yet' });
+    if (new Date(reqResult.Item.expiresAt) < new Date()) return res.status(410).json({ error: 'Token expired' });
+
+    const userId = reqResult.Item.userId;
+
+    const deleteItems = async (table, keys) => {
+      if (keys.length === 0) return;
+      await Promise.all(keys.map(key => docClient.send(new DeleteCommand({ TableName: table, Key: key }))));
+    };
+
+    // UserQuestionStats
+    const qsResult = await docClient.send(new QueryCommand({
+      TableName: 'UserQuestionStats',
+      KeyConditionExpression: 'userId = :uid',
+      ExpressionAttributeValues: { ':uid': userId },
+      ProjectionExpression: 'userId, questionId',
+    }));
+    await deleteItems('UserQuestionStats', (qsResult.Items || []).map(i => ({ userId: i.userId, questionId: i.questionId })));
+
+    // UserTagStats
+    const tsResult = await docClient.send(new QueryCommand({
+      TableName: 'UserTagStats',
+      KeyConditionExpression: 'userId = :uid',
+      ExpressionAttributeValues: { ':uid': userId },
+      ProjectionExpression: 'userId, tagId',
+    }));
+    await deleteItems('UserTagStats', (tsResult.Items || []).map(i => ({ userId: i.userId, tagId: i.tagId })));
+
+    // Sessions + UserAnswers
+    const sessResult = await docClient.send(new QueryCommand({
+      TableName: 'Sessions',
+      KeyConditionExpression: 'userId = :uid',
+      ExpressionAttributeValues: { ':uid': userId },
+      ProjectionExpression: 'userId, sessionId',
+    }));
+    const sessionIds = (sessResult.Items || []).map(s => s.sessionId);
+    for (const sessionId of sessionIds) {
+      let lastKey;
+      do {
+        const ansResult = await docClient.send(new QueryCommand({
+          TableName: 'UserAnswers',
+          KeyConditionExpression: 'userId = :uid AND begins_with(questionIdTimestamp, :prefix)',
+          ExpressionAttributeValues: { ':uid': userId, ':prefix': `${sessionId}#` },
+          ExclusiveStartKey: lastKey,
+          ProjectionExpression: 'userId, questionIdTimestamp',
+        }));
+        await deleteItems('UserAnswers', (ansResult.Items || []).map(a => ({ userId: a.userId, questionIdTimestamp: a.questionIdTimestamp })));
+        lastKey = ansResult.LastEvaluatedKey;
+      } while (lastKey);
+    }
+    await deleteItems('Sessions', sessionIds.map(sid => ({ userId, sessionId: sid })));
+
+    // EncyclopediaUnlocks
+    try { await docClient.send(new DeleteCommand({ TableName: 'EncyclopediaUnlocks', Key: { userId } })); } catch {}
+
+    // Reports
+    const reportsResult = await docClient.send(new ScanCommand({
+      TableName: 'Reports',
+      FilterExpression: 'userId = :uid',
+      ExpressionAttributeValues: { ':uid': userId },
+      ProjectionExpression: 'reportId',
+    }));
+    await deleteItems('Reports', (reportsResult.Items || []).map(i => ({ reportId: i.reportId })));
+
+    // トークン削除
+    await docClient.send(new DeleteCommand({ TableName: 'AppSettings', Key: { settingId: `${DEL_REQ_PREFIX}${token}` } }));
+
+    res.json({ success: true, userId });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: String(err.message || err) });
+  }
+});
+
+// 公開: 確認リンク（メールからアクセス）
+app.get('/confirm-delete', async (req, res) => {
+  try {
+    const { token } = req.query;
+    if (!token) return res.status(400).json({ error: 'token required' });
+
+    const docClient = getClient();
+    const result = await docClient.send(new GetCommand({
+      TableName: 'AppSettings',
+      Key: { settingId: `${DEL_REQ_PREFIX}${token}` },
+    }));
+    if (!result.Item) return res.status(404).json({ error: 'Invalid or expired token' });
+    if (new Date(result.Item.expiresAt) < new Date()) return res.status(410).json({ error: 'Token expired' });
+    if (result.Item.confirmedAt) return res.json({ success: true, alreadyConfirmed: true, email: result.Item.email });
+
+    await docClient.send(new UpdateCommand({
+      TableName: 'AppSettings',
+      Key: { settingId: `${DEL_REQ_PREFIX}${token}` },
+      UpdateExpression: 'SET confirmedAt = :now',
+      ExpressionAttributeValues: { ':now': new Date().toISOString() },
+    }));
+
+    res.json({ success: true, email: result.Item.email });
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: 'Internal server error' });

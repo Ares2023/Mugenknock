@@ -28,6 +28,7 @@ import About from './pages/About';
 import Practice from './pages/Practice';
 import ServiceEncyclopedia from './pages/ServiceEncyclopedia';
 import DailyServiceRevealModal from './components/DailyServiceRevealModal';
+import ConfirmDelete from './pages/ConfirmDelete';
 import { API_ENDPOINT } from './constants';
 import { getCached, setCached } from './utils/cache';
 
@@ -171,6 +172,7 @@ function AppInner() {
           <Route path="/aws/release-notes" element={<Layout><ReleaseNotes /></Layout>} />
           <Route path="/aws/others" element={<Layout><Others /></Layout>} />
           <Route path="/about" element={<Layout><About /></Layout>} />
+          <Route path="/confirm-delete" element={<ConfirmDelete />} />
           <Route path="/admin" element={
             <AdminRoute><AdminLayout><Admin /></AdminLayout></AdminRoute>
           } />

@@ -450,8 +450,7 @@ export default function ExerciseSession() {
       borderRadius: 'var(--border-radius-md)',
       cursor: answered ? 'default' : 'pointer',
       border: '1px solid',
-      display: 'flex',
-      alignItems: 'center',
+      display: 'block',
       width: '100%',
       textAlign: 'left',
       fontSize: 'var(--font-size-base)',
@@ -467,11 +466,9 @@ export default function ExerciseSession() {
         borderColor: selected ? 'var(--color-primary)' : 'var(--color-border)',
         background: selected ? 'var(--color-primary-light)' : 'var(--color-bg-elevated)',
         boxShadow: selected ? '0 0 0 1px var(--color-primary)' : 'none',
-        fontWeight: selected ? 700 : 400,
       };
     }
     const displayQ = (currentQuestion.correctAnswers ? currentQuestion : detail) ?? currentQuestion;
-    // 正解データ未ロードの間は色変えしない（フォールバックフェッチ待ち）
     if (!displayQ.correctAnswers) {
       const selected = selectedAnswers.includes(choice);
       return {
@@ -479,7 +476,6 @@ export default function ExerciseSession() {
         borderColor: selected ? 'var(--color-primary)' : 'var(--color-border)',
         background: selected ? 'var(--color-primary-light)' : 'var(--color-bg-elevated)',
         boxShadow: selected ? '0 0 0 1px var(--color-primary)' : 'none',
-        fontWeight: selected ? 700 : 400,
         cursor: 'default',
       };
     }
@@ -493,10 +489,10 @@ export default function ExerciseSession() {
     const isSelected = selectedAnswers.includes(choice);
 
     if (isCorrect) {
-      return { ...base, borderColor: 'var(--color-success)', background: 'var(--color-feedback-correct-bg)', fontWeight: 700, color: 'var(--color-success)' };
+      return { ...base, borderColor: 'var(--color-success)', background: 'var(--color-feedback-correct-bg)', color: 'var(--color-success)' };
     }
     if (isSelected && !isCorrect) {
-      return { ...base, borderColor: 'var(--color-danger)', background: 'var(--color-feedback-incorrect-bg)', fontWeight: 700, color: 'var(--color-danger)' };
+      return { ...base, borderColor: 'var(--color-danger)', background: 'var(--color-feedback-incorrect-bg)', color: 'var(--color-danger)' };
     }
     return { ...base, borderColor: 'var(--color-border)', background: 'var(--color-bg-main)', color: 'var(--color-text-sub)' };
   };
@@ -601,62 +597,29 @@ export default function ExerciseSession() {
             <span style={{ fontSize: 'var(--font-size-sm)', color: 'var(--color-text-sub)', fontWeight: 700 }}>{t('exerciseSession.choices')}</span>
           </div>
           {shuffledChoices.map((choice: string, idx: number) => {
-            // モバイル用バッジスタイルの計算（ラジオ+文字ラベルを統合した26pxバッジ）
-            let badgeBg = 'transparent', badgeBorder = 'var(--color-border)', badgeColor = 'var(--color-text-sub)';
-            if (isMobile) {
-              const displayQ2 = (currentQuestion.correctAnswers ? currentQuestion : detail) ?? currentQuestion;
-              if (!answered || !displayQ2.correctAnswers) {
-                const sel = selectedAnswers.includes(choice);
-                if (sel) { badgeBg = 'var(--color-primary)'; badgeBorder = 'var(--color-primary)'; badgeColor = '#fff'; }
-              } else {
-                const cAI = displayQ2.correctAnswerIndices;
-                const si = shuffledChoices.indexOf(choice);
-                const oi = si >= 0 ? origIndices[si] : -1;
-                const isC = cAI?.length ? cAI.includes(oi) : (displayQ2.correctAnswers ?? []).map(stripLabel).includes(stripLabel(choice));
-                const isSel = selectedAnswers.includes(choice);
-                if (isC) { badgeBg = 'var(--color-success)'; badgeBorder = 'var(--color-success)'; badgeColor = '#fff'; }
-                else if (isSel) { badgeBg = 'var(--color-danger)'; badgeBorder = 'var(--color-danger)'; badgeColor = '#fff'; }
-                else { badgeBorder = 'var(--color-border)'; badgeColor = 'var(--color-text-light)'; }
-              }
-            }
+            const isSelected = selectedAnswers.includes(choice);
             return (
               <button
                 key={choice}
                 onClick={() => toggleAnswer(choice)}
-                style={{ ...getChoiceStyle(choice), ...(isMobile && { padding: '10px 8px', alignItems: 'flex-start' }) }}
-                className={lastSelected === choice && selectedAnswers.includes(choice) && !answered ? 'choice-select-anim' : ''}
+                style={getChoiceStyle(choice)}
+                className={lastSelected === choice && isSelected && !answered ? 'choice-select-anim' : ''}
               >
-                {isMobile ? (
-                  <>
-                    <span style={{
-                      width: 26, height: 26,
-                      borderRadius: currentQuestion.isMultiple ? 4 : '50%',
-                      marginRight: 8, marginTop: 1, flexShrink: 0,
-                      display: 'flex', alignItems: 'center', justifyContent: 'center',
-                      fontWeight: 700, fontSize: 11, lineHeight: 1,
-                      background: badgeBg, border: `1.5px solid ${badgeBorder}`, color: badgeColor,
-                      transition: 'all 0.15s',
-                    }}>
-                      {CHOICE_LABELS[idx]}
-                    </span>
-                    <span style={{ flex: 1, minWidth: 0, overflowWrap: 'break-word', wordBreak: 'break-word', lineHeight: 1.55 }}>{choice}</span>
-                  </>
-                ) : (
-                  <>
-                    <span style={{
-                      width: 18, height: 18, border: '1.5px solid',
-                      borderRadius: currentQuestion.isMultiple ? 2 : '50%',
-                      marginRight: 12, display: 'flex', alignItems: 'center', justifyContent: 'center',
-                      background: selectedAnswers.includes(choice) ? 'var(--color-primary)' : 'transparent',
-                      borderColor: selectedAnswers.includes(choice) ? 'var(--color-primary)' : 'var(--color-text-main)',
-                      flexShrink: 0,
-                    }}>
-                      {selectedAnswers.includes(choice) && <span style={{ width: 6, height: 6, borderRadius: '50%', background: 'var(--color-on-primary)' }} />}
-                    </span>
-                    <span style={{ fontWeight: 700, marginRight: 10, flexShrink: 0, color: 'var(--color-text-sub)' }}>{CHOICE_LABELS[idx]}.</span>
-                    <span style={{ flex: 1, minWidth: 0, overflowWrap: 'break-word', wordBreak: 'break-word' }}>{choice}</span>
-                  </>
-                )}
+                <div style={{ fontSize: 11, fontWeight: 700, color: 'inherit', opacity: 0.7, marginBottom: 5, lineHeight: 1 }}>
+                  {CHOICE_LABELS[idx]}
+                </div>
+                <div style={{ display: 'flex', alignItems: 'flex-start', gap: 8 }}>
+                  <input
+                    type={currentQuestion.isMultiple ? 'checkbox' : 'radio'}
+                    checked={isSelected}
+                    readOnly
+                    tabIndex={-1}
+                    style={{ marginTop: 2, flexShrink: 0, pointerEvents: 'none', accentColor: 'var(--color-primary)' }}
+                  />
+                  <span style={{ flex: 1, minWidth: 0, overflowWrap: 'break-word', wordBreak: 'break-word', lineHeight: 1.55 }}>
+                    {choice}
+                  </span>
+                </div>
               </button>
             );
           })}
@@ -716,9 +679,15 @@ export default function ExerciseSession() {
                 }}>
                   {lastResult?.isCorrect ? t('exerciseSession.correct') : t('exerciseSession.incorrect')}
                 </h3>
-                <CopyButton getText={() =>
-                  `${t('exerciseSession.correctAnswer')}${displayQ.correctAnswers?.join(', ')}\n\n${t('exerciseSession.explanation')}\n${displayQ.explanation ?? ''}`
-                } label={lang === 'ja' ? '解説をコピー' : 'Copy Explanation'} />
+                <CopyButton getText={() => {
+                  const choicesText = shuffledChoices.map((c: string, ci: number) => `${CHOICE_LABELS[ci]}. ${c}`).join('\n');
+                  const correctLabels = (displayQ.correctAnswers ?? []).map((ca: string) => {
+                    const si = shuffledChoices.findIndex((c: string) => stripLabel(c) === stripLabel(ca));
+                    return si >= 0 ? CHOICE_LABELS[si] : stripLabel(ca);
+                  }).join(', ');
+                  const expl = lang === 'en' && (displayQ as any).explanationEn ? (displayQ as any).explanationEn : (displayQ.explanation ?? '');
+                  return `${currentQuestion.questionText}\n\n${choicesText}\n\n${t('exerciseSession.correctAnswer')}${correctLabels}\n\n${t('exerciseSession.explanation')}\n${expl}`;
+                }} label={lang === 'ja' ? '解説をコピー' : 'Copy Explanation'} />
               </div>
               <p style={{ margin: '0 0 12px', fontSize: 'var(--font-size-base)' }}>
                 <strong>{t('exerciseSession.correctAnswer')}</strong>{displayQ.correctAnswers?.join(', ')}
@@ -759,7 +728,7 @@ export default function ExerciseSession() {
           <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: 'var(--spacing-sm)' }}>
             <PromptMenu
               questionText={currentQuestion.questionText}
-              choices={shuffledChoices}
+              choices={shuffledChoices.map((c: string, ci: number) => `${CHOICE_LABELS[ci]}. ${c}`)}
               explanation={((currentQuestion.correctAnswers ? currentQuestion : detail) ?? currentQuestion).explanation}
               lang={lang}
             />

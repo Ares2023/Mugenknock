@@ -959,15 +959,15 @@ export default function Home() {
           <span style={{ fontSize: 11, fontWeight: 700, color: 'var(--color-text-sub)', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
             {ja ? 'ドメイン別正答率' : 'Domain Accuracy'}
           </span>
-          {!isMobile && user && (
+          {user && (
             <button
               onClick={e => { e.stopPropagation(); refreshStats(); }}
               disabled={statsLoading || statsRefreshing}
               title={ja ? '成績を更新' : 'Refresh stats'}
               aria-label={ja ? '成績を更新' : 'Refresh stats'}
               style={{
-                width: 28, height: 28, borderRadius: '50%',
-                border: `1.5px solid var(--color-primary)`,
+                width: 44, height: 44, borderRadius: '50%',
+                border: `1px solid var(--color-border)`,
                 background: 'transparent',
                 color: 'var(--color-primary)',
                 cursor: (statsLoading || statsRefreshing) ? 'default' : 'pointer',
@@ -976,7 +976,7 @@ export default function Home() {
                 flexShrink: 0,
               }}
             >
-              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"
                 style={{ animation: (statsLoading || statsRefreshing) ? 'sherpa-spin 0.8s linear infinite' : 'none' }}>
                 <polyline points="23 4 23 10 17 10"/>
                 <path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/>

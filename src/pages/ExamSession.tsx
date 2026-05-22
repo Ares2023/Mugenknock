@@ -389,27 +389,28 @@ export default function ExamSession() {
                 onClick={() => toggle(origChoice)}
                 className={lastSelected === origChoice && selected.includes(origChoice) ? 'choice-select-anim' : ''}
                 style={{
-                  display: 'flex', alignItems: 'center', width: '100%', textAlign: 'left',
+                  display: 'block', width: '100%', textAlign: 'left',
                   padding: 'var(--spacing-md) var(--spacing-lg)', marginBottom: 'var(--spacing-sm)', borderRadius: 'var(--border-radius-md)',
                   border: `1px solid ${isSelected ? 'var(--color-primary)' : 'var(--color-border)'}`,
                   background: isSelected ? 'var(--color-primary-light)' : 'var(--color-bg-elevated)',
                   boxShadow: isSelected ? '0 0 0 1px var(--color-primary)' : 'none',
-                  cursor: 'pointer', fontSize: 'var(--font-size-base)', fontWeight: isSelected ? 700 : 400,
+                  cursor: 'pointer', fontSize: 'var(--font-size-base)',
                   color: 'var(--color-text-main)',
                   transition: 'all 0.15s ease'
                 }}>
-                <span style={{
-                  width: 18, height: 18, border: '1.5px solid',
-                  borderRadius: currentQ.isMultiple ? 2 : '50%',
-                  marginRight: 12, display: 'flex', alignItems: 'center', justifyContent: 'center',
-                  background: isSelected ? 'var(--color-primary)' : 'transparent',
-                  borderColor: isSelected ? 'var(--color-primary)' : 'var(--color-text-main)',
-                  flexShrink: 0
-                }}>
-                  {isSelected && <span style={{ width: 6, height: 6, borderRadius: '50%', background: 'var(--color-on-primary)' }} />}
-                </span>
-                <span style={{ fontWeight: 700, marginRight: 10, flexShrink: 0, color: 'var(--color-text-sub)' }}>{CHOICE_LABELS[displayIdx]}.</span>
-                <span style={{ flex: 1, minWidth: 0, overflowWrap: 'break-word', wordBreak: 'break-word' }}>{choice}</span>
+                <div style={{ fontSize: 11, fontWeight: 700, color: 'var(--color-text-sub)', opacity: 0.7, marginBottom: 5, lineHeight: 1 }}>
+                  {CHOICE_LABELS[displayIdx]}
+                </div>
+                <div style={{ display: 'flex', alignItems: 'flex-start', gap: 8 }}>
+                  <input
+                    type={currentQ.isMultiple ? 'checkbox' : 'radio'}
+                    checked={isSelected}
+                    readOnly
+                    tabIndex={-1}
+                    style={{ marginTop: 2, flexShrink: 0, pointerEvents: 'none', accentColor: 'var(--color-primary)' }}
+                  />
+                  <span style={{ flex: 1, minWidth: 0, overflowWrap: 'break-word', wordBreak: 'break-word' }}>{choice}</span>
+                </div>
               </button>
             );
           })}
