@@ -168,7 +168,7 @@ function CombinedDetailModal({ targetExam, domainAccList, estimatedScore, passSc
       style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', zIndex: 1000, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16 }}
       onClick={e => { if (e.target === e.currentTarget) onClose(); }}
     >
-      <div style={{ background: 'var(--color-bg-white)', borderRadius: 'var(--border-radius-lg)', padding: isMobile ? '16px' : '20px 28px', width: '100%', maxWidth: 540, maxHeight: isMobile ? '82vh' : '90vh', overflowY: 'auto', boxShadow: '0 8px 32px rgba(0,0,0,0.2)' }}>
+      <div style={{ background: 'var(--color-bg-white)', borderRadius: 'var(--border-radius-lg)', padding: isMobile ? '16px' : '20px 28px', width: '100%', maxWidth: 540, maxHeight: isMobile ? '66vh' : '90vh', overflowY: 'auto', boxShadow: '0 8px 32px rgba(0,0,0,0.2)' }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: showCalc ? 8 : (isMobile ? 12 : 16) }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
             <span style={{ fontWeight: 700, fontSize: 'var(--font-size-base)', color: 'var(--color-text-main)' }}>
@@ -288,13 +288,14 @@ function DomainDetailModal({ targetExam, domainAccList, lang, onClose }: {
   targetExam: string; domainAccList: { correct: number; total: number; pct: number | null }[]; lang: string; onClose: () => void;
 }) {
   const ja = lang === 'ja';
+  const isMobile = window.innerWidth < 768;
   const domains = EXAM_DOMAINS[targetExam] ?? [];
   return (
     <div
       style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', zIndex: 1000, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16 }}
       onClick={e => { if (e.target === e.currentTarget) onClose(); }}
     >
-      <div style={{ background: 'var(--color-bg-white)', borderRadius: 'var(--border-radius-lg)', padding: '20px 24px', width: '100%', maxWidth: 480, maxHeight: '82vh', overflowY: 'auto', boxShadow: '0 8px 32px rgba(0,0,0,0.2)' }}>
+      <div style={{ background: 'var(--color-bg-white)', borderRadius: 'var(--border-radius-lg)', padding: '20px 24px', width: '100%', maxWidth: 480, maxHeight: isMobile ? '66vh' : '82vh', overflowY: 'auto', boxShadow: '0 8px 32px rgba(0,0,0,0.2)' }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
           <span style={{ fontWeight: 700, fontSize: 'var(--font-size-base)', color: 'var(--color-text-main)' }}>
             {ja ? 'ドメイン別成績' : 'Domain Results'}
@@ -938,45 +939,6 @@ export default function Home() {
   return (
     <div style={{ maxWidth: 900, margin: '0 auto', padding: 'var(--spacing-lg) var(--spacing-lg)' }} className="page-container">
 
-      {/* ── 成績セクションヘッダー ── */}
-      {user && (
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: 6, marginBottom: 6 }}>
-          {lastUpdated && !statsLoading && (
-            <span style={{ fontSize: 10, color: 'var(--color-text-light)' }}>
-              {(() => {
-                const now = new Date();
-                const hhmm = `${String(lastUpdated.getHours()).padStart(2, '0')}:${String(lastUpdated.getMinutes()).padStart(2, '0')}`;
-                const sameDay = lastUpdated.toDateString() === now.toDateString();
-                const label = ja ? '更新' : 'Updated';
-                return `${label} ${sameDay ? hhmm : `${lastUpdated.getMonth() + 1}/${lastUpdated.getDate()} ${hhmm}`}`;
-              })()}
-            </span>
-          )}
-          <button
-            onClick={refreshStats}
-            disabled={statsLoading || statsRefreshing}
-            title={ja ? '成績を更新' : 'Refresh stats'}
-            style={{
-              border: 'none', background: 'none',
-              cursor: (statsLoading || statsRefreshing) ? 'default' : 'pointer',
-              color: 'var(--color-text-light)', padding: '2px 4px', borderRadius: 4,
-              display: 'flex', alignItems: 'center', gap: 4,
-              fontSize: 11, fontWeight: 500,
-              transition: 'color 0.15s',
-            }}
-            onMouseEnter={e => { if (!statsLoading && !statsRefreshing) { e.currentTarget.style.color = 'var(--color-text-sub)'; } }}
-            onMouseLeave={e => { e.currentTarget.style.color = 'var(--color-text-light)'; }}
-            aria-label={ja ? '成績を更新' : 'Refresh stats'}
-          >
-            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"
-              style={{ animation: (statsLoading || statsRefreshing) ? 'sherpa-spin 0.8s linear infinite' : 'none', flexShrink: 0 }}>
-              <polyline points="23 4 23 10 17 10"/>
-              <path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/>
-            </svg>
-            {ja ? '成績を更新' : 'Refresh'}
-          </button>
-        </div>
-      )}
 
       {/* ── ドメイン別正答率 + 予想スコア（1パネル、クリックで詳細） ── */}
       <Card
@@ -986,10 +948,34 @@ export default function Home() {
       >
 
         {/* ドメイン別正答率 */}
-        <div style={{ marginBottom: 8 }}>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8 }}>
           <span style={{ fontSize: 11, fontWeight: 700, color: 'var(--color-text-sub)', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
             {ja ? 'ドメイン別正答率' : 'Domain Accuracy'}
           </span>
+          {!isMobile && user && (
+            <button
+              onClick={e => { e.stopPropagation(); refreshStats(); }}
+              disabled={statsLoading || statsRefreshing}
+              title={ja ? '成績を更新' : 'Refresh stats'}
+              aria-label={ja ? '成績を更新' : 'Refresh stats'}
+              style={{
+                width: 28, height: 28, borderRadius: '50%',
+                border: `1.5px solid var(--color-primary)`,
+                background: 'transparent',
+                color: 'var(--color-primary)',
+                cursor: (statsLoading || statsRefreshing) ? 'default' : 'pointer',
+                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                opacity: (statsLoading || statsRefreshing) ? 0.5 : 1,
+                flexShrink: 0,
+              }}
+            >
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"
+                style={{ animation: (statsLoading || statsRefreshing) ? 'sherpa-spin 0.8s linear infinite' : 'none' }}>
+                <polyline points="23 4 23 10 17 10"/>
+                <path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/>
+              </svg>
+            </button>
+          )}
         </div>
         {!targetExam ? (
           <div style={{ color: 'var(--color-text-light)', fontSize: 'var(--font-size-sm)', fontStyle: 'italic' }}>
