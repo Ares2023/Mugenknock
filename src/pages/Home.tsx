@@ -27,12 +27,12 @@ function getGrade(pct: number | null): string {
   return 'D';
 }
 
-function readDomainHistory(examType: string): DomainHistory {
-  try { return JSON.parse(localStorage.getItem(`domain_history_${examType}`) ?? '{}'); } catch { return {}; }
+function readDomainHistory(examType: string, uid: string): DomainHistory {
+  try { return JSON.parse(localStorage.getItem(`domain_history_${examType}_${uid}`) ?? '{}'); } catch { return {}; }
 }
 
-function readScoreHistory(examType: string): ScoreEntry[] {
-  try { return JSON.parse(localStorage.getItem(`score_history_${examType}`) ?? '[]'); } catch { return []; }
+function readScoreHistory(examType: string, uid: string): ScoreEntry[] {
+  try { return JSON.parse(localStorage.getItem(`score_history_${examType}_${uid}`) ?? '[]'); } catch { return []; }
 }
 
 // ── スコア折れ線グラフ ───────────────────────────────────────────
@@ -81,19 +81,20 @@ function ScoreLineChart({ data, passScore }: { data: ScoreEntry[]; passScore: nu
 }
 
 // ── 成績詳細モーダル（ドメイン別 + 予想スコア 統合） ───────────
-function CombinedDetailModal({ targetExam, domainAccList, estimatedScore, passScore, lang, isMobile, onClose }: {
+function CombinedDetailModal({ targetExam, domainAccList, estimatedScore, passScore, lang, isMobile, uid, onClose }: {
   targetExam: string;
   domainAccList: { correct: number; total: number; pct: number | null }[];
   estimatedScore: number | null;
   passScore: number | null;
   lang: string;
   isMobile: boolean;
+  uid: string;
   onClose: () => void;
 }) {
   const ja = lang === 'ja';
   const domains = EXAM_DOMAINS[targetExam] ?? [];
-  const history = readScoreHistory(targetExam);
-  const domainHistory = readDomainHistory(targetExam);
+  const history = readScoreHistory(targetExam, uid);
+  const domainHistory = readDomainHistory(targetExam, uid);
   const [tab, setTab] = useState<'domain' | 'score'>('domain');
   const [showCalc, setShowCalc] = useState(false);
 
@@ -224,12 +225,12 @@ function CombinedDetailModal({ targetExam, domainAccList, estimatedScore, passSc
 }
 
 // ── 予想スコア詳細モーダル ──────────────────────────────────────
-function ScoreDetailModal({ targetExam, estimatedScore, passScore, lang, onClose }: {
-  targetExam: string; estimatedScore: number | null; passScore: number | null; lang: string; onClose: () => void;
+function ScoreDetailModal({ targetExam, estimatedScore, passScore, lang, uid, onClose }: {
+  targetExam: string; estimatedScore: number | null; passScore: number | null; lang: string; uid: string; onClose: () => void;
 }) {
   const ja = lang === 'ja';
   const [showTip, setShowTip] = useState(false);
-  const history = readScoreHistory(targetExam);
+  const history = readScoreHistory(targetExam, uid);
   return (
     <div
       style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', zIndex: 1000, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16 }}
@@ -499,14 +500,12 @@ function TodayServiceSection({ lang, userId, onNavigateEncyclopedia }: { lang: s
 }
 
 // ── メインコンポーネント ────────────────────────────────────────
-const QUICK_PREFS_KEY = 'quickExercisePrefs';
 const FOCUSED_UNLOCK_THRESHOLD = 30;
-function loadQuickPrefs() {
-  try { return JSON.parse(localStorage.getItem(QUICK_PREFS_KEY) ?? '{}'); } catch { return {}; }
+function loadQuickPrefs(uid: string) {
+  try { return JSON.parse(localStorage.getItem(`quickExercisePrefs_${uid}`) ?? '{}'); } catch { return {}; }
 }
-const FOCUSED_PREFS_KEY = 'focusedExercisePrefs';
-function loadFocusedPrefs() {
-  try { return JSON.parse(localStorage.getItem(FOCUSED_PREFS_KEY) ?? '{}'); } catch { return {}; }
+function loadFocusedPrefs(uid: string) {
+  try { return JSON.parse(localStorage.getItem(`focusedExercisePrefs_${uid}`) ?? '{}'); } catch { return {}; }
 }
 function shuffleArray<T>(arr: T[]): T[] {
   const a = [...arr];
@@ -526,9 +525,10 @@ export default function Home() {
   const { lang } = useLanguage();
   const navigate = useNavigate();
   const ja = lang === 'ja';
+  const uid = user?.userId ?? 'guest';
 
   const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
-  const [targetExam, setTargetExam] = useState<string | null>(() => localStorage.getItem('targetExam'));
+  const [targetExam, setTargetExam] = useState<string | null>(() => localStorage.getItem(`targetExam_${uid}`));
   const [domainStats, setDomainStats] = useState<DomainStat[]>([]);
   const [statsLoading, setStatsLoading] = useState(false);
   const [statsRefreshing, setStatsRefreshing] = useState(false);
@@ -536,10 +536,10 @@ export default function Home() {
   const [quickLoading, setQuickLoading] = useState(false);
 
   const readQuickDraft = () => {
-    try { return JSON.parse(localStorage.getItem('quickExerciseDraft') ?? 'null'); } catch { return null; }
+    try { return JSON.parse(localStorage.getItem(`quickExerciseDraft_${uid}`) ?? 'null'); } catch { return null; }
   };
   const readFocusedDraft = () => {
-    try { return JSON.parse(localStorage.getItem('focusedExerciseDraft') ?? 'null'); } catch { return null; }
+    try { return JSON.parse(localStorage.getItem(`focusedExerciseDraft_${uid}`) ?? 'null'); } catch { return null; }
   };
   const [quickDraft, setQuickDraft] = useState<any>(() => readQuickDraft());
   const [focusedDraft, setFocusedDraft] = useState<any>(() => readFocusedDraft());
@@ -548,7 +548,7 @@ export default function Home() {
   const [showWebQuickMenu, setShowWebQuickMenu] = useState(false);
   const [showFocusedMenu, setShowFocusedMenu] = useState(false);
   const [focusedLoading, setFocusedLoading] = useState(false);
-  const [lastMode, setLastMode] = useState<'quick' | 'focused'>(() => (localStorage.getItem('lastQuickMode') as 'quick' | 'focused') ?? 'quick');
+  const [lastMode, setLastMode] = useState<'quick' | 'focused'>(() => (localStorage.getItem(`lastQuickMode_${uid}`) as 'quick' | 'focused') ?? 'quick');
   const [answeredCount, setAnsweredCount] = useState(0);
   const [answeredCountReady, setAnsweredCountReady] = useState(false);
   const [draftPrefs, setDraftPrefs] = useState<Record<string, any>>({});
@@ -563,6 +563,11 @@ export default function Home() {
     return () => window.removeEventListener('resize', handler);
   }, []);
 
+
+  useEffect(() => {
+    const saved = localStorage.getItem(`targetExam_${uid}`);
+    if (saved !== null) setTargetExam(saved);
+  }, [uid]);
 
   useEffect(() => {
     const handler = (e: Event) => setTargetExam((e as CustomEvent).detail);
@@ -617,10 +622,10 @@ export default function Home() {
       doFetchStats(user.userId, true);
     } else {
       // キャッシュなし：セッション完了直後かチェックして遅延
-      const flagRaw = localStorage.getItem('postSessionRefresh');
+      const flagRaw = localStorage.getItem(`postSessionRefresh_${uid}`);
       let delay = 0;
       if (flagRaw) {
-        localStorage.removeItem('postSessionRefresh');
+        localStorage.removeItem(`postSessionRefresh_${uid}`);
         const age = Date.now() - parseInt(flagRaw);
         if (age < 30000) delay = 1500; // 30秒以内なら1.5秒待つ
       }
@@ -653,7 +658,7 @@ export default function Home() {
     const totalAllWeights = weights.reduce((s, w) => s + w, 0);
     if (totalAllWeights === 0) return null;
 
-    const hist = readDomainHistory(targetExam);
+    const hist = readDomainHistory(targetExam, uid);
     if (domainStats.length > 0) {
       let weightedSum = 0, hasAnyData = false;
       for (let i = 0; i < domainList.length; i++) {
@@ -696,15 +701,15 @@ export default function Home() {
   }, [targetExam, domainStats]);
 
   const focusedUnlocked = !!user && answeredCount >= FOCUSED_UNLOCK_THRESHOLD;
-  const focusedUnlockedCached = localStorage.getItem('focusedUnlockedCache') === '1';
+  const focusedUnlockedCached = localStorage.getItem(`focusedUnlockedCache_${uid}`) === '1';
   const effectiveFocusedUnlocked = !user ? false : answeredCountReady ? focusedUnlocked : focusedUnlockedCached;
   const primaryMode: 'quick' | 'focused' = lastMode === 'focused' && effectiveFocusedUnlocked ? 'focused' : 'quick';
 
   useEffect(() => {
     if (answeredCountReady) {
-      localStorage.setItem('focusedUnlockedCache', focusedUnlocked ? '1' : '0');
+      localStorage.setItem(`focusedUnlockedCache_${uid}`, focusedUnlocked ? '1' : '0');
     }
-  }, [answeredCountReady, focusedUnlocked]);
+  }, [answeredCountReady, focusedUnlocked, uid]);
 
   const passScore = targetExam ? PASS_SCORES[targetExam] : null;
 
@@ -714,8 +719,8 @@ export default function Home() {
 
   useEffect(() => {
     if (!targetExam || estimatedScore === null) { setPrevScore(null); return; }
-    const todayKey = `score_today_${targetExam}`;
-    const prevKey = `score_prev_${targetExam}`;
+    const todayKey = `score_today_${targetExam}_${uid}`;
+    const prevKey = `score_prev_${targetExam}_${uid}`;
     const todayRaw = localStorage.getItem(todayKey);
     const todayData = todayRaw ? JSON.parse(todayRaw) as { date: string; score: number } : null;
     if (todayData && todayData.date !== jstDate && !localStorage.getItem(prevKey)) {
@@ -725,14 +730,14 @@ export default function Home() {
     setPrevScore(localStorage.getItem(prevKey) ? parseInt(localStorage.getItem(prevKey)!, 10) : null);
 
     // スコア履歴に追記（折れ線グラフ用）
-    const histKey = `score_history_${targetExam}`;
+    const histKey = `score_history_${targetExam}_${uid}`;
     let scoreHist: ScoreEntry[] = [];
     try { scoreHist = JSON.parse(localStorage.getItem(histKey) ?? '[]'); } catch {}
     const last = scoreHist[scoreHist.length - 1];
     if (last?.date === jstDate) { last.score = estimatedScore; }
     else { scoreHist.push({ date: jstDate, score: estimatedScore }); }
     localStorage.setItem(histKey, JSON.stringify(scoreHist.slice(-30)));
-  }, [targetExam, estimatedScore, jstDate]);
+  }, [targetExam, estimatedScore, jstDate, uid]);
 
   const scoreDelta = prevScore !== null && estimatedScore !== null ? estimatedScore - prevScore : null;
 
@@ -778,11 +783,11 @@ export default function Home() {
   };
 
   const discardQuickDraft = () => {
-    localStorage.removeItem('quickExerciseDraft');
+    localStorage.removeItem(`quickExerciseDraft_${uid}`);
     setQuickDraft(null);
   };
   const discardFocusedDraft = () => {
-    localStorage.removeItem('focusedExerciseDraft');
+    localStorage.removeItem(`focusedExerciseDraft_${uid}`);
     setFocusedDraft(null);
   };
 
@@ -792,9 +797,9 @@ export default function Home() {
     discardQuickDraft();
     discardFocusedDraft();
     setLastMode('quick');
-    localStorage.setItem('lastQuickMode', 'quick');
+    localStorage.setItem(`lastQuickMode_${uid}`, 'quick');
     setQuickLoading(true);
-    const qPrefs = loadQuickPrefs();
+    const qPrefs = loadQuickPrefs(uid);
     try {
       const userId = user?.userId ?? 'guest';
       const params = new URLSearchParams({ examType: targetExam, withAnswers: 'true', withValidity: 'true' });
@@ -840,9 +845,9 @@ export default function Home() {
     discardQuickDraft();
     discardFocusedDraft();
     setLastMode('focused');
-    localStorage.setItem('lastQuickMode', 'focused');
+    localStorage.setItem(`lastQuickMode_${uid}`, 'focused');
     setFocusedLoading(true);
-    const fPrefs = loadFocusedPrefs();
+    const fPrefs = loadFocusedPrefs(uid);
     try {
       const userId = user.userId;
       const params = new URLSearchParams({ examType: targetExam, withAnswers: 'true', withValidity: 'true' });
@@ -863,7 +868,7 @@ export default function Home() {
         const threshold = focusDomain === 'below50' ? 0.50 : 0.70;
         const examDomains = EXAM_DOMAINS[targetExam] ?? [];
         const weakDomains = new Set<string>(((): string[] => {
-          const hist = readDomainHistory(targetExam);
+          const hist = readDomainHistory(targetExam, uid);
           return examDomains.filter(domain => {
             const sessions = hist[domain];
             if (!sessions || sessions.length === 0) return true;
@@ -901,7 +906,7 @@ export default function Home() {
   const domains = useMemo(() => targetExam ? (EXAM_DOMAINS[targetExam] ?? []) : [], [targetExam]);
   const domainAccList = useMemo(() => {
     if (!targetExam) return [] as { correct: number; total: number; pct: number | null }[];
-    const hist = readDomainHistory(targetExam);
+    const hist = readDomainHistory(targetExam, uid);
     if (domainStats.length > 0) {
       return domains.map(d => {
         const stat = domainStats.find(s => s.tagId === d);
@@ -1108,7 +1113,7 @@ export default function Home() {
                           <>
                             <div style={{ textAlign: 'center', fontSize: 10, color: 'var(--color-text-light)', marginBottom: 4 }}>{ja ? 'ランダム出題（設定に従う）' : 'Random questions (uses settings)'}</div>
                             <button disabled={!targetExam || quickLoading} onClick={() => { setShowWebQuickMenu(false); startQuickExercise(); }} style={{ width: '100%', height: 36, padding: '0 12px', border: '1.5px solid var(--color-accent)', borderRadius: 'var(--border-radius-full)', cursor: (!targetExam || quickLoading) ? 'default' : 'pointer', background: 'transparent', color: 'var(--color-accent)', fontWeight: 600, fontSize: 'var(--font-size-sm)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                              {ja ? `サクッと演習 (${loadQuickPrefs().questionCount ?? 5}問)` : `Quick (${loadQuickPrefs().questionCount ?? 5}Q)`}
+                              {ja ? `サクッと演習 (${loadQuickPrefs(uid).questionCount ?? 5}問)` : `Quick (${loadQuickPrefs(uid).questionCount ?? 5}Q)`}
                             </button>
                           </>
                         )}
@@ -1166,7 +1171,7 @@ export default function Home() {
                         <>
                           <div style={{ textAlign: 'center', fontSize: 10, color: 'var(--color-text-light)', marginBottom: 4 }}>{ja ? 'ランダム出題（設定に従う）' : 'Random questions (uses settings)'}</div>
                           <button disabled={!targetExam || quickLoading} onClick={() => { setShowFocusedMenu(false); startQuickExercise(); }} style={{ width: '100%', height: 36, padding: '0 12px', border: '1.5px solid var(--color-accent)', borderRadius: 'var(--border-radius-full)', cursor: (!targetExam || quickLoading) ? 'default' : 'pointer', background: 'transparent', color: 'var(--color-accent)', fontWeight: 600, fontSize: 'var(--font-size-sm)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                            {ja ? `サクッと演習 (${loadQuickPrefs().questionCount ?? 5}問)` : `Quick (${loadQuickPrefs().questionCount ?? 5}Q)`}
+                            {ja ? `サクッと演習 (${loadQuickPrefs(uid).questionCount ?? 5}問)` : `Quick (${loadQuickPrefs(uid).questionCount ?? 5}Q)`}
                           </button>
                         </>
                       )}
@@ -1185,7 +1190,7 @@ export default function Home() {
                           <span style={{ width: 14, height: 14, border: '2px solid rgba(0,0,0,0.2)', borderTopColor: '#16191f', borderRadius: '50%', animation: 'sherpa-spin 0.7s linear infinite', flexShrink: 0 }} />
                           {ja ? '準備中...' : 'Loading...'}
                         </span>
-                      ) : (ja ? `サクッと演習 (${loadQuickPrefs().questionCount ?? 5}問)` : `Quick (${loadQuickPrefs().questionCount ?? 5}Q)`)}
+                      ) : (ja ? `サクッと演習 (${loadQuickPrefs(uid).questionCount ?? 5}問)` : `Quick (${loadQuickPrefs(uid).questionCount ?? 5}Q)`)}
                     </button>
                   ) : (
                     <button
@@ -1213,8 +1218,8 @@ export default function Home() {
             )}
             <button
               onClick={() => {
-                if (primaryMode === 'focused') { setDraftFocusedPrefs({ ...loadFocusedPrefs() }); setShowFocusedModal(true); }
-                else { setDraftPrefs({ ...loadQuickPrefs() }); setShowQuickModal(true); }
+                if (primaryMode === 'focused') { setDraftFocusedPrefs({ ...loadFocusedPrefs(uid) }); setShowFocusedModal(true); }
+                else { setDraftPrefs({ ...loadQuickPrefs(uid) }); setShowQuickModal(true); }
               }}
               style={{ flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', height: 44, width: 132, border: `1.5px solid ${primaryMode === 'focused' ? '#009E9E' : 'var(--color-primary)'}`, borderRadius: 'var(--border-radius-full)', background: 'var(--color-bg-white)', cursor: 'pointer', color: primaryMode === 'focused' ? '#009E9E' : 'var(--color-primary)', fontWeight: 600, fontSize: 'var(--font-size-base)' }}
             >
@@ -1369,8 +1374,8 @@ export default function Home() {
             {/* 設定アイコン（常に表示） */}
             <button
               onClick={() => {
-                if (primaryMode === 'focused') { setDraftFocusedPrefs({ ...loadFocusedPrefs() }); setShowFocusedModal(true); }
-                else { setDraftPrefs({ ...loadQuickPrefs() }); setShowQuickModal(true); }
+                if (primaryMode === 'focused') { setDraftFocusedPrefs({ ...loadFocusedPrefs(uid) }); setShowFocusedModal(true); }
+                else { setDraftPrefs({ ...loadQuickPrefs(uid) }); setShowQuickModal(true); }
               }}
               style={{ flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', width: 44, height: 44, border: `1.5px solid ${primaryMode === 'focused' ? '#009E9E' : 'var(--color-primary)'}`, borderRadius: '50%', background: 'transparent', cursor: 'pointer', color: primaryMode === 'focused' ? '#009E9E' : 'var(--color-primary)' }}
               aria-label={ja ? '設定' : 'Settings'}
@@ -1492,7 +1497,7 @@ export default function Home() {
             {/* 保存ボタン固定 */}
             <div style={{ flexShrink: 0, padding: '12px 24px 20px', borderTop: '1px solid var(--color-border)' }}>
               <Button
-                onClick={() => { localStorage.setItem(QUICK_PREFS_KEY, JSON.stringify(draftPrefs)); setShowQuickModal(false); }}
+                onClick={() => { localStorage.setItem(`quickExercisePrefs_${uid}`, JSON.stringify(draftPrefs)); setShowQuickModal(false); }}
                 variant="primary" style={{ width: '100%' }}
               >
                 {ja ? '保存する' : 'Save'}
@@ -1594,7 +1599,7 @@ export default function Home() {
             {/* 保存ボタン固定 */}
             <div style={{ flexShrink: 0, padding: '12px 24px 20px', borderTop: '1px solid var(--color-border)' }}>
               <Button
-                onClick={() => { localStorage.setItem(FOCUSED_PREFS_KEY, JSON.stringify(draftFocusedPrefs)); setShowFocusedModal(false); }}
+                onClick={() => { localStorage.setItem(`focusedExercisePrefs_${uid}`, JSON.stringify(draftFocusedPrefs)); setShowFocusedModal(false); }}
                 variant="primary" style={{ width: '100%', background: '#009E9E', borderColor: '#009E9E' }}
               >
                 {ja ? '保存する' : 'Save'}
@@ -1606,7 +1611,7 @@ export default function Home() {
 
       {/* 成績詳細モーダル */}
       {showCombinedDetail && targetExam && (
-        <CombinedDetailModal targetExam={targetExam} domainAccList={domainAccList} estimatedScore={estimatedScore} passScore={passScore} lang={lang} isMobile={isMobile} onClose={() => setShowCombinedDetail(false)} />
+        <CombinedDetailModal targetExam={targetExam} domainAccList={domainAccList} estimatedScore={estimatedScore} passScore={passScore} lang={lang} isMobile={isMobile} uid={uid} onClose={() => setShowCombinedDetail(false)} />
       )}
     </div>
   );

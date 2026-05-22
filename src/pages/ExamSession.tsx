@@ -105,7 +105,7 @@ export default function ExamSession() {
   useEffect(() => {
     if (!sessionId) return;
     try {
-      localStorage.setItem('examDraft', JSON.stringify({
+      localStorage.setItem(`examDraft_${userId}`, JSON.stringify({
         sessionId, examType, questions, userId, isMini,
         currentIndex, answers, timeLeft: timeLeftRef.current, savedAt: Date.now(),
       }));
@@ -174,7 +174,7 @@ export default function ExamSession() {
 
   const handleSaveAndExit = () => {
     try {
-      localStorage.setItem('examDraft', JSON.stringify({
+      localStorage.setItem(`examDraft_${userId}`, JSON.stringify({
         sessionId, examType, questions, userId, isMini,
         currentIndex, answers, timeLeft: timeLeftRef.current, savedAt: Date.now(),
       }));
@@ -187,7 +187,7 @@ export default function ExamSession() {
     finishedRef.current = true;
     setSubmitting(true);
     setPaused(false);
-    localStorage.removeItem('examDraft');
+    localStorage.removeItem(`examDraft_${userId}`);
 
     try {
       const results = questions.map((q: Question) => {
@@ -232,17 +232,17 @@ export default function ExamSession() {
       // domain_history に追加（直近10セッション、ゲストでも保存）
       try {
         const dh: Record<string, { correct: number; total: number }[]> =
-          JSON.parse(localStorage.getItem(`domain_history_${examType}`) ?? '{}');
+          JSON.parse(localStorage.getItem(`domain_history_${examType}_${userId}`) ?? '{}');
         for (const [tag, d] of Object.entries(delta)) {
           if (d.c + d.i === 0) continue;
           if (!dh[tag]) dh[tag] = [];
           dh[tag] = [...dh[tag], { correct: d.c, total: d.c + d.i }].slice(-10);
         }
-        localStorage.setItem(`domain_history_${examType}`, JSON.stringify(dh));
+        localStorage.setItem(`domain_history_${examType}_${userId}`, JSON.stringify(dh));
       } catch {}
       // セッション完了でキャッシュ破棄 → ホーム画面が最新データをサーバーから再取得
       deleteCached(`ustats_${userId}`);
-      localStorage.setItem('postSessionRefresh', String(Date.now()));
+      localStorage.setItem(`postSessionRefresh_${userId}`, String(Date.now()));
       navigate('/aws/result', {
         state: { results: results.map(r => ({ questionId: r.questionId, isCorrect: r.isCorrect })), questions, score, isPassed, sessionId, userId, examType, mode: 'exam', timeUp }
       });

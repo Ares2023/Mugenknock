@@ -8,7 +8,7 @@ import Button from '../components/ui/Button';
 import { getCached, setCached, SHORT_TTL } from '../utils/cache';
 import { IconBookmark } from '../components/Icons';
 
-const TARGET_EXAM_KEY = 'targetExam';
+const TARGET_EXAM_KEY_BASE = 'targetExam';
 const STATS_GOOD_RATE = 70;
 const STATS_FAIR_RATE = 50;
 
@@ -200,6 +200,7 @@ export default function Stats() {
   const { user } = useAuth();
   const { lang, t } = useLanguage();
   const navigate = useNavigate();
+  const uid = user?.userId ?? 'guest';
 
   const [tab, setTab] = useState<'volume' | 'performance' | 'history'>('volume');
   const [expandedSession, setExpandedSession] = useState<string | null>(null);
@@ -210,7 +211,7 @@ export default function Stats() {
   const [questionDetailLoading, setQuestionDetailLoading] = useState<string | null>(null);
   const [bookmarkedIds, setBookmarkedIds] = useState<Set<string>>(new Set());
   const [bookmarkLoadingId, setBookmarkLoadingId] = useState<string | null>(null);
-  const [targetExam] = useState<string | null>(() => localStorage.getItem(TARGET_EXAM_KEY));
+  const [targetExam] = useState<string | null>(() => localStorage.getItem(`${TARGET_EXAM_KEY_BASE}_${uid}`));
   const [sessions, setSessions] = useState<Session[]>([]);
   const [totalCount, setTotalCount] = useState(0);
   const [answeredCount, setAnsweredCount] = useState(0);
@@ -219,7 +220,7 @@ export default function Stats() {
   const [perfLoading, setPerfLoading] = useState(false);
   const [perfLoaded, setPerfLoaded] = useState(false);
   const [activityRange, setActivityRange] = useState<7 | 14 | 30 | 'all'>(7);
-  const [showHint, setShowHint] = useState(() => !localStorage.getItem('sherpaStatsHint'));
+  const [showHint, setShowHint] = useState(() => !localStorage.getItem(`sherpaStatsHint_${uid}`));
 
   // ── 初期ロード（ノック量に必要なデータのみ） ──
   useEffect(() => {
@@ -363,7 +364,7 @@ export default function Stats() {
         }}>
           <span style={{ fontSize: 16, flexShrink: 0 }}>💡</span>
           <span style={{ flex: 1, lineHeight: 1.5 }}>{t('stats.hint')}</span>
-          <button onClick={() => { localStorage.setItem('sherpaStatsHint', '1'); setShowHint(false); }}
+          <button onClick={() => { localStorage.setItem(`sherpaStatsHint_${uid}`, '1'); setShowHint(false); }}
             style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--color-text-light)', fontSize: 18, lineHeight: 1, padding: '0 4px', flexShrink: 0 }}>✕</button>
         </div>
       )}

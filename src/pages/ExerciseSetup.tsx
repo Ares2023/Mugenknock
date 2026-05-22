@@ -50,16 +50,15 @@ function shuffleArray<T>(arr: T[]): T[] {
   return a;
 }
 
-const EXERCISE_PREFS_KEY = 'exercisePrefs';
-const loadExercisePrefs = (et: string) => {
-  try { return JSON.parse(localStorage.getItem(EXERCISE_PREFS_KEY) ?? '{}')[et] ?? {}; }
+const loadExercisePrefs = (et: string, uid: string) => {
+  try { return JSON.parse(localStorage.getItem(`exercisePrefs_${uid}`) ?? '{}')[et] ?? {}; }
   catch { return {}; }
 };
-const saveExercisePrefs = (et: string, prefs: object) => {
+const saveExercisePrefs = (et: string, uid: string, prefs: object) => {
   try {
-    const stored = JSON.parse(localStorage.getItem(EXERCISE_PREFS_KEY) ?? '{}');
+    const stored = JSON.parse(localStorage.getItem(`exercisePrefs_${uid}`) ?? '{}');
     stored[et] = prefs;
-    localStorage.setItem(EXERCISE_PREFS_KEY, JSON.stringify(stored));
+    localStorage.setItem(`exercisePrefs_${uid}`, JSON.stringify(stored));
   } catch {}
 };
 
@@ -67,28 +66,29 @@ export default function ExerciseSetup() {
   const navigate = useNavigate();
   const { user } = useAuth();
   const { lang, t } = useLanguage();
-  const [targetExam, setTargetExamState] = useState<string | null>(() => localStorage.getItem('targetExam'));
-  const [examType, setExamType] = useState<string>(() => localStorage.getItem('targetExam') || localStorage.getItem('lastExamType') || 'SAA');
+  const uid = user?.userId ?? 'guest';
+  const [targetExam, setTargetExamState] = useState<string | null>(() => localStorage.getItem(`targetExam_${uid}`));
+  const [examType, setExamType] = useState<string>(() => localStorage.getItem(`targetExam_${uid}`) || 'SAA');
 
   const handleSelectExamInSetup = (et: string) => {
-    localStorage.setItem('targetExam', et);
+    localStorage.setItem(`targetExam_${uid}`, et);
     setTargetExamState(et);
     setExamType(et);
   };
   const [selectedDomains, setSelectedDomains] = useState<string[]>(() => {
-    const et = localStorage.getItem('targetExam') || localStorage.getItem('lastExamType') || 'SAA';
-    return loadExercisePrefs(et).domains ?? EXAM_DOMAINS[et] ?? [];
+    const et = localStorage.getItem(`targetExam_${uid}`) || 'SAA';
+    return loadExercisePrefs(et, uid).domains ?? EXAM_DOMAINS[et] ?? [];
   });
-  const [limit, setLimit] = useState<number>(() => loadExercisePrefs(localStorage.getItem('targetExam') || localStorage.getItem('lastExamType') || 'SAA').limit ?? 10);
+  const [limit, setLimit] = useState<number>(() => loadExercisePrefs(localStorage.getItem(`targetExam_${uid}`) || 'SAA', uid).limit ?? 10);
   const [loading, setLoading] = useState(false);
   const [showStartConfirm, setShowStartConfirm] = useState(false);
-  const [bookmarkOnly, setBookmarkOnly] = useState<boolean>(() => loadExercisePrefs(localStorage.getItem('targetExam') || localStorage.getItem('lastExamType') || 'SAA').bookmarkOnly ?? false);
-  const [unansweredOnly, setUnansweredOnly] = useState<boolean>(() => loadExercisePrefs(localStorage.getItem('targetExam') || localStorage.getItem('lastExamType') || 'SAA').unansweredOnly ?? false);
-  const [incorrectOnly, setIncorrectOnly] = useState<boolean>(() => loadExercisePrefs(localStorage.getItem('targetExam') || localStorage.getItem('lastExamType') || 'SAA').incorrectOnly ?? false);
-  const [aiVerifiedOnly, setAiVerifiedOnly] = useState<boolean>(() => loadExercisePrefs(localStorage.getItem('targetExam') || localStorage.getItem('lastExamType') || 'SAA').aiVerifiedOnly ?? false);
-  const [showHint, setShowHint] = useState(() => !localStorage.getItem('sherpaExerciseHint'));
+  const [bookmarkOnly, setBookmarkOnly] = useState<boolean>(() => loadExercisePrefs(localStorage.getItem(`targetExam_${uid}`) || 'SAA', uid).bookmarkOnly ?? false);
+  const [unansweredOnly, setUnansweredOnly] = useState<boolean>(() => loadExercisePrefs(localStorage.getItem(`targetExam_${uid}`) || 'SAA', uid).unansweredOnly ?? false);
+  const [incorrectOnly, setIncorrectOnly] = useState<boolean>(() => loadExercisePrefs(localStorage.getItem(`targetExam_${uid}`) || 'SAA', uid).incorrectOnly ?? false);
+  const [aiVerifiedOnly, setAiVerifiedOnly] = useState<boolean>(() => loadExercisePrefs(localStorage.getItem(`targetExam_${uid}`) || 'SAA', uid).aiVerifiedOnly ?? false);
+  const [showHint, setShowHint] = useState(() => !localStorage.getItem(`sherpaExerciseHint_${uid}`));
   const [exerciseDraft] = useState<any>(() => {
-    try { return JSON.parse(localStorage.getItem('exerciseDraft') ?? 'null'); } catch { return null; }
+    try { return JSON.parse(localStorage.getItem(`exerciseDraft_${uid}`) ?? 'null'); } catch { return null; }
   });
   const hasDraft = exerciseDraft?.examType === examType;
 
@@ -99,7 +99,7 @@ export default function ExerciseSetup() {
   const isFirstRender = useRef(true);
   useEffect(() => {
     if (isFirstRender.current) { isFirstRender.current = false; return; }
-    const prefs = loadExercisePrefs(examType);
+    const prefs = loadExercisePrefs(examType, uid);
     setSelectedDomains(prefs.domains ?? EXAM_DOMAINS[examType]);
     setLimit(prefs.limit ?? 10);
     setBookmarkOnly(prefs.bookmarkOnly ?? false);
@@ -109,7 +109,7 @@ export default function ExerciseSetup() {
   }, [examType]);
 
   useEffect(() => {
-    saveExercisePrefs(examType, { domains: selectedDomains, limit, bookmarkOnly, unansweredOnly, incorrectOnly, aiVerifiedOnly });
+    saveExercisePrefs(examType, uid, { domains: selectedDomains, limit, bookmarkOnly, unansweredOnly, incorrectOnly, aiVerifiedOnly });
   }, [examType, selectedDomains, limit, bookmarkOnly, unansweredOnly, incorrectOnly, aiVerifiedOnly]);
 
   useEffect(() => {
@@ -298,7 +298,7 @@ export default function ExerciseSetup() {
           <span style={{ fontSize: 16, flexShrink: 0 }}>💡</span>
           <span style={{ flex: 1, lineHeight: 1.5 }}>{t('exerciseSetup.hint')}</span>
           <button
-            onClick={() => { localStorage.setItem('sherpaExerciseHint', '1'); setShowHint(false); }}
+            onClick={() => { localStorage.setItem(`sherpaExerciseHint_${uid}`, '1'); setShowHint(false); }}
             style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--color-text-light)', fontSize: 18, lineHeight: 1, padding: '0 4px', flexShrink: 0 }}
           >✕</button>
         </div>

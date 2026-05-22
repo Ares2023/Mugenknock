@@ -109,7 +109,8 @@ export default function Layout({ children }: { children: React.ReactNode }) {
     if (window.innerWidth < 768) return false;
     return localStorage.getItem('sidebarOpen') !== 'false';
   });
-  const [targetExam, setTargetExam] = useState<string | null>(() => localStorage.getItem('targetExam'));
+  const uid = user?.userId ?? 'guest';
+  const [targetExam, setTargetExam] = useState<string | null>(() => localStorage.getItem(`targetExam_${uid}`));
   const [showContact, setShowContact] = useState(false);
   const [contactSubject, setContactSubject] = useState('');
   const [contactMessage, setContactMessage] = useState('');
@@ -178,8 +179,8 @@ export default function Layout({ children }: { children: React.ReactNode }) {
   };
 
   useEffect(() => {
-    setTargetExam(localStorage.getItem('targetExam'));
-  }, [location.pathname]);
+    setTargetExam(localStorage.getItem(`targetExam_${uid}`));
+  }, [location.pathname, uid]);
 
   useEffect(() => {
     const handler = (e: MouseEvent) => {
@@ -192,7 +193,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
   }, []);
 
   const handleSidebarExamSelect = (et: string) => {
-    localStorage.setItem('targetExam', et);
+    localStorage.setItem(`targetExam_${uid}`, et);
     setTargetExam(et);
     setSidebarExamOpen(false);
     window.dispatchEvent(new CustomEvent('targetExamChanged', { detail: et }));

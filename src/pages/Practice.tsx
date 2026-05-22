@@ -14,15 +14,14 @@ function shuffleArray<T>(arr: T[]): T[] {
   return a;
 }
 
-const EXERCISE_PREFS_KEY = 'exercisePrefs';
-const loadExercisePrefs = (et: string) => {
-  try { return JSON.parse(localStorage.getItem(EXERCISE_PREFS_KEY) ?? '{}')[et] ?? {}; } catch { return {}; }
+const loadExercisePrefs = (et: string, uid: string) => {
+  try { return JSON.parse(localStorage.getItem(`exercisePrefs_${uid}`) ?? '{}')[et] ?? {}; } catch { return {}; }
 };
-const saveExercisePrefs = (et: string, prefs: object) => {
+const saveExercisePrefs = (et: string, uid: string, prefs: object) => {
   try {
-    const stored = JSON.parse(localStorage.getItem(EXERCISE_PREFS_KEY) ?? '{}');
+    const stored = JSON.parse(localStorage.getItem(`exercisePrefs_${uid}`) ?? '{}');
     stored[et] = prefs;
-    localStorage.setItem(EXERCISE_PREFS_KEY, JSON.stringify(stored));
+    localStorage.setItem(`exercisePrefs_${uid}`, JSON.stringify(stored));
   } catch {}
 };
 
@@ -33,6 +32,7 @@ export default function Practice() {
   const { lang, t } = useLanguage();
   const navigate = useNavigate();
   const ja = lang === 'ja';
+  const uid = user?.userId ?? 'guest';
   const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
   useEffect(() => {
     const handler = () => setIsMobile(window.innerWidth < 768);
@@ -41,7 +41,7 @@ export default function Practice() {
   }, []);
 
   const [tab, setTab] = useState<Tab>('exercise');
-  const [targetExam, setTargetExam] = useState<string | null>(() => localStorage.getItem('targetExam'));
+  const [targetExam, setTargetExam] = useState<string | null>(() => localStorage.getItem(`targetExam_${uid}`));
 
   useEffect(() => {
     const handler = (e: Event) => setTargetExam((e as CustomEvent).detail);
@@ -51,29 +51,29 @@ export default function Practice() {
 
   // ── カスタム演習 state ──
   const [examType, setExamType] = useState<string>(() =>
-    localStorage.getItem('targetExam') || localStorage.getItem('lastExamType') || 'SAA'
+    localStorage.getItem(`targetExam_${uid}`) || 'SAA'
   );
-  const initPrefs = (et: string) => loadExercisePrefs(et);
+  const initPrefs = (et: string) => loadExercisePrefs(et, uid);
   const [selectedDomains, setSelectedDomains] = useState<string[]>(() => {
-    const et = localStorage.getItem('targetExam') || localStorage.getItem('lastExamType') || 'SAA';
+    const et = localStorage.getItem(`targetExam_${uid}`) || 'SAA';
     return initPrefs(et).domains ?? EXAM_DOMAINS[et] ?? [];
   });
-  const [limit, setLimit] = useState<number>(() => initPrefs(localStorage.getItem('targetExam') || 'SAA').limit ?? 10);
-  const [bookmarkOnly, setBookmarkOnly] = useState<boolean>(() => initPrefs(localStorage.getItem('targetExam') || 'SAA').bookmarkOnly ?? false);
-  const [unansweredOnly, setUnansweredOnly] = useState<boolean>(() => initPrefs(localStorage.getItem('targetExam') || 'SAA').unansweredOnly ?? false);
-  const [incorrectOnly, setIncorrectOnly] = useState<boolean>(() => initPrefs(localStorage.getItem('targetExam') || 'SAA').incorrectOnly ?? false);
-  const [aiVerifiedOnly, setAiVerifiedOnly] = useState<boolean>(() => initPrefs(localStorage.getItem('targetExam') || 'SAA').aiVerifiedOnly ?? false);
+  const [limit, setLimit] = useState<number>(() => initPrefs(localStorage.getItem(`targetExam_${uid}`) || 'SAA').limit ?? 10);
+  const [bookmarkOnly, setBookmarkOnly] = useState<boolean>(() => initPrefs(localStorage.getItem(`targetExam_${uid}`) || 'SAA').bookmarkOnly ?? false);
+  const [unansweredOnly, setUnansweredOnly] = useState<boolean>(() => initPrefs(localStorage.getItem(`targetExam_${uid}`) || 'SAA').unansweredOnly ?? false);
+  const [incorrectOnly, setIncorrectOnly] = useState<boolean>(() => initPrefs(localStorage.getItem(`targetExam_${uid}`) || 'SAA').incorrectOnly ?? false);
+  const [aiVerifiedOnly, setAiVerifiedOnly] = useState<boolean>(() => initPrefs(localStorage.getItem(`targetExam_${uid}`) || 'SAA').aiVerifiedOnly ?? false);
   const [availableCount, setAvailableCount] = useState<number | null>(null);
   const [exerciseLoading, setExerciseLoading] = useState(false);
   type DomainStat = { tagId: string; correctCount: number; incorrectCount: number };
   const [domainStats, setDomainStats] = useState<DomainStat[]>([]);
 
   const [exerciseDraft, setExerciseDraft] = useState<any>(() => {
-    try { return JSON.parse(localStorage.getItem('practiceExerciseDraft') ?? 'null'); } catch { return null; }
+    try { return JSON.parse(localStorage.getItem(`practiceExerciseDraft_${uid}`) ?? 'null'); } catch { return null; }
   });
   const hasDraft = exerciseDraft?.examType === examType;
   const [examDraft, setExamDraft] = useState<any>(() => {
-    try { return JSON.parse(localStorage.getItem('examDraft') ?? 'null'); } catch { return null; }
+    try { return JSON.parse(localStorage.getItem(`examDraft_${uid}`) ?? 'null'); } catch { return null; }
   });
   const hasExamDraft = examDraft?.examType === examType;
   const [showNewPanel, setShowNewPanel] = useState(false);
@@ -83,7 +83,7 @@ export default function Practice() {
   const isFirstRender = useRef(true);
   useEffect(() => {
     if (isFirstRender.current) { isFirstRender.current = false; return; }
-    const prefs = loadExercisePrefs(examType);
+    const prefs = loadExercisePrefs(examType, uid);
     setSelectedDomains(prefs.domains ?? EXAM_DOMAINS[examType]);
     setLimit(prefs.limit ?? 10);
     setBookmarkOnly(prefs.bookmarkOnly ?? false);
@@ -93,7 +93,7 @@ export default function Practice() {
   }, [examType]);
 
   useEffect(() => {
-    saveExercisePrefs(examType, { domains: selectedDomains, limit, bookmarkOnly, unansweredOnly, incorrectOnly, aiVerifiedOnly });
+    saveExercisePrefs(examType, uid, { domains: selectedDomains, limit, bookmarkOnly, unansweredOnly, incorrectOnly, aiVerifiedOnly });
   }, [examType, selectedDomains, limit, bookmarkOnly, unansweredOnly, incorrectOnly, aiVerifiedOnly]);
 
   useEffect(() => {
@@ -294,7 +294,7 @@ export default function Practice() {
               {EXAM_TYPES.map(et => (
                 <button
                   key={et}
-                  onClick={() => { setExamType(et); localStorage.setItem('targetExam', et); setTargetExam(et); window.dispatchEvent(new CustomEvent('targetExamChanged', { detail: et })); }}
+                  onClick={() => { setExamType(et); localStorage.setItem(`targetExam_${uid}`, et); setTargetExam(et); window.dispatchEvent(new CustomEvent('targetExamChanged', { detail: et })); }}
                   style={{
                     padding: '4px 14px', border: `1px solid ${examType === et ? 'var(--color-primary)' : 'var(--color-border)'}`,
                     borderRadius: 'var(--border-radius-full)', fontSize: 'var(--font-size-sm)', cursor: 'pointer',
@@ -435,7 +435,7 @@ export default function Practice() {
                   {ja ? 'セッションを上書きして開始します' : 'This will overwrite the current session'}
                 </div>
                 <Button variant="outline" fullWidth style={{ height: 44 }}
-                  onClick={() => { localStorage.removeItem('practiceExerciseDraft'); setExerciseDraft(null); setShowNewPanel(false); startExercise(); }}>
+                  onClick={() => { localStorage.removeItem(`practiceExerciseDraft_${uid}`); setExerciseDraft(null); setShowNewPanel(false); startExercise(); }}>
                   {ja ? '新規に開始' : 'Start New'}
                 </Button>
               </div>
@@ -501,7 +501,7 @@ export default function Practice() {
                     ) : (ja ? '試験を再開' : 'Resume')}
                   </button>
                   <button
-                    onClick={() => { localStorage.removeItem('practiceExerciseDraft'); setExerciseDraft(null); startExercise(); }}
+                    onClick={() => { localStorage.removeItem(`practiceExerciseDraft_${uid}`); setExerciseDraft(null); startExercise(); }}
                     style={{ width: 44, height: 44, border: 'none', borderLeft: '2px solid rgba(255,255,255,0.4)', background: 'var(--color-accent)', color: 'var(--color-btn-primary-text)', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}
                     aria-label={ja ? '新規で開始' : 'Start new'}
                   >
@@ -541,7 +541,7 @@ export default function Practice() {
                   {ja ? 'セッションを上書きして開始します' : 'This will overwrite the current session'}
                 </div>
                 <Button variant="outline" fullWidth style={{ height: 44 }}
-                  onClick={() => { localStorage.removeItem('examDraft'); setExamDraft(null); setShowNewExamPanel(false); startExam(); }}>
+                  onClick={() => { localStorage.removeItem(`examDraft_${uid}`); setExamDraft(null); setShowNewExamPanel(false); startExam(); }}>
                   {ja ? '新規に開始' : 'Start New'}
                 </Button>
               </div>
@@ -607,7 +607,7 @@ export default function Practice() {
                     ) : (ja ? '試験を再開' : 'Resume')}
                   </button>
                   <button
-                    onClick={() => { localStorage.removeItem('examDraft'); setExamDraft(null); startExam(); }}
+                    onClick={() => { localStorage.removeItem(`examDraft_${uid}`); setExamDraft(null); startExam(); }}
                     style={{ width: 44, height: 44, border: 'none', borderLeft: '2px solid rgba(255,255,255,0.4)', background: 'var(--color-accent)', color: 'var(--color-btn-primary-text)', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}
                     aria-label={ja ? '新規で試験を開始' : 'Start new exam'}
                   >

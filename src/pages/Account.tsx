@@ -176,12 +176,13 @@ export default function Account() {
   const [showLangModal, setShowLangModal] = useState(false);
   const [showThemeModal, setShowThemeModal] = useState(false);
 
+  const uid = user?.userId ?? 'guest';
   // localStorage にそのexamTypeのデータが残っているか確認
   const hasLocalData = (et: string): boolean => {
     try {
-      const hist = JSON.parse(localStorage.getItem(`domain_history_${et}`) ?? '{}');
+      const hist = JSON.parse(localStorage.getItem(`domain_history_${et}_${uid}`) ?? '{}');
       if (Object.values(hist).some((s: any) => (s as any[]).length > 0)) return true;
-      const scoreHist = JSON.parse(localStorage.getItem(`score_history_${et}`) ?? '[]');
+      const scoreHist = JSON.parse(localStorage.getItem(`score_history_${et}_${uid}`) ?? '[]');
       if (scoreHist.length > 0) return true;
       return false;
     } catch { return false; }
@@ -213,10 +214,10 @@ export default function Account() {
     try {
       await fetch(`${API_ENDPOINT}/users/me/data?userId=${user.userId}&examType=${et}`, { method: 'DELETE' });
       // ローカルの成績・スコア履歴もリセット
-      localStorage.removeItem(`domain_history_${et}`);
-      localStorage.removeItem(`score_history_${et}`);
-      localStorage.removeItem(`score_today_${et}`);
-      localStorage.removeItem(`score_prev_${et}`);
+      localStorage.removeItem(`domain_history_${et}_${uid}`);
+      localStorage.removeItem(`score_history_${et}_${uid}`);
+      localStorage.removeItem(`score_today_${et}_${uid}`);
+      localStorage.removeItem(`score_prev_${et}_${uid}`);
       // domainStats のセッションキャッシュを無効化（Home等が次回再フェッチする）
       deleteCached(`ustats_${user.userId}`);
       setDeletedExams(prev => new Set(prev).add(et));

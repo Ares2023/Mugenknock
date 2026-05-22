@@ -299,7 +299,7 @@ export default function ExerciseSession() {
   useEffect(() => {
     if (!sessionId) return;
     try {
-      const draftKey = isQuick ? 'quickExerciseDraft' : isFocused ? 'focusedExerciseDraft' : 'practiceExerciseDraft';
+      const draftKey = isQuick ? `quickExerciseDraft_${userId}` : isFocused ? `focusedExerciseDraft_${userId}` : `practiceExerciseDraft_${userId}`;
       localStorage.setItem(draftKey, JSON.stringify({
         sessionId, examType, questions, userId,
         currentIndex, results, answered, selectedAnswers,
@@ -407,9 +407,9 @@ export default function ExerciseSession() {
           body: JSON.stringify({ userId, status: 'completed', score, isPassed })
         });
       } catch (err) { console.error(err); }
-      localStorage.removeItem('quickExerciseDraft');
-      localStorage.removeItem('focusedExerciseDraft');
-      localStorage.removeItem('practiceExerciseDraft');
+      localStorage.removeItem(`quickExerciseDraft_${userId}`);
+      localStorage.removeItem(`focusedExerciseDraft_${userId}`);
+      localStorage.removeItem(`practiceExerciseDraft_${userId}`);
       // ドメイン別 delta 計算（全ユーザー共通）
       const delta: Record<string, { c: number; i: number }> = {};
       for (const r of results) {
@@ -422,17 +422,17 @@ export default function ExerciseSession() {
       // domain_history に追加（直近10セッション、ゲストでも保存）
       try {
         const dh: Record<string, { correct: number; total: number }[]> =
-          JSON.parse(localStorage.getItem(`domain_history_${examType}`) ?? '{}');
+          JSON.parse(localStorage.getItem(`domain_history_${examType}_${userId}`) ?? '{}');
         for (const [tag, d] of Object.entries(delta)) {
           if (d.c + d.i === 0) continue;
           if (!dh[tag]) dh[tag] = [];
           dh[tag] = [...dh[tag], { correct: d.c, total: d.c + d.i }].slice(-10);
         }
-        localStorage.setItem(`domain_history_${examType}`, JSON.stringify(dh));
+        localStorage.setItem(`domain_history_${examType}_${userId}`, JSON.stringify(dh));
       } catch {}
       // セッション完了でキャッシュ破棄 → ホーム画面が最新データをサーバーから再取得
       deleteCached(`ustats_${userId}`);
-      localStorage.setItem('postSessionRefresh', String(Date.now()));
+      localStorage.setItem(`postSessionRefresh_${userId}`, String(Date.now()));
       navigate('/aws/result', { state: { results, questions, score, isPassed, sessionId, userId, examType, isQuick, isMini } });
     } else {
       setCurrentIndex(prev => prev + 1);
