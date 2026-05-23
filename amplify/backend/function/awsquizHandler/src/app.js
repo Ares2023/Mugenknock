@@ -1919,6 +1919,93 @@ app.get('/admin/deletion-requests/status', async (req, res) => {
   }
 });
 
+// ユーザーデータ削除の共通処理
+async function executeUserDataDeletion(docClient, userId) {
+  const deleteItems = async (table, keys) => {
+    if (keys.length === 0) return;
+    await Promise.all(keys.map(key => docClient.send(new DeleteCommand({ TableName: table, Key: key }))));
+  };
+
+  const [qsResult, tsResult, sessResult] = await Promise.all([
+    docClient.send(new QueryCommand({
+      TableName: 'UserQuestionStats',
+      KeyConditionExpression: 'userId = :uid',
+      ExpressionAttributeValues: { ':uid': userId },
+      ProjectionExpression: 'userId, questionId',
+    })),
+    docClient.send(new QueryCommand({
+      TableName: 'UserTagStats',
+      KeyConditionExpression: 'userId = :uid',
+      ExpressionAttributeValues: { ':uid': userId },
+      ProjectionExpression: 'userId, tagId',
+    })),
+    docClient.send(new QueryCommand({
+      TableName: 'Sessions',
+      KeyConditionExpression: 'userId = :uid',
+      ExpressionAttributeValues: { ':uid': userId },
+      ProjectionExpression: 'userId, sessionId',
+    })),
+  ]);
+
+  await Promise.all([
+    deleteItems('UserQuestionStats', (qsResult.Items || []).map(i => ({ userId: i.userId, questionId: i.questionId }))),
+    deleteItems('UserTagStats', (tsResult.Items || []).map(i => ({ userId: i.userId, tagId: i.tagId }))),
+  ]);
+
+  const sessionIds = (sessResult.Items || []).map(s => s.sessionId);
+  for (const sessionId of sessionIds) {
+    let lastKey;
+    do {
+      const ansResult = await docClient.send(new QueryCommand({
+        TableName: 'UserAnswers',
+        KeyConditionExpression: 'userId = :uid AND begins_with(questionIdTimestamp, :prefix)',
+        ExpressionAttributeValues: { ':uid': userId, ':prefix': `${sessionId}#` },
+        ExclusiveStartKey: lastKey,
+        ProjectionExpression: 'userId, questionIdTimestamp',
+      }));
+      await deleteItems('UserAnswers', (ansResult.Items || []).map(a => ({ userId: a.userId, questionIdTimestamp: a.questionIdTimestamp })));
+      lastKey = ansResult.LastEvaluatedKey;
+    } while (lastKey);
+  }
+  await deleteItems('Sessions', sessionIds.map(sid => ({ userId, sessionId: sid })));
+
+  try { await docClient.send(new DeleteCommand({ TableName: 'EncyclopediaUnlocks', Key: { userId } })); } catch {}
+
+  const reportsResult = await docClient.send(new ScanCommand({
+    TableName: 'Reports',
+    FilterExpression: 'userId = :uid',
+    ExpressionAttributeValues: { ':uid': userId },
+    ProjectionExpression: 'reportId',
+  }));
+  await deleteItems('Reports', (reportsResult.Items || []).map(i => ({ reportId: i.reportId })));
+
+  // クライアント側localStorageリセット用タイムスタンプ
+  const resetAt = new Date().toISOString();
+  await docClient.send(new PutCommand({
+    TableName: 'AppSettings',
+    Item: { settingId: `userReset_${userId}`, userId, resetAt },
+  }));
+}
+
+// 管理者: メールアドレス指定で直接ユーザーデータを削除（admin認証のみで実行可能）
+app.post('/admin/direct-delete', async (req, res) => {
+  try {
+    const { email } = req.body;
+    if (!email) return res.status(400).json({ error: 'email required' });
+
+    const cognitoUser = await findCognitoUserByEmail(email);
+    if (!cognitoUser) return res.status(404).json({ error: 'User not found' });
+
+    const docClient = getClient();
+    await executeUserDataDeletion(docClient, cognitoUser.userId);
+
+    res.json({ success: true, userId: cognitoUser.userId });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: String(err.message || err) });
+  }
+});
+
 // 管理者: データ削除実行
 app.post('/admin/deletion-requests/execute', async (req, res) => {
   try {
@@ -1953,78 +2040,14 @@ app.post('/admin/deletion-requests/execute', async (req, res) => {
       tokenSettingId = `${DEL_REQ_PREFIX}${token}`;
     }
 
-    const deleteItems = async (table, keys) => {
-      if (keys.length === 0) return;
-      await Promise.all(keys.map(key => docClient.send(new DeleteCommand({ TableName: table, Key: key }))));
-    };
-
-    // UserQuestionStats
-    const qsResult = await docClient.send(new QueryCommand({
-      TableName: 'UserQuestionStats',
-      KeyConditionExpression: 'userId = :uid',
-      ExpressionAttributeValues: { ':uid': userId },
-      ProjectionExpression: 'userId, questionId',
-    }));
-    await deleteItems('UserQuestionStats', (qsResult.Items || []).map(i => ({ userId: i.userId, questionId: i.questionId })));
-
-    // UserTagStats
-    const tsResult = await docClient.send(new QueryCommand({
-      TableName: 'UserTagStats',
-      KeyConditionExpression: 'userId = :uid',
-      ExpressionAttributeValues: { ':uid': userId },
-      ProjectionExpression: 'userId, tagId',
-    }));
-    await deleteItems('UserTagStats', (tsResult.Items || []).map(i => ({ userId: i.userId, tagId: i.tagId })));
-
-    // Sessions + UserAnswers
-    const sessResult = await docClient.send(new QueryCommand({
-      TableName: 'Sessions',
-      KeyConditionExpression: 'userId = :uid',
-      ExpressionAttributeValues: { ':uid': userId },
-      ProjectionExpression: 'userId, sessionId',
-    }));
-    const sessionIds = (sessResult.Items || []).map(s => s.sessionId);
-    for (const sessionId of sessionIds) {
-      let lastKey;
-      do {
-        const ansResult = await docClient.send(new QueryCommand({
-          TableName: 'UserAnswers',
-          KeyConditionExpression: 'userId = :uid AND begins_with(questionIdTimestamp, :prefix)',
-          ExpressionAttributeValues: { ':uid': userId, ':prefix': `${sessionId}#` },
-          ExclusiveStartKey: lastKey,
-          ProjectionExpression: 'userId, questionIdTimestamp',
-        }));
-        await deleteItems('UserAnswers', (ansResult.Items || []).map(a => ({ userId: a.userId, questionIdTimestamp: a.questionIdTimestamp })));
-        lastKey = ansResult.LastEvaluatedKey;
-      } while (lastKey);
-    }
-    await deleteItems('Sessions', sessionIds.map(sid => ({ userId, sessionId: sid })));
-
-    // EncyclopediaUnlocks
-    try { await docClient.send(new DeleteCommand({ TableName: 'EncyclopediaUnlocks', Key: { userId } })); } catch {}
-
-    // Reports
-    const reportsResult = await docClient.send(new ScanCommand({
-      TableName: 'Reports',
-      FilterExpression: 'userId = :uid',
-      ExpressionAttributeValues: { ':uid': userId },
-      ProjectionExpression: 'reportId',
-    }));
-    await deleteItems('Reports', (reportsResult.Items || []).map(i => ({ reportId: i.reportId })));
+    await executeUserDataDeletion(docClient, userId);
 
     // 永続認証レコードを保存（なければ作成）
     await docClient.send(new PutCommand({
       TableName: 'AppSettings',
       Item: { settingId: `${DEL_AUTH_PREFIX}${userId}`, userId, email, authorizedAt: new Date().toISOString() },
       ConditionExpression: 'attribute_not_exists(settingId)',
-    })).catch(() => {}); // 既存の場合は無視
-
-    // クライアント側ローカルストレージをリセットさせるためのタイムスタンプを記録
-    const resetAt = new Date().toISOString();
-    await docClient.send(new PutCommand({
-      TableName: 'AppSettings',
-      Item: { settingId: `userReset_${userId}`, userId, resetAt },
-    }));
+    })).catch(() => {});
 
     // 一時トークンを削除
     if (tokenSettingId) {
