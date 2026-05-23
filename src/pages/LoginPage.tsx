@@ -1,10 +1,14 @@
-import React, { useRef } from 'react';
+import React, { useRef, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Authenticator, ThemeProvider, Theme } from '@aws-amplify/ui-react';
+import { Authenticator, ThemeProvider, Theme, translations } from '@aws-amplify/ui-react';
 import '@aws-amplify/ui-react/styles.css';
+import { I18n } from 'aws-amplify/utils';
 import { useAuth } from '../contexts/AuthContext';
 import { useLanguage } from '../contexts/LanguageContext';
 import Button from '../components/ui/Button';
+
+I18n.putVocabularies(translations);
+I18n.setLanguage('ja');
 
 const amplifyTheme: Theme = {
   name: 'sherpa-theme',
@@ -64,8 +68,12 @@ const LEVEL_COLOR: Record<string, string> = {
 export default function LoginPage() {
   const navigate = useNavigate();
   const { refresh } = useAuth();
-  const { t } = useLanguage();
+  const { lang, setLang, t } = useLanguage();
   const navigating = useRef(false);
+
+  useEffect(() => {
+    I18n.setLanguage(lang);
+  }, [lang]);
 
   return (
     <ThemeProvider theme={amplifyTheme}>
@@ -145,11 +153,52 @@ export default function LoginPage() {
           </p>
         </div>
 
+        {/* 言語切り替え */}
+        <div style={{ position: 'absolute', top: 16, right: 16, zIndex: 2, display: 'flex', gap: 4 }}>
+          <button
+            onClick={() => setLang('ja')}
+            style={{
+              padding: '4px 10px', fontSize: 12, fontWeight: 700, borderRadius: 20, cursor: 'pointer',
+              background: lang === 'ja' ? 'var(--color-primary)' : 'transparent',
+              color: lang === 'ja' ? 'white' : 'var(--color-text-sub)',
+              border: `1px solid ${lang === 'ja' ? 'var(--color-primary)' : 'var(--color-border)'}`,
+            }}
+          >JA</button>
+          <button
+            onClick={() => setLang('en')}
+            style={{
+              padding: '4px 10px', fontSize: 12, fontWeight: 700, borderRadius: 20, cursor: 'pointer',
+              background: lang === 'en' ? 'var(--color-primary)' : 'transparent',
+              color: lang === 'en' ? 'white' : 'var(--color-text-sub)',
+              border: `1px solid ${lang === 'en' ? 'var(--color-primary)' : 'var(--color-border)'}`,
+            }}
+          >EN</button>
+        </div>
+
         {/* Amplify Authenticator（Card不要・ThemeProviderで統一） */}
         <div style={{ position: 'relative', zIndex: 1, width: '100%', maxWidth: 420 }}>
           <Authenticator
             loginMechanisms={['email']}
             signUpAttributes={['email']}
+            components={{
+              SignUp: {
+                Footer() {
+                  return (
+                    <div style={{
+                      padding: '0 24px 20px',
+                      fontSize: 12,
+                      color: 'var(--color-text-sub)',
+                      lineHeight: 1.6,
+                      textAlign: 'center',
+                    }}>
+                      {lang === 'ja'
+                        ? '確認コードのメールが届かない場合は、迷惑メールフォルダもご確認ください。'
+                        : 'If you don\'t receive the confirmation email, please check your spam or junk folder.'}
+                    </div>
+                  );
+                },
+              },
+            }}
           >
             {({ user: cognitoUser }) => {
               if (cognitoUser && !navigating.current) {

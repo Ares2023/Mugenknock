@@ -1855,7 +1855,11 @@ app.post('/admin/deletion-requests', async (req, res) => {
     res.json({ success: true, userId: cognitoUser.userId });
   } catch (err) {
     console.error(err);
-    res.status(500).json({ error: String(err.message || err) });
+    const msg = String(err.message || err);
+    if (msg.includes('not verified') || msg.includes('MessageRejected')) {
+      return res.status(503).json({ error: `送信先メールアドレス（${req.body.email}）がSESで未検証です。SES本番アクセスへの移行、またはSESコンソールで対象アドレスを検証してください。` });
+    }
+    res.status(500).json({ error: msg });
   }
 });
 
