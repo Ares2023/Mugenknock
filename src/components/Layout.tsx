@@ -104,12 +104,12 @@ export default function Layout({ children }: { children: React.ReactNode }) {
   const navigate = useNavigate();
   const location = useLocation();
   const mainRef = useRef<HTMLElement>(null);
+  const uid = user?.userId ?? 'guest';
   const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
   const [open, setOpen] = useState(() => {
     if (window.innerWidth < 768) return false;
-    return localStorage.getItem('sidebarOpen') !== 'false';
+    return localStorage.getItem(`sidebarOpen_${uid}`) !== 'false';
   });
-  const uid = user?.userId ?? 'guest';
   const [targetExam, setTargetExam] = useState<string | null>(() => localStorage.getItem(`targetExam_${uid}`));
   const [showContact, setShowContact] = useState(false);
   const [contactSubject, setContactSubject] = useState('');
@@ -227,7 +227,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
   }, [open, isMobile]);
 
   const toggle = () => setOpen(prev => {
-    if (!isMobile) localStorage.setItem('sidebarOpen', String(!prev));
+    if (!isMobile) localStorage.setItem(`sidebarOpen_${uid}`, String(!prev));
     return !prev;
   });
 

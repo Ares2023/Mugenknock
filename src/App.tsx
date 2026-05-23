@@ -101,15 +101,15 @@ function AppInner() {
 
 function App() {
   return (
+    <BrowserRouter>
+    <AuthProvider>
     <ThemeProvider>
     <LanguageProvider>
-    <AuthProvider>
-      <BrowserRouter>
-        <AppInner />
-      </BrowserRouter>
-    </AuthProvider>
+      <AppInner />
     </LanguageProvider>
     </ThemeProvider>
+    </AuthProvider>
+    </BrowserRouter>
   );
 }
 

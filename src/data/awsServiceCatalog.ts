@@ -363,12 +363,14 @@ export const CATALOG: Category[] = [
  * ホーム画面でDynamoDBサービスがロード済みならそれを優先し、
  * 未ロードの場合はDynamoDB対応済みサービスのみから日付シードで決定論的に選出。
  */
-export function getDailyService(): ServiceEntry & { category: string } {
+export function getDailyService(uid?: string): ServiceEntry & { category: string } {
   const jstDate = new Date(Date.now() + 9 * 3600 * 1000).toISOString().slice(0, 10);
 
   // ホーム画面でロードされた今日のDynamoDBサービスを優先
-  const unlockDate = localStorage.getItem('encyclopediaUnlockDate');
-  const todayId = localStorage.getItem('encyclopediaTodayServiceId');
+  const dateKey = uid ? `encyclopediaUnlockDate_${uid}` : 'encyclopediaUnlockDate';
+  const idKey = uid ? `encyclopediaTodayServiceId_${uid}` : 'encyclopediaTodayServiceId';
+  const unlockDate = localStorage.getItem(dateKey);
+  const todayId = localStorage.getItem(idKey);
   if (unlockDate === jstDate && todayId) {
     for (const cat of CATALOG) {
       for (const svc of cat.services) {

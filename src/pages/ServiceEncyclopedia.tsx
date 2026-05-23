@@ -15,31 +15,6 @@ type EncyclopediaService = {
   docUrl?: string;
 };
 
-function migrateIfNeeded(uid: string): void {
-  const userKey = `encyclopediaUnlocked_${uid}`;
-  if (localStorage.getItem(userKey) !== null) return;
-
-  // 旧共有キーがあればユーザー別キーへコピー
-  const shared = localStorage.getItem('encyclopediaUnlocked');
-  if (shared !== null) {
-    localStorage.setItem(userKey, shared);
-    const sharedDate = localStorage.getItem('encyclopediaUnlockDate');
-    if (sharedDate !== null) localStorage.setItem(`encyclopediaUnlockDate_${uid}`, sharedDate);
-    const sharedTodayId = localStorage.getItem('encyclopediaTodayServiceId');
-    if (sharedTodayId !== null) localStorage.setItem(`encyclopediaTodayServiceId_${uid}`, sharedTodayId);
-    return;
-  }
-
-  // さらに旧い encyclopediaServices からの移行
-  try {
-    const legacy = JSON.parse(localStorage.getItem('encyclopediaServices') ?? '{}');
-    const keys = Object.keys(legacy);
-    if (keys.length === 0) return;
-    const migrated: Record<string, string> = {};
-    keys.forEach(k => { migrated[k] = 'migrated'; });
-    localStorage.setItem(userKey, JSON.stringify(migrated));
-  } catch {}
-}
 
 function isUnlocked(svc: ServiceEntry, unlockedMap: Record<string, string>): boolean {
   if (svc.serviceIds?.some(id => id in unlockedMap)) return true;
@@ -72,7 +47,6 @@ export default function ServiceEncyclopedia() {
   const uid = user?.userId ?? 'guest';
 
   const [unlockedMap, setUnlockedMap] = useState<Record<string, string>>(() => {
-    migrateIfNeeded(uid);
     try { return JSON.parse(localStorage.getItem(`encyclopediaUnlocked_${uid}`) ?? '{}'); } catch { return {}; }
   });
   const [storedServices, setStoredServices] = useState<Record<string, EncyclopediaService>>(() => {
@@ -83,7 +57,6 @@ export default function ServiceEncyclopedia() {
 
   // uidが変わった時（ログイン/ログアウト）にlocalStorageから再読み込み
   useEffect(() => {
-    migrateIfNeeded(uid);
     try { setUnlockedMap(JSON.parse(localStorage.getItem(`encyclopediaUnlocked_${uid}`) ?? '{}')); } catch {}
   }, [uid]); // eslint-disable-line react-hooks/exhaustive-deps
 
@@ -121,7 +94,7 @@ export default function ServiceEncyclopedia() {
       .catch(() => {});
   }, [user?.userId]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  const todaySvc = getDailyService();
+  const todaySvc = getDailyService(uid);
   const todayId = localStorage.getItem(`encyclopediaTodayServiceId_${uid}`);
 
   // Check unlock via direct todayId (most reliable) OR via catalog-based keys

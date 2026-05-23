@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useState, useLayoutEffect, useEffect, useCallback } from 'react';
 import { API_ENDPOINT } from '../constants';
+import { useAuth } from './AuthContext';
 
 type Theme = 'light' | 'dark';
 
@@ -39,10 +40,20 @@ function clearFromRoot(colors: CustomColors) {
 }
 
 export const ThemeProvider = ({ children }: { children: React.ReactNode }) => {
+  const { user } = useAuth();
+  const uid = user?.userId;
+
   const [theme, setTheme] = useState<Theme>(() => {
     const saved = localStorage.getItem('theme');
     return saved === 'dark' ? 'dark' : 'light';
   });
+
+  // uidが確定・変更したらアカウント別設定を適用
+  useEffect(() => {
+    if (!uid) return;
+    const saved = localStorage.getItem(`theme_${uid}`);
+    if (saved === 'dark' || saved === 'light') setTheme(saved as Theme);
+  }, [uid]);
 
   const [customColors, setCustomColors] = useState<CustomColors>(() => {
     try {
@@ -91,7 +102,11 @@ export const ThemeProvider = ({ children }: { children: React.ReactNode }) => {
   const toggleTheme = () => {
     setTheme(prev => {
       const next = prev === 'light' ? 'dark' : 'light';
-      localStorage.setItem('theme', next);
+      if (uid) {
+        localStorage.setItem(`theme_${uid}`, next);
+      } else {
+        localStorage.setItem('theme', next);
+      }
       return next;
     });
   };
