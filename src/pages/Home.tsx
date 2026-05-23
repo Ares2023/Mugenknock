@@ -5,7 +5,7 @@ import DailyServiceRevealModal from '../components/DailyServiceRevealModal';
 import { useAuth } from '../contexts/AuthContext';
 import { useLanguage } from '../contexts/LanguageContext';
 import {
-  API_ENDPOINT, EXAM_DOMAINS,
+  API_ENDPOINT, EXAM_TYPES, EXAM_CONFIGS, EXAM_DOMAINS,
   DOMAIN_WEIGHTS, DOMAIN_NAME_EN, PASS_SCORES,
 } from '../constants';
 import { getCached, setCached, deleteCached, DEFAULT_TTL } from '../utils/cache';
@@ -339,6 +339,198 @@ function DomainDetailModal({ targetExam, domainAccList, lang, onClose }: {
 }
 
 // ── 日めくりAWSサービス ─────────────────────────────────────────
+// ── オンボーディング ────────────────────────────────────────────
+const OB_LEVEL: Record<string, string> = {
+  CLF: 'Foundational', AIF: 'Foundational',
+  SAA: 'Associate', DVA: 'Associate', SOA: 'Associate', DEA: 'Associate', MLA: 'Associate',
+  SAP: 'Professional', DOP: 'Professional', GAI: 'Professional',
+  ANS: 'Specialty', SCS: 'Specialty',
+};
+const OB_LEVEL_COLOR: Record<string, string> = {
+  Foundational: '#6b9e3a', Associate: '#006CE0', Professional: '#8b5cf6', Specialty: '#e67e22',
+};
+const OB_SHORT: Record<string, string> = {
+  CLF: 'Cloud Practitioner', AIF: 'AI Practitioner',
+  SAA: 'Solutions Architect', DVA: 'Developer',
+  SOA: 'CloudOps Engineer', DEA: 'Data Engineer', MLA: 'ML Engineer',
+  SAP: 'Solutions Architect Pro', DOP: 'DevOps Engineer', GAI: 'Generative AI Dev',
+  ANS: 'Advanced Networking', SCS: 'Security',
+};
+
+function OnboardingModal({ lang, uid, onComplete, onSkip }: {
+  lang: string; uid: string;
+  onComplete: (exam: string) => void;
+  onSkip: () => void;
+}) {
+  const ja = lang === 'ja';
+  const [slide, setSlide] = useState(0);
+  const [selected, setSelected] = useState<string | null>(null);
+
+  const handleSelect = (exam: string) => setSelected(prev => prev === exam ? null : exam);
+
+  const handleComplete = () => {
+    if (!selected) return;
+    localStorage.setItem(`targetExam_${uid}`, selected);
+    window.dispatchEvent(new CustomEvent('targetExamChanged', { detail: selected }));
+    onComplete(selected);
+  };
+
+  const levels = ['Foundational', 'Associate', 'Professional', 'Specialty'] as const;
+  const grouped = levels.map(lv => ({
+    lv,
+    exams: EXAM_TYPES.filter(e => OB_LEVEL[e] === lv),
+  }));
+
+  return createPortal(
+    <div style={{
+      position: 'fixed', inset: 0, zIndex: 9800,
+      background: 'var(--color-bg-main)',
+      display: 'flex', flexDirection: 'column',
+      overflowY: 'auto',
+    }}>
+      {/* ── スライド 0: ようこそ ── */}
+      {slide === 0 && (
+        <div style={{
+          flex: 1, display: 'flex', flexDirection: 'column',
+          alignItems: 'center', justifyContent: 'center',
+          padding: '40px 24px', maxWidth: 480, margin: '0 auto', width: '100%',
+          gap: 0,
+        }}>
+          <img src="/mugen-header.png" alt="AWS資格無限ノック" style={{ height: 40, objectFit: 'contain', marginBottom: 28 }} />
+
+          <h1 style={{ fontSize: 22, fontWeight: 800, color: 'var(--color-text-main)', textAlign: 'center', margin: '0 0 10px', lineHeight: 1.35 }}>
+            {ja ? 'AWS資格無限ノックへ\nようこそ！' : 'Welcome to MugenKnock!'}
+          </h1>
+          <p style={{ fontSize: 13, color: 'var(--color-text-sub)', textAlign: 'center', margin: '0 0 32px', lineHeight: 1.7 }}>
+            {ja
+              ? 'AWS認定試験の合格を目指す学習アプリです。\n演習・模試・サービス図鑑の3本柱でスコアアップをサポートします。'
+              : 'An app to help you pass AWS certification exams with practice, mock exams, and a service encyclopedia.'}
+          </p>
+
+          {/* 3つの特徴 */}
+          {[
+            { icon: '📝', ja: '実践的な演習問題', en: 'Practice Questions' },
+            { icon: '📊', ja: '合格スコア予測', en: 'Score Prediction' },
+            { icon: '📖', ja: 'AWSサービス図鑑', en: 'Service Encyclopedia' },
+          ].map(f => (
+            <div key={f.en} style={{
+              display: 'flex', alignItems: 'center', gap: 14,
+              width: '100%', padding: '12px 16px', borderRadius: 12,
+              background: 'var(--color-bg-card)', marginBottom: 10,
+              border: '1px solid var(--color-border)',
+            }}>
+              <span style={{ fontSize: 24 }}>{f.icon}</span>
+              <span style={{ fontWeight: 700, fontSize: 14, color: 'var(--color-text-main)' }}>{ja ? f.ja : f.en}</span>
+            </div>
+          ))}
+
+          <div style={{ marginTop: 28, width: '100%' }}>
+            <Button variant="primary" fullWidth onClick={() => setSlide(1)} size="lg">
+              {ja ? '目標資格を設定する →' : 'Set Target Exam →'}
+            </Button>
+            <button onClick={onSkip} style={{
+              display: 'block', margin: '14px auto 0', background: 'none', border: 'none',
+              color: 'var(--color-text-light)', fontSize: 13, cursor: 'pointer', padding: '4px 0',
+            }}>
+              {ja ? '後で設定する' : 'Set up later'}
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* ── スライド 1: 資格選択 ── */}
+      {slide === 1 && (
+        <div style={{
+          flex: 1, display: 'flex', flexDirection: 'column',
+          padding: '32px 24px 24px', maxWidth: 560, margin: '0 auto', width: '100%',
+        }}>
+          <h2 style={{ fontSize: 20, fontWeight: 800, color: 'var(--color-text-main)', margin: '0 0 6px' }}>
+            {ja ? '目指すAWS資格を選んでください' : 'Select your target exam'}
+          </h2>
+          <p style={{ fontSize: 12, color: 'var(--color-text-sub)', margin: '0 0 20px' }}>
+            {ja ? '後からホーム画面でいつでも変更できます' : 'You can change this anytime on the home screen'}
+          </p>
+
+          {/* 資格グループ */}
+          <div style={{ flex: 1, overflowY: 'auto' }}>
+            {grouped.map(({ lv, exams }) => (
+              <div key={lv} style={{ marginBottom: 18 }}>
+                <div style={{
+                  fontSize: 11, fontWeight: 700, letterSpacing: '.06em', textTransform: 'uppercase',
+                  color: OB_LEVEL_COLOR[lv], marginBottom: 8,
+                }}>{lv}</div>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 7 }}>
+                  {exams.map(exam => {
+                    const cfg = EXAM_CONFIGS[exam];
+                    const isSelected = selected === exam;
+                    return (
+                      <button
+                        key={exam}
+                        onClick={() => handleSelect(exam)}
+                        style={{
+                          display: 'flex', alignItems: 'center', gap: 12,
+                          padding: '10px 14px', borderRadius: 10, cursor: 'pointer', textAlign: 'left',
+                          background: isSelected ? 'var(--color-primary-light)' : 'var(--color-bg-card)',
+                          border: `2px solid ${isSelected ? 'var(--color-primary)' : 'var(--color-border)'}`,
+                          transition: 'border-color .15s, background .15s',
+                        }}
+                      >
+                        <div style={{ flex: 1, minWidth: 0 }}>
+                          <div style={{ fontWeight: 700, fontSize: 13, color: 'var(--color-text-main)' }}>
+                            {cfg.examCode}
+                          </div>
+                          <div style={{ fontSize: 11, color: 'var(--color-text-sub)', marginTop: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                            {OB_SHORT[exam]}
+                          </div>
+                        </div>
+                        {isSelected && (
+                          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--color-primary)" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0 }}>
+                            <polyline points="20 6 9 17 4 12"/>
+                          </svg>
+                        )}
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+            ))}
+          </div>
+
+          <div style={{ paddingTop: 16 }}>
+            <Button
+              variant="primary" fullWidth size="lg"
+              onClick={handleComplete}
+              style={selected ? {} : { opacity: 0.45, pointerEvents: 'none' }}
+            >
+              {ja ? '設定して始める' : 'Start with this exam'}
+            </Button>
+            <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: 12 }}>
+              <button onClick={() => setSlide(0)} style={{ background: 'none', border: 'none', color: 'var(--color-text-light)', fontSize: 13, cursor: 'pointer', padding: '4px 0' }}>
+                ← {ja ? '戻る' : 'Back'}
+              </button>
+              <button onClick={onSkip} style={{ background: 'none', border: 'none', color: 'var(--color-text-light)', fontSize: 13, cursor: 'pointer', padding: '4px 0' }}>
+                {ja ? '後で設定する' : 'Set up later'}
+              </button>
+            </div>
+          </div>
+
+          {/* 進捗ドット */}
+          <div style={{ display: 'flex', justifyContent: 'center', gap: 6, marginTop: 16 }}>
+            {[0, 1].map(i => (
+              <div key={i} style={{
+                width: i === slide ? 18 : 6, height: 6, borderRadius: 3,
+                background: i === slide ? 'var(--color-primary)' : 'var(--color-border)',
+                transition: 'width .2s',
+              }} />
+            ))}
+          </div>
+        </div>
+      )}
+    </div>,
+    document.body,
+  );
+}
+
 type DailyService = {
   serviceId: string; name: string; shortName?: string; category?: string;
   icon: string; description: string; trivia?: string; docUrl?: string;
@@ -405,16 +597,6 @@ function TodayServiceSection({ lang, userId, onNavigateEncyclopedia, onReveal }:
   useEffect(() => {
     const uid = userId ?? 'guest';
     const jstDate = jstToday();
-
-    // 旧共有キー → ユーザー別キーへの移行（一回限り）
-    if (uid !== 'guest' && localStorage.getItem(`encyclopediaUnlocked_${uid}`) === null) {
-      const shared = localStorage.getItem('encyclopediaUnlocked');
-      if (shared !== null) localStorage.setItem(`encyclopediaUnlocked_${uid}`, shared);
-      const sharedDate = localStorage.getItem('encyclopediaUnlockDate');
-      if (sharedDate !== null) localStorage.setItem(`encyclopediaUnlockDate_${uid}`, sharedDate);
-      const sharedTodayId = localStorage.getItem('encyclopediaTodayServiceId');
-      if (sharedTodayId !== null) localStorage.setItem(`encyclopediaTodayServiceId_${uid}`, sharedTodayId);
-    }
 
     // 今日すでにタップ解放済みか確認
     const alreadyRevealed = localStorage.getItem(`encyclopediaUnlockDate_${uid}`) === jstDate;
@@ -629,6 +811,7 @@ export default function Home() {
   const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
   const [revealService, setRevealService] = useState<DailyService | null>(null);
   const [targetExam, setTargetExam] = useState<string | null>(() => localStorage.getItem(`targetExam_${uid}`));
+  const [showOnboarding, setShowOnboarding] = useState(() => !!user && !localStorage.getItem(`targetExam_${uid}`));
   const [domainStats, setDomainStats] = useState<DomainStat[]>([]);
   const [statsLoading, setStatsLoading] = useState(false);
   const [statsRefreshing, setStatsRefreshing] = useState(false);
@@ -666,7 +849,11 @@ export default function Home() {
 
   useEffect(() => {
     const saved = localStorage.getItem(`targetExam_${uid}`);
-    if (saved !== null) setTargetExam(saved);
+    if (saved !== null) {
+      setTargetExam(saved);
+    } else if (user) {
+      setShowOnboarding(true);
+    }
   }, [uid]);
 
   useEffect(() => {
@@ -1737,6 +1924,19 @@ export default function Home() {
       {/* 成績詳細モーダル */}
       {showCombinedDetail && targetExam && (
         <CombinedDetailModal targetExam={targetExam} domainAccList={domainAccList} estimatedScore={estimatedScore} passScore={passScore} lang={lang} isMobile={isMobile} uid={uid} onClose={() => setShowCombinedDetail(false)} />
+      )}
+
+      {/* オンボーディング（目標資格未設定） */}
+      {showOnboarding && (
+        <OnboardingModal
+          lang={lang}
+          uid={uid}
+          onComplete={(exam) => {
+            setTargetExam(exam);
+            setShowOnboarding(false);
+          }}
+          onSkip={() => setShowOnboarding(false)}
+        />
       )}
     </div>
   );
