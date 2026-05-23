@@ -54,7 +54,6 @@ commands:
   rm N            remove hook at index N
   mv N M          move hook at index N to index M
   skip            skip hooks on next run (run again to cancel)
-  repair          claude バイナリの修復（バイナリ消失時に npm reinstall）
 
 flags:
   -d HH:MM        with "run": stop processing 3 min before HH:MM (deadline)
@@ -859,7 +858,6 @@ while [[ $# -gt 0 ]]; do
       ;;
     -l)       CMD="last";   shift ;;
     -n)       CMD="next";   shift ;;
-    repair)   CMD="repair";  shift ;;
     -h|--help) CMD="help";  shift ;;
     --run)     CMD="_run";     shift ;;  # systemd internal
     --recover) CMD="recover";  shift ;;  # systemd startup recovery
@@ -1007,34 +1005,6 @@ PYEOF
   last)      cat "$LAST_RUN_FILE" 2>/dev/null || echo "never" ;;
   next)      get_next_time || echo "none" ;;
   help)      show_help ;;
-  repair)
-    _CLAUDE_BIN="/home/yuzuki/.npm-global/bin/claude"
-    _NPM_BIN=$(command -v npm 2>/dev/null || echo "/usr/bin/npm")
-    _NODE_BIN="/home/sera/.config/nvm/versions/node/v20.20.2/bin"
-    if [ -x "$_CLAUDE_BIN" ]; then
-      echo "✓ claude バイナリは正常です"
-      echo "  パス: $_CLAUDE_BIN"
-      _ver=$("$_CLAUDE_BIN" --version 2>&1 | head -1) && echo "  バージョン: $_ver" || true
-    else
-      echo "⚠️  claude バイナリが見つかりません。修復を開始します..."
-      # npm 更新失敗による残骸をクリア
-      find /home/yuzuki/.npm-global/lib/node_modules/@anthropic-ai \
-        -maxdepth 1 -name ".claude-code-*" -exec rm -rf {} + 2>/dev/null || true
-      rm -rf /home/yuzuki/.npm-global/lib/node_modules/@anthropic-ai/claude-code 2>/dev/null || true
-      rm -f /home/yuzuki/.npm-global/bin/.claude-* 2>/dev/null || true
-      export PATH="/home/yuzuki/.npm-global/bin:${_NODE_BIN}:$PATH"
-      if "$_NPM_BIN" install -g @anthropic-ai/claude-code; then
-        if [ -x "$_CLAUDE_BIN" ]; then
-          echo "✓ 修復完了"
-          _ver=$("$_CLAUDE_BIN" --version 2>&1 | head -1) && echo "  バージョン: $_ver" || true
-        else
-          echo "❌ インストール後もバイナリが見つかりません" >&2; exit 1
-        fi
-      else
-        echo "❌ npm install 失敗。手動で npm install -g @anthropic-ai/claude-code を実行してください。" >&2; exit 1
-      fi
-    fi
-    ;;
   _run)      run_main "$TARGET_DIR" ;;  # called by systemd
   recover)   recover_schedule ;;       # called by systemd on boot
 esac
