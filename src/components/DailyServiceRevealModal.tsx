@@ -246,7 +246,7 @@ export default function DailyServiceRevealModal({
             {/* icon */}
             {isRevealed && (
               <div style={{ animation: 'dp-icon-pop .52s cubic-bezier(.175,.885,.32,1.275) .15s both' }}>
-                <ServiceIconImg icon={service.icon} name={service.name} size={110} />
+                <ServiceIconImg icon={service.icon} name={service.name} size={80} />
               </div>
             )}
 
