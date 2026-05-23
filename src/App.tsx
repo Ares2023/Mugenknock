@@ -1,5 +1,5 @@
 import React from 'react';
-import { BrowserRouter, Routes, Route } from 'react-router-dom';
+import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { Amplify } from 'aws-amplify';
 import awsExports from './aws-exports';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
@@ -51,6 +51,14 @@ function AuthGate({ children }: { children: React.ReactNode }) {
   return <>{children}</>;
 }
 
+function TargetExamRoute({ children }: { children: React.ReactNode }) {
+  const { user } = useAuth();
+  if (user && !localStorage.getItem(`targetExam_${user.userId}`)) {
+    return <Navigate to="/aws/" replace />;
+  }
+  return <>{children}</>;
+}
+
 // BrowserRouter 内で useNavigate が使えるように内部コンポーネントに分離
 function AppInner() {
   const { lang } = useLanguage();
@@ -63,23 +71,23 @@ function AppInner() {
           <Route path="/login" element={<LoginPage />} />
           <Route path="/admin-login" element={<AdminLogin />} />
           <Route path="/aws/" element={<Layout><Home /></Layout>} />
-          <Route path="/aws/exercise/setup" element={<Layout><ExerciseSetup /></Layout>} />
-          <Route path="/aws/exercise/session" element={<Layout><ExerciseSession /></Layout>} />
-          <Route path="/aws/result" element={<Layout><Result /></Layout>} />
-          <Route path="/aws/exam/setup" element={<Layout><ExamSetup /></Layout>} />
-          <Route path="/aws/exam/session" element={<Layout><ExamSession /></Layout>} />
-          <Route path="/aws/practice" element={<Layout><Practice /></Layout>} />
-          <Route path="/aws/encyclopedia" element={<Layout><ServiceEncyclopedia /></Layout>} />
-          <Route path="/aws/growth" element={<Layout><Growth /></Layout>} />
-          <Route path="/aws/release-notes" element={<Layout><ReleaseNotes /></Layout>} />
-          <Route path="/aws/others" element={<Layout><Others /></Layout>} />
+          <Route path="/aws/exercise/setup" element={<TargetExamRoute><Layout><ExerciseSetup /></Layout></TargetExamRoute>} />
+          <Route path="/aws/exercise/session" element={<TargetExamRoute><Layout><ExerciseSession /></Layout></TargetExamRoute>} />
+          <Route path="/aws/result" element={<TargetExamRoute><Layout><Result /></Layout></TargetExamRoute>} />
+          <Route path="/aws/exam/setup" element={<TargetExamRoute><Layout><ExamSetup /></Layout></TargetExamRoute>} />
+          <Route path="/aws/exam/session" element={<TargetExamRoute><Layout><ExamSession /></Layout></TargetExamRoute>} />
+          <Route path="/aws/practice" element={<TargetExamRoute><Layout><Practice /></Layout></TargetExamRoute>} />
+          <Route path="/aws/encyclopedia" element={<TargetExamRoute><Layout><ServiceEncyclopedia /></Layout></TargetExamRoute>} />
+          <Route path="/aws/growth" element={<TargetExamRoute><Layout><Growth /></Layout></TargetExamRoute>} />
+          <Route path="/aws/release-notes" element={<TargetExamRoute><Layout><ReleaseNotes /></Layout></TargetExamRoute>} />
+          <Route path="/aws/others" element={<TargetExamRoute><Layout><Others /></Layout></TargetExamRoute>} />
           <Route path="/about" element={<Layout><About /></Layout>} />
           <Route path="/confirm-delete" element={<ConfirmDelete />} />
           <Route path="/admin" element={
             <AdminRoute><AdminLayout><Admin /></AdminLayout></AdminRoute>
           } />
           <Route path="/aws/stats" element={
-            <PrivateRoute><Layout><Stats /></Layout></PrivateRoute>
+            <PrivateRoute><TargetExamRoute><Layout><Stats /></Layout></TargetExamRoute></PrivateRoute>
           } />
           <Route path="/account" element={
             <PrivateRoute><Account /></PrivateRoute>
