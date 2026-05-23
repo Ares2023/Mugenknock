@@ -4,16 +4,11 @@
 
 set -uo pipefail
 
-export PATH="/home/yuzuki/.npm-global/bin:/home/yuzuki/local/bin:/home/sera/.config/nvm/versions/node/v20.20.2/bin:$PATH"
+export PATH="/home/yuzuki/.npm-global/bin:/home/sera/.config/nvm/versions/node/v20.20.2/bin:$PATH"
 unset ANTHROPIC_API_KEY
 
-# bin/claude.exe はパッケージ直下の安定バイナリ
-# node_modules 内プラットフォームバイナリは npm 更新時に一時削除されるため使わない
 _find_claude() {
-  # 自己修復ラッパーを最優先（npm 更新失敗時に自動修復する）
-  local _w=/home/yuzuki/local/bin/claude
-  [ -x "$_w" ] && { echo "$_w"; return; }
-  local _p=/home/yuzuki/.npm-global/lib/node_modules/@anthropic-ai/claude-code/bin/claude.exe
+  local _p=/home/yuzuki/.npm-global/bin/claude
   [ -x "$_p" ] && { echo "$_p"; return; }
   local _cv; _cv=$(command -v claude 2>/dev/null)
   [ -n "$_cv" ] && [ -x "$_cv" ] && echo "$_cv"

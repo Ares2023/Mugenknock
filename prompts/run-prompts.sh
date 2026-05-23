@@ -16,7 +16,7 @@ HOOKS_FILE="$SCRIPT_DIR/.ct-hooks"        # 1行 = "±N|command"
 SKIP_HOOKS_FILE="$SCRIPT_DIR/.ct-skip-once" # 存在すれば次回フックをスキップ
 
 mkdir -p "$LOG_DIR"
-export PATH="/home/yuzuki/local/bin:/home/yuzuki/.npm-global/bin:/home/sera/.config/nvm/versions/node/v20.20.2/bin:$PATH"
+export PATH="/home/yuzuki/.npm-global/bin:/home/sera/.config/nvm/versions/node/v20.20.2/bin:$PATH"
 
 # ── 履歴の記録 ──────────────────────────────────────────────
 log_history() {
@@ -545,8 +545,7 @@ PYEOF
       echo "▶ [ai-router] $(basename "$file")"
       local _cb
       _cb=$(
-        { _w=/home/yuzuki/local/bin/claude; [ -x "$_w" ] && echo "$_w"; } ||
-        { _p=/home/yuzuki/.npm-global/lib/node_modules/@anthropic-ai/claude-code/bin/claude.exe; [ -x "$_p" ] && echo "$_p"; } ||
+        { _p=/home/yuzuki/.npm-global/bin/claude; [ -x "$_p" ] && echo "$_p"; } ||
         { _cv=$(command -v claude 2>/dev/null); [ -n "$_cv" ] && [ -x "$_cv" ] && echo "$_cv"; }
       ) || true
       if [ -z "${_cb:-}" ]; then echo "❌ claude コマンドが見つかりません" >&2; return 1; fi
@@ -608,7 +607,7 @@ PYEOF
         echo "▶ [ping] Claudeセッション確認..."
         local _pt0=$(date +%s)
         local _ping_out _ping_ec
-        _ping_out=$(/home/yuzuki/local/bin/claude --dangerously-skip-permissions -p "." 2>&1)
+        _ping_out=$(/home/yuzuki/.npm-global/bin/claude --dangerously-skip-permissions -p "." 2>&1)
         _ping_ec=$?
         local _ping_s=$(( $(date +%s) - _pt0 ))
         printf "  → %ds\n" "$_ping_s"
@@ -1009,23 +1008,25 @@ PYEOF
   next)      get_next_time || echo "none" ;;
   help)      show_help ;;
   repair)
-    _CLAUDE_EXE="/home/yuzuki/.npm-global/lib/node_modules/@anthropic-ai/claude-code/bin/claude.exe"
+    _CLAUDE_BIN="/home/yuzuki/.npm-global/bin/claude"
     _NPM_BIN=$(command -v npm 2>/dev/null || echo "/usr/bin/npm")
     _NODE_BIN="/home/sera/.config/nvm/versions/node/v20.20.2/bin"
-    if [ -x "$_CLAUDE_EXE" ]; then
+    if [ -x "$_CLAUDE_BIN" ]; then
       echo "✓ claude バイナリは正常です"
-      echo "  パス: $_CLAUDE_EXE"
-      _ver=$("$_CLAUDE_EXE" --version 2>&1 | head -1) && echo "  バージョン: $_ver" || true
+      echo "  パス: $_CLAUDE_BIN"
+      _ver=$("$_CLAUDE_BIN" --version 2>&1 | head -1) && echo "  バージョン: $_ver" || true
     else
       echo "⚠️  claude バイナリが見つかりません。修復を開始します..."
       # npm 更新失敗による残骸をクリア
       find /home/yuzuki/.npm-global/lib/node_modules/@anthropic-ai \
         -maxdepth 1 -name ".claude-code-*" -exec rm -rf {} + 2>/dev/null || true
+      rm -rf /home/yuzuki/.npm-global/lib/node_modules/@anthropic-ai/claude-code 2>/dev/null || true
+      rm -f /home/yuzuki/.npm-global/bin/.claude-* 2>/dev/null || true
       export PATH="/home/yuzuki/.npm-global/bin:${_NODE_BIN}:$PATH"
       if "$_NPM_BIN" install -g @anthropic-ai/claude-code; then
-        if [ -x "$_CLAUDE_EXE" ]; then
+        if [ -x "$_CLAUDE_BIN" ]; then
           echo "✓ 修復完了"
-          _ver=$("$_CLAUDE_EXE" --version 2>&1 | head -1) && echo "  バージョン: $_ver" || true
+          _ver=$("$_CLAUDE_BIN" --version 2>&1 | head -1) && echo "  バージョン: $_ver" || true
         else
           echo "❌ インストール後もバイナリが見つかりません" >&2; exit 1
         fi

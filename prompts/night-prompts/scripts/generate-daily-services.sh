@@ -14,13 +14,11 @@
 
 set -uo pipefail
 
-export PATH="/home/yuzuki/.npm-global/bin:/home/yuzuki/local/bin:/home/sera/.config/nvm/versions/node/v20.20.2/bin:$PATH"
+export PATH="/home/yuzuki/.npm-global/bin:/home/sera/.config/nvm/versions/node/v20.20.2/bin:$PATH"
 unset ANTHROPIC_API_KEY
 
 _find_claude() {
-  local _w=/home/yuzuki/local/bin/claude
-  [ -x "$_w" ] && { echo "$_w"; return; }
-  local _p=/home/yuzuki/.npm-global/lib/node_modules/@anthropic-ai/claude-code/bin/claude.exe
+  local _p=/home/yuzuki/.npm-global/bin/claude
   [ -x "$_p" ] && { echo "$_p"; return; }
   local _cv; _cv=$(command -v claude 2>/dev/null)
   [ -n "$_cv" ] && [ -x "$_cv" ] && echo "$_cv"
