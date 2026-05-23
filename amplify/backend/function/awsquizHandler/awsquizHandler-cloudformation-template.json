@@ -218,14 +218,18 @@
                 "ses:SendEmail",
                 "ses:SendRawEmail"
               ],
-              "Resource": "*",
+              "Resource": [
+                "*"
+              ],
               "Effect": "Allow"
             },
             {
               "Action": [
                 "cognito-idp:ListUsers"
               ],
-              "Resource": "arn:aws:cognito-idp:ap-northeast-1:*:userpool/ap-northeast-1_KIOFciGhQ",
+              "Resource": [
+                "arn:aws:cognito-idp:ap-northeast-1:*:userpool/ap-northeast-1_KIOFciGhQ"
+              ],
               "Effect": "Allow"
             }
           ]

@@ -1,6 +1,8 @@
 const express = require('express');
 const { DynamoDBClient } = require('@aws-sdk/client-dynamodb');
 const { DynamoDBDocumentClient, ScanCommand, GetCommand, QueryCommand, PutCommand, UpdateCommand, TransactWriteCommand, DeleteCommand } = require('@aws-sdk/lib-dynamodb');
+const { CognitoIdentityProviderClient, ListUsersCommand } = require('@aws-sdk/client-cognito-identity-provider');
+const { SESClient, SendEmailCommand } = require('@aws-sdk/client-ses');
 const { v4: uuidv4 } = require('uuid');
 const { CognitoJwtVerifier } = require('aws-jwt-verify');
 const { ADMIN_EMAIL, EXAM_DOMAINS } = require('./constants');
@@ -148,10 +150,13 @@ app.get('/questions/growth-stats', async (req, res) => {
     let createdBeforeDaily = 0, verifiedBeforeDaily = 0;
     let createdBeforeMonthly = 0, verifiedBeforeMonthly = 0;
 
+    const toJstDay = (iso) => new Date(new Date(iso).getTime() + 9 * 60 * 60 * 1000).toISOString().slice(0, 10);
+    const toJstMonth = (iso) => new Date(new Date(iso).getTime() + 9 * 60 * 60 * 1000).toISOString().slice(0, 7);
+
     for (const item of items) {
       if (item.createdAt) {
-        const day = item.createdAt.slice(0, 10);
-        const month = item.createdAt.slice(0, 7);
+        const day = toJstDay(item.createdAt);
+        const month = toJstMonth(item.createdAt);
         if (createdByDay[day] !== undefined) createdByDay[day]++;
         else createdBeforeDaily++;
         if (createdByMonth[month] !== undefined) createdByMonth[month]++;
@@ -161,8 +166,8 @@ app.get('/questions/growth-stats', async (req, res) => {
         createdBeforeMonthly++;
       }
       if (item.validityCheckedAt) {
-        const day = item.validityCheckedAt.slice(0, 10);
-        const month = item.validityCheckedAt.slice(0, 7);
+        const day = toJstDay(item.validityCheckedAt);
+        const month = toJstMonth(item.validityCheckedAt);
         if (verifiedByDay[day] !== undefined) verifiedByDay[day]++;
         else if (day < daily[0]) verifiedBeforeDaily++;
         if (verifiedByMonth[month] !== undefined) verifiedByMonth[month]++;
@@ -471,6 +476,31 @@ app.put('/admin/questions/:id', async (req, res) => {
   }
 });
 
+// 問題数サマリー（examCounts・domainCounts）— 軽量スキャン
+app.get('/admin/questions/summary', async (req, res) => {
+  try {
+    const docClient = getClient();
+    const items = await scanAll(docClient, {
+      TableName: 'Questions',
+      ProjectionExpression: 'examType, tags, isHidden',
+    });
+    const examCounts = {};
+    const domainCounts = {};
+    for (const item of items) {
+      const { examType, tags = [] } = item;
+      examCounts[examType] = (examCounts[examType] || 0) + 1;
+      if (!domainCounts[examType]) domainCounts[examType] = {};
+      for (const tag of tags) {
+        domainCounts[examType][tag] = (domainCounts[examType][tag] || 0) + 1;
+      }
+    }
+    res.json({ examCounts, domainCounts, totalCount: items.length });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
 // 正当性チェック済み問題一覧
 // ?filter=flagged → rating<=2 または isHidden=true のみ
 // ?filter=hidden  → isHidden=true のみ
@@ -568,13 +598,31 @@ app.put('/admin/questions/:id/visibility', async (req, res) => {
   }
 });
 
+app.get('/admin/questions/:id', async (req, res) => {
+  try {
+    const docClient = getClient();
+    const result = await docClient.send(new GetCommand({
+      TableName: 'Questions',
+      Key: { questionId: req.params.id },
+    }));
+    if (!result.Item) return res.status(404).json({ error: 'Question not found' });
+    res.json(result.Item);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
 app.get('/admin/questions', async (req, res) => {
   try {
     const docClient = getClient();
-    const { examType, keyword, tag, domain } = req.query;
+    const { examType, keyword, tag, domain, page, pageSize } = req.query;
+    const pageNum = Math.max(0, parseInt(page) || 0);
+    const pageSz = Math.min(500, Math.max(1, parseInt(pageSize) || 100));
+    const isAll = !examType || examType === 'ALL';
     let items = [];
 
-    if (examType && examType !== 'ALL') {
+    if (!isAll) {
       items = await queryAll(docClient, {
         TableName: 'Questions',
         IndexName: 'examType-index',
@@ -582,7 +630,11 @@ app.get('/admin/questions', async (req, res) => {
         ExpressionAttributeValues: { ':examType': examType }
       });
     } else {
-      items = await scanAll(docClient, { TableName: 'Questions' });
+      // explanation・validityEditLog を除外して 6MB 上限を回避（編集時は GET /admin/questions/:id で取得）
+      items = await scanAll(docClient, {
+        TableName: 'Questions',
+        ProjectionExpression: 'questionId, examType, questionText, choices, correctAnswers, correctAnswerIndices, tags, isMultiple, isHidden, createdAt, updatedAt, validityCheckedAt',
+      });
     }
 
     if (tag) items = items.filter(q => (q.tags || []).includes(tag));
@@ -594,12 +646,16 @@ app.get('/admin/questions', async (req, res) => {
       const kw = keyword.toLowerCase();
       items = items.filter(q =>
         q.questionId.toLowerCase().includes(kw) ||
-        q.questionText.toLowerCase().includes(kw)
+        (q.questionText || '').toLowerCase().includes(kw)
       );
     }
 
     items.sort((a, b) => a.questionId.localeCompare(b.questionId));
-    res.json({ items, count: items.length });
+
+    const total = items.length;
+    const pagedItems = isAll ? items.slice(pageNum * pageSz, (pageNum + 1) * pageSz) : items;
+
+    res.json({ items: pagedItems, count: pagedItems.length, total, page: pageNum, pageSize: pageSz });
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: 'Internal server error' });
@@ -672,7 +728,7 @@ app.delete('/admin/reports/:id', async (req, res) => {
 app.post('/sessions', async (req, res) => {
   try {
     const docClient = getClient();
-    const { userId, mode, examType, questionIds, isMini } = req.body;
+    const { userId, mode, examType, questionIds, isMini, isFocused } = req.body;
     const sessionId = uuidv4();
     const now = new Date().toISOString();
     const item = {
@@ -680,6 +736,7 @@ app.post('/sessions', async (req, res) => {
       status: 'active', startedAt: now, lastAnsweredAt: now, score: 0, isPassed: false
     };
     if (isMini) item.isMini = true;
+    if (isFocused) item.isFocused = true;
     await docClient.send(new PutCommand({ TableName: 'Sessions', Item: item }));
     res.json({ sessionId });
   } catch (err) {
@@ -778,6 +835,51 @@ app.post('/sessions/:id/answers', async (req, res) => {
 
     await docClient.send(new TransactWriteCommand({ TransactItems: transactItems }));
     res.json({ success: true });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+// セッション別回答詳細取得
+app.get('/sessions/:id/answers', async (req, res) => {
+  try {
+    const docClient = getClient();
+    const { userId } = req.query;
+    const sessionId = req.params.id;
+
+    const answersResult = await docClient.send(new QueryCommand({
+      TableName: 'UserAnswers',
+      KeyConditionExpression: 'userId = :uid',
+      FilterExpression: 'sessionId = :sid',
+      ExpressionAttributeValues: { ':uid': userId, ':sid': sessionId },
+    }));
+
+    const answers = answersResult.Items || [];
+    const questionIds = [...new Set(answers.map(a => a.questionId))];
+
+    const questions = await Promise.all(
+      questionIds.map(qid =>
+        docClient.send(new GetCommand({
+          TableName: 'Questions',
+          Key: { questionId: qid },
+          ProjectionExpression: 'questionId, questionText, tags',
+        })).then(r => r.Item).catch(() => null)
+      )
+    );
+    const qMap = Object.fromEntries(questions.filter(Boolean).map(q => [q.questionId, q]));
+
+    const result = answers
+      .map(a => ({
+        questionId: a.questionId,
+        questionText: qMap[a.questionId]?.questionText ?? '',
+        tags: qMap[a.questionId]?.tags ?? [],
+        isCorrect: a.isCorrect,
+        answeredAt: a.answeredAt,
+      }))
+      .sort((a, b) => (a.answeredAt > b.answeredAt ? 1 : -1));
+
+    res.json({ answers: result });
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: 'Internal server error' });
@@ -1389,11 +1491,53 @@ app.get('/daily-service', async (req, res) => {
   try {
     const docClient = getClient();
     const result = await docClient.send(new ScanCommand({ TableName: 'DailyServices' }));
-    const items = (result.Items || []).sort((a, b) => (a.order || 0) - (b.order || 0));
+    const allItems = result.Items || [];
+
+    // '_schedule_' は日付→serviceId のスケジュール管理用アイテム（一般アイテムから除外）
+    const scheduleItem = allItems.find(i => i.serviceId === '_schedule_');
+    const items = allItems
+      .filter(i => i.serviceId !== '_schedule_')
+      .sort((a, b) => (a.order || 0) - (b.order || 0));
+
     if (items.length === 0) return res.json({ service: null });
-    // 日本時間の日付を基にインデックスを決定（JST = UTC+9）
+
+    // 今日の日付（JST）
+    const jstDate = new Date(Date.now() + 9 * 3600 * 1000).toISOString().slice(0, 10);
+
+    // userIdが指定された場合はユーザー別のハッシュで決定（スケジュール不使用）
+    if (req.query.userId) {
+      const str = req.query.userId + jstDate;
+      let hash = 0;
+      for (let i = 0; i < str.length; i++) {
+        hash = ((hash << 5) - hash) + str.charCodeAt(i);
+        hash |= 0;
+      }
+      return res.json({ service: items[Math.abs(hash) % items.length] });
+    }
+
+    // スケジュールにすでに今日の結果があればそれを返す
+    const schedule = JSON.parse(scheduleItem?.schedule || '{}');
+    if (schedule[jstDate]) {
+      const locked = items.find(s => s.serviceId === schedule[jstDate]);
+      if (locked) return res.json({ service: locked });
+    }
+
+    // まだ決まっていない → 今日の index を確定してスケジュールに保存
     const jstDay = Math.floor((Date.now() + 9 * 3600 * 1000) / 86400000);
     const service = items[jstDay % items.length];
+    schedule[jstDate] = service.serviceId;
+
+    // 古いエントリを削除（直近90日分のみ保持）
+    const cutoff = new Date(Date.now() + 9 * 3600 * 1000 - 90 * 86400000).toISOString().slice(0, 10);
+    for (const d of Object.keys(schedule)) {
+      if (d < cutoff) delete schedule[d];
+    }
+
+    await docClient.send(new PutCommand({
+      TableName: 'DailyServices',
+      Item: { serviceId: '_schedule_', schedule: JSON.stringify(schedule) },
+    }));
+
     res.json({ service });
   } catch (err) {
     console.error(err);
@@ -1406,7 +1550,9 @@ app.get('/admin/daily-services', async (req, res) => {
   try {
     const docClient = getClient();
     const result = await docClient.send(new ScanCommand({ TableName: 'DailyServices' }));
-    const items = (result.Items || []).sort((a, b) => (a.order || 0) - (b.order || 0));
+    const items = (result.Items || [])
+      .filter(i => i.serviceId !== '_schedule_')
+      .sort((a, b) => (a.order || 0) - (b.order || 0));
     res.json({ items });
   } catch (err) {
     console.error(err);
@@ -1549,9 +1695,10 @@ app.get('/settings/theme', async (req, res) => {
   try {
     const docClient = getClient();
     const result = await docClient.send(new GetCommand({ TableName: 'AppSettings', Key: { settingId: 'theme' } }));
-    if (!result.Item) return res.json({ colors: {} });
+    if (!result.Item) return res.json({ colors: {}, enabled: true });
     const colors = JSON.parse(result.Item.colors || '{}');
-    res.json({ colors });
+    const enabled = result.Item.enabled !== false; // default true
+    res.json({ colors, enabled });
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: 'Internal server error' });
@@ -1561,13 +1708,351 @@ app.get('/settings/theme', async (req, res) => {
 app.put('/admin/settings/theme', requireAdmin, async (req, res) => {
   try {
     const docClient = getClient();
-    const { colors } = req.body;
+    const { colors, enabled } = req.body;
     if (!colors || typeof colors !== 'object') return res.status(400).json({ error: 'colors required' });
     await docClient.send(new PutCommand({
       TableName: 'AppSettings',
-      Item: { settingId: 'theme', colors: JSON.stringify(colors), updatedAt: new Date().toISOString() },
+      Item: {
+        settingId: 'theme',
+        colors: JSON.stringify(colors),
+        enabled: enabled !== false,
+        updatedAt: new Date().toISOString(),
+      },
     }));
     res.json({ success: true });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+// ── Encyclopedia unlocks sync ──
+app.get('/users/me/encyclopedia-unlocks', async (req, res) => {
+  try {
+    const { userId } = req.query;
+    if (!userId) return res.status(400).json({ error: 'userId required' });
+    const docClient = getClient();
+    const result = await docClient.send(new GetCommand({
+      TableName: 'EncyclopediaUnlocks',
+      Key: { userId },
+    }));
+    if (!result.Item) return res.json({ unlocks: {}, unlockDate: null, todayServiceId: null });
+    res.json({
+      unlocks: JSON.parse(result.Item.unlocks || '{}'),
+      unlockDate: result.Item.unlockDate || null,
+      todayServiceId: result.Item.todayServiceId || null,
+    });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+app.post('/users/me/encyclopedia-unlocks', async (req, res) => {
+  try {
+    const { userId, unlocks, unlockDate, todayServiceId } = req.body;
+    if (!userId) return res.status(400).json({ error: 'userId required' });
+    const docClient = getClient();
+    await docClient.send(new PutCommand({
+      TableName: 'EncyclopediaUnlocks',
+      Item: {
+        userId,
+        unlocks: JSON.stringify(unlocks || {}),
+        unlockDate: unlockDate || null,
+        todayServiceId: todayServiceId || null,
+        updatedAt: new Date().toISOString(),
+      },
+    }));
+    res.json({ success: true });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+// ── 管理者によるユーザーデータ削除（確認メール付き） ──
+
+const USER_POOL_ID = 'ap-northeast-1_KIOFciGhQ';
+const SITE_URL = 'https://www.mugenknock.com';
+const DEL_REQ_PREFIX = 'delReq_';
+const DEL_AUTH_PREFIX = 'delAuth_';
+const DEL_REQ_TTL_MS = 24 * 60 * 60 * 1000;
+
+async function findCognitoUserByEmail(email) {
+  const client = new CognitoIdentityProviderClient({ region: 'ap-northeast-1' });
+  const result = await client.send(new ListUsersCommand({
+    UserPoolId: USER_POOL_ID,
+    Filter: `email = "${email}"`,
+    Limit: 1,
+  }));
+  const users = result.Users || [];
+  if (users.length === 0) return null;
+  const user = users[0];
+  const sub = (user.Attributes || []).find(a => a.Name === 'sub')?.Value;
+  return sub ? { userId: sub, username: user.Username } : null;
+}
+
+async function sendDeletionConfirmEmail(toEmail, token) {
+  const sesClient = new SESClient({ region: 'ap-northeast-1' });
+  const confirmUrl = `${SITE_URL}/confirm-delete?token=${token}`;
+  await sesClient.send(new SendEmailCommand({
+    Source: ADMIN_EMAIL,
+    Destination: { ToAddresses: [toEmail] },
+    Message: {
+      Subject: { Data: '【MugenKnock】データ削除の確認', Charset: 'UTF-8' },
+      Body: {
+        Text: {
+          Data: `データ削除リクエストを受信しました。\n\n以下のリンクをクリックして削除を承認してください（24時間有効）：\n\n${confirmUrl}\n\n心当たりがない場合は、このメールを無視してください。`,
+          Charset: 'UTF-8',
+        },
+      },
+    },
+  }));
+}
+
+// 管理者: 削除リクエスト作成 → 確認メール送信（既に永続認証済みならメール不要）
+app.post('/admin/deletion-requests', async (req, res) => {
+  try {
+    const { email } = req.body;
+    if (!email) return res.status(400).json({ error: 'email required' });
+
+    const cognitoUser = await findCognitoUserByEmail(email);
+    if (!cognitoUser) return res.status(404).json({ error: 'User not found' });
+
+    const docClient = getClient();
+
+    // 永続認証レコードが存在すればメール不要
+    const authResult = await docClient.send(new GetCommand({
+      TableName: 'AppSettings',
+      Key: { settingId: `${DEL_AUTH_PREFIX}${cognitoUser.userId}` },
+    }));
+    if (authResult.Item) {
+      return res.json({ success: true, userId: cognitoUser.userId, preAuthorized: true });
+    }
+
+    const token = uuidv4();
+    const now = new Date().toISOString();
+    const expiresAt = new Date(Date.now() + DEL_REQ_TTL_MS).toISOString();
+
+    // 既存の一時リクエストを削除
+    const existing = await docClient.send(new ScanCommand({
+      TableName: 'AppSettings',
+      FilterExpression: 'begins_with(settingId, :prefix) AND #em = :email',
+      ExpressionAttributeNames: { '#em': 'email' },
+      ExpressionAttributeValues: { ':prefix': DEL_REQ_PREFIX, ':email': email },
+    }));
+    for (const item of (existing.Items || [])) {
+      await docClient.send(new DeleteCommand({ TableName: 'AppSettings', Key: { settingId: item.settingId } }));
+    }
+
+    await docClient.send(new PutCommand({
+      TableName: 'AppSettings',
+      Item: { settingId: `${DEL_REQ_PREFIX}${token}`, userId: cognitoUser.userId, email, confirmedAt: null, createdAt: now, expiresAt },
+    }));
+
+    await sendDeletionConfirmEmail(email, token);
+
+    res.json({ success: true, userId: cognitoUser.userId });
+  } catch (err) {
+    console.error(err);
+    const msg = String(err.message || err);
+    if (msg.includes('not verified') || msg.includes('MessageRejected')) {
+      return res.status(503).json({ error: `送信先メールアドレス（${req.body.email}）がSESで未検証です。SES本番アクセスへの移行、またはSESコンソールで対象アドレスを検証してください。` });
+    }
+    res.status(500).json({ error: msg });
+  }
+});
+
+// 管理者: 削除リクエストの状態確認
+app.get('/admin/deletion-requests/status', async (req, res) => {
+  try {
+    const { email } = req.query;
+    if (!email) return res.status(400).json({ error: 'email required' });
+
+    const cognitoUser = await findCognitoUserByEmail(email);
+    if (!cognitoUser) return res.json({ status: 'none' });
+
+    const docClient = getClient();
+
+    // 永続認証レコードを優先チェック
+    const authResult = await docClient.send(new GetCommand({
+      TableName: 'AppSettings',
+      Key: { settingId: `${DEL_AUTH_PREFIX}${cognitoUser.userId}` },
+    }));
+    if (authResult.Item) {
+      return res.json({
+        status: 'pre-authorized',
+        userId: cognitoUser.userId,
+        authorizedAt: authResult.Item.authorizedAt,
+      });
+    }
+
+    // 一時リクエストを確認
+    const scanResult = await docClient.send(new ScanCommand({
+      TableName: 'AppSettings',
+      FilterExpression: 'begins_with(settingId, :prefix) AND #em = :email',
+      ExpressionAttributeNames: { '#em': 'email' },
+      ExpressionAttributeValues: { ':prefix': DEL_REQ_PREFIX, ':email': email },
+    }));
+    const items = (scanResult.Items || []).filter(i => new Date(i.expiresAt) > new Date());
+    if (items.length === 0) return res.json({ status: 'none' });
+    const item = items[0];
+    res.json({
+      status: item.confirmedAt ? 'confirmed' : 'pending',
+      token: item.settingId.replace(DEL_REQ_PREFIX, ''),
+      userId: item.userId,
+      confirmedAt: item.confirmedAt || null,
+      expiresAt: item.expiresAt,
+    });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+// 管理者: データ削除実行
+app.post('/admin/deletion-requests/execute', async (req, res) => {
+  try {
+    const { token, userId: directUserId, email: directEmail } = req.body;
+    if (!token && !directUserId) return res.status(400).json({ error: 'token or userId required' });
+
+    const docClient = getClient();
+    let userId;
+    let tokenSettingId = null;
+    let email = directEmail || null;
+
+    if (directUserId) {
+      // pre-authorized パス: delAuth_ レコードで検証
+      const authResult = await docClient.send(new GetCommand({
+        TableName: 'AppSettings',
+        Key: { settingId: `${DEL_AUTH_PREFIX}${directUserId}` },
+      }));
+      if (!authResult.Item) return res.status(403).json({ error: 'Not authorized' });
+      userId = directUserId;
+      email = email || authResult.Item.email;
+    } else {
+      // 通常パス: 一時トークンで検証
+      const reqResult = await docClient.send(new GetCommand({
+        TableName: 'AppSettings',
+        Key: { settingId: `${DEL_REQ_PREFIX}${token}` },
+      }));
+      if (!reqResult.Item) return res.status(404).json({ error: 'Request not found' });
+      if (!reqResult.Item.confirmedAt) return res.status(403).json({ error: 'Not confirmed yet' });
+      if (new Date(reqResult.Item.expiresAt) < new Date()) return res.status(410).json({ error: 'Token expired' });
+      userId = reqResult.Item.userId;
+      email = email || reqResult.Item.email;
+      tokenSettingId = `${DEL_REQ_PREFIX}${token}`;
+    }
+
+    const deleteItems = async (table, keys) => {
+      if (keys.length === 0) return;
+      await Promise.all(keys.map(key => docClient.send(new DeleteCommand({ TableName: table, Key: key }))));
+    };
+
+    // UserQuestionStats
+    const qsResult = await docClient.send(new QueryCommand({
+      TableName: 'UserQuestionStats',
+      KeyConditionExpression: 'userId = :uid',
+      ExpressionAttributeValues: { ':uid': userId },
+      ProjectionExpression: 'userId, questionId',
+    }));
+    await deleteItems('UserQuestionStats', (qsResult.Items || []).map(i => ({ userId: i.userId, questionId: i.questionId })));
+
+    // UserTagStats
+    const tsResult = await docClient.send(new QueryCommand({
+      TableName: 'UserTagStats',
+      KeyConditionExpression: 'userId = :uid',
+      ExpressionAttributeValues: { ':uid': userId },
+      ProjectionExpression: 'userId, tagId',
+    }));
+    await deleteItems('UserTagStats', (tsResult.Items || []).map(i => ({ userId: i.userId, tagId: i.tagId })));
+
+    // Sessions + UserAnswers
+    const sessResult = await docClient.send(new QueryCommand({
+      TableName: 'Sessions',
+      KeyConditionExpression: 'userId = :uid',
+      ExpressionAttributeValues: { ':uid': userId },
+      ProjectionExpression: 'userId, sessionId',
+    }));
+    const sessionIds = (sessResult.Items || []).map(s => s.sessionId);
+    for (const sessionId of sessionIds) {
+      let lastKey;
+      do {
+        const ansResult = await docClient.send(new QueryCommand({
+          TableName: 'UserAnswers',
+          KeyConditionExpression: 'userId = :uid AND begins_with(questionIdTimestamp, :prefix)',
+          ExpressionAttributeValues: { ':uid': userId, ':prefix': `${sessionId}#` },
+          ExclusiveStartKey: lastKey,
+          ProjectionExpression: 'userId, questionIdTimestamp',
+        }));
+        await deleteItems('UserAnswers', (ansResult.Items || []).map(a => ({ userId: a.userId, questionIdTimestamp: a.questionIdTimestamp })));
+        lastKey = ansResult.LastEvaluatedKey;
+      } while (lastKey);
+    }
+    await deleteItems('Sessions', sessionIds.map(sid => ({ userId, sessionId: sid })));
+
+    // EncyclopediaUnlocks
+    try { await docClient.send(new DeleteCommand({ TableName: 'EncyclopediaUnlocks', Key: { userId } })); } catch {}
+
+    // Reports
+    const reportsResult = await docClient.send(new ScanCommand({
+      TableName: 'Reports',
+      FilterExpression: 'userId = :uid',
+      ExpressionAttributeValues: { ':uid': userId },
+      ProjectionExpression: 'reportId',
+    }));
+    await deleteItems('Reports', (reportsResult.Items || []).map(i => ({ reportId: i.reportId })));
+
+    // 永続認証レコードを保存（なければ作成）
+    await docClient.send(new PutCommand({
+      TableName: 'AppSettings',
+      Item: { settingId: `${DEL_AUTH_PREFIX}${userId}`, userId, email, authorizedAt: new Date().toISOString() },
+      ConditionExpression: 'attribute_not_exists(settingId)',
+    })).catch(() => {}); // 既存の場合は無視
+
+    // 一時トークンを削除
+    if (tokenSettingId) {
+      await docClient.send(new DeleteCommand({ TableName: 'AppSettings', Key: { settingId: tokenSettingId } }));
+    }
+
+    res.json({ success: true, userId });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: String(err.message || err) });
+  }
+});
+
+// 公開: 確認リンク（メールからアクセス）
+app.get('/confirm-delete', async (req, res) => {
+  try {
+    const { token } = req.query;
+    if (!token) return res.status(400).json({ error: 'token required' });
+
+    const docClient = getClient();
+    const result = await docClient.send(new GetCommand({
+      TableName: 'AppSettings',
+      Key: { settingId: `${DEL_REQ_PREFIX}${token}` },
+    }));
+    if (!result.Item) return res.status(404).json({ error: 'Invalid or expired token' });
+    if (new Date(result.Item.expiresAt) < new Date()) return res.status(410).json({ error: 'Token expired' });
+    if (result.Item.confirmedAt) return res.json({ success: true, alreadyConfirmed: true, email: result.Item.email });
+
+    const now = new Date().toISOString();
+    await docClient.send(new UpdateCommand({
+      TableName: 'AppSettings',
+      Key: { settingId: `${DEL_REQ_PREFIX}${token}` },
+      UpdateExpression: 'SET confirmedAt = :now',
+      ExpressionAttributeValues: { ':now': now },
+    }));
+
+    // 永続認証レコードを保存
+    await docClient.send(new PutCommand({
+      TableName: 'AppSettings',
+      Item: { settingId: `${DEL_AUTH_PREFIX}${result.Item.userId}`, userId: result.Item.userId, email: result.Item.email, authorizedAt: now },
+      ConditionExpression: 'attribute_not_exists(settingId)',
+    })).catch(() => {});
+
+    res.json({ success: true, email: result.Item.email });
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: 'Internal server error' });
