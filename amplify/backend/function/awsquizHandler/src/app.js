@@ -985,12 +985,21 @@ app.get('/users/me/stats', async (req, res) => {
   try {
     const docClient = getClient();
     const { userId } = req.query;
-    const result = await docClient.send(new QueryCommand({
-      TableName: 'UserTagStats',
-      KeyConditionExpression: 'userId = :userId',
-      ExpressionAttributeValues: { ':userId': userId }
-    }));
-    res.json({ stats: result.Items || [] });
+    const [statsResult, resetResult] = await Promise.all([
+      docClient.send(new QueryCommand({
+        TableName: 'UserTagStats',
+        KeyConditionExpression: 'userId = :userId',
+        ExpressionAttributeValues: { ':userId': userId },
+      })),
+      docClient.send(new GetCommand({
+        TableName: 'AppSettings',
+        Key: { settingId: `userReset_${userId}` },
+      })),
+    ]);
+    res.json({
+      stats: statsResult.Items || [],
+      resetAt: resetResult.Item?.resetAt || null,
+    });
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: 'Internal server error' });
@@ -2009,6 +2018,13 @@ app.post('/admin/deletion-requests/execute', async (req, res) => {
       Item: { settingId: `${DEL_AUTH_PREFIX}${userId}`, userId, email, authorizedAt: new Date().toISOString() },
       ConditionExpression: 'attribute_not_exists(settingId)',
     })).catch(() => {}); // 既存の場合は無視
+
+    // クライアント側ローカルストレージをリセットさせるためのタイムスタンプを記録
+    const resetAt = new Date().toISOString();
+    await docClient.send(new PutCommand({
+      TableName: 'AppSettings',
+      Item: { settingId: `userReset_${userId}`, userId, resetAt },
+    }));
 
     // 一時トークンを削除
     if (tokenSettingId) {

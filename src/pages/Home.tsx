@@ -801,6 +801,29 @@ const CHEVRON_BTN: React.CSSProperties = {
   transition: 'color 0.15s',
 };
 
+// 管理者リセット後にデータ系のローカルキーを全消去する（設定・環境設定は保持）
+function clearUserData(uid: string) {
+  const KEEP = new Set([
+    `lang_${uid}`, `theme_${uid}`, `sidebarOpen_${uid}`,
+    `targetExam_${uid}`, `lastQuickMode_${uid}`,
+    `quickExercisePrefs_${uid}`, `focusedExercisePrefs_${uid}`,
+    `sherpaExerciseHint_${uid}`, `sherpaExamHint_${uid}`, `sherpaStatsHint_${uid}`,
+    `lastReset_${uid}`,
+  ]);
+  const suffix = `_${uid}`;
+  const toRemove: string[] = [];
+  for (let i = 0; i < localStorage.length; i++) {
+    const key = localStorage.key(i)!;
+    if (
+      (!KEEP.has(key) && key.endsWith(suffix)) ||
+      key.startsWith(`qstats_${uid}_`) ||
+      key.startsWith(`daily_service_${uid}_`)
+    ) toRemove.push(key);
+  }
+  toRemove.forEach(k => localStorage.removeItem(k));
+  sessionStorage.removeItem(`_ts_ustats_${uid}`);
+}
+
 export default function Home() {
   const { user } = useAuth();
   const { lang } = useLanguage();
@@ -879,6 +902,18 @@ export default function Home() {
       }
       const r = await fetch(`${API_ENDPOINT}/users/me/stats?userId=${userId}`, { signal: ctrl.signal });
       const d = await r.json();
+
+      // 管理者リセット検知: resetAt が更新されていたらローカルデータを消去してリロード
+      if (d.resetAt) {
+        const lastReset = localStorage.getItem(`lastReset_${userId}`);
+        if (!lastReset || d.resetAt > lastReset) {
+          localStorage.setItem(`lastReset_${userId}`, d.resetAt);
+          clearUserData(userId);
+          window.location.reload();
+          return;
+        }
+      }
+
       const stats: DomainStat[] = d.stats ?? [];
       setCached(`ustats_${userId}`, stats, DEFAULT_TTL);
       sessionStorage.setItem(TS_KEY(userId), String(Date.now()));
