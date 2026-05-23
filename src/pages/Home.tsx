@@ -1,6 +1,7 @@
 import React, { useEffect, useState, useMemo, useRef, useCallback } from 'react';
 import { createPortal } from 'react-dom';
 import { useNavigate } from 'react-router-dom';
+import DailyServiceRevealModal from '../components/DailyServiceRevealModal';
 import { useAuth } from '../contexts/AuthContext';
 import { useLanguage } from '../contexts/LanguageContext';
 import {
@@ -390,19 +391,44 @@ function syncEncyclopediaToServer(userId: string): void {
   } catch {}
 }
 
-function TodayServiceSection({ lang, userId, onNavigateEncyclopedia }: { lang: string; userId?: string; onNavigateEncyclopedia: () => void }) {
+function TodayServiceSection({ lang, userId, onNavigateEncyclopedia, onReveal }: {
+  lang: string; userId?: string;
+  onNavigateEncyclopedia: () => void;
+  onReveal: (svc: DailyService) => void;
+}) {
   const [service, setService] = useState<DailyService | null>(null);
   const [loading, setLoading] = useState(true);
+  const [revealed, setRevealed] = useState(false);
+
+  const jstToday = () => new Date(Date.now() + 9 * 3600 * 1000).toISOString().slice(0, 10);
 
   useEffect(() => {
     const uid = userId ?? 'guest';
-    const jstDate = new Date(Date.now() + 9 * 3600 * 1000).toISOString().slice(0, 10);
+    const jstDate = jstToday();
+
+    // 旧共有キー → ユーザー別キーへの移行（一回限り）
+    if (uid !== 'guest' && localStorage.getItem(`encyclopediaUnlocked_${uid}`) === null) {
+      const shared = localStorage.getItem('encyclopediaUnlocked');
+      if (shared !== null) localStorage.setItem(`encyclopediaUnlocked_${uid}`, shared);
+      const sharedDate = localStorage.getItem('encyclopediaUnlockDate');
+      if (sharedDate !== null) localStorage.setItem(`encyclopediaUnlockDate_${uid}`, sharedDate);
+      const sharedTodayId = localStorage.getItem('encyclopediaTodayServiceId');
+      if (sharedTodayId !== null) localStorage.setItem(`encyclopediaTodayServiceId_${uid}`, sharedTodayId);
+    }
+
+    // 今日すでにタップ解放済みか確認
+    const alreadyRevealed = localStorage.getItem(`encyclopediaUnlockDate_${uid}`) === jstDate;
+    setRevealed(alreadyRevealed);
+
     const cacheKey = `daily_service_${uid}_${jstDate}`;
     const cached = getCached<DailyService>(cacheKey);
     if (cached !== null) {
-      setService(cached); setLoading(false);
-      saveToEncyclopedia(cached, uid);
-      if (userId) syncEncyclopediaToServer(userId);
+      setService(cached);
+      setLoading(false);
+      if (alreadyRevealed) {
+        saveToEncyclopedia(cached, uid);
+        if (userId) syncEncyclopediaToServer(userId);
+      }
       return;
     }
     const apiUrl = userId
@@ -414,14 +440,25 @@ function TodayServiceSection({ lang, userId, onNavigateEncyclopedia }: { lang: s
         const s = d.service ?? null;
         if (s) {
           setCached(cacheKey, s, 60 * 60 * 1000);
-          saveToEncyclopedia(s, uid);
-          if (userId) syncEncyclopediaToServer(userId);
+          if (alreadyRevealed) {
+            saveToEncyclopedia(s, uid);
+            if (userId) syncEncyclopediaToServer(userId);
+          }
         }
         setService(s);
       })
       .catch(() => setService(null))
       .finally(() => setLoading(false));
   }, [userId]);
+
+  const handleReveal = () => {
+    if (!service || revealed) return;
+    const uid = userId ?? 'guest';
+    saveToEncyclopedia(service, uid);
+    if (userId) syncEncyclopediaToServer(userId);
+    setRevealed(true);
+    onReveal(service);
+  };
 
   const calIcon = (
     <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ color: 'var(--color-primary)', flexShrink: 0 }}>
@@ -443,6 +480,68 @@ function TodayServiceSection({ lang, userId, onNavigateEncyclopedia }: { lang: s
       <div className="skeleton" style={{ width: '100%', height: 13, borderRadius: 4, marginBottom: 5 }} />
       <div className="skeleton" style={{ width: '85%', height: 13, borderRadius: 4 }} />
     </Card>
+  );
+
+  // ── シークレット状態（未タップ） ──
+  if (!revealed && service) return (
+    <>
+      <style>{`
+        @keyframes ds-pulse {
+          0%,100% { box-shadow: 0 0 14px 2px rgba(82,130,255,.3), 0 0 40px 6px rgba(82,130,255,.1); }
+          50%      { box-shadow: 0 0 26px 6px rgba(82,130,255,.6), 0 0 60px 14px rgba(82,130,255,.22); }
+        }
+        @keyframes ds-float {
+          0%,100% { transform: translateY(0); }
+          50%      { transform: translateY(-8px); }
+        }
+        @keyframes ds-tap {
+          0%,100% { opacity: 1; transform: translateY(0); }
+          50%      { opacity: .65; transform: translateY(-5px); }
+        }
+      `}</style>
+      <div
+        onClick={handleReveal}
+        style={{
+          marginBottom: 'var(--spacing-md)',
+          borderRadius: 'var(--border-radius-md)',
+          background: 'linear-gradient(140deg,#1a1a2e 0%,#16213e 55%,#0f3460 100%)',
+          border: '2px solid rgba(82,130,255,.55)',
+          padding: 'var(--spacing-md)',
+          cursor: 'pointer',
+          animation: 'ds-pulse 2.2s ease-in-out infinite',
+          userSelect: 'none',
+          WebkitUserSelect: 'none',
+        }}
+      >
+        {/* ヘッダー */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 14 }}>
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="rgba(82,130,255,.8)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0 }}>
+            <path d="M3 20a2 2 0 0 0 2 2h10a2.4 2.4 0 0 0 1.706-.706l3.588-3.588A2.4 2.4 0 0 0 21 16V6a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2z"/>
+            <path d="M15 22v-5a1 1 0 0 1 1-1h5"/><path d="M8 2v4"/><path d="M16 2v4"/><path d="M3 10h18"/>
+          </svg>
+          <span style={{ fontWeight: 700, fontSize: 'var(--font-size-sm)', color: 'rgba(255,255,255,.85)' }}>
+            {lang === 'ja' ? '日めくりAWSサービス' : 'Daily AWS Service'}
+          </span>
+        </div>
+        {/* ? アイコン */}
+        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', padding: '12px 0 8px' }}>
+          <div style={{
+            fontSize: 52, fontWeight: 900, lineHeight: 1, color: '#FF9900',
+            textShadow: '0 4px 24px rgba(255,153,0,.6)',
+            filter: 'drop-shadow(0 0 12px rgba(255,153,0,.5))',
+            animation: 'ds-float 3.2s ease-in-out infinite',
+          }}>?</div>
+          <div style={{
+            marginTop: 14, fontSize: 13, fontWeight: 600,
+            color: 'rgba(255,230,150,.85)',
+            animation: 'ds-tap 1.5s ease-in-out infinite',
+            textShadow: '0 2px 8px rgba(0,0,0,.5)',
+          }}>
+            {lang === 'ja' ? '👆 タップして本日のサービスを解放' : "👆 Tap to reveal today's service"}
+          </div>
+        </div>
+      </div>
+    </>
   );
 
   if (!service) return null;
@@ -528,6 +627,7 @@ export default function Home() {
   const uid = user?.userId ?? 'guest';
 
   const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
+  const [revealService, setRevealService] = useState<DailyService | null>(null);
   const [targetExam, setTargetExam] = useState<string | null>(() => localStorage.getItem(`targetExam_${uid}`));
   const [domainStats, setDomainStats] = useState<DomainStat[]>([]);
   const [statsLoading, setStatsLoading] = useState(false);
@@ -1074,7 +1174,22 @@ export default function Home() {
       </Card>
 
       {/* ── 日めくりAWSサービス ── */}
-      <TodayServiceSection lang={lang} userId={user?.userId} onNavigateEncyclopedia={() => navigate('/aws/encyclopedia')} />
+      <TodayServiceSection
+        lang={lang}
+        userId={user?.userId}
+        onNavigateEncyclopedia={() => navigate('/aws/encyclopedia')}
+        onReveal={svc => setRevealService(svc)}
+      />
+
+      {revealService && (
+        <DailyServiceRevealModal
+          service={revealService}
+          lang={lang}
+          onClose={() => setRevealService(null)}
+          onNavigateEncyclopedia={() => { setRevealService(null); navigate('/aws/encyclopedia'); }}
+          onStartExercise={() => setRevealService(null)}
+        />
+      )}
 
       {/* ── 非ログイン時バナー ── */}
       {!user && (
