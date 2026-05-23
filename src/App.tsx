@@ -194,6 +194,10 @@ function AppInner() {
             setRevealService(null);
             navigate('/aws/encyclopedia');
           }}
+          onStartExercise={() => {
+            setRevealService(null);
+            navigate('/aws/');
+          }}
         />
       )}
     </>

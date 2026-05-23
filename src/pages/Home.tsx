@@ -953,114 +953,124 @@ export default function Home() {
         style={{ marginBottom: 'var(--spacing-md)', cursor: (targetExam && !statsLoading) ? 'pointer' : 'default' }}
         onClick={() => { if (targetExam && !statsLoading) setShowCombinedDetail(true); }}
       >
+        <div style={isMobile ? {} : { display: 'flex', gap: 0 }}>
 
-        {/* ドメイン別正答率 */}
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8 }}>
-          <span style={{ fontSize: 11, fontWeight: 700, color: 'var(--color-text-sub)', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
-            {ja ? 'ドメイン別正答率' : 'Domain Accuracy'}
-          </span>
-          {user && (
-            <button
-              onClick={e => { e.stopPropagation(); refreshStats(); }}
-              disabled={statsLoading || statsRefreshing}
-              title={ja ? '成績を更新' : 'Refresh stats'}
-              aria-label={ja ? '成績を更新' : 'Refresh stats'}
-              style={{
-                width: 44, height: 44, borderRadius: '50%',
-                border: `1px solid var(--color-border)`,
-                background: 'transparent',
-                color: 'var(--color-primary)',
-                cursor: (statsLoading || statsRefreshing) ? 'default' : 'pointer',
-                display: 'flex', alignItems: 'center', justifyContent: 'center',
-                opacity: (statsLoading || statsRefreshing) ? 0.5 : 1,
-                flexShrink: 0,
-              }}
-            >
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"
-                style={{ animation: (statsLoading || statsRefreshing) ? 'sherpa-spin 0.8s linear infinite' : 'none' }}>
-                <polyline points="23 4 23 10 17 10"/>
-                <path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/>
-              </svg>
-            </button>
-          )}
-        </div>
-        {!targetExam ? (
-          <div style={{ color: 'var(--color-text-light)', fontSize: 'var(--font-size-sm)', fontStyle: 'italic' }}>
-            {ja ? '試験を選択してください' : 'Select an exam'}
-          </div>
-        ) : statsLoading ? (
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 7 }}>
-            {[65, 80, 50, 72, 60].map((w, i) => (
-              <div key={i}><div className="skeleton" style={{ height: 12, width: `${w}%`, borderRadius: 3, marginBottom: 3 }} /><div className="skeleton" style={{ height: 5, width: '100%', borderRadius: 3 }} /></div>
-            ))}
-          </div>
-        ) : (
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 7 }}>
-            {domains.map((d, i) => {
-              const pct = domainAccList[i]?.pct ?? null;
-              const grade = getGrade(pct);
-              const label = lang === 'en' ? (DOMAIN_NAME_EN[d] ?? d) : d;
-              return (
-                <div key={d}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 5, marginBottom: 3 }}>
-                    <span style={{ fontSize: 11, fontWeight: 800, color: 'var(--color-primary)', minWidth: 14, flexShrink: 0, textAlign: 'center' }}>{grade}</span>
-                    <span style={{ fontSize: 11, color: 'var(--color-text-sub)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', flex: 1 }}>{label}</span>
-                  </div>
-                  <div style={{ height: 5, background: 'var(--color-border)', borderRadius: 3, overflow: 'hidden' }}>
-                    {pct !== null && <div style={{ width: `${pct}%`, minWidth: pct === 0 ? 3 : undefined, height: '100%', borderRadius: 3, background: 'var(--bar-gradient-primary)', transformOrigin: 'left center', animation: `growWidth 0.45s cubic-bezier(0.34, 1.56, 0.64, 1) ${i * 30}ms both` }} />}
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-        )}
-
-        {/* 区切り線 */}
-        <div style={{ height: 1, background: 'var(--color-border)', margin: '14px 0' }} />
-
-        {/* 予想スコア */}
-        <div style={{ marginBottom: 8 }}>
-          <span style={{ fontSize: 11, fontWeight: 700, color: 'var(--color-text-sub)', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
-            {ja ? '予想スコア' : 'Est. Score'}
-          </span>
-        </div>
-        {!targetExam ? (
-          <div style={{ color: 'var(--color-text-light)', fontSize: 'var(--font-size-sm)', fontStyle: 'italic' }}>
-            {ja ? '試験を選択してください' : 'Select an exam'}
-          </div>
-        ) : statsLoading ? (
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-            <div className="skeleton" style={{ height: 28, width: '55%', borderRadius: 6 }} />
-            <div className="skeleton" style={{ height: 7, width: '100%', borderRadius: 4 }} />
-          </div>
-        ) : estimatedScore === null ? (
-          <div style={{ color: 'var(--color-text-light)', fontSize: 'var(--font-size-sm)', fontStyle: 'italic' }}>
-            {ja ? '演習データがありません' : 'No practice data yet'}
-          </div>
-        ) : (
-          <>
-            <div style={{ display: 'flex', alignItems: 'baseline', gap: 6, marginBottom: 6 }}>
-              <span style={{ fontSize: 22, fontWeight: 800, color: 'var(--color-primary)', letterSpacing: '-0.5px' }}>{estimatedScore}</span>
-              <span style={{ fontSize: 12, color: 'var(--color-text-light)' }}>/1000</span>
-              {scoreDelta !== null && (
-                <span style={{ fontSize: 12, fontWeight: 700, color: scoreDelta > 0 ? 'var(--color-success)' : scoreDelta < 0 ? 'var(--color-danger)' : 'var(--color-text-light)' }}>
-                  {scoreDelta > 0 ? `+${scoreDelta}` : scoreDelta < 0 ? `${scoreDelta}` : '±0'}
-                </span>
+          {/* ドメイン別正答率 */}
+          <div style={isMobile ? {} : { flex: 1, minWidth: 0, paddingRight: 16 }}>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8 }}>
+              <span style={{ fontSize: 11, fontWeight: 700, color: 'var(--color-text-sub)', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+                {ja ? 'ドメイン別正答率' : 'Domain Accuracy'}
+              </span>
+              {user && (
+                <button
+                  onClick={e => { e.stopPropagation(); refreshStats(); }}
+                  disabled={statsLoading || statsRefreshing}
+                  title={ja ? '成績を更新' : 'Refresh stats'}
+                  aria-label={ja ? '成績を更新' : 'Refresh stats'}
+                  style={{
+                    width: 44, height: 44, borderRadius: '50%',
+                    border: `1px solid var(--color-border)`,
+                    background: 'transparent',
+                    color: 'var(--color-primary)',
+                    cursor: (statsLoading || statsRefreshing) ? 'default' : 'pointer',
+                    display: 'flex', alignItems: 'center', justifyContent: 'center',
+                    opacity: (statsLoading || statsRefreshing) ? 0.5 : 1,
+                    flexShrink: 0,
+                  }}
+                >
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"
+                    style={{ animation: (statsLoading || statsRefreshing) ? 'sherpa-spin 0.8s linear infinite' : 'none' }}>
+                    <polyline points="23 4 23 10 17 10"/>
+                    <path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/>
+                  </svg>
+                </button>
               )}
             </div>
-            <div style={{ position: 'relative', height: 7, background: 'var(--color-border)', borderRadius: 4, overflow: 'visible', marginTop: passScore !== null ? 18 : 0 }}>
-              {passScore !== null && (
-                <div style={{ position: 'absolute', left: `${(passScore / 1000) * 100}%`, transform: 'translateX(-50%)', top: 0, bottom: 0, zIndex: 2, display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-                  <div style={{ position: 'absolute', bottom: '100%', marginBottom: 3, background: '#f59e0b', color: '#fff', fontSize: 9, fontWeight: 700, padding: '1px 5px', borderRadius: 3, whiteSpace: 'nowrap', lineHeight: 1.5 }}>
-                    {ja ? `合格 ${passScore}` : `Pass ${passScore}`}
-                  </div>
-                  <div style={{ width: 2, height: '100%', background: '#f59e0b', borderRadius: 1 }} />
-                </div>
-              )}
-              <div style={{ width: `${Math.min(100, (estimatedScore / 1000) * 100)}%`, height: '100%', borderRadius: 4, background: 'var(--bar-gradient-primary)', transformOrigin: 'left center', animation: 'growWidth 0.6s cubic-bezier(0.34, 1.56, 0.64, 1) both' }} />
+            {!targetExam ? (
+              <div style={{ color: 'var(--color-text-light)', fontSize: 'var(--font-size-sm)', fontStyle: 'italic' }}>
+                {ja ? '試験を選択してください' : 'Select an exam'}
+              </div>
+            ) : statsLoading ? (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 7 }}>
+                {[65, 80, 50, 72, 60].map((w, i) => (
+                  <div key={i}><div className="skeleton" style={{ height: 12, width: `${w}%`, borderRadius: 3, marginBottom: 3 }} /><div className="skeleton" style={{ height: 5, width: '100%', borderRadius: 3 }} /></div>
+                ))}
+              </div>
+            ) : (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 7 }}>
+                {domains.map((d, i) => {
+                  const pct = domainAccList[i]?.pct ?? null;
+                  const grade = getGrade(pct);
+                  const label = lang === 'en' ? (DOMAIN_NAME_EN[d] ?? d) : d;
+                  return (
+                    <div key={d}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 5, marginBottom: 3 }}>
+                        <span style={{ fontSize: 11, fontWeight: 800, color: 'var(--color-primary)', minWidth: 14, flexShrink: 0, textAlign: 'center' }}>{grade}</span>
+                        <span style={{ fontSize: 11, color: 'var(--color-text-sub)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', flex: 1 }}>{label}</span>
+                      </div>
+                      <div style={{ height: 5, background: 'var(--color-border)', borderRadius: 3, overflow: 'hidden' }}>
+                        {pct !== null && <div style={{ width: `${pct}%`, minWidth: pct === 0 ? 3 : undefined, height: '100%', borderRadius: 3, background: 'var(--bar-gradient-primary)', transformOrigin: 'left center', animation: `growWidth 0.45s cubic-bezier(0.34, 1.56, 0.64, 1) ${i * 30}ms both` }} />}
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+          </div>
+
+          {/* 区切り線（モバイル: 横線、デスクトップ: 縦線） */}
+          {isMobile
+            ? <div style={{ height: 1, background: 'var(--color-border)', margin: '14px 0' }} />
+            : <div style={{ width: 1, background: 'var(--color-border)', flexShrink: 0 }} />
+          }
+
+          {/* 予想スコア */}
+          <div style={isMobile ? {} : { flex: 1, minWidth: 0, paddingLeft: 16 }}>
+            <div style={{ marginBottom: 8 }}>
+              <span style={{ fontSize: 11, fontWeight: 700, color: 'var(--color-text-sub)', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+                {ja ? '予想スコア' : 'Est. Score'}
+              </span>
             </div>
-          </>
-        )}
+            {!targetExam ? (
+              <div style={{ color: 'var(--color-text-light)', fontSize: 'var(--font-size-sm)', fontStyle: 'italic' }}>
+                {ja ? '試験を選択してください' : 'Select an exam'}
+              </div>
+            ) : statsLoading ? (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+                <div className="skeleton" style={{ height: 28, width: '55%', borderRadius: 6 }} />
+                <div className="skeleton" style={{ height: 7, width: '100%', borderRadius: 4 }} />
+              </div>
+            ) : estimatedScore === null ? (
+              <div style={{ color: 'var(--color-text-light)', fontSize: 'var(--font-size-sm)', fontStyle: 'italic' }}>
+                {ja ? '演習データがありません' : 'No practice data yet'}
+              </div>
+            ) : (
+              <>
+                <div style={{ display: 'flex', alignItems: 'baseline', gap: 6, marginBottom: 6 }}>
+                  <span style={{ fontSize: 22, fontWeight: 800, color: 'var(--color-primary)', letterSpacing: '-0.5px' }}>{estimatedScore}</span>
+                  <span style={{ fontSize: 12, color: 'var(--color-text-light)' }}>/1000</span>
+                  {scoreDelta !== null && (
+                    <span style={{ fontSize: 12, fontWeight: 700, color: scoreDelta > 0 ? 'var(--color-success)' : scoreDelta < 0 ? 'var(--color-danger)' : 'var(--color-text-light)' }}>
+                      {scoreDelta > 0 ? `+${scoreDelta}` : scoreDelta < 0 ? `${scoreDelta}` : '±0'}
+                    </span>
+                  )}
+                </div>
+                <div style={{ position: 'relative', height: 7, background: 'var(--color-border)', borderRadius: 4, overflow: 'visible', marginTop: passScore !== null ? 18 : 0 }}>
+                  {passScore !== null && (
+                    <div style={{ position: 'absolute', left: `${(passScore / 1000) * 100}%`, transform: 'translateX(-50%)', top: 0, bottom: 0, zIndex: 2, display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+                      <div style={{ position: 'absolute', bottom: '100%', marginBottom: 3, background: '#f59e0b', color: '#fff', fontSize: 9, fontWeight: 700, padding: '1px 5px', borderRadius: 3, whiteSpace: 'nowrap', lineHeight: 1.5 }}>
+                        {ja ? `合格 ${passScore}` : `Pass ${passScore}`}
+                      </div>
+                      <div style={{ width: 2, height: '100%', background: '#f59e0b', borderRadius: 1 }} />
+                    </div>
+                  )}
+                  <div style={{ width: `${Math.min(100, (estimatedScore / 1000) * 100)}%`, height: '100%', borderRadius: 4, background: 'var(--bar-gradient-primary)', transformOrigin: 'left center', animation: 'growWidth 0.6s cubic-bezier(0.34, 1.56, 0.64, 1) both' }} />
+                </div>
+              </>
+            )}
+          </div>
+
+        </div>
       </Card>
 
       {/* ── 日めくりAWSサービス ── */}

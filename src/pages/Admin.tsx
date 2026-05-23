@@ -228,10 +228,11 @@ export default function Admin() {
   // データ削除
   const [delEmail, setDelEmail] = useState('');
   const [delSending, setDelSending] = useState(false);
-  const [delStatus, setDelStatus] = useState<'none' | 'pending' | 'confirmed'>('none');
+  const [delStatus, setDelStatus] = useState<'none' | 'pending' | 'confirmed' | 'pre-authorized'>('none');
   const [delToken, setDelToken] = useState('');
   const [delUserId, setDelUserId] = useState('');
   const [delExpiresAt, setDelExpiresAt] = useState('');
+  const [delAuthorizedAt, setDelAuthorizedAt] = useState('');
   const [delExecuting, setDelExecuting] = useState(false);
   const [delDone, setDelDone] = useState(false);
   const [delError, setDelError] = useState('');
@@ -680,6 +681,7 @@ export default function Admin() {
       setDelToken(data.token || '');
       setDelUserId(data.userId || '');
       setDelExpiresAt(data.expiresAt || '');
+      setDelAuthorizedAt(data.authorizedAt || '');
     } catch {}
   };
 
@@ -687,7 +689,6 @@ export default function Admin() {
     if (!delEmail.trim()) return;
     setDelSending(true);
     setDelError('');
-    setDelStatus('none');
     setDelDone(false);
     try {
       const res = await adminFetch(`${API_ENDPOINT}/admin/deletion-requests`, {
@@ -697,28 +698,38 @@ export default function Admin() {
       });
       const data = await res.json();
       if (!res.ok) { setDelError(data.error || '送信に失敗しました'); setDelSending(false); return; }
-      setDelStatus('pending');
-      setDelUserId(data.userId || '');
-      await fetchDeletionStatus(delEmail.trim());
+      if (data.preAuthorized) {
+        // 既に永続認証済み → ステータスを再取得して pre-authorized を反映
+        await fetchDeletionStatus(delEmail.trim());
+      } else {
+        setDelStatus('pending');
+        setDelUserId(data.userId || '');
+        await fetchDeletionStatus(delEmail.trim());
+      }
     } catch { setDelError('通信エラーが発生しました'); }
     setDelSending(false);
   };
 
   const executeDeletion = async () => {
-    if (!delToken || delStatus !== 'confirmed') return;
+    const canExecute = delStatus === 'confirmed' || delStatus === 'pre-authorized';
+    if (!canExecute) return;
     if (!window.confirm(`${delEmail} のすべてのデータを削除します。この操作は取り消せません。\n\n続行しますか？`)) return;
     setDelExecuting(true);
     setDelError('');
     try {
+      const body = delStatus === 'pre-authorized'
+        ? { userId: delUserId, email: delEmail.trim() }
+        : { token: delToken };
       const res = await adminFetch(`${API_ENDPOINT}/admin/deletion-requests/execute`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ token: delToken }),
+        body: JSON.stringify(body),
       });
       const data = await res.json();
       if (!res.ok) { setDelError(data.error || '削除に失敗しました'); setDelExecuting(false); return; }
       setDelDone(true);
-      setDelStatus('none');
+      // pre-authorized は保持（次回も削除できる）
+      if (delStatus !== 'pre-authorized') setDelStatus('none');
       setDelToken('');
     } catch { setDelError('通信エラーが発生しました'); }
     setDelExecuting(false);
@@ -2736,24 +2747,26 @@ ${tipPromptExamType !== 'ALL' ? `・examType には "${tipPromptExamType}" を�
         <div style={{ maxWidth: 560 }}>
           <p style={{ fontSize: 13, color: 'var(--color-text-sub)', marginBottom: 24, lineHeight: 1.7 }}>
             指定したメールアドレスのユーザーのアプリデータ（演習履歴・成績・ブックマーク等）を削除します。<br />
-            Cognitoアカウントは削除されません。確認メールを送信し、承認後に削除を実行します。
+            Cognitoアカウントは削除されません。初回のみ確認メールが必要です。承認後は何度でも削除できます。
           </p>
 
           <div style={{ display: 'flex', gap: 8, marginBottom: 16 }}>
             <input
               type="email"
               value={delEmail}
-              onChange={e => { setDelEmail(e.target.value); setDelStatus('none'); setDelToken(''); setDelDone(false); setDelError(''); }}
+              onChange={e => { setDelEmail(e.target.value); setDelStatus('none'); setDelToken(''); setDelDone(false); setDelError(''); setDelAuthorizedAt(''); }}
               placeholder="削除対象のメールアドレス"
               style={{ flex: 1, padding: '8px 12px', border: '1px solid var(--color-border)', borderRadius: 8, fontSize: 13, background: 'var(--color-bg-white)', color: 'var(--color-text-main)' }}
             />
-            <button
-              onClick={sendDeletionRequest}
-              disabled={!delEmail.trim() || delSending}
-              style={{ padding: '8px 18px', background: 'var(--color-primary)', color: '#fff', border: 'none', borderRadius: 8, cursor: (!delEmail.trim() || delSending) ? 'default' : 'pointer', fontWeight: 700, fontSize: 13, opacity: (!delEmail.trim() || delSending) ? 0.6 : 1, whiteSpace: 'nowrap' }}
-            >
-              {delSending ? '送信中...' : '確認メール送信'}
-            </button>
+            {delStatus !== 'pre-authorized' && (
+              <button
+                onClick={sendDeletionRequest}
+                disabled={!delEmail.trim() || delSending}
+                style={{ padding: '8px 18px', background: 'var(--color-primary)', color: '#fff', border: 'none', borderRadius: 8, cursor: (!delEmail.trim() || delSending) ? 'default' : 'pointer', fontWeight: 700, fontSize: 13, opacity: (!delEmail.trim() || delSending) ? 0.6 : 1, whiteSpace: 'nowrap' }}
+              >
+                {delSending ? '確認中...' : '確認メール送信'}
+              </button>
+            )}
             {delEmail && delStatus === 'none' && !delSending && (
               <button
                 onClick={() => fetchDeletionStatus(delEmail)}
@@ -2776,15 +2789,24 @@ ${tipPromptExamType !== 'ALL' ? `・examType には "${tipPromptExamType}" を�
             </div>
           )}
 
-          {delStatus !== 'none' && !delDone && (
+          {delStatus !== 'none' && (
             <div style={{ padding: '14px 16px', background: 'var(--color-bg-main)', border: '1px solid var(--color-border)', borderRadius: 8, marginBottom: 16 }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: delStatus === 'confirmed' ? 14 : 0 }}>
-                <span style={{ fontSize: 20 }}>{delStatus === 'confirmed' ? '✅' : '⏳'}</span>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: (delStatus === 'confirmed' || delStatus === 'pre-authorized') ? 14 : 0 }}>
+                <span style={{ fontSize: 20 }}>
+                  {delStatus === 'pre-authorized' ? '🔓' : delStatus === 'confirmed' ? '✅' : '⏳'}
+                </span>
                 <div>
-                  <div style={{ fontWeight: 700, fontSize: 14, color: delStatus === 'confirmed' ? '#166534' : 'var(--color-text-main)' }}>
-                    {delStatus === 'confirmed' ? '承認済み – 削除可能' : '確認メール送信済み – 承認待ち'}
+                  <div style={{ fontWeight: 700, fontSize: 14, color: (delStatus === 'confirmed' || delStatus === 'pre-authorized') ? '#166534' : 'var(--color-text-main)' }}>
+                    {delStatus === 'pre-authorized' ? '承認済み（認証不要・何度でも削除可能）'
+                      : delStatus === 'confirmed' ? '承認済み – 削除可能'
+                      : '確認メール送信済み – 承認待ち'}
                   </div>
-                  {delExpiresAt && (
+                  {delStatus === 'pre-authorized' && delAuthorizedAt && (
+                    <div style={{ fontSize: 12, color: 'var(--color-text-sub)', marginTop: 2 }}>
+                      初回承認: {new Date(delAuthorizedAt).toLocaleString('ja-JP')}
+                    </div>
+                  )}
+                  {delStatus !== 'pre-authorized' && delExpiresAt && (
                     <div style={{ fontSize: 12, color: 'var(--color-text-sub)', marginTop: 2 }}>
                       有効期限: {new Date(delExpiresAt).toLocaleString('ja-JP')}
                     </div>
@@ -2800,7 +2822,7 @@ ${tipPromptExamType !== 'ALL' ? `・examType には "${tipPromptExamType}" を�
                 )}
               </div>
 
-              {delStatus === 'confirmed' && (
+              {(delStatus === 'confirmed' || delStatus === 'pre-authorized') && (
                 <button
                   onClick={executeDeletion}
                   disabled={delExecuting}

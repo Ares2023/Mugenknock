@@ -291,7 +291,9 @@ export default function Practice() {
         <>
           {!targetExam ? (
             <div style={{ padding: 24, background: 'var(--color-primary-light)', border: '1px solid var(--color-primary)', borderRadius: 'var(--border-radius-md)', fontSize: 'var(--font-size-sm)', color: 'var(--color-text-main)', textAlign: 'center' }}>
-              {ja ? '上部メニューから試験を選択してください' : 'Select your target exam from the top menu'}
+              {ja
+                ? (isMobile ? '上部メニューから試験を選択してください' : '左のメニューから試験を選択してください')
+                : (isMobile ? 'Select your target exam from the top menu' : 'Select your target exam from the left sidebar')}
             </div>
           ) : (<>
           {/* ドメイン選択 */}

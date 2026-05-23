@@ -1775,6 +1775,7 @@ app.post('/users/me/encyclopedia-unlocks', async (req, res) => {
 const USER_POOL_ID = 'ap-northeast-1_KIOFciGhQ';
 const SITE_URL = 'https://www.mugenknock.com';
 const DEL_REQ_PREFIX = 'delReq_';
+const DEL_AUTH_PREFIX = 'delAuth_';
 const DEL_REQ_TTL_MS = 24 * 60 * 60 * 1000;
 
 async function findCognitoUserByEmail(email) {
@@ -1809,7 +1810,7 @@ async function sendDeletionConfirmEmail(toEmail, token) {
   }));
 }
 
-// 管理者: 削除リクエスト作成 → 確認メール送信
+// 管理者: 削除リクエスト作成 → 確認メール送信（既に永続認証済みならメール不要）
 app.post('/admin/deletion-requests', async (req, res) => {
   try {
     const { email } = req.body;
@@ -1818,13 +1819,22 @@ app.post('/admin/deletion-requests', async (req, res) => {
     const cognitoUser = await findCognitoUserByEmail(email);
     if (!cognitoUser) return res.status(404).json({ error: 'User not found' });
 
+    const docClient = getClient();
+
+    // 永続認証レコードが存在すればメール不要
+    const authResult = await docClient.send(new GetCommand({
+      TableName: 'AppSettings',
+      Key: { settingId: `${DEL_AUTH_PREFIX}${cognitoUser.userId}` },
+    }));
+    if (authResult.Item) {
+      return res.json({ success: true, userId: cognitoUser.userId, preAuthorized: true });
+    }
+
     const token = uuidv4();
     const now = new Date().toISOString();
     const expiresAt = new Date(Date.now() + DEL_REQ_TTL_MS).toISOString();
 
-    const docClient = getClient();
-
-    // 既存のリクエストを削除
+    // 既存の一時リクエストを削除
     const existing = await docClient.send(new ScanCommand({
       TableName: 'AppSettings',
       FilterExpression: 'begins_with(settingId, :prefix) AND #em = :email',
@@ -1855,7 +1865,25 @@ app.get('/admin/deletion-requests/status', async (req, res) => {
     const { email } = req.query;
     if (!email) return res.status(400).json({ error: 'email required' });
 
+    const cognitoUser = await findCognitoUserByEmail(email);
+    if (!cognitoUser) return res.json({ status: 'none' });
+
     const docClient = getClient();
+
+    // 永続認証レコードを優先チェック
+    const authResult = await docClient.send(new GetCommand({
+      TableName: 'AppSettings',
+      Key: { settingId: `${DEL_AUTH_PREFIX}${cognitoUser.userId}` },
+    }));
+    if (authResult.Item) {
+      return res.json({
+        status: 'pre-authorized',
+        userId: cognitoUser.userId,
+        authorizedAt: authResult.Item.authorizedAt,
+      });
+    }
+
+    // 一時リクエストを確認
     const scanResult = await docClient.send(new ScanCommand({
       TableName: 'AppSettings',
       FilterExpression: 'begins_with(settingId, :prefix) AND #em = :email',
@@ -1881,19 +1909,36 @@ app.get('/admin/deletion-requests/status', async (req, res) => {
 // 管理者: データ削除実行
 app.post('/admin/deletion-requests/execute', async (req, res) => {
   try {
-    const { token } = req.body;
-    if (!token) return res.status(400).json({ error: 'token required' });
+    const { token, userId: directUserId, email: directEmail } = req.body;
+    if (!token && !directUserId) return res.status(400).json({ error: 'token or userId required' });
 
     const docClient = getClient();
-    const reqResult = await docClient.send(new GetCommand({
-      TableName: 'AppSettings',
-      Key: { settingId: `${DEL_REQ_PREFIX}${token}` },
-    }));
-    if (!reqResult.Item) return res.status(404).json({ error: 'Request not found' });
-    if (!reqResult.Item.confirmedAt) return res.status(403).json({ error: 'Not confirmed yet' });
-    if (new Date(reqResult.Item.expiresAt) < new Date()) return res.status(410).json({ error: 'Token expired' });
+    let userId;
+    let tokenSettingId = null;
+    let email = directEmail || null;
 
-    const userId = reqResult.Item.userId;
+    if (directUserId) {
+      // pre-authorized パス: delAuth_ レコードで検証
+      const authResult = await docClient.send(new GetCommand({
+        TableName: 'AppSettings',
+        Key: { settingId: `${DEL_AUTH_PREFIX}${directUserId}` },
+      }));
+      if (!authResult.Item) return res.status(403).json({ error: 'Not authorized' });
+      userId = directUserId;
+      email = email || authResult.Item.email;
+    } else {
+      // 通常パス: 一時トークンで検証
+      const reqResult = await docClient.send(new GetCommand({
+        TableName: 'AppSettings',
+        Key: { settingId: `${DEL_REQ_PREFIX}${token}` },
+      }));
+      if (!reqResult.Item) return res.status(404).json({ error: 'Request not found' });
+      if (!reqResult.Item.confirmedAt) return res.status(403).json({ error: 'Not confirmed yet' });
+      if (new Date(reqResult.Item.expiresAt) < new Date()) return res.status(410).json({ error: 'Token expired' });
+      userId = reqResult.Item.userId;
+      email = email || reqResult.Item.email;
+      tokenSettingId = `${DEL_REQ_PREFIX}${token}`;
+    }
 
     const deleteItems = async (table, keys) => {
       if (keys.length === 0) return;
@@ -1954,8 +1999,17 @@ app.post('/admin/deletion-requests/execute', async (req, res) => {
     }));
     await deleteItems('Reports', (reportsResult.Items || []).map(i => ({ reportId: i.reportId })));
 
-    // トークン削除
-    await docClient.send(new DeleteCommand({ TableName: 'AppSettings', Key: { settingId: `${DEL_REQ_PREFIX}${token}` } }));
+    // 永続認証レコードを保存（なければ作成）
+    await docClient.send(new PutCommand({
+      TableName: 'AppSettings',
+      Item: { settingId: `${DEL_AUTH_PREFIX}${userId}`, userId, email, authorizedAt: new Date().toISOString() },
+      ConditionExpression: 'attribute_not_exists(settingId)',
+    })).catch(() => {}); // 既存の場合は無視
+
+    // 一時トークンを削除
+    if (tokenSettingId) {
+      await docClient.send(new DeleteCommand({ TableName: 'AppSettings', Key: { settingId: tokenSettingId } }));
+    }
 
     res.json({ success: true, userId });
   } catch (err) {
@@ -1979,12 +2033,20 @@ app.get('/confirm-delete', async (req, res) => {
     if (new Date(result.Item.expiresAt) < new Date()) return res.status(410).json({ error: 'Token expired' });
     if (result.Item.confirmedAt) return res.json({ success: true, alreadyConfirmed: true, email: result.Item.email });
 
+    const now = new Date().toISOString();
     await docClient.send(new UpdateCommand({
       TableName: 'AppSettings',
       Key: { settingId: `${DEL_REQ_PREFIX}${token}` },
       UpdateExpression: 'SET confirmedAt = :now',
-      ExpressionAttributeValues: { ':now': new Date().toISOString() },
+      ExpressionAttributeValues: { ':now': now },
     }));
+
+    // 永続認証レコードを保存
+    await docClient.send(new PutCommand({
+      TableName: 'AppSettings',
+      Item: { settingId: `${DEL_AUTH_PREFIX}${result.Item.userId}`, userId: result.Item.userId, email: result.Item.email, authorizedAt: now },
+      ConditionExpression: 'attribute_not_exists(settingId)',
+    })).catch(() => {});
 
     res.json({ success: true, email: result.Item.email });
   } catch (err) {

@@ -2,7 +2,7 @@ export const API_ENDPOINT = 'https://a0q3656qw4.execute-api.ap-northeast-1.amazo
 
 export const ADMIN_EMAIL = 'mugenknock@gmail.com';
 
-export const EXAM_TYPES = ['CLF', 'SAA', 'SAP', 'DVA', 'SOA', 'DEA', 'DOP', 'AIF', 'MLA', 'GAI', 'ANS', 'SCS'] as const;
+export const EXAM_TYPES = ['CLF', 'AIF', 'SAA', 'DVA', 'SOA', 'DEA', 'MLA', 'SAP', 'DOP', 'GAI', 'ANS', 'SCS'] as const;
 export type ExamType = typeof EXAM_TYPES[number];
 
 // 合格スコア（スケールスコア 100〜1000 での公式合格ライン）

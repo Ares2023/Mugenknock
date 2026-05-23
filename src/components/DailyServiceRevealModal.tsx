@@ -14,9 +14,15 @@ type DailyService = {
 
 type Phase = 'waiting' | 'revealing' | 'revealed';
 
+function ServiceIconUrl({ icon, name, size }: { icon: string; name: string; size: number }) {
+  const svgSrc = icon.replace(/\.png$/, '.svg');
+  const [src, setSrc] = React.useState(svgSrc);
+  return <img src={src} alt={name} onError={() => setSrc(icon)} style={{ width: size, height: size, objectFit: 'contain' }} />;
+}
+
 function ServiceIconImg({ icon, name, size }: { icon: string; name: string; size: number }) {
   if (icon.startsWith('/') || icon.startsWith('http')) {
-    return <img src={icon} alt={name} style={{ width: size, height: size, objectFit: 'contain' }} />;
+    return <ServiceIconUrl icon={icon} name={name} size={size} />;
   }
   if (isServiceIconKey(icon)) {
     return <ServiceIcon name={icon} size={size} />;
@@ -28,12 +34,13 @@ const PARTICLE_COUNT = 28;
 const COLORS = ['#FF9900', '#FFD700', '#FF6B35', '#FFFFFF', '#5CA3E6', '#FFCC44', '#44DD88'];
 
 export default function DailyServiceRevealModal({
-  service, lang, onClose, onNavigateEncyclopedia,
+  service, lang, onClose, onNavigateEncyclopedia, onStartExercise,
 }: {
   service: DailyService;
   lang: string;
   onClose: () => void;
   onNavigateEncyclopedia: () => void;
+  onStartExercise: () => void;
 }) {
   const ja = lang === 'ja';
   const [phase, setPhase] = useState<Phase>('waiting');
@@ -82,8 +89,8 @@ export default function DailyServiceRevealModal({
     <>
       <style>{`
         @keyframes dp-pulse {
-          0%,100% { box-shadow: 0 0 18px 3px rgba(255,153,0,.35), 0 0 50px 8px rgba(255,153,0,.12); }
-          50%      { box-shadow: 0 0 32px 8px rgba(255,153,0,.65), 0 0 72px 18px rgba(255,153,0,.28); }
+          0%,100% { box-shadow: 0 0 18px 3px rgba(82,130,255,.35), 0 0 50px 8px rgba(82,130,255,.12); }
+          50%      { box-shadow: 0 0 32px 8px rgba(82,130,255,.65), 0 0 72px 18px rgba(82,130,255,.28); }
         }
         @keyframes dp-float {
           0%,100% { transform: translateY(0); }
@@ -130,15 +137,18 @@ export default function DailyServiceRevealModal({
       `}</style>
 
       {/* ── backdrop ── */}
-      <div style={{
-        position: 'fixed', inset: 0, zIndex: 9990,
-        background: 'rgba(4,6,18,.9)',
-        backdropFilter: 'blur(6px)', WebkitBackdropFilter: 'blur(6px)',
-        display: 'flex', flexDirection: 'column',
-        alignItems: 'center', justifyContent: 'center',
-        padding: '20px 16px',
-        overflowY: 'auto',
-      }}>
+      <div
+        onClick={isRevealed ? onStartExercise : undefined}
+        style={{
+          position: 'fixed', inset: 0, zIndex: 9990,
+          background: 'rgba(4,6,18,.9)',
+          backdropFilter: 'blur(6px)', WebkitBackdropFilter: 'blur(6px)',
+          display: 'flex', flexDirection: 'column',
+          alignItems: 'center', justifyContent: 'center',
+          padding: '20px 16px',
+          overflowY: 'auto',
+          cursor: isRevealed ? 'pointer' : 'default',
+        }}>
 
         {/* flash */}
         {isRevealing && (
@@ -171,10 +181,12 @@ export default function DailyServiceRevealModal({
         )}
 
         {/* ── content ── */}
-        <div style={{
-          position: 'relative', zIndex: 9993,
-          display: 'flex', flexDirection: 'column', alignItems: 'center',
-        }}>
+        <div
+          onClick={e => e.stopPropagation()}
+          style={{
+            position: 'relative', zIndex: 9993,
+            display: 'flex', flexDirection: 'column', alignItems: 'center',
+          }}>
 
           {/* label */}
           <div style={{
@@ -195,7 +207,7 @@ export default function DailyServiceRevealModal({
               width: cardSize, height: cardSize,
               background: 'linear-gradient(140deg,#1a1a2e 0%,#16213e 55%,#0f3460 100%)',
               borderRadius: 22,
-              border: `2px solid rgba(255,153,0,${isRevealed ? '.45' : '.75'})`,
+              border: `2px solid rgba(82,130,255,${isRevealed ? '.45' : '.75'})`,
               cursor: isWaiting ? 'pointer' : 'default',
               display: 'flex', alignItems: 'center', justifyContent: 'center',
               overflow: 'hidden',
@@ -234,7 +246,7 @@ export default function DailyServiceRevealModal({
             {/* icon */}
             {isRevealed && (
               <div style={{ animation: 'dp-icon-pop .52s cubic-bezier(.175,.885,.32,1.275) .15s both' }}>
-                <ServiceIconImg icon={service.icon} name={service.name} size={100} />
+                <ServiceIconImg icon={service.icon} name={service.name} size={110} />
               </div>
             )}
 
@@ -304,12 +316,12 @@ export default function DailyServiceRevealModal({
               </div>
 
               <div style={{ display: 'flex', gap: 10, justifyContent: 'center', flexWrap: 'wrap' }}>
-                <Button variant="primary" onClick={onNavigateEncyclopedia}>
-                  {ja ? '図鑑を見る →' : 'View Encyclopedia →'}
+                <Button variant="primary" onClick={onStartExercise}>
+                  {ja ? '今日の演習を始める' : "Start Today's Exercise"}
                 </Button>
-                <Button variant="outline" onClick={onClose}
+                <Button variant="outline" onClick={onNavigateEncyclopedia}
                   style={{ borderColor: 'rgba(255,255,255,.22)', color: 'rgba(255,255,255,.68)' }}>
-                  {ja ? '閉じる' : 'Close'}
+                  {ja ? 'サービス図鑑' : 'Encyclopedia'}
                 </Button>
               </div>
             </div>

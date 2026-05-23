@@ -284,7 +284,7 @@ export default function Account() {
         position: 'sticky', top: 0, zIndex: 100,
       }}>
         <button
-          onClick={() => navigate('/')}
+          onClick={() => navigate('/aws/')}
           style={{
             display: 'flex', alignItems: 'center', justifyContent: 'center',
             width: 44, height: 44, border: 'none', background: 'none',
@@ -297,7 +297,7 @@ export default function Account() {
         >
           <IconChevronLeft />
         </button>
-        <div onClick={() => navigate('/')} style={{ cursor: 'pointer', display: 'flex', alignItems: 'center' }}>
+        <div onClick={() => navigate('/aws/')} style={{ cursor: 'pointer', display: 'flex', alignItems: 'center' }}>
           <img src="/mugen-header.png" alt="AWS資格無限ノック" style={{ height: 32, width: 'auto', display: 'block' }} />
         </div>
       </header>
