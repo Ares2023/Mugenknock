@@ -641,6 +641,7 @@ export default function Practice() {
           </div>
         </div>
       )}
+      {(exerciseLoading || examLoading) && <div style={{ position: 'fixed', inset: 0, zIndex: 9000, cursor: 'wait' }} />}
     </div>
   );
 }

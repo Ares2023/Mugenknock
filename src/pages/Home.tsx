@@ -1973,6 +1973,7 @@ export default function Home() {
           onSkip={() => setShowOnboarding(false)}
         />
       )}
+      {(quickLoading || focusedLoading) && <div style={{ position: 'fixed', inset: 0, zIndex: 9000, cursor: 'wait' }} />}
     </div>
   );
 }

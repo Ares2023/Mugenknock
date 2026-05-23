@@ -438,6 +438,7 @@ export default function ExerciseSetup() {
           </div>
         </div>
       )}
+      {loading && <div style={{ position: 'fixed', inset: 0, zIndex: 9000, cursor: 'wait' }} />}
     </div>
   );
 }
