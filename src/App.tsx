@@ -1,7 +1,5 @@
 import React from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
-import { Amplify } from 'aws-amplify';
-import awsExports from './aws-exports';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
 import { LanguageProvider, useLanguage } from './contexts/LanguageContext';
 import { ThemeProvider } from './contexts/ThemeContext';
@@ -28,9 +26,6 @@ import About from './pages/About';
 import Practice from './pages/Practice';
 import ServiceEncyclopedia from './pages/ServiceEncyclopedia';
 import ConfirmDelete from './pages/ConfirmDelete';
-
-Amplify.configure(awsExports);
-
 
 function AuthGate({ children }: { children: React.ReactNode }) {
   const { loading } = useAuth();

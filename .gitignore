@@ -28,14 +28,14 @@ questions/*.json
 # プロンプト・スクリプト（ローカル運用のみ）
 prompts/
 
-#amplify-do-not-edit-begin
-amplify/\#current-cloud-backend
-amplify/.config/local-*
-amplify/logs
-amplify/mock-data
-amplify/mock-api-resources
-amplify/backend/amplify-meta.json
-amplify/backend/.temp
+# Amplify Gen 1 legacy (archived)
+amplify_gen1/\#current-cloud-backend
+amplify_gen1/.config/local-*
+amplify_gen1/logs
+amplify_gen1/mock-data
+amplify_gen1/mock-api-resources
+amplify_gen1/backend/amplify-meta.json
+amplify_gen1/backend/.temp
 build/
 dist/
 node_modules/
@@ -48,7 +48,9 @@ amplify-gradle-config.json
 amplifytools.xcconfig
 .secret-*
 **.sample
-#amplify-do-not-edit-end
+
+# Amplify Gen 2
+.amplify/
 
 # Capacitor Android
 android/.gradle/

@@ -50,6 +50,10 @@
     ]
   },
   "devDependencies": {
-    "@types/react-router-dom": "^5.3.3"
+    "@aws-amplify/backend": "^1.22.0",
+    "@aws-amplify/backend-cli": "^1.8.2",
+    "@types/react-router-dom": "^5.3.3",
+    "aws-cdk-lib": "^2.257.0",
+    "constructs": "^10.6.0"
   }
 }
