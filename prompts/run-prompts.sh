@@ -16,7 +16,7 @@ HOOKS_FILE="$SCRIPT_DIR/.ct-hooks"        # 1行 = "±N|command"
 SKIP_HOOKS_FILE="$SCRIPT_DIR/.ct-skip-once" # 存在すれば次回フックをスキップ
 
 mkdir -p "$LOG_DIR"
-export PATH="/home/yuzuki/.npm-global/bin:/home/sera/.config/nvm/versions/node/v20.20.2/bin:$PATH"
+export PATH="/home/yuzuki/.npm-global/bin:/home/yuzuki/local/bin:$PATH"
 
 # ── 履歴の記録 ──────────────────────────────────────────────
 log_history() {
@@ -545,7 +545,9 @@ PYEOF
       local _cb
       _cb=$(
         { _p=/home/yuzuki/.npm-global/bin/claude; [ -x "$_p" ] && echo "$_p"; } ||
-        { _cv=$(command -v claude 2>/dev/null); [ -n "$_cv" ] && [ -x "$_cv" ] && echo "$_cv"; }
+        { _cv=$(command -v claude 2>/dev/null); [ -n "$_cv" ] && [ -x "$_cv" ] && echo "$_cv"; } ||
+        find /home/yuzuki/.npm-global/lib/node_modules/@anthropic-ai \
+          -maxdepth 4 -name "claude.exe" -path "*/bin/*" 2>/dev/null | head -1
       ) || true
       if [ -z "${_cb:-}" ]; then echo "❌ claude コマンドが見つかりません" >&2; return 1; fi
       local output
@@ -606,7 +608,9 @@ PYEOF
         echo "▶ [ping] Claudeセッション確認..."
         local _pt0=$(date +%s)
         local _ping_out _ping_ec
-        _ping_out=$(/home/yuzuki/.npm-global/bin/claude --dangerously-skip-permissions -p "." 2>&1)
+        local _ping_bin
+        _ping_bin=$( { [ -x /home/yuzuki/.npm-global/bin/claude ] && echo /home/yuzuki/.npm-global/bin/claude; } || find /home/yuzuki/.npm-global/lib/node_modules/@anthropic-ai -maxdepth 4 -name "claude.exe" -path "*/bin/*" 2>/dev/null | head -1 )
+        _ping_out=$("${_ping_bin:-claude}" --dangerously-skip-permissions -p "." 2>&1)
         _ping_ec=$?
         local _ping_s=$(( $(date +%s) - _pt0 ))
         printf "  → %ds\n" "$_ping_s"

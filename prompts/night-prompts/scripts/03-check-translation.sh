@@ -4,14 +4,16 @@
 
 set -uo pipefail
 
-export PATH="/home/yuzuki/.npm-global/bin:/home/sera/.config/nvm/versions/node/v20.20.2/bin:$PATH"
+export PATH="/home/yuzuki/.npm-global/bin:/home/yuzuki/local/bin:$PATH"
 unset ANTHROPIC_API_KEY
 
 _find_claude() {
   local _p=/home/yuzuki/.npm-global/bin/claude
   [ -x "$_p" ] && { echo "$_p"; return; }
   local _cv; _cv=$(command -v claude 2>/dev/null)
-  [ -n "$_cv" ] && [ -x "$_cv" ] && echo "$_cv"
+  [ -n "$_cv" ] && [ -x "$_cv" ] && { echo "$_cv"; return; }
+  find /home/yuzuki/.npm-global/lib/node_modules/@anthropic-ai \
+    -maxdepth 4 -name "claude.exe" -path "*/bin/*" 2>/dev/null | head -1
 }
 CLAUDE_CMD=$(_find_claude)
 if [ -z "${CLAUDE_CMD:-}" ]; then
