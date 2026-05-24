@@ -37,11 +37,11 @@ function readScoreHistory(examType: string, uid: string): ScoreEntry[] {
 }
 
 // ── スコア折れ線グラフ ───────────────────────────────────────────
-function ScoreLineChart({ data, passScore }: { data: ScoreEntry[]; passScore: number | null }) {
+function ScoreLineChart({ data, passScore, lang = 'ja' }: { data: ScoreEntry[]; passScore: number | null; lang?: string }) {
   if (data.length < 2) {
     return (
       <p style={{ color: 'var(--color-text-light)', fontSize: 12, fontStyle: 'italic', margin: 0 }}>
-        2日分以上のデータが貯まると表示されます
+        {lang === 'ja' ? '2日分以上のデータが貯まると表示されます' : 'Appears after 2+ days of data'}
       </p>
     );
   }
@@ -65,7 +65,7 @@ function ScoreLineChart({ data, passScore }: { data: ScoreEntry[]; passScore: nu
             x1={PL} x2={PL + iW} y1={cy(passScore)} y2={cy(passScore)}
             stroke="#f59e0b" strokeWidth={1.5} strokeDasharray="4,3"
           />
-          <text x={PL + iW + 2} y={cy(passScore) + 3} fontSize={8} fill="#f59e0b" fontWeight="bold">合格</text>
+          <text x={PL + iW + 2} y={cy(passScore) + 3} fontSize={8} fill="#f59e0b" fontWeight="bold">{lang === 'ja' ? '合格' : 'Pass'}</text>
         </>
       )}
       <path d={pathD} fill="none" stroke="var(--color-primary)" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" />
@@ -161,7 +161,7 @@ function CombinedDetailModal({ targetExam, domainAccList, estimatedScore, passSc
       <div style={{ fontSize: 11, fontWeight: 600, color: 'var(--color-text-sub)', marginBottom: 10 }}>
         {ja ? 'スコア推移' : 'Score History'}
       </div>
-      <ScoreLineChart data={history} passScore={passScore} />
+      <ScoreLineChart data={history} passScore={passScore} lang={lang} />
     </div>
   );
 
@@ -259,7 +259,7 @@ function ScoreDetailModal({ targetExam, estimatedScore, passScore, lang, uid, on
           <div style={{ fontSize: 11, fontWeight: 600, color: 'var(--color-text-sub)', marginBottom: 10 }}>
             {ja ? 'スコア推移' : 'Score History'}
           </div>
-          <ScoreLineChart data={history} passScore={passScore} />
+          <ScoreLineChart data={history} passScore={passScore} lang={lang} />
         </div>
 
         <div style={{ background: 'var(--color-bg-main)', borderRadius: 8, padding: '8px 12px' }}>
@@ -570,6 +570,14 @@ function syncEncyclopediaToServer(userId: string): void {
       .then(r => r.ok ? r.json() : { unlocks: {} })
       .then(data => {
         const server: Record<string, string> = data.unlocks ?? {};
+        // サーバーが空でローカルに解放済みデータがある場合はサーバーを正とみなす（管理者リセット後の誤再アップロード防止）
+        if (Object.keys(server).length === 0 && Object.keys(local).length > 0) {
+          localStorage.setItem(`encyclopediaUnlocked_${uid}`, '{}');
+          localStorage.removeItem(`encyclopediaUnlockDate_${uid}`);
+          localStorage.removeItem(`encyclopediaTodayServiceId_${uid}`);
+          window.dispatchEvent(new CustomEvent('encyclopediaUpdated'));
+          return;
+        }
         const merged: Record<string, string> = { ...server, ...local };
         localStorage.setItem(`encyclopediaUnlocked_${uid}`, JSON.stringify(merged));
         window.dispatchEvent(new CustomEvent('encyclopediaUpdated'));
