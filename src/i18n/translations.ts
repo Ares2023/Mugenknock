@@ -127,7 +127,7 @@ export const ja: Translations = {
   'exerciseSetup.bookmarkOnlyDesc': '（演習中に☆でブックマーク）',
   'exerciseSetup.shuffle': '問題をシャッフルする',
   'exerciseSetup.cancel': 'キャンセル',
-  'exerciseSetup.start': '試験を開始',
+  'exerciseSetup.start': '演習を開始する',
   'exerciseSetup.starting': '準備中...',
   'exerciseSetup.noQuestions': '条件に合う問題がありません',
   'exerciseSetup.startFailed': 'セッション開始に失敗しました',
@@ -336,7 +336,7 @@ export const en: Translations = {
   // ── Home ──
   'home.startLearning': 'Start AWS Certification Practice',
   'home.greeting': 'Hello, {name}',
-  'home.heroDesc': 'AWS資格無限ノック is a practice quiz service for AWS certification. Study CLF, SAA, SAP, and DOP with Practice and Mock Exam modes.',
+  'home.heroDesc': 'AWS資格無限ノック is a practice quiz service for AWS certification. Study CLF, SAA, SAP, DOP, AIF, MLA, and GAI with Practice and Mock Exam modes.',
   'home.targetExam': 'Target Exam',
   'home.targetExamNote': '— Statistics will be filtered to this exam',
   'home.selectHint': 'Select an exam to filter the statistics page',

@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { PASS_SCORES, PASS_RATE, API_ENDPOINT } from '../constants';
+import { PASS_SCORES, PASS_RATE, API_ENDPOINT, EXAM_DOMAINS, DOMAIN_NAME_EN } from '../constants';
 import { useLanguage } from '../contexts/LanguageContext';
 import { useAuth } from '../contexts/AuthContext';
 import Card from '../components/ui/Card';
@@ -86,6 +86,73 @@ export default function Result() {
           {t('result.correctCount', { correct: results.filter((r: any) => r.isCorrect).length, total: questions.length })}
         </p>
       </Card>
+
+      {/* ドメイン別スコア内訳 */}
+      {(() => {
+        const domains = EXAM_DOMAINS[resolvedExamType] ?? [];
+        const breakdown = domains.map(domain => {
+          const indices = questions.reduce((acc: number[], q: any, i: number) => {
+            if ((q.tags ?? []).includes(domain)) acc.push(i);
+            return acc;
+          }, []);
+          const correct = indices.filter((i: number) => results[i]?.isCorrect).length;
+          return { domain, correct, total: indices.length };
+        }).filter(d => d.total > 0);
+
+        if (breakdown.length === 0) return null;
+
+        const weakest = [...breakdown].sort((a, b) => (a.correct / a.total) - (b.correct / b.total))[0];
+        const showGuide = weakest && (weakest.correct / weakest.total) < 0.7;
+
+        return (
+          <Card padding="var(--spacing-lg)" style={{ marginBottom: 'var(--spacing-xl)' }}>
+            <div style={{ fontSize: 'var(--font-size-xs)', fontWeight: 700, color: 'var(--color-text-sub)', textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: 'var(--spacing-md)' }}>
+              {ja ? 'ドメイン別スコア' : 'Domain Breakdown'}
+            </div>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+              {breakdown.map(({ domain, correct, total }) => {
+                const pct = Math.round((correct / total) * 100);
+                const label = lang === 'en' ? (DOMAIN_NAME_EN[domain] ?? domain) : domain;
+                const color = pct >= 70 ? 'var(--color-success)' : pct >= 50 ? '#f59e0b' : 'var(--color-danger)';
+                return (
+                  <div key={domain}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: 4 }}>
+                      <span style={{ fontSize: 'var(--font-size-sm)', color: 'var(--color-text-main)', flex: 1, marginRight: 8, lineHeight: 1.4 }}>{label}</span>
+                      <span style={{ fontSize: 'var(--font-size-sm)', fontWeight: 700, color, flexShrink: 0 }}>
+                        {pct}%
+                        <span style={{ fontSize: 'var(--font-size-xs)', fontWeight: 400, color: 'var(--color-text-light)', marginLeft: 4 }}>
+                          {correct}/{total}
+                        </span>
+                      </span>
+                    </div>
+                    <div style={{ height: 6, background: 'var(--color-bg-main)', borderRadius: 3, overflow: 'hidden' }}>
+                      <div style={{
+                        width: `${pct}%`, height: '100%', borderRadius: 3,
+                        background: color,
+                        transformOrigin: 'left center',
+                        animation: 'growWidth 0.5s cubic-bezier(0.34,1.56,0.64,1) both',
+                      }} />
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+            {showGuide && !isExam && (
+              <div style={{ marginTop: 'var(--spacing-md)', paddingTop: 'var(--spacing-md)', borderTop: '1px solid var(--color-border)', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12, flexWrap: 'wrap' }}>
+                <span style={{ fontSize: 'var(--font-size-sm)', color: 'var(--color-text-sub)', flex: 1 }}>
+                  {ja
+                    ? `「${weakest.domain}」を重点的に演習しましょう`
+                    : `Focus on "${DOMAIN_NAME_EN[weakest.domain] ?? weakest.domain}" next`}
+                </span>
+                <Button variant="outline" size="sm"
+                  onClick={() => navigate('/aws/exercise/setup', { state: { domain: weakest.domain } })}>
+                  {ja ? '集中演習する →' : 'Practice this domain →'}
+                </Button>
+              </div>
+            )}
+          </Card>
+        );
+      })()}
 
       {/* 問題ごとの結果 */}
       <h3 style={{ fontSize: 'var(--font-size-h2)', fontWeight: 700, margin: '0 0 var(--spacing-lg)', color: 'var(--color-text-main)' }}>{t('result.perQuestion')}</h3>
