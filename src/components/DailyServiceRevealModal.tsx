@@ -10,6 +10,8 @@ type DailyService = {
   category?: string;
   icon: string;
   description: string;
+  trivia?: string;
+  docUrl?: string;
 };
 
 type Phase = 'waiting' | 'revealing' | 'revealed';
@@ -144,7 +146,7 @@ export default function DailyServiceRevealModal({
           background: 'rgba(4,6,18,.9)',
           backdropFilter: 'blur(6px)', WebkitBackdropFilter: 'blur(6px)',
           display: 'flex', flexDirection: 'column',
-          alignItems: 'center', justifyContent: 'center',
+          alignItems: 'center',
           padding: '20px 16px',
           overflowY: 'auto',
           cursor: isRevealed ? 'pointer' : 'default',
@@ -180,12 +182,13 @@ export default function DailyServiceRevealModal({
           </div>
         )}
 
-        {/* ── content ── */}
+        {/* ── content (margin:auto で縦中央、オーバーフロー時は上から) ── */}
         <div
           onClick={e => e.stopPropagation()}
           style={{
             position: 'relative', zIndex: 9993,
             display: 'flex', flexDirection: 'column', alignItems: 'center',
+            width: '100%', margin: 'auto 0',
           }}>
 
           {/* label */}
@@ -282,7 +285,8 @@ export default function DailyServiceRevealModal({
             <div style={{
               marginTop: 20, textAlign: 'center',
               animation: 'dp-text-up .4s ease .28s both',
-              maxWidth: Math.min(320, window.innerWidth - 40),
+              maxWidth: Math.min(360, window.innerWidth - 40),
+              width: '100%',
             }}>
               <div style={{
                 fontSize: 21, fontWeight: 800, color: 'white',
@@ -305,15 +309,30 @@ export default function DailyServiceRevealModal({
               )}
 
               <div style={{
-                fontSize: 13, color: 'rgba(255,255,255,.62)',
-                lineHeight: 1.65, marginBottom: 22,
-                overflow: 'hidden',
-                display: '-webkit-box',
-                WebkitLineClamp: 3,
-                WebkitBoxOrient: 'vertical' as any,
+                fontSize: 13, color: 'rgba(255,255,255,.75)',
+                lineHeight: 1.7, marginBottom: service.trivia ? 12 : 22,
+                textAlign: 'left',
               }}>
                 {service.description}
               </div>
+
+              {service.trivia && (
+                <div style={{
+                  background: 'rgba(255,153,0,.1)',
+                  border: '1px solid rgba(255,153,0,.28)',
+                  borderRadius: 10,
+                  padding: '10px 14px',
+                  marginBottom: 22,
+                  textAlign: 'left',
+                }}>
+                  <div style={{ fontSize: 11, fontWeight: 700, color: '#FFB84D', marginBottom: 4, letterSpacing: '.06em' }}>
+                    💡 {ja ? '豆知識' : 'Trivia'}
+                  </div>
+                  <div style={{ fontSize: 12, color: 'rgba(255,255,255,.7)', lineHeight: 1.7 }}>
+                    {service.trivia}
+                  </div>
+                </div>
+              )}
 
               <div style={{ display: 'flex', gap: 10, justifyContent: 'center', flexWrap: 'wrap' }}>
                 <Button variant="primary" onClick={onStartExercise}>
