@@ -77,6 +77,14 @@ export default function ServiceEncyclopedia() {
       .then(data => {
         if (!data.unlocks || typeof data.unlocks !== 'object') return;
         const local = (() => { try { return JSON.parse(localStorage.getItem(`encyclopediaUnlocked_${uid}`) ?? '{}'); } catch { return {}; } })();
+        // サーバーが空でローカルにデータがある場合はサーバーを正とみなす（管理者リセット後）
+        if (Object.keys(data.unlocks).length === 0 && Object.keys(local).length > 0) {
+          localStorage.setItem(`encyclopediaUnlocked_${uid}`, '{}');
+          localStorage.removeItem(`encyclopediaUnlockDate_${uid}`);
+          localStorage.removeItem(`encyclopediaTodayServiceId_${uid}`);
+          setUnlockedMap({});
+          return;
+        }
         const merged: Record<string, string> = { ...data.unlocks, ...local };
         const changed = Object.keys(merged).some(k => !(k in local));
         if (changed) {
