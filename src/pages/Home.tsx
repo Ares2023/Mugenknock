@@ -111,10 +111,7 @@ function CombinedDetailModal({ targetExam, domainAccList, estimatedScore, passSc
         {ja ? 'ドメイン別成績' : 'Domain Accuracy'}
       </div>
       {domains.map((d, i) => {
-        const { pct } = domainAccList[i] ?? { correct: 0, total: 0, pct: null };
-        const sessions = domainHistory[d] ?? [];
-        const sessionCount = sessions.length;
-        const sessionCorrect = sessionCount > 0 && pct !== null ? Math.round(pct / 100 * sessionCount) : null;
+        const { correct, total, pct } = domainAccList[i] ?? { correct: 0, total: 0, pct: null };
         const label = lang === 'en' ? (DOMAIN_NAME_EN[d] ?? d) : d;
         return (
           <div key={d} style={{ marginBottom: 16, paddingBottom: 16, borderBottom: i < domains.length - 1 ? '1px solid var(--color-border)' : 'none' }}>
@@ -124,10 +121,10 @@ function CombinedDetailModal({ targetExam, domainAccList, estimatedScore, passSc
             </div>
             <div style={{ display: 'flex', alignItems: 'baseline', gap: 4, marginBottom: 8 }}>
               <span style={{ fontSize: 20, fontWeight: 800, color: 'var(--color-primary)', letterSpacing: '-0.5px' }}>
-                {sessionCorrect !== null ? sessionCorrect : '—'}
+                {total > 0 ? correct : '—'}
               </span>
               <span style={{ fontSize: 13, color: 'var(--color-text-light)' }}>
-                / {sessionCount > 0 ? sessionCount : '—'}
+                / {total > 0 ? total : '—'}
               </span>
               {pct !== null && (
                 <span style={{ fontSize: 11, color: 'var(--color-text-sub)', marginLeft: 4 }}>({pct}%)</span>
