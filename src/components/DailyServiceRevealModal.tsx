@@ -82,6 +82,7 @@ export default function DailyServiceRevealModal({
     return () => { document.body.style.overflow = prev; };
   }, []);
 
+  const isMobile = window.innerWidth < 768;
   const cardSize = Math.min(276, window.innerWidth - 56);
   const isWaiting  = phase === 'waiting';
   const isRevealing = phase === 'revealing';
@@ -140,7 +141,7 @@ export default function DailyServiceRevealModal({
 
       {/* ── backdrop ── */}
       <div
-        onClick={isRevealed ? onStartExercise : undefined}
+        onClick={isRevealed ? onClose : undefined}
         style={{
           position: 'fixed', inset: 0, zIndex: 9990,
           background: 'rgba(4,6,18,.9)',
@@ -148,7 +149,7 @@ export default function DailyServiceRevealModal({
           display: 'flex', flexDirection: 'column',
           alignItems: 'center',
           padding: '20px 16px',
-          overflowY: 'auto',
+          overflowY: 'auto', overflowX: 'hidden',
           cursor: isRevealed ? 'pointer' : 'default',
         }}>
 
@@ -249,7 +250,7 @@ export default function DailyServiceRevealModal({
             {/* icon */}
             {isRevealed && (
               <div style={{ animation: 'dp-icon-pop .52s cubic-bezier(.175,.885,.32,1.275) .15s both' }}>
-                <ServiceIconImg icon={service.icon} name={service.name} size={80} />
+                <ServiceIconImg icon={service.icon} name={service.name} size={isMobile ? 80 : 120} />
               </div>
             )}
 
@@ -285,8 +286,9 @@ export default function DailyServiceRevealModal({
             <div style={{
               marginTop: 20, textAlign: 'center',
               animation: 'dp-text-up .4s ease .28s both',
-              maxWidth: Math.min(360, window.innerWidth - 40),
+              maxWidth: Math.min(isMobile ? 360 : 432, window.innerWidth - 40),
               width: '100%',
+              paddingBottom: isMobile ? 0 : 80,
             }}>
               <div style={{
                 fontSize: 21, fontWeight: 800, color: 'white',
@@ -334,19 +336,44 @@ export default function DailyServiceRevealModal({
                 </div>
               )}
 
-              <div style={{ display: 'flex', gap: 10, justifyContent: 'center', flexWrap: 'wrap' }}>
-                <Button variant="primary" onClick={onStartExercise}>
-                  {ja ? '今日の演習を始める' : "Start Today's Exercise"}
-                </Button>
-                <Button variant="outline" onClick={onNavigateEncyclopedia}
-                  style={{ borderColor: 'rgba(255,255,255,.22)', color: 'rgba(255,255,255,.68)' }}>
-                  {ja ? 'サービス図鑑' : 'Encyclopedia'}
-                </Button>
-              </div>
+              {isMobile && (
+                <div style={{ display: 'flex', gap: 10, justifyContent: 'center', flexWrap: 'wrap' }}>
+                  <Button variant="primary" onClick={onStartExercise}>
+                    {ja ? '今日の演習を始める' : "Start Today's Exercise"}
+                  </Button>
+                  <Button variant="outline" onClick={onNavigateEncyclopedia}
+                    style={{ borderColor: 'rgba(255,255,255,.22)', color: 'rgba(255,255,255,.68)' }}>
+                    {ja ? 'サービス図鑑' : 'Encyclopedia'}
+                  </Button>
+                </div>
+              )}
             </div>
           )}
         </div>
       </div>
+
+      {/* デスクトップ: ボタンを画面下に固定 */}
+      {!isMobile && isRevealed && (
+        <div
+          onClick={e => e.stopPropagation()}
+          style={{
+            position: 'fixed', bottom: 0, left: 0, right: 0, zIndex: 9994,
+            padding: '16px 24px',
+            background: 'rgba(4,6,18,.92)',
+            borderTop: '1px solid rgba(82,130,255,.2)',
+            backdropFilter: 'blur(8px)', WebkitBackdropFilter: 'blur(8px)',
+            display: 'flex', gap: 12, justifyContent: 'center',
+          }}
+        >
+          <Button variant="primary" size="lg" onClick={onStartExercise}>
+            {ja ? '今日の演習を始める' : "Start Today's Exercise"}
+          </Button>
+          <Button variant="outline" size="lg" onClick={onNavigateEncyclopedia}
+            style={{ borderColor: 'rgba(255,255,255,.22)', color: 'rgba(255,255,255,.68)' }}>
+            {ja ? 'サービス図鑑' : 'Encyclopedia'}
+          </Button>
+        </div>
+      )}
     </>,
     document.body,
   );

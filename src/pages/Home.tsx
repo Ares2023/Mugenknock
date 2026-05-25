@@ -11,7 +11,7 @@ import {
 import { getCached, setCached, deleteCached, DEFAULT_TTL } from '../utils/cache';
 import Card from '../components/ui/Card';
 import Button from '../components/ui/Button';
-import { IconLightbulb, IconSettings, IconChevronUp, IconLock, ServiceIcon, isServiceIconKey } from '../components/Icons';
+import { IconLightbulb, IconSettings, IconChevronUp, IconLock, IconFileText, IconTrendingUp, IconBookOpen, IconCheck, ServiceIcon, isServiceIconKey } from '../components/Icons';
 
 type DomainStat = { tagId: string; correctCount?: number; incorrectCount?: number };
 type SessionEntry = { correct: number; total: number };
@@ -409,9 +409,9 @@ function OnboardingModal({ lang, uid, onComplete, onSkip }: {
 
           {/* 3つの特徴 */}
           {[
-            { icon: '📝', ja: '実践的な演習問題', en: 'Practice Questions' },
-            { icon: '📊', ja: '合格スコア予測', en: 'Score Prediction' },
-            { icon: '📖', ja: 'AWSサービス図鑑', en: 'Service Encyclopedia' },
+            { icon: <IconFileText size={22} />, ja: '実践的な演習問題', en: 'Practice Questions' },
+            { icon: <IconTrendingUp size={22} />, ja: '合格スコア予測', en: 'Score Prediction' },
+            { icon: <IconBookOpen size={22} />, ja: 'AWSサービス図鑑', en: 'Service Encyclopedia' },
           ].map(f => (
             <div key={f.en} style={{
               display: 'flex', alignItems: 'center', gap: 14,
@@ -419,7 +419,7 @@ function OnboardingModal({ lang, uid, onComplete, onSkip }: {
               background: 'var(--color-bg-card)', marginBottom: 10,
               border: '1px solid var(--color-border)',
             }}>
-              <span style={{ fontSize: 24 }}>{f.icon}</span>
+              <span style={{ color: 'var(--color-primary)', display: 'flex', alignItems: 'center', flexShrink: 0 }}>{f.icon}</span>
               <span style={{ fontWeight: 700, fontSize: 14, color: 'var(--color-text-main)' }}>{ja ? f.ja : f.en}</span>
             </div>
           ))}
@@ -484,9 +484,9 @@ function OnboardingModal({ lang, uid, onComplete, onSkip }: {
                           </div>
                         </div>
                         {isSelected && (
-                          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--color-primary)" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0 }}>
-                            <polyline points="20 6 9 17 4 12"/>
-                          </svg>
+                          <span style={{ color: 'var(--color-primary)', flexShrink: 0, display: 'flex' }}>
+                            <IconCheck size={18} />
+                          </span>
                         )}
                       </button>
                     );
@@ -1280,9 +1280,34 @@ export default function Home() {
       {/* ── ドメイン別正答率 + 予想スコア（1パネル、クリックで詳細） ── */}
       <Card
         padding="var(--spacing-md)"
-        style={{ marginBottom: 'var(--spacing-md)', cursor: (targetExam && !statsLoading) ? 'pointer' : 'default' }}
+        style={{ marginBottom: 'var(--spacing-md)', cursor: (targetExam && !statsLoading) ? 'pointer' : 'default', position: 'relative' }}
         onClick={() => { if (targetExam && !statsLoading) setShowCombinedDetail(true); }}
       >
+        {!isMobile && user && (
+          <button
+            onClick={e => { e.stopPropagation(); refreshStats(); }}
+            disabled={statsLoading || statsRefreshing}
+            title={ja ? '成績を更新' : 'Refresh stats'}
+            aria-label={ja ? '成績を更新' : 'Refresh stats'}
+            style={{
+              position: 'absolute', top: 6, right: 6,
+              width: 32, height: 32, borderRadius: '50%',
+              border: '1px solid var(--color-border)',
+              background: 'transparent',
+              color: 'var(--color-primary)',
+              cursor: (statsLoading || statsRefreshing) ? 'default' : 'pointer',
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+              opacity: (statsLoading || statsRefreshing) ? 0.5 : 1,
+              zIndex: 1,
+            }}
+          >
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"
+              style={{ animation: (statsLoading || statsRefreshing) ? 'sherpa-spin 0.8s linear infinite' : 'none' }}>
+              <polyline points="23 4 23 10 17 10"/>
+              <path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/>
+            </svg>
+          </button>
+        )}
         <div style={isMobile ? {} : { display: 'flex', gap: 0 }}>
 
           {/* ドメイン別正答率 */}
@@ -1291,7 +1316,7 @@ export default function Home() {
               <span style={{ fontSize: 11, fontWeight: 700, color: 'var(--color-text-sub)', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
                 {ja ? 'ドメイン別正答率' : 'Domain Accuracy'}
               </span>
-              {user && (
+              {user && isMobile && (
                 <button
                   onClick={e => { e.stopPropagation(); refreshStats(); }}
                   disabled={statsLoading || statsRefreshing}
