@@ -567,7 +567,11 @@ function saveToEncyclopedia(svc: DailyService, uid: string) {
   } catch {}
 }
 
-function syncEncyclopediaToServer(userId: string): void {
+// forceUpload=true: ユーザーの明示的な解放操作（handleReveal）からの呼び出し。
+// 管理者リセット後でも新しい解放はサーバーに保存する。
+// forceUpload=false（デフォルト）: マウント時の自動同期。サーバーが空なら
+// 管理者リセット後とみなしてローカルも消去し再アップロードしない。
+function syncEncyclopediaToServer(userId: string, forceUpload = false): void {
   const uid = userId;
   try {
     const local: Record<string, string> = JSON.parse(localStorage.getItem(`encyclopediaUnlocked_${uid}`) ?? '{}');
@@ -577,8 +581,7 @@ function syncEncyclopediaToServer(userId: string): void {
       .then(r => r.ok ? r.json() : { unlocks: {} })
       .then(data => {
         const server: Record<string, string> = data.unlocks ?? {};
-        // サーバーが空でローカルに解放済みデータがある場合はサーバーを正とみなす（管理者リセット後の誤再アップロード防止）
-        if (Object.keys(server).length === 0 && Object.keys(local).length > 0) {
+        if (!forceUpload && Object.keys(server).length === 0 && Object.keys(local).length > 0) {
           localStorage.setItem(`encyclopediaUnlocked_${uid}`, '{}');
           localStorage.removeItem(`encyclopediaUnlockDate_${uid}`);
           localStorage.removeItem(`encyclopediaTodayServiceId_${uid}`);
@@ -652,7 +655,7 @@ function TodayServiceSection({ lang, userId, onNavigateEncyclopedia, onReveal }:
     if (!service || revealed) return;
     const uid = userId ?? 'guest';
     saveToEncyclopedia(service, uid);
-    if (userId) syncEncyclopediaToServer(userId);
+    if (userId) syncEncyclopediaToServer(userId, true);
     setRevealed(true);
     onReveal(service);
   };
