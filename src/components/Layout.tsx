@@ -10,7 +10,7 @@ import {
   IconHome,
   IconUser, IconChart,
   IconDumbbell, IconFire, IconMenu, IconClose, IconChevronLeft, IconMail,
-  IconSparkles, IconFootprint, IconFileText, IconBookOpen
+  IconSparkles, IconFootprint, IconBookOpen
 } from './Icons';
 
 type BreadcrumbItem = { label: string; path?: string };
@@ -719,31 +719,13 @@ export default function Layout({ children }: { children: React.ReactNode }) {
                   );
                 })}
                 <button
-                  onClick={() => navigate('/about')}
-                  style={{
-                    width: '100%', textAlign: 'left',
-                    display: 'flex', alignItems: 'center', gap: 12,
-                    padding: '10px 24px',
-                    background: location.pathname === '/about' ? 'var(--color-primary-light)' : 'none',
-                    border: 'none',
-                    borderTop: '1px solid var(--color-border)',
-                    borderLeft: location.pathname === '/about' ? '4px solid var(--color-primary)' : '4px solid transparent',
-                    cursor: 'pointer', color: location.pathname === '/about' ? 'var(--color-primary)' : 'var(--color-text-light)', fontSize: 'var(--font-size-sm)', fontWeight: 400,
-                    whiteSpace: 'nowrap', transition: 'all 0.2s',
-                  }}
-                  onMouseEnter={e => { if (location.pathname !== '/about') (e.currentTarget as HTMLElement).style.background = 'var(--color-bg-main)'; }}
-                  onMouseLeave={e => { if (location.pathname !== '/about') (e.currentTarget as HTMLElement).style.background = 'none'; }}
-                >
-                  <span style={{ display: 'flex', alignItems: 'center', opacity: location.pathname === '/about' ? 1 : 0.6 }}><IconFileText /></span>
-                  <span>{t('nav.about')}</span>
-                </button>
-                <button
                   onClick={openContact}
                   style={{
                     width: '100%', textAlign: 'left',
                     display: 'flex', alignItems: 'center', gap: 12,
                     padding: '10px 24px',
                     background: 'none', border: 'none',
+                    borderTop: '1px solid var(--color-border)',
                     borderLeft: '4px solid transparent',
                     cursor: 'pointer', color: 'var(--color-text-light)', fontSize: 'var(--font-size-sm)', fontWeight: 400,
                     whiteSpace: 'nowrap', transition: 'all 0.2s',

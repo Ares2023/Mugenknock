@@ -144,6 +144,9 @@ function CombinedDetailModal({ targetExam, domainAccList, estimatedScore, passSc
     </div>
   );
 
+  const weights = DOMAIN_WEIGHTS[targetExam] ?? domains.map(() => 100 / domains.length);
+  const totalAllWeights = weights.reduce((s, w) => s + w, 0) || 100;
+
   const scoreSection = (
     <div>
       <div style={{ fontSize: 11, fontWeight: 700, color: 'var(--color-text-sub)', marginBottom: 12, textTransform: 'uppercase', letterSpacing: '0.5px' }}>
@@ -158,6 +161,30 @@ function CombinedDetailModal({ targetExam, domainAccList, estimatedScore, passSc
           </span>
         )}
       </div>
+
+      {/* ドメイン別スコア内訳 */}
+      <div style={{ marginBottom: 16, background: 'var(--color-bg-main)', borderRadius: 8, padding: '10px 12px' }}>
+        <div style={{ fontSize: 11, fontWeight: 700, color: 'var(--color-text-sub)', marginBottom: 8, letterSpacing: '0.5px' }}>
+          {ja ? 'ドメイン別スコア内訳' : 'Score by Domain'}
+        </div>
+        {domains.map((d, i) => {
+          const { pct } = domainAccList[i] ?? { pct: null };
+          const maxPts = Math.round(weights[i] / totalAllWeights * 1000);
+          const curPts = pct !== null ? Math.round(pct / 100 * maxPts) : null;
+          const label = lang === 'en' ? (DOMAIN_NAME_EN[d] ?? d) : d;
+          return (
+            <div key={d} style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 6 }}>
+              <span style={{ fontSize: 10, fontWeight: 700, color: 'var(--color-text-light)', flexShrink: 0, width: 20 }}>D{i + 1}</span>
+              <span style={{ fontSize: 11, color: 'var(--color-text-main)', flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{label}</span>
+              <span style={{ fontSize: 12, fontWeight: 700, color: curPts !== null ? 'var(--color-primary)' : 'var(--color-text-light)', flexShrink: 0 }}>
+                {curPts !== null ? curPts : '—'}
+              </span>
+              <span style={{ fontSize: 11, color: 'var(--color-text-light)', flexShrink: 0 }}>/ {maxPts}</span>
+            </div>
+          );
+        })}
+      </div>
+
       <div style={{ fontSize: 11, fontWeight: 600, color: 'var(--color-text-sub)', marginBottom: 10 }}>
         {ja ? 'スコア推移' : 'Score History'}
       </div>

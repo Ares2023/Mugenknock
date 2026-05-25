@@ -3,14 +3,13 @@ import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { useLanguage } from '../contexts/LanguageContext';
 import { API_ENDPOINT } from '../constants';
-import { IconSparkles, IconFire, IconMail, IconFileText, IconBookOpen } from '../components/Icons';
+import { IconSparkles, IconFire, IconMail, IconBookOpen } from '../components/Icons';
 import Button from '../components/ui/Button';
 
 const ITEMS = [
   { path: '/aws/encyclopedia',  Icon: IconBookOpen,  ja: 'サービス図鑑',           en: 'Service Encyclopedia',      desc_ja: '日めくりで解放されるAWSサービス一覧', desc_en: 'AWS services unlocked via daily service' },
   { path: '/aws/growth',        Icon: IconSparkles,  ja: '問題生成・チェック状況', en: 'Generation & Verification', desc_ja: 'AI問題生成・チェックの進捗',   desc_en: 'AI question generation & verification stats' },
   { path: '/aws/release-notes', Icon: IconFire,      ja: 'リリースノート',         en: 'Release Notes',             desc_ja: 'アップデート情報',             desc_en: 'App update history'       },
-  { path: '/about',         Icon: IconFileText,  ja: 'このサイトについて',     en: 'About This Site',           desc_ja: '利用規約・プライバシーポリシー', desc_en: 'Terms, Privacy Policy & About' },
 ];
 
 export default function Others() {
