@@ -72,11 +72,11 @@ export default function Portal() {
 
       {/* ── ヘッダー ── */}
       <header style={{
-        height: 56, minHeight: 56, background: 'var(--color-secondary)',
+        height: 56, minHeight: 56, background: 'var(--color-bg-white)',
         display: 'flex', alignItems: 'center',
         padding: isMobile ? '0 12px 0 12px' : '0 var(--spacing-lg)',
         gap: 'var(--spacing-md)', zIndex: 200, flexShrink: 0,
-        boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
+        borderBottom: '1px solid var(--color-border)',
       }}>
         {/* ロゴ */}
         <div style={{ display: 'flex', alignItems: 'center', userSelect: 'none', flexShrink: 0, padding: '0 4px' }}>
@@ -92,8 +92,8 @@ export default function Portal() {
           <button
             onClick={() => setLang(lang === 'ja' ? 'en' : 'ja')}
             style={{
-              background: 'rgba(255,255,255,0.12)', border: '1px solid rgba(255,255,255,0.3)',
-              borderRadius: 'var(--border-radius-md)', cursor: 'pointer', color: 'white',
+              background: 'transparent', border: '1px solid var(--color-border)',
+              borderRadius: 'var(--border-radius-md)', cursor: 'pointer', color: 'var(--color-text-sub)',
               padding: '4px 10px', fontSize: 'var(--font-size-xs)', fontWeight: 700,
             }}
           >
@@ -104,8 +104,8 @@ export default function Portal() {
             onClick={toggleTheme}
             style={{
               display: 'flex', alignItems: 'center', justifyContent: 'center',
-              background: 'rgba(255,255,255,0.1)', border: '1px solid rgba(255,255,255,0.3)',
-              borderRadius: '50%', cursor: 'pointer', color: 'white',
+              background: 'transparent', border: '1px solid var(--color-border)',
+              borderRadius: '50%', cursor: 'pointer', color: 'var(--color-text-sub)',
               width: 32, height: 32, padding: 0,
             }}
           >
@@ -116,9 +116,10 @@ export default function Portal() {
             onClick={() => navigate(user ? '/account' : '/login')}
             style={{
               display: 'flex', alignItems: 'center', justifyContent: 'center',
-              background: user ? 'rgba(255,255,255,0.25)' : 'rgba(255,255,255,0.1)',
-              border: '1px solid rgba(255,255,255,0.35)',
-              borderRadius: '50%', cursor: 'pointer', color: 'white',
+              background: user ? 'var(--color-primary-light)' : 'transparent',
+              border: '1px solid var(--color-border)',
+              borderRadius: '50%', cursor: 'pointer',
+              color: user ? 'var(--color-primary)' : 'var(--color-text-sub)',
               width: 36, height: 36, padding: 0,
               fontSize: 14, fontWeight: 700,
             }}

@@ -276,10 +276,10 @@ export default function Account() {
 
       {/* ── ヘッダー ── */}
       <header style={{
-        height: 56, minHeight: 56, background: 'var(--color-secondary)',
+        height: 56, minHeight: 56, background: 'var(--color-bg-white)',
         display: 'flex', alignItems: 'center',
         padding: '0 8px 0 4px',
-        boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
+        borderBottom: '1px solid var(--color-border)',
         flexShrink: 0,
         position: 'sticky', top: 0, zIndex: 100,
       }}>
@@ -288,11 +288,11 @@ export default function Account() {
           style={{
             display: 'flex', alignItems: 'center', justifyContent: 'center',
             width: 44, height: 44, border: 'none', background: 'none',
-            cursor: 'pointer', color: 'white', borderRadius: 8,
+            cursor: 'pointer', color: 'var(--color-text-main)', borderRadius: 8,
             flexShrink: 0,
             transition: 'background 0.15s',
           }}
-          onMouseEnter={e => e.currentTarget.style.background = 'rgba(255,255,255,0.15)'}
+          onMouseEnter={e => e.currentTarget.style.background = 'var(--color-bg-main)'}
           onMouseLeave={e => e.currentTarget.style.background = 'none'}
         >
           <IconChevronLeft />
