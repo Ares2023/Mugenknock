@@ -48,6 +48,8 @@ commands:
   log -n          show night-prompts history
   log -f          show last run's full log file
   log -d DATE     show log for DATE (YYYYMMDD, e.g. 20260427)
+  log -s          list night-scripts with log dates
+  log -s NAME     show latest log for night-script NAME
   add [-t ±N] CMD add hook command (±N min from ping, default: 0)
                   CMD 内の {NEXT} はメイン ping の HH:MM に展開される
   ls              list hook commands
@@ -589,6 +591,75 @@ PYEOF
       return 0
     }
 
+    process_dir_parallel() {
+      local dir="$1"
+      local delete_on_success="${2:-0}"
+      local prefix="${3:-}"
+      _proc_ok=0; _proc_fail=0
+      local _pfiles=()
+      for f in "$dir"/*.txt; do [ -e "$f" ] && _pfiles+=("$f"); done
+      [ ${#_pfiles[@]} -eq 0 ] && return 0
+      if [ "$deadline_epoch" -gt 0 ] && [ "$(date +%s)" -ge "$deadline_epoch" ]; then
+        echo "⏰ 締切3分前のため処理を中断します ($(date '+%H:%M'))"; is_deadline=1; return 1
+      fi
+      local _cb
+      _cb=$(
+        { _p=/home/yuzuki/.npm-global/bin/claude; [ -x "$_p" ] && echo "$_p"; } ||
+        { _cv=$(command -v claude 2>/dev/null); [ -n "$_cv" ] && [ -x "$_cv" ] && echo "$_cv"; } ||
+        find /home/yuzuki/.npm-global/lib/node_modules/@anthropic-ai \
+          -maxdepth 4 -name "claude.exe" -path "*/bin/*" 2>/dev/null | head -1
+      ) || true
+      if [ -z "${_cb:-}" ]; then echo "❌ claude コマンドが見つかりません" >&2; return 1; fi
+      local _ptmpdir; _ptmpdir=$(mktemp -d)
+      local _ppids=()
+      for f in "${_pfiles[@]}"; do
+        local _n; _n=$(basename "$f")
+        echo "$(date +%s)" > "$_ptmpdir/${_n}.t0"
+        (
+          _out=$("$_cb" -p < "$f" 2>&1)
+          _ec=$?
+          printf '%s\n' "$_out" > "$_ptmpdir/${_n}.out"
+          if [ $_ec -ne 0 ] || printf '%s\n' "$_out" | grep -qiE "rate.?limit|too many requests|overload|quota exceeded|hit your limit|resource_exhausted"; then
+            _rm=$(printf '%s\n' "$_out" | grep -ioE "resets [0-9]{1,2}:[0-9]{2}[ap]m" | grep -ioE "[0-9]{1,2}:[0-9]{2}[ap]m" | head -n 1)
+            [ -n "$_rm" ] && printf '%s' "$_rm" > "$_ptmpdir/${_n}.reset"
+            echo "1" > "$_ptmpdir/${_n}.ec"
+          else
+            echo "0" > "$_ptmpdir/${_n}.ec"
+          fi
+        ) &
+        _ppids+=($!)
+      done
+      echo "  [並列実行中: $(basename "$dir") ${#_pfiles[@]}件]"
+      for _pid in "${_ppids[@]}"; do wait "$_pid" 2>/dev/null || true; done
+      for f in "${_pfiles[@]}"; do
+        local _n; _n=$(basename "$f")
+        local _t0 _ec
+        _t0=$(cat "$_ptmpdir/${_n}.t0" 2>/dev/null || echo 0)
+        _ec=$(cat "$_ptmpdir/${_n}.ec" 2>/dev/null || echo 1)
+        echo "▶ [ai-router] $_n"
+        cat "$_ptmpdir/${_n}.out" 2>/dev/null || true
+        printf "  → %ds\n" "$(( $(date +%s) - _t0 ))"
+        if [ "$_ec" -eq 0 ]; then
+          _proc_ok=$(( _proc_ok + 1 ))
+          [ -n "$prefix" ] && night_processed+="${prefix}${_n} (OK), "
+          [ "$delete_on_success" -eq 1 ] && rm "$f"
+        else
+          _proc_fail=$(( _proc_fail + 1 ))
+          if [ -f "$_ptmpdir/${_n}.reset" ]; then
+            local _rt; _rt=$(cat "$_ptmpdir/${_n}.reset")
+            [ -n "$_rt" ] && extracted_reset_time="$_rt"
+            [ -n "$prefix" ] && night_processed+="${prefix}${_n} (LIMIT), "
+          else
+            [ -n "$prefix" ] && night_processed+="${prefix}${_n} (FAIL), "
+          fi
+          is_rate_limited=1
+        fi
+      done
+      rm -rf "$_ptmpdir"
+      [ $is_rate_limited -eq 1 ] && return 1
+      return 0
+    }
+
     if [ -n "$target_dir" ]; then
       if [ -d "$target_dir" ]; then
         process_dir "$target_dir" 0
@@ -638,55 +709,104 @@ PYEOF
             echo "🌙 夜間初回実行を開始します ($(date '+%H:%M'))"
           fi
 
-          # 1. シェルスクリプト
-          for s in "$SCRIPT_DIR/night-prompts/scripts"/*.sh; do
-            [ -e "$s" ] || continue
-            if [ "$deadline_epoch" -gt 0 ] && [ "$(date +%s)" -ge "$deadline_epoch" ]; then
-              echo "⏰ 締切3分前 — 夜間スクリプト中断 ($(date '+%H:%M'))"; is_deadline=1; break
+          # 1. シェルスクリプト（並列）
+          if [ "$deadline_epoch" -gt 0 ] && [ "$(date +%s)" -ge "$deadline_epoch" ]; then
+            echo "⏰ 締切3分前 — 夜間スクリプト中断 ($(date '+%H:%M'))"; is_deadline=1
+          fi
+          if [ "${is_deadline:-0}" -eq 0 ]; then
+            local _sh_files=()
+            local _sh_pids=()
+            local _sh_tmpdir
+            for s in "$SCRIPT_DIR/night-prompts/scripts"/*.sh; do
+              [ -e "$s" ] && _sh_files+=("$s")
+            done
+            if [ ${#_sh_files[@]} -gt 0 ]; then
+              _sh_tmpdir=$(mktemp -d)
+              for s in "${_sh_files[@]}"; do
+                local _n; _n=$(basename "$s")
+                echo "$(date +%s)" > "$_sh_tmpdir/${_n}.t0"
+                ( bash "$s" > "$_sh_tmpdir/${_n}.out" 2>&1; echo $? > "$_sh_tmpdir/${_n}.ec" ) &
+                _sh_pids+=($!)
+              done
+              echo "  [並列実行中: night-scripts ${#_sh_files[@]}件]"
+              for _pid in "${_sh_pids[@]}"; do wait "$_pid" 2>/dev/null || true; done
+              for s in "${_sh_files[@]}"; do
+                local _n; _n=$(basename "$s")
+                local _t0 _ec
+                _t0=$(cat "$_sh_tmpdir/${_n}.t0" 2>/dev/null || echo 0)
+                _ec=$(cat "$_sh_tmpdir/${_n}.ec" 2>/dev/null || echo 1)
+                echo "▶ [night-script] $_n"
+                cat "$_sh_tmpdir/${_n}.out" 2>/dev/null || true
+                printf "  → %ds\n" "$(( $(date +%s) - _t0 ))"
+                {
+                  echo "=== $(date '+%Y-%m-%d %H:%M:%S') | $_n | exit:$_ec ==="
+                  cat "$_sh_tmpdir/${_n}.out" 2>/dev/null || true
+                } >> "$LOG_DIR/nscript_${_n%.sh}_$(date '+%Y%m%d').log"
+                if [ "$_ec" -eq 0 ]; then
+                  _sh_ok=$(( _sh_ok + 1 ))
+                  night_processed+="[sh]${_n} (OK), "
+                else
+                  _sh_fail=$(( _sh_fail + 1 ))
+                  night_processed+="[sh]${_n} (FAIL), "
+                fi
+              done
+              rm -rf "$_sh_tmpdir"
             fi
-            local _st0=$(date +%s)
-            echo "▶ [night-script] $(basename "$s")"
-            if bash "$s"; then
-              _sh_ok=$(( _sh_ok + 1 ))
-              night_processed+="[sh]$(basename "$s") (OK), "
-            else
-              _sh_fail=$(( _sh_fail + 1 ))
-              night_processed+="[sh]$(basename "$s") (FAIL), "
-            fi
-            printf "  → %ds\n" "$(( $(date +%s) - _st0 ))"
-          done
+          fi
 
-          # 1.5 使い捨てスクリプト
-          for s in "$SCRIPT_DIR/night-prompts/tmp-scripts"/*.sh; do
-            [ -e "$s" ] || continue
-            if [ "${is_deadline:-0}" -eq 1 ] || { [ "$deadline_epoch" -gt 0 ] && [ "$(date +%s)" -ge "$deadline_epoch" ]; }; then
-              echo "⏰ 締切3分前 — 夜間tmpスクリプト中断 ($(date '+%H:%M'))"; is_deadline=1; break
-            fi
-            local _st0=$(date +%s)
-            echo "▶ [night-tmp-script] $(basename "$s")"
-            if bash "$s"; then
-              _tmpsh_ok=$(( _tmpsh_ok + 1 ))
-              night_processed+="[tmp-sh]$(basename "$s") (OK), "
-              rm "$s"
-            else
-              _tmpsh_fail=$(( _tmpsh_fail + 1 ))
-              night_processed+="[tmp-sh]$(basename "$s") (FAIL), "
-            fi
-            printf "  → %ds\n" "$(( $(date +%s) - _st0 ))"
-          done
+          # 2. Claudeプロンプト - texts（並列）
+          if [ "${is_deadline:-0}" -eq 0 ] && [ $is_rate_limited -eq 0 ]; then
+            process_dir_parallel "$SCRIPT_DIR/night-prompts/texts" 0 "[txt]"
+            _txt_ok=$_proc_ok; _txt_fail=$_proc_fail
+          fi
 
-          # 2. Claudeプロンプト
-          if [ "${is_deadline:-0}" -eq 0 ] && process_dir "$SCRIPT_DIR/night-prompts/texts" 0 "[txt]"; then
-            _txt_ok=$_proc_ok; _txt_fail=$_proc_fail
-            if [ "${is_deadline:-0}" -eq 0 ]; then
-              process_dir "$SCRIPT_DIR/night-prompts/tmp-texts" 1 "[tmp-txt]" || true
-              _tmptxt_ok=$_proc_ok; _tmptxt_fail=$_proc_fail
+          # 3. 使い捨てスクリプト（並列）
+          if [ "${is_deadline:-0}" -eq 0 ] && [ $is_rate_limited -eq 0 ]; then
+            local _tmpsh_files=()
+            local _tmpsh_pids=()
+            local _tmpsh_tmpdir
+            for s in "$SCRIPT_DIR/night-prompts/tmp-scripts"/*.sh; do
+              [ -e "$s" ] && _tmpsh_files+=("$s")
+            done
+            if [ ${#_tmpsh_files[@]} -gt 0 ]; then
+              _tmpsh_tmpdir=$(mktemp -d)
+              for s in "${_tmpsh_files[@]}"; do
+                local _n; _n=$(basename "$s")
+                echo "$(date +%s)" > "$_tmpsh_tmpdir/${_n}.t0"
+                ( bash "$s" > "$_tmpsh_tmpdir/${_n}.out" 2>&1; echo $? > "$_tmpsh_tmpdir/${_n}.ec" ) &
+                _tmpsh_pids+=($!)
+              done
+              echo "  [並列実行中: tmp-scripts ${#_tmpsh_files[@]}件]"
+              for _pid in "${_tmpsh_pids[@]}"; do wait "$_pid" 2>/dev/null || true; done
+              for s in "${_tmpsh_files[@]}"; do
+                local _n; _n=$(basename "$s")
+                local _t0 _ec
+                _t0=$(cat "$_tmpsh_tmpdir/${_n}.t0" 2>/dev/null || echo 0)
+                _ec=$(cat "$_tmpsh_tmpdir/${_n}.ec" 2>/dev/null || echo 1)
+                echo "▶ [night-tmp-script] $_n"
+                cat "$_tmpsh_tmpdir/${_n}.out" 2>/dev/null || true
+                printf "  → %ds\n" "$(( $(date +%s) - _t0 ))"
+                if [ "$_ec" -eq 0 ]; then
+                  _tmpsh_ok=$(( _tmpsh_ok + 1 ))
+                  night_processed+="[tmp-sh]${_n} (OK), "
+                  rm "$s"
+                else
+                  _tmpsh_fail=$(( _tmpsh_fail + 1 ))
+                  night_processed+="[tmp-sh]${_n} (FAIL), "
+                fi
+              done
+              rm -rf "$_tmpsh_tmpdir"
             fi
-            if [ $is_rate_limited -eq 0 ] && [ "${is_deadline:-0}" -eq 0 ]; then
-              echo "$TODAY" > "$SCRIPT_DIR/.last_run_date"
-            fi
-          else
-            _txt_ok=$_proc_ok; _txt_fail=$_proc_fail
+          fi
+
+          # 4. Claudeプロンプト - tmp-texts（並列）
+          if [ "${is_deadline:-0}" -eq 0 ] && [ $is_rate_limited -eq 0 ]; then
+            process_dir_parallel "$SCRIPT_DIR/night-prompts/tmp-texts" 1 "[tmp-txt]"
+            _tmptxt_ok=$_proc_ok; _tmptxt_fail=$_proc_fail
+          fi
+
+          if [ $is_rate_limited -eq 0 ] && [ "${is_deadline:-0}" -eq 0 ]; then
+            echo "$TODAY" > "$SCRIPT_DIR/.last_run_date"
           fi
 
           [ -n "$night_processed" ] && log_night "${night_processed%, }"
@@ -694,7 +814,7 @@ PYEOF
       fi
 
       if [ $is_rate_limited -eq 0 ] && [ "${is_deadline:-0}" -eq 0 ]; then
-        process_dir "$SCRIPT_DIR/tmp-prompts" 1
+        process_dir_parallel "$SCRIPT_DIR/tmp-prompts" 1
         _tmp_ok=$_proc_ok; _tmp_fail=$_proc_fail
       fi
     fi
@@ -800,6 +920,7 @@ HOOK_RM_IDX=""
 HOOK_MV_FROM=""
 HOOK_MV_TO=""
 LOG_DATE=""
+LOG_SCRIPT=""
 
 while [[ $# -gt 0 ]]; do
   case "$1" in
@@ -858,6 +979,7 @@ while [[ $# -gt 0 ]]; do
         -n) CMD="log-night"; shift ;;
         -f) CMD="log-full";  shift ;;
         -d) CMD="log-date"; LOG_DATE="${2:?-d requires YYYYMMDD}"; shift 2 ;;
+        -s) CMD="log-script"; LOG_SCRIPT="${2:-}"; [ -n "${2:-}" ] && shift 2 || shift ;;
       esac
       ;;
     -l)       CMD="last";   shift ;;
@@ -1003,6 +1125,34 @@ PYEOF
       echo "ログが見つかりません: run_${LOG_DATE}.log"
       echo "利用可能な日付:"
       ls "$LOG_DIR"/run_*.log 2>/dev/null | xargs -I{} basename {} .log | sed 's/run_//' | sort
+    fi
+    ;;
+  log-script)
+    if [ -z "$LOG_SCRIPT" ]; then
+      _available=$(ls "$LOG_DIR"/nscript_*.log 2>/dev/null \
+        | sed 's|.*/nscript_||; s/_[0-9]*\.log$//' | sort -u)
+      if [ -n "$_available" ]; then
+        echo "利用可能なスクリプトログ:"
+        while IFS= read -r _sname; do
+          _latest=$(ls -t "$LOG_DIR"/nscript_${_sname}_*.log 2>/dev/null | head -1)
+          _date=$(basename "${_latest:-}" .log | sed "s/nscript_${_sname}_//")
+          printf "  %-40s  %s\n" "$_sname" "${_date:-(なし)}"
+        done <<< "$_available"
+      else
+        echo "スクリプトログが見つかりません"
+      fi
+    else
+      _sname="${LOG_SCRIPT%.sh}"
+      _logf=$(ls -t "$LOG_DIR"/nscript_${_sname}_*.log 2>/dev/null | head -1)
+      if [ -n "$_logf" ]; then
+        echo "=== $_logf ==="
+        cat "$_logf"
+      else
+        echo "ログが見つかりません: nscript_${_sname}_*.log"
+        echo "利用可能なスクリプト:"
+        ls "$LOG_DIR"/nscript_*.log 2>/dev/null \
+          | sed 's|.*/nscript_||; s/_[0-9]*\.log$//' | sort -u || echo "(なし)"
+      fi
     fi
     ;;
   tonight)   show_tonight ;;

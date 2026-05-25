@@ -194,10 +194,10 @@ export default function DailyServiceRevealModal({
 
           {/* label */}
           <div style={{
-            color: 'rgba(255,204,80,.9)',
+            color: 'rgba(255,255,255,.9)',
             fontSize: 11, fontWeight: 700, letterSpacing: '.12em',
             textTransform: 'uppercase', marginBottom: 18,
-            textShadow: '0 1px 8px rgba(255,153,0,.5)',
+            textShadow: '0 1px 8px rgba(0,0,0,.4)',
             animation: 'dp-text-up .4s ease both',
           }}>
             {ja ? '✨ 今日の日めくりAWSサービス ✨' : '✨ Daily AWS Service ✨'}
@@ -238,9 +238,9 @@ export default function DailyServiceRevealModal({
             {!isRevealed && (
               <div style={{
                 fontSize: 108, fontWeight: 900, lineHeight: 1,
-                color: '#FF9900',
-                textShadow: '0 4px 24px rgba(255,153,0,.6)',
-                filter: 'drop-shadow(0 0 14px rgba(255,153,0,.5))',
+                color: 'white',
+                textShadow: '0 4px 24px rgba(255,255,255,.25)',
+                filter: 'drop-shadow(0 0 14px rgba(255,255,255,.2))',
                 animation: isWaiting ? 'dp-float 3.2s ease-in-out infinite' : 'none',
                 opacity: isRevealing ? 0 : 1,
                 transition: 'opacity .12s',
@@ -250,7 +250,7 @@ export default function DailyServiceRevealModal({
             {/* icon */}
             {isRevealed && (
               <div style={{ animation: 'dp-icon-pop .52s cubic-bezier(.175,.885,.32,1.275) .15s both' }}>
-                <ServiceIconImg icon={service.icon} name={service.name} size={isMobile ? 80 : 120} />
+                <ServiceIconImg icon={service.icon} name={service.name} size={Math.round(cardSize / 2)} />
               </div>
             )}
 
@@ -272,7 +272,7 @@ export default function DailyServiceRevealModal({
           {isWaiting && (
             <div style={{
               marginTop: 24,
-              color: 'rgba(255,230,150,.85)',
+              color: 'rgba(255,255,255,.85)',
               fontSize: 15, fontWeight: 600,
               animation: 'dp-tap-hint 1.5s ease-in-out infinite',
               textShadow: '0 2px 8px rgba(0,0,0,.5)',

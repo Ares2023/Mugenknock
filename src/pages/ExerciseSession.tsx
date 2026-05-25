@@ -605,7 +605,7 @@ export default function ExerciseSession() {
                 style={getChoiceStyle(choice)}
                 className={lastSelected === choice && isSelected && !answered ? 'choice-select-anim' : ''}
               >
-                <div style={{ fontSize: 11, fontWeight: 700, color: 'inherit', opacity: 0.7, marginBottom: 5, lineHeight: 1 }}>
+                <div style={{ fontSize: 11, fontWeight: 700, color: 'inherit', opacity: 0.7, marginBottom: 5, lineHeight: 1, marginLeft: 0 }}>
                   {CHOICE_LABELS[idx]}
                 </div>
                 <div style={{ display: 'flex', alignItems: 'flex-start', gap: 8 }}>
@@ -614,7 +614,7 @@ export default function ExerciseSession() {
                     checked={isSelected}
                     readOnly
                     tabIndex={-1}
-                    style={{ marginTop: 2, flexShrink: 0, pointerEvents: 'none', accentColor: 'var(--color-primary)' }}
+                    style={{ margin: 0, marginTop: 2, flexShrink: 0, pointerEvents: 'none', accentColor: 'var(--color-primary)' }}
                   />
                   <span style={{ flex: 1, minWidth: 0, overflowWrap: 'break-word', wordBreak: 'break-word', lineHeight: 1.55 }}>
                     {choice}
