@@ -169,13 +169,18 @@ function CombinedDetailModal({ targetExam, domainAccList, estimatedScore, passSc
         </div>
         {domains.map((d, i) => {
           const { pct } = domainAccList[i] ?? { pct: null };
-          const maxPts = Math.round(weights[i] / totalAllWeights * 1000);
-          const curPts = pct !== null ? Math.round(pct / 100 * maxPts) : null;
+          const n = Math.min((domainHistory[d] ?? []).length, 10);
+          const fullMaxPts = Math.round(weights[i] / totalAllWeights * 1000);
+          const maxPts = n > 0 ? Math.round(fullMaxPts * n / 10) : fullMaxPts;
+          const curPts = pct !== null && n > 0 ? Math.round(pct / 100 * maxPts) : null;
           const label = lang === 'en' ? (DOMAIN_NAME_EN[d] ?? d) : d;
           return (
             <div key={d} style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 6 }}>
               <span style={{ fontSize: 10, fontWeight: 700, color: 'var(--color-text-light)', flexShrink: 0, width: 20 }}>D{i + 1}</span>
               <span style={{ fontSize: 11, color: 'var(--color-text-main)', flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{label}</span>
+              {n > 0 && n < 10 && (
+                <span style={{ fontSize: 10, color: 'var(--color-text-light)', flexShrink: 0 }}>{n}/10</span>
+              )}
               <span style={{ fontSize: 12, fontWeight: 700, color: curPts !== null ? 'var(--color-primary)' : 'var(--color-text-light)', flexShrink: 0 }}>
                 {curPts !== null ? curPts : '—'}
               </span>
