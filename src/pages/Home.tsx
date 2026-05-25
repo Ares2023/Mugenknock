@@ -1041,7 +1041,8 @@ export default function Home() {
           }
         }
         if (total === 0) continue;
-        weightedSum += (correct / total) * weights[i];
+        const n = Math.min(total, 10);
+        weightedSum += (correct / total) * (n / 10) * weights[i];
         hasAnyData = true;
       }
       if (!hasAnyData) return null;
