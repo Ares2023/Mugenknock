@@ -440,91 +440,98 @@ function OnboardingModal({ lang, uid, onComplete, onSkip }: {
 
       {/* ── スライド 1: 資格選択 ── */}
       {slide === 1 && (
-        <div style={{
-          flex: 1, display: 'flex', flexDirection: 'column',
-          padding: '32px 24px 24px', maxWidth: 560, margin: '0 auto', width: '100%',
-        }}>
-          <h2 style={{ fontSize: 20, fontWeight: 800, color: 'var(--color-text-main)', margin: '0 0 6px' }}>
-            {ja ? '目指すAWS資格を選んでください' : 'Select your target exam'}
-          </h2>
-          <p style={{ fontSize: 12, color: 'var(--color-text-sub)', margin: '0 0 20px' }}>
-            {ja ? '後からホーム画面でいつでも変更できます' : 'You can change this anytime on the home screen'}
-          </p>
+        <>
+          <div style={{
+            flex: 1, display: 'flex', flexDirection: 'column',
+            padding: '32px 24px 0', maxWidth: 560, margin: '0 auto', width: '100%',
+          }}>
+            <h2 style={{ fontSize: 20, fontWeight: 800, color: 'var(--color-text-main)', margin: '0 0 6px' }}>
+              {ja ? '目指すAWS資格を選んでください' : 'Select your target exam'}
+            </h2>
+            <p style={{ fontSize: 12, color: 'var(--color-text-sub)', margin: '0 0 20px' }}>
+              {ja ? '後からホーム画面でいつでも変更できます' : 'You can change this anytime on the home screen'}
+            </p>
 
-          {/* 資格グループ */}
-          <div style={{ flex: 1, overflowY: 'auto' }}>
-            {grouped.map(({ lv, exams }) => (
-              <div key={lv} style={{ marginBottom: 18 }}>
-                <div style={{
-                  fontSize: 11, fontWeight: 700, letterSpacing: '.06em', textTransform: 'uppercase',
-                  color: OB_LEVEL_COLOR[lv], marginBottom: 8,
-                }}>{lv}</div>
-                <div style={{ display: 'flex', flexDirection: 'column', gap: 7 }}>
-                  {exams.map(exam => {
-                    const cfg = EXAM_CONFIGS[exam];
-                    const isSelected = selected === exam;
-                    return (
-                      <button
-                        key={exam}
-                        onClick={() => handleSelect(exam)}
-                        style={{
-                          display: 'flex', alignItems: 'center', gap: 12,
-                          padding: '10px 14px', borderRadius: 10, cursor: 'pointer', textAlign: 'left',
-                          background: isSelected ? 'var(--color-primary-light)' : 'var(--color-bg-card)',
-                          border: `2px solid ${isSelected ? 'var(--color-primary)' : 'var(--color-border)'}`,
-                          transition: 'border-color .15s, background .15s',
-                        }}
-                      >
-                        <div style={{ flex: 1, minWidth: 0 }}>
-                          <div style={{ fontWeight: 700, fontSize: 13, color: 'var(--color-text-main)' }}>
-                            {cfg.examCode}
+            {/* 資格グループ */}
+            <div style={{ flex: 1, overflowY: 'auto', paddingBottom: 160 }}>
+              {grouped.map(({ lv, exams }) => (
+                <div key={lv} style={{ marginBottom: 18 }}>
+                  <div style={{
+                    fontSize: 11, fontWeight: 700, letterSpacing: '.06em', textTransform: 'uppercase',
+                    color: OB_LEVEL_COLOR[lv], marginBottom: 8,
+                  }}>{lv}</div>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: 7 }}>
+                    {exams.map(exam => {
+                      const cfg = EXAM_CONFIGS[exam];
+                      const isSelected = selected === exam;
+                      return (
+                        <button
+                          key={exam}
+                          onClick={() => handleSelect(exam)}
+                          style={{
+                            display: 'flex', alignItems: 'center', gap: 12,
+                            padding: '10px 14px', borderRadius: 10, cursor: 'pointer', textAlign: 'left',
+                            background: isSelected ? 'var(--color-primary-light)' : 'var(--color-bg-card)',
+                            border: `2px solid ${isSelected ? 'var(--color-primary)' : 'var(--color-border)'}`,
+                            transition: 'border-color .15s, background .15s',
+                          }}
+                        >
+                          <div style={{ flex: 1, minWidth: 0 }}>
+                            <div style={{ fontWeight: 700, fontSize: 13, color: 'var(--color-text-main)' }}>
+                              {cfg.examCode}
+                            </div>
+                            <div style={{ fontSize: 11, color: 'var(--color-text-sub)', marginTop: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                              {OB_SHORT[exam]}
+                            </div>
                           </div>
-                          <div style={{ fontSize: 11, color: 'var(--color-text-sub)', marginTop: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                            {OB_SHORT[exam]}
-                          </div>
-                        </div>
-                        {isSelected && (
-                          <span style={{ color: 'var(--color-primary)', flexShrink: 0, display: 'flex' }}>
-                            <IconCheck size={18} />
-                          </span>
-                        )}
-                      </button>
-                    );
-                  })}
+                          {isSelected && (
+                            <span style={{ color: 'var(--color-primary)', flexShrink: 0, display: 'flex' }}>
+                              <IconCheck size={18} />
+                            </span>
+                          )}
+                        </button>
+                      );
+                    })}
+                  </div>
                 </div>
-              </div>
-            ))}
-          </div>
-
-          <div style={{ paddingTop: 16 }}>
-            <Button
-              variant="primary" fullWidth size="lg"
-              onClick={handleComplete}
-              style={selected ? {} : { opacity: 0.45, pointerEvents: 'none' }}
-            >
-              {ja ? '設定して始める' : 'Start with this exam'}
-            </Button>
-            <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: 12 }}>
-              <button onClick={() => setSlide(0)} style={{ background: 'none', border: 'none', color: 'var(--color-text-light)', fontSize: 13, cursor: 'pointer', padding: '4px 0' }}>
-                ← {ja ? '戻る' : 'Back'}
-              </button>
-              <button onClick={onSkip} style={{ background: 'none', border: 'none', color: 'var(--color-text-light)', fontSize: 13, cursor: 'pointer', padding: '4px 0' }}>
-                {ja ? '後で設定する' : 'Set up later'}
-              </button>
+              ))}
             </div>
           </div>
 
-          {/* 進捗ドット */}
-          <div style={{ display: 'flex', justifyContent: 'center', gap: 6, marginTop: 16 }}>
-            {[0, 1].map(i => (
-              <div key={i} style={{
-                width: i === slide ? 18 : 6, height: 6, borderRadius: 3,
-                background: i === slide ? 'var(--color-primary)' : 'var(--color-border)',
-                transition: 'width .2s',
-              }} />
-            ))}
+          {/* 固定フッター: 決定ボタン + 戻る/スキップ + 進捗ドット */}
+          <div style={{
+            position: 'fixed', bottom: 0, left: 0, right: 0,
+            background: 'var(--color-bg-main)',
+            borderTop: '1px solid var(--color-border)',
+          }}>
+            <div style={{ maxWidth: 560, margin: '0 auto', padding: '16px 24px 24px' }}>
+              <Button
+                variant="primary" fullWidth size="lg"
+                onClick={handleComplete}
+                style={selected ? {} : { opacity: 0.45, pointerEvents: 'none' }}
+              >
+                {ja ? '設定して始める' : 'Start with this exam'}
+              </Button>
+              <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: 12 }}>
+                <button onClick={() => setSlide(0)} style={{ background: 'none', border: 'none', color: 'var(--color-text-light)', fontSize: 13, cursor: 'pointer', padding: '4px 0' }}>
+                  ← {ja ? '戻る' : 'Back'}
+                </button>
+                <button onClick={onSkip} style={{ background: 'none', border: 'none', color: 'var(--color-text-light)', fontSize: 13, cursor: 'pointer', padding: '4px 0' }}>
+                  {ja ? '後で設定する' : 'Set up later'}
+                </button>
+              </div>
+              <div style={{ display: 'flex', justifyContent: 'center', gap: 6, marginTop: 14 }}>
+                {[0, 1].map(i => (
+                  <div key={i} style={{
+                    width: i === slide ? 18 : 6, height: 6, borderRadius: 3,
+                    background: i === slide ? 'var(--color-primary)' : 'var(--color-border)',
+                    transition: 'width .2s',
+                  }} />
+                ))}
+              </div>
+            </div>
           </div>
-        </div>
+        </>
       )}
     </div>,
     document.body,

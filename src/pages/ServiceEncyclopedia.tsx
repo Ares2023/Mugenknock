@@ -250,9 +250,11 @@ export default function ServiceEncyclopedia() {
                     <div style={{ width: 32, height: 32, display: 'flex', alignItems: 'center', justifyContent: 'center', opacity: unlocked ? 1 : 0.4 }}>
                       {unlocked && serviceData
                         ? renderIcon(serviceData, 32)
-                        : unlocked
-                          ? <span style={{ fontSize: 20 }}>☁️</span>
-                          : <IconLock size={14} />}
+                        : unlocked && svc.icon
+                          ? renderIcon({ serviceId: svc.name, name: svc.name, icon: svc.icon, description: '' }, 32)
+                          : unlocked
+                            ? <span style={{ fontSize: 20 }}>☁️</span>
+                            : <IconLock size={14} />}
                     </div>
                     <span style={{
                       fontSize: 10,

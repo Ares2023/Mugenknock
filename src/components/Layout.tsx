@@ -373,11 +373,11 @@ export default function Layout({ children }: { children: React.ReactNode }) {
 
       {/* ── ヘッダー ── */}
       <header style={{
-        height: 56, minHeight: 56, background: 'var(--color-secondary)',
+        height: 56, minHeight: 56, background: 'var(--color-bg-white)',
         display: 'flex', alignItems: 'center',
         padding: isMobile ? '0 12px 0 8px' : '0 var(--spacing-lg)',
         gap: 'var(--spacing-md)', zIndex: 200, flexShrink: 0,
-        boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
+        borderBottom: '1px solid var(--color-border)',
       }}>
 
         {/* サービス名 */}
@@ -396,22 +396,22 @@ export default function Layout({ children }: { children: React.ReactNode }) {
             style={{
               marginLeft: 'auto',
               display: 'flex', alignItems: 'center', gap: 4,
-              background: 'rgba(255,255,255,0.12)',
-              border: '1px solid rgba(255,255,255,0.3)',
+              background: 'transparent',
+              border: '1px solid var(--color-border)',
               borderRadius: 'var(--border-radius-md)',
-              cursor: 'pointer', color: 'white',
+              cursor: 'pointer', color: 'var(--color-text-main)',
               padding: '5px 10px', fontSize: 'var(--font-size-sm)', fontWeight: 700,
               maxWidth: '45vw', overflow: 'hidden',
               transition: 'background 0.2s',
               flexShrink: 0,
             }}
-            onMouseEnter={e => e.currentTarget.style.background = 'rgba(255,255,255,0.2)'}
-            onMouseLeave={e => e.currentTarget.style.background = 'rgba(255,255,255,0.12)'}
+            onMouseEnter={e => e.currentTarget.style.background = 'var(--color-bg-main)'}
+            onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
           >
             <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
               {targetExam ?? (lang === 'ja' ? '試験選択' : 'Exam')}
             </span>
-            <span style={{ fontSize: 8, opacity: 0.8, flexShrink: 0, transform: mobileExamPanelOpen ? 'rotate(180deg)' : 'none', transition: 'transform 0.2s' }}>▼</span>
+            <span style={{ fontSize: 8, opacity: 0.5, flexShrink: 0, transform: mobileExamPanelOpen ? 'rotate(180deg)' : 'none', transition: 'transform 0.2s' }}>▼</span>
           </button>
         )}
 
@@ -421,17 +421,17 @@ export default function Layout({ children }: { children: React.ReactNode }) {
             onClick={() => navigate('/account')}
             style={{
               display: 'flex', alignItems: 'center', justifyContent: 'center',
-              background: user ? 'rgba(255,255,255,0.25)' : 'rgba(255,255,255,0.1)',
-              border: '1px solid rgba(255,255,255,0.35)',
+              background: user ? 'var(--color-primary-light)' : 'transparent',
+              border: '1px solid var(--color-border)',
               borderRadius: '50%',
-              cursor: 'pointer', color: 'white',
+              cursor: 'pointer', color: user ? 'var(--color-primary)' : 'var(--color-text-sub)',
               width: 36, height: 36, padding: 0,
               flexShrink: 0,
               transition: 'background 0.2s',
               fontSize: 14, fontWeight: 700, letterSpacing: 0,
             }}
-            onMouseEnter={e => e.currentTarget.style.background = 'rgba(255,255,255,0.35)'}
-            onMouseLeave={e => e.currentTarget.style.background = user ? 'rgba(255,255,255,0.25)' : 'rgba(255,255,255,0.1)'}
+            onMouseEnter={e => e.currentTarget.style.background = 'var(--color-bg-main)'}
+            onMouseLeave={e => e.currentTarget.style.background = user ? 'var(--color-primary-light)' : 'transparent'}
           >
             {user?.email ? (user.email[0].toUpperCase()) : <IconUser />}
           </button>
