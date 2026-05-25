@@ -539,7 +539,7 @@ export default function ExerciseSession() {
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 'var(--spacing-lg)' }}>
           <h1 style={{ fontSize: 'var(--font-size-h2)', fontWeight: 700, margin: 0, color: 'var(--color-text-main)' }}>
             {t('exerciseSession.qLabel')} {currentIndex + 1}
-            <span style={{ fontWeight: 400, fontSize: 'var(--font-size-sm)', color: 'var(--color-text-sub)', marginLeft: 'var(--spacing-md)' }}>
+            <span style={{ fontWeight: 400, fontSize: 'var(--font-size-sm)', color: 'var(--color-text-sub)', marginLeft: 'var(--spacing-md)', whiteSpace: 'nowrap' }}>
               {t('exerciseSession.totalQ', { n: questions.length })}
             </span>
           </h1>
@@ -774,14 +774,21 @@ export default function ExerciseSession() {
         />
       )}
 
-      {createPortal(
+      {(() => {
+        const _waka = selectedAnswers.includes(WAKARANAI);
+        const canSubmit = _waka
+          ? true
+          : currentQuestion.isMultiple && currentQuestion.correctAnswerCount
+            ? selectedAnswers.length === currentQuestion.correctAnswerCount
+            : selectedAnswers.length > 0;
+        return createPortal(
         isMobile ? (
           <div style={{ position: 'fixed', bottom: 56, left: 0, right: 0, zIndex: 150, padding: '8px 16px', display: 'flex', gap: 8 }}>
             {!answered ? (
               <button
                 onClick={submitAnswer}
-                disabled={selectedAnswers.length === 0}
-                style={{ flex: 1, height: 44, border: 'none', borderRadius: 22, background: selectedAnswers.length === 0 ? 'var(--color-text-light)' : 'var(--color-accent)', color: 'var(--color-btn-primary-text)', fontWeight: 600, fontSize: 'var(--font-size-base)', cursor: selectedAnswers.length === 0 ? 'default' : 'pointer', opacity: selectedAnswers.length === 0 ? 0.5 : 1 }}
+                disabled={!canSubmit}
+                style={{ flex: 1, height: 44, border: 'none', borderRadius: 22, background: !canSubmit ? 'var(--color-text-light)' : 'var(--color-accent)', color: 'var(--color-btn-primary-text)', fontWeight: 600, fontSize: 'var(--font-size-base)', cursor: !canSubmit ? 'default' : 'pointer', opacity: !canSubmit ? 0.5 : 1 }}
               >
                 {t('exerciseSession.answer')}
               </button>
@@ -799,8 +806,8 @@ export default function ExerciseSession() {
             {!answered ? (
               <button
                 onClick={submitAnswer}
-                disabled={selectedAnswers.length === 0}
-                style={{ height: 44, padding: '0 24px', border: 'none', borderRadius: 22, background: selectedAnswers.length === 0 ? 'var(--color-text-light)' : 'var(--color-accent)', color: 'var(--color-btn-primary-text)', fontWeight: 600, fontSize: 'var(--font-size-base)', cursor: selectedAnswers.length === 0 ? 'default' : 'pointer', opacity: selectedAnswers.length === 0 ? 0.5 : 1, whiteSpace: 'nowrap', boxShadow: '0 2px 8px rgba(0,0,0,0.15)' }}
+                disabled={!canSubmit}
+                style={{ height: 44, padding: '0 24px', border: 'none', borderRadius: 22, background: !canSubmit ? 'var(--color-text-light)' : 'var(--color-accent)', color: 'var(--color-btn-primary-text)', fontWeight: 600, fontSize: 'var(--font-size-base)', cursor: !canSubmit ? 'default' : 'pointer', opacity: !canSubmit ? 0.5 : 1, whiteSpace: 'nowrap', boxShadow: '0 2px 8px rgba(0,0,0,0.15)' }}
               >
                 {t('exerciseSession.answer')}
               </button>
@@ -815,7 +822,8 @@ export default function ExerciseSession() {
           </div>
         ),
         document.body
-      )}
+        );
+      })()}
 
       {/* コラム（豆知識） */}
       {currentTip && (
