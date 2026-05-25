@@ -161,30 +161,47 @@ function CombinedDetailModal({ targetExam, domainAccList, estimatedScore, passSc
 
       {/* ドメイン別スコア内訳 */}
       <div style={{ marginBottom: 16, background: 'var(--color-bg-main)', borderRadius: 8, padding: '10px 12px' }}>
-        <div style={{ fontSize: 11, fontWeight: 700, color: 'var(--color-text-sub)', marginBottom: 8, letterSpacing: '0.5px' }}>
+        <div style={{ fontSize: 11, fontWeight: 700, color: 'var(--color-text-sub)', marginBottom: 10, letterSpacing: '0.5px' }}>
           {ja ? 'ドメイン別スコア内訳' : 'Score by Domain'}
         </div>
         {domains.map((d, i) => {
           const { pct, total: totalQ } = domainAccList[i] ?? { pct: null, total: 0 };
           const n = Math.min(totalQ ?? 0, 10);
           const fullMaxPts = Math.round(weights[i] / totalAllWeights * 1000);
-          const maxPts = n > 0 ? Math.round(fullMaxPts * n / 10) : fullMaxPts;
-          const curPts = pct !== null && n > 0 ? Math.round(pct / 100 * maxPts) : null;
+          const curPts = pct !== null && n > 0 ? Math.round(pct / 100 * fullMaxPts * n / 10) : 0;
+          const barPct = fullMaxPts > 0 ? curPts / fullMaxPts * 100 : 0;
           const label = lang === 'en' ? (DOMAIN_NAME_EN[d] ?? d) : d;
+          const hasPracticed = totalQ > 0;
           return (
-            <div key={d} style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 6 }}>
-              <span style={{ fontSize: 10, fontWeight: 700, color: 'var(--color-text-light)', flexShrink: 0, width: 20 }}>D{i + 1}</span>
-              <span style={{ fontSize: 11, color: 'var(--color-text-main)', flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{label}</span>
-              {n > 0 && n < 10 && (
-                <span style={{ fontSize: 10, color: 'var(--color-text-light)', flexShrink: 0 }}>{n}/10</span>
-              )}
-              <span style={{ fontSize: 12, fontWeight: 700, color: curPts !== null ? 'var(--color-primary)' : 'var(--color-text-light)', flexShrink: 0 }}>
-                {curPts !== null ? curPts : '—'}
-              </span>
-              <span style={{ fontSize: 11, color: 'var(--color-text-light)', flexShrink: 0 }}>/ {maxPts}</span>
+            <div key={d} style={{ marginBottom: 10 }}>
+              <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', marginBottom: 4 }}>
+                <div style={{ display: 'flex', alignItems: 'baseline', gap: 5, minWidth: 0, flex: 1 }}>
+                  <span style={{ fontSize: 10, fontWeight: 700, color: 'var(--color-text-light)', flexShrink: 0 }}>D{i + 1}</span>
+                  <span style={{ fontSize: 11, color: 'var(--color-text-main)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{label}</span>
+                  {n > 0 && n < 10 && (
+                    <span style={{ fontSize: 9, color: 'var(--color-text-light)', flexShrink: 0 }}>({n}/10{ja ? '問' : 'q'})</span>
+                  )}
+                </div>
+                <div style={{ flexShrink: 0, marginLeft: 8 }}>
+                  <span style={{ fontSize: 13, fontWeight: 700, color: hasPracticed ? 'var(--color-primary)' : 'var(--color-text-light)' }}>
+                    {curPts}
+                  </span>
+                  <span style={{ fontSize: 11, color: 'var(--color-text-light)' }}> / {fullMaxPts}</span>
+                </div>
+              </div>
+              <div style={{ height: 5, background: 'var(--color-border)', borderRadius: 3, overflow: 'hidden' }}>
+                <div style={{ width: `${barPct}%`, height: '100%', borderRadius: 3, background: hasPracticed ? 'var(--bar-gradient-primary)' : 'transparent', animation: hasPracticed ? `growWidth 0.45s cubic-bezier(0.34, 1.56, 0.64, 1) ${i * 50}ms both` : 'none' }} />
+              </div>
             </div>
           );
         })}
+        <div style={{ borderTop: '1px solid var(--color-border)', marginTop: 6, paddingTop: 8, display: 'flex', justifyContent: 'space-between', alignItems: 'baseline' }}>
+          <span style={{ fontSize: 11, fontWeight: 700, color: 'var(--color-text-sub)' }}>{ja ? '合計' : 'Total'}</span>
+          <div>
+            <span style={{ fontSize: 15, fontWeight: 800, color: 'var(--color-primary)' }}>{estimatedScore ?? 0}</span>
+            <span style={{ fontSize: 11, color: 'var(--color-text-light)' }}> / 1000</span>
+          </div>
+        </div>
       </div>
 
       <div style={{ fontSize: 11, fontWeight: 600, color: 'var(--color-text-sub)', marginBottom: 10 }}>
