@@ -1,6 +1,6 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { createPortal } from 'react-dom';
-import { ServiceIcon, isServiceIconKey } from './Icons';
+import { ServiceIconImg } from './Icons';
 import Button from './ui/Button';
 
 type DailyService = {
@@ -15,22 +15,6 @@ type DailyService = {
 };
 
 type Phase = 'waiting' | 'revealing' | 'revealed';
-
-function ServiceIconUrl({ icon, name, size }: { icon: string; name: string; size: number }) {
-  const svgSrc = icon.replace(/\.png$/, '.svg');
-  const [src, setSrc] = React.useState(svgSrc);
-  return <img src={src} alt={name} onError={() => setSrc(icon)} style={{ width: size, height: size, objectFit: 'contain' }} />;
-}
-
-function ServiceIconImg({ icon, name, size }: { icon: string; name: string; size: number }) {
-  if (icon.startsWith('/') || icon.startsWith('http')) {
-    return <ServiceIconUrl icon={icon} name={name} size={size} />;
-  }
-  if (isServiceIconKey(icon)) {
-    return <ServiceIcon name={icon} size={size} />;
-  }
-  return <span style={{ fontSize: size * 0.8, lineHeight: 1 }}>{icon}</span>;
-}
 
 const PARTICLE_COUNT = 28;
 const COLORS = ['#FF9900', '#FFD700', '#FF6B35', '#FFFFFF', '#5CA3E6', '#FFCC44', '#44DD88'];
@@ -303,7 +287,7 @@ export default function DailyServiceRevealModal({
                   display: 'inline-block',
                   background: 'rgba(255,153,0,.16)',
                   border: '1px solid rgba(255,153,0,.4)',
-                  color: '#FFB84D', fontSize: 12, fontWeight: 700,
+                  color: 'white', fontSize: 12, fontWeight: 700,
                   padding: '2px 12px', borderRadius: 20, marginBottom: 12,
                 }}>
                   {service.category}
@@ -327,7 +311,7 @@ export default function DailyServiceRevealModal({
                   marginBottom: 22,
                   textAlign: 'left',
                 }}>
-                  <div style={{ fontSize: 11, fontWeight: 700, color: '#FFB84D', marginBottom: 4, letterSpacing: '.06em' }}>
+                  <div style={{ fontSize: 11, fontWeight: 700, color: 'white', marginBottom: 4, letterSpacing: '.06em' }}>
                     💡 {ja ? '豆知識' : 'Trivia'}
                   </div>
                   <div style={{ fontSize: 12, color: 'rgba(255,255,255,.7)', lineHeight: 1.7 }}>
@@ -342,7 +326,7 @@ export default function DailyServiceRevealModal({
                     {ja ? '今日の演習を始める' : "Start Today's Exercise"}
                   </Button>
                   <Button variant="outline" onClick={onNavigateEncyclopedia}
-                    style={{ borderColor: 'rgba(255,255,255,.22)', color: 'rgba(255,255,255,.68)' }}>
+                    style={{ borderColor: 'rgba(255,255,255,.35)', color: 'white' }}>
                     {ja ? 'サービス図鑑' : 'Encyclopedia'}
                   </Button>
                 </div>
@@ -369,7 +353,7 @@ export default function DailyServiceRevealModal({
             {ja ? '今日の演習を始める' : "Start Today's Exercise"}
           </Button>
           <Button variant="outline" size="lg" onClick={onNavigateEncyclopedia}
-            style={{ borderColor: 'rgba(255,255,255,.22)', color: 'rgba(255,255,255,.68)' }}>
+            style={{ borderColor: 'rgba(255,255,255,.35)', color: 'white' }}>
             {ja ? 'サービス図鑑' : 'Encyclopedia'}
           </Button>
         </div>

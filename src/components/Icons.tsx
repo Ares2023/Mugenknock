@@ -350,3 +350,19 @@ export function isServiceIconKey(icon: string): boolean {
   return icon in SERVICE_ICON_PATHS;
 }
 
+export function ServiceIconUrl({ icon, name, size }: { icon: string; name: string; size: number }) {
+  const svgSrc = icon.replace(/\.png$/, '.svg');
+  const [src, setSrc] = React.useState(svgSrc);
+  return <img src={src} alt={name} onError={() => setSrc(icon)} style={{ width: size, height: size, objectFit: 'contain' }} />;
+}
+
+export function ServiceIconImg({ icon, name, size }: { icon: string; name: string; size: number }) {
+  if (icon.startsWith('/') || icon.startsWith('http')) {
+    return <ServiceIconUrl icon={icon} name={name} size={size} />;
+  }
+  if (isServiceIconKey(icon)) {
+    return <ServiceIcon name={icon} size={size} />;
+  }
+  return <span style={{ fontSize: size * 0.8, lineHeight: 1 }}>{icon}</span>;
+}
+

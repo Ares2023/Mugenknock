@@ -11,7 +11,7 @@ import {
 import { getCached, setCached, deleteCached, DEFAULT_TTL } from '../utils/cache';
 import Card from '../components/ui/Card';
 import Button from '../components/ui/Button';
-import { IconLightbulb, IconSettings, IconChevronUp, IconLock, IconFileText, IconTrendingUp, IconBookOpen, IconCheck, ServiceIcon, isServiceIconKey } from '../components/Icons';
+import { IconLightbulb, IconSettings, IconChevronUp, IconLock, IconFileText, IconTrendingUp, IconBookOpen, IconCheck, ServiceIconImg } from '../components/Icons';
 
 type DomainStat = { tagId: string; correctCount?: number; incorrectCount?: number };
 type SessionEntry = { correct: number; total: number };
@@ -168,8 +168,8 @@ function CombinedDetailModal({ targetExam, domainAccList, estimatedScore, passSc
           {ja ? 'ドメイン別スコア内訳' : 'Score by Domain'}
         </div>
         {domains.map((d, i) => {
-          const { pct } = domainAccList[i] ?? { pct: null };
-          const n = Math.min((domainHistory[d] ?? []).length, 10);
+          const { pct, total: totalQ } = domainAccList[i] ?? { pct: null, total: 0 };
+          const n = Math.min(totalQ ?? 0, 10);
           const fullMaxPts = Math.round(weights[i] / totalAllWeights * 1000);
           const maxPts = n > 0 ? Math.round(fullMaxPts * n / 10) : fullMaxPts;
           const curPts = pct !== null && n > 0 ? Math.round(pct / 100 * maxPts) : null;
@@ -747,7 +747,7 @@ function TodayServiceSection({ lang, userId, onNavigateEncyclopedia, onReveal }:
       >
         {/* ヘッダー */}
         <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 14 }}>
-          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="rgba(82,130,255,.8)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0 }}>
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,.7)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0 }}>
             <path d="M3 20a2 2 0 0 0 2 2h10a2.4 2.4 0 0 0 1.706-.706l3.588-3.588A2.4 2.4 0 0 0 21 16V6a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2z"/>
             <path d="M15 22v-5a1 1 0 0 1 1-1h5"/><path d="M8 2v4"/><path d="M16 2v4"/><path d="M3 10h18"/>
           </svg>
@@ -758,14 +758,14 @@ function TodayServiceSection({ lang, userId, onNavigateEncyclopedia, onReveal }:
         {/* ? アイコン */}
         <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', padding: '12px 0 8px' }}>
           <div style={{
-            fontSize: 52, fontWeight: 900, lineHeight: 1, color: '#FF9900',
-            textShadow: '0 4px 24px rgba(255,153,0,.6)',
-            filter: 'drop-shadow(0 0 12px rgba(255,153,0,.5))',
+            fontSize: 52, fontWeight: 900, lineHeight: 1, color: 'white',
+            textShadow: '0 4px 24px rgba(255,255,255,.25)',
+            filter: 'drop-shadow(0 0 12px rgba(255,255,255,.2))',
             animation: 'ds-float 3.2s ease-in-out infinite',
           }}>?</div>
           <div style={{
             marginTop: 14, fontSize: 13, fontWeight: 600,
-            color: 'rgba(255,230,150,.85)',
+            color: 'rgba(255,255,255,.85)',
             animation: 'ds-tap 1.5s ease-in-out infinite',
             textShadow: '0 2px 8px rgba(0,0,0,.5)',
           }}>
@@ -778,11 +778,7 @@ function TodayServiceSection({ lang, userId, onNavigateEncyclopedia, onReveal }:
 
   if (!service) return null;
 
-  const iconEl = service.icon.startsWith('/') || service.icon.startsWith('http')
-    ? <img src={service.icon} alt={service.name} style={{ width: 44, height: 44, objectFit: 'contain' }} />
-    : isServiceIconKey(service.icon)
-      ? <ServiceIcon name={service.icon} size={44} />
-      : <span style={{ fontSize: 38, lineHeight: 1 }}>{service.icon}</span>;
+  const iconEl = <ServiceIconImg icon={service.icon} name={service.name} size={44} />;
 
   return (
     <Card padding="var(--spacing-md)" style={{ marginBottom: 'var(--spacing-md)', cursor: 'pointer' }} onClick={onNavigateEncyclopedia}>
