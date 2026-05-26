@@ -29,8 +29,11 @@ fi
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 LOG_DIR="$(dirname "$SCRIPT_DIR")/logs"
 INSTRUCTION_DIR="$SCRIPT_DIR/instructions"
+STATE_DIR="$SCRIPT_DIR/state"
+COUNT_CACHE_FILE="$STATE_DIR/question_counts.json"
 API_ENDPOINT="https://a0q3656qw4.execute-api.ap-northeast-1.amazonaws.com/dev"
 QUESTIONS_PER_DOMAIN=2
+mkdir -p "$STATE_DIR"
 
 RATE_LIMIT_FILE="$(dirname "$SCRIPT_DIR")/.claude_rate_limit_reset"
 
@@ -120,6 +123,7 @@ EOF
 FORCE_EXAM=""
 FORCE_DOMAIN=""
 DEADLINE=""
+REBUILD_COUNTS=0
 
 while [[ $# -gt 0 ]]; do
   case "$1" in
@@ -138,6 +142,10 @@ while [[ $# -gt 0 ]]; do
     -D|--deadline)
       DEADLINE="${2:?--deadline requires HH:MM}"
       shift 2
+      ;;
+    -R|--rebuild-counts)
+      REBUILD_COUNTS=1
+      shift
       ;;
     -h|--help)
       show_help; exit 0
@@ -199,7 +207,7 @@ mapfile -t EXAM_TYPES < <(
     | python3 -c "
 import sys
 ORDER = ['CLF', 'SAA', 'SAP', 'DVA', 'SOA', 'DEA', 'DOP', 'AIF', 'MLA', 'GAI', 'ANS', 'SCS']
-items = [l.strip() for l in sys.stdin if l.strip()]
+items = [l.strip() for l in sys.stdin if l.strip() and not l.strip().startswith('_')]
 known   = [x for x in ORDER if x in items]
 unknown = sorted(x for x in items if x not in ORDER)
 print('\n'.join(known + unknown))
@@ -224,26 +232,82 @@ if [ -n "$FORCE_EXAM" ]; then
   echo "指定資格: $NEXT_EXAM"
 else
   # 問題数が最も少ない資格を選択
-  echo "各資格の問題数を取得中..."
-  MIN_COUNT=999999
-  NEXT_EXAM="${EXAM_TYPES[0]}"
-  for exam in "${EXAM_TYPES[@]}"; do
-    count=$(aws dynamodb query \
-      --table-name Questions \
-      --index-name examType-index \
-      --key-condition-expression "examType = :e" \
-      --expression-attribute-values "{\":e\": {\"S\": \"$exam\"}}" \
-      --select COUNT \
-      --query 'Count' \
-      --output text 2>/dev/null | awk '{s+=$1} END{print s+0}')
-    count=${count:-0}
-    echo "  $exam: ${count}問"
-    if [ "$count" -lt "$MIN_COUNT" ]; then
-      MIN_COUNT="$count"
-      NEXT_EXAM="$exam"
+  _USE_CACHE=0
+  if [ "$REBUILD_COUNTS" -eq 0 ] && [ -f "$COUNT_CACHE_FILE" ]; then
+    # 全試験分のデータが揃っているときのみキャッシュ有効
+    if python3 - "$COUNT_CACHE_FILE" "${EXAM_TYPES[@]}" << 'PYEOF' 2>/dev/null
+import json, sys
+with open(sys.argv[1]) as f:
+    cache = json.load(f)
+exams_data = cache.get("exams", {})
+missing = [e for e in sys.argv[2:] if e not in exams_data]
+if missing:
+    raise SystemExit(f"missing: {missing}")
+PYEOF
+    then
+      _USE_CACHE=1
+    else
+      echo "問題数キャッシュが不完全 → DynamoDBから再取得します..."
     fi
-  done
-  echo "選択: $NEXT_EXAM (現在${MIN_COUNT}問 — 最少)"
+  fi
+
+  if [ "$_USE_CACHE" -eq 1 ]; then
+    echo "問題数キャッシュを使用..."
+    read -r NEXT_EXAM MIN_COUNT <<< "$(python3 - "$COUNT_CACHE_FILE" "${EXAM_TYPES[@]}" << 'PYEOF'
+import json, sys
+with open(sys.argv[1]) as f:
+    cache = json.load(f)
+exams_data = cache.get("exams", {})
+exam_types = sys.argv[2:]
+min_count = 999999
+next_exam = exam_types[0]
+for e in exam_types:
+    c = exams_data.get(e, {}).get("total", 0)
+    print(f"  {e}: {c}問 (キャッシュ)", file=sys.stderr)
+    if c < min_count:
+        min_count = c
+        next_exam = e
+print(next_exam, min_count)
+PYEOF
+)"
+    echo "選択: $NEXT_EXAM (現在${MIN_COUNT}問 — 最少)"
+  else
+    # DynamoDB から取得してキャッシュを再構築
+    [ "$REBUILD_COUNTS" -eq 1 ] && echo "問題数キャッシュを再構築中..." || echo "キャッシュなし。DynamoDBから問題数を取得中..."
+    MIN_COUNT=999999
+    NEXT_EXAM="${EXAM_TYPES[0]}"
+    declare -A _TMP_COUNTS
+    for exam in "${EXAM_TYPES[@]}"; do
+      count=$(aws dynamodb query \
+        --table-name Questions \
+        --index-name examType-index \
+        --key-condition-expression "examType = :e" \
+        --expression-attribute-values "{\":e\": {\"S\": \"$exam\"}}" \
+        --select COUNT \
+        --query 'Count' \
+        --output text 2>/dev/null | awk '{s+=$1} END{print s+0}')
+      count=${count:-0}
+      echo "  $exam: ${count}問"
+      _TMP_COUNTS[$exam]=$count
+      if [ "$count" -lt "$MIN_COUNT" ]; then
+        MIN_COUNT="$count"
+        NEXT_EXAM="$exam"
+      fi
+    done
+    echo "選択: $NEXT_EXAM (現在${MIN_COUNT}問 — 最少)"
+    # キャッシュに保存（exam total のみ。domain 内訳は Phase2 クエリ後に更新）
+    python3 - "$COUNT_CACHE_FILE" << PYEOF
+import json, os
+from datetime import datetime
+f = "$COUNT_CACHE_FILE"
+try:
+    with open(f) as fp: cache = json.load(fp)
+except: cache = {"exams": {}}
+$(for exam in "${!_TMP_COUNTS[@]}"; do echo "cache.setdefault('exams', {}).setdefault('${exam}', {})['total'] = ${_TMP_COUNTS[$exam]}"; done)
+cache["updated_at"] = datetime.now().isoformat()
+with open(f, 'w') as fp: json.dump(cache, fp, ensure_ascii=False, indent=2)
+PYEOF
+  fi
 fi
 
 # ── ドメイン一覧を取得 ────────────────────────────────────────
@@ -257,9 +321,7 @@ IFS=',' read -ra DOMAIN_LIST <<< "$DOMAIN_STR"
 DOMAIN_COUNT=${#DOMAIN_LIST[@]}
 
 # ── ドメイン指定の解決 ────────────────────────────────────────
-STATE_DIR="$SCRIPT_DIR/state"
 STATE_FILE="$STATE_DIR/last_domain_idx.json"
-mkdir -p "$STATE_DIR"
 
 if [ -n "$FORCE_DOMAIN" ]; then
   # 完全一致 → 部分一致（大文字小文字無視）の順で検索
@@ -423,6 +485,29 @@ PYEOF
 )
 rm -f "$_EXISTING_TMP"
 echo "$TAG_COUNT_TEXT"
+
+# ── キャッシュにドメイン内訳を同期（DynamoDB の正確な値で上書き）────────────
+python3 - "$COUNT_CACHE_FILE" "$NEXT_EXAM" "$_COUNTS_TMP_EARLY" << 'PYEOF' 2>/dev/null || true
+import json, sys
+from datetime import datetime
+cache_file, exam, counts_file = sys.argv[1], sys.argv[2], sys.argv[3]
+try:
+    with open(counts_file, encoding='utf-8') as f:
+        domain_counts = json.load(f)
+except Exception:
+    sys.exit(0)
+try:
+    with open(cache_file) as f:
+        cache = json.load(f)
+except Exception:
+    cache = {"exams": {}}
+entry = cache.setdefault("exams", {}).setdefault(exam, {})
+entry["domains"] = domain_counts
+entry["total"] = sum(domain_counts.values())
+cache["updated_at"] = datetime.now().isoformat()
+with open(cache_file, 'w') as f:
+    json.dump(cache, f, ensure_ascii=False, indent=2)
+PYEOF
 
 # ── 逆数重みによるドメイン別問題数割り当て ──────────────────────────────────
 # ドメイン指定時はスキップ（QUESTIONS_PER_DOMAIN をそのまま使用）
@@ -729,6 +814,20 @@ print(f'{len(ids)}件: ' + ', '.join(ids[:3]) + ('...' if len(ids) > 3 else ''))
 " 2>/dev/null || echo "$HTTP_BODY")
       echo "  ✓ チャンク${_chunk} インポート成功: $CREATED_IDS"
       DOMAIN_IMPORTED=$(( DOMAIN_IMPORTED + Q_COUNT ))
+      # キャッシュをインクリメント
+      python3 - "$COUNT_CACHE_FILE" "$NEXT_EXAM" "$domain" "$Q_COUNT" << 'PYEOF' 2>/dev/null || true
+import json, sys
+from datetime import datetime
+cache_file, exam, domain, n = sys.argv[1], sys.argv[2], sys.argv[3], int(sys.argv[4])
+try:
+    with open(cache_file) as f: cache = json.load(f)
+except Exception: cache = {"exams": {}}
+entry = cache.setdefault("exams", {}).setdefault(exam, {})
+entry["total"] = entry.get("total", 0) + n
+entry.setdefault("domains", {})[domain] = entry["domains"].get(domain, 0) + n
+cache["updated_at"] = datetime.now().isoformat()
+with open(cache_file, 'w') as f: json.dump(cache, f, ensure_ascii=False, indent=2)
+PYEOF
     else
       echo "  ❌ チャンク${_chunk} API エラー (HTTP $HTTP_CODE): $HTTP_BODY"
     fi
@@ -750,6 +849,36 @@ rm -f "$EXISTING_QS_FILE" "$_ALLOC_FILE"
 
 echo ""
 echo "合計インポート: ${TOTAL_IMPORTED}問 / ${TOTAL_QUESTIONS}問"
+
+# ── 終了後キャッシュ再構築（DynamoDBから正確な値を取得）────────────────────
+echo ""
+echo "--- 問題数キャッシュを再構築中（DynamoDBから正確な値を取得）---"
+declare -A _FINAL_COUNTS
+for exam in "${EXAM_TYPES[@]}"; do
+  count=$(aws dynamodb query \
+    --table-name Questions \
+    --index-name examType-index \
+    --key-condition-expression "examType = :e" \
+    --expression-attribute-values "{\":e\": {\"S\": \"$exam\"}}" \
+    --select COUNT \
+    --query 'Count' \
+    --output text 2>/dev/null | awk '{s+=$1} END{print s+0}')
+  count=${count:-0}
+  _FINAL_COUNTS[$exam]=$count
+  echo "  $exam: ${count}問"
+done
+python3 - "$COUNT_CACHE_FILE" << PYEOF
+import json
+from datetime import datetime
+f = "$COUNT_CACHE_FILE"
+try:
+    with open(f) as fp: cache = json.load(fp)
+except Exception: cache = {"exams": {}}
+$(for exam in "${!_FINAL_COUNTS[@]}"; do echo "cache.setdefault('exams', {}).setdefault('${exam}', {})['total'] = ${_FINAL_COUNTS[$exam]}"; done)
+cache["updated_at"] = datetime.now().isoformat()
+with open(f, 'w') as fp: json.dump(cache, fp, ensure_ascii=False, indent=2)
+PYEOF
+echo "キャッシュ更新完了"
 
 if [ $RATE_LIMITED -eq 1 ] || [ $TIMEOUT_HIT -eq 1 ]; then
   exit 1

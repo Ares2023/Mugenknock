@@ -97,8 +97,8 @@ function CombinedDetailModal({ targetExam, domainAccList, estimatedScore, passSc
   const ja = lang === 'ja';
   const domains = EXAM_DOMAINS[targetExam] ?? [];
   const history = readScoreHistory(targetExam, uid);
-  const domainHistory = readDomainHistory(targetExam, uid);
   const [showCalc, setShowCalc] = useState(false);
+  const [tab, setTab] = useState<'score' | 'history'>('score');
 
   useEffect(() => {
     const prev = document.body.style.overflow;
@@ -109,72 +109,10 @@ function CombinedDetailModal({ targetExam, domainAccList, estimatedScore, passSc
   const weights = DOMAIN_WEIGHTS[targetExam] ?? domains.map(() => 100 / domains.length);
   const totalAllWeights = weights.reduce((s, w) => s + w, 0) || 100;
 
-  const scoreSection = (
-    <div>
-      <div style={{ fontSize: 11, fontWeight: 700, color: 'var(--color-text-sub)', marginBottom: 12, textTransform: 'uppercase', letterSpacing: '0.5px' }}>
-        {ja ? '予想スコア' : 'Estimated Score'}
-      </div>
-      <div style={{ marginBottom: 16 }}>
-        <span style={{ fontSize: 36, fontWeight: 800, color: 'var(--color-primary)', letterSpacing: '-1px' }}>{estimatedScore ?? '—'}</span>
-        <span style={{ fontSize: 13, color: 'var(--color-text-light)', marginLeft: 6 }}>/1000</span>
-        {passScore !== null && (
-          <span style={{ fontSize: 11, color: 'var(--color-text-light)', marginLeft: 10 }}>
-            {ja ? `合格ライン: ${passScore}` : `Pass: ${passScore}`}
-          </span>
-        )}
-      </div>
-
-      {/* ドメイン別スコア内訳 */}
-      <div style={{ marginBottom: 16, background: 'var(--color-bg-main)', borderRadius: 8, padding: '10px 12px' }}>
-        <div style={{ fontSize: 11, fontWeight: 700, color: 'var(--color-text-sub)', marginBottom: 10, letterSpacing: '0.5px' }}>
-          {ja ? 'ドメイン別スコア内訳' : 'Score by Domain'}
-        </div>
-        {domains.map((d, i) => {
-          const { pct, total: totalQ } = domainAccList[i] ?? { pct: null, total: 0 };
-          const n = Math.min(totalQ ?? 0, 10);
-          const fullMaxPts = Math.round(weights[i] / totalAllWeights * 1000);
-          const curPts = pct !== null && n > 0 ? Math.round(pct / 100 * fullMaxPts * n / 10) : 0;
-          const barPct = fullMaxPts > 0 ? curPts / fullMaxPts * 100 : 0;
-          const label = lang === 'en' ? (DOMAIN_NAME_EN[d] ?? d) : d;
-          const hasPracticed = totalQ > 0;
-          return (
-            <div key={d} style={{ marginBottom: 10 }}>
-              <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', marginBottom: 4 }}>
-                <div style={{ display: 'flex', alignItems: 'baseline', gap: 5, minWidth: 0, flex: 1 }}>
-                  <span style={{ fontSize: 10, fontWeight: 700, color: 'var(--color-text-light)', flexShrink: 0 }}>D{i + 1}</span>
-                  <span style={{ fontSize: 11, color: 'var(--color-text-main)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{label}</span>
-                  {n > 0 && n < 10 && (
-                    <span style={{ fontSize: 9, color: 'var(--color-text-light)', flexShrink: 0 }}>({n}/10{ja ? '問' : 'q'})</span>
-                  )}
-                </div>
-                <div style={{ flexShrink: 0, marginLeft: 8 }}>
-                  <span style={{ fontSize: 13, fontWeight: 700, color: hasPracticed ? 'var(--color-primary)' : 'var(--color-text-light)' }}>
-                    {curPts}
-                  </span>
-                  <span style={{ fontSize: 11, color: 'var(--color-text-light)' }}> / {fullMaxPts}</span>
-                </div>
-              </div>
-              <div style={{ height: 5, background: 'var(--color-border)', borderRadius: 3, overflow: 'hidden' }}>
-                <div style={{ width: `${barPct}%`, height: '100%', borderRadius: 3, background: hasPracticed ? 'var(--bar-gradient-primary)' : 'transparent', animation: hasPracticed ? `growWidth 0.45s cubic-bezier(0.34, 1.56, 0.64, 1) ${i * 50}ms both` : 'none' }} />
-              </div>
-            </div>
-          );
-        })}
-        <div style={{ borderTop: '1px solid var(--color-border)', marginTop: 6, paddingTop: 8, display: 'flex', justifyContent: 'space-between', alignItems: 'baseline' }}>
-          <span style={{ fontSize: 11, fontWeight: 700, color: 'var(--color-text-sub)' }}>{ja ? '合計' : 'Total'}</span>
-          <div>
-            <span style={{ fontSize: 15, fontWeight: 800, color: 'var(--color-primary)' }}>{estimatedScore ?? 0}</span>
-            <span style={{ fontSize: 11, color: 'var(--color-text-light)' }}> / 1000</span>
-          </div>
-        </div>
-      </div>
-
-      <div style={{ fontSize: 11, fontWeight: 600, color: 'var(--color-text-sub)', marginBottom: 10 }}>
-        {ja ? 'スコア推移' : 'Score History'}
-      </div>
-      <ScoreLineChart data={history} passScore={passScore} lang={lang} />
-    </div>
-  );
+  const tabs = [
+    { key: 'score' as const, label: ja ? 'スコア内訳' : 'Breakdown' },
+    { key: 'history' as const, label: ja ? 'スコア推移' : 'History' },
+  ];
 
   return (
     <div
@@ -182,21 +120,43 @@ function CombinedDetailModal({ targetExam, domainAccList, estimatedScore, passSc
       onClick={e => { if (e.target === e.currentTarget) onClose(); }}
     >
       <div style={{ background: 'var(--color-bg-white)', borderRadius: 'var(--border-radius-lg)', padding: isMobile ? '16px' : '20px 28px', width: '100%', maxWidth: 540, maxHeight: isMobile ? '66vh' : '90vh', overflowY: 'auto', boxShadow: '0 8px 32px rgba(0,0,0,0.2)' }}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: showCalc ? 8 : (isMobile ? 12 : 16) }}>
+        {/* ヘッダー行 */}
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
             <span style={{ fontWeight: 700, fontSize: 'var(--font-size-base)', color: 'var(--color-text-main)' }}>
               {ja ? '成績詳細' : 'Performance Detail'}
             </span>
-            <button
-              onClick={() => setShowCalc(v => !v)}
-              style={{ width: 20, height: 20, borderRadius: '50%', border: `1.5px solid ${showCalc ? 'var(--color-primary)' : 'var(--color-border)'}`, background: showCalc ? 'var(--color-primary)' : 'transparent', color: showCalc ? '#fff' : 'var(--color-text-light)', fontSize: 11, fontWeight: 700, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, lineHeight: 1 }}
-              aria-label={ja ? '計算方法' : 'How calculated'}
-            >?</button>
+            {tab === 'score' && (
+              <button
+                onClick={() => setShowCalc(v => !v)}
+                style={{ width: 20, height: 20, borderRadius: '50%', border: `1.5px solid ${showCalc ? 'var(--color-primary)' : 'var(--color-border)'}`, background: showCalc ? 'var(--color-primary)' : 'transparent', color: showCalc ? '#fff' : 'var(--color-text-light)', fontSize: 11, fontWeight: 700, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, lineHeight: 1 }}
+                aria-label={ja ? '計算方法' : 'How calculated'}
+              >?</button>
+            )}
           </div>
           <button onClick={onClose} style={{ border: 'none', background: 'none', fontSize: 18, cursor: 'pointer', color: 'var(--color-text-sub)', padding: '0 4px', lineHeight: 1 }}>✕</button>
         </div>
-        {showCalc && (
-          <div style={{ background: 'var(--color-bg-main)', borderRadius: 8, padding: '10px 12px', marginBottom: isMobile ? 12 : 16, fontSize: 11, color: 'var(--color-text-sub)', lineHeight: 1.7 }}>
+
+        {/* タブ */}
+        <div style={{ display: 'flex', gap: 4, marginBottom: 16, borderBottom: '1px solid var(--color-border)', paddingBottom: 0 }}>
+          {tabs.map(t => (
+            <button
+              key={t.key}
+              onClick={() => { setTab(t.key); setShowCalc(false); }}
+              style={{
+                background: 'none', border: 'none', cursor: 'pointer',
+                padding: '6px 14px', fontSize: 13, fontWeight: tab === t.key ? 700 : 400,
+                color: tab === t.key ? 'var(--color-primary)' : 'var(--color-text-sub)',
+                borderBottom: `2px solid ${tab === t.key ? 'var(--color-primary)' : 'transparent'}`,
+                marginBottom: -1, transition: 'color 0.15s',
+              }}
+            >{t.label}</button>
+          ))}
+        </div>
+
+        {/* 計算方法 */}
+        {tab === 'score' && showCalc && (
+          <div style={{ background: 'var(--color-bg-main)', borderRadius: 8, padding: '10px 12px', marginBottom: 16, fontSize: 11, color: 'var(--color-text-sub)', lineHeight: 1.7 }}>
             <p style={{ margin: 0 }}>
               {ja
                 ? '直近10セッション分の回答を集計。各ドメインの上限10問分で算出（10問未満は正答率×(N/10)で計算）。未演習ドメインは0点扱い。スコア = Σ(正答率 × N/10 × 出題比率%) × 1000'
@@ -205,7 +165,64 @@ function CombinedDetailModal({ targetExam, domainAccList, estimatedScore, passSc
           </div>
         )}
 
-        {scoreSection}
+        {/* タブコンテンツ */}
+        {tab === 'score' ? (
+          <div>
+            <div style={{ marginBottom: 16 }}>
+              <span style={{ fontSize: 36, fontWeight: 800, color: 'var(--color-primary)', letterSpacing: '-1px' }}>{estimatedScore ?? '—'}</span>
+              <span style={{ fontSize: 13, color: 'var(--color-text-light)', marginLeft: 6 }}>/1000</span>
+              {passScore !== null && (
+                <span style={{ fontSize: 11, color: 'var(--color-text-light)', marginLeft: 10 }}>
+                  {ja ? `合格ライン: ${passScore}` : `Pass: ${passScore}`}
+                </span>
+              )}
+            </div>
+            <div style={{ background: 'var(--color-bg-main)', borderRadius: 8, padding: '10px 12px' }}>
+              <div style={{ fontSize: 11, fontWeight: 700, color: 'var(--color-text-sub)', marginBottom: 10, letterSpacing: '0.5px' }}>
+                {ja ? 'ドメイン別スコア内訳' : 'Score by Domain'}
+              </div>
+              {domains.map((d, i) => {
+                const { pct, total: totalQ, correct: correctTotal } = domainAccList[i] ?? { pct: null, total: 0, correct: 0 };
+                const n = Math.min(totalQ ?? 0, 10);
+                const correctN = totalQ > 0 && n > 0 ? Math.round((correctTotal ?? 0) / totalQ * n) : 0;
+                const fullMaxPts = Math.round(weights[i] / totalAllWeights * 1000);
+                const curPts = pct !== null && n > 0 ? Math.round(pct / 100 * fullMaxPts * n / 10) : 0;
+                const barPct = fullMaxPts > 0 ? curPts / fullMaxPts * 100 : 0;
+                const label = lang === 'en' ? (DOMAIN_NAME_EN[d] ?? d) : d;
+                const hasPracticed = totalQ > 0;
+                return (
+                  <div key={d} style={{ marginBottom: 10 }}>
+                    <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', marginBottom: 4 }}>
+                      <div style={{ display: 'flex', alignItems: 'baseline', gap: 5, minWidth: 0, flex: 1 }}>
+                        <span style={{ fontSize: 10, fontWeight: 700, color: 'var(--color-text-light)', flexShrink: 0 }}>D{i + 1}</span>
+                        <span style={{ fontSize: 11, color: 'var(--color-text-main)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', flex: 1, minWidth: 0 }}>{label}</span>
+                      </div>
+                      <div style={{ flexShrink: 0, marginLeft: 8, textAlign: 'right' }}>
+                        <span style={{ fontSize: 13, fontWeight: 700, color: hasPracticed ? 'var(--color-primary)' : 'var(--color-text-light)' }}>{curPts}</span>
+                        <span style={{ fontSize: 11, color: 'var(--color-text-light)' }}> / {fullMaxPts}</span>
+                        {n > 0 && (
+                          <div style={{ fontSize: 9, color: 'var(--color-text-light)', lineHeight: 1.4 }}>{correctN}/{n}{ja ? '問' : 'q'}</div>
+                        )}
+                      </div>
+                    </div>
+                    <div style={{ height: 5, background: 'var(--color-border)', borderRadius: 3, overflow: 'hidden' }}>
+                      <div style={{ width: `${barPct}%`, height: '100%', borderRadius: 3, background: hasPracticed ? 'var(--bar-gradient-primary)' : 'transparent', animation: hasPracticed ? `growWidth 0.45s cubic-bezier(0.34, 1.56, 0.64, 1) ${i * 50}ms both` : 'none' }} />
+                    </div>
+                  </div>
+                );
+              })}
+              <div style={{ borderTop: '1px solid var(--color-border)', marginTop: 6, paddingTop: 8, display: 'flex', justifyContent: 'space-between', alignItems: 'baseline' }}>
+                <span style={{ fontSize: 11, fontWeight: 700, color: 'var(--color-text-sub)' }}>{ja ? '合計' : 'Total'}</span>
+                <div>
+                  <span style={{ fontSize: 15, fontWeight: 800, color: 'var(--color-primary)' }}>{estimatedScore ?? 0}</span>
+                  <span style={{ fontSize: 11, color: 'var(--color-text-light)' }}> / 1000</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        ) : (
+          <ScoreLineChart data={history} passScore={passScore} lang={lang} />
+        )}
       </div>
     </div>
   );
