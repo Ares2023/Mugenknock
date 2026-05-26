@@ -918,10 +918,10 @@ export default function ExerciseSession() {
             padding="var(--spacing-md) var(--spacing-lg)"
             style={{ borderLeft: '4px solid var(--color-accent)' }}
           >
-            <span style={{ color: 'var(--color-accent)', display: 'block', marginBottom: 'var(--spacing-sm)' }}><IconBookOpen size={22} /></span>
-            <p style={{ fontWeight: 700, color: 'var(--color-text-main)', margin: '0 0 var(--spacing-sm)', fontSize: 'var(--font-size-base)' }}>
-              {currentTip.title}
-            </p>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--spacing-sm)', marginBottom: 'var(--spacing-sm)' }}>
+              <span style={{ color: 'var(--color-accent)', display: 'flex', alignItems: 'center', flexShrink: 0 }}><IconBookOpen size={22} /></span>
+              <p style={{ fontWeight: 700, color: 'var(--color-text-main)', margin: 0, fontSize: 'var(--font-size-base)' }}>{currentTip.title}</p>
+            </div>
             <p style={{ color: 'var(--color-text-sub)', margin: 0, fontSize: 'var(--font-size-sm)', lineHeight: 1.8 }}>
               {currentTip.content}
             </p>
