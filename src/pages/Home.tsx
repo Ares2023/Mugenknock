@@ -1310,7 +1310,7 @@ export default function Home() {
             </svg>
           </button>
         )}
-        <div style={isMobile ? {} : { display: 'flex', gap: 0 }}>
+        <div style={isMobile ? { display: 'flex', flexDirection: 'column-reverse' } : { display: 'flex', gap: 0 }}>
 
           {/* ドメイン別正答率 */}
           <div style={isMobile ? {} : { flex: 1, minWidth: 0, paddingRight: 16 }}>
