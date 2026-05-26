@@ -69,6 +69,7 @@ export default function Practice() {
   const [aiVerifiedOnly, setAiVerifiedOnly] = useState<boolean>(() => initPrefs(localStorage.getItem(`targetExam_${uid}`) || 'SAA').aiVerifiedOnly ?? false);
   const [availableCount, setAvailableCount] = useState<number | null>(null);
   const [exerciseLoading, setExerciseLoading] = useState(false);
+  const [exerciseLoadPct, setExerciseLoadPct] = useState(0);
   type DomainStat = { tagId: string; correctCount: number; incorrectCount: number };
   const [domainStats, setDomainStats] = useState<DomainStat[]>([]);
 
@@ -160,6 +161,7 @@ export default function Practice() {
   const startExercise = async () => {
     if (selectedDomains.length === 0) { alert(ja ? '出題ドメインを最低1つ選択してください' : 'Please select at least one domain'); return; }
     setExerciseLoading(true);
+    setExerciseLoadPct(10);
     try {
       const userId = user?.userId ?? 'guest';
       const allSelected = EXAM_DOMAINS[examType].every(d => selectedDomains.includes(d));
@@ -173,6 +175,7 @@ export default function Practice() {
           user && unansweredOnly ? fetch(`${API_ENDPOINT}/users/me/answered-questions?userId=${userId}&examType=${examType}`).then(r => r.json()) : Promise.resolve(null),
           user && incorrectOnly ? fetch(`${API_ENDPOINT}/users/me/incorrect-questions?userId=${userId}&examType=${examType}`).then(r => r.json()) : Promise.resolve(null),
         ]);
+        setExerciseLoadPct(65);
         let filtered: any[] = qRes.items ?? [];
         if (bookmarkOnly && bkmRes) { const ids = new Set(bkmRes.questionIds ?? []); filtered = filtered.filter((q: any) => ids.has(q.questionId)); }
         if (unansweredOnly && answeredRes) { const ids = new Set(answeredRes.questionIds ?? []); filtered = filtered.filter((q: any) => !ids.has(q.questionId)); }
@@ -183,11 +186,13 @@ export default function Practice() {
         const params = new URLSearchParams({ examType, withAnswers: 'true' });
         if (!allSelected) params.set('domain', selectedDomains.join(','));
         const data = await fetch(`${API_ENDPOINT}/questions?${params}`).then(r => r.json());
+        setExerciseLoadPct(65);
         let allItems: any[] = data.items ?? [];
         if (aiVerifiedOnly) allItems = allItems.filter((q: any) => !!q.validityCheckedAt);
         selectedItems = shuffleArray(allItems).slice(0, limit);
       }
       if (selectedItems.length === 0) { alert(t('exerciseSetup.noQuestions')); setExerciseLoading(false); return; }
+      setExerciseLoadPct(90);
       const sessionRes = await fetch(`${API_ENDPOINT}/sessions`, {
         method: 'POST', headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ userId, mode: 'exercise', examType, questionIds: selectedItems.map((q: any) => q.questionId) }),
@@ -197,7 +202,7 @@ export default function Practice() {
     } catch (err) {
       console.error(err);
       alert(t('exerciseSetup.startFailed'));
-    } finally { setExerciseLoading(false); }
+    } finally { setExerciseLoading(false); setExerciseLoadPct(0); }
   };
 
   const resumeExercise = () => {
@@ -214,6 +219,7 @@ export default function Practice() {
 
   // ── 模試 state ──
   const [examLoading, setExamLoading] = useState(false);
+  const [examLoadPct, setExamLoadPct] = useState(0);
   const [examMode, setExamMode] = useState<'full' | 'mini'>('full');
   const examCfg = targetExam ? EXAM_CONFIGS[targetExam] : null;
   const examQuestions = examCfg ? (examMode === 'mini' ? Math.ceil(examCfg.totalQuestions / 5) : examCfg.totalQuestions) : 0;
@@ -241,18 +247,22 @@ export default function Practice() {
   const startExam = async () => {
     if (!targetExam || !examCfg) return;
     setExamLoading(true);
+    setExamLoadPct(10);
     try {
       const userId = user?.userId ?? 'guest';
       const params = new URLSearchParams({ examType: targetExam, withAnswers: 'true', withValidity: 'true' });
       const data = await fetch(`${API_ENDPOINT}/questions?${params}`).then(r => r.json());
+      setExamLoadPct(50);
       let items: any[] = (data.items ?? []).filter((q: any) => !!q.validityCheckedAt);
       if (user) {
         const res = await fetch(`${API_ENDPOINT}/users/me/answered-questions?userId=${userId}&examType=${targetExam}`).then(r => r.json());
+        setExamLoadPct(75);
         const answered = new Set(res.questionIds ?? []);
         items = items.filter((q: any) => !answered.has(q.questionId));
       }
       items = shuffleArray(items).slice(0, examQuestions);
       if (items.length === 0) { alert(ja ? '条件に合う問題がありません（AI確認済み・未回答問題が0件）' : 'No questions match'); setExamLoading(false); return; }
+      setExamLoadPct(90);
       const sessionRes = await fetch(`${API_ENDPOINT}/sessions`, {
         method: 'POST', headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ userId, mode: 'exam', examType: targetExam, questionIds: items.map((q: any) => q.questionId) }),
@@ -262,7 +272,7 @@ export default function Practice() {
     } catch (err) {
       console.error(err);
       alert(ja ? '模試の開始に失敗しました' : 'Failed to start exam');
-    } finally { setExamLoading(false); }
+    } finally { setExamLoading(false); setExamLoadPct(0); }
   };
 
   const tabBtn = (active: boolean): React.CSSProperties => ({
@@ -444,7 +454,7 @@ export default function Practice() {
                     {exerciseLoading ? (
                       <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}>
                         <span style={{ width: 13, height: 13, border: '2px solid rgba(0,0,0,0.2)', borderTopColor: '#16191f', borderRadius: '50%', animation: 'sherpa-spin 0.7s linear infinite', flexShrink: 0 }} />
-                        {t('exerciseSetup.starting')}
+                        {ja ? `準備中... ${exerciseLoadPct}%` : `Loading... ${exerciseLoadPct}%`}
                       </span>
                     ) : (ja ? '試験を再開' : 'Resume')}
                   </button>
@@ -485,7 +495,7 @@ export default function Practice() {
                     {exerciseLoading ? (
                       <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}>
                         <span style={{ width: 13, height: 13, border: '2px solid rgba(0,0,0,0.2)', borderTopColor: '#16191f', borderRadius: '50%', animation: 'sherpa-spin 0.7s linear infinite', flexShrink: 0 }} />
-                        {t('exerciseSetup.starting')}
+                        {ja ? `準備中... ${exerciseLoadPct}%` : `Loading... ${exerciseLoadPct}%`}
                       </span>
                     ) : (ja ? '試験を再開' : 'Resume')}
                   </button>
@@ -550,7 +560,7 @@ export default function Practice() {
                     {examLoading ? (
                       <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}>
                         <span style={{ width: 12, height: 12, border: '2px solid rgba(0,0,0,0.2)', borderTopColor: '#16191f', borderRadius: '50%', animation: 'sherpa-spin 0.7s linear infinite' }} />
-                        {ja ? '準備中...' : 'Preparing...'}
+                        {ja ? `準備中... ${examLoadPct}%` : `Preparing... ${examLoadPct}%`}
                       </span>
                     ) : (ja ? '試験を再開' : 'Resume')}
                   </button>
@@ -571,7 +581,7 @@ export default function Practice() {
                   {examLoading ? (
                     <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}>
                       <span style={{ width: 12, height: 12, border: '2px solid rgba(0,0,0,0.2)', borderTopColor: '#16191f', borderRadius: '50%', animation: 'sherpa-spin 0.7s linear infinite' }} />
-                      {ja ? '準備中...' : 'Preparing...'}
+                      {ja ? `準備中... ${examLoadPct}%` : `Preparing... ${examLoadPct}%`}
                     </span>
                   ) : (ja ? `試験を開始${examMode === 'mini' ? '（ミニ）' : ''}` : `Start${examMode === 'mini' ? ' Mini' : ''} Exam`)}
                 </button>
@@ -591,7 +601,7 @@ export default function Practice() {
                     {examLoading ? (
                       <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}>
                         <span style={{ width: 12, height: 12, border: '2px solid rgba(0,0,0,0.2)', borderTopColor: '#16191f', borderRadius: '50%', animation: 'sherpa-spin 0.7s linear infinite' }} />
-                        {ja ? '準備中...' : 'Preparing...'}
+                        {ja ? `準備中... ${examLoadPct}%` : `Preparing... ${examLoadPct}%`}
                       </span>
                     ) : (ja ? '試験を再開' : 'Resume')}
                   </button>
@@ -612,7 +622,7 @@ export default function Practice() {
                   {examLoading ? (
                     <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}>
                       <span style={{ width: 12, height: 12, border: '2px solid rgba(0,0,0,0.2)', borderTopColor: '#16191f', borderRadius: '50%', animation: 'sherpa-spin 0.7s linear infinite' }} />
-                      {ja ? '準備中...' : 'Preparing...'}
+                      {ja ? `準備中... ${examLoadPct}%` : `Preparing... ${examLoadPct}%`}
                     </span>
                   ) : (ja ? '試験を開始' : 'Start Mock Exam')}
                 </button>

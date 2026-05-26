@@ -900,6 +900,7 @@ export default function Home() {
   const [statsRefreshing, setStatsRefreshing] = useState(false);
   const [lastUpdated, setLastUpdated] = useState<Date | null>(null);
   const [quickLoading, setQuickLoading] = useState(false);
+  const [quickLoadPct, setQuickLoadPct] = useState(0);
 
   const readQuickDraft = () => {
     try { return JSON.parse(localStorage.getItem(`quickExerciseDraft_${uid}`) ?? 'null'); } catch { return null; }
@@ -914,6 +915,7 @@ export default function Home() {
   const [showWebQuickMenu, setShowWebQuickMenu] = useState(false);
   const [showFocusedMenu, setShowFocusedMenu] = useState(false);
   const [focusedLoading, setFocusedLoading] = useState(false);
+  const [focusedLoadPct, setFocusedLoadPct] = useState(0);
   const [lastMode, setLastMode] = useState<'quick' | 'focused'>(() => (localStorage.getItem(`lastQuickMode_${uid}`) as 'quick' | 'focused') ?? 'quick');
   const [answeredCount, setAnsweredCount] = useState(0);
   const [answeredCountReady, setAnsweredCountReady] = useState(false);
@@ -1182,11 +1184,13 @@ export default function Home() {
     setLastMode('quick');
     localStorage.setItem(`lastQuickMode_${uid}`, 'quick');
     setQuickLoading(true);
+    setQuickLoadPct(10);
     const qPrefs = loadQuickPrefs(uid);
     try {
       const userId = user?.userId ?? 'guest';
       const params = new URLSearchParams({ examType: targetExam, withAnswers: 'true', withValidity: 'true' });
       const data = await fetch(`${API_ENDPOINT}/questions?${params}`).then(r => r.json());
+      setQuickLoadPct(60);
       const pool: any[] = (data.items ?? []).filter((q: any) => !!q.validityCheckedAt);
       let items = [...pool];
       if (user && (qPrefs.unansweredOnly || qPrefs.incorrectOnly || qPrefs.bookmarkOnly)) {
@@ -1195,6 +1199,7 @@ export default function Home() {
           qPrefs.incorrectOnly  ? fetch(`${API_ENDPOINT}/users/me/incorrect-questions?userId=${userId}&examType=${targetExam}`).then(r => r.json()) : null,
           qPrefs.bookmarkOnly   ? fetch(`${API_ENDPOINT}/users/me/bookmarks?userId=${userId}`).then(r => r.json()) : null,
         ]);
+        setQuickLoadPct(80);
         if (qPrefs.unansweredOnly && answeredRes) { const s = new Set(answeredRes.questionIds ?? []); items = items.filter((q: any) => !s.has(q.questionId)); }
         if (qPrefs.incorrectOnly  && incorrectRes) { const s = new Set(incorrectRes.questionIds ?? []); items = items.filter((q: any) => s.has(q.questionId)); }
         if (qPrefs.bookmarkOnly   && bkmRes)       { const s = new Set(bkmRes.questionIds ?? []);      items = items.filter((q: any) => s.has(q.questionId)); }
@@ -1214,11 +1219,12 @@ export default function Home() {
       items = Array.from(new Map(items.map((q: any) => [q.questionId, q])).values()).slice(0, count);
       if (items.length === 0) { alert(ja ? '条件に合う問題がありません' : 'No questions match the criteria'); return; }
       if (usedFallback) alert(ja ? 'フィルタ条件に合う問題が不足したため、条件外の問題も含めて出題します。' : 'Not enough questions matched your filters. Including additional questions.');
+      setQuickLoadPct(90);
       const sessionRes = await fetch(`${API_ENDPOINT}/sessions`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ userId, mode: 'exercise', examType: targetExam, questionIds: items.map((q: any) => q.questionId) }) });
       const sessionData = await sessionRes.json();
       navigate('/aws/exercise/session', { state: { sessionId: sessionData.sessionId, questions: items, userId, mode: 'exercise', examType: targetExam, isQuick: true } });
     } catch (err) { console.error(err); alert(ja ? '演習の開始に失敗しました' : 'Failed to start exercise'); }
-    finally { setQuickLoading(false); }
+    finally { setQuickLoading(false); setQuickLoadPct(0); }
   };
 
   // しっかり対策
@@ -1230,6 +1236,7 @@ export default function Home() {
     setLastMode('focused');
     localStorage.setItem(`lastQuickMode_${uid}`, 'focused');
     setFocusedLoading(true);
+    setFocusedLoadPct(10);
     const fPrefs = loadFocusedPrefs(uid);
     try {
       const userId = user.userId;
@@ -1238,6 +1245,7 @@ export default function Home() {
         fetch(`${API_ENDPOINT}/questions?${params}`).then(r => r.json()),
         fetch(`${API_ENDPOINT}/users/me/incorrect-questions?userId=${userId}&examType=${targetExam}`).then(r => r.json()),
       ]);
+      setFocusedLoadPct(65);
       const allItems: any[] = (data.items ?? []).filter((q: any) => !!q.validityCheckedAt);
       const incorrectIds = new Set<string>(incorrectRes.questionIds ?? []);
       const focusIncorrect: boolean = fPrefs.focusIncorrect !== false;
@@ -1278,11 +1286,12 @@ export default function Home() {
       items = Array.from(new Map(items.map((q: any) => [q.questionId, q])).values()).slice(0, count);
       if (items.length === 0) { alert(ja ? '条件に合う問題がありません' : 'No questions match the criteria'); return; }
       if (usedFallback) alert(ja ? '苦手・不正解問題が不足したため、条件外の問題も含めて出題します。' : 'Not enough weak/incorrect questions. Including additional questions.');
+      setFocusedLoadPct(90);
       const sessionRes = await fetch(`${API_ENDPOINT}/sessions`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ userId, mode: 'exercise', examType: targetExam, questionIds: items.map((q: any) => q.questionId), isFocused: true }) });
       const sessionData = await sessionRes.json();
       navigate('/aws/exercise/session', { state: { sessionId: sessionData.sessionId, questions: items, userId, mode: 'exercise', examType: targetExam, isQuick: true, isFocused: true } });
     } catch (err) { console.error(err); alert(ja ? '演習の開始に失敗しました' : 'Failed to start exercise'); }
-    finally { setFocusedLoading(false); }
+    finally { setFocusedLoading(false); setFocusedLoadPct(0); }
   };
 
   // ドメイン別成績（サーバー優先、ドメインが欠損している場合はローカル履歴で補完）
@@ -1319,6 +1328,7 @@ export default function Home() {
   const hasPrimaryDraft = primaryMode === 'focused' ? hasFocusedDraft : hasQuickDraft;
   const resumePrimary = primaryMode === 'focused' ? resumeFocusedExercise : resumeQuickExercise;
   const primaryLoading = primaryMode === 'focused' ? focusedLoading : quickLoading;
+  const primaryLoadPct = primaryMode === 'focused' ? focusedLoadPct : quickLoadPct;
   const primaryBg = primaryMode === 'focused' ? '#009E9E' : 'var(--color-accent)';
   const primaryColor = primaryMode === 'focused' ? '#fff' : 'var(--color-btn-primary-text)';
   const primarySpinnerBorder = primaryMode === 'focused' ? '2px solid rgba(255,255,255,0.3)' : '2px solid rgba(0,0,0,0.2)';
@@ -1563,7 +1573,7 @@ export default function Home() {
                     {primaryLoading ? (
                       <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}>
                         <span style={{ width: 14, height: 14, border: primarySpinnerBorder, borderTopColor: primarySpinnerTop, borderRadius: '50%', animation: 'sherpa-spin 0.7s linear infinite', flexShrink: 0 }} />
-                        {ja ? '準備中...' : 'Loading...'}
+                        {ja ? `準備中... ${primaryLoadPct}%` : `Loading... ${primaryLoadPct}%`}
                       </span>
                     ) : primaryMode === 'quick' ? (ja ? 'サクッと演習（続きから）' : 'Quick (Resume)') : (ja ? 'しっかり対策（続きから）' : 'Focused (Resume)')}
                   </button>
@@ -1621,7 +1631,7 @@ export default function Home() {
                       {quickLoading ? (
                         <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}>
                           <span style={{ width: 14, height: 14, border: '2px solid rgba(0,0,0,0.2)', borderTopColor: '#16191f', borderRadius: '50%', animation: 'sherpa-spin 0.7s linear infinite', flexShrink: 0 }} />
-                          {ja ? '準備中...' : 'Loading...'}
+                          {ja ? `準備中... ${quickLoadPct}%` : `Loading... ${quickLoadPct}%`}
                         </span>
                       ) : (ja ? `サクッと演習 (${loadQuickPrefs(uid).questionCount ?? 5}問)` : `Quick (${loadQuickPrefs(uid).questionCount ?? 5}Q)`)}
                     </button>
@@ -1634,7 +1644,7 @@ export default function Home() {
                       {focusedLoading ? (
                         <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}>
                           <span style={{ width: 14, height: 14, border: '2px solid rgba(255,255,255,0.3)', borderTopColor: '#fff', borderRadius: '50%', animation: 'sherpa-spin 0.7s linear infinite', flexShrink: 0 }} />
-                          {ja ? '準備中...' : 'Loading...'}
+                          {ja ? `準備中... ${focusedLoadPct}%` : `Loading... ${focusedLoadPct}%`}
                         </span>
                       ) : (ja ? 'しっかり対策' : 'Focused Practice')}
                     </button>
@@ -1753,7 +1763,7 @@ export default function Home() {
                   {primaryLoading ? (
                     <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}>
                       <span style={{ width: 14, height: 14, border: primarySpinnerBorder, borderTopColor: primarySpinnerTop, borderRadius: '50%', animation: 'sherpa-spin 0.7s linear infinite', flexShrink: 0 }} />
-                      {ja ? '準備中...' : 'Loading...'}
+                      {ja ? `準備中... ${primaryLoadPct}%` : `Loading... ${primaryLoadPct}%`}
                     </span>
                   ) : primaryMode === 'quick' ? (ja ? 'サクッと演習（続きから）' : 'Quick (Resume)') : (ja ? 'しっかり対策（続きから）' : 'Focused (Resume)')}
                 </button>
@@ -1777,7 +1787,7 @@ export default function Home() {
                     {quickLoading ? (
                       <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}>
                         <span style={{ width: 14, height: 14, border: '2px solid rgba(0,0,0,0.2)', borderTopColor: '#16191f', borderRadius: '50%', animation: 'sherpa-spin 0.7s linear infinite', flexShrink: 0 }} />
-                        {ja ? '準備中...' : 'Loading...'}
+                        {ja ? `準備中... ${quickLoadPct}%` : `Loading... ${quickLoadPct}%`}
                       </span>
                     ) : (ja ? 'サクッと演習' : 'Quick')}
                   </button>
@@ -1790,7 +1800,7 @@ export default function Home() {
                     {focusedLoading ? (
                       <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}>
                         <span style={{ width: 14, height: 14, border: '2px solid rgba(255,255,255,0.3)', borderTopColor: '#fff', borderRadius: '50%', animation: 'sherpa-spin 0.7s linear infinite', flexShrink: 0 }} />
-                        {ja ? '準備中...' : 'Loading...'}
+                        {ja ? `準備中... ${focusedLoadPct}%` : `Loading... ${focusedLoadPct}%`}
                       </span>
                     ) : (ja ? 'しっかり対策' : 'Focused')}
                   </button>
