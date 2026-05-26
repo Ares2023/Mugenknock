@@ -228,7 +228,7 @@ export default function Result() {
                       lineHeight: 1.6
                     }}>
                       <strong style={{ fontSize: 'var(--font-size-sm)', color: 'var(--color-primary)' }}>{t('result.explanation')}</strong>
-                      <div style={{ marginTop: 8, fontSize: 'var(--font-size-sm)' }}>{lang === 'en' && q.explanationEn ? q.explanationEn : q.explanation}</div>
+                      <div style={{ marginTop: 8, fontSize: 'var(--font-size-sm)', overflowWrap: 'break-word', wordBreak: 'break-word' }}>{lang === 'en' && q.explanationEn ? q.explanationEn : q.explanation}</div>
                       {(() => {
                         const links = getServiceLinks(q.tags ?? []);
                         if (links.length === 0) return null;

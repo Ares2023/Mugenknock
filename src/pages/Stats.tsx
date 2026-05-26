@@ -726,7 +726,7 @@ export default function Stats() {
                                             )}
                                             {/* 解説 */}
                                             {detail.explanation && (
-                                              <p style={{ margin: '0 0 8px', fontSize: 'var(--font-size-xs)', color: 'var(--color-text-sub)', lineHeight: 1.6, borderTop: '1px solid var(--color-border)', paddingTop: 8 }}>
+                                              <p style={{ margin: '0 0 8px', fontSize: 'var(--font-size-xs)', color: 'var(--color-text-sub)', lineHeight: 1.6, borderTop: '1px solid var(--color-border)', paddingTop: 8, overflowWrap: 'break-word', wordBreak: 'break-word' }}>
                                                 {detail.explanation}
                                               </p>
                                             )}

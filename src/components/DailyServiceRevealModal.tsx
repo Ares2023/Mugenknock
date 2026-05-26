@@ -297,7 +297,7 @@ export default function DailyServiceRevealModal({
               <div style={{
                 fontSize: 13, color: 'rgba(255,255,255,.75)',
                 lineHeight: 1.7, marginBottom: service.trivia ? 12 : 22,
-                textAlign: 'left',
+                textAlign: 'left', overflowWrap: 'break-word', wordBreak: 'break-word',
               }}>
                 {service.description}
               </div>
@@ -314,7 +314,7 @@ export default function DailyServiceRevealModal({
                   <div style={{ fontSize: 11, fontWeight: 700, color: 'white', marginBottom: 4, letterSpacing: '.06em' }}>
                     💡 {ja ? '豆知識' : 'Trivia'}
                   </div>
-                  <div style={{ fontSize: 12, color: 'rgba(255,255,255,.7)', lineHeight: 1.7 }}>
+                  <div style={{ fontSize: 12, color: 'rgba(255,255,255,.7)', lineHeight: 1.7, overflowWrap: 'break-word', wordBreak: 'break-word' }}>
                     {service.trivia}
                   </div>
                 </div>

@@ -303,7 +303,7 @@ export default function ServiceEncyclopedia() {
               </div>
             </div>
 
-            <p style={{ margin: '0 0 10px', fontSize: 'var(--font-size-sm)', color: 'var(--color-text-sub)', lineHeight: 1.7 }}>
+            <p style={{ margin: '0 0 10px', fontSize: 'var(--font-size-sm)', color: 'var(--color-text-sub)', lineHeight: 1.7, overflowWrap: 'break-word', wordBreak: 'break-word' }}>
               {selected.description}
             </p>
 
@@ -312,7 +312,7 @@ export default function ServiceEncyclopedia() {
                 <span style={{ color: 'var(--color-text-sub)', display: 'flex', alignItems: 'center', flexShrink: 0 }}>
                   <IconLightbulb size={14} />
                 </span>
-                <span style={{ fontSize: 'var(--font-size-sm)', color: 'var(--color-text-sub)', lineHeight: 1.6 }}>
+                <span style={{ fontSize: 'var(--font-size-sm)', color: 'var(--color-text-sub)', lineHeight: 1.6, overflowWrap: 'break-word', wordBreak: 'break-word' }}>
                   {selected.trivia}
                 </span>
               </div>
