@@ -294,6 +294,7 @@ export default function ExerciseSession() {
   const [answerCountError, setAnswerCountError] = useState<string | null>(null);
   const [finishing, setFinishing] = useState(false);
   const [judgmentAnim, setJudgmentAnim] = useState<'correct' | 'incorrect' | null>(null);
+  const [showAbortConfirm, setShowAbortConfirm] = useState(false);
 
   // ドラフト保存
   useEffect(() => {
@@ -443,6 +444,49 @@ export default function ExerciseSession() {
     }
   };
 
+  const handleAbortAndGrade = async () => {
+    if (results.length === 0) return;
+    setShowAbortConfirm(false);
+    setFinishing(true);
+    const correctCount = results.filter(r => r.isCorrect).length;
+    const score = Math.round((correctCount / results.length) * 100);
+    const basePassRate = PASS_RATE[examType] ?? PASS_RATE['SAA'];
+    const passRate = isMini ? Math.ceil(basePassRate / 5) : basePassRate;
+    const isPassed = score >= passRate;
+    try {
+      await fetch(`${API_ENDPOINT}/sessions/${sessionId}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ userId, status: 'completed', score, isPassed }),
+      });
+    } catch (err) { console.error(err); }
+    localStorage.removeItem(`quickExerciseDraft_${userId}`);
+    localStorage.removeItem(`focusedExerciseDraft_${userId}`);
+    localStorage.removeItem(`practiceExerciseDraft_${userId}`);
+    const delta: Record<string, { c: number; i: number }> = {};
+    for (const r of results) {
+      const q = questions.find((q: Question) => q.questionId === r.questionId);
+      for (const tag of (q?.tags ?? [])) {
+        if (!delta[tag]) delta[tag] = { c: 0, i: 0 };
+        if (r.isCorrect) delta[tag].c++; else delta[tag].i++;
+      }
+    }
+    try {
+      const dh: Record<string, { correct: number; total: number }[]> =
+        JSON.parse(localStorage.getItem(`domain_history_${examType}_${userId}`) ?? '{}');
+      for (const [tag, d] of Object.entries(delta)) {
+        if (d.c + d.i === 0) continue;
+        if (!dh[tag]) dh[tag] = [];
+        dh[tag] = [...dh[tag], { correct: d.c, total: d.c + d.i }].slice(-10);
+      }
+      localStorage.setItem(`domain_history_${examType}_${userId}`, JSON.stringify(dh));
+    } catch {}
+    deleteCached(`ustats_${userId}`);
+    localStorage.setItem(`postSessionRefresh_${userId}`, String(Date.now()));
+    const answeredQuestions = questions.slice(0, results.length);
+    navigate('/aws/result', { state: { results, questions: answeredQuestions, score, isPassed, sessionId, userId, examType, isQuick, isMini, aborted: true } });
+  };
+
   const getChoiceStyle = (choice: string): React.CSSProperties => {
     const base: React.CSSProperties = {
       padding: 'var(--spacing-md) var(--spacing-lg)',
@@ -496,6 +540,33 @@ export default function ExerciseSession() {
     }
     return { ...base, borderColor: 'var(--color-border)', background: 'var(--color-bg-main)', color: 'var(--color-text-sub)' };
   };
+
+  if (showAbortConfirm) {
+    return createPortal(
+      <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.6)', zIndex: 1000,
+        display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16 }}>
+        <div style={{ background: 'var(--color-bg-white)', borderRadius: 'var(--border-radius-lg)', padding: '28px 24px', width: '100%', maxWidth: 400, boxShadow: '0 8px 32px rgba(0,0,0,0.2)' }}>
+          <div style={{ fontWeight: 700, fontSize: 'var(--font-size-md)', marginBottom: 12, color: 'var(--color-text-main)' }}>
+            {lang === 'ja' ? '中断して採点' : 'Interrupt & Grade'}
+          </div>
+          <div style={{ fontSize: 'var(--font-size-base)', color: 'var(--color-text-sub)', marginBottom: 24, lineHeight: 1.7 }}>
+            {lang === 'ja'
+              ? <>{results.length}問の回答を採点します。<br />未回答の{questions.length - results.length}問は集計されません。</>
+              : <>{results.length} answered question{results.length !== 1 ? 's' : ''} will be graded.<br />The remaining {questions.length - results.length} will not be counted.</>}
+          </div>
+          <div style={{ display: 'flex', gap: 12, justifyContent: 'flex-end' }}>
+            <Button variant="outline" onClick={() => setShowAbortConfirm(false)}>
+              {lang === 'ja' ? 'キャンセル' : 'Cancel'}
+            </Button>
+            <Button variant="primary" onClick={handleAbortAndGrade}>
+              {lang === 'ja' ? '採点する' : 'Grade Now'}
+            </Button>
+          </div>
+        </div>
+      </div>,
+      document.body
+    );
+  }
 
   if (finishing) {
     return (
@@ -559,6 +630,18 @@ export default function ExerciseSession() {
                 </span>
               </button>
             )}
+            <button
+              onClick={() => results.length > 0 && setShowAbortConfirm(true)}
+              disabled={results.length === 0}
+              style={{
+                background: 'none', border: '1px solid var(--color-border)', borderRadius: 'var(--border-radius-full)',
+                padding: '3px 10px', fontSize: 11, fontWeight: 600, cursor: results.length === 0 ? 'default' : 'pointer',
+                color: results.length === 0 ? 'var(--color-text-light)' : 'var(--color-text-sub)',
+                opacity: results.length === 0 ? 0.45 : 1, whiteSpace: 'nowrap', transition: 'all 0.15s',
+              }}
+            >
+              {lang === 'ja' ? '中断して採点' : 'Grade & End'}
+            </button>
             <Badge variant="secondary">{currentQuestion.examType}</Badge>
             {(() => {
               const domainTag = currentQuestion.tags.find(tag => EXAM_DOMAINS[examType]?.includes(tag));

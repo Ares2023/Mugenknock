@@ -172,6 +172,73 @@ export default function ExamSession() {
     setCurrentIndex(i => Math.min(questions.length - 1, i + 1));
   };
 
+  const handleAbortAndGrade = async () => {
+    if (finishedRef.current) return;
+    const answeredQs = questions.filter((q: Question) => !!answers[q.questionId]);
+    if (answeredQs.length === 0) return;
+    finishedRef.current = true;
+    setShowAbortConfirm(false);
+    setSubmitting(true);
+    setPaused(false);
+    localStorage.removeItem(`examDraft_${userId}`);
+    try {
+      const abortResults = answeredQs.map((q: Question) => {
+        const userAns = answers[q.questionId] ?? [];
+        const correctIdx = q.correctAnswerIndices;
+        const correct = q.correctAnswers ?? [];
+        const isCorrect = correctIdx && correctIdx.length > 0
+          ? (() => {
+              const userOrigIdx = userAns.map((t: string) => q.choices.indexOf(t));
+              return correctIdx.length === userOrigIdx.length && correctIdx.every((i: number) => userOrigIdx.includes(i));
+            })()
+          : correct.length === userAns.length && correct.every((a: string) => userAns.map(stripLabel).includes(stripLabel(a)));
+        return { questionId: q.questionId, isCorrect, userAns, tags: q.tags ?? [] };
+      });
+      await Promise.all(abortResults.map(r =>
+        fetch(`${API_ENDPOINT}/sessions/${sessionId}/answers`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ userId, questionId: r.questionId, selectedAnswers: r.userAns, isCorrect: r.isCorrect, tags: r.tags }),
+        }).catch(() => {})
+      ));
+      const correctCount = abortResults.filter(r => r.isCorrect).length;
+      const score = Math.round((correctCount / abortResults.length) * 100);
+      const isPassed = score >= PASS_RATE[examType];
+      await fetch(`${API_ENDPOINT}/sessions/${sessionId}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ userId, status: 'completed', score, isPassed }),
+      });
+      const delta: Record<string, { c: number; i: number }> = {};
+      for (const r of abortResults) {
+        for (const tag of (r.tags ?? [])) {
+          if (!delta[tag]) delta[tag] = { c: 0, i: 0 };
+          if (r.isCorrect) delta[tag].c++; else delta[tag].i++;
+        }
+      }
+      try {
+        const dh: Record<string, { correct: number; total: number }[]> =
+          JSON.parse(localStorage.getItem(`domain_history_${examType}_${userId}`) ?? '{}');
+        for (const [tag, d] of Object.entries(delta)) {
+          if (d.c + d.i === 0) continue;
+          if (!dh[tag]) dh[tag] = [];
+          dh[tag] = [...dh[tag], { correct: d.c, total: d.c + d.i }].slice(-10);
+        }
+        localStorage.setItem(`domain_history_${examType}_${userId}`, JSON.stringify(dh));
+      } catch {}
+      deleteCached(`ustats_${userId}`);
+      localStorage.setItem(`postSessionRefresh_${userId}`, String(Date.now()));
+      navigate('/aws/result', {
+        state: { results: abortResults.map(r => ({ questionId: r.questionId, isCorrect: r.isCorrect })), questions: answeredQs, score, isPassed, sessionId, userId, examType, mode: 'exam', aborted: true },
+      });
+    } catch (err) {
+      console.error(err);
+      alert(t('examSession.submitFailed'));
+      finishedRef.current = false;
+      setSubmitting(false);
+    }
+  };
+
   const handleSaveAndExit = () => {
     try {
       localStorage.setItem(`examDraft_${userId}`, JSON.stringify({
@@ -256,6 +323,7 @@ export default function ExamSession() {
 
   const [reportOpen, setReportOpen] = useState(false);
   const [answerCountError, setAnswerCountError] = useState<string | null>(null);
+  const [showAbortConfirm, setShowAbortConfirm] = useState(false);
 
   useEffect(() => {
     if (!state) navigate('/aws/exam/setup', { replace: true });
@@ -313,6 +381,33 @@ export default function ExamSession() {
         </div>
       )}
 
+      {/* 中断して採点 確認ダイアログ */}
+      {showAbortConfirm && (
+        <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.6)', zIndex: 1000,
+          display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 'var(--spacing-md)' }}>
+          <Card style={{ maxWidth: 420, width: '100%', boxShadow: 'var(--box-shadow-md)' }} padding="var(--spacing-xl)">
+            <div style={{ fontWeight: 700, fontSize: 'var(--font-size-md)', marginBottom: 12, color: 'var(--color-text-main)' }}>
+              {lang === 'ja' ? '中断して採点' : 'Interrupt & Grade'}
+            </div>
+            <div style={{ fontSize: 'var(--font-size-base)', color: 'var(--color-text-sub)', marginBottom: 'var(--spacing-xl)', lineHeight: 1.7 }}>
+              {lang === 'ja' ? (
+                <>{answeredCount}問の回答を採点します。<br />未回答の{unansweredCount}問は集計されません。</>
+              ) : (
+                <>{answeredCount} answered question{answeredCount !== 1 ? 's' : ''} will be graded.<br />The remaining {unansweredCount} will not be counted.</>
+              )}
+            </div>
+            <div style={{ display: 'flex', gap: 'var(--spacing-md)', justifyContent: 'flex-end' }}>
+              <Button variant="outline" onClick={() => setShowAbortConfirm(false)}>
+                {lang === 'ja' ? 'キャンセル' : 'Cancel'}
+              </Button>
+              <Button variant="primary" onClick={handleAbortAndGrade}>
+                {lang === 'ja' ? '採点する' : 'Grade Now'}
+              </Button>
+            </div>
+          </Card>
+        </div>
+      )}
+
       {/* タイマーバー */}
       <Card padding="var(--spacing-md) var(--spacing-lg)" style={{ marginBottom: 'var(--spacing-lg)' }}>
         <div className="exam-timer-bar" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
@@ -325,10 +420,14 @@ export default function ExamSession() {
             </span>
             {timerRed && <Badge variant="danger">{t('examSession.timeWarning')}</Badge>}
           </div>
-          <div style={{ display: 'flex', gap: 'var(--spacing-lg)', alignItems: 'center' }}>
+          <div style={{ display: 'flex', gap: 'var(--spacing-sm)', alignItems: 'center', flexWrap: 'wrap', justifyContent: 'flex-end' }}>
             <span style={{ fontSize: 'var(--font-size-sm)', color: 'var(--color-text-sub)', fontWeight: 700 }}>{currentIndex + 1} / {questions.length}</span>
             <Button variant="outline" size="sm" onClick={handleSaveAndExit}>
               {lang === 'ja' ? '中断' : 'Pause & Save'}
+            </Button>
+            <Button variant="outline" size="sm" onClick={() => answeredCount > 0 && setShowAbortConfirm(true)}
+              style={{ opacity: answeredCount === 0 ? 0.45 : 1, cursor: answeredCount === 0 ? 'default' : 'pointer' }}>
+              {lang === 'ja' ? '中断して採点' : 'Grade & End'}
             </Button>
             <Button variant="outline" size="sm" onClick={() => setPaused(true)}>
               {t('examSession.pause')}

@@ -15,7 +15,7 @@ function shuffleArray<T>(arr: T[]): T[] { const a = [...arr]; for (let i = a.len
 export default function Result() {
   const navigate = useNavigate();
   const location = useLocation();
-  const { results, questions, score, isPassed, examType, mode, timeUp, isQuick, isMini } = location.state as any;
+  const { results, questions, score, isPassed, examType, mode, timeUp, isQuick, isMini, aborted } = location.state as any;
   const { user } = useAuth();
 
   const resolvedExamType = examType ?? questions?.[0]?.examType ?? 'SAA';
@@ -74,6 +74,7 @@ export default function Result() {
         }}
       >
         {timeUp && <Badge variant="danger" style={{ marginBottom: 'var(--spacing-md)' }}>{t('result.timeUp')}</Badge>}
+        {aborted && <Badge variant="warning" style={{ marginBottom: 'var(--spacing-md)' }}>{ja ? '中断採点' : 'Interrupted'}</Badge>}
         <p style={{ fontSize: 64, fontWeight: 700, color: isPassed ? 'var(--color-primary)' : 'var(--color-danger)', margin: 0 }}>{score}%</p>
         <p style={{ fontSize: 'var(--font-size-xxl)', fontWeight: 700, color: isPassed ? 'var(--color-primary)' : 'var(--color-danger)', margin: 'var(--spacing-sm) 0' }}>
           {isPassed ? t('result.passed') : t('result.failed')}
