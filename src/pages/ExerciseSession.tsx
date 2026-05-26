@@ -670,7 +670,7 @@ export default function ExerciseSession() {
               return `${currentQuestion.questionText}\n\n${choicesText}`;
             }} label={lang === 'ja' ? '問題をコピー' : 'Copy Q+Choices'} />
           </div>
-          <p style={{ fontSize: 'var(--font-size-lg)', lineHeight: 1.6, fontWeight: 400, margin: 0, color: 'var(--color-text-main)' }}>
+          <p style={{ fontSize: 'var(--font-size-lg)', lineHeight: 1.6, fontWeight: 400, margin: 0, color: 'var(--color-text-main)', overflowWrap: 'break-word', wordBreak: 'break-word', minWidth: 0 }}>
             {lang === 'en' && (currentQuestion as any).questionTextEn ? (currentQuestion as any).questionTextEn : currentQuestion.questionText}
           </p>
         </div>
