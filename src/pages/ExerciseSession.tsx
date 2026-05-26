@@ -10,7 +10,7 @@ import Button from '../components/ui/Button';
 import Badge from '../components/ui/Badge';
 import ReportModal from '../components/ReportModal';
 import { getServiceLinks } from '../awsServiceLinks';
-import { IconBookOpen } from '../components/Icons';
+import { IconBookOpen, IconCopy, IconCheck } from '../components/Icons';
 
 type Tip = { tipId: string; title: string; content: string; examType: string };
 
@@ -34,8 +34,7 @@ type Question = {
   createdAt?: string;
 };
 
-const CopyButton = ({ getText, label }: { getText: () => string; label?: string }) => {
-  const { lang } = useLanguage();
+const CopyButton = ({ getText }: { getText: () => string }) => {
   const [copied, setCopied] = useState(false);
   const handleCopy = (e: React.MouseEvent) => {
     e.stopPropagation();
@@ -45,16 +44,18 @@ const CopyButton = ({ getText, label }: { getText: () => string; label?: string 
     });
   };
   return (
-    <Button
+    <button
       onClick={handleCopy}
-      variant={copied ? 'primary' : 'outline'}
-      size="sm"
-      style={{ padding: '2px 10px', fontSize: 'var(--font-size-xs)', whiteSpace: 'nowrap', ...(copied ? {} : { borderColor: 'var(--color-border)', color: 'var(--color-text-sub)' }) }}
+      title={copied ? 'コピー済み' : 'コピー'}
+      style={{
+        background: 'none', border: '1px solid var(--color-border)', borderRadius: '50%',
+        width: 28, height: 28, display: 'flex', alignItems: 'center', justifyContent: 'center',
+        cursor: 'pointer', color: copied ? 'var(--color-success)' : 'var(--color-text-light)',
+        transition: 'all 0.2s', flexShrink: 0,
+      }}
     >
-      {copied
-        ? (lang === 'ja' ? '✓ コピー済み' : '✓ Copied')
-        : (label ?? (lang === 'ja' ? 'コピー' : 'Copy'))}
-    </Button>
+      {copied ? <IconCheck size={13} /> : <IconCopy size={13} />}
+    </button>
   );
 };
 
@@ -613,7 +614,10 @@ export default function ExerciseSession() {
       </div>
 
       <Card padding={isMobile ? 'var(--spacing-md) var(--spacing-sm)' : 'var(--spacing-xl)'}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--spacing-sm)', marginBottom: 'var(--spacing-lg)' }}>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 'var(--spacing-lg)' }}>
+          <h1 style={{ fontSize: 'var(--font-size-h2)', fontWeight: 700, margin: 0, color: 'var(--color-text-main)' }}>
+            {t('exerciseSession.qLabel')} {currentIndex + 1}
+          </h1>
           {user && (
             <button
               onClick={toggleBookmark}
@@ -626,9 +630,6 @@ export default function ExerciseSession() {
               </span>
             </button>
           )}
-          <h1 style={{ fontSize: 'var(--font-size-h2)', fontWeight: 700, margin: 0, color: 'var(--color-text-main)' }}>
-            {t('exerciseSession.qLabel')} {currentIndex + 1}
-          </h1>
         </div>
 
         <div style={{ marginBottom: 'var(--spacing-xl)' }}>
@@ -643,7 +644,7 @@ export default function ExerciseSession() {
             <CopyButton getText={() => {
               const choicesText = shuffledChoices.map((c: string, idx: number) => `${CHOICE_LABELS[idx]}. ${stripLabel(c)}`).join('\n');
               return `${currentQuestion.questionText}\n\n${choicesText}`;
-            }} label={lang === 'ja' ? '問題をコピー' : 'Copy Q+Choices'} />
+            }} />
           </div>
           <p style={{ fontSize: 'var(--font-size-lg)', lineHeight: 1.6, fontWeight: 400, margin: 0, color: 'var(--color-text-main)', overflowWrap: 'break-word', wordBreak: 'break-word', minWidth: 0 }}>
             {lang === 'en' && (currentQuestion as any).questionTextEn ? (currentQuestion as any).questionTextEn : currentQuestion.questionText}
@@ -742,7 +743,7 @@ export default function ExerciseSession() {
                   }).join(', ');
                   const expl = lang === 'en' && (displayQ as any).explanationEn ? (displayQ as any).explanationEn : (displayQ.explanation ?? '');
                   return `${currentQuestion.questionText}\n\n${choicesText}\n\n${t('exerciseSession.correctAnswer')}${correctLabels}\n\n${t('exerciseSession.explanation')}\n${expl}`;
-                }} label={lang === 'ja' ? '解説をコピー' : 'Copy Explanation'} />
+                }} />
               </div>
               <p style={{ margin: '0 0 12px', fontSize: 'var(--font-size-base)' }}>
                 <strong>{t('exerciseSession.correctAnswer')}</strong>
@@ -834,7 +835,7 @@ export default function ExerciseSession() {
                 opacity: results.length === 0 ? 0.45 : 1, whiteSpace: 'nowrap', transition: 'all 0.15s',
               }}
             >
-              {lang === 'ja' ? '中断して採点' : 'Grade & End'}
+              {lang === 'ja' ? '中断' : 'End'}
             </button>
           </div>
         </div>
