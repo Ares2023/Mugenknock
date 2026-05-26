@@ -608,9 +608,28 @@ export default function ExerciseSession() {
       )}
 
       {/* 進捗ノード */}
-      <div style={{ display: 'flex', alignItems: 'center', gap: 3, marginBottom: 'var(--spacing-sm)' }}>
+      <div style={{ display: 'flex', alignItems: 'center', marginBottom: 'var(--spacing-sm)' }}>
         {questions.map((_, i) => (
-          <div key={i} style={{ flex: 1, height: 5, borderRadius: 999, background: i <= currentIndex ? 'var(--color-primary)' : 'var(--color-text-light)', transition: 'background 0.2s' }} />
+          <React.Fragment key={i}>
+            <div style={{
+              width: i === currentIndex ? 10 : 7,
+              height: i === currentIndex ? 10 : 7,
+              borderRadius: '50%',
+              flexShrink: 0,
+              background: i < currentIndex ? 'var(--color-primary)' : i === currentIndex ? 'var(--color-primary)' : 'transparent',
+              border: `2px solid ${i <= currentIndex ? 'var(--color-primary)' : 'var(--color-text-light)'}`,
+              boxShadow: i === currentIndex ? '0 0 0 2px var(--color-primary-light, rgba(82,130,255,0.25))' : 'none',
+              transition: 'all 0.2s',
+            }} />
+            {i < questions.length - 1 && (
+              <div style={{
+                flex: 1,
+                height: 2,
+                background: i < currentIndex ? 'var(--color-primary)' : 'var(--color-text-light)',
+                transition: 'background 0.2s',
+              }} />
+            )}
+          </React.Fragment>
         ))}
       </div>
 
