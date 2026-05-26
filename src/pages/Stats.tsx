@@ -6,7 +6,7 @@ import { useLanguage } from '../contexts/LanguageContext';
 import Card from '../components/ui/Card';
 import Button from '../components/ui/Button';
 import { getCached, setCached, SHORT_TTL } from '../utils/cache';
-import { IconBookmark } from '../components/Icons';
+import { IconBookmark, IconTarget, IconLightbulb } from '../components/Icons';
 
 const TARGET_EXAM_KEY_BASE = 'targetExam';
 const STATS_GOOD_RATE = 70;
@@ -331,7 +331,7 @@ export default function Stats() {
         <h2 style={{ fontSize: 'var(--font-size-xxl)', fontWeight: 700, margin: '0 0 var(--spacing-xl)', color: 'var(--color-text-main)' }}>{t('stats.title')}</h2>
         <Card padding="var(--spacing-xl)">
           <div style={{ textAlign: 'center', padding: 'var(--spacing-xl) 0' }}>
-            <div style={{ fontSize: 32, marginBottom: 'var(--spacing-md)' }}>🎯</div>
+            <div style={{ fontSize: 32, marginBottom: 'var(--spacing-md)', color: 'var(--color-accent)', display: 'flex', justifyContent: 'center' }}><IconTarget size={40} /></div>
             <p style={{ fontSize: 'var(--font-size-base)', color: 'var(--color-text-sub)', margin: '0 0 var(--spacing-lg)' }}>
               {lang === 'ja' ? '目標資格を設定すると統計が表示されます' : 'Set a target certification to view your stats'}
             </p>
@@ -362,7 +362,7 @@ export default function Stats() {
           borderRadius: 'var(--border-radius-md)', padding: '10px var(--spacing-md)',
           marginBottom: 'var(--spacing-lg)', fontSize: 'var(--font-size-sm)', color: 'var(--color-text-sub)',
         }}>
-          <span style={{ fontSize: 16, flexShrink: 0 }}>💡</span>
+          <span style={{ flexShrink: 0, display: 'flex', alignItems: 'center', color: 'var(--color-text-sub)' }}><IconLightbulb size={16} /></span>
           <span style={{ flex: 1, lineHeight: 1.5 }}>{t('stats.hint')}</span>
           <button onClick={() => { localStorage.setItem(`sherpaStatsHint_${uid}`, '1'); setShowHint(false); }}
             style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--color-text-light)', fontSize: 18, lineHeight: 1, padding: '0 4px', flexShrink: 0 }}>✕</button>

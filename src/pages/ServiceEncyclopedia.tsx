@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useLanguage } from '../contexts/LanguageContext';
 import { useAuth } from '../contexts/AuthContext';
-import { IconLock, IconLightbulb } from '../components/Icons';
+import { IconLock, IconLightbulb, ServiceIcon } from '../components/Icons';
 import { CATALOG, getDailyService, ServiceEntry } from '../data/awsServiceCatalog';
 import { API_ENDPOINT } from '../constants';
 
@@ -253,7 +253,7 @@ export default function ServiceEncyclopedia() {
                         : unlocked && svc.icon
                           ? renderIcon({ serviceId: svc.name, name: svc.name, icon: svc.icon, description: '' }, 32)
                           : unlocked
-                            ? <span style={{ fontSize: 20 }}>☁️</span>
+                            ? <ServiceIcon name="cloud" size={20} />
                             : <IconLock size={14} />}
                     </div>
                     <span style={{

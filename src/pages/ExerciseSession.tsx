@@ -10,6 +10,7 @@ import Button from '../components/ui/Button';
 import Badge from '../components/ui/Badge';
 import ReportModal from '../components/ReportModal';
 import { getServiceLinks } from '../awsServiceLinks';
+import { IconBookOpen } from '../components/Icons';
 
 type Tip = { tipId: string; title: string; content: string; examType: string };
 
@@ -925,7 +926,7 @@ export default function ExerciseSession() {
             style={{ borderLeft: '4px solid var(--color-accent)' }}
           >
             <div style={{ display: 'flex', alignItems: 'flex-start', gap: 'var(--spacing-md)' }}>
-              <span style={{ fontSize: 24, lineHeight: 1, flexShrink: 0 }}>📖</span>
+              <span style={{ color: 'var(--color-accent)', flexShrink: 0, display: 'flex', alignItems: 'center' }}><IconBookOpen size={22} /></span>
               <div>
                 <p style={{ fontWeight: 700, color: 'var(--color-text-main)', margin: '0 0 var(--spacing-sm)', fontSize: 'var(--font-size-base)' }}>
                   {currentTip.title}

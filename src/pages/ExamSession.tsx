@@ -9,6 +9,7 @@ import Card from '../components/ui/Card';
 import Button from '../components/ui/Button';
 import Badge from '../components/ui/Badge';
 import ReportModal from '../components/ReportModal';
+import { IconFlag } from '../components/Icons';
 
 const WAKARANAI = 'わからない';
 const stripLabel = (s: string) => s.replace(/^[A-E]\.\s*/, '');
@@ -466,7 +467,7 @@ export default function ExamSession() {
                 onMouseLeave={e => { e.currentTarget.style.color = 'var(--color-text-light)'; e.currentTarget.style.background = 'none'; }}
                 title={lang === 'ja' ? '問題の不備を通報' : 'Report an issue'}
               >
-                <span style={{ fontSize: 14 }}>⚑</span>
+                <IconFlag size={14} />
                 <span>{lang === 'ja' ? '通報' : 'Report'}</span>
               </button>
             </div>

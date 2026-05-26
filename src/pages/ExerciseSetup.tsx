@@ -8,6 +8,7 @@ import Button from '../components/ui/Button';
 import Badge from '../components/ui/Badge';
 import DomainSelector from '../components/DomainSelector';
 import { getCached, setCached, SHORT_TTL } from '../utils/cache';
+import { IconLightbulb } from '../components/Icons';
 
 const StepBadge = ({ n, optional = false }: { n: number; optional?: boolean }) => (
   <span style={{
@@ -295,7 +296,7 @@ export default function ExerciseSetup() {
           borderRadius: 'var(--border-radius-md)', padding: '10px var(--spacing-md)',
           marginBottom: 'var(--spacing-lg)', fontSize: 'var(--font-size-sm)', color: 'var(--color-text-sub)',
         }}>
-          <span style={{ fontSize: 16, flexShrink: 0 }}>💡</span>
+          <span style={{ flexShrink: 0, display: 'flex', alignItems: 'center', color: 'var(--color-text-sub)' }}><IconLightbulb size={16} /></span>
           <span style={{ flex: 1, lineHeight: 1.5 }}>{t('exerciseSetup.hint')}</span>
           <button
             onClick={() => { localStorage.setItem(`sherpaExerciseHint_${uid}`, '1'); setShowHint(false); }}

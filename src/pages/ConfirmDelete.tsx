@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useSearchParams, useNavigate } from 'react-router-dom';
 import { API_ENDPOINT } from '../constants';
+import { IconCircleCheck, IconCircleX, IconInfo } from '../components/Icons';
 
 export default function ConfirmDelete() {
   const [params] = useSearchParams();
@@ -33,7 +34,7 @@ export default function ConfirmDelete() {
         )}
         {status === 'success' && (
           <>
-            <div style={{ fontSize: 40, marginBottom: 16 }}>✅</div>
+            <div style={{ marginBottom: 16, color: 'var(--color-success)', display: 'flex', justifyContent: 'center' }}><IconCircleCheck size={40} /></div>
             <h2 style={{ fontSize: 20, fontWeight: 700, marginBottom: 8 }}>削除を承認しました</h2>
             {email && <p style={{ color: '#666', marginBottom: 16 }}>{email} のデータ削除が承認されました。</p>}
             <p style={{ color: '#888', fontSize: 14 }}>管理者がデータを削除できる状態になりました。このページは閉じて構いません。</p>
@@ -41,14 +42,14 @@ export default function ConfirmDelete() {
         )}
         {status === 'already' && (
           <>
-            <div style={{ fontSize: 40, marginBottom: 16 }}>ℹ️</div>
+            <div style={{ marginBottom: 16, color: 'var(--color-primary)', display: 'flex', justifyContent: 'center' }}><IconInfo size={40} /></div>
             <h2 style={{ fontSize: 20, fontWeight: 700, marginBottom: 8 }}>承認済み</h2>
             <p style={{ color: '#666' }}>このリクエストはすでに承認されています。</p>
           </>
         )}
         {status === 'error' && (
           <>
-            <div style={{ fontSize: 40, marginBottom: 16 }}>❌</div>
+            <div style={{ marginBottom: 16, color: 'var(--color-danger)', display: 'flex', justifyContent: 'center' }}><IconCircleX size={40} /></div>
             <h2 style={{ fontSize: 20, fontWeight: 700, marginBottom: 8 }}>エラー</h2>
             <p style={{ color: '#c00' }}>{errorMsg}</p>
             <p style={{ color: '#888', fontSize: 14, marginTop: 8 }}>リンクの有効期限（24時間）が切れているか、無効なリンクです。</p>
