@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useMemo, useRef, useCallback } from 'react';
+import React, { useEffect, useLayoutEffect, useState, useMemo, useRef, useCallback } from 'react';
 import { createPortal } from 'react-dom';
 import { useNavigate } from 'react-router-dom';
 import DailyServiceRevealModal from '../components/DailyServiceRevealModal';
@@ -110,6 +110,15 @@ function CombinedDetailModal({ targetExam, domainAccList, estimatedScore, passSc
   const history = readScoreHistory(targetExam, uid);
   const [showCalc, setShowCalc] = useState(false);
   const [tab, setTab] = useState<'score' | 'history'>('score');
+  const scoreTabRef = useRef<HTMLDivElement>(null);
+  const [contentMinH, setContentMinH] = useState(0);
+
+  // スコアタブ（calc非表示時）の高さを記録してタブ切替でサイズが変わらないようにする
+  useLayoutEffect(() => {
+    if (tab === 'score' && !showCalc && scoreTabRef.current) {
+      setContentMinH(scoreTabRef.current.offsetHeight);
+    }
+  }, [tab, showCalc]);
 
   useEffect(() => {
     const prev = document.body.style.overflow;
@@ -177,8 +186,9 @@ function CombinedDetailModal({ targetExam, domainAccList, estimatedScore, passSc
         )}
 
         {/* タブコンテンツ */}
+        <div style={{ minHeight: contentMinH || undefined }}>
         {tab === 'score' ? (
-          <div>
+          <div ref={scoreTabRef}>
             <div style={{ marginBottom: 16 }}>
               <span style={{ fontSize: 36, fontWeight: 800, color: 'var(--color-primary)', letterSpacing: '-1px' }}>{estimatedScore ?? '—'}</span>
               <span style={{ fontSize: 13, color: 'var(--color-text-light)', marginLeft: 6 }}>/1000</span>
@@ -234,6 +244,7 @@ function CombinedDetailModal({ targetExam, domainAccList, estimatedScore, passSc
         ) : (
           <ScoreLineChart data={history} passScore={passScore} lang={lang} />
         )}
+        </div>
       </div>
     </div>
   );
@@ -1282,19 +1293,25 @@ export default function Home() {
     finally { setFocusedLoading(false); setFocusedLoadPct(0); }
   };
 
-  // ドメイン別成績（直近10セッションのローカル履歴を使用）
+  // ドメイン別成績（サーバー統計優先、ゲスト/オフライン時はローカル履歴）
   const domains = useMemo(() => targetExam ? (EXAM_DOMAINS[targetExam] ?? []) : [], [targetExam]);
   const domainAccList = useMemo(() => {
     if (!targetExam) return [] as { correct: number; total: number; pct: number | null }[];
     const hist = readDomainHistory(targetExam, uid);
     return domains.map(d => {
+      const stat = domainStats.find(s => s.tagId === d);
+      if (stat) {
+        const correct = stat.correctCount ?? 0;
+        const total = correct + (stat.incorrectCount ?? 0);
+        return { correct, total, pct: total > 0 ? Math.round(correct / total * 100) : null };
+      }
       const sessions = hist[d];
       if (!sessions || sessions.length === 0) return { correct: 0, total: 0, pct: null };
       const correct = sessions.reduce((s, r) => s + r.correct, 0);
       const total = sessions.reduce((s, r) => s + r.total, 0);
       return { correct, total, pct: total > 0 ? Math.round(correct / total * 100) : null };
     });
-  }, [targetExam, domains, uid]);
+  }, [targetExam, domains, uid, domainStats]);
 
   const hasPrimaryDraft = primaryMode === 'focused' ? hasFocusedDraft : hasQuickDraft;
   const resumePrimary = primaryMode === 'focused' ? resumeFocusedExercise : resumeQuickExercise;
@@ -1340,8 +1357,8 @@ export default function Home() {
               <div style={{ display: 'flex', flexDirection: 'column', gap: 7 }}>
                 {domains.map((d, i) => {
                   const { pct, total } = domainAccList[i] ?? { pct: null, total: 0 };
-                  const n = Math.min(total ?? 0, 10);
-                  const barPct = pct !== null && n > 0 ? pct * n / 10 : null;
+                  const n = Math.min(total ?? 0, 5);
+                  const barPct = pct !== null && n > 0 ? pct * n / 5 : null;
                   const grade = getGrade(barPct);
                   const label = lang === 'en' ? (DOMAIN_NAME_EN[d] ?? d) : d;
                   return (
