@@ -1359,7 +1359,7 @@ export default function Home() {
                   const { pct, total } = domainAccList[i] ?? { pct: null, total: 0 };
                   const n = Math.min(total ?? 0, 10);
                   const barPct = pct !== null && n > 0 ? pct * n / 10 : null;
-                  const grade = getGrade(pct);
+                  const grade = getGrade(barPct);
                   const label = lang === 'en' ? (DOMAIN_NAME_EN[d] ?? d) : d;
                   return (
                     <div key={d}>
