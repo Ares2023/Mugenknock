@@ -98,7 +98,6 @@ function CombinedDetailModal({ targetExam, domainAccList, estimatedScore, passSc
   const domains = EXAM_DOMAINS[targetExam] ?? [];
   const history = readScoreHistory(targetExam, uid);
   const domainHistory = readDomainHistory(targetExam, uid);
-  const [tab, setTab] = useState<'domain' | 'score'>('domain');
   const [showCalc, setShowCalc] = useState(false);
 
   useEffect(() => {
@@ -106,42 +105,6 @@ function CombinedDetailModal({ targetExam, domainAccList, estimatedScore, passSc
     document.body.style.overflow = 'hidden';
     return () => { document.body.style.overflow = prev; };
   }, []);
-
-  const domainSection = (
-    <div>
-      <div style={{ fontSize: 11, fontWeight: 700, color: 'var(--color-text-sub)', marginBottom: 12, textTransform: 'uppercase', letterSpacing: '0.5px' }}>
-        {ja ? 'ドメイン別成績' : 'Domain Accuracy'}
-      </div>
-      {domains.map((d, i) => {
-        const { correct, total, pct } = domainAccList[i] ?? { correct: 0, total: 0, pct: null };
-        const label = lang === 'en' ? (DOMAIN_NAME_EN[d] ?? d) : d;
-        return (
-          <div key={d} style={{ marginBottom: 16, paddingBottom: 16, borderBottom: i < domains.length - 1 ? '1px solid var(--color-border)' : 'none' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 6 }}>
-              <span style={{ fontSize: 10, fontWeight: 700, color: 'var(--color-text-light)', flexShrink: 0 }}>D{i + 1}</span>
-              <span style={{ fontSize: 12, fontWeight: 600, color: 'var(--color-text-main)', lineHeight: 1.4 }}>{label}</span>
-            </div>
-            <div style={{ display: 'flex', alignItems: 'baseline', gap: 4, marginBottom: 8 }}>
-              <span style={{ fontSize: 20, fontWeight: 800, color: 'var(--color-primary)', letterSpacing: '-0.5px' }}>
-                {total > 0 ? correct : '—'}
-              </span>
-              <span style={{ fontSize: 13, color: 'var(--color-text-light)' }}>
-                / {total > 0 ? total : '—'}
-              </span>
-              {pct !== null && (
-                <span style={{ fontSize: 11, color: 'var(--color-text-sub)', marginLeft: 4 }}>({pct}%)</span>
-              )}
-            </div>
-            {pct !== null && (
-              <div style={{ height: 6, background: 'var(--color-border)', borderRadius: 3, overflow: 'hidden' }}>
-                <div style={{ width: `${pct}%`, minWidth: pct === 0 ? 3 : undefined, height: '100%', borderRadius: 3, background: 'var(--bar-gradient-primary)', transformOrigin: 'left center', animation: `growWidth 0.45s cubic-bezier(0.34, 1.56, 0.64, 1) ${i * 40}ms both` }} />
-              </div>
-            )}
-          </div>
-        );
-      })}
-    </div>
-  );
 
   const weights = DOMAIN_WEIGHTS[targetExam] ?? domains.map(() => 100 / domains.length);
   const totalAllWeights = weights.reduce((s, w) => s + w, 0) || 100;
@@ -234,13 +197,6 @@ function CombinedDetailModal({ targetExam, domainAccList, estimatedScore, passSc
         </div>
         {showCalc && (
           <div style={{ background: 'var(--color-bg-main)', borderRadius: 8, padding: '10px 12px', marginBottom: isMobile ? 12 : 16, fontSize: 11, color: 'var(--color-text-sub)', lineHeight: 1.7 }}>
-            <div style={{ fontWeight: 700, marginBottom: 4 }}>{ja ? 'ドメイン別正答率' : 'Domain Accuracy'}</div>
-            <p style={{ margin: '0 0 10px' }}>
-              {ja
-                ? '直近10セッション分のドメインごとの正答数・回答数を合算して算出。未演習ドメインはデータなし扱い。'
-                : 'Sum of correct/total answers per domain across the last 10 sessions. Unpracticed domains show no data.'}
-            </p>
-            <div style={{ fontWeight: 700, marginBottom: 4 }}>{ja ? '予想スコア' : 'Estimated Score'}</div>
             <p style={{ margin: 0 }}>
               {ja
                 ? '直近10セッション分の回答を集計。各ドメインの上限10問分で算出（10問未満は正答率×(N/10)で計算）。未演習ドメインは0点扱い。スコア = Σ(正答率 × N/10 × 出題比率%) × 1000'
@@ -249,25 +205,7 @@ function CombinedDetailModal({ targetExam, domainAccList, estimatedScore, passSc
           </div>
         )}
 
-        <div style={{ display: 'flex', borderBottom: '2px solid var(--color-border)', marginBottom: 16 }}>
-          {(['domain', 'score'] as const).map(t => (
-            <button
-              key={t}
-              onClick={() => setTab(t)}
-              style={{ flex: 1, background: 'none', border: 'none', cursor: 'pointer', padding: '8px 0', fontSize: 12, fontWeight: tab === t ? 700 : 400, color: tab === t ? 'var(--color-primary)' : 'var(--color-text-sub)', borderBottom: `2px solid ${tab === t ? 'var(--color-primary)' : 'transparent'}`, marginBottom: -2, transition: 'color 0.15s' }}
-            >
-              {t === 'domain' ? (ja ? 'ドメイン別正答率' : 'Domain Accuracy') : (ja ? '予想スコア' : 'Est. Score')}
-            </button>
-          ))}
-        </div>
-        <div style={{ position: 'relative' }}>
-          <div style={{ visibility: tab === 'domain' ? 'visible' : 'hidden' }}>
-            {domainSection}
-          </div>
-          <div style={{ position: 'absolute', top: 0, left: 0, right: 0, visibility: tab === 'score' ? 'visible' : 'hidden', pointerEvents: tab === 'score' ? 'auto' : 'none' }}>
-            {scoreSection}
-          </div>
-        </div>
+        {scoreSection}
       </div>
     </div>
   );

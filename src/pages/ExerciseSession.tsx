@@ -49,7 +49,7 @@ const CopyButton = ({ getText, label }: { getText: () => string; label?: string 
       onClick={handleCopy}
       variant={copied ? 'primary' : 'outline'}
       size="sm"
-      style={{ padding: '2px 10px', fontSize: 'var(--font-size-xs)', whiteSpace: 'nowrap' }}
+      style={{ padding: '2px 10px', fontSize: 'var(--font-size-xs)', whiteSpace: 'nowrap', ...(copied ? {} : { borderColor: 'var(--color-border)', color: 'var(--color-text-sub)' }) }}
     >
       {copied
         ? (lang === 'ja' ? '✓ コピー済み' : '✓ Copied')
@@ -607,59 +607,28 @@ export default function ExerciseSession() {
         </div>
       )}
 
+      {/* 進捗バー */}
+      <div style={{ height: 4, background: 'var(--color-border)', borderRadius: 4, overflow: 'hidden', marginBottom: 'var(--spacing-sm)' }}>
+        <div style={{ width: `${Math.round((currentIndex + 1) / questions.length * 100)}%`, minWidth: 8, height: '100%', background: 'var(--color-primary)', borderRadius: 4, transition: 'width 0.3s ease' }} />
+      </div>
+
       <Card padding={isMobile ? 'var(--spacing-md) var(--spacing-sm)' : 'var(--spacing-xl)'}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 'var(--spacing-lg)' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--spacing-sm)', marginBottom: 'var(--spacing-lg)' }}>
+          {user && (
+            <button
+              onClick={toggleBookmark}
+              disabled={bookmarkLoading}
+              title={bookmarkedIds.has(currentQuestion.questionId) ? t('exerciseSession.removeBookmark') : t('exerciseSession.bookmark')}
+              style={{ background: 'none', border: 'none', cursor: 'pointer', padding: '4px', display: 'flex', alignItems: 'center', opacity: bookmarkLoading ? 0.5 : 1, transition: 'all 0.2s', flexShrink: 0 }}
+            >
+              <span style={{ fontSize: 20, lineHeight: 1, color: bookmarkedIds.has(currentQuestion.questionId) ? 'var(--color-warning, #f59e0b)' : 'var(--color-text-light)' }}>
+                {bookmarkedIds.has(currentQuestion.questionId) ? '★' : '☆'}
+              </span>
+            </button>
+          )}
           <h1 style={{ fontSize: 'var(--font-size-h2)', fontWeight: 700, margin: 0, color: 'var(--color-text-main)' }}>
             {t('exerciseSession.qLabel')} {currentIndex + 1}
-            <span style={{ fontWeight: 400, fontSize: 'var(--font-size-sm)', color: 'var(--color-text-sub)', marginLeft: 'var(--spacing-md)', whiteSpace: 'nowrap' }}>
-              {t('exerciseSession.totalQ', { n: questions.length })}
-            </span>
           </h1>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--spacing-sm)', flexWrap: 'wrap', justifyContent: 'flex-end' }}>
-            {user && (
-              <button
-                onClick={toggleBookmark}
-                disabled={bookmarkLoading}
-                title={bookmarkedIds.has(currentQuestion.questionId) ? t('exerciseSession.removeBookmark') : t('exerciseSession.bookmark')}
-                style={{
-                  background: 'none', border: 'none', cursor: 'pointer', padding: '4px', display: 'flex', alignItems: 'center',
-                  opacity: bookmarkLoading ? 0.5 : 1, transition: 'all 0.2s',
-                }}
-              >
-                <span style={{ fontSize: 20, lineHeight: 1, color: bookmarkedIds.has(currentQuestion.questionId) ? 'var(--color-warning, #f59e0b)' : 'var(--color-text-light)' }}>
-                  {bookmarkedIds.has(currentQuestion.questionId) ? '★' : '☆'}
-                </span>
-              </button>
-            )}
-            {(() => {
-              const domainTag = currentQuestion.tags.find(tag => EXAM_DOMAINS[examType]?.includes(tag));
-              if (!domainTag) return null;
-              const label = lang === 'en' ? (DOMAIN_NAME_EN[domainTag] ?? domainTag) : domainTag;
-              return (
-                <span style={{ fontSize: 10, fontWeight: 600, color: 'var(--color-primary)', background: 'var(--color-primary-light)', border: '1px solid var(--color-primary)', borderRadius: 4, padding: '2px 6px', maxWidth: 180, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', display: 'inline-block' }} title={label}>
-                  {label}
-                </span>
-              );
-            })()}
-          </div>
-        </div>
-
-        <div style={{ display: 'flex', flexWrap: 'wrap', gap: 'var(--spacing-md)', fontSize: 'var(--font-size-xs)', color: 'var(--color-text-light)', marginBottom: 'var(--spacing-md)' }}>
-          <span>
-            {lang === 'ja' ? 'AI確認' : 'AI review'}:{' '}
-            {currentQuestion.validityCheckedAt
-              ? <strong style={{ color: 'var(--color-success)' }}>✓ {new Date(currentQuestion.validityCheckedAt).toLocaleDateString('ja-JP', { year: 'numeric', month: '2-digit', day: '2-digit' })}</strong>
-              : <strong>{lang === 'ja' ? '未確認' : 'not reviewed'}</strong>
-            }
-          </span>
-          <span>
-            {lang === 'ja' ? '最終編集' : 'Last edited'}:{' '}
-            <strong style={{ color: (currentQuestion.updatedAt || currentQuestion.createdAt) ? 'var(--color-text-sub)' : 'inherit' }}>
-              {(currentQuestion.updatedAt || currentQuestion.createdAt)
-                ? new Date((currentQuestion.updatedAt || currentQuestion.createdAt)!).toLocaleDateString('ja-JP', { year: 'numeric', month: '2-digit', day: '2-digit' })
-                : '-'}
-            </strong>
-          </span>
         </div>
 
         <div style={{ marginBottom: 'var(--spacing-xl)' }}>
@@ -825,30 +794,49 @@ export default function ExerciseSession() {
           </div>
         )}
 
-        {/* メタデータ */}
-        <div style={{ marginTop: 'var(--spacing-md)', paddingTop: 'var(--spacing-sm)', borderTop: '1px dashed var(--color-border)', display: 'flex', alignItems: 'center', gap: 'var(--spacing-sm)', fontSize: 'var(--font-size-xs)', color: 'var(--color-text-light)' }}>
-          <button
-            onClick={() => setReportOpen(true)}
-            style={{ background: 'none', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 4, color: 'var(--color-text-light)', fontSize: 'var(--font-size-xs)', padding: '2px 6px', borderRadius: 'var(--border-radius-sm)', transition: 'all 0.2s' }}
-            onMouseEnter={e => { e.currentTarget.style.color = 'var(--color-danger)'; e.currentTarget.style.background = 'var(--color-feedback-incorrect-bg)'; }}
-            onMouseLeave={e => { e.currentTarget.style.color = 'var(--color-text-light)'; e.currentTarget.style.background = 'none'; }}
-            title={lang === 'ja' ? '問題の不備を通報' : 'Report an issue'}
-          >
-            <span style={{ fontSize: 12 }}>⚑</span>
-            <span>{lang === 'ja' ? '通報' : 'Report'}</span>
-          </button>
-          <button
-            onClick={() => results.length > 0 && setShowAbortConfirm(true)}
-            disabled={results.length === 0}
-            style={{
-              background: 'none', border: '1px solid var(--color-border)', borderRadius: 'var(--border-radius-full)',
-              padding: '3px 10px', fontSize: 11, fontWeight: 600, cursor: results.length === 0 ? 'default' : 'pointer',
-              color: results.length === 0 ? 'var(--color-text-light)' : 'var(--color-text-sub)',
-              opacity: results.length === 0 ? 0.45 : 1, whiteSpace: 'nowrap', transition: 'all 0.15s',
-            }}
-          >
-            {lang === 'ja' ? '中断して採点' : 'Grade & End'}
-          </button>
+        {/* フッター */}
+        <div style={{ marginTop: 'var(--spacing-md)', paddingTop: 'var(--spacing-sm)', borderTop: '1px dashed var(--color-border)' }}>
+          <div style={{ display: 'flex', flexWrap: 'wrap', gap: 'var(--spacing-md)', fontSize: 'var(--font-size-xs)', color: 'var(--color-text-light)', marginBottom: 'var(--spacing-sm)' }}>
+            <span>
+              {lang === 'ja' ? 'AI確認' : 'AI review'}:{' '}
+              {currentQuestion.validityCheckedAt
+                ? <strong style={{ color: 'var(--color-success)' }}>✓ {new Date(currentQuestion.validityCheckedAt).toLocaleDateString('ja-JP', { year: 'numeric', month: '2-digit', day: '2-digit' })}</strong>
+                : <strong>{lang === 'ja' ? '未確認' : 'not reviewed'}</strong>
+              }
+            </span>
+            <span>
+              {lang === 'ja' ? '最終編集' : 'Last edited'}:{' '}
+              <strong style={{ color: (currentQuestion.updatedAt || currentQuestion.createdAt) ? 'var(--color-text-sub)' : 'inherit' }}>
+                {(currentQuestion.updatedAt || currentQuestion.createdAt)
+                  ? new Date((currentQuestion.updatedAt || currentQuestion.createdAt)!).toLocaleDateString('ja-JP', { year: 'numeric', month: '2-digit', day: '2-digit' })
+                  : '-'}
+              </strong>
+            </span>
+          </div>
+          <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 'var(--spacing-sm)' }}>
+            <button
+              onClick={() => setReportOpen(true)}
+              style={{ background: 'none', border: '1px solid var(--color-border)', borderRadius: 'var(--border-radius-full)', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 4, color: 'var(--color-text-light)', fontSize: 'var(--font-size-xs)', padding: '3px 10px', transition: 'all 0.2s' }}
+              onMouseEnter={e => { e.currentTarget.style.color = 'var(--color-danger)'; e.currentTarget.style.borderColor = 'var(--color-danger)'; }}
+              onMouseLeave={e => { e.currentTarget.style.color = 'var(--color-text-light)'; e.currentTarget.style.borderColor = 'var(--color-border)'; }}
+              title={lang === 'ja' ? '問題の不備を通報' : 'Report an issue'}
+            >
+              <span style={{ fontSize: 12 }}>⚑</span>
+              <span>{lang === 'ja' ? '通報' : 'Report'}</span>
+            </button>
+            <button
+              onClick={() => results.length > 0 && setShowAbortConfirm(true)}
+              disabled={results.length === 0}
+              style={{
+                background: 'none', border: '1px solid var(--color-border)', borderRadius: 'var(--border-radius-full)',
+                padding: '3px 10px', fontSize: 11, fontWeight: 600, cursor: results.length === 0 ? 'default' : 'pointer',
+                color: results.length === 0 ? 'var(--color-text-light)' : 'var(--color-text-sub)',
+                opacity: results.length === 0 ? 0.45 : 1, whiteSpace: 'nowrap', transition: 'all 0.15s',
+              }}
+            >
+              {lang === 'ja' ? '中断して採点' : 'Grade & End'}
+            </button>
+          </div>
         </div>
       </Card>
 
