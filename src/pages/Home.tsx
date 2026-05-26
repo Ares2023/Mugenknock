@@ -13,6 +13,7 @@ import Card from '../components/ui/Card';
 import Button from '../components/ui/Button';
 import { IconLightbulb, IconSettings, IconChevronUp, IconLock, IconFileText, IconTrendingUp, IconBookOpen, IconCheck, ServiceIconImg, isServiceIconKey } from '../components/Icons';
 import { CATALOG } from '../data/awsServiceCatalog';
+import { autoScoreAndClearDrafts } from '../utils/sessionUtils';
 
 type DomainStat = { tagId: string; correctCount?: number; incorrectCount?: number };
 type SessionEntry = { correct: number; total: number };
@@ -1193,6 +1194,8 @@ export default function Home() {
   // サクッと演習
   const startQuickExercise = async () => {
     if (!targetExam) { alert(ja ? '試験を選択してください' : 'Please select an exam'); return; }
+    const userId = user?.userId ?? 'guest';
+    await autoScoreAndClearDrafts(userId);
     discardQuickDraft();
     discardFocusedDraft();
     setLastMode('quick');
@@ -1245,6 +1248,7 @@ export default function Home() {
   const startFocusedExercise = async () => {
     if (!targetExam) { alert(ja ? '試験を選択してください' : 'Please select an exam'); return; }
     if (!user) { alert(ja ? 'ログインが必要です' : 'Login required'); return; }
+    await autoScoreAndClearDrafts(user.userId);
     discardQuickDraft();
     discardFocusedDraft();
     setLastMode('focused');

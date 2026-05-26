@@ -6,6 +6,7 @@ import { API_ENDPOINT, EXAM_CONFIGS, EXAM_DOMAINS, EXAM_TYPES, PASS_SCORES } fro
 import Button from '../components/ui/Button';
 import DomainSelector from '../components/DomainSelector';
 import { getCached, setCached, SHORT_TTL } from '../utils/cache';
+import { autoScoreAndClearDrafts } from '../utils/sessionUtils';
 import { IconChevronUp } from '../components/Icons';
 
 function shuffleArray<T>(arr: T[]): T[] {
@@ -160,6 +161,10 @@ export default function Practice() {
 
   const startExercise = async () => {
     if (selectedDomains.length === 0) { alert(ja ? '出題ドメインを最低1つ選択してください' : 'Please select at least one domain'); return; }
+    const userId = user?.userId ?? 'guest';
+    await autoScoreAndClearDrafts(userId);
+    setExerciseDraft(null);
+    setExamDraft(null);
     setExerciseLoading(true);
     setExerciseLoadPct(10);
     try {
@@ -246,6 +251,10 @@ export default function Practice() {
 
   const startExam = async () => {
     if (!targetExam || !examCfg) return;
+    const userId = user?.userId ?? 'guest';
+    await autoScoreAndClearDrafts(userId);
+    setExerciseDraft(null);
+    setExamDraft(null);
     setExamLoading(true);
     setExamLoadPct(10);
     try {
@@ -434,7 +443,7 @@ export default function Practice() {
                   {ja ? 'セッションを上書きして開始します' : 'This will overwrite the current session'}
                 </div>
                 <Button variant="outline" fullWidth style={{ height: 44 }}
-                  onClick={() => { localStorage.removeItem(`practiceExerciseDraft_${uid}`); setExerciseDraft(null); setShowNewPanel(false); startExercise(); }}>
+                  onClick={() => { setShowNewPanel(false); startExercise(); }}>
                   {ja ? '新規に開始' : 'Start New'}
                 </Button>
               </div>
@@ -500,7 +509,7 @@ export default function Practice() {
                     ) : (ja ? '試験を再開' : 'Resume')}
                   </button>
                   <button
-                    onClick={() => { localStorage.removeItem(`practiceExerciseDraft_${uid}`); setExerciseDraft(null); startExercise(); }}
+                    onClick={startExercise}
                     style={{ width: 44, height: 44, border: 'none', borderLeft: '2px solid rgba(255,255,255,0.4)', background: 'var(--color-accent)', color: 'var(--color-btn-primary-text)', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}
                     aria-label={ja ? '新規で開始' : 'Start new'}
                   >
@@ -540,7 +549,7 @@ export default function Practice() {
                   {ja ? 'セッションを上書きして開始します' : 'This will overwrite the current session'}
                 </div>
                 <Button variant="outline" fullWidth style={{ height: 44 }}
-                  onClick={() => { localStorage.removeItem(`examDraft_${uid}`); setExamDraft(null); setShowNewExamPanel(false); startExam(); }}>
+                  onClick={() => { setShowNewExamPanel(false); startExam(); }}>
                   {ja ? '新規に開始' : 'Start New'}
                 </Button>
               </div>
@@ -606,7 +615,7 @@ export default function Practice() {
                     ) : (ja ? '試験を再開' : 'Resume')}
                   </button>
                   <button
-                    onClick={() => { localStorage.removeItem(`examDraft_${uid}`); setExamDraft(null); startExam(); }}
+                    onClick={startExam}
                     style={{ width: 44, height: 44, border: 'none', borderLeft: '2px solid rgba(255,255,255,0.4)', background: 'var(--color-accent)', color: 'var(--color-btn-primary-text)', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}
                     aria-label={ja ? '新規で試験を開始' : 'Start new exam'}
                   >

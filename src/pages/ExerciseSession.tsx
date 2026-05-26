@@ -631,19 +631,21 @@ export default function ExerciseSession() {
                 </span>
               </button>
             )}
-            <button
-              onClick={() => results.length > 0 && setShowAbortConfirm(true)}
-              disabled={results.length === 0}
-              style={{
-                background: 'none', border: '1px solid var(--color-border)', borderRadius: 'var(--border-radius-full)',
-                padding: '3px 10px', fontSize: 11, fontWeight: 600, cursor: results.length === 0 ? 'default' : 'pointer',
-                color: results.length === 0 ? 'var(--color-text-light)' : 'var(--color-text-sub)',
-                opacity: results.length === 0 ? 0.45 : 1, whiteSpace: 'nowrap', transition: 'all 0.15s',
-              }}
-            >
-              {lang === 'ja' ? '中断して採点' : 'Grade & End'}
-            </button>
-            <Badge variant="secondary">{currentQuestion.examType}</Badge>
+            {!isMobile && (
+              <button
+                onClick={() => results.length > 0 && setShowAbortConfirm(true)}
+                disabled={results.length === 0}
+                style={{
+                  background: 'none', border: '1px solid var(--color-border)', borderRadius: 'var(--border-radius-full)',
+                  padding: '3px 10px', fontSize: 11, fontWeight: 600, cursor: results.length === 0 ? 'default' : 'pointer',
+                  color: results.length === 0 ? 'var(--color-text-light)' : 'var(--color-text-sub)',
+                  opacity: results.length === 0 ? 0.45 : 1, whiteSpace: 'nowrap', transition: 'all 0.15s',
+                }}
+              >
+                {lang === 'ja' ? '中断して採点' : 'Grade & End'}
+              </button>
+            )}
+            {!isMobile && <Badge variant="secondary">{currentQuestion.examType}</Badge>}
             {(() => {
               const domainTag = currentQuestion.tags.find(tag => EXAM_DOMAINS[examType]?.includes(tag));
               if (!domainTag) return null;
@@ -809,14 +811,30 @@ export default function ExerciseSession() {
           </div>
         )}
 
-        {answered && (
-          <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: 'var(--spacing-sm)' }}>
-            <PromptMenu
-              questionText={currentQuestion.questionText}
-              choices={shuffledChoices.map((c: string, ci: number) => `${CHOICE_LABELS[ci]}. ${c}`)}
-              explanation={((currentQuestion.correctAnswers ? currentQuestion : detail) ?? currentQuestion).explanation}
-              lang={lang}
-            />
+        {(answered || isMobile) && (
+          <div style={{ display: 'flex', justifyContent: 'flex-end', alignItems: 'center', gap: 'var(--spacing-sm)', marginTop: 'var(--spacing-sm)' }}>
+            {answered && (
+              <PromptMenu
+                questionText={currentQuestion.questionText}
+                choices={shuffledChoices.map((c: string, ci: number) => `${CHOICE_LABELS[ci]}. ${c}`)}
+                explanation={((currentQuestion.correctAnswers ? currentQuestion : detail) ?? currentQuestion).explanation}
+                lang={lang}
+              />
+            )}
+            {isMobile && (
+              <button
+                onClick={() => results.length > 0 && setShowAbortConfirm(true)}
+                disabled={results.length === 0}
+                style={{
+                  background: 'none', border: '1px solid var(--color-border)', borderRadius: 'var(--border-radius-full)',
+                  padding: '3px 10px', fontSize: 11, fontWeight: 600, cursor: results.length === 0 ? 'default' : 'pointer',
+                  color: results.length === 0 ? 'var(--color-text-light)' : 'var(--color-text-sub)',
+                  opacity: results.length === 0 ? 0.45 : 1, whiteSpace: 'nowrap', transition: 'all 0.15s',
+                }}
+              >
+                {lang === 'ja' ? '中断して採点' : 'Grade & End'}
+              </button>
+            )}
           </div>
         )}
 
