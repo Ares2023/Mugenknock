@@ -1250,28 +1250,11 @@ export default function Home() {
     finally { setFocusedLoading(false); setFocusedLoadPct(0); }
   };
 
-  // ドメイン別成績（サーバー優先、ドメインが欠損している場合はローカル履歴で補完）
+  // ドメイン別成績（直近10セッションのローカル履歴を使用）
   const domains = useMemo(() => targetExam ? (EXAM_DOMAINS[targetExam] ?? []) : [], [targetExam]);
   const domainAccList = useMemo(() => {
     if (!targetExam) return [] as { correct: number; total: number; pct: number | null }[];
     const hist = readDomainHistory(targetExam, uid);
-    if (domainStats.length > 0) {
-      return domains.map(d => {
-        const stat = domainStats.find(s => s.tagId === d);
-        if (stat) {
-          const correct = stat.correctCount ?? 0;
-          const total = (stat.correctCount ?? 0) + (stat.incorrectCount ?? 0);
-          return { correct, total, pct: total > 0 ? Math.round(correct / total * 100) : null };
-        }
-        // サーバーにこのドメインのデータがなければローカル履歴で補完
-        const sessions = hist[d];
-        if (!sessions || sessions.length === 0) return { correct: 0, total: 0, pct: null };
-        const correct = sessions.reduce((s, r) => s + r.correct, 0);
-        const total = sessions.reduce((s, r) => s + r.total, 0);
-        return { correct, total, pct: total > 0 ? Math.round(correct / total * 100) : null };
-      });
-    }
-    // domainStats 未取得（ゲスト/オフライン）はローカル履歴のみ
     return domains.map(d => {
       const sessions = hist[d];
       if (!sessions || sessions.length === 0) return { correct: 0, total: 0, pct: null };
@@ -1279,7 +1262,7 @@ export default function Home() {
       const total = sessions.reduce((s, r) => s + r.total, 0);
       return { correct, total, pct: total > 0 ? Math.round(correct / total * 100) : null };
     });
-  }, [targetExam, domains, domainStats]);
+  }, [targetExam, domains, uid]);
 
   const hasPrimaryDraft = primaryMode === 'focused' ? hasFocusedDraft : hasQuickDraft;
   const resumePrimary = primaryMode === 'focused' ? resumeFocusedExercise : resumeQuickExercise;

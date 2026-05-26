@@ -608,9 +608,19 @@ export default function ExerciseSession() {
         </div>
       )}
 
-      {/* 進捗バー */}
-      <div style={{ height: 4, background: 'var(--color-border)', borderRadius: 4, overflow: 'hidden', marginBottom: 'var(--spacing-sm)' }}>
-        <div style={{ width: `${Math.round((currentIndex + 1) / questions.length * 100)}%`, minWidth: 8, height: '100%', background: 'var(--color-primary)', borderRadius: 4, transition: 'width 0.3s ease' }} />
+      {/* 進捗ノード */}
+      <div style={{ display: 'flex', alignItems: 'center', gap: 3, marginBottom: 'var(--spacing-sm)' }}>
+        {questions.map((_, i) => {
+          const isCompleted = i < currentIndex;
+          const isCurrent = i === currentIndex;
+          const result = results[i];
+          const bg = isCompleted
+            ? (result?.isCorrect ? 'var(--color-success)' : 'var(--color-danger)')
+            : isCurrent ? 'var(--color-primary)' : 'var(--color-border)';
+          return (
+            <div key={i} style={{ flex: 1, height: isCurrent ? 8 : 5, borderRadius: 999, background: bg, transition: 'all 0.2s' }} />
+          );
+        })}
       </div>
 
       <Card padding={isMobile ? 'var(--spacing-md) var(--spacing-sm)' : 'var(--spacing-xl)'}>
@@ -916,17 +926,13 @@ export default function ExerciseSession() {
             padding="var(--spacing-md) var(--spacing-lg)"
             style={{ borderLeft: '4px solid var(--color-accent)' }}
           >
-            <div style={{ display: 'flex', alignItems: 'flex-start', gap: 'var(--spacing-md)' }}>
-              <span style={{ color: 'var(--color-accent)', flexShrink: 0, display: 'flex', alignItems: 'center' }}><IconBookOpen size={22} /></span>
-              <div>
-                <p style={{ fontWeight: 700, color: 'var(--color-text-main)', margin: '0 0 var(--spacing-sm)', fontSize: 'var(--font-size-base)' }}>
-                  {currentTip.title}
-                </p>
-                <p style={{ color: 'var(--color-text-sub)', margin: 0, fontSize: 'var(--font-size-sm)', lineHeight: 1.8 }}>
-                  {currentTip.content}
-                </p>
-              </div>
-            </div>
+            <span style={{ color: 'var(--color-accent)', display: 'block', marginBottom: 'var(--spacing-sm)' }}><IconBookOpen size={22} /></span>
+            <p style={{ fontWeight: 700, color: 'var(--color-text-main)', margin: '0 0 var(--spacing-sm)', fontSize: 'var(--font-size-base)' }}>
+              {currentTip.title}
+            </p>
+            <p style={{ color: 'var(--color-text-sub)', margin: 0, fontSize: 'var(--font-size-sm)', lineHeight: 1.8 }}>
+              {currentTip.content}
+            </p>
           </Card>
         </div>
       )}
