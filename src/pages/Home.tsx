@@ -11,7 +11,8 @@ import {
 import { getCached, setCached, deleteCached, DEFAULT_TTL } from '../utils/cache';
 import Card from '../components/ui/Card';
 import Button from '../components/ui/Button';
-import { IconLightbulb, IconSettings, IconChevronUp, IconLock, IconFileText, IconTrendingUp, IconBookOpen, IconCheck, ServiceIconImg } from '../components/Icons';
+import { IconLightbulb, IconSettings, IconChevronUp, IconLock, IconFileText, IconTrendingUp, IconBookOpen, IconCheck, ServiceIconImg, isServiceIconKey } from '../components/Icons';
+import { CATALOG } from '../data/awsServiceCatalog';
 
 type DomainStat = { tagId: string; correctCount?: number; incorrectCount?: number };
 type SessionEntry = { correct: number; total: number };
@@ -589,6 +590,17 @@ type DailyService = {
   icon: string; description: string; trivia?: string; docUrl?: string;
 };
 
+function resolveServiceIcon(service: DailyService): string {
+  const icon = service.icon ?? '';
+  if (icon.startsWith('/') || icon.startsWith('http') || isServiceIconKey(icon)) return icon;
+  const lower = service.name.toLowerCase();
+  for (const cat of CATALOG) {
+    const entry = cat.services.find(s => s.name.toLowerCase() === lower);
+    if (entry?.icon) return entry.icon;
+  }
+  return icon;
+}
+
 function saveToEncyclopedia(svc: DailyService, uid: string) {
   try {
     const jstDate = new Date(Date.now() + 9 * 3600 * 1000).toISOString().slice(0, 10);
@@ -669,10 +681,11 @@ function TodayServiceSection({ lang, userId, onNavigateEncyclopedia, onReveal }:
     const cacheKey = `daily_service_${uid}_${jstDate}`;
     const cached = getCached<DailyService>(cacheKey);
     if (cached !== null) {
-      setService(cached);
+      const resolved = { ...cached, icon: resolveServiceIcon(cached) };
+      setService(resolved);
       setLoading(false);
       if (alreadyRevealed) {
-        saveToEncyclopedia(cached, uid);
+        saveToEncyclopedia(resolved, uid);
         if (userId) syncEncyclopediaToServer(userId);
       }
       return;
@@ -683,7 +696,8 @@ function TodayServiceSection({ lang, userId, onNavigateEncyclopedia, onReveal }:
     fetch(apiUrl)
       .then(r => r.json())
       .then(d => {
-        const s = d.service ?? null;
+        const raw = d.service ?? null;
+        const s = raw ? { ...raw, icon: resolveServiceIcon(raw) } : null;
         if (s) {
           setCached(cacheKey, s, 60 * 60 * 1000);
           if (alreadyRevealed) {

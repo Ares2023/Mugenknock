@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useLanguage } from '../contexts/LanguageContext';
 import { useAuth } from '../contexts/AuthContext';
-import { IconLock, IconLightbulb, ServiceIcon } from '../components/Icons';
+import { IconLock, IconLightbulb, ServiceIcon, isServiceIconKey, ServiceIconImg } from '../components/Icons';
 import { CATALOG, getDailyService, ServiceEntry } from '../data/awsServiceCatalog';
 import { API_ENDPOINT } from '../constants';
 
@@ -26,18 +26,20 @@ function unlockKey(svc: ServiceEntry): string {
   return svc.serviceIds?.[0] ?? svc.name;
 }
 
-function IconWithSvgFallback({ icon, name, size }: { icon: string; name: string; size: number }) {
-  const svgSrc = icon.replace(/\.png$/, '.svg');
-  const [src, setSrc] = React.useState(svgSrc);
-  return <img src={src} alt={name} onError={() => setSrc(icon)} style={{ width: size, height: size, objectFit: 'contain' }} />;
+
+function resolveEncyclopediaIcon(icon: string, name: string): string {
+  if (!icon || icon.startsWith('/') || icon.startsWith('http') || isServiceIconKey(icon)) return icon;
+  const lower = name.toLowerCase();
+  for (const cat of CATALOG) {
+    const entry = cat.services.find(s => s.name.toLowerCase() === lower);
+    if (entry?.icon) return entry.icon;
+  }
+  return icon;
 }
 
 function renderIcon(service: EncyclopediaService, size: number): React.ReactNode {
-  const { icon, name } = service;
-  if (icon.startsWith('/') || icon.startsWith('http')) {
-    return <IconWithSvgFallback icon={icon} name={name} size={size} />;
-  }
-  return <span style={{ fontSize: size * 0.86, lineHeight: 1 }}>{icon}</span>;
+  const icon = resolveEncyclopediaIcon(service.icon, service.name);
+  return <ServiceIconImg icon={icon} name={service.name} size={size} />;
 }
 
 export default function ServiceEncyclopedia() {
