@@ -1260,6 +1260,11 @@ export default function Home() {
         const weakDomains = new Set<string>(((): string[] => {
           const hist = readDomainHistory(targetExam, uid);
           return examDomains.filter(domain => {
+            const stat = domainStats.find(s => s.tagId === domain);
+            if (stat) {
+              const total = (stat.correctCount ?? 0) + (stat.incorrectCount ?? 0);
+              return total === 0 || (stat.correctCount ?? 0) / total < threshold;
+            }
             const sessions = hist[domain];
             if (!sessions || sessions.length === 0) return true;
             const correct = sessions.reduce((s, r) => s + r.correct, 0);
