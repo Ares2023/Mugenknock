@@ -610,13 +610,9 @@ export default function ExerciseSession() {
 
       {/* 進捗ノード */}
       <div style={{ display: 'flex', alignItems: 'center', gap: 3, marginBottom: 'var(--spacing-sm)' }}>
-        {questions.map((_, i) => {
-          const isCurrent = i === currentIndex;
-          const isDone = i < currentIndex;
-          return (
-            <div key={i} style={{ flex: 1, height: isCurrent ? 8 : 5, borderRadius: 999, background: (isDone || isCurrent) ? 'var(--color-primary)' : 'var(--color-border)', transition: 'all 0.2s' }} />
-          );
-        })}
+        {questions.map((_, i) => (
+          <div key={i} style={{ flex: 1, height: 5, borderRadius: 999, background: i <= currentIndex ? 'var(--color-primary)' : 'var(--color-text-light)', transition: 'background 0.2s' }} />
+        ))}
       </div>
 
       <Card padding={isMobile ? 'var(--spacing-md) var(--spacing-sm)' : 'var(--spacing-xl)'}>
