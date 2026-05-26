@@ -30,6 +30,17 @@ function getGrade(pct: number | null): string {
   return 'D';
 }
 
+// ロード進捗を limit に向けて漸近的にアニメーション。返り値はキャンセル関数。
+function animateLoadPct(setFn: (v: number) => void, from: number, limit: number, intervalMs = 120): () => void {
+  let current = from;
+  const id = setInterval(() => {
+    current = current + (limit - current) * 0.07;
+    setFn(Math.round(current));
+    if (limit - current < 0.4) clearInterval(id);
+  }, intervalMs);
+  return () => clearInterval(id);
+}
+
 function readDomainHistory(examType: string, uid: string): DomainHistory {
   try { return JSON.parse(localStorage.getItem(`domain_history_${examType}_${uid}`) ?? '{}'); } catch { return {}; }
 }
@@ -159,8 +170,8 @@ function CombinedDetailModal({ targetExam, domainAccList, estimatedScore, passSc
           <div style={{ background: 'var(--color-bg-main)', borderRadius: 8, padding: '10px 12px', marginBottom: 16, fontSize: 11, color: 'var(--color-text-sub)', lineHeight: 1.7 }}>
             <p style={{ margin: 0 }}>
               {ja
-                ? '直近10セッション分の回答を集計。各ドメインの上限10問分で算出（10問未満は正答率×(N/10)で計算）。未演習ドメインは0点扱い。スコア = Σ(正答率 × N/10 × 出題比率%) × 1000'
-                : 'Based on last 10 sessions. Score = Σ(accuracy × min(N,10)/10 × domain_weight%) × 1000. Fewer than 10 answers reduces the max contribution. Unpracticed domains count as 0.'}
+                ? '直近セッションの回答を集計。各ドメインの上限5問分で算出（5問未満は正答率×(N/5)で計算）。未演習ドメインは0点扱い。スコア = Σ(正答率 × N/5 × 出題比率%) × 1000'
+                : 'Based on recent sessions. Score = Σ(accuracy × min(N,5)/5 × domain_weight%) × 1000. Fewer than 5 answers reduces the max contribution. Unpracticed domains count as 0.'}
             </p>
           </div>
         )}
@@ -183,10 +194,10 @@ function CombinedDetailModal({ targetExam, domainAccList, estimatedScore, passSc
               </div>
               {domains.map((d, i) => {
                 const { pct, total: totalQ, correct: correctTotal } = domainAccList[i] ?? { pct: null, total: 0, correct: 0 };
-                const n = Math.min(totalQ ?? 0, 10);
+                const n = Math.min(totalQ ?? 0, 5);
                 const correctN = totalQ > 0 && n > 0 ? Math.round((correctTotal ?? 0) / totalQ * n) : 0;
                 const fullMaxPts = Math.round(weights[i] / totalAllWeights * 1000);
-                const curPts = pct !== null && n > 0 ? Math.round(pct / 100 * fullMaxPts * n / 10) : 0;
+                const curPts = pct !== null && n > 0 ? Math.round(pct / 100 * fullMaxPts * n / 5) : 0;
                 const barPct = fullMaxPts > 0 ? curPts / fullMaxPts * 100 : 0;
                 const label = lang === 'en' ? (DOMAIN_NAME_EN[d] ?? d) : d;
                 const hasPracticed = totalQ > 0;
@@ -278,8 +289,8 @@ function ScoreDetailModal({ targetExam, estimatedScore, passScore, lang, uid, on
           {showTip && (
             <p style={{ fontSize: 11, color: 'var(--color-text-sub)', margin: '8px 0 0', lineHeight: 1.7 }}>
               {ja
-                ? '直近10セッション分の回答を集計。各ドメインの上限10問分で算出（10問未満は正答率×(N/10)で計算）。未演習は0点扱い。スコア = Σ(正答率 × N/10 × 出題比率%) × 1000'
-                : 'Based on last 10 sessions. Score = Σ(accuracy × min(N,10)/10 × domain_weight%) × 1000. <10 answers reduces max contribution. Unpracticed domains = 0.'}
+                ? '直近セッションの回答を集計。各ドメインの上限5問分で算出（5問未満は正答率×(N/5)で計算）。未演習は0点扱い。スコア = Σ(正答率 × N/5 × 出題比率%) × 1000'
+                : 'Based on recent sessions. Score = Σ(accuracy × min(N,5)/5 × domain_weight%) × 1000. <5 answers reduces max contribution. Unpracticed domains = 0.'}
             </p>
           )}
         </div>
@@ -1030,8 +1041,8 @@ export default function Home() {
           }
         }
         if (total === 0) continue;
-        const n = Math.min(total, 10);
-        weightedSum += (correct / total) * (n / 10) * weights[i];
+        const n = Math.min(total, 5);
+        weightedSum += (correct / total) * (n / 5) * weights[i];
         hasAnyData = true;
       }
       if (!hasAnyData) return null;
@@ -1039,7 +1050,7 @@ export default function Home() {
     }
 
     // ゲスト/オフライン時はローカル履歴のみ
-    const MAX_Q = 10;
+    const MAX_Q = 5;
     let weightedSum = 0, hasAnyData = false;
     for (let i = 0; i < domainList.length; i++) {
       const sessions = hist[domainList[i]];
@@ -1161,7 +1172,9 @@ export default function Home() {
     try {
       const userId = user?.userId ?? 'guest';
       const params = new URLSearchParams({ examType: targetExam, withAnswers: 'true', withValidity: 'true' });
+      const stopAnim = animateLoadPct(setQuickLoadPct, 10, 57);
       const data = await fetch(`${API_ENDPOINT}/questions?${params}`).then(r => r.json());
+      stopAnim();
       setQuickLoadPct(60);
       const pool: any[] = (data.items ?? []).filter((q: any) => !!q.validityCheckedAt);
       let items = [...pool];
@@ -1214,10 +1227,12 @@ export default function Home() {
     try {
       const userId = user.userId;
       const params = new URLSearchParams({ examType: targetExam, withAnswers: 'true', withValidity: 'true' });
+      const stopAnim = animateLoadPct(setFocusedLoadPct, 10, 62);
       const [data, incorrectRes] = await Promise.all([
         fetch(`${API_ENDPOINT}/questions?${params}`).then(r => r.json()),
         fetch(`${API_ENDPOINT}/users/me/incorrect-questions?userId=${userId}&examType=${targetExam}`).then(r => r.json()),
       ]);
+      stopAnim();
       setFocusedLoadPct(65);
       const allItems: any[] = (data.items ?? []).filter((q: any) => !!q.validityCheckedAt);
       const incorrectIds = new Set<string>(incorrectRes.questionIds ?? []);
