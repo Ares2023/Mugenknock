@@ -631,21 +631,6 @@ export default function ExerciseSession() {
                 </span>
               </button>
             )}
-            {!isMobile && (
-              <button
-                onClick={() => results.length > 0 && setShowAbortConfirm(true)}
-                disabled={results.length === 0}
-                style={{
-                  background: 'none', border: '1px solid var(--color-border)', borderRadius: 'var(--border-radius-full)',
-                  padding: '3px 10px', fontSize: 11, fontWeight: 600, cursor: results.length === 0 ? 'default' : 'pointer',
-                  color: results.length === 0 ? 'var(--color-text-light)' : 'var(--color-text-sub)',
-                  opacity: results.length === 0 ? 0.45 : 1, whiteSpace: 'nowrap', transition: 'all 0.15s',
-                }}
-              >
-                {lang === 'ja' ? '中断して採点' : 'Grade & End'}
-              </button>
-            )}
-            {!isMobile && <Badge variant="secondary">{currentQuestion.examType}</Badge>}
             {(() => {
               const domainTag = currentQuestion.tags.find(tag => EXAM_DOMAINS[examType]?.includes(tag));
               if (!domainTag) return null;
@@ -657,6 +642,24 @@ export default function ExerciseSession() {
               );
             })()}
           </div>
+        </div>
+
+        <div style={{ display: 'flex', flexWrap: 'wrap', gap: 'var(--spacing-md)', fontSize: 'var(--font-size-xs)', color: 'var(--color-text-light)', marginBottom: 'var(--spacing-md)' }}>
+          <span>
+            {lang === 'ja' ? 'AI確認' : 'AI review'}:{' '}
+            {currentQuestion.validityCheckedAt
+              ? <strong style={{ color: 'var(--color-success)' }}>✓ {new Date(currentQuestion.validityCheckedAt).toLocaleDateString('ja-JP', { year: 'numeric', month: '2-digit', day: '2-digit' })}</strong>
+              : <strong>{lang === 'ja' ? '未確認' : 'not reviewed'}</strong>
+            }
+          </span>
+          <span>
+            {lang === 'ja' ? '最終編集' : 'Last edited'}:{' '}
+            <strong style={{ color: (currentQuestion.updatedAt || currentQuestion.createdAt) ? 'var(--color-text-sub)' : 'inherit' }}>
+              {(currentQuestion.updatedAt || currentQuestion.createdAt)
+                ? new Date((currentQuestion.updatedAt || currentQuestion.createdAt)!).toLocaleDateString('ja-JP', { year: 'numeric', month: '2-digit', day: '2-digit' })
+                : '-'}
+            </strong>
+          </span>
         </div>
 
         <div style={{ marginBottom: 'var(--spacing-xl)' }}>
@@ -811,59 +814,40 @@ export default function ExerciseSession() {
           </div>
         )}
 
-        {(answered || isMobile) && (
+        {answered && (
           <div style={{ display: 'flex', justifyContent: 'flex-end', alignItems: 'center', gap: 'var(--spacing-sm)', marginTop: 'var(--spacing-sm)' }}>
-            {answered && (
-              <PromptMenu
-                questionText={currentQuestion.questionText}
-                choices={shuffledChoices.map((c: string, ci: number) => `${CHOICE_LABELS[ci]}. ${c}`)}
-                explanation={((currentQuestion.correctAnswers ? currentQuestion : detail) ?? currentQuestion).explanation}
-                lang={lang}
-              />
-            )}
-            {isMobile && (
-              <button
-                onClick={() => results.length > 0 && setShowAbortConfirm(true)}
-                disabled={results.length === 0}
-                style={{
-                  background: 'none', border: '1px solid var(--color-border)', borderRadius: 'var(--border-radius-full)',
-                  padding: '3px 10px', fontSize: 11, fontWeight: 600, cursor: results.length === 0 ? 'default' : 'pointer',
-                  color: results.length === 0 ? 'var(--color-text-light)' : 'var(--color-text-sub)',
-                  opacity: results.length === 0 ? 0.45 : 1, whiteSpace: 'nowrap', transition: 'all 0.15s',
-                }}
-              >
-                {lang === 'ja' ? '中断して採点' : 'Grade & End'}
-              </button>
-            )}
+            <PromptMenu
+              questionText={currentQuestion.questionText}
+              choices={shuffledChoices.map((c: string, ci: number) => `${CHOICE_LABELS[ci]}. ${c}`)}
+              explanation={((currentQuestion.correctAnswers ? currentQuestion : detail) ?? currentQuestion).explanation}
+              lang={lang}
+            />
           </div>
         )}
 
         {/* メタデータ */}
-        <div style={{ marginTop: 'var(--spacing-md)', paddingTop: 'var(--spacing-sm)', borderTop: '1px dashed var(--color-border)', display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: 'var(--spacing-lg)', fontSize: 'var(--font-size-xs)', color: 'var(--color-text-light)' }}>
-          <span>
-            {lang === 'ja' ? 'AI確認' : 'AI review'}:{' '}
-            {currentQuestion.validityCheckedAt
-              ? <strong style={{ color: 'var(--color-success)' }}>✓ {new Date(currentQuestion.validityCheckedAt).toLocaleDateString('ja-JP', { year: 'numeric', month: '2-digit', day: '2-digit' })}</strong>
-              : <strong>{lang === 'ja' ? '未確認' : 'not reviewed'}</strong>
-            }
-          </span>
-          <span>
-            {lang === 'ja' ? '最終編集' : 'Last edited'}:{' '}
-            <strong style={{ color: (currentQuestion.updatedAt || currentQuestion.createdAt) ? 'var(--color-text-sub)' : 'inherit' }}>
-              {(currentQuestion.updatedAt || currentQuestion.createdAt)
-                ? new Date((currentQuestion.updatedAt || currentQuestion.createdAt)!).toLocaleDateString('ja-JP', { year: 'numeric', month: '2-digit', day: '2-digit' })
-                : '-'}
-            </strong>
-          </span>
+        <div style={{ marginTop: 'var(--spacing-md)', paddingTop: 'var(--spacing-sm)', borderTop: '1px dashed var(--color-border)', display: 'flex', alignItems: 'center', gap: 'var(--spacing-sm)', fontSize: 'var(--font-size-xs)', color: 'var(--color-text-light)' }}>
           <button
             onClick={() => setReportOpen(true)}
-            style={{ marginLeft: 'auto', background: 'none', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 4, color: 'var(--color-text-light)', fontSize: 'var(--font-size-xs)', padding: '2px 6px', borderRadius: 'var(--border-radius-sm)', transition: 'all 0.2s' }}
+            style={{ background: 'none', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 4, color: 'var(--color-text-light)', fontSize: 'var(--font-size-xs)', padding: '2px 6px', borderRadius: 'var(--border-radius-sm)', transition: 'all 0.2s' }}
             onMouseEnter={e => { e.currentTarget.style.color = 'var(--color-danger)'; e.currentTarget.style.background = 'var(--color-feedback-incorrect-bg)'; }}
             onMouseLeave={e => { e.currentTarget.style.color = 'var(--color-text-light)'; e.currentTarget.style.background = 'none'; }}
             title={lang === 'ja' ? '問題の不備を通報' : 'Report an issue'}
           >
             <span style={{ fontSize: 12 }}>⚑</span>
             <span>{lang === 'ja' ? '通報' : 'Report'}</span>
+          </button>
+          <button
+            onClick={() => results.length > 0 && setShowAbortConfirm(true)}
+            disabled={results.length === 0}
+            style={{
+              background: 'none', border: '1px solid var(--color-border)', borderRadius: 'var(--border-radius-full)',
+              padding: '3px 10px', fontSize: 11, fontWeight: 600, cursor: results.length === 0 ? 'default' : 'pointer',
+              color: results.length === 0 ? 'var(--color-text-light)' : 'var(--color-text-sub)',
+              opacity: results.length === 0 ? 0.45 : 1, whiteSpace: 'nowrap', transition: 'all 0.15s',
+            }}
+          >
+            {lang === 'ja' ? '中断して採点' : 'Grade & End'}
           </button>
         </div>
       </Card>
