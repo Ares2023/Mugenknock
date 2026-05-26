@@ -1356,7 +1356,9 @@ export default function Home() {
             ) : (
               <div style={{ display: 'flex', flexDirection: 'column', gap: 7 }}>
                 {domains.map((d, i) => {
-                  const pct = domainAccList[i]?.pct ?? null;
+                  const { pct, total } = domainAccList[i] ?? { pct: null, total: 0 };
+                  const n = Math.min(total ?? 0, 10);
+                  const barPct = pct !== null && n > 0 ? pct * n / 10 : null;
                   const grade = getGrade(pct);
                   const label = lang === 'en' ? (DOMAIN_NAME_EN[d] ?? d) : d;
                   return (
@@ -1366,7 +1368,7 @@ export default function Home() {
                         <span style={{ fontSize: 11, color: 'var(--color-text-sub)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', flex: 1 }}>{label}</span>
                       </div>
                       <div style={{ height: 5, background: 'var(--color-border)', borderRadius: 3, overflow: 'hidden' }}>
-                        {pct !== null && <div style={{ width: `${pct}%`, minWidth: pct === 0 ? 3 : undefined, height: '100%', borderRadius: 3, background: 'var(--bar-gradient-primary)', transformOrigin: 'left center', animation: `growWidth 0.45s cubic-bezier(0.34, 1.56, 0.64, 1) ${i * 30}ms both` }} />}
+                        {barPct !== null && <div style={{ width: `${barPct}%`, minWidth: barPct === 0 ? 3 : undefined, height: '100%', borderRadius: 3, background: 'var(--bar-gradient-primary)', transformOrigin: 'left center', animation: `growWidth 0.45s cubic-bezier(0.34, 1.56, 0.64, 1) ${i * 30}ms both` }} />}
                       </div>
                     </div>
                   );
