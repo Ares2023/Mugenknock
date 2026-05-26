@@ -1285,63 +1285,14 @@ export default function Home() {
         style={{ marginBottom: 'var(--spacing-md)', cursor: (targetExam && !statsLoading) ? 'pointer' : 'default', position: 'relative' }}
         onClick={() => { if (targetExam && !statsLoading) setShowCombinedDetail(true); }}
       >
-        {!isMobile && user && (
-          <button
-            onClick={e => { e.stopPropagation(); refreshStats(); }}
-            disabled={statsLoading || statsRefreshing}
-            title={ja ? '成績を更新' : 'Refresh stats'}
-            aria-label={ja ? '成績を更新' : 'Refresh stats'}
-            style={{
-              position: 'absolute', top: 6, right: 6,
-              width: 32, height: 32, borderRadius: '50%',
-              border: '1px solid var(--color-border)',
-              background: 'transparent',
-              color: 'var(--color-primary)',
-              cursor: (statsLoading || statsRefreshing) ? 'default' : 'pointer',
-              display: 'flex', alignItems: 'center', justifyContent: 'center',
-              opacity: (statsLoading || statsRefreshing) ? 0.5 : 1,
-              zIndex: 1,
-            }}
-          >
-            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"
-              style={{ animation: (statsLoading || statsRefreshing) ? 'sherpa-spin 0.8s linear infinite' : 'none' }}>
-              <polyline points="23 4 23 10 17 10"/>
-              <path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/>
-            </svg>
-          </button>
-        )}
         <div style={isMobile ? { display: 'flex', flexDirection: 'column-reverse' } : { display: 'flex', gap: 0 }}>
 
           {/* ドメイン別正答率 */}
           <div style={isMobile ? {} : { flex: 1, minWidth: 0, paddingRight: 16 }}>
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8 }}>
+            <div style={{ marginBottom: 8 }}>
               <span style={{ fontSize: 11, fontWeight: 700, color: 'var(--color-text-sub)', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
                 {ja ? 'ドメイン別正答率' : 'Domain Accuracy'}
               </span>
-              {user && isMobile && (
-                <button
-                  onClick={e => { e.stopPropagation(); refreshStats(); }}
-                  disabled={statsLoading || statsRefreshing}
-                  title={ja ? '成績を更新' : 'Refresh stats'}
-                  aria-label={ja ? '成績を更新' : 'Refresh stats'}
-                  style={{
-                    width: 44, height: 44, borderRadius: '50%',
-                    border: `1px solid var(--color-border)`,
-                    background: 'transparent',
-                    color: 'var(--color-primary)',
-                    cursor: (statsLoading || statsRefreshing) ? 'default' : 'pointer',
-                    display: 'flex', alignItems: 'center', justifyContent: 'center',
-                    opacity: (statsLoading || statsRefreshing) ? 0.5 : 1,
-                    flexShrink: 0,
-                  }}
-                >
-                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"
-                    style={{ animation: (statsLoading || statsRefreshing) ? 'sherpa-spin 0.8s linear infinite' : 'none' }}>
-                    <polyline points="23 4 23 10 17 10"/>
-                    <path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/>
-                  </svg>
-                </button>
-              )}
             </div>
             {!targetExam ? (
               <div style={{ color: 'var(--color-text-light)', fontSize: 'var(--font-size-sm)', fontStyle: 'italic' }}>
@@ -1385,10 +1336,34 @@ export default function Home() {
 
           {/* 予想スコア */}
           <div style={isMobile ? {} : { flex: 1, minWidth: 0, paddingLeft: 16 }}>
-            <div style={{ marginBottom: 8 }}>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8 }}>
               <span style={{ fontSize: 11, fontWeight: 700, color: 'var(--color-text-sub)', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
                 {ja ? '予想スコア' : 'Est. Score'}
               </span>
+              {user && (
+                <button
+                  onClick={e => { e.stopPropagation(); refreshStats(); }}
+                  disabled={statsLoading || statsRefreshing}
+                  title={ja ? '成績を更新' : 'Refresh stats'}
+                  aria-label={ja ? '成績を更新' : 'Refresh stats'}
+                  style={{
+                    width: 44, height: 44, borderRadius: '50%',
+                    border: '1px solid var(--color-border)',
+                    background: 'transparent',
+                    color: 'var(--color-primary)',
+                    cursor: (statsLoading || statsRefreshing) ? 'default' : 'pointer',
+                    display: 'flex', alignItems: 'center', justifyContent: 'center',
+                    opacity: (statsLoading || statsRefreshing) ? 0.5 : 1,
+                    flexShrink: 0,
+                  }}
+                >
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"
+                    style={{ animation: (statsLoading || statsRefreshing) ? 'sherpa-spin 0.8s linear infinite' : 'none' }}>
+                    <polyline points="23 4 23 10 17 10"/>
+                    <path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/>
+                  </svg>
+                </button>
+              )}
             </div>
             {!targetExam ? (
               <div style={{ color: 'var(--color-text-light)', fontSize: 'var(--font-size-sm)', fontStyle: 'italic' }}>
