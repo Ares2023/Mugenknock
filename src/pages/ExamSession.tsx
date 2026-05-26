@@ -497,18 +497,17 @@ export default function ExamSession() {
                   color: 'var(--color-text-main)',
                   transition: 'all 0.15s ease'
                 }}>
-                <div style={{ fontSize: 11, fontWeight: 700, color: 'var(--color-text-sub)', opacity: 0.7, marginBottom: 5, lineHeight: 1, marginLeft: 0 }}>
-                  {CHOICE_LABELS[displayIdx]}
-                </div>
                 <div style={{ display: 'flex', alignItems: 'flex-start', gap: 8 }}>
                   <input
                     type={currentQ.isMultiple ? 'checkbox' : 'radio'}
                     checked={isSelected}
                     readOnly
                     tabIndex={-1}
-                    style={{ margin: 0, marginTop: 2, flexShrink: 0, pointerEvents: 'none', accentColor: 'var(--color-primary)' }}
+                    style={{ margin: 0, marginTop: 3, flexShrink: 0, pointerEvents: 'none', accentColor: 'var(--color-primary)' }}
                   />
-                  <span style={{ flex: 1, minWidth: 0, overflowWrap: 'break-word', wordBreak: 'break-word' }}>{choice}</span>
+                  <span style={{ flex: 1, minWidth: 0, overflowWrap: 'break-word', wordBreak: 'break-word' }}>
+                    <strong style={{ marginRight: 2 }}>{CHOICE_LABELS[displayIdx]}.</strong> {stripLabel(choice)}
+                  </span>
                 </div>
               </button>
             );

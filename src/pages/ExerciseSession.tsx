@@ -666,7 +666,7 @@ export default function ExerciseSession() {
               )}
             </div>
             <CopyButton getText={() => {
-              const choicesText = shuffledChoices.map((c: string, idx: number) => `${CHOICE_LABELS[idx]}. ${c}`).join('\n');
+              const choicesText = shuffledChoices.map((c: string, idx: number) => `${CHOICE_LABELS[idx]}. ${stripLabel(c)}`).join('\n');
               return `${currentQuestion.questionText}\n\n${choicesText}`;
             }} label={lang === 'ja' ? '問題をコピー' : 'Copy Q+Choices'} />
           </div>
@@ -688,19 +688,16 @@ export default function ExerciseSession() {
                 style={getChoiceStyle(choice)}
                 className={lastSelected === choice && isSelected && !answered ? 'choice-select-anim' : ''}
               >
-                <div style={{ fontSize: 11, fontWeight: 700, color: 'inherit', opacity: 0.7, marginBottom: 5, lineHeight: 1, marginLeft: 0 }}>
-                  {CHOICE_LABELS[idx]}
-                </div>
                 <div style={{ display: 'flex', alignItems: 'flex-start', gap: 8 }}>
                   <input
                     type={currentQuestion.isMultiple ? 'checkbox' : 'radio'}
                     checked={isSelected}
                     readOnly
                     tabIndex={-1}
-                    style={{ margin: 0, marginTop: 2, flexShrink: 0, pointerEvents: 'none', accentColor: 'var(--color-primary)' }}
+                    style={{ margin: 0, marginTop: 3, flexShrink: 0, pointerEvents: 'none', accentColor: 'var(--color-primary)' }}
                   />
                   <span style={{ flex: 1, minWidth: 0, overflowWrap: 'break-word', wordBreak: 'break-word', lineHeight: 1.55 }}>
-                    {choice}
+                    <strong style={{ marginRight: 2 }}>{CHOICE_LABELS[idx]}.</strong> {stripLabel(choice)}
                   </span>
                 </div>
               </button>
@@ -763,17 +760,21 @@ export default function ExerciseSession() {
                   {lastResult?.isCorrect ? t('exerciseSession.correct') : t('exerciseSession.incorrect')}
                 </h3>
                 <CopyButton getText={() => {
-                  const choicesText = shuffledChoices.map((c: string, ci: number) => `${CHOICE_LABELS[ci]}. ${c}`).join('\n');
+                  const choicesText = shuffledChoices.map((c: string, ci: number) => `${CHOICE_LABELS[ci]}. ${stripLabel(c)}`).join('\n');
                   const correctLabels = (displayQ.correctAnswers ?? []).map((ca: string) => {
                     const si = shuffledChoices.findIndex((c: string) => stripLabel(c) === stripLabel(ca));
-                    return si >= 0 ? CHOICE_LABELS[si] : stripLabel(ca);
+                    return si >= 0 ? `${CHOICE_LABELS[si]}. ${stripLabel(ca)}` : stripLabel(ca);
                   }).join(', ');
                   const expl = lang === 'en' && (displayQ as any).explanationEn ? (displayQ as any).explanationEn : (displayQ.explanation ?? '');
                   return `${currentQuestion.questionText}\n\n${choicesText}\n\n${t('exerciseSession.correctAnswer')}${correctLabels}\n\n${t('exerciseSession.explanation')}\n${expl}`;
                 }} label={lang === 'ja' ? '解説をコピー' : 'Copy Explanation'} />
               </div>
               <p style={{ margin: '0 0 12px', fontSize: 'var(--font-size-base)' }}>
-                <strong>{t('exerciseSession.correctAnswer')}</strong>{displayQ.correctAnswers?.join(', ')}
+                <strong>{t('exerciseSession.correctAnswer')}</strong>
+                {displayQ.correctAnswers?.map((ca: string) => {
+                  const si = shuffledChoices.findIndex((c: string) => stripLabel(c) === stripLabel(ca));
+                  return si >= 0 ? `${CHOICE_LABELS[si]}. ${stripLabel(ca)}` : stripLabel(ca);
+                }).join(' / ')}
               </p>
               <div style={{ fontSize: 'var(--font-size-base)', lineHeight: 1.6 }}>
                 <strong>{t('exerciseSession.explanation')}</strong>
