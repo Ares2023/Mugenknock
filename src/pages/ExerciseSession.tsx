@@ -611,14 +611,10 @@ export default function ExerciseSession() {
       {/* 進捗ノード */}
       <div style={{ display: 'flex', alignItems: 'center', gap: 3, marginBottom: 'var(--spacing-sm)' }}>
         {questions.map((_, i) => {
-          const isCompleted = i < currentIndex;
           const isCurrent = i === currentIndex;
-          const result = results[i];
-          const bg = isCompleted
-            ? (result?.isCorrect ? 'var(--color-success)' : 'var(--color-danger)')
-            : isCurrent ? 'var(--color-primary)' : 'var(--color-border)';
+          const isDone = i < currentIndex;
           return (
-            <div key={i} style={{ flex: 1, height: isCurrent ? 8 : 5, borderRadius: 999, background: bg, transition: 'all 0.2s' }} />
+            <div key={i} style={{ flex: 1, height: isCurrent ? 8 : 5, borderRadius: 999, background: (isDone || isCurrent) ? 'var(--color-primary)' : 'var(--color-border)', transition: 'all 0.2s' }} />
           );
         })}
       </div>
