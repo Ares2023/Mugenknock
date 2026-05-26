@@ -579,9 +579,15 @@ function syncEncyclopediaToServer(userId: string, forceUpload = false): void {
       .then(data => {
         const server: Record<string, string> = data.unlocks ?? {};
         if (!forceUpload && Object.keys(server).length === 0 && Object.keys(local).length > 0) {
+          // 管理者リセットとみなしてローカル履歴をクリア。
+          // ただし今日すでに解放済みの場合は unlockDate だけ残し、当日の二重解放を防ぐ。
+          const todayJst = new Date(Date.now() + 9 * 3600 * 1000).toISOString().slice(0, 10);
+          const wasToday = unlockDate === todayJst;
           localStorage.setItem(`encyclopediaUnlocked_${uid}`, '{}');
-          localStorage.removeItem(`encyclopediaUnlockDate_${uid}`);
-          localStorage.removeItem(`encyclopediaTodayServiceId_${uid}`);
+          if (!wasToday) {
+            localStorage.removeItem(`encyclopediaUnlockDate_${uid}`);
+            localStorage.removeItem(`encyclopediaTodayServiceId_${uid}`);
+          }
           window.dispatchEvent(new CustomEvent('encyclopediaUpdated'));
           return;
         }
