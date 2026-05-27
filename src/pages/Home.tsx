@@ -236,7 +236,7 @@ function CombinedDetailModal({ targetExam, domainAccList, estimatedScore, passSc
                     <div style={{ display: 'flex', alignItems: 'center', marginBottom: 4 }}>
                       {paddedNodes.map((correct, ni) => (
                         <React.Fragment key={ni}>
-                          <div style={{ flex: 1, height: 1.5, background: 'var(--color-border)' }} />
+                          <div style={{ flex: 1, height: 1.5, background: '#8F9C9D' }} />
                           <div style={{
                             width: 14, height: 14, borderRadius: '50%', flexShrink: 0,
                             border: `1.5px solid ${correct === null ? 'var(--color-border)' : correct ? 'var(--color-success)' : 'var(--color-danger)'}`,
