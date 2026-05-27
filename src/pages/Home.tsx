@@ -209,17 +209,18 @@ function CombinedDetailModal({ targetExam, domainAccList, estimatedScore, passSc
                 {ja ? 'ドメイン別スコア内訳' : 'Score by Domain'}
               </div>
               {domains.map((d, i) => {
-                const { pct, total: totalQ, correct: correctTotal } = domainAccList[i] ?? { pct: null, total: 0, correct: 0 };
+                const { pct, total: totalQ } = domainAccList[i] ?? { pct: null, total: 0, correct: 0 };
                 const n = Math.min(totalQ ?? 0, 5);
-                const correctN = totalQ > 0 && n > 0 ? Math.round((correctTotal ?? 0) / totalQ * n) : 0;
                 const fullMaxPts = Math.round(weights[i] / totalAllWeights * 1000);
                 const curPts = pct !== null && n > 0 ? Math.round(pct / 100 * fullMaxPts * n / 5) : 0;
-                const barPct = fullMaxPts > 0 ? curPts / fullMaxPts * 100 : 0;
                 const label = lang === 'en' ? (DOMAIN_NAME_EN[d] ?? d) : d;
                 const hasPracticed = totalQ > 0;
                 const serverResults = domainStats.find(s => s.tagId === d)?.recentResults;
                 const nodeResults = (serverResults ?? localDomainResults[d] ?? []).slice(-5);
                 const paddedNodes: (boolean | null)[] = [...Array(5 - nodeResults.length).fill(null), ...nodeResults];
+                const formulaStr = hasPracticed
+                  ? `${fullMaxPts}×${Math.round(pct ?? 0)}%${n < 5 ? `×${n}/5` : ''}=${curPts}`
+                  : '—';
                 return (
                   <div key={d} style={{ marginBottom: 10 }}>
                     <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', marginBottom: 4 }}>
@@ -230,25 +231,23 @@ function CombinedDetailModal({ targetExam, domainAccList, estimatedScore, passSc
                       <div style={{ flexShrink: 0, marginLeft: 8, textAlign: 'right' }}>
                         <span style={{ fontSize: 13, fontWeight: 700, color: hasPracticed ? 'var(--color-primary)' : 'var(--color-text-light)' }}>{curPts}</span>
                         <span style={{ fontSize: 11, color: 'var(--color-text-light)' }}> / {fullMaxPts}</span>
-                        {n > 0 && (
-                          <div style={{ fontSize: 9, color: 'var(--color-text-light)', lineHeight: 1.4 }}>{correctN}/{n}{ja ? '問' : 'q'}</div>
-                        )}
+                        <div style={{ fontSize: 9, color: 'var(--color-text-light)', lineHeight: 1.4 }}>{formulaStr}</div>
                       </div>
                     </div>
-                    <div style={{ display: 'flex', alignItems: 'center', marginBottom: 4 }}>
+                    <div style={{ display: 'flex', alignItems: 'center' }}>
                       {paddedNodes.map((correct, ni) => (
                         <React.Fragment key={ni}>
                           {ni === 0
-                            ? <div style={{ flex: 1, height: 0, borderTop: '1.5px dashed #8F9C9D' }} />
-                            : <div style={{ flex: 1, height: 1.5, background: '#8F9C9D' }} />
+                            ? <div style={{ flex: 1, height: 0, borderTop: '1.5px dashed #AEBCBD' }} />
+                            : <div style={{ flex: 1, height: 1.5, background: '#AEBCBD' }} />
                           }
                           <div style={{
                             width: 14, height: 14, borderRadius: '50%', flexShrink: 0,
-                            border: `1.5px solid ${correct === null ? '#8F9C9D' : correct ? 'var(--color-success)' : 'var(--color-danger)'}`,
+                            border: `1.5px solid ${correct === null ? '#AEBCBD' : correct ? 'var(--color-success)' : 'var(--color-danger)'}`,
                             background: correct === null ? 'transparent' : correct ? 'var(--color-feedback-correct-bg)' : 'var(--color-feedback-incorrect-bg)',
                             display: 'flex', alignItems: 'center', justifyContent: 'center',
                             fontSize: 8, fontWeight: 700, lineHeight: 1,
-                            color: correct === null ? '#8F9C9D' : correct ? 'var(--color-success)' : 'var(--color-danger)',
+                            color: correct === null ? '#AEBCBD' : correct ? 'var(--color-success)' : 'var(--color-danger)',
                           }}>
                             {correct === null ? <span style={{ fontSize: 8, lineHeight: 1 }}>−</span>
                               : correct
@@ -258,9 +257,6 @@ function CombinedDetailModal({ targetExam, domainAccList, estimatedScore, passSc
                           </div>
                         </React.Fragment>
                       ))}
-                    </div>
-                    <div style={{ height: 5, background: '#8F9C9D', borderRadius: 3, overflow: 'hidden' }}>
-                      <div style={{ width: `${barPct}%`, height: '100%', borderRadius: 3, background: hasPracticed ? 'var(--bar-gradient-primary)' : 'transparent', animation: hasPracticed ? `growWidth 0.45s cubic-bezier(0.34, 1.56, 0.64, 1) ${i * 50}ms both` : 'none' }} />
                     </div>
                   </div>
                 );
