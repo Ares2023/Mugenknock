@@ -218,8 +218,9 @@ function CombinedDetailModal({ targetExam, domainAccList, estimatedScore, passSc
                 const serverResults = domainStats.find(s => s.tagId === d)?.recentResults;
                 const nodeResults = (serverResults ?? localDomainResults[d] ?? []).slice(-5);
                 const paddedNodes: (boolean | null)[] = [...Array(5 - nodeResults.length).fill(null), ...nodeResults];
+                const effectiveRate = Math.round((pct ?? 0) * n / 5);
                 const formulaStr = hasPracticed
-                  ? `${fullMaxPts}×${Math.round(pct ?? 0)}%${n < 5 ? `×${n}/5` : ''}=${curPts}`
+                  ? `${fullMaxPts}×${effectiveRate}%=${curPts}`
                   : '—';
                 return (
                   <div key={d} style={{ marginBottom: 10 }}>
