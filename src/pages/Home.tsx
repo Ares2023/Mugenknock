@@ -217,6 +217,7 @@ function CombinedDetailModal({ targetExam, domainAccList, estimatedScore, passSc
                 const label = lang === 'en' ? (DOMAIN_NAME_EN[d] ?? d) : d;
                 const hasPracticed = totalQ > 0;
                 const nodeResults = (domainResults[d] ?? []).slice(-5);
+                const paddedNodes: (boolean | null)[] = [...Array(5 - nodeResults.length).fill(null), ...nodeResults];
                 return (
                   <div key={d} style={{ marginBottom: 10 }}>
                     <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', marginBottom: 4 }}>
@@ -232,25 +233,23 @@ function CombinedDetailModal({ targetExam, domainAccList, estimatedScore, passSc
                         )}
                       </div>
                     </div>
-                    {nodeResults.length > 0 && (
-                      <div style={{ display: 'flex', alignItems: 'center', marginBottom: 4 }}>
-                        {nodeResults.map((correct, ni) => (
-                          <React.Fragment key={ni}>
-                            <div style={{ flex: 1, height: 1.5, background: 'var(--color-border)' }} />
-                            <div style={{
-                              width: 14, height: 14, borderRadius: '50%', flexShrink: 0,
-                              border: `1.5px solid ${correct ? 'var(--color-success)' : 'var(--color-danger)'}`,
-                              background: correct ? 'var(--color-feedback-correct-bg)' : 'var(--color-feedback-incorrect-bg)',
-                              display: 'flex', alignItems: 'center', justifyContent: 'center',
-                              fontSize: 8, fontWeight: 700, lineHeight: 1,
-                              color: correct ? 'var(--color-success)' : 'var(--color-danger)',
-                            }}>
-                              {correct ? '✓' : '✗'}
-                            </div>
-                          </React.Fragment>
-                        ))}
-                      </div>
-                    )}
+                    <div style={{ display: 'flex', alignItems: 'center', marginBottom: 4 }}>
+                      {paddedNodes.map((correct, ni) => (
+                        <React.Fragment key={ni}>
+                          <div style={{ flex: 1, height: 1.5, background: 'var(--color-border)' }} />
+                          <div style={{
+                            width: 14, height: 14, borderRadius: '50%', flexShrink: 0,
+                            border: `1.5px solid ${correct === null ? 'var(--color-border)' : correct ? 'var(--color-success)' : 'var(--color-danger)'}`,
+                            background: correct === null ? 'transparent' : correct ? 'var(--color-feedback-correct-bg)' : 'var(--color-feedback-incorrect-bg)',
+                            display: 'flex', alignItems: 'center', justifyContent: 'center',
+                            fontSize: 8, fontWeight: 700, lineHeight: 1,
+                            color: correct === null ? 'var(--color-text-light)' : correct ? 'var(--color-success)' : 'var(--color-danger)',
+                          }}>
+                            {correct === null ? '−' : correct ? '✓' : '✗'}
+                          </div>
+                        </React.Fragment>
+                      ))}
+                    </div>
                     <div style={{ height: 5, background: '#8F9C9D', borderRadius: 3, overflow: 'hidden' }}>
                       <div style={{ width: `${barPct}%`, height: '100%', borderRadius: 3, background: hasPracticed ? 'var(--bar-gradient-primary)' : 'transparent', animation: hasPracticed ? `growWidth 0.45s cubic-bezier(0.34, 1.56, 0.64, 1) ${i * 50}ms both` : 'none' }} />
                     </div>
