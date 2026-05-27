@@ -23,11 +23,11 @@ type ScoreEntry = { date: string; score: number };
 // ── ユーティリティ ───────────────────────────────────────────────
 function getGrade(pct: number | null): string {
   if (pct === null) return '—';
-  if (pct >= 90) return 'S';
-  if (pct >= 80) return 'A';
-  if (pct >= 70) return 'B';
-  if (pct >= 60) return 'C';
-  return 'D';
+  if (pct >= 100) return 'S'; // 5/5
+  if (pct >= 80)  return 'A'; // 4/5
+  if (pct >= 60)  return 'B'; // 3/5
+  if (pct >= 40)  return 'C'; // 2/5
+  return 'D';                  // 0–1/5
 }
 
 // ロード進捗を limit に向けて漸近的にアニメーション。返り値はキャンセル関数。
