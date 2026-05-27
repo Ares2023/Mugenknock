@@ -214,7 +214,7 @@ function CombinedDetailModal({ targetExam, domainAccList, estimatedScore, passSc
                 const serverResults = domainStats.find(s => s.tagId === d)?.recentResults;
                 const nodeResults = (serverResults ?? localDomainResults[d] ?? []).slice(-5);
                 const paddedNodes: (boolean | null)[] = [...Array(5 - nodeResults.length).fill(null), ...nodeResults];
-                const correctInNodes = nodeResults.filter(v => v === true).length;
+                const correctInNodes = nodeResults.filter(v => !!v).length;
                 const curPts = Math.round(correctInNodes / 5 * fullMaxPts);
                 const hasPracticed = nodeResults.length > 0;
                 const formulaStr = hasPracticed ? `${fullMaxPts}×${correctInNodes}/5=${curPts}` : '—';
@@ -235,7 +235,11 @@ function CombinedDetailModal({ targetExam, domainAccList, estimatedScore, passSc
                       {paddedNodes.map((correct, ni) => (
                         <React.Fragment key={ni}>
                           {ni === 0
-                            ? <div style={{ flex: 1, height: 0, borderTop: '1.5px dashed #AEBCBD' }} />
+                            ? <div style={{ flex: 1, display: 'flex', alignItems: 'center' }}>
+                                {[1, 1.5, 2, 2.5, 3].map((dash, idx) => (
+                                  <div key={idx} style={{ flex: 1, height: 1.5, background: `repeating-linear-gradient(to right, #AEBCBD 0px, #AEBCBD ${dash}px, transparent ${dash}px, transparent ${dash + 3}px)` }} />
+                                ))}
+                              </div>
                             : <div style={{ flex: 1, height: 1.5, background: '#AEBCBD' }} />
                           }
                           <div style={{
@@ -1053,6 +1057,17 @@ export default function Home() {
   }, [user, targetExam]);
 
   // ── 予想スコア計算（サーバー統計優先、オフライン/ゲスト時はローカル履歴）──
+  const domainNodeResultsMap = useMemo(() => {
+    if (!targetExam) return {} as Record<string, boolean[]>;
+    const localDR = readDomainResults(targetExam, uid);
+    const result: Record<string, boolean[]> = {};
+    for (const d of (EXAM_DOMAINS[targetExam] ?? [])) {
+      const serverResults = domainStats.find(s => s.tagId === d)?.recentResults;
+      result[d] = (serverResults ?? localDR[d] ?? []).slice(-5);
+    }
+    return result;
+  }, [targetExam, domainStats, uid]);
+
   const estimatedScore = useMemo(() => {
     if (!targetExam) return null;
     const domainList = EXAM_DOMAINS[targetExam] ?? [];
@@ -1060,19 +1075,17 @@ export default function Home() {
     const totalAllWeights = weights.reduce((s, w) => s + w, 0);
     if (totalAllWeights === 0) return null;
 
-    const localDR = readDomainResults(targetExam, uid);
     let weightedSum = 0, hasAnyData = false;
     for (let i = 0; i < domainList.length; i++) {
-      const serverResults = domainStats.find(s => s.tagId === domainList[i])?.recentResults;
-      const nodeResults = (serverResults ?? localDR[domainList[i]] ?? []).slice(-5);
+      const nodeResults = domainNodeResultsMap[domainList[i]] ?? [];
       if (nodeResults.length === 0) continue;
-      const correctInNodes = nodeResults.filter((v: boolean) => v === true).length;
+      const correctInNodes = nodeResults.filter((v: boolean) => !!v).length;
       weightedSum += (correctInNodes / 5) * weights[i];
       hasAnyData = true;
     }
     if (!hasAnyData) return null;
     return Math.round((weightedSum / totalAllWeights) * 1000);
-  }, [targetExam, domainStats, uid]);
+  }, [targetExam, domainNodeResultsMap]);
 
   const focusedUnlocked = !!user && answeredCount >= FOCUSED_UNLOCK_THRESHOLD;
   const focusedUnlockedCached = localStorage.getItem(`focusedUnlockedCache_${uid}`) === '1';
@@ -1358,9 +1371,9 @@ export default function Home() {
             ) : (
               <div style={{ display: 'flex', flexDirection: 'column', gap: 7 }}>
                 {domains.map((d, i) => {
-                  const { pct, total } = domainAccList[i] ?? { pct: null, total: 0 };
-                  const n = Math.min(total ?? 0, 5);
-                  const barPct = pct !== null && n > 0 ? pct * n / 5 : null;
+                  const nodeResults = domainNodeResultsMap[d] ?? [];
+                  const correctInNodes = nodeResults.filter(v => !!v).length;
+                  const barPct = nodeResults.length > 0 ? correctInNodes / 5 * 100 : null;
                   const grade = getGrade(barPct);
                   const label = lang === 'en' ? (DOMAIN_NAME_EN[d] ?? d) : d;
                   return (
