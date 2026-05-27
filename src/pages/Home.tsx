@@ -9,6 +9,7 @@ import {
   DOMAIN_WEIGHTS, DOMAIN_NAME_EN, PASS_SCORES,
 } from '../constants';
 import { getCached, setCached, deleteCached, DEFAULT_TTL } from '../utils/cache';
+import { animateLoadPct, randomPlateau } from '../utils/loadProgress';
 import Card from '../components/ui/Card';
 import Button from '../components/ui/Button';
 import { IconLightbulb, IconSettings, IconChevronUp, IconChevronDown, IconLock, IconFileText, IconTrendingUp, IconBookOpen, IconCheck, ServiceIconImg, isServiceIconKey } from '../components/Icons';
@@ -31,15 +32,6 @@ function getGrade(pct: number | null): string {
 }
 
 // ロード進捗を limit に向けて漸近的にアニメーション。返り値はキャンセル関数。
-function animateLoadPct(setFn: (v: number) => void, from: number, limit: number, intervalMs = 120): () => void {
-  let current = from;
-  const id = setInterval(() => {
-    current = current + (limit - current) * 0.07;
-    setFn(Math.round(current));
-    if (limit - current < 0.4) clearInterval(id);
-  }, intervalMs);
-  return () => clearInterval(id);
-}
 
 function readDomainResults(examType: string, uid: string): Record<string, boolean[]> {
   try { return JSON.parse(localStorage.getItem(`domain_results_${examType}_${uid}`) ?? '{}'); } catch { return {}; }
@@ -217,20 +209,15 @@ function CombinedDetailModal({ targetExam, domainAccList, estimatedScore, passSc
                 const correctInNodes = nodeResults.filter(v => !!v).length;
                 const curPts = Math.round(correctInNodes / 5 * fullMaxPts);
                 const hasPracticed = nodeResults.length > 0;
-                const formulaStr = hasPracticed ? `${fullMaxPts}×${correctInNodes}/5=${curPts}` : '—';
+                const formulaStr = hasPracticed ? `${fullMaxPts}×${correctInNodes}/5` : null;
                 return (
-                  <div key={d} style={{ marginBottom: 10 }}>
-                    <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', marginBottom: 4 }}>
-                      <div style={{ display: 'flex', alignItems: 'baseline', gap: 5, minWidth: 0, flex: 1 }}>
-                        <span style={{ fontSize: 10, fontWeight: 700, color: 'var(--color-text-light)', flexShrink: 0 }}>D{i + 1}</span>
-                        <span style={{ fontSize: 11, color: 'var(--color-text-main)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', flex: 1, minWidth: 0 }}>{label}</span>
-                      </div>
-                      <div style={{ flexShrink: 0, marginLeft: 8, textAlign: 'right' }}>
-                        <span style={{ fontSize: 13, fontWeight: 700, color: hasPracticed ? 'var(--color-primary)' : 'var(--color-text-light)' }}>{curPts}</span>
-                        <span style={{ fontSize: 11, color: 'var(--color-text-light)' }}> / {fullMaxPts}</span>
-                        <div style={{ fontSize: 9, color: 'var(--color-text-light)', lineHeight: 1.4 }}>{formulaStr}</div>
-                      </div>
+                  <div key={d} style={{ marginBottom: 12 }}>
+                    {/* ドメイン名 */}
+                    <div style={{ display: 'flex', alignItems: 'baseline', gap: 5, minWidth: 0, marginBottom: 5 }}>
+                      <span style={{ fontSize: 10, fontWeight: 700, color: 'var(--color-text-light)', flexShrink: 0 }}>D{i + 1}</span>
+                      <span style={{ fontSize: 11, color: 'var(--color-text-main)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', minWidth: 0 }}>{label}</span>
                     </div>
+                    {/* ノード行 */}
                     <div style={{ display: 'flex', alignItems: 'center' }}>
                       {paddedNodes.map((correct, ni) => (
                         <React.Fragment key={ni}>
@@ -258,6 +245,15 @@ function CombinedDetailModal({ targetExam, domainAccList, estimatedScore, passSc
                           </div>
                         </React.Fragment>
                       ))}
+                    </div>
+                    {/* 計算式=点数/合計（右揃え・横並び） */}
+                    <div style={{ display: 'flex', justifyContent: 'flex-end', alignItems: 'baseline', marginTop: 3 }}>
+                      {formulaStr
+                        ? <span style={{ fontSize: 9, color: 'var(--color-text-light)' }}>
+                            {formulaStr}=<span style={{ fontSize: 11, fontWeight: 700, color: 'var(--color-primary)' }}>{curPts}</span>/{fullMaxPts}
+                          </span>
+                        : <span style={{ fontSize: 9, color: 'var(--color-text-light)' }}>—</span>
+                      }
                     </div>
                   </div>
                 );
@@ -1106,15 +1102,9 @@ export default function Home() {
 
   useEffect(() => {
     if (!targetExam || estimatedScore === null) { setPrevScore(null); return; }
-    const todayKey = `score_today_${targetExam}_${uid}`;
     const prevKey = `score_prev_${targetExam}_${uid}`;
-    const todayRaw = localStorage.getItem(todayKey);
-    const todayData = todayRaw ? JSON.parse(todayRaw) as { date: string; score: number } : null;
-    if (todayData && todayData.date !== jstDate && !localStorage.getItem(prevKey)) {
-      localStorage.setItem(prevKey, String(todayData.score));
-    }
-    localStorage.setItem(todayKey, JSON.stringify({ date: jstDate, score: estimatedScore }));
-    setPrevScore(localStorage.getItem(prevKey) ? parseInt(localStorage.getItem(prevKey)!, 10) : null);
+    const raw = localStorage.getItem(prevKey);
+    setPrevScore(raw ? parseInt(raw, 10) : null);
 
     // スコア履歴に追記（折れ線グラフ用）
     const histKey = `score_history_${targetExam}_${uid}`;
@@ -1181,6 +1171,7 @@ export default function Home() {
   // サクッと演習
   const startQuickExercise = async () => {
     if (!targetExam) { alert(ja ? '試験を選択してください' : 'Please select an exam'); return; }
+    if (estimatedScore !== null) localStorage.setItem(`score_prev_${targetExam}_${uid}`, String(estimatedScore));
     const userId = user?.userId ?? 'guest';
     await autoScoreAndClearDrafts(userId);
     discardQuickDraft();
@@ -1193,10 +1184,11 @@ export default function Home() {
     try {
       const userId = user?.userId ?? 'guest';
       const params = new URLSearchParams({ examType: targetExam, withAnswers: 'true', withValidity: 'true' });
-      const stopAnim = animateLoadPct(setQuickLoadPct, 10, 57);
+      const plateau = randomPlateau();
+      const stopAnim = animateLoadPct(setQuickLoadPct, 10, plateau);
       const data = await fetch(`${API_ENDPOINT}/questions?${params}`).then(r => r.json());
       stopAnim();
-      setQuickLoadPct(60);
+      setQuickLoadPct(plateau);
       const pool: any[] = (data.items ?? []).filter((q: any) => !!q.validityCheckedAt);
       let items = [...pool];
       if (user && (qPrefs.unansweredOnly || qPrefs.incorrectOnly || qPrefs.bookmarkOnly)) {
@@ -1206,9 +1198,17 @@ export default function Home() {
           qPrefs.bookmarkOnly   ? fetch(`${API_ENDPOINT}/users/me/bookmarks?userId=${userId}`).then(r => r.json()) : null,
         ]);
         setQuickLoadPct(80);
-        if (qPrefs.unansweredOnly && answeredRes) { const s = new Set(answeredRes.questionIds ?? []); items = items.filter((q: any) => !s.has(q.questionId)); }
-        if (qPrefs.incorrectOnly  && incorrectRes) { const s = new Set(incorrectRes.questionIds ?? []); items = items.filter((q: any) => s.has(q.questionId)); }
-        if (qPrefs.bookmarkOnly   && bkmRes)       { const s = new Set(bkmRes.questionIds ?? []);      items = items.filter((q: any) => s.has(q.questionId)); }
+        const unansweredSet = qPrefs.unansweredOnly && answeredRes ? new Set<string>(answeredRes.questionIds ?? []) : null;
+        const incorrectSet  = qPrefs.incorrectOnly  && incorrectRes ? new Set<string>(incorrectRes.questionIds ?? []) : null;
+        const bookmarkSet   = qPrefs.bookmarkOnly   && bkmRes       ? new Set<string>(bkmRes.questionIds ?? [])      : null;
+        // 条件に合う問題を優先（先頭に並べる）、なければ全問から補充
+        items.sort((a, b) => {
+          const scoreQ = (q: any) =>
+            (unansweredSet && !unansweredSet.has(q.questionId) ? 1 : 0) +
+            (incorrectSet  && incorrectSet.has(q.questionId)   ? 1 : 0) +
+            (bookmarkSet   && bookmarkSet.has(q.questionId)    ? 1 : 0);
+          return scoreQ(b) - scoreQ(a);
+        });
       }
       const selDomains: string[] = qPrefs.domains ?? [];
       if (selDomains.length > 0) {
@@ -1237,6 +1237,7 @@ export default function Home() {
   const startFocusedExercise = async () => {
     if (!targetExam) { alert(ja ? '試験を選択してください' : 'Please select an exam'); return; }
     if (!user) { alert(ja ? 'ログインが必要です' : 'Login required'); return; }
+    if (estimatedScore !== null) localStorage.setItem(`score_prev_${targetExam}_${uid}`, String(estimatedScore));
     await autoScoreAndClearDrafts(user.userId);
     discardQuickDraft();
     discardFocusedDraft();
@@ -1248,13 +1249,14 @@ export default function Home() {
     try {
       const userId = user.userId;
       const params = new URLSearchParams({ examType: targetExam, withAnswers: 'true', withValidity: 'true' });
-      const stopAnim = animateLoadPct(setFocusedLoadPct, 10, 62);
+      const plateau = randomPlateau();
+      const stopAnim = animateLoadPct(setFocusedLoadPct, 10, plateau);
       const [data, incorrectRes] = await Promise.all([
         fetch(`${API_ENDPOINT}/questions?${params}`).then(r => r.json()),
         fetch(`${API_ENDPOINT}/users/me/incorrect-questions?userId=${userId}&examType=${targetExam}`).then(r => r.json()),
       ]);
       stopAnim();
-      setFocusedLoadPct(65);
+      setFocusedLoadPct(plateau);
       const allItems: any[] = (data.items ?? []).filter((q: any) => !!q.validityCheckedAt);
       const incorrectIds = new Set<string>(incorrectRes.questionIds ?? []);
       const focusIncorrect: boolean = fPrefs.focusIncorrect !== false;
@@ -1891,9 +1893,9 @@ export default function Home() {
                     {ja ? '重点フィルタ' : 'Focus Filter'}
                   </div>
                   {([
-                    ['unansweredOnly', ja ? '未回答のみ' : 'Unanswered Only', ja ? '一度も回答していない問題のみ出題' : 'Only questions not yet answered'],
-                    ['incorrectOnly',  ja ? '不正解のみ'  : 'Incorrect Only',  ja ? '過去に不正解だった問題のみ出題'   : 'Only previously incorrect questions'],
-                    ['bookmarkOnly',   ja ? 'ブックマークのみ' : 'Bookmarked Only', ja ? 'ブックマークした問題のみ出題'  : 'Only bookmarked questions'],
+                    ['unansweredOnly', ja ? '未回答を優先' : 'Unanswered First', ja ? '未回答の問題を優先して出題（不足時は既回答も含む）' : 'Prioritize unanswered questions'],
+                    ['incorrectOnly',  ja ? '不正解を優先'  : 'Incorrect First',  ja ? '不正解だった問題を優先して出題（不足時は他も含む）' : 'Prioritize previously incorrect questions'],
+                    ['bookmarkOnly',   ja ? 'ブックマークを優先' : 'Bookmarked First', ja ? 'ブックマークした問題を優先して出題（不足時は他も含む）' : 'Prioritize bookmarked questions'],
                   ] as [string, string, string][]).map(([key, label, desc]) => {
                     const on = !!(draftPrefs[key]);
                     return (

@@ -92,9 +92,6 @@ export default function Layout({ children }: { children: React.ReactNode }) {
   const [contactError, setContactError] = useState(false);
 
 
-  const [sidebarExamOpen, setSidebarExamOpen] = useState(false);
-  const sidebarExamRef = useRef<HTMLDivElement>(null);
-  const [mobileExamPanelOpen, setMobileExamPanelOpen] = useState(false);
 
   const swipeStartX = useRef<number>(0);
   const swipeStartY = useRef<number>(0);
@@ -155,22 +152,6 @@ export default function Layout({ children }: { children: React.ReactNode }) {
     setTargetExam(localStorage.getItem(`targetExam_${uid}`));
   }, [location.pathname, uid]);
 
-  useEffect(() => {
-    const handler = (e: MouseEvent) => {
-      if (sidebarExamRef.current && !sidebarExamRef.current.contains(e.target as Node)) {
-        setSidebarExamOpen(false);
-      }
-    };
-    document.addEventListener('mousedown', handler);
-    return () => document.removeEventListener('mousedown', handler);
-  }, []);
-
-  const handleSidebarExamSelect = (et: string) => {
-    localStorage.setItem(`targetExam_${uid}`, et);
-    setTargetExam(et);
-    setSidebarExamOpen(false);
-    window.dispatchEvent(new CustomEvent('targetExamChanged', { detail: et }));
-  };
 
   useEffect(() => {
     mainRef.current?.scrollTo({ top: 0 });
@@ -178,7 +159,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
 
   // ルート変更でサイドバー・モバイルパネルを閉じる
   useEffect(() => {
-    if (isMobile) { setOpen(false); setMobileExamPanelOpen(false); }
+    if (isMobile) { setOpen(false); }
   }, [location.pathname]);
 
   useEffect(() => {
@@ -362,34 +343,8 @@ export default function Layout({ children }: { children: React.ReactNode }) {
           />
         </div>
 
-        {/* モバイルのみ: 目標試験ボタン */}
-        {isMobile && (
-          <button
-            onClick={() => setMobileExamPanelOpen(v => !v)}
-            style={{
-              marginLeft: 'auto',
-              display: 'flex', alignItems: 'center', gap: 4,
-              background: 'transparent',
-              border: '1px solid var(--color-border)',
-              borderRadius: 'var(--border-radius-md)',
-              cursor: 'pointer', color: 'var(--color-text-main)',
-              padding: '5px 10px', fontSize: 'var(--font-size-sm)', fontWeight: 700,
-              maxWidth: '45vw', overflow: 'hidden',
-              transition: 'background 0.2s',
-              flexShrink: 0,
-            }}
-            onMouseEnter={e => e.currentTarget.style.background = 'var(--color-bg-main)'}
-            onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
-          >
-            <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-              {targetExam ?? (lang === 'ja' ? '試験選択' : 'Exam')}
-            </span>
-            <span style={{ opacity: 0.5, flexShrink: 0, transform: mobileExamPanelOpen ? 'rotate(180deg)' : 'none', transition: 'transform 0.2s', display: 'flex' }}><IconChevronDown size={12} /></span>
-          </button>
-        )}
-
         {/* アカウントボタン（モバイル・デスクトップ共通） */}
-        <div style={{ marginLeft: isMobile ? 'var(--spacing-sm)' : 'auto', flexShrink: 0 }}>
+        <div style={{ marginLeft: 'auto', flexShrink: 0 }}>
           <button
             onClick={() => navigate('/account')}
             style={{
@@ -411,69 +366,6 @@ export default function Layout({ children }: { children: React.ReactNode }) {
         </div>
       </header>
 
-      {/* ── モバイル試験選択スライドアップパネル ── */}
-      {isMobile && mobileExamPanelOpen && (
-        <>
-          <div
-            onClick={() => setMobileExamPanelOpen(false)}
-            style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.4)', zIndex: 250 }}
-          />
-          <div style={{
-            position: 'fixed', bottom: 56, left: 0, right: 0, zIndex: 260,
-            background: 'var(--color-bg-white)',
-            borderRadius: '16px 16px 0 0',
-            boxShadow: '0 -4px 20px rgba(0,0,0,0.15)',
-            maxHeight: '55vh', overflowY: 'auto',
-            animation: 'slideUp 0.22s ease',
-          }}>
-            <div style={{ padding: '12px 16px 10px', borderBottom: '1px solid var(--color-border)', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-              <span style={{ fontWeight: 700, fontSize: 'var(--font-size-base)', color: 'var(--color-text-main)' }}>
-                {lang === 'ja' ? '目標試験を選択' : 'Select Target Exam'}
-              </span>
-              <button
-                onClick={() => setMobileExamPanelOpen(false)}
-                style={{ border: 'none', background: 'none', fontSize: 18, cursor: 'pointer', color: 'var(--color-text-sub)', padding: '0 4px', lineHeight: 1 }}
-              >✕</button>
-            </div>
-            {(['Foundational', 'Associate', 'Professional', 'Specialty'] as const).map((level, li) => {
-              const levelItems = EXAM_TYPES.filter(et => EXAM_LEVEL[et] === level);
-              if (levelItems.length === 0) return null;
-              return (
-                <div key={level}>
-                  {li > 0 && <div style={{ height: 1, background: 'var(--color-border)' }} />}
-                  <div style={{ padding: '8px 16px 4px', fontSize: 10, fontWeight: 700, color: 'var(--color-text-light)', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
-                    {level}
-                  </div>
-                  {levelItems.map(et => {
-                    const sel = targetExam === et;
-                    return (
-                      <button
-                        key={et}
-                        onClick={() => { handleSidebarExamSelect(et); setMobileExamPanelOpen(false); }}
-                        style={{
-                          width: '100%', textAlign: 'left', display: 'flex', alignItems: 'center', gap: 10,
-                          padding: '11px 16px', border: 'none',
-                          background: sel ? 'var(--color-primary-light)' : 'transparent',
-                          cursor: 'pointer', fontSize: 'var(--font-size-base)',
-                          color: sel ? 'var(--color-primary)' : 'var(--color-text-main)',
-                          fontWeight: sel ? 700 : 400,
-                        }}
-                      >
-                        <span style={{ fontWeight: 700, minWidth: 40, flexShrink: 0 }}>{et}</span>
-                        <span style={{ fontSize: 'var(--font-size-sm)', color: sel ? 'var(--color-primary)' : 'var(--color-text-sub)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                          {EXAM_CONFIGS[et].fullName}
-                        </span>
-                        {sel && <span style={{ marginLeft: 'auto', color: 'var(--color-primary)', flexShrink: 0, fontSize: 14 }}>✓</span>}
-                      </button>
-                    );
-                  })}
-                </div>
-              );
-            })}
-            <div style={{ height: 12 }} />
-          </div>
-        </>
-      )}
 
       {/* ── サブバー（ハンバーガー＋パンくず） ── */}
       <div style={{
@@ -557,76 +449,6 @@ export default function Layout({ children }: { children: React.ReactNode }) {
                 <IconChevronLeft />
               </button>
 
-              {/* 試験選択ドロップダウン */}
-              <div style={{ padding: '4px 12px 10px', borderBottom: '1px solid var(--color-border)' }}>
-                <div style={{ fontSize: 10, fontWeight: 700, color: 'var(--color-text-light)', textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: 5 }}>
-                  {lang === 'ja' ? '目標試験' : 'Target Exam'}
-                </div>
-                <div ref={sidebarExamRef} style={{ position: 'relative' }}>
-                  <button
-                    onClick={() => setSidebarExamOpen(v => !v)}
-                    style={{
-                      width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 6,
-                      padding: '6px 10px', border: `1.5px solid ${sidebarExamOpen ? 'var(--color-primary)' : 'var(--color-border)'}`,
-                      borderRadius: 'var(--border-radius-md)', background: 'var(--color-bg-main)',
-                      cursor: 'pointer', fontSize: 'var(--font-size-sm)', fontWeight: 600,
-                      color: targetExam ? 'var(--color-text-main)' : 'var(--color-text-light)',
-                      transition: 'border-color 0.15s',
-                    }}
-                  >
-                    <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                      {targetExam ?? (lang === 'ja' ? '未選択' : 'Not selected')}
-                    </span>
-                    <span style={{ color: 'var(--color-primary)', flexShrink: 0, transform: sidebarExamOpen ? 'rotate(180deg)' : 'none', transition: 'transform 0.2s', display: 'flex' }}><IconChevronDown size={12} /></span>
-                  </button>
-                  {sidebarExamOpen && (
-                    <div style={{
-                      position: 'absolute', top: 'calc(100% + 4px)', left: 0, right: 0,
-                      background: 'var(--color-bg-white)', border: '1px solid var(--color-border)',
-                      borderRadius: 'var(--border-radius-md)', boxShadow: '0 4px 16px rgba(0,0,0,0.12)',
-                      zIndex: 400, maxHeight: 220, overflowY: 'auto',
-                    }}>
-                      {(['Foundational', 'Associate', 'Professional', 'Specialty'] as const).map((level, li) => {
-                        const items = EXAM_TYPES.filter(et => EXAM_LEVEL[et] === level);
-                        if (items.length === 0) return null;
-                        return (
-                          <div key={level}>
-                            {li > 0 && <div style={{ height: 1, background: 'var(--color-border)' }} />}
-                            <div style={{ padding: '4px 10px 2px', fontSize: 9, fontWeight: 700, color: 'var(--color-text-light)', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
-                              {level}
-                            </div>
-                            {items.map(et => {
-                              const selected = targetExam === et;
-                              return (
-                                <button
-                                  key={et}
-                                  onClick={() => handleSidebarExamSelect(et)}
-                                  style={{
-                                    width: '100%', textAlign: 'left', display: 'flex', alignItems: 'center', gap: 6,
-                                    padding: '6px 10px', border: 'none',
-                                    background: selected ? 'var(--color-primary-light)' : 'transparent',
-                                    cursor: 'pointer', fontSize: 'var(--font-size-sm)',
-                                    color: selected ? 'var(--color-primary)' : 'var(--color-text-main)',
-                                    fontWeight: selected ? 700 : 400,
-                                  }}
-                                  onMouseEnter={e => { if (!selected) e.currentTarget.style.background = 'var(--color-bg-main)'; }}
-                                  onMouseLeave={e => { if (!selected) e.currentTarget.style.background = 'transparent'; }}
-                                >
-                                  <span style={{ fontWeight: 700, minWidth: 32, flexShrink: 0 }}>{et}</span>
-                                  <span style={{ fontSize: 10, color: selected ? 'var(--color-primary)' : 'var(--color-text-sub)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                                    {EXAM_CONFIGS[et].examCode}
-                                  </span>
-                                  {selected && <span style={{ marginLeft: 'auto', fontSize: 11, flexShrink: 0 }}>✓</span>}
-                                </button>
-                              );
-                            })}
-                          </div>
-                        );
-                      })}
-                    </div>
-                  )}
-                </div>
-              </div>
 
               {navItems.filter(item => !(item as any).bottom).map(({ path, labelKey, Icon }) => {
                 const active = isActive(path);

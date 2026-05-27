@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { updatePassword, deleteUser, updateUserAttributes } from 'aws-amplify/auth';
-import { API_ENDPOINT, EXAM_TYPES, EXAM_LEVEL } from '../constants';
+import { API_ENDPOINT, EXAM_TYPES, EXAM_LEVEL, EXAM_CONFIGS } from '../constants';
 import { deleteCached } from '../utils/cache';
 import { useAuth } from '../contexts/AuthContext';
 import { useLanguage } from '../contexts/LanguageContext';
@@ -150,8 +150,10 @@ export default function Account() {
   const [showDataModal, setShowDataModal] = useState(false);
   const [showLangModal, setShowLangModal] = useState(false);
   const [showThemeModal, setShowThemeModal] = useState(false);
+  const [showExamModal, setShowExamModal] = useState(false);
 
   const uid = user?.userId ?? 'guest';
+  const [targetExam, setTargetExam] = useState<string | null>(() => localStorage.getItem(`targetExam_${user?.userId ?? 'guest'}`));
   // localStorage にそのexamTypeのデータが残っているか確認
   const hasLocalData = (et: string): boolean => {
     try {
@@ -322,6 +324,21 @@ export default function Account() {
             </SettingsGroup>
           </div>
         )}
+
+        {/* 目標試験 */}
+        <div>
+          <SectionTitle>{ja ? '目標試験' : 'Target Exam'}</SectionTitle>
+          <SettingsGroup>
+            <SettingsRow
+              label={ja ? '目標資格' : 'Target Certification'}
+              value={targetExam
+                ? `${targetExam} — ${EXAM_CONFIGS[targetExam]?.examCode ?? ''}`
+                : (ja ? '未選択' : 'Not selected')}
+              onClick={() => setShowExamModal(true)}
+              last
+            />
+          </SettingsGroup>
+        </div>
 
         {/* 表示設定 */}
         <div>
@@ -537,6 +554,53 @@ export default function Account() {
       )}
 
       {/* ── 言語選択モーダル ── */}
+      {/* ── 目標試験選択モーダル ── */}
+      {showExamModal && (
+        <Modal onClose={() => setShowExamModal(false)} title={ja ? '目標試験を選択' : 'Select Target Exam'}>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 0, border: '1px solid var(--color-border)', borderRadius: 'var(--border-radius-lg)', overflow: 'hidden' }}>
+            {(['Foundational', 'Associate', 'Professional', 'Specialty'] as const).map((level, li) => {
+              const levelItems = EXAM_TYPES.filter(et => EXAM_LEVEL[et] === level);
+              if (levelItems.length === 0) return null;
+              return (
+                <div key={level}>
+                  {li > 0 && <div style={{ height: 1, background: 'var(--color-border)' }} />}
+                  <div style={{ padding: '8px 16px 4px', fontSize: 10, fontWeight: 700, color: 'var(--color-text-light)', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+                    {level}
+                  </div>
+                  {levelItems.map((et, i, arr) => {
+                    const sel = targetExam === et;
+                    return (
+                      <button
+                        key={et}
+                        onClick={() => {
+                          localStorage.setItem(`targetExam_${uid}`, et);
+                          setTargetExam(et);
+                          window.dispatchEvent(new CustomEvent('targetExamChanged', { detail: et }));
+                          setShowExamModal(false);
+                        }}
+                        style={{
+                          display: 'flex', alignItems: 'center', gap: 10,
+                          padding: '12px 16px', border: 'none',
+                          borderBottom: i < arr.length - 1 ? '1px solid var(--color-border)' : 'none',
+                          background: sel ? 'var(--color-primary-light)' : 'transparent',
+                          cursor: 'pointer', fontSize: 'var(--font-size-base)',
+                          color: sel ? 'var(--color-primary)' : 'var(--color-text-main)',
+                          fontWeight: sel ? 700 : 400,
+                        }}
+                      >
+                        <span style={{ fontWeight: 700, minWidth: 44, flexShrink: 0, color: sel ? 'var(--color-primary)' : 'var(--color-text-sub)' }}>{et}</span>
+                        <span style={{ flex: 1, fontSize: 'var(--font-size-sm)', textAlign: 'left' }}>{EXAM_CONFIGS[et]?.fullName}</span>
+                        {sel && <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg>}
+                      </button>
+                    );
+                  })}
+                </div>
+              );
+            })}
+          </div>
+        </Modal>
+      )}
+
       {showLangModal && (
         <Modal onClose={() => setShowLangModal(false)} title={ja ? '言語' : 'Language'}>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 0, border: '1px solid var(--color-border)', borderRadius: 'var(--border-radius-lg)', overflow: 'hidden' }}>

@@ -7,6 +7,7 @@ import Button from '../components/ui/Button';
 import DomainSelector from '../components/DomainSelector';
 import { getCached, setCached, SHORT_TTL } from '../utils/cache';
 import { autoScoreAndClearDrafts } from '../utils/sessionUtils';
+import { animateLoadPct, randomPlateau } from '../utils/loadProgress';
 import { IconChevronUp } from '../components/Icons';
 
 function shuffleArray<T>(arr: T[]): T[] {
@@ -174,24 +175,38 @@ export default function Practice() {
       if (user && (bookmarkOnly || unansweredOnly || incorrectOnly)) {
         const params = new URLSearchParams({ examType, withAnswers: 'true' });
         if (!allSelected) params.set('domain', selectedDomains.join(','));
+        const plateau = randomPlateau();
+        const stopAnim = animateLoadPct(setExerciseLoadPct, 10, plateau);
         const [qRes, bkmRes, answeredRes, incorrectRes] = await Promise.all([
           fetch(`${API_ENDPOINT}/questions?${params}`).then(r => r.json()),
           user && bookmarkOnly ? fetch(`${API_ENDPOINT}/users/me/bookmarks?userId=${userId}`).then(r => r.json()) : Promise.resolve(null),
           user && unansweredOnly ? fetch(`${API_ENDPOINT}/users/me/answered-questions?userId=${userId}&examType=${examType}`).then(r => r.json()) : Promise.resolve(null),
           user && incorrectOnly ? fetch(`${API_ENDPOINT}/users/me/incorrect-questions?userId=${userId}&examType=${examType}`).then(r => r.json()) : Promise.resolve(null),
         ]);
-        setExerciseLoadPct(65);
-        let filtered: any[] = qRes.items ?? [];
-        if (bookmarkOnly && bkmRes) { const ids = new Set(bkmRes.questionIds ?? []); filtered = filtered.filter((q: any) => ids.has(q.questionId)); }
-        if (unansweredOnly && answeredRes) { const ids = new Set(answeredRes.questionIds ?? []); filtered = filtered.filter((q: any) => !ids.has(q.questionId)); }
-        if (incorrectOnly && incorrectRes) { const ids = new Set(incorrectRes.questionIds ?? []); filtered = filtered.filter((q: any) => ids.has(q.questionId)); }
-        if (aiVerifiedOnly) filtered = filtered.filter((q: any) => !!q.validityCheckedAt);
-        selectedItems = shuffleArray(filtered).slice(0, limit);
+        stopAnim();
+        setExerciseLoadPct(plateau);
+        let pool: any[] = qRes.items ?? [];
+        if (aiVerifiedOnly) pool = pool.filter((q: any) => !!q.validityCheckedAt);
+        const bookmarkSet   = bookmarkOnly   && bkmRes       ? new Set<string>(bkmRes.questionIds ?? [])      : null;
+        const unansweredSet = unansweredOnly && answeredRes  ? new Set<string>(answeredRes.questionIds ?? [])  : null;
+        const incorrectSet  = incorrectOnly  && incorrectRes ? new Set<string>(incorrectRes.questionIds ?? []) : null;
+        pool = shuffleArray(pool);
+        pool.sort((a: any, b: any) => {
+          const score = (q: any) =>
+            (bookmarkSet   && bookmarkSet.has(q.questionId)     ? 1 : 0) +
+            (unansweredSet && !unansweredSet.has(q.questionId)  ? 1 : 0) +
+            (incorrectSet  && incorrectSet.has(q.questionId)    ? 1 : 0);
+          return score(b) - score(a);
+        });
+        selectedItems = pool.slice(0, limit);
       } else {
         const params = new URLSearchParams({ examType, withAnswers: 'true' });
         if (!allSelected) params.set('domain', selectedDomains.join(','));
+        const plateau = randomPlateau();
+        const stopAnim = animateLoadPct(setExerciseLoadPct, 10, plateau);
         const data = await fetch(`${API_ENDPOINT}/questions?${params}`).then(r => r.json());
-        setExerciseLoadPct(65);
+        stopAnim();
+        setExerciseLoadPct(plateau);
         let allItems: any[] = data.items ?? [];
         if (aiVerifiedOnly) allItems = allItems.filter((q: any) => !!q.validityCheckedAt);
         selectedItems = shuffleArray(allItems).slice(0, limit);
@@ -230,8 +245,8 @@ export default function Practice() {
   const examQuestions = examCfg ? (examMode === 'mini' ? Math.ceil(examCfg.totalQuestions / 5) : examCfg.totalQuestions) : 0;
   const examTimeMin = examCfg ? (examMode === 'mini' ? Math.ceil(examCfg.timeLimitMin / 5) : examCfg.timeLimitMin) : 0;
   const examRules = ja
-    ? ['タイマーは開始後にカウントダウン', '正誤は全問終了後に確認', '途中で一時停止・再開が可能', 'AI確認済み問題・未回答問題のみ出題']
-    : ['Timer counts down after start', 'Results shown after finishing all questions', 'You can pause and resume', 'Only AI-verified and unanswered questions'];
+    ? ['タイマーは開始後にカウントダウン', '正誤は全問終了後に確認', '途中で一時停止・再開が可能', 'AI確認済み問題を対象・未回答問題を優先出題']
+    : ['Timer counts down after start', 'Results shown after finishing all questions', 'You can pause and resume', 'AI-verified questions; unanswered ones prioritized'];
 
   const resumeExam = () => {
     if (!examDraft) return;
@@ -260,16 +275,21 @@ export default function Practice() {
     try {
       const userId = user?.userId ?? 'guest';
       const params = new URLSearchParams({ examType: targetExam, withAnswers: 'true', withValidity: 'true' });
-      const data = await fetch(`${API_ENDPOINT}/questions?${params}`).then(r => r.json());
-      setExamLoadPct(50);
+      const plateau = randomPlateau();
+      const stopAnim = animateLoadPct(setExamLoadPct, 10, plateau);
+      const [data, answeredRes] = await Promise.all([
+        fetch(`${API_ENDPOINT}/questions?${params}`).then(r => r.json()),
+        user ? fetch(`${API_ENDPOINT}/users/me/answered-questions?userId=${userId}&examType=${targetExam}`).then(r => r.json()) : Promise.resolve(null),
+      ]);
+      stopAnim();
+      setExamLoadPct(plateau);
       let items: any[] = (data.items ?? []).filter((q: any) => !!q.validityCheckedAt);
-      if (user) {
-        const res = await fetch(`${API_ENDPOINT}/users/me/answered-questions?userId=${userId}&examType=${targetExam}`).then(r => r.json());
-        setExamLoadPct(75);
-        const answered = new Set(res.questionIds ?? []);
-        items = items.filter((q: any) => !answered.has(q.questionId));
+      items = shuffleArray(items);
+      if (answeredRes) {
+        const answered = new Set<string>(answeredRes.questionIds ?? []);
+        items.sort((a: any, b: any) => (answered.has(a.questionId) ? 1 : 0) - (answered.has(b.questionId) ? 1 : 0));
       }
-      items = shuffleArray(items).slice(0, examQuestions);
+      items = items.slice(0, examQuestions);
       if (items.length === 0) { alert(ja ? '条件に合う問題がありません（AI確認済み・未回答問題が0件）' : 'No questions match'); setExamLoading(false); return; }
       setExamLoadPct(90);
       const sessionRes = await fetch(`${API_ENDPOINT}/sessions`, {
