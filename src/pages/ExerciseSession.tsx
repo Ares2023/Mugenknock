@@ -301,7 +301,7 @@ export default function ExerciseSession() {
   useEffect(() => {
     if (!sessionId) return;
     try {
-      const draftKey = isQuick ? `quickExerciseDraft_${userId}` : isFocused ? `focusedExerciseDraft_${userId}` : `practiceExerciseDraft_${userId}`;
+      const draftKey = isFocused ? `focusedExerciseDraft_${userId}` : isQuick ? `quickExerciseDraft_${userId}` : `practiceExerciseDraft_${userId}`;
       localStorage.setItem(draftKey, JSON.stringify({
         sessionId, examType, questions, userId,
         currentIndex, results, answered, selectedAnswers,
