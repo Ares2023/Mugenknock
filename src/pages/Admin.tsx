@@ -4,7 +4,7 @@ import { API_ENDPOINT, ADMIN_EMAIL, EXAM_TYPES, EXAM_DOMAINS, EXAM_CONFIGS } fro
 import Card from '../components/ui/Card';
 import Button from '../components/ui/Button';
 import Badge from '../components/ui/Badge';
-import { ServiceIcon, isServiceIconKey } from '../components/Icons';
+import { ServiceIcon, isServiceIconKey, IconChevronDown, IconChevronRight } from '../components/Icons';
 import { useTheme, CustomColors } from '../contexts/ThemeContext';
 
 const adminFetch = async (url: string, options: RequestInit = {}): Promise<Response> => {
@@ -1224,7 +1224,7 @@ export default function Admin() {
                   onClick={e => e.stopPropagation()}
                   style={{ width: 16, height: 16, cursor: 'pointer', flexShrink: 0 }}
                 />
-                <span style={{ color: 'var(--color-text-sub)', fontSize: 12, flexShrink: 0 }}>{expandedId === q.questionId ? '▼' : '▶'}</span>
+                <span style={{ color: 'var(--color-text-sub)', flexShrink: 0, display: 'flex' }}>{expandedId === q.questionId ? <IconChevronDown size={14} /> : <IconChevronRight size={14} />}</span>
                 <Badge variant="secondary">{q.examType}</Badge>
                 <span style={{ fontFamily: 'monospace', fontSize: 12, color: 'var(--color-text-sub)', flexShrink: 0, minWidth: 100 }}>{q.questionId}</span>
                 <span style={{ fontSize: 14, color: 'var(--color-text-main)', flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>

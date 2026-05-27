@@ -359,14 +359,14 @@ export default function Practice() {
             </span>
             <input
               type="number" value={limit}
-              onChange={e => setLimit(Math.max(1, parseInt(e.target.value) || 1))}
-              min={1} max={availableCount ?? 50}
+              onChange={e => setLimit(Math.max(1, Math.min(examCfg?.totalQuestions ?? 65, parseInt(e.target.value) || 1)))}
+              min={1} max={examCfg?.totalQuestions ?? 65}
               style={{ padding: '8px 12px', width: 80, border: '1px solid var(--color-border)', borderRadius: 'var(--border-radius-md)', fontSize: 'var(--font-size-base)', outline: 'none' }}
               onFocus={e => e.currentTarget.style.borderColor = 'var(--color-primary)'}
               onBlur={e => e.currentTarget.style.borderColor = 'var(--color-border)'}
             />
             <span style={{ fontSize: 'var(--font-size-sm)', color: 'var(--color-text-sub)' }}>
-              {availableCount !== null ? t('exerciseSetup.maxQ', { n: availableCount }) : t('exerciseSetup.loading')}
+              {examCfg ? t('exerciseSetup.maxQ', { n: examCfg.totalQuestions }) : t('exerciseSetup.loading')}
             </span>
           </div>
 

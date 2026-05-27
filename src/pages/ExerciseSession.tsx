@@ -9,7 +9,7 @@ import Card from '../components/ui/Card';
 import Button from '../components/ui/Button';
 import Badge from '../components/ui/Badge';
 import ReportModal from '../components/ReportModal';
-import { IconBookOpen, IconCopy, IconCheck } from '../components/Icons';
+import { IconBookOpen, IconCopy, IconCheck, IconBookmark, IconChevronUp, IconChevronDown } from '../components/Icons';
 
 type Tip = { tipId: string; title: string; content: string; examType: string };
 
@@ -156,7 +156,7 @@ const PromptMenu = ({ questionText, choices, explanation, lang }: { questionText
           }}
         >
           {isEn ? 'Generate Prompt' : '質問プロンプト生成'}
-          <span style={{ fontSize: 9, color: 'var(--color-primary)' }}>{open ? '▲' : '▼'}</span>
+          <span style={{ color: 'var(--color-primary)', display: 'flex' }}>{open ? <IconChevronUp size={12} /> : <IconChevronDown size={12} />}</span>
         </button>
         {open && (
           <div style={{
@@ -432,7 +432,7 @@ export default function ExerciseSession() {
         }
         localStorage.setItem(`domain_history_${examType}_${userId}`, JSON.stringify(dh));
       } catch {}
-      // domain_results に個別正誤を追加（直近10問、ゲストでも保存）
+      // domain_results に個別正誤を追加（ゲストはlocalStorageのみ、ログイン済みはサーバーにも同期）
       try {
         const dr: Record<string, boolean[]> =
           JSON.parse(localStorage.getItem(`domain_results_${examType}_${userId}`) ?? '{}');
@@ -444,6 +444,13 @@ export default function ExerciseSession() {
           }
         }
         localStorage.setItem(`domain_results_${examType}_${userId}`, JSON.stringify(dr));
+        if (userId && userId !== 'guest') {
+          fetch(`${API_ENDPOINT}/users/me/domain-results`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ userId, domainResults: dr }),
+          }).catch(() => {});
+        }
       } catch {}
       // セッション完了でキャッシュ破棄 → ホーム画面が最新データをサーバーから再取得
       deleteCached(`ustats_${userId}`);
@@ -506,6 +513,13 @@ export default function ExerciseSession() {
         }
       }
       localStorage.setItem(`domain_results_${examType}_${userId}`, JSON.stringify(dr));
+      if (userId && userId !== 'guest') {
+        fetch(`${API_ENDPOINT}/users/me/domain-results`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ userId, domainResults: dr }),
+        }).catch(() => {});
+      }
     } catch {}
     deleteCached(`ustats_${userId}`);
     localStorage.setItem(`postSessionRefresh_${userId}`, String(Date.now()));
@@ -670,8 +684,8 @@ export default function ExerciseSession() {
               title={bookmarkedIds.has(currentQuestion.questionId) ? t('exerciseSession.removeBookmark') : t('exerciseSession.bookmark')}
               style={{ background: 'none', border: 'none', cursor: 'pointer', padding: '4px', display: 'flex', alignItems: 'center', opacity: bookmarkLoading ? 0.5 : 1, transition: 'all 0.2s', flexShrink: 0 }}
             >
-              <span style={{ fontSize: 20, lineHeight: 1, color: bookmarkedIds.has(currentQuestion.questionId) ? 'var(--color-warning, #f59e0b)' : 'var(--color-text-light)' }}>
-                {bookmarkedIds.has(currentQuestion.questionId) ? '★' : '☆'}
+              <span style={{ color: bookmarkedIds.has(currentQuestion.questionId) ? 'var(--color-warning, #f59e0b)' : 'var(--color-text-light)' }}>
+                <IconBookmark filled={bookmarkedIds.has(currentQuestion.questionId)} size={20} />
               </span>
             </button>
           )}

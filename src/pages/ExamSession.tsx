@@ -9,7 +9,7 @@ import Card from '../components/ui/Card';
 import Button from '../components/ui/Button';
 import Badge from '../components/ui/Badge';
 import ReportModal from '../components/ReportModal';
-import { IconFlag } from '../components/Icons';
+import { IconFlag, IconBookmark } from '../components/Icons';
 
 const WAKARANAI = 'わからない';
 const stripLabel = (s: string) => s.replace(/^[A-E]\.\s*/, '');
@@ -237,6 +237,13 @@ export default function ExamSession() {
           }
         }
         localStorage.setItem(`domain_results_${examType}_${userId}`, JSON.stringify(dr));
+        if (userId && userId !== 'guest') {
+          fetch(`${API_ENDPOINT}/users/me/domain-results`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ userId, domainResults: dr }),
+          }).catch(() => {});
+        }
       } catch {}
       deleteCached(`ustats_${userId}`);
       localStorage.setItem(`postSessionRefresh_${userId}`, String(Date.now()));
@@ -329,6 +336,13 @@ export default function ExamSession() {
           }
         }
         localStorage.setItem(`domain_results_${examType}_${userId}`, JSON.stringify(dr));
+        if (userId && userId !== 'guest') {
+          fetch(`${API_ENDPOINT}/users/me/domain-results`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ userId, domainResults: dr }),
+          }).catch(() => {});
+        }
       } catch {}
       // セッション完了でキャッシュ破棄 → ホーム画面が最新データをサーバーから再取得
       deleteCached(`ustats_${userId}`);
@@ -477,8 +491,8 @@ export default function ExamSession() {
                   title={bookmarkedIds.has(currentQ.questionId) ? t('examSession.removeBookmark') : t('examSession.bookmark')}
                   style={{ background: 'none', border: 'none', cursor: 'pointer', padding: '4px', display: 'flex', alignItems: 'center' }}
                 >
-                  <span style={{ fontSize: 20, lineHeight: 1, color: bookmarkedIds.has(currentQ.questionId) ? 'var(--color-warning, #f59e0b)' : 'var(--color-text-light)' }}>
-                    {bookmarkedIds.has(currentQ.questionId) ? '★' : '☆'}
+                  <span style={{ color: bookmarkedIds.has(currentQ.questionId) ? 'var(--color-warning, #f59e0b)' : 'var(--color-text-light)' }}>
+                    <IconBookmark filled={bookmarkedIds.has(currentQ.questionId)} size={20} />
                   </span>
                 </button>
               )}

@@ -11,11 +11,11 @@ import {
 import { getCached, setCached, deleteCached, DEFAULT_TTL } from '../utils/cache';
 import Card from '../components/ui/Card';
 import Button from '../components/ui/Button';
-import { IconLightbulb, IconSettings, IconChevronUp, IconLock, IconFileText, IconTrendingUp, IconBookOpen, IconCheck, ServiceIconImg, isServiceIconKey } from '../components/Icons';
+import { IconLightbulb, IconSettings, IconChevronUp, IconChevronDown, IconLock, IconFileText, IconTrendingUp, IconBookOpen, IconCheck, ServiceIconImg, isServiceIconKey } from '../components/Icons';
 import { CATALOG } from '../data/awsServiceCatalog';
 import { autoScoreAndClearDrafts } from '../utils/sessionUtils';
 
-type DomainStat = { tagId: string; correctCount?: number; incorrectCount?: number };
+type DomainStat = { tagId: string; correctCount?: number; incorrectCount?: number; recentResults?: boolean[] };
 type SessionEntry = { correct: number; total: number };
 type DomainHistory = Record<string, SessionEntry[]>;
 type ScoreEntry = { date: string; score: number };
@@ -99,7 +99,7 @@ function ScoreLineChart({ data, passScore, lang = 'ja' }: { data: ScoreEntry[]; 
 }
 
 // ── 成績詳細モーダル（ドメイン別 + 予想スコア 統合） ───────────
-function CombinedDetailModal({ targetExam, domainAccList, estimatedScore, passScore, lang, isMobile, uid, onClose }: {
+function CombinedDetailModal({ targetExam, domainAccList, estimatedScore, passScore, lang, isMobile, uid, domainStats, onClose }: {
   targetExam: string;
   domainAccList: { correct: number; total: number; pct: number | null }[];
   estimatedScore: number | null;
@@ -107,6 +107,7 @@ function CombinedDetailModal({ targetExam, domainAccList, estimatedScore, passSc
   lang: string;
   isMobile: boolean;
   uid: string;
+  domainStats: DomainStat[];
   onClose: () => void;
 }) {
   const ja = lang === 'ja';
@@ -132,7 +133,7 @@ function CombinedDetailModal({ targetExam, domainAccList, estimatedScore, passSc
 
   const weights = DOMAIN_WEIGHTS[targetExam] ?? domains.map(() => 100 / domains.length);
   const totalAllWeights = weights.reduce((s, w) => s + w, 0) || 100;
-  const domainResults = readDomainResults(targetExam, uid);
+  const localDomainResults = readDomainResults(targetExam, uid);
 
   const tabs = [
     { key: 'score' as const, label: ja ? 'スコア内訳' : 'Breakdown' },
@@ -216,7 +217,8 @@ function CombinedDetailModal({ targetExam, domainAccList, estimatedScore, passSc
                 const barPct = fullMaxPts > 0 ? curPts / fullMaxPts * 100 : 0;
                 const label = lang === 'en' ? (DOMAIN_NAME_EN[d] ?? d) : d;
                 const hasPracticed = totalQ > 0;
-                const nodeResults = (domainResults[d] ?? []).slice(-5);
+                const serverResults = domainStats.find(s => s.tagId === d)?.recentResults;
+                const nodeResults = (serverResults ?? localDomainResults[d] ?? []).slice(-5);
                 const paddedNodes: (boolean | null)[] = [...Array(5 - nodeResults.length).fill(null), ...nodeResults];
                 return (
                   <div key={d} style={{ marginBottom: 10 }}>
@@ -236,14 +238,17 @@ function CombinedDetailModal({ targetExam, domainAccList, estimatedScore, passSc
                     <div style={{ display: 'flex', alignItems: 'center', marginBottom: 4 }}>
                       {paddedNodes.map((correct, ni) => (
                         <React.Fragment key={ni}>
-                          <div style={{ flex: 1, height: 1.5, background: '#8F9C9D' }} />
+                          {ni === 0
+                            ? <div style={{ flex: 1, height: 0, borderTop: '1.5px dashed #8F9C9D' }} />
+                            : <div style={{ flex: 1, height: 1.5, background: '#8F9C9D' }} />
+                          }
                           <div style={{
                             width: 14, height: 14, borderRadius: '50%', flexShrink: 0,
-                            border: `1.5px solid ${correct === null ? 'var(--color-border)' : correct ? 'var(--color-success)' : 'var(--color-danger)'}`,
+                            border: `1.5px solid ${correct === null ? '#8F9C9D' : correct ? 'var(--color-success)' : 'var(--color-danger)'}`,
                             background: correct === null ? 'transparent' : correct ? 'var(--color-feedback-correct-bg)' : 'var(--color-feedback-incorrect-bg)',
                             display: 'flex', alignItems: 'center', justifyContent: 'center',
                             fontSize: 8, fontWeight: 700, lineHeight: 1,
-                            color: correct === null ? 'var(--color-text-light)' : correct ? 'var(--color-success)' : 'var(--color-danger)',
+                            color: correct === null ? '#8F9C9D' : correct ? 'var(--color-success)' : 'var(--color-danger)',
                           }}>
                             {correct === null ? <span style={{ fontSize: 8, lineHeight: 1 }}>−</span>
                               : correct
@@ -323,7 +328,7 @@ function ScoreDetailModal({ targetExam, estimatedScore, passScore, lang, uid, on
             <span style={{ fontSize: 12, fontWeight: 600, color: 'var(--color-text-sub)' }}>
               {ja ? '計算方法' : 'How calculated'}
             </span>
-            <span style={{ fontSize: 10, color: 'var(--color-text-light)' }}>{showTip ? '▲' : '▼'}</span>
+            <span style={{ color: 'var(--color-text-light)', display: 'flex' }}>{showTip ? <IconChevronUp size={12} /> : <IconChevronDown size={12} />}</span>
           </div>
           {showTip && (
             <p style={{ fontSize: 11, color: 'var(--color-text-sub)', margin: '8px 0 0', lineHeight: 1.7 }}>
@@ -2052,7 +2057,7 @@ export default function Home() {
 
       {/* 成績詳細モーダル */}
       {showCombinedDetail && targetExam && (
-        <CombinedDetailModal targetExam={targetExam} domainAccList={domainAccList} estimatedScore={estimatedScore} passScore={passScore} lang={lang} isMobile={isMobile} uid={uid} onClose={() => setShowCombinedDetail(false)} />
+        <CombinedDetailModal targetExam={targetExam} domainAccList={domainAccList} estimatedScore={estimatedScore} passScore={passScore} lang={lang} isMobile={isMobile} uid={uid} domainStats={domainStats} onClose={() => setShowCombinedDetail(false)} />
       )}
 
       {/* オンボーディング（目標資格未設定） */}

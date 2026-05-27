@@ -7,6 +7,7 @@ import Card from '../components/ui/Card';
 import Button from '../components/ui/Button';
 import Badge from '../components/ui/Badge';
 import { getServiceLinks } from '../awsServiceLinks';
+import { IconChevronDown, IconChevronRight } from '../components/Icons';
 
 const QUICK_PREFS_KEY = 'quickExercisePrefs';
 const loadQuickPrefs = () => { try { return JSON.parse(localStorage.getItem(QUICK_PREFS_KEY) ?? '{}'); } catch { return {}; } };
@@ -185,7 +186,7 @@ export default function Result() {
                   transition: 'all 0.2s',
                 }}
               >
-                <span style={{ fontSize: 12, color: 'var(--color-text-sub)', flexShrink: 0 }}>{expanded ? '▼' : '▶'}</span>
+                <span style={{ color: 'var(--color-text-sub)', flexShrink: 0, display: 'flex' }}>{expanded ? <IconChevronDown size={14} /> : <IconChevronRight size={14} />}</span>
                 <span style={{ fontSize: 'var(--font-size-sm)', color: 'var(--color-text-sub)', flexShrink: 0, minWidth: 40, fontWeight: 700 }}>{t('result.qLabel')} {i + 1}</span>
                 <span style={{ flex: 1, fontSize: 'var(--font-size-base)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', color: 'var(--color-text-main)' }}>
                   {q.questionText}

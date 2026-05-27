@@ -1,5 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { DOMAIN_NAME_EN, DOMAIN_RATE_WARNING, DOMAIN_RATE_CAUTION } from '../constants';
+import { IconChevronDown } from './Icons';
 
 type Props = {
   domains: string[];
@@ -114,7 +115,7 @@ export default function DomainSelector({ domains, selected, onChange, lang, labe
             }}
           >
             {lang === 'ja' ? '出題ドメイン' : 'Domains'}
-            <span style={{ fontSize: 9, lineHeight: 1, color: 'var(--color-primary)', transform: open ? 'rotate(180deg)' : 'none', transition: 'transform 0.2s', display: 'inline-block' }}>▼</span>
+            <span style={{ color: 'var(--color-primary)', transform: open ? 'rotate(180deg)' : 'none', transition: 'transform 0.2s', display: 'flex' }}><IconChevronDown size={12} /></span>
           </button>
 
           {/* Dropdown panel */}
