@@ -4,13 +4,14 @@ import { useAuth } from '../contexts/AuthContext';
 import { useLanguage } from '../contexts/LanguageContext';
 import { useTheme } from '../contexts/ThemeContext';
 import { API_ENDPOINT, EXAM_TYPES, EXAM_CONFIGS, EXAM_LEVEL } from '../constants';
+import { getPoints, fetchPointsFromServer } from '../utils/points';
 import Breadcrumb from './Breadcrumb';
 import Button from './ui/Button';
 import {
   IconHome,
   IconUser, IconChart,
   IconDumbbell, IconFire, IconMenu, IconClose, IconChevronLeft, IconMail,
-  IconSparkles, IconFootprint, IconBookOpen,
+  IconSparkles, IconBot, IconFootprint, IconBookOpen,
   IconSun, IconMoon, IconMore, IconChevronDown,
 } from './Icons';
 
@@ -21,7 +22,7 @@ const NAV_KEYS = [
   { path: '/aws/practice',  labelKey: 'nav.practice',     Icon: IconDumbbell  },
   { path: '/aws/stats',     labelKey: 'nav.stats',        Icon: IconFootprint },
   { path: '/aws/encyclopedia',   labelKey: 'nav.encyclopedia', Icon: IconBookOpen, bottom: true },
-  { path: '/aws/growth',        labelKey: 'nav.growth',       Icon: IconSparkles, bottom: true },
+  { path: '/aws/growth',        labelKey: 'nav.growth',       Icon: IconBot, bottom: true },
   { path: '/aws/release-notes', labelKey: 'nav.releaseNotes', Icon: IconFire,     bottom: true },
 ];
 
@@ -33,7 +34,7 @@ const BOTTOM_TABS = [
 
 const OTHERS_ITEMS = [
   { path: '/aws/encyclopedia',  Icon: IconBookOpen,   labelKey: 'nav.encyclopedia' },
-  { path: '/aws/growth',        Icon: IconSparkles,   labelKey: 'nav.growth'       },
+  { path: '/aws/growth',        Icon: IconBot,        labelKey: 'nav.growth'       },
   { path: '/aws/release-notes', Icon: IconFire,       labelKey: 'nav.releaseNotes' },
 ];
 
@@ -84,6 +85,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
     return localStorage.getItem(`sidebarOpen_${uid}`) !== 'false';
   });
   const [targetExam, setTargetExam] = useState<string | null>(() => localStorage.getItem(`targetExam_${uid}`));
+  const [points, setPoints] = useState(() => getPoints(uid));
   const [showContact, setShowContact] = useState(false);
   const [contactSubject, setContactSubject] = useState('');
   const [contactMessage, setContactMessage] = useState('');
@@ -151,6 +153,23 @@ export default function Layout({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     setTargetExam(localStorage.getItem(`targetExam_${uid}`));
   }, [location.pathname, uid]);
+
+  useEffect(() => {
+    setPoints(getPoints(uid));
+    const handler = (e: Event) => setPoints((e as CustomEvent).detail as number);
+    window.addEventListener('pointsChanged', handler);
+    return () => window.removeEventListener('pointsChanged', handler);
+  }, [uid]);
+
+  // ログイン済みのときサーバーからポイントを取得してローカルを上書き
+  useEffect(() => {
+    if (!user) return;
+    fetchPointsFromServer(uid).then(pts => {
+      if (pts === null) return;
+      localStorage.setItem(`userPoints_${uid}`, String(pts));
+      setPoints(pts);
+    });
+  }, [user?.userId]); // eslint-disable-line react-hooks/exhaustive-deps
 
 
   useEffect(() => {
@@ -343,8 +362,14 @@ export default function Layout({ children }: { children: React.ReactNode }) {
           />
         </div>
 
-        {/* アカウントボタン（モバイル・デスクトップ共通） */}
-        <div style={{ marginLeft: 'auto', flexShrink: 0 }}>
+        {/* ポイント表示＋アカウントボタン（モバイル・デスクトップ共通） */}
+        <div style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: 8, flexShrink: 0 }}>
+          {user && (
+            <div style={{ display: 'flex', alignItems: 'center', gap: 3, color: 'var(--color-text-sub)', fontSize: 'var(--font-size-sm)', fontWeight: 700, userSelect: 'none' }}>
+              <span style={{ color: 'var(--color-primary)', display: 'flex', alignItems: 'center' }}><IconSparkles size={14} /></span>
+              <span>{points}</span>
+            </div>
+          )}
           <button
             onClick={() => navigate('/account')}
             style={{

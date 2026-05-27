@@ -10,9 +10,10 @@ import {
 } from '../constants';
 import { getCached, setCached, deleteCached, DEFAULT_TTL } from '../utils/cache';
 import { animateLoadPct, randomPlateau } from '../utils/loadProgress';
+import { getPoints, deductPoints } from '../utils/points';
 import Card from '../components/ui/Card';
 import Button from '../components/ui/Button';
-import { IconLightbulb, IconSettings, IconChevronUp, IconChevronDown, IconLock, IconFileText, IconTrendingUp, IconBookOpen, IconCheck, ServiceIconImg, isServiceIconKey } from '../components/Icons';
+import { IconLightbulb, IconSettings, IconChevronUp, IconChevronDown, IconLock, IconFileText, IconTrendingUp, IconBookOpen, IconCheck, IconSparkles, ServiceIconImg, isServiceIconKey } from '../components/Icons';
 import { CATALOG } from '../data/awsServiceCatalog';
 import { autoScoreAndClearDrafts } from '../utils/sessionUtils';
 
@@ -43,6 +44,10 @@ function readDomainHistory(examType: string, uid: string): DomainHistory {
 
 function readScoreHistory(examType: string, uid: string): ScoreEntry[] {
   try { return JSON.parse(localStorage.getItem(`score_history_${examType}_${uid}`) ?? '[]'); } catch { return []; }
+}
+
+function readSessionScoreHistory(examType: string, uid: string): number[] {
+  try { return JSON.parse(localStorage.getItem(`score_session_history_${examType}_${uid}`) ?? '[]'); } catch { return []; }
 }
 
 // ── スコア折れ線グラフ ───────────────────────────────────────────
@@ -90,6 +95,50 @@ function ScoreLineChart({ data, passScore, lang = 'ja' }: { data: ScoreEntry[]; 
   );
 }
 
+function SessionScoreChart({ data, passScore, lang = 'ja' }: { data: number[]; passScore: number | null; lang?: string }) {
+  if (data.length < 2) {
+    return (
+      <p style={{ color: 'var(--color-text-light)', fontSize: 12, fontStyle: 'italic', margin: 0 }}>
+        {lang === 'ja' ? '2回分以上のデータが貯まると表示されます' : 'Appears after 2+ sessions of data'}
+      </p>
+    );
+  }
+  const W = 300, H = 90, PL = 36, PR = 8, PT = 20, PB = 18;
+  const iW = W - PL - PR, iH = H - PT - PB;
+  const minS = Math.max(0, Math.min(...data) - 50);
+  const maxS = Math.min(1000, Math.max(...data) + 50);
+  const range = maxS - minS || 200;
+  const cx = (i: number) => PL + (i / (data.length - 1)) * iW;
+  const cy = (s: number) => PT + iH - ((s - minS) / range) * iH;
+  const pathD = data.map((s, i) => `${i === 0 ? 'M' : 'L'}${cx(i).toFixed(1)},${cy(s).toFixed(1)}`).join(' ');
+  return (
+    <svg width="100%" viewBox={`0 0 ${W} ${H}`} style={{ overflow: 'visible', display: 'block' }}>
+      {[minS, maxS].map((s, i) => (
+        <text key={i} x={PL - 4} y={i === 0 ? PT + iH + 4 : PT + 4} fontSize={9} fill="var(--color-text-light)" textAnchor="end">{s}</text>
+      ))}
+      {passScore !== null && passScore >= minS && passScore <= maxS && (
+        <>
+          <line x1={PL} x2={PL + iW} y1={cy(passScore)} y2={cy(passScore)} stroke="#f59e0b" strokeWidth={1.5} strokeDasharray="4,3" />
+          <text x={PL + iW + 2} y={cy(passScore) + 3} fontSize={8} fill="#f59e0b" fontWeight="bold">{lang === 'ja' ? '合格' : 'Pass'}</text>
+        </>
+      )}
+      <path d={pathD} fill="none" stroke="var(--color-secondary)" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" />
+      {data.map((s, i) => (
+        <g key={i}>
+          <text x={cx(i)} y={cy(s) - 6} fontSize={8} fill="var(--color-secondary)" textAnchor="middle" fontWeight="bold">{s}</text>
+          <circle cx={cx(i)} cy={cy(s)} r={3} fill="var(--color-secondary)" />
+          {i === data.length - 1 && (
+            <text x={cx(i)} y={H - 2} fontSize={9} fill="var(--color-text-sub)" textAnchor="middle" fontWeight="bold">{lang === 'ja' ? '最新' : 'Latest'}</text>
+          )}
+          {i === 0 && (
+            <text x={cx(i)} y={H - 2} fontSize={9} fill="var(--color-text-light)" textAnchor="middle">{`-${data.length - 1}`}</text>
+          )}
+        </g>
+      ))}
+    </svg>
+  );
+}
+
 // ── 成績詳細モーダル（ドメイン別 + 予想スコア 統合） ───────────
 function CombinedDetailModal({ targetExam, domainAccList, estimatedScore, passScore, lang, isMobile, uid, domainStats, onClose }: {
   targetExam: string;
@@ -105,6 +154,7 @@ function CombinedDetailModal({ targetExam, domainAccList, estimatedScore, passSc
   const ja = lang === 'ja';
   const domains = EXAM_DOMAINS[targetExam] ?? [];
   const history = readScoreHistory(targetExam, uid);
+  const sessionHistory = readSessionScoreHistory(targetExam, uid);
   const [showCalc, setShowCalc] = useState(false);
   const [tab, setTab] = useState<'score' | 'history'>('score');
   const scoreTabRef = useRef<HTMLDivElement>(null);
@@ -268,7 +318,20 @@ function CombinedDetailModal({ targetExam, domainAccList, estimatedScore, passSc
             </div>
           </div>
         ) : (
-          <ScoreLineChart data={history} passScore={passScore} lang={lang} />
+          <div>
+            <div style={{ marginBottom: 14 }}>
+              <div style={{ fontSize: 11, fontWeight: 700, color: 'var(--color-text-sub)', marginBottom: 8 }}>
+                {ja ? 'セッション別推移（直近5回）' : 'Per-Session Trend (last 5)'}
+              </div>
+              <SessionScoreChart data={sessionHistory} passScore={passScore} lang={lang} />
+            </div>
+            <div style={{ borderTop: '1px solid var(--color-border)', paddingTop: 12 }}>
+              <div style={{ fontSize: 11, fontWeight: 700, color: 'var(--color-text-sub)', marginBottom: 8 }}>
+                {ja ? '日次推移' : 'Daily Trend'}
+              </div>
+              <ScoreLineChart data={history} passScore={passScore} lang={lang} />
+            </div>
+          </div>
         )}
         </div>
       </div>
@@ -283,6 +346,7 @@ function ScoreDetailModal({ targetExam, estimatedScore, passScore, lang, uid, on
   const ja = lang === 'ja';
   const [showTip, setShowTip] = useState(false);
   const history = readScoreHistory(targetExam, uid);
+  const sessionHistory = readSessionScoreHistory(targetExam, uid);
   return (
     <div
       style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', zIndex: 1000, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16 }}
@@ -307,10 +371,16 @@ function ScoreDetailModal({ targetExam, estimatedScore, passScore, lang, uid, on
         </div>
 
         <div style={{ marginBottom: 20 }}>
-          <div style={{ fontSize: 11, fontWeight: 600, color: 'var(--color-text-sub)', marginBottom: 10 }}>
-            {ja ? 'スコア推移' : 'Score History'}
+          <div style={{ fontSize: 11, fontWeight: 700, color: 'var(--color-text-sub)', marginBottom: 8 }}>
+            {ja ? 'セッション別推移（直近5回）' : 'Per-Session Trend (last 5)'}
           </div>
-          <ScoreLineChart data={history} passScore={passScore} lang={lang} />
+          <SessionScoreChart data={sessionHistory} passScore={passScore} lang={lang} />
+          <div style={{ marginTop: 14, paddingTop: 12, borderTop: '1px solid var(--color-border)' }}>
+            <div style={{ fontSize: 11, fontWeight: 700, color: 'var(--color-text-sub)', marginBottom: 8 }}>
+              {ja ? '日次推移' : 'Daily Trend'}
+            </div>
+            <ScoreLineChart data={history} passScore={passScore} lang={lang} />
+          </div>
         </div>
 
         <div style={{ background: 'var(--color-bg-main)', borderRadius: 8, padding: '8px 12px' }}>
@@ -671,6 +741,9 @@ function TodayServiceSection({ lang, userId, onNavigateEncyclopedia, onReveal }:
   const [service, setService] = useState<DailyService | null>(null);
   const [loading, setLoading] = useState(true);
   const [revealed, setRevealed] = useState(false);
+  const [rerolledService, setRerolledService] = useState<DailyService | null>(null);
+  const [rerolling, setRerolling] = useState(false);
+  const [rerollError, setRerollError] = useState(false);
 
   const jstToday = () => new Date(Date.now() + 9 * 3600 * 1000).toISOString().slice(0, 10);
 
@@ -681,6 +754,13 @@ function TodayServiceSection({ lang, userId, onNavigateEncyclopedia, onReveal }:
     // 今日すでにタップ解放済みか確認
     const alreadyRevealed = localStorage.getItem(`encyclopediaUnlockDate_${uid}`) === jstDate;
     setRevealed(alreadyRevealed);
+
+    // 再抽選キャッシュの読み込み
+    const rerollCacheKey = `daily_service_reroll_${uid}_${jstDate}`;
+    const cachedReroll = getCached<DailyService>(rerollCacheKey);
+    if (cachedReroll) {
+      setRerolledService({ ...cachedReroll, icon: resolveServiceIcon(cachedReroll) });
+    }
 
     const cacheKey = `daily_service_${uid}_${jstDate}`;
     const cached = getCached<DailyService>(cacheKey);
@@ -714,6 +794,35 @@ function TodayServiceSection({ lang, userId, onNavigateEncyclopedia, onReveal }:
       .catch(() => setService(null))
       .finally(() => setLoading(false));
   }, [userId]);
+
+  const handleReroll = async () => {
+    if (!userId || !service || rerolling) return;
+    setRerollError(false);
+    const uid = userId;
+    const jstDate = jstToday();
+    const currentPts = getPoints(uid);
+    if (currentPts < 30) { setRerollError(true); return; }
+    setRerolling(true);
+    try {
+      const seed = Math.random().toString(36).slice(2);
+      const url = `${API_ENDPOINT}/daily-service?userId=${encodeURIComponent(userId)}&rerollSeed=${encodeURIComponent(seed)}`;
+      const res = await fetch(url);
+      const data = await res.json();
+      const raw = data.service ?? null;
+      if (!raw) { setRerolling(false); return; }
+      const s: DailyService = { ...raw, icon: resolveServiceIcon(raw) };
+      deductPoints(uid, 30);
+      saveToEncyclopedia(s, uid);
+      syncEncyclopediaToServer(userId, true);
+      const rerollCacheKey = `daily_service_reroll_${uid}_${jstDate}`;
+      setCached(rerollCacheKey, s, 24 * 60 * 60 * 1000);
+      setRerolledService(s);
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setRerolling(false);
+    }
+  };
 
   const handleReveal = () => {
     if (!service || revealed) return;
@@ -810,7 +919,8 @@ function TodayServiceSection({ lang, userId, onNavigateEncyclopedia, onReveal }:
 
   if (!service) return null;
 
-  const iconEl = <ServiceIconImg icon={service.icon} name={service.name} size={44} />;
+  const displayService = rerolledService ?? service;
+  const iconEl = <ServiceIconImg icon={displayService.icon} name={displayService.name} size={44} />;
 
   return (
     <Card padding="var(--spacing-md)" style={{ marginBottom: 'var(--spacing-md)', cursor: 'pointer' }} onClick={onNavigateEncyclopedia}>
@@ -820,9 +930,15 @@ function TodayServiceSection({ lang, userId, onNavigateEncyclopedia, onReveal }:
         <span style={{ fontWeight: 700, fontSize: 'var(--font-size-sm)', color: 'var(--color-text-main)' }}>
           {lang === 'ja' ? '日めくりAWSサービス' : 'Daily AWS Service'}
         </span>
-        {service.category && (
+        {displayService.category && (
           <span style={{ marginLeft: 2, fontSize: 10, fontWeight: 700, padding: '1px 7px', borderRadius: 'var(--border-radius-full)', background: 'var(--color-primary-light)', color: 'var(--color-primary)' }}>
-            {service.category}
+            {displayService.category}
+          </span>
+        )}
+        {rerolledService && (
+          <span style={{ marginLeft: 2, fontSize: 10, fontWeight: 700, padding: '1px 7px', borderRadius: 'var(--border-radius-full)', background: 'rgba(139,92,246,0.12)', color: 'rgb(139,92,246)', display: 'flex', alignItems: 'center', gap: 3 }}>
+            <IconSparkles size={9} />
+            {lang === 'ja' ? '再抽選' : 'Rerolled'}
           </span>
         )}
       </div>
@@ -833,26 +949,58 @@ function TodayServiceSection({ lang, userId, onNavigateEncyclopedia, onReveal }:
           {iconEl}
         </div>
         <div>
-          <span style={{ fontWeight: 800, fontSize: 'var(--font-size-md)', color: 'var(--color-text-main)' }}>{service.name}</span>
+          <span style={{ fontWeight: 800, fontSize: 'var(--font-size-md)', color: 'var(--color-text-main)' }}>{displayService.name}</span>
         </div>
       </div>
 
       {/* 説明文: アイコン行の下から全幅 */}
       <p style={{ margin: '0 0 10px', fontSize: 'var(--font-size-sm)', color: 'var(--color-text-sub)', lineHeight: 1.7, overflowWrap: 'break-word', wordBreak: 'break-word' }}>
-        {service.description}
+        {displayService.description}
       </p>
 
-      {service.trivia && (
+      {displayService.trivia && (
         <div style={{ background: 'var(--color-bg-main)', borderRadius: 'var(--border-radius-md)', padding: '8px 12px', display: 'flex', gap: 8, alignItems: 'flex-start', marginBottom: 10 }}>
           <span style={{ color: 'var(--color-text-sub)', display: 'flex', alignItems: 'center', flexShrink: 0 }}><IconLightbulb size={14} /></span>
-          <span style={{ fontSize: 'var(--font-size-sm)', color: 'var(--color-text-sub)', lineHeight: 1.6, overflowWrap: 'break-word', wordBreak: 'break-word' }}>{service.trivia}</span>
+          <span style={{ fontSize: 'var(--font-size-sm)', color: 'var(--color-text-sub)', lineHeight: 1.6, overflowWrap: 'break-word', wordBreak: 'break-word' }}>{displayService.trivia}</span>
         </div>
       )}
 
-      {service.docUrl && (
-        <a href={service.docUrl} target="_blank" rel="noopener noreferrer" onClick={e => e.stopPropagation()} style={{ fontSize: 'var(--font-size-sm)', color: 'var(--color-primary)', textDecoration: 'none', fontWeight: 600 }}>
+      {displayService.docUrl && (
+        <a href={displayService.docUrl} target="_blank" rel="noopener noreferrer" onClick={e => e.stopPropagation()} style={{ fontSize: 'var(--font-size-sm)', color: 'var(--color-primary)', textDecoration: 'none', fontWeight: 600 }}>
           {lang === 'ja' ? '公式ページを見る →' : 'Official page →'}
         </a>
+      )}
+
+      {/* 再抽選ボタン */}
+      {revealed && userId && (
+        <div style={{ marginTop: 10, paddingTop: 10, borderTop: '1px solid var(--color-border)', display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: 8 }}>
+          {rerollError && (
+            <span style={{ fontSize: 11, color: 'var(--color-danger)' }}>
+              {lang === 'ja' ? 'ポイントが不足しています' : 'Not enough points'}
+            </span>
+          )}
+          <button
+            onClick={e => { e.stopPropagation(); handleReroll(); }}
+            disabled={rerolling}
+            style={{
+              display: 'flex', alignItems: 'center', gap: 5,
+              border: '1px solid var(--color-border)', borderRadius: 'var(--border-radius-full)',
+              background: 'none', cursor: rerolling ? 'default' : 'pointer',
+              padding: '4px 12px', fontSize: 12, fontWeight: 600,
+              color: rerolling ? 'var(--color-text-light)' : 'var(--color-text-sub)',
+              opacity: rerolling ? 0.6 : 1, transition: 'all 0.15s',
+            }}
+          >
+            {rerolling
+              ? <><div className="sherpa-spinner" style={{ width: 12, height: 12, borderWidth: 2, flexShrink: 0 }} /><span>{lang === 'ja' ? '抽選中...' : 'Rolling...'}</span></>
+              : <>
+                  <span style={{ color: 'var(--color-primary)', display: 'flex' }}><IconSparkles size={11} /></span>
+                  <span>{lang === 'ja' ? '再抽選' : 'Reroll'}</span>
+                  <span style={{ color: 'var(--color-text-light)', fontSize: 11 }}>-30p</span>
+                </>
+            }
+          </button>
+        </div>
       )}
     </Card>
   );
@@ -1115,6 +1263,19 @@ export default function Home() {
     else { scoreHist.push({ date: jstDate, score: estimatedScore }); }
     localStorage.setItem(histKey, JSON.stringify(scoreHist.slice(-30)));
   }, [targetExam, estimatedScore, jstDate, uid]);
+
+  // セッション完了後にセッション別スコア履歴を追記
+  useEffect(() => {
+    if (!targetExam || estimatedScore === null) return;
+    const addKey = `sessionScoreAdd_${targetExam}_${uid}`;
+    if (!localStorage.getItem(addKey)) return;
+    localStorage.removeItem(addKey);
+    const sessionHistKey = `score_session_history_${targetExam}_${uid}`;
+    let hist: number[] = [];
+    try { hist = JSON.parse(localStorage.getItem(sessionHistKey) ?? '[]'); } catch {}
+    hist = [...hist, estimatedScore].slice(-5);
+    localStorage.setItem(sessionHistKey, JSON.stringify(hist));
+  }, [domainStats, targetExam, uid, estimatedScore]);
 
   const scoreDelta = prevScore !== null && estimatedScore !== null ? estimatedScore - prevScore : null;
 

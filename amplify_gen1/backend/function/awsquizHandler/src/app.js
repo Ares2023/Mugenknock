@@ -1540,7 +1540,8 @@ app.get('/daily-service', async (req, res) => {
 
     // userIdが指定された場合はユーザー別のハッシュで決定（スケジュール不使用）
     if (req.query.userId) {
-      const str = req.query.userId + jstDate;
+      const seed = req.query.rerollSeed || '';
+      const str = req.query.userId + jstDate + seed;
       let hash = 0;
       for (let i = 0; i < str.length; i++) {
         hash = ((hash << 5) - hash) + str.charCodeAt(i);
@@ -1798,6 +1799,41 @@ app.post('/users/me/encyclopedia-unlocks', async (req, res) => {
       },
     }));
     res.json({ success: true });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+// ── ユーザーポイント ──
+
+app.get('/users/me/points', async (req, res) => {
+  try {
+    const { userId } = req.query;
+    if (!userId) return res.status(400).json({ error: 'userId required' });
+    const docClient = getClient();
+    const result = await docClient.send(new GetCommand({
+      TableName: 'UserPoints',
+      Key: { userId },
+    }));
+    res.json({ points: result.Item?.points ?? 0 });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+app.put('/users/me/points', async (req, res) => {
+  try {
+    const { userId, points } = req.body;
+    if (!userId || points === undefined) return res.status(400).json({ error: 'userId and points required' });
+    const safePoints = Math.max(0, Math.round(Number(points)));
+    const docClient = getClient();
+    await docClient.send(new PutCommand({
+      TableName: 'UserPoints',
+      Item: { userId, points: safePoints, updatedAt: new Date().toISOString() },
+    }));
+    res.json({ points: safePoints });
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: 'Internal server error' });

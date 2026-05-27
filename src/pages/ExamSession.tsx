@@ -3,6 +3,7 @@ import { createPortal } from 'react-dom';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { API_ENDPOINT, EXAM_CONFIGS, PASS_RATE } from '../constants';
 import { deleteCached } from '../utils/cache';
+import { addPoints } from '../utils/points';
 import { useAuth } from '../contexts/AuthContext';
 import { useLanguage } from '../contexts/LanguageContext';
 import Card from '../components/ui/Card';
@@ -247,6 +248,8 @@ export default function ExamSession() {
       } catch {}
       deleteCached(`ustats_${userId}`);
       localStorage.setItem(`postSessionRefresh_${userId}`, String(Date.now()));
+      if (userId) addPoints(userId, abortResults.length);
+      localStorage.setItem(`sessionScoreAdd_${examType}_${userId}`, '1');
       navigate('/aws/result', {
         state: { results: abortResults.map(r => ({ questionId: r.questionId, isCorrect: r.isCorrect })), questions: answeredQs, score, isPassed, sessionId, userId, examType, mode: 'exam', aborted: true },
       });
@@ -347,6 +350,8 @@ export default function ExamSession() {
       // セッション完了でキャッシュ破棄 → ホーム画面が最新データをサーバーから再取得
       deleteCached(`ustats_${userId}`);
       localStorage.setItem(`postSessionRefresh_${userId}`, String(Date.now()));
+      if (userId) addPoints(userId, questions.length);
+      localStorage.setItem(`sessionScoreAdd_${examType}_${userId}`, '1');
       navigate('/aws/result', {
         state: { results: results.map(r => ({ questionId: r.questionId, isCorrect: r.isCorrect })), questions, score, isPassed, sessionId, userId, examType, mode: 'exam', timeUp }
       });
