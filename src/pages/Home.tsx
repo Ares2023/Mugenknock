@@ -245,7 +245,11 @@ function CombinedDetailModal({ targetExam, domainAccList, estimatedScore, passSc
                             fontSize: 8, fontWeight: 700, lineHeight: 1,
                             color: correct === null ? 'var(--color-text-light)' : correct ? 'var(--color-success)' : 'var(--color-danger)',
                           }}>
-                            {correct === null ? '−' : correct ? '✓' : '✗'}
+                            {correct === null ? <span style={{ fontSize: 8, lineHeight: 1 }}>−</span>
+                              : correct
+                              ? <svg width="8" height="8" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M20 6 9 17l-5-5"/></svg>
+                              : <svg width="8" height="8" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
+                            }
                           </div>
                         </React.Fragment>
                       ))}
