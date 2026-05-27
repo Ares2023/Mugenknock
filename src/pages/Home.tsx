@@ -209,19 +209,15 @@ function CombinedDetailModal({ targetExam, domainAccList, estimatedScore, passSc
                 {ja ? 'ドメイン別スコア内訳' : 'Score by Domain'}
               </div>
               {domains.map((d, i) => {
-                const { pct, total: totalQ } = domainAccList[i] ?? { pct: null, total: 0, correct: 0 };
-                const n = Math.min(totalQ ?? 0, 5);
                 const fullMaxPts = Math.round(weights[i] / totalAllWeights * 1000);
-                const curPts = pct !== null && n > 0 ? Math.round(pct / 100 * fullMaxPts * n / 5) : 0;
                 const label = lang === 'en' ? (DOMAIN_NAME_EN[d] ?? d) : d;
-                const hasPracticed = totalQ > 0;
                 const serverResults = domainStats.find(s => s.tagId === d)?.recentResults;
                 const nodeResults = (serverResults ?? localDomainResults[d] ?? []).slice(-5);
                 const paddedNodes: (boolean | null)[] = [...Array(5 - nodeResults.length).fill(null), ...nodeResults];
-                const effectiveRate = Math.round((pct ?? 0) * n / 5);
-                const formulaStr = hasPracticed
-                  ? `${fullMaxPts}×${effectiveRate}%=${curPts}`
-                  : '—';
+                const correctInNodes = nodeResults.filter(v => v === true).length;
+                const curPts = Math.round(correctInNodes / 5 * fullMaxPts);
+                const hasPracticed = nodeResults.length > 0;
+                const formulaStr = hasPracticed ? `${fullMaxPts}×${correctInNodes}/5=${curPts}` : '—';
                 return (
                   <div key={d} style={{ marginBottom: 10 }}>
                     <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', marginBottom: 4 }}>
@@ -1064,48 +1060,19 @@ export default function Home() {
     const totalAllWeights = weights.reduce((s, w) => s + w, 0);
     if (totalAllWeights === 0) return null;
 
-    const hist = readDomainHistory(targetExam, uid);
-    if (domainStats.length > 0) {
-      let weightedSum = 0, hasAnyData = false;
-      for (let i = 0; i < domainList.length; i++) {
-        const stat = domainStats.find(s => s.tagId === domainList[i]);
-        let correct = 0, total = 0;
-        if (stat) {
-          correct = stat.correctCount ?? 0;
-          total = (stat.correctCount ?? 0) + (stat.incorrectCount ?? 0);
-        } else {
-          // サーバーに欠損しているドメインはローカル履歴で補完
-          const sessions = hist[domainList[i]];
-          if (sessions && sessions.length > 0) {
-            correct = sessions.reduce((s, r) => s + r.correct, 0);
-            total = sessions.reduce((s, r) => s + r.total, 0);
-          }
-        }
-        if (total === 0) continue;
-        const n = Math.min(total, 5);
-        weightedSum += (correct / total) * (n / 5) * weights[i];
-        hasAnyData = true;
-      }
-      if (!hasAnyData) return null;
-      return Math.round((weightedSum / totalAllWeights) * 1000);
-    }
-
-    // ゲスト/オフライン時はローカル履歴のみ
-    const MAX_Q = 5;
+    const localDR = readDomainResults(targetExam, uid);
     let weightedSum = 0, hasAnyData = false;
     for (let i = 0; i < domainList.length; i++) {
-      const sessions = hist[domainList[i]];
-      if (!sessions || sessions.length === 0) continue;
-      const correct = sessions.reduce((s, r) => s + r.correct, 0);
-      const total = sessions.reduce((s, r) => s + r.total, 0);
-      if (total === 0) continue;
-      const nEff = Math.min(total, MAX_Q);
-      weightedSum += (correct / total) * (nEff / MAX_Q) * weights[i];
+      const serverResults = domainStats.find(s => s.tagId === domainList[i])?.recentResults;
+      const nodeResults = (serverResults ?? localDR[domainList[i]] ?? []).slice(-5);
+      if (nodeResults.length === 0) continue;
+      const correctInNodes = nodeResults.filter((v: boolean) => v === true).length;
+      weightedSum += (correctInNodes / 5) * weights[i];
       hasAnyData = true;
     }
     if (!hasAnyData) return null;
     return Math.round((weightedSum / totalAllWeights) * 1000);
-  }, [targetExam, domainStats]);
+  }, [targetExam, domainStats, uid]);
 
   const focusedUnlocked = !!user && answeredCount >= FOCUSED_UNLOCK_THRESHOLD;
   const focusedUnlockedCached = localStorage.getItem(`focusedUnlockedCache_${uid}`) === '1';
