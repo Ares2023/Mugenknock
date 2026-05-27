@@ -251,7 +251,7 @@ function CombinedDetailModal({ targetExam, domainAccList, estimatedScore, passSc
                         ))}
                       </div>
                     )}
-                    <div style={{ height: 5, background: 'var(--color-border)', borderRadius: 3, overflow: 'hidden' }}>
+                    <div style={{ height: 5, background: '#8F9C9D', borderRadius: 3, overflow: 'hidden' }}>
                       <div style={{ width: `${barPct}%`, height: '100%', borderRadius: 3, background: hasPracticed ? 'var(--bar-gradient-primary)' : 'transparent', animation: hasPracticed ? `growWidth 0.45s cubic-bezier(0.34, 1.56, 0.64, 1) ${i * 50}ms both` : 'none' }} />
                     </div>
                   </div>
