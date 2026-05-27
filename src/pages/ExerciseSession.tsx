@@ -432,6 +432,19 @@ export default function ExerciseSession() {
         }
         localStorage.setItem(`domain_history_${examType}_${userId}`, JSON.stringify(dh));
       } catch {}
+      // domain_results に個別正誤を追加（直近10問、ゲストでも保存）
+      try {
+        const dr: Record<string, boolean[]> =
+          JSON.parse(localStorage.getItem(`domain_results_${examType}_${userId}`) ?? '{}');
+        for (const r of results) {
+          const q = questions.find((q: Question) => q.questionId === r.questionId);
+          for (const tag of (q?.tags ?? [])) {
+            if (!dr[tag]) dr[tag] = [];
+            dr[tag] = [...dr[tag], r.isCorrect].slice(-10);
+          }
+        }
+        localStorage.setItem(`domain_results_${examType}_${userId}`, JSON.stringify(dr));
+      } catch {}
       // セッション完了でキャッシュ破棄 → ホーム画面が最新データをサーバーから再取得
       deleteCached(`ustats_${userId}`);
       localStorage.setItem(`postSessionRefresh_${userId}`, String(Date.now()));
@@ -481,6 +494,18 @@ export default function ExerciseSession() {
         dh[tag] = [...dh[tag], { correct: d.c, total: d.c + d.i }].slice(-10);
       }
       localStorage.setItem(`domain_history_${examType}_${userId}`, JSON.stringify(dh));
+    } catch {}
+    try {
+      const dr: Record<string, boolean[]> =
+        JSON.parse(localStorage.getItem(`domain_results_${examType}_${userId}`) ?? '{}');
+      for (const r of results) {
+        const q = questions.find((q: Question) => q.questionId === r.questionId);
+        for (const tag of (q?.tags ?? [])) {
+          if (!dr[tag]) dr[tag] = [];
+          dr[tag] = [...dr[tag], r.isCorrect].slice(-10);
+        }
+      }
+      localStorage.setItem(`domain_results_${examType}_${userId}`, JSON.stringify(dr));
     } catch {}
     deleteCached(`ustats_${userId}`);
     localStorage.setItem(`postSessionRefresh_${userId}`, String(Date.now()));

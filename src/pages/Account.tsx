@@ -215,6 +215,7 @@ export default function Account() {
       await fetch(`${API_ENDPOINT}/users/me/data?userId=${user.userId}&examType=${et}`, { method: 'DELETE' });
       // ローカルの成績・スコア履歴もリセット
       localStorage.removeItem(`domain_history_${et}_${uid}`);
+      localStorage.removeItem(`domain_results_${et}_${uid}`);
       localStorage.removeItem(`score_history_${et}_${uid}`);
       localStorage.removeItem(`score_today_${et}_${uid}`);
       localStorage.removeItem(`score_prev_${et}_${uid}`);

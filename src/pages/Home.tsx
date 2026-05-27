@@ -41,6 +41,10 @@ function animateLoadPct(setFn: (v: number) => void, from: number, limit: number,
   return () => clearInterval(id);
 }
 
+function readDomainResults(examType: string, uid: string): Record<string, boolean[]> {
+  try { return JSON.parse(localStorage.getItem(`domain_results_${examType}_${uid}`) ?? '{}'); } catch { return {}; }
+}
+
 function readDomainHistory(examType: string, uid: string): DomainHistory {
   try { return JSON.parse(localStorage.getItem(`domain_history_${examType}_${uid}`) ?? '{}'); } catch { return {}; }
 }
@@ -128,6 +132,7 @@ function CombinedDetailModal({ targetExam, domainAccList, estimatedScore, passSc
 
   const weights = DOMAIN_WEIGHTS[targetExam] ?? domains.map(() => 100 / domains.length);
   const totalAllWeights = weights.reduce((s, w) => s + w, 0) || 100;
+  const domainResults = readDomainResults(targetExam, uid);
 
   const tabs = [
     { key: 'score' as const, label: ja ? 'スコア内訳' : 'Breakdown' },
@@ -211,6 +216,7 @@ function CombinedDetailModal({ targetExam, domainAccList, estimatedScore, passSc
                 const barPct = fullMaxPts > 0 ? curPts / fullMaxPts * 100 : 0;
                 const label = lang === 'en' ? (DOMAIN_NAME_EN[d] ?? d) : d;
                 const hasPracticed = totalQ > 0;
+                const nodeResults = (domainResults[d] ?? []).slice(-5);
                 return (
                   <div key={d} style={{ marginBottom: 10 }}>
                     <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', marginBottom: 4 }}>
@@ -226,6 +232,25 @@ function CombinedDetailModal({ targetExam, domainAccList, estimatedScore, passSc
                         )}
                       </div>
                     </div>
+                    {nodeResults.length > 0 && (
+                      <div style={{ display: 'flex', alignItems: 'center', marginBottom: 4 }}>
+                        {nodeResults.map((correct, ni) => (
+                          <React.Fragment key={ni}>
+                            <div style={{ flex: 1, height: 1.5, background: 'var(--color-border)' }} />
+                            <div style={{
+                              width: 14, height: 14, borderRadius: '50%', flexShrink: 0,
+                              border: `1.5px solid ${correct ? 'var(--color-success)' : 'var(--color-danger)'}`,
+                              background: correct ? 'var(--color-feedback-correct-bg)' : 'var(--color-feedback-incorrect-bg)',
+                              display: 'flex', alignItems: 'center', justifyContent: 'center',
+                              fontSize: 8, fontWeight: 700, lineHeight: 1,
+                              color: correct ? 'var(--color-success)' : 'var(--color-danger)',
+                            }}>
+                              {correct ? '✓' : '✗'}
+                            </div>
+                          </React.Fragment>
+                        ))}
+                      </div>
+                    )}
                     <div style={{ height: 5, background: 'var(--color-border)', borderRadius: 3, overflow: 'hidden' }}>
                       <div style={{ width: `${barPct}%`, height: '100%', borderRadius: 3, background: hasPracticed ? 'var(--bar-gradient-primary)' : 'transparent', animation: hasPracticed ? `growWidth 0.45s cubic-bezier(0.34, 1.56, 0.64, 1) ${i * 50}ms both` : 'none' }} />
                     </div>
