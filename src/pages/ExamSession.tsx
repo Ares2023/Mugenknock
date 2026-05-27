@@ -233,7 +233,7 @@ export default function ExamSession() {
         for (const r of abortResults) {
           for (const tag of (r.tags ?? [])) {
             if (!dr[tag]) dr[tag] = [];
-            dr[tag] = [...dr[tag], r.isCorrect].slice(-10);
+            dr[tag] = [...dr[tag], r.isCorrect].slice(-5);
           }
         }
         localStorage.setItem(`domain_results_${examType}_${userId}`, JSON.stringify(dr));
@@ -325,7 +325,7 @@ export default function ExamSession() {
         for (const r of results) {
           for (const tag of (r.tags ?? [])) {
             if (!dr[tag]) dr[tag] = [];
-            dr[tag] = [...dr[tag], r.isCorrect].slice(-10);
+            dr[tag] = [...dr[tag], r.isCorrect].slice(-5);
           }
         }
         localStorage.setItem(`domain_results_${examType}_${userId}`, JSON.stringify(dr));

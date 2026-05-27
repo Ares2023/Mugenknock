@@ -440,7 +440,7 @@ export default function ExerciseSession() {
           const q = questions.find((q: Question) => q.questionId === r.questionId);
           for (const tag of (q?.tags ?? [])) {
             if (!dr[tag]) dr[tag] = [];
-            dr[tag] = [...dr[tag], r.isCorrect].slice(-10);
+            dr[tag] = [...dr[tag], r.isCorrect].slice(-5);
           }
         }
         localStorage.setItem(`domain_results_${examType}_${userId}`, JSON.stringify(dr));
@@ -502,7 +502,7 @@ export default function ExerciseSession() {
         const q = questions.find((q: Question) => q.questionId === r.questionId);
         for (const tag of (q?.tags ?? [])) {
           if (!dr[tag]) dr[tag] = [];
-          dr[tag] = [...dr[tag], r.isCorrect].slice(-10);
+          dr[tag] = [...dr[tag], r.isCorrect].slice(-5);
         }
       }
       localStorage.setItem(`domain_results_${examType}_${userId}`, JSON.stringify(dr));
