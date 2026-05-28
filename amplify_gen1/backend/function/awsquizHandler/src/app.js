@@ -482,11 +482,12 @@ app.get('/admin/questions/summary', async (req, res) => {
     const docClient = getClient();
     const items = await scanAll(docClient, {
       TableName: 'Questions',
-      ProjectionExpression: 'examType, tags, isHidden',
+      ProjectionExpression: 'examType, tags, isHidden, validityCheckedAt, formatCheckedAt',
     });
+    const visible = items.filter(i => !i.isHidden);
     const examCounts = {};
     const domainCounts = {};
-    for (const item of items) {
+    for (const item of visible) {
       const { examType, tags = [] } = item;
       examCounts[examType] = (examCounts[examType] || 0) + 1;
       if (!domainCounts[examType]) domainCounts[examType] = {};
@@ -494,7 +495,9 @@ app.get('/admin/questions/summary', async (req, res) => {
         domainCounts[examType][tag] = (domainCounts[examType][tag] || 0) + 1;
       }
     }
-    res.json({ examCounts, domainCounts, totalCount: items.length });
+    const validityCheckedCount = visible.filter(i => i.validityCheckedAt).length;
+    const formatCheckedCount   = visible.filter(i => i.formatCheckedAt).length;
+    res.json({ examCounts, domainCounts, totalCount: visible.length, validityCheckedCount, formatCheckedCount });
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: 'Internal server error' });

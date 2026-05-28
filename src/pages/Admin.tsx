@@ -322,6 +322,8 @@ export default function Admin() {
       const data = await res.json();
       setExamCounts(data.examCounts || {});
       setDomainCountsByExam(data.domainCounts || {});
+      if (data.validityCheckedCount != null) setValidityCheckedCount(data.validityCheckedCount);
+      if (data.formatCheckedCount   != null) setFormatCheckedCount(data.formatCheckedCount);
     } catch (err) {
       console.error(err);
     }
@@ -495,6 +497,8 @@ export default function Admin() {
   // 問題数カウント
   const [examCounts, setExamCounts] = useState<Record<string, number>>({});
   const [domainCountsByExam, setDomainCountsByExam] = useState<Record<string, Record<string, number>>>({});
+  const [validityCheckedCount, setValidityCheckedCount] = useState<number | null>(null);
+  const [formatCheckedCount, setFormatCheckedCount] = useState<number | null>(null);
 
   // 問題編集
   const EMPTY_EDIT_FORM: EditForm = { examType: 'SAA', domain: '', questionText: '', questionTextEn: '', choices: ['', '', '', ''], choicesEn: ['', '', '', ''], correctAnswers: [], explanation: '', explanationEn: '', tags: '', isMultiple: false };
@@ -1053,6 +1057,29 @@ export default function Admin() {
       {/* ── 問題管理 ── */}
       {tab === 'questions' && (
         <div>
+          {/* カバレッジ */}
+          {totalCount > 0 && (validityCheckedCount != null || formatCheckedCount != null) && (
+            <div style={{ display: 'flex', gap: 16, marginBottom: 14, flexWrap: 'wrap' }}>
+              {[
+                { label: 'AI確認', count: validityCheckedCount, color: 'var(--color-primary)' },
+                { label: '体裁確認', count: formatCheckedCount, color: '#009E9E' },
+              ].map(({ label, count, color }) => count == null ? null : (
+                <div key={label} style={{ flex: '1 1 200px', minWidth: 200 }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 12, color: 'var(--color-text-sub)', marginBottom: 4 }}>
+                    <span style={{ fontWeight: 600 }}>{label}</span>
+                    <span style={{ fontVariantNumeric: 'tabular-nums' }}>
+                      {count.toLocaleString()} / {totalCount.toLocaleString()}
+                      <span style={{ marginLeft: 6, fontWeight: 700, color }}>{Math.round(count / totalCount * 100)}%</span>
+                    </span>
+                  </div>
+                  <div style={{ height: 6, borderRadius: 9999, background: 'var(--color-border)', overflow: 'hidden' }}>
+                    <div style={{ height: '100%', borderRadius: 9999, background: color, width: `${Math.min(100, count / totalCount * 100)}%`, transition: 'width 0.4s' }} />
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+
           {/* 検索バー */}
           <form onSubmit={handleSearch} style={{ marginBottom: 16 }}>
             {/* 試験種別 */}
