@@ -247,6 +247,7 @@ export default function Admin() {
   const [domainFilter, setDomainFilter] = useState('');
   const [keyword, setKeyword] = useState('');
   const [keywordInput, setKeywordInput] = useState('');
+  const [sortBy, setSortBy] = useState<'id_asc' | 'updatedAt_desc' | 'updatedAt_asc' | 'validityCheckedAt_desc' | 'validityCheckedAt_asc'>('id_asc');
   const [loadingQ, setLoadingQ] = useState(false);
   const [expandedId, setExpandedId] = useState<string | null>(null);
   const [deletingId, setDeletingId] = useState<string | null>(null);
@@ -331,10 +332,9 @@ export default function Admin() {
       if (keyword.trim()) params.set('keyword', keyword.trim());
       if (tagFilter.trim()) params.set('tag', tagFilter.trim());
       if (domainFilter) params.set('domain', domainFilter);
-      if (examFilter === 'ALL') {
-        params.set('page', String(page));
-        params.set('pageSize', String(PAGE_SIZE));
-      }
+      params.set('page', String(page));
+      params.set('pageSize', String(PAGE_SIZE));
+      params.set('sort', sortBy);
       const res = await adminFetch(`${API_ENDPOINT}/admin/questions?${params}`);
       if (res.status === 401 || res.status === 403) {
         setAdminError('管理者アカウントでログインしてください。');
@@ -352,7 +352,7 @@ export default function Admin() {
     } finally {
       setLoadingQ(false);
     }
-  }, [examFilter, keyword, tagFilter, domainFilter, PAGE_SIZE]);
+  }, [examFilter, keyword, tagFilter, domainFilter, sortBy, PAGE_SIZE]);
 
 
   const fetchReports = useCallback(async () => {
@@ -612,13 +612,14 @@ export default function Admin() {
     fetchQuestions(0);
     setSelectedIds(new Set());
     if (examFilter === 'ALL') fetchSummary();
-  }, [examFilter, keyword, tagFilter, domainFilter]);
+  }, [examFilter, keyword, tagFilter, domainFilter, sortBy]);
   useEffect(() => { if (tab === 'reports') fetchReports(); }, [tab]);
   useEffect(() => { if (tab === 'tips') fetchTips(); }, [tab]);
   useEffect(() => { if (tab === 'releases') fetchReleases(); }, [tab]);
   useEffect(() => { if (tab === 'scan') fetchFlagged('all'); }, [tab]);
   useEffect(() => { if (tab === 'messages') fetchMessages(); }, [tab]);
   useEffect(() => { if (tab === 'dailyservice') fetchDailyServices(); }, [tab]);
+  useEffect(() => { fetchDailyServices(); }, []); // pre-fetch for tab count
   useEffect(() => { if (tab === 'admins') fetchAdminEmails(); }, [tab]);
   useEffect(() => { if (tab === 'about') fetchAboutContent(); }, [tab]);
 
@@ -1033,7 +1034,11 @@ export default function Admin() {
             <div className="admin-tabs" style={{ borderBottom: '1px solid var(--color-border)', display: 'flex', overflowX: 'auto', flexWrap: 'nowrap' }}>
               {TAB_GROUPS.find(g => g.key === activeGroup)!.tabs.map(t => (
                 <button key={t} style={tabStyle(t)} onClick={() => setTab(t)}>
-                  {t === 'messages' && messages.length > 0 ? `メッセージ (${messages.length})` : TAB_LABELS[t]}
+                  {t === 'messages' && messages.length > 0
+                    ? `メッセージ (${messages.length})`
+                    : t === 'dailyservice' && dailyServices.length > 0
+                    ? `日めくりAWSサービス(${dailyServices.length})`
+                    : TAB_LABELS[t]}
                 </button>
               ))}
             </div>
@@ -1091,6 +1096,22 @@ export default function Admin() {
                 ))}
               </div>
             )}
+
+            {/* ソート */}
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 10 }}>
+              <span style={{ fontSize: 12, color: 'var(--color-text-sub)', fontWeight: 700, flexShrink: 0 }}>ソート:</span>
+              <select
+                value={sortBy}
+                onChange={e => { setSortBy(e.target.value as typeof sortBy); setCurrentPage(0); }}
+                style={{ padding: '5px 10px', border: '1px solid var(--color-border)', borderRadius: 6, fontSize: 13, background: 'var(--color-bg-white)', color: 'var(--color-text-main)', cursor: 'pointer', outline: 'none' }}
+              >
+                <option value="id_asc">ID (昇順)</option>
+                <option value="updatedAt_desc">最終編集 (新しい順)</option>
+                <option value="updatedAt_asc">最終編集 (古い順)</option>
+                <option value="validityCheckedAt_desc">AI確認 (新しい順)</option>
+                <option value="validityCheckedAt_asc">AI確認 (古い順)</option>
+              </select>
+            </div>
 
             {/* キーワード・タグ検索（チップ形式） */}
             <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', alignItems: 'flex-start' }}>
@@ -1154,7 +1175,7 @@ export default function Admin() {
           {/* 件数・一括削除バー */}
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
             <p style={{ color: 'var(--color-text-sub)', fontSize: 13, margin: 0 }}>
-              {loadingQ ? '読み込み中...' : examFilter === 'ALL'
+              {loadingQ ? '読み込み中...' : totalQuestions > 0
                 ? `${totalQuestions} 件中 ${currentPage * PAGE_SIZE + 1}–${Math.min((currentPage + 1) * PAGE_SIZE, totalQuestions)} 件表示`
                 : `${questions.length} 件`}
             </p>
@@ -1309,8 +1330,8 @@ export default function Admin() {
             <p style={{ color: 'var(--color-text-light)', textAlign: 'center', padding: 40 }}>問題が見つかりません</p>
           )}
 
-          {/* ページネーション（ALL表示時のみ） */}
-          {examFilter === 'ALL' && totalQuestions > PAGE_SIZE && !loadingQ && (
+          {/* ページネーション */}
+          {totalQuestions > PAGE_SIZE && !loadingQ && (
             <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', gap: 12, marginTop: 20, padding: '12px 0' }}>
               <button
                 onClick={() => { fetchQuestions(currentPage - 1); setSelectedIds(new Set()); }}

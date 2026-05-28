@@ -650,10 +650,22 @@ app.get('/admin/questions', async (req, res) => {
       );
     }
 
-    items.sort((a, b) => a.questionId.localeCompare(b.questionId));
+    const { sort: sortParam = 'id_asc' } = req.query;
+    const [sortField, sortDir] = sortParam.split('_');
+    items.sort((a, b) => {
+      if (sortField === 'updatedAt') {
+        const da = a.updatedAt || '0', db = b.updatedAt || '0';
+        return sortDir === 'desc' ? db.localeCompare(da) : da.localeCompare(db);
+      } else if (sortField === 'validityCheckedAt') {
+        const da = a.validityCheckedAt || '0', db = b.validityCheckedAt || '0';
+        return sortDir === 'desc' ? db.localeCompare(da) : da.localeCompare(db);
+      } else {
+        return a.questionId.localeCompare(b.questionId);
+      }
+    });
 
     const total = items.length;
-    const pagedItems = isAll ? items.slice(pageNum * pageSz, (pageNum + 1) * pageSz) : items;
+    const pagedItems = items.slice(pageNum * pageSz, (pageNum + 1) * pageSz);
 
     res.json({ items: pagedItems, count: pagedItems.length, total, page: pageNum, pageSize: pageSz });
   } catch (err) {
