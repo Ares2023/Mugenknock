@@ -26,6 +26,7 @@ import About from './pages/About';
 import Practice from './pages/Practice';
 import ServiceEncyclopedia from './pages/ServiceEncyclopedia';
 import ConfirmDelete from './pages/ConfirmDelete';
+import ExamDashboard from './pages/ExamDashboard';
 
 function AuthGate({ children }: { children: React.ReactNode }) {
   const { loading } = useAuth();
@@ -76,6 +77,7 @@ function AppInner() {
           <Route path="/aws/growth" element={<TargetExamRoute><Layout><Growth /></Layout></TargetExamRoute>} />
           <Route path="/aws/release-notes" element={<TargetExamRoute><Layout><ReleaseNotes /></Layout></TargetExamRoute>} />
           <Route path="/aws/others" element={<TargetExamRoute><Layout><Others /></Layout></TargetExamRoute>} />
+          <Route path="/aws/exam-dashboard" element={<TargetExamRoute><Layout><ExamDashboard /></Layout></TargetExamRoute>} />
           <Route path="/about" element={<Layout><About /></Layout>} />
           <Route path="/confirm-delete" element={<ConfirmDelete />} />
           <Route path="/admin" element={

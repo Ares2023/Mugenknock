@@ -403,8 +403,8 @@ export default function Layout({ children }: { children: React.ReactNode }) {
                   100% { opacity: 0; transform: translateY(-22px) scale(0.9); }
                 }
               `}</style>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 3, userSelect: 'none', position: 'relative' }}>
-                <span style={{ color: '#009E9E', display: 'flex', alignItems: 'center' }}><IconSparkles size={14} /></span>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 4, userSelect: 'none', position: 'relative', border: '1.5px solid #009E9E', borderRadius: 6, padding: '3px 8px 3px 6px', background: 'rgba(0,158,158,0.05)' }}>
+                <span style={{ color: '#009E9E', display: 'flex', alignItems: 'center' }}><IconSparkles size={17} /></span>
                 <span style={{ color: '#009E9E', fontWeight: 800, fontSize: 'var(--font-size-sm)', minWidth: '3ch', textAlign: 'right', fontVariantNumeric: 'tabular-nums' }}>{points}</span>
                 {ptsDelta !== null && (
                   <span style={{
@@ -474,23 +474,34 @@ export default function Layout({ children }: { children: React.ReactNode }) {
           )}
         </div>
         {targetExam && (
-          <div style={{ flexShrink: 0, display: 'flex', alignItems: 'center', gap: 2, paddingRight: 'var(--spacing-xs)' }}>
+          <div
+            onClick={() => navigate('/aws/exam-dashboard')}
+            title="資格ダッシュボード"
+            style={{ flexShrink: 0, display: 'flex', alignItems: 'stretch', alignSelf: 'stretch', cursor: 'pointer', transition: 'background 0.15s' }}
+            onMouseEnter={e => { e.currentTarget.style.background = 'var(--color-bg-main)'; }}
+            onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; }}
+          >
             <span style={{
               fontSize: 'var(--font-size-xs)', fontWeight: 700,
               color: 'var(--color-text-sub)',
               whiteSpace: 'nowrap',
-              maxWidth: isMobile ? '40vw' : '35vw',
-              overflow: 'hidden', textOverflow: 'ellipsis', display: 'inline-block',
+              maxWidth: isMobile ? '32vw' : '26vw',
+              overflow: 'hidden', textOverflow: 'ellipsis',
+              display: 'flex', alignItems: 'center',
+              padding: '0 4px 0 8px',
             }}>
               {isMobile
                 ? (EXAM_CONFIGS[targetExam]?.fullName ?? targetExam).replace(/^AWS Certified\s+/i, '')
                 : (EXAM_CONFIGS[targetExam]?.fullName ?? targetExam)}
             </span>
-            <button
-              onClick={() => navigate('/account')}
-              style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--color-text-light)', padding: '0 2px', fontSize: 'var(--font-size-xs)', fontWeight: 700, lineHeight: 1, flexShrink: 0, display: 'flex', alignItems: 'center' }}
-              title="目標資格を変更"
-            >›</button>
+            <span style={{
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+              alignSelf: 'stretch',
+              color: 'var(--color-primary)',
+              fontSize: 22, fontWeight: 900,
+              padding: '0 10px 0 4px',
+              lineHeight: 1,
+            }}>›</span>
           </div>
         )}
       </div>

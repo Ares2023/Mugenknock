@@ -400,7 +400,7 @@ export default function ExerciseSession() {
   };
 
   const goToQuestion = (i: number) => {
-    if (i >= currentIndex) return;
+    if (i >= results.length || i === currentIndex) return;
     setCurrentIndex(i);
     setSelectedAnswers(selectionHistory[i] ?? []);
     setAnswered(true);
@@ -689,38 +689,39 @@ export default function ExerciseSession() {
       {/* 進捗ノード */}
       <div style={{ display: 'flex', alignItems: 'center', marginBottom: 'var(--spacing-sm)' }}>
         {questions.map((_, i) => {
-          const isPast = i < currentIndex;
+          const isAnswered = i < results.length;
           const isCurrent = i === currentIndex;
+          const isClickable = isAnswered && !isCurrent;
           const isHovered = hoveredNode === i;
           return (
             <React.Fragment key={i}>
               <div
-                onClick={isPast ? () => goToQuestion(i) : undefined}
-                onMouseEnter={isPast ? () => setHoveredNode(i) : undefined}
-                onMouseLeave={isPast ? () => setHoveredNode(null) : undefined}
-                title={isPast ? `第${i + 1}問に戻る` : undefined}
+                onClick={isClickable ? () => goToQuestion(i) : undefined}
+                onMouseEnter={isClickable ? () => setHoveredNode(i) : undefined}
+                onMouseLeave={isClickable ? () => setHoveredNode(null) : undefined}
+                title={isClickable ? `第${i + 1}問へ` : undefined}
                 style={{
-                  width: isCurrent ? 10 : isHovered ? 10 : 7,
-                  height: isCurrent ? 10 : isHovered ? 10 : 7,
+                  width: isCurrent ? 12 : isHovered ? 9 : 7,
+                  height: isCurrent ? 12 : isHovered ? 9 : 7,
                   borderRadius: '50%',
                   flexShrink: 0,
-                  background: isPast || isCurrent ? 'var(--color-primary)' : 'transparent',
-                  border: `2px solid ${i <= currentIndex ? 'var(--color-primary)' : 'var(--color-text-light)'}`,
+                  background: isAnswered || isCurrent ? 'var(--color-primary)' : 'transparent',
+                  border: `2px solid ${isAnswered || isCurrent ? 'var(--color-primary)' : 'var(--color-text-light)'}`,
                   boxShadow: isCurrent
                     ? '0 0 0 2px var(--color-primary-light, rgba(82,130,255,0.25))'
                     : isHovered
                     ? '0 0 0 3px var(--color-primary-light, rgba(82,130,255,0.35))'
                     : 'none',
-                  cursor: isPast ? 'pointer' : 'default',
+                  cursor: isClickable ? 'pointer' : 'default',
                   transition: 'all 0.15s',
-                  opacity: isPast && !isHovered ? 0.75 : 1,
+                  opacity: isAnswered && !isCurrent && !isHovered ? 0.75 : 1,
                 }}
               />
               {i < questions.length - 1 && (
                 <div style={{
                   flex: 1,
                   height: 2,
-                  background: i < currentIndex ? 'var(--color-primary)' : 'var(--color-text-light)',
+                  background: i < results.length - 1 ? 'var(--color-primary)' : 'var(--color-text-light)',
                   transition: 'background 0.2s',
                 }} />
               )}
