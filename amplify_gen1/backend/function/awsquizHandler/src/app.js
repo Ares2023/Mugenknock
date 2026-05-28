@@ -2031,6 +2031,7 @@ async function executeUserDataDeletion(docClient, userId) {
   await deleteItems('Sessions', sessionIds.map(sid => ({ userId, sessionId: sid })));
 
   try { await docClient.send(new DeleteCommand({ TableName: 'EncyclopediaUnlocks', Key: { userId } })); } catch {}
+  try { await docClient.send(new DeleteCommand({ TableName: 'UserPoints', Key: { userId } })); } catch {}
 
   const reportsResult = await docClient.send(new ScanCommand({
     TableName: 'Reports',

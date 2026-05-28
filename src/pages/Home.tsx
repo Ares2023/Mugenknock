@@ -273,9 +273,12 @@ function CombinedDetailModal({ targetExam, domainAccList, estimatedScore, passSc
                         <React.Fragment key={ni}>
                           {ni === 0
                             ? <div style={{ flex: 1, display: 'flex', alignItems: 'center' }}>
-                                {[1, 1.5, 2, 2.5, 3].map((dash, idx) => (
-                                  <div key={idx} style={{ flex: 1, height: 1.5, background: `repeating-linear-gradient(to right, #AEBCBD 0px, #AEBCBD ${dash}px, transparent ${dash}px, transparent ${dash + 3}px)` }} />
-                                ))}
+                                <div style={{ flex: 1, display: 'flex', alignItems: 'center' }}>
+                                  {[1, 1.5, 2, 2.5, 3].map((dash, idx) => (
+                                    <div key={idx} style={{ flex: 1, height: 1.5, background: `repeating-linear-gradient(to right, #AEBCBD 0px, #AEBCBD ${dash}px, transparent ${dash}px, transparent ${dash + 3}px)` }} />
+                                  ))}
+                                </div>
+                                <div style={{ flex: 1, height: 1.5, background: '#AEBCBD' }} />
                               </div>
                             : <div style={{ flex: 1, height: 1.5, background: '#AEBCBD' }} />
                           }
@@ -300,7 +303,7 @@ function CombinedDetailModal({ targetExam, domainAccList, estimatedScore, passSc
                     <div style={{ display: 'flex', justifyContent: 'flex-end', alignItems: 'baseline', marginTop: 3 }}>
                       {formulaStr
                         ? <span style={{ fontSize: 9, color: 'var(--color-text-light)' }}>
-                            {formulaStr}=<span style={{ fontSize: 11, fontWeight: 700, color: 'var(--color-primary)' }}>{curPts}</span>/{fullMaxPts}
+                            {formulaStr} = <span style={{ fontSize: 11, fontWeight: 700, color: 'var(--color-primary)' }}>{curPts}</span> /{fullMaxPts}
                           </span>
                         : <span style={{ fontSize: 9, color: 'var(--color-text-light)' }}>—</span>
                       }
@@ -941,6 +944,37 @@ function TodayServiceSection({ lang, userId, onNavigateEncyclopedia, onReveal }:
             {lang === 'ja' ? '再抽選' : 'Rerolled'}
           </span>
         )}
+        {revealed && userId && (
+          <div style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: 6 }}>
+            {rerollError && (
+              <span style={{ fontSize: 10, color: 'var(--color-danger)', whiteSpace: 'nowrap' }}>
+                {lang === 'ja' ? 'P不足' : 'Not enough P'}
+              </span>
+            )}
+            <button
+              onClick={e => { e.stopPropagation(); handleReroll(); }}
+              disabled={rerolling}
+              title={lang === 'ja' ? '再抽選 (-30p)' : 'Reroll (-30p)'}
+              style={{
+                width: 44, height: 44, borderRadius: '50%',
+                border: '1px solid var(--color-border)',
+                background: 'transparent',
+                color: rerolling ? 'var(--color-text-light)' : 'var(--color-primary)',
+                cursor: rerolling ? 'default' : 'pointer',
+                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                opacity: rerolling ? 0.5 : 1, flexShrink: 0,
+              }}
+            >
+              {rerolling
+                ? <div className="sherpa-spinner" style={{ width: 13, height: 13, borderWidth: 2, flexShrink: 0 }} />
+                : <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                    <polyline points="23 4 23 10 17 10"/>
+                    <path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/>
+                  </svg>
+              }
+            </button>
+          </div>
+        )}
       </div>
 
       {/* アイコン＋名前 横並び */}
@@ -971,37 +1005,6 @@ function TodayServiceSection({ lang, userId, onNavigateEncyclopedia, onReveal }:
         </a>
       )}
 
-      {/* 再抽選ボタン */}
-      {revealed && userId && (
-        <div style={{ marginTop: 10, paddingTop: 10, borderTop: '1px solid var(--color-border)', display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: 8 }}>
-          {rerollError && (
-            <span style={{ fontSize: 11, color: 'var(--color-danger)' }}>
-              {lang === 'ja' ? 'ポイントが不足しています' : 'Not enough points'}
-            </span>
-          )}
-          <button
-            onClick={e => { e.stopPropagation(); handleReroll(); }}
-            disabled={rerolling}
-            style={{
-              display: 'flex', alignItems: 'center', gap: 5,
-              border: '1px solid var(--color-border)', borderRadius: 'var(--border-radius-full)',
-              background: 'none', cursor: rerolling ? 'default' : 'pointer',
-              padding: '4px 12px', fontSize: 12, fontWeight: 600,
-              color: rerolling ? 'var(--color-text-light)' : 'var(--color-text-sub)',
-              opacity: rerolling ? 0.6 : 1, transition: 'all 0.15s',
-            }}
-          >
-            {rerolling
-              ? <><div className="sherpa-spinner" style={{ width: 12, height: 12, borderWidth: 2, flexShrink: 0 }} /><span>{lang === 'ja' ? '抽選中...' : 'Rolling...'}</span></>
-              : <>
-                  <span style={{ color: 'var(--color-primary)', display: 'flex' }}><IconSparkles size={11} /></span>
-                  <span>{lang === 'ja' ? '再抽選' : 'Reroll'}</span>
-                  <span style={{ color: 'var(--color-text-light)', fontSize: 11 }}>-30p</span>
-                </>
-            }
-          </button>
-        </div>
-      )}
     </Card>
   );
 }

@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { createPortal } from 'react-dom';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { API_ENDPOINT, PASS_RATE, EXAM_DOMAINS, DOMAIN_NAME_EN } from '../constants';
+import { API_ENDPOINT, PASS_RATE, EXAM_DOMAINS, DOMAIN_NAME_EN, EXAM_LEVEL } from '../constants';
 import { deleteCached } from '../utils/cache';
 import { addPoints } from '../utils/points';
 import { useAuth } from '../contexts/AuthContext';
@@ -456,9 +456,11 @@ export default function ExerciseSession() {
       // セッション完了でキャッシュ破棄 → ホーム画面が最新データをサーバーから再取得
       deleteCached(`ustats_${userId}`);
       localStorage.setItem(`postSessionRefresh_${userId}`, String(Date.now()));
-      if (userId) addPoints(userId, results.length);
+      const ptsPerQ = EXAM_LEVEL[examType] === 'Foundational' ? 1 : EXAM_LEVEL[examType] === 'Associate' ? 2 : 3;
+      const earnedPts = results.filter(r => r.isCorrect).length * ptsPerQ;
+      if (userId && earnedPts > 0) addPoints(userId, earnedPts);
       localStorage.setItem(`sessionScoreAdd_${examType}_${userId}`, '1');
-      navigate('/aws/result', { state: { results, questions, score, isPassed, sessionId, userId, examType, isQuick, isMini } });
+      navigate('/aws/result', { state: { results, questions, score, isPassed, sessionId, userId, examType, isQuick, isMini, earnedPts } });
     } else {
       setCurrentIndex(prev => prev + 1);
       setSelectedAnswers([]);
@@ -526,10 +528,12 @@ export default function ExerciseSession() {
     } catch {}
     deleteCached(`ustats_${userId}`);
     localStorage.setItem(`postSessionRefresh_${userId}`, String(Date.now()));
-    if (userId) addPoints(userId, results.length);
+    const ptsPerQ = EXAM_LEVEL[examType] === 'Foundational' ? 1 : EXAM_LEVEL[examType] === 'Associate' ? 2 : 3;
+    const earnedPts = results.filter(r => r.isCorrect).length * ptsPerQ;
+    if (userId && earnedPts > 0) addPoints(userId, earnedPts);
     localStorage.setItem(`sessionScoreAdd_${examType}_${userId}`, '1');
     const answeredQuestions = questions.slice(0, results.length);
-    navigate('/aws/result', { state: { results, questions: answeredQuestions, score, isPassed, sessionId, userId, examType, isQuick, isMini, aborted: true } });
+    navigate('/aws/result', { state: { results, questions: answeredQuestions, score, isPassed, sessionId, userId, examType, isQuick, isMini, aborted: true, earnedPts } });
   };
 
   const getChoiceStyle = (choice: string): React.CSSProperties => {

@@ -16,7 +16,7 @@ function shuffleArray<T>(arr: T[]): T[] { const a = [...arr]; for (let i = a.len
 export default function Result() {
   const navigate = useNavigate();
   const location = useLocation();
-  const { results, questions, score, isPassed, examType, mode, timeUp, isQuick, isMini, aborted } = location.state as any;
+  const { results, questions, score, isPassed, examType, mode, timeUp, isQuick, isMini, aborted, earnedPts } = location.state as any;
   const { user } = useAuth();
 
   const resolvedExamType = examType ?? questions?.[0]?.examType ?? 'SAA';
@@ -87,6 +87,11 @@ export default function Result() {
         <p style={{ color: 'var(--color-text-main)', marginTop: 'var(--spacing-md)', fontSize: 'var(--font-size-lg)', fontWeight: 700 }}>
           {t('result.correctCount', { correct: results.filter((r: any) => r.isCorrect).length, total: questions.length })}
         </p>
+        {earnedPts > 0 && (
+          <p style={{ color: '#009E9E', fontWeight: 800, fontSize: 'var(--font-size-base)', marginTop: 8 }}>
+            ✨ {ja ? `+${earnedPts}pt 獲得！` : `+${earnedPts}pt earned!`}
+          </p>
+        )}
       </Card>
 
       {/* ドメイン別スコア内訳 */}

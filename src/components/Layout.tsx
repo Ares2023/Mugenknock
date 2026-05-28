@@ -86,6 +86,10 @@ export default function Layout({ children }: { children: React.ReactNode }) {
   });
   const [targetExam, setTargetExam] = useState<string | null>(() => localStorage.getItem(`targetExam_${uid}`));
   const [points, setPoints] = useState(() => getPoints(uid));
+  const [ptsDelta, setPtsDelta] = useState<number | null>(null);
+  const ptsRef = useRef(getPoints(uid));
+  const deltaTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const animFrame = useRef<number | null>(null);
   const [showContact, setShowContact] = useState(false);
   const [contactSubject, setContactSubject] = useState('');
   const [contactMessage, setContactMessage] = useState('');
@@ -155,10 +159,36 @@ export default function Layout({ children }: { children: React.ReactNode }) {
   }, [location.pathname, uid]);
 
   useEffect(() => {
-    setPoints(getPoints(uid));
-    const handler = (e: Event) => setPoints((e as CustomEvent).detail as number);
+    const init = getPoints(uid);
+    ptsRef.current = init;
+    setPoints(init);
+    const handler = (e: Event) => {
+      const next = (e as CustomEvent).detail as number;
+      const diff = next - ptsRef.current;
+      if (diff !== 0) {
+        setPtsDelta(diff);
+        if (deltaTimer.current) clearTimeout(deltaTimer.current);
+        deltaTimer.current = setTimeout(() => setPtsDelta(null), 1800);
+      }
+      const from = ptsRef.current;
+      ptsRef.current = next;
+      if (animFrame.current) cancelAnimationFrame(animFrame.current);
+      const duration = 500;
+      const startTime = performance.now();
+      const tick = (now: number) => {
+        const t = Math.min((now - startTime) / duration, 1);
+        const ease = t < 0.5 ? 2 * t * t : -1 + (4 - 2 * t) * t;
+        setPoints(Math.round(from + (next - from) * ease));
+        if (t < 1) animFrame.current = requestAnimationFrame(tick);
+      };
+      animFrame.current = requestAnimationFrame(tick);
+    };
     window.addEventListener('pointsChanged', handler);
-    return () => window.removeEventListener('pointsChanged', handler);
+    return () => {
+      window.removeEventListener('pointsChanged', handler);
+      if (deltaTimer.current) clearTimeout(deltaTimer.current);
+      if (animFrame.current) cancelAnimationFrame(animFrame.current);
+    };
   }, [uid]);
 
   // ログイン済みのときサーバーからポイントを取得してローカルを上書き
@@ -365,10 +395,30 @@ export default function Layout({ children }: { children: React.ReactNode }) {
         {/* ポイント表示＋アカウントボタン（モバイル・デスクトップ共通） */}
         <div style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: 8, flexShrink: 0 }}>
           {user && (
-            <div style={{ display: 'flex', alignItems: 'center', gap: 3, color: 'var(--color-text-sub)', fontSize: 'var(--font-size-sm)', fontWeight: 700, userSelect: 'none' }}>
-              <span style={{ color: 'var(--color-primary)', display: 'flex', alignItems: 'center' }}><IconSparkles size={14} /></span>
-              <span>{points}</span>
-            </div>
+            <>
+              <style>{`
+                @keyframes pts-delta-fly {
+                  0%   { opacity: 1; transform: translateY(0) scale(1); }
+                  60%  { opacity: 1; transform: translateY(-14px) scale(1.1); }
+                  100% { opacity: 0; transform: translateY(-22px) scale(0.9); }
+                }
+              `}</style>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 3, userSelect: 'none', position: 'relative' }}>
+                <span style={{ color: '#009E9E', display: 'flex', alignItems: 'center' }}><IconSparkles size={14} /></span>
+                <span style={{ color: '#009E9E', fontWeight: 800, fontSize: 'var(--font-size-sm)', minWidth: '3ch', textAlign: 'right', fontVariantNumeric: 'tabular-nums' }}>{points}</span>
+                {ptsDelta !== null && (
+                  <span style={{
+                    position: 'absolute', right: -28, top: -2,
+                    fontSize: 11, fontWeight: 800,
+                    color: ptsDelta > 0 ? '#009E9E' : 'var(--color-danger)',
+                    whiteSpace: 'nowrap', pointerEvents: 'none',
+                    animation: 'pts-delta-fly 1.8s ease-out forwards',
+                  }}>
+                    {ptsDelta > 0 ? `+${ptsDelta}` : ptsDelta}
+                  </span>
+                )}
+              </div>
+            </>
           )}
           <button
             onClick={() => navigate('/account')}
@@ -424,17 +474,23 @@ export default function Layout({ children }: { children: React.ReactNode }) {
           )}
         </div>
         {targetExam && (
-          <div style={{ flexShrink: 0, display: 'flex', alignItems: 'center', paddingRight: 'var(--spacing-xs)' }}>
+          <div style={{ flexShrink: 0, display: 'flex', alignItems: 'center', gap: 2, paddingRight: 'var(--spacing-xs)' }}>
             <span style={{
-              background: 'var(--color-secondary)', color: 'white',
-              fontSize: 'var(--font-size-xs)', padding: '5px 12px',
-              borderRadius: 'var(--border-radius-full)', fontWeight: 700,
-              lineHeight: 1, display: 'inline-block', whiteSpace: 'nowrap',
-              maxWidth: isMobile ? '55vw' : '40vw',
-              overflow: 'hidden', textOverflow: 'ellipsis',
+              fontSize: 'var(--font-size-xs)', fontWeight: 700,
+              color: 'var(--color-text-sub)',
+              whiteSpace: 'nowrap',
+              maxWidth: isMobile ? '40vw' : '35vw',
+              overflow: 'hidden', textOverflow: 'ellipsis', display: 'inline-block',
             }}>
-              {EXAM_CONFIGS[targetExam]?.fullName ?? targetExam}
+              {isMobile
+                ? (EXAM_CONFIGS[targetExam]?.fullName ?? targetExam).replace(/^AWS Certified\s+/i, '')
+                : (EXAM_CONFIGS[targetExam]?.fullName ?? targetExam)}
             </span>
+            <button
+              onClick={() => navigate('/account')}
+              style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--color-text-light)', padding: '0 2px', fontSize: 'var(--font-size-xs)', fontWeight: 700, lineHeight: 1, flexShrink: 0, display: 'flex', alignItems: 'center' }}
+              title="目標資格を変更"
+            >›</button>
           </div>
         )}
       </div>
