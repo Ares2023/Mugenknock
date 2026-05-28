@@ -227,7 +227,7 @@ PYEOF
   AI_EXIT=$?
   RESULT=$(cat "$_STDOUT_F")
   _STDERR=$(cat "$_STDERR_F")
-  rm -f "$_STDOUT_F" "$_STDERR_F" "$PROMPT_FILE"
+  rm -f "$_STDOUT_F" "$_STDERR_F"
 
   # npm更新による一時的なバイナリ消失 → 再探索してリトライ
   if [ $AI_EXIT -ne 0 ] && echo "$_STDERR" | grep -q "No such file"; then
@@ -242,6 +242,7 @@ PYEOF
       rm -f "$_STDOUT_F" "$_STDERR_F"
     fi
   fi
+  rm -f "$PROMPT_FILE"
 
   if echo "$_STDERR" | grep -qiE "command not found|No such file|GEMINI_API_KEY|API.?key"; then
     echo "❌ claude 実行エラー。スクリプトを終了します"
