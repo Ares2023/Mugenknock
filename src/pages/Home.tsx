@@ -13,7 +13,7 @@ import { animateLoadPct, randomPlateau } from '../utils/loadProgress';
 import { getPoints, deductPoints } from '../utils/points';
 import Card from '../components/ui/Card';
 import Button from '../components/ui/Button';
-import { IconLightbulb, IconSettings, IconChevronUp, IconChevronDown, IconLock, IconFileText, IconTrendingUp, IconBookOpen, IconCheck, IconSparkles, ServiceIconImg, isServiceIconKey } from '../components/Icons';
+import { IconLightbulb, IconSettings, IconChevronUp, IconChevronDown, IconLock, IconFileText, IconTrendingUp, IconBookOpen, IconCheck, IconSparkles, IconPointer, IconMousePointerClick, ServiceIconImg, isServiceIconKey } from '../components/Icons';
 import { CATALOG } from '../data/awsServiceCatalog';
 import { autoScoreAndClearDrafts } from '../utils/sessionUtils';
 
@@ -736,10 +736,11 @@ function syncEncyclopediaToServer(userId: string, forceUpload = false): void {
   } catch {}
 }
 
-function TodayServiceSection({ lang, userId, onNavigateEncyclopedia, onReveal }: {
+function TodayServiceSection({ lang, userId, onNavigateEncyclopedia, onReveal, isMobile }: {
   lang: string; userId?: string;
   onNavigateEncyclopedia: () => void;
   onReveal: (svc: DailyService) => void;
+  isMobile: boolean;
 }) {
   const [service, setService] = useState<DailyService | null>(null);
   const [loading, setLoading] = useState(true);
@@ -913,7 +914,12 @@ function TodayServiceSection({ lang, userId, onNavigateEncyclopedia, onReveal }:
             animation: 'ds-tap 1.5s ease-in-out infinite',
             textShadow: '0 2px 8px rgba(0,0,0,.5)',
           }}>
-            {lang === 'ja' ? '👆 タップして本日のサービスを解放' : "👆 Tap to reveal today's service"}
+            <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}>
+              {isMobile ? <IconPointer size={16} /> : <IconMousePointerClick size={16} />}
+              {lang === 'ja'
+                ? (isMobile ? 'タップして本日のサービスを解放' : 'クリックして本日のサービスを解放')
+                : (isMobile ? "Tap to reveal today's service" : "Click to reveal today's service")}
+            </span>
           </div>
         </div>
       </div>
@@ -1643,6 +1649,7 @@ export default function Home() {
         userId={user?.userId}
         onNavigateEncyclopedia={() => navigate('/aws/encyclopedia')}
         onReveal={svc => setRevealService(svc)}
+        isMobile={isMobile}
       />
 
       {revealService && (

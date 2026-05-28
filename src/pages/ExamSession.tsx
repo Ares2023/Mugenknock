@@ -10,7 +10,7 @@ import Card from '../components/ui/Card';
 import Button from '../components/ui/Button';
 import Badge from '../components/ui/Badge';
 import ReportModal from '../components/ReportModal';
-import { IconFlag, IconBookmark } from '../components/Icons';
+import { IconFlag, IconStar } from '../components/Icons';
 
 const WAKARANAI = 'わからない';
 const stripLabel = (s: string) => s.replace(/^[A-E]\.\s*/, '');
@@ -501,7 +501,7 @@ export default function ExamSession() {
                   style={{ background: 'none', border: 'none', cursor: 'pointer', padding: '4px', display: 'flex', alignItems: 'center' }}
                 >
                   <span style={{ color: bookmarkedIds.has(currentQ.questionId) ? 'var(--color-warning, #f59e0b)' : 'var(--color-text-light)' }}>
-                    <IconBookmark filled={bookmarkedIds.has(currentQ.questionId)} size={20} />
+                    <IconStar filled={bookmarkedIds.has(currentQ.questionId)} size={20} />
                   </span>
                 </button>
               )}

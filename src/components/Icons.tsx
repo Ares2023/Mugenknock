@@ -146,6 +146,32 @@ export const IconBookmark = ({ filled = false, size = 16 }: { filled?: boolean; 
   </svg>
 );
 
+export const IconStar = ({ filled = false, size = 16 }: { filled?: boolean; size?: number }) => (
+  <svg width={size} height={size} viewBox="0 0 24 24" fill={filled ? "currentColor" : "none"} stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
+  </svg>
+);
+
+export const IconPointer = ({ size = 16 }: { size?: number }) => (
+  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M22 14a8 8 0 0 1-8 8"/>
+    <path d="M18 11v-1a2 2 0 0 0-2-2a2 2 0 0 0-2 2"/>
+    <path d="M14 10V9a2 2 0 0 0-2-2a2 2 0 0 0-2 2v1"/>
+    <path d="M10 9.5V4a2 2 0 0 0-2-2a2 2 0 0 0-2 2v10"/>
+    <path d="M18 11a2 2 0 1 1 4 0v3a8 8 0 0 1-8 8h-2c-2.8 0-4.5-.86-5.99-2.34l-3.6-3.6a2 2 0 0 1 2.83-2.82L7 15"/>
+  </svg>
+);
+
+export const IconMousePointerClick = ({ size = 16 }: { size?: number }) => (
+  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M14 4.1 12 6"/>
+    <path d="m5.1 8-2.9-.8"/>
+    <path d="m6 12-1.9 2"/>
+    <path d="M7.2 2.2 8 5.1"/>
+    <path d="M9.037 9.69a.498.498 0 0 1 .653-.653l11 4.5a.5.5 0 0 1-.074.949l-4.349 1.041a1 1 0 0 0-.74.739l-1.04 4.35a.5.5 0 0 1-.95.074z"/>
+  </svg>
+);
+
 export const IconBrain = ({ size = 16 }: { size?: number }) => (
   <svg width={size} height={size} viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
     <path d="M8 14.5v-3.5h2.5a2.5 2.5 0 0 0 0-5H8V2.5a2.5 2.5 0 0 0-5 0V6a2.5 2.5 0 0 0 2.5 2.5H8" />

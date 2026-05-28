@@ -7,7 +7,7 @@ import Card from '../components/ui/Card';
 import Button from '../components/ui/Button';
 import Badge from '../components/ui/Badge';
 import { getServiceLinks } from '../awsServiceLinks';
-import { IconChevronDown, IconChevronRight } from '../components/Icons';
+import { IconChevronDown, IconChevronRight, IconSparkles } from '../components/Icons';
 
 const QUICK_PREFS_KEY = 'quickExercisePrefs';
 const loadQuickPrefs = () => { try { return JSON.parse(localStorage.getItem(QUICK_PREFS_KEY) ?? '{}'); } catch { return {}; } };
@@ -89,7 +89,7 @@ export default function Result() {
         </p>
         {earnedPts > 0 && (
           <p style={{ color: '#009E9E', fontWeight: 800, fontSize: 'var(--font-size-base)', marginTop: 8 }}>
-            ✨ {ja ? `+${earnedPts}pt 獲得！` : `+${earnedPts}pt earned!`}
+            <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4 }}><IconSparkles size={16} /> {ja ? `+${earnedPts}pt 獲得！` : `+${earnedPts}pt earned!`}</span>
           </p>
         )}
       </Card>

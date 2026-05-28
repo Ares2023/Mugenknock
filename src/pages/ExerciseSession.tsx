@@ -10,7 +10,7 @@ import Card from '../components/ui/Card';
 import Button from '../components/ui/Button';
 import Badge from '../components/ui/Badge';
 import ReportModal from '../components/ReportModal';
-import { IconBookOpen, IconCopy, IconCheck, IconBookmark, IconChevronUp, IconChevronDown } from '../components/Icons';
+import { IconBookOpen, IconCopy, IconCheck, IconStar, IconChevronUp, IconChevronDown } from '../components/Icons';
 
 type Tip = { tipId: string; title: string; content: string; examType: string };
 
@@ -687,7 +687,7 @@ export default function ExerciseSession() {
       )}
 
       {/* 進捗ノード */}
-      <div style={{ display: 'flex', alignItems: 'center', marginBottom: 'var(--spacing-sm)' }}>
+      <div style={{ display: 'flex', alignItems: 'center', marginBottom: 'var(--spacing-sm)', padding: '0 12px' }}>
         {questions.map((_, i) => {
           const isAnswered = i < results.length;
           const isCurrent = i === currentIndex;
@@ -743,7 +743,7 @@ export default function ExerciseSession() {
               style={{ background: 'none', border: 'none', cursor: 'pointer', padding: '4px', display: 'flex', alignItems: 'center', opacity: bookmarkLoading ? 0.5 : 1, transition: 'all 0.2s', flexShrink: 0 }}
             >
               <span style={{ color: bookmarkedIds.has(currentQuestion.questionId) ? 'var(--color-warning, #f59e0b)' : 'var(--color-text-light)' }}>
-                <IconBookmark filled={bookmarkedIds.has(currentQuestion.questionId)} size={20} />
+                <IconStar filled={bookmarkedIds.has(currentQuestion.questionId)} size={20} />
               </span>
             </button>
           )}

@@ -474,20 +474,24 @@ export default function Layout({ children }: { children: React.ReactNode }) {
           )}
         </div>
         {targetExam && (
-          <div
+          <button
             onClick={() => navigate('/aws/exam-dashboard')}
             title="資格ダッシュボード"
-            style={{ flexShrink: 0, display: 'flex', alignItems: 'stretch', alignSelf: 'stretch', cursor: 'pointer', transition: 'background 0.15s' }}
+            style={{
+              flexShrink: 0, display: 'flex', alignItems: 'center', alignSelf: 'stretch',
+              cursor: 'pointer', transition: 'background 0.15s',
+              background: 'transparent', border: 'none', padding: 0,
+            }}
             onMouseEnter={e => { e.currentTarget.style.background = 'var(--color-bg-main)'; }}
             onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; }}
           >
             <span style={{
-              fontSize: 'var(--font-size-xs)', fontWeight: 700,
+              display: 'block',
+              fontSize: 13, fontWeight: 700,
               color: 'var(--color-text-sub)',
               whiteSpace: 'nowrap',
-              maxWidth: isMobile ? '32vw' : '26vw',
+              maxWidth: isMobile ? '28vw' : '22vw',
               overflow: 'hidden', textOverflow: 'ellipsis',
-              display: 'flex', alignItems: 'center',
               padding: '0 4px 0 8px',
             }}>
               {isMobile
@@ -495,14 +499,12 @@ export default function Layout({ children }: { children: React.ReactNode }) {
                 : (EXAM_CONFIGS[targetExam]?.fullName ?? targetExam)}
             </span>
             <span style={{
-              display: 'flex', alignItems: 'center', justifyContent: 'center',
-              alignSelf: 'stretch',
               color: 'var(--color-primary)',
-              fontSize: 22, fontWeight: 900,
-              padding: '0 10px 0 4px',
+              fontSize: 26, fontWeight: 900,
+              padding: '0 10px 0 2px',
               lineHeight: 1,
             }}>›</span>
-          </div>
+          </button>
         )}
       </div>
 
