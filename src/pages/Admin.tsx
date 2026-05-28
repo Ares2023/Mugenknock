@@ -247,7 +247,7 @@ export default function Admin() {
   const [domainFilter, setDomainFilter] = useState('');
   const [keyword, setKeyword] = useState('');
   const [keywordInput, setKeywordInput] = useState('');
-  const [sortBy, setSortBy] = useState<'id_asc' | 'updatedAt_desc' | 'updatedAt_asc' | 'validityCheckedAt_desc' | 'validityCheckedAt_asc'>('id_asc');
+  const [sortBy, setSortBy] = useState<'id_asc' | 'updatedAt_desc' | 'updatedAt_asc' | 'validityCheckedAt_desc' | 'validityCheckedAt_asc' | 'createdAt_desc' | 'createdAt_asc'>('id_asc');
   const [loadingQ, setLoadingQ] = useState(false);
   const [expandedId, setExpandedId] = useState<string | null>(null);
   const [deletingId, setDeletingId] = useState<string | null>(null);
@@ -1106,6 +1106,8 @@ export default function Admin() {
                 style={{ padding: '5px 10px', border: '1px solid var(--color-border)', borderRadius: 6, fontSize: 13, background: 'var(--color-bg-white)', color: 'var(--color-text-main)', cursor: 'pointer', outline: 'none' }}
               >
                 <option value="id_asc">ID (昇順)</option>
+                <option value="createdAt_desc">作成日 (新しい順)</option>
+                <option value="createdAt_asc">作成日 (古い順)</option>
                 <option value="updatedAt_desc">最終編集 (新しい順)</option>
                 <option value="updatedAt_asc">最終編集 (古い順)</option>
                 <option value="validityCheckedAt_desc">AI確認 (新しい順)</option>

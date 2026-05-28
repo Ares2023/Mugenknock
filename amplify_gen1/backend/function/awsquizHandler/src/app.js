@@ -659,6 +659,9 @@ app.get('/admin/questions', async (req, res) => {
       } else if (sortField === 'validityCheckedAt') {
         const da = a.validityCheckedAt || '0', db = b.validityCheckedAt || '0';
         return sortDir === 'desc' ? db.localeCompare(da) : da.localeCompare(db);
+      } else if (sortField === 'createdAt') {
+        const da = a.createdAt || '0', db = b.createdAt || '0';
+        return sortDir === 'desc' ? db.localeCompare(da) : da.localeCompare(db);
       } else {
         return a.questionId.localeCompare(b.questionId);
       }
