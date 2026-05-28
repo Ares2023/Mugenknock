@@ -292,6 +292,8 @@ export default function ExerciseSession() {
     setBookmarkLoading(false);
   };
   const [results, setResults] = useState<{ questionId: string; isCorrect: boolean }[]>(state?.resumeResults ?? []);
+  const [selectionHistory, setSelectionHistory] = useState<Record<number, string[]>>({});
+  const [hoveredNode, setHoveredNode] = useState<number | null>(null);
   const [reportOpen, setReportOpen] = useState(false);
   const [answerCountError, setAnswerCountError] = useState<string | null>(null);
   const [finishing, setFinishing] = useState(false);
@@ -379,6 +381,7 @@ export default function ExerciseSession() {
       : correctAnswers.length === selectedAnswers.length && correctAnswers.every(a => selectedAnswers.map(stripLabel).includes(stripLabel(a)));
 
     setResults(prev => [...prev, { questionId: currentQuestion.questionId, isCorrect }]);
+    setSelectionHistory(prev => ({ ...prev, [currentIndex]: selectedAnswers }));
     setAnswered(true);
     setJudgmentAnim(isCorrect ? 'correct' : 'incorrect');
     setTimeout(() => setJudgmentAnim(null), 600);
@@ -396,8 +399,36 @@ export default function ExerciseSession() {
     }).catch(err => console.error(err));
   };
 
+  const goToQuestion = (i: number) => {
+    if (i >= currentIndex) return;
+    setCurrentIndex(i);
+    setSelectedAnswers(selectionHistory[i] ?? []);
+    setAnswered(true);
+    setDetail(null);
+    setAnswerCountError(null);
+  };
+
   const nextQuestion = async () => {
-    if (currentIndex + 1 >= questions.length) {
+    const nextIdx = currentIndex + 1;
+    // 過去問を復習中（frontierより前）→ 次の問題へ進む
+    if (nextIdx < results.length) {
+      setCurrentIndex(nextIdx);
+      setSelectedAnswers(selectionHistory[nextIdx] ?? []);
+      setAnswered(true);
+      setDetail(null);
+      setAnswerCountError(null);
+      return;
+    }
+    // frontierに戻ってきた場合（かつ未回答の問題が残っている）→ 未回答モードへ
+    if (nextIdx === results.length && nextIdx < questions.length) {
+      setCurrentIndex(nextIdx);
+      setSelectedAnswers([]);
+      setAnswered(false);
+      setDetail(null);
+      setAnswerCountError(null);
+      return;
+    }
+    if (nextIdx >= questions.length) {
       setFinishing(true);
       const score = Math.round((results.filter(r => r.isCorrect).length / questions.length) * 100);
       const basePassRate = PASS_RATE[examType] ?? PASS_RATE['SAA'];
@@ -657,28 +688,45 @@ export default function ExerciseSession() {
 
       {/* 進捗ノード */}
       <div style={{ display: 'flex', alignItems: 'center', marginBottom: 'var(--spacing-sm)' }}>
-        {questions.map((_, i) => (
-          <React.Fragment key={i}>
-            <div style={{
-              width: i === currentIndex ? 10 : 7,
-              height: i === currentIndex ? 10 : 7,
-              borderRadius: '50%',
-              flexShrink: 0,
-              background: i < currentIndex ? 'var(--color-primary)' : i === currentIndex ? 'var(--color-primary)' : 'transparent',
-              border: `2px solid ${i <= currentIndex ? 'var(--color-primary)' : 'var(--color-text-light)'}`,
-              boxShadow: i === currentIndex ? '0 0 0 2px var(--color-primary-light, rgba(82,130,255,0.25))' : 'none',
-              transition: 'all 0.2s',
-            }} />
-            {i < questions.length - 1 && (
-              <div style={{
-                flex: 1,
-                height: 2,
-                background: i < currentIndex ? 'var(--color-primary)' : 'var(--color-text-light)',
-                transition: 'background 0.2s',
-              }} />
-            )}
-          </React.Fragment>
-        ))}
+        {questions.map((_, i) => {
+          const isPast = i < currentIndex;
+          const isCurrent = i === currentIndex;
+          const isHovered = hoveredNode === i;
+          return (
+            <React.Fragment key={i}>
+              <div
+                onClick={isPast ? () => goToQuestion(i) : undefined}
+                onMouseEnter={isPast ? () => setHoveredNode(i) : undefined}
+                onMouseLeave={isPast ? () => setHoveredNode(null) : undefined}
+                title={isPast ? `第${i + 1}問に戻る` : undefined}
+                style={{
+                  width: isCurrent ? 10 : isHovered ? 10 : 7,
+                  height: isCurrent ? 10 : isHovered ? 10 : 7,
+                  borderRadius: '50%',
+                  flexShrink: 0,
+                  background: isPast || isCurrent ? 'var(--color-primary)' : 'transparent',
+                  border: `2px solid ${i <= currentIndex ? 'var(--color-primary)' : 'var(--color-text-light)'}`,
+                  boxShadow: isCurrent
+                    ? '0 0 0 2px var(--color-primary-light, rgba(82,130,255,0.25))'
+                    : isHovered
+                    ? '0 0 0 3px var(--color-primary-light, rgba(82,130,255,0.35))'
+                    : 'none',
+                  cursor: isPast ? 'pointer' : 'default',
+                  transition: 'all 0.15s',
+                  opacity: isPast && !isHovered ? 0.75 : 1,
+                }}
+              />
+              {i < questions.length - 1 && (
+                <div style={{
+                  flex: 1,
+                  height: 2,
+                  background: i < currentIndex ? 'var(--color-primary)' : 'var(--color-text-light)',
+                  transition: 'background 0.2s',
+                }} />
+              )}
+            </React.Fragment>
+          );
+        })}
       </div>
 
       <Card padding={isMobile ? 'var(--spacing-md) var(--spacing-sm)' : 'var(--spacing-xl)'}>
