@@ -13,7 +13,6 @@ if (window.location.pathname.startsWith('/admin')) {
   const script = document.querySelector(SCRIPT_SELECTOR);
   if (script) {
     script.remove();
-    console.log('AdSense script removed on admin page.');
   }
 }
 

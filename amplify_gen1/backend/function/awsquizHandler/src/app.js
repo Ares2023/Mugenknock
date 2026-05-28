@@ -523,6 +523,8 @@ app.get('/admin/questions/flagged', async (req, res) => {
     } else {
       scanParams.FilterExpression = 'attribute_exists(validityCheckedAt)';
     }
+    scanParams.ProjectionExpression = 'questionId, examType, questionText, choices, correctAnswers, explanation, #dom, tags, isMultiple, validityCheckedAt, formatCheckedAt, validityEditLog, isHidden, validityRating, validityNote, fixProposalJson';
+    scanParams.ExpressionAttributeNames = { '#dom': 'domain' };
 
     const [checkedItems, allItems] = await Promise.all([
       scanAll(docClient, scanParams),

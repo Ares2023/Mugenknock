@@ -1057,6 +1057,14 @@ export default function Admin() {
       {/* ── 問題管理 ── */}
       {tab === 'questions' && (
         <div>
+          {/* ヘッダー行 */}
+          <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: 10 }}>
+            <button
+              onClick={() => { fetchQuestions(currentPage); fetchSummary(); }}
+              style={{ padding: '5px 14px', background: 'transparent', color: 'var(--color-primary)', border: '1.5px solid var(--color-primary)', borderRadius: 9999, cursor: 'pointer', fontSize: 13, fontWeight: 700 }}>
+              更新
+            </button>
+          </div>
           {/* カバレッジ */}
           {totalCount > 0 && (validityCheckedCount != null || formatCheckedCount != null) && (
             <div style={{ display: 'flex', gap: 16, marginBottom: 14, flexWrap: 'wrap' }}>
@@ -1313,7 +1321,13 @@ export default function Admin() {
                 {q.validityCheckedAt && (
                   <span style={{ fontSize: 11, color: 'var(--color-text-light)', flexShrink: 0, whiteSpace: 'nowrap', display: 'flex', alignItems: 'center', gap: 3 }}>
                     <span style={{ color: 'var(--color-success)', fontWeight: 700 }}>✓</span>
-                    {fmtDate(q.validityCheckedAt)}
+                    AI: {fmtDate(q.validityCheckedAt)}
+                  </span>
+                )}
+                {q.formatCheckedAt && (
+                  <span style={{ fontSize: 11, color: 'var(--color-text-light)', flexShrink: 0, whiteSpace: 'nowrap', display: 'flex', alignItems: 'center', gap: 3 }}>
+                    <span style={{ color: '#009E9E', fontWeight: 700 }}>✓</span>
+                    体裁: {fmtDate(q.formatCheckedAt)}
                   </span>
                 )}
                 {q.updatedAt && (
