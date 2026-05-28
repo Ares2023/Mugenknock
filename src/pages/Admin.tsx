@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { fetchAuthSession } from 'aws-amplify/auth';
-import { API_ENDPOINT, ADMIN_EMAIL, EXAM_TYPES, EXAM_DOMAINS, EXAM_CONFIGS } from '../constants';
+import { API_ENDPOINT, ADMIN_EMAIL, EXAM_TYPES, EXAM_DOMAINS, EXAM_CONFIGS, EXAM_LEVEL } from '../constants';
 import Card from '../components/ui/Card';
 import Button from '../components/ui/Button';
 import Badge from '../components/ui/Badge';
@@ -1052,25 +1052,42 @@ export default function Admin() {
           {/* 検索バー */}
           <form onSubmit={handleSearch} style={{ marginBottom: 16 }}>
             {/* 試験種別 */}
-            <div style={{ display: 'flex', gap: 8, marginBottom: 10, flexWrap: 'wrap', alignItems: 'center' }}>
-              {['ALL', ...EXAM_TYPES].map((type, i) => (
-                <React.Fragment key={type}>
-                  <button type="button" onClick={() => { setExamFilter(type); setDomainFilter(''); }}
-                    style={{
-                      padding: '6px 16px', border: examFilter === type ? '2px solid' : '1.5px solid', borderRadius: 6, cursor: 'pointer',
-                      background: examFilter === type ? 'var(--color-primary-light)' : 'transparent',
-                      color: examFilter === type ? 'var(--color-primary)' : 'var(--color-text-sub)',
-                      borderColor: examFilter === type ? 'var(--color-primary)' : 'var(--color-border)',
-                      fontWeight: examFilter === type ? 700 : 400, fontSize: 14
-                    }}>
-                    {type === 'ALL'
-                      ? `ALL${totalCount > 0 ? `(${totalCount})` : ''}`
-                      : `${type}${examCounts[type] != null ? `(${examCounts[type]})` : ''}`}
-                  </button>
-                  {type === 'ALL' && <span style={{ width: 1, height: 20, background: 'var(--color-border)', display: 'inline-block', flexShrink: 0 }} />}
-                </React.Fragment>
-              ))}
-            </div>
+            {(() => {
+              const examBtn = (type: string) => (
+                <button key={type} type="button" onClick={() => { setExamFilter(type); setDomainFilter(''); }}
+                  style={{
+                    padding: '4px 12px', border: examFilter === type ? '2px solid' : '1.5px solid', borderRadius: 6, cursor: 'pointer',
+                    background: examFilter === type ? 'var(--color-primary-light)' : 'transparent',
+                    color: examFilter === type ? 'var(--color-primary)' : 'var(--color-text-sub)',
+                    borderColor: examFilter === type ? 'var(--color-primary)' : 'var(--color-border)',
+                    fontWeight: examFilter === type ? 700 : 400, fontSize: 13
+                  }}>
+                  {type === 'ALL'
+                    ? `ALL${totalCount > 0 ? `(${totalCount})` : ''}`
+                    : `${type}${examCounts[type] != null ? `(${examCounts[type]})` : ''}`}
+                </button>
+              );
+              const levels = ['Foundational', 'Associate', 'Professional', 'Specialty'] as const;
+              const byLevel: Record<string, string[]> = {};
+              for (const t of EXAM_TYPES) {
+                const lv = EXAM_LEVEL[t] ?? 'Other';
+                (byLevel[lv] ??= []).push(t);
+              }
+              return (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 6, marginBottom: 10 }}>
+                  <div style={{ display: 'flex', gap: 6, alignItems: 'center' }}>
+                    {examBtn('ALL')}
+                  </div>
+                  {levels.map(lv => byLevel[lv]?.length ? (
+                    <div key={lv} style={{ display: 'flex', gap: 6, alignItems: 'center', flexWrap: 'wrap' }}>
+                      <span style={{ fontSize: 11, color: 'var(--color-text-light)', fontWeight: 700, minWidth: 88, textAlign: 'right', flexShrink: 0 }}>{lv}</span>
+                      <span style={{ width: 1, height: 16, background: 'var(--color-border)', display: 'inline-block', flexShrink: 0 }} />
+                      {byLevel[lv].map(t => examBtn(t))}
+                    </div>
+                  ) : null)}
+                </div>
+              );
+            })()}
 
             {/* ドメインフィルタ（試験種別が選択されている場合のみ） */}
             {examFilter !== 'ALL' && (
