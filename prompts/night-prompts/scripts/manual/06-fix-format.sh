@@ -1,5 +1,5 @@
 #!/bin/bash
-# 問題の体裁のみを修正するスクリプト
+# 問題の体裁のみを修正するスクリプト（軽量版 / haiku使用）
 # 妥当性チェックなし。改行・解説フォーマットなど見た目の問題のみを修正する。
 
 set -uo pipefail
@@ -35,26 +35,27 @@ show_help() {
   cat << 'EOF'
 usage: 06-fix-format.sh [-n N] [-e EXAM] [-h]
 
-  -n N       処理問題数 (default: 50)
+  -n N       処理問題数 (default: 100)
   -e EXAM    資格コードで絞り込み (例: SAA, CLF)
   -h         このヘルプを表示
 
 挙動:
   問題文・解説の体裁のみをチェック・修正する（妥当性は確認しない）
+  haiku モデルを使用してトークンコストを削減。
   action=ok  → formatCheckedAt のみ更新
   action=fix → 体裁を修正・updatedAt 更新
 
-チェック対象の体裁問題:
+チェック対象:
   - questionText の「・」箇条書き前に改行がない
-  - 解説に「解説：」ラベルが重複している
-  - 解説フォーマットが「正解：\n...\n\n...\n選択肢Xは...」形式でない
-  - 不正解選択肢の説明が改行で区切られていない
+  - 解説が「正解：\n...\n\n...\n選択肢Xは...」形式でない
+  - 解説に「解説：」ラベルが含まれている
+  - choices に「A. 」などの接頭辞が付いている
 EOF
 }
 
-BATCH_SIZE=50
+BATCH_SIZE=100
 EXAM_FILTER=""
-CHUNK_SIZE=10
+CHUNK_SIZE=20
 
 while [[ $# -gt 0 ]]; do
   case "$1" in
@@ -68,7 +69,7 @@ done
 {
 echo "=========================================="
 echo "体裁チェック開始: $(date)"
-echo "処理数: ${BATCH_SIZE}問 / チャンク: ${CHUNK_SIZE}問${EXAM_FILTER:+ / 資格: $EXAM_FILTER}"
+echo "処理数: ${BATCH_SIZE}問 / チャンク: ${CHUNK_SIZE}問 / モデル: haiku${EXAM_FILTER:+ / 資格: $EXAM_FILTER}"
 echo "=========================================="
 
 # ── 1. DynamoDBから問題を取得 ──────────────────────────────────
@@ -116,7 +117,7 @@ for q in questions:
     candidates.append((sort_key, q))
 
 candidates.sort(key=lambda x: x[0])
-batch = int(os.environ.get('BATCH_SIZE', 50))
+batch = int(os.environ.get('BATCH_SIZE', 100))
 print(json.dumps([q for _, q in candidates[:batch]]))
 PYEOF
 )
@@ -150,7 +151,7 @@ PYEOF
 rm -f "$QUESTIONS_TMP"
 echo "チャンク数: ${CHUNK_COUNT}"
 
-# ── 3. チャンクごとにClaude → 即DB更新 ──────────────────────────
+# ── 3. チャンクごとにClaude(haiku) → 即DB更新 ────────────────
 TOTAL_OK=0
 TOTAL_FIX=0
 
@@ -173,74 +174,74 @@ with open(sys.argv[1]) as f:
 
 LABELS = ['A', 'B', 'C', 'D', 'E']
 
+# ── コンパクトプロンプト（トークン節約） ──────────────────────
 prompt = '''\
-あなたはAWS認定試験問題の体裁チェッカーです。
-問題の正しさ・妥当性は一切確認しません。以下の体裁ルールのみをチェックし、違反があれば修正してください。
+あなたは純粋な体裁フォーマッターです。内容・正確性・妥当性は一切判断しません。
+以下の体裁ルールのみを機械的に適用してください。内容がおかしくても絶対に修正しないこと。
 
-【体裁ルール】
+体裁ルール:
+1. questionText: 「・」の直前に\nがなければ追加する
+2. choices: 「A. 」「B. 」等の接頭辞があれば削除する
+3. explanation の構造（正解がchoices[2]の場合の例）:
+   正解：\nchoices[2]のテキスト。\n\n正解理由の文。\n選択肢Aは理由。\n選択肢Bは理由。\n選択肢Dは理由。
+   違反パターン（必ずfixで修正）:
+   - 「正解：\n」で始まっていない
+   - 「解説：」「解説」等のラベルが含まれる
+   - 正解テキスト直後の\n\n（空行）が欠けている
+   - 不正解選択肢の説明が\nで区切られていない
+   - 選択肢ラベルはchoicesの0始まり順でA,B,C,D,E
 
-■ questionText（問題文）
-1. 「・」で始まる箇条書き行の前には必ず改行（\\n）を入れること
-   - NG: 「以下の条件があります。・条件1・条件2」
-   - OK: 「以下の条件があります。\\n・条件1\\n・条件2」
-2. 意味の区切り（要件列挙の前、補足説明の前など）には適切に改行を入れること
-
-■ explanation（解説）
-以下の形式に厳密に従うこと：
-
-  正解：\\n[正解選択肢のテキスト（choicesの完全一致テキスト）]。\\n\\n[正解理由の説明]。\\n選択肢Aは[不正解理由]。\\n選択肢Bは[不正解理由]。\\n選択肢Dは[不正解理由]。
-
-ルール：
-- 先頭は必ず「正解：\\n」で始めること
-- 「解説：」「解説」などのラベルは一切含めないこと
-- 正解選択肢テキストの後に空行（\\n\\n）を1つ入れること
-- 不正解の選択肢の説明は「選択肢Xは」で始め、各選択肢を \\n で区切ること
-- 選択肢ラベルは choices の並び順（A=0番目, B=1番目, …）で付けること
-
-■ その他
-- choicesの各テキストは「A. 」「B. 」などの接頭辞を含めないこと
-
-【アクション】
-- "ok": 体裁の問題なし
-- "fix": 体裁を修正（修正する項目のみ含める）
-
-【出力形式】JSONのみ出力。説明・前置き不要。
-
+上記ルールに違反がなければaction:ok。違反があればaction:fixで修正フィールドのみ返す。
+JSONのみ出力。説明・前置き・コメント一切不要。
 {"results":[
   {"questionId":"...","action":"ok"},
-  {"questionId":"...","action":"fix","fix":{"questionText":"修正後（変更する場合のみ）","choices":["A","B","C","D"],"explanation":"修正後解説"}}
+  {"questionId":"...","action":"fix","fix":{"explanation":"修正後"}}
 ]}
 
-【問題リスト】
+問題リスト（Q=問題文 C=選択肢 ANS=正解 E=解説）:
 '''
 
 lines = [prompt]
 for q in questions:
     qid = q['questionId']
     choices = q.get('choices', [])
-    labeled = [f"{LABELS[i]}. {c}" for i, c in enumerate(choices)]
     correct = q.get('correctAnswers', [])
-    correct_labels = []
+    # 正解の選択肢ラベルを付ける
+    ans_labels = []
     for ca in correct:
         if ca in choices:
-            correct_labels.append(f"{LABELS[choices.index(ca)]}. {ca}")
-    lines.append(f"ID: {qid}")
-    lines.append(f"問題文: {q.get('questionText', '')}")
-    lines.append(f"選択肢: {' / '.join(labeled)}")
-    lines.append(f"正解: {', '.join(correct_labels)}")
-    lines.append(f"解説: {q.get('explanation', '')}")
-    lines.append("")
+            ans_labels.append(f"{LABELS[choices.index(ca)]}:{ca}")
+    exp = q.get('explanation', '').replace('\n', '\\n')
+    qt  = q.get('questionText', '').replace('\n', '\\n')
+    # 選択肢は番号なしでスラッシュ区切り（ラベルはAIが0始まりで付ける）
+    c_str = ' / '.join(choices)
+    ans_str = ', '.join(ans_labels)
+    lines.append(f"[{qid}] Q:{qt} | C:{c_str} | ANS:{ans_str} | E:{exp}")
 
 print('\n'.join(lines))
 PYEOF
 
   _STDOUT_F=$(mktemp /tmp/claude_out_XXXX)
   _STDERR_F=$(mktemp /tmp/claude_err_XXXX)
-  "$CLAUDE_CMD" -p < "$PROMPT_FILE" > "$_STDOUT_F" 2> "$_STDERR_F"
+  "$CLAUDE_CMD" --model haiku -p < "$PROMPT_FILE" > "$_STDOUT_F" 2> "$_STDERR_F"
   AI_EXIT=$?
   RESULT=$(cat "$_STDOUT_F")
   _STDERR=$(cat "$_STDERR_F")
   rm -f "$_STDOUT_F" "$_STDERR_F" "$PROMPT_FILE"
+
+  # npm更新による一時的なバイナリ消失 → 再探索してリトライ
+  if [ $AI_EXIT -ne 0 ] && echo "$_STDERR" | grep -q "No such file"; then
+    CLAUDE_CMD=$(_find_claude)
+    if [ -x "${CLAUDE_CMD:-}" ]; then
+      _STDOUT_F=$(mktemp /tmp/claude_out_XXXX)
+      _STDERR_F=$(mktemp /tmp/claude_err_XXXX)
+      "$CLAUDE_CMD" --model haiku -p < "$PROMPT_FILE" > "$_STDOUT_F" 2> "$_STDERR_F"
+      AI_EXIT=$?
+      RESULT=$(cat "$_STDOUT_F")
+      _STDERR=$(cat "$_STDERR_F")
+      rm -f "$_STDOUT_F" "$_STDERR_F"
+    fi
+  fi
 
   if echo "$_STDERR" | grep -qiE "command not found|No such file|GEMINI_API_KEY|API.?key"; then
     echo "❌ claude 実行エラー。スクリプトを終了します"
