@@ -1290,7 +1290,7 @@ export default function Admin() {
               {/* 展開詳細 */}
               {expandedId === q.questionId && (
                 <div style={{ padding: '14px 16px', borderTop: '1px solid #e8e8e8', background: 'var(--color-bg-main)', fontSize: 13 }}>
-                  <p style={{ fontWeight: 'bold', marginTop: 0 }}>{q.questionText}</p>
+                  <p style={{ fontWeight: 'bold', marginTop: 0, whiteSpace: 'pre-wrap' }}>{q.questionText}</p>
                   {q.isMultiple && <p style={{ color: 'var(--color-text-info)', fontSize: 12 }}>複数選択</p>}
 
                   <div style={{ marginBottom: 12 }}>
@@ -1303,14 +1303,15 @@ export default function Admin() {
                           border: `1.5px solid ${isCorrect ? 'var(--color-success)' : 'var(--color-border)'}`,
                           color: isCorrect ? 'var(--color-success)' : 'var(--color-text-sub)',
                         }}>
-                          {isCorrect ? '✓ ' : ''}{c}
+                          <span style={{ whiteSpace: 'pre-wrap' }}>{isCorrect ? '✓ ' : ''}{c}</span>
                         </div>
                       );
                     })}
                   </div>
 
                   <div style={{ background: 'var(--color-primary-light)', borderRadius: 6, padding: '10px 12px', marginBottom: 10, color: 'var(--color-text-main)', lineHeight: 1.6 }}>
-                    <strong>解説：</strong>{q.explanation}
+                    <strong>解説：</strong>
+                    <span style={{ whiteSpace: 'pre-wrap' }}>{q.explanation}</span>
                   </div>
 
                   {q.domain && (

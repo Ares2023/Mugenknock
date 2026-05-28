@@ -714,7 +714,7 @@ export default function ExerciseSession() {
               return `${currentQuestion.questionText}\n\n${choicesText}`;
             }} />
           </div>
-          <p style={{ fontSize: 'var(--font-size-lg)', lineHeight: 1.6, fontWeight: 400, margin: 0, color: 'var(--color-text-main)', overflowWrap: 'break-word', wordBreak: 'break-word', minWidth: 0 }}>
+          <p style={{ fontSize: 'var(--font-size-lg)', lineHeight: 1.6, fontWeight: 400, margin: 0, color: 'var(--color-text-main)', overflowWrap: 'break-word', wordBreak: 'break-word', minWidth: 0, whiteSpace: 'pre-wrap' }}>
             {lang === 'en' && (currentQuestion as any).questionTextEn ? (currentQuestion as any).questionTextEn : currentQuestion.questionText}
           </p>
         </div>
@@ -822,7 +822,7 @@ export default function ExerciseSession() {
               </p>
               <div style={{ fontSize: 'var(--font-size-base)', lineHeight: 1.6 }}>
                 <strong>{t('exerciseSession.explanation')}</strong>
-                <div style={{ marginTop: 4, overflowWrap: 'break-word', wordBreak: 'break-word' }}>{remapLabels(lang === 'en' && (displayQ as any).explanationEn ? (displayQ as any).explanationEn : (displayQ.explanation ?? ''))}</div>
+                <div style={{ marginTop: 4, overflowWrap: 'break-word', wordBreak: 'break-word', whiteSpace: 'pre-wrap' }}>{remapLabels(lang === 'en' && (displayQ as any).explanationEn ? (displayQ as any).explanationEn : (displayQ.explanation ?? ''))}</div>
               </div>
             </div>
           );

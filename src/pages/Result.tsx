@@ -220,7 +220,7 @@ export default function Result() {
                           display: 'flex', alignItems: 'flex-start', gap: 8,
                         }}>
                           <span style={{ fontWeight: 700, flexShrink: 0 }}>{label}.</span>
-                          <span>{correct ? '✓ ' : ''}{c}</span>
+                          <span style={{ whiteSpace: 'pre-wrap' }}>{correct ? '✓ ' : ''}{c}</span>
                         </div>
                       );
                     })}
@@ -234,7 +234,7 @@ export default function Result() {
                       lineHeight: 1.6
                     }}>
                       <strong style={{ fontSize: 'var(--font-size-sm)', color: 'var(--color-primary)' }}>{t('result.explanation')}</strong>
-                      <div style={{ marginTop: 8, fontSize: 'var(--font-size-sm)', overflowWrap: 'break-word', wordBreak: 'break-word' }}>{lang === 'en' && q.explanationEn ? q.explanationEn : q.explanation}</div>
+                      <div style={{ marginTop: 8, fontSize: 'var(--font-size-sm)', overflowWrap: 'break-word', wordBreak: 'break-word', whiteSpace: 'pre-wrap' }}>{lang === 'en' && q.explanationEn ? q.explanationEn : q.explanation}</div>
                       {(() => {
                         const links = getServiceLinks(q.tags ?? []);
                         if (links.length === 0) return null;
