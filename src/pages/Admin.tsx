@@ -29,8 +29,10 @@ type Question = {
   explanation: string;
   tags: string[];
   isMultiple: boolean;
+  createdAt?: string;
   updatedAt?: string;
   validityCheckedAt?: string;
+  formatCheckedAt?: string;
 };
 
 const fmtDate = (iso: string) => {
@@ -251,6 +253,7 @@ export default function Admin() {
   const [sortBy, setSortBy] = useState<'id_asc' | 'updatedAt_desc' | 'updatedAt_asc' | 'validityCheckedAt_desc' | 'validityCheckedAt_asc' | 'createdAt_desc' | 'createdAt_asc' | 'formatCheckedAt_desc' | 'formatCheckedAt_asc'>('id_asc');
   const [loadingQ, setLoadingQ] = useState(false);
   const [expandedId, setExpandedId] = useState<string | null>(null);
+  const [expandedDetail, setExpandedDetail] = useState<Record<string, Question>>({});
   const [deletingId, setDeletingId] = useState<string | null>(null);
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   const [bulkDeleting, setBulkDeleting] = useState(false);
@@ -1258,7 +1261,14 @@ export default function Admin() {
             <div key={q.questionId} style={{ border: '1px solid #eaeded', borderRadius: 6, marginBottom: 4, overflow: 'hidden', boxShadow: '0 1px 1px 0 rgba(0,28,36,0.1)', background: selectedIds.has(q.questionId) ? 'var(--color-primary-light)' : 'transparent' }}>
               {/* ヘッダー行 */}
               <div
-                onClick={() => setExpandedId(expandedId === q.questionId ? null : q.questionId)}
+                onClick={() => {
+                  const next = expandedId === q.questionId ? null : q.questionId;
+                  setExpandedId(next);
+                  if (next && !expandedDetail[next]) {
+                    adminFetch(`${API_ENDPOINT}/admin/questions/${next}`)
+                      .then(r => r.json()).then(d => setExpandedDetail(prev => ({ ...prev, [next]: d })));
+                  }
+                }}
                 style={{ display: 'flex', alignItems: 'center', padding: '10px 16px', cursor: 'pointer', background: selectedIds.has(q.questionId) ? 'var(--color-primary-light)' : expandedId === q.questionId ? 'var(--color-bg-main)' : 'var(--color-bg-white)', gap: 10 }}>
                 <input
                   type="checkbox"
@@ -1308,44 +1318,55 @@ export default function Admin() {
               </div>
 
               {/* 展開詳細 */}
-              {expandedId === q.questionId && (
-                <div style={{ padding: '14px 16px', borderTop: '1px solid #e8e8e8', background: 'var(--color-bg-main)', fontSize: 13 }}>
-                  <p style={{ fontWeight: 'bold', marginTop: 0, whiteSpace: 'pre-wrap' }}>{q.questionText}</p>
-                  {q.isMultiple && <p style={{ color: 'var(--color-text-info)', fontSize: 12 }}>複数選択</p>}
+              {expandedId === q.questionId && (() => {
+                const detail = expandedDetail[q.questionId];
+                return (
+                  <div style={{ padding: '14px 16px', borderTop: '1px solid #e8e8e8', background: 'var(--color-bg-main)', fontSize: 13 }}>
+                    <p style={{ fontWeight: 'bold', marginTop: 0, whiteSpace: 'pre-wrap' }}>{q.questionText}</p>
+                    {q.isMultiple && <p style={{ color: 'var(--color-text-info)', fontSize: 12 }}>複数選択</p>}
 
-                  <div style={{ marginBottom: 12 }}>
-                    {q.choices.map((c, i) => {
-                      const isCorrect = q.correctAnswers?.includes(c);
-                      return (
-                        <div key={i} style={{
-                          padding: '6px 10px', marginBottom: 4, borderRadius: 6,
-                          background: isCorrect ? 'var(--color-feedback-correct-bg)' : 'var(--color-bg-main)',
-                          border: `1.5px solid ${isCorrect ? 'var(--color-success)' : 'var(--color-border)'}`,
-                          color: isCorrect ? 'var(--color-success)' : 'var(--color-text-sub)',
-                        }}>
-                          <span style={{ whiteSpace: 'pre-wrap' }}>{isCorrect ? '✓ ' : ''}{c}</span>
-                        </div>
-                      );
-                    })}
-                  </div>
-
-                  <div style={{ background: 'var(--color-primary-light)', borderRadius: 6, padding: '10px 12px', marginBottom: 10, color: 'var(--color-text-main)', lineHeight: 1.6 }}>
-                    <strong>解説：</strong>
-                    <span style={{ whiteSpace: 'pre-wrap' }}>{q.explanation}</span>
-                  </div>
-
-                  {q.domain && (
-                    <div style={{ fontSize: 12, color: 'var(--color-text-sub)', marginBottom: 4 }}>
-                      ドメイン: <span style={{ fontWeight: 700 }}>{q.domain}</span>
+                    <div style={{ marginBottom: 12 }}>
+                      {q.choices.map((c, i) => {
+                        const isCorrect = q.correctAnswers?.includes(c);
+                        return (
+                          <div key={i} style={{
+                            padding: '6px 10px', marginBottom: 4, borderRadius: 6,
+                            background: isCorrect ? 'var(--color-feedback-correct-bg)' : 'var(--color-bg-main)',
+                            border: `1.5px solid ${isCorrect ? 'var(--color-success)' : 'var(--color-border)'}`,
+                            color: isCorrect ? 'var(--color-success)' : 'var(--color-text-sub)',
+                          }}>
+                            <span style={{ whiteSpace: 'pre-wrap' }}>{isCorrect ? '✓ ' : ''}{c}</span>
+                          </div>
+                        );
+                      })}
                     </div>
-                  )}
-                  <div style={{ color: 'var(--color-text-light)', fontSize: 12 }}>
-                    タグ: {q.tags?.length ? q.tags.map(t => (
-                      <span key={t} style={{ display: 'inline-block', background: 'var(--color-bg-main)', border: '1px solid #d1d5db', borderRadius: 6, padding: '1px 6px', marginRight: 4, fontSize: 11 }}>{t}</span>
-                    )) : 'なし'}
+
+                    <div style={{ background: 'var(--color-primary-light)', borderRadius: 6, padding: '10px 12px', marginBottom: 10, color: 'var(--color-text-main)', lineHeight: 1.6 }}>
+                      <strong>解説：</strong>
+                      {detail
+                        ? <span style={{ whiteSpace: 'pre-wrap' }}>{detail.explanation ?? '（解説なし）'}</span>
+                        : <span style={{ color: 'var(--color-text-light)' }}>読み込み中…</span>}
+                    </div>
+
+                    {q.domain && (
+                      <div style={{ fontSize: 12, color: 'var(--color-text-sub)', marginBottom: 4 }}>
+                        ドメイン: <span style={{ fontWeight: 700 }}>{q.domain}</span>
+                      </div>
+                    )}
+                    <div style={{ color: 'var(--color-text-light)', fontSize: 12, marginBottom: 4 }}>
+                      タグ: {q.tags?.length ? q.tags.map(t => (
+                        <span key={t} style={{ display: 'inline-block', background: 'var(--color-bg-main)', border: '1px solid #d1d5db', borderRadius: 6, padding: '1px 6px', marginRight: 4, fontSize: 11 }}>{t}</span>
+                      )) : 'なし'}
+                    </div>
+                    <div style={{ color: 'var(--color-text-light)', fontSize: 11, display: 'flex', gap: 16, flexWrap: 'wrap' }}>
+                      {q.createdAt && <span>作成: {fmtDate(q.createdAt)}</span>}
+                      {q.updatedAt && <span>編集: {fmtDate(q.updatedAt)}</span>}
+                      {q.validityCheckedAt && <span>AI確認: {fmtDate(q.validityCheckedAt)}</span>}
+                      {detail?.formatCheckedAt && <span>体裁確認: {fmtDate(detail.formatCheckedAt)}</span>}
+                    </div>
                   </div>
-                </div>
-              )}
+                );
+              })()}
             </div>
           ))}
 
