@@ -633,7 +633,7 @@ app.get('/admin/questions', async (req, res) => {
       // explanation・validityEditLog を除外して 6MB 上限を回避（編集時は GET /admin/questions/:id で取得）
       items = await scanAll(docClient, {
         TableName: 'Questions',
-        ProjectionExpression: 'questionId, examType, questionText, choices, correctAnswers, correctAnswerIndices, tags, isMultiple, isHidden, createdAt, updatedAt, validityCheckedAt',
+        ProjectionExpression: 'questionId, examType, questionText, choices, correctAnswers, correctAnswerIndices, tags, isMultiple, isHidden, createdAt, updatedAt, validityCheckedAt, formatCheckedAt',
       });
     }
 
@@ -661,6 +661,9 @@ app.get('/admin/questions', async (req, res) => {
         return sortDir === 'desc' ? db.localeCompare(da) : da.localeCompare(db);
       } else if (sortField === 'createdAt') {
         const da = a.createdAt || '0', db = b.createdAt || '0';
+        return sortDir === 'desc' ? db.localeCompare(da) : da.localeCompare(db);
+      } else if (sortField === 'formatCheckedAt') {
+        const da = a.formatCheckedAt || '0', db = b.formatCheckedAt || '0';
         return sortDir === 'desc' ? db.localeCompare(da) : da.localeCompare(db);
       } else {
         return a.questionId.localeCompare(b.questionId);

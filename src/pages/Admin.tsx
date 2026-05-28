@@ -150,6 +150,7 @@ type FlaggedQuestion = {
   tags?: string[];
   isMultiple?: boolean;
   validityCheckedAt?: string;
+  formatCheckedAt?: string;
   validityEditLog?: string;
   isHidden?: boolean;
   // 旧フィールド（後方互換）
@@ -247,7 +248,7 @@ export default function Admin() {
   const [domainFilter, setDomainFilter] = useState('');
   const [keyword, setKeyword] = useState('');
   const [keywordInput, setKeywordInput] = useState('');
-  const [sortBy, setSortBy] = useState<'id_asc' | 'updatedAt_desc' | 'updatedAt_asc' | 'validityCheckedAt_desc' | 'validityCheckedAt_asc' | 'createdAt_desc' | 'createdAt_asc'>('id_asc');
+  const [sortBy, setSortBy] = useState<'id_asc' | 'updatedAt_desc' | 'updatedAt_asc' | 'validityCheckedAt_desc' | 'validityCheckedAt_asc' | 'createdAt_desc' | 'createdAt_asc' | 'formatCheckedAt_desc' | 'formatCheckedAt_asc'>('id_asc');
   const [loadingQ, setLoadingQ] = useState(false);
   const [expandedId, setExpandedId] = useState<string | null>(null);
   const [deletingId, setDeletingId] = useState<string | null>(null);
@@ -1129,6 +1130,8 @@ export default function Admin() {
                 <option value="updatedAt_asc">最終編集 (古い順)</option>
                 <option value="validityCheckedAt_desc">AI確認 (新しい順)</option>
                 <option value="validityCheckedAt_asc">AI確認 (古い順)</option>
+                <option value="formatCheckedAt_desc">体裁確認 (新しい順)</option>
+                <option value="formatCheckedAt_asc">体裁確認 (古い順)</option>
               </select>
             </div>
 
