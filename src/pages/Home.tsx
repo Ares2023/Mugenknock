@@ -156,7 +156,7 @@ function CombinedDetailModal({ targetExam, domainAccList, estimatedScore, passSc
   const history = readScoreHistory(targetExam, uid);
   const sessionHistory = readSessionScoreHistory(targetExam, uid);
   const [showCalc, setShowCalc] = useState(false);
-  const [tab, setTab] = useState<'score' | 'history'>('score');
+  const [tab, setTab] = useState<'score' | 'history' | 'hiscore'>('score');
   const scoreTabRef = useRef<HTMLDivElement>(null);
   const [contentMinH, setContentMinH] = useState(0);
 
@@ -180,6 +180,7 @@ function CombinedDetailModal({ targetExam, domainAccList, estimatedScore, passSc
   const tabs = [
     { key: 'score' as const, label: ja ? 'スコア内訳' : 'Breakdown' },
     { key: 'history' as const, label: ja ? 'スコア推移' : 'History' },
+    { key: 'hiscore' as const, label: ja ? 'ハイスコア記録' : 'High Scores' },
   ];
 
   return (
@@ -320,7 +321,7 @@ function CombinedDetailModal({ targetExam, domainAccList, estimatedScore, passSc
               </div>
             </div>
           </div>
-        ) : (
+        ) : tab === 'history' ? (
           <div>
             <div style={{ marginBottom: 14 }}>
               <div style={{ fontSize: 11, fontWeight: 700, color: 'var(--color-text-sub)', marginBottom: 8 }}>
@@ -335,6 +336,53 @@ function CombinedDetailModal({ targetExam, domainAccList, estimatedScore, passSc
               <ScoreLineChart data={history} passScore={passScore} lang={lang} />
             </div>
           </div>
+        ) : (
+          (() => {
+            const top5 = [...history].sort((a, b) => b.score - a.score).slice(0, 5);
+            if (top5.length === 0) {
+              return (
+                <p style={{ margin: 0, textAlign: 'center', fontSize: 12, color: 'var(--color-text-light)', padding: '24px 0' }}>
+                  {ja ? 'まだデータがありません' : 'No data yet'}
+                </p>
+              );
+            }
+            const medalEmoji = ['🥇', '🥈', '🥉'];
+            return (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+                {top5.map((entry, rank) => {
+                  const medalColor = rank === 0 ? '#F59E0B' : rank === 1 ? '#9CA3AF' : rank === 2 ? '#B45309' : 'var(--color-text-light)';
+                  const isPass = passScore !== null && entry.score >= passScore;
+                  return (
+                    <div key={entry.date} style={{
+                      display: 'flex', alignItems: 'center', gap: 12,
+                      padding: '10px 12px',
+                      background: rank === 0 ? 'rgba(245,158,11,0.06)' : 'var(--color-bg-main)',
+                      borderRadius: 8,
+                      border: rank === 0 ? '1px solid rgba(245,158,11,0.2)' : '1px solid transparent',
+                    }}>
+                      <span style={{ fontSize: 16, fontWeight: 900, color: medalColor, minWidth: 24, textAlign: 'center' }}>
+                        {rank < 3 ? medalEmoji[rank] : `${rank + 1}`}
+                      </span>
+                      <span style={{ fontSize: 22, fontWeight: 800, color: isPass ? 'var(--color-success)' : 'var(--color-primary)', fontVariantNumeric: 'tabular-nums', minWidth: 52 }}>
+                        {entry.score}
+                      </span>
+                      <span style={{ fontSize: 11, color: 'var(--color-text-light)', flex: 1 }}>
+                        {entry.date}
+                      </span>
+                      {passScore !== null && (
+                        <span style={{ fontSize: 10, fontWeight: 700, padding: '2px 8px', borderRadius: 9999, flexShrink: 0,
+                          background: isPass ? 'rgba(22,163,74,0.1)' : 'rgba(220,38,38,0.1)',
+                          color: isPass ? 'var(--color-success)' : 'var(--color-danger)',
+                        }}>
+                          {isPass ? (ja ? '合格圏' : 'Pass') : (ja ? '未達' : 'Fail')}
+                        </span>
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
+            );
+          })()
         )}
         </div>
       </div>

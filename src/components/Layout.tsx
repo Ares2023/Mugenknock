@@ -476,7 +476,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
             )}
           </div>
         )}
-        {targetExam && (
+        {targetExam && !(isMobile && isOthersActive) && (
           <button
             onClick={() => navigate('/aws/exam-dashboard')}
             title="資格ダッシュボード"
