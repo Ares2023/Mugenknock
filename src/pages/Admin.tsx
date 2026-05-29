@@ -2906,6 +2906,7 @@ ${tipPromptExamType !== 'ALL' ? `・examType には "${tipPromptExamType}" を�
               try {
                 const res = await adminFetch(`${API_ENDPOINT}/admin/pass-comments`, {
                   method: 'PUT',
+                  headers: { 'Content-Type': 'application/json' },
                   body: JSON.stringify({ examType: passCommentExam, comment: passCommentText.trim() }),
                 });
                 if (!res.ok) throw new Error(`status ${res.status}`);

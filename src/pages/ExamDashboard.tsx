@@ -6,7 +6,7 @@ import { useTheme } from '../contexts/ThemeContext';
 import { IconChevronLeft, IconChevronDown } from '../components/Icons';
 import {
   EXAM_TYPES, EXAM_CONFIGS, EXAM_LEVEL, EXAM_DOMAINS, PASS_RATE,
-  EXAM_DESC_JA, EXAM_DESC_EN, DOMAIN_WEIGHTS, API_ENDPOINT,
+  EXAM_DESC_JA, EXAM_DESC_EN, DOMAIN_WEIGHTS, API_ENDPOINT, EXAM_OFFICIAL_URLS,
 } from '../constants';
 
 const LEVEL_ORDER = ['Foundational', 'Associate', 'Professional', 'Specialty'] as const;
@@ -76,6 +76,7 @@ export default function ExamDashboard() {
   const desc = ja ? EXAM_DESC_JA[selectedExam] : EXAM_DESC_EN[selectedExam];
   const lc = LEVEL_COLOR[level] ?? LEVEL_COLOR.Associate;
   const passComment = passComments[selectedExam];
+  const officialUrls = EXAM_OFFICIAL_URLS[selectedExam];
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', height: '100vh', background: 'var(--color-bg-main)', fontFamily: 'inherit' }}>
@@ -233,6 +234,38 @@ export default function ExamDashboard() {
                   {desc}
                 </p>
               )}
+              {officialUrls && (
+                <div style={{ display: 'flex', gap: 16, marginTop: 12, flexWrap: 'wrap' }}>
+                  <a
+                    href={officialUrls.page}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    style={{ display: 'flex', alignItems: 'center', gap: 5, fontSize: 12, color: 'var(--color-primary)', textDecoration: 'none', fontWeight: 600 }}
+                  >
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0 }}>
+                      <circle cx="12" cy="12" r="10"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/><path d="M2 12h20"/>
+                    </svg>
+                    {ja ? '公式ページ' : 'Official Page'}
+                    <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0, opacity: 0.5 }}>
+                      <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/>
+                    </svg>
+                  </a>
+                  <a
+                    href={officialUrls.guide}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    style={{ display: 'flex', alignItems: 'center', gap: 5, fontSize: 12, color: 'var(--color-primary)', textDecoration: 'none', fontWeight: 600 }}
+                  >
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0 }}>
+                      <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/>
+                    </svg>
+                    {ja ? '試験ガイド PDF' : 'Exam Guide PDF'}
+                    <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0, opacity: 0.5 }}>
+                      <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/>
+                    </svg>
+                  </a>
+                </div>
+              )}
             </div>
 
             {/* 試験ルール */}
@@ -287,6 +320,7 @@ export default function ExamDashboard() {
                 </p>
               </div>
             )}
+
           </div>
 
         </div>

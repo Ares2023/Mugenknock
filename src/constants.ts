@@ -210,3 +210,18 @@ export const EXAM_CONFIGS: Record<string, {
   ANS: { examCode: 'ANS-C01', fullName: 'AWS Certified Advanced Networking – Specialty',           totalQuestions: 65, timeLimitMin: 170 },
   SCS: { examCode: 'SCS-C03', fullName: 'AWS Certified Security – Specialty',                     totalQuestions: 65, timeLimitMin: 170 },
 };
+
+export const EXAM_OFFICIAL_URLS: Record<string, { page: string; guide: string }> = {
+  CLF: { page: 'https://aws.amazon.com/certification/certified-cloud-practitioner/',                    guide: 'https://d1.awsstatic.com/training-and-certification/docs-cloud-practitioner/AWS-Certified-Cloud-Practitioner_Exam-Guide.pdf' },
+  AIF: { page: 'https://aws.amazon.com/certification/certified-ai-practitioner/',                       guide: 'https://d1.awsstatic.com/training-and-certification/docs-ai-practitioner/AWS-Certified-AI-Practitioner_Exam-Guide.pdf' },
+  SAA: { page: 'https://aws.amazon.com/certification/certified-solutions-architect-associate/',         guide: 'https://d1.awsstatic.com/training-and-certification/docs-sa-assoc/AWS-Certified-Solutions-Architect-Associate_Exam-Guide.pdf' },
+  DVA: { page: 'https://aws.amazon.com/certification/certified-developer-associate/',                   guide: 'https://d1.awsstatic.com/training-and-certification/docs-dev-associate/AWS-Certified-Developer-Associate_Exam-Guide.pdf' },
+  SOA: { page: 'https://aws.amazon.com/certification/certified-sysops-admin-associate/',                guide: 'https://d1.awsstatic.com/training-and-certification/docs-sysops-associate/AWS-Certified-SysOps-Administrator-Associate_Exam-Guide.pdf' },
+  DEA: { page: 'https://aws.amazon.com/certification/certified-data-engineer-associate/',               guide: 'https://d1.awsstatic.com/training-and-certification/docs-data-engineer-associate/AWS-Certified-Data-Engineer-Associate_Exam-Guide.pdf' },
+  MLA: { page: 'https://aws.amazon.com/certification/certified-machine-learning-engineer-associate/',   guide: 'https://d1.awsstatic.com/training-and-certification/docs-ml-engineer-associate/AWS-Certified-Machine-Learning-Engineer-Associate_Exam-Guide.pdf' },
+  SAP: { page: 'https://aws.amazon.com/certification/certified-solutions-architect-professional/',      guide: 'https://d1.awsstatic.com/training-and-certification/docs-sa-pro/AWS-Certified-Solutions-Architect-Professional_Exam-Guide.pdf' },
+  DOP: { page: 'https://aws.amazon.com/certification/certified-devops-engineer-professional/',          guide: 'https://d1.awsstatic.com/training-and-certification/docs-devops-pro/AWS-Certified-DevOps-Engineer-Professional_Exam-Guide.pdf' },
+  GAI: { page: 'https://aws.amazon.com/certification/certified-generative-ai-developer-professional/',  guide: 'https://d1.awsstatic.com/training-and-certification/docs-generative-ai-developer-professional/AWS-Certified-Generative-AI-Developer-Professional_Exam-Guide.pdf' },
+  ANS: { page: 'https://aws.amazon.com/certification/certified-advanced-networking-specialty/',         guide: 'https://d1.awsstatic.com/training-and-certification/docs-advnetworking-spec/AWS-Certified-Advanced-Networking-Specialty_Exam-Guide.pdf' },
+  SCS: { page: 'https://aws.amazon.com/certification/certified-security-specialty/',                    guide: 'https://d1.awsstatic.com/training-and-certification/docs-security-spec/AWS-Certified-Security-Specialty_Exam-Guide.pdf' },
+};

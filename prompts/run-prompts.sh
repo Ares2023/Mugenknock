@@ -43,6 +43,7 @@ commands:
   night           run nightly tasks now (bypass time check; resumes if interrupted)
   set HH:MM       reschedule next run to HH:MM
   cancel          cancel scheduled run and all hooks
+  repair          check and fix claude binary installation
   tonight         show projected night-run times for tonight
   log             show run history
   log -n          show night-prompts history
@@ -971,6 +972,7 @@ while [[ $# -gt 0 ]]; do
       shift 3
       ;;
     cancel)  CMD="cancel";  shift ;;
+    repair)  CMD="repair";  shift ;;
     night)   CMD="night";   shift ;;
     tonight) CMD="tonight"; shift ;;
     log)
@@ -1154,6 +1156,43 @@ PYEOF
           | sed 's|.*/nscript_||; s/_[0-9]*\.log$//' | sort -u || echo "(なし)"
       fi
     fi
+    ;;
+  repair)
+    _npm_prefix=/home/yuzuki/.npm-global
+    _bin="$_npm_prefix/bin/claude"
+    _install_cjs="$_npm_prefix/lib/node_modules/@anthropic-ai/claude-code/install.cjs"
+    echo "=== ct repair ==="
+    # 1. 現在の状態確認
+    _ver=$("$_bin" --version 2>&1 || true)
+    _broken=0
+    if ! "$_bin" --version >/dev/null 2>&1; then
+      echo "❌ claude: $_ver"
+      _broken=1
+    else
+      echo "✅ claude: $_ver"
+    fi
+    # 2. 常に最新版に更新（Auto-update failed の解消）
+    # npm の atomic rename で ENOTEMPTY になる古い temp dir を削除
+    rm -rf "$_npm_prefix/lib/node_modules/@anthropic-ai/.claude-code-"* 2>/dev/null || true
+    echo "  → npm install -g @anthropic-ai/claude-code ..."
+    npm install -g @anthropic-ai/claude-code --prefix "$_npm_prefix" 2>&1 | tail -2
+    # 3. native package (optional dependency) を明示インストール
+    echo "  → installing native binary (@anthropic-ai/claude-code-linux-x64) ..."
+    npm install -g @anthropic-ai/claude-code-linux-x64 --prefix "$_npm_prefix" 2>&1 | tail -2
+    # 4. postinstall でバイナリを差し込む
+    echo "  → running postinstall ..."
+    node "$_install_cjs" 2>&1
+    # 5. 再確認
+    _ver_after=$("$_bin" --version 2>&1 || true)
+    if "$_bin" --version >/dev/null 2>&1; then
+      echo "✅ repaired: $_ver_after"
+    else
+      echo "❌ repair failed: $_ver_after"
+      exit 1
+    fi
+    # 6. PATH 確認
+    _resolved=$(readlink -f "$_bin" 2>/dev/null || echo "(symlink broken)")
+    echo "   path: $_bin -> $_resolved"
     ;;
   tonight)   show_tonight ;;
   last)      cat "$LAST_RUN_FILE" 2>/dev/null || echo "never" ;;
