@@ -481,9 +481,11 @@ export default function Layout({ children }: { children: React.ReactNode }) {
             onClick={() => navigate('/aws/exam-dashboard')}
             title="資格ダッシュボード"
             style={{
-              flex: isMobile ? 1 : 0,
+              ...(isMobile ? { flex: 1 } : { flexShrink: 0 }),
               minWidth: 0,
-              display: 'flex', alignItems: 'center', alignSelf: 'stretch',
+              display: 'flex', alignItems: 'center',
+              justifyContent: isMobile ? 'flex-end' : 'flex-start',
+              alignSelf: 'stretch',
               cursor: 'pointer', transition: 'background 0.15s',
               background: 'transparent', border: 'none', padding: 0,
             }}
@@ -492,17 +494,17 @@ export default function Layout({ children }: { children: React.ReactNode }) {
           >
             <span style={{
               display: 'block',
-              flex: 1, minWidth: 0,
+              minWidth: 0,
               fontSize: 13, fontWeight: 700,
               color: 'var(--color-text-sub)',
               whiteSpace: 'nowrap',
               overflow: 'hidden', textOverflow: 'ellipsis',
-              maxWidth: isMobile ? 'none' : '22vw',
+              maxWidth: isMobile ? 'calc(100vw - 100px)' : '22vw',
               padding: '0 4px 0 8px',
             }}>
-              {isMobile
+              {`設定目標：${isMobile
                 ? (EXAM_CONFIGS[targetExam]?.fullName ?? targetExam).replace(/^AWS Certified\s+/i, '')
-                : (EXAM_CONFIGS[targetExam]?.fullName ?? targetExam)}
+                : (EXAM_CONFIGS[targetExam]?.fullName ?? targetExam)}`}
             </span>
             <span style={{
               flexShrink: 0,

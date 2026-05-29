@@ -6,7 +6,7 @@ import { useLanguage } from '../contexts/LanguageContext';
 import Card from '../components/ui/Card';
 import Button from '../components/ui/Button';
 import { getCached, setCached, SHORT_TTL } from '../utils/cache';
-import { IconBookmark, IconTarget, IconLightbulb } from '../components/Icons';
+import { IconStar, IconTarget, IconLightbulb } from '../components/Icons';
 
 const TARGET_EXAM_KEY_BASE = 'targetExam';
 const STATS_GOOD_RATE = 70;
@@ -51,6 +51,9 @@ const ScoreLineChart = ({ sessions, passRate, lang }: { sessions: Session[]; pas
 
   return (
     <svg viewBox={`0 0 ${W} ${H}`} style={{ width: '100%', height: 'auto', display: 'block', overflow: 'visible' }} role="img">
+      <defs>
+        <style>{`@keyframes stat-node-in { from { opacity:0; transform:scale(0); } to { opacity:1; transform:scale(1); } }`}</style>
+      </defs>
       {gridScores.map(v => (
         <g key={v}>
           <line x1={padL} y1={yOf(v)} x2={W - padR} y2={yOf(v)} stroke="var(--color-border)" strokeWidth={0.7} />
@@ -73,7 +76,12 @@ const ScoreLineChart = ({ sessions, passRate, lang }: { sessions: Session[]; pas
         return (
           <circle key={s.sessionId}
             cx={cx} cy={cy} r={3} fill={color}
-            style={{ cursor: 'pointer' }}
+            style={{
+              cursor: 'pointer',
+              transformBox: 'fill-box', transformOrigin: 'center',
+              animation: `stat-node-in 0.3s ease both`,
+              animationDelay: `${0.05 + i * 0.06}s`,
+            }}
             onMouseEnter={() => setTooltip({ x: cx, y: cy, session: s })}
             onMouseLeave={() => setTooltip(null)}
           />
@@ -202,7 +210,7 @@ export default function Stats() {
   const navigate = useNavigate();
   const uid = user?.userId ?? 'guest';
 
-  const [tab, setTab] = useState<'volume' | 'performance' | 'history'>('volume');
+  const [tab, setTab] = useState<'volume' | 'performance' | 'history' | 'hiscore'>('volume');
   const [expandedSession, setExpandedSession] = useState<string | null>(null);
   const [sessionAnswers, setSessionAnswers] = useState<Record<string, AnswerRecord[]>>({});
   const [answersLoading, setAnswersLoading] = useState<string | null>(null);
@@ -380,6 +388,9 @@ export default function Stats() {
         <button style={tabStyle(tab === 'history')} onClick={() => setTab('history')}>
           {lang === 'ja' ? 'ノック履歴' : 'History'}
         </button>
+        <button style={tabStyle(tab === 'hiscore')} onClick={() => setTab('hiscore')}>
+          {lang === 'ja' ? 'ハイスコア記録' : 'High Scores'}
+        </button>
       </div>
 
       {/* ════════ ノック量タブ ════════ */}
@@ -556,6 +567,77 @@ export default function Stats() {
               </p>
             </Card>
           )}
+        </>
+      )}
+
+      {/* ════════ ハイスコア記録タブ ════════ */}
+      {tab === 'hiscore' && (
+        <>
+          {!user ? (
+            <Card padding="var(--spacing-xl)">
+              <p style={{ margin: 0, textAlign: 'center', fontSize: 'var(--font-size-sm)', color: 'var(--color-text-light)' }}>
+                {lang === 'ja' ? 'ログインすると表示されます' : 'Log in to view your high scores'}
+              </p>
+            </Card>
+          ) : loading ? (
+            <div style={{ display: 'flex', justifyContent: 'center', padding: 'var(--spacing-xl) 0' }}>
+              <div className="sherpa-spinner" style={{ width: 28, height: 28, borderWidth: 3 }} />
+            </div>
+          ) : (() => {
+            const top5 = [...sessions]
+              .sort((a, b) => b.score - a.score)
+              .slice(0, 5);
+            if (top5.length === 0) {
+              return (
+                <Card padding="var(--spacing-xl)">
+                  <p style={{ margin: 0, textAlign: 'center', fontSize: 'var(--font-size-sm)', color: 'var(--color-text-light)' }}>
+                    {lang === 'ja' ? 'まだセッションがありません' : 'No sessions yet'}
+                  </p>
+                </Card>
+              );
+            }
+            return (
+              <Card>
+                <div style={{ fontSize: 'var(--font-size-xs)', fontWeight: 700, color: 'var(--color-text-sub)', textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: 'var(--spacing-md)' }}>
+                  {lang === 'ja' ? 'TOP 5 スコア' : 'TOP 5 Scores'}
+                </div>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+                  {top5.map((s, rank) => {
+                    const d = new Date(s.endedAt || s.startedAt);
+                    const dateLabel = `${d.getFullYear()}/${d.getMonth() + 1}/${d.getDate()}`;
+                    const scoreColor = s.mode === 'exam'
+                      ? (s.isPassed ? 'var(--color-success)' : 'var(--color-danger)')
+                      : (s.score >= STATS_GOOD_RATE ? 'var(--color-success)' : 'var(--color-danger)');
+                    const medalColor = rank === 0 ? '#F59E0B' : rank === 1 ? '#9CA3AF' : rank === 2 ? '#B45309' : 'var(--color-text-light)';
+                    return (
+                      <div key={s.sessionId} style={{
+                        display: 'flex', alignItems: 'center', gap: 'var(--spacing-md)',
+                        padding: '10px 12px',
+                        background: rank === 0 ? 'rgba(245,158,11,0.06)' : 'var(--color-bg-main)',
+                        borderRadius: 'var(--border-radius-md)',
+                        border: rank === 0 ? '1px solid rgba(245,158,11,0.2)' : '1px solid transparent',
+                      }}>
+                        <span style={{ fontSize: 16, fontWeight: 900, color: medalColor, minWidth: 24, textAlign: 'center' }}>
+                          {rank === 0 ? '🥇' : rank === 1 ? '🥈' : rank === 2 ? '🥉' : `${rank + 1}`}
+                        </span>
+                        <span style={{ fontSize: 'var(--font-size-xl)', fontWeight: 800, color: scoreColor, fontVariantNumeric: 'tabular-nums', minWidth: 52 }}>
+                          {s.score}%
+                        </span>
+                        <span style={{ fontSize: 'var(--font-size-xs)', color: 'var(--color-text-light)', flex: 1 }}>
+                          {dateLabel}
+                        </span>
+                        {s.mode === 'exam' && (
+                          <span style={{ fontSize: 10, fontWeight: 700, padding: '2px 8px', borderRadius: 'var(--border-radius-full)', background: s.isPassed ? 'rgba(22,163,74,0.1)' : 'rgba(220,38,38,0.1)', color: s.isPassed ? 'var(--color-success)' : 'var(--color-danger)', flexShrink: 0 }}>
+                            {s.isMini ? (lang === 'ja' ? 'ミニ模試' : 'Mini') : (lang === 'ja' ? '模試' : 'Exam')}
+                          </span>
+                        )}
+                      </div>
+                    );
+                  })}
+                </div>
+              </Card>
+            );
+          })()}
         </>
       )}
 
@@ -744,7 +826,7 @@ export default function Stats() {
                                               disabled={bookmarkLoadingId === a.questionId}
                                               style={{ display: 'flex', alignItems: 'center', gap: 4, border: 'none', background: 'none', cursor: bookmarkLoadingId === a.questionId ? 'default' : 'pointer', color: isBookmarked ? 'var(--color-primary)' : 'var(--color-text-light)', fontSize: 'var(--font-size-xs)', padding: '2px 4px', opacity: bookmarkLoadingId === a.questionId ? 0.5 : 1 }}
                                             >
-                                              <IconBookmark filled={isBookmarked} size={14} />
+                                              <IconStar filled={isBookmarked} size={14} />
                                               {isBookmarked ? (lang === 'ja' ? 'ブックマーク済' : 'Bookmarked') : (lang === 'ja' ? 'ブックマーク' : 'Bookmark')}
                                             </button>
                                           </div>

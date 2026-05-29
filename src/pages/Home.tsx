@@ -1647,7 +1647,7 @@ export default function Home() {
         <DailyServiceRevealModal
           service={revealService}
           lang={lang}
-          onClose={() => setRevealService(null)}
+          onClose={() => { setRevealService(null); navigate('/aws/'); }}
           onNavigateEncyclopedia={() => { setRevealService(null); navigate('/aws/encyclopedia'); }}
           onStartExercise={() => setRevealService(null)}
         />

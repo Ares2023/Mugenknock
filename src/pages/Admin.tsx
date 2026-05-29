@@ -81,19 +81,19 @@ type ImportQuestion = {
   tags?: string[];
 };
 
-type Tab = 'questions' | 'reports' | 'tips' | 'import' | 'releases' | 'scan' | 'messages' | 'dailyservice' | 'theme' | 'admins' | 'about' | 'deleteuser';
+type Tab = 'questions' | 'reports' | 'tips' | 'import' | 'releases' | 'scan' | 'messages' | 'dailyservice' | 'theme' | 'admins' | 'about' | 'deleteuser' | 'passcomments';
 type Group = 'content' | 'ops' | 'settings';
 
 const TAB_GROUPS: { key: Group; label: string; tabs: Tab[] }[] = [
   { key: 'content',  label: 'コンテンツ', tabs: ['questions', 'import', 'tips', 'releases', 'dailyservice'] },
   { key: 'ops',      label: '運営',       tabs: ['reports', 'scan', 'messages', 'deleteuser'] },
-  { key: 'settings', label: '設定',       tabs: ['theme', 'admins', 'about'] },
+  { key: 'settings', label: '設定',       tabs: ['theme', 'admins', 'about', 'passcomments'] },
 ];
 const TAB_LABELS: Record<Tab, string> = {
   questions: '問題管理', import: '問題追加', tips: 'コラム管理',
   releases: 'リリースノート', dailyservice: '日めくりAWSサービス',
   reports: '通報確認', scan: 'スキャン結果', messages: 'メッセージ', deleteuser: 'データ削除',
-  theme: 'テーマ設定', admins: '管理者設定', about: 'サイト情報',
+  theme: 'テーマ設定', admins: '管理者設定', about: 'サイト情報', passcomments: '合格コメント',
 };
 function getGroupForTab(t: Tab): Group {
   for (const g of TAB_GROUPS) if ((g.tabs as Tab[]).includes(t)) return g.key;
@@ -233,6 +233,13 @@ export default function Admin() {
   const [delExecuting, setDelExecuting] = useState(false);
   const [delDone, setDelDone] = useState(false);
   const [delError, setDelError] = useState('');
+
+  // 合格コメント
+  const [passComments, setPassComments] = useState<Record<string, string>>({});
+  const [passCommentExam, setPassCommentExam] = useState('SAA');
+  const [passCommentText, setPassCommentText] = useState('');
+  const [passCommentSaving, setPassCommentSaving] = useState(false);
+  const [passCommentSaved, setPassCommentSaved] = useState(false);
 
   // 管理者設定
   const [adminEmails, setAdminEmails] = useState<string[]>([]);
@@ -630,6 +637,17 @@ export default function Admin() {
   useEffect(() => { fetchDailyServices(); }, []); // pre-fetch for tab count
   useEffect(() => { if (tab === 'admins') fetchAdminEmails(); }, [tab]);
   useEffect(() => { if (tab === 'about') fetchAboutContent(); }, [tab]);
+  useEffect(() => {
+    if (tab !== 'passcomments') return;
+    fetch(`${API_ENDPOINT}/pass-comments`)
+      .then(r => r.json())
+      .then(d => {
+        const comments = d.comments ?? {};
+        setPassComments(comments);
+        setPassCommentText(comments[passCommentExam] ?? '');
+      })
+      .catch(() => {});
+  }, [tab]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const fetchAdminEmails = async () => {
     setAdminEmailsLoading(true);
@@ -2833,6 +2851,77 @@ ${tipPromptExamType !== 'ALL' ? `・examType には "${tipPromptExamType}" を�
             style={{ width: '100%', padding: '10px', background: '#dc2626', color: '#fff', border: 'none', borderRadius: 8, cursor: (!delEmail.trim() || delExecuting) ? 'default' : 'pointer', fontWeight: 700, fontSize: 14, opacity: (!delEmail.trim() || delExecuting) ? 0.6 : 1 }}
           >
             {delExecuting ? '削除中...' : 'データを削除する'}
+          </button>
+        </div>
+      )}
+
+      {/* ══ 合格コメント ══ */}
+      {tab === 'passcomments' && (
+        <div style={{ maxWidth: 600 }}>
+          <h3 style={{ marginTop: 0, fontSize: 16, fontWeight: 700 }}>合格コメント管理</h3>
+          <p style={{ fontSize: 13, color: 'var(--color-text-sub)', marginBottom: 20 }}>
+            各資格ダッシュボードに表示される「合格コメント」を編集します。空欄にして保存するとコメントが削除されます。
+          </p>
+
+          <div style={{ marginBottom: 16 }}>
+            <label style={{ fontSize: 12, fontWeight: 700, color: 'var(--color-text-sub)', display: 'block', marginBottom: 6 }}>資格</label>
+            <select
+              value={passCommentExam}
+              onChange={e => {
+                setPassCommentExam(e.target.value);
+                setPassCommentText(passComments[e.target.value] ?? '');
+                setPassCommentSaved(false);
+              }}
+              style={{ width: '100%', padding: '8px 10px', border: '1px solid var(--color-border)', borderRadius: 8, fontSize: 13, background: 'var(--color-bg-white)', color: 'var(--color-text-main)', cursor: 'pointer' }}
+            >
+              {EXAM_TYPES.map(et => (
+                <option key={et} value={et}>
+                  {et} — {EXAM_CONFIGS[et]?.fullName}{passComments[et] ? ' ✓' : ''}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          <div style={{ marginBottom: 16 }}>
+            <label style={{ fontSize: 12, fontWeight: 700, color: 'var(--color-text-sub)', display: 'block', marginBottom: 6 }}>コメント（空欄で削除）</label>
+            <textarea
+              value={passCommentText}
+              onChange={e => { setPassCommentText(e.target.value); setPassCommentSaved(false); }}
+              rows={6}
+              placeholder={`${passCommentExam} の合格コメントを入力...`}
+              style={{ width: '100%', padding: '8px 10px', border: '1px solid var(--color-border)', borderRadius: 8, fontSize: 13, resize: 'vertical', boxSizing: 'border-box', background: 'var(--color-bg-white)', color: 'var(--color-text-main)', lineHeight: 1.6 }}
+            />
+          </div>
+
+          {passCommentSaved && (
+            <div style={{ padding: '8px 12px', background: '#f0fdf4', border: '1px solid #86efac', borderRadius: 8, color: '#166534', fontSize: 13, marginBottom: 12, fontWeight: 700 }}>
+              ✓ 保存しました
+            </div>
+          )}
+
+          <button
+            onClick={async () => {
+              setPassCommentSaving(true);
+              setPassCommentSaved(false);
+              try {
+                const res = await adminFetch(`${API_ENDPOINT}/admin/pass-comments`, {
+                  method: 'PUT',
+                  body: JSON.stringify({ examType: passCommentExam, comment: passCommentText.trim() }),
+                });
+                if (!res.ok) throw new Error(`status ${res.status}`);
+                const data = await res.json();
+                setPassComments(data.comments ?? {});
+                setPassCommentSaved(true);
+              } catch (e) {
+                alert('保存に失敗しました');
+              } finally {
+                setPassCommentSaving(false);
+              }
+            }}
+            disabled={passCommentSaving}
+            style={{ padding: '9px 24px', background: 'var(--color-primary)', color: '#fff', border: 'none', borderRadius: 8, cursor: passCommentSaving ? 'default' : 'pointer', fontWeight: 700, fontSize: 14, opacity: passCommentSaving ? 0.6 : 1 }}
+          >
+            {passCommentSaving ? '保存中...' : '保存'}
           </button>
         </div>
       )}

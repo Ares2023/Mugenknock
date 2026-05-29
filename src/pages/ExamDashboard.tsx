@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { useLanguage } from '../contexts/LanguageContext';
@@ -6,7 +6,7 @@ import { useTheme } from '../contexts/ThemeContext';
 import { IconChevronLeft } from '../components/Icons';
 import {
   EXAM_TYPES, EXAM_CONFIGS, EXAM_LEVEL, EXAM_DOMAINS, PASS_RATE,
-  EXAM_DESC_JA, EXAM_DESC_EN,
+  EXAM_DESC_JA, EXAM_DESC_EN, DOMAIN_WEIGHTS, API_ENDPOINT,
 } from '../constants';
 
 const LEVEL_ORDER = ['Foundational', 'Associate', 'Professional', 'Specialty'] as const;
@@ -36,12 +36,22 @@ export default function ExamDashboard() {
     window.dispatchEvent(new CustomEvent('targetExamChanged', { detail: et }));
   };
 
+  const [passComments, setPassComments] = useState<Record<string, string>>({});
+  useEffect(() => {
+    fetch(`${API_ENDPOINT}/pass-comments`)
+      .then(r => r.json())
+      .then(d => setPassComments(d.comments ?? {}))
+      .catch(() => {});
+  }, []);
+
   const cfg = EXAM_CONFIGS[selectedExam];
   const level = EXAM_LEVEL[selectedExam] ?? '';
   const passRate = PASS_RATE[selectedExam];
   const domains = EXAM_DOMAINS[selectedExam] ?? [];
+  const weights = DOMAIN_WEIGHTS[selectedExam] ?? [];
   const desc = ja ? EXAM_DESC_JA[selectedExam] : EXAM_DESC_EN[selectedExam];
   const lc = LEVEL_COLOR[level] ?? LEVEL_COLOR.Associate;
+  const passComment = passComments[selectedExam];
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', height: '100vh', background: 'var(--color-bg-main)', fontFamily: 'inherit' }}>
@@ -86,7 +96,7 @@ export default function ExamDashboard() {
               onChange={e => handleChange(e.target.value)}
               style={{
                 width: '100%', padding: '6px 10px', fontSize: 13, fontWeight: 600,
-                border: '2px solid var(--color-primary)', borderRadius: 8,
+                border: '1px solid var(--color-border)', borderRadius: 8,
                 background: 'var(--color-bg-white)', color: 'var(--color-text-main)',
                 cursor: 'pointer', outline: 'none', appearance: 'auto',
                 colorScheme: theme === 'dark' ? 'dark' : 'light',
@@ -162,14 +172,31 @@ export default function ExamDashboard() {
               <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
                 {domains.map((d, i) => (
                   <div key={d} style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-                    <span style={{ fontSize: 11, fontWeight: 700, color: 'var(--color-primary)', minWidth: 24, fontVariantNumeric: 'tabular-nums' }}>
+                    <span style={{ fontSize: 11, fontWeight: 700, color: 'var(--color-primary)', minWidth: 24, fontVariantNumeric: 'tabular-nums', flexShrink: 0 }}>
                       {i + 1}
                     </span>
-                    <span style={{ fontSize: 13, color: 'var(--color-text-main)', lineHeight: 1.4 }}>{d}</span>
+                    <span style={{ fontSize: 13, color: 'var(--color-text-main)', lineHeight: 1.4, flex: 1 }}>{d}</span>
+                    {weights[i] !== undefined && (
+                      <span style={{ fontSize: 12, fontWeight: 700, color: 'var(--color-text-sub)', flexShrink: 0, fontVariantNumeric: 'tabular-nums' }}>
+                        {weights[i]}%
+                      </span>
+                    )}
                   </div>
                 ))}
               </div>
             </div>
+
+            {/* 合格コメント */}
+            {passComment && (
+              <div style={{ padding: '16px 20px', borderTop: '1px solid var(--color-border)' }}>
+                <div style={{ fontSize: 11, fontWeight: 700, color: 'var(--color-text-light)', textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: 10 }}>
+                  {ja ? '合格コメント' : 'Pass Comment'}
+                </div>
+                <p style={{ margin: 0, fontSize: 13, color: 'var(--color-text-main)', lineHeight: 1.7, whiteSpace: 'pre-wrap' }}>
+                  {passComment}
+                </p>
+              </div>
+            )}
           </div>
 
         </div>

@@ -214,6 +214,7 @@ export default function ExerciseSession() {
   }, []);
 
   const [currentIndex, setCurrentIndex] = useState<number>(state?.resumeIndex ?? 0);
+  const [viewedFrontier, setViewedFrontier] = useState<number>(state?.resumeIndex ?? 0);
   const [selectedAnswers, setSelectedAnswers] = useState<string[]>(state?.resumeSelectedAnswers ?? []);
   const [answered, setAnswered] = useState<boolean>(state?.resumeAnswered ?? false);
   const [detail, setDetail] = useState<Question | null>(null);
@@ -237,6 +238,7 @@ export default function ExerciseSession() {
 
   useEffect(() => {
     document.querySelector('main')?.scrollTo({ top: 0 });
+    setViewedFrontier(prev => Math.max(prev, currentIndex));
   }, [currentIndex]);
 
   // correctAnswers が事前ロードされていない場合のフォールバックフェッチ + 正解判定の補正
@@ -691,7 +693,7 @@ export default function ExerciseSession() {
         {questions.map((_, i) => {
           const isAnswered = i < results.length;
           const isCurrent = i === currentIndex;
-          const isClickable = isAnswered && !isCurrent;
+          const isClickable = i <= viewedFrontier && !isCurrent;
           const isHovered = hoveredNode === i;
           return (
             <React.Fragment key={i}>
@@ -721,7 +723,7 @@ export default function ExerciseSession() {
                 <div style={{
                   flex: 1,
                   height: 2,
-                  background: i < results.length - 1 ? 'var(--color-primary)' : 'var(--color-text-light)',
+                  background: i < results.length ? 'var(--color-primary)' : 'var(--color-text-light)',
                   transition: 'background 0.2s',
                 }} />
               )}

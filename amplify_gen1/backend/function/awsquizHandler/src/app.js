@@ -1784,6 +1784,42 @@ app.put('/admin/settings/theme', requireAdmin, async (req, res) => {
   }
 });
 
+// ── 合格コメント ──
+app.get('/pass-comments', async (req, res) => {
+  try {
+    const docClient = getClient();
+    const result = await docClient.send(new GetCommand({ TableName: 'AppSettings', Key: { settingId: 'passComments' } }));
+    if (!result.Item) return res.json({ comments: {} });
+    res.json({ comments: JSON.parse(result.Item.comments || '{}') });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+app.put('/admin/pass-comments', requireAdmin, async (req, res) => {
+  try {
+    const docClient = getClient();
+    const { examType, comment } = req.body;
+    if (!examType) return res.status(400).json({ error: 'examType required' });
+    const existing = await docClient.send(new GetCommand({ TableName: 'AppSettings', Key: { settingId: 'passComments' } }));
+    const comments = JSON.parse(existing.Item?.comments || '{}');
+    if (comment === null || comment === undefined || comment === '') {
+      delete comments[examType];
+    } else {
+      comments[examType] = comment;
+    }
+    await docClient.send(new PutCommand({
+      TableName: 'AppSettings',
+      Item: { settingId: 'passComments', comments: JSON.stringify(comments), updatedAt: new Date().toISOString() },
+    }));
+    res.json({ success: true, comments });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
 // ── Encyclopedia unlocks sync ──
 app.get('/users/me/encyclopedia-unlocks', async (req, res) => {
   try {

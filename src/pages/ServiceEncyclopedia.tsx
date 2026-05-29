@@ -55,7 +55,7 @@ export default function ServiceEncyclopedia() {
     try { return JSON.parse(localStorage.getItem('encyclopediaServices') ?? '{}'); } catch { return {}; }
   });
   const [selected, setSelected] = useState<EncyclopediaService | null>(null);
-  const [activeTab, setActiveTab] = useState<'all' | 'unlocked'>('all');
+  const [activeTab, setActiveTab] = useState<'all' | 'unlocked'>('unlocked');
 
   // uidが変わった時（ログイン/ログアウト）にlocalStorageから再読み込み
   useEffect(() => {
@@ -193,7 +193,7 @@ export default function ServiceEncyclopedia() {
 
       {/* タブ */}
       <div style={{ display: 'flex', borderBottom: '2px solid var(--color-border)', margin: 'var(--spacing-md) 0' }}>
-        {(['all', 'unlocked'] as const).map(t => {
+        {(['unlocked', 'all'] as const).map(t => {
           const label = t === 'all' ? (ja ? '一覧' : 'All') : (ja ? '解放済み' : 'Unlocked');
           const active = activeTab === t;
           return (
