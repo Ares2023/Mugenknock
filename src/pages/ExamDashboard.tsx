@@ -4,6 +4,7 @@ import { useAuth } from '../contexts/AuthContext';
 import { useLanguage } from '../contexts/LanguageContext';
 import { useTheme } from '../contexts/ThemeContext';
 import { IconChevronLeft } from '../components/Icons';
+import Button from '../components/ui/Button';
 import {
   EXAM_TYPES, EXAM_CONFIGS, EXAM_LEVEL, EXAM_DOMAINS, PASS_RATE,
   EXAM_DESC_JA, EXAM_DESC_EN, DOMAIN_WEIGHTS, API_ENDPOINT,
@@ -21,7 +22,7 @@ const LEVEL_COLOR: Record<string, { bg: string; text: string; border: string }> 
 export default function ExamDashboard() {
   const { user } = useAuth();
   const { lang } = useLanguage();
-  const { theme } = useTheme();
+  useTheme();
   const navigate = useNavigate();
   const ja = lang === 'ja';
   const uid = user?.userId ?? 'guest';
@@ -38,7 +39,7 @@ export default function ExamDashboard() {
 
   const [passComments, setPassComments] = useState<Record<string, string>>({});
   useEffect(() => {
-    fetch(`${API_ENDPOINT}/pass-comments`)
+    fetch(`${API_ENDPOINT}/settings/pass-comments`)
       .then(r => r.json())
       .then(d => setPassComments(d.comments ?? {}))
       .catch(() => {});
@@ -91,31 +92,24 @@ export default function ExamDashboard() {
             <div style={{ fontSize: 11, fontWeight: 700, color: 'var(--color-text-light)', textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: 8 }}>
               {ja ? '目標資格' : 'Target Certification'}
             </div>
-            <select
-              value={selectedExam}
-              onChange={e => handleChange(e.target.value)}
-              style={{
-                width: '100%', padding: '6px 10px', fontSize: 13, fontWeight: 600,
-                border: '1px solid var(--color-border)', borderRadius: 8,
-                background: 'var(--color-bg-white)', color: 'var(--color-text-main)',
-                cursor: 'pointer', outline: 'none', appearance: 'auto',
-                colorScheme: theme === 'dark' ? 'dark' : 'light',
-              }}
-            >
-              {LEVEL_ORDER.map(lv => {
-                const items = EXAM_TYPES.filter(et => EXAM_LEVEL[et] === lv);
-                if (items.length === 0) return null;
-                return (
-                  <optgroup key={lv} label={lv}>
-                    {items.map(et => (
-                      <option key={et} value={et}>
-                        {et} — {EXAM_CONFIGS[et]?.fullName}
-                      </option>
-                    ))}
-                  </optgroup>
-                );
-              })}
-            </select>
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
+              {EXAM_TYPES.map(et => (
+                <Button
+                  key={et}
+                  variant="outline"
+                  size="sm"
+                  onClick={() => handleChange(et)}
+                  style={{
+                    width: 72,
+                    ...(selectedExam === et
+                      ? { background: 'var(--color-primary-light)', borderWidth: 2 }
+                      : {}),
+                  }}
+                >
+                  {et}
+                </Button>
+              ))}
+            </div>
           </div>
 
           {/* ── 資格情報カード ── */}

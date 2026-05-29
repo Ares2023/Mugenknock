@@ -639,7 +639,7 @@ export default function Admin() {
   useEffect(() => { if (tab === 'about') fetchAboutContent(); }, [tab]);
   useEffect(() => {
     if (tab !== 'passcomments') return;
-    fetch(`${API_ENDPOINT}/pass-comments`)
+    fetch(`${API_ENDPOINT}/settings/pass-comments`)
       .then(r => r.json())
       .then(d => {
         const comments = d.comments ?? {};

@@ -1785,7 +1785,7 @@ app.put('/admin/settings/theme', requireAdmin, async (req, res) => {
 });
 
 // ── 合格コメント ──
-app.get('/pass-comments', async (req, res) => {
+app.get('/settings/pass-comments', async (req, res) => {
   try {
     const docClient = getClient();
     const result = await docClient.send(new GetCommand({ TableName: 'AppSettings', Key: { settingId: 'passComments' } }));
