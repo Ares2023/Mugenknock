@@ -1,6 +1,6 @@
 import { useState, useEffect, useMemo } from 'react';
 import { createPortal } from 'react-dom';
-import { ServiceIconImg } from './Icons';
+import { ServiceIconImg, IconSparkles, IconPointer, IconMousePointerClick, IconLightbulb } from './Icons';
 import Button from './ui/Button';
 
 type DailyService = {
@@ -123,58 +123,62 @@ export default function DailyServiceRevealModal({
         ${particleCSS}
       `}</style>
 
-      {/* ── backdrop ── */}
+      {/* ── close backdrop ── */}
       <div
-        onClick={isRevealed ? onClose : undefined}
+        onClick={phase !== 'revealing' ? onClose : undefined}
         style={{
           position: 'fixed', inset: 0, zIndex: 9990,
           background: 'rgba(4,6,18,.9)',
           backdropFilter: 'blur(6px)', WebkitBackdropFilter: 'blur(6px)',
-          display: 'flex', flexDirection: 'column',
-          alignItems: 'center',
-          padding: '20px 16px',
-          overflowY: 'auto', overflowX: 'hidden',
-          cursor: isRevealed ? 'pointer' : 'default',
+          cursor: phase !== 'revealing' ? 'pointer' : 'default',
+        }}
+      />
+
+      {/* flash */}
+      {isRevealing && (
+        <div style={{
+          position: 'fixed', inset: 0, zIndex: 9991,
+          background: 'white',
+          animation: 'dp-flash .5s ease-out forwards',
+          pointerEvents: 'none',
+        }} />
+      )}
+
+      {/* particles */}
+      {(isRevealing || isRevealed) && (
+        <div style={{
+          position: 'fixed', inset: 0, zIndex: 9992,
+          pointerEvents: 'none',
+          display: 'flex', alignItems: 'center', justifyContent: 'center',
         }}>
+          {particles.map(p => (
+            <div key={p.id} style={{
+              position: 'absolute',
+              width: p.size, height: p.round ? p.size : p.size * .52,
+              borderRadius: p.round ? '50%' : '2px',
+              background: p.color,
+              boxShadow: `0 0 ${p.size}px ${p.color}88`,
+              animation: `dp-particle-${p.id} ${p.dur}s ease-out ${p.delay}s both`,
+            }} />
+          ))}
+        </div>
+      )}
 
-        {/* flash */}
-        {isRevealing && (
-          <div style={{
-            position: 'fixed', inset: 0, zIndex: 9991,
-            background: 'white',
-            animation: 'dp-flash .5s ease-out forwards',
-            pointerEvents: 'none',
-          }} />
-        )}
-
-        {/* particles */}
-        {(isRevealing || isRevealed) && (
-          <div style={{
-            position: 'fixed', inset: 0, zIndex: 9992,
-            pointerEvents: 'none',
-            display: 'flex', alignItems: 'center', justifyContent: 'center',
-          }}>
-            {particles.map(p => (
-              <div key={p.id} style={{
-                position: 'absolute',
-                width: p.size, height: p.round ? p.size : p.size * .52,
-                borderRadius: p.round ? '50%' : '2px',
-                background: p.color,
-                boxShadow: `0 0 ${p.size}px ${p.color}88`,
-                animation: `dp-particle-${p.id} ${p.dur}s ease-out ${p.delay}s both`,
-              }} />
-            ))}
-          </div>
-        )}
-
-        {/* ── content (margin:auto で縦中央、オーバーフロー時は上から) ── */}
-        <div
-          onClick={e => e.stopPropagation()}
-          style={{
-            position: 'relative', zIndex: 9993,
-            display: 'flex', flexDirection: 'column', alignItems: 'center',
-            width: '100%', margin: 'auto 0',
-          }}>
+      {/* ── scrollable content layer (pointer-events: none so clicks pass through to backdrop) ── */}
+      <div style={{
+        position: 'fixed', inset: 0, zIndex: 9993,
+        display: 'flex', flexDirection: 'column',
+        alignItems: 'center',
+        padding: '20px 16px',
+        overflowY: 'auto', overflowX: 'hidden',
+        pointerEvents: 'none',
+      }}>
+        <div style={{
+          position: 'relative',
+          display: 'flex', flexDirection: 'column', alignItems: 'center',
+          width: '100%', margin: 'auto 0',
+          pointerEvents: 'auto',
+        }}>
 
           {/* label */}
           <div style={{
@@ -183,20 +187,26 @@ export default function DailyServiceRevealModal({
             textTransform: 'uppercase', marginBottom: 18,
             textShadow: '0 1px 8px rgba(0,0,0,.4)',
             animation: 'dp-text-up .4s ease both',
-          }}>
-            {ja ? '✨ 今日の日めくりAWSサービス ✨' : '✨ Daily AWS Service ✨'}
+            display: 'flex', alignItems: 'center', gap: 6,
+            cursor: phase !== 'revealing' ? 'pointer' : 'default',
+          }}
+            onClick={isWaiting ? e => { e.stopPropagation(); handleTap(); } : e => { e.stopPropagation(); onClose(); }}
+          >
+            <IconSparkles size={14} />
+            {ja ? '今日の日めくりAWSサービス' : 'Daily AWS Service'}
+            <IconSparkles size={14} />
           </div>
 
           {/* card */}
           <div
-            onClick={handleTap}
+            onClick={e => { e.stopPropagation(); if (isWaiting) handleTap(); else if (isRevealed) onClose(); }}
             style={{
               position: 'relative',
               width: cardSize, height: cardSize,
               background: 'linear-gradient(140deg,#1a1a2e 0%,#16213e 55%,#0f3460 100%)',
               borderRadius: 22,
               border: `2px solid rgba(82,130,255,${isRevealed ? '.45' : '.75'})`,
-              cursor: isWaiting ? 'pointer' : 'default',
+              cursor: isWaiting ? 'pointer' : isRevealed ? 'pointer' : 'default',
               display: 'flex', alignItems: 'center', justifyContent: 'center',
               overflow: 'hidden',
               animation: isWaiting ? 'dp-pulse 2.2s ease-in-out infinite'
@@ -254,26 +264,36 @@ export default function DailyServiceRevealModal({
 
           {/* tap hint */}
           {isWaiting && (
-            <div style={{
-              marginTop: 24,
-              color: 'rgba(255,255,255,.85)',
-              fontSize: 15, fontWeight: 600,
-              animation: 'dp-tap-hint 1.5s ease-in-out infinite',
-              textShadow: '0 2px 8px rgba(0,0,0,.5)',
-            }}>
-              {ja ? '👆 タップして解放' : '👆 Tap to reveal'}
+            <div
+              onClick={e => { e.stopPropagation(); handleTap(); }}
+              style={{
+                marginTop: 24,
+                color: 'rgba(255,255,255,.85)',
+                fontSize: 15, fontWeight: 600,
+                animation: 'dp-tap-hint 1.5s ease-in-out infinite',
+                textShadow: '0 2px 8px rgba(0,0,0,.5)',
+                cursor: 'pointer',
+                display: 'flex', alignItems: 'center', gap: 8,
+              }}
+            >
+              {isMobile ? <IconPointer size={18} /> : <IconMousePointerClick size={18} />}
+              {ja ? 'タップして解放' : 'Tap to reveal'}
             </div>
           )}
 
           {/* service info */}
           {isRevealed && (
-            <div style={{
-              marginTop: 20, textAlign: 'center',
-              animation: 'dp-text-up .4s ease .28s both',
-              maxWidth: Math.min(isMobile ? 360 : 432, window.innerWidth - 40),
-              width: '100%',
-              paddingBottom: isMobile ? 0 : 80,
-            }}>
+            <div
+              onClick={e => { e.stopPropagation(); onClose(); }}
+              style={{
+                marginTop: 20, textAlign: 'center',
+                animation: 'dp-text-up .4s ease .28s both',
+                maxWidth: Math.min(isMobile ? 360 : 432, window.innerWidth - 40),
+                width: '100%',
+                paddingBottom: isMobile ? 0 : 80,
+                cursor: 'pointer',
+              }}
+            >
               <div style={{
                 fontSize: 21, fontWeight: 800, color: 'white',
                 textShadow: '0 2px 8px rgba(0,0,0,.6)',
@@ -311,8 +331,8 @@ export default function DailyServiceRevealModal({
                   marginBottom: 22,
                   textAlign: 'left',
                 }}>
-                  <div style={{ fontSize: 11, fontWeight: 700, color: 'white', marginBottom: 4, letterSpacing: '.06em' }}>
-                    💡 {ja ? '豆知識' : 'Trivia'}
+                  <div style={{ fontSize: 11, fontWeight: 700, color: 'white', marginBottom: 4, letterSpacing: '.06em', display: 'flex', alignItems: 'center', gap: 5 }}>
+                    <IconLightbulb size={12} /> {ja ? '豆知識' : 'Trivia'}
                   </div>
                   <div style={{ fontSize: 12, color: 'rgba(255,255,255,.7)', lineHeight: 1.7, overflowWrap: 'break-word', wordBreak: 'break-word' }}>
                     {service.trivia}
@@ -321,7 +341,7 @@ export default function DailyServiceRevealModal({
               )}
 
               {isMobile && (
-                <div style={{ display: 'flex', gap: 10, justifyContent: 'center', flexWrap: 'wrap' }}>
+                <div onClick={e => e.stopPropagation()} style={{ display: 'flex', gap: 10, justifyContent: 'center', flexWrap: 'wrap' }}>
                   <Button variant="primary" onClick={onStartExercise}>
                     {ja ? '今日の演習を始める' : "Start Today's Exercise"}
                   </Button>

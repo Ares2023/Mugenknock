@@ -465,20 +465,25 @@ export default function Layout({ children }: { children: React.ReactNode }) {
             {open ? <IconClose /> : <IconMenu />}
           </button>
         )}
-        <div style={{ flex: 1, minWidth: 0, overflow: 'hidden' }}>
-          {!isMobile && breadcrumbs[location.pathname] && (
-            <Breadcrumb
-              items={breadcrumbs[location.pathname]}
-              style={{ marginBottom: 0, fontSize: 'var(--font-size-sm)' }}
-            />
-          )}
-        </div>
+        {/* デスクトップ: パンくずエリア */}
+        {!isMobile && (
+          <div style={{ flex: 1, minWidth: 0, overflow: 'hidden' }}>
+            {breadcrumbs[location.pathname] && (
+              <Breadcrumb
+                items={breadcrumbs[location.pathname]}
+                style={{ marginBottom: 0, fontSize: 'var(--font-size-sm)' }}
+              />
+            )}
+          </div>
+        )}
         {targetExam && (
           <button
             onClick={() => navigate('/aws/exam-dashboard')}
             title="資格ダッシュボード"
             style={{
-              flexShrink: 0, display: 'flex', alignItems: 'center', alignSelf: 'stretch',
+              flex: isMobile ? 1 : 0,
+              minWidth: 0,
+              display: 'flex', alignItems: 'center', alignSelf: 'stretch',
               cursor: 'pointer', transition: 'background 0.15s',
               background: 'transparent', border: 'none', padding: 0,
             }}
@@ -487,11 +492,12 @@ export default function Layout({ children }: { children: React.ReactNode }) {
           >
             <span style={{
               display: 'block',
+              flex: 1, minWidth: 0,
               fontSize: 13, fontWeight: 700,
               color: 'var(--color-text-sub)',
               whiteSpace: 'nowrap',
-              maxWidth: isMobile ? '28vw' : '22vw',
               overflow: 'hidden', textOverflow: 'ellipsis',
+              maxWidth: isMobile ? 'none' : '22vw',
               padding: '0 4px 0 8px',
             }}>
               {isMobile
@@ -499,6 +505,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
                 : (EXAM_CONFIGS[targetExam]?.fullName ?? targetExam)}
             </span>
             <span style={{
+              flexShrink: 0,
               color: 'var(--color-primary)',
               fontSize: 26, fontWeight: 900,
               padding: '0 10px 0 2px',

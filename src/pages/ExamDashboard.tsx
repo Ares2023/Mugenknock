@@ -85,7 +85,7 @@ export default function ExamDashboard() {
               value={selectedExam}
               onChange={e => handleChange(e.target.value)}
               style={{
-                width: '100%', padding: '8px 12px', fontSize: 14, fontWeight: 600,
+                width: '100%', padding: '6px 10px', fontSize: 13, fontWeight: 600,
                 border: '2px solid var(--color-primary)', borderRadius: 8,
                 background: 'var(--color-bg-white)', color: 'var(--color-text-main)',
                 cursor: 'pointer', outline: 'none', appearance: 'auto',

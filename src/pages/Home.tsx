@@ -13,7 +13,7 @@ import { animateLoadPct, randomPlateau } from '../utils/loadProgress';
 import { getPoints, deductPoints } from '../utils/points';
 import Card from '../components/ui/Card';
 import Button from '../components/ui/Button';
-import { IconLightbulb, IconSettings, IconChevronUp, IconChevronDown, IconLock, IconFileText, IconTrendingUp, IconBookOpen, IconCheck, IconSparkles, IconPointer, IconMousePointerClick, ServiceIconImg, isServiceIconKey } from '../components/Icons';
+import { IconLightbulb, IconSettings, IconChevronUp, IconChevronDown, IconLock, IconFileText, IconTrendingUp, IconBookOpen, IconCheck, IconSparkles, IconPointer, IconMousePointerClick, IconCalendarNotebook, IconRefreshCw, ServiceIconImg, isServiceIconKey } from '../components/Icons';
 import { CATALOG } from '../data/awsServiceCatalog';
 import { autoScoreAndClearDrafts } from '../utils/sessionUtils';
 
@@ -837,12 +837,7 @@ function TodayServiceSection({ lang, userId, onNavigateEncyclopedia, onReveal, i
     onReveal(service);
   };
 
-  const calIcon = (
-    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ color: 'var(--color-primary)', flexShrink: 0 }}>
-      <path d="M3 20a2 2 0 0 0 2 2h10a2.4 2.4 0 0 0 1.706-.706l3.588-3.588A2.4 2.4 0 0 0 21 16V6a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2z"/>
-      <path d="M15 22v-5a1 1 0 0 1 1-1h5"/><path d="M8 2v4"/><path d="M16 2v4"/><path d="M3 10h18"/>
-    </svg>
-  );
+  const calIcon = <IconCalendarNotebook size={13} />;
 
   if (loading) return (
     <Card padding="var(--spacing-md)" style={{ marginBottom: 'var(--spacing-md)' }}>
@@ -892,10 +887,9 @@ function TodayServiceSection({ lang, userId, onNavigateEncyclopedia, onReveal, i
       >
         {/* ヘッダー */}
         <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 14 }}>
-          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,.7)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0 }}>
-            <path d="M3 20a2 2 0 0 0 2 2h10a2.4 2.4 0 0 0 1.706-.706l3.588-3.588A2.4 2.4 0 0 0 21 16V6a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2z"/>
-            <path d="M15 22v-5a1 1 0 0 1 1-1h5"/><path d="M8 2v4"/><path d="M16 2v4"/><path d="M3 10h18"/>
-          </svg>
+          <span style={{ color: 'rgba(255,255,255,.7)', flexShrink: 0, display: 'flex', alignItems: 'center' }}>
+            <IconCalendarNotebook size={13} />
+          </span>
           <span style={{ fontWeight: 700, fontSize: 'var(--font-size-sm)', color: 'rgba(255,255,255,.85)' }}>
             {lang === 'ja' ? '日めくりAWSサービス' : 'Daily AWS Service'}
           </span>
@@ -973,10 +967,7 @@ function TodayServiceSection({ lang, userId, onNavigateEncyclopedia, onReveal, i
             >
               {rerolling
                 ? <div className="sherpa-spinner" style={{ width: 13, height: 13, borderWidth: 2, flexShrink: 0 }} />
-                : <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                    <polyline points="23 4 23 10 17 10"/>
-                    <path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/>
-                  </svg>
+                : <IconRefreshCw size={14} />
               }
             </button>
           </div>
