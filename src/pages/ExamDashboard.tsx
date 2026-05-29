@@ -1,10 +1,9 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { useLanguage } from '../contexts/LanguageContext';
 import { useTheme } from '../contexts/ThemeContext';
-import { IconChevronLeft } from '../components/Icons';
-import Button from '../components/ui/Button';
+import { IconChevronLeft, IconChevronDown } from '../components/Icons';
 import {
   EXAM_TYPES, EXAM_CONFIGS, EXAM_LEVEL, EXAM_DOMAINS, PASS_RATE,
   EXAM_DESC_JA, EXAM_DESC_EN, DOMAIN_WEIGHTS, API_ENDPOINT,
@@ -36,6 +35,30 @@ export default function ExamDashboard() {
     setSelectedExam(et);
     window.dispatchEvent(new CustomEvent('targetExamChanged', { detail: et }));
   };
+
+  const [dropdownOpen, setDropdownOpen] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
+  const dropdownRef = useRef<HTMLDivElement>(null);
+  const inputRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    const handleClickOutside = (e: MouseEvent) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(e.target as Node)) {
+        setDropdownOpen(false);
+        setSearchQuery('');
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+
+  const filteredExams = EXAM_TYPES.filter(et => {
+    const q = searchQuery.toLowerCase();
+    if (!q) return true;
+    return et.toLowerCase().includes(q) ||
+      (EXAM_CONFIGS[et]?.fullName ?? '').toLowerCase().includes(q) ||
+      (EXAM_CONFIGS[et]?.examCode ?? '').toLowerCase().includes(q);
+  });
 
   const [passComments, setPassComments] = useState<Record<string, string>>({});
   useEffect(() => {
@@ -88,28 +111,101 @@ export default function ExamDashboard() {
         <div style={{ maxWidth: 640, margin: '0 auto', padding: '24px 16px 48px', display: 'flex', flexDirection: 'column', gap: 24 }}>
 
           {/* ── 資格選択 ── */}
-          <div>
+          <div ref={dropdownRef} style={{ position: 'relative' }}>
             <div style={{ fontSize: 11, fontWeight: 700, color: 'var(--color-text-light)', textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: 8 }}>
               {ja ? '目標資格' : 'Target Certification'}
             </div>
-            <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
-              {EXAM_TYPES.map(et => (
-                <Button
-                  key={et}
-                  variant="outline"
-                  size="sm"
-                  onClick={() => handleChange(et)}
-                  style={{
-                    width: 72,
-                    ...(selectedExam === et
-                      ? { background: 'var(--color-primary-light)', borderWidth: 2 }
-                      : {}),
-                  }}
-                >
-                  {et}
-                </Button>
-              ))}
-            </div>
+
+            {/* トリガー */}
+            <button
+              onClick={() => {
+                setDropdownOpen(v => {
+                  if (!v) setTimeout(() => inputRef.current?.focus(), 10);
+                  return !v;
+                });
+              }}
+              style={{
+                width: '100%', display: 'flex', alignItems: 'center', gap: 10,
+                background: 'var(--color-bg-white)',
+                border: `1px solid ${dropdownOpen ? 'var(--color-primary)' : 'var(--color-border)'}`,
+                borderRadius: dropdownOpen ? '10px 10px 0 0' : 10,
+                padding: '10px 14px', cursor: 'pointer', textAlign: 'left',
+                transition: 'border-color 0.15s',
+              }}
+            >
+              <span style={{ fontSize: 13, fontWeight: 800, color: 'var(--color-primary)', fontFamily: 'monospace', flexShrink: 0 }}>{selectedExam}</span>
+              <span style={{ fontSize: 13, color: 'var(--color-text-main)', flex: 1, minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                {EXAM_CONFIGS[selectedExam]?.fullName}
+              </span>
+              <span style={{ flexShrink: 0, color: 'var(--color-text-light)', transform: dropdownOpen ? 'rotate(180deg)' : 'none', transition: 'transform 0.2s' }}>
+                <IconChevronDown size={16} />
+              </span>
+            </button>
+
+            {/* ドロップダウン */}
+            {dropdownOpen && (
+              <div style={{
+                position: 'absolute', top: '100%', left: 0, right: 0, zIndex: 200,
+                background: 'var(--color-bg-white)',
+                border: '1px solid var(--color-primary)', borderTop: 'none',
+                borderRadius: '0 0 10px 10px',
+                boxShadow: '0 8px 24px rgba(0,0,0,0.12)',
+                overflow: 'hidden',
+              }}>
+                {/* 検索入力 */}
+                <div style={{ padding: '8px 14px', borderBottom: '1px solid var(--color-border)', display: 'flex', alignItems: 'center', gap: 6 }}>
+                  <input
+                    ref={inputRef}
+                    value={searchQuery}
+                    onChange={e => setSearchQuery(e.target.value)}
+                    placeholder={ja ? '資格名・コードで検索...' : 'Search by name or code...'}
+                    style={{
+                      flex: 1, border: 'none', outline: 'none',
+                      background: 'transparent',
+                      fontSize: 13, color: 'var(--color-text-main)',
+                      padding: 0,
+                    }}
+                  />
+                  {searchQuery && (
+                    <button onClick={() => setSearchQuery('')} style={{ border: 'none', background: 'none', cursor: 'pointer', color: 'var(--color-text-light)', fontSize: 14, padding: '0 2px', lineHeight: 1 }}>✕</button>
+                  )}
+                </div>
+
+                {/* リスト */}
+                <div style={{ maxHeight: 260, overflowY: 'auto' }}>
+                  {filteredExams.length === 0 ? (
+                    <div style={{ padding: '12px 14px', fontSize: 12, color: 'var(--color-text-light)', textAlign: 'center' }}>
+                      {ja ? '見つかりません' : 'No results'}
+                    </div>
+                  ) : filteredExams.map(et => {
+                    const lc2 = LEVEL_COLOR[EXAM_LEVEL[et] ?? ''] ?? LEVEL_COLOR.Associate;
+                    const isSelected = et === selectedExam;
+                    return (
+                      <button
+                        key={et}
+                        onClick={() => { handleChange(et); setDropdownOpen(false); setSearchQuery(''); }}
+                        style={{
+                          width: '100%', display: 'flex', alignItems: 'center', gap: 10,
+                          padding: '9px 14px', border: 'none',
+                          background: isSelected ? 'var(--color-primary-light)' : 'transparent',
+                          cursor: 'pointer', textAlign: 'left', transition: 'background 0.1s',
+                        }}
+                        onMouseEnter={e => { if (!isSelected) e.currentTarget.style.background = 'var(--color-bg-main)'; }}
+                        onMouseLeave={e => { if (!isSelected) e.currentTarget.style.background = 'transparent'; }}
+                      >
+                        <span style={{ fontSize: 12, fontWeight: 800, color: 'var(--color-primary)', fontFamily: 'monospace', minWidth: 32, flexShrink: 0 }}>{et}</span>
+                        <span style={{ fontSize: 12, color: 'var(--color-text-main)', flex: 1, minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                          {EXAM_CONFIGS[et]?.fullName}
+                        </span>
+                        <span style={{ fontSize: 10, fontWeight: 700, padding: '2px 7px', borderRadius: 9999, background: lc2.bg, color: lc2.text, border: `1px solid ${lc2.border}`, flexShrink: 0 }}>
+                          {EXAM_LEVEL[et]}
+                        </span>
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
           </div>
 
           {/* ── 資格情報カード ── */}
