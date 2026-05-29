@@ -484,7 +484,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
               ...(isMobile ? { flex: 1 } : { flexShrink: 0 }),
               minWidth: 0,
               display: 'flex', alignItems: 'center',
-              justifyContent: 'flex-start',
+              justifyContent: 'flex-end',
               alignSelf: 'stretch',
               cursor: 'pointer', transition: 'background 0.15s',
               background: 'transparent', border: 'none', padding: 0,
