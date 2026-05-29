@@ -125,7 +125,7 @@ export default function DailyServiceRevealModal({
 
       {/* ── close backdrop ── */}
       <div
-        onClick={phase !== 'revealing' ? onClose : undefined}
+        onClick={phase === 'waiting' ? handleTap : phase === 'revealed' ? onClose : undefined}
         style={{
           position: 'fixed', inset: 0, zIndex: 9990,
           background: 'rgba(4,6,18,.9)',
@@ -190,7 +190,7 @@ export default function DailyServiceRevealModal({
             display: 'flex', alignItems: 'center', gap: 6,
             cursor: phase !== 'revealing' ? 'pointer' : 'default',
           }}
-            onClick={isWaiting ? e => { e.stopPropagation(); handleTap(); } : e => { e.stopPropagation(); onClose(); }}
+            onClick={isWaiting ? e => { e.stopPropagation(); handleTap(); } : isRevealed ? e => { e.stopPropagation(); onClose(); } : undefined}
           >
             <IconSparkles size={14} />
             {ja ? '今日の日めくりAWSサービス' : 'Daily AWS Service'}
