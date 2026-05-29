@@ -821,6 +821,7 @@ function TodayServiceSection({ lang, userId, onNavigateEncyclopedia, onReveal, i
       const rerollCacheKey = `daily_service_reroll_${uid}_${jstDate}`;
       setCached(rerollCacheKey, s, 24 * 60 * 60 * 1000);
       setRerolledService(s);
+      onReveal(s);
     } catch (err) {
       console.error(err);
     } finally {
@@ -936,12 +937,6 @@ function TodayServiceSection({ lang, userId, onNavigateEncyclopedia, onReveal, i
         {displayService.category && (
           <span style={{ marginLeft: 2, fontSize: 10, fontWeight: 700, padding: '1px 7px', borderRadius: 'var(--border-radius-full)', background: 'var(--color-primary-light)', color: 'var(--color-primary)' }}>
             {displayService.category}
-          </span>
-        )}
-        {rerolledService && (
-          <span style={{ marginLeft: 2, fontSize: 10, fontWeight: 700, padding: '1px 7px', borderRadius: 'var(--border-radius-full)', background: 'rgba(139,92,246,0.12)', color: 'rgb(139,92,246)', display: 'flex', alignItems: 'center', gap: 3 }}>
-            <IconSparkles size={9} />
-            {lang === 'ja' ? '再抽選' : 'Rerolled'}
           </span>
         )}
         {revealed && userId && (
