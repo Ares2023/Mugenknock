@@ -484,7 +484,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
               ...(isMobile ? { flex: 1 } : { flexShrink: 0 }),
               minWidth: 0,
               display: 'flex', alignItems: 'center',
-              justifyContent: isMobile ? 'flex-end' : 'flex-start',
+              justifyContent: 'flex-start',
               alignSelf: 'stretch',
               cursor: 'pointer', transition: 'background 0.15s',
               background: 'transparent', border: 'none', padding: 0,
@@ -499,11 +499,11 @@ export default function Layout({ children }: { children: React.ReactNode }) {
               color: 'var(--color-text-sub)',
               whiteSpace: 'nowrap',
               overflow: 'hidden', textOverflow: 'ellipsis',
-              maxWidth: isMobile ? 'calc(100vw - 100px)' : '22vw',
+              maxWidth: isMobile ? 'none' : '40vw',
               padding: '0 4px 0 8px',
             }}>
               {`設定目標：${isMobile
-                ? (EXAM_CONFIGS[targetExam]?.fullName ?? targetExam).replace(/^AWS Certified\s+/i, '')
+                ? targetExam
                 : (EXAM_CONFIGS[targetExam]?.fullName ?? targetExam)}`}
             </span>
             <span style={{
