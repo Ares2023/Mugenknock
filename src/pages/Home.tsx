@@ -68,25 +68,34 @@ function ScoreLineChart({ data, passScore, lang = 'ja' }: { data: ScoreEntry[]; 
   const cx = (i: number) => PL + (i / (data.length - 1)) * iW;
   const cy = (s: number) => PT + iH - ((s - minS) / range) * iH;
   const pathD = data.map((d, i) => `${i === 0 ? 'M' : 'L'}${cx(i).toFixed(1)},${cy(d.score).toFixed(1)}`).join(' ');
+  const stagger = 0.13, nodeDur = 0.22;
+  const totalLength = data.slice(0, -1).reduce((sum, _, i) => {
+    const dx = cx(i + 1) - cx(i), dy = cy(data[i + 1].score) - cy(data[i].score);
+    return sum + Math.sqrt(dx * dx + dy * dy);
+  }, 0);
+  const totalLineDur = (data.length - 1) * stagger + nodeDur;
   return (
-    <svg width="100%" viewBox={`0 0 ${W} ${H}`} style={{ overflow: 'visible', display: 'block' }}>
+    <svg key={data.length} width="100%" viewBox={`0 0 ${W} ${H}`} style={{ overflow: 'visible', display: 'block' }}>
       {[minS, maxS].map((s, i) => (
         <text key={i} x={PL - 4} y={i === 0 ? PT + iH + 4 : PT + 4} fontSize={9} fill="var(--color-text-light)" textAnchor="end">{s}</text>
       ))}
       {passScore !== null && passScore >= minS && passScore <= maxS && (
         <>
-          <line
-            x1={PL} x2={PL + iW} y1={cy(passScore)} y2={cy(passScore)}
-            stroke="#f59e0b" strokeWidth={1.5} strokeDasharray="4,3"
-          />
+          <line x1={PL} x2={PL + iW} y1={cy(passScore)} y2={cy(passScore)} stroke="#f59e0b" strokeWidth={1.5} strokeDasharray="4,3" />
           <text x={PL + iW + 2} y={cy(passScore) + 3} fontSize={8} fill="#f59e0b" fontWeight="bold">{lang === 'ja' ? '合格' : 'Pass'}</text>
         </>
       )}
-      <path d={pathD} fill="none" stroke="var(--color-primary)" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" />
+      <path d={pathD} fill="none" stroke="var(--color-primary)" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round"
+        strokeDasharray={totalLength} strokeDashoffset={totalLength}>
+        <animate attributeName="stroke-dashoffset" from={String(totalLength)} to="0" dur={`${totalLineDur}s`} fill="freeze" />
+      </path>
       {data.map((d, i) => (
-        <g key={i}>
+        <g key={i} opacity={0}>
+          <animate attributeName="opacity" from="0" to="1" dur="0.01s" begin={`${i * stagger}s`} fill="freeze" />
           <text x={cx(i)} y={cy(d.score) - 6} fontSize={8} fill="var(--color-primary)" textAnchor="middle" fontWeight="bold">{d.score}</text>
-          <circle cx={cx(i)} cy={cy(d.score)} r={3} fill="var(--color-primary)" />
+          <circle cx={cx(i)} cy={cy(d.score)} r={0} fill="var(--color-primary)">
+            <animate attributeName="r" values="0;4;3" keyTimes="0;0.65;1" dur={`${nodeDur}s`} begin={`${i * stagger}s`} fill="freeze" />
+          </circle>
         </g>
       ))}
       <text x={cx(0)} y={H - 2} fontSize={9} fill="var(--color-text-light)" textAnchor="middle">{data[0].date.slice(5)}</text>
@@ -111,8 +120,14 @@ function SessionScoreChart({ data, passScore, lang = 'ja' }: { data: number[]; p
   const cx = (i: number) => PL + (i / (data.length - 1)) * iW;
   const cy = (s: number) => PT + iH - ((s - minS) / range) * iH;
   const pathD = data.map((s, i) => `${i === 0 ? 'M' : 'L'}${cx(i).toFixed(1)},${cy(s).toFixed(1)}`).join(' ');
+  const stagger2 = 0.13, nodeDur2 = 0.22;
+  const totalLength2 = data.slice(0, -1).reduce((sum, _, i) => {
+    const dx = cx(i + 1) - cx(i), dy = cy(data[i + 1]) - cy(data[i]);
+    return sum + Math.sqrt(dx * dx + dy * dy);
+  }, 0);
+  const totalLineDur2 = (data.length - 1) * stagger2 + nodeDur2;
   return (
-    <svg width="100%" viewBox={`0 0 ${W} ${H}`} style={{ overflow: 'visible', display: 'block' }}>
+    <svg key={data.length} width="100%" viewBox={`0 0 ${W} ${H}`} style={{ overflow: 'visible', display: 'block' }}>
       {[minS, maxS].map((s, i) => (
         <text key={i} x={PL - 4} y={i === 0 ? PT + iH + 4 : PT + 4} fontSize={9} fill="var(--color-text-light)" textAnchor="end">{s}</text>
       ))}
@@ -122,11 +137,17 @@ function SessionScoreChart({ data, passScore, lang = 'ja' }: { data: number[]; p
           <text x={PL + iW + 2} y={cy(passScore) + 3} fontSize={8} fill="#f59e0b" fontWeight="bold">{lang === 'ja' ? '合格' : 'Pass'}</text>
         </>
       )}
-      <path d={pathD} fill="none" stroke="var(--color-secondary)" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" />
+      <path d={pathD} fill="none" stroke="var(--color-secondary)" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round"
+        strokeDasharray={totalLength2} strokeDashoffset={totalLength2}>
+        <animate attributeName="stroke-dashoffset" from={String(totalLength2)} to="0" dur={`${totalLineDur2}s`} fill="freeze" />
+      </path>
       {data.map((s, i) => (
-        <g key={i}>
+        <g key={i} opacity={0}>
+          <animate attributeName="opacity" from="0" to="1" dur="0.01s" begin={`${i * stagger2}s`} fill="freeze" />
           <text x={cx(i)} y={cy(s) - 6} fontSize={8} fill="var(--color-secondary)" textAnchor="middle" fontWeight="bold">{s}</text>
-          <circle cx={cx(i)} cy={cy(s)} r={3} fill="var(--color-secondary)" />
+          <circle cx={cx(i)} cy={cy(s)} r={0} fill="var(--color-secondary)">
+            <animate attributeName="r" values="0;4;3" keyTimes="0;0.65;1" dur={`${nodeDur2}s`} begin={`${i * stagger2}s`} fill="freeze" />
+          </circle>
           {i === data.length - 1 && (
             <text x={cx(i)} y={H - 2} fontSize={9} fill="var(--color-text-sub)" textAnchor="middle" fontWeight="bold">{lang === 'ja' ? '最新' : 'Latest'}</text>
           )}
@@ -159,6 +180,7 @@ function CombinedDetailModal({ targetExam, domainAccList, estimatedScore, passSc
   const [tab, setTab] = useState<'score' | 'history' | 'hiscore'>('score');
   const scoreTabRef = useRef<HTMLDivElement>(null);
   const [contentMinH, setContentMinH] = useState(0);
+  const [nodesVisible, setNodesVisible] = useState(false);
 
   // スコアタブ（calc非表示時）の高さを記録してタブ切替でサイズが変わらないようにする
   useLayoutEffect(() => {
@@ -171,6 +193,12 @@ function CombinedDetailModal({ targetExam, domainAccList, estimatedScore, passSc
     const prev = document.body.style.overflow;
     document.body.style.overflow = 'hidden';
     return () => { document.body.style.overflow = prev; };
+  }, []);
+
+  useEffect(() => {
+    let id1: number, id2: number;
+    id1 = requestAnimationFrame(() => { id2 = requestAnimationFrame(() => setNodesVisible(true)); });
+    return () => { cancelAnimationFrame(id1); cancelAnimationFrame(id2); };
   }, []);
 
   const weights = DOMAIN_WEIGHTS[targetExam] ?? domains.map(() => 100 / domains.length);
@@ -290,6 +318,10 @@ function CombinedDetailModal({ targetExam, domainAccList, estimatedScore, passSc
                             display: 'flex', alignItems: 'center', justifyContent: 'center',
                             fontSize: 8, fontWeight: 700, lineHeight: 1,
                             color: correct === null ? '#AEBCBD' : correct ? 'var(--color-success)' : 'var(--color-danger)',
+                            opacity: nodesVisible ? 1 : 0,
+                            transform: nodesVisible ? 'scale(1)' : 'scale(0.3)',
+                            transition: 'opacity 0.2s, transform 0.2s',
+                            transitionDelay: `${ni * 70}ms`,
                           }}>
                             {correct === null ? <span style={{ fontSize: 8, lineHeight: 1 }}>−</span>
                               : correct

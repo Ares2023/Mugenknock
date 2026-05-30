@@ -81,18 +81,18 @@ type ImportQuestion = {
   tags?: string[];
 };
 
-type Tab = 'questions' | 'reports' | 'tips' | 'import' | 'releases' | 'scan' | 'messages' | 'dailyservice' | 'theme' | 'admins' | 'about' | 'deleteuser' | 'passcomments';
+type Tab = 'questions' | 'reports' | 'tips' | 'import' | 'releases' | 'scan' | 'messages' | 'dailyservice' | 'theme' | 'admins' | 'about' | 'deleteuser' | 'passcomments' | 'growth';
 type Group = 'content' | 'ops' | 'settings';
 
 const TAB_GROUPS: { key: Group; label: string; tabs: Tab[] }[] = [
   { key: 'content',  label: 'コンテンツ', tabs: ['questions', 'import', 'tips', 'releases', 'dailyservice'] },
-  { key: 'ops',      label: '運営',       tabs: ['reports', 'scan', 'messages', 'deleteuser'] },
+  { key: 'ops',      label: '運営',       tabs: ['reports', 'scan', 'messages', 'deleteuser', 'growth'] },
   { key: 'settings', label: '設定',       tabs: ['theme', 'admins', 'about', 'passcomments'] },
 ];
 const TAB_LABELS: Record<Tab, string> = {
   questions: '問題管理', import: '問題追加', tips: 'コラム管理',
   releases: 'リリースノート', dailyservice: '日めくりAWSサービス',
-  reports: '通報確認', scan: 'スキャン結果', messages: 'メッセージ', deleteuser: 'データ削除',
+  reports: '通報確認', scan: 'スキャン結果', messages: 'メッセージ', deleteuser: 'データ削除', growth: '生成状況',
   theme: 'テーマ設定', admins: '管理者設定', about: 'サイト情報', passcomments: '合格コメント',
 };
 function getGroupForTab(t: Tab): Group {
@@ -240,6 +240,10 @@ export default function Admin() {
   const [passCommentText, setPassCommentText] = useState('');
   const [passCommentSaving, setPassCommentSaving] = useState(false);
   const [passCommentSaved, setPassCommentSaved] = useState(false);
+
+  // 生成状況
+  const [growthData, setGrowthData] = useState<{ dates: string[]; created: number[]; verified: number[] } | null>(null);
+  const [growthLoading, setGrowthLoading] = useState(false);
 
   // 管理者設定
   const [adminEmails, setAdminEmails] = useState<string[]>([]);
@@ -636,6 +640,7 @@ export default function Admin() {
   useEffect(() => { if (tab === 'dailyservice') fetchDailyServices(); }, [tab]);
   useEffect(() => { fetchDailyServices(); }, []); // pre-fetch for tab count
   useEffect(() => { if (tab === 'admins') fetchAdminEmails(); }, [tab]);
+  useEffect(() => { if (tab === 'growth') fetchGrowthData(); }, [tab]); // eslint-disable-line react-hooks/exhaustive-deps
   useEffect(() => { if (tab === 'about') fetchAboutContent(); }, [tab]);
   useEffect(() => {
     if (tab !== 'passcomments') return;
@@ -648,6 +653,27 @@ export default function Admin() {
       })
       .catch(() => {});
   }, [tab]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  const fetchGrowthData = async () => {
+    setGrowthLoading(true);
+    try {
+      const res = await fetch(`${API_ENDPOINT}/questions/growth-stats`);
+      const json = await res.json();
+      const daily = json.daily ?? {};
+      const dates: string[] = (daily.dates ?? []).slice(-7);
+      const allDates: string[] = daily.dates ?? [];
+      const start = allDates.length - 7;
+      setGrowthData({
+        dates,
+        created:  (daily.created  ?? []).slice(start),
+        verified: (daily.verified ?? []).slice(start),
+      });
+    } catch {
+      setGrowthData(null);
+    } finally {
+      setGrowthLoading(false);
+    }
+  };
 
   const fetchAdminEmails = async () => {
     setAdminEmailsLoading(true);
@@ -1451,6 +1477,57 @@ export default function Admin() {
                 style={{ padding: '6px 16px', borderRadius: 9999, border: '1px solid var(--color-border)', background: (currentPage + 1) * PAGE_SIZE >= totalQuestions ? 'var(--color-bg-main)' : 'var(--color-bg-white)', color: (currentPage + 1) * PAGE_SIZE >= totalQuestions ? 'var(--color-text-light)' : 'var(--color-text-main)', cursor: (currentPage + 1) * PAGE_SIZE >= totalQuestions ? 'default' : 'pointer', fontWeight: 700, fontSize: 13 }}>
                 次 →
               </button>
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* ── 生成状況 ── */}
+      {tab === 'growth' && (
+        <div>
+          <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: 10 }}>
+            <button
+              onClick={fetchGrowthData}
+              style={{ padding: '5px 14px', background: 'transparent', color: 'var(--color-primary)', border: '1.5px solid var(--color-primary)', borderRadius: 9999, cursor: 'pointer', fontSize: 13, fontWeight: 700 }}>
+              更新
+            </button>
+          </div>
+          {growthLoading ? (
+            <p style={{ color: 'var(--color-text-light)', fontSize: 13 }}>読み込み中...</p>
+          ) : !growthData ? (
+            <p style={{ color: 'var(--color-text-light)', fontSize: 13 }}>データを取得できませんでした</p>
+          ) : (
+            <div style={{ overflowX: 'auto' }}>
+              <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13 }}>
+                <thead>
+                  <tr style={{ background: 'var(--color-bg-main)' }}>
+                    <th style={{ padding: '8px 12px', textAlign: 'left', fontWeight: 700, color: 'var(--color-text-sub)', borderBottom: '1px solid var(--color-border)', whiteSpace: 'nowrap' }}>日付</th>
+                    <th style={{ padding: '8px 12px', textAlign: 'right', fontWeight: 700, color: 'var(--color-primary)', borderBottom: '1px solid var(--color-border)', whiteSpace: 'nowrap' }}>生成数</th>
+                    <th style={{ padding: '8px 12px', textAlign: 'right', fontWeight: 700, color: 'var(--color-text-sub)', borderBottom: '1px solid var(--color-border)', whiteSpace: 'nowrap' }}>確認数</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {[...growthData.dates].reverse().map((date, ri) => {
+                    const i = growthData.dates.length - 1 - ri;
+                    const created = growthData.created[i];
+                    const verified = growthData.verified[i];
+                    const isToday = date === new Date(Date.now() + 9 * 3600000).toISOString().slice(0, 10);
+                    return (
+                      <tr key={date} style={{ background: isToday ? 'rgba(var(--color-primary-rgb, 0,112,243),0.04)' : undefined }}>
+                        <td style={{ padding: '9px 12px', borderBottom: '1px solid var(--color-border)', color: 'var(--color-text-main)', fontWeight: isToday ? 700 : 400, whiteSpace: 'nowrap' }}>
+                          {date}{isToday && <span style={{ marginLeft: 6, fontSize: 11, color: 'var(--color-primary)', fontWeight: 700 }}>今日</span>}
+                        </td>
+                        <td style={{ padding: '9px 12px', textAlign: 'right', borderBottom: '1px solid var(--color-border)', fontWeight: created > 0 ? 700 : 400, color: created > 0 ? 'var(--color-primary)' : 'var(--color-text-light)', fontVariantNumeric: 'tabular-nums' }}>
+                          {created > 0 ? `+${created}` : '—'}
+                        </td>
+                        <td style={{ padding: '9px 12px', textAlign: 'right', borderBottom: '1px solid var(--color-border)', fontWeight: verified > 0 ? 700 : 400, color: verified > 0 ? 'var(--color-text-main)' : 'var(--color-text-light)', fontVariantNumeric: 'tabular-nums' }}>
+                          {verified > 0 ? verified : '—'}
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
             </div>
           )}
         </div>

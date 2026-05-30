@@ -349,7 +349,6 @@ export default function Stats() {
   if (!targetExam) {
     return (
       <div style={{ maxWidth: 900, margin: '0 auto', padding: 'var(--spacing-xl) var(--spacing-lg)' }} className="page-container">
-        <h2 style={{ fontSize: 'var(--font-size-xxl)', fontWeight: 700, margin: '0 0 var(--spacing-xl)', color: 'var(--color-text-main)' }}>{t('stats.title')}</h2>
         <Card padding="var(--spacing-xl)">
           <div style={{ textAlign: 'center', padding: 'var(--spacing-xl) 0' }}>
             <div style={{ fontSize: 32, marginBottom: 'var(--spacing-md)', color: 'var(--color-accent)', display: 'flex', justifyContent: 'center' }}><IconTarget size={40} /></div>

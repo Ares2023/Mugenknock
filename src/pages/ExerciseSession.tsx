@@ -688,8 +688,8 @@ export default function ExerciseSession() {
         </div>
       )}
 
-      {/* 進捗ノード */}
-      <div style={{ display: 'flex', alignItems: 'center', marginBottom: 'var(--spacing-sm)', padding: '0 12px' }}>
+      {/* 進捗ノード（画面上部に固定） */}
+      <div style={{ position: 'fixed', top: 96, left: 0, right: 0, zIndex: 190, background: 'var(--color-bg-white)', borderBottom: '1px solid var(--color-border)', padding: '8px 16px', display: 'flex', alignItems: 'center' }}>
         {questions.map((_, i) => {
           const isAnswered = i < results.length;
           const isCurrent = i === currentIndex;
@@ -731,6 +731,8 @@ export default function ExerciseSession() {
           );
         })}
       </div>
+      {/* 固定ノードバーの高さ分のスペーサー */}
+      <div style={{ height: 36 }} />
 
       <Card padding={isMobile ? 'var(--spacing-md) var(--spacing-sm)' : 'var(--spacing-xl)'}>
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 'var(--spacing-lg)' }}>

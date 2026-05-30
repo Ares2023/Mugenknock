@@ -91,6 +91,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
   const deltaTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const animFrame = useRef<number | null>(null);
   const [showContact, setShowContact] = useState(false);
+  const [showPointsInfo, setShowPointsInfo] = useState(false);
   const [contactSubject, setContactSubject] = useState('');
   const [contactMessage, setContactMessage] = useState('');
   const [contactSending, setContactSending] = useState(false);
@@ -374,6 +375,71 @@ export default function Layout({ children }: { children: React.ReactNode }) {
 
 
 
+      {/* ── SPポイント説明モーダル ── */}
+      {showPointsInfo && (
+        <div
+          style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', zIndex: 1000, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 'var(--spacing-md)' }}
+          onClick={e => { if (e.target === e.currentTarget) setShowPointsInfo(false); }}
+        >
+          <div style={{ background: 'var(--color-bg-white)', borderRadius: 'var(--border-radius-lg)', padding: isMobile ? '20px 18px' : '24px 28px', width: '100%', maxWidth: 380, boxShadow: 'var(--box-shadow-md)' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 7 }}>
+                <span style={{ color: '#009E9E', display: 'flex', alignItems: 'center' }}><IconSparkles size={18} /></span>
+                <span style={{ fontWeight: 700, fontSize: 'var(--font-size-base)', color: 'var(--color-text-main)' }}>
+                  {lang === 'ja' ? 'SPとは？' : 'What is SP?'}
+                </span>
+              </div>
+              <button onClick={() => setShowPointsInfo(false)} style={{ border: 'none', background: 'none', fontSize: 18, cursor: 'pointer', color: 'var(--color-text-sub)', padding: '4px 8px', lineHeight: 1 }}>✕</button>
+            </div>
+
+            {/* 獲得方法 */}
+            <div style={{ marginBottom: 20 }}>
+              <div style={{ fontSize: 12, fontWeight: 700, color: 'var(--color-text-sub)', marginBottom: 10, letterSpacing: '0.5px' }}>
+                {lang === 'ja' ? '獲得方法' : 'How to earn'}
+              </div>
+              <div style={{ fontSize: 13, color: 'var(--color-text-sub)', marginBottom: 8 }}>
+                {lang === 'ja' ? '問題に正解するとSPを獲得できます。資格のレベルが高いほど多く獲得できます。' : 'Earn SP by answering questions correctly. Higher certification levels give more SP.'}
+              </div>
+              <div style={{ background: 'var(--color-bg-main)', borderRadius: 8, overflow: 'hidden' }}>
+                {([
+                  { level: 'Foundational', pts: 1, exams: 'CLF, AIF' },
+                  { level: 'Associate',    pts: 2, exams: 'SAA, DVA, SOA, DEA, MLA' },
+                  { level: 'Professional', pts: 3, exams: 'SAP, DOP, GAI' },
+                  { level: 'Specialty',    pts: 3, exams: 'ANS, SCS' },
+                ] as const).map((row, i, arr) => (
+                  <div key={row.level} style={{ display: 'flex', alignItems: 'center', padding: '9px 12px', borderBottom: i < arr.length - 1 ? '1px solid var(--color-border)' : 'none' }}>
+                    <div style={{ flex: 1, minWidth: 0 }}>
+                      <div style={{ fontSize: 12, fontWeight: 700, color: 'var(--color-text-main)' }}>{row.level}</div>
+                      <div style={{ fontSize: 10, color: 'var(--color-text-light)', marginTop: 1 }}>{row.exams}</div>
+                    </div>
+                    <div style={{ display: 'flex', alignItems: 'baseline', gap: 2, flexShrink: 0 }}>
+                      <span style={{ fontSize: 20, fontWeight: 800, color: '#009E9E', fontVariantNumeric: 'tabular-nums' }}>+{row.pts}</span>
+                      <span style={{ fontSize: 11, color: 'var(--color-text-light)' }}>{lang === 'ja' ? 'SP/問' : 'SP/q'}</span>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* 使い道 */}
+            <div>
+              <div style={{ fontSize: 12, fontWeight: 700, color: 'var(--color-text-sub)', marginBottom: 10, letterSpacing: '0.5px' }}>
+                {lang === 'ja' ? '使い道' : 'How to use'}
+              </div>
+              <div style={{ background: 'var(--color-bg-main)', borderRadius: 8, padding: '10px 12px', display: 'flex', alignItems: 'center', gap: 10 }}>
+                <div style={{ flex: 1, fontSize: 13, color: 'var(--color-text-main)' }}>
+                  {lang === 'ja' ? '日めくりサービスの更新' : 'Daily service reroll'}
+                </div>
+                <div style={{ display: 'flex', alignItems: 'baseline', gap: 2, flexShrink: 0 }}>
+                  <span style={{ fontSize: 20, fontWeight: 800, color: '#009E9E', fontVariantNumeric: 'tabular-nums' }}>30</span>
+                  <span style={{ fontSize: 11, color: 'var(--color-text-light)' }}>SP</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* ── ヘッダー ── */}
       <header style={{
         height: 56, minHeight: 56, background: 'var(--color-bg-white)',
@@ -403,7 +469,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
                   100% { opacity: 0; transform: translateY(-22px) scale(0.9); }
                 }
               `}</style>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 4, userSelect: 'none', position: 'relative', border: '1.5px solid #009E9E', borderRadius: 6, padding: '3px 8px 3px 6px', background: 'rgba(0,158,158,0.05)' }}>
+              <div onClick={() => setShowPointsInfo(true)} style={{ display: 'flex', alignItems: 'center', gap: 4, userSelect: 'none', position: 'relative', border: '1.5px solid #009E9E', borderRadius: 6, padding: '3px 8px 3px 6px', background: 'rgba(0,158,158,0.05)', cursor: 'pointer' }}>
                 <span style={{ color: '#009E9E', display: 'flex', alignItems: 'center' }}><IconSparkles size={17} /></span>
                 <span style={{ color: '#009E9E', fontWeight: 800, fontSize: 'var(--font-size-sm)', minWidth: '3ch', textAlign: 'right', fontVariantNumeric: 'tabular-nums' }}>{points}</span>
                 {ptsDelta !== null && (
@@ -476,7 +542,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
             )}
           </div>
         )}
-        {targetExam && !(isMobile && isOthersActive) && (
+        {targetExam && !(isMobile && isOthersActive) && !(['/aws/exercise/session', '/aws/exam/session'].includes(location.pathname)) && (
           <button
             onClick={() => navigate('/aws/exam-dashboard')}
             title="資格ダッシュボード"

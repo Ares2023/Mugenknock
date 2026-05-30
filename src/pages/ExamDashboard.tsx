@@ -120,10 +120,7 @@ export default function ExamDashboard() {
             {/* トリガー */}
             <button
               onClick={() => {
-                setDropdownOpen(v => {
-                  if (!v) setTimeout(() => inputRef.current?.focus(), 10);
-                  return !v;
-                });
+                setDropdownOpen(v => !v);
               }}
               style={{
                 width: '100%', display: 'flex', alignItems: 'center', gap: 10,

@@ -134,9 +134,6 @@ export default function ServiceEncyclopedia() {
 
   return (
     <div style={{ maxWidth: 900, margin: '0 auto', padding: 'var(--spacing-lg)' }}>
-      <h2 style={{ margin: '0 0 4px', fontSize: 'var(--font-size-h2)', fontWeight: 700, color: 'var(--color-text-main)' }}>
-        {ja ? 'サービス図鑑' : 'Service Encyclopedia'}
-      </h2>
       <p style={{ margin: '0 0 var(--spacing-md)', fontSize: 'var(--font-size-sm)', color: 'var(--color-text-sub)' }}>
         {ja
           ? `アプリを使った日に1つ解放されます。${unlockedCount} / ${totalServices} 解放済み`

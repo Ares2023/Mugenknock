@@ -424,10 +424,7 @@ export default function Growth() {
   return (
     <div style={{ padding: '28px 24px', maxWidth: 900, margin: '0 auto' }}>
       <div style={{ marginBottom: 20 }}>
-        <h1 style={{ margin: 0, fontSize: 'var(--font-size-h2)', fontWeight: 800, color: 'var(--color-text-main)' }}>
-          {lang === 'ja' ? '問題生成・チェック状況' : 'Question Growth & Verification'}
-        </h1>
-        <p style={{ margin: '6px 0 0', fontSize: 'var(--font-size-sm)', color: 'var(--color-text-sub)' }}>
+        <p style={{ margin: 0, fontSize: 'var(--font-size-sm)', color: 'var(--color-text-sub)' }}>
           {lang === 'ja'
             ? `総問題数 ${data.total.toLocaleString()} 件 — AIによる生成・確認の推移`
             : `Total ${data.total.toLocaleString()} questions — AI generation & verification trends`}

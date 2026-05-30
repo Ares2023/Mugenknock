@@ -37,10 +37,6 @@ export default function About() {
 
   return (
     <div style={{ maxWidth: 900, margin: '0 auto', padding: 'var(--spacing-lg)' }}>
-      <h2 style={{ margin: '0 0 var(--spacing-lg)', fontSize: 'var(--font-size-h2)', fontWeight: 700, color: 'var(--color-text-main)' }}>
-        {ja ? 'このサイトについて' : 'About This Site'}
-      </h2>
-
       {/* タブ */}
       <div style={{ display: 'flex', gap: 8, marginBottom: 'var(--spacing-xl)', flexWrap: 'wrap' }}>
         {SECTIONS.map(s => (

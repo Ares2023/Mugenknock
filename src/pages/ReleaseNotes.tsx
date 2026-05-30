@@ -33,8 +33,6 @@ export default function ReleaseNotes() {
 
   return (
     <div style={{ maxWidth: 900, margin: '0 auto', padding: 'var(--spacing-xl) var(--spacing-lg)', color: 'var(--color-text-main)' }} className="page-container">
-      <h1 style={{ fontSize: 'var(--font-size-xxl)', fontWeight: 700, margin: '0 0 var(--spacing-xl)' }}>{t('releaseNotes.title')}</h1>
-
       {loading && (
         <div style={{ display: 'flex', justifyContent: 'center', padding: '40px 0' }}>
           <div className="sherpa-spinner" />
