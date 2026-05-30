@@ -471,16 +471,16 @@ export default function Layout({ children }: { children: React.ReactNode }) {
               `}</style>
               <div onClick={() => setShowPointsInfo(true)} style={{ display: 'flex', alignItems: 'center', gap: 4, userSelect: 'none', position: 'relative', border: '1.5px solid #009E9E', borderRadius: 6, padding: '3px 8px 3px 6px', background: 'rgba(0,158,158,0.05)', cursor: 'pointer' }}>
                 <span style={{ color: '#009E9E', display: 'flex', alignItems: 'center' }}><IconSparkles size={17} /></span>
-                <span style={{ color: '#009E9E', fontWeight: 800, fontSize: 'var(--font-size-sm)', minWidth: '3ch', textAlign: 'right', fontVariantNumeric: 'tabular-nums' }}>{points}</span>
+                <span style={{ color: '#009E9E', fontWeight: 800, fontSize: 'var(--font-size-sm)', minWidth: '3ch', textAlign: 'right', fontVariantNumeric: 'tabular-nums' }}>{points}<span style={{ fontSize: 10, fontWeight: 600, marginLeft: 1 }}>p</span></span>
                 {ptsDelta !== null && (
                   <span style={{
-                    position: 'absolute', right: -28, top: -2,
+                    position: 'absolute', right: -32, top: -2,
                     fontSize: 11, fontWeight: 800,
                     color: ptsDelta > 0 ? '#009E9E' : 'var(--color-danger)',
                     whiteSpace: 'nowrap', pointerEvents: 'none',
                     animation: 'pts-delta-fly 1.8s ease-out forwards',
                   }}>
-                    {ptsDelta > 0 ? `+${ptsDelta}` : ptsDelta}
+                    {ptsDelta > 0 ? `+${ptsDelta}p` : `${ptsDelta}p`}
                   </span>
                 )}
               </div>
@@ -509,6 +509,8 @@ export default function Layout({ children }: { children: React.ReactNode }) {
 
 
       {/* ── サブバー（ハンバーガー＋パンくず） ── */}
+      {/* モバイルでは目標ボタンが表示される場合のみサブバーを描画 */}
+      {(!isMobile || (!!targetExam && !isOthersActive && !['/aws/exercise/session', '/aws/exam/session'].includes(location.pathname))) && (
       <div style={{
         height: 40, minHeight: 40, background: 'var(--color-bg-white)',
         display: 'flex', alignItems: 'center', padding: '0 var(--spacing-sm)',
@@ -582,6 +584,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
           </button>
         )}
       </div>
+      )}
 
       {/* ── ボディ ── */}
       <div style={{ display: 'flex', flex: 1, overflow: 'hidden', position: 'relative' }}>
