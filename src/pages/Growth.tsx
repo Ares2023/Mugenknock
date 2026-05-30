@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef, useLayoutEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Helmet } from 'react-helmet-async';
 import { API_ENDPOINT } from '../constants';
 import { useLanguage } from '../contexts/LanguageContext';
@@ -178,26 +178,11 @@ function DualLineChart({ labels, s1, s2, label1, label2, color1, color2, markerL
   markerLabel?: string;
 }) {
   const [tooltip, setTooltip] = useState<{ i: number } | null>(null);
-  const line1Ref = useRef<SVGPolylineElement>(null);
-  const line2Ref = useRef<SVGPolylineElement>(null);
-  const [dash, setDash] = useState({ l1: 0, l2: 0 });
-  const [drawn, setDrawn] = useState(false);
 
   const safe1 = s1 ?? [];
   const safe2 = s2 ?? [];
   const dual = !!s2 && !!label2 && !!color2;
   const n = labels.length;
-
-  useLayoutEffect(() => {
-    if (!line1Ref.current) return;
-    const l1 = line1Ref.current.getTotalLength();
-    const l2 = line2Ref.current?.getTotalLength() ?? 0;
-    setDash({ l1, l2 });
-    setDrawn(false);
-    let r2: number;
-    const r1 = requestAnimationFrame(() => { r2 = requestAnimationFrame(() => setDrawn(true)); });
-    return () => { cancelAnimationFrame(r1); cancelAnimationFrame(r2); };
-  }, [labels]); // eslint-disable-line react-hooks/exhaustive-deps
 
   if (n === 0) return null;
 
@@ -222,8 +207,19 @@ function DualLineChart({ labels, s1, s2, label1, label2, color1, color2, markerL
   const pts1 = safe1.map((v, i) => `${px(i)},${py(v)}`).join(' ');
   const pts2 = dual ? safe2.map((v, i) => `${px(i)},${py(v)}`).join(' ') : '';
 
+  const stagger = 0.10, nodeDur = 0.22;
+  const totalLength1 = safe1.slice(0, -1).reduce((sum, _, i) => {
+    const dx = px(i + 1) - px(i), dy = py(safe1[i + 1]) - py(safe1[i]);
+    return sum + Math.sqrt(dx * dx + dy * dy);
+  }, 0);
+  const totalLineDur = (n - 1) * stagger + nodeDur;
+  const totalLength2 = dual ? safe2.slice(0, -1).reduce((sum, _, i) => {
+    const dx = px(i + 1) - px(i), dy = py(safe2[i + 1]) - py(safe2[i]);
+    return sum + Math.sqrt(dx * dx + dy * dy);
+  }, 0) : 0;
+
   return (
-    <svg viewBox={`0 0 ${W} ${H}`} width="100%" style={{ display: 'block' }}>
+    <svg key={labels.join(',')} viewBox={`0 0 ${W} ${H}`} width="100%" style={{ display: 'block' }}>
       {/* Legend */}
       <line x1={ML} y1={8} x2={ML + 16} y2={8} stroke={color1} strokeWidth="2" strokeLinecap="round" />
       <circle cx={ML + 8} cy={8} r={3} fill={color1} />
@@ -252,28 +248,28 @@ function DualLineChart({ labels, s1, s2, label1, label2, color1, color2, markerL
 
       {/* Lines */}
       {n > 1 && (
-        <polyline ref={line1Ref} points={pts1} fill="none" stroke={color1} strokeWidth="2" strokeLinejoin="round" strokeLinecap="round"
-          strokeDasharray={dash.l1 || undefined}
-          strokeDashoffset={drawn ? 0 : dash.l1}
-          style={{ transition: 'stroke-dashoffset 1s cubic-bezier(0.4, 0, 0.2, 1)' }}
-        />
+        <polyline points={pts1} fill="none" stroke={color1} strokeWidth="2" strokeLinejoin="round" strokeLinecap="round"
+          strokeDasharray={totalLength1} strokeDashoffset={totalLength1}>
+          <animate attributeName="stroke-dashoffset" from={String(totalLength1)} to="0" dur={`${totalLineDur}s`} fill="freeze" />
+        </polyline>
       )}
-      {dual && n > 1 && (
-        <polyline ref={line2Ref} points={pts2} fill="none" stroke={color2} strokeWidth="2" strokeLinejoin="round" strokeLinecap="round"
-          strokeDasharray={dash.l2 || undefined}
-          strokeDashoffset={drawn ? 0 : dash.l2}
-          style={{ transition: 'stroke-dashoffset 1s cubic-bezier(0.4, 0, 0.2, 1) 0.1s' }}
-        />
+      {dual && n > 1 && color2 && (
+        <polyline points={pts2} fill="none" stroke={color2} strokeWidth="2" strokeLinejoin="round" strokeLinecap="round"
+          strokeDasharray={totalLength2} strokeDashoffset={totalLength2}>
+          <animate attributeName="stroke-dashoffset" from={String(totalLength2)} to="0" dur={`${totalLineDur}s`} begin="0.1" fill="freeze" />
+        </polyline>
       )}
 
-      {/* Data points — each dot appears as the line reaches it */}
+      {/* Data points */}
       {safe1.map((v, i) => (
-        <circle key={i} cx={px(i)} cy={py(v)} r={3} fill={color1}
-          style={{ animation: `sherpa-fade-in 0.12s ease ${(i / Math.max(n - 1, 1)) * 1.0}s both` }} />
+        <circle key={i} cx={px(i)} cy={py(v)} r={0} fill={color1}>
+          <animate attributeName="r" values="0;4;3" keyTimes="0;0.65;1" dur={`${nodeDur}s`} begin={`${i * stagger}s`} fill="freeze" />
+        </circle>
       ))}
       {dual && color2 && safe2.map((v, i) => (
-        <circle key={i} cx={px(i)} cy={py(v)} r={3} fill={color2}
-          style={{ animation: `sherpa-fade-in 0.12s ease ${0.1 + (i / Math.max(n - 1, 1)) * 1.0}s both` }} />
+        <circle key={i} cx={px(i)} cy={py(v)} r={0} fill={color2}>
+          <animate attributeName="r" values="0;4;3" keyTimes="0;0.65;1" dur={`${nodeDur}s`} begin={`${0.1 + i * stagger}s`} fill="freeze" />
+        </circle>
       ))}
 
       {/* X-axis labels */}
