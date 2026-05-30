@@ -1,4 +1,5 @@
 import React, { useEffect, useMemo, useState } from 'react';
+import { Helmet } from 'react-helmet-async';
 import { useNavigate } from 'react-router-dom';
 import { API_ENDPOINT, EXAM_DOMAINS, DOMAIN_NAME_EN } from '../constants';
 import { useAuth } from '../contexts/AuthContext';
@@ -374,6 +375,10 @@ export default function Stats() {
 
   return (
     <div style={{ maxWidth: 900, margin: '0 auto', padding: 'var(--spacing-xl) var(--spacing-lg)' }} className="page-container">
+      <Helmet>
+        <title>足あと | AWS資格無限ノック</title>
+        <meta name="description" content="AWS試験の学習履歴・スコア推移を確認。セッション別の正答率やドメイン弱点を分析して効率的に対策しよう。" />
+      </Helmet>
 
       {showHint && (
         <div className="fade-slide-in" style={{

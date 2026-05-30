@@ -1,4 +1,5 @@
 import React from 'react';
+import { HelmetProvider } from 'react-helmet-async';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
 import { LanguageProvider, useLanguage } from './contexts/LanguageContext';
@@ -98,6 +99,7 @@ function AppInner() {
 
 function App() {
   return (
+    <HelmetProvider>
     <BrowserRouter>
     <AuthProvider>
     <ThemeProvider>
@@ -107,6 +109,7 @@ function App() {
     </ThemeProvider>
     </AuthProvider>
     </BrowserRouter>
+    </HelmetProvider>
   );
 }
 

@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import { Helmet } from 'react-helmet-async';
 import { API_ENDPOINT } from '../constants';
 import { useLanguage } from '../contexts/LanguageContext';
 import Button from '../components/ui/Button';
@@ -33,6 +34,10 @@ export default function ReleaseNotes() {
 
   return (
     <div style={{ maxWidth: 900, margin: '0 auto', padding: 'var(--spacing-xl) var(--spacing-lg)', color: 'var(--color-text-main)' }} className="page-container">
+      <Helmet>
+        <title>リリースノート | AWS資格無限ノック</title>
+        <meta name="description" content="AWS資格無限ノックのアップデート履歴。新機能・改善・バグ修正の最新情報をご確認ください。" />
+      </Helmet>
       {loading && (
         <div style={{ display: 'flex', justifyContent: 'center', padding: '40px 0' }}>
           <div className="sherpa-spinner" />

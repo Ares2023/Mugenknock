@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
+import { Helmet } from 'react-helmet-async';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { useLanguage } from '../contexts/LanguageContext';
@@ -80,6 +81,10 @@ export default function ExamDashboard() {
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', height: '100vh', background: 'var(--color-bg-main)', fontFamily: 'inherit' }}>
+      <Helmet>
+        <title>資格ダッシュボード | AWS資格無限ノック</title>
+        <meta name="description" content="AWS認定試験の目標資格を設定。各試験の概要・合格率・学習のポイントを確認して効率的に対策しよう。" />
+      </Helmet>
 
       {/* ── ヘッダー ── */}
       <header style={{

@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { Helmet } from 'react-helmet-async';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { useLanguage } from '../contexts/LanguageContext';
@@ -52,6 +53,10 @@ export default function Others() {
 
   return (
     <div style={{ maxWidth: 900, margin: '0 auto', padding: 'var(--spacing-lg)' }}>
+      <Helmet>
+        <title>その他 | AWS資格無限ノック</title>
+        <meta name="description" content="サービス図鑑・問い合わせ・ストリークなど、AWS資格無限ノックの各種機能へのリンク集。" />
+      </Helmet>
       <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--spacing-sm)' }}>
         {ITEMS.map(({ path, Icon, ja: jaLabel, en: enLabel, desc_ja, desc_en }) => (
           <button

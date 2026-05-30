@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { Helmet } from 'react-helmet-async';
 import { useLocation } from 'react-router-dom';
 import { useLanguage } from '../contexts/LanguageContext';
 import { API_ENDPOINT } from '../constants';
@@ -37,6 +38,10 @@ export default function About() {
 
   return (
     <div style={{ maxWidth: 900, margin: '0 auto', padding: 'var(--spacing-lg)' }}>
+      <Helmet>
+        <title>このサイトについて | AWS資格無限ノック</title>
+        <meta name="description" content="AWS資格無限ノックのプライバシーポリシー・利用規約・運営者情報。" />
+      </Helmet>
       {/* タブ */}
       <div style={{ display: 'flex', gap: 8, marginBottom: 'var(--spacing-xl)', flexWrap: 'wrap' }}>
         {SECTIONS.map(s => (
