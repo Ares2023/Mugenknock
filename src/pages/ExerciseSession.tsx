@@ -493,7 +493,21 @@ export default function ExerciseSession() {
       const earnedPts = results.filter(r => r.isCorrect).length * ptsPerQ;
       if (userId && earnedPts > 0) addPoints(userId, earnedPts);
       localStorage.setItem(`sessionScoreAdd_${examType}_${userId}`, '1');
-      navigate('/aws/result', { state: { results, questions, score, isPassed, sessionId, userId, examType, isQuick, isMini, earnedPts } });
+      // 日次演習カウント更新
+      const jstToday = new Date(Date.now() + 9 * 3600 * 1000).toISOString().slice(0, 10);
+      const dailyKey = `dailyQCount_${examType}_${userId}_${jstToday}`;
+      const prevDaily = parseInt(localStorage.getItem(dailyKey) ?? '0', 10);
+      const newDaily = prevDaily + results.length;
+      localStorage.setItem(dailyKey, String(newDaily));
+      const dailyGoal = parseInt(localStorage.getItem(`dailyGoal_${userId}`) ?? '10', 10);
+      const rewardKey = `dailyGoalReward_${examType}_${userId}_${jstToday}`;
+      let dailyBonusPts = 0;
+      if (newDaily >= dailyGoal && prevDaily < dailyGoal && !localStorage.getItem(rewardKey) && userId !== 'guest') {
+        localStorage.setItem(rewardKey, '1');
+        dailyBonusPts = 10;
+        addPoints(userId, dailyBonusPts);
+      }
+      navigate('/aws/result', { state: { results, questions, score, isPassed, sessionId, userId, examType, isQuick, isMini, earnedPts, dailyBonusPts } });
     } else {
       setCurrentIndex(prev => prev + 1);
       setSelectedAnswers([]);
@@ -565,8 +579,21 @@ export default function ExerciseSession() {
     const earnedPts = results.filter(r => r.isCorrect).length * ptsPerQ;
     if (userId && earnedPts > 0) addPoints(userId, earnedPts);
     localStorage.setItem(`sessionScoreAdd_${examType}_${userId}`, '1');
+    const jstToday2 = new Date(Date.now() + 9 * 3600 * 1000).toISOString().slice(0, 10);
+    const dailyKey2 = `dailyQCount_${examType}_${userId}_${jstToday2}`;
+    const prevDaily2 = parseInt(localStorage.getItem(dailyKey2) ?? '0', 10);
+    const newDaily2 = prevDaily2 + results.length;
+    localStorage.setItem(dailyKey2, String(newDaily2));
+    const dailyGoal2 = parseInt(localStorage.getItem(`dailyGoal_${userId}`) ?? '10', 10);
+    const rewardKey2 = `dailyGoalReward_${examType}_${userId}_${jstToday2}`;
+    let dailyBonusPts2 = 0;
+    if (newDaily2 >= dailyGoal2 && prevDaily2 < dailyGoal2 && !localStorage.getItem(rewardKey2) && userId !== 'guest') {
+      localStorage.setItem(rewardKey2, '1');
+      dailyBonusPts2 = 10;
+      addPoints(userId, dailyBonusPts2);
+    }
     const answeredQuestions = questions.slice(0, results.length);
-    navigate('/aws/result', { state: { results, questions: answeredQuestions, score, isPassed, sessionId, userId, examType, isQuick, isMini, aborted: true, earnedPts } });
+    navigate('/aws/result', { state: { results, questions: answeredQuestions, score, isPassed, sessionId, userId, examType, isQuick, isMini, aborted: true, earnedPts, dailyBonusPts: dailyBonusPts2 } });
   };
 
   const getChoiceStyle = (choice: string): React.CSSProperties => {

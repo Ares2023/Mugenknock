@@ -251,9 +251,22 @@ export default function ExamSession() {
       const ptsPerQAbort = EXAM_LEVEL[examType] === 'Foundational' ? 1 : EXAM_LEVEL[examType] === 'Associate' ? 2 : 3;
       const earnedPtsAbort = correctCount * ptsPerQAbort;
       if (userId && earnedPtsAbort > 0) addPoints(userId, earnedPtsAbort);
+      const jstTodayAbort = new Date(Date.now() + 9 * 3600 * 1000).toISOString().slice(0, 10);
+      const dailyKeyAbort = `dailyQCount_${examType}_${userId}_${jstTodayAbort}`;
+      const prevDailyAbort = parseInt(localStorage.getItem(dailyKeyAbort) ?? '0', 10);
+      const newDailyAbort = prevDailyAbort + abortResults.length;
+      localStorage.setItem(dailyKeyAbort, String(newDailyAbort));
+      const dailyGoalAbort = parseInt(localStorage.getItem(`dailyGoal_${userId}`) ?? '10', 10);
+      const rewardKeyAbort = `dailyGoalReward_${examType}_${userId}_${jstTodayAbort}`;
+      let dailyBonusPtsAbort = 0;
+      if (newDailyAbort >= dailyGoalAbort && prevDailyAbort < dailyGoalAbort && !localStorage.getItem(rewardKeyAbort) && userId !== 'guest') {
+        localStorage.setItem(rewardKeyAbort, '1');
+        dailyBonusPtsAbort = 10;
+        addPoints(userId, dailyBonusPtsAbort);
+      }
       localStorage.setItem(`sessionScoreAdd_${examType}_${userId}`, '1');
       navigate('/aws/result', {
-        state: { results: abortResults.map(r => ({ questionId: r.questionId, isCorrect: r.isCorrect })), questions: answeredQs, score, isPassed, sessionId, userId, examType, mode: 'exam', aborted: true, earnedPts: earnedPtsAbort },
+        state: { results: abortResults.map(r => ({ questionId: r.questionId, isCorrect: r.isCorrect })), questions: answeredQs, score, isPassed, sessionId, userId, examType, mode: 'exam', aborted: true, earnedPts: earnedPtsAbort, dailyBonusPts: dailyBonusPtsAbort },
       });
     } catch (err) {
       console.error(err);
@@ -355,9 +368,22 @@ export default function ExamSession() {
       const ptsPerQ = EXAM_LEVEL[examType] === 'Foundational' ? 1 : EXAM_LEVEL[examType] === 'Associate' ? 2 : 3;
       const earnedPts = correctCount * ptsPerQ;
       if (userId && earnedPts > 0) addPoints(userId, earnedPts);
+      const jstToday = new Date(Date.now() + 9 * 3600 * 1000).toISOString().slice(0, 10);
+      const dailyKey = `dailyQCount_${examType}_${userId}_${jstToday}`;
+      const prevDaily = parseInt(localStorage.getItem(dailyKey) ?? '0', 10);
+      const newDaily = prevDaily + results.length;
+      localStorage.setItem(dailyKey, String(newDaily));
+      const dailyGoal = parseInt(localStorage.getItem(`dailyGoal_${userId}`) ?? '10', 10);
+      const rewardKey = `dailyGoalReward_${examType}_${userId}_${jstToday}`;
+      let dailyBonusPts = 0;
+      if (newDaily >= dailyGoal && prevDaily < dailyGoal && !localStorage.getItem(rewardKey) && userId !== 'guest') {
+        localStorage.setItem(rewardKey, '1');
+        dailyBonusPts = 10;
+        addPoints(userId, dailyBonusPts);
+      }
       localStorage.setItem(`sessionScoreAdd_${examType}_${userId}`, '1');
       navigate('/aws/result', {
-        state: { results: results.map(r => ({ questionId: r.questionId, isCorrect: r.isCorrect })), questions, score, isPassed, sessionId, userId, examType, mode: 'exam', timeUp, earnedPts }
+        state: { results: results.map(r => ({ questionId: r.questionId, isCorrect: r.isCorrect })), questions, score, isPassed, sessionId, userId, examType, mode: 'exam', timeUp, earnedPts, dailyBonusPts }
       });
     } catch (err) {
       console.error(err);

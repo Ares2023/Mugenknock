@@ -19,6 +19,7 @@ import Admin from './pages/Admin';
 import ExamSetup from './pages/ExamSetup';
 import ExamSession from './pages/ExamSession';
 import Stats from './pages/Stats';
+import MyPage from './pages/MyPage';
 import Growth from './pages/Growth';
 import ReleaseNotes from './pages/ReleaseNotes';
 import Account from './pages/Account';
@@ -86,6 +87,9 @@ function AppInner() {
           } />
           <Route path="/aws/stats" element={
             <PrivateRoute><TargetExamRoute><Layout><Stats /></Layout></TargetExamRoute></PrivateRoute>
+          } />
+          <Route path="/aws/mypage" element={
+            <PrivateRoute><TargetExamRoute><Layout><MyPage /></Layout></TargetExamRoute></PrivateRoute>
           } />
           <Route path="/account" element={
             <PrivateRoute><Account /></PrivateRoute>

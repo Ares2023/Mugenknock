@@ -1111,6 +1111,59 @@ app.delete('/users/me/data', async (req, res) => {
     // 6. Sessions 削除
     await deleteItems('Sessions', sessionIds.map(sid => ({ userId, sessionId: sid })));
 
+    // 7. スコア履歴削除
+    try {
+      await docClient.send(new DeleteCommand({
+        TableName: 'AppSettings',
+        Key: { settingId: `scoreHistData_${userId}_${examType}` },
+      }));
+    } catch {}
+
+    res.json({ success: true });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+// ── スコア履歴（デバイス間同期） ──
+
+app.get('/users/me/score-history', async (req, res) => {
+  try {
+    const docClient = getClient();
+    const { userId, examType } = req.query;
+    if (!userId || !examType) return res.status(400).json({ error: 'userId and examType are required' });
+    const result = await docClient.send(new GetCommand({
+      TableName: 'AppSettings',
+      Key: { settingId: `scoreHistData_${userId}_${examType}` },
+    }));
+    const item = result.Item || {};
+    res.json({
+      scoreHistory: item.scoreHistory || [],
+      sessionScoreHistory: item.sessionScoreHistory || [],
+    });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+app.put('/users/me/score-history', async (req, res) => {
+  try {
+    const docClient = getClient();
+    const { userId, examType, scoreHistory, sessionScoreHistory } = req.body;
+    if (!userId || !examType) return res.status(400).json({ error: 'userId and examType are required' });
+    const updateParts = [];
+    const exprValues = {};
+    if (scoreHistory !== undefined) { updateParts.push('scoreHistory = :sh'); exprValues[':sh'] = scoreHistory; }
+    if (sessionScoreHistory !== undefined) { updateParts.push('sessionScoreHistory = :ssh'); exprValues[':ssh'] = sessionScoreHistory; }
+    if (updateParts.length === 0) return res.json({ success: true });
+    await docClient.send(new UpdateCommand({
+      TableName: 'AppSettings',
+      Key: { settingId: `scoreHistData_${userId}_${examType}` },
+      UpdateExpression: `SET ${updateParts.join(', ')}`,
+      ExpressionAttributeValues: exprValues,
+    }));
     res.json({ success: true });
   } catch (err) {
     console.error(err);
@@ -1278,9 +1331,7 @@ app.get('/users/me/incorrect-questions', async (req, res) => {
       ExpressionAttributeValues: { ':uid': userId }
     }));
 
-    let questionIds = (statsResult.Items || [])
-      .filter(s => (s.incorrectCount ?? 0) > 0)
-      .map(s => s.questionId);
+    let stats = (statsResult.Items || []).filter(s => (s.incorrectCount ?? 0) > 0);
 
     if (examType) {
       const questionsResult = await docClient.send(new QueryCommand({
@@ -1291,10 +1342,12 @@ app.get('/users/me/incorrect-questions', async (req, res) => {
         ProjectionExpression: 'questionId'
       }));
       const examQuestionIds = new Set((questionsResult.Items || []).map(q => q.questionId));
-      questionIds = questionIds.filter(id => examQuestionIds.has(id));
+      stats = stats.filter(s => examQuestionIds.has(s.questionId));
     }
 
-    res.json({ questionIds });
+    const questionIds = stats.map(s => s.questionId);
+    const counts = Object.fromEntries(stats.map(s => [s.questionId, s.incorrectCount ?? 0]));
+    res.json({ questionIds, counts });
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: 'Internal server error' });

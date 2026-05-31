@@ -162,7 +162,7 @@ function SessionScoreChart({ data, passScore, lang = 'ja' }: { data: number[]; p
 }
 
 // ── 成績詳細モーダル（ドメイン別 + 予想スコア 統合） ───────────
-function CombinedDetailModal({ targetExam, domainAccList, estimatedScore, passScore, lang, isMobile, uid, domainStats, onClose }: {
+function CombinedDetailModal({ targetExam, domainAccList, estimatedScore, passScore, lang, isMobile, uid, domainStats, scoreHistory: serverScoreHistory, sessionHistory: serverSessionHistory, onClose }: {
   targetExam: string;
   domainAccList: { correct: number; total: number; pct: number | null }[];
   estimatedScore: number | null;
@@ -171,12 +171,14 @@ function CombinedDetailModal({ targetExam, domainAccList, estimatedScore, passSc
   isMobile: boolean;
   uid: string;
   domainStats: DomainStat[];
+  scoreHistory?: ScoreEntry[];
+  sessionHistory?: number[];
   onClose: () => void;
 }) {
   const ja = lang === 'ja';
   const domains = EXAM_DOMAINS[targetExam] ?? [];
-  const history = readScoreHistory(targetExam, uid);
-  const sessionHistory = readSessionScoreHistory(targetExam, uid);
+  const history = serverScoreHistory ?? readScoreHistory(targetExam, uid);
+  const sessionHistory = serverSessionHistory ?? readSessionScoreHistory(targetExam, uid);
   const [showCalc, setShowCalc] = useState(false);
   const [tab, setTab] = useState<'score' | 'history' | 'hiscore'>('score');
   const scoreTabRef = useRef<HTMLDivElement>(null);
@@ -1165,6 +1167,8 @@ export default function Home() {
   const [showFocusedModal, setShowFocusedModal] = useState(false);
   const [draftFocusedPrefs, setDraftFocusedPrefs] = useState<Record<string, any>>({});
   const [showCombinedDetail, setShowCombinedDetail] = useState(false);
+  const [serverScoreHistory, setServerScoreHistory] = useState<ScoreEntry[] | null>(null);
+  const [serverSessionHistory, setServerSessionHistory] = useState<number[] | null>(null);
   const abortRef = useRef<AbortController | null>(null);
 
   useEffect(() => {
@@ -1261,6 +1265,31 @@ export default function Home() {
   }, [user, doFetchStats]);
 
   useEffect(() => {
+    if (!user || !targetExam) { setServerScoreHistory(null); setServerSessionHistory(null); return; }
+    fetch(`${API_ENDPOINT}/users/me/score-history?userId=${user.userId}&examType=${targetExam}`)
+      .then(r => r.json())
+      .then(d => {
+        const serverSH: ScoreEntry[] = d.scoreHistory ?? [];
+        const serverSSH: number[] = d.sessionScoreHistory ?? [];
+        // マイグレーション: サーバーが空でローカルにデータがあれば、サーバーへアップロード
+        const localSH = readScoreHistory(targetExam, user.userId);
+        const localSSH = readSessionScoreHistory(targetExam, user.userId);
+        const uploadSH = serverSH.length === 0 && localSH.length > 0 ? localSH : serverSH;
+        const uploadSSH = serverSSH.length === 0 && localSSH.length > 0 ? localSSH : serverSSH;
+        if (uploadSH !== serverSH || uploadSSH !== serverSSH) {
+          fetch(`${API_ENDPOINT}/users/me/score-history`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ userId: user.userId, examType: targetExam, scoreHistory: uploadSH, sessionScoreHistory: uploadSSH }),
+          }).catch(() => {});
+        }
+        setServerScoreHistory(uploadSH);
+        setServerSessionHistory(uploadSSH);
+      })
+      .catch(() => { setServerScoreHistory(null); setServerSessionHistory(null); });
+  }, [user, targetExam]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  useEffect(() => {
     if (!user || !targetExam) { setAnsweredCount(0); setAnsweredCountReady(true); return; }
     const cacheKey = `qstats_${user.userId}_${targetExam}`;
     const cached = getCached<number>(cacheKey);
@@ -1337,8 +1366,17 @@ export default function Home() {
     const last = scoreHist[scoreHist.length - 1];
     if (last?.date === jstDate) { last.score = estimatedScore; }
     else { scoreHist.push({ date: jstDate, score: estimatedScore }); }
-    localStorage.setItem(histKey, JSON.stringify(scoreHist.slice(-30)));
-  }, [targetExam, estimatedScore, jstDate, uid]);
+    const newHist = scoreHist.slice(-30);
+    localStorage.setItem(histKey, JSON.stringify(newHist));
+    setServerScoreHistory(newHist);
+    if (user) {
+      fetch(`${API_ENDPOINT}/users/me/score-history`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ userId: user.userId, examType: targetExam, scoreHistory: newHist }),
+      }).catch(() => {});
+    }
+  }, [targetExam, estimatedScore, jstDate, uid]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // セッション完了後にセッション別スコア履歴を追記
   useEffect(() => {
@@ -1351,7 +1389,15 @@ export default function Home() {
     try { hist = JSON.parse(localStorage.getItem(sessionHistKey) ?? '[]'); } catch {}
     hist = [...hist, estimatedScore].slice(-5);
     localStorage.setItem(sessionHistKey, JSON.stringify(hist));
-  }, [domainStats, targetExam, uid, estimatedScore]);
+    setServerSessionHistory(hist);
+    if (user) {
+      fetch(`${API_ENDPOINT}/users/me/score-history`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ userId: user.userId, examType: targetExam, sessionScoreHistory: hist }),
+      }).catch(() => {});
+    }
+  }, [domainStats, targetExam, uid, estimatedScore]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const scoreDelta = prevScore !== null && estimatedScore !== null ? estimatedScore - prevScore : null;
 
@@ -1403,6 +1449,11 @@ export default function Home() {
   const discardFocusedDraft = () => {
     localStorage.removeItem(`focusedExerciseDraft_${uid}`);
     setFocusedDraft(null);
+  };
+
+  const switchMode = (mode: 'quick' | 'focused') => {
+    setLastMode(mode);
+    localStorage.setItem(`lastQuickMode_${uid}`, mode);
   };
 
   // サクッと演習
@@ -1761,12 +1812,12 @@ export default function Home() {
                           <>
                             {focusedUnlocked && <div style={{ textAlign: 'center', fontSize: 10, color: 'var(--color-text-light)', marginBottom: 4 }}>{ja ? '苦手・不正解問題を重点演習' : 'Focuses on weak/incorrect questions'}</div>}
                             <button
-                              disabled={!targetExam || !user || !focusedUnlocked || focusedLoading}
-                              onClick={() => { setShowWebQuickMenu(false); startFocusedExercise(); }}
-                              style={{ width: '100%', height: 36, padding: '0 12px', border: `1.5px solid ${(!targetExam || !user || !focusedUnlocked) ? 'var(--color-border)' : '#009E9E'}`, borderRadius: 'var(--border-radius-full)', cursor: (!targetExam || !user || !focusedUnlocked || focusedLoading) ? 'default' : 'pointer', background: 'transparent', color: (!targetExam || !user || !focusedUnlocked) ? 'var(--color-text-light)' : '#009E9E', fontWeight: 600, fontSize: 'var(--font-size-sm)', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 5 }}
+                              disabled={!targetExam || !user || !focusedUnlocked}
+                              onClick={() => { setShowWebQuickMenu(false); switchMode('focused'); }}
+                              style={{ width: '100%', height: 36, padding: '0 12px', border: `1.5px solid ${(!targetExam || !user || !focusedUnlocked) ? 'var(--color-border)' : '#009E9E'}`, borderRadius: 'var(--border-radius-full)', cursor: (!targetExam || !user || !focusedUnlocked) ? 'default' : 'pointer', background: 'transparent', color: (!targetExam || !user || !focusedUnlocked) ? 'var(--color-text-light)' : '#009E9E', fontWeight: 600, fontSize: 'var(--font-size-sm)', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 5 }}
                             >
                               {!focusedUnlocked && <IconLock size={13} />}
-                              {ja ? 'しっかり対策' : 'Focused Practice'}
+                              {ja ? 'しっかり対策に切り替え' : 'Switch to Focused'}
                             </button>
                             {!focusedUnlocked && user && (
                               <div style={{ textAlign: 'center', fontSize: 10, color: 'var(--color-text-light)', marginTop: 3 }}>
@@ -1777,9 +1828,8 @@ export default function Home() {
                           </>
                         ) : (
                           <>
-                            <div style={{ textAlign: 'center', fontSize: 10, color: 'var(--color-text-light)', marginBottom: 4 }}>{ja ? 'ランダム出題（設定に従う）' : 'Random questions (uses settings)'}</div>
-                            <button disabled={!targetExam || quickLoading} onClick={() => { setShowWebQuickMenu(false); startQuickExercise(); }} style={{ width: '100%', height: 36, padding: '0 12px', border: '1.5px solid var(--color-accent)', borderRadius: 'var(--border-radius-full)', cursor: (!targetExam || quickLoading) ? 'default' : 'pointer', background: 'transparent', color: 'var(--color-accent)', fontWeight: 600, fontSize: 'var(--font-size-sm)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                              {ja ? `サクッと演習 (${loadQuickPrefs(uid).questionCount ?? 5}問)` : `Quick (${loadQuickPrefs(uid).questionCount ?? 5}Q)`}
+                            <button disabled={!targetExam} onClick={() => { setShowWebQuickMenu(false); switchMode('quick'); }} style={{ width: '100%', height: 36, padding: '0 12px', border: '1.5px solid var(--color-accent)', borderRadius: 'var(--border-radius-full)', cursor: !targetExam ? 'default' : 'pointer', background: 'transparent', color: 'var(--color-accent)', fontWeight: 600, fontSize: 'var(--font-size-sm)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                              {ja ? 'サクッと演習に切り替え' : 'Switch to Quick'}
                             </button>
                           </>
                         )}
@@ -1819,12 +1869,12 @@ export default function Home() {
                         <>
                           {focusedUnlocked && <div style={{ textAlign: 'center', fontSize: 10, color: 'var(--color-text-light)', marginBottom: 4 }}>{ja ? '苦手・不正解問題を重点演習' : 'Focuses on weak/incorrect questions'}</div>}
                           <button
-                            disabled={!targetExam || !user || !focusedUnlocked || focusedLoading}
-                            onClick={() => { setShowFocusedMenu(false); startFocusedExercise(); }}
-                            style={{ width: '100%', height: 36, padding: '0 12px', border: `1.5px solid ${(!targetExam || !user || !focusedUnlocked) ? 'var(--color-border)' : '#009E9E'}`, borderRadius: 'var(--border-radius-full)', cursor: (!targetExam || !user || !focusedUnlocked || focusedLoading) ? 'default' : 'pointer', background: 'transparent', color: (!targetExam || !user || !focusedUnlocked) ? 'var(--color-text-light)' : '#009E9E', fontWeight: 600, fontSize: 'var(--font-size-sm)', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 5 }}
+                            disabled={!targetExam || !user || !focusedUnlocked}
+                            onClick={() => { setShowFocusedMenu(false); switchMode('focused'); }}
+                            style={{ width: '100%', height: 36, padding: '0 12px', border: `1.5px solid ${(!targetExam || !user || !focusedUnlocked) ? 'var(--color-border)' : '#009E9E'}`, borderRadius: 'var(--border-radius-full)', cursor: (!targetExam || !user || !focusedUnlocked) ? 'default' : 'pointer', background: 'transparent', color: (!targetExam || !user || !focusedUnlocked) ? 'var(--color-text-light)' : '#009E9E', fontWeight: 600, fontSize: 'var(--font-size-sm)', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 5 }}
                           >
                             {!focusedUnlocked && <IconLock size={13} />}
-                            {ja ? 'しっかり対策' : 'Focused Practice'}
+                            {ja ? 'しっかり対策に切り替え' : 'Switch to Focused'}
                           </button>
                           {!focusedUnlocked && user && (
                             <div style={{ textAlign: 'center', fontSize: 10, color: 'var(--color-text-light)', marginTop: 3 }}>
@@ -1835,9 +1885,8 @@ export default function Home() {
                         </>
                       ) : (
                         <>
-                          <div style={{ textAlign: 'center', fontSize: 10, color: 'var(--color-text-light)', marginBottom: 4 }}>{ja ? 'ランダム出題（設定に従う）' : 'Random questions (uses settings)'}</div>
-                          <button disabled={!targetExam || quickLoading} onClick={() => { setShowFocusedMenu(false); startQuickExercise(); }} style={{ width: '100%', height: 36, padding: '0 12px', border: '1.5px solid var(--color-accent)', borderRadius: 'var(--border-radius-full)', cursor: (!targetExam || quickLoading) ? 'default' : 'pointer', background: 'transparent', color: 'var(--color-accent)', fontWeight: 600, fontSize: 'var(--font-size-sm)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                            {ja ? `サクッと演習 (${loadQuickPrefs(uid).questionCount ?? 5}問)` : `Quick (${loadQuickPrefs(uid).questionCount ?? 5}Q)`}
+                          <button disabled={!targetExam} onClick={() => { setShowFocusedMenu(false); switchMode('quick'); }} style={{ width: '100%', height: 36, padding: '0 12px', border: '1.5px solid var(--color-accent)', borderRadius: 'var(--border-radius-full)', cursor: !targetExam ? 'default' : 'pointer', background: 'transparent', color: 'var(--color-accent)', fontWeight: 600, fontSize: 'var(--font-size-sm)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                            {ja ? 'サクッと演習に切り替え' : 'Switch to Quick'}
                           </button>
                         </>
                       )}
@@ -1914,12 +1963,12 @@ export default function Home() {
                     <>
                       {focusedUnlocked && <div style={{ textAlign: 'center', fontSize: 11, color: 'var(--color-text-light)', marginBottom: 4 }}>{ja ? '苦手・不正解問題を重点演習' : 'Focuses on weak/incorrect questions'}</div>}
                       <button
-                        disabled={!targetExam || !user || !focusedUnlocked || focusedLoading}
-                        onClick={() => { setShowNewPanel(false); startFocusedExercise(); }}
-                        style={{ width: '100%', height: 44, border: `1.5px solid ${(!targetExam || !user || !focusedUnlocked) ? 'var(--color-border)' : '#009E9E'}`, borderRadius: 'var(--border-radius-full)', cursor: (!targetExam || !user || !focusedUnlocked || focusedLoading) ? 'default' : 'pointer', background: 'transparent', color: (!targetExam || !user || !focusedUnlocked) ? 'var(--color-text-light)' : '#009E9E', fontWeight: 600, fontSize: 'var(--font-size-base)', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6 }}
+                        disabled={!targetExam || !user || !focusedUnlocked}
+                        onClick={() => { setShowNewPanel(false); switchMode('focused'); }}
+                        style={{ width: '100%', height: 44, border: `1.5px solid ${(!targetExam || !user || !focusedUnlocked) ? 'var(--color-border)' : '#009E9E'}`, borderRadius: 'var(--border-radius-full)', cursor: (!targetExam || !user || !focusedUnlocked) ? 'default' : 'pointer', background: 'transparent', color: (!targetExam || !user || !focusedUnlocked) ? 'var(--color-text-light)' : '#009E9E', fontWeight: 600, fontSize: 'var(--font-size-base)', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6 }}
                       >
                         {!focusedUnlocked && <IconLock size={15} />}
-                        {ja ? 'しっかり対策' : 'Focused Practice'}
+                        {ja ? 'しっかり対策に切り替え' : 'Switch to Focused'}
                       </button>
                       {!focusedUnlocked && user && (
                         <div style={{ textAlign: 'center', fontSize: 11, color: 'var(--color-text-light)', marginTop: 4 }}>
@@ -1930,9 +1979,8 @@ export default function Home() {
                     </>
                   ) : (
                     <>
-                      <div style={{ textAlign: 'center', fontSize: 11, color: 'var(--color-text-light)', marginBottom: 4 }}>{ja ? 'ランダム出題（設定に従う）' : 'Random questions (uses settings)'}</div>
-                      <button disabled={!targetExam || quickLoading} onClick={() => { setShowNewPanel(false); startQuickExercise(); }} style={{ width: '100%', height: 44, border: '1.5px solid var(--color-accent)', borderRadius: 'var(--border-radius-full)', cursor: (!targetExam || quickLoading) ? 'default' : 'pointer', background: 'transparent', color: 'var(--color-accent)', fontWeight: 600, fontSize: 'var(--font-size-base)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                        {ja ? 'サクッと演習' : 'Quick Practice'}
+                      <button disabled={!targetExam} onClick={() => { setShowNewPanel(false); switchMode('quick'); }} style={{ width: '100%', height: 44, border: '1.5px solid var(--color-accent)', borderRadius: 'var(--border-radius-full)', cursor: !targetExam ? 'default' : 'pointer', background: 'transparent', color: 'var(--color-accent)', fontWeight: 600, fontSize: 'var(--font-size-base)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                        {ja ? 'サクッと演習に切り替え' : 'Switch to Quick'}
                       </button>
                     </>
                   )}
@@ -1949,12 +1997,12 @@ export default function Home() {
                   <>
                     {focusedUnlocked && <div style={{ textAlign: 'center', fontSize: 11, color: 'var(--color-text-light)', marginBottom: 4 }}>{ja ? '苦手・不正解問題を重点演習' : 'Focuses on weak/incorrect questions'}</div>}
                     <button
-                      disabled={!targetExam || !user || !focusedUnlocked || focusedLoading}
-                      onClick={() => { setShowFocusedMenu(false); startFocusedExercise(); }}
-                      style={{ width: '100%', height: 44, border: `1.5px solid ${(!targetExam || !user || !focusedUnlocked) ? 'var(--color-border)' : '#009E9E'}`, borderRadius: 'var(--border-radius-full)', cursor: (!targetExam || !user || !focusedUnlocked || focusedLoading) ? 'default' : 'pointer', background: 'transparent', color: (!targetExam || !user || !focusedUnlocked) ? 'var(--color-text-light)' : '#009E9E', fontWeight: 600, fontSize: 'var(--font-size-base)', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6 }}
+                      disabled={!targetExam || !user || !focusedUnlocked}
+                      onClick={() => { setShowFocusedMenu(false); switchMode('focused'); }}
+                      style={{ width: '100%', height: 44, border: `1.5px solid ${(!targetExam || !user || !focusedUnlocked) ? 'var(--color-border)' : '#009E9E'}`, borderRadius: 'var(--border-radius-full)', cursor: (!targetExam || !user || !focusedUnlocked) ? 'default' : 'pointer', background: 'transparent', color: (!targetExam || !user || !focusedUnlocked) ? 'var(--color-text-light)' : '#009E9E', fontWeight: 600, fontSize: 'var(--font-size-base)', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6 }}
                     >
                       {!focusedUnlocked && <IconLock size={15} />}
-                      {ja ? 'しっかり対策' : 'Focused Practice'}
+                      {ja ? 'しっかり対策に切り替え' : 'Switch to Focused'}
                     </button>
                     {!focusedUnlocked && user && (
                       <div style={{ textAlign: 'center', fontSize: 11, color: 'var(--color-text-light)', marginTop: 4 }}>
@@ -1965,9 +2013,8 @@ export default function Home() {
                   </>
                 ) : (
                   <>
-                    <div style={{ textAlign: 'center', fontSize: 11, color: 'var(--color-text-light)', marginBottom: 4 }}>{ja ? 'ランダム出題（設定に従う）' : 'Random questions (uses settings)'}</div>
-                    <button disabled={!targetExam || quickLoading} onClick={() => { setShowFocusedMenu(false); startQuickExercise(); }} style={{ width: '100%', height: 44, border: '1.5px solid var(--color-accent)', borderRadius: 'var(--border-radius-full)', cursor: (!targetExam || quickLoading) ? 'default' : 'pointer', background: 'transparent', color: 'var(--color-accent)', fontWeight: 600, fontSize: 'var(--font-size-base)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                      {ja ? 'サクッと演習' : 'Quick Practice'}
+                    <button disabled={!targetExam} onClick={() => { setShowFocusedMenu(false); switchMode('quick'); }} style={{ width: '100%', height: 44, border: '1.5px solid var(--color-accent)', borderRadius: 'var(--border-radius-full)', cursor: !targetExam ? 'default' : 'pointer', background: 'transparent', color: 'var(--color-accent)', fontWeight: 600, fontSize: 'var(--font-size-base)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                      {ja ? 'サクッと演習に切り替え' : 'Switch to Quick'}
                     </button>
                   </>
                 )}
@@ -2277,7 +2324,7 @@ export default function Home() {
 
       {/* 成績詳細モーダル */}
       {showCombinedDetail && targetExam && (
-        <CombinedDetailModal targetExam={targetExam} domainAccList={domainAccList} estimatedScore={estimatedScore} passScore={passScore} lang={lang} isMobile={isMobile} uid={uid} domainStats={domainStats} onClose={() => setShowCombinedDetail(false)} />
+        <CombinedDetailModal targetExam={targetExam} domainAccList={domainAccList} estimatedScore={estimatedScore} passScore={passScore} lang={lang} isMobile={isMobile} uid={uid} domainStats={domainStats} scoreHistory={serverScoreHistory ?? undefined} sessionHistory={serverSessionHistory ?? undefined} onClose={() => setShowCombinedDetail(false)} />
       )}
 
       {/* オンボーディング（目標資格未設定） */}
