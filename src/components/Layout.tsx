@@ -476,7 +476,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
         <div onClick={() => navigate('/aws/')} style={{ display: 'flex', alignItems: 'center', cursor: 'pointer', userSelect: 'none', flexShrink: 0, padding: '0 4px' }}>
           <img
             src={isMobile ? '/mugen-icon.png' : '/mugen-header.png'}
-            alt="AWS資格無限ノック"
+            alt="無限ノック"
             style={{ height: isMobile ? 32 : 36, width: 'auto', display: 'block' }}
           />
         </div>
@@ -787,7 +787,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
             color: 'var(--color-text-light)',
             marginTop: 'auto',
           }}>
-            <span>© {new Date().getFullYear()} AWS資格無限ノック</span>
+            <span>© {new Date().getFullYear()} 無限ノック</span>
             <button
               onClick={() => navigate('/about#privacy')}
               style={{ background: 'none', border: 'none', padding: 0, cursor: 'pointer', color: 'var(--color-primary)', fontSize: 'var(--font-size-xs)', textDecoration: 'underline' }}

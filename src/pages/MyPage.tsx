@@ -197,7 +197,7 @@ export default function MyPage() {
   return (
     <>
       <Helmet>
-        <title>マイページ | AWS資格無限ノック</title>
+        <title>マイページ | 無限ノック</title>
       </Helmet>
 
       <div style={{ maxWidth: 680, margin: '0 auto', padding: '0 var(--spacing-md) var(--spacing-xl)' }}>

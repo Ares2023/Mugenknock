@@ -39,8 +39,8 @@ export default function About() {
   return (
     <div style={{ maxWidth: 900, margin: '0 auto', padding: 'var(--spacing-lg)' }}>
       <Helmet>
-        <title>このサイトについて | AWS資格無限ノック</title>
-        <meta name="description" content="AWS資格無限ノックのプライバシーポリシー・利用規約・運営者情報。" />
+        <title>このサイトについて | 無限ノック</title>
+        <meta name="description" content="無限ノックのプライバシーポリシー・利用規約・運営者情報。" />
       </Helmet>
       {/* タブ */}
       <div style={{ display: 'flex', gap: 8, marginBottom: 'var(--spacing-xl)', flexWrap: 'wrap' }}>
@@ -96,7 +96,7 @@ function PrivacyPolicy() {
     <div>
       <P>制定日：2025年1月1日　最終更新日：2026年5月18日</P>
       <P>
-        AWS資格無限ノック（以下「本サービス」）は、ユーザーのプライバシーを尊重し、個人情報の保護に努めます。
+        無限ノック（以下「本サービス」）は、ユーザーのプライバシーを尊重し、個人情報の保護に努めます。
         本プライバシーポリシーは、本サービスにおける個人情報の取り扱い方針を定めるものです。
       </P>
 
@@ -178,7 +178,7 @@ function TermsOfService() {
     <div>
       <P>制定日：2025年1月1日　最終更新日：2026年5月18日</P>
       <P>
-        本利用規約（以下「本規約」）は、AWS資格無限ノック（以下「本サービス」）の利用条件を定めるものです。
+        本利用規約（以下「本規約」）は、無限ノック（以下「本サービス」）の利用条件を定めるものです。
         本サービスをご利用いただくことで、本規約に同意いただいたものとみなします。
       </P>
 
@@ -266,7 +266,7 @@ function OperatorInfo() {
       <table style={{ borderCollapse: 'collapse', width: '100%', marginTop: '0.5em' }}>
         <tbody>
           {[
-            { label: 'サイト名',   value: 'AWS資格無限ノック' },
+            { label: 'サイト名',   value: '無限ノック' },
             { label: 'URL',        value: <a href="https://www.mugenknock.com/" target="_blank" rel="noopener noreferrer" style={{ color: 'var(--color-primary)' }}>https://www.mugenknock.com/</a> },
             { label: '運営者',     value: 'mugenknock' },
             { label: 'お問い合わせ', value: <a href="mailto:mugenknock@gmail.com" style={{ color: 'var(--color-primary)' }}>mugenknock@gmail.com</a> },
@@ -283,7 +283,7 @@ function OperatorInfo() {
 
       <H3>本サービスについて</H3>
       <P>
-        AWS資格無限ノックは、AWS認定資格の取得を目指す方のための反復学習Webアプリです。
+        無限ノックは、AWS認定資格の取得を目指す方のための反復学習Webアプリです。
         CLF・SAA・SAPをはじめとする全9種の試験区分に対応し、演習モード・模試モードで
         本番に近い環境での学習をサポートします。
       </P>

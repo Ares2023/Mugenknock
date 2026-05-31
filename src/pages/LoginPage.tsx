@@ -141,7 +141,7 @@ export default function LoginPage() {
         <div style={{ marginBottom: 'var(--spacing-xl)', textAlign: 'center', position: 'relative', zIndex: 1 }}>
           <img
             src="/mugen-header.png"
-            alt="AWS資格無限ノック"
+            alt="無限ノック"
             style={{ height: 44, width: 'auto', objectFit: 'contain', display: 'block', margin: '0 auto' }}
           />
           <p style={{

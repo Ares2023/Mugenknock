@@ -603,10 +603,10 @@ function OnboardingModal({ lang, uid, onComplete, onSkip }: {
           padding: '40px 24px', maxWidth: 480, margin: '0 auto', width: '100%',
           gap: 0,
         }}>
-          <img src="/mugen-header.png" alt="AWS資格無限ノック" style={{ height: 40, objectFit: 'contain', marginBottom: 28 }} />
+          <img src="/mugen-header.png" alt="無限ノック" style={{ height: 40, objectFit: 'contain', marginBottom: 28 }} />
 
           <h1 style={{ fontSize: 22, fontWeight: 800, color: 'var(--color-text-main)', textAlign: 'center', margin: '0 0 10px', lineHeight: 1.35 }}>
-            {ja ? 'AWS資格無限ノックへ\nようこそ！' : 'Welcome to MugenKnock!'}
+            {ja ? '無限ノックへ\nようこそ！' : 'Welcome to MugenKnock!'}
           </h1>
           <p style={{ fontSize: 13, color: 'var(--color-text-sub)', textAlign: 'center', margin: '0 0 32px', lineHeight: 1.7 }}>
             {ja
@@ -1632,7 +1632,7 @@ export default function Home() {
   return (
     <div style={{ maxWidth: 900, margin: '0 auto', padding: 'var(--spacing-lg) var(--spacing-lg)' }} className="page-container">
       <Helmet>
-        <title>ホーム | AWS資格無限ノック</title>
+        <title>ホーム | 無限ノック</title>
         <meta name="description" content="あなたのAWS試験スコアと学習進捗を確認。ドメイン別正答率・予想スコア・直近の演習結果をひと目で把握できます。" />
       </Helmet>
 

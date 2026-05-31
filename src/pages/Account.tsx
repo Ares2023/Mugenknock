@@ -273,7 +273,7 @@ export default function Account() {
           <IconChevronLeft size={22} />
         </button>
         <div onClick={() => navigate('/aws/')} style={{ cursor: 'pointer', display: 'flex', alignItems: 'center' }}>
-          <img src="/mugen-header.png" alt="AWS資格無限ノック" style={{ height: 32, width: 'auto', display: 'block' }} />
+          <img src="/mugen-header.png" alt="無限ノック" style={{ height: 32, width: 'auto', display: 'block' }} />
         </div>
       </header>
 

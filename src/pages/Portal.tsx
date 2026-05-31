@@ -56,7 +56,7 @@ export default function Portal() {
   return (
     <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', background: 'var(--color-bg-main)', color: 'var(--color-text-main)', fontFamily: 'inherit' }}>
       <Helmet>
-        <title>AWS資格無限ノック</title>
+        <title>無限ノック</title>
         <meta name="description" content="AWS認定試験（SAA・CLF・SAPなど）の無料練習問題サービス。演習・模試・サービス図鑑の3本柱でスコアアップをサポート。" />
       </Helmet>
 

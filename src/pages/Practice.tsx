@@ -316,7 +316,7 @@ export default function Practice() {
   return (
     <div style={{ maxWidth: 900, margin: '0 auto', padding: 'var(--spacing-lg)', paddingBottom: isMobile ? 'var(--spacing-lg)' : 80 }} className="page-container">
       <Helmet>
-        <title>練習 | AWS資格無限ノック</title>
+        <title>練習 | 無限ノック</title>
         <meta name="description" content="AWS認定試験の練習問題に取り組もう。苦手分野を集中的に練習して合格スコアを目指そう。" />
       </Helmet>
 

@@ -23,7 +23,7 @@ export default function AdminLogin() {
         <div style={{ color: 'var(--color-accent)', fontWeight: 700, fontSize: 11, letterSpacing: '0.12em', marginBottom: 6 }}>
           ADMINISTRATOR ACCESS
         </div>
-        <div style={{ color: 'var(--color-bg-white)', fontWeight: 700, fontSize: 'var(--font-size-xl)' }}>AWS資格無限ノック</div>
+        <div style={{ color: 'var(--color-bg-white)', fontWeight: 700, fontSize: 'var(--font-size-xl)' }}>無限ノック</div>
         <div style={{ color: 'var(--color-text-light)', fontSize: 'var(--font-size-sm)', marginTop: 6 }}>管理者専用ページ</div>
       </div>
 

@@ -376,7 +376,7 @@ export default function Stats() {
   return (
     <div style={{ maxWidth: 900, margin: '0 auto', padding: 'var(--spacing-xl) var(--spacing-lg)' }} className="page-container">
       <Helmet>
-        <title>足あと | AWS資格無限ノック</title>
+        <title>足あと | 無限ノック</title>
         <meta name="description" content="AWS試験の学習履歴・スコア推移を確認。セッション別の正答率やドメイン弱点を分析して効率的に対策しよう。" />
       </Helmet>
 
