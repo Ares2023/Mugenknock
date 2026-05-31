@@ -5,6 +5,7 @@ import { API_ENDPOINT, EXAM_DOMAINS, DOMAIN_NAME_EN, EXAM_CONFIGS } from '../con
 import { useAuth } from '../contexts/AuthContext';
 import { useLanguage } from '../contexts/LanguageContext';
 import Card from '../components/ui/Card';
+import Button from '../components/ui/Button';
 import {
   IconCalendarNotebook, IconTarget, IconBrain, IconList,
   IconSparkles, IconChevronRight, IconLock, IconFlag,
@@ -250,20 +251,14 @@ export default function MyPage() {
                       {EXAM_CONFIGS[targetExam]?.fullName ?? ''}
                     </div>
                   </div>
-                  <button
-                    onClick={() => navigate('/aws/exam-dashboard')}
-                    style={{ display: 'flex', alignItems: 'center', gap: 4, background: 'none', border: '1px solid var(--color-border)', borderRadius: 'var(--border-radius-full)', padding: '4px 12px', cursor: 'pointer', fontSize: 12, color: 'var(--color-text-sub)' }}
-                  >
+                  <Button variant="outline" size="sm" onClick={() => navigate('/aws/exam-dashboard')}>
                     {ja ? '変更' : 'Change'}<IconChevronRight size={12} />
-                  </button>
+                  </Button>
                 </div>
               ) : (
-                <button
-                  onClick={() => navigate('/aws/exam-dashboard')}
-                  style={{ display: 'flex', alignItems: 'center', gap: 4, background: 'none', border: '1px solid var(--color-border)', borderRadius: 'var(--border-radius-full)', padding: '6px 14px', cursor: 'pointer', fontSize: 13, color: 'var(--color-primary)' }}
-                >
+                <Button variant="outline" onClick={() => navigate('/aws/exam-dashboard')}>
                   {ja ? '目標資格を設定する' : 'Set target exam'}<IconChevronRight size={13} />
-                </button>
+                </Button>
               )}
             </Card>
 
@@ -287,9 +282,9 @@ export default function MyPage() {
                       style={{ border: '1px solid var(--color-border)', borderRadius: 8, padding: '6px 10px', fontSize: 14, background: 'var(--color-bg-white)', color: 'var(--color-text-main)', cursor: 'pointer' }}
                     />
                     {examDate && (
-                      <button onClick={() => handleExamDateChange('')} style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: 12, color: 'var(--color-text-light)', padding: '4px 8px' }}>
+                      <Button variant="outline" size="sm" onClick={() => handleExamDateChange('')}>
                         {ja ? '削除' : 'Clear'}
-                      </button>
+                      </Button>
                     )}
                   </div>
                   {remainingDays !== null && (
