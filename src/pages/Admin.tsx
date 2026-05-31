@@ -85,8 +85,8 @@ type Tab = 'questions' | 'reports' | 'tips' | 'import' | 'releases' | 'scan' | '
 type Group = 'content' | 'ops' | 'settings';
 
 const TAB_GROUPS: { key: Group; label: string; tabs: Tab[] }[] = [
-  { key: 'content',  label: 'コンテンツ', tabs: ['questions', 'import', 'tips', 'releases', 'dailyservice'] },
-  { key: 'ops',      label: '運営',       tabs: ['reports', 'scan', 'messages', 'deleteuser', 'growth'] },
+  { key: 'content',  label: 'コンテンツ', tabs: ['questions', 'growth', 'import', 'tips', 'releases', 'dailyservice'] },
+  { key: 'ops',      label: '運営',       tabs: ['reports', 'scan', 'messages', 'deleteuser'] },
   { key: 'settings', label: '設定',       tabs: ['theme', 'admins', 'about', 'passcomments'] },
 ];
 const TAB_LABELS: Record<Tab, string> = {
