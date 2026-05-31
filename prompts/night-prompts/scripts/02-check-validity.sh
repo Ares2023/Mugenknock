@@ -113,8 +113,8 @@ usage: check-validity.sh [-n N] [-D HH:MM] [-h]
 EOF
 }
 
-BATCH_SIZE=30
-CHUNK_SIZE=5
+BATCH_SIZE=50
+CHUNK_SIZE=8
 DEADLINE=""
 
 while [[ $# -gt 0 ]]; do
@@ -264,18 +264,18 @@ lines = [
     '- 解説が正確で適切か。ダミーの選択肢がだめな理由も解説しているか\n'
     '- 試験問題として適切な形式・難易度か\n'
     '- タグ（出題ドメイン）が正しく設定されているか。タグが空・欠落・下記ドメイン外の値の場合はfixで正しいドメインを設定すること\n'
-    '  CLF: クラウドの概念 / セキュリティとコンプライアンス / クラウドのテクノロジーとサービス / 請求、料金、およびサポート\n'
-    '  SAA: セキュアなアーキテクチャの設計 / 弾力性に優れたアーキテクチャの設計 / 高性能なアーキテクチャの設計 / コスト最適化されたアーキテクチャの設計\n'
-    '  SAP: 組織の複雑さに対応する設計 / 新しいソリューションのための設計 / 既存のソリューションの継続的改善 / ワークロードの移行とモダン化の加速\n'
-    '  DOP: SDLC の自動化 / 構成管理と Infrastructure as Code (IaC) / 弾力性に優れたクラウドソリューション / モニタリングとロギング / インシデントとイベントへの対応 / セキュリティとコンプライアンス\n'
-    '  DVA: AWSのサービスを使用した開発 / セキュリティ / デプロイ / トラブルシューティングと最適化\n'
-    '  SOA: モニタリング、ロギング、分析、修復、およびパフォーマンスの最適化 / 信頼性とビジネス継続性 / デプロイ、プロビジョニング、および自動化 / セキュリティとコンプライアンス / ネットワークとコンテンツ配信\n'
-    '  DEA: データの取り込みと変換 / データストアの管理 / データオペレーションとサポート / データのセキュリティとガバナンス\n'
-    '  AIF: AIとMLの基礎 / 生成AIの基礎 / 基盤モデルのアプリケーション / 責任あるAIのガイドライン / AIソリューションのセキュリティ、コンプライアンス、ガバナンス\n'
-    '  MLA: 機械学習のためのデータ準備 / MLモデルの開発 / MLワークフローのデプロイとオーケストレーション / MLソリューションの監視、メンテナンス、セキュリティ\n'
-    '  GAI: 基盤モデルの統合、データ管理、コンプライアンス / 実装と統合 / AIの安全性、セキュリティ、ガバナンス / 生成AIアプリケーションの運用効率と最適化 / テスト、検証、トラブルシューティング\n'
-    '  ANS: ネットワーク設計 / ネットワーク実装 / ネットワーク管理と運用 / ネットワークのセキュリティ、コンプライアンス、ガバナンス\n'
-    '  SCS: 検出 / インシデント対応 / インフラストラクチャのセキュリティ / アイデンティティとアクセス管理 / データ保護 / セキュリティの基盤とガバナンス\n'
+    '  CLF[クラウドの概念|セキュリティとコンプライアンス|クラウドのテクノロジーとサービス|請求、料金、およびサポート] '
+    'SAA[セキュアなアーキテクチャの設計|弾力性に優れたアーキテクチャの設計|高性能なアーキテクチャの設計|コスト最適化されたアーキテクチャの設計] '
+    'SAP[組織の複雑さに対応する設計|新しいソリューションのための設計|既存のソリューションの継続的改善|ワークロードの移行とモダン化の加速] '
+    'DVA[AWSのサービスを使用した開発|セキュリティ|デプロイ|トラブルシューティングと最適化] '
+    'SOA[モニタリング、ロギング、分析、修復、およびパフォーマンスの最適化|信頼性とビジネス継続性|デプロイ、プロビジョニング、および自動化|セキュリティとコンプライアンス|ネットワークとコンテンツ配信] '
+    'DOP[SDLC の自動化|構成管理とIaC|弾力性に優れたクラウドソリューション|モニタリングとロギング|インシデントとイベントへの対応|セキュリティとコンプライアンス] '
+    'DEA[データの取り込みと変換|データストアの管理|データオペレーションとサポート|データのセキュリティとガバナンス] '
+    'AIF[AIとMLの基礎|生成AIの基礎|基盤モデルのアプリケーション|責任あるAIのガイドライン|AIソリューションのセキュリティ、コンプライアンス、ガバナンス] '
+    'MLA[機械学習のためのデータ準備|MLモデルの開発|MLワークフローのデプロイとオーケストレーション|MLソリューションの監視、メンテナンス、セキュリティ] '
+    'GAI[基盤モデルの統合、データ管理、コンプライアンス|実装と統合|AIの安全性、セキュリティ、ガバナンス|生成AIアプリケーションの運用効率と最適化|テスト、検証、トラブルシューティング] '
+    'ANS[ネットワーク設計|ネットワーク実装|ネットワーク管理と運用|ネットワークのセキュリティ、コンプライアンス、ガバナンス] '
+    'SCS[検出|インシデント対応|インフラストラクチャのセキュリティ|アイデンティティとアクセス管理|データ保護|セキュリティの基盤とガバナンス]\n'
     '- isMultiple フラグが正しいか。correctAnswers が複数なら isMultiple: true、1つなら isMultiple: false であること。不一致の場合は fix で修正する\n'
     '\n【アクション】\n'
     '- "ok": 問題なし（確認日のみ更新）\n'
@@ -391,11 +391,16 @@ ok_count, fix_count, del_count = 0, 0, 0
 REMOVE_EXPR = 'REMOVE validityRating, validityNote, fixProposalJson'
 
 for r in results:
-    qid = r.get('questionId', '')
+    qid = r.get('questionId', '').strip('[]')  # AIが[]付きで返す場合に対応
     action = r.get('action', 'ok')
     reason = r.get('reason', '')
     fix = r.get('fix', {})
     orig = orig_questions.get(qid, {})
+
+    # 元問題が存在しないIDへの書き込みを防ぐ（幽霊レコード生成防止）
+    if qid not in orig_questions:
+        print(f'  [SKIP] {qid}: 元問題が見つからないためスキップ')
+        continue
 
     if action == 'delete':
         subprocess.run([
@@ -420,10 +425,16 @@ for r in results:
             expr_values[':qt'] = {'S': fix['questionText']}
             changes['questionText'] = {'before': orig.get('questionText', ''), 'after': fix['questionText']}
 
-        if fix.get('choices') and fix['choices'] != orig.get('choices'):
+        ch_val = fix.get('choices')
+        if (ch_val and isinstance(ch_val, list) and len(ch_val) >= 2
+                and all(isinstance(c, str) and len(c) >= 3 for c in ch_val)
+                and ch_val != orig.get('choices')):
             update_parts.append('choices = :ch')
-            expr_values[':ch'] = {'L': [{'S': str(c)} for c in fix['choices']]}
-            changes['choices'] = {'before': orig.get('choices', []), 'after': fix['choices']}
+            expr_values[':ch'] = {'L': [{'S': c} for c in ch_val]}
+            changes['choices'] = {'before': orig.get('choices', []), 'after': ch_val}
+        elif ch_val and (not isinstance(ch_val, list) or any(len(str(c)) < 3 for c in (ch_val if isinstance(ch_val, list) else []))):
+            print(f'  [WARN] {qid}: choices不正のためスキップ: {repr(ch_val)[:80]}')
+            ch_val = None  # 以降の correctAnswerIndices 再計算でも旧値を使う
 
         if fix.get('correctAnswers'):
             # ラベル接頭辞を除去してから比較・保存
@@ -433,14 +444,14 @@ for r in results:
                 expr_values[':ca'] = {'L': [{'S': c} for c in stripped_ca]}
                 changes['correctAnswers'] = {'before': orig.get('correctAnswers', []), 'after': stripped_ca}
             # correctAnswerIndices を再計算（choices が変わった場合も考慮）
-            eff_choices = fix.get('choices', orig.get('choices', []))
+            eff_choices = ch_val if ch_val else orig.get('choices', [])
             indices = [eff_choices.index(ca) for ca in stripped_ca if ca in eff_choices]
             if indices:
                 update_parts.append('correctAnswerIndices = :ci')
                 expr_values[':ci'] = {'L': [{'N': str(i)} for i in indices]}
-        elif fix.get('choices'):
+        elif ch_val:
             # choices のみ変わった場合も correctAnswerIndices を更新
-            eff_choices = fix['choices']
+            eff_choices = ch_val
             orig_ca = orig.get('correctAnswers', [])
             indices = [eff_choices.index(ca) for ca in orig_ca if ca in eff_choices]
             if indices:
