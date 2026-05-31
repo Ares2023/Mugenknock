@@ -1,4 +1,5 @@
-export const API_ENDPOINT = 'https://a0q3656qw4.execute-api.ap-northeast-1.amazonaws.com/dev';
+export const API_ENDPOINT = process.env.REACT_APP_API_ENDPOINT
+  ?? 'https://a0q3656qw4.execute-api.ap-northeast-1.amazonaws.com/dev';
 
 export const ADMIN_EMAIL = 'mugenknock@gmail.com';
 

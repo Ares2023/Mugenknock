@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { PASS_SCORES, PASS_RATE, API_ENDPOINT, EXAM_DOMAINS, DOMAIN_NAME_EN } from '../constants';
 import { useLanguage } from '../contexts/LanguageContext';
@@ -16,7 +16,7 @@ function shuffleArray<T>(arr: T[]): T[] { const a = [...arr]; for (let i = a.len
 export default function Result() {
   const navigate = useNavigate();
   const location = useLocation();
-  const { results, questions, score, isPassed, examType, mode, timeUp, isQuick, isMini, aborted, earnedPts } = location.state as any;
+  const { results, questions, score, isPassed, examType, mode, timeUp, isQuick, isMini, aborted, earnedPts, dailyBonusPts } = location.state as any;
   const { user } = useAuth();
 
   const resolvedExamType = examType ?? questions?.[0]?.examType ?? 'SAA';
@@ -30,6 +30,8 @@ export default function Result() {
   const ja = lang === 'ja';
   const [expandedId, setExpandedId] = useState<string | null>(null);
   const [quickLoading, setQuickLoading] = useState(false);
+  const [showDailyBonus, setShowDailyBonus] = useState(false);
+  useEffect(() => { if (dailyBonusPts > 0) { const t = setTimeout(() => setShowDailyBonus(true), 600); return () => clearTimeout(t); } }, [dailyBonusPts]);
 
   const restartQuick = async () => {
     setQuickLoading(true);
@@ -89,10 +91,32 @@ export default function Result() {
         </p>
         {earnedPts > 0 && (
           <p style={{ color: '#009E9E', fontWeight: 800, fontSize: 'var(--font-size-base)', marginTop: 8 }}>
-            <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4 }}><IconSparkles size={16} /> {ja ? `+${earnedPts}pt 獲得！` : `+${earnedPts}pt earned!`}</span>
+            <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4 }}><IconSparkles size={16} /> {ja ? `+${earnedPts}p 獲得！` : `+${earnedPts}p earned!`}</span>
           </p>
         )}
       </Card>
+
+      {/* 日次目標達成ボーナスポップアップ */}
+      {showDailyBonus && (
+        <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', zIndex: 1000, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16 }}>
+          <div style={{ background: 'var(--color-bg-white)', borderRadius: 'var(--border-radius-lg)', padding: '28px 32px', textAlign: 'center', boxShadow: '0 8px 32px rgba(0,0,0,0.2)', maxWidth: 320, width: '100%' }}>
+            <div style={{ fontSize: 40, marginBottom: 8 }}>🎯</div>
+            <div style={{ fontWeight: 800, fontSize: 18, color: 'var(--color-text-main)', marginBottom: 6 }}>
+              {ja ? '日次目標達成！' : 'Daily Goal Achieved!'}
+            </div>
+            <div style={{ color: 'var(--color-text-sub)', fontSize: 13, marginBottom: 16 }}>
+              {ja ? '今日の演習目標をクリアしました' : 'You completed your daily exercise goal'}
+            </div>
+            <div style={{ display: 'inline-flex', alignItems: 'center', gap: 6, background: 'var(--color-primary-light)', borderRadius: 'var(--border-radius-full)', padding: '6px 20px', marginBottom: 20 }}>
+              <IconSparkles size={18} />
+              <span style={{ fontWeight: 800, fontSize: 20, color: 'var(--color-primary)' }}>+{dailyBonusPts}p</span>
+            </div>
+            <button onClick={() => setShowDailyBonus(false)} style={{ display: 'block', width: '100%', padding: '10px 0', background: 'var(--color-primary)', color: 'var(--color-btn-primary-text)', border: 'none', borderRadius: 'var(--border-radius-full)', fontWeight: 700, fontSize: 15, cursor: 'pointer' }}>
+              {ja ? 'OK' : 'OK'}
+            </button>
+          </div>
+        </div>
+      )}
 
       {/* ドメイン別スコア内訳 */}
       {(() => {

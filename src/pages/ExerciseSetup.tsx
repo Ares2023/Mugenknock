@@ -225,9 +225,12 @@ export default function ExerciseSetup() {
         }
         if (incorrectOnly && incorrectRes) {
           const incorrectIds = new Set(incorrectRes.questionIds ?? []);
+          const incorrectCounts: Record<string, number> = incorrectRes.counts ?? {};
           filtered = filtered.filter((q: any) => incorrectIds.has(q.questionId));
+          filtered.sort((a: any, b: any) => (incorrectCounts[b.questionId] ?? 0) - (incorrectCounts[a.questionId] ?? 0));
+        } else {
+          filtered = shuffleArray(filtered);
         }
-        filtered = shuffleArray(filtered);
         let usedFallback = false;
         if (filtered.length < limit && filtered.length < pool.length) {
           const usedIds = new Set(filtered.map((q: any) => q.questionId));

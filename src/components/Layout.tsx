@@ -11,7 +11,7 @@ import {
   IconHome,
   IconUser, IconChart,
   IconDumbbell, IconFire, IconMenu, IconClose, IconChevronLeft, IconMail,
-  IconSparkles, IconBot, IconFootprint, IconBookOpen,
+  IconSparkles, IconBot, IconUserCircle, IconBookOpen,
   IconSun, IconMoon, IconMore, IconChevronDown,
 } from './Icons';
 
@@ -20,7 +20,7 @@ type BreadcrumbItem = { label: string; path?: string };
 const NAV_KEYS = [
   { path: '/aws/',          labelKey: 'nav.home',         Icon: IconHome      },
   { path: '/aws/practice',  labelKey: 'nav.practice',     Icon: IconDumbbell  },
-  { path: '/aws/stats',     labelKey: 'nav.stats',        Icon: IconFootprint },
+  { path: '/aws/mypage',    labelKey: 'nav.mypage',       Icon: IconUserCircle },
   { path: '/aws/encyclopedia',   labelKey: 'nav.encyclopedia', Icon: IconBookOpen, bottom: true },
   { path: '/aws/growth',        labelKey: 'nav.growth',       Icon: IconBot, bottom: true },
   { path: '/aws/release-notes', labelKey: 'nav.releaseNotes', Icon: IconFire,     bottom: true },
@@ -29,7 +29,7 @@ const NAV_KEYS = [
 const BOTTOM_TABS = [
   { path: '/aws/',          Icon: IconHome,        ja: 'ホーム',       en: 'Home'     },
   { path: '/aws/practice',  Icon: IconDumbbell,    ja: 'トレーニング', en: 'Training' },
-  { path: '/aws/stats',     Icon: IconFootprint,   ja: '足あと',      en: 'History'  },
+  { path: '/aws/mypage',    Icon: IconUserCircle,  ja: 'マイページ',   en: 'My Page'  },
 ];
 
 const OTHERS_ITEMS = [
@@ -85,6 +85,10 @@ export default function Layout({ children }: { children: React.ReactNode }) {
     return localStorage.getItem(`sidebarOpen_${uid}`) !== 'false';
   });
   const [targetExam, setTargetExam] = useState<string | null>(() => localStorage.getItem(`targetExam_${uid}`));
+  const [examDate, setExamDate] = useState<string | null>(() => {
+    const te = localStorage.getItem(`targetExam_${uid}`);
+    return te ? localStorage.getItem(`examDate_${te}_${uid}`) : null;
+  });
   const [points, setPoints] = useState(() => getPoints(uid));
   const [ptsDelta, setPtsDelta] = useState<number | null>(null);
   const ptsRef = useRef(getPoints(uid));
@@ -156,8 +160,20 @@ export default function Layout({ children }: { children: React.ReactNode }) {
   };
 
   useEffect(() => {
-    setTargetExam(localStorage.getItem(`targetExam_${uid}`));
+    const te = localStorage.getItem(`targetExam_${uid}`);
+    setTargetExam(te);
+    setExamDate(te ? localStorage.getItem(`examDate_${te}_${uid}`) : null);
   }, [location.pathname, uid]);
+
+  useEffect(() => {
+    const handler = (e: Event) => {
+      const { examType, date } = (e as CustomEvent).detail ?? {};
+      const te = localStorage.getItem(`targetExam_${uid}`);
+      if (te && examType === te) setExamDate(date ?? null);
+    };
+    window.addEventListener('examDateChanged', handler);
+    return () => window.removeEventListener('examDateChanged', handler);
+  }, [uid]);
 
   useEffect(() => {
     const init = getPoints(uid);
@@ -273,6 +289,13 @@ export default function Layout({ children }: { children: React.ReactNode }) {
     setContactMessage('');
     setShowContact(true);
     if (isMobile) setOpen(false);
+  };
+
+  const daysUntilExam = (dateStr: string): number => {
+    const today = new Date(Date.now() + 9 * 3600 * 1000).toISOString().slice(0, 10);
+    const d0 = new Date(today).getTime();
+    const d1 = new Date(dateStr).getTime();
+    return Math.round((d1 - d0) / 86400000);
   };
 
   const isActive = (path: string) =>
@@ -510,7 +533,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
 
       {/* ── サブバー（ハンバーガー＋パンくず） ── */}
       {/* モバイルでは目標ボタンが表示される場合のみサブバーを描画 */}
-      {(!isMobile || (!!targetExam && !isOthersActive && !['/aws/exercise/session', '/aws/exam/session'].includes(location.pathname))) && (
+      {(!isMobile || (!!targetExam && !isOthersActive && !['/aws/exercise/session', '/aws/exam/session', '/aws/mypage'].includes(location.pathname))) && (
       <div style={{
         height: 40, minHeight: 40, background: 'var(--color-bg-white)',
         display: 'flex', alignItems: 'center', padding: '0 var(--spacing-sm)',
@@ -544,7 +567,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
             )}
           </div>
         )}
-        {targetExam && !(isMobile && isOthersActive) && !(['/aws/exercise/session', '/aws/exam/session'].includes(location.pathname)) && (
+        {targetExam && !(isMobile && isOthersActive) && !(['/aws/exercise/session', '/aws/exam/session', '/aws/mypage'].includes(location.pathname)) && (
           <button
             onClick={() => navigate('/aws/exam-dashboard')}
             title="資格ダッシュボード"
@@ -570,9 +593,13 @@ export default function Layout({ children }: { children: React.ReactNode }) {
               maxWidth: isMobile ? 'none' : '40vw',
               padding: '0 4px 0 8px',
             }}>
-              {`設定目標：${isMobile
-                ? targetExam
-                : (EXAM_CONFIGS[targetExam]?.fullName ?? targetExam)}`}
+              {`設定目標：${isMobile ? targetExam : (EXAM_CONFIGS[targetExam]?.fullName ?? targetExam)}`}
+              {examDate && (() => {
+                const days = daysUntilExam(examDate);
+                if (days === 0) return <span style={{ color: 'var(--color-text-sub)', fontWeight: 700 }}>（試験当日！ファイト🔥）</span>;
+                if (days > 0) return <span>（あと<span style={{ color: '#2563eb', fontWeight: 800 }}>{days}</span>日！）</span>;
+                return null;
+              })()}
             </span>
             <span style={{
               flexShrink: 0,
