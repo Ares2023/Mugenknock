@@ -1970,7 +1970,11 @@ app.get('/users/me/preferences', async (req, res) => {
       TableName: 'AppSettings',
       Key: { settingId: `userPrefs_${userId}` },
     }));
-    res.json({ targetExam: result.Item?.targetExam ?? null });
+    res.json({
+      targetExam: result.Item?.targetExam ?? null,
+      examDates:  result.Item?.examDates  ?? {},
+      dailyGoal:  result.Item?.dailyGoal  ?? null,
+    });
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: 'Internal server error' });
@@ -1979,12 +1983,36 @@ app.get('/users/me/preferences', async (req, res) => {
 
 app.put('/users/me/preferences', async (req, res) => {
   try {
-    const { userId, targetExam } = req.body;
+    const { userId, targetExam, examDates, dailyGoal } = req.body;
     if (!userId) return res.status(400).json({ error: 'userId required' });
     const docClient = getClient();
-    await docClient.send(new PutCommand({
+
+    const sets = ['updatedAt = :now'];
+    const names = {};
+    const values = { ':now': new Date().toISOString() };
+
+    if (targetExam !== undefined) {
+      sets.push('#targetExam = :targetExam');
+      names['#targetExam'] = 'targetExam';
+      values[':targetExam'] = targetExam ?? null;
+    }
+    if (examDates !== undefined) {
+      sets.push('#examDates = :examDates');
+      names['#examDates'] = 'examDates';
+      values[':examDates'] = examDates;
+    }
+    if (dailyGoal !== undefined) {
+      sets.push('#dailyGoal = :dailyGoal');
+      names['#dailyGoal'] = 'dailyGoal';
+      values[':dailyGoal'] = dailyGoal;
+    }
+
+    await docClient.send(new UpdateCommand({
       TableName: 'AppSettings',
-      Item: { settingId: `userPrefs_${userId}`, userId, targetExam: targetExam ?? null, updatedAt: new Date().toISOString() },
+      Key: { settingId: `userPrefs_${userId}` },
+      UpdateExpression: 'SET ' + sets.join(', '),
+      ExpressionAttributeNames: Object.keys(names).length ? names : undefined,
+      ExpressionAttributeValues: values,
     }));
     res.json({ ok: true });
   } catch (err) {

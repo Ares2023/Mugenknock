@@ -1,7 +1,8 @@
 import React, { useEffect, useState, useCallback } from 'react';
 import { Helmet } from 'react-helmet-async';
 import { useNavigate } from 'react-router-dom';
-import { API_ENDPOINT, EXAM_DOMAINS, DOMAIN_NAME_EN, EXAM_CONFIGS, DOMAIN_RATE_WARNING, DOMAIN_RATE_CAUTION } from '../constants';
+import { API_ENDPOINT, EXAM_DOMAINS, EXAM_TYPES, DOMAIN_NAME_EN, EXAM_CONFIGS, DOMAIN_RATE_WARNING, DOMAIN_RATE_CAUTION } from '../constants';
+import { syncPreferencesToServer, collectExamDatesFromLocal } from '../utils/preferences';
 import { useAuth } from '../contexts/AuthContext';
 import { useLanguage } from '../contexts/LanguageContext';
 import Card from '../components/ui/Card';
@@ -85,10 +86,13 @@ export default function MyPage() {
 
   const handleExamDateChange = (v: string) => {
     setExamDate(v);
-    if (targetExam) {
-      if (v) localStorage.setItem(`examDate_${targetExam}_${uid}`, v);
-      else localStorage.removeItem(`examDate_${targetExam}_${uid}`);
-      window.dispatchEvent(new CustomEvent('examDateChanged', { detail: { examType: targetExam, date: v } }));
+    if (!targetExam) return;
+    if (v) localStorage.setItem(`examDate_${targetExam}_${uid}`, v);
+    else localStorage.removeItem(`examDate_${targetExam}_${uid}`);
+    window.dispatchEvent(new CustomEvent('examDateChanged', { detail: { examType: targetExam, date: v } }));
+    if (user) {
+      const examDates = collectExamDatesFromLocal(uid, EXAM_TYPES);
+      syncPreferencesToServer(user.userId, uid, { examDates });
     }
   };
 
@@ -101,7 +105,37 @@ export default function MyPage() {
   const handleDailyGoalChange = (v: number) => {
     setDailyGoal(v);
     localStorage.setItem(`dailyGoal_${uid}`, String(v));
+    if (user) syncPreferencesToServer(user.userId, uid, { dailyGoal: v });
   };
+
+  // ── サーバーから設定を読み込み（ログイン時のデバイス間同期） ──
+  useEffect(() => {
+    if (!user) return;
+    fetch(`${API_ENDPOINT}/users/me/preferences?userId=${encodeURIComponent(user.userId)}`)
+      .then(r => r.json())
+      .then(data => {
+        // 受験日
+        const examDates: Record<string, string> = data.examDates ?? {};
+        for (const [et, date] of Object.entries(examDates)) {
+          if (!date) continue;
+          const key = `examDate_${et}_${uid}`;
+          if (localStorage.getItem(key) !== date) {
+            localStorage.setItem(key, date);
+            window.dispatchEvent(new CustomEvent('examDateChanged', { detail: { examType: et, date } }));
+          }
+        }
+        if (targetExam && examDates[targetExam]) {
+          setExamDate(examDates[targetExam]);
+        }
+        // 目標演習量
+        if (data.dailyGoal != null) {
+          const serverGoal = Number(data.dailyGoal);
+          localStorage.setItem(`dailyGoal_${uid}`, String(serverGoal));
+          setDailyGoal(serverGoal);
+        }
+      })
+      .catch(() => {});
+  }, [user?.userId]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // ── 週間達成度 ──
   const weekDays = Array.from({ length: 7 }, (_, i) => {
