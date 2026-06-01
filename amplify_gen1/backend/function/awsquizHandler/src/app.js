@@ -112,6 +112,13 @@ app.get('/health', (req, res) => {
   res.json({ status: 'ok' });
 });
 
+// クライアントエラーレポート（CloudWatch Logs に記録するだけ）
+app.post('/errors', (req, res) => {
+  const { type, message, stack, url, ua, ts, componentStack } = req.body || {};
+  console.error(JSON.stringify({ level: 'CLIENT_ERROR', type, message, stack, url, ua, ts, componentStack }));
+  res.status(204).end();
+});
+
 // 問題生成・チェック状況（日次/月次集計）
 app.get('/questions/growth-stats', async (req, res) => {
   try {

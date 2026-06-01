@@ -64,3 +64,9 @@ android/.gradle/
 android/app/build/
 android/build/
 android/local.properties
+
+# Playwright E2E
+e2e/.auth/
+e2e/test-results/
+e2e/reports/
+e2e/screenshots/

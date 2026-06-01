@@ -30,7 +30,13 @@
     "test": "react-scripts test",
     "eject": "react-scripts eject",
     "android": "npm run build && npx cap sync android && npx cap open android",
-    "sync:android": "npm run build && npx cap sync android"
+    "sync:android": "npm run build && npx cap sync android",
+    "e2e": "bash e2e/run.sh",
+    "e2e:local": "bash e2e/run.sh local",
+    "e2e:noauth": "bash e2e/run.sh noauth",
+    "e2e:visual": "bash e2e/run.sh visual",
+    "e2e:ui": "bash e2e/run.sh ui",
+    "e2e:report": "npx playwright show-report e2e/reports"
   },
   "eslintConfig": {
     "extends": [
@@ -53,6 +59,7 @@
   "devDependencies": {
     "@aws-amplify/backend": "^1.22.0",
     "@aws-amplify/backend-cli": "^1.8.2",
+    "@playwright/test": "^1.60.0",
     "@types/react-router-dom": "^5.3.3",
     "aws-cdk": "^2.1124.1"
   }

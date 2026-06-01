@@ -1,5 +1,6 @@
 import React from 'react';
 import { HelmetProvider } from 'react-helmet-async';
+import ErrorBoundary from './components/ErrorBoundary';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
 import { LanguageProvider, useLanguage } from './contexts/LanguageContext';
@@ -103,6 +104,7 @@ function AppInner() {
 
 function App() {
   return (
+    <ErrorBoundary>
     <HelmetProvider>
     <BrowserRouter>
     <AuthProvider>
@@ -114,6 +116,7 @@ function App() {
     </AuthProvider>
     </BrowserRouter>
     </HelmetProvider>
+    </ErrorBoundary>
   );
 }
 
