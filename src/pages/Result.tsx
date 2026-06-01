@@ -249,7 +249,7 @@ export default function Result() {
                       );
                     })}
                   </div>
-                  {q.explanation && (
+                  {(q.explanation || (q.choiceExplanations && q.choiceExplanations.length > 0)) && (
                     <div style={{
                       background: 'var(--color-primary-light)',
                       borderRadius: 'var(--border-radius-md)',
@@ -258,7 +258,36 @@ export default function Result() {
                       lineHeight: 1.6
                     }}>
                       <strong style={{ fontSize: 'var(--font-size-sm)', color: 'var(--color-primary)' }}>{t('result.explanation')}</strong>
-                      <div style={{ marginTop: 8, fontSize: 'var(--font-size-sm)', overflowWrap: 'break-word', wordBreak: 'break-word', whiteSpace: 'pre-wrap' }}>{lang === 'en' && q.explanationEn ? q.explanationEn : q.explanation}</div>
+                      {q.choiceExplanations && q.choiceExplanations.length > 0 ? (() => {
+                        const LABELS = ['A', 'B', 'C', 'D', 'E'];
+                        const items = (q.choices ?? []).map((c: string, ci: number) => ({
+                          ci,
+                          label: LABELS[ci],
+                          isCorrect: (q.correctAnswerIndices ?? []).includes(ci) || (q.correctAnswers ?? []).includes(c),
+                          expl: q.choiceExplanations[ci] ?? '',
+                        }));
+                        const sorted = [...items.filter((x: any) => x.isCorrect), ...items.filter((x: any) => !x.isCorrect)];
+                        return (
+                          <div style={{ marginTop: 8, display: 'flex', flexDirection: 'column', gap: 6 }}>
+                            {sorted.map((item: any) => (
+                              <div key={item.ci} style={{
+                                padding: '8px 12px',
+                                borderRadius: 'var(--border-radius-md)',
+                                background: item.isCorrect ? 'var(--color-feedback-correct-bg)' : 'var(--color-bg-white)',
+                                border: `1px solid ${item.isCorrect ? 'var(--color-success)' : 'var(--color-border)'}`,
+                                fontSize: 'var(--font-size-sm)',
+                              }}>
+                                <span style={{ fontWeight: 700, color: item.isCorrect ? 'var(--color-success)' : 'var(--color-text-sub)', marginRight: 6 }}>
+                                  {item.label}.{item.isCorrect ? ` (${lang === 'ja' ? '正解' : 'Correct'})` : ''}
+                                </span>
+                                <span style={{ overflowWrap: 'break-word', wordBreak: 'break-word', whiteSpace: 'pre-wrap' }}>{item.expl}</span>
+                              </div>
+                            ))}
+                          </div>
+                        );
+                      })() : (
+                        <div style={{ marginTop: 8, fontSize: 'var(--font-size-sm)', overflowWrap: 'break-word', wordBreak: 'break-word', whiteSpace: 'pre-wrap' }}>{lang === 'en' && q.explanationEn ? q.explanationEn : q.explanation}</div>
+                      )}
                       {(() => {
                         const links = getServiceLinks(q.tags ?? []);
                         if (links.length === 0) return null;

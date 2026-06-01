@@ -25,6 +25,7 @@ type Question = {
   choices: string[];
   correctAnswers?: string[];
   correctAnswerIndices?: number[];
+  choiceExplanations?: string[];
   explanation?: string;
   tags: string[];
   isMultiple: boolean;
@@ -907,7 +908,36 @@ export default function ExerciseSession() {
               </p>
               <div style={{ fontSize: 'var(--font-size-base)', lineHeight: 1.6 }}>
                 <strong>{t('exerciseSession.explanation')}</strong>
-                <div style={{ marginTop: 4, overflowWrap: 'break-word', wordBreak: 'break-word', whiteSpace: 'pre-wrap' }}>{remapLabels(lang === 'en' && (displayQ as any).explanationEn ? (displayQ as any).explanationEn : (displayQ.explanation ?? ''))}</div>
+                {displayQ.choiceExplanations && displayQ.choiceExplanations.length > 0 ? (() => {
+                  const items = shuffledChoices.map((_: string, di: number) => ({
+                    di,
+                    origIdx: origIndices[di],
+                    label: CHOICE_LABELS[di],
+                    isCorrect: (displayQ.correctAnswerIndices ?? []).includes(origIndices[di]),
+                    expl: displayQ.choiceExplanations![origIndices[di]] ?? '',
+                  }));
+                  const sorted = [...items.filter(x => x.isCorrect), ...items.filter(x => !x.isCorrect)];
+                  return (
+                    <div style={{ marginTop: 8, display: 'flex', flexDirection: 'column', gap: 6 }}>
+                      {sorted.map(item => (
+                        <div key={item.di} style={{
+                          padding: '8px 12px',
+                          borderRadius: 'var(--border-radius-md)',
+                          background: item.isCorrect ? 'var(--color-feedback-correct-bg)' : 'var(--color-bg-sub)',
+                          border: `1px solid ${item.isCorrect ? 'var(--color-success)' : 'var(--color-border)'}`,
+                          fontSize: 'var(--font-size-sm)',
+                        }}>
+                          <span style={{ fontWeight: 700, color: item.isCorrect ? 'var(--color-success)' : 'var(--color-text-sub)', marginRight: 6 }}>
+                            {item.label}.{item.isCorrect ? ` (${lang === 'ja' ? '正解' : 'Correct'})` : ''}
+                          </span>
+                          <span style={{ overflowWrap: 'break-word', wordBreak: 'break-word', whiteSpace: 'pre-wrap' }}>{item.expl}</span>
+                        </div>
+                      ))}
+                    </div>
+                  );
+                })() : (
+                  <div style={{ marginTop: 4, overflowWrap: 'break-word', wordBreak: 'break-word', whiteSpace: 'pre-wrap' }}>{remapLabels(lang === 'en' && (displayQ as any).explanationEn ? (displayQ as any).explanationEn : (displayQ.explanation ?? ''))}</div>
+                )}
               </div>
             </div>
           );
