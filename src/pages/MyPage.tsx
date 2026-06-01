@@ -385,8 +385,8 @@ export default function MyPage() {
                       onClick={() => handleDailyGoalChange(v)}
                       style={{
                         padding: '4px 12px', borderRadius: 'var(--border-radius-full)', fontSize: 13, fontWeight: dailyGoal === v ? 700 : 400, cursor: 'pointer',
-                        background: dailyGoal === v ? 'var(--color-primary)' : 'transparent',
-                        color: dailyGoal === v ? 'var(--color-btn-primary-text)' : 'var(--color-text-sub)',
+                        background: 'transparent',
+                        color: 'var(--color-text-main)',
                         border: `1.5px solid ${dailyGoal === v ? 'var(--color-primary)' : 'var(--color-border)'}`,
                         transition: 'all 0.12s',
                       }}
