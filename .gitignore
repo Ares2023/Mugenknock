@@ -1,5 +1,12 @@
 # See https://help.github.com/articles/ignoring-files/ for more about ignoring files.
 
+# Claude Code のローカル設定（マシン固有・コミット不要）
+.claude/
+
+# Amplify ローカル設定（マシン固有）
+amplify-backup/.config/local-aws-info.json
+amplify-backup/.config/local-env-info.json
+
 # dependencies
 /node_modules
 /.pnp

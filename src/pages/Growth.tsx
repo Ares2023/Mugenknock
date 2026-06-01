@@ -421,8 +421,8 @@ export default function Growth() {
   return (
     <div style={{ padding: '28px 24px', maxWidth: 900, margin: '0 auto' }}>
       <Helmet>
-        <title>問題生成状況 | AWS資格無限ノック</title>
-        <meta name="description" content="AWS資格無限ノックの問題生成・チェック状況を確認。日次・月次の生成数と検証数をグラフで表示。" />
+        <title>問題生成状況 | 無限ノック</title>
+        <meta name="description" content="無限ノックの問題生成・チェック状況を確認。日次・月次の生成数と検証数をグラフで表示。" />
       </Helmet>
       <div style={{ marginBottom: 20 }}>
         <p style={{ margin: 0, fontSize: 'var(--font-size-sm)', color: 'var(--color-text-sub)' }}>
