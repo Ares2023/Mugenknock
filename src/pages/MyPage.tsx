@@ -540,20 +540,19 @@ export default function MyPage() {
                     </div>
                     <div style={{ marginTop: 16, paddingTop: 14, borderTop: '1px solid var(--color-border)' }}>
                       {focusedUnlocked ? (
-                        <Button
-                          variant="primary"
-                          fullWidth
+                        <button
                           onClick={() => navigate('/aws/', { state: { startFocused: true } })}
+                          style={{ width: '100%', height: 44, border: 'none', background: '#009E9E', color: '#fff', fontWeight: 600, fontSize: 'var(--font-size-base)', borderRadius: 'var(--border-radius-full)', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
                         >
-                          {ja ? 'しっかり対策を開始する' : 'Start Focused Practice'}
-                        </Button>
+                          {ja ? 'しっかり対策' : 'Focused Practice'}
+                        </button>
                       ) : (
                         <button
                           disabled
-                          style={{ width: '100%', padding: '8px 20px', borderRadius: 'var(--border-radius-full)', border: '1px solid var(--color-border)', background: 'var(--color-bg-main)', color: 'var(--color-text-light)', fontSize: 'var(--font-size-base)', cursor: 'not-allowed', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6 }}
+                          style={{ width: '100%', height: 44, border: '1.5px solid var(--color-border)', borderRadius: 'var(--border-radius-full)', background: 'transparent', color: 'var(--color-text-light)', fontWeight: 600, fontSize: 'var(--font-size-base)', cursor: 'not-allowed', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 5 }}
                         >
-                          <IconLock size={14} />
-                          {ja ? 'しっかり対策（ロック中）' : 'Focused Practice (Locked)'}
+                          <IconLock size={13} />
+                          {ja ? 'しっかり対策' : 'Focused Practice'}
                         </button>
                       )}
                     </div>
