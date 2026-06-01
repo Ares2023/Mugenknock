@@ -601,7 +601,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
               maxWidth: isMobile ? 'none' : '40vw',
               padding: '0 4px 0 8px',
             }}>
-              {`設定目標：${isMobile ? targetExam : (EXAM_CONFIGS[targetExam]?.fullName ?? targetExam)}`}
+              {`設定目標：${isMobile ? `AWS ${targetExam}` : (EXAM_CONFIGS[targetExam]?.fullName ?? targetExam)}`}
               {examDate && (() => {
                 const days = daysUntilExam(examDate);
                 if (days === 0) return <span style={{ color: 'var(--color-text-sub)', fontWeight: 700 }}>（試験当日！ファイト🔥）</span>;
