@@ -8,6 +8,7 @@ import Button from '../components/ui/Button';
 import Badge from '../components/ui/Badge';
 import DomainSelector from '../components/DomainSelector';
 import { getCached, setCached, SHORT_TTL } from '../utils/cache';
+import { syncTargetExamToServer } from '../utils/preferences';
 import { IconLightbulb } from '../components/Icons';
 
 const StepBadge = ({ n, optional = false }: { n: number; optional?: boolean }) => (
@@ -75,6 +76,7 @@ export default function ExerciseSetup() {
     localStorage.setItem(`targetExam_${uid}`, et);
     setTargetExamState(et);
     setExamType(et);
+    if (user) syncTargetExamToServer(user.userId, uid, et);
   };
   const [selectedDomains, setSelectedDomains] = useState<string[]>(() => {
     const et = localStorage.getItem(`targetExam_${uid}`) || 'SAA';
@@ -442,7 +444,12 @@ export default function ExerciseSetup() {
           </div>
         </div>
       )}
-      {loading && <div style={{ position: 'fixed', inset: 0, zIndex: 9000, cursor: 'wait' }} />}
+      {loading && <div
+        style={{ position: 'fixed', inset: 0, zIndex: 9000, cursor: 'wait' }}
+        onTouchStart={e => e.stopPropagation()}
+        onTouchMove={e => e.stopPropagation()}
+        onTouchEnd={e => e.stopPropagation()}
+      />}
     </div>
   );
 }

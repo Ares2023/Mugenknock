@@ -1952,6 +1952,40 @@ app.put('/users/me/points', async (req, res) => {
   }
 });
 
+// ── ユーザー設定（目標資格などのデバイス間同期） ──
+
+app.get('/users/me/preferences', async (req, res) => {
+  try {
+    const { userId } = req.query;
+    if (!userId) return res.status(400).json({ error: 'userId required' });
+    const docClient = getClient();
+    const result = await docClient.send(new GetCommand({
+      TableName: 'AppSettings',
+      Key: { settingId: `userPrefs_${userId}` },
+    }));
+    res.json({ targetExam: result.Item?.targetExam ?? null });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+app.put('/users/me/preferences', async (req, res) => {
+  try {
+    const { userId, targetExam } = req.body;
+    if (!userId) return res.status(400).json({ error: 'userId required' });
+    const docClient = getClient();
+    await docClient.send(new PutCommand({
+      TableName: 'AppSettings',
+      Item: { settingId: `userPrefs_${userId}`, userId, targetExam: targetExam ?? null, updatedAt: new Date().toISOString() },
+    }));
+    res.json({ ok: true });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
 // ── 管理者によるユーザーデータ削除（確認メール付き） ──
 
 const USER_POOL_ID = 'ap-northeast-1_KIOFciGhQ';

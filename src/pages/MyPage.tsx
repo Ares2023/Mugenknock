@@ -1,14 +1,14 @@
 import React, { useEffect, useState, useCallback } from 'react';
 import { Helmet } from 'react-helmet-async';
 import { useNavigate } from 'react-router-dom';
-import { API_ENDPOINT, EXAM_DOMAINS, DOMAIN_NAME_EN, EXAM_CONFIGS } from '../constants';
+import { API_ENDPOINT, EXAM_DOMAINS, DOMAIN_NAME_EN, EXAM_CONFIGS, DOMAIN_RATE_WARNING, DOMAIN_RATE_CAUTION } from '../constants';
 import { useAuth } from '../contexts/AuthContext';
 import { useLanguage } from '../contexts/LanguageContext';
 import Card from '../components/ui/Card';
 import Button from '../components/ui/Button';
 import {
-  IconCalendarNotebook, IconTarget, IconBrain, IconList,
-  IconSparkles, IconChevronRight, IconLock, IconFlag,
+  IconCalendarNotebook, IconTarget, IconAnnoyed, IconList,
+  IconSparkles, IconChevronRight, IconChevronDown, IconLock, IconFlag, IconStar,
 } from '../components/Icons';
 
 const FOCUSED_UNLOCK_THRESHOLD = 30;
@@ -148,6 +148,24 @@ export default function MyPage() {
       .finally(() => setWeakLoading(false));
   }, [tab, user, targetExam, focusedUnlocked, weakLoaded]);
 
+  // ── 弱問展開（苦手分析タブ） ──
+  const [expandedWeakQ, setExpandedWeakQ] = useState<string | null>(null);
+  const [weakQDetails, setWeakQDetails] = useState<Record<string, any>>({});
+  const [weakQDetailLoading, setWeakQDetailLoading] = useState<string | null>(null);
+
+  const handleToggleWeakQ = useCallback(async (qid: string) => {
+    if (expandedWeakQ === qid) { setExpandedWeakQ(null); return; }
+    setExpandedWeakQ(qid);
+    if (weakQDetails[qid] || weakQDetailLoading === qid) return;
+    setWeakQDetailLoading(qid);
+    try {
+      const res = await fetch(`${API_ENDPOINT}/questions/${qid}`);
+      const data = await res.json();
+      setWeakQDetails(prev => ({ ...prev, [qid]: data }));
+    } catch { setWeakQDetails(prev => ({ ...prev, [qid]: null })); }
+    finally { setWeakQDetailLoading(null); }
+  }, [expandedWeakQ, weakQDetails, weakQDetailLoading]);
+
   // ── 演習履歴（履歴タブ） ──
   const [sessions, setSessions] = useState<Session[]>([]);
   const [histLoading, setHistLoading] = useState(false);
@@ -155,6 +173,53 @@ export default function MyPage() {
   const [expandedSession, setExpandedSession] = useState<string | null>(null);
   const [sessionAnswers, setSessionAnswers] = useState<Record<string, AnswerRecord[]>>({});
   const [answersLoading, setAnswersLoading] = useState<string | null>(null);
+  const [expandedAnswer, setExpandedAnswer] = useState<string | null>(null);
+  const [answerDetails, setAnswerDetails] = useState<Record<string, any>>({});
+  const [answerDetailLoading, setAnswerDetailLoading] = useState<string | null>(null);
+
+  const handleToggleAnswer = useCallback(async (qid: string) => {
+    if (expandedAnswer === qid) { setExpandedAnswer(null); return; }
+    setExpandedAnswer(qid);
+    if (answerDetails[qid] || answerDetailLoading === qid) return;
+    setAnswerDetailLoading(qid);
+    try {
+      const res = await fetch(`${API_ENDPOINT}/questions/${qid}`);
+      const data = await res.json();
+      setAnswerDetails(prev => ({ ...prev, [qid]: data }));
+    } catch { setAnswerDetails(prev => ({ ...prev, [qid]: null })); }
+    finally { setAnswerDetailLoading(null); }
+  }, [expandedAnswer, answerDetails, answerDetailLoading]);
+
+  // ── ブックマーク ──
+  const [bookmarkedIds, setBookmarkedIds] = useState<Set<string>>(new Set());
+  const [bookmarkOpLoading, setBookmarkOpLoading] = useState<Set<string>>(new Set());
+
+  useEffect(() => {
+    if (!user) return;
+    fetch(`${API_ENDPOINT}/users/me/bookmarks?userId=${user.userId}`)
+      .then(r => r.json())
+      .then(d => setBookmarkedIds(new Set(d.questionIds ?? [])))
+      .catch(() => {});
+  }, [user]);
+
+  const toggleBookmark = useCallback(async (qid: string) => {
+    if (!user || bookmarkOpLoading.has(qid)) return;
+    const isBookmarked = bookmarkedIds.has(qid);
+    setBookmarkOpLoading(prev => { const n = new Set(prev); n.add(qid); return n; });
+    try {
+      if (isBookmarked) {
+        await fetch(`${API_ENDPOINT}/questions/${qid}/bookmark?userId=${user.userId}`, { method: 'DELETE' });
+        setBookmarkedIds(prev => { const n = new Set(prev); n.delete(qid); return n; });
+      } else {
+        await fetch(`${API_ENDPOINT}/questions/${qid}/bookmark`, {
+          method: 'POST', headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ userId: user.userId }),
+        });
+        setBookmarkedIds(prev => { const n = new Set(prev); n.add(qid); return n; });
+      }
+    } catch {}
+    finally { setBookmarkOpLoading(prev => { const n = new Set(prev); n.delete(qid); return n; }); }
+  }, [user, bookmarkedIds, bookmarkOpLoading]);
 
   useEffect(() => {
     if (tab !== 'history' || !user || histLoaded) return;
@@ -224,7 +289,7 @@ export default function MyPage() {
           </button>
           <button style={tabStyle(tab === 'analysis')} onClick={() => setTab('analysis')}>
             <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4 }}>
-              <IconBrain size={13} />{ja ? '苦手分析' : 'Analysis'}
+              <IconAnnoyed size={13} />{ja ? '苦手分析' : 'Analysis'}
             </span>
           </button>
           <button style={tabStyle(tab === 'history')} onClick={() => setTab('history')}>
@@ -407,7 +472,7 @@ export default function MyPage() {
                 {/* 苦手ドメイン */}
                 <Card style={{ marginBottom: 12 }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 12 }}>
-                    <IconBrain size={14} />
+                    <IconAnnoyed size={14} />
                     <span style={{ fontWeight: 700, fontSize: 14 }}>{ja ? '苦手ドメイン' : 'Weak Domains'}</span>
                   </div>
                   {!focusedUnlocked ? (
@@ -427,17 +492,27 @@ export default function MyPage() {
                       {ja ? 'ドメイン情報がありません' : 'No domain data'}
                     </p>
                   ) : (
+                    <>
                     <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-                      {domains.map(domain => {
+                      {[...domains].sort((a, b) => {
+                        const getPct = (d: string) => {
+                          const stat = domainStats.find(s => s.tagId === d);
+                          const recent = stat?.recentResults ?? [];
+                          const total = recent.length;
+                          if (total === 0) return -1;
+                          return recent.filter(Boolean).length / total;
+                        };
+                        return getPct(a) - getPct(b);
+                      }).map(domain => {
                         const stat = domainStats.find(s => s.tagId === domain);
                         const recent = stat?.recentResults ?? [];
                         const correct = recent.filter(Boolean).length;
                         const total = recent.length;
                         const pct = total > 0 ? Math.round((correct / total) * 100) : null;
-                        const isWeak = pct !== null && pct < 60;
-                        const isFair = pct !== null && pct >= 60 && pct < 80;
-                        const color = pct === null ? 'var(--color-text-light)' : isWeak ? 'var(--color-danger)' : isFair ? '#f59e0b' : 'var(--color-success)';
-                        const barColor = pct === null ? 'var(--color-bg-main)' : isWeak ? 'var(--color-danger)' : isFair ? '#f59e0b' : 'var(--color-success)';
+                        const isWeak = pct !== null && pct < DOMAIN_RATE_WARNING * 100;
+                        const isFair = pct !== null && pct < DOMAIN_RATE_CAUTION * 100 && !isWeak;
+                        const color = pct === null ? 'var(--color-text-light)' : isWeak ? 'var(--color-danger)' : isFair ? 'var(--color-caution)' : 'var(--color-success)';
+                        const barColor = pct === null ? 'var(--color-bg-main)' : isWeak ? 'var(--color-danger)' : isFair ? 'var(--color-caution)' : 'var(--color-success)';
                         const domainLabel = lang === 'en' ? (DOMAIN_NAME_EN[domain] ?? domain) : domain;
                         return (
                           <div key={domain} style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
@@ -463,6 +538,26 @@ export default function MyPage() {
                         );
                       })}
                     </div>
+                    <div style={{ marginTop: 16, paddingTop: 14, borderTop: '1px solid var(--color-border)' }}>
+                      {focusedUnlocked ? (
+                        <Button
+                          variant="primary"
+                          fullWidth
+                          onClick={() => navigate('/aws/', { state: { startFocused: true } })}
+                        >
+                          {ja ? 'しっかり対策を開始する' : 'Start Focused Practice'}
+                        </Button>
+                      ) : (
+                        <button
+                          disabled
+                          style={{ width: '100%', padding: '8px 20px', borderRadius: 'var(--border-radius-full)', border: '1px solid var(--color-border)', background: 'var(--color-bg-main)', color: 'var(--color-text-light)', fontSize: 'var(--font-size-base)', cursor: 'not-allowed', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6 }}
+                        >
+                          <IconLock size={14} />
+                          {ja ? 'しっかり対策（ロック中）' : 'Focused Practice (Locked)'}
+                        </button>
+                      )}
+                    </div>
+                    </>
                   )}
                 </Card>
 
@@ -489,16 +584,56 @@ export default function MyPage() {
                     </p>
                   ) : (
                     <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-                      {weakQuestions.map(q => (
-                        <div key={q.questionId} style={{ padding: '8px 10px', borderRadius: 8, border: '1px solid var(--color-border)', display: 'flex', gap: 8, alignItems: 'flex-start' }}>
-                          <span style={{ flexShrink: 0, fontSize: 11, fontWeight: 700, color: 'var(--color-danger)', background: '#fff0f0', borderRadius: 4, padding: '2px 6px', marginTop: 1 }}>
-                            ×{q.incorrectCount}
-                          </span>
-                          <span style={{ fontSize: 12, color: 'var(--color-text-sub)', lineHeight: 1.5, flex: 1 }}>
-                            {q.questionText?.slice(0, 80)}{(q.questionText?.length ?? 0) > 80 ? '…' : ''}
-                          </span>
-                        </div>
-                      ))}
+                      {weakQuestions.map(q => {
+                        const isExpanded = expandedWeakQ === q.questionId;
+                        const detail = weakQDetails[q.questionId];
+                        return (
+                          <div key={q.questionId} style={{ borderRadius: 8, border: '1px solid var(--color-border)', overflow: 'hidden' }}>
+                            <div
+                              onClick={() => handleToggleWeakQ(q.questionId)}
+                              style={{ padding: '8px 10px', display: 'flex', gap: 8, alignItems: 'flex-start', cursor: 'pointer', background: isExpanded ? 'var(--color-bg-main)' : 'transparent' }}
+                            >
+                              <span style={{ flexShrink: 0, fontSize: 11, fontWeight: 700, color: 'var(--color-danger)', background: 'var(--color-danger-light)', borderRadius: 4, padding: '2px 6px', marginTop: 1 }}>
+                                ×{q.incorrectCount}
+                              </span>
+                              <span style={{ fontSize: 12, color: 'var(--color-text-sub)', lineHeight: 1.5, flex: 1, userSelect: 'text' }}>
+                                {q.questionText?.slice(0, 80)}{(q.questionText?.length ?? 0) > 80 ? '…' : ''}
+                              </span>
+                              <span style={{ flexShrink: 0, color: 'var(--color-text-light)', transition: 'transform 0.2s', transform: isExpanded ? 'rotate(180deg)' : 'none', display: 'flex', alignItems: 'center', marginTop: 2 }}>
+                                <IconChevronDown size={14} />
+                              </span>
+                            </div>
+                            {isExpanded && (
+                              <div style={{ padding: '10px 12px', borderTop: '1px solid var(--color-border)', background: 'var(--color-bg-white)' }}>
+                                {weakQDetailLoading === q.questionId ? (
+                                  <div style={{ display: 'flex', justifyContent: 'center', padding: '8px 0' }}>
+                                    <div className="sherpa-spinner" style={{ width: 16, height: 16, borderWidth: 2 }} />
+                                  </div>
+                                ) : detail ? (
+                                  <div style={{ userSelect: 'text' }}>
+                                    <p style={{ fontSize: 13, color: 'var(--color-text-main)', lineHeight: 1.6, margin: '0 0 10px', whiteSpace: 'pre-wrap' }}>
+                                      {detail.questionText}
+                                    </p>
+                                    {(detail.choices ?? []).map((c: string, i: number) => (
+                                      <div key={i} style={{ fontSize: 12, color: 'var(--color-text-sub)', padding: '4px 8px', marginBottom: 3, borderRadius: 4, background: 'var(--color-bg-main)' }}>
+                                        {String.fromCharCode(65 + i)}. {c.replace(/^[A-E]\.\s*/, '')}
+                                      </div>
+                                    ))}
+                                    {detail.explanation && (
+                                      <div style={{ marginTop: 10, padding: '8px 10px', borderRadius: 6, background: 'var(--color-bg-info)', border: '1px solid var(--color-border-info)' }}>
+                                        <div style={{ fontSize: 11, fontWeight: 700, color: 'var(--color-text-info)', marginBottom: 4 }}>{ja ? '解説' : 'Explanation'}</div>
+                                        <p style={{ fontSize: 12, color: 'var(--color-text-sub)', margin: 0, lineHeight: 1.6, whiteSpace: 'pre-wrap' }}>{detail.explanation}</p>
+                                      </div>
+                                    )}
+                                  </div>
+                                ) : (
+                                  <p style={{ margin: 0, fontSize: 12, color: 'var(--color-text-light)' }}>{ja ? '詳細を取得できませんでした' : 'Failed to load details'}</p>
+                                )}
+                              </div>
+                            )}
+                          </div>
+                        );
+                      })}
                     </div>
                   )}
                 </Card>
@@ -570,17 +705,71 @@ export default function MyPage() {
                               {ja ? '回答データがありません' : 'No answer data'}
                             </p>
                           ) : (
-                            <div style={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
-                              {answers.map((a, idx) => (
-                                <div key={a.questionId + idx} style={{ display: 'flex', gap: 8, alignItems: 'flex-start', padding: '5px 4px' }}>
-                                  <span style={{ flexShrink: 0, width: 15, height: 15, borderRadius: '50%', background: a.isCorrect ? 'var(--color-success)' : 'var(--color-danger)', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', color: '#fff', fontSize: 8, fontWeight: 700, marginTop: 1 }}>
-                                    {a.isCorrect ? '○' : '×'}
-                                  </span>
-                                  <span style={{ fontSize: 12, color: 'var(--color-text-sub)', lineHeight: 1.5, flex: 1 }}>
-                                    {a.questionText?.slice(0, 80)}{(a.questionText?.length ?? 0) > 80 ? '…' : ''}
-                                  </span>
-                                </div>
-                              ))}
+                            <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+                              {answers.map((a, idx) => {
+                                const isAExpanded = expandedAnswer === a.questionId;
+                                const aDetail = answerDetails[a.questionId];
+                                return (
+                                  <div key={a.questionId + idx} style={{ borderRadius: 6, border: '1px solid var(--color-border)', overflow: 'hidden' }}>
+                                    <div style={{ display: 'flex', gap: 8, alignItems: 'center', padding: '6px 8px' }}>
+                                      <span style={{ flexShrink: 0, width: 15, height: 15, borderRadius: '50%', background: a.isCorrect ? 'var(--color-success)' : 'var(--color-danger)', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', color: '#fff', fontSize: 8, fontWeight: 700 }}>
+                                        {a.isCorrect ? '○' : '×'}
+                                      </span>
+                                      <span
+                                        onClick={() => handleToggleAnswer(a.questionId)}
+                                        style={{ fontSize: 12, color: 'var(--color-text-sub)', lineHeight: 1.5, flex: 1, cursor: 'pointer', userSelect: 'text' }}
+                                      >
+                                        {a.questionText?.slice(0, 60)}{(a.questionText?.length ?? 0) > 60 ? '…' : ''}
+                                      </span>
+                                      {user && (
+                                        <button
+                                          onClick={e => { e.stopPropagation(); toggleBookmark(a.questionId); }}
+                                          disabled={bookmarkOpLoading.has(a.questionId)}
+                                          style={{ flexShrink: 0, background: 'none', border: 'none', cursor: 'pointer', padding: '2px 4px', display: 'flex', alignItems: 'center', opacity: bookmarkOpLoading.has(a.questionId) ? 0.5 : 1 }}
+                                        >
+                                          <span style={{ color: bookmarkedIds.has(a.questionId) ? 'var(--color-warning, #f59e0b)' : 'var(--color-text-light)' }}>
+                                            <IconStar filled={bookmarkedIds.has(a.questionId)} size={14} />
+                                          </span>
+                                        </button>
+                                      )}
+                                      <button
+                                        onClick={() => handleToggleAnswer(a.questionId)}
+                                        style={{ flexShrink: 0, background: 'none', border: 'none', cursor: 'pointer', padding: '2px 4px', display: 'flex', alignItems: 'center', color: 'var(--color-text-light)', transition: 'transform 0.2s', transform: isAExpanded ? 'rotate(180deg)' : 'none' }}
+                                      >
+                                        <IconChevronDown size={13} />
+                                      </button>
+                                    </div>
+                                    {isAExpanded && (
+                                      <div style={{ padding: '8px 10px', borderTop: '1px solid var(--color-border)', background: 'var(--color-bg-main)' }}>
+                                        {answerDetailLoading === a.questionId ? (
+                                          <div style={{ display: 'flex', justifyContent: 'center', padding: '6px 0' }}>
+                                            <div className="sherpa-spinner" style={{ width: 14, height: 14, borderWidth: 2 }} />
+                                          </div>
+                                        ) : aDetail ? (
+                                          <div style={{ userSelect: 'text' }}>
+                                            <p style={{ fontSize: 12, color: 'var(--color-text-main)', lineHeight: 1.6, margin: '0 0 8px', whiteSpace: 'pre-wrap' }}>
+                                              {aDetail.questionText}
+                                            </p>
+                                            {(aDetail.choices ?? []).map((c: string, i: number) => (
+                                              <div key={i} style={{ fontSize: 11, color: 'var(--color-text-sub)', padding: '3px 6px', marginBottom: 2, borderRadius: 4, background: 'var(--color-bg-white)' }}>
+                                                {String.fromCharCode(65 + i)}. {c.replace(/^[A-E]\.\s*/, '')}
+                                              </div>
+                                            ))}
+                                            {aDetail.explanation && (
+                                              <div style={{ marginTop: 8, padding: '6px 8px', borderRadius: 5, background: 'var(--color-bg-info)', border: '1px solid var(--color-border-info)' }}>
+                                                <div style={{ fontSize: 10, fontWeight: 700, color: 'var(--color-text-info)', marginBottom: 3 }}>{ja ? '解説' : 'Explanation'}</div>
+                                                <p style={{ fontSize: 11, color: 'var(--color-text-sub)', margin: 0, lineHeight: 1.6, whiteSpace: 'pre-wrap' }}>{aDetail.explanation}</p>
+                                              </div>
+                                            )}
+                                          </div>
+                                        ) : (
+                                          <p style={{ margin: 0, fontSize: 11, color: 'var(--color-text-light)' }}>{ja ? '詳細を取得できませんでした' : 'Failed to load details'}</p>
+                                        )}
+                                      </div>
+                                    )}
+                                  </div>
+                                );
+                              })}
                             </div>
                           )}
                         </div>

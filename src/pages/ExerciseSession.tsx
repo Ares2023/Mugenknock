@@ -402,10 +402,15 @@ export default function ExerciseSession() {
   };
 
   const goToQuestion = (i: number) => {
-    if (i >= results.length || i === currentIndex) return;
+    if (i > viewedFrontier || i === currentIndex) return;
     setCurrentIndex(i);
-    setSelectedAnswers(selectionHistory[i] ?? []);
-    setAnswered(true);
+    if (i < results.length) {
+      setSelectedAnswers(selectionHistory[i] ?? []);
+      setAnswered(true);
+    } else {
+      setSelectedAnswers([]);
+      setAnswered(false);
+    }
     setDetail(null);
     setAnswerCountError(null);
   };

@@ -172,8 +172,8 @@ export const EXAM_DESC_EN: Record<string, string> = {
 };
 
 // ドメイン正答率の色分けしきい値（0–1スケール）
-export const DOMAIN_RATE_WARNING = 0.50;
-export const DOMAIN_RATE_CAUTION = 0.65;
+export const DOMAIN_RATE_WARNING = 0.40;
+export const DOMAIN_RATE_CAUTION = 0.60;
 
 // ドメイン配点（公式試験ガイドの割合 %）
 export const DOMAIN_WEIGHTS: Record<string, number[]> = {
