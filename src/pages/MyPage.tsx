@@ -410,23 +410,21 @@ export default function MyPage() {
                 <span style={{ fontWeight: 700, fontSize: 14 }}>{ja ? '1日の目標演習量' : 'Daily Goal'}</span>
               </div>
 
-              {/* ゴール設定スライダー */}
-              <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 16 }}>
-                <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
-                  {[10, 15, 20, 25, 30, 40, 50].map(v => (
-                    <button
-                      key={v}
-                      onClick={() => handleDailyGoalChange(v)}
-                      style={{
-                        padding: '4px 12px', borderRadius: 'var(--border-radius-full)', fontSize: 13, fontWeight: dailyGoal === v ? 700 : 400, cursor: 'pointer',
-                        background: 'transparent',
-                        color: 'var(--color-text-main)',
-                        border: `1.5px solid ${dailyGoal === v ? 'var(--color-primary)' : 'var(--color-border)'}`,
-                        transition: 'all 0.12s',
-                      }}
-                    >{v}{ja ? '問' : 'Q'}</button>
-                  ))}
-                </div>
+              {/* ゴール設定カウンター */}
+              <div style={{ display: 'flex', alignItems: 'center', gap: 16, marginBottom: 16 }}>
+                <button
+                  onClick={() => handleDailyGoalChange(Math.max(5, dailyGoal - 5))}
+                  disabled={dailyGoal <= 5}
+                  style={{ width: 44, height: 44, borderRadius: '50%', border: '1px solid var(--color-border)', background: 'transparent', cursor: dailyGoal <= 5 ? 'default' : 'pointer', fontSize: 20, display: 'flex', alignItems: 'center', justifyContent: 'center', color: dailyGoal <= 5 ? 'var(--color-text-light)' : 'var(--color-text-main)', flexShrink: 0 }}
+                >−</button>
+                <span style={{ fontSize: 22, fontWeight: 800, minWidth: 64, textAlign: 'center', color: 'var(--color-primary)', fontVariantNumeric: 'tabular-nums' }}>
+                  {dailyGoal}<span style={{ fontSize: 13, fontWeight: 400, marginLeft: 2, color: 'var(--color-text-sub)' }}>{ja ? '問' : 'Q'}</span>
+                </span>
+                <button
+                  onClick={() => handleDailyGoalChange(Math.min(100, dailyGoal + 5))}
+                  disabled={dailyGoal >= 100}
+                  style={{ width: 44, height: 44, borderRadius: '50%', border: '1px solid var(--color-border)', background: 'transparent', cursor: dailyGoal >= 100 ? 'default' : 'pointer', fontSize: 20, display: 'flex', alignItems: 'center', justifyContent: 'center', color: dailyGoal >= 100 ? 'var(--color-text-light)' : 'var(--color-text-main)', flexShrink: 0 }}
+                >+</button>
               </div>
 
               {/* 今日の進捗 */}
