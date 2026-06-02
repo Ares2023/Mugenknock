@@ -920,19 +920,13 @@ export default function ExerciseSession() {
                   }));
                   const sorted = [...items.filter(x => x.isCorrect), ...items.filter(x => !x.isCorrect)];
                   return (
-                    <div style={{ marginTop: 8, display: 'flex', flexDirection: 'column', gap: 6 }}>
+                    <div style={{ marginTop: 8, display: 'flex', flexDirection: 'column', gap: 8, fontSize: 'var(--font-size-sm)' }}>
                       {sorted.map(item => (
-                        <div key={item.di} style={{
-                          padding: '8px 12px',
-                          borderRadius: 'var(--border-radius-md)',
-                          background: item.isCorrect ? 'var(--color-feedback-correct-bg)' : 'var(--color-bg-sub)',
-                          border: `1px solid ${item.isCorrect ? 'var(--color-success)' : 'var(--color-border)'}`,
-                          fontSize: 'var(--font-size-sm)',
-                        }}>
-                          <span style={{ fontWeight: 700, color: item.isCorrect ? 'var(--color-success)' : 'var(--color-text-sub)', marginRight: 6 }}>
+                        <div key={item.di} style={{ overflowWrap: 'break-word', wordBreak: 'break-word' }}>
+                          <span style={{ fontWeight: 700, color: item.isCorrect ? 'var(--color-success)' : 'var(--color-text-sub)', marginRight: 4 }}>
                             {item.label}.{item.isCorrect ? ` (${lang === 'ja' ? '正解' : 'Correct'})` : ''}
                           </span>
-                          <span style={{ overflowWrap: 'break-word', wordBreak: 'break-word', whiteSpace: 'pre-wrap' }}>{item.expl}</span>
+                          <span style={{ whiteSpace: 'pre-wrap' }}>{item.expl}</span>
                         </div>
                       ))}
                     </div>
