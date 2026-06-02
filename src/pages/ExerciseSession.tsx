@@ -970,24 +970,8 @@ export default function ExerciseSession() {
 
         {/* フッター */}
         <div style={{ marginTop: 'var(--spacing-md)', paddingTop: 'var(--spacing-sm)', borderTop: '1px dashed var(--color-border)' }}>
-          <div style={{ display: 'flex', flexWrap: 'wrap', gap: 'var(--spacing-md)', fontSize: 'var(--font-size-xs)', color: 'var(--color-text-light)', marginBottom: 'var(--spacing-sm)' }}>
-            <span>
-              {lang === 'ja' ? 'AI確認' : 'AI review'}:{' '}
-              {currentQuestion.validityCheckedAt
-                ? <strong style={{ color: 'var(--color-success)' }}>✓ {new Date(currentQuestion.validityCheckedAt).toLocaleDateString('ja-JP', { year: 'numeric', month: '2-digit', day: '2-digit' })}</strong>
-                : <strong>{lang === 'ja' ? '未確認' : 'not reviewed'}</strong>
-              }
-            </span>
-            <span>
-              {lang === 'ja' ? '最終編集' : 'Last edited'}:{' '}
-              <strong style={{ color: (currentQuestion.updatedAt || currentQuestion.createdAt) ? 'var(--color-text-sub)' : 'inherit' }}>
-                {(currentQuestion.updatedAt || currentQuestion.createdAt)
-                  ? new Date((currentQuestion.updatedAt || currentQuestion.createdAt)!).toLocaleDateString('ja-JP', { year: 'numeric', month: '2-digit', day: '2-digit' })
-                  : '-'}
-              </strong>
-            </span>
-          </div>
-          <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 'var(--spacing-sm)' }}>
+          {/* 上段: 中断・通報ボタン（右寄せ） */}
+          <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 'var(--spacing-sm)', marginBottom: 'var(--spacing-sm)' }}>
             <button
               onClick={() => setReportOpen(true)}
               style={{ background: 'none', border: '1px solid var(--color-border)', borderRadius: 'var(--border-radius-full)', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 4, color: 'var(--color-text-light)', fontSize: 'var(--font-size-xs)', padding: '3px 10px', transition: 'all 0.2s' }}
@@ -1010,6 +994,20 @@ export default function ExerciseSession() {
             >
               {lang === 'ja' ? '中断' : 'End'}
             </button>
+          </div>
+          {/* 下段: AI確認情報・問題メタデータ（左寄せ） */}
+          <div style={{ display: 'flex', flexWrap: 'wrap', gap: 'var(--spacing-md)', fontSize: 'var(--font-size-xs)', color: 'var(--color-text-light)' }}>
+            <span>
+              {lang === 'ja' ? 'AI確認' : 'AI review'}:{' '}
+              {currentQuestion.validityCheckedAt
+                ? <strong style={{ color: 'var(--color-success)' }}>✓ {new Date(currentQuestion.validityCheckedAt).toLocaleDateString('ja-JP', { year: 'numeric', month: '2-digit', day: '2-digit' })}</strong>
+                : <strong>{lang === 'ja' ? '未確認' : 'not reviewed'}</strong>
+              }
+            </span>
+            <span>ID: <strong style={{ color: 'var(--color-text-sub)' }}>{currentQuestion.questionId}</strong></span>
+            {currentQuestion.tags?.length > 0 && (
+              <span>{lang === 'ja' ? 'ドメイン' : 'Domain'}: <strong style={{ color: 'var(--color-text-sub)' }}>{currentQuestion.tags.join(', ')}</strong></span>
+            )}
           </div>
         </div>
       </Card>
