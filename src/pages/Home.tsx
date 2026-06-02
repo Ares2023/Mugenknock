@@ -1815,7 +1815,7 @@ export default function Home() {
         const pct = dailyGoalVal > 0 ? Math.min(100, (todayCount / dailyGoalVal) * 100) : 0;
         const achieved = todayCount >= dailyGoalVal;
         return (
-          <Card padding="12px 20px">
+          <Card padding="12px 20px" style={{ marginBottom: 'var(--spacing-md)' }}>
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8 }}>
               <span style={{ fontSize: 11, fontWeight: 700, color: 'var(--color-text-sub)', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
                 {ja ? '本日の目標' : "Today's Goal"}

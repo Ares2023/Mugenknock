@@ -49,7 +49,7 @@
   --bar-gradient-success: linear-gradient(90deg, #037f0c, #22c55e);
   --bar-gradient-caution: linear-gradient(90deg, #ca8a04, #fbbf24);
   --bar-gradient-danger:  linear-gradient(90deg, #d13212, #f87171);
-  --bar-gradient-teal:    linear-gradient(90deg, #007a7a, #009E9E);
+  --bar-gradient-teal:    linear-gradient(90deg, #00a8a8, #00cccc);
 
   /* Semantic feedback colors */
   --color-feedback-correct-bg: #f2fcf3;
