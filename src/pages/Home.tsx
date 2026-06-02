@@ -1807,30 +1807,6 @@ export default function Home() {
 
       </Card>
 
-      {/* ── 本日の目標演習量 ── */}
-      {targetExam && (() => {
-        const jstDate = new Date(Date.now() + 9 * 3600 * 1000).toISOString().slice(0, 10);
-        const todayCount = parseInt(localStorage.getItem(`dailyQCount_${targetExam}_${uid}_${jstDate}`) ?? '0', 10);
-        const dailyGoalVal = parseInt(localStorage.getItem(`dailyGoal_${uid}`) ?? '10', 10);
-        const pct = dailyGoalVal > 0 ? Math.min(100, (todayCount / dailyGoalVal) * 100) : 0;
-        const achieved = todayCount >= dailyGoalVal;
-        return (
-          <Card padding="12px 20px" style={{ marginBottom: 'var(--spacing-md)', cursor: 'pointer' }} onClick={() => navigate('/aws/mypage')}>
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8 }}>
-              <span style={{ fontSize: 11, fontWeight: 700, color: 'var(--color-text-sub)', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
-                {ja ? '本日の目標' : "Today's Goal"}
-              </span>
-              <span style={{ fontSize: 12, fontWeight: 700, color: achieved ? '#009E9E' : 'var(--color-text-main)' }}>
-                {todayCount} / {dailyGoalVal}{ja ? '問' : 'Q'}{achieved && ' ✓'}
-              </span>
-            </div>
-            <div style={{ height: 6, background: 'var(--color-border)', borderRadius: 3, overflow: 'hidden' }}>
-              <div style={{ width: `${pct}%`, height: '100%', borderRadius: 3, background: 'var(--bar-gradient-teal)', transformOrigin: 'left center', animation: 'growWidth 0.45s cubic-bezier(0.34, 1.56, 0.64, 1) 300ms both' }} />
-            </div>
-          </Card>
-        );
-      })()}
-
       {/* ── 日めくりAWSサービス ── */}
       <TodayServiceSection
         lang={lang}
