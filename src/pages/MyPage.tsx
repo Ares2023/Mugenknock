@@ -285,11 +285,11 @@ export default function MyPage() {
 
   // ── UI helpers ──
   const tabStyle = (active: boolean): React.CSSProperties => ({
-    background: 'none', border: 'none', cursor: 'pointer',
-    padding: '8px 16px', fontSize: 13, fontWeight: active ? 700 : 400,
+    flex: 1, padding: '10px 0', border: 'none', background: 'none', cursor: 'pointer',
+    fontSize: 'var(--font-size-base)', fontWeight: active ? 700 : 500,
     color: active ? 'var(--color-primary)' : 'var(--color-text-sub)',
     borderBottom: `2px solid ${active ? 'var(--color-primary)' : 'transparent'}`,
-    marginBottom: -1, transition: 'color 0.15s',
+    transition: 'color 0.15s, border-color 0.15s',
   });
 
   const domains = EXAM_DOMAINS[targetExam ?? ''] ?? [];
@@ -301,18 +301,6 @@ export default function MyPage() {
       </Helmet>
 
       <div style={{ maxWidth: 680, margin: '0 auto', padding: '0 var(--spacing-md) var(--spacing-xl)' }}>
-
-        {/* ── ページタイトル ── */}
-        <div style={{ padding: '16px 0 12px', display: 'flex', alignItems: 'center', gap: 8 }}>
-          <span style={{ fontWeight: 700, fontSize: 18, color: 'var(--color-text-main)' }}>
-            {ja ? 'マイページ' : 'My Page'}
-          </span>
-          {targetExam && (
-            <span style={{ fontSize: 12, color: 'var(--color-text-sub)', fontWeight: 600, background: 'var(--color-bg-main)', borderRadius: 'var(--border-radius-full)', padding: '2px 10px' }}>
-              {targetExam}
-            </span>
-          )}
-        </div>
 
         {/* ── タブ ── */}
         <div style={{ display: 'flex', borderBottom: '1px solid var(--color-border)', marginBottom: 16 }}>
