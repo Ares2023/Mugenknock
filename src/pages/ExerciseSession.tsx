@@ -819,13 +819,27 @@ export default function ExerciseSession() {
                 className={lastSelected === choice && isSelected && !answered ? 'choice-select-anim' : ''}
               >
                 <div style={{ display: 'flex', alignItems: 'flex-start', gap: 8 }}>
-                  <input
-                    type={currentQuestion.isMultiple ? 'checkbox' : 'radio'}
-                    checked={isSelected}
-                    readOnly
-                    tabIndex={-1}
-                    style={{ margin: 0, marginTop: 3, flexShrink: 0, pointerEvents: 'none', accentColor: 'var(--color-primary)' }}
-                  />
+                  {currentQuestion.isMultiple ? (
+                    <div style={{
+                      width: 16, height: 16, borderRadius: 3, flexShrink: 0, marginTop: 3,
+                      border: `2px solid ${isSelected ? 'var(--color-primary)' : 'var(--color-border)'}`,
+                      background: isSelected ? 'var(--color-primary)' : 'transparent',
+                      display: 'flex', alignItems: 'center', justifyContent: 'center',
+                      pointerEvents: 'none',
+                    }}>
+                      {isSelected && <span style={{ color: 'white', fontSize: 10, lineHeight: 1, fontWeight: 700 }}>✓</span>}
+                    </div>
+                  ) : (
+                    <div style={{
+                      width: 16, height: 16, borderRadius: '50%', flexShrink: 0, marginTop: 3,
+                      border: `2px solid ${isSelected ? 'var(--color-primary)' : 'var(--color-border)'}`,
+                      background: isSelected ? 'var(--color-primary)' : 'transparent',
+                      display: 'flex', alignItems: 'center', justifyContent: 'center',
+                      pointerEvents: 'none',
+                    }}>
+                      {isSelected && <div style={{ width: 6, height: 6, borderRadius: '50%', background: 'white' }} />}
+                    </div>
+                  )}
                   <span style={{ flex: 1, minWidth: 0, overflowWrap: 'break-word', wordBreak: 'break-word', lineHeight: 1.55 }}>
                     <strong style={{ marginRight: 2 }}>{CHOICE_LABELS[idx]}.</strong> {stripLabel(choice)}
                   </span>
