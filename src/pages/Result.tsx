@@ -268,7 +268,7 @@ export default function Result() {
                         }));
                         const sorted = [...items.filter((x: any) => x.isCorrect), ...items.filter((x: any) => !x.isCorrect)];
                         return (
-                          <div style={{ marginTop: 8, display: 'flex', flexDirection: 'column', gap: 8, fontSize: 'var(--font-size-sm)' }}>
+                          <div style={{ marginTop: 8, display: 'flex', flexDirection: 'column', gap: 8, fontSize: 'var(--font-size-base)' }}>
                             {sorted.map((item: any) => (
                               <div key={item.ci} style={{ overflowWrap: 'break-word', wordBreak: 'break-word' }}>
                                 <span style={{ fontWeight: 700, color: item.isCorrect ? 'var(--color-success)' : 'var(--color-text-sub)', marginRight: 4 }}>

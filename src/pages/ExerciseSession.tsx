@@ -934,7 +934,7 @@ export default function ExerciseSession() {
                   }));
                   const sorted = [...items.filter(x => x.isCorrect), ...items.filter(x => !x.isCorrect)];
                   return (
-                    <div style={{ marginTop: 8, display: 'flex', flexDirection: 'column', gap: 8, fontSize: 'var(--font-size-sm)' }}>
+                    <div style={{ marginTop: 8, display: 'flex', flexDirection: 'column', gap: 8, fontSize: 'var(--font-size-base)' }}>
                       {sorted.map(item => (
                         <div key={item.di} style={{ overflowWrap: 'break-word', wordBreak: 'break-word' }}>
                           <span style={{ fontWeight: 700, color: item.isCorrect ? 'var(--color-success)' : 'var(--color-text-sub)', marginRight: 4 }}>
