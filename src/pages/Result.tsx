@@ -249,7 +249,7 @@ export default function Result() {
                       );
                     })}
                   </div>
-                  {(q.explanation || (q.choiceExplanations && q.choiceExplanations.length > 0)) && (
+                  {q.choiceExplanations && q.choiceExplanations.length > 0 && (
                     <div style={{
                       background: 'var(--color-primary-light)',
                       borderRadius: 'var(--border-radius-md)',
@@ -258,12 +258,12 @@ export default function Result() {
                       lineHeight: 1.6
                     }}>
                       <strong style={{ fontSize: 'var(--font-size-sm)', color: 'var(--color-primary)' }}>{t('result.explanation')}</strong>
-                      {q.choiceExplanations && q.choiceExplanations.length > 0 ? (() => {
+                      {(() => {
                         const LABELS = ['A', 'B', 'C', 'D', 'E'];
                         const items = (q.choices ?? []).map((c: string, ci: number) => ({
                           ci,
                           label: LABELS[ci],
-                          isCorrect: (q.correctAnswerIndices ?? []).includes(ci) || (q.correctAnswers ?? []).includes(c),
+                          isCorrect: (q.correctAnswerIndices ?? []).includes(ci),
                           expl: q.choiceExplanations[ci] ?? '',
                         }));
                         const sorted = [...items.filter((x: any) => x.isCorrect), ...items.filter((x: any) => !x.isCorrect)];
@@ -285,9 +285,7 @@ export default function Result() {
                             ))}
                           </div>
                         );
-                      })() : (
-                        <div style={{ marginTop: 8, fontSize: 'var(--font-size-sm)', overflowWrap: 'break-word', wordBreak: 'break-word', whiteSpace: 'pre-wrap' }}>{lang === 'en' && q.explanationEn ? q.explanationEn : q.explanation}</div>
-                      )}
+                      })()}
                       {(() => {
                         const links = getServiceLinks(q.tags ?? []);
                         if (links.length === 0) return null;
