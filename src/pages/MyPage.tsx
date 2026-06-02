@@ -537,7 +537,7 @@ export default function MyPage() {
                           return recent.filter(Boolean).length / total;
                         };
                         return getPct(a) - getPct(b);
-                      }).map(domain => {
+                      }).map((domain, i) => {
                         const stat = domainStats.find(s => s.tagId === domain);
                         const recent = stat?.recentResults ?? [];
                         const correct = recent.filter(Boolean).length;
@@ -546,7 +546,7 @@ export default function MyPage() {
                         const isWeak = pct !== null && pct < DOMAIN_RATE_WARNING * 100;
                         const isFair = pct !== null && pct < DOMAIN_RATE_CAUTION * 100 && !isWeak;
                         const color = pct === null ? 'var(--color-text-light)' : isWeak ? 'var(--color-danger)' : isFair ? 'var(--color-caution)' : 'var(--color-success)';
-                        const barColor = pct === null ? 'var(--color-bg-main)' : isWeak ? 'var(--color-danger)' : isFair ? 'var(--color-caution)' : 'var(--color-success)';
+                        const barGradient = isWeak ? 'var(--bar-gradient-danger)' : isFair ? 'var(--bar-gradient-caution)' : 'var(--bar-gradient-success)';
                         const domainLabel = lang === 'en' ? (DOMAIN_NAME_EN[domain] ?? domain) : domain;
                         return (
                           <div key={domain} style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
@@ -560,7 +560,7 @@ export default function MyPage() {
                                 </span>
                               </div>
                               <div style={{ height: 6, borderRadius: 3, background: 'var(--color-bg-main)', overflow: 'hidden' }}>
-                                {pct !== null && <div style={{ height: '100%', width: `${pct}%`, background: barColor, borderRadius: 3, transition: 'width 0.3s' }} />}
+                                {pct !== null && <div style={{ height: '100%', width: `${pct}%`, background: barGradient, borderRadius: 3, transformOrigin: 'left center', animation: `growWidth 0.45s cubic-bezier(0.34, 1.56, 0.64, 1) ${i * 30}ms both` }} />}
                               </div>
                             </div>
                             <div style={{ display: 'flex', gap: 2, flexShrink: 0 }}>
