@@ -5,6 +5,7 @@ import { useLanguage } from '../contexts/LanguageContext';
 import { useTheme } from '../contexts/ThemeContext';
 import { API_ENDPOINT, EXAM_TYPES, EXAM_CONFIGS, EXAM_LEVEL } from '../constants';
 import { getPoints, fetchPointsFromServer } from '../utils/points';
+import { loadTargetExamFromServer } from '../utils/preferences';
 import Breadcrumb from './Breadcrumb';
 import Button from './ui/Button';
 import {
@@ -208,13 +209,20 @@ export default function Layout({ children }: { children: React.ReactNode }) {
     };
   }, [uid]);
 
-  // ログイン済みのときサーバーからポイントを取得してローカルを上書き
+  // ログイン済みのときサーバーからポイントと設定を取得してローカルを上書き
   useEffect(() => {
     if (!user) return;
     fetchPointsFromServer(uid).then(pts => {
       if (pts === null) return;
       localStorage.setItem(`userPoints_${uid}`, String(pts));
       setPoints(pts);
+    });
+    loadTargetExamFromServer(user.userId, uid).then(serverExam => {
+      if (serverExam) {
+        setTargetExam(serverExam);
+        const te = serverExam;
+        setExamDate(te ? localStorage.getItem(`examDate_${te}_${uid}`) : null);
+      }
     });
   }, [user?.userId]); // eslint-disable-line react-hooks/exhaustive-deps
 
@@ -475,9 +483,9 @@ export default function Layout({ children }: { children: React.ReactNode }) {
         {/* サービス名 */}
         <div onClick={() => navigate('/aws/')} style={{ display: 'flex', alignItems: 'center', cursor: 'pointer', userSelect: 'none', flexShrink: 0, padding: '0 4px' }}>
           <img
-            src={isMobile ? '/mugen-icon.png' : '/mugen-header.png'}
+            src={isMobile ? '/mugen-text.png' : '/mugen-header.png'}
             alt="無限ノック"
-            style={{ height: isMobile ? 32 : 36, width: 'auto', display: 'block' }}
+            style={{ height: isMobile ? 28 : 36, width: 'auto', display: 'block' }}
           />
         </div>
 
@@ -533,7 +541,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
 
       {/* ── サブバー（ハンバーガー＋パンくず） ── */}
       {/* モバイルでは目標ボタンが表示される場合のみサブバーを描画 */}
-      {(!isMobile || (!!targetExam && !isOthersActive && !['/aws/exercise/session', '/aws/exam/session', '/aws/mypage'].includes(location.pathname))) && (
+      {(!isMobile || (!!targetExam && !isOthersActive && !['/aws/exercise/session', '/aws/exam/session'].includes(location.pathname))) && (
       <div style={{
         height: 40, minHeight: 40, background: 'var(--color-bg-white)',
         display: 'flex', alignItems: 'center', padding: '0 var(--spacing-sm)',
@@ -567,7 +575,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
             )}
           </div>
         )}
-        {targetExam && !(isMobile && isOthersActive) && !(['/aws/exercise/session', '/aws/exam/session', '/aws/mypage'].includes(location.pathname)) && (
+        {targetExam && !(isMobile && isOthersActive) && !(['/aws/exercise/session', '/aws/exam/session'].includes(location.pathname)) && (
           <button
             onClick={() => navigate('/aws/exam-dashboard')}
             title="資格ダッシュボード"
@@ -593,11 +601,11 @@ export default function Layout({ children }: { children: React.ReactNode }) {
               maxWidth: isMobile ? 'none' : '40vw',
               padding: '0 4px 0 8px',
             }}>
-              {`設定目標：${isMobile ? targetExam : (EXAM_CONFIGS[targetExam]?.fullName ?? targetExam)}`}
+              {`設定目標：${isMobile ? `AWS ${targetExam}` : (EXAM_CONFIGS[targetExam]?.fullName ?? targetExam)}`}
               {examDate && (() => {
                 const days = daysUntilExam(examDate);
                 if (days === 0) return <span style={{ color: 'var(--color-text-sub)', fontWeight: 700 }}>（試験当日！ファイト🔥）</span>;
-                if (days > 0) return <span>（あと<span style={{ color: '#2563eb', fontWeight: 800 }}>{days}</span>日！）</span>;
+                if (days > 0) return <span>（あと<span style={{ color: 'var(--color-primary)', fontWeight: 800 }}>{days}</span>日！）</span>;
                 return null;
               })()}
             </span>

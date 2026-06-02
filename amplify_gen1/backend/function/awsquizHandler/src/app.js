@@ -112,6 +112,13 @@ app.get('/health', (req, res) => {
   res.json({ status: 'ok' });
 });
 
+// クライアントエラーレポート（CloudWatch Logs に記録するだけ）
+app.post('/errors', (req, res) => {
+  const { type, message, stack, url, ua, ts, componentStack } = req.body || {};
+  console.error(JSON.stringify({ level: 'CLIENT_ERROR', type, message, stack, url, ua, ts, componentStack }));
+  res.status(204).end();
+});
+
 // 問題生成・チェック状況（日次/月次集計）
 app.get('/questions/growth-stats', async (req, res) => {
   try {
@@ -1946,6 +1953,68 @@ app.put('/users/me/points', async (req, res) => {
       Item: { userId, points: safePoints, updatedAt: new Date().toISOString() },
     }));
     res.json({ points: safePoints });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+// ── ユーザー設定（目標資格などのデバイス間同期） ──
+
+app.get('/users/me/preferences', async (req, res) => {
+  try {
+    const { userId } = req.query;
+    if (!userId) return res.status(400).json({ error: 'userId required' });
+    const docClient = getClient();
+    const result = await docClient.send(new GetCommand({
+      TableName: 'AppSettings',
+      Key: { settingId: `userPrefs_${userId}` },
+    }));
+    res.json({
+      targetExam: result.Item?.targetExam ?? null,
+      examDates:  result.Item?.examDates  ?? {},
+      dailyGoal:  result.Item?.dailyGoal  ?? null,
+    });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+app.put('/users/me/preferences', async (req, res) => {
+  try {
+    const { userId, targetExam, examDates, dailyGoal } = req.body;
+    if (!userId) return res.status(400).json({ error: 'userId required' });
+    const docClient = getClient();
+
+    const sets = ['updatedAt = :now'];
+    const names = {};
+    const values = { ':now': new Date().toISOString() };
+
+    if (targetExam !== undefined) {
+      sets.push('#targetExam = :targetExam');
+      names['#targetExam'] = 'targetExam';
+      values[':targetExam'] = targetExam ?? null;
+    }
+    if (examDates !== undefined) {
+      sets.push('#examDates = :examDates');
+      names['#examDates'] = 'examDates';
+      values[':examDates'] = examDates;
+    }
+    if (dailyGoal !== undefined) {
+      sets.push('#dailyGoal = :dailyGoal');
+      names['#dailyGoal'] = 'dailyGoal';
+      values[':dailyGoal'] = dailyGoal;
+    }
+
+    await docClient.send(new UpdateCommand({
+      TableName: 'AppSettings',
+      Key: { settingId: `userPrefs_${userId}` },
+      UpdateExpression: 'SET ' + sets.join(', '),
+      ExpressionAttributeNames: Object.keys(names).length ? names : undefined,
+      ExpressionAttributeValues: values,
+    }));
+    res.json({ ok: true });
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: 'Internal server error' });

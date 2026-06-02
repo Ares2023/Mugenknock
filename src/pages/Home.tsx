@@ -1,7 +1,7 @@
 import React, { useEffect, useLayoutEffect, useState, useMemo, useRef, useCallback } from 'react';
 import { Helmet } from 'react-helmet-async';
 import { createPortal } from 'react-dom';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import DailyServiceRevealModal from '../components/DailyServiceRevealModal';
 import { useAuth } from '../contexts/AuthContext';
 import { useLanguage } from '../contexts/LanguageContext';
@@ -17,6 +17,7 @@ import Button from '../components/ui/Button';
 import { IconLightbulb, IconSettings, IconChevronUp, IconChevronDown, IconLock, IconFileText, IconTrendingUp, IconBookOpen, IconCheck, IconSparkles, IconPointer, IconMousePointerClick, IconCalendarNotebook, IconRefreshCw, ServiceIconImg, isServiceIconKey } from '../components/Icons';
 import { CATALOG } from '../data/awsServiceCatalog';
 import { autoScoreAndClearDrafts } from '../utils/sessionUtils';
+import { syncTargetExamToServer, loadTargetExamFromServer } from '../utils/preferences';
 
 type DomainStat = { tagId: string; correctCount?: number; incorrectCount?: number; recentResults?: boolean[] };
 type SessionEntry = { correct: number; total: number };
@@ -138,15 +139,15 @@ function SessionScoreChart({ data, passScore, lang = 'ja' }: { data: number[]; p
           <text x={PL + iW + 2} y={cy(passScore) + 3} fontSize={8} fill="#f59e0b" fontWeight="bold">{lang === 'ja' ? '合格' : 'Pass'}</text>
         </>
       )}
-      <path d={pathD} fill="none" stroke="var(--color-secondary)" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round"
+      <path d={pathD} fill="none" stroke="var(--color-accent)" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round"
         strokeDasharray={totalLength2} strokeDashoffset={totalLength2}>
         <animate attributeName="stroke-dashoffset" from={String(totalLength2)} to="0" dur={`${totalLineDur2}s`} fill="freeze" />
       </path>
       {data.map((s, i) => (
         <g key={i} opacity={0}>
           <animate attributeName="opacity" from="0" to="1" dur="0.01s" begin={`${i * stagger2}s`} fill="freeze" />
-          <text x={cx(i)} y={cy(s) - 6} fontSize={8} fill="var(--color-secondary)" textAnchor="middle" fontWeight="bold">{s}</text>
-          <circle cx={cx(i)} cy={cy(s)} r={0} fill="var(--color-secondary)">
+          <text x={cx(i)} y={cy(s) - 6} fontSize={8} fill="var(--color-accent)" textAnchor="middle" fontWeight="bold">{s}</text>
+          <circle cx={cx(i)} cy={cy(s)} r={0} fill="var(--color-accent)">
             <animate attributeName="r" values="0;4;3" keyTimes="0;0.65;1" dur={`${nodeDur2}s`} begin={`${i * stagger2}s`} fill="freeze" />
           </circle>
           {i === data.length - 1 && (
@@ -383,10 +384,18 @@ function CombinedDetailModal({ targetExam, domainAccList, estimatedScore, passSc
             }
             const medalEmoji = ['🥇', '🥈', '🥉'];
             return (
+              <>
+                <style>{`
+                  @keyframes hiscore-slide-up {
+                    from { opacity: 0; transform: translateY(18px); }
+                    to   { opacity: 1; transform: translateY(0); }
+                  }
+                `}</style>
               <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
                 {top5.map((entry, rank) => {
                   const medalColor = rank === 0 ? '#F59E0B' : rank === 1 ? '#9CA3AF' : rank === 2 ? '#B45309' : 'var(--color-text-light)';
                   const isPass = passScore !== null && entry.score >= passScore;
+                  const delay = (top5.length - 1 - rank) * 0.08;
                   return (
                     <div key={entry.date} style={{
                       display: 'flex', alignItems: 'center', gap: 12,
@@ -394,6 +403,8 @@ function CombinedDetailModal({ targetExam, domainAccList, estimatedScore, passSc
                       background: rank === 0 ? 'rgba(245,158,11,0.06)' : 'var(--color-bg-main)',
                       borderRadius: 8,
                       border: rank === 0 ? '1px solid rgba(245,158,11,0.2)' : '1px solid transparent',
+                      animation: `hiscore-slide-up 0.35s ease both`,
+                      animationDelay: `${delay}s`,
                     }}>
                       <span style={{ fontSize: 16, fontWeight: 900, color: medalColor, minWidth: 24, textAlign: 'center' }}>
                         {rank < 3 ? medalEmoji[rank] : `${rank + 1}`}
@@ -416,6 +427,7 @@ function CombinedDetailModal({ targetExam, domainAccList, estimatedScore, passSc
                   );
                 })}
               </div>
+              </>
             );
           })()
         )}
@@ -1132,6 +1144,7 @@ export default function Home() {
   const { user } = useAuth();
   const { lang } = useLanguage();
   const navigate = useNavigate();
+  const location = useLocation();
   const ja = lang === 'ja';
   const uid = user?.userId ?? 'guest';
 
@@ -1548,14 +1561,14 @@ export default function Home() {
       const allItems: any[] = (data.items ?? []).filter((q: any) => !!q.validityCheckedAt);
       const incorrectIds = new Set<string>(incorrectRes.questionIds ?? []);
       const focusIncorrect: boolean = fPrefs.focusIncorrect !== false;
-      const focusDomain: string = fPrefs.focusDomain ?? 'below70';
+      const focusDomain: string = fPrefs.focusDomain ?? 'below60';
 
       let items: any[] = [];
       if (focusIncorrect) {
         items = allItems.filter((q: any) => incorrectIds.has(q.questionId));
       }
       if (focusDomain !== 'none') {
-        const threshold = focusDomain === 'below50' ? 0.50 : 0.70;
+        const threshold = focusDomain === 'below40' ? 0.40 : focusDomain === 'below50' ? 0.50 : focusDomain === 'below70' ? 0.70 : 0.60;
         const examDomains = EXAM_DOMAINS[targetExam] ?? [];
         const weakDomains = new Set<string>(((): string[] => {
           const hist = readDomainHistory(targetExam, uid);
@@ -1597,6 +1610,14 @@ export default function Home() {
     } catch (err) { console.error(err); alert(ja ? '演習の開始に失敗しました' : 'Failed to start exercise'); }
     finally { setFocusedLoading(false); setFocusedLoadPct(0); }
   };
+
+  // マイページの「しっかり対策を開始する」ボタンから遷移してきた場合に自動起動
+  useEffect(() => {
+    if ((location.state as any)?.startFocused && user && targetExam && focusedUnlockedCached) {
+      window.history.replaceState({}, '', location.pathname);
+      startFocusedExercise();
+    }
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   // ドメイン別成績（サーバー統計優先、ゲスト/オフライン時はローカル履歴）
   const domains = useMemo(() => targetExam ? (EXAM_DOMAINS[targetExam] ?? []) : [], [targetExam]);
@@ -2285,11 +2306,11 @@ export default function Home() {
                     {ja ? '苦手ドメインフィルタ' : 'Weak Domain Filter'}
                   </div>
                   {([
-                    ['none',    ja ? '絞り込まない' : 'Off',              ja ? 'ドメインによる絞り込みをしない' : 'No domain filtering'],
-                    ['below70', ja ? '正答率70%以下のドメイン' : 'Below 70%', ja ? '正答率70%未満のドメインの問題を優先出題' : 'Prioritize questions from domains below 70%'],
-                    ['below50', ja ? '正答率50%以下のドメイン' : 'Below 50%', ja ? '正答率50%未満のドメインの問題を優先出題' : 'Prioritize questions from domains below 50%'],
+                    ['none',    ja ? '絞り込まない' : 'Off',                ja ? 'ドメインによる絞り込みをしない' : 'No domain filtering'],
+                    ['below60', ja ? '正答率60%以下のドメイン（3/5問）' : 'Below 60%', ja ? '正答率60%未満のドメインの問題を優先出題' : 'Prioritize questions from domains below 60%'],
+                    ['below40', ja ? '正答率40%以下のドメイン（2/5問）' : 'Below 40%', ja ? '正答率40%未満のドメインの問題を優先出題' : 'Prioritize questions from domains below 40%'],
                   ] as [string, string, string][]).map(([val, label, desc]) => {
-                    const selected = (draftFocusedPrefs.focusDomain ?? 'below70') === val;
+                    const selected = (draftFocusedPrefs.focusDomain ?? 'below60') === val;
                     return (
                       <label key={val} style={{ display: 'flex', alignItems: 'flex-start', gap: 10, padding: '8px 0', cursor: 'pointer' }}>
                         <input
@@ -2335,6 +2356,7 @@ export default function Home() {
           onComplete={(exam) => {
             setTargetExam(exam);
             setShowOnboarding(false);
+            if (user) syncTargetExamToServer(user.userId, uid, exam);
           }}
           onSkip={() => setShowOnboarding(false)}
         />

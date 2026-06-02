@@ -25,6 +25,7 @@ type Question = {
   choices: string[];
   correctAnswers?: string[];
   correctAnswerIndices?: number[];
+  choiceExplanations?: string[];
   explanation?: string;
   tags: string[];
   isMultiple: boolean;
@@ -402,10 +403,15 @@ export default function ExerciseSession() {
   };
 
   const goToQuestion = (i: number) => {
-    if (i >= results.length || i === currentIndex) return;
+    if (i > viewedFrontier || i === currentIndex) return;
     setCurrentIndex(i);
-    setSelectedAnswers(selectionHistory[i] ?? []);
-    setAnswered(true);
+    if (i < results.length) {
+      setSelectedAnswers(selectionHistory[i] ?? []);
+      setAnswered(true);
+    } else {
+      setSelectedAnswers([]);
+      setAnswered(false);
+    }
     setDetail(null);
     setAnswerCountError(null);
   };
@@ -889,7 +895,9 @@ export default function ExerciseSession() {
                     const si = shuffledChoices.findIndex((c: string) => stripLabel(c) === stripLabel(ca));
                     return si >= 0 ? `${CHOICE_LABELS[si]}. ${stripLabel(ca)}` : stripLabel(ca);
                   }).join(', ');
-                  const expl = lang === 'en' && (displayQ as any).explanationEn ? (displayQ as any).explanationEn : (displayQ.explanation ?? '');
+                  const expl = displayQ.choiceExplanations && displayQ.choiceExplanations.length > 0
+                    ? displayQ.choiceExplanations.map((e: string, i: number) => `${CHOICE_LABELS[i]}. ${e}`).join('\n')
+                    : (displayQ.explanation ?? '');
                   return `${currentQuestion.questionText}\n\n${choicesText}\n\n${t('exerciseSession.correctAnswer')}${correctLabels}\n\n${t('exerciseSession.explanation')}\n${expl}`;
                 }} />
               </div>
@@ -902,7 +910,34 @@ export default function ExerciseSession() {
               </p>
               <div style={{ fontSize: 'var(--font-size-base)', lineHeight: 1.6 }}>
                 <strong>{t('exerciseSession.explanation')}</strong>
-                <div style={{ marginTop: 4, overflowWrap: 'break-word', wordBreak: 'break-word', whiteSpace: 'pre-wrap' }}>{remapLabels(lang === 'en' && (displayQ as any).explanationEn ? (displayQ as any).explanationEn : (displayQ.explanation ?? ''))}</div>
+                {(() => {
+                  const items = shuffledChoices.map((_: string, di: number) => ({
+                    di,
+                    origIdx: origIndices[di],
+                    label: CHOICE_LABELS[di],
+                    isCorrect: (displayQ.correctAnswerIndices ?? []).includes(origIndices[di]),
+                    expl: (displayQ.choiceExplanations ?? [])[origIndices[di]] ?? '',
+                  }));
+                  const sorted = [...items.filter(x => x.isCorrect), ...items.filter(x => !x.isCorrect)];
+                  return (
+                    <div style={{ marginTop: 8, display: 'flex', flexDirection: 'column', gap: 6 }}>
+                      {sorted.map(item => (
+                        <div key={item.di} style={{
+                          padding: '8px 12px',
+                          borderRadius: 'var(--border-radius-md)',
+                          background: item.isCorrect ? 'var(--color-feedback-correct-bg)' : 'var(--color-bg-sub)',
+                          border: `1px solid ${item.isCorrect ? 'var(--color-success)' : 'var(--color-border)'}`,
+                          fontSize: 'var(--font-size-sm)',
+                        }}>
+                          <span style={{ fontWeight: 700, color: item.isCorrect ? 'var(--color-success)' : 'var(--color-text-sub)', marginRight: 6 }}>
+                            {item.label}.{item.isCorrect ? ` (${lang === 'ja' ? '正解' : 'Correct'})` : ''}
+                          </span>
+                          <span style={{ overflowWrap: 'break-word', wordBreak: 'break-word', whiteSpace: 'pre-wrap' }}>{item.expl}</span>
+                        </div>
+                      ))}
+                    </div>
+                  );
+                })()}
               </div>
             </div>
           );

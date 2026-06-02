@@ -8,6 +8,7 @@ import Button from '../components/ui/Button';
 import Badge from '../components/ui/Badge';
 import DomainSelector from '../components/DomainSelector';
 import { getCached, setCached, SHORT_TTL } from '../utils/cache';
+import { syncTargetExamToServer } from '../utils/preferences';
 import { IconLightbulb } from '../components/Icons';
 
 const StepBadge = ({ n, optional = false }: { n: number; optional?: boolean }) => (
@@ -65,6 +66,7 @@ export default function ExamSetup() {
     localStorage.setItem(`targetExam_${uid}`, et);
     setTargetExamState(et);
     setExamType(et);
+    if (user) syncTargetExamToServer(user.userId, uid, et);
   };
   const [selectedDomains, setSelectedDomains] = useState<string[]>(() => { const et = localStorage.getItem(`targetExam_${uid}`) || 'SAA'; return loadExamPrefs(et, uid).domains ?? EXAM_DOMAINS[et] ?? []; });
   const [availableCount, setAvailableCount] = useState<number | null>(null);
