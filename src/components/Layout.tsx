@@ -575,7 +575,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
             )}
           </div>
         )}
-        {targetExam && !(isMobile && isOthersActive) && !(['/aws/exercise/session', '/aws/exam/session'].includes(location.pathname)) && (
+        {targetExam && !(isMobile && isOthersActive) && !(['/aws/exercise/session', '/aws/exam/session', '/aws/mypage'].includes(location.pathname)) && (
           <button
             onClick={() => navigate('/aws/mypage')}
             title="マイページ"

@@ -69,7 +69,7 @@ export default function MyPage() {
   const [tab, setTab] = useState<'target' | 'analysis' | 'history'>('target');
   const [showSettingsEdit, setShowSettingsEdit] = useState(false);
   const [editExamDate, setEditExamDate] = useState('');
-  const [editDailyGoal, setEditDailyGoal] = useState(10);
+  const [editDailyGoal, setEditDailyGoal] = useState(10); // min=10
 
   // ── ターゲット試験 ──
   const [targetExam, setTargetExam] = useState<string | null>(() => localStorage.getItem(`targetExam_${uid}`));
@@ -103,7 +103,7 @@ export default function MyPage() {
 
   // ── 日次目標 ──
   const [dailyGoal, setDailyGoal] = useState<number>(() =>
-    parseInt(localStorage.getItem(`dailyGoal_${uid}`) ?? '10', 10)
+    Math.max(10, parseInt(localStorage.getItem(`dailyGoal_${uid}`) ?? '10', 10))
   );
   const handleDailyGoalChange = (v: number) => {
     setDailyGoal(v);
@@ -444,7 +444,7 @@ export default function MyPage() {
                   <div style={{ marginBottom: 24 }}>
                     <div style={{ fontSize: 13, fontWeight: 600, color: 'var(--color-text-sub)', marginBottom: 12 }}>{ja ? '1日の目標演習量' : 'Daily Goal'}</div>
                     <div style={{ display: 'flex', alignItems: 'center', gap: 16, justifyContent: 'center' }}>
-                      <button onClick={() => setEditDailyGoal(v => Math.max(5, v - 5))} disabled={editDailyGoal <= 5} style={{ width: 44, height: 44, borderRadius: '50%', border: '1px solid var(--color-border)', background: 'transparent', cursor: editDailyGoal <= 5 ? 'default' : 'pointer', fontSize: 20, display: 'flex', alignItems: 'center', justifyContent: 'center', color: editDailyGoal <= 5 ? 'var(--color-text-light)' : 'var(--color-text-main)' }}>−</button>
+                      <button onClick={() => setEditDailyGoal(v => Math.max(10, v - 5))} disabled={editDailyGoal <= 10} style={{ width: 44, height: 44, borderRadius: '50%', border: '1px solid var(--color-border)', background: 'transparent', cursor: editDailyGoal <= 10 ? 'default' : 'pointer', fontSize: 20, display: 'flex', alignItems: 'center', justifyContent: 'center', color: editDailyGoal <= 10 ? 'var(--color-text-light)' : 'var(--color-text-main)' }}>−</button>
                       <span style={{ fontSize: 24, fontWeight: 800, minWidth: 64, textAlign: 'center', color: 'var(--color-primary)', fontVariantNumeric: 'tabular-nums' }}>
                         {editDailyGoal}<span style={{ fontSize: 13, fontWeight: 400, marginLeft: 2, color: 'var(--color-text-sub)' }}>{ja ? '問' : 'Q'}</span>
                       </span>
