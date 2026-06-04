@@ -487,6 +487,7 @@ app.put('/admin/questions/:id', async (req, res) => {
 app.get('/admin/questions/summary', async (req, res) => {
   try {
     const docClient = getClient();
+    const { sinceDate } = req.query;
     const items = await scanAll(docClient, {
       TableName: 'Questions',
       ProjectionExpression: 'examType, tags, isHidden, validityCheckedAt, formatCheckedAt',
@@ -504,7 +505,13 @@ app.get('/admin/questions/summary', async (req, res) => {
     }
     const validityCheckedCount = visible.filter(i => i.validityCheckedAt).length;
     const formatCheckedCount   = visible.filter(i => i.formatCheckedAt).length;
-    res.json({ examCounts, domainCounts, totalCount: visible.length, validityCheckedCount, formatCheckedCount });
+    const result = { examCounts, domainCounts, totalCount: visible.length, validityCheckedCount, formatCheckedCount };
+    if (sinceDate && /^\d{4}-\d{2}-\d{2}$/.test(sinceDate)) {
+      const threshold = sinceDate + 'T00:00:00';
+      result.validityCheckedSinceCount = visible.filter(i => i.validityCheckedAt && i.validityCheckedAt >= threshold).length;
+      result.formatCheckedSinceCount   = visible.filter(i => i.formatCheckedAt   && i.formatCheckedAt   >= threshold).length;
+    }
+    res.json(result);
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: 'Internal server error' });

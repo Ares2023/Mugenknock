@@ -245,13 +245,15 @@ function CombinedDetailModal({ targetExam, domainAccList, estimatedScore, passSc
         </div>
 
         {/* タブ */}
-        <div style={{ display: 'flex', gap: 4, marginBottom: 16, borderBottom: '1px solid var(--color-border)', paddingBottom: 0 }}>
+        <div style={{ display: 'flex', gap: isMobile ? 4 : 0, marginBottom: 16, borderBottom: '1px solid var(--color-border)', paddingBottom: 0 }}>
           {tabs.map(t => (
             <button
               key={t.key}
               onClick={() => { setTab(t.key); setShowCalc(false); }}
               style={{
                 background: 'none', border: 'none', cursor: 'pointer',
+                flex: isMobile ? undefined : 1,
+                textAlign: isMobile ? undefined : 'center',
                 padding: '6px 14px', fontSize: 13, fontWeight: tab === t.key ? 700 : 400,
                 color: tab === t.key ? 'var(--color-primary)' : 'var(--color-text-sub)',
                 borderBottom: `2px solid ${tab === t.key ? 'var(--color-primary)' : 'transparent'}`,

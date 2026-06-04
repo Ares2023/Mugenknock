@@ -326,15 +326,18 @@ export default function Admin() {
   const [releaseForm, setReleaseForm] = useState({ date: '', title: '', body: '' });
   const [showReleaseForm, setShowReleaseForm] = useState(false);
 
-  const fetchSummary = useCallback(async () => {
+  const fetchSummary = useCallback(async (sd?: string) => {
     try {
-      const res = await adminFetch(`${API_ENDPOINT}/admin/questions/summary`);
+      const params = sd ? `?sinceDate=${encodeURIComponent(sd)}` : '';
+      const res = await adminFetch(`${API_ENDPOINT}/admin/questions/summary${params}`);
       if (!res.ok) return;
       const data = await res.json();
       setExamCounts(data.examCounts || {});
       setDomainCountsByExam(data.domainCounts || {});
       if (data.validityCheckedCount != null) setValidityCheckedCount(data.validityCheckedCount);
       if (data.formatCheckedCount   != null) setFormatCheckedCount(data.formatCheckedCount);
+      setValidityCheckedSinceCount(data.validityCheckedSinceCount ?? null);
+      setFormatCheckedSinceCount(data.formatCheckedSinceCount ?? null);
     } catch (err) {
       console.error(err);
     }
@@ -510,6 +513,9 @@ export default function Admin() {
   const [domainCountsByExam, setDomainCountsByExam] = useState<Record<string, Record<string, number>>>({});
   const [validityCheckedCount, setValidityCheckedCount] = useState<number | null>(null);
   const [formatCheckedCount, setFormatCheckedCount] = useState<number | null>(null);
+  const [sinceDate, setSinceDate] = useState('');
+  const [validityCheckedSinceCount, setValidityCheckedSinceCount] = useState<number | null>(null);
+  const [formatCheckedSinceCount, setFormatCheckedSinceCount] = useState<number | null>(null);
 
   // 問題編集
   const EMPTY_EDIT_FORM: EditForm = { examType: 'SAA', domain: '', questionText: '', questionTextEn: '', choices: ['', '', '', ''], choicesEn: ['', '', '', ''], correctAnswers: [], explanation: '', explanationEn: '', tags: '', isMultiple: false };
@@ -630,8 +636,11 @@ export default function Admin() {
     setCurrentPage(0);
     fetchQuestions(0);
     setSelectedIds(new Set());
-    if (examFilter === 'ALL') fetchSummary();
-  }, [examFilter, keyword, tagFilter, domainFilter, sortBy]);
+    if (examFilter === 'ALL') fetchSummary(sinceDate || undefined);
+  }, [examFilter, keyword, tagFilter, domainFilter, sortBy]); // eslint-disable-line react-hooks/exhaustive-deps
+  useEffect(() => {
+    if (examFilter === 'ALL') fetchSummary(sinceDate || undefined);
+  }, [sinceDate]); // eslint-disable-line react-hooks/exhaustive-deps
   useEffect(() => { if (tab === 'reports') fetchReports(); }, [tab]);
   useEffect(() => { if (tab === 'tips') fetchTips(); }, [tab]);
   useEffect(() => { if (tab === 'releases') fetchReleases(); }, [tab]);
@@ -1104,31 +1113,54 @@ export default function Admin() {
           {/* ヘッダー行 */}
           <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: 10 }}>
             <button
-              onClick={() => { fetchQuestions(currentPage); fetchSummary(); }}
+              onClick={() => { fetchQuestions(currentPage); fetchSummary(sinceDate || undefined); }}
               style={{ padding: '5px 14px', background: 'transparent', color: 'var(--color-primary)', border: '1.5px solid var(--color-primary)', borderRadius: 9999, cursor: 'pointer', fontSize: 13, fontWeight: 700 }}>
               更新
             </button>
           </div>
           {/* カバレッジ */}
           {totalCount > 0 && (validityCheckedCount != null || formatCheckedCount != null) && (
-            <div style={{ display: 'flex', gap: 16, marginBottom: 14, flexWrap: 'wrap' }}>
-              {[
-                { label: 'AI確認', count: validityCheckedCount, color: 'var(--color-primary)' },
-                { label: '体裁確認', count: formatCheckedCount, color: '#009E9E' },
-              ].map(({ label, count, color }) => count == null ? null : (
-                <div key={label} style={{ flex: '1 1 200px', minWidth: 200 }}>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 12, color: 'var(--color-text-sub)', marginBottom: 4 }}>
-                    <span style={{ fontWeight: 600 }}>{label}</span>
-                    <span style={{ fontVariantNumeric: 'tabular-nums' }}>
-                      {count.toLocaleString()} / {totalCount.toLocaleString()}
-                      <span style={{ marginLeft: 6, fontWeight: 700, color }}>{Math.round(count / totalCount * 100)}%</span>
-                    </span>
+            <div style={{ marginBottom: 14 }}>
+              <div style={{ display: 'flex', gap: 16, flexWrap: 'wrap', marginBottom: 8 }}>
+                {[
+                  { label: 'AI確認', count: validityCheckedCount, sinceCount: validityCheckedSinceCount, color: 'var(--color-primary)' },
+                  { label: '体裁確認', count: formatCheckedCount, sinceCount: formatCheckedSinceCount, color: '#009E9E' },
+                ].map(({ label, count, sinceCount, color }) => count == null ? null : (
+                  <div key={label} style={{ flex: '1 1 200px', minWidth: 200 }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 12, color: 'var(--color-text-sub)', marginBottom: 4 }}>
+                      <span style={{ fontWeight: 600 }}>{label}</span>
+                      <span style={{ fontVariantNumeric: 'tabular-nums' }}>
+                        {count.toLocaleString()} / {totalCount.toLocaleString()}
+                        <span style={{ marginLeft: 6, fontWeight: 700, color }}>{Math.round(count / totalCount * 100)}%</span>
+                      </span>
+                    </div>
+                    <div style={{ height: 6, borderRadius: 9999, background: 'var(--color-border)', overflow: 'hidden' }}>
+                      <div style={{ height: '100%', borderRadius: 9999, background: color, width: `${Math.min(100, count / totalCount * 100)}%`, transition: 'width 0.4s' }} />
+                    </div>
+                    {sinceDate && sinceCount != null && (
+                      <div style={{ marginTop: 4, display: 'flex', justifyContent: 'space-between', fontSize: 11, color: 'var(--color-text-sub)' }}>
+                        <span>{sinceDate.replace(/^(\d{4})-(\d{2})-(\d{2})$/, '$2/$3')}以降</span>
+                        <span style={{ fontVariantNumeric: 'tabular-nums' }}>
+                          {sinceCount.toLocaleString()} / {totalCount.toLocaleString()}
+                          <span style={{ marginLeft: 6, fontWeight: 700, color }}>{Math.round(sinceCount / totalCount * 100)}%</span>
+                        </span>
+                      </div>
+                    )}
                   </div>
-                  <div style={{ height: 6, borderRadius: 9999, background: 'var(--color-border)', overflow: 'hidden' }}>
-                    <div style={{ height: '100%', borderRadius: 9999, background: color, width: `${Math.min(100, count / totalCount * 100)}%`, transition: 'width 0.4s' }} />
-                  </div>
-                </div>
-              ))}
+                ))}
+              </div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 12, color: 'var(--color-text-sub)' }}>
+                <span>確認済み（日付以降）:</span>
+                <input
+                  type="date"
+                  value={sinceDate}
+                  onChange={e => setSinceDate(e.target.value)}
+                  style={{ fontSize: 12, padding: '2px 6px', border: '1px solid var(--color-border)', borderRadius: 6, color: 'var(--color-text-main)', background: 'var(--color-bg-white)', cursor: 'pointer' }}
+                />
+                {sinceDate && (
+                  <button onClick={() => setSinceDate('')} style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: 12, color: 'var(--color-text-light)', padding: '2px 4px' }}>✕</button>
+                )}
+              </div>
             </div>
           )}
 
