@@ -327,8 +327,13 @@ export default function ExerciseSession() {
 
   useEffect(() => {
     if (!sessionId) return;
+    // beforeunload: PC/Android、pagehide: iOS Safari でより確実
     window.addEventListener('beforeunload', saveDraftNow);
-    return () => window.removeEventListener('beforeunload', saveDraftNow);
+    window.addEventListener('pagehide', saveDraftNow);
+    return () => {
+      window.removeEventListener('beforeunload', saveDraftNow);
+      window.removeEventListener('pagehide', saveDraftNow);
+    };
   }, [saveDraftNow]);
 
   const currentQuestion = questions[currentIndex];
