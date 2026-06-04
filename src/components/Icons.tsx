@@ -402,8 +402,10 @@ const SERVICE_ICON_PATHS: Record<string, React.ReactNode> = {
   'book': <><path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H20v20H6.5a2.5 2.5 0 0 1 0-5H20"/></>,
   'files': <><path d="M20 7h-3a2 2 0 0 1-2-2V2"/><path d="M9 18a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h7l4 4v10a2 2 0 0 1-2 2Z"/><path d="M3 7.6v12.8A1.6 1.6 0 0 0 4.6 22h9.8"/></>,
 
+  'VPC': <><rect x="2" y="4" width="20" height="16" rx="2" strokeDasharray="3 2"/><rect x="6" y="8" width="5" height="8" rx="1"/><rect x="13" y="8" width="5" height="4" rx="1"/><line x1="13" x2="18" y1="14" y2="14"/></>,
+
   // ── ネットワーク ──
-  'scale': <><path d="m16 16 3-8 3 8c-.87.65-1.92 1-3 1s-2.13-.35-3-1Z"/><path d="m2 16 3-8 3 8c-.87.65-1.92 1-3 1s-2.13-.35-3-1Z"/><path d="M7 21h10"/><path d="M12 3v18"/><path d="M3 7h2c2 0 5-1 7-2 2 1 5 2 7 2h2"/></>,
+  'scale':<><path d="m16 16 3-8 3 8c-.87.65-1.92 1-3 1s-2.13-.35-3-1Z"/><path d="m2 16 3-8 3 8c-.87.65-1.92 1-3 1s-2.13-.35-3-1Z"/><path d="M7 21h10"/><path d="M12 3v18"/><path d="M3 7h2c2 0 5-1 7-2 2 1 5 2 7 2h2"/></>,
   'terminal': <><polyline points="4 17 10 11 4 5"/><line x1="12" x2="20" y1="19" y2="19"/></>,
   'plug': <><path d="M12 22v-5"/><path d="M9 8V2"/><path d="M15 8V2"/><path d="M18 8v5a4 4 0 0 1-4 4h-4a4 4 0 0 1-4-4V8Z"/></>,
   'link': <><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></>,
@@ -475,10 +477,12 @@ export function isServiceIconKey(icon: string): boolean {
   return icon in SERVICE_ICON_PATHS;
 }
 
+const _brokenSvgs = new Set<string>();
+
 export function ServiceIconUrl({ icon, name, size }: { icon: string; name: string; size: number }) {
   const svgSrc = icon.replace(/\.png$/, '.svg');
-  const [src, setSrc] = React.useState(svgSrc);
-  return <img src={src} alt={name} onError={() => setSrc(icon)} style={{ width: size, height: size, objectFit: 'contain' }} />;
+  const [src, setSrc] = React.useState(() => _brokenSvgs.has(svgSrc) ? icon : svgSrc);
+  return <img src={src} alt={name} onError={() => { _brokenSvgs.add(svgSrc); setSrc(icon); }} style={{ width: size, height: size, objectFit: 'contain' }} />;
 }
 
 export function ServiceIconImg({ icon, name, size }: { icon: string; name: string; size: number }) {

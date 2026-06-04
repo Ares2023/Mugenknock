@@ -8,7 +8,6 @@ import { useAuth } from '../contexts/AuthContext';
 import { useLanguage } from '../contexts/LanguageContext';
 import Card from '../components/ui/Card';
 import Button from '../components/ui/Button';
-import Badge from '../components/ui/Badge';
 import ReportModal from '../components/ReportModal';
 import { IconBookOpen, IconCopy, IconCheck, IconStar, IconChevronUp, IconChevronDown } from '../components/Icons';
 
@@ -49,9 +48,9 @@ const CopyButton = ({ getText }: { getText: () => string }) => {
       onClick={handleCopy}
       title={copied ? 'コピー済み' : 'コピー'}
       style={{
-        background: 'none', border: '1px solid var(--color-border)', borderRadius: '50%',
+        background: 'none', border: `1.5px solid ${copied ? 'var(--color-success)' : 'var(--color-primary)'}`, borderRadius: '50%',
         width: 28, height: 28, display: 'flex', alignItems: 'center', justifyContent: 'center',
-        cursor: 'pointer', color: copied ? 'var(--color-success)' : 'var(--color-text-light)',
+        cursor: 'pointer', color: copied ? 'var(--color-success)' : 'var(--color-primary)',
         transition: 'all 0.2s', flexShrink: 0,
       }}
     >
@@ -790,9 +789,14 @@ export default function ExerciseSession() {
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 'var(--spacing-sm)', gap: 'var(--spacing-md)' }}>
             <div>
               {currentQuestion.isMultiple && (
-                <Badge variant="outline">
+                <span style={{
+                  display: 'inline-flex', alignItems: 'center',
+                  border: '1.5px solid var(--color-border)', borderRadius: 4,
+                  padding: '2px 8px', fontSize: 11, fontWeight: 700,
+                  color: 'var(--color-text-sub)', background: 'transparent', whiteSpace: 'nowrap',
+                }}>
                   {t('exerciseSession.multiple')}{currentQuestion.correctAnswerCount ? ` (${currentQuestion.correctAnswerCount})` : ''}
-                </Badge>
+                </span>
               )}
             </div>
             <CopyButton getText={() => {

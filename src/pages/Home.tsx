@@ -57,7 +57,7 @@ function readSessionScoreLog(examType: string, uid: string): ScoreEntry[] {
 }
 
 // ── スコア折れ線グラフ ───────────────────────────────────────────
-function ScoreLineChart({ data, passScore, lang = 'ja' }: { data: ScoreEntry[]; passScore: number | null; lang?: string }) {
+function ScoreLineChart({ data, passScore, lang = 'ja', animate = true }: { data: ScoreEntry[]; passScore: number | null; lang?: string; animate?: boolean }) {
   if (data.length < 2) {
     return (
       <p style={{ color: 'var(--color-text-light)', fontSize: 12, fontStyle: 'italic', margin: 0 }}>
@@ -92,15 +92,15 @@ function ScoreLineChart({ data, passScore, lang = 'ja' }: { data: ScoreEntry[]; 
         </>
       )}
       <path d={pathD} fill="none" stroke="var(--color-primary)" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round"
-        strokeDasharray={totalLength} strokeDashoffset={totalLength}>
-        <animate attributeName="stroke-dashoffset" from={String(totalLength)} to="0" dur={`${totalLineDur}s`} fill="freeze" />
+        strokeDasharray={animate ? totalLength : undefined} strokeDashoffset={animate ? totalLength : 0}>
+        {animate && <animate attributeName="stroke-dashoffset" from={String(totalLength)} to="0" dur={`${totalLineDur}s`} fill="freeze" />}
       </path>
       {data.map((d, i) => (
-        <g key={i} opacity={0}>
-          <animate attributeName="opacity" from="0" to="1" dur="0.01s" begin={`${i * stagger}s`} fill="freeze" />
+        <g key={i} opacity={animate ? 0 : 1}>
+          {animate && <animate attributeName="opacity" from="0" to="1" dur="0.01s" begin={`${i * stagger}s`} fill="freeze" />}
           <text x={cx(i)} y={cy(d.score) - 6} fontSize={8} fill="var(--color-primary)" textAnchor="middle" fontWeight="bold">{d.score}</text>
-          <circle cx={cx(i)} cy={cy(d.score)} r={0} fill="var(--color-primary)">
-            <animate attributeName="r" values="0;4;3" keyTimes="0;0.65;1" dur={`${nodeDur}s`} begin={`${i * stagger}s`} fill="freeze" />
+          <circle cx={cx(i)} cy={cy(d.score)} r={animate ? 0 : 3} fill="var(--color-primary)">
+            {animate && <animate attributeName="r" values="0;4;3" keyTimes="0;0.65;1" dur={`${nodeDur}s`} begin={`${i * stagger}s`} fill="freeze" />}
           </circle>
         </g>
       ))}
@@ -110,7 +110,7 @@ function ScoreLineChart({ data, passScore, lang = 'ja' }: { data: ScoreEntry[]; 
   );
 }
 
-function SessionScoreChart({ data, passScore, lang = 'ja' }: { data: number[]; passScore: number | null; lang?: string }) {
+function SessionScoreChart({ data, passScore, lang = 'ja', animate = true }: { data: number[]; passScore: number | null; lang?: string; animate?: boolean }) {
   if (data.length < 2) {
     return (
       <p style={{ color: 'var(--color-text-light)', fontSize: 12, fontStyle: 'italic', margin: 0 }}>
@@ -144,15 +144,15 @@ function SessionScoreChart({ data, passScore, lang = 'ja' }: { data: number[]; p
         </>
       )}
       <path d={pathD} fill="none" stroke="var(--color-accent)" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round"
-        strokeDasharray={totalLength2} strokeDashoffset={totalLength2}>
-        <animate attributeName="stroke-dashoffset" from={String(totalLength2)} to="0" dur={`${totalLineDur2}s`} fill="freeze" />
+        strokeDasharray={animate ? totalLength2 : undefined} strokeDashoffset={animate ? totalLength2 : 0}>
+        {animate && <animate attributeName="stroke-dashoffset" from={String(totalLength2)} to="0" dur={`${totalLineDur2}s`} fill="freeze" />}
       </path>
       {data.map((s, i) => (
-        <g key={i} opacity={0}>
-          <animate attributeName="opacity" from="0" to="1" dur="0.01s" begin={`${i * stagger2}s`} fill="freeze" />
+        <g key={i} opacity={animate ? 0 : 1}>
+          {animate && <animate attributeName="opacity" from="0" to="1" dur="0.01s" begin={`${i * stagger2}s`} fill="freeze" />}
           <text x={cx(i)} y={cy(s) - 6} fontSize={8} fill="var(--color-accent)" textAnchor="middle" fontWeight="bold">{s}</text>
-          <circle cx={cx(i)} cy={cy(s)} r={0} fill="var(--color-accent)">
-            <animate attributeName="r" values="0;4;3" keyTimes="0;0.65;1" dur={`${nodeDur2}s`} begin={`${i * stagger2}s`} fill="freeze" />
+          <circle cx={cx(i)} cy={cy(s)} r={animate ? 0 : 3} fill="var(--color-accent)">
+            {animate && <animate attributeName="r" values="0;4;3" keyTimes="0;0.65;1" dur={`${nodeDur2}s`} begin={`${i * stagger2}s`} fill="freeze" />}
           </circle>
           {i === data.length - 1 && (
             <text x={cx(i)} y={H - 2} fontSize={9} fill="var(--color-text-sub)" textAnchor="middle" fontWeight="bold">{lang === 'ja' ? '最新' : 'Latest'}</text>
@@ -191,6 +191,7 @@ function CombinedDetailModal({ targetExam, domainAccList, estimatedScore, passSc
   const scoreTabRef = useRef<HTMLDivElement>(null);
   const [contentMinH, setContentMinH] = useState(0);
   const [nodesVisible, setNodesVisible] = useState(false);
+  const visitedTabs = useRef(new Set<string>(['score']));
 
   // スコアタブ（calc非表示時）の高さを記録してタブ切替でサイズが変わらないようにする
   useLayoutEffect(() => {
@@ -210,6 +211,10 @@ function CombinedDetailModal({ targetExam, domainAccList, estimatedScore, passSc
     id1 = requestAnimationFrame(() => { id2 = requestAnimationFrame(() => setNodesVisible(true)); });
     return () => { cancelAnimationFrame(id1); cancelAnimationFrame(id2); };
   }, []);
+
+  useEffect(() => {
+    visitedTabs.current.add(tab);
+  }, [tab]);
 
   const weights = DOMAIN_WEIGHTS[targetExam] ?? domains.map(() => 100 / domains.length);
   const totalAllWeights = weights.reduce((s, w) => s + w, 0) || 100;
@@ -371,13 +376,13 @@ function CombinedDetailModal({ targetExam, domainAccList, estimatedScore, passSc
               <div style={{ fontSize: 11, fontWeight: 700, color: 'var(--color-text-sub)', marginBottom: 8 }}>
                 {ja ? 'セッション別推移（直近5回）' : 'Per-Session Trend (last 5)'}
               </div>
-              <SessionScoreChart data={sessionHistory} passScore={passScore} lang={lang} />
+              <SessionScoreChart data={sessionHistory} passScore={passScore} lang={lang} animate={!visitedTabs.current.has('history')} />
             </div>
             <div style={{ borderTop: '1px solid var(--color-border)', paddingTop: 12 }}>
               <div style={{ fontSize: 11, fontWeight: 700, color: 'var(--color-text-sub)', marginBottom: 8 }}>
                 {ja ? '日次推移' : 'Daily Trend'}
               </div>
-              <ScoreLineChart data={history} passScore={passScore} lang={lang} />
+              <ScoreLineChart data={history} passScore={passScore} lang={lang} animate={!visitedTabs.current.has('history')} />
             </div>
           </div>
         ) : (
@@ -412,8 +417,9 @@ function CombinedDetailModal({ targetExam, domainAccList, estimatedScore, passSc
                       background: rank === 0 ? 'rgba(245,158,11,0.06)' : 'var(--color-bg-main)',
                       borderRadius: 8,
                       border: rank === 0 ? '1px solid rgba(245,158,11,0.2)' : '1px solid transparent',
-                      animation: `hiscore-slide-up 0.35s ease both`,
-                      animationDelay: `${delay}s`,
+                      ...(visitedTabs.current.has('hiscore')
+                        ? {}
+                        : { animation: `hiscore-slide-up 0.35s ease both`, animationDelay: `${delay}s` }),
                     }}>
                       <span style={{ fontSize: 16, fontWeight: 900, color: medalColor, minWidth: 24, textAlign: 'center' }}>
                         {rank < 3 ? medalEmoji[rank] : `${rank + 1}`}
