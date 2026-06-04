@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useRef, useCallback } from 'react';
 import { createPortal } from 'react-dom';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { API_ENDPOINT, PASS_RATE, EXAM_DOMAINS, DOMAIN_NAME_EN, EXAM_LEVEL } from '../constants';
@@ -302,18 +302,34 @@ export default function ExerciseSession() {
   const [judgmentAnim, setJudgmentAnim] = useState<'correct' | 'incorrect' | null>(null);
   const [showAbortConfirm, setShowAbortConfirm] = useState(false);
 
-  // ドラフト保存
+  // ドラフト保存 — 常に最新値を ref に保持し、状態変化時と beforeunload 両方で保存する
+  const draftStateRef = useRef({ currentIndex, results, answered, selectedAnswers });
   useEffect(() => {
+    draftStateRef.current = { currentIndex, results, answered, selectedAnswers };
+  });
+
+  const saveDraftNow = useCallback(() => {
     if (!sessionId) return;
+    const { currentIndex: ci, results: r, answered: a, selectedAnswers: sa } = draftStateRef.current;
     try {
       const draftKey = isFocused ? `focusedExerciseDraft_${userId}` : isQuick ? `quickExerciseDraft_${userId}` : `practiceExerciseDraft_${userId}`;
       localStorage.setItem(draftKey, JSON.stringify({
         sessionId, examType, questions, userId,
-        currentIndex, results, answered, selectedAnswers,
+        currentIndex: ci, results: r, answered: a, selectedAnswers: sa,
         isQuick, isFocused, savedAt: Date.now(),
       }));
     } catch { /* quota over 等は無視 */ }
-  }, [currentIndex, results]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [sessionId, examType, questions, userId, isQuick, isFocused]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  useEffect(() => {
+    saveDraftNow();
+  }, [currentIndex, results, answered, selectedAnswers]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  useEffect(() => {
+    if (!sessionId) return;
+    window.addEventListener('beforeunload', saveDraftNow);
+    return () => window.removeEventListener('beforeunload', saveDraftNow);
+  }, [saveDraftNow]);
 
   const currentQuestion = questions[currentIndex];
 
