@@ -487,6 +487,7 @@ app.put('/admin/questions/:id', async (req, res) => {
 app.get('/admin/questions/summary', async (req, res) => {
   try {
     const docClient = getClient();
+    const { sinceDate } = req.query;
     const items = await scanAll(docClient, {
       TableName: 'Questions',
       ProjectionExpression: 'examType, tags, isHidden, validityCheckedAt, formatCheckedAt',
@@ -504,7 +505,13 @@ app.get('/admin/questions/summary', async (req, res) => {
     }
     const validityCheckedCount = visible.filter(i => i.validityCheckedAt).length;
     const formatCheckedCount   = visible.filter(i => i.formatCheckedAt).length;
-    res.json({ examCounts, domainCounts, totalCount: visible.length, validityCheckedCount, formatCheckedCount });
+    const result = { examCounts, domainCounts, totalCount: visible.length, validityCheckedCount, formatCheckedCount };
+    if (sinceDate && /^\d{4}-\d{2}-\d{2}$/.test(sinceDate)) {
+      const threshold = sinceDate + 'T00:00:00';
+      result.validityCheckedSinceCount = visible.filter(i => i.validityCheckedAt && i.validityCheckedAt >= threshold).length;
+      result.formatCheckedSinceCount   = visible.filter(i => i.formatCheckedAt   && i.formatCheckedAt   >= threshold).length;
+    }
+    res.json(result);
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: 'Internal server error' });
@@ -1148,6 +1155,7 @@ app.get('/users/me/score-history', async (req, res) => {
     res.json({
       scoreHistory: item.scoreHistory || [],
       sessionScoreHistory: item.sessionScoreHistory || [],
+      sessionScoreLog: item.sessionScoreLog || [],
     });
   } catch (err) {
     console.error(err);
@@ -1158,12 +1166,13 @@ app.get('/users/me/score-history', async (req, res) => {
 app.put('/users/me/score-history', async (req, res) => {
   try {
     const docClient = getClient();
-    const { userId, examType, scoreHistory, sessionScoreHistory } = req.body;
+    const { userId, examType, scoreHistory, sessionScoreHistory, sessionScoreLog } = req.body;
     if (!userId || !examType) return res.status(400).json({ error: 'userId and examType are required' });
     const updateParts = [];
     const exprValues = {};
     if (scoreHistory !== undefined) { updateParts.push('scoreHistory = :sh'); exprValues[':sh'] = scoreHistory; }
     if (sessionScoreHistory !== undefined) { updateParts.push('sessionScoreHistory = :ssh'); exprValues[':ssh'] = sessionScoreHistory; }
+    if (sessionScoreLog !== undefined) { updateParts.push('sessionScoreLog = :ssl'); exprValues[':ssl'] = sessionScoreLog; }
     if (updateParts.length === 0) return res.json({ success: true });
     await docClient.send(new UpdateCommand({
       TableName: 'AppSettings',

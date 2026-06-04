@@ -1,0 +1,60 @@
+{
+  "version": 1,
+  "paths": {
+    "/questions": {
+      "name": "/questions",
+      "lambdaFunction": "awsquizHandler",
+      "permissions": { "setting": "open" }
+    },
+    "/sessions": {
+      "name": "/sessions",
+      "lambdaFunction": "awsquizHandler",
+      "permissions": { "setting": "open" }
+    },
+    "/users": {
+      "name": "/users",
+      "lambdaFunction": "awsquizHandler",
+      "permissions": { "setting": "open" }
+    },
+    "/admin": {
+      "name": "/admin",
+      "lambdaFunction": "awsquizHandler",
+      "permissions": { "setting": "open" }
+    },
+    "/tips": {
+      "name": "/tips",
+      "lambdaFunction": "awsquizHandler",
+      "permissions": { "setting": "open" }
+    },
+    "/tags": {
+      "name": "/tags",
+      "lambdaFunction": "awsquizHandler",
+      "permissions": { "setting": "open" }
+    },
+    "/releases": {
+      "name": "/releases",
+      "lambdaFunction": "awsquizHandler",
+      "permissions": { "setting": "open" }
+    },
+    "/contact": {
+      "name": "/contact",
+      "lambdaFunction": "awsquizHandler",
+      "permissions": { "setting": "open" }
+    },
+    "/daily-service": {
+      "name": "/daily-service",
+      "lambdaFunction": "awsquizHandler",
+      "permissions": { "setting": "open" }
+    },
+    "/health": {
+      "name": "/health",
+      "lambdaFunction": "awsquizHandler",
+      "permissions": { "setting": "open" }
+    },
+    "/settings": {
+      "name": "/settings",
+      "lambdaFunction": "awsquizHandler",
+      "permissions": { "setting": "open" }
+    }
+  }
+}

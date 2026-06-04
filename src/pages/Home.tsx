@@ -52,6 +52,10 @@ function readSessionScoreHistory(examType: string, uid: string): number[] {
   try { return JSON.parse(localStorage.getItem(`score_session_history_${examType}_${uid}`) ?? '[]'); } catch { return []; }
 }
 
+function readSessionScoreLog(examType: string, uid: string): ScoreEntry[] {
+  try { return JSON.parse(localStorage.getItem(`score_session_log_${examType}_${uid}`) ?? '[]'); } catch { return []; }
+}
+
 // ── スコア折れ線グラフ ───────────────────────────────────────────
 function ScoreLineChart({ data, passScore, lang = 'ja' }: { data: ScoreEntry[]; passScore: number | null; lang?: string }) {
   if (data.length < 2) {
@@ -163,7 +167,7 @@ function SessionScoreChart({ data, passScore, lang = 'ja' }: { data: number[]; p
 }
 
 // ── 成績詳細モーダル（ドメイン別 + 予想スコア 統合） ───────────
-function CombinedDetailModal({ targetExam, domainAccList, estimatedScore, passScore, lang, isMobile, uid, domainStats, scoreHistory: serverScoreHistory, sessionHistory: serverSessionHistory, onClose }: {
+function CombinedDetailModal({ targetExam, domainAccList, estimatedScore, passScore, lang, isMobile, uid, domainStats, scoreHistory: serverScoreHistory, sessionHistory: serverSessionHistory, sessionScoreLog: serverSessionScoreLog, onClose }: {
   targetExam: string;
   domainAccList: { correct: number; total: number; pct: number | null }[];
   estimatedScore: number | null;
@@ -174,12 +178,14 @@ function CombinedDetailModal({ targetExam, domainAccList, estimatedScore, passSc
   domainStats: DomainStat[];
   scoreHistory?: ScoreEntry[];
   sessionHistory?: number[];
+  sessionScoreLog?: ScoreEntry[];
   onClose: () => void;
 }) {
   const ja = lang === 'ja';
   const domains = EXAM_DOMAINS[targetExam] ?? [];
   const history = serverScoreHistory ?? readScoreHistory(targetExam, uid);
   const sessionHistory = serverSessionHistory ?? readSessionScoreHistory(targetExam, uid);
+  const sessionLog = serverSessionScoreLog ?? readSessionScoreLog(targetExam, uid);
   const [showCalc, setShowCalc] = useState(false);
   const [tab, setTab] = useState<'score' | 'history' | 'hiscore'>('score');
   const scoreTabRef = useRef<HTMLDivElement>(null);
@@ -239,13 +245,15 @@ function CombinedDetailModal({ targetExam, domainAccList, estimatedScore, passSc
         </div>
 
         {/* タブ */}
-        <div style={{ display: 'flex', gap: 4, marginBottom: 16, borderBottom: '1px solid var(--color-border)', paddingBottom: 0 }}>
+        <div style={{ display: 'flex', gap: isMobile ? 4 : 0, marginBottom: 16, borderBottom: '1px solid var(--color-border)', paddingBottom: 0 }}>
           {tabs.map(t => (
             <button
               key={t.key}
               onClick={() => { setTab(t.key); setShowCalc(false); }}
               style={{
                 background: 'none', border: 'none', cursor: 'pointer',
+                flex: isMobile ? undefined : 1,
+                textAlign: isMobile ? undefined : 'center',
                 padding: '6px 14px', fontSize: 13, fontWeight: tab === t.key ? 700 : 400,
                 color: tab === t.key ? 'var(--color-primary)' : 'var(--color-text-sub)',
                 borderBottom: `2px solid ${tab === t.key ? 'var(--color-primary)' : 'transparent'}`,
@@ -374,7 +382,8 @@ function CombinedDetailModal({ targetExam, domainAccList, estimatedScore, passSc
           </div>
         ) : (
           (() => {
-            const top5 = [...history].sort((a, b) => b.score - a.score).slice(0, 5);
+            const hiscoreSource = sessionLog.length > 0 ? sessionLog : history;
+            const top5 = [...hiscoreSource].sort((a, b) => b.score - a.score).slice(0, 5);
             if (top5.length === 0) {
               return (
                 <p style={{ margin: 0, textAlign: 'center', fontSize: 12, color: 'var(--color-text-light)', padding: '24px 0' }}>
@@ -1182,6 +1191,7 @@ export default function Home() {
   const [showCombinedDetail, setShowCombinedDetail] = useState(false);
   const [serverScoreHistory, setServerScoreHistory] = useState<ScoreEntry[] | null>(null);
   const [serverSessionHistory, setServerSessionHistory] = useState<number[] | null>(null);
+  const [serverSessionScoreLog, setServerSessionScoreLog] = useState<ScoreEntry[] | null>(null);
   const abortRef = useRef<AbortController | null>(null);
 
   useEffect(() => {
@@ -1278,28 +1288,32 @@ export default function Home() {
   }, [user, doFetchStats]);
 
   useEffect(() => {
-    if (!user || !targetExam) { setServerScoreHistory(null); setServerSessionHistory(null); return; }
+    if (!user || !targetExam) { setServerScoreHistory(null); setServerSessionHistory(null); setServerSessionScoreLog(null); return; }
     fetch(`${API_ENDPOINT}/users/me/score-history?userId=${user.userId}&examType=${targetExam}`)
       .then(r => r.json())
       .then(d => {
         const serverSH: ScoreEntry[] = d.scoreHistory ?? [];
         const serverSSH: number[] = d.sessionScoreHistory ?? [];
+        const serverSSL: ScoreEntry[] = d.sessionScoreLog ?? [];
         // マイグレーション: サーバーが空でローカルにデータがあれば、サーバーへアップロード
         const localSH = readScoreHistory(targetExam, user.userId);
         const localSSH = readSessionScoreHistory(targetExam, user.userId);
+        const localSSL = readSessionScoreLog(targetExam, user.userId);
         const uploadSH = serverSH.length === 0 && localSH.length > 0 ? localSH : serverSH;
         const uploadSSH = serverSSH.length === 0 && localSSH.length > 0 ? localSSH : serverSSH;
-        if (uploadSH !== serverSH || uploadSSH !== serverSSH) {
+        const uploadSSL = serverSSL.length === 0 && localSSL.length > 0 ? localSSL : serverSSL;
+        if (uploadSH !== serverSH || uploadSSH !== serverSSH || uploadSSL !== serverSSL) {
           fetch(`${API_ENDPOINT}/users/me/score-history`, {
             method: 'PUT',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ userId: user.userId, examType: targetExam, scoreHistory: uploadSH, sessionScoreHistory: uploadSSH }),
+            body: JSON.stringify({ userId: user.userId, examType: targetExam, scoreHistory: uploadSH, sessionScoreHistory: uploadSSH, sessionScoreLog: uploadSSL }),
           }).catch(() => {});
         }
         setServerScoreHistory(uploadSH);
         setServerSessionHistory(uploadSSH);
+        setServerSessionScoreLog(uploadSSL);
       })
-      .catch(() => { setServerScoreHistory(null); setServerSessionHistory(null); });
+      .catch(() => { setServerScoreHistory(null); setServerSessionHistory(null); setServerSessionScoreLog(null); });
   }, [user, targetExam]); // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
@@ -1397,17 +1411,26 @@ export default function Home() {
     const addKey = `sessionScoreAdd_${targetExam}_${uid}`;
     if (!localStorage.getItem(addKey)) return;
     localStorage.removeItem(addKey);
+    const jstNow = new Date(Date.now() + 9 * 3600 * 1000).toISOString().slice(0, 10);
+    // 直近5件のセッションスコア（既存）
     const sessionHistKey = `score_session_history_${targetExam}_${uid}`;
     let hist: number[] = [];
     try { hist = JSON.parse(localStorage.getItem(sessionHistKey) ?? '[]'); } catch {}
     hist = [...hist, estimatedScore].slice(-5);
     localStorage.setItem(sessionHistKey, JSON.stringify(hist));
     setServerSessionHistory(hist);
+    // 全セッションのスコアログ（ハイスコア用）
+    const sessionLogKey = `score_session_log_${targetExam}_${uid}`;
+    let log: ScoreEntry[] = [];
+    try { log = JSON.parse(localStorage.getItem(sessionLogKey) ?? '[]'); } catch {}
+    log = [...log, { date: jstNow, score: estimatedScore }].slice(-100);
+    localStorage.setItem(sessionLogKey, JSON.stringify(log));
+    setServerSessionScoreLog(log);
     if (user) {
       fetch(`${API_ENDPOINT}/users/me/score-history`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ userId: user.userId, examType: targetExam, sessionScoreHistory: hist }),
+        body: JSON.stringify({ userId: user.userId, examType: targetExam, sessionScoreHistory: hist, sessionScoreLog: log }),
       }).catch(() => {});
     }
   }, [domainStats, targetExam, uid, estimatedScore]); // eslint-disable-line react-hooks/exhaustive-deps
@@ -1783,6 +1806,7 @@ export default function Home() {
           </div>
 
         </div>
+
       </Card>
 
       {/* ── 日めくりAWSサービス ── */}
@@ -2345,7 +2369,7 @@ export default function Home() {
 
       {/* 成績詳細モーダル */}
       {showCombinedDetail && targetExam && (
-        <CombinedDetailModal targetExam={targetExam} domainAccList={domainAccList} estimatedScore={estimatedScore} passScore={passScore} lang={lang} isMobile={isMobile} uid={uid} domainStats={domainStats} scoreHistory={serverScoreHistory ?? undefined} sessionHistory={serverSessionHistory ?? undefined} onClose={() => setShowCombinedDetail(false)} />
+        <CombinedDetailModal targetExam={targetExam} domainAccList={domainAccList} estimatedScore={estimatedScore} passScore={passScore} lang={lang} isMobile={isMobile} uid={uid} domainStats={domainStats} scoreHistory={serverScoreHistory ?? undefined} sessionHistory={serverSessionHistory ?? undefined} sessionScoreLog={serverSessionScoreLog ?? undefined} onClose={() => setShowCombinedDetail(false)} />
       )}
 
       {/* オンボーディング（目標資格未設定） */}

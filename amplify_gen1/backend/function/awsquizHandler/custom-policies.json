@@ -1,0 +1,39 @@
+[
+  {
+    "Action": [
+      "dynamodb:GetItem",
+      "dynamodb:PutItem",
+      "dynamodb:UpdateItem",
+      "dynamodb:DeleteItem",
+      "dynamodb:Query",
+      "dynamodb:Scan"
+    ],
+    "Resource": [
+      "arn:aws:dynamodb:ap-northeast-1:*:table/Questions",
+      "arn:aws:dynamodb:ap-northeast-1:*:table/Questions/index/*",
+      "arn:aws:dynamodb:ap-northeast-1:*:table/Tags",
+      "arn:aws:dynamodb:ap-northeast-1:*:table/QuestionTagRelations",
+      "arn:aws:dynamodb:ap-northeast-1:*:table/UserAnswers",
+      "arn:aws:dynamodb:ap-northeast-1:*:table/UserQuestionStats",
+      "arn:aws:dynamodb:ap-northeast-1:*:table/UserTagStats",
+      "arn:aws:dynamodb:ap-northeast-1:*:table/Sessions",
+      "arn:aws:dynamodb:ap-northeast-1:*:table/Reports"
+    ],
+    "Effect": "Allow"
+  },
+  {
+    "Action": [
+      "ses:SendEmail",
+      "ses:SendRawEmail"
+    ],
+    "Resource": ["*"],
+    "Effect": "Allow"
+  },
+  {
+    "Action": [
+      "cognito-idp:ListUsers"
+    ],
+    "Resource": ["arn:aws:cognito-idp:ap-northeast-1:*:userpool/ap-northeast-1_KIOFciGhQ"],
+    "Effect": "Allow"
+  }
+]

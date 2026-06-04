@@ -67,6 +67,9 @@ export default function MyPage() {
   const uid = user?.userId ?? 'guest';
 
   const [tab, setTab] = useState<'target' | 'analysis' | 'history'>('target');
+  const [showSettingsEdit, setShowSettingsEdit] = useState(false);
+  const [editExamDate, setEditExamDate] = useState('');
+  const [editDailyGoal, setEditDailyGoal] = useState(10); // min=10
 
   // ── ターゲット試験 ──
   const [targetExam, setTargetExam] = useState<string | null>(() => localStorage.getItem(`targetExam_${uid}`));
@@ -100,7 +103,7 @@ export default function MyPage() {
 
   // ── 日次目標 ──
   const [dailyGoal, setDailyGoal] = useState<number>(() =>
-    parseInt(localStorage.getItem(`dailyGoal_${uid}`) ?? '10', 10)
+    Math.max(10, parseInt(localStorage.getItem(`dailyGoal_${uid}`) ?? '10', 10))
   );
   const handleDailyGoalChange = (v: number) => {
     setDailyGoal(v);
@@ -285,11 +288,11 @@ export default function MyPage() {
 
   // ── UI helpers ──
   const tabStyle = (active: boolean): React.CSSProperties => ({
-    background: 'none', border: 'none', cursor: 'pointer',
-    padding: '8px 16px', fontSize: 13, fontWeight: active ? 700 : 400,
+    flex: 1, padding: '10px 0', border: 'none', background: 'none', cursor: 'pointer',
+    fontSize: 'var(--font-size-base)', fontWeight: active ? 700 : 500,
     color: active ? 'var(--color-primary)' : 'var(--color-text-sub)',
     borderBottom: `2px solid ${active ? 'var(--color-primary)' : 'transparent'}`,
-    marginBottom: -1, transition: 'color 0.15s',
+    transition: 'color 0.15s, border-color 0.15s',
   });
 
   const domains = EXAM_DOMAINS[targetExam ?? ''] ?? [];
@@ -302,183 +305,163 @@ export default function MyPage() {
 
       <div style={{ maxWidth: 680, margin: '0 auto', padding: '0 var(--spacing-md) var(--spacing-xl)' }}>
 
-        {/* ── ページタイトル ── */}
-        <div style={{ padding: '16px 0 12px', display: 'flex', alignItems: 'center', gap: 8 }}>
-          <span style={{ fontWeight: 700, fontSize: 18, color: 'var(--color-text-main)' }}>
-            {ja ? 'マイページ' : 'My Page'}
-          </span>
-          {targetExam && (
-            <span style={{ fontSize: 12, color: 'var(--color-text-sub)', fontWeight: 600, background: 'var(--color-bg-main)', borderRadius: 'var(--border-radius-full)', padding: '2px 10px' }}>
-              {targetExam}
-            </span>
-          )}
-        </div>
-
         {/* ── タブ ── */}
         <div style={{ display: 'flex', borderBottom: '1px solid var(--color-border)', marginBottom: 16 }}>
-          <button style={tabStyle(tab === 'target')} onClick={() => setTab('target')}>
-            <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4 }}>
-              <IconTarget size={13} />{ja ? '目標' : 'Goals'}
-            </span>
-          </button>
-          <button style={tabStyle(tab === 'analysis')} onClick={() => setTab('analysis')}>
-            <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4 }}>
-              <IconAnnoyed size={13} />{ja ? '苦手分析' : 'Analysis'}
-            </span>
-          </button>
-          <button style={tabStyle(tab === 'history')} onClick={() => setTab('history')}>
-            <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4 }}>
-              <IconList />{ja ? '履歴' : 'History'}
-            </span>
-          </button>
+          <button style={tabStyle(tab === 'target')} onClick={() => setTab('target')}>{ja ? '目標' : 'Goals'}</button>
+          <button style={tabStyle(tab === 'analysis')} onClick={() => setTab('analysis')}>{ja ? '苦手分析' : 'Analysis'}</button>
+          <button style={tabStyle(tab === 'history')} onClick={() => setTab('history')}>{ja ? '履歴' : 'History'}</button>
         </div>
 
         {/* ════════ 目標タブ ════════ */}
         {tab === 'target' && (
           <>
-            {/* 目標資格カード */}
-            <Card style={{ marginBottom: 12 }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 12 }}>
-                <IconFlag size={14} />
-                <span style={{ fontWeight: 700, fontSize: 14 }}>{ja ? '目標資格' : 'Target Exam'}</span>
-              </div>
+            {/* 目標資格カード（タップで資格ダッシュボードへ） */}
+            <Card style={{ marginBottom: 12, cursor: 'pointer' }} onClick={() => navigate('/aws/exam-dashboard')}>
               {targetExam ? (
-                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 8 }}>
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                   <div>
                     <div style={{ fontWeight: 700, fontSize: 16, color: 'var(--color-text-main)' }}>{targetExam}</div>
-                    <div style={{ fontSize: 12, color: 'var(--color-text-sub)', marginTop: 2 }}>
-                      {EXAM_CONFIGS[targetExam]?.fullName ?? ''}
-                    </div>
+                    <div style={{ fontSize: 12, color: 'var(--color-text-sub)', marginTop: 2 }}>{EXAM_CONFIGS[targetExam]?.fullName ?? ''}</div>
                   </div>
-                  <Button variant="outline" size="sm" onClick={() => navigate('/aws/exam-dashboard')}>
-                    {ja ? '変更' : 'Change'}<IconChevronRight size={12} />
-                  </Button>
+                  <span style={{ color: 'var(--color-primary)', fontSize: 22, fontWeight: 900, paddingLeft: 8 }}>›</span>
                 </div>
               ) : (
-                <Button variant="outline" onClick={() => navigate('/aws/exam-dashboard')}>
-                  {ja ? '目標資格を設定する' : 'Set target exam'}<IconChevronRight size={13} />
-                </Button>
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                  <span style={{ fontSize: 14, color: 'var(--color-text-light)' }}>{ja ? '目標資格を設定する' : 'Set target exam'}</span>
+                  <span style={{ color: 'var(--color-primary)', fontSize: 22, fontWeight: 900 }}>›</span>
+                </div>
               )}
             </Card>
 
-            {/* 受験日カード */}
+            {/* 設定カード（受験日・目標演習量） */}
             <Card style={{ marginBottom: 12 }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 12 }}>
-                <IconCalendarNotebook size={14} />
-                <span style={{ fontWeight: 700, fontSize: 14 }}>{ja ? '受験日' : 'Exam Date'}</span>
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
+                <span style={{ fontWeight: 700, fontSize: 14 }}>{ja ? '設定' : 'Settings'}</span>
+                <button
+                  onClick={() => {
+                    setEditExamDate(examDate);
+                    setEditDailyGoal(dailyGoal);
+                    setShowSettingsEdit(true);
+                  }}
+                  style={{ width: 32, height: 32, borderRadius: '50%', border: '1px solid var(--color-border)', background: 'transparent', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--color-text-sub)' }}
+                  title={ja ? '編集' : 'Edit'}
+                >
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
+                    <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
+                  </svg>
+                </button>
               </div>
               {!targetExam ? (
-                <p style={{ margin: 0, fontSize: 13, color: 'var(--color-text-light)' }}>
-                  {ja ? '目標資格を設定してください' : 'Set a target exam first'}
-                </p>
+                <p style={{ margin: 0, fontSize: 13, color: 'var(--color-text-light)' }}>{ja ? '目標資格を設定してください' : 'Set a target exam first'}</p>
               ) : (
                 <>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap' }}>
-                    <input
-                      type="date"
-                      value={examDate}
-                      onChange={e => handleExamDateChange(e.target.value)}
-                      style={{ border: '1px solid var(--color-border)', borderRadius: 8, padding: '6px 10px', fontSize: 14, background: 'var(--color-bg-white)', color: 'var(--color-text-main)', cursor: 'pointer' }}
-                    />
-                    {examDate && (
-                      <Button variant="outline" size="sm" onClick={() => handleExamDateChange('')}>
-                        {ja ? '削除' : 'Clear'}
-                      </Button>
-                    )}
+                  {/* 受験日 */}
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10 }}>
+                    <span style={{ fontSize: 13, color: 'var(--color-text-sub)' }}>{ja ? '受験日' : 'Exam Date'}</span>
+                    <span style={{ fontSize: 13, fontWeight: 600, color: 'var(--color-text-main)' }}>
+                      {examDate ? (() => {
+                        if (remainingDays === 0) return <span style={{ color: 'var(--color-primary)' }}>試験当日！🔥</span>;
+                        if (remainingDays !== null && remainingDays > 0) return <span>{examDate.replace(/-/g, '/')}（<span style={{ color: 'var(--color-primary)', fontWeight: 700 }}>あと{remainingDays}日</span>）</span>;
+                        return examDate.replace(/-/g, '/');
+                      })() : <span style={{ color: 'var(--color-text-light)' }}>{ja ? '未設定' : 'Not set'}</span>}
+                    </span>
                   </div>
-                  {remainingDays !== null && (
-                    <div style={{ marginTop: 12, padding: '10px 14px', borderRadius: 8, background: remainingDays < 0 ? 'var(--color-bg-main)' : remainingDays === 0 ? '#fff3cd' : 'var(--color-primary-light)' }}>
-                      {remainingDays === 0 ? (
-                        <span style={{ fontWeight: 700, fontSize: 15 }}>試験当日！ファイト🔥</span>
-                      ) : remainingDays < 0 ? (
-                        <span style={{ fontSize: 13, color: 'var(--color-text-sub)' }}>{ja ? `試験日から${Math.abs(remainingDays)}日経過` : `${Math.abs(remainingDays)} days since exam`}</span>
-                      ) : (
-                        <span style={{ fontSize: 15, fontWeight: 700 }}>
-                          {ja ? 'あと' : ''}<span style={{ color: 'var(--color-primary)', fontSize: 22 }}>{remainingDays}</span>{ja ? '日！' : ' days left!'}
-                        </span>
-                      )}
-                    </div>
-                  )}
+                  {/* 目標演習量 */}
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8 }}>
+                    <span style={{ fontSize: 13, color: 'var(--color-text-sub)' }}>{ja ? '1日の目標演習量' : 'Daily Goal'}</span>
+                    <span style={{ fontSize: 13, fontWeight: 700, color: todayCount >= dailyGoal ? '#009E9E' : 'var(--color-text-main)' }}>
+                      {todayCount} / {dailyGoal}{ja ? '問' : 'Q'}{todayCount >= dailyGoal && ' ✓'}
+                    </span>
+                  </div>
+                  <div style={{ height: 6, borderRadius: 3, background: 'var(--color-bg-main)', overflow: 'hidden' }}>
+                    <div style={{ height: '100%', borderRadius: 3, background: 'var(--bar-gradient-teal)', width: `${Math.min(100, (todayCount / dailyGoal) * 100)}%`, transition: 'width 0.3s' }} />
+                  </div>
                 </>
               )}
             </Card>
 
-            {/* 日次目標カード */}
-            <Card style={{ marginBottom: 12 }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 12 }}>
-                <IconTarget size={14} />
-                <span style={{ fontWeight: 700, fontSize: 14 }}>{ja ? '1日の目標演習量' : 'Daily Goal'}</span>
-              </div>
-
-              {/* ゴール設定スライダー */}
-              <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 16 }}>
-                <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
-                  {[10, 15, 20, 25, 30, 40, 50].map(v => (
-                    <button
-                      key={v}
-                      onClick={() => handleDailyGoalChange(v)}
-                      style={{
-                        padding: '4px 12px', borderRadius: 'var(--border-radius-full)', fontSize: 13, fontWeight: dailyGoal === v ? 700 : 400, cursor: 'pointer',
-                        background: 'transparent',
-                        color: 'var(--color-text-main)',
-                        border: `1.5px solid ${dailyGoal === v ? 'var(--color-primary)' : 'var(--color-border)'}`,
-                        transition: 'all 0.12s',
-                      }}
-                    >{v}{ja ? '問' : 'Q'}</button>
-                  ))}
-                </div>
-              </div>
-
-              {/* 今日の進捗 */}
-              {targetExam && (
-                <div style={{ marginBottom: 16 }}>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 6 }}>
-                    <span style={{ fontSize: 12, color: 'var(--color-text-sub)' }}>{ja ? '今日' : 'Today'}</span>
-                    <span style={{ fontSize: 13, fontWeight: 700, color: todayCount >= dailyGoal ? 'var(--color-primary)' : 'var(--color-text-main)' }}>
-                      {todayCount} / {dailyGoal}{ja ? '問' : 'Q'}
-                      {todayCount >= dailyGoal && <span style={{ marginLeft: 4 }}>✓</span>}
-                    </span>
-                  </div>
-                  <div style={{ height: 8, borderRadius: 4, background: 'var(--color-bg-main)', overflow: 'hidden' }}>
-                    <div style={{ height: '100%', borderRadius: 4, background: todayCount >= dailyGoal ? 'var(--color-primary)' : 'var(--color-primary)', width: `${Math.min(100, (todayCount / dailyGoal) * 100)}%`, transition: 'width 0.3s' }} />
-                  </div>
-                </div>
-              )}
-
-              {/* 週間達成度 */}
-              {targetExam && (
-                <div>
-                  <div style={{ fontSize: 12, color: 'var(--color-text-sub)', marginBottom: 8 }}>{ja ? '直近7日間' : 'Last 7 days'}</div>
-                  <div style={{ display: 'flex', gap: 6, alignItems: 'flex-end' }}>
-                    {weekDays.map((d, i) => {
-                      const count = weekCounts[i];
-                      const achieved = count >= dailyGoal;
-                      const pct = dailyGoal > 0 ? Math.min(1, count / dailyGoal) : 0;
-                      const isToday = d === jstToday();
-                      const dayLabel = new Date(d + 'T12:00:00').toLocaleDateString(ja ? 'ja-JP' : 'en-US', { weekday: 'short' });
-                      return (
-                        <div key={d} style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 3 }}>
-                          <div style={{ width: '100%', height: 44, borderRadius: 4, background: 'var(--color-bg-main)', position: 'relative', overflow: 'hidden' }}>
-                            <div style={{ position: 'absolute', bottom: 0, width: '100%', height: `${pct * 100}%`, background: achieved ? 'var(--color-primary)' : 'var(--color-primary-light)', borderRadius: '4px 4px 0 0', transition: 'height 0.3s' }} />
-                            {achieved && <div style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%,-50%)', fontSize: 10, color: 'white', fontWeight: 700 }}>✓</div>}
-                          </div>
-                          <span style={{ fontSize: 9, color: isToday ? 'var(--color-primary)' : 'var(--color-text-light)', fontWeight: isToday ? 700 : 400 }}>{dayLabel}</span>
+            {/* 週間達成度カード */}
+            {targetExam && (
+              <Card style={{ marginBottom: 12 }}>
+                <div style={{ fontSize: 12, color: 'var(--color-text-sub)', marginBottom: 8 }}>{ja ? '直近7日間' : 'Last 7 days'}</div>
+                <div style={{ display: 'flex', gap: 6, alignItems: 'flex-end' }}>
+                  {weekDays.map((d, i) => {
+                    const count = weekCounts[i];
+                    const achieved = count >= dailyGoal;
+                    const pct = dailyGoal > 0 ? Math.min(1, count / dailyGoal) : 0;
+                    const isToday = d === jstToday();
+                    const dayLabel = new Date(d + 'T12:00:00').toLocaleDateString(ja ? 'ja-JP' : 'en-US', { weekday: 'short' });
+                    return (
+                      <div key={d} style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 3 }}>
+                        <div style={{ width: '100%', height: 44, borderRadius: 4, background: 'var(--color-bg-main)', position: 'relative', overflow: 'hidden' }}>
+                          <div style={{ position: 'absolute', bottom: 0, width: '100%', height: `${pct * 100}%`, background: achieved ? '#009E9E' : 'rgba(0,158,158,0.2)', borderRadius: '4px 4px 0 0', transition: 'height 0.3s' }} />
+                          {achieved && <div style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%,-50%)', fontSize: 10, color: 'white', fontWeight: 700 }}>✓</div>}
                         </div>
-                      );
-                    })}
-                  </div>
-                  <div style={{ marginTop: 8, fontSize: 11, color: 'var(--color-text-light)', textAlign: 'right' }}>
-                    {ja ? `今週の達成日数：${weekCounts.filter(c => c >= dailyGoal).length}/7日` : `Achieved: ${weekCounts.filter(c => c >= dailyGoal).length}/7 days`}
-                  </div>
+                        <span style={{ fontSize: 9, color: isToday ? '#009E9E' : 'var(--color-text-light)', fontWeight: isToday ? 700 : 400 }}>{dayLabel}</span>
+                      </div>
+                    );
+                  })}
                 </div>
-              )}
-            </Card>
+                <div style={{ marginTop: 8, fontSize: 11, color: 'var(--color-text-light)', textAlign: 'right' }}>
+                  {ja ? `今週の達成日数：${weekCounts.filter(c => c >= dailyGoal).length}/7日` : `Achieved: ${weekCounts.filter(c => c >= dailyGoal).length}/7 days`}
+                </div>
+              </Card>
+            )}
 
             {/* 日次目標達成で +10p ヒント */}
             <div style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '8px 12px', borderRadius: 8, background: 'var(--color-bg-main)', fontSize: 12, color: 'var(--color-text-sub)' }}>
               <IconSparkles size={13} />
               {ja ? '1日の目標演習量を達成すると +10p ボーナス！' : 'Achieve your daily goal to earn +10p bonus!'}
             </div>
+
+            {/* 設定編集ポップアップ */}
+            {showSettingsEdit && (
+              <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', zIndex: 1000, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16 }}>
+                <div style={{ background: 'var(--color-bg-white)', borderRadius: 'var(--border-radius-lg)', padding: '24px 20px', width: '100%', maxWidth: 360, boxShadow: 'var(--box-shadow-md)' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 20 }}>
+                    <span style={{ fontWeight: 700, fontSize: 16 }}>{ja ? '目標設定' : 'Edit Settings'}</span>
+                    <button onClick={() => setShowSettingsEdit(false)} style={{ width: 32, height: 32, borderRadius: '50%', border: 'none', background: 'transparent', cursor: 'pointer', fontSize: 18, color: 'var(--color-text-sub)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>✕</button>
+                  </div>
+                  {/* 受験日 */}
+                  <div style={{ marginBottom: 20 }}>
+                    <div style={{ fontSize: 13, fontWeight: 600, color: 'var(--color-text-sub)', marginBottom: 8 }}>{ja ? '受験日' : 'Exam Date'}</div>
+                    <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+                      <input
+                        type="date"
+                        value={editExamDate}
+                        onChange={e => setEditExamDate(e.target.value)}
+                        style={{ flex: 1, border: '1px solid var(--color-border)', borderRadius: 8, padding: '8px 10px', fontSize: 14, background: 'var(--color-bg-white)', color: 'var(--color-text-main)', cursor: 'pointer' }}
+                      />
+                      {editExamDate && (
+                        <button onClick={() => setEditExamDate('')} style={{ padding: '6px 10px', border: '1px solid var(--color-border)', borderRadius: 8, background: 'transparent', cursor: 'pointer', fontSize: 12, color: 'var(--color-text-sub)' }}>
+                          {ja ? '削除' : 'Clear'}
+                        </button>
+                      )}
+                    </div>
+                  </div>
+                  {/* 目標演習量 */}
+                  <div style={{ marginBottom: 24 }}>
+                    <div style={{ fontSize: 13, fontWeight: 600, color: 'var(--color-text-sub)', marginBottom: 12 }}>{ja ? '1日の目標演習量' : 'Daily Goal'}</div>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 16, justifyContent: 'center' }}>
+                      <button onClick={() => setEditDailyGoal(v => Math.max(10, v - 5))} disabled={editDailyGoal <= 10} style={{ width: 44, height: 44, borderRadius: '50%', border: '1px solid var(--color-border)', background: 'transparent', cursor: editDailyGoal <= 10 ? 'default' : 'pointer', fontSize: 20, display: 'flex', alignItems: 'center', justifyContent: 'center', color: editDailyGoal <= 10 ? 'var(--color-text-light)' : 'var(--color-text-main)' }}>−</button>
+                      <span style={{ fontSize: 24, fontWeight: 800, minWidth: 64, textAlign: 'center', color: 'var(--color-primary)', fontVariantNumeric: 'tabular-nums' }}>
+                        {editDailyGoal}<span style={{ fontSize: 13, fontWeight: 400, marginLeft: 2, color: 'var(--color-text-sub)' }}>{ja ? '問' : 'Q'}</span>
+                      </span>
+                      <button onClick={() => setEditDailyGoal(v => Math.min(100, v + 5))} disabled={editDailyGoal >= 100} style={{ width: 44, height: 44, borderRadius: '50%', border: '1px solid var(--color-border)', background: 'transparent', cursor: editDailyGoal >= 100 ? 'default' : 'pointer', fontSize: 20, display: 'flex', alignItems: 'center', justifyContent: 'center', color: editDailyGoal >= 100 ? 'var(--color-text-light)' : 'var(--color-text-main)' }}>+</button>
+                    </div>
+                  </div>
+                  {/* 保存ボタン */}
+                  <Button variant="primary" size="lg" fullWidth onClick={() => {
+                    handleExamDateChange(editExamDate);
+                    handleDailyGoalChange(editDailyGoal);
+                    setShowSettingsEdit(false);
+                  }}>
+                    {ja ? '保存' : 'Save'}
+                  </Button>
+                </div>
+              </div>
+            )}
           </>
         )}
 
@@ -537,7 +520,7 @@ export default function MyPage() {
                           return recent.filter(Boolean).length / total;
                         };
                         return getPct(a) - getPct(b);
-                      }).map(domain => {
+                      }).map((domain, i) => {
                         const stat = domainStats.find(s => s.tagId === domain);
                         const recent = stat?.recentResults ?? [];
                         const correct = recent.filter(Boolean).length;
@@ -546,7 +529,7 @@ export default function MyPage() {
                         const isWeak = pct !== null && pct < DOMAIN_RATE_WARNING * 100;
                         const isFair = pct !== null && pct < DOMAIN_RATE_CAUTION * 100 && !isWeak;
                         const color = pct === null ? 'var(--color-text-light)' : isWeak ? 'var(--color-danger)' : isFair ? 'var(--color-caution)' : 'var(--color-success)';
-                        const barColor = pct === null ? 'var(--color-bg-main)' : isWeak ? 'var(--color-danger)' : isFair ? 'var(--color-caution)' : 'var(--color-success)';
+                        const barGradient = isWeak ? 'var(--bar-gradient-danger)' : isFair ? 'var(--bar-gradient-caution)' : 'var(--bar-gradient-success)';
                         const domainLabel = lang === 'en' ? (DOMAIN_NAME_EN[domain] ?? domain) : domain;
                         return (
                           <div key={domain} style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
@@ -560,7 +543,7 @@ export default function MyPage() {
                                 </span>
                               </div>
                               <div style={{ height: 6, borderRadius: 3, background: 'var(--color-bg-main)', overflow: 'hidden' }}>
-                                {pct !== null && <div style={{ height: '100%', width: `${pct}%`, background: barColor, borderRadius: 3, transition: 'width 0.3s' }} />}
+                                {pct !== null && <div style={{ height: '100%', width: `${pct}%`, background: barGradient, borderRadius: 3, transformOrigin: 'left center', animation: `growWidth 0.45s cubic-bezier(0.34, 1.56, 0.64, 1) ${i * 30}ms both` }} />}
                               </div>
                             </div>
                             <div style={{ display: 'flex', gap: 2, flexShrink: 0 }}>

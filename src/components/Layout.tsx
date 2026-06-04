@@ -575,10 +575,10 @@ export default function Layout({ children }: { children: React.ReactNode }) {
             )}
           </div>
         )}
-        {targetExam && !(isMobile && isOthersActive) && !(['/aws/exercise/session', '/aws/exam/session'].includes(location.pathname)) && (
+        {targetExam && !(isMobile && isOthersActive) && !(['/aws/exercise/session', '/aws/exam/session', '/aws/mypage'].includes(location.pathname)) && (
           <button
-            onClick={() => navigate('/aws/exam-dashboard')}
-            title="資格ダッシュボード"
+            onClick={() => navigate('/aws/mypage')}
+            title="マイページ"
             style={{
               ...(isMobile ? { flex: 1 } : { flexShrink: 0 }),
               minWidth: 0,
@@ -591,24 +591,36 @@ export default function Layout({ children }: { children: React.ReactNode }) {
             onMouseEnter={e => { e.currentTarget.style.background = 'var(--color-bg-main)'; }}
             onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; }}
           >
-            <span style={{
-              display: 'block',
-              minWidth: 0,
-              fontSize: 13, fontWeight: 700,
-              color: 'var(--color-text-sub)',
-              whiteSpace: 'nowrap',
-              overflow: 'hidden', textOverflow: 'ellipsis',
-              maxWidth: isMobile ? 'none' : '40vw',
-              padding: '0 4px 0 8px',
-            }}>
-              {`設定目標：${isMobile ? `AWS ${targetExam}` : (EXAM_CONFIGS[targetExam]?.fullName ?? targetExam)}`}
-              {examDate && (() => {
-                const days = daysUntilExam(examDate);
-                if (days === 0) return <span style={{ color: 'var(--color-text-sub)', fontWeight: 700 }}>（試験当日！ファイト🔥）</span>;
-                if (days > 0) return <span>（あと<span style={{ color: 'var(--color-primary)', fontWeight: 800 }}>{days}</span>日！）</span>;
-                return null;
+            <div style={{ minWidth: 0, padding: '4px 4px 4px 8px', display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 3 }}>
+              <span style={{
+                display: 'block',
+                minWidth: 0,
+                fontSize: 13, fontWeight: 700,
+                color: 'var(--color-text-sub)',
+                whiteSpace: 'nowrap',
+                overflow: 'hidden', textOverflow: 'ellipsis',
+                maxWidth: isMobile ? 'none' : '40vw',
+              }}>
+                {`設定目標：${isMobile ? `AWS ${targetExam}` : (EXAM_CONFIGS[targetExam]?.fullName ?? targetExam)}`}
+                {examDate && (() => {
+                  const days = daysUntilExam(examDate);
+                  if (days === 0) return <span style={{ color: 'var(--color-text-sub)', fontWeight: 700 }}>（試験当日！ファイト🔥）</span>;
+                  if (days > 0) return <span>（あと<span style={{ color: 'var(--color-primary)', fontWeight: 800 }}>{days}</span>日！）</span>;
+                  return null;
+                })()}
+              </span>
+              {(() => {
+                const jstDate = new Date(Date.now() + 9 * 3600 * 1000).toISOString().slice(0, 10);
+                const goal = parseInt(localStorage.getItem(`dailyGoal_${uid}`) ?? '10', 10);
+                const count = parseInt(localStorage.getItem(`dailyQCount_${targetExam}_${uid}_${jstDate}`) ?? '0', 10);
+                const pct = Math.min(100, (count / goal) * 100);
+                return (
+                  <div style={{ width: isMobile ? '100%' : 120, height: 3, borderRadius: 2, background: 'var(--color-border)', overflow: 'hidden' }}>
+                    <div style={{ height: '100%', width: `${pct}%`, borderRadius: 2, background: 'var(--bar-gradient-teal)', transition: 'width 0.3s' }} />
+                  </div>
+                );
               })()}
-            </span>
+            </div>
             <span style={{
               flexShrink: 0,
               color: 'var(--color-primary)',
