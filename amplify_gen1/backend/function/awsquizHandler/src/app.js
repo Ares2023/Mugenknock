@@ -394,6 +394,9 @@ app.post('/admin/questions', async (req, res) => {
       if (q.questionTextEn) item.questionTextEn = q.questionTextEn;
       if (q.choicesEn && q.choicesEn.length > 0) item.choicesEn = q.choicesEn;
       if (q.explanationEn) item.explanationEn = q.explanationEn;
+      if (Array.isArray(q.choiceExplanations) && q.choiceExplanations.length === q.choices.length) {
+        item.choiceExplanations = q.choiceExplanations;
+      }
 
       await docClient.send(new PutCommand({ TableName: 'Questions', Item: item }));
 
