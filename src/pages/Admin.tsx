@@ -1788,7 +1788,7 @@ export default function Admin() {
 ・正解の選択肢の文字数が不正解の選択肢群から浮かないようにすること（正解だけが著しく長い・短いと文字数から正解が推測できてしまうため、正解の文字数を不正解の平均に近づけること）
 ・examType には "${importExamType}" を必ず設定すること
 ・domain には以下のいずれかを設定すること: ${EXAM_DOMAINS[importExamType]?.join(' / ')}
-・tags 配列には domain と同じドメイン名を1つ入れること（例: domain が "AIとMLの基礎" なら tags も ["AIとMLの基礎"]）
+・tags フィールドは不要（出力しなくてよい）
 ・questionTextEn, choicesEn, explanationEn には日本語フィールドの英語訳を必ず含めること
 ・choicesEn の要素数・順序は choices と完全に一致させること
 ・choiceExplanations は choices と同じ順序・同じ数で生成すること（正解はなぜ正解か、不正解はなぜ不正解かを100〜150字で。文頭に「正解です」「不正解です」は入れない）
@@ -1806,8 +1806,7 @@ export default function Admin() {
     "explanation": "解説文（日本語）",
     "explanationEn": "Explanation in English",
     "choiceExplanations": ["選択肢Aの解説（100〜150字）", "選択肢Bの解説", "選択肢Cの解説", "選択肢Dの解説"],
-    "isMultiple": false,
-    "tags": ["（domainと同じドメイン名）"]
+    "isMultiple": false
   }
 ]`;
 

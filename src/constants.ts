@@ -54,6 +54,21 @@ export const EXAM_DOMAINS: Record<string, string[]> = {
   SCS: ['検出', 'インシデント対応', 'インフラストラクチャのセキュリティ', 'アイデンティティとアクセス管理', 'データ保護', 'セキュリティの基盤とガバナンス'],
 };
 
+// ── domain フィールドのユーティリティ ────────────────────────
+// domain は整数インデックス（新形式）または文字列 / tags 配列（旧形式）
+export type QuestionLike = { examType: string; domain?: number | string | null; tags?: string[] };
+
+export function qDomainName(q: QuestionLike): string {
+  if (typeof q.domain === 'number') return EXAM_DOMAINS[q.examType]?.[q.domain] ?? '';
+  if (typeof q.domain === 'string' && q.domain) return q.domain;
+  return q.tags?.[0] ?? '';
+}
+
+export function qDomainIndex(examType: string, nameOrIndex: number | string): number {
+  if (typeof nameOrIndex === 'number') return nameOrIndex;
+  return EXAM_DOMAINS[examType]?.indexOf(nameOrIndex) ?? -1;
+}
+
 // ドメイン名の英語対応（日本語キー → 英語表示）
 export const DOMAIN_NAME_EN: Record<string, string> = {
   // CLF

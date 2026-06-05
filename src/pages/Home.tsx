@@ -7,7 +7,7 @@ import { useAuth } from '../contexts/AuthContext';
 import { useLanguage } from '../contexts/LanguageContext';
 import {
   API_ENDPOINT, EXAM_TYPES, EXAM_CONFIGS, EXAM_DOMAINS,
-  DOMAIN_WEIGHTS, DOMAIN_NAME_EN, PASS_SCORES,
+  DOMAIN_WEIGHTS, DOMAIN_NAME_EN, PASS_SCORES, qDomainName,
 } from '../constants';
 import { getCached, setCached, deleteCached, DEFAULT_TTL } from '../utils/cache';
 import { animateLoadPct, randomPlateau } from '../utils/loadProgress';
@@ -1542,7 +1542,7 @@ export default function Home() {
       }
       const selDomains: string[] = qPrefs.domains ?? [];
       if (selDomains.length > 0) {
-        items = items.filter((q: any) => (q.tags ?? []).some((t: string) => selDomains.includes(t)));
+        items = items.filter((q: any) => selDomains.includes(qDomainName(q)));
       }
       const count = qPrefs.questionCount ?? 5;
       items = shuffleArray(items);
@@ -1615,7 +1615,7 @@ export default function Home() {
           });
         })());
         const seenIds = new Set(items.map((q: any) => q.questionId));
-        const domainItems = allItems.filter((q: any) => (q.tags ?? []).some((t: string) => weakDomains.has(t)) && !seenIds.has(q.questionId));
+        const domainItems = allItems.filter((q: any) => weakDomains.has(qDomainName(q)) && !seenIds.has(q.questionId));
         items = [...items, ...domainItems];
       }
       if (items.length === 0 && !focusIncorrect && focusDomain === 'none') {

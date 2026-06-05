@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { API_ENDPOINT, EXAM_TYPES, EXAM_DOMAINS } from '../constants';
+import { API_ENDPOINT, EXAM_TYPES, EXAM_DOMAINS, qDomainName } from '../constants';
 import { useAuth } from '../contexts/AuthContext';
 import { useLanguage } from '../contexts/LanguageContext';
 import Card from '../components/ui/Card';
@@ -77,7 +77,8 @@ function balancedDomainSelect(pool: any[], domains: string[], limit: number, exe
   const unclaimed: any[] = [];
   for (const d of domains) byDomain[d] = [];
   for (const q of pool) {
-    const primaryDomain = (q.tags ?? []).find((t: string) => domains.includes(t));
+    const dn = qDomainName(q);
+    const primaryDomain = dn && domains.includes(dn) ? dn : undefined;
     if (primaryDomain) byDomain[primaryDomain].push(q);
     else unclaimed.push(q);
   }

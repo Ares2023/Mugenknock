@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useMemo, useRef, useCallback } from 'react';
 import { createPortal } from 'react-dom';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { API_ENDPOINT, PASS_RATE, EXAM_DOMAINS, DOMAIN_NAME_EN, EXAM_LEVEL } from '../constants';
+import { API_ENDPOINT, PASS_RATE, EXAM_DOMAINS, DOMAIN_NAME_EN, EXAM_LEVEL, qDomainName } from '../constants';
 import { deleteCached } from '../utils/cache';
 import { addPoints } from '../utils/points';
 import { useAuth } from '../contexts/AuthContext';
@@ -417,7 +417,7 @@ export default function ExerciseSession() {
         questionId: currentQuestion.questionId,
         selectedAnswers,
         isCorrect,
-        tags: currentQuestion.tags
+        tags: [qDomainName(currentQuestion)].filter(Boolean)
       })
     }).catch(err => console.error(err));
   };
@@ -476,7 +476,7 @@ export default function ExerciseSession() {
       const delta: Record<string, { c: number; i: number }> = {};
       for (const r of results) {
         const q = questions.find((q: Question) => q.questionId === r.questionId);
-        for (const tag of (q?.tags ?? [])) {
+        for (const tag of [qDomainName(q as any)].filter(Boolean)) {
           if (!delta[tag]) delta[tag] = { c: 0, i: 0 };
           if (r.isCorrect) delta[tag].c++; else delta[tag].i++;
         }
@@ -498,7 +498,7 @@ export default function ExerciseSession() {
           JSON.parse(localStorage.getItem(`domain_results_${examType}_${userId}`) ?? '{}');
         for (const r of results) {
           const q = questions.find((q: Question) => q.questionId === r.questionId);
-          for (const tag of (q?.tags ?? [])) {
+          for (const tag of [qDomainName(q as any)].filter(Boolean)) {
             if (!dr[tag]) dr[tag] = [];
             dr[tag] = [...dr[tag], r.isCorrect].slice(-5);
           }
@@ -585,7 +585,7 @@ export default function ExerciseSession() {
         JSON.parse(localStorage.getItem(`domain_results_${examType}_${userId}`) ?? '{}');
       for (const r of results) {
         const q = questions.find((q: Question) => q.questionId === r.questionId);
-        for (const tag of (q?.tags ?? [])) {
+        for (const tag of [qDomainName(q as any)].filter(Boolean)) {
           if (!dr[tag]) dr[tag] = [];
           dr[tag] = [...dr[tag], r.isCorrect].slice(-5);
         }
@@ -1030,8 +1030,8 @@ export default function ExerciseSession() {
               }
             </span>
             <span>ID: <strong style={{ color: 'var(--color-text-sub)' }}>{currentQuestion.questionId}</strong></span>
-            {currentQuestion.tags?.length > 0 && (
-              <span>{lang === 'ja' ? 'ドメイン' : 'Domain'}: <strong style={{ color: 'var(--color-text-sub)' }}>{currentQuestion.tags.join(', ')}</strong></span>
+            {qDomainName(currentQuestion) && (
+              <span>{lang === 'ja' ? 'ドメイン' : 'Domain'}: <strong style={{ color: 'var(--color-text-sub)' }}>{qDomainName(currentQuestion)}</strong></span>
             )}
           </div>
         </div>
