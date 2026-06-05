@@ -1,14 +1,13 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useRef, useCallback } from 'react';
 import { createPortal } from 'react-dom';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { API_ENDPOINT, PASS_RATE, EXAM_DOMAINS, DOMAIN_NAME_EN, EXAM_LEVEL } from '../constants';
+import { API_ENDPOINT, PASS_RATE, EXAM_DOMAINS, DOMAIN_NAME_EN, EXAM_LEVEL, qDomainName } from '../constants';
 import { deleteCached } from '../utils/cache';
 import { addPoints } from '../utils/points';
 import { useAuth } from '../contexts/AuthContext';
 import { useLanguage } from '../contexts/LanguageContext';
 import Card from '../components/ui/Card';
 import Button from '../components/ui/Button';
-import Badge from '../components/ui/Badge';
 import ReportModal from '../components/ReportModal';
 import { IconBookOpen, IconCopy, IconCheck, IconStar, IconChevronUp, IconChevronDown } from '../components/Icons';
 
@@ -49,9 +48,9 @@ const CopyButton = ({ getText }: { getText: () => string }) => {
       onClick={handleCopy}
       title={copied ? 'コピー済み' : 'コピー'}
       style={{
-        background: 'none', border: '1px solid var(--color-border)', borderRadius: '50%',
+        background: 'none', border: `1.5px solid ${copied ? 'var(--color-success)' : 'var(--color-primary)'}`, borderRadius: '50%',
         width: 28, height: 28, display: 'flex', alignItems: 'center', justifyContent: 'center',
-        cursor: 'pointer', color: copied ? 'var(--color-success)' : 'var(--color-text-light)',
+        cursor: 'pointer', color: copied ? 'var(--color-success)' : 'var(--color-primary)',
         transition: 'all 0.2s', flexShrink: 0,
       }}
     >
@@ -303,18 +302,39 @@ export default function ExerciseSession() {
   const [judgmentAnim, setJudgmentAnim] = useState<'correct' | 'incorrect' | null>(null);
   const [showAbortConfirm, setShowAbortConfirm] = useState(false);
 
-  // ドラフト保存
+  // ドラフト保存 — 常に最新値を ref に保持し、状態変化時と beforeunload 両方で保存する
+  const draftStateRef = useRef({ currentIndex, results, answered, selectedAnswers });
   useEffect(() => {
+    draftStateRef.current = { currentIndex, results, answered, selectedAnswers };
+  });
+
+  const saveDraftNow = useCallback(() => {
     if (!sessionId) return;
+    const { currentIndex: ci, results: r, answered: a, selectedAnswers: sa } = draftStateRef.current;
     try {
       const draftKey = isFocused ? `focusedExerciseDraft_${userId}` : isQuick ? `quickExerciseDraft_${userId}` : `practiceExerciseDraft_${userId}`;
       localStorage.setItem(draftKey, JSON.stringify({
         sessionId, examType, questions, userId,
-        currentIndex, results, answered, selectedAnswers,
+        currentIndex: ci, results: r, answered: a, selectedAnswers: sa,
         isQuick, isFocused, savedAt: Date.now(),
       }));
     } catch { /* quota over 等は無視 */ }
-  }, [currentIndex, results]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [sessionId, examType, questions, userId, isQuick, isFocused]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  useEffect(() => {
+    saveDraftNow();
+  }, [currentIndex, results, answered, selectedAnswers]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  useEffect(() => {
+    if (!sessionId) return;
+    // beforeunload: PC/Android、pagehide: iOS Safari でより確実
+    window.addEventListener('beforeunload', saveDraftNow);
+    window.addEventListener('pagehide', saveDraftNow);
+    return () => {
+      window.removeEventListener('beforeunload', saveDraftNow);
+      window.removeEventListener('pagehide', saveDraftNow);
+    };
+  }, [saveDraftNow]);
 
   const currentQuestion = questions[currentIndex];
 
@@ -397,7 +417,7 @@ export default function ExerciseSession() {
         questionId: currentQuestion.questionId,
         selectedAnswers,
         isCorrect,
-        tags: currentQuestion.tags
+        tags: [qDomainName(currentQuestion)].filter(Boolean)
       })
     }).catch(err => console.error(err));
   };
@@ -456,7 +476,7 @@ export default function ExerciseSession() {
       const delta: Record<string, { c: number; i: number }> = {};
       for (const r of results) {
         const q = questions.find((q: Question) => q.questionId === r.questionId);
-        for (const tag of (q?.tags ?? [])) {
+        for (const tag of [qDomainName(q as any)].filter(Boolean)) {
           if (!delta[tag]) delta[tag] = { c: 0, i: 0 };
           if (r.isCorrect) delta[tag].c++; else delta[tag].i++;
         }
@@ -478,7 +498,7 @@ export default function ExerciseSession() {
           JSON.parse(localStorage.getItem(`domain_results_${examType}_${userId}`) ?? '{}');
         for (const r of results) {
           const q = questions.find((q: Question) => q.questionId === r.questionId);
-          for (const tag of (q?.tags ?? [])) {
+          for (const tag of [qDomainName(q as any)].filter(Boolean)) {
             if (!dr[tag]) dr[tag] = [];
             dr[tag] = [...dr[tag], r.isCorrect].slice(-5);
           }
@@ -565,7 +585,7 @@ export default function ExerciseSession() {
         JSON.parse(localStorage.getItem(`domain_results_${examType}_${userId}`) ?? '{}');
       for (const r of results) {
         const q = questions.find((q: Question) => q.questionId === r.questionId);
-        for (const tag of (q?.tags ?? [])) {
+        for (const tag of [qDomainName(q as any)].filter(Boolean)) {
           if (!dr[tag]) dr[tag] = [];
           dr[tag] = [...dr[tag], r.isCorrect].slice(-5);
         }
@@ -790,9 +810,14 @@ export default function ExerciseSession() {
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 'var(--spacing-sm)', gap: 'var(--spacing-md)' }}>
             <div>
               {currentQuestion.isMultiple && (
-                <Badge variant="outline">
+                <span style={{
+                  display: 'inline-flex', alignItems: 'center',
+                  border: '1.5px solid var(--color-border)', borderRadius: 4,
+                  padding: '2px 8px', fontSize: 11, fontWeight: 700,
+                  color: 'var(--color-text-sub)', background: 'transparent', whiteSpace: 'nowrap',
+                }}>
                   {t('exerciseSession.multiple')}{currentQuestion.correctAnswerCount ? ` (${currentQuestion.correctAnswerCount})` : ''}
-                </Badge>
+                </span>
               )}
             </div>
             <CopyButton getText={() => {
@@ -1005,8 +1030,8 @@ export default function ExerciseSession() {
               }
             </span>
             <span>ID: <strong style={{ color: 'var(--color-text-sub)' }}>{currentQuestion.questionId}</strong></span>
-            {currentQuestion.tags?.length > 0 && (
-              <span>{lang === 'ja' ? 'ドメイン' : 'Domain'}: <strong style={{ color: 'var(--color-text-sub)' }}>{currentQuestion.tags.join(', ')}</strong></span>
+            {qDomainName(currentQuestion) && (
+              <span>{lang === 'ja' ? 'ドメイン' : 'Domain'}: <strong style={{ color: 'var(--color-text-sub)' }}>{qDomainName(currentQuestion)}</strong></span>
             )}
           </div>
         </div>

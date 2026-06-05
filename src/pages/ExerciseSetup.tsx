@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { API_ENDPOINT, EXAM_TYPES, EXAM_DOMAINS } from '../constants';
+import { API_ENDPOINT, EXAM_TYPES, EXAM_DOMAINS, qDomainName } from '../constants';
 import { useAuth } from '../contexts/AuthContext';
 import { useLanguage } from '../contexts/LanguageContext';
 import Card from '../components/ui/Card';
@@ -50,6 +50,75 @@ function shuffleArray<T>(arr: T[]): T[] {
     [a[i], a[j]] = [a[j], a[i]];
   }
   return a;
+}
+
+// ドメインごとの累計演習問数（domain_history から集計）
+function getDomainExerciseCounts(examType: string, uid: string, domains: string[]): Record<string, number> {
+  try {
+    const dh: Record<string, { correct: number; total: number }[]> =
+      JSON.parse(localStorage.getItem(`domain_history_${examType}_${uid}`) ?? '{}');
+    const counts: Record<string, number> = {};
+    for (const d of domains) {
+      counts[d] = (dh[d] ?? []).reduce((sum, s) => sum + (s.total ?? 0), 0);
+    }
+    return counts;
+  } catch { return {}; }
+}
+
+// ドメインバランス均等化選択
+// - 各ドメインから均等にピックアップ（努力目標）
+// - 演習数の少ないドメインを優先（リバランス）
+// - ドメインに問題が足りなければ他で補完
+function balancedDomainSelect(pool: any[], domains: string[], limit: number, exerciseCounts: Record<string, number>): any[] {
+  if (pool.length <= limit) return shuffleArray(pool);
+
+  // ドメイン別バケツ分け（最初にマッチするドメインに割り当て）
+  const byDomain: Record<string, any[]> = {};
+  const unclaimed: any[] = [];
+  for (const d of domains) byDomain[d] = [];
+  for (const q of pool) {
+    const dn = qDomainName(q);
+    const primaryDomain = dn && domains.includes(dn) ? dn : undefined;
+    if (primaryDomain) byDomain[primaryDomain].push(q);
+    else unclaimed.push(q);
+  }
+  for (const d of domains) byDomain[d] = shuffleArray(byDomain[d]);
+
+  // 演習数の少ない順でドメインを並べる（優先度順）
+  const activeDomains = domains.filter(d => byDomain[d].length > 0);
+  activeDomains.sort((a, b) => (exerciseCounts[a] ?? 0) - (exerciseCounts[b] ?? 0));
+
+  if (activeDomains.length === 0) return shuffleArray(pool).slice(0, limit);
+
+  // ラウンドロビンでスロット割り当て（均等 + 優先度順に余りを配分）
+  const slots: Record<string, number> = {};
+  for (const d of activeDomains) slots[d] = 0;
+  let remaining = limit;
+  while (remaining > 0) {
+    let anyAdded = false;
+    for (const d of activeDomains) {
+      if (remaining <= 0) break;
+      if (slots[d] < byDomain[d].length) { slots[d]++; remaining--; anyAdded = true; }
+    }
+    if (!anyAdded) break;
+  }
+
+  // 各ドメインのスロット分だけピック → 最後にシャッフルして順序をランダムに
+  const selected: any[] = [];
+  const usedIds = new Set<string>();
+  for (const d of activeDomains) {
+    for (const q of byDomain[d].slice(0, slots[d])) {
+      selected.push(q); usedIds.add(q.questionId);
+    }
+  }
+  // unclaimed な問題で不足分を補完
+  if (selected.length < limit) {
+    for (const q of shuffleArray(unclaimed)) {
+      if (selected.length >= limit) break;
+      if (!usedIds.has(q.questionId)) { selected.push(q); usedIds.add(q.questionId); }
+    }
+  }
+  return shuffleArray(selected);
 }
 
 const loadExercisePrefs = (et: string, uid: string) => {
@@ -231,7 +300,8 @@ export default function ExerciseSetup() {
           filtered = filtered.filter((q: any) => incorrectIds.has(q.questionId));
           filtered.sort((a: any, b: any) => (incorrectCounts[b.questionId] ?? 0) - (incorrectCounts[a.questionId] ?? 0));
         } else {
-          filtered = shuffleArray(filtered);
+          const exCounts = getDomainExerciseCounts(examType, userId, selectedDomains);
+          filtered = balancedDomainSelect(filtered, selectedDomains, limit, exCounts);
         }
         let usedFallback = false;
         if (filtered.length < limit && filtered.length < pool.length) {
@@ -248,8 +318,8 @@ export default function ExerciseSetup() {
         const data = await res.json();
         let allItems: any[] = data.items ?? [];
         if (aiVerifiedOnly) allItems = allItems.filter((q: any) => !!q.validityCheckedAt);
-        allItems = shuffleArray(allItems);
-        selectedItems = allItems.slice(0, limit);
+        const exCounts = getDomainExerciseCounts(examType, userId, selectedDomains);
+        selectedItems = balancedDomainSelect(allItems, selectedDomains, limit, exCounts);
       }
 
       if (selectedItems.length === 0) {

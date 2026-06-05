@@ -75,7 +75,7 @@ export const CATALOG: Category[] = [
   {
     category: 'ネットワーキングとコンテンツ配信',
     services: [
-      { name: 'VPC',                                  serviceIds: ['svc-vpc-8'],                              icon: '/icons/aws/VPCVirtualprivatecloudVPC.png' },
+      { name: 'VPC',                                  serviceIds: ['svc-vpc-8'],                              icon: 'VPC' },
       { name: 'Elastic Load Balancing',               serviceIds: ['svc-elb-35'],                             icon: '/icons/aws/ElasticLoadBalancing.png' },
       { name: 'CloudFront',                           serviceIds: ['b3d71a09-b495-4573-933f-34be6cbdb9b5'],  icon: '/icons/aws/CloudFront.png' },
       { name: 'API Gateway',                          serviceIds: ['svc-api-gateway-15'],                     icon: '/icons/aws/APIGateway.png' },

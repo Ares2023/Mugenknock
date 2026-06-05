@@ -388,7 +388,8 @@ export default function MyPage() {
                 <div style={{ display: 'flex', gap: 6, alignItems: 'flex-end' }}>
                   {weekDays.map((d, i) => {
                     const count = weekCounts[i];
-                    const achieved = count >= dailyGoal;
+                    const rewarded = !!targetExam && localStorage.getItem(`dailyGoalReward_${targetExam}_${uid}_${d}`) === '1';
+                    const achieved = rewarded || count >= dailyGoal;
                     const pct = dailyGoal > 0 ? Math.min(1, count / dailyGoal) : 0;
                     const isToday = d === jstToday();
                     const dayLabel = new Date(d + 'T12:00:00').toLocaleDateString(ja ? 'ja-JP' : 'en-US', { weekday: 'short' });
@@ -404,7 +405,9 @@ export default function MyPage() {
                   })}
                 </div>
                 <div style={{ marginTop: 8, fontSize: 11, color: 'var(--color-text-light)', textAlign: 'right' }}>
-                  {ja ? `今週の達成日数：${weekCounts.filter(c => c >= dailyGoal).length}/7日` : `Achieved: ${weekCounts.filter(c => c >= dailyGoal).length}/7 days`}
+                  {ja
+                    ? `今週の達成日数：${weekDays.filter((d, i) => (!!targetExam && localStorage.getItem(`dailyGoalReward_${targetExam}_${uid}_${d}`) === '1') || weekCounts[i] >= dailyGoal).length}/7日`
+                    : `Achieved: ${weekDays.filter((d, i) => (!!targetExam && localStorage.getItem(`dailyGoalReward_${targetExam}_${uid}_${d}`) === '1') || weekCounts[i] >= dailyGoal).length}/7 days`}
                 </div>
               </Card>
             )}

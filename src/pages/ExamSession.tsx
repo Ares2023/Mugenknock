@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { createPortal } from 'react-dom';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { API_ENDPOINT, EXAM_CONFIGS, PASS_RATE, EXAM_LEVEL } from '../constants';
+import { API_ENDPOINT, EXAM_CONFIGS, PASS_RATE, EXAM_LEVEL, qDomainName } from '../constants';
 import { deleteCached } from '../utils/cache';
 import { addPoints } from '../utils/points';
 import { useAuth } from '../contexts/AuthContext';
@@ -194,7 +194,7 @@ export default function ExamSession() {
               return correctIdx.length === userOrigIdx.length && correctIdx.every((i: number) => userOrigIdx.includes(i));
             })()
           : correct.length === userAns.length && correct.every((a: string) => userAns.map(stripLabel).includes(stripLabel(a)));
-        return { questionId: q.questionId, isCorrect, userAns, tags: q.tags ?? [] };
+        return { questionId: q.questionId, isCorrect, userAns, tags: [qDomainName(q as any)].filter(Boolean) };
       });
       await Promise.all(abortResults.map(r =>
         fetch(`${API_ENDPOINT}/sessions/${sessionId}/answers`, {
@@ -213,7 +213,7 @@ export default function ExamSession() {
       });
       const delta: Record<string, { c: number; i: number }> = {};
       for (const r of abortResults) {
-        for (const tag of (r.tags ?? [])) {
+        for (const tag of r.tags) {
           if (!delta[tag]) delta[tag] = { c: 0, i: 0 };
           if (r.isCorrect) delta[tag].c++; else delta[tag].i++;
         }
@@ -232,7 +232,7 @@ export default function ExamSession() {
         const dr: Record<string, boolean[]> =
           JSON.parse(localStorage.getItem(`domain_results_${examType}_${userId}`) ?? '{}');
         for (const r of abortResults) {
-          for (const tag of (r.tags ?? [])) {
+          for (const tag of r.tags) {
             if (!dr[tag]) dr[tag] = [];
             dr[tag] = [...dr[tag], r.isCorrect].slice(-5);
           }
@@ -304,7 +304,7 @@ export default function ExamSession() {
               return correctIdx.length === userOrigIdx.length && correctIdx.every(i => userOrigIdx.includes(i));
             })()
           : correct.length === userAns.length && correct.every(a => userAns.map(stripLabel).includes(stripLabel(a)));
-        return { questionId: q.questionId, isCorrect, userAns, tags: q.tags ?? [] };
+        return { questionId: q.questionId, isCorrect, userAns, tags: [qDomainName(q as any)].filter(Boolean) };
       });
 
       await Promise.all(results.map(r =>
@@ -328,7 +328,7 @@ export default function ExamSession() {
       // ドメイン別 delta 計算
       const delta: Record<string, { c: number; i: number }> = {};
       for (const r of results) {
-        for (const tag of (r.tags ?? [])) {
+        for (const tag of r.tags) {
           if (!delta[tag]) delta[tag] = { c: 0, i: 0 };
           if (r.isCorrect) delta[tag].c++; else delta[tag].i++;
         }
@@ -348,7 +348,7 @@ export default function ExamSession() {
         const dr: Record<string, boolean[]> =
           JSON.parse(localStorage.getItem(`domain_results_${examType}_${userId}`) ?? '{}');
         for (const r of results) {
-          for (const tag of (r.tags ?? [])) {
+          for (const tag of r.tags) {
             if (!dr[tag]) dr[tag] = [];
             dr[tag] = [...dr[tag], r.isCorrect].slice(-5);
           }

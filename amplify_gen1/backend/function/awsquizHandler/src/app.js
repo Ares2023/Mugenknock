@@ -7,6 +7,19 @@ const { v4: uuidv4 } = require('uuid');
 const { CognitoJwtVerifier } = require('aws-jwt-verify');
 const { ADMIN_EMAIL, EXAM_DOMAINS } = require('./constants');
 
+// ── domain フィールドのユーティリティ ──────────────────────────
+// domain は整数インデックス（EXAM_DOMAINS[examType][domain]）
+// 旧データ: tags 配列、または domain が文字列の場合があるため両対応
+function qDomainName(q) {
+  if (typeof q.domain === 'number') return (EXAM_DOMAINS[q.examType] || [])[q.domain] ?? '';
+  if (typeof q.domain === 'string' && q.domain) return q.domain;
+  return (q.tags || [])[0] ?? '';
+}
+function qDomainIndex(examType, nameOrIndex) {
+  if (typeof nameOrIndex === 'number') return nameOrIndex;
+  return (EXAM_DOMAINS[examType] || []).indexOf(nameOrIndex);
+}
+
 const app = express();
 app.use(express.json());
 
@@ -248,7 +261,7 @@ app.get('/questions', async (req, res) => {
 
     if (domain) {
       const domainList = domain.split(',').map(d => d.trim()).filter(Boolean);
-      items = items.filter(q => (q.tags || []).some(t => domainList.includes(t)));
+      items = items.filter(q => domainList.includes(qDomainName(q)));
     }
     if (ids) {
       const idSet = new Set(ids.split(',').map(id => id.trim()).filter(Boolean));
@@ -374,10 +387,23 @@ app.post('/admin/questions', async (req, res) => {
     for (let i = 0; i < questions.length; i++) {
       const q = questions[i];
       const itemExamType = q.examType || examType;
-      const itemDomain = q.domain || domain || null;
       const shortId = uuidv4().replace(/-/g, '').slice(0, 8);
       const questionId = `${itemExamType.toLowerCase()}-${shortId}`;
-      const itemTags = Array.from(new Set([...(tags || []), ...(q.tags || [])]));
+
+      // domain をインデックスに正規化
+      // 入力: domain(名前 or インデックス) / tags 配列 / リクエストレベル domain
+      const rawDomain = q.domain ?? domain;
+      const rawTag = (q.tags || [])[0] || (tags || [])[0] || '';
+      const domainSource = rawDomain !== undefined && rawDomain !== null ? rawDomain : rawTag;
+      const domainIdx = qDomainIndex(itemExamType, domainSource);
+
+      // correctAnswerIndices を生成（未設定の場合）
+      let correctAnswerIndices = q.correctAnswerIndices;
+      if (!correctAnswerIndices && Array.isArray(q.correctAnswers) && Array.isArray(q.choices)) {
+        correctAnswerIndices = q.correctAnswers
+          .map(ca => q.choices.findIndex(c => c === ca || c.replace(/^[A-E]\.\s*/, '') === ca.replace(/^[A-E]\.\s*/, '')))
+          .filter(idx => idx >= 0);
+      }
 
       const item = {
         questionId,
@@ -386,17 +412,23 @@ app.post('/admin/questions', async (req, res) => {
         choices: q.choices,
         correctAnswers: q.correctAnswers,
         explanation: q.explanation || '',
-        tags: itemTags,
         isMultiple: q.isMultiple ?? false,
         createdAt: now,
       };
-      if (itemDomain) item.domain = itemDomain;
+      if (domainIdx >= 0) item.domain = domainIdx;
+      if (correctAnswerIndices && correctAnswerIndices.length > 0) item.correctAnswerIndices = correctAnswerIndices;
       if (q.questionTextEn) item.questionTextEn = q.questionTextEn;
       if (q.choicesEn && q.choicesEn.length > 0) item.choicesEn = q.choicesEn;
       if (q.explanationEn) item.explanationEn = q.explanationEn;
+      if (Array.isArray(q.choiceExplanations) && q.choiceExplanations.length === q.choices.length) {
+        item.choiceExplanations = q.choiceExplanations;
+      }
 
       await docClient.send(new PutCommand({ TableName: 'Questions', Item: item }));
 
+      // QuestionTagRelations にドメイン名で登録（後方互換 + タグ検索用）
+      const domainName = domainIdx >= 0 ? (EXAM_DOMAINS[itemExamType] || [])[domainIdx] : '';
+      const itemTags = domainName ? [domainName] : [];
       if (itemTags.length > 0) {
         await Promise.all(itemTags.map(tagId =>
           docClient.send(new PutCommand({
@@ -490,18 +522,18 @@ app.get('/admin/questions/summary', async (req, res) => {
     const { sinceDate } = req.query;
     const items = await scanAll(docClient, {
       TableName: 'Questions',
-      ProjectionExpression: 'examType, tags, isHidden, validityCheckedAt, formatCheckedAt',
+      ProjectionExpression: 'examType, #dom, tags, isHidden, validityCheckedAt, formatCheckedAt',
+      ExpressionAttributeNames: { '#dom': 'domain' },
     });
     const visible = items.filter(i => !i.isHidden);
     const examCounts = {};
     const domainCounts = {};
     for (const item of visible) {
-      const { examType, tags = [] } = item;
+      const { examType } = item;
       examCounts[examType] = (examCounts[examType] || 0) + 1;
       if (!domainCounts[examType]) domainCounts[examType] = {};
-      for (const tag of tags) {
-        domainCounts[examType][tag] = (domainCounts[examType][tag] || 0) + 1;
-      }
+      const dn = qDomainName(item);
+      if (dn) domainCounts[examType][dn] = (domainCounts[examType][dn] || 0) + 1;
     }
     const validityCheckedCount = visible.filter(i => i.validityCheckedAt).length;
     const formatCheckedCount   = visible.filter(i => i.formatCheckedAt).length;
@@ -652,14 +684,15 @@ app.get('/admin/questions', async (req, res) => {
       // explanation・validityEditLog を除外して 6MB 上限を回避（編集時は GET /admin/questions/:id で取得）
       items = await scanAll(docClient, {
         TableName: 'Questions',
-        ProjectionExpression: 'questionId, examType, questionText, choices, correctAnswers, correctAnswerIndices, tags, isMultiple, isHidden, createdAt, updatedAt, validityCheckedAt, formatCheckedAt',
+        ProjectionExpression: 'questionId, examType, questionText, choices, correctAnswers, correctAnswerIndices, #dom, tags, isMultiple, isHidden, createdAt, updatedAt, validityCheckedAt, formatCheckedAt',
+        ExpressionAttributeNames: { '#dom': 'domain' },
       });
     }
 
-    if (tag) items = items.filter(q => (q.tags || []).includes(tag));
+    if (tag) items = items.filter(q => qDomainName(q) === tag || (q.tags || []).includes(tag));
     if (domain) {
       const domainList = domain.split(',').map(d => d.trim()).filter(Boolean);
-      items = items.filter(q => (q.tags || []).some(t => domainList.includes(t)));
+      items = items.filter(q => domainList.includes(qDomainName(q)));
     }
     if (keyword) {
       const kw = keyword.toLowerCase();
