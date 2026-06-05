@@ -1,6 +1,6 @@
 const express = require('express');
 const { DynamoDBClient } = require('@aws-sdk/client-dynamodb');
-const { DynamoDBDocumentClient, ScanCommand, GetCommand, QueryCommand, PutCommand, UpdateCommand, TransactWriteCommand, DeleteCommand } = require('@aws-sdk/lib-dynamodb');
+const { DynamoDBDocumentClient, ScanCommand, GetCommand, QueryCommand, PutCommand, UpdateCommand, TransactWriteCommand, DeleteCommand, BatchGetCommand } = require('@aws-sdk/lib-dynamodb');
 const { CognitoIdentityProviderClient, ListUsersCommand } = require('@aws-sdk/client-cognito-identity-provider');
 const { SESClient, SendEmailCommand } = require('@aws-sdk/client-ses');
 const { v4: uuidv4 } = require('uuid');
@@ -26,6 +26,39 @@ const getClient = () => {
   const client = new DynamoDBClient({ region: 'ap-northeast-1' });
   return DynamoDBDocumentClient.from(client);
 };
+
+// ── 問題データ正規化 ──────────────────────────────────────────────
+// choices と correctAnswers からラベル接頭辞（"A. " 等）を除去し、
+// correctAnswerIndices が未設定の場合はテキスト一致で補完する。
+// Lambda 返却時に必ず通すことで、フロントは常にインデックスで正誤判定できる。
+const CHOICE_LABEL_RE = /^[A-E][.\s]\s*/i;
+function normalizeQuestion(q) {
+  const choices = (q.choices || []).map(c => String(c).replace(CHOICE_LABEL_RE, '').trim());
+  const correctAnswers = (q.correctAnswers || []).map(c => String(c).replace(CHOICE_LABEL_RE, '').trim());
+  let correctAnswerIndices = q.correctAnswerIndices;
+  if (!Array.isArray(correctAnswerIndices) || correctAnswerIndices.length === 0) {
+    correctAnswerIndices = correctAnswers
+      .map(ca => choices.findIndex(c => c === ca))
+      .filter(i => i >= 0);
+  }
+  return { ...q, choices, correctAnswers, correctAnswerIndices };
+}
+
+// ── DailyServices モジュールレベルキャッシュ ────────────────────────
+// Lambda ウォームインスタンス間で共有されるキャッシュ（最大 5 分）
+let _dailyServicesCache = null;
+let _dailyServicesCachedAt = 0;
+const DAILY_SERVICES_TTL = 5 * 60 * 1000;
+
+async function getDailyServicesAll(docClient) {
+  if (_dailyServicesCache && Date.now() - _dailyServicesCachedAt < DAILY_SERVICES_TTL) {
+    return _dailyServicesCache;
+  }
+  const result = await docClient.send(new ScanCommand({ TableName: 'DailyServices' }));
+  _dailyServicesCache = result.Items || [];
+  _dailyServicesCachedAt = Date.now();
+  return _dailyServicesCache;
+}
 
 // ── CORS（localhost + Amplify Hosting + 本番ドメイン許可） ──
 const ALLOWED_ORIGINS = [
@@ -284,14 +317,15 @@ app.get('/questions', async (req, res) => {
     if (limit) items = items.slice(0, parseInt(limit));
     const withAnswers = req.query.withAnswers === 'true';
     const sanitized = withAnswers
-      ? items.map(item => ({
-          ...item,
-          correctAnswerCount: Array.isArray(item.correctAnswers) ? item.correctAnswers.length : 1,
-        }))
-      : items.map(({ correctAnswers, explanation, explanationEn, ...rest }) => ({
-          ...rest,
-          correctAnswerCount: Array.isArray(correctAnswers) ? correctAnswers.length : 1,
-        }));
+      ? items.map(item => {
+          const n = normalizeQuestion(item);
+          return { ...n, correctAnswerCount: n.correctAnswerIndices.length || 1 };
+        })
+      : items.map(item => {
+          const { correctAnswers, explanation, explanationEn, ...rest } = item;
+          const n = normalizeQuestion({ ...rest, correctAnswers: [] });
+          return { ...n, correctAnswerCount: Array.isArray(correctAnswers) ? correctAnswers.length : 1 };
+        });
     res.json({ items: sanitized, count: sanitized.length, total });
   } catch (err) {
     console.error(err);
@@ -308,7 +342,7 @@ app.get('/questions/:id', async (req, res) => {
       Key: { questionId: req.params.id }
     }));
     if (!result.Item) return res.status(404).json({ error: 'Question not found' });
-    res.json(result.Item);
+    res.json(normalizeQuestion(result.Item));
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: 'Internal server error' });
@@ -496,11 +530,19 @@ app.get('/admin/questions/summary', async (req, res) => {
   try {
     const docClient = getClient();
     const { sinceDate } = req.query;
-    const items = await scanAll(docClient, {
-      TableName: 'Questions',
-      ProjectionExpression: 'examType, #dom, isHidden, validityCheckedAt, formatCheckedAt',
-      ExpressionAttributeNames: { '#dom': 'domain' },
-    });
+    const EXAM_TYPE_LIST = Object.keys(EXAM_DOMAINS);
+    // Scan の代わりに examType-index を使って各試験種別を並行 Query
+    const perExamItems = await Promise.all(EXAM_TYPE_LIST.map(et =>
+      queryAll(docClient, {
+        TableName: 'Questions',
+        IndexName: 'examType-index',
+        KeyConditionExpression: 'examType = :e',
+        ExpressionAttributeValues: { ':e': et },
+        ProjectionExpression: 'examType, #dom, isHidden, validityCheckedAt, formatCheckedAt',
+        ExpressionAttributeNames: { '#dom': 'domain' },
+      })
+    ));
+    const items = perExamItems.flat();
     const visible = items.filter(i => !i.isHidden);
     const examCounts = {};
     const domainCounts = {};
@@ -548,13 +590,23 @@ app.get('/admin/questions/flagged', async (req, res) => {
     scanParams.ProjectionExpression = 'questionId, examType, questionText, choices, correctAnswers, explanation, #dom, isMultiple, validityCheckedAt, formatCheckedAt, validityEditLog, isHidden, validityRating, validityNote, fixProposalJson';
     scanParams.ExpressionAttributeNames = { '#dom': 'domain' };
 
-    const [checkedItems, allItems] = await Promise.all([
+    // フィルタ済みアイテム取得 + 全件数を examType-index Query で並行取得
+    const EXAM_TYPE_LIST = Object.keys(EXAM_DOMAINS);
+    const [checkedItems, perExamCounts] = await Promise.all([
       scanAll(docClient, scanParams),
-      scanAll(docClient, { TableName: 'Questions', ProjectionExpression: 'questionId' }),
+      Promise.all(EXAM_TYPE_LIST.map(et =>
+        docClient.send(new QueryCommand({
+          TableName: 'Questions',
+          IndexName: 'examType-index',
+          KeyConditionExpression: 'examType = :e',
+          ExpressionAttributeValues: { ':e': et },
+          Select: 'COUNT',
+        })).then(r => r.Count || 0)
+      )),
     ]);
-
+    const totalCount = perExamCounts.reduce((s, c) => s + c, 0);
     const items = checkedItems.sort((a, b) => (a.validityRating || 9) - (b.validityRating || 9));
-    res.json({ items, count: items.length, totalCount: allItems.length });
+    res.json({ items, count: items.length, totalCount });
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: 'Internal server error' });
@@ -818,7 +870,7 @@ app.get('/sessions/:id/progress', async (req, res) => {
 app.post('/sessions/:id/answers', async (req, res) => {
   try {
     const docClient = getClient();
-    const { userId, questionId, selectedAnswers, isCorrect, tags } = req.body;
+    const { userId, questionId, selectedAnswers, isCorrect } = req.body;
     const now = new Date().toISOString();
     const questionIdTimestamp = `${req.params.id}#${questionId}#${now}`;
 
@@ -840,21 +892,6 @@ app.post('/sessions/:id/answers', async (req, res) => {
         }
       }
     ];
-
-    if (tags && tags.length > 0) {
-      tags.forEach(tagId => {
-        transactItems.push({
-          Update: {
-            TableName: 'UserTagStats',
-            Key: { userId, tagId },
-            UpdateExpression: isCorrect
-              ? 'ADD correctCount :one'
-              : 'ADD incorrectCount :one',
-            ExpressionAttributeValues: { ':one': 1 }
-          }
-        });
-      });
-    }
 
     await docClient.send(new TransactWriteCommand({ TransactItems: transactItems }));
     res.json({ success: true });
@@ -1602,8 +1639,7 @@ app.delete('/admin/messages/:id', requireAdmin, async (req, res) => {
 app.get('/daily-service', async (req, res) => {
   try {
     const docClient = getClient();
-    const result = await docClient.send(new ScanCommand({ TableName: 'DailyServices' }));
-    const allItems = result.Items || [];
+    const allItems = await getDailyServicesAll(docClient);
 
     // '_schedule_' は日付→serviceId のスケジュール管理用アイテム（一般アイテムから除外）
     const scheduleItem = allItems.find(i => i.serviceId === '_schedule_');
@@ -1662,8 +1698,8 @@ app.get('/daily-service', async (req, res) => {
 app.get('/admin/daily-services', async (req, res) => {
   try {
     const docClient = getClient();
-    const result = await docClient.send(new ScanCommand({ TableName: 'DailyServices' }));
-    const items = (result.Items || [])
+    const allItems = await getDailyServicesAll(docClient);
+    const items = allItems
       .filter(i => i.serviceId !== '_schedule_')
       .sort((a, b) => (a.order || 0) - (b.order || 0));
     res.json({ items });
@@ -1696,6 +1732,7 @@ app.post('/admin/daily-services', async (req, res) => {
         createdAt: new Date().toISOString(),
       },
     }));
+    _dailyServicesCache = null; // キャッシュ無効化
     res.json({ serviceId });
   } catch (err) {
     console.error(err);
@@ -1725,6 +1762,7 @@ app.put('/admin/daily-services/:id', async (req, res) => {
         ':active': isActive !== false,
       },
     }));
+    _dailyServicesCache = null; // キャッシュ無効化
     res.json({ success: true });
   } catch (err) {
     console.error(err);
@@ -1740,6 +1778,7 @@ app.delete('/admin/daily-services/:id', async (req, res) => {
       TableName: 'DailyServices',
       Key: { serviceId: req.params.id },
     }));
+    _dailyServicesCache = null; // キャッシュ無効化
     res.json({ success: true });
   } catch (err) {
     console.error(err);
@@ -1885,11 +1924,30 @@ app.get('/users/me/encyclopedia-unlocks', async (req, res) => {
       TableName: 'EncyclopediaUnlocks',
       Key: { userId },
     }));
-    if (!result.Item) return res.json({ unlocks: {}, unlockDate: null, todayServiceId: null });
+    if (!result.Item) return res.json({ unlocks: {}, unlockDate: null, todayServiceId: null, services: {} });
+
+    const unlocks = JSON.parse(result.Item.unlocks || '{}');
+    const serviceIds = Object.keys(unlocks).filter(id => id && id !== '_schedule_');
+
+    // アンロック済みサービスの詳細データをバッチ取得（新デバイスでもアイコン表示できるよう）
+    const services = {};
+    for (let i = 0; i < serviceIds.length; i += 100) {
+      const chunk = serviceIds.slice(i, i + 100).map(id => ({ serviceId: id }));
+      try {
+        const batch = await docClient.send(new BatchGetCommand({
+          RequestItems: { DailyServices: { Keys: chunk } },
+        }));
+        for (const item of (batch.Responses?.DailyServices || [])) {
+          services[item.serviceId] = item;
+        }
+      } catch (_) { /* バッチ取得失敗は非致命的 */ }
+    }
+
     res.json({
-      unlocks: JSON.parse(result.Item.unlocks || '{}'),
+      unlocks,
       unlockDate: result.Item.unlockDate || null,
       todayServiceId: result.Item.todayServiceId || null,
+      services,
     });
   } catch (err) {
     console.error(err);

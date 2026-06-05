@@ -9,7 +9,7 @@ import {
   API_ENDPOINT, EXAM_TYPES, EXAM_CONFIGS, EXAM_DOMAINS,
   DOMAIN_WEIGHTS, DOMAIN_NAME_EN, PASS_SCORES, qDomainName,
 } from '../constants';
-import { getCached, setCached, deleteCached, DEFAULT_TTL } from '../utils/cache';
+import { getCached, setCached, deleteCached, DEFAULT_TTL, getCachedPersist, setCachedPersist, deleteCachedPersist } from '../utils/cache';
 import { animateLoadPct, randomPlateau } from '../utils/loadProgress';
 import { getPoints, deductPoints } from '../utils/points';
 import Card from '../components/ui/Card';
@@ -1513,20 +1513,24 @@ export default function Home() {
     const qPrefs = loadQuickPrefs(uid);
     try {
       const userId = user?.userId ?? 'guest';
-      const params = new URLSearchParams({ examType: targetExam, withAnswers: 'true', withValidity: 'true' });
+      const params = new URLSearchParams({ examType: targetExam, withAnswers: 'true' });
+      const qCacheKey = `qlist_${targetExam}`;
+      const cachedQs = getCachedPersist<{ items: any[]; total: number }>(qCacheKey);
+      const needUserData = user && (qPrefs.unansweredOnly || qPrefs.incorrectOnly || qPrefs.bookmarkOnly);
       const plateau = randomPlateau();
-      const stopAnim = animateLoadPct(setQuickLoadPct, 10, plateau);
-      const data = await fetch(`${API_ENDPOINT}/questions?${params}`).then(r => r.json());
-      stopAnim();
-      setQuickLoadPct(plateau);
+      const stopAnim = cachedQs ? null : animateLoadPct(setQuickLoadPct, 10, plateau);
+      // 問題リスト（キャッシュなし時）とユーザーデータを並行フェッチ
+      const [data, answeredRes, incorrectRes, bkmRes] = await Promise.all([
+        cachedQs ? Promise.resolve(cachedQs) : fetch(`${API_ENDPOINT}/questions?${params}`).then(r => r.json()),
+        needUserData && qPrefs.unansweredOnly ? fetch(`${API_ENDPOINT}/users/me/answered-questions?userId=${userId}&examType=${targetExam}`).then(r => r.json()) : Promise.resolve(null),
+        needUserData && qPrefs.incorrectOnly  ? fetch(`${API_ENDPOINT}/users/me/incorrect-questions?userId=${userId}&examType=${targetExam}`).then(r => r.json()) : Promise.resolve(null),
+        needUserData && qPrefs.bookmarkOnly   ? fetch(`${API_ENDPOINT}/users/me/bookmarks?userId=${userId}`).then(r => r.json()) : Promise.resolve(null),
+      ]);
+      if (stopAnim) { stopAnim(); setQuickLoadPct(plateau); }
+      if (!cachedQs) setCachedPersist(qCacheKey, data);
       const pool: any[] = (data.items ?? []).filter((q: any) => !!q.validityCheckedAt);
       let items = [...pool];
-      if (user && (qPrefs.unansweredOnly || qPrefs.incorrectOnly || qPrefs.bookmarkOnly)) {
-        const [answeredRes, incorrectRes, bkmRes] = await Promise.all([
-          qPrefs.unansweredOnly ? fetch(`${API_ENDPOINT}/users/me/answered-questions?userId=${userId}&examType=${targetExam}`).then(r => r.json()) : null,
-          qPrefs.incorrectOnly  ? fetch(`${API_ENDPOINT}/users/me/incorrect-questions?userId=${userId}&examType=${targetExam}`).then(r => r.json()) : null,
-          qPrefs.bookmarkOnly   ? fetch(`${API_ENDPOINT}/users/me/bookmarks?userId=${userId}`).then(r => r.json()) : null,
-        ]);
+      if (needUserData) {
         setQuickLoadPct(80);
         const unansweredSet = qPrefs.unansweredOnly && answeredRes ? new Set<string>(answeredRes.questionIds ?? []) : null;
         const incorrectSet  = qPrefs.incorrectOnly  && incorrectRes ? new Set<string>(incorrectRes.questionIds ?? []) : null;
@@ -1578,15 +1582,18 @@ export default function Home() {
     const fPrefs = loadFocusedPrefs(uid);
     try {
       const userId = user.userId;
-      const params = new URLSearchParams({ examType: targetExam, withAnswers: 'true', withValidity: 'true' });
+      const params = new URLSearchParams({ examType: targetExam, withAnswers: 'true' });
+      const qCacheKey = `qlist_${targetExam}`;
+      const cachedQs = getCachedPersist<{ items: any[]; total: number }>(qCacheKey);
       const plateau = randomPlateau();
-      const stopAnim = animateLoadPct(setFocusedLoadPct, 10, plateau);
+      const stopAnim = cachedQs ? null : animateLoadPct(setFocusedLoadPct, 10, plateau);
+      // 問題リスト（キャッシュなし時）と苦手問題データを並行フェッチ
       const [data, incorrectRes] = await Promise.all([
-        fetch(`${API_ENDPOINT}/questions?${params}`).then(r => r.json()),
+        cachedQs ? Promise.resolve(cachedQs) : fetch(`${API_ENDPOINT}/questions?${params}`).then(r => r.json()),
         fetch(`${API_ENDPOINT}/users/me/incorrect-questions?userId=${userId}&examType=${targetExam}`).then(r => r.json()),
       ]);
-      stopAnim();
-      setFocusedLoadPct(plateau);
+      if (stopAnim) { stopAnim(); setFocusedLoadPct(plateau); }
+      if (!cachedQs) setCachedPersist(qCacheKey, data);
       const allItems: any[] = (data.items ?? []).filter((q: any) => !!q.validityCheckedAt);
       const incorrectIds = new Set<string>(incorrectRes.questionIds ?? []);
       const focusIncorrect: boolean = fPrefs.focusIncorrect !== false;
@@ -2391,7 +2398,7 @@ export default function Home() {
           onSkip={() => setShowOnboarding(false)}
         />
       )}
-      {(quickLoading || focusedLoading) && <div style={{ position: 'fixed', inset: 0, zIndex: 9000, cursor: 'wait' }} />}
+      {(quickLoading || focusedLoading) && <div style={{ position: 'fixed', inset: 0, zIndex: 9000, cursor: 'wait' }} onTouchStart={e => e.stopPropagation()} onTouchMove={e => e.stopPropagation()} onTouchEnd={e => e.stopPropagation()} />}
     </div>
   );
 }

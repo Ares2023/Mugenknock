@@ -218,6 +218,7 @@ export default function ExerciseSession() {
   const [selectedAnswers, setSelectedAnswers] = useState<string[]>(state?.resumeSelectedAnswers ?? []);
   const [answered, setAnswered] = useState<boolean>(state?.resumeAnswered ?? false);
   const [detail, setDetail] = useState<Question | null>(null);
+  const [detailFetchFailed, setDetailFetchFailed] = useState(false);
   const [tips, setTips] = useState<Tip[]>([]);
   const [bookmarkedIds, setBookmarkedIds] = useState<Set<string>>(new Set());
   const [bookmarkLoading, setBookmarkLoading] = useState(false);
@@ -249,21 +250,16 @@ export default function ExerciseSession() {
       .then(r => r.json())
       .then(d => {
         setDetail(d);
-        const correctIdx: number[] | undefined = d.correctAnswerIndices;
-        const correct: string[] = d.correctAnswers ?? [];
-        const isCorrect = correctIdx && correctIdx.length > 0
-          ? (() => {
-              const selOrigIdx = selectedAnswers.map(t => { const si = shuffledChoices.indexOf(t); return si >= 0 ? origIndices[si] : -1; });
-              return correctIdx.length === selOrigIdx.length && correctIdx.every(i => selOrigIdx.includes(i));
-            })()
-          : correct.length === selectedAnswers.length && correct.every((a: string) => selectedAnswers.map(stripLabel).includes(stripLabel(a)));
+        const correctIdx: number[] = d.correctAnswerIndices ?? [];
+        const selOrigIdx = selectedAnswers.map(t => { const si = shuffledChoices.indexOf(t); return si >= 0 ? origIndices[si] : -1; });
+        const isCorrect = correctIdx.length > 0 && correctIdx.length === selOrigIdx.length && correctIdx.every(i => selOrigIdx.includes(i));
         setResults(prev => {
           const next = [...prev];
           if (next.length > 0) next[next.length - 1] = { questionId: q.questionId, isCorrect };
           return next;
         });
       })
-      .catch(() => {});
+      .catch(() => { setDetailFetchFailed(true); });
   }, [answered, currentIndex]); // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
@@ -394,14 +390,9 @@ export default function ExerciseSession() {
     }
     setAnswerCountError(null);
 
-    const correctAnswers = currentQuestion.correctAnswers || [];
-    const correctAnswerIndices = currentQuestion.correctAnswerIndices;
-    const isCorrect = correctAnswerIndices && correctAnswerIndices.length > 0
-      ? (() => {
-          const selOrigIdx = selectedAnswers.map(t => { const si = shuffledChoices.indexOf(t); return si >= 0 ? origIndices[si] : -1; });
-          return correctAnswerIndices.length === selOrigIdx.length && correctAnswerIndices.every(i => selOrigIdx.includes(i));
-        })()
-      : correctAnswers.length === selectedAnswers.length && correctAnswers.every(a => selectedAnswers.map(stripLabel).includes(stripLabel(a)));
+    const correctAnswerIndices: number[] = currentQuestion.correctAnswerIndices ?? [];
+    const selOrigIdx = selectedAnswers.map(t => { const si = shuffledChoices.indexOf(t); return si >= 0 ? origIndices[si] : -1; });
+    const isCorrect = correctAnswerIndices.length > 0 && correctAnswerIndices.length === selOrigIdx.length && correctAnswerIndices.every(i => selOrigIdx.includes(i));
 
     setResults(prev => [...prev, { questionId: currentQuestion.questionId, isCorrect }]);
     setSelectionHistory(prev => ({ ...prev, [currentIndex]: selectedAnswers }));
@@ -416,8 +407,7 @@ export default function ExerciseSession() {
         userId,
         questionId: currentQuestion.questionId,
         selectedAnswers,
-        isCorrect,
-        tags: [qDomainName(currentQuestion)].filter(Boolean)
+        isCorrect
       })
     }).catch(err => console.error(err));
   };
@@ -432,7 +422,7 @@ export default function ExerciseSession() {
       setSelectedAnswers([]);
       setAnswered(false);
     }
-    setDetail(null);
+    setDetail(null); setDetailFetchFailed(false);
     setAnswerCountError(null);
   };
 
@@ -443,7 +433,7 @@ export default function ExerciseSession() {
       setCurrentIndex(nextIdx);
       setSelectedAnswers(selectionHistory[nextIdx] ?? []);
       setAnswered(true);
-      setDetail(null);
+      setDetail(null); setDetailFetchFailed(false);
       setAnswerCountError(null);
       return;
     }
@@ -452,7 +442,7 @@ export default function ExerciseSession() {
       setCurrentIndex(nextIdx);
       setSelectedAnswers([]);
       setAnswered(false);
-      setDetail(null);
+      setDetail(null); setDetailFetchFailed(false);
       setAnswerCountError(null);
       return;
     }
@@ -538,7 +528,7 @@ export default function ExerciseSession() {
       setCurrentIndex(prev => prev + 1);
       setSelectedAnswers([]);
       setAnswered(false);
-      setDetail(null);
+      setDetail(null); setDetailFetchFailed(false);
       setAnswerCountError(null);
     }
   };
@@ -658,13 +648,10 @@ export default function ExerciseSession() {
         cursor: 'default',
       };
     }
-    const correctAnswers = displayQ.correctAnswers ?? [];
-    const correctAnswerIndices = displayQ.correctAnswerIndices;
+    const correctAnswerIndices: number[] = displayQ.correctAnswerIndices ?? [];
     const shuffledIdx = shuffledChoices.indexOf(choice);
     const origIdx = shuffledIdx >= 0 ? origIndices[shuffledIdx] : -1;
-    const isCorrect = correctAnswerIndices && correctAnswerIndices.length > 0
-      ? correctAnswerIndices.includes(origIdx)
-      : correctAnswers.map(stripLabel).includes(stripLabel(choice));
+    const isCorrect = correctAnswerIndices.includes(origIdx);
     const isSelected = selectedAnswers.includes(choice);
 
     if (isCorrect) {
@@ -904,7 +891,18 @@ export default function ExerciseSession() {
           const displayQ = (currentQuestion.correctAnswers ? currentQuestion : detail) ?? currentQuestion;
           const lastResult = results[results.length - 1];
           if (!displayQ.correctAnswers) {
-            return (
+            return detailFetchFailed ? (
+              <div style={{ padding: '12px 16px', marginBottom: 'var(--spacing-xl)', display: 'flex', alignItems: 'center', gap: 10 }}>
+                <span style={{ color: 'var(--color-danger)', fontSize: 'var(--font-size-sm)' }}>
+                  {lang === 'ja' ? '解説の読み込みに失敗しました。' : 'Failed to load explanation.'}
+                </span>
+                <button
+                  onClick={() => { setDetailFetchFailed(false); setDetail(null); }}
+                  style={{ background: 'none', border: '1px solid var(--color-danger)', borderRadius: 'var(--border-radius-full)', padding: '2px 10px', fontSize: 'var(--font-size-xs)', color: 'var(--color-danger)', cursor: 'pointer' }}>
+                  {lang === 'ja' ? '再試行' : 'Retry'}
+                </button>
+              </div>
+            ) : (
               <div style={{ padding: '12px 16px', marginBottom: 'var(--spacing-xl)', display: 'flex', alignItems: 'center', gap: 10 }}>
                 <div className="sherpa-spinner" style={{ width: 18, height: 18, borderWidth: 2, flexShrink: 0 }} />
                 <span style={{ color: 'var(--color-text-light)', fontSize: 'var(--font-size-sm)' }}>

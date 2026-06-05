@@ -1995,9 +1995,9 @@ export default function Admin() {
 【トピック】${topic}
 
 【作問ルール】
-・選択肢は必ず4つ（A. B. C. D. の形式）
+・選択肢は必ず4つ（ラベルなし・テキストのみ。"A." "B." 等の接頭辞を付けない）
 ・単一正解の場合は isMultiple: false、複数正解は isMultiple: true
-・correctAnswers の文字列は choices の文字列と完全一致させること
+・correctAnswers の文字列は choices の文字列と完全一致させること（ラベルなし）
 ・解説は「正解の理由」と「各不正解の理由」を含めること（150字以上）
 ・本番試験と同等の難易度・文体で作成すること
 ・正解の選択肢の文字数が不正解の選択肢群から浮かないようにすること（正解だけが著しく長い・短いと文字数から正解が推測できてしまうため、正解の文字数を不正解の平均に近づけること）
@@ -2005,7 +2005,7 @@ export default function Admin() {
 ・domain には以下のいずれかを設定すること: ${EXAM_DOMAINS[importExamType]?.join(' / ')}
 ・tags フィールドは不要（出力しなくてよい）
 ・questionTextEn, choicesEn, explanationEn には日本語フィールドの英語訳を必ず含めること
-・choicesEn の要素数・順序は choices と完全に一致させること
+・choicesEn の要素数・順序は choices と完全に一致させること（こちらもラベルなし）
 ・choiceExplanations は choices と同じ順序・同じ数で生成すること（正解はなぜ正解か、不正解はなぜ不正解かを100〜150字で。文頭に「正解です」「不正解です」は入れない）
 
 【出力形式】
@@ -2015,12 +2015,12 @@ export default function Admin() {
     "domain": "（上記ドメインのいずれか）",
     "questionText": "問題文（日本語）",
     "questionTextEn": "Question text in English",
-    "choices": ["A. 選択肢1", "B. 選択肢2", "C. 選択肢3", "D. 選択肢4"],
-    "choicesEn": ["A. Choice 1", "B. Choice 2", "C. Choice 3", "D. Choice 4"],
-    "correctAnswers": ["A. 選択肢1"],
+    "choices": ["選択肢1", "選択肢2", "選択肢3", "選択肢4"],
+    "choicesEn": ["Choice 1", "Choice 2", "Choice 3", "Choice 4"],
+    "correctAnswers": ["選択肢1（choicesと完全一致）"],
     "explanation": "解説文（日本語）",
     "explanationEn": "Explanation in English",
-    "choiceExplanations": ["選択肢Aの解説（100〜150字）", "選択肢Bの解説", "選択肢Cの解説", "選択肢Dの解説"],
+    "choiceExplanations": ["選択肢0の解説（100〜150字）", "選択肢1の解説", "選択肢2の解説", "選択肢3の解説"],
     "isMultiple": false
   }
 ]`;

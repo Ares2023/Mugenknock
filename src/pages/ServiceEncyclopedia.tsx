@@ -79,6 +79,13 @@ export default function ServiceEncyclopedia() {
       .then(r => r.json())
       .then(data => {
         if (!data.unlocks || typeof data.unlocks !== 'object') return;
+        // サーバーから返ったサービス詳細データをローカルにマージ（新デバイスでのアイコン復元）
+        if (data.services && typeof data.services === 'object' && Object.keys(data.services).length > 0) {
+          const existingSvcs = (() => { try { return JSON.parse(localStorage.getItem('encyclopediaServices') ?? '{}'); } catch { return {}; } })();
+          const mergedSvcs = { ...data.services, ...existingSvcs };
+          localStorage.setItem('encyclopediaServices', JSON.stringify(mergedSvcs));
+          setStoredServices(mergedSvcs);
+        }
         const local = (() => { try { return JSON.parse(localStorage.getItem(`encyclopediaUnlocked_${uid}`) ?? '{}'); } catch { return {}; } })();
         // サーバーが空でローカルにデータがある場合はサーバーを正とみなす（管理者リセット後）
         if (Object.keys(data.unlocks).length === 0 && Object.keys(local).length > 0) {
@@ -257,7 +264,7 @@ export default function ServiceEncyclopedia() {
                         : unlocked && svc.icon
                           ? renderIcon({ serviceId: svc.name, name: svc.name, icon: svc.icon, description: '' }, 32)
                           : unlocked
-                            ? <ServiceIcon name="cloud" size={20} />
+                            ? null
                             : <IconLock size={14} />}
                     </div>
                     <span style={{

@@ -3,10 +3,10 @@ import { Helmet } from 'react-helmet-async';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { useLanguage } from '../contexts/LanguageContext';
-import { API_ENDPOINT, EXAM_CONFIGS, EXAM_DOMAINS, EXAM_TYPES, PASS_SCORES } from '../constants';
+import { API_ENDPOINT, EXAM_CONFIGS, EXAM_DOMAINS, EXAM_TYPES, PASS_SCORES, qDomainName } from '../constants';
 import Button from '../components/ui/Button';
 import DomainSelector from '../components/DomainSelector';
-import { getCached, setCached, SHORT_TTL } from '../utils/cache';
+import { getCached, setCached, SHORT_TTL, getCachedPersist, setCachedPersist } from '../utils/cache';
 import { autoScoreAndClearDrafts } from '../utils/sessionUtils';
 import { animateLoadPct, randomPlateau } from '../utils/loadProgress';
 import { IconChevronUp } from '../components/Icons';
@@ -87,6 +87,7 @@ export default function Practice() {
   const [showNewPanel, setShowNewPanel] = useState(false);
   const [showNewExamPanel, setShowNewExamPanel] = useState(false);
   const [showStartConfirm, setShowStartConfirm] = useState(false);
+  const [serverActiveSession, setServerActiveSession] = useState<{ sessionId: string; examType: string; questionCount: number } | null>(null);
 
   const isFirstRender = useRef(true);
   useEffect(() => {
@@ -103,6 +104,20 @@ export default function Practice() {
   useEffect(() => {
     saveExercisePrefs(examType, uid, { domains: selectedDomains, limit, bookmarkOnly, unansweredOnly, incorrectOnly, aiVerifiedOnly });
   }, [examType, selectedDomains, limit, bookmarkOnly, unansweredOnly, incorrectOnly, aiVerifiedOnly]);
+
+  // ローカルドラフトがない場合、サーバー側の未完了セッションを検出してバナーで通知
+  useEffect(() => {
+    if (!user?.userId || hasDraft || hasExamDraft) return;
+    fetch(`${API_ENDPOINT}/sessions/active?userId=${encodeURIComponent(user.userId)}`)
+      .then(r => r.json())
+      .then(d => {
+        const s = d.session;
+        if (s?.status === 'active' && s.mode === 'exercise') {
+          setServerActiveSession({ sessionId: s.sessionId, examType: s.examType, questionCount: s.questionIds?.length ?? 0 });
+        }
+      })
+      .catch(() => {});
+  }, [user?.userId, hasDraft, hasExamDraft]); // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
     setAvailableCount(null);
@@ -173,20 +188,24 @@ export default function Practice() {
       const userId = user?.userId ?? 'guest';
       const allSelected = EXAM_DOMAINS[examType].every(d => selectedDomains.includes(d));
       let selectedItems: any[];
+      const qCacheKey = `qlist_${examType}`;
       if (user && (bookmarkOnly || unansweredOnly || incorrectOnly)) {
         const params = new URLSearchParams({ examType, withAnswers: 'true' });
-        if (!allSelected) params.set('domain', selectedDomains.join(','));
+        const cachedQs = getCachedPersist<{ items: any[] }>(qCacheKey);
         const plateau = randomPlateau();
-        const stopAnim = animateLoadPct(setExerciseLoadPct, 10, plateau);
+        const stopAnim = cachedQs ? null : animateLoadPct(setExerciseLoadPct, 10, plateau);
         const [qRes, bkmRes, answeredRes, incorrectRes] = await Promise.all([
-          fetch(`${API_ENDPOINT}/questions?${params}`).then(r => r.json()),
-          user && bookmarkOnly ? fetch(`${API_ENDPOINT}/users/me/bookmarks?userId=${userId}`).then(r => r.json()) : Promise.resolve(null),
-          user && unansweredOnly ? fetch(`${API_ENDPOINT}/users/me/answered-questions?userId=${userId}&examType=${examType}`).then(r => r.json()) : Promise.resolve(null),
-          user && incorrectOnly ? fetch(`${API_ENDPOINT}/users/me/incorrect-questions?userId=${userId}&examType=${examType}`).then(r => r.json()) : Promise.resolve(null),
+          cachedQs ? Promise.resolve(cachedQs) : fetch(`${API_ENDPOINT}/questions?${params}`).then(r => r.json()),
+          bookmarkOnly ? fetch(`${API_ENDPOINT}/users/me/bookmarks?userId=${userId}`).then(r => r.json()) : Promise.resolve(null),
+          unansweredOnly ? fetch(`${API_ENDPOINT}/users/me/answered-questions?userId=${userId}&examType=${examType}`).then(r => r.json()) : Promise.resolve(null),
+          incorrectOnly ? fetch(`${API_ENDPOINT}/users/me/incorrect-questions?userId=${userId}&examType=${examType}`).then(r => r.json()) : Promise.resolve(null),
         ]);
-        stopAnim();
-        setExerciseLoadPct(plateau);
-        let pool: any[] = qRes.items ?? [];
+        if (stopAnim) { stopAnim(); setExerciseLoadPct(plateau); }
+        if (!cachedQs) setCachedPersist(qCacheKey, qRes);
+        let pool: any[] = (qRes.items ?? []).filter((q: any) => {
+          if (!allSelected && !selectedDomains.includes(qDomainName(q))) return false;
+          return true;
+        });
         if (aiVerifiedOnly) pool = pool.filter((q: any) => !!q.validityCheckedAt);
         const bookmarkSet   = bookmarkOnly   && bkmRes       ? new Set<string>(bkmRes.questionIds ?? [])      : null;
         const unansweredSet = unansweredOnly && answeredRes  ? new Set<string>(answeredRes.questionIds ?? [])  : null;
@@ -202,13 +221,16 @@ export default function Practice() {
         selectedItems = pool.slice(0, limit);
       } else {
         const params = new URLSearchParams({ examType, withAnswers: 'true' });
-        if (!allSelected) params.set('domain', selectedDomains.join(','));
+        const cachedQs = getCachedPersist<{ items: any[] }>(qCacheKey);
         const plateau = randomPlateau();
-        const stopAnim = animateLoadPct(setExerciseLoadPct, 10, plateau);
-        const data = await fetch(`${API_ENDPOINT}/questions?${params}`).then(r => r.json());
-        stopAnim();
-        setExerciseLoadPct(plateau);
-        let allItems: any[] = data.items ?? [];
+        const stopAnim = cachedQs ? null : animateLoadPct(setExerciseLoadPct, 10, plateau);
+        const data = cachedQs ? cachedQs : await fetch(`${API_ENDPOINT}/questions?${params}`).then(r => r.json());
+        if (stopAnim) { stopAnim(); setExerciseLoadPct(plateau); }
+        if (!cachedQs) setCachedPersist(qCacheKey, data);
+        let allItems: any[] = (data.items ?? []).filter((q: any) => {
+          if (!allSelected && !selectedDomains.includes(qDomainName(q))) return false;
+          return true;
+        });
         if (aiVerifiedOnly) allItems = allItems.filter((q: any) => !!q.validityCheckedAt);
         selectedItems = shuffleArray(allItems).slice(0, limit);
       }
@@ -319,6 +341,22 @@ export default function Practice() {
         <title>練習 | 無限ノック</title>
         <meta name="description" content="AWS認定試験の練習問題に取り組もう。苦手分野を集中的に練習して合格スコアを目指そう。" />
       </Helmet>
+
+      {/* 未完了セッション復帰バナー（ローカルドラフトがない場合のみ） */}
+      {serverActiveSession && !hasDraft && !hasExamDraft && (
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12, padding: '10px 14px', marginBottom: 'var(--spacing-md)', borderRadius: 'var(--border-radius-md)', background: 'var(--color-bg-info)', border: '1px solid var(--color-border-info)', flexWrap: 'wrap' }}>
+          <span style={{ fontSize: 'var(--font-size-sm)', color: 'var(--color-text-main)' }}>
+            {ja
+              ? `未完了の演習があります（${serverActiveSession.examType}・${serverActiveSession.questionCount}問）`
+              : `You have an unfinished exercise (${serverActiveSession.examType}・${serverActiveSession.questionCount} questions)`}
+          </span>
+          <div style={{ display: 'flex', gap: 8, flexShrink: 0 }}>
+            <Button size="sm" variant="outline" onClick={() => setServerActiveSession(null)}>
+              {ja ? '無視する' : 'Dismiss'}
+            </Button>
+          </div>
+        </div>
+      )}
 
       {/* タブ */}
       <div style={{ display: 'flex', borderBottom: '1px solid var(--color-border)', marginBottom: 'var(--spacing-lg)' }}>
@@ -685,7 +723,7 @@ export default function Practice() {
           </div>
         </div>
       )}
-      {(exerciseLoading || examLoading) && <div style={{ position: 'fixed', inset: 0, zIndex: 9000, cursor: 'wait' }} />}
+      {(exerciseLoading || examLoading) && <div style={{ position: 'fixed', inset: 0, zIndex: 9000, cursor: 'wait' }} onTouchStart={e => e.stopPropagation()} onTouchMove={e => e.stopPropagation()} onTouchEnd={e => e.stopPropagation()} />}
     </div>
   );
 }

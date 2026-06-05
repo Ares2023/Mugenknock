@@ -496,7 +496,7 @@ export default function ExamSetup() {
             : t('examSetup.start')}
         </Button>
       </div>
-      {loading && <div style={{ position: 'fixed', inset: 0, zIndex: 9000, cursor: 'wait' }} />}
+      {loading && <div style={{ position: 'fixed', inset: 0, zIndex: 9000, cursor: 'wait' }} onTouchStart={e => e.stopPropagation()} onTouchMove={e => e.stopPropagation()} onTouchEnd={e => e.stopPropagation()} />}
     </div>
   );
 }
