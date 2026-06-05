@@ -4,7 +4,7 @@ import { API_ENDPOINT, ADMIN_EMAIL, EXAM_TYPES, EXAM_DOMAINS, EXAM_CONFIGS, EXAM
 import Card from '../components/ui/Card';
 import Button from '../components/ui/Button';
 import Badge from '../components/ui/Badge';
-import { ServiceIcon, isServiceIconKey, IconChevronDown, IconChevronRight } from '../components/Icons';
+import { ServiceIcon, isServiceIconKey, IconChevronDown, IconChevronRight, IconCopy, IconCheck } from '../components/Icons';
 import { useTheme, CustomColors } from '../contexts/ThemeContext';
 
 const adminFetch = async (url: string, options: RequestInit = {}): Promise<Response> => {
@@ -212,6 +212,187 @@ const DEFAULT_COLORS: CustomColors = {
   '--color-danger':           '#d13212',
   '--color-success':          '#037f0c',
 };
+
+// ─────────────────────────────────────────────────────────────
+// 問題プレビューモーダル（演習時の見え方を再現）
+// ─────────────────────────────────────────────────────────────
+const CHOICE_LABELS_P = ['A', 'B', 'C', 'D', 'E'];
+const stripLabelP = (s: string) => s.replace(/^[A-E]\.\s*/, '');
+
+function QuestionPreviewModal({ onClose, initId = '' }: { onClose: () => void; initId?: string }) {
+  const [input, setInput] = useState(initId);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
+  const [question, setQuestion] = useState<any>(null);
+  const [selected, setSelected] = useState<string[]>([]);
+  const [answered, setAnswered] = useState(false);
+
+  const loadQuestion = React.useCallback(async (val?: string) => {
+    const target = val ?? input;
+    setError(''); setQuestion(null); setSelected([]); setAnswered(false);
+    const trimmed = target.trim();
+    if (!trimmed) return;
+    if (trimmed.startsWith('{')) {
+      try { setQuestion(JSON.parse(trimmed)); return; } catch { setError('JSONの形式が正しくありません'); return; }
+    }
+    setLoading(true);
+    try {
+      const res = await adminFetch(`${API_ENDPOINT}/admin/questions/${encodeURIComponent(trimmed)}`);
+      if (!res.ok) { setError('問題が見つかりません'); return; }
+      setQuestion(await res.json());
+    } catch { setError('取得に失敗しました'); }
+    finally { setLoading(false); }
+  }, [input]);
+
+  // initId が指定された場合は自動ロード
+  React.useEffect(() => {
+    if (initId) loadQuestion(initId);
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+
+
+  const choices: string[] = question?.choices ?? [];
+  const correctAnswers: string[] = question?.correctAnswers ?? [];
+  const correctIndices: number[] = question?.correctAnswerIndices ?? [];
+  const isMultiple: boolean = question?.isMultiple ?? false;
+
+  const isCorrectChoice = (c: string, idx: number) => {
+    if (correctIndices.length > 0) return correctIndices.includes(idx);
+    return correctAnswers.map(stripLabelP).includes(stripLabelP(c));
+  };
+
+  const toggle = (c: string) => {
+    if (answered) return;
+    if (isMultiple) {
+      setSelected(prev => prev.includes(c) ? prev.filter(x => x !== c) : [...prev, c]);
+    } else {
+      setSelected([c]);
+    }
+  };
+
+  const getChoiceColor = (c: string, idx: number) => {
+    if (!answered) {
+      return selected.includes(c) ? 'var(--color-primary)' : 'var(--color-border)';
+    }
+    const correct = isCorrectChoice(c, idx);
+    const userSelected = selected.includes(c);
+    if (correct) return 'var(--color-success)';
+    if (userSelected && !correct) return 'var(--color-danger)';
+    return 'var(--color-border)';
+  };
+  const getChoiceBg = (c: string, idx: number) => {
+    if (!answered) return selected.includes(c) ? 'var(--color-primary-light)' : 'var(--color-bg-white)';
+    const correct = isCorrectChoice(c, idx);
+    const userSelected = selected.includes(c);
+    if (correct) return 'rgba(var(--color-success-rgb, 3,127,12),0.07)';
+    if (userSelected) return 'rgba(var(--color-danger-rgb, 209,50,18),0.07)';
+    return 'var(--color-bg-white)';
+  };
+
+  return (
+    <div
+      style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.6)', zIndex: 2000, display: 'flex', alignItems: 'flex-start', justifyContent: 'center', padding: '24px 16px', overflowY: 'auto' }}
+      onClick={e => { if (e.target === e.currentTarget) onClose(); }}
+    >
+      <div style={{ background: 'var(--color-bg-white)', borderRadius: 12, width: '100%', maxWidth: 680, boxShadow: '0 8px 40px rgba(0,0,0,0.25)', position: 'relative' }}>
+        {/* ヘッダー */}
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '16px 20px', borderBottom: '1px solid var(--color-border)' }}>
+          <span style={{ fontWeight: 700, fontSize: 15 }}>問題プレビュー（演習時の表示を再現）</span>
+          <button onClick={onClose} style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: 20, color: 'var(--color-text-sub)', lineHeight: 1, padding: '0 4px' }}>✕</button>
+        </div>
+
+        <div style={{ padding: '16px 20px' }}>
+          {/* 入力エリア */}
+          <div style={{ display: 'flex', gap: 8, marginBottom: 16 }}>
+            <textarea
+              value={input}
+              onChange={e => setInput(e.target.value)}
+              placeholder={'問題ID（例: saa-abc12345）またはJSON {"questionText":...} を入力'}
+              rows={2}
+              style={{ flex: 1, padding: '8px 10px', border: '1px solid var(--color-border)', borderRadius: 6, fontSize: 13, resize: 'vertical', fontFamily: 'monospace', outline: 'none' }}
+              onFocus={e => e.currentTarget.style.borderColor = 'var(--color-primary)'}
+              onBlur={e => e.currentTarget.style.borderColor = 'var(--color-border)'}
+            />
+            <button
+              onClick={() => loadQuestion()}
+              disabled={loading || !input.trim()}
+              style={{ padding: '8px 16px', background: 'var(--color-primary)', color: '#fff', border: 'none', borderRadius: 6, cursor: input.trim() ? 'pointer' : 'default', fontWeight: 700, fontSize: 13, alignSelf: 'flex-start', opacity: !input.trim() ? 0.5 : 1 }}
+            >
+              {loading ? '取得中...' : '表示'}
+            </button>
+          </div>
+          {error && <p style={{ color: 'var(--color-danger)', fontSize: 13, marginBottom: 12 }}>{error}</p>}
+
+          {/* 問題プレビュー */}
+          {question && (
+            <div>
+              {/* ヘッダー情報 */}
+              <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginBottom: 12, fontSize: 12, color: 'var(--color-text-sub)' }}>
+                <span style={{ fontFamily: 'monospace', background: 'var(--color-bg-main)', padding: '2px 8px', borderRadius: 4, border: '1px solid var(--color-border)' }}>{question.questionId ?? '（入力JSON）'}</span>
+                {question.examType && <span style={{ background: 'var(--color-secondary)', color: '#fff', padding: '2px 8px', borderRadius: 4, fontWeight: 700 }}>{question.examType}</span>}
+                {isMultiple && <span style={{ border: '1.5px solid var(--color-border)', borderRadius: 4, padding: '2px 8px', color: 'var(--color-text-sub)', fontWeight: 700 }}>複数選択</span>}
+              </div>
+
+              {/* 問題文 */}
+              <p style={{ fontSize: 15, lineHeight: 1.7, marginBottom: 20, whiteSpace: 'pre-wrap', wordBreak: 'break-word' }}>
+                {question.questionText}
+              </p>
+
+              {/* 選択肢 */}
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 8, marginBottom: 20 }}>
+                {choices.map((c, idx) => (
+                  <button
+                    key={idx}
+                    onClick={() => toggle(c)}
+                    style={{
+                      display: 'flex', alignItems: 'flex-start', gap: 10, textAlign: 'left',
+                      padding: '10px 14px', borderRadius: 8, cursor: answered ? 'default' : 'pointer',
+                      border: `1.5px solid ${getChoiceColor(c, idx)}`,
+                      background: getChoiceBg(c, idx),
+                      transition: 'all 0.15s',
+                    }}
+                  >
+                    <span style={{ fontWeight: 700, fontSize: 13, color: getChoiceColor(c, idx), flexShrink: 0, minWidth: 18 }}>{CHOICE_LABELS_P[idx]}.</span>
+                    <span style={{ fontSize: 14, lineHeight: 1.5, wordBreak: 'break-word' }}>{stripLabelP(c)}</span>
+                    {answered && isCorrectChoice(c, idx) && <span style={{ marginLeft: 'auto', color: 'var(--color-success)', fontWeight: 700, flexShrink: 0 }}>✓</span>}
+                    {answered && selected.includes(c) && !isCorrectChoice(c, idx) && <span style={{ marginLeft: 'auto', color: 'var(--color-danger)', fontWeight: 700, flexShrink: 0 }}>✗</span>}
+                  </button>
+                ))}
+              </div>
+
+              {/* 回答ボタン or リセット */}
+              <div style={{ display: 'flex', gap: 8, marginBottom: answered ? 20 : 0 }}>
+                {!answered ? (
+                  <button
+                    onClick={() => { if (selected.length > 0) setAnswered(true); }}
+                    disabled={selected.length === 0}
+                    style={{ padding: '10px 24px', background: selected.length > 0 ? 'var(--color-accent)' : 'var(--color-border)', color: selected.length > 0 ? 'var(--color-btn-primary-text)' : 'var(--color-text-light)', border: 'none', borderRadius: 9999, fontWeight: 700, cursor: selected.length > 0 ? 'pointer' : 'default', fontSize: 14 }}
+                  >
+                    回答する
+                  </button>
+                ) : (
+                  <button
+                    onClick={() => { setSelected([]); setAnswered(false); }}
+                    style={{ padding: '8px 18px', background: 'none', border: '1.5px solid var(--color-primary)', color: 'var(--color-primary)', borderRadius: 9999, fontWeight: 700, cursor: 'pointer', fontSize: 13 }}
+                  >
+                    リセット
+                  </button>
+                )}
+              </div>
+
+              {/* 解説 */}
+              {answered && question.explanation && (
+                <div style={{ background: 'var(--color-bg-main)', borderRadius: 8, padding: '14px 16px', fontSize: 13, lineHeight: 1.7, whiteSpace: 'pre-wrap', wordBreak: 'break-word', borderLeft: '3px solid var(--color-primary)' }}>
+                  <div style={{ fontWeight: 700, color: 'var(--color-primary)', marginBottom: 8, fontSize: 12 }}>解説</div>
+                  {question.explanation}
+                </div>
+              )}
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
 
 export default function Admin() {
   const [tab, setTab] = useState<Tab>('questions');
@@ -516,6 +697,20 @@ export default function Admin() {
   const [sinceDate, setSinceDate] = useState('');
   const [validityCheckedSinceCount, setValidityCheckedSinceCount] = useState<number | null>(null);
   const [formatCheckedSinceCount, setFormatCheckedSinceCount] = useState<number | null>(null);
+
+  // 問題プレビュー
+  const [showPreview, setShowPreview] = useState(false);
+  const [previewInitId, setPreviewInitId] = useState('');
+
+  // 問題IDコピー
+  const [copiedId, setCopiedId] = useState<string | null>(null);
+  const copyQuestionId = (e: React.MouseEvent, id: string) => {
+    e.stopPropagation();
+    navigator.clipboard.writeText(id).then(() => {
+      setCopiedId(id);
+      setTimeout(() => setCopiedId(prev => prev === id ? null : prev), 1500);
+    });
+  };
 
   // 問題編集
   const EMPTY_EDIT_FORM: EditForm = { examType: 'SAA', domain: '', questionText: '', questionTextEn: '', choices: ['', '', '', ''], choicesEn: ['', '', '', ''], correctAnswers: [], explanation: '', explanationEn: '', tags: '', isMultiple: false };
@@ -1111,7 +1306,12 @@ export default function Admin() {
       {tab === 'questions' && (
         <div>
           {/* ヘッダー行 */}
-          <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: 10 }}>
+          <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 8, marginBottom: 10 }}>
+            <button
+              onClick={() => setShowPreview(true)}
+              style={{ padding: '5px 14px', background: 'transparent', color: 'var(--color-text-sub)', border: '1.5px solid var(--color-border)', borderRadius: 9999, cursor: 'pointer', fontSize: 13, fontWeight: 700 }}>
+              プレビュー
+            </button>
             <button
               onClick={() => { fetchQuestions(currentPage); fetchSummary(sinceDate || undefined); }}
               style={{ padding: '5px 14px', background: 'transparent', color: 'var(--color-primary)', border: '1.5px solid var(--color-primary)', borderRadius: 9999, cursor: 'pointer', fontSize: 13, fontWeight: 700 }}>
@@ -1390,7 +1590,16 @@ export default function Admin() {
                 />
                 <span style={{ color: 'var(--color-text-sub)', flexShrink: 0, display: 'flex' }}>{expandedId === q.questionId ? <IconChevronDown size={14} /> : <IconChevronRight size={14} />}</span>
                 <Badge variant="secondary">{q.examType}</Badge>
-                <span style={{ fontFamily: 'monospace', fontSize: 12, color: 'var(--color-text-sub)', flexShrink: 0, minWidth: 100 }}>{q.questionId}</span>
+                <span style={{ display: 'flex', alignItems: 'center', gap: 4, flexShrink: 0 }}>
+                  <span style={{ fontFamily: 'monospace', fontSize: 12, color: 'var(--color-text-sub)' }}>{q.questionId}</span>
+                  <button
+                    onClick={e => copyQuestionId(e, q.questionId)}
+                    title="IDをコピー"
+                    style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 2, color: copiedId === q.questionId ? 'var(--color-success)' : 'var(--color-text-light)', display: 'flex', alignItems: 'center', flexShrink: 0 }}
+                  >
+                    {copiedId === q.questionId ? <IconCheck size={12} /> : <IconCopy size={12} />}
+                  </button>
+                </span>
                 <span style={{ fontSize: 14, color: 'var(--color-text-main)', flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                   {q.questionText}
                 </span>
@@ -1411,6 +1620,12 @@ export default function Admin() {
                     編集: {fmtDate(q.updatedAt)}
                   </span>
                 )}
+                <button
+                  onClick={e => { e.stopPropagation(); setPreviewInitId(q.questionId); setShowPreview(true); }}
+                  title="演習時の見え方をプレビュー"
+                  style={{ padding: '4px 10px', background: 'transparent', color: 'var(--color-text-sub)', border: '1px solid var(--color-border)', borderRadius: 9999, cursor: 'pointer', fontSize: 12, fontWeight: 700, flexShrink: 0 }}>
+                  👁
+                </button>
                 <button
                   onClick={e => { e.stopPropagation(); openEdit(q); }}
                   style={{ padding: '4px 12px', background: 'transparent', color: 'var(--color-text-sub)', border: '1px solid var(--color-border)', borderRadius: 9999, cursor: 'pointer', fontSize: 12, fontWeight: 700, flexShrink: 0 }}>
@@ -3037,6 +3252,9 @@ ${tipPromptExamType !== 'ALL' ? `・examType には "${tipPromptExamType}" を�
           </button>
         </div>
       )}
+
+      {/* 問題プレビューモーダル */}
+      {showPreview && <QuestionPreviewModal initId={previewInitId} onClose={() => { setShowPreview(false); setPreviewInitId(''); }} />}
     </div>
   );
 }
