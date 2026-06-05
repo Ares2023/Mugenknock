@@ -12,8 +12,7 @@ const { ADMIN_EMAIL, EXAM_DOMAINS } = require('./constants');
 // 旧データ: tags 配列、または domain が文字列の場合があるため両対応
 function qDomainName(q) {
   if (typeof q.domain === 'number') return (EXAM_DOMAINS[q.examType] || [])[q.domain] ?? '';
-  if (typeof q.domain === 'string' && q.domain) return q.domain;
-  return (q.tags || [])[0] ?? '';
+  return '';
 }
 function qDomainIndex(examType, nameOrIndex) {
   if (typeof nameOrIndex === 'number') return nameOrIndex;
@@ -273,7 +272,6 @@ app.get('/questions', async (req, res) => {
         keywords.every(kw =>
           q.questionText.toLowerCase().includes(kw) ||
           (q.choices || []).some(c => c.toLowerCase().includes(kw)) ||
-          (q.tags || []).some(t => t.toLowerCase().includes(kw)) ||
           q.questionId.toLowerCase().includes(kw)
         )
       );
@@ -390,12 +388,9 @@ app.post('/admin/questions', async (req, res) => {
       const shortId = uuidv4().replace(/-/g, '').slice(0, 8);
       const questionId = `${itemExamType.toLowerCase()}-${shortId}`;
 
-      // domain をインデックスに正規化
-      // 入力: domain(名前 or インデックス) / tags 配列 / リクエストレベル domain
+      // domain をインデックスに正規化（名前 or インデックス → 整数）
       const rawDomain = q.domain ?? domain;
-      const rawTag = (q.tags || [])[0] || (tags || [])[0] || '';
-      const domainSource = rawDomain !== undefined && rawDomain !== null ? rawDomain : rawTag;
-      const domainIdx = qDomainIndex(itemExamType, domainSource);
+      const domainIdx = rawDomain !== undefined && rawDomain !== null ? qDomainIndex(itemExamType, rawDomain) : -1;
 
       // correctAnswerIndices を生成（未設定の場合）
       let correctAnswerIndices = q.correctAnswerIndices;
@@ -453,39 +448,20 @@ app.put('/admin/questions/:id', async (req, res) => {
   try {
     const docClient = getClient();
     const questionId = req.params.id;
-    const { questionText, questionTextEn, choices, choicesEn, correctAnswers, explanation, explanationEn, domain, tags, isMultiple, examType } = req.body;
+    const { questionText, questionTextEn, choices, choicesEn, correctAnswers, explanation, explanationEn, domain, isMultiple, examType } = req.body;
 
-    // タグ関係を再構築（既存削除→新規挿入）
-    const relResult = await docClient.send(new ScanCommand({
-      TableName: 'QuestionTagRelations',
-      FilterExpression: 'questionId = :qid',
-      ExpressionAttributeValues: { ':qid': questionId }
-    }));
-    await Promise.all((relResult.Items || []).map(item =>
-      docClient.send(new DeleteCommand({
-        TableName: 'QuestionTagRelations',
-        Key: { tagId: item.tagId, questionId: item.questionId }
-      }))
-    ));
-    if (tags && tags.length > 0) {
-      await Promise.all(tags.map(tagId =>
-        docClient.send(new PutCommand({
-          TableName: 'QuestionTagRelations',
-          Item: { tagId, questionId }
-        }))
-      ));
-    }
+    // domain を整数インデックスに変換
+    const domainIdx = qDomainIndex(examType, domain);
 
-    const setParts = ['questionText = :qt', 'choices = :ch', 'correctAnswers = :ca', 'explanation = :ex', '#d = :d', 'tags = :t', 'isMultiple = :im', 'examType = :et', 'updatedAt = :ua'];
-    const removeParts = [];
+    const setParts = ['questionText = :qt', 'choices = :ch', 'correctAnswers = :ca', 'explanation = :ex', '#d = :d', 'isMultiple = :im', 'examType = :et', 'updatedAt = :ua'];
+    const removeParts = ['tags'];  // 旧 tags フィールドを常に削除
     const exprNames = { '#d': 'domain' };
     const exprValues = {
       ':qt': questionText,
       ':ch': choices,
       ':ca': correctAnswers,
       ':ex': explanation || '',
-      ':d': domain || '',
-      ':t': tags || [],
+      ':d': domainIdx >= 0 ? domainIdx : 0,
       ':im': isMultiple ?? false,
       ':et': examType,
       ':ua': new Date().toISOString(),
@@ -522,7 +498,7 @@ app.get('/admin/questions/summary', async (req, res) => {
     const { sinceDate } = req.query;
     const items = await scanAll(docClient, {
       TableName: 'Questions',
-      ProjectionExpression: 'examType, #dom, tags, isHidden, validityCheckedAt, formatCheckedAt',
+      ProjectionExpression: 'examType, #dom, isHidden, validityCheckedAt, formatCheckedAt',
       ExpressionAttributeNames: { '#dom': 'domain' },
     });
     const visible = items.filter(i => !i.isHidden);
@@ -569,7 +545,7 @@ app.get('/admin/questions/flagged', async (req, res) => {
     } else {
       scanParams.FilterExpression = 'attribute_exists(validityCheckedAt)';
     }
-    scanParams.ProjectionExpression = 'questionId, examType, questionText, choices, correctAnswers, explanation, #dom, tags, isMultiple, validityCheckedAt, formatCheckedAt, validityEditLog, isHidden, validityRating, validityNote, fixProposalJson';
+    scanParams.ProjectionExpression = 'questionId, examType, questionText, choices, correctAnswers, explanation, #dom, isMultiple, validityCheckedAt, formatCheckedAt, validityEditLog, isHidden, validityRating, validityNote, fixProposalJson';
     scanParams.ExpressionAttributeNames = { '#dom': 'domain' };
 
     const [checkedItems, allItems] = await Promise.all([
@@ -684,7 +660,7 @@ app.get('/admin/questions', async (req, res) => {
       // explanation・validityEditLog を除外して 6MB 上限を回避（編集時は GET /admin/questions/:id で取得）
       items = await scanAll(docClient, {
         TableName: 'Questions',
-        ProjectionExpression: 'questionId, examType, questionText, choices, correctAnswers, correctAnswerIndices, #dom, tags, isMultiple, isHidden, createdAt, updatedAt, validityCheckedAt, formatCheckedAt',
+        ProjectionExpression: 'questionId, examType, questionText, choices, correctAnswers, correctAnswerIndices, #dom, isMultiple, isHidden, createdAt, updatedAt, validityCheckedAt, formatCheckedAt',
         ExpressionAttributeNames: { '#dom': 'domain' },
       });
     }
@@ -733,35 +709,12 @@ app.get('/admin/questions', async (req, res) => {
 });
 
 // タグ一覧取得（examTypeで絞り込み可能）
-app.get('/tags', async (req, res) => {
-  try {
-    const docClient = getClient();
-    const { examType } = req.query;
-    let items = [];
-
-    if (examType) {
-      items = await queryAll(docClient, {
-        TableName: 'Questions',
-        IndexName: 'examType-index',
-        KeyConditionExpression: 'examType = :examType',
-        ExpressionAttributeValues: { ':examType': examType },
-        ProjectionExpression: 'tags'
-      });
-    } else {
-      items = await scanAll(docClient, {
-        TableName: 'Questions',
-        ProjectionExpression: 'tags'
-      });
-    }
-
-    const tagSet = new Set();
-    items.forEach(q => (q.tags || []).forEach(t => tagSet.add(t)));
-    const tags = Array.from(tagSet).sort();
-    res.json({ tags });
-  } catch (err) {
-    console.error(err);
-    res.status(500).json({ error: 'Internal server error' });
-  }
+app.get('/tags', (req, res) => {
+  const { examType } = req.query;
+  const tags = examType
+    ? (EXAM_DOMAINS[examType] || [])
+    : [...new Set(Object.values(EXAM_DOMAINS).flat())].sort();
+  res.json({ tags });
 });
 
 // 通報一覧（管理者用）

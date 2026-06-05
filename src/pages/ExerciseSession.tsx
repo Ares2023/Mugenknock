@@ -26,7 +26,7 @@ type Question = {
   correctAnswerIndices?: number[];
   choiceExplanations?: string[];
   explanation?: string;
-  tags: string[];
+  domain?: number;
   isMultiple: boolean;
   correctAnswerCount?: number;
   validityCheckedAt?: string;
@@ -565,7 +565,7 @@ export default function ExerciseSession() {
     const delta: Record<string, { c: number; i: number }> = {};
     for (const r of results) {
       const q = questions.find((q: Question) => q.questionId === r.questionId);
-      for (const tag of (q?.tags ?? [])) {
+      for (const tag of [qDomainName(q as any)].filter(Boolean)) {
         if (!delta[tag]) delta[tag] = { c: 0, i: 0 };
         if (r.isCorrect) delta[tag].c++; else delta[tag].i++;
       }
