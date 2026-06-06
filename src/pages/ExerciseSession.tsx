@@ -198,13 +198,14 @@ export default function ExerciseSession() {
   const { user } = useAuth();
   const { lang, t } = useLanguage();
 
-  const sessionId: string = state?.sessionId ?? '';
-  const questions: Question[] = state?.questions ?? [];
-  const userId: string = state?.userId ?? '';
-  const examType: string = state?.examType ?? '';
-  const isQuick: boolean = state?.isQuick ?? false;
-  const isFocused: boolean = state?.isFocused ?? false;
-  const isMini: boolean = state?.isMini ?? false;
+  const [sessionId, setSessionId] = useState<string>(state?.sessionId ?? '');
+  const [questions, setQuestions] = useState<Question[]>(state?.questions ?? []);
+  const [userId, setUserId] = useState<string>(state?.userId ?? '');
+  const [examType, setExamType] = useState<string>(state?.examType ?? '');
+  const [isQuick, setIsQuick] = useState<boolean>(state?.isQuick ?? false);
+  const [isFocused, setIsFocused] = useState<boolean>(state?.isFocused ?? false);
+  const [isMini, setIsMini] = useState<boolean>(state?.isMini ?? false);
+  const [initialized, setInitialized] = useState<boolean>(!!state);
 
   const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
   useEffect(() => {
@@ -312,10 +313,10 @@ export default function ExerciseSession() {
       localStorage.setItem(draftKey, JSON.stringify({
         sessionId, examType, questions, userId,
         currentIndex: ci, results: r, answered: a, selectedAnswers: sa,
-        isQuick, isFocused, savedAt: Date.now(),
+        isQuick, isFocused, isMini, savedAt: Date.now(),
       }));
     } catch { /* quota over 等は無視 */ }
-  }, [sessionId, examType, questions, userId, isQuick, isFocused]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [sessionId, examType, questions, userId, isQuick, isFocused, isMini]); // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
     saveDraftNow();
@@ -356,10 +357,37 @@ export default function ExerciseSession() {
   const [lastSelected, setLastSelected] = useState<string | null>(null);
 
   useEffect(() => {
-    if (!state) navigate('/aws/exercise/setup', { replace: true });
+    if (state) { setInitialized(true); return; }
+    // リロード時: localStorage からドラフトを復元する
+    const candidates: any[] = [];
+    for (let i = 0; i < localStorage.length; i++) {
+      const key = localStorage.key(i);
+      if (!key) continue;
+      if (key.startsWith('practiceExerciseDraft_') || key.startsWith('quickExerciseDraft_') || key.startsWith('focusedExerciseDraft_')) {
+        try {
+          const parsed = JSON.parse(localStorage.getItem(key) ?? '');
+          if (parsed.questions?.length > 0) candidates.push(parsed);
+        } catch {}
+      }
+    }
+    const draft = candidates.sort((a, b) => (b.savedAt ?? 0) - (a.savedAt ?? 0))[0];
+    if (!draft) { navigate('/aws/exercise/setup', { replace: true }); return; }
+    setSessionId(draft.sessionId ?? '');
+    setQuestions(draft.questions);
+    setUserId(draft.userId ?? '');
+    setExamType(draft.examType ?? '');
+    setIsQuick(draft.isQuick ?? false);
+    setIsFocused(draft.isFocused ?? false);
+    setIsMini(draft.isMini ?? false);
+    setCurrentIndex(draft.currentIndex ?? 0);
+    setViewedFrontier(draft.currentIndex ?? 0);
+    setResults(draft.results ?? []);
+    setAnswered(draft.answered ?? false);
+    setSelectedAnswers(draft.selectedAnswers ?? []);
+    setInitialized(true);
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
-  if (!state) return null;
+  if (!initialized) return null;
 
   const toggleAnswer = (choice: string) => {
     if (answered) return;
