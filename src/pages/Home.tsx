@@ -1386,20 +1386,12 @@ export default function Home() {
   const jstDate = useMemo(() => new Date(Date.now() + 9 * 3600 * 1000).toISOString().slice(0, 10), []);
 
   // 目標演習量パネル用
-  const examDate = useMemo(() =>
-    targetExam ? (localStorage.getItem(`examDate_${targetExam}_${uid}`) ?? null) : null
-  , [targetExam, uid]);
   const dailyGoal = useMemo(() =>
     Math.max(1, parseInt(localStorage.getItem(`dailyGoal_${uid}`) ?? '10', 10))
   , [uid]);
   const dailyCount = useMemo(() =>
     targetExam ? parseInt(localStorage.getItem(`dailyQCount_${targetExam}_${uid}_${jstDate}`) ?? '0', 10) : 0
   , [targetExam, uid, jstDate]);
-  const daysUntilExam = useCallback((dateStr: string): number => {
-    const d0 = new Date(jstDate).getTime();
-    const d1 = new Date(dateStr).getTime();
-    return Math.round((d1 - d0) / 86400000);
-  }, [jstDate]);
 
   const [prevScore, setPrevScore] = useState<number | null>(null);
 
@@ -1723,12 +1715,6 @@ export default function Home() {
           <span style={{ fontWeight: 700, fontSize: 'var(--font-size-sm)', color: 'var(--color-text-main)' }}>
             {ja ? '目標演習量' : 'Daily Goal'}
           </span>
-          {examDate && (() => {
-            const days = daysUntilExam(examDate);
-            if (days === 0) return <span style={{ fontSize: 11, color: 'var(--color-text-sub)', marginLeft: 4 }}>（試験当日！）</span>;
-            if (days > 0) return <span style={{ fontSize: 11, color: 'var(--color-text-sub)', marginLeft: 4 }}>（あと<span style={{ color: 'var(--color-primary)', fontWeight: 800 }}>{days}</span>日）</span>;
-            return null;
-          })()}
           <span style={{ marginLeft: 'auto', fontSize: 13, fontWeight: 700, color: dailyCount >= dailyGoal ? 'var(--color-success)' : 'var(--color-text-sub)' }}>
             {dailyCount} / {dailyGoal}{ja ? '問' : 'Q'}
           </span>

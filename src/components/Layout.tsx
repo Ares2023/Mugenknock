@@ -306,6 +306,13 @@ export default function Layout({ children }: { children: React.ReactNode }) {
     if (isMobile) setOpen(false);
   };
 
+  const daysUntilExam = (dateStr: string): number => {
+    const today = new Date(Date.now() + 9 * 3600 * 1000).toISOString().slice(0, 10);
+    const d0 = new Date(today).getTime();
+    const d1 = new Date(dateStr).getTime();
+    return Math.round((d1 - d0) / 86400000);
+  };
+
   const isActive = (path: string) =>
     (path === '/aws/' || path === '/aws')
       ? (location.pathname === '/aws/' || location.pathname === '/aws')
@@ -602,6 +609,50 @@ export default function Layout({ children }: { children: React.ReactNode }) {
               />
             )}
           </div>
+        )}
+        {targetExam && !(isMobile && isOthersActive) && !(['/aws/exercise/session', '/aws/exam/session', '/aws/mypage'].includes(location.pathname)) && (
+          <button
+            onClick={() => navigate('/aws/mypage')}
+            title="マイページ"
+            style={{
+              ...(isMobile ? { flex: 1 } : { flexShrink: 0 }),
+              minWidth: 0,
+              display: 'flex', alignItems: 'center',
+              justifyContent: 'flex-end',
+              alignSelf: 'stretch',
+              cursor: 'pointer', transition: 'background 0.15s',
+              background: 'transparent', border: 'none', padding: 0,
+            }}
+            onMouseEnter={e => { e.currentTarget.style.background = 'var(--color-bg-main)'; }}
+            onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; }}
+          >
+            <div style={{ minWidth: 0, padding: '4px 4px 4px 8px', display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 3 }}>
+              <span style={{
+                display: 'block',
+                minWidth: 0,
+                fontSize: 13, fontWeight: 700,
+                color: 'var(--color-text-sub)',
+                whiteSpace: 'nowrap',
+                overflow: 'hidden', textOverflow: 'ellipsis',
+                maxWidth: isMobile ? 'none' : '40vw',
+              }}>
+                {`設定目標：${isMobile ? `AWS ${targetExam}` : (EXAM_CONFIGS[targetExam]?.fullName ?? targetExam)}`}
+                {examDate && (() => {
+                  const days = daysUntilExam(examDate);
+                  if (days === 0) return <span style={{ color: 'var(--color-text-sub)', fontWeight: 700 }}>（試験当日！ファイト🔥）</span>;
+                  if (days > 0) return <span>（あと<span style={{ color: 'var(--color-primary)', fontWeight: 800 }}>{days}</span>日！）</span>;
+                  return null;
+                })()}
+              </span>
+            </div>
+            <span style={{
+              flexShrink: 0,
+              color: 'var(--color-primary)',
+              fontSize: 26, fontWeight: 900,
+              padding: '0 10px 0 2px',
+              lineHeight: 1,
+            }}>›</span>
+          </button>
         )}
       </div>
       )}
