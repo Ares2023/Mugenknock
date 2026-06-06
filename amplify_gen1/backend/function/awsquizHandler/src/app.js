@@ -310,7 +310,7 @@ app.get('/questions', async (req, res) => {
       );
     }
 
-    items = items.filter(q => !q.isHidden);
+    items = items.filter(q => !q.isHidden && !!q.validityCheckedAt);
     if (doShuffle === 'true') items = shuffle(items);
     const total = items.length;
     if (offset) items = items.slice(parseInt(offset));

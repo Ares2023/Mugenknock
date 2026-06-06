@@ -69,7 +69,6 @@ export default function Practice() {
   const [bookmarkOnly, setBookmarkOnly] = useState<boolean>(() => initPrefs(localStorage.getItem(`targetExam_${uid}`) || 'SAA').bookmarkOnly ?? false);
   const [unansweredOnly, setUnansweredOnly] = useState<boolean>(() => initPrefs(localStorage.getItem(`targetExam_${uid}`) || 'SAA').unansweredOnly ?? false);
   const [incorrectOnly, setIncorrectOnly] = useState<boolean>(() => initPrefs(localStorage.getItem(`targetExam_${uid}`) || 'SAA').incorrectOnly ?? false);
-  const [aiVerifiedOnly, setAiVerifiedOnly] = useState<boolean>(() => initPrefs(localStorage.getItem(`targetExam_${uid}`) || 'SAA').aiVerifiedOnly ?? false);
   const [availableCount, setAvailableCount] = useState<number | null>(null);
   const [exerciseLoading, setExerciseLoading] = useState(false);
   const [exerciseLoadPct, setExerciseLoadPct] = useState(0);
@@ -98,12 +97,11 @@ export default function Practice() {
     setBookmarkOnly(prefs.bookmarkOnly ?? false);
     setUnansweredOnly(prefs.unansweredOnly ?? false);
     setIncorrectOnly(prefs.incorrectOnly ?? false);
-    setAiVerifiedOnly(prefs.aiVerifiedOnly ?? false);
   }, [examType]);
 
   useEffect(() => {
-    saveExercisePrefs(examType, uid, { domains: selectedDomains, limit, bookmarkOnly, unansweredOnly, incorrectOnly, aiVerifiedOnly });
-  }, [examType, selectedDomains, limit, bookmarkOnly, unansweredOnly, incorrectOnly, aiVerifiedOnly]);
+    saveExercisePrefs(examType, uid, { domains: selectedDomains, limit, bookmarkOnly, unansweredOnly, incorrectOnly });
+  }, [examType, selectedDomains, limit, bookmarkOnly, unansweredOnly, incorrectOnly]);
 
   // ローカルドラフトがない場合、サーバー側の未完了セッションを検出してバナーで通知
   useEffect(() => {
@@ -138,9 +136,9 @@ export default function Practice() {
           if (bookmarkOnly && bkmRes) { const ids = new Set(bkmRes.questionIds ?? []); items = items.filter((q: any) => ids.has(q.questionId)); }
           if (unansweredOnly && answeredRes) { const ids = new Set(answeredRes.questionIds ?? []); items = items.filter((q: any) => !ids.has(q.questionId)); }
           if (incorrectOnly && incorrectRes) { const ids = new Set(incorrectRes.questionIds ?? []); items = items.filter((q: any) => ids.has(q.questionId)); }
-          if (aiVerifiedOnly) items = items.filter((q: any) => !!q.validityCheckedAt);
+          
           setAvailableCount(items.length);
-        } else if (allSelected && !aiVerifiedOnly) {
+        } else if (allSelected) {
           const cached = getCached<number>(`qcount_${examType}`);
           if (cached !== null) { setAvailableCount(cached); return; }
           const qRes = await fetch(`${API_ENDPOINT}/questions?examType=${examType}`).then(r => r.json());
@@ -149,14 +147,12 @@ export default function Practice() {
           setAvailableCount(count);
         } else {
           const qRes = await fetch(`${API_ENDPOINT}/questions?${params}`).then(r => r.json());
-          let countItems: any[] = qRes.items ?? [];
-          if (aiVerifiedOnly) countItems = countItems.filter((q: any) => !!q.validityCheckedAt);
-          setAvailableCount(aiVerifiedOnly ? countItems.length : (qRes.count ?? countItems.length));
+          setAvailableCount(qRes.count ?? (qRes.items ?? []).length);
         }
       } catch { setAvailableCount(0); }
     };
     fetchCounts();
-  }, [examType, selectedDomains, user, bookmarkOnly, unansweredOnly, incorrectOnly, aiVerifiedOnly]);
+  }, [examType, selectedDomains, user, bookmarkOnly, unansweredOnly, incorrectOnly]);
 
   useEffect(() => {
     if (!user) { setDomainStats([]); return; }
@@ -206,7 +202,6 @@ export default function Practice() {
           if (!allSelected && !selectedDomains.includes(qDomainName(q))) return false;
           return true;
         });
-        if (aiVerifiedOnly) pool = pool.filter((q: any) => !!q.validityCheckedAt);
         const bookmarkSet   = bookmarkOnly   && bkmRes       ? new Set<string>(bkmRes.questionIds ?? [])      : null;
         const unansweredSet = unansweredOnly && answeredRes  ? new Set<string>(answeredRes.questionIds ?? [])  : null;
         const incorrectSet  = incorrectOnly  && incorrectRes ? new Set<string>(incorrectRes.questionIds ?? []) : null;
@@ -231,7 +226,6 @@ export default function Practice() {
           if (!allSelected && !selectedDomains.includes(qDomainName(q))) return false;
           return true;
         });
-        if (aiVerifiedOnly) allItems = allItems.filter((q: any) => !!q.validityCheckedAt);
         selectedItems = shuffleArray(allItems).slice(0, limit);
       }
       if (selectedItems.length === 0) { alert(t('exerciseSetup.noQuestions')); setExerciseLoading(false); return; }
@@ -297,7 +291,7 @@ export default function Practice() {
     setExamLoadPct(10);
     try {
       const userId = user?.userId ?? 'guest';
-      const params = new URLSearchParams({ examType: targetExam, withAnswers: 'true', withValidity: 'true' });
+      const params = new URLSearchParams({ examType: targetExam, withAnswers: 'true' });
       const plateau = randomPlateau();
       const stopAnim = animateLoadPct(setExamLoadPct, 10, plateau);
       const [data, answeredRes] = await Promise.all([
@@ -407,10 +401,6 @@ export default function Practice() {
               <label style={{ display: 'flex', alignItems: 'center', gap: 'var(--spacing-sm)', cursor: 'pointer', fontSize: 'var(--font-size-base)' }}>
                 <input type="checkbox" checked={bookmarkOnly} onChange={e => setBookmarkOnly(e.target.checked)} style={{ width: 16, height: 16, flexShrink: 0 }} />
                 {t('exerciseSetup.bookmarkOnly')}
-              </label>
-              <label style={{ display: 'flex', alignItems: 'center', gap: 'var(--spacing-sm)', cursor: 'pointer', fontSize: 'var(--font-size-base)' }}>
-                <input type="checkbox" checked={aiVerifiedOnly} onChange={e => setAiVerifiedOnly(e.target.checked)} style={{ width: 16, height: 16, flexShrink: 0 }} />
-                {ja ? 'AI確認済み問題のみ' : 'AI Verified Only'}
               </label>
             </div>
           )}

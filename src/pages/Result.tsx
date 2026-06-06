@@ -37,7 +37,7 @@ export default function Result() {
     const qPrefs = loadQuickPrefs();
     try {
       const userId = user?.userId ?? 'guest';
-      const params = new URLSearchParams({ examType: resolvedExamType, withAnswers: 'true', withValidity: 'true' });
+      const params = new URLSearchParams({ examType: resolvedExamType, withAnswers: 'true' });
       const data = await fetch(`${API_ENDPOINT}/questions?${params}`).then(r => r.json());
       let items: any[] = (data.items ?? []).filter((q: any) => !!q.validityCheckedAt);
       if (user && (qPrefs.unansweredOnly || qPrefs.incorrectOnly || qPrefs.bookmarkOnly)) {
