@@ -14,7 +14,7 @@ import { animateLoadPct, randomPlateau } from '../utils/loadProgress';
 import { getPoints, deductPoints } from '../utils/points';
 import Card from '../components/ui/Card';
 import Button from '../components/ui/Button';
-import { IconLightbulb, IconSettings, IconChevronUp, IconChevronDown, IconLock, IconFileText, IconTrendingUp, IconBookOpen, IconCheck, IconSparkles, IconPointer, IconMousePointerClick, IconCalendarNotebook, IconRefreshCw, ServiceIconImg, isServiceIconKey } from '../components/Icons';
+import { IconLightbulb, IconSettings, IconChevronUp, IconChevronDown, IconLock, IconFileText, IconTrendingUp, IconBookOpen, IconCheck, IconSparkles, IconPointer, IconMousePointerClick, IconCalendarNotebook, IconRefreshCw, IconTarget, IconChart, ServiceIconImg, isServiceIconKey } from '../components/Icons';
 import { CATALOG } from '../data/awsServiceCatalog';
 import { autoScoreAndClearDrafts } from '../utils/sessionUtils';
 import { syncTargetExamToServer, loadTargetExamFromServer } from '../utils/preferences';
@@ -1384,6 +1384,23 @@ export default function Home() {
 
   // 前日比
   const jstDate = useMemo(() => new Date(Date.now() + 9 * 3600 * 1000).toISOString().slice(0, 10), []);
+
+  // 目標演習量パネル用
+  const examDate = useMemo(() =>
+    targetExam ? (localStorage.getItem(`examDate_${targetExam}_${uid}`) ?? null) : null
+  , [targetExam, uid]);
+  const dailyGoal = useMemo(() =>
+    Math.max(1, parseInt(localStorage.getItem(`dailyGoal_${uid}`) ?? '10', 10))
+  , [uid]);
+  const dailyCount = useMemo(() =>
+    targetExam ? parseInt(localStorage.getItem(`dailyQCount_${targetExam}_${uid}_${jstDate}`) ?? '0', 10) : 0
+  , [targetExam, uid, jstDate]);
+  const daysUntilExam = useCallback((dateStr: string): number => {
+    const d0 = new Date(jstDate).getTime();
+    const d1 = new Date(dateStr).getTime();
+    return Math.round((d1 - d0) / 86400000);
+  }, [jstDate]);
+
   const [prevScore, setPrevScore] = useState<number | null>(null);
 
   useEffect(() => {
@@ -1693,6 +1710,34 @@ export default function Home() {
         <meta name="description" content="あなたのAWS試験スコアと学習進捗を確認。ドメイン別正答率・予想スコア・直近の演習結果をひと目で把握できます。" />
       </Helmet>
 
+      {/* ── 目標演習量 ── */}
+      <Card
+        padding="var(--spacing-md)"
+        style={{ marginBottom: 'var(--spacing-md)', cursor: 'pointer' }}
+        onClick={() => navigate('/aws/mypage')}
+      >
+        <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 8 }}>
+          <span style={{ color: 'var(--color-text-sub)', display: 'flex', alignItems: 'center' }}>
+            <IconTarget size={13} />
+          </span>
+          <span style={{ fontWeight: 700, fontSize: 'var(--font-size-sm)', color: 'var(--color-text-main)' }}>
+            {ja ? '目標演習量' : 'Daily Goal'}
+          </span>
+          {examDate && (() => {
+            const days = daysUntilExam(examDate);
+            if (days === 0) return <span style={{ fontSize: 11, color: 'var(--color-text-sub)', marginLeft: 4 }}>（試験当日！）</span>;
+            if (days > 0) return <span style={{ fontSize: 11, color: 'var(--color-text-sub)', marginLeft: 4 }}>（あと<span style={{ color: 'var(--color-primary)', fontWeight: 800 }}>{days}</span>日）</span>;
+            return null;
+          })()}
+          <span style={{ marginLeft: 'auto', fontSize: 13, fontWeight: 700, color: dailyCount >= dailyGoal ? 'var(--color-success)' : 'var(--color-text-sub)' }}>
+            {dailyCount} / {dailyGoal}{ja ? '問' : 'Q'}
+          </span>
+        </div>
+        <div style={{ height: 6, borderRadius: 3, background: 'var(--color-border)', overflow: 'hidden' }}>
+          <div style={{ height: '100%', width: `${Math.min(100, (dailyCount / dailyGoal) * 100)}%`, borderRadius: 3, background: dailyCount >= dailyGoal ? 'var(--color-success)' : 'var(--bar-gradient-teal)', transition: 'width 0.3s' }} />
+        </div>
+      </Card>
+
       {/* ── ドメイン別正答率 + 予想スコア（1パネル、クリックで詳細） ── */}
       <Card
         padding="var(--spacing-md)"
@@ -1703,7 +1748,10 @@ export default function Home() {
 
           {/* ドメイン別正答率 */}
           <div style={isMobile ? {} : { flex: 1, minWidth: 0, paddingRight: 16 }}>
-            <div style={{ marginBottom: 8 }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 4, marginBottom: 8 }}>
+              <span style={{ color: 'var(--color-text-sub)', display: 'flex', alignItems: 'center' }}>
+                <IconChart size={12} />
+              </span>
               <span style={{ fontSize: 11, fontWeight: 700, color: 'var(--color-text-sub)', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
                 {ja ? 'ドメイン別正答率' : 'Domain Accuracy'}
               </span>
@@ -1751,9 +1799,14 @@ export default function Home() {
           {/* 予想スコア */}
           <div style={isMobile ? {} : { flex: 1, minWidth: 0, paddingLeft: 16 }}>
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8 }}>
-              <span style={{ fontSize: 11, fontWeight: 700, color: 'var(--color-text-sub)', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
-                {ja ? '予想スコア' : 'Est. Score'}
-              </span>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+                <span style={{ color: 'var(--color-text-sub)', display: 'flex', alignItems: 'center' }}>
+                  <IconTrendingUp size={12} />
+                </span>
+                <span style={{ fontSize: 11, fontWeight: 700, color: 'var(--color-text-sub)', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+                  {ja ? '予想スコア' : 'Est. Score'}
+                </span>
+              </div>
               {user && (
                 <button
                   onClick={e => { e.stopPropagation(); refreshStats(); }}
