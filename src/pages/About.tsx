@@ -268,7 +268,7 @@ function OperatorInfo() {
           {[
             { label: 'サイト名',   value: '無限ノック' },
             { label: 'URL',        value: <a href="https://www.mugenknock.com/" target="_blank" rel="noopener noreferrer" style={{ color: 'var(--color-primary)' }}>https://www.mugenknock.com/</a> },
-            { label: '運営者',     value: 'mugenknock' },
+            { label: '運営者',     value: '個人運営（日本国内）' },
             { label: 'お問い合わせ', value: <a href="mailto:mugenknock@gmail.com" style={{ color: 'var(--color-primary)' }}>mugenknock@gmail.com</a> },
           ].map(({ label, value }) => (
             <tr key={label} style={{ borderBottom: '1px solid var(--color-border)' }}>
@@ -284,7 +284,7 @@ function OperatorInfo() {
       <H3>本サービスについて</H3>
       <P>
         無限ノックは、AWS認定資格の取得を目指す方のための反復学習Webアプリです。
-        CLF・SAA・SAPをはじめとする全9種の試験区分に対応し、演習モード・模試モードで
+        CLF・SAA・SAPをはじめとする全12種の試験区分に対応し、演習モード・模試モードで
         本番に近い環境での学習をサポートします。
       </P>
       <Ul items={[
@@ -294,12 +294,25 @@ function OperatorInfo() {
         '学習履歴・成績の長期保存',
       ]} />
 
+      <H3>コンテンツの品質について</H3>
+      <P>
+        本サービスの演習問題は、AIを活用して作成しています。
+        すべての問題は人の目によるレビューおよびAIによる品質チェックを経た後に公開しており、
+        正確性・適切性を確保するよう努めています。
+        ただし、AWSサービスの仕様変更等により内容が最新でない場合があります。
+        不審な点はお問い合わせまたは問題報告機能よりご連絡ください。
+      </P>
+
       <H3>免責・著作権</H3>
       <P>
         本サービスはAWS資格試験の合格を保証するものではありません。
         掲載コンテンツの無断転載・スクレイピングは禁止しています。
         詳細は利用規約をご確認ください。
       </P>
+      <p style={{ margin: '1em 0 0', fontSize: 12, color: 'var(--color-text-light)' }}>
+        AWS、Amazon Web Services およびそれに関連するロゴ・サービス名は、Amazon.com, Inc. またはその関連会社の商標です。
+        本サービスは Amazon.com, Inc. およびその関連会社とは一切関係のない独立した非公式サービスです。
+      </p>
     </div>
   );
 }

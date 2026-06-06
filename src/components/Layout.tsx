@@ -81,6 +81,13 @@ export default function Layout({ children }: { children: React.ReactNode }) {
   const mainRef = useRef<HTMLElement>(null);
   const uid = user?.userId ?? 'guest';
   const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
+  const [cookieConsent, setCookieConsent] = useState<boolean>(() =>
+    localStorage.getItem('cookie_consent_v1') === 'accepted'
+  );
+  const acceptCookies = () => {
+    localStorage.setItem('cookie_consent_v1', 'accepted');
+    setCookieConsent(true);
+  };
   const [open, setOpen] = useState(() => {
     if (window.innerWidth < 768) return false;
     return localStorage.getItem(`sidebarOpen_${uid}`) !== 'false';
@@ -331,6 +338,34 @@ export default function Layout({ children }: { children: React.ReactNode }) {
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', height: '100vh', fontFamily: 'inherit' }}>
+
+      {/* ── Cookie 同意バナー ── */}
+      {!cookieConsent && (
+        <div style={{
+          position: 'fixed', bottom: 0, left: 0, right: 0, zIndex: 9999,
+          background: 'var(--color-bg-elevated)',
+          borderTop: '1px solid var(--color-border)',
+          padding: '12px 20px',
+          display: 'flex', alignItems: 'center', gap: 12, flexWrap: 'wrap',
+          boxShadow: '0 -2px 12px rgba(0,0,0,0.1)',
+        }}>
+          <span style={{ flex: 1, minWidth: 200, fontSize: 'var(--font-size-xs)', color: 'var(--color-text-sub)', lineHeight: 1.6 }}>
+            {lang === 'ja'
+              ? '本サービスは、広告配信・アクセス解析のためにCookieを使用しています。'
+              : 'This site uses cookies for advertising and analytics.'}
+            {' '}
+            <button onClick={() => navigate('/about#privacy')} style={{ background: 'none', border: 'none', padding: 0, cursor: 'pointer', color: 'var(--color-primary)', fontSize: 'var(--font-size-xs)', textDecoration: 'underline' }}>
+              {lang === 'ja' ? '詳細' : 'Learn more'}
+            </button>
+          </span>
+          <button
+            onClick={acceptCookies}
+            style={{ flexShrink: 0, padding: '6px 18px', background: 'var(--color-primary)', color: '#fff', border: 'none', borderRadius: 'var(--border-radius-full)', fontWeight: 700, fontSize: 'var(--font-size-xs)', cursor: 'pointer' }}
+          >
+            {lang === 'ja' ? '同意して閉じる' : 'Accept'}
+          </button>
+        </div>
+      )}
 
       {/* ── 連絡先モーダル ── */}
       {showContact && (
@@ -808,6 +843,11 @@ export default function Layout({ children }: { children: React.ReactNode }) {
             marginTop: 'auto',
           }}>
             <span>© {new Date().getFullYear()} 無限ノック</span>
+            <span style={{ width: '100%', textAlign: 'center', fontSize: 10, color: 'var(--color-text-light)', opacity: 0.7 }}>
+              {lang === 'ja'
+                ? 'AWSはAmazon Web Services, Inc.の商標です。本サービスはAmazonと無関係の非公式サービスです。'
+                : 'AWS is a trademark of Amazon Web Services, Inc. This is an unofficial service unaffiliated with Amazon.'}
+            </span>
             <button
               onClick={() => navigate('/about#privacy')}
               style={{ background: 'none', border: 'none', padding: 0, cursor: 'pointer', color: 'var(--color-primary)', fontSize: 'var(--font-size-xs)', textDecoration: 'underline' }}
