@@ -408,7 +408,7 @@ app.delete('/admin/questions/:id', async (req, res) => {
 app.post('/admin/questions', async (req, res) => {
   try {
     const docClient = getClient();
-    const { examType, domain, tags, questions } = req.body;
+    const { examType, domain, questions } = req.body;
     if (!Array.isArray(questions) || questions.length === 0) {
       return res.status(400).json({ error: 'questions must be a non-empty array' });
     }
@@ -455,18 +455,6 @@ app.post('/admin/questions', async (req, res) => {
 
       await docClient.send(new PutCommand({ TableName: 'Questions', Item: item }));
 
-      // QuestionTagRelations にドメイン名で登録（後方互換 + タグ検索用）
-      const domainName = domainIdx >= 0 ? (EXAM_DOMAINS[itemExamType] || [])[domainIdx] : '';
-      const itemTags = domainName ? [domainName] : [];
-      if (itemTags.length > 0) {
-        await Promise.all(itemTags.map(tagId =>
-          docClient.send(new PutCommand({
-            TableName: 'QuestionTagRelations',
-            Item: { tagId, questionId }
-          }))
-        ));
-      }
-
       created.push(questionId);
     }
 
@@ -488,7 +476,7 @@ app.put('/admin/questions/:id', async (req, res) => {
     const domainIdx = qDomainIndex(examType, domain);
 
     const setParts = ['questionText = :qt', 'choices = :ch', 'correctAnswers = :ca', 'explanation = :ex', '#d = :d', 'isMultiple = :im', 'examType = :et', 'updatedAt = :ua'];
-    const removeParts = ['tags'];  // 旧 tags フィールドを常に削除
+    const removeParts = ['tags'];  // 旧 tags フィールドを削除（domain 整数に移行済み）
     const exprNames = { '#d': 'domain' };
     const exprValues = {
       ':qt': questionText,
@@ -717,7 +705,7 @@ app.get('/admin/questions', async (req, res) => {
       });
     }
 
-    if (tag) items = items.filter(q => qDomainName(q) === tag || (q.tags || []).includes(tag));
+    if (tag) items = items.filter(q => qDomainName(q) === tag);
     if (domain) {
       const domainList = domain.split(',').map(d => d.trim()).filter(Boolean);
       items = items.filter(q => domainList.includes(qDomainName(q)));
@@ -760,14 +748,6 @@ app.get('/admin/questions', async (req, res) => {
   }
 });
 
-// タグ一覧取得（examTypeで絞り込み可能）
-app.get('/tags', (req, res) => {
-  const { examType } = req.query;
-  const tags = examType
-    ? (EXAM_DOMAINS[examType] || [])
-    : [...new Set(Object.values(EXAM_DOMAINS).flat())].sort();
-  res.json({ tags });
-});
 
 // 通報一覧（管理者用）
 app.get('/admin/reports', async (req, res) => {
@@ -923,7 +903,7 @@ app.get('/sessions/:id/answers', async (req, res) => {
         docClient.send(new GetCommand({
           TableName: 'Questions',
           Key: { questionId: qid },
-          ProjectionExpression: 'questionId, questionText, tags',
+          ProjectionExpression: 'questionId, questionText',
         })).then(r => r.Item).catch(() => null)
       )
     );
@@ -1639,6 +1619,14 @@ app.delete('/admin/messages/:id', requireAdmin, async (req, res) => {
 app.get('/daily-service', async (req, res) => {
   try {
     const docClient = getClient();
+
+    // ?serviceId= 指定時は特定サービスを返す（サービス図鑑の on-demand フェッチ用）
+    if (req.query.serviceId) {
+      const allItems = await getDailyServicesAll(docClient);
+      const svc = allItems.find(i => i.serviceId === req.query.serviceId && i.serviceId !== '_schedule_');
+      return res.json({ service: svc ?? null });
+    }
+
     const allItems = await getDailyServicesAll(docClient);
 
     // '_schedule_' は日付→serviceId のスケジュール管理用アイテム（一般アイテムから除外）

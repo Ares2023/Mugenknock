@@ -56,6 +56,7 @@ export default function ServiceEncyclopedia() {
     try { return JSON.parse(localStorage.getItem('encyclopediaServices') ?? '{}'); } catch { return {}; }
   });
   const [selected, setSelected] = useState<EncyclopediaService | null>(null);
+  const [selectedLoading, setSelectedLoading] = useState(false);
   const [activeTab, setActiveTab] = useState<'all' | 'unlocked'>('unlocked');
 
   // uidが変わった時（ログイン/ログアウト）にlocalStorageから再読み込み
@@ -241,12 +242,45 @@ export default function ServiceEncyclopedia() {
               {displayServices.map(svc => {
                 const unlocked = isUnlocked(svc, unlockedMap);
                 const serviceData = svc.serviceIds?.map(id => storedServices[id]).find(Boolean);
-                const clickable = unlocked && !!serviceData;
+                // serviceData がなくても CATALOG のアイコンがあればクリック可能にする
+                const displayIcon = serviceData?.icon || svc.icon || '';
+                const clickable = unlocked && (!!serviceData || !!displayIcon);
+
+                const handleClick = () => {
+                  if (!unlocked) return;
+                  if (serviceData) { setSelected(serviceData); return; }
+                  // serviceData がない場合: 利用可能な serviceId で on-demand フェッチ
+                  const fetchId = svc.serviceIds?.[0];
+                  const placeholder: EncyclopediaService = {
+                    serviceId: fetchId ?? svc.name,
+                    name: svc.name,
+                    icon: svc.icon ?? '',
+                    description: '',
+                    category: svc.serviceIds ? undefined : svc.name,
+                  };
+                  setSelected(placeholder);
+                  if (!fetchId) return;
+                  setSelectedLoading(true);
+                  fetch(`${API_ENDPOINT}/daily-service?serviceId=${encodeURIComponent(fetchId)}`)
+                    .then(r => r.ok ? r.json() : null)
+                    .then(d => {
+                      if (d?.service) {
+                        const s = d.service;
+                        setSelected(s);
+                        // ローカルに保存して次回以降即表示
+                        const upd = { ...storedServices, [s.serviceId]: s };
+                        localStorage.setItem('encyclopediaServices', JSON.stringify(upd));
+                        setStoredServices(upd);
+                      }
+                    })
+                    .catch(() => {})
+                    .finally(() => setSelectedLoading(false));
+                };
 
                 return (
                   <div
                     key={svc.name}
-                    onClick={() => { if (clickable) setSelected(serviceData!); }}
+                    onClick={handleClick}
                     style={{
                       display: 'flex', flexDirection: 'column', alignItems: 'center',
                       gap: 4, padding: '8px 4px',
@@ -259,13 +293,11 @@ export default function ServiceEncyclopedia() {
                     onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; }}
                   >
                     <div style={{ width: 32, height: 32, display: 'flex', alignItems: 'center', justifyContent: 'center', opacity: unlocked ? 1 : 0.4 }}>
-                      {unlocked && serviceData
-                        ? renderIcon(serviceData, 32)
-                        : unlocked && svc.icon
-                          ? renderIcon({ serviceId: svc.name, name: svc.name, icon: svc.icon, description: '' }, 32)
-                          : unlocked
-                            ? null
-                            : <IconLock size={14} />}
+                      {unlocked && displayIcon
+                        ? renderIcon({ serviceId: svc.serviceIds?.[0] ?? svc.name, name: svc.name, icon: displayIcon, description: '' }, 32)
+                        : unlocked
+                          ? null
+                          : <IconLock size={14} />}
                     </div>
                     <span style={{
                       fontSize: 10,
@@ -314,9 +346,20 @@ export default function ServiceEncyclopedia() {
               </div>
             </div>
 
-            <p style={{ margin: '0 0 10px', fontSize: 'var(--font-size-sm)', color: 'var(--color-text-sub)', lineHeight: 1.7, overflowWrap: 'break-word', wordBreak: 'break-word' }}>
-              {selected.description}
-            </p>
+            {selectedLoading ? (
+              <p style={{ margin: '0 0 10px', fontSize: 'var(--font-size-sm)', color: 'var(--color-text-light)', display: 'flex', alignItems: 'center', gap: 8 }}>
+                <span className="sherpa-spinner" style={{ width: 14, height: 14, borderWidth: 2 }} />
+                {ja ? '情報を取得中...' : 'Loading...'}
+              </p>
+            ) : selected.description ? (
+              <p style={{ margin: '0 0 10px', fontSize: 'var(--font-size-sm)', color: 'var(--color-text-sub)', lineHeight: 1.7, overflowWrap: 'break-word', wordBreak: 'break-word' }}>
+                {selected.description}
+              </p>
+            ) : (
+              <p style={{ margin: '0 0 10px', fontSize: 'var(--font-size-sm)', color: 'var(--color-text-light)' }}>
+                {ja ? '説明情報がありません。' : 'No description available.'}
+              </p>
+            )}
 
             {selected.trivia && (
               <div style={{ background: 'var(--color-bg-main)', borderRadius: 'var(--border-radius-md)', padding: '8px 12px', display: 'flex', gap: 8, alignItems: 'flex-start', marginBottom: 10 }}>
