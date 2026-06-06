@@ -913,7 +913,6 @@ app.get('/sessions/:id/answers', async (req, res) => {
       .map(a => ({
         questionId: a.questionId,
         questionText: qMap[a.questionId]?.questionText ?? '',
-        tags: qMap[a.questionId]?.tags ?? [],
         isCorrect: a.isCorrect,
         answeredAt: a.answeredAt,
       }))

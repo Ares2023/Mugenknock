@@ -30,7 +30,6 @@ type Session = {
 type AnswerRecord = {
   questionId: string;
   questionText: string;
-  tags: string[];
   isCorrect: boolean;
   answeredAt: string;
 };

@@ -25,7 +25,6 @@ type Question = {
   explanation?: string;
   isMultiple: boolean;
   correctAnswerCount?: number;
-  tags: string[];
   validityCheckedAt?: string;
   updatedAt?: string;
   createdAt?: string;

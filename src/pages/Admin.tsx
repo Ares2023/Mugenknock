@@ -27,7 +27,6 @@ type Question = {
   choices: string[];
   correctAnswers: string[];
   explanation: string;
-  tags: string[];
   isMultiple: boolean;
   createdAt?: string;
   updatedAt?: string;
@@ -78,7 +77,6 @@ type ImportQuestion = {
   correctAnswers: string[];
   explanation?: string;
   isMultiple?: boolean;
-  tags?: string[];
 };
 
 type Tab = 'questions' | 'reports' | 'tips' | 'import' | 'releases' | 'scan' | 'messages' | 'dailyservice' | 'theme' | 'admins' | 'about' | 'deleteuser' | 'passcomments' | 'growth';
@@ -149,7 +147,6 @@ type FlaggedQuestion = {
   correctAnswers?: string[];
   explanation?: string;
   domain?: string;
-  tags?: string[];
   isMultiple?: boolean;
   validityCheckedAt?: string;
   formatCheckedAt?: string;
@@ -171,7 +168,6 @@ type EditForm = {
   correctAnswers: string[];
   explanation: string;
   explanationEn: string;
-  tags: string;
   isMultiple: boolean;
 };
 
@@ -459,7 +455,6 @@ export default function Admin() {
 
   // 問題インポート
   const [importExamType, setImportExamType] = useState('SAA');
-  const [importTags, setImportTags] = useState('');
   const [importJson, setImportJson] = useState('');
   const [importParsed, setImportParsed] = useState<ImportQuestion[] | null>(null);
   const [importError, setImportError] = useState('');
@@ -713,7 +708,7 @@ export default function Admin() {
   };
 
   // 問題編集
-  const EMPTY_EDIT_FORM: EditForm = { examType: 'SAA', domain: '', questionText: '', questionTextEn: '', choices: ['', '', '', ''], choicesEn: ['', '', '', ''], correctAnswers: [], explanation: '', explanationEn: '', tags: '', isMultiple: false };
+  const EMPTY_EDIT_FORM: EditForm = { examType: 'SAA', domain: '', questionText: '', questionTextEn: '', choices: ['', '', '', ''], choicesEn: ['', '', '', ''], correctAnswers: [], explanation: '', explanationEn: '', isMultiple: false };
   const [editingQuestion, setEditingQuestion] = useState<{ id: string } | null>(null);
   const [editForm, setEditForm] = useState<EditForm>(EMPTY_EDIT_FORM);
   const [saving, setSaving] = useState(false);
@@ -740,7 +735,6 @@ export default function Admin() {
       correctAnswers: full.correctAnswers || [],
       explanation: full.explanation || '',
       explanationEn: full.explanationEn || '',
-      tags: (full.tags || []).join(', '),
       isMultiple: full.isMultiple || false,
     });
   };
@@ -749,8 +743,7 @@ export default function Admin() {
     if (!editingQuestion) return;
     setSaving(true);
     try {
-      const tags = editForm.tags.split(',').map(t => t.trim()).filter(Boolean);
-      const payload: any = { ...editForm, tags, updatedAt: new Date().toISOString() };
+      const payload: any = { ...editForm, updatedAt: new Date().toISOString() };
       if (!payload.questionTextEn?.trim()) delete payload.questionTextEn;
       if (!payload.explanationEn?.trim()) delete payload.explanationEn;
       const choicesEn = payload.choicesEn?.filter((c: string) => c.trim());
@@ -761,7 +754,7 @@ export default function Admin() {
         body: JSON.stringify(payload),
       });
       if (!res.ok) throw new Error('保存失敗');
-      const updated = { ...payload, tags, questionId: editingQuestion.id };
+      const updated = { ...payload, questionId: editingQuestion.id };
       setQuestions(prev => prev.map(q => q.questionId === editingQuestion.id ? { ...q, ...updated } : q));
       setFlaggedQuestions(prev => prev.map(q => q.questionId === editingQuestion.id ? { ...q, ...updated } : q));
       setEditingQuestion(null);
@@ -1215,16 +1208,8 @@ export default function Admin() {
                 onBlur={e => e.currentTarget.style.borderColor = 'var(--color-border)'} />
             </div>
 
-            {/* タグ・複数選択 */}
+            {/* 複数選択 */}
             <div style={{ display: 'flex', gap: 'var(--spacing-md)', marginBottom: 'var(--spacing-lg)', flexWrap: 'wrap' }}>
-              <div style={{ flex: 1, minWidth: 200 }}>
-                <div style={{ fontSize: 'var(--font-size-sm)', color: 'var(--color-text-sub)', fontWeight: 700, marginBottom: 6 }}>タグ（カンマ区切り）</div>
-                <input value={editForm.tags} onChange={e => setEditForm(f => ({ ...f, tags: e.target.value }))}
-                  placeholder="例: S3, IAM, EC2"
-                  style={{ width: '100%', padding: '8px 12px', border: '1px solid var(--color-border)', borderRadius: 'var(--border-radius-md)', fontSize: 'var(--font-size-base)', boxSizing: 'border-box', outline: 'none' }}
-                  onFocus={e => e.currentTarget.style.borderColor = 'var(--color-primary)'}
-                  onBlur={e => e.currentTarget.style.borderColor = 'var(--color-border)'} />
-              </div>
               <div style={{ display: 'flex', alignItems: 'flex-end', paddingBottom: 4 }}>
                 <label style={{ display: 'flex', alignItems: 'center', gap: 'var(--spacing-sm)', cursor: 'pointer', fontSize: 'var(--font-size-base)', color: 'var(--color-text-main)' }}>
                   <input type="checkbox" checked={editForm.isMultiple} onChange={e => setEditForm(f => ({ ...f, isMultiple: e.target.checked }))}
@@ -1685,11 +1670,6 @@ export default function Admin() {
                         ドメイン: <span style={{ fontWeight: 700 }}>{q.domain}</span>
                       </div>
                     )}
-                    <div style={{ color: 'var(--color-text-light)', fontSize: 12, marginBottom: 4 }}>
-                      タグ: {q.tags?.length ? q.tags.map(t => (
-                        <span key={t} style={{ display: 'inline-block', background: 'var(--color-bg-main)', border: '1px solid #d1d5db', borderRadius: 6, padding: '1px 6px', marginRight: 4, fontSize: 11 }}>{t}</span>
-                      )) : 'なし'}
-                    </div>
                     <div style={{ color: 'var(--color-text-light)', fontSize: 11, display: 'flex', gap: 16, flexWrap: 'wrap' }}>
                       {q.createdAt && <span>作成: {fmtDate(q.createdAt)}</span>}
                       {q.updatedAt && <span>編集: {fmtDate(q.updatedAt)}</span>}
@@ -1845,7 +1825,6 @@ export default function Admin() {
             correctAnswers: ["B. S3バケットポリシーとVPCエンドポイント"],
             explanation: "VPCエンドポイントを使用しS3バケットポリシーでaws:sourceVpceを条件にすることでVPC外からのアクセスを制限できます。",
             explanationEn: "By using a VPC endpoint and setting aws:sourceVpce as a condition in the S3 bucket policy, you can restrict access from outside the VPC.",
-            tags: ["S3", "VPC", "セキュリティ"],
             isMultiple: false
           }
         ], null, 2);
@@ -1887,11 +1866,10 @@ export default function Admin() {
           setImporting(true);
           setImportResult(null);
           try {
-            const tags = importTags.split(',').map(t => t.trim()).filter(Boolean);
             const res = await adminFetch(`${API_ENDPOINT}/admin/questions`, {
               method: 'POST',
               headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({ examType: importExamType, tags, questions: importParsed })
+              body: JSON.stringify({ examType: importExamType, questions: importParsed })
             });
             const data = await res.json();
             if (!res.ok) throw new Error(data.error || '失敗しました');
@@ -1923,12 +1901,6 @@ export default function Admin() {
                     </button>
                   ))}
                 </div>
-              </div>
-              <div style={{ flex: 1, minWidth: 200 }}>
-                <div style={{ fontSize: 12, color: 'var(--color-text-light)', marginBottom: 6 }}>タグ（カンマ区切り・任意）</div>
-                <input value={importTags} onChange={e => setImportTags(e.target.value)}
-                  placeholder="例: EC2, VPC, セキュリティ"
-                  style={{ width: '100%', padding: '7px 10px', border: '1px solid #d1d5db', borderRadius: 6, fontSize: 14, boxSizing: 'border-box' }} />
               </div>
             </div>
 
