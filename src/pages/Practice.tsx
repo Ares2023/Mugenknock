@@ -86,7 +86,6 @@ export default function Practice() {
   const [showNewPanel, setShowNewPanel] = useState(false);
   const [showNewExamPanel, setShowNewExamPanel] = useState(false);
   const [showStartConfirm, setShowStartConfirm] = useState(false);
-  const [serverActiveSession, setServerActiveSession] = useState<{ sessionId: string; examType: string; questionCount: number } | null>(null);
 
   const isFirstRender = useRef(true);
   useEffect(() => {
@@ -103,19 +102,6 @@ export default function Practice() {
     saveExercisePrefs(examType, uid, { domains: selectedDomains, limit, bookmarkOnly, unansweredOnly, incorrectOnly });
   }, [examType, selectedDomains, limit, bookmarkOnly, unansweredOnly, incorrectOnly]);
 
-  // ローカルドラフトがない場合、サーバー側の未完了セッションを検出してバナーで通知
-  useEffect(() => {
-    if (!user?.userId || hasDraft || hasExamDraft) return;
-    fetch(`${API_ENDPOINT}/sessions/active?userId=${encodeURIComponent(user.userId)}`)
-      .then(r => r.json())
-      .then(d => {
-        const s = d.session;
-        if (s?.status === 'active' && s.mode === 'exercise') {
-          setServerActiveSession({ sessionId: s.sessionId, examType: s.examType, questionCount: s.questionIds?.length ?? 0 });
-        }
-      })
-      .catch(() => {});
-  }, [user?.userId, hasDraft, hasExamDraft]); // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
     setAvailableCount(null);
@@ -336,21 +322,6 @@ export default function Practice() {
         <meta name="description" content="AWS認定試験の練習問題に取り組もう。苦手分野を集中的に練習して合格スコアを目指そう。" />
       </Helmet>
 
-      {/* 未完了セッション復帰バナー（ローカルドラフトがない場合のみ） */}
-      {serverActiveSession && !hasDraft && !hasExamDraft && (
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12, padding: '10px 14px', marginBottom: 'var(--spacing-md)', borderRadius: 'var(--border-radius-md)', background: 'var(--color-bg-info)', border: '1px solid var(--color-border-info)', flexWrap: 'wrap' }}>
-          <span style={{ fontSize: 'var(--font-size-sm)', color: 'var(--color-text-main)' }}>
-            {ja
-              ? `未完了の演習があります（${serverActiveSession.examType}・${serverActiveSession.questionCount}問）`
-              : `You have an unfinished exercise (${serverActiveSession.examType}・${serverActiveSession.questionCount} questions)`}
-          </span>
-          <div style={{ display: 'flex', gap: 8, flexShrink: 0 }}>
-            <Button size="sm" variant="outline" onClick={() => setServerActiveSession(null)}>
-              {ja ? '無視する' : 'Dismiss'}
-            </Button>
-          </div>
-        </div>
-      )}
 
       {/* タブ */}
       <div style={{ display: 'flex', borderBottom: '1px solid var(--color-border)', marginBottom: 'var(--spacing-lg)' }}>
