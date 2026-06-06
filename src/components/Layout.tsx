@@ -576,7 +576,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
 
       {/* ── サブバー（ハンバーガー＋パンくず） ── */}
       {/* モバイルでは目標ボタンが表示される場合のみサブバーを描画 */}
-      {(!isMobile || (!!targetExam && !isOthersActive && !['/aws/exercise/session', '/aws/exam/session'].includes(location.pathname))) && (
+      {(!isMobile || (!!targetExam && !isOthersActive && !['/aws/exercise/session', '/aws/exam/session', '/aws/mypage'].includes(location.pathname))) && (
       <div style={{
         height: 40, minHeight: 40, background: 'var(--color-bg-white)',
         display: 'flex', alignItems: 'center', padding: '0 var(--spacing-sm)',

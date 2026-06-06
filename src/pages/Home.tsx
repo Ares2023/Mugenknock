@@ -1064,7 +1064,7 @@ function TodayServiceSection({ lang, userId, onNavigateEncyclopedia, onReveal, i
                 width: 35, height: 35, borderRadius: '50%',
                 border: '1px solid var(--color-border)',
                 background: 'transparent',
-                color: rerolling ? 'var(--color-text-light)' : 'var(--color-primary)',
+                color: rerolling ? 'var(--color-text-light)' : '#009E9E',
                 cursor: rerolling ? 'default' : 'pointer',
                 display: 'flex', alignItems: 'center', justifyContent: 'center',
                 opacity: rerolling ? 0.5 : 1, flexShrink: 0,
@@ -1715,6 +1715,7 @@ export default function Home() {
           <span style={{ fontWeight: 700, fontSize: 'var(--font-size-sm)', color: 'var(--color-text-main)' }}>
             {ja ? '目標演習量' : 'Daily Goal'}
           </span>
+          {ja && <span style={{ fontSize: 10, color: 'var(--color-text-sub)' }}>※達成で<span style={{ color: '#009E9E', fontWeight: 700 }}>+10p</span>！</span>}
           <span style={{ marginLeft: 'auto', fontSize: 13, fontWeight: 700, color: dailyCount >= dailyGoal ? 'var(--color-success)' : 'var(--color-text-sub)' }}>
             {dailyCount} / {dailyGoal}{ja ? '問' : 'Q'}
           </span>

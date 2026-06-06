@@ -368,7 +368,10 @@ export default function MyPage() {
                   </div>
                   {/* 目標演習量 */}
                   <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8 }}>
-                    <span style={{ fontSize: 13, color: 'var(--color-text-sub)' }}>{ja ? '1日の目標演習量' : 'Daily Goal'}</span>
+                    <span style={{ fontSize: 13, color: 'var(--color-text-sub)' }}>
+                      {ja ? '1日の目標演習量' : 'Daily Goal'}
+                      {ja && <span style={{ fontSize: 10, marginLeft: 6 }}>※達成で<span style={{ color: '#009E9E', fontWeight: 700 }}>+10p</span>！</span>}
+                    </span>
                     <span style={{ fontSize: 13, fontWeight: 700, color: todayCount >= dailyGoal ? '#009E9E' : 'var(--color-text-main)' }}>
                       {todayCount} / {dailyGoal}{ja ? '問' : 'Q'}{todayCount >= dailyGoal && ' ✓'}
                     </span>
@@ -411,11 +414,6 @@ export default function MyPage() {
               </Card>
             )}
 
-            {/* 日次目標達成で +10p ヒント */}
-            <div style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '8px 12px', borderRadius: 8, background: 'var(--color-bg-main)', fontSize: 12, color: 'var(--color-text-sub)' }}>
-              <IconSparkles size={13} />
-              {ja ? '1日の目標演習量を達成すると +10p ボーナス！' : 'Achieve your daily goal to earn +10p bonus!'}
-            </div>
 
             {/* 設定編集ポップアップ */}
             {showSettingsEdit && (
