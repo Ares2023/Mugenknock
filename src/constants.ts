@@ -140,13 +140,12 @@ export const DOMAIN_NAME_EN: Record<string, string> = {
   'アイデンティティとアクセス管理': 'Identity and Access Management',
   'データ保護': 'Data Protection',
   'セキュリティの基盤とガバナンス': 'Security Foundations and Governance',
-  // OCIAA
+  // OCIAA（'セキュリティ' は DVA、'アイデンティティとアクセス管理' は SCS で定義済み）
   'OCIアーキテクチャ': 'OCI Architecture',
   'コンピュート': 'Compute',
   'ストレージ': 'Storage',
   'ネットワーキング': 'Networking',
   'データベース': 'Database',
-  'セキュリティ': 'Security',
   '可観測性と管理': 'Observability and Management',
   'アプリケーション統合': 'Application Integration',
   'コンテナとファンクション': 'Container and Functions',
