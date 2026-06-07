@@ -20,7 +20,7 @@ function qDomainIndex(examType, nameOrIndex) {
 }
 
 const app = express();
-app.use(express.json());
+app.use(express.json({ limit: '2mb' }));
 
 const getClient = () => {
   const client = new DynamoDBClient({ region: 'ap-northeast-1' });
