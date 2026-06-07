@@ -32,6 +32,18 @@ const CERTS: Cert[] = [
     color: 'linear-gradient(135deg, #FF9900 0%, #FF6600 100%)',
     available: true,
   },
+  {
+    key: 'oci',
+    label_ja: 'Oracle Cloud (OCI) 認定資格',
+    label_en: 'Oracle Cloud (OCI) Certifications',
+    desc_ja: 'OCI Architect Associate (1Z0-1072-24) に対応',
+    desc_en: 'OCI Architect Associate (1Z0-1072-24)',
+    sub_ja: '1 資格対応',
+    sub_en: '1 certification',
+    path: '/oci/',
+    color: 'linear-gradient(135deg, #C74634 0%, #9E2E1E 100%)',
+    available: true,
+  },
 ];
 
 const COMING: { label_ja: string; label_en: string }[] = [
@@ -177,7 +189,7 @@ export default function Portal() {
                   display: 'flex', alignItems: 'center', justifyContent: 'center',
                   fontSize: 13, fontWeight: 900, color: 'white', letterSpacing: '-0.5px',
                 }}>
-                  AWS
+                  {cert.key.toUpperCase()}
                 </div>
                 {/* テキスト */}
                 <div style={{ flex: 1, minWidth: 0 }}>
