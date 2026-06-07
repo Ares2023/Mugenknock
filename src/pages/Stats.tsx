@@ -737,8 +737,7 @@ export default function Stats() {
                                               <div style={{ marginBottom: 8 }}>
                                                 {(detail.choices as string[]).map((c, ci) => {
                                                   const label = String.fromCharCode(65 + ci);
-                                                  const isCorrect = (detail.correctAnswerIndices ?? []).includes(ci) ||
-                                                    (detail.correctAnswers ?? []).some((ans: string) => ans.replace(/^[A-Z]\.\s*/, '') === c.replace(/^[A-Z]\.\s*/, ''));
+                                                  const isCorrect = (detail.correctAnswerIndices ?? []).includes(ci);
                                                   return (
                                                     <div key={ci} style={{ display: 'flex', gap: 6, marginBottom: 4, alignItems: 'flex-start' }}>
                                                       <span style={{ flexShrink: 0, fontWeight: 700, fontSize: 10, color: isCorrect ? 'var(--color-success)' : 'var(--color-text-light)', minWidth: 14, marginTop: 1 }}>{label}.</span>

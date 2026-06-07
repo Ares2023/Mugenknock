@@ -229,7 +229,7 @@ export default function Result() {
                 <div style={{ padding: 'var(--spacing-lg) var(--spacing-xl)', borderTop: '1px solid var(--color-border)', background: 'var(--color-bg-main)', fontSize: 'var(--font-size-base)' }}>
                   <div style={{ marginBottom: 'var(--spacing-lg)', display: 'flex', flexDirection: 'column', gap: 'var(--spacing-sm)' }}>
                     {q.choices?.map((c: string, ci: number) => {
-                      const correct = q.correctAnswers?.includes(c);
+                      const correct = q.correctAnswerIndices?.includes(ci);
                       const label = ['A', 'B', 'C', 'D', 'E'][ci];
                       return (
                         <div key={c} style={{

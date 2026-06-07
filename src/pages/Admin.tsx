@@ -26,6 +26,7 @@ type Question = {
   questionText: string;
   choices: string[];
   correctAnswers: string[];
+  correctAnswerIndices?: number[];
   explanation: string;
   isMultiple: boolean;
   createdAt?: string;
@@ -75,6 +76,7 @@ type ImportQuestion = {
   questionText: string;
   choices: string[];
   correctAnswers: string[];
+  correctAnswerIndices?: number[];
   explanation?: string;
   isMultiple?: boolean;
 };
@@ -251,10 +253,7 @@ function QuestionPreviewModal({ onClose, initId = '' }: { onClose: () => void; i
   const correctIndices: number[] = question?.correctAnswerIndices ?? [];
   const isMultiple: boolean = question?.isMultiple ?? false;
 
-  const isCorrectChoice = (c: string, idx: number) => {
-    if (correctIndices.length > 0) return correctIndices.includes(idx);
-    return correctAnswers.map(stripLabelP).includes(stripLabelP(c));
-  };
+  const isCorrectChoice = (_c: string, idx: number) => correctIndices.includes(idx);
 
   const toggle = (c: string) => {
     if (answered) return;
@@ -1644,7 +1643,7 @@ export default function Admin() {
 
                     <div style={{ marginBottom: 12 }}>
                       {q.choices.map((c, i) => {
-                        const isCorrect = q.correctAnswers?.includes(c);
+                        const isCorrect = q.correctAnswerIndices?.includes(i);
                         return (
                           <div key={i} style={{
                             padding: '6px 10px', marginBottom: 4, borderRadius: 6,
@@ -1990,6 +1989,7 @@ export default function Admin() {
     "choices": ["選択肢1", "選択肢2", "選択肢3", "選択肢4"],
     "choicesEn": ["Choice 1", "Choice 2", "Choice 3", "Choice 4"],
     "correctAnswers": ["選択肢1（choicesと完全一致）"],
+    "correctAnswerIndices": [0],
     "explanation": "解説文（日本語）",
     "explanationEn": "Explanation in English",
     "choiceExplanations": ["選択肢0の解説（100〜150字）", "選択肢1の解説", "選択肢2の解説", "選択肢3の解説"],

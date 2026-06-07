@@ -28,19 +28,13 @@ const getClient = () => {
 };
 
 // ── 問題データ正規化 ──────────────────────────────────────────────
-// choices と correctAnswers からラベル接頭辞（"A. " 等）を除去し、
-// correctAnswerIndices が未設定の場合はテキスト一致で補完する。
-// Lambda 返却時に必ず通すことで、フロントは常にインデックスで正誤判定できる。
+// choices と correctAnswers からラベル接頭辞（"A. " 等）を除去する。
+// correctAnswerIndices は DB の値をそのまま使う（全問設定済み）。
 const CHOICE_LABEL_RE = /^[A-E][.\s]\s*/i;
 function normalizeQuestion(q) {
   const choices = (q.choices || []).map(c => String(c).replace(CHOICE_LABEL_RE, '').trim());
   const correctAnswers = (q.correctAnswers || []).map(c => String(c).replace(CHOICE_LABEL_RE, '').trim());
-  let correctAnswerIndices = q.correctAnswerIndices;
-  if (!Array.isArray(correctAnswerIndices) || correctAnswerIndices.length === 0) {
-    correctAnswerIndices = correctAnswers
-      .map(ca => choices.findIndex(c => c === ca))
-      .filter(i => i >= 0);
-  }
+  const correctAnswerIndices = Array.isArray(q.correctAnswerIndices) ? q.correctAnswerIndices : [];
   return { ...q, choices, correctAnswers, correctAnswerIndices };
 }
 
@@ -475,13 +469,18 @@ app.put('/admin/questions/:id', async (req, res) => {
     // domain を整数インデックスに変換
     const domainIdx = qDomainIndex(examType, domain);
 
-    const setParts = ['questionText = :qt', 'choices = :ch', 'correctAnswers = :ca', 'explanation = :ex', '#d = :d', 'isMultiple = :im', 'examType = :et', 'updatedAt = :ua'];
+    const correctAnswerIndices = (correctAnswers || [])
+      .map(ca => (choices || []).findIndex(c => c === ca))
+      .filter(idx => idx >= 0);
+
+    const setParts = ['questionText = :qt', 'choices = :ch', 'correctAnswers = :ca', 'correctAnswerIndices = :ci', 'explanation = :ex', '#d = :d', 'isMultiple = :im', 'examType = :et', 'updatedAt = :ua'];
     const removeParts = ['tags'];  // 旧 tags フィールドを削除（domain 整数に移行済み）
     const exprNames = { '#d': 'domain' };
     const exprValues = {
       ':qt': questionText,
       ':ch': choices,
       ':ca': correctAnswers,
+      ':ci': correctAnswerIndices,
       ':ex': explanation || '',
       ':d': domainIdx >= 0 ? domainIdx : 0,
       ':im': isMultiple ?? false,
@@ -616,6 +615,15 @@ app.post('/admin/questions/:id/apply-fix', async (req, res) => {
     if (fix.questionText)  { sets.push('questionText = :qt');    vals[':qt'] = fix.questionText; }
     if (fix.choices)       { sets.push('choices = :ch');         vals[':ch'] = fix.choices; }
     if (fix.correctAnswers){ sets.push('correctAnswers = :ca');  vals[':ca'] = fix.correctAnswers; }
+    if (fix.choices || fix.correctAnswers) {
+      const finalChoices = fix.choices || q.choices || [];
+      const finalCorrectAnswers = fix.correctAnswers || q.correctAnswers || [];
+      const newIndices = finalCorrectAnswers
+        .map(ca => finalChoices.findIndex(c => c === ca))
+        .filter(idx => idx >= 0);
+      sets.push('correctAnswerIndices = :ci');
+      vals[':ci'] = newIndices;
+    }
     if (fix.explanation)   { sets.push('explanation = :ex');     vals[':ex'] = fix.explanation; }
 
     await docClient.send(new UpdateCommand({
