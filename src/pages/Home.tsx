@@ -1072,7 +1072,7 @@ function TodayServiceSection({ lang, userId, onNavigateEncyclopedia, onReveal, i
             >
               {rerolling
                 ? <div className="sherpa-spinner" style={{ width: 11, height: 11, borderWidth: 2, flexShrink: 0 }} />
-                : <IconRefreshCw size={12} />
+                : <IconSparkles size={12} />
               }
             </button>
           </div>
