@@ -18,28 +18,26 @@ import {
 
 type BreadcrumbItem = { label: string; path?: string };
 
-function makeNavItems(p: string) {
-  return {
-    NAV_KEYS: [
-      { path: `${p}/`,             labelKey: 'nav.home',         Icon: IconHome      },
-      { path: `${p}/practice`,     labelKey: 'nav.practice',     Icon: IconDumbbell  },
-      { path: `${p}/mypage`,       labelKey: 'nav.mypage',       Icon: IconUserCircle },
-      { path: `${p}/encyclopedia`, labelKey: 'nav.encyclopedia', Icon: IconBookOpen, bottom: true },
-      { path: `${p}/growth`,       labelKey: 'nav.growth',       Icon: IconBot, bottom: true },
-      { path: `${p}/release-notes`, labelKey: 'nav.releaseNotes', Icon: IconFire, bottom: true },
-    ],
-    BOTTOM_TABS: [
-      { path: `${p}/`,         Icon: IconHome,        ja: 'ホーム',       en: 'Home'     },
-      { path: `${p}/practice`, Icon: IconDumbbell,    ja: 'トレーニング', en: 'Training' },
-      { path: `${p}/mypage`,   Icon: IconUserCircle,  ja: 'マイページ',   en: 'My Page'  },
-    ],
-    OTHERS_ITEMS: [
-      { path: `${p}/encyclopedia`,  Icon: IconBookOpen, labelKey: 'nav.encyclopedia' },
-      { path: `${p}/growth`,        Icon: IconBot,      labelKey: 'nav.growth'       },
-      { path: `${p}/release-notes`, Icon: IconFire,     labelKey: 'nav.releaseNotes' },
-    ],
-  };
-}
+const NAV_KEYS = [
+  { path: '/aws/',             labelKey: 'nav.home',         Icon: IconHome      },
+  { path: '/aws/practice',     labelKey: 'nav.practice',     Icon: IconDumbbell  },
+  { path: '/aws/mypage',       labelKey: 'nav.mypage',       Icon: IconUserCircle },
+  { path: '/aws/encyclopedia', labelKey: 'nav.encyclopedia', Icon: IconBookOpen, bottom: true },
+  { path: '/aws/growth',       labelKey: 'nav.growth',       Icon: IconBot, bottom: true },
+  { path: '/aws/release-notes', labelKey: 'nav.releaseNotes', Icon: IconFire, bottom: true },
+];
+
+const BOTTOM_TABS = [
+  { path: '/aws/',         Icon: IconHome,        ja: 'ホーム',       en: 'Home'     },
+  { path: '/aws/practice', Icon: IconDumbbell,    ja: 'トレーニング', en: 'Training' },
+  { path: '/aws/mypage',   Icon: IconUserCircle,  ja: 'マイページ',   en: 'My Page'  },
+];
+
+const OTHERS_ITEMS = [
+  { path: '/aws/encyclopedia',  Icon: IconBookOpen, labelKey: 'nav.encyclopedia' },
+  { path: '/aws/growth',        Icon: IconBot,      labelKey: 'nav.growth'       },
+  { path: '/aws/release-notes', Icon: IconFire,     labelKey: 'nav.releaseNotes' },
+];
 
 const AI_LINKS = [
   {
@@ -82,8 +80,6 @@ export default function Layout({ children }: { children: React.ReactNode }) {
   const location = useLocation();
   const mainRef = useRef<HTMLElement>(null);
   const uid = user?.userId ?? 'guest';
-  const prefix = location.pathname.startsWith('/oci') ? '/oci' : '/aws';
-  const { NAV_KEYS, BOTTOM_TABS, OTHERS_ITEMS } = makeNavItems(prefix);
   const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
   const [cookieConsent, setCookieConsent] = useState<boolean>(() =>
     localStorage.getItem('cookie_consent_v1') === 'accepted'
@@ -120,7 +116,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
   const swipeStartY = useRef<number>(0);
   const isDraggingH = useRef<boolean>(false);
   const SWIPE_THRESHOLD = 72;
-  const TAB_PATHS = [...BOTTOM_TABS.map(t => t.path), `${prefix}/others`];
+  const TAB_PATHS = [...BOTTOM_TABS.map(t => t.path), '/aws/others'];
   const [swipeOffset, setSwipeOffset] = useState(0);
   const [swipeTrans, setSwipeTrans] = useState(false);
 
@@ -318,27 +314,26 @@ export default function Layout({ children }: { children: React.ReactNode }) {
   };
 
   const isActive = (path: string) =>
-    (path === `${prefix}/` || path === prefix)
-      ? (location.pathname === `${prefix}/` || location.pathname === prefix)
+    (path === '/aws/' || path === '/aws')
+      ? (location.pathname === '/aws/' || location.pathname === '/aws')
       : location.pathname.startsWith(path);
 
-  const isOthersActive = location.pathname === `${prefix}/others` || OTHERS_ITEMS.some(item => isActive(item.path));
+  const isOthersActive = location.pathname === '/aws/others' || OTHERS_ITEMS.some(item => isActive(item.path));
 
   const navItems = NAV_KEYS;
-  const home = `${prefix}/`;
 
   const breadcrumbs: Record<string, BreadcrumbItem[]> = {
-    [`${prefix}/practice`]:         [{ label: t('nav.home'), path: home }, { label: t('nav.practice') }],
-    [`${prefix}/encyclopedia`]:     [{ label: t('nav.home'), path: home }, { label: t('nav.encyclopedia') }],
-    [`${prefix}/growth`]:           [{ label: t('nav.home'), path: home }, { label: t('nav.growth') }],
-    [`${prefix}/exercise/setup`]:   [{ label: t('nav.home'), path: home }, { label: t('exerciseSetup.title') }],
-    [`${prefix}/exercise/session`]: [{ label: t('nav.home'), path: home }, { label: t('exerciseSetup.title'), path: `${prefix}/exercise/setup` }, { label: t('nav.exerciseSession') }],
-    [`${prefix}/exam/setup`]:       [{ label: t('nav.home'), path: home }, { label: t('examSetup.title') }],
-    [`${prefix}/exam/session`]:     [{ label: t('nav.home'), path: home }, { label: t('examSetup.title'), path: `${prefix}/exam/setup` }, { label: t('nav.examSession') }],
-    [`${prefix}/result`]:           [{ label: t('nav.home'), path: home }, { label: t('nav.result') }],
-    [`${prefix}/stats`]:            [{ label: t('nav.home'), path: home }, { label: t('stats.title') }],
-    [`${prefix}/release-notes`]:    [{ label: t('nav.home'), path: home }, { label: t('nav.releaseNotes') }],
-    '/about':                       [{ label: t('nav.home'), path: home }, { label: t('nav.about') }],
+    '/aws/practice':         [{ label: t('nav.home'), path: '/aws/' }, { label: t('nav.practice') }],
+    '/aws/encyclopedia':     [{ label: t('nav.home'), path: '/aws/' }, { label: t('nav.encyclopedia') }],
+    '/aws/growth':           [{ label: t('nav.home'), path: '/aws/' }, { label: t('nav.growth') }],
+    '/aws/exercise/setup':   [{ label: t('nav.home'), path: '/aws/' }, { label: t('exerciseSetup.title') }],
+    '/aws/exercise/session': [{ label: t('nav.home'), path: '/aws/' }, { label: t('exerciseSetup.title'), path: '/aws/exercise/setup' }, { label: t('nav.exerciseSession') }],
+    '/aws/exam/setup':       [{ label: t('nav.home'), path: '/aws/' }, { label: t('examSetup.title') }],
+    '/aws/exam/session':     [{ label: t('nav.home'), path: '/aws/' }, { label: t('examSetup.title'), path: '/aws/exam/setup' }, { label: t('nav.examSession') }],
+    '/aws/result':           [{ label: t('nav.home'), path: '/aws/' }, { label: t('nav.result') }],
+    '/aws/stats':            [{ label: t('nav.home'), path: '/aws/' }, { label: t('stats.title') }],
+    '/aws/release-notes':    [{ label: t('nav.home'), path: '/aws/' }, { label: t('nav.releaseNotes') }],
+    '/about':                [{ label: t('nav.home'), path: '/aws/' }, { label: t('nav.about') }],
   };
 
   return (
@@ -521,7 +516,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
       }}>
 
         {/* サービス名 */}
-        <div onClick={() => navigate(home)} style={{ display: 'flex', alignItems: 'center', cursor: 'pointer', userSelect: 'none', flexShrink: 0, padding: '0 4px' }}>
+        <div onClick={() => navigate('/aws/')} style={{ display: 'flex', alignItems: 'center', cursor: 'pointer', userSelect: 'none', flexShrink: 0, padding: '0 4px' }}>
           <img
             src={isMobile ? '/mugen-text.png' : '/mugen-header.png'}
             alt="無限ノック"
@@ -581,7 +576,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
 
       {/* ── サブバー（ハンバーガー＋パンくず） ── */}
       {/* モバイルでは目標ボタンが表示される場合のみサブバーを描画 */}
-      {(!isMobile || (!!targetExam && !isOthersActive && ![`${prefix}/exercise/session`, `${prefix}/exam/session`, `${prefix}/mypage`].includes(location.pathname))) && (
+      {(!isMobile || (!!targetExam && !isOthersActive && !['/aws/exercise/session', '/aws/exam/session', '/aws/mypage'].includes(location.pathname))) && (
       <div style={{
         height: 40, minHeight: 40, background: 'var(--color-bg-white)',
         display: 'flex', alignItems: 'center', padding: '0 var(--spacing-sm)',
@@ -615,9 +610,9 @@ export default function Layout({ children }: { children: React.ReactNode }) {
             )}
           </div>
         )}
-        {targetExam && !(isMobile && isOthersActive) && !([`${prefix}/exercise/session`, `${prefix}/exam/session`, `${prefix}/mypage`].includes(location.pathname)) && (
+        {targetExam && !(isMobile && isOthersActive) && !(['/aws/exercise/session', '/aws/exam/session', '/aws/mypage'].includes(location.pathname)) && (
           <button
-            onClick={() => navigate(`${prefix}/mypage`)}
+            onClick={() => navigate('/aws/mypage')}
             title="マイページ"
             style={{
               ...(isMobile ? { flex: 1 } : { flexShrink: 0 }),
@@ -817,7 +812,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
             width: '100%',
             WebkitOverflowScrolling: 'touch',
             minWidth: 0,
-            paddingBottom: isMobile ? 120 : ([`${prefix}/practice`, `${prefix}/`, prefix].includes(location.pathname) ? 80 : 0),
+            paddingBottom: isMobile ? 120 : (['/aws/practice', '/aws/', '/aws'].includes(location.pathname) ? 80 : 0),
             transform: swipeOffset !== 0 ? `translateX(${swipeOffset}px)` : undefined,
             transition: swipeTrans ? 'transform 0.24s ease' : 'none',
             willChange: swipeOffset !== 0 ? 'transform' : undefined,
@@ -894,7 +889,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
           })}
           {/* その他タブ */}
           <button
-            onClick={() => navigate(`${prefix}/others`)}
+            onClick={() => navigate('/aws/others')}
             style={{
               flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
               gap: 3, border: 'none', background: 'none', cursor: 'pointer',

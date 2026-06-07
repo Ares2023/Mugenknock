@@ -576,7 +576,7 @@ function DomainDetailModal({ targetExam, domainAccList, lang, onClose }: {
 // ── オンボーディング ────────────────────────────────────────────
 const OB_LEVEL: Record<string, string> = {
   CLF: 'Foundational', AIF: 'Foundational',
-  SAA: 'Associate', DVA: 'Associate', SOA: 'Associate', DEA: 'Associate', MLA: 'Associate', OCIAA: 'Associate',
+  SAA: 'Associate', DVA: 'Associate', SOA: 'Associate', DEA: 'Associate', MLA: 'Associate',
   SAP: 'Professional', DOP: 'Professional', GAI: 'Professional',
   ANS: 'Specialty', SCS: 'Specialty',
 };
@@ -589,7 +589,6 @@ const OB_SHORT: Record<string, string> = {
   SOA: 'CloudOps Engineer', DEA: 'Data Engineer', MLA: 'ML Engineer',
   SAP: 'Solutions Architect Pro', DOP: 'DevOps Engineer', GAI: 'Generative AI Dev',
   ANS: 'Advanced Networking', SCS: 'Security',
-  OCIAA: 'OCI Architect',
 };
 
 function OnboardingModal({ lang, uid, onComplete, onSkip }: {

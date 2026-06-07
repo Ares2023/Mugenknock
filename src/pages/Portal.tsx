@@ -32,23 +32,6 @@ const CERTS: Cert[] = [
     color: 'linear-gradient(135deg, #FF9900 0%, #FF6600 100%)',
     available: true,
   },
-  {
-    key: 'oci',
-    label_ja: 'Oracle Cloud (OCI) 認定資格',
-    label_en: 'Oracle Cloud (OCI) Certifications',
-    desc_ja: 'OCI Architect Associate (1Z0-1072-24) に対応',
-    desc_en: 'OCI Architect Associate (1Z0-1072-24)',
-    sub_ja: '1 資格対応',
-    sub_en: '1 certification',
-    path: '/oci/',
-    color: 'linear-gradient(135deg, #C74634 0%, #9E2E1E 100%)',
-    available: true,
-  },
-];
-
-const COMING: { label_ja: string; label_en: string }[] = [
-  { label_ja: 'GCP 認定資格', label_en: 'Google Cloud Certs' },
-  { label_ja: 'Azure 認定資格', label_en: 'Microsoft Azure Certs' },
 ];
 
 export default function Portal() {
@@ -147,12 +130,6 @@ export default function Portal() {
             </p>
           </div>
 
-          {/* ── 利用可能な資格 ── */}
-          <div style={{ marginBottom: 8 }}>
-            <span style={{ fontSize: 11, fontWeight: 700, color: 'var(--color-text-sub)', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
-              {ja ? '利用可能' : 'Available'}
-            </span>
-          </div>
           <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : 'repeat(auto-fill, minmax(260px, 1fr))', gap: 12, marginBottom: 28 }}>
             {CERTS.map(cert => (
               <button
@@ -211,44 +188,6 @@ export default function Portal() {
             ))}
           </div>
 
-          {/* ── 準備中 ── */}
-          <div style={{ marginBottom: 8 }}>
-            <span style={{ fontSize: 11, fontWeight: 700, color: 'var(--color-text-sub)', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
-              {ja ? '準備中' : 'Coming Soon'}
-            </span>
-          </div>
-          <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : 'repeat(auto-fill, minmax(260px, 1fr))', gap: 12 }}>
-            {COMING.map((c, i) => (
-              <div
-                key={i}
-                style={{
-                  background: 'var(--color-bg-white)',
-                  border: '1px dashed var(--color-border)',
-                  borderRadius: 'var(--border-radius-lg)',
-                  padding: isMobile ? '16px' : '20px',
-                  display: 'flex', alignItems: 'center', gap: 16,
-                  opacity: 0.55,
-                }}
-              >
-                <div style={{
-                  width: 52, height: 52, borderRadius: 12, flexShrink: 0,
-                  background: 'var(--color-border)',
-                  display: 'flex', alignItems: 'center', justifyContent: 'center',
-                  fontSize: 22, color: 'var(--color-text-light)',
-                }}>
-                  +
-                </div>
-                <div style={{ flex: 1 }}>
-                  <div style={{ fontSize: 'var(--font-size-base)', fontWeight: 700, color: 'var(--color-text-sub)', marginBottom: 2 }}>
-                    {ja ? c.label_ja : c.label_en}
-                  </div>
-                  <div style={{ fontSize: 'var(--font-size-xs)', color: 'var(--color-text-light)' }}>
-                    {ja ? '準備中' : 'In preparation'}
-                  </div>
-                </div>
-              </div>
-            ))}
-          </div>
 
         </div>
       </main>

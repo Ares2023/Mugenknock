@@ -3,7 +3,7 @@ export const API_ENDPOINT = process.env.REACT_APP_API_ENDPOINT
 
 export const ADMIN_EMAIL = 'mugenknock@gmail.com';
 
-export const EXAM_TYPES = ['CLF', 'AIF', 'SAA', 'DVA', 'SOA', 'DEA', 'MLA', 'SAP', 'DOP', 'GAI', 'ANS', 'SCS', 'OCIAA'] as const;
+export const EXAM_TYPES = ['CLF', 'AIF', 'SAA', 'DVA', 'SOA', 'DEA', 'MLA', 'SAP', 'DOP', 'GAI', 'ANS', 'SCS'] as const;
 export type ExamType = typeof EXAM_TYPES[number];
 
 // 合格スコア（スケールスコア 100〜1000 での公式合格ライン）
@@ -20,7 +20,6 @@ export const PASS_SCORES: Record<string, number> = {
   GAI: 750,
   ANS: 700,
   SCS: 750,
-  OCIAA: 680,
 };
 
 // 演習モードでの合否判定に使う正答率の目安（スケールスコアの近似値）
@@ -37,7 +36,6 @@ export const PASS_RATE: Record<string, number> = {
   GAI: 75,
   ANS: 70,
   SCS: 75,
-  OCIAA: 68,
 };
 
 // 試験の出題ドメイン（公式試験ガイドの表記に完全一致）
@@ -54,7 +52,6 @@ export const EXAM_DOMAINS: Record<string, string[]> = {
   DEA: ['データの取り込みと変換', 'データストアの管理', 'データオペレーションとサポート', 'データのセキュリティとガバナンス'],
   ANS: ['ネットワーク設計', 'ネットワーク実装', 'ネットワーク管理と運用', 'ネットワークのセキュリティ、コンプライアンス、ガバナンス'],
   SCS: ['検出', 'インシデント対応', 'インフラストラクチャのセキュリティ', 'アイデンティティとアクセス管理', 'データ保護', 'セキュリティの基盤とガバナンス'],
-  OCIAA: ['OCIアーキテクチャ', 'コンピュート', 'ストレージ', 'ネットワーキング', 'アイデンティティとアクセス管理', 'データベース', 'セキュリティ', '可観測性と管理', 'アプリケーション統合', 'コンテナとファンクション'],
 };
 
 // ── domain フィールドのユーティリティ ────────────────────────
@@ -140,15 +137,6 @@ export const DOMAIN_NAME_EN: Record<string, string> = {
   'アイデンティティとアクセス管理': 'Identity and Access Management',
   'データ保護': 'Data Protection',
   'セキュリティの基盤とガバナンス': 'Security Foundations and Governance',
-  // OCIAA（'セキュリティ' は DVA、'アイデンティティとアクセス管理' は SCS で定義済み）
-  'OCIアーキテクチャ': 'OCI Architecture',
-  'コンピュート': 'Compute',
-  'ストレージ': 'Storage',
-  'ネットワーキング': 'Networking',
-  'データベース': 'Database',
-  '可観測性と管理': 'Observability and Management',
-  'アプリケーション統合': 'Application Integration',
-  'コンテナとファンクション': 'Container and Functions',
 };
 
 // 試験レベル表示
@@ -165,7 +153,6 @@ export const EXAM_LEVEL: Record<string, string> = {
   GAI: 'Professional',
   ANS: 'Specialty',
   SCS: 'Specialty',
-  OCIAA: 'Associate',
 };
 
 // 試験の説明文
@@ -182,7 +169,6 @@ export const EXAM_DESC_JA: Record<string, string> = {
   GAI: 'AWSで生成AIソリューションを実装・デプロイするプロフェッショナル認定',
   ANS: 'AWSとハイブリッドネットワークの高度な設計・実装スキルを問うスペシャリティ認定',
   SCS: 'AWSクラウドのセキュリティ専門知識を証明するスペシャリティ認定',
-  OCIAA: 'OCIの基本サービスとアーキテクチャ設計スキルを問うアソシエイトレベル認定（Oracle）',
 };
 export const EXAM_DESC_EN: Record<string, string> = {
   CLF: 'Foundational certification covering cloud basics',
@@ -197,7 +183,6 @@ export const EXAM_DESC_EN: Record<string, string> = {
   GAI: 'Professional certification for integrating and deploying generative AI solutions on AWS',
   ANS: 'Specialty certification for advanced AWS and hybrid network architecture design',
   SCS: 'Specialty certification for AWS cloud security expertise',
-  OCIAA: 'Associate-level certification for OCI architecture and core services (Oracle)',
 };
 
 // ドメイン正答率の色分けしきい値（0–1スケール）
@@ -218,7 +203,6 @@ export const DOMAIN_WEIGHTS: Record<string, number[]> = {
   GAI: [31, 26, 20, 12, 11],
   ANS: [30, 26, 20, 24],
   SCS: [16, 14, 18, 20, 18, 14],
-  OCIAA: [10, 12, 12, 20, 15, 10, 8, 8, 3, 2],
 };
 
 // 模試モードの設定
@@ -240,7 +224,6 @@ export const EXAM_CONFIGS: Record<string, {
   GAI: { examCode: 'AIP-C01', fullName: 'AWS Certified Generative AI Developer – Professional',   totalQuestions: 75, timeLimitMin: 170 },
   ANS: { examCode: 'ANS-C01', fullName: 'AWS Certified Advanced Networking – Specialty',           totalQuestions: 65, timeLimitMin: 170 },
   SCS: { examCode: 'SCS-C03', fullName: 'AWS Certified Security – Specialty',                     totalQuestions: 65, timeLimitMin: 170 },
-  OCIAA: { examCode: '1Z0-1072-24', fullName: 'Oracle Cloud Infrastructure 2024 Architect Associate', totalQuestions: 60, timeLimitMin: 90  },
 };
 
 export const EXAM_OFFICIAL_URLS: Record<string, { page: string; guide: string }> = {
@@ -256,5 +239,4 @@ export const EXAM_OFFICIAL_URLS: Record<string, { page: string; guide: string }>
   GAI: { page: 'https://aws.amazon.com/certification/certified-generative-ai-developer-professional/',  guide: 'https://d1.awsstatic.com/training-and-certification/docs-generative-ai-developer-professional/AWS-Certified-Generative-AI-Developer-Professional_Exam-Guide.pdf' },
   ANS: { page: 'https://aws.amazon.com/certification/certified-advanced-networking-specialty/',         guide: 'https://d1.awsstatic.com/training-and-certification/docs-advnetworking-spec/AWS-Certified-Advanced-Networking-Specialty_Exam-Guide.pdf' },
   SCS: { page: 'https://aws.amazon.com/certification/certified-security-specialty/',                    guide: 'https://d1.awsstatic.com/training-and-certification/docs-security-spec/AWS-Certified-Security-Specialty_Exam-Guide.pdf' },
-  OCIAA: { page: 'https://education.oracle.com/oracle-cloud-infrastructure-2024-architect-associate/pexam_1Z0-1072-24', guide: 'https://education.oracle.com/oracle-cloud-infrastructure-2024-architect-associate/pexam_1Z0-1072-24' },
 };

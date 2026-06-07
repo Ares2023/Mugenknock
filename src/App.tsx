@@ -58,15 +58,6 @@ function TargetExamRoute({ children }: { children: React.ReactNode }) {
   return <>{children}</>;
 }
 
-// OCI用: OCIAA を targetExam に強制セットしてからレンダリング
-function OciRoute({ children }: { children: React.ReactNode }) {
-  const { user } = useAuth();
-  const uid = user?.userId ?? '';
-  React.useEffect(() => {
-    if (uid) localStorage.setItem(`targetExam_${uid}`, 'OCIAA');
-  }, [uid]);
-  return <>{children}</>;
-}
 
 // BrowserRouter 内で useNavigate が使えるように内部コンポーネントに分離
 function AppInner() {
@@ -91,26 +82,7 @@ function AppInner() {
           <Route path="/aws/release-notes" element={<TargetExamRoute><Layout><ReleaseNotes /></Layout></TargetExamRoute>} />
           <Route path="/aws/others" element={<TargetExamRoute><Layout><Others /></Layout></TargetExamRoute>} />
           <Route path="/aws/exam-dashboard" element={<TargetExamRoute><ExamDashboard /></TargetExamRoute>} />
-          {/* ── OCI ルート（OCIAA 固定） ── */}
-          <Route path="/oci/" element={<OciRoute><Layout><Home /></Layout></OciRoute>} />
-          <Route path="/oci/exercise/setup" element={<OciRoute><Layout><ExerciseSetup /></Layout></OciRoute>} />
-          <Route path="/oci/exercise/session" element={<OciRoute><Layout><ExerciseSession /></Layout></OciRoute>} />
-          <Route path="/oci/result" element={<OciRoute><Layout><Result /></Layout></OciRoute>} />
-          <Route path="/oci/exam/setup" element={<OciRoute><Layout><ExamSetup /></Layout></OciRoute>} />
-          <Route path="/oci/exam/session" element={<OciRoute><Layout><ExamSession /></Layout></OciRoute>} />
-          <Route path="/oci/practice" element={<OciRoute><Layout><Practice /></Layout></OciRoute>} />
-          <Route path="/oci/growth" element={<OciRoute><Layout><Growth /></Layout></OciRoute>} />
-          <Route path="/oci/release-notes" element={<OciRoute><Layout><ReleaseNotes /></Layout></OciRoute>} />
-          <Route path="/oci/others" element={<OciRoute><Layout><Others /></Layout></OciRoute>} />
-          <Route path="/oci/exam-dashboard" element={<OciRoute><ExamDashboard /></OciRoute>} />
-          <Route path="/oci/stats" element={
-            <PrivateRoute><OciRoute><Layout><Stats /></Layout></OciRoute></PrivateRoute>
-          } />
-          <Route path="/oci/mypage" element={
-            <PrivateRoute><OciRoute><Layout><MyPage /></Layout></OciRoute></PrivateRoute>
-          } />
-
-          <Route path="/about" element={<Layout><About /></Layout>} />
+<Route path="/about" element={<Layout><About /></Layout>} />
           <Route path="/confirm-delete" element={<ConfirmDelete />} />
           <Route path="/admin" element={
             <AdminRoute><AdminLayout><Admin /></AdminLayout></AdminRoute>
