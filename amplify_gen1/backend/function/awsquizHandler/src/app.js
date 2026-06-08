@@ -162,10 +162,13 @@ app.post('/errors', (req, res) => {
 app.get('/questions/growth-stats', async (req, res) => {
   try {
     const docClient = getClient();
-    const items = await scanAll(docClient, {
+    const allItems = await scanAll(docClient, {
       TableName: 'Questions',
-      ProjectionExpression: 'createdAt, validityCheckedAt',
+      ProjectionExpression: 'examType, createdAt, validityCheckedAt',
     });
+    // AWS専用サイトのためAWS以外の試験種別（OCIAA等）を除外
+    const AWS_EXAM_TYPES = new Set(['CLF','AIF','SAA','DVA','SOA','DEA','MLA','SAP','DOP','GAI','ANS','SCS']);
+    const items = allItems.filter(item => !item.examType || AWS_EXAM_TYPES.has(item.examType));
 
     // JST (UTC+9)
     const jstMs = Date.now() + 9 * 60 * 60 * 1000;
