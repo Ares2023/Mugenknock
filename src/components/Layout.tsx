@@ -516,12 +516,15 @@ export default function Layout({ children }: { children: React.ReactNode }) {
       }}>
 
         {/* サービス名 */}
-        <div onClick={() => navigate('/aws/')} style={{ display: 'flex', alignItems: 'center', cursor: 'pointer', userSelect: 'none', flexShrink: 0, padding: '0 4px' }}>
+        <div onClick={() => navigate('/aws/')} style={{ display: 'flex', alignItems: 'center', gap: 7, cursor: 'pointer', userSelect: 'none', flexShrink: 0, padding: '0 4px' }}>
           <img
-            src={isMobile ? '/mugen-text.png' : '/mugen-header.png'}
+            src="/mugen-icon.png"
             alt="無限ノック"
-            style={{ height: isMobile ? 28 : 36, width: 'auto', display: 'block' }}
+            style={{ height: isMobile ? 28 : 30, width: 'auto', display: 'block' }}
           />
+          <span style={{ fontSize: isMobile ? 13 : 14, fontWeight: 800, color: 'var(--color-text-main)', letterSpacing: '-0.2px', whiteSpace: 'nowrap' }}>
+            無限ノック
+          </span>
         </div>
 
         {/* ポイント表示＋アカウントボタン（モバイル・デスクトップ共通） */}

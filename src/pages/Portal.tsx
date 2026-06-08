@@ -106,12 +106,15 @@ export default function Portal() {
         gap: 'var(--spacing-md)', zIndex: 200, flexShrink: 0,
         borderBottom: '1px solid var(--color-border)',
       }}>
-        <div style={{ display: 'flex', alignItems: 'center', userSelect: 'none', flexShrink: 0, padding: '0 4px' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 7, userSelect: 'none', flexShrink: 0, padding: '0 4px' }}>
           <img
-            src={isMobile ? '/mugen-icon.png' : '/mugen-header.png'}
-            alt="MugenKnock"
-            style={{ height: isMobile ? 32 : 36, width: 'auto', display: 'block' }}
+            src="/mugen-icon.png"
+            alt="無限ノック"
+            style={{ height: isMobile ? 28 : 30, width: 'auto', display: 'block' }}
           />
+          <span style={{ fontSize: isMobile ? 13 : 14, fontWeight: 800, color: 'var(--color-text-main)', letterSpacing: '-0.2px', whiteSpace: 'nowrap' }}>
+            無限ノック
+          </span>
         </div>
         <div style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: 6 }}>
           <button onClick={() => setLang(lang === 'ja' ? 'en' : 'ja')} style={{ background: 'transparent', border: '1px solid var(--color-border)', borderRadius: 'var(--border-radius-md)', cursor: 'pointer', color: 'var(--color-text-sub)', padding: '4px 10px', fontSize: 'var(--font-size-xs)', fontWeight: 700 }}>
