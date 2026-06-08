@@ -1166,7 +1166,7 @@ export default function Home() {
   const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
   const [revealService, setRevealService] = useState<DailyService | null>(null);
   const [targetExam, setTargetExam] = useState<string | null>(() => localStorage.getItem(`targetExam_${uid}`));
-  const [showOnboarding, setShowOnboarding] = useState(() => !!user && !localStorage.getItem(`targetExam_${uid}`));
+  const [showOnboarding, setShowOnboarding] = useState(() => !localStorage.getItem(`targetExam_${uid}`));
   const [domainStats, setDomainStats] = useState<DomainStat[]>([]);
   const [statsLoading, setStatsLoading] = useState(false);
   const [statsRefreshing, setStatsRefreshing] = useState(false);
