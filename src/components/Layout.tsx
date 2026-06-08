@@ -774,27 +774,6 @@ export default function Layout({ children }: { children: React.ReactNode }) {
                   <span style={{ display: 'flex', alignItems: 'center', opacity: 0.6 }}><IconMail /></span>
                   <span>{t('contact.sidebarLabel')}</span>
                 </button>
-                <button
-                  onClick={() => navigate('/')}
-                  style={{
-                    width: '100%', textAlign: 'left',
-                    display: 'flex', alignItems: 'center', gap: 12,
-                    padding: '10px 24px',
-                    background: 'none', border: 'none',
-                    borderTop: '2px solid var(--color-border)',
-                    borderLeft: '4px solid transparent',
-                    cursor: 'pointer', color: 'var(--color-text-light)', fontSize: 'var(--font-size-sm)', fontWeight: 700,
-                    whiteSpace: 'nowrap', transition: 'all 0.2s',
-                    marginTop: 4,
-                  }}
-                  onMouseEnter={e => { (e.currentTarget as HTMLElement).style.background = 'var(--color-bg-main)'; }}
-                  onMouseLeave={e => { (e.currentTarget as HTMLElement).style.background = 'none'; }}
-                >
-                  <span style={{ display: 'flex', alignItems: 'center' }}>
-                    <img src="/mugen-icon.png" alt="" style={{ width: 18, height: 18, objectFit: 'contain', opacity: 0.7 }} />
-                  </span>
-                  <span>無限ノック</span>
-                </button>
               </div>
             </div>
           </nav>
