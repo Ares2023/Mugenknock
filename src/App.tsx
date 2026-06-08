@@ -58,6 +58,7 @@ function TargetExamRoute({ children }: { children: React.ReactNode }) {
   return <>{children}</>;
 }
 
+
 // BrowserRouter 内で useNavigate が使えるように内部コンポーネントに分離
 function AppInner() {
   const { lang } = useLanguage();
@@ -81,7 +82,7 @@ function AppInner() {
           <Route path="/aws/release-notes" element={<TargetExamRoute><Layout><ReleaseNotes /></Layout></TargetExamRoute>} />
           <Route path="/aws/others" element={<TargetExamRoute><Layout><Others /></Layout></TargetExamRoute>} />
           <Route path="/aws/exam-dashboard" element={<TargetExamRoute><ExamDashboard /></TargetExamRoute>} />
-          <Route path="/about" element={<Layout><About /></Layout>} />
+<Route path="/about" element={<Layout><About /></Layout>} />
           <Route path="/confirm-delete" element={<ConfirmDelete />} />
           <Route path="/admin" element={
             <AdminRoute><AdminLayout><Admin /></AdminLayout></AdminRoute>

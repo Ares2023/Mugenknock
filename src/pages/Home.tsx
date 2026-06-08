@@ -9,12 +9,12 @@ import {
   API_ENDPOINT, EXAM_TYPES, EXAM_CONFIGS, EXAM_DOMAINS,
   DOMAIN_WEIGHTS, DOMAIN_NAME_EN, PASS_SCORES, qDomainName,
 } from '../constants';
-import { getCached, setCached, deleteCached, DEFAULT_TTL } from '../utils/cache';
+import { getCached, setCached, deleteCached, DEFAULT_TTL, getCachedPersist, setCachedPersist, deleteCachedPersist } from '../utils/cache';
 import { animateLoadPct, randomPlateau } from '../utils/loadProgress';
 import { getPoints, deductPoints } from '../utils/points';
 import Card from '../components/ui/Card';
 import Button from '../components/ui/Button';
-import { IconLightbulb, IconSettings, IconChevronUp, IconChevronDown, IconLock, IconFileText, IconTrendingUp, IconBookOpen, IconCheck, IconSparkles, IconPointer, IconMousePointerClick, IconCalendarNotebook, IconRefreshCw, ServiceIconImg, isServiceIconKey } from '../components/Icons';
+import { IconLightbulb, IconSettings, IconChevronUp, IconChevronDown, IconLock, IconFileText, IconTrendingUp, IconBookOpen, IconCheck, IconSparkles, IconPointer, IconMousePointerClick, IconCalendarNotebook, IconRefreshCw, IconTarget, IconChart, ServiceIconImg, isServiceIconKey } from '../components/Icons';
 import { CATALOG } from '../data/awsServiceCatalog';
 import { autoScoreAndClearDrafts } from '../utils/sessionUtils';
 import { syncTargetExamToServer, loadTargetExamFromServer } from '../utils/preferences';
@@ -997,7 +997,7 @@ function TodayServiceSection({ lang, userId, onNavigateEncyclopedia, onReveal, i
         }}
       >
         {/* ヘッダー */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 14 }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 10 }}>
           <span style={{ color: 'rgba(255,255,255,.7)', flexShrink: 0, display: 'flex', alignItems: 'center' }}>
             <IconCalendarNotebook size={13} />
           </span>
@@ -1006,7 +1006,7 @@ function TodayServiceSection({ lang, userId, onNavigateEncyclopedia, onReveal, i
           </span>
         </div>
         {/* ? アイコン */}
-        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', padding: '12px 0 8px' }}>
+        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', padding: '8px 0 4px' }}>
           <div style={{
             fontSize: 52, fontWeight: 900, lineHeight: 1, color: 'white',
             textShadow: '0 4px 24px rgba(255,255,255,.25)',
@@ -1014,7 +1014,7 @@ function TodayServiceSection({ lang, userId, onNavigateEncyclopedia, onReveal, i
             animation: 'ds-float 3.2s ease-in-out infinite',
           }}>?</div>
           <div style={{
-            marginTop: 14, fontSize: 13, fontWeight: 600,
+            marginTop: 10, fontSize: 13, fontWeight: 600,
             color: 'rgba(255,255,255,.85)',
             animation: 'ds-tap 1.5s ease-in-out infinite',
             textShadow: '0 2px 8px rgba(0,0,0,.5)',
@@ -1039,7 +1039,7 @@ function TodayServiceSection({ lang, userId, onNavigateEncyclopedia, onReveal, i
   return (
     <Card padding="var(--spacing-md)" style={{ marginBottom: 'var(--spacing-md)', cursor: 'pointer' }} onClick={onNavigateEncyclopedia}>
       {/* ヘッダー行 */}
-      <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 10 }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 8 }}>
         {calIcon}
         <span style={{ fontWeight: 700, fontSize: 'var(--font-size-sm)', color: 'var(--color-text-main)' }}>
           {lang === 'ja' ? '日めくりAWSサービス' : 'Daily AWS Service'}
@@ -1061,18 +1061,18 @@ function TodayServiceSection({ lang, userId, onNavigateEncyclopedia, onReveal, i
               disabled={rerolling}
               title={lang === 'ja' ? '再抽選 (-30p)' : 'Reroll (-30p)'}
               style={{
-                width: 44, height: 44, borderRadius: '50%',
+                width: 35, height: 35, borderRadius: '50%',
                 border: '1px solid var(--color-border)',
                 background: 'transparent',
-                color: rerolling ? 'var(--color-text-light)' : 'var(--color-primary)',
+                color: rerolling ? 'var(--color-text-light)' : '#009E9E',
                 cursor: rerolling ? 'default' : 'pointer',
                 display: 'flex', alignItems: 'center', justifyContent: 'center',
                 opacity: rerolling ? 0.5 : 1, flexShrink: 0,
               }}
             >
               {rerolling
-                ? <div className="sherpa-spinner" style={{ width: 13, height: 13, borderWidth: 2, flexShrink: 0 }} />
-                : <IconRefreshCw size={14} />
+                ? <div className="sherpa-spinner" style={{ width: 11, height: 11, borderWidth: 2, flexShrink: 0 }} />
+                : <IconSparkles size={12} />
               }
             </button>
           </div>
@@ -1080,7 +1080,7 @@ function TodayServiceSection({ lang, userId, onNavigateEncyclopedia, onReveal, i
       </div>
 
       {/* アイコン＋名前 横並び */}
-      <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 10 }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 8 }}>
         <div style={{ width: 44, height: 44, flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
           {iconEl}
         </div>
@@ -1090,7 +1090,7 @@ function TodayServiceSection({ lang, userId, onNavigateEncyclopedia, onReveal, i
       </div>
 
       {/* 説明文: アイコン行の下から全幅 */}
-      <p style={{ margin: '0 0 10px', fontSize: 'var(--font-size-sm)', color: 'var(--color-text-sub)', lineHeight: 1.7, overflowWrap: 'break-word', wordBreak: 'break-word' }}>
+      <p style={{ margin: '0 0 8px', fontSize: 'var(--font-size-sm)', color: 'var(--color-text-sub)', lineHeight: 1.7, overflowWrap: 'break-word', wordBreak: 'break-word' }}>
         {displayService.description}
       </p>
 
@@ -1384,6 +1384,15 @@ export default function Home() {
 
   // 前日比
   const jstDate = useMemo(() => new Date(Date.now() + 9 * 3600 * 1000).toISOString().slice(0, 10), []);
+
+  // 目標演習量パネル用
+  const dailyGoal = useMemo(() =>
+    Math.max(1, parseInt(localStorage.getItem(`dailyGoal_${uid}`) ?? '10', 10))
+  , [uid]);
+  const dailyCount = useMemo(() =>
+    targetExam ? parseInt(localStorage.getItem(`dailyQCount_${targetExam}_${uid}_${jstDate}`) ?? '0', 10) : 0
+  , [targetExam, uid, jstDate]);
+
   const [prevScore, setPrevScore] = useState<number | null>(null);
 
   useEffect(() => {
@@ -1513,20 +1522,24 @@ export default function Home() {
     const qPrefs = loadQuickPrefs(uid);
     try {
       const userId = user?.userId ?? 'guest';
-      const params = new URLSearchParams({ examType: targetExam, withAnswers: 'true', withValidity: 'true' });
+      const params = new URLSearchParams({ examType: targetExam, withAnswers: 'true' });
+      const qCacheKey = `qlist_${targetExam}`;
+      const cachedQs = getCachedPersist<{ items: any[]; total: number }>(qCacheKey);
+      const needUserData = user && (qPrefs.unansweredOnly || qPrefs.incorrectOnly || qPrefs.bookmarkOnly);
       const plateau = randomPlateau();
-      const stopAnim = animateLoadPct(setQuickLoadPct, 10, plateau);
-      const data = await fetch(`${API_ENDPOINT}/questions?${params}`).then(r => r.json());
-      stopAnim();
-      setQuickLoadPct(plateau);
+      const stopAnim = cachedQs ? null : animateLoadPct(setQuickLoadPct, 10, plateau);
+      // 問題リスト（キャッシュなし時）とユーザーデータを並行フェッチ
+      const [data, answeredRes, incorrectRes, bkmRes] = await Promise.all([
+        cachedQs ? Promise.resolve(cachedQs) : fetch(`${API_ENDPOINT}/questions?${params}`).then(r => r.json()),
+        needUserData && qPrefs.unansweredOnly ? fetch(`${API_ENDPOINT}/users/me/answered-questions?userId=${userId}&examType=${targetExam}`).then(r => r.json()) : Promise.resolve(null),
+        needUserData && qPrefs.incorrectOnly  ? fetch(`${API_ENDPOINT}/users/me/incorrect-questions?userId=${userId}&examType=${targetExam}`).then(r => r.json()) : Promise.resolve(null),
+        needUserData && qPrefs.bookmarkOnly   ? fetch(`${API_ENDPOINT}/users/me/bookmarks?userId=${userId}`).then(r => r.json()) : Promise.resolve(null),
+      ]);
+      if (stopAnim) { stopAnim(); setQuickLoadPct(plateau); }
+      if (!cachedQs) setCachedPersist(qCacheKey, data);
       const pool: any[] = (data.items ?? []).filter((q: any) => !!q.validityCheckedAt);
       let items = [...pool];
-      if (user && (qPrefs.unansweredOnly || qPrefs.incorrectOnly || qPrefs.bookmarkOnly)) {
-        const [answeredRes, incorrectRes, bkmRes] = await Promise.all([
-          qPrefs.unansweredOnly ? fetch(`${API_ENDPOINT}/users/me/answered-questions?userId=${userId}&examType=${targetExam}`).then(r => r.json()) : null,
-          qPrefs.incorrectOnly  ? fetch(`${API_ENDPOINT}/users/me/incorrect-questions?userId=${userId}&examType=${targetExam}`).then(r => r.json()) : null,
-          qPrefs.bookmarkOnly   ? fetch(`${API_ENDPOINT}/users/me/bookmarks?userId=${userId}`).then(r => r.json()) : null,
-        ]);
+      if (needUserData) {
         setQuickLoadPct(80);
         const unansweredSet = qPrefs.unansweredOnly && answeredRes ? new Set<string>(answeredRes.questionIds ?? []) : null;
         const incorrectSet  = qPrefs.incorrectOnly  && incorrectRes ? new Set<string>(incorrectRes.questionIds ?? []) : null;
@@ -1578,15 +1591,18 @@ export default function Home() {
     const fPrefs = loadFocusedPrefs(uid);
     try {
       const userId = user.userId;
-      const params = new URLSearchParams({ examType: targetExam, withAnswers: 'true', withValidity: 'true' });
+      const params = new URLSearchParams({ examType: targetExam, withAnswers: 'true' });
+      const qCacheKey = `qlist_${targetExam}`;
+      const cachedQs = getCachedPersist<{ items: any[]; total: number }>(qCacheKey);
       const plateau = randomPlateau();
-      const stopAnim = animateLoadPct(setFocusedLoadPct, 10, plateau);
+      const stopAnim = cachedQs ? null : animateLoadPct(setFocusedLoadPct, 10, plateau);
+      // 問題リスト（キャッシュなし時）と苦手問題データを並行フェッチ
       const [data, incorrectRes] = await Promise.all([
-        fetch(`${API_ENDPOINT}/questions?${params}`).then(r => r.json()),
+        cachedQs ? Promise.resolve(cachedQs) : fetch(`${API_ENDPOINT}/questions?${params}`).then(r => r.json()),
         fetch(`${API_ENDPOINT}/users/me/incorrect-questions?userId=${userId}&examType=${targetExam}`).then(r => r.json()),
       ]);
-      stopAnim();
-      setFocusedLoadPct(plateau);
+      if (stopAnim) { stopAnim(); setFocusedLoadPct(plateau); }
+      if (!cachedQs) setCachedPersist(qCacheKey, data);
       const allItems: any[] = (data.items ?? []).filter((q: any) => !!q.validityCheckedAt);
       const incorrectIds = new Set<string>(incorrectRes.questionIds ?? []);
       const focusIncorrect: boolean = fPrefs.focusIncorrect !== false;
@@ -1686,6 +1702,29 @@ export default function Home() {
         <meta name="description" content="あなたのAWS試験スコアと学習進捗を確認。ドメイン別正答率・予想スコア・直近の演習結果をひと目で把握できます。" />
       </Helmet>
 
+      {/* ── 目標演習量 ── */}
+      <Card
+        padding="var(--spacing-md)"
+        style={{ marginBottom: 'var(--spacing-md)', cursor: 'pointer' }}
+        onClick={() => navigate('/aws/mypage')}
+      >
+        <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 8 }}>
+          <span style={{ color: 'var(--color-text-sub)', display: 'flex', alignItems: 'center' }}>
+            <IconTarget size={13} />
+          </span>
+          <span style={{ fontWeight: 700, fontSize: 'var(--font-size-sm)', color: 'var(--color-text-main)' }}>
+            {ja ? '目標演習量' : 'Daily Goal'}
+          </span>
+          {ja && <span style={{ fontSize: 10, color: 'var(--color-text-sub)' }}>※達成で<span style={{ color: '#009E9E', fontWeight: 700 }}>+10p</span>！</span>}
+          <span style={{ marginLeft: 'auto', fontSize: 13, fontWeight: 700, color: dailyCount >= dailyGoal ? 'var(--color-success)' : 'var(--color-text-sub)' }}>
+            {dailyCount} / {dailyGoal}{ja ? '問' : 'Q'}
+          </span>
+        </div>
+        <div style={{ height: 6, borderRadius: 3, background: 'var(--color-border)', overflow: 'hidden' }}>
+          <div style={{ height: '100%', width: `${Math.min(100, (dailyCount / dailyGoal) * 100)}%`, borderRadius: 3, background: dailyCount >= dailyGoal ? 'var(--color-success)' : 'var(--bar-gradient-teal)', transition: 'width 0.3s' }} />
+        </div>
+      </Card>
+
       {/* ── ドメイン別正答率 + 予想スコア（1パネル、クリックで詳細） ── */}
       <Card
         padding="var(--spacing-md)"
@@ -1696,7 +1735,10 @@ export default function Home() {
 
           {/* ドメイン別正答率 */}
           <div style={isMobile ? {} : { flex: 1, minWidth: 0, paddingRight: 16 }}>
-            <div style={{ marginBottom: 8 }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 4, marginBottom: 8 }}>
+              <span style={{ color: 'var(--color-text-sub)', display: 'flex', alignItems: 'center' }}>
+                <IconChart size={12} />
+              </span>
               <span style={{ fontSize: 11, fontWeight: 700, color: 'var(--color-text-sub)', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
                 {ja ? 'ドメイン別正答率' : 'Domain Accuracy'}
               </span>
@@ -1737,16 +1779,21 @@ export default function Home() {
 
           {/* 区切り線（モバイル: 横線、デスクトップ: 縦線） */}
           {isMobile
-            ? <div style={{ height: 1, background: 'var(--color-border)', margin: '14px 0' }} />
+            ? <div style={{ height: 1, background: 'var(--color-border)', margin: '10px 0' }} />
             : <div style={{ width: 1, background: 'var(--color-border)', flexShrink: 0 }} />
           }
 
           {/* 予想スコア */}
           <div style={isMobile ? {} : { flex: 1, minWidth: 0, paddingLeft: 16 }}>
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8 }}>
-              <span style={{ fontSize: 11, fontWeight: 700, color: 'var(--color-text-sub)', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
-                {ja ? '予想スコア' : 'Est. Score'}
-              </span>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+                <span style={{ color: 'var(--color-text-sub)', display: 'flex', alignItems: 'center' }}>
+                  <IconTrendingUp size={12} />
+                </span>
+                <span style={{ fontSize: 11, fontWeight: 700, color: 'var(--color-text-sub)', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+                  {ja ? '予想スコア' : 'Est. Score'}
+                </span>
+              </div>
               {user && (
                 <button
                   onClick={e => { e.stopPropagation(); refreshStats(); }}
@@ -1754,7 +1801,7 @@ export default function Home() {
                   title={ja ? '成績を更新' : 'Refresh stats'}
                   aria-label={ja ? '成績を更新' : 'Refresh stats'}
                   style={{
-                    width: 44, height: 44, borderRadius: '50%',
+                    width: 35, height: 35, borderRadius: '50%',
                     border: '1px solid var(--color-border)',
                     background: 'transparent',
                     color: 'var(--color-primary)',
@@ -1764,7 +1811,7 @@ export default function Home() {
                     flexShrink: 0,
                   }}
                 >
-                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"
+                  <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"
                     style={{ animation: (statsLoading || statsRefreshing) ? 'sherpa-spin 0.8s linear infinite' : 'none' }}>
                     <polyline points="23 4 23 10 17 10"/>
                     <path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/>
@@ -1868,7 +1915,7 @@ export default function Home() {
                               style={{ width: '100%', height: 36, padding: '0 12px', border: `1.5px solid ${(!targetExam || !user || !focusedUnlocked) ? 'var(--color-border)' : '#009E9E'}`, borderRadius: 'var(--border-radius-full)', cursor: (!targetExam || !user || !focusedUnlocked) ? 'default' : 'pointer', background: 'transparent', color: (!targetExam || !user || !focusedUnlocked) ? 'var(--color-text-light)' : '#009E9E', fontWeight: 600, fontSize: 'var(--font-size-sm)', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 5 }}
                             >
                               {!focusedUnlocked && <IconLock size={13} />}
-                              {ja ? 'しっかり対策に切り替え' : 'Switch to Focused'}
+                              {ja ? 'しっかり対策モード' : 'Switch to Focused'}
                             </button>
                             {!focusedUnlocked && user && (
                               <div style={{ textAlign: 'center', fontSize: 10, color: 'var(--color-text-light)', marginTop: 3 }}>
@@ -1880,7 +1927,7 @@ export default function Home() {
                         ) : (
                           <>
                             <button disabled={!targetExam} onClick={() => { setShowWebQuickMenu(false); switchMode('quick'); }} style={{ width: '100%', height: 36, padding: '0 12px', border: '1.5px solid var(--color-accent)', borderRadius: 'var(--border-radius-full)', cursor: !targetExam ? 'default' : 'pointer', background: 'transparent', color: 'var(--color-accent)', fontWeight: 600, fontSize: 'var(--font-size-sm)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                              {ja ? 'サクッと演習に切り替え' : 'Switch to Quick'}
+                              {ja ? 'サクッと演習モード' : 'Switch to Quick'}
                             </button>
                           </>
                         )}
@@ -1925,7 +1972,7 @@ export default function Home() {
                             style={{ width: '100%', height: 36, padding: '0 12px', border: `1.5px solid ${(!targetExam || !user || !focusedUnlocked) ? 'var(--color-border)' : '#009E9E'}`, borderRadius: 'var(--border-radius-full)', cursor: (!targetExam || !user || !focusedUnlocked) ? 'default' : 'pointer', background: 'transparent', color: (!targetExam || !user || !focusedUnlocked) ? 'var(--color-text-light)' : '#009E9E', fontWeight: 600, fontSize: 'var(--font-size-sm)', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 5 }}
                           >
                             {!focusedUnlocked && <IconLock size={13} />}
-                            {ja ? 'しっかり対策に切り替え' : 'Switch to Focused'}
+                            {ja ? 'しっかり対策モード' : 'Switch to Focused'}
                           </button>
                           {!focusedUnlocked && user && (
                             <div style={{ textAlign: 'center', fontSize: 10, color: 'var(--color-text-light)', marginTop: 3 }}>
@@ -1937,7 +1984,7 @@ export default function Home() {
                       ) : (
                         <>
                           <button disabled={!targetExam} onClick={() => { setShowFocusedMenu(false); switchMode('quick'); }} style={{ width: '100%', height: 36, padding: '0 12px', border: '1.5px solid var(--color-accent)', borderRadius: 'var(--border-radius-full)', cursor: !targetExam ? 'default' : 'pointer', background: 'transparent', color: 'var(--color-accent)', fontWeight: 600, fontSize: 'var(--font-size-sm)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                            {ja ? 'サクッと演習に切り替え' : 'Switch to Quick'}
+                            {ja ? 'サクッと演習モード' : 'Switch to Quick'}
                           </button>
                         </>
                       )}
@@ -2019,7 +2066,7 @@ export default function Home() {
                         style={{ width: '100%', height: 44, border: `1.5px solid ${(!targetExam || !user || !focusedUnlocked) ? 'var(--color-border)' : '#009E9E'}`, borderRadius: 'var(--border-radius-full)', cursor: (!targetExam || !user || !focusedUnlocked) ? 'default' : 'pointer', background: 'transparent', color: (!targetExam || !user || !focusedUnlocked) ? 'var(--color-text-light)' : '#009E9E', fontWeight: 600, fontSize: 'var(--font-size-base)', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6 }}
                       >
                         {!focusedUnlocked && <IconLock size={15} />}
-                        {ja ? 'しっかり対策に切り替え' : 'Switch to Focused'}
+                        {ja ? 'しっかり対策モード' : 'Switch to Focused'}
                       </button>
                       {!focusedUnlocked && user && (
                         <div style={{ textAlign: 'center', fontSize: 11, color: 'var(--color-text-light)', marginTop: 4 }}>
@@ -2031,7 +2078,7 @@ export default function Home() {
                   ) : (
                     <>
                       <button disabled={!targetExam} onClick={() => { setShowNewPanel(false); switchMode('quick'); }} style={{ width: '100%', height: 44, border: '1.5px solid var(--color-accent)', borderRadius: 'var(--border-radius-full)', cursor: !targetExam ? 'default' : 'pointer', background: 'transparent', color: 'var(--color-accent)', fontWeight: 600, fontSize: 'var(--font-size-base)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                        {ja ? 'サクッと演習に切り替え' : 'Switch to Quick'}
+                        {ja ? 'サクッと演習モード' : 'Switch to Quick'}
                       </button>
                     </>
                   )}
@@ -2053,7 +2100,7 @@ export default function Home() {
                       style={{ width: '100%', height: 44, border: `1.5px solid ${(!targetExam || !user || !focusedUnlocked) ? 'var(--color-border)' : '#009E9E'}`, borderRadius: 'var(--border-radius-full)', cursor: (!targetExam || !user || !focusedUnlocked) ? 'default' : 'pointer', background: 'transparent', color: (!targetExam || !user || !focusedUnlocked) ? 'var(--color-text-light)' : '#009E9E', fontWeight: 600, fontSize: 'var(--font-size-base)', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6 }}
                     >
                       {!focusedUnlocked && <IconLock size={15} />}
-                      {ja ? 'しっかり対策に切り替え' : 'Switch to Focused'}
+                      {ja ? 'しっかり対策モード' : 'Switch to Focused'}
                     </button>
                     {!focusedUnlocked && user && (
                       <div style={{ textAlign: 'center', fontSize: 11, color: 'var(--color-text-light)', marginTop: 4 }}>
@@ -2065,7 +2112,7 @@ export default function Home() {
                 ) : (
                   <>
                     <button disabled={!targetExam} onClick={() => { setShowFocusedMenu(false); switchMode('quick'); }} style={{ width: '100%', height: 44, border: '1.5px solid var(--color-accent)', borderRadius: 'var(--border-radius-full)', cursor: !targetExam ? 'default' : 'pointer', background: 'transparent', color: 'var(--color-accent)', fontWeight: 600, fontSize: 'var(--font-size-base)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                      {ja ? 'サクッと演習に切り替え' : 'Switch to Quick'}
+                      {ja ? 'サクッと演習モード' : 'Switch to Quick'}
                     </button>
                   </>
                 )}
@@ -2391,7 +2438,7 @@ export default function Home() {
           onSkip={() => setShowOnboarding(false)}
         />
       )}
-      {(quickLoading || focusedLoading) && <div style={{ position: 'fixed', inset: 0, zIndex: 9000, cursor: 'wait' }} />}
+      {(quickLoading || focusedLoading) && <div style={{ position: 'fixed', inset: 0, zIndex: 9000, cursor: 'wait' }} onTouchStart={e => e.stopPropagation()} onTouchMove={e => e.stopPropagation()} onTouchEnd={e => e.stopPropagation()} />}
     </div>
   );
 }

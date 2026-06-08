@@ -1,12 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { PASS_SCORES, PASS_RATE, API_ENDPOINT, EXAM_DOMAINS, DOMAIN_NAME_EN } from '../constants';
+import { PASS_SCORES, PASS_RATE, API_ENDPOINT, EXAM_DOMAINS, DOMAIN_NAME_EN, qDomainName } from '../constants';
 import { useLanguage } from '../contexts/LanguageContext';
 import { useAuth } from '../contexts/AuthContext';
 import Card from '../components/ui/Card';
 import Button from '../components/ui/Button';
 import Badge from '../components/ui/Badge';
-import { getServiceLinks } from '../awsServiceLinks';
 import { IconChevronDown, IconChevronRight, IconSparkles } from '../components/Icons';
 
 const QUICK_PREFS_KEY = 'quickExercisePrefs';
@@ -38,7 +37,7 @@ export default function Result() {
     const qPrefs = loadQuickPrefs();
     try {
       const userId = user?.userId ?? 'guest';
-      const params = new URLSearchParams({ examType: resolvedExamType, withAnswers: 'true', withValidity: 'true' });
+      const params = new URLSearchParams({ examType: resolvedExamType, withAnswers: 'true' });
       const data = await fetch(`${API_ENDPOINT}/questions?${params}`).then(r => r.json());
       let items: any[] = (data.items ?? []).filter((q: any) => !!q.validityCheckedAt);
       if (user && (qPrefs.unansweredOnly || qPrefs.incorrectOnly || qPrefs.bookmarkOnly)) {
@@ -123,7 +122,7 @@ export default function Result() {
         const domains = EXAM_DOMAINS[resolvedExamType] ?? [];
         const breakdown = domains.map(domain => {
           const indices = questions.reduce((acc: number[], q: any, i: number) => {
-            if ((q.tags ?? []).includes(domain)) acc.push(i);
+            if (qDomainName(q) === domain) acc.push(i);
             return acc;
           }, []);
           const correct = indices.filter((i: number) => results[i]?.isCorrect).length;
@@ -230,7 +229,7 @@ export default function Result() {
                 <div style={{ padding: 'var(--spacing-lg) var(--spacing-xl)', borderTop: '1px solid var(--color-border)', background: 'var(--color-bg-main)', fontSize: 'var(--font-size-base)' }}>
                   <div style={{ marginBottom: 'var(--spacing-lg)', display: 'flex', flexDirection: 'column', gap: 'var(--spacing-sm)' }}>
                     {q.choices?.map((c: string, ci: number) => {
-                      const correct = q.correctAnswers?.includes(c);
+                      const correct = q.correctAnswerIndices?.includes(ci);
                       const label = ['A', 'B', 'C', 'D', 'E'][ci];
                       return (
                         <div key={c} style={{
@@ -276,24 +275,6 @@ export default function Result() {
                                 </span>
                                 <span style={{ whiteSpace: 'pre-wrap' }}>{item.expl}</span>
                               </div>
-                            ))}
-                          </div>
-                        );
-                      })()}
-                      {(() => {
-                        const links = getServiceLinks(q.tags ?? []);
-                        if (links.length === 0) return null;
-                        return (
-                          <div style={{ marginTop: 10, paddingTop: 8, borderTop: '1px solid var(--color-border)', display: 'flex', flexWrap: 'wrap', gap: '6px 10px', alignItems: 'center' }}>
-                            <span style={{ fontSize: 'var(--font-size-xs)', color: 'var(--color-text-light)', flexShrink: 0 }}>
-                              {lang === 'ja' ? 'AWS公式' : 'AWS Docs'}:
-                            </span>
-                            {links.map((link: { label: string; url: string }) => (
-                              <a key={link.url} href={link.url} target="_blank" rel="noopener noreferrer"
-                                style={{ fontSize: 'var(--font-size-xs)', color: 'var(--color-text-info)', textDecoration: 'none', display: 'inline-flex', alignItems: 'center', gap: 3,
-                                  padding: '2px 8px', borderRadius: 20, border: '1px solid var(--color-border-info)', background: 'var(--color-bg-info)', whiteSpace: 'nowrap' }}>
-                                {link.label} ↗
-                              </a>
                             ))}
                           </div>
                         );

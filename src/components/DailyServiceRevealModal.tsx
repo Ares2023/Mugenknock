@@ -173,12 +173,15 @@ export default function DailyServiceRevealModal({
         overflowY: 'auto', overflowX: 'hidden',
         pointerEvents: 'none',
       }}>
-        <div style={{
-          position: 'relative',
-          display: 'flex', flexDirection: 'column', alignItems: 'center',
-          width: '100%', margin: 'auto 0',
-          pointerEvents: 'auto',
-        }}>
+        <div
+          onClick={phase !== 'revealing' ? () => { if (isWaiting) handleTap(); else if (isRevealed) onClose(); } : undefined}
+          style={{
+            position: 'relative',
+            display: 'flex', flexDirection: 'column', alignItems: 'center',
+            width: '100%', margin: 'auto 0',
+            pointerEvents: 'auto',
+            cursor: phase !== 'revealing' ? 'pointer' : 'default',
+          }}>
 
           {/* label */}
           <div style={{

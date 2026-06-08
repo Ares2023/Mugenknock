@@ -19,24 +19,24 @@ import {
 type BreadcrumbItem = { label: string; path?: string };
 
 const NAV_KEYS = [
-  { path: '/aws/',          labelKey: 'nav.home',         Icon: IconHome      },
-  { path: '/aws/practice',  labelKey: 'nav.practice',     Icon: IconDumbbell  },
-  { path: '/aws/mypage',    labelKey: 'nav.mypage',       Icon: IconUserCircle },
-  { path: '/aws/encyclopedia',   labelKey: 'nav.encyclopedia', Icon: IconBookOpen, bottom: true },
-  { path: '/aws/growth',        labelKey: 'nav.growth',       Icon: IconBot, bottom: true },
-  { path: '/aws/release-notes', labelKey: 'nav.releaseNotes', Icon: IconFire,     bottom: true },
+  { path: '/aws/',             labelKey: 'nav.home',         Icon: IconHome      },
+  { path: '/aws/practice',     labelKey: 'nav.practice',     Icon: IconDumbbell  },
+  { path: '/aws/mypage',       labelKey: 'nav.mypage',       Icon: IconUserCircle },
+  { path: '/aws/encyclopedia', labelKey: 'nav.encyclopedia', Icon: IconBookOpen, bottom: true },
+  { path: '/aws/growth',       labelKey: 'nav.growth',       Icon: IconBot, bottom: true },
+  { path: '/aws/release-notes', labelKey: 'nav.releaseNotes', Icon: IconFire, bottom: true },
 ];
 
 const BOTTOM_TABS = [
-  { path: '/aws/',          Icon: IconHome,        ja: 'ホーム',       en: 'Home'     },
-  { path: '/aws/practice',  Icon: IconDumbbell,    ja: 'トレーニング', en: 'Training' },
-  { path: '/aws/mypage',    Icon: IconUserCircle,  ja: 'マイページ',   en: 'My Page'  },
+  { path: '/aws/',         Icon: IconHome,        ja: 'ホーム',       en: 'Home'     },
+  { path: '/aws/practice', Icon: IconDumbbell,    ja: 'トレーニング', en: 'Training' },
+  { path: '/aws/mypage',   Icon: IconUserCircle,  ja: 'マイページ',   en: 'My Page'  },
 ];
 
 const OTHERS_ITEMS = [
-  { path: '/aws/encyclopedia',  Icon: IconBookOpen,   labelKey: 'nav.encyclopedia' },
-  { path: '/aws/growth',        Icon: IconBot,        labelKey: 'nav.growth'       },
-  { path: '/aws/release-notes', Icon: IconFire,       labelKey: 'nav.releaseNotes' },
+  { path: '/aws/encyclopedia',  Icon: IconBookOpen, labelKey: 'nav.encyclopedia' },
+  { path: '/aws/growth',        Icon: IconBot,      labelKey: 'nav.growth'       },
+  { path: '/aws/release-notes', Icon: IconFire,     labelKey: 'nav.releaseNotes' },
 ];
 
 const AI_LINKS = [
@@ -81,6 +81,13 @@ export default function Layout({ children }: { children: React.ReactNode }) {
   const mainRef = useRef<HTMLElement>(null);
   const uid = user?.userId ?? 'guest';
   const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
+  const [cookieConsent, setCookieConsent] = useState<boolean>(() =>
+    localStorage.getItem('cookie_consent_v1') === 'accepted'
+  );
+  const acceptCookies = () => {
+    localStorage.setItem('cookie_consent_v1', 'accepted');
+    setCookieConsent(true);
+  };
   const [open, setOpen] = useState(() => {
     if (window.innerWidth < 768) return false;
     return localStorage.getItem(`sidebarOpen_${uid}`) !== 'false';
@@ -332,6 +339,34 @@ export default function Layout({ children }: { children: React.ReactNode }) {
   return (
     <div style={{ display: 'flex', flexDirection: 'column', height: '100vh', fontFamily: 'inherit' }}>
 
+      {/* ── Cookie 同意バナー ── */}
+      {!cookieConsent && (
+        <div style={{
+          position: 'fixed', bottom: 0, left: 0, right: 0, zIndex: 9999,
+          background: 'var(--color-bg-elevated)',
+          borderTop: '1px solid var(--color-border)',
+          padding: '12px 20px',
+          display: 'flex', alignItems: 'center', gap: 12, flexWrap: 'wrap',
+          boxShadow: '0 -2px 12px rgba(0,0,0,0.1)',
+        }}>
+          <span style={{ flex: 1, minWidth: 200, fontSize: 'var(--font-size-xs)', color: 'var(--color-text-sub)', lineHeight: 1.6 }}>
+            {lang === 'ja'
+              ? '本サービスは、広告配信・アクセス解析のためにCookieを使用しています。'
+              : 'This site uses cookies for advertising and analytics.'}
+            {' '}
+            <button onClick={() => navigate('/about#privacy')} style={{ background: 'none', border: 'none', padding: 0, cursor: 'pointer', color: 'var(--color-primary)', fontSize: 'var(--font-size-xs)', textDecoration: 'underline' }}>
+              {lang === 'ja' ? '詳細' : 'Learn more'}
+            </button>
+          </span>
+          <button
+            onClick={acceptCookies}
+            style={{ flexShrink: 0, padding: '6px 18px', background: 'var(--color-primary)', color: '#fff', border: 'none', borderRadius: 'var(--border-radius-full)', fontWeight: 700, fontSize: 'var(--font-size-xs)', cursor: 'pointer' }}
+          >
+            {lang === 'ja' ? '同意して閉じる' : 'Accept'}
+          </button>
+        </div>
+      )}
+
       {/* ── 連絡先モーダル ── */}
       {showContact && (
         <div
@@ -541,7 +576,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
 
       {/* ── サブバー（ハンバーガー＋パンくず） ── */}
       {/* モバイルでは目標ボタンが表示される場合のみサブバーを描画 */}
-      {(!isMobile || (!!targetExam && !isOthersActive && !['/aws/exercise/session', '/aws/exam/session'].includes(location.pathname))) && (
+      {(!isMobile || (!!targetExam && !isOthersActive && !['/aws/exercise/session', '/aws/exam/session', '/aws/mypage'].includes(location.pathname))) && (
       <div style={{
         height: 40, minHeight: 40, background: 'var(--color-bg-white)',
         display: 'flex', alignItems: 'center', padding: '0 var(--spacing-sm)',
@@ -609,17 +644,6 @@ export default function Layout({ children }: { children: React.ReactNode }) {
                   return null;
                 })()}
               </span>
-              {(() => {
-                const jstDate = new Date(Date.now() + 9 * 3600 * 1000).toISOString().slice(0, 10);
-                const goal = parseInt(localStorage.getItem(`dailyGoal_${uid}`) ?? '10', 10);
-                const count = parseInt(localStorage.getItem(`dailyQCount_${targetExam}_${uid}_${jstDate}`) ?? '0', 10);
-                const pct = Math.min(100, (count / goal) * 100);
-                return (
-                  <div style={{ width: isMobile ? '100%' : 120, height: 3, borderRadius: 2, background: 'var(--color-border)', overflow: 'hidden' }}>
-                    <div style={{ height: '100%', width: `${pct}%`, borderRadius: 2, background: 'var(--bar-gradient-teal)', transition: 'width 0.3s' }} />
-                  </div>
-                );
-              })()}
             </div>
             <span style={{
               flexShrink: 0,
@@ -750,27 +774,6 @@ export default function Layout({ children }: { children: React.ReactNode }) {
                   <span style={{ display: 'flex', alignItems: 'center', opacity: 0.6 }}><IconMail /></span>
                   <span>{t('contact.sidebarLabel')}</span>
                 </button>
-                <button
-                  onClick={() => navigate('/')}
-                  style={{
-                    width: '100%', textAlign: 'left',
-                    display: 'flex', alignItems: 'center', gap: 12,
-                    padding: '10px 24px',
-                    background: 'none', border: 'none',
-                    borderTop: '2px solid var(--color-border)',
-                    borderLeft: '4px solid transparent',
-                    cursor: 'pointer', color: 'var(--color-text-light)', fontSize: 'var(--font-size-sm)', fontWeight: 700,
-                    whiteSpace: 'nowrap', transition: 'all 0.2s',
-                    marginTop: 4,
-                  }}
-                  onMouseEnter={e => { (e.currentTarget as HTMLElement).style.background = 'var(--color-bg-main)'; }}
-                  onMouseLeave={e => { (e.currentTarget as HTMLElement).style.background = 'none'; }}
-                >
-                  <span style={{ display: 'flex', alignItems: 'center' }}>
-                    <img src="/mugen-icon.png" alt="" style={{ width: 18, height: 18, objectFit: 'contain', opacity: 0.7 }} />
-                  </span>
-                  <span>無限ノック</span>
-                </button>
               </div>
             </div>
           </nav>
@@ -808,6 +811,11 @@ export default function Layout({ children }: { children: React.ReactNode }) {
             marginTop: 'auto',
           }}>
             <span>© {new Date().getFullYear()} 無限ノック</span>
+            <span style={{ width: '100%', textAlign: 'center', fontSize: 10, color: 'var(--color-text-light)', opacity: 0.7 }}>
+              {lang === 'ja'
+                ? 'AWSはAmazon Web Services, Inc.の商標です。本サービスはAmazonと無関係の非公式サービスです。'
+                : 'AWS is a trademark of Amazon Web Services, Inc. This is an unofficial service unaffiliated with Amazon.'}
+            </span>
             <button
               onClick={() => navigate('/about#privacy')}
               style={{ background: 'none', border: 'none', padding: 0, cursor: 'pointer', color: 'var(--color-primary)', fontSize: 'var(--font-size-xs)', textDecoration: 'underline' }}

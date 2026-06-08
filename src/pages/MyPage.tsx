@@ -30,7 +30,6 @@ type Session = {
 type AnswerRecord = {
   questionId: string;
   questionText: string;
-  tags: string[];
   isCorrect: boolean;
   answeredAt: string;
 };
@@ -303,10 +302,10 @@ export default function MyPage() {
         <title>マイページ | 無限ノック</title>
       </Helmet>
 
-      <div style={{ maxWidth: 680, margin: '0 auto', padding: '0 var(--spacing-md) var(--spacing-xl)' }}>
+      <div style={{ maxWidth: 900, margin: '0 auto', padding: 'var(--spacing-xl) var(--spacing-lg)' }} className="page-container">
 
         {/* ── タブ ── */}
-        <div style={{ display: 'flex', borderBottom: '1px solid var(--color-border)', marginBottom: 16 }}>
+        <div style={{ display: 'flex', borderBottom: '1px solid var(--color-border)', marginBottom: 'var(--spacing-lg)' }}>
           <button style={tabStyle(tab === 'target')} onClick={() => setTab('target')}>{ja ? '目標' : 'Goals'}</button>
           <button style={tabStyle(tab === 'analysis')} onClick={() => setTab('analysis')}>{ja ? '苦手分析' : 'Analysis'}</button>
           <button style={tabStyle(tab === 'history')} onClick={() => setTab('history')}>{ja ? '履歴' : 'History'}</button>
@@ -369,7 +368,10 @@ export default function MyPage() {
                   </div>
                   {/* 目標演習量 */}
                   <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8 }}>
-                    <span style={{ fontSize: 13, color: 'var(--color-text-sub)' }}>{ja ? '1日の目標演習量' : 'Daily Goal'}</span>
+                    <span style={{ fontSize: 13, color: 'var(--color-text-sub)' }}>
+                      {ja ? '1日の目標演習量' : 'Daily Goal'}
+                      {ja && <span style={{ fontSize: 10, marginLeft: 6 }}>※達成で<span style={{ color: '#009E9E', fontWeight: 700 }}>+10p</span>！</span>}
+                    </span>
                     <span style={{ fontSize: 13, fontWeight: 700, color: todayCount >= dailyGoal ? '#009E9E' : 'var(--color-text-main)' }}>
                       {todayCount} / {dailyGoal}{ja ? '問' : 'Q'}{todayCount >= dailyGoal && ' ✓'}
                     </span>
@@ -412,11 +414,6 @@ export default function MyPage() {
               </Card>
             )}
 
-            {/* 日次目標達成で +10p ヒント */}
-            <div style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '8px 12px', borderRadius: 8, background: 'var(--color-bg-main)', fontSize: 12, color: 'var(--color-text-sub)' }}>
-              <IconSparkles size={13} />
-              {ja ? '1日の目標演習量を達成すると +10p ボーナス！' : 'Achieve your daily goal to earn +10p bonus!'}
-            </div>
 
             {/* 設定編集ポップアップ */}
             {showSettingsEdit && (

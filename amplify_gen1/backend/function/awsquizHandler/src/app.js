@@ -1,6 +1,6 @@
 const express = require('express');
 const { DynamoDBClient } = require('@aws-sdk/client-dynamodb');
-const { DynamoDBDocumentClient, ScanCommand, GetCommand, QueryCommand, PutCommand, UpdateCommand, TransactWriteCommand, DeleteCommand } = require('@aws-sdk/lib-dynamodb');
+const { DynamoDBDocumentClient, ScanCommand, GetCommand, QueryCommand, PutCommand, UpdateCommand, TransactWriteCommand, DeleteCommand, BatchGetCommand } = require('@aws-sdk/lib-dynamodb');
 const { CognitoIdentityProviderClient, ListUsersCommand } = require('@aws-sdk/client-cognito-identity-provider');
 const { SESClient, SendEmailCommand } = require('@aws-sdk/client-ses');
 const { v4: uuidv4 } = require('uuid');
@@ -12,8 +12,7 @@ const { ADMIN_EMAIL, EXAM_DOMAINS } = require('./constants');
 // 旧データ: tags 配列、または domain が文字列の場合があるため両対応
 function qDomainName(q) {
   if (typeof q.domain === 'number') return (EXAM_DOMAINS[q.examType] || [])[q.domain] ?? '';
-  if (typeof q.domain === 'string' && q.domain) return q.domain;
-  return (q.tags || [])[0] ?? '';
+  return '';
 }
 function qDomainIndex(examType, nameOrIndex) {
   if (typeof nameOrIndex === 'number') return nameOrIndex;
@@ -21,12 +20,39 @@ function qDomainIndex(examType, nameOrIndex) {
 }
 
 const app = express();
-app.use(express.json());
+app.use(express.json({ limit: '2mb' }));
 
 const getClient = () => {
   const client = new DynamoDBClient({ region: 'ap-northeast-1' });
   return DynamoDBDocumentClient.from(client);
 };
+
+// ── 問題データ正規化 ──────────────────────────────────────────────
+// choices と correctAnswers からラベル接頭辞（"A. " 等）を除去する。
+// correctAnswerIndices は DB の値をそのまま使う（全問設定済み）。
+const CHOICE_LABEL_RE = /^[A-E][.\s]\s*/i;
+function normalizeQuestion(q) {
+  const choices = (q.choices || []).map(c => String(c).replace(CHOICE_LABEL_RE, '').trim());
+  const correctAnswers = (q.correctAnswers || []).map(c => String(c).replace(CHOICE_LABEL_RE, '').trim());
+  const correctAnswerIndices = Array.isArray(q.correctAnswerIndices) ? q.correctAnswerIndices : [];
+  return { ...q, choices, correctAnswers, correctAnswerIndices };
+}
+
+// ── DailyServices モジュールレベルキャッシュ ────────────────────────
+// Lambda ウォームインスタンス間で共有されるキャッシュ（最大 5 分）
+let _dailyServicesCache = null;
+let _dailyServicesCachedAt = 0;
+const DAILY_SERVICES_TTL = 5 * 60 * 1000;
+
+async function getDailyServicesAll(docClient) {
+  if (_dailyServicesCache && Date.now() - _dailyServicesCachedAt < DAILY_SERVICES_TTL) {
+    return _dailyServicesCache;
+  }
+  const result = await docClient.send(new ScanCommand({ TableName: 'DailyServices' }));
+  _dailyServicesCache = result.Items || [];
+  _dailyServicesCachedAt = Date.now();
+  return _dailyServicesCache;
+}
 
 // ── CORS（localhost + Amplify Hosting + 本番ドメイン許可） ──
 const ALLOWED_ORIGINS = [
@@ -273,27 +299,27 @@ app.get('/questions', async (req, res) => {
         keywords.every(kw =>
           q.questionText.toLowerCase().includes(kw) ||
           (q.choices || []).some(c => c.toLowerCase().includes(kw)) ||
-          (q.tags || []).some(t => t.toLowerCase().includes(kw)) ||
           q.questionId.toLowerCase().includes(kw)
         )
       );
     }
 
-    items = items.filter(q => !q.isHidden);
+    items = items.filter(q => !q.isHidden && !!q.validityCheckedAt);
     if (doShuffle === 'true') items = shuffle(items);
     const total = items.length;
     if (offset) items = items.slice(parseInt(offset));
     if (limit) items = items.slice(0, parseInt(limit));
     const withAnswers = req.query.withAnswers === 'true';
     const sanitized = withAnswers
-      ? items.map(item => ({
-          ...item,
-          correctAnswerCount: Array.isArray(item.correctAnswers) ? item.correctAnswers.length : 1,
-        }))
-      : items.map(({ correctAnswers, explanation, explanationEn, ...rest }) => ({
-          ...rest,
-          correctAnswerCount: Array.isArray(correctAnswers) ? correctAnswers.length : 1,
-        }));
+      ? items.map(item => {
+          const n = normalizeQuestion(item);
+          return { ...n, correctAnswerCount: n.correctAnswerIndices.length || 1 };
+        })
+      : items.map(item => {
+          const { correctAnswers, explanation, explanationEn, ...rest } = item;
+          const n = normalizeQuestion({ ...rest, correctAnswers: [] });
+          return { ...n, correctAnswerCount: Array.isArray(correctAnswers) ? correctAnswers.length : 1 };
+        });
     res.json({ items: sanitized, count: sanitized.length, total });
   } catch (err) {
     console.error(err);
@@ -310,7 +336,7 @@ app.get('/questions/:id', async (req, res) => {
       Key: { questionId: req.params.id }
     }));
     if (!result.Item) return res.status(404).json({ error: 'Question not found' });
-    res.json(result.Item);
+    res.json(normalizeQuestion(result.Item));
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: 'Internal server error' });
@@ -376,7 +402,7 @@ app.delete('/admin/questions/:id', async (req, res) => {
 app.post('/admin/questions', async (req, res) => {
   try {
     const docClient = getClient();
-    const { examType, domain, tags, questions } = req.body;
+    const { examType, domain, questions } = req.body;
     if (!Array.isArray(questions) || questions.length === 0) {
       return res.status(400).json({ error: 'questions must be a non-empty array' });
     }
@@ -390,12 +416,9 @@ app.post('/admin/questions', async (req, res) => {
       const shortId = uuidv4().replace(/-/g, '').slice(0, 8);
       const questionId = `${itemExamType.toLowerCase()}-${shortId}`;
 
-      // domain をインデックスに正規化
-      // 入力: domain(名前 or インデックス) / tags 配列 / リクエストレベル domain
+      // domain をインデックスに正規化（名前 or インデックス → 整数）
       const rawDomain = q.domain ?? domain;
-      const rawTag = (q.tags || [])[0] || (tags || [])[0] || '';
-      const domainSource = rawDomain !== undefined && rawDomain !== null ? rawDomain : rawTag;
-      const domainIdx = qDomainIndex(itemExamType, domainSource);
+      const domainIdx = rawDomain !== undefined && rawDomain !== null ? qDomainIndex(itemExamType, rawDomain) : -1;
 
       // correctAnswerIndices を生成（未設定の場合）
       let correctAnswerIndices = q.correctAnswerIndices;
@@ -426,18 +449,6 @@ app.post('/admin/questions', async (req, res) => {
 
       await docClient.send(new PutCommand({ TableName: 'Questions', Item: item }));
 
-      // QuestionTagRelations にドメイン名で登録（後方互換 + タグ検索用）
-      const domainName = domainIdx >= 0 ? (EXAM_DOMAINS[itemExamType] || [])[domainIdx] : '';
-      const itemTags = domainName ? [domainName] : [];
-      if (itemTags.length > 0) {
-        await Promise.all(itemTags.map(tagId =>
-          docClient.send(new PutCommand({
-            TableName: 'QuestionTagRelations',
-            Item: { tagId, questionId }
-          }))
-        ));
-      }
-
       created.push(questionId);
     }
 
@@ -453,39 +464,25 @@ app.put('/admin/questions/:id', async (req, res) => {
   try {
     const docClient = getClient();
     const questionId = req.params.id;
-    const { questionText, questionTextEn, choices, choicesEn, correctAnswers, explanation, explanationEn, domain, tags, isMultiple, examType } = req.body;
+    const { questionText, questionTextEn, choices, choicesEn, correctAnswers, explanation, explanationEn, domain, isMultiple, examType } = req.body;
 
-    // タグ関係を再構築（既存削除→新規挿入）
-    const relResult = await docClient.send(new ScanCommand({
-      TableName: 'QuestionTagRelations',
-      FilterExpression: 'questionId = :qid',
-      ExpressionAttributeValues: { ':qid': questionId }
-    }));
-    await Promise.all((relResult.Items || []).map(item =>
-      docClient.send(new DeleteCommand({
-        TableName: 'QuestionTagRelations',
-        Key: { tagId: item.tagId, questionId: item.questionId }
-      }))
-    ));
-    if (tags && tags.length > 0) {
-      await Promise.all(tags.map(tagId =>
-        docClient.send(new PutCommand({
-          TableName: 'QuestionTagRelations',
-          Item: { tagId, questionId }
-        }))
-      ));
-    }
+    // domain を整数インデックスに変換
+    const domainIdx = qDomainIndex(examType, domain);
 
-    const setParts = ['questionText = :qt', 'choices = :ch', 'correctAnswers = :ca', 'explanation = :ex', '#d = :d', 'tags = :t', 'isMultiple = :im', 'examType = :et', 'updatedAt = :ua'];
-    const removeParts = [];
+    const correctAnswerIndices = (correctAnswers || [])
+      .map(ca => (choices || []).findIndex(c => c === ca))
+      .filter(idx => idx >= 0);
+
+    const setParts = ['questionText = :qt', 'choices = :ch', 'correctAnswers = :ca', 'correctAnswerIndices = :ci', 'explanation = :ex', '#d = :d', 'isMultiple = :im', 'examType = :et', 'updatedAt = :ua'];
+    const removeParts = ['tags'];  // 旧 tags フィールドを削除（domain 整数に移行済み）
     const exprNames = { '#d': 'domain' };
     const exprValues = {
       ':qt': questionText,
       ':ch': choices,
       ':ca': correctAnswers,
+      ':ci': correctAnswerIndices,
       ':ex': explanation || '',
-      ':d': domain || '',
-      ':t': tags || [],
+      ':d': domainIdx >= 0 ? domainIdx : 0,
       ':im': isMultiple ?? false,
       ':et': examType,
       ':ua': new Date().toISOString(),
@@ -520,11 +517,19 @@ app.get('/admin/questions/summary', async (req, res) => {
   try {
     const docClient = getClient();
     const { sinceDate } = req.query;
-    const items = await scanAll(docClient, {
-      TableName: 'Questions',
-      ProjectionExpression: 'examType, #dom, tags, isHidden, validityCheckedAt, formatCheckedAt',
-      ExpressionAttributeNames: { '#dom': 'domain' },
-    });
+    const EXAM_TYPE_LIST = Object.keys(EXAM_DOMAINS);
+    // Scan の代わりに examType-index を使って各試験種別を並行 Query
+    const perExamItems = await Promise.all(EXAM_TYPE_LIST.map(et =>
+      queryAll(docClient, {
+        TableName: 'Questions',
+        IndexName: 'examType-index',
+        KeyConditionExpression: 'examType = :e',
+        ExpressionAttributeValues: { ':e': et },
+        ProjectionExpression: 'examType, #dom, isHidden, validityCheckedAt, formatCheckedAt',
+        ExpressionAttributeNames: { '#dom': 'domain' },
+      })
+    ));
+    const items = perExamItems.flat();
     const visible = items.filter(i => !i.isHidden);
     const examCounts = {};
     const domainCounts = {};
@@ -569,16 +574,26 @@ app.get('/admin/questions/flagged', async (req, res) => {
     } else {
       scanParams.FilterExpression = 'attribute_exists(validityCheckedAt)';
     }
-    scanParams.ProjectionExpression = 'questionId, examType, questionText, choices, correctAnswers, explanation, #dom, tags, isMultiple, validityCheckedAt, formatCheckedAt, validityEditLog, isHidden, validityRating, validityNote, fixProposalJson';
+    scanParams.ProjectionExpression = 'questionId, examType, questionText, choices, correctAnswers, explanation, #dom, isMultiple, validityCheckedAt, formatCheckedAt, validityEditLog, isHidden, validityRating, validityNote, fixProposalJson';
     scanParams.ExpressionAttributeNames = { '#dom': 'domain' };
 
-    const [checkedItems, allItems] = await Promise.all([
+    // フィルタ済みアイテム取得 + 全件数を examType-index Query で並行取得
+    const EXAM_TYPE_LIST = Object.keys(EXAM_DOMAINS);
+    const [checkedItems, perExamCounts] = await Promise.all([
       scanAll(docClient, scanParams),
-      scanAll(docClient, { TableName: 'Questions', ProjectionExpression: 'questionId' }),
+      Promise.all(EXAM_TYPE_LIST.map(et =>
+        docClient.send(new QueryCommand({
+          TableName: 'Questions',
+          IndexName: 'examType-index',
+          KeyConditionExpression: 'examType = :e',
+          ExpressionAttributeValues: { ':e': et },
+          Select: 'COUNT',
+        })).then(r => r.Count || 0)
+      )),
     ]);
-
+    const totalCount = perExamCounts.reduce((s, c) => s + c, 0);
     const items = checkedItems.sort((a, b) => (a.validityRating || 9) - (b.validityRating || 9));
-    res.json({ items, count: items.length, totalCount: allItems.length });
+    res.json({ items, count: items.length, totalCount });
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: 'Internal server error' });
@@ -600,6 +615,15 @@ app.post('/admin/questions/:id/apply-fix', async (req, res) => {
     if (fix.questionText)  { sets.push('questionText = :qt');    vals[':qt'] = fix.questionText; }
     if (fix.choices)       { sets.push('choices = :ch');         vals[':ch'] = fix.choices; }
     if (fix.correctAnswers){ sets.push('correctAnswers = :ca');  vals[':ca'] = fix.correctAnswers; }
+    if (fix.choices || fix.correctAnswers) {
+      const finalChoices = fix.choices || q.choices || [];
+      const finalCorrectAnswers = fix.correctAnswers || q.correctAnswers || [];
+      const newIndices = finalCorrectAnswers
+        .map(ca => finalChoices.findIndex(c => c === ca))
+        .filter(idx => idx >= 0);
+      sets.push('correctAnswerIndices = :ci');
+      vals[':ci'] = newIndices;
+    }
     if (fix.explanation)   { sets.push('explanation = :ex');     vals[':ex'] = fix.explanation; }
 
     await docClient.send(new UpdateCommand({
@@ -684,12 +708,12 @@ app.get('/admin/questions', async (req, res) => {
       // explanation・validityEditLog を除外して 6MB 上限を回避（編集時は GET /admin/questions/:id で取得）
       items = await scanAll(docClient, {
         TableName: 'Questions',
-        ProjectionExpression: 'questionId, examType, questionText, choices, correctAnswers, correctAnswerIndices, #dom, tags, isMultiple, isHidden, createdAt, updatedAt, validityCheckedAt, formatCheckedAt',
+        ProjectionExpression: 'questionId, examType, questionText, choices, correctAnswers, correctAnswerIndices, #dom, isMultiple, isHidden, createdAt, updatedAt, validityCheckedAt, formatCheckedAt',
         ExpressionAttributeNames: { '#dom': 'domain' },
       });
     }
 
-    if (tag) items = items.filter(q => qDomainName(q) === tag || (q.tags || []).includes(tag));
+    if (tag) items = items.filter(q => qDomainName(q) === tag);
     if (domain) {
       const domainList = domain.split(',').map(d => d.trim()).filter(Boolean);
       items = items.filter(q => domainList.includes(qDomainName(q)));
@@ -732,37 +756,6 @@ app.get('/admin/questions', async (req, res) => {
   }
 });
 
-// タグ一覧取得（examTypeで絞り込み可能）
-app.get('/tags', async (req, res) => {
-  try {
-    const docClient = getClient();
-    const { examType } = req.query;
-    let items = [];
-
-    if (examType) {
-      items = await queryAll(docClient, {
-        TableName: 'Questions',
-        IndexName: 'examType-index',
-        KeyConditionExpression: 'examType = :examType',
-        ExpressionAttributeValues: { ':examType': examType },
-        ProjectionExpression: 'tags'
-      });
-    } else {
-      items = await scanAll(docClient, {
-        TableName: 'Questions',
-        ProjectionExpression: 'tags'
-      });
-    }
-
-    const tagSet = new Set();
-    items.forEach(q => (q.tags || []).forEach(t => tagSet.add(t)));
-    const tags = Array.from(tagSet).sort();
-    res.json({ tags });
-  } catch (err) {
-    console.error(err);
-    res.status(500).json({ error: 'Internal server error' });
-  }
-});
 
 // 通報一覧（管理者用）
 app.get('/admin/reports', async (req, res) => {
@@ -865,7 +858,7 @@ app.get('/sessions/:id/progress', async (req, res) => {
 app.post('/sessions/:id/answers', async (req, res) => {
   try {
     const docClient = getClient();
-    const { userId, questionId, selectedAnswers, isCorrect, tags } = req.body;
+    const { userId, questionId, selectedAnswers, isCorrect } = req.body;
     const now = new Date().toISOString();
     const questionIdTimestamp = `${req.params.id}#${questionId}#${now}`;
 
@@ -887,21 +880,6 @@ app.post('/sessions/:id/answers', async (req, res) => {
         }
       }
     ];
-
-    if (tags && tags.length > 0) {
-      tags.forEach(tagId => {
-        transactItems.push({
-          Update: {
-            TableName: 'UserTagStats',
-            Key: { userId, tagId },
-            UpdateExpression: isCorrect
-              ? 'ADD correctCount :one'
-              : 'ADD incorrectCount :one',
-            ExpressionAttributeValues: { ':one': 1 }
-          }
-        });
-      });
-    }
 
     await docClient.send(new TransactWriteCommand({ TransactItems: transactItems }));
     res.json({ success: true });
@@ -933,7 +911,7 @@ app.get('/sessions/:id/answers', async (req, res) => {
         docClient.send(new GetCommand({
           TableName: 'Questions',
           Key: { questionId: qid },
-          ProjectionExpression: 'questionId, questionText, tags',
+          ProjectionExpression: 'questionId, questionText',
         })).then(r => r.Item).catch(() => null)
       )
     );
@@ -943,7 +921,6 @@ app.get('/sessions/:id/answers', async (req, res) => {
       .map(a => ({
         questionId: a.questionId,
         questionText: qMap[a.questionId]?.questionText ?? '',
-        tags: qMap[a.questionId]?.tags ?? [],
         isCorrect: a.isCorrect,
         answeredAt: a.answeredAt,
       }))
@@ -1649,8 +1626,15 @@ app.delete('/admin/messages/:id', requireAdmin, async (req, res) => {
 app.get('/daily-service', async (req, res) => {
   try {
     const docClient = getClient();
-    const result = await docClient.send(new ScanCommand({ TableName: 'DailyServices' }));
-    const allItems = result.Items || [];
+
+    // ?serviceId= 指定時は特定サービスを返す（サービス図鑑の on-demand フェッチ用）
+    if (req.query.serviceId) {
+      const allItems = await getDailyServicesAll(docClient);
+      const svc = allItems.find(i => i.serviceId === req.query.serviceId && i.serviceId !== '_schedule_');
+      return res.json({ service: svc ?? null });
+    }
+
+    const allItems = await getDailyServicesAll(docClient);
 
     // '_schedule_' は日付→serviceId のスケジュール管理用アイテム（一般アイテムから除外）
     const scheduleItem = allItems.find(i => i.serviceId === '_schedule_');
@@ -1709,8 +1693,8 @@ app.get('/daily-service', async (req, res) => {
 app.get('/admin/daily-services', async (req, res) => {
   try {
     const docClient = getClient();
-    const result = await docClient.send(new ScanCommand({ TableName: 'DailyServices' }));
-    const items = (result.Items || [])
+    const allItems = await getDailyServicesAll(docClient);
+    const items = allItems
       .filter(i => i.serviceId !== '_schedule_')
       .sort((a, b) => (a.order || 0) - (b.order || 0));
     res.json({ items });
@@ -1743,6 +1727,7 @@ app.post('/admin/daily-services', async (req, res) => {
         createdAt: new Date().toISOString(),
       },
     }));
+    _dailyServicesCache = null; // キャッシュ無効化
     res.json({ serviceId });
   } catch (err) {
     console.error(err);
@@ -1772,6 +1757,7 @@ app.put('/admin/daily-services/:id', async (req, res) => {
         ':active': isActive !== false,
       },
     }));
+    _dailyServicesCache = null; // キャッシュ無効化
     res.json({ success: true });
   } catch (err) {
     console.error(err);
@@ -1787,6 +1773,7 @@ app.delete('/admin/daily-services/:id', async (req, res) => {
       TableName: 'DailyServices',
       Key: { serviceId: req.params.id },
     }));
+    _dailyServicesCache = null; // キャッシュ無効化
     res.json({ success: true });
   } catch (err) {
     console.error(err);
@@ -1932,11 +1919,30 @@ app.get('/users/me/encyclopedia-unlocks', async (req, res) => {
       TableName: 'EncyclopediaUnlocks',
       Key: { userId },
     }));
-    if (!result.Item) return res.json({ unlocks: {}, unlockDate: null, todayServiceId: null });
+    if (!result.Item) return res.json({ unlocks: {}, unlockDate: null, todayServiceId: null, services: {} });
+
+    const unlocks = JSON.parse(result.Item.unlocks || '{}');
+    const serviceIds = Object.keys(unlocks).filter(id => id && id !== '_schedule_');
+
+    // アンロック済みサービスの詳細データをバッチ取得（新デバイスでもアイコン表示できるよう）
+    const services = {};
+    for (let i = 0; i < serviceIds.length; i += 100) {
+      const chunk = serviceIds.slice(i, i + 100).map(id => ({ serviceId: id }));
+      try {
+        const batch = await docClient.send(new BatchGetCommand({
+          RequestItems: { DailyServices: { Keys: chunk } },
+        }));
+        for (const item of (batch.Responses?.DailyServices || [])) {
+          services[item.serviceId] = item;
+        }
+      } catch (_) { /* バッチ取得失敗は非致命的 */ }
+    }
+
     res.json({
-      unlocks: JSON.parse(result.Item.unlocks || '{}'),
+      unlocks,
       unlockDate: result.Item.unlockDate || null,
       todayServiceId: result.Item.todayServiceId || null,
+      services,
     });
   } catch (err) {
     console.error(err);

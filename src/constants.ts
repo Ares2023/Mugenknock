@@ -56,12 +56,11 @@ export const EXAM_DOMAINS: Record<string, string[]> = {
 
 // ── domain フィールドのユーティリティ ────────────────────────
 // domain は整数インデックス（新形式）または文字列 / tags 配列（旧形式）
-export type QuestionLike = { examType: string; domain?: number | string | null; tags?: string[] };
+export type QuestionLike = { examType: string; domain?: number | null };
 
 export function qDomainName(q: QuestionLike): string {
   if (typeof q.domain === 'number') return EXAM_DOMAINS[q.examType]?.[q.domain] ?? '';
-  if (typeof q.domain === 'string' && q.domain) return q.domain;
-  return q.tags?.[0] ?? '';
+  return '';
 }
 
 export function qDomainIndex(examType: string, nameOrIndex: number | string): number {

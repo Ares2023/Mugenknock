@@ -3,10 +3,10 @@ import { Helmet } from 'react-helmet-async';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { useLanguage } from '../contexts/LanguageContext';
-import { API_ENDPOINT, EXAM_CONFIGS, EXAM_DOMAINS, EXAM_TYPES, PASS_SCORES } from '../constants';
+import { API_ENDPOINT, EXAM_CONFIGS, EXAM_DOMAINS, EXAM_TYPES, PASS_SCORES, qDomainName } from '../constants';
 import Button from '../components/ui/Button';
 import DomainSelector from '../components/DomainSelector';
-import { getCached, setCached, SHORT_TTL } from '../utils/cache';
+import { getCached, setCached, SHORT_TTL, getCachedPersist, setCachedPersist } from '../utils/cache';
 import { autoScoreAndClearDrafts } from '../utils/sessionUtils';
 import { animateLoadPct, randomPlateau } from '../utils/loadProgress';
 import { IconChevronUp } from '../components/Icons';
@@ -69,7 +69,6 @@ export default function Practice() {
   const [bookmarkOnly, setBookmarkOnly] = useState<boolean>(() => initPrefs(localStorage.getItem(`targetExam_${uid}`) || 'SAA').bookmarkOnly ?? false);
   const [unansweredOnly, setUnansweredOnly] = useState<boolean>(() => initPrefs(localStorage.getItem(`targetExam_${uid}`) || 'SAA').unansweredOnly ?? false);
   const [incorrectOnly, setIncorrectOnly] = useState<boolean>(() => initPrefs(localStorage.getItem(`targetExam_${uid}`) || 'SAA').incorrectOnly ?? false);
-  const [aiVerifiedOnly, setAiVerifiedOnly] = useState<boolean>(() => initPrefs(localStorage.getItem(`targetExam_${uid}`) || 'SAA').aiVerifiedOnly ?? false);
   const [availableCount, setAvailableCount] = useState<number | null>(null);
   const [exerciseLoading, setExerciseLoading] = useState(false);
   const [exerciseLoadPct, setExerciseLoadPct] = useState(0);
@@ -97,12 +96,12 @@ export default function Practice() {
     setBookmarkOnly(prefs.bookmarkOnly ?? false);
     setUnansweredOnly(prefs.unansweredOnly ?? false);
     setIncorrectOnly(prefs.incorrectOnly ?? false);
-    setAiVerifiedOnly(prefs.aiVerifiedOnly ?? false);
   }, [examType]);
 
   useEffect(() => {
-    saveExercisePrefs(examType, uid, { domains: selectedDomains, limit, bookmarkOnly, unansweredOnly, incorrectOnly, aiVerifiedOnly });
-  }, [examType, selectedDomains, limit, bookmarkOnly, unansweredOnly, incorrectOnly, aiVerifiedOnly]);
+    saveExercisePrefs(examType, uid, { domains: selectedDomains, limit, bookmarkOnly, unansweredOnly, incorrectOnly });
+  }, [examType, selectedDomains, limit, bookmarkOnly, unansweredOnly, incorrectOnly]);
+
 
   useEffect(() => {
     setAvailableCount(null);
@@ -123,9 +122,9 @@ export default function Practice() {
           if (bookmarkOnly && bkmRes) { const ids = new Set(bkmRes.questionIds ?? []); items = items.filter((q: any) => ids.has(q.questionId)); }
           if (unansweredOnly && answeredRes) { const ids = new Set(answeredRes.questionIds ?? []); items = items.filter((q: any) => !ids.has(q.questionId)); }
           if (incorrectOnly && incorrectRes) { const ids = new Set(incorrectRes.questionIds ?? []); items = items.filter((q: any) => ids.has(q.questionId)); }
-          if (aiVerifiedOnly) items = items.filter((q: any) => !!q.validityCheckedAt);
+          
           setAvailableCount(items.length);
-        } else if (allSelected && !aiVerifiedOnly) {
+        } else if (allSelected) {
           const cached = getCached<number>(`qcount_${examType}`);
           if (cached !== null) { setAvailableCount(cached); return; }
           const qRes = await fetch(`${API_ENDPOINT}/questions?examType=${examType}`).then(r => r.json());
@@ -134,14 +133,12 @@ export default function Practice() {
           setAvailableCount(count);
         } else {
           const qRes = await fetch(`${API_ENDPOINT}/questions?${params}`).then(r => r.json());
-          let countItems: any[] = qRes.items ?? [];
-          if (aiVerifiedOnly) countItems = countItems.filter((q: any) => !!q.validityCheckedAt);
-          setAvailableCount(aiVerifiedOnly ? countItems.length : (qRes.count ?? countItems.length));
+          setAvailableCount(qRes.count ?? (qRes.items ?? []).length);
         }
       } catch { setAvailableCount(0); }
     };
     fetchCounts();
-  }, [examType, selectedDomains, user, bookmarkOnly, unansweredOnly, incorrectOnly, aiVerifiedOnly]);
+  }, [examType, selectedDomains, user, bookmarkOnly, unansweredOnly, incorrectOnly]);
 
   useEffect(() => {
     if (!user) { setDomainStats([]); return; }
@@ -173,21 +170,24 @@ export default function Practice() {
       const userId = user?.userId ?? 'guest';
       const allSelected = EXAM_DOMAINS[examType].every(d => selectedDomains.includes(d));
       let selectedItems: any[];
+      const qCacheKey = `qlist_${examType}`;
       if (user && (bookmarkOnly || unansweredOnly || incorrectOnly)) {
         const params = new URLSearchParams({ examType, withAnswers: 'true' });
-        if (!allSelected) params.set('domain', selectedDomains.join(','));
+        const cachedQs = getCachedPersist<{ items: any[] }>(qCacheKey);
         const plateau = randomPlateau();
-        const stopAnim = animateLoadPct(setExerciseLoadPct, 10, plateau);
+        const stopAnim = cachedQs ? null : animateLoadPct(setExerciseLoadPct, 10, plateau);
         const [qRes, bkmRes, answeredRes, incorrectRes] = await Promise.all([
-          fetch(`${API_ENDPOINT}/questions?${params}`).then(r => r.json()),
-          user && bookmarkOnly ? fetch(`${API_ENDPOINT}/users/me/bookmarks?userId=${userId}`).then(r => r.json()) : Promise.resolve(null),
-          user && unansweredOnly ? fetch(`${API_ENDPOINT}/users/me/answered-questions?userId=${userId}&examType=${examType}`).then(r => r.json()) : Promise.resolve(null),
-          user && incorrectOnly ? fetch(`${API_ENDPOINT}/users/me/incorrect-questions?userId=${userId}&examType=${examType}`).then(r => r.json()) : Promise.resolve(null),
+          cachedQs ? Promise.resolve(cachedQs) : fetch(`${API_ENDPOINT}/questions?${params}`).then(r => r.json()),
+          bookmarkOnly ? fetch(`${API_ENDPOINT}/users/me/bookmarks?userId=${userId}`).then(r => r.json()) : Promise.resolve(null),
+          unansweredOnly ? fetch(`${API_ENDPOINT}/users/me/answered-questions?userId=${userId}&examType=${examType}`).then(r => r.json()) : Promise.resolve(null),
+          incorrectOnly ? fetch(`${API_ENDPOINT}/users/me/incorrect-questions?userId=${userId}&examType=${examType}`).then(r => r.json()) : Promise.resolve(null),
         ]);
-        stopAnim();
-        setExerciseLoadPct(plateau);
-        let pool: any[] = qRes.items ?? [];
-        if (aiVerifiedOnly) pool = pool.filter((q: any) => !!q.validityCheckedAt);
+        if (stopAnim) { stopAnim(); setExerciseLoadPct(plateau); }
+        if (!cachedQs) setCachedPersist(qCacheKey, qRes);
+        let pool: any[] = (qRes.items ?? []).filter((q: any) => {
+          if (!allSelected && !selectedDomains.includes(qDomainName(q))) return false;
+          return true;
+        });
         const bookmarkSet   = bookmarkOnly   && bkmRes       ? new Set<string>(bkmRes.questionIds ?? [])      : null;
         const unansweredSet = unansweredOnly && answeredRes  ? new Set<string>(answeredRes.questionIds ?? [])  : null;
         const incorrectSet  = incorrectOnly  && incorrectRes ? new Set<string>(incorrectRes.questionIds ?? []) : null;
@@ -202,14 +202,16 @@ export default function Practice() {
         selectedItems = pool.slice(0, limit);
       } else {
         const params = new URLSearchParams({ examType, withAnswers: 'true' });
-        if (!allSelected) params.set('domain', selectedDomains.join(','));
+        const cachedQs = getCachedPersist<{ items: any[] }>(qCacheKey);
         const plateau = randomPlateau();
-        const stopAnim = animateLoadPct(setExerciseLoadPct, 10, plateau);
-        const data = await fetch(`${API_ENDPOINT}/questions?${params}`).then(r => r.json());
-        stopAnim();
-        setExerciseLoadPct(plateau);
-        let allItems: any[] = data.items ?? [];
-        if (aiVerifiedOnly) allItems = allItems.filter((q: any) => !!q.validityCheckedAt);
+        const stopAnim = cachedQs ? null : animateLoadPct(setExerciseLoadPct, 10, plateau);
+        const data = cachedQs ? cachedQs : await fetch(`${API_ENDPOINT}/questions?${params}`).then(r => r.json());
+        if (stopAnim) { stopAnim(); setExerciseLoadPct(plateau); }
+        if (!cachedQs) setCachedPersist(qCacheKey, data);
+        let allItems: any[] = (data.items ?? []).filter((q: any) => {
+          if (!allSelected && !selectedDomains.includes(qDomainName(q))) return false;
+          return true;
+        });
         selectedItems = shuffleArray(allItems).slice(0, limit);
       }
       if (selectedItems.length === 0) { alert(t('exerciseSetup.noQuestions')); setExerciseLoading(false); return; }
@@ -275,7 +277,7 @@ export default function Practice() {
     setExamLoadPct(10);
     try {
       const userId = user?.userId ?? 'guest';
-      const params = new URLSearchParams({ examType: targetExam, withAnswers: 'true', withValidity: 'true' });
+      const params = new URLSearchParams({ examType: targetExam, withAnswers: 'true' });
       const plateau = randomPlateau();
       const stopAnim = animateLoadPct(setExamLoadPct, 10, plateau);
       const [data, answeredRes] = await Promise.all([
@@ -319,6 +321,7 @@ export default function Practice() {
         <title>練習 | 無限ノック</title>
         <meta name="description" content="AWS認定試験の練習問題に取り組もう。苦手分野を集中的に練習して合格スコアを目指そう。" />
       </Helmet>
+
 
       {/* タブ */}
       <div style={{ display: 'flex', borderBottom: '1px solid var(--color-border)', marginBottom: 'var(--spacing-lg)' }}>
@@ -369,10 +372,6 @@ export default function Practice() {
               <label style={{ display: 'flex', alignItems: 'center', gap: 'var(--spacing-sm)', cursor: 'pointer', fontSize: 'var(--font-size-base)' }}>
                 <input type="checkbox" checked={bookmarkOnly} onChange={e => setBookmarkOnly(e.target.checked)} style={{ width: 16, height: 16, flexShrink: 0 }} />
                 {t('exerciseSetup.bookmarkOnly')}
-              </label>
-              <label style={{ display: 'flex', alignItems: 'center', gap: 'var(--spacing-sm)', cursor: 'pointer', fontSize: 'var(--font-size-base)' }}>
-                <input type="checkbox" checked={aiVerifiedOnly} onChange={e => setAiVerifiedOnly(e.target.checked)} style={{ width: 16, height: 16, flexShrink: 0 }} />
-                {ja ? 'AI確認済み問題のみ' : 'AI Verified Only'}
               </label>
             </div>
           )}
@@ -685,7 +684,7 @@ export default function Practice() {
           </div>
         </div>
       )}
-      {(exerciseLoading || examLoading) && <div style={{ position: 'fixed', inset: 0, zIndex: 9000, cursor: 'wait' }} />}
+      {(exerciseLoading || examLoading) && <div style={{ position: 'fixed', inset: 0, zIndex: 9000, cursor: 'wait' }} onTouchStart={e => e.stopPropagation()} onTouchMove={e => e.stopPropagation()} onTouchEnd={e => e.stopPropagation()} />}
     </div>
   );
 }

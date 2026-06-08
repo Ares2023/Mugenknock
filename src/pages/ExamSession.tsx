@@ -25,7 +25,6 @@ type Question = {
   explanation?: string;
   isMultiple: boolean;
   correctAnswerCount?: number;
-  tags: string[];
   validityCheckedAt?: string;
   updatedAt?: string;
   createdAt?: string;
@@ -186,21 +185,16 @@ export default function ExamSession() {
     try {
       const abortResults = answeredQs.map((q: Question) => {
         const userAns = answers[q.questionId] ?? [];
-        const correctIdx = q.correctAnswerIndices;
-        const correct = q.correctAnswers ?? [];
-        const isCorrect = correctIdx && correctIdx.length > 0
-          ? (() => {
-              const userOrigIdx = userAns.map((t: string) => q.choices.indexOf(t));
-              return correctIdx.length === userOrigIdx.length && correctIdx.every((i: number) => userOrigIdx.includes(i));
-            })()
-          : correct.length === userAns.length && correct.every((a: string) => userAns.map(stripLabel).includes(stripLabel(a)));
-        return { questionId: q.questionId, isCorrect, userAns, tags: [qDomainName(q as any)].filter(Boolean) };
+        const correctIdx: number[] = q.correctAnswerIndices ?? [];
+        const userOrigIdx = userAns.map((t: string) => q.choices.indexOf(t));
+        const isCorrect = correctIdx.length > 0 && correctIdx.length === userOrigIdx.length && correctIdx.every((i: number) => userOrigIdx.includes(i));
+        return { questionId: q.questionId, isCorrect, userAns };
       });
       await Promise.all(abortResults.map(r =>
         fetch(`${API_ENDPOINT}/sessions/${sessionId}/answers`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ userId, questionId: r.questionId, selectedAnswers: r.userAns, isCorrect: r.isCorrect, tags: r.tags }),
+          body: JSON.stringify({ userId, questionId: r.questionId, selectedAnswers: r.userAns, isCorrect: r.isCorrect }),
         }).catch(() => {})
       ));
       const correctCount = abortResults.filter(r => r.isCorrect).length;
@@ -211,12 +205,13 @@ export default function ExamSession() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ userId, status: 'completed', score, isPassed }),
       });
+      const qMap = new Map(answeredQs.map((q: Question) => [q.questionId, q]));
       const delta: Record<string, { c: number; i: number }> = {};
       for (const r of abortResults) {
-        for (const tag of r.tags) {
-          if (!delta[tag]) delta[tag] = { c: 0, i: 0 };
-          if (r.isCorrect) delta[tag].c++; else delta[tag].i++;
-        }
+        const tag = qDomainName(qMap.get(r.questionId) as any ?? {});
+        if (!tag) continue;
+        if (!delta[tag]) delta[tag] = { c: 0, i: 0 };
+        if (r.isCorrect) delta[tag].c++; else delta[tag].i++;
       }
       try {
         const dh: Record<string, { correct: number; total: number }[]> =
@@ -232,10 +227,10 @@ export default function ExamSession() {
         const dr: Record<string, boolean[]> =
           JSON.parse(localStorage.getItem(`domain_results_${examType}_${userId}`) ?? '{}');
         for (const r of abortResults) {
-          for (const tag of r.tags) {
-            if (!dr[tag]) dr[tag] = [];
-            dr[tag] = [...dr[tag], r.isCorrect].slice(-5);
-          }
+          const tag = qDomainName(qMap.get(r.questionId) as any ?? {});
+          if (!tag) continue;
+          if (!dr[tag]) dr[tag] = [];
+          dr[tag] = [...dr[tag], r.isCorrect].slice(-5);
         }
         localStorage.setItem(`domain_results_${examType}_${userId}`, JSON.stringify(dr));
         if (userId && userId !== 'guest') {
@@ -296,22 +291,17 @@ export default function ExamSession() {
     try {
       const results = questions.map((q: Question) => {
         const userAns = answers[q.questionId] ?? [];
-        const correctIdx = q.correctAnswerIndices;
-        const correct = q.correctAnswers ?? [];
-        const isCorrect = correctIdx && correctIdx.length > 0
-          ? (() => {
-              const userOrigIdx = userAns.map(t => q.choices.indexOf(t));
-              return correctIdx.length === userOrigIdx.length && correctIdx.every(i => userOrigIdx.includes(i));
-            })()
-          : correct.length === userAns.length && correct.every(a => userAns.map(stripLabel).includes(stripLabel(a)));
-        return { questionId: q.questionId, isCorrect, userAns, tags: [qDomainName(q as any)].filter(Boolean) };
+        const correctIdx: number[] = q.correctAnswerIndices ?? [];
+        const userOrigIdx = userAns.map(t => q.choices.indexOf(t));
+        const isCorrect = correctIdx.length > 0 && correctIdx.length === userOrigIdx.length && correctIdx.every(i => userOrigIdx.includes(i));
+        return { questionId: q.questionId, isCorrect, userAns };
       });
 
       await Promise.all(results.map(r =>
         fetch(`${API_ENDPOINT}/sessions/${sessionId}/answers`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ userId, questionId: r.questionId, selectedAnswers: r.userAns, isCorrect: r.isCorrect, tags: r.tags })
+          body: JSON.stringify({ userId, questionId: r.questionId, selectedAnswers: r.userAns, isCorrect: r.isCorrect })
         }).catch(() => {})
       ));
 
@@ -326,12 +316,13 @@ export default function ExamSession() {
       });
 
       // ドメイン別 delta 計算
+      const qMapFull = new Map(questions.map((q: Question) => [q.questionId, q]));
       const delta: Record<string, { c: number; i: number }> = {};
       for (const r of results) {
-        for (const tag of r.tags) {
-          if (!delta[tag]) delta[tag] = { c: 0, i: 0 };
-          if (r.isCorrect) delta[tag].c++; else delta[tag].i++;
-        }
+        const tag = qDomainName(qMapFull.get(r.questionId) as any ?? {});
+        if (!tag) continue;
+        if (!delta[tag]) delta[tag] = { c: 0, i: 0 };
+        if (r.isCorrect) delta[tag].c++; else delta[tag].i++;
       }
       // domain_history に追加（直近10セッション、ゲストでも保存）
       try {
@@ -348,10 +339,10 @@ export default function ExamSession() {
         const dr: Record<string, boolean[]> =
           JSON.parse(localStorage.getItem(`domain_results_${examType}_${userId}`) ?? '{}');
         for (const r of results) {
-          for (const tag of r.tags) {
-            if (!dr[tag]) dr[tag] = [];
-            dr[tag] = [...dr[tag], r.isCorrect].slice(-5);
-          }
+          const tag = qDomainName(qMapFull.get(r.questionId) as any ?? {});
+          if (!tag) continue;
+          if (!dr[tag]) dr[tag] = [];
+          dr[tag] = [...dr[tag], r.isCorrect].slice(-5);
         }
         localStorage.setItem(`domain_results_${examType}_${userId}`, JSON.stringify(dr));
         if (userId && userId !== 'guest') {

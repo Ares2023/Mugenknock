@@ -30,9 +30,9 @@ export async function autoScoreAndClearDrafts(userId: string): Promise<void> {
       );
       if (answeredQs.length > 0) {
         const correct = answeredQs.filter((q: any) => {
-          const userSet = new Set<string>(draft.answers[q.questionId] ?? []);
-          const correctAns: string[] = q.correctAnswers ?? [];
-          return correctAns.length === userSet.size && correctAns.every(a => userSet.has(a));
+          const correctIdx: number[] = q.correctAnswerIndices ?? [];
+          const userOrigIdx = (draft.answers[q.questionId] ?? []).map((t: string) => (q.choices ?? []).indexOf(t));
+          return correctIdx.length > 0 && correctIdx.length === userOrigIdx.length && correctIdx.every((i: number) => userOrigIdx.includes(i));
         }).length;
         score = Math.round(correct / answeredQs.length * 100);
         hasSomething = true;
