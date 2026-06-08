@@ -217,25 +217,6 @@ export default function Portal() {
             </div>
           </section>
 
-          {/* ── 最終 CTA ── */}
-          <section style={{ background: TEAL_L, border: `1px solid ${TEAL_M}`, borderRadius: 12, padding: isMobile ? '28px 20px' : '36px 40px', textAlign: 'center' }}>
-            <p style={{ fontSize: isMobile ? 15 : 18, fontWeight: 800, color: TEAL_D, margin: '0 0 8px' }}>
-              {ja ? 'まずは目標資格を選んでみましょう' : 'Start by Choosing Your Target Certification'}
-            </p>
-            <p style={{ fontSize: 13, color: '#666', margin: '0 0 20px', lineHeight: 1.7 }}>
-              {ja
-                ? 'CLF・SAA・SAPなど取得したい資格を選択すると、その資格に対応した問題で演習を始められます。'
-                : 'Select CLF, SAA, SAP, or any certification — then start practicing with questions tailored to that exam.'}
-            </p>
-            <button
-              onClick={handleStart}
-              style={{ background: TEAL, color: '#fff', border: 'none', borderRadius: 8, padding: isMobile ? '12px 28px' : '13px 32px', fontSize: isMobile ? 14 : 15, fontWeight: 700, cursor: 'pointer', transition: 'background 0.15s' }}
-              onMouseEnter={e => { e.currentTarget.style.background = TEAL_D; }}
-              onMouseLeave={e => { e.currentTarget.style.background = TEAL; }}
-            >
-              {ja ? '資格を選んで演習を始める' : 'Choose a Cert & Start'}
-            </button>
-          </section>
 
         </div>
       </main>
