@@ -272,8 +272,9 @@ export default function Account() {
         >
           <IconChevronLeft size={22} />
         </button>
-        <div onClick={() => navigate('/aws/')} style={{ cursor: 'pointer', display: 'flex', alignItems: 'center' }}>
-          <img src="/mugen-header.png" alt="無限ノック" style={{ height: 32, width: 'auto', display: 'block' }} />
+        <div onClick={() => navigate('/aws/')} style={{ cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 6 }}>
+          <img src="/mugen-icon.png"   alt="無限ノック" style={{ height: 28, width: 'auto', display: 'block', flexShrink: 0 }} />
+          <img src="/mugen-header.png" alt=""           style={{ height: 28, width: 'auto', display: 'block', flexShrink: 0 }} />
         </div>
       </header>
 

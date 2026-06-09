@@ -64,6 +64,7 @@ export default function MyPage() {
   const navigate = useNavigate();
   const ja = lang === 'ja';
   const uid = user?.userId ?? 'guest';
+  const isMobile = window.innerWidth < 768;
 
   const [tab, setTab] = useState<'target' | 'analysis' | 'history'>('target');
   const [showSettingsEdit, setShowSettingsEdit] = useState(false);
@@ -225,6 +226,43 @@ export default function MyPage() {
     } catch { setAnswerDetails(prev => ({ ...prev, [qid]: null })); }
     finally { setAnswerDetailLoading(null); }
   }, [expandedAnswer, answerDetails, answerDetailLoading]);
+
+  // ── 問題詳細モーダル ──
+  const [questionModal, setQuestionModal] = useState<{ qid: string; detail: any | null; loading: boolean; isCorrect?: boolean } | null>(null);
+
+  const openWeakQModal = useCallback(async (qid: string) => {
+    const cached = weakQDetails[qid];
+    setQuestionModal({ qid, detail: cached ?? null, loading: !cached });
+    if (!cached && weakQDetailLoading !== qid) {
+      setWeakQDetailLoading(qid);
+      try {
+        const res = await fetch(`${API_ENDPOINT}/questions/${qid}`);
+        const data = await res.json();
+        setWeakQDetails(prev => ({ ...prev, [qid]: data }));
+        setQuestionModal(prev => prev?.qid === qid ? { ...prev, detail: data, loading: false } : prev);
+      } catch {
+        setWeakQDetails(prev => ({ ...prev, [qid]: null }));
+        setQuestionModal(prev => prev?.qid === qid ? { ...prev, loading: false } : prev);
+      } finally { setWeakQDetailLoading(null); }
+    }
+  }, [weakQDetails, weakQDetailLoading]);
+
+  const openAnswerModal = useCallback(async (qid: string, isCorrect: boolean) => {
+    const cached = answerDetails[qid];
+    setQuestionModal({ qid, detail: cached ?? null, loading: !cached, isCorrect });
+    if (!cached && answerDetailLoading !== qid) {
+      setAnswerDetailLoading(qid);
+      try {
+        const res = await fetch(`${API_ENDPOINT}/questions/${qid}`);
+        const data = await res.json();
+        setAnswerDetails(prev => ({ ...prev, [qid]: data }));
+        setQuestionModal(prev => prev?.qid === qid ? { ...prev, detail: data, loading: false } : prev);
+      } catch {
+        setAnswerDetails(prev => ({ ...prev, [qid]: null }));
+        setQuestionModal(prev => prev?.qid === qid ? { ...prev, loading: false } : prev);
+      } finally { setAnswerDetailLoading(null); }
+    }
+  }, [answerDetails, answerDetailLoading]);
 
   // ── ブックマーク ──
   const [bookmarkedIds, setBookmarkedIds] = useState<Set<string>>(new Set());
@@ -606,47 +644,19 @@ export default function MyPage() {
                         return (
                           <div key={q.questionId} style={{ borderRadius: 8, border: '1px solid var(--color-border)', overflow: 'hidden' }}>
                             <div
-                              onClick={() => handleToggleWeakQ(q.questionId)}
-                              style={{ padding: '8px 10px', display: 'flex', gap: 8, alignItems: 'flex-start', cursor: 'pointer', background: isExpanded ? 'var(--color-bg-main)' : 'transparent' }}
+                              onClick={() => openWeakQModal(q.questionId)}
+                              style={{ padding: '8px 10px', display: 'flex', gap: 8, alignItems: 'flex-start', cursor: 'pointer' }}
                             >
                               <span style={{ flexShrink: 0, fontSize: 11, fontWeight: 700, color: 'var(--color-danger)', background: 'var(--color-danger-light)', borderRadius: 4, padding: '2px 6px', marginTop: 1 }}>
                                 ×{q.incorrectCount}
                               </span>
-                              <span style={{ fontSize: 12, color: 'var(--color-text-sub)', lineHeight: 1.5, flex: 1, userSelect: 'text' }}>
+                              <span style={{ fontSize: 12, color: 'var(--color-text-sub)', lineHeight: 1.5, flex: 1 }}>
                                 {q.questionText?.slice(0, 80)}{(q.questionText?.length ?? 0) > 80 ? '…' : ''}
                               </span>
-                              <span style={{ flexShrink: 0, color: 'var(--color-text-light)', transition: 'transform 0.2s', transform: isExpanded ? 'rotate(180deg)' : 'none', display: 'flex', alignItems: 'center', marginTop: 2 }}>
+                              <span style={{ flexShrink: 0, color: 'var(--color-text-light)', display: 'flex', alignItems: 'center', marginTop: 2, transform: 'rotate(-90deg)' }}>
                                 <IconChevronDown size={14} />
                               </span>
                             </div>
-                            {isExpanded && (
-                              <div style={{ padding: '10px 12px', borderTop: '1px solid var(--color-border)', background: 'var(--color-bg-white)' }}>
-                                {weakQDetailLoading === q.questionId ? (
-                                  <div style={{ display: 'flex', justifyContent: 'center', padding: '8px 0' }}>
-                                    <div className="sherpa-spinner" style={{ width: 16, height: 16, borderWidth: 2 }} />
-                                  </div>
-                                ) : detail ? (
-                                  <div style={{ userSelect: 'text' }}>
-                                    <p style={{ fontSize: 13, color: 'var(--color-text-main)', lineHeight: 1.6, margin: '0 0 10px', whiteSpace: 'pre-wrap' }}>
-                                      {detail.questionText}
-                                    </p>
-                                    {(detail.choices ?? []).map((c: string, i: number) => (
-                                      <div key={i} style={{ fontSize: 12, color: 'var(--color-text-sub)', padding: '4px 8px', marginBottom: 3, borderRadius: 4, background: 'var(--color-bg-main)' }}>
-                                        {String.fromCharCode(65 + i)}. {c.replace(/^[A-E]\.\s*/, '')}
-                                      </div>
-                                    ))}
-                                    {detail.explanation && (
-                                      <div style={{ marginTop: 10, padding: '8px 10px', borderRadius: 6, background: 'var(--color-bg-info)', border: '1px solid var(--color-border-info)' }}>
-                                        <div style={{ fontSize: 11, fontWeight: 700, color: 'var(--color-text-info)', marginBottom: 4 }}>{ja ? '解説' : 'Explanation'}</div>
-                                        <p style={{ fontSize: 12, color: 'var(--color-text-sub)', margin: 0, lineHeight: 1.6, whiteSpace: 'pre-wrap' }}>{detail.explanation}</p>
-                                      </div>
-                                    )}
-                                  </div>
-                                ) : (
-                                  <p style={{ margin: 0, fontSize: 12, color: 'var(--color-text-light)' }}>{ja ? '詳細を取得できませんでした' : 'Failed to load details'}</p>
-                                )}
-                              </div>
-                            )}
                           </div>
                         );
                       })}
@@ -726,15 +736,16 @@ export default function MyPage() {
                                 const isAExpanded = expandedAnswer === a.questionId;
                                 const aDetail = answerDetails[a.questionId];
                                 return (
-                                  <div key={a.questionId + idx} style={{ borderRadius: 6, border: '1px solid var(--color-border)', overflow: 'hidden' }}>
+                                  <div
+                                    key={a.questionId + idx}
+                                    onClick={() => openAnswerModal(a.questionId, !!a.isCorrect)}
+                                    style={{ borderRadius: 6, border: '1px solid var(--color-border)', overflow: 'hidden', cursor: 'pointer' }}
+                                  >
                                     <div style={{ display: 'flex', gap: 8, alignItems: 'center', padding: '6px 8px' }}>
                                       <span style={{ flexShrink: 0, width: 15, height: 15, borderRadius: '50%', background: a.isCorrect ? 'var(--color-success)' : 'var(--color-danger)', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', color: '#fff', fontSize: 8, fontWeight: 700 }}>
                                         {a.isCorrect ? '○' : '×'}
                                       </span>
-                                      <span
-                                        onClick={() => handleToggleAnswer(a.questionId)}
-                                        style={{ fontSize: 12, color: 'var(--color-text-sub)', lineHeight: 1.5, flex: 1, cursor: 'pointer', userSelect: 'text' }}
-                                      >
+                                      <span style={{ fontSize: 12, color: 'var(--color-text-sub)', lineHeight: 1.5, flex: 1 }}>
                                         {a.questionText?.slice(0, 60)}{(a.questionText?.length ?? 0) > 60 ? '…' : ''}
                                       </span>
                                       {user && (
@@ -748,41 +759,10 @@ export default function MyPage() {
                                           </span>
                                         </button>
                                       )}
-                                      <button
-                                        onClick={() => handleToggleAnswer(a.questionId)}
-                                        style={{ flexShrink: 0, background: 'none', border: 'none', cursor: 'pointer', padding: '2px 4px', display: 'flex', alignItems: 'center', color: 'var(--color-text-light)', transition: 'transform 0.2s', transform: isAExpanded ? 'rotate(180deg)' : 'none' }}
-                                      >
+                                      <span style={{ flexShrink: 0, display: 'flex', alignItems: 'center', color: 'var(--color-text-light)', transform: 'rotate(-90deg)' }}>
                                         <IconChevronDown size={13} />
-                                      </button>
+                                      </span>
                                     </div>
-                                    {isAExpanded && (
-                                      <div style={{ padding: '8px 10px', borderTop: '1px solid var(--color-border)', background: 'var(--color-bg-main)' }}>
-                                        {answerDetailLoading === a.questionId ? (
-                                          <div style={{ display: 'flex', justifyContent: 'center', padding: '6px 0' }}>
-                                            <div className="sherpa-spinner" style={{ width: 14, height: 14, borderWidth: 2 }} />
-                                          </div>
-                                        ) : aDetail ? (
-                                          <div style={{ userSelect: 'text' }}>
-                                            <p style={{ fontSize: 12, color: 'var(--color-text-main)', lineHeight: 1.6, margin: '0 0 8px', whiteSpace: 'pre-wrap' }}>
-                                              {aDetail.questionText}
-                                            </p>
-                                            {(aDetail.choices ?? []).map((c: string, i: number) => (
-                                              <div key={i} style={{ fontSize: 11, color: 'var(--color-text-sub)', padding: '3px 6px', marginBottom: 2, borderRadius: 4, background: 'var(--color-bg-white)' }}>
-                                                {String.fromCharCode(65 + i)}. {c.replace(/^[A-E]\.\s*/, '')}
-                                              </div>
-                                            ))}
-                                            {aDetail.explanation && (
-                                              <div style={{ marginTop: 8, padding: '6px 8px', borderRadius: 5, background: 'var(--color-bg-info)', border: '1px solid var(--color-border-info)' }}>
-                                                <div style={{ fontSize: 10, fontWeight: 700, color: 'var(--color-text-info)', marginBottom: 3 }}>{ja ? '解説' : 'Explanation'}</div>
-                                                <p style={{ fontSize: 11, color: 'var(--color-text-sub)', margin: 0, lineHeight: 1.6, whiteSpace: 'pre-wrap' }}>{aDetail.explanation}</p>
-                                              </div>
-                                            )}
-                                          </div>
-                                        ) : (
-                                          <p style={{ margin: 0, fontSize: 11, color: 'var(--color-text-light)' }}>{ja ? '詳細を取得できませんでした' : 'Failed to load details'}</p>
-                                        )}
-                                      </div>
-                                    )}
                                   </div>
                                 );
                               })}
@@ -798,6 +778,65 @@ export default function MyPage() {
           </>
         )}
       </div>
+
+      {/* ── 問題詳細モーダル ── */}
+      {questionModal && (
+        <div
+          style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', zIndex: 999, display: 'flex', alignItems: isMobile ? 'flex-end' : 'center', justifyContent: 'center', padding: isMobile ? 0 : 'var(--spacing-lg)' }}
+          onClick={() => setQuestionModal(null)}
+        >
+          <div
+            style={{ background: 'var(--color-bg-white)', borderRadius: isMobile ? '16px 16px 0 0' : 'var(--border-radius-lg)', padding: 'var(--spacing-xl)', width: '100%', maxWidth: isMobile ? '100%' : 600, maxHeight: isMobile ? '85vh' : '80vh', overflowY: 'auto', boxShadow: 'var(--box-shadow-lg)' }}
+            onClick={e => e.stopPropagation()}
+          >
+            {/* ヘッダー */}
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 'var(--spacing-lg)' }}>
+              <span style={{ fontSize: 'var(--font-size-sm)', fontWeight: 700, color: 'var(--color-text-sub)' }}>
+                {questionModal.isCorrect !== undefined
+                  ? (questionModal.isCorrect
+                    ? <span style={{ color: 'var(--color-success)' }}>○ {ja ? '正解' : 'Correct'}</span>
+                    : <span style={{ color: 'var(--color-danger)' }}>× {ja ? '不正解' : 'Incorrect'}</span>)
+                  : (ja ? '問題詳細' : 'Question Detail')}
+              </span>
+              <button onClick={() => setQuestionModal(null)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--color-text-sub)', fontSize: 20, lineHeight: 1, padding: '2px 6px' }}>✕</button>
+            </div>
+
+            {questionModal.loading ? (
+              <div style={{ display: 'flex', justifyContent: 'center', padding: 'var(--spacing-xl) 0' }}>
+                <div className="sherpa-spinner" />
+              </div>
+            ) : questionModal.detail ? (
+              <div style={{ userSelect: 'text' }}>
+                {/* 問題文 */}
+                <p style={{ fontSize: 'var(--font-size-base)', color: 'var(--color-text-main)', lineHeight: 1.75, margin: '0 0 var(--spacing-lg)', whiteSpace: 'pre-wrap', fontWeight: 500 }}>
+                  {questionModal.detail.questionText}
+                </p>
+                {/* 選択肢 */}
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--spacing-sm)', marginBottom: 'var(--spacing-lg)' }}>
+                  {(questionModal.detail.choices ?? []).map((c: string, i: number) => {
+                    const isCorrect = (questionModal.detail.correctAnswerIndices ?? []).includes(i);
+                    return (
+                      <div key={i} style={{ fontSize: 'var(--font-size-sm)', padding: '10px 14px', borderRadius: 'var(--border-radius-md)', border: `1.5px solid ${isCorrect ? 'var(--color-success)' : 'var(--color-border)'}`, background: isCorrect ? 'var(--color-feedback-correct-bg)' : 'var(--color-bg-main)', color: isCorrect ? 'var(--color-success)' : 'var(--color-text-sub)', lineHeight: 1.6 }}>
+                        <span style={{ fontWeight: 700, marginRight: 6 }}>{String.fromCharCode(65 + i)}.</span>
+                        {c.replace(/^[A-E]\.\s*/, '')}
+                      </div>
+                    );
+                  })}
+                </div>
+                {/* 解説 */}
+                {questionModal.detail.explanation && (
+                  <div style={{ padding: 'var(--spacing-md)', borderRadius: 'var(--border-radius-md)', background: 'var(--color-bg-info)', border: '1px solid var(--color-border-info)' }}>
+                    <div style={{ fontSize: 'var(--font-size-xs)', fontWeight: 700, color: 'var(--color-text-info)', marginBottom: 6 }}>{ja ? '解説' : 'Explanation'}</div>
+                    <p style={{ fontSize: 'var(--font-size-sm)', color: 'var(--color-text-sub)', margin: 0, lineHeight: 1.75, whiteSpace: 'pre-wrap' }}>{questionModal.detail.explanation}</p>
+                  </div>
+                )}
+              </div>
+            ) : (
+              <p style={{ margin: 0, fontSize: 'var(--font-size-sm)', color: 'var(--color-text-light)' }}>{ja ? '詳細を取得できませんでした' : 'Failed to load details'}</p>
+            )}
+          </div>
+        </div>
+      )}
     </>
   );
 }

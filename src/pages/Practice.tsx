@@ -65,7 +65,10 @@ export default function Practice() {
     const et = localStorage.getItem(`targetExam_${uid}`) || 'SAA';
     return initPrefs(et).domains ?? EXAM_DOMAINS[et] ?? [];
   });
-  const [limit, setLimit] = useState<number>(() => initPrefs(localStorage.getItem(`targetExam_${uid}`) || 'SAA').limit ?? 10);
+  const [limit, setLimit] = useState<number>(() => {
+    const raw = initPrefs(localStorage.getItem(`targetExam_${uid}`) || 'SAA').limit ?? 10;
+    return Math.max(5, Math.round(raw / 5) * 5);
+  });
   const [bookmarkOnly, setBookmarkOnly] = useState<boolean>(() => initPrefs(localStorage.getItem(`targetExam_${uid}`) || 'SAA').bookmarkOnly ?? false);
   const [unansweredOnly, setUnansweredOnly] = useState<boolean>(() => initPrefs(localStorage.getItem(`targetExam_${uid}`) || 'SAA').unansweredOnly ?? false);
   const [incorrectOnly, setIncorrectOnly] = useState<boolean>(() => initPrefs(localStorage.getItem(`targetExam_${uid}`) || 'SAA').incorrectOnly ?? false);
@@ -377,21 +380,25 @@ export default function Practice() {
           )}
 
           {/* 問題数 */}
-          <div style={{ marginBottom: 'var(--spacing-md)', display: 'flex', alignItems: 'center', gap: 'var(--spacing-md)' }}>
-            <span style={{ fontSize: 'var(--font-size-sm)', fontWeight: 700, color: 'var(--color-text-sub)', whiteSpace: 'nowrap' }}>
+          <div style={{ marginBottom: 'var(--spacing-md)' }}>
+            <span style={{ fontSize: 'var(--font-size-sm)', fontWeight: 700, color: 'var(--color-text-sub)', display: 'block', marginBottom: 8 }}>
               {ja ? '問題数' : 'Questions'}
             </span>
-            <input
-              type="number" value={limit}
-              onChange={e => setLimit(Math.max(1, Math.min(examCfg?.totalQuestions ?? 65, parseInt(e.target.value) || 1)))}
-              min={1} max={examCfg?.totalQuestions ?? 65}
-              style={{ padding: '8px 12px', width: 80, border: '1px solid var(--color-border)', borderRadius: 'var(--border-radius-md)', fontSize: 'var(--font-size-base)', outline: 'none' }}
-              onFocus={e => e.currentTarget.style.borderColor = 'var(--color-primary)'}
-              onBlur={e => e.currentTarget.style.borderColor = 'var(--color-border)'}
-            />
-            <span style={{ fontSize: 'var(--font-size-sm)', color: 'var(--color-text-sub)' }}>
-              {examCfg ? t('exerciseSetup.maxQ', { n: examCfg.totalQuestions }) : t('exerciseSetup.loading')}
-            </span>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
+              <button
+                onClick={() => setLimit(v => Math.max(5, v - 5))}
+                disabled={limit <= 5}
+                style={{ width: 44, height: 44, borderRadius: '50%', border: '1px solid var(--color-border)', background: 'transparent', cursor: limit <= 5 ? 'default' : 'pointer', fontSize: 20, display: 'flex', alignItems: 'center', justifyContent: 'center', color: limit <= 5 ? 'var(--color-text-light)' : 'var(--color-text-main)' }}
+              >−</button>
+              <span style={{ fontSize: 24, fontWeight: 800, minWidth: 64, textAlign: 'center', color: 'var(--color-primary)', fontVariantNumeric: 'tabular-nums' }}>
+                {limit}<span style={{ fontSize: 13, fontWeight: 400, marginLeft: 2, color: 'var(--color-text-sub)' }}>{ja ? '問' : 'Q'}</span>
+              </span>
+              <button
+                onClick={() => setLimit(v => Math.min(examCfg?.totalQuestions ?? 65, v + 5))}
+                disabled={limit >= (examCfg?.totalQuestions ?? 65)}
+                style={{ width: 44, height: 44, borderRadius: '50%', border: '1px solid var(--color-border)', background: 'transparent', cursor: limit >= (examCfg?.totalQuestions ?? 65) ? 'default' : 'pointer', fontSize: 20, display: 'flex', alignItems: 'center', justifyContent: 'center', color: limit >= (examCfg?.totalQuestions ?? 65) ? 'var(--color-text-light)' : 'var(--color-text-main)' }}
+              >+</button>
+            </div>
           </div>
 
           {availableCount !== null && availableCount > 0 && availableCount < limit && (
