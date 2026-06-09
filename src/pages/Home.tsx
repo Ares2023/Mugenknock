@@ -14,7 +14,7 @@ import { animateLoadPct, randomPlateau } from '../utils/loadProgress';
 import { getPoints, deductPoints } from '../utils/points';
 import Card from '../components/ui/Card';
 import Button from '../components/ui/Button';
-import { IconLightbulb, IconSettings, IconChevronUp, IconChevronDown, IconLock, IconFileText, IconTrendingUp, IconBookOpen, IconCheck, IconSparkles, IconPointer, IconMousePointerClick, IconCalendarNotebook, IconRefreshCw, IconTarget, IconChart, ServiceIconImg, isServiceIconKey } from '../components/Icons';
+import { IconLightbulb, IconSettings, IconChevronUp, IconChevronDown, IconLock, IconFileText, IconTrendingUp, IconBookOpen, IconCheck, IconSparkles, IconPointer, IconMousePointerClick, IconCalendarNotebook, IconRefreshCw, IconTarget, IconChart, ServiceIconImg, isServiceIconKey, IconUser } from '../components/Icons';
 import { CATALOG } from '../data/awsServiceCatalog';
 import { autoScoreAndClearDrafts } from '../utils/sessionUtils';
 import { syncTargetExamToServer, loadTargetExamFromServer } from '../utils/preferences';
@@ -591,14 +591,14 @@ const OB_SHORT: Record<string, string> = {
   ANS: 'Advanced Networking', SCS: 'Security',
 };
 
-function OnboardingModal({ lang, uid, onComplete, onSkip }: {
+function OnboardingModal({ lang, uid, onComplete }: {
   lang: string; uid: string;
   onComplete: (exam: string) => void;
-  onSkip: () => void;
 }) {
   const ja = lang === 'ja';
-  const [slide, setSlide] = useState(0);
   const [selected, setSelected] = useState<string | null>(null);
+  const { user } = useAuth();
+  const navigate = useNavigate();
 
   const handleSelect = (exam: string) => setSelected(prev => prev === exam ? null : exam);
 
@@ -616,161 +616,70 @@ function OnboardingModal({ lang, uid, onComplete, onSkip }: {
   }));
 
   return createPortal(
-    <div style={{
-      position: 'fixed', inset: 0, zIndex: 9800,
-      background: 'var(--color-bg-main)',
-      display: 'flex', flexDirection: 'column',
-      overflowY: 'auto',
-    }}>
-      {/* ── スライド 0: ようこそ ── */}
-      {slide === 0 && (
-        <div style={{
-          flex: 1, display: 'flex', flexDirection: 'column',
-          alignItems: 'center', justifyContent: 'center',
-          padding: '40px 24px', maxWidth: 480, margin: '0 auto', width: '100%',
-          gap: 0,
-        }}>
-          <img src="/mugen-header.png" alt="無限ノック" style={{ height: 40, objectFit: 'contain', marginBottom: 28 }} />
+    <div style={{ position: 'fixed', inset: 0, zIndex: 9800, background: 'var(--color-bg-main)', display: 'flex', flexDirection: 'column' }}>
 
-          <h1 style={{ fontSize: 22, fontWeight: 800, color: 'var(--color-text-main)', textAlign: 'center', margin: '0 0 10px', lineHeight: 1.35 }}>
-            {ja ? '無限ノックへ\nようこそ！' : 'Welcome to MugenKnock!'}
-          </h1>
-          <p style={{ fontSize: 13, color: 'var(--color-text-sub)', textAlign: 'center', margin: '0 0 32px', lineHeight: 1.7 }}>
-            {ja
-              ? 'AWS認定試験の合格を目指す学習アプリです。\n演習・模試・サービス図鑑の3本柱でスコアアップをサポートします。'
-              : 'An app to help you pass AWS certification exams with practice, mock exams, and a service encyclopedia.'}
+      {/* ── ヘッダー（アカウントボタンのみ） ── */}
+      <header style={{ height: 56, minHeight: 56, display: 'flex', alignItems: 'center', justifyContent: 'flex-end', padding: '0 var(--spacing-lg)', borderBottom: '1px solid var(--color-border)', background: 'var(--color-bg-white)', flexShrink: 0 }}>
+        <button
+          onClick={() => navigate(user ? '/account' : '/login')}
+          style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', background: user ? 'var(--color-primary-light)' : 'transparent', border: '1px solid var(--color-border)', borderRadius: '50%', cursor: 'pointer', color: user ? 'var(--color-primary)' : 'var(--color-text-sub)', width: 36, height: 36, padding: 0, fontSize: 14, fontWeight: 700 }}
+        >
+          {user?.email ? user.email[0].toUpperCase() : <IconUser />}
+        </button>
+      </header>
+
+      {/* ── 資格選択 ── */}
+      <div style={{ flex: 1, overflowY: 'auto', display: 'flex', flexDirection: 'column' }}>
+        <div style={{ flex: 1, display: 'flex', flexDirection: 'column', padding: '32px 24px 0', maxWidth: 560, margin: '0 auto', width: '100%', paddingBottom: 140 }}>
+          <h2 style={{ fontSize: 20, fontWeight: 800, color: 'var(--color-text-main)', margin: '0 0 6px' }}>
+            {ja ? '目指すAWS資格を選んでください' : 'Select your target exam'}
+          </h2>
+          <p style={{ fontSize: 12, color: 'var(--color-text-sub)', margin: '0 0 20px' }}>
+            {ja ? '後からホーム画面でいつでも変更できます' : 'You can change this anytime on the home screen'}
           </p>
 
-          {/* 3つの特徴 */}
-          {[
-            { icon: <IconFileText size={22} />, ja: '実践的な演習問題', en: 'Practice Questions' },
-            { icon: <IconTrendingUp size={22} />, ja: '合格スコア予測', en: 'Score Prediction' },
-            { icon: <IconBookOpen size={22} />, ja: 'AWSサービス図鑑', en: 'Service Encyclopedia' },
-          ].map(f => (
-            <div key={f.en} style={{
-              display: 'flex', alignItems: 'center', gap: 14,
-              width: '100%', padding: '12px 16px', borderRadius: 12,
-              background: 'var(--color-bg-card)', marginBottom: 10,
-              border: '1px solid var(--color-border)',
-            }}>
-              <span style={{ color: 'var(--color-primary)', display: 'flex', alignItems: 'center', flexShrink: 0 }}>{f.icon}</span>
-              <span style={{ fontWeight: 700, fontSize: 14, color: 'var(--color-text-main)' }}>{ja ? f.ja : f.en}</span>
+          {grouped.map(({ lv, exams }) => (
+            <div key={lv} style={{ marginBottom: 18 }}>
+              <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: '.06em', textTransform: 'uppercase', color: OB_LEVEL_COLOR[lv], marginBottom: 8 }}>{lv}</div>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 7 }}>
+                {exams.map(exam => {
+                  const cfg = EXAM_CONFIGS[exam];
+                  const isSelected = selected === exam;
+                  return (
+                    <button
+                      key={exam}
+                      onClick={() => handleSelect(exam)}
+                      style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '10px 14px', borderRadius: 10, cursor: 'pointer', textAlign: 'left', background: isSelected ? 'var(--color-primary-light)' : 'var(--color-bg-card)', border: `2px solid ${isSelected ? 'var(--color-primary)' : 'var(--color-border)'}`, transition: 'border-color .15s, background .15s' }}
+                    >
+                      <div style={{ flex: 1, minWidth: 0 }}>
+                        <div style={{ fontWeight: 700, fontSize: 13, color: 'var(--color-text-main)' }}>{cfg.examCode}</div>
+                        <div style={{ fontSize: 11, color: 'var(--color-text-sub)', marginTop: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{OB_SHORT[exam]}</div>
+                      </div>
+                      {isSelected && (
+                        <span style={{ color: 'var(--color-primary)', flexShrink: 0, display: 'flex' }}><IconCheck size={18} /></span>
+                      )}
+                    </button>
+                  );
+                })}
+              </div>
             </div>
           ))}
-
-          <div style={{ marginTop: 28, width: '100%' }}>
-            <Button variant="primary" fullWidth onClick={() => setSlide(1)} size="lg">
-              {ja ? '目標資格を設定する →' : 'Set Target Exam →'}
-            </Button>
-            <button onClick={onSkip} style={{
-              display: 'block', margin: '14px auto 0', background: 'none', border: 'none',
-              color: 'var(--color-text-light)', fontSize: 13, cursor: 'pointer', padding: '4px 0',
-            }}>
-              {ja ? '後で設定する' : 'Set up later'}
-            </button>
-          </div>
         </div>
-      )}
+      </div>
 
-      {/* ── スライド 1: 資格選択 ── */}
-      {slide === 1 && (
-        <>
-          <div style={{
-            flex: 1, display: 'flex', flexDirection: 'column',
-            padding: '32px 24px 0', maxWidth: 560, margin: '0 auto', width: '100%',
-          }}>
-            <h2 style={{ fontSize: 20, fontWeight: 800, color: 'var(--color-text-main)', margin: '0 0 6px' }}>
-              {ja ? '目指すAWS資格を選んでください' : 'Select your target exam'}
-            </h2>
-            <p style={{ fontSize: 12, color: 'var(--color-text-sub)', margin: '0 0 20px' }}>
-              {ja ? '後からホーム画面でいつでも変更できます' : 'You can change this anytime on the home screen'}
-            </p>
-
-            {/* 資格グループ */}
-            <div style={{ flex: 1, overflowY: 'auto', paddingBottom: 160 }}>
-              {grouped.map(({ lv, exams }) => (
-                <div key={lv} style={{ marginBottom: 18 }}>
-                  <div style={{
-                    fontSize: 11, fontWeight: 700, letterSpacing: '.06em', textTransform: 'uppercase',
-                    color: OB_LEVEL_COLOR[lv], marginBottom: 8,
-                  }}>{lv}</div>
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: 7 }}>
-                    {exams.map(exam => {
-                      const cfg = EXAM_CONFIGS[exam];
-                      const isSelected = selected === exam;
-                      return (
-                        <button
-                          key={exam}
-                          onClick={() => handleSelect(exam)}
-                          style={{
-                            display: 'flex', alignItems: 'center', gap: 12,
-                            padding: '10px 14px', borderRadius: 10, cursor: 'pointer', textAlign: 'left',
-                            background: isSelected ? 'var(--color-primary-light)' : 'var(--color-bg-card)',
-                            border: `2px solid ${isSelected ? 'var(--color-primary)' : 'var(--color-border)'}`,
-                            transition: 'border-color .15s, background .15s',
-                          }}
-                        >
-                          <div style={{ flex: 1, minWidth: 0 }}>
-                            <div style={{ fontWeight: 700, fontSize: 13, color: 'var(--color-text-main)' }}>
-                              {cfg.examCode}
-                            </div>
-                            <div style={{ fontSize: 11, color: 'var(--color-text-sub)', marginTop: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                              {OB_SHORT[exam]}
-                            </div>
-                          </div>
-                          {isSelected && (
-                            <span style={{ color: 'var(--color-primary)', flexShrink: 0, display: 'flex' }}>
-                              <IconCheck size={18} />
-                            </span>
-                          )}
-                        </button>
-                      );
-                    })}
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-
-          {/* 固定フッター: 決定ボタン + 戻る/スキップ + 進捗ドット */}
-          <div style={{
-            position: 'fixed', bottom: 0, left: 0, right: 0,
-            background: 'var(--color-bg-main)',
-            borderTop: '1px solid var(--color-border)',
-          }}>
-            <div style={{ maxWidth: 560, margin: '0 auto', padding: '16px 24px 24px' }}>
-              <Button
-                variant="primary" fullWidth size="lg"
-                onClick={handleComplete}
-                style={selected ? {} : { opacity: 0.45, pointerEvents: 'none' }}
-              >
-                {ja ? '設定して始める' : 'Start with this exam'}
-              </Button>
-              <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: 12 }}>
-                <button onClick={() => setSlide(0)} style={{ background: 'none', border: 'none', color: 'var(--color-text-light)', fontSize: 13, cursor: 'pointer', padding: '4px 0' }}>
-                  ← {ja ? '戻る' : 'Back'}
-                </button>
-                <button onClick={onSkip} style={{ background: 'none', border: 'none', color: 'var(--color-text-light)', fontSize: 13, cursor: 'pointer', padding: '4px 0' }}>
-                  {ja ? '後で設定する' : 'Set up later'}
-                </button>
-              </div>
-              <div style={{ display: 'flex', justifyContent: 'center', gap: 6, marginTop: 14 }}>
-                {[0, 1].map(i => (
-                  <div key={i} style={{
-                    width: i === slide ? 18 : 6, height: 6, borderRadius: 3,
-                    background: i === slide ? 'var(--color-primary)' : 'var(--color-border)',
-                    transition: 'width .2s',
-                  }} />
-                ))}
-              </div>
-            </div>
-          </div>
-        </>
-      )}
+      {/* 固定フッター */}
+      <div style={{ position: 'fixed', bottom: 0, left: 0, right: 0, background: 'var(--color-bg-main)', borderTop: '1px solid var(--color-border)' }}>
+        <div style={{ maxWidth: 560, margin: '0 auto', padding: '16px 24px 24px' }}>
+          <Button variant="primary" fullWidth size="lg" onClick={handleComplete} style={selected ? {} : { opacity: 0.45, pointerEvents: 'none' }}>
+            {ja ? '設定して始める' : 'Start with this exam'}
+          </Button>
+        </div>
+      </div>
     </div>,
-    document.body,
+    document.body
   );
 }
+
 
 type DailyService = {
   serviceId: string; name: string; shortName?: string; category?: string;
@@ -2435,7 +2344,6 @@ export default function Home() {
             setShowOnboarding(false);
             if (user) syncTargetExamToServer(user.userId, uid, exam);
           }}
-          onSkip={() => setShowOnboarding(false)}
         />
       )}
       {(quickLoading || focusedLoading) && <div style={{ position: 'fixed', inset: 0, zIndex: 9000, cursor: 'wait' }} onTouchStart={e => e.stopPropagation()} onTouchMove={e => e.stopPropagation()} onTouchEnd={e => e.stopPropagation()} />}
