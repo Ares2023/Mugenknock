@@ -3,8 +3,7 @@ import { Helmet } from 'react-helmet-async';
 import { Navigate, useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { useLanguage } from '../contexts/LanguageContext';
-import { useTheme } from '../contexts/ThemeContext';
-import { IconUser, IconSun, IconMoon } from '../components/Icons';
+import { IconUser } from '../components/Icons';
 
 const TEAL   = '#009E9E';
 const TEAL_D = '#007878';
@@ -47,33 +46,17 @@ const FEATURES: { ja_title: string; en_title: string; ja: string; en: string }[]
   },
 ];
 
-const EXAMS = [
-  { code: 'CLF', level: 'Foundational' },
-  { code: 'AIF', level: 'Foundational' },
-  { code: 'SAA', level: 'Associate' },
-  { code: 'DVA', level: 'Associate' },
-  { code: 'SOA', level: 'Associate' },
-  { code: 'DEA', level: 'Associate' },
-  { code: 'MLA', level: 'Associate' },
-  { code: 'SAP', level: 'Professional' },
-  { code: 'DOP', level: 'Professional' },
-  { code: 'GAI', level: 'Professional' },
-  { code: 'ANS', level: 'Specialty' },
-  { code: 'SCS', level: 'Specialty' },
+const LEVELS: { level: string; ja: string; codes: string[] }[] = [
+  { level: 'Foundational', ja: 'Foundational（基礎）', codes: ['CLF', 'AIF'] },
+  { level: 'Associate',    ja: 'Associate（アソシエイト）',   codes: ['SAA', 'DVA', 'SOA', 'DEA', 'MLA'] },
+  { level: 'Professional', ja: 'Professional（プロフェッショナル）', codes: ['SAP', 'DOP', 'GAI'] },
+  { level: 'Specialty',    ja: 'Specialty（スペシャリティ）', codes: ['ANS', 'SCS'] },
 ];
-
-const LEVEL_COLOR: Record<string, string> = {
-  Foundational: '#6b9e3a',
-  Associate:    TEAL,
-  Professional: '#8b5cf6',
-  Specialty:    '#e67e22',
-};
 
 export default function Portal() {
   const navigate = useNavigate();
   const { user, loading } = useAuth();
-  const { lang, setLang } = useLanguage();
-  const { theme, toggleTheme } = useTheme();
+  const { lang } = useLanguage();
   const ja = lang === 'ja';
   const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
 
@@ -91,12 +74,10 @@ export default function Portal() {
     );
   }
 
-  // ログイン済み＆目標資格設定済み → 学習画面へ
   if (user && localStorage.getItem(`targetExam_${user.userId}`)) {
     return <Navigate to="/aws/" replace />;
   }
 
-  // 資格選択画面（オンボーディングモーダル）へ
   const handleStart = () => navigate('/aws/');
 
   return (
@@ -106,23 +87,14 @@ export default function Portal() {
         <meta name="description" content="AWS認定試験（SAA・CLF・SAPなど）の無料練習問題サービス。AI生成の本番同等問題2,600問以上、演習・模試・統計の3本柱でスコアアップをサポート。" />
       </Helmet>
 
-      {/* ── ヘッダー ── */}
-      <header style={{ height: 56, minHeight: 56, background: 'var(--color-bg-white)', display: 'flex', alignItems: 'center', padding: isMobile ? '0 12px' : '0 var(--spacing-lg)', gap: 'var(--spacing-md)', zIndex: 200, flexShrink: 0, borderBottom: '1px solid var(--color-border)' }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 6, userSelect: 'none', flexShrink: 0, padding: '0 4px' }}>
-          <img src="/mugen-icon.png"   alt="無限ノック" style={{ height: 28, width: 'auto', display: 'block', flexShrink: 0 }} />
-          <img src="/mugen-header.png" alt=""           style={{ height: 28, width: 'auto', display: 'block', flexShrink: 0 }} />
-        </div>
-        <div style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: 6 }}>
-          <button onClick={() => setLang(lang === 'ja' ? 'en' : 'ja')} style={{ background: 'transparent', border: '1px solid var(--color-border)', borderRadius: 'var(--border-radius-md)', cursor: 'pointer', color: 'var(--color-text-sub)', padding: '4px 10px', fontSize: 'var(--font-size-xs)', fontWeight: 700 }}>
-            {lang === 'ja' ? 'EN' : 'JA'}
-          </button>
-          <button onClick={toggleTheme} style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'transparent', border: '1px solid var(--color-border)', borderRadius: '50%', cursor: 'pointer', color: 'var(--color-text-sub)', width: 32, height: 32, padding: 0 }}>
-            {theme === 'dark' ? <IconSun /> : <IconMoon />}
-          </button>
-          <button onClick={() => navigate(user ? '/account' : '/login')} style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', background: user ? TEAL_L : 'transparent', border: '1px solid var(--color-border)', borderRadius: '50%', cursor: 'pointer', color: user ? TEAL : 'var(--color-text-sub)', width: 36, height: 36, padding: 0, fontSize: 14, fontWeight: 700 }}>
-            {user?.email ? user.email[0].toUpperCase() : <IconUser />}
-          </button>
-        </div>
+      {/* ── ヘッダー（アカウントボタンのみ） ── */}
+      <header style={{ height: 56, minHeight: 56, background: 'var(--color-bg-white)', display: 'flex', alignItems: 'center', justifyContent: 'flex-end', padding: isMobile ? '0 12px' : '0 var(--spacing-lg)', zIndex: 200, flexShrink: 0, borderBottom: '1px solid var(--color-border)' }}>
+        <button
+          onClick={() => navigate(user ? '/account' : '/login')}
+          style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', background: user ? TEAL_L : 'transparent', border: '1px solid var(--color-border)', borderRadius: '50%', cursor: 'pointer', color: user ? TEAL : 'var(--color-text-sub)', width: 36, height: 36, padding: 0, fontSize: 14, fontWeight: 700 }}
+        >
+          {user?.email ? user.email[0].toUpperCase() : <IconUser />}
+        </button>
       </header>
 
       <main style={{ flex: 1, overflowY: 'auto' }}>
@@ -165,7 +137,7 @@ export default function Portal() {
             </h2>
             <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
               {BENEFITS.map((b, i) => (
-                <div key={i} style={{ display: 'flex', alignItems: 'flex-start', gap: 14, background: 'var(--color-bg-white)', border: `1px solid ${TEAL_M}`, borderLeft: `4px solid ${TEAL}`, borderRadius: 8, padding: '14px 16px' }}>
+                <div key={i} style={{ display: 'flex', alignItems: 'flex-start', gap: 14, background: 'var(--color-bg-white)', border: '1px solid var(--color-border)', borderRadius: 8, padding: '14px 16px' }}>
                   <span style={{ flexShrink: 0, width: 24, height: 24, borderRadius: '50%', background: TEAL, color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 13, fontWeight: 800 }}>{i + 1}</span>
                   <p style={{ margin: 0, fontSize: isMobile ? 13 : 14, color: 'var(--color-text-sub)', lineHeight: 1.75 }}>
                     {ja ? b.ja : b.en}
@@ -182,7 +154,7 @@ export default function Portal() {
             </h2>
             <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : 'repeat(3, 1fr)', gap: 14 }}>
               {FEATURES.map((f, i) => (
-                <div key={i} style={{ background: 'var(--color-bg-white)', border: `1px solid ${TEAL_M}`, borderTop: `3px solid ${TEAL}`, borderRadius: 8, padding: '18px 16px' }}>
+                <div key={i} style={{ background: 'var(--color-bg-white)', border: '1px solid var(--color-border)', borderRadius: 8, padding: '18px 16px' }}>
                   <div style={{ fontSize: 13, fontWeight: 800, color: TEAL, marginBottom: 8 }}>
                     {ja ? f.ja_title : f.en_title}
                   </div>
@@ -194,29 +166,37 @@ export default function Portal() {
             </div>
           </section>
 
-          {/* ── 対応資格 ── */}
+          {/* ── 対応資格一覧 ── */}
           <section style={{ marginBottom: isMobile ? 40 : 56 }}>
-            <h2 style={{ fontSize: isMobile ? 17 : 22, fontWeight: 800, color: TEAL_D, margin: '0 0 20px', letterSpacing: '-0.3px' }}>
+            <h2 style={{ fontSize: isMobile ? 17 : 22, fontWeight: 800, color: TEAL_D, margin: '0 0 4px', letterSpacing: '-0.3px' }}>
               {ja ? '全12資格に対応' : 'All 12 AWS Certifications'}
             </h2>
-            <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
-              {EXAMS.map(({ code, level }) => (
-                <div key={code} style={{ display: 'inline-flex', alignItems: 'center', gap: 6, background: 'var(--color-bg-white)', border: `1px solid ${TEAL_M}`, borderRadius: 6, padding: '5px 10px' }}>
-                  <span style={{ fontSize: 13, fontWeight: 800, color: TEAL_D }}>{code}</span>
-                  <span style={{ width: 6, height: 6, borderRadius: '50%', background: LEVEL_COLOR[level], flexShrink: 0 }} />
+            <a
+              href="https://aws.amazon.com/jp/certification/"
+              target="_blank"
+              rel="noopener noreferrer"
+              style={{ display: 'inline-flex', alignItems: 'center', gap: 4, fontSize: 12, color: TEAL, textDecoration: 'none', marginBottom: 20 }}
+            >
+              {ja ? 'AWS認定資格一覧（公式サイト）' : 'AWS Certifications (Official)'}
+              <span style={{ fontSize: 10 }}>↗</span>
+            </a>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+              {LEVELS.map(({ level, ja: jaLabel, codes }) => (
+                <div key={level}>
+                  <div style={{ fontSize: 11, fontWeight: 700, color: 'var(--color-text-sub)', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 8 }}>
+                    {ja ? jaLabel : level}
+                  </div>
+                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
+                    {codes.map(code => (
+                      <div key={code} style={{ display: 'inline-flex', alignItems: 'center', background: 'var(--color-bg-white)', border: '1px solid var(--color-border)', borderRadius: 6, padding: '5px 12px' }}>
+                        <span style={{ fontSize: 13, fontWeight: 800, color: TEAL_D }}>{code}</span>
+                      </div>
+                    ))}
+                  </div>
                 </div>
               ))}
             </div>
-            <div style={{ display: 'flex', flexWrap: 'wrap', gap: 10, marginTop: 12 }}>
-              {(['Foundational', 'Associate', 'Professional', 'Specialty'] as const).map(lv => (
-                <span key={lv} style={{ display: 'inline-flex', alignItems: 'center', gap: 5, fontSize: 11, color: 'var(--color-text-light)' }}>
-                  <span style={{ width: 7, height: 7, borderRadius: '50%', background: LEVEL_COLOR[lv], display: 'inline-block' }} />
-                  {lv}
-                </span>
-              ))}
-            </div>
           </section>
-
 
         </div>
       </main>
