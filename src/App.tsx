@@ -28,6 +28,8 @@ import Others from './pages/Others';
 import About from './pages/About';
 import Practice from './pages/Practice';
 import ServiceEncyclopedia from './pages/ServiceEncyclopedia';
+import PublicEncyclopedia from './pages/PublicEncyclopedia';
+import SampleQuiz from './pages/SampleQuiz';
 import ConfirmDelete from './pages/ConfirmDelete';
 import ExamDashboard from './pages/ExamDashboard';
 
@@ -82,7 +84,10 @@ function AppInner() {
           <Route path="/aws/release-notes" element={<TargetExamRoute><Layout><ReleaseNotes /></Layout></TargetExamRoute>} />
           <Route path="/aws/others" element={<TargetExamRoute><Layout><Others /></Layout></TargetExamRoute>} />
           <Route path="/aws/exam-dashboard" element={<TargetExamRoute><ExamDashboard /></TargetExamRoute>} />
-<Route path="/about" element={<Layout><About /></Layout>} />
+          <Route path="/encyclopedia" element={<PublicEncyclopedia />} />
+          <Route path="/sample" element={<SampleQuiz />} />
+          <Route path="/sample/:exam" element={<SampleQuiz />} />
+          <Route path="/about" element={<Layout><About /></Layout>} />
           <Route path="/confirm-delete" element={<ConfirmDelete />} />
           <Route path="/admin" element={
             <AdminRoute><AdminLayout><Admin /></AdminLayout></AdminRoute>
