@@ -87,6 +87,12 @@ export default function ServiceEncyclopedia() {
           localStorage.setItem('encyclopediaServices', JSON.stringify(mergedSvcs));
           setStoredServices(mergedSvcs);
         }
+        // todayServiceId・unlockDate をローカルに復元（ローカルデータ削除後の今日のカード復旧）
+        const jstDate = new Date(Date.now() + 9 * 3600 * 1000).toISOString().slice(0, 10);
+        if (data.todayServiceId && data.unlockDate === jstDate && !localStorage.getItem(`encyclopediaTodayServiceId_${uid}`)) {
+          localStorage.setItem(`encyclopediaTodayServiceId_${uid}`, data.todayServiceId);
+          localStorage.setItem(`encyclopediaUnlockDate_${uid}`, data.unlockDate);
+        }
         const local = (() => { try { return JSON.parse(localStorage.getItem(`encyclopediaUnlocked_${uid}`) ?? '{}'); } catch { return {}; } })();
         // サーバーが空でローカルにデータがある場合はサーバーを正とみなす（管理者リセット後）
         if (Object.keys(data.unlocks).length === 0 && Object.keys(local).length > 0) {
@@ -108,6 +114,10 @@ export default function ServiceEncyclopedia() {
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ userId: user.userId, unlocks: merged, unlockDate, todayServiceId }),
           }).catch(() => {});
+        } else {
+          // unlocks に変化がない場合でも、localStorageのtodayServiceIdが復元されたならUIを再レンダリング
+          const restoredId = localStorage.getItem(`encyclopediaTodayServiceId_${uid}`);
+          if (restoredId) setUnlockedMap({ ...local });
         }
       })
       .catch(() => {});
