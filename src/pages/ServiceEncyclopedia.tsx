@@ -119,6 +119,26 @@ export default function ServiceEncyclopedia() {
           const restoredId = localStorage.getItem(`encyclopediaTodayServiceId_${uid}`);
           if (restoredId) setUnlockedMap({ ...local });
         }
+        // 解放済みだがstoredServicesにないサービスをCATALOGのアイコンで補完
+        // APIレスポンスのservicesに含まれなかったIDでもアイコンを即時表示するため
+        const latestSvcs: Record<string, EncyclopediaService> = (() => {
+          try { return JSON.parse(localStorage.getItem('encyclopediaServices') ?? '{}'); } catch { return {}; }
+        })();
+        const allCatalogEntries = CATALOG.flatMap(c => c.services.map(s => ({ ...s, category: c.category })));
+        const supplemented = { ...latestSvcs };
+        let needsUpdate = false;
+        for (const id of Object.keys(merged)) {
+          if (!id || id === '_schedule_' || supplemented[id]) continue;
+          const entry = allCatalogEntries.find(s => s.serviceIds?.includes(id));
+          if (entry?.icon) {
+            supplemented[id] = { serviceId: id, name: entry.name, icon: entry.icon, description: '', category: entry.category };
+            needsUpdate = true;
+          }
+        }
+        if (needsUpdate) {
+          localStorage.setItem('encyclopediaServices', JSON.stringify(supplemented));
+          setStoredServices(supplemented);
+        }
       })
       .catch(() => {});
   }, [user?.userId]); // eslint-disable-line react-hooks/exhaustive-deps
