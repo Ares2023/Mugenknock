@@ -849,12 +849,13 @@ function TodayServiceSection({ lang, userId, onNavigateEncyclopedia, onReveal, i
   };
 
   const handleReveal = () => {
-    if (!service || revealed) return;
+    const svc = rerolledService ?? service;
+    if (!svc || revealed) return;
     const uid = userId ?? 'guest';
-    saveToEncyclopedia(service, uid);
+    saveToEncyclopedia(svc, uid);
     if (userId) syncEncyclopediaToServer(userId, true);
     setRevealed(true);
-    onReveal(service);
+    onReveal(svc);
   };
 
   const calIcon = <IconCalendarNotebook size={13} />;
@@ -1204,6 +1205,9 @@ export default function Home() {
 
   useEffect(() => {
     if (!user || !targetExam) { setServerScoreHistory(null); setServerSessionHistory(null); setServerSessionScoreLog(null); return; }
+    // セッション完了直後かどうかを事前にチェック（非同期GETと追記useEffectの競合を防ぐ）
+    const addKey = `sessionScoreAdd_${targetExam}_${user.userId}`;
+    const hasPendingSession = !!localStorage.getItem(addKey);
     fetch(`${API_ENDPOINT}/users/me/score-history?userId=${user.userId}&examType=${targetExam}`)
       .then(r => r.json())
       .then(d => {
@@ -1225,8 +1229,11 @@ export default function Home() {
           }).catch(() => {});
         }
         setServerScoreHistory(uploadSH);
-        setServerSessionHistory(uploadSSH);
-        setServerSessionScoreLog(uploadSSL);
+        // セッション完了フラグがある場合、sessionScoreHistory は後続のuseEffectで追記されるため上書きしない
+        if (!hasPendingSession) {
+          setServerSessionHistory(uploadSSH);
+          setServerSessionScoreLog(uploadSSL);
+        }
       })
       .catch(() => { setServerScoreHistory(null); setServerSessionHistory(null); setServerSessionScoreLog(null); });
   }, [user, targetExam]); // eslint-disable-line react-hooks/exhaustive-deps

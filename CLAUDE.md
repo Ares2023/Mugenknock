@@ -74,8 +74,21 @@
 - AWS CLI: `/home/yuzuki/local/bin/aws`（グローバルにインストールされていない）
 
 ## アイコンの取得先
+
+### UIアイコン（Lucide）
 - Lucide（https://lucide.dev/icons/）からSVGパスを取得してコンポーネント化する
 - 定義場所：`src/components/Icons.tsx`
+
+### AWSサービスアイコン（`public/icons/aws/`）
+- **形式**：80×80px SVG（優先） + 64×64px PNG（フォールバック）
+- **SVG入手元**：https://github.com/weibeld/aws-icons-svg （AWS公式アーキテクチャアイコンのミラー）
+  - ファイルは `Arch_<ServiceName>_64.svg` のような名前で公開されている
+  - ダウンロード後、ファイル名を `public/icons/aws/<DisplayName>.svg` に合わせてリネームする
+- **PNG入手元**：AWS公式アーキテクチャアイコン ZIP（https://aws.amazon.com/architecture/icons/）
+  - ZIPを展開し、64pxサイズのPNGを取り出してリネームする
+- **表示ロジック**：`ServiceIconUrl`（`src/components/Icons.tsx`）がSVGを優先しPNGにフォールバック
+  - SVGがない場合は64px PNGが拡大されてぼやけるため、SVGを用意すること
+- **新しいサービスを追加する際**：SVGとPNGの両方を配置し、`awsServiceCatalog.ts` の `icon` フィールドに `/icons/aws/<Name>.png` を設定する
 
 ## ボタンデザインルール
 
