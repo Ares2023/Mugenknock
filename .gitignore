@@ -70,3 +70,5 @@ e2e/.auth/
 e2e/test-results/
 e2e/reports/
 e2e/screenshots/
+.next/
+out/

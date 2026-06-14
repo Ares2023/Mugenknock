@@ -1,3 +1,4 @@
+'use client';
 import React, { useState } from 'react';
 import { API_ENDPOINT } from '../constants';
 import Button from './ui/Button';

@@ -1,7 +1,7 @@
 import React from 'react';
-import { HelmetProvider } from 'react-helmet-async';
+import { HelmetProvider } from '@/compat/react-helmet-async';
 import ErrorBoundary from './components/ErrorBoundary';
-import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
+import { BrowserRouter, Routes, Route, Navigate } from '@/compat/react-router-dom';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
 import { LanguageProvider, useLanguage } from './contexts/LanguageContext';
 import { ThemeProvider } from './contexts/ThemeContext';

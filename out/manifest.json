@@ -1,0 +1,20 @@
+{
+  "short_name": "無限ノック",
+  "name": "無限ノック",
+  "icons": [
+    {
+      "src": "mugen-icon.png",
+      "type": "image/png",
+      "sizes": "192x192"
+    },
+    {
+      "src": "mugen-icon.png",
+      "type": "image/png",
+      "sizes": "512x512"
+    }
+  ],
+  "start_url": ".",
+  "display": "standalone",
+  "theme_color": "#232f3e",
+  "background_color": "#f2f3f3"
+}

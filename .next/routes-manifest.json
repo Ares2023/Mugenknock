@@ -1,0 +1,207 @@
+{
+  "version": 3,
+  "pages404": true,
+  "caseSensitive": false,
+  "basePath": "",
+  "redirects": [
+    {
+      "source": "/:file((?!\\.well-known(?:/.*)?)(?:[^/]+/)*[^/]+\\.\\w+)/",
+      "destination": "/:file",
+      "internal": true,
+      "missing": [
+        {
+          "type": "header",
+          "key": "x-nextjs-data"
+        }
+      ],
+      "statusCode": 308,
+      "regex": "^(?:/((?!\\.well-known(?:/.*)?)(?:[^/]+/)*[^/]+\\.\\w+))/$"
+    },
+    {
+      "source": "/:notfile((?!\\.well-known(?:/.*)?)(?:[^/]+/)*[^/\\.]+)",
+      "destination": "/:notfile/",
+      "internal": true,
+      "statusCode": 308,
+      "regex": "^(?:/((?!\\.well-known(?:/.*)?)(?:[^/]+/)*[^/\\.]+))$"
+    }
+  ],
+  "headers": [],
+  "rewrites": {
+    "beforeFiles": [],
+    "afterFiles": [],
+    "fallback": []
+  },
+  "dynamicRoutes": [
+    {
+      "page": "/sample/[exam]",
+      "regex": "^/sample/([^/]+?)(?:/)?$",
+      "routeKeys": {
+        "nxtPexam": "nxtPexam"
+      },
+      "namedRegex": "^/sample/(?<nxtPexam>[^/]+?)(?:/)?$"
+    }
+  ],
+  "staticRoutes": [
+    {
+      "page": "/",
+      "regex": "^/(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/(?:/)?$"
+    },
+    {
+      "page": "/_not-found",
+      "regex": "^/_not\\-found(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/_not\\-found(?:/)?$"
+    },
+    {
+      "page": "/about",
+      "regex": "^/about(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/about(?:/)?$"
+    },
+    {
+      "page": "/account",
+      "regex": "^/account(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/account(?:/)?$"
+    },
+    {
+      "page": "/admin",
+      "regex": "^/admin(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/admin(?:/)?$"
+    },
+    {
+      "page": "/admin-login",
+      "regex": "^/admin\\-login(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/admin\\-login(?:/)?$"
+    },
+    {
+      "page": "/aws",
+      "regex": "^/aws(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/aws(?:/)?$"
+    },
+    {
+      "page": "/aws/encyclopedia",
+      "regex": "^/aws/encyclopedia(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/aws/encyclopedia(?:/)?$"
+    },
+    {
+      "page": "/aws/exam/session",
+      "regex": "^/aws/exam/session(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/aws/exam/session(?:/)?$"
+    },
+    {
+      "page": "/aws/exam/setup",
+      "regex": "^/aws/exam/setup(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/aws/exam/setup(?:/)?$"
+    },
+    {
+      "page": "/aws/exam-dashboard",
+      "regex": "^/aws/exam\\-dashboard(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/aws/exam\\-dashboard(?:/)?$"
+    },
+    {
+      "page": "/aws/exercise/session",
+      "regex": "^/aws/exercise/session(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/aws/exercise/session(?:/)?$"
+    },
+    {
+      "page": "/aws/exercise/setup",
+      "regex": "^/aws/exercise/setup(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/aws/exercise/setup(?:/)?$"
+    },
+    {
+      "page": "/aws/growth",
+      "regex": "^/aws/growth(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/aws/growth(?:/)?$"
+    },
+    {
+      "page": "/aws/mypage",
+      "regex": "^/aws/mypage(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/aws/mypage(?:/)?$"
+    },
+    {
+      "page": "/aws/others",
+      "regex": "^/aws/others(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/aws/others(?:/)?$"
+    },
+    {
+      "page": "/aws/practice",
+      "regex": "^/aws/practice(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/aws/practice(?:/)?$"
+    },
+    {
+      "page": "/aws/release-notes",
+      "regex": "^/aws/release\\-notes(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/aws/release\\-notes(?:/)?$"
+    },
+    {
+      "page": "/aws/result",
+      "regex": "^/aws/result(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/aws/result(?:/)?$"
+    },
+    {
+      "page": "/aws/stats",
+      "regex": "^/aws/stats(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/aws/stats(?:/)?$"
+    },
+    {
+      "page": "/confirm-delete",
+      "regex": "^/confirm\\-delete(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/confirm\\-delete(?:/)?$"
+    },
+    {
+      "page": "/encyclopedia",
+      "regex": "^/encyclopedia(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/encyclopedia(?:/)?$"
+    },
+    {
+      "page": "/login",
+      "regex": "^/login(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/login(?:/)?$"
+    },
+    {
+      "page": "/sample",
+      "regex": "^/sample(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/sample(?:/)?$"
+    }
+  ],
+  "dataRoutes": [],
+  "rsc": {
+    "header": "rsc",
+    "varyHeader": "rsc, next-router-state-tree, next-router-prefetch, next-router-segment-prefetch",
+    "prefetchHeader": "next-router-prefetch",
+    "didPostponeHeader": "x-nextjs-postponed",
+    "contentTypeHeader": "text/x-component",
+    "suffix": ".rsc",
+    "prefetchSuffix": ".prefetch.rsc",
+    "prefetchSegmentHeader": "next-router-segment-prefetch",
+    "prefetchSegmentSuffix": ".segment.rsc",
+    "prefetchSegmentDirSuffix": ".segments"
+  },
+  "rewriteHeaders": {
+    "pathHeader": "x-nextjs-rewritten-path",
+    "queryHeader": "x-nextjs-rewritten-query"
+  }
+}

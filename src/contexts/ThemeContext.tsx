@@ -1,3 +1,4 @@
+'use client';
 import React, { createContext, useContext, useState, useLayoutEffect, useEffect, useCallback } from 'react';
 import { API_ENDPOINT } from '../constants';
 import { useAuth } from './AuthContext';
@@ -43,10 +44,28 @@ export const ThemeProvider = ({ children }: { children: React.ReactNode }) => {
   const { user } = useAuth();
   const uid = user?.userId;
 
-  const [theme, setTheme] = useState<Theme>(() => {
+  const [theme, setTheme] = useState<Theme>('light');
+  const [customColors, setCustomColors] = useState<CustomColors>({});
+  const [customColorsEnabled, setCustomColorsEnabledState] = useState<boolean>(true);
+
+  // クライアントサイドでlocalStorageから初期値を復元
+  useEffect(() => {
     const saved = localStorage.getItem('theme');
-    return saved === 'dark' ? 'dark' : 'light';
-  });
+    if (saved === 'dark' || saved === 'light') setTheme(saved as Theme);
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+
+  useEffect(() => {
+    try {
+      const cached = localStorage.getItem(CACHE_KEY);
+      if (cached) {
+        const { colors, enabled, ts } = JSON.parse(cached);
+        if (Date.now() - ts < CACHE_TTL) {
+          if (colors) setCustomColors(colors);
+          if (typeof enabled === 'boolean') setCustomColorsEnabledState(enabled);
+        }
+      }
+    } catch {}
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   // uidが確定・変更したらアカウント別設定を適用
   useEffect(() => {
@@ -54,28 +73,6 @@ export const ThemeProvider = ({ children }: { children: React.ReactNode }) => {
     const saved = localStorage.getItem(`theme_${uid}`);
     if (saved === 'dark' || saved === 'light') setTheme(saved as Theme);
   }, [uid]);
-
-  const [customColors, setCustomColors] = useState<CustomColors>(() => {
-    try {
-      const cached = localStorage.getItem(CACHE_KEY);
-      if (cached) {
-        const { colors, ts } = JSON.parse(cached);
-        if (Date.now() - ts < CACHE_TTL) return colors ?? {};
-      }
-    } catch {}
-    return {};
-  });
-
-  const [customColorsEnabled, setCustomColorsEnabledState] = useState<boolean>(() => {
-    try {
-      const cached = localStorage.getItem(CACHE_KEY);
-      if (cached) {
-        const { enabled, ts } = JSON.parse(cached);
-        if (Date.now() - ts < CACHE_TTL && typeof enabled === 'boolean') return enabled;
-      }
-    } catch {}
-    return true;
-  });
 
   useLayoutEffect(() => {
     document.documentElement.setAttribute('data-theme', theme);
