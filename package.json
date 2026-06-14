@@ -36,7 +36,9 @@
     "e2e:noauth": "bash e2e/run.sh noauth",
     "e2e:visual": "bash e2e/run.sh visual",
     "e2e:ui": "bash e2e/run.sh ui",
-    "e2e:report": "npx playwright show-report e2e/reports"
+    "e2e:report": "npx playwright show-report e2e/reports",
+    "deploy": "npm run build && wrangler deploy",
+    "preview": "npm run build && wrangler dev"
   },
   "eslintConfig": {
     "extends": [
@@ -61,6 +63,7 @@
     "@aws-amplify/backend-cli": "^1.8.2",
     "@playwright/test": "^1.60.0",
     "@types/react-router-dom": "^5.3.3",
-    "aws-cdk": "^2.1124.1"
+    "aws-cdk": "^2.1124.1",
+    "wrangler": "^4.100.0"
   }
 }
