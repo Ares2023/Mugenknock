@@ -1,0 +1,843 @@
+'use client';
+import React, { useEffect, useState, useCallback } from 'react';
+import { Helmet } from '@/compat/react-helmet-async';
+import { useNavigate } from '@/compat/react-router-dom';
+import { API_ENDPOINT, EXAM_DOMAINS, EXAM_TYPES, DOMAIN_NAME_EN, EXAM_CONFIGS, DOMAIN_RATE_WARNING, DOMAIN_RATE_CAUTION } from '../constants';
+import { syncPreferencesToServer, collectExamDatesFromLocal } from '../utils/preferences';
+import { useAuth } from '../contexts/AuthContext';
+import { useLanguage } from '../contexts/LanguageContext';
+import Card from '../components/ui/Card';
+import Button from '../components/ui/Button';
+import {
+  IconCalendarNotebook, IconTarget, IconAnnoyed, IconList,
+  IconSparkles, IconChevronRight, IconChevronDown, IconLock, IconFlag, IconStar,
+} from '../components/Icons';
+
+const FOCUSED_UNLOCK_THRESHOLD = 30;
+
+type Session = {
+  sessionId: string;
+  examType: string;
+  mode: string;
+  score: number;
+  isPassed: boolean;
+  startedAt: string;
+  endedAt?: string;
+  isMini?: boolean;
+  isFocused?: boolean;
+  questionIds?: string[];
+};
+
+type AnswerRecord = {
+  questionId: string;
+  questionText: string;
+  isCorrect: boolean;
+  answeredAt: string;
+};
+
+type WeakQuestion = {
+  questionId: string;
+  questionText: string;
+  correctCount: number;
+  incorrectCount: number;
+};
+
+type DomainStat = {
+  tagId: string;
+  correctCount?: number;
+  incorrectCount?: number;
+  recentResults?: boolean[];
+};
+
+function jstToday(): string {
+  return new Date(Date.now() + 9 * 3600 * 1000).toISOString().slice(0, 10);
+}
+
+function daysUntil(dateStr: string): number {
+  const examDate = new Date(dateStr + 'T00:00:00+09:00');
+  const today = new Date(new Date(Date.now() + 9 * 3600 * 1000).toISOString().slice(0, 10) + 'T00:00:00+09:00');
+  return Math.round((examDate.getTime() - today.getTime()) / 86400000);
+}
+
+export default function MyPage() {
+  const { user } = useAuth();
+  const { lang } = useLanguage();
+  const navigate = useNavigate();
+  const ja = lang === 'ja';
+  const uid = user?.userId ?? 'guest';
+  const isMobile = window.innerWidth < 768;
+
+  const [tab, setTab] = useState<'target' | 'analysis' | 'history'>('target');
+  const [showSettingsEdit, setShowSettingsEdit] = useState(false);
+  const [editExamDate, setEditExamDate] = useState('');
+  const [editDailyGoal, setEditDailyGoal] = useState(10); // min=10
+
+  // ── ターゲット試験 ──
+  const [targetExam, setTargetExam] = useState<string | null>(() => localStorage.getItem(`targetExam_${uid}`));
+  useEffect(() => {
+    const saved = localStorage.getItem(`targetExam_${uid}`);
+    setTargetExam(saved);
+  }, [uid]);
+
+  // ── 受験日 ──
+  const [examDate, setExamDate] = useState<string>(() =>
+    targetExam ? (localStorage.getItem(`examDate_${targetExam}_${uid}`) ?? '') : ''
+  );
+  useEffect(() => {
+    if (targetExam) setExamDate(localStorage.getItem(`examDate_${targetExam}_${uid}`) ?? '');
+    else setExamDate('');
+  }, [targetExam, uid]);
+
+  const handleExamDateChange = (v: string) => {
+    setExamDate(v);
+    if (!targetExam) return;
+    if (v) localStorage.setItem(`examDate_${targetExam}_${uid}`, v);
+    else localStorage.removeItem(`examDate_${targetExam}_${uid}`);
+    window.dispatchEvent(new CustomEvent('examDateChanged', { detail: { examType: targetExam, date: v } }));
+    if (user) {
+      const examDates = collectExamDatesFromLocal(uid, EXAM_TYPES);
+      syncPreferencesToServer(user.userId, uid, { examDates });
+    }
+  };
+
+  const remainingDays = examDate ? daysUntil(examDate) : null;
+
+  // ── 日次目標 ──
+  const [dailyGoal, setDailyGoal] = useState<number>(() =>
+    Math.max(10, parseInt(localStorage.getItem(`dailyGoal_${uid}`) ?? '10', 10))
+  );
+  const handleDailyGoalChange = (v: number) => {
+    setDailyGoal(v);
+    localStorage.setItem(`dailyGoal_${uid}`, String(v));
+    if (user) syncPreferencesToServer(user.userId, uid, { dailyGoal: v });
+  };
+
+  // ── サーバーから設定を読み込み（ログイン時のデバイス間同期） ──
+  useEffect(() => {
+    if (!user) return;
+    fetch(`${API_ENDPOINT}/users/me/preferences?userId=${encodeURIComponent(user.userId)}`)
+      .then(r => r.json())
+      .then(data => {
+        // 受験日
+        const examDates: Record<string, string> = data.examDates ?? {};
+        for (const [et, date] of Object.entries(examDates)) {
+          if (!date) continue;
+          const key = `examDate_${et}_${uid}`;
+          if (localStorage.getItem(key) !== date) {
+            localStorage.setItem(key, date);
+            window.dispatchEvent(new CustomEvent('examDateChanged', { detail: { examType: et, date } }));
+          }
+        }
+        if (targetExam && examDates[targetExam]) {
+          setExamDate(examDates[targetExam]);
+        }
+        // 目標演習量
+        if (data.dailyGoal != null) {
+          const serverGoal = Number(data.dailyGoal);
+          localStorage.setItem(`dailyGoal_${uid}`, String(serverGoal));
+          setDailyGoal(serverGoal);
+        }
+      })
+      .catch(() => {});
+  }, [user?.userId]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // ── 週間達成度 ──
+  const weekDays = Array.from({ length: 7 }, (_, i) => {
+    const d = new Date(Date.now() + 9 * 3600 * 1000 - (6 - i) * 86400000);
+    return d.toISOString().slice(0, 10);
+  });
+  const weekCounts = weekDays.map(d => {
+    if (!targetExam) return 0;
+    return parseInt(localStorage.getItem(`dailyQCount_${targetExam}_${uid}_${d}`) ?? '0', 10);
+  });
+  const todayCount = weekCounts[6];
+
+  // ── ドメイン統計（苦手分析タブ） ──
+  const [domainStats, setDomainStats] = useState<DomainStat[]>([]);
+  const [answeredCount, setAnsweredCount] = useState(0);
+  const [statsLoading, setStatsLoading] = useState(false);
+
+  useEffect(() => {
+    if (tab !== 'analysis' || !user || !targetExam) return;
+    setStatsLoading(true);
+    Promise.all([
+      fetch(`${API_ENDPOINT}/users/me/stats?userId=${user.userId}`).then(r => r.json()),
+      fetch(`${API_ENDPOINT}/users/me/question-stats?userId=${user.userId}&examType=${targetExam}`).then(r => r.json()),
+    ]).then(([statsData, qData]) => {
+      setDomainStats(statsData.stats ?? []);
+      setAnsweredCount(qData.answeredCount ?? 0);
+    }).catch(() => {}).finally(() => setStatsLoading(false));
+  }, [tab, user, targetExam]);
+
+  const focusedUnlocked = !!user && answeredCount >= FOCUSED_UNLOCK_THRESHOLD;
+
+  // ── 頻出ミス問題（苦手分析タブ） ──
+  const [weakQuestions, setWeakQuestions] = useState<WeakQuestion[]>([]);
+  const [weakLoading, setWeakLoading] = useState(false);
+  const [weakLoaded, setWeakLoaded] = useState(false);
+
+  useEffect(() => {
+    if (tab !== 'analysis' || !user || !targetExam || !focusedUnlocked || weakLoaded) return;
+    setWeakLoading(true);
+    fetch(`${API_ENDPOINT}/users/me/weak-questions?userId=${user.userId}&examType=${targetExam}&minIncorrect=2`)
+      .then(r => r.json())
+      .then(d => { setWeakQuestions(d.items ?? []); setWeakLoaded(true); })
+      .catch(() => {})
+      .finally(() => setWeakLoading(false));
+  }, [tab, user, targetExam, focusedUnlocked, weakLoaded]);
+
+  // ── 弱問展開（苦手分析タブ） ──
+  const [expandedWeakQ, setExpandedWeakQ] = useState<string | null>(null);
+  const [weakQDetails, setWeakQDetails] = useState<Record<string, any>>({});
+  const [weakQDetailLoading, setWeakQDetailLoading] = useState<string | null>(null);
+
+  const handleToggleWeakQ = useCallback(async (qid: string) => {
+    if (expandedWeakQ === qid) { setExpandedWeakQ(null); return; }
+    setExpandedWeakQ(qid);
+    if (weakQDetails[qid] || weakQDetailLoading === qid) return;
+    setWeakQDetailLoading(qid);
+    try {
+      const res = await fetch(`${API_ENDPOINT}/questions/${qid}`);
+      const data = await res.json();
+      setWeakQDetails(prev => ({ ...prev, [qid]: data }));
+    } catch { setWeakQDetails(prev => ({ ...prev, [qid]: null })); }
+    finally { setWeakQDetailLoading(null); }
+  }, [expandedWeakQ, weakQDetails, weakQDetailLoading]);
+
+  // ── 演習履歴（履歴タブ） ──
+  const [sessions, setSessions] = useState<Session[]>([]);
+  const [histLoading, setHistLoading] = useState(false);
+  const [histLoaded, setHistLoaded] = useState(false);
+  const [expandedSession, setExpandedSession] = useState<string | null>(null);
+  const [sessionAnswers, setSessionAnswers] = useState<Record<string, AnswerRecord[]>>({});
+  const [answersLoading, setAnswersLoading] = useState<string | null>(null);
+  const [expandedAnswer, setExpandedAnswer] = useState<string | null>(null);
+  const [answerDetails, setAnswerDetails] = useState<Record<string, any>>({});
+  const [answerDetailLoading, setAnswerDetailLoading] = useState<string | null>(null);
+
+  const handleToggleAnswer = useCallback(async (qid: string) => {
+    if (expandedAnswer === qid) { setExpandedAnswer(null); return; }
+    setExpandedAnswer(qid);
+    if (answerDetails[qid] || answerDetailLoading === qid) return;
+    setAnswerDetailLoading(qid);
+    try {
+      const res = await fetch(`${API_ENDPOINT}/questions/${qid}`);
+      const data = await res.json();
+      setAnswerDetails(prev => ({ ...prev, [qid]: data }));
+    } catch { setAnswerDetails(prev => ({ ...prev, [qid]: null })); }
+    finally { setAnswerDetailLoading(null); }
+  }, [expandedAnswer, answerDetails, answerDetailLoading]);
+
+  // ── 問題詳細モーダル ──
+  const [questionModal, setQuestionModal] = useState<{ qid: string; detail: any | null; loading: boolean; isCorrect?: boolean } | null>(null);
+
+  const openWeakQModal = useCallback(async (qid: string) => {
+    const cached = weakQDetails[qid];
+    setQuestionModal({ qid, detail: cached ?? null, loading: !cached });
+    if (!cached && weakQDetailLoading !== qid) {
+      setWeakQDetailLoading(qid);
+      try {
+        const res = await fetch(`${API_ENDPOINT}/questions/${qid}`);
+        const data = await res.json();
+        setWeakQDetails(prev => ({ ...prev, [qid]: data }));
+        setQuestionModal(prev => prev?.qid === qid ? { ...prev, detail: data, loading: false } : prev);
+      } catch {
+        setWeakQDetails(prev => ({ ...prev, [qid]: null }));
+        setQuestionModal(prev => prev?.qid === qid ? { ...prev, loading: false } : prev);
+      } finally { setWeakQDetailLoading(null); }
+    }
+  }, [weakQDetails, weakQDetailLoading]);
+
+  const openAnswerModal = useCallback(async (qid: string, isCorrect: boolean) => {
+    const cached = answerDetails[qid];
+    setQuestionModal({ qid, detail: cached ?? null, loading: !cached, isCorrect });
+    if (!cached && answerDetailLoading !== qid) {
+      setAnswerDetailLoading(qid);
+      try {
+        const res = await fetch(`${API_ENDPOINT}/questions/${qid}`);
+        const data = await res.json();
+        setAnswerDetails(prev => ({ ...prev, [qid]: data }));
+        setQuestionModal(prev => prev?.qid === qid ? { ...prev, detail: data, loading: false } : prev);
+      } catch {
+        setAnswerDetails(prev => ({ ...prev, [qid]: null }));
+        setQuestionModal(prev => prev?.qid === qid ? { ...prev, loading: false } : prev);
+      } finally { setAnswerDetailLoading(null); }
+    }
+  }, [answerDetails, answerDetailLoading]);
+
+  // ── ブックマーク ──
+  const [bookmarkedIds, setBookmarkedIds] = useState<Set<string>>(new Set());
+  const [bookmarkOpLoading, setBookmarkOpLoading] = useState<Set<string>>(new Set());
+
+  useEffect(() => {
+    if (!user) return;
+    fetch(`${API_ENDPOINT}/users/me/bookmarks?userId=${user.userId}`)
+      .then(r => r.json())
+      .then(d => setBookmarkedIds(new Set(d.questionIds ?? [])))
+      .catch(() => {});
+  }, [user]);
+
+  const toggleBookmark = useCallback(async (qid: string) => {
+    if (!user || bookmarkOpLoading.has(qid)) return;
+    const isBookmarked = bookmarkedIds.has(qid);
+    setBookmarkOpLoading(prev => { const n = new Set(prev); n.add(qid); return n; });
+    try {
+      if (isBookmarked) {
+        await fetch(`${API_ENDPOINT}/questions/${qid}/bookmark?userId=${user.userId}`, { method: 'DELETE' });
+        setBookmarkedIds(prev => { const n = new Set(prev); n.delete(qid); return n; });
+      } else {
+        await fetch(`${API_ENDPOINT}/questions/${qid}/bookmark`, {
+          method: 'POST', headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ userId: user.userId }),
+        });
+        setBookmarkedIds(prev => { const n = new Set(prev); n.add(qid); return n; });
+      }
+    } catch {}
+    finally { setBookmarkOpLoading(prev => { const n = new Set(prev); n.delete(qid); return n; }); }
+  }, [user, bookmarkedIds, bookmarkOpLoading]);
+
+  useEffect(() => {
+    if (tab !== 'history' || !user || histLoaded) return;
+    setHistLoading(true);
+    fetch(`${API_ENDPOINT}/users/me/sessions?userId=${user.userId}&limit=10`)
+      .then(r => r.json())
+      .then(d => { setSessions(d.items ?? []); setHistLoaded(true); })
+      .catch(() => {})
+      .finally(() => setHistLoading(false));
+  }, [tab, user, histLoaded]);
+
+  const recentSessions = [...sessions]
+    .sort((a, b) => (a.endedAt || a.startedAt) > (b.endedAt || b.startedAt) ? -1 : 1)
+    .slice(0, 10);
+
+  const handleToggleSession = useCallback(async (s: Session) => {
+    if (!user) return;
+    if (expandedSession === s.sessionId) { setExpandedSession(null); return; }
+    setExpandedSession(s.sessionId);
+    if (sessionAnswers[s.sessionId] || answersLoading === s.sessionId) return;
+    setAnswersLoading(s.sessionId);
+    try {
+      const res = await fetch(`${API_ENDPOINT}/sessions/${s.sessionId}/answers?userId=${encodeURIComponent(user.userId)}`);
+      const data = await res.json();
+      setSessionAnswers(prev => ({ ...prev, [s.sessionId]: data.answers ?? [] }));
+    } catch { setSessionAnswers(prev => ({ ...prev, [s.sessionId]: [] })); }
+    finally { setAnswersLoading(null); }
+  }, [user, expandedSession, sessionAnswers, answersLoading]);
+
+  // ── UI helpers ──
+  const tabStyle = (active: boolean): React.CSSProperties => ({
+    flex: 1, padding: '10px 0', border: 'none', background: 'none', cursor: 'pointer',
+    fontSize: 'var(--font-size-base)', fontWeight: active ? 700 : 500,
+    color: active ? 'var(--color-primary)' : 'var(--color-text-sub)',
+    borderBottom: `2px solid ${active ? 'var(--color-primary)' : 'transparent'}`,
+    transition: 'color 0.15s, border-color 0.15s',
+  });
+
+  const domains = EXAM_DOMAINS[targetExam ?? ''] ?? [];
+
+  return (
+    <>
+      <Helmet>
+        <title>マイページ | 無限ノック</title>
+      </Helmet>
+
+      <div style={{ maxWidth: 900, margin: '0 auto', padding: 'var(--spacing-xl) var(--spacing-lg)' }} className="page-container">
+
+        {/* ── タブ ── */}
+        <div style={{ display: 'flex', borderBottom: '1px solid var(--color-border)', marginBottom: 'var(--spacing-lg)' }}>
+          <button style={tabStyle(tab === 'target')} onClick={() => setTab('target')}>{ja ? '目標' : 'Goals'}</button>
+          <button style={tabStyle(tab === 'analysis')} onClick={() => setTab('analysis')}>{ja ? '苦手分析' : 'Analysis'}</button>
+          <button style={tabStyle(tab === 'history')} onClick={() => setTab('history')}>{ja ? '履歴' : 'History'}</button>
+        </div>
+
+        {/* ════════ 目標タブ ════════ */}
+        {tab === 'target' && (
+          <>
+            {/* 目標資格カード（タップで資格ダッシュボードへ） */}
+            <Card style={{ marginBottom: 12, cursor: 'pointer' }} onClick={() => navigate('/aws/exam-dashboard')}>
+              {targetExam ? (
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                  <div>
+                    <div style={{ fontWeight: 700, fontSize: 16, color: 'var(--color-text-main)' }}>{targetExam}</div>
+                    <div style={{ fontSize: 12, color: 'var(--color-text-sub)', marginTop: 2 }}>{EXAM_CONFIGS[targetExam]?.fullName ?? ''}</div>
+                  </div>
+                  <span style={{ color: 'var(--color-primary)', fontSize: 22, fontWeight: 900, paddingLeft: 8 }}>›</span>
+                </div>
+              ) : (
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                  <span style={{ fontSize: 14, color: 'var(--color-text-light)' }}>{ja ? '目標資格を設定する' : 'Set target exam'}</span>
+                  <span style={{ color: 'var(--color-primary)', fontSize: 22, fontWeight: 900 }}>›</span>
+                </div>
+              )}
+            </Card>
+
+            {/* 設定カード（受験日・目標演習量） */}
+            <Card style={{ marginBottom: 12 }}>
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
+                <span style={{ fontWeight: 700, fontSize: 14 }}>{ja ? '設定' : 'Settings'}</span>
+                <button
+                  onClick={() => {
+                    setEditExamDate(examDate);
+                    setEditDailyGoal(dailyGoal);
+                    setShowSettingsEdit(true);
+                  }}
+                  style={{ width: 32, height: 32, borderRadius: '50%', border: '1px solid var(--color-border)', background: 'transparent', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--color-text-sub)' }}
+                  title={ja ? '編集' : 'Edit'}
+                >
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
+                    <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
+                  </svg>
+                </button>
+              </div>
+              {!targetExam ? (
+                <p style={{ margin: 0, fontSize: 13, color: 'var(--color-text-light)' }}>{ja ? '目標資格を設定してください' : 'Set a target exam first'}</p>
+              ) : (
+                <>
+                  {/* 受験日 */}
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10 }}>
+                    <span style={{ fontSize: 13, color: 'var(--color-text-sub)' }}>{ja ? '受験日' : 'Exam Date'}</span>
+                    <span style={{ fontSize: 13, fontWeight: 600, color: 'var(--color-text-main)' }}>
+                      {examDate ? (() => {
+                        if (remainingDays === 0) return <span style={{ color: 'var(--color-primary)' }}>試験当日！🔥</span>;
+                        if (remainingDays !== null && remainingDays > 0) return <span>{examDate.replace(/-/g, '/')}（<span style={{ color: 'var(--color-primary)', fontWeight: 700 }}>あと{remainingDays}日</span>）</span>;
+                        return examDate.replace(/-/g, '/');
+                      })() : <span style={{ color: 'var(--color-text-light)' }}>{ja ? '未設定' : 'Not set'}</span>}
+                    </span>
+                  </div>
+                  {/* 目標演習量 */}
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8 }}>
+                    <span style={{ fontSize: 13, color: 'var(--color-text-sub)' }}>
+                      {ja ? '1日の目標演習量' : 'Daily Goal'}
+                      {ja && <span style={{ fontSize: 10, marginLeft: 6 }}>※達成で<span style={{ color: '#009E9E', fontWeight: 700 }}>+10p</span>！</span>}
+                    </span>
+                    <span style={{ fontSize: 13, fontWeight: 700, color: todayCount >= dailyGoal ? '#009E9E' : 'var(--color-text-main)' }}>
+                      {todayCount} / {dailyGoal}{ja ? '問' : 'Q'}{todayCount >= dailyGoal && ' ✓'}
+                    </span>
+                  </div>
+                  <div style={{ height: 6, borderRadius: 3, background: 'var(--color-bg-main)', overflow: 'hidden' }}>
+                    <div style={{ height: '100%', borderRadius: 3, background: 'var(--bar-gradient-teal)', width: `${Math.min(100, (todayCount / dailyGoal) * 100)}%`, transition: 'width 0.3s' }} />
+                  </div>
+                </>
+              )}
+            </Card>
+
+            {/* 週間達成度カード */}
+            {targetExam && (
+              <Card style={{ marginBottom: 12 }}>
+                <div style={{ fontSize: 12, color: 'var(--color-text-sub)', marginBottom: 8 }}>{ja ? '直近7日間' : 'Last 7 days'}</div>
+                <div style={{ display: 'flex', gap: 6, alignItems: 'flex-end' }}>
+                  {weekDays.map((d, i) => {
+                    const count = weekCounts[i];
+                    const rewarded = !!targetExam && localStorage.getItem(`dailyGoalReward_${targetExam}_${uid}_${d}`) === '1';
+                    const achieved = rewarded || count >= dailyGoal;
+                    const pct = dailyGoal > 0 ? Math.min(1, count / dailyGoal) : 0;
+                    const isToday = d === jstToday();
+                    const dayLabel = new Date(d + 'T12:00:00').toLocaleDateString(ja ? 'ja-JP' : 'en-US', { weekday: 'short' });
+                    return (
+                      <div key={d} style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 3 }}>
+                        <div style={{ width: '100%', height: 44, borderRadius: 4, background: 'var(--color-bg-main)', position: 'relative', overflow: 'hidden' }}>
+                          <div style={{ position: 'absolute', bottom: 0, width: '100%', height: `${pct * 100}%`, background: achieved ? '#009E9E' : 'rgba(0,158,158,0.2)', borderRadius: '4px 4px 0 0', transition: 'height 0.3s' }} />
+                          {achieved && <div style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%,-50%)', fontSize: 10, color: 'white', fontWeight: 700 }}>✓</div>}
+                        </div>
+                        <span style={{ fontSize: 9, color: isToday ? '#009E9E' : 'var(--color-text-light)', fontWeight: isToday ? 700 : 400 }}>{dayLabel}</span>
+                      </div>
+                    );
+                  })}
+                </div>
+                <div style={{ marginTop: 8, fontSize: 11, color: 'var(--color-text-light)', textAlign: 'right' }}>
+                  {ja
+                    ? `今週の達成日数：${weekDays.filter((d, i) => (!!targetExam && localStorage.getItem(`dailyGoalReward_${targetExam}_${uid}_${d}`) === '1') || weekCounts[i] >= dailyGoal).length}/7日`
+                    : `Achieved: ${weekDays.filter((d, i) => (!!targetExam && localStorage.getItem(`dailyGoalReward_${targetExam}_${uid}_${d}`) === '1') || weekCounts[i] >= dailyGoal).length}/7 days`}
+                </div>
+              </Card>
+            )}
+
+
+            {/* 設定編集ポップアップ */}
+            {showSettingsEdit && (
+              <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', zIndex: 1000, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16 }}>
+                <div style={{ background: 'var(--color-bg-white)', borderRadius: 'var(--border-radius-lg)', padding: '24px 20px', width: '100%', maxWidth: 360, boxShadow: 'var(--box-shadow-md)' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 20 }}>
+                    <span style={{ fontWeight: 700, fontSize: 16 }}>{ja ? '目標設定' : 'Edit Settings'}</span>
+                    <button onClick={() => setShowSettingsEdit(false)} style={{ width: 32, height: 32, borderRadius: '50%', border: 'none', background: 'transparent', cursor: 'pointer', fontSize: 18, color: 'var(--color-text-sub)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>✕</button>
+                  </div>
+                  {/* 受験日 */}
+                  <div style={{ marginBottom: 20 }}>
+                    <div style={{ fontSize: 13, fontWeight: 600, color: 'var(--color-text-sub)', marginBottom: 8 }}>{ja ? '受験日' : 'Exam Date'}</div>
+                    <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+                      <input
+                        type="date"
+                        value={editExamDate}
+                        onChange={e => setEditExamDate(e.target.value)}
+                        style={{ flex: 1, border: '1px solid var(--color-border)', borderRadius: 8, padding: '8px 10px', fontSize: 14, background: 'var(--color-bg-white)', color: 'var(--color-text-main)', cursor: 'pointer' }}
+                      />
+                      {editExamDate && (
+                        <button onClick={() => setEditExamDate('')} style={{ padding: '6px 10px', border: '1px solid var(--color-border)', borderRadius: 8, background: 'transparent', cursor: 'pointer', fontSize: 12, color: 'var(--color-text-sub)' }}>
+                          {ja ? '削除' : 'Clear'}
+                        </button>
+                      )}
+                    </div>
+                  </div>
+                  {/* 目標演習量 */}
+                  <div style={{ marginBottom: 24 }}>
+                    <div style={{ fontSize: 13, fontWeight: 600, color: 'var(--color-text-sub)', marginBottom: 12 }}>{ja ? '1日の目標演習量' : 'Daily Goal'}</div>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 16, justifyContent: 'center' }}>
+                      <button onClick={() => setEditDailyGoal(v => Math.max(10, v - 5))} disabled={editDailyGoal <= 10} style={{ width: 44, height: 44, borderRadius: '50%', border: '1px solid var(--color-border)', background: 'transparent', cursor: editDailyGoal <= 10 ? 'default' : 'pointer', fontSize: 20, display: 'flex', alignItems: 'center', justifyContent: 'center', color: editDailyGoal <= 10 ? 'var(--color-text-light)' : 'var(--color-text-main)' }}>−</button>
+                      <span style={{ fontSize: 24, fontWeight: 800, minWidth: 64, textAlign: 'center', color: 'var(--color-primary)', fontVariantNumeric: 'tabular-nums' }}>
+                        {editDailyGoal}<span style={{ fontSize: 13, fontWeight: 400, marginLeft: 2, color: 'var(--color-text-sub)' }}>{ja ? '問' : 'Q'}</span>
+                      </span>
+                      <button onClick={() => setEditDailyGoal(v => Math.min(100, v + 5))} disabled={editDailyGoal >= 100} style={{ width: 44, height: 44, borderRadius: '50%', border: '1px solid var(--color-border)', background: 'transparent', cursor: editDailyGoal >= 100 ? 'default' : 'pointer', fontSize: 20, display: 'flex', alignItems: 'center', justifyContent: 'center', color: editDailyGoal >= 100 ? 'var(--color-text-light)' : 'var(--color-text-main)' }}>+</button>
+                    </div>
+                  </div>
+                  {/* 保存ボタン */}
+                  <Button variant="primary" size="lg" fullWidth onClick={() => {
+                    handleExamDateChange(editExamDate);
+                    handleDailyGoalChange(editDailyGoal);
+                    setShowSettingsEdit(false);
+                  }}>
+                    {ja ? '保存' : 'Save'}
+                  </Button>
+                </div>
+              </div>
+            )}
+          </>
+        )}
+
+        {/* ════════ 苦手分析タブ ════════ */}
+        {tab === 'analysis' && (
+          <>
+            {!user ? (
+              <Card padding="var(--spacing-xl)">
+                <p style={{ margin: 0, textAlign: 'center', fontSize: 13, color: 'var(--color-text-light)' }}>
+                  {ja ? 'ログインすると苦手分析が表示されます' : 'Log in to view your analysis'}
+                </p>
+              </Card>
+            ) : !targetExam ? (
+              <Card padding="var(--spacing-xl)">
+                <p style={{ margin: 0, textAlign: 'center', fontSize: 13, color: 'var(--color-text-light)' }}>
+                  {ja ? '目標資格を設定してください' : 'Set a target exam first'}
+                </p>
+              </Card>
+            ) : statsLoading ? (
+              <div style={{ display: 'flex', justifyContent: 'center', padding: '32px 0' }}>
+                <div className="sherpa-spinner" style={{ width: 28, height: 28, borderWidth: 3 }} />
+              </div>
+            ) : (
+              <>
+                {/* 苦手ドメイン */}
+                <Card style={{ marginBottom: 12 }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 12 }}>
+                    <IconAnnoyed size={14} />
+                    <span style={{ fontWeight: 700, fontSize: 14 }}>{ja ? '苦手ドメイン' : 'Weak Domains'}</span>
+                  </div>
+                  {!focusedUnlocked ? (
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '10px 14px', borderRadius: 8, background: 'var(--color-bg-main)' }}>
+                      <IconLock size={14} />
+                      <div>
+                        <div style={{ fontSize: 13, color: 'var(--color-text-sub)' }}>
+                          {ja ? `あと${Math.max(0, FOCUSED_UNLOCK_THRESHOLD - answeredCount)}問演習するとアンロック` : `${Math.max(0, FOCUSED_UNLOCK_THRESHOLD - answeredCount)} more questions to unlock`}
+                        </div>
+                        <div style={{ fontSize: 11, color: 'var(--color-text-light)' }}>
+                          {ja ? `現在 ${answeredCount}/${FOCUSED_UNLOCK_THRESHOLD}問` : `${answeredCount}/${FOCUSED_UNLOCK_THRESHOLD} answered`}
+                        </div>
+                      </div>
+                    </div>
+                  ) : domains.length === 0 ? (
+                    <p style={{ margin: 0, fontSize: 13, color: 'var(--color-text-light)' }}>
+                      {ja ? 'ドメイン情報がありません' : 'No domain data'}
+                    </p>
+                  ) : (
+                    <>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+                      {[...domains].sort((a, b) => {
+                        const getPct = (d: string) => {
+                          const stat = domainStats.find(s => s.tagId === d);
+                          const recent = stat?.recentResults ?? [];
+                          const total = recent.length;
+                          if (total === 0) return -1;
+                          return recent.filter(Boolean).length / total;
+                        };
+                        return getPct(a) - getPct(b);
+                      }).map((domain, i) => {
+                        const stat = domainStats.find(s => s.tagId === domain);
+                        const recent = stat?.recentResults ?? [];
+                        const correct = recent.filter(Boolean).length;
+                        const total = recent.length;
+                        const pct = total > 0 ? Math.round((correct / total) * 100) : null;
+                        const isWeak = pct !== null && pct < DOMAIN_RATE_WARNING * 100;
+                        const isFair = pct !== null && pct < DOMAIN_RATE_CAUTION * 100 && !isWeak;
+                        const color = pct === null ? 'var(--color-text-light)' : isWeak ? 'var(--color-danger)' : isFair ? 'var(--color-caution)' : 'var(--color-success)';
+                        const barGradient = isWeak ? 'var(--bar-gradient-danger)' : isFair ? 'var(--bar-gradient-caution)' : 'var(--bar-gradient-success)';
+                        const domainLabel = lang === 'en' ? (DOMAIN_NAME_EN[domain] ?? domain) : domain;
+                        return (
+                          <div key={domain} style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                            <div style={{ flex: 1, minWidth: 0 }}>
+                              <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 3 }}>
+                                <span style={{ fontSize: 12, color: isWeak ? 'var(--color-danger)' : 'var(--color-text-sub)', fontWeight: isWeak ? 700 : 400, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                                  {isWeak && '⚠ '}{domainLabel}
+                                </span>
+                                <span style={{ fontSize: 12, fontWeight: 700, color, flexShrink: 0, marginLeft: 6 }}>
+                                  {pct !== null ? `${pct}%` : (ja ? '未演習' : 'N/A')}
+                                </span>
+                              </div>
+                              <div style={{ height: 6, borderRadius: 3, background: 'var(--color-bg-main)', overflow: 'hidden' }}>
+                                {pct !== null && <div style={{ height: '100%', width: `${pct}%`, background: barGradient, borderRadius: 3, transformOrigin: 'left center', animation: `growWidth 0.45s cubic-bezier(0.34, 1.56, 0.64, 1) ${i * 30}ms both` }} />}
+                              </div>
+                            </div>
+                            <div style={{ display: 'flex', gap: 2, flexShrink: 0 }}>
+                              {Array.from({ length: 5 }, (_, i) => (
+                                <div key={i} style={{ width: 8, height: 8, borderRadius: 2, background: recent[i] === true ? 'var(--color-success)' : recent[i] === false ? 'var(--color-danger)' : 'var(--color-bg-main)' }} />
+                              ))}
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+                    <div style={{ marginTop: 16, paddingTop: 14, borderTop: '1px solid var(--color-border)' }}>
+                      {focusedUnlocked ? (
+                        <button
+                          onClick={() => navigate('/aws/', { state: { startFocused: true } })}
+                          style={{ width: '100%', height: 44, border: 'none', background: '#009E9E', color: '#fff', fontWeight: 600, fontSize: 'var(--font-size-base)', borderRadius: 'var(--border-radius-full)', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+                        >
+                          {ja ? 'しっかり対策' : 'Focused Practice'}
+                        </button>
+                      ) : (
+                        <button
+                          disabled
+                          style={{ width: '100%', height: 44, border: '1.5px solid var(--color-border)', borderRadius: 'var(--border-radius-full)', background: 'transparent', color: 'var(--color-text-light)', fontWeight: 600, fontSize: 'var(--font-size-base)', cursor: 'not-allowed', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 5 }}
+                        >
+                          <IconLock size={13} />
+                          {ja ? 'しっかり対策' : 'Focused Practice'}
+                        </button>
+                      )}
+                    </div>
+                    </>
+                  )}
+                </Card>
+
+                {/* 頻出ミス問題 */}
+                <Card>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 12 }}>
+                    <span style={{ fontSize: 14 }}>✗</span>
+                    <span style={{ fontWeight: 700, fontSize: 14 }}>{ja ? '間違えやすい問題（2回以上）' : 'Frequent Mistakes (2+ times)'}</span>
+                  </div>
+                  {!focusedUnlocked ? (
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '10px 14px', borderRadius: 8, background: 'var(--color-bg-main)' }}>
+                      <IconLock size={14} />
+                      <span style={{ fontSize: 13, color: 'var(--color-text-sub)' }}>
+                        {ja ? `あと${Math.max(0, FOCUSED_UNLOCK_THRESHOLD - answeredCount)}問でアンロック` : `${Math.max(0, FOCUSED_UNLOCK_THRESHOLD - answeredCount)} more to unlock`}
+                      </span>
+                    </div>
+                  ) : weakLoading ? (
+                    <div style={{ display: 'flex', justifyContent: 'center', padding: '16px 0' }}>
+                      <div className="sherpa-spinner" style={{ width: 20, height: 20, borderWidth: 2 }} />
+                    </div>
+                  ) : weakQuestions.length === 0 ? (
+                    <p style={{ margin: 0, fontSize: 13, color: 'var(--color-text-light)', textAlign: 'center', padding: '8px 0' }}>
+                      {ja ? '2回以上間違えた問題はありません' : 'No questions wrong 2+ times'}
+                    </p>
+                  ) : (
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+                      {weakQuestions.map(q => {
+                        const isExpanded = expandedWeakQ === q.questionId;
+                        const detail = weakQDetails[q.questionId];
+                        return (
+                          <div key={q.questionId} style={{ borderRadius: 8, border: '1px solid var(--color-border)', overflow: 'hidden' }}>
+                            <div
+                              onClick={() => openWeakQModal(q.questionId)}
+                              style={{ padding: '8px 10px', display: 'flex', gap: 8, alignItems: 'flex-start', cursor: 'pointer' }}
+                            >
+                              <span style={{ flexShrink: 0, fontSize: 11, fontWeight: 700, color: 'var(--color-danger)', background: 'var(--color-danger-light)', borderRadius: 4, padding: '2px 6px', marginTop: 1 }}>
+                                ×{q.incorrectCount}
+                              </span>
+                              <span style={{ fontSize: 12, color: 'var(--color-text-sub)', lineHeight: 1.5, flex: 1 }}>
+                                {q.questionText?.slice(0, 80)}{(q.questionText?.length ?? 0) > 80 ? '…' : ''}
+                              </span>
+                              <span style={{ flexShrink: 0, color: 'var(--color-text-light)', display: 'flex', alignItems: 'center', marginTop: 2, transform: 'rotate(-90deg)' }}>
+                                <IconChevronDown size={14} />
+                              </span>
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  )}
+                </Card>
+              </>
+            )}
+          </>
+        )}
+
+        {/* ════════ 履歴タブ ════════ */}
+        {tab === 'history' && (
+          <>
+            {!user ? (
+              <Card padding="var(--spacing-xl)">
+                <p style={{ margin: 0, textAlign: 'center', fontSize: 13, color: 'var(--color-text-light)' }}>
+                  {ja ? 'ログインすると履歴が表示されます' : 'Log in to view your history'}
+                </p>
+              </Card>
+            ) : histLoading ? (
+              <div style={{ display: 'flex', justifyContent: 'center', padding: '32px 0' }}>
+                <div className="sherpa-spinner" style={{ width: 28, height: 28, borderWidth: 3 }} />
+              </div>
+            ) : recentSessions.length === 0 ? (
+              <Card padding="var(--spacing-xl)">
+                <p style={{ margin: 0, textAlign: 'center', fontSize: 13, color: 'var(--color-text-light)' }}>
+                  {ja ? 'まだセッションがありません' : 'No sessions yet'}
+                </p>
+              </Card>
+            ) : (
+              <>
+                <div style={{ fontSize: 12, color: 'var(--color-text-sub)', marginBottom: 10 }}>
+                  {ja ? '直近10セッション' : 'Last 10 sessions'}
+                </div>
+                {recentSessions.map(s => {
+                  const modeLabel = s.mode === 'exam'
+                    ? (s.isMini ? (ja ? 'ミニ模試' : 'Mini Exam') : (ja ? '模試' : 'Mock Exam'))
+                    : s.isFocused ? (ja ? 'しっかり対策' : 'Focused') : (ja ? 'サクッと演習' : 'Quick');
+                  const modeBg = s.mode === 'exam' ? '#fff0f0' : s.isFocused ? '#e6f4f4' : 'var(--color-primary-light)';
+                  const modeColor = s.mode === 'exam' ? 'var(--color-danger)' : s.isFocused ? '#009E9E' : 'var(--color-primary)';
+                  const d = new Date(s.endedAt || s.startedAt);
+                  const dateLabel = `${d.getFullYear()}/${d.getMonth() + 1}/${d.getDate()} ${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`;
+                  const isExpanded = expandedSession === s.sessionId;
+                  const answers = sessionAnswers[s.sessionId];
+                  const qCount = s.questionIds?.length ?? 0;
+                  const scoreColor = s.mode === 'exam'
+                    ? (s.isPassed ? 'var(--color-success)' : 'var(--color-danger)')
+                    : (s.score >= 70 ? 'var(--color-success)' : 'var(--color-danger)');
+
+                  return (
+                    <Card key={s.sessionId} style={{ marginBottom: 8 }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 10, cursor: 'pointer', userSelect: 'none' }} onClick={() => handleToggleSession(s)}>
+                        <span style={{ fontSize: 10, fontWeight: 700, padding: '2px 8px', borderRadius: 'var(--border-radius-full)', background: modeBg, color: modeColor, flexShrink: 0 }}>
+                          {modeLabel}
+                        </span>
+                        <span style={{ fontSize: 12, color: 'var(--color-text-sub)', flex: 1, minWidth: 0 }}>
+                          {dateLabel}
+                          {qCount > 0 && <span style={{ marginLeft: 6, color: 'var(--color-text-light)' }}>{qCount}{ja ? '問' : 'Q'}</span>}
+                        </span>
+                        <span style={{ fontWeight: 700, fontSize: 15, color: scoreColor, flexShrink: 0 }}>{s.score}%</span>
+                        <span style={{ color: 'var(--color-text-light)', fontSize: 14, transition: 'transform 0.2s', transform: isExpanded ? 'rotate(90deg)' : 'none', flexShrink: 0 }}>›</span>
+                      </div>
+                      {isExpanded && (
+                        <div style={{ marginTop: 10, borderTop: '1px solid var(--color-border)', paddingTop: 8 }}>
+                          {answersLoading === s.sessionId ? (
+                            <div style={{ display: 'flex', justifyContent: 'center', padding: '10px 0' }}>
+                              <div className="sherpa-spinner" style={{ width: 18, height: 18, borderWidth: 2 }} />
+                            </div>
+                          ) : !answers || answers.length === 0 ? (
+                            <p style={{ margin: 0, fontSize: 12, color: 'var(--color-text-light)', textAlign: 'center' }}>
+                              {ja ? '回答データがありません' : 'No answer data'}
+                            </p>
+                          ) : (
+                            <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+                              {answers.map((a, idx) => {
+                                const isAExpanded = expandedAnswer === a.questionId;
+                                const aDetail = answerDetails[a.questionId];
+                                return (
+                                  <div
+                                    key={a.questionId + idx}
+                                    onClick={() => openAnswerModal(a.questionId, !!a.isCorrect)}
+                                    style={{ borderRadius: 6, border: '1px solid var(--color-border)', overflow: 'hidden', cursor: 'pointer' }}
+                                  >
+                                    <div style={{ display: 'flex', gap: 8, alignItems: 'center', padding: '6px 8px' }}>
+                                      <span style={{ flexShrink: 0, width: 15, height: 15, borderRadius: '50%', background: a.isCorrect ? 'var(--color-success)' : 'var(--color-danger)', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', color: '#fff', fontSize: 8, fontWeight: 700 }}>
+                                        {a.isCorrect ? '○' : '×'}
+                                      </span>
+                                      <span style={{ fontSize: 12, color: 'var(--color-text-sub)', lineHeight: 1.5, flex: 1 }}>
+                                        {a.questionText?.slice(0, 60)}{(a.questionText?.length ?? 0) > 60 ? '…' : ''}
+                                      </span>
+                                      {user && (
+                                        <button
+                                          onClick={e => { e.stopPropagation(); toggleBookmark(a.questionId); }}
+                                          disabled={bookmarkOpLoading.has(a.questionId)}
+                                          style={{ flexShrink: 0, background: 'none', border: 'none', cursor: 'pointer', padding: '2px 4px', display: 'flex', alignItems: 'center', opacity: bookmarkOpLoading.has(a.questionId) ? 0.5 : 1 }}
+                                        >
+                                          <span style={{ color: bookmarkedIds.has(a.questionId) ? 'var(--color-warning, #f59e0b)' : 'var(--color-text-light)' }}>
+                                            <IconStar filled={bookmarkedIds.has(a.questionId)} size={14} />
+                                          </span>
+                                        </button>
+                                      )}
+                                      <span style={{ flexShrink: 0, display: 'flex', alignItems: 'center', color: 'var(--color-text-light)', transform: 'rotate(-90deg)' }}>
+                                        <IconChevronDown size={13} />
+                                      </span>
+                                    </div>
+                                  </div>
+                                );
+                              })}
+                            </div>
+                          )}
+                        </div>
+                      )}
+                    </Card>
+                  );
+                })}
+              </>
+            )}
+          </>
+        )}
+      </div>
+
+      {/* ── 問題詳細モーダル ── */}
+      {questionModal && (
+        <div
+          style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', zIndex: 999, display: 'flex', alignItems: isMobile ? 'flex-end' : 'center', justifyContent: 'center', padding: isMobile ? 0 : 'var(--spacing-lg)' }}
+          onClick={() => setQuestionModal(null)}
+        >
+          <div
+            style={{ background: 'var(--color-bg-white)', borderRadius: isMobile ? '16px 16px 0 0' : 'var(--border-radius-lg)', padding: 'var(--spacing-xl)', width: '100%', maxWidth: isMobile ? '100%' : 600, maxHeight: isMobile ? '85vh' : '80vh', overflowY: 'auto', boxShadow: 'var(--box-shadow-lg)' }}
+            onClick={e => e.stopPropagation()}
+          >
+            {/* ヘッダー */}
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 'var(--spacing-lg)' }}>
+              <span style={{ fontSize: 'var(--font-size-sm)', fontWeight: 700, color: 'var(--color-text-sub)' }}>
+                {questionModal.isCorrect !== undefined
+                  ? (questionModal.isCorrect
+                    ? <span style={{ color: 'var(--color-success)' }}>○ {ja ? '正解' : 'Correct'}</span>
+                    : <span style={{ color: 'var(--color-danger)' }}>× {ja ? '不正解' : 'Incorrect'}</span>)
+                  : (ja ? '問題詳細' : 'Question Detail')}
+              </span>
+              <button onClick={() => setQuestionModal(null)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--color-text-sub)', fontSize: 20, lineHeight: 1, padding: '2px 6px' }}>✕</button>
+            </div>
+
+            {questionModal.loading ? (
+              <div style={{ display: 'flex', justifyContent: 'center', padding: 'var(--spacing-xl) 0' }}>
+                <div className="sherpa-spinner" />
+              </div>
+            ) : questionModal.detail ? (
+              <div style={{ userSelect: 'text' }}>
+                {/* 問題文 */}
+                <p style={{ fontSize: 'var(--font-size-base)', color: 'var(--color-text-main)', lineHeight: 1.75, margin: '0 0 var(--spacing-lg)', whiteSpace: 'pre-wrap', fontWeight: 500 }}>
+                  {questionModal.detail.questionText}
+                </p>
+                {/* 選択肢 */}
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--spacing-sm)', marginBottom: 'var(--spacing-lg)' }}>
+                  {(questionModal.detail.choices ?? []).map((c: string, i: number) => {
+                    const isCorrect = (questionModal.detail.correctAnswerIndices ?? []).includes(i);
+                    return (
+                      <div key={i} style={{ fontSize: 'var(--font-size-sm)', padding: '10px 14px', borderRadius: 'var(--border-radius-md)', border: `1.5px solid ${isCorrect ? 'var(--color-success)' : 'var(--color-border)'}`, background: isCorrect ? 'var(--color-feedback-correct-bg)' : 'var(--color-bg-main)', color: isCorrect ? 'var(--color-success)' : 'var(--color-text-sub)', lineHeight: 1.6 }}>
+                        <span style={{ fontWeight: 700, marginRight: 6 }}>{String.fromCharCode(65 + i)}.</span>
+                        {c.replace(/^[A-E]\.\s*/, '')}
+                      </div>
+                    );
+                  })}
+                </div>
+                {/* 解説 */}
+                {questionModal.detail.explanation && (
+                  <div style={{ padding: 'var(--spacing-md)', borderRadius: 'var(--border-radius-md)', background: 'var(--color-bg-info)', border: '1px solid var(--color-border-info)' }}>
+                    <div style={{ fontSize: 'var(--font-size-xs)', fontWeight: 700, color: 'var(--color-text-info)', marginBottom: 6 }}>{ja ? '解説' : 'Explanation'}</div>
+                    <p style={{ fontSize: 'var(--font-size-sm)', color: 'var(--color-text-sub)', margin: 0, lineHeight: 1.75, whiteSpace: 'pre-wrap' }}>{questionModal.detail.explanation}</p>
+                  </div>
+                )}
+              </div>
+            ) : (
+              <p style={{ margin: 0, fontSize: 'var(--font-size-sm)', color: 'var(--color-text-light)' }}>{ja ? '詳細を取得できませんでした' : 'Failed to load details'}</p>
+            )}
+          </div>
+        </div>
+      )}
+    </>
+  );
+}

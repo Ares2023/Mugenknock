@@ -1,3 +1,4 @@
+'use client';
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { ja, en } from '../i18n/translations';
 import { useAuth } from './AuthContext';
@@ -22,10 +23,12 @@ export const LanguageProvider = ({ children }: { children: React.ReactNode }) =>
   const { user } = useAuth();
   const uid = user?.userId;
 
-  const [lang, setLangState] = useState<Lang>(() => {
+  const [lang, setLangState] = useState<Lang>('ja');
+
+  useEffect(() => {
     const saved = localStorage.getItem('lang');
-    return (saved === 'en' ? 'en' : 'ja') as Lang;
-  });
+    if (saved === 'en' || saved === 'ja') setLangState(saved as Lang);
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   // uidが確定・変更したらアカウント別設定を適用
   useEffect(() => {

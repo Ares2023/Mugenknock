@@ -1,3 +1,4 @@
+'use client';
 import { useState, useEffect, useMemo } from 'react';
 import { createPortal } from 'react-dom';
 import { ServiceIconImg, IconSparkles, IconPointer, IconMousePointerClick, IconLightbulb } from './Icons';

@@ -46,7 +46,9 @@
 - API Gateway: `a0q3656qw4`（ap-northeast-1）。ステージ変数 `lambdaFn` で Lambda を切り替える
 - DynamoDB: 両環境で共通テーブルを使用
 - `amplify push` は使用不可。Lambda は直接デプロイする（下記参照）
-- フロントエンドは Next.js + Cloudflare Pages への移行を予定（現在 React/CRA + Amplify）
+- フロントエンドは Next.js + Cloudflare Pages へ移行中（`next-migration` ブランチで作業、develop/masterにマージ後に切り替わる）
+- Cloudflare Pages ビルド設定: Build command = `npm run build`, Output dir = `out`
+- Next.js移行の詳細計画: `/home/yuzuki/.claude/plans/tidy-weaving-sphinx.md`
 
 ## 開発フロー
 

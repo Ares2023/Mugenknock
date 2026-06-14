@@ -1,3 +1,4 @@
+'use client';
 import React, { createContext, useContext, useEffect, useState } from 'react';
 import { getCurrentUser, fetchUserAttributes, signOut as amplifySignOut } from 'aws-amplify/auth';
 

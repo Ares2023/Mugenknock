@@ -1,0 +1,17 @@
+# Cloudflare Pages ビルド設定
+# Cloudflare Pages ダッシュボードで以下を設定してください:
+#   Build command:        npm run build
+#   Build output dir:    out
+#   Root directory:      /  (リポジトリルート)
+#   Node.js version:     20
+
+name = "mugenknock"
+compatibility_date = "2024-01-01"
+
+[env.staging]
+# Cloudflare Pages の develop ブランチ用環境変数
+# NEXT_PUBLIC_API_ENDPOINT = "https://a0q3656qw4.execute-api.ap-northeast-1.amazonaws.com/dev"
+
+[env.production]
+# Cloudflare Pages の master ブランチ用環境変数
+# NEXT_PUBLIC_API_ENDPOINT = "https://a0q3656qw4.execute-api.ap-northeast-1.amazonaws.com/prod"
