@@ -1,5 +1,13 @@
-# https://www.robotstxt.org/robotstxt.html
 User-agent: *
-Disallow:
+Disallow: /admin/
+Disallow: /admin-login/
+Disallow: /aws/exercise/
+Disallow: /aws/exam/
+Disallow: /aws/result/
+Allow: /services/
+Allow: /exam-guide/
+Allow: /encyclopedia/
+Allow: /sample/
+Allow: /about/
 
 Sitemap: https://mugenknock.com/sitemap.xml
