@@ -24,6 +24,8 @@
     "start": "next start",
     "test": "echo 'No tests configured'",
     "e2e": "bash e2e/run.sh",
+    "e2e:canary": "bash e2e/run.sh canary",
+    "e2e:canary:prod": "bash e2e/run.sh canary prod",
     "e2e:local": "bash e2e/run.sh local",
     "e2e:noauth": "bash e2e/run.sh noauth",
     "e2e:visual": "bash e2e/run.sh visual",
