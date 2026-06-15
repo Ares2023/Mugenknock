@@ -1,5 +1,6 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
+import { cache } from 'react';
 import { EXAM_TYPES, EXAM_CONFIGS, EXAM_DOMAINS, qDomainName } from '@/constants';
 import { notFound } from 'next/navigation';
 
@@ -44,18 +45,28 @@ export async function generateStaticParams() {
   return params;
 }
 
-async function fetchQuestion(examType: string, questionId: string): Promise<Question | null> {
+// cache() でメモ化：同じexamTypeへの呼び出しは1回のfetchで済む
+// generateMetadata と QuestionPage の両方で呼ばれても実際のHTTPリクエストは1回
+const fetchAllByExam = cache(async (examType: string): Promise<Question[]> => {
   try {
-    // 該当試験の全問題から該当IDを探す（個別取得APIがないため）
+    const ctrl = new AbortController();
+    const timer = setTimeout(() => ctrl.abort(), 30000);
     const res = await fetch(`${API}/questions/public?examType=${examType}`, {
-      next: { revalidate: 3600 },
+      signal: ctrl.signal,
+      cache: 'force-cache',
     });
-    if (!res.ok) return null;
+    clearTimeout(timer);
+    if (!res.ok) return [];
     const data = await res.json();
-    return (data.items ?? []).find((q: Question) => q.questionId === questionId) ?? null;
+    return data.items ?? [];
   } catch {
-    return null;
+    return [];
   }
+});
+
+async function fetchQuestion(examType: string, questionId: string): Promise<Question | null> {
+  const items = await fetchAllByExam(examType);
+  return items.find(q => q.questionId === questionId) ?? null;
 }
 
 export async function generateMetadata(
