@@ -58,18 +58,20 @@ async function getDailyServicesAll(docClient) {
   return _dailyServicesCache;
 }
 
-// ── CORS（localhost + Amplify Hosting + 本番ドメイン許可） ──
+// ── CORS（localhost + Cloudflare Pages + 本番ドメイン許可） ──
 const ALLOWED_ORIGINS = [
   'http://localhost:3000',
   'http://localhost:3001',
   'https://www.mugenknock.com',
   'https://mugenknock.com',
+  'https://mugenknock.pages.dev',
 ];
-const AMPLIFY_ORIGIN_RE = /^https:\/\/[a-zA-Z0-9][a-zA-Z0-9.-]*\.amplifyapp\.com$/;
+// Cloudflare Pages のプレビューデプロイ（*.mugenknock.pages.dev 等）も許可
+const CF_PAGES_ORIGIN_RE = /^https:\/\/[a-zA-Z0-9][a-zA-Z0-9-]*\.pages\.dev$|^https:\/\/[a-zA-Z0-9][a-zA-Z0-9-]*\.mugenknock\.pages\.dev$/;
 
 app.use((req, res, next) => {
   const origin = req.headers.origin;
-  if (origin && (ALLOWED_ORIGINS.includes(origin) || AMPLIFY_ORIGIN_RE.test(origin))) {
+  if (origin && (ALLOWED_ORIGINS.includes(origin) || CF_PAGES_ORIGIN_RE.test(origin))) {
     res.header('Access-Control-Allow-Origin', origin);
     res.header('Vary', 'Origin');
   }
