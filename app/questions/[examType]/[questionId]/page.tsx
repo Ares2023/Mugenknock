@@ -25,14 +25,20 @@ export async function generateStaticParams() {
 
   for (const examType of EXAM_TYPES) {
     try {
-      const res = await fetch(`${API}/questions/public?examType=${examType}`);
+      const ctrl = new AbortController();
+      const timer = setTimeout(() => ctrl.abort(), 30000); // 30秒タイムアウト
+      const res = await fetch(`${API}/questions/public?examType=${examType}`, {
+        signal: ctrl.signal,
+      });
+      clearTimeout(timer);
       if (!res.ok) continue;
       const data = await res.json();
       for (const q of data.items ?? []) {
         params.push({ examType, questionId: q.questionId });
       }
-    } catch {
-      // ビルド時にタイムアウトしても他の試験は続行
+      console.log(`generateStaticParams: ${examType} ${data.items?.length ?? 0}問`);
+    } catch (e) {
+      console.warn(`generateStaticParams: ${examType} スキップ（${e}）`);
     }
   }
   return params;
