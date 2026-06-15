@@ -5,7 +5,11 @@ const { CognitoIdentityProviderClient, ListUsersCommand } = require('@aws-sdk/cl
 const { SESClient, SendEmailCommand } = require('@aws-sdk/client-ses');
 const { v4: uuidv4 } = require('uuid');
 const { CognitoJwtVerifier } = require('aws-jwt-verify');
+const { S3Client, PutObjectCommand } = require('@aws-sdk/client-s3');
 const { ADMIN_EMAIL, EXAM_DOMAINS } = require('./constants');
+
+const ERROR_LOG_BUCKET = 'mugenknock-error-logs';
+const s3Client = new S3Client({ region: 'ap-northeast-1' });
 
 // ── domain フィールドのユーティリティ ──────────────────────────
 // domain は整数インデックス（EXAM_DOMAINS[examType][domain]）
@@ -152,9 +156,28 @@ app.get('/health', (req, res) => {
 });
 
 // クライアントエラーレポート（CloudWatch Logs に記録するだけ）
-app.post('/errors', (req, res) => {
-  const { type, message, stack, url, ua, ts, componentStack } = req.body || {};
-  console.error(JSON.stringify({ level: 'CLIENT_ERROR', type, message, stack, url, ua, ts, componentStack }));
+app.post('/errors', async (req, res) => {
+  const { type, message, stack, url, ua, ts, componentStack, context } = req.body || {};
+  const now = new Date();
+  const jst = new Date(now.getTime() + 9 * 3600 * 1000);
+  const yyyy = jst.getUTCFullYear();
+  const mm   = String(jst.getUTCMonth() + 1).padStart(2, '0');
+  const dd   = String(jst.getUTCDate()).padStart(2, '0');
+  const key  = `logs/${yyyy}/${mm}/${dd}/${Date.now()}-${uuidv4()}.json`;
+  const record = { type, message, stack, url, ua, ts: ts || now.toISOString(), componentStack, context };
+  // CloudWatch にも残す
+  console.error(JSON.stringify({ level: 'CLIENT_ERROR', ...record }));
+  // S3 に保存
+  try {
+    await s3Client.send(new PutObjectCommand({
+      Bucket: ERROR_LOG_BUCKET,
+      Key: key,
+      Body: JSON.stringify(record, null, 2),
+      ContentType: 'application/json',
+    }));
+  } catch (e) {
+    console.error('S3 error log write failed:', e.message);
+  }
   res.status(204).end();
 });
 
