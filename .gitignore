@@ -72,3 +72,4 @@ e2e/reports/
 e2e/screenshots/
 .next/
 out/
+e2e/canary-results/
