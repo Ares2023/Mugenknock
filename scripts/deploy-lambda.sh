@@ -13,7 +13,7 @@ AWS=/home/yuzuki/local/bin/aws
 REGION=ap-northeast-1
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 REPO_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
-LAMBDA_SRC="$REPO_ROOT/amplify_gen1/backend/function/awsquizHandler/src"
+LAMBDA_SRC="$REPO_ROOT/lambda/src"
 ZIP=/tmp/lambda-deploy.zip
 
 # ターゲット判定
