@@ -5,10 +5,6 @@ import { Link, Navigate, useNavigate } from '@/compat/react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { useLanguage } from '../contexts/LanguageContext';
 import { IconUser } from '../components/Icons';
-import {
-  EXAM_TYPES, EXAM_CONFIGS, EXAM_DOMAINS, DOMAIN_WEIGHTS,
-  PASS_SCORES, EXAM_LEVEL, EXAM_DESC_JA, EXAM_OFFICIAL_URLS,
-} from '../constants';
 
 const TEAL   = '#009E9E';
 const TEAL_D = '#007878';
@@ -51,14 +47,6 @@ const FEATURES: { ja_title: string; en_title: string; ja: string; en: string }[]
   },
 ];
 
-const LEVEL_ORDER = ['Foundational', 'Associate', 'Professional', 'Specialty'];
-const LEVEL_JA: Record<string, string> = {
-  Foundational: 'Foundational（基礎）',
-  Associate:    'Associate（アソシエイト）',
-  Professional: 'Professional（プロフェッショナル）',
-  Specialty:    'Specialty（スペシャリティ）',
-};
-
 export default function Portal() {
   const navigate = useNavigate();
   const { user, loading } = useAuth();
@@ -85,11 +73,6 @@ export default function Portal() {
   }
 
   const handleStart = () => navigate('/aws/');
-
-  const grouped = LEVEL_ORDER.map(lv => ({
-    level: lv,
-    codes: EXAM_TYPES.filter(e => EXAM_LEVEL[e] === lv),
-  }));
 
   return (
     <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', background: 'var(--color-bg-main)', color: 'var(--color-text-main)', fontFamily: 'inherit' }}>
@@ -163,83 +146,6 @@ export default function Portal() {
             </div>
           </section>
 
-          {/* ── 各資格の試験ガイド ── */}
-          <section style={{ marginBottom: isMobile ? 40 : 56 }}>
-            <h2 style={{ fontSize: isMobile ? 17 : 22, fontWeight: 800, color: TEAL_D, margin: '0 0 6px', letterSpacing: '-0.3px' }}>
-              {ja ? '各AWS認定資格ガイド' : 'AWS Certification Guide'}
-            </h2>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 16, marginBottom: 24, flexWrap: 'wrap' }}>
-              <a href="https://aws.amazon.com/jp/certification/" target="_blank" rel="noopener noreferrer" style={{ display: 'inline-flex', alignItems: 'center', gap: 4, fontSize: 12, color: TEAL, textDecoration: 'none' }}>
-                {ja ? 'AWS認定資格一覧（公式）' : 'Official AWS Certifications'}<span style={{ fontSize: 10 }}>↗</span>
-              </a>
-            </div>
-
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 28 }}>
-              {grouped.map(({ level, codes }) => (
-                <div key={level}>
-                  <div style={{ fontSize: 11, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.07em', color: 'var(--color-text-sub)', marginBottom: 10 }}>
-                    {ja ? LEVEL_JA[level] : level}
-                  </div>
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-                    {codes.map(code => {
-                      const cfg = EXAM_CONFIGS[code];
-                      const domains = EXAM_DOMAINS[code] ?? [];
-                      const weights = DOMAIN_WEIGHTS[code] ?? [];
-                      const pass = PASS_SCORES[code];
-                      const descJa = EXAM_DESC_JA[code] ?? '';
-                      const officialUrl = EXAM_OFFICIAL_URLS[code]?.page;
-                      return (
-                        <div key={code} style={{ background: 'var(--color-bg-white)', border: '1px solid var(--color-border)', borderRadius: 10, padding: '16px 18px' }}>
-                          {/* タイトル行 */}
-                          <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 8, marginBottom: 6, flexWrap: 'wrap' }}>
-                            <div style={{ display: 'flex', alignItems: 'baseline', gap: 10 }}>
-                              <span style={{ fontSize: isMobile ? 15 : 17, fontWeight: 900, color: TEAL_D }}>{code}</span>
-                              <span style={{ fontSize: isMobile ? 11 : 12, color: 'var(--color-text-sub)', fontWeight: 500 }}>{cfg.examCode}</span>
-                            </div>
-                            {officialUrl && (
-                              <a href={officialUrl} target="_blank" rel="noopener noreferrer" style={{ fontSize: 11, color: TEAL, textDecoration: 'none', whiteSpace: 'nowrap' }}>公式 ↗</a>
-                            )}
-                          </div>
-                          <div style={{ fontSize: isMobile ? 12 : 13, fontWeight: 600, color: 'var(--color-text-main)', marginBottom: 4 }}>{cfg.fullName}</div>
-                          {descJa && <p style={{ margin: '0 0 10px', fontSize: isMobile ? 12 : 13, color: 'var(--color-text-sub)', lineHeight: 1.65 }}>{descJa}</p>}
-
-                          {/* スタット */}
-                          <div style={{ display: 'flex', gap: 14, marginBottom: 10, flexWrap: 'wrap' }}>
-                            {[
-                              { label: ja ? '問題数' : 'Questions', val: `${cfg.totalQuestions}問` },
-                              { label: ja ? '試験時間' : 'Duration',  val: `${cfg.timeLimitMin}分` },
-                              { label: ja ? '合格スコア' : 'Pass Score', val: `${pass}/1000` },
-                            ].map(s => (
-                              <div key={s.label} style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-                                <span style={{ fontSize: 10, color: 'var(--color-text-light)', fontWeight: 600 }}>{s.label}</span>
-                                <span style={{ fontSize: 13, fontWeight: 800, color: 'var(--color-text-main)' }}>{s.val}</span>
-                              </div>
-                            ))}
-                          </div>
-
-                          {/* ドメイン */}
-                          <div style={{ display: 'flex', flexDirection: 'column', gap: 4, marginBottom: 12 }}>
-                            {domains.map((d, i) => (
-                              <div key={d} style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                                <div style={{ width: `${weights[i]}%`, maxWidth: isMobile ? 100 : 160, height: 4, borderRadius: 2, background: TEAL, flexShrink: 0 }} />
-                                <span style={{ fontSize: 11, color: 'var(--color-text-sub)', flex: 1 }}>{d}</span>
-                                <span style={{ fontSize: 11, fontWeight: 700, color: TEAL_D, flexShrink: 0 }}>{weights[i]}%</span>
-                              </div>
-                            ))}
-                          </div>
-
-                          {/* サンプル問題リンク */}
-                          <Link to={`/sample/${code}`} style={{ display: 'inline-flex', alignItems: 'center', gap: 4, fontSize: 12, color: TEAL, textDecoration: 'none', fontWeight: 600 }}>
-                            {ja ? `${code} のサンプル問題を見る →` : `Try ${code} Sample Questions →`}
-                          </Link>
-                        </div>
-                      );
-                    })}
-                  </div>
-                </div>
-              ))}
-            </div>
-          </section>
 
           {/* ── サービスリファレンス ── */}
           <section style={{ marginBottom: isMobile ? 40 : 56 }}>

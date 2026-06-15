@@ -140,8 +140,9 @@ function QuestionView({ q, index, total, domains }: { q: Question; index: number
   );
 }
 
-export default function SampleQuiz() {
-  const { exam } = useParams<{ exam?: string }>();
+export default function SampleQuiz({ examParam }: { examParam?: string } = {}) {
+  const { exam: examFromParams } = useParams<{ exam?: string }>();
+  const exam = examParam ?? examFromParams;
   const { user } = useAuth();
   const navigate = useNavigate();
   const [isMobile, setIsMobile] = useState(window.innerWidth < 768);

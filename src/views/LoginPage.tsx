@@ -2,9 +2,9 @@
 import React, { useRef, useEffect } from 'react';
 import { useNavigate } from '@/compat/react-router-dom';
 import { Authenticator, ThemeProvider, Theme, translations } from '@aws-amplify/ui-react';
-import '@aws-amplify/ui-react/styles.css';
 import { I18n } from 'aws-amplify/utils';
 import { useAuth } from '../contexts/AuthContext';
+import { useLanguage } from '../contexts/LanguageContext';
 import Button from '../components/ui/Button';
 
 I18n.putVocabularies(translations);
@@ -65,10 +65,23 @@ const LEVEL_COLOR: Record<string, string> = {
   Professional: '#8b5cf6',
 };
 
+const STRINGS: Record<string, { ja: string; en: string }> = {
+  'login.tagline': {
+    ja: 'AWS認定試験の練習問題サービス',
+    en: 'AWS Certification Practice Questions',
+  },
+  'login.skipLogin': {
+    ja: 'ログインせずに試してみる',
+    en: 'Try without logging in',
+  },
+};
+
 export default function LoginPage() {
   const navigate = useNavigate();
   const { refresh } = useAuth();
+  const { lang } = useLanguage();
   const navigating = useRef(false);
+  const t = (key: string) => STRINGS[key]?.[lang as 'ja' | 'en'] ?? key;
 
   return (
     <ThemeProvider theme={amplifyTheme}>

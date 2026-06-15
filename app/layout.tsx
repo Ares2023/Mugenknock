@@ -2,6 +2,8 @@
 
 import React, { Suspense, useEffect } from 'react';
 import Script from 'next/script';
+import { Open_Sans } from 'next/font/google';
+import { usePathname } from 'next/navigation';
 import { Amplify } from 'aws-amplify';
 import outputs from '../src/amplify_outputs.json';
 import { AuthProvider } from '../src/contexts/AuthContext';
@@ -11,7 +13,16 @@ import '../src/index.css';
 
 Amplify.configure(outputs);
 
+const openSans = Open_Sans({
+  subsets: ['latin'],
+  weight: ['300', '400', '700'],
+  display: 'swap',
+});
+
 export default function RootLayout({ children }: { children: React.ReactNode }) {
+  const pathname = usePathname();
+  const isAdmin = pathname?.startsWith('/admin') ?? false;
+
   // エラービーコン（グローバルエラーハンドラ）
   useEffect(() => {
     const API_BASE = process.env.NEXT_PUBLIC_API_ENDPOINT;
@@ -37,7 +48,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   }, []);
 
   return (
-    <html lang="ja">
+    <html lang="ja" className={openSans.className}>
       <head>
         <meta charSet="utf-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1" />
@@ -45,9 +56,6 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <link rel="icon" type="image/png" href="/mugen-icon.png" />
         <link rel="apple-touch-icon" href="/mugen-icon.png" />
         <link rel="manifest" href="/manifest.json" />
-        <link rel="preconnect" href="https://fonts.googleapis.com" />
-        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="" />
-        <link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@300;400;700&display=swap" rel="stylesheet" />
         {/* テーマちらつき防止スクリプト */}
         <script dangerouslySetInnerHTML={{ __html: `(function(){var t=localStorage.getItem('theme');if(t==='dark')document.documentElement.setAttribute('data-theme','dark');})();` }} />
         {/* JSON-LD */}
@@ -72,12 +80,14 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         ` }} />
       </head>
       <body>
-        {/* AdSense（/admin 以外でのみ読み込む） */}
-        <Script
-          src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-7579739275405898"
-          crossOrigin="anonymous"
-          strategy="afterInteractive"
-        />
+        {/* AdSense（/admin では読み込まない） */}
+        {!isAdmin && (
+          <Script
+            src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-7579739275405898"
+            crossOrigin="anonymous"
+            strategy="lazyOnload"
+          />
+        )}
         <AuthProvider>
           <ThemeProvider>
             <LanguageProvider>
