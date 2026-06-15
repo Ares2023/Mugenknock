@@ -1,7 +1,7 @@
 'use client';
 import React, { useState } from 'react';
 import { Helmet } from '@/compat/react-helmet-async';
-import { Link, Navigate, useNavigate } from '@/compat/react-router-dom';
+import { Navigate, useNavigate } from '@/compat/react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { useLanguage } from '../contexts/LanguageContext';
 import { IconUser } from '../components/Icons';
@@ -146,25 +146,6 @@ export default function Portal() {
             </div>
           </section>
 
-
-          {/* ── サービスリファレンス ── */}
-          <section style={{ marginBottom: isMobile ? 40 : 56 }}>
-            <div style={{ background: 'var(--color-bg-white)', border: '1px solid var(--color-border)', borderRadius: 10, padding: '20px 22px', display: 'flex', alignItems: isMobile ? 'flex-start' : 'center', justifyContent: 'space-between', flexDirection: isMobile ? 'column' : 'row', gap: 14 }}>
-              <div>
-                <h2 style={{ fontSize: isMobile ? 15 : 17, fontWeight: 800, color: TEAL_D, margin: '0 0 6px' }}>
-                  {ja ? 'AWSサービス リファレンス' : 'AWS Service Reference'}
-                </h2>
-                <p style={{ margin: 0, fontSize: isMobile ? 12 : 13, color: 'var(--color-text-sub)', lineHeight: 1.65 }}>
-                  {ja
-                    ? '試験に登場する200以上のAWSサービスをカテゴリ別に一覧できます。コンピューティング・ストレージ・セキュリティなど全カテゴリ対応。'
-                    : 'Browse 200+ AWS services that appear in certification exams, organized by category.'}
-                </p>
-              </div>
-              <Link to="/encyclopedia" style={{ display: 'inline-flex', alignItems: 'center', gap: 6, background: TEAL, color: '#fff', textDecoration: 'none', borderRadius: 8, padding: '10px 18px', fontSize: 13, fontWeight: 700, whiteSpace: 'nowrap', flexShrink: 0 }}>
-                {ja ? 'サービス一覧を見る →' : 'Browse Services →'}
-              </Link>
-            </div>
-          </section>
 
         </div>
       </main>
