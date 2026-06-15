@@ -149,7 +149,7 @@ export default function Account() {
   const [deleteError, setDeleteError] = useState('');
 
   const [showDataModal, setShowDataModal] = useState(false);
-  const [showLangModal, setShowLangModal] = useState(false);
+
   const [showThemeModal, setShowThemeModal] = useState(false);
   const uid = user?.userId ?? 'guest';
   // localStorage にそのexamTypeのデータが残っているか確認
@@ -328,11 +328,6 @@ export default function Account() {
         <div>
           <SectionTitle>{ja ? '表示設定' : 'Display'}</SectionTitle>
           <SettingsGroup>
-            <SettingsRow
-              label={ja ? '言語' : 'Language'}
-              value={lang === 'ja' ? '日本語' : 'English'}
-              onClick={() => setShowLangModal(true)}
-            />
             <SettingsRow
               label={ja ? '外観' : 'Appearance'}
               value={theme === 'light' ? (ja ? 'ライト' : 'Light') : (ja ? 'ダーク' : 'Dark')}
@@ -537,30 +532,6 @@ export default function Account() {
         </Modal>
       )}
 
-      {showLangModal && (
-        <Modal onClose={() => setShowLangModal(false)} title={ja ? '言語' : 'Language'}>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 0, border: '1px solid var(--color-border)', borderRadius: 'var(--border-radius-lg)', overflow: 'hidden' }}>
-            {([['ja', '日本語'], ['en', 'English']] as const).map(([l, label], i, arr) => (
-              <button
-                key={l}
-                onClick={() => { setLang(l); setShowLangModal(false); }}
-                style={{
-                  display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-                  padding: '14px 16px', border: 'none',
-                  borderBottom: i < arr.length - 1 ? '1px solid var(--color-border)' : 'none',
-                  background: lang === l ? 'var(--color-primary-light)' : 'transparent',
-                  cursor: 'pointer', fontSize: 'var(--font-size-base)',
-                  color: lang === l ? 'var(--color-primary)' : 'var(--color-text-main)',
-                  fontWeight: lang === l ? 700 : 400,
-                }}
-              >
-                <span>{label}</span>
-                {lang === l && <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg>}
-              </button>
-            ))}
-          </div>
-        </Modal>
-      )}
 
       {/* ── 外観選択モーダル ── */}
       {showThemeModal && (
