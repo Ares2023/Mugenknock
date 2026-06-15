@@ -1,7 +1,6 @@
 'use client';
 
 import React, { Suspense, useEffect } from 'react';
-import Script from 'next/script';
 import { Open_Sans } from 'next/font/google';
 import { usePathname } from 'next/navigation';
 import { Amplify } from 'aws-amplify';
@@ -22,6 +21,17 @@ const openSans = Open_Sans({
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const isAdmin = pathname?.startsWith('/admin') ?? false;
+
+  // AdSense: /admin 以外で手動注入（next/script の data-nscript 属性を回避）
+  useEffect(() => {
+    if (isAdmin) return;
+    const script = document.createElement('script');
+    script.src = 'https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-7579739275405898';
+    script.async = true;
+    script.crossOrigin = 'anonymous';
+    document.head.appendChild(script);
+    return () => { document.head.removeChild(script); };
+  }, [isAdmin]);
 
   // エラービーコン（グローバルエラーハンドラ）
   useEffect(() => {
@@ -80,14 +90,6 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         ` }} />
       </head>
       <body>
-        {/* AdSense（/admin では読み込まない） */}
-        {!isAdmin && (
-          <Script
-            src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-7579739275405898"
-            crossOrigin="anonymous"
-            strategy="lazyOnload"
-          />
-        )}
         <AuthProvider>
           <ThemeProvider>
             <LanguageProvider>
