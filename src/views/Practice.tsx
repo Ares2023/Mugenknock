@@ -397,7 +397,7 @@ export default function Practice() {
               <button
                 onClick={() => setLimit(v => Math.min(examCfg?.totalQuestions ?? 65, v + 5))}
                 disabled={limit >= (examCfg?.totalQuestions ?? 65)}
-                style={{ width: 36, height: 36, borderRadius: '50%', border: '1px solid var(--color-border)', background: 'transparent', cursor: limit >= (examCfg?.totalQuestions ?? 65) ? 'default' : 'pointer', fontSize: 20, display: 'flex', alignItems: 'center', justifyContent: 'center', color: limit >= (examCfg?.totalQuestions ?? 65) ? 'var(--color-text-light)' : 'var(--color-text-main)' }}
+                style={{ width: 36, height: 36, borderRadius: '50%', border: '1px solid var(--color-text-light)', background: 'transparent', cursor: limit >= (examCfg?.totalQuestions ?? 65) ? 'default' : 'pointer', fontSize: 20, display: 'flex', alignItems: 'center', justifyContent: 'center', color: limit >= (examCfg?.totalQuestions ?? 65) ? 'var(--color-text-light)' : 'var(--color-text-main)' }}
               >+</button>
             </div>
           </div>
