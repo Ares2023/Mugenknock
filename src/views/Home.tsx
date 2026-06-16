@@ -1229,6 +1229,15 @@ export default function Home() {
             body: JSON.stringify({ userId: user.userId, examType: targetExam, scoreHistory: uploadSH, sessionScoreHistory: uploadSSH, sessionScoreLog: uploadSSL }),
           }).catch(() => {});
         }
+        // サーバーデータが localStorage より多い場合は localStorage に書き込む。
+        // 別デバイスや localStorage クリア後にセッション完了 effect が空ログをベースに
+        // PUT してサーバーの全履歴を上書きしてしまうバグを防ぐ。
+        if (uploadSSL.length > localSSL.length) {
+          try { localStorage.setItem(`score_session_log_${targetExam}_${user.userId}`, JSON.stringify(uploadSSL)); } catch {}
+        }
+        if (uploadSSH.length > localSSH.length) {
+          try { localStorage.setItem(`score_session_history_${targetExam}_${user.userId}`, JSON.stringify(uploadSSH)); } catch {}
+        }
         setServerScoreHistory(uploadSH);
         // セッション完了フラグがある場合、sessionScoreHistory は後続のuseEffectで追記されるため上書きしない
         if (!hasPendingSession) {
