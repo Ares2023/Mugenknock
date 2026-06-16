@@ -516,7 +516,7 @@ export default function Practice() {
                   {exerciseLoading ? (
                     <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}>
                       <span style={{ width: 13, height: 13, border: '2px solid rgba(0,0,0,0.2)', borderTopColor: '#16191f', borderRadius: '50%', animation: 'sherpa-spin 0.7s linear infinite', flexShrink: 0 }} />
-                      {t('exerciseSetup.starting')}
+                      {ja ? `準備中... ${exerciseLoadPct}%` : `Loading... ${exerciseLoadPct}%`}
                     </span>
                   ) : (ja ? '試験を開始' : 'Start')}
                 </button>
@@ -557,7 +557,7 @@ export default function Practice() {
                   {exerciseLoading ? (
                     <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}>
                       <span style={{ width: 13, height: 13, border: '2px solid rgba(0,0,0,0.2)', borderTopColor: '#16191f', borderRadius: '50%', animation: 'sherpa-spin 0.7s linear infinite', flexShrink: 0 }} />
-                      {t('exerciseSetup.starting')}
+                      {ja ? `準備中... ${exerciseLoadPct}%` : `Loading... ${exerciseLoadPct}%`}
                     </span>
                   ) : (ja ? '試験を開始' : 'Start')}
                 </button>
