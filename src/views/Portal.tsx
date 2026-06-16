@@ -152,6 +152,18 @@ export default function Portal() {
 
       <footer style={{ padding: '14px var(--spacing-lg)', textAlign: 'center', fontSize: 11, color: 'var(--color-text-light)', borderTop: '1px solid var(--color-border)' }}>
         © {new Date().getFullYear()} MugenKnock
+        <span style={{ margin: '0 10px' }}>|</span>
+        <a href="/about#privacy" style={{ color: 'var(--color-text-light)', textDecoration: 'none' }}
+          onMouseEnter={e => { e.currentTarget.style.textDecoration = 'underline'; }}
+          onMouseLeave={e => { e.currentTarget.style.textDecoration = 'none'; }}>
+          プライバシーポリシー
+        </a>
+        <span style={{ margin: '0 10px' }}>|</span>
+        <a href="/about#terms" style={{ color: 'var(--color-text-light)', textDecoration: 'none' }}
+          onMouseEnter={e => { e.currentTarget.style.textDecoration = 'underline'; }}
+          onMouseLeave={e => { e.currentTarget.style.textDecoration = 'none'; }}>
+          利用規約
+        </a>
       </footer>
     </div>
   );
