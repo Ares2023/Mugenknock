@@ -22,16 +22,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   const pathname = usePathname();
   const isAdmin = pathname?.startsWith('/admin') ?? false;
 
-  // AdSense: /admin 以外で手動注入（next/script の data-nscript 属性を回避）
-  useEffect(() => {
-    if (isAdmin) return;
-    const script = document.createElement('script');
-    script.src = 'https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-7579739275405898';
-    script.async = true;
-    script.crossOrigin = 'anonymous';
-    document.head.appendChild(script);
-    return () => { document.head.removeChild(script); };
-  }, [isAdmin]);
+  // AdSense は <head> 内の <script> タグ（静的 HTML）として出力するため useEffect 不要
 
   // エラービーコン（グローバルエラーハンドラ）
   useEffect(() => {
@@ -66,6 +57,9 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <link rel="icon" type="image/png" href="/mugen-icon.png" />
         <link rel="apple-touch-icon" href="/mugen-icon.png" />
         <link rel="manifest" href="/manifest.json" />
+        {/* AdSense 所有権確認・広告配信（/admin では isAdmin により body 側で除外） */}
+        {/* eslint-disable-next-line @next/next/no-sync-scripts */}
+        <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-7579739275405898" crossOrigin="anonymous" />
         {/* テーマちらつき防止スクリプト */}
         <script dangerouslySetInnerHTML={{ __html: `(function(){var t=localStorage.getItem('theme');if(t==='dark')document.documentElement.setAttribute('data-theme','dark');})();` }} />
         {/* JSON-LD */}
