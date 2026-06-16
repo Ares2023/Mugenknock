@@ -22,6 +22,8 @@ const BROWSER_NOISE: RegExp[] = [
   /Failed to load resource.*ERR_ABORTED/,
   /AdSense.*data-nscript/,
   /data-nscript/,
+  /violates the following.*Content Security Policy/,
+  /frame-ancestors/,
 ];
 
 function filterRealErrors(monitor: PageMonitor) {
