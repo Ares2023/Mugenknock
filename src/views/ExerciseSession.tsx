@@ -758,48 +758,69 @@ export default function ExerciseSession() {
       )}
 
       {/* 進捗ノード（画面上部に固定） */}
-      <div style={{ position: 'fixed', top: 56, left: 0, right: 0, zIndex: 190, background: 'var(--color-bg-white)', borderBottom: '1px solid var(--color-border)', padding: '8px 16px', display: 'flex', alignItems: 'center' }}>
-        {questions.map((_, i) => {
-          const isAnswered = i < results.length;
-          const isCurrent = i === currentIndex;
-          const isClickable = i <= viewedFrontier && !isCurrent;
-          const isHovered = hoveredNode === i;
-          return (
-            <React.Fragment key={i}>
-              <div
-                onClick={isClickable ? () => goToQuestion(i) : undefined}
-                onMouseEnter={isClickable ? () => setHoveredNode(i) : undefined}
-                onMouseLeave={isClickable ? () => setHoveredNode(null) : undefined}
-                title={isClickable ? `第${i + 1}問へ` : undefined}
-                style={{
-                  width: isCurrent ? 12 : isHovered ? 9 : 7,
-                  height: isCurrent ? 12 : isHovered ? 9 : 7,
-                  borderRadius: '50%',
-                  flexShrink: 0,
-                  background: isAnswered || isCurrent ? 'var(--color-primary)' : 'transparent',
-                  border: `2px solid ${isAnswered || isCurrent ? 'var(--color-primary)' : 'var(--color-text-light)'}`,
-                  boxShadow: isCurrent
-                    ? '0 0 0 2px var(--color-primary-light, rgba(82,130,255,0.25))'
-                    : isHovered
-                    ? '0 0 0 3px var(--color-primary-light, rgba(82,130,255,0.35))'
-                    : 'none',
-                  cursor: isClickable ? 'pointer' : 'default',
-                  transition: 'all 0.15s',
-                  opacity: isAnswered && !isCurrent && !isHovered ? 0.75 : 1,
-                }}
-              />
-              {i < questions.length - 1 && (
-                <div style={{
-                  flex: 1,
-                  height: 2,
-                  background: i < results.length ? 'var(--color-primary)' : 'var(--color-text-light)',
-                  transition: 'background 0.2s',
-                }} />
-              )}
-            </React.Fragment>
-          );
-        })}
-      </div>
+      {(() => {
+        const WINDOW = 5;
+        const useWindow = questions.length > WINDOW;
+        // 現在問を中央に寄せたウィンドウ開始位置（端でクランプ）
+        const windowStart = useWindow
+          ? Math.max(0, Math.min(currentIndex - Math.floor(WINDOW / 2), questions.length - WINDOW))
+          : 0;
+        const visibleIndices = useWindow
+          ? Array.from({ length: WINDOW }, (_, k) => windowStart + k)
+          : Array.from({ length: questions.length }, (_, k) => k);
+
+        return (
+          <div style={{ position: 'fixed', top: 56, left: 0, right: 0, zIndex: 190, background: 'var(--color-bg-white)', borderBottom: '1px solid var(--color-border)', padding: '8px 16px', display: 'flex', alignItems: 'center', gap: 0 }}>
+            <div style={{ flex: 1, display: 'flex', alignItems: 'center' }}>
+              {visibleIndices.map((i, visIdx) => {
+                const isAnswered = i < results.length;
+                const isCurrent = i === currentIndex;
+                const isClickable = i <= viewedFrontier && !isCurrent;
+                const isHovered = hoveredNode === i;
+                return (
+                  <React.Fragment key={i}>
+                    <div
+                      onClick={isClickable ? () => goToQuestion(i) : undefined}
+                      onMouseEnter={isClickable ? () => setHoveredNode(i) : undefined}
+                      onMouseLeave={isClickable ? () => setHoveredNode(null) : undefined}
+                      title={isClickable ? `第${i + 1}問へ` : undefined}
+                      style={{
+                        width: isCurrent ? 12 : isHovered ? 9 : 7,
+                        height: isCurrent ? 12 : isHovered ? 9 : 7,
+                        borderRadius: '50%',
+                        flexShrink: 0,
+                        background: isAnswered || isCurrent ? 'var(--color-primary)' : 'transparent',
+                        border: `2px solid ${isAnswered || isCurrent ? 'var(--color-primary)' : 'var(--color-text-light)'}`,
+                        boxShadow: isCurrent
+                          ? '0 0 0 2px var(--color-primary-light, rgba(82,130,255,0.25))'
+                          : isHovered
+                          ? '0 0 0 3px var(--color-primary-light, rgba(82,130,255,0.35))'
+                          : 'none',
+                        cursor: isClickable ? 'pointer' : 'default',
+                        transition: 'all 0.15s',
+                        opacity: isAnswered && !isCurrent && !isHovered ? 0.75 : 1,
+                      }}
+                    />
+                    {visIdx < visibleIndices.length - 1 && (
+                      <div style={{
+                        flex: 1,
+                        height: 2,
+                        background: i < results.length ? 'var(--color-primary)' : 'var(--color-text-light)',
+                        transition: 'background 0.2s',
+                      }} />
+                    )}
+                  </React.Fragment>
+                );
+              })}
+            </div>
+            {useWindow && (
+              <span style={{ flexShrink: 0, marginLeft: 12, fontSize: 11, fontWeight: 700, color: 'var(--color-text-light)', fontVariantNumeric: 'tabular-nums', whiteSpace: 'nowrap' }}>
+                {currentIndex + 1} / {questions.length}
+              </span>
+            )}
+          </div>
+        );
+      })()}
       {/* 固定ノードバーの高さ分のスペーサー */}
       <div style={{ height: 36 }} />
 
