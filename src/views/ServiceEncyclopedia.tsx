@@ -279,8 +279,9 @@ export default function ServiceEncyclopedia() {
 
                 const handleClick = () => {
                   if (!unlocked) return;
-                  if (serviceData) { setSelected(serviceData); return; }
-                  // serviceData がない場合: 利用可能な serviceId で on-demand フェッチ
+                  // description がある場合のみキャッシュを使用（空文字プレースホルダーはフェッチする）
+                  if (serviceData?.description) { setSelected(serviceData); return; }
+                  // serviceData がない or description が空: 利用可能な serviceId で on-demand フェッチ
                   const fetchId = svc.serviceIds?.[0];
                   const placeholder: EncyclopediaService = {
                     serviceId: fetchId ?? svc.name,
