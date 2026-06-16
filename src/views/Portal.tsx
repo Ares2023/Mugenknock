@@ -5,11 +5,26 @@ import { Navigate, useNavigate } from '@/compat/react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { useLanguage } from '../contexts/LanguageContext';
 import { IconUser } from '../components/Icons';
+import { EXAM_TYPES, EXAM_CONFIGS, EXAM_LEVEL } from '../constants';
 
 const TEAL   = '#009E9E';
 const TEAL_D = '#007878';
 const TEAL_L = '#e6f7f7';
 const TEAL_M = '#b2e8e8';
+
+const LEVEL_ORDER = ['Foundational', 'Associate', 'Professional', 'Specialty'] as const;
+const LEVEL_COLOR: Record<string, string> = {
+  Foundational: '#6b9e3a',
+  Associate:    '#006CE0',
+  Professional: '#8b5cf6',
+  Specialty:    '#e67e22',
+};
+const LEVEL_JA: Record<string, string> = {
+  Foundational: 'Foundational',
+  Associate:    'Associate',
+  Professional: 'Professional',
+  Specialty:    'Specialty',
+};
 
 const BENEFITS: { ja: string; en: string }[] = [
   {
@@ -53,6 +68,9 @@ export default function Portal() {
   const { lang } = useLanguage();
   const ja = lang === 'ja';
   const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
+  const [cookieConsent, setCookieConsent] = useState<boolean>(() =>
+    localStorage.getItem('cookie_consent_v1') === 'accepted'
+  );
 
   React.useEffect(() => {
     const handler = () => setIsMobile(window.innerWidth < 768);
@@ -73,6 +91,15 @@ export default function Portal() {
   }
 
   const handleStart = () => navigate('/aws/');
+  const acceptCookies = () => {
+    localStorage.setItem('cookie_consent_v1', 'accepted');
+    setCookieConsent(true);
+  };
+
+  const grouped = LEVEL_ORDER.map(lv => ({
+    lv,
+    exams: EXAM_TYPES.filter(e => EXAM_LEVEL[e] === lv),
+  }));
 
   return (
     <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', background: 'var(--color-bg-main)', color: 'var(--color-text-main)', fontFamily: 'inherit' }}>
@@ -146,6 +173,53 @@ export default function Portal() {
             </div>
           </section>
 
+          {/* ── 資格サンプル問題カードグリッド ── */}
+          <section style={{ marginBottom: isMobile ? 40 : 56 }}>
+            <h2 style={{ fontSize: isMobile ? 17 : 22, fontWeight: 800, color: TEAL_D, margin: '0 0 6px', letterSpacing: '-0.3px' }}>
+              {ja ? '無料サンプル問題を試す' : 'Try Free Sample Questions'}
+            </h2>
+            <p style={{ fontSize: isMobile ? 12 : 13, color: 'var(--color-text-sub)', margin: '0 0 20px', lineHeight: 1.7 }}>
+              {ja ? '全12資格のサンプル問題を登録不要・無料で体験できます。' : 'Try sample questions for all 12 certifications — no registration required.'}
+            </p>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
+              {grouped.map(({ lv, exams }) => (
+                <div key={lv}>
+                  <div style={{ fontSize: 11, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.07em', color: LEVEL_COLOR[lv], marginBottom: 10 }}>
+                    {LEVEL_JA[lv]}
+                  </div>
+                  <div style={{ display: 'grid', gridTemplateColumns: isMobile ? 'repeat(2, 1fr)' : 'repeat(4, 1fr)', gap: 10 }}>
+                    {exams.map(code => {
+                      const cfg = EXAM_CONFIGS[code];
+                      return (
+                        <a
+                          key={code}
+                          href={`/sample/${code}`}
+                          style={{
+                            display: 'flex', flexDirection: 'column', justifyContent: 'space-between',
+                            background: 'var(--color-bg-white)',
+                            border: '1px solid var(--color-border)',
+                            borderRadius: 10, padding: '14px 14px 12px',
+                            textDecoration: 'none',
+                            transition: 'border-color 0.15s, box-shadow 0.15s',
+                          }}
+                          onMouseEnter={e => { e.currentTarget.style.borderColor = TEAL; e.currentTarget.style.boxShadow = `0 0 0 2px ${TEAL_L}`; }}
+                          onMouseLeave={e => { e.currentTarget.style.borderColor = 'var(--color-border)'; e.currentTarget.style.boxShadow = 'none'; }}
+                        >
+                          <div>
+                            <div style={{ fontSize: 18, fontWeight: 900, color: TEAL_D, marginBottom: 2 }}>{code}</div>
+                            <div style={{ fontSize: 11, color: 'var(--color-text-sub)', lineHeight: 1.4 }}>{cfg.examCode}</div>
+                          </div>
+                          <div style={{ marginTop: 10, fontSize: 12, fontWeight: 700, color: TEAL }}>
+                            {ja ? '5問試す →' : 'Try 5 Q →'}
+                          </div>
+                        </a>
+                      );
+                    })}
+                  </div>
+                </div>
+              ))}
+            </div>
+          </section>
 
         </div>
       </main>
@@ -165,6 +239,34 @@ export default function Portal() {
           利用規約
         </a>
       </footer>
+
+      {/* ── Cookie 同意バナー ── */}
+      {!cookieConsent && (
+        <div style={{
+          position: 'fixed', bottom: 0, left: 0, right: 0, zIndex: 9999,
+          background: 'var(--color-bg-white)',
+          borderTop: '1px solid var(--color-border)',
+          padding: '12px 20px',
+          display: 'flex', alignItems: 'center', gap: 12, flexWrap: 'wrap',
+          boxShadow: '0 -2px 12px rgba(0,0,0,0.1)',
+        }}>
+          <span style={{ flex: 1, minWidth: 200, fontSize: 12, color: 'var(--color-text-sub)', lineHeight: 1.6 }}>
+            {ja
+              ? '本サービスは、広告配信・アクセス解析のためにCookieを使用しています。'
+              : 'This site uses cookies for advertising and analytics.'}
+            {' '}
+            <a href="/about#privacy" style={{ color: TEAL, fontSize: 12 }}>
+              {ja ? '詳細' : 'Learn more'}
+            </a>
+          </span>
+          <button
+            onClick={acceptCookies}
+            style={{ flexShrink: 0, padding: '6px 18px', background: TEAL, color: '#fff', border: 'none', borderRadius: 'var(--border-radius-full)', fontWeight: 700, fontSize: 12, cursor: 'pointer' }}
+          >
+            {ja ? '同意して閉じる' : 'Accept'}
+          </button>
+        </div>
+      )}
     </div>
   );
 }
