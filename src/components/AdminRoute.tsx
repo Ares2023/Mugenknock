@@ -1,5 +1,6 @@
+'use client';
 import React, { useState, useEffect } from 'react';
-import { Navigate } from 'react-router-dom';
+import { Navigate } from '@/compat/react-router-dom';
 import { fetchAuthSession } from 'aws-amplify/auth';
 import { useAuth } from '../contexts/AuthContext';
 import { ADMIN_EMAIL, API_ENDPOINT } from '../constants';

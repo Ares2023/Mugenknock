@@ -1,3 +1,4 @@
+'use client';
 import React from 'react';
 
 export const IconHome = () => (
@@ -481,8 +482,17 @@ const _brokenSvgs = new Set<string>();
 
 export function ServiceIconUrl({ icon, name, size }: { icon: string; name: string; size: number }) {
   const svgSrc = icon.replace(/\.png$/, '.svg');
-  const [src, setSrc] = React.useState(() => _brokenSvgs.has(svgSrc) ? icon : svgSrc);
-  return <img src={src} alt={name} onError={() => { _brokenSvgs.add(svgSrc); setSrc(icon); }} style={{ width: size, height: size, objectFit: 'contain' }} />;
+  const alreadyBroken = _brokenSvgs.has(svgSrc);
+  const [src, setSrc] = React.useState(() => alreadyBroken ? icon : svgSrc);
+  const [visible, setVisible] = React.useState(alreadyBroken);
+  return (
+    <img
+      src={src} alt={name}
+      onLoad={() => setVisible(true)}
+      onError={() => { _brokenSvgs.add(svgSrc); setSrc(icon); }}
+      style={{ width: size, height: size, objectFit: 'contain', opacity: visible ? 1 : 0 }}
+    />
+  );
 }
 
 export function ServiceIconImg({ icon, name, size }: { icon: string; name: string; size: number }) {

@@ -1,8 +1,9 @@
-import React, { createContext, useContext, useState, useEffect } from 'react';
-import { ja, en } from '../i18n/translations';
-import { useAuth } from './AuthContext';
+'use client';
+import React, { createContext, useContext } from 'react';
+import { ja } from '../i18n/translations';
 
-export type Lang = 'ja' | 'en';
+// 英語対応を廃止し、日本語固定
+export type Lang = 'ja';
 
 interface LanguageContextType {
   lang: Lang;
@@ -19,33 +20,8 @@ const LanguageContext = createContext<LanguageContextType>({
 export const useLanguage = () => useContext(LanguageContext);
 
 export const LanguageProvider = ({ children }: { children: React.ReactNode }) => {
-  const { user } = useAuth();
-  const uid = user?.userId;
-
-  const [lang, setLangState] = useState<Lang>(() => {
-    const saved = localStorage.getItem('lang');
-    return (saved === 'en' ? 'en' : 'ja') as Lang;
-  });
-
-  // uidが確定・変更したらアカウント別設定を適用
-  useEffect(() => {
-    if (!uid) return;
-    const saved = localStorage.getItem(`lang_${uid}`);
-    if (saved === 'en' || saved === 'ja') setLangState(saved as Lang);
-  }, [uid]);
-
-  const setLang = (l: Lang) => {
-    if (uid) {
-      localStorage.setItem(`lang_${uid}`, l);
-    } else {
-      localStorage.setItem('lang', l);
-    }
-    setLangState(l);
-  };
-
   const t = (key: string, vars?: Record<string, string | number>): string => {
-    const dict = lang === 'en' ? en : ja;
-    let str = dict[key] ?? ja[key] ?? key;
+    let str = ja[key] ?? key;
     if (vars) {
       Object.entries(vars).forEach(([k, v]) => {
         str = str.replace(`{${k}}`, String(v));
@@ -55,7 +31,7 @@ export const LanguageProvider = ({ children }: { children: React.ReactNode }) =>
   };
 
   return (
-    <LanguageContext.Provider value={{ lang, setLang, t }}>
+    <LanguageContext.Provider value={{ lang: 'ja', setLang: () => {}, t }}>
       {children}
     </LanguageContext.Provider>
   );

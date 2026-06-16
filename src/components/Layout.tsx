@@ -1,5 +1,6 @@
+'use client';
 import React, { useState, useEffect, useRef } from 'react';
-import { useNavigate, useLocation } from 'react-router-dom';
+import { useNavigate, useLocation } from '@/compat/react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { useLanguage } from '../contexts/LanguageContext';
 import { useTheme } from '../contexts/ThemeContext';
@@ -78,6 +79,9 @@ export default function Layout({ children }: { children: React.ReactNode }) {
   const { theme, toggleTheme } = useTheme();
   const navigate = useNavigate();
   const location = useLocation();
+  // Next.js の trailingSlash: true により pathname が '/aws/practice/' のように末尾スラッシュを持つ。
+  // 既存の比較・TAB_PATHS・breadcrumb キーはスラッシュなし前提なので、ここで正規化する。
+  const pathname = location.pathname === '/' ? '/' : location.pathname.replace(/\/$/, '');
   const mainRef = useRef<HTMLElement>(null);
   const uid = user?.userId ?? 'guest';
   const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
@@ -144,11 +148,18 @@ export default function Layout({ children }: { children: React.ReactNode }) {
       if (Math.abs(dy) > Math.abs(dx) + 4 || Math.abs(dx) < 6) return;
       isDraggingH.current = true;
     }
-    const idx = TAB_PATHS.indexOf(location.pathname);
+    const idx = TAB_PATHS.indexOf(pathname);
     if (idx === -1) return;
     const atStart = idx === 0 && dx > 0;
     const atEnd   = idx === TAB_PATHS.length - 1 && dx < 0;
     setSwipeOffset(atStart || atEnd ? dx * 0.15 : dx);
+  };
+
+  const handleTouchCancel = () => {
+    if (!isDraggingH.current) return;
+    isDraggingH.current = false;
+    setSwipeTrans(true);
+    setSwipeOffset(0);
   };
 
   const handleTouchEnd = (e: React.TouchEvent) => {
@@ -156,7 +167,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
     isDraggingH.current = false;
     const dx = e.changedTouches[0].clientX - swipeStartX.current;
     const dy = e.changedTouches[0].clientY - swipeStartY.current;
-    const idx = TAB_PATHS.indexOf(location.pathname);
+    const idx = TAB_PATHS.indexOf(pathname);
     if (idx !== -1 && Math.abs(dx) >= SWIPE_THRESHOLD && Math.abs(dx) > Math.abs(dy)) {
       if (dx < 0 && idx < TAB_PATHS.length - 1) doTabNavigate(TAB_PATHS[idx + 1], 'left');
       else if (dx > 0 && idx > 0)               doTabNavigate(TAB_PATHS[idx - 1], 'right');
@@ -315,10 +326,10 @@ export default function Layout({ children }: { children: React.ReactNode }) {
 
   const isActive = (path: string) =>
     (path === '/aws/' || path === '/aws')
-      ? (location.pathname === '/aws/' || location.pathname === '/aws')
-      : location.pathname.startsWith(path);
+      ? (pathname === '/aws/' || pathname === '/aws')
+      : pathname.startsWith(path);
 
-  const isOthersActive = location.pathname === '/aws/others' || OTHERS_ITEMS.some(item => isActive(item.path));
+  const isOthersActive = pathname === '/aws/others' || OTHERS_ITEMS.some(item => isActive(item.path));
 
   const navItems = NAV_KEYS;
 
@@ -573,7 +584,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
 
       {/* ── サブバー（ハンバーガー＋パンくず） ── */}
       {/* モバイルでは目標ボタンが表示される場合のみサブバーを描画 */}
-      {(!isMobile || (!!targetExam && !isOthersActive && !['/aws/exercise/session', '/aws/exam/session', '/aws/mypage'].includes(location.pathname))) && (
+      {(!isMobile || (!!targetExam && !isOthersActive && !['/aws/exercise/session', '/aws/exam/session', '/aws/mypage'].includes(pathname))) && (
       <div style={{
         height: 40, minHeight: 40, background: 'var(--color-bg-white)',
         display: 'flex', alignItems: 'center', padding: '0 var(--spacing-sm)',
@@ -599,15 +610,15 @@ export default function Layout({ children }: { children: React.ReactNode }) {
         {/* デスクトップ: パンくずエリア */}
         {!isMobile && (
           <div style={{ flex: 1, minWidth: 0, overflow: 'hidden' }}>
-            {breadcrumbs[location.pathname] && (
+            {breadcrumbs[pathname] && (
               <Breadcrumb
-                items={breadcrumbs[location.pathname]}
+                items={breadcrumbs[pathname]}
                 style={{ marginBottom: 0, fontSize: 'var(--font-size-sm)' }}
               />
             )}
           </div>
         )}
-        {targetExam && !(isMobile && isOthersActive) && !(['/aws/exercise/session', '/aws/exam/session', '/aws/mypage'].includes(location.pathname)) && (
+        {targetExam && !(isMobile && isOthersActive) && !(['/aws/exercise/session', '/aws/exam/session', '/aws/mypage'].includes(pathname)) && (
           <button
             onClick={() => navigate('/aws/mypage')}
             title="マイページ"
@@ -782,13 +793,14 @@ export default function Layout({ children }: { children: React.ReactNode }) {
           onTouchStart={isMobile ? handleTouchStart : undefined}
           onTouchMove={isMobile ? handleTouchMove : undefined}
           onTouchEnd={isMobile ? handleTouchEnd : undefined}
+          onTouchCancel={isMobile ? handleTouchCancel : undefined}
           style={{
             flex: 1, overflow: 'auto',
             background: 'var(--color-bg-main)',
             width: '100%',
             WebkitOverflowScrolling: 'touch',
             minWidth: 0,
-            paddingBottom: isMobile ? 120 : (['/aws/practice', '/aws/', '/aws'].includes(location.pathname) ? 80 : 0),
+            paddingBottom: isMobile ? 120 : (['/aws/practice', '/aws/', '/aws'].includes(pathname) ? 80 : 0),
             transform: swipeOffset !== 0 ? `translateX(${swipeOffset}px)` : undefined,
             transition: swipeTrans ? 'transform 0.24s ease' : 'none',
             willChange: swipeOffset !== 0 ? 'transform' : undefined,

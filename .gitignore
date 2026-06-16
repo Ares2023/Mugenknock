@@ -70,3 +70,12 @@ e2e/.auth/
 e2e/test-results/
 e2e/reports/
 e2e/screenshots/
+.next/
+out/
+e2e/canary-results/
+
+# canary テストスクリプトは追跡する
+!prompts/
+!prompts/night-prompts/
+!prompts/night-prompts/manual/
+!prompts/night-prompts/manual/canary.sh

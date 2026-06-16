@@ -1,3 +1,4 @@
+'use client';
 import React, { useState } from 'react';
 import { API_ENDPOINT } from '../constants';
 import Button from './ui/Button';
@@ -49,8 +50,9 @@ export default function ReportModal({ questionId, userId, lang, onClose }: Props
       style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', zIndex: 1000, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 'var(--spacing-md)' }}
       onClick={e => { if (e.target === e.currentTarget) onClose(); }}
     >
-      <div style={{ background: 'var(--color-bg-white)', borderRadius: 'var(--border-radius-lg)', padding: '28px 32px', width: '100%', maxWidth: 460, boxShadow: 'var(--box-shadow-md)', maxHeight: window.innerWidth < 768 ? '66vh' : '90vh', overflowY: 'auto' }}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 'var(--spacing-lg)' }}>
+      <div style={{ background: 'var(--color-bg-white)', borderRadius: 'var(--border-radius-lg)', width: '100%', maxWidth: 460, boxShadow: 'var(--box-shadow-md)', maxHeight: window.innerWidth < 768 ? '66vh' : '90vh', display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
+        {/* ヘッダー */}
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '20px 28px 16px', flexShrink: 0, borderBottom: '1px solid var(--color-border)' }}>
           <h3 style={{ margin: 0, fontSize: 'var(--font-size-h3)', fontWeight: 700, color: 'var(--color-text-main)' }}>
             {lang === 'ja' ? '問題を通報' : 'Report an issue'}
           </h3>
@@ -58,7 +60,7 @@ export default function ReportModal({ questionId, userId, lang, onClose }: Props
         </div>
 
         {done ? (
-          <div style={{ textAlign: 'center', padding: '24px 0' }}>
+          <div style={{ textAlign: 'center', padding: '24px 28px', flex: 1 }}>
             <div style={{ fontSize: 40, marginBottom: 'var(--spacing-md)' }}>✓</div>
             <p style={{ color: 'var(--color-success)', fontWeight: 700, fontSize: 'var(--font-size-md)', margin: '0 0 var(--spacing-sm)' }}>
               {lang === 'ja' ? '通報を受け付けました' : 'Report submitted'}
@@ -70,58 +72,64 @@ export default function ReportModal({ questionId, userId, lang, onClose }: Props
           </div>
         ) : (
           <>
-            <div style={{ fontSize: 'var(--font-size-xs)', fontFamily: 'monospace', color: 'var(--color-text-light)', marginBottom: 'var(--spacing-lg)', background: 'var(--color-bg-main)', padding: '3px 8px', borderRadius: 'var(--border-radius-sm)', display: 'inline-block' }}>
-              {questionId}
+            {/* スクロール可能なコンテンツ */}
+            <div style={{ flex: 1, overflowY: 'auto', padding: '16px 28px' }}>
+              <div style={{ fontSize: 'var(--font-size-xs)', fontFamily: 'monospace', color: 'var(--color-text-light)', marginBottom: 'var(--spacing-lg)', background: 'var(--color-bg-main)', padding: '3px 8px', borderRadius: 'var(--border-radius-sm)', display: 'inline-block' }}>
+                {questionId}
+              </div>
+
+              <div style={{ marginBottom: 'var(--spacing-lg)' }}>
+                <div style={{ fontSize: 'var(--font-size-sm)', fontWeight: 700, color: 'var(--color-text-sub)', marginBottom: 'var(--spacing-sm)' }}>
+                  {lang === 'ja' ? '通報の種類' : 'Category'} <span style={{ color: 'var(--color-danger)' }}>*</span>
+                </div>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--spacing-sm)' }}>
+                  {CATEGORIES.map(cat => (
+                    <label key={cat.value} style={{ display: 'flex', alignItems: 'center', gap: 'var(--spacing-sm)', cursor: 'pointer', fontSize: 'var(--font-size-base)', padding: '8px 12px', borderRadius: 'var(--border-radius-md)', border: `1px solid ${category === cat.value ? 'var(--color-primary)' : 'var(--color-border)'}`, background: category === cat.value ? 'var(--color-primary-light)' : 'var(--color-bg-white)', transition: 'all 0.15s' }}>
+                      <input
+                        type="radio"
+                        name="report-category"
+                        value={cat.value}
+                        checked={category === cat.value}
+                        onChange={() => setCategory(cat.value)}
+                        style={{ width: 16, height: 16, accentColor: 'var(--color-primary)' }}
+                      />
+                      <span style={{ fontWeight: category === cat.value ? 700 : 400 }}>
+                        {lang === 'ja' ? cat.label : cat.labelEn}
+                      </span>
+                    </label>
+                  ))}
+                </div>
+              </div>
+
+              <div>
+                <div style={{ fontSize: 'var(--font-size-sm)', fontWeight: 700, color: 'var(--color-text-sub)', marginBottom: 'var(--spacing-xs)' }}>
+                  {lang === 'ja' ? '詳細（任意）' : 'Details (optional)'}
+                </div>
+                <textarea
+                  value={message}
+                  onChange={e => setMessage(e.target.value)}
+                  placeholder={lang === 'ja' ? '具体的な内容を記入してください' : 'Describe the issue in detail'}
+                  rows={3}
+                  style={{ width: '100%', padding: '8px 10px', border: '1px solid var(--color-border)', borderRadius: 'var(--border-radius-md)', fontSize: 'var(--font-size-base)', resize: 'vertical', boxSizing: 'border-box', outline: 'none', lineHeight: 1.6 }}
+                  onFocus={e => e.currentTarget.style.borderColor = 'var(--color-primary)'}
+                  onBlur={e => e.currentTarget.style.borderColor = 'var(--color-border)'}
+                />
+              </div>
             </div>
 
-            <div style={{ marginBottom: 'var(--spacing-lg)' }}>
-              <div style={{ fontSize: 'var(--font-size-sm)', fontWeight: 700, color: 'var(--color-text-sub)', marginBottom: 'var(--spacing-sm)' }}>
-                {lang === 'ja' ? '通報の種類' : 'Category'} <span style={{ color: 'var(--color-danger)' }}>*</span>
+            {/* 固定フッター：送信ボタン */}
+            <div style={{ flexShrink: 0, padding: '12px 28px 20px', borderTop: '1px solid var(--color-border)', background: 'var(--color-bg-white)' }}>
+              {error && (
+                <p style={{ margin: '0 0 var(--spacing-sm)', fontSize: 'var(--font-size-sm)', color: 'var(--color-danger)' }}>
+                  {lang === 'ja' ? '送信に失敗しました。しばらく経ってから再試行してください。' : 'Failed to submit. Please try again later.'}
+                </p>
+              )}
+              <div style={{ display: 'flex', gap: 'var(--spacing-sm)' }}>
+                <Button variant="primary" onClick={handleSubmit} disabled={sending} style={{ flex: 1 }}>
+                  {sending ? (lang === 'ja' ? '送信中...' : 'Sending…') : (lang === 'ja' ? '通報する' : 'Submit report')}
+                </Button>
+                <Button variant="outline" onClick={onClose}>{lang === 'ja' ? 'キャンセル' : 'Cancel'}</Button>
               </div>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--spacing-sm)' }}>
-                {CATEGORIES.map(cat => (
-                  <label key={cat.value} style={{ display: 'flex', alignItems: 'center', gap: 'var(--spacing-sm)', cursor: 'pointer', fontSize: 'var(--font-size-base)', padding: '8px 12px', borderRadius: 'var(--border-radius-md)', border: `1px solid ${category === cat.value ? 'var(--color-primary)' : 'var(--color-border)'}`, background: category === cat.value ? 'var(--color-primary-light)' : 'var(--color-bg-white)', transition: 'all 0.15s' }}>
-                    <input
-                      type="radio"
-                      name="report-category"
-                      value={cat.value}
-                      checked={category === cat.value}
-                      onChange={() => setCategory(cat.value)}
-                      style={{ width: 16, height: 16, accentColor: 'var(--color-primary)' }}
-                    />
-                    <span style={{ fontWeight: category === cat.value ? 700 : 400 }}>
-                      {lang === 'ja' ? cat.label : cat.labelEn}
-                    </span>
-                  </label>
-                ))}
-              </div>
-            </div>
-
-            <div style={{ marginBottom: 'var(--spacing-lg)' }}>
-              <div style={{ fontSize: 'var(--font-size-sm)', fontWeight: 700, color: 'var(--color-text-sub)', marginBottom: 'var(--spacing-xs)' }}>
-                {lang === 'ja' ? '詳細（任意）' : 'Details (optional)'}
-              </div>
-              <textarea
-                value={message}
-                onChange={e => setMessage(e.target.value)}
-                placeholder={lang === 'ja' ? '具体的な内容を記入してください' : 'Describe the issue in detail'}
-                rows={3}
-                style={{ width: '100%', padding: '8px 10px', border: '1px solid var(--color-border)', borderRadius: 'var(--border-radius-md)', fontSize: 'var(--font-size-base)', resize: 'vertical', boxSizing: 'border-box', outline: 'none', lineHeight: 1.6 }}
-                onFocus={e => e.currentTarget.style.borderColor = 'var(--color-primary)'}
-                onBlur={e => e.currentTarget.style.borderColor = 'var(--color-border)'}
-              />
-            </div>
-
-            {error && (
-              <p style={{ margin: '0 0 var(--spacing-sm)', fontSize: 'var(--font-size-sm)', color: 'var(--color-danger)' }}>
-                {lang === 'ja' ? '送信に失敗しました。しばらく経ってから再試行してください。' : 'Failed to submit. Please try again later.'}
-              </p>
-            )}
-            <div style={{ display: 'flex', gap: 'var(--spacing-sm)' }}>
-              <Button variant="primary" onClick={handleSubmit} disabled={sending} style={{ flex: 1 }}>
-                {sending ? (lang === 'ja' ? '送信中...' : 'Sending…') : (lang === 'ja' ? '通報する' : 'Submit report')}
-              </Button>
-              <Button variant="outline" onClick={onClose}>{lang === 'ja' ? 'キャンセル' : 'Cancel'}</Button>
             </div>
           </>
         )}

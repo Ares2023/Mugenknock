@@ -1,3 +1,4 @@
+'use client';
 import React, { useState, useRef, useEffect } from 'react';
 import { DOMAIN_NAME_EN, DOMAIN_RATE_WARNING, DOMAIN_RATE_CAUTION } from '../constants';
 import { IconChevronDown } from './Icons';
@@ -93,7 +94,7 @@ export default function DomainSelector({ domains, selected, onChange, lang, labe
     <div style={{ marginBottom: noMargin ? 0 : 'var(--spacing-lg)' }}>
       {label}
 
-      <div ref={containerRef} style={{ position: 'relative', display: 'inline-flex', flexDirection: 'column', alignItems: 'flex-start', gap: 6 }}>
+      <div ref={containerRef} style={{ position: 'relative', display: 'flex', flexDirection: 'column', alignItems: 'flex-start', gap: 6 }}>
         {/* Trigger row */}
         <div style={{ position: 'relative' }}>
           <button
