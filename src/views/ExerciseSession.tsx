@@ -201,6 +201,10 @@ export default function ExerciseSession() {
 
   const [sessionId, setSessionId] = useState<string>(state?.sessionId ?? '');
   const [questions, setQuestions] = useState<Question[]>(state?.questions ?? []);
+  // プログレッシブロード用: 全問IDリスト（Practice からの新パス）
+  const allQuestionIds: string[] = state?.questionIds ?? [];
+  const totalCount = allQuestionIds.length > 0 ? allQuestionIds.length : questions.length;
+  const loadingNextRef = React.useRef(false);
   const [userId, setUserId] = useState<string>(state?.userId ?? '');
   const [examType, setExamType] = useState<string>(state?.examType ?? '');
   const [isQuick, setIsQuick] = useState<boolean>(state?.isQuick ?? false);
@@ -214,6 +218,26 @@ export default function ExerciseSession() {
     window.addEventListener('resize', handler);
     return () => window.removeEventListener('resize', handler);
   }, []);
+
+  // プログレッシブロード: 現在問 + 2問先までをバックグラウンドで先読み
+  useEffect(() => {
+    if (allQuestionIds.length === 0) return;
+    const targetIndex = Math.min(currentIndex + 2, allQuestionIds.length - 1);
+    if (targetIndex < questions.length) return; // already loaded
+    if (loadingNextRef.current) return;
+    const idsToLoad = allQuestionIds
+      .slice(questions.length, targetIndex + 1)
+      .join(',');
+    if (!idsToLoad) return;
+    loadingNextRef.current = true;
+    fetch(`${API_ENDPOINT}/questions?ids=${idsToLoad}&withAnswers=true`)
+      .then(r => r.json())
+      .then(d => {
+        if (d.items?.length) setQuestions(prev => [...prev, ...d.items]);
+      })
+      .catch(() => {})
+      .finally(() => { loadingNextRef.current = false; });
+  }, [currentIndex, questions.length]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const [currentIndex, setCurrentIndex] = useState<number>(state?.resumeIndex ?? 0);
   const [viewedFrontier, setViewedFrontier] = useState<number>(state?.resumeIndex ?? 0);
@@ -466,6 +490,11 @@ export default function ExerciseSession() {
       setAnswerCountError(null);
       return;
     }
+    // 次問がまだロードされていない場合は待機（通常は先読みで間に合う）
+    if (nextIdx < totalCount && nextIdx >= questions.length) {
+      // プリフェッチを即時トリガーして少し待つ
+      return;
+    }
     // frontierに戻ってきた場合（かつ未回答の問題が残っている）→ 未回答モードへ
     if (nextIdx === results.length && nextIdx < questions.length) {
       setCurrentIndex(nextIdx);
@@ -475,9 +504,9 @@ export default function ExerciseSession() {
       setAnswerCountError(null);
       return;
     }
-    if (nextIdx >= questions.length) {
+    if (nextIdx >= totalCount) {
       setFinishing(true);
-      const score = Math.round((results.filter(r => r.isCorrect).length / questions.length) * 100);
+      const score = Math.round((results.filter(r => r.isCorrect).length / totalCount) * 100);
       const basePassRate = PASS_RATE[examType] ?? PASS_RATE['SAA'];
       const passRate = isMini ? Math.ceil(basePassRate / 5) : basePassRate;
       const isPassed = score >= passRate;
@@ -760,14 +789,13 @@ export default function ExerciseSession() {
       {/* 進捗ノード（画面上部に固定） */}
       {(() => {
         const WINDOW = 5;
-        const useWindow = questions.length > WINDOW;
-        // 現在問を中央に寄せたウィンドウ開始位置（端でクランプ）
+        const useWindow = totalCount > WINDOW;
         const windowStart = useWindow
-          ? Math.max(0, Math.min(currentIndex - Math.floor(WINDOW / 2), questions.length - WINDOW))
+          ? Math.max(0, Math.min(currentIndex - Math.floor(WINDOW / 2), totalCount - WINDOW))
           : 0;
         const visibleIndices = useWindow
           ? Array.from({ length: WINDOW }, (_, k) => windowStart + k)
-          : Array.from({ length: questions.length }, (_, k) => k);
+          : Array.from({ length: totalCount }, (_, k) => k);
 
         return (
           <div style={{ position: 'fixed', top: 56, left: 0, right: 0, zIndex: 190, background: 'var(--color-bg-white)', borderBottom: '1px solid var(--color-border)', padding: '8px 16px', display: 'flex', alignItems: 'center', gap: 0 }}>
@@ -775,8 +803,11 @@ export default function ExerciseSession() {
               {visibleIndices.map((i, visIdx) => {
                 const isAnswered = i < results.length;
                 const isCurrent = i === currentIndex;
-                const isClickable = i <= viewedFrontier && !isCurrent;
+                const isLoaded = i < questions.length;
+                // 未ロード問題はタップ不可
+                const isClickable = i <= viewedFrontier && !isCurrent && isLoaded;
                 const isHovered = hoveredNode === i;
+                const notYetLoaded = !isLoaded && !isCurrent;
                 return (
                   <React.Fragment key={i}>
                     <div
@@ -791,6 +822,7 @@ export default function ExerciseSession() {
                         flexShrink: 0,
                         background: isAnswered || isCurrent ? 'var(--color-primary)' : 'transparent',
                         border: `2px solid ${isAnswered || isCurrent ? 'var(--color-primary)' : 'var(--color-text-light)'}`,
+                        opacity: notYetLoaded ? 0.3 : undefined,
                         boxShadow: isCurrent
                           ? '0 0 0 2px var(--color-primary-light, rgba(82,130,255,0.25))'
                           : isHovered
@@ -815,7 +847,7 @@ export default function ExerciseSession() {
             </div>
             {useWindow && (
               <span style={{ flexShrink: 0, marginLeft: 12, fontSize: 11, fontWeight: 700, color: 'var(--color-text-light)', fontVariantNumeric: 'tabular-nums', whiteSpace: 'nowrap' }}>
-                {currentIndex + 1} / {questions.length}
+                {currentIndex + 1} / {totalCount}
               </span>
             )}
           </div>
@@ -1117,7 +1149,7 @@ export default function ExerciseSession() {
                 onClick={nextQuestion}
                 style={{ flex: 1, height: 44, border: 'none', borderRadius: 22, background: 'var(--color-accent)', color: 'var(--color-btn-primary-text)', fontWeight: 600, fontSize: 'var(--font-size-base)', cursor: 'pointer' }}
               >
-                {currentIndex + 1 >= questions.length ? t('exerciseSession.showResult') : t('exerciseSession.next')}
+                {currentIndex + 1 >= totalCount ? t('exerciseSession.showResult') : t('exerciseSession.next')}
               </button>
             )}
           </div>
@@ -1136,7 +1168,7 @@ export default function ExerciseSession() {
                 onClick={nextQuestion}
                 style={{ height: 44, padding: '0 24px', border: '1.5px solid var(--color-primary)', borderRadius: 22, background: 'var(--color-bg-white)', color: 'var(--color-primary)', fontWeight: 600, fontSize: 'var(--font-size-base)', cursor: 'pointer', whiteSpace: 'nowrap', boxShadow: '0 2px 8px rgba(0,0,0,0.15)' }}
               >
-                {currentIndex + 1 >= questions.length ? t('exerciseSession.showResult') : t('exerciseSession.next')}
+                {currentIndex + 1 >= totalCount ? t('exerciseSession.showResult') : t('exerciseSession.next')}
               </button>
             )}
           </div>

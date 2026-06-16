@@ -205,18 +205,35 @@ export default function Practice() {
         });
         selectedItems = pool.slice(0, limit);
       } else {
-        const params = new URLSearchParams({ examType, withAnswers: 'true' });
-        const cachedQs = getCachedPersist<{ items: any[] }>(qCacheKey);
-        const plateau = randomPlateau();
-        const stopAnim = cachedQs ? null : animateLoadPct(setExerciseLoadPct, 10, plateau);
-        const data = cachedQs ? cachedQs : await fetch(`${API_ENDPOINT}/questions?${params}`).then(r => r.json());
-        if (stopAnim) { stopAnim(); setExerciseLoadPct(plateau); }
-        if (!cachedQs) setCachedPersist(qCacheKey, data);
-        let allItems: any[] = (data.items ?? []).filter((q: any) => {
-          if (!allSelected && !selectedDomains.includes(qDomainName(q))) return false;
-          return true;
+        // ── プログレッシブロードパス（フィルタなし通常演習）──
+        // 1. IDのみ取得（軽量・高速）
+        const idsParams = new URLSearchParams({ examType, shuffle: 'true', idsOnly: 'true' });
+        if (!allSelected) idsParams.set('domain', selectedDomains.join(','));
+        const idsData = await fetch(`${API_ENDPOINT}/questions?${idsParams}`).then(r => r.json());
+        const allIds: string[] = idsData.questionIds ?? [];
+        const selectedIds = allIds.slice(0, limit);
+        if (selectedIds.length === 0) { alert(t('exerciseSetup.noQuestions')); setExerciseLoading(false); return; }
+        setExerciseLoadPct(50);
+
+        // 2. セッション作成 + 最初の1問取得 を並列実行
+        const [sessionData, q1Data] = await Promise.all([
+          fetch(`${API_ENDPOINT}/sessions`, {
+            method: 'POST', headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ userId, mode: 'exercise', examType, questionIds: selectedIds }),
+          }).then(r => r.json()),
+          fetch(`${API_ENDPOINT}/questions?ids=${selectedIds[0]}&withAnswers=true`).then(r => r.json()),
+        ]);
+        setExerciseLoadPct(90);
+        // 3. 最初の1問で即遷移（2問目以降は ExerciseSession 内でバックグラウンドロード）
+        navigate('/aws/exercise/session', {
+          state: {
+            sessionId: sessionData.sessionId,
+            questions: q1Data.items ?? [],
+            questionIds: selectedIds,
+            userId, mode: 'exercise', examType,
+          },
         });
-        selectedItems = shuffleArray(allItems).slice(0, limit);
+        return;
       }
       if (selectedItems.length === 0) { alert(t('exerciseSetup.noQuestions')); setExerciseLoading(false); return; }
       setExerciseLoadPct(90);

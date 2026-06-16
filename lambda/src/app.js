@@ -369,6 +369,12 @@ app.get('/questions', async (req, res) => {
     const total = items.length;
     if (offset) items = items.slice(parseInt(offset));
     if (limit) items = items.slice(0, parseInt(limit));
+
+    // idsOnly=true: 問題IDのみ返す（プログレッシブロード用）
+    if (req.query.idsOnly === 'true') {
+      return res.json({ questionIds: items.map(q => q.questionId), total: items.length });
+    }
+
     const withAnswers = req.query.withAnswers === 'true';
     const sanitized = withAnswers
       ? items.map(item => {
