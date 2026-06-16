@@ -51,7 +51,10 @@ export function useNavigate() {
 }
 
 export function useLocation() {
-  const pathname = usePathname();
+  const rawPathname = usePathname();
+  // Next.js の trailingSlash: true により '/aws/practice/' のように末尾スラッシュが付く。
+  // ルート '/' は除いて正規化し、path 比較が一致するようにする。
+  const pathname = rawPathname && rawPathname !== '/' ? rawPathname.replace(/\/$/, '') : (rawPathname ?? '/');
   const searchParams = useSearchParams();
   const hash = typeof window !== 'undefined' ? window.location.hash : '';
   const state = readNavState();
