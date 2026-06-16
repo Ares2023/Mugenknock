@@ -2,11 +2,11 @@
 # Cloudflare Pages デプロイ状況確認スクリプト
 #
 # 使い方:
-#   ./prompts/night-prompts/manual/cf-deploy-status.sh          # 直近5件
+#   ./prompts/night-prompts/manual/cf-deploy-status.sh          # 直近5件を表示
 #   ./prompts/night-prompts/manual/cf-deploy-status.sh prod     # 本番（master）のみ
 #   ./prompts/night-prompts/manual/cf-deploy-status.sh staging  # 検証（develop）のみ
+#   ./prompts/night-prompts/manual/cf-deploy-status.sh wait     # 最新ビルドが完了するまで待機して結果表示
 
-# .bashrc から認証情報を取得（非インタラクティブシェル対応）
 CF_TOKEN="${CLOUDFLARE_API_TOKEN:-$(grep 'CLOUDFLARE_API_TOKEN' ~/.bashrc | head -1 | sed 's/.*="\(.*\)"/\1/')}"
 CF_ACCOUNT="${CLOUDFLARE_ACCOUNT_ID:-$(grep 'CLOUDFLARE_ACCOUNT_ID' ~/.bashrc | head -1 | sed 's/.*="\(.*\)"/\1/')}"
 PROJECT="mugenknock"
@@ -14,25 +14,30 @@ FILTER="${1:-}"
 
 if [ -z "$CF_TOKEN" ] || [ -z "$CF_ACCOUNT" ]; then
   echo "❌ CLOUDFLARE_API_TOKEN または CLOUDFLARE_ACCOUNT_ID が未設定です"
-  echo "   ~/.bashrc に設定してください"
   exit 1
 fi
 
-RESP=$(curl -s "https://api.cloudflare.com/client/v4/accounts/${CF_ACCOUNT}/pages/projects/${PROJECT}/deployments" \
-  -H "Authorization: Bearer ${CF_TOKEN}")
+API="https://api.cloudflare.com/client/v4/accounts/${CF_ACCOUNT}/pages/projects/${PROJECT}/deployments"
 
-echo "$RESP" | python3 -c "
+fetch_deployments() {
+  curl -s "$API" -H "Authorization: Bearer ${CF_TOKEN}"
+}
+
+print_deployments() {
+  local resp="$1"
+  local filter="$2"
+  echo "$resp" | python3 -c "
 import json, sys
 from datetime import datetime, timezone
 
 data = json.load(sys.stdin)
-filter_env = '$FILTER'
+filter_env = '$filter'
 
 if not data.get('success'):
     print('❌ APIエラー:', data.get('errors'))
     sys.exit(1)
 
-STATUS_ICON = {'success':'✅','failure':'❌','canceled':'⚠️','active':'🔄','idle':'💤'}
+STATUS_ICON = {'success':'✅','failure':'❌','canceled':'⚠️','active':'🔄','idle':'💤','queued':'⏳'}
 
 print('📋 Cloudflare Pages — $PROJECT デプロイ状況')
 print('=' * 60)
@@ -45,6 +50,8 @@ for d in data.get('result', []):
 
     if filter_env == 'prod'    and env != 'production': continue
     if filter_env == 'staging' and env != 'preview':    continue
+    if filter_env == 'wait':
+        pass  # wait モードでは全件確認
 
     status = d.get('latest_stage', {}).get('status', '')
     icon   = STATUS_ICON.get(status, '❓')
@@ -67,8 +74,64 @@ for d in data.get('result', []):
     print()
 
     shown += 1
-    if shown >= 5 and not filter_env: break
+    if shown >= 5 and filter_env not in ('prod', 'staging', 'wait'): break
 
 if shown == 0:
     print('該当するデプロイがありません')
 "
+}
+
+get_latest_status() {
+  local resp="$1"
+  echo "$resp" | python3 -c "
+import json, sys
+data = json.load(sys.stdin)
+result = data.get('result', [])
+if result:
+    d = result[0]
+    status = d.get('latest_stage', {}).get('status', '')
+    print(status)
+"
+}
+
+# ── wait モード: 最新ビルドが完了するまでポーリング ──
+if [ "$FILTER" = "wait" ]; then
+  echo "⏳ 最新ビルドの完了を待機中..."
+  MAX=30   # 最大5分（10秒×30回）
+  COUNT=0
+  while [ $COUNT -lt $MAX ]; do
+    RESP=$(fetch_deployments)
+    STATUS=$(get_latest_status "$RESP")
+    case "$STATUS" in
+      success|failure|canceled)
+        echo ""
+        print_deployments "$RESP" ""
+        if [ "$STATUS" = "success" ]; then
+          echo "✅ ビルド成功"
+          exit 0
+        else
+          echo "❌ ビルド失敗（status: $STATUS）"
+          exit 1
+        fi
+        ;;
+      active|queued)
+        printf "."
+        sleep 10
+        COUNT=$((COUNT + 1))
+        ;;
+      *)
+        echo ""
+        echo "⚠️  不明なステータス: $STATUS"
+        print_deployments "$RESP" ""
+        exit 1
+        ;;
+    esac
+  done
+  echo ""
+  echo "⏰ タイムアウト（5分経過）"
+  print_deployments "$(fetch_deployments)" ""
+  exit 1
+fi
+
+# ── 通常表示 ──
+print_deployments "$(fetch_deployments)" "$FILTER"

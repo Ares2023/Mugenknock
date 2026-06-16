@@ -74,6 +74,7 @@
 2. git add / git commit
 3. git push github develop   # Cloudflare Pages が検証環境を自動ビルド・デプロイ
 4. git push origin develop   # CodeCommit にもバックアップ
+5. ./prompts/night-prompts/manual/cf-deploy-status.sh wait   # ビルド完了を待って結果確認
 ```
 
 ### Lambda も変更した場合
@@ -83,6 +84,7 @@
 3. git add / git commit
 4. git push github develop
 5. git push origin develop
+6. ./prompts/night-prompts/manual/cf-deploy-status.sh wait   # ビルド完了を待って結果確認
 ```
 
 ### 本番リリース（ユーザーから明示的な指示があった場合のみ）
@@ -92,7 +94,8 @@
 3. git push github master            # Cloudflare Pages が本番を自動ビルド・デプロイ
 4. git push origin master
 5. ./scripts/deploy-lambda.sh prod   # Lambda も本番に反映
-6. git checkout develop              # 作業ブランチを戻す
+6. ./prompts/night-prompts/manual/cf-deploy-status.sh wait   # ビルド完了を待って結果確認
+7. git checkout develop              # 作業ブランチを戻す
 ```
 
 ### Lambda デプロイスクリプト
