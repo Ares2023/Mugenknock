@@ -130,10 +130,8 @@ test.describe('サンプル問題フロー', () => {
     const monitor = new PageMonitor(page);
     await page.goto('/sample/INVALID', { waitUntil: 'networkidle' });
 
-    // クラッシュせず何らかのコンテンツが表示されること
+    // クラッシュせず何らかのコンテンツが表示されること（404 は期待値なので printReport しない）
     await assertPageVisible(page, 'main, body', 8_000);
-
-    monitor.printReport('無効な資格コード');
     assertNoRealErrors(monitor, '無効な資格コード');
   });
 });
