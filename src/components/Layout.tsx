@@ -155,6 +155,13 @@ export default function Layout({ children }: { children: React.ReactNode }) {
     setSwipeOffset(atStart || atEnd ? dx * 0.15 : dx);
   };
 
+  const handleTouchCancel = () => {
+    if (!isDraggingH.current) return;
+    isDraggingH.current = false;
+    setSwipeTrans(true);
+    setSwipeOffset(0);
+  };
+
   const handleTouchEnd = (e: React.TouchEvent) => {
     if (!isDraggingH.current) return;
     isDraggingH.current = false;
@@ -786,6 +793,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
           onTouchStart={isMobile ? handleTouchStart : undefined}
           onTouchMove={isMobile ? handleTouchMove : undefined}
           onTouchEnd={isMobile ? handleTouchEnd : undefined}
+          onTouchCancel={isMobile ? handleTouchCancel : undefined}
           style={{
             flex: 1, overflow: 'auto',
             background: 'var(--color-bg-main)',
