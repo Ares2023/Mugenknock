@@ -120,7 +120,9 @@ export default function Layout({ children }: { children: React.ReactNode }) {
   const swipeStartY = useRef<number>(0);
   const isDraggingH = useRef<boolean>(false);
   const SWIPE_THRESHOLD = 72;
-  const TAB_PATHS = [...BOTTOM_TABS.map(t => t.path), '/aws/others'];
+  const TAB_PATHS      = [...BOTTOM_TABS.map(t => t.path), '/aws/others'];
+  // indexOf 比較用（pathname は末尾スラッシュ除去済みなので揃える）
+  const TAB_PATHS_NORM = TAB_PATHS.map(p => p !== '/' ? p.replace(/\/$/, '') : p);
   const [swipeOffset, setSwipeOffset] = useState(0);
   const [swipeTrans, setSwipeTrans] = useState(false);
 
@@ -148,7 +150,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
       if (Math.abs(dy) > Math.abs(dx) + 4 || Math.abs(dx) < 6) return;
       isDraggingH.current = true;
     }
-    const idx = TAB_PATHS.indexOf(pathname);
+    const idx = TAB_PATHS_NORM.indexOf(pathname);
     if (idx === -1) return;
     const atStart = idx === 0 && dx > 0;
     const atEnd   = idx === TAB_PATHS.length - 1 && dx < 0;
@@ -167,7 +169,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
     isDraggingH.current = false;
     const dx = e.changedTouches[0].clientX - swipeStartX.current;
     const dy = e.changedTouches[0].clientY - swipeStartY.current;
-    const idx = TAB_PATHS.indexOf(pathname);
+    const idx = TAB_PATHS_NORM.indexOf(pathname);
     if (idx !== -1 && Math.abs(dx) >= SWIPE_THRESHOLD && Math.abs(dx) > Math.abs(dy)) {
       if (dx < 0 && idx < TAB_PATHS.length - 1) doTabNavigate(TAB_PATHS[idx + 1], 'left');
       else if (dx > 0 && idx > 0)               doTabNavigate(TAB_PATHS[idx - 1], 'right');
