@@ -336,7 +336,7 @@ export default function ExerciseSession() {
     try {
       const draftKey = isFocused ? `focusedExerciseDraft_${userId}` : isQuick ? `quickExerciseDraft_${userId}` : `practiceExerciseDraft_${userId}`;
       localStorage.setItem(draftKey, JSON.stringify({
-        sessionId, examType, questions, userId,
+        sessionId, examType, questions, questionIds: allQuestionIds, userId,
         currentIndex: ci, results: r, answered: a, selectedAnswers: sa,
         isQuick, isFocused, isMini, savedAt: Date.now(),
       }));

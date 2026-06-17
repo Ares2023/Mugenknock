@@ -247,6 +247,7 @@ export default function ExerciseSetup() {
       state: {
         sessionId: exerciseDraft.sessionId,
         questions: exerciseDraft.questions,
+        questionIds: exerciseDraft.questionIds ?? [],
         userId: exerciseDraft.userId,
         examType: exerciseDraft.examType,
         mode: 'exercise',
@@ -268,16 +269,18 @@ export default function ExerciseSetup() {
       const userId = user?.userId ?? 'guest';
       let selectedItems: any[];
 
+      // フェーズ1: 問題メタデータのみ取得（withAnswers なし → 軽量）
+      // 選択ロジックは questionId / domain のみ使用するため answers は不要
       const allSelected = EXAM_DOMAINS[examType].every(d => selectedDomains.includes(d));
       if (user && (bookmarkOnly || unansweredOnly || incorrectOnly)) {
-        const params = new URLSearchParams({ examType, withAnswers: 'true' });
+        const params = new URLSearchParams({ examType });
         if (!allSelected) params.set('domain', selectedDomains.join(','));
 
         const [qRes, bkmRes, answeredRes, incorrectRes] = await Promise.all([
           fetch(`${API_ENDPOINT}/questions?${params}`).then(r => r.json()),
-          user && bookmarkOnly ? fetch(`${API_ENDPOINT}/users/me/bookmarks?userId=${userId}`).then(r => r.json()) : Promise.resolve(null),
-          user && unansweredOnly ? fetch(`${API_ENDPOINT}/users/me/answered-questions?userId=${userId}&examType=${examType}`).then(r => r.json()) : Promise.resolve(null),
-          user && incorrectOnly ? fetch(`${API_ENDPOINT}/users/me/incorrect-questions?userId=${userId}&examType=${examType}`).then(r => r.json()) : Promise.resolve(null),
+          bookmarkOnly ? fetch(`${API_ENDPOINT}/users/me/bookmarks?userId=${userId}`).then(r => r.json()) : Promise.resolve(null),
+          unansweredOnly ? fetch(`${API_ENDPOINT}/users/me/answered-questions?userId=${userId}&examType=${examType}`).then(r => r.json()) : Promise.resolve(null),
+          incorrectOnly ? fetch(`${API_ENDPOINT}/users/me/incorrect-questions?userId=${userId}&examType=${examType}`).then(r => r.json()) : Promise.resolve(null),
         ]);
         let pool: any[] = qRes.items ?? [];
         let filtered = [...pool];
@@ -307,10 +310,9 @@ export default function ExerciseSetup() {
         selectedItems = filtered.slice(0, limit);
         if (usedFallback) alert(lang === 'ja' ? 'フィルタ条件に合う問題が不足したため、条件外の問題も含めて出題します。' : 'Not enough questions matched your filters. Including additional questions.');
       } else {
-        const params = new URLSearchParams({ examType, withAnswers: 'true' });
+        const params = new URLSearchParams({ examType });
         if (!allSelected) params.set('domain', selectedDomains.join(','));
-        const res = await fetch(`${API_ENDPOINT}/questions?${params}`);
-        const data = await res.json();
+        const data = await fetch(`${API_ENDPOINT}/questions?${params}`).then(r => r.json());
         let allItems: any[] = data.items ?? [];
         const exCounts = getDomainExerciseCounts(examType, userId, selectedDomains);
         selectedItems = balancedDomainSelect(allItems, selectedDomains, limit, exCounts);
@@ -323,15 +325,26 @@ export default function ExerciseSetup() {
       }
 
       const questionIds = selectedItems.map((q: any) => q.questionId);
-      const sessionRes = await fetch(`${API_ENDPOINT}/sessions`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ userId, mode: 'exercise', examType, questionIds })
-      });
-      const sessionData = await sessionRes.json();
 
+      // フェーズ2: 1問目の完全データ取得とセッション作成を並列実行
+      const [firstRes, sessionRes] = await Promise.all([
+        fetch(`${API_ENDPOINT}/questions?ids=${questionIds[0]}&withAnswers=true`).then(r => r.json()),
+        fetch(`${API_ENDPOINT}/sessions`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ userId, mode: 'exercise', examType, questionIds })
+        }).then(r => r.json()),
+      ]);
+
+      // 1問目は完全データ、2問目以降は questionIds でプログレッシブロード
+      const firstQuestion = firstRes.items?.[0] ?? selectedItems[0];
       navigate('/aws/exercise/session', {
-        state: { sessionId: sessionData.sessionId, questions: selectedItems, userId, mode: 'exercise', examType }
+        state: {
+          sessionId: sessionRes.sessionId,
+          questions: [firstQuestion],
+          questionIds,
+          userId, mode: 'exercise', examType,
+        }
       });
     } catch (err) {
       console.error(err);
