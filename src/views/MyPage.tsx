@@ -399,11 +399,7 @@ export default function MyPage() {
                   <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10 }}>
                     <span style={{ fontSize: 13, color: 'var(--color-text-sub)' }}>{ja ? '受験日' : 'Exam Date'}</span>
                     <span style={{ fontSize: 13, fontWeight: 600, color: 'var(--color-text-main)' }}>
-                      {examDate ? (() => {
-                        if (remainingDays === 0) return <span style={{ color: 'var(--color-primary)' }}>試験当日！🔥</span>;
-                        if (remainingDays !== null && remainingDays > 0) return <span>{examDate.replace(/-/g, '/')}（<span style={{ color: 'var(--color-primary)', fontWeight: 700 }}>あと{remainingDays}日</span>）</span>;
-                        return examDate.replace(/-/g, '/');
-                      })() : <span style={{ color: 'var(--color-text-light)' }}>{ja ? '未設定' : 'Not set'}</span>}
+                      {examDate ? examDate.replace(/-/g, '/') : <span style={{ color: 'var(--color-text-light)' }}>{ja ? '未設定' : 'Not set'}</span>}
                     </span>
                   </div>
                   {/* 目標演習量 */}
