@@ -201,9 +201,8 @@ export default function ExerciseSession() {
 
   const [sessionId, setSessionId] = useState<string>(state?.sessionId ?? '');
   const [questions, setQuestions] = useState<Question[]>(state?.questions ?? []);
-  // プログレッシブロード用: 全問IDリスト（Practice からの新パス）
-  const allQuestionIds: string[] = state?.questionIds ?? [];
-  const totalCount = allQuestionIds.length > 0 ? allQuestionIds.length : questions.length;
+  // プログレッシブロード用: 全問IDリスト（useState で hook として登録することで TDZ を回避）
+  const [allQuestionIds] = useState<string[]>(state?.questionIds ?? []);
   const loadingNextRef = React.useRef(false);
   const [userId, setUserId] = useState<string>(state?.userId ?? '');
   const [examType, setExamType] = useState<string>(state?.examType ?? '');
@@ -412,7 +411,19 @@ export default function ExerciseSession() {
     setInitialized(true);
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
+  // 全 Hook 呼び出し完了後に computed values を定義
+  const totalCount = allQuestionIds.length > 0 ? allQuestionIds.length : questions.length;
+
   if (!initialized) return null;
+
+  // プログレッシブロード: 現在問がまだロードされていない場合はスピナーを表示
+  if (!questions[currentIndex]) {
+    return (
+      <div style={{ position: 'fixed', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'var(--color-bg-main)' }}>
+        <div className="sherpa-spinner" />
+      </div>
+    );
+  }
 
   const toggleAnswer = (choice: string) => {
     if (answered) return;
