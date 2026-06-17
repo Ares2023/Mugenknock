@@ -358,7 +358,8 @@ export default function MyPage() {
               {targetExam ? (
                 <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                   <div>
-                    <div style={{ fontWeight: 700, fontSize: 16, color: 'var(--color-text-main)' }}>{targetExam}</div>
+                    <div style={{ fontSize: 11, color: 'var(--color-text-light)', marginBottom: 4 }}>{ja ? '目標資格' : 'Target Exam'}</div>
+                    <div style={{ fontWeight: 700, fontSize: 16, color: 'var(--color-primary)' }}>AWS {targetExam.split('-')[0]}</div>
                     <div style={{ fontSize: 12, color: 'var(--color-text-sub)', marginTop: 2 }}>{EXAM_CONFIGS[targetExam]?.fullName ?? ''}</div>
                   </div>
                   <span style={{ color: 'var(--color-primary)', fontSize: 22, fontWeight: 900, paddingLeft: 8 }}>›</span>
@@ -374,14 +375,14 @@ export default function MyPage() {
             {/* 設定カード（受験日・目標演習量） */}
             <Card style={{ marginBottom: 12 }}>
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
-                <span style={{ fontWeight: 700, fontSize: 14 }}>{ja ? '設定' : 'Settings'}</span>
+                <span style={{ fontWeight: 700, fontSize: 14 }}>{ja ? '目標資格' : 'Target Exam'}</span>
                 <button
                   onClick={() => {
                     setEditExamDate(examDate);
                     setEditDailyGoal(dailyGoal);
                     setShowSettingsEdit(true);
                   }}
-                  style={{ width: 32, height: 32, borderRadius: '50%', border: '1px solid var(--color-border)', background: 'transparent', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--color-text-sub)' }}
+                  style={{ width: 32, height: 32, borderRadius: '50%', border: '1px solid var(--color-primary)', background: 'transparent', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--color-primary)' }}
                   title={ja ? '編集' : 'Edit'}
                 >
                   <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
