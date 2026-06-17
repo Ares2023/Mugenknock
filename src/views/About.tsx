@@ -1,7 +1,6 @@
 'use client';
 import React, { useState, useEffect } from 'react';
 import { Helmet } from '@/compat/react-helmet-async';
-import { useLocation } from '@/compat/react-router-dom';
 import { useLanguage } from '../contexts/LanguageContext';
 import { API_ENDPOINT } from '../constants';
 
@@ -15,20 +14,24 @@ const SECTIONS: { key: Section; ja: string; en: string }[] = [
 
 type CustomSections = Partial<Record<Section, string>>;
 
+function hashToSection(): Section {
+  if (typeof window === 'undefined') return 'privacy';
+  const h = window.location.hash.replace('#', '') as Section;
+  return SECTIONS.some(s => s.key === h) ? h : 'privacy';
+}
+
 export default function About() {
   const { lang } = useLanguage();
   const ja = lang === 'ja';
-  const location = useLocation();
-  const hashSection = location.hash.replace('#', '') as Section;
-  const [section, setSection] = useState<Section>(
-    SECTIONS.some(s => s.key === hashSection) ? hashSection : 'privacy'
-  );
+  const [section, setSection] = useState<Section>('privacy');
   const [custom, setCustom] = useState<CustomSections>({});
 
   useEffect(() => {
-    const h = location.hash.replace('#', '') as Section;
-    if (SECTIONS.some(s => s.key === h)) setSection(h);
-  }, [location.hash]);
+    setSection(hashToSection());
+    const onHashChange = () => setSection(hashToSection());
+    window.addEventListener('hashchange', onHashChange);
+    return () => window.removeEventListener('hashchange', onHashChange);
+  }, []);
 
   useEffect(() => {
     fetch(`${API_ENDPOINT}/settings/about`)

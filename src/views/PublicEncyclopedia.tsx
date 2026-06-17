@@ -40,7 +40,7 @@ const CATEGORY_DESC: Record<string, string> = {
 export default function PublicEncyclopedia() {
   const { user } = useAuth();
   const navigate = useNavigate();
-  const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
+  const [isMobile, setIsMobile] = useState(() => typeof window !== 'undefined' ? window.innerWidth < 768 : false);
   const [search, setSearch] = useState('');
 
   React.useEffect(() => {

@@ -1209,7 +1209,12 @@ export default function ExerciseSession() {
               <p style={{ fontWeight: 700, color: 'var(--color-text-main)', margin: 0, fontSize: 'var(--font-size-base)' }}>{currentTip.title}</p>
             </div>
             <p style={{ color: 'var(--color-text-sub)', margin: 0, fontSize: 'var(--font-size-sm)', lineHeight: 1.8 }}>
-              {currentTip.content.replace(/\[[^\]]*\]\[\d+\]/g, '').replace(/\s{2,}/g, ' ').trim()}
+              {currentTip.content
+                .replace(/\[([^\]]*)\]\([^)]*\)/g, '$1')
+                .replace(/\[[^\]]*\]\[\d+\]/g, '')
+                .replace(/\(\s*\)/g, '')
+                .replace(/\s{2,}/g, ' ')
+                .trim()}
             </p>
           </Card>
         </div>
