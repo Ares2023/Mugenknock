@@ -372,38 +372,28 @@ export default function MyPage() {
               )}
             </Card>
 
-            {/* 設定カード（受験日・目標演習量） */}
-            <Card style={{ marginBottom: 12 }}>
+            {/* 学習目標カード（タップで設定変更） */}
+            <Card
+              style={{ marginBottom: 12, cursor: 'pointer' }}
+              onClick={() => { setEditExamDate(examDate); setEditDailyGoal(dailyGoal); setShowSettingsEdit(true); }}
+            >
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
                 <span style={{ fontWeight: 700, fontSize: 14 }}>{ja ? '学習目標' : 'Study Goals'}</span>
-                <button
-                  onClick={() => {
-                    setEditExamDate(examDate);
-                    setEditDailyGoal(dailyGoal);
-                    setShowSettingsEdit(true);
-                  }}
-                  style={{ width: 32, height: 32, borderRadius: '50%', border: '1px solid var(--color-primary)', background: 'transparent', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--color-primary)' }}
-                  title={ja ? '編集' : 'Edit'}
-                >
-                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                    <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
-                    <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
-                  </svg>
-                </button>
+                <span style={{ color: 'var(--color-primary)', fontSize: 22, fontWeight: 900, paddingLeft: 8 }}>›</span>
               </div>
               {!targetExam ? (
                 <p style={{ margin: 0, fontSize: 13, color: 'var(--color-text-light)' }}>{ja ? '目標資格を設定してください' : 'Set a target exam first'}</p>
               ) : (
                 <>
                   {/* 受験日 */}
-                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10 }}>
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8 }}>
                     <span style={{ fontSize: 13, color: 'var(--color-text-sub)' }}>{ja ? '受験日' : 'Exam Date'}</span>
                     <span style={{ fontSize: 13, fontWeight: 600, color: 'var(--color-text-main)' }}>
                       {examDate ? examDate.replace(/-/g, '/') : <span style={{ color: 'var(--color-text-light)' }}>{ja ? '未設定' : 'Not set'}</span>}
                     </span>
                   </div>
                   {/* 目標演習量 */}
-                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8 }}>
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                     <span style={{ fontSize: 13, color: 'var(--color-text-sub)' }}>
                       {ja ? '1日の目標演習量' : 'Daily Goal'}
                       {ja && <span style={{ fontSize: 10, marginLeft: 6 }}>※達成で<span style={{ color: '#009E9E', fontWeight: 700 }}>+10p</span>！</span>}
@@ -412,16 +402,13 @@ export default function MyPage() {
                       {todayCount} / {dailyGoal}{ja ? '問' : 'Q'}{todayCount >= dailyGoal && ' ✓'}
                     </span>
                   </div>
-                  <div style={{ height: 6, borderRadius: 3, background: 'var(--color-bg-main)', overflow: 'hidden' }}>
-                    <div style={{ height: '100%', borderRadius: 3, background: 'var(--bar-gradient-teal)', width: `${Math.min(100, (todayCount / dailyGoal) * 100)}%`, transition: 'width 0.3s' }} />
-                  </div>
                 </>
               )}
             </Card>
 
-            {/* 週間達成度カード */}
+            {/* 週間達成度カード（情報表示のみ・非クリッカブル） */}
             {targetExam && (
-              <Card style={{ marginBottom: 12 }}>
+              <Card style={{ marginBottom: 12, background: 'var(--color-bg-main)', boxShadow: 'none' }}>
                 <div style={{ fontWeight: 700, fontSize: 14, marginBottom: 12 }}>{ja ? '週間達成状況' : 'Weekly Progress'}</div>
                 <div style={{ fontSize: 12, color: 'var(--color-text-sub)', marginBottom: 8 }}>{ja ? '直近7日間' : 'Last 7 days'}</div>
                 <div style={{ display: 'flex', gap: 6, alignItems: 'flex-end' }}>
