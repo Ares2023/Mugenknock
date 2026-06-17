@@ -10,7 +10,7 @@ import Card from '../components/ui/Card';
 import Button from '../components/ui/Button';
 import {
   IconCalendarNotebook, IconTarget, IconAnnoyed, IconList,
-  IconSparkles, IconChevronRight, IconChevronDown, IconLock, IconFlag, IconStar,
+  IconSparkles, IconChevronRight, IconChevronDown, IconLock, IconFlag, IconStar, IconTrendingUp,
 } from '../components/Icons';
 
 const FOCUSED_UNLOCK_THRESHOLD = 30;
@@ -356,7 +356,10 @@ export default function MyPage() {
             {/* 目標資格カード（タップで資格ダッシュボードへ） */}
             <Card style={{ marginBottom: 12, cursor: 'pointer' }} onClick={() => navigate('/aws/exam-dashboard')}>
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
-                <span style={{ fontWeight: 700, fontSize: 14 }}>{ja ? '目標資格' : 'Target Exam'}</span>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                  <span style={{ color: 'var(--color-text-sub)', display: 'flex', alignItems: 'center' }}><IconFlag size={13} /></span>
+                  <span style={{ fontWeight: 700, fontSize: 'var(--font-size-sm)', color: 'var(--color-text-main)' }}>{ja ? '目標資格' : 'Target Exam'}</span>
+                </div>
                 <span style={{ color: 'var(--color-primary)', fontSize: 22, fontWeight: 900, paddingLeft: 8 }}>›</span>
               </div>
               {targetExam ? (
@@ -375,7 +378,10 @@ export default function MyPage() {
               onClick={() => { setEditExamDate(examDate); setEditDailyGoal(dailyGoal); setShowSettingsEdit(true); }}
             >
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
-                <span style={{ fontWeight: 700, fontSize: 14 }}>{ja ? '学習目標' : 'Study Goals'}</span>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                  <span style={{ color: 'var(--color-text-sub)', display: 'flex', alignItems: 'center' }}><IconCalendarNotebook size={13} /></span>
+                  <span style={{ fontWeight: 700, fontSize: 'var(--font-size-sm)', color: 'var(--color-text-main)' }}>{ja ? '学習目標' : 'Study Goals'}</span>
+                </div>
                 <span style={{ color: 'var(--color-primary)', fontSize: 22, fontWeight: 900, paddingLeft: 8 }}>›</span>
               </div>
               {!targetExam ? (
@@ -406,7 +412,10 @@ export default function MyPage() {
             {/* 週間達成度カード（情報表示のみ・非クリッカブル） */}
             {targetExam && (
               <Card style={{ marginBottom: 12, background: 'var(--color-bg-main)', boxShadow: 'none' }}>
-                <div style={{ fontWeight: 700, fontSize: 14, marginBottom: 12 }}>{ja ? '週間達成状況' : 'Weekly Progress'}</div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 12 }}>
+                  <span style={{ color: 'var(--color-text-sub)', display: 'flex', alignItems: 'center' }}><IconTrendingUp size={13} /></span>
+                  <span style={{ fontWeight: 700, fontSize: 'var(--font-size-sm)', color: 'var(--color-text-main)' }}>{ja ? '週間達成状況' : 'Weekly Progress'}</span>
+                </div>
                 <div style={{ fontSize: 12, color: 'var(--color-text-sub)', marginBottom: 8 }}>{ja ? '直近7日間' : 'Last 7 days'}</div>
                 <div style={{ display: 'flex', gap: 6, alignItems: 'flex-end' }}>
                   {weekDays.map((d, i) => {
