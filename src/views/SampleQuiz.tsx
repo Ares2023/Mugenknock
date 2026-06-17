@@ -62,7 +62,7 @@ function ExamList({ isMobile }: { isMobile: boolean }) {
                       <div style={{ fontSize: 11, color: 'var(--color-text-light)', marginTop: 4 }}>{EXAM_DESC_JA[code]}</div>
                     )}
                   </div>
-                  <span style={{ fontSize: 18, color: TEAL, flexShrink: 0 }}>→</span>
+                  <span style={{ fontSize: 18, color: TEAL, flexShrink: 0 }}>›</span>
                 </Link>
               );
             })}
