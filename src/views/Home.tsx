@@ -775,9 +775,8 @@ function TodayServiceSection({ lang, userId, onNavigateEncyclopedia, onReveal, i
     const uid = userId ?? 'guest';
     const jstDate = jstToday();
 
-    // 今日すでにタップ解放済みか確認
-    const alreadyRevealed = localStorage.getItem(`encyclopediaUnlockDate_${uid}`) === jstDate;
-    setRevealed(alreadyRevealed);
+    const localRevealed = localStorage.getItem(`encyclopediaUnlockDate_${uid}`) === jstDate;
+    if (localRevealed) setRevealed(true);
 
     // 再抽選キャッシュの読み込み
     const rerollCacheKey = `daily_service_reroll_${uid}_${jstDate}`;
@@ -786,37 +785,56 @@ function TodayServiceSection({ lang, userId, onNavigateEncyclopedia, onReveal, i
       setRerolledService({ ...cachedReroll, icon: resolveServiceIcon(cachedReroll) });
     }
 
-    const cacheKey = `daily_service_${uid}_${jstDate}`;
-    const cached = getCached<DailyService>(cacheKey);
-    if (cached !== null) {
-      const resolved = { ...cached, icon: resolveServiceIcon(cached) };
-      setService(resolved);
-      setLoading(false);
-      if (alreadyRevealed) {
-        saveToEncyclopedia(resolved, uid);
-        if (userId) syncEncyclopediaToServer(userId);
-      }
-      return;
-    }
-    const apiUrl = userId
-      ? `${API_ENDPOINT}/daily-service?userId=${encodeURIComponent(userId)}`
-      : `${API_ENDPOINT}/daily-service`;
-    fetch(apiUrl)
-      .then(r => r.json())
-      .then(d => {
-        const raw = d.service ?? null;
-        const s = raw ? { ...raw, icon: resolveServiceIcon(raw) } : null;
-        if (s) {
-          setCached(cacheKey, s, 60 * 60 * 1000);
-          if (alreadyRevealed) {
-            saveToEncyclopedia(s, uid);
-            if (userId) syncEncyclopediaToServer(userId);
-          }
+    const fetchService = (alreadyRevealed: boolean) => {
+      const cacheKey = `daily_service_${uid}_${jstDate}`;
+      const cached = getCached<DailyService>(cacheKey);
+      if (cached !== null) {
+        const resolved = { ...cached, icon: resolveServiceIcon(cached) };
+        setService(resolved);
+        setLoading(false);
+        if (alreadyRevealed) {
+          saveToEncyclopedia(resolved, uid);
+          if (userId) syncEncyclopediaToServer(userId);
         }
-        setService(s);
-      })
-      .catch(() => setService(null))
-      .finally(() => setLoading(false));
+        return;
+      }
+      const apiUrl = userId
+        ? `${API_ENDPOINT}/daily-service?userId=${encodeURIComponent(userId)}`
+        : `${API_ENDPOINT}/daily-service`;
+      fetch(apiUrl)
+        .then(r => r.json())
+        .then(d => {
+          const raw = d.service ?? null;
+          const s = raw ? { ...raw, icon: resolveServiceIcon(raw) } : null;
+          if (s) {
+            setCached(cacheKey, s, 60 * 60 * 1000);
+            if (alreadyRevealed) {
+              saveToEncyclopedia(s, uid);
+              if (userId) syncEncyclopediaToServer(userId);
+            }
+          }
+          setService(s);
+        })
+        .catch(() => setService(null))
+        .finally(() => setLoading(false));
+    };
+
+    if (!localRevealed && userId) {
+      // ローカルで未解放の場合、別デバイスで解放済みかサーバーに確認
+      fetch(`${API_ENDPOINT}/users/me/encyclopedia-unlocks?userId=${encodeURIComponent(userId)}`)
+        .then(r => r.json())
+        .then(data => {
+          const serverRevealed = data.unlockDate === jstDate;
+          if (serverRevealed) {
+            localStorage.setItem(`encyclopediaUnlockDate_${uid}`, jstDate);
+            setRevealed(true);
+          }
+          fetchService(serverRevealed);
+        })
+        .catch(() => fetchService(false));
+    } else {
+      fetchService(localRevealed);
+    }
   }, [userId]);
 
   const handleReroll = async () => {

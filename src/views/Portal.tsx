@@ -5,26 +5,12 @@ import { Navigate, useNavigate } from '@/compat/react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { useLanguage } from '../contexts/LanguageContext';
 import { IconUser } from '../components/Icons';
-import { EXAM_TYPES, EXAM_CONFIGS, EXAM_LEVEL } from '../constants';
 
 const TEAL   = '#009E9E';
 const TEAL_D = '#007878';
 const TEAL_L = '#e6f7f7';
 const TEAL_M = '#b2e8e8';
 
-const LEVEL_ORDER = ['Foundational', 'Associate', 'Professional', 'Specialty'] as const;
-const LEVEL_COLOR: Record<string, string> = {
-  Foundational: '#6b9e3a',
-  Associate:    '#006CE0',
-  Professional: '#8b5cf6',
-  Specialty:    '#e67e22',
-};
-const LEVEL_JA: Record<string, string> = {
-  Foundational: 'Foundational',
-  Associate:    'Associate',
-  Professional: 'Professional',
-  Specialty:    'Specialty',
-};
 
 const BENEFITS: { ja: string; en: string }[] = [
   {
@@ -96,11 +82,6 @@ export default function Portal() {
     setCookieConsent(true);
   };
 
-  const grouped = LEVEL_ORDER.map(lv => ({
-    lv,
-    exams: EXAM_TYPES.filter(e => EXAM_LEVEL[e] === lv),
-  }));
-
   return (
     <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', background: 'var(--color-bg-main)', color: 'var(--color-text-main)', fontFamily: 'inherit' }}>
       <Helmet>
@@ -168,54 +149,6 @@ export default function Portal() {
                 <div key={i} style={{ background: 'var(--color-bg-white)', border: '1px solid var(--color-border)', borderRadius: 8, padding: '18px 16px' }}>
                   <div style={{ fontSize: 13, fontWeight: 800, color: TEAL, marginBottom: 8 }}>{ja ? f.ja_title : f.en_title}</div>
                   <p style={{ margin: 0, fontSize: isMobile ? 12 : 13, color: 'var(--color-text-sub)', lineHeight: 1.75 }}>{ja ? f.ja : f.en}</p>
-                </div>
-              ))}
-            </div>
-          </section>
-
-          {/* ── 資格サンプル問題カードグリッド ── */}
-          <section style={{ marginBottom: isMobile ? 40 : 56 }}>
-            <h2 style={{ fontSize: isMobile ? 17 : 22, fontWeight: 800, color: TEAL_D, margin: '0 0 6px', letterSpacing: '-0.3px' }}>
-              {ja ? '無料サンプル問題を試す' : 'Try Free Sample Questions'}
-            </h2>
-            <p style={{ fontSize: isMobile ? 12 : 13, color: 'var(--color-text-sub)', margin: '0 0 20px', lineHeight: 1.7 }}>
-              {ja ? '全12資格のサンプル問題を登録不要・無料で体験できます。' : 'Try sample questions for all 12 certifications — no registration required.'}
-            </p>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
-              {grouped.map(({ lv, exams }) => (
-                <div key={lv}>
-                  <div style={{ fontSize: 11, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.07em', color: LEVEL_COLOR[lv], marginBottom: 10 }}>
-                    {LEVEL_JA[lv]}
-                  </div>
-                  <div style={{ display: 'grid', gridTemplateColumns: isMobile ? 'repeat(2, 1fr)' : 'repeat(4, 1fr)', gap: 10 }}>
-                    {exams.map(code => {
-                      const cfg = EXAM_CONFIGS[code];
-                      return (
-                        <a
-                          key={code}
-                          href={`/sample/${code}`}
-                          style={{
-                            display: 'flex', flexDirection: 'column', justifyContent: 'space-between',
-                            background: 'var(--color-bg-white)',
-                            border: '1px solid var(--color-border)',
-                            borderRadius: 10, padding: '14px 14px 12px',
-                            textDecoration: 'none',
-                            transition: 'border-color 0.15s, box-shadow 0.15s',
-                          }}
-                          onMouseEnter={e => { e.currentTarget.style.borderColor = TEAL; e.currentTarget.style.boxShadow = `0 0 0 2px ${TEAL_L}`; }}
-                          onMouseLeave={e => { e.currentTarget.style.borderColor = 'var(--color-border)'; e.currentTarget.style.boxShadow = 'none'; }}
-                        >
-                          <div>
-                            <div style={{ fontSize: 18, fontWeight: 900, color: TEAL_D, marginBottom: 2 }}>{code}</div>
-                            <div style={{ fontSize: 11, color: 'var(--color-text-sub)', lineHeight: 1.4 }}>{cfg.examCode}</div>
-                          </div>
-                          <div style={{ marginTop: 10, fontSize: 12, fontWeight: 700, color: TEAL }}>
-                            {ja ? '5問試す →' : 'Try 5 Q →'}
-                          </div>
-                        </a>
-                      );
-                    })}
-                  </div>
                 </div>
               ))}
             </div>
