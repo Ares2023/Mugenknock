@@ -355,10 +355,10 @@ export default function MyPage() {
           <>
             {/* 目標資格カード（タップで資格ダッシュボードへ） */}
             <Card style={{ marginBottom: 12, cursor: 'pointer' }} onClick={() => navigate('/aws/exam-dashboard')}>
+              <div style={{ fontWeight: 700, fontSize: 14, marginBottom: 12 }}>{ja ? '目標資格' : 'Target Exam'}</div>
               {targetExam ? (
                 <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                   <div>
-                    <div style={{ fontSize: 11, color: 'var(--color-text-light)', marginBottom: 4 }}>{ja ? '目標資格' : 'Target Exam'}</div>
                     <div style={{ fontWeight: 700, fontSize: 16, color: 'var(--color-primary)' }}>AWS {targetExam.split('-')[0]}</div>
                     <div style={{ fontSize: 12, color: 'var(--color-text-sub)', marginTop: 2 }}>{EXAM_CONFIGS[targetExam]?.fullName ?? ''}</div>
                   </div>
@@ -375,7 +375,7 @@ export default function MyPage() {
             {/* 設定カード（受験日・目標演習量） */}
             <Card style={{ marginBottom: 12 }}>
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
-                <span style={{ fontWeight: 700, fontSize: 14 }}>{ja ? '目標資格' : 'Target Exam'}</span>
+                <span style={{ fontWeight: 700, fontSize: 14 }}>{ja ? '学習目標' : 'Study Goals'}</span>
                 <button
                   onClick={() => {
                     setEditExamDate(examDate);
@@ -422,6 +422,7 @@ export default function MyPage() {
             {/* 週間達成度カード */}
             {targetExam && (
               <Card style={{ marginBottom: 12 }}>
+                <div style={{ fontWeight: 700, fontSize: 14, marginBottom: 12 }}>{ja ? '週間達成状況' : 'Weekly Progress'}</div>
                 <div style={{ fontSize: 12, color: 'var(--color-text-sub)', marginBottom: 8 }}>{ja ? '直近7日間' : 'Last 7 days'}</div>
                 <div style={{ display: 'flex', gap: 6, alignItems: 'flex-end' }}>
                   {weekDays.map((d, i) => {
