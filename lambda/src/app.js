@@ -369,6 +369,32 @@ app.get('/questions', async (req, res) => {
     const total = items.length;
     if (offset) items = items.slice(parseInt(offset));
     if (limit) items = items.slice(0, parseInt(limit));
+
+    // idsOnly=true: 問題IDのみ返す（プログレッシブロード用・フィルタ対応）
+    if (req.query.idsOnly === 'true') {
+      const { bookmarkOnly, unansweredOnly, incorrectOnly, userId: qUserId } = req.query;
+      const hasFilter = qUserId && (bookmarkOnly === 'true' || unansweredOnly === 'true' || incorrectOnly === 'true');
+      if (hasFilter) {
+        const statsResult = await docClient.send(new QueryCommand({
+          TableName: 'UserQuestionStats',
+          KeyConditionExpression: 'userId = :uid',
+          ExpressionAttributeValues: { ':uid': qUserId }
+        }));
+        const stats = statsResult.Items || [];
+        const bookmarkSet  = bookmarkOnly   === 'true' ? new Set(stats.filter(s => s.bookmarked).map(s => s.questionId)) : null;
+        const answeredSet  = unansweredOnly === 'true' ? new Set(stats.map(s => s.questionId)) : null;
+        const incorrectSet = incorrectOnly  === 'true' ? new Set(stats.filter(s => (s.incorrectCount ?? 0) > 0).map(s => s.questionId)) : null;
+        items.sort((a, b) => {
+          const score = q =>
+            (bookmarkSet  && bookmarkSet.has(q.questionId)   ? 1 : 0) +
+            (answeredSet  && !answeredSet.has(q.questionId)  ? 1 : 0) +
+            (incorrectSet && incorrectSet.has(q.questionId)  ? 1 : 0);
+          return score(b) - score(a);
+        });
+      }
+      return res.json({ questionIds: items.map(q => q.questionId), total: items.length });
+    }
+
     const withAnswers = req.query.withAnswers === 'true';
     const sanitized = withAnswers
       ? items.map(item => {

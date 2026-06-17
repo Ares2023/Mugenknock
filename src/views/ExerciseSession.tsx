@@ -201,6 +201,9 @@ export default function ExerciseSession() {
 
   const [sessionId, setSessionId] = useState<string>(state?.sessionId ?? '');
   const [questions, setQuestions] = useState<Question[]>(state?.questions ?? []);
+  // プログレッシブロード用: 全問IDリスト（useState で hook として登録することで TDZ を回避）
+  const [allQuestionIds] = useState<string[]>(state?.questionIds ?? []);
+  const loadingNextRef = React.useRef(false);
   const [userId, setUserId] = useState<string>(state?.userId ?? '');
   const [examType, setExamType] = useState<string>(state?.examType ?? '');
   const [isQuick, setIsQuick] = useState<boolean>(state?.isQuick ?? false);
@@ -214,6 +217,26 @@ export default function ExerciseSession() {
     window.addEventListener('resize', handler);
     return () => window.removeEventListener('resize', handler);
   }, []);
+
+  // プログレッシブロード: 現在問 + 2問先までをバックグラウンドで先読み
+  useEffect(() => {
+    if (allQuestionIds.length === 0) return;
+    const targetIndex = Math.min(currentIndex + 2, allQuestionIds.length - 1);
+    if (targetIndex < questions.length) return; // already loaded
+    if (loadingNextRef.current) return;
+    const idsToLoad = allQuestionIds
+      .slice(questions.length, targetIndex + 1)
+      .join(',');
+    if (!idsToLoad) return;
+    loadingNextRef.current = true;
+    fetch(`${API_ENDPOINT}/questions?ids=${idsToLoad}&withAnswers=true`)
+      .then(r => r.json())
+      .then(d => {
+        if (d.items?.length) setQuestions(prev => [...prev, ...d.items]);
+      })
+      .catch(() => {})
+      .finally(() => { loadingNextRef.current = false; });
+  }, [currentIndex, questions.length]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const [currentIndex, setCurrentIndex] = useState<number>(state?.resumeIndex ?? 0);
   const [viewedFrontier, setViewedFrontier] = useState<number>(state?.resumeIndex ?? 0);
@@ -388,7 +411,19 @@ export default function ExerciseSession() {
     setInitialized(true);
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
+  // 全 Hook 呼び出し完了後に computed values を定義
+  const totalCount = allQuestionIds.length > 0 ? allQuestionIds.length : questions.length;
+
   if (!initialized) return null;
+
+  // プログレッシブロード: 現在問がまだロードされていない場合はスピナーを表示
+  if (!questions[currentIndex]) {
+    return (
+      <div style={{ position: 'fixed', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'var(--color-bg-main)' }}>
+        <div className="sherpa-spinner" />
+      </div>
+    );
+  }
 
   const toggleAnswer = (choice: string) => {
     if (answered) return;
@@ -466,6 +501,11 @@ export default function ExerciseSession() {
       setAnswerCountError(null);
       return;
     }
+    // 次問がまだロードされていない場合は待機（通常は先読みで間に合う）
+    if (nextIdx < totalCount && nextIdx >= questions.length) {
+      // プリフェッチを即時トリガーして少し待つ
+      return;
+    }
     // frontierに戻ってきた場合（かつ未回答の問題が残っている）→ 未回答モードへ
     if (nextIdx === results.length && nextIdx < questions.length) {
       setCurrentIndex(nextIdx);
@@ -475,9 +515,9 @@ export default function ExerciseSession() {
       setAnswerCountError(null);
       return;
     }
-    if (nextIdx >= questions.length) {
+    if (nextIdx >= totalCount) {
       setFinishing(true);
-      const score = Math.round((results.filter(r => r.isCorrect).length / questions.length) * 100);
+      const score = Math.round((results.filter(r => r.isCorrect).length / totalCount) * 100);
       const basePassRate = PASS_RATE[examType] ?? PASS_RATE['SAA'];
       const passRate = isMini ? Math.ceil(basePassRate / 5) : basePassRate;
       const isPassed = score >= passRate;
@@ -758,48 +798,72 @@ export default function ExerciseSession() {
       )}
 
       {/* 進捗ノード（画面上部に固定） */}
-      <div style={{ position: 'fixed', top: 56, left: 0, right: 0, zIndex: 190, background: 'var(--color-bg-white)', borderBottom: '1px solid var(--color-border)', padding: '8px 16px', display: 'flex', alignItems: 'center' }}>
-        {questions.map((_, i) => {
-          const isAnswered = i < results.length;
-          const isCurrent = i === currentIndex;
-          const isClickable = i <= viewedFrontier && !isCurrent;
-          const isHovered = hoveredNode === i;
-          return (
-            <React.Fragment key={i}>
-              <div
-                onClick={isClickable ? () => goToQuestion(i) : undefined}
-                onMouseEnter={isClickable ? () => setHoveredNode(i) : undefined}
-                onMouseLeave={isClickable ? () => setHoveredNode(null) : undefined}
-                title={isClickable ? `第${i + 1}問へ` : undefined}
-                style={{
-                  width: isCurrent ? 12 : isHovered ? 9 : 7,
-                  height: isCurrent ? 12 : isHovered ? 9 : 7,
-                  borderRadius: '50%',
-                  flexShrink: 0,
-                  background: isAnswered || isCurrent ? 'var(--color-primary)' : 'transparent',
-                  border: `2px solid ${isAnswered || isCurrent ? 'var(--color-primary)' : 'var(--color-text-light)'}`,
-                  boxShadow: isCurrent
-                    ? '0 0 0 2px var(--color-primary-light, rgba(82,130,255,0.25))'
-                    : isHovered
-                    ? '0 0 0 3px var(--color-primary-light, rgba(82,130,255,0.35))'
-                    : 'none',
-                  cursor: isClickable ? 'pointer' : 'default',
-                  transition: 'all 0.15s',
-                  opacity: isAnswered && !isCurrent && !isHovered ? 0.75 : 1,
-                }}
-              />
-              {i < questions.length - 1 && (
-                <div style={{
-                  flex: 1,
-                  height: 2,
-                  background: i < results.length ? 'var(--color-primary)' : 'var(--color-text-light)',
-                  transition: 'background 0.2s',
-                }} />
-              )}
-            </React.Fragment>
-          );
-        })}
-      </div>
+      {(() => {
+        const WINDOW = 5;
+        const useWindow = totalCount > WINDOW;
+        const windowStart = useWindow
+          ? Math.max(0, Math.min(currentIndex - Math.floor(WINDOW / 2), totalCount - WINDOW))
+          : 0;
+        const visibleIndices = useWindow
+          ? Array.from({ length: WINDOW }, (_, k) => windowStart + k)
+          : Array.from({ length: totalCount }, (_, k) => k);
+
+        return (
+          <div style={{ position: 'fixed', top: 56, left: 0, right: 0, zIndex: 190, background: 'var(--color-bg-white)', borderBottom: '1px solid var(--color-border)', padding: '8px 16px', display: 'flex', alignItems: 'center', gap: 0 }}>
+            <div style={{ flex: 1, display: 'flex', alignItems: 'center' }}>
+              {visibleIndices.map((i, visIdx) => {
+                const isAnswered = i < results.length;
+                const isCurrent = i === currentIndex;
+                const isLoaded = i < questions.length;
+                // 未ロード問題はタップ不可
+                const isClickable = i <= viewedFrontier && !isCurrent && isLoaded;
+                const isHovered = hoveredNode === i;
+                const notYetLoaded = !isLoaded && !isCurrent;
+                return (
+                  <React.Fragment key={i}>
+                    <div
+                      onClick={isClickable ? () => goToQuestion(i) : undefined}
+                      onMouseEnter={isClickable ? () => setHoveredNode(i) : undefined}
+                      onMouseLeave={isClickable ? () => setHoveredNode(null) : undefined}
+                      title={isClickable ? `第${i + 1}問へ` : undefined}
+                      style={{
+                        width: isCurrent ? 12 : isHovered ? 9 : 7,
+                        height: isCurrent ? 12 : isHovered ? 9 : 7,
+                        borderRadius: '50%',
+                        flexShrink: 0,
+                        background: isAnswered || isCurrent ? 'var(--color-primary)' : 'transparent',
+                        border: `2px solid ${isAnswered || isCurrent ? 'var(--color-primary)' : 'var(--color-text-light)'}`,
+                        opacity: notYetLoaded ? 0.3 : undefined,
+                        boxShadow: isCurrent
+                          ? '0 0 0 2px var(--color-primary-light, rgba(82,130,255,0.25))'
+                          : isHovered
+                          ? '0 0 0 3px var(--color-primary-light, rgba(82,130,255,0.35))'
+                          : 'none',
+                        cursor: isClickable ? 'pointer' : 'default',
+                        transition: 'all 0.15s',
+                        opacity: isAnswered && !isCurrent && !isHovered ? 0.75 : 1,
+                      }}
+                    />
+                    {visIdx < visibleIndices.length - 1 && (
+                      <div style={{
+                        flex: 1,
+                        height: 2,
+                        background: i < results.length ? 'var(--color-primary)' : 'var(--color-text-light)',
+                        transition: 'background 0.2s',
+                      }} />
+                    )}
+                  </React.Fragment>
+                );
+              })}
+            </div>
+            {useWindow && (
+              <span style={{ flexShrink: 0, marginLeft: 12, fontSize: 11, fontWeight: 700, color: 'var(--color-text-light)', fontVariantNumeric: 'tabular-nums', whiteSpace: 'nowrap' }}>
+                {currentIndex + 1} / {totalCount}
+              </span>
+            )}
+          </div>
+        );
+      })()}
       {/* 固定ノードバーの高さ分のスペーサー */}
       <div style={{ height: 36 }} />
 
@@ -1096,7 +1160,7 @@ export default function ExerciseSession() {
                 onClick={nextQuestion}
                 style={{ flex: 1, height: 44, border: 'none', borderRadius: 22, background: 'var(--color-accent)', color: 'var(--color-btn-primary-text)', fontWeight: 600, fontSize: 'var(--font-size-base)', cursor: 'pointer' }}
               >
-                {currentIndex + 1 >= questions.length ? t('exerciseSession.showResult') : t('exerciseSession.next')}
+                {currentIndex + 1 >= totalCount ? t('exerciseSession.showResult') : t('exerciseSession.next')}
               </button>
             )}
           </div>
@@ -1115,7 +1179,7 @@ export default function ExerciseSession() {
                 onClick={nextQuestion}
                 style={{ height: 44, padding: '0 24px', border: '1.5px solid var(--color-primary)', borderRadius: 22, background: 'var(--color-bg-white)', color: 'var(--color-primary)', fontWeight: 600, fontSize: 'var(--font-size-base)', cursor: 'pointer', whiteSpace: 'nowrap', boxShadow: '0 2px 8px rgba(0,0,0,0.15)' }}
               >
-                {currentIndex + 1 >= questions.length ? t('exerciseSession.showResult') : t('exerciseSession.next')}
+                {currentIndex + 1 >= totalCount ? t('exerciseSession.showResult') : t('exerciseSession.next')}
               </button>
             )}
           </div>

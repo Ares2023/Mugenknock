@@ -7,7 +7,7 @@ import { useLanguage } from '../contexts/LanguageContext';
 import { API_ENDPOINT, EXAM_CONFIGS, EXAM_DOMAINS, EXAM_TYPES, PASS_SCORES, qDomainName } from '../constants';
 import Button from '../components/ui/Button';
 import DomainSelector from '../components/DomainSelector';
-import { getCached, setCached, SHORT_TTL, getCachedPersist, setCachedPersist } from '../utils/cache';
+import { getCached, setCached, SHORT_TTL } from '../utils/cache';
 import { autoScoreAndClearDrafts } from '../utils/sessionUtils';
 import { animateLoadPct, randomPlateau } from '../utils/loadProgress';
 import { IconChevronUp } from '../components/Icons';
@@ -173,59 +173,37 @@ export default function Practice() {
     try {
       const userId = user?.userId ?? 'guest';
       const allSelected = EXAM_DOMAINS[examType].every(d => selectedDomains.includes(d));
-      let selectedItems: any[];
-      const qCacheKey = `qlist_${examType}`;
-      if (user && (bookmarkOnly || unansweredOnly || incorrectOnly)) {
-        const params = new URLSearchParams({ examType, withAnswers: 'true' });
-        const cachedQs = getCachedPersist<{ items: any[] }>(qCacheKey);
-        const plateau = randomPlateau();
-        const stopAnim = cachedQs ? null : animateLoadPct(setExerciseLoadPct, 10, plateau);
-        const [qRes, bkmRes, answeredRes, incorrectRes] = await Promise.all([
-          cachedQs ? Promise.resolve(cachedQs) : fetch(`${API_ENDPOINT}/questions?${params}`).then(r => r.json()),
-          bookmarkOnly ? fetch(`${API_ENDPOINT}/users/me/bookmarks?userId=${userId}`).then(r => r.json()) : Promise.resolve(null),
-          unansweredOnly ? fetch(`${API_ENDPOINT}/users/me/answered-questions?userId=${userId}&examType=${examType}`).then(r => r.json()) : Promise.resolve(null),
-          incorrectOnly ? fetch(`${API_ENDPOINT}/users/me/incorrect-questions?userId=${userId}&examType=${examType}`).then(r => r.json()) : Promise.resolve(null),
-        ]);
-        if (stopAnim) { stopAnim(); setExerciseLoadPct(plateau); }
-        if (!cachedQs) setCachedPersist(qCacheKey, qRes);
-        let pool: any[] = (qRes.items ?? []).filter((q: any) => {
-          if (!allSelected && !selectedDomains.includes(qDomainName(q))) return false;
-          return true;
-        });
-        const bookmarkSet   = bookmarkOnly   && bkmRes       ? new Set<string>(bkmRes.questionIds ?? [])      : null;
-        const unansweredSet = unansweredOnly && answeredRes  ? new Set<string>(answeredRes.questionIds ?? [])  : null;
-        const incorrectSet  = incorrectOnly  && incorrectRes ? new Set<string>(incorrectRes.questionIds ?? []) : null;
-        pool = shuffleArray(pool);
-        pool.sort((a: any, b: any) => {
-          const score = (q: any) =>
-            (bookmarkSet   && bookmarkSet.has(q.questionId)     ? 1 : 0) +
-            (unansweredSet && !unansweredSet.has(q.questionId)  ? 1 : 0) +
-            (incorrectSet  && incorrectSet.has(q.questionId)    ? 1 : 0);
-          return score(b) - score(a);
-        });
-        selectedItems = pool.slice(0, limit);
-      } else {
-        const params = new URLSearchParams({ examType, withAnswers: 'true' });
-        const cachedQs = getCachedPersist<{ items: any[] }>(qCacheKey);
-        const plateau = randomPlateau();
-        const stopAnim = cachedQs ? null : animateLoadPct(setExerciseLoadPct, 10, plateau);
-        const data = cachedQs ? cachedQs : await fetch(`${API_ENDPOINT}/questions?${params}`).then(r => r.json());
-        if (stopAnim) { stopAnim(); setExerciseLoadPct(plateau); }
-        if (!cachedQs) setCachedPersist(qCacheKey, data);
-        let allItems: any[] = (data.items ?? []).filter((q: any) => {
-          if (!allSelected && !selectedDomains.includes(qDomainName(q))) return false;
-          return true;
-        });
-        selectedItems = shuffleArray(allItems).slice(0, limit);
-      }
-      if (selectedItems.length === 0) { alert(t('exerciseSetup.noQuestions')); setExerciseLoading(false); return; }
+      // ── プログレッシブロードパス（フィルタあり・なし共通）──
+      // 1. IDのみ取得（Lambda側でフィルタ・優先度ソート）
+      const idsParams = new URLSearchParams({ examType, shuffle: 'true', idsOnly: 'true' });
+      if (!allSelected) idsParams.set('domain', selectedDomains.join(','));
+      if (user && bookmarkOnly)   idsParams.set('bookmarkOnly',  'true');
+      if (user && unansweredOnly) idsParams.set('unansweredOnly', 'true');
+      if (user && incorrectOnly)  idsParams.set('incorrectOnly',  'true');
+      if (user && (bookmarkOnly || unansweredOnly || incorrectOnly)) idsParams.set('userId', userId);
+      const idsData = await fetch(`${API_ENDPOINT}/questions?${idsParams}`).then(r => r.json());
+      const allIds: string[] = idsData.questionIds ?? [];
+      const selectedIds = allIds.slice(0, limit);
+      if (selectedIds.length === 0) { alert(t('exerciseSetup.noQuestions')); setExerciseLoading(false); return; }
+      setExerciseLoadPct(50);
+      // 2. セッション作成 + 最初の1問取得 を並列実行
+      const [sessionData, q1Data] = await Promise.all([
+        fetch(`${API_ENDPOINT}/sessions`, {
+          method: 'POST', headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ userId, mode: 'exercise', examType, questionIds: selectedIds }),
+        }).then(r => r.json()),
+        fetch(`${API_ENDPOINT}/questions?ids=${selectedIds[0]}&withAnswers=true`).then(r => r.json()),
+      ]);
       setExerciseLoadPct(90);
-      const sessionRes = await fetch(`${API_ENDPOINT}/sessions`, {
-        method: 'POST', headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ userId, mode: 'exercise', examType, questionIds: selectedItems.map((q: any) => q.questionId) }),
+      // 3. 最初の1問で即遷移（2問目以降は ExerciseSession 内でバックグラウンドロード）
+      navigate('/aws/exercise/session', {
+        state: {
+          sessionId: sessionData.sessionId,
+          questions: q1Data.items ?? [],
+          questionIds: selectedIds,
+          userId, mode: 'exercise', examType,
+        },
       });
-      const sessionData = await sessionRes.json();
-      navigate('/aws/exercise/session', { state: { sessionId: sessionData.sessionId, questions: selectedItems, userId, mode: 'exercise', examType } });
     } catch (err) {
       console.error(err);
       alert(t('exerciseSetup.startFailed'));
