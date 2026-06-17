@@ -355,20 +355,17 @@ export default function MyPage() {
           <>
             {/* 目標資格カード（タップで資格ダッシュボードへ） */}
             <Card style={{ marginBottom: 12, cursor: 'pointer' }} onClick={() => navigate('/aws/exam-dashboard')}>
-              <div style={{ fontWeight: 700, fontSize: 14, marginBottom: 12 }}>{ja ? '目標資格' : 'Target Exam'}</div>
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
+                <span style={{ fontWeight: 700, fontSize: 14 }}>{ja ? '目標資格' : 'Target Exam'}</span>
+                <span style={{ color: 'var(--color-primary)', fontSize: 22, fontWeight: 900, paddingLeft: 8 }}>›</span>
+              </div>
               {targetExam ? (
-                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                  <div>
-                    <div style={{ fontWeight: 700, fontSize: 16, color: 'var(--color-primary)' }}>AWS {targetExam.split('-')[0]}</div>
-                    <div style={{ fontSize: 12, color: 'var(--color-text-sub)', marginTop: 2 }}>{EXAM_CONFIGS[targetExam]?.fullName ?? ''}</div>
-                  </div>
-                  <span style={{ color: 'var(--color-primary)', fontSize: 22, fontWeight: 900, paddingLeft: 8 }}>›</span>
+                <div>
+                  <div style={{ fontWeight: 700, fontSize: 16, color: 'var(--color-primary)' }}>AWS {targetExam.split('-')[0]}</div>
+                  <div style={{ fontSize: 12, color: 'var(--color-text-sub)', marginTop: 2 }}>{EXAM_CONFIGS[targetExam]?.fullName ?? ''}</div>
                 </div>
               ) : (
-                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                  <span style={{ fontSize: 14, color: 'var(--color-text-light)' }}>{ja ? '目標資格を設定する' : 'Set target exam'}</span>
-                  <span style={{ color: 'var(--color-primary)', fontSize: 22, fontWeight: 900 }}>›</span>
-                </div>
+                <span style={{ fontSize: 14, color: 'var(--color-text-light)' }}>{ja ? '目標資格を設定する' : 'Set target exam'}</span>
               )}
             </Card>
 
@@ -388,7 +385,7 @@ export default function MyPage() {
                   {/* 受験日 */}
                   <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8 }}>
                     <span style={{ fontSize: 13, color: 'var(--color-text-sub)' }}>{ja ? '受験日' : 'Exam Date'}</span>
-                    <span style={{ fontSize: 13, fontWeight: 600, color: 'var(--color-text-main)' }}>
+                    <span style={{ fontSize: 13, fontWeight: 600, color: 'var(--color-primary)' }}>
                       {examDate ? examDate.replace(/-/g, '/') : <span style={{ color: 'var(--color-text-light)' }}>{ja ? '未設定' : 'Not set'}</span>}
                     </span>
                   </div>
@@ -398,7 +395,7 @@ export default function MyPage() {
                       {ja ? '1日の目標演習量' : 'Daily Goal'}
                       {ja && <span style={{ fontSize: 10, marginLeft: 6 }}>※達成で<span style={{ color: '#009E9E', fontWeight: 700 }}>+10p</span>！</span>}
                     </span>
-                    <span style={{ fontSize: 13, fontWeight: 700, color: todayCount >= dailyGoal ? '#009E9E' : 'var(--color-text-main)' }}>
+                    <span style={{ fontSize: 13, fontWeight: 600, color: 'var(--color-primary)' }}>
                       {todayCount} / {dailyGoal}{ja ? '問' : 'Q'}{todayCount >= dailyGoal && ' ✓'}
                     </span>
                   </div>
