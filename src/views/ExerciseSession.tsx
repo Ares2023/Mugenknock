@@ -218,6 +218,9 @@ export default function ExerciseSession() {
     return () => window.removeEventListener('resize', handler);
   }, []);
 
+  // currentIndex は下の useEffect の依存配列で使うため先に宣言（TDZ 回避）
+  const [currentIndex, setCurrentIndex] = useState<number>(state?.resumeIndex ?? 0);
+
   // プログレッシブロード: 現在問 + 2問先までをバックグラウンドで先読み
   useEffect(() => {
     if (allQuestionIds.length === 0) return;
@@ -237,8 +240,6 @@ export default function ExerciseSession() {
       .catch(() => {})
       .finally(() => { loadingNextRef.current = false; });
   }, [currentIndex, questions.length]); // eslint-disable-line react-hooks/exhaustive-deps
-
-  const [currentIndex, setCurrentIndex] = useState<number>(state?.resumeIndex ?? 0);
   const [viewedFrontier, setViewedFrontier] = useState<number>(state?.resumeIndex ?? 0);
   const [selectedAnswers, setSelectedAnswers] = useState<string[]>(state?.resumeSelectedAnswers ?? []);
   const [answered, setAnswered] = useState<boolean>(state?.resumeAnswered ?? false);
