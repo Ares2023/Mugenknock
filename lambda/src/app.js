@@ -58,6 +58,27 @@ async function getDailyServicesAll(docClient) {
   return _dailyServicesCache;
 }
 
+// ── 試験種別ごとの全問キャッシュ（Lambda ウォームインスタンス内メモリ・10分TTL） ──
+// 同一インスタンスへの 2 回目以降のリクエストは DynamoDB を読まずに返す。
+// Phase1（metaOnly）→ Phase2（ids+withAnswers）が同インスタンスに当たれば Phase2 も高速化される。
+const _examQuestionsCache = new Map(); // examType → { items, cachedAt }
+const EXAM_QUESTIONS_CACHE_TTL = 10 * 60 * 1000;
+
+async function getAllQuestionsForExam(docClient, examType) {
+  const cached = _examQuestionsCache.get(examType);
+  if (cached && Date.now() - cached.cachedAt < EXAM_QUESTIONS_CACHE_TTL) {
+    return cached.items;
+  }
+  const items = await queryAll(docClient, {
+    TableName: 'Questions',
+    IndexName: 'examType-index',
+    KeyConditionExpression: 'examType = :examType',
+    ExpressionAttributeValues: { ':examType': examType }
+  });
+  _examQuestionsCache.set(examType, { items, cachedAt: Date.now() });
+  return items;
+}
+
 // ── CORS（localhost + Cloudflare Pages + 本番ドメイン許可） ──
 const ALLOWED_ORIGINS = [
   'http://localhost:3000',
@@ -335,12 +356,7 @@ app.get('/questions', async (req, res) => {
       items = results.map(r => r.Item).filter(Boolean);
       if (examType) items = items.filter(q => q.examType === examType);
     } else if (examType) {
-      items = await queryAll(docClient, {
-        TableName: 'Questions',
-        IndexName: 'examType-index',
-        KeyConditionExpression: 'examType = :examType',
-        ExpressionAttributeValues: { ':examType': examType }
-      });
+      items = await getAllQuestionsForExam(docClient, examType);
     } else {
       items = await scanAll(docClient, { TableName: 'Questions' });
     }
@@ -369,6 +385,20 @@ app.get('/questions', async (req, res) => {
     const total = items.length;
     if (offset) items = items.slice(parseInt(offset));
     if (limit) items = items.slice(0, parseInt(limit));
+
+    // metaOnly=true: 選択ロジックに必要な最小フィールドのみ返す（フロントのPhase1軽量化用）
+    // questionText・choices 等を除外することでペイロードを約 1/10 に削減する
+    if (req.query.metaOnly === 'true') {
+      return res.json({
+        items: items.map(q => ({
+          questionId: q.questionId,
+          domain: q.domain,
+          examType: q.examType,
+          aiVerified: q.aiVerified,
+        })),
+        count: items.length, total,
+      });
+    }
 
     // idsOnly=true: 問題IDのみ返す（プログレッシブロード用・フィルタ対応）
     if (req.query.idsOnly === 'true') {

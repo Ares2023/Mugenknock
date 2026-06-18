@@ -128,7 +128,7 @@ export default function ExamSetup() {
     const fetchCounts = async () => {
       if (selectedDomains.length === 0) { setAvailableCount(0); return; }
       try {
-        const params = new URLSearchParams({ examType });
+        const params = new URLSearchParams({ examType, metaOnly: 'true' });
         const allSelected = EXAM_DOMAINS[examType].every(d => selectedDomains.includes(d));
         if (!allSelected) params.set('domain', selectedDomains.join(','));
 
@@ -156,7 +156,7 @@ export default function ExamSetup() {
           if (aiVerifiedOnly) items = items.filter((q: any) => q.aiVerified === true);
           setAvailableCount(items.length);
         } else {
-          const data = await fetch(`${API_ENDPOINT}/questions?${params}`).then(r => r.json());
+          const data = await fetch(`${API_ENDPOINT}/questions?${params}`).then(r => r.json()); // metaOnly=true
           let countItems: any[] = data.items ?? [];
           if (aiVerifiedOnly) countItems = countItems.filter((q: any) => q.aiVerified === true);
           setAvailableCount(aiVerifiedOnly ? countItems.length : (data.count ?? countItems.length));

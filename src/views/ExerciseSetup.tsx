@@ -17,7 +17,7 @@ import { IconLightbulb } from '../components/Icons';
 // so the expensive /questions fetch is never duplicated.
 const _qMetaCache = new Map<string, Promise<{ count: number; items: any[] }>>();
 function fetchQMeta(examType: string, allSelected: boolean, domains: string[]): Promise<{ count: number; items: any[] }> {
-  const params = new URLSearchParams({ examType });
+  const params = new URLSearchParams({ examType, metaOnly: 'true' });
   if (!allSelected) params.set('domain', domains.join(','));
   const key = params.toString();
   if (!_qMetaCache.has(key)) {
@@ -341,7 +341,7 @@ export default function ExerciseSetup() {
 
       // フェーズ2: 1問目の完全データ取得とセッション作成を並列実行
       const [firstRes, sessionRes] = await Promise.all([
-        fetch(`${API_ENDPOINT}/questions?ids=${questionIds[0]}&withAnswers=true`).then(r => r.json()),
+        fetch(`${API_ENDPOINT}/questions?ids=${questionIds[0]}&withAnswers=true&examType=${examType}`).then(r => r.json()),
         fetch(`${API_ENDPOINT}/sessions`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
