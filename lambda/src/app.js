@@ -1266,6 +1266,20 @@ app.delete('/users/me/data', async (req, res) => {
   }
 });
 
+// ユーザー自身のデータ全初期化（Cognitoアカウント・メール・パスワードは保持）
+app.post('/users/me/reset', async (req, res) => {
+  try {
+    const docClient = getClient();
+    const { userId } = req.body;
+    if (!userId) return res.status(400).json({ error: 'userId required' });
+    await executeUserDataDeletion(docClient, userId);
+    res.json({ success: true });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
 // ── スコア履歴（デバイス間同期） ──
 
 app.get('/users/me/score-history', async (req, res) => {
