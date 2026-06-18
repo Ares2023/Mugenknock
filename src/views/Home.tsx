@@ -720,7 +720,9 @@ function syncEncyclopediaToServer(userId: string, forceUpload = false): void {
       .then(r => r.ok ? r.json() : { unlocks: {} })
       .then(data => {
         const server: Record<string, string> = data.unlocks ?? {};
-        if (!forceUpload && Object.keys(server).length === 0 && Object.keys(local).length > 0) {
+        const localUnlockDate = localStorage.getItem(`encyclopediaUnlockDate_${uid}`);
+        const jstDateNow = new Date(Date.now() + 9 * 3600 * 1000).toISOString().slice(0, 10);
+        if (!forceUpload && Object.keys(server).length === 0 && Object.keys(local).length > 0 && localUnlockDate !== jstDateNow) {
           localStorage.setItem(`encyclopediaUnlocked_${uid}`, '{}');
           localStorage.removeItem(`encyclopediaUnlockDate_${uid}`);
           localStorage.removeItem(`encyclopediaTodayServiceId_${uid}`);
