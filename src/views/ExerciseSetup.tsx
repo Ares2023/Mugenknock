@@ -173,6 +173,7 @@ export default function ExerciseSetup() {
   });
   const [limit, setLimit] = useState<number>(() => loadExercisePrefs(localStorage.getItem(`targetExam_${uid}`) || 'SAA', uid).limit ?? 10);
   const [loading, setLoading] = useState(false);
+  const [loadingPhase, setLoadingPhase] = useState<string>('');
   const [showStartConfirm, setShowStartConfirm] = useState(false);
   const [bookmarkOnly, setBookmarkOnly] = useState<boolean>(() => loadExercisePrefs(localStorage.getItem(`targetExam_${uid}`) || 'SAA', uid).bookmarkOnly ?? false);
   const [unansweredOnly, setUnansweredOnly] = useState<boolean>(() => loadExercisePrefs(localStorage.getItem(`targetExam_${uid}`) || 'SAA', uid).unansweredOnly ?? false);
@@ -285,6 +286,9 @@ export default function ExerciseSetup() {
       return;
     }
     setLoading(true);
+    setLoadingPhase(lang === 'ja' ? '問題リスト取得中...' : 'Fetching questions...');
+    const _t0 = performance.now();
+    const _log = (label: string) => console.log(`[perf] ${label}: ${(performance.now() - _t0).toFixed(0)}ms`);
     try {
       const userId = user?.userId ?? 'guest';
       let selectedItems: any[];
@@ -331,6 +335,7 @@ export default function ExerciseSetup() {
         const exCounts = getDomainExerciseCounts(examType, userId, selectedDomains);
         selectedItems = balancedDomainSelect(allItems, selectedDomains, limit, exCounts);
       }
+      _log('Phase1 complete (question list ready)');
 
       if (selectedItems.length === 0) {
         alert(t('exerciseSetup.noQuestions'));
@@ -341,6 +346,7 @@ export default function ExerciseSetup() {
       const questionIds = selectedItems.map((q: any) => q.questionId);
 
       // フェーズ2: 1問目の完全データ取得とセッション作成を並列実行
+      setLoadingPhase(lang === 'ja' ? '1問目読み込み中...' : 'Loading first question...');
       const [firstRes, sessionRes] = await Promise.all([
         fetch(`${API_ENDPOINT}/questions?ids=${questionIds[0]}&withAnswers=true`).then(r => r.json()),
         fetch(`${API_ENDPOINT}/sessions`, {
@@ -349,9 +355,11 @@ export default function ExerciseSetup() {
           body: JSON.stringify({ userId, mode: 'exercise', examType, questionIds })
         }).then(r => r.json()),
       ]);
+      _log('Phase2 complete (first question + session)');
 
       // 1問目は完全データ、2問目以降は questionIds でプログレッシブロード
       const firstQuestion = firstRes.items?.[0] ?? selectedItems[0];
+      _log('navigating');
       navigate('/aws/exercise/session', {
         state: {
           sessionId: sessionRes.sessionId,
@@ -365,6 +373,7 @@ export default function ExerciseSetup() {
       alert(t('exerciseSetup.startFailed'));
     } finally {
       setLoading(false);
+      setLoadingPhase('');
     }
   };
 
@@ -507,7 +516,7 @@ export default function ExerciseSetup() {
           {loading ? (
             <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}>
               <span style={{ width: 13, height: 13, border: '2px solid rgba(0,0,0,0.25)', borderTopColor: '#16191f', borderRadius: '50%', animation: 'sherpa-spin 0.7s linear infinite', flexShrink: 0 }} />
-              {t('exerciseSetup.starting')}
+              {loadingPhase || t('exerciseSetup.starting')}
             </span>
           ) : t('exerciseSetup.start')}
         </Button>
