@@ -1763,10 +1763,11 @@ app.get('/daily-service', async (req, res) => {
     // 今日の日付（JST）
     const jstDate = new Date(Date.now() + 9 * 3600 * 1000).toISOString().slice(0, 10);
 
-    // userIdが指定された場合はユーザー別のハッシュで決定（スケジュール不使用）
-    if (req.query.userId) {
-      const seed = req.query.rerollSeed || '';
-      const str = req.query.userId + jstDate + seed;
+    // 再抽選（rerollSeed あり）のみユーザー別ハッシュで選択
+    // 通常アクセスは userId の有無を問わず _schedule_ を使用し、
+    // サービス追加後も当日のサービスが変わらないようにする
+    if (req.query.userId && req.query.rerollSeed) {
+      const str = req.query.userId + jstDate + req.query.rerollSeed;
       let hash = 0;
       for (let i = 0; i < str.length; i++) {
         hash = ((hash << 5) - hash) + str.charCodeAt(i);
