@@ -1267,12 +1267,60 @@ app.delete('/users/me/data', async (req, res) => {
 });
 
 // ユーザー自身のデータ全初期化（Cognitoアカウント・メール・パスワードは保持）
+// executeUserDataDeletion より高速: 全ページ取得 + 並列削除 + UserAnswers は孤児化
+async function executeUserDataReset(docClient, userId) {
+  const batchDelete = async (table, keys) => {
+    if (keys.length === 0) return;
+    const CHUNK = 25;
+    const chunks = [];
+    for (let i = 0; i < keys.length; i += CHUNK) chunks.push(keys.slice(i, i + CHUNK));
+    await Promise.all(chunks.map(chunk =>
+      Promise.all(chunk.map(key => docClient.send(new DeleteCommand({ TableName: table, Key: key }))))
+    ));
+  };
+
+  const [qsItems, tsItems, sessItems] = await Promise.all([
+    queryAll(docClient, {
+      TableName: 'UserQuestionStats',
+      KeyConditionExpression: 'userId = :uid',
+      ExpressionAttributeValues: { ':uid': userId },
+      ProjectionExpression: 'userId, questionId',
+    }),
+    queryAll(docClient, {
+      TableName: 'UserTagStats',
+      KeyConditionExpression: 'userId = :uid',
+      ExpressionAttributeValues: { ':uid': userId },
+      ProjectionExpression: 'userId, tagId',
+    }),
+    queryAll(docClient, {
+      TableName: 'Sessions',
+      KeyConditionExpression: 'userId = :uid',
+      ExpressionAttributeValues: { ':uid': userId },
+      ProjectionExpression: 'userId, sessionId',
+    }),
+  ]);
+
+  await Promise.all([
+    batchDelete('UserQuestionStats', qsItems.map(i => ({ userId: i.userId, questionId: i.questionId }))),
+    batchDelete('UserTagStats',      tsItems.map(i => ({ userId: i.userId, tagId: i.tagId }))),
+    batchDelete('Sessions',          sessItems.map(i => ({ userId: i.userId, sessionId: i.sessionId }))),
+    docClient.send(new DeleteCommand({ TableName: 'EncyclopediaUnlocks', Key: { userId } })).catch(() => {}),
+    docClient.send(new DeleteCommand({ TableName: 'UserPoints',          Key: { userId } })).catch(() => {}),
+  ]);
+
+  const resetAt = new Date().toISOString();
+  await docClient.send(new PutCommand({
+    TableName: 'AppSettings',
+    Item: { settingId: `userReset_${userId}`, userId, resetAt },
+  }));
+}
+
 app.post('/users/me/reset', async (req, res) => {
   try {
     const docClient = getClient();
     const { userId } = req.body;
     if (!userId) return res.status(400).json({ error: 'userId required' });
-    await executeUserDataDeletion(docClient, userId);
+    await executeUserDataReset(docClient, userId);
     res.json({ success: true });
   } catch (err) {
     console.error(err);

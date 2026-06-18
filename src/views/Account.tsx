@@ -261,7 +261,12 @@ export default function Account() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ userId: user.userId }),
       });
-      if (!res.ok) throw new Error((await res.json()).error || 'reset failed');
+      if (!res.ok) {
+        const text = await res.text().catch(() => '');
+        let msg = '初期化に失敗しました';
+        try { msg = JSON.parse(text).error || msg; } catch {}
+        throw new Error(msg);
+      }
       // localStorage のユーザーデータをクリア（設定・環境設定は保持）
       const keep = new Set([
         `lang_${user.userId}`, `theme_${user.userId}`, `sidebarOpen_${user.userId}`,
