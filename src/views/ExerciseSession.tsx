@@ -266,6 +266,7 @@ export default function ExerciseSession() {
   useEffect(() => {
     document.querySelector('main')?.scrollTo({ top: 0 });
     setViewedFrontier(prev => Math.max(prev, currentIndex));
+    setStruckChoices(new Set());
   }, [currentIndex]);
 
   // correctAnswers が事前ロードされていない場合のフォールバックフェッチ + 正解判定の補正
@@ -380,6 +381,7 @@ export default function ExerciseSession() {
     text.replace(/(?<![A-Za-z])([A-E])(?![A-Za-z])/g, (_, l) => labelRemap[l] ?? l);
 
   const [lastSelected, setLastSelected] = useState<string | null>(null);
+  const [struckChoices, setStruckChoices] = useState<Set<string>>(new Set());
 
   useEffect(() => {
     if (state) { setInitialized(true); return; }
@@ -441,6 +443,16 @@ export default function ExerciseSession() {
     } else {
       setSelectedAnswers([choice]);
     }
+  };
+
+  const toggleStrikethrough = (choice: string, e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (answered) return;
+    setStruckChoices(prev => {
+      const next = new Set(prev);
+      if (next.has(choice)) next.delete(choice); else next.add(choice);
+      return next;
+    });
   };
 
   const submitAnswer = () => {
@@ -946,7 +958,17 @@ export default function ExerciseSession() {
                       {isSelected && <div style={{ width: 6, height: 6, borderRadius: '50%', background: 'white' }} />}
                     </div>
                   )}
-                  <span style={{ flex: 1, minWidth: 0, overflowWrap: 'break-word', wordBreak: 'break-word', lineHeight: 1.55 }}>
+                  <span
+                    onClick={!answered ? (e) => toggleStrikethrough(choice, e) : undefined}
+                    style={{
+                      flex: 1, minWidth: 0, overflowWrap: 'break-word', wordBreak: 'break-word', lineHeight: 1.55,
+                      textDecoration: struckChoices.has(choice) && !answered ? 'line-through' : 'none',
+                      textDecorationColor: 'var(--color-danger)',
+                      textDecorationThickness: '2px',
+                      cursor: !answered ? 'pointer' : 'default',
+                      userSelect: 'none',
+                    }}
+                  >
                     <strong style={{ marginRight: 2 }}>{CHOICE_LABELS[idx]}.</strong> {stripLabel(choice)}
                   </span>
                 </div>
