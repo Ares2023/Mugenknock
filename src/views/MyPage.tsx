@@ -550,7 +550,7 @@ export default function MyPage() {
                 onClick={() => setShowExamSelect(false)}
               >
                 <div
-                  style={{ background: 'var(--color-bg-white)', borderRadius: 'var(--border-radius-lg) var(--border-radius-lg) 0 0', padding: '20px 16px', width: '100%', maxWidth: 540, maxHeight: '90vh', overflowY: 'auto' }}
+                  style={{ background: 'var(--color-bg-white)', borderRadius: 'var(--border-radius-lg) var(--border-radius-lg) 0 0', padding: '20px 16px', width: '100%', maxWidth: 360, maxHeight: isMobile ? '75vh' : '80vh', overflowY: 'auto' }}
                   onClick={e => e.stopPropagation()}
                 >
                   <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16 }}>
