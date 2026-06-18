@@ -597,17 +597,13 @@ function OnboardingModal({ lang, uid, onComplete }: {
   onComplete: (exam: string) => void;
 }) {
   const ja = lang === 'ja';
-  const [selected, setSelected] = useState<string | null>(null);
   const { user } = useAuth();
   const navigate = useNavigate();
 
-  const handleSelect = (exam: string) => setSelected(prev => prev === exam ? null : exam);
-
-  const handleComplete = () => {
-    if (!selected) return;
-    localStorage.setItem(`targetExam_${uid}`, selected);
-    window.dispatchEvent(new CustomEvent('targetExamChanged', { detail: selected }));
-    onComplete(selected);
+  const handleSelect = (exam: string) => {
+    localStorage.setItem(`targetExam_${uid}`, exam);
+    window.dispatchEvent(new CustomEvent('targetExamChanged', { detail: exam }));
+    onComplete(exam);
   };
 
   const levels = ['Foundational', 'Associate', 'Professional', 'Specialty'] as const;
@@ -631,7 +627,7 @@ function OnboardingModal({ lang, uid, onComplete }: {
 
       {/* ── 資格選択 ── */}
       <div style={{ flex: 1, overflowY: 'auto', display: 'flex', flexDirection: 'column' }}>
-        <div style={{ flex: 1, display: 'flex', flexDirection: 'column', padding: '32px 24px 0', maxWidth: 560, margin: '0 auto', width: '100%', paddingBottom: 140 }}>
+        <div style={{ flex: 1, display: 'flex', flexDirection: 'column', padding: '32px 24px 0', maxWidth: 560, margin: '0 auto', width: '100%', paddingBottom: 32 }}>
           <h2 style={{ fontSize: 20, fontWeight: 800, color: 'var(--color-text-main)', margin: '0 0 6px' }}>
             {ja ? '目指すAWS資格を選んでください' : 'Select your target exam'}
           </h2>
@@ -645,20 +641,16 @@ function OnboardingModal({ lang, uid, onComplete }: {
               <div style={{ display: 'flex', flexDirection: 'column', gap: 7 }}>
                 {exams.map(exam => {
                   const cfg = EXAM_CONFIGS[exam];
-                  const isSelected = selected === exam;
                   return (
                     <button
                       key={exam}
                       onClick={() => handleSelect(exam)}
-                      style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '10px 14px', borderRadius: 10, cursor: 'pointer', textAlign: 'left', background: isSelected ? 'var(--color-primary-light)' : 'var(--color-bg-card)', border: `2px solid ${isSelected ? 'var(--color-primary)' : 'var(--color-border)'}`, transition: 'border-color .15s, background .15s' }}
+                      style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '10px 14px', borderRadius: 10, cursor: 'pointer', textAlign: 'left', background: 'var(--color-bg-card)', border: '2px solid var(--color-border)', transition: 'border-color .15s, background .15s' }}
                     >
                       <div style={{ flex: 1, minWidth: 0 }}>
                         <div style={{ fontWeight: 700, fontSize: 13, color: 'var(--color-text-main)' }}>{cfg.examCode}</div>
                         <div style={{ fontSize: 11, color: 'var(--color-text-sub)', marginTop: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{OB_SHORT[exam]}</div>
                       </div>
-                      {isSelected && (
-                        <span style={{ color: 'var(--color-primary)', flexShrink: 0, display: 'flex' }}><IconCheck size={18} /></span>
-                      )}
                     </button>
                   );
                 })}
@@ -668,14 +660,6 @@ function OnboardingModal({ lang, uid, onComplete }: {
         </div>
       </div>
 
-      {/* 固定フッター */}
-      <div style={{ position: 'fixed', bottom: 0, left: 0, right: 0, background: 'var(--color-bg-main)', borderTop: '1px solid var(--color-border)' }}>
-        <div style={{ maxWidth: 560, margin: '0 auto', padding: '16px 24px 24px' }}>
-          <Button variant="primary" fullWidth size="lg" onClick={handleComplete} style={selected ? {} : { opacity: 0.45, pointerEvents: 'none' }}>
-            {ja ? '設定して始める' : 'Start with this exam'}
-          </Button>
-        </div>
-      </div>
     </div>,
     document.body
   );
