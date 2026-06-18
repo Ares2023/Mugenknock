@@ -396,12 +396,18 @@ export default function MyPage() {
                   <IconPenLine size={14} />
                 </div>
               </div>
-              {targetExam ? (
-                <div>
-                  <div style={{ fontWeight: 700, fontSize: 16, color: 'var(--color-primary)' }}>AWS {targetExam.split('-')[0]}</div>
-                  <div style={{ fontSize: 12, color: 'var(--color-text-sub)', marginTop: 2 }}>{EXAM_CONFIGS[targetExam]?.fullName ?? ''}</div>
-                </div>
-              ) : (
+              {targetExam ? (() => {
+                const full = EXAM_CONFIGS[targetExam]?.fullName ?? '';
+                const dashIdx = full.indexOf(' – ');
+                const main = dashIdx >= 0 ? full.slice(0, dashIdx) : full;
+                const level = dashIdx >= 0 ? '– ' + full.slice(dashIdx + 3) : null;
+                return (
+                  <div>
+                    <div style={{ fontWeight: 700, fontSize: 16, color: 'var(--color-primary)', lineHeight: 1.3 }}>{main}</div>
+                    {level && <div style={{ fontWeight: 700, fontSize: 16, color: 'var(--color-primary)', lineHeight: 1.3 }}>{level}</div>}
+                  </div>
+                );
+              })() : (
                 <span style={{ fontSize: 14, color: 'var(--color-text-light)' }}>{ja ? '目標資格を設定する' : 'Set target exam'}</span>
               )}
             </Card>
@@ -425,21 +431,19 @@ export default function MyPage() {
               ) : (
                 <>
                   {/* 受験日 */}
-                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8 }}>
-                    <span style={{ fontSize: 13, color: 'var(--color-text-sub)' }}>{ja ? '受験日' : 'Exam Date'}</span>
+                  <div style={{ marginBottom: 6 }}>
                     <span style={{ fontSize: 13, fontWeight: 600, color: 'var(--color-primary)' }}>
                       {examDate ? examDate.replace(/-/g, '/') : <span style={{ color: 'var(--color-text-light)' }}>{ja ? '未設定' : 'Not set'}</span>}
                     </span>
                   </div>
                   {/* 目標演習量 */}
-                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                    <span style={{ fontSize: 13, color: 'var(--color-text-sub)' }}>
-                      {ja ? '1日の目標演習量' : 'Daily Goal'}
-                      {ja && <span style={{ fontSize: 10, marginLeft: 6 }}>※達成で<span style={{ color: '#009E9E', fontWeight: 700 }}>+10p</span>！</span>}
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                    <span style={{ fontSize: 13, fontWeight: 600 }}>
+                      <span style={{ color: 'var(--color-primary)' }}>{dailyGoal}</span>
+                      <span style={{ color: 'var(--color-text-sub)' }}>{ja ? '問 / 日' : 'Q / day'}</span>
                     </span>
-                    <span style={{ fontSize: 13, fontWeight: 600, color: 'var(--color-primary)' }}>
-                      {todayCount} / {dailyGoal}{ja ? '問' : 'Q'}{todayCount >= dailyGoal && ' ✓'}
-                    </span>
+                    {ja && <span style={{ fontSize: 10, color: 'var(--color-text-light)' }}>※達成で<span style={{ color: '#009E9E', fontWeight: 700 }}>+10p</span>！</span>}
+                    {todayCount >= dailyGoal && <span style={{ fontSize: 12, color: 'var(--color-success)' }}>✓</span>}
                   </div>
                 </>
               )}
