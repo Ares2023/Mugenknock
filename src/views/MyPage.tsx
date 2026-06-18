@@ -2,7 +2,7 @@
 import React, { useEffect, useState, useCallback } from 'react';
 import { Helmet } from '@/compat/react-helmet-async';
 import { useNavigate } from '@/compat/react-router-dom';
-import { API_ENDPOINT, EXAM_DOMAINS, EXAM_TYPES, DOMAIN_NAME_EN, EXAM_CONFIGS, DOMAIN_RATE_WARNING, DOMAIN_RATE_CAUTION, PASS_SCORES } from '../constants';
+import { API_ENDPOINT, EXAM_DOMAINS, EXAM_TYPES, DOMAIN_NAME_EN, EXAM_CONFIGS, DOMAIN_RATE_WARNING, DOMAIN_RATE_CAUTION } from '../constants';
 import { syncPreferencesToServer, collectExamDatesFromLocal } from '../utils/preferences';
 import { useAuth } from '../contexts/AuthContext';
 import { useLanguage } from '../contexts/LanguageContext';
@@ -10,40 +10,10 @@ import Card from '../components/ui/Card';
 import Button from '../components/ui/Button';
 import {
   IconCalendarNotebook, IconTarget, IconAnnoyed, IconList,
-  IconSparkles, IconChevronRight, IconChevronDown, IconLock, IconFlag, IconStar, IconTrendingUp, IconPencil,
+  IconSparkles, IconChevronRight, IconChevronDown, IconLock, IconFlag, IconStar, IconTrendingUp,
 } from '../components/Icons';
 
 const FOCUSED_UNLOCK_THRESHOLD = 30;
-
-const EXAM_URLS: Record<string, string> = {
-  CLF: 'https://aws.amazon.com/jp/certification/certified-cloud-practitioner/',
-  SAA: 'https://aws.amazon.com/jp/certification/certified-solutions-architect-associate/',
-  SAP: 'https://aws.amazon.com/jp/certification/certified-solutions-architect-professional/',
-  DVA: 'https://aws.amazon.com/jp/certification/certified-developer-associate/',
-  SOA: 'https://aws.amazon.com/jp/certification/certified-sysops-admin-associate/',
-  DOP: 'https://aws.amazon.com/jp/certification/certified-devops-engineer-professional/',
-  DEA: 'https://aws.amazon.com/jp/certification/certified-data-engineer-associate/',
-  AIF: 'https://aws.amazon.com/jp/certification/certified-ai-practitioner/',
-  MLA: 'https://aws.amazon.com/jp/certification/certified-machine-learning-engineer-associate/',
-  GAI: 'https://aws.amazon.com/jp/certification/certified-generative-ai-developer-professional/',
-  ANS: 'https://aws.amazon.com/jp/certification/certified-advanced-networking-specialty/',
-  SCS: 'https://aws.amazon.com/jp/certification/certified-security-specialty/',
-};
-
-const EXAM_DESC: Record<string, string> = {
-  CLF: 'AWSクラウドの基礎知識・サービス・概念を問う入門試験。エンジニア以外でも取得可能。',
-  SAA: 'AWSを使ったシステム設計・高可用性・コスト最適化の知識を問うAWS最人気資格。',
-  SAP: 'SAAより高度な大規模システム設計・移行戦略・複雑なアーキテクチャを扱うプロ資格。',
-  DVA: 'AWSを使ったアプリ開発・デバッグ・デプロイ・セキュリティの実践知識を問う。',
-  SOA: 'AWSの運用・監視・自動化・スケーリング・セキュリティ管理を問う運用者向け試験。',
-  DOP: 'CI/CD・Infrastructure as Code・自動化・監視などDevOps実践を問うプロ資格。',
-  DEA: 'データ収集・変換・保管・パイプライン設計などデータエンジニアリング全般を問う。',
-  AIF: 'AIと機械学習の基礎・AWSのAI/MLサービスの活用知識を問う入門レベルの試験。',
-  MLA: 'モデル開発・デプロイ・スケーリング・MLパイプライン構築の実践スキルを問う。',
-  GAI: '生成AIアプリの設計・実装・最適化に特化した新資格。Amazon Bedrockが中心。',
-  ANS: 'ハイブリッドクラウド・DNS・負荷分散・ネットワーク設計の高度な知識を問うSpecialty。',
-  SCS: 'セキュリティ設計・実装・インシデント対応・コンプライアンスを問うSpecialty。',
-};
 
 type Session = {
   sessionId: string;
@@ -99,7 +69,6 @@ export default function MyPage() {
 
   const [tab, setTab] = useState<'target' | 'analysis' | 'history'>('target');
   const [showSettingsEdit, setShowSettingsEdit] = useState(false);
-  const [showExamSelect, setShowExamSelect] = useState(false);
   const [editExamDate, setEditExamDate] = useState('');
   const [editDailyGoal, setEditDailyGoal] = useState(10); // min=10
 
@@ -384,16 +353,14 @@ export default function MyPage() {
         {/* ════════ 目標タブ ════════ */}
         {tab === 'target' && (
           <>
-            {/* 目標資格カード（タップで資格選択オーバーレイ） */}
-            <Card style={{ marginBottom: 12, cursor: 'pointer' }} onClick={() => setShowExamSelect(true)}>
+            {/* 目標資格カード（タップで資格ダッシュボードへ） */}
+            <Card style={{ marginBottom: 12, cursor: 'pointer' }} onClick={() => navigate('/aws/exam-dashboard')}>
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
                   <span style={{ color: 'var(--color-text-sub)', display: 'flex', alignItems: 'center' }}><IconFlag size={13} /></span>
                   <span style={{ fontWeight: 700, fontSize: 'var(--font-size-sm)', color: 'var(--color-text-main)' }}>{ja ? '目標資格' : 'Target Exam'}</span>
                 </div>
-                <div style={{ width: 35, height: 35, borderRadius: '50%', border: '1px solid var(--color-border)', background: 'transparent', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--color-primary)', flexShrink: 0 }}>
-                  <IconPencil size={14} />
-                </div>
+                <span style={{ color: 'var(--color-primary)', fontSize: 22, fontWeight: 900, paddingLeft: 8 }}>›</span>
               </div>
               {targetExam ? (
                 <div>
@@ -405,39 +372,6 @@ export default function MyPage() {
               )}
             </Card>
 
-            {/* 資格情報パネル（目標資格設定時に自動展開） */}
-            {targetExam && (
-              <div style={{ marginTop: -8, marginBottom: 12, background: 'var(--color-bg-main)', borderRadius: '0 0 var(--border-radius-md) var(--border-radius-md)', border: '1px solid var(--color-border)', borderTop: 'none', padding: '12px 16px' }}>
-                <p style={{ margin: '0 0 10px', fontSize: 12, color: 'var(--color-text-sub)', lineHeight: 1.7 }}>
-                  {EXAM_DESC[targetExam] ?? ''}
-                </p>
-                <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px 16px', marginBottom: 10 }}>
-                  {[
-                    { label: ja ? '試験コード' : 'Code',       value: EXAM_CONFIGS[targetExam]?.examCode ?? '' },
-                    { label: ja ? '問題数'     : 'Questions',  value: `${EXAM_CONFIGS[targetExam]?.totalQuestions ?? '—'}${ja ? '問' : 'Q'}` },
-                    { label: ja ? '試験時間'   : 'Duration',   value: `${EXAM_CONFIGS[targetExam]?.timeLimitMin ?? '—'}${ja ? '分' : 'min'}` },
-                    { label: ja ? '合格ライン' : 'Pass Score', value: `${PASS_SCORES[targetExam] ?? '—'}/1000` },
-                  ].map(({ label, value }) => (
-                    <div key={label} style={{ display: 'flex', gap: 4, alignItems: 'baseline' }}>
-                      <span style={{ fontSize: 10, color: 'var(--color-text-light)' }}>{label}:</span>
-                      <span style={{ fontSize: 12, fontWeight: 700, color: 'var(--color-text-main)' }}>{value}</span>
-                    </div>
-                  ))}
-                </div>
-                {EXAM_URLS[targetExam] && (
-                  <a
-                    href={EXAM_URLS[targetExam]}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    onClick={e => e.stopPropagation()}
-                    style={{ fontSize: 12, color: 'var(--color-primary)', textDecoration: 'none', fontWeight: 600 }}
-                  >
-                    {ja ? '公式ページを見る →' : 'Official page →'}
-                  </a>
-                )}
-              </div>
-            )}
-
             {/* 学習目標カード（タップで設定変更） */}
             <Card
               style={{ marginBottom: 12, cursor: 'pointer' }}
@@ -448,11 +382,7 @@ export default function MyPage() {
                   <span style={{ color: 'var(--color-text-sub)', display: 'flex', alignItems: 'center' }}><IconCalendarNotebook size={13} /></span>
                   <span style={{ fontWeight: 700, fontSize: 'var(--font-size-sm)', color: 'var(--color-text-main)' }}>{ja ? '学習目標' : 'Study Goals'}</span>
                 </div>
-                <div style={{ pointerEvents: 'none' }}>
-                  <div style={{ width: 35, height: 35, borderRadius: '50%', border: '2px solid var(--color-primary)', background: 'var(--color-bg-white)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--color-primary)', flexShrink: 0 }}>
-                    <IconPencil size={14} />
-                  </div>
-                </div>
+                <span style={{ color: 'var(--color-primary)', fontSize: 22, fontWeight: 900, paddingLeft: 8 }}>›</span>
               </div>
               {!targetExam ? (
                 <p style={{ margin: 0, fontSize: 13, color: 'var(--color-text-light)' }}>{ja ? '目標資格を設定してください' : 'Set a target exam first'}</p>
@@ -517,11 +447,8 @@ export default function MyPage() {
 
             {/* 設定編集ポップアップ */}
             {showSettingsEdit && (
-              <div
-                style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', zIndex: 1000, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16 }}
-                onClick={() => setShowSettingsEdit(false)}
-              >
-                <div style={{ background: 'var(--color-bg-white)', borderRadius: 'var(--border-radius-lg)', padding: '24px 20px', width: '100%', maxWidth: 360, boxShadow: 'var(--box-shadow-md)' }} onClick={e => e.stopPropagation()}>
+              <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', zIndex: 1000, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16 }}>
+                <div style={{ background: 'var(--color-bg-white)', borderRadius: 'var(--border-radius-lg)', padding: '24px 20px', width: '100%', maxWidth: 360, boxShadow: 'var(--box-shadow-md)' }}>
                   <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 20 }}>
                     <span style={{ fontWeight: 700, fontSize: 16 }}>{ja ? '目標設定' : 'Edit Settings'}</span>
                     <button onClick={() => setShowSettingsEdit(false)} style={{ width: 32, height: 32, borderRadius: '50%', border: 'none', background: 'transparent', cursor: 'pointer', fontSize: 18, color: 'var(--color-text-sub)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>✕</button>
@@ -562,63 +489,6 @@ export default function MyPage() {
                   }}>
                     {ja ? '保存' : 'Save'}
                   </Button>
-                </div>
-              </div>
-            )}
-
-            {/* 目標資格選択オーバーレイ */}
-            {showExamSelect && (
-              <div
-                style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', zIndex: 1000, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16 }}
-                onClick={() => setShowExamSelect(false)}
-              >
-                <div
-                  style={{ background: 'var(--color-bg-white)', borderRadius: 'var(--border-radius-lg)', padding: '20px', width: '100%', maxWidth: 400, maxHeight: '80vh', overflowY: 'auto', boxShadow: 'var(--box-shadow-md)' }}
-                  onClick={e => e.stopPropagation()}
-                >
-                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16 }}>
-                    <span style={{ fontWeight: 700, fontSize: 16 }}>{ja ? '目標資格を選択' : 'Select Target Exam'}</span>
-                    <button onClick={() => setShowExamSelect(false)} style={{ width: 32, height: 32, borderRadius: '50%', border: 'none', background: 'transparent', cursor: 'pointer', fontSize: 18, color: 'var(--color-text-sub)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>✕</button>
-                  </div>
-                  {[
-                    { label: 'Foundational', color: '#6b9e3a', exams: ['CLF', 'AIF'] },
-                    { label: 'Associate',    color: '#006CE0', exams: ['SAA', 'DVA', 'SOA', 'DEA', 'MLA'] },
-                    { label: 'Professional', color: '#8b5cf6', exams: ['SAP', 'DOP', 'GAI'] },
-                    { label: 'Specialty',   color: '#e67e22', exams: ['ANS', 'SCS'] },
-                  ].map(({ label, color, exams }) => (
-                    <div key={label} style={{ marginBottom: 14 }}>
-                      <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: '.06em', textTransform: 'uppercase', color, marginBottom: 6 }}>{label}</div>
-                      <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-                        {exams.map(exam => {
-                          const cfg = EXAM_CONFIGS[exam];
-                          const isSelected = targetExam === exam;
-                          return (
-                            <button
-                              key={exam}
-                              onClick={() => {
-                                localStorage.setItem(`targetExam_${uid}`, exam);
-                                window.dispatchEvent(new CustomEvent('targetExamChanged', { detail: exam }));
-                                setTargetExam(exam);
-                                setShowExamSelect(false);
-                              }}
-                              style={{
-                                display: 'flex', alignItems: 'center', gap: 10,
-                                padding: '10px 14px', borderRadius: 10, cursor: 'pointer', textAlign: 'left',
-                                background: isSelected ? 'var(--color-primary-light)' : 'var(--color-bg-card)',
-                                border: `2px solid ${isSelected ? 'var(--color-primary)' : 'var(--color-border)'}`,
-                              }}
-                            >
-                              <div style={{ flex: 1, minWidth: 0 }}>
-                                <div style={{ fontWeight: 700, fontSize: 13, color: isSelected ? 'var(--color-primary)' : 'var(--color-text-main)' }}>{cfg?.examCode ?? exam}</div>
-                                <div style={{ fontSize: 11, color: 'var(--color-text-sub)', marginTop: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{cfg?.fullName ?? ''}</div>
-                              </div>
-                              {isSelected && <span style={{ color: 'var(--color-primary)', fontSize: 16, fontWeight: 900, flexShrink: 0 }}>✓</span>}
-                            </button>
-                          );
-                        })}
-                      </div>
-                    </div>
-                  ))}
                 </div>
               </div>
             )}
