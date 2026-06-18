@@ -432,15 +432,22 @@ export default function MyPage() {
                 <>
                   {/* 受験日 */}
                   <div style={{ marginBottom: 6 }}>
-                    <span style={{ fontSize: 13, fontWeight: 600, color: 'var(--color-primary)' }}>
-                      {examDate ? examDate.replace(/-/g, '/') : <span style={{ color: 'var(--color-text-light)' }}>{ja ? '未設定' : 'Not set'}</span>}
-                    </span>
+                    {examDate ? (
+                      <span>
+                        <span style={{ fontWeight: 700, fontSize: 16, color: 'var(--color-primary)' }}>
+                          {examDate.split('-').slice(1).map(Number).join('/')}
+                        </span>
+                        <span style={{ fontSize: 13, color: 'var(--color-text-main)', marginLeft: 4 }}>{ja ? '受験予定' : 'exam date'}</span>
+                      </span>
+                    ) : (
+                      <span style={{ fontSize: 13, color: 'var(--color-text-light)' }}>{ja ? '未設定' : 'Not set'}</span>
+                    )}
                   </div>
                   {/* 目標演習量 */}
                   <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                    <span style={{ fontSize: 13, fontWeight: 600 }}>
-                      <span style={{ color: 'var(--color-primary)' }}>{dailyGoal}</span>
-                      <span style={{ color: 'var(--color-text-sub)' }}>{ja ? '問 / 日' : 'Q / day'}</span>
+                    <span>
+                      <span style={{ fontWeight: 700, fontSize: 16, color: 'var(--color-primary)' }}>{dailyGoal}</span>
+                      <span style={{ fontSize: 13, color: 'var(--color-text-sub)' }}>{ja ? '問 / 日' : 'Q / day'}</span>
                     </span>
                     {ja && <span style={{ fontSize: 10, color: 'var(--color-text-light)' }}>※達成で<span style={{ color: '#009E9E', fontWeight: 700 }}>+10p</span>！</span>}
                     {todayCount >= dailyGoal && <span style={{ fontSize: 12, color: 'var(--color-success)' }}>✓</span>}
