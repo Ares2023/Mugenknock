@@ -402,7 +402,7 @@ export default function MyPage() {
                 const main = dashIdx >= 0 ? full.slice(0, dashIdx) : full;
                 const level = dashIdx >= 0 ? '– ' + full.slice(dashIdx + 3) : null;
                 return (
-                  <div style={{ textAlign: 'center' }}>
+                  <div>
                     <div style={{ fontWeight: 700, fontSize: 16, color: 'var(--color-primary)', lineHeight: 1.3 }}>{main}</div>
                     {level && <div style={{ fontWeight: 700, fontSize: 16, color: 'var(--color-primary)', lineHeight: 1.3 }}>{level}</div>}
                   </div>
@@ -431,7 +431,7 @@ export default function MyPage() {
               ) : (
                 <>
                   {/* 受験日 */}
-                  <div style={{ marginBottom: 6, textAlign: 'center' }}>
+                  <div style={{ marginBottom: 6 }}>
                     {examDate ? (
                       <span>
                         <span style={{ fontWeight: 700, fontSize: 16, color: 'var(--color-primary)' }}>
@@ -444,7 +444,7 @@ export default function MyPage() {
                     )}
                   </div>
                   {/* 目標演習量 */}
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 6, justifyContent: 'center' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
                     <span>
                       <span style={{ fontWeight: 700, fontSize: 16, color: 'var(--color-primary)' }}>{dailyGoal}</span>
                       <span style={{ fontSize: 13, color: 'var(--color-text-sub)' }}>{ja ? '問 / 日' : 'Q / day'}</span>
