@@ -267,19 +267,29 @@ export default function Account() {
         try { msg = JSON.parse(text).error || msg; } catch {}
         throw new Error(msg);
       }
-      // localStorage のユーザーデータをクリア（設定・環境設定は保持）
-      const keep = new Set([
-        `lang_${user.userId}`, `theme_${user.userId}`, `sidebarOpen_${user.userId}`,
-        `targetExam_${user.userId}`, `lastQuickMode_${user.userId}`,
-        `quickExercisePrefs_${user.userId}`, `focusedExercisePrefs_${user.userId}`,
+      const { resetAt } = await res.json();
+      const uid = user.userId;
+      // Home.tsx clearUserData と同じパターンで localStorage を消去
+      const KEEP = new Set([
+        `lang_${uid}`, `theme_${uid}`, `sidebarOpen_${uid}`,
+        `targetExam_${uid}`, `lastQuickMode_${uid}`,
+        `quickExercisePrefs_${uid}`, `focusedExercisePrefs_${uid}`,
+        `sherpaExerciseHint_${uid}`, `sherpaExamHint_${uid}`, `sherpaStatsHint_${uid}`,
       ]);
+      const suffix = `_${uid}`;
       const toRemove: string[] = [];
       for (let i = 0; i < localStorage.length; i++) {
         const key = localStorage.key(i)!;
-        if (!keep.has(key) && key.endsWith(`_${user.userId}`)) toRemove.push(key);
+        if (
+          (!KEEP.has(key) && key.endsWith(suffix)) ||
+          key.startsWith(`qstats_${uid}_`) ||
+          key.startsWith(`daily_service_${uid}_`)
+        ) toRemove.push(key);
       }
       toRemove.forEach(k => localStorage.removeItem(k));
-      sessionStorage.clear();
+      // resetAt をセット → Home.tsx の二重クリアを防ぐ
+      if (resetAt) localStorage.setItem(`lastReset_${uid}`, resetAt);
+      sessionStorage.removeItem(`_ts_ustats_${uid}`);
       setResetDone(true);
     } catch (err: any) {
       setResetError(err.message || (lang === 'ja' ? '初期化に失敗しました' : 'Reset failed'));

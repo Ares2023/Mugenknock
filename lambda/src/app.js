@@ -1308,11 +1308,21 @@ async function executeUserDataReset(docClient, userId) {
     docClient.send(new DeleteCommand({ TableName: 'UserPoints',          Key: { userId } })).catch(() => {}),
   ]);
 
+  // AppSettings の scoreHistData（スコア履歴・ハイスコア記録）を全 examType 分削除
+  const scoreHistResult = await docClient.send(new ScanCommand({
+    TableName: 'AppSettings',
+    FilterExpression: 'begins_with(settingId, :prefix)',
+    ExpressionAttributeValues: { ':prefix': `scoreHistData_${userId}_` },
+    ProjectionExpression: 'settingId',
+  }));
+  await batchDelete('AppSettings', (scoreHistResult.Items || []).map(i => ({ settingId: i.settingId })));
+
   const resetAt = new Date().toISOString();
   await docClient.send(new PutCommand({
     TableName: 'AppSettings',
     Item: { settingId: `userReset_${userId}`, userId, resetAt },
   }));
+  return resetAt;
 }
 
 app.post('/users/me/reset', async (req, res) => {
@@ -1320,8 +1330,8 @@ app.post('/users/me/reset', async (req, res) => {
     const docClient = getClient();
     const { userId } = req.body;
     if (!userId) return res.status(400).json({ error: 'userId required' });
-    await executeUserDataReset(docClient, userId);
-    res.json({ success: true });
+    const resetAt = await executeUserDataReset(docClient, userId);
+    res.json({ success: true, resetAt });
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: 'Internal server error' });
