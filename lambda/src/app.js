@@ -1304,8 +1304,13 @@ async function executeUserDataReset(docClient, userId) {
     batchDelete('UserQuestionStats', qsItems.map(i => ({ userId: i.userId, questionId: i.questionId }))),
     batchDelete('UserTagStats',      tsItems.map(i => ({ userId: i.userId, tagId: i.tagId }))),
     batchDelete('Sessions',          sessItems.map(i => ({ userId: i.userId, sessionId: i.sessionId }))),
-    docClient.send(new DeleteCommand({ TableName: 'EncyclopediaUnlocks', Key: { userId } })).catch(() => {}),
-    docClient.send(new DeleteCommand({ TableName: 'UserPoints',          Key: { userId } })).catch(() => {}),
+    // DELETE より PUT（空上書き）の方が確実 — delete は存在しないキーに対してもエラーにならないが、
+    // 型不一致や権限エラーで失敗しても catch で隠れるため、空レコードで上書きする
+    docClient.send(new PutCommand({
+      TableName: 'EncyclopediaUnlocks',
+      Item: { userId, unlocks: '{}', unlockDate: null, todayServiceId: null },
+    })).catch(() => {}),
+    docClient.send(new DeleteCommand({ TableName: 'UserPoints', Key: { userId } })).catch(() => {}),
   ]);
 
   // AppSettings の scoreHistData（スコア履歴・ハイスコア記録）を全 examType 分削除

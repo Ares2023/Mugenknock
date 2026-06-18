@@ -625,7 +625,7 @@ export default function Account() {
               <p style={{ color: 'var(--color-success)', fontWeight: 700, margin: '0 0 20px' }}>
                 {ja ? '初期化が完了しました' : 'Reset complete'}
               </p>
-              <Button onClick={() => { setShowResetModal(false); navigate('/aws/', { replace: true }); }} variant="primary">
+              <Button onClick={() => { window.location.href = '/aws/'; }} variant="primary">
                 {ja ? 'ホームへ' : 'Go to Home'}
               </Button>
             </div>
