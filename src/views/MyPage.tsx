@@ -10,7 +10,7 @@ import Card from '../components/ui/Card';
 import Button from '../components/ui/Button';
 import {
   IconCalendarNotebook, IconTarget, IconAnnoyed, IconList,
-  IconSparkles, IconChevronRight, IconChevronDown, IconLock, IconFlag, IconStar, IconTrendingUp,
+  IconSparkles, IconChevronRight, IconChevronDown, IconLock, IconFlag, IconStar, IconTrendingUp, IconPencil,
 } from '../components/Icons';
 
 const FOCUSED_UNLOCK_THRESHOLD = 30;
@@ -69,6 +69,7 @@ export default function MyPage() {
 
   const [tab, setTab] = useState<'target' | 'analysis' | 'history'>('target');
   const [showSettingsEdit, setShowSettingsEdit] = useState(false);
+  const [showExamSelect, setShowExamSelect] = useState(false);
   const [editExamDate, setEditExamDate] = useState('');
   const [editDailyGoal, setEditDailyGoal] = useState(10); // min=10
 
@@ -353,14 +354,18 @@ export default function MyPage() {
         {/* ════════ 目標タブ ════════ */}
         {tab === 'target' && (
           <>
-            {/* 目標資格カード（タップで資格ダッシュボードへ） */}
-            <Card style={{ marginBottom: 12, cursor: 'pointer' }} onClick={() => navigate('/aws/exam-dashboard')}>
+            {/* 目標資格カード（タップで資格選択オーバーレイ） */}
+            <Card style={{ marginBottom: 12, cursor: 'pointer' }} onClick={() => setShowExamSelect(true)}>
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
                   <span style={{ color: 'var(--color-text-sub)', display: 'flex', alignItems: 'center' }}><IconFlag size={13} /></span>
                   <span style={{ fontWeight: 700, fontSize: 'var(--font-size-sm)', color: 'var(--color-text-main)' }}>{ja ? '目標資格' : 'Target Exam'}</span>
                 </div>
-                <span style={{ color: 'var(--color-primary)', fontSize: 22, fontWeight: 900, paddingLeft: 8 }}>›</span>
+                <div onClick={e => e.stopPropagation()} style={{ pointerEvents: 'none' }}>
+                  <div style={{ width: 35, height: 35, borderRadius: '50%', border: '2px solid var(--color-primary)', background: 'var(--color-bg-white)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--color-primary)', flexShrink: 0 }}>
+                    <IconPencil size={14} />
+                  </div>
+                </div>
               </div>
               {targetExam ? (
                 <div>
@@ -382,7 +387,11 @@ export default function MyPage() {
                   <span style={{ color: 'var(--color-text-sub)', display: 'flex', alignItems: 'center' }}><IconCalendarNotebook size={13} /></span>
                   <span style={{ fontWeight: 700, fontSize: 'var(--font-size-sm)', color: 'var(--color-text-main)' }}>{ja ? '学習目標' : 'Study Goals'}</span>
                 </div>
-                <span style={{ color: 'var(--color-primary)', fontSize: 22, fontWeight: 900, paddingLeft: 8 }}>›</span>
+                <div style={{ pointerEvents: 'none' }}>
+                  <div style={{ width: 35, height: 35, borderRadius: '50%', border: '2px solid var(--color-primary)', background: 'var(--color-bg-white)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--color-primary)', flexShrink: 0 }}>
+                    <IconPencil size={14} />
+                  </div>
+                </div>
               </div>
               {!targetExam ? (
                 <p style={{ margin: 0, fontSize: 13, color: 'var(--color-text-light)' }}>{ja ? '目標資格を設定してください' : 'Set a target exam first'}</p>
@@ -447,8 +456,11 @@ export default function MyPage() {
 
             {/* 設定編集ポップアップ */}
             {showSettingsEdit && (
-              <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', zIndex: 1000, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16 }}>
-                <div style={{ background: 'var(--color-bg-white)', borderRadius: 'var(--border-radius-lg)', padding: '24px 20px', width: '100%', maxWidth: 360, boxShadow: 'var(--box-shadow-md)' }}>
+              <div
+                style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', zIndex: 1000, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16 }}
+                onClick={() => setShowSettingsEdit(false)}
+              >
+                <div style={{ background: 'var(--color-bg-white)', borderRadius: 'var(--border-radius-lg)', padding: '24px 20px', width: '100%', maxWidth: 360, boxShadow: 'var(--box-shadow-md)' }} onClick={e => e.stopPropagation()}>
                   <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 20 }}>
                     <span style={{ fontWeight: 700, fontSize: 16 }}>{ja ? '目標設定' : 'Edit Settings'}</span>
                     <button onClick={() => setShowSettingsEdit(false)} style={{ width: 32, height: 32, borderRadius: '50%', border: 'none', background: 'transparent', cursor: 'pointer', fontSize: 18, color: 'var(--color-text-sub)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>✕</button>
@@ -489,6 +501,63 @@ export default function MyPage() {
                   }}>
                     {ja ? '保存' : 'Save'}
                   </Button>
+                </div>
+              </div>
+            )}
+
+            {/* 目標資格選択オーバーレイ */}
+            {showExamSelect && (
+              <div
+                style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', zIndex: 1000, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16 }}
+                onClick={() => setShowExamSelect(false)}
+              >
+                <div
+                  style={{ background: 'var(--color-bg-white)', borderRadius: 'var(--border-radius-lg)', padding: '20px', width: '100%', maxWidth: 400, maxHeight: '80vh', overflowY: 'auto', boxShadow: 'var(--box-shadow-md)' }}
+                  onClick={e => e.stopPropagation()}
+                >
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16 }}>
+                    <span style={{ fontWeight: 700, fontSize: 16 }}>{ja ? '目標資格を選択' : 'Select Target Exam'}</span>
+                    <button onClick={() => setShowExamSelect(false)} style={{ width: 32, height: 32, borderRadius: '50%', border: 'none', background: 'transparent', cursor: 'pointer', fontSize: 18, color: 'var(--color-text-sub)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>✕</button>
+                  </div>
+                  {[
+                    { label: 'Foundational', color: '#6b9e3a', exams: ['CLF', 'AIF'] },
+                    { label: 'Associate',    color: '#006CE0', exams: ['SAA', 'DVA', 'SOA', 'DEA', 'MLA'] },
+                    { label: 'Professional', color: '#8b5cf6', exams: ['SAP', 'DOP', 'GAI'] },
+                    { label: 'Specialty',   color: '#e67e22', exams: ['ANS', 'SCS'] },
+                  ].map(({ label, color, exams }) => (
+                    <div key={label} style={{ marginBottom: 14 }}>
+                      <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: '.06em', textTransform: 'uppercase', color, marginBottom: 6 }}>{label}</div>
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+                        {exams.map(exam => {
+                          const cfg = EXAM_CONFIGS[exam];
+                          const isSelected = targetExam === exam;
+                          return (
+                            <button
+                              key={exam}
+                              onClick={() => {
+                                localStorage.setItem(`targetExam_${uid}`, exam);
+                                window.dispatchEvent(new CustomEvent('targetExamChanged', { detail: exam }));
+                                setTargetExam(exam);
+                                setShowExamSelect(false);
+                              }}
+                              style={{
+                                display: 'flex', alignItems: 'center', gap: 10,
+                                padding: '10px 14px', borderRadius: 10, cursor: 'pointer', textAlign: 'left',
+                                background: isSelected ? 'var(--color-primary-light)' : 'var(--color-bg-card)',
+                                border: `2px solid ${isSelected ? 'var(--color-primary)' : 'var(--color-border)'}`,
+                              }}
+                            >
+                              <div style={{ flex: 1, minWidth: 0 }}>
+                                <div style={{ fontWeight: 700, fontSize: 13, color: isSelected ? 'var(--color-primary)' : 'var(--color-text-main)' }}>{cfg?.examCode ?? exam}</div>
+                                <div style={{ fontSize: 11, color: 'var(--color-text-sub)', marginTop: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{cfg?.fullName ?? ''}</div>
+                              </div>
+                              {isSelected && <span style={{ color: 'var(--color-primary)', fontSize: 16, fontWeight: 900, flexShrink: 0 }}>✓</span>}
+                            </button>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  ))}
                 </div>
               </div>
             )}
