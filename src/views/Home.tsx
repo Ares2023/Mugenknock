@@ -1124,6 +1124,7 @@ export default function Home() {
     const saved = localStorage.getItem(`targetExam_${uid}`);
     if (saved !== null) {
       setTargetExam(saved);
+      setShowOnboarding(false);
     } else if (user) {
       setShowOnboarding(true);
     }
