@@ -577,7 +577,11 @@ export default function MyPage() {
                     </div>
 
                     {/* レベルタブ */}
-                    <div style={{ display: 'flex', borderBottom: '2px solid var(--color-border)', flexShrink: 0, overflowX: 'auto' }}>
+                    <div
+                      style={{ display: 'flex', borderBottom: '2px solid var(--color-border)', flexShrink: 0, overflowX: 'auto' }}
+                      onTouchStart={e => e.stopPropagation()}
+                      onTouchMove={e => e.stopPropagation()}
+                    >
                       {EXAM_LEVELS.map(({ key, color }) => (
                         <button key={key} onClick={() => { setActiveLevel(key); setPreviewExam(null); }} style={{
                           padding: '10px 14px', background: 'none', border: 'none', cursor: 'pointer',
