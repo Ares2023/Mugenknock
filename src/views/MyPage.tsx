@@ -669,14 +669,13 @@ export default function MyPage() {
                       })}
                     </div>
 
-                    {/* 詳細パネル */}
-                    <div style={{ flex: 1, overflowY: 'auto', borderTop: '1px solid var(--color-border)', position: 'relative' }}>
+                    {/* 詳細パネル（スクロール） */}
+                    <div style={{ flex: 1, overflowY: 'auto', borderTop: '1px solid var(--color-border)' }}>
                       {previewExam && (() => {
                         const exam = previewExam;
                         const cfg = EXAM_CONFIGS[exam];
-                        const isCurrentTarget = targetExam === exam;
                         return (
-                          <div style={{ padding: '16px 20px 56px' }}>
+                          <div style={{ padding: '16px 20px 16px' }}>
                             <div style={{ marginBottom: 10 }}>
                               {EXAM_CATCHCOPY[exam] && (
                                 <div style={{ fontSize: 11, color: 'var(--color-text-light)', fontStyle: 'italic', marginBottom: 4 }}>{EXAM_CATCHCOPY[exam]}</div>
@@ -709,34 +708,36 @@ export default function MyPage() {
                                 <div style={{ fontSize: 12, color: 'var(--color-text-sub)', lineHeight: 1.7, whiteSpace: 'pre-wrap' }}>{passComments[exam]}</div>
                               </div>
                             )}
-                            {/* 設定ボタン（右下固定） */}
-                            <div style={{ position: 'absolute', bottom: 14, right: 20 }}>
-                              {isCurrentTarget ? (
-                                <button
-                                  disabled
-                                  title={ja ? '設定中' : 'Current target'}
-                                  style={{ width: 40, height: 40, borderRadius: '50%', border: '1px solid var(--color-border)', background: 'var(--color-bg-main)', color: 'var(--color-text-light)', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'default' }}
-                                >
-                                  <IconBookOpenCheck size={20} />
-                                </button>
-                              ) : (
-                                <button
-                                  title={ja ? 'この資格に設定' : 'Set as Target'}
-                                  onClick={() => {
-                                    localStorage.setItem(`targetExam_${uid}`, exam);
-                                    window.dispatchEvent(new CustomEvent('targetExamChanged', { detail: exam }));
-                                    setTargetExam(exam);
-                                  }}
-                                  style={{ width: 40, height: 40, borderRadius: '50%', border: `2px solid ${levelColor}`, background: 'var(--color-bg-white)', color: levelColor, display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}
-                                >
-                                  <IconBook size={20} />
-                                </button>
-                              )}
-                            </div>
                           </div>
                         );
                       })()}
                     </div>
+
+                    {/* 設定ボタン行（常にモーダル最下部に固定） */}
+                    {previewExam && (() => {
+                      const exam = previewExam;
+                      const isCurrentTarget = targetExam === exam;
+                      return (
+                        <div style={{ flexShrink: 0, display: 'flex', justifyContent: 'flex-end', padding: '10px 20px', borderTop: '1px solid var(--color-border)' }}>
+                          {isCurrentTarget ? (
+                            <button disabled title={ja ? '設定中' : 'Current target'}
+                              style={{ width: 40, height: 40, borderRadius: '50%', border: '1px solid var(--color-border)', background: 'var(--color-bg-main)', color: 'var(--color-text-light)', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'default' }}>
+                              <IconBookOpenCheck size={20} />
+                            </button>
+                          ) : (
+                            <button title={ja ? 'この資格に設定' : 'Set as Target'}
+                              onClick={() => {
+                                localStorage.setItem(`targetExam_${uid}`, exam);
+                                window.dispatchEvent(new CustomEvent('targetExamChanged', { detail: exam }));
+                                setTargetExam(exam);
+                              }}
+                              style={{ width: 40, height: 40, borderRadius: '50%', border: `2px solid ${levelColor}`, background: 'var(--color-bg-white)', color: levelColor, display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}>
+                              <IconBook size={20} />
+                            </button>
+                          )}
+                        </div>
+                      );
+                    })()}
                   </div>
                 </div>
               );
