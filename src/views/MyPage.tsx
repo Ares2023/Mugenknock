@@ -675,7 +675,11 @@ export default function MyPage() {
                               flexShrink: 0, width: 80, padding: '10px 6px 8px', cursor: 'pointer',
                               borderRadius: 10, textAlign: 'center',
                               border: `2px solid ${isPreviewing || isSelected ? levelColor : 'var(--color-border)'}`,
-                              background: isPreviewing ? levelColor : isSelected ? `${levelColor}18` : 'var(--color-bg-card)',
+                              background: isPreviewing
+                                ? `linear-gradient(145deg, ${levelColor}, ${levelColor}bb)`
+                                : isSelected
+                                ? `linear-gradient(145deg, ${levelColor}22, ${levelColor}44)`
+                                : `linear-gradient(145deg, var(--color-bg-card), ${levelColor}18)`,
                             }}
                           >
                             {ExamIcon && (
