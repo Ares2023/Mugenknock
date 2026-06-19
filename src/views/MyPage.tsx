@@ -1,5 +1,5 @@
 'use client';
-import React, { useEffect, useState, useCallback } from 'react';
+import React, { useEffect, useState, useCallback, useRef } from 'react';
 import { Helmet } from '@/compat/react-helmet-async';
 import { useNavigate } from '@/compat/react-router-dom';
 import { API_ENDPOINT, EXAM_DOMAINS, EXAM_TYPES, DOMAIN_NAME_EN, EXAM_CONFIGS, DOMAIN_RATE_WARNING, DOMAIN_RATE_CAUTION, PASS_SCORES } from '../constants';
@@ -137,6 +137,7 @@ export default function MyPage() {
   const [previewExam, setPreviewExam] = useState<string | null>(null);
   const [activeLevel, setActiveLevel] = useState<string>('Practitioner');
   const [passComments, setPassComments] = useState<Record<string, string>>({});
+  const examDetailScrollRef = useRef<HTMLDivElement>(null);
 
   const EXAM_LEVELS = [
     { key: 'Practitioner', color: '#6b9e3a', exams: ['CLF', 'AIF'] },
@@ -219,6 +220,11 @@ export default function MyPage() {
       })
       .catch(() => {});
   }, [user?.userId]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // ── 資格切替時に詳細パネルのスクロールをリセット ──
+  useEffect(() => {
+    if (examDetailScrollRef.current) examDetailScrollRef.current.scrollTop = 0;
+  }, [previewExam]);
 
   // ── 合格コメント取得 ──
   useEffect(() => {
@@ -629,9 +635,12 @@ export default function MyPage() {
                     onClick={e => e.stopPropagation()}
                   >
                     {/* ヘッダー */}
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '16px 20px 0', flexShrink: 0 }}>
-                      <span style={{ fontWeight: 700, fontSize: 16 }}>{ja ? '目標資格を選択' : 'Select Target Exam'}</span>
-                      <button onClick={() => { setShowExamSelect(false); setPreviewExam(null); }} style={{ border: 'none', background: 'none', fontSize: 20, cursor: 'pointer', color: 'var(--color-text-sub)', padding: '4px 8px', lineHeight: 1 }}>✕</button>
+                    <div style={{ flexShrink: 0 }}>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '16px 20px 12px' }}>
+                        <span style={{ fontWeight: 700, fontSize: 16 }}>{ja ? '目標資格を選択' : 'Select Target Exam'}</span>
+                        <button onClick={() => { setShowExamSelect(false); setPreviewExam(null); }} style={{ border: 'none', background: 'none', fontSize: 20, cursor: 'pointer', color: 'var(--color-text-sub)', padding: '4px 8px', lineHeight: 1 }}>✕</button>
+                      </div>
+                      <div style={{ height: 3, background: `linear-gradient(90deg, ${levelColor}, ${levelColor}66, transparent)` }} />
                     </div>
 
                     {/* レベルタブ */}
@@ -694,7 +703,7 @@ export default function MyPage() {
                     </div>
 
                     {/* 詳細パネル（スクロール） */}
-                    <div style={{ flex: 1, overflowY: 'auto', borderTop: '1px solid var(--color-border)' }}>
+                    <div ref={examDetailScrollRef} style={{ flex: 1, overflowY: 'auto', borderTop: '1px solid var(--color-border)' }}>
                       {previewExam && (() => {
                         const exam = previewExam;
                         const cfg = EXAM_CONFIGS[exam];
