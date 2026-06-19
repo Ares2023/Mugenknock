@@ -12,22 +12,22 @@ import {
   IconCalendarNotebook, IconTarget, IconAnnoyed, IconList,
   IconSparkles, IconChevronRight, IconChevronDown, IconLock, IconFlag, IconStar, IconTrendingUp, IconPenLine,
   IconBook, IconBookOpenCheck,
-  IconCloud, IconCpu, IconLayers, IconCode2, IconServer, IconDatabase, IconGitBranch, IconBuilding2, IconBot, IconNetwork, IconShieldIcon, IconWand2,
+  IconSprout, IconBox, IconBot, IconCode2, IconCloud, IconDatabase, IconBrain, IconNetwork, IconFileCodeCorner, IconShieldIcon, IconWaypoints,
 } from '../components/Icons';
 
 const EXAM_ICON_COMPONENTS: Record<string, React.FC<{ size?: number }>> = {
-  CLF: IconCloud,
-  AIF: IconCpu,
-  SAA: IconLayers,
+  CLF: IconSprout,
+  AIF: IconBot,
+  SAA: IconBox,
   DVA: IconCode2,
-  SOA: IconServer,
+  SOA: IconCloud,
   DEA: IconDatabase,
-  DOP: IconGitBranch,
-  SAP: IconBuilding2,
-  MLA: IconBot,
-  GAI: IconWand2,
-  ANS: IconNetwork,
+  MLA: IconBrain,
+  SAP: IconNetwork,
+  DOP: IconFileCodeCorner,
+  GAI: IconSparkles,
   SCS: IconShieldIcon,
+  ANS: IconWaypoints,
 };
 
 const EXAM_CATCHCOPY: Record<string, string> = {
