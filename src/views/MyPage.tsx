@@ -591,7 +591,11 @@ export default function MyPage() {
                     </div>
 
                     {/* 資格カード（横スクロール） */}
-                    <div style={{ display: 'flex', gap: 10, padding: '14px 20px', overflowX: 'auto', flexShrink: 0 }}>
+                    <div
+                      style={{ display: 'flex', gap: 10, padding: '14px 20px', overflowX: 'auto', flexShrink: 0 }}
+                      onTouchStart={e => e.stopPropagation()}
+                      onTouchMove={e => e.stopPropagation()}
+                    >
                       {currentLevelDef.exams.map(exam => {
                         const isSelected = targetExam === exam;
                         const isPreviewing = previewExam === exam;
