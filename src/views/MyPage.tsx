@@ -10,8 +10,25 @@ import Card from '../components/ui/Card';
 import Button from '../components/ui/Button';
 import {
   IconCalendarNotebook, IconTarget, IconAnnoyed, IconList,
-  IconSparkles, IconChevronRight, IconChevronDown, IconLock, IconFlag, IconStar, IconTrendingUp, IconPenLine, IconBook, IconBookOpenCheck,
+  IconSparkles, IconChevronRight, IconChevronDown, IconLock, IconFlag, IconStar, IconTrendingUp, IconPenLine,
+  IconBook, IconBookOpenCheck,
+  IconCloud, IconCpu, IconLayers, IconCode2, IconServer, IconDatabase, IconGitBranch, IconBuilding2, IconBot, IconNetwork, IconShieldIcon, IconWand2,
 } from '../components/Icons';
+
+const EXAM_ICON_COMPONENTS: Record<string, React.FC<{ size?: number }>> = {
+  CLF: IconCloud,
+  AIF: IconCpu,
+  SAA: IconLayers,
+  DVA: IconCode2,
+  SOA: IconServer,
+  DEA: IconDatabase,
+  DOP: IconGitBranch,
+  SAP: IconBuilding2,
+  MLA: IconBot,
+  GAI: IconWand2,
+  ANS: IconNetwork,
+  SCS: IconShieldIcon,
+};
 
 const EXAM_CATCHCOPY: Record<string, string> = {
   CLF: 'AWS資格の登竜門！誰もがここから！',
@@ -608,7 +625,7 @@ export default function MyPage() {
                   onTouchMove={e => e.stopPropagation()}
                 >
                   <div
-                    style={{ background: 'var(--color-bg-white)', borderRadius: 'var(--border-radius-lg)', width: '100%', maxWidth: 420, boxShadow: 'var(--box-shadow-md)', height: isMobile ? '75vh' : '60vh', display: 'flex', flexDirection: 'column', overflow: 'hidden' }}
+                    style={{ background: 'var(--color-bg-white)', borderRadius: 'var(--border-radius-lg)', width: '100%', maxWidth: 420, boxShadow: 'var(--box-shadow-md)', height: isMobile ? '75vh' : '60vh', display: 'flex', flexDirection: 'column', overflow: 'hidden', position: 'relative' }}
                     onClick={e => e.stopPropagation()}
                   >
                     {/* ヘッダー */}
@@ -649,21 +666,24 @@ export default function MyPage() {
                       {currentLevelDef.exams.map(exam => {
                         const isSelected = targetExam === exam;
                         const isPreviewing = previewExam === exam;
+                        const ExamIcon = EXAM_ICON_COMPONENTS[exam];
                         return (
                           <button
                             key={exam}
                             onClick={() => setPreviewExam(isPreviewing ? null : exam)}
                             style={{
-                              flexShrink: 0, width: 80, padding: '12px 6px 10px', cursor: 'pointer',
+                              flexShrink: 0, width: 80, padding: '10px 6px 8px', cursor: 'pointer',
                               borderRadius: 10, textAlign: 'center',
                               border: `2px solid ${isPreviewing || isSelected ? levelColor : 'var(--color-border)'}`,
                               background: isPreviewing ? levelColor : isSelected ? `${levelColor}18` : 'var(--color-bg-card)',
                             }}
                           >
-                            <div style={{ fontWeight: 800, fontSize: 18, color: isPreviewing ? '#fff' : isSelected ? levelColor : 'var(--color-text-main)', lineHeight: 1 }}>{exam}</div>
-                            <div style={{ fontSize: 9, color: isPreviewing ? 'rgba(255,255,255,0.8)' : 'var(--color-text-light)', marginTop: 4, lineHeight: 1.3 }}>
-                              {EXAM_CONFIGS[exam]?.examCode?.replace(exam + '-', '') ?? ''}
-                            </div>
+                            {ExamIcon && (
+                              <div style={{ display: 'flex', justifyContent: 'center', marginBottom: 4, color: isPreviewing ? '#fff' : isSelected ? levelColor : 'var(--color-text-light)' }}>
+                                <ExamIcon size={18} />
+                              </div>
+                            )}
+                            <div style={{ fontWeight: 800, fontSize: 15, color: isPreviewing ? '#fff' : isSelected ? levelColor : 'var(--color-text-main)', lineHeight: 1 }}>{exam}</div>
                           </button>
                         );
                       })}
@@ -680,7 +700,9 @@ export default function MyPage() {
                               {EXAM_CATCHCOPY[exam] && (
                                 <div style={{ fontSize: 11, color: 'var(--color-text-light)', fontStyle: 'italic', marginBottom: 4 }}>{EXAM_CATCHCOPY[exam]}</div>
                               )}
-                              <div style={{ fontWeight: 700, fontSize: 15, color: 'var(--color-text-main)', marginBottom: 2 }}>{cfg?.fullName ?? exam}</div>
+                              <div style={{ fontWeight: 700, fontSize: 17, color: 'var(--color-text-main)', marginBottom: 2 }}>
+                                {(cfg?.fullName ?? exam).replace('AWS Certified ', '')}
+                              </div>
                               <div style={{ fontSize: 11, color: levelColor, fontWeight: 600 }}>{activeLevel}</div>
                             </div>
                             <p style={{ margin: '0 0 12px', fontSize: 12, color: 'var(--color-text-sub)', lineHeight: 1.7 }}>{EXAM_DESC[exam] ?? ''}</p>
@@ -704,7 +726,7 @@ export default function MyPage() {
                             )}
                             {passComments[exam] && (
                               <div style={{ marginTop: 12, padding: '10px 12px', background: `${levelColor}12`, borderLeft: `3px solid ${levelColor}`, borderRadius: '0 6px 6px 0' }}>
-                                <div style={{ fontSize: 10, color: levelColor, fontWeight: 700, marginBottom: 4 }}>{ja ? '合格者コメント' : 'From a graduate'}</div>
+                                <div style={{ fontSize: 10, color: levelColor, fontWeight: 700, marginBottom: 4 }}>{ja ? '運営者コメント' : 'From the team'}</div>
                                 <div style={{ fontSize: 12, color: 'var(--color-text-sub)', lineHeight: 1.7, whiteSpace: 'pre-wrap' }}>{passComments[exam]}</div>
                               </div>
                             )}
@@ -713,16 +735,16 @@ export default function MyPage() {
                       })()}
                     </div>
 
-                    {/* 設定ボタン行（常にモーダル最下部に固定） */}
+                    {/* 設定ボタン（モーダル右下にフローティング） */}
                     {previewExam && (() => {
                       const exam = previewExam;
                       const isCurrentTarget = targetExam === exam;
                       return (
-                        <div style={{ flexShrink: 0, display: 'flex', justifyContent: 'flex-end', padding: '10px 20px', borderTop: '1px solid var(--color-border)' }}>
+                        <div style={{ position: 'absolute', bottom: 14, right: 16, zIndex: 10 }}>
                           {isCurrentTarget ? (
                             <button disabled title={ja ? '設定中' : 'Current target'}
-                              style={{ width: 40, height: 40, borderRadius: '50%', border: '1px solid var(--color-border)', background: 'var(--color-bg-main)', color: 'var(--color-text-light)', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'default' }}>
-                              <IconBookOpenCheck size={20} />
+                              style={{ width: 44, height: 44, borderRadius: '50%', border: 'none', background: levelColor, color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'default', boxShadow: '0 2px 8px rgba(0,0,0,0.2)' }}>
+                              <IconBookOpenCheck size={22} />
                             </button>
                           ) : (
                             <button title={ja ? 'この資格に設定' : 'Set as Target'}
@@ -731,8 +753,8 @@ export default function MyPage() {
                                 window.dispatchEvent(new CustomEvent('targetExamChanged', { detail: exam }));
                                 setTargetExam(exam);
                               }}
-                              style={{ width: 40, height: 40, borderRadius: '50%', border: `2px solid ${levelColor}`, background: 'var(--color-bg-white)', color: levelColor, display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}>
-                              <IconBook size={20} />
+                              style={{ width: 44, height: 44, borderRadius: '50%', border: '1px solid var(--color-border)', background: 'var(--color-bg-white)', color: 'var(--color-text-light)', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', boxShadow: '0 2px 8px rgba(0,0,0,0.1)' }}>
+                              <IconBook size={22} />
                             </button>
                           )}
                         </div>
