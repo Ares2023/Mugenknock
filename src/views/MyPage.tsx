@@ -11,7 +11,7 @@ import Button from '../components/ui/Button';
 import {
   IconCalendarNotebook, IconTarget, IconAnnoyed, IconList,
   IconSparkles, IconChevronRight, IconChevronDown, IconLock, IconFlag, IconStar, IconTrendingUp, IconPenLine,
-  IconBook, IconBookOpenCheck,
+  IconBook, IconBookOpenCheck, IconCircleCheck,
   IconSprout, IconBox, IconBot, IconCode2, IconCloud, IconDatabase, IconBrain, IconNetwork, IconFileCodeCorner, IconShieldIcon, IconWaypoints,
 } from '../components/Icons';
 
@@ -679,7 +679,7 @@ export default function MyPage() {
                             onClick={() => setPreviewExam(isPreviewing ? null : exam)}
                             style={{
                               flexShrink: 0, width: 80, padding: '10px 6px 8px', cursor: 'pointer',
-                              borderRadius: 10, textAlign: 'center',
+                              borderRadius: 10, textAlign: 'center', position: 'relative',
                               border: `2px solid ${isPreviewing || isSelected ? levelColor : 'var(--color-border)'}`,
                               background: isPreviewing
                                 ? `linear-gradient(145deg, ${levelColor}, ${levelColor}bb)`
@@ -688,6 +688,11 @@ export default function MyPage() {
                                 : `linear-gradient(145deg, var(--color-bg-card), ${levelColor}18)`,
                             }}
                           >
+                            {isSelected && (
+                              <div style={{ position: 'absolute', top: -8, right: -8, color: levelColor, background: 'var(--color-bg-white)', borderRadius: '50%', lineHeight: 0 }}>
+                                <IconCircleCheck size={16} />
+                              </div>
+                            )}
                             {ExamIcon && (
                               <div style={{ display: 'flex', justifyContent: 'center', marginBottom: 4, color: isPreviewing ? '#fff' : isSelected ? levelColor : 'var(--color-text-light)' }}>
                                 <ExamIcon size={18} />
