@@ -12,6 +12,25 @@ import { getCached, setCached, SHORT_TTL } from '../utils/cache';
 import { syncTargetExamToServer } from '../utils/preferences';
 import { IconLightbulb } from '../components/Icons';
 
+// Module-level dedup cache: same URL → single in-flight or resolved Promise.
+// Both fetchCounts (background) and startSession (button press) share this,
+// so the expensive /questions fetch is never duplicated.
+const _qMetaCache = new Map<string, Promise<{ count: number; items: any[] }>>();
+function fetchQMeta(examType: string, allSelected: boolean, domains: string[]): Promise<{ count: number; items: any[] }> {
+  const params = new URLSearchParams({ examType, metaOnly: 'true' });
+  if (!allSelected) params.set('domain', domains.join(','));
+  const key = params.toString();
+  if (!_qMetaCache.has(key)) {
+    _qMetaCache.set(key,
+      fetch(`${API_ENDPOINT}/questions?${key}`)
+        .then(r => r.json())
+        .then(d => ({ count: d.count ?? (d.items ?? []).length, items: d.items ?? [] }))
+        .catch(e => { _qMetaCache.delete(key); throw e; })
+    );
+  }
+  return _qMetaCache.get(key)!;
+}
+
 const StepBadge = ({ n, optional = false }: { n: number; optional?: boolean }) => (
   <span style={{
     display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
@@ -189,18 +208,16 @@ export default function ExerciseSetup() {
     const fetchCounts = async () => {
       if (selectedDomains.length === 0) { setAvailableCount(0); return; }
       try {
-        const params = new URLSearchParams({ examType });
         const allSelected = EXAM_DOMAINS[examType].every(d => selectedDomains.includes(d));
-        if (!allSelected) params.set('domain', selectedDomains.join(','));
 
         if (user && (bookmarkOnly || unansweredOnly || incorrectOnly)) {
-          const [qRes, bkmRes, answeredRes, incorrectRes] = await Promise.all([
-            fetch(`${API_ENDPOINT}/questions?${params}`).then(r => r.json()),
+          const [qMeta, bkmRes, answeredRes, incorrectRes] = await Promise.all([
+            fetchQMeta(examType, allSelected, selectedDomains),
             user && bookmarkOnly ? fetch(`${API_ENDPOINT}/users/me/bookmarks?userId=${user.userId}`).then(r => r.json()) : Promise.resolve(null),
             user && unansweredOnly ? fetch(`${API_ENDPOINT}/users/me/answered-questions?userId=${user.userId}&examType=${examType}`).then(r => r.json()) : Promise.resolve(null),
             user && incorrectOnly ? fetch(`${API_ENDPOINT}/users/me/incorrect-questions?userId=${user.userId}&examType=${examType}`).then(r => r.json()) : Promise.resolve(null),
           ]);
-          let items: any[] = qRes.items ?? [];
+          let items: any[] = qMeta.items;
           if (bookmarkOnly && bkmRes) {
             const bookmarkIds = new Set(bkmRes.questionIds ?? []);
             items = items.filter((q: any) => bookmarkIds.has(q.questionId));
@@ -216,14 +233,17 @@ export default function ExerciseSetup() {
           setAvailableCount(items.length);
         } else if (allSelected) {
           const cached = getCached<number>(`qcount_${examType}`);
-          if (cached !== null) { setAvailableCount(cached); return; }
-          const qRes = await fetch(`${API_ENDPOINT}/questions?examType=${examType}`).then(r => r.json());
-          const count = qRes.count ?? qRes.items?.length ?? 0;
+          if (cached !== null) {
+            setAvailableCount(cached);
+            fetchQMeta(examType, true, selectedDomains); // pre-warm for startSession
+            return;
+          }
+          const { count } = await fetchQMeta(examType, true, selectedDomains);
           setCached(`qcount_${examType}`, count);
           setAvailableCount(count);
         } else {
-          const qRes = await fetch(`${API_ENDPOINT}/questions?${params}`).then(r => r.json());
-          setAvailableCount(qRes.count ?? (qRes.items ?? []).length);
+          const { count } = await fetchQMeta(examType, false, selectedDomains);
+          setAvailableCount(count);
         }
       } catch { setAvailableCount(0); }
     };
@@ -247,6 +267,7 @@ export default function ExerciseSetup() {
       state: {
         sessionId: exerciseDraft.sessionId,
         questions: exerciseDraft.questions,
+        questionIds: exerciseDraft.questionIds ?? [],
         userId: exerciseDraft.userId,
         examType: exerciseDraft.examType,
         mode: 'exercise',
@@ -268,18 +289,17 @@ export default function ExerciseSetup() {
       const userId = user?.userId ?? 'guest';
       let selectedItems: any[];
 
+      // フェーズ1: 問題メタデータのみ取得（withAnswers なし → 軽量）
+      // 選択ロジックは questionId / domain のみ使用するため answers は不要
       const allSelected = EXAM_DOMAINS[examType].every(d => selectedDomains.includes(d));
       if (user && (bookmarkOnly || unansweredOnly || incorrectOnly)) {
-        const params = new URLSearchParams({ examType, withAnswers: 'true' });
-        if (!allSelected) params.set('domain', selectedDomains.join(','));
-
-        const [qRes, bkmRes, answeredRes, incorrectRes] = await Promise.all([
-          fetch(`${API_ENDPOINT}/questions?${params}`).then(r => r.json()),
-          user && bookmarkOnly ? fetch(`${API_ENDPOINT}/users/me/bookmarks?userId=${userId}`).then(r => r.json()) : Promise.resolve(null),
-          user && unansweredOnly ? fetch(`${API_ENDPOINT}/users/me/answered-questions?userId=${userId}&examType=${examType}`).then(r => r.json()) : Promise.resolve(null),
-          user && incorrectOnly ? fetch(`${API_ENDPOINT}/users/me/incorrect-questions?userId=${userId}&examType=${examType}`).then(r => r.json()) : Promise.resolve(null),
+        const [qMeta, bkmRes, answeredRes, incorrectRes] = await Promise.all([
+          fetchQMeta(examType, allSelected, selectedDomains),
+          bookmarkOnly ? fetch(`${API_ENDPOINT}/users/me/bookmarks?userId=${userId}`).then(r => r.json()) : Promise.resolve(null),
+          unansweredOnly ? fetch(`${API_ENDPOINT}/users/me/answered-questions?userId=${userId}&examType=${examType}`).then(r => r.json()) : Promise.resolve(null),
+          incorrectOnly ? fetch(`${API_ENDPOINT}/users/me/incorrect-questions?userId=${userId}&examType=${examType}`).then(r => r.json()) : Promise.resolve(null),
         ]);
-        let pool: any[] = qRes.items ?? [];
+        const pool: any[] = qMeta.items;
         let filtered = [...pool];
         if (bookmarkOnly && bkmRes) {
           const bookmarkIds = new Set(bkmRes.questionIds ?? []);
@@ -307,15 +327,10 @@ export default function ExerciseSetup() {
         selectedItems = filtered.slice(0, limit);
         if (usedFallback) alert(lang === 'ja' ? 'フィルタ条件に合う問題が不足したため、条件外の問題も含めて出題します。' : 'Not enough questions matched your filters. Including additional questions.');
       } else {
-        const params = new URLSearchParams({ examType, withAnswers: 'true' });
-        if (!allSelected) params.set('domain', selectedDomains.join(','));
-        const res = await fetch(`${API_ENDPOINT}/questions?${params}`);
-        const data = await res.json();
-        let allItems: any[] = data.items ?? [];
+        const { items: allItems } = await fetchQMeta(examType, allSelected, selectedDomains);
         const exCounts = getDomainExerciseCounts(examType, userId, selectedDomains);
         selectedItems = balancedDomainSelect(allItems, selectedDomains, limit, exCounts);
       }
-
       if (selectedItems.length === 0) {
         alert(t('exerciseSetup.noQuestions'));
         setLoading(false);
@@ -323,15 +338,25 @@ export default function ExerciseSetup() {
       }
 
       const questionIds = selectedItems.map((q: any) => q.questionId);
-      const sessionRes = await fetch(`${API_ENDPOINT}/sessions`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ userId, mode: 'exercise', examType, questionIds })
-      });
-      const sessionData = await sessionRes.json();
 
+      // フェーズ2: 1問目の完全データ取得とセッション作成を並列実行
+      const [firstRes, sessionRes] = await Promise.all([
+        fetch(`${API_ENDPOINT}/questions?ids=${questionIds[0]}&withAnswers=true&examType=${examType}`).then(r => r.json()),
+        fetch(`${API_ENDPOINT}/sessions`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ userId, mode: 'exercise', examType, questionIds })
+        }).then(r => r.json()),
+      ]);
+      // 1問目は完全データ、2問目以降は questionIds でプログレッシブロード
+      const firstQuestion = firstRes.items?.[0] ?? selectedItems[0];
       navigate('/aws/exercise/session', {
-        state: { sessionId: sessionData.sessionId, questions: selectedItems, userId, mode: 'exercise', examType }
+        state: {
+          sessionId: sessionRes.sessionId,
+          questions: [firstQuestion],
+          questionIds,
+          userId, mode: 'exercise', examType,
+        }
       });
     } catch (err) {
       console.error(err);

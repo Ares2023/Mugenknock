@@ -232,7 +232,7 @@ function CombinedDetailModal({ targetExam, domainAccList, estimatedScore, passSc
       style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', zIndex: 1000, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16 }}
       onClick={e => { if (e.target === e.currentTarget) onClose(); }}
     >
-      <div style={{ background: 'var(--color-bg-white)', borderRadius: 'var(--border-radius-lg)', padding: isMobile ? '16px' : '20px 28px', width: '100%', maxWidth: 540, maxHeight: isMobile ? '66vh' : '90vh', overflowY: 'auto', boxShadow: '0 8px 32px rgba(0,0,0,0.2)' }}>
+      <div style={{ background: 'var(--color-bg-white)', borderRadius: 'var(--border-radius-lg)', padding: isMobile ? '16px' : '20px 28px', width: '100%', maxWidth: 540, maxHeight: isMobile ? '75vh' : '60vh', overflowY: 'auto', boxShadow: '0 8px 32px rgba(0,0,0,0.2)' }}>
         {/* ヘッダー行 */}
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
@@ -532,7 +532,7 @@ function DomainDetailModal({ targetExam, domainAccList, lang, onClose }: {
       style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', zIndex: 1000, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16 }}
       onClick={e => { if (e.target === e.currentTarget) onClose(); }}
     >
-      <div style={{ background: 'var(--color-bg-white)', borderRadius: 'var(--border-radius-lg)', padding: '20px 24px', width: '100%', maxWidth: 480, maxHeight: isMobile ? '66vh' : '82vh', overflowY: 'auto', boxShadow: '0 8px 32px rgba(0,0,0,0.2)' }}>
+      <div style={{ background: 'var(--color-bg-white)', borderRadius: 'var(--border-radius-lg)', padding: '20px 24px', width: '100%', maxWidth: 480, maxHeight: isMobile ? '75vh' : '60vh', overflowY: 'auto', boxShadow: '0 8px 32px rgba(0,0,0,0.2)' }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
           <span style={{ fontWeight: 700, fontSize: 'var(--font-size-base)', color: 'var(--color-text-main)' }}>
             {ja ? 'ドメイン別成績' : 'Domain Results'}
@@ -597,17 +597,13 @@ function OnboardingModal({ lang, uid, onComplete }: {
   onComplete: (exam: string) => void;
 }) {
   const ja = lang === 'ja';
-  const [selected, setSelected] = useState<string | null>(null);
   const { user } = useAuth();
   const navigate = useNavigate();
 
-  const handleSelect = (exam: string) => setSelected(prev => prev === exam ? null : exam);
-
-  const handleComplete = () => {
-    if (!selected) return;
-    localStorage.setItem(`targetExam_${uid}`, selected);
-    window.dispatchEvent(new CustomEvent('targetExamChanged', { detail: selected }));
-    onComplete(selected);
+  const handleSelect = (exam: string) => {
+    localStorage.setItem(`targetExam_${uid}`, exam);
+    window.dispatchEvent(new CustomEvent('targetExamChanged', { detail: exam }));
+    onComplete(exam);
   };
 
   const levels = ['Foundational', 'Associate', 'Professional', 'Specialty'] as const;
@@ -631,7 +627,7 @@ function OnboardingModal({ lang, uid, onComplete }: {
 
       {/* ── 資格選択 ── */}
       <div style={{ flex: 1, overflowY: 'auto', display: 'flex', flexDirection: 'column' }}>
-        <div style={{ flex: 1, display: 'flex', flexDirection: 'column', padding: '32px 24px 0', maxWidth: 560, margin: '0 auto', width: '100%', paddingBottom: 140 }}>
+        <div style={{ flex: 1, display: 'flex', flexDirection: 'column', padding: '32px 24px 0', maxWidth: 560, margin: '0 auto', width: '100%', paddingBottom: 32 }}>
           <h2 style={{ fontSize: 20, fontWeight: 800, color: 'var(--color-text-main)', margin: '0 0 6px' }}>
             {ja ? '目指すAWS資格を選んでください' : 'Select your target exam'}
           </h2>
@@ -645,20 +641,16 @@ function OnboardingModal({ lang, uid, onComplete }: {
               <div style={{ display: 'flex', flexDirection: 'column', gap: 7 }}>
                 {exams.map(exam => {
                   const cfg = EXAM_CONFIGS[exam];
-                  const isSelected = selected === exam;
                   return (
                     <button
                       key={exam}
                       onClick={() => handleSelect(exam)}
-                      style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '10px 14px', borderRadius: 10, cursor: 'pointer', textAlign: 'left', background: isSelected ? 'var(--color-primary-light)' : 'var(--color-bg-card)', border: `2px solid ${isSelected ? 'var(--color-primary)' : 'var(--color-border)'}`, transition: 'border-color .15s, background .15s' }}
+                      style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '10px 14px', borderRadius: 10, cursor: 'pointer', textAlign: 'left', background: 'var(--color-bg-card)', border: '2px solid var(--color-border)', transition: 'border-color .15s, background .15s' }}
                     >
                       <div style={{ flex: 1, minWidth: 0 }}>
                         <div style={{ fontWeight: 700, fontSize: 13, color: 'var(--color-text-main)' }}>{cfg.examCode}</div>
                         <div style={{ fontSize: 11, color: 'var(--color-text-sub)', marginTop: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{OB_SHORT[exam]}</div>
                       </div>
-                      {isSelected && (
-                        <span style={{ color: 'var(--color-primary)', flexShrink: 0, display: 'flex' }}><IconCheck size={18} /></span>
-                      )}
                     </button>
                   );
                 })}
@@ -668,14 +660,6 @@ function OnboardingModal({ lang, uid, onComplete }: {
         </div>
       </div>
 
-      {/* 固定フッター */}
-      <div style={{ position: 'fixed', bottom: 0, left: 0, right: 0, background: 'var(--color-bg-main)', borderTop: '1px solid var(--color-border)' }}>
-        <div style={{ maxWidth: 560, margin: '0 auto', padding: '16px 24px 24px' }}>
-          <Button variant="primary" fullWidth size="lg" onClick={handleComplete} style={selected ? {} : { opacity: 0.45, pointerEvents: 'none' }}>
-            {ja ? '設定して始める' : 'Start with this exam'}
-          </Button>
-        </div>
-      </div>
     </div>,
     document.body
   );
@@ -736,7 +720,9 @@ function syncEncyclopediaToServer(userId: string, forceUpload = false): void {
       .then(r => r.ok ? r.json() : { unlocks: {} })
       .then(data => {
         const server: Record<string, string> = data.unlocks ?? {};
-        if (!forceUpload && Object.keys(server).length === 0 && Object.keys(local).length > 0) {
+        const localUnlockDate = localStorage.getItem(`encyclopediaUnlockDate_${uid}`);
+        const jstDateNow = new Date(Date.now() + 9 * 3600 * 1000).toISOString().slice(0, 10);
+        if (!forceUpload && Object.keys(server).length === 0 && Object.keys(local).length > 0 && localUnlockDate !== jstDateNow) {
           localStorage.setItem(`encyclopediaUnlocked_${uid}`, '{}');
           localStorage.removeItem(`encyclopediaUnlockDate_${uid}`);
           localStorage.removeItem(`encyclopediaTodayServiceId_${uid}`);
@@ -775,9 +761,8 @@ function TodayServiceSection({ lang, userId, onNavigateEncyclopedia, onReveal, i
     const uid = userId ?? 'guest';
     const jstDate = jstToday();
 
-    // 今日すでにタップ解放済みか確認
-    const alreadyRevealed = localStorage.getItem(`encyclopediaUnlockDate_${uid}`) === jstDate;
-    setRevealed(alreadyRevealed);
+    const localRevealed = localStorage.getItem(`encyclopediaUnlockDate_${uid}`) === jstDate;
+    if (localRevealed) setRevealed(true);
 
     // 再抽選キャッシュの読み込み
     const rerollCacheKey = `daily_service_reroll_${uid}_${jstDate}`;
@@ -786,37 +771,56 @@ function TodayServiceSection({ lang, userId, onNavigateEncyclopedia, onReveal, i
       setRerolledService({ ...cachedReroll, icon: resolveServiceIcon(cachedReroll) });
     }
 
-    const cacheKey = `daily_service_${uid}_${jstDate}`;
-    const cached = getCached<DailyService>(cacheKey);
-    if (cached !== null) {
-      const resolved = { ...cached, icon: resolveServiceIcon(cached) };
-      setService(resolved);
-      setLoading(false);
-      if (alreadyRevealed) {
-        saveToEncyclopedia(resolved, uid);
-        if (userId) syncEncyclopediaToServer(userId);
-      }
-      return;
-    }
-    const apiUrl = userId
-      ? `${API_ENDPOINT}/daily-service?userId=${encodeURIComponent(userId)}`
-      : `${API_ENDPOINT}/daily-service`;
-    fetch(apiUrl)
-      .then(r => r.json())
-      .then(d => {
-        const raw = d.service ?? null;
-        const s = raw ? { ...raw, icon: resolveServiceIcon(raw) } : null;
-        if (s) {
-          setCached(cacheKey, s, 60 * 60 * 1000);
-          if (alreadyRevealed) {
-            saveToEncyclopedia(s, uid);
-            if (userId) syncEncyclopediaToServer(userId);
-          }
+    const fetchService = (alreadyRevealed: boolean) => {
+      const cacheKey = `daily_service_${uid}_${jstDate}`;
+      const cached = getCached<DailyService>(cacheKey);
+      if (cached !== null) {
+        const resolved = { ...cached, icon: resolveServiceIcon(cached) };
+        setService(resolved);
+        setLoading(false);
+        if (alreadyRevealed) {
+          saveToEncyclopedia(resolved, uid);
+          if (userId) syncEncyclopediaToServer(userId);
         }
-        setService(s);
-      })
-      .catch(() => setService(null))
-      .finally(() => setLoading(false));
+        return;
+      }
+      const apiUrl = userId
+        ? `${API_ENDPOINT}/daily-service?userId=${encodeURIComponent(userId)}`
+        : `${API_ENDPOINT}/daily-service`;
+      fetch(apiUrl)
+        .then(r => r.json())
+        .then(d => {
+          const raw = d.service ?? null;
+          const s = raw ? { ...raw, icon: resolveServiceIcon(raw) } : null;
+          if (s) {
+            setCached(cacheKey, s, 60 * 60 * 1000);
+            if (alreadyRevealed) {
+              saveToEncyclopedia(s, uid);
+              if (userId) syncEncyclopediaToServer(userId);
+            }
+          }
+          setService(s);
+        })
+        .catch(() => setService(null))
+        .finally(() => setLoading(false));
+    };
+
+    if (!localRevealed && userId) {
+      // ローカルで未解放の場合、別デバイスで解放済みかサーバーに確認
+      fetch(`${API_ENDPOINT}/users/me/encyclopedia-unlocks?userId=${encodeURIComponent(userId)}`)
+        .then(r => r.json())
+        .then(data => {
+          const serverRevealed = data.unlockDate === jstDate;
+          if (serverRevealed) {
+            localStorage.setItem(`encyclopediaUnlockDate_${uid}`, jstDate);
+            setRevealed(true);
+          }
+          fetchService(serverRevealed);
+        })
+        .catch(() => fetchService(false));
+    } else {
+      fetchService(localRevealed);
+    }
   }, [userId]);
 
   const handleReroll = async () => {
@@ -1077,7 +1081,7 @@ export default function Home() {
   const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
   const [revealService, setRevealService] = useState<DailyService | null>(null);
   const [targetExam, setTargetExam] = useState<string | null>(() => localStorage.getItem(`targetExam_${uid}`));
-  const [showOnboarding, setShowOnboarding] = useState(() => !localStorage.getItem(`targetExam_${uid}`));
+  const [showOnboarding, setShowOnboarding] = useState(false);
   const [domainStats, setDomainStats] = useState<DomainStat[]>([]);
   const [statsLoading, setStatsLoading] = useState(false);
   const [statsRefreshing, setStatsRefreshing] = useState(false);
@@ -1122,6 +1126,7 @@ export default function Home() {
     const saved = localStorage.getItem(`targetExam_${uid}`);
     if (saved !== null) {
       setTargetExam(saved);
+      setShowOnboarding(false);
     } else if (user) {
       setShowOnboarding(true);
     }
@@ -2129,7 +2134,7 @@ export default function Home() {
           style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', zIndex: 1000, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16 }}
           onClick={e => { if (e.target === e.currentTarget) setShowQuickModal(false); }}
         >
-          <div style={{ background: 'var(--color-bg-white)', borderRadius: 'var(--border-radius-lg)', width: '100%', maxWidth: 420, boxShadow: 'var(--box-shadow-md)', maxHeight: isMobile ? '66vh' : '90vh', display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
+          <div style={{ background: 'var(--color-bg-white)', borderRadius: 'var(--border-radius-lg)', width: '100%', maxWidth: 420, boxShadow: 'var(--box-shadow-md)', maxHeight: isMobile ? '75vh' : '60vh', display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
             {/* ヘッダー固定 */}
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '20px 24px 0', flexShrink: 0 }}>
               <h3 style={{ margin: 0, fontSize: 'var(--font-size-h3)', fontWeight: 700, color: 'var(--color-accent)' }}>
@@ -2250,7 +2255,7 @@ export default function Home() {
           style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', zIndex: 1000, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16 }}
           onClick={e => { if (e.target === e.currentTarget) setShowFocusedModal(false); }}
         >
-          <div style={{ background: 'var(--color-bg-white)', borderRadius: 'var(--border-radius-lg)', width: '100%', maxWidth: 420, boxShadow: 'var(--box-shadow-md)', maxHeight: isMobile ? '66vh' : '90vh', display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
+          <div style={{ background: 'var(--color-bg-white)', borderRadius: 'var(--border-radius-lg)', width: '100%', maxWidth: 420, boxShadow: 'var(--box-shadow-md)', maxHeight: isMobile ? '75vh' : '60vh', display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
             {/* ヘッダー固定 */}
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '20px 24px 0', flexShrink: 0 }}>
               <h3 style={{ margin: 0, fontSize: 'var(--font-size-h3)', fontWeight: 700, color: '#009E9E' }}>

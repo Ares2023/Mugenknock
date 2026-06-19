@@ -428,7 +428,7 @@ button:active:not(:disabled) {
 
   /* ページコンテナのパディング */
   .page-container {
-    padding: var(--spacing-md) var(--spacing-sm) !important;
+    padding: var(--spacing-md) !important;
   }
 
   /* ホーム画面の試験カード → 縦積み */
@@ -438,17 +438,17 @@ button:active:not(:disabled) {
 
   /* 管理画面のコンテナ */
   .admin-container {
-    padding: var(--spacing-md) var(--spacing-sm) !important;
+    padding: var(--spacing-md) !important;
   }
 
   /* 演習・模試セッションのコンテナ */
   .session-container {
-    padding: var(--spacing-md) var(--spacing-sm) !important;
+    padding: var(--spacing-md) !important;
   }
 
   /* 結果画面 */
   .result-container {
-    padding: var(--spacing-md) var(--spacing-sm) !important;
+    padding: var(--spacing-md) !important;
   }
 
   /* テーブルのパディング縮小 */

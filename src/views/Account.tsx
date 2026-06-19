@@ -150,6 +150,12 @@ export default function Account() {
 
   const [showDataModal, setShowDataModal] = useState(false);
 
+  const [showResetModal, setShowResetModal] = useState(false);
+  const [resetConfirmation, setResetConfirmation] = useState('');
+  const [resetExecuting, setResetExecuting] = useState(false);
+  const [resetError, setResetError] = useState('');
+  const [resetDone, setResetDone] = useState(false);
+
   const [showThemeModal, setShowThemeModal] = useState(false);
   const uid = user?.userId ?? 'guest';
   // localStorage にそのexamTypeのデータが残っているか確認
@@ -242,6 +248,52 @@ export default function Account() {
     } catch (err: any) {
       setDeleteError(err.message || (lang === 'ja' ? 'アカウント削除に失敗しました' : 'Failed to delete account'));
       setAccountDeleting(false);
+    }
+  };
+
+  const handleReset = async () => {
+    if (resetConfirmation.toLowerCase() !== 'reset') { setResetError(lang === 'ja' ? '"RESET"と入力してください' : 'Please type "RESET" to confirm'); return; }
+    if (!user) return;
+    setResetExecuting(true); setResetError('');
+    try {
+      const res = await fetch(`${API_ENDPOINT}/users/me/reset`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ userId: user.userId }),
+      });
+      if (!res.ok) {
+        const text = await res.text().catch(() => '');
+        let msg = '初期化に失敗しました';
+        try { msg = JSON.parse(text).error || msg; } catch {}
+        throw new Error(msg);
+      }
+      const { resetAt } = await res.json();
+      const uid = user.userId;
+      // Home.tsx clearUserData と同じパターンで localStorage を消去
+      const KEEP = new Set([
+        `lang_${uid}`, `theme_${uid}`, `sidebarOpen_${uid}`,
+        `targetExam_${uid}`, `lastQuickMode_${uid}`,
+        `quickExercisePrefs_${uid}`, `focusedExercisePrefs_${uid}`,
+        `sherpaExerciseHint_${uid}`, `sherpaExamHint_${uid}`, `sherpaStatsHint_${uid}`,
+      ]);
+      const suffix = `_${uid}`;
+      const toRemove: string[] = [];
+      for (let i = 0; i < localStorage.length; i++) {
+        const key = localStorage.key(i)!;
+        if (
+          (!KEEP.has(key) && key.endsWith(suffix)) ||
+          key.startsWith(`qstats_${uid}_`) ||
+          key.startsWith(`daily_service_${uid}_`)
+        ) toRemove.push(key);
+      }
+      toRemove.forEach(k => localStorage.removeItem(k));
+      // resetAt をセット → Home.tsx の二重クリアを防ぐ
+      if (resetAt) localStorage.setItem(`lastReset_${uid}`, resetAt);
+      sessionStorage.removeItem(`_ts_ustats_${uid}`);
+      setResetDone(true);
+    } catch (err: any) {
+      setResetError(err.message || (lang === 'ja' ? '初期化に失敗しました' : 'Reset failed'));
+      setResetExecuting(false);
     }
   };
 
@@ -349,7 +401,11 @@ export default function Account() {
                   return count > 0 ? `${count}${ja ? '資格' : ' exams'}` : (ja ? 'データなし' : 'No data');
                 })()}
                 onClick={() => { setConfirmingExam(null); setShowDataModal(true); }}
-                last
+              />
+              <SettingsRow
+                label={ja ? 'アカウントを初期化' : 'Reset Account Data'}
+                onClick={() => { setResetConfirmation(''); setResetError(''); setResetDone(false); setShowResetModal(true); }}
+                danger last
               />
             </SettingsGroup>
           </div>
@@ -557,6 +613,47 @@ export default function Account() {
               </button>
             ))}
           </div>
+        </Modal>
+      )}
+
+      {/* ── アカウント初期化モーダル ── */}
+      {showResetModal && (
+        <Modal onClose={() => !resetExecuting && setShowResetModal(false)} title={ja ? 'アカウントを初期化' : 'Reset Account Data'}>
+          {resetDone ? (
+            <div style={{ textAlign: 'center', padding: '24px 0' }}>
+              <div style={{ fontSize: 40, marginBottom: 12, color: 'var(--color-success)' }}>✓</div>
+              <p style={{ color: 'var(--color-success)', fontWeight: 700, margin: '0 0 20px' }}>
+                {ja ? '初期化が完了しました' : 'Reset complete'}
+              </p>
+              <Button onClick={() => { window.location.href = '/aws/'; }} variant="primary">
+                {ja ? 'ホームへ' : 'Go to Home'}
+              </Button>
+            </div>
+          ) : (
+            <>
+              <p style={{ margin: '0 0 16px', fontSize: 'var(--font-size-sm)', color: 'var(--color-text-sub)', lineHeight: 1.6 }}>
+                {ja
+                  ? '演習履歴・成績・ポイント・ブックマーク・図鑑データをすべて削除し、ログイン直後の状態に戻します。メールアドレスとパスワードは保持されます。'
+                  : 'Deletes all exercise history, stats, points, bookmarks, and encyclopedia data. Email and password are kept.'}
+              </p>
+              <div style={{ marginBottom: 20 }}>
+                <FieldLabel>{ja ? '確認のため "RESET" と入力してください' : 'Type "RESET" to confirm'}</FieldLabel>
+                <TextInput value={resetConfirmation} onChange={setResetConfirmation} placeholder="RESET" />
+              </div>
+              {resetError && <p style={{ margin: '0 0 12px', fontSize: 'var(--font-size-sm)', color: 'var(--color-danger)' }}>{resetError}</p>}
+              <div style={{ display: 'flex', gap: 8 }}>
+                <Button
+                  onClick={handleReset}
+                  disabled={resetExecuting || resetConfirmation.toLowerCase() !== 'reset'}
+                  variant="danger"
+                  style={{ flex: 1 }}
+                >
+                  {resetExecuting ? (ja ? '初期化中...' : 'Resetting...') : (ja ? '初期化する' : 'Reset')}
+                </Button>
+                <Button onClick={() => setShowResetModal(false)} variant="outline" disabled={resetExecuting}>{ja ? 'キャンセル' : 'Cancel'}</Button>
+              </div>
+            </>
+          )}
         </Modal>
       )}
 

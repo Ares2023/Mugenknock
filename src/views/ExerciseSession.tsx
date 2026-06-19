@@ -266,6 +266,7 @@ export default function ExerciseSession() {
   useEffect(() => {
     document.querySelector('main')?.scrollTo({ top: 0 });
     setViewedFrontier(prev => Math.max(prev, currentIndex));
+    setStruckChoices(new Set());
   }, [currentIndex]);
 
   // correctAnswers が事前ロードされていない場合のフォールバックフェッチ + 正解判定の補正
@@ -336,7 +337,7 @@ export default function ExerciseSession() {
     try {
       const draftKey = isFocused ? `focusedExerciseDraft_${userId}` : isQuick ? `quickExerciseDraft_${userId}` : `practiceExerciseDraft_${userId}`;
       localStorage.setItem(draftKey, JSON.stringify({
-        sessionId, examType, questions, userId,
+        sessionId, examType, questions, questionIds: allQuestionIds, userId,
         currentIndex: ci, results: r, answered: a, selectedAnswers: sa,
         isQuick, isFocused, isMini, savedAt: Date.now(),
       }));
@@ -380,6 +381,7 @@ export default function ExerciseSession() {
     text.replace(/(?<![A-Za-z])([A-E])(?![A-Za-z])/g, (_, l) => labelRemap[l] ?? l);
 
   const [lastSelected, setLastSelected] = useState<string | null>(null);
+  const [struckChoices, setStruckChoices] = useState<Set<string>>(new Set());
 
   useEffect(() => {
     if (state) { setInitialized(true); return; }
@@ -441,6 +443,16 @@ export default function ExerciseSession() {
     } else {
       setSelectedAnswers([choice]);
     }
+  };
+
+  const toggleStrikethrough = (choice: string, e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (answered) return;
+    setStruckChoices(prev => {
+      const next = new Set(prev);
+      if (next.has(choice)) next.delete(choice); else next.add(choice);
+      return next;
+    });
   };
 
   const submitAnswer = () => {
@@ -946,7 +958,17 @@ export default function ExerciseSession() {
                       {isSelected && <div style={{ width: 6, height: 6, borderRadius: '50%', background: 'white' }} />}
                     </div>
                   )}
-                  <span style={{ flex: 1, minWidth: 0, overflowWrap: 'break-word', wordBreak: 'break-word', lineHeight: 1.55 }}>
+                  <span
+                    onClick={!answered ? (e) => toggleStrikethrough(choice, e) : undefined}
+                    style={{
+                      flex: 1, minWidth: 0, overflowWrap: 'break-word', wordBreak: 'break-word', lineHeight: 1.55,
+                      textDecoration: struckChoices.has(choice) && !answered ? 'line-through' : 'none',
+                      textDecorationColor: 'var(--color-danger)',
+                      textDecorationThickness: '2px',
+                      cursor: !answered ? 'pointer' : 'default',
+                      userSelect: 'none',
+                    }}
+                  >
                     <strong style={{ marginRight: 2 }}>{CHOICE_LABELS[idx]}.</strong> {stripLabel(choice)}
                   </span>
                 </div>
@@ -1209,7 +1231,12 @@ export default function ExerciseSession() {
               <p style={{ fontWeight: 700, color: 'var(--color-text-main)', margin: 0, fontSize: 'var(--font-size-base)' }}>{currentTip.title}</p>
             </div>
             <p style={{ color: 'var(--color-text-sub)', margin: 0, fontSize: 'var(--font-size-sm)', lineHeight: 1.8 }}>
-              {currentTip.content.replace(/\[[^\]]*\]\[\d+\]/g, '').replace(/\s{2,}/g, ' ').trim()}
+              {currentTip.content
+                .replace(/\[([^\]]*)\]\([^)]*\)/g, '$1')
+                .replace(/\[[^\]]*\]\[\d+\]/g, '')
+                .replace(/\(\s*\)/g, '')
+                .replace(/\s{2,}/g, ' ')
+                .trim()}
             </p>
           </Card>
         </div>

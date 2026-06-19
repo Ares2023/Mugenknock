@@ -1,4 +1,9 @@
-'use client';
-import dynamic from 'next/dynamic';
-const PublicEncyclopedia = dynamic(() => import('@/views/PublicEncyclopedia'), { ssr: false });
-export default function Page() { return <PublicEncyclopedia />; }
+import { Suspense } from 'react';
+import PublicEncyclopedia from '@/views/PublicEncyclopedia';
+export default function Page() {
+  return (
+    <Suspense>
+      <PublicEncyclopedia />
+    </Suspense>
+  );
+}

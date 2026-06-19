@@ -58,6 +58,27 @@ async function getDailyServicesAll(docClient) {
   return _dailyServicesCache;
 }
 
+// ── 試験種別ごとの全問キャッシュ（Lambda ウォームインスタンス内メモリ・10分TTL） ──
+// 同一インスタンスへの 2 回目以降のリクエストは DynamoDB を読まずに返す。
+// Phase1（metaOnly）→ Phase2（ids+withAnswers）が同インスタンスに当たれば Phase2 も高速化される。
+const _examQuestionsCache = new Map(); // examType → { items, cachedAt }
+const EXAM_QUESTIONS_CACHE_TTL = 10 * 60 * 1000;
+
+async function getAllQuestionsForExam(docClient, examType) {
+  const cached = _examQuestionsCache.get(examType);
+  if (cached && Date.now() - cached.cachedAt < EXAM_QUESTIONS_CACHE_TTL) {
+    return cached.items;
+  }
+  const items = await queryAll(docClient, {
+    TableName: 'Questions',
+    IndexName: 'examType-index',
+    KeyConditionExpression: 'examType = :examType',
+    ExpressionAttributeValues: { ':examType': examType }
+  });
+  _examQuestionsCache.set(examType, { items, cachedAt: Date.now() });
+  return items;
+}
+
 // ── CORS（localhost + Cloudflare Pages + 本番ドメイン許可） ──
 const ALLOWED_ORIGINS = [
   'http://localhost:3000',
@@ -335,12 +356,7 @@ app.get('/questions', async (req, res) => {
       items = results.map(r => r.Item).filter(Boolean);
       if (examType) items = items.filter(q => q.examType === examType);
     } else if (examType) {
-      items = await queryAll(docClient, {
-        TableName: 'Questions',
-        IndexName: 'examType-index',
-        KeyConditionExpression: 'examType = :examType',
-        ExpressionAttributeValues: { ':examType': examType }
-      });
+      items = await getAllQuestionsForExam(docClient, examType);
     } else {
       items = await scanAll(docClient, { TableName: 'Questions' });
     }
@@ -369,6 +385,20 @@ app.get('/questions', async (req, res) => {
     const total = items.length;
     if (offset) items = items.slice(parseInt(offset));
     if (limit) items = items.slice(0, parseInt(limit));
+
+    // metaOnly=true: 選択ロジックに必要な最小フィールドのみ返す（フロントのPhase1軽量化用）
+    // questionText・choices 等を除外することでペイロードを約 1/10 に削減する
+    if (req.query.metaOnly === 'true') {
+      return res.json({
+        items: items.map(q => ({
+          questionId: q.questionId,
+          domain: q.domain,
+          examType: q.examType,
+          aiVerified: q.aiVerified,
+        })),
+        count: items.length, total,
+      });
+    }
 
     // idsOnly=true: 問題IDのみ返す（プログレッシブロード用・フィルタ対応）
     if (req.query.idsOnly === 'true') {
@@ -1107,7 +1137,9 @@ app.get('/users/me/question-stats', async (req, res) => {
     ]);
 
     const examQuestionIds = new Set((questionsResult.Items || []).map(q => q.questionId));
-    const answeredCount = (statsResult.Items || []).filter(s => examQuestionIds.has(s.questionId)).length;
+    const answeredCount = (statsResult.Items || [])
+      .filter(s => examQuestionIds.has(s.questionId))
+      .reduce((sum, s) => sum + (s.correctCount ?? 0) + (s.incorrectCount ?? 0), 0);
 
     res.json({ answeredCount });
   } catch (err) {
@@ -1230,6 +1262,83 @@ app.delete('/users/me/data', async (req, res) => {
     } catch {}
 
     res.json({ success: true });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+// ユーザー自身のデータ全初期化（Cognitoアカウント・メール・パスワードは保持）
+// executeUserDataDeletion より高速: 全ページ取得 + 並列削除 + UserAnswers は孤児化
+async function executeUserDataReset(docClient, userId) {
+  const batchDelete = async (table, keys) => {
+    if (keys.length === 0) return;
+    const CHUNK = 25;
+    const chunks = [];
+    for (let i = 0; i < keys.length; i += CHUNK) chunks.push(keys.slice(i, i + CHUNK));
+    await Promise.all(chunks.map(chunk =>
+      Promise.all(chunk.map(key => docClient.send(new DeleteCommand({ TableName: table, Key: key }))))
+    ));
+  };
+
+  const [qsItems, tsItems, sessItems] = await Promise.all([
+    queryAll(docClient, {
+      TableName: 'UserQuestionStats',
+      KeyConditionExpression: 'userId = :uid',
+      ExpressionAttributeValues: { ':uid': userId },
+      ProjectionExpression: 'userId, questionId',
+    }),
+    queryAll(docClient, {
+      TableName: 'UserTagStats',
+      KeyConditionExpression: 'userId = :uid',
+      ExpressionAttributeValues: { ':uid': userId },
+      ProjectionExpression: 'userId, tagId',
+    }),
+    queryAll(docClient, {
+      TableName: 'Sessions',
+      KeyConditionExpression: 'userId = :uid',
+      ExpressionAttributeValues: { ':uid': userId },
+      ProjectionExpression: 'userId, sessionId',
+    }),
+  ]);
+
+  await Promise.all([
+    batchDelete('UserQuestionStats', qsItems.map(i => ({ userId: i.userId, questionId: i.questionId }))),
+    batchDelete('UserTagStats',      tsItems.map(i => ({ userId: i.userId, tagId: i.tagId }))),
+    batchDelete('Sessions',          sessItems.map(i => ({ userId: i.userId, sessionId: i.sessionId }))),
+    // DELETE より PUT（空上書き）の方が確実 — delete は存在しないキーに対してもエラーにならないが、
+    // 型不一致や権限エラーで失敗しても catch で隠れるため、空レコードで上書きする
+    docClient.send(new PutCommand({
+      TableName: 'EncyclopediaUnlocks',
+      Item: { userId, unlocks: '{}', unlockDate: null, todayServiceId: null },
+    })).catch(() => {}),
+    docClient.send(new DeleteCommand({ TableName: 'UserPoints', Key: { userId } })).catch(() => {}),
+  ]);
+
+  // AppSettings の scoreHistData（スコア履歴・ハイスコア記録）を全 examType 分削除
+  const scoreHistResult = await docClient.send(new ScanCommand({
+    TableName: 'AppSettings',
+    FilterExpression: 'begins_with(settingId, :prefix)',
+    ExpressionAttributeValues: { ':prefix': `scoreHistData_${userId}_` },
+    ProjectionExpression: 'settingId',
+  }));
+  await batchDelete('AppSettings', (scoreHistResult.Items || []).map(i => ({ settingId: i.settingId })));
+
+  const resetAt = new Date().toISOString();
+  await docClient.send(new PutCommand({
+    TableName: 'AppSettings',
+    Item: { settingId: `userReset_${userId}`, userId, resetAt },
+  }));
+  return resetAt;
+}
+
+app.post('/users/me/reset', async (req, res) => {
+  try {
+    const docClient = getClient();
+    const { userId } = req.body;
+    if (!userId) return res.status(400).json({ error: 'userId required' });
+    const resetAt = await executeUserDataReset(docClient, userId);
+    res.json({ success: true, resetAt });
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: 'Internal server error' });
@@ -1733,10 +1842,11 @@ app.get('/daily-service', async (req, res) => {
     // 今日の日付（JST）
     const jstDate = new Date(Date.now() + 9 * 3600 * 1000).toISOString().slice(0, 10);
 
-    // userIdが指定された場合はユーザー別のハッシュで決定（スケジュール不使用）
-    if (req.query.userId) {
-      const seed = req.query.rerollSeed || '';
-      const str = req.query.userId + jstDate + seed;
+    // 再抽選（rerollSeed あり）のみユーザー別ハッシュで選択
+    // 通常アクセスは userId の有無を問わず _schedule_ を使用し、
+    // サービス追加後も当日のサービスが変わらないようにする
+    if (req.query.userId && req.query.rerollSeed) {
+      const str = req.query.userId + jstDate + req.query.rerollSeed;
       let hash = 0;
       for (let i = 0; i < str.length; i++) {
         hash = ((hash << 5) - hash) + str.charCodeAt(i);

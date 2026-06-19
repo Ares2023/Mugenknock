@@ -96,7 +96,11 @@ export default function ServiceEncyclopedia() {
         }
         const local = (() => { try { return JSON.parse(localStorage.getItem(`encyclopediaUnlocked_${uid}`) ?? '{}'); } catch { return {}; } })();
         // サーバーが空でローカルにデータがある場合はサーバーを正とみなす（管理者リセット後）
-        if (Object.keys(data.unlocks).length === 0 && Object.keys(local).length > 0) {
+        // ただし今日の unlockDate がローカルにある場合（= 今日このデバイスで解放した直後）はサーバーへの
+        // POST が未完了の可能性があるため消去しない
+        const localUnlockDate = localStorage.getItem(`encyclopediaUnlockDate_${uid}`);
+        const jstDateNow = new Date(Date.now() + 9 * 3600 * 1000).toISOString().slice(0, 10);
+        if (Object.keys(data.unlocks).length === 0 && Object.keys(local).length > 0 && localUnlockDate !== jstDateNow) {
           localStorage.setItem(`encyclopediaUnlocked_${uid}`, '{}');
           localStorage.removeItem(`encyclopediaUnlockDate_${uid}`);
           localStorage.removeItem(`encyclopediaTodayServiceId_${uid}`);
