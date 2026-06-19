@@ -546,17 +546,18 @@ export default function MyPage() {
             {/* 目標資格選択オーバーレイ */}
             {showExamSelect && (
               <div
-                style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', zIndex: 1000, display: 'flex', alignItems: 'flex-end', justifyContent: 'center' }}
+                style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', zIndex: 1000, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16 }}
                 onClick={() => setShowExamSelect(false)}
               >
                 <div
-                  style={{ background: 'var(--color-bg-white)', borderRadius: 'var(--border-radius-lg) var(--border-radius-lg) 0 0', padding: '20px 16px', width: '100%', maxWidth: 360, maxHeight: isMobile ? '75vh' : '60vh', overflowY: 'auto' }}
+                  style={{ background: 'var(--color-bg-white)', borderRadius: 'var(--border-radius-lg)', width: '100%', maxWidth: 420, boxShadow: 'var(--box-shadow-md)', maxHeight: isMobile ? '75vh' : '60vh', display: 'flex', flexDirection: 'column', overflow: 'hidden' }}
                   onClick={e => e.stopPropagation()}
                 >
-                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16 }}>
-                    <span style={{ fontWeight: 700, fontSize: 16 }}>{ja ? '目標資格を選択' : 'Select Target Exam'}</span>
-                    <button onClick={() => setShowExamSelect(false)} style={{ width: 32, height: 32, borderRadius: '50%', border: 'none', background: 'transparent', cursor: 'pointer', fontSize: 18, color: 'var(--color-text-sub)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>✕</button>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '20px 24px 0', flexShrink: 0 }}>
+                    <span style={{ margin: 0, fontSize: 'var(--font-size-h3)', fontWeight: 700, color: 'var(--color-accent)' }}>{ja ? '目標資格を選択' : 'Select Target Exam'}</span>
+                    <button onClick={() => setShowExamSelect(false)} style={{ border: 'none', background: 'none', fontSize: 20, cursor: 'pointer', color: 'var(--color-text-sub)', padding: '4px 8px', lineHeight: 1 }}>✕</button>
                   </div>
+                  <div style={{ overflowY: 'auto', padding: '16px 24px 24px' }}>
                   {[
                     { label: 'Foundational', color: '#6b9e3a', exams: ['CLF', 'AIF'] },
                     { label: 'Associate',    color: '#006CE0', exams: ['SAA', 'DVA', 'SOA', 'DEA', 'MLA'] },
@@ -637,6 +638,7 @@ export default function MyPage() {
                   >
                     {ja ? 'キャンセル' : 'Cancel'}
                   </button>
+                  </div>{/* /scrollable content */}
                 </div>
               </div>
             )}
