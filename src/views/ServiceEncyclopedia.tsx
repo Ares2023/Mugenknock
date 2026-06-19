@@ -18,9 +18,15 @@ type EncyclopediaService = {
 };
 
 
-function isUnlocked(svc: ServiceEntry, unlockedMap: Record<string, string>): boolean {
+function isUnlocked(svc: ServiceEntry, unlockedMap: Record<string, string>, storedServices?: Record<string, { name?: string }>): boolean {
   if (svc.serviceIds?.some(id => id in unlockedMap)) return true;
   if (svc.name in unlockedMap) return true;
+  // DailyServices UUID がカタログの serviceIds と一致しない場合、
+  // storedServices のサービス名とカタログ名を突合して判定
+  if (storedServices) {
+    const found = Object.keys(unlockedMap).some(id => storedServices[id]?.name === svc.name);
+    if (found) return true;
+  }
   return false;
 }
 
@@ -167,7 +173,7 @@ export default function ServiceEncyclopedia() {
 
   const allServices = CATALOG.flatMap(c => c.services);
   const totalServices = allServices.length;
-  const unlockedCount = allServices.filter(s => isUnlocked(s, unlockedMap)).length;
+  const unlockedCount = allServices.filter(s => isUnlocked(s, unlockedMap, storedServices)).length;
 
   const calIcon = (
     <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ color: 'var(--color-primary)', flexShrink: 0 }}>
@@ -257,10 +263,10 @@ export default function ServiceEncyclopedia() {
       {/* カテゴリ別サービス一覧 */}
       {CATALOG.map(cat => {
         const displayServices = activeTab === 'unlocked'
-          ? cat.services.filter(s => isUnlocked(s, unlockedMap))
+          ? cat.services.filter(s => isUnlocked(s, unlockedMap, storedServices))
           : cat.services;
         if (displayServices.length === 0) return null;
-        const catUnlocked = cat.services.filter(s => isUnlocked(s, unlockedMap)).length;
+        const catUnlocked = cat.services.filter(s => isUnlocked(s, unlockedMap, storedServices)).length;
         return (
           <div key={cat.category} style={{ marginBottom: 20 }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 6, paddingBottom: 4, borderBottom: '2px solid var(--color-border)' }}>

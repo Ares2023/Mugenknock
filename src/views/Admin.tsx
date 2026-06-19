@@ -846,7 +846,11 @@ export default function Admin() {
       .then(d => {
         const comments = d.comments ?? {};
         setPassComments(comments);
-        setPassCommentText(comments[passCommentExam] ?? '');
+        // 関数形式で最新の passCommentExam を取得してテキストを設定
+        setPassCommentExam(exam => {
+          setPassCommentText(comments[exam] ?? '');
+          return exam;
+        });
       })
       .catch(() => {});
   }, [tab]); // eslint-disable-line react-hooks/exhaustive-deps

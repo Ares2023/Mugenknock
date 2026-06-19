@@ -11,7 +11,39 @@ import Button from '../components/ui/Button';
 import {
   IconCalendarNotebook, IconTarget, IconAnnoyed, IconList,
   IconSparkles, IconChevronRight, IconChevronDown, IconLock, IconFlag, IconStar, IconTrendingUp, IconPenLine,
+  IconBook, IconBookOpenCheck,
+  IconSprout, IconBox, IconBot, IconCode2, IconCloud, IconDatabase, IconBrain, IconNetwork, IconFileCodeCorner, IconShieldIcon, IconWaypoints,
 } from '../components/Icons';
+
+const EXAM_ICON_COMPONENTS: Record<string, React.FC<{ size?: number }>> = {
+  CLF: IconSprout,
+  AIF: IconBot,
+  SAA: IconBox,
+  DVA: IconCode2,
+  SOA: IconCloud,
+  DEA: IconDatabase,
+  MLA: IconBrain,
+  SAP: IconNetwork,
+  DOP: IconFileCodeCorner,
+  GAI: IconSparkles,
+  SCS: IconShieldIcon,
+  ANS: IconWaypoints,
+};
+
+const EXAM_CATCHCOPY: Record<string, string> = {
+  CLF: 'AWS資格の登竜門！誰もがここから！',
+  AIF: 'AI時代の新常識！まずはここからAI入門！',
+  SAA: '迷ったらコレ！AWS資格の王道エース！',
+  DVA: 'コードでクラウドを動かせ！開発者の実力証明！',
+  SOA: '障害対応もお手の物！運用のプロへの第一歩！',
+  DEA: 'データを運び、価値を生み出せ！',
+  MLA: 'AIモデルを育てる！機械学習エンジニアへの道！',
+  SAP: 'AWS設計の最高峰！アーキテクト最難関！',
+  DOP: '自動化を極めろ！DevOpsマスターへの挑戦！',
+  GAI: '生成AIを実装せよ！AI開発の最前線！',
+  SCS: '守れる者だけが任される！セキュリティの番人！',
+  ANS: 'ネットワークの深淵へ。AWS屈指の難関資格！',
+};
 
 const EXAM_URLS: Record<string, string> = {
   CLF: 'https://aws.amazon.com/jp/certification/certified-cloud-practitioner/',
@@ -103,6 +135,21 @@ export default function MyPage() {
   const [editDailyGoal, setEditDailyGoal] = useState(10); // min=10
   const [showExamSelect, setShowExamSelect] = useState(false);
   const [previewExam, setPreviewExam] = useState<string | null>(null);
+  const [activeLevel, setActiveLevel] = useState<string>('Practitioner');
+  const [passComments, setPassComments] = useState<Record<string, string>>({});
+
+  const EXAM_LEVELS = [
+    { key: 'Practitioner', color: '#6b9e3a', exams: ['CLF', 'AIF'] },
+    { key: 'Associate',    color: '#006CE0', exams: ['SAA', 'DVA', 'SOA', 'DEA', 'MLA'] },
+    { key: 'Professional', color: '#8b5cf6', exams: ['SAP', 'DOP', 'GAI'] },
+    { key: 'Specialty',    color: '#e67e22', exams: ['ANS', 'SCS'] },
+  ] as const;
+  const EXAM_LEVEL_MAP: Record<string, string> = {
+    CLF: 'Practitioner', AIF: 'Practitioner',
+    SAA: 'Associate', DVA: 'Associate', SOA: 'Associate', DEA: 'Associate', MLA: 'Associate',
+    SAP: 'Professional', DOP: 'Professional', GAI: 'Professional',
+    ANS: 'Specialty', SCS: 'Specialty',
+  };
 
   // ── ターゲット試験 ──
   const [targetExam, setTargetExam] = useState<string | null>(() => localStorage.getItem(`targetExam_${uid}`));
@@ -172,6 +219,21 @@ export default function MyPage() {
       })
       .catch(() => {});
   }, [user?.userId]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // ── 合格コメント取得 ──
+  useEffect(() => {
+    fetch(`${API_ENDPOINT}/settings/pass-comments`)
+      .then(r => r.json())
+      .then(d => { if (d.comments) setPassComments(d.comments); })
+      .catch(() => {});
+  }, []);
+
+  // ── オーバーレイ表示中は body スクロール無効 ──
+  useEffect(() => {
+    const anyOpen = showSettingsEdit || showExamSelect;
+    document.body.style.overflow = anyOpen ? 'hidden' : '';
+    return () => { document.body.style.overflow = ''; };
+  }, [showSettingsEdit, showExamSelect]);
 
   // ── 週間達成度 ──
   const weekDays = Array.from({ length: 7 }, (_, i) => {
@@ -386,7 +448,13 @@ export default function MyPage() {
         {tab === 'target' && (
           <>
             {/* 目標資格カード */}
-            <Card style={{ marginBottom: 12, cursor: 'pointer' }} onClick={() => { setPreviewExam(targetExam); setShowExamSelect(true); }}>
+            <Card style={{ marginBottom: 12, cursor: 'pointer' }} onClick={() => {
+  const initLevel = targetExam ? (EXAM_LEVEL_MAP[targetExam] ?? 'Practitioner') : 'Practitioner';
+  const initExam = targetExam ?? (EXAM_LEVELS.find(l => l.key === initLevel)?.exams[0] ?? null);
+  setActiveLevel(initLevel);
+  setPreviewExam(initExam as string | null);
+  setShowExamSelect(true);
+}}>
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
                   <span style={{ color: 'var(--color-text-sub)', display: 'flex', alignItems: 'center' }}><IconFlag size={13} /></span>
@@ -497,6 +565,8 @@ export default function MyPage() {
               <div
                 style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', zIndex: 1000, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16 }}
                 onClick={() => setShowSettingsEdit(false)}
+                onTouchStart={e => e.stopPropagation()}
+                onTouchMove={e => e.stopPropagation()}
               >
                 <div style={{ background: 'var(--color-bg-white)', borderRadius: 'var(--border-radius-lg)', padding: '24px 20px', width: '100%', maxWidth: 360, boxShadow: 'var(--box-shadow-md)' }} onClick={e => e.stopPropagation()}>
                   <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 20 }}>
@@ -544,102 +614,160 @@ export default function MyPage() {
             )}
 
             {/* 目標資格選択オーバーレイ */}
-            {showExamSelect && (
-              <div
-                style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', zIndex: 1000, display: 'flex', alignItems: 'flex-end', justifyContent: 'center' }}
-                onClick={() => setShowExamSelect(false)}
-              >
+            {showExamSelect && (() => {
+              const currentLevelDef = EXAM_LEVELS.find(l => l.key === activeLevel) ?? EXAM_LEVELS[0];
+              const levelColor = currentLevelDef.color;
+              return (
                 <div
-                  style={{ background: 'var(--color-bg-white)', borderRadius: 'var(--border-radius-lg) var(--border-radius-lg) 0 0', padding: '20px 16px', width: '100%', maxWidth: 360, maxHeight: isMobile ? '75vh' : '60vh', overflowY: 'auto' }}
-                  onClick={e => e.stopPropagation()}
+                  style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', zIndex: 1000, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16 }}
+                  onClick={() => { setShowExamSelect(false); setPreviewExam(null); }}
+                  onTouchStart={e => e.stopPropagation()}
+                  onTouchMove={e => e.stopPropagation()}
                 >
-                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16 }}>
-                    <span style={{ fontWeight: 700, fontSize: 16 }}>{ja ? '目標資格を選択' : 'Select Target Exam'}</span>
-                    <button onClick={() => setShowExamSelect(false)} style={{ width: 32, height: 32, borderRadius: '50%', border: 'none', background: 'transparent', cursor: 'pointer', fontSize: 18, color: 'var(--color-text-sub)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>✕</button>
-                  </div>
-                  {[
-                    { label: 'Foundational', color: '#6b9e3a', exams: ['CLF', 'AIF'] },
-                    { label: 'Associate',    color: '#006CE0', exams: ['SAA', 'DVA', 'SOA', 'DEA', 'MLA'] },
-                    { label: 'Professional', color: '#8b5cf6', exams: ['SAP', 'DOP', 'GAI'] },
-                    { label: 'Specialty',   color: '#e67e22', exams: ['ANS', 'SCS'] },
-                  ].map(({ label, color, exams }) => (
-                    <div key={label} style={{ marginBottom: 14 }}>
-                      <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: '.06em', textTransform: 'uppercase', color, marginBottom: 6 }}>{label}</div>
-                      <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
-                        {exams.map(exam => {
-                          const cfg = EXAM_CONFIGS[exam];
-                          const isSelected = targetExam === exam;
-                          const isPreviewing = previewExam === exam;
-                          return (
-                            <div key={exam}>
-                              <button
-                                onClick={() => setPreviewExam(isPreviewing ? null : exam)}
-                                style={{
-                                  display: 'flex', alignItems: 'center', gap: 10, width: '100%',
-                                  padding: '10px 14px', borderRadius: isPreviewing ? '10px 10px 0 0' : 10,
-                                  cursor: 'pointer', textAlign: 'left',
-                                  background: isSelected ? 'var(--color-primary-light)' : isPreviewing ? 'var(--color-bg-main)' : 'var(--color-bg-card)',
-                                  border: `1.5px solid ${isSelected ? 'var(--color-primary)' : isPreviewing ? 'var(--color-border)' : 'var(--color-border)'}`,
-                                  borderBottom: isPreviewing ? 'none' : undefined,
-                                }}
-                              >
-                                <div style={{ flex: 1, minWidth: 0 }}>
-                                  <div style={{ fontWeight: 700, fontSize: 13, color: isSelected ? 'var(--color-primary)' : 'var(--color-text-main)' }}>{cfg?.examCode ?? exam}</div>
-                                  <div style={{ fontSize: 11, color: 'var(--color-text-sub)', marginTop: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{cfg?.fullName ?? ''}</div>
-                                </div>
-                                {isSelected && !isPreviewing && <span style={{ color: 'var(--color-primary)', fontSize: 14, fontWeight: 900, flexShrink: 0 }}>✓</span>}
-                                <span style={{ color: 'var(--color-text-light)', fontSize: 12, flexShrink: 0 }}>{isPreviewing ? '▲' : '▼'}</span>
-                              </button>
-                              {isPreviewing && (
-                                <div style={{ padding: '12px 14px 14px', background: 'var(--color-bg-main)', border: '1.5px solid var(--color-border)', borderTop: 'none', borderRadius: '0 0 10px 10px', marginBottom: 2 }}>
-                                  <p style={{ margin: '0 0 10px', fontSize: 12, color: 'var(--color-text-sub)', lineHeight: 1.7 }}>{EXAM_DESC[exam] ?? ''}</p>
-                                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: '4px 14px', marginBottom: 12 }}>
-                                    {[
-                                      { label: ja ? '試験コード' : 'Code',       value: cfg?.examCode ?? '' },
-                                      { label: ja ? '問題数'     : 'Questions',  value: `${cfg?.totalQuestions ?? '—'}${ja ? '問' : 'Q'}` },
-                                      { label: ja ? '試験時間'   : 'Duration',   value: `${cfg?.timeLimitMin ?? '—'}${ja ? '分' : 'min'}` },
-                                      { label: ja ? '合格ライン' : 'Pass Score', value: `${PASS_SCORES[exam] ?? '—'}/1000` },
-                                    ].map(({ label: lbl, value }) => (
-                                      <div key={lbl} style={{ display: 'flex', gap: 4, alignItems: 'baseline' }}>
-                                        <span style={{ fontSize: 10, color: 'var(--color-text-light)' }}>{lbl}:</span>
-                                        <span style={{ fontSize: 12, fontWeight: 700, color: 'var(--color-text-main)' }}>{value}</span>
-                                      </div>
-                                    ))}
-                                  </div>
-                                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8 }}>
-                                    {EXAM_URLS[exam] && (
-                                      <a href={EXAM_URLS[exam]} target="_blank" rel="noopener noreferrer" style={{ fontSize: 12, color: 'var(--color-primary)', textDecoration: 'none', fontWeight: 600 }}>
-                                        {ja ? '公式ページ →' : 'Official page →'}
-                                      </a>
-                                    )}
-                                    <Button variant="primary" size="sm" onClick={() => {
-                                      localStorage.setItem(`targetExam_${uid}`, exam);
-                                      window.dispatchEvent(new CustomEvent('targetExamChanged', { detail: exam }));
-                                      setTargetExam(exam);
-                                      setShowExamSelect(false);
-                                      setPreviewExam(null);
-                                    }}>
-                                      {ja ? 'この資格に設定' : 'Set as Target'}
-                                    </Button>
-                                  </div>
-                                </div>
-                              )}
-                            </div>
-                          );
-                        })}
-                      </div>
-                    </div>
-                  ))}
-                  {/* 現在設定中の資格を変更せず閉じる */}
-                  <button
-                    onClick={() => { setShowExamSelect(false); setPreviewExam(null); }}
-                    style={{ width: '100%', padding: '10px', background: 'none', border: 'none', cursor: 'pointer', fontSize: 13, color: 'var(--color-text-light)', marginTop: 4 }}
+                  <div
+                    style={{ background: 'var(--color-bg-white)', borderRadius: 'var(--border-radius-lg)', width: '100%', maxWidth: 420, boxShadow: 'var(--box-shadow-md)', height: isMobile ? '75vh' : '60vh', display: 'flex', flexDirection: 'column', overflow: 'hidden', position: 'relative' }}
+                    onClick={e => e.stopPropagation()}
                   >
-                    {ja ? 'キャンセル' : 'Cancel'}
-                  </button>
+                    {/* ヘッダー */}
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '16px 20px 0', flexShrink: 0 }}>
+                      <span style={{ fontWeight: 700, fontSize: 16 }}>{ja ? '目標資格を選択' : 'Select Target Exam'}</span>
+                      <button onClick={() => { setShowExamSelect(false); setPreviewExam(null); }} style={{ border: 'none', background: 'none', fontSize: 20, cursor: 'pointer', color: 'var(--color-text-sub)', padding: '4px 8px', lineHeight: 1 }}>✕</button>
+                    </div>
+
+                    {/* レベルタブ */}
+                    <div
+                      style={{ display: 'flex', borderBottom: '2px solid var(--color-border)', flexShrink: 0, overflowX: 'auto' }}
+                      onTouchStart={e => e.stopPropagation()}
+                      onTouchMove={e => e.stopPropagation()}
+                    >
+                      {EXAM_LEVELS.map(({ key, color }) => (
+                        <button key={key} onClick={() => {
+                          setActiveLevel(key);
+                          const levelDef = EXAM_LEVELS.find(l => l.key === key);
+                          const examInLevel = levelDef?.exams.find(e => e === targetExam) ?? levelDef?.exams[0] ?? null;
+                          setPreviewExam(examInLevel as string | null);
+                        }} style={{
+                          padding: '10px 14px', background: 'none', border: 'none', cursor: 'pointer',
+                          borderBottom: activeLevel === key ? `2px solid ${color}` : '2px solid transparent',
+                          marginBottom: -2, color: activeLevel === key ? color : 'var(--color-text-sub)',
+                          fontWeight: activeLevel === key ? 700 : 400, fontSize: 13, whiteSpace: 'nowrap', flexShrink: 0,
+                        }}>
+                          {key}
+                        </button>
+                      ))}
+                    </div>
+
+                    {/* 資格カード（横スクロール） */}
+                    <div
+                      style={{ display: 'flex', gap: 10, padding: '14px 20px', overflowX: 'auto', flexShrink: 0 }}
+                      onTouchStart={e => e.stopPropagation()}
+                      onTouchMove={e => e.stopPropagation()}
+                    >
+                      {currentLevelDef.exams.map(exam => {
+                        const isSelected = targetExam === exam;
+                        const isPreviewing = previewExam === exam;
+                        const ExamIcon = EXAM_ICON_COMPONENTS[exam];
+                        return (
+                          <button
+                            key={exam}
+                            onClick={() => setPreviewExam(isPreviewing ? null : exam)}
+                            style={{
+                              flexShrink: 0, width: 80, padding: '10px 6px 8px', cursor: 'pointer',
+                              borderRadius: 10, textAlign: 'center',
+                              border: `2px solid ${isPreviewing || isSelected ? levelColor : 'var(--color-border)'}`,
+                              background: isPreviewing
+                                ? `linear-gradient(145deg, ${levelColor}, ${levelColor}bb)`
+                                : isSelected
+                                ? `linear-gradient(145deg, ${levelColor}22, ${levelColor}44)`
+                                : `linear-gradient(145deg, var(--color-bg-card), ${levelColor}18)`,
+                            }}
+                          >
+                            {ExamIcon && (
+                              <div style={{ display: 'flex', justifyContent: 'center', marginBottom: 4, color: isPreviewing ? '#fff' : isSelected ? levelColor : 'var(--color-text-light)' }}>
+                                <ExamIcon size={18} />
+                              </div>
+                            )}
+                            <div style={{ fontWeight: 800, fontSize: 15, color: isPreviewing ? '#fff' : isSelected ? levelColor : 'var(--color-text-main)', lineHeight: 1 }}>{exam}</div>
+                          </button>
+                        );
+                      })}
+                    </div>
+
+                    {/* 詳細パネル（スクロール） */}
+                    <div style={{ flex: 1, overflowY: 'auto', borderTop: '1px solid var(--color-border)' }}>
+                      {previewExam && (() => {
+                        const exam = previewExam;
+                        const cfg = EXAM_CONFIGS[exam];
+                        return (
+                          <div style={{ padding: '16px 20px 16px' }}>
+                            <div style={{ marginBottom: 10 }}>
+                              {EXAM_CATCHCOPY[exam] && (
+                                <div style={{ fontSize: 11, color: 'var(--color-text-light)', fontStyle: 'italic', marginBottom: 4 }}>{EXAM_CATCHCOPY[exam]}</div>
+                              )}
+                              <div style={{ fontWeight: 700, fontSize: 17, color: 'var(--color-text-main)', marginBottom: 2 }}>
+                                {(cfg?.fullName ?? exam).replace('AWS Certified ', '')}
+                              </div>
+                              <div style={{ fontSize: 11, color: levelColor, fontWeight: 600 }}>{activeLevel}</div>
+                            </div>
+                            <p style={{ margin: '0 0 12px', fontSize: 12, color: 'var(--color-text-sub)', lineHeight: 1.7 }}>{EXAM_DESC[exam] ?? ''}</p>
+                            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px 20px', marginBottom: 12, padding: '10px 12px', background: 'var(--color-bg-main)', borderRadius: 8 }}>
+                              {[
+                                { label: ja ? '試験コード' : 'Code',       value: cfg?.examCode ?? '' },
+                                { label: ja ? '問題数'     : 'Questions',  value: `${cfg?.totalQuestions ?? '—'}${ja ? '問' : 'Q'}` },
+                                { label: ja ? '試験時間'   : 'Duration',   value: `${cfg?.timeLimitMin ?? '—'}${ja ? '分' : 'min'}` },
+                                { label: ja ? '合格ライン' : 'Pass Score', value: `${PASS_SCORES[exam] ?? '—'}/1000` },
+                              ].map(({ label: lbl, value }) => (
+                                <div key={lbl}>
+                                  <div style={{ fontSize: 9, color: 'var(--color-text-light)', marginBottom: 2 }}>{lbl}</div>
+                                  <div style={{ fontSize: 13, fontWeight: 700, color: 'var(--color-text-main)' }}>{value}</div>
+                                </div>
+                              ))}
+                            </div>
+                            {EXAM_URLS[exam] && (
+                              <a href={EXAM_URLS[exam]} target="_blank" rel="noopener noreferrer" style={{ fontSize: 12, color: 'var(--color-primary)', textDecoration: 'none', fontWeight: 600 }}>
+                                {ja ? '公式ページ →' : 'Official page →'}
+                              </a>
+                            )}
+                            {passComments[exam] && (
+                              <div style={{ marginTop: 12, padding: '10px 12px', background: `${levelColor}12`, borderLeft: `3px solid ${levelColor}`, borderRadius: '0 6px 6px 0' }}>
+                                <div style={{ fontSize: 10, color: levelColor, fontWeight: 700, marginBottom: 4 }}>{ja ? '運営者コメント' : 'From the team'}</div>
+                                <div style={{ fontSize: 12, color: 'var(--color-text-sub)', lineHeight: 1.7, whiteSpace: 'pre-wrap' }}>{passComments[exam]}</div>
+                              </div>
+                            )}
+                          </div>
+                        );
+                      })()}
+                    </div>
+
+                    {/* 設定ボタン（モーダル右下にフローティング） */}
+                    {previewExam && (() => {
+                      const exam = previewExam;
+                      const isCurrentTarget = targetExam === exam;
+                      return (
+                        <div style={{ position: 'absolute', bottom: 14, right: 16, zIndex: 10 }}>
+                          {isCurrentTarget ? (
+                            <button disabled title={ja ? '設定中' : 'Current target'}
+                              style={{ width: 44, height: 44, borderRadius: '50%', border: 'none', background: levelColor, color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'default', boxShadow: '0 2px 8px rgba(0,0,0,0.2)' }}>
+                              <IconBookOpenCheck size={22} />
+                            </button>
+                          ) : (
+                            <button title={ja ? 'この資格に設定' : 'Set as Target'}
+                              onClick={() => {
+                                localStorage.setItem(`targetExam_${uid}`, exam);
+                                window.dispatchEvent(new CustomEvent('targetExamChanged', { detail: exam }));
+                                setTargetExam(exam);
+                              }}
+                              style={{ width: 44, height: 44, borderRadius: '50%', border: '1px solid var(--color-border)', background: 'var(--color-bg-white)', color: 'var(--color-text-light)', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', boxShadow: '0 2px 8px rgba(0,0,0,0.1)' }}>
+                              <IconBook size={22} />
+                            </button>
+                          )}
+                        </div>
+                      );
+                    })()}
+                  </div>
                 </div>
-              </div>
-            )}
+              );
+            })()}
           </>
         )}
 

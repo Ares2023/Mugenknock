@@ -1595,6 +1595,13 @@ export default function Home() {
     }
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
+  // オーバーレイ表示中は body スクロール無効
+  useEffect(() => {
+    const anyOpen = showQuickModal || showFocusedModal;
+    document.body.style.overflow = anyOpen ? 'hidden' : '';
+    return () => { document.body.style.overflow = ''; };
+  }, [showQuickModal, showFocusedModal]);
+
   // ドメイン別成績（サーバー統計優先、ゲスト/オフライン時はローカル履歴）
   const domains = useMemo(() => targetExam ? (EXAM_DOMAINS[targetExam] ?? []) : [], [targetExam]);
   const domainAccList = useMemo(() => {
@@ -2133,6 +2140,8 @@ export default function Home() {
         <div
           style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', zIndex: 1000, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16 }}
           onClick={e => { if (e.target === e.currentTarget) setShowQuickModal(false); }}
+          onTouchStart={e => e.stopPropagation()}
+          onTouchMove={e => e.stopPropagation()}
         >
           <div style={{ background: 'var(--color-bg-white)', borderRadius: 'var(--border-radius-lg)', width: '100%', maxWidth: 420, boxShadow: 'var(--box-shadow-md)', maxHeight: isMobile ? '75vh' : '60vh', display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
             {/* ヘッダー固定 */}
@@ -2254,6 +2263,8 @@ export default function Home() {
         <div
           style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', zIndex: 1000, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16 }}
           onClick={e => { if (e.target === e.currentTarget) setShowFocusedModal(false); }}
+          onTouchStart={e => e.stopPropagation()}
+          onTouchMove={e => e.stopPropagation()}
         >
           <div style={{ background: 'var(--color-bg-white)', borderRadius: 'var(--border-radius-lg)', width: '100%', maxWidth: 420, boxShadow: 'var(--box-shadow-md)', maxHeight: isMobile ? '75vh' : '60vh', display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
             {/* ヘッダー固定 */}
