@@ -520,16 +520,6 @@ export default function Layout({ children }: { children: React.ReactNode }) {
       )}
 
       {/* ── ヘッダー ── */}
-      {targetExam && (() => {
-        const levelColor: Record<string, string> = {
-          Foundational: '#6b9e3a', Associate: '#006CE0',
-          Professional: '#8b5cf6', Specialty: '#e67e22',
-        };
-        const color = levelColor[EXAM_LEVEL[targetExam]] ?? 'var(--color-primary)';
-        return (
-          <div style={{ height: 3, flexShrink: 0, background: `linear-gradient(90deg, ${color}, ${color}66, transparent)`, zIndex: 200 }} />
-        );
-      })()}
       <header style={{
         height: 56, minHeight: 56, background: 'var(--color-bg-white)',
         display: 'flex', alignItems: 'center',
@@ -592,7 +582,14 @@ export default function Layout({ children }: { children: React.ReactNode }) {
           </button>
         </div>
       </header>
-
+      {targetExam && (() => {
+        const levelColor: Record<string, string> = {
+          Foundational: '#6b9e3a', Associate: '#006CE0',
+          Professional: '#8b5cf6', Specialty: '#e67e22',
+        };
+        const color = levelColor[EXAM_LEVEL[targetExam]] ?? 'var(--color-primary)';
+        return <div style={{ height: 3, flexShrink: 0, background: `linear-gradient(90deg, ${color}, ${color}66, transparent)`, zIndex: 200 }} />;
+      })()}
 
       {/* ── サブバー（ハンバーガー＋パンくず） ── */}
       {/* モバイルでは目標ボタンが表示される場合のみサブバーを描画 */}
