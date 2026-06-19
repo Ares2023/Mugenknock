@@ -10,7 +10,7 @@ import Card from '../components/ui/Card';
 import Button from '../components/ui/Button';
 import {
   IconCalendarNotebook, IconTarget, IconAnnoyed, IconList,
-  IconSparkles, IconChevronRight, IconChevronDown, IconLock, IconFlag, IconStar, IconTrendingUp, IconPenLine,
+  IconSparkles, IconChevronRight, IconChevronDown, IconLock, IconFlag, IconStar, IconTrendingUp, IconPenLine, IconBook, IconBookOpenCheck,
 } from '../components/Icons';
 
 const EXAM_URLS: Record<string, string> = {
@@ -640,25 +640,25 @@ export default function MyPage() {
                             <div style={{ fontSize: 9, color: isPreviewing ? 'rgba(255,255,255,0.8)' : 'var(--color-text-light)', marginTop: 4, lineHeight: 1.3 }}>
                               {EXAM_CONFIGS[exam]?.examCode?.replace(exam + '-', '') ?? ''}
                             </div>
-                            {isSelected && <div style={{ marginTop: 6, fontSize: 11, color: isPreviewing ? '#fff' : levelColor, fontWeight: 700 }}>✓</div>}
                           </button>
                         );
                       })}
                     </div>
 
-                    {/* 詳細パネル（スクロール可能） */}
-                    <div style={{ flex: 1, overflowY: 'auto', borderTop: '1px solid var(--color-border)' }}>
+                    {/* 詳細パネル */}
+                    <div style={{ flex: 1, overflowY: 'auto', borderTop: '1px solid var(--color-border)', position: 'relative' }}>
                       {previewExam && (() => {
                         const exam = previewExam;
                         const cfg = EXAM_CONFIGS[exam];
+                        const isCurrentTarget = targetExam === exam;
                         return (
-                          <div style={{ padding: '16px 20px 20px' }}>
+                          <div style={{ padding: '16px 20px 56px' }}>
                             <div style={{ marginBottom: 10 }}>
                               <div style={{ fontWeight: 700, fontSize: 15, color: 'var(--color-text-main)', marginBottom: 2 }}>{cfg?.fullName ?? exam}</div>
                               <div style={{ fontSize: 11, color: levelColor, fontWeight: 600 }}>{activeLevel}</div>
                             </div>
                             <p style={{ margin: '0 0 12px', fontSize: 12, color: 'var(--color-text-sub)', lineHeight: 1.7 }}>{EXAM_DESC[exam] ?? ''}</p>
-                            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px 20px', marginBottom: 16, padding: '10px 12px', background: 'var(--color-bg-main)', borderRadius: 8 }}>
+                            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px 20px', marginBottom: 12, padding: '10px 12px', background: 'var(--color-bg-main)', borderRadius: 8 }}>
                               {[
                                 { label: ja ? '試験コード' : 'Code',       value: cfg?.examCode ?? '' },
                                 { label: ja ? '問題数'     : 'Questions',  value: `${cfg?.totalQuestions ?? '—'}${ja ? '問' : 'Q'}` },
@@ -671,26 +671,35 @@ export default function MyPage() {
                                 </div>
                               ))}
                             </div>
-                            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8 }}>
-                              {EXAM_URLS[exam] && (
-                                <a href={EXAM_URLS[exam]} target="_blank" rel="noopener noreferrer" style={{ fontSize: 12, color: 'var(--color-primary)', textDecoration: 'none', fontWeight: 600 }}>
-                                  {ja ? '公式ページ →' : 'Official page →'}
-                                </a>
-                              )}
-                              {targetExam === exam ? (
-                                <button disabled style={{ padding: '6px 14px', borderRadius: 'var(--border-radius-full)', border: '1px solid var(--color-border)', background: 'var(--color-bg-main)', color: 'var(--color-text-light)', fontSize: 13, cursor: 'default' }}>
-                                  {ja ? '設定中' : 'Current'}
+                            {EXAM_URLS[exam] && (
+                              <a href={EXAM_URLS[exam]} target="_blank" rel="noopener noreferrer" style={{ fontSize: 12, color: 'var(--color-primary)', textDecoration: 'none', fontWeight: 600 }}>
+                                {ja ? '公式ページ →' : 'Official page →'}
+                              </a>
+                            )}
+                            {/* 設定ボタン（右下固定） */}
+                            <div style={{ position: 'absolute', bottom: 14, right: 20 }}>
+                              {isCurrentTarget ? (
+                                <button
+                                  disabled
+                                  title={ja ? '設定中' : 'Current target'}
+                                  style={{ width: 40, height: 40, borderRadius: '50%', border: '1px solid var(--color-border)', background: 'var(--color-bg-main)', color: 'var(--color-text-light)', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'default' }}
+                                >
+                                  <IconBookOpenCheck size={20} />
                                 </button>
                               ) : (
-                                <Button variant="primary" size="sm" onClick={() => {
-                                  localStorage.setItem(`targetExam_${uid}`, exam);
-                                  window.dispatchEvent(new CustomEvent('targetExamChanged', { detail: exam }));
-                                  setTargetExam(exam);
-                                  setShowExamSelect(false);
-                                  setPreviewExam(null);
-                                }}>
-                                  {ja ? 'この資格に設定' : 'Set as Target'}
-                                </Button>
+                                <button
+                                  title={ja ? 'この資格に設定' : 'Set as Target'}
+                                  onClick={() => {
+                                    localStorage.setItem(`targetExam_${uid}`, exam);
+                                    window.dispatchEvent(new CustomEvent('targetExamChanged', { detail: exam }));
+                                    setTargetExam(exam);
+                                    setShowExamSelect(false);
+                                    setPreviewExam(null);
+                                  }}
+                                  style={{ width: 40, height: 40, borderRadius: '50%', border: `2px solid ${levelColor}`, background: 'var(--color-bg-white)', color: levelColor, display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}
+                                >
+                                  <IconBook size={20} />
+                                </button>
                               )}
                             </div>
                           </div>
