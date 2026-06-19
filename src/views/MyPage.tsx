@@ -119,6 +119,7 @@ export default function MyPage() {
   const [showExamSelect, setShowExamSelect] = useState(false);
   const [previewExam, setPreviewExam] = useState<string | null>(null);
   const [activeLevel, setActiveLevel] = useState<string>('Practitioner');
+  const [passComments, setPassComments] = useState<Record<string, string>>({});
 
   const EXAM_LEVELS = [
     { key: 'Practitioner', color: '#6b9e3a', exams: ['CLF', 'AIF'] },
@@ -201,6 +202,14 @@ export default function MyPage() {
       })
       .catch(() => {});
   }, [user?.userId]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // ── 合格コメント取得 ──
+  useEffect(() => {
+    fetch(`${API_ENDPOINT}/settings/pass-comments`)
+      .then(r => r.json())
+      .then(d => { if (d.comments) setPassComments(d.comments); })
+      .catch(() => {});
+  }, []);
 
   // ── オーバーレイ表示中は body スクロール無効 ──
   useEffect(() => {
@@ -693,6 +702,12 @@ export default function MyPage() {
                               <a href={EXAM_URLS[exam]} target="_blank" rel="noopener noreferrer" style={{ fontSize: 12, color: 'var(--color-primary)', textDecoration: 'none', fontWeight: 600 }}>
                                 {ja ? '公式ページ →' : 'Official page →'}
                               </a>
+                            )}
+                            {passComments[exam] && (
+                              <div style={{ marginTop: 12, padding: '10px 12px', background: `${levelColor}12`, borderLeft: `3px solid ${levelColor}`, borderRadius: '0 6px 6px 0' }}>
+                                <div style={{ fontSize: 10, color: levelColor, fontWeight: 700, marginBottom: 4 }}>{ja ? '合格者コメント' : 'From a graduate'}</div>
+                                <div style={{ fontSize: 12, color: 'var(--color-text-sub)', lineHeight: 1.7, whiteSpace: 'pre-wrap' }}>{passComments[exam]}</div>
+                              </div>
                             )}
                             {/* 設定ボタン（右下固定） */}
                             <div style={{ position: 'absolute', bottom: 14, right: 20 }}>
