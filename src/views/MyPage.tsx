@@ -689,8 +689,8 @@ export default function MyPage() {
                             }}
                           >
                             {isSelected && (
-                              <div style={{ position: 'absolute', top: -8, right: -8, color: levelColor, background: 'var(--color-bg-white)', borderRadius: '50%', lineHeight: 0 }}>
-                                <IconCircleCheck size={16} />
+                              <div style={{ position: 'absolute', top: 4, right: 4, color: isPreviewing ? '#fff' : levelColor, lineHeight: 0 }}>
+                                <IconCircleCheck size={14} />
                               </div>
                             )}
                             {ExamIcon && (
