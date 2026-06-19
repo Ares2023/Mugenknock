@@ -18,13 +18,22 @@ type EncyclopediaService = {
 };
 
 
+function normalizeSvcName(n: string): string {
+  return n.toLowerCase().replace(/^amazon\s+/, '').replace(/^aws\s+/, '').trim();
+}
+
 function isUnlocked(svc: ServiceEntry, unlockedMap: Record<string, string>, storedServices?: Record<string, { name?: string }>): boolean {
   if (svc.serviceIds?.some(id => id in unlockedMap)) return true;
   if (svc.name in unlockedMap) return true;
   // DailyServices UUID がカタログの serviceIds と一致しない場合、
-  // storedServices のサービス名とカタログ名を突合して判定
+  // storedServices のサービス名とカタログ名を正規化して突合
+  // （カタログは短縮名 "CloudFront"、DailyServices は "Amazon CloudFront" のため）
   if (storedServices) {
-    const found = Object.keys(unlockedMap).some(id => storedServices[id]?.name === svc.name);
+    const normCatalog = normalizeSvcName(svc.name);
+    const found = Object.keys(unlockedMap).some(id => {
+      const storedName = storedServices[id]?.name;
+      return storedName && normalizeSvcName(storedName) === normCatalog;
+    });
     if (found) return true;
   }
   return false;

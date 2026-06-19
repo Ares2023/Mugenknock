@@ -635,12 +635,9 @@ export default function MyPage() {
                     onClick={e => e.stopPropagation()}
                   >
                     {/* ヘッダー */}
-                    <div style={{ flexShrink: 0 }}>
-                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '16px 20px 12px' }}>
-                        <span style={{ fontWeight: 700, fontSize: 16 }}>{ja ? '目標資格を選択' : 'Select Target Exam'}</span>
-                        <button onClick={() => { setShowExamSelect(false); setPreviewExam(null); }} style={{ border: 'none', background: 'none', fontSize: 20, cursor: 'pointer', color: 'var(--color-text-sub)', padding: '4px 8px', lineHeight: 1 }}>✕</button>
-                      </div>
-                      <div style={{ height: 3, background: `linear-gradient(90deg, ${levelColor}, ${levelColor}66, transparent)` }} />
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '16px 20px 0', flexShrink: 0 }}>
+                      <span style={{ fontWeight: 700, fontSize: 16 }}>{ja ? '目標資格を選択' : 'Select Target Exam'}</span>
+                      <button onClick={() => { setShowExamSelect(false); setPreviewExam(null); }} style={{ border: 'none', background: 'none', fontSize: 20, cursor: 'pointer', color: 'var(--color-text-sub)', padding: '4px 8px', lineHeight: 1 }}>✕</button>
                     </div>
 
                     {/* レベルタブ */}
