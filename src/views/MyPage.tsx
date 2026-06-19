@@ -187,6 +187,13 @@ export default function MyPage() {
       .catch(() => {});
   }, [user?.userId]); // eslint-disable-line react-hooks/exhaustive-deps
 
+  // ── オーバーレイ表示中は body スクロール無効 ──
+  useEffect(() => {
+    const anyOpen = showSettingsEdit || showExamSelect;
+    document.body.style.overflow = anyOpen ? 'hidden' : '';
+    return () => { document.body.style.overflow = ''; };
+  }, [showSettingsEdit, showExamSelect]);
+
   // ── 週間達成度 ──
   const weekDays = Array.from({ length: 7 }, (_, i) => {
     const d = new Date(Date.now() + 9 * 3600 * 1000 - (6 - i) * 86400000);
@@ -511,6 +518,8 @@ export default function MyPage() {
               <div
                 style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', zIndex: 1000, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16 }}
                 onClick={() => setShowSettingsEdit(false)}
+                onTouchStart={e => e.stopPropagation()}
+                onTouchMove={e => e.stopPropagation()}
               >
                 <div style={{ background: 'var(--color-bg-white)', borderRadius: 'var(--border-radius-lg)', padding: '24px 20px', width: '100%', maxWidth: 360, boxShadow: 'var(--box-shadow-md)' }} onClick={e => e.stopPropagation()}>
                   <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 20 }}>
@@ -565,6 +574,8 @@ export default function MyPage() {
                 <div
                   style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', zIndex: 1000, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16 }}
                   onClick={() => { setShowExamSelect(false); setPreviewExam(null); }}
+                  onTouchStart={e => e.stopPropagation()}
+                  onTouchMove={e => e.stopPropagation()}
                 >
                   <div
                     style={{ background: 'var(--color-bg-white)', borderRadius: 'var(--border-radius-lg)', width: '100%', maxWidth: 420, boxShadow: 'var(--box-shadow-md)', maxHeight: isMobile ? '75vh' : '60vh', display: 'flex', flexDirection: 'column', overflow: 'hidden' }}
@@ -655,15 +666,21 @@ export default function MyPage() {
                                   {ja ? '公式ページ →' : 'Official page →'}
                                 </a>
                               )}
-                              <Button variant="primary" size="sm" onClick={() => {
-                                localStorage.setItem(`targetExam_${uid}`, exam);
-                                window.dispatchEvent(new CustomEvent('targetExamChanged', { detail: exam }));
-                                setTargetExam(exam);
-                                setShowExamSelect(false);
-                                setPreviewExam(null);
-                              }}>
-                                {ja ? 'この資格に設定' : 'Set as Target'}
-                              </Button>
+                              {targetExam === exam ? (
+                                <button disabled style={{ padding: '6px 14px', borderRadius: 'var(--border-radius-full)', border: '1px solid var(--color-border)', background: 'var(--color-bg-main)', color: 'var(--color-text-light)', fontSize: 13, cursor: 'default' }}>
+                                  {ja ? '設定中' : 'Current'}
+                                </button>
+                              ) : (
+                                <Button variant="primary" size="sm" onClick={() => {
+                                  localStorage.setItem(`targetExam_${uid}`, exam);
+                                  window.dispatchEvent(new CustomEvent('targetExamChanged', { detail: exam }));
+                                  setTargetExam(exam);
+                                  setShowExamSelect(false);
+                                  setPreviewExam(null);
+                                }}>
+                                  {ja ? 'この資格に設定' : 'Set as Target'}
+                                </Button>
+                              )}
                             </div>
                           </div>
                         );
