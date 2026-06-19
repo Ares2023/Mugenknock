@@ -407,7 +407,13 @@ export default function MyPage() {
         {tab === 'target' && (
           <>
             {/* 目標資格カード */}
-            <Card style={{ marginBottom: 12, cursor: 'pointer' }} onClick={() => { setPreviewExam(targetExam); setActiveLevel(targetExam ? (EXAM_LEVEL_MAP[targetExam] ?? 'Practitioner') : 'Practitioner'); setShowExamSelect(true); }}>
+            <Card style={{ marginBottom: 12, cursor: 'pointer' }} onClick={() => {
+  const initLevel = targetExam ? (EXAM_LEVEL_MAP[targetExam] ?? 'Practitioner') : 'Practitioner';
+  const initExam = targetExam ?? (EXAM_LEVELS.find(l => l.key === initLevel)?.exams[0] ?? null);
+  setActiveLevel(initLevel);
+  setPreviewExam(initExam as string | null);
+  setShowExamSelect(true);
+}}>
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
                   <span style={{ color: 'var(--color-text-sub)', display: 'flex', alignItems: 'center' }}><IconFlag size={13} /></span>
@@ -578,7 +584,7 @@ export default function MyPage() {
                   onTouchMove={e => e.stopPropagation()}
                 >
                   <div
-                    style={{ background: 'var(--color-bg-white)', borderRadius: 'var(--border-radius-lg)', width: '100%', maxWidth: 420, boxShadow: 'var(--box-shadow-md)', maxHeight: isMobile ? '75vh' : '60vh', display: 'flex', flexDirection: 'column', overflow: 'hidden' }}
+                    style={{ background: 'var(--color-bg-white)', borderRadius: 'var(--border-radius-lg)', width: '100%', maxWidth: 420, boxShadow: 'var(--box-shadow-md)', height: isMobile ? '75vh' : '60vh', display: 'flex', flexDirection: 'column', overflow: 'hidden' }}
                     onClick={e => e.stopPropagation()}
                   >
                     {/* ヘッダー */}
@@ -594,7 +600,12 @@ export default function MyPage() {
                       onTouchMove={e => e.stopPropagation()}
                     >
                       {EXAM_LEVELS.map(({ key, color }) => (
-                        <button key={key} onClick={() => { setActiveLevel(key); setPreviewExam(null); }} style={{
+                        <button key={key} onClick={() => {
+                          setActiveLevel(key);
+                          const levelDef = EXAM_LEVELS.find(l => l.key === key);
+                          const examInLevel = levelDef?.exams.find(e => e === targetExam) ?? levelDef?.exams[0] ?? null;
+                          setPreviewExam(examInLevel as string | null);
+                        }} style={{
                           padding: '10px 14px', background: 'none', border: 'none', cursor: 'pointer',
                           borderBottom: activeLevel === key ? `2px solid ${color}` : '2px solid transparent',
                           marginBottom: -2, color: activeLevel === key ? color : 'var(--color-text-sub)',
@@ -685,11 +696,6 @@ export default function MyPage() {
                           </div>
                         );
                       })()}
-                      {!previewExam && (
-                        <div style={{ padding: '24px 20px', textAlign: 'center', color: 'var(--color-text-light)', fontSize: 13 }}>
-                          {ja ? '資格カードを選択すると詳細が表示されます' : 'Select an exam card to see details'}
-                        </div>
-                      )}
                     </div>
                   </div>
                 </div>
