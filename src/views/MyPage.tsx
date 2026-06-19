@@ -13,6 +13,21 @@ import {
   IconSparkles, IconChevronRight, IconChevronDown, IconLock, IconFlag, IconStar, IconTrendingUp, IconPenLine, IconBook, IconBookOpenCheck,
 } from '../components/Icons';
 
+const EXAM_CATCHCOPY: Record<string, string> = {
+  CLF: 'クラウドへの、最初の一歩。',
+  AIF: 'AIの世界への入り口。',
+  SAA: 'AWS資格の定番、設計力の証明。',
+  DVA: '開発者の実践スキルを証明する。',
+  SOA: '運用のプロが持つべき一枚。',
+  DEA: 'データを動かす力を示す。',
+  DOP: 'DevOpsの頂点へ。',
+  SAP: 'アーキテクトとして最高峰を目指す。',
+  MLA: 'MLエンジニアとしての実力証明。',
+  GAI: '生成AIの最前線に立つ。',
+  ANS: 'ネットワークの深部を極める。',
+  SCS: 'セキュリティの番人になる。',
+};
+
 const EXAM_URLS: Record<string, string> = {
   CLF: 'https://aws.amazon.com/jp/certification/certified-cloud-practitioner/',
   SAA: 'https://aws.amazon.com/jp/certification/certified-solutions-architect-associate/',
@@ -654,6 +669,9 @@ export default function MyPage() {
                         return (
                           <div style={{ padding: '16px 20px 56px' }}>
                             <div style={{ marginBottom: 10 }}>
+                              {EXAM_CATCHCOPY[exam] && (
+                                <div style={{ fontSize: 11, color: 'var(--color-text-light)', fontStyle: 'italic', marginBottom: 4 }}>{EXAM_CATCHCOPY[exam]}</div>
+                              )}
                               <div style={{ fontWeight: 700, fontSize: 15, color: 'var(--color-text-main)', marginBottom: 2 }}>{cfg?.fullName ?? exam}</div>
                               <div style={{ fontSize: 11, color: levelColor, fontWeight: 600 }}>{activeLevel}</div>
                             </div>
