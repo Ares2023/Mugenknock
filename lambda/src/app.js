@@ -1137,7 +1137,9 @@ app.get('/users/me/question-stats', async (req, res) => {
     ]);
 
     const examQuestionIds = new Set((questionsResult.Items || []).map(q => q.questionId));
-    const answeredCount = (statsResult.Items || []).filter(s => examQuestionIds.has(s.questionId)).length;
+    const answeredCount = (statsResult.Items || [])
+      .filter(s => examQuestionIds.has(s.questionId))
+      .reduce((sum, s) => sum + (s.correctCount ?? 0) + (s.incorrectCount ?? 0), 0);
 
     res.json({ answeredCount });
   } catch (err) {
