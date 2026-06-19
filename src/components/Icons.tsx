@@ -358,13 +358,6 @@ export const IconCheck = ({ size = 16 }: { size?: number }) => (
   </svg>
 );
 
-export const IconCircleCheck = ({ size = 16 }: { size?: number }) => (
-  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-    <circle cx="12" cy="12" r="10"/>
-    <polyline points="9 12 11 14 15 10"/>
-  </svg>
-);
-
 export const IconCircleX = ({ size = 16 }: { size?: number }) => (
   <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
     <circle cx="12" cy="12" r="10"/>
