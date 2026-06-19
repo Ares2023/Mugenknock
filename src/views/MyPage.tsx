@@ -103,6 +103,20 @@ export default function MyPage() {
   const [editDailyGoal, setEditDailyGoal] = useState(10); // min=10
   const [showExamSelect, setShowExamSelect] = useState(false);
   const [previewExam, setPreviewExam] = useState<string | null>(null);
+  const [activeLevel, setActiveLevel] = useState<string>('Practitioner');
+
+  const EXAM_LEVELS = [
+    { key: 'Practitioner', color: '#6b9e3a', exams: ['CLF', 'AIF'] },
+    { key: 'Associate',    color: '#006CE0', exams: ['SAA', 'DVA', 'SOA', 'DEA', 'MLA'] },
+    { key: 'Professional', color: '#8b5cf6', exams: ['SAP', 'DOP', 'GAI'] },
+    { key: 'Specialty',    color: '#e67e22', exams: ['ANS', 'SCS'] },
+  ] as const;
+  const EXAM_LEVEL_MAP: Record<string, string> = {
+    CLF: 'Practitioner', AIF: 'Practitioner',
+    SAA: 'Associate', DVA: 'Associate', SOA: 'Associate', DEA: 'Associate', MLA: 'Associate',
+    SAP: 'Professional', DOP: 'Professional', GAI: 'Professional',
+    ANS: 'Specialty', SCS: 'Specialty',
+  };
 
   // ── ターゲット試験 ──
   const [targetExam, setTargetExam] = useState<string | null>(() => localStorage.getItem(`targetExam_${uid}`));
@@ -386,7 +400,7 @@ export default function MyPage() {
         {tab === 'target' && (
           <>
             {/* 目標資格カード */}
-            <Card style={{ marginBottom: 12, cursor: 'pointer' }} onClick={() => { setPreviewExam(targetExam); setShowExamSelect(true); }}>
+            <Card style={{ marginBottom: 12, cursor: 'pointer' }} onClick={() => { setPreviewExam(targetExam); setActiveLevel(targetExam ? (EXAM_LEVEL_MAP[targetExam] ?? 'Practitioner') : 'Practitioner'); setShowExamSelect(true); }}>
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
                   <span style={{ color: 'var(--color-text-sub)', display: 'flex', alignItems: 'center' }}><IconFlag size={13} /></span>
@@ -544,104 +558,118 @@ export default function MyPage() {
             )}
 
             {/* 目標資格選択オーバーレイ */}
-            {showExamSelect && (
-              <div
-                style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', zIndex: 1000, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16 }}
-                onClick={() => setShowExamSelect(false)}
-              >
+            {showExamSelect && (() => {
+              const currentLevelDef = EXAM_LEVELS.find(l => l.key === activeLevel) ?? EXAM_LEVELS[0];
+              const levelColor = currentLevelDef.color;
+              return (
                 <div
-                  style={{ background: 'var(--color-bg-white)', borderRadius: 'var(--border-radius-lg)', width: '100%', maxWidth: 420, boxShadow: 'var(--box-shadow-md)', maxHeight: isMobile ? '75vh' : '60vh', display: 'flex', flexDirection: 'column', overflow: 'hidden' }}
-                  onClick={e => e.stopPropagation()}
+                  style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', zIndex: 1000, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16 }}
+                  onClick={() => { setShowExamSelect(false); setPreviewExam(null); }}
                 >
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '20px 24px 0', flexShrink: 0 }}>
-                    <span style={{ margin: 0, fontSize: 'var(--font-size-h3)', fontWeight: 700, color: 'var(--color-accent)' }}>{ja ? '目標資格を選択' : 'Select Target Exam'}</span>
-                    <button onClick={() => setShowExamSelect(false)} style={{ border: 'none', background: 'none', fontSize: 20, cursor: 'pointer', color: 'var(--color-text-sub)', padding: '4px 8px', lineHeight: 1 }}>✕</button>
-                  </div>
-                  <div style={{ overflowY: 'auto', padding: '16px 24px 24px' }}>
-                  {[
-                    { label: 'Foundational', color: '#6b9e3a', exams: ['CLF', 'AIF'] },
-                    { label: 'Associate',    color: '#006CE0', exams: ['SAA', 'DVA', 'SOA', 'DEA', 'MLA'] },
-                    { label: 'Professional', color: '#8b5cf6', exams: ['SAP', 'DOP', 'GAI'] },
-                    { label: 'Specialty',   color: '#e67e22', exams: ['ANS', 'SCS'] },
-                  ].map(({ label, color, exams }) => (
-                    <div key={label} style={{ marginBottom: 14 }}>
-                      <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: '.06em', textTransform: 'uppercase', color, marginBottom: 6 }}>{label}</div>
-                      <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
-                        {exams.map(exam => {
-                          const cfg = EXAM_CONFIGS[exam];
-                          const isSelected = targetExam === exam;
-                          const isPreviewing = previewExam === exam;
-                          return (
-                            <div key={exam}>
-                              <button
-                                onClick={() => setPreviewExam(isPreviewing ? null : exam)}
-                                style={{
-                                  display: 'flex', alignItems: 'center', gap: 10, width: '100%',
-                                  padding: '10px 14px', borderRadius: isPreviewing ? '10px 10px 0 0' : 10,
-                                  cursor: 'pointer', textAlign: 'left',
-                                  background: isSelected ? 'var(--color-primary-light)' : isPreviewing ? 'var(--color-bg-main)' : 'var(--color-bg-card)',
-                                  border: `1.5px solid ${isSelected ? 'var(--color-primary)' : isPreviewing ? 'var(--color-border)' : 'var(--color-border)'}`,
-                                  borderBottom: isPreviewing ? 'none' : undefined,
-                                }}
-                              >
-                                <div style={{ flex: 1, minWidth: 0 }}>
-                                  <div style={{ fontWeight: 700, fontSize: 13, color: isSelected ? 'var(--color-primary)' : 'var(--color-text-main)' }}>{cfg?.examCode ?? exam}</div>
-                                  <div style={{ fontSize: 11, color: 'var(--color-text-sub)', marginTop: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{cfg?.fullName ?? ''}</div>
-                                </div>
-                                {isSelected && !isPreviewing && <span style={{ color: 'var(--color-primary)', fontSize: 14, fontWeight: 900, flexShrink: 0 }}>✓</span>}
-                                <span style={{ color: 'var(--color-text-light)', fontSize: 12, flexShrink: 0 }}>{isPreviewing ? '▲' : '▼'}</span>
-                              </button>
-                              {isPreviewing && (
-                                <div style={{ padding: '12px 14px 14px', background: 'var(--color-bg-main)', border: '1.5px solid var(--color-border)', borderTop: 'none', borderRadius: '0 0 10px 10px', marginBottom: 2 }}>
-                                  <p style={{ margin: '0 0 10px', fontSize: 12, color: 'var(--color-text-sub)', lineHeight: 1.7 }}>{EXAM_DESC[exam] ?? ''}</p>
-                                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: '4px 14px', marginBottom: 12 }}>
-                                    {[
-                                      { label: ja ? '試験コード' : 'Code',       value: cfg?.examCode ?? '' },
-                                      { label: ja ? '問題数'     : 'Questions',  value: `${cfg?.totalQuestions ?? '—'}${ja ? '問' : 'Q'}` },
-                                      { label: ja ? '試験時間'   : 'Duration',   value: `${cfg?.timeLimitMin ?? '—'}${ja ? '分' : 'min'}` },
-                                      { label: ja ? '合格ライン' : 'Pass Score', value: `${PASS_SCORES[exam] ?? '—'}/1000` },
-                                    ].map(({ label: lbl, value }) => (
-                                      <div key={lbl} style={{ display: 'flex', gap: 4, alignItems: 'baseline' }}>
-                                        <span style={{ fontSize: 10, color: 'var(--color-text-light)' }}>{lbl}:</span>
-                                        <span style={{ fontSize: 12, fontWeight: 700, color: 'var(--color-text-main)' }}>{value}</span>
-                                      </div>
-                                    ))}
-                                  </div>
-                                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8 }}>
-                                    {EXAM_URLS[exam] && (
-                                      <a href={EXAM_URLS[exam]} target="_blank" rel="noopener noreferrer" style={{ fontSize: 12, color: 'var(--color-primary)', textDecoration: 'none', fontWeight: 600 }}>
-                                        {ja ? '公式ページ →' : 'Official page →'}
-                                      </a>
-                                    )}
-                                    <Button variant="primary" size="sm" onClick={() => {
-                                      localStorage.setItem(`targetExam_${uid}`, exam);
-                                      window.dispatchEvent(new CustomEvent('targetExamChanged', { detail: exam }));
-                                      setTargetExam(exam);
-                                      setShowExamSelect(false);
-                                      setPreviewExam(null);
-                                    }}>
-                                      {ja ? 'この資格に設定' : 'Set as Target'}
-                                    </Button>
-                                  </div>
-                                </div>
-                              )}
-                            </div>
-                          );
-                        })}
-                      </div>
-                    </div>
-                  ))}
-                  {/* 現在設定中の資格を変更せず閉じる */}
-                  <button
-                    onClick={() => { setShowExamSelect(false); setPreviewExam(null); }}
-                    style={{ width: '100%', padding: '10px', background: 'none', border: 'none', cursor: 'pointer', fontSize: 13, color: 'var(--color-text-light)', marginTop: 4 }}
+                  <div
+                    style={{ background: 'var(--color-bg-white)', borderRadius: 'var(--border-radius-lg)', width: '100%', maxWidth: 420, boxShadow: 'var(--box-shadow-md)', maxHeight: isMobile ? '75vh' : '60vh', display: 'flex', flexDirection: 'column', overflow: 'hidden' }}
+                    onClick={e => e.stopPropagation()}
                   >
-                    {ja ? 'キャンセル' : 'Cancel'}
-                  </button>
-                  </div>{/* /scrollable content */}
+                    {/* ヘッダー */}
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '16px 20px 0', flexShrink: 0 }}>
+                      <span style={{ fontWeight: 700, fontSize: 16 }}>{ja ? '目標資格を選択' : 'Select Target Exam'}</span>
+                      <button onClick={() => { setShowExamSelect(false); setPreviewExam(null); }} style={{ border: 'none', background: 'none', fontSize: 20, cursor: 'pointer', color: 'var(--color-text-sub)', padding: '4px 8px', lineHeight: 1 }}>✕</button>
+                    </div>
+
+                    {/* レベルタブ */}
+                    <div style={{ display: 'flex', borderBottom: '2px solid var(--color-border)', flexShrink: 0, overflowX: 'auto' }}>
+                      {EXAM_LEVELS.map(({ key, color }) => (
+                        <button key={key} onClick={() => { setActiveLevel(key); setPreviewExam(null); }} style={{
+                          padding: '10px 14px', background: 'none', border: 'none', cursor: 'pointer',
+                          borderBottom: activeLevel === key ? `2px solid ${color}` : '2px solid transparent',
+                          marginBottom: -2, color: activeLevel === key ? color : 'var(--color-text-sub)',
+                          fontWeight: activeLevel === key ? 700 : 400, fontSize: 13, whiteSpace: 'nowrap', flexShrink: 0,
+                        }}>
+                          {key}
+                        </button>
+                      ))}
+                    </div>
+
+                    {/* 資格カード（横スクロール） */}
+                    <div style={{ display: 'flex', gap: 10, padding: '14px 20px', overflowX: 'auto', flexShrink: 0 }}>
+                      {currentLevelDef.exams.map(exam => {
+                        const isSelected = targetExam === exam;
+                        const isPreviewing = previewExam === exam;
+                        return (
+                          <button
+                            key={exam}
+                            onClick={() => setPreviewExam(isPreviewing ? null : exam)}
+                            style={{
+                              flexShrink: 0, width: 80, padding: '12px 6px 10px', cursor: 'pointer',
+                              borderRadius: 10, textAlign: 'center',
+                              border: `2px solid ${isPreviewing || isSelected ? levelColor : 'var(--color-border)'}`,
+                              background: isPreviewing ? levelColor : isSelected ? `${levelColor}18` : 'var(--color-bg-card)',
+                            }}
+                          >
+                            <div style={{ fontWeight: 800, fontSize: 18, color: isPreviewing ? '#fff' : isSelected ? levelColor : 'var(--color-text-main)', lineHeight: 1 }}>{exam}</div>
+                            <div style={{ fontSize: 9, color: isPreviewing ? 'rgba(255,255,255,0.8)' : 'var(--color-text-light)', marginTop: 4, lineHeight: 1.3 }}>
+                              {EXAM_CONFIGS[exam]?.examCode?.replace(exam + '-', '') ?? ''}
+                            </div>
+                            {isSelected && <div style={{ marginTop: 6, fontSize: 11, color: isPreviewing ? '#fff' : levelColor, fontWeight: 700 }}>✓</div>}
+                          </button>
+                        );
+                      })}
+                    </div>
+
+                    {/* 詳細パネル（スクロール可能） */}
+                    <div style={{ flex: 1, overflowY: 'auto', borderTop: '1px solid var(--color-border)' }}>
+                      {previewExam && (() => {
+                        const exam = previewExam;
+                        const cfg = EXAM_CONFIGS[exam];
+                        return (
+                          <div style={{ padding: '16px 20px 20px' }}>
+                            <div style={{ marginBottom: 10 }}>
+                              <div style={{ fontWeight: 700, fontSize: 15, color: 'var(--color-text-main)', marginBottom: 2 }}>{cfg?.fullName ?? exam}</div>
+                              <div style={{ fontSize: 11, color: levelColor, fontWeight: 600 }}>{activeLevel}</div>
+                            </div>
+                            <p style={{ margin: '0 0 12px', fontSize: 12, color: 'var(--color-text-sub)', lineHeight: 1.7 }}>{EXAM_DESC[exam] ?? ''}</p>
+                            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px 20px', marginBottom: 16, padding: '10px 12px', background: 'var(--color-bg-main)', borderRadius: 8 }}>
+                              {[
+                                { label: ja ? '試験コード' : 'Code',       value: cfg?.examCode ?? '' },
+                                { label: ja ? '問題数'     : 'Questions',  value: `${cfg?.totalQuestions ?? '—'}${ja ? '問' : 'Q'}` },
+                                { label: ja ? '試験時間'   : 'Duration',   value: `${cfg?.timeLimitMin ?? '—'}${ja ? '分' : 'min'}` },
+                                { label: ja ? '合格ライン' : 'Pass Score', value: `${PASS_SCORES[exam] ?? '—'}/1000` },
+                              ].map(({ label: lbl, value }) => (
+                                <div key={lbl}>
+                                  <div style={{ fontSize: 9, color: 'var(--color-text-light)', marginBottom: 2 }}>{lbl}</div>
+                                  <div style={{ fontSize: 13, fontWeight: 700, color: 'var(--color-text-main)' }}>{value}</div>
+                                </div>
+                              ))}
+                            </div>
+                            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8 }}>
+                              {EXAM_URLS[exam] && (
+                                <a href={EXAM_URLS[exam]} target="_blank" rel="noopener noreferrer" style={{ fontSize: 12, color: 'var(--color-primary)', textDecoration: 'none', fontWeight: 600 }}>
+                                  {ja ? '公式ページ →' : 'Official page →'}
+                                </a>
+                              )}
+                              <Button variant="primary" size="sm" onClick={() => {
+                                localStorage.setItem(`targetExam_${uid}`, exam);
+                                window.dispatchEvent(new CustomEvent('targetExamChanged', { detail: exam }));
+                                setTargetExam(exam);
+                                setShowExamSelect(false);
+                                setPreviewExam(null);
+                              }}>
+                                {ja ? 'この資格に設定' : 'Set as Target'}
+                              </Button>
+                            </div>
+                          </div>
+                        );
+                      })()}
+                      {!previewExam && (
+                        <div style={{ padding: '24px 20px', textAlign: 'center', color: 'var(--color-text-light)', fontSize: 13 }}>
+                          {ja ? '資格カードを選択すると詳細が表示されます' : 'Select an exam card to see details'}
+                        </div>
+                      )}
+                    </div>
+                  </div>
                 </div>
-              </div>
-            )}
+              );
+            })()}
           </>
         )}
 
