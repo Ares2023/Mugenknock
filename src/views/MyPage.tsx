@@ -711,8 +711,6 @@ export default function MyPage() {
                                     localStorage.setItem(`targetExam_${uid}`, exam);
                                     window.dispatchEvent(new CustomEvent('targetExamChanged', { detail: exam }));
                                     setTargetExam(exam);
-                                    setShowExamSelect(false);
-                                    setPreviewExam(null);
                                   }}
                                   style={{ width: 40, height: 40, borderRadius: '50%', border: `2px solid ${levelColor}`, background: 'var(--color-bg-white)', color: levelColor, display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}
                                 >
