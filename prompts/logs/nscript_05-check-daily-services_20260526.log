@@ -1,0 +1,49 @@
+=== 2026-05-26 03:17:52 | 05-check-daily-services.sh | exit:0 ===
+==========================================
+日めくりサービス体裁チェック開始: Tue May 26 03:00:10 JST 2026
+バッチサイズ: 20件 / チャンクサイズ: 5件
+==========================================
+チェック対象: 20件
+チャンク数: 4
+
+--- チャンク 1/4: 5件  開始=03:00:27 ---
+  [FIX  ] svc-cloudformation-16: descriptionとtriviaに複数の意味的区切りがあるが\nが未使用 → 変更: description, trivia
+  [FIX  ] svc-route-53-17: descriptionとtriviaに複数の意味的区切りがあるが\nが未使用 → 変更: description, trivia
+  [FIX  ] svc-detective-97: triviaの2文目と3文目（事実と覚え方）の間に\nが未使用 → 変更: trivia
+  [FIX  ] svc-translate-77: descriptionとtriviaに意味的区切りがあるが\nが未使用 → 変更: description, trivia
+  [FIX  ] svc-elb-35: descriptionとtriviaに意味的区切りがあるが\nが未使用 → 変更: description, trivia
+  → 更新完了: OK=0 修正=5 削除=0
+  終了=03:03:41  経過=194秒
+
+--- チャンク 2/4: 5件  開始=03:03:41 ---
+  [FIX  ] svc-glue-30: descriptionとtriviaに意味的な区切りがあるが改行なし → 変更: description, trivia
+  [FIX  ] svc-codebuild-61: descriptionとtriviaに複数の意味的区切りがあるが改行なし → 変更: description, trivia
+  [FIX  ] svc-iam-9: descriptionとtriviaに複数の意味的区切りがあるが改行なし → 変更: description, trivia
+  [FIX  ] svc-acm-69: descriptionとtriviaに意味的な区切りがあるが改行なし → 変更: description, trivia
+  [FIX  ] svc-codecommit-95: 「本アプリでも利用しています」とあるがCodeCommitはこのアプリ（Cognito/API Gateway/Lambda/DynamoDB/Amplify/S3）では未使用のため削除。descriptionとtriviaの改行も整理。 → 変更: description, trivia
+  → 更新完了: OK=0 修正=5 削除=0
+  終了=03:07:53  経過=252秒
+
+--- チャンク 3/4: 5件  開始=03:07:53 ---
+  [OK   ] svc-memorydb-73
+  [FIX  ] svc-msk-60: descriptionの試験ポイント行とtriviaの複数段落（名前の由来・企業事例・試験ポイント）に意味的区切りがあり\nが必要。triviaが150字超のため圧縮も実施。 → 変更: description, trivia
+  [DELETE] _schedule_: 全フィールドが空のプレースホルダーエントリ。IDが「_schedule_」であり実際のAWSサービスではない。
+  [FIX  ] svc-rekognition-67: triviaに企業活用例（NFL）と覚え方（Comprehendとの対比）という意味的区切りがあり\nが必要。 → 変更: trivia
+  [FIX  ] svc-ses-53: triviaに略称説明・SNS/SQS連携アーキテクチャ・DKIM/SPFセキュリティの3つの意味的区切りがあり\nが必要。 → 変更: trivia
+  → 更新完了: OK=1 修正=3 削除=1
+  終了=03:12:33  経過=280秒
+
+--- チャンク 4/4: 5件  開始=03:12:33 ---
+  [FIX  ] svc-privatelink-72: descriptionとtriviaに意味的区切りがあるが改行なし → 変更: description, trivia
+  [FIX  ] svc-cognito-21: descriptionとtriviaで複数ポイントを列挙しているが改行なし。triviaのアプリ利用言及はCognitoが実際に使用されているため内容は正確 → 変更: description, trivia
+  [FIX  ] svc-control-tower-63: descriptionとtriviaに意味的区切りがあるが改行なし → 変更: description, trivia
+  [FIX  ] svc-rds-7: descriptionとtriviaで複数ポイントを列挙しているが改行なし → 変更: description, trivia
+  [FIX  ] svc-ssm-33: descriptionとtriviaに意味的区切りがあるが改行なし → 変更: description, trivia
+  → 更新完了: OK=0 修正=5 削除=0
+  終了=03:15:42  経過=189秒
+
+完了サマリー: 問題なし=1件 / 自動修正=18件 / 削除=1件
+
+==========================================
+チェック終了: Tue May 26 03:15:42 JST 2026
+==========================================

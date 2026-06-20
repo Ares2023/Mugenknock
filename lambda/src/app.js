@@ -64,8 +64,14 @@ async function getDailyServicesAll(docClient) {
 const _examQuestionsCache = new Map(); // examType → { items, cachedAt }
 const EXAM_QUESTIONS_CACHE_TTL = 10 * 60 * 1000;
 
+// AIP は DynamoDB 上は GAI として保存されているためエイリアス解決
+const EXAM_TYPE_DB_ALIASES = { AIP: 'GAI' };
+function resolveExamTypeForDB(et) { return EXAM_TYPE_DB_ALIASES[et] || et; }
+
 async function getAllQuestionsForExam(docClient, examType) {
-  const cached = _examQuestionsCache.get(examType);
+  const dbType = resolveExamTypeForDB(examType);
+  const cacheKey = dbType;
+  const cached = _examQuestionsCache.get(cacheKey);
   if (cached && Date.now() - cached.cachedAt < EXAM_QUESTIONS_CACHE_TTL) {
     return cached.items;
   }
@@ -73,9 +79,9 @@ async function getAllQuestionsForExam(docClient, examType) {
     TableName: 'Questions',
     IndexName: 'examType-index',
     KeyConditionExpression: 'examType = :examType',
-    ExpressionAttributeValues: { ':examType': examType }
+    ExpressionAttributeValues: { ':examType': dbType }
   });
-  _examQuestionsCache.set(examType, { items, cachedAt: Date.now() });
+  _examQuestionsCache.set(cacheKey, { items, cachedAt: Date.now() });
   return items;
 }
 
@@ -213,7 +219,7 @@ app.get('/questions/growth-stats', async (req, res) => {
       ProjectionExpression: 'examType, createdAt, validityCheckedAt',
     });
     // AWS専用サイトのためAWS以外の試験種別（OCIAA等）を除外
-    const AWS_EXAM_TYPES = new Set(['CLF','AIF','SAA','DVA','SOA','DEA','MLA','SAP','DOP','GAI','ANS','SCS']);
+    const AWS_EXAM_TYPES = new Set(['CLF','AIF','SAA','DVA','SOA','DEA','MLA','SAP','DOP','GAI','AIP','ANS','SCS']);
     const items = allItems.filter(item => !item.examType || AWS_EXAM_TYPES.has(item.examType));
 
     // JST (UTC+9)

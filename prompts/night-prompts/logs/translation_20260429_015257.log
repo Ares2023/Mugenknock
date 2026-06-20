@@ -1,0 +1,15 @@
+==========================================
+英訳チェック開始: Wed Apr 29 01:52:57 JST 2026
+バッチサイズ: 30件 / チャンクサイズ: 5件
+==========================================
+
+▶ Questions テーブルを処理中...
+  チェック対象: 30問
+  チャンク数: 6
+  チャンク 1: 5件
+    [TRANSLATED] dop-11d62064
+    [TRANSLATED] clf-816b3ee9
+    [TRANSLATED] dop-1e3befd1
+    [FIXED     ] sap-q-014
+    [TRANSLATED] dop-efea0aca
+/home/yuzuki/aws-quiz-app/prompts/night-prompts/scripts/check-translation.sh: line 236: STATS: unbound variable

@@ -1,0 +1,82 @@
+==========================================
+英訳チェック開始: Mon May 11 03:37:44 JST 2026
+バッチサイズ: 30件 / チャンクサイズ: 5件
+==========================================
+
+▶ Questions テーブルを処理中...
+  チェック対象: 30問
+  チャンク数: 6
+  チャンク 1: 5件  開始=03:38:03
+    [TRANSLATED] gai-94af20c4
+    [TRANSLATED] mla-2a191c2d
+    [TRANSLATED] mla-2a628db0
+    [TRANSLATED] mla-468e0fc1
+    [TRANSLATED] gai-269b374b
+  終了=03:42:45  経過=282秒
+  チャンク 2: 5件  開始=03:42:45
+    [TRANSLATED] aif-5cd50d6e
+    [TRANSLATED] gai-251ff003
+    [TRANSLATED] gai-7c8017d4
+    [TRANSLATED] gai-cb09bfc7
+    [TRANSLATED] aif-ed8a71c2
+  終了=03:46:51  経過=246秒
+  チャンク 3: 5件  開始=03:46:51
+    [TRANSLATED] mla-e9dd1039
+    [TRANSLATED] gai-7fb3fc5f
+    [TRANSLATED] gai-090f6ac5
+    [TRANSLATED] mla-223c62d4
+    [TRANSLATED] mla-0c554f57
+  終了=03:51:14  経過=263秒
+  チャンク 4: 5件  開始=03:51:14
+    [TRANSLATED] gai-ec4f7367
+    [TRANSLATED] aif-33e90854
+    [TRANSLATED] gai-e3b9470b
+    [TRANSLATED] mla-0c7cc83e
+    [TRANSLATED] aif-0eeb23ac
+  終了=03:53:24  経過=130秒
+  チャンク 5: 5件  開始=03:53:25
+    [TRANSLATED] mla-e19f5b87
+    [TRANSLATED] mla-51fbbeac
+    [TRANSLATED] gai-c3e2a9d3
+    [TRANSLATED] mla-f8c0016d
+    [TRANSLATED] mla-eef4b450
+  終了=03:55:39  経過=134秒
+  チャンク 6: 5件  開始=03:55:39
+    [TRANSLATED] gai-d34783fe
+    [TRANSLATED] aif-ea53e53a
+    [TRANSLATED] mla-c885de76
+    [TRANSLATED] aif-b5dc3e13
+    [TRANSLATED] aif-2652205d
+  終了=03:57:42  経過=123秒
+
+  Questions 完了: OK=0 / 修正=0 / 新規翻訳=30
+
+▶ Tips テーブルを処理中...
+  チェック対象: 30件
+  チャンク数: 6
+  チャンク 1: 5件  開始=03:57:58
+    [OK        ] 380971e1-06e8-40db-8bb6-3605bb539002
+    [OK        ] 2c1acbe3-8cb7-4964-98b0-05dce96dda7a
+    [OK        ] b27fe3f4-0d89-4411-8b28-872310870ddc
+    [OK        ] d44edd7b-11d3-471b-b8fa-2a7cebbd1bd2
+    [OK        ] 9ade1c46-f4dd-4942-a7e8-001f90269a22
+  終了=03:59:46  経過=108秒
+  チャンク 2: 5件  開始=03:59:46
+    [OK        ] 08aca284-0d48-4833-959d-2a75e8b5209b
+    [OK        ] 7db90ede-079d-4155-829b-79601208e000
+    [OK        ] 8b74d197-cc3a-4f22-9b61-4350c5e3fb0b
+    [OK        ] 9990eb1f-8ea3-4628-a31b-16ec91a2fdb3
+    [OK        ] 06868110-c303-4937-b9c1-b0e83b0b4c61
+  終了=04:01:24  経過=98秒
+  チャンク 3: 5件  開始=04:01:24
+    [OK        ] 1dc488a9-8fed-4152-954c-083fdaf9af39
+    [OK        ] d22c474a-e62d-4e01-ad16-48e0fab40a68
+    [OK        ] 98b2eb49-22cc-40c0-98c9-7aae4f9ce025
+    [OK        ] 838c1b7a-1cbc-41c0-9a5f-49b5144a3914
+    [OK        ] 00787fe4-833d-47d6-b7f4-b7fdf8ac7490
+  終了=04:03:05  経過=101秒
+  チャンク 4: 5件  開始=04:03:05
+  ⚠️  レート制限を検出。Tipsの残りチャンクをスキップ
+
+  Tips 完了: OK=15 / 更新=0
+  レート制限/終了時刻によりReleasesをスキップ

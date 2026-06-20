@@ -1,0 +1,53 @@
+==========================================
+日めくりサービス体裁チェック開始: Thu Jun  4 06:32:07 JST 2026
+バッチサイズ: 30件 / チャンクサイズ: 8件
+==========================================
+チェック対象: 30件
+チャンク数: 4
+
+--- チャンク 1/4: 8件  開始=06:32:23 ---
+  [FIX  ] svc-trusted-advisor-71: triviaに2つの独立した事実が含まれるが\nで区切られていない → 変更: trivia
+  [FIX  ] b3d71a09-b495-4573-933f-34be6cbdb9b5: descriptionに3文・triviaに2文あるが\nで区切られていない → 変更: description, trivia
+  [OK   ] svc-cloudformation-16
+  [OK   ] svc-route-53-17
+  [OK   ] svc-detective-97
+  [OK   ] svc-translate-77
+  [OK   ] svc-elb-35
+  [OK   ] svc-glue-30
+  → 更新完了: OK=6 修正=2 削除=0
+  終了=06:37:48  経過=325秒
+
+--- チャンク 2/4: 8件  開始=06:37:48 ---
+  [OK   ] svc-codebuild-61
+  [OK   ] svc-iam-9
+  [OK   ] svc-acm-69
+  [OK   ] svc-codecommit-95
+  [FIX  ] svc-memorydb-73: descriptionとtriviaで複数特徴/事実が\n区切りなしに連結されている。 → 変更: description, trivia
+  [FIX  ] svc-msk-60: descriptionの1・2文目間、triviaの各行内2事実間に\n区切りが欠落している。 → 変更: description, trivia
+  [FIX  ] svc-rekognition-67: descriptionで2つの特徴が\n区切りなしに連結されている。 → 変更: description
+  [FIX  ] svc-ses-53: descriptionの2文間、triviaの1行目内2事実間に\n区切りが欠落している。 → 変更: description, trivia
+  → 更新完了: OK=4 修正=4 削除=0
+  終了=06:45:05  経過=437秒
+
+--- チャンク 3/4: 8件  開始=06:45:05 ---
+  [OK   ] svc-privatelink-72
+  [FIX  ] svc-cognito-21: descriptionが127字で上限120字を超過。簡潔化して115字に短縮。 → 変更: description
+  [OK   ] svc-control-tower-63
+  [FIX  ] svc-rds-7: descriptionが128字で上限120字を超過。エンジン列挙とLine2を圧縮して112字に短縮。 → 変更: description
+  [OK   ] svc-ssm-33
+  [FIX  ] svc-x-ray-47: descriptionとtriviaに複数特徴/事実があるが\n区切りがない。 → 変更: description, trivia
+  [FIX  ] svc-efs-31: descriptionとtriviaに複数特徴/事実があるが\n区切りがない。 → 変更: description, trivia
+  [FIX  ] svc-lake-formation-58: descriptionとtriviaに複数特徴/事実があるが\n区切りがない。 → 変更: description, trivia
+  → 更新完了: OK=3 修正=5 削除=0
+  終了=06:53:25  経過=500秒
+
+--- チャンク 4/4: 6件  開始=06:53:25 ---
+⚠️  チャンク 4 でエラー（exit 1）。このチャンクをスキップして続行
+stderr: 
+stdout: You've hit your session limit · resets 11:30am (Asia/Tokyo)
+
+完了サマリー: 問題なし=13件 / 自動修正=11件 / 削除=0件
+
+==========================================
+チェック終了: Thu Jun  4 06:53:26 JST 2026
+==========================================

@@ -1,0 +1,132 @@
+==========================================
+体裁チェック開始: Fri May 29 19:31:33 JST 2026
+処理数: 100問 / チャンク: 20問 / モデル: haiku
+==========================================
+対象: 100問
+チャンク数: 5
+
+--- チャンク 1/5: 20問  開始=19:31:57 ---
+  [OK ] ans-25727136
+  [FIX] scs-3d11ebc3: explanation
+  [FIX] gai-547b00ad: explanation
+  [FIX] sap-3fe46bec: explanation
+  [FIX] scs-5af72084: explanation
+  [FIX] dea-3daf0d69: explanation
+  [FIX] scs-6e784f51: explanation
+  [FIX] soa-dceca557: explanation
+  [FIX] sap-7ed76ad2: explanation
+  [FIX] dop-q-065: explanation
+  [FIX] sap-b03d37f8: explanation
+  [FIX] gai-dacf5492: explanation
+  [FIX] dop-3c679c15: explanation
+  [FIX] sap-5835b896: explanation
+  [FIX] mla-e0ee4d60: explanation
+  [FIX] dop-0ca005d6: explanation
+  [FIX] clf-187a2f79: explanation
+  [FIX] mla-c7bffa6e: explanation
+  [FIX] ans-afb5bafc: explanation
+  [FIX] sap-d20aab43: explanation
+  → 完了: OK=1 修正=19
+  終了=19:40:50  経過=533秒
+
+--- チャンク 2/5: 20問  開始=19:40:50 ---
+  [FIX] aif-0f115d77: explanation
+  [FIX] ans-68a95766: explanation
+  [FIX] soa-9fd4857d: explanation
+  [FIX] sap-bc9ea176: explanation
+  [FIX] saa-3c0b67f2: explanation
+  [FIX] soa-4055fffc: explanation
+  [FIX] aif-d6cf35a4: explanation
+  [FIX] mla-2ab4ee3b: explanation
+  [FIX] aif-c92b2ba5: explanation
+  [FIX] soa-a5db4de7: choices, explanation
+  [FIX] sap-27573dcf: explanation
+  [FIX] soa-fbdf3702: explanation
+  [FIX] dop-q-022: explanation
+  [FIX] soa-3a8e5e4b: explanation
+  [FIX] mla-9a36183f: explanation
+  [FIX] dop-dbfeb286: explanation
+  [FIX] ans-94a8dfad: explanation
+  [FIX] clf-292faf68: explanation
+  [FIX] clf-50f25e4f: explanation
+  [FIX] ans-4908d14c: explanation
+  → 完了: OK=0 修正=20
+  終了=19:48:39  経過=469秒
+
+--- チャンク 3/5: 20問  開始=19:48:39 ---
+  [FIX] sap-eac9c2c5: explanation
+  [FIX] sap-8784c5e6: explanation
+  [FIX] saa-4d47a278: explanation
+  [FIX] mla-20cc8dd3: explanation
+  [FIX] mla-448ff39d: explanation
+  [FIX] aif-491d7b1a: explanation
+  [FIX] dva-21ae75af: explanation
+  [FIX] soa-c2cf5c4c: explanation
+  [FIX] soa-b19b75d7: explanation
+  [FIX] dva-91cb3918: explanation
+  [FIX] dop-9d60aa14: explanation
+  [FIX] aif-520e03f2: explanation
+  [FIX] saa-19379dd6: explanation
+  [FIX] clf-bc7a49cd: explanation
+  [FIX] soa-c2c8f05f: explanation
+  [FIX] saa-9e3322cc: explanation
+  [FIX] mla-39160d92: explanation
+  [FIX] clf-2f888b83: explanation
+  [FIX] dop-f9412469: explanation
+  [FIX] ans-a2efbabb: explanation
+  → 完了: OK=0 修正=20
+  終了=19:56:45  経過=486秒
+
+--- チャンク 4/5: 20問  開始=19:56:45 ---
+  [FIX] dop-a525c25a: explanation
+  [OK ] dea-b0d9885b
+  [FIX] aif-0571e3c4: explanation
+  [FIX] dop-d97aaacf: explanation
+  [FIX] dop-q-044: explanation
+  [FIX] gai-d9eef391: explanation
+  [FIX] soa-d94eadc5: explanation
+  [FIX] sap-7445d7ca: explanation
+  [FIX] dva-1888809f: explanation
+  [FIX] soa-c1a26ad9: explanation
+  [FIX] dop-31bc38ba: explanation
+  [FIX] soa-1203c5ff: explanation
+  [FIX] saa-d0f18f9d: explanation
+  [FIX] sap-d8b072a5: explanation
+  [FIX] dea-1f2ca9bb: explanation
+  [FIX] dop-q-018: explanation
+  [FIX] gai-7d2d7ff9: explanation
+  [FIX] dva-55c17298: explanation
+  [FIX] dop-9007bcbb: explanation
+  [FIX] gai-de9dc00e: explanation
+  → 完了: OK=1 修正=19
+  終了=20:05:27  経過=522秒
+
+--- チャンク 5/5: 20問  開始=20:05:27 ---
+  [OK ] sap-fd9de3af
+  [OK ] dea-059e8d46
+  [FIX] dop-q-059: explanation
+  [OK ] ans-43534bc3
+  [FIX] aif-b8e97ae3: explanation
+  [FIX] soa-99fd7d89: explanation
+  [FIX] dva-e961986e: explanation
+  [FIX] soa-4835cece: explanation
+  [OK ] dop-672e52a2
+  [FIX] aif-300d9495: explanation
+  [FIX] dop-c06a40a2: explanation
+  [FIX] dop-5f625125: explanation
+  [OK ] soa-0552ad15
+  [FIX] gai-2c6582c6: explanation
+  [FIX] aif-c46becc5: explanation
+  [FIX] clf-42e766a2: explanation
+  [FIX] mla-215f57eb: explanation
+  [OK ] saa-9f2bcb78
+  [FIX] scs-a0e59d00: explanation
+  [FIX] mla-a54db76c: explanation
+  → 完了: OK=6 修正=14
+  終了=20:13:03  経過=456秒
+
+完了サマリー: 体裁OK=8問 / 修正=92問
+
+==========================================
+体裁チェック終了: Fri May 29 20:13:03 JST 2026
+==========================================

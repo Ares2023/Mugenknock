@@ -1,0 +1,12 @@
+=== 2026-06-10 05:41:10 | 03-check-reports.sh | exit:1 ===
+==========================================
+通報チェック開始: Wed Jun 10 05:30:08 JST 2026
+関連問題チェック: ドメインあたり最大 10問
+==========================================
+通報件数: 2件 / 関連問題: 10問
+Claude 判定対象: 通報=2件 / 関連=10問
+Traceback (most recent call last):
+  File "<stdin>", line 61, in <module>
+NameError: name 'q_domain_name' is not defined
+⚠️  Claude でエラー（exit 1）
+stderr: Error: Input must be provided either through stdin or as a prompt argument when using --print

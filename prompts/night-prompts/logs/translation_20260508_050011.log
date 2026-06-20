@@ -1,0 +1,123 @@
+==========================================
+英訳チェック開始: Fri May  8 05:00:11 JST 2026
+バッチサイズ: 30件 / チャンクサイズ: 5件
+==========================================
+
+▶ Questions テーブルを処理中...
+  チェック対象: 30問
+  チャンク数: 6
+  チャンク 1: 5件  開始=05:00:28
+    [TRANSLATED] saa-f0b32b3b
+    [TRANSLATED] saa-8a9367dd
+    [TRANSLATED] dop-5aa38463
+    [FIXED     ] dop-q-036
+    [TRANSLATED] clf-3b7e22c2
+  終了=05:03:03  経過=155秒
+  チャンク 2: 5件  開始=05:03:03
+    [TRANSLATED] clf-26125874
+    [TRANSLATED] saa-b271f787
+    [FIXED     ] dop-q-010
+    [FIXED     ] sap-q-005
+    [FIXED     ] sap-q-003
+  終了=05:05:39  経過=156秒
+  チャンク 3: 5件  開始=05:05:39
+    [TRANSLATED] dop-edc9aef5
+    [FIXED     ] dop-q-029
+    [OK        ] saa-q-extra-015
+    [TRANSLATED] saa-a36a38a1
+    [TRANSLATED] clf-d386c604
+  終了=05:07:51  経過=132秒
+  チャンク 4: 5件  開始=05:07:51
+    [TRANSLATED] sap-27573dcf
+    [FIXED     ] dop-q-022
+    [TRANSLATED] sap-8784c5e6
+    [TRANSLATED] saa-19379dd6
+    [TRANSLATED] clf-2f888b83
+  終了=05:11:56  経過=245秒
+  チャンク 5: 5件  開始=05:11:56
+    [TRANSLATED] dop-f9412469
+    [TRANSLATED] dop-d97aaacf
+    [FIXED     ] dop-q-044
+    [FIXED     ] dop-q-018
+    [TRANSLATED] dop-9007bcbb
+  終了=05:15:00  経過=184秒
+  チャンク 6: 5件  開始=05:15:00
+    [TRANSLATED] sap-fd9de3af
+    [FIXED     ] dop-q-059
+    [TRANSLATED] dop-672e52a2
+    [TRANSLATED] clf-42e766a2
+    [TRANSLATED] saa-9f2bcb78
+  終了=05:17:59  経過=179秒
+
+  Questions 完了: OK=1 / 修正=9 / 新規翻訳=20
+
+▶ Tips テーブルを処理中...
+  チェック対象: 30件
+  チャンク数: 6
+  チャンク 1: 5件  開始=05:18:15
+    [OK        ] b591140e-71e7-460a-9908-7f5b8a8d07f8
+    [UPDATED   ] b9e5d2fd-8bde-4f49-a15f-d7f76326a37e
+    [OK        ] 8706d8b8-dbe7-4f2c-a427-c60bf04a768a
+    [OK        ] 009a5949-a6a4-402f-ad93-e819b19d6e6a
+    [OK        ] 49ba5e11-b11b-43b5-8b2c-dc3879866849
+  終了=05:20:13  経過=118秒
+  チャンク 2: 5件  開始=05:20:13
+    [OK        ] ce72e772-f4fd-4ebd-8834-99b4173c0060
+    [OK        ] 19f0c257-3fa5-46ab-ad70-4da074d8e046
+    [OK        ] 37bb82d4-5081-4b9e-82fc-2cddb87d8bad
+    [OK        ] 9b9dca6e-a856-4d79-9221-bea6517322bb
+    [OK        ] 83e79919-c59e-4a9f-bee4-ef1f0adf2eee
+  終了=05:21:48  経過=95秒
+  チャンク 3: 5件  開始=05:21:48
+    [OK        ] 9bc2b48a-2d5d-42bd-ae5b-88581837ba05
+    [OK        ] 3773b60c-b156-4799-b088-8c62a67e9cc1
+    [OK        ] ef3c7834-30a7-4bbd-ad13-2136f20758dd
+    [OK        ] 90b726b5-4c93-4bdf-997a-1b7b6ab0d816
+    [OK        ] fad548fc-079e-4dea-ad62-4ac9a371f7db
+  終了=05:23:44  経過=116秒
+  チャンク 4: 5件  開始=05:23:44
+    [OK        ] f5ac2671-fe4f-4d48-bfab-d01adec157f4
+    [OK        ] e182c221-3739-42ed-8b3d-1773e4d7968e
+    [OK        ] db51b468-75ae-4270-87a9-aa76e82bf6a5
+    [OK        ] d48f1af7-3509-4e58-a578-1a1928e6c0f5
+    [OK        ] 5d953dd4-9cce-4d72-bff5-84ec2f1a2d90
+  終了=05:25:46  経過=122秒
+  チャンク 5: 5件  開始=05:25:46
+    [OK        ] 58782dd9-9ad7-4e7d-8d15-a72eda00bfc7
+    [OK        ] 53d21080-eb8e-4e92-a505-fb15bcb2e2ec
+    [OK        ] bf7c9b72-914e-4296-a0ca-b3afedfbbbee
+    [OK        ] 9c5d05e4-68fa-4aa5-b6ff-655568f98527
+    [OK        ] 72437ba8-b858-4492-91ce-ceb0694fc181
+  終了=05:27:30  経過=104秒
+  チャンク 6: 5件  開始=05:27:30
+    [OK        ] ce480295-07da-4e0d-b2d9-16aa1582ac1f
+    [OK        ] 7d3ddbdb-9197-47db-8d2b-6185c73dc7b2
+    [OK        ] 959315ef-024d-4203-8ff1-6d313d3a7190
+    [OK        ] a6f8030b-1c47-4f4e-b7a0-380f29620856
+    [OK        ] 0242d341-9465-4ee9-8c30-e54851486355
+  終了=05:29:19  経過=109秒
+
+  Tips 完了: OK=29 / 更新=1
+
+▶ Releases テーブルを処理中...
+  チェック対象: 9件
+  チャンク数: 2
+  チャンク 1: 5件  開始=05:29:34
+    [OK        ] 1b896688-27ee-406e-89d4-54bb0fc8711a
+    [OK        ] 654ed42c-f4de-45de-bc82-f5c4e5bb3cd9
+    [OK        ] 3a862fc8-12bd-44a0-98aa-444f50e9fcd8
+    [OK        ] f71142c0-5666-41eb-93a7-5dfe7f3660a9
+    [OK        ] 8b98b943-0a01-4224-91d8-68cc97827502
+  終了=05:31:36  経過=122秒
+  チャンク 2: 4件  開始=05:31:36
+    [OK        ] 3e609e9d-1369-4b37-8305-6c9e9f0bb055
+    [OK        ] 0b18c9a7-6dc1-4c00-9541-9a77cea73747
+    [OK        ] 90d02f24-3211-4f24-b224-8154394d4f93
+    [OK        ] fa0c698a-5fc0-4f3f-ba57-955c91ade774
+  終了=05:33:12  経過=96秒
+
+  Releases 完了: OK=9 / 更新=0
+
+==========================================
+英訳チェック終了: Fri May  8 05:33:12 JST 2026
+==========================================

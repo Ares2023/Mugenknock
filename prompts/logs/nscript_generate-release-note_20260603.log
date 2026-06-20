@@ -1,0 +1,42 @@
+=== 2026-06-03 00:56:15 | generate-release-note.sh | exit:1 ===
+[release-note] 対象日: 2026-06-02
+[release-note] コミット数: 15
+[release-note] Claudeでリリースノートを生成中...
+[release-note] 生成結果:
+{
+  "title": "マイページが生まれ変わった！目標管理がもっと直感的に！",
+  "body": "毎日の演習目標がホーム画面からひと目でわかるバーで確認できるようになり、マイページのレイアウトも全面リニューアルされました！\n目標問題数の設定もカウンター操作に変わり、タップだけでサクサク調整できます。",
+  "titleEn": "My Page Revamped — Daily Goal Tracking Made Effortless!",
+  "bodyEn": "Your daily practice goal is now front and center on the home screen with a vivid progress bar, and My Page has been fully redesigned for a cleaner, more intuitive experience.\nSetting your daily question target is now a breeze with the new counter UI."
+}
+[release-note] ERROR: JSONパースに失敗しました: Invalid control character at: line 3 column 74 (char 117)
+出力内容:
+{
+  "title": "マイページが生まれ変わった！目標管理がもっと直感的に！",
+  "body": "毎日の演習目標がホーム画面からひと目でわかるバーで確認できるようになり、マイページのレイアウトも全面リニューアルされました！
+目標問題数の設定もカウンター操作に変わり、タップだけでサクサク調整できます。",
+  "titleEn": "My Page Revamped — Daily Goal Tracking Made Effortless!",
+  "bodyEn": "Your daily practice goal is now front and center on the home screen with a vivid progress bar, and My Page has been fully redesigned for a cleaner, more intuitive experience.
+Setting your daily question target is now a breeze with the new counter UI."
+}
+=== 2026-06-03 06:04:00 | generate-release-note.sh | exit:1 ===
+[release-note] 対象日: 2026-06-02
+[release-note] コミット数: 15
+[release-note] Claudeでリリースノートを生成中...
+[release-note] 生成結果:
+{
+  "title": "マイページを全面リニューアル！目標設定がもっと直感的に！",
+  "body": "日次目標の演習量をカウンターUIでサクッと設定できるようになり、マイページ全体のデザインも見やすく刷新しました！\n苦手ドメインのグラフがアニメーション表示に、解説も選択肢ごとにスッキリまとまって、学習体験がぐっと快適になります。",
+  "titleEn": "My Page Redesigned & Smarter Goal Setting!",
+  "bodyEn": "Set your daily practice goal with a simple counter UI, and enjoy a fully redesigned My Page with a cleaner layout.\nWeak domain bars now animate beautifully, and answer explanations are reorganized per choice for a smoother study experience."
+}
+[release-note] ERROR: JSONパースに失敗しました: Invalid control character at: line 3 column 68 (char 112)
+出力内容:
+{
+  "title": "マイページを全面リニューアル！目標設定がもっと直感的に！",
+  "body": "日次目標の演習量をカウンターUIでサクッと設定できるようになり、マイページ全体のデザインも見やすく刷新しました！
+苦手ドメインのグラフがアニメーション表示に、解説も選択肢ごとにスッキリまとまって、学習体験がぐっと快適になります。",
+  "titleEn": "My Page Redesigned & Smarter Goal Setting!",
+  "bodyEn": "Set your daily practice goal with a simple counter UI, and enjoy a fully redesigned My Page with a cleaner layout.
+Weak domain bars now animate beautifully, and answer explanations are reorganized per choice for a smoother study experience."
+}

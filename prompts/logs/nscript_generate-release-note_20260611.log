@@ -1,0 +1,11 @@
+=== 2026-06-11 05:04:16 | generate-release-note.sh | exit:0 ===
+[release-note] 対象日: 2026-06-10
+[release-note] 2026-06-10: 1件のコミット
+[release-note] 生成結果:
+{
+  "title": "コンテンツがさらに充実！読み物ページが新登場！",
+  "body": "AWS学習に役立つ解説コンテンツページを3種類追加しました！\nクイズに挑戦する前後の予習・復習にもぜひご活用ください。",
+  "titleEn": "New Content Pages Added to Power Up Your AWS Learning!",
+  "bodyEn": "We've added three new informational content pages to help you deepen your AWS knowledge!\nUse them to prepare before a quiz or review what you've learned afterward."
+}
+[release-note] ✓ DynamoDBに挿入しました: 2026-06-10 — コンテンツがさらに充実！読み物ページが新登場！

@@ -1,0 +1,11 @@
+==========================================
+体裁チェック開始: Thu May 28 13:27:52 JST 2026
+処理数: 2問 / チャンク: 10問
+==========================================
+対象: 2問
+チャンク数: 1
+
+--- チャンク 1/1: 2問  開始=13:28:26 ---
+❌ claude 実行エラー。スクリプトを終了します
+stderr: When using Gemini API, you must specify the GEMINI_API_KEY environment variable.
+Update your environment and try again (no reload needed if using .env)!

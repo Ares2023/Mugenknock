@@ -1,0 +1,89 @@
+==========================================
+問題自動生成 開始: Fri May 22 13:52:27 JST 2026
+==========================================
+対象資格: CLF SAA SAP DVA SOA DOP AIF MLA GAI
+指定資格: CLF
+ドメイン数: 4  /  基本 5問/ドメイン（重み付きで配分）  /  合計予算 20問
+開始ドメイン: [0] クラウドの概念
+
+--- Cognito 認証中 ---
+✓ 認証完了
+
+--- ドメイン別問題数を取得・割り当て計算中 ---
+  クラウドの概念: 47問
+  請求、料金、およびサポート: 49問
+  セキュリティとコンプライアンス: 56問
+  クラウドのテクノロジーとサービス: 64問
+
+ドメイン別生成数（逆数重み付き割り当て）:
+  6問 → クラウドの概念 (現在47問)
+  5問 → セキュリティとコンプライアンス (現在56問)
+  5問 → 請求、料金、およびサポート (現在49問)
+  4問 → クラウドのテクノロジーとサービス (現在64問)
+  合計: 20問
+Traceback (most recent call last):
+  File "<stdin>", line 4, in <module>
+  File "/usr/lib/python3.12/json/__init__.py", line 293, in load
+    return loads(fp.read(),
+           ^^^^^^^^^^^^^^^^
+  File "/usr/lib/python3.12/json/__init__.py", line 346, in loads
+    return _default_decoder.decode(s)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/lib/python3.12/json/decoder.py", line 340, in decode
+    raise JSONDecodeError("Extra data", s, end)
+json.decoder.JSONDecodeError: Extra data: line 1 column 335 (char 334)
+
+--- [クラウドの概念] 問 生成中 --- 開始=13:53:01
+  [クラウドの概念] 合計 0/問 インポート
+  終了=13:53:01  経過=0秒
+Traceback (most recent call last):
+  File "<stdin>", line 4, in <module>
+  File "/usr/lib/python3.12/json/__init__.py", line 293, in load
+    return loads(fp.read(),
+           ^^^^^^^^^^^^^^^^
+  File "/usr/lib/python3.12/json/__init__.py", line 346, in loads
+    return _default_decoder.decode(s)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/lib/python3.12/json/decoder.py", line 340, in decode
+    raise JSONDecodeError("Extra data", s, end)
+json.decoder.JSONDecodeError: Extra data: line 1 column 335 (char 334)
+
+--- [セキュリティとコンプライアンス] 問 生成中 --- 開始=13:53:02
+  [セキュリティとコンプライアンス] 合計 0/問 インポート
+  終了=13:53:02  経過=1秒
+Traceback (most recent call last):
+  File "<stdin>", line 4, in <module>
+  File "/usr/lib/python3.12/json/__init__.py", line 293, in load
+    return loads(fp.read(),
+           ^^^^^^^^^^^^^^^^
+  File "/usr/lib/python3.12/json/__init__.py", line 346, in loads
+    return _default_decoder.decode(s)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/lib/python3.12/json/decoder.py", line 340, in decode
+    raise JSONDecodeError("Extra data", s, end)
+json.decoder.JSONDecodeError: Extra data: line 1 column 335 (char 334)
+
+--- [クラウドのテクノロジーとサービス] 問 生成中 --- 開始=13:53:02
+  [クラウドのテクノロジーとサービス] 合計 0/問 インポート
+  終了=13:53:02  経過=0秒
+Traceback (most recent call last):
+  File "<stdin>", line 4, in <module>
+  File "/usr/lib/python3.12/json/__init__.py", line 293, in load
+    return loads(fp.read(),
+           ^^^^^^^^^^^^^^^^
+  File "/usr/lib/python3.12/json/__init__.py", line 346, in loads
+    return _default_decoder.decode(s)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/lib/python3.12/json/decoder.py", line 340, in decode
+    raise JSONDecodeError("Extra data", s, end)
+json.decoder.JSONDecodeError: Extra data: line 1 column 335 (char 334)
+
+--- [請求、料金、およびサポート] 問 生成中 --- 開始=13:53:02
+  [請求、料金、およびサポート] 合計 0/問 インポート
+  終了=13:53:02  経過=0秒
+
+合計インポート: 0問 / 20問
+
+==========================================
+完了: Fri May 22 13:53:02 JST 2026
+==========================================

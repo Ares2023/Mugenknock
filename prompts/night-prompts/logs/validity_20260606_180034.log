@@ -1,0 +1,33 @@
+==========================================
+正当性チェック開始: Sat Jun  6 18:00:34 JST 2026
+バッチサイズ: 100問 / チャンクサイズ: 5問
+==========================================
+チェック対象: 100問
+前処理: choices ラベル接頭辞チェック...
+  前処理: ラベル接頭辞なし（全問クリーン）
+チャンク数: 20
+
+--- チャンク 1/20: 5問  開始=18:01:05 ---
+  [OK   ] mla-9d17cb63
+  [OK   ] aif-e535ee5c
+  [FIX  ] mla-c7bffa6e: 解説冒頭に「正解：C.」と誤った記述があり正解がCのみと誤解される（正解はBとC）。選択肢Bの正解理由も欠落しているため解説を修正。 → 変更: explanation
+  [FIX  ] aif-6085a844: 正解選択肢B（約114文字）が不正解の平均（約64文字）より著しく長く文字数から正解が推測できる。各選択肢の文字数を揃える。 → 変更: choices, correctAnswers, choiceExplanations
+  [FIX  ] aif-770361f5: 解説中「選択肢ATF-IDFは」の表記ミス（「の」が脱落）を修正。 → 変更: explanation
+  → 更新完了: OK=2 修正=3 削除=0
+  終了=18:08:28  経過=443秒
+
+--- チャンク 2/20: 5問  開始=18:08:28 ---
+  [FIX  ] aif-fcbc19fd: 解説中「モデルEmotional」の誤字。問題文の要件が改行なく読みにくい。choiceExplanationsが短い。 → 変更: questionText, explanation, choiceExplanations
+  [FIX  ] mla-17b92ef8: 問題文のワークフローステップが改行なく読みにくい。choiceExplanationsが短い。 → 変更: questionText, choiceExplanations
+  [FIX  ] aif-56e7b1f5: 問題文の要件①②③が改行なく読みにくい。choiceExplanationsが短い。 → 変更: questionText, choiceExplanations
+  [FIX  ] aif-33fe53e0: 問題文の規制要件が改行なく読みにくい。choiceExplanationsが100字未満で短い。 → 変更: questionText, choiceExplanations
+  [FIX  ] aif-8fc8470c: choiceExplanationsが100字未満で短い。 → 変更: choiceExplanations
+  → 更新完了: OK=0 修正=5 削除=0
+  終了=18:19:47  経過=679秒
+
+--- チャンク 3/20: 5問  開始=18:19:47 ---
+⚠️  レート制限を検出。残りチャンクをスキップ
+stdout: You've hit your session limit · resets 6:30pm (Asia/Tokyo)
+  🔒 レート制限ロックファイル記録: 2026-06-06 18:30 JST
+
+完了サマリー: 問題なし=2問 / 自動修正=8問 / 削除=0問

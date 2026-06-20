@@ -1,0 +1,144 @@
+==========================================
+正当性チェック開始: Fri Jun  5 12:00:34 JST 2026
+バッチサイズ: 100問 / チャンクサイズ: 5問
+==========================================
+チェック対象: 100問
+前処理: choices ラベル接頭辞チェック...
+  ✓ aif-ccf6e958: choices ラベル接頭辞除去
+  ✓ aif-f731da01: choices ラベル接頭辞除去
+  ✓ aif-c0e462f9: choices ラベル接頭辞除去
+  ✓ aif-124bc597: choices ラベル接頭辞除去
+  ✓ aif-3c04a104: choices ラベル接頭辞除去
+  ✓ aif-5fb01b45: choices ラベル接頭辞除去
+  ✓ aif-b74c4e37: choices ラベル接頭辞除去
+  ✓ aif-5f3a2efa: choices ラベル接頭辞除去
+  ✓ aif-406ad750: choices ラベル接頭辞除去
+  ✓ aif-97b2d88c: choices ラベル接頭辞除去
+  ✓ aif-60852ea7: choices ラベル接頭辞除去
+  ✓ aif-05cbd7c2: choices ラベル接頭辞除去
+  ✓ aif-0355d254: choices ラベル接頭辞除去
+  ✓ aif-4aed349f: choices ラベル接頭辞除去
+  ✓ aif-fc91770e: choices ラベル接頭辞除去
+  ✓ aif-ee3088e6: choices ラベル接頭辞除去
+  ✓ aif-b4e71926: choices ラベル接頭辞除去
+  ✓ aif-82206bf1: choices ラベル接頭辞除去
+  ✓ aif-e6d7d92b: choices ラベル接頭辞除去
+  ✓ aif-4b25622c: choices ラベル接頭辞除去
+  ✓ aif-ff37ddea: choices ラベル接頭辞除去
+  ✓ aif-a2222ffe: choices ラベル接頭辞除去
+  ✓ aif-b51e5fcc: choices ラベル接頭辞除去
+  ✓ aif-2cb8ba67: choices ラベル接頭辞除去
+  ✓ aif-dfbc51ec: choices ラベル接頭辞除去
+  ✓ aif-d23b4629: choices ラベル接頭辞除去
+  ✓ aif-015e1bed: choices ラベル接頭辞除去
+  ✓ aif-277e0086: choices ラベル接頭辞除去
+  ✓ aif-215f6420: choices ラベル接頭辞除去
+  ✓ aif-a1eedae2: choices ラベル接頭辞除去
+  前処理完了: choices ラベル自動除去 30件
+チャンク数: 20
+
+--- チャンク 1/20: 5問  開始=12:08:51 ---
+⚠️  チャンク 1 でエラー（exit 1）。このチャンクをスキップして続行
+stderr: 
+stdout: You've hit your session limit · resets 12:30pm (Asia/Tokyo)
+
+--- チャンク 2/20: 5問  開始=12:08:53 ---
+⚠️  チャンク 2 でエラー（exit 1）。このチャンクをスキップして続行
+stderr: 
+stdout: You've hit your session limit · resets 12:30pm (Asia/Tokyo)
+
+--- チャンク 3/20: 5問  開始=12:08:55 ---
+⚠️  チャンク 3 でエラー（exit 1）。このチャンクをスキップして続行
+stderr: 
+stdout: You've hit your session limit · resets 12:30pm (Asia/Tokyo)
+
+--- チャンク 4/20: 5問  開始=12:08:56 ---
+⚠️  チャンク 4 でエラー（exit 1）。このチャンクをスキップして続行
+stderr: 
+stdout: You've hit your session limit · resets 12:30pm (Asia/Tokyo)
+
+--- チャンク 5/20: 5問  開始=12:08:58 ---
+⚠️  チャンク 5 でエラー（exit 1）。このチャンクをスキップして続行
+stderr: 
+stdout: You've hit your session limit · resets 12:30pm (Asia/Tokyo)
+
+--- チャンク 6/20: 5問  開始=12:09:00 ---
+⚠️  チャンク 6 でエラー（exit 1）。このチャンクをスキップして続行
+stderr: 
+stdout: You've hit your session limit · resets 12:30pm (Asia/Tokyo)
+
+--- チャンク 7/20: 5問  開始=12:09:02 ---
+⚠️  チャンク 7 でエラー（exit 1）。このチャンクをスキップして続行
+stderr: 
+stdout: You've hit your session limit · resets 12:30pm (Asia/Tokyo)
+
+--- チャンク 8/20: 5問  開始=12:09:04 ---
+⚠️  チャンク 8 でエラー（exit 1）。このチャンクをスキップして続行
+stderr: 
+stdout: You've hit your session limit · resets 12:30pm (Asia/Tokyo)
+
+--- チャンク 9/20: 5問  開始=12:09:05 ---
+⚠️  チャンク 9 でエラー（exit 1）。このチャンクをスキップして続行
+stderr: 
+stdout: You've hit your session limit · resets 12:30pm (Asia/Tokyo)
+
+--- チャンク 10/20: 5問  開始=12:09:07 ---
+⚠️  チャンク 10 でエラー（exit 1）。このチャンクをスキップして続行
+stderr: 
+stdout: You've hit your session limit · resets 12:30pm (Asia/Tokyo)
+
+--- チャンク 11/20: 5問  開始=12:09:09 ---
+⚠️  チャンク 11 でエラー（exit 1）。このチャンクをスキップして続行
+stderr: 
+stdout: You've hit your session limit · resets 12:30pm (Asia/Tokyo)
+
+--- チャンク 12/20: 5問  開始=12:09:10 ---
+⚠️  チャンク 12 でエラー（exit 1）。このチャンクをスキップして続行
+stderr: 
+stdout: You've hit your session limit · resets 12:30pm (Asia/Tokyo)
+
+--- チャンク 13/20: 5問  開始=12:09:12 ---
+⚠️  チャンク 13 でエラー（exit 1）。このチャンクをスキップして続行
+stderr: 
+stdout: You've hit your session limit · resets 12:30pm (Asia/Tokyo)
+
+--- チャンク 14/20: 5問  開始=12:09:14 ---
+⚠️  チャンク 14 でエラー（exit 1）。このチャンクをスキップして続行
+stderr: 
+stdout: You've hit your session limit · resets 12:30pm (Asia/Tokyo)
+
+--- チャンク 15/20: 5問  開始=12:09:15 ---
+⚠️  チャンク 15 でエラー（exit 1）。このチャンクをスキップして続行
+stderr: 
+stdout: You've hit your session limit · resets 12:30pm (Asia/Tokyo)
+
+--- チャンク 16/20: 5問  開始=12:09:17 ---
+⚠️  チャンク 16 でエラー（exit 1）。このチャンクをスキップして続行
+stderr: 
+stdout: You've hit your session limit · resets 12:30pm (Asia/Tokyo)
+
+--- チャンク 17/20: 5問  開始=12:09:19 ---
+⚠️  チャンク 17 でエラー（exit 1）。このチャンクをスキップして続行
+stderr: 
+stdout: You've hit your session limit · resets 12:30pm (Asia/Tokyo)
+
+--- チャンク 18/20: 5問  開始=12:09:20 ---
+⚠️  チャンク 18 でエラー（exit 1）。このチャンクをスキップして続行
+stderr: 
+stdout: You've hit your session limit · resets 12:30pm (Asia/Tokyo)
+
+--- チャンク 19/20: 5問  開始=12:09:22 ---
+⚠️  チャンク 19 でエラー（exit 1）。このチャンクをスキップして続行
+stderr: 
+stdout: You've hit your session limit · resets 12:30pm (Asia/Tokyo)
+
+--- チャンク 20/20: 5問  開始=12:09:24 ---
+⚠️  チャンク 20 でエラー（exit 1）。このチャンクをスキップして続行
+stderr: 
+stdout: You've hit your session limit · resets 12:30pm (Asia/Tokyo)
+
+完了サマリー: 問題なし=0問 / 自動修正=0問 / 削除=0問
+
+==========================================
+チェック終了: Fri Jun  5 12:09:25 JST 2026
+==========================================

@@ -1,0 +1,11 @@
+=== 2026-06-08 02:55:16 | generate-release-note.sh | exit:0 ===
+[release-note] 対象日: 2026-06-07
+[release-note] 2026-06-07: 5件のコミット
+[release-note] 生成結果:
+{
+  "title": "OCI資格に対応！マルチクラウド学習がこれ一本で！",
+  "body": "Oracle Cloud Infrastructure Architect Associate（OCIAA）の問題セットを追加しました！\nAWSに加えてOCI資格の対策もできるようになり、より幅広いクラウドエンジニアを目指せます。",
+  "titleEn": "OCI Certification Added — Go Multi-Cloud!",
+  "bodyEn": "Oracle Cloud Infrastructure Architect Associate (OCIAA) questions are now available!\nPrepare for OCI certifications alongside AWS — all in one app."
+}
+[release-note] ✓ DynamoDBに挿入しました: 2026-06-07 — OCI資格に対応！マルチクラウド学習がこれ一本で！

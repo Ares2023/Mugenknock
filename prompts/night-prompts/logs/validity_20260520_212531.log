@@ -1,0 +1,58 @@
+==========================================
+正当性チェック開始: Wed May 20 21:25:32 JST 2026
+バッチサイズ: 30問 / チャンクサイズ: 5問
+==========================================
+チェック対象: 30問
+チャンク数: 6
+
+--- チャンク 1/6: 5問  開始=21:26:02 ---
+  [OK   ] soa-e7e818a8
+  [OK   ] soa-fc662ca0
+  [OK   ] soa-aa244860
+  [OK   ] soa-9cc77948
+  [OK   ] soa-345b29b7
+  → 更新完了: OK=5 修正=0 削除=0
+  終了=21:36:39  経過=637秒
+
+--- チャンク 2/6: 5問  開始=21:36:39 ---
+  [OK   ] clf-d318bb38
+  [FIX  ] saa-7b2324b8: S3 Transfer Accelerationの解説が「アップロード専用」と誤って説明している。実際はダウンロードにも使えるがキャッシュ機能がないため静的コンテンツ配信には不向きという説明が正確。 → 変更: explanation
+  [OK   ] clf-f89a5612
+  [OK   ] clf-fd369bb0
+  [OK   ] clf-73ec7a2a
+  → 更新完了: OK=4 修正=1 削除=0
+  終了=21:38:47  経過=128秒
+
+--- チャンク 3/6: 5問  開始=21:38:47 ---
+  [FIX  ] saa-q-extra-005: タグに「saa-elb」「saa-networking」という無効なドメイン値が含まれている。SAA正規ドメインのみに修正。 → 変更: tags
+  [OK   ] saa-613cdb0a
+  [OK   ] saa-87d32337
+  [OK   ] saa-327b76d4
+  [OK   ] saa-39caaca7
+  → 更新完了: OK=4 修正=1 削除=0
+  終了=21:40:56  経過=129秒
+
+--- チャンク 4/6: 5問  開始=21:40:56 ---
+  [FIX  ] dop-q-062: EventBridgeイベント名の誤り：pullRequestMergedStatusUpdated→pullRequestMergeStatusUpdatedが正式名称（Mergedではなく Merge） → 変更: choices, correctAnswers, explanation
+  [OK   ] saa-q-extra-013
+  [OK   ] clf-c76fdf62
+  [OK   ] saa-929f8880
+  [OK   ] saa-e676c59c
+  → 更新完了: OK=4 修正=1 削除=0
+  終了=21:44:01  経過=185秒
+
+--- チャンク 5/6: 5問  開始=21:44:01 ---
+⚠️  チャンク 5 でエラー（exit 1）。このチャンクをスキップして続行
+stderr: 
+stdout: You've hit your session limit · resets 10pm (Asia/Tokyo)
+
+--- チャンク 6/6: 5問  開始=21:44:03 ---
+⚠️  チャンク 6 でエラー（exit 1）。このチャンクをスキップして続行
+stderr: 
+stdout: You've hit your session limit · resets 10pm (Asia/Tokyo)
+
+完了サマリー: 問題なし=17問 / 自動修正=3問 / 削除=0問
+
+==========================================
+チェック終了: Wed May 20 21:44:06 JST 2026
+==========================================

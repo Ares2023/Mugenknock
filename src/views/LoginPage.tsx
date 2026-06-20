@@ -45,7 +45,7 @@ const CERT_BADGES = [
   { code: 'DOP-C02', label: 'DevOps Engineer',           level: 'Professional' },
   { code: 'AIF-C01', label: 'AI Practitioner',           level: 'Foundational' },
   { code: 'MLA-C01', label: 'Machine Learning Engineer', level: 'Associate'    },
-  { code: 'GAI-C01', label: 'Generative AI Developer',   level: 'Professional' },
+  { code: 'AIP-C01', label: 'Generative AI Developer',   level: 'Professional' },
 ];
 
 // 7 fixed positions (top%, left%) spread around the page, away from center

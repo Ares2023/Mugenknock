@@ -1,0 +1,60 @@
+==========================================
+正当性チェック開始: Thu Jun  4 06:32:07 JST 2026
+バッチサイズ: 30問 / チャンクサイズ: 5問
+==========================================
+チェック対象: 30問
+前処理: choices ラベル接頭辞チェック...
+  前処理: ラベル接頭辞なし（全問クリーン）
+チャンク数: 6
+
+--- チャンク 1/6: 5問  開始=06:32:33 ---
+  [FIX  ] dea-2b32fb2b: choiceExplanationsが未設定のため生成。isMultipleをfalseに設定。 → 変更: choiceExplanations
+  [FIX  ] dea-cb712f77: choiceExplanationsが未設定のため生成。isMultipleをfalseに設定。 → 変更: choiceExplanations
+  [FIX  ] dea-44e10a29: choiceExplanationsが未設定のため生成。isMultipleをfalseに設定。 → 変更: choiceExplanations
+  [FIX  ] scs-aa38d1c0: choiceExplanationsが未設定のため生成。isMultipleをfalseに設定。 → 変更: choiceExplanations
+  [FIX  ] scs-09ab2d94: choiceExplanationsが未設定のため生成。isMultipleをfalseに設定。解説内のFBSP誤記をFSBPに修正。 → 変更: explanation, choiceExplanations
+  → 更新完了: OK=0 修正=5 削除=0
+  終了=06:38:27  経過=354秒
+
+--- チャンク 2/6: 5問  開始=06:38:27 ---
+  [FIX  ] scs-1456db72: 選択肢AとcorrectAnswersの「kMS:GenerateDataKey」はAWS API命名規則上「kms:GenerateDataKey」が正しい表記。choiceExplanationsが未生成のため生成する。 → 変更: choices, correctAnswers, choiceExplanations
+  [FIX  ] dea-75598ab7: テーブル形式の選択はストレージ管理の観点であり、タグは「データの取り込みと変換」より「データストアの管理」が適切。choiceExplanationsが未生成のため生成する。 → 変更: choiceExplanations, tags
+  [FIX  ] ans-83d85de0: choiceExplanationsが未生成のため生成する。正解・解説・タグその他の観点は問題なし。 → 変更: choiceExplanations
+  [FIX  ] scs-912c3808: choiceExplanationsが未生成のため生成する。正解・解説・タグその他の観点は問題なし。 → 変更: choiceExplanations
+  [FIX  ] scs-809676b2: choiceExplanationsが未生成のため生成する。正解・解説・タグその他の観点は問題なし。 → 変更: choiceExplanations
+  → 更新完了: OK=0 修正=5 削除=0
+  終了=06:43:41  経過=314秒
+
+--- チャンク 3/6: 5問  開始=06:43:41 ---
+  [FIX  ] ans-4fcebc7d: 選択肢AにECMPの略語注釈が未記載。choiceExplanations未設定。isMultipleをfalseに設定。 → 変更: choices, explanation, choiceExplanations
+  [FIX  ] scs-92051c7f: セキュリティ要件2項目が一文に並列されており改行未設定。choiceExplanations未設定。isMultipleをfalseに設定。 → 変更: questionText, choiceExplanations
+  [FIX  ] dea-c9da48c8: choiceExplanations未設定。isMultipleをfalseに設定。 → 変更: choiceExplanations
+  [FIX  ] scs-ae99b01b: choiceExplanations未設定。isMultipleをfalseに設定。 → 変更: choiceExplanations
+  [FIX  ] dea-10ab5ade: choiceExplanations未設定。isMultipleをfalseに設定。 → 変更: choiceExplanations
+  → 更新完了: OK=0 修正=5 削除=0
+  終了=06:50:53  経過=432秒
+
+--- チャンク 4/6: 5問  開始=06:50:53 ---
+  [FIX  ] ans-b4782c6f: choiceExplanationsが未設定のため生成。正解・解説・タグはすべて正確。 → 変更: choiceExplanations
+  [FIX  ] scs-0a8a8ee3: choiceExplanationsが未設定のため生成。正解・解説・タグはすべて正確。 → 変更: choiceExplanations
+  [FIX  ] scs-16ecad26: choiceExplanationsが未設定のため生成。正解・解説・タグはすべて正確。 → 変更: choiceExplanations
+  [FIX  ] ans-c4cea650: choiceExplanationsが未設定のため生成。正解・解説・タグはすべて正確。 → 変更: choiceExplanations
+  [FIX  ] ans-37193b0c: choiceExplanationsが未設定のため生成。正解・解説・タグはすべて正確。 → 変更: choiceExplanations
+  → 更新完了: OK=0 修正=5 削除=0
+  終了=06:56:38  経過=345秒
+
+--- チャンク 5/6: 5問  開始=06:56:38 ---
+⚠️  チャンク 5 でエラー（exit 1）。このチャンクをスキップして続行
+stderr: 
+stdout: You've hit your session limit · resets 11:30am (Asia/Tokyo)
+
+--- チャンク 6/6: 5問  開始=06:56:40 ---
+⚠️  チャンク 6 でエラー（exit 1）。このチャンクをスキップして続行
+stderr: 
+stdout: You've hit your session limit · resets 11:30am (Asia/Tokyo)
+
+完了サマリー: 問題なし=0問 / 自動修正=20問 / 削除=0問
+
+==========================================
+チェック終了: Thu Jun  4 06:56:42 JST 2026
+==========================================

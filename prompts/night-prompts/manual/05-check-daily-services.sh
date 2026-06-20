@@ -1,0 +1,449 @@
+#!/bin/bash
+# 日めくりAWSサービスの体裁・内容妥当性チェックスクリプト
+# 問題なし→確認日のみ更新 / 問題あり→自動修正またはDB削除
+
+set -uo pipefail
+
+export PATH="/home/yuzuki/local/bin:$PATH"
+unset ANTHROPIC_API_KEY
+
+_find_claude() {
+  [ -x /usr/local/bin/claude ] && { echo /usr/local/bin/claude; return; }
+  local _cv; _cv=$(command -v claude 2>/dev/null)
+  [ -n "$_cv" ] && [ -x "$_cv" ] && { echo "$_cv"; return; }
+}
+CLAUDE_CMD=$(_find_claude)
+if [ -z "${CLAUDE_CMD:-}" ]; then
+  echo "⚠️  claude バイナリ未検出。30秒後にリトライします..." >&2
+  sleep 30
+  CLAUDE_CMD=$(_find_claude)
+fi
+if [ -z "${CLAUDE_CMD:-}" ] || [ ! -x "${CLAUDE_CMD:-}" ]; then
+  echo "❌ claude コマンドが見つかりません" >&2; exit 1
+fi
+
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+NIGHT_PROMPTS_DIR="$(dirname "$SCRIPT_DIR")"
+LOG_DIR="$NIGHT_PROMPTS_DIR/logs"
+mkdir -p "$LOG_DIR"
+DATE=$(date '+%Y%m%d_%H%M%S')
+LOG_FILE="$LOG_DIR/daily_check_${DATE}.log"
+
+RATE_LIMIT_FILE="$NIGHT_PROMPTS_DIR/.claude_rate_limit_reset"
+
+check_rate_limit() {
+  [ -f "$RATE_LIMIT_FILE" ] || return 0
+  local _rst _now _rep _disp
+  _rst=$(cat "$RATE_LIMIT_FILE" 2>/dev/null)
+  [ -z "$_rst" ] && { rm -f "$RATE_LIMIT_FILE"; return 0; }
+  _now=$(date +%s)
+  _rep=$(python3 -c "
+from datetime import datetime
+try: print(int(datetime.fromisoformat('$_rst').timestamp()))
+except: print(0)
+" 2>/dev/null || echo 0)
+  if [ "$_now" -lt "$_rep" ]; then
+    _disp=$(python3 -c "
+from datetime import datetime, timezone, timedelta
+jst = timezone(timedelta(hours=9))
+try: print(datetime.fromisoformat('$_rst').astimezone(jst).strftime('%H:%M JST'))
+except: print('$_rst')
+" 2>/dev/null || echo "$_rst")
+    echo "  🔒 レート制限中: リセット予定 $_disp"
+    return 1
+  fi
+  rm -f "$RATE_LIMIT_FILE"
+}
+
+record_rate_limit() {
+  local _c="$1" _tmp _rst _disp
+  _tmp=$(mktemp /tmp/rl_XXXX.txt)
+  printf '%s' "$_c" > "$_tmp"
+  _rst=$(python3 - "$_tmp" << 'PYEOF'
+import sys, re
+from datetime import datetime, timezone, timedelta
+jst = timezone(timedelta(hours=9))
+with open(sys.argv[1]) as f:
+    text = f.read()
+m = re.search(r'resets\s+(\d{1,2})(?::(\d{2}))?\s*(am|pm)', text, re.IGNORECASE)
+if not m:
+    print((datetime.now(jst) + timedelta(hours=6)).isoformat())
+    sys.exit(0)
+hour = int(m.group(1))
+minute = int(m.group(2)) if m.group(2) else 0
+mer = m.group(3).lower()
+if mer == 'pm' and hour != 12: hour += 12
+elif mer == 'am' and hour == 12: hour = 0
+now = datetime.now(jst)
+reset_dt = now.replace(hour=hour, minute=minute, second=0, microsecond=0)
+if reset_dt <= now:
+    reset_dt += timedelta(days=1)
+print(reset_dt.isoformat())
+PYEOF
+)
+  rm -f "$_tmp"
+  if [ -n "$_rst" ]; then
+    echo "$_rst" > "$RATE_LIMIT_FILE"
+    _disp=$(python3 -c "
+from datetime import datetime, timezone, timedelta
+jst = timezone(timedelta(hours=9))
+try: print(datetime.fromisoformat('$_rst').astimezone(jst).strftime('%Y-%m-%d %H:%M JST'))
+except: print('$_rst')
+" 2>/dev/null || echo "$_rst")
+    echo "  🔒 レート制限ロックファイル記録: $_disp"
+  fi
+}
+
+show_help() {
+  cat << 'EOF'
+usage: 05-check-daily-services.sh [-n N] [-D HH:MM] [-h]
+
+  -n N       チェック件数 (default: 20)
+  -D HH:MM   処理終了時刻 (JST)。この時刻を過ぎたチャンクはスキップ
+  -h         このヘルプを表示
+
+挙動:
+  未チェック（contentCheckedAt なし）を優先
+  全件チェック済みの場合は確認日付が古い順
+  action=ok     → contentCheckedAt のみ更新
+  action=fix    → サービス内容を上書き・contentCheckedAt 更新
+  action=delete → DynamoDB から削除
+EOF
+}
+
+BATCH_SIZE=30
+CHUNK_SIZE=8
+DEADLINE=""
+
+while [[ $# -gt 0 ]]; do
+  case "$1" in
+    -n) BATCH_SIZE="${2:?-n requires N}"; shift 2 ;;
+    -D) DEADLINE="${2:?-D requires HH:MM}"; shift 2 ;;
+    -h|--help) show_help; exit 0 ;;
+    *) echo "不明なオプション: $1" >&2; show_help >&2; exit 1 ;;
+  esac
+done
+
+# 終了時刻をepoch秒に変換（JST）
+DEADLINE_EPOCH=0
+if [ -n "$DEADLINE" ]; then
+  DEADLINE_EPOCH=$(python3 - "$DEADLINE" << 'PYEOF'
+import sys
+from datetime import datetime, timedelta, timezone
+JST = timezone(timedelta(hours=9))
+now = datetime.now(JST)
+try:
+    h, m = map(int, sys.argv[1].split(':'))
+    t = now.replace(hour=h, minute=m, second=0, microsecond=0)
+    print(int(t.timestamp()))
+except Exception as e:
+    print(f"❌ -D のパースエラー: {e}", file=sys.stderr); print(0)
+PYEOF
+)
+fi
+
+{
+check_rate_limit
+echo "=========================================="
+echo "日めくりサービス体裁チェック開始: $(date)"
+echo "バッチサイズ: ${BATCH_SIZE}件 / チャンクサイズ: ${CHUNK_SIZE}件"
+echo "=========================================="
+
+# ── 1. DynamoDBからサービスを取得 ──────────────────────────────
+DYNAMO_TMP=$(mktemp /tmp/dynamo_XXXX.json)
+/home/yuzuki/local/bin/aws dynamodb scan --table-name DailyServices --output json 2>/dev/null > "$DYNAMO_TMP"
+
+SERVICES_JSON=$(BATCH_SIZE=$BATCH_SIZE DYNAMO_TMP="$DYNAMO_TMP" python3 << 'PYEOF'
+import json, os
+from datetime import datetime, timezone, timedelta
+
+with open(os.environ['DYNAMO_TMP']) as f:
+    data = json.load(f)
+items = data.get('Items', [])
+
+def deser(v):
+    if 'S' in v: return v['S']
+    if 'N' in v: return float(v['N']) if '.' in v['N'] else int(v['N'])
+    if 'BOOL' in v: return v['BOOL']
+    if 'L' in v: return [deser(i) for i in v['L']]
+    if 'M' in v: return {k: deser(vv) for k, vv in v['M'].items()}
+    return None
+
+services = [{ k: deser(v) for k, v in item.items() } for item in items]
+
+EPOCH_ZERO = datetime(1970, 1, 1, tzinfo=timezone.utc)
+candidates = []
+for s in services:
+    checked = s.get('contentCheckedAt')
+    sort_key = EPOCH_ZERO
+    try:
+        if checked:
+            sort_key = datetime.fromisoformat(checked.replace('Z', '+00:00'))
+    except:
+        pass
+    candidates.append((sort_key, s))
+
+candidates.sort(key=lambda x: x[0])
+batch = int(os.environ.get('BATCH_SIZE', 20))
+print(json.dumps([s for _, s in candidates[:batch]]))
+PYEOF
+)
+rm -f "$DYNAMO_TMP"
+
+COUNT=$(echo "$SERVICES_JSON" | python3 -c "import json,sys; print(len(json.load(sys.stdin)))" 2>/dev/null || echo 0)
+echo "チェック対象: ${COUNT}件"
+
+if [ "$COUNT" -eq 0 ]; then
+  echo "チェック対象なし（全件が直近にチェック済み）"
+  exit 0
+fi
+
+# ── 2. チャンクファイルに分割 ───────────────────────────────────
+CHUNKS_DIR=$(mktemp -d /tmp/daily_check_chunks_XXXX)
+SERVICES_TMP=$(mktemp /tmp/daily_check_svcs_XXXX.json)
+echo "$SERVICES_JSON" > "$SERVICES_TMP"
+CHUNK_COUNT=$(SERVICES_FILE="$SERVICES_TMP" CHUNK_SIZE=$CHUNK_SIZE CHUNKS_DIR="$CHUNKS_DIR" python3 << 'PYEOF'
+import json, os
+with open(os.environ['SERVICES_FILE']) as f:
+    svcs = json.load(f)
+cs = int(os.environ['CHUNK_SIZE'])
+for i in range(0, len(svcs), cs):
+    chunk = svcs[i:i+cs]
+    idx = i // cs
+    with open(f"{os.environ.get('CHUNKS_DIR', '/tmp')}/{idx:04d}.json", 'w') as f:
+        json.dump(chunk, f)
+print((len(svcs) + cs - 1) // cs)
+PYEOF
+)
+rm -f "$SERVICES_TMP"
+echo "チャンク数: ${CHUNK_COUNT}"
+
+# ── 3. チャンクごとにClaude → 即DB更新 ─────────────────────────
+TOTAL_OK=0
+TOTAL_FIX=0
+TOTAL_DEL=0
+RATE_LIMITED=0
+TIMEOUT_HIT=0
+
+for chunk_file in "$CHUNKS_DIR"/*.json; do
+  [ -e "$chunk_file" ] || continue
+
+  # 終了時刻チェック
+  if [ "$DEADLINE_EPOCH" -gt 0 ] && [ "$(date +%s)" -ge "$DEADLINE_EPOCH" ]; then
+    echo ""
+    echo "⏰ 終了時刻 ${DEADLINE} を過ぎたため、残りチャンクをスキップ（成果はDB反映済み）"
+    TIMEOUT_HIT=1
+    break
+  fi
+
+  CHUNK_NUM=$(python3 -c "import json,sys; print(len(json.load(open(sys.argv[1]))))" "$chunk_file" 2>/dev/null || echo 0)
+  CHUNK_IDX=$(basename "$chunk_file" .json | sed 's/^0*//')
+  CHUNK_IDX=${CHUNK_IDX:-0}
+  _CHUNK_T0=$(date +%s)
+  echo ""
+  echo "--- チャンク $((CHUNK_IDX+1))/${CHUNK_COUNT}: ${CHUNK_NUM}件  開始=$(date '+%H:%M:%S') ---"
+
+  PROMPT_FILE=$(mktemp /tmp/daily_check_prompt_XXXX.txt)
+  python3 - "$chunk_file" > "$PROMPT_FILE" << 'PYEOF'
+import json, sys
+with open(sys.argv[1]) as f:
+    services = json.load(f)
+
+VALID_CATEGORIES = [
+    'コンピューティング', 'ストレージ', 'データベース', 'ネットワーキング', 'メッセージング',
+    'コンテナ', 'セキュリティ', 'モニタリング', 'アプリケーション統合', 'DevOps',
+    'データ分析', '機械学習', '生成AI', 'マネジメント', '移行',
+]
+
+lines = [
+    '日めくりAWSサービスのコンテンツ品質をチェックし、JSONのみで返してください。',
+    '',
+    '【確認項目】',
+    '- 必須フィールド（name/shortName/category/description/trivia）が空でないか',
+    '- description: 80〜120字。何ができるか・どんな場面で使うかを試験受験者向けに。複数特徴は\\nで区切る（なければfixで追加）',
+    '- trivia: 80〜150字。名前の由来・覚え方・試験ポイント・有名企業事例など。複数事実は\\nで区切る（なければfixで追加）',
+    f'- category: {"/".join(VALID_CATEGORIES)} のいずれか（違えばfixで最近傍に修正）',
+    '- icon: "/icons/aws/..."形式か空文字（違う形式はfixで修正または空文字に）',
+    '- docUrl: "https://aws.amazon.com/jp/..."形式か空文字（違う形式はfixで修正または空文字に）',
+    '- "本アプリでも利用しています"は Cognito/API Gateway/Lambda/DynamoDB/Amplify/S3 使用サービスのみ許可（他はfixで削除）',
+    '',
+    '【アクション】ok=問題なし / fix=修正可能（変更フィールドのみ含める） / delete=致命的問題（存在しないサービス等）',
+    '',
+    '【出力】JSONのみ。前置き不要。',
+    '{"results":[{"serviceId":"...","action":"ok","reason":"100字以内"},{"serviceId":"...","action":"fix","reason":"...","fix":{"フィールド名":"修正後（変更のみ）"}},{"serviceId":"...","action":"delete","reason":"..."}]}',
+    '',
+    '【サービス一覧】',
+]
+for s in services:
+    lines.append(f"serviceId: {s.get('serviceId','')}")
+    lines.append(f"name: {s.get('name','')}  shortName: {s.get('shortName','')}  category: {s.get('category','')}")
+    lines.append(f"description: {s.get('description','')}")
+    lines.append(f"trivia: {s.get('trivia','')}")
+    lines.append(f"icon: {s.get('icon','')}  docUrl: {s.get('docUrl','')}")
+    lines.append("")
+print('\n'.join(lines))
+PYEOF
+
+  _STDOUT_F=$(mktemp /tmp/claude_out_XXXX)
+  _STDERR_F=$(mktemp /tmp/claude_err_XXXX)
+  "$CLAUDE_CMD" -p < "$PROMPT_FILE" > "$_STDOUT_F" 2> "$_STDERR_F"
+  AI_EXIT=$?
+  RESULT=$(cat "$_STDOUT_F")
+  _STDERR=$(cat "$_STDERR_F")
+  rm -f "$_STDOUT_F" "$_STDERR_F"
+
+  # npm更新による一時的なバイナリ消失 → 再探索してリトライ
+  if [ $AI_EXIT -ne 0 ] && echo "$_STDERR" | grep -q "No such file"; then
+    CLAUDE_CMD=$(_find_claude)
+    if [ -x "${CLAUDE_CMD:-}" ]; then
+      _STDOUT_F=$(mktemp /tmp/claude_out_XXXX)
+      _STDERR_F=$(mktemp /tmp/claude_err_XXXX)
+      "$CLAUDE_CMD" -p < "$PROMPT_FILE" > "$_STDOUT_F" 2> "$_STDERR_F"
+      AI_EXIT=$?
+      RESULT=$(cat "$_STDOUT_F")
+      _STDERR=$(cat "$_STDERR_F")
+      rm -f "$_STDOUT_F" "$_STDERR_F"
+    fi
+  fi
+  rm -f "$PROMPT_FILE"
+
+  # 致命的エラー（認証・コマンド問題）→ 即終了
+  if echo "$_STDERR" | grep -qiE "command not found|No such file|GEMINI_API_KEY|API.?key"; then
+    echo "❌ claude 実行エラー（認証またはコマンド問題）。スクリプトを終了します"
+    echo "stderr: $(echo "$_STDERR" | head -3)"
+    exit 1
+  fi
+
+  # レート制限 → stderrのみで判定
+  if echo "$_STDERR" | grep -qiE "rate.?limit|too many requests|529|quota exceeded|usage limit|resource_exhausted"; then
+    echo "⚠️  レート制限を検出。残りチャンクをスキップ"
+    echo "stderr: $(echo "$_STDERR" | head -3)"
+    record_rate_limit "$(echo "${RESULT:-} ${_STDERR:-}" | head -10)"
+    RATE_LIMITED=1
+    break
+  fi
+
+  # その他の非ゼロ終了 → このチャンクのみスキップして続行
+  if [ $AI_EXIT -ne 0 ]; then
+    echo "⚠️  チャンク $((CHUNK_IDX+1)) でエラー（exit $AI_EXIT）。このチャンクをスキップして続行"
+    echo "stderr: $(echo "$_STDERR" | head -5)"
+    echo "stdout: $(echo "$RESULT" | head -3)"
+    continue
+  fi
+
+  RESULT_JSON=$(echo "$RESULT" | python3 -c "
+import sys, json, re
+text = sys.stdin.read()
+cb = re.search(r'\`\`\`(?:json)?\s*(\{)', text, re.DOTALL)
+if cb:
+    text = text[cb.start(1):]
+    text = re.sub(r'\s*\`\`\`.*\$', '', text, flags=re.DOTALL)
+start = text.find('{')
+if start == -1: print('{}'); exit(0)
+try:
+    obj, _ = json.JSONDecoder().raw_decode(text, start)
+    print(json.dumps(obj) if 'results' in obj else '{}')
+except: print('{}')
+")
+
+  # ── DB即時更新 ──────────────────────────────────────────────
+  RESULT_JSON_FILE=$(mktemp /tmp/daily_check_result_XXXX.json)
+  echo "$RESULT_JSON" > "$RESULT_JSON_FILE"
+  CHUNK_STATS=$(python3 - "$RESULT_JSON_FILE" << 'PYEOF'
+import json, sys, subprocess
+from datetime import datetime, timezone
+
+with open(sys.argv[1]) as f:
+    data = json.load(f)
+results = data.get('results', [])
+now = datetime.now(timezone.utc).strftime('%Y-%m-%dT%H:%M:%SZ')
+
+ok_count, fix_count, del_count = 0, 0, 0
+
+for r in results:
+    sid = r.get('serviceId', '')
+    action = r.get('action', 'ok')
+    reason = r.get('reason', '')
+    fix = r.get('fix', {})
+
+    if action == 'delete':
+        subprocess.run([
+            '/home/yuzuki/local/bin/aws', 'dynamodb', 'delete-item',
+            '--table-name', 'DailyServices',
+            '--key', json.dumps({'serviceId': {'S': sid}}),
+        ], capture_output=True)
+        del_count += 1
+        print(f'  [DELETE] {sid}: {reason}')
+        continue
+
+    if action == 'fix' and fix:
+        update_parts = ['contentCheckedAt = :t', 'updatedAt = :u']
+        expr_values = {':t': {'S': now}, ':u': {'S': now}}
+        changes = []
+
+        for field in ('description', 'trivia', 'category', 'icon', 'docUrl'):
+            if field in fix and fix[field] is not None:
+                placeholder = f':{field[:3]}'
+                update_parts.append(f'{field} = {placeholder}')
+                expr_values[placeholder] = {'S': str(fix[field])}
+                changes.append(field)
+
+        update_expr = f'SET {", ".join(update_parts)}'
+        subprocess.run([
+            '/home/yuzuki/local/bin/aws', 'dynamodb', 'update-item',
+            '--table-name', 'DailyServices',
+            '--key', json.dumps({'serviceId': {'S': sid}}),
+            '--update-expression', update_expr,
+            '--expression-attribute-values', json.dumps(expr_values),
+        ], capture_output=True)
+        fix_count += 1
+        print(f'  [FIX  ] {sid}: {reason} → 変更: {", ".join(changes) or "(変更なし)"}')
+
+    else:
+        # action == 'ok'
+        subprocess.run([
+            '/home/yuzuki/local/bin/aws', 'dynamodb', 'update-item',
+            '--table-name', 'DailyServices',
+            '--key', json.dumps({'serviceId': {'S': sid}}),
+            '--update-expression', 'SET contentCheckedAt = :t',
+            '--expression-attribute-values', json.dumps({':t': {'S': now}}),
+        ], capture_output=True)
+        ok_count += 1
+        print(f'  [OK   ] {sid}')
+
+print(f'  → 更新完了: OK={ok_count} 修正={fix_count} 削除={del_count}')
+print(f'__STATS__{ok_count},{fix_count},{del_count}')
+PYEOF
+)
+
+  rm -f "$RESULT_JSON_FILE"
+  echo "$CHUNK_STATS" | grep -v '^__STATS__'
+  STATS_LINE=$(echo "$CHUNK_STATS" | grep '^__STATS__' | sed 's/^__STATS__//')
+  if [ -n "$STATS_LINE" ]; then
+    _ok=$(echo "$STATS_LINE" | cut -d, -f1)
+    _fix=$(echo "$STATS_LINE" | cut -d, -f2)
+    _del=$(echo "$STATS_LINE" | cut -d, -f3)
+    TOTAL_OK=$(( TOTAL_OK + _ok ))
+    TOTAL_FIX=$(( TOTAL_FIX + _fix ))
+    TOTAL_DEL=$(( TOTAL_DEL + _del ))
+  fi
+  echo "  終了=$(date '+%H:%M:%S')  経過=$(( $(date +%s) - _CHUNK_T0 ))秒"
+done
+
+rm -rf "$CHUNKS_DIR"
+
+echo ""
+echo "完了サマリー: 問題なし=${TOTAL_OK}件 / 自動修正=${TOTAL_FIX}件 / 削除=${TOTAL_DEL}件"
+
+if [ $RATE_LIMITED -eq 1 ] || [ ${TIMEOUT_HIT:-0} -eq 1 ]; then
+  exit 1
+fi
+
+echo ""
+echo "=========================================="
+echo "チェック終了: $(date)"
+echo "=========================================="
+
+} 2>&1 | tee -a "$LOG_FILE"
+
+find "$LOG_DIR" -name "daily_check_*.log" -mtime +30 -delete

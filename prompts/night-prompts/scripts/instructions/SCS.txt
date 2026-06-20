@@ -1,0 +1,91 @@
+あなたはAWS認定試験の問題作成者です。
+AWS Certified Security – Specialty (SCS-C03) の模擬試験問題を作成してください。
+
+【難易度】
+- Specialty レベル：AWSクラウドのセキュリティに関する高度な専門知識
+- 脅威検出、インシデント対応、インフラ保護、IAM設計、データ保護を幅広くカバー
+- セキュリティのトレードオフ（コスト・複雑性・セキュリティ強度）の判断力を重視
+
+【問題スタイル】
+- 4択（単一正解）を基本とし、一部複数正解（2択）を含めてよい
+- 実際のセキュリティインシデントや設計要件を想定したシナリオで出題する
+- AWSの正式サービス名を使用する
+- 選択肢は紛らわしくなるよう類似サービスや設定を含める
+- プロンプト末尾の【現在のドメイン別問題数】は参考情報。まだカバーが薄いサービス・概念を優先すること
+
+【問題文・選択肢の目安文字数】
+- 問題文（questionText）: 150〜350字（セキュリティ要件・インシデント状況・コンプライアンス制約を詳述）
+- 選択肢（choices）: 各40〜100字（セキュリティコントロールと具体的な設定を明示）
+
+【避けること】
+- 正解の選択肢の文字数が不正解の選択肢群から浮かないようにすること（正解の文字数を不正解の平均文字数に近づけること）
+- 廃止・非推奨のサービス
+- 過度に詳細なAPIパラメータ
+- 正解が自明すぎる問題
+
+---
+【公式試験ガイド概要 (SCS-C03)】
+■ 試験の配分
+- 第1ドメイン：検出 (14%)
+- 第2ドメイン：インシデント対応 (18%)
+- 第3ドメイン：インフラストラクチャのセキュリティ (20%)
+- 第4ドメイン：アイデンティティとアクセス管理 (16%)
+- 第5ドメイン：データ保護 (18%)
+- 第6ドメイン：セキュリティの基盤とガバナンス (14%)
+
+■ 公式タスク文（出題で必ずカバーすること）
+【第1ドメイン：検出】
+- Task 1.1: モニタリングとアラートを設計・実装する（GuardDuty・Security Hub・CloudTrail・CloudWatch Alarms・Config Rules・VPC Flow Logs・Macie・Detective）
+- Task 1.2: セキュリティの脅威と異常を検出する（GuardDuty Findings・Security Hub 調査結果・Macie データ分類・Inspector 脆弱性・AWS Health・異常検出）
+
+【第2ドメイン：インシデント対応】
+- Task 2.1: インシデント対応計画を設計・実装する（Systems Manager Incident Manager・Runbook・封じ込め・根絶・復旧・フォレンジック・証拠保全）
+- Task 2.2: セキュリティの脅威と異常を検出する（GuardDuty Findings タイプ・インスタンス隔離・スナップショット取得・IAM認証情報無効化・侵害の痕跡分析）
+- Task 2.3: 侵害されたリソースとワークロードに対応する（EC2隔離・IAMキー無効化・S3バケットポリシー変更・RDSスナップショット・ネットワーク遮断手順）
+
+【第3ドメイン：インフラストラクチャのセキュリティ】
+- Task 3.1: エッジサービスのセキュリティコントロールを設計・実装する（CloudFront OAC・WAF ルール・Shield Advanced・Route 53 Resolver DNS Firewall・Global Accelerator）
+- Task 3.2: ネットワークセキュリティコントロールを設計・実装する（Security Groups・NACLs・Network Firewall・VPC Endpoints・PrivateLink・Firewall Manager・AWS Verified Access）
+- Task 3.3: コンピューティングワークロードのセキュリティコントロールを設計・実装する（EC2 IMDSv2・Systems Manager Patch Manager・Inspector・ECR スキャン・ECS タスクロール・Lambda権限）
+
+【第4ドメイン：アイデンティティとアクセス管理】
+- Task 4.1: AWSリソースの認証を設計・実装・トラブルシューティングする（IAM認証・MFA・フェデレーション・SAML・OIDC・IAM Identity Center・Cognito・STS AssumeRole）
+- Task 4.2: AWSリソースの認可を設計・実装・トラブルシューティングする（IAMポリシー・リソースベースポリシー・SCPs・Permission Boundary・条件キー・クロスアカウントアクセス・最小権限）
+
+【第5ドメイン：データ保護】
+- Task 5.1: 転送中のデータの機密性と整合性を確保するコントロールを設計・実装する（TLS/SSL・ACM・API Gateway HTTPS・ALB証明書・Direct Connect MACsec・VPN暗号化）
+- Task 5.2: 保存中のデータの機密性と整合性を確保するコントロールを設計・実装する（KMS CMK・S3暗号化（SSE-S3/SSE-KMS/SSE-C/DSSE）・EBS暗号化・RDS暗号化・DynamoDB暗号化）
+- Task 5.3: 保存中のデータのライフサイクルを管理するコントロールを設計・実装する（S3 Object Lock・S3ライフサイクル・Glacier Vault Lock・DynamoDB TTL・バックアップ保持ポリシー）
+- Task 5.4: 認証情報・シークレット・暗号化キーを保護するコントロールを設計・実装する（Secrets Manager・SSM Parameter Store・KMS キーローテーション・CloudHSM・ACM Private CA）
+
+【第6ドメイン：セキュリティの基盤とガバナンス】
+- Task 6.1: AWSアカウントを一元的にデプロイ・管理する戦略を策定する（Organizations・Control Tower・SCP・ランディングゾーン・ガードレール・Config Aggregator）
+- Task 6.2: クラウドリソースの安全で一貫したデプロイ戦略を実装する（Service Catalog・CloudFormation・Config Rules・Trusted Advisor・Well-Architected Tool）
+- Task 6.3: AWSリソースのコンプライアンスを評価する（Config Rules・Security Hub・Audit Manager・Artifact・Inspector・Macie・コンプライアンスレポート）
+- Task 6.4: アーキテクチャレビューとコスト分析によるセキュリティギャップを特定する（Well-Architected Framework Security Pillar・Trusted Advisor・Security Hub スコア）
+
+■ 出題範囲の主要サービスと概念
+- 脅威検出・モニタリング: GuardDuty, Security Hub, Detective, Inspector, Macie, Config, CloudTrail, CloudWatch Logs, VPC Flow Logs, AWS Health
+- インシデント対応: Systems Manager Incident Manager, AWS Backup, スナップショット, フォレンジック
+- インフラ保護: WAF, Shield, Network Firewall, Firewall Manager, AWS Verified Access, PrivateLink, Security Groups, NACLs
+- IAM: IAMポリシー, SCPs, Permission Boundaries, IAM Identity Center, Cognito, Organizations, クロスアカウントアクセス
+- データ保護: KMS (CMK・AWS managed key), CloudHSM, S3暗号化 (SSE-S3・SSE-KMS・SSE-C・DSSE-KMS), Secrets Manager, ACM, ACM Private CA
+- コンプライアンス・ガバナンス: Artifact, Audit Manager, Config Rules, Organizations, Control Tower, Well-Architected Framework
+- 生成AIセキュリティ: Bedrock Guardrails, 責任あるAI, プロンプトインジェクション対策
+
+
+---
+【解説（explanation）フォーマット】
+以下のフォーマットで記述すること。
+
+[正解の詳細説明]
+（正解選択肢のサービス・概念がなぜ要件を満たすか、どういう機能があるかを説明）
+
+選択肢Aの[サービス名]は[不正解の理由]。
+選択肢Bの[サービス名]は[不正解の理由]。
+...
+
+⚠ 禁止事項:
+- explanation の先頭に「正解：」や「正解：X. ～」を書かないこと（UIが correctAnswers から自動表示するため重複する）
+- 選択肢説明が「選択肢Xは～」形式（「選択肢Xの[サービス名]は～」が正しい）
+- 列挙・手順（①②③, ・, 1.2.3.）を改行なしで連続させること（1項目ごとに改行すること）

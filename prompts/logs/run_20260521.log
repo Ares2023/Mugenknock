@@ -1,0 +1,1287 @@
+
+--- hook[0] 開始: 2026-05-21 02:30:49 (-30min) | ~/aws-quiz-app/prompts/night-prompts/scripts/01-generate-questions.sh -n 5 -D 03:00 ---
+⏰ デッドライン: 03:00 JST (epoch=1779300000)
+⏸  Claude レート制限中 — 復活予定: 03:00 JST（01-generate-questions.sh をスキップ）
+--- hook[0] 完了: 2026-05-21 02:30:49 ---
+
+--- hook[1] 開始: 2026-05-21 02:35:49 (-25min) | ~/aws-quiz-app/prompts/night-prompts/scripts/02-check-validity.sh -n 100 -D 03:00 ---
+  🔒 レート制限中: リセット予定 03:00 JST
+==========================================
+正当性チェック開始: Thu May 21 02:35:49 JST 2026
+バッチサイズ: 100問 / チャンクサイズ: 5問
+==========================================
+チェック対象: 100問
+チャンク数: 20
+
+--- チャンク 1/20: 5問  開始=02:36:14 ---
+⚠️  チャンク 1 でエラー（exit 1）。このチャンクをスキップして続行
+stderr: 
+stdout: You've hit your session limit · resets 3am (Asia/Tokyo)
+
+--- チャンク 2/20: 5問  開始=02:36:16 ---
+⚠️  チャンク 2 でエラー（exit 1）。このチャンクをスキップして続行
+stderr: 
+stdout: You've hit your session limit · resets 3am (Asia/Tokyo)
+
+--- チャンク 3/20: 5問  開始=02:36:17 ---
+⚠️  チャンク 3 でエラー（exit 1）。このチャンクをスキップして続行
+stderr: 
+stdout: You've hit your session limit · resets 3am (Asia/Tokyo)
+
+--- チャンク 4/20: 5問  開始=02:36:19 ---
+⚠️  チャンク 4 でエラー（exit 1）。このチャンクをスキップして続行
+stderr: 
+stdout: You've hit your session limit · resets 3am (Asia/Tokyo)
+
+--- チャンク 5/20: 5問  開始=02:36:20 ---
+⚠️  チャンク 5 でエラー（exit 1）。このチャンクをスキップして続行
+stderr: 
+stdout: You've hit your session limit · resets 3am (Asia/Tokyo)
+
+--- チャンク 6/20: 5問  開始=02:36:21 ---
+⚠️  チャンク 6 でエラー（exit 1）。このチャンクをスキップして続行
+stderr: 
+stdout: You've hit your session limit · resets 3am (Asia/Tokyo)
+
+--- チャンク 7/20: 5問  開始=02:36:23 ---
+⚠️  チャンク 7 でエラー（exit 1）。このチャンクをスキップして続行
+stderr: 
+stdout: You've hit your session limit · resets 3am (Asia/Tokyo)
+
+--- チャンク 8/20: 5問  開始=02:36:24 ---
+⚠️  チャンク 8 でエラー（exit 1）。このチャンクをスキップして続行
+stderr: 
+stdout: You've hit your session limit · resets 3am (Asia/Tokyo)
+
+--- チャンク 9/20: 5問  開始=02:36:25 ---
+⚠️  チャンク 9 でエラー（exit 1）。このチャンクをスキップして続行
+stderr: 
+stdout: You've hit your session limit · resets 3am (Asia/Tokyo)
+
+--- チャンク 10/20: 5問  開始=02:36:27 ---
+⚠️  チャンク 10 でエラー（exit 1）。このチャンクをスキップして続行
+stderr: 
+stdout: You've hit your session limit · resets 3am (Asia/Tokyo)
+
+--- チャンク 11/20: 5問  開始=02:36:28 ---
+⚠️  チャンク 11 でエラー（exit 1）。このチャンクをスキップして続行
+stderr: 
+stdout: You've hit your session limit · resets 3am (Asia/Tokyo)
+
+--- チャンク 12/20: 5問  開始=02:36:30 ---
+⚠️  チャンク 12 でエラー（exit 1）。このチャンクをスキップして続行
+stderr: 
+stdout: You've hit your session limit · resets 3am (Asia/Tokyo)
+
+--- チャンク 13/20: 5問  開始=02:36:31 ---
+⚠️  チャンク 13 でエラー（exit 1）。このチャンクをスキップして続行
+stderr: 
+stdout: You've hit your session limit · resets 3am (Asia/Tokyo)
+
+--- チャンク 14/20: 5問  開始=02:36:32 ---
+⚠️  チャンク 14 でエラー（exit 1）。このチャンクをスキップして続行
+stderr: 
+stdout: You've hit your session limit · resets 3am (Asia/Tokyo)
+
+--- チャンク 15/20: 5問  開始=02:36:34 ---
+⚠️  チャンク 15 でエラー（exit 1）。このチャンクをスキップして続行
+stderr: 
+stdout: You've hit your session limit · resets 3am (Asia/Tokyo)
+
+--- チャンク 16/20: 5問  開始=02:36:36 ---
+⚠️  チャンク 16 でエラー（exit 1）。このチャンクをスキップして続行
+stderr: 
+stdout: You've hit your session limit · resets 3am (Asia/Tokyo)
+
+--- チャンク 17/20: 5問  開始=02:36:40 ---
+⚠️  チャンク 17 でエラー（exit 1）。このチャンクをスキップして続行
+stderr: 
+stdout: You've hit your session limit · resets 3am (Asia/Tokyo)
+
+--- チャンク 18/20: 5問  開始=02:36:42 ---
+⚠️  チャンク 18 でエラー（exit 1）。このチャンクをスキップして続行
+stderr: 
+stdout: You've hit your session limit · resets 3am (Asia/Tokyo)
+
+--- チャンク 19/20: 5問  開始=02:36:44 ---
+⚠️  チャンク 19 でエラー（exit 1）。このチャンクをスキップして続行
+stderr: 
+stdout: You've hit your session limit · resets 3am (Asia/Tokyo)
+
+--- チャンク 20/20: 5問  開始=02:36:45 ---
+⚠️  チャンク 20 でエラー（exit 1）。このチャンクをスキップして続行
+stderr: 
+stdout: You've hit your session limit · resets 3am (Asia/Tokyo)
+
+完了サマリー: 問題なし=0問 / 自動修正=0問 / 削除=0問
+
+==========================================
+チェック終了: Thu May 21 02:36:46 JST 2026
+==========================================
+--- hook[1] 完了: 2026-05-21 02:36:46 ---
+
+==========================================
+実行開始: 2026-05-21 03:00:00
+==========================================
+▶ [ping] Claudeセッション確認...
+  → 9s
+特にご要望があればお知らせください。
+✓ ping OK
+🌙 夜間初回実行を開始します (03:00)
+▶ [night-script] 01-generate-questions.sh
+==========================================
+問題自動生成 開始: Thu May 21 03:00:09 JST 2026
+==========================================
+対象資格: CLF SAA SAP DVA SOA DOP AIF MLA GAI
+各資格の問題数を取得中...
+  CLF: 216問
+  SAA: 203問
+  SAP: 205問
+  DVA: 205問
+  SOA: 206問
+  DOP: 279問
+  AIF: 199問
+  MLA: 199問
+  GAI: 205問
+選択: AIF (現在199問 — 最少)
+ドメイン数: 5  /  基本 2問/ドメイン（重み付きで配分）  /  合計予算 10問
+開始ドメイン: [0] AIとMLの基礎
+
+--- Cognito 認証中 ---
+✓ 認証完了
+
+--- ドメイン別問題数を取得・割り当て計算中 ---
+  AIソリューションのセキュリティ、コンプライアンス、ガバナンス: 37問
+  生成AIの基礎: 39問
+  基盤モデルのアプリケーション: 40問
+  AIとMLの基礎: 40問
+  責任あるAIのガイドライン: 43問
+
+ドメイン別生成数（逆数重み付き割り当て）:
+  2問 → AIとMLの基礎 (現在40問)
+  2問 → 生成AIの基礎 (現在39問)
+  2問 → 基盤モデルのアプリケーション (現在40問)
+  2問 → 責任あるAIのガイドライン (現在43問)
+  2問 → AIソリューションのセキュリティ、コンプライアンス、ガバナンス (現在37問)
+  合計: 10問
+
+--- [AIとMLの基礎] 2問 生成中 --- 開始=03:03:03
+抽出: 2問 → APIインポート中...
+✓ [AIとMLの基礎] インポート成功: 2件: aif-cc0eac11, aif-076ff203
+  終了=03:05:34  経過=151秒
+
+--- [生成AIの基礎] 2問 生成中 --- 開始=03:05:34
+抽出: 2問 → APIインポート中...
+✓ [生成AIの基礎] インポート成功: 2件: aif-b8e97ae3, aif-4ef71795
+  終了=03:07:35  経過=121秒
+
+--- [基盤モデルのアプリケーション] 2問 生成中 --- 開始=03:07:35
+抽出: 2問 → APIインポート中...
+✓ [基盤モデルのアプリケーション] インポート成功: 2件: aif-38b3cbe4, aif-32a978a8
+  終了=03:09:48  経過=133秒
+
+--- [責任あるAIのガイドライン] 2問 生成中 --- 開始=03:09:48
+抽出: 2問 → APIインポート中...
+✓ [責任あるAIのガイドライン] インポート成功: 2件: aif-d753b0dd, aif-7bb28b42
+  終了=03:13:08  経過=200秒
+
+--- [AIソリューションのセキュリティ、コンプライアンス、ガバナンス] 2問 生成中 --- 開始=03:13:08
+抽出: 2問 → APIインポート中...
+✓ [AIソリューションのセキュリティ、コンプライアンス、ガバナンス] インポート成功: 2件: aif-dcf8a630, aif-0f4bfcb0
+  終了=03:15:11  経過=123秒
+
+合計インポート: 10問 / 10問
+インポート完了: AIF +10問
+
+==========================================
+完了: Thu May 21 03:15:11 JST 2026
+==========================================
+  → 902s
+▶ [night-script] 02-check-validity.sh
+==========================================
+正当性チェック開始: Thu May 21 03:15:11 JST 2026
+バッチサイズ: 30問 / チャンクサイズ: 5問
+==========================================
+チェック対象: 30問
+チャンク数: 6
+
+--- チャンク 1/6: 5問  開始=03:15:32 ---
+  [OK   ] sap-628bc38b
+  [OK   ] aif-cc0eac11
+  [OK   ] dop-8846b598
+  [FIX  ] aif-4ef71795: タグが「生成AIの基礎」になっているが、Bedrockのバッチ推論機能の選択・活用はドメイン「基盤モデルのアプリケーション」に該当する。 → 変更: tags
+  [FIX  ] aif-0f4bfcb0: 解説末尾に誤字「といる行動ベース」→「という行動ベース」がある。 → 変更: explanation
+  → 更新完了: OK=3 修正=2 削除=0
+  終了=03:17:50  経過=138秒
+
+--- チャンク 2/6: 5問  開始=03:17:50 ---
+  [OK   ] sap-ecb5c8cb
+  [OK   ] dop-f52c7edf
+  [OK   ] aif-dcf8a630
+  [OK   ] aif-7bb28b42
+  [OK   ] aif-076ff203
+  → 更新完了: OK=5 修正=0 削除=0
+  終了=03:20:29  経過=159秒
+
+--- チャンク 3/6: 5問  開始=03:20:29 ---
+  [OK   ] aif-b8e97ae3
+  [FIX  ] dop-6757c6c9: ①SLAの日本語訳が「サービス品質合意」→正しくは「サービスレベル合意」。②解説のSnapStartが「Java 11/21専用」としているが、Java 17も対象であり、2024年にPython・.NETにも拡張済みのため事実誤り。 → 変更: questionText, explanation
+  [OK   ] dop-0d5630ee
+  [OK   ] dop-f553eb5f
+  [OK   ] dop-5cf8ea36
+  → 更新完了: OK=4 修正=1 削除=0
+  終了=03:23:42  経過=193秒
+
+--- チャンク 4/6: 5問  開始=03:23:42 ---
+  [OK   ] sap-d46006cd
+  [OK   ] dop-3ac27de3
+  [OK   ] aif-d753b0dd
+  [OK   ] dop-25b12b08
+  [OK   ] dop-bd9ec126
+  → 更新完了: OK=5 修正=0 削除=0
+  終了=03:25:34  経過=112秒
+
+--- チャンク 5/6: 5問  開始=03:25:34 ---
+  [OK   ] aif-38b3cbe4
+  [OK   ] dop-7872f639
+  [OK   ] dop-9bd68c11
+  [OK   ] sap-a75af825
+  [FIX  ] dop-a9ec550d: 「キャニー」はCanaryの誤った音訳。正しくは「カナリア」。choices・correctAnswers・解説の全箇所を修正。 → 変更: choices, correctAnswers, explanation
+  → 更新完了: OK=4 修正=1 削除=0
+  終了=03:28:33  経過=179秒
+
+--- チャンク 6/6: 5問  開始=03:28:33 ---
+  [OK   ] dop-5cf3a6ea
+  [FIX  ] sap-be537538: 選択肢DおよびF解説内のSCPアクション記法「aws:waf:Delete*」「aws:waf:Update*」が誤り。WAFv2の正しいサービスプレフィックスは「wafv2」。 → 変更: choices, explanation
+  [OK   ] dop-2a9302fc
+  [OK   ] dop-e23484ae
+  [OK   ] sap-ae6b30b1
+  → 更新完了: OK=4 修正=1 削除=0
+  終了=03:32:18  経過=225秒
+
+完了サマリー: 問題なし=25問 / 自動修正=5問 / 削除=0問
+
+==========================================
+チェック終了: Thu May 21 03:32:18 JST 2026
+==========================================
+  → 1027s
+▶ [night-script] 03-check-translation.sh
+==========================================
+英訳チェック開始: Thu May 21 03:32:18 JST 2026
+バッチサイズ: 30件 / チャンクサイズ: 5件
+==========================================
+
+▶ Questions テーブルを処理中...
+  チェック対象: 30問
+  チャンク数: 6
+  チャンク 1: 5件  開始=03:32:40
+    [TRANSLATED] sap-628bc38b
+    [TRANSLATED] aif-cc0eac11
+    [TRANSLATED] dop-8846b598
+    [TRANSLATED] aif-4ef71795
+    [TRANSLATED] clf-5696b34e
+  終了=03:35:16  経過=156秒
+  チャンク 2: 5件  開始=03:35:16
+    [TRANSLATED] clf-15b5425f
+    [TRANSLATED] aif-0f4bfcb0
+    [TRANSLATED] clf-5153eee0
+    [TRANSLATED] sap-ecb5c8cb
+    [TRANSLATED] dop-f52c7edf
+  終了=03:38:05  経過=169秒
+  チャンク 3: 5件  開始=03:38:05
+    [TRANSLATED] aif-dcf8a630
+    [TRANSLATED] aif-7bb28b42
+    [TRANSLATED] soa-d80d3905
+    [TRANSLATED] clf-3092915d
+    [TRANSLATED] clf-c18bfee3
+  終了=03:40:29  経過=144秒
+  チャンク 4: 5件  開始=03:40:29
+    [TRANSLATED] dop-52657e7f
+    [TRANSLATED] clf-0baa793a
+    [TRANSLATED] dop-8a289bf4
+    [TRANSLATED] gai-c708d97e
+    [TRANSLATED] aif-4e64f139
+  終了=03:43:04  経過=155秒
+  チャンク 5: 5件  開始=03:43:04
+    [TRANSLATED] soa-b229d0f2
+    [TRANSLATED] dop-5f609816
+    [TRANSLATED] dop-ca0e0f5a
+    [TRANSLATED] clf-0e7698b8
+    [TRANSLATED] sap-b9a08bf7
+  終了=03:46:16  経過=192秒
+  チャンク 6: 5件  開始=03:46:17
+    [TRANSLATED] dop-a036bd39
+    [TRANSLATED] sap-b9383ad1
+    [TRANSLATED] soa-c2514913
+    [TRANSLATED] mla-f21fd647
+    [TRANSLATED] gai-c79e1c75
+  終了=03:49:01  経過=164秒
+
+  Questions 完了: OK=0 / 修正=0 / 新規翻訳=30
+
+▶ Tips テーブルを処理中...
+  チェック対象: 30件
+  チャンク数: 6
+  チャンク 1: 5件  開始=03:49:17
+    [OK        ] b9e5d2fd-8bde-4f49-a15f-d7f76326a37e
+    [OK        ] 8706d8b8-dbe7-4f2c-a427-c60bf04a768a
+    [OK        ] 009a5949-a6a4-402f-ad93-e819b19d6e6a
+    [OK        ] b591140e-71e7-460a-9908-7f5b8a8d07f8
+    [OK        ] 49ba5e11-b11b-43b5-8b2c-dc3879866849
+  終了=03:50:58  経過=101秒
+  チャンク 2: 5件  開始=03:50:58
+    [OK        ] 19f0c257-3fa5-46ab-ad70-4da074d8e046
+    [OK        ] 37bb82d4-5081-4b9e-82fc-2cddb87d8bad
+    [OK        ] ce72e772-f4fd-4ebd-8834-99b4173c0060
+    [OK        ] 9b9dca6e-a856-4d79-9221-bea6517322bb
+    [OK        ] 83e79919-c59e-4a9f-bee4-ef1f0adf2eee
+  終了=03:52:40  経過=102秒
+  チャンク 3: 5件  開始=03:52:40
+    [OK        ] 9bc2b48a-2d5d-42bd-ae5b-88581837ba05
+    [OK        ] 3773b60c-b156-4799-b088-8c62a67e9cc1
+    [OK        ] ef3c7834-30a7-4bbd-ad13-2136f20758dd
+    [OK        ] 90b726b5-4c93-4bdf-997a-1b7b6ab0d816
+    [OK        ] fad548fc-079e-4dea-ad62-4ac9a371f7db
+  終了=03:54:35  経過=115秒
+  チャンク 4: 5件  開始=03:54:35
+    [OK        ] f5ac2671-fe4f-4d48-bfab-d01adec157f4
+    [OK        ] e182c221-3739-42ed-8b3d-1773e4d7968e
+    [OK        ] db51b468-75ae-4270-87a9-aa76e82bf6a5
+    [OK        ] d48f1af7-3509-4e58-a578-1a1928e6c0f5
+    [OK        ] 5d953dd4-9cce-4d72-bff5-84ec2f1a2d90
+  終了=03:56:20  経過=105秒
+  チャンク 5: 5件  開始=03:56:20
+    [OK        ] 58782dd9-9ad7-4e7d-8d15-a72eda00bfc7
+    [OK        ] 53d21080-eb8e-4e92-a505-fb15bcb2e2ec
+    [OK        ] bf7c9b72-914e-4296-a0ca-b3afedfbbbee
+    [OK        ] 9c5d05e4-68fa-4aa5-b6ff-655568f98527
+    [OK        ] 72437ba8-b858-4492-91ce-ceb0694fc181
+  終了=03:58:03  経過=103秒
+  チャンク 6: 5件  開始=03:58:03
+    [OK        ] ce480295-07da-4e0d-b2d9-16aa1582ac1f
+    [OK        ] 7d3ddbdb-9197-47db-8d2b-6185c73dc7b2
+    [OK        ] 959315ef-024d-4203-8ff1-6d313d3a7190
+    [OK        ] a6f8030b-1c47-4f4e-b7a0-380f29620856
+    [OK        ] 0242d341-9465-4ee9-8c30-e54851486355
+  終了=03:59:52  経過=109秒
+
+  Tips 完了: OK=30 / 更新=0
+
+▶ Releases テーブルを処理中...
+  チェック対象: 15件
+  チャンク数: 3
+  チャンク 1: 5件  開始=04:00:07
+    [OK        ] 45fff7ac-0adf-4f82-831b-af39222a5a5a
+    [OK        ] d4b2f620-db86-4351-8a9e-ae7b2864c3b7
+    [OK        ] cccace27-bbbd-4d48-a8e1-53f0ee079db3
+    [OK        ] 8ad724a2-eac5-48fd-b6b3-406a5ce6ac5c
+    [OK        ] 82c76f7c-2db1-418e-ae6d-43cb7a41d07e
+  終了=04:01:59  経過=112秒
+  チャンク 2: 5件  開始=04:01:59
+    [OK        ] 1b896688-27ee-406e-89d4-54bb0fc8711a
+    [OK        ] 654ed42c-f4de-45de-bc82-f5c4e5bb3cd9
+    [OK        ] 3a862fc8-12bd-44a0-98aa-444f50e9fcd8
+    [OK        ] f71142c0-5666-41eb-93a7-5dfe7f3660a9
+    [OK        ] e5869986-99b7-4d0c-915a-01105c6e71ef
+  終了=04:03:53  経過=114秒
+  チャンク 3: 5件  開始=04:03:53
+    [OK        ] 3e609e9d-1369-4b37-8305-6c9e9f0bb055
+    [OK        ] 0b18c9a7-6dc1-4c00-9541-9a77cea73747
+    [OK        ] 90d02f24-3211-4f24-b224-8154394d4f93
+    [OK        ] fa0c698a-5fc0-4f3f-ba57-955c91ade774
+    [OK        ] 8b98b943-0a01-4224-91d8-68cc97827502
+  終了=04:05:47  経過=114秒
+
+  Releases 完了: OK=15 / 更新=0
+
+==========================================
+英訳チェック終了: Thu May 21 04:05:47 JST 2026
+==========================================
+  → 2009s
+▶ [night-script] generate-daily-services.sh
+==========================================
+日めくりAWSサービス生成
+生成件数: 5件
+==========================================
+
+--- 既存サービスを取得中 ---
+Traceback (most recent call last):
+  File "<stdin>", line 26, in <module>
+TypeError: unsupported format string passed to NoneType.__format__
+
+現在 44件 登録済み / 最大 order=43
+
+--- Claude でサービスを生成中 ---
+✓ 5件 生成完了
+
+--- DynamoDB に登録中 ---
+  ✓ [ 44] Amazon S3 Glacier (ストレージ)
+  ✓ [ 45] Amazon DocumentDB (データベース)
+  ✓ [ 46] AWS Shield (セキュリティ)
+  ✓ [ 47] AWS X-Ray (モニタリング)
+  ✓ [ 48] Amazon QuickSight (データ分析)
+
+登録完了: 5件
+
+==========================================
+完了: Thu May 21 04:08:39 JST 2026
+==========================================
+  → 172s
+▶ [night-script] z_verify_night_run.sh
+
+=== [verify] 夜間スクリプト実行結果を検証 ===
+[verify] - check-validity.sh: 未実行（スキップ）
+[verify] - check-translation.sh: 未実行（スキップ）
+[verify] - generate-questions.sh: 未実行（スキップ）
+[verify] 全スクリプト正常完了
+  → 0s
+▶ [ai-router] monday-job.txt
+  → 3s
+⚠️ [claude-wrapper] バイナリ未検出。自動修復を開始します...
+
+changed 9 packages in 2s
+✓ [claude-wrapper] 修復完了
+You've hit your session limit · resets 8am (Asia/Tokyo)
+==========================================
+終了: 2026-05-21 04:08:42
+==========================================
+
+--- hook[0] 開始: 2026-05-21 07:30:49 (-30min) | ~/aws-quiz-app/prompts/night-prompts/scripts/01-generate-questions.sh -n 5 -D 08:00 ---
+⏰ デッドライン: 08:00 JST (epoch=1779318000)
+==========================================
+問題自動生成 開始: Thu May 21 07:30:49 JST 2026
+==========================================
+対象資格: CLF SAA SAP DVA SOA DOP AIF MLA GAI
+各資格の問題数を取得中...
+  CLF: 216問
+  SAA: 203問
+  SAP: 205問
+  DVA: 205問
+  SOA: 206問
+  DOP: 279問
+  AIF: 209問
+  MLA: 199問
+  GAI: 205問
+選択: MLA (現在199問 — 最少)
+ドメイン数: 4  /  基本 5問/ドメイン（重み付きで配分）  /  合計予算 20問
+開始ドメイン: [2] MLワークフローのデプロイとオーケストレーション
+
+--- Cognito 認証中 ---
+✓ 認証完了
+
+--- ドメイン別問題数を取得・割り当て計算中 ---
+  MLソリューションの監視、メンテナンス、セキュリティ: 37問
+  MLモデルの開発: 49問
+  機械学習のためのデータ準備: 51問
+  MLワークフローのデプロイとオーケストレーション: 62問
+
+ドメイン別生成数（逆数重み付き割り当て）:
+  6問 → MLソリューションの監視、メンテナンス、セキュリティ (現在37問)
+  5問 → 機械学習のためのデータ準備 (現在51問)
+  5問 → MLモデルの開発 (現在49問)
+  4問 → MLワークフローのデプロイとオーケストレーション (現在62問)
+  合計: 20問
+
+--- [MLワークフローのデプロイとオーケストレーション] 5問 生成中 --- 開始=07:33:47
+⚠️  レート制限を検出。残りドメインをスキップ
+出力: You've hit your session limit · resets 8am (Asia/Tokyo)
+  🔒 レート制限ロックファイル記録: 2026-05-21 08:00 JST
+  終了=07:33:49  経過=2秒
+
+合計インポート: 0問 / 20問
+--- hook[0] 完了: 2026-05-21 07:33:49 ---
+
+--- hook[1] 開始: 2026-05-21 07:35:49 (-25min) | ~/aws-quiz-app/prompts/night-prompts/scripts/02-check-validity.sh -n 100 -D 08:00 ---
+  🔒 レート制限中: リセット予定 08:00 JST
+==========================================
+正当性チェック開始: Thu May 21 07:35:49 JST 2026
+バッチサイズ: 100問 / チャンクサイズ: 5問
+==========================================
+チェック対象: 100問
+チャンク数: 20
+
+--- チャンク 1/20: 5問  開始=07:36:10 ---
+⚠️  チャンク 1 でエラー（exit 1）。このチャンクをスキップして続行
+stderr: 
+stdout: You've hit your session limit · resets 8am (Asia/Tokyo)
+
+--- チャンク 2/20: 5問  開始=07:36:13 ---
+⚠️  チャンク 2 でエラー（exit 1）。このチャンクをスキップして続行
+stderr: 
+stdout: You've hit your session limit · resets 8am (Asia/Tokyo)
+
+--- チャンク 3/20: 5問  開始=07:36:14 ---
+⚠️  チャンク 3 でエラー（exit 1）。このチャンクをスキップして続行
+stderr: 
+stdout: You've hit your session limit · resets 8am (Asia/Tokyo)
+
+--- チャンク 4/20: 5問  開始=07:36:15 ---
+⚠️  チャンク 4 でエラー（exit 1）。このチャンクをスキップして続行
+stderr: 
+stdout: You've hit your session limit · resets 8am (Asia/Tokyo)
+
+--- チャンク 5/20: 5問  開始=07:36:17 ---
+⚠️  チャンク 5 でエラー（exit 1）。このチャンクをスキップして続行
+stderr: 
+stdout: You've hit your session limit · resets 8am (Asia/Tokyo)
+
+--- チャンク 6/20: 5問  開始=07:36:18 ---
+⚠️  チャンク 6 でエラー（exit 1）。このチャンクをスキップして続行
+stderr: 
+stdout: You've hit your session limit · resets 8am (Asia/Tokyo)
+
+--- チャンク 7/20: 5問  開始=07:36:20 ---
+⚠️  チャンク 7 でエラー（exit 1）。このチャンクをスキップして続行
+stderr: 
+stdout: You've hit your session limit · resets 8am (Asia/Tokyo)
+
+--- チャンク 8/20: 5問  開始=07:36:22 ---
+⚠️  チャンク 8 でエラー（exit 1）。このチャンクをスキップして続行
+stderr: 
+stdout: You've hit your session limit · resets 8am (Asia/Tokyo)
+
+--- チャンク 9/20: 5問  開始=07:36:23 ---
+⚠️  チャンク 9 でエラー（exit 1）。このチャンクをスキップして続行
+stderr: 
+stdout: You've hit your session limit · resets 8am (Asia/Tokyo)
+
+--- チャンク 10/20: 5問  開始=07:36:25 ---
+⚠️  チャンク 10 でエラー（exit 1）。このチャンクをスキップして続行
+stderr: 
+stdout: You've hit your session limit · resets 8am (Asia/Tokyo)
+
+--- チャンク 11/20: 5問  開始=07:36:27 ---
+⚠️  チャンク 11 でエラー（exit 1）。このチャンクをスキップして続行
+stderr: 
+stdout: You've hit your session limit · resets 8am (Asia/Tokyo)
+
+--- チャンク 12/20: 5問  開始=07:36:28 ---
+⚠️  チャンク 12 でエラー（exit 1）。このチャンクをスキップして続行
+stderr: 
+stdout: You've hit your session limit · resets 8am (Asia/Tokyo)
+
+--- チャンク 13/20: 5問  開始=07:36:30 ---
+⚠️  チャンク 13 でエラー（exit 1）。このチャンクをスキップして続行
+stderr: 
+stdout: You've hit your session limit · resets 8am (Asia/Tokyo)
+
+--- チャンク 14/20: 5問  開始=07:36:31 ---
+⚠️  チャンク 14 でエラー（exit 1）。このチャンクをスキップして続行
+stderr: 
+stdout: You've hit your session limit · resets 8am (Asia/Tokyo)
+
+--- チャンク 15/20: 5問  開始=07:36:33 ---
+⚠️  チャンク 15 でエラー（exit 1）。このチャンクをスキップして続行
+stderr: 
+stdout: You've hit your session limit · resets 8am (Asia/Tokyo)
+
+--- チャンク 16/20: 5問  開始=07:36:34 ---
+⚠️  チャンク 16 でエラー（exit 1）。このチャンクをスキップして続行
+stderr: 
+stdout: You've hit your session limit · resets 8am (Asia/Tokyo)
+
+--- チャンク 17/20: 5問  開始=07:36:35 ---
+⚠️  チャンク 17 でエラー（exit 1）。このチャンクをスキップして続行
+stderr: 
+stdout: You've hit your session limit · resets 8am (Asia/Tokyo)
+
+--- チャンク 18/20: 5問  開始=07:36:37 ---
+⚠️  チャンク 18 でエラー（exit 1）。このチャンクをスキップして続行
+stderr: 
+stdout: You've hit your session limit · resets 8am (Asia/Tokyo)
+
+--- チャンク 19/20: 5問  開始=07:36:38 ---
+⚠️  チャンク 19 でエラー（exit 1）。このチャンクをスキップして続行
+stderr: 
+stdout: You've hit your session limit · resets 8am (Asia/Tokyo)
+
+--- チャンク 20/20: 5問  開始=07:36:39 ---
+⚠️  チャンク 20 でエラー（exit 1）。このチャンクをスキップして続行
+stderr: 
+stdout: You've hit your session limit · resets 8am (Asia/Tokyo)
+
+完了サマリー: 問題なし=0問 / 自動修正=0問 / 削除=0問
+
+==========================================
+チェック終了: Thu May 21 07:36:41 JST 2026
+==========================================
+--- hook[1] 完了: 2026-05-21 07:36:41 ---
+
+==========================================
+実行開始: 2026-05-21 08:00:00
+==========================================
+▶ [ping] Claudeセッション確認...
+  → 4s
+何かお手伝いできることはありますか？
+✓ ping OK
+==========================================
+終了: 2026-05-21 08:00:04
+==========================================
+
+--- hook[0] 開始: 2026-05-21 12:30:49 (-30min) | ~/aws-quiz-app/prompts/night-prompts/scripts/01-generate-questions.sh -n 5 -D 13:00 ---
+⏰ デッドライン: 13:00 JST (epoch=1779336000)
+==========================================
+問題自動生成 開始: Thu May 21 12:30:49 JST 2026
+==========================================
+対象資格: CLF SAA SAP DVA SOA DOP AIF MLA GAI
+各資格の問題数を取得中...
+  CLF: 216問
+  SAA: 203問
+  SAP: 205問
+  DVA: 205問
+  SOA: 206問
+  DOP: 289問
+  AIF: 209問
+  MLA: 199問
+  GAI: 205問
+選択: MLA (現在199問 — 最少)
+ドメイン数: 4  /  基本 5問/ドメイン（重み付きで配分）  /  合計予算 20問
+開始ドメイン: [2] MLワークフローのデプロイとオーケストレーション
+
+--- Cognito 認証中 ---
+✓ 認証完了
+
+--- ドメイン別問題数を取得・割り当て計算中 ---
+  MLソリューションの監視、メンテナンス、セキュリティ: 37問
+  MLモデルの開発: 49問
+  機械学習のためのデータ準備: 51問
+  MLワークフローのデプロイとオーケストレーション: 62問
+
+ドメイン別生成数（逆数重み付き割り当て）:
+  6問 → MLソリューションの監視、メンテナンス、セキュリティ (現在37問)
+  5問 → 機械学習のためのデータ準備 (現在51問)
+  5問 → MLモデルの開発 (現在49問)
+  4問 → MLワークフローのデプロイとオーケストレーション (現在62問)
+  合計: 20問
+
+--- [MLワークフローのデプロイとオーケストレーション] 5問 生成中 --- 開始=12:33:43
+
+--- hook[1] 開始: 2026-05-21 12:35:49 (-25min) | ~/aws-quiz-app/prompts/night-prompts/scripts/02-check-validity.sh -n 100 -D 13:00 ---
+==========================================
+正当性チェック開始: Thu May 21 12:35:49 JST 2026
+バッチサイズ: 100問 / チャンクサイズ: 5問
+==========================================
+チェック対象: 100問
+チャンク数: 20
+
+--- チャンク 1/20: 5問  開始=12:36:11 ---
+抽出: 5問 → APIインポート中...
+✓ [MLワークフローのデプロイとオーケストレーション] インポート成功: 5件: mla-3aafb902, mla-1c332c47, mla-74bf097f...
+  終了=12:37:14  経過=211秒
+
+--- [MLソリューションの監視、メンテナンス、セキュリティ] 5問 生成中 --- 開始=12:37:14
+  [OK   ] dop-6ef2e74b
+  [OK   ] dop-1d38e3f3
+  [OK   ] dop-2a639c15
+  [OK   ] dop-3d42e6ae
+  [OK   ] dop-efc67da9
+  → 更新完了: OK=5 修正=0 削除=0
+  終了=12:38:02  経過=111秒
+
+--- チャンク 2/20: 5問  開始=12:38:02 ---
+  [OK   ] dop-e9d758ec
+  [FIX  ] dop-6b995132: 解説中「選択肢DはAssumeRoleは」と助詞「は」が重複し文法的に不自然。「選択肢DのAssumeRoleは」に修正。 → 変更: explanation
+  [OK   ] dop-c36bfb88
+  [OK   ] dop-9a091d9c
+  [OK   ] dop-7a116bdf
+  → 更新完了: OK=4 修正=1 削除=0
+  終了=12:40:16  経過=134秒
+
+--- チャンク 3/20: 5問  開始=12:40:16 ---
+抽出: 5問 → APIインポート中...
+✓ [MLソリューションの監視、メンテナンス、セキュリティ] インポート成功: 5件: mla-17ec27c2, mla-312da35c, mla-b2d09aaa...
+  終了=12:41:38  経過=264秒
+
+--- [機械学習のためのデータ準備] 5問 生成中 --- 開始=12:41:38
+⚠️  レート制限を検出。残りドメインをスキップ
+出力: You've hit your session limit · resets 1pm (Asia/Tokyo)
+  🔒 レート制限ロックファイル記録: 2026-05-21 13:00 JST
+  終了=12:41:39  経過=1秒
+
+合計インポート: 10問 / 20問
+--- hook[0] 完了: 2026-05-21 12:41:39 ---
+  [OK   ] dop-04792861
+  [OK   ] dop-2fdfc046
+  [OK   ] aif-32a978a8
+  [FIX  ] dop-99770afb: 選択肢および正解に「ウォームプールWarm Pool）」と全角開き括弧「（」が欠落している表記ミスがあるため修正。 → 変更: choices, correctAnswers
+  [OK   ] dop-a87a18ed
+  → 更新完了: OK=4 修正=1 削除=0
+  終了=12:42:31  経過=135秒
+
+--- チャンク 4/20: 5問  開始=12:42:31 ---
+⚠️  チャンク 4 でエラー（exit 1）。このチャンクをスキップして続行
+stderr: 
+stdout: You've hit your session limit · resets 1pm (Asia/Tokyo)
+
+--- チャンク 5/20: 5問  開始=12:42:34 ---
+⚠️  チャンク 5 でエラー（exit 1）。このチャンクをスキップして続行
+stderr: 
+stdout: You've hit your session limit · resets 1pm (Asia/Tokyo)
+
+--- チャンク 6/20: 5問  開始=12:42:37 ---
+⚠️  チャンク 6 でエラー（exit 1）。このチャンクをスキップして続行
+stderr: 
+stdout: You've hit your session limit · resets 1pm (Asia/Tokyo)
+
+--- チャンク 7/20: 5問  開始=12:42:39 ---
+⚠️  チャンク 7 でエラー（exit 1）。このチャンクをスキップして続行
+stderr: 
+stdout: You've hit your session limit · resets 1pm (Asia/Tokyo)
+
+--- チャンク 8/20: 5問  開始=12:42:42 ---
+⚠️  チャンク 8 でエラー（exit 1）。このチャンクをスキップして続行
+stderr: 
+stdout: You've hit your session limit · resets 1pm (Asia/Tokyo)
+
+--- チャンク 9/20: 5問  開始=12:42:45 ---
+⚠️  チャンク 9 でエラー（exit 1）。このチャンクをスキップして続行
+stderr: 
+stdout: You've hit your session limit · resets 1pm (Asia/Tokyo)
+
+--- チャンク 10/20: 5問  開始=12:42:47 ---
+⚠️  チャンク 10 でエラー（exit 1）。このチャンクをスキップして続行
+stderr: 
+stdout: You've hit your session limit · resets 1pm (Asia/Tokyo)
+
+--- チャンク 11/20: 5問  開始=12:42:50 ---
+⚠️  チャンク 11 でエラー（exit 1）。このチャンクをスキップして続行
+stderr: 
+stdout: You've hit your session limit · resets 1pm (Asia/Tokyo)
+
+--- チャンク 12/20: 5問  開始=12:42:52 ---
+⚠️  チャンク 12 でエラー（exit 1）。このチャンクをスキップして続行
+stderr: 
+stdout: You've hit your session limit · resets 1pm (Asia/Tokyo)
+
+--- チャンク 13/20: 5問  開始=12:42:55 ---
+⚠️  チャンク 13 でエラー（exit 1）。このチャンクをスキップして続行
+stderr: 
+stdout: You've hit your session limit · resets 1pm (Asia/Tokyo)
+
+--- チャンク 14/20: 5問  開始=12:42:58 ---
+⚠️  チャンク 14 でエラー（exit 1）。このチャンクをスキップして続行
+stderr: 
+stdout: You've hit your session limit · resets 1pm (Asia/Tokyo)
+
+--- チャンク 15/20: 5問  開始=12:43:01 ---
+⚠️  チャンク 15 でエラー（exit 1）。このチャンクをスキップして続行
+stderr: 
+stdout: You've hit your session limit · resets 1pm (Asia/Tokyo)
+
+--- チャンク 16/20: 5問  開始=12:43:04 ---
+⚠️  チャンク 16 でエラー（exit 1）。このチャンクをスキップして続行
+stderr: 
+stdout: You've hit your session limit · resets 1pm (Asia/Tokyo)
+
+--- チャンク 17/20: 5問  開始=12:43:06 ---
+⚠️  チャンク 17 でエラー（exit 1）。このチャンクをスキップして続行
+stderr: 
+stdout: You've hit your session limit · resets 1pm (Asia/Tokyo)
+
+--- チャンク 18/20: 5問  開始=12:43:08 ---
+⚠️  チャンク 18 でエラー（exit 1）。このチャンクをスキップして続行
+stderr: 
+stdout: You've hit your session limit · resets 1pm (Asia/Tokyo)
+
+--- チャンク 19/20: 5問  開始=12:43:10 ---
+⚠️  チャンク 19 でエラー（exit 1）。このチャンクをスキップして続行
+stderr: 
+stdout: You've hit your session limit · resets 1pm (Asia/Tokyo)
+
+--- チャンク 20/20: 5問  開始=12:43:12 ---
+⚠️  チャンク 20 でエラー（exit 1）。このチャンクをスキップして続行
+stderr: 
+stdout: You've hit your session limit · resets 1pm (Asia/Tokyo)
+
+完了サマリー: 問題なし=13問 / 自動修正=2問 / 削除=0問
+
+==========================================
+チェック終了: Thu May 21 12:43:14 JST 2026
+==========================================
+--- hook[1] 完了: 2026-05-21 12:43:14 ---
+
+==========================================
+実行開始: 2026-05-21 13:00:00
+==========================================
+▶ [ping] Claudeセッション確認...
+  → 533s
+⚠️ [claude-wrapper] バイナリ未検出。自動修復を開始します...
+
+changed 9 packages in 9m
+✓ [claude-wrapper] 修復完了
+何かお手伝いできることはありますか？
+✓ ping OK
+==========================================
+終了: 2026-05-21 13:08:53
+==========================================
+
+--- hook[0] 開始: 2026-05-21 17:30:49 (-30min) | ~/aws-quiz-app/prompts/night-prompts/scripts/01-generate-questions.sh -n 5 -D 18:00 ---
+⏰ デッドライン: 18:00 JST (epoch=1779354000)
+==========================================
+問題自動生成 開始: Thu May 21 17:30:49 JST 2026
+==========================================
+対象資格: CLF SAA SAP DVA SOA DOP AIF MLA GAI
+各資格の問題数を取得中...
+  CLF: 216問
+  SAA: 203問
+  SAP: 205問
+  DVA: 205問
+  SOA: 206問
+  DOP: 304問
+  AIF: 209問
+  MLA: 209問
+  GAI: 205問
+選択: SAA (現在203問 — 最少)
+ドメイン数: 4  /  基本 5問/ドメイン（重み付きで配分）  /  合計予算 20問
+開始ドメイン: [2] 高性能なアーキテクチャの設計
+
+--- Cognito 認証中 ---
+✓ 認証完了
+
+--- ドメイン別問題数を取得・割り当て計算中 ---
+  コスト最適化されたアーキテクチャの設計: 40問
+  高性能なアーキテクチャの設計: 51問
+  弾力性に優れたアーキテクチャの設計: 52問
+  セキュアなアーキテクチャの設計: 60問
+
+ドメイン別生成数（逆数重み付き割り当て）:
+  6問 → コスト最適化されたアーキテクチャの設計 (現在40問)
+  5問 → 弾力性に優れたアーキテクチャの設計 (現在52問)
+  5問 → 高性能なアーキテクチャの設計 (現在51問)
+  4問 → セキュアなアーキテクチャの設計 (現在60問)
+  合計: 20問
+Traceback (most recent call last):
+  File "<stdin>", line 4, in <module>
+  File "/usr/lib/python3.12/json/__init__.py", line 293, in load
+    return loads(fp.read(),
+           ^^^^^^^^^^^^^^^^
+  File "/usr/lib/python3.12/json/__init__.py", line 346, in loads
+    return _default_decoder.decode(s)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/lib/python3.12/json/decoder.py", line 340, in decode
+    raise JSONDecodeError("Extra data", s, end)
+json.decoder.JSONDecodeError: Extra data: line 1 column 419 (char 418)
+
+--- [高性能なアーキテクチャの設計] 問 生成中 --- 開始=17:33:43
+  [高性能なアーキテクチャの設計] 合計 0/問 インポート
+  終了=17:33:44  経過=1秒
+Traceback (most recent call last):
+  File "<stdin>", line 4, in <module>
+  File "/usr/lib/python3.12/json/__init__.py", line 293, in load
+    return loads(fp.read(),
+           ^^^^^^^^^^^^^^^^
+  File "/usr/lib/python3.12/json/__init__.py", line 346, in loads
+    return _default_decoder.decode(s)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/lib/python3.12/json/decoder.py", line 340, in decode
+    raise JSONDecodeError("Extra data", s, end)
+json.decoder.JSONDecodeError: Extra data: line 1 column 419 (char 418)
+
+--- [コスト最適化されたアーキテクチャの設計] 問 生成中 --- 開始=17:33:44
+  [コスト最適化されたアーキテクチャの設計] 合計 0/問 インポート
+  終了=17:33:44  経過=0秒
+Traceback (most recent call last):
+  File "<stdin>", line 4, in <module>
+  File "/usr/lib/python3.12/json/__init__.py", line 293, in load
+    return loads(fp.read(),
+           ^^^^^^^^^^^^^^^^
+  File "/usr/lib/python3.12/json/__init__.py", line 346, in loads
+    return _default_decoder.decode(s)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/lib/python3.12/json/decoder.py", line 340, in decode
+    raise JSONDecodeError("Extra data", s, end)
+json.decoder.JSONDecodeError: Extra data: line 1 column 419 (char 418)
+
+--- [セキュアなアーキテクチャの設計] 問 生成中 --- 開始=17:33:44
+  [セキュアなアーキテクチャの設計] 合計 0/問 インポート
+  終了=17:33:44  経過=0秒
+Traceback (most recent call last):
+  File "<stdin>", line 4, in <module>
+  File "/usr/lib/python3.12/json/__init__.py", line 293, in load
+    return loads(fp.read(),
+           ^^^^^^^^^^^^^^^^
+  File "/usr/lib/python3.12/json/__init__.py", line 346, in loads
+    return _default_decoder.decode(s)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/lib/python3.12/json/decoder.py", line 340, in decode
+    raise JSONDecodeError("Extra data", s, end)
+json.decoder.JSONDecodeError: Extra data: line 1 column 419 (char 418)
+
+--- [弾力性に優れたアーキテクチャの設計] 問 生成中 --- 開始=17:33:44
+  [弾力性に優れたアーキテクチャの設計] 合計 0/問 インポート
+  終了=17:33:44  経過=0秒
+
+合計インポート: 0問 / 20問
+
+==========================================
+完了: Thu May 21 17:33:44 JST 2026
+==========================================
+--- hook[0] 完了: 2026-05-21 17:33:44 ---
+
+--- hook[1] 開始: 2026-05-21 17:35:49 (-25min) | ~/aws-quiz-app/prompts/night-prompts/scripts/02-check-validity.sh -n 100 -D 18:00 ---
+==========================================
+正当性チェック開始: Thu May 21 17:35:49 JST 2026
+バッチサイズ: 100問 / チャンクサイズ: 5問
+==========================================
+チェック対象: 100問
+チャンク数: 20
+
+--- チャンク 1/20: 5問  開始=17:36:11 ---
+⚠️  チャンク 1 でエラー（exit 1）。このチャンクをスキップして続行
+stderr: ⚠️ [claude-wrapper] バイナリ未検出。自動修復を開始します...
+
+changed 9 packages in 9m
+✓ [claude-wrapper] 修復完了
+stdout: You've hit your session limit · resets 6pm (Asia/Tokyo)
+
+--- チャンク 2/20: 5問  開始=17:44:57 ---
+⚠️  チャンク 2 でエラー（exit 1）。このチャンクをスキップして続行
+stderr: 
+stdout: You've hit your session limit · resets 6pm (Asia/Tokyo)
+
+--- チャンク 3/20: 5問  開始=17:44:59 ---
+⚠️  チャンク 3 でエラー（exit 1）。このチャンクをスキップして続行
+stderr: 
+stdout: You've hit your session limit · resets 6pm (Asia/Tokyo)
+
+--- チャンク 4/20: 5問  開始=17:45:02 ---
+⚠️  チャンク 4 でエラー（exit 1）。このチャンクをスキップして続行
+stderr: 
+stdout: You've hit your session limit · resets 6pm (Asia/Tokyo)
+
+--- チャンク 5/20: 5問  開始=17:45:03 ---
+⚠️  チャンク 5 でエラー（exit 1）。このチャンクをスキップして続行
+stderr: 
+stdout: You've hit your session limit · resets 6pm (Asia/Tokyo)
+
+--- チャンク 6/20: 5問  開始=17:45:06 ---
+⚠️  チャンク 6 でエラー（exit 1）。このチャンクをスキップして続行
+stderr: 
+stdout: You've hit your session limit · resets 6pm (Asia/Tokyo)
+
+--- チャンク 7/20: 5問  開始=17:45:09 ---
+⚠️  チャンク 7 でエラー（exit 1）。このチャンクをスキップして続行
+stderr: 
+stdout: You've hit your session limit · resets 6pm (Asia/Tokyo)
+
+--- チャンク 8/20: 5問  開始=17:45:12 ---
+⚠️  チャンク 8 でエラー（exit 1）。このチャンクをスキップして続行
+stderr: 
+stdout: You've hit your session limit · resets 6pm (Asia/Tokyo)
+
+--- チャンク 9/20: 5問  開始=17:45:15 ---
+⚠️  チャンク 9 でエラー（exit 1）。このチャンクをスキップして続行
+stderr: 
+stdout: You've hit your session limit · resets 6pm (Asia/Tokyo)
+
+--- チャンク 10/20: 5問  開始=17:45:18 ---
+⚠️  チャンク 10 でエラー（exit 1）。このチャンクをスキップして続行
+stderr: 
+stdout: You've hit your session limit · resets 6pm (Asia/Tokyo)
+
+--- チャンク 11/20: 5問  開始=17:45:21 ---
+⚠️  チャンク 11 でエラー（exit 1）。このチャンクをスキップして続行
+stderr: 
+stdout: You've hit your session limit · resets 6pm (Asia/Tokyo)
+
+--- チャンク 12/20: 5問  開始=17:45:23 ---
+⚠️  チャンク 12 でエラー（exit 1）。このチャンクをスキップして続行
+stderr: 
+stdout: You've hit your session limit · resets 6pm (Asia/Tokyo)
+
+--- チャンク 13/20: 5問  開始=17:45:26 ---
+⚠️  チャンク 13 でエラー（exit 1）。このチャンクをスキップして続行
+stderr: 
+stdout: You've hit your session limit · resets 6pm (Asia/Tokyo)
+
+--- チャンク 14/20: 5問  開始=17:45:28 ---
+⚠️  チャンク 14 でエラー（exit 1）。このチャンクをスキップして続行
+stderr: 
+stdout: You've hit your session limit · resets 6pm (Asia/Tokyo)
+
+--- チャンク 15/20: 5問  開始=17:45:30 ---
+⚠️  チャンク 15 でエラー（exit 1）。このチャンクをスキップして続行
+stderr: 
+stdout: You've hit your session limit · resets 6pm (Asia/Tokyo)
+
+--- チャンク 16/20: 5問  開始=17:45:33 ---
+⚠️  チャンク 16 でエラー（exit 1）。このチャンクをスキップして続行
+stderr: 
+stdout: You've hit your session limit · resets 6pm (Asia/Tokyo)
+
+--- チャンク 17/20: 5問  開始=17:45:36 ---
+⚠️  チャンク 17 でエラー（exit 1）。このチャンクをスキップして続行
+stderr: 
+stdout: You've hit your session limit · resets 6pm (Asia/Tokyo)
+
+--- チャンク 18/20: 5問  開始=17:45:39 ---
+⚠️  チャンク 18 でエラー（exit 1）。このチャンクをスキップして続行
+stderr: 
+stdout: You've hit your session limit · resets 6pm (Asia/Tokyo)
+
+--- チャンク 19/20: 5問  開始=17:45:42 ---
+⚠️  チャンク 19 でエラー（exit 1）。このチャンクをスキップして続行
+stderr: 
+stdout: You've hit your session limit · resets 6pm (Asia/Tokyo)
+
+--- チャンク 20/20: 5問  開始=17:45:45 ---
+⚠️  チャンク 20 でエラー（exit 1）。このチャンクをスキップして続行
+stderr: 
+stdout: You've hit your session limit · resets 6pm (Asia/Tokyo)
+
+完了サマリー: 問題なし=0問 / 自動修正=0問 / 削除=0問
+
+==========================================
+チェック終了: Thu May 21 17:45:48 JST 2026
+==========================================
+--- hook[1] 完了: 2026-05-21 17:45:48 ---
+
+==========================================
+実行開始: 2026-05-21 18:00:00
+==========================================
+▶ [ping] Claudeセッション確認...
+  → 7s
+⚠️ [claude-wrapper] バイナリ未検出。自動修復を開始します...
+
+changed 9 packages in 2s
+✓ [claude-wrapper] 修復完了
+何かお手伝いできることはありますか？
+✓ ping OK
+==========================================
+終了: 2026-05-21 18:00:07
+==========================================
+
+--- hook[0] 開始: 2026-05-21 22:30:49 (-30min) | ~/aws-quiz-app/prompts/night-prompts/scripts/01-generate-questions.sh -n 5 -D 23:00 ---
+⏰ デッドライン: 23:00 JST (epoch=1779372000)
+==========================================
+問題自動生成 開始: Thu May 21 22:30:49 JST 2026
+==========================================
+対象資格: CLF SAA SAP DVA SOA DOP AIF MLA GAI
+各資格の問題数を取得中...
+  CLF: 216問
+  SAA: 203問
+  SAP: 205問
+  DVA: 205問
+  SOA: 206問
+  DOP: 334問
+  AIF: 209問
+  MLA: 209問
+  GAI: 205問
+選択: SAA (現在203問 — 最少)
+ドメイン数: 4  /  基本 5問/ドメイン（重み付きで配分）  /  合計予算 20問
+開始ドメイン: [2] 高性能なアーキテクチャの設計
+
+--- Cognito 認証中 ---
+✓ 認証完了
+
+--- ドメイン別問題数を取得・割り当て計算中 ---
+  コスト最適化されたアーキテクチャの設計: 40問
+  高性能なアーキテクチャの設計: 51問
+  弾力性に優れたアーキテクチャの設計: 52問
+  セキュアなアーキテクチャの設計: 60問
+
+ドメイン別生成数（逆数重み付き割り当て）:
+  6問 → コスト最適化されたアーキテクチャの設計 (現在40問)
+  5問 → 弾力性に優れたアーキテクチャの設計 (現在52問)
+  5問 → 高性能なアーキテクチャの設計 (現在51問)
+  4問 → セキュアなアーキテクチャの設計 (現在60問)
+  合計: 20問
+Traceback (most recent call last):
+  File "<stdin>", line 4, in <module>
+  File "/usr/lib/python3.12/json/__init__.py", line 293, in load
+    return loads(fp.read(),
+           ^^^^^^^^^^^^^^^^
+  File "/usr/lib/python3.12/json/__init__.py", line 346, in loads
+    return _default_decoder.decode(s)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/lib/python3.12/json/decoder.py", line 340, in decode
+    raise JSONDecodeError("Extra data", s, end)
+json.decoder.JSONDecodeError: Extra data: line 1 column 419 (char 418)
+
+--- [高性能なアーキテクチャの設計] 問 生成中 --- 開始=22:33:44
+  [高性能なアーキテクチャの設計] 合計 0/問 インポート
+  終了=22:33:44  経過=1秒
+Traceback (most recent call last):
+  File "<stdin>", line 4, in <module>
+  File "/usr/lib/python3.12/json/__init__.py", line 293, in load
+    return loads(fp.read(),
+           ^^^^^^^^^^^^^^^^
+  File "/usr/lib/python3.12/json/__init__.py", line 346, in loads
+    return _default_decoder.decode(s)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/lib/python3.12/json/decoder.py", line 340, in decode
+    raise JSONDecodeError("Extra data", s, end)
+json.decoder.JSONDecodeError: Extra data: line 1 column 419 (char 418)
+
+--- [コスト最適化されたアーキテクチャの設計] 問 生成中 --- 開始=22:33:44
+  [コスト最適化されたアーキテクチャの設計] 合計 0/問 インポート
+  終了=22:33:44  経過=0秒
+Traceback (most recent call last):
+  File "<stdin>", line 4, in <module>
+  File "/usr/lib/python3.12/json/__init__.py", line 293, in load
+    return loads(fp.read(),
+           ^^^^^^^^^^^^^^^^
+  File "/usr/lib/python3.12/json/__init__.py", line 346, in loads
+    return _default_decoder.decode(s)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/lib/python3.12/json/decoder.py", line 340, in decode
+    raise JSONDecodeError("Extra data", s, end)
+json.decoder.JSONDecodeError: Extra data: line 1 column 419 (char 418)
+
+--- [セキュアなアーキテクチャの設計] 問 生成中 --- 開始=22:33:44
+  [セキュアなアーキテクチャの設計] 合計 0/問 インポート
+  終了=22:33:44  経過=0秒
+Traceback (most recent call last):
+  File "<stdin>", line 4, in <module>
+  File "/usr/lib/python3.12/json/__init__.py", line 293, in load
+    return loads(fp.read(),
+           ^^^^^^^^^^^^^^^^
+  File "/usr/lib/python3.12/json/__init__.py", line 346, in loads
+    return _default_decoder.decode(s)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/lib/python3.12/json/decoder.py", line 340, in decode
+    raise JSONDecodeError("Extra data", s, end)
+json.decoder.JSONDecodeError: Extra data: line 1 column 419 (char 418)
+
+--- [弾力性に優れたアーキテクチャの設計] 問 生成中 --- 開始=22:33:44
+  [弾力性に優れたアーキテクチャの設計] 合計 0/問 インポート
+  終了=22:33:44  経過=0秒
+
+合計インポート: 0問 / 20問
+
+==========================================
+完了: Thu May 21 22:33:44 JST 2026
+==========================================
+--- hook[0] 完了: 2026-05-21 22:33:44 ---
+
+--- hook[1] 開始: 2026-05-21 22:35:49 (-25min) | ~/aws-quiz-app/prompts/night-prompts/scripts/02-check-validity.sh -n 100 -D 23:00 ---
+==========================================
+正当性チェック開始: Thu May 21 22:35:49 JST 2026
+バッチサイズ: 100問 / チャンクサイズ: 5問
+==========================================
+チェック対象: 100問
+チャンク数: 20
+
+--- チャンク 1/20: 5問  開始=22:36:13 ---
+⚠️  チャンク 1 でエラー（exit 1）。このチャンクをスキップして続行
+stderr: ⚠️ [claude-wrapper] バイナリ未検出。自動修復を開始します...
+
+changed 9 packages in 9m
+✓ [claude-wrapper] 修復完了
+stdout: You've hit your session limit · resets 11pm (Asia/Tokyo)
+
+--- チャンク 2/20: 5問  開始=22:45:00 ---
+⚠️  チャンク 2 でエラー（exit 1）。このチャンクをスキップして続行
+stderr: 
+stdout: You've hit your session limit · resets 11pm (Asia/Tokyo)
+
+--- チャンク 3/20: 5問  開始=22:45:04 ---
+⚠️  チャンク 3 でエラー（exit 1）。このチャンクをスキップして続行
+stderr: 
+stdout: You've hit your session limit · resets 11pm (Asia/Tokyo)
+
+--- チャンク 4/20: 5問  開始=22:45:08 ---
+⚠️  チャンク 4 でエラー（exit 1）。このチャンクをスキップして続行
+stderr: 
+stdout: You've hit your session limit · resets 11pm (Asia/Tokyo)
+
+--- チャンク 5/20: 5問  開始=22:45:09 ---
+⚠️  チャンク 5 でエラー（exit 1）。このチャンクをスキップして続行
+stderr: 
+stdout: You've hit your session limit · resets 11pm (Asia/Tokyo)
+
+--- チャンク 6/20: 5問  開始=22:45:13 ---
+⚠️  チャンク 6 でエラー（exit 1）。このチャンクをスキップして続行
+stderr: 
+stdout: You've hit your session limit · resets 11pm (Asia/Tokyo)
+
+--- チャンク 7/20: 5問  開始=22:45:16 ---
+⚠️  チャンク 7 でエラー（exit 1）。このチャンクをスキップして続行
+stderr: 
+stdout: You've hit your session limit · resets 11pm (Asia/Tokyo)
+
+--- チャンク 8/20: 5問  開始=22:45:19 ---
+⚠️  チャンク 8 でエラー（exit 1）。このチャンクをスキップして続行
+stderr: 
+stdout: You've hit your session limit · resets 11pm (Asia/Tokyo)
+
+--- チャンク 9/20: 5問  開始=22:45:22 ---
+⚠️  チャンク 9 でエラー（exit 1）。このチャンクをスキップして続行
+stderr: 
+stdout: You've hit your session limit · resets 11pm (Asia/Tokyo)
+
+--- チャンク 10/20: 5問  開始=22:45:26 ---
+⚠️  チャンク 10 でエラー（exit 1）。このチャンクをスキップして続行
+stderr: 
+stdout: You've hit your session limit · resets 11pm (Asia/Tokyo)
+
+--- チャンク 11/20: 5問  開始=22:45:30 ---
+⚠️  チャンク 11 でエラー（exit 1）。このチャンクをスキップして続行
+stderr: 
+stdout: You've hit your session limit · resets 11pm (Asia/Tokyo)
+
+--- チャンク 12/20: 5問  開始=22:45:35 ---
+⚠️  チャンク 12 でエラー（exit 1）。このチャンクをスキップして続行
+stderr: 
+stdout: You've hit your session limit · resets 11pm (Asia/Tokyo)
+
+--- チャンク 13/20: 5問  開始=22:45:39 ---
+⚠️  チャンク 13 でエラー（exit 1）。このチャンクをスキップして続行
+stderr: 
+stdout: You've hit your session limit · resets 11pm (Asia/Tokyo)
+
+--- チャンク 14/20: 5問  開始=22:45:43 ---
+⚠️  チャンク 14 でエラー（exit 1）。このチャンクをスキップして続行
+stderr: 
+stdout: You've hit your session limit · resets 11pm (Asia/Tokyo)
+
+--- チャンク 15/20: 5問  開始=22:45:47 ---
+⚠️  チャンク 15 でエラー（exit 1）。このチャンクをスキップして続行
+stderr: 
+stdout: You've hit your session limit · resets 11pm (Asia/Tokyo)
+
+--- チャンク 16/20: 5問  開始=22:45:50 ---
+⚠️  チャンク 16 でエラー（exit 1）。このチャンクをスキップして続行
+stderr: 
+stdout: You've hit your session limit · resets 11pm (Asia/Tokyo)
+
+--- チャンク 17/20: 5問  開始=22:45:53 ---
+⚠️  チャンク 17 でエラー（exit 1）。このチャンクをスキップして続行
+stderr: 
+stdout: You've hit your session limit · resets 11pm (Asia/Tokyo)
+
+--- チャンク 18/20: 5問  開始=22:45:56 ---
+⚠️  チャンク 18 でエラー（exit 1）。このチャンクをスキップして続行
+stderr: 
+stdout: You've hit your session limit · resets 11pm (Asia/Tokyo)
+
+--- チャンク 19/20: 5問  開始=22:45:58 ---
+⚠️  チャンク 19 でエラー（exit 1）。このチャンクをスキップして続行
+stderr: 
+stdout: You've hit your session limit · resets 11pm (Asia/Tokyo)
+
+--- チャンク 20/20: 5問  開始=22:46:01 ---
+⚠️  チャンク 20 でエラー（exit 1）。このチャンクをスキップして続行
+stderr: 
+stdout: You've hit your session limit · resets 11pm (Asia/Tokyo)
+
+完了サマリー: 問題なし=0問 / 自動修正=0問 / 削除=0問
+
+==========================================
+チェック終了: Thu May 21 22:46:04 JST 2026
+==========================================
+--- hook[1] 完了: 2026-05-21 22:46:04 ---
+
+==========================================
+実行開始: 2026-05-21 23:00:00
+==========================================
+▶ [ping] Claudeセッション確認...
+  → 11s
+⚠️ [claude-wrapper] バイナリ未検出。自動修復を開始します...
+
+changed 9 packages in 2s
+✓ [claude-wrapper] 修復完了
+✓ ping OK
+==========================================
+終了: 2026-05-21 23:00:11
+==========================================

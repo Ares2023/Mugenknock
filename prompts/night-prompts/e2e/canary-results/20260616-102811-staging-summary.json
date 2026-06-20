@@ -1,0 +1,13 @@
+{
+  "timestamp": "20260616-102811",
+  "env": "staging",
+  "url": "https://mugenknock.pages.dev",
+  "exit_code": 1,
+  "passed": 0
+0,
+  "failed": 0
+0,
+  "warnings": 0
+0,
+  "result": "FAIL"
+}

@@ -1,0 +1,39 @@
+==========================================
+日めくりサービス体裁チェック開始: Thu May 28 05:00:07 JST 2026
+バッチサイズ: 30件 / チャンクサイズ: 8件
+==========================================
+チェック対象: 30件
+チャンク数: 4
+
+--- チャンク 1/4: 8件  開始=05:00:23 ---
+  [FIX  ] svc-transfer-family-86: descriptionとtriviaに複数の特徴・事実があるが\nで区切られていない → 変更: description, trivia
+  [OK   ] svc-snowball-90
+  [FIX  ] svc-mq-78: descriptionとtriviaに複数の特徴・事実があるが\nで区切られていない → 変更: description, trivia
+  [FIX  ] svc-lex-72: descriptionとtriviaに複数の特徴・事実があるが\nで区切られていない → 変更: description, trivia
+  [FIX  ] svc-security-hub-75: descriptionとtriviaに複数の特徴・事実があるが\nで区切られていない → 変更: description, trivia
+  [FIX  ] svc-eventbridge-28: descriptionとtriviaに複数の特徴・事実があるが\nで区切られていない → 変更: description, trivia
+  [FIX  ] svc-opensearch-52: descriptionとtriviaに\n区切りなし。triviaが151字で上限超過のため短縮 → 変更: description, trivia
+  [FIX  ] svc-sns-11: descriptionとtriviaに複数の特徴・事実があるが\nで区切られていない → 変更: description, trivia
+  → 更新完了: OK=1 修正=7 削除=0
+  終了=05:08:25  経過=482秒
+
+--- チャンク 2/4: 8件  開始=05:08:25 ---
+⚠️  チャンク 2 でエラー（exit 1）。このチャンクをスキップして続行
+stderr: 
+stdout: You've hit your session limit · resets 10am (Asia/Tokyo)
+
+--- チャンク 3/4: 8件  開始=05:20:36 ---
+⚠️  チャンク 3 でエラー（exit 1）。このチャンクをスキップして続行
+stderr: 
+stdout: You've hit your session limit · resets 10am (Asia/Tokyo)
+
+--- チャンク 4/4: 6件  開始=05:20:37 ---
+⚠️  チャンク 4 でエラー（exit 1）。このチャンクをスキップして続行
+stderr: 
+stdout: You've hit your session limit · resets 10am (Asia/Tokyo)
+
+完了サマリー: 問題なし=1件 / 自動修正=7件 / 削除=0件
+
+==========================================
+チェック終了: Thu May 28 05:20:39 JST 2026
+==========================================

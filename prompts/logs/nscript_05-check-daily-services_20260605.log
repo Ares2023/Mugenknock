@@ -1,0 +1,54 @@
+=== 2026-06-05 02:54:38 | 05-check-daily-services.sh | exit:0 ===
+==========================================
+日めくりサービス体裁チェック開始: Fri Jun  5 02:30:10 JST 2026
+バッチサイズ: 30件 / チャンクサイズ: 8件
+==========================================
+チェック対象: 30件
+チャンク数: 4
+
+--- チャンク 1/4: 8件  開始=02:30:29 ---
+  [DELETE] _schedule_: name/shortName/category/description/triviaがすべて空。実在するAWSサービスではなくシステム予約IDと推測されるが必須フィールドが皆無のため削除対象
+  [OK   ] svc-migration-hub-105
+  [OK   ] svc-fargate-37
+  [OK   ] 68c89b55-eeb0-4d01-be0a-e37b0e57d76f
+  [OK   ] svc-iam-identity-center-27
+  [OK   ] svc-cost-explorer-68
+  [FIX  ] svc-eks-13: triviaが約159字で上限150字を超過。「Application Load Balancer」をALBに短縮して調整 → 変更: trivia
+  [OK   ] svc-ecr-101
+  → 更新完了: OK=6 修正=1 削除=1
+  終了=02:35:22  経過=293秒
+
+--- チャンク 2/4: 8件  開始=02:35:22 ---
+  [OK   ] svc-storage-gateway-89
+  [OK   ] svc-comprehend-57
+  [OK   ] svc-forecast-93
+  [OK   ] svc-elastic-beanstalk-49
+  [OK   ] svc-s3-glacier-44
+  [OK   ] svc-step-functions-22
+  [OK   ] svc-ecs-12
+  [OK   ] svc-fsx-70
+  → 更新完了: OK=8 修正=0 削除=0
+  終了=02:41:08  経過=346秒
+
+--- チャンク 3/4: 8件  開始=02:41:08 ---
+  [OK   ] svc-batch-59
+  [OK   ] svc-health-dashboard-98
+  [OK   ] 398b303b-1873-4cfb-b4f2-fa71ad5a4b8c
+  [FIX  ] svc-codepipeline-24: description が約128字で上限120字超のため短縮 → 変更: description
+  [OK   ] svc-datasync-83
+  [FIX  ] svc-ec2-6: description・trivia に複数特徴があるが \n 区切りがない → 変更: description, trivia
+  [OK   ] svc-savings-plans-99
+  [FIX  ] svc-cloudtrail-26: description・trivia に複数特徴があるが \n 区切りがない → 変更: description, trivia
+  → 更新完了: OK=5 修正=3 削除=0
+  終了=02:48:03  経過=415秒
+
+--- チャンク 4/4: 6件  開始=02:48:03 ---
+⚠️  チャンク 4 でエラー（exit 1）。このチャンクをスキップして続行
+stderr: 
+stdout: You've hit your session limit · resets 7:30am (Asia/Tokyo)
+
+完了サマリー: 問題なし=19件 / 自動修正=4件 / 削除=1件
+
+==========================================
+チェック終了: Fri Jun  5 02:48:05 JST 2026
+==========================================

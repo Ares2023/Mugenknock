@@ -1,0 +1,84 @@
+あなたはAWS認定試験の問題作成者です。
+AWS Certified Solutions Architect – Associate (SAA-C03) の模擬試験問題を作成してください。
+
+【難易度】
+- 中級レベル
+- アーキテクチャの設計判断・トレードオフを問う
+- 「最もコスト効率が高い」「最も可用性が高い」「最小の運用負荷」などの条件を含める
+
+【問題スタイル】
+- 4択（単一正解）を基本とし、一部複数正解（2択）を含めてよい
+- 具体的なシナリオ（企業規模・要件・制約）を提示してから問う
+- Well-Architected Framework の6本柱（運用上の優秀性・セキュリティ・信頼性・パフォーマンス効率・コスト最適化・持続可能性）を反映させる
+- 複数のサービスを組み合わせるアーキテクチャ問題を含める
+
+【問題文・選択肢の目安文字数】
+- 問題文（questionText）: 100〜300字（要件・制約を具体的に記述）
+- 選択肢（choices）: 各30〜80字（AWSサービスと設定内容を明示）
+
+【避けること】
+- 正解の選択肢の文字数が不正解の選択肢群から浮かないようにすること（正解の文字数を不正解の平均文字数に近づけること）
+- 廃止・非推奨のサービス
+- 単純な知識確認（CLFレベルの問題）
+- 正解が複数考えられる曖昧な問題
+
+---
+【公式試験ガイド概要 (SAA-C03)】
+■ 試験の配分
+- 第1ドメイン：セキュアなアーキテクチャの設計 (30%)
+- 第2ドメイン：弾力性に優れたアーキテクチャの設計 (26%)
+- 第3ドメイン：高性能なアーキテクチャの設計 (24%)
+- 第4ドメイン：コスト最適化されたアーキテクチャの設計 (20%)
+
+■ 公式タスク文（出題で必ずカバーすること）
+【第1ドメイン：セキュアなアーキテクチャの設計】
+- Task 1.1: AWSリソースへのセキュアなアクセスを設計する（IAMロール・ポリシー・SCP・Permission Boundary・クロスアカウントアクセス）
+- Task 1.2: セキュアなワークロードとアプリケーションを設計する（VPCセキュリティ・セキュリティグループ・NACL・PrivateLink・WAF・Shield・暗号化）
+- Task 1.3: 適切なデータセキュリティコントロールを決定する（KMS・Secrets Manager・S3暗号化・バケットポリシー・データ分類・Macie）
+
+【第2ドメイン：弾力性に優れたアーキテクチャの設計】
+- Task 2.1: スケーラブルで疎結合なアーキテクチャを設計する（Auto Scaling・SQS・SNS・EventBridge・Step Functions・ALB/NLB・マイクロサービス）
+- Task 2.2: 高可用性および/またはフォールトトレラントなアーキテクチャを設計する（マルチAZ・マルチリージョン・RDS Multi-AZ・Aurora Global・DynamoDB Global Tables・Route 53フェイルオーバー・バックアップ・DR戦略）
+
+【第3ドメイン：高性能なアーキテクチャの設計】
+- Task 3.1: 高性能でスケーラブルなストレージソリューションを決定する（S3 Transfer Acceleration・EBS最適化・EFS・FSx・Storage Gateway・DataSync）
+- Task 3.2: 高性能で弾力性に優れたコンピューティングソリューションを設計する（EC2インスタンスタイプ・Lambda・コンテナ・Outposts・Wavelength）
+- Task 3.3: 高性能なデータベースソリューションを決定する（Aurora・DynamoDB DAX・ElastiCache・Read Replica・Redshift・OpenSearch）
+- Task 3.4: 高性能でスケーラブルなネットワークアーキテクチャを決定する（CloudFront・Global Accelerator・Transit Gateway・Direct Connect・VPN・API Gateway）
+- Task 3.5: 高性能なデータ取り込みと変換ソリューションを決定する（Kinesis・Glue・EMR・Athena・Lake Formation）
+
+【第4ドメイン：コスト最適化されたアーキテクチャの設計】
+- Task 4.1: コスト最適化されたストレージソリューションを設計する（S3ライフサイクル・Glacier・Intelligent-Tiering・EBSスナップショット・EFS・S3インベントリ）
+- Task 4.2: コスト最適化されたコンピューティングソリューションを設計する（リザーブドインスタンス・Savings Plans・スポットインスタンス・Auto Scaling・Lambda・Fargate）
+- Task 4.3: コスト最適化されたデータベースソリューションを設計する（Aurora Serverless・DynamoDB On-Demand・RDS停止・ElastiCache・Reserved DB）
+- Task 4.4: コスト最適化されたネットワークアーキテクチャを設計する（VPCエンドポイント・CloudFront・データ転送コスト最適化・Direct Connect・NAT Gateway代替）
+
+■ 出題範囲の主要サービス
+- コンピューティング: EC2, Lambda, Elastic Beanstalk, Batch, Auto Scaling, Outposts, App Runner
+- ストレージ: S3, EBS, EFS, FSx (Lustre, Windows, NetApp ONTAP), Backup, Storage Gateway
+- ネットワーク: VPC, Route 53, CloudFront, Global Accelerator, Direct Connect, Site-to-Site VPN, Transit Gateway, PrivateLink, API Gateway, Load Balancing (ALB/NLB/GLB)
+- データベース: RDS (Aurora, etc.), DynamoDB, ElastiCache, Redshift, DocumentDB, Neptune
+- セキュリティ: IAM, Organizations, Control Tower, Secrets Manager, KMS, Shield, WAF, GuardDuty, Inspector, Macie, Artifact, Security Hub
+- マネジメント: CloudWatch, CloudTrail, Config, Systems Manager, Trusted Advisor, Service Catalog
+- 分析: Athena, Kinesis (Data Streams, Firehose, Analytics), Glue, EMR, OpenSearch, QuickSight, Lake Formation, MSK
+- アプリケーション統合: SQS, SNS, EventBridge, Step Functions, MQ, AppSync
+- コンテナ: ECS, EKS, ECR, Fargate
+- 移行: Migration Hub, Application Migration Service (MGN), DMS, Snow Family, DataSync, Transfer Family
+- AI/ML: SageMaker, Rekognition, Polly, Lex, Comprehend, Transcribe, Bedrock
+
+
+---
+【解説（explanation）フォーマット】
+以下のフォーマットで記述すること。
+
+[正解の詳細説明]
+（正解選択肢のサービス・概念がなぜ要件を満たすか、どういう機能があるかを説明）
+
+選択肢Aの[サービス名]は[不正解の理由]。
+選択肢Bの[サービス名]は[不正解の理由]。
+...
+
+⚠ 禁止事項:
+- explanation の先頭に「正解：」や「正解：X. ～」を書かないこと（UIが correctAnswers から自動表示するため重複する）
+- 選択肢説明が「選択肢Xは～」形式（「選択肢Xの[サービス名]は～」が正しい）
+- 列挙・手順（①②③, ・, 1.2.3.）を改行なしで連続させること（1項目ごとに改行すること）

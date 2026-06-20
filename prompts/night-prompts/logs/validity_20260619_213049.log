@@ -1,0 +1,23 @@
+==========================================
+正当性チェック開始: Fri Jun 19 21:30:49 JST 2026
+バッチサイズ: 100問 / チャンクサイズ: 5問
+==========================================
+チェック対象: 100問
+前処理: choices ラベル接頭辞チェック...
+  前処理: ラベル接頭辞なし（全問クリーン）
+チャンク数: 20
+
+--- チャンク 1/20: 5問  開始=21:31:21 ---
+  [FIX  ] soa-4055fffc: 解説の選択肢A・C・Dの不正解理由が極端に短く、なぜ不適切かの詳細説明が不足。choiceExplanationsも同様に補足が必要。 → 変更: explanation, choiceExplanations
+  [OK   ] gai-8b5a8a73
+  [FIX  ] gai-487aee7d: 正解選択肢Cが138文字で不正解平均61.7文字と大きく乖離し文字数から正解が推測可能。解説の選択肢B・Dの説明が問題文の内容を繰り返すのみで不正解理由が不明確。 → 変更: choices, correctAnswers, explanation, choiceExplanations
+  [FIX  ] gai-21c252f5: 問題文の要件(1)(2)(3)が1文内に連続しており、改行がなく読みにくい。 → 変更: questionText
+  [FIX  ] gai-8bdc75ef: 正解選択肢Bが99文字で不正解平均56.3文字と大きく乖離。解説の選択肢Cの説明が「Batch Inferenceはリアルタイム分類には不適です。」のみで極端に短く理由が不十分。 → 変更: choices, correctAnswers, explanation, choiceExplanations
+  → 更新完了: OK=1 修正=4 削除=0
+  終了=21:46:23  経過=902秒
+
+--- チャンク 2/20: 5問  開始=21:46:23 ---
+⚠️  レート制限を検出。残りチャンクをスキップ
+stdout: You've hit your session limit · resets 10pm (Asia/Tokyo)
+
+完了サマリー: 問題なし=1問 / 自動修正=4問 / 削除=0問

@@ -1,0 +1,48 @@
+==========================================
+正当性チェック開始: Tue Jun  2 23:18:35 JST 2026
+バッチサイズ: 30問 / チャンクサイズ: 5問
+==========================================
+チェック対象: 30問
+前処理: choices ラベル接頭辞チェック...
+  前処理: ラベル接頭辞なし（全問クリーン）
+チャンク数: 6
+
+--- チャンク 1/6: 5問  開始=23:19:07 ---
+  [FIX  ] scs-925fd164: choiceExplanationsが未設定のため生成。isMultiple:falseを明示。 → 変更: choiceExplanations
+  [FIX  ] scs-afba56ae: choiceExplanationsが未設定のため生成。isMultiple:falseを明示。 → 変更: choiceExplanations
+  [FIX  ] scs-c7c1c18a: choiceExplanationsが未設定のため生成。解説中の誤字（Network Firwall→Firewall）を修正。isMultiple:falseを明示。 → 変更: explanation, choiceExplanations
+  [FIX  ] sap-d725f920: 解説でB・C・D選択肢の説明が改行なしで連結されているため選択肢ごとに改行して修正。isMultiple:falseを明示。 → 変更: explanation
+  [FIX  ] sap-c2569d3f: 解説の不正解理由が「第1/4選択肢」表記かつ改行なしで連結。「選択肢A/D」に修正し改行を追加。isMultiple:trueを明示。 → 変更: explanation
+  → 更新完了: OK=0 修正=5 削除=0
+  終了=23:36:03  経過=1016秒
+
+--- チャンク 2/6: 5問  開始=23:36:03 ---
+⚠️  チャンク 2 でエラー（exit 1）。このチャンクをスキップして続行
+stderr: 
+stdout: You've hit your session limit · resets 12:30am (Asia/Tokyo)
+
+--- チャンク 3/6: 5問  開始=23:36:06 ---
+⚠️  チャンク 3 でエラー（exit 1）。このチャンクをスキップして続行
+stderr: 
+stdout: You've hit your session limit · resets 12:30am (Asia/Tokyo)
+
+--- チャンク 4/6: 5問  開始=23:36:08 ---
+⚠️  チャンク 4 でエラー（exit 1）。このチャンクをスキップして続行
+stderr: 
+stdout: You've hit your session limit · resets 12:30am (Asia/Tokyo)
+
+--- チャンク 5/6: 5問  開始=23:36:11 ---
+⚠️  チャンク 5 でエラー（exit 1）。このチャンクをスキップして続行
+stderr: 
+stdout: You've hit your session limit · resets 12:30am (Asia/Tokyo)
+
+--- チャンク 6/6: 5問  開始=23:36:12 ---
+⚠️  チャンク 6 でエラー（exit 1）。このチャンクをスキップして続行
+stderr: 
+stdout: You've hit your session limit · resets 12:30am (Asia/Tokyo)
+
+完了サマリー: 問題なし=0問 / 自動修正=5問 / 削除=0問
+
+==========================================
+チェック終了: Tue Jun  2 23:36:14 JST 2026
+==========================================

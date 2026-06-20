@@ -1,0 +1,11 @@
+=== 2026-06-14 02:42:39 | generate-release-note.sh | exit:0 ===
+[release-note] 対象日: 2026-06-13
+[release-note] 2026-06-13: 3件のコミット
+[release-note] 生成結果:
+{
+  "title": "サービス図鑑のアイコンが全部そろった！",
+  "body": "図鑑に登録されている全サービスのアイコンが正しく表示されるようになりました！\n解放済みのサービスも含めて、すべてのアイコンが即座に表示されます。",
+  "titleEn": "All service icons now show in the Encyclopedia!",
+  "bodyEn": "Icons for all services in the Encyclopedia are now displayed correctly and instantly.\nUnlocked services are fully covered too — no more missing icons!"
+}
+[release-note] ✓ DynamoDBに挿入しました: 2026-06-13 — サービス図鑑のアイコンが全部そろった！

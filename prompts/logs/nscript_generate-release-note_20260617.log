@@ -1,0 +1,11 @@
+=== 2026-06-17 00:26:24 | generate-release-note.sh | exit:0 ===
+[release-note] 対象日: 2026-06-16
+[release-note] 2026-06-16: 14件のコミット
+[release-note] 生成結果:
+{
+  "title": "スワイプ操作がサクサク快適に！",
+  "body": "ホーム画面からのスワイプが効かない・スワイプが画面に残留するなど、操作感に関するバグをまとめて修正しました！\nサービス図鑑の説明欠けや演習開始ボタンの進捗%未表示も直り、全体的に使い心地がぐっと向上しています。",
+  "titleEn": "Smoother Swipe Experience!",
+  "bodyEn": "We fixed several issues affecting swipe gestures — including swipes not responding from the home screen and swipe traces lingering on screen.\nWe also resolved missing descriptions in the Service Encyclopedia and missing progress % on the practice start button, making the app feel noticeably more polished."
+}
+[release-note] ✓ DynamoDBに挿入しました: 2026-06-16 — スワイプ操作がサクサク快適に！

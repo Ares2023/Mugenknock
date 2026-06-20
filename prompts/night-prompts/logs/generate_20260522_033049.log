@@ -1,0 +1,99 @@
+==========================================
+問題自動生成 開始: Fri May 22 03:30:49 JST 2026
+==========================================
+対象資格: CLF SAA SAP DVA SOA DOP AIF MLA GAI
+各資格の問題数を取得中...
+  CLF: 216問
+  SAA: 203問
+  SAP: 205問
+  DVA: 205問
+  SOA: 206問
+  DOP: 334問
+  AIF: 209問
+  MLA: 209問
+  GAI: 205問
+選択: SAA (現在203問 — 最少)
+ドメイン数: 4  /  基本 5問/ドメイン（重み付きで配分）  /  合計予算 20問
+開始ドメイン: [2] 高性能なアーキテクチャの設計
+
+--- Cognito 認証中 ---
+✓ 認証完了
+
+--- ドメイン別問題数を取得・割り当て計算中 ---
+  コスト最適化されたアーキテクチャの設計: 40問
+  高性能なアーキテクチャの設計: 51問
+  弾力性に優れたアーキテクチャの設計: 52問
+  セキュアなアーキテクチャの設計: 60問
+
+ドメイン別生成数（逆数重み付き割り当て）:
+  6問 → コスト最適化されたアーキテクチャの設計 (現在40問)
+  5問 → 弾力性に優れたアーキテクチャの設計 (現在52問)
+  5問 → 高性能なアーキテクチャの設計 (現在51問)
+  4問 → セキュアなアーキテクチャの設計 (現在60問)
+  合計: 20問
+Traceback (most recent call last):
+  File "<stdin>", line 4, in <module>
+  File "/usr/lib/python3.12/json/__init__.py", line 293, in load
+    return loads(fp.read(),
+           ^^^^^^^^^^^^^^^^
+  File "/usr/lib/python3.12/json/__init__.py", line 346, in loads
+    return _default_decoder.decode(s)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/lib/python3.12/json/decoder.py", line 340, in decode
+    raise JSONDecodeError("Extra data", s, end)
+json.decoder.JSONDecodeError: Extra data: line 1 column 419 (char 418)
+
+--- [高性能なアーキテクチャの設計] 問 生成中 --- 開始=03:33:48
+  [高性能なアーキテクチャの設計] 合計 0/問 インポート
+  終了=03:33:48  経過=0秒
+Traceback (most recent call last):
+  File "<stdin>", line 4, in <module>
+  File "/usr/lib/python3.12/json/__init__.py", line 293, in load
+    return loads(fp.read(),
+           ^^^^^^^^^^^^^^^^
+  File "/usr/lib/python3.12/json/__init__.py", line 346, in loads
+    return _default_decoder.decode(s)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/lib/python3.12/json/decoder.py", line 340, in decode
+    raise JSONDecodeError("Extra data", s, end)
+json.decoder.JSONDecodeError: Extra data: line 1 column 419 (char 418)
+
+--- [コスト最適化されたアーキテクチャの設計] 問 生成中 --- 開始=03:33:48
+  [コスト最適化されたアーキテクチャの設計] 合計 0/問 インポート
+  終了=03:33:48  経過=0秒
+Traceback (most recent call last):
+  File "<stdin>", line 4, in <module>
+  File "/usr/lib/python3.12/json/__init__.py", line 293, in load
+    return loads(fp.read(),
+           ^^^^^^^^^^^^^^^^
+  File "/usr/lib/python3.12/json/__init__.py", line 346, in loads
+    return _default_decoder.decode(s)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/lib/python3.12/json/decoder.py", line 340, in decode
+    raise JSONDecodeError("Extra data", s, end)
+json.decoder.JSONDecodeError: Extra data: line 1 column 419 (char 418)
+
+--- [セキュアなアーキテクチャの設計] 問 生成中 --- 開始=03:33:48
+  [セキュアなアーキテクチャの設計] 合計 0/問 インポート
+  終了=03:33:48  経過=0秒
+Traceback (most recent call last):
+  File "<stdin>", line 4, in <module>
+  File "/usr/lib/python3.12/json/__init__.py", line 293, in load
+    return loads(fp.read(),
+           ^^^^^^^^^^^^^^^^
+  File "/usr/lib/python3.12/json/__init__.py", line 346, in loads
+    return _default_decoder.decode(s)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/lib/python3.12/json/decoder.py", line 340, in decode
+    raise JSONDecodeError("Extra data", s, end)
+json.decoder.JSONDecodeError: Extra data: line 1 column 419 (char 418)
+
+--- [弾力性に優れたアーキテクチャの設計] 問 生成中 --- 開始=03:33:48
+  [弾力性に優れたアーキテクチャの設計] 合計 0/問 インポート
+  終了=03:33:48  経過=0秒
+
+合計インポート: 0問 / 20問
+
+==========================================
+完了: Fri May 22 03:33:48 JST 2026
+==========================================

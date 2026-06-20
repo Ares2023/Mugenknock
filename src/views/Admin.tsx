@@ -2129,7 +2129,7 @@ ${tipPromptExamType !== 'ALL' ? `・examType には "${tipPromptExamType}" を�
                   <div>
                     <div style={{ fontSize: 12, color: 'var(--color-text-sub)', fontWeight: 700, marginBottom: 6 }}>対象試験</div>
                     <div style={{ display: 'flex', gap: 6, alignItems: 'center' }}>
-                      {['ALL', 'CLF', 'SAA', 'SAP', 'DOP', 'AIF', 'MLA', 'GAI'].map(t => (
+                      {['ALL', 'CLF', 'SAA', 'SAP', 'DOP', 'AIF', 'MLA', 'AIP'].map(t => (
                         <React.Fragment key={t}>
                           <button type="button" onClick={() => setTipPromptExamType(t)}
                             style={{ padding: '4px 12px', border: tipPromptExamType === t ? '2px solid' : '1.5px solid', borderRadius: 6, cursor: 'pointer', fontSize: 13,

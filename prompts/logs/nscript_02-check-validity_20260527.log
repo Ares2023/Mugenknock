@@ -1,0 +1,69 @@
+=== 2026-05-27 04:20:22 | 02-check-validity.sh | exit:0 ===
+==========================================
+正当性チェック開始: Wed May 27 04:00:08 JST 2026
+バッチサイズ: 50問 / チャンクサイズ: 8問
+==========================================
+チェック対象: 50問
+チャンク数: 7
+
+--- チャンク 1/7: 8問  開始=04:00:56 ---
+  [OK   ] dea-58fcdaa3
+  [OK   ] scs-863ae802
+  [OK   ] dea-46f61776
+  [FIX  ] scs-7ebaefc3: 正解ブロック末尾に句点（。）がない → 変更: explanation
+  [FIX  ] scs-e59589a1: 解説の不正解説明が「選択肢Xの〜」形式で、仕様の「選択肢Xは〜」書き出し形式に合わない → 変更: explanation
+  [OK   ] ans-9d0191b1
+  [OK   ] dea-46a2484f
+  [FIX  ] scs-220930f4: 解説の不正解説明が「選択肢Xの〜」形式で、仕様の「選択肢Xは〜」書き出し形式に合わない → 変更: explanation
+  → 更新完了: OK=5 修正=3 削除=0
+  終了=04:07:00  経過=364秒
+
+--- チャンク 2/7: 8問  開始=04:07:00 ---
+  [OK   ] ans-805c61fc
+  [FIX  ] scs-10eca45e: 正解ブロック末尾の句点がない。選択肢Cの解説が「サポートしています」のみで不正解理由が不明瞭。 → 変更: explanation
+  [OK   ] ans-461a9ff5
+  [OK   ] scs-be07a31b
+  [OK   ] dea-76cfe4d6
+  [OK   ] scs-c0933300
+  [OK   ] scs-de191049
+  [FIX  ] scs-dbc18a7b: 正解ブロック末尾の句点がない。 → 変更: explanation
+  → 更新完了: OK=6 修正=2 削除=0
+  終了=04:12:27  経過=327秒
+
+--- チャンク 3/7: 8問  開始=04:12:27 ---
+  [OK   ] ans-17f8d88d
+  [OK   ] dea-3aefdcbb
+  [OK   ] dea-d5168b8e
+  [OK   ] scs-aca6b940
+  [FIX  ] scs-97890ee4: 解説の正解ブロック末尾に句点（。）が欠落している。 → 変更: explanation
+  [OK   ] ans-b5c8fdd2
+  [OK   ] dea-75892cdf
+  [OK   ] scs-1a15a92d
+  → 更新完了: OK=7 修正=1 削除=0
+  終了=04:20:09  経過=462秒
+
+--- チャンク 4/7: 8問  開始=04:20:09 ---
+⚠️  チャンク 4 でエラー（exit 1）。このチャンクをスキップして続行
+stderr: 
+stdout: You've hit your session limit · resets 9am (Asia/Tokyo)
+
+--- チャンク 5/7: 8問  開始=04:20:12 ---
+⚠️  チャンク 5 でエラー（exit 1）。このチャンクをスキップして続行
+stderr: 
+stdout: You've hit your session limit · resets 9am (Asia/Tokyo)
+
+--- チャンク 6/7: 8問  開始=04:20:16 ---
+⚠️  チャンク 6 でエラー（exit 1）。このチャンクをスキップして続行
+stderr: 
+stdout: You've hit your session limit · resets 9am (Asia/Tokyo)
+
+--- チャンク 7/7: 2問  開始=04:20:18 ---
+⚠️  チャンク 7 でエラー（exit 1）。このチャンクをスキップして続行
+stderr: 
+stdout: You've hit your session limit · resets 9am (Asia/Tokyo)
+
+完了サマリー: 問題なし=18問 / 自動修正=6問 / 削除=0問
+
+==========================================
+チェック終了: Wed May 27 04:20:22 JST 2026
+==========================================

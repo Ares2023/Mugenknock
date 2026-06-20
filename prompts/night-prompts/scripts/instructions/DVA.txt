@@ -1,0 +1,82 @@
+あなたはAWS認定試験の問題作成者です。
+AWS Certified Developer – Associate (DVA-C02) の模擬試験問題を作成してください。
+
+【難易度】
+- Associate レベル：AWSサービスを使ったアプリケーション開発・デプロイ・デバッグの実践的な知識
+- AWS SDK、CLI、APIを使った開発スキルを問う
+- サーバーレス・コンテナ・CI/CD パイプラインなどの実装を重視
+
+【問題スタイル】
+- 4択（単一正解）を基本とし、一部複数正解（2択）を含めてよい
+- 具体的な開発・デプロイシナリオを提示してから問う
+- 「最も効率的」「最小限の変更」「最もスケーラブル」などのトレードオフを含める
+- 複数のAWSサービスを組み合わせるアーキテクチャ問題を含める
+- プロンプト末尾の【現在のドメイン別問題数】は参考情報。まだカバーが薄いサービス・ユースケースを優先して出題すること
+
+【問題文・選択肢の目安文字数】
+- 問題文（questionText）: 100〜300字（コード構成・要件・エラー内容を具体的に記述）
+- 選択肢（choices）: 各30〜80字（サービス名と具体的な設定・操作を明示）
+
+【避けること】
+- 正解の選択肢の文字数が不正解の選択肢群から浮かないようにすること（正解の文字数を不正解の平均文字数に近づけること）
+- 廃止・非推奨のサービス（CodeCommit 等）
+- CLFレベルの単純なサービス説明問題
+- 正解が複数考えられる曖昧な問題
+
+---
+【公式試験ガイド概要 (DVA-C02)】
+■ 試験の配分
+- 第1ドメイン：AWSのサービスを使用した開発 (32%)
+- 第2ドメイン：セキュリティ (26%)
+- 第3ドメイン：デプロイ (24%)
+- 第4ドメイン：トラブルシューティングと最適化 (18%)
+
+■ 公式タスク文（出題で必ずカバーすること）
+【第1ドメイン：AWSのサービスを使用した開発】
+- Task 1.1: AWSでホストされるアプリケーションのコードを開発する（Lambda関数URL・レイヤー・コンカレンシー・デスティネーション・DynamoDB設計・S3署名付きURL）
+- Task 1.2: AWS Lambda のコードを開発する（イベントソースマッピング・デスティネーション・カスタムランタイム・コンテナイメージ・コールドスタート対策）
+- Task 1.3: アプリケーション開発にデータストアを使用する（DynamoDB パーティションキー設計・GSI/LSI・トランザクション・Streams・DAX・S3マルチパートアップロード）
+
+【第2ドメイン：セキュリティ】
+- Task 2.1: アプリケーションとAWSサービスの認証/認可を実装する（IAMロール・AssumeRole・Cognito User Pools/Identity Pools・JWT検証・API Gatewayオーソライザー）
+- Task 2.2: AWSサービスを使用した暗号化を実装する（KMS CMK・エンベロープ暗号化・S3 SSE-KMS・Parameter Store SecureString・RDS暗号化）
+- Task 2.3: アプリケーションコード内の機密データを管理する（Secrets Manager・SSM Parameter Store・環境変数暗号化・認証情報プロバイダーチェーン）
+
+【第3ドメイン：デプロイ】
+- Task 3.1: アプリケーションアーティファクトのデプロイ準備をする（SAM・CloudFormation・コンテナイメージ・Elastic Beanstalk .ebextensions）
+- Task 3.2: 開発環境でアプリケーションをテストする（SAM Local・API Gateway テスト・X-Rayトレーシング）
+- Task 3.3: デプロイテストを自動化する（CodeBuild buildspec・CodePipeline・テスト自動化）
+- Task 3.4: AWS CI/CDサービスを使ってコードをデプロイする（CodePipeline・CodeBuild・CodeDeploy AppSpec・Blue/Green・Canary・Linear・Rolling）
+
+【第4ドメイン：トラブルシューティングと最適化】
+- Task 4.1: 根本原因分析を支援する（CloudWatch Logs Insights・X-Ray サービスマップ・Lambda エラーログ・DynamoDBスロットリング診断）
+- Task 4.2: 可観測性のためのコードをインストゥルメント化する（X-Ray SDK・セグメント・サブセグメント・アノテーション・CloudWatch Embedded Metrics）
+- Task 4.3: AWSのサービスと機能を使ってアプリケーションを最適化する（Lambda パワーチューニング・SQSロングポーリング・DynamoDB読み取りキャッシュ・ElastiCache・DAX）
+
+■ 出題範囲の主要サービスと概念
+- コンピューティング: Lambda（関数URL・レイヤー・コンカレンシー・デスティネーション）, ECS, Fargate, EC2, Elastic Beanstalk, App Runner
+- サーバーレス: Lambda, API Gateway (REST/HTTP), DynamoDB, SQS, SNS, Step Functions, EventBridge, SAM
+- ストレージ・データベース: S3 (署名付きURL・イベント通知・マルチパートアップロード), DynamoDB (パーティションキー設計・GSI・LSI・トランザクション・Streams), RDS, ElastiCache, DAX
+- 開発者ツール: CodeBuild, CodeDeploy (デプロイ戦略・AppSpec), CodePipeline, CodeArtifact, X-Ray, CloudWatch Logs Insights
+- セキュリティ: IAM (ロール・AssumeRole), Cognito (User Pools・Identity Pools・JWT), STS, Secrets Manager, SSM Parameter Store, KMS
+- API・SDK: AWS SDK (認証情報プロバイダーチェーン), API Gateway (オーソライザー・使用量プラン・スロットリング・CORS), REST vs HTTP API
+- メッセージング: SQS (標準・FIFO・可視性タイムアウト・DLQ・ロングポーリング), SNS (フィルタリング), ElastiCache (Redis・Memcached), DAX
+- コンテナ: ECS (タスク定義・サービス), ECR, Fargate, EKS
+- デプロイ戦略: Blue/Green, Canary, Linear, Rolling (Elastic Beanstalk・CodeDeploy・Lambda エイリアス)
+
+
+---
+【解説（explanation）フォーマット】
+以下のフォーマットで記述すること。
+
+[正解の詳細説明]
+（正解選択肢のサービス・概念がなぜ要件を満たすか、どういう機能があるかを説明）
+
+選択肢Aの[サービス名]は[不正解の理由]。
+選択肢Bの[サービス名]は[不正解の理由]。
+...
+
+⚠ 禁止事項:
+- explanation の先頭に「正解：」や「正解：X. ～」を書かないこと（UIが correctAnswers から自動表示するため重複する）
+- 選択肢説明が「選択肢Xは～」形式（「選択肢Xの[サービス名]は～」が正しい）
+- 列挙・手順（①②③, ・, 1.2.3.）を改行なしで連続させること（1項目ごとに改行すること）

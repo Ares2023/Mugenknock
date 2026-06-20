@@ -1,0 +1,689 @@
+
+==========================================
+実行開始: 2026-06-06 03:30:00
+==========================================
+▶ [ping] Claudeセッション確認...
+  → 9s
+何かご用件はありますか？
+✓ ping OK
+🌙 夜間初回実行を開始します (03:30)
+  [並列実行中: night-scripts 4件]
+▶ [night-script] 01-generate-questions.sh
+==========================================
+問題自動生成 開始: Sat Jun  6 03:30:09 JST 2026
+==========================================
+対象資格: CLF SAA SAP DVA SOA DEA DOP AIF MLA GAI ANS SCS
+問題数キャッシュを使用...
+  CLF: 231問 (キャッシュ)
+  SAA: 211問 (キャッシュ)
+  SAP: 204問 (キャッシュ)
+  DVA: 204問 (キャッシュ)
+  SOA: 206問 (キャッシュ)
+  DEA: 214問 (キャッシュ)
+  DOP: 333問 (キャッシュ)
+  AIF: 238問 (キャッシュ)
+  MLA: 207問 (キャッシュ)
+  GAI: 217問 (キャッシュ)
+  ANS: 206問 (キャッシュ)
+  SCS: 210問 (キャッシュ)
+選択: SAP (現在204問 — 最少)
+ドメイン数: 4  /  基本 5問/ドメイン（重み付きで配分）  /  合計予算 20問
+開始ドメイン: [3] ワークロードの移行とモダン化の加速
+
+--- Cognito 認証中 ---
+✓ 認証完了
+
+--- ドメイン別問題数を取得・割り当て計算中 ---
+  ワークロードの移行とモダン化の加速: 41問
+  既存のソリューションの継続的改善: 48問
+  新しいソリューションのための設計: 51問
+  組織の複雑さに対応する設計: 64問
+
+ドメイン別生成数（逆数重み付き割り当て）:
+  13問 → ワークロードの移行とモダン化の加速 (現在41問)
+  5問 → 既存のソリューションの継続的改善 (現在48問)
+  2問 → 新しいソリューションのための設計 (現在51問)
+  0問 → 組織の複雑さに対応する設計 (現在64問)
+  合計: 20問
+
+--- [ワークロードの移行とモダン化の加速] 13問 生成中 (5問×3チャンク) --- 開始=03:30:54
+  チャンク 1/3: 5問 生成中...
+⚠️  レート制限を検出。残りをスキップ
+出力: You've hit your session limit · resets 8:30am (Asia/Tokyo)
+  🔒 レート制限ロックファイル記録: 2026-06-06 08:30 JST
+  終了=04:00:00  経過=1746秒
+
+合計インポート: 0問 / 20問
+
+--- 問題数キャッシュを再構築中（DynamoDBから正確な値を取得）---
+  CLF: 231問
+  SAA: 211問
+  SAP: 204問
+  DVA: 204問
+  SOA: 206問
+  DEA: 214問
+  DOP: 333問
+  AIF: 238問
+  MLA: 207問
+  GAI: 217問
+  ANS: 206問
+  SCS: 210問
+キャッシュ更新完了
+  → 2040s
+▶ [night-script] 02-check-validity.sh
+==========================================
+正当性チェック開始: Sat Jun  6 03:30:09 JST 2026
+バッチサイズ: 30問 / チャンクサイズ: 5問
+==========================================
+チェック対象: 30問
+前処理: choices ラベル接頭辞チェック...
+  前処理: ラベル接頭辞なし（全問クリーン）
+チャンク数: 6
+
+--- チャンク 1/6: 5問  開始=03:30:42 ---
+  [OK   ] sap-567a4177
+  [FIX  ] aif-c40b1ce4: 正解選択肢Bの文字数が不正解平均の約2倍で正解推測が可能。誤答解説が不明確かつ不十分 → 変更: choices, correctAnswers, explanation, choiceExplanations
+  [OK   ] saa-32ce8270
+  [OK   ] saa-e1723178
+  [FIX  ] aif-6bfedf87: 正解選択肢Bが不正解平均比で約40%長く正解推測が可能。誤答解説が「目的が異なる」のみで不十分 → 変更: choices, explanation, choiceExplanations
+  → 更新完了: OK=3 修正=2 削除=0
+  終了=03:37:59  経過=437秒
+
+--- チャンク 2/6: 5問  開始=03:37:59 ---
+  [FIX  ] aif-c92b2ba5: 解説のDataDrift節に「Model Driftは本番データの分布が訓練時から〜」と「は」が重複する文法エラー。また正解選択肢が不正解平均の約2倍の文字数で正解が推測しやすいため選択肢A・Dを補足して均等化。 → 変更: choices, explanation, choiceExplanations
+  [OK   ] aif-2e75c2a2
+  [OK   ] saa-ce8d09ff
+  [OK   ] saa-59b2c7f8
+  [FIX  ] aif-732d09bb: 正解選択肢（約54文字）が不正解平均（約28文字）の約2倍の長さで文字数から正解が推測可能。不正解選択肢に手法名の補足を加えて均等化。 → 変更: choices, choiceExplanations
+  → 更新完了: OK=3 修正=2 削除=0
+  終了=03:43:37  経過=338秒
+
+--- チャンク 3/6: 5問  開始=03:43:37 ---
+  [FIX  ] aif-ca61f8de: 正解選択肢のRAG注釈で他の選択肢より著しく文字数が多く正解が推測できる。解説の選択肢A記述に二重表現あり。 → 変更: choices, correctAnswers, explanation
+  [FIX  ] aif-5c934287: 正解選択肢に括弧注釈が2つ含まれており他の選択肢より著しく長く、文字数から正解が推測できる。 → 変更: choices, correctAnswers
+  [OK   ] aif-e4b2ec9d
+  [OK   ] aif-aa1e86e1
+  [FIX  ] saa-8b6b043c: 問題文の要件リスト（1）〜（5）に改行がない。Firehose選択肢のParquet注釈で他選択肢との文字数差が大きい。 → 変更: questionText, choices, correctAnswers
+  → 更新完了: OK=2 修正=3 削除=0
+  終了=03:49:20  経過=343秒
+
+--- チャンク 4/6: 5問  開始=03:49:20 ---
+  [OK   ] aif-bf96386b
+  [OK   ] saa-3e5d7fab
+  [FIX  ] saa-ad9fea9b: 正解（選択肢2）のみDLQ完全注釈付きで文字数が突出し正解が推測できる。選択肢3にも同様の注釈を追加して長さを揃える。 → 変更: choices
+  [FIX  ] mla-1f9e7f63: 解説の冒頭1行が正解選択肢テキストの丸写しで無意味。各選択肢解説間の空行も不足している。 → 変更: explanation
+  [FIX  ] aif-3ce7554a: 解説の冒頭1行が正解選択肢テキストの丸写しで無意味。各選択肢解説間の空行も不足している。 → 変更: explanation
+  → 更新完了: OK=2 修正=3 削除=0
+  終了=04:03:43  経過=863秒
+
+--- チャンク 5/6: 5問  開始=04:03:43 ---
+⚠️  チャンク 5 でエラー（exit 1）。このチャンクをスキップして続行
+stderr: 
+stdout: You've hit your session limit · resets 8:30am (Asia/Tokyo)
+
+--- チャンク 6/6: 5問  開始=04:03:45 ---
+⚠️  チャンク 6 でエラー（exit 1）。このチャンクをスキップして続行
+stderr: 
+stdout: You've hit your session limit · resets 8:30am (Asia/Tokyo)
+
+完了サマリー: 問題なし=10問 / 自動修正=10問 / 削除=0問
+
+==========================================
+チェック終了: Sat Jun  6 04:03:46 JST 2026
+==========================================
+  → 2040s
+▶ [night-script] 03-check-reports.sh
+==========================================
+通報チェック開始: Sat Jun  6 03:30:09 JST 2026
+関連問題チェック: ドメインあたり最大 10問
+==========================================
+通報件数: 2件 / 関連問題: 10問
+/home/yuzuki/aws-quiz-app/prompts/night-prompts/scripts/03-check-reports.sh: line 251: echo: write error: Broken pipe
+Traceback (most recent call last):
+  File "<stdin>", line 3, in <module>
+  File "/usr/lib/python3.12/json/__init__.py", line 293, in load
+    return loads(fp.read(),
+           ^^^^^^^^^^^^^^^^
+  File "/usr/lib/python3.12/json/__init__.py", line 346, in loads
+    return _default_decoder.decode(s)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/lib/python3.12/json/decoder.py", line 337, in decode
+    obj, end = self.raw_decode(s, idx=_w(s, 0).end())
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/lib/python3.12/json/decoder.py", line 355, in raw_decode
+    raise JSONDecodeError("Expecting value", s, err.value) from None
+json.decoder.JSONDecodeError: Expecting value: line 1 column 1 (char 0)
+Claude 判定対象: 通報=2件 / 関連=10問
+/home/yuzuki/aws-quiz-app/prompts/night-prompts/scripts/03-check-reports.sh: line 281: echo: write error: Broken pipe
+Traceback (most recent call last):
+  File "<stdin>", line 3, in <module>
+  File "/usr/lib/python3.12/json/__init__.py", line 293, in load
+    return loads(fp.read(),
+           ^^^^^^^^^^^^^^^^
+  File "/usr/lib/python3.12/json/__init__.py", line 346, in loads
+    return _default_decoder.decode(s)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/lib/python3.12/json/decoder.py", line 337, in decode
+    obj, end = self.raw_decode(s, idx=_w(s, 0).end())
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/lib/python3.12/json/decoder.py", line 355, in raw_decode
+    raise JSONDecodeError("Expecting value", s, err.value) from None
+json.decoder.JSONDecodeError: Expecting value: line 1 column 1 (char 0)
+⚠️  Claude でエラー（exit 1）
+stderr: Error: Input must be provided either through stdin or as a prompt argument when using --print
+  → 2040s
+▶ [night-script] generate-release-note.sh
+[release-note] 対象日: 2026-06-05
+[release-note] コミット数: 4
+[release-note] Claudeでリリースノートを生成中...
+[release-note] 生成結果:
+{
+  "title": "管理画面がパワーアップ！問題プレビューで編集がスムーズに！",
+  "body": "問題一覧から1クリックでプレビューを確認できるモーダルを追加しました！\n選択肢ごとの解説（choiceExplanations）のインポートにも対応し、より充実した問題セットが作れるようになりました。",
+  "titleEn": "Admin Panel Upgrade: Preview Questions at a Glance!",
+  "bodyEn": "You can now preview any question instantly from the admin panel with a single click.\nImporting questions with per-choice explanations (choiceExplanations) is also now supported, enabling richer quiz content."
+}
+[release-note] ERROR: JSONパースに失敗しました: Invalid control character at: line 3 column 47 (char 92)
+出力内容:
+{
+  "title": "管理画面がパワーアップ！問題プレビューで編集がスムーズに！",
+  "body": "問題一覧から1クリックでプレビューを確認できるモーダルを追加しました！
+選択肢ごとの解説（choiceExplanations）のインポートにも対応し、より充実した問題セットが作れるようになりました。",
+  "titleEn": "Admin Panel Upgrade: Preview Questions at a Glance!",
+  "bodyEn": "You can now preview any question instantly from the admin panel with a single click.
+Importing questions with per-choice explanations (choiceExplanations) is also now supported, enabling richer quiz content."
+}
+  → 2040s
+  [並列実行中: texts 2件]
+▶ [ai-router] monday-job.txt
+You've hit your session limit · resets 8:30am (Asia/Tokyo)
+  → 2s
+▶ [ai-router] nght-prompts-check.txt
+You've hit your session limit · resets 8:30am (Asia/Tokyo)
+  → 2s
+==========================================
+終了: 2026-06-06 04:04:11
+==========================================
+
+--- hook[0] 開始: 2026-06-06 08:02:34 (-30min) | ~/aws-quiz-app/prompts/night-prompts/scripts/02-check-validity.sh -n 100 -D 08:32 ---
+  🔒 レート制限中: リセット予定 08:30 JST
+==========================================
+正当性チェック開始: Sat Jun  6 08:02:34 JST 2026
+バッチサイズ: 100問 / チャンクサイズ: 5問
+==========================================
+チェック対象: 100問
+前処理: choices ラベル接頭辞チェック...
+  前処理: ラベル接頭辞なし（全問クリーン）
+チャンク数: 20
+
+--- チャンク 1/20: 5問  開始=08:03:05 ---
+⚠️  チャンク 1 でエラー（exit 1）。このチャンクをスキップして続行
+stderr: 
+stdout: You've hit your session limit · resets 8:30am (Asia/Tokyo)
+
+--- チャンク 2/20: 5問  開始=08:03:07 ---
+⚠️  チャンク 2 でエラー（exit 1）。このチャンクをスキップして続行
+stderr: 
+stdout: You've hit your session limit · resets 8:30am (Asia/Tokyo)
+
+--- チャンク 3/20: 5問  開始=08:03:08 ---
+⚠️  チャンク 3 でエラー（exit 1）。このチャンクをスキップして続行
+stderr: 
+stdout: You've hit your session limit · resets 8:30am (Asia/Tokyo)
+
+--- チャンク 4/20: 5問  開始=08:03:10 ---
+⚠️  チャンク 4 でエラー（exit 1）。このチャンクをスキップして続行
+stderr: 
+stdout: You've hit your session limit · resets 8:30am (Asia/Tokyo)
+
+--- チャンク 5/20: 5問  開始=08:03:12 ---
+⚠️  チャンク 5 でエラー（exit 1）。このチャンクをスキップして続行
+stderr: 
+stdout: You've hit your session limit · resets 8:30am (Asia/Tokyo)
+
+--- チャンク 6/20: 5問  開始=08:03:14 ---
+⚠️  チャンク 6 でエラー（exit 1）。このチャンクをスキップして続行
+stderr: 
+stdout: You've hit your session limit · resets 8:30am (Asia/Tokyo)
+
+--- チャンク 7/20: 5問  開始=08:03:15 ---
+⚠️  チャンク 7 でエラー（exit 1）。このチャンクをスキップして続行
+stderr: 
+stdout: You've hit your session limit · resets 8:30am (Asia/Tokyo)
+
+--- チャンク 8/20: 5問  開始=08:03:17 ---
+⚠️  チャンク 8 でエラー（exit 1）。このチャンクをスキップして続行
+stderr: 
+stdout: You've hit your session limit · resets 8:30am (Asia/Tokyo)
+
+--- チャンク 9/20: 5問  開始=08:03:19 ---
+⚠️  チャンク 9 でエラー（exit 1）。このチャンクをスキップして続行
+stderr: 
+stdout: You've hit your session limit · resets 8:30am (Asia/Tokyo)
+
+--- チャンク 10/20: 5問  開始=08:03:20 ---
+⚠️  チャンク 10 でエラー（exit 1）。このチャンクをスキップして続行
+stderr: 
+stdout: You've hit your session limit · resets 8:30am (Asia/Tokyo)
+
+--- チャンク 11/20: 5問  開始=08:03:22 ---
+⚠️  チャンク 11 でエラー（exit 1）。このチャンクをスキップして続行
+stderr: 
+stdout: You've hit your session limit · resets 8:30am (Asia/Tokyo)
+
+--- チャンク 12/20: 5問  開始=08:03:23 ---
+⚠️  チャンク 12 でエラー（exit 1）。このチャンクをスキップして続行
+stderr: 
+stdout: You've hit your session limit · resets 8:30am (Asia/Tokyo)
+
+--- チャンク 13/20: 5問  開始=08:03:25 ---
+⚠️  チャンク 13 でエラー（exit 1）。このチャンクをスキップして続行
+stderr: 
+stdout: You've hit your session limit · resets 8:30am (Asia/Tokyo)
+
+--- チャンク 14/20: 5問  開始=08:03:27 ---
+⚠️  チャンク 14 でエラー（exit 1）。このチャンクをスキップして続行
+stderr: 
+stdout: You've hit your session limit · resets 8:30am (Asia/Tokyo)
+
+--- チャンク 15/20: 5問  開始=08:03:28 ---
+⚠️  チャンク 15 でエラー（exit 1）。このチャンクをスキップして続行
+stderr: 
+stdout: You've hit your session limit · resets 8:30am (Asia/Tokyo)
+
+--- チャンク 16/20: 5問  開始=08:03:30 ---
+⚠️  チャンク 16 でエラー（exit 1）。このチャンクをスキップして続行
+stderr: 
+stdout: You've hit your session limit · resets 8:30am (Asia/Tokyo)
+
+--- チャンク 17/20: 5問  開始=08:03:32 ---
+⚠️  チャンク 17 でエラー（exit 1）。このチャンクをスキップして続行
+stderr: 
+stdout: You've hit your session limit · resets 8:30am (Asia/Tokyo)
+
+--- チャンク 18/20: 5問  開始=08:03:34 ---
+⚠️  チャンク 18 でエラー（exit 1）。このチャンクをスキップして続行
+stderr: 
+stdout: You've hit your session limit · resets 8:30am (Asia/Tokyo)
+
+--- チャンク 19/20: 5問  開始=08:03:35 ---
+⚠️  チャンク 19 でエラー（exit 1）。このチャンクをスキップして続行
+stderr: 
+stdout: You've hit your session limit · resets 8:30am (Asia/Tokyo)
+
+--- チャンク 20/20: 5問  開始=08:03:37 ---
+⚠️  チャンク 20 でエラー（exit 1）。このチャンクをスキップして続行
+stderr: 
+stdout: You've hit your session limit · resets 8:30am (Asia/Tokyo)
+
+完了サマリー: 問題なし=0問 / 自動修正=0問 / 削除=0問
+
+==========================================
+チェック終了: Sat Jun  6 08:03:39 JST 2026
+==========================================
+--- hook[0] 完了: 2026-06-06 08:03:39 ---
+
+--- hook[1] 開始: 2026-06-06 08:12:34 (-20min) | ~/aws-quiz-app/prompts/night-prompts/scripts/01-generate-questions.sh -n 5 -D 08:32 ---
+⏰ デッドライン: 08:32 JST (epoch=1780702320)
+⏸  Claude レート制限中 — 復活予定: 08:30 JST（01-generate-questions.sh をスキップ）
+--- hook[1] 完了: 2026-06-06 08:12:34 ---
+
+==========================================
+実行開始: 2026-06-06 08:32:00
+==========================================
+▶ [ping] Claudeセッション確認...
+  → 5s
+何かお手伝いできることはありますか？
+✓ ping OK
+==========================================
+終了: 2026-06-06 08:32:05
+==========================================
+
+--- hook[0] 開始: 2026-06-06 13:00:34 (-30min) | ~/aws-quiz-app/prompts/night-prompts/scripts/02-check-validity.sh -n 100 -D 13:30 ---
+==========================================
+正当性チェック開始: Sat Jun  6 13:00:34 JST 2026
+バッチサイズ: 100問 / チャンクサイズ: 5問
+==========================================
+チェック対象: 100問
+前処理: choices ラベル接頭辞チェック...
+  前処理: ラベル接頭辞なし（全問クリーン）
+チャンク数: 20
+
+--- チャンク 1/20: 5問  開始=13:01:04 ---
+  → 更新完了: OK=0 修正=0 削除=0
+  終了=13:08:12  経過=428秒
+
+--- チャンク 2/20: 5問  開始=13:08:12 ---
+
+--- hook[1] 開始: 2026-06-06 13:10:34 (-20min) | ~/aws-quiz-app/prompts/night-prompts/scripts/01-generate-questions.sh -n 5 -D 13:30 ---
+⏰ デッドライン: 13:30 JST (epoch=1780720200)
+==========================================
+問題自動生成 開始: Sat Jun  6 13:10:34 JST 2026
+==========================================
+対象資格: CLF SAA SAP DVA SOA DEA DOP AIF MLA GAI ANS SCS
+問題数キャッシュを使用...
+  CLF: 231問 (キャッシュ)
+  SAA: 211問 (キャッシュ)
+  SAP: 204問 (キャッシュ)
+  DVA: 204問 (キャッシュ)
+  SOA: 206問 (キャッシュ)
+  DEA: 214問 (キャッシュ)
+  DOP: 333問 (キャッシュ)
+  AIF: 238問 (キャッシュ)
+  MLA: 207問 (キャッシュ)
+  GAI: 217問 (キャッシュ)
+  ANS: 206問 (キャッシュ)
+  SCS: 210問 (キャッシュ)
+選択: SAP (現在204問 — 最少)
+ドメイン数: 4  /  基本 5問/ドメイン（重み付きで配分）  /  合計予算 20問
+開始ドメイン: [3] ワークロードの移行とモダン化の加速
+
+--- Cognito 認証中 ---
+✓ 認証完了
+
+--- ドメイン別問題数を取得・割り当て計算中 ---
+  ワークロードの移行とモダン化の加速: 41問
+  既存のソリューションの継続的改善: 48問
+  新しいソリューションのための設計: 51問
+  組織の複雑さに対応する設計: 64問
+
+ドメイン別生成数（逆数重み付き割り当て）:
+  13問 → ワークロードの移行とモダン化の加速 (現在41問)
+  5問 → 既存のソリューションの継続的改善 (現在48問)
+  2問 → 新しいソリューションのための設計 (現在51問)
+  0問 → 組織の複雑さに対応する設計 (現在64問)
+  合計: 20問
+
+--- [ワークロードの移行とモダン化の加速] 13問 生成中 (5問×3チャンク) --- 開始=13:11:17
+  チャンク 1/3: 5問 生成中...
+  [FIX  ] mla-00f97293: 問題文の複数条件（処理時間・リクエスト数・非同期受取）が改行なしで連続しているため、改行を追加して各条件を分割する → 変更: questionText
+  [FIX  ] mla-7e70b020: 問題文のワークフロー定義・必須要件列挙が改行なしで続いており読みにくいため、改行を追加して条件ごとに分割する → 変更: questionText
+  [FIX  ] aif-945ecb01: 問題文の改行不足に加え、解説の各選択肢説明で主語が二重になる冗長表現（「〜」は〜は）があるため修正 → 変更: questionText, explanation
+  [FIX  ] aif-ce9e4ee1: 問題文の複数条件（処理概要・非リアルタイム要件・コスト優先）が改行なしで1段落に詰まっているため改善 → 変更: questionText
+  [FIX  ] aif-8f3a1ed2: 問題文の複数条件（背景・達成精度・Human Oversight設計要件）が改行なしで連続しているため、改行を追加して各条件を視覚的に分離する → 変更: questionText
+  → 更新完了: OK=0 修正=5 削除=0
+  終了=13:12:36  経過=264秒
+
+--- チャンク 3/20: 5問  開始=13:12:36 ---
+  [OK   ] mla-cd6e6af8
+  [OK   ] aif-d6669eb1
+  [FIX  ] aif-9b631fe3: 問題文に(1)(2)の条件列挙があるが改行なし。また各choiceExplanationsが解説本文の言及から推測すると100字未満で不足のため拡充。 → 変更: questionText, choiceExplanations
+  [OK   ] aif-7e413361
+  [OK   ] mla-6c8f201d
+  → 更新完了: OK=4 修正=1 削除=0
+  終了=13:16:27  経過=231秒
+
+--- チャンク 4/20: 5問  開始=13:16:27 ---
+⚠️  レート制限を検出。残りチャンクをスキップ
+stdout: You've hit your session limit · resets 1:30pm (Asia/Tokyo)
+  🔒 レート制限ロックファイル記録: 2026-06-06 13:30 JST
+
+完了サマリー: 問題なし=4問 / 自動修正=6問 / 削除=0問
+--- hook[0] 完了: 2026-06-06 13:16:29 ---
+⚠️  レート制限を検出。残りをスキップ
+出力: You've hit your session limit · resets 1:30pm (Asia/Tokyo)
+  🔒 レート制限ロックファイル記録: 2026-06-06 13:30 JST
+  終了=13:21:06  経過=589秒
+
+合計インポート: 0問 / 20問
+
+--- 問題数キャッシュを再構築中（DynamoDBから正確な値を取得）---
+  CLF: 231問
+  SAA: 211問
+  SAP: 204問
+  DVA: 204問
+  SOA: 206問
+  DEA: 214問
+  DOP: 333問
+  AIF: 238問
+  MLA: 207問
+  GAI: 217問
+  ANS: 206問
+  SCS: 210問
+キャッシュ更新完了
+--- hook[1] 完了: 2026-06-06 13:25:16 ---
+
+==========================================
+実行開始: 2026-06-06 13:30:00
+==========================================
+▶ [ping] Claudeセッション確認...
+  → 4s
+何かお手伝いできることはありますか?
+✓ ping OK
+==========================================
+終了: 2026-06-06 13:30:04
+==========================================
+
+--- hook[0] 開始: 2026-06-06 18:00:34 (-30min) | ~/aws-quiz-app/prompts/night-prompts/scripts/02-check-validity.sh -n 100 -D 18:30 ---
+==========================================
+正当性チェック開始: Sat Jun  6 18:00:34 JST 2026
+バッチサイズ: 100問 / チャンクサイズ: 5問
+==========================================
+チェック対象: 100問
+前処理: choices ラベル接頭辞チェック...
+  前処理: ラベル接頭辞なし（全問クリーン）
+チャンク数: 20
+
+--- チャンク 1/20: 5問  開始=18:01:05 ---
+  [OK   ] mla-9d17cb63
+  [OK   ] aif-e535ee5c
+  [FIX  ] mla-c7bffa6e: 解説冒頭に「正解：C.」と誤った記述があり正解がCのみと誤解される（正解はBとC）。選択肢Bの正解理由も欠落しているため解説を修正。 → 変更: explanation
+  [FIX  ] aif-6085a844: 正解選択肢B（約114文字）が不正解の平均（約64文字）より著しく長く文字数から正解が推測できる。各選択肢の文字数を揃える。 → 変更: choices, correctAnswers, choiceExplanations
+  [FIX  ] aif-770361f5: 解説中「選択肢ATF-IDFは」の表記ミス（「の」が脱落）を修正。 → 変更: explanation
+  → 更新完了: OK=2 修正=3 削除=0
+  終了=18:08:28  経過=443秒
+
+--- チャンク 2/20: 5問  開始=18:08:28 ---
+
+--- hook[1] 開始: 2026-06-06 18:10:34 (-20min) | ~/aws-quiz-app/prompts/night-prompts/scripts/01-generate-questions.sh -n 5 -D 18:30 ---
+⏰ デッドライン: 18:30 JST (epoch=1780738200)
+==========================================
+問題自動生成 開始: Sat Jun  6 18:10:34 JST 2026
+==========================================
+対象資格: CLF SAA SAP DVA SOA DEA DOP AIF MLA GAI ANS SCS
+問題数キャッシュを使用...
+  CLF: 233問 (キャッシュ)
+  SAA: 211問 (キャッシュ)
+  SAP: 204問 (キャッシュ)
+  DVA: 204問 (キャッシュ)
+  SOA: 206問 (キャッシュ)
+  DEA: 214問 (キャッシュ)
+  DOP: 333問 (キャッシュ)
+  AIF: 238問 (キャッシュ)
+  MLA: 207問 (キャッシュ)
+  GAI: 217問 (キャッシュ)
+  ANS: 206問 (キャッシュ)
+  SCS: 210問 (キャッシュ)
+選択: SAP (現在204問 — 最少)
+ドメイン数: 4  /  基本 5問/ドメイン（重み付きで配分）  /  合計予算 20問
+開始ドメイン: [3] ワークロードの移行とモダン化の加速
+
+--- Cognito 認証中 ---
+✓ 認証完了
+
+--- ドメイン別問題数を取得・割り当て計算中 ---
+  ワークロードの移行とモダン化の加速: 41問
+  既存のソリューションの継続的改善: 48問
+  新しいソリューションのための設計: 51問
+  組織の複雑さに対応する設計: 64問
+
+ドメイン別生成数（逆数重み付き割り当て）:
+  13問 → ワークロードの移行とモダン化の加速 (現在41問)
+  5問 → 既存のソリューションの継続的改善 (現在48問)
+  2問 → 新しいソリューションのための設計 (現在51問)
+  0問 → 組織の複雑さに対応する設計 (現在64問)
+  合計: 20問
+
+--- [ワークロードの移行とモダン化の加速] 13問 生成中 (5問×3チャンク) --- 開始=18:11:17
+  チャンク 1/3: 5問 生成中...
+  [FIX  ] aif-fcbc19fd: 解説中「モデルEmotional」の誤字。問題文の要件が改行なく読みにくい。choiceExplanationsが短い。 → 変更: questionText, explanation, choiceExplanations
+  [FIX  ] mla-17b92ef8: 問題文のワークフローステップが改行なく読みにくい。choiceExplanationsが短い。 → 変更: questionText, choiceExplanations
+  [FIX  ] aif-56e7b1f5: 問題文の要件①②③が改行なく読みにくい。choiceExplanationsが短い。 → 変更: questionText, choiceExplanations
+  [FIX  ] aif-33fe53e0: 問題文の規制要件が改行なく読みにくい。choiceExplanationsが100字未満で短い。 → 変更: questionText, choiceExplanations
+  [FIX  ] aif-8fc8470c: choiceExplanationsが100字未満で短い。 → 変更: choiceExplanations
+  → 更新完了: OK=0 修正=5 削除=0
+  終了=18:19:47  経過=679秒
+
+--- チャンク 3/20: 5問  開始=18:19:47 ---
+⚠️  レート制限を検出。残りをスキップ
+出力: You've hit your session limit · resets 6:30pm (Asia/Tokyo)
+  🔒 レート制限ロックファイル記録: 2026-06-06 18:30 JST
+  終了=18:21:19  経過=602秒
+
+合計インポート: 0問 / 20問
+
+--- 問題数キャッシュを再構築中（DynamoDBから正確な値を取得）---
+  CLF: 233問
+  SAA: 211問
+  SAP: 204問
+  DVA: 204問
+  SOA: 206問
+  DEA: 214問
+  DOP: 333問
+  AIF: 238問
+  MLA: 207問
+  GAI: 217問
+  ANS: 206問
+  SCS: 210問
+キャッシュ更新完了
+--- hook[1] 完了: 2026-06-06 18:25:28 ---
+⚠️  レート制限を検出。残りチャンクをスキップ
+stdout: You've hit your session limit · resets 6:30pm (Asia/Tokyo)
+  🔒 レート制限ロックファイル記録: 2026-06-06 18:30 JST
+
+完了サマリー: 問題なし=2問 / 自動修正=8問 / 削除=0問
+--- hook[0] 完了: 2026-06-06 18:27:06 ---
+
+==========================================
+実行開始: 2026-06-06 18:30:00
+==========================================
+▶ [ping] Claudeセッション確認...
+  → 4s
+何かお手伝いできることはありますか？
+✓ ping OK
+==========================================
+終了: 2026-06-06 18:30:04
+==========================================
+
+--- hook[0] 開始: 2026-06-06 23:00:34 (-30min) | ~/aws-quiz-app/prompts/night-prompts/scripts/02-check-validity.sh -n 100 -D 23:30 ---
+==========================================
+正当性チェック開始: Sat Jun  6 23:00:34 JST 2026
+バッチサイズ: 100問 / チャンクサイズ: 5問
+==========================================
+チェック対象: 100問
+前処理: choices ラベル接頭辞チェック...
+  前処理: ラベル接頭辞なし（全問クリーン）
+チャンク数: 20
+
+--- チャンク 1/20: 5問  開始=23:01:10 ---
+  [OK   ] aif-a96ba1cf
+  [FIX  ] mla-a38f2ec0: 解説の各選択肢説明に[ブラケット]が残っており、テンプレートの穴埋めが未完了の状態。自然な文章に修正する。 → 変更: explanation, choiceExplanations
+  [FIX  ] mla-2e08d2be: 解説の各選択肢説明に[ブラケット]が残っており、テンプレートの穴埋めが未完了の状態。自然な文章に修正する。 → 変更: explanation, choiceExplanations
+  [OK   ] mla-34d2e3aa
+  [FIX  ] mla-1d24f844: 解説の各選択肢説明が20〜30字程度と極端に短く理由の詳細が不足。100字程度に拡充する。 → 変更: explanation, choiceExplanations
+  → 更新完了: OK=2 修正=3 削除=0
+  終了=23:07:11  経過=361秒
+
+--- チャンク 2/20: 5問  開始=23:07:11 ---
+
+--- hook[1] 開始: 2026-06-06 23:10:34 (-20min) | ~/aws-quiz-app/prompts/night-prompts/scripts/01-generate-questions.sh -n 5 -D 23:30 ---
+⏰ デッドライン: 23:30 JST (epoch=1780756200)
+==========================================
+問題自動生成 開始: Sat Jun  6 23:10:34 JST 2026
+==========================================
+対象資格: CLF SAA SAP DVA SOA DEA DOP AIF MLA GAI ANS SCS
+問題数キャッシュを使用...
+  CLF: 233問 (キャッシュ)
+  SAA: 211問 (キャッシュ)
+  SAP: 204問 (キャッシュ)
+  DVA: 204問 (キャッシュ)
+  SOA: 206問 (キャッシュ)
+  DEA: 214問 (キャッシュ)
+  DOP: 333問 (キャッシュ)
+  AIF: 238問 (キャッシュ)
+  MLA: 207問 (キャッシュ)
+  GAI: 217問 (キャッシュ)
+  ANS: 206問 (キャッシュ)
+  SCS: 210問 (キャッシュ)
+選択: SAP (現在204問 — 最少)
+ドメイン数: 4  /  基本 5問/ドメイン（重み付きで配分）  /  合計予算 20問
+開始ドメイン: [3] ワークロードの移行とモダン化の加速
+
+--- Cognito 認証中 ---
+✓ 認証完了
+
+--- ドメイン別問題数を取得・割り当て計算中 ---
+  ワークロードの移行とモダン化の加速: 43問
+  既存のソリューションの継続的改善: 48問
+  新しいソリューションのための設計: 51問
+  組織の複雑さに対応する設計: 64問
+
+ドメイン別生成数（逆数重み付き割り当て）:
+  11問 → ワークロードの移行とモダン化の加速 (現在43問)
+  6問 → 既存のソリューションの継続的改善 (現在48問)
+  3問 → 新しいソリューションのための設計 (現在51問)
+  0問 → 組織の複雑さに対応する設計 (現在64問)
+  合計: 20問
+
+--- [ワークロードの移行とモダン化の加速] 11問 生成中 (2問×6チャンク) --- 開始=23:11:17
+  チャンク 1/6: 2問 生成中...
+  [OK   ] aif-1a80e265
+  [FIX  ] gai-f3c2d622: 解説冒頭に正解テキストが不要に繰り返されており、選択肢ごとの説明の間に改行が不足している。 → 変更: explanation
+  [FIX  ] gai-9425e164: 解説冒頭に「B: 正解テキスト」という選択肢記号付きの不適切な記述が含まれており、選択肢ごとの説明に改行が不足している。 → 変更: explanation
+  [FIX  ] mla-71b83979: 正解が2つあるためisMultiple: trueが必要。解説の①〜④が改行なしで1段落に詰め込まれており選択肢ごとに読みにくい。 → 変更: explanation
+  [FIX  ] mla-56660a40: 正解選択肢（約110文字）が不正解平均（約88文字）より22文字多く、文字数から正解が推測されうる。不正解選択肢C・Dの文章を調整して差を縮める。 → 変更: choices
+  → 更新完了: OK=1 修正=4 削除=0
+  終了=23:14:27  経過=436秒
+
+--- チャンク 3/20: 5問  開始=23:14:27 ---
+  抽出: 2問 → APIインポート中...
+  ✓ チャンク1 インポート成功: 2件: sap-03a7441a, sap-ef801916
+  チャンク 2/6: 2問 生成中...
+⚠️  レート制限を検出。残りをスキップ
+出力: You've hit your session limit · resets 11:30pm (Asia/Tokyo)
+  🔒 レート制限ロックファイル記録: 2026-06-06 23:30 JST
+  終了=23:21:39  経過=622秒
+
+合計インポート: 0問 / 20問
+
+--- 問題数キャッシュを再構築中（DynamoDBから正確な値を取得）---
+  CLF: 233問
+  SAA: 211問
+  SAP: 208問
+  DVA: 204問
+  [FIX  ] mla-72a429b3: 解説に選択肢CとDへの解説がなく、選択肢ごとの解説が不完全。正解（選択肢A）も「選択肢A」と明示されていない。 → 変更: explanation, choiceExplanations
+  [FIX  ] gai-17931d17: 解説の最初の段落で選択肢Aを「選択肢A」と明示していない。また選択肢BとDの解説が同一内容で区別がない。 → 変更: explanation, choiceExplanations
+  [FIX  ] gai-f87d7a7c: 正解選択肢Bが他の選択肢より著しく長く文字数から正解が推測可能。解説中にタイポ（「BLUE」→「BLEU」）。ドメインがモデル評価問題に対して不適切（テスト・検証が正しい）。正解（選択肢B）も解説で明示されていない。 → 変更: questionText, choices, correctAnswers, explanation, choiceExplanations, domain, tags
+  [FIX  ] gai-46c805b0: 選択肢A・C・Dの解説が30字程度と極端に短い。ドメインがコスト最適化・モデル選択の問題に対して不適切（運用効率と最適化が正しい）。 → 変更: explanation, choiceExplanations, domain, tags
+  [FIX  ] mla-7b6a875f: 解説の最初の段落で正解の選択肢Aを「選択肢A」と明示していない。 → 変更: explanation
+  → 更新完了: OK=0 修正=5 削除=0
+  終了=23:23:19  経過=532秒
+
+--- チャンク 4/20: 5問  開始=23:23:19 ---
+⚠️  レート制限を検出。残りチャンクをスキップ
+stdout: You've hit your session limit · resets 11:30pm (Asia/Tokyo)
+  🔒 レート制限ロックファイル記録: 2026-06-06 23:30 JST
+
+完了サマリー: 問題なし=3問 / 自動修正=12問 / 削除=0問
+--- hook[0] 完了: 2026-06-06 23:23:21 ---
+  SOA: 206問
+  DEA: 214問
+  DOP: 333問
+  AIF: 238問
+  MLA: 207問
+  GAI: 217問
+  ANS: 206問
+  SCS: 210問
+キャッシュ更新完了
+--- hook[1] 完了: 2026-06-06 23:25:48 ---
+
+==========================================
+実行開始: 2026-06-06 23:30:00
+==========================================
+▶ [ping] Claudeセッション確認...
+  → 10s
+何かご用件はありますか?
+✓ ping OK
+==========================================
+終了: 2026-06-06 23:30:10
+==========================================

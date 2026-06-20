@@ -1,0 +1,95 @@
+==========================================
+英訳チェック開始: Sat May 23 05:40:03 JST 2026
+バッチサイズ: 30件 / チャンクサイズ: 5件
+==========================================
+
+▶ Questions テーブルを処理中...
+  チェック対象: 30問
+  チャンク数: 6
+  チャンク 1: 5件  開始=05:40:42
+    [TRANSLATED] ans-90d857d7
+    [TRANSLATED] ans-03874228
+    [TRANSLATED] saa-d629db07
+    [TRANSLATED] gai-114dc963
+    [TRANSLATED] dop-6e0cb868
+  終了=05:44:07  経過=205秒
+  チャンク 2: 5件  開始=05:44:07
+    [TRANSLATED] dva-c314fd12
+    [TRANSLATED] gai-547b00ad
+    [TRANSLATED] dea-3daf0d69
+    [TRANSLATED] soa-dceca557
+    [TRANSLATED] gai-dacf5492
+  終了=05:46:58  経過=171秒
+  チャンク 3: 5件  開始=05:46:58
+    [TRANSLATED] dop-3c679c15
+    [TRANSLATED] sap-5835b896
+    [TRANSLATED] mla-e0ee4d60
+    [TRANSLATED] clf-187a2f79
+    [TRANSLATED] ans-afb5bafc
+  終了=05:50:26  経過=208秒
+  チャンク 4: 5件  開始=05:50:26
+    [TRANSLATED] sap-d20aab43
+    [TRANSLATED] aif-0f115d77
+    [TRANSLATED] mla-1c332c47
+    [TRANSLATED] dop-bfa80b6f
+    [TRANSLATED] gai-63ee5ecb
+  終了=05:53:31  経過=185秒
+  チャンク 5: 5件  開始=05:53:31
+    [TRANSLATED] gai-1f1a0fa0
+    [TRANSLATED] gai-8c95ff3d
+    [TRANSLATED] dop-af6a1625
+    [TRANSLATED] aif-0d248a48
+    [TRANSLATED] soa-6fefee68
+  終了=05:56:01  経過=150秒
+  チャンク 6: 5件  開始=05:56:01
+    [TRANSLATED] sap-9a5e7560
+    [TRANSLATED] dop-31445085
+    [TRANSLATED] dop-2ae4aefc
+    [TRANSLATED] saa-ec4f4bd4
+    [TRANSLATED] soa-080a20da
+  終了=05:59:17  経過=196秒
+
+  Questions 完了: OK=0 / 修正=0 / 新規翻訳=30
+
+▶ Tips テーブルを処理中...
+  チェック対象: 30件
+  チャンク数: 6
+  チャンク 1: 5件  開始=05:59:32
+  ⚠️  claude 実行エラー (exit=1)。このチャンクをスキップして続行
+  stderr: 
+  チャンク 2: 5件  開始=05:59:36
+  ⚠️  claude 実行エラー (exit=1)。このチャンクをスキップして続行
+  stderr: 
+  チャンク 3: 5件  開始=05:59:39
+  ⚠️  claude 実行エラー (exit=1)。このチャンクをスキップして続行
+  stderr: 
+  チャンク 4: 5件  開始=05:59:41
+  ⚠️  claude 実行エラー (exit=1)。このチャンクをスキップして続行
+  stderr: 
+  チャンク 5: 5件  開始=05:59:44
+  ⚠️  claude 実行エラー (exit=1)。このチャンクをスキップして続行
+  stderr: 
+  チャンク 6: 5件  開始=05:59:47
+  ⚠️  claude 実行エラー (exit=1)。このチャンクをスキップして続行
+  stderr: 
+
+  Tips 完了: OK=0 / 更新=0
+
+▶ Releases テーブルを処理中...
+  チェック対象: 15件
+  チャンク数: 3
+  チャンク 1: 5件  開始=06:00:06
+  ⚠️  claude 実行エラー (exit=1)。このチャンクをスキップして続行
+  stderr: 
+  チャンク 2: 5件  開始=06:00:09
+  ⚠️  claude 実行エラー (exit=1)。このチャンクをスキップして続行
+  stderr: 
+  チャンク 3: 5件  開始=06:00:11
+  ⚠️  claude 実行エラー (exit=1)。このチャンクをスキップして続行
+  stderr: 
+
+  Releases 完了: OK=0 / 更新=0
+
+==========================================
+英訳チェック終了: Sat May 23 06:00:14 JST 2026
+==========================================

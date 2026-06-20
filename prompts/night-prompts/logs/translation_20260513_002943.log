@@ -1,0 +1,61 @@
+==========================================
+英訳チェック開始: Wed May 13 00:29:43 JST 2026
+バッチサイズ: 30件 / チャンクサイズ: 5件
+==========================================
+
+▶ Questions テーブルを処理中...
+  チェック対象: 30問
+  チャンク数: 6
+  チャンク 1: 5件  開始=00:30:02
+    [TRANSLATED] mla-c2e363c1
+    [TRANSLATED] gai-375c0b63
+    [TRANSLATED] aif-a36da5ed
+    [TRANSLATED] aif-1e62ef45
+    [TRANSLATED] mla-e6fac099
+  終了=00:32:10  経過=128秒
+  チャンク 2: 5件  開始=00:32:10
+    [TRANSLATED] gai-9d877185
+    [TRANSLATED] mla-be98f564
+    [TRANSLATED] aif-2ce4aa2f
+    [TRANSLATED] mla-1c8989bb
+    [TRANSLATED] aif-05866a5d
+  終了=00:34:29  経過=139秒
+  チャンク 3: 5件  開始=00:34:29
+    [TRANSLATED] aif-4d8b3c15
+    [TRANSLATED] gai-d12429b9
+    [TRANSLATED] mla-7c3963b6
+    [TRANSLATED] dva-d164c9a9
+    [TRANSLATED] gai-b27b2d51
+  終了=00:36:54  経過=145秒
+  チャンク 4: 5件  開始=00:36:54
+    [TRANSLATED] aif-2012422a
+    [TRANSLATED] dva-78972c54
+    [TRANSLATED] gai-cd3626d4
+    [TRANSLATED] mla-42786570
+    [TRANSLATED] mla-b226e571
+  終了=00:39:16  経過=142秒
+  チャンク 5: 5件  開始=00:39:16
+    [TRANSLATED] dva-40ef5791
+    [TRANSLATED] dva-54203ca5
+    [TRANSLATED] soa-2915f33c
+    [TRANSLATED] soa-3c32ac33
+    [TRANSLATED] soa-20006df6
+  終了=00:41:25  経過=129秒
+  チャンク 6: 5件  開始=00:41:25
+    [TRANSLATED] dva-a89f3a06
+    [TRANSLATED] soa-36cdbef3
+    [TRANSLATED] dva-75e74629
+    [TRANSLATED] dva-5a542fcc
+    [TRANSLATED] soa-847a1c7c
+  終了=00:43:54  経過=149秒
+
+  Questions 完了: OK=0 / 修正=0 / 新規翻訳=30
+
+▶ Tips テーブルを処理中...
+  チェック対象: 30件
+  チャンク数: 6
+  チャンク 1: 5件  開始=00:44:10
+  ⚠️  レート制限を検出。Tipsの残りチャンクをスキップ
+
+  Tips 完了: OK=0 / 更新=0
+  レート制限/終了時刻によりReleasesをスキップ

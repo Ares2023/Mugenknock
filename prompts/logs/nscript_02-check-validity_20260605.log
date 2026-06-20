@@ -1,0 +1,53 @@
+=== 2026-06-05 02:54:38 | 02-check-validity.sh | exit:0 ===
+==========================================
+正当性チェック開始: Fri Jun  5 02:30:10 JST 2026
+バッチサイズ: 30問 / チャンクサイズ: 5問
+==========================================
+チェック対象: 30問
+前処理: choices ラベル接頭辞チェック...
+  前処理: ラベル接頭辞なし（全問クリーン）
+チャンク数: 6
+
+--- チャンク 1/6: 5問  開始=02:32:49 ---
+  [FIX  ] dop-1e1d2544: 問題文の①②要件が改行なしで連続しており読みにくい。解説で「選択肢BのCloudWatch Logsへのエクスポート（選択肢B）」など選択肢ラベルが二重に記載されている。 → 変更: questionText, explanation
+  [OK   ] dop-b1c0a29e
+  [FIX  ] dop-1326a6cc: 問題文の①②③要件が改行なしで連続しており読みにくい。 → 変更: questionText
+  [OK   ] dop-feb9fdaa
+  [OK   ] sap-ca0c7b25
+  → 更新完了: OK=3 修正=2 削除=0
+  終了=02:38:20  経過=331秒
+
+--- チャンク 2/6: 5問  開始=02:38:20 ---
+  [FIX  ] sap-32b96056: 2択問題だがcorrectAnswersにAのみでBが欠落。isMultipleがtrueでない。解説に「正解：B.」という冗長な記述があり選択肢ごとの「選択肢Xは〜」形式に統一が必要。 → 変更: correctAnswers, explanation
+  [FIX  ] dop-2174e204: 選択肢E（約36字）と選択肢A（約125字）の文字数差が最長の50%を超えており均等化が必要。解説の形式が「選択肢Xは〜」に統一されていない。 → 変更: choices, correctAnswers, explanation, choiceExplanations
+  [FIX  ] dop-9be41743: 解説に「選択肢Aの は」「選択肢Cの は」「選択肢Dの は」という不完全な文章が含まれており、正しい内容に修正が必要。 → 変更: explanation
+  [FIX  ] sap-5b4f179c: 解説が「選択肢Aの〜」「選択肢Bの〜」形式で統一されておらず「選択肢Xは〜」形式に修正が必要。正解選択肢Cの説明も冒頭で明示すべき。 → 変更: explanation
+  [FIX  ] dop-15b22674: 解説が「選択肢Xの〜」形式で統一されておらず修正が必要。解説内のRTO略語に注釈がないため追加する。 → 変更: explanation
+  → 更新完了: OK=0 修正=5 削除=0
+  終了=02:46:23  経過=483秒
+
+--- チャンク 3/6: 5問  開始=02:46:23 ---
+⚠️  チャンク 3 でエラー（exit 1）。このチャンクをスキップして続行
+stderr: 
+stdout: You've hit your session limit · resets 7:30am (Asia/Tokyo)
+
+--- チャンク 4/6: 5問  開始=02:46:26 ---
+⚠️  チャンク 4 でエラー（exit 1）。このチャンクをスキップして続行
+stderr: 
+stdout: You've hit your session limit · resets 7:30am (Asia/Tokyo)
+
+--- チャンク 5/6: 5問  開始=02:46:28 ---
+⚠️  チャンク 5 でエラー（exit 1）。このチャンクをスキップして続行
+stderr: 
+stdout: You've hit your session limit · resets 7:30am (Asia/Tokyo)
+
+--- チャンク 6/6: 5問  開始=02:46:30 ---
+⚠️  チャンク 6 でエラー（exit 1）。このチャンクをスキップして続行
+stderr: 
+stdout: You've hit your session limit · resets 7:30am (Asia/Tokyo)
+
+完了サマリー: 問題なし=3問 / 自動修正=7問 / 削除=0問
+
+==========================================
+チェック終了: Fri Jun  5 02:46:34 JST 2026
+==========================================

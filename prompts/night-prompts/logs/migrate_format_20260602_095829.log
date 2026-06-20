@@ -1,0 +1,208 @@
+========================================
+問題フォーマット移行 開始: Tue Jun  2 09:58:29 JST 2026
+========================================
+
+DynamoDB Questions テーブルをスキャン中...
+  ページ 1: 2540件取得（累計 2540件）
+  合計: 2540件
+
+━━ Phase 1: choices 文字配列修正 ━━
+文字配列破損: 0件
+Phase 1 完了: 修正=0 失敗=0
+
+━━ Phase 2: correctAnswers 正規化 + correctAnswerIndices 計算 ━━
+対象問題: 2540件
+  ラベル接頭辞あり: 18件
+  correctAnswerIndices なし: 619件
+Phase 2 完了: 更新=654 スキップ=0 失敗=0
+
+━━ Phase 3: choiceExplanations 生成 ━━
+  対象: 2488件
+  静的解析: 1668件  AI必要: 820件
+  静的更新完了（成功=1633 失敗=0）
+
+  ── AI フォールバック: 820件 ──
+
+  AIバッチ 1/55 (offset=0, size=15)
+  AI解析: 15問
+  AIバッチ 1 完了（成功=15 失敗=0）
+
+  AIバッチ 2/55 (offset=15, size=15)
+  AI解析: 15問
+  AIバッチ 2 完了（成功=15 失敗=0）
+
+  AIバッチ 3/55 (offset=30, size=15)
+  AI解析: 15問
+  AIバッチ 3 完了（成功=15 失敗=0）
+
+  AIバッチ 4/55 (offset=45, size=15)
+  AI解析: 15問
+  AIバッチ 4 完了（成功=15 失敗=0）
+
+  AIバッチ 5/55 (offset=60, size=15)
+  AI解析: 15問
+  AIバッチ 5 完了（成功=15 失敗=0）
+
+  AIバッチ 6/55 (offset=75, size=15)
+  AI解析: 15問
+  AIバッチ 6 完了（成功=15 失敗=0）
+
+  AIバッチ 7/55 (offset=90, size=15)
+  AI解析: 15問
+  AIバッチ 7 完了（成功=15 失敗=0）
+
+  AIバッチ 8/55 (offset=105, size=15)
+  AI解析: 15問
+  AIバッチ 8 完了（成功=15 失敗=0）
+
+  AIバッチ 9/55 (offset=120, size=15)
+  AI解析: 15問
+  AIバッチ 9 完了（成功=15 失敗=0）
+
+  AIバッチ 10/55 (offset=135, size=15)
+  AI解析: 15問
+  AIバッチ 10 完了（成功=15 失敗=0）
+
+  AIバッチ 11/55 (offset=150, size=15)
+  AI解析: 15問
+  AIバッチ 11 完了（成功=15 失敗=0）
+
+  AIバッチ 12/55 (offset=165, size=15)
+  AI解析: 15問
+  AIバッチ 12 完了（成功=15 失敗=0）
+
+  AIバッチ 13/55 (offset=180, size=15)
+  ❌ Claude 実行エラー: prompts/night-prompts/manual/08-migrate-question-format.sh: line 811: /home/yuzuki/.npm-global/lib/node_modules/@anthropic-ai/claude-code/bin/claude.exe: No such file or directory
+
+  AIバッチ 14/55 (offset=195, size=15)
+  ❌ Claude 実行エラー: prompts/night-prompts/manual/08-migrate-question-format.sh: line 811: /home/yuzuki/.npm-global/lib/node_modules/@anthropic-ai/claude-code/bin/claude.exe: No such file or directory
+
+  AIバッチ 15/55 (offset=210, size=15)
+  ❌ Claude 実行エラー: prompts/night-prompts/manual/08-migrate-question-format.sh: line 811: /home/yuzuki/.npm-global/lib/node_modules/@anthropic-ai/claude-code/bin/claude.exe: No such file or directory
+
+  AIバッチ 16/55 (offset=225, size=15)
+  ❌ Claude 実行エラー: prompts/night-prompts/manual/08-migrate-question-format.sh: line 811: /home/yuzuki/.npm-global/lib/node_modules/@anthropic-ai/claude-code/bin/claude.exe: No such file or directory
+
+  AIバッチ 17/55 (offset=240, size=15)
+  ❌ Claude 実行エラー: prompts/night-prompts/manual/08-migrate-question-format.sh: line 811: /home/yuzuki/.npm-global/lib/node_modules/@anthropic-ai/claude-code/bin/claude.exe: No such file or directory
+
+  AIバッチ 18/55 (offset=255, size=15)
+  ❌ Claude 実行エラー: prompts/night-prompts/manual/08-migrate-question-format.sh: line 811: /home/yuzuki/.npm-global/lib/node_modules/@anthropic-ai/claude-code/bin/claude.exe: No such file or directory
+
+  AIバッチ 19/55 (offset=270, size=15)
+  ❌ Claude 実行エラー: prompts/night-prompts/manual/08-migrate-question-format.sh: line 811: /home/yuzuki/.npm-global/lib/node_modules/@anthropic-ai/claude-code/bin/claude.exe: No such file or directory
+
+  AIバッチ 20/55 (offset=285, size=15)
+  ❌ Claude 実行エラー: prompts/night-prompts/manual/08-migrate-question-format.sh: line 811: /home/yuzuki/.npm-global/lib/node_modules/@anthropic-ai/claude-code/bin/claude.exe: No such file or directory
+
+  AIバッチ 21/55 (offset=300, size=15)
+  ❌ Claude 実行エラー: prompts/night-prompts/manual/08-migrate-question-format.sh: line 811: /home/yuzuki/.npm-global/lib/node_modules/@anthropic-ai/claude-code/bin/claude.exe: No such file or directory
+
+  AIバッチ 22/55 (offset=315, size=15)
+  ❌ Claude 実行エラー: prompts/night-prompts/manual/08-migrate-question-format.sh: line 811: /home/yuzuki/.npm-global/lib/node_modules/@anthropic-ai/claude-code/bin/claude.exe: No such file or directory
+
+  AIバッチ 23/55 (offset=330, size=15)
+  ❌ Claude 実行エラー: prompts/night-prompts/manual/08-migrate-question-format.sh: line 811: /home/yuzuki/.npm-global/lib/node_modules/@anthropic-ai/claude-code/bin/claude.exe: No such file or directory
+
+  AIバッチ 24/55 (offset=345, size=15)
+  ❌ Claude 実行エラー: prompts/night-prompts/manual/08-migrate-question-format.sh: line 811: /home/yuzuki/.npm-global/lib/node_modules/@anthropic-ai/claude-code/bin/claude.exe: No such file or directory
+
+  AIバッチ 25/55 (offset=360, size=15)
+  ❌ Claude 実行エラー: prompts/night-prompts/manual/08-migrate-question-format.sh: line 811: /home/yuzuki/.npm-global/lib/node_modules/@anthropic-ai/claude-code/bin/claude.exe: No such file or directory
+
+  AIバッチ 26/55 (offset=375, size=15)
+  ❌ Claude 実行エラー: prompts/night-prompts/manual/08-migrate-question-format.sh: line 811: /home/yuzuki/.npm-global/lib/node_modules/@anthropic-ai/claude-code/bin/claude.exe: No such file or directory
+
+  AIバッチ 27/55 (offset=390, size=15)
+  ❌ Claude 実行エラー: prompts/night-prompts/manual/08-migrate-question-format.sh: line 811: /home/yuzuki/.npm-global/lib/node_modules/@anthropic-ai/claude-code/bin/claude.exe: No such file or directory
+
+  AIバッチ 28/55 (offset=405, size=15)
+  ❌ Claude 実行エラー: prompts/night-prompts/manual/08-migrate-question-format.sh: line 811: /home/yuzuki/.npm-global/lib/node_modules/@anthropic-ai/claude-code/bin/claude.exe: No such file or directory
+
+  AIバッチ 29/55 (offset=420, size=15)
+  ❌ Claude 実行エラー: prompts/night-prompts/manual/08-migrate-question-format.sh: line 811: /home/yuzuki/.npm-global/lib/node_modules/@anthropic-ai/claude-code/bin/claude.exe: No such file or directory
+
+  AIバッチ 30/55 (offset=435, size=15)
+  ❌ Claude 実行エラー: prompts/night-prompts/manual/08-migrate-question-format.sh: line 811: /home/yuzuki/.npm-global/lib/node_modules/@anthropic-ai/claude-code/bin/claude.exe: No such file or directory
+
+  AIバッチ 31/55 (offset=450, size=15)
+  ❌ Claude 実行エラー: prompts/night-prompts/manual/08-migrate-question-format.sh: line 811: /home/yuzuki/.npm-global/lib/node_modules/@anthropic-ai/claude-code/bin/claude.exe: No such file or directory
+
+  AIバッチ 32/55 (offset=465, size=15)
+  ❌ Claude 実行エラー: prompts/night-prompts/manual/08-migrate-question-format.sh: line 811: /home/yuzuki/.npm-global/lib/node_modules/@anthropic-ai/claude-code/bin/claude.exe: No such file or directory
+
+  AIバッチ 33/55 (offset=480, size=15)
+  ❌ Claude 実行エラー: prompts/night-prompts/manual/08-migrate-question-format.sh: line 811: /home/yuzuki/.npm-global/lib/node_modules/@anthropic-ai/claude-code/bin/claude.exe: No such file or directory
+
+  AIバッチ 34/55 (offset=495, size=15)
+  ❌ Claude 実行エラー: prompts/night-prompts/manual/08-migrate-question-format.sh: line 811: /home/yuzuki/.npm-global/lib/node_modules/@anthropic-ai/claude-code/bin/claude.exe: No such file or directory
+
+  AIバッチ 35/55 (offset=510, size=15)
+  ❌ Claude 実行エラー: prompts/night-prompts/manual/08-migrate-question-format.sh: line 811: /home/yuzuki/.npm-global/lib/node_modules/@anthropic-ai/claude-code/bin/claude.exe: No such file or directory
+
+  AIバッチ 36/55 (offset=525, size=15)
+  ❌ Claude 実行エラー: prompts/night-prompts/manual/08-migrate-question-format.sh: line 811: /home/yuzuki/.npm-global/lib/node_modules/@anthropic-ai/claude-code/bin/claude.exe: No such file or directory
+
+  AIバッチ 37/55 (offset=540, size=15)
+  ❌ Claude 実行エラー: prompts/night-prompts/manual/08-migrate-question-format.sh: line 811: /home/yuzuki/.npm-global/lib/node_modules/@anthropic-ai/claude-code/bin/claude.exe: No such file or directory
+
+  AIバッチ 38/55 (offset=555, size=15)
+  ❌ Claude 実行エラー: prompts/night-prompts/manual/08-migrate-question-format.sh: line 811: /home/yuzuki/.npm-global/lib/node_modules/@anthropic-ai/claude-code/bin/claude.exe: No such file or directory
+
+  AIバッチ 39/55 (offset=570, size=15)
+  ❌ Claude 実行エラー: prompts/night-prompts/manual/08-migrate-question-format.sh: line 811: /home/yuzuki/.npm-global/lib/node_modules/@anthropic-ai/claude-code/bin/claude.exe: No such file or directory
+
+  AIバッチ 40/55 (offset=585, size=15)
+  ❌ Claude 実行エラー: prompts/night-prompts/manual/08-migrate-question-format.sh: line 811: /home/yuzuki/.npm-global/lib/node_modules/@anthropic-ai/claude-code/bin/claude.exe: No such file or directory
+
+  AIバッチ 41/55 (offset=600, size=15)
+  ❌ Claude 実行エラー: prompts/night-prompts/manual/08-migrate-question-format.sh: line 811: /home/yuzuki/.npm-global/lib/node_modules/@anthropic-ai/claude-code/bin/claude.exe: No such file or directory
+
+  AIバッチ 42/55 (offset=615, size=15)
+  ❌ Claude 実行エラー: prompts/night-prompts/manual/08-migrate-question-format.sh: line 811: /home/yuzuki/.npm-global/lib/node_modules/@anthropic-ai/claude-code/bin/claude.exe: No such file or directory
+
+  AIバッチ 43/55 (offset=630, size=15)
+  ❌ Claude 実行エラー: prompts/night-prompts/manual/08-migrate-question-format.sh: line 811: /home/yuzuki/.npm-global/lib/node_modules/@anthropic-ai/claude-code/bin/claude.exe: No such file or directory
+
+  AIバッチ 44/55 (offset=645, size=15)
+  ❌ Claude 実行エラー: prompts/night-prompts/manual/08-migrate-question-format.sh: line 811: /home/yuzuki/.npm-global/lib/node_modules/@anthropic-ai/claude-code/bin/claude.exe: No such file or directory
+
+  AIバッチ 45/55 (offset=660, size=15)
+  ❌ Claude 実行エラー: prompts/night-prompts/manual/08-migrate-question-format.sh: line 811: /home/yuzuki/.npm-global/lib/node_modules/@anthropic-ai/claude-code/bin/claude.exe: No such file or directory
+
+  AIバッチ 46/55 (offset=675, size=15)
+  ❌ Claude 実行エラー: prompts/night-prompts/manual/08-migrate-question-format.sh: line 811: /home/yuzuki/.npm-global/lib/node_modules/@anthropic-ai/claude-code/bin/claude.exe: No such file or directory
+
+  AIバッチ 47/55 (offset=690, size=15)
+  ❌ Claude 実行エラー: prompts/night-prompts/manual/08-migrate-question-format.sh: line 811: /home/yuzuki/.npm-global/lib/node_modules/@anthropic-ai/claude-code/bin/claude.exe: No such file or directory
+
+  AIバッチ 48/55 (offset=705, size=15)
+  ❌ Claude 実行エラー: prompts/night-prompts/manual/08-migrate-question-format.sh: line 811: /home/yuzuki/.npm-global/lib/node_modules/@anthropic-ai/claude-code/bin/claude.exe: No such file or directory
+
+  AIバッチ 49/55 (offset=720, size=15)
+  ❌ Claude 実行エラー: prompts/night-prompts/manual/08-migrate-question-format.sh: line 811: /home/yuzuki/.npm-global/lib/node_modules/@anthropic-ai/claude-code/bin/claude.exe: No such file or directory
+
+  AIバッチ 50/55 (offset=735, size=15)
+  ❌ Claude 実行エラー: prompts/night-prompts/manual/08-migrate-question-format.sh: line 811: /home/yuzuki/.npm-global/lib/node_modules/@anthropic-ai/claude-code/bin/claude.exe: No such file or directory
+
+  AIバッチ 51/55 (offset=750, size=15)
+  ❌ Claude 実行エラー: prompts/night-prompts/manual/08-migrate-question-format.sh: line 811: /home/yuzuki/.npm-global/lib/node_modules/@anthropic-ai/claude-code/bin/claude.exe: No such file or directory
+
+  AIバッチ 52/55 (offset=765, size=15)
+  ❌ Claude 実行エラー: prompts/night-prompts/manual/08-migrate-question-format.sh: line 811: /home/yuzuki/.npm-global/lib/node_modules/@anthropic-ai/claude-code/bin/claude.exe: No such file or directory
+
+  AIバッチ 53/55 (offset=780, size=15)
+  ❌ Claude 実行エラー: prompts/night-prompts/manual/08-migrate-question-format.sh: line 811: /home/yuzuki/.npm-global/lib/node_modules/@anthropic-ai/claude-code/bin/claude.exe: No such file or directory
+
+  AIバッチ 54/55 (offset=795, size=15)
+  ❌ Claude 実行エラー: prompts/night-prompts/manual/08-migrate-question-format.sh: line 811: /home/yuzuki/.npm-global/lib/node_modules/@anthropic-ai/claude-code/bin/claude.exe: No such file or directory
+
+  AIバッチ 55/55 (offset=810, size=15)
+  ❌ Claude 実行エラー: prompts/night-prompts/manual/08-migrate-question-format.sh: line 811: /home/yuzuki/.npm-global/lib/node_modules/@anthropic-ai/claude-code/bin/claude.exe: No such file or directory
+
+Phase 3 完了: 成功=1813 失敗=645
+
+========================================
+移行完了: Tue Jun  2 11:35:08 JST 2026
+ログ: /home/yuzuki/aws-quiz-app/prompts/night-prompts/logs/migrate_format_20260602_095829.log
+========================================

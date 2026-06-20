@@ -1,0 +1,56 @@
+==========================================
+正当性チェック開始: Thu Jun  4 01:30:04 JST 2026
+バッチサイズ: 30問 / チャンクサイズ: 5問
+==========================================
+チェック対象: 30問
+前処理: choices ラベル接頭辞チェック...
+  前処理: ラベル接頭辞なし（全問クリーン）
+チャンク数: 6
+
+--- チャンク 1/6: 5問  開始=01:31:24 ---
+  [FIX  ] scs-25130d4c: choiceExplanationsが未設定のため生成が必要 → 変更: choiceExplanations
+  [FIX  ] ans-51a284c0: choiceExplanationsが未設定のため生成が必要 → 変更: choiceExplanations
+  [FIX  ] scs-fb9b01c3: choiceExplanationsが未設定のため生成が必要 → 変更: choiceExplanations
+  [FIX  ] scs-4e034276: choiceExplanationsが未設定のため生成が必要 → 変更: choiceExplanations
+  [FIX  ] ans-c0f928bd: choiceExplanationsが未設定のため生成が必要 → 変更: choiceExplanations
+  → 更新完了: OK=0 修正=5 削除=0
+  終了=01:36:49  経過=325秒
+
+--- チャンク 2/6: 5問  開始=01:36:49 ---
+  [FIX  ] scs-adfe85b0: choiceExplanationsが未設定のため生成する。isMultipleを明示的にfalseに設定。 → 変更: choiceExplanations
+  [FIX  ] ans-e80067ca: choiceExplanationsが未設定のため生成する。isMultipleを明示的にfalseに設定。 → 変更: choiceExplanations
+  [FIX  ] ans-97c281e7: choiceExplanationsが未設定のため生成する。isMultipleを明示的にfalseに設定。 → 変更: choiceExplanations
+  [FIX  ] scs-09f5e4ad: choiceExplanationsが未設定のため生成する。isMultipleを明示的にfalseに設定。 → 変更: choiceExplanations
+  [FIX  ] scs-6b59ca06: choiceExplanationsが未設定のため生成する。要件列挙箇所に改行（\n）を追加。isMultipleを明示的にfalseに設定。 → 変更: choiceExplanations
+  → 更新完了: OK=0 修正=5 削除=0
+  終了=01:41:02  経過=253秒
+
+--- チャンク 3/6: 5問  開始=01:41:02 ---
+  [FIX  ] ans-632a7e4c: choiceExplanationsが未設定のため生成。isMultipleを明示的にfalseに設定。 → 変更: choiceExplanations
+  [FIX  ] ans-ea1ef61c: choiceExplanationsが未設定のため生成。isMultipleを明示的にfalseに設定。 → 変更: choiceExplanations
+  [FIX  ] scs-a7dc7798: choiceExplanationsが未設定のため生成。isMultipleを明示的にfalseに設定。 → 変更: choiceExplanations
+  [FIX  ] ans-ca7bb6e3: choiceExplanationsが未設定のため生成。isMultipleを明示的にfalseに設定。 → 変更: choiceExplanations
+  [FIX  ] ans-65a4a3c4: choiceExplanationsが未設定のため生成。isMultipleを明示的にfalseに設定。 → 変更: choiceExplanations
+  → 更新完了: OK=0 修正=5 削除=0
+  終了=01:45:34  経過=272秒
+
+--- チャンク 4/6: 5問  開始=01:45:34 ---
+⚠️  チャンク 4 でエラー（exit 1）。このチャンクをスキップして続行
+stderr: 
+stdout: You've hit your session limit · resets 6:30am (Asia/Tokyo)
+
+--- チャンク 5/6: 5問  開始=01:45:35 ---
+⚠️  チャンク 5 でエラー（exit 1）。このチャンクをスキップして続行
+stderr: 
+stdout: You've hit your session limit · resets 6:30am (Asia/Tokyo)
+
+--- チャンク 6/6: 5問  開始=01:45:37 ---
+⚠️  チャンク 6 でエラー（exit 1）。このチャンクをスキップして続行
+stderr: 
+stdout: You've hit your session limit · resets 6:30am (Asia/Tokyo)
+
+完了サマリー: 問題なし=0問 / 自動修正=15問 / 削除=0問
+
+==========================================
+チェック終了: Thu Jun  4 01:45:38 JST 2026
+==========================================

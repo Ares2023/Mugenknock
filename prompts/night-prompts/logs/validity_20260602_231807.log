@@ -1,0 +1,72 @@
+==========================================
+正当性チェック開始: Tue Jun  2 23:18:07 JST 2026
+バッチサイズ: 50問 / チャンクサイズ: 5問
+==========================================
+チェック対象: 50問
+前処理: choices ラベル接頭辞チェック...
+  前処理: ラベル接頭辞なし（全問クリーン）
+チャンク数: 10
+
+--- チャンク 1/10: 5問  開始=23:18:35 ---
+  [FIX  ] scs-925fd164: choiceExplanationsが未設定のため新規生成が必要 → 変更: choiceExplanations
+  [FIX  ] scs-afba56ae: choiceExplanationsが未設定のため新規生成が必要 → 変更: choiceExplanations
+  [FIX  ] scs-c7c1c18a: choiceExplanationsが未設定、解説内に「Firwall」のスペルミスがある → 変更: explanation, choiceExplanations
+  [FIX  ] sap-d725f920: 解説内の選択肢B・C・Dの説明が改行なしで一段落に連続しており読みにくい → 変更: explanation
+  [FIX  ] sap-c2569d3f: 解説の不正解理由が「第1/4選択肢」という表記を使用しており、選択肢ごとの改行も不足している → 変更: explanation
+  → 更新完了: OK=0 修正=5 削除=0
+  終了=23:25:44  経過=429秒
+
+--- チャンク 2/10: 5問  開始=23:25:44 ---
+  [OK   ] clf-c8612c17
+  [FIX  ] sap-a1d60263: 問題文の制約リストが読点区切りのまま改行なし。条件を列挙する箇所は\nで区切る必要がある。 → 変更: questionText
+  [OK   ] clf-28d8ec11
+  [FIX  ] dop-78a917dc: 問題文の2要件が改行なしで連続しており、解説の不正解選択肢B・C・Dが同一段落でまとめて記述され選択肢ごとの改行がない。 → 変更: questionText, explanation
+  [FIX  ] sap-54bf4327: 問題文の移行要件リストが読点区切りのまま改行なし。解説の不正解選択肢A・C・Dが同一段落に連続しており選択肢ごとの改行がない。 → 変更: questionText, explanation
+  → 更新完了: OK=2 修正=3 削除=0
+  終了=23:31:23  経過=339秒
+
+--- チャンク 3/10: 5問  開始=23:31:24 ---
+⚠️  チャンク 3 でエラー（exit 1）。このチャンクをスキップして続行
+stderr: 
+stdout: You've hit your session limit · resets 12:30am (Asia/Tokyo)
+
+--- チャンク 4/10: 5問  開始=23:31:25 ---
+⚠️  チャンク 4 でエラー（exit 1）。このチャンクをスキップして続行
+stderr: 
+stdout: You've hit your session limit · resets 12:30am (Asia/Tokyo)
+
+--- チャンク 5/10: 5問  開始=23:31:28 ---
+⚠️  チャンク 5 でエラー（exit 1）。このチャンクをスキップして続行
+stderr: 
+stdout: You've hit your session limit · resets 12:30am (Asia/Tokyo)
+
+--- チャンク 6/10: 5問  開始=23:31:30 ---
+⚠️  チャンク 6 でエラー（exit 1）。このチャンクをスキップして続行
+stderr: 
+stdout: You've hit your session limit · resets 12:30am (Asia/Tokyo)
+
+--- チャンク 7/10: 5問  開始=23:31:33 ---
+⚠️  チャンク 7 でエラー（exit 1）。このチャンクをスキップして続行
+stderr: 
+stdout: You've hit your session limit · resets 12:30am (Asia/Tokyo)
+
+--- チャンク 8/10: 5問  開始=23:31:34 ---
+⚠️  チャンク 8 でエラー（exit 1）。このチャンクをスキップして続行
+stderr: 
+stdout: You've hit your session limit · resets 12:30am (Asia/Tokyo)
+
+--- チャンク 9/10: 5問  開始=23:31:37 ---
+⚠️  チャンク 9 でエラー（exit 1）。このチャンクをスキップして続行
+stderr: 
+stdout: You've hit your session limit · resets 12:30am (Asia/Tokyo)
+
+--- チャンク 10/10: 5問  開始=23:31:40 ---
+⚠️  チャンク 10 でエラー（exit 1）。このチャンクをスキップして続行
+stderr: 
+stdout: You've hit your session limit · resets 12:30am (Asia/Tokyo)
+
+完了サマリー: 問題なし=2問 / 自動修正=8問 / 削除=0問
+
+==========================================
+チェック終了: Tue Jun  2 23:31:44 JST 2026
+==========================================

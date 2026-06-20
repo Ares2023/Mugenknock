@@ -1,0 +1,26 @@
+==========================================
+体裁チェック開始: Thu May 28 22:49:12 JST 2026
+処理数: 10問 / チャンク: 20問 / モデル: haiku
+==========================================
+対象: 10問
+チャンク数: 1
+
+--- チャンク 1/1: 10問  開始=22:52:28 ---
+  [FIX] dop-d1d8f8f8: explanation
+  [FIX] aif-d15a07e5: explanation
+  [FIX] soa-df616d10: explanation
+  [FIX] mla-01b8e949: explanation
+  [FIX] aif-6ceeb9af: explanation
+  [FIX] gai-cd3626d4: explanation
+  [FIX] saa-40935a2a: explanation
+  [FIX] aif-dcf8a630: explanation
+  [FIX] mla-42786570: explanation
+  [FIX] dop-928513e1: explanation
+  → 完了: OK=0 修正=10
+  終了=22:56:58  経過=270秒
+
+完了サマリー: 体裁OK=0問 / 修正=10問
+
+==========================================
+体裁チェック終了: Thu May 28 22:56:58 JST 2026
+==========================================

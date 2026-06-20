@@ -1,0 +1,11 @@
+=== 2026-06-20 03:45:56 | generate-release-note.sh | exit:0 ===
+[release-note] 対象日: 2026-06-19
+[release-note] 2026-06-19: 27件のコミット
+[release-note] 生成結果:
+{
+  "title": "目標資格の選択画面を全面リニューアル！",
+  "body": "資格カードのデザインを一新し、各試験のキャッチコピーや合格者コメントをその場で確認しながら目標を選べるようになりました！\nスクロールや操作感も改善され、スマホでもサクサク使えます。",
+  "titleEn": "Target Exam Selection Screen Fully Redesigned!",
+  "bodyEn": "The exam selection overlay has been completely overhauled — browse exam cards with catchy descriptions and real pass comments before setting your goal.\nSmoother scrolling and a polished layout make it easy to use on any device."
+}
+[release-note] ✓ DynamoDBに挿入しました: 2026-06-19 — 目標資格の選択画面を全面リニューアル！

@@ -1,0 +1,1206 @@
+
+--- hook[0] 開始: 2026-05-22 03:30:49 (-30min) | ~/aws-quiz-app/prompts/night-prompts/scripts/01-generate-questions.sh -n 5 -D 04:00 ---
+⏰ デッドライン: 04:00 JST (epoch=1779390000)
+==========================================
+問題自動生成 開始: Fri May 22 03:30:49 JST 2026
+==========================================
+対象資格: CLF SAA SAP DVA SOA DOP AIF MLA GAI
+各資格の問題数を取得中...
+  CLF: 216問
+  SAA: 203問
+  SAP: 205問
+  DVA: 205問
+  SOA: 206問
+  DOP: 334問
+  AIF: 209問
+  MLA: 209問
+  GAI: 205問
+選択: SAA (現在203問 — 最少)
+ドメイン数: 4  /  基本 5問/ドメイン（重み付きで配分）  /  合計予算 20問
+開始ドメイン: [2] 高性能なアーキテクチャの設計
+
+--- Cognito 認証中 ---
+✓ 認証完了
+
+--- ドメイン別問題数を取得・割り当て計算中 ---
+  コスト最適化されたアーキテクチャの設計: 40問
+  高性能なアーキテクチャの設計: 51問
+  弾力性に優れたアーキテクチャの設計: 52問
+  セキュアなアーキテクチャの設計: 60問
+
+ドメイン別生成数（逆数重み付き割り当て）:
+  6問 → コスト最適化されたアーキテクチャの設計 (現在40問)
+  5問 → 弾力性に優れたアーキテクチャの設計 (現在52問)
+  5問 → 高性能なアーキテクチャの設計 (現在51問)
+  4問 → セキュアなアーキテクチャの設計 (現在60問)
+  合計: 20問
+Traceback (most recent call last):
+  File "<stdin>", line 4, in <module>
+  File "/usr/lib/python3.12/json/__init__.py", line 293, in load
+    return loads(fp.read(),
+           ^^^^^^^^^^^^^^^^
+  File "/usr/lib/python3.12/json/__init__.py", line 346, in loads
+    return _default_decoder.decode(s)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/lib/python3.12/json/decoder.py", line 340, in decode
+    raise JSONDecodeError("Extra data", s, end)
+json.decoder.JSONDecodeError: Extra data: line 1 column 419 (char 418)
+
+--- [高性能なアーキテクチャの設計] 問 生成中 --- 開始=03:33:48
+  [高性能なアーキテクチャの設計] 合計 0/問 インポート
+  終了=03:33:48  経過=0秒
+Traceback (most recent call last):
+  File "<stdin>", line 4, in <module>
+  File "/usr/lib/python3.12/json/__init__.py", line 293, in load
+    return loads(fp.read(),
+           ^^^^^^^^^^^^^^^^
+  File "/usr/lib/python3.12/json/__init__.py", line 346, in loads
+    return _default_decoder.decode(s)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/lib/python3.12/json/decoder.py", line 340, in decode
+    raise JSONDecodeError("Extra data", s, end)
+json.decoder.JSONDecodeError: Extra data: line 1 column 419 (char 418)
+
+--- [コスト最適化されたアーキテクチャの設計] 問 生成中 --- 開始=03:33:48
+  [コスト最適化されたアーキテクチャの設計] 合計 0/問 インポート
+  終了=03:33:48  経過=0秒
+Traceback (most recent call last):
+  File "<stdin>", line 4, in <module>
+  File "/usr/lib/python3.12/json/__init__.py", line 293, in load
+    return loads(fp.read(),
+           ^^^^^^^^^^^^^^^^
+  File "/usr/lib/python3.12/json/__init__.py", line 346, in loads
+    return _default_decoder.decode(s)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/lib/python3.12/json/decoder.py", line 340, in decode
+    raise JSONDecodeError("Extra data", s, end)
+json.decoder.JSONDecodeError: Extra data: line 1 column 419 (char 418)
+
+--- [セキュアなアーキテクチャの設計] 問 生成中 --- 開始=03:33:48
+  [セキュアなアーキテクチャの設計] 合計 0/問 インポート
+  終了=03:33:48  経過=0秒
+Traceback (most recent call last):
+  File "<stdin>", line 4, in <module>
+  File "/usr/lib/python3.12/json/__init__.py", line 293, in load
+    return loads(fp.read(),
+           ^^^^^^^^^^^^^^^^
+  File "/usr/lib/python3.12/json/__init__.py", line 346, in loads
+    return _default_decoder.decode(s)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/lib/python3.12/json/decoder.py", line 340, in decode
+    raise JSONDecodeError("Extra data", s, end)
+json.decoder.JSONDecodeError: Extra data: line 1 column 419 (char 418)
+
+--- [弾力性に優れたアーキテクチャの設計] 問 生成中 --- 開始=03:33:48
+  [弾力性に優れたアーキテクチャの設計] 合計 0/問 インポート
+  終了=03:33:48  経過=0秒
+
+合計インポート: 0問 / 20問
+
+==========================================
+完了: Fri May 22 03:33:48 JST 2026
+==========================================
+--- hook[0] 完了: 2026-05-22 03:33:48 ---
+
+--- hook[1] 開始: 2026-05-22 03:35:49 (-25min) | ~/aws-quiz-app/prompts/night-prompts/scripts/02-check-validity.sh -n 100 -D 04:00 ---
+==========================================
+正当性チェック開始: Fri May 22 03:35:49 JST 2026
+バッチサイズ: 100問 / チャンクサイズ: 5問
+==========================================
+チェック対象: 100問
+チャンク数: 20
+
+--- チャンク 1/20: 5問  開始=03:36:31 ---
+  [OK   ] dop-0b3ec2c5
+  [OK   ] dop-2c2718f5
+  [OK   ] dop-8afe22d8
+  [OK   ] mla-07bd93fd
+  [FIX  ] dop-bd4982a1: Config 自動修復用 SSM ドキュメントは AWSConfigRemediation- プレフィックスが正しい。AWSSupport- は存在しない。タグも「セキュリティとコンプライアンス」が適切。 → 変更: choices, correctAnswers, tags
+  → 更新完了: OK=4 修正=1 削除=0
+  終了=03:48:08  経過=697秒
+
+--- チャンク 2/20: 5問  開始=03:48:08 ---
+  [OK   ] dop-f5fb16d8
+  [OK   ] dop-d00680ef
+  [OK   ] mla-3aafb902
+  [OK   ] mla-17ec27c2
+  [OK   ] dop-64f07f86
+  → 更新完了: OK=5 修正=0 削除=0
+  終了=03:50:52  経過=164秒
+
+--- チャンク 3/20: 5問  開始=03:50:52 ---
+  [OK   ] mla-74bf097f
+  [OK   ] dop-e68b2e71
+  [OK   ] mla-7bfe9632
+  [OK   ] dop-9def4260
+  [OK   ] dop-c14d448f
+  → 更新完了: OK=5 修正=0 削除=0
+  終了=03:53:35  経過=163秒
+
+--- チャンク 4/20: 5問  開始=03:53:35 ---
+  [FIX  ] dop-01fcb6e9: CloudWatch RUMはメトリクス収集・モニタリングサービスであり、タグは「インシデントとイベントへの対応」より「モニタリングとロギング」が適切。 → 変更: tags
+  [OK   ] dop-09deebfc
+  [FIX  ] dop-25628fcc: DevOps GuruはMLベースのモニタリング・異常検知サービスであり、タグは「インシデントとイベントへの対応」より「モニタリングとロギング」が適切。 → 変更: tags
+  [FIX  ] dop-4bfd4736: EventBridge Replayでリプレイイベントに付与されるフィールドは「replay-source」ではなく「replay-name」が正しいAWS仕様。選択肢・正解・解説を修正。 → 変更: choices, correctAnswers, explanation
+  [OK   ] dop-b2d8a213
+  → 更新完了: OK=2 修正=3 削除=0
+  終了=03:57:39  経過=244秒
+
+--- チャンク 5/20: 5問  開始=03:57:39 ---
+
+==========================================
+実行開始: 2026-05-22 04:00:00
+==========================================
+▶ [ping] Claudeセッション確認...
+  → 8s
+⚠️ [claude-wrapper] バイナリ未検出。自動修復を開始します...
+
+changed 9 packages in 2s
+✓ [claude-wrapper] 修復完了
+何かお手伝いできることはありますか？
+✓ ping OK
+🌙 夜間初回実行を開始します (04:00)
+▶ [night-script] 01-generate-questions.sh
+==========================================
+問題自動生成 開始: Fri May 22 04:00:08 JST 2026
+==========================================
+対象資格: CLF SAA SAP DVA SOA DOP AIF MLA GAI
+各資格の問題数を取得中...
+  CLF: 216問
+  [OK   ] dop-0e625f42
+  [FIX  ] dop-83f5fb85: 問題の主眼は7年間のコンプライアンス監査基盤構築であり、インシデント対応よりセキュリティとコンプライアンスドメインが適切。 → 変更: tags
+  [OK   ] dop-856c4fab
+  [OK   ] dop-5402578a
+  [OK   ] mla-9d2a6bc2
+  → 更新完了: OK=4 修正=1 削除=0
+  終了=04:00:30  経過=171秒
+
+⏰ 終了時刻 04:00 を過ぎたため、残りチャンクをスキップ（成果はDB反映済み）
+
+完了サマリー: 問題なし=20問 / 自動修正=5問 / 削除=0問
+--- hook[1] 完了: 2026-05-22 04:00:30 ---
+  SAA: 203問
+  SAP: 205問
+  DVA: 205問
+  SOA: 206問
+  DOP: 334問
+  AIF: 209問
+  MLA: 209問
+  GAI: 205問
+選択: SAA (現在203問 — 最少)
+ドメイン数: 4  /  基本 2問/ドメイン（重み付きで配分）  /  合計予算 8問
+開始ドメイン: [2] 高性能なアーキテクチャの設計
+
+--- Cognito 認証中 ---
+✓ 認証完了
+
+--- ドメイン別問題数を取得・割り当て計算中 ---
+  コスト最適化されたアーキテクチャの設計: 40問
+  高性能なアーキテクチャの設計: 51問
+  弾力性に優れたアーキテクチャの設計: 52問
+  セキュアなアーキテクチャの設計: 60問
+
+ドメイン別生成数（逆数重み付き割り当て）:
+  2問 → セキュアなアーキテクチャの設計 (現在60問)
+  2問 → 弾力性に優れたアーキテクチャの設計 (現在52問)
+  2問 → 高性能なアーキテクチャの設計 (現在51問)
+  2問 → コスト最適化されたアーキテクチャの設計 (現在40問)
+  合計: 8問
+Traceback (most recent call last):
+  File "<stdin>", line 4, in <module>
+  File "/usr/lib/python3.12/json/__init__.py", line 293, in load
+    return loads(fp.read(),
+           ^^^^^^^^^^^^^^^^
+  File "/usr/lib/python3.12/json/__init__.py", line 346, in loads
+    return _default_decoder.decode(s)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/lib/python3.12/json/decoder.py", line 340, in decode
+    raise JSONDecodeError("Extra data", s, end)
+json.decoder.JSONDecodeError: Extra data: line 1 column 419 (char 418)
+
+--- [高性能なアーキテクチャの設計] 問 生成中 --- 開始=04:03:07
+  [高性能なアーキテクチャの設計] 合計 0/問 インポート
+  終了=04:03:07  経過=0秒
+Traceback (most recent call last):
+  File "<stdin>", line 4, in <module>
+  File "/usr/lib/python3.12/json/__init__.py", line 293, in load
+    return loads(fp.read(),
+           ^^^^^^^^^^^^^^^^
+  File "/usr/lib/python3.12/json/__init__.py", line 346, in loads
+    return _default_decoder.decode(s)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/lib/python3.12/json/decoder.py", line 340, in decode
+    raise JSONDecodeError("Extra data", s, end)
+json.decoder.JSONDecodeError: Extra data: line 1 column 419 (char 418)
+
+--- [コスト最適化されたアーキテクチャの設計] 問 生成中 --- 開始=04:03:07
+  [コスト最適化されたアーキテクチャの設計] 合計 0/問 インポート
+  終了=04:03:07  経過=0秒
+Traceback (most recent call last):
+  File "<stdin>", line 4, in <module>
+  File "/usr/lib/python3.12/json/__init__.py", line 293, in load
+    return loads(fp.read(),
+           ^^^^^^^^^^^^^^^^
+  File "/usr/lib/python3.12/json/__init__.py", line 346, in loads
+    return _default_decoder.decode(s)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/lib/python3.12/json/decoder.py", line 340, in decode
+    raise JSONDecodeError("Extra data", s, end)
+json.decoder.JSONDecodeError: Extra data: line 1 column 419 (char 418)
+
+--- [セキュアなアーキテクチャの設計] 問 生成中 --- 開始=04:03:07
+  [セキュアなアーキテクチャの設計] 合計 0/問 インポート
+  終了=04:03:07  経過=0秒
+Traceback (most recent call last):
+  File "<stdin>", line 4, in <module>
+  File "/usr/lib/python3.12/json/__init__.py", line 293, in load
+    return loads(fp.read(),
+           ^^^^^^^^^^^^^^^^
+  File "/usr/lib/python3.12/json/__init__.py", line 346, in loads
+    return _default_decoder.decode(s)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/lib/python3.12/json/decoder.py", line 340, in decode
+    raise JSONDecodeError("Extra data", s, end)
+json.decoder.JSONDecodeError: Extra data: line 1 column 419 (char 418)
+
+--- [弾力性に優れたアーキテクチャの設計] 問 生成中 --- 開始=04:03:08
+  [弾力性に優れたアーキテクチャの設計] 合計 0/問 インポート
+  終了=04:03:08  経過=1秒
+
+合計インポート: 0問 / 8問
+
+==========================================
+完了: Fri May 22 04:03:08 JST 2026
+==========================================
+  → 180s
+▶ [night-script] 02-check-validity.sh
+==========================================
+正当性チェック開始: Fri May 22 04:03:08 JST 2026
+バッチサイズ: 30問 / チャンクサイズ: 5問
+==========================================
+チェック対象: 30問
+チャンク数: 6
+
+--- チャンク 1/6: 5問  開始=04:03:53 ---
+  [OK   ] dop-9b9ad8e1
+  [FIX  ] sap-3d32510a: タグにEC2/RDS/Oracle/Direct ConnectなどAWSサービス名が混入しており有効なSAPドメイン外。移行問題として適切なドメインに修正。 → 変更: tags
+  [FIX  ] sap-a81cd4ed: タグにCloudTrail/S3/SecurityなどAWSサービス名・一般語が混入しており有効なSAPドメイン外のため削除。 → 変更: tags
+  [FIX  ] clf-bf30bb4b: タグの「IAM」はAWSサービス名であり有効なCLFドメイン外のため削除。 → 変更: tags
+  [OK   ] saa-3c64cfb8
+  → 更新完了: OK=2 修正=3 削除=0
+  終了=04:06:43  経過=170秒
+
+--- チャンク 2/6: 5問  開始=04:06:43 ---
+  [FIX  ] sap-q-024: タグに出題ドメイン外の値（sap-iot・sap-kinesis等）が含まれている。コンテンツ・正解・解説は正確。 → 変更: tags
+  [FIX  ] clf-acb7aa9c: タグに出題ドメイン外の値「AWS Organizations」が含まれている。コンテンツ・正解・解説は正確。 → 変更: tags
+  [FIX  ] sap-q-021: タグに出題ドメイン外の値が含まれ、解説に不正解選択肢A・C・Dが誤りである理由が未記載。 → 変更: explanation, tags
+  [FIX  ] dop-q-047: タグに出題ドメイン外の値が含まれ、解説に不正解選択肢C・Dが誤りである理由が未記載。 → 変更: explanation, tags
+  [FIX  ] sap-q-001: タグに出題ドメイン外の値が含まれ、解説に不正解選択肢A・C・Dが誤りである理由が未記載。 → 変更: explanation, tags
+  → 更新完了: OK=0 修正=5 削除=0
+  終了=04:09:44  経過=181秒
+
+--- チャンク 3/6: 5問  開始=04:09:44 ---
+  [FIX  ] clf-0f5122a9: タグに「AWS Artifact」というサービス名が含まれているが、CLFの有効ドメイン外。有効ドメインのみに修正する。 → 変更: tags
+  [FIX  ] clf-a257701a: タグに「Cloud Adoption Framework」というサービス名が含まれているが、CLFの有効ドメイン外。有効ドメインのみに修正する。 → 変更: tags
+  [FIX  ] dop-q-043: タグに「dop-s3」「dop-encryption」「dop-security」という独自タグが含まれているが、DOPの有効ドメイン外。有効ドメインのみに修正する。 → 変更: tags
+  [FIX  ] clf-78b97f6d: タグに「RDS」「Shared Responsibility Model」というサービス名・モデル名が含まれているが、CLFの有効ドメイン外。共有責任モデルはセキュリティとコンプライアンスドメインに分類される。 → 変更: tags
+  [FIX  ] saa-6064c99c: タグに「SQS」「ALB」「Lambda」というサービス名が含まれているが、SAAの有効ドメイン外。有効ドメインのみに修正する。 → 変更: tags
+  → 更新完了: OK=0 修正=5 削除=0
+  終了=04:11:38  経過=114秒
+
+--- チャンク 4/6: 5問  開始=04:11:38 ---
+  [OK   ] dop-q-045
+  [OK   ] dop-q-004
+  [OK   ] sap-ca636d04
+  [OK   ] saa-1bf7623b
+  [OK   ] dop-q-033
+  → 更新完了: OK=5 修正=0 削除=0
+  終了=04:14:08  経過=150秒
+
+--- チャンク 5/6: 5問  開始=04:14:08 ---
+  [OK   ] sap-8fc8857a
+  [OK   ] clf-5fcb7d4b
+  [OK   ] dop-d9196cc3
+  [OK   ] clf-816b3ee9
+  [OK   ] dop-1e3befd1
+  → 更新完了: OK=5 修正=0 削除=0
+  終了=04:17:13  経過=185秒
+
+--- チャンク 6/6: 5問  開始=04:17:13 ---
+  [OK   ] sap-eac9c2c5
+  [OK   ] sap-fd9de3af
+  [OK   ] dop-efea0aca
+  [FIX  ] dop-bfa6ab18: 問題の主眼は認証情報の30日自動ローテーションによるセキュリティコンプライアンスであり、IaCドメインより「セキュリティとコンプライアンス」が適切。 → 変更: tags
+  [OK   ] dop-eefca357
+  → 更新完了: OK=4 修正=1 削除=0
+  終了=04:20:50  経過=217秒
+
+完了サマリー: 問題なし=16問 / 自動修正=14問 / 削除=0問
+
+==========================================
+チェック終了: Fri May 22 04:20:50 JST 2026
+==========================================
+  → 1062s
+▶ [night-script] 03-check-translation.sh
+==========================================
+英訳チェック開始: Fri May 22 04:20:50 JST 2026
+バッチサイズ: 30件 / チャンクサイズ: 5件
+==========================================
+
+▶ Questions テーブルを処理中...
+  チェック対象: 30問
+  チャンク数: 6
+  チャンク 1: 5件  開始=04:21:31
+    [TRANSLATED] dop-c45c1103
+    [TRANSLATED] dop-3e90afa4
+    [TRANSLATED] dop-6ef2e74b
+    [TRANSLATED] dop-1d38e3f3
+    [TRANSLATED] dop-44630711
+  終了=04:25:05  経過=214秒
+  チャンク 2: 5件  開始=04:25:05
+    [TRANSLATED] dop-66c370a2
+    [TRANSLATED] dop-d1d8f8f8
+    [TRANSLATED] mla-61b1ae18
+    [TRANSLATED] dop-4fb39acc
+    [TRANSLATED] dop-c6055043
+  終了=04:28:32  経過=207秒
+  チャンク 3: 5件  開始=04:28:32
+    [TRANSLATED] dop-5e5e1adb
+    [TRANSLATED] dop-109cce5c
+    [TRANSLATED] sap-1998b703
+    [TRANSLATED] soa-e4b63899
+    [TRANSLATED] saa-b320135f
+  終了=04:31:51  経過=199秒
+  チャンク 4: 5件  開始=04:31:51
+    [TRANSLATED] dva-ce743cb8
+    [TRANSLATED] soa-2fd67690
+    [TRANSLATED] clf-0dc975a1
+    [TRANSLATED] mla-8d440f41
+    [TRANSLATED] mla-ea9b3624
+  終了=04:34:24  経過=153秒
+  チャンク 5: 5件  開始=04:34:24
+    [TRANSLATED] dva-806c6d3d
+    [TRANSLATED] dva-aabf5b9d
+    [TRANSLATED] gai-6c0d702a
+    [TRANSLATED] dop-94a4ef68
+    [TRANSLATED] mla-33928a3d
+  終了=04:36:54  経過=150秒
+  チャンク 6: 5件  開始=04:36:54
+    [TRANSLATED] aif-1cb2cb3b
+    [TRANSLATED] gai-700547d5
+    [TRANSLATED] clf-fdfd67b4
+    [TRANSLATED] clf-3c9aece0
+    [TRANSLATED] dva-782ac17e
+  終了=04:39:26  経過=152秒
+
+  Questions 完了: OK=0 / 修正=0 / 新規翻訳=30
+
+▶ Tips テーブルを処理中...
+  チェック対象: 30件
+  チャンク数: 6
+  チャンク 1: 5件  開始=04:39:42
+    [OK        ] 3f926ca4-0123-46d6-8326-e1155102b62f
+    [OK        ] 7d2aa344-ec95-4e68-a76e-5a97825393f2
+    [OK        ] b54d0025-25b9-46f5-96fb-4db6293ec540
+    [OK        ] b62d27f4-26bf-4f60-9ed5-6d4c25ce2d42
+    [OK        ] 648f006c-f2a3-4a3e-bad8-727f16b19277
+  終了=04:41:27  経過=105秒
+  チャンク 2: 5件  開始=04:41:27
+    [OK        ] 43d87a36-5cd5-48f4-a1e4-73fe75695154
+    [OK        ] 22b8faa7-2bad-4acf-a249-a9f63198715f
+    [OK        ] 9f5b2208-3e5f-4143-b3f4-5a3e9f2ca2bf
+    [OK        ] 2279fa98-dde1-4176-8707-ced036b52c7b
+    [OK        ] 77a9fecf-e2cf-427a-a94d-a355f6356a96
+  終了=04:43:11  経過=104秒
+  チャンク 3: 5件  開始=04:43:11
+    [OK        ] a9985c51-ffd5-4750-94b8-ffd980e1ce29
+    [OK        ] a24c7995-0418-4697-9f79-2c6da3818085
+    [OK        ] 1fd89a4a-5ee8-4788-8cc2-69d1f1649a5e
+    [OK        ] 418124e7-9de3-4e1a-86aa-9691a8ff4ff2
+    [OK        ] 674e25de-fa32-48d3-8ecc-c9b1937cb4f9
+  終了=04:44:57  経過=106秒
+  チャンク 4: 5件  開始=04:44:58
+    [OK        ] ea1e888c-924c-45ae-af72-2ed1842b3bc8
+    [OK        ] a03171f3-98c4-45a9-bac8-c3584861979f
+    [OK        ] 2e15f4fd-d416-41a0-b07f-fc8f269db6ac
+    [OK        ] 4c228a16-9c10-4cb4-ba9a-08e56483ca50
+    [OK        ] e09f92e5-1bed-45b1-b608-9b04d3367127
+  終了=04:46:46  経過=108秒
+  チャンク 5: 5件  開始=04:46:46
+    [OK        ] 26b8e2c1-d52c-4403-aeeb-60db86fd1608
+    [OK        ] 21339c17-5968-45eb-a077-f28163625585
+    [OK        ] b48bf741-0e7e-4892-a93b-600c3f88362f
+    [OK        ] c97a10c4-4027-49a1-99c5-e4ffa467a8ff
+    [OK        ] 3f2b9fef-d40b-4298-a3d7-e4ea71bcf7e4
+  終了=04:48:30  経過=104秒
+  チャンク 6: 5件  開始=04:48:30
+    [OK        ] 20ef239e-65b8-4570-b33b-eb47a5509943
+    [OK        ] c933e274-bb91-4fa1-8285-54d5f7c8d9c4
+    [OK        ] 6cfb0c59-0752-469b-8486-0ddaf7a71eaf
+    [OK        ] 57a1946f-fcc6-498e-9661-454340d6cb00
+    [OK        ] 9c5443e1-edc7-4020-b017-a2d024feb933
+  終了=04:50:12  経過=102秒
+
+  Tips 完了: OK=30 / 更新=0
+
+▶ Releases テーブルを処理中...
+  チェック対象: 15件
+  チャンク数: 3
+  チャンク 1: 5件  開始=04:50:29
+    [OK        ] 45fff7ac-0adf-4f82-831b-af39222a5a5a
+    [OK        ] d4b2f620-db86-4351-8a9e-ae7b2864c3b7
+    [OK        ] cccace27-bbbd-4d48-a8e1-53f0ee079db3
+    [OK        ] 8ad724a2-eac5-48fd-b6b3-406a5ce6ac5c
+    [OK        ] 82c76f7c-2db1-418e-ae6d-43cb7a41d07e
+  終了=04:52:26  経過=117秒
+  チャンク 2: 5件  開始=04:52:26
+    [OK        ] 1b896688-27ee-406e-89d4-54bb0fc8711a
+    [OK        ] 654ed42c-f4de-45de-bc82-f5c4e5bb3cd9
+    [OK        ] 3a862fc8-12bd-44a0-98aa-444f50e9fcd8
+    [OK        ] f71142c0-5666-41eb-93a7-5dfe7f3660a9
+    [OK        ] e5869986-99b7-4d0c-915a-01105c6e71ef
+  終了=04:54:14  経過=108秒
+  チャンク 3: 5件  開始=04:54:14
+    [OK        ] 3e609e9d-1369-4b37-8305-6c9e9f0bb055
+    [OK        ] 0b18c9a7-6dc1-4c00-9541-9a77cea73747
+    [OK        ] 90d02f24-3211-4f24-b224-8154394d4f93
+    [OK        ] fa0c698a-5fc0-4f3f-ba57-955c91ade774
+    [OK        ] 8b98b943-0a01-4224-91d8-68cc97827502
+  終了=04:56:11  経過=117秒
+
+  Releases 完了: OK=15 / 更新=0
+
+==========================================
+英訳チェック終了: Fri May 22 04:56:11 JST 2026
+==========================================
+  → 2121s
+▶ [night-script] generate-daily-services.sh
+==========================================
+日めくりAWSサービス生成
+生成件数: 5件
+==========================================
+
+--- 既存サービスを取得中 ---
+Traceback (most recent call last):
+  File "<stdin>", line 26, in <module>
+TypeError: unsupported format string passed to NoneType.__format__
+
+現在 49件 登録済み / 最大 order=48
+
+--- Claude でサービスを生成中 ---
+✓ 5件 生成完了
+
+--- DynamoDB に登録中 ---
+  ✓ [ 49] AWS Elastic Beanstalk (コンピューティング)
+  ✓ [ 50] Amazon Inspector (セキュリティ)
+  ✓ [ 51] AWS Config (マネジメント)
+  ✓ [ 52] Amazon OpenSearch Service (データ分析)
+  ✓ [ 53] Amazon SES (アプリケーション統合)
+
+登録完了: 5件
+
+==========================================
+完了: Fri May 22 04:58:52 JST 2026
+==========================================
+  → 161s
+▶ [night-script] z_verify_night_run.sh
+
+=== [verify] 夜間スクリプト実行結果を検証 ===
+[verify] - check-validity.sh: 未実行（スキップ）
+[verify] - check-translation.sh: 未実行（スキップ）
+[verify] - generate-questions.sh: 未実行（スキップ）
+[verify] 全スクリプト正常完了
+  → 0s
+▶ [ai-router] monday-job.txt
+  → 17s
+⚠️ [claude-wrapper] バイナリ未検出。自動修復を開始します...
+
+changed 9 packages in 2s
+✓ [claude-wrapper] 修復完了
+本日は2026年5月22日（金曜日）のため、スキップします。
+▶ [ai-router] nght-prompts-check.txt
+  → 628s
+You've hit your session limit · resets 9am (Asia/Tokyo)
+==========================================
+終了: 2026-05-22 05:09:37
+==========================================
+
+--- hook[0] 開始: 2026-05-22 08:30:49 (-30min) | ~/aws-quiz-app/prompts/night-prompts/scripts/01-generate-questions.sh -n 5 -D 09:00 ---
+⏰ デッドライン: 09:00 JST (epoch=1779408000)
+==========================================
+問題自動生成 開始: Fri May 22 08:30:49 JST 2026
+==========================================
+対象資格: CLF SAA SAP DVA SOA DOP AIF MLA GAI
+各資格の問題数を取得中...
+  CLF: 216問
+  SAA: 203問
+  SAP: 205問
+  DVA: 205問
+  SOA: 206問
+  DOP: 334問
+  AIF: 209問
+  MLA: 209問
+  GAI: 205問
+選択: SAA (現在203問 — 最少)
+ドメイン数: 4  /  基本 5問/ドメイン（重み付きで配分）  /  合計予算 20問
+開始ドメイン: [2] 高性能なアーキテクチャの設計
+
+--- Cognito 認証中 ---
+✓ 認証完了
+
+--- ドメイン別問題数を取得・割り当て計算中 ---
+  コスト最適化されたアーキテクチャの設計: 40問
+  高性能なアーキテクチャの設計: 51問
+  弾力性に優れたアーキテクチャの設計: 52問
+  セキュアなアーキテクチャの設計: 60問
+
+ドメイン別生成数（逆数重み付き割り当て）:
+  6問 → コスト最適化されたアーキテクチャの設計 (現在40問)
+  5問 → 弾力性に優れたアーキテクチャの設計 (現在52問)
+  5問 → 高性能なアーキテクチャの設計 (現在51問)
+  4問 → セキュアなアーキテクチャの設計 (現在60問)
+  合計: 20問
+Traceback (most recent call last):
+  File "<stdin>", line 4, in <module>
+  File "/usr/lib/python3.12/json/__init__.py", line 293, in load
+    return loads(fp.read(),
+           ^^^^^^^^^^^^^^^^
+  File "/usr/lib/python3.12/json/__init__.py", line 346, in loads
+    return _default_decoder.decode(s)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/lib/python3.12/json/decoder.py", line 340, in decode
+    raise JSONDecodeError("Extra data", s, end)
+json.decoder.JSONDecodeError: Extra data: line 1 column 419 (char 418)
+
+--- [高性能なアーキテクチャの設計] 問 生成中 --- 開始=08:33:43
+  [高性能なアーキテクチャの設計] 合計 0/問 インポート
+  終了=08:33:43  経過=0秒
+Traceback (most recent call last):
+  File "<stdin>", line 4, in <module>
+  File "/usr/lib/python3.12/json/__init__.py", line 293, in load
+    return loads(fp.read(),
+           ^^^^^^^^^^^^^^^^
+  File "/usr/lib/python3.12/json/__init__.py", line 346, in loads
+    return _default_decoder.decode(s)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/lib/python3.12/json/decoder.py", line 340, in decode
+    raise JSONDecodeError("Extra data", s, end)
+json.decoder.JSONDecodeError: Extra data: line 1 column 419 (char 418)
+
+--- [コスト最適化されたアーキテクチャの設計] 問 生成中 --- 開始=08:33:43
+  [コスト最適化されたアーキテクチャの設計] 合計 0/問 インポート
+  終了=08:33:43  経過=0秒
+Traceback (most recent call last):
+  File "<stdin>", line 4, in <module>
+  File "/usr/lib/python3.12/json/__init__.py", line 293, in load
+    return loads(fp.read(),
+           ^^^^^^^^^^^^^^^^
+  File "/usr/lib/python3.12/json/__init__.py", line 346, in loads
+    return _default_decoder.decode(s)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/lib/python3.12/json/decoder.py", line 340, in decode
+    raise JSONDecodeError("Extra data", s, end)
+json.decoder.JSONDecodeError: Extra data: line 1 column 419 (char 418)
+
+--- [セキュアなアーキテクチャの設計] 問 生成中 --- 開始=08:33:44
+  [セキュアなアーキテクチャの設計] 合計 0/問 インポート
+  終了=08:33:44  経過=1秒
+Traceback (most recent call last):
+  File "<stdin>", line 4, in <module>
+  File "/usr/lib/python3.12/json/__init__.py", line 293, in load
+    return loads(fp.read(),
+           ^^^^^^^^^^^^^^^^
+  File "/usr/lib/python3.12/json/__init__.py", line 346, in loads
+    return _default_decoder.decode(s)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/lib/python3.12/json/decoder.py", line 340, in decode
+    raise JSONDecodeError("Extra data", s, end)
+json.decoder.JSONDecodeError: Extra data: line 1 column 419 (char 418)
+
+--- [弾力性に優れたアーキテクチャの設計] 問 生成中 --- 開始=08:33:44
+  [弾力性に優れたアーキテクチャの設計] 合計 0/問 インポート
+  終了=08:33:44  経過=0秒
+
+合計インポート: 0問 / 20問
+
+==========================================
+完了: Fri May 22 08:33:44 JST 2026
+==========================================
+--- hook[0] 完了: 2026-05-22 08:33:44 ---
+
+--- hook[1] 開始: 2026-05-22 08:35:49 (-25min) | ~/aws-quiz-app/prompts/night-prompts/scripts/02-check-validity.sh -n 100 -D 09:00 ---
+==========================================
+正当性チェック開始: Fri May 22 08:35:49 JST 2026
+バッチサイズ: 100問 / チャンクサイズ: 5問
+==========================================
+チェック対象: 100問
+チャンク数: 20
+
+--- チャンク 1/20: 5問  開始=08:36:10 ---
+⚠️  チャンク 1 でエラー（exit 1）。このチャンクをスキップして続行
+stderr: ⚠️ [claude-wrapper] バイナリ未検出。自動修復を開始します...
+
+changed 9 packages in 9m
+✓ [claude-wrapper] 修復完了
+stdout: You've hit your session limit · resets 9am (Asia/Tokyo)
+
+--- チャンク 2/20: 5問  開始=08:44:55 ---
+⚠️  チャンク 2 でエラー（exit 1）。このチャンクをスキップして続行
+stderr: 
+stdout: You've hit your session limit · resets 9am (Asia/Tokyo)
+
+--- チャンク 3/20: 5問  開始=08:44:59 ---
+⚠️  チャンク 3 でエラー（exit 1）。このチャンクをスキップして続行
+stderr: 
+stdout: You've hit your session limit · resets 9am (Asia/Tokyo)
+
+--- チャンク 4/20: 5問  開始=08:45:02 ---
+⚠️  チャンク 4 でエラー（exit 1）。このチャンクをスキップして続行
+stderr: 
+stdout: You've hit your session limit · resets 9am (Asia/Tokyo)
+
+--- チャンク 5/20: 5問  開始=08:45:05 ---
+⚠️  チャンク 5 でエラー（exit 1）。このチャンクをスキップして続行
+stderr: 
+stdout: You've hit your session limit · resets 9am (Asia/Tokyo)
+
+--- チャンク 6/20: 5問  開始=08:45:08 ---
+⚠️  チャンク 6 でエラー（exit 1）。このチャンクをスキップして続行
+stderr: 
+stdout: You've hit your session limit · resets 9am (Asia/Tokyo)
+
+--- チャンク 7/20: 5問  開始=08:45:10 ---
+⚠️  チャンク 7 でエラー（exit 1）。このチャンクをスキップして続行
+stderr: 
+stdout: You've hit your session limit · resets 9am (Asia/Tokyo)
+
+--- チャンク 8/20: 5問  開始=08:45:14 ---
+⚠️  チャンク 8 でエラー（exit 1）。このチャンクをスキップして続行
+stderr: 
+stdout: You've hit your session limit · resets 9am (Asia/Tokyo)
+
+--- チャンク 9/20: 5問  開始=08:45:17 ---
+⚠️  チャンク 9 でエラー（exit 1）。このチャンクをスキップして続行
+stderr: 
+stdout: You've hit your session limit · resets 9am (Asia/Tokyo)
+
+--- チャンク 10/20: 5問  開始=08:45:18 ---
+⚠️  チャンク 10 でエラー（exit 1）。このチャンクをスキップして続行
+stderr: 
+stdout: You've hit your session limit · resets 9am (Asia/Tokyo)
+
+--- チャンク 11/20: 5問  開始=08:45:21 ---
+⚠️  チャンク 11 でエラー（exit 1）。このチャンクをスキップして続行
+stderr: 
+stdout: You've hit your session limit · resets 9am (Asia/Tokyo)
+
+--- チャンク 12/20: 5問  開始=08:45:24 ---
+⚠️  チャンク 12 でエラー（exit 1）。このチャンクをスキップして続行
+stderr: 
+stdout: You've hit your session limit · resets 9am (Asia/Tokyo)
+
+--- チャンク 13/20: 5問  開始=08:45:26 ---
+⚠️  チャンク 13 でエラー（exit 1）。このチャンクをスキップして続行
+stderr: 
+stdout: You've hit your session limit · resets 9am (Asia/Tokyo)
+
+--- チャンク 14/20: 5問  開始=08:45:30 ---
+⚠️  チャンク 14 でエラー（exit 1）。このチャンクをスキップして続行
+stderr: 
+stdout: You've hit your session limit · resets 9am (Asia/Tokyo)
+
+--- チャンク 15/20: 5問  開始=08:45:35 ---
+⚠️  チャンク 15 でエラー（exit 1）。このチャンクをスキップして続行
+stderr: 
+stdout: You've hit your session limit · resets 9am (Asia/Tokyo)
+
+--- チャンク 16/20: 5問  開始=08:45:38 ---
+⚠️  チャンク 16 でエラー（exit 1）。このチャンクをスキップして続行
+stderr: 
+stdout: You've hit your session limit · resets 9am (Asia/Tokyo)
+
+--- チャンク 17/20: 5問  開始=08:45:41 ---
+⚠️  チャンク 17 でエラー（exit 1）。このチャンクをスキップして続行
+stderr: 
+stdout: You've hit your session limit · resets 9am (Asia/Tokyo)
+
+--- チャンク 18/20: 5問  開始=08:45:43 ---
+⚠️  チャンク 18 でエラー（exit 1）。このチャンクをスキップして続行
+stderr: 
+stdout: You've hit your session limit · resets 9am (Asia/Tokyo)
+
+--- チャンク 19/20: 5問  開始=08:45:45 ---
+⚠️  チャンク 19 でエラー（exit 1）。このチャンクをスキップして続行
+stderr: 
+stdout: You've hit your session limit · resets 9am (Asia/Tokyo)
+
+--- チャンク 20/20: 5問  開始=08:45:48 ---
+⚠️  チャンク 20 でエラー（exit 1）。このチャンクをスキップして続行
+stderr: 
+stdout: You've hit your session limit · resets 9am (Asia/Tokyo)
+
+完了サマリー: 問題なし=0問 / 自動修正=0問 / 削除=0問
+
+==========================================
+チェック終了: Fri May 22 08:45:50 JST 2026
+==========================================
+--- hook[1] 完了: 2026-05-22 08:45:50 ---
+
+==========================================
+実行開始: 2026-05-22 09:00:00
+==========================================
+▶ [ping] Claudeセッション確認...
+  → 7s
+⚠️ [claude-wrapper] バイナリ未検出。自動修復を開始します...
+
+changed 9 packages in 2s
+✓ [claude-wrapper] 修復完了
+何かお手伝いできることがあればお知らせください。
+✓ ping OK
+==========================================
+終了: 2026-05-22 09:00:07
+==========================================
+
+--- hook[0] 開始: 2026-05-22 13:30:49 (-30min) | ~/aws-quiz-app/prompts/night-prompts/scripts/01-generate-questions.sh -n 5 -D 14:00 ---
+⏰ デッドライン: 14:00 JST (epoch=1779426000)
+==========================================
+問題自動生成 開始: Fri May 22 13:30:49 JST 2026
+==========================================
+対象資格: CLF SAA SAP DVA SOA DOP AIF MLA GAI
+各資格の問題数を取得中...
+  CLF: 216問
+  SAA: 203問
+  SAP: 205問
+  DVA: 205問
+  SOA: 206問
+  DOP: 334問
+  AIF: 209問
+  MLA: 209問
+  GAI: 205問
+選択: SAA (現在203問 — 最少)
+ドメイン数: 4  /  基本 5問/ドメイン（重み付きで配分）  /  合計予算 20問
+開始ドメイン: [2] 高性能なアーキテクチャの設計
+
+--- Cognito 認証中 ---
+✓ 認証完了
+
+--- ドメイン別問題数を取得・割り当て計算中 ---
+  コスト最適化されたアーキテクチャの設計: 40問
+  高性能なアーキテクチャの設計: 51問
+  弾力性に優れたアーキテクチャの設計: 52問
+  セキュアなアーキテクチャの設計: 60問
+
+ドメイン別生成数（逆数重み付き割り当て）:
+  6問 → コスト最適化されたアーキテクチャの設計 (現在40問)
+  5問 → 弾力性に優れたアーキテクチャの設計 (現在52問)
+  5問 → 高性能なアーキテクチャの設計 (現在51問)
+  4問 → セキュアなアーキテクチャの設計 (現在60問)
+  合計: 20問
+Traceback (most recent call last):
+  File "<stdin>", line 4, in <module>
+  File "/usr/lib/python3.12/json/__init__.py", line 293, in load
+    return loads(fp.read(),
+           ^^^^^^^^^^^^^^^^
+  File "/usr/lib/python3.12/json/__init__.py", line 346, in loads
+    return _default_decoder.decode(s)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/lib/python3.12/json/decoder.py", line 340, in decode
+    raise JSONDecodeError("Extra data", s, end)
+json.decoder.JSONDecodeError: Extra data: line 1 column 419 (char 418)
+
+--- [高性能なアーキテクチャの設計] 問 生成中 --- 開始=13:33:45
+  [高性能なアーキテクチャの設計] 合計 0/問 インポート
+  終了=13:33:45  経過=0秒
+Traceback (most recent call last):
+  File "<stdin>", line 4, in <module>
+  File "/usr/lib/python3.12/json/__init__.py", line 293, in load
+    return loads(fp.read(),
+           ^^^^^^^^^^^^^^^^
+  File "/usr/lib/python3.12/json/__init__.py", line 346, in loads
+    return _default_decoder.decode(s)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/lib/python3.12/json/decoder.py", line 340, in decode
+    raise JSONDecodeError("Extra data", s, end)
+json.decoder.JSONDecodeError: Extra data: line 1 column 419 (char 418)
+
+--- [コスト最適化されたアーキテクチャの設計] 問 生成中 --- 開始=13:33:45
+  [コスト最適化されたアーキテクチャの設計] 合計 0/問 インポート
+  終了=13:33:45  経過=0秒
+Traceback (most recent call last):
+  File "<stdin>", line 4, in <module>
+  File "/usr/lib/python3.12/json/__init__.py", line 293, in load
+    return loads(fp.read(),
+           ^^^^^^^^^^^^^^^^
+  File "/usr/lib/python3.12/json/__init__.py", line 346, in loads
+    return _default_decoder.decode(s)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/lib/python3.12/json/decoder.py", line 340, in decode
+    raise JSONDecodeError("Extra data", s, end)
+json.decoder.JSONDecodeError: Extra data: line 1 column 419 (char 418)
+
+--- [セキュアなアーキテクチャの設計] 問 生成中 --- 開始=13:33:45
+  [セキュアなアーキテクチャの設計] 合計 0/問 インポート
+  終了=13:33:45  経過=0秒
+Traceback (most recent call last):
+  File "<stdin>", line 4, in <module>
+  File "/usr/lib/python3.12/json/__init__.py", line 293, in load
+    return loads(fp.read(),
+           ^^^^^^^^^^^^^^^^
+  File "/usr/lib/python3.12/json/__init__.py", line 346, in loads
+    return _default_decoder.decode(s)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/lib/python3.12/json/decoder.py", line 340, in decode
+    raise JSONDecodeError("Extra data", s, end)
+json.decoder.JSONDecodeError: Extra data: line 1 column 419 (char 418)
+
+--- [弾力性に優れたアーキテクチャの設計] 問 生成中 --- 開始=13:33:45
+  [弾力性に優れたアーキテクチャの設計] 合計 0/問 インポート
+  終了=13:33:45  経過=0秒
+
+合計インポート: 0問 / 20問
+
+==========================================
+完了: Fri May 22 13:33:45 JST 2026
+==========================================
+--- hook[0] 完了: 2026-05-22 13:33:45 ---
+
+--- hook[1] 開始: 2026-05-22 13:35:49 (-25min) | ~/aws-quiz-app/prompts/night-prompts/scripts/02-check-validity.sh -n 100 -D 14:00 ---
+==========================================
+正当性チェック開始: Fri May 22 13:35:49 JST 2026
+バッチサイズ: 100問 / チャンクサイズ: 5問
+==========================================
+チェック対象: 100問
+チャンク数: 20
+
+--- チャンク 1/20: 5問  開始=13:36:13 ---
+  [OK   ] clf-d386c604
+  [OK   ] dop-f9412469
+  [OK   ] clf-42e766a2
+  [OK   ] clf-735d71e5
+  [OK   ] dop-24da5076
+  → 更新完了: OK=5 修正=0 削除=0
+  終了=13:38:16  経過=123秒
+
+--- チャンク 2/20: 5問  開始=13:38:16 ---
+  [OK   ] sap-9e51714d
+  [FIX  ] clf-14dc008d: ECSの不正解理由として「クラスターの管理が必要・継続的稼働コスト」と説明しているが、ECS Fargateは管理不要・従量課金であり技術的に不正確。課金モデルの違いを正しく説明する必要がある。 → 変更: explanation
+  [OK   ] sap-67664368
+  [OK   ] sap-4073c4cd
+  [OK   ] sap-e029a143
+  → 更新完了: OK=4 修正=1 削除=0
+  終了=13:42:55  経過=279秒
+
+--- チャンク 3/20: 5問  開始=13:42:55 ---
+⚠️  チャンク 3 でエラー（exit 1）。このチャンクをスキップして続行
+stderr: 
+stdout: API Error: 529 Overloaded. This is a server-side issue, usually temporary — try again in a moment. If it persists, check status.claude.com.
+
+--- チャンク 4/20: 5問  開始=13:46:33 ---
+  [OK   ] dop-39980625
+  [FIX  ] dop-q-037: タグにドメイン外の独自値（dop-rds, dop-backup, dop-disaster-recovery）が混在している。有効なDOPドメインのみに修正。 → 変更: tags
+  [FIX  ] dop-q-014: タグにドメイン外の独自値（dop-macie, dop-security, dop-compliance）が混在している。有効なDOPドメインのみに修正。 → 変更: tags
+  [OK   ] dop-24bb74de
+  [FIX  ] sap-e46aa443: タグにドメイン外の独自値（CloudFront, S3, Security）が混在している。有効なSAPドメインのみに修正。 → 変更: tags
+  → 更新完了: OK=2 修正=3 削除=0
+  終了=13:48:31  経過=118秒
+
+--- チャンク 5/20: 5問  開始=13:48:31 ---
+  [FIX  ] dop-q-006: タグにドメイン外のサービス名（dop-codepipeline等）が含まれている。有効なDOPドメインのみに修正する。 → 変更: tags
+  [FIX  ] saa-5ca288c0: タグにドメイン外の値（EC2、プレイスメントグループ、ネットワーク）が含まれている。有効なSAAドメインのみに修正する。 → 変更: tags
+  [FIX  ] dop-11d62064: 選択肢AでControl Towerの機能を「Account Vending Machine」と記述しているが、AVMは旧Landing Zoneの用語。Control Towerの正しい機能名は「Account Factory」のため修正する。 → 変更: choices, explanation
+  [OK   ] saa-ab13d296
+  [OK   ] saa-f96943fb
+  → 更新完了: OK=2 修正=3 削除=0
+  終了=13:52:22  経過=231秒
+
+--- チャンク 6/20: 5問  開始=13:52:22 ---
+⚠️  チャンク 6 でエラー（exit 1）。このチャンクをスキップして続行
+stderr: 
+stdout: API Error: 529 Overloaded. This is a server-side issue, usually temporary — try again in a moment. If it persists, check status.claude.com.
+
+--- チャンク 7/20: 5問  開始=13:55:54 ---
+⚠️  チャンク 7 でエラー（exit 1）。このチャンクをスキップして続行
+stderr: 
+stdout: API Error: 529 Overloaded. This is a server-side issue, usually temporary — try again in a moment. If it persists, check status.claude.com.
+
+--- チャンク 8/20: 5問  開始=13:59:23 ---
+
+==========================================
+実行開始: 2026-05-22 14:00:00
+==========================================
+▶ [ping] Claudeセッション確認...
+⚠️  チャンク 8 でエラー（exit 1）。このチャンクをスキップして続行
+stderr: 
+stdout: API Error: 529 Overloaded. This is a server-side issue, usually temporary — try again in a moment. If it persists, check status.claude.com.
+
+⏰ 終了時刻 14:00 を過ぎたため、残りチャンクをスキップ（成果はDB反映済み）
+
+完了サマリー: 問題なし=13問 / 自動修正=7問 / 削除=0問
+--- hook[1] 完了: 2026-05-22 14:03:01 ---
+  → 210s
+API Error: 529 Overloaded. This is a server-side issue, usually temporary — try again in a moment. If it persists, check status.claude.com.
+⚠️ レート制限 (reset: 不明)
+==========================================
+終了: 2026-05-22 14:03:30
+==========================================
+
+--- hook[0] 開始: 2026-05-22 18:30:49 (-30min) | ~/aws-quiz-app/prompts/night-prompts/scripts/01-generate-questions.sh -n 5 -D 19:00 ---
+⏰ デッドライン: 19:00 JST (epoch=1779444000)
+==========================================
+問題自動生成 開始: Fri May 22 18:30:49 JST 2026
+==========================================
+対象資格: CLF SAA SAP DVA SOA DOP AIF MLA GAI
+各資格の問題数を取得中...
+  CLF: 228問
+  SAA: 211問
+  SAP: 205問
+  DVA: 205問
+  SOA: 206問
+  DOP: 334問
+  AIF: 209問
+  MLA: 209問
+  GAI: 205問
+選択: SAP (現在205問 — 最少)
+ドメイン数: 4  /  基本 5問/ドメイン（重み付きで配分）  /  合計予算 20問
+開始ドメイン: [3] ワークロードの移行とモダン化の加速
+
+--- Cognito 認証中 ---
+✓ 認証完了
+
+--- ドメイン別問題数を取得・割り当て計算中 ---
+  ワークロードの移行とモダン化の加速: 43問
+  既存のソリューションの継続的改善: 46問
+  新しいソリューションのための設計: 52問
+  組織の複雑さに対応する設計: 64問
+
+ドメイン別生成数（逆数重み付き割り当て）:
+  11問 → ワークロードの移行とモダン化の加速 (現在43問)
+  8問 → 既存のソリューションの継続的改善 (現在46問)
+  1問 → 新しいソリューションのための設計 (現在52問)
+  0問 → 組織の複雑さに対応する設計 (現在64問)
+  合計: 20問
+
+--- [ワークロードの移行とモダン化の加速] 11問 生成中 (5問×3チャンク) --- 開始=18:33:45
+  チャンク 1/3: 5問 生成中...
+
+--- hook[1] 開始: 2026-05-22 18:35:49 (-25min) | ~/aws-quiz-app/prompts/night-prompts/scripts/02-check-validity.sh -n 100 -D 19:00 ---
+==========================================
+正当性チェック開始: Fri May 22 18:35:49 JST 2026
+バッチサイズ: 100問 / チャンクサイズ: 5問
+==========================================
+チェック対象: 100問
+チャンク数: 20
+
+--- チャンク 1/20: 5問  開始=18:36:10 ---
+  [OK   ] clf-d8f9309f
+  [OK   ] clf-213edf23
+  [OK   ] clf-ef7baf51
+  [OK   ] saa-d49a8058
+  [OK   ] saa-d629db07
+  → 更新完了: OK=5 修正=0 削除=0
+  終了=18:38:11  経過=121秒
+
+--- チャンク 2/20: 5問  開始=18:38:11 ---
+  [OK   ] clf-187a2f79
+  [OK   ] saa-ec4f4bd4
+  [OK   ] clf-41a0e2ac
+  [OK   ] saa-73269a70
+  [OK   ] saa-f3b23f03
+  → 更新完了: OK=5 修正=0 削除=0
+  終了=18:40:12  経過=121秒
+
+--- チャンク 3/20: 5問  開始=18:40:12 ---
+  [OK   ] clf-d29c6f0d
+  [OK   ] saa-f70a5888
+  [OK   ] clf-bc8b4aad
+  [OK   ] saa-8f0338c5
+  [OK   ] clf-5b9082e1
+  → 更新完了: OK=5 修正=0 削除=0
+  終了=18:42:26  経過=134秒
+
+--- チャンク 4/20: 5問  開始=18:42:26 ---
+  [OK   ] clf-be83c7d9
+  [OK   ] clf-7a8531a6
+  [OK   ] saa-3fb0a6c3
+  [OK   ] clf-09255fd6
+  [OK   ] clf-c44cb93c
+  → 更新完了: OK=5 修正=0 削除=0
+  終了=18:44:39  経過=133秒
+
+--- チャンク 5/20: 5問  開始=18:44:39 ---
+  [OK   ] clf-34e92692
+  [OK   ] clf-ee355fab
+  [OK   ] dop-488250b6
+  [FIX  ] saa-64edc822: タグにS3・S3 Glacier・S3ライフサイクルというサービス名が含まれており、規定ドメイン外の値。有効なドメインタグのみに修正が必要。 → 変更: tags
+  [FIX  ] sap-q-025: タグに'sap-cost'・'sap-trusted-advisor'という規定外の値が含まれている。有効なドメインタグのみに修正が必要。 → 変更: tags
+  → 更新完了: OK=3 修正=2 削除=0
+  終了=18:46:43  経過=124秒
+
+--- チャンク 6/20: 5問  開始=18:46:43 ---
+  [OK   ] sap-c8f4595c
+  [OK   ] sap-b8ec724c
+  [FIX  ] sap-4d6c4661: 既存モノリスのAWS移行・モダン化を扱う問題であり「新しいソリューションのための設計」ではなく「ワークロードの移行とモダン化の加速」が正しいタグ。 → 変更: tags
+  [OK   ] sap-0e332a5c
+  [OK   ] sap-4989178b
+  → 更新完了: OK=4 修正=1 削除=0
+  終了=18:49:55  経過=192秒
+
+--- チャンク 7/20: 5問  開始=18:49:55 ---
+⚠️  チャンク 7 でエラー（exit 1）。このチャンクをスキップして続行
+stderr: 
+stdout: You've hit your session limit · resets 7pm (Asia/Tokyo)
+
+--- チャンク 8/20: 5問  開始=18:49:58 ---
+⚠️  チャンク 8 でエラー（exit 1）。このチャンクをスキップして続行
+stderr: 
+stdout: You've hit your session limit · resets 7pm (Asia/Tokyo)
+
+--- チャンク 9/20: 5問  開始=18:50:01 ---
+⚠️  チャンク 9 でエラー（exit 1）。このチャンクをスキップして続行
+stderr: 
+stdout: You've hit your session limit · resets 7pm (Asia/Tokyo)
+
+--- チャンク 10/20: 5問  開始=18:50:02 ---
+⚠️  チャンク 10 でエラー（exit 1）。このチャンクをスキップして続行
+stderr: 
+stdout: You've hit your session limit · resets 7pm (Asia/Tokyo)
+
+--- チャンク 11/20: 5問  開始=18:50:05 ---
+⚠️  チャンク 11 でエラー（exit 1）。このチャンクをスキップして続行
+stderr: 
+stdout: You've hit your session limit · resets 7pm (Asia/Tokyo)
+
+--- チャンク 12/20: 5問  開始=18:50:08 ---
+⚠️  チャンク 12 でエラー（exit 1）。このチャンクをスキップして続行
+stderr: 
+stdout: You've hit your session limit · resets 7pm (Asia/Tokyo)
+
+--- チャンク 13/20: 5問  開始=18:50:11 ---
+⚠️  チャンク 13 でエラー（exit 1）。このチャンクをスキップして続行
+stderr: 
+stdout: You've hit your session limit · resets 7pm (Asia/Tokyo)
+
+--- チャンク 14/20: 5問  開始=18:50:14 ---
+⚠️  チャンク 14 でエラー（exit 1）。このチャンクをスキップして続行
+stderr: 
+stdout: You've hit your session limit · resets 7pm (Asia/Tokyo)
+
+--- チャンク 15/20: 5問  開始=18:50:16 ---
+⚠️  チャンク 15 でエラー（exit 1）。このチャンクをスキップして続行
+stderr: 
+stdout: You've hit your session limit · resets 7pm (Asia/Tokyo)
+
+--- チャンク 16/20: 5問  開始=18:50:19 ---
+⚠️  チャンク 16 でエラー（exit 1）。このチャンクをスキップして続行
+stderr: 
+stdout: You've hit your session limit · resets 7pm (Asia/Tokyo)
+
+--- チャンク 17/20: 5問  開始=18:50:22 ---
+⚠️  チャンク 17 でエラー（exit 1）。このチャンクをスキップして続行
+stderr: 
+stdout: You've hit your session limit · resets 7pm (Asia/Tokyo)
+
+--- チャンク 18/20: 5問  開始=18:50:25 ---
+⚠️  チャンク 18 でエラー（exit 1）。このチャンクをスキップして続行
+stderr: 
+stdout: You've hit your session limit · resets 7pm (Asia/Tokyo)
+
+--- チャンク 19/20: 5問  開始=18:50:28 ---
+⚠️  チャンク 19 でエラー（exit 1）。このチャンクをスキップして続行
+stderr: 
+stdout: You've hit your session limit · resets 7pm (Asia/Tokyo)
+
+--- チャンク 20/20: 5問  開始=18:50:31 ---
+⚠️  チャンク 20 でエラー（exit 1）。このチャンクをスキップして続行
+stderr: 
+stdout: You've hit your session limit · resets 7pm (Asia/Tokyo)
+
+完了サマリー: 問題なし=27問 / 自動修正=3問 / 削除=0問
+
+==========================================
+チェック終了: Fri May 22 18:50:35 JST 2026
+==========================================
+--- hook[1] 完了: 2026-05-22 18:50:35 ---
+⚠️  レート制限を検出。残りをスキップ
+出力: ⚠️ [claude-wrapper] バイナリ未検出。自動修復を開始します...
+
+changed 9 packages in 9m
+  🔒 レート制限ロックファイル記録: 2026-05-22 19:00 JST
+  終了=18:51:51  経過=1086秒
+
+合計インポート: 0問 / 20問
+--- hook[0] 完了: 2026-05-22 18:51:51 ---
+
+==========================================
+実行開始: 2026-05-22 19:00:00
+==========================================
+▶ [ping] Claudeセッション確認...
+  → 9s
+⚠️ [claude-wrapper] バイナリ未検出。自動修復を開始します...
+
+changed 9 packages in 2s
+✓ [claude-wrapper] 修復完了
+Memory index doesn't exist yet. What can I help you with?
+✓ ping OK
+==========================================
+終了: 2026-05-22 19:00:09
+==========================================
+
+--- hook[0] 開始: 2026-05-22 23:30:49 (-30min) | ~/aws-quiz-app/prompts/night-prompts/scripts/01-generate-questions.sh -n 5 -D 00:00 ---
+⏰ デッドライン: 00:00 JST (epoch=1779462000)
+==========================================
+問題自動生成 開始: Fri May 22 23:30:49 JST 2026
+==========================================
+対象資格: CLF SAA SAP DVA SOA DEA DOP AIF MLA GAI ANS SCS
+各資格の問題数を取得中...
+  CLF: 228問
+  SAA: 211問
+  SAP: 205問
+  DVA: 205問
+  SOA: 206問
+  DEA: 0問
+  DOP: 334問
+  AIF: 209問
+  MLA: 209問
+  GAI: 205問
+  ANS: 0問
+  SCS: 0問
+選択: DEA (現在0問 — 最少)
+ドメイン数: 4  /  基本 5問/ドメイン（重み付きで配分）  /  合計予算 20問
+開始ドメイン: [0] データの取り込みと変換
+
+--- Cognito 認証中 ---
+✓ 認証完了
+
+--- ドメイン別問題数を取得・割り当て計算中 ---
+  （まだ問題がありません）
+
+ドメイン別生成数（逆数重み付き割り当て）:
+  5問 → データの取り込みと変換 (現在0問)
+  5問 → データストアの管理 (現在0問)
+  5問 → データオペレーションとサポート (現在0問)
+  5問 → データのセキュリティとガバナンス (現在0問)
+  合計: 20問
+
+--- [データの取り込みと変換] 5問 生成中 --- 開始=23:34:30
+⚠️  レート制限を検出。残りをスキップ
+出力: You've hit your session limit · resets 12am (Asia/Tokyo)
+  🔒 レート制限ロックファイル記録: 2026-05-23 00:00 JST
+  終了=23:34:33  経過=3秒
+
+合計インポート: 0問 / 20問
+--- hook[0] 完了: 2026-05-22 23:34:33 ---
+
+--- hook[1] 開始: 2026-05-22 23:35:49 (-25min) | ~/aws-quiz-app/prompts/night-prompts/scripts/02-check-validity.sh -n 100 -D 00:00 ---
+  🔒 レート制限中: リセット予定 00:00 JST
+==========================================
+正当性チェック開始: Fri May 22 23:35:49 JST 2026
+バッチサイズ: 100問 / チャンクサイズ: 5問
+==========================================
+チェック対象: 100問
+チャンク数: 20
+
+⏰ 終了時刻 00:00 を過ぎたため、残りチャンクをスキップ（成果はDB反映済み）
+
+完了サマリー: 問題なし=0問 / 自動修正=0問 / 削除=0問
+--- hook[1] 完了: 2026-05-22 23:36:11 ---

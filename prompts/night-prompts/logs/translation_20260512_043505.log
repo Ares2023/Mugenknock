@@ -1,0 +1,112 @@
+==========================================
+英訳チェック開始: Tue May 12 04:35:05 JST 2026
+バッチサイズ: 30件 / チャンクサイズ: 5件
+==========================================
+
+▶ Questions テーブルを処理中...
+  チェック対象: 30問
+  チャンク数: 6
+  チャンク 1: 5件  開始=04:35:24
+    [TRANSLATED] dva-798c603f
+    [TRANSLATED] soa-b63159fe
+    [TRANSLATED] soa-d0cff1f0
+    [TRANSLATED] soa-f5e1c39c
+    [TRANSLATED] soa-9848f450
+  終了=04:37:42  経過=138秒
+  チャンク 2: 5件  開始=04:37:42
+    [TRANSLATED] soa-cda2967a
+    [TRANSLATED] dva-772b930e
+    [TRANSLATED] soa-4a033069
+    [TRANSLATED] soa-62011fb7
+    [TRANSLATED] dva-9a2ebb93
+  終了=04:40:16  経過=154秒
+  チャンク 3: 5件  開始=04:40:16
+    [TRANSLATED] soa-a40532e2
+    [TRANSLATED] dva-4716f0fc
+    [TRANSLATED] soa-ee1110f4
+    [TRANSLATED] soa-3d648cba
+    [TRANSLATED] soa-2f1f688e
+  終了=04:43:06  経過=170秒
+  チャンク 4: 5件  開始=04:43:06
+    [TRANSLATED] dva-639386e7
+    [TRANSLATED] soa-637eae1b
+    [TRANSLATED] dva-57211de6
+    [TRANSLATED] soa-0907f42f
+    [TRANSLATED] soa-c9584baf
+  終了=04:45:45  経過=159秒
+  チャンク 5: 5件  開始=04:45:45
+    [TRANSLATED] dva-ba1d1ac4
+    [TRANSLATED] dva-c13ce738
+    [TRANSLATED] dva-80d61e95
+    [TRANSLATED] soa-b9f0d937
+    [TRANSLATED] dva-6354fb6d
+  終了=04:48:18  経過=153秒
+  チャンク 6: 5件  開始=04:48:18
+    [TRANSLATED] dva-caf16cc8
+    [TRANSLATED] soa-dd7fca55
+    [TRANSLATED] dva-19402752
+    [TRANSLATED] dva-f4097bbc
+    [TRANSLATED] dva-b30f102c
+  終了=04:50:53  経過=155秒
+
+  Questions 完了: OK=0 / 修正=0 / 新規翻訳=30
+
+▶ Tips テーブルを処理中...
+  チェック対象: 30件
+  チャンク数: 6
+  チャンク 1: 5件  開始=04:51:09
+    [OK        ] b9e5d2fd-8bde-4f49-a15f-d7f76326a37e
+    [OK        ] 8706d8b8-dbe7-4f2c-a427-c60bf04a768a
+    [OK        ] 009a5949-a6a4-402f-ad93-e819b19d6e6a
+    [OK        ] b591140e-71e7-460a-9908-7f5b8a8d07f8
+    [OK        ] 49ba5e11-b11b-43b5-8b2c-dc3879866849
+  終了=04:53:02  経過=113秒
+  チャンク 2: 5件  開始=04:53:02
+    [OK        ] 19f0c257-3fa5-46ab-ad70-4da074d8e046
+    [OK        ] 37bb82d4-5081-4b9e-82fc-2cddb87d8bad
+    [OK        ] ce72e772-f4fd-4ebd-8834-99b4173c0060
+    [OK        ] 9b9dca6e-a856-4d79-9221-bea6517322bb
+    [OK        ] 83e79919-c59e-4a9f-bee4-ef1f0adf2eee
+  終了=04:54:48  経過=106秒
+  チャンク 3: 5件  開始=04:54:48
+    [OK        ] 9bc2b48a-2d5d-42bd-ae5b-88581837ba05
+    [OK        ] 3773b60c-b156-4799-b088-8c62a67e9cc1
+    [OK        ] ef3c7834-30a7-4bbd-ad13-2136f20758dd
+    [OK        ] 90b726b5-4c93-4bdf-997a-1b7b6ab0d816
+    [OK        ] fad548fc-079e-4dea-ad62-4ac9a371f7db
+  終了=04:56:46  経過=118秒
+  チャンク 4: 5件  開始=04:56:46
+    [OK        ] f5ac2671-fe4f-4d48-bfab-d01adec157f4
+    [OK        ] e182c221-3739-42ed-8b3d-1773e4d7968e
+    [OK        ] db51b468-75ae-4270-87a9-aa76e82bf6a5
+    [OK        ] d48f1af7-3509-4e58-a578-1a1928e6c0f5
+    [OK        ] 5d953dd4-9cce-4d72-bff5-84ec2f1a2d90
+  終了=04:58:37  経過=111秒
+  チャンク 5: 5件  開始=04:58:37
+    [OK        ] 58782dd9-9ad7-4e7d-8d15-a72eda00bfc7
+    [OK        ] 53d21080-eb8e-4e92-a505-fb15bcb2e2ec
+    [OK        ] bf7c9b72-914e-4296-a0ca-b3afedfbbbee
+    [OK        ] 9c5d05e4-68fa-4aa5-b6ff-655568f98527
+    [OK        ] 72437ba8-b858-4492-91ce-ceb0694fc181
+  終了=05:00:19  経過=102秒
+  チャンク 6: 5件  開始=05:00:19
+    [OK        ] ce480295-07da-4e0d-b2d9-16aa1582ac1f
+    [OK        ] 7d3ddbdb-9197-47db-8d2b-6185c73dc7b2
+    [OK        ] 959315ef-024d-4203-8ff1-6d313d3a7190
+    [OK        ] a6f8030b-1c47-4f4e-b7a0-380f29620856
+    [OK        ] 0242d341-9465-4ee9-8c30-e54851486355
+  終了=05:02:01  経過=102秒
+
+  Tips 完了: OK=30 / 更新=0
+
+▶ Releases テーブルを処理中...
+  チェック対象: 15件
+  チャンク数: 3
+  チャンク 1: 5件  開始=05:02:16
+  ⚠️  レート制限を検出。Releasesの残りチャンクをスキップ
+
+  Releases 完了: OK=0 / 更新=0
+
+==========================================
+英訳チェック終了: Tue May 12 05:02:38 JST 2026
+==========================================

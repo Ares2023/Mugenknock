@@ -1,0 +1,53 @@
+==========================================
+日めくりサービス体裁チェック開始: Thu Jun  4 01:30:04 JST 2026
+バッチサイズ: 30件 / チャンクサイズ: 8件
+==========================================
+チェック対象: 30件
+チャンク数: 4
+
+--- チャンク 1/4: 8件  開始=01:30:20 ---
+  [DELETE] _schedule_: name/shortName/category/description/trivia/icon/docUrlすべて空。AWSサービスとして機能しないプレースホルダー
+  [FIX  ] svc-athena-36: descriptionとtriviaに複数特徴・事実があるが\nによる区切りが未使用 → 変更: description, trivia
+  [FIX  ] svc-codeartifact-79: descriptionとtriviaに複数特徴・事実があるが\nによる区切りが未使用 → 変更: description, trivia
+  [FIX  ] svc-cloudwatch-10: descriptionとtriviaに複数特徴・事実があるが\nによる区切りが未使用 → 変更: description, trivia
+  [FIX  ] svc-emr-41: descriptionとtriviaに複数特徴・事実があるが\nによる区切りが未使用 → 変更: description, trivia
+  [FIX  ] svc-documentdb-45: descriptionとtriviaに複数特徴・事実があるが\nによる区切りが未使用 → 変更: description, trivia
+  [FIX  ] svc-polly-85: descriptionとtriviaに複数特徴・事実があるが\nによる区切りが未使用 → 変更: description, trivia
+  [OK   ] svc-cloud9-94
+  → 更新完了: OK=1 修正=6 削除=1
+  終了=01:35:14  経過=294秒
+
+--- チャンク 2/4: 8件  開始=01:35:14 ---
+  [OK   ] svc-inspector-50
+  [FIX  ] svc-api-gateway-15: descriptionが124字で上限120字を超過。 → 変更: description
+  [OK   ] svc-global-accelerator-64
+  [OK   ] svc-auto-scaling-74
+  [OK   ] svc-budgets-80
+  [OK   ] svc-config-51
+  [OK   ] svc-aurora-29
+  [OK   ] svc-vpc-8
+  → 更新完了: OK=7 修正=1 削除=0
+  終了=01:40:58  経過=344秒
+
+--- チャンク 3/4: 8件  開始=01:40:58 ---
+  [OK   ] svc-lightsail-87
+  [FIX  ] svc-waf-32: descriptionとtriviaで複数特徴を含むが\n区切りがない。 → 変更: description, trivia
+  [FIX  ] svc-sagemaker-23: descriptionとtriviaで複数特徴を含むが\n区切りがない。 → 変更: description, trivia
+  [OK   ] svc-transcribe-91
+  [FIX  ] svc-kendra-84: descriptionとtriviaで複数特徴を含むが\n区切りがない。 → 変更: description, trivia
+  [OK   ] svc-cloudhsm-103
+  [FIX  ] svc-codedeploy-66: descriptionとtriviaで複数特徴を含むが\n区切りがない。 → 変更: description, trivia
+  [FIX  ] svc-network-firewall-76: descriptionとtriviaで複数特徴を含むが\n区切りがない。 → 変更: description, trivia
+  → 更新完了: OK=3 修正=5 削除=0
+  終了=01:47:04  経過=366秒
+
+--- チャンク 4/4: 6件  開始=01:47:04 ---
+⚠️  チャンク 4 でエラー（exit 1）。このチャンクをスキップして続行
+stderr: 
+stdout: You've hit your session limit · resets 6:30am (Asia/Tokyo)
+
+完了サマリー: 問題なし=11件 / 自動修正=12件 / 削除=1件
+
+==========================================
+チェック終了: Thu Jun  4 01:47:05 JST 2026
+==========================================

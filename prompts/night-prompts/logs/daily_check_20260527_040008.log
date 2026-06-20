@@ -1,0 +1,53 @@
+==========================================
+日めくりサービス体裁チェック開始: Wed May 27 04:00:08 JST 2026
+バッチサイズ: 30件 / チャンクサイズ: 8件
+==========================================
+チェック対象: 30件
+チャンク数: 4
+
+--- チャンク 1/4: 8件  開始=04:00:25 ---
+  [DELETE] _schedule_: name/shortName/category/description/triviaがすべて空。実在するAWSサービスではなくプレースホルダー行のため削除が必要。
+  [OK   ] svc-x-ray-47
+  [OK   ] svc-efs-31
+  [OK   ] svc-lake-formation-58
+  [OK   ] svc-migration-hub-105
+  [OK   ] svc-fargate-37
+  [OK   ] 68c89b55-eeb0-4d01-be0a-e37b0e57d76f
+  [OK   ] svc-iam-identity-center-27
+  → 更新完了: OK=7 修正=0 削除=1
+  終了=04:06:09  経過=344秒
+
+--- チャンク 2/4: 8件  開始=04:06:09 ---
+  [FIX  ] svc-cost-explorer-68: descriptionとtriviaに複数特徴/事実があるが改行区切りなし → 変更: description, trivia
+  [FIX  ] svc-eks-13: descriptionとtriviaに複数特徴/事実があるが改行区切りなし → 変更: description, trivia
+  [OK   ] svc-ecr-101
+  [OK   ] svc-storage-gateway-89
+  [FIX  ] svc-comprehend-57: descriptionとtriviaに複数特徴/事実があるが改行区切りなし → 変更: description, trivia
+  [OK   ] svc-forecast-93
+  [FIX  ] svc-elastic-beanstalk-49: descriptionとtriviaに複数特徴/事実があるが改行区切りなし → 変更: description, trivia
+  [FIX  ] svc-s3-glacier-44: descriptionとtriviaに複数特徴/事実があるが改行区切りなし → 変更: description, trivia
+  → 更新完了: OK=3 修正=5 削除=0
+  終了=04:12:50  経過=401秒
+
+--- チャンク 3/4: 8件  開始=04:12:50 ---
+  [FIX  ] svc-step-functions-22: descriptionとtriviaに複数特徴があるが\nがない → 変更: description, trivia
+  [FIX  ] svc-ecs-12: description122字でオーバー・\nなし。triviaも\nなし → 変更: description, trivia
+  [FIX  ] svc-fsx-70: description127字でオーバー・\nなし。triviaも\nなし → 変更: description, trivia
+  [FIX  ] svc-batch-59: descriptionとtriviaに複数特徴があるが\nがない → 変更: description, trivia
+  [OK   ] svc-health-dashboard-98
+  [FIX  ] 398b303b-1873-4cfb-b4f2-fa71ad5a4b8c: descriptionとtriviaに複数特徴があるが\nがない → 変更: description, trivia
+  [FIX  ] svc-codepipeline-24: descriptionとtriviaに複数特徴があるが\nがない → 変更: description, trivia
+  [FIX  ] svc-datasync-83: descriptionとtriviaに複数特徴があるが\nがない → 変更: description, trivia
+  → 更新完了: OK=1 修正=7 削除=0
+  終了=04:20:15  経過=445秒
+
+--- チャンク 4/4: 6件  開始=04:20:15 ---
+⚠️  チャンク 4 でエラー（exit 1）。このチャンクをスキップして続行
+stderr: 
+stdout: You've hit your session limit · resets 9am (Asia/Tokyo)
+
+完了サマリー: 問題なし=11件 / 自動修正=12件 / 削除=1件
+
+==========================================
+チェック終了: Wed May 27 04:20:18 JST 2026
+==========================================
