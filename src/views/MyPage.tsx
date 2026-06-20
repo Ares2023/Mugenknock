@@ -143,7 +143,7 @@ export default function MyPage() {
     { key: 'Practitioner', color: '#6b9e3a', exams: ['CLF', 'AIF'] },
     { key: 'Associate',    color: '#006CE0', exams: ['SAA', 'DVA', 'SOA', 'DEA', 'MLA'] },
     { key: 'Professional', color: '#8b5cf6', exams: ['SAP', 'DOP', 'GAI'] },
-    { key: 'Specialty',    color: '#e67e22', exams: ['ANS', 'SCS'] },
+    { key: 'Specialty',    color: '#0ea5e9', exams: ['ANS', 'SCS'] },
   ] as const;
   const EXAM_LEVEL_MAP: Record<string, string> = {
     CLF: 'Practitioner', AIF: 'Practitioner',
@@ -710,7 +710,7 @@ export default function MyPage() {
                         const exam = previewExam;
                         const cfg = EXAM_CONFIGS[exam];
                         return (
-                          <div style={{ padding: '16px 20px 16px' }}>
+                          <div style={{ padding: '16px 20px 72px' }}>
                             <div style={{ marginBottom: 10 }}>
                               {EXAM_CATCHCOPY[exam] && (
                                 <div style={{ fontSize: 11, color: 'var(--color-text-light)', fontStyle: 'italic', marginBottom: 4 }}>{EXAM_CATCHCOPY[exam]}</div>
