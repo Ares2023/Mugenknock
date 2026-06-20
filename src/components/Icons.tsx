@@ -521,3 +521,17 @@ export function ServiceIconImg({ icon, name, size }: { icon: string; name: strin
   return <span style={{ fontSize: size * 0.8, lineHeight: 1 }}>{icon}</span>;
 }
 
+export const EXAM_ICON_COMPONENTS: Record<string, React.FC<{ size?: number }>> = {
+  CLF: IconSprout,
+  AIF: IconBot,
+  SAA: IconBox,
+  DVA: IconCode2,
+  SOA: IconCloud,
+  DEA: IconDatabase,
+  MLA: IconBrain,
+  SAP: IconVectorSquare,
+  DOP: IconFileCodeCorner,
+  AIP: IconAtom,
+  SCS: IconShieldIcon,
+  ANS: IconWaypoints,
+};

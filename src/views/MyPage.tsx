@@ -13,22 +13,8 @@ import {
   IconSparkles, IconChevronRight, IconChevronDown, IconLock, IconFlag, IconStar, IconTrendingUp, IconPenLine,
   IconBook, IconBookOpenCheck, IconCircleCheck,
   IconSprout, IconBox, IconBot, IconCode2, IconCloud, IconDatabase, IconBrain, IconVectorSquare, IconFileCodeCorner, IconAtom, IconShieldIcon, IconWaypoints,
+  EXAM_ICON_COMPONENTS,
 } from '../components/Icons';
-
-const EXAM_ICON_COMPONENTS: Record<string, React.FC<{ size?: number }>> = {
-  CLF: IconSprout,
-  AIF: IconBot,
-  SAA: IconBox,
-  DVA: IconCode2,
-  SOA: IconCloud,
-  DEA: IconDatabase,
-  MLA: IconBrain,
-  SAP: IconVectorSquare,
-  DOP: IconFileCodeCorner,
-  AIP: IconAtom,
-  SCS: IconShieldIcon,
-  ANS: IconWaypoints,
-};
 
 const EXAM_CATCHCOPY: Record<string, string> = {
   CLF: 'AWS資格の登竜門！誰もがここから！',
