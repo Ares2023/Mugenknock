@@ -759,14 +759,16 @@ export default function MyPage() {
                       const examShortName = (EXAM_CONFIGS[exam]?.fullName ?? exam).replace('AWS Certified ', '');
                       return (
                         <div style={{ flexShrink: 0, borderTop: `2px solid ${levelColor}33`, background: `${levelColor}08`, padding: '10px 16px', display: 'flex', alignItems: 'center', gap: 12, minHeight: 64 }}>
-                          {/* メッセージ（設定確定時のみ表示） */}
+                          {/* メッセージ */}
                           <div style={{ flex: 1, minWidth: 0 }}>
-                            {showConfirmMsg && confirmedExam && (
+                            {showConfirmMsg && confirmedExam ? (
                               <div style={{ animation: 'fadeSlideUp 0.3s ease', fontSize: 13, fontWeight: 700, color: levelColor, lineHeight: 1.4 }}>
                                 <div>{examShortName}</div>
                                 <div style={{ fontSize: 12, fontWeight: 400, color: 'var(--color-text-sub)' }}>{ja ? 'を目標資格に設定しました' : 'set as target exam'}</div>
                               </div>
-                            )}
+                            ) : isCurrentTarget ? (
+                              <div style={{ fontSize: 13, fontWeight: 700, color: 'var(--color-success)' }}>✓ {ja ? '学習中' : 'Studying'}</div>
+                            ) : null}
                           </div>
                           {/* 決定ボタン */}
                           {isCurrentTarget ? (
