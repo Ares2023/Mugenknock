@@ -1,0 +1,52 @@
+=== 2026-06-08 02:55:16 | 02-check-validity.sh | exit:0 ===
+==========================================
+正当性チェック開始: Mon Jun  8 02:20:07 JST 2026
+バッチサイズ: 30問 / チャンクサイズ: 5問
+==========================================
+チェック対象: 30問
+前処理: choices ラベル接頭辞チェック...
+  前処理: ラベル接頭辞なし（全問クリーン）
+チャンク数: 6
+
+--- チャンク 1/6: 5問  開始=02:20:36 ---
+  [FIX  ] ociaa-64360542: choiceExplanationsが未設定のため生成。タグが欠落のため設定。正解が1つのためisMultiple: falseに設定。 → 変更: choiceExplanations, tags
+  [FIX  ] ociaa-23f02515: choiceExplanationsが未設定のため生成。タグが欠落のため設定。正解が3つのためisMultiple: trueに設定。 → 変更: choiceExplanations, tags
+  [FIX  ] ociaa-7db207c0: choiceExplanationsが未設定のため生成。タグが欠落のため設定。正解が1つのためisMultiple: falseに設定。 → 変更: choiceExplanations, tags
+  [FIX  ] ociaa-53785406: choiceExplanationsが未設定のため生成。タグが欠落のため設定。正解が2つのためisMultiple: trueに設定。 → 変更: choiceExplanations, tags
+  [FIX  ] ociaa-25eeecd5: choiceExplanationsが未設定のため生成。タグが欠落のため設定。正解が2つのためisMultiple: trueに設定。 → 変更: choiceExplanations, tags
+  → 更新完了: OK=0 修正=5 削除=0
+  終了=02:26:13  経過=337秒
+
+--- チャンク 2/6: 5問  開始=02:26:13 ---
+  [FIX  ] ociaa-468cd00c: 問題番号プレフィックス除去、domainタグ未設定、choiceExplanations未生成、isMultiple未設定、解説に各選択肢の否定理由を追記 → 変更: questionText, explanation, choiceExplanations, tags
+  [FIX  ] ociaa-c3049c74: 問題番号プレフィックス除去、domainタグ未設定、choiceExplanations未生成、isMultiple未設定、正解の平均文字数が不正解の約3倍で文字数から推測可能なため不正解選択肢を調整 → 変更: questionText, choices, explanation, choiceExplanations, tags
+  [FIX  ] ociaa-b3ba3298: 問題番号プレフィックス除去、domainタグ未設定、choiceExplanations未生成、isMultiple未設定 → 変更: questionText, choiceExplanations, tags
+  [FIX  ] ociaa-95f7ea37: 問題番号プレフィックス除去、domainタグ未設定、choiceExplanations未生成、isMultiple未設定 → 変更: questionText, choiceExplanations, tags
+  [FIX  ] ociaa-69fc46eb: 問題番号プレフィックス除去、domainタグ未設定、choiceExplanations未生成、isMultiple未設定 → 変更: questionText, choiceExplanations, tags
+  → 更新完了: OK=0 修正=5 削除=0
+  終了=02:32:41  経過=388秒
+
+--- チャンク 3/6: 5問  開始=02:32:41 ---
+  [FIX  ] ociaa-48f772a7: ドメインタグ未設定、choiceExplanations未生成、解説が100字未満で不十分、isMultiple未設定 → 変更: explanation, choiceExplanations, tags
+  [FIX  ] ociaa-b952c82d: ドメインタグ未設定、choiceExplanations未生成、isMultiple未設定 → 変更: choiceExplanations, tags
+  [FIX  ] ociaa-434ee778: ドメインタグ未設定、choiceExplanations未生成、isMultiple未設定 → 変更: choiceExplanations, tags
+  [FIX  ] ociaa-f32dffec: ドメインタグ未設定、choiceExplanations未生成、isMultiple未設定、正解選択肢が不正解より著しく長く文字数から正解が推測可能 → 変更: choices, choiceExplanations, tags
+  [FIX  ] ociaa-4efd4bbf: ドメインタグ未設定、choiceExplanations未生成、isMultiple未設定 → 変更: choiceExplanations, tags
+  → 更新完了: OK=0 修正=5 削除=0
+  終了=02:40:33  経過=472秒
+
+--- チャンク 4/6: 5問  開始=02:40:33 ---
+  [FIX  ] ociaa-24ab6557: 選択肢A（同一バケットへのコピー可能）が事実として正しく不正解選択肢として成立しない。タグ・choiceExplanations・isMultiple未設定。解説の内部記法「正解: c)」除去と選択肢別説明を追加。 → 変更: choices, explanation, choiceExplanations, tags
+  [FIX  ] ociaa-57ce045f: 問題文に問題番号「92.」が残留。タグ・choiceExplanations・isMultiple未設定。解説の内部記法「正解: d)」除去と選択肢別説明を追加。 → 変更: questionText, explanation, choiceExplanations, tags
+  [FIX  ] ociaa-d5d930d0: 問題文に問題番号「95.」が残留。タグ・choiceExplanations未設定、isMultiple未設定。解説の内部記法「正解: c), d)」除去と選択肢別説明を追加。 → 変更: questionText, explanation, choiceExplanations, tags
+  [FIX  ] ociaa-c4ac43ef: 問題文に問題番号「33.」が残留。タグ・choiceExplanations・isMultiple未設定。解説の内部記法「正解: d)」除去と選択肢別説明を追加。 → 変更: questionText, explanation, choiceExplanations, tags
+  [FIX  ] ociaa-b0eb9afe: タグ・choiceExplanations未設定、isMultiple未設定。解説の内部記法「正解: a), b), c)」除去と選択肢別説明を追加。解説の<br>を改行に変換。 → 変更: explanation, choiceExplanations, tags
+  → 更新完了: OK=0 修正=5 削除=0
+  終了=02:49:34  経過=541秒
+
+--- チャンク 5/6: 5問  開始=02:49:34 ---
+⚠️  レート制限を検出。残りチャンクをスキップ
+stdout: You've hit your session limit · resets 7:20am (Asia/Tokyo)
+  🔒 レート制限ロックファイル記録: 2026-06-08 07:20 JST
+
+完了サマリー: 問題なし=0問 / 自動修正=20問 / 削除=0問

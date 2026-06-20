@@ -1,0 +1,91 @@
+==========================================
+正当性チェック開始: Sun May 31 02:05:49 JST 2026
+バッチサイズ: 100問 / チャンクサイズ: 8問
+==========================================
+チェック対象: 100問
+チャンク数: 13
+
+--- チャンク 1/13: 8問  開始=02:06:17 ---
+  [FIX  ] ans-91cf4aa7: 解説の選択肢B・Cの書き出しが「選択肢Xの[サービス名]は〜」の形式になっていない → 変更: explanation
+  [FIX  ] ans-7dcd64ef: 解説の選択肢Aの書き出しが「選択肢Xの[サービス名]は〜」の形式になっていない → 変更: explanation
+  [FIX  ] ans-c0908b06: 解説の選択肢A・Cの書き出しが「選択肢Xの[サービス名]は〜」の形式になっていない → 変更: explanation
+  [FIX  ] ans-5fe9aa9f: 問題文に「2つ選択」とあるがisMultipleがtrueになっていない → 変更: (変更なし)
+  [OK   ] ans-4d256aae
+  [FIX  ] ans-87ce2adf: 解説の選択肢A・Dの書き出しが「選択肢Xの[サービス名]は〜」の形式になっていない → 変更: explanation
+  [OK   ] ans-b94fc759
+  [OK   ] ans-996c9bda
+  → 更新完了: OK=3 修正=5 削除=0
+  終了=02:14:02  経過=465秒
+
+--- チャンク 2/13: 8問  開始=02:14:02 ---
+  [OK   ] ans-e86ca019
+  [OK   ] ans-3d200b3a
+  [OK   ] ans-dbb3e65b
+  [OK   ] ans-407438be
+  [OK   ] dea-a00ebbe5
+  [FIX  ] ans-e97320e8: 解説の正解行が「正解：\n[内容]」形式になっている・「解説：」ラベルが残存・不正解選択肢の書き出しが「選択肢Xは」形式（「選択肢XのサービスXは」が正しい）・不正解選択肢間の\n\nが欠落 → 変更: explanation
+  [OK   ] ans-d026d99b
+  [FIX  ] scs-49972f00: 解説の正解行が「正解：\n[内容]」形式になっている・「解説：」ラベルが残存・不正解選択肢間の\n\nが欠落 → 変更: explanation
+  → 更新完了: OK=6 修正=2 削除=0
+  終了=02:21:25  経過=443秒
+
+--- チャンク 3/13: 8問  開始=02:21:25 ---
+⚠️  チャンク 3 でエラー（exit 1）。このチャンクをスキップして続行
+stderr: 
+stdout: You've hit your session limit · resets 2:30am (Asia/Tokyo)
+
+--- チャンク 4/13: 8問  開始=02:21:27 ---
+⚠️  チャンク 4 でエラー（exit 1）。このチャンクをスキップして続行
+stderr: 
+stdout: You've hit your session limit · resets 2:30am (Asia/Tokyo)
+
+--- チャンク 5/13: 8問  開始=02:21:28 ---
+⚠️  チャンク 5 でエラー（exit 1）。このチャンクをスキップして続行
+stderr: 
+stdout: You've hit your session limit · resets 2:30am (Asia/Tokyo)
+
+--- チャンク 6/13: 8問  開始=02:21:30 ---
+⚠️  チャンク 6 でエラー（exit 1）。このチャンクをスキップして続行
+stderr: 
+stdout: You've hit your session limit · resets 2:30am (Asia/Tokyo)
+
+--- チャンク 7/13: 8問  開始=02:21:32 ---
+⚠️  チャンク 7 でエラー（exit 1）。このチャンクをスキップして続行
+stderr: 
+stdout: You've hit your session limit · resets 2:30am (Asia/Tokyo)
+
+--- チャンク 8/13: 8問  開始=02:21:34 ---
+⚠️  チャンク 8 でエラー（exit 1）。このチャンクをスキップして続行
+stderr: 
+stdout: You've hit your session limit · resets 2:30am (Asia/Tokyo)
+
+--- チャンク 9/13: 8問  開始=02:21:36 ---
+⚠️  チャンク 9 でエラー（exit 1）。このチャンクをスキップして続行
+stderr: 
+stdout: You've hit your session limit · resets 2:30am (Asia/Tokyo)
+
+--- チャンク 10/13: 8問  開始=02:21:38 ---
+⚠️  チャンク 10 でエラー（exit 1）。このチャンクをスキップして続行
+stderr: 
+stdout: You've hit your session limit · resets 2:30am (Asia/Tokyo)
+
+--- チャンク 11/13: 8問  開始=02:21:40 ---
+⚠️  チャンク 11 でエラー（exit 1）。このチャンクをスキップして続行
+stderr: 
+stdout: You've hit your session limit · resets 2:30am (Asia/Tokyo)
+
+--- チャンク 12/13: 8問  開始=02:21:42 ---
+⚠️  チャンク 12 でエラー（exit 1）。このチャンクをスキップして続行
+stderr: 
+stdout: You've hit your session limit · resets 2:30am (Asia/Tokyo)
+
+--- チャンク 13/13: 4問  開始=02:21:44 ---
+⚠️  チャンク 13 でエラー（exit 1）。このチャンクをスキップして続行
+stderr: 
+stdout: You've hit your session limit · resets 2:30am (Asia/Tokyo)
+
+完了サマリー: 問題なし=9問 / 自動修正=7問 / 削除=0問
+
+==========================================
+チェック終了: Sun May 31 02:21:46 JST 2026
+==========================================

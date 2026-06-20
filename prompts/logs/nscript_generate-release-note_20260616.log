@@ -1,0 +1,11 @@
+=== 2026-06-16 04:34:01 | generate-release-note.sh | exit:0 ===
+[release-note] 対象日: 2026-06-15
+[release-note] 2026-06-15: 19件のコミット
+[release-note] 生成結果:
+{
+  "title": "3,000問がGoogle検索で見つかるように！",
+  "body": "AWS試験の問題ページ2,972件をサイトマップに追加し、検索エンジンから直接アクセスできるようになりました！\n日本語に完全特化した快適な学習環境で、あなたのAWS合格を全力サポートします。",
+  "titleEn": "3,000+ Quiz Pages Now Discoverable on Google!",
+  "bodyEn": "All 2,972 AWS quiz pages have been added to the sitemap and are now indexable by search engines — find exactly the practice question you need, straight from Google!\nThe app is now fully optimized for Japanese learners, delivering a smoother study experience."
+}
+[release-note] ✓ DynamoDBに挿入しました: 2026-06-15 — 3,000問がGoogle検索で見つかるように！

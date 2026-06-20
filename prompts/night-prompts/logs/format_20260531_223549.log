@@ -1,0 +1,132 @@
+==========================================
+体裁チェック開始: Sun May 31 22:35:49 JST 2026
+処理数: 100問 / チャンク: 20問 / モデル: haiku
+==========================================
+対象: 100問
+チャンク数: 5
+
+--- チャンク 1/5: 20問  開始=22:36:18 ---
+  [OK ] scs-73883f4d
+  [OK ] scs-82973cdb
+  [OK ] scs-f643bd3f
+  [OK ] scs-89282a31
+  [OK ] scs-80d31400
+  [OK ] scs-96eb5e67
+  [OK ] scs-7be7fe4c
+  [FIX] saa-3efc7caf: explanation
+  [OK ] dea-a7609184
+  [FIX] gai-78ad1020: explanation
+  [FIX] aif-4a6d6481: explanation
+  [FIX] gai-64bc0791: explanation
+  [FIX] clf-bec3c636: explanation
+  [FIX] dva-9401ce7e: explanation
+  [FIX] dea-d5168b8e: explanation
+  [FIX] mla-50680075: explanation
+  [FIX] mla-34d2e3aa: explanation
+  [FIX] ans-bb0f7583: explanation
+  [FIX] mla-5a12c24a: explanation
+  [FIX] sap-ba12f5f2: explanation
+  → 完了: OK=8 修正=12
+  終了=22:45:43  経過=565秒
+
+--- チャンク 2/5: 20問  開始=22:45:43 ---
+  [FIX] soa-c0f4b239: explanation
+  [OK ] ans-00412ec2
+  [OK ] dea-17815a8d
+  [FIX] dop-3372471c: explanation
+  [FIX] saa-8a793a17: explanation
+  [FIX] clf-47485502: explanation
+  [FIX] aif-bf96386b: explanation
+  [FIX] dva-797e995d: explanation
+  [FIX] mla-c515685c: explanation
+  [FIX] dop-507d9df6: explanation
+  [FIX] dop-q-067: explanation
+  [FIX] dop-q-024: explanation
+  [FIX] sap-5c445f7d: explanation
+  [FIX] clf-6cc07f1b: explanation
+  [FIX] mla-7b6a875f: explanation
+  [OK ] scs-4594a211
+  [FIX] dop-25ad52fd: explanation
+  [FIX] dva-9e2315bc: explanation
+  [OK ] dea-ee105f53
+  [FIX] gai-1afdbdee: explanation
+  → 完了: OK=4 修正=16
+  終了=22:54:32  経過=529秒
+
+--- チャンク 3/5: 20問  開始=22:54:32 ---
+  [FIX] dva-d682a4a1: explanation
+  [FIX] clf-40f66443: explanation
+  [FIX] scs-aca6b940: explanation
+  [FIX] dva-aa4724fc: explanation
+  [FIX] dva-cb7b8e48: explanation
+  [FIX] dop-11035f1e: explanation
+  [FIX] clf-284585ea: explanation
+  [FIX] soa-b8839529: explanation
+  [FIX] aif-be592160: explanation
+  [FIX] sap-4989178b: explanation
+  [FIX] saa-3a45c202: explanation
+  [FIX] dva-4800cb9f: explanation
+  [FIX] mla-a09a41f1: explanation
+  [FIX] soa-15a8274a: explanation
+  [FIX] gai-0fcdb98f: explanation
+  [FIX] dva-1069a04d: explanation
+  [FIX] dop-c36bfb88: explanation
+  [FIX] gai-b82e00e9: explanation
+  [FIX] saa-2f9bf1f6: explanation
+  [FIX] dva-a2672dfd: explanation
+  → 完了: OK=0 修正=20
+  終了=23:03:49  経過=557秒
+
+--- チャンク 4/5: 20問  開始=23:03:49 ---
+  [FIX] aif-719cfc99: explanation
+  [FIX] dva-af8cbf9c: explanation
+  [FIX] dop-656106af: explanation
+  [FIX] saa-b05c0002: explanation
+  [FIX] saa-b7c87e50: explanation
+  [FIX] aif-2f2524b0: explanation
+  [FIX] soa-ad0948b6: explanation
+  [FIX] soa-d53f8ac7: explanation
+  [FIX] aif-27a4af45: explanation
+  [FIX] saa-b7b9a04a: explanation
+  [FIX] sap-6b596152: explanation
+  [FIX] dva-2573a913: explanation
+  [FIX] saa-12abd9d2: explanation
+  [FIX] soa-247870bb: explanation
+  [FIX] dva-61894ed6: explanation
+  [FIX] scs-5e10448c: explanation
+  [FIX] clf-90cb97b7: explanation
+  [OK ] ans-1faf977f
+  [OK ] scs-6d0ac63f
+  [OK ] ans-9e588a81
+  → 完了: OK=3 修正=17
+  終了=23:12:17  経過=508秒
+
+--- チャンク 5/5: 20問  開始=23:12:17 ---
+  [FIX] dop-9ebed5f2: explanation
+  [FIX] saa-825d94f0: explanation
+  [FIX] dea-18e2ac3f: explanation
+  [FIX] saa-e848c7a4: explanation
+  [FIX] clf-badaac18: explanation
+  [FIX] sap-d266cd1b: explanation
+  [FIX] sap-d682816b: explanation
+  [FIX] aif-09945cfb: explanation
+  [FIX] saa-3e5d7fab: explanation
+  [FIX] sap-56b6e035: explanation
+  [FIX] sap-fec0b3e5: explanation
+  [FIX] dop-980d8c32: explanation
+  [FIX] gai-a6b544c0: explanation
+  [FIX] mla-17ec27c2: explanation
+  [FIX] dop-268242c2: explanation
+  [FIX] ans-74d97f8a: explanation
+  [FIX] clf-83b751eb: explanation
+  [FIX] dva-05f21f74: explanation
+  [FIX] mla-63d1726b: explanation
+  [FIX] aif-7be6bfe3: explanation
+  → 完了: OK=0 修正=20
+  終了=23:21:14  経過=537秒
+
+完了サマリー: 体裁OK=15問 / 修正=85問
+
+==========================================
+体裁チェック終了: Sun May 31 23:21:14 JST 2026
+==========================================

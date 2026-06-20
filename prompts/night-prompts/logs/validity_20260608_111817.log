@@ -1,0 +1,68 @@
+==========================================
+正当性チェック開始: Mon Jun  8 11:18:17 JST 2026
+バッチサイズ: 30問 / チャンクサイズ: 5問
+==========================================
+チェック対象: 30問
+前処理: choices ラベル接頭辞チェック...
+  前処理: ラベル接頭辞なし（全問クリーン）
+チャンク数: 6
+
+--- チャンク 1/6: 5問  開始=11:18:44 ---
+  [FIX  ] ociaa-34c5f044: タグ未設定、choiceExplanations未生成、isMultiple未設定、解説が100字未満で内容不足 → 変更: explanation, choiceExplanations, tags
+  [FIX  ] ociaa-865bec9d: タグ未設定、choiceExplanations未生成、isMultiple未設定 → 変更: choiceExplanations, tags
+  [FIX  ] ociaa-c13122ae: タグ未設定、choiceExplanations未生成、isMultiple未設定、解説にHTMLタグ（<br>）使用、questionTextに改行なし → 変更: questionText, explanation, choiceExplanations, tags
+  [FIX  ] ociaa-82943f7c: タグ未設定、choiceExplanations未生成、isMultiple未設定、解説にHTMLタグ（<b>）使用、解説が100字未満で内容不足 → 変更: explanation, choiceExplanations, tags
+  [FIX  ] ociaa-04c04469: タグ未設定、choiceExplanations未生成、isMultiple未設定、解説が約40字と極端に短く内容不足、解説にHTMLタグ（<br>）使用、questionTextに改行なし → 変更: questionText, explanation, choiceExplanations, tags
+  → 更新完了: OK=0 修正=5 削除=0
+  終了=11:24:31  経過=347秒
+
+--- チャンク 2/6: 5問  開始=11:24:31 ---
+  [FIX  ] ociaa-7f3b103d: choiceExplanationsが未設定。isMultipleが未設定（単一正解なのでfalse）。タグが未設定。 → 変更: choiceExplanations, tags
+  [FIX  ] ociaa-ee3f9b81: 問題文に「66. 」という問題番号プレフィックスが含まれている。choiceExplanationsが未設定。isMultipleが未設定。タグが未設定。 → 変更: questionText, choiceExplanations, tags
+  [FIX  ] ociaa-cbc63dbe: 問題文が長文1段落で読みにくく、要件ごとに改行が必要。タグが未設定。isMultipleが未設定。 → 変更: questionText, tags
+  [FIX  ] ociaa-bf675ff9: 問題文に「90. 」プレフィックスあり。正解が2つなのにisMultipleが未設定（trueにする必要あり）。choiceExplanationsが未設定。選択肢Aが他より約18字長く文字数から正解を推測されやすい。タグが未設定。 → 変更: questionText, choices, correctAnswers, choiceExplanations, tags
+  [FIX  ] ociaa-6c19aca2: 問題文に「98. 」プレフィックスあり。解説が約30字と極端に短い。choiceExplanationsが未設定。isMultipleが未設定。タグが未設定。 → 変更: questionText, explanation, choiceExplanations, tags
+  → 更新完了: OK=0 修正=5 削除=0
+  終了=11:30:16  経過=345秒
+
+--- チャンク 3/6: 5問  開始=11:30:16 ---
+  [FIX  ] ociaa-cb2d532a: 問題番号プレフィックス除去、解説冒頭「正解: c)」除去と拡充、choiceExplanations生成、タグ・isMultiple未設定 → 変更: questionText, explanation, choiceExplanations, tags
+  [FIX  ] ociaa-7cb4501b: タグおよびisMultipleが未設定 → 変更: tags
+  [FIX  ] ociaa-18fad44a: 問題番号プレフィックス除去、解説冒頭「正解: b), d)」除去・HTMLタグをプレーンテキストに変換、choiceExplanations生成、タグ・isMultiple未設定 → 変更: questionText, explanation, choiceExplanations, tags
+  [FIX  ] ociaa-9699780c: 解説冒頭「正解: a), b), c)」除去・HTMLタグをプレーンテキスト/改行に変換、choiceExplanations生成、タグ・isMultiple未設定 → 変更: explanation, choiceExplanations, tags
+  [FIX  ] ociaa-64f3b67d: 問題番号プレフィックス除去、解説冒頭「正解: b)」除去・文字数不足（約70字）の拡充、choiceExplanations生成、タグ・isMultiple未設定 → 変更: questionText, explanation, choiceExplanations, tags
+  → 更新完了: OK=0 修正=5 削除=0
+  終了=11:35:56  経過=340秒
+
+--- チャンク 4/6: 5問  開始=11:35:56 ---
+  [FIX  ] ociaa-2f90fcac: choiceExplanationsが未設定、ドメインタグが欠落、解説に「b), c)」の記号参照が含まれる → 変更: explanation, choiceExplanations, tags
+  [FIX  ] ociaa-241a1778: choiceExplanationsが未設定、ドメインタグが欠落、解説に「正解: b)」の記号参照が含まれる → 変更: explanation, choiceExplanations, tags
+  [FIX  ] ociaa-586527f0: choiceExplanationsが未設定、ドメインタグが欠落、解説に「正解: a), b), d)」の記号参照が含まれる → 変更: explanation, choiceExplanations, tags
+  [FIX  ] ociaa-fe25276f: choiceExplanationsが未設定、ドメインタグが欠落、解説に「正解: b), c), d)」の記号参照が含まれる → 変更: explanation, choiceExplanations, tags
+  [FIX  ] ociaa-858b26d0: choiceExplanationsが未設定、ドメインタグが欠落、解説に「正解: d)」の記号参照があり文字数も不足（約60字） → 変更: explanation, choiceExplanations, tags
+  → 更新完了: OK=0 修正=5 削除=0
+  終了=11:41:23  経過=327秒
+
+--- チャンク 5/6: 5問  開始=11:41:23 ---
+  [FIX  ] ociaa-6f1a6f54: 問題番号接頭辞「92.」の削除、解説の「正解: d)」除去と100字以上への拡充、choiceExplanations生成、タグ設定 → 変更: questionText, explanation, choiceExplanations, tags
+  [FIX  ] ociaa-765ce5f9: タグ未設定、問題文に複数の要件・制約が列挙されているが改行なし → 変更: questionText, tags
+  [FIX  ] ociaa-6e18388e: 解説の「正解: d)」除去、問題文に改行追加、choiceExplanations生成、タグ設定 → 変更: questionText, explanation, choiceExplanations, tags
+  [FIX  ] ociaa-d3b7f6cd: 問題番号接頭辞「68.」の削除、解説の「正解: b)」除去、choiceExplanations生成、タグ設定 → 変更: questionText, explanation, choiceExplanations, tags
+  [FIX  ] ociaa-81287a8d: 問題番号接頭辞「67.」の削除、解説の「正解: d)」除去、choiceExplanations生成、タグ設定 → 変更: questionText, explanation, choiceExplanations, tags
+  → 更新完了: OK=0 修正=5 削除=0
+  終了=11:49:01  経過=458秒
+
+--- チャンク 6/6: 5問  開始=11:49:01 ---
+  [FIX  ] ociaa-120e3310: 解説の「正解:a),d)」接頭辞削除、choiceExplanations生成、タグ・isMultiple設定 → 変更: explanation, choiceExplanations, tags
+  [FIX  ] ociaa-147872dd: 問題文の「21.」番号削除、解説の「正解:a)」接頭辞削除、choiceExplanations生成、タグ・isMultiple設定 → 変更: questionText, explanation, choiceExplanations, tags
+  [FIX  ] ociaa-d2b988dd: 解説の「正解:c)」接頭辞・余分スペース削除・内容拡充、choiceExplanations生成、タグ・isMultiple設定 → 変更: explanation, choiceExplanations, tags
+  [FIX  ] ociaa-ee9afab3: 問題文に要件ごとの改行追加、タグ（データベース）設定、isMultiple: false設定 → 変更: questionText, tags
+  [FIX  ] ociaa-f36b93b5: 問題文に要件ごとの改行追加、タグ（データベース）設定、isMultiple: false設定 → 変更: questionText, tags
+  → 更新完了: OK=0 修正=5 削除=0
+  終了=11:54:43  経過=342秒
+
+完了サマリー: 問題なし=0問 / 自動修正=30問 / 削除=0問
+
+==========================================
+チェック終了: Mon Jun  8 11:54:43 JST 2026
+==========================================

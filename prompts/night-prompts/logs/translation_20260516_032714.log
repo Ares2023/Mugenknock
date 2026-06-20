@@ -1,0 +1,27 @@
+==========================================
+英訳チェック開始: Sat May 16 03:27:14 JST 2026
+バッチサイズ: 30件 / チャンクサイズ: 5件
+==========================================
+
+▶ Questions テーブルを処理中...
+  チェック対象: 30問
+  チャンク数: 6
+  チャンク 1: 5件  開始=03:27:36
+    [TRANSLATED] aif-4f8f923a
+    [TRANSLATED] gai-a0b2c2ed
+    [TRANSLATED] dop-e9a15a5f
+    [TRANSLATED] soa-b4259d26
+    [TRANSLATED] soa-33aa8ab1
+  終了=03:29:45  経過=129秒
+  チャンク 2: 5件  開始=03:29:45
+    [TRANSLATED] dop-e916cd19
+    [TRANSLATED] dva-90f3fc05
+    [TRANSLATED] soa-dd731487
+    [TRANSLATED] mla-8d2bbece
+    [TRANSLATED] soa-b8499f07
+  終了=03:32:33  経過=168秒
+  チャンク 3: 5件  開始=03:32:33
+  ⚠️  レート制限を検出。Questionsの残りチャンクをスキップ
+
+  Questions 完了: OK=0 / 修正=0 / 新規翻訳=10
+  レート制限/終了時刻によりTips/Releasesをスキップ

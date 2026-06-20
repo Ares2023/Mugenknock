@@ -1,0 +1,112 @@
+==========================================
+体裁チェック開始: Sun May 31 02:39:26 JST 2026
+処理数: 200問 / チャンク: 20問 / モデル: haiku
+==========================================
+対象: 200問
+チャンク数: 10
+
+--- チャンク 1/10: 20問  開始=02:39:54 ---
+  [OK ] scs-bc48a72c
+  [OK ] dea-0dfe5d06
+  [OK ] dea-d05b23e0
+  [OK ] dea-ddeca2fc
+  [OK ] dea-9b51edba
+  [OK ] scs-48a22f0d
+  [OK ] scs-71244d03
+  [OK ] dea-cfbfff7d
+  [OK ] scs-54f96f0b
+  [OK ] dea-38ae8270
+  [OK ] scs-4baa9268
+  [OK ] dea-38719859
+  [OK ] scs-0b1870d3
+  [OK ] scs-e7b5bd23
+  [OK ] scs-88e3a991
+  [OK ] scs-0acfb0f0
+  [OK ] ans-50fbf2fc
+  [OK ] scs-ef50addb
+  [FIX] scs-2bb5940f: explanation
+  [FIX] gai-cb01c11e: explanation
+  → 完了: OK=18 修正=2
+  終了=02:46:57  経過=423秒
+
+--- チャンク 2/10: 20問  開始=02:46:57 ---
+  [FIX] gai-ada41d17: questionText, explanation
+  [FIX] soa-9eaf219e: explanation
+  [FIX] soa-11a511d2: explanation
+  [FIX] dop-6b995132: explanation
+  [FIX] saa-a672a0a5: explanation
+  [FIX] mla-a137cb52: explanation
+  [FIX] dva-e14e9a4b: explanation
+  [FIX] ans-b6a4cd33: explanation
+  [FIX] scs-f9009c7b: explanation
+  [FIX] dva-5a907e97: explanation
+  [FIX] scs-7a614f0e: explanation
+  [FIX] saa-3c64cfb8: explanation
+  [FIX] dop-2c2718f5: explanation
+  [FIX] clf-0ca7da66: explanation
+  [FIX] dop-9bd68c11: explanation
+  [FIX] aif-ecacb50a: explanation
+  [FIX] sap-q-024: explanation
+  [FIX] saa-f70a5888: explanation
+  [FIX] soa-853c0556: explanation
+  [FIX] scs-cb4ed61e: explanation
+  → 完了: OK=0 修正=20
+  終了=02:55:10  経過=493秒
+
+--- チャンク 3/10: 20問  開始=02:55:10 ---
+  [FIX] [scs-de191049]: explanation
+  [FIX] [saa-de1649b1]: explanation
+  [FIX] [sap-18770400]: explanation
+  [FIX] [sap-a75af825]: explanation
+  [FIX] [dop-c2d21ceb]: explanation
+  [FIX] [mla-26de089d]: explanation
+  [FIX] [mla-dc6abcdb]: explanation
+  [FIX] [dea-a94dd08a]: explanation
+  [FIX] [aif-106f7d3e]: explanation
+  [FIX] [aif-a96ba1cf]: explanation
+  [FIX] [dva-01a9fb56]: explanation
+  [FIX] [mla-b7f6ad8c]: explanation
+  [FIX] [gai-02bc8f51]: explanation
+  [OK ] [clf-acb7aa9c]
+  [FIX] [ans-e86ca019]: explanation
+  [FIX] [scs-dbc18a7b]: explanation
+  [FIX] [dea-d60c66a5]: explanation
+  [FIX] [mla-e90b2d0f]: explanation
+  [FIX] [dop-8afe22d8]: explanation
+  [FIX] [gai-af73016a]: explanation
+  → 完了: OK=1 修正=19
+  終了=03:02:54  経過=464秒
+
+--- チャンク 4/10: 20問  開始=03:02:54 ---
+⚠️  チャンク 4 でエラー（exit 1）。スキップ
+stderr: 
+
+--- チャンク 5/10: 20問  開始=03:03:02 ---
+⚠️  チャンク 5 でエラー（exit 1）。スキップ
+stderr: 
+
+--- チャンク 6/10: 20問  開始=03:03:07 ---
+⚠️  チャンク 6 でエラー（exit 1）。スキップ
+stderr: 
+
+--- チャンク 7/10: 20問  開始=03:03:12 ---
+⚠️  チャンク 7 でエラー（exit 1）。スキップ
+stderr: 
+
+--- チャンク 8/10: 20問  開始=03:03:19 ---
+⚠️  チャンク 8 でエラー（exit 1）。スキップ
+stderr: 
+
+--- チャンク 9/10: 20問  開始=03:03:24 ---
+⚠️  チャンク 9 でエラー（exit 1）。スキップ
+stderr: 
+
+--- チャンク 10/10: 20問  開始=03:03:28 ---
+⚠️  チャンク 10 でエラー（exit 1）。スキップ
+stderr: 
+
+完了サマリー: 体裁OK=19問 / 修正=41問
+
+==========================================
+体裁チェック終了: Sun May 31 03:03:33 JST 2026
+==========================================

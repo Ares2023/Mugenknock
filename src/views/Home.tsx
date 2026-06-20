@@ -578,7 +578,7 @@ function DomainDetailModal({ targetExam, domainAccList, lang, onClose }: {
 const OB_LEVEL: Record<string, string> = {
   CLF: 'Foundational', AIF: 'Foundational',
   SAA: 'Associate', DVA: 'Associate', SOA: 'Associate', DEA: 'Associate', MLA: 'Associate',
-  SAP: 'Professional', DOP: 'Professional', GAI: 'Professional',
+  SAP: 'Professional', DOP: 'Professional', AIP: 'Professional',
   ANS: 'Specialty', SCS: 'Specialty',
 };
 const OB_LEVEL_COLOR: Record<string, string> = {
@@ -588,7 +588,7 @@ const OB_SHORT: Record<string, string> = {
   CLF: 'Cloud Practitioner', AIF: 'AI Practitioner',
   SAA: 'Solutions Architect', DVA: 'Developer',
   SOA: 'CloudOps Engineer', DEA: 'Data Engineer', MLA: 'ML Engineer',
-  SAP: 'Solutions Architect Pro', DOP: 'DevOps Engineer', GAI: 'Generative AI Dev',
+  SAP: 'Solutions Architect Pro', DOP: 'DevOps Engineer', AIP: 'Generative AI Dev',
   ANS: 'Advanced Networking', SCS: 'Security',
 };
 

@@ -1,0 +1,11 @@
+=== 2026-06-18 01:23:06 | generate-release-note.sh | exit:0 ===
+[release-note] 対象日: 2026-06-17
+[release-note] 2026-06-17: 16件のコミット
+[release-note] 生成結果:
+{
+  "title": "演習がサクサク快適に！ノードバーも進化！",
+  "body": "演習問題のプログレッシブ読み込みに対応し、大量の問題でも待ち時間なくスムーズにスタートできるようになりました！\nノードバーが5問スライド表示に変わり、今どこにいるかが一目でわかります。",
+  "titleEn": "Faster Exercise Mode & Smarter Node Bar!",
+  "bodyEn": "Questions now load progressively, so you can jump into practice instantly without waiting—even for large sets.\nThe node bar now slides through a 5-question window, making it easy to track your progress at a glance."
+}
+[release-note] ✓ DynamoDBに挿入しました: 2026-06-17 — 演習がサクサク快適に！ノードバーも進化！

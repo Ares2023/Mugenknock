@@ -1,0 +1,68 @@
+==========================================
+正当性チェック開始: Thu Jun  4 12:56:47 JST 2026
+バッチサイズ: 30問 / チャンクサイズ: 5問
+==========================================
+チェック対象: 30問
+前処理: choices ラベル接頭辞チェック...
+  前処理: ラベル接頭辞なし（全問クリーン）
+チャンク数: 6
+
+--- チャンク 1/6: 5問  開始=12:57:16 ---
+  [FIX  ] gai-5ba910c7: choiceExplanationsが未設定のため生成。isMultipleをfalseに設定。 → 変更: choiceExplanations
+  [FIX  ] gai-a7fb0a7a: choiceExplanationsが未設定のため生成。isMultipleをfalseに設定。 → 変更: choiceExplanations
+  [FIX  ] gai-61583025: choiceExplanationsが未設定のため生成。isMultipleをfalseに設定。 → 変更: choiceExplanations
+  [FIX  ] gai-a8a190ef: choiceExplanationsが未設定のため生成。isMultipleをfalseに設定。 → 変更: choiceExplanations
+  [FIX  ] gai-c56101fa: choiceExplanationsが未設定のため生成。isMultipleをfalseに設定。 → 変更: choiceExplanations
+  → 更新完了: OK=0 修正=5 削除=0
+  終了=13:01:54  経過=278秒
+
+--- チャンク 2/6: 5問  開始=13:01:54 ---
+  [FIX  ] gai-6a2eae04: choiceExplanationsが未設定のため生成。正解が2つのためisMultiple: trueを明示。 → 変更: choiceExplanations
+  [FIX  ] scs-f1f74fda: questionTextの複数制約が改行なしで連続しているため改行を追加。choiceExplanationsが未設定のため生成。 → 変更: questionText, choiceExplanations
+  [FIX  ] dea-f5d36e4e: choiceExplanationsが未設定のため生成。 → 変更: choiceExplanations
+  [FIX  ] dea-b2034846: choiceExplanationsが未設定のため生成。 → 変更: choiceExplanations
+  [FIX  ] gai-efb23045: choiceExplanationsが未設定のため生成。 → 変更: choiceExplanations
+  → 更新完了: OK=0 修正=5 削除=0
+  終了=13:08:24  経過=390秒
+
+--- チャンク 3/6: 5問  開始=13:08:25 ---
+  [FIX  ] gai-48ad46e8: choiceExplanationsが未設定のため全選択肢分を生成 → 変更: choiceExplanations
+  [FIX  ] scs-72e02203: choiceExplanationsが未設定のため全選択肢分を生成 → 変更: choiceExplanations
+  [FIX  ] dea-325e5fec: choiceExplanationsが未設定のため全選択肢分を生成 → 変更: choiceExplanations
+  [FIX  ] dea-18294030: choiceExplanationsが未設定のため全選択肢分を生成 → 変更: choiceExplanations
+  [FIX  ] ans-76730abf: choiceExplanationsが未設定のため全選択肢分を生成 → 変更: choiceExplanations
+  → 更新完了: OK=0 修正=5 削除=0
+  終了=13:13:43  経過=318秒
+
+--- チャンク 4/6: 5問  開始=13:13:43 ---
+  [FIX  ] dea-c7e69d70: choiceExplanationsが未設定のため生成 → 変更: choiceExplanations
+  [FIX  ] gai-73daa6b6: choiceExplanationsが未設定のため生成 → 変更: choiceExplanations
+  [FIX  ] ans-3f23e91b: choiceExplanationsが未設定のため生成 → 変更: choiceExplanations
+  [FIX  ] scs-73c1b473: choiceExplanationsが未設定のため生成。解説内のPCR（Platform Configuration Register）という非AWS略語に注釈を追加 → 変更: explanation, choiceExplanations
+  [FIX  ] ans-4b3ae803: choiceExplanationsが未設定のため生成 → 変更: choiceExplanations
+  → 更新完了: OK=0 修正=5 削除=0
+  終了=13:18:32  経過=289秒
+
+--- チャンク 5/6: 5問  開始=13:18:32 ---
+  [FIX  ] gai-89d426f2: choiceExplanationsが未設定のため全選択肢分を生成。 → 変更: choiceExplanations
+  [FIX  ] dea-0165b5bb: 複数の操作ステップが1文に列挙されており改行が必要。choiceExplanationsが未設定のため生成。 → 変更: questionText, choiceExplanations
+  [FIX  ] ans-a13d8f89: choiceExplanationsが未設定のため全選択肢分を生成。 → 変更: choiceExplanations
+  [FIX  ] scs-04671e95: choiceExplanationsが未設定のため全選択肢分を生成。 → 変更: choiceExplanations
+  [FIX  ] gai-2689e0d8: choiceExplanationsが未設定のため全選択肢分を生成。 → 変更: choiceExplanations
+  → 更新完了: OK=0 修正=5 削除=0
+  終了=13:25:00  経過=388秒
+
+--- チャンク 6/6: 5問  開始=13:25:00 ---
+  [FIX  ] gai-e8057d5c: choiceExplanationsが未設定のため生成する → 変更: choiceExplanations
+  [FIX  ] gai-ccdf762b: choiceExplanationsが未設定のため生成する → 変更: choiceExplanations
+  [FIX  ] scs-16b0331c: choiceExplanationsが未設定のため生成する → 変更: choiceExplanations
+  [FIX  ] gai-ec6d581e: choiceExplanationsが未設定のため生成する → 変更: choiceExplanations
+  [FIX  ] scs-1ff3ad6f: choiceExplanationsが未設定のため生成する → 変更: choiceExplanations
+  → 更新完了: OK=0 修正=5 削除=0
+  終了=13:30:23  経過=323秒
+
+完了サマリー: 問題なし=0問 / 自動修正=30問 / 削除=0問
+
+==========================================
+チェック終了: Thu Jun  4 13:30:23 JST 2026
+==========================================

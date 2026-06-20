@@ -1,0 +1,39 @@
+==========================================
+日めくりサービス体裁チェック開始: Thu May 28 00:00:04 JST 2026
+バッチサイズ: 30件 / チャンクサイズ: 8件
+==========================================
+チェック対象: 30件
+チャンク数: 4
+
+--- チャンク 1/4: 8件  開始=00:00:20 ---
+  [DELETE] _schedule_: name/shortName/category/description/triviaがすべて空のプレースホルダーエントリ。実際のAWSサービス情報が存在しない
+  [OK   ] svc-ec2-6
+  [FIX  ] svc-savings-plans-99: triviaが約159字で上限150字超過 → 変更: trivia
+  [OK   ] svc-cloudtrail-26
+  [FIX  ] svc-ebs-25: descriptionが121字で上限120字超過、triviaが153字で上限150字超過 → 変更: description, trivia
+  [OK   ] svc-transit-gateway-56
+  [OK   ] svc-textract-92
+  [OK   ] svc-kms-34
+  → 更新完了: OK=5 修正=2 削除=1
+  終了=00:14:59  経過=879秒
+
+--- チャンク 2/4: 8件  開始=00:14:59 ---
+⚠️  チャンク 2 でエラー（exit 1）。このチャンクをスキップして続行
+stderr: 
+stdout: You've hit your session limit · resets 5am (Asia/Tokyo)
+
+--- チャンク 3/4: 8件  開始=00:15:00 ---
+⚠️  チャンク 3 でエラー（exit 1）。このチャンクをスキップして続行
+stderr: 
+stdout: You've hit your session limit · resets 5am (Asia/Tokyo)
+
+--- チャンク 4/4: 6件  開始=00:15:02 ---
+⚠️  チャンク 4 でエラー（exit 1）。このチャンクをスキップして続行
+stderr: 
+stdout: You've hit your session limit · resets 5am (Asia/Tokyo)
+
+完了サマリー: 問題なし=5件 / 自動修正=2件 / 削除=1件
+
+==========================================
+チェック終了: Thu May 28 00:15:03 JST 2026
+==========================================

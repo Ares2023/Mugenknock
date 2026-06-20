@@ -1,0 +1,21 @@
+=== 2026-06-06 04:04:09 | generate-release-note.sh | exit:1 ===
+[release-note] 対象日: 2026-06-05
+[release-note] コミット数: 4
+[release-note] Claudeでリリースノートを生成中...
+[release-note] 生成結果:
+{
+  "title": "管理画面がパワーアップ！問題プレビューで編集がスムーズに！",
+  "body": "問題一覧から1クリックでプレビューを確認できるモーダルを追加しました！\n選択肢ごとの解説（choiceExplanations）のインポートにも対応し、より充実した問題セットが作れるようになりました。",
+  "titleEn": "Admin Panel Upgrade: Preview Questions at a Glance!",
+  "bodyEn": "You can now preview any question instantly from the admin panel with a single click.\nImporting questions with per-choice explanations (choiceExplanations) is also now supported, enabling richer quiz content."
+}
+[release-note] ERROR: JSONパースに失敗しました: Invalid control character at: line 3 column 47 (char 92)
+出力内容:
+{
+  "title": "管理画面がパワーアップ！問題プレビューで編集がスムーズに！",
+  "body": "問題一覧から1クリックでプレビューを確認できるモーダルを追加しました！
+選択肢ごとの解説（choiceExplanations）のインポートにも対応し、より充実した問題セットが作れるようになりました。",
+  "titleEn": "Admin Panel Upgrade: Preview Questions at a Glance!",
+  "bodyEn": "You can now preview any question instantly from the admin panel with a single click.
+Importing questions with per-choice explanations (choiceExplanations) is also now supported, enabling richer quiz content."
+}

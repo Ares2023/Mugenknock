@@ -391,6 +391,12 @@ function QuestionPreviewModal({ onClose, initId = '' }: { onClose: () => void; i
 }
 
 export default function Admin() {
+  const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
+  useEffect(() => {
+    const h = () => setIsMobile(window.innerWidth < 768);
+    window.addEventListener('resize', h);
+    return () => window.removeEventListener('resize', h);
+  }, []);
   const [tab, setTab] = useState<Tab>('questions');
   const [adminError, setAdminError] = useState<string | null>(null);
   const { customColors, customColorsEnabled, applyColors, setCustomColorsEnabled } = useTheme();
@@ -1258,7 +1264,7 @@ export default function Admin() {
         return (
           <div style={{ marginBottom: 'var(--spacing-xl)' }}>
             {/* グループ選択 */}
-            <div style={{ display: 'flex', gap: 6, marginBottom: 'var(--spacing-sm)' }}>
+            <div style={{ display: 'flex', gap: 6, marginBottom: 'var(--spacing-sm)', overflowX: 'auto', flexWrap: 'nowrap' }}>
               {TAB_GROUPS.map(g => (
                 <button
                   key={g.key}
@@ -1384,7 +1390,7 @@ export default function Admin() {
                   </div>
                   {levels.map(lv => byLevel[lv]?.length ? (
                     <div key={lv} style={{ display: 'flex', gap: 6, alignItems: 'center', flexWrap: 'wrap' }}>
-                      <span style={{ fontSize: 11, color: 'var(--color-text-light)', fontWeight: 700, minWidth: 88, textAlign: 'right', flexShrink: 0 }}>{lv}</span>
+                      <span style={{ fontSize: 11, color: 'var(--color-text-light)', fontWeight: 700, minWidth: isMobile ? 56 : 88, textAlign: 'right', flexShrink: 0 }}>{isMobile ? lv.slice(0, 4) : lv}</span>
                       <span style={{ width: 1, height: 16, background: 'var(--color-border)', display: 'inline-block', flexShrink: 0 }} />
                       {byLevel[lv].map(t => examBtn(t))}
                     </div>
@@ -1569,7 +1575,7 @@ export default function Admin() {
                       .then(r => r.json()).then(d => setExpandedDetail(prev => ({ ...prev, [next]: d })));
                   }
                 }}
-                style={{ display: 'flex', alignItems: 'center', padding: '10px 16px', cursor: 'pointer', background: selectedIds.has(q.questionId) ? 'var(--color-primary-light)' : expandedId === q.questionId ? 'var(--color-bg-main)' : 'var(--color-bg-white)', gap: 10 }}>
+                style={{ display: 'flex', alignItems: 'center', padding: isMobile ? '10px 10px' : '10px 16px', cursor: 'pointer', background: selectedIds.has(q.questionId) ? 'var(--color-primary-light)' : expandedId === q.questionId ? 'var(--color-bg-main)' : 'var(--color-bg-white)', gap: isMobile ? 6 : 10 }}>
                 <input
                   type="checkbox"
                   checked={selectedIds.has(q.questionId)}
@@ -1579,32 +1585,34 @@ export default function Admin() {
                 />
                 <span style={{ color: 'var(--color-text-sub)', flexShrink: 0, display: 'flex' }}>{expandedId === q.questionId ? <IconChevronDown size={14} /> : <IconChevronRight size={14} />}</span>
                 <Badge variant="secondary">{q.examType}</Badge>
-                <span style={{ display: 'flex', alignItems: 'center', gap: 4, flexShrink: 0 }}>
-                  <span style={{ fontFamily: 'monospace', fontSize: 12, color: 'var(--color-text-sub)' }}>{q.questionId}</span>
-                  <button
-                    onClick={e => copyQuestionId(e, q.questionId)}
-                    title="IDをコピー"
-                    style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 2, color: copiedId === q.questionId ? 'var(--color-success)' : 'var(--color-text-light)', display: 'flex', alignItems: 'center', flexShrink: 0 }}
-                  >
-                    {copiedId === q.questionId ? <IconCheck size={12} /> : <IconCopy size={12} />}
-                  </button>
-                </span>
+                {!isMobile && (
+                  <span style={{ display: 'flex', alignItems: 'center', gap: 4, flexShrink: 0 }}>
+                    <span style={{ fontFamily: 'monospace', fontSize: 12, color: 'var(--color-text-sub)' }}>{q.questionId}</span>
+                    <button
+                      onClick={e => copyQuestionId(e, q.questionId)}
+                      title="IDをコピー"
+                      style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 2, color: copiedId === q.questionId ? 'var(--color-success)' : 'var(--color-text-light)', display: 'flex', alignItems: 'center', flexShrink: 0 }}
+                    >
+                      {copiedId === q.questionId ? <IconCheck size={12} /> : <IconCopy size={12} />}
+                    </button>
+                  </span>
+                )}
                 <span style={{ fontSize: 14, color: 'var(--color-text-main)', flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                   {q.questionText}
                 </span>
-                {q.validityCheckedAt && (
+                {!isMobile && q.validityCheckedAt && (
                   <span style={{ fontSize: 11, color: 'var(--color-text-light)', flexShrink: 0, whiteSpace: 'nowrap', display: 'flex', alignItems: 'center', gap: 3 }}>
                     <span style={{ color: 'var(--color-success)', fontWeight: 700 }}>✓</span>
                     AI: {fmtDate(q.validityCheckedAt)}
                   </span>
                 )}
-                {q.formatCheckedAt && (
+                {!isMobile && q.formatCheckedAt && (
                   <span style={{ fontSize: 11, color: 'var(--color-text-light)', flexShrink: 0, whiteSpace: 'nowrap', display: 'flex', alignItems: 'center', gap: 3 }}>
                     <span style={{ color: '#009E9E', fontWeight: 700 }}>✓</span>
                     体裁: {fmtDate(q.formatCheckedAt)}
                   </span>
                 )}
-                {q.updatedAt && (
+                {!isMobile && q.updatedAt && (
                   <span style={{ fontSize: 11, color: 'var(--color-text-light)', flexShrink: 0, whiteSpace: 'nowrap' }}>
                     編集: {fmtDate(q.updatedAt)}
                   </span>
@@ -2121,7 +2129,7 @@ ${tipPromptExamType !== 'ALL' ? `・examType には "${tipPromptExamType}" を�
                   <div>
                     <div style={{ fontSize: 12, color: 'var(--color-text-sub)', fontWeight: 700, marginBottom: 6 }}>対象試験</div>
                     <div style={{ display: 'flex', gap: 6, alignItems: 'center' }}>
-                      {['ALL', 'CLF', 'SAA', 'SAP', 'DOP', 'AIF', 'MLA', 'GAI'].map(t => (
+                      {['ALL', 'CLF', 'SAA', 'SAP', 'DOP', 'AIF', 'MLA', 'AIP'].map(t => (
                         <React.Fragment key={t}>
                           <button type="button" onClick={() => setTipPromptExamType(t)}
                             style={{ padding: '4px 12px', border: tipPromptExamType === t ? '2px solid' : '1.5px solid', borderRadius: 6, cursor: 'pointer', fontSize: 13,

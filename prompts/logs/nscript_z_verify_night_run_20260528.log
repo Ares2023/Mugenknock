@@ -1,0 +1,14 @@
+=== 2026-05-28 00:15:43 | z_verify_night_run.sh | exit:0 ===
+
+=== [verify] 夜間スクリプト実行結果を検証 ===
+[verify] - check-validity.sh: 未実行（スキップ）
+[verify] - check-translation.sh: 未実行（スキップ）
+[verify] - generate-questions.sh: 未実行（スキップ）
+[verify] 全スクリプト正常完了
+=== 2026-05-28 05:20:39 | z_verify_night_run.sh | exit:0 ===
+
+=== [verify] 夜間スクリプト実行結果を検証 ===
+[verify] - check-validity.sh: 未実行（スキップ）
+[verify] - check-translation.sh: 未実行（スキップ）
+[verify] - generate-questions.sh: 未実行（スキップ）
+[verify] 全スクリプト正常完了

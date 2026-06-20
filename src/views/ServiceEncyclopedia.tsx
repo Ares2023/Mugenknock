@@ -18,13 +18,22 @@ type EncyclopediaService = {
 };
 
 
+function normalizeSvcName(n: string): string {
+  return n.toLowerCase().replace(/^amazon\s+/, '').replace(/^aws\s+/, '').trim();
+}
+
 function isUnlocked(svc: ServiceEntry, unlockedMap: Record<string, string>, storedServices?: Record<string, { name?: string }>): boolean {
   if (svc.serviceIds?.some(id => id in unlockedMap)) return true;
   if (svc.name in unlockedMap) return true;
   // DailyServices UUID がカタログの serviceIds と一致しない場合、
-  // storedServices のサービス名とカタログ名を突合して判定
+  // storedServices のサービス名とカタログ名を正規化して突合
+  // （カタログは短縮名 "CloudFront"、DailyServices は "Amazon CloudFront" のため）
   if (storedServices) {
-    const found = Object.keys(unlockedMap).some(id => storedServices[id]?.name === svc.name);
+    const normCatalog = normalizeSvcName(svc.name);
+    const found = Object.keys(unlockedMap).some(id => {
+      const storedName = storedServices[id]?.name;
+      return storedName && normalizeSvcName(storedName) === normCatalog;
+    });
     if (found) return true;
   }
   return false;
@@ -281,8 +290,11 @@ export default function ServiceEncyclopedia() {
             </div>
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 6 }}>
               {displayServices.map(svc => {
-                const unlocked = isUnlocked(svc, unlockedMap);
-                const serviceData = svc.serviceIds?.map(id => storedServices[id]).find(Boolean);
+                const unlocked = isUnlocked(svc, unlockedMap, storedServices);
+                // serviceIds で直接引く、なければ名前の正規化照合で探す
+                const normCat = normalizeSvcName(svc.name);
+                const serviceData = svc.serviceIds?.map(id => storedServices[id]).find(Boolean)
+                  ?? Object.values(storedServices).find(s => s?.name && normalizeSvcName(s.name) === normCat);
                 // serviceData がなくても CATALOG のアイコンがあればクリック可能にする
                 const displayIcon = serviceData?.icon || svc.icon || '';
                 const clickable = unlocked && (!!serviceData || !!displayIcon);

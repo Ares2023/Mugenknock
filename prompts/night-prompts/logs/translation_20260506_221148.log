@@ -1,0 +1,27 @@
+==========================================
+英訳チェック開始: Wed May  6 22:11:48 JST 2026
+バッチサイズ: 30件 / チャンクサイズ: 5件
+==========================================
+
+▶ Questions テーブルを処理中...
+  チェック対象: 30問
+  チャンク数: 6
+  チャンク 1: 5件  開始=22:12:08
+    [TRANSLATED] clf-33ac7327
+    [TRANSLATED] clf-326d11ef
+    [TRANSLATED] clf-051f96c2
+    [TRANSLATED] sap-d38a87fb
+    [TRANSLATED] clf-50d74f11
+  終了=22:14:31  経過=143秒
+  チャンク 2: 5件  開始=22:14:31
+    [TRANSLATED] dop-c9c2cee1
+    [FIXED     ] sap-q-023
+    [FIXED     ] dop-q-072
+    [TRANSLATED] dop-b57513de
+    [OK        ] sap-q-010
+  終了=22:17:16  経過=165秒
+  チャンク 3: 5件  開始=22:17:16
+  ⚠️  レート制限を検出。Questionsの残りチャンクをスキップ
+
+  Questions 完了: OK=1 / 修正=2 / 新規翻訳=7
+  レート制限/終了時刻によりTips/Releasesをスキップ

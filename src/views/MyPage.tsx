@@ -1,8 +1,8 @@
 'use client';
-import React, { useEffect, useState, useCallback } from 'react';
+import React, { useEffect, useState, useCallback, useRef } from 'react';
 import { Helmet } from '@/compat/react-helmet-async';
 import { useNavigate } from '@/compat/react-router-dom';
-import { API_ENDPOINT, EXAM_DOMAINS, EXAM_TYPES, DOMAIN_NAME_EN, EXAM_CONFIGS, DOMAIN_RATE_WARNING, DOMAIN_RATE_CAUTION, PASS_SCORES } from '../constants';
+import { API_ENDPOINT, EXAM_DOMAINS, EXAM_TYPES, DOMAIN_NAME_EN, EXAM_CONFIGS, DOMAIN_RATE_WARNING, DOMAIN_RATE_CAUTION, PASS_SCORES, EXAM_LEVEL, EXAM_LEVEL_COLORS } from '../constants';
 import { syncPreferencesToServer, collectExamDatesFromLocal } from '../utils/preferences';
 import { useAuth } from '../contexts/AuthContext';
 import { useLanguage } from '../contexts/LanguageContext';
@@ -11,8 +11,8 @@ import Button from '../components/ui/Button';
 import {
   IconCalendarNotebook, IconTarget, IconAnnoyed, IconList,
   IconSparkles, IconChevronRight, IconChevronDown, IconLock, IconFlag, IconStar, IconTrendingUp, IconPenLine,
-  IconBook, IconBookOpenCheck,
-  IconSprout, IconBox, IconBot, IconCode2, IconCloud, IconDatabase, IconBrain, IconNetwork, IconFileCodeCorner, IconShieldIcon, IconWaypoints,
+  IconBook, IconBookOpenCheck, IconCircleCheck,
+  IconSprout, IconBox, IconBot, IconCode2, IconCloud, IconDatabase, IconBrain, IconVectorSquare, IconFileCodeCorner, IconAtom, IconShieldIcon, IconWaypoints,
 } from '../components/Icons';
 
 const EXAM_ICON_COMPONENTS: Record<string, React.FC<{ size?: number }>> = {
@@ -23,9 +23,9 @@ const EXAM_ICON_COMPONENTS: Record<string, React.FC<{ size?: number }>> = {
   SOA: IconCloud,
   DEA: IconDatabase,
   MLA: IconBrain,
-  SAP: IconNetwork,
+  SAP: IconVectorSquare,
   DOP: IconFileCodeCorner,
-  GAI: IconSparkles,
+  AIP: IconAtom,
   SCS: IconShieldIcon,
   ANS: IconWaypoints,
 };
@@ -40,7 +40,7 @@ const EXAM_CATCHCOPY: Record<string, string> = {
   MLA: 'AIモデルを育てる！機械学習エンジニアへの道！',
   SAP: 'AWS設計の最高峰！アーキテクト最難関！',
   DOP: '自動化を極めろ！DevOpsマスターへの挑戦！',
-  GAI: '生成AIを実装せよ！AI開発の最前線！',
+  AIP: '生成AIを実装せよ！AI開発の最前線！',
   SCS: '守れる者だけが任される！セキュリティの番人！',
   ANS: 'ネットワークの深淵へ。AWS屈指の難関資格！',
 };
@@ -55,7 +55,7 @@ const EXAM_URLS: Record<string, string> = {
   DEA: 'https://aws.amazon.com/jp/certification/certified-data-engineer-associate/',
   AIF: 'https://aws.amazon.com/jp/certification/certified-ai-practitioner/',
   MLA: 'https://aws.amazon.com/jp/certification/certified-machine-learning-engineer-associate/',
-  GAI: 'https://aws.amazon.com/jp/certification/certified-generative-ai-developer-professional/',
+  AIP: 'https://aws.amazon.com/jp/certification/certified-generative-ai-developer-professional/',
   ANS: 'https://aws.amazon.com/jp/certification/certified-advanced-networking-specialty/',
   SCS: 'https://aws.amazon.com/jp/certification/certified-security-specialty/',
 };
@@ -70,7 +70,7 @@ const EXAM_DESC: Record<string, string> = {
   DEA: 'データ収集・変換・保管・パイプライン設計などデータエンジニアリング全般を問う。Glue・Kinesis・Redshiftが頻出。',
   AIF: 'AIと機械学習の基礎・AWSのAI/MLサービスの活用知識を問う入門レベルの試験。Bedrock・SageMaker・Rekognitionが中心。',
   MLA: 'モデル開発・デプロイ・スケーリング・MLパイプライン構築の実践スキルを問う。SageMakerの深い理解が必要。',
-  GAI: '生成AIアプリの設計・実装・最適化に特化した新資格。Amazon Bedrockを中心に、プロンプトエンジニアリングやRAGが頻出。',
+  AIP: '生成AIアプリの設計・実装・最適化に特化した新資格。Amazon Bedrockを中心に、プロンプトエンジニアリングやRAGが頻出。',
   ANS: 'ハイブリッドクラウド・DNS・負荷分散・ネットワーク設計の高度な知識を問うSpecialty。Transit Gateway・Direct Connectが中心。',
   SCS: 'セキュリティ設計・実装・インシデント対応・コンプライアンスを問うSpecialty。IAM・KMS・GuardDutyの深い理解が必要。',
 };
@@ -137,17 +137,18 @@ export default function MyPage() {
   const [previewExam, setPreviewExam] = useState<string | null>(null);
   const [activeLevel, setActiveLevel] = useState<string>('Practitioner');
   const [passComments, setPassComments] = useState<Record<string, string>>({});
+  const examDetailScrollRef = useRef<HTMLDivElement>(null);
 
   const EXAM_LEVELS = [
     { key: 'Practitioner', color: '#6b9e3a', exams: ['CLF', 'AIF'] },
     { key: 'Associate',    color: '#006CE0', exams: ['SAA', 'DVA', 'SOA', 'DEA', 'MLA'] },
-    { key: 'Professional', color: '#8b5cf6', exams: ['SAP', 'DOP', 'GAI'] },
-    { key: 'Specialty',    color: '#e67e22', exams: ['ANS', 'SCS'] },
+    { key: 'Professional', color: '#8b5cf6', exams: ['SAP', 'DOP', 'AIP'] },
+    { key: 'Specialty',    color: '#0ea5e9', exams: ['ANS', 'SCS'] },
   ] as const;
   const EXAM_LEVEL_MAP: Record<string, string> = {
     CLF: 'Practitioner', AIF: 'Practitioner',
     SAA: 'Associate', DVA: 'Associate', SOA: 'Associate', DEA: 'Associate', MLA: 'Associate',
-    SAP: 'Professional', DOP: 'Professional', GAI: 'Professional',
+    SAP: 'Professional', DOP: 'Professional', AIP: 'Professional',
     ANS: 'Specialty', SCS: 'Specialty',
   };
 
@@ -219,6 +220,11 @@ export default function MyPage() {
       })
       .catch(() => {});
   }, [user?.userId]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // ── 資格切替時に詳細パネルのスクロールをリセット ──
+  useEffect(() => {
+    if (examDetailScrollRef.current) examDetailScrollRef.current.scrollTop = 0;
+  }, [previewExam]);
 
   // ── 合格コメント取得 ──
   useEffect(() => {
@@ -465,14 +471,15 @@ export default function MyPage() {
                 </div>
               </div>
               {targetExam ? (() => {
-                const full = EXAM_CONFIGS[targetExam]?.fullName ?? '';
+                const full = (EXAM_CONFIGS[targetExam]?.fullName ?? '').replace('AWS Certified ', '');
                 const dashIdx = full.indexOf(' – ');
                 const main = dashIdx >= 0 ? full.slice(0, dashIdx) : full;
                 const level = dashIdx >= 0 ? '– ' + full.slice(dashIdx + 3) : null;
+                const panelColor = EXAM_LEVEL_COLORS[EXAM_LEVEL[targetExam]] ?? 'var(--color-primary)';
                 return (
                   <div>
-                    <div style={{ fontWeight: 700, fontSize: 16, color: 'var(--color-primary)', lineHeight: 1.3 }}>{main}</div>
-                    {level && <div style={{ fontWeight: 700, fontSize: 16, color: 'var(--color-primary)', lineHeight: 1.3 }}>{level}</div>}
+                    <div style={{ fontWeight: 700, fontSize: 18, color: panelColor, lineHeight: 1.3 }}>{main}</div>
+                    {level && <div style={{ fontWeight: 700, fontSize: 18, color: panelColor, lineHeight: 1.3 }}>{level}</div>}
                   </div>
                 );
               })() : (
@@ -625,7 +632,7 @@ export default function MyPage() {
                   onTouchMove={e => e.stopPropagation()}
                 >
                   <div
-                    style={{ background: 'var(--color-bg-white)', borderRadius: 'var(--border-radius-lg)', width: '100%', maxWidth: 420, boxShadow: 'var(--box-shadow-md)', height: isMobile ? '75vh' : '60vh', display: 'flex', flexDirection: 'column', overflow: 'hidden', position: 'relative' }}
+                    style={{ background: 'var(--color-bg-white)', borderRadius: 'var(--border-radius-lg)', width: '100%', maxWidth: 420, boxShadow: 'var(--box-shadow-md)', height: isMobile ? '75vh' : '60vh', display: 'flex', flexDirection: 'column', overflow: 'hidden' }}
                     onClick={e => e.stopPropagation()}
                   >
                     {/* ヘッダー */}
@@ -673,7 +680,7 @@ export default function MyPage() {
                             onClick={() => setPreviewExam(isPreviewing ? null : exam)}
                             style={{
                               flexShrink: 0, width: 80, padding: '10px 6px 8px', cursor: 'pointer',
-                              borderRadius: 10, textAlign: 'center',
+                              borderRadius: 10, textAlign: 'center', position: 'relative',
                               border: `2px solid ${isPreviewing || isSelected ? levelColor : 'var(--color-border)'}`,
                               background: isPreviewing
                                 ? `linear-gradient(145deg, ${levelColor}, ${levelColor}bb)`
@@ -682,6 +689,11 @@ export default function MyPage() {
                                 : `linear-gradient(145deg, var(--color-bg-card), ${levelColor}18)`,
                             }}
                           >
+                            {isSelected && (
+                              <div style={{ position: 'absolute', top: 4, right: 4, color: isPreviewing ? '#fff' : levelColor, lineHeight: 0 }}>
+                                <IconCircleCheck size={14} />
+                              </div>
+                            )}
                             {ExamIcon && (
                               <div style={{ display: 'flex', justifyContent: 'center', marginBottom: 4, color: isPreviewing ? '#fff' : isSelected ? levelColor : 'var(--color-text-light)' }}>
                                 <ExamIcon size={18} />
@@ -694,12 +706,12 @@ export default function MyPage() {
                     </div>
 
                     {/* 詳細パネル（スクロール） */}
-                    <div style={{ flex: 1, overflowY: 'auto', borderTop: '1px solid var(--color-border)' }}>
+                    <div ref={examDetailScrollRef} style={{ flex: 1, overflowY: 'auto', borderTop: '1px solid var(--color-border)' }}>
                       {previewExam && (() => {
                         const exam = previewExam;
                         const cfg = EXAM_CONFIGS[exam];
                         return (
-                          <div style={{ padding: '16px 20px 16px' }}>
+                          <div style={{ padding: '16px 20px' }}>
                             <div style={{ marginBottom: 10 }}>
                               {EXAM_CATCHCOPY[exam] && (
                                 <div style={{ fontSize: 11, color: 'var(--color-text-light)', fontStyle: 'italic', marginBottom: 4 }}>{EXAM_CATCHCOPY[exam]}</div>
@@ -739,25 +751,30 @@ export default function MyPage() {
                       })()}
                     </div>
 
-                    {/* 設定ボタン（モーダル右下にフローティング） */}
+                    {/* フッター：メッセージ＋決定ボタン */}
                     {previewExam && (() => {
                       const exam = previewExam;
                       const isCurrentTarget = targetExam === exam;
                       return (
-                        <div style={{ position: 'absolute', bottom: 14, right: 16, zIndex: 10 }}>
+                        <div style={{ flexShrink: 0, borderTop: `2px solid ${levelColor}33`, background: `${levelColor}08`, padding: '10px 16px', display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: 12, minHeight: 64 }}>
+                          {/* メッセージ（右揃え・ボタン直左） */}
+                          {isCurrentTarget && (
+                            <div style={{ fontSize: 13, fontWeight: 700, color: 'var(--color-success)' }}>✓ {ja ? '学習中' : 'Studying'}</div>
+                          )}
+                          {/* 決定ボタン */}
                           {isCurrentTarget ? (
-                            <button disabled title={ja ? '設定中' : 'Current target'}
-                              style={{ width: 44, height: 44, borderRadius: '50%', border: 'none', background: levelColor, color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'default', boxShadow: '0 2px 8px rgba(0,0,0,0.2)' }}>
+                            <button disabled
+                              style={{ width: 44, height: 44, borderRadius: '50%', border: 'none', background: levelColor, color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'default', boxShadow: '0 2px 8px rgba(0,0,0,0.15)', flexShrink: 0 }}>
                               <IconBookOpenCheck size={22} />
                             </button>
                           ) : (
-                            <button title={ja ? 'この資格に設定' : 'Set as Target'}
+                            <button
                               onClick={() => {
                                 localStorage.setItem(`targetExam_${uid}`, exam);
                                 window.dispatchEvent(new CustomEvent('targetExamChanged', { detail: exam }));
                                 setTargetExam(exam);
                               }}
-                              style={{ width: 44, height: 44, borderRadius: '50%', border: '1px solid var(--color-border)', background: 'var(--color-bg-white)', color: 'var(--color-text-light)', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', boxShadow: '0 2px 8px rgba(0,0,0,0.1)' }}>
+                              style={{ width: 44, height: 44, borderRadius: '50%', border: `2px solid ${levelColor}`, background: 'var(--color-bg-white)', color: levelColor, display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', boxShadow: '0 2px 8px rgba(0,0,0,0.1)', flexShrink: 0 }}>
                               <IconBook size={22} />
                             </button>
                           )}

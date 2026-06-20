@@ -1,0 +1,62 @@
+=== 2026-06-01 04:03:42 | 02-check-validity.sh | exit:0 ===
+==========================================
+正当性チェック開始: Mon Jun  1 03:30:12 JST 2026
+バッチサイズ: 50問 / チャンクサイズ: 8問
+==========================================
+チェック対象: 50問
+チャンク数: 7
+
+--- チャンク 1/7: 8問  開始=03:30:39 ---
+  [FIX  ] scs-73883f4d: 不正解選択肢の解説が「選択肢Xは〜」で始まっており、「選択肢Xの[内容]は〜」形式になっていない → 変更: explanation
+  [OK   ] scs-82973cdb
+  [OK   ] scs-f643bd3f
+  [FIX  ] scs-89282a31: 選択肢Dの解説が「選択肢Dは〜」で始まっており「選択肢Dの[サービス名]は〜」形式になっていない → 変更: explanation
+  [OK   ] scs-80d31400
+  [OK   ] scs-96eb5e67
+  [OK   ] scs-7be7fe4c
+  [FIX  ] scs-fbd981d8: 解説の正解行に選択肢A全文が含まれており過度に長い。サービス名のみに短縮が必要 → 変更: explanation
+  → 更新完了: OK=5 修正=3 削除=0
+  終了=03:37:44  経過=425秒
+
+--- チャンク 2/7: 8問  開始=03:37:44 ---
+  [OK   ] scs-8aa08e10
+  [OK   ] scs-e1083848
+  [OK   ] scs-3b5bd60b
+  [FIX  ] scs-c9a0afd6: 選択肢Aの説明が「選択肢AはIAMアクセスキー…」と非準拠（「選択肢Aの[サービス名]は」形式が必要）。 → 変更: explanation
+  [FIX  ] sap-57459f5f: 選択肢A・Cの説明が「選択肢Xは…」と非準拠、選択肢Dの説明が不十分。 → 変更: explanation
+  [FIX  ] sap-b5427276: 選択肢A・C・Dの説明に「選択肢Xの 」と余分なスペースがある。 → 変更: explanation
+  [FIX  ] sap-15b58246: 選択肢C・D・Eの説明に余分なスペースおよび書き出し形式の非準拠。isMultipleがtrueである必要がある（2答問題）。 → 変更: explanation
+  [FIX  ] dop-527a2258: 選択肢A・C・Dの説明に「選択肢Xの 」と余分なスペースがある。 → 変更: explanation
+  → 更新完了: OK=3 修正=5 削除=0
+  終了=03:54:48  経過=1024秒
+
+--- チャンク 3/7: 8問  開始=03:54:48 ---
+⚠️  チャンク 3 でエラー（exit 1）。このチャンクをスキップして続行
+stderr: 
+stdout: You've hit your session limit · resets 8:30am (Asia/Tokyo)
+
+--- チャンク 4/7: 8問  開始=04:03:34 ---
+⚠️  チャンク 4 でエラー（exit 1）。このチャンクをスキップして続行
+stderr: 
+stdout: You've hit your session limit · resets 8:30am (Asia/Tokyo)
+
+--- チャンク 5/7: 8問  開始=04:03:36 ---
+⚠️  チャンク 5 でエラー（exit 1）。このチャンクをスキップして続行
+stderr: 
+stdout: You've hit your session limit · resets 8:30am (Asia/Tokyo)
+
+--- チャンク 6/7: 8問  開始=04:03:38 ---
+⚠️  チャンク 6 でエラー（exit 1）。このチャンクをスキップして続行
+stderr: 
+stdout: You've hit your session limit · resets 8:30am (Asia/Tokyo)
+
+--- チャンク 7/7: 2問  開始=04:03:40 ---
+⚠️  チャンク 7 でエラー（exit 1）。このチャンクをスキップして続行
+stderr: 
+stdout: You've hit your session limit · resets 8:30am (Asia/Tokyo)
+
+完了サマリー: 問題なし=8問 / 自動修正=8問 / 削除=0問
+
+==========================================
+チェック終了: Mon Jun  1 04:03:42 JST 2026
+==========================================

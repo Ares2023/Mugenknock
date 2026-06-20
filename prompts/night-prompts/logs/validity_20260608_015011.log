@@ -1,0 +1,48 @@
+==========================================
+正当性チェック開始: Mon Jun  8 01:50:11 JST 2026
+バッチサイズ: 100問 / チャンクサイズ: 5問
+==========================================
+チェック対象: 100問
+前処理: choices ラベル接頭辞チェック...
+  前処理: ラベル接頭辞なし（全問クリーン）
+チャンク数: 20
+
+--- チャンク 1/20: 5問  開始=01:50:39 ---
+  [FIX  ] ociaa-1dd79f75: tags未設定、choiceExplanations未設定、解説にHTMLタグ・「正解:a),d)」接頭辞あり、選択肢ごとの改行説明なし → 変更: explanation, choiceExplanations, tags
+  [FIX  ] ociaa-b703c774: 問題文に「32.」番号が含まれている、tags未設定、choiceExplanations未設定、解説に「正解:c)」接頭辞あり・選択肢ごとの改行説明なし → 変更: questionText, explanation, choiceExplanations, tags
+  [FIX  ] ociaa-163b06c9: 問題文の条件が改行されていない、tags未設定、choiceExplanations未設定、解説にHTMLタグ・「正解:b)」接頭辞あり・選択肢ごとの改行説明なし → 変更: questionText, explanation, choiceExplanations, tags
+  [FIX  ] ociaa-d69c1de0: 問題文に「35.」番号・「*」書式が含まれ改行不足、tags未設定、choiceExplanations未設定、解説にHTMLタグ・「正解:」接頭辞あり・選択肢ごとの改行説明なし → 変更: questionText, explanation, choiceExplanations, tags
+  [FIX  ] ociaa-31c0d4d9: 問題文に「70.」番号が含まれている、tags未設定、choiceExplanations未設定、解説に「正解:a),c)」接頭辞・HTMLタグあり・選択肢ごとの改行説明なし → 変更: questionText, explanation, choiceExplanations, tags
+  → 更新完了: OK=0 修正=5 削除=0
+  終了=01:57:56  経過=437秒
+
+--- チャンク 2/20: 5問  開始=01:57:56 ---
+  [FIX  ] ociaa-32bf030a: choiceExplanations未生成、タグ未設定、isMultiple未設定、正解選択肢の平均文字数が不正解より約15字短く正解が推測されやすいため選択肢C・Dを加筆して均等化 → 変更: choices, correctAnswers, explanation, choiceExplanations, tags
+  [FIX  ] ociaa-68dd2247: 問題文に問題番号「17.」が混入、解説のグループ名「All-domain-users」が選択肢「All domain users」と表記不一致、choiceExplanations未生成、タグ未設定、isMultiple未設定 → 変更: questionText, explanation, choiceExplanations, tags
+  [FIX  ] ociaa-c2f07710: 問題文に問題番号「1.」が混入、正解選択肢が不正解の平均より約14字長く正解が推測されやすいため不正解選択肢を加筆して均等化、choiceExplanations未生成、タグ未設定、isMultiple未設定 → 変更: questionText, choices, explanation, choiceExplanations, tags
+  [FIX  ] ociaa-0468b0c7: 問題文の手順が全角スペース区切りで改行されておらず読みにくい、qcow2の略語説明がない、choiceExplanations未生成、タグ未設定、isMultiple未設定 → 変更: questionText, explanation, choiceExplanations, tags
+  [FIX  ] ociaa-b47bc369: 問題文に問題番号「65.」が混入、解説でVNICの略語説明がない、choiceExplanations未生成、タグ未設定、isMultiple未設定 → 変更: questionText, explanation, choiceExplanations, tags
+  → 更新完了: OK=0 修正=5 削除=0
+  終了=02:08:04  経過=608秒
+
+--- チャンク 3/20: 5問  開始=02:08:04 ---
+  [FIX  ] ociaa-51adaffa: 問題文に問題番号「10.」が混入。解説に「正解:b),c),d)<br>」の不要なプレフィックスあり。choiceExplanations未設定。タグ未設定。isMultipleをtrueに設定。 → 変更: questionText, explanation, choiceExplanations, tags
+  [FIX  ] ociaa-b2fd22aa: 問題文の助詞欠落（「4つパフォーマンス」→「4つのパフォーマンスレベル」）。解説にHTMLタグと「正解:a)<br>」プレフィックスあり。choiceExplanations未設定。タグ未設定。isMultipleをfalseに設定。 → 変更: questionText, explanation, choiceExplanations, tags
+  [FIX  ] ociaa-2eb1f522: 問題文に問題番号「79.」が混入。解説が50字程度で短すぎる。choiceExplanations未設定。タグ未設定。isMultipleをtrueに設定。 → 変更: questionText, explanation, choiceExplanations, tags
+  [FIX  ] ociaa-69431405: 問題文に問題番号「29.」が混入し、条件パラメータが改行なく一行に並んでいる。解説に「正解:a),d)<br>」プレフィックスあり。choiceExplanations未設定。タグ未設定。isMultipleをtrueに設定。 → 変更: questionText, explanation, choiceExplanations, tags
+  [FIX  ] ociaa-df7a31bc: 問題文に問題番号「13.」が混入。解説が50字程度で短すぎる。choiceExplanations未設定。タグ未設定。isMultipleをtrueに設定。 → 変更: questionText, explanation, choiceExplanations, tags
+  → 更新完了: OK=0 修正=5 削除=0
+  終了=02:14:55  経過=411秒
+
+--- チャンク 4/20: 5問  開始=02:14:55 ---
+  [FIX  ] ociaa-8cd075fb: 問題文に番号プレフィックス「50.」が混入、解説が47字と短すぎる、choiceExplanations未設定、ドメインタグ未設定 → 変更: questionText, explanation, choiceExplanations, tags
+  [FIX  ] ociaa-a5118110: 解説に「正解: d)」の表記が含まれている、choiceExplanations未設定、ドメインタグ未設定 → 変更: explanation, choiceExplanations, tags
+  [FIX  ] ociaa-f9df4211: 問題文に番号プレフィックス「16.」が混入、解説が77字と短すぎる、choiceExplanations未設定、ドメインタグ未設定 → 変更: questionText, explanation, choiceExplanations, tags
+  [FIX  ] ociaa-4917b3a5: 解説に「正解: c)」の表記が含まれている、choiceExplanations未設定、ドメインタグ未設定 → 変更: explanation, choiceExplanations, tags
+  [FIX  ] ociaa-d4794672: 解説に「正解: a), b), c)」の表記が含まれている、choiceExplanations未設定、ドメインタグ未設定 → 変更: explanation, choiceExplanations, tags
+  → 更新完了: OK=0 修正=5 削除=0
+  終了=02:20:19  経過=324秒
+
+⏰ 終了時刻 02:20 を過ぎたため、残りチャンクをスキップ（成果はDB反映済み）
+
+完了サマリー: 問題なし=0問 / 自動修正=20問 / 削除=0問

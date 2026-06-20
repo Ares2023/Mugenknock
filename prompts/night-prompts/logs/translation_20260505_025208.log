@@ -1,0 +1,82 @@
+==========================================
+英訳チェック開始: Tue May  5 02:52:08 JST 2026
+バッチサイズ: 30件 / チャンクサイズ: 5件
+==========================================
+
+▶ Questions テーブルを処理中...
+  チェック対象: 30問
+/home/yuzuki/aws-quiz-app/prompts/night-prompts/scripts/check-translation.sh: line 99: /usr/bin/python3: Argument list too long
+  チャンク数: 
+
+  Questions 完了: OK=0 / 修正=0 / 新規翻訳=0
+
+▶ Tips テーブルを処理中...
+  チェック対象: 30件
+  チャンク数: 6
+  チャンク 1: 5件  開始=02:52:40
+    [TRANSLATED] 3773b60c-b156-4799-b088-8c62a67e9cc1
+    [TRANSLATED] ef3c7834-30a7-4bbd-ad13-2136f20758dd
+    [TRANSLATED] 90b726b5-4c93-4bdf-997a-1b7b6ab0d816
+    [TRANSLATED] fad548fc-079e-4dea-ad62-4ac9a371f7db
+    [TRANSLATED] f5ac2671-fe4f-4d48-bfab-d01adec157f4
+  終了=02:54:23  経過=103秒
+  チャンク 2: 5件  開始=02:54:23
+    [TRANSLATED] e182c221-3739-42ed-8b3d-1773e4d7968e
+    [TRANSLATED] db51b468-75ae-4270-87a9-aa76e82bf6a5
+    [TRANSLATED] d48f1af7-3509-4e58-a578-1a1928e6c0f5
+    [TRANSLATED] 5d953dd4-9cce-4d72-bff5-84ec2f1a2d90
+    [TRANSLATED] 58782dd9-9ad7-4e7d-8d15-a72eda00bfc7
+  終了=02:55:59  経過=96秒
+  チャンク 3: 5件  開始=02:55:59
+    [TRANSLATED] 53d21080-eb8e-4e92-a505-fb15bcb2e2ec
+    [TRANSLATED] bf7c9b72-914e-4296-a0ca-b3afedfbbbee
+    [TRANSLATED] 9c5d05e4-68fa-4aa5-b6ff-655568f98527
+    [TRANSLATED] 72437ba8-b858-4492-91ce-ceb0694fc181
+    [TRANSLATED] ce480295-07da-4e0d-b2d9-16aa1582ac1f
+  終了=02:57:45  経過=106秒
+  チャンク 4: 5件  開始=02:57:45
+    [TRANSLATED] 7d3ddbdb-9197-47db-8d2b-6185c73dc7b2
+    [TRANSLATED] 959315ef-024d-4203-8ff1-6d313d3a7190
+    [TRANSLATED] a6f8030b-1c47-4f4e-b7a0-380f29620856
+    [TRANSLATED] 0242d341-9465-4ee9-8c30-e54851486355
+    [TRANSLATED] 3f926ca4-0123-46d6-8326-e1155102b62f
+  終了=02:59:26  経過=101秒
+  チャンク 5: 5件  開始=02:59:26
+    [TRANSLATED] 7d2aa344-ec95-4e68-a76e-5a97825393f2
+    [TRANSLATED] b54d0025-25b9-46f5-96fb-4db6293ec540
+    [TRANSLATED] b62d27f4-26bf-4f60-9ed5-6d4c25ce2d42
+    [TRANSLATED] 648f006c-f2a3-4a3e-bad8-727f16b19277
+    [TRANSLATED] 43d87a36-5cd5-48f4-a1e4-73fe75695154
+  終了=03:01:07  経過=101秒
+  チャンク 6: 5件  開始=03:01:07
+    [TRANSLATED] 22b8faa7-2bad-4acf-a249-a9f63198715f
+    [TRANSLATED] 9f5b2208-3e5f-4143-b3f4-5a3e9f2ca2bf
+    [TRANSLATED] 2279fa98-dde1-4176-8707-ced036b52c7b
+    [TRANSLATED] 77a9fecf-e2cf-427a-a94d-a355f6356a96
+    [TRANSLATED] a9985c51-ffd5-4750-94b8-ffd980e1ce29
+  終了=03:02:44  経過=97秒
+
+  Tips 完了: 30件更新
+
+▶ Releases テーブルを処理中...
+  チェック対象: 9件
+  チャンク数: 2
+  チャンク 1: 5件  開始=03:03:00
+    [TRANSLATED] 1b896688-27ee-406e-89d4-54bb0fc8711a
+    [TRANSLATED] 654ed42c-f4de-45de-bc82-f5c4e5bb3cd9
+    [TRANSLATED] 3a862fc8-12bd-44a0-98aa-444f50e9fcd8
+    [TRANSLATED] f71142c0-5666-41eb-93a7-5dfe7f3660a9
+    [TRANSLATED] 8b98b943-0a01-4224-91d8-68cc97827502
+  終了=03:04:43  経過=103秒
+  チャンク 2: 4件  開始=03:04:43
+    [TRANSLATED] 3e609e9d-1369-4b37-8305-6c9e9f0bb055
+    [TRANSLATED] 0b18c9a7-6dc1-4c00-9541-9a77cea73747
+    [TRANSLATED] 90d02f24-3211-4f24-b224-8154394d4f93
+    [TRANSLATED] fa0c698a-5fc0-4f3f-ba57-955c91ade774
+  終了=03:06:09  経過=86秒
+
+  Releases 完了: 9件更新
+
+==========================================
+英訳チェック終了: Tue May  5 03:06:09 JST 2026
+==========================================

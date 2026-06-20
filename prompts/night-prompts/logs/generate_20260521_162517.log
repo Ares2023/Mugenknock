@@ -1,0 +1,25 @@
+==========================================
+問題自動生成 開始: Thu May 21 16:25:17 JST 2026
+==========================================
+対象資格: CLF SAA SAP DVA SOA DOP AIF MLA GAI
+指定資格: DOP
+対象ドメイン: インシデントとイベントへの対応  /  20問
+
+--- Cognito 認証中 ---
+✓ 認証完了
+
+--- ドメイン別問題数を取得・割り当て計算中 ---
+  インシデントとイベントへの対応: 21問
+  モニタリングとロギング: 51問
+  セキュリティとコンプライアンス: 53問
+  弾力性に優れたクラウドソリューション: 55問
+  SDLC の自動化: 62問
+  構成管理と Infrastructure as Code (IaC): 64問
+
+--- [インシデントとイベントへの対応] 20問 生成中 --- 開始=16:25:53
+⚠️  レート制限を検出。残りドメインをスキップ
+出力: API Error: Claude's response exceeded the 32000 output token maximum. To configure this behavior, set the CLAUDE_CODE_MAX_OUTPUT_TOKENS environment variable.
+  🔒 レート制限ロックファイル記録: 2026-05-21 23:03 JST
+  終了=17:03:29  経過=2256秒
+
+合計インポート: 0問 / 20問

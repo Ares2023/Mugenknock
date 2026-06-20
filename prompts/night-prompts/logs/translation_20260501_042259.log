@@ -1,0 +1,74 @@
+==========================================
+英訳チェック開始: Fri May  1 04:22:59 JST 2026
+バッチサイズ: 30件 / チャンクサイズ: 5件
+==========================================
+
+▶ Questions テーブルを処理中...
+  チェック対象: 30問
+/home/yuzuki/aws-quiz-app/prompts/night-prompts/scripts/check-translation.sh: line 78: /usr/bin/python3: Argument list too long
+  チャンク数: 
+
+  Questions 完了: OK=0 / 修正=0 / 新規翻訳=0
+
+▶ Tips テーブルを処理中...
+  チェック対象: 30件
+  チャンク数: 6
+  チャンク 1: 5件
+    [TRANSLATED] 89171f3a-600a-4e3a-81fe-680d4d3c1a16
+    [TRANSLATED] 21deb9d1-5245-4c4f-acdb-aceed51b69df
+    [TRANSLATED] 24d8a2e4-4f1a-40a3-9dee-629163febb20
+    [TRANSLATED] a39b211a-0f35-42ca-ab20-c0d10bb63874
+    [TRANSLATED] f02e163c-a81c-46d9-99af-9ad91224c10a
+  チャンク 2: 5件
+    [TRANSLATED] 745132cf-fcd8-4528-af11-01d61fbdb54d
+    [TRANSLATED] c38752e0-a444-4171-a994-f80c0cd9381f
+    [TRANSLATED] 86e0fca6-f272-40c4-9845-5356b5f67300
+    [TRANSLATED] e532238b-64bb-481c-acff-2e80301594d0
+    [TRANSLATED] a3971fd8-ed00-4aae-b5e7-6fd0f08cbcce
+  チャンク 3: 5件
+    [TRANSLATED] 380971e1-06e8-40db-8bb6-3605bb539002
+    [TRANSLATED] 2c1acbe3-8cb7-4964-98b0-05dce96dda7a
+    [TRANSLATED] b27fe3f4-0d89-4411-8b28-872310870ddc
+    [TRANSLATED] d44edd7b-11d3-471b-b8fa-2a7cebbd1bd2
+    [TRANSLATED] 9ade1c46-f4dd-4942-a7e8-001f90269a22
+  チャンク 4: 5件
+    [TRANSLATED] 08aca284-0d48-4833-959d-2a75e8b5209b
+    [TRANSLATED] 7db90ede-079d-4155-829b-79601208e000
+    [TRANSLATED] 8b74d197-cc3a-4f22-9b61-4350c5e3fb0b
+    [TRANSLATED] 9990eb1f-8ea3-4628-a31b-16ec91a2fdb3
+    [TRANSLATED] 06868110-c303-4937-b9c1-b0e83b0b4c61
+  チャンク 5: 5件
+    [TRANSLATED] 1dc488a9-8fed-4152-954c-083fdaf9af39
+    [TRANSLATED] d22c474a-e62d-4e01-ad16-48e0fab40a68
+    [TRANSLATED] 98b2eb49-22cc-40c0-98c9-7aae4f9ce025
+    [TRANSLATED] 838c1b7a-1cbc-41c0-9a5f-49b5144a3914
+    [TRANSLATED] 00787fe4-833d-47d6-b7f4-b7fdf8ac7490
+  チャンク 6: 5件
+    [TRANSLATED] b591140e-71e7-460a-9908-7f5b8a8d07f8
+    [TRANSLATED] 49ba5e11-b11b-43b5-8b2c-dc3879866849
+    [TRANSLATED] ce72e772-f4fd-4ebd-8834-99b4173c0060
+    [TRANSLATED] 9b9dca6e-a856-4d79-9221-bea6517322bb
+    [TRANSLATED] 83e79919-c59e-4a9f-bee4-ef1f0adf2eee
+
+  Tips 完了: 30件更新
+
+▶ Releases テーブルを処理中...
+  チェック対象: 9件
+  チャンク数: 2
+  チャンク 1: 5件
+    [TRANSLATED] 3a862fc8-12bd-44a0-98aa-444f50e9fcd8
+    [TRANSLATED] f71142c0-5666-41eb-93a7-5dfe7f3660a9
+    [TRANSLATED] 8b98b943-0a01-4224-91d8-68cc97827502
+    [TRANSLATED] 1b896688-27ee-406e-89d4-54bb0fc8711a
+    [TRANSLATED] 654ed42c-f4de-45de-bc82-f5c4e5bb3cd9
+  チャンク 2: 4件
+    [TRANSLATED] 3e609e9d-1369-4b37-8305-6c9e9f0bb055
+    [TRANSLATED] 0b18c9a7-6dc1-4c00-9541-9a77cea73747
+    [TRANSLATED] 90d02f24-3211-4f24-b224-8154394d4f93
+    [TRANSLATED] fa0c698a-5fc0-4f3f-ba57-955c91ade774
+
+  Releases 完了: 9件更新
+
+==========================================
+英訳チェック終了: Fri May  1 04:36:23 JST 2026
+==========================================

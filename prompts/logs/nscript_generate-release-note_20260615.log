@@ -1,0 +1,11 @@
+=== 2026-06-15 03:38:26 | generate-release-note.sh | exit:0 ===
+[release-note] 対象日: 2026-06-14
+[release-note] 2026-06-14: 7件のコミット
+[release-note] 生成結果:
+{
+  "title": "サイトがさらに速く、快適になりました！",
+  "body": "サイト全体を最新技術（Next.js 15 + Cloudflare Pages）に移行し、ページの読み込みがより速くなりました！\n裏側の大型アップデートなので見た目は変わりませんが、これからの新機能追加もスムーズになります。",
+  "titleEn": "Faster & More Reliable Experience!",
+  "bodyEn": "We've migrated the entire site to Next.js 15 and Cloudflare Pages for faster load times and improved stability.\nThis behind-the-scenes upgrade sets the foundation for exciting new features ahead!"
+}
+[release-note] ✓ DynamoDBに挿入しました: 2026-06-14 — サイトがさらに速く、快適になりました！

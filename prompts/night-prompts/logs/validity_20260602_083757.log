@@ -1,0 +1,50 @@
+==========================================
+正当性チェック開始: Tue Jun  2 08:37:57 JST 2026
+バッチサイズ: 30問 / チャンクサイズ: 5問
+==========================================
+チェック対象: 30問
+チャンク数: 6
+
+--- チャンク 1/6: 5問  開始=08:38:25 ---
+  [FIX  ] sap-q-012: 解説に選択肢Bのラベルが欠けている。choiceExplanationsが未生成のため修正・追加。 → 変更: explanation, choiceExplanations
+  [FIX  ] saa-c998996e: 解説内で選択肢AとCの説明ラベルが入れ替わっている誤りがある。choiceExplanationsも未生成のため修正・追加。 → 変更: explanation, choiceExplanations
+  [FIX  ] saa-be91389d: 解説に正解の選択肢Aに対するラベルが欠けている。choiceExplanationsが未生成のため追加。 → 変更: explanation, choiceExplanations
+  [FIX  ] saa-10fea5a7: 解説に選択肢BとCの説明がなく選択肢ごとのラベル形式での記述がない。choiceExplanationsも未生成のため修正・追加。 → 変更: explanation, choiceExplanations
+  [FIX  ] saa-ab6c7344: 解説が選択肢ごとのラベル形式で記述されておらず、choiceExplanationsも未生成のため修正・追加。 → 変更: explanation, choiceExplanations
+  → 更新完了: OK=0 修正=5 削除=0
+  終了=08:53:53  経過=928秒
+
+--- チャンク 2/6: 5問  開始=08:53:53 ---
+  [FIX  ] saa-aa211a83: questionTextに条件の改行なし、choiceExplanations未生成 → 変更: questionText, choiceExplanations
+  [FIX  ] saa-e1de781e: questionTextに改行なし、choiceExplanations未生成 → 変更: questionText, choiceExplanations
+  [FIX  ] saa-f5c62281: questionTextに改行なし、choiceExplanations未生成 → 変更: questionText, choiceExplanations
+  [FIX  ] saa-1e414ba6: questionTextの列挙条件に改行なし、choiceExplanations未生成 → 変更: questionText, choiceExplanations
+  [FIX  ] saa-6e67fadd: 選択肢とcorrectAnswersにA/B/C/D記号接頭辞あり、questionTextに改行なし、choiceExplanations未生成 → 変更: questionText, choices, correctAnswers, explanation, choiceExplanations
+  → 更新完了: OK=0 修正=5 削除=0
+  終了=09:03:30  経過=577秒
+
+--- チャンク 3/6: 5問  開始=09:03:30 ---
+⚠️  チャンク 3 でエラー（exit 1）。このチャンクをスキップして続行
+stderr: 
+stdout: You've hit your session limit · resets 9:30am (Asia/Tokyo)
+
+--- チャンク 4/6: 5問  開始=09:03:33 ---
+⚠️  チャンク 4 でエラー（exit 1）。このチャンクをスキップして続行
+stderr: 
+stdout: You've hit your session limit · resets 9:30am (Asia/Tokyo)
+
+--- チャンク 5/6: 5問  開始=09:03:37 ---
+⚠️  チャンク 5 でエラー（exit 1）。このチャンクをスキップして続行
+stderr: 
+stdout: You've hit your session limit · resets 9:30am (Asia/Tokyo)
+
+--- チャンク 6/6: 5問  開始=09:03:41 ---
+⚠️  チャンク 6 でエラー（exit 1）。このチャンクをスキップして続行
+stderr: 
+stdout: You've hit your session limit · resets 9:30am (Asia/Tokyo)
+
+完了サマリー: 問題なし=0問 / 自動修正=10問 / 削除=0問
+
+==========================================
+チェック終了: Tue Jun  2 09:03:44 JST 2026
+==========================================

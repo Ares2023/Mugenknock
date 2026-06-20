@@ -1,0 +1,6 @@
+=== 2026-06-19 02:24:33 | generate-release-note.sh | exit:0 ===
+[release-note] 対象日: 2026-06-18
+[release-note] 2026-06-18: 23件のコミット
+[release-note] 生成結果:
+{"title": "アカウントリセット＆消去法マークで、学習をもっと自由に！","body": "アカウント管理画面からスコア履歴を丸ごとリセットできるようになりました！\nまた、選択肢をタップして取り消し線を引く消去法サポートも追加し、試験対策がより本格的に。","titleEn": "Account Reset & Elimination Mode Are Here!","bodyEn": "You can now wipe your score history clean from the account screen for a fresh start!\nPlus, tap any answer choice to strike it through — perfect for narrowing down answers the way you would on a real exam."}
+[release-note] ✓ DynamoDBに挿入しました: 2026-06-18 — アカウントリセット＆消去法マークで、学習をもっと自由に！

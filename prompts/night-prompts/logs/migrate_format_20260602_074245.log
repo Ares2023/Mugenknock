@@ -1,0 +1,71 @@
+========================================
+問題フォーマット移行 開始: Tue Jun  2 07:42:45 JST 2026
+========================================
+
+DynamoDB Questions テーブルをスキャン中...
+  ページ 1: 2531件取得（累計 2531件）
+  合計: 2531件
+
+━━ Phase 1: choices 文字配列修正 ━━
+文字配列破損: 8件
+  dop-42a7af4f (DOP): 483文字 → 5選択肢
+    - 本番アカウントにIAMロールを作成し、DevOpsアカウントのCodePipelineサービスロールARNをプリンシパル
+    - DevOpsアカウントのS3アーティファクトバケットにKMSカスタマーマネージドキー（CMK）による暗号化を設定し、本番
+    - AWS OrganizationsのSCP（サービスコントロールポリシー）で、DevOpsアカウントから本番アカウントへ
+    - S3アーティファクトバケットにCORS（クロスオリジンリソース共有）設定を追加し、本番アカウントのオリジンからのGET/
+    - AWS Transit Gatewayを設定してDevOpsアカウントVPCと本番アカウントVPC間のプライベートネット
+  dop-4fc2a41f (DOP): 374文字 → 4選択肢
+    - Service Control Policies（SCP）を使用してiam:CreateRoleアクションをOrgani
+    - IAM権限境界（Permission Boundary）を開発者IAMユーザーに設定し、iam:CreateRoleを許
+    - AWS Configのカスタムルールを使用して過剰権限を持つIAMロールを事後検出し、EventBridgeとLambd
+    - IAM Access Analyzerを有効化して外部エンティティへのアクセスを許可するIAMロールをリアルタイムで検出
+  dop-5e5e1adb (DOP): 417文字 → 4選択肢
+    - AWS IAM Identity Center（旧AWS SSO）でABAC機能を有効化し、IdP（IDプロバイダー）の
+    - プロジェクトごとにIAMグループを作成し、対象リソースのタグをConditionで照合するポリシーをアタッチする。新プロ
+    - AWS Configルールで全リソースのProjectタグ付与を強制し、タグ未付与リソースへのアクセスをSCPでアカウン
+    - API Gatewayカスタムオーソライザー（Lambda関数）でリクエストヘッダーのプロジェクト属性とリソースタグを照
+  dop-109cce5c (DOP): 444文字 → 5選択肢
+    - 管理アカウントでSystems Manager ExplorerをOrganizationsの委任管理者として有効化し、
+    - 各メンバーアカウントのCloudWatchとSSM OpsCenterの統合を有効化し、アラームが発火した際にOpsIt
+    - EventBridgeクロスアカウントイベントバスを使用して、メンバーアカウントからのCloudWatchアラームイベン
+    - SSM Distributor（ソフトウェアパッケージ配布サービス）を使用して、OpsItem自動作成エージェントを全イ
+    - AWS ConfigアグリゲーターでメンバーアカウントのCloudWatchアラーム状態を収集し、コンプライアンス違反を
+  saa-26e69a92 (SAA): 240文字 → 4選択肢
+    - DynamoDB のキャパシティモードをオンデマンドに変更する
+    - DynamoDB の WCU（書き込みキャパシティユニット）を 1500 に固定し、Auto Scaling の最小値・
+    - Lambda 関数に予約済み同時実行数（Reserved Concurrency）を設定し、DynamoDB への書き込
+    - DynamoDB Accelerator（DAX）をキャッシュレイヤーとして前段に配置する
+  dop-bfa80b6f (DOP): 309文字 → 4選択肢
+    - AWS X-Ray のトレーシングをフロントエンド SDK で有効化し、ブラウザ側リクエストをサーバーサイドトレースと紐
+    - Amazon CloudWatch Synthetics でハートビートカナリアを各リージョンにデプロイし、定期的にユー
+    - Amazon CloudWatch RUM（Real User Monitoring：実ユーザー監視）を有効化し、Jav
+    - Amazon CloudWatch Application Insights をアプリケーションリソースグループに設定し
+  dop-2ae4aefc (DOP): 302文字 → 4選択肢
+    - CloudWatch Metric Streamsを設定し、Amazon Data Firehose経由でDatadog
+    - CloudWatchメトリクスをAmazon S3に1分ごとエクスポートし、DatadogのS3インテグレーションで読み
+    - Amazon EventBridgeルールでCloudWatchメトリクスの閾値超過イベントをキャプチャし、Lambda
+    - LambdaのポーリングトリガーをAmazon EventBridgeで1分ごとに設定し、ポーリング間隔を短縮して遅延を
+  saa-08b9073e (SAA): 202文字 → 4選択肢
+    - RDS Multi-AZ 配置に変更し、自動フェイルオーバーを有効化する
+    - 同一 AZ にリードレプリカを作成し、障害時にアプリケーションの接続先エンドポイントを手動で切り替える
+    - 毎時 RDS スナップショットを取得して S3 に保存し、障害時にスナップショットから復元する
+    - RDS を Amazon Aurora MySQL に移行し、マルチ AZ 構成の Aurora クラスターを構築する
+  ✓ [dop-42a7af4f] choices 修正完了
+  ✓ [dop-4fc2a41f] choices 修正完了
+  ✓ [dop-5e5e1adb] choices 修正完了
+  ✓ [dop-109cce5c] choices 修正完了
+  ✓ [saa-26e69a92] choices 修正完了
+  ✓ [dop-bfa80b6f] choices 修正完了
+  ✓ [dop-2ae4aefc] choices 修正完了
+  ✓ [saa-08b9073e] choices 修正完了
+Phase 1 完了: 修正=8 失敗=0
+
+━━ Phase 2: correctAnswers 正規化 + correctAnswerIndices 計算 ━━
+対象問題: 2531件
+  ラベル接頭辞あり: 49件
+  correctAnswerIndices なし: 1080件
+Traceback (most recent call last):
+  File "<stdin>", line 91, in <module>
+BrokenPipeError: [Errno 32] Broken pipe
+Exception ignored in: <_io.TextIOWrapper name='<stdout>' mode='w' encoding='utf-8'>
+BrokenPipeError: [Errno 32] Broken pipe

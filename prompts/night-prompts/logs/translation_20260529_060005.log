@@ -1,0 +1,95 @@
+==========================================
+英訳チェック開始: Fri May 29 06:00:05 JST 2026
+バッチサイズ: 50件 / チャンクサイズ: 8件
+==========================================
+
+▶ Questions テーブルを処理中...
+  チェック対象: 50問
+  チャンク数: 7
+  チャンク 1: 8件  開始=06:00:44
+    [TRANSLATED] ans-ed96a23a
+    [TRANSLATED] ans-5a847d3d
+    [TRANSLATED] ans-7af89436
+    [TRANSLATED] ans-a9f7916e
+    [TRANSLATED] ans-94a8dfad
+    [TRANSLATED] ans-43534bc3
+    [TRANSLATED] aif-b8e97ae3
+    [TRANSLATED] soa-99fd7d89
+  終了=06:06:39  経過=355秒
+  チャンク 2: 8件  開始=06:06:39
+    [TRANSLATED] dva-e961986e
+    [TRANSLATED] soa-4835cece
+    [TRANSLATED] aif-300d9495
+    [TRANSLATED] dop-c06a40a2
+    [TRANSLATED] dop-5f625125
+    [TRANSLATED] soa-0552ad15
+    [TRANSLATED] gai-2c6582c6
+    [TRANSLATED] aif-c46becc5
+  終了=06:11:14  経過=275秒
+  チャンク 3: 8件  開始=06:11:14
+    [TRANSLATED] mla-215f57eb
+    [TRANSLATED] scs-a0e59d00
+    [TRANSLATED] mla-a54db76c
+    [TRANSLATED] scs-28a57b0c
+    [TRANSLATED] dva-b5a83304
+    [TRANSLATED] soa-5995a9db
+    [TRANSLATED] mla-0ea20e1d
+    [TRANSLATED] dva-2330faf1
+  終了=06:15:56  経過=282秒
+  チャンク 4: 8件  開始=06:15:56
+  ⚠️  claude 実行エラー (exit=1)。このチャンクをスキップして続行
+  stderr: 
+  チャンク 5: 8件  開始=06:15:58
+  ⚠️  claude 実行エラー (exit=1)。このチャンクをスキップして続行
+  stderr: 
+  チャンク 6: 8件  開始=06:16:01
+  ⚠️  claude 実行エラー (exit=1)。このチャンクをスキップして続行
+  stderr: 
+  チャンク 7: 2件  開始=06:16:02
+  ⚠️  claude 実行エラー (exit=1)。このチャンクをスキップして続行
+  stderr: 
+
+  Questions 完了: OK=0 / 修正=0 / 新規翻訳=24
+
+▶ Tips テーブルを処理中...
+  チェック対象: 50件
+  チャンク数: 7
+  チャンク 1: 8件  開始=06:16:20
+  ⚠️  claude 実行エラー (exit=1)。このチャンクをスキップして続行
+  stderr: 
+  チャンク 2: 8件  開始=06:16:22
+  ⚠️  claude 実行エラー (exit=1)。このチャンクをスキップして続行
+  stderr: 
+  チャンク 3: 8件  開始=06:16:24
+  ⚠️  claude 実行エラー (exit=1)。このチャンクをスキップして続行
+  stderr: 
+  チャンク 4: 8件  開始=06:16:26
+  ⚠️  claude 実行エラー (exit=1)。このチャンクをスキップして続行
+  stderr: 
+  チャンク 5: 8件  開始=06:16:28
+  ⚠️  claude 実行エラー (exit=1)。このチャンクをスキップして続行
+  stderr: 
+  チャンク 6: 8件  開始=06:16:29
+  ⚠️  claude 実行エラー (exit=1)。このチャンクをスキップして続行
+  stderr: 
+  チャンク 7: 2件  開始=06:16:31
+  ⚠️  claude 実行エラー (exit=1)。このチャンクをスキップして続行
+  stderr: 
+
+  Tips 完了: OK=0 / 更新=0
+
+▶ Releases テーブルを処理中...
+  チェック対象: 16件
+  チャンク数: 2
+  チャンク 1: 8件  開始=06:16:49
+  ⚠️  claude 実行エラー (exit=1)。このチャンクをスキップして続行
+  stderr: 
+  チャンク 2: 8件  開始=06:16:51
+  ⚠️  claude 実行エラー (exit=1)。このチャンクをスキップして続行
+  stderr: 
+
+  Releases 完了: OK=0 / 更新=0
+
+==========================================
+英訳チェック終了: Fri May 29 06:16:53 JST 2026
+==========================================

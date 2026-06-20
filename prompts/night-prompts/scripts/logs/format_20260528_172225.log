@@ -1,0 +1,94 @@
+==========================================
+体裁チェック開始: Thu May 28 17:22:25 JST 2026
+処理数: 100問 / チャンク: 20問 / モデル: haiku
+==========================================
+対象: 100問
+チャンク数: 5
+
+--- チャンク 1/5: 20問  開始=17:22:52 ---
+  [FIX] mla-7855284d: explanation
+  [FIX] gai-375c0b63: explanation
+  [FIX] dea-c3891c12: explanation
+  [FIX] scs-b4099ca3: explanation
+  [FIX] dop-11d62064: explanation
+  [FIX] soa-9848f450: explanation
+  [FIX] aif-4f8f923a: explanation
+  [FIX] sap-52c95f53: explanation
+  [FIX] dop-d9196cc3: explanation
+  [FIX] mla-2a191c2d: explanation
+  [FIX] mla-2a628db0: explanation
+  [FIX] saa-ab13d296: explanation
+  [FIX] gai-a0b2c2ed: explanation
+  [FIX] mla-468e0fc1: explanation
+  [FIX] saa-f96943fb: explanation
+  [FIX] saa-c998996e: explanation
+  [FIX] sap-q-019: explanation
+  [FIX] soa-770616c3: explanation
+  [FIX] sap-628bc38b: explanation
+  [FIX] dop-e9a15a5f: explanation
+  → 完了: OK=0 修正=20
+  終了=17:31:38  経過=526秒
+
+--- チャンク 2/5: 20問  開始=17:31:39 ---
+./06-fix-format.sh: line 238: /tmp/format_prompt_nfjs.txt: No such file or directory
+⚠️  チャンク 2 でエラー（exit 1）。スキップ
+stderr: 
+
+--- チャンク 3/5: 20問  開始=17:31:39 ---
+  [FIX] gai-afc5b063: explanation
+  [FIX] scs-2aa32bfc: explanation
+  [FIX] aif-eec23286: explanation
+  [FIX] sap-q-022: explanation
+  [FIX] saa-7ee525c2: explanation
+  [FIX] dva-90f3fc05: explanation
+  [FIX] dea-46f61776: explanation
+  [FIX] mla-1f9e7f63: explanation
+  [FIX] aif-5cd50d6e: explanation
+  [FIX] clf-dce8a227: explanation
+  [FIX] dea-e3f809ba: explanation
+  [FIX] saa-be91389d: explanation
+  [FIX] aif-a36da5ed: explanation
+  [FIX] ans-c6af95c3: explanation
+  [FIX] soa-dd731487: explanation
+  [FIX] clf-c7fbb3b2: explanation
+  [FIX] aif-1e62ef45: explanation
+  [FIX] ans-42eb4c40: explanation
+  [FIX] clf-d8f9309f: explanation
+  [FIX] dva-772b930e: explanation
+  → 完了: OK=0 修正=20
+  終了=17:39:31  経過=472秒
+
+--- チャンク 4/5: 20問  開始=17:39:31 ---
+./06-fix-format.sh: line 238: /tmp/format_prompt_wIHR.txt: No such file or directory
+⚠️  チャンク 4 でエラー（exit 1）。スキップ
+stderr: 
+
+--- チャンク 5/5: 20問  開始=17:39:32 ---
+  [FIX] dop-q-054: explanation
+  [FIX] aif-c334d3d3: explanation
+  [FIX] saa-2ea371a7: explanation
+  [FIX] dop-q-016: explanation
+  [FIX] dva-3399a126: explanation
+  [FIX] ans-03874228: explanation
+  [FIX] dop-1e3befd1: explanation
+  [FIX] soa-775ed925: explanation
+  [FIX] clf-4a4120ce: explanation
+  [FIX] gai-7c8017d4: explanation
+  [FIX] sap-q-014: explanation
+  [FIX] aif-e95136d9: explanation
+  [FIX] gai-4468fd7a: explanation
+  [FIX] aif-1f98a80c: explanation
+  [FIX] scs-7ebaefc3: explanation
+  [FIX] ans-e1836e6e: explanation
+  [FIX] mla-121df703: explanation
+  [FIX] saa-46badaf8: explanation
+  [FIX] gai-11e18d95: explanation
+  [FIX] sap-754290ae: explanation
+  → 完了: OK=0 修正=20
+  終了=17:48:21  経過=529秒
+
+完了サマリー: 体裁OK=0問 / 修正=60問
+
+==========================================
+体裁チェック終了: Thu May 28 17:48:21 JST 2026
+==========================================

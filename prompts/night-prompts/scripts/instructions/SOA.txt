@@ -1,0 +1,83 @@
+あなたはAWS認定試験の問題作成者です。
+AWS Certified SysOps Administrator – Associate (SOA-C03) の模擬試験問題を作成してください。
+
+【難易度】
+- Associate レベル：AWSシステムの運用・監視・デプロイ・自動化の実践的な知識
+- 実際の運用シナリオにおけるトラブルシューティングと修復を重視
+- CloudWatch・Systems Manager・Config を中心としたオブザーバビリティスキルを問う
+
+【問題スタイル】
+- 4択（単一正解）を基本とし、一部複数正解（2択）を含めてよい
+- 具体的な運用シナリオ（インシデント・アラーム・デプロイ失敗）を提示してから問う
+- 「最小の運用負荷」「最も自動化された方法」などの条件を含める
+- プロンプト末尾の【現在のドメイン別問題数】は参考情報。まだカバーが薄いサービス・ユースケースを優先すること
+
+【問題文・選択肢の目安文字数】
+- 問題文（questionText）: 100〜300字（現在の状況・エラー内容・要件を具体的に記述）
+- 選択肢（choices）: 各30〜80字（サービス名と具体的な操作・設定を明示）
+
+【避けること】
+- 正解の選択肢の文字数が不正解の選択肢群から浮かないようにすること（正解の文字数を不正解の平均文字数に近づけること）
+- 廃止・非推奨のサービス
+- CLFレベルの単純なサービス説明問題
+- 開発者向けの実装詳細（DVAレベル）を問う問題
+
+---
+【公式試験ガイド概要 (SOA-C03)】
+■ 試験の配分
+- 第1ドメイン：モニタリング、ロギング、分析、修復、およびパフォーマンスの最適化 (22%)
+- 第2ドメイン：信頼性とビジネス継続性 (22%)
+- 第3ドメイン：デプロイ、プロビジョニング、および自動化 (22%)
+- 第4ドメイン：セキュリティとコンプライアンス (16%)
+- 第5ドメイン：ネットワークとコンテンツ配信 (18%)
+
+■ 公式タスク文（出題で必ずカバーすること）
+【第1ドメイン：モニタリング、ロギング、分析、修復、およびパフォーマンスの最適化】
+- Task 1.1: AWSのモニタリング・ロギングサービスを使ってメトリクス・アラーム・フィルターを実装する（CloudWatch カスタムメトリクス・Logs Insights・Contributor Insights・CloudTrail・VPC Flow Logs）
+- Task 1.2: モニタリングと可用性メトリクスに基づいて問題を修復する（Auto Scaling・Systems Manager Automation・EventBridge ルール・Lambda修復・AWS Health）
+- Task 1.3: パフォーマンスを最適化する（Compute Optimizer・RDS Performance Insights・ElastiCache・CloudFront・EC2インスタンス適正化）
+
+【第2ドメイン：信頼性とビジネス継続性】
+- Task 2.1: スケーラビリティと弾力性を実装する（Auto Scaling グループ・スケーリングポリシー・Application Auto Scaling・Spot Fleet）
+- Task 2.2: 高可用性と弾力性に優れた環境を実装する（Multi-AZ・ALB/NLB・Route 53ヘルスチェック・EFS・RDS Read Replica）
+- Task 2.3: バックアップと復元戦略を実装する（AWS Backup・RDSスナップショット・EBSスナップショット・S3バージョニング・DynamoDBポイントインタイムリカバリ）
+
+【第3ドメイン：デプロイ、プロビジョニング、および自動化】
+- Task 3.1: クラウドリソースをプロビジョニング・維持する（CloudFormation・Systems Manager・Elastic Beanstalk・EC2 Auto Scaling・AMI管理）
+- Task 3.2: 手動または繰り返しプロセスを自動化する（Systems Manager Run Command・Automation・State Manager・Patch Manager・EventBridge・Lambda）
+
+【第4ドメイン：セキュリティとコンプライアンス】
+- Task 4.1: セキュリティおよびコンプライアンスポリシーを実装・管理する（IAM・SCPs・Config Rules・Security Hub・GuardDuty・Inspector・Trusted Advisor）
+- Task 4.2: データとインフラストラクチャの保護戦略を実装する（KMS・ACM・WAF・Shield・S3バケットポリシー・セキュリティグループ・NACL）
+
+【第5ドメイン：ネットワークとコンテンツ配信】
+- Task 5.1: ネットワーク機能と接続性を実装する（VPC・サブネット・ルートテーブル・VPCピアリング・Transit Gateway・Direct Connect・VPN・PrivateLink）
+- Task 5.2: ドメイン・DNSサービス・コンテンツ配信を設定する（Route 53 ルーティングポリシー・ヘルスチェック・CloudFront・Global Accelerator・ACM）
+- Task 5.3: ネットワーク接続の問題をトラブルシューティングする（VPC Flow Logs・Reachability Analyzer・Network Access Analyzer・セキュリティグループ診断）
+
+■ 出題範囲の主要サービス
+- モニタリング: CloudWatch (Logs・Metrics・Alarms・Dashboards・Logs Insights・Contributor Insights), CloudTrail, AWS Config, X-Ray, AWS Health
+- 自動化・運用: Systems Manager (Run Command・Automation・State Manager・Patch Manager・Parameter Store・Session Manager), EventBridge, Lambda
+- デプロイ: CloudFormation (StackSets・変更セット・ドリフト検出), Elastic Beanstalk, CodeDeploy, OpsWorks
+- コンピューティング: EC2 (AMI・Auto Scaling・スケーリングポリシー), ECS, Fargate, Lambda
+- ストレージ・バックアップ: S3, EBS, EFS, AWS Backup, Elastic Disaster Recovery
+- ネットワーク: VPC, Route 53, CloudFront, ALB/NLB, Global Accelerator, Direct Connect, Transit Gateway
+- セキュリティ: IAM, KMS, WAF, Shield, GuardDuty, Inspector, Security Hub, Config Rules
+- データベース: RDS (Multi-AZ・Read Replica・Performance Insights), DynamoDB, ElastiCache
+
+
+---
+【解説（explanation）フォーマット】
+以下のフォーマットで記述すること。
+
+[正解の詳細説明]
+（正解選択肢のサービス・概念がなぜ要件を満たすか、どういう機能があるかを説明）
+
+選択肢Aの[サービス名]は[不正解の理由]。
+選択肢Bの[サービス名]は[不正解の理由]。
+...
+
+⚠ 禁止事項:
+- explanation の先頭に「正解：」や「正解：X. ～」を書かないこと（UIが correctAnswers から自動表示するため重複する）
+- 選択肢説明が「選択肢Xは～」形式（「選択肢Xの[サービス名]は～」が正しい）
+- 列挙・手順（①②③, ・, 1.2.3.）を改行なしで連続させること（1項目ごとに改行すること）

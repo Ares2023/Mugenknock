@@ -1,0 +1,136 @@
+==========================================
+正当性チェック開始: Wed May 20 11:35:49 JST 2026
+バッチサイズ: 100問 / チャンクサイズ: 5問
+==========================================
+チェック対象: 100問
+チャンク数: 20
+
+--- チャンク 1/20: 5問  開始=11:36:16 ---
+  [OK   ] sap-550dc72a
+  [OK   ] clf-04d565c6
+  [OK   ] dop-q-066
+  [FIX  ] clf-07701706: 選択肢Dの不正解理由が不完全。「終了後は新しいインスタンスとして再起動できる」という誤りの説明がなく、終了後はインスタンスを復旧できない点を補足する必要がある。 → 変更: explanation
+  [FIX  ] clf-c9d8e3c8: 解説で「A」「C」「D」と記号で参照しており、選択肢の順序が変わると説明が崩れる。サービス名で直接説明すべき。 → 変更: explanation
+  → 更新完了: OK=3 修正=2 削除=0
+  終了=11:39:32  経過=196秒
+
+--- チャンク 2/20: 5問  開始=11:39:32 ---
+  [OK   ] dop-q-025
+  [FIX  ] dop-q-009: 不正解選択肢がなぜ誤りかの解説が欠如しており、問題品質基準を満たさない。 → 変更: explanation
+  [OK   ] clf-eb6cfea5
+  [OK   ] dop-q-069
+  [OK   ] clf-c66cbc89
+  → 更新完了: OK=4 修正=1 削除=0
+  終了=11:42:05  経過=153秒
+
+--- チャンク 3/20: 5問  開始=11:42:05 ---
+  [FIX  ] saa-8d7338b5: タグにドメイン外の値（RDS, Cost Optimization, Reserved Instances）が含まれている。正式ドメインタグのみに修正。 → 変更: tags
+  [FIX  ] clf-eec2bb69: タグにドメイン外の値（CloudTrail）が含まれている。正式ドメインタグのみに修正。 → 変更: tags
+  [FIX  ] clf-f098b691: タグにドメイン外の値（従量課金制, クラウドのメリット）が含まれている。正式ドメインタグのみに修正。 → 変更: tags
+  [FIX  ] saa-q-extra-014: タグにドメイン外の値（saa-aurora, saa-rds, saa-database）が含まれている。正式ドメインタグのみに修正。 → 変更: tags
+  [FIX  ] sap-q-009: タグにドメイン外の値（sap-cloudformation, sap-iac, sap-deployment）が含まれている。正式ドメインタグのみに修正。 → 変更: tags
+  → 更新完了: OK=0 修正=5 削除=0
+  終了=11:44:46  経過=161秒
+
+--- チャンク 4/20: 5問  開始=11:44:46 ---
+  [FIX  ] clf-7786c038: VPC・ネットワーク・セキュリティはドメイン外タグのため、正規ドメイン名のみに修正。 → 変更: tags
+  [FIX  ] clf-b2647680: IAM・最小権限・セキュリティはドメイン外タグのため、正規ドメイン名のみに修正。 → 変更: tags
+  [FIX  ] saa-q-extra-008: saa-sqs・saa-messagingはドメイン外タグのため、正規ドメイン名のみに修正。 → 変更: tags
+  [FIX  ] dop-q-020: dop-opsworks・dop-configuration-managementはドメイン外タグのため、正規ドメイン名のみに修正。 → 変更: tags
+  [FIX  ] clf-e08a7161: CloudFormation・IaC・インフラ管理はドメイン外タグのため、正規ドメイン名のみに修正。 → 変更: tags
+  → 更新完了: OK=0 修正=5 削除=0
+  終了=11:46:36  経過=110秒
+
+--- チャンク 5/20: 5問  開始=11:46:36 ---
+  [OK   ] saa-q-extra-006
+  [OK   ] saa-q-extra-004
+  [OK   ] clf-e2d25c3f
+  [OK   ] dop-q-003
+  [OK   ] sap-b15671e4
+  → 更新完了: OK=5 修正=0 削除=0
+  終了=11:49:20  経過=164秒
+
+--- チャンク 6/20: 5問  開始=11:49:20 ---
+  [FIX  ] saa-q-extra-009: タグにドメイン外の値（saa-cloudtrail等）が含まれている。有効なSAAドメインのみに修正。 → 変更: tags
+  [FIX  ] saa-110aacd2: タグにドメイン外の値（EC2、スポットインスタンス、コスト最適化）が含まれている。有効なSAAドメインのみに修正。 → 変更: tags
+  [FIX  ] clf-99d2a5e6: タグにドメイン外の値（DynamoDB）が含まれている。有効なCLFドメインのみに修正。 → 変更: tags
+  [FIX  ] dop-q-071: タグにドメイン外の値（dop-secretsmanager等）が含まれている。有効なDOPドメインのみに修正。 → 変更: tags
+  [FIX  ] dop-q-068: タグにドメイン外の値（dop-xray等）が含まれている。有効なDOPドメインのみに修正。 → 変更: tags
+  → 更新完了: OK=0 修正=5 削除=0
+  終了=11:51:44  経過=144秒
+
+--- チャンク 7/20: 5問  開始=11:51:44 ---
+⚠️  チャンク 7 でエラー（exit 1）。このチャンクをスキップして続行
+stderr: 
+stdout: You've hit your session limit · resets 12pm (Asia/Tokyo)
+
+--- チャンク 8/20: 5問  開始=11:51:46 ---
+⚠️  チャンク 8 でエラー（exit 1）。このチャンクをスキップして続行
+stderr: 
+stdout: You've hit your session limit · resets 12pm (Asia/Tokyo)
+
+--- チャンク 9/20: 5問  開始=11:51:48 ---
+⚠️  チャンク 9 でエラー（exit 1）。このチャンクをスキップして続行
+stderr: 
+stdout: You've hit your session limit · resets 12pm (Asia/Tokyo)
+
+--- チャンク 10/20: 5問  開始=11:51:49 ---
+⚠️  チャンク 10 でエラー（exit 1）。このチャンクをスキップして続行
+stderr: 
+stdout: You've hit your session limit · resets 12pm (Asia/Tokyo)
+
+--- チャンク 11/20: 5問  開始=11:51:51 ---
+⚠️  チャンク 11 でエラー（exit 1）。このチャンクをスキップして続行
+stderr: 
+stdout: You've hit your session limit · resets 12pm (Asia/Tokyo)
+
+--- チャンク 12/20: 5問  開始=11:51:52 ---
+⚠️  チャンク 12 でエラー（exit 1）。このチャンクをスキップして続行
+stderr: 
+stdout: You've hit your session limit · resets 12pm (Asia/Tokyo)
+
+--- チャンク 13/20: 5問  開始=11:51:54 ---
+⚠️  チャンク 13 でエラー（exit 1）。このチャンクをスキップして続行
+stderr: 
+stdout: You've hit your session limit · resets 12pm (Asia/Tokyo)
+
+--- チャンク 14/20: 5問  開始=11:51:55 ---
+⚠️  チャンク 14 でエラー（exit 1）。このチャンクをスキップして続行
+stderr: 
+stdout: You've hit your session limit · resets 12pm (Asia/Tokyo)
+
+--- チャンク 15/20: 5問  開始=11:51:57 ---
+⚠️  チャンク 15 でエラー（exit 1）。このチャンクをスキップして続行
+stderr: 
+stdout: You've hit your session limit · resets 12pm (Asia/Tokyo)
+
+--- チャンク 16/20: 5問  開始=11:51:58 ---
+⚠️  チャンク 16 でエラー（exit 1）。このチャンクをスキップして続行
+stderr: 
+stdout: You've hit your session limit · resets 12pm (Asia/Tokyo)
+
+--- チャンク 17/20: 5問  開始=11:52:00 ---
+⚠️  チャンク 17 でエラー（exit 1）。このチャンクをスキップして続行
+stderr: 
+stdout: You've hit your session limit · resets 12pm (Asia/Tokyo)
+
+--- チャンク 18/20: 5問  開始=11:52:01 ---
+⚠️  チャンク 18 でエラー（exit 1）。このチャンクをスキップして続行
+stderr: 
+stdout: You've hit your session limit · resets 12pm (Asia/Tokyo)
+
+--- チャンク 19/20: 5問  開始=11:52:02 ---
+⚠️  チャンク 19 でエラー（exit 1）。このチャンクをスキップして続行
+stderr: 
+stdout: You've hit your session limit · resets 12pm (Asia/Tokyo)
+
+--- チャンク 20/20: 5問  開始=11:52:04 ---
+⚠️  チャンク 20 でエラー（exit 1）。このチャンクをスキップして続行
+stderr: 
+stdout: You've hit your session limit · resets 12pm (Asia/Tokyo)
+
+完了サマリー: 問題なし=12問 / 自動修正=18問 / 削除=0問
+
+==========================================
+チェック終了: Wed May 20 11:52:05 JST 2026
+==========================================

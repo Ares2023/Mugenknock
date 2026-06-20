@@ -1,0 +1,14 @@
+=== 2026-06-13 01:59:53 | generate-release-note.sh | exit:0 ===
+[release-note] 対象日: 2026-06-12
+[release-note] 2026-06-12: 1件のコミット
+[release-note] 生成結果:
+{
+  "title": "サービス図鑑のアイコンが消えなくなった！",
+  "body": "データをリセットした後もサービス図鑑のアイコンが正しく表示されるよう修正しました！\nリセット後も図鑑の見た目はそのまま、安心してデータをリセットできます。",
+  "titleEn": "Service Encyclopedia Icons Now Persist After Reset!",
+  "bodyEn": "Fixed an issue where service icons in the Encyclopedia disappeared after clearing local data.\nYou can now reset your data without worrying about losing the encyclopedia's appearance."
+}
+[release-note] ✓ DynamoDBに挿入しました: 2026-06-12 — サービス図鑑のアイコンが消えなくなった！
+=== 2026-06-13 07:06:24 | generate-release-note.sh | exit:0 ===
+[release-note] 対象日: 2026-06-12
+[release-note] 2026-06-12 はすでに存在します。スキップ。

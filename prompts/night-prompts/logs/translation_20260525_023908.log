@@ -1,0 +1,110 @@
+==========================================
+英訳チェック開始: Mon May 25 02:39:08 JST 2026
+バッチサイズ: 30件 / チャンクサイズ: 5件
+==========================================
+
+▶ Questions テーブルを処理中...
+  チェック対象: 30問
+  チャンク数: 6
+  チャンク 1: 5件  開始=02:39:32
+    [TRANSLATED] ans-5d82db8a
+    [TRANSLATED] dea-e3f809ba
+    [TRANSLATED] ans-da30cf49
+    [TRANSLATED] scs-d0002806
+    [TRANSLATED] scs-7e13734c
+  終了=02:42:27  経過=175秒
+  チャンク 2: 5件  開始=02:42:27
+    [TRANSLATED] dea-a023f3a8
+    [TRANSLATED] ans-da9aa007
+    [TRANSLATED] dea-d29b4ac1
+    [TRANSLATED] ans-9aa67cc6
+    [TRANSLATED] scs-8b408aca
+  終了=02:45:08  経過=161秒
+  チャンク 3: 5件  開始=02:45:08
+    [TRANSLATED] scs-ed0f1d57
+    [TRANSLATED] scs-5752a43c
+    [TRANSLATED] scs-ff6d69cb
+    [TRANSLATED] dea-3ff04948
+    [TRANSLATED] dea-8d58706a
+  終了=02:48:43  経過=215秒
+  チャンク 4: 5件  開始=02:48:43
+    [TRANSLATED] ans-7ec86681
+    [TRANSLATED] ans-2fe84d7c
+    [TRANSLATED] dea-fd99a777
+    [TRANSLATED] scs-d284198c
+    [TRANSLATED] aif-1457b284
+  終了=02:51:29  経過=166秒
+  チャンク 5: 5件  開始=02:51:29
+    [TRANSLATED] dop-3f2d6590
+    [TRANSLATED] mla-4e10979b
+    [TRANSLATED] clf-f274b049
+    [TRANSLATED] gai-a2e7155d
+    [TRANSLATED] dop-20a240eb
+  終了=02:54:13  経過=165秒
+  チャンク 6: 5件  開始=02:54:14
+    [TRANSLATED] mla-50ed3891
+    [TRANSLATED] dop-b1305294
+    [TRANSLATED] aif-8a13628e
+    [TRANSLATED] soa-2f0f245e
+    [TRANSLATED] clf-1f4f91a0
+  終了=02:56:29  経過=135秒
+
+  Questions 完了: OK=0 / 修正=0 / 新規翻訳=30
+
+▶ Tips テーブルを処理中...
+  チェック対象: 30件
+  チャンク数: 6
+  チャンク 1: 5件  開始=02:56:45
+    [OK        ] 380971e1-06e8-40db-8bb6-3605bb539002
+    [OK        ] 2c1acbe3-8cb7-4964-98b0-05dce96dda7a
+    [OK        ] b27fe3f4-0d89-4411-8b28-872310870ddc
+    [OK        ] d44edd7b-11d3-471b-b8fa-2a7cebbd1bd2
+    [OK        ] 9ade1c46-f4dd-4942-a7e8-001f90269a22
+  終了=02:58:40  経過=115秒
+  チャンク 2: 5件  開始=02:58:40
+    [OK        ] 08aca284-0d48-4833-959d-2a75e8b5209b
+    [OK        ] 7db90ede-079d-4155-829b-79601208e000
+    [OK        ] 8b74d197-cc3a-4f22-9b61-4350c5e3fb0b
+    [OK        ] 9990eb1f-8ea3-4628-a31b-16ec91a2fdb3
+    [OK        ] 06868110-c303-4937-b9c1-b0e83b0b4c61
+  終了=03:00:16  経過=96秒
+  チャンク 3: 5件  開始=03:00:16
+    [OK        ] 1dc488a9-8fed-4152-954c-083fdaf9af39
+    [OK        ] d22c474a-e62d-4e01-ad16-48e0fab40a68
+    [OK        ] 98b2eb49-22cc-40c0-98c9-7aae4f9ce025
+    [OK        ] 838c1b7a-1cbc-41c0-9a5f-49b5144a3914
+    [OK        ] 00787fe4-833d-47d6-b7f4-b7fdf8ac7490
+  終了=03:02:03  経過=107秒
+  チャンク 4: 5件  開始=03:02:03
+  ⚠️  claude 実行エラー (exit=1)。このチャンクをスキップして続行
+  stderr: 
+  チャンク 5: 5件  開始=03:02:05
+  ⚠️  claude 実行エラー (exit=1)。このチャンクをスキップして続行
+  stderr: 
+  チャンク 6: 5件  開始=03:02:08
+  ⚠️  claude 実行エラー (exit=1)。このチャンクをスキップして続行
+  stderr: 
+
+  Tips 完了: OK=15 / 更新=0
+
+▶ Releases テーブルを処理中...
+  チェック対象: 16件
+  チャンク数: 4
+  チャンク 1: 5件  開始=03:02:27
+  ⚠️  claude 実行エラー (exit=1)。このチャンクをスキップして続行
+  stderr: 
+  チャンク 2: 5件  開始=03:02:30
+  ⚠️  claude 実行エラー (exit=1)。このチャンクをスキップして続行
+  stderr: 
+  チャンク 3: 5件  開始=03:02:33
+  ⚠️  claude 実行エラー (exit=1)。このチャンクをスキップして続行
+  stderr: 
+  チャンク 4: 1件  開始=03:02:36
+  ⚠️  claude 実行エラー (exit=1)。このチャンクをスキップして続行
+  stderr: 
+
+  Releases 完了: OK=0 / 更新=0
+
+==========================================
+英訳チェック終了: Mon May 25 03:02:38 JST 2026
+==========================================

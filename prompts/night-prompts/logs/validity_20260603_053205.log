@@ -1,0 +1,68 @@
+==========================================
+正当性チェック開始: Wed Jun  3 05:32:05 JST 2026
+バッチサイズ: 30問 / チャンクサイズ: 5問
+==========================================
+チェック対象: 30問
+前処理: choices ラベル接頭辞チェック...
+  前処理: ラベル接頭辞なし（全問クリーン）
+チャンク数: 6
+
+--- チャンク 1/6: 5問  開始=05:32:30 ---
+  [FIX  ] ans-bc594300: choiceExplanationsが未設定のため生成が必要。isMultipleも要確認。 → 変更: choiceExplanations
+  [FIX  ] ans-7f414451: choiceExplanationsが未設定のため生成が必要。 → 変更: choiceExplanations
+  [FIX  ] ans-89dfd6d2: choiceExplanationsが未設定のため生成が必要。 → 変更: choiceExplanations
+  [FIX  ] ans-6a91d86d: choiceExplanationsが未設定のため生成が必要。 → 変更: choiceExplanations
+  [FIX  ] ans-b9f95916: choiceExplanationsが未設定のため生成が必要。 → 変更: choiceExplanations
+  → 更新完了: OK=0 修正=5 削除=0
+  終了=05:36:35  経過=245秒
+
+--- チャンク 2/6: 5問  開始=05:36:35 ---
+  [FIX  ] ans-fecd9aea: choiceExplanationsが未設定のため全4選択肢分を生成。 → 変更: choiceExplanations
+  [FIX  ] ans-c498f467: choiceExplanationsが未設定のため全4選択肢分を生成。 → 変更: choiceExplanations
+  [FIX  ] ans-d2e23e7a: choiceExplanationsが未設定のため全4選択肢分を生成。 → 変更: choiceExplanations
+  [FIX  ] clf-eb89c57e: isMultipleをtrueに明示。解説でC・D（正解）の個別段落が欠落しているため各選択肢を段落分けして追記。 → 変更: explanation
+  [FIX  ] sap-bcc4bd8c: isMultipleをtrueに明示。問題文の要件リストに改行を追加。解説でA・Cが同一段落のため選択肢ごとの段落に分離。 → 変更: questionText, explanation
+  → 更新完了: OK=0 修正=5 削除=0
+  終了=05:44:17  経過=462秒
+
+--- チャンク 3/6: 5問  開始=05:44:17 ---
+  [OK   ] clf-115ce94a
+  [FIX  ] sap-ba12f5f2: 正解が2つのためisMultiple: trueへの修正が必要。 → 変更: (変更なし)
+  [FIX  ] sap-4d666da7: 選択肢内の※1・※2・※3の注釈定義が問題文・解説のどこにも存在しない。解説冒頭に正解全文の繰り返しで冗長。 → 変更: questionText, explanation
+  [FIX  ] clf-dd00d850: 解説末尾「Webアプリケーション層の攻撃検防には特化していません」の「攻撃検防」が誤字。「攻撃防御」に修正する。 → 変更: explanation
+  [OK   ] clf-21d04533
+  → 更新完了: OK=2 修正=3 削除=0
+  終了=05:49:43  経過=326秒
+
+--- チャンク 4/6: 5問  開始=05:49:43 ---
+  [OK   ] clf-650042a3
+  [OK   ] clf-53b90642
+  [FIX  ] sap-d44d6444: 問題文の【要件】列挙部分に改行がなく読みにくい。解説の「選択肢EMacieは」が読点なしで読みにくいため修正。 → 変更: questionText, explanation
+  [OK   ] saa-35811d5c
+  [FIX  ] saa-d39403c2: 問題文の①〜④の要件が改行なしで連続しており読みにくい。解説の「選択肢CAWS」「選択肢DS3」が接続なしで読みにくいため修正。 → 変更: questionText, explanation
+  → 更新完了: OK=3 修正=2 削除=0
+  終了=05:54:00  経過=257秒
+
+--- チャンク 5/6: 5問  開始=05:54:00 ---
+  [FIX  ] saa-16ffdd64: 解説で「選択肢D」の直後に「の」が抜けており「選択肢DAmazon Aurora」と文が繋がっていない → 変更: explanation
+  [OK   ] saa-f0b32b3b
+  [FIX  ] clf-d0b29ebd: 解説が1段落で連続しており、選択肢ごとに改行・形式が分かれていない → 変更: explanation
+  [FIX  ] saa-b271f787: 問題文の列挙条件に改行なし、解説冒頭に記号接頭辞「C.」あり、選択肢D・Eの解説内容が実際の選択肢と全く対応していない（Aurora MySQL・ElastiCacheとの混同）、isMultipleがfalseの可能性 → 変更: questionText, explanation, choiceExplanations
+  [OK   ] saa-a36a38a1
+  → 更新完了: OK=2 修正=3 削除=0
+  終了=05:58:36  経過=276秒
+
+--- チャンク 6/6: 5問  開始=05:58:36 ---
+  [FIX  ] saa-2ad64eb5: 問題文の要件①〜④が改行なしで列挙されている。解説で正解選択肢（C）のラベルが欠落している。 → 変更: questionText, explanation
+  [FIX  ] saa-cbb8cf9b: 解説に「Multiマルチ-AZ」という誤記がある。正解選択肢（C）のラベルも欠落している。 → 変更: explanation
+  [FIX  ] saa-b90572f0: 解説冒頭に「正解：B.」とAのみを除外した誤った記述がある。全選択肢をラベル付きで説明する形式に整理が必要。 → 変更: explanation
+  [FIX  ] saa-a9ebf073: 問題文のセキュリティ要件3項目が改行なしで列挙されている。解説で正解選択肢（B）のラベルが欠落している。 → 変更: questionText, explanation
+  [FIX  ] saa-0d384889: 解説が1段落にまとめられており、各選択肢の説明が改行・ラベルなしで混在している。選択肢ごとに分離して記述する必要がある。 → 変更: explanation
+  → 更新完了: OK=0 修正=5 削除=0
+  終了=06:04:00  経過=324秒
+
+完了サマリー: 問題なし=7問 / 自動修正=23問 / 削除=0問
+
+==========================================
+チェック終了: Wed Jun  3 06:04:00 JST 2026
+==========================================

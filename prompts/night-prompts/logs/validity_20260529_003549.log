@@ -1,0 +1,78 @@
+  🔒 レート制限中: リセット予定 01:00 JST
+==========================================
+正当性チェック開始: Fri May 29 00:35:49 JST 2026
+バッチサイズ: 100問 / チャンクサイズ: 8問
+==========================================
+チェック対象: 100問
+チャンク数: 13
+
+--- チャンク 1/13: 8問  開始=00:36:19 ---
+⚠️  チャンク 1 でエラー（exit 1）。このチャンクをスキップして続行
+stderr: 
+stdout: You've hit your session limit · resets 1am (Asia/Tokyo)
+
+--- チャンク 2/13: 8問  開始=00:36:21 ---
+⚠️  チャンク 2 でエラー（exit 1）。このチャンクをスキップして続行
+stderr: 
+stdout: You've hit your session limit · resets 1am (Asia/Tokyo)
+
+--- チャンク 3/13: 8問  開始=00:36:23 ---
+⚠️  チャンク 3 でエラー（exit 1）。このチャンクをスキップして続行
+stderr: 
+stdout: You've hit your session limit · resets 1am (Asia/Tokyo)
+
+--- チャンク 4/13: 8問  開始=00:36:26 ---
+⚠️  チャンク 4 でエラー（exit 1）。このチャンクをスキップして続行
+stderr: 
+stdout: You've hit your session limit · resets 1am (Asia/Tokyo)
+
+--- チャンク 5/13: 8問  開始=00:36:28 ---
+⚠️  チャンク 5 でエラー（exit 1）。このチャンクをスキップして続行
+stderr: 
+stdout: You've hit your session limit · resets 1am (Asia/Tokyo)
+
+--- チャンク 6/13: 8問  開始=00:36:30 ---
+⚠️  チャンク 6 でエラー（exit 1）。このチャンクをスキップして続行
+stderr: 
+stdout: You've hit your session limit · resets 1am (Asia/Tokyo)
+
+--- チャンク 7/13: 8問  開始=00:36:32 ---
+⚠️  チャンク 7 でエラー（exit 1）。このチャンクをスキップして続行
+stderr: 
+stdout: You've hit your session limit · resets 1am (Asia/Tokyo)
+
+--- チャンク 8/13: 8問  開始=00:36:34 ---
+⚠️  チャンク 8 でエラー（exit 1）。このチャンクをスキップして続行
+stderr: 
+stdout: You've hit your session limit · resets 1am (Asia/Tokyo)
+
+--- チャンク 9/13: 8問  開始=00:36:35 ---
+⚠️  チャンク 9 でエラー（exit 1）。このチャンクをスキップして続行
+stderr: 
+stdout: You've hit your session limit · resets 1am (Asia/Tokyo)
+
+--- チャンク 10/13: 8問  開始=00:36:37 ---
+⚠️  チャンク 10 でエラー（exit 1）。このチャンクをスキップして続行
+stderr: 
+stdout: You've hit your session limit · resets 1am (Asia/Tokyo)
+
+--- チャンク 11/13: 8問  開始=00:36:39 ---
+⚠️  チャンク 11 でエラー（exit 1）。このチャンクをスキップして続行
+stderr: 
+stdout: You've hit your session limit · resets 1am (Asia/Tokyo)
+
+--- チャンク 12/13: 8問  開始=00:36:41 ---
+⚠️  チャンク 12 でエラー（exit 1）。このチャンクをスキップして続行
+stderr: 
+stdout: You've hit your session limit · resets 1am (Asia/Tokyo)
+
+--- チャンク 13/13: 4問  開始=00:36:43 ---
+⚠️  チャンク 13 でエラー（exit 1）。このチャンクをスキップして続行
+stderr: 
+stdout: You've hit your session limit · resets 1am (Asia/Tokyo)
+
+完了サマリー: 問題なし=0問 / 自動修正=0問 / 削除=0問
+
+==========================================
+チェック終了: Fri May 29 00:36:45 JST 2026
+==========================================

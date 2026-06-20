@@ -4,7 +4,7 @@ import { useNavigate, useLocation } from '@/compat/react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { useLanguage } from '../contexts/LanguageContext';
 import { useTheme } from '../contexts/ThemeContext';
-import { API_ENDPOINT, EXAM_TYPES, EXAM_CONFIGS, EXAM_LEVEL } from '../constants';
+import { API_ENDPOINT, EXAM_TYPES, EXAM_CONFIGS, EXAM_LEVEL, EXAM_LEVEL_COLORS } from '../constants';
 import { getPoints, fetchPointsFromServer } from '../utils/points';
 import { loadTargetExamFromServer } from '../utils/preferences';
 import Breadcrumb from './Breadcrumb';
@@ -483,7 +483,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
                 {([
                   { level: 'Foundational', pts: 1, exams: 'CLF, AIF' },
                   { level: 'Associate',    pts: 2, exams: 'SAA, DVA, SOA, DEA, MLA' },
-                  { level: 'Professional', pts: 3, exams: 'SAP, DOP, GAI' },
+                  { level: 'Professional', pts: 3, exams: 'SAP, DOP, AIP' },
                   { level: 'Specialty',    pts: 3, exams: 'ANS, SCS' },
                 ] as const).map((row, i, arr) => (
                   <div key={row.level} style={{ display: 'flex', alignItems: 'center', padding: '9px 12px', borderBottom: i < arr.length - 1 ? '1px solid var(--color-border)' : 'none' }}>
@@ -583,7 +583,6 @@ export default function Layout({ children }: { children: React.ReactNode }) {
         </div>
       </header>
 
-
       {/* ── サブバー（ハンバーガー＋パンくず） ── */}
       {/* モバイルでは目標ボタンが表示される場合のみサブバーを描画 */}
       {(!isMobile || (!!targetExam && !isOthersActive && !['/aws/exercise/session', '/aws/exam/session', '/aws/mypage', '/aws/exam-dashboard'].includes(pathname))) && (
@@ -646,7 +645,11 @@ export default function Layout({ children }: { children: React.ReactNode }) {
                 overflow: 'hidden', textOverflow: 'ellipsis',
                 maxWidth: isMobile ? 'none' : '40vw',
               }}>
-                {`設定目標：${isMobile ? `AWS ${targetExam}` : (EXAM_CONFIGS[targetExam]?.fullName ?? targetExam)}`}
+                {(() => {
+                  const examColor = EXAM_LEVEL_COLORS[EXAM_LEVEL[targetExam]] ?? 'var(--color-primary)';
+                  const name = isMobile ? `AWS ${targetExam}` : (EXAM_CONFIGS[targetExam]?.fullName ?? targetExam);
+                  return <>{'設定目標：'}<span style={{ color: examColor }}>{name}</span></>;
+                })()}
                 {examDate && (() => {
                   const days = daysUntilExam(examDate);
                   if (days === 0) return <span style={{ color: 'var(--color-text-sub)', fontWeight: 700 }}>（試験当日！ファイト🔥）</span>;

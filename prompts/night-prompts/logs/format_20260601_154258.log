@@ -1,0 +1,257 @@
+==========================================
+体裁チェック開始: Mon Jun  1 15:42:58 JST 2026
+処理数: 300問 / チャンク: 20問 / モデル: haiku
+==========================================
+対象: 300問
+チャンク数: 15
+
+--- チャンク 1/15: 20問  開始=15:43:37 ---
+  → 完了: OK=0 修正=0
+  終了=15:46:32  経過=175秒
+
+--- チャンク 2/15: 20問  開始=15:46:32 ---
+./06-fix-format.sh: line 235: /tmp/format_prompt_tYPz.txt: No such file or directory
+⚠️  チャンク 2 でエラー（exit 1）。スキップ
+stderr: 
+
+--- チャンク 3/15: 20問  開始=15:46:33 ---
+  [FIX] sap-q-016: explanation
+  [FIX] scs-4add56fe: explanation
+  [FIX] soa-9c9c5ef2: explanation
+  [FIX] ans-6735f7fc: explanation
+  [FIX] gai-c3c88b0e: explanation
+  [FIX] mla-1201e5a9: explanation
+  [FIX] scs-b743cd8f: explanation
+  [FIX] aif-d9e3cd47: explanation
+  [FIX] dop-25628fcc: explanation
+  [FIX] ans-1967b0e2: explanation
+  [FIX] dea-3971dbed: explanation
+  [FIX] scs-fdf19fd9: explanation
+  [FIX] dop-3c35f1b1: explanation
+  [FIX] ans-2ef3e88c: explanation
+  [FIX] clf-093fed6d: explanation
+  [FIX] gai-9d6deccd: explanation
+  [FIX] clf-21d04533: explanation
+  [FIX] mla-30b08348: explanation
+  [FIX] sap-e4ef61c7: explanation
+  [FIX] soa-81249335: explanation
+  → 完了: OK=0 修正=20
+  終了=15:55:13  経過=520秒
+
+--- チャンク 4/15: 20問  開始=15:55:13 ---
+  [OK ] scs-76c33e58
+  [FIX] clf-070e1173: explanation
+  [FIX] scs-4d30c4d3: explanation
+  [FIX] dea-6bd7b0a1: explanation
+  [FIX] gai-0a671f08: explanation
+  [FIX] dva-ee19c63a: explanation
+  [FIX] soa-bedd25c6: explanation
+  [FIX] dva-f1aba38b: explanation
+  [FIX] mla-ef3ea5dc: explanation
+  [FIX] mla-4b6efaa4: explanation
+  [FIX] sap-209b792b: explanation
+  [FIX] mla-f485d496: explanation
+  [FIX] gai-00146ab0: explanation
+  [FIX] sap-c67ce149: explanation
+  [FIX] saa-150ebeae: explanation
+  [FIX] dea-a00ebbe5: explanation
+  [FIX] sap-d725f920: explanation
+  [FIX] dop-fea08588: explanation
+  [FIX] sap-c2569d3f: explanation
+  [FIX] soa-1e6332cf: explanation
+  → 完了: OK=1 修正=19
+  終了=16:03:58  経過=525秒
+
+--- チャンク 5/15: 20問  開始=16:03:58 ---
+  [FIX] ans-e97320e8: explanation
+  [FIX] clf-c8612c17: explanation
+  [FIX] sap-a1d60263: explanation
+  [FIX] clf-09255fd6: explanation
+  [FIX] dva-59b0fbd4: explanation
+  [FIX] dva-761fb96b: explanation
+  [FIX] mla-933519e1: explanation
+  [FIX] dop-4bfd4736: explanation
+  [FIX] dop-b2d8a213: explanation
+  [FIX] clf-88837aca: explanation
+  [FIX] aif-d668c3ce: explanation
+  [FIX] saa-372eb64e: explanation
+  [FIX] dva-e968befc: explanation
+  [FIX] gai-8e101580: explanation
+  [FIX] clf-650042a3: explanation
+  [FIX] aif-b4e82b8f: explanation
+  [FIX] dva-f6cc8058: explanation
+  [FIX] ans-17b612b5: explanation
+  [FIX] clf-28d8ec11: explanation
+  [OK ] mla-16a95705
+  → 完了: OK=1 修正=19
+  終了=16:11:18  経過=440秒
+
+--- チャンク 6/15: 20問  開始=16:11:18 ---
+./06-fix-format.sh: line 235: /tmp/format_prompt_Gfsd.txt: No such file or directory
+⚠️  チャンク 6 でエラー（exit 1）。スキップ
+stderr: 
+
+--- チャンク 7/15: 20問  開始=16:11:19 ---
+  [FIX] dop-q-041: explanation
+  [FIX] clf-53b90642: explanation
+  [FIX] sap-84ac6b1c: explanation
+  [FIX] dea-aab4c3ec: explanation
+  [FIX] dop-732e2a6d: explanation
+  [FIX] dea-b3cf2916: explanation
+  [FIX] sap-q-008: explanation
+  [FIX] dop-c19b5dcd: explanation
+  [FIX] dop-134846eb: explanation
+  [FIX] dva-c5770d3e: explanation
+  [FIX] scs-5bf29501: explanation
+  [FIX] mla-5d0c804c: explanation
+  [FIX] dva-b852f951: explanation
+  [FIX] mla-bc49af53: explanation
+  [FIX] mla-b27a4ade: explanation
+  [FIX] soa-9cc77948: explanation
+  [FIX] dea-d222a97e: explanation
+  [FIX] gai-4463d678: explanation
+  [FIX] sap-q-002: explanation
+  [FIX] dva-d2531c13: explanation
+  → 完了: OK=0 修正=20
+  終了=16:19:27  経過=488秒
+
+--- チャンク 8/15: 20問  開始=16:19:27 ---
+./06-fix-format.sh: line 235: /tmp/format_prompt_UV7l.txt: No such file or directory
+⚠️  チャンク 8 でエラー（exit 1）。スキップ
+stderr: 
+
+--- チャンク 9/15: 20問  開始=16:19:27 ---
+  [FIX] scs-1a15a92d: explanation
+  [FIX] gai-ab714e3b: explanation
+  [FIX] dop-q-005: explanation
+  [FIX] clf-4eed7d40: explanation
+  [FIX] scs-6c9c6f15: explanation
+  [FIX] soa-8aa48486: explanation
+  [FIX] dop-83f5fb85: explanation
+  [FIX] aif-e02d70a8: explanation
+  [FIX] gai-e0e3bb9f: explanation
+  [FIX] ans-13302ad0: explanation
+  [FIX] aif-3cb3db10: explanation
+  [FIX] clf-669362db: explanation
+  [FIX] aif-13366eda: explanation
+  [FIX] dea-143d1814: explanation
+  [FIX] ans-2c8c8343: explanation
+  [FIX] clf-9874e17e: explanation
+  [FIX] dop-4c574690: explanation
+  [FIX] ans-a30f6834: explanation
+  [FIX] aif-8ebbe49a: explanation
+  [FIX] aif-4737cff7: explanation
+  → 完了: OK=0 修正=20
+  終了=16:27:57  経過=510秒
+
+--- チャンク 10/15: 20問  開始=16:27:57 ---
+  [FIX] clf-e5300b1a: explanation
+  [FIX] scs-c9a0afd6: explanation
+  [FIX] saa-771e7199: explanation
+  [FIX] clf-503e03fd: explanation
+  [FIX] dop-8c3f4ccb: explanation
+  [FIX] ans-f9a00322: explanation
+  [FIX] clf-b3cdbaa3: explanation
+  [FIX] dea-3ce64010: explanation
+  [FIX] clf-57670714: explanation
+  [FIX] saa-eddcac57: explanation
+  [FIX] soa-d3e34a8c: explanation
+  [FIX] soa-30dadb7c: explanation
+  [FIX] sap-b7163e65: explanation
+  [FIX] aif-8a3eea40: explanation
+  [FIX] sap-197b49f3: explanation
+  [FIX] saa-c3e4a26b: explanation
+  [FIX] scs-976e0354: explanation
+  [FIX] clf-7a5c6794: explanation
+  [FIX] soa-2dc02da9: explanation
+  [FIX] aif-f4acfaaf: explanation
+  → 完了: OK=0 修正=20
+  終了=16:35:52  経過=475秒
+
+--- チャンク 11/15: 20問  開始=16:35:52 ---
+  [FIX] mla-dc3b35ce: explanation
+  [FIX] ans-6295f972: explanation
+  [FIX] sap-q-007: explanation
+  [FIX] gai-27476376: explanation
+  [FIX] scs-95b4ee35: explanation
+  [FIX] aif-a15e2580: explanation
+  [FIX] dop-15a6aac1: explanation
+  [FIX] dva-ba68044e: explanation
+  [FIX] dop-q-021: explanation
+  [FIX] aif-f3720216: explanation
+  [FIX] dva-4eb4418f: explanation
+  [FIX] dop-d9ef0cd4: explanation
+  [FIX] dva-9b65e948: explanation
+  [FIX] ans-9c62955a: explanation
+  [FIX] clf-0b0da1a9: explanation
+  [FIX] soa-0f5ce5a5: explanation
+  [FIX] sap-75705fcb: explanation
+  [FIX] soa-1a8fc119: explanation
+  [FIX] dop-e1764fa9: explanation
+  [FIX] aif-b81a3484: explanation
+  → 完了: OK=0 修正=20
+  終了=16:43:42  経過=470秒
+
+--- チャンク 12/15: 20問  開始=16:43:42 ---
+./06-fix-format.sh: line 235: /tmp/format_prompt_xR36.txt: No such file or directory
+⚠️  チャンク 12 でエラー（exit 1）。スキップ
+stderr: 
+
+--- チャンク 13/15: 20問  開始=16:43:43 ---
+  [FIX] dva-1097fbef: explanation
+  [FIX] dop-99770afb: explanation
+  [FIX] sap-bd13169f: explanation
+  [FIX] gai-cb93e1f8: explanation
+  [FIX] scs-f3e3c775: explanation
+  [FIX] dop-97444b53: explanation
+  [FIX] sap-30d8375a: explanation
+  [FIX] dop-q-035: explanation
+  [FIX] saa-b3ed2007: explanation
+  [FIX] gai-9d46d790: explanation
+  [FIX] sap-83de8bae: explanation
+  [FIX] dea-d9e75ad6: explanation
+  [FIX] scs-586b4d75: explanation
+  [FIX] dea-9670bd29: explanation
+  [FIX] saa-f3b8ab7f: explanation
+  [FIX] mla-31a4dbbf: explanation
+  [FIX] dva-d640ee5a: explanation
+  [FIX] gai-0355ea5e: explanation
+  [FIX] clf-ac5c3a4f: explanation
+  [FIX] aif-5c428a75: explanation
+  → 完了: OK=0 修正=20
+  終了=16:52:04  経過=501秒
+
+--- チャンク 14/15: 20問  開始=16:52:04 ---
+./06-fix-format.sh: line 235: /tmp/format_prompt_5H7d.txt: No such file or directory
+⚠️  チャンク 14 でエラー（exit 1）。スキップ
+stderr: 
+
+--- チャンク 15/15: 20問  開始=16:52:04 ---
+  [FIX] dva-707e3fee: explanation
+  [FIX] dea-9fa9905f: explanation
+  [FIX] dop-5402578a: explanation
+  [FIX] mla-9d2a6bc2: explanation
+  [FIX] soa-2583c161: explanation
+  [FIX] soa-345b29b7: explanation
+  [FIX] dop-a87a18ed: explanation
+  [FIX] soa-f7812800: explanation
+  [FIX] mla-39062bd3: explanation
+  [FIX] gai-b0292adf: explanation
+  [FIX] saa-a546a55e: explanation
+  [FIX] scs-098b23b4: explanation
+  [FIX] saa-6b04169b: explanation
+  [FIX] ans-2070e0a6: explanation
+  [FIX] aif-e6ec22a4: explanation
+  [FIX] mla-cee1c13e: explanation
+  [FIX] dop-75e70ddc: explanation
+  [OK ] ans-df5d464f
+  [OK ] dop-q-055
+  [OK ] mla-73eb8cf7
+  → 完了: OK=3 修正=17
+  終了=16:59:20  経過=436秒
+
+完了サマリー: 体裁OK=5問 / 修正=175問
+
+==========================================
+体裁チェック終了: Mon Jun  1 16:59:20 JST 2026
+==========================================

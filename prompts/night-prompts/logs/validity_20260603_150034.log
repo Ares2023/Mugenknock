@@ -1,0 +1,55 @@
+==========================================
+正当性チェック開始: Wed Jun  3 15:00:34 JST 2026
+バッチサイズ: 100問 / チャンクサイズ: 5問
+==========================================
+チェック対象: 100問
+前処理: choices ラベル接頭辞チェック...
+  前処理: ラベル接頭辞なし（全問クリーン）
+チャンク数: 20
+
+--- チャンク 1/20: 5問  開始=15:01:12 ---
+  [FIX  ] dea-ca87398c: choiceExplanationsが未設定のため生成。isMultipleをfalseに設定（正解1つ）。 → 変更: choiceExplanations
+  [FIX  ] dea-90c8afb8: choiceExplanationsが未設定のため生成。isMultipleをfalseに設定（正解1つ）。 → 変更: choiceExplanations
+  [FIX  ] dea-9e4c994c: choiceExplanationsが未設定のため生成。isMultipleをfalseに設定（正解1つ）。 → 変更: choiceExplanations
+  [FIX  ] dea-9adf7f30: choiceExplanationsが未設定のため生成。isMultipleをtrueに設定（正解が2つ）。 → 変更: choiceExplanations
+  [FIX  ] dea-203aceb3: choiceExplanationsが未設定のため生成。isMultipleをfalseに設定（正解1つ）。 → 変更: choiceExplanations
+  → 更新完了: OK=0 修正=5 削除=0
+  終了=15:05:15  経過=243秒
+
+--- チャンク 2/20: 5問  開始=15:05:15 ---
+  [FIX  ] dea-7fd2903f: AQUAは2023年にAWSにより廃止済みのため解説の説明が誤り。choiceExplanationsを生成。 → 変更: explanation, choiceExplanations
+  [FIX  ] dea-f5c39234: choiceExplanationsが未設定のため生成。 → 変更: choiceExplanations
+  [FIX  ] dea-feb189ac: choiceExplanationsが未設定のため生成。 → 変更: choiceExplanations
+  [FIX  ] dea-492c34c6: choiceExplanationsが未設定のため生成。 → 変更: choiceExplanations
+  [FIX  ] dea-7dde4e1d: 列レベルアクセス制御・PII保護・最小権限という内容はセキュリティ・ガバナンス領域に該当するためタグを修正。choiceExplanationsを生成。 → 変更: choiceExplanations, tags
+  → 更新完了: OK=0 修正=5 削除=0
+  終了=15:11:12  経過=357秒
+
+--- チャンク 3/20: 5問  開始=15:11:12 ---
+  [FIX  ] dea-bb6fe781: choiceExplanationsが未設定のため生成が必要 → 変更: choiceExplanations
+  [FIX  ] dea-b29013b7: choiceExplanationsが未設定のため生成が必要 → 変更: choiceExplanations
+  [FIX  ] dea-ebfa1e50: choiceExplanationsが未設定のため生成が必要 → 変更: choiceExplanations
+  [FIX  ] dea-119266e9: choiceExplanationsが未設定のため生成が必要 → 変更: choiceExplanations
+  [FIX  ] dea-0337af59: 解説の「選択肢CAmazon」表記誤り（「の」が欠落）の修正とchoiceExplanationsの生成が必要 → 変更: explanation, choiceExplanations
+  → 更新完了: OK=0 修正=5 削除=0
+  終了=15:16:00  経過=288秒
+
+--- チャンク 4/20: 5問  開始=15:16:00 ---
+  [FIX  ] dea-c41e9cc3: choiceExplanationsが未設定のため全選択肢分を生成 → 変更: choiceExplanations
+  [FIX  ] clf-4eed7d40: 解説冒頭に不要な「正解：」ラベルと正解テキストの重複記述があり読みにくい → 変更: explanation
+  [FIX  ] dop-bc3f81b2: 問題文の①②要件が改行なしで連続しており読みにくい → 変更: questionText
+  [FIX  ] dop-1e0c02fd: 問題文の①②要件が改行なしで連続しており読みにくい → 変更: questionText
+  [FIX  ] dop-268b732d: 問題文の①②要件に改行なし。解説の不正解選択肢A・C・Dがカンマ区切りで一文にまとまっており選択肢ごとの改行がない → 変更: questionText, explanation
+  → 更新完了: OK=0 修正=5 削除=0
+  終了=15:22:16  経過=376秒
+
+--- チャンク 5/20: 5問  開始=15:22:17 ---
+  [FIX  ] dop-c134ee7d: 問題文の要件①②が改行なしで列挙されている。解説で正解選択肢BとCの説明が同一段落にまとまっており選択肢ごとの改行がない。 → 変更: questionText, explanation
+  [FIX  ] dop-3740d80f: 問題文の要件①②③が改行なしで一文に列挙されている。解説で不正解選択肢A・C・Dの説明が改行なしで一文にまとまっている。 → 変更: questionText, explanation
+  [OK   ] dop-4c574690
+  [FIX  ] saa-771e7199: 問題文の2要件が改行なしで列挙されている。解説で正解選択肢B・Dの説明が個別の「選択肢Bは〜」「選択肢Dは〜」形式で改行されておらず、まとめて記述されている。 → 変更: questionText, explanation
+  [FIX  ] saa-c3e4a26b: 解説で正解選択肢B・Dが同一段落にまとめられ選択肢ごとの改行がない。選択肢Cの解説が「ストレージコストが増大します」のみで不正解理由の説明が不足している。 → 変更: explanation
+  → 更新完了: OK=1 修正=4 削除=0
+  終了=15:28:01  経過=344秒
+
+--- チャンク 6/20: 5問  開始=15:28:01 ---

@@ -1,0 +1,44 @@
+==========================================
+英訳チェック開始: Sun May  3 10:50:24 JST 2026
+バッチサイズ: 30件 / チャンクサイズ: 5件
+==========================================
+
+▶ Questions テーブルを処理中...
+  チェック対象: 30問
+/home/yuzuki/aws-quiz-app/prompts/night-prompts/scripts/check-translation.sh: line 99: /usr/bin/python3: Argument list too long
+  チャンク数: 
+
+  Questions 完了: OK=0 / 修正=0 / 新規翻訳=0
+
+▶ Tips テーブルを処理中...
+  チェック対象: 30件
+  チャンク数: 6
+  チャンク 1: 5件  開始=10:50:57
+    [TRANSLATED] 9b9dca6e-a856-4d79-9221-bea6517322bb
+    [TRANSLATED] 83e79919-c59e-4a9f-bee4-ef1f0adf2eee
+    [TRANSLATED] b9e5d2fd-8bde-4f49-a15f-d7f76326a37e
+    [TRANSLATED] 8706d8b8-dbe7-4f2c-a427-c60bf04a768a
+    [TRANSLATED] 009a5949-a6a4-402f-ad93-e819b19d6e6a
+  終了=10:52:35  経過=98秒
+  チャンク 2: 5件  開始=10:52:35
+    [TRANSLATED] 19f0c257-3fa5-46ab-ad70-4da074d8e046
+    [TRANSLATED] 37bb82d4-5081-4b9e-82fc-2cddb87d8bad
+    [TRANSLATED] 9bc2b48a-2d5d-42bd-ae5b-88581837ba05
+    [TRANSLATED] 3773b60c-b156-4799-b088-8c62a67e9cc1
+    [TRANSLATED] ef3c7834-30a7-4bbd-ad13-2136f20758dd
+  終了=10:54:16  経過=101秒
+  チャンク 3: 5件  開始=10:54:16
+    [TRANSLATED] 90b726b5-4c93-4bdf-997a-1b7b6ab0d816
+    [TRANSLATED] fad548fc-079e-4dea-ad62-4ac9a371f7db
+    [TRANSLATED] f5ac2671-fe4f-4d48-bfab-d01adec157f4
+    [TRANSLATED] e182c221-3739-42ed-8b3d-1773e4d7968e
+    [TRANSLATED] db51b468-75ae-4270-87a9-aa76e82bf6a5
+  終了=10:56:03  経過=107秒
+  チャンク 4: 5件  開始=10:56:03
+    [TRANSLATED] d48f1af7-3509-4e58-a578-1a1928e6c0f5
+    [TRANSLATED] 5d953dd4-9cce-4d72-bff5-84ec2f1a2d90
+    [TRANSLATED] 58782dd9-9ad7-4e7d-8d15-a72eda00bfc7
+    [TRANSLATED] 53d21080-eb8e-4e92-a505-fb15bcb2e2ec
+    [TRANSLATED] bf7c9b72-914e-4296-a0ca-b3afedfbbbee
+  終了=10:57:49  経過=106秒
+  チャンク 5: 5件  開始=10:57:49

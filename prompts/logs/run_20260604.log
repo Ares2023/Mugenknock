@@ -1,0 +1,858 @@
+
+--- hook[0] 開始: 2026-06-04 01:00:34 (-30min) | ~/aws-quiz-app/prompts/night-prompts/scripts/02-check-validity.sh -n 100 -D 01:30 ---
+  🔒 レート制限中: リセット予定 01:30 JST
+==========================================
+正当性チェック開始: Thu Jun  4 01:00:34 JST 2026
+バッチサイズ: 100問 / チャンクサイズ: 5問
+==========================================
+チェック対象: 100問
+前処理: choices ラベル接頭辞チェック...
+  前処理: ラベル接頭辞なし（全問クリーン）
+チャンク数: 20
+
+--- チャンク 1/20: 5問  開始=01:01:01 ---
+⚠️  チャンク 1 でエラー（exit 1）。このチャンクをスキップして続行
+stderr: 
+stdout: You've hit your session limit · resets 1:30am (Asia/Tokyo)
+
+--- チャンク 2/20: 5問  開始=01:01:03 ---
+⚠️  チャンク 2 でエラー（exit 1）。このチャンクをスキップして続行
+stderr: 
+stdout: You've hit your session limit · resets 1:30am (Asia/Tokyo)
+
+--- チャンク 3/20: 5問  開始=01:01:05 ---
+⚠️  チャンク 3 でエラー（exit 1）。このチャンクをスキップして続行
+stderr: 
+stdout: You've hit your session limit · resets 1:30am (Asia/Tokyo)
+
+--- チャンク 4/20: 5問  開始=01:01:06 ---
+⚠️  チャンク 4 でエラー（exit 1）。このチャンクをスキップして続行
+stderr: 
+stdout: You've hit your session limit · resets 1:30am (Asia/Tokyo)
+
+--- チャンク 5/20: 5問  開始=01:01:07 ---
+⚠️  チャンク 5 でエラー（exit 1）。このチャンクをスキップして続行
+stderr: 
+stdout: You've hit your session limit · resets 1:30am (Asia/Tokyo)
+
+--- チャンク 6/20: 5問  開始=01:01:09 ---
+⚠️  チャンク 6 でエラー（exit 1）。このチャンクをスキップして続行
+stderr: 
+stdout: You've hit your session limit · resets 1:30am (Asia/Tokyo)
+
+--- チャンク 7/20: 5問  開始=01:01:10 ---
+⚠️  チャンク 7 でエラー（exit 1）。このチャンクをスキップして続行
+stderr: 
+stdout: You've hit your session limit · resets 1:30am (Asia/Tokyo)
+
+--- チャンク 8/20: 5問  開始=01:01:11 ---
+⚠️  チャンク 8 でエラー（exit 1）。このチャンクをスキップして続行
+stderr: 
+stdout: You've hit your session limit · resets 1:30am (Asia/Tokyo)
+
+--- チャンク 9/20: 5問  開始=01:01:13 ---
+⚠️  チャンク 9 でエラー（exit 1）。このチャンクをスキップして続行
+stderr: 
+stdout: You've hit your session limit · resets 1:30am (Asia/Tokyo)
+
+--- チャンク 10/20: 5問  開始=01:01:14 ---
+⚠️  チャンク 10 でエラー（exit 1）。このチャンクをスキップして続行
+stderr: 
+stdout: You've hit your session limit · resets 1:30am (Asia/Tokyo)
+
+--- チャンク 11/20: 5問  開始=01:01:16 ---
+⚠️  チャンク 11 でエラー（exit 1）。このチャンクをスキップして続行
+stderr: 
+stdout: You've hit your session limit · resets 1:30am (Asia/Tokyo)
+
+--- チャンク 12/20: 5問  開始=01:01:17 ---
+⚠️  チャンク 12 でエラー（exit 1）。このチャンクをスキップして続行
+stderr: 
+stdout: You've hit your session limit · resets 1:30am (Asia/Tokyo)
+
+--- チャンク 13/20: 5問  開始=01:01:19 ---
+⚠️  チャンク 13 でエラー（exit 1）。このチャンクをスキップして続行
+stderr: 
+stdout: You've hit your session limit · resets 1:30am (Asia/Tokyo)
+
+--- チャンク 14/20: 5問  開始=01:01:20 ---
+⚠️  チャンク 14 でエラー（exit 1）。このチャンクをスキップして続行
+stderr: 
+stdout: You've hit your session limit · resets 1:30am (Asia/Tokyo)
+
+--- チャンク 15/20: 5問  開始=01:01:21 ---
+⚠️  チャンク 15 でエラー（exit 1）。このチャンクをスキップして続行
+stderr: 
+stdout: You've hit your session limit · resets 1:30am (Asia/Tokyo)
+
+--- チャンク 16/20: 5問  開始=01:01:26 ---
+⚠️  チャンク 16 でエラー（exit 1）。このチャンクをスキップして続行
+stderr: 
+stdout: You've hit your session limit · resets 1:30am (Asia/Tokyo)
+
+--- チャンク 17/20: 5問  開始=01:01:27 ---
+⚠️  チャンク 17 でエラー（exit 1）。このチャンクをスキップして続行
+stderr: 
+stdout: You've hit your session limit · resets 1:30am (Asia/Tokyo)
+
+--- チャンク 18/20: 5問  開始=01:01:29 ---
+⚠️  チャンク 18 でエラー（exit 1）。このチャンクをスキップして続行
+stderr: 
+stdout: You've hit your session limit · resets 1:30am (Asia/Tokyo)
+
+--- チャンク 19/20: 5問  開始=01:01:30 ---
+⚠️  チャンク 19 でエラー（exit 1）。このチャンクをスキップして続行
+stderr: 
+stdout: You've hit your session limit · resets 1:30am (Asia/Tokyo)
+
+--- チャンク 20/20: 5問  開始=01:01:32 ---
+⚠️  チャンク 20 でエラー（exit 1）。このチャンクをスキップして続行
+stderr: 
+stdout: You've hit your session limit · resets 1:30am (Asia/Tokyo)
+
+完了サマリー: 問題なし=0問 / 自動修正=0問 / 削除=0問
+
+==========================================
+チェック終了: Thu Jun  4 01:01:33 JST 2026
+==========================================
+--- hook[0] 完了: 2026-06-04 01:01:33 ---
+
+==========================================
+実行開始: 2026-06-04 01:30:00
+==========================================
+▶ [ping] Claudeセッション確認...
+  → 4s
+何かお手伝いできることがあればお知らせください。
+✓ ping OK
+🌙 夜間初回実行を開始します (01:30)
+  [並列実行中: night-scripts 4件]
+▶ [night-script] 01-generate-questions.sh
+==========================================
+問題自動生成 開始: Thu Jun  4 01:30:04 JST 2026
+==========================================
+対象資格: CLF SAA SAP DVA SOA DEA DOP AIF MLA GAI ANS SCS
+問題数キャッシュを使用...
+  CLF: 229問 (キャッシュ)
+  SAA: 211問 (キャッシュ)
+  SAP: 203問 (キャッシュ)
+  DVA: 204問 (キャッシュ)
+  SOA: 206問 (キャッシュ)
+  DEA: 201問 (キャッシュ)
+  DOP: 333問 (キャッシュ)
+  AIF: 208問 (キャッシュ)
+  MLA: 207問 (キャッシュ)
+  GAI: 202問 (キャッシュ)
+  ANS: 206問 (キャッシュ)
+  SCS: 210問 (キャッシュ)
+選択: DEA (現在201問 — 最少)
+ドメイン数: 4  /  基本 5問/ドメイン（重み付きで配分）  /  合計予算 20問
+開始ドメイン: [0] データの取り込みと変換
+
+--- Cognito 認証中 ---
+✓ 認証完了
+
+--- ドメイン別問題数を取得・割り当て計算中 ---
+  データの取り込みと変換: 47問
+  データストアの管理: 51問
+  データオペレーションとサポート: 51問
+  データのセキュリティとガバナンス: 52問
+
+ドメイン別生成数（逆数重み付き割り当て）:
+  9問 → データの取り込みと変換 (現在47問)
+  4問 → データストアの管理 (現在51問)
+  4問 → データオペレーションとサポート (現在51問)
+  3問 → データのセキュリティとガバナンス (現在52問)
+  合計: 20問
+
+--- [データの取り込みと変換] 9問 生成中 (5問×2チャンク) --- 開始=01:30:43
+  チャンク 1/2: 5問 生成中...
+  抽出: 5問 → APIインポート中...
+  ✓ チャンク1 インポート成功: 5件: dea-cb712f77, dea-325e5fec, dea-c7e69d70...
+  チャンク 2/2: 4問 生成中...
+  抽出: 4問 → APIインポート中...
+  ✓ チャンク2 インポート成功: 4件: dea-0165b5bb, dea-f5d36e4e, dea-c581a2ce...
+  [データの取り込みと変換] 合計 9/9問 インポート
+  終了=01:41:07  経過=624秒
+
+--- [データストアの管理] 4問 生成中 --- 開始=01:41:07
+  抽出: 4問 → APIインポート中...
+  ✓ チャンク1 インポート成功: 4件: dea-10ab5ade, dea-44e10a29, dea-c9da48c8...
+  [データストアの管理] 合計 4/4問 インポート
+  終了=01:45:00  経過=233秒
+
+--- [データオペレーションとサポート] 4問 生成中 --- 開始=01:45:00
+⚠️  レート制限を検出。残りをスキップ
+出力: You've hit your session limit · resets 6:30am (Asia/Tokyo)
+  🔒 レート制限ロックファイル記録: 2026-06-04 06:30 JST
+  終了=01:45:02  経過=2秒
+
+合計インポート: 13問 / 20問
+
+--- 問題数キャッシュを再構築中（DynamoDBから正確な値を取得）---
+  CLF: 229問
+  SAA: 211問
+  SAP: 203問
+  DVA: 204問
+  SOA: 206問
+  DEA: 214問
+  DOP: 333問
+  AIF: 208問
+  MLA: 207問
+  GAI: 202問
+  ANS: 206問
+  SCS: 210問
+キャッシュ更新完了
+  → 1086s
+▶ [night-script] 02-check-validity.sh
+==========================================
+正当性チェック開始: Thu Jun  4 01:30:04 JST 2026
+バッチサイズ: 30問 / チャンクサイズ: 5問
+==========================================
+チェック対象: 30問
+前処理: choices ラベル接頭辞チェック...
+  前処理: ラベル接頭辞なし（全問クリーン）
+チャンク数: 6
+
+--- チャンク 1/6: 5問  開始=01:31:24 ---
+  [FIX  ] scs-25130d4c: choiceExplanationsが未設定のため生成が必要 → 変更: choiceExplanations
+  [FIX  ] ans-51a284c0: choiceExplanationsが未設定のため生成が必要 → 変更: choiceExplanations
+  [FIX  ] scs-fb9b01c3: choiceExplanationsが未設定のため生成が必要 → 変更: choiceExplanations
+  [FIX  ] scs-4e034276: choiceExplanationsが未設定のため生成が必要 → 変更: choiceExplanations
+  [FIX  ] ans-c0f928bd: choiceExplanationsが未設定のため生成が必要 → 変更: choiceExplanations
+  → 更新完了: OK=0 修正=5 削除=0
+  終了=01:36:49  経過=325秒
+
+--- チャンク 2/6: 5問  開始=01:36:49 ---
+  [FIX  ] scs-adfe85b0: choiceExplanationsが未設定のため生成する。isMultipleを明示的にfalseに設定。 → 変更: choiceExplanations
+  [FIX  ] ans-e80067ca: choiceExplanationsが未設定のため生成する。isMultipleを明示的にfalseに設定。 → 変更: choiceExplanations
+  [FIX  ] ans-97c281e7: choiceExplanationsが未設定のため生成する。isMultipleを明示的にfalseに設定。 → 変更: choiceExplanations
+  [FIX  ] scs-09f5e4ad: choiceExplanationsが未設定のため生成する。isMultipleを明示的にfalseに設定。 → 変更: choiceExplanations
+  [FIX  ] scs-6b59ca06: choiceExplanationsが未設定のため生成する。要件列挙箇所に改行（\n）を追加。isMultipleを明示的にfalseに設定。 → 変更: choiceExplanations
+  → 更新完了: OK=0 修正=5 削除=0
+  終了=01:41:02  経過=253秒
+
+--- チャンク 3/6: 5問  開始=01:41:02 ---
+  [FIX  ] ans-632a7e4c: choiceExplanationsが未設定のため生成。isMultipleを明示的にfalseに設定。 → 変更: choiceExplanations
+  [FIX  ] ans-ea1ef61c: choiceExplanationsが未設定のため生成。isMultipleを明示的にfalseに設定。 → 変更: choiceExplanations
+  [FIX  ] scs-a7dc7798: choiceExplanationsが未設定のため生成。isMultipleを明示的にfalseに設定。 → 変更: choiceExplanations
+  [FIX  ] ans-ca7bb6e3: choiceExplanationsが未設定のため生成。isMultipleを明示的にfalseに設定。 → 変更: choiceExplanations
+  [FIX  ] ans-65a4a3c4: choiceExplanationsが未設定のため生成。isMultipleを明示的にfalseに設定。 → 変更: choiceExplanations
+  → 更新完了: OK=0 修正=5 削除=0
+  終了=01:45:34  経過=272秒
+
+--- チャンク 4/6: 5問  開始=01:45:34 ---
+⚠️  チャンク 4 でエラー（exit 1）。このチャンクをスキップして続行
+stderr: 
+stdout: You've hit your session limit · resets 6:30am (Asia/Tokyo)
+
+--- チャンク 5/6: 5問  開始=01:45:35 ---
+⚠️  チャンク 5 でエラー（exit 1）。このチャンクをスキップして続行
+stderr: 
+stdout: You've hit your session limit · resets 6:30am (Asia/Tokyo)
+
+--- チャンク 6/6: 5問  開始=01:45:37 ---
+⚠️  チャンク 6 でエラー（exit 1）。このチャンクをスキップして続行
+stderr: 
+stdout: You've hit your session limit · resets 6:30am (Asia/Tokyo)
+
+完了サマリー: 問題なし=0問 / 自動修正=15問 / 削除=0問
+
+==========================================
+チェック終了: Thu Jun  4 01:45:38 JST 2026
+==========================================
+  → 1086s
+▶ [night-script] 05-check-daily-services.sh
+==========================================
+日めくりサービス体裁チェック開始: Thu Jun  4 01:30:04 JST 2026
+バッチサイズ: 30件 / チャンクサイズ: 8件
+==========================================
+チェック対象: 30件
+チャンク数: 4
+
+--- チャンク 1/4: 8件  開始=01:30:20 ---
+  [DELETE] _schedule_: name/shortName/category/description/trivia/icon/docUrlすべて空。AWSサービスとして機能しないプレースホルダー
+  [FIX  ] svc-athena-36: descriptionとtriviaに複数特徴・事実があるが\nによる区切りが未使用 → 変更: description, trivia
+  [FIX  ] svc-codeartifact-79: descriptionとtriviaに複数特徴・事実があるが\nによる区切りが未使用 → 変更: description, trivia
+  [FIX  ] svc-cloudwatch-10: descriptionとtriviaに複数特徴・事実があるが\nによる区切りが未使用 → 変更: description, trivia
+  [FIX  ] svc-emr-41: descriptionとtriviaに複数特徴・事実があるが\nによる区切りが未使用 → 変更: description, trivia
+  [FIX  ] svc-documentdb-45: descriptionとtriviaに複数特徴・事実があるが\nによる区切りが未使用 → 変更: description, trivia
+  [FIX  ] svc-polly-85: descriptionとtriviaに複数特徴・事実があるが\nによる区切りが未使用 → 変更: description, trivia
+  [OK   ] svc-cloud9-94
+  → 更新完了: OK=1 修正=6 削除=1
+  終了=01:35:14  経過=294秒
+
+--- チャンク 2/4: 8件  開始=01:35:14 ---
+  [OK   ] svc-inspector-50
+  [FIX  ] svc-api-gateway-15: descriptionが124字で上限120字を超過。 → 変更: description
+  [OK   ] svc-global-accelerator-64
+  [OK   ] svc-auto-scaling-74
+  [OK   ] svc-budgets-80
+  [OK   ] svc-config-51
+  [OK   ] svc-aurora-29
+  [OK   ] svc-vpc-8
+  → 更新完了: OK=7 修正=1 削除=0
+  終了=01:40:58  経過=344秒
+
+--- チャンク 3/4: 8件  開始=01:40:58 ---
+  [OK   ] svc-lightsail-87
+  [FIX  ] svc-waf-32: descriptionとtriviaで複数特徴を含むが\n区切りがない。 → 変更: description, trivia
+  [FIX  ] svc-sagemaker-23: descriptionとtriviaで複数特徴を含むが\n区切りがない。 → 変更: description, trivia
+  [OK   ] svc-transcribe-91
+  [FIX  ] svc-kendra-84: descriptionとtriviaで複数特徴を含むが\n区切りがない。 → 変更: description, trivia
+  [OK   ] svc-cloudhsm-103
+  [FIX  ] svc-codedeploy-66: descriptionとtriviaで複数特徴を含むが\n区切りがない。 → 変更: description, trivia
+  [FIX  ] svc-network-firewall-76: descriptionとtriviaで複数特徴を含むが\n区切りがない。 → 変更: description, trivia
+  → 更新完了: OK=3 修正=5 削除=0
+  終了=01:47:04  経過=366秒
+
+--- チャンク 4/4: 6件  開始=01:47:04 ---
+⚠️  チャンク 4 でエラー（exit 1）。このチャンクをスキップして続行
+stderr: 
+stdout: You've hit your session limit · resets 6:30am (Asia/Tokyo)
+
+完了サマリー: 問題なし=11件 / 自動修正=12件 / 削除=1件
+
+==========================================
+チェック終了: Thu Jun  4 01:47:05 JST 2026
+==========================================
+  → 1086s
+▶ [night-script] generate-release-note.sh
+[release-note] 対象日: 2026-06-03
+[release-note] 2026-06-03 にコミットがありません。終了します。
+  → 1086s
+  [並列実行中: texts 2件]
+▶ [ai-router] monday-job.txt
+You've hit your session limit · resets 6:30am (Asia/Tokyo)
+  → 2s
+▶ [ai-router] nght-prompts-check.txt
+You've hit your session limit · resets 6:30am (Asia/Tokyo)
+  → 2s
+==========================================
+終了: 2026-06-04 01:48:13
+==========================================
+
+--- hook[0] 開始: 2026-06-04 06:02:34 (-30min) | ~/aws-quiz-app/prompts/night-prompts/scripts/02-check-validity.sh -n 100 -D 06:32 ---
+  🔒 レート制限中: リセット予定 06:30 JST
+==========================================
+正当性チェック開始: Thu Jun  4 06:02:34 JST 2026
+バッチサイズ: 100問 / チャンクサイズ: 5問
+==========================================
+チェック対象: 100問
+前処理: choices ラベル接頭辞チェック...
+  前処理: ラベル接頭辞なし（全問クリーン）
+チャンク数: 20
+
+--- チャンク 1/20: 5問  開始=06:03:03 ---
+⚠️  チャンク 1 でエラー（exit 1）。このチャンクをスキップして続行
+stderr: 
+stdout: You've hit your session limit · resets 6:30am (Asia/Tokyo)
+
+--- チャンク 2/20: 5問  開始=06:03:05 ---
+⚠️  チャンク 2 でエラー（exit 1）。このチャンクをスキップして続行
+stderr: 
+stdout: You've hit your session limit · resets 6:30am (Asia/Tokyo)
+
+--- チャンク 3/20: 5問  開始=06:03:07 ---
+⚠️  チャンク 3 でエラー（exit 1）。このチャンクをスキップして続行
+stderr: 
+stdout: You've hit your session limit · resets 6:30am (Asia/Tokyo)
+
+--- チャンク 4/20: 5問  開始=06:03:08 ---
+⚠️  チャンク 4 でエラー（exit 1）。このチャンクをスキップして続行
+stderr: 
+stdout: You've hit your session limit · resets 6:30am (Asia/Tokyo)
+
+--- チャンク 5/20: 5問  開始=06:03:10 ---
+⚠️  チャンク 5 でエラー（exit 1）。このチャンクをスキップして続行
+stderr: 
+stdout: You've hit your session limit · resets 6:30am (Asia/Tokyo)
+
+--- チャンク 6/20: 5問  開始=06:03:11 ---
+⚠️  チャンク 6 でエラー（exit 1）。このチャンクをスキップして続行
+stderr: 
+stdout: You've hit your session limit · resets 6:30am (Asia/Tokyo)
+
+--- チャンク 7/20: 5問  開始=06:03:13 ---
+⚠️  チャンク 7 でエラー（exit 1）。このチャンクをスキップして続行
+stderr: 
+stdout: You've hit your session limit · resets 6:30am (Asia/Tokyo)
+
+--- チャンク 8/20: 5問  開始=06:03:14 ---
+⚠️  チャンク 8 でエラー（exit 1）。このチャンクをスキップして続行
+stderr: 
+stdout: You've hit your session limit · resets 6:30am (Asia/Tokyo)
+
+--- チャンク 9/20: 5問  開始=06:03:15 ---
+⚠️  チャンク 9 でエラー（exit 1）。このチャンクをスキップして続行
+stderr: 
+stdout: You've hit your session limit · resets 6:30am (Asia/Tokyo)
+
+--- チャンク 10/20: 5問  開始=06:03:17 ---
+⚠️  チャンク 10 でエラー（exit 1）。このチャンクをスキップして続行
+stderr: 
+stdout: You've hit your session limit · resets 6:30am (Asia/Tokyo)
+
+--- チャンク 11/20: 5問  開始=06:03:18 ---
+⚠️  チャンク 11 でエラー（exit 1）。このチャンクをスキップして続行
+stderr: 
+stdout: You've hit your session limit · resets 6:30am (Asia/Tokyo)
+
+--- チャンク 12/20: 5問  開始=06:03:20 ---
+⚠️  チャンク 12 でエラー（exit 1）。このチャンクをスキップして続行
+stderr: 
+stdout: You've hit your session limit · resets 6:30am (Asia/Tokyo)
+
+--- チャンク 13/20: 5問  開始=06:03:22 ---
+⚠️  チャンク 13 でエラー（exit 1）。このチャンクをスキップして続行
+stderr: 
+stdout: You've hit your session limit · resets 6:30am (Asia/Tokyo)
+
+--- チャンク 14/20: 5問  開始=06:03:23 ---
+⚠️  チャンク 14 でエラー（exit 1）。このチャンクをスキップして続行
+stderr: 
+stdout: You've hit your session limit · resets 6:30am (Asia/Tokyo)
+
+--- チャンク 15/20: 5問  開始=06:03:24 ---
+⚠️  チャンク 15 でエラー（exit 1）。このチャンクをスキップして続行
+stderr: 
+stdout: You've hit your session limit · resets 6:30am (Asia/Tokyo)
+
+--- チャンク 16/20: 5問  開始=06:03:26 ---
+⚠️  チャンク 16 でエラー（exit 1）。このチャンクをスキップして続行
+stderr: 
+stdout: You've hit your session limit · resets 6:30am (Asia/Tokyo)
+
+--- チャンク 17/20: 5問  開始=06:03:28 ---
+⚠️  チャンク 17 でエラー（exit 1）。このチャンクをスキップして続行
+stderr: 
+stdout: You've hit your session limit · resets 6:30am (Asia/Tokyo)
+
+--- チャンク 18/20: 5問  開始=06:03:30 ---
+⚠️  チャンク 18 でエラー（exit 1）。このチャンクをスキップして続行
+stderr: 
+stdout: You've hit your session limit · resets 6:30am (Asia/Tokyo)
+
+--- チャンク 19/20: 5問  開始=06:03:31 ---
+⚠️  チャンク 19 でエラー（exit 1）。このチャンクをスキップして続行
+stderr: 
+stdout: You've hit your session limit · resets 6:30am (Asia/Tokyo)
+
+--- チャンク 20/20: 5問  開始=06:03:33 ---
+⚠️  チャンク 20 でエラー（exit 1）。このチャンクをスキップして続行
+stderr: 
+stdout: You've hit your session limit · resets 6:30am (Asia/Tokyo)
+
+完了サマリー: 問題なし=0問 / 自動修正=0問 / 削除=0問
+
+==========================================
+チェック終了: Thu Jun  4 06:03:34 JST 2026
+==========================================
+--- hook[0] 完了: 2026-06-04 06:03:34 ---
+
+==========================================
+実行開始: 2026-06-04 06:32:00
+==========================================
+▶ [ping] Claudeセッション確認...
+  → 7s
+`develop` ブランチにいます。何かお手伝いできることはありますか？
+✓ ping OK
+🌙 夜間初回実行を開始します (06:32)
+  [並列実行中: night-scripts 4件]
+▶ [night-script] 01-generate-questions.sh
+==========================================
+問題自動生成 開始: Thu Jun  4 06:32:07 JST 2026
+==========================================
+対象資格: CLF SAA SAP DVA SOA DEA DOP AIF MLA GAI ANS SCS
+問題数キャッシュを使用...
+  CLF: 229問 (キャッシュ)
+  SAA: 211問 (キャッシュ)
+  SAP: 203問 (キャッシュ)
+  DVA: 204問 (キャッシュ)
+  SOA: 206問 (キャッシュ)
+  DEA: 214問 (キャッシュ)
+  DOP: 333問 (キャッシュ)
+  AIF: 208問 (キャッシュ)
+  MLA: 207問 (キャッシュ)
+  GAI: 202問 (キャッシュ)
+  ANS: 206問 (キャッシュ)
+  SCS: 210問 (キャッシュ)
+選択: GAI (現在202問 — 最少)
+ドメイン数: 5  /  基本 5問/ドメイン（重み付きで配分）  /  合計予算 25問
+開始ドメイン: [1] 実装と統合
+
+--- Cognito 認証中 ---
+✓ 認証完了
+
+--- ドメイン別問題数を取得・割り当て計算中 ---
+  （まだ問題がありません）
+
+ドメイン別生成数（逆数重み付き割り当て）:
+  5問 → 基盤モデルの統合、データ管理、コンプライアンス (現在0問)
+  5問 → 実装と統合 (現在0問)
+  5問 → AIの安全性、セキュリティ、ガバナンス (現在0問)
+  5問 → 生成AIアプリケーションの運用効率と最適化 (現在0問)
+  5問 → テスト、検証、トラブルシューティング (現在0問)
+  合計: 25問
+
+--- [実装と統合] 5問 生成中 --- 開始=06:32:40
+  抽出: 5問 → APIインポート中...
+  ✓ チャンク1 インポート成功: 5件: gai-48ad46e8, gai-a8a190ef, gai-89d426f2...
+  [実装と統合] 合計 5/5問 インポート
+  終了=06:39:07  経過=387秒
+
+--- [AIの安全性、セキュリティ、ガバナンス] 5問 生成中 --- 開始=06:39:07
+  抽出: 5問 → APIインポート中...
+  ✓ チャンク1 インポート成功: 5件: gai-ab46e56e, gai-6a2eae04, gai-ec6d581e...
+  [AIの安全性、セキュリティ、ガバナンス] 合計 5/5問 インポート
+  終了=06:46:29  経過=442秒
+
+--- [生成AIアプリケーションの運用効率と最適化] 5問 生成中 --- 開始=06:46:29
+  抽出: 5問 → APIインポート中...
+  ✓ チャンク1 インポート成功: 5件: gai-c56101fa, gai-61583025, gai-5ba910c7...
+  [生成AIアプリケーションの運用効率と最適化] 合計 5/5問 インポート
+  終了=06:51:40  経過=311秒
+
+--- [テスト、検証、トラブルシューティング] 5問 生成中 --- 開始=06:51:40
+⚠️  レート制限を検出。残りをスキップ
+出力: You've hit your session limit · resets 11:30am (Asia/Tokyo)
+  🔒 レート制限ロックファイル記録: 2026-06-04 11:30 JST
+  終了=06:51:43  経過=3秒
+
+合計インポート: 15問 / 25問
+
+--- 問題数キャッシュを再構築中（DynamoDBから正確な値を取得）---
+  CLF: 229問
+  SAA: 211問
+  SAP: 203問
+  DVA: 204問
+  SOA: 206問
+  DEA: 214問
+  DOP: 333問
+  AIF: 208問
+  MLA: 207問
+  GAI: 217問
+  ANS: 206問
+  SCS: 210問
+キャッシュ更新完了
+  → 1475s
+▶ [night-script] 02-check-validity.sh
+==========================================
+正当性チェック開始: Thu Jun  4 06:32:07 JST 2026
+バッチサイズ: 30問 / チャンクサイズ: 5問
+==========================================
+チェック対象: 30問
+前処理: choices ラベル接頭辞チェック...
+  前処理: ラベル接頭辞なし（全問クリーン）
+チャンク数: 6
+
+--- チャンク 1/6: 5問  開始=06:32:33 ---
+  [FIX  ] dea-2b32fb2b: choiceExplanationsが未設定のため生成。isMultipleをfalseに設定。 → 変更: choiceExplanations
+  [FIX  ] dea-cb712f77: choiceExplanationsが未設定のため生成。isMultipleをfalseに設定。 → 変更: choiceExplanations
+  [FIX  ] dea-44e10a29: choiceExplanationsが未設定のため生成。isMultipleをfalseに設定。 → 変更: choiceExplanations
+  [FIX  ] scs-aa38d1c0: choiceExplanationsが未設定のため生成。isMultipleをfalseに設定。 → 変更: choiceExplanations
+  [FIX  ] scs-09ab2d94: choiceExplanationsが未設定のため生成。isMultipleをfalseに設定。解説内のFBSP誤記をFSBPに修正。 → 変更: explanation, choiceExplanations
+  → 更新完了: OK=0 修正=5 削除=0
+  終了=06:38:27  経過=354秒
+
+--- チャンク 2/6: 5問  開始=06:38:27 ---
+  [FIX  ] scs-1456db72: 選択肢AとcorrectAnswersの「kMS:GenerateDataKey」はAWS API命名規則上「kms:GenerateDataKey」が正しい表記。choiceExplanationsが未生成のため生成する。 → 変更: choices, correctAnswers, choiceExplanations
+  [FIX  ] dea-75598ab7: テーブル形式の選択はストレージ管理の観点であり、タグは「データの取り込みと変換」より「データストアの管理」が適切。choiceExplanationsが未生成のため生成する。 → 変更: choiceExplanations, tags
+  [FIX  ] ans-83d85de0: choiceExplanationsが未生成のため生成する。正解・解説・タグその他の観点は問題なし。 → 変更: choiceExplanations
+  [FIX  ] scs-912c3808: choiceExplanationsが未生成のため生成する。正解・解説・タグその他の観点は問題なし。 → 変更: choiceExplanations
+  [FIX  ] scs-809676b2: choiceExplanationsが未生成のため生成する。正解・解説・タグその他の観点は問題なし。 → 変更: choiceExplanations
+  → 更新完了: OK=0 修正=5 削除=0
+  終了=06:43:41  経過=314秒
+
+--- チャンク 3/6: 5問  開始=06:43:41 ---
+  [FIX  ] ans-4fcebc7d: 選択肢AにECMPの略語注釈が未記載。choiceExplanations未設定。isMultipleをfalseに設定。 → 変更: choices, explanation, choiceExplanations
+  [FIX  ] scs-92051c7f: セキュリティ要件2項目が一文に並列されており改行未設定。choiceExplanations未設定。isMultipleをfalseに設定。 → 変更: questionText, choiceExplanations
+  [FIX  ] dea-c9da48c8: choiceExplanations未設定。isMultipleをfalseに設定。 → 変更: choiceExplanations
+  [FIX  ] scs-ae99b01b: choiceExplanations未設定。isMultipleをfalseに設定。 → 変更: choiceExplanations
+  [FIX  ] dea-10ab5ade: choiceExplanations未設定。isMultipleをfalseに設定。 → 変更: choiceExplanations
+  → 更新完了: OK=0 修正=5 削除=0
+  終了=06:50:53  経過=432秒
+
+--- チャンク 4/6: 5問  開始=06:50:53 ---
+  [FIX  ] ans-b4782c6f: choiceExplanationsが未設定のため生成。正解・解説・タグはすべて正確。 → 変更: choiceExplanations
+  [FIX  ] scs-0a8a8ee3: choiceExplanationsが未設定のため生成。正解・解説・タグはすべて正確。 → 変更: choiceExplanations
+  [FIX  ] scs-16ecad26: choiceExplanationsが未設定のため生成。正解・解説・タグはすべて正確。 → 変更: choiceExplanations
+  [FIX  ] ans-c4cea650: choiceExplanationsが未設定のため生成。正解・解説・タグはすべて正確。 → 変更: choiceExplanations
+  [FIX  ] ans-37193b0c: choiceExplanationsが未設定のため生成。正解・解説・タグはすべて正確。 → 変更: choiceExplanations
+  → 更新完了: OK=0 修正=5 削除=0
+  終了=06:56:38  経過=345秒
+
+--- チャンク 5/6: 5問  開始=06:56:38 ---
+⚠️  チャンク 5 でエラー（exit 1）。このチャンクをスキップして続行
+stderr: 
+stdout: You've hit your session limit · resets 11:30am (Asia/Tokyo)
+
+--- チャンク 6/6: 5問  開始=06:56:40 ---
+⚠️  チャンク 6 でエラー（exit 1）。このチャンクをスキップして続行
+stderr: 
+stdout: You've hit your session limit · resets 11:30am (Asia/Tokyo)
+
+完了サマリー: 問題なし=0問 / 自動修正=20問 / 削除=0問
+
+==========================================
+チェック終了: Thu Jun  4 06:56:42 JST 2026
+==========================================
+  → 1475s
+▶ [night-script] 05-check-daily-services.sh
+==========================================
+日めくりサービス体裁チェック開始: Thu Jun  4 06:32:07 JST 2026
+バッチサイズ: 30件 / チャンクサイズ: 8件
+==========================================
+チェック対象: 30件
+チャンク数: 4
+
+--- チャンク 1/4: 8件  開始=06:32:23 ---
+  [FIX  ] svc-trusted-advisor-71: triviaに2つの独立した事実が含まれるが\nで区切られていない → 変更: trivia
+  [FIX  ] b3d71a09-b495-4573-933f-34be6cbdb9b5: descriptionに3文・triviaに2文あるが\nで区切られていない → 変更: description, trivia
+  [OK   ] svc-cloudformation-16
+  [OK   ] svc-route-53-17
+  [OK   ] svc-detective-97
+  [OK   ] svc-translate-77
+  [OK   ] svc-elb-35
+  [OK   ] svc-glue-30
+  → 更新完了: OK=6 修正=2 削除=0
+  終了=06:37:48  経過=325秒
+
+--- チャンク 2/4: 8件  開始=06:37:48 ---
+  [OK   ] svc-codebuild-61
+  [OK   ] svc-iam-9
+  [OK   ] svc-acm-69
+  [OK   ] svc-codecommit-95
+  [FIX  ] svc-memorydb-73: descriptionとtriviaで複数特徴/事実が\n区切りなしに連結されている。 → 変更: description, trivia
+  [FIX  ] svc-msk-60: descriptionの1・2文目間、triviaの各行内2事実間に\n区切りが欠落している。 → 変更: description, trivia
+  [FIX  ] svc-rekognition-67: descriptionで2つの特徴が\n区切りなしに連結されている。 → 変更: description
+  [FIX  ] svc-ses-53: descriptionの2文間、triviaの1行目内2事実間に\n区切りが欠落している。 → 変更: description, trivia
+  → 更新完了: OK=4 修正=4 削除=0
+  終了=06:45:05  経過=437秒
+
+--- チャンク 3/4: 8件  開始=06:45:05 ---
+  [OK   ] svc-privatelink-72
+  [FIX  ] svc-cognito-21: descriptionが127字で上限120字を超過。簡潔化して115字に短縮。 → 変更: description
+  [OK   ] svc-control-tower-63
+  [FIX  ] svc-rds-7: descriptionが128字で上限120字を超過。エンジン列挙とLine2を圧縮して112字に短縮。 → 変更: description
+  [OK   ] svc-ssm-33
+  [FIX  ] svc-x-ray-47: descriptionとtriviaに複数特徴/事実があるが\n区切りがない。 → 変更: description, trivia
+  [FIX  ] svc-efs-31: descriptionとtriviaに複数特徴/事実があるが\n区切りがない。 → 変更: description, trivia
+  [FIX  ] svc-lake-formation-58: descriptionとtriviaに複数特徴/事実があるが\n区切りがない。 → 変更: description, trivia
+  → 更新完了: OK=3 修正=5 削除=0
+  終了=06:53:25  経過=500秒
+
+--- チャンク 4/4: 6件  開始=06:53:25 ---
+⚠️  チャンク 4 でエラー（exit 1）。このチャンクをスキップして続行
+stderr: 
+stdout: You've hit your session limit · resets 11:30am (Asia/Tokyo)
+
+完了サマリー: 問題なし=13件 / 自動修正=11件 / 削除=0件
+
+==========================================
+チェック終了: Thu Jun  4 06:53:26 JST 2026
+==========================================
+  → 1475s
+▶ [night-script] generate-release-note.sh
+[release-note] 対象日: 2026-06-03
+[release-note] 2026-06-03 にコミットがありません。終了します。
+  → 1475s
+  [並列実行中: texts 2件]
+▶ [ai-router] monday-job.txt
+You've hit your session limit · resets 11:30am (Asia/Tokyo)
+  → 2s
+▶ [ai-router] nght-prompts-check.txt
+You've hit your session limit · resets 11:30am (Asia/Tokyo)
+  → 2s
+==========================================
+終了: 2026-06-04 06:56:44
+==========================================
+
+--- hook[0] 開始: 2026-06-04 11:00:34 (-30min) | ~/aws-quiz-app/prompts/night-prompts/scripts/02-check-validity.sh -n 100 -D 11:30 ---
+  🔒 レート制限中: リセット予定 11:30 JST
+==========================================
+正当性チェック開始: Thu Jun  4 11:00:34 JST 2026
+バッチサイズ: 100問 / チャンクサイズ: 5問
+==========================================
+チェック対象: 100問
+前処理: choices ラベル接頭辞チェック...
+  前処理: ラベル接頭辞なし（全問クリーン）
+チャンク数: 20
+
+--- チャンク 1/20: 5問  開始=11:01:00 ---
+⚠️  チャンク 1 でエラー（exit 1）。このチャンクをスキップして続行
+stderr: 
+stdout: You've hit your session limit · resets 11:30am (Asia/Tokyo)
+
+--- チャンク 2/20: 5問  開始=11:01:04 ---
+⚠️  チャンク 2 でエラー（exit 1）。このチャンクをスキップして続行
+stderr: 
+stdout: You've hit your session limit · resets 11:30am (Asia/Tokyo)
+
+--- チャンク 3/20: 5問  開始=11:01:06 ---
+⚠️  チャンク 3 でエラー（exit 1）。このチャンクをスキップして続行
+stderr: 
+stdout: You've hit your session limit · resets 11:30am (Asia/Tokyo)
+
+--- チャンク 4/20: 5問  開始=11:01:07 ---
+⚠️  チャンク 4 でエラー（exit 1）。このチャンクをスキップして続行
+stderr: 
+stdout: You've hit your session limit · resets 11:30am (Asia/Tokyo)
+
+--- チャンク 5/20: 5問  開始=11:01:09 ---
+⚠️  チャンク 5 でエラー（exit 1）。このチャンクをスキップして続行
+stderr: 
+stdout: You've hit your session limit · resets 11:30am (Asia/Tokyo)
+
+--- チャンク 6/20: 5問  開始=11:01:10 ---
+⚠️  チャンク 6 でエラー（exit 1）。このチャンクをスキップして続行
+stderr: 
+stdout: You've hit your session limit · resets 11:30am (Asia/Tokyo)
+
+--- チャンク 7/20: 5問  開始=11:01:12 ---
+⚠️  チャンク 7 でエラー（exit 1）。このチャンクをスキップして続行
+stderr: 
+stdout: You've hit your session limit · resets 11:30am (Asia/Tokyo)
+
+--- チャンク 8/20: 5問  開始=11:01:13 ---
+⚠️  チャンク 8 でエラー（exit 1）。このチャンクをスキップして続行
+stderr: 
+stdout: You've hit your session limit · resets 11:30am (Asia/Tokyo)
+
+--- チャンク 9/20: 5問  開始=11:01:15 ---
+⚠️  チャンク 9 でエラー（exit 1）。このチャンクをスキップして続行
+stderr: 
+stdout: You've hit your session limit · resets 11:30am (Asia/Tokyo)
+
+--- チャンク 10/20: 5問  開始=11:01:19 ---
+⚠️  チャンク 10 でエラー（exit 1）。このチャンクをスキップして続行
+stderr: 
+stdout: You've hit your session limit · resets 11:30am (Asia/Tokyo)
+
+--- チャンク 11/20: 5問  開始=11:01:21 ---
+⚠️  チャンク 11 でエラー（exit 1）。このチャンクをスキップして続行
+stderr: 
+stdout: You've hit your session limit · resets 11:30am (Asia/Tokyo)
+
+--- チャンク 12/20: 5問  開始=11:01:22 ---
+⚠️  チャンク 12 でエラー（exit 1）。このチャンクをスキップして続行
+stderr: 
+stdout: You've hit your session limit · resets 11:30am (Asia/Tokyo)
+
+--- チャンク 13/20: 5問  開始=11:01:24 ---
+⚠️  チャンク 13 でエラー（exit 1）。このチャンクをスキップして続行
+stderr: 
+stdout: You've hit your session limit · resets 11:30am (Asia/Tokyo)
+
+--- チャンク 14/20: 5問  開始=11:01:25 ---
+⚠️  チャンク 14 でエラー（exit 1）。このチャンクをスキップして続行
+stderr: 
+stdout: You've hit your session limit · resets 11:30am (Asia/Tokyo)
+
+--- チャンク 15/20: 5問  開始=11:01:26 ---
+⚠️  チャンク 15 でエラー（exit 1）。このチャンクをスキップして続行
+stderr: 
+stdout: You've hit your session limit · resets 11:30am (Asia/Tokyo)
+
+--- チャンク 16/20: 5問  開始=11:01:28 ---
+⚠️  チャンク 16 でエラー（exit 1）。このチャンクをスキップして続行
+stderr: 
+stdout: You've hit your session limit · resets 11:30am (Asia/Tokyo)
+
+--- チャンク 17/20: 5問  開始=11:01:29 ---
+⚠️  チャンク 17 でエラー（exit 1）。このチャンクをスキップして続行
+stderr: 
+stdout: You've hit your session limit · resets 11:30am (Asia/Tokyo)
+
+--- チャンク 18/20: 5問  開始=11:01:31 ---
+⚠️  チャンク 18 でエラー（exit 1）。このチャンクをスキップして続行
+stderr: 
+stdout: You've hit your session limit · resets 11:30am (Asia/Tokyo)
+
+--- チャンク 19/20: 5問  開始=11:01:32 ---
+⚠️  チャンク 19 でエラー（exit 1）。このチャンクをスキップして続行
+stderr: 
+stdout: You've hit your session limit · resets 11:30am (Asia/Tokyo)
+
+--- チャンク 20/20: 5問  開始=11:01:34 ---
+⚠️  チャンク 20 でエラー（exit 1）。このチャンクをスキップして続行
+stderr: 
+stdout: You've hit your session limit · resets 11:30am (Asia/Tokyo)
+
+完了サマリー: 問題なし=0問 / 自動修正=0問 / 削除=0問
+
+==========================================
+チェック終了: Thu Jun  4 11:01:36 JST 2026
+==========================================
+--- hook[0] 完了: 2026-06-04 11:01:36 ---
+
+==========================================
+実行開始: 2026-06-04 11:30:00
+==========================================
+▶ [ping] Claudeセッション確認...
+  → 5s
+何かお手伝いできることはありますか？
+✓ ping OK
+==========================================
+終了: 2026-06-04 11:30:05
+==========================================
+
+==========================================
+実行開始: 2026-06-04 16:30:00
+==========================================
+▶ [ping] Claudeセッション確認...
+  → 9s
+何かお手伝いできることはありますか？
+✓ ping OK
+==========================================
+終了: 2026-06-04 16:30:09
+==========================================
+
+--- hook[0] 開始: 2026-06-04 21:00:34 (-30min) | ~/aws-quiz-app/prompts/night-prompts/scripts/02-check-validity.sh -n 100 -D 21:30 ---
+==========================================
+正当性チェック開始: Thu Jun  4 21:00:34 JST 2026
+バッチサイズ: 100問 / チャンクサイズ: 5問
+==========================================
+チェック対象: 100問
+前処理: choices ラベル接頭辞チェック...
+  前処理: ラベル接頭辞なし（全問クリーン）
+チャンク数: 20
+
+--- チャンク 1/20: 5問  開始=21:01:07 ---
+  [FIX  ] sap-75705fcb: 問題文の要件列挙箇所（(1)〜(5)）に改行がない。解説で選択肢Aの説明が「選択肢Aは〜」形式で明示されていない。 → 変更: questionText, explanation
+  [FIX  ] clf-4ec51ff7: 解説に選択肢D（正解：コードの品質分析）の個別説明がなく、4選択肢の解説が不完全。 → 変更: explanation
+  [FIX  ] clf-6a41fc89: タグにドメイン外の値（IAM・Shared Responsibility Model）が含まれる。解説に選択肢C（正解）の個別説明がない。 → 変更: explanation, tags
+  [FIX  ] clf-41076461: タグにドメイン外の値（Savings Plans・コスト最適化・EC2）が含まれる。解説に選択肢B（正解）の個別説明がない。 → 変更: explanation, tags
+  [FIX  ] saa-c7912c9c: タグにドメイン外の値（S3・KMS・CloudTrail）が含まれる。解説に選択肢C（正解）の個別説明がない。 → 変更: explanation, tags
+  → 更新完了: OK=0 修正=5 削除=0
+  終了=21:06:00  経過=293秒
+
+--- チャンク 2/20: 5問  開始=21:06:00 ---
+  [FIX  ] clf-930364ae: 解説で正解の選択肢C（AWS Lambda）にラベルがなく「選択肢Cは〜」の形式になっていないため修正 → 変更: explanation
+  [FIX  ] sap-bd13169f: 問題文の列挙された課題5件が改行なしで読みにくい。解説で正解の選択肢Aにラベルが欠落 → 変更: questionText, explanation
+  [FIX  ] dop-97444b53: 解説でA・Bにラベルがなく、選択肢D・Eが「選択肢Dは」に誤って統合されており選択肢Eの説明が独立していない → 変更: explanation
+  [FIX  ] sap-30d8375a: 解説で正解の選択肢A・Cにラベルがなく「選択肢Aは〜」「選択肢Cは〜」の形式になっていない → 変更: explanation
+  [FIX  ] dop-q-035: 解説で正解の選択肢B（Manual Approval）にラベルがなく「選択肢Bは〜」の形式になっていない → 変更: explanation
+  → 更新完了: OK=0 修正=5 削除=0
+  終了=21:13:00  経過=420秒
+
+--- チャンク 3/20: 5問  開始=21:13:00 ---
+  [FIX  ] sap-83de8bae: 問題文の問題1〜3列挙に改行がなく読みにくい。解説で正解選択肢A・Bに「選択肢Xは〜」ラベルがなく不正解選択肢C〜Eと形式が不統一。 → 変更: questionText, explanation
+  [FIX  ] clf-ac5c3a4f: 解説で正解選択肢B（KMS）に「選択肢Bは〜」ラベルがなく、他の選択肢と形式が不統一。 → 変更: explanation
+  [FIX  ] dop-q-040: 解説が一段落にまとまっており「選択肢Xは〜」形式の改行区切りになっていない。正解選択肢Bも個別ラベルなし。 → 変更: explanation
+  [FIX  ] dop-938c497d: 解説で正解選択肢C（cfn-guard）に「選択肢Cは〜」ラベルがなく、他の選択肢と形式が不統一。 → 変更: explanation
+  [FIX  ] sap-78d62baa: 解説で正解選択肢B・C・Eに「選択肢Xは〜」ラベルがなく、不正解選択肢A・D・Fとの形式が不統一。 → 変更: explanation
+  → 更新完了: OK=0 修正=5 削除=0
+  終了=21:25:50  経過=770秒
+
+--- チャンク 4/20: 5問  開始=21:25:50 ---
+
+==========================================
+実行開始: 2026-06-04 21:30:00
+==========================================
+▶ [ping] Claudeセッション確認...
+  → 4s
+何かご用件はありますか？
+✓ ping OK
+==========================================
+終了: 2026-06-04 21:30:04
+==========================================

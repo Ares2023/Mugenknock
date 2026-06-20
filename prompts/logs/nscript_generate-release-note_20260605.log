@@ -1,0 +1,21 @@
+=== 2026-06-05 02:54:38 | generate-release-note.sh | exit:1 ===
+[release-note] 対象日: 2026-06-04
+[release-note] コミット数: 5
+[release-note] Claudeでリリースノートを生成中...
+[release-note] 生成結果:
+{
+  "title": "演習がよりバランスよく出題されるようになった！",
+  "body": "苦手なジャンルに偏りすぎない、まんべんなく学べる出題ロジックに改善しました！\niOS Safariでの保存ミスや、演習中のリロード問題も修正済みで快適に学習できます。",
+  "titleEn": "Smarter Question Selection for Balanced Practice!",
+  "bodyEn": "Questions are now selected with domain balancing so you get well-rounded practice across all AWS topics.\nWe also fixed draft-save issues on iOS Safari and restored your current question correctly after a page reload."
+}
+[release-note] ERROR: JSONパースに失敗しました: Invalid control character at: line 3 column 50 (char 89)
+出力内容:
+{
+  "title": "演習がよりバランスよく出題されるようになった！",
+  "body": "苦手なジャンルに偏りすぎない、まんべんなく学べる出題ロジックに改善しました！
+iOS Safariでの保存ミスや、演習中のリロード問題も修正済みで快適に学習できます。",
+  "titleEn": "Smarter Question Selection for Balanced Practice!",
+  "bodyEn": "Questions are now selected with domain balancing so you get well-rounded practice across all AWS topics.
+We also fixed draft-save issues on iOS Safari and restored your current question correctly after a page reload."
+}

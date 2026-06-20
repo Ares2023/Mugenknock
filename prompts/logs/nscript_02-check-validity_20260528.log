@@ -1,0 +1,124 @@
+=== 2026-05-28 00:15:43 | 02-check-validity.sh | exit:0 ===
+==========================================
+正当性チェック開始: Thu May 28 00:00:04 JST 2026
+バッチサイズ: 50問 / チャンクサイズ: 8問
+==========================================
+チェック対象: 50問
+チャンク数: 7
+
+--- チャンク 1/7: 8問  開始=00:00:29 ---
+  [OK   ] dea-09789912
+  [OK   ] dea-5892d7b3
+  [OK   ] scs-d6db7d72
+  [OK   ] scs-e02cad26
+  [OK   ] scs-750f2851
+  [FIX  ] scs-69a03c1b: 解説の不正解選択肢説明が「選択肢XのY…」形式で「選択肢Xは〜」書き出し形式に不一致。 → 変更: explanation
+  [OK   ] scs-3d11ebc3
+  [FIX  ] scs-d8f08629: 解説の不正解選択肢説明が「選択肢XのY…」形式で「選択肢Xは〜」書き出し形式に不一致。 → 変更: explanation
+  → 更新完了: OK=6 修正=2 削除=0
+  終了=00:06:02  経過=333秒
+
+--- チャンク 2/7: 8問  開始=00:06:02 ---
+  [OK   ] scs-b7c24419
+  [OK   ] scs-a0e59d00
+  [OK   ] dea-b8d563eb
+  [OK   ] ans-8e2f9249
+  [OK   ] ans-73a114c2
+  [OK   ] scs-22c7dac8
+  [FIX  ] dea-31d40819: 解説の「正解：」ブロックが選択肢テキストの省略形になっており、完全一致していない。 → 変更: explanation
+  [OK   ] dea-33006d6c
+  → 更新完了: OK=7 修正=1 削除=0
+  終了=00:12:13  経過=371秒
+
+--- チャンク 3/7: 8問  開始=00:12:13 ---
+⚠️  チャンク 3 でエラー（exit 1）。このチャンクをスキップして続行
+stderr: 
+stdout: You've hit your session limit · resets 5am (Asia/Tokyo)
+
+--- チャンク 4/7: 8問  開始=00:12:15 ---
+⚠️  チャンク 4 でエラー（exit 1）。このチャンクをスキップして続行
+stderr: 
+stdout: You've hit your session limit · resets 5am (Asia/Tokyo)
+
+--- チャンク 5/7: 8問  開始=00:12:16 ---
+⚠️  チャンク 5 でエラー（exit 1）。このチャンクをスキップして続行
+stderr: 
+stdout: You've hit your session limit · resets 5am (Asia/Tokyo)
+
+--- チャンク 6/7: 8問  開始=00:12:18 ---
+⚠️  チャンク 6 でエラー（exit 1）。このチャンクをスキップして続行
+stderr: 
+stdout: You've hit your session limit · resets 5am (Asia/Tokyo)
+
+--- チャンク 7/7: 2問  開始=00:12:20 ---
+⚠️  チャンク 7 でエラー（exit 1）。このチャンクをスキップして続行
+stderr: 
+stdout: You've hit your session limit · resets 5am (Asia/Tokyo)
+
+完了サマリー: 問題なし=13問 / 自動修正=3問 / 削除=0問
+
+==========================================
+チェック終了: Thu May 28 00:12:21 JST 2026
+==========================================
+=== 2026-05-28 05:20:39 | 02-check-validity.sh | exit:0 ===
+==========================================
+正当性チェック開始: Thu May 28 05:00:07 JST 2026
+バッチサイズ: 50問 / チャンクサイズ: 8問
+==========================================
+チェック対象: 50問
+チャンク数: 7
+
+--- チャンク 1/7: 8問  開始=05:00:36 ---
+  [OK   ] ans-01b10933
+  [OK   ] ans-42eb4c40
+  [FIX  ] ans-305d08ae: 選択肢DのAWS App Meshは2025年9月EOL済みの廃止サービス。現行サービスへの差し替えが必要。 → 変更: choices, explanation
+  [FIX  ] ans-205d2b13: 選択肢DのAWS App Meshは2025年9月EOL済みの廃止サービス。加えて解説の「選択肢Dの〜」が規定フォーマット「選択肢Xは〜」に不適合。 → 変更: choices, explanation
+  [FIX  ] dea-a27f68a4: 解説内の不正解説明3件が「選択肢Xの〜」形式で、規定の「選択肢Xは〜」書き出しに不適合。 → 変更: explanation
+  [OK   ] ans-e5038884
+  [OK   ] scs-f2c5ad4c
+  [FIX  ] scs-e35d2d70: 解説内の不正解説明3件が「選択肢Xの〜」形式で、規定の「選択肢Xは〜」書き出しに不適合。 → 変更: explanation
+  → 更新完了: OK=4 修正=4 削除=0
+  終了=05:08:46  経過=490秒
+
+--- チャンク 2/7: 8問  開始=05:08:46 ---
+⚠️  チャンク 2 でエラー（exit 1）。このチャンクをスキップして続行
+stderr: 
+stdout: API Error: The socket connection was closed unexpectedly. For more information, pass `verbose: true` in the second argument to fetch()
+
+--- チャンク 3/7: 8問  開始=05:11:35 ---
+  [OK   ] scs-1c4cc91d
+  [FIX  ] dea-723037fc: 解説の選択肢B・Dが「選択肢Xの〜」形式で、規定の「選択肢Xは〜」書き出しになっていない。 → 変更: explanation
+  [OK   ] dea-7022ab2b
+  [FIX  ] ans-b9715961: 解説の選択肢A・B・Cが「選択肢Xの〜」形式で、規定の「選択肢Xは〜」書き出しになっていない。 → 変更: explanation
+  [OK   ] scs-2bb5940f
+  [OK   ] scs-7a614f0e
+  [FIX  ] ans-77d33eda: 解説の選択肢A・C・Dが「選択肢Xの〜」形式で、規定の「選択肢Xは〜」書き出しになっていない。 → 変更: explanation
+  [OK   ] dea-962e5452
+  → 更新完了: OK=5 修正=3 削除=0
+  終了=05:19:11  経過=456秒
+
+--- チャンク 4/7: 8問  開始=05:19:11 ---
+⚠️  チャンク 4 でエラー（exit 1）。このチャンクをスキップして続行
+stderr: 
+stdout: You've hit your session limit · resets 10am (Asia/Tokyo)
+
+--- チャンク 5/7: 8問  開始=05:19:14 ---
+⚠️  チャンク 5 でエラー（exit 1）。このチャンクをスキップして続行
+stderr: 
+stdout: You've hit your session limit · resets 10am (Asia/Tokyo)
+
+--- チャンク 6/7: 8問  開始=05:19:16 ---
+⚠️  チャンク 6 でエラー（exit 1）。このチャンクをスキップして続行
+stderr: 
+stdout: You've hit your session limit · resets 10am (Asia/Tokyo)
+
+--- チャンク 7/7: 2問  開始=05:19:17 ---
+⚠️  チャンク 7 でエラー（exit 1）。このチャンクをスキップして続行
+stderr: 
+stdout: You've hit your session limit · resets 10am (Asia/Tokyo)
+
+完了サマリー: 問題なし=9問 / 自動修正=7問 / 削除=0問
+
+==========================================
+チェック終了: Thu May 28 05:19:19 JST 2026
+==========================================

@@ -1,0 +1,128 @@
+==========================================
+正当性チェック開始: Sun May 24 15:35:49 JST 2026
+バッチサイズ: 100問 / チャンクサイズ: 5問
+==========================================
+チェック対象: 100問
+チャンク数: 20
+
+--- チャンク 1/20: 5問  開始=15:36:12 ---
+  [FIX  ] clf-6cc07f1b: タグにドメイン外のキーワード（Snowball・データ移行・ストレージ）が含まれており、解説が選択肢ごとに改行されていないため修正。 → 変更: explanation, tags
+  [FIX  ] sap-52c95f53: 解説が選択肢ごとに改行されておらず読みにくいため修正。 → 変更: explanation
+  [FIX  ] saa-2ea371a7: 解説でVPCピアリングとTransit Gatewayが同一文にまとめられており選択肢ごとの改行がないため修正。 → 変更: explanation
+  [FIX  ] sap-0096a408: 解説が選択肢ごとに改行されておらず読みにくいため修正。 → 変更: explanation
+  [FIX  ] saa-29a42465: 解説が選択肢ごとに改行されておらず読みにくいため修正。 → 変更: explanation
+  → 更新完了: OK=0 修正=5 削除=0
+  終了=15:41:26  経過=314秒
+
+--- チャンク 2/20: 5問  開始=15:41:26 ---
+  [FIX  ] sap-cc839d3a: 解説が一段落にまとめられており各選択肢の説明が改行で区切られていないため読みにくい。改行を追加して修正。 → 変更: explanation
+  [FIX  ] saa-30d1ad92: 解説が一段落にまとめられており各選択肢の説明が改行で区切られていないため読みにくい。改行を追加して修正。 → 変更: explanation
+  [FIX  ] sap-6775c5cc: 解説内の各選択肢説明（A/B/D不正解）の間に改行がなく読みにくいため修正。 → 変更: explanation
+  [FIX  ] saa-bfeb51ca: 解説が一段落にまとめられており各選択肢の説明が改行で区切られていないため読みにくい。改行を追加して修正。 → 変更: explanation
+  [FIX  ] sap-c6ec8bd2: 解説が一段落にまとめられており各選択肢説明が改行で区切られていない。また選択肢5の不正解理由が未記載のため修正。 → 変更: explanation
+  → 更新完了: OK=0 修正=5 削除=0
+  終了=15:46:06  経過=280秒
+
+--- チャンク 3/20: 5問  開始=15:46:06 ---
+  [FIX  ] saa-5af9e9a1: 解説で各選択肢の説明が改行なく連続しているため、選択肢ごとに改行して読みやすく修正。 → 変更: explanation
+  [FIX  ] clf-3b7e22c2: 解説で各選択肢の説明が改行なく連続しているため、選択肢ごとに改行して読みやすく修正。 → 変更: explanation
+  [FIX  ] sap-8784c5e6: 解説で各選択肢の説明が改行なく連続しているため、選択肢ごとに改行して読みやすく修正。 → 変更: explanation
+  [FIX  ] clf-438d2394: 解説で各選択肢の説明が改行なく連続しているため、選択肢ごとに改行して読みやすく修正。 → 変更: explanation
+  [FIX  ] clf-8f79a1b8: 解説で各選択肢が改行なく連続しており、リパーチェス（選択肢D）がだめな理由の説明も欠落しているため修正。 → 変更: explanation
+  → 更新完了: OK=0 修正=5 削除=0
+  終了=15:49:01  経過=175秒
+
+--- チャンク 4/20: 5問  開始=15:49:01 ---
+  [FIX  ] saa-e849038e: 選択肢にA:/B:等の記号接頭辞が付与されcorrectAnswersと不整合。問題文にHIPAAの注釈が欠落。解説が一段落で選択肢ごとの改行がない。 → 変更: questionText, choices, correctAnswers, explanation
+  [FIX  ] saa-738f112e: 解説が一段落で各選択肢ごとの改行がなく読みにくい。 → 変更: explanation
+  [FIX  ] saa-aa188e57: 解説が一段落で各選択肢ごとの改行がなく読みにくい。 → 変更: explanation
+  [FIX  ] saa-a8d394ad: 解説が一段落で各選択肢ごとの改行がなく読みにくい。 → 変更: explanation
+  [FIX  ] saa-c4c83f95: 解説が一段落で各選択肢ごとの改行がなく読みにくい。 → 変更: explanation
+  → 更新完了: OK=0 修正=5 削除=0
+  終了=15:55:45  経過=404秒
+
+--- チャンク 5/20: 5問  開始=15:55:45 ---
+⚠️  チャンク 5 でエラー（exit 1）。このチャンクをスキップして続行
+stderr: 
+stdout: You've hit your session limit · resets 4pm (Asia/Tokyo)
+
+--- チャンク 6/20: 5問  開始=15:55:48 ---
+⚠️  チャンク 6 でエラー（exit 1）。このチャンクをスキップして続行
+stderr: 
+stdout: You've hit your session limit · resets 4pm (Asia/Tokyo)
+
+--- チャンク 7/20: 5問  開始=15:55:50 ---
+⚠️  チャンク 7 でエラー（exit 1）。このチャンクをスキップして続行
+stderr: 
+stdout: You've hit your session limit · resets 4pm (Asia/Tokyo)
+
+--- チャンク 8/20: 5問  開始=15:55:52 ---
+⚠️  チャンク 8 でエラー（exit 1）。このチャンクをスキップして続行
+stderr: 
+stdout: You've hit your session limit · resets 4pm (Asia/Tokyo)
+
+--- チャンク 9/20: 5問  開始=15:55:53 ---
+⚠️  チャンク 9 でエラー（exit 1）。このチャンクをスキップして続行
+stderr: 
+stdout: You've hit your session limit · resets 4pm (Asia/Tokyo)
+
+--- チャンク 10/20: 5問  開始=15:55:56 ---
+⚠️  チャンク 10 でエラー（exit 1）。このチャンクをスキップして続行
+stderr: 
+stdout: You've hit your session limit · resets 4pm (Asia/Tokyo)
+
+--- チャンク 11/20: 5問  開始=15:55:59 ---
+⚠️  チャンク 11 でエラー（exit 1）。このチャンクをスキップして続行
+stderr: 
+stdout: You've hit your session limit · resets 4pm (Asia/Tokyo)
+
+--- チャンク 12/20: 5問  開始=15:56:02 ---
+⚠️  チャンク 12 でエラー（exit 1）。このチャンクをスキップして続行
+stderr: 
+stdout: You've hit your session limit · resets 4pm (Asia/Tokyo)
+
+--- チャンク 13/20: 5問  開始=15:56:06 ---
+⚠️  チャンク 13 でエラー（exit 1）。このチャンクをスキップして続行
+stderr: 
+stdout: You've hit your session limit · resets 4pm (Asia/Tokyo)
+
+--- チャンク 14/20: 5問  開始=15:56:09 ---
+⚠️  チャンク 14 でエラー（exit 1）。このチャンクをスキップして続行
+stderr: 
+stdout: You've hit your session limit · resets 4pm (Asia/Tokyo)
+
+--- チャンク 15/20: 5問  開始=15:56:16 ---
+⚠️  チャンク 15 でエラー（exit 1）。このチャンクをスキップして続行
+stderr: 
+stdout: You've hit your session limit · resets 4pm (Asia/Tokyo)
+
+--- チャンク 16/20: 5問  開始=15:56:19 ---
+⚠️  チャンク 16 でエラー（exit 1）。このチャンクをスキップして続行
+stderr: 
+stdout: You've hit your session limit · resets 4pm (Asia/Tokyo)
+
+--- チャンク 17/20: 5問  開始=15:56:22 ---
+⚠️  チャンク 17 でエラー（exit 1）。このチャンクをスキップして続行
+stderr: 
+stdout: You've hit your session limit · resets 4pm (Asia/Tokyo)
+
+--- チャンク 18/20: 5問  開始=15:56:25 ---
+⚠️  チャンク 18 でエラー（exit 1）。このチャンクをスキップして続行
+stderr: 
+stdout: You've hit your session limit · resets 4pm (Asia/Tokyo)
+
+--- チャンク 19/20: 5問  開始=15:56:26 ---
+⚠️  チャンク 19 でエラー（exit 1）。このチャンクをスキップして続行
+stderr: 
+stdout: You've hit your session limit · resets 4pm (Asia/Tokyo)
+
+--- チャンク 20/20: 5問  開始=15:56:29 ---
+⚠️  チャンク 20 でエラー（exit 1）。このチャンクをスキップして続行
+stderr: 
+stdout: You've hit your session limit · resets 4pm (Asia/Tokyo)
+
+完了サマリー: 問題なし=0問 / 自動修正=20問 / 削除=0問
+
+==========================================
+チェック終了: Sun May 24 15:56:31 JST 2026
+==========================================

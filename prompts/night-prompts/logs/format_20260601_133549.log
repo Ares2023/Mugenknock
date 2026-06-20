@@ -1,0 +1,93 @@
+==========================================
+体裁チェック開始: Mon Jun  1 13:35:49 JST 2026
+処理数: 100問 / チャンク: 20問 / モデル: haiku
+==========================================
+対象: 100問
+チャンク数: 5
+
+--- チャンク 1/5: 20問  開始=13:36:28 ---
+  [FIX] dea-d1559b13: explanation
+  [FIX] dea-c8def9d6: explanation
+  [FIX] dea-f03d8fd7: explanation
+  [FIX] dea-a13a6621: explanation
+  [FIX] dea-c7a3442d: explanation
+  [FIX] dea-43658756: explanation
+  [FIX] dea-426ad915: explanation
+  [FIX] dea-01f87888: explanation
+  [FIX] dea-bfc26620: explanation
+  [FIX] dea-67a793c7: explanation
+  [FIX] dea-9475138a: explanation
+  [FIX] dea-de45c926: explanation
+  [FIX] dea-719cc7d1: explanation
+  [FIX] dea-81271ced: explanation
+  [FIX] dea-2dbdaef9: explanation
+  [FIX] dea-f26c42cf: explanation
+  [FIX] dea-d5d947cb: explanation
+  [FIX] dea-0d229b0e: explanation
+  [FIX] dea-0485d0fd: explanation
+  [FIX] soa-79e571d6: explanation
+  → 完了: OK=0 修正=20
+  終了=13:45:09  経過=521秒
+
+--- チャンク 2/5: 20問  開始=13:45:09 ---
+  [FIX] gai-7f831cef: explanation
+  [FIX] scs-17a50051: explanation
+  [FIX] dop-22a9e3d6: explanation
+  [FIX] soa-741785e4: explanation
+  [FIX] clf-0c605b9f: explanation
+  [FIX] ans-a936b7e4: explanation
+  [FIX] sap-4d666da7: explanation
+  [FIX] clf-7a8531a6: explanation
+  [FIX] mla-73dadd82: explanation
+  [FIX] ans-d7196c63: explanation
+  [FIX] dva-e5b076dc: explanation
+  [FIX] ans-012b7bad: explanation
+  [FIX] dea-75892cdf: explanation
+  [FIX] sap-737de6ef: explanation
+  [FIX] dea-a7187d32: explanation
+  [FIX] dop-09deebfc: explanation
+  [FIX] gai-a8da6acf: explanation
+  [FIX] dop-dfb03443: explanation
+  [FIX] scs-e1083848: explanation
+  → 完了: OK=0 修正=19
+  終了=13:53:05  経過=476秒
+
+--- チャンク 3/5: 20問  開始=13:53:05 ---
+/home/yuzuki/aws-quiz-app/prompts/night-prompts/manual/06-fix-format.sh: line 235: /tmp/format_prompt_uVYu.txt: No such file or directory
+⚠️  チャンク 3 でエラー（exit 1）。スキップ
+stderr: 
+
+--- チャンク 4/5: 20問  開始=13:53:05 ---
+  [FIX] dea-604e289f: explanation
+  [FIX] mla-81e59d0c: questionText, explanation
+  [FIX] gai-06fc3e75: questionText, explanation
+  [FIX] soa-011fc081: explanation
+  [FIX] dop-q-011: explanation
+  [FIX] dop-2fdfc046: explanation
+  [FIX] clf-9307134e: explanation
+  [FIX] aif-c148990f: explanation
+  [FIX] clf-d4242f7f: explanation
+  [FIX] scs-87a8e0b9: explanation
+  [FIX] soa-590eb616: explanation
+  [FIX] sap-7d440b22: explanation
+  [FIX] clf-dd00d850: explanation
+  [FIX] gai-d28027d7: explanation
+  [FIX] dop-q-042: explanation
+  [FIX] gai-e14e562a: explanation
+  [FIX] saa-d029642e: explanation
+  [FIX] dop-q-070: explanation
+  [FIX] ans-b6f0c1a0: explanation
+  [FIX] gai-48c18cc5: explanation
+  → 完了: OK=0 修正=20
+  終了=14:01:19  経過=494秒
+
+--- チャンク 5/5: 20問  開始=14:01:19 ---
+/home/yuzuki/aws-quiz-app/prompts/night-prompts/manual/06-fix-format.sh: line 235: /tmp/format_prompt_rxfF.txt: No such file or directory
+⚠️  チャンク 5 でエラー（exit 1）。スキップ
+stderr: 
+
+完了サマリー: 体裁OK=0問 / 修正=59問
+
+==========================================
+体裁チェック終了: Mon Jun  1 14:01:19 JST 2026
+==========================================

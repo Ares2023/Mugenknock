@@ -1,0 +1,60 @@
+==========================================
+正当性チェック開始: Fri Jun  5 16:22:21 JST 2026
+バッチサイズ: 30問 / チャンクサイズ: 5問
+==========================================
+チェック対象: 30問
+前処理: choices ラベル接頭辞チェック...
+  前処理: ラベル接頭辞なし（全問クリーン）
+チャンク数: 6
+
+--- チャンク 1/6: 5問  開始=16:22:48 ---
+  [FIX  ] aif-ccf6e958: correctAnswers接頭辞除去・タグ設定・isMultiple修正・選択肢文字数バランス・解説改行追加・choiceExplanations生成 → 変更: choices, correctAnswers, explanation, choiceExplanations, tags
+  [FIX  ] aif-f731da01: correctAnswers接頭辞除去・タグ設定・isMultiple修正・解説改行追加・choiceExplanations生成 → 変更: correctAnswers, explanation, choiceExplanations, tags
+  [FIX  ] aif-c0e462f9: correctAnswers接頭辞除去・タグ設定・isMultiple修正・解説改行追加・choiceExplanations生成 → 変更: correctAnswers, explanation, choiceExplanations, tags
+  [FIX  ] aif-124bc597: correctAnswers接頭辞除去・タグ設定・isMultiple修正・解説改行追加・choiceExplanations生成 → 変更: correctAnswers, explanation, choiceExplanations, tags
+  [FIX  ] aif-3c04a104: correctAnswers接頭辞除去・タグ設定・isMultiple修正・選択肢文字数バランス・解説改行追加・choiceExplanations生成 → 変更: choices, correctAnswers, explanation, choiceExplanations, tags
+  → 更新完了: OK=0 修正=5 削除=0
+  終了=16:31:32  経過=524秒
+
+--- チャンク 2/6: 5問  開始=16:31:32 ---
+  [FIX  ] aif-5fb01b45: correctAnswersに「C. 」接頭辞あり、タグ未設定、choiceExplanations未設定、解説が選択肢ごとに改行なし、isMultiple未設定 → 変更: correctAnswers, explanation, choiceExplanations, tags
+  [FIX  ] aif-b74c4e37: correctAnswersに「A. 」接頭辞あり、タグ未設定、choiceExplanations未設定、解説が選択肢ごとに改行なし、isMultiple未設定 → 変更: correctAnswers, explanation, choiceExplanations, tags
+  [FIX  ] aif-5f3a2efa: correctAnswersに「C. 」接頭辞あり、タグ未設定、choiceExplanations未設定、解説が選択肢ごとに改行なし、isMultiple未設定 → 変更: correctAnswers, explanation, choiceExplanations, tags
+  [FIX  ] aif-406ad750: correctAnswersに「B. 」接頭辞あり、タグがサービス名でドメイン未設定、choiceExplanations未設定、解説が選択肢ごとに改行なし、isMultiple未設定 → 変更: correctAnswers, explanation, choiceExplanations, tags
+  [FIX  ] aif-97b2d88c: correctAnswersに「A. 」接頭辞あり、タグがサービス名でドメイン未設定、choiceExplanations未設定、解説が選択肢ごとに改行なし・D解説が極端に短い、isMultiple未設定 → 変更: correctAnswers, explanation, choiceExplanations, tags
+  → 更新完了: OK=0 修正=5 削除=0
+  終了=16:41:17  経過=585秒
+
+--- チャンク 3/6: 5問  開始=16:41:17 ---
+  [FIX  ] aif-60852ea7: correctAnswersに記号接頭辞あり、タグ未設定、isMultiple未設定、choiceExplanations未生成、解説の選択肢ごとの改行なし → 変更: correctAnswers, explanation, choiceExplanations, tags
+  [FIX  ] aif-05cbd7c2: correctAnswersに記号接頭辞あり、タグ未設定、isMultiple未設定、choiceExplanations未生成、解説の選択肢ごとの改行なし → 変更: correctAnswers, explanation, choiceExplanations, tags
+  [FIX  ] aif-0355d254: correctAnswersに記号接頭辞あり、タグ未設定、isMultiple未設定、choiceExplanations未生成、解説の選択肢ごとの改行なし → 変更: correctAnswers, explanation, choiceExplanations, tags
+  [FIX  ] aif-4aed349f: correctAnswersに記号接頭辞あり、タグ未設定、isMultiple未設定、choiceExplanations未生成、解説の選択肢ごとの改行なし → 変更: correctAnswers, explanation, choiceExplanations, tags
+  [FIX  ] aif-fc91770e: correctAnswersに記号接頭辞あり、タグ未設定、isMultiple未設定、choiceExplanations未生成、解説の選択肢ごとの改行なし → 変更: correctAnswers, explanation, choiceExplanations, tags
+  → 更新完了: OK=0 修正=5 削除=0
+  終了=16:48:38  経過=441秒
+
+--- チャンク 4/6: 5問  開始=16:48:38 ---
+  [FIX  ] aif-ee3088e6: correctAnswersの記号接頭辞除去、タグ未設定の修正、解説の選択肢別改行追加、choiceExplanations生成、isMultiple設定 → 変更: correctAnswers, explanation, choiceExplanations, tags
+  [FIX  ] aif-b4e71926: correctAnswersの記号接頭辞除去、タグがサービス名のためドメイン名に修正、問題文に改行追加、解説の選択肢別改行追加、choiceExplanations生成、isMultiple設定 → 変更: questionText, correctAnswers, explanation, choiceExplanations, tags
+  [FIX  ] aif-82206bf1: correctAnswersの記号接頭辞除去、タグ未設定の修正、解説の選択肢別改行追加、choiceExplanations生成、isMultiple設定 → 変更: correctAnswers, explanation, choiceExplanations, tags
+  [FIX  ] aif-e6d7d92b: correctAnswersの記号接頭辞除去、タグがサービス名のためドメイン名に修正、正解選択肢が不正解平均の2倍超のため文字数を均一化、解説の選択肢別改行追加、choiceExplanations生成、isMultiple設定 → 変更: choices, correctAnswers, explanation, choiceExplanations, tags
+  [FIX  ] aif-4b25622c: correctAnswersの記号接頭辞除去、タグがサービス名のためドメイン名に修正、問題文に改行追加、解説の選択肢別改行追加、choiceExplanations生成、isMultiple設定 → 変更: questionText, correctAnswers, explanation, choiceExplanations, tags
+  → 更新完了: OK=0 修正=5 削除=0
+  終了=16:57:13  経過=515秒
+
+--- チャンク 5/6: 5問  開始=16:57:13 ---
+⚠️  チャンク 5 でエラー（exit 1）。このチャンクをスキップして続行
+stderr: 
+stdout: You've hit your session limit · resets 5:30pm (Asia/Tokyo)
+
+--- チャンク 6/6: 5問  開始=16:57:15 ---
+⚠️  チャンク 6 でエラー（exit 1）。このチャンクをスキップして続行
+stderr: 
+stdout: You've hit your session limit · resets 5:30pm (Asia/Tokyo)
+
+完了サマリー: 問題なし=0問 / 自動修正=20問 / 削除=0問
+
+==========================================
+チェック終了: Fri Jun  5 16:57:17 JST 2026
+==========================================

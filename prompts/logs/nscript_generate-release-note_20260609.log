@@ -1,0 +1,11 @@
+=== 2026-06-09 05:07:37 | generate-release-note.sh | exit:0 ===
+[release-note] 対象日: 2026-06-08
+[release-note] 2026-06-08: 11件のコミット
+[release-note] 生成結果:
+{
+  "title": "トップページを大刷新！AWS学習に集中できる画面へ！",
+  "body": "ホーム画面とポータルをティール系のすっきりしたデザインにリニューアルしました。\nAWS資格の全体像がひと目でわかるレイアウトになり、学習のスタートがより快適になりました。",
+  "titleEn": "Fresh New Look! Homepage Redesigned for AWS Focus!",
+  "bodyEn": "We've refreshed the homepage and portal with a clean teal design, making it easier to explore AWS certifications at a glance.\nThe app is now fully AWS-focused, giving you a more streamlined and distraction-free learning experience."
+}
+[release-note] ✓ DynamoDBに挿入しました: 2026-06-08 — トップページを大刷新！AWS学習に集中できる画面へ！

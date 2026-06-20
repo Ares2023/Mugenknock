@@ -3,7 +3,7 @@ export const API_ENDPOINT = process.env.NEXT_PUBLIC_API_ENDPOINT
 
 export const ADMIN_EMAIL = 'mugenknock@gmail.com';
 
-export const EXAM_TYPES = ['CLF', 'AIF', 'SAA', 'DVA', 'SOA', 'DEA', 'MLA', 'SAP', 'DOP', 'GAI', 'ANS', 'SCS'] as const;
+export const EXAM_TYPES = ['CLF', 'AIF', 'SAA', 'DVA', 'SOA', 'DEA', 'MLA', 'SAP', 'DOP', 'AIP', 'ANS', 'SCS'] as const;
 export type ExamType = typeof EXAM_TYPES[number];
 
 // 合格スコア（スケールスコア 100〜1000 での公式合格ライン）
@@ -17,7 +17,7 @@ export const PASS_SCORES: Record<string, number> = {
   DOP: 750,
   AIF: 700,
   MLA: 720,
-  GAI: 750,
+  AIP: 750,
   ANS: 700,
   SCS: 750,
 };
@@ -33,7 +33,7 @@ export const PASS_RATE: Record<string, number> = {
   DOP: 75,
   AIF: 70,
   MLA: 72,
-  GAI: 75,
+  AIP: 75,
   ANS: 70,
   SCS: 75,
 };
@@ -48,7 +48,7 @@ export const EXAM_DOMAINS: Record<string, string[]> = {
   DOP: ['SDLC の自動化', '構成管理と Infrastructure as Code (IaC)', '弾力性に優れたクラウドソリューション', 'モニタリングとロギング', 'インシデントとイベントへの対応', 'セキュリティとコンプライアンス'],
   AIF: ['AIとMLの基礎', '生成AIの基礎', '基盤モデルのアプリケーション', '責任あるAIのガイドライン', 'AIソリューションのセキュリティ、コンプライアンス、ガバナンス'],
   MLA: ['機械学習のためのデータ準備', 'MLモデルの開発', 'MLワークフローのデプロイとオーケストレーション', 'MLソリューションの監視、メンテナンス、セキュリティ'],
-  GAI: ['基盤モデルの統合、データ管理、コンプライアンス', '実装と統合', 'AIの安全性、セキュリティ、ガバナンス', '生成AIアプリケーションの運用効率と最適化', 'テスト、検証、トラブルシューティング'],
+  AIP: ['基盤モデルの統合、データ管理、コンプライアンス', '実装と統合', 'AIの安全性、セキュリティ、ガバナンス', '生成AIアプリケーションの運用効率と最適化', 'テスト、検証、トラブルシューティング'],
   DEA: ['データの取り込みと変換', 'データストアの管理', 'データオペレーションとサポート', 'データのセキュリティとガバナンス'],
   ANS: ['ネットワーク設計', 'ネットワーク実装', 'ネットワーク管理と運用', 'ネットワークのセキュリティ、コンプライアンス、ガバナンス'],
   SCS: ['検出', 'インシデント対応', 'インフラストラクチャのセキュリティ', 'アイデンティティとアクセス管理', 'データ保護', 'セキュリティの基盤とガバナンス'],
@@ -114,7 +114,7 @@ export const DOMAIN_NAME_EN: Record<string, string> = {
   'MLモデルの開発': 'ML Model Development',
   'MLワークフローのデプロイとオーケストレーション': 'Deployment and Orchestration of ML Workflows',
   'MLソリューションの監視、メンテナンス、セキュリティ': 'ML Solution Monitoring, Maintenance, and Security',
-  // GAI (AIP-C01)
+  // AIP (AIP-C01)
   '基盤モデルの統合、データ管理、コンプライアンス': 'Foundation Model Integration, Data Management, and Compliance',
   '実装と統合': 'Implementation and Integration',
   'AIの安全性、セキュリティ、ガバナンス': 'AI Safety, Security, and Governance',
@@ -150,9 +150,16 @@ export const EXAM_LEVEL: Record<string, string> = {
   DEA: 'Associate',
   AIF: 'Foundational',
   MLA: 'Associate',
-  GAI: 'Professional',
+  AIP: 'Professional',
   ANS: 'Specialty',
   SCS: 'Specialty',
+};
+
+export const EXAM_LEVEL_COLORS: Record<string, string> = {
+  Foundational: '#6b9e3a',
+  Associate:    '#006CE0',
+  Professional: '#8b5cf6',
+  Specialty:    '#0ea5e9',
 };
 
 // 試験の説明文
@@ -166,7 +173,7 @@ export const EXAM_DESC_JA: Record<string, string> = {
   DEA: 'データパイプラインの実装・管理・最適化スキルを問うアソシエイト認定',
   AIF: 'AI/MLの概念とAWSサービスを幅広くカバーする入門認定',
   MLA: 'MLモデルの構築・デプロイ・運用を問うアソシエイト認定',
-  GAI: 'AWSで生成AIソリューションを実装・デプロイするプロフェッショナル認定',
+  AIP: 'AWSで生成AIソリューションを実装・デプロイするプロフェッショナル認定',
   ANS: 'AWSとハイブリッドネットワークの高度な設計・実装スキルを問うスペシャリティ認定',
   SCS: 'AWSクラウドのセキュリティ専門知識を証明するスペシャリティ認定',
 };
@@ -180,7 +187,7 @@ export const EXAM_DESC_EN: Record<string, string> = {
   DEA: 'Associate certification for implementing and managing data pipelines on AWS',
   AIF: 'Foundational certification covering AI/ML concepts and AWS services',
   MLA: 'Associate certification for building and operating ML solutions',
-  GAI: 'Professional certification for integrating and deploying generative AI solutions on AWS',
+  AIP: 'Professional certification for integrating and deploying generative AI solutions on AWS',
   ANS: 'Specialty certification for advanced AWS and hybrid network architecture design',
   SCS: 'Specialty certification for AWS cloud security expertise',
 };
@@ -200,7 +207,7 @@ export const DOMAIN_WEIGHTS: Record<string, number[]> = {
   DEA: [34, 26, 22, 18],
   AIF: [20, 24, 28, 14, 14],
   MLA: [28, 26, 22, 24],
-  GAI: [31, 26, 20, 12, 11],
+  AIP: [31, 26, 20, 12, 11],
   ANS: [30, 26, 20, 24],
   SCS: [16, 14, 18, 20, 18, 14],
 };
@@ -221,7 +228,7 @@ export const EXAM_CONFIGS: Record<string, {
   DEA: { examCode: 'DEA-C01', fullName: 'AWS Certified Data Engineer – Associate',                 totalQuestions: 65, timeLimitMin: 130 },
   AIF: { examCode: 'AIF-C01', fullName: 'AWS Certified AI Practitioner',                          totalQuestions: 85, timeLimitMin: 120 },
   MLA: { examCode: 'MLA-C01', fullName: 'AWS Certified Machine Learning Engineer – Associate',    totalQuestions: 65, timeLimitMin: 130 },
-  GAI: { examCode: 'AIP-C01', fullName: 'AWS Certified Generative AI Developer – Professional',   totalQuestions: 75, timeLimitMin: 170 },
+  AIP: { examCode: 'AIP-C01', fullName: 'AWS Certified Generative AI Developer – Professional',   totalQuestions: 75, timeLimitMin: 170 },
   ANS: { examCode: 'ANS-C01', fullName: 'AWS Certified Advanced Networking – Specialty',           totalQuestions: 65, timeLimitMin: 170 },
   SCS: { examCode: 'SCS-C03', fullName: 'AWS Certified Security – Specialty',                     totalQuestions: 65, timeLimitMin: 170 },
 };
@@ -236,7 +243,7 @@ export const EXAM_OFFICIAL_URLS: Record<string, { page: string; guide: string }>
   MLA: { page: 'https://aws.amazon.com/certification/certified-machine-learning-engineer-associate/',   guide: 'https://d1.awsstatic.com/training-and-certification/docs-ml-engineer-associate/AWS-Certified-Machine-Learning-Engineer-Associate_Exam-Guide.pdf' },
   SAP: { page: 'https://aws.amazon.com/certification/certified-solutions-architect-professional/',      guide: 'https://d1.awsstatic.com/training-and-certification/docs-sa-pro/AWS-Certified-Solutions-Architect-Professional_Exam-Guide.pdf' },
   DOP: { page: 'https://aws.amazon.com/certification/certified-devops-engineer-professional/',          guide: 'https://d1.awsstatic.com/training-and-certification/docs-devops-pro/AWS-Certified-DevOps-Engineer-Professional_Exam-Guide.pdf' },
-  GAI: { page: 'https://aws.amazon.com/certification/certified-generative-ai-developer-professional/',  guide: 'https://d1.awsstatic.com/training-and-certification/docs-generative-ai-developer-professional/AWS-Certified-Generative-AI-Developer-Professional_Exam-Guide.pdf' },
+  AIP: { page: 'https://aws.amazon.com/certification/certified-generative-ai-developer-professional/',  guide: 'https://d1.awsstatic.com/training-and-certification/docs-generative-ai-developer-professional/AWS-Certified-Generative-AI-Developer-Professional_Exam-Guide.pdf' },
   ANS: { page: 'https://aws.amazon.com/certification/certified-advanced-networking-specialty/',         guide: 'https://d1.awsstatic.com/training-and-certification/docs-advnetworking-spec/AWS-Certified-Advanced-Networking-Specialty_Exam-Guide.pdf' },
   SCS: { page: 'https://aws.amazon.com/certification/certified-security-specialty/',                    guide: 'https://d1.awsstatic.com/training-and-certification/docs-security-spec/AWS-Certified-Security-Specialty_Exam-Guide.pdf' },
 };

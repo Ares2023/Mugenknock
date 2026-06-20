@@ -1,0 +1,24 @@
+==========================================
+問題自動生成 開始: Sat May 23 19:47:01 JST 2026
+==========================================
+対象資格: CLF SAA SAP DVA SOA DEA DOP AIF MLA GAI ANS SCS
+各資格の問題数を取得中...
+  CLF: 0問
+  SAA: 0問
+  SAP: 0問
+  DVA: 0問
+  SOA: 0問
+  DEA: 0問
+  DOP: 0問
+  AIF: 0問
+  MLA: 0問
+  GAI: 0問
+  ANS: 0問
+  SCS: 0問
+選択: CLF (現在0問 — 最少)
+ドメイン数: 4  /  基本 2問/ドメイン（重み付きで配分）  /  合計予算 8問
+開始ドメイン: [1] セキュリティとコンプライアンス
+
+--- Cognito 認証中 ---
+./01-generate-questions.sh: line 330: aws: command not found
+❌ Cognito 認証失敗

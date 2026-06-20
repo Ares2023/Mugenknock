@@ -1,0 +1,25 @@
+==========================================
+英訳チェック開始: Thu May  7 00:00:08 JST 2026
+バッチサイズ: 30件 / チャンクサイズ: 5件
+==========================================
+
+▶ Questions テーブルを処理中...
+  チェック対象: 30問
+  チャンク数: 6
+  チャンク 1: 5件  開始=00:00:26
+    [TRANSLATED] sap-7ed76ad2
+    [FIXED     ] dop-q-065
+    [TRANSLATED] sap-b03d37f8
+    [TRANSLATED] dop-0ca005d6
+    [TRANSLATED] sap-ae7f72d4
+  終了=00:05:17  経過=291秒
+  チャンク 2: 5件  開始=00:05:17
+    [TRANSLATED] dop-84dfa757
+    [TRANSLATED] saa-29a42465
+    [TRANSLATED] saa-c4c83f95
+    [TRANSLATED] saa-35811d5c
+    [TRANSLATED] dop-eefca357
+  終了=00:07:29  経過=132秒
+  チャンク 3: 5件  開始=00:07:29
+  ❌ claude 実行エラー（認証またはコマンド問題）。スクリプトを終了します
+  出力: /home/yuzuki/aws-quiz-app/prompts/night-prompts/scripts/check-translation.sh: line 215: /home/yuzuki/.npm-global/lib/node_modules/@anthropic-ai/claude-code/node_modules/@anthropic-ai/claude-code-linux-x64/claude: No such file or directory
