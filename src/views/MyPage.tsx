@@ -12,7 +12,7 @@ import {
   IconCalendarNotebook, IconTarget, IconAnnoyed, IconList,
   IconSparkles, IconChevronRight, IconChevronDown, IconLock, IconFlag, IconStar, IconTrendingUp, IconPenLine,
   IconBook, IconBookOpenCheck, IconCircleCheck,
-  IconSprout, IconBox, IconBot, IconCode2, IconCloud, IconDatabase, IconBrain, IconNetwork, IconFileCodeCorner, IconShieldIcon, IconWaypoints,
+  IconSprout, IconBox, IconBot, IconCode2, IconCloud, IconDatabase, IconBrain, IconVectorSquare, IconFileCodeCorner, IconAtom, IconShieldIcon, IconWaypoints,
 } from '../components/Icons';
 
 const EXAM_ICON_COMPONENTS: Record<string, React.FC<{ size?: number }>> = {
@@ -23,9 +23,9 @@ const EXAM_ICON_COMPONENTS: Record<string, React.FC<{ size?: number }>> = {
   SOA: IconCloud,
   DEA: IconDatabase,
   MLA: IconBrain,
-  SAP: IconNetwork,
+  SAP: IconVectorSquare,
   DOP: IconFileCodeCorner,
-  AIP: IconSparkles,
+  AIP: IconAtom,
   SCS: IconShieldIcon,
   ANS: IconWaypoints,
 };
@@ -137,8 +137,6 @@ export default function MyPage() {
   const [previewExam, setPreviewExam] = useState<string | null>(null);
   const [activeLevel, setActiveLevel] = useState<string>('Practitioner');
   const [passComments, setPassComments] = useState<Record<string, string>>({});
-  const [confirmedExam, setConfirmedExam] = useState<string | null>(null);
-  const [showConfirmMsg, setShowConfirmMsg] = useState(false);
   const examDetailScrollRef = useRef<HTMLDivElement>(null);
 
   const EXAM_LEVELS = [
@@ -757,18 +755,12 @@ export default function MyPage() {
                     {previewExam && (() => {
                       const exam = previewExam;
                       const isCurrentTarget = targetExam === exam;
-                      const examShortName = (EXAM_CONFIGS[exam]?.fullName ?? exam).replace('AWS Certified ', '');
                       return (
                         <div style={{ flexShrink: 0, borderTop: `2px solid ${levelColor}33`, background: `${levelColor}08`, padding: '10px 16px', display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: 12, minHeight: 64 }}>
                           {/* メッセージ（右揃え・ボタン直左） */}
-                          {showConfirmMsg && confirmedExam ? (
-                            <div style={{ animation: 'fadeSlideUp 0.3s ease', fontSize: 13, fontWeight: 700, color: levelColor, lineHeight: 1.4, textAlign: 'right' }}>
-                              <div>{examShortName}</div>
-                              <div style={{ fontSize: 12, fontWeight: 400, color: 'var(--color-text-sub)' }}>{ja ? 'を目標資格に設定しました' : 'set as target exam'}</div>
-                            </div>
-                          ) : isCurrentTarget ? (
+                          {isCurrentTarget && (
                             <div style={{ fontSize: 13, fontWeight: 700, color: 'var(--color-success)' }}>✓ {ja ? '学習中' : 'Studying'}</div>
-                          ) : null}
+                          )}
                           {/* 決定ボタン */}
                           {isCurrentTarget ? (
                             <button disabled
@@ -781,9 +773,6 @@ export default function MyPage() {
                                 localStorage.setItem(`targetExam_${uid}`, exam);
                                 window.dispatchEvent(new CustomEvent('targetExamChanged', { detail: exam }));
                                 setTargetExam(exam);
-                                setConfirmedExam(exam);
-                                setShowConfirmMsg(true);
-                                setTimeout(() => setShowConfirmMsg(false), 3000);
                               }}
                               style={{ width: 44, height: 44, borderRadius: '50%', border: `2px solid ${levelColor}`, background: 'var(--color-bg-white)', color: levelColor, display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', boxShadow: '0 2px 8px rgba(0,0,0,0.1)', flexShrink: 0 }}>
                               <IconBook size={22} />
