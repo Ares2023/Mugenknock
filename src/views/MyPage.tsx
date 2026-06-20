@@ -137,6 +137,8 @@ export default function MyPage() {
   const [previewExam, setPreviewExam] = useState<string | null>(null);
   const [activeLevel, setActiveLevel] = useState<string>('Practitioner');
   const [passComments, setPassComments] = useState<Record<string, string>>({});
+  const [confirmedExam, setConfirmedExam] = useState<string | null>(null);
+  const [showConfirmMsg, setShowConfirmMsg] = useState(false);
   const examDetailScrollRef = useRef<HTMLDivElement>(null);
 
   const EXAM_LEVELS = [
@@ -471,14 +473,14 @@ export default function MyPage() {
                 </div>
               </div>
               {targetExam ? (() => {
-                const full = EXAM_CONFIGS[targetExam]?.fullName ?? '';
+                const full = (EXAM_CONFIGS[targetExam]?.fullName ?? '').replace('AWS Certified ', '');
                 const dashIdx = full.indexOf(' – ');
                 const main = dashIdx >= 0 ? full.slice(0, dashIdx) : full;
                 const level = dashIdx >= 0 ? '– ' + full.slice(dashIdx + 3) : null;
                 return (
                   <div>
-                    <div style={{ fontWeight: 700, fontSize: 16, color: 'var(--color-primary)', lineHeight: 1.3 }}>{main}</div>
-                    {level && <div style={{ fontWeight: 700, fontSize: 16, color: 'var(--color-primary)', lineHeight: 1.3 }}>{level}</div>}
+                    <div style={{ fontWeight: 700, fontSize: 18, color: 'var(--color-primary)', lineHeight: 1.3 }}>{main}</div>
+                    {level && <div style={{ fontWeight: 700, fontSize: 18, color: 'var(--color-primary)', lineHeight: 1.3 }}>{level}</div>}
                   </div>
                 );
               })() : (
@@ -631,7 +633,7 @@ export default function MyPage() {
                   onTouchMove={e => e.stopPropagation()}
                 >
                   <div
-                    style={{ background: 'var(--color-bg-white)', borderRadius: 'var(--border-radius-lg)', width: '100%', maxWidth: 420, boxShadow: 'var(--box-shadow-md)', height: isMobile ? '75vh' : '60vh', display: 'flex', flexDirection: 'column', overflow: 'hidden', position: 'relative' }}
+                    style={{ background: 'var(--color-bg-white)', borderRadius: 'var(--border-radius-lg)', width: '100%', maxWidth: 420, boxShadow: 'var(--box-shadow-md)', height: isMobile ? '75vh' : '60vh', display: 'flex', flexDirection: 'column', overflow: 'hidden' }}
                     onClick={e => e.stopPropagation()}
                   >
                     {/* ヘッダー */}
@@ -710,7 +712,7 @@ export default function MyPage() {
                         const exam = previewExam;
                         const cfg = EXAM_CONFIGS[exam];
                         return (
-                          <div style={{ padding: '16px 20px 72px' }}>
+                          <div style={{ padding: '16px 20px' }}>
                             <div style={{ marginBottom: 10 }}>
                               {EXAM_CATCHCOPY[exam] && (
                                 <div style={{ fontSize: 11, color: 'var(--color-text-light)', fontStyle: 'italic', marginBottom: 4 }}>{EXAM_CATCHCOPY[exam]}</div>
@@ -750,25 +752,43 @@ export default function MyPage() {
                       })()}
                     </div>
 
-                    {/* 設定ボタン（モーダル右下にフローティング） */}
+                    {/* フッター：メッセージ＋決定ボタン */}
                     {previewExam && (() => {
                       const exam = previewExam;
                       const isCurrentTarget = targetExam === exam;
+                      const examShortName = (EXAM_CONFIGS[exam]?.fullName ?? exam).replace('AWS Certified ', '');
                       return (
-                        <div style={{ position: 'absolute', bottom: 14, right: 16, zIndex: 10 }}>
+                        <div style={{ flexShrink: 0, borderTop: `2px solid ${levelColor}33`, background: `${levelColor}08`, padding: '10px 16px', display: 'flex', alignItems: 'center', gap: 12, minHeight: 64 }}>
+                          {/* メッセージ */}
+                          <div style={{ flex: 1, minWidth: 0 }}>
+                            {showConfirmMsg && confirmedExam ? (
+                              <div style={{ animation: 'fadeSlideUp 0.3s ease', fontSize: 13, fontWeight: 700, color: levelColor, lineHeight: 1.4 }}>
+                                <div>{examShortName}</div>
+                                <div style={{ fontSize: 12, fontWeight: 400, color: 'var(--color-text-sub)' }}>{ja ? 'を目標資格に設定しました' : 'set as target exam'}</div>
+                              </div>
+                            ) : isCurrentTarget ? (
+                              <div style={{ fontSize: 12, color: 'var(--color-text-light)' }}>{ja ? '現在の目標資格' : 'Current target'}</div>
+                            ) : (
+                              <div style={{ fontSize: 12, color: 'var(--color-text-light)' }}>{ja ? 'この資格を目標に設定できます' : 'Set this as your target'}</div>
+                            )}
+                          </div>
+                          {/* 決定ボタン */}
                           {isCurrentTarget ? (
-                            <button disabled title={ja ? '設定中' : 'Current target'}
-                              style={{ width: 44, height: 44, borderRadius: '50%', border: 'none', background: levelColor, color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'default', boxShadow: '0 2px 8px rgba(0,0,0,0.2)' }}>
+                            <button disabled
+                              style={{ width: 44, height: 44, borderRadius: '50%', border: 'none', background: levelColor, color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'default', boxShadow: '0 2px 8px rgba(0,0,0,0.15)', flexShrink: 0 }}>
                               <IconBookOpenCheck size={22} />
                             </button>
                           ) : (
-                            <button title={ja ? 'この資格に設定' : 'Set as Target'}
+                            <button
                               onClick={() => {
                                 localStorage.setItem(`targetExam_${uid}`, exam);
                                 window.dispatchEvent(new CustomEvent('targetExamChanged', { detail: exam }));
                                 setTargetExam(exam);
+                                setConfirmedExam(exam);
+                                setShowConfirmMsg(true);
+                                setTimeout(() => setShowConfirmMsg(false), 3000);
                               }}
-                              style={{ width: 44, height: 44, borderRadius: '50%', border: '1px solid var(--color-border)', background: 'var(--color-bg-white)', color: 'var(--color-text-light)', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', boxShadow: '0 2px 8px rgba(0,0,0,0.1)' }}>
+                              style={{ width: 44, height: 44, borderRadius: '50%', border: `2px solid ${levelColor}`, background: 'var(--color-bg-white)', color: levelColor, display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', boxShadow: '0 2px 8px rgba(0,0,0,0.1)', flexShrink: 0 }}>
                               <IconBook size={22} />
                             </button>
                           )}
