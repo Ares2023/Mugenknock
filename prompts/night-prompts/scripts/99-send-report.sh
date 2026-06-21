@@ -130,65 +130,141 @@ fi
 echo ""
 echo "--- [2] 夜間スクリプト成果集計 ---"
 
-_parse_generate_log() {
-  local logfile="$1"
-  [ -f "$logfile" ] || { echo "0問生成"; return; }
-  local imported
-  imported=$(grep "合計インポート:" "$logfile" | tail -1 | grep -oP '\d+(?=問 /)' | tail -1)
-  local selected
-  selected=$(grep "選択:" "$logfile" | tail -1 | awk '{print $2}')
-  echo "${selected:-?}資格: ${imported:-0}問生成"
-}
-
-_parse_validity_log() {
-  local logfile="$1"
-  [ -f "$logfile" ] || { echo "未実行"; return; }
-  local summary
-  summary=$(grep "完了サマリー:" "$logfile" | tail -1)
-  if [ -n "$summary" ]; then
-    echo "$summary" | sed 's/完了サマリー: //'
-  else
-    echo "完了データなし"
-  fi
-}
-
-_parse_reports_log() {
-  local logfile="$1"
-  [ -f "$logfile" ] || { echo "未実行"; return; }
-  local count
-  count=$(grep "通報件数:" "$logfile" | tail -1)
-  [ -n "$count" ] && echo "$count" || echo "通報なし"
-}
-
-# 直近のログファイルを探す（前日 → 当日の順で）
-_find_log() {
+# 直近3日分のログファイルを列挙する
+_log_files_3days() {
   local name="$1"
-  local f
-  # 直近3日分を確認
   for d in "$TODAY" "${YESTERDAY:-}" $(date -d '2 days ago' '+%Y%m%d' 2>/dev/null || echo ""); do
     [ -z "$d" ] && continue
-    f="$LOG_DIR/nscript_${name}_${d}.log"
-    [ -f "$f" ] && { echo "$f"; return; }
+    local f="$LOG_DIR/nscript_${name}_${d}.log"
+    [ -f "$f" ] && echo "$f"
   done
 }
 
-GEN_LOG=$(_find_log "01-generate-questions")
-VAL_LOG=$(_find_log "02-check-validity")
-RPT_LOG=$(_find_log "03-check-reports")
+# 3日分の生成スクリプトログを集計（生成問題数合計 + 資格別明細）
+GEN_SUMMARY=$(LOG_DIR="$LOG_DIR" TODAY="$TODAY" YESTERDAY="$YESTERDAY" python3 << 'PYEOF'
+import os, re, glob
 
-GEN_SUMMARY=$(_parse_generate_log "$GEN_LOG")
-VAL_SUMMARY=$(_parse_validity_log "$VAL_LOG")
-RPT_SUMMARY=$(_parse_reports_log "$RPT_LOG")
+log_dir = os.environ.get('LOG_DIR', '')
+today = os.environ.get('TODAY', '')
+yesterday = os.environ.get('YESTERDAY', '')
 
-echo "  生成: $GEN_SUMMARY"
-echo "  妥当性: $VAL_SUMMARY"
-echo "  通報: $RPT_SUMMARY"
+dates = [today, yesterday]
+try:
+    import subprocess, datetime
+    d2 = (datetime.date.today() - datetime.timedelta(days=2)).strftime('%Y%m%d')
+    dates.append(d2)
+except:
+    pass
 
-# レート制限情報
-GEN_RATE_INFO=""
-if [ -f "$GEN_LOG" ] && grep -q "レート制限" "$GEN_LOG"; then
-  GEN_RATE_INFO=$(grep "レート制限\|resets" "$GEN_LOG" | tail -2 | tr '\n' ' ')
-fi
+total = 0
+rows = []   # (date, exam, count)
+rate_msgs = []
+
+for d in dates:
+    if not d:
+        continue
+    f = os.path.join(log_dir, f"nscript_01-generate-questions_{d}.log")
+    if not os.path.exists(f):
+        continue
+    content = open(f).read()
+    # 各実行セッションの合計インポート数
+    for m in re.finditer(r'選択: (\S+).*?合計インポート: (\d+)問', content, re.DOTALL):
+        exam, cnt = m.group(1), int(m.group(2))
+        total += cnt
+        rows.append(f"{d[:4]}-{d[4:6]}-{d[6:]} {exam}: {cnt}問生成")
+    if 'レート制限' in content:
+        rate_msgs.append(f"{d[:4]}-{d[4:6]}-{d[6:]}: レート制限あり")
+
+if total == 0 and not rows:
+    print("3日分の生成なし")
+else:
+    print(f"合計 {total}問生成")
+    for r in rows:
+        print(f"  {r}")
+    for r in rate_msgs:
+        print(f"  ⚠️ {r}")
+PYEOF
+)
+
+# 3日分の妥当性確認ログを集計
+VAL_SUMMARY=$(LOG_DIR="$LOG_DIR" TODAY="$TODAY" YESTERDAY="$YESTERDAY" python3 << 'PYEOF'
+import os, re
+
+log_dir = os.environ.get('LOG_DIR', '')
+today = os.environ.get('TODAY', '')
+yesterday = os.environ.get('YESTERDAY', '')
+
+dates = [today, yesterday]
+try:
+    import datetime
+    d2 = (datetime.date.today() - datetime.timedelta(days=2)).strftime('%Y%m%d')
+    dates.append(d2)
+except:
+    pass
+
+total_ok, total_fix, total_del = 0, 0, 0
+rows = []
+
+for d in dates:
+    if not d:
+        continue
+    f = os.path.join(log_dir, f"nscript_02-check-validity_{d}.log")
+    if not os.path.exists(f):
+        continue
+    content = open(f).read()
+    m = re.search(r'完了サマリー: 問題なし=(\d+)問 / 自動修正=(\d+)問 / 削除=(\d+)問', content)
+    if m:
+        ok, fix, dl = int(m.group(1)), int(m.group(2)), int(m.group(3))
+        total_ok += ok; total_fix += fix; total_del += dl
+        rows.append(f"{d[:4]}-{d[4:6]}-{d[6:]}: 問題なし={ok} 修正={fix} 削除={dl}")
+
+if not rows:
+    print("3日分の実行なし")
+else:
+    print(f"合計: 問題なし={total_ok}問 / 自動修正={total_fix}問 / 削除={total_del}問")
+    for r in rows:
+        print(f"  {r}")
+PYEOF
+)
+
+# 3日分の通報チェックログを集計
+RPT_SUMMARY=$(LOG_DIR="$LOG_DIR" TODAY="$TODAY" YESTERDAY="$YESTERDAY" python3 << 'PYEOF'
+import os, re
+
+log_dir = os.environ.get('LOG_DIR', '')
+today = os.environ.get('TODAY', '')
+yesterday = os.environ.get('YESTERDAY', '')
+
+dates = [today, yesterday]
+try:
+    import datetime
+    d2 = (datetime.date.today() - datetime.timedelta(days=2)).strftime('%Y%m%d')
+    dates.append(d2)
+except:
+    pass
+
+rows = []
+for d in dates:
+    if not d:
+        continue
+    f = os.path.join(log_dir, f"nscript_03-check-reports_{d}.log")
+    if not os.path.exists(f):
+        continue
+    content = open(f).read()
+    m = re.search(r'通報件数: (\d+)件', content)
+    if m:
+        rows.append(f"{d[:4]}-{d[4:6]}-{d[6:]}: {m.group(1)}件処理")
+
+print('\n'.join(rows) if rows else "3日分の実行なし")
+PYEOF
+)
+
+# レート制限情報（生成サマリー内に含まれるが別途抽出）
+GEN_RATE_INFO=$(echo "$GEN_SUMMARY" | grep "レート制限" | tr '\n' ' ')
+
+echo "  生成: $(echo "$GEN_SUMMARY" | head -1)"
+echo "  妥当性: $(echo "$VAL_SUMMARY" | head -1)"
+echo "  通報: $(echo "$RPT_SUMMARY" | head -1)"
 
 # ── 2. DynamoDB 稼働状況 ─────────────────────────────────────
 echo ""
@@ -329,7 +405,7 @@ with open('$REPORT_DATA_FILE', 'w') as f:
 
 # HTML生成＋メール送信を1つのPythonスクリプトで実行
 SEND_RESULT=$(REPORT_DATA_FILE="$REPORT_DATA_FILE" python3 << 'PYEOF'
-import json, html, smtplib, ssl, sys
+import json, html, smtplib, ssl, sys, re
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
 import os
@@ -344,12 +420,39 @@ except Exception as e:
 
 def e(s): return html.escape(str(s))
 
+def md_to_html(text):
+    """マークダウンをHTMLに変換（Claude出力の典型パターン対応）"""
+    try:
+        import markdown
+        return markdown.markdown(text, extensions=['nl2br'])
+    except ImportError:
+        pass
+    # フォールバック: 簡易変換
+    lines = text.split('\n')
+    out = []
+    for line in lines:
+        if line.startswith('### '): out.append(f'<h3 style="color:#232f3e;margin:16px 0 6px">{html.escape(line[4:])}</h3>')
+        elif line.startswith('## '): out.append(f'<h2 style="color:#232f3e;border-left:3px solid #ff9900;padding-left:8px;margin:20px 0 8px">{html.escape(line[3:])}</h2>')
+        elif line.startswith('# '): out.append(f'<h2 style="color:#232f3e">{html.escape(line[2:])}</h2>')
+        elif line.strip() == '---': out.append('<hr style="border:none;border-top:1px solid #ddd;margin:12px 0">')
+        elif re.match(r'^- ', line): out.append(f'<li style="margin:3px 0">{html.escape(line[2:])}</li>')
+        elif line.strip() == '': out.append('<br>')
+        else:
+            esc = html.escape(line)
+            esc = re.sub(r'\*\*(.+?)\*\*', r'<b>\1</b>', esc)
+            out.append(f'<p style="margin:4px 0">{esc}</p>')
+    return '\n'.join(out)
+
+def e_pre(s):
+    """プレーンテキスト表示用（コードブロック・ログ等）"""
+    return html.escape(str(s))
+
 gen      = e(d['gen']);       val     = e(d['val'])
 rpt      = e(d['rpt']);       rate    = e(d['rate'])
 canary_r = e(d['canary_r']); canary_d = e(d['canary_d'])
 db_total = e(d['db_total']); db_unchk = e(d['db_unchk'])
 db_rpts  = e(d['db_rpts']);  db_exams = e(d['db_exams'])
-cert     = e(d['cert']);     jst_now  = e(d['jst_now'])
+cert_html = md_to_html(d['cert']); jst_now  = e(d['jst_now'])
 
 canary_color = "#27ae60" if "PASS" in d['canary_r'] else "#e74c3c"
 unchk_num    = int(d['db_unchk'].replace("?","0")) if d['db_unchk'].replace("?","0").isdigit() else 0
@@ -377,14 +480,16 @@ html_body = f"""<!DOCTYPE html>
 <h1>&#127769; 無限ノック 日次稼働レポート</h1>
 <p style="color:#888;font-size:13px;">生成日時: {jst_now} | <a href="https://mugenknock.com">mugenknock.com</a></p>
 
-<h2>1. 夜間スクリプト成果</h2>
-<div class="card"><table>
-  <tr><th>項目</th><th>結果</th></tr>
-  <tr><td>問題生成</td><td>{gen}</td></tr>
-  <tr><td>妥当性確認</td><td>{val}</td></tr>
-  <tr><td>通報チェック</td><td>{rpt}</td></tr>
-  {rate_row}
-</table></div>
+<h2>1. 夜間スクリプト成果（直近3日分）</h2>
+<div class="card">
+  <table>
+    <tr><th>項目</th><th>サマリー</th></tr>
+    <tr><td>問題生成</td><td>{gen}</td></tr>
+    <tr><td>妥当性確認</td><td>{val}</td></tr>
+    <tr><td>通報チェック</td><td>{rpt}</td></tr>
+    {rate_row}
+  </table>
+</div>
 
 <h2>2. Canary テスト（検証環境）</h2>
 <div class="card">
@@ -393,7 +498,7 @@ html_body = f"""<!DOCTYPE html>
 </div>
 
 <h2>3. AWS資格 公式情報チェック</h2>
-<div class="card"><pre>{cert}</pre></div>
+<div class="card" style="font-size:13px;line-height:1.7">{cert_html}</div>
 
 <h2>4. サイト稼働状況（DynamoDB）</h2>
 <div class="card"><table>
