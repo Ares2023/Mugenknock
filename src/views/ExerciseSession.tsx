@@ -5,6 +5,7 @@ import { useNavigate, useLocation } from '@/compat/react-router-dom';
 import { API_ENDPOINT, PASS_RATE, EXAM_DOMAINS, DOMAIN_NAME_EN, EXAM_LEVEL, qDomainName } from '../constants';
 import { deleteCached } from '../utils/cache';
 import { addPoints } from '../utils/points';
+import { schedulePrefetchAfterSession } from '../utils/questionPrefetch';
 import { useAuth } from '../contexts/AuthContext';
 import { useLanguage } from '../contexts/LanguageContext';
 import Card from '../components/ui/Card';
@@ -605,6 +606,7 @@ export default function ExerciseSession() {
         dailyBonusPts = 10;
         addPoints(userId, dailyBonusPts);
       }
+      schedulePrefetchAfterSession({ examType, userId, isQuick, isFocused });
       navigate('/aws/result', { state: { results, questions, score, isPassed, sessionId, userId, examType, isQuick, isMini, earnedPts, dailyBonusPts } });
     } else {
       setCurrentIndex(prev => prev + 1);
@@ -691,6 +693,7 @@ export default function ExerciseSession() {
       addPoints(userId, dailyBonusPts2);
     }
     const answeredQuestions = questions.slice(0, results.length);
+    schedulePrefetchAfterSession({ examType, userId, isQuick, isFocused });
     navigate('/aws/result', { state: { results, questions: answeredQuestions, score, isPassed, sessionId, userId, examType, isQuick, isMini, aborted: true, earnedPts, dailyBonusPts: dailyBonusPts2 } });
   };
 

@@ -20,6 +20,7 @@ import { IconLightbulb, IconSettings, IconChevronUp, IconChevronDown, IconLock, 
 import { CATALOG } from '../data/awsServiceCatalog';
 import { autoScoreAndClearDrafts } from '../utils/sessionUtils';
 import { syncTargetExamToServer, loadTargetExamFromServer } from '../utils/preferences';
+import { prefetchTypeA, prefetchTypeB, prefetchTypeC, getPrefetchA, getPrefetchB, getPrefetchC } from '../utils/questionPrefetch';
 
 type DomainStat = { tagId: string; correctCount?: number; incorrectCount?: number; recentResults?: boolean[] };
 type SessionEntry = { correct: number; total: number };
@@ -1139,6 +1140,12 @@ export default function Home() {
     return () => window.removeEventListener('targetExamChanged', handler);
   }, []);
 
+  // ── タイプAプリフェッチ: targetExam が変化したとき（キャッシュ未存在時のみ生成） ──
+  useEffect(() => {
+    if (!targetExam) return;
+    if (!getPrefetchA(targetExam)) prefetchTypeA(targetExam, uid);
+  }, [targetExam, uid]);
+
   // ── 成績フェッチ（stale-while-revalidate） ─────────────────────────
   const TS_KEY = (uid: string) => `_ts_ustats_${uid}`;
 
@@ -1452,6 +1459,29 @@ export default function Home() {
     setQuickLoading(true);
     setQuickLoadPct(10);
     const qPrefs = loadQuickPrefs(uid);
+
+    // ── プリフェッチキャッシュを使用 ──
+    {
+      const hasFilters = !!(qPrefs.unansweredOnly || qPrefs.incorrectOnly || qPrefs.bookmarkOnly || (qPrefs.domains?.length ?? 0) > 0);
+      const cached = hasFilters ? getPrefetchC(targetExam, userId, qPrefs) : getPrefetchA(targetExam);
+      if (cached && cached.questions.length > 0) {
+        try {
+          const count = qPrefs.questionCount ?? 5;
+          const items = cached.questions.slice(0, count);
+          if (items.length > 0) {
+            setQuickLoadPct(90);
+            const sessionRes = await fetch(`${API_ENDPOINT}/sessions`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ userId, mode: 'exercise', examType: targetExam, questionIds: items.map((q: any) => q.questionId) }) });
+            const sessionData = await sessionRes.json();
+            setQuickLoading(false); setQuickLoadPct(0);
+            navigate('/aws/exercise/session', { state: { sessionId: sessionData.sessionId, questions: items, userId, mode: 'exercise', examType: targetExam, isQuick: true } });
+            return;
+          }
+        } catch (err) {
+          console.debug('[prefetch] quick cache failed, fallback:', err);
+        }
+      }
+    }
+
     try {
       const userId = user?.userId ?? 'guest';
       const params = new URLSearchParams({ examType: targetExam, withAnswers: 'true' });
@@ -1521,6 +1551,30 @@ export default function Home() {
     setFocusedLoading(true);
     setFocusedLoadPct(10);
     const fPrefs = loadFocusedPrefs(uid);
+
+    // ── プリフェッチキャッシュを使用 ──
+    {
+      const userId = user.userId;
+      const hasFilters = fPrefs.focusIncorrect !== false || (fPrefs.focusDomain ?? 'below60') !== 'none';
+      const cached = hasFilters ? getPrefetchB(targetExam, userId, fPrefs) : getPrefetchA(targetExam);
+      if (cached && cached.questions.length > 0) {
+        try {
+          const count = fPrefs.questionCount ?? 5;
+          const items = cached.questions.slice(0, count);
+          if (items.length > 0) {
+            setFocusedLoadPct(90);
+            const sessionRes = await fetch(`${API_ENDPOINT}/sessions`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ userId, mode: 'exercise', examType: targetExam, questionIds: items.map((q: any) => q.questionId), isFocused: true }) });
+            const sessionData = await sessionRes.json();
+            setFocusedLoading(false); setFocusedLoadPct(0);
+            navigate('/aws/exercise/session', { state: { sessionId: sessionData.sessionId, questions: items, userId, mode: 'exercise', examType: targetExam, isQuick: true, isFocused: true } });
+            return;
+          }
+        } catch (err) {
+          console.debug('[prefetch] focused cache failed, fallback:', err);
+        }
+      }
+    }
+
     try {
       const userId = user.userId;
       const params = new URLSearchParams({ examType: targetExam, withAnswers: 'true' });
@@ -2249,7 +2303,18 @@ export default function Home() {
             {/* 保存ボタン固定 */}
             <div style={{ flexShrink: 0, padding: '12px 24px 20px', borderTop: '1px solid var(--color-border)' }}>
               <Button
-                onClick={() => { localStorage.setItem(`quickExercisePrefs_${uid}`, JSON.stringify(draftPrefs)); setShowQuickModal(false); }}
+                onClick={() => {
+                  localStorage.setItem(`quickExercisePrefs_${uid}`, JSON.stringify(draftPrefs));
+                  setShowQuickModal(false);
+                  if (targetExam) {
+                    const hasFilters = !!(draftPrefs.unansweredOnly || draftPrefs.incorrectOnly || draftPrefs.bookmarkOnly || (draftPrefs.domains?.length ?? 0) > 0);
+                    if (hasFilters) {
+                      prefetchTypeC(targetExam, uid, draftPrefs);
+                    } else {
+                      prefetchTypeA(targetExam, uid);
+                    }
+                  }
+                }}
                 variant="primary" style={{ width: '100%' }}
               >
                 {ja ? '保存する' : 'Save'}
@@ -2353,7 +2418,18 @@ export default function Home() {
             {/* 保存ボタン固定 */}
             <div style={{ flexShrink: 0, padding: '12px 24px 20px', borderTop: '1px solid var(--color-border)' }}>
               <Button
-                onClick={() => { localStorage.setItem(`focusedExercisePrefs_${uid}`, JSON.stringify(draftFocusedPrefs)); setShowFocusedModal(false); }}
+                onClick={() => {
+                  localStorage.setItem(`focusedExercisePrefs_${uid}`, JSON.stringify(draftFocusedPrefs));
+                  setShowFocusedModal(false);
+                  if (targetExam) {
+                    const hasFilters = draftFocusedPrefs.focusIncorrect !== false || (draftFocusedPrefs.focusDomain ?? 'below60') !== 'none';
+                    if (hasFilters) {
+                      prefetchTypeB(targetExam, uid, draftFocusedPrefs);
+                    } else {
+                      prefetchTypeA(targetExam, uid);
+                    }
+                  }
+                }}
                 variant="primary" style={{ width: '100%', background: '#009E9E', borderColor: '#009E9E' }}
               >
                 {ja ? '保存する' : 'Save'}
@@ -2379,6 +2455,7 @@ export default function Home() {
             setTargetExam(exam);
             setShowOnboarding(false);
             if (user) syncTargetExamToServer(user.userId, uid, exam);
+            prefetchTypeA(exam, uid);
           }}
         />
       )}
