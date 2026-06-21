@@ -55,9 +55,80 @@ fi
 SMTP_USER=""; SMTP_PASS=""; SMTP_TO="mugenknock@gmail.com"
 [ -f "$MAIL_CONF" ] && source "$MAIL_CONF"
 
-# ── 1. 夜間スクリプト成果をログから集計 ─────────────────────
+# ── 1. AWS資格公式情報 変更チェック（最優先: 他スクリプトのトークン消費前に実行）──
 echo ""
-echo "--- [1] 夜間スクリプト成果集計 ---"
+echo "--- [1] AWS資格公式情報 変更チェック ---"
+
+CERT_NEWS="取得失敗"
+if [ -n "${CLAUDE_CMD:-}" ] && [ -x "${CLAUDE_CMD:-}" ]; then
+  CERT_PROMPT_FILE=$(mktemp /tmp/cert_news_XXXX.txt)
+  cat > "$CERT_PROMPT_FILE" << 'PROMPT'
+あなたはAWS認定試験学習サイトの運営者アシスタントです。
+以下のURLを確認し、AWS認定試験に関する「変更・修正・更新情報」を日本語でまとめてください。
+
+【確認URL（優先度順）】
+1. Coming Soon（新資格・改定・廃止の一次情報）:
+   https://aws.amazon.com/certification/coming-soon/
+
+2. 試験ガイド一覧（Revisionsページ）:
+   https://docs.aws.amazon.com/aws-certification/latest/examguides/aws-certification-exam-guides.html
+
+3. DVA Revisions:
+   https://docs.aws.amazon.com/aws-certification/latest/developer-associate-02/dva-02-revisions.html
+
+4. DEA Revisions:
+   https://docs.aws.amazon.com/aws-certification/latest/data-engineer-associate-01/dea-01-revisions.html
+
+5. SCS Revisions:
+   https://docs.aws.amazon.com/aws-certification/latest/security-specialty-03/scs03-revisions.html
+
+6. AWS Training & Certification Blog:
+   https://aws.amazon.com/blogs/training-and-certification/
+
+【レポート観点】
+このサイトは「AWS資格演習問題サービス（全12資格対応）」です。
+以下の観点で変更・更新情報を報告してください：
+
+確認項目:
+- 新しい資格の追加（サービスへの追加対応が必要）
+- 資格の廃止・終了予定（サービスからの削除が必要）
+- 試験コード変更（CLF-C02→C03 等）
+- Revisionsページに掲載された出題範囲の変更
+- 対象AWSサービスの追加・削除
+- 試験開始日・終了日の変更
+
+【出力形式（変更なしの場合も明記）】
+変更あり・なし共に以下の形式で返答：
+
+## AWS資格 更新情報サマリー
+確認日時: [今日の日付]
+
+### 変更・更新情報
+（変更がなければ「現時点で変更情報なし」と記載）
+
+各変更は以下の形式で：
+- 【資格名】変更内容：[具体的な変更]
+  学習サイトへの影響：[対応要否と内容]
+
+### 要対応アクション
+（なければ「対応不要」）
+
+---
+
+URLを順番にFetchして確認し、日本語でまとめてください。
+PROMPT
+
+  CERT_NEWS=$("$CLAUDE_CMD" -p --allowed-tools WebFetch < "$CERT_PROMPT_FILE" 2>&1 | head -100)
+  rm -f "$CERT_PROMPT_FILE"
+  echo "$CERT_NEWS" | head -10
+else
+  CERT_NEWS="Claude コマンドが見つからないため取得不可"
+  echo "  ⚠️  Claude 未検出"
+fi
+
+# ── 2. 夜間スクリプト成果をログから集計 ─────────────────────
+echo ""
+echo "--- [2] 夜間スクリプト成果集計 ---"
 
 _parse_generate_log() {
   local logfile="$1"
@@ -121,7 +192,7 @@ fi
 
 # ── 2. DynamoDB 稼働状況 ─────────────────────────────────────
 echo ""
-echo "--- [2] DynamoDB稼働状況 ---"
+echo "--- [3] DynamoDB稼働状況 ---"
 
 DB_STATS=$(python3 << 'PYEOF'
 import subprocess, json, sys
@@ -197,7 +268,7 @@ echo "$DB_EXAM_TABLE"
 
 # ── 3. canary テスト ─────────────────────────────────────────
 echo ""
-echo "--- [3] canary テスト ---"
+echo "--- [4] canary テスト ---"
 
 CANARY_RESULT="未実行"
 CANARY_PASS=0
@@ -220,77 +291,6 @@ if [ -x "$CANARY_SCRIPT" ]; then
   [ -n "$CANARY_DETAIL" ] && echo "  失敗詳細:" && echo "$CANARY_DETAIL" | sed 's/^/    /'
 else
   echo "  ⚠️  canary.sh が見つかりません"
-fi
-
-# ── 4. AWS資格公式情報 変更チェック ─────────────────────────
-echo ""
-echo "--- [4] AWS資格公式情報 変更チェック ---"
-
-CERT_NEWS="取得失敗"
-if [ -n "${CLAUDE_CMD:-}" ] && [ -x "${CLAUDE_CMD:-}" ]; then
-  CERT_PROMPT_FILE=$(mktemp /tmp/cert_news_XXXX.txt)
-  cat > "$CERT_PROMPT_FILE" << 'PROMPT'
-あなたはAWS認定試験学習サイトの運営者アシスタントです。
-以下のURLを確認し、AWS認定試験に関する「変更・修正・更新情報」を日本語でまとめてください。
-
-【確認URL（優先度順）】
-1. Coming Soon（新資格・改定・廃止の一次情報）:
-   https://aws.amazon.com/certification/coming-soon/
-
-2. 試験ガイド一覧（Revisionsページ）:
-   https://docs.aws.amazon.com/aws-certification/latest/examguides/aws-certification-exam-guides.html
-
-3. DVA Revisions:
-   https://docs.aws.amazon.com/aws-certification/latest/developer-associate-02/dva-02-revisions.html
-
-4. DEA Revisions:
-   https://docs.aws.amazon.com/aws-certification/latest/data-engineer-associate-01/dea-01-revisions.html
-
-5. SCS Revisions:
-   https://docs.aws.amazon.com/aws-certification/latest/security-specialty-03/scs03-revisions.html
-
-6. AWS Training & Certification Blog:
-   https://aws.amazon.com/blogs/training-and-certification/
-
-【レポート観点】
-このサイトは「AWS資格演習問題サービス（全12資格対応）」です。
-以下の観点で変更・更新情報を報告してください：
-
-確認項目:
-- 新しい資格の追加（サービスへの追加対応が必要）
-- 資格の廃止・終了予定（サービスからの削除が必要）
-- 試験コード変更（CLF-C02→C03 等）
-- Revisionsページに掲載された出題範囲の変更
-- 対象AWSサービスの追加・削除
-- 試験開始日・終了日の変更
-
-【出力形式（変更なしの場合も明記）】
-変更あり・なし共に以下の形式で返答：
-
-## AWS資格 更新情報サマリー
-確認日時: [今日の日付]
-
-### 変更・更新情報
-（変更がなければ「現時点で変更情報なし」と記載）
-
-各変更は以下の形式で：
-- 【資格名】変更内容：[具体的な変更]
-  学習サイトへの影響：[対応要否と内容]
-
-### 要対応アクション
-（なければ「対応不要」）
-
----
-
-URLを順番にFetchして確認し、日本語でまとめてください。
-PROMPT
-
-  CERT_NEWS=$("$CLAUDE_CMD" -p --allowed-tools WebFetch < "$CERT_PROMPT_FILE" 2>&1 | head -100)
-  rm -f "$CERT_PROMPT_FILE"
-  echo "$CERT_NEWS" | head -10
-else
-  CERT_NEWS="Claude コマンドが見つからないため取得不可"
-  echo "  ⚠️  Claude 未検出"
 fi
 
 # ── 5. メール生成・送信 ────────────────────────────────────────
