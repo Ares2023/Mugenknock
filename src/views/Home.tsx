@@ -4,6 +4,7 @@ import { Helmet } from '@/compat/react-helmet-async';
 import { createPortal } from 'react-dom';
 import { useNavigate, useLocation } from '@/compat/react-router-dom';
 import DailyServiceRevealModal from '../components/DailyServiceRevealModal';
+import ExamSelectOverlay from '../components/ExamSelectOverlay';
 import { useAuth } from '../contexts/AuthContext';
 import { useLanguage } from '../contexts/LanguageContext';
 import {
@@ -2369,10 +2370,12 @@ export default function Home() {
 
       {/* オンボーディング（目標資格未設定） */}
       {showOnboarding && (
-        <OnboardingModal
-          lang={lang}
+        <ExamSelectOverlay
+          targetExam={null}
           uid={uid}
-          onComplete={(exam) => {
+          lang={lang}
+          isMobile={isMobile}
+          onSelect={(exam) => {
             setTargetExam(exam);
             setShowOnboarding(false);
             if (user) syncTargetExamToServer(user.userId, uid, exam);
