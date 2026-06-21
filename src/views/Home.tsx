@@ -1127,7 +1127,7 @@ export default function Home() {
     if (saved !== null) {
       setTargetExam(saved);
       setShowOnboarding(false);
-    } else if (user) {
+    } else {
       setShowOnboarding(true);
     }
   }, [uid]);
