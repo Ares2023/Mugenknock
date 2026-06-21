@@ -10,7 +10,7 @@ import DomainSelector from '../components/DomainSelector';
 import { getCached, setCached, SHORT_TTL } from '../utils/cache';
 import { autoScoreAndClearDrafts } from '../utils/sessionUtils';
 import { animateLoadPct, randomPlateau } from '../utils/loadProgress';
-import { IconChevronUp, IconChevronDown } from '../components/Icons';
+import { IconChevronUp, IconChevronDown, IconChevronRight } from '../components/Icons';
 
 function shuffleArray<T>(arr: T[]): T[] {
   const a = [...arr];
@@ -383,20 +383,18 @@ export default function Practice() {
 
           {/* ── オプション（折りたたみ） ── */}
           {user && (
-            <div style={{ marginBottom: 'var(--spacing-lg)', border: '1px solid var(--color-border)', borderRadius: 'var(--border-radius-md)', overflow: 'hidden' }}>
+            <div style={{ marginBottom: 'var(--spacing-lg)', border: '1px solid var(--color-text-light)', borderRadius: 'var(--border-radius-md)', overflow: 'hidden' }}>
               <button
                 onClick={() => setShowExerciseOptions(v => !v)}
-                style={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '10px 14px', background: 'var(--color-bg-main)', border: 'none', cursor: 'pointer', fontSize: 'var(--font-size-sm)', fontWeight: 600, color: 'var(--color-text-sub)' }}
+                style={{ width: '100%', display: 'flex', alignItems: 'center', gap: 6, padding: '10px 14px', background: 'var(--color-bg-main)', border: 'none', cursor: 'pointer', fontSize: 'var(--font-size-sm)', fontWeight: 600, color: 'var(--color-text-sub)' }}
               >
-                <span style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                  {ja ? 'オプション' : 'Options'}
-                  {(unansweredOnly || incorrectOnly || bookmarkOnly) && (
-                    <span style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', width: 16, height: 16, borderRadius: '50%', background: 'var(--color-primary)', color: '#fff', fontSize: 10, fontWeight: 700 }}>
-                      {[unansweredOnly, incorrectOnly, bookmarkOnly].filter(Boolean).length}
-                    </span>
-                  )}
-                </span>
-                {showExerciseOptions ? <IconChevronDown size={14} /> : <IconChevronUp size={14} />}
+                {showExerciseOptions ? <IconChevronDown size={14} /> : <IconChevronRight size={14} />}
+                {ja ? 'オプション' : 'Options'}
+                {(unansweredOnly || incorrectOnly || bookmarkOnly) && (
+                  <span style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', width: 16, height: 16, borderRadius: '50%', background: 'var(--color-primary)', color: '#fff', fontSize: 10, fontWeight: 700 }}>
+                    {[unansweredOnly, incorrectOnly, bookmarkOnly].filter(Boolean).length}
+                  </span>
+                )}
               </button>
               {showExerciseOptions && (
                 <div style={{ padding: '12px 14px', display: 'flex', flexDirection: 'column', gap: 10, borderTop: '1px solid var(--color-border)' }}>
@@ -481,20 +479,18 @@ export default function Practice() {
 
               {/* ── オプション（模試・折りたたみ） ── */}
               {user && (
-                <div style={{ marginBottom: 'var(--spacing-lg)', border: '1px solid var(--color-border)', borderRadius: 'var(--border-radius-md)', overflow: 'hidden' }}>
+                <div style={{ marginBottom: 'var(--spacing-lg)', border: '1px solid var(--color-text-light)', borderRadius: 'var(--border-radius-md)', overflow: 'hidden' }}>
                   <button
                     onClick={() => setShowExamOptions(v => !v)}
-                    style={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '10px 14px', background: 'var(--color-bg-main)', border: 'none', cursor: 'pointer', fontSize: 'var(--font-size-sm)', fontWeight: 600, color: 'var(--color-text-sub)' }}
+                    style={{ width: '100%', display: 'flex', alignItems: 'center', gap: 6, padding: '10px 14px', background: 'var(--color-bg-main)', border: 'none', cursor: 'pointer', fontSize: 'var(--font-size-sm)', fontWeight: 600, color: 'var(--color-text-sub)' }}
                   >
-                    <span style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                      {ja ? 'オプション' : 'Options'}
-                      {(examUnansweredOnly || examIncorrectOnly || examBookmarkOnly) && (
-                        <span style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', width: 16, height: 16, borderRadius: '50%', background: 'var(--color-primary)', color: '#fff', fontSize: 10, fontWeight: 700 }}>
-                          {[examUnansweredOnly, examIncorrectOnly, examBookmarkOnly].filter(Boolean).length}
-                        </span>
-                      )}
-                    </span>
-                    {showExamOptions ? <IconChevronDown size={14} /> : <IconChevronUp size={14} />}
+                    {showExamOptions ? <IconChevronDown size={14} /> : <IconChevronRight size={14} />}
+                    {ja ? 'オプション' : 'Options'}
+                    {(examUnansweredOnly || examIncorrectOnly || examBookmarkOnly) && (
+                      <span style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', width: 16, height: 16, borderRadius: '50%', background: 'var(--color-primary)', color: '#fff', fontSize: 10, fontWeight: 700 }}>
+                        {[examUnansweredOnly, examIncorrectOnly, examBookmarkOnly].filter(Boolean).length}
+                      </span>
+                    )}
                   </button>
                   {showExamOptions && (
                     <div style={{ padding: '12px 14px', display: 'flex', flexDirection: 'column', gap: 10, borderTop: '1px solid var(--color-border)' }}>
