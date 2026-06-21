@@ -24,7 +24,15 @@ fi
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 NIGHT_PROMPTS_DIR="$(dirname "$SCRIPT_DIR")"
+INSTRUCTION_DIR="$SCRIPT_DIR/instructions"
 LOG_DIR="$NIGHT_PROMPTS_DIR/logs"
+
+# 資格コード → 公式試験ガイドURL（instructions/*.txt の # EXAM_GUIDE_URL: 行から読む）
+_get_exam_guide_url() {
+  local exam="$1"
+  local inst_file="${INSTRUCTION_DIR}/${exam}.txt"
+  [ -f "$inst_file" ] && grep "^# EXAM_GUIDE_URL:" "$inst_file" | head -1 | sed 's/^# EXAM_GUIDE_URL: *//'
+}
 mkdir -p "$LOG_DIR"
 DATE=$(date '+%Y%m%d_%H%M%S')
 LOG_FILE="$LOG_DIR/validity_${DATE}.log"
@@ -235,6 +243,28 @@ TOTAL_FIX=0
 TOTAL_DEL=0
 RATE_LIMITED=0
 
+# 公式試験ガイドURLマップを instructions/*.txt から構築
+EXAM_GUIDE_URLS_JSON=$(python3 << 'PYEOF'
+import os, json
+inst_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'instructions')
+urls = {}
+for fname in os.listdir(inst_dir):
+    if not fname.endswith('.txt') or fname.startswith('_'):
+        continue
+    exam = fname[:-4]
+    path = os.path.join(inst_dir, fname)
+    try:
+        with open(path) as f:
+            for line in f:
+                if line.startswith('# EXAM_GUIDE_URL:'):
+                    urls[exam] = line.split(':', 1)[1].strip()
+                    break
+    except Exception:
+        pass
+print(json.dumps(urls, ensure_ascii=False))
+PYEOF
+)
+
 TIMEOUT_HIT=0
 for chunk_file in "$CHUNKS_DIR"/*.json; do
   [ -e "$chunk_file" ] || continue
@@ -255,11 +285,16 @@ for chunk_file in "$CHUNKS_DIR"/*.json; do
   echo "--- チャンク $((CHUNK_IDX+1))/${CHUNK_COUNT}: ${CHUNK_NUM}問  開始=$(date '+%H:%M:%S') ---"
 
   PROMPT_FILE=$(mktemp /tmp/validity_prompt_XXXX.txt)
-  python3 - "$chunk_file" > "$PROMPT_FILE" << 'PYEOF'
-import json, sys
+  EXAM_GUIDE_URLS_JSON_ESC="$EXAM_GUIDE_URLS_JSON" python3 - "$chunk_file" > "$PROMPT_FILE" << 'PYEOF'
+import json, sys, os
 with open(sys.argv[1]) as f:
     questions = json.load(f)
-lines = ['あなたはAWS認定試験の問題品質チェッカーです。\n以下の問題を精査し、資格勉強サイトの問題として適切かどうか確認してください。\n\n【確認観点】\n- 現在のAWSサービスの仕様・機能と一致しているか（廃止サービスを現行として扱っていないか）\n- 正解が正しく、選択肢に正解が含まれているか\n- correctAnswers の各要素が choices のいずれかと完全一致しているか（「A. 」「B. 」などの記号接頭辞が付いていないか）。不一致の場合は fix で修正する\n- 解説が正確で適切か。ダミーの選択肢がだめな理由も解説しているか\n- 解説は適宜改行を入れて読みやすいか。各選択肢の説明が「選択肢Aは〜」「選択肢Bは〜」のように選択肢ごとに改行して記述されているか。されていない場合は fix で修正すること\n- 問題文（questionText）が適切に改行されているか。要件・条件を列挙する場合や複数の操作ステップがある場合は改行（\\n）が使われているか。されていない場合は fix で修正すること\n- 試験問題として適切な形式・難易度か\n- AWSに直接関係しない一般的でない略語に注釈・解説がついているか（ない場合は問題文または解説に補足を追加する）\n- タグ（出題ドメイン）が正しく設定されているか。タグが空・欠落・下記ドメイン外の値の場合はfixで正しいドメインを設定すること\n  CLF: クラウドの概念 / セキュリティとコンプライアンス / クラウドのテクノロジーとサービス / 請求、料金、およびサポート\n  SAA: セキュアなアーキテクチャの設計 / 弾力性に優れたアーキテクチャの設計 / 高性能なアーキテクチャの設計 / コスト最適化されたアーキテクチャの設計\n  SAP: 組織の複雑さに対応する設計 / 新しいソリューションのための設計 / 既存のソリューションの継続的改善 / ワークロードの移行とモダン化の加速\n  DOP: SDLC の自動化 / 構成管理と Infrastructure as Code (IaC) / 弾力性に優れたクラウドソリューション / モニタリングとロギング / インシデントとイベントへの対応 / セキュリティとコンプライアンス\n  DVA: AWSのサービスを使用した開発 / セキュリティ / デプロイ / トラブルシューティングと最適化\n  SOA: モニタリング、ロギング、分析、修復、およびパフォーマンスの最適化 / 信頼性とビジネス継続性 / デプロイ、プロビジョニング、および自動化 / セキュリティとコンプライアンス / ネットワークとコンテンツ配信\n  DEA: データの取り込みと変換 / データストアの管理 / データオペレーションとサポート / データのセキュリティとガバナンス\n  AIF: AIとMLの基礎 / 生成AIの基礎 / 基盤モデルのアプリケーション / 責任あるAIのガイドライン / AIソリューションのセキュリティ、コンプライアンス、ガバナンス\n  MLA: 機械学習のためのデータ準備 / MLモデルの開発 / MLワークフローのデプロイとオーケストレーション / MLソリューションの監視、メンテナンス、セキュリティ\n  AIP: 基盤モデルの統合、データ管理、コンプライアンス / 実装と統合 / AIの安全性、セキュリティ、ガバナンス / 生成AIアプリケーションの運用効率と最適化 / テスト、検証、トラブルシューティング\n  ANS: ネットワーク設計 / ネットワーク実装 / ネットワーク管理と運用 / ネットワークのセキュリティ、コンプライアンス、ガバナンス\n  SCS: 検出 / インシデント対応 / インフラストラクチャのセキュリティ / アイデンティティとアクセス管理 / データ保護 / セキュリティの基盤とガバナンス\n- isMultiple フラグが正しいか。correctAnswers が複数なら isMultiple: true、1つなら isMultiple: false であること。不一致の場合は fix で修正する\n- 解説の文字数が極端に短くないか（目安100字未満は不足）。短い場合は fix で解説を補足・拡充すること\n- choiceExplanations が choices と同じ長さかどうか（未設定または長さ不一致の場合は fix で choiceExplanations を生成・修正する。正解選択肢はなぜ正解かを、不正解選択肢はなぜ不正解かを100〜150字程度で記述。文頭に「正解です」「不正解です」などの判定文を入れない）\n- 正解の選択肢の文字数が不正解の選択肢群から浮いていないか（正解だけが著しく長い・短いと文字数から正解が推測できてしまう。正解の文字数が不正解の平均文字数と大きく乖離している場合は fix で正解・不正解の文章量を揃えること）\n\n【アクション】\n- "ok": 問題なし（確認日のみ更新）\n- "fix": 問題あり・修正可能（修正後の内容を含める。変更する項目のみ）\n- "delete": 修正不可能な致命的問題（正解が選択肢に存在しない、完全に誤った情報など）\n\n【出力形式】\n必ず以下のJSONのみを出力してください。説明文・前置きは不要です。\n\n{"results":[\n  {"questionId":"...","action":"ok","reason":"日本語100字以内"},\n  {"questionId":"...","action":"fix","reason":"...","fix":{"questionText":"修正後（変更する場合のみ）","choices":["A","B","C","D"],"correctAnswers":["正解（choices配列内の完全一致テキスト、記号接頭辞なし）"],"explanation":"修正後解説（変更する場合のみ）","choiceExplanations":["選択肢0の解説","選択肢1の解説","選択肢2の解説","選択肢3の解説"],"tags":["出題ドメイン（変更する場合のみ）"],"isMultiple":true}},\n  {"questionId":"...","action":"delete","reason":"..."}\n]}\n\n【問題リスト】']
+exam_guide_urls = json.loads(os.environ.get('EXAM_GUIDE_URLS_JSON_ESC', '{}'))
+url_note = ''
+if exam_guide_urls:
+    url_lines = '\n'.join(f'  {k}: {v}' for k, v in sorted(exam_guide_urls.items()))
+    url_note = f'\n【公式試験ガイドURL（最新の出題要件の確認に使用すること）】\n{url_lines}\n'
+lines = [f'あなたはAWS認定試験の問題品質チェッカーです。\n以下の問題を精査し、資格勉強サイトの問題として適切かどうか確認してください。{url_note}\n【確認観点】\n- 現在のAWSサービスの仕様・機能と一致しているか（廃止サービスを現行として扱っていないか）\n- 正解が正しく、選択肢に正解が含まれているか\n- correctAnswers の各要素が choices のいずれかと完全一致しているか（「A. 」「B. 」などの記号接頭辞が付いていないか）。不一致の場合は fix で修正する\n- 解説が正確で適切か。ダミーの選択肢がだめな理由も解説しているか\n- 解説は適宜改行を入れて読みやすいか。各選択肢の説明が「選択肢Aは〜」「選択肢Bは〜」のように選択肢ごとに改行して記述されているか。されていない場合は fix で修正すること\n- 問題文（questionText）が適切に改行されているか。要件・条件を列挙する場合や複数の操作ステップがある場合は改行（\\n）が使われているか。されていない場合は fix で修正すること\n- 試験問題として適切な形式・難易度か\n- AWSに直接関係しない一般的でない略語に注釈・解説がついているか（ない場合は問題文または解説に補足を追加する）\n- タグ（出題ドメイン）が正しく設定されているか。タグが空・欠落・下記ドメイン外の値の場合はfixで正しいドメインを設定すること\n  CLF: クラウドの概念 / セキュリティとコンプライアンス / クラウドのテクノロジーとサービス / 請求、料金、およびサポート\n  SAA: セキュアなアーキテクチャの設計 / 弾力性に優れたアーキテクチャの設計 / 高性能なアーキテクチャの設計 / コスト最適化されたアーキテクチャの設計\n  SAP: 組織の複雑さに対応する設計 / 新しいソリューションのための設計 / 既存のソリューションの継続的改善 / ワークロードの移行とモダン化の加速\n  DOP: SDLC の自動化 / 構成管理と Infrastructure as Code (IaC) / 弾力性に優れたクラウドソリューション / モニタリングとロギング / インシデントとイベントへの対応 / セキュリティとコンプライアンス\n  DVA: AWSのサービスを使用した開発 / セキュリティ / デプロイ / トラブルシューティングと最適化\n  SOA: モニタリング、ロギング、分析、修復、およびパフォーマンスの最適化 / 信頼性とビジネス継続性 / デプロイ、プロビジョニング、および自動化 / セキュリティとコンプライアンス / ネットワークとコンテンツ配信\n  DEA: データの取り込みと変換 / データストアの管理 / データオペレーションとサポート / データのセキュリティとガバナンス\n  AIF: AIとMLの基礎 / 生成AIの基礎 / 基盤モデルのアプリケーション / 責任あるAIのガイドライン / AIソリューションのセキュリティ、コンプライアンス、ガバナンス\n  MLA: 機械学習のためのデータ準備 / MLモデルの開発 / MLワークフローのデプロイとオーケストレーション / MLソリューションの監視、メンテナンス、セキュリティ\n  AIP: 基盤モデルの統合、データ管理、コンプライアンス / 実装と統合 / AIの安全性、セキュリティ、ガバナンス / 生成AIアプリケーションの運用効率と最適化 / テスト、検証、トラブルシューティング\n  ANS: ネットワーク設計 / ネットワーク実装 / ネットワーク管理と運用 / ネットワークのセキュリティ、コンプライアンス、ガバナンス\n  SCS: 検出 / インシデント対応 / インフラストラクチャのセキュリティ / アイデンティティとアクセス管理 / データ保護 / セキュリティの基盤とガバナンス\n- isMultiple フラグが正しいか。correctAnswers が複数なら isMultiple: true、1つなら isMultiple: false であること。不一致の場合は fix で修正する\n- 解説の文字数が極端に短くないか（目安100字未満は不足）。短い場合は fix で解説を補足・拡充すること\n- choiceExplanations が choices と同じ長さかどうか（未設定または長さ不一致の場合は fix で choiceExplanations を生成・修正する。正解選択肢はなぜ正解かを、不正解選択肢はなぜ不正解かを100〜150字程度で記述。文頭に「正解です」「不正解です」などの判定文を入れない）\n- 正解の選択肢の文字数が不正解の選択肢群から浮いていないか（正解だけが著しく長い・短いと文字数から正解が推測できてしまう。正解の文字数が不正解の平均文字数と大きく乖離している場合は fix で正解・不正解の文章量を揃えること）\n\n【アクション】\n- "ok": 問題なし（確認日のみ更新）\n- "fix": 問題あり・修正可能（修正後の内容を含める。変更する項目のみ）\n- "delete": 修正不可能な致命的問題（正解が選択肢に存在しない、完全に誤った情報など）\n\n【出力形式】\n必ず以下のJSONのみを出力してください。説明文・前置きは不要です。\n\n{"results":[\n  {"questionId":"...","action":"ok","reason":"日本語100字以内"},\n  {"questionId":"...","action":"fix","reason":"...","fix":{"questionText":"修正後（変更する場合のみ）","choices":["A","B","C","D"],"correctAnswers":["正解（choices配列内の完全一致テキスト、記号接頭辞なし）"],"explanation":"修正後解説（変更する場合のみ）","choiceExplanations":["選択肢0の解説","選択肢1の解説","選択肢2の解説","選択肢3の解説"],"tags":["出題ドメイン（変更する場合のみ）"],"isMultiple":true}},\n  {"questionId":"...","action":"delete","reason":"..."}\n]}\n\n【問題リスト】']
 EXAM_DOMAINS_LOCAL = {'CLF': ['クラウドの概念', 'セキュリティとコンプライアンス', 'クラウドのテクノロジーとサービス', '請求、料金、およびサポート'], 'SAA': ['セキュアなアーキテクチャの設計', '弾力性に優れたアーキテクチャの設計', '高性能なアーキテクチャの設計', 'コスト最適化されたアーキテクチャの設計'], 'SAP': ['組織の複雑さに対応する設計', '新しいソリューションのための設計', '既存のソリューションの継続的改善', 'ワークロードの移行とモダン化の加速'], 'DVA': ['AWSのサービスを使用した開発', 'セキュリティ', 'デプロイ', 'トラブルシューティングと最適化'], 'SOA': ['モニタリング、ロギング、分析、修復、およびパフォーマンスの最適化', '信頼性とビジネス継続性', 'デプロイ、プロビジョニング、および自動化', 'セキュリティとコンプライアンス', 'ネットワークとコンテンツ配信'], 'DOP': ['SDLC の自動化', '構成管理と Infrastructure as Code (IaC)', '弾力性に優れたクラウドソリューション', 'モニタリングとロギング', 'インシデントとイベントへの対応', 'セキュリティとコンプライアンス'], 'AIF': ['AIとMLの基礎', '生成AIの基礎', '基盤モデルのアプリケーション', '責任あるAIのガイドライン', 'AIソリューションのセキュリティ、コンプライアンス、ガバナンス'], 'MLA': ['機械学習のためのデータ準備', 'MLモデルの開発', 'MLワークフローのデプロイとオーケストレーション', 'MLソリューションの監視、メンテナンス、セキュリティ'], 'AIP': ['基盤モデルの統合、データ管理、コンプライアンス', '実装と統合', 'AIの安全性、セキュリティ、ガバナンス', '生成AIアプリケーションの運用効率と最適化', 'テスト、検証、トラブルシューティング'], 'DEA': ['データの取り込みと変換', 'データストアの管理', 'データオペレーションとサポート', 'データのセキュリティとガバナンス'], 'ANS': ['ネットワーク設計', 'ネットワーク実装', 'ネットワーク管理と運用', 'ネットワークのセキュリティ、コンプライアンス、ガバナンス'], 'SCS': ['検出', 'インシデント対応', 'インフラストラクチャのセキュリティ', 'アイデンティティとアクセス管理', 'データ保護', 'セキュリティの基盤とガバナンス']}
 for q in questions:
     lines.append(f"ID: {q['questionId']}")
@@ -293,7 +328,7 @@ PYEOF
 
   _STDOUT_F=$(mktemp /tmp/claude_out_XXXX)
   _STDERR_F=$(mktemp /tmp/claude_err_XXXX)
-  "$CLAUDE_CMD" -p < "$PROMPT_FILE" > "$_STDOUT_F" 2> "$_STDERR_F"
+  "$CLAUDE_CMD" -p --allowed-tools WebFetch < "$PROMPT_FILE" > "$_STDOUT_F" 2> "$_STDERR_F"
   AI_EXIT=$?
   RESULT=$(cat "$_STDOUT_F")
   _STDERR=$(cat "$_STDERR_F")
@@ -305,7 +340,7 @@ PYEOF
     if [ -x "${CLAUDE_CMD:-}" ]; then
       _STDOUT_F=$(mktemp /tmp/claude_out_XXXX)
       _STDERR_F=$(mktemp /tmp/claude_err_XXXX)
-      "$CLAUDE_CMD" -p < "$PROMPT_FILE" > "$_STDOUT_F" 2> "$_STDERR_F"
+      "$CLAUDE_CMD" -p --allowed-tools WebFetch < "$PROMPT_FILE" > "$_STDOUT_F" 2> "$_STDERR_F"
       AI_EXIT=$?
       RESULT=$(cat "$_STDOUT_F")
       _STDERR=$(cat "$_STDERR_F")

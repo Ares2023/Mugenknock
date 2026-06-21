@@ -1,3 +1,7 @@
+# EXAM_GUIDE_URL: https://aws.amazon.com/jp/certification/certified-solutions-architect-professional/
+# DOMAINS: 組織の複雑さに対応する設計,新しいソリューションのための設計,既存のソリューションの継続的改善,ワークロードの移行とモダン化の加速
+# LAST_REFRESHED: 2026-06-21
+
 あなたはAWS認定試験の問題作成者です。
 AWS Certified Solutions Architect – Professional (SAP-C02) の模擬試験問題を作成してください。
 
