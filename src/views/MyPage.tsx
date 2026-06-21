@@ -12,6 +12,7 @@ import {
   IconCalendarNotebook, IconTarget, IconAnnoyed, IconList,
   IconSparkles, IconChevronRight, IconChevronDown, IconLock, IconFlag, IconStar, IconTrendingUp, IconPenLine,
   IconSprout, IconBox, IconBot, IconCode2, IconCloud, IconDatabase, IconBrain, IconVectorSquare, IconFileCodeCorner, IconAtom, IconShieldIcon, IconWaypoints,
+  EXAM_ICON_COMPONENTS,
 } from '../components/Icons';
 import ExamSelectOverlay from '../components/ExamSelectOverlay';
 
@@ -382,10 +383,23 @@ export default function MyPage() {
                 const main = dashIdx >= 0 ? full.slice(0, dashIdx) : full;
                 const level = dashIdx >= 0 ? '– ' + full.slice(dashIdx + 3) : null;
                 const panelColor = EXAM_LEVEL_COLORS[EXAM_LEVEL[targetExam]] ?? 'var(--color-primary)';
+                const ExamIcon = EXAM_ICON_COMPONENTS[targetExam];
                 return (
-                  <div>
-                    <div style={{ fontWeight: 700, fontSize: 18, color: panelColor, lineHeight: 1.3 }}>{main}</div>
-                    {level && <div style={{ fontWeight: 700, fontSize: 18, color: panelColor, lineHeight: 1.3 }}>{level}</div>}
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
+                    {/* 六角形アイコンバッジ */}
+                    <div style={{
+                      width: 52, height: 52, flexShrink: 0,
+                      background: panelColor,
+                      clipPath: 'polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%)',
+                      display: 'flex', alignItems: 'center', justifyContent: 'center',
+                      color: '#fff',
+                    }}>
+                      {ExamIcon && <ExamIcon size={24} />}
+                    </div>
+                    <div>
+                      <div style={{ fontWeight: 700, fontSize: 18, color: panelColor, lineHeight: 1.3 }}>{main}</div>
+                      {level && <div style={{ fontWeight: 700, fontSize: 18, color: panelColor, lineHeight: 1.3 }}>{level}</div>}
+                    </div>
                   </div>
                 );
               })() : (
