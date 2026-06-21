@@ -118,7 +118,7 @@ export default function ExamSelectOverlay({
           width: '100%',
           maxWidth: isMobile ? 420 : 630,
           boxShadow: 'var(--box-shadow-md)',
-          height: isMobile ? '83vh' : '86vh',
+          maxHeight: isMobile ? '75vh' : '86vh',
           display: 'flex', flexDirection: 'column', overflow: 'hidden',
         }}
         onClick={e => e.stopPropagation()}
