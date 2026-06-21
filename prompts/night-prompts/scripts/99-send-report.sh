@@ -21,7 +21,7 @@ unset ANTHROPIC_API_KEY
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 NIGHT_PROMPTS_DIR="$(dirname "$SCRIPT_DIR")"
 PROJECT_DIR="$(dirname "$(dirname "$NIGHT_PROMPTS_DIR")")"
-LOG_DIR="$NIGHT_PROMPTS_DIR/logs"
+LOG_DIR="$(dirname "$NIGHT_PROMPTS_DIR")/logs"   # nscriptログは prompts/logs/ に書かれる
 CANARY_SCRIPT="$NIGHT_PROMPTS_DIR/manual/canary.sh"
 MAIL_CONF="${HOME}/.mugenknock_mail.conf"
 AWS=/home/yuzuki/local/bin/aws
