@@ -211,10 +211,9 @@ export default function ExamSelectOverlay({
                   {EXAM_CATCHCOPY[exam] && (
                     <div style={{ fontSize: 11, color: 'var(--color-text-light)', fontStyle: 'italic', marginBottom: 4 }}>{EXAM_CATCHCOPY[exam]}</div>
                   )}
-                  <div style={{ fontWeight: 700, fontSize: 17, color: 'var(--color-text-main)', marginBottom: 2 }}>
+                  <div style={{ fontWeight: 700, fontSize: 17, color: 'var(--color-text-main)' }}>
                     {(cfg?.fullName ?? exam).replace('AWS Certified ', '')}
                   </div>
-                  <div style={{ fontSize: 11, color: levelColor, fontWeight: 600 }}>{activeLevel}</div>
                 </div>
                 <p style={{ margin: '0 0 12px', fontSize: 12, color: 'var(--color-text-sub)', lineHeight: 1.7 }}>{EXAM_DESC[exam] ?? ''}</p>
                 <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px 20px', marginBottom: 12, padding: '10px 12px', background: 'var(--color-bg-main)', borderRadius: 8 }}>
