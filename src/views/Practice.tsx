@@ -10,7 +10,7 @@ import DomainSelector from '../components/DomainSelector';
 import { getCached, setCached, SHORT_TTL } from '../utils/cache';
 import { autoScoreAndClearDrafts } from '../utils/sessionUtils';
 import { animateLoadPct, randomPlateau } from '../utils/loadProgress';
-import { IconChevronUp } from '../components/Icons';
+import { IconChevronUp, IconChevronDown } from '../components/Icons';
 
 function shuffleArray<T>(arr: T[]): T[] {
   const a = [...arr];
@@ -90,6 +90,12 @@ export default function Practice() {
   const [showNewPanel, setShowNewPanel] = useState(false);
   const [showNewExamPanel, setShowNewExamPanel] = useState(false);
   const [showStartConfirm, setShowStartConfirm] = useState(false);
+  const [showExerciseOptions, setShowExerciseOptions] = useState(false);
+  const [showExamOptions, setShowExamOptions] = useState(false);
+  // 模試用フィルタ
+  const [examUnansweredOnly, setExamUnansweredOnly] = useState(false);
+  const [examIncorrectOnly, setExamIncorrectOnly] = useState(false);
+  const [examBookmarkOnly, setExamBookmarkOnly] = useState(false);
 
   const isFirstRender = useRef(true);
   useEffect(() => {
@@ -262,20 +268,27 @@ export default function Practice() {
       const params = new URLSearchParams({ examType: targetExam, withAnswers: 'true' });
       const plateau = randomPlateau();
       const stopAnim = animateLoadPct(setExamLoadPct, 10, plateau);
-      const [data, answeredRes] = await Promise.all([
+      const needFilter = user && (examUnansweredOnly || examIncorrectOnly || examBookmarkOnly);
+      const [data, answeredRes, incorrectRes, bkmRes] = await Promise.all([
         fetch(`${API_ENDPOINT}/questions?${params}`).then(r => r.json()),
         user ? fetch(`${API_ENDPOINT}/users/me/answered-questions?userId=${userId}&examType=${targetExam}`).then(r => r.json()) : Promise.resolve(null),
+        needFilter && examIncorrectOnly ? fetch(`${API_ENDPOINT}/users/me/incorrect-questions?userId=${userId}&examType=${targetExam}`).then(r => r.json()) : Promise.resolve(null),
+        needFilter && examBookmarkOnly ? fetch(`${API_ENDPOINT}/users/me/bookmarks?userId=${userId}`).then(r => r.json()) : Promise.resolve(null),
       ]);
       stopAnim();
       setExamLoadPct(plateau);
       let items: any[] = (data.items ?? []).filter((q: any) => !!q.validityCheckedAt);
       items = shuffleArray(items);
-      if (answeredRes) {
+      if (needFilter) {
+        if (examUnansweredOnly && answeredRes) { const ids = new Set<string>(answeredRes.questionIds ?? []); items = items.filter((q: any) => !ids.has(q.questionId)); }
+        if (examIncorrectOnly && incorrectRes) { const ids = new Set<string>(incorrectRes.questionIds ?? []); items = items.filter((q: any) => ids.has(q.questionId)); }
+        if (examBookmarkOnly && bkmRes) { const ids = new Set<string>(bkmRes.questionIds ?? []); items = items.filter((q: any) => ids.has(q.questionId)); }
+      } else if (answeredRes) {
         const answered = new Set<string>(answeredRes.questionIds ?? []);
         items.sort((a: any, b: any) => (answered.has(a.questionId) ? 1 : 0) - (answered.has(b.questionId) ? 1 : 0));
       }
       items = items.slice(0, examQuestions);
-      if (items.length === 0) { alert(ja ? '条件に合う問題がありません（AI確認済み・未回答問題が0件）' : 'No questions match'); setExamLoading(false); return; }
+      if (items.length === 0) { alert(ja ? '条件に合う問題がありません' : 'No questions match'); setExamLoading(false); return; }
       setExamLoadPct(90);
       const sessionRes = await fetch(`${API_ENDPOINT}/sessions`, {
         method: 'POST', headers: { 'Content-Type': 'application/json' },
@@ -340,24 +353,6 @@ export default function Practice() {
             />
           </div>
 
-          {/* オプション */}
-          {user && (
-            <div style={{ marginBottom: 'var(--spacing-lg)', padding: 'var(--spacing-md)', background: 'var(--color-bg-main)', borderRadius: 'var(--border-radius-md)', display: 'flex', flexDirection: 'column', gap: 'var(--spacing-xs)' }}>
-              <label style={{ display: 'flex', alignItems: 'center', gap: 'var(--spacing-sm)', cursor: 'pointer', fontSize: 'var(--font-size-base)' }}>
-                <input type="checkbox" checked={unansweredOnly} onChange={e => { setUnansweredOnly(e.target.checked); if (e.target.checked) setIncorrectOnly(false); }} style={{ width: 16, height: 16, flexShrink: 0 }} />
-                {t('exerciseSetup.unansweredOnly')}
-              </label>
-              <label style={{ display: 'flex', alignItems: 'center', gap: 'var(--spacing-sm)', cursor: 'pointer', fontSize: 'var(--font-size-base)' }}>
-                <input type="checkbox" checked={incorrectOnly} onChange={e => { setIncorrectOnly(e.target.checked); if (e.target.checked) setUnansweredOnly(false); }} style={{ width: 16, height: 16, flexShrink: 0 }} />
-                {t('exerciseSetup.incorrectOnly')}
-              </label>
-              <label style={{ display: 'flex', alignItems: 'center', gap: 'var(--spacing-sm)', cursor: 'pointer', fontSize: 'var(--font-size-base)' }}>
-                <input type="checkbox" checked={bookmarkOnly} onChange={e => setBookmarkOnly(e.target.checked)} style={{ width: 16, height: 16, flexShrink: 0 }} />
-                {t('exerciseSetup.bookmarkOnly')}
-              </label>
-            </div>
-          )}
-
           {/* 問題数 */}
           <div style={{ marginBottom: 'var(--spacing-md)' }}>
             <span style={{ fontSize: 'var(--font-size-sm)', fontWeight: 700, color: 'var(--color-text-sub)', display: 'block', marginBottom: 8 }}>
@@ -383,6 +378,53 @@ export default function Practice() {
           {availableCount !== null && availableCount > 0 && availableCount < limit && (
             <div style={{ marginBottom: 'var(--spacing-md)', fontSize: 'var(--font-size-sm)', color: 'var(--color-text-warning)', background: 'var(--color-bg-warning)', border: '1px solid var(--color-border-warning)', borderRadius: 'var(--border-radius-md)', padding: '8px 12px' }}>
               ⚠️ {ja ? `条件に合う問題が${availableCount}問しかありません。${availableCount}問で開始します。` : `Only ${availableCount} questions match. Session will start with ${availableCount} questions.`}
+            </div>
+          )}
+
+          {/* ── オプション（折りたたみ） ── */}
+          {user && (
+            <div style={{ marginBottom: 'var(--spacing-lg)', border: '1px solid var(--color-border)', borderRadius: 'var(--border-radius-md)', overflow: 'hidden' }}>
+              <button
+                onClick={() => setShowExerciseOptions(v => !v)}
+                style={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '10px 14px', background: 'var(--color-bg-main)', border: 'none', cursor: 'pointer', fontSize: 'var(--font-size-sm)', fontWeight: 600, color: 'var(--color-text-sub)' }}
+              >
+                <span style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                  {ja ? 'オプション' : 'Options'}
+                  {(unansweredOnly || incorrectOnly || bookmarkOnly) && (
+                    <span style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', width: 16, height: 16, borderRadius: '50%', background: 'var(--color-primary)', color: '#fff', fontSize: 10, fontWeight: 700 }}>
+                      {[unansweredOnly, incorrectOnly, bookmarkOnly].filter(Boolean).length}
+                    </span>
+                  )}
+                </span>
+                {showExerciseOptions ? <IconChevronDown size={14} /> : <IconChevronUp size={14} />}
+              </button>
+              {showExerciseOptions && (
+                <div style={{ padding: '12px 14px', display: 'flex', flexDirection: 'column', gap: 10, borderTop: '1px solid var(--color-border)' }}>
+                  {([
+                    ['unansweredOnly', ja ? '未回答を優先' : 'Unanswered First', ja ? '未回答の問題を優先して出題（不足時は既回答も含む）' : 'Prioritize unanswered questions'],
+                    ['incorrectOnly',  ja ? '不正解を優先' : 'Incorrect First',  ja ? '不正解だった問題を優先して出題（不足時は他も含む）' : 'Prioritize previously incorrect questions'],
+                    ['bookmarkOnly',   ja ? 'ブックマークを優先' : 'Bookmarked First', ja ? 'ブックマークした問題を優先して出題（不足時は他も含む）' : 'Prioritize bookmarked questions'],
+                  ] as [string, string, string][]).map(([key, label, desc]) => {
+                    const stateMap: Record<string, boolean> = { unansweredOnly, incorrectOnly, bookmarkOnly };
+                    const setterMap: Record<string, (v: boolean) => void> = {
+                      unansweredOnly: v => { setUnansweredOnly(v); if (v) setIncorrectOnly(false); },
+                      incorrectOnly:  v => { setIncorrectOnly(v);  if (v) setUnansweredOnly(false); },
+                      bookmarkOnly:   setBookmarkOnly,
+                    };
+                    const on = stateMap[key];
+                    return (
+                      <label key={key} style={{ display: 'flex', alignItems: 'flex-start', gap: 10, cursor: 'pointer' }}>
+                        <input type="checkbox" checked={on} onChange={e => setterMap[key](e.target.checked)}
+                          style={{ width: 16, height: 16, flexShrink: 0, marginTop: 2, accentColor: 'var(--color-primary)' }} />
+                        <div>
+                          <div style={{ fontSize: 'var(--font-size-sm)', fontWeight: on ? 600 : 400, color: 'var(--color-text-main)' }}>{label}</div>
+                          <div style={{ fontSize: 'var(--font-size-xs)', color: 'var(--color-text-light)', marginTop: 1 }}>{desc}</div>
+                        </div>
+                      </label>
+                    );
+                  })}
+                </div>
+              )}
             </div>
           )}
           </>)}
@@ -436,6 +478,53 @@ export default function Practice() {
                   </div>
                 ))}
               </div>
+
+              {/* ── オプション（模試・折りたたみ） ── */}
+              {user && (
+                <div style={{ marginBottom: 'var(--spacing-lg)', border: '1px solid var(--color-border)', borderRadius: 'var(--border-radius-md)', overflow: 'hidden' }}>
+                  <button
+                    onClick={() => setShowExamOptions(v => !v)}
+                    style={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '10px 14px', background: 'var(--color-bg-main)', border: 'none', cursor: 'pointer', fontSize: 'var(--font-size-sm)', fontWeight: 600, color: 'var(--color-text-sub)' }}
+                  >
+                    <span style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                      {ja ? 'オプション' : 'Options'}
+                      {(examUnansweredOnly || examIncorrectOnly || examBookmarkOnly) && (
+                        <span style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', width: 16, height: 16, borderRadius: '50%', background: 'var(--color-primary)', color: '#fff', fontSize: 10, fontWeight: 700 }}>
+                          {[examUnansweredOnly, examIncorrectOnly, examBookmarkOnly].filter(Boolean).length}
+                        </span>
+                      )}
+                    </span>
+                    {showExamOptions ? <IconChevronDown size={14} /> : <IconChevronUp size={14} />}
+                  </button>
+                  {showExamOptions && (
+                    <div style={{ padding: '12px 14px', display: 'flex', flexDirection: 'column', gap: 10, borderTop: '1px solid var(--color-border)' }}>
+                      {([
+                        ['examUnansweredOnly', ja ? '未回答を優先' : 'Unanswered First', ja ? '未回答の問題を優先して出題（不足時は既回答も含む）' : 'Prioritize unanswered questions'],
+                        ['examIncorrectOnly',  ja ? '不正解を優先' : 'Incorrect First',  ja ? '不正解だった問題を優先して出題（不足時は他も含む）' : 'Prioritize previously incorrect questions'],
+                        ['examBookmarkOnly',   ja ? 'ブックマークを優先' : 'Bookmarked First', ja ? 'ブックマークした問題を優先して出題（不足時は他も含む）' : 'Prioritize bookmarked questions'],
+                      ] as [string, string, string][]).map(([key, label, desc]) => {
+                        const stateMap: Record<string, boolean> = { examUnansweredOnly, examIncorrectOnly, examBookmarkOnly };
+                        const setterMap: Record<string, (v: boolean) => void> = {
+                          examUnansweredOnly: v => { setExamUnansweredOnly(v); if (v) setExamIncorrectOnly(false); },
+                          examIncorrectOnly:  v => { setExamIncorrectOnly(v);  if (v) setExamUnansweredOnly(false); },
+                          examBookmarkOnly:   setExamBookmarkOnly,
+                        };
+                        const on = stateMap[key];
+                        return (
+                          <label key={key} style={{ display: 'flex', alignItems: 'flex-start', gap: 10, cursor: 'pointer' }}>
+                            <input type="checkbox" checked={on} onChange={e => setterMap[key](e.target.checked)}
+                              style={{ width: 16, height: 16, flexShrink: 0, marginTop: 2, accentColor: 'var(--color-primary)' }} />
+                            <div>
+                              <div style={{ fontSize: 'var(--font-size-sm)', fontWeight: on ? 600 : 400, color: 'var(--color-text-main)' }}>{label}</div>
+                              <div style={{ fontSize: 'var(--font-size-xs)', color: 'var(--color-text-light)', marginTop: 1 }}>{desc}</div>
+                            </div>
+                          </label>
+                        );
+                      })}
+                    </div>
+                  )}
+                </div>
+              )}
             </>
           )}
         </>
