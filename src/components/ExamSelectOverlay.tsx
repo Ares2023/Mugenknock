@@ -215,7 +215,15 @@ export default function ExamSelectOverlay({
                     {(cfg?.fullName ?? exam).replace('AWS Certified ', '')}
                   </div>
                 </div>
-                <p style={{ margin: '0 0 12px', fontSize: 12, color: 'var(--color-text-sub)', lineHeight: 1.7 }}>{EXAM_DESC[exam] ?? ''}</p>
+                <p style={{ margin: '0 0 12px', fontSize: 12, color: 'var(--color-text-sub)', lineHeight: 1.7 }}>
+                  {EXAM_DESC[exam] ?? ''}
+                  {EXAM_URLS[exam] && (
+                    <a href={EXAM_URLS[exam]} target="_blank" rel="noopener noreferrer"
+                      style={{ marginLeft: 4, color: 'var(--color-primary)', textDecoration: 'none', fontWeight: 600, whiteSpace: 'nowrap' }}>
+                      {ja ? '公式ページ →' : 'Official page →'}
+                    </a>
+                  )}
+                </p>
                 <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px 20px', marginBottom: 12, padding: '10px 12px', background: 'var(--color-bg-main)', borderRadius: 8 }}>
                   {[
                     { label: ja ? '試験コード' : 'Code',       value: cfg?.examCode ?? '' },
@@ -229,11 +237,6 @@ export default function ExamSelectOverlay({
                     </div>
                   ))}
                 </div>
-                {EXAM_URLS[exam] && (
-                  <a href={EXAM_URLS[exam]} target="_blank" rel="noopener noreferrer" style={{ fontSize: 12, color: 'var(--color-primary)', textDecoration: 'none', fontWeight: 600 }}>
-                    {ja ? '公式ページ →' : 'Official page →'}
-                  </a>
-                )}
                 {passComments[exam] && (
                   <div style={{ marginTop: 12, padding: '10px 12px', background: `${levelColor}12`, borderLeft: `3px solid ${levelColor}`, borderRadius: '0 6px 6px 0' }}>
                     <div style={{ fontSize: 10, color: levelColor, fontWeight: 700, marginBottom: 4 }}>{ja ? '運営者コメント' : 'From the team'}</div>
