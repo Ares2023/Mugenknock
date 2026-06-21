@@ -618,7 +618,7 @@ export default function MyPage() {
                   onTouchMove={e => e.stopPropagation()}
                 >
                   <div
-                    style={{ background: 'var(--color-bg-white)', borderRadius: 'var(--border-radius-lg)', width: '100%', maxWidth: 420, boxShadow: 'var(--box-shadow-md)', height: isMobile ? '75vh' : '60vh', display: 'flex', flexDirection: 'column', overflow: 'hidden' }}
+                    style={{ background: 'var(--color-bg-white)', borderRadius: 'var(--border-radius-lg)', width: '100%', maxWidth: isMobile ? 420 : 630, boxShadow: 'var(--box-shadow-md)', height: isMobile ? '75vh' : '78vh', display: 'flex', flexDirection: 'column', overflow: 'hidden' }}
                     onClick={e => e.stopPropagation()}
                   >
                     {/* ヘッダー */}

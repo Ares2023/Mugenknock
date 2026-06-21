@@ -222,6 +222,9 @@ ICON_ZIP_MAP = {
     "AppMesh":                 "Architecture-Service-Icons_04302026/Arch_Networking-Content-Delivery/64/Arch_AWS-App-Mesh_64",
     "ElasticDisasterRecovery": "Architecture-Service-Icons_04302026/Arch_Storage/64/Arch_AWS-Elastic-Disaster-Recovery_64",
     "ApplicationDiscovery":    "Architecture-Service-Icons_04302026/Arch_Migration-Modernization/64/Arch_AWS-Application-Discovery-Service_64",
+    "AppMigrationService":     "Architecture-Service-Icons_04302026/Arch_Migration-Modernization/64/Arch_AWS-Application-Migration-Service_64",
+    "SNS":                     "Architecture-Service-Icons_04302026/Arch_Application-Integration/64/Arch_Amazon-Simple-Notification-Service_64",
+    "SQS":                     "Architecture-Service-Icons_04302026/Arch_Application-Integration/64/Arch_Amazon-Simple-Queue-Service_64",
     "ManagedBlockchain":       "Architecture-Service-Icons_04302026/Arch_Blockchain/64/Arch_Amazon-Managed-Blockchain_64",
     "EC2ImageBuilder":         "Architecture-Service-Icons_04302026/Arch_Compute/64/Arch_Amazon-EC2-Image-Builder_64",
     "CDK":                     "Architecture-Service-Icons_04302026/Arch_Developer-Tools/64/Arch_AWS-Cloud-Development-Kit_64",
@@ -254,8 +257,11 @@ PYEOF
   [ "${_PC:-0}" -gt 0 ] && echo "✓ ${_PC}件のアイコンをプリフェッチ"
 fi
 
-# ── 2. 利用可能なアイコンファイル一覧を取得 ─────────────────────
-ICON_FILES=$(find "$ICON_DIR" -name "*.png" 2>/dev/null | xargs -I{} basename {} .png | sort | tr '\n' ',' | sed 's/,$//')
+# ── 2. 利用可能なアイコンファイル一覧を取得（PNG＋SVG両方あるもののみ）─
+ICON_FILES=$(find "$ICON_DIR" -name "*.png" 2>/dev/null | while read p; do
+  base=$(basename "$p" .png)
+  [ -f "${ICON_DIR}/${base}.svg" ] && echo "$base"
+done | sort | tr '\n' ',' | sed 's/,$//')
 
 # ── 3. Claude にサービスを生成させる ──────────────────────────
 echo ""
@@ -349,8 +355,8 @@ SERVICE_ICON_MAP = [
     # ── 分析 ──
     ("Amazon Athena",                       "Athena"),
     ("AWS Glue",                            "Glue"),
-    ("Amazon Kinesis",                      "Kinesis_new"),
-    ("Amazon Kinesis Data Streams",         "KinesisDataStreams_new"),
+    ("Amazon Kinesis",                      "Kinesis"),
+    ("Amazon Kinesis Data Streams",         "KinesisDataStreams"),
     ("Amazon EMR",                          "EMR"),
     ("Amazon OpenSearch Service",           "OpenSearch"),
     ("Amazon QuickSight",                   "QuickSight"),
@@ -368,10 +374,10 @@ SERVICE_ICON_MAP = [
     ("AWS Trusted Advisor",                 "TrustedAdvisor"),
     ("AWS Health Dashboard",                "HealthDashboard"),
     # ── アプリケーション統合 ──
-    ("Amazon SQS",                          "SQS_new"),
-    ("Amazon SNS",                          "SNS_new"),
+    ("Amazon SQS",                          "SQS"),
+    ("Amazon SNS",                          "SNS"),
     ("Amazon EventBridge",                  "EventBridge_new"),
-    ("AWS Step Functions",                  "StepFunctions_new"),
+    ("AWS Step Functions",                  "StepFunctions"),
     ("Amazon MQ",                           "MQ"),
     ("Amazon AppFlow",                      "AppFlow"),
     ("Amazon SES",                          "SES"),
@@ -384,7 +390,7 @@ SERVICE_ICON_MAP = [
     ("AWS Cloud9",                          "Cloud9"),
     ("AWS X-Ray",                           "XRay"),
     # ── 機械学習・AI ──
-    ("Amazon SageMaker",                    "SageMakerAI_new"),
+    ("Amazon SageMaker",                    "SageMakerAI"),
     ("Amazon Bedrock",                      "Bedrock_new"),
     ("Amazon Rekognition",                  "Rekognition"),
     ("Amazon Comprehend",                   "Comprehend"),
