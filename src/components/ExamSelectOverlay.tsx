@@ -28,17 +28,17 @@ const EXAM_DESC: Record<string, string> = {
 
 const EXAM_CATCHCOPY: Record<string, string> = {
   CLF: 'AWS資格の登竜門！誰もがここから！',
-  AIF: 'AI時代の新常識！まずはここからAI入門！',
+  AIF: 'AI時代の新教養！まずはAI×AWSを知ろう！',
   SAA: '迷ったらコレ！AWS資格の王道エース！',
-  DVA: 'コードでクラウドを動かせ！開発者の実力証明！',
-  SOA: '障害対応もお手の物！運用のプロへの第一歩！',
-  DEA: 'データを運び、価値を生み出せ！',
-  MLA: 'AIモデルを育てる！機械学習エンジニアへの道！',
+  DVA: 'コードでクラウドを動かせ！開発者の定番資格！',
+  SOA: '運用の現場力を証明！トラブル対応の第一人者へ！',
+  DEA: 'データ活用の第一歩！分析基盤の設計者へ！',
+  MLA: '機械学習エンジニアへの登竜門！AIを作る側へ！',
   SAP: 'AWS設計の最高峰！アーキテクト最難関！',
-  DOP: '自動化を極めろ！DevOpsマスターへの挑戦！',
-  AIP: '生成AIを実装せよ！AI開発の最前線！',
-  SCS: '守れる者だけが任される！セキュリティの番人！',
-  ANS: 'ネットワークを制する者がクラウドを制する！',
+  DOP: '運用・自動化・改善の集大成！DevOpsの最高峰！',
+  AIP: '生成AIをビジネスへ！AI開発の最前線！',
+  SCS: '守れる者だけが任される！AWSセキュリティの番人！',
+  ANS: 'ネットワークの深淵へ！AWS屈指の難関資格！',
 };
 
 const EXAM_URLS: Record<string, string> = {
@@ -118,7 +118,7 @@ export default function ExamSelectOverlay({
           width: '100%',
           maxWidth: isMobile ? 420 : 630,
           boxShadow: 'var(--box-shadow-md)',
-          height: isMobile ? '75vh' : '78vh',
+          height: isMobile ? '83vh' : '86vh',
           display: 'flex', flexDirection: 'column', overflow: 'hidden',
         }}
         onClick={e => e.stopPropagation()}
