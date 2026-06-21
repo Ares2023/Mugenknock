@@ -1,9 +1,7 @@
 User-agent: *
 Disallow: /admin/
 Disallow: /admin-login/
-Disallow: /aws/exercise/
-Disallow: /aws/exam/
-Disallow: /aws/result/
+Disallow: /aws/
 Allow: /services/
 Allow: /exam-guide/
 Allow: /encyclopedia/

@@ -173,6 +173,12 @@ function PrivacyPolicy() {
 
       <H3>8. お問い合わせ</H3>
       <P>個人情報の取り扱いに関するお問い合わせは、本ページ内の「運営者情報」に記載の連絡先までご連絡ください。</P>
+
+      <p style={{ marginTop: '2em', fontSize: 13, color: 'var(--color-text-light)' }}>
+        このポリシーの固定URLは{' '}
+        <a href="/privacy-policy" style={{ color: 'var(--color-primary)' }}>/privacy-policy</a>{' '}
+        です。
+      </p>
     </div>
   );
 }
