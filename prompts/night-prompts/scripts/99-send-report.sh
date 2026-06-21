@@ -61,77 +61,139 @@ echo "--- [1] AWS資格公式情報 変更チェック ---"
 
 CERT_NEWS="取得失敗"
 if [ -n "${CLAUDE_CMD:-}" ] && [ -x "${CLAUDE_CMD:-}" ]; then
-  CERT_PROMPT_FILE=$(mktemp /tmp/cert_news_XXXX.txt)
-  cat > "$CERT_PROMPT_FILE" << 'PROMPT'
-あなたはAWS認定試験学習サイトの運営者アシスタントです。
-以下の公式URLを確認し、**このサイトで対応が必要な変更だけ**を報告してください。
 
-【確認URL（優先度順）】
-1. Coming Soon（新資格・改定・廃止）: https://aws.amazon.com/certification/coming-soon/
-2. 試験ガイド一覧: https://docs.aws.amazon.com/aws-certification/latest/examguides/aws-certification-exam-guides.html
-3. DVA Revisions: https://docs.aws.amazon.com/aws-certification/latest/developer-associate-02/dva-02-revisions.html
-4. DEA Revisions: https://docs.aws.amazon.com/aws-certification/latest/data-engineer-associate-01/dea-01-revisions.html
-5. SCS Revisions: https://docs.aws.amazon.com/aws-certification/latest/security-specialty-03/scs03-revisions.html
-6. AWS Training & Certification Blog: https://aws.amazon.com/blogs/training-and-certification/
+  # ── フェーズ1: 直近3日の声明を高速スキャン（設定値は注入しない）──
+  SCAN_PROMPT=$(mktemp /tmp/cert_scan_XXXX.txt)
+  SCAN_SINCE=$(date -d '3 days ago' '+%Y-%m-%d' 2>/dev/null || date -v-3d '+%Y-%m-%d' 2>/dev/null || echo "")
+  cat > "$SCAN_PROMPT" << PROMPT
+以下の2つのURLを確認し、${SCAN_SINCE}以降（直近3日以内）に公開されたAWS認定試験の変更声明だけを抽出してください。
 
-【現在のサイト設定】（このサイトで既に対応済みの内容）
-対応資格: CLF / AIF / SAA / DVA / SOA / DEA / MLA / SAP / DOP / AIP / ANS / SCS（全12資格）
+確認URL:
+- https://aws.amazon.com/certification/coming-soon/
+- https://aws.amazon.com/blogs/training-and-certification/
 
-試験コード・問題数・時間（現在の設定値）:
-- CLF: CLF-C02, 65問, 90分, 合格700
-- AIF: AIF-C01, 85問, 120分, 合格700
-- SAA: SAA-C03, 65問, 130分, 合格720
-- DVA: DVA-C02, 65問, 130分, 合格720
-- SOA: SOA-C03, 65問, 130分, 合格720
-- DEA: DEA-C01, 65問, 130分, 合格720
-- MLA: MLA-C01, 65問, 130分, 合格720
-- SAP: SAP-C02, 75問, 180分, 合格750
-- DOP: DOP-C02, 75問, 180分, 合格750
-- AIP: AIP-C01, 75問, 170分, 合格750
-- ANS: ANS-C01, 65問, 170分, 合格700
-- SCS: SCS-C03, 65問, 170分, 合格750
+【出力形式】JSONのみ。前置き・説明文不要。
+直近3日以内に変更声明がなければ: {"has_changes": false}
+変更声明がある場合:
+{
+  "has_changes": true,
+  "changes": [
+    {
+      "exam": "資格コード（CLF/SAA/AIP等。新資格なら'NEW'）",
+      "change_type": "exam_code|question_count|time_limit|pass_score|domain|new_exam|retirement|service_scope",
+      "summary": "変更内容の1行要約（日本語）",
+      "announced_date": "YYYY-MM-DD（不明ならnull）"
+    }
+  ]
+}
+PROMPT
 
-出題ドメイン（現在の設定値）:
-- CLF: クラウドの概念 / セキュリティとコンプライアンス / クラウドのテクノロジーとサービス / 請求、料金、およびサポート
-- SAA: セキュアなアーキテクチャの設計 / 弾力性に優れたアーキテクチャの設計 / 高性能なアーキテクチャの設計 / コスト最適化されたアーキテクチャの設計
-- SAP: 組織の複雑さに対応する設計 / 新しいソリューションのための設計 / 既存のソリューションの継続的改善 / ワークロードの移行とモダン化の加速
-- DVA: AWSのサービスを使用した開発 / セキュリティ / デプロイ / トラブルシューティングと最適化
-- SOA: モニタリング、ロギング、分析、修復、およびパフォーマンスの最適化 / 信頼性とビジネス継続性 / デプロイ、プロビジョニング、および自動化 / セキュリティとコンプライアンス / ネットワークとコンテンツ配信
-- DOP: SDLC の自動化 / 構成管理と Infrastructure as Code (IaC) / 弾力性に優れたクラウドソリューション / モニタリングとロギング / インシデントとイベントへの対応 / セキュリティとコンプライアンス
-- DEA: データの取り込みと変換 / データストアの管理 / データオペレーションとサポート / データのセキュリティとガバナンス
-- AIF: AIとMLの基礎 / 生成AIの基礎 / 基盤モデルのアプリケーション / 責任あるAIのガイドライン / AIソリューションのセキュリティ、コンプライアンス、ガバナンス
-- MLA: 機械学習のためのデータ準備 / MLモデルの開発 / MLワークフローのデプロイとオーケストレーション / MLソリューションの監視、メンテナンス、セキュリティ
-- AIP: 基盤モデルの統合、データ管理、コンプライアンス / 実装と統合 / AIの安全性、セキュリティ、ガバナンス / 生成AIアプリケーションの運用効率と最適化 / テスト、検証、トラブルシューティング
-- ANS: ネットワーク設計 / ネットワーク実装 / ネットワーク管理と運用 / ネットワークのセキュリティ、コンプライアンス、ガバナンス
-- SCS: 検出 / インシデント対応 / インフラストラクチャのセキュリティ / アイデンティティとアクセス管理 / データ保護 / セキュリティの基盤とガバナンス
+  SCAN_RESULT=$("$CLAUDE_CMD" -p --model claude-haiku-4-5-20251001 --allowed-tools WebFetch < "$SCAN_PROMPT" 2>&1)
+  rm -f "$SCAN_PROMPT"
 
-【判定ルール】
-以下の場合は「対応済み」とみなし報告不要:
-- 試験コードが上記設定値と一致する
-- 問題数・試験時間・合格点が上記と一致する
-- ドメイン構成が上記と一致する
-- 既存12資格の範囲内の変更で上記と差異がない
+  # JSONを抽出
+  SCAN_JSON=$(echo "$SCAN_RESULT" | python3 -c "
+import sys, json, re
+text = sys.stdin.read()
+m = re.search(r'\{[\s\S]*\}', text)
+if m:
+    try:
+        obj = json.loads(m.group())
+        print(json.dumps(obj))
+        sys.exit(0)
+    except: pass
+print('{\"has_changes\": false}')
+" 2>/dev/null || echo '{"has_changes": false}')
 
-以下の場合のみ報告してください:
-- 上記設定値と公式情報に差異がある（試験コードの世代更新、問題数変更、ドメイン追加・削除・名称変更など）
-- 新資格が追加された（上記12資格以外）
-- 資格が廃止・終了予定
-- 出題対象AWSサービスの追加・削除（問題の見直しが必要になるもの）
+  HAS_CHANGES=$(echo "$SCAN_JSON" | python3 -c "import json,sys; print(json.load(sys.stdin).get('has_changes', False))" 2>/dev/null || echo "False")
+  echo "  フェーズ1完了: has_changes=$HAS_CHANGES"
 
-【出力形式】
-対応が必要な変更が何もなければ「変更なし（対応不要）」の一言のみ。
-変更がある場合のみ、以下の形式で出力:
+  if [ "$HAS_CHANGES" = "True" ]; then
+    # ── フェーズ2: 影響を受ける資格の設定値だけを注入して詳細判定 ──
+    DETAIL_PROMPT=$(mktemp /tmp/cert_detail_XXXX.txt)
+
+    # 変更声明に関係する資格の設定値だけを絞り込んで注入するPythonスクリプト
+    RELEVANT_CONFIG=$(echo "$SCAN_JSON" | python3 << 'PYEOF'
+import json, sys
+
+data = json.load(sys.stdin)
+changes = data.get('changes', [])
+
+# 関係する資格コードを抽出
+affected = set()
+for c in changes:
+    exam = c.get('exam', '')
+    if exam and exam != 'NEW':
+        affected.add(exam)
+
+# 現在のサイト設定（全量）
+ALL_CONFIG = {
+    'CLF': {'code': 'CLF-C02', 'q': 65, 'min': 90,  'pass': 700, 'domains': 'クラウドの概念 / セキュリティとコンプライアンス / クラウドのテクノロジーとサービス / 請求、料金、およびサポート'},
+    'AIF': {'code': 'AIF-C01', 'q': 85, 'min': 120, 'pass': 700, 'domains': 'AIとMLの基礎 / 生成AIの基礎 / 基盤モデルのアプリケーション / 責任あるAIのガイドライン / AIソリューションのセキュリティ、コンプライアンス、ガバナンス'},
+    'SAA': {'code': 'SAA-C03', 'q': 65, 'min': 130, 'pass': 720, 'domains': 'セキュアなアーキテクチャの設計 / 弾力性に優れたアーキテクチャの設計 / 高性能なアーキテクチャの設計 / コスト最適化されたアーキテクチャの設計'},
+    'DVA': {'code': 'DVA-C02', 'q': 65, 'min': 130, 'pass': 720, 'domains': 'AWSのサービスを使用した開発 / セキュリティ / デプロイ / トラブルシューティングと最適化'},
+    'SOA': {'code': 'SOA-C03', 'q': 65, 'min': 130, 'pass': 720, 'domains': 'モニタリング、ロギング、分析、修復、およびパフォーマンスの最適化 / 信頼性とビジネス継続性 / デプロイ、プロビジョニング、および自動化 / セキュリティとコンプライアンス / ネットワークとコンテンツ配信'},
+    'DEA': {'code': 'DEA-C01', 'q': 65, 'min': 130, 'pass': 720, 'domains': 'データの取り込みと変換 / データストアの管理 / データオペレーションとサポート / データのセキュリティとガバナンス'},
+    'MLA': {'code': 'MLA-C01', 'q': 65, 'min': 130, 'pass': 720, 'domains': '機械学習のためのデータ準備 / MLモデルの開発 / MLワークフローのデプロイとオーケストレーション / MLソリューションの監視、メンテナンス、セキュリティ'},
+    'SAP': {'code': 'SAP-C02', 'q': 75, 'min': 180, 'pass': 750, 'domains': '組織の複雑さに対応する設計 / 新しいソリューションのための設計 / 既存のソリューションの継続的改善 / ワークロードの移行とモダン化の加速'},
+    'DOP': {'code': 'DOP-C02', 'q': 75, 'min': 180, 'pass': 750, 'domains': 'SDLC の自動化 / 構成管理と Infrastructure as Code (IaC) / 弾力性に優れたクラウドソリューション / モニタリングとロギング / インシデントとイベントへの対応 / セキュリティとコンプライアンス'},
+    'AIP': {'code': 'AIP-C01', 'q': 75, 'min': 170, 'pass': 750, 'domains': '基盤モデルの統合、データ管理、コンプライアンス / 実装と統合 / AIの安全性、セキュリティ、ガバナンス / 生成AIアプリケーションの運用効率と最適化 / テスト、検証、トラブルシューティング'},
+    'ANS': {'code': 'ANS-C01', 'q': 65, 'min': 170, 'pass': 700, 'domains': 'ネットワーク設計 / ネットワーク実装 / ネットワーク管理と運用 / ネットワークのセキュリティ、コンプライアンス、ガバナンス'},
+    'SCS': {'code': 'SCS-C03', 'q': 65, 'min': 170, 'pass': 750, 'domains': '検出 / インシデント対応 / インフラストラクチャのセキュリティ / アイデンティティとアクセス管理 / データ保護 / セキュリティの基盤とガバナンス'},
+}
+
+# 変更声明のサマリー
+change_lines = [f"- [{c.get('exam','')}] {c.get('summary','')} （{c.get('announced_date','日付不明')}）" for c in changes]
+
+# 関係する資格の設定値のみ出力
+config_lines = []
+for exam in sorted(affected):
+    cfg = ALL_CONFIG.get(exam)
+    if cfg:
+        config_lines.append(f"- {exam}: {cfg['code']}, {cfg['q']}問, {cfg['min']}分, 合格{cfg['pass']}, ドメイン: {cfg['domains']}")
+
+print('\n'.join(change_lines))
+print('---CONFIG---')
+print('\n'.join(config_lines) if config_lines else '（新資格のみ - 既存設定値への影響なし）')
+PYEOF
+)
+
+    CHANGE_SUMMARY=$(echo "$RELEVANT_CONFIG" | sed '/^---CONFIG---/,$d')
+    CONFIG_SECTION=$(echo "$RELEVANT_CONFIG" | sed -n '/^---CONFIG---/,$ { /^---CONFIG---/d; p }')
+
+    cat > "$DETAIL_PROMPT" << PROMPT
+AWS認定試験学習サイトの運営担当です。
+以下の直近の公式声明について、このサイトで対応が必要かどうかを判断してください。
+
+【直近3日以内の公式声明】
+${CHANGE_SUMMARY}
+
+【影響を受ける資格の現在のサイト設定】
+${CONFIG_SECTION}
+
+【判定依頼】
+上記の声明と設定値を比較し、対応が必要なものだけ報告してください。
+設定値と公式が一致している場合は「対応不要」です。
+
+出力形式:
+- 対応不要なら「変更なし（対応不要）」のみ
+- 対応が必要な場合のみ:
 
 ### 対応が必要な変更
-- **[資格コード] 変更内容**
-  現在の設定: [サイトに設定されている値]
-  公式の最新値: [公式ページに記載されている値]
+- **[資格コード] 変更種別**
+  現在の設定: [現在値]
+  公式の最新: [新しい値]
   必要なアクション: [具体的にすること]
 PROMPT
 
-  CERT_NEWS=$("$CLAUDE_CMD" -p --allowed-tools WebFetch < "$CERT_PROMPT_FILE" 2>&1 | head -80)
-  rm -f "$CERT_PROMPT_FILE"
-  echo "$CERT_NEWS" | head -5
+    CERT_NEWS=$("$CLAUDE_CMD" -p < "$DETAIL_PROMPT" 2>&1 | head -60)
+    rm -f "$DETAIL_PROMPT"
+    echo "  フェーズ2完了"
+    echo "$CERT_NEWS" | head -5
+  else
+    CERT_NEWS="変更なし（対応不要）"
+    echo "  直近3日以内の変更声明なし"
+  fi
 else
   CERT_NEWS="Claude コマンドが見つからないため取得不可"
   echo "  ⚠️  Claude 未検出"
