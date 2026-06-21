@@ -390,8 +390,11 @@ export default function MyPage() {
                     const ExamIcon = EXAM_ICON_COMPONENTS[targetExam];
                     return (
                       <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
-                        <div style={{ width: 46, height: 53, flexShrink: 0, background: panelColor, clipPath: 'polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff' }}>
-                          {ExamIcon && <ExamIcon size={22} />}
+                        {/* 六角形バッジ: 外側=枠色、内側=白塗り、アイコン=枠色 */}
+                        <div style={{ width: 46, height: 53, flexShrink: 0, background: panelColor, clipPath: 'polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                          <div style={{ width: 40, height: 46, background: 'var(--color-bg-card)', clipPath: 'polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: panelColor }}>
+                            {ExamIcon && <ExamIcon size={20} />}
+                          </div>
                         </div>
                         <div>
                           <div style={{ fontWeight: 700, fontSize: 18, color: panelColor, lineHeight: 1.3 }}>{main}</div>
