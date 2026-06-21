@@ -366,77 +366,36 @@ export default function MyPage() {
         {/* ════════ 目標タブ ════════ */}
         {tab === 'target' && (
           <>
-            {/* ── 目標資格 行 ── */}
-            {!isMobile ? (
-              /* デスクトップ: 左=目標資格カード / 右=資格情報 */
-              <div style={{ display: 'flex', gap: 12, marginBottom: 12, alignItems: 'stretch' }}>
-                {/* 左: 目標資格カード */}
-                <Card style={{ flex: 1, cursor: 'pointer', minWidth: 0 }} onClick={() => setShowExamSelect(true)}>
-                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                      <span style={{ color: 'var(--color-text-sub)', display: 'flex', alignItems: 'center' }}><IconFlag size={13} /></span>
-                      <span style={{ fontWeight: 700, fontSize: 'var(--font-size-sm)', color: 'var(--color-text-main)' }}>{ja ? '目標資格' : 'Target Exam'}</span>
-                    </div>
-                    <div style={{ width: 35, height: 35, borderRadius: '50%', border: '1px solid var(--color-primary)', background: 'transparent', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--color-primary)', flexShrink: 0 }}>
-                      <IconPenLine size={14} />
+            {/* 六角形バッジ共通ヘルパー */}
+            {(() => {
+              const HexBadge = ({ panelColor, ExamIcon }: { panelColor: string; ExamIcon?: React.FC<{ size?: number }> }) => (
+                <div style={{ width: 46, height: 53, flexShrink: 0, background: panelColor, clipPath: 'polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                  <div style={{ width: 40, height: 46, background: '#ffffff', clipPath: 'polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: panelColor }}>
+                    {ExamIcon && <ExamIcon size={20} />}
+                  </div>
+                </div>
+              );
+
+              const ExamCardContent = () => {
+                if (!targetExam) return <span style={{ fontSize: 14, color: 'var(--color-text-light)' }}>{ja ? '目標資格を設定する' : 'Set target exam'}</span>;
+                const full = (EXAM_CONFIGS[targetExam]?.fullName ?? '').replace('AWS Certified ', '');
+                const dashIdx = full.indexOf(' – ');
+                const main = dashIdx >= 0 ? full.slice(0, dashIdx) : full;
+                const level = dashIdx >= 0 ? '– ' + full.slice(dashIdx + 3) : null;
+                const panelColor = EXAM_LEVEL_COLORS[EXAM_LEVEL[targetExam]] ?? 'var(--color-primary)';
+                const ExamIcon = EXAM_ICON_COMPONENTS[targetExam];
+                return (
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
+                    <HexBadge panelColor={panelColor} ExamIcon={ExamIcon} />
+                    <div>
+                      <div style={{ fontWeight: 700, fontSize: 18, color: panelColor, lineHeight: 1.3 }}>{main}</div>
+                      {level && <div style={{ fontWeight: 700, fontSize: 18, color: panelColor, lineHeight: 1.3 }}>{level}</div>}
                     </div>
                   </div>
-                  {targetExam ? (() => {
-                    const full = (EXAM_CONFIGS[targetExam]?.fullName ?? '').replace('AWS Certified ', '');
-                    const dashIdx = full.indexOf(' – ');
-                    const main = dashIdx >= 0 ? full.slice(0, dashIdx) : full;
-                    const level = dashIdx >= 0 ? '– ' + full.slice(dashIdx + 3) : null;
-                    const panelColor = EXAM_LEVEL_COLORS[EXAM_LEVEL[targetExam]] ?? 'var(--color-primary)';
-                    const ExamIcon = EXAM_ICON_COMPONENTS[targetExam];
-                    return (
-                      <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
-                        {/* 六角形バッジ: 外側=枠色、内側=白塗り、アイコン=枠色 */}
-                        <div style={{ width: 46, height: 53, flexShrink: 0, background: panelColor, clipPath: 'polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                          <div style={{ width: 40, height: 46, background: 'var(--color-bg-card)', clipPath: 'polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: panelColor }}>
-                            {ExamIcon && <ExamIcon size={20} />}
-                          </div>
-                        </div>
-                        <div>
-                          <div style={{ fontWeight: 700, fontSize: 18, color: panelColor, lineHeight: 1.3 }}>{main}</div>
-                          {level && <div style={{ fontWeight: 700, fontSize: 18, color: panelColor, lineHeight: 1.3 }}>{level}</div>}
-                        </div>
-                      </div>
-                    );
-                  })() : (
-                    <span style={{ fontSize: 14, color: 'var(--color-text-light)' }}>{ja ? '目標資格を設定する' : 'Set target exam'}</span>
-                  )}
-                </Card>
-                {/* 右: 資格情報（非クリッカブル） */}
-                <div style={{ flex: 1, minWidth: 0, padding: 'var(--spacing-md)', background: 'var(--color-bg-main)', borderRadius: 'var(--border-radius-md)', display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
-                  {targetExam ? (() => {
-                    const cfg = EXAM_CONFIGS[targetExam];
-                    const panelColor = EXAM_LEVEL_COLORS[EXAM_LEVEL[targetExam]] ?? 'var(--color-primary)';
-                    return (
-                      <>
-                        <div style={{ display: 'flex', flexWrap: 'wrap', gap: '4px 20px', marginBottom: 10 }}>
-                          {[
-                            { label: ja ? '試験コード' : 'Code',      value: cfg?.examCode ?? '' },
-                            { label: ja ? '問題数'    : 'Questions',  value: `${cfg?.totalQuestions ?? '—'}${ja ? '問' : 'Q'}` },
-                            { label: ja ? '試験時間'  : 'Duration',   value: `${cfg?.timeLimitMin ?? '—'}${ja ? '分' : 'min'}` },
-                            { label: ja ? '合格スコア': 'Pass Score', value: `${PASS_SCORES[targetExam] ?? '—'}/1000` },
-                          ].map(({ label, value }) => (
-                            <div key={label}>
-                              <div style={{ fontSize: 9, color: 'var(--color-text-light)', marginBottom: 1 }}>{label}</div>
-                              <div style={{ fontSize: 13, fontWeight: 700, color: panelColor }}>{value}</div>
-                            </div>
-                          ))}
-                        </div>
-                        <p style={{ margin: 0, fontSize: 12, color: 'var(--color-text-sub)', lineHeight: 1.6 }}>{EXAM_DESC[targetExam] ?? ''}</p>
-                      </>
-                    );
-                  })() : (
-                    <span style={{ fontSize: 12, color: 'var(--color-text-light)' }}>{ja ? '資格を選択すると詳細が表示されます' : 'Select an exam to see details'}</span>
-                  )}
-                </div>
-              </div>
-            ) : (
-              /* モバイル: 従来の単一カード */
-              <Card style={{ marginBottom: 12, cursor: 'pointer' }} onClick={() => setShowExamSelect(true)}>
+                );
+              };
+
+              const ExamCardHeader = () => (
                 <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
                     <span style={{ color: 'var(--color-text-sub)', display: 'flex', alignItems: 'center' }}><IconFlag size={13} /></span>
@@ -446,36 +405,63 @@ export default function MyPage() {
                     <IconPenLine size={14} />
                   </div>
                 </div>
-                {targetExam ? (() => {
-                  const full = (EXAM_CONFIGS[targetExam]?.fullName ?? '').replace('AWS Certified ', '');
-                  const dashIdx = full.indexOf(' – ');
-                  const main = dashIdx >= 0 ? full.slice(0, dashIdx) : full;
-                  const level = dashIdx >= 0 ? '– ' + full.slice(dashIdx + 3) : null;
-                  const panelColor = EXAM_LEVEL_COLORS[EXAM_LEVEL[targetExam]] ?? 'var(--color-primary)';
-                  const ExamIcon = EXAM_ICON_COMPONENTS[targetExam];
-                  return (
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
-                      <div style={{ width: 46, height: 53, flexShrink: 0, background: panelColor, clipPath: 'polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff' }}>
-                        {ExamIcon && <ExamIcon size={22} />}
+              );
+
+              return (
+                <>
+                  {/* ── 目標資格 行 ── */}
+                  {!isMobile ? (
+                    /* デスクトップ: 外枠でグルーピング / 左=目標資格 / 右=資格情報 */
+                    <div style={{ display: 'flex', marginBottom: 12, border: '1px solid var(--color-border)', borderRadius: 'var(--border-radius-md)', overflow: 'hidden', boxShadow: 'var(--box-shadow-sm)', background: 'var(--color-bg-white)' }}>
+                      <div style={{ flex: 1, padding: 'var(--spacing-lg)', cursor: 'pointer', minWidth: 0 }} onClick={() => setShowExamSelect(true)}>
+                        <ExamCardHeader />
+                        <ExamCardContent />
                       </div>
-                      <div>
-                        <div style={{ fontWeight: 700, fontSize: 18, color: panelColor, lineHeight: 1.3 }}>{main}</div>
-                        {level && <div style={{ fontWeight: 700, fontSize: 18, color: panelColor, lineHeight: 1.3 }}>{level}</div>}
+                      <div style={{ width: 1, background: 'var(--color-border)', flexShrink: 0 }} />
+                      <div style={{ flex: 1, minWidth: 0, padding: 'var(--spacing-md)', background: 'var(--color-bg-main)', display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
+                        {targetExam ? (() => {
+                          const cfg = EXAM_CONFIGS[targetExam];
+                          const panelColor = EXAM_LEVEL_COLORS[EXAM_LEVEL[targetExam]] ?? 'var(--color-primary)';
+                          return (
+                            <>
+                              <div style={{ display: 'flex', flexWrap: 'wrap', gap: '4px 20px', marginBottom: 10 }}>
+                                {[
+                                  { label: ja ? '試験コード' : 'Code',       value: cfg?.examCode ?? '' },
+                                  { label: ja ? '問題数'     : 'Questions',   value: `${cfg?.totalQuestions ?? '—'}${ja ? '問' : 'Q'}` },
+                                  { label: ja ? '試験時間'   : 'Duration',    value: `${cfg?.timeLimitMin ?? '—'}${ja ? '分' : 'min'}` },
+                                  { label: ja ? '合格スコア' : 'Pass Score',  value: `${PASS_SCORES[targetExam] ?? '—'}/1000` },
+                                ].map(({ label, value }) => (
+                                  <div key={label}>
+                                    <div style={{ fontSize: 9, color: 'var(--color-text-light)', marginBottom: 1 }}>{label}</div>
+                                    <div style={{ fontSize: 13, fontWeight: 700, color: panelColor }}>{value}</div>
+                                  </div>
+                                ))}
+                              </div>
+                              <p style={{ margin: 0, fontSize: 12, color: 'var(--color-text-sub)', lineHeight: 1.6 }}>{EXAM_DESC[targetExam] ?? ''}</p>
+                            </>
+                          );
+                        })() : (
+                          <span style={{ fontSize: 12, color: 'var(--color-text-light)' }}>{ja ? '資格を選択すると詳細が表示されます' : 'Select an exam to see details'}</span>
+                        )}
                       </div>
                     </div>
-                  );
-                })() : (
-                  <span style={{ fontSize: 14, color: 'var(--color-text-light)' }}>{ja ? '目標資格を設定する' : 'Set target exam'}</span>
-                )}
-              </Card>
-            )}
+                  ) : (
+                    /* モバイル: 単一カード */
+                    <Card style={{ marginBottom: 12, cursor: 'pointer' }} onClick={() => setShowExamSelect(true)}>
+                      <ExamCardHeader />
+                      <ExamCardContent />
+                    </Card>
+                  )}
+                </>
+              );
+            })()}
 
             {/* ── 学習目標 行 ── */}
             {!isMobile ? (
-              /* デスクトップ: 左=学習目標カード / 右=週間達成状況 */
-              <div style={{ display: 'flex', gap: 12, marginBottom: 12, alignItems: 'stretch' }}>
-                {/* 左: 学習目標カード */}
-                <Card style={{ flex: 1, cursor: 'pointer', minWidth: 0 }} onClick={() => { setEditExamDate(examDate); setEditDailyGoal(dailyGoal); setShowSettingsEdit(true); }}>
+              /* デスクトップ: 外枠でグルーピング / 左=学習目標 / 右=週間達成状況 */
+              <div style={{ display: 'flex', marginBottom: 12, border: '1px solid var(--color-border)', borderRadius: 'var(--border-radius-md)', overflow: 'hidden', boxShadow: 'var(--box-shadow-sm)', background: 'var(--color-bg-white)' }}>
+                {/* 左: 学習目標（クリッカブル） */}
+                <div style={{ flex: 1, padding: 'var(--spacing-lg)', cursor: 'pointer', minWidth: 0 }} onClick={() => { setEditExamDate(examDate); setEditDailyGoal(dailyGoal); setShowSettingsEdit(true); }}>
                   <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
                       <span style={{ color: 'var(--color-text-sub)', display: 'flex', alignItems: 'center' }}><IconCalendarNotebook size={13} /></span>
@@ -509,9 +495,10 @@ export default function MyPage() {
                       </div>
                     </>
                   )}
-                </Card>
+                </div>
+                <div style={{ width: 1, background: 'var(--color-border)', flexShrink: 0 }} />
                 {/* 右: 習慣達成状況（非クリッカブル） */}
-                <div style={{ flex: 1, minWidth: 0, padding: 'var(--spacing-md)', background: 'var(--color-bg-main)', borderRadius: 'var(--border-radius-md)' }}>
+                <div style={{ flex: 1, minWidth: 0, padding: 'var(--spacing-md)', background: 'var(--color-bg-main)' }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 8 }}>
                     <span style={{ color: 'var(--color-text-sub)', display: 'flex', alignItems: 'center' }}><IconTrendingUp size={13} /></span>
                     <span style={{ fontWeight: 700, fontSize: 'var(--font-size-sm)', color: 'var(--color-text-main)' }}>{ja ? '週間達成状況' : 'Weekly Progress'}</span>
