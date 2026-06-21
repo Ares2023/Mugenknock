@@ -724,7 +724,8 @@ PYEOF
             mapfile -t _delay_dirs < <(
               for _d in "$SCRIPT_DIR/night-prompts/scripts"/*/; do
                 local _dn; _dn=$(basename "$_d" 2>/dev/null)
-                [[ "$_dn" =~ ^[0-9]+$ ]] && echo "$_dn $_d"
+                # "at数字" 形式のディレクトリのみ対象（例: at0, at10, at120）
+                [[ "$_dn" =~ ^at[0-9]+$ ]] && echo "${_dn#at} $_d"
               done | sort -n | awk '{print $2}'
             )
 
@@ -732,7 +733,7 @@ PYEOF
               # ── 新方式: 時間差ディレクトリ実行 ──
               local _dir_labels=""
               for _ddir in "${_delay_dirs[@]}"; do
-                local _delay_min; _delay_min=$(basename "$_ddir")
+                local _dname; _dname=$(basename "$_ddir"); local _delay_min=${_dname#at}
                 local _delay_sec=$(( _delay_min * 60 ))
                 _dir_labels+="${_delay_min}分 "
                 for s in "$_ddir"*.sh; do
