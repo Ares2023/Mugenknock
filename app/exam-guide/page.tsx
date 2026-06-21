@@ -4,7 +4,7 @@ import { EXAM_TYPES, EXAM_CONFIGS, EXAM_DESC_JA } from '@/constants';
 
 export const metadata: Metadata = {
   title: 'AWS試験別攻略ガイド一覧 | 無限ノック',
-  description: 'CLF・SAA・SAP・DVA・SOA・DOP・DEA・AIF・MLA・GAI・ANS・SCS 全12種類のAWS認定試験の攻略ガイドを解説。試験概要・出題ドメイン・合格スコア・勉強法を紹介。',
+  description: 'CLF・SAA・SAP・DVA・SOA・DOP・DEA・AIF・MLA・AIP・ANS・SCS 全12種類のAWS認定試験の攻略ガイドを解説。試験概要・出題ドメイン・合格スコア・勉強法を紹介。',
 };
 
 export default function ExamGuideIndexPage() {
