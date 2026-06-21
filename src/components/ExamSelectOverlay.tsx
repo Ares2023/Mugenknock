@@ -11,7 +11,7 @@ const EXAM_LEVELS = [
   { key: 'Specialty',    color: '#0ea5e9', exams: ['ANS', 'SCS'] },
 ] as const;
 
-const EXAM_DESC: Record<string, string> = {
+export const EXAM_DESC: Record<string, string> = {
   CLF: 'AWSクラウドの基礎知識・サービス・概念を問う入門試験。エンジニア以外でも取得可能。ITの基礎から学べるエントリーポイント。',
   SAA: 'AWSを使ったシステム設計・高可用性・コスト最適化の知識を問う、AWS最人気資格。クラウドアーキテクチャの標準スキルとして業界で広く認知。',
   SAP: 'SAAより高度な大規模システム設計・移行戦略・複雑なアーキテクチャを扱うプロフェッショナル資格。SAAの取得後を推奨。',
