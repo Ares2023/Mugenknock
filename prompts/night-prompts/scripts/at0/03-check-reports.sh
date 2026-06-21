@@ -29,8 +29,10 @@ if [ -z "${CLAUDE_CMD:-}" ] || [ ! -x "${CLAUDE_CMD:-}" ]; then
   echo "❌ claude コマンドが見つかりません" >&2; exit 1
 fi
 
-SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-NIGHT_PROMPTS_DIR="$(dirname "$SCRIPT_DIR")"
+# scripts/ 配下のどの深さに置かれても動作するパス解決
+_d="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+while [ "$(basename "$_d")" != "scripts" ] && [ "$_d" != "/" ]; do _d="$(dirname "$_d")"; done
+NIGHT_PROMPTS_DIR="$(dirname "$_d")"
 LOG_DIR="$NIGHT_PROMPTS_DIR/logs"
 mkdir -p "$LOG_DIR"
 DATE=$(date '+%Y%m%d_%H%M%S')
