@@ -255,7 +255,7 @@ for item in data['reported']:
         subprocess.run([
             'aws', 'dynamodb', 'delete-item',
             '--table-name', 'Reports',
-            '--key', json.dumps({'reportId': {'S': rid}}),
+            '--key', json.dumps({'questionId': {'S': qid}, 'reportId': {'S': rid}}),
         ], capture_output=True)
         print(f"  [SKIP] 問題が存在しない通報を削除: reportId={rid} questionId={qid}", file=sys.stderr)
 PYEOF
@@ -563,12 +563,13 @@ for r in results:
         # ok の関連問題はカウントもログも省略
 
     # 通報レコードを削除（通報問題のみ、ok/fix/delete いずれも）
+    # Reports テーブルは questionId(HASH) + reportId(RANGE) の複合キー
     actual_rid = rid or report_ids.get(qid, '')
-    if actual_rid and is_reported:
+    if actual_rid and is_reported and qid:
         subprocess.run([
             'aws', 'dynamodb', 'delete-item',
             '--table-name', 'Reports',
-            '--key', json.dumps({'reportId': {'S': actual_rid}}),
+            '--key', json.dumps({'questionId': {'S': qid}, 'reportId': {'S': actual_rid}}),
         ], capture_output=True)
 
 print(f'\n通報問題  → OK={ok_count}  FIX={fix_count}  DELETE={del_count}')
