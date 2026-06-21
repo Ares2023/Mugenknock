@@ -650,7 +650,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
                   const examColor = EXAM_LEVEL_COLORS[EXAM_LEVEL[targetExam]] ?? 'var(--color-primary)';
                   const name = isMobile ? `AWS ${targetExam}` : ((EXAM_CONFIGS[targetExam]?.fullName ?? targetExam).replace('AWS Certified ', ''));
                   const ExamIcon = EXAM_ICON_COMPONENTS[targetExam];
-                  return <>{'設定目標：'}<span style={{ color: examColor, display: 'inline-flex', alignItems: 'center', gap: 3 }}>{ExamIcon && <ExamIcon size={13} />}{name}</span></>;
+                  return <>{'設定目標：'}<span style={{ color: examColor, display: 'inline-flex', alignItems: 'center', gap: 3, verticalAlign: 'middle' }}>{ExamIcon && <ExamIcon size={13} />}{name}</span></>;
                 })()}
                 {examDate && (() => {
                   const days = daysUntilExam(examDate);
