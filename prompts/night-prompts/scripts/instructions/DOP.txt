@@ -1,3 +1,7 @@
+# EXAM_GUIDE_URL: https://aws.amazon.com/jp/certification/certified-devops-engineer-professional/
+# DOMAINS: SDLC の自動化,構成管理と Infrastructure as Code (IaC),弾力性に優れたクラウドソリューション,モニタリングとロギング,インシデントとイベントへの対応,セキュリティとコンプライアンス
+# LAST_REFRESHED: 2026-06-21
+
 あなたはAWS認定試験の問題作成者です。
 AWS Certified DevOps Engineer – Professional (DOP-C02) の模擬試験問題を作成してください。
 

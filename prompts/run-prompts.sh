@@ -707,38 +707,67 @@ PYEOF
             echo "🌙 夜間初回実行を開始します ($(date '+%H:%M'))"
           fi
 
-          # 1. シェルスクリプト（並列）
+          # 1. シェルスクリプト（時間差ディレクトリ対応）
           if [ "$deadline_epoch" -gt 0 ] && [ "$(date +%s)" -ge "$deadline_epoch" ]; then
             echo "⏰ 締切3分前 — 夜間スクリプト中断 ($(date '+%H:%M'))"; is_deadline=1
           fi
           if [ "${is_deadline:-0}" -eq 0 ]; then
-            local _sh_files=()
             local _sh_pids=()
+            local _sh_keys=()   # "delay__filename:filepath" 形式
             local _sh_tmpdir
-            for s in "$SCRIPT_DIR/night-prompts/scripts"/*.sh; do
-              [ -e "$s" ] && _sh_files+=("$s")
-            done
-            if [ ${#_sh_files[@]} -gt 0 ]; then
-              _sh_tmpdir=$(mktemp -d)
-              for s in "${_sh_files[@]}"; do
-                local _n; _n=$(basename "$s")
-                echo "$(date +%s)" > "$_sh_tmpdir/${_n}.t0"
-                ( bash "$s" > "$_sh_tmpdir/${_n}.out" 2>&1; echo $? > "$_sh_tmpdir/${_n}.ec" ) &
-                _sh_pids+=($!)
+            _sh_tmpdir=$(mktemp -d)
+            local _NIGHT_T0
+            _NIGHT_T0=$(date +%s)
+
+            # 番号付きサブディレクトリを数値順に収集
+            local _delay_dirs=()
+            mapfile -t _delay_dirs < <(
+              for _d in "$SCRIPT_DIR/night-prompts/scripts"/*/; do
+                local _dn; _dn=$(basename "$_d" 2>/dev/null)
+                # "at数字" 形式のディレクトリのみ対象（例: at0, at10, at120）
+                [[ "$_dn" =~ ^at[0-9]+$ ]] && echo "${_dn#at} $_d"
+              done | sort -n | awk '{print $2}'
+            )
+
+            if [ ${#_delay_dirs[@]} -gt 0 ]; then
+              # ── 新方式: 時間差ディレクトリ実行 ──
+              local _dir_labels=""
+              for _ddir in "${_delay_dirs[@]}"; do
+                local _dname; _dname=$(basename "$_ddir"); local _delay_min=${_dname#at}
+                local _delay_sec=$(( _delay_min * 60 ))
+                _dir_labels+="${_delay_min}分 "
+                for s in "$_ddir"*.sh; do
+                  [ -e "$s" ] || continue
+                  local _n; _n=$(basename "$s")
+                  local _key="${_delay_min}__${_n}"
+                  echo "$_NIGHT_T0" > "$_sh_tmpdir/${_key}.t0"
+                  (
+                    _now=$(date +%s)
+                    _wait=$(( _NIGHT_T0 + _delay_sec - _now ))
+                    [ "$_wait" -gt 0 ] && sleep "$_wait"
+                    bash "$s" > "$_sh_tmpdir/${_key}.out" 2>&1
+                    echo $? > "$_sh_tmpdir/${_key}.ec"
+                  ) &
+                  _sh_pids+=($!)
+                  _sh_keys+=("${_key}:${s}")
+                done
               done
-              echo "  [並列実行中: night-scripts ${#_sh_files[@]}件]"
+              echo "  [時間差実行: ${#_sh_pids[@]}スクリプト | ディレクトリ: ${_dir_labels}]"
               for _pid in "${_sh_pids[@]}"; do wait "$_pid" 2>/dev/null || true; done
-              for s in "${_sh_files[@]}"; do
-                local _n; _n=$(basename "$s")
+              for _entry in "${_sh_keys[@]}"; do
+                local _key="${_entry%%:*}"
+                local _spath="${_entry#*:}"
+                local _n; _n=$(basename "$_spath")
+                local _delay_min="${_key%%__*}"
                 local _t0 _ec
-                _t0=$(cat "$_sh_tmpdir/${_n}.t0" 2>/dev/null || echo 0)
-                _ec=$(cat "$_sh_tmpdir/${_n}.ec" 2>/dev/null || echo 1)
-                echo "▶ [night-script] $_n"
-                cat "$_sh_tmpdir/${_n}.out" 2>/dev/null || true
+                _t0=$(cat "$_sh_tmpdir/${_key}.t0" 2>/dev/null || echo 0)
+                _ec=$(cat "$_sh_tmpdir/${_key}.ec" 2>/dev/null || echo 1)
+                echo "▶ [night-script +${_delay_min}m] $_n"
+                cat "$_sh_tmpdir/${_key}.out" 2>/dev/null || true
                 printf "  → %ds\n" "$(( $(date +%s) - _t0 ))"
                 {
                   echo "=== $(date '+%Y-%m-%d %H:%M:%S') | $_n | exit:$_ec ==="
-                  cat "$_sh_tmpdir/${_n}.out" 2>/dev/null || true
+                  cat "$_sh_tmpdir/${_key}.out" 2>/dev/null || true
                 } >> "$LOG_DIR/nscript_${_n%.sh}_$(date '+%Y%m%d').log"
                 if [ "$_ec" -eq 0 ]; then
                   _sh_ok=$(( _sh_ok + 1 ))
@@ -748,8 +777,44 @@ PYEOF
                   night_processed+="[sh]${_n} (FAIL), "
                 fi
               done
-              rm -rf "$_sh_tmpdir"
+            else
+              # ── 旧方式: 直下の *.sh を並列実行（後方互換）──
+              local _sh_files=()
+              for s in "$SCRIPT_DIR/night-prompts/scripts"/*.sh; do
+                [ -e "$s" ] && _sh_files+=("$s")
+              done
+              if [ ${#_sh_files[@]} -gt 0 ]; then
+                for s in "${_sh_files[@]}"; do
+                  local _n; _n=$(basename "$s")
+                  echo "$(date +%s)" > "$_sh_tmpdir/${_n}.t0"
+                  ( bash "$s" > "$_sh_tmpdir/${_n}.out" 2>&1; echo $? > "$_sh_tmpdir/${_n}.ec" ) &
+                  _sh_pids+=($!)
+                done
+                echo "  [並列実行中: night-scripts ${#_sh_files[@]}件]"
+                for _pid in "${_sh_pids[@]}"; do wait "$_pid" 2>/dev/null || true; done
+                for s in "${_sh_files[@]}"; do
+                  local _n; _n=$(basename "$s")
+                  local _t0 _ec
+                  _t0=$(cat "$_sh_tmpdir/${_n}.t0" 2>/dev/null || echo 0)
+                  _ec=$(cat "$_sh_tmpdir/${_n}.ec" 2>/dev/null || echo 1)
+                  echo "▶ [night-script] $_n"
+                  cat "$_sh_tmpdir/${_n}.out" 2>/dev/null || true
+                  printf "  → %ds\n" "$(( $(date +%s) - _t0 ))"
+                  {
+                    echo "=== $(date '+%Y-%m-%d %H:%M:%S') | $_n | exit:$_ec ==="
+                    cat "$_sh_tmpdir/${_n}.out" 2>/dev/null || true
+                  } >> "$LOG_DIR/nscript_${_n%.sh}_$(date '+%Y%m%d').log"
+                  if [ "$_ec" -eq 0 ]; then
+                    _sh_ok=$(( _sh_ok + 1 ))
+                    night_processed+="[sh]${_n} (OK), "
+                  else
+                    _sh_fail=$(( _sh_fail + 1 ))
+                    night_processed+="[sh]${_n} (FAIL), "
+                  fi
+                done
+              fi
             fi
+            rm -rf "$_sh_tmpdir"
           fi
 
           # 2. Claudeプロンプト - texts（並列）

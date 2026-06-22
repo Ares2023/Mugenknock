@@ -7,11 +7,15 @@
 
 set -uo pipefail
 
-REPO_DIR="$(cd "$(dirname "$0")/../../.." && pwd)"
+# scripts/ 配下のどの深さに置かれても動作するパス解決
+_d="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+while [ "$(basename "$_d")" != "scripts" ] && [ "$_d" != "/" ]; do _d="$(dirname "$_d")"; done
+NIGHT_PROMPTS_DIR="$(dirname "$_d")"
+REPO_DIR="$(dirname "$(dirname "$NIGHT_PROMPTS_DIR")")"
 AWS="/home/yuzuki/local/bin/aws"
 TABLE="Releases"
 REGION="ap-northeast-1"
-RATE_LIMIT_FILE="$(dirname "$0")/../.claude_rate_limit_reset"
+RATE_LIMIT_FILE="$NIGHT_PROMPTS_DIR/.claude_rate_limit_reset"
 
 # ── Claudeバイナリを検索 ─────────────────────────────────────
 _find_claude() {

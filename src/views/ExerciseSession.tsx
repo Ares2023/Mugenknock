@@ -3,14 +3,15 @@ import React, { useState, useEffect, useMemo, useRef, useCallback } from 'react'
 import { createPortal } from 'react-dom';
 import { useNavigate, useLocation } from '@/compat/react-router-dom';
 import { API_ENDPOINT, PASS_RATE, EXAM_DOMAINS, DOMAIN_NAME_EN, EXAM_LEVEL, qDomainName } from '../constants';
-import { deleteCached } from '../utils/cache';
+import { getCached, setCached, deleteCached, DEFAULT_TTL } from '../utils/cache';
 import { addPoints } from '../utils/points';
+import { schedulePrefetchAfterSession } from '../utils/questionPrefetch';
 import { useAuth } from '../contexts/AuthContext';
 import { useLanguage } from '../contexts/LanguageContext';
 import Card from '../components/ui/Card';
 import Button from '../components/ui/Button';
 import ReportModal from '../components/ReportModal';
-import { IconBookOpen, IconCopy, IconCheck, IconStar, IconChevronUp, IconChevronDown } from '../components/Icons';
+import { IconBookOpen, IconBean, IconCopy, IconCheck, IconStar, IconChevronUp, IconChevronDown } from '../components/Icons';
 
 type Tip = { tipId: string; title: string; content: string; examType: string };
 
@@ -584,8 +585,19 @@ export default function ExerciseSession() {
           }).catch(() => {});
         }
       } catch {}
-      // セッション完了でキャッシュ破棄 → ホーム画面が最新データをサーバーから再取得
-      deleteCached(`ustats_${userId}`);
+      // セッション完了: ローカル結果でキャッシュを楽観的更新し、バックグラウンド再取得を予約
+      try {
+        const existingStats: any[] | null = getCached(`ustats_${userId}`);
+        if (existingStats && existingStats.length > 0) {
+          const updated = existingStats.map((s: any) => ({
+            ...s,
+            recentResults: dr[s.tagId] ?? s.recentResults,
+          }));
+          setCached(`ustats_${userId}`, updated, DEFAULT_TTL);
+        } else {
+          deleteCached(`ustats_${userId}`);
+        }
+      } catch { deleteCached(`ustats_${userId}`); }
       localStorage.setItem(`postSessionRefresh_${userId}`, String(Date.now()));
       const ptsPerQ = EXAM_LEVEL[examType] === 'Foundational' ? 1 : EXAM_LEVEL[examType] === 'Associate' ? 2 : 3;
       const earnedPts = results.filter(r => r.isCorrect).length * ptsPerQ;
@@ -605,6 +617,7 @@ export default function ExerciseSession() {
         dailyBonusPts = 10;
         addPoints(userId, dailyBonusPts);
       }
+      schedulePrefetchAfterSession({ examType, userId, isQuick, isFocused });
       navigate('/aws/result', { state: { results, questions, score, isPassed, sessionId, userId, examType, isQuick, isMini, earnedPts, dailyBonusPts } });
     } else {
       setCurrentIndex(prev => prev + 1);
@@ -691,6 +704,7 @@ export default function ExerciseSession() {
       addPoints(userId, dailyBonusPts2);
     }
     const answeredQuestions = questions.slice(0, results.length);
+    schedulePrefetchAfterSession({ examType, userId, isQuick, isFocused });
     navigate('/aws/result', { state: { results, questions: answeredQuestions, score, isPassed, sessionId, userId, examType, isQuick, isMini, aborted: true, earnedPts, dailyBonusPts: dailyBonusPts2 } });
   };
 
@@ -1220,14 +1234,14 @@ export default function ExerciseSession() {
               fontSize: 10, fontWeight: 700, letterSpacing: '1.5px',
               padding: '3px 10px', borderRadius: 'var(--border-radius-sm)',
             }}>COLUMN</span>
-            <span style={{ flex: 1, height: 1, background: 'var(--color-border)' }} />
+            <span style={{ flex: 1, height: 1, background: 'color-mix(in srgb, var(--color-text-light) 40%, transparent)' }} />
           </div>
           <Card
             padding="var(--spacing-md) var(--spacing-lg)"
             style={{ borderLeft: '4px solid var(--color-accent)' }}
           >
             <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--spacing-sm)', marginBottom: 'var(--spacing-sm)' }}>
-              <span style={{ color: 'var(--color-accent)', display: 'flex', alignItems: 'center', flexShrink: 0 }}><IconBookOpen size={22} /></span>
+              <span style={{ color: 'var(--color-accent)', display: 'flex', alignItems: 'center', flexShrink: 0 }}><IconBean size={22} /></span>
               <p style={{ fontWeight: 700, color: 'var(--color-text-main)', margin: 0, fontSize: 'var(--font-size-base)' }}>{currentTip.title}</p>
             </div>
             <p style={{ color: 'var(--color-text-sub)', margin: 0, fontSize: 'var(--font-size-sm)', lineHeight: 1.8 }}>

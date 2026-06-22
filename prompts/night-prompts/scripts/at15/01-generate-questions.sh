@@ -23,11 +23,13 @@ if [ -z "${CLAUDE_CMD:-}" ] || [ ! -x "${CLAUDE_CMD:-}" ]; then
   echo "❌ claude コマンドが見つかりません" >&2; exit 1
 fi
 
-SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-NIGHT_PROMPTS_DIR="$(dirname "$SCRIPT_DIR")"
+# scripts/ 配下のどの深さに置かれても動作するパス解決
+_d="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+while [ "$(basename "$_d")" != "scripts" ] && [ "$_d" != "/" ]; do _d="$(dirname "$_d")"; done
+NIGHT_PROMPTS_DIR="$(dirname "$_d")"
 LOG_DIR="$NIGHT_PROMPTS_DIR/logs"
-INSTRUCTION_DIR="$NIGHT_PROMPTS_DIR/scripts/instructions"
-STATE_DIR="$NIGHT_PROMPTS_DIR/scripts/state"
+INSTRUCTION_DIR="$_d/instructions"
+STATE_DIR="$_d/state"
 COUNT_CACHE_FILE="$STATE_DIR/question_counts.json"
 API_ENDPOINT="https://a0q3656qw4.execute-api.ap-northeast-1.amazonaws.com/dev"
 QUESTIONS_PER_DOMAIN=5
@@ -112,21 +114,40 @@ mkdir -p "$LOG_DIR"
 DATE=$(date '+%Y%m%d_%H%M%S')
 LOG_FILE="$LOG_DIR/generate_${DATE}.log"
 
-# ── ドメイン定義 (資格コード → ドメイン配列) ────────────────
+# ── ドメイン定義: instructions/*.txt の # DOMAINS: 行から動的に読み込む ─
+# ドメイン名は公式試験ガイドの表記に完全一致させること（DynamoDB タグとして使用される）
+# フォールバック用ハードコーディング（refresh-exam-guide.sh で随時更新される）
 declare -A DOMAINS
-# ドメイン名は公式試験ガイドの表記に完全一致させること（タグとして使用されるため）
-DOMAINS[CLF]="クラウドの概念,セキュリティとコンプライアンス,クラウドのテクノロジーとサービス,請求、料金、およびサポート"
-DOMAINS[SAA]="セキュアなアーキテクチャの設計,弾力性に優れたアーキテクチャの設計,高性能なアーキテクチャの設計,コスト最適化されたアーキテクチャの設計"
-DOMAINS[SAP]="組織の複雑さに対応する設計,新しいソリューションのための設計,既存のソリューションの継続的改善,ワークロードの移行とモダン化の加速"
-DOMAINS[DVA]="AWSのサービスを使用した開発,セキュリティ,デプロイ,トラブルシューティングと最適化"
-DOMAINS[SOA]="モニタリング、ロギング、分析、修復、およびパフォーマンスの最適化,信頼性とビジネス継続性,デプロイ、プロビジョニング、および自動化,セキュリティとコンプライアンス,ネットワークとコンテンツ配信"
-DOMAINS[DOP]="SDLC の自動化,構成管理と Infrastructure as Code (IaC),弾力性に優れたクラウドソリューション,モニタリングとロギング,インシデントとイベントへの対応,セキュリティとコンプライアンス"
-DOMAINS[AIF]="AIとMLの基礎,生成AIの基礎,基盤モデルのアプリケーション,責任あるAIのガイドライン,AIソリューションのセキュリティ、コンプライアンス、ガバナンス"
-DOMAINS[MLA]="機械学習のためのデータ準備,MLモデルの開発,MLワークフローのデプロイとオーケストレーション,MLソリューションの監視、メンテナンス、セキュリティ"
-DOMAINS[GAI]="基盤モデルの統合、データ管理、コンプライアンス,実装と統合,AIの安全性、セキュリティ、ガバナンス,生成AIアプリケーションの運用効率と最適化,テスト、検証、トラブルシューティング"
-DOMAINS[DEA]="データの取り込みと変換,データストアの管理,データオペレーションとサポート,データのセキュリティとガバナンス"
-DOMAINS[ANS]="ネットワーク設計,ネットワーク実装,ネットワーク管理と運用,ネットワークのセキュリティ、コンプライアンス、ガバナンス"
-DOMAINS[SCS]="検出,インシデント対応,インフラストラクチャのセキュリティ,アイデンティティとアクセス管理,データ保護,セキュリティの基盤とガバナンス"
+_load_domains_from_instructions() {
+  local exam="$1"
+  local inst_file="${INSTRUCTION_DIR}/${exam}.txt"
+  if [ -f "$inst_file" ]; then
+    local d
+    d=$(grep "^# DOMAINS:" "$inst_file" | head -1 | sed 's/^# DOMAINS: *//')
+    [ -n "$d" ] && { echo "$d"; return; }
+  fi
+  # fallback（instructions/*.txt に # DOMAINS: がない場合）
+  case "$exam" in
+    CLF) echo "クラウドの概念,セキュリティとコンプライアンス,クラウドのテクノロジーとサービス,請求、料金、およびサポート" ;;
+    SAA) echo "セキュアなアーキテクチャの設計,弾力性に優れたアーキテクチャの設計,高性能なアーキテクチャの設計,コスト最適化されたアーキテクチャの設計" ;;
+    SAP) echo "組織の複雑さに対応する設計,新しいソリューションのための設計,既存のソリューションの継続的改善,ワークロードの移行とモダン化の加速" ;;
+    DVA) echo "AWSのサービスを使用した開発,セキュリティ,デプロイ,トラブルシューティングと最適化" ;;
+    SOA) echo "モニタリング、ロギング、分析、修復、およびパフォーマンスの最適化,信頼性とビジネス継続性,デプロイ、プロビジョニング、および自動化,セキュリティとコンプライアンス,ネットワークとコンテンツ配信" ;;
+    DOP) echo "SDLC の自動化,構成管理と Infrastructure as Code (IaC),弾力性に優れたクラウドソリューション,モニタリングとロギング,インシデントとイベントへの対応,セキュリティとコンプライアンス" ;;
+    AIF) echo "AIとMLの基礎,生成AIの基礎,基盤モデルのアプリケーション,責任あるAIのガイドライン,AIソリューションのセキュリティ、コンプライアンス、ガバナンス" ;;
+    MLA) echo "機械学習のためのデータ準備,MLモデルの開発,MLワークフローのデプロイとオーケストレーション,MLソリューションの監視、メンテナンス、セキュリティ" ;;
+    AIP) echo "基盤モデルの統合、データ管理、コンプライアンス,実装と統合,AIの安全性、セキュリティ、ガバナンス,生成AIアプリケーションの運用効率と最適化,テスト、検証、トラブルシューティング" ;;
+    DEA) echo "データの取り込みと変換,データストアの管理,データオペレーションとサポート,データのセキュリティとガバナンス" ;;
+    ANS) echo "ネットワーク設計,ネットワーク実装,ネットワーク管理と運用,ネットワークのセキュリティ、コンプライアンス、ガバナンス" ;;
+    SCS) echo "検出,インシデント対応,インフラストラクチャのセキュリティ,アイデンティティとアクセス管理,データ保護,セキュリティの基盤とガバナンス" ;;
+  esac
+}
+
+_get_exam_guide_url() {
+  local exam="$1"
+  local inst_file="${INSTRUCTION_DIR}/${exam}.txt"
+  [ -f "$inst_file" ] && grep "^# EXAM_GUIDE_URL:" "$inst_file" | head -1 | sed 's/^# EXAM_GUIDE_URL: *//'
+}
 
 {
 echo "=========================================="
@@ -139,7 +160,7 @@ mapfile -t EXAM_TYPES < <(
     | xargs -I{} basename {} .txt \
     | python3 -c "
 import sys
-ORDER = ['CLF', 'SAA', 'SAP', 'DVA', 'SOA', 'DEA', 'DOP', 'AIF', 'MLA', 'GAI', 'ANS', 'SCS']
+ORDER = ['CLF', 'SAA', 'SAP', 'DVA', 'SOA', 'DEA', 'DOP', 'AIF', 'MLA', 'AIP', 'ANS', 'SCS']
 items = [l.strip() for l in sys.stdin if l.strip() and not l.strip().startswith('_')]
 known   = [x for x in ORDER if x in items]
 unknown = sorted(x for x in items if x not in ORDER)
@@ -243,12 +264,14 @@ PYEOF
   fi
 fi
 
-# ── ドメイン一覧を取得 ────────────────────────────────────────
-DOMAIN_STR="${DOMAINS[$NEXT_EXAM]:-}"
+# ── ドメイン一覧を取得（instructions/*.txt の # DOMAINS: 行を優先）──
+DOMAIN_STR=$(_load_domains_from_instructions "$NEXT_EXAM")
 if [ -z "$DOMAIN_STR" ]; then
-  echo "⚠️  $NEXT_EXAM のドメイン定義がありません"
+  echo "⚠️  $NEXT_EXAM のドメイン定義がありません（instructions/${NEXT_EXAM}.txt に # DOMAINS: 行を追加するか refresh-exam-guide.sh を実行してください）"
   exit 1
 fi
+EXAM_GUIDE_URL=$(_get_exam_guide_url "$NEXT_EXAM")
+[ -n "$EXAM_GUIDE_URL" ] && echo "試験ガイドURL: $EXAM_GUIDE_URL"
 
 IFS=',' read -ra DOMAIN_LIST <<< "$DOMAIN_STR"
 DOMAIN_COUNT=${#DOMAIN_LIST[@]}
@@ -362,7 +385,7 @@ from collections import Counter, defaultdict
 def norm(s):
     return re.sub(r'[\s　]+', ' ', s).strip()
 
-EXAM_DOMAINS = {'CLF': ['クラウドの概念', 'セキュリティとコンプライアンス', 'クラウドのテクノロジーとサービス', '請求、料金、およびサポート'], 'SAA': ['セキュアなアーキテクチャの設計', '弾力性に優れたアーキテクチャの設計', '高性能なアーキテクチャの設計', 'コスト最適化されたアーキテクチャの設計'], 'SAP': ['組織の複雑さに対応する設計', '新しいソリューションのための設計', '既存のソリューションの継続的改善', 'ワークロードの移行とモダン化の加速'], 'DVA': ['AWSのサービスを使用した開発', 'セキュリティ', 'デプロイ', 'トラブルシューティングと最適化'], 'SOA': ['モニタリング、ロギング、分析、修復、およびパフォーマンスの最適化', '信頼性とビジネス継続性', 'デプロイ、プロビジョニング、および自動化', 'セキュリティとコンプライアンス', 'ネットワークとコンテンツ配信'], 'DOP': ['SDLC の自動化', '構成管理と Infrastructure as Code (IaC)', '弾力性に優れたクラウドソリューション', 'モニタリングとロギング', 'インシデントとイベントへの対応', 'セキュリティとコンプライアンス'], 'AIF': ['AIとMLの基礎', '生成AIの基礎', '基盤モデルのアプリケーション', '責任あるAIのガイドライン', 'AIソリューションのセキュリティ、コンプライアンス、ガバナンス'], 'MLA': ['機械学習のためのデータ準備', 'MLモデルの開発', 'MLワークフローのデプロイとオーケストレーション', 'MLソリューションの監視、メンテナンス、セキュリティ'], 'GAI': ['基盤モデルの統合、データ管理、コンプライアンス', '実装と統合', 'AIの安全性、セキュリティ、ガバナンス', '生成AIアプリケーションの運用効率と最適化', 'テスト、検証、トラブルシューティング'], 'DEA': ['データの取り込みと変換', 'データストアの管理', 'データオペレーションとサポート', 'データのセキュリティとガバナンス'], 'ANS': ['ネットワーク設計', 'ネットワーク実装', 'ネットワーク管理と運用', 'ネットワークのセキュリティ、コンプライアンス、ガバナンス'], 'SCS': ['検出', 'インシデント対応', 'インフラストラクチャのセキュリティ', 'アイデンティティとアクセス管理', 'データ保護', 'セキュリティの基盤とガバナンス']}
+EXAM_DOMAINS = {'CLF': ['クラウドの概念', 'セキュリティとコンプライアンス', 'クラウドのテクノロジーとサービス', '請求、料金、およびサポート'], 'SAA': ['セキュアなアーキテクチャの設計', '弾力性に優れたアーキテクチャの設計', '高性能なアーキテクチャの設計', 'コスト最適化されたアーキテクチャの設計'], 'SAP': ['組織の複雑さに対応する設計', '新しいソリューションのための設計', '既存のソリューションの継続的改善', 'ワークロードの移行とモダン化の加速'], 'DVA': ['AWSのサービスを使用した開発', 'セキュリティ', 'デプロイ', 'トラブルシューティングと最適化'], 'SOA': ['モニタリング、ロギング、分析、修復、およびパフォーマンスの最適化', '信頼性とビジネス継続性', 'デプロイ、プロビジョニング、および自動化', 'セキュリティとコンプライアンス', 'ネットワークとコンテンツ配信'], 'DOP': ['SDLC の自動化', '構成管理と Infrastructure as Code (IaC)', '弾力性に優れたクラウドソリューション', 'モニタリングとロギング', 'インシデントとイベントへの対応', 'セキュリティとコンプライアンス'], 'AIF': ['AIとMLの基礎', '生成AIの基礎', '基盤モデルのアプリケーション', '責任あるAIのガイドライン', 'AIソリューションのセキュリティ、コンプライアンス、ガバナンス'], 'MLA': ['機械学習のためのデータ準備', 'MLモデルの開発', 'MLワークフローのデプロイとオーケストレーション', 'MLソリューションの監視、メンテナンス、セキュリティ'], 'AIP': ['基盤モデルの統合、データ管理、コンプライアンス', '実装と統合', 'AIの安全性、セキュリティ、ガバナンス', '生成AIアプリケーションの運用効率と最適化', 'テスト、検証、トラブルシューティング'], 'DEA': ['データの取り込みと変換', 'データストアの管理', 'データオペレーションとサポート', 'データのセキュリティとガバナンス'], 'ANS': ['ネットワーク設計', 'ネットワーク実装', 'ネットワーク管理と運用', 'ネットワークのセキュリティ、コンプライアンス、ガバナンス'], 'SCS': ['検出', 'インシデント対応', 'インフラストラクチャのセキュリティ', 'アイデンティティとアクセス管理', 'データ保護', 'セキュリティの基盤とガバナンス']}
 
 # AWS CLI paginates DynamoDB output as multiple concatenated JSON objects
 _all_items = []
@@ -659,6 +682,9 @@ ${INSTRUCTION}
 【対象資格】${NEXT_EXAM}
 【対象ドメイン】${domain}
 【作成問題数】${_CHUNK_Q} 問
+${EXAM_GUIDE_URL:+【公式試験ガイドURL】${EXAM_GUIDE_URL}
+上記URLを参照し、出題ドメインの最新タスク・要件・対象サービスに基づいて問題を作成してください。
+}
 
 【既存問題（重複・類似を避けること）】
 ${EXISTING_TEXTS}
@@ -683,12 +709,12 @@ ${EXISTING_TEXTS}
 ${COMMON_RULES}
 PROMPT
 
-    RESULT=$("$CLAUDE_CMD" -p < "$PROMPT_FILE" 2>&1)
+    RESULT=$("$CLAUDE_CMD" -p --allowed-tools WebFetch < "$PROMPT_FILE" 2>&1)
     AI_EXIT=$?
     # npm更新による一時的なバイナリ消失 → 再探索してリトライ
     if [ $AI_EXIT -ne 0 ] && echo "$RESULT" | grep -q "No such file"; then
       CLAUDE_CMD=$(_find_claude)
-      [ -x "${CLAUDE_CMD:-}" ] && { RESULT=$("$CLAUDE_CMD" -p < "$PROMPT_FILE" 2>&1); AI_EXIT=$?; }
+      [ -x "${CLAUDE_CMD:-}" ] && { RESULT=$("$CLAUDE_CMD" -p --allowed-tools WebFetch < "$PROMPT_FILE" 2>&1); AI_EXIT=$?; }
     fi
     rm -f "$PROMPT_FILE"
 

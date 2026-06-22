@@ -115,7 +115,7 @@ export default function DomainSelector({ domains, selected, onChange, lang, labe
               transition: 'border-color 0.15s, color 0.15s',
             }}
           >
-            {lang === 'ja' ? '出題ドメイン' : 'Domains'}
+            {lang === 'ja' ? '絞り込む' : 'Filter'}
             <span style={{ color: 'var(--color-primary)', transform: open ? 'rotate(180deg)' : 'none', transition: 'transform 0.2s', display: 'flex' }}><IconChevronDown size={12} /></span>
           </button>
 

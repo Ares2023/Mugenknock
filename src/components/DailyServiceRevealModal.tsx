@@ -1,7 +1,7 @@
 'use client';
 import { useState, useEffect, useMemo } from 'react';
 import { createPortal } from 'react-dom';
-import { ServiceIconImg, IconSparkles, IconPointer, IconMousePointerClick, IconLightbulb } from './Icons';
+import { ServiceIconImg, IconSparkles, IconPointer, IconMousePointerClick, IconBean } from './Icons';
 import Button from './ui/Button';
 
 type DailyService = {
@@ -336,10 +336,10 @@ export default function DailyServiceRevealModal({
                   textAlign: 'left',
                 }}>
                   <div style={{ fontSize: 11, fontWeight: 700, color: 'white', marginBottom: 4, letterSpacing: '.06em', display: 'flex', alignItems: 'center', gap: 5 }}>
-                    <IconLightbulb size={12} /> {ja ? '豆知識' : 'Trivia'}
+                    <IconBean size={12} /> {ja ? '豆知識' : 'Trivia'}
                   </div>
                   <div style={{ fontSize: 12, color: 'rgba(255,255,255,.7)', lineHeight: 1.7, overflowWrap: 'break-word', wordBreak: 'break-word' }}>
-                    {service.trivia}
+                    {service.trivia.replace(/^🌱\s*/, '')}
                   </div>
                 </div>
               )}

@@ -395,7 +395,7 @@ export default function Stats() {
       )}
 
       {/* ── タブ ── */}
-      <div style={{ display: 'flex', borderBottom: '1px solid var(--color-border)', marginBottom: 'var(--spacing-lg)' }}>
+      <div style={{ display: 'flex', borderBottom: '1px solid color-mix(in srgb, var(--color-text-light) 40%, transparent)', marginBottom: 'var(--spacing-lg)' }}>
         <button style={tabStyle(tab === 'volume')} onClick={() => setTab('volume')}>
           {lang === 'ja' ? 'ノック量' : 'Volume'}
         </button>

@@ -4,21 +4,24 @@ import { Helmet } from '@/compat/react-helmet-async';
 import { createPortal } from 'react-dom';
 import { useNavigate, useLocation } from '@/compat/react-router-dom';
 import DailyServiceRevealModal from '../components/DailyServiceRevealModal';
+import ExamSelectOverlay from '../components/ExamSelectOverlay';
 import { useAuth } from '../contexts/AuthContext';
 import { useLanguage } from '../contexts/LanguageContext';
 import {
   API_ENDPOINT, EXAM_TYPES, EXAM_CONFIGS, EXAM_DOMAINS,
   DOMAIN_WEIGHTS, DOMAIN_NAME_EN, PASS_SCORES, qDomainName,
+  EXAM_LEVEL, EXAM_LEVEL_COLORS,
 } from '../constants';
 import { getCached, setCached, deleteCached, DEFAULT_TTL, getCachedPersist, setCachedPersist, deleteCachedPersist } from '../utils/cache';
 import { animateLoadPct, randomPlateau } from '../utils/loadProgress';
 import { getPoints, deductPoints } from '../utils/points';
 import Card from '../components/ui/Card';
 import Button from '../components/ui/Button';
-import { IconLightbulb, IconSettings, IconChevronUp, IconChevronDown, IconLock, IconFileText, IconTrendingUp, IconBookOpen, IconCheck, IconSparkles, IconPointer, IconMousePointerClick, IconCalendarNotebook, IconRefreshCw, IconTarget, IconChart, ServiceIconImg, isServiceIconKey, IconUser } from '../components/Icons';
+import { IconLightbulb, IconBean, IconSettings, IconChevronUp, IconChevronDown, IconLock, IconFileText, IconTrendingUp, IconBookOpen, IconCheck, IconSparkles, IconPointer, IconMousePointerClick, IconCalendarNotebook, IconRefreshCw, IconTarget, IconChart, ServiceIconImg, isServiceIconKey, IconUser } from '../components/Icons';
 import { CATALOG } from '../data/awsServiceCatalog';
 import { autoScoreAndClearDrafts } from '../utils/sessionUtils';
 import { syncTargetExamToServer, loadTargetExamFromServer } from '../utils/preferences';
+import { prefetchTypeA, prefetchTypeB, prefetchTypeC, getPrefetchA, getPrefetchB, getPrefetchC } from '../utils/questionPrefetch';
 
 type DomainStat = { tagId: string; correctCount?: number; incorrectCount?: number; recentResults?: boolean[] };
 type SessionEntry = { correct: number; total: number };
@@ -1011,8 +1014,8 @@ function TodayServiceSection({ lang, userId, onNavigateEncyclopedia, onReveal, i
 
       {displayService.trivia && (
         <div style={{ background: 'var(--color-bg-main)', borderRadius: 'var(--border-radius-md)', padding: '8px 12px', display: 'flex', gap: 8, alignItems: 'flex-start', marginBottom: 10 }}>
-          <span style={{ color: 'var(--color-text-sub)', display: 'flex', alignItems: 'center', flexShrink: 0 }}><IconLightbulb size={14} /></span>
-          <span style={{ fontSize: 'var(--font-size-sm)', color: 'var(--color-text-sub)', lineHeight: 1.6, overflowWrap: 'break-word', wordBreak: 'break-word' }}>{displayService.trivia}</span>
+          <span style={{ color: 'var(--color-text-sub)', display: 'flex', alignItems: 'center', flexShrink: 0 }}><IconBean size={14} /></span>
+          <span style={{ fontSize: 'var(--font-size-sm)', color: 'var(--color-text-sub)', lineHeight: 1.6, overflowWrap: 'break-word', wordBreak: 'break-word' }}>{displayService.trivia.replace(/^🌱\s*/, '')}</span>
         </div>
       )}
 
@@ -1071,7 +1074,7 @@ function clearUserData(uid: string) {
 }
 
 export default function Home() {
-  const { user } = useAuth();
+  const { user, loading: authLoading } = useAuth();
   const { lang } = useLanguage();
   const navigate = useNavigate();
   const location = useLocation();
@@ -1123,20 +1126,27 @@ export default function Home() {
 
 
   useEffect(() => {
+    if (authLoading) return;
     const saved = localStorage.getItem(`targetExam_${uid}`);
     if (saved !== null) {
       setTargetExam(saved);
       setShowOnboarding(false);
-    } else if (user) {
+    } else {
       setShowOnboarding(true);
     }
-  }, [uid]);
+  }, [uid, authLoading]);
 
   useEffect(() => {
     const handler = (e: Event) => setTargetExam((e as CustomEvent).detail);
     window.addEventListener('targetExamChanged', handler);
     return () => window.removeEventListener('targetExamChanged', handler);
   }, []);
+
+  // ── タイプAプリフェッチ: targetExam が変化したとき（キャッシュ未存在時のみ生成） ──
+  useEffect(() => {
+    if (!targetExam) return;
+    if (!getPrefetchA(targetExam)) prefetchTypeA(targetExam, uid);
+  }, [targetExam, uid]);
 
   // ── 成績フェッチ（stale-while-revalidate） ─────────────────────────
   const TS_KEY = (uid: string) => `_ts_ustats_${uid}`;
@@ -1186,28 +1196,25 @@ export default function Home() {
   }, [user, statsLoading, statsRefreshing, doFetchStats]);
 
   useEffect(() => {
-    if (!user) { setDomainStats([]); setLastUpdated(null); return; }
+    if (!user) { if (!authLoading) { setDomainStats([]); setLastUpdated(null); } return; }
     const cached = getCached<DomainStat[]>(`ustats_${user.userId}`);
     const tsRaw = sessionStorage.getItem(TS_KEY(user.userId));
     if (tsRaw) setLastUpdated(new Date(parseInt(tsRaw)));
 
+    // セッション完了直後フラグ: どちらのケースでも確認
+    const flagRaw = localStorage.getItem(`postSessionRefresh_${user.userId}`);
+    const isPostSession = !!flagRaw && Date.now() - parseInt(flagRaw) < 60000;
+    if (flagRaw) localStorage.removeItem(`postSessionRefresh_${user.userId}`);
+
     if (cached !== null) {
       setDomainStats(cached);
-      // キャッシュがあっても常にバックグラウンドで最新化
-      doFetchStats(user.userId, true);
+      // セッション直後なら遅延バックグラウンド更新（楽観的キャッシュが古いデータを上書きしないよう少し待つ）
+      doFetchStats(user.userId, true, isPostSession ? 2000 : 0);
     } else {
-      // キャッシュなし：セッション完了直後かチェックして遅延
-      const flagRaw = localStorage.getItem(`postSessionRefresh_${uid}`);
-      let delay = 0;
-      if (flagRaw) {
-        localStorage.removeItem(`postSessionRefresh_${uid}`);
-        const age = Date.now() - parseInt(flagRaw);
-        if (age < 30000) delay = 1500; // 30秒以内なら1.5秒待つ
-      }
-      doFetchStats(user.userId, false, delay);
+      doFetchStats(user.userId, false, isPostSession ? 2000 : 0);
     }
     return () => { abortRef.current?.abort(); };
-  }, [user, doFetchStats]);
+  }, [user?.userId, authLoading]); // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
     if (!user || !targetExam) { setServerScoreHistory(null); setServerSessionHistory(null); setServerSessionScoreLog(null); return; }
@@ -1320,9 +1327,12 @@ export default function Home() {
   const dailyGoal = useMemo(() =>
     Math.max(1, parseInt(localStorage.getItem(`dailyGoal_${uid}`) ?? '10', 10))
   , [uid]);
-  const dailyCount = useMemo(() =>
+  const [dailyCount, setDailyCount] = useState(() =>
     targetExam ? parseInt(localStorage.getItem(`dailyQCount_${targetExam}_${uid}_${jstDate}`) ?? '0', 10) : 0
-  , [targetExam, uid, jstDate]);
+  );
+  useEffect(() => {
+    setDailyCount(targetExam ? parseInt(localStorage.getItem(`dailyQCount_${targetExam}_${uid}_${jstDate}`) ?? '0', 10) : 0);
+  }, [targetExam, uid, jstDate, domainStats]);
 
   const [prevScore, setPrevScore] = useState<number | null>(null);
 
@@ -1451,6 +1461,29 @@ export default function Home() {
     setQuickLoading(true);
     setQuickLoadPct(10);
     const qPrefs = loadQuickPrefs(uid);
+
+    // ── プリフェッチキャッシュを使用 ──
+    {
+      const hasFilters = !!(qPrefs.unansweredOnly || qPrefs.incorrectOnly || qPrefs.bookmarkOnly || (qPrefs.domains?.length ?? 0) > 0);
+      const cached = hasFilters ? getPrefetchC(targetExam, userId, qPrefs) : getPrefetchA(targetExam);
+      if (cached && cached.questions.length > 0) {
+        try {
+          const count = qPrefs.questionCount ?? 5;
+          const items = cached.questions.slice(0, count);
+          if (items.length > 0) {
+            setQuickLoadPct(90);
+            const sessionRes = await fetch(`${API_ENDPOINT}/sessions`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ userId, mode: 'exercise', examType: targetExam, questionIds: items.map((q: any) => q.questionId) }) });
+            const sessionData = await sessionRes.json();
+            setQuickLoading(false); setQuickLoadPct(0);
+            navigate('/aws/exercise/session', { state: { sessionId: sessionData.sessionId, questions: items, userId, mode: 'exercise', examType: targetExam, isQuick: true } });
+            return;
+          }
+        } catch (err) {
+          console.debug('[prefetch] quick cache failed, fallback:', err);
+        }
+      }
+    }
+
     try {
       const userId = user?.userId ?? 'guest';
       const params = new URLSearchParams({ examType: targetExam, withAnswers: 'true' });
@@ -1520,6 +1553,30 @@ export default function Home() {
     setFocusedLoading(true);
     setFocusedLoadPct(10);
     const fPrefs = loadFocusedPrefs(uid);
+
+    // ── プリフェッチキャッシュを使用 ──
+    {
+      const userId = user.userId;
+      const hasFilters = fPrefs.focusIncorrect !== false || (fPrefs.focusDomain ?? 'below60') !== 'none';
+      const cached = hasFilters ? getPrefetchB(targetExam, userId, fPrefs) : getPrefetchA(targetExam);
+      if (cached && cached.questions.length > 0) {
+        try {
+          const count = fPrefs.questionCount ?? 5;
+          const items = cached.questions.slice(0, count);
+          if (items.length > 0) {
+            setFocusedLoadPct(90);
+            const sessionRes = await fetch(`${API_ENDPOINT}/sessions`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ userId, mode: 'exercise', examType: targetExam, questionIds: items.map((q: any) => q.questionId), isFocused: true }) });
+            const sessionData = await sessionRes.json();
+            setFocusedLoading(false); setFocusedLoadPct(0);
+            navigate('/aws/exercise/session', { state: { sessionId: sessionData.sessionId, questions: items, userId, mode: 'exercise', examType: targetExam, isQuick: true, isFocused: true } });
+            return;
+          }
+        } catch (err) {
+          console.debug('[prefetch] focused cache failed, fallback:', err);
+        }
+      }
+    }
+
     try {
       const userId = user.userId;
       const params = new URLSearchParams({ examType: targetExam, withAnswers: 'true' });
@@ -1659,7 +1716,15 @@ export default function Home() {
           </span>
         </div>
         <div style={{ height: 6, borderRadius: 3, background: 'var(--color-border)', overflow: 'hidden' }}>
-          <div style={{ height: '100%', width: `${Math.min(100, (dailyCount / dailyGoal) * 100)}%`, borderRadius: 3, background: dailyCount >= dailyGoal ? 'var(--color-success)' : 'var(--bar-gradient-teal)', transition: 'width 0.3s' }} />
+          {(() => {
+            const examColor = targetExam ? (EXAM_LEVEL_COLORS[EXAM_LEVEL[targetExam]] ?? 'var(--color-primary)') : 'var(--color-primary)';
+            const barColor = dailyCount >= dailyGoal
+              ? 'var(--bar-gradient-success)'
+              : `linear-gradient(90deg, ${examColor}, ${examColor}cc)`;
+            return (
+              <div style={{ height: '100%', width: `${Math.min(100, (dailyCount / dailyGoal) * 100)}%`, borderRadius: 3, background: barColor, transformOrigin: 'left center', animation: 'growWidth 0.45s cubic-bezier(0.34, 1.56, 0.64, 1) both' }} />
+            );
+          })()}
         </div>
       </Card>
 
@@ -1970,7 +2035,7 @@ export default function Home() {
             <button
               onClick={() => {
                 if (primaryMode === 'focused') { setDraftFocusedPrefs({ ...loadFocusedPrefs(uid) }); setShowFocusedModal(true); }
-                else { setDraftPrefs({ ...loadQuickPrefs(uid) }); setShowQuickModal(true); }
+                else { const p = loadQuickPrefs(uid); const saved = p.domains; setDraftPrefs({ ...p, domains: saved && saved.length > 0 ? saved : (EXAM_DOMAINS[targetExam ?? 'SAA'] ?? []) }); setShowQuickModal(true); }
               }}
               style={{ flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', height: 44, width: 132, border: `1.5px solid ${primaryMode === 'focused' ? '#009E9E' : 'var(--color-primary)'}`, borderRadius: 'var(--border-radius-full)', background: 'var(--color-bg-white)', cursor: 'pointer', color: primaryMode === 'focused' ? '#009E9E' : 'var(--color-primary)', fontWeight: 600, fontSize: 'var(--font-size-base)' }}
             >
@@ -2124,7 +2189,7 @@ export default function Home() {
             <button
               onClick={() => {
                 if (primaryMode === 'focused') { setDraftFocusedPrefs({ ...loadFocusedPrefs(uid) }); setShowFocusedModal(true); }
-                else { setDraftPrefs({ ...loadQuickPrefs(uid) }); setShowQuickModal(true); }
+                else { const p = loadQuickPrefs(uid); const saved = p.domains; setDraftPrefs({ ...p, domains: saved && saved.length > 0 ? saved : (EXAM_DOMAINS[targetExam ?? 'SAA'] ?? []) }); setShowQuickModal(true); }
               }}
               style={{ flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', width: 44, height: 44, border: `1.5px solid ${primaryMode === 'focused' ? '#009E9E' : 'var(--color-primary)'}`, borderRadius: '50%', background: 'transparent', cursor: 'pointer', color: primaryMode === 'focused' ? '#009E9E' : 'var(--color-primary)' }}
               aria-label={ja ? '設定' : 'Settings'}
@@ -2174,31 +2239,52 @@ export default function Home() {
                     })}
                   </div>
                 </div>
+                <div style={{ padding: '14px 0', borderBottom: targetExam && (EXAM_DOMAINS[targetExam] ?? []).length > 0 ? '1px solid var(--color-border)' : 'none' }}>
+                  <div style={{ fontWeight: 500, fontSize: 'var(--font-size-base)', color: 'var(--color-text-main)', marginBottom: 8 }}>
+                    {ja ? '重点フィルタ' : 'Focus Filter'}
+                  </div>
+                  {([
+                    ['unansweredOnly', ja ? '未回答を優先' : 'Unanswered First'],
+                    ['incorrectOnly',  ja ? '不正解を優先'  : 'Incorrect First'],
+                    ['bookmarkOnly',   ja ? 'ブックマークを優先' : 'Bookmarked First'],
+                  ] as [string, string][]).map(([key, label]) => {
+                    const on = !!(draftPrefs[key]);
+                    return (
+                      <label key={key} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '8px 0', cursor: 'pointer' }}>
+                        <input
+                          type="checkbox"
+                          checked={on}
+                          onChange={() => setDraftPrefs(p => ({ ...p, [key]: !on }))}
+                          style={{ width: 16, height: 16, flexShrink: 0, accentColor: 'var(--color-primary)' }}
+                        />
+                        <span style={{ fontSize: 'var(--font-size-sm)', fontWeight: on ? 600 : 400, color: 'var(--color-text-main)' }}>{label}</span>
+                      </label>
+                    );
+                  })}
+                </div>
                 {targetExam && (EXAM_DOMAINS[targetExam] ?? []).length > 0 && (
-                  <div style={{ padding: '14px 0', borderBottom: '1px solid var(--color-border)' }}>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
-                      <div>
-                        <div style={{ fontWeight: 500, fontSize: 'var(--font-size-base)', color: 'var(--color-text-main)' }}>
-                          {ja ? 'ドメイン' : 'Domains'}
-                        </div>
-                        <div style={{ fontSize: 'var(--font-size-xs)', color: 'var(--color-text-light)', marginTop: 2 }}>
-                          {ja ? '未選択 = すべて対象' : 'None selected = all domains'}
-                        </div>
-                      </div>
-                      {(draftPrefs.domains ?? []).length > 0 && (
-                        <button
-                          onClick={() => setDraftPrefs(p => ({ ...p, domains: [] }))}
-                          style={{ border: 'none', background: 'none', cursor: 'pointer', fontSize: 'var(--font-size-xs)', color: 'var(--color-primary)', padding: '2px 4px', textDecoration: 'underline' }}
-                        >
-                          {ja ? 'すべて解除' : 'Clear'}
-                        </button>
-                      )}
+                  <div style={{ padding: '14px 0' }}>
+                    <div style={{ fontWeight: 500, fontSize: 'var(--font-size-base)', color: 'var(--color-text-main)', marginBottom: 8 }}>
+                      {ja ? 'ドメイン' : 'Domains'}
                     </div>
+                    {/* 全て */}
+                    <label style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '4px 0', cursor: 'pointer', marginBottom: 4, paddingBottom: 8, borderBottom: '1px solid color-mix(in srgb, var(--color-text-light) 20%, transparent)' }}>
+                      <input
+                        type="checkbox"
+                        checked={(EXAM_DOMAINS[targetExam] ?? []).every(d => (draftPrefs.domains ?? []).includes(d))}
+                        onChange={() => {
+                          const all = EXAM_DOMAINS[targetExam] ?? [];
+                          setDraftPrefs(p => ({ ...p, domains: all.every(d => (p.domains ?? []).includes(d)) ? [] : all }));
+                        }}
+                        style={{ width: 16, height: 16, flexShrink: 0, accentColor: 'var(--color-primary)' }}
+                      />
+                      <span style={{ fontSize: 'var(--font-size-sm)', fontWeight: 600, color: 'var(--color-text-main)' }}>{ja ? '全て' : 'All'}</span>
+                    </label>
                     {(EXAM_DOMAINS[targetExam] ?? []).map(domain => {
                       const selDoms: string[] = draftPrefs.domains ?? [];
                       const checked = selDoms.includes(domain);
                       return (
-                        <label key={domain} style={{ display: 'flex', alignItems: 'flex-start', gap: 8, padding: '4px 0', cursor: 'pointer' }}>
+                        <label key={domain} style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '4px 0', cursor: 'pointer' }}>
                           <input
                             type="checkbox"
                             checked={checked}
@@ -2206,40 +2292,19 @@ export default function Home() {
                               const cur: string[] = p.domains ?? [];
                               return { ...p, domains: checked ? cur.filter(d => d !== domain) : [...cur, domain] };
                             })}
-                            style={{ width: 16, height: 16, flexShrink: 0, marginTop: 2, accentColor: 'var(--color-primary)' }}
+                            style={{ width: 16, height: 16, flexShrink: 0, accentColor: 'var(--color-primary)' }}
                           />
                           <span style={{ fontSize: 'var(--font-size-sm)', color: 'var(--color-text-main)', lineHeight: 1.4 }}>{domain}</span>
                         </label>
                       );
                     })}
+                    {(draftPrefs.domains ?? []).length === 0 && (
+                      <div style={{ fontSize: 'var(--font-size-xs)', color: 'var(--color-danger)', marginTop: 4 }}>
+                        {ja ? '1つ以上選択してください' : 'Select at least one domain'}
+                      </div>
+                    )}
                   </div>
                 )}
-                <div style={{ padding: '14px 0' }}>
-                  <div style={{ fontWeight: 500, fontSize: 'var(--font-size-base)', color: 'var(--color-text-main)', marginBottom: 8 }}>
-                    {ja ? '重点フィルタ' : 'Focus Filter'}
-                  </div>
-                  {([
-                    ['unansweredOnly', ja ? '未回答を優先' : 'Unanswered First', ja ? '未回答の問題を優先して出題（不足時は既回答も含む）' : 'Prioritize unanswered questions'],
-                    ['incorrectOnly',  ja ? '不正解を優先'  : 'Incorrect First',  ja ? '不正解だった問題を優先して出題（不足時は他も含む）' : 'Prioritize previously incorrect questions'],
-                    ['bookmarkOnly',   ja ? 'ブックマークを優先' : 'Bookmarked First', ja ? 'ブックマークした問題を優先して出題（不足時は他も含む）' : 'Prioritize bookmarked questions'],
-                  ] as [string, string, string][]).map(([key, label, desc]) => {
-                    const on = !!(draftPrefs[key]);
-                    return (
-                      <label key={key} style={{ display: 'flex', alignItems: 'flex-start', gap: 10, padding: '8px 0', cursor: 'pointer' }}>
-                        <input
-                          type="checkbox"
-                          checked={on}
-                          onChange={() => setDraftPrefs(p => ({ ...p, [key]: !on }))}
-                          style={{ width: 16, height: 16, flexShrink: 0, marginTop: 3, accentColor: 'var(--color-primary)' }}
-                        />
-                        <div>
-                          <div style={{ fontSize: 'var(--font-size-sm)', fontWeight: on ? 600 : 400, color: 'var(--color-text-main)' }}>{label}</div>
-                          <div style={{ fontSize: 'var(--font-size-xs)', color: 'var(--color-text-light)', marginTop: 1 }}>{desc}</div>
-                        </div>
-                      </label>
-                    );
-                  })}
-                </div>
               </div>
               <div style={{ fontSize: 'var(--font-size-xs)', color: 'var(--color-text-light)', marginBottom: 16 }}>
                 {ja ? '※ AI確認済み問題のみが常に対象です' : '* AI-verified questions are always included'}
@@ -2248,7 +2313,19 @@ export default function Home() {
             {/* 保存ボタン固定 */}
             <div style={{ flexShrink: 0, padding: '12px 24px 20px', borderTop: '1px solid var(--color-border)' }}>
               <Button
-                onClick={() => { localStorage.setItem(`quickExercisePrefs_${uid}`, JSON.stringify(draftPrefs)); setShowQuickModal(false); }}
+                disabled={targetExam !== null && (EXAM_DOMAINS[targetExam] ?? []).length > 0 && (draftPrefs.domains ?? []).length === 0}
+                onClick={() => {
+                  localStorage.setItem(`quickExercisePrefs_${uid}`, JSON.stringify(draftPrefs));
+                  setShowQuickModal(false);
+                  if (targetExam) {
+                    const hasFilters = !!(draftPrefs.unansweredOnly || draftPrefs.incorrectOnly || draftPrefs.bookmarkOnly || (draftPrefs.domains?.length ?? 0) > 0);
+                    if (hasFilters) {
+                      prefetchTypeC(targetExam, uid, draftPrefs);
+                    } else {
+                      prefetchTypeA(targetExam, uid);
+                    }
+                  }
+                }}
                 variant="primary" style={{ width: '100%' }}
               >
                 {ja ? '保存する' : 'Save'}
@@ -2302,21 +2379,16 @@ export default function Home() {
                   <div style={{ fontWeight: 500, fontSize: 'var(--font-size-base)', color: 'var(--color-text-main)', marginBottom: 8 }}>
                     {ja ? '不正解問題フィルタ' : 'Incorrect Filter'}
                   </div>
-                  <label style={{ display: 'flex', alignItems: 'flex-start', gap: 10, cursor: 'pointer' }}>
+                  <label style={{ display: 'flex', alignItems: 'center', gap: 10, cursor: 'pointer' }}>
                     <input
                       type="checkbox"
                       checked={draftFocusedPrefs.focusIncorrect !== false}
                       onChange={() => setDraftFocusedPrefs(p => ({ ...p, focusIncorrect: p.focusIncorrect === false }))}
-                      style={{ width: 16, height: 16, flexShrink: 0, marginTop: 3, accentColor: 'var(--color-primary)' }}
+                      style={{ width: 16, height: 16, flexShrink: 0, accentColor: 'var(--color-primary)' }}
                     />
-                    <div>
-                      <div style={{ fontSize: 'var(--font-size-sm)', fontWeight: 600, color: 'var(--color-text-main)' }}>
-                        {ja ? '過去に不正解だった問題を含める' : 'Include previously incorrect questions'}
-                      </div>
-                      <div style={{ fontSize: 'var(--font-size-xs)', color: 'var(--color-text-light)', marginTop: 1 }}>
-                        {ja ? '一度でも不正解になった問題を優先出題' : 'Prioritize questions you got wrong before'}
-                      </div>
-                    </div>
+                    <span style={{ fontSize: 'var(--font-size-sm)', fontWeight: 600, color: 'var(--color-text-main)' }}>
+                      {ja ? '過去に不正解だった問題を含める' : 'Include previously incorrect questions'}
+                    </span>
                   </label>
                 </div>
                 {/* 苦手ドメインフィルタ */}
@@ -2325,24 +2397,21 @@ export default function Home() {
                     {ja ? '苦手ドメインフィルタ' : 'Weak Domain Filter'}
                   </div>
                   {([
-                    ['none',    ja ? '絞り込まない' : 'Off',                ja ? 'ドメインによる絞り込みをしない' : 'No domain filtering'],
-                    ['below60', ja ? '正答率60%以下のドメイン（3/5問）' : 'Below 60%', ja ? '正答率60%未満のドメインの問題を優先出題' : 'Prioritize questions from domains below 60%'],
-                    ['below40', ja ? '正答率40%以下のドメイン（2/5問）' : 'Below 40%', ja ? '正答率40%未満のドメインの問題を優先出題' : 'Prioritize questions from domains below 40%'],
-                  ] as [string, string, string][]).map(([val, label, desc]) => {
+                    ['none',    ja ? '絞り込まない' : 'Off'],
+                    ['below60', ja ? '正答率60%以下のドメイン（3/5問）' : 'Below 60%'],
+                    ['below40', ja ? '正答率40%以下のドメイン（2/5問）' : 'Below 40%'],
+                  ] as [string, string][]).map(([val, label]) => {
                     const selected = (draftFocusedPrefs.focusDomain ?? 'below60') === val;
                     return (
-                      <label key={val} style={{ display: 'flex', alignItems: 'flex-start', gap: 10, padding: '8px 0', cursor: 'pointer' }}>
+                      <label key={val} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '8px 0', cursor: 'pointer' }}>
                         <input
                           type="radio"
                           name="focusDomain"
                           checked={selected}
                           onChange={() => setDraftFocusedPrefs(p => ({ ...p, focusDomain: val }))}
-                          style={{ width: 16, height: 16, flexShrink: 0, marginTop: 3, accentColor: 'var(--color-primary)' }}
+                          style={{ width: 16, height: 16, flexShrink: 0, accentColor: 'var(--color-primary)' }}
                         />
-                        <div>
-                          <div style={{ fontSize: 'var(--font-size-sm)', fontWeight: selected ? 600 : 400, color: 'var(--color-text-main)' }}>{label}</div>
-                          <div style={{ fontSize: 'var(--font-size-xs)', color: 'var(--color-text-light)', marginTop: 1 }}>{desc}</div>
-                        </div>
+                        <span style={{ fontSize: 'var(--font-size-sm)', fontWeight: selected ? 600 : 400, color: 'var(--color-text-main)' }}>{label}</span>
                       </label>
                     );
                   })}
@@ -2352,7 +2421,18 @@ export default function Home() {
             {/* 保存ボタン固定 */}
             <div style={{ flexShrink: 0, padding: '12px 24px 20px', borderTop: '1px solid var(--color-border)' }}>
               <Button
-                onClick={() => { localStorage.setItem(`focusedExercisePrefs_${uid}`, JSON.stringify(draftFocusedPrefs)); setShowFocusedModal(false); }}
+                onClick={() => {
+                  localStorage.setItem(`focusedExercisePrefs_${uid}`, JSON.stringify(draftFocusedPrefs));
+                  setShowFocusedModal(false);
+                  if (targetExam) {
+                    const hasFilters = draftFocusedPrefs.focusIncorrect !== false || (draftFocusedPrefs.focusDomain ?? 'below60') !== 'none';
+                    if (hasFilters) {
+                      prefetchTypeB(targetExam, uid, draftFocusedPrefs);
+                    } else {
+                      prefetchTypeA(targetExam, uid);
+                    }
+                  }
+                }}
                 variant="primary" style={{ width: '100%', background: '#009E9E', borderColor: '#009E9E' }}
               >
                 {ja ? '保存する' : 'Save'}
@@ -2369,13 +2449,16 @@ export default function Home() {
 
       {/* オンボーディング（目標資格未設定） */}
       {showOnboarding && (
-        <OnboardingModal
-          lang={lang}
+        <ExamSelectOverlay
+          targetExam={null}
           uid={uid}
-          onComplete={(exam) => {
+          lang={lang}
+          isMobile={isMobile}
+          onSelect={(exam) => {
             setTargetExam(exam);
             setShowOnboarding(false);
             if (user) syncTargetExamToServer(user.userId, uid, exam);
+            prefetchTypeA(exam, uid);
           }}
         />
       )}

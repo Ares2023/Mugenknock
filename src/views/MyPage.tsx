@@ -1,9 +1,9 @@
 'use client';
-import React, { useEffect, useState, useCallback, useRef } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import { Helmet } from '@/compat/react-helmet-async';
 import { useNavigate } from '@/compat/react-router-dom';
 import { API_ENDPOINT, EXAM_DOMAINS, EXAM_TYPES, DOMAIN_NAME_EN, EXAM_CONFIGS, DOMAIN_RATE_WARNING, DOMAIN_RATE_CAUTION, PASS_SCORES, EXAM_LEVEL, EXAM_LEVEL_COLORS } from '../constants';
-import { syncPreferencesToServer, collectExamDatesFromLocal } from '../utils/preferences';
+import { syncPreferencesToServer, syncTargetExamToServer, collectExamDatesFromLocal } from '../utils/preferences';
 import { useAuth } from '../contexts/AuthContext';
 import { useLanguage } from '../contexts/LanguageContext';
 import Card from '../components/ui/Card';
@@ -11,69 +11,11 @@ import Button from '../components/ui/Button';
 import {
   IconCalendarNotebook, IconTarget, IconAnnoyed, IconList,
   IconSparkles, IconChevronRight, IconChevronDown, IconLock, IconFlag, IconStar, IconTrendingUp, IconPenLine,
-  IconBook, IconBookOpenCheck, IconCircleCheck,
   IconSprout, IconBox, IconBot, IconCode2, IconCloud, IconDatabase, IconBrain, IconVectorSquare, IconFileCodeCorner, IconAtom, IconShieldIcon, IconWaypoints,
+  EXAM_ICON_COMPONENTS,
 } from '../components/Icons';
+import ExamSelectOverlay, { EXAM_DESC } from '../components/ExamSelectOverlay';
 
-const EXAM_ICON_COMPONENTS: Record<string, React.FC<{ size?: number }>> = {
-  CLF: IconSprout,
-  AIF: IconBot,
-  SAA: IconBox,
-  DVA: IconCode2,
-  SOA: IconCloud,
-  DEA: IconDatabase,
-  MLA: IconBrain,
-  SAP: IconVectorSquare,
-  DOP: IconFileCodeCorner,
-  AIP: IconAtom,
-  SCS: IconShieldIcon,
-  ANS: IconWaypoints,
-};
-
-const EXAM_CATCHCOPY: Record<string, string> = {
-  CLF: 'AWS資格の登竜門！誰もがここから！',
-  AIF: 'AI時代の新常識！まずはここからAI入門！',
-  SAA: '迷ったらコレ！AWS資格の王道エース！',
-  DVA: 'コードでクラウドを動かせ！開発者の実力証明！',
-  SOA: '障害対応もお手の物！運用のプロへの第一歩！',
-  DEA: 'データを運び、価値を生み出せ！',
-  MLA: 'AIモデルを育てる！機械学習エンジニアへの道！',
-  SAP: 'AWS設計の最高峰！アーキテクト最難関！',
-  DOP: '自動化を極めろ！DevOpsマスターへの挑戦！',
-  AIP: '生成AIを実装せよ！AI開発の最前線！',
-  SCS: '守れる者だけが任される！セキュリティの番人！',
-  ANS: 'ネットワークの深淵へ。AWS屈指の難関資格！',
-};
-
-const EXAM_URLS: Record<string, string> = {
-  CLF: 'https://aws.amazon.com/jp/certification/certified-cloud-practitioner/',
-  SAA: 'https://aws.amazon.com/jp/certification/certified-solutions-architect-associate/',
-  SAP: 'https://aws.amazon.com/jp/certification/certified-solutions-architect-professional/',
-  DVA: 'https://aws.amazon.com/jp/certification/certified-developer-associate/',
-  SOA: 'https://aws.amazon.com/jp/certification/certified-sysops-admin-associate/',
-  DOP: 'https://aws.amazon.com/jp/certification/certified-devops-engineer-professional/',
-  DEA: 'https://aws.amazon.com/jp/certification/certified-data-engineer-associate/',
-  AIF: 'https://aws.amazon.com/jp/certification/certified-ai-practitioner/',
-  MLA: 'https://aws.amazon.com/jp/certification/certified-machine-learning-engineer-associate/',
-  AIP: 'https://aws.amazon.com/jp/certification/certified-generative-ai-developer-professional/',
-  ANS: 'https://aws.amazon.com/jp/certification/certified-advanced-networking-specialty/',
-  SCS: 'https://aws.amazon.com/jp/certification/certified-security-specialty/',
-};
-
-const EXAM_DESC: Record<string, string> = {
-  CLF: 'AWSクラウドの基礎知識・サービス・概念を問う入門試験。エンジニア以外でも取得可能。ITの基礎から学べるエントリーポイント。',
-  SAA: 'AWSを使ったシステム設計・高可用性・コスト最適化の知識を問う、AWS最人気資格。クラウドアーキテクチャの標準スキルとして業界で広く認知。',
-  SAP: 'SAAより高度な大規模システム設計・移行戦略・複雑なアーキテクチャを扱うプロフェッショナル資格。SAAの取得後を推奨。',
-  DVA: 'AWSを使ったアプリ開発・デバッグ・デプロイ・セキュリティの実践知識を問う。Lambda・DynamoDB・API Gatewayが頻出。',
-  SOA: 'AWSの運用・監視・自動化・スケーリング・セキュリティ管理を問う運用者向け試験。CloudWatch・Systems Managerが中心。',
-  DOP: 'CI/CD・Infrastructure as Code・自動化・監視などDevOps実践を問うプロ資格。CodePipeline・CloudFormation・OpsWorksが重要。',
-  DEA: 'データ収集・変換・保管・パイプライン設計などデータエンジニアリング全般を問う。Glue・Kinesis・Redshiftが頻出。',
-  AIF: 'AIと機械学習の基礎・AWSのAI/MLサービスの活用知識を問う入門レベルの試験。Bedrock・SageMaker・Rekognitionが中心。',
-  MLA: 'モデル開発・デプロイ・スケーリング・MLパイプライン構築の実践スキルを問う。SageMakerの深い理解が必要。',
-  AIP: '生成AIアプリの設計・実装・最適化に特化した新資格。Amazon Bedrockを中心に、プロンプトエンジニアリングやRAGが頻出。',
-  ANS: 'ハイブリッドクラウド・DNS・負荷分散・ネットワーク設計の高度な知識を問うSpecialty。Transit Gateway・Direct Connectが中心。',
-  SCS: 'セキュリティ設計・実装・インシデント対応・コンプライアンスを問うSpecialty。IAM・KMS・GuardDutyの深い理解が必要。',
-};
 
 const FOCUSED_UNLOCK_THRESHOLD = 30;
 
@@ -134,23 +76,6 @@ export default function MyPage() {
   const [editExamDate, setEditExamDate] = useState('');
   const [editDailyGoal, setEditDailyGoal] = useState(10); // min=10
   const [showExamSelect, setShowExamSelect] = useState(false);
-  const [previewExam, setPreviewExam] = useState<string | null>(null);
-  const [activeLevel, setActiveLevel] = useState<string>('Practitioner');
-  const [passComments, setPassComments] = useState<Record<string, string>>({});
-  const examDetailScrollRef = useRef<HTMLDivElement>(null);
-
-  const EXAM_LEVELS = [
-    { key: 'Practitioner', color: '#6b9e3a', exams: ['CLF', 'AIF'] },
-    { key: 'Associate',    color: '#006CE0', exams: ['SAA', 'DVA', 'SOA', 'DEA', 'MLA'] },
-    { key: 'Professional', color: '#8b5cf6', exams: ['SAP', 'DOP', 'AIP'] },
-    { key: 'Specialty',    color: '#0ea5e9', exams: ['ANS', 'SCS'] },
-  ] as const;
-  const EXAM_LEVEL_MAP: Record<string, string> = {
-    CLF: 'Practitioner', AIF: 'Practitioner',
-    SAA: 'Associate', DVA: 'Associate', SOA: 'Associate', DEA: 'Associate', MLA: 'Associate',
-    SAP: 'Professional', DOP: 'Professional', AIP: 'Professional',
-    ANS: 'Specialty', SCS: 'Specialty',
-  };
 
   // ── ターゲット試験 ──
   const [targetExam, setTargetExam] = useState<string | null>(() => localStorage.getItem(`targetExam_${uid}`));
@@ -221,18 +146,6 @@ export default function MyPage() {
       .catch(() => {});
   }, [user?.userId]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  // ── 資格切替時に詳細パネルのスクロールをリセット ──
-  useEffect(() => {
-    if (examDetailScrollRef.current) examDetailScrollRef.current.scrollTop = 0;
-  }, [previewExam]);
-
-  // ── 合格コメント取得 ──
-  useEffect(() => {
-    fetch(`${API_ENDPOINT}/settings/pass-comments`)
-      .then(r => r.json())
-      .then(d => { if (d.comments) setPassComments(d.comments); })
-      .catch(() => {});
-  }, []);
 
   // ── オーバーレイ表示中は body スクロール無効 ──
   useEffect(() => {
@@ -444,7 +357,7 @@ export default function MyPage() {
       <div style={{ maxWidth: 900, margin: '0 auto', padding: 'var(--spacing-xl) var(--spacing-lg)' }} className="page-container">
 
         {/* ── タブ ── */}
-        <div style={{ display: 'flex', borderBottom: '1px solid var(--color-border)', marginBottom: 'var(--spacing-lg)' }}>
+        <div style={{ display: 'flex', borderBottom: '1px solid color-mix(in srgb, var(--color-text-light) 40%, transparent)', marginBottom: 'var(--spacing-lg)' }}>
           <button style={tabStyle(tab === 'target')} onClick={() => setTab('target')}>{ja ? '目標' : 'Goals'}</button>
           <button style={tabStyle(tab === 'analysis')} onClick={() => setTab('analysis')}>{ja ? '苦手分析' : 'Analysis'}</button>
           <button style={tabStyle(tab === 'history')} onClick={() => setTab('history')}>{ja ? '履歴' : 'History'}</button>
@@ -453,117 +366,249 @@ export default function MyPage() {
         {/* ════════ 目標タブ ════════ */}
         {tab === 'target' && (
           <>
-            {/* 目標資格カード */}
-            <Card style={{ marginBottom: 12, cursor: 'pointer' }} onClick={() => {
-  const initLevel = targetExam ? (EXAM_LEVEL_MAP[targetExam] ?? 'Practitioner') : 'Practitioner';
-  const initExam = targetExam ?? (EXAM_LEVELS.find(l => l.key === initLevel)?.exams[0] ?? null);
-  setActiveLevel(initLevel);
-  setPreviewExam(initExam as string | null);
-  setShowExamSelect(true);
-}}>
-              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                  <span style={{ color: 'var(--color-text-sub)', display: 'flex', alignItems: 'center' }}><IconFlag size={13} /></span>
-                  <span style={{ fontWeight: 700, fontSize: 'var(--font-size-sm)', color: 'var(--color-text-main)' }}>{ja ? '目標資格' : 'Target Exam'}</span>
+            {/* 六角形バッジ共通ヘルパー */}
+            {(() => {
+              const HexBadge = ({ panelColor, ExamIcon }: { panelColor: string; ExamIcon?: React.FC<{ size?: number }> }) => (
+                <div style={{ width: 46, height: 53, flexShrink: 0, background: panelColor, clipPath: 'polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                  <div style={{ width: 41, height: 48, background: 'var(--color-bg-white)', clipPath: 'polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: panelColor }}>
+                    {ExamIcon && <ExamIcon size={22} />}
+                  </div>
                 </div>
-                <div style={{ width: 35, height: 35, borderRadius: '50%', border: '1px solid var(--color-primary)', background: 'transparent', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--color-primary)', flexShrink: 0 }}>
-                  <IconPenLine size={14} />
-                </div>
-              </div>
-              {targetExam ? (() => {
+              );
+
+              const ExamCardContent = () => {
+                if (!targetExam) return <span style={{ fontSize: 14, color: 'var(--color-text-light)' }}>{ja ? '目標資格を設定する' : 'Set target exam'}</span>;
                 const full = (EXAM_CONFIGS[targetExam]?.fullName ?? '').replace('AWS Certified ', '');
                 const dashIdx = full.indexOf(' – ');
                 const main = dashIdx >= 0 ? full.slice(0, dashIdx) : full;
                 const level = dashIdx >= 0 ? '– ' + full.slice(dashIdx + 3) : null;
                 const panelColor = EXAM_LEVEL_COLORS[EXAM_LEVEL[targetExam]] ?? 'var(--color-primary)';
+                const ExamIcon = EXAM_ICON_COMPONENTS[targetExam];
                 return (
-                  <div>
-                    <div style={{ fontWeight: 700, fontSize: 18, color: panelColor, lineHeight: 1.3 }}>{main}</div>
-                    {level && <div style={{ fontWeight: 700, fontSize: 18, color: panelColor, lineHeight: 1.3 }}>{level}</div>}
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
+                    <HexBadge panelColor={panelColor} ExamIcon={ExamIcon} />
+                    <div>
+                      <div style={{ fontWeight: 700, fontSize: 18, color: panelColor, lineHeight: 1.3 }}>{main}</div>
+                      {level && <div style={{ fontWeight: 700, fontSize: 18, color: panelColor, lineHeight: 1.3 }}>{level}</div>}
+                    </div>
                   </div>
                 );
-              })() : (
-                <span style={{ fontSize: 14, color: 'var(--color-text-light)' }}>{ja ? '目標資格を設定する' : 'Set target exam'}</span>
-              )}
-            </Card>
+              };
 
-            {/* 学習目標カード（タップで設定変更） */}
-            <Card
-              style={{ marginBottom: 12, cursor: 'pointer' }}
-              onClick={() => { setEditExamDate(examDate); setEditDailyGoal(dailyGoal); setShowSettingsEdit(true); }}
-            >
-              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                  <span style={{ color: 'var(--color-text-sub)', display: 'flex', alignItems: 'center' }}><IconCalendarNotebook size={13} /></span>
-                  <span style={{ fontWeight: 700, fontSize: 'var(--font-size-sm)', color: 'var(--color-text-main)' }}>{ja ? '学習目標' : 'Study Goals'}</span>
+              const ExamCardHeader = () => (
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                    <span style={{ color: 'var(--color-text-sub)', display: 'flex', alignItems: 'center' }}><IconFlag size={13} /></span>
+                    <span style={{ fontWeight: 700, fontSize: 'var(--font-size-sm)', color: 'var(--color-text-main)' }}>{ja ? '目標資格' : 'Target Exam'}</span>
+                  </div>
+                  <div style={{ width: 35, height: 35, borderRadius: '50%', border: '1px solid var(--color-primary)', background: 'transparent', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--color-primary)', flexShrink: 0 }}>
+                    <IconPenLine size={14} />
+                  </div>
                 </div>
-                <div style={{ width: 35, height: 35, borderRadius: '50%', border: '1px solid var(--color-primary)', background: 'transparent', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--color-primary)', flexShrink: 0 }}>
-                  <IconPenLine size={14} />
+              );
+
+              return (
+                <>
+                  {/* ── 目標資格 行 ── */}
+                  {!isMobile ? (
+                    /* デスクトップ: 外枠でグルーピング / 左=目標資格 / 右=資格情報 */
+                    <div style={{ display: 'flex', marginBottom: 12, border: '1px solid var(--color-border)', borderRadius: 'var(--border-radius-md)', overflow: 'hidden', boxShadow: 'var(--box-shadow-sm)', background: 'var(--color-bg-white)' }}>
+                      <div style={{ flex: 1, padding: 'var(--spacing-lg)', cursor: 'pointer', minWidth: 0 }} onClick={() => setShowExamSelect(true)}>
+                        <ExamCardHeader />
+                        <ExamCardContent />
+                      </div>
+                      <div style={{ width: 1, background: 'var(--color-border)', flexShrink: 0 }} />
+                      <div style={{ flex: 1, minWidth: 0, padding: 'var(--spacing-md)', background: 'var(--color-bg-main)', display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
+                        {targetExam ? (() => {
+                          const cfg = EXAM_CONFIGS[targetExam];
+                          const panelColor = EXAM_LEVEL_COLORS[EXAM_LEVEL[targetExam]] ?? 'var(--color-primary)';
+                          return (
+                            <>
+                              <div style={{ display: 'flex', flexWrap: 'wrap', gap: '4px 20px', marginBottom: 10 }}>
+                                {[
+                                  { label: ja ? '試験コード' : 'Code',       value: cfg?.examCode ?? '' },
+                                  { label: ja ? '問題数'     : 'Questions',   value: `${cfg?.totalQuestions ?? '—'}${ja ? '問' : 'Q'}` },
+                                  { label: ja ? '試験時間'   : 'Duration',    value: `${cfg?.timeLimitMin ?? '—'}${ja ? '分' : 'min'}` },
+                                  { label: ja ? '合格スコア' : 'Pass Score',  value: `${PASS_SCORES[targetExam] ?? '—'}/1000` },
+                                ].map(({ label, value }) => (
+                                  <div key={label}>
+                                    <div style={{ fontSize: 9, color: 'var(--color-text-light)', marginBottom: 1 }}>{label}</div>
+                                    <div style={{ fontSize: 13, fontWeight: 700, color: panelColor }}>{value}</div>
+                                  </div>
+                                ))}
+                              </div>
+                              <p style={{ margin: 0, fontSize: 12, color: 'var(--color-text-sub)', lineHeight: 1.6 }}>{EXAM_DESC[targetExam] ?? ''}</p>
+                            </>
+                          );
+                        })() : (
+                          <span style={{ fontSize: 12, color: 'var(--color-text-light)' }}>{ja ? '資格を選択すると詳細が表示されます' : 'Select an exam to see details'}</span>
+                        )}
+                      </div>
+                    </div>
+                  ) : (
+                    /* モバイル: 単一カード */
+                    <Card style={{ marginBottom: 12, cursor: 'pointer' }} onClick={() => setShowExamSelect(true)}>
+                      <ExamCardHeader />
+                      <ExamCardContent />
+                    </Card>
+                  )}
+                </>
+              );
+            })()}
+
+            {/* ── 学習目標 行 ── */}
+            {!isMobile ? (
+              /* デスクトップ: 外枠でグルーピング / 左=学習目標 / 右=週間達成状況 */
+              <div style={{ display: 'flex', marginBottom: 12, border: '1px solid var(--color-border)', borderRadius: 'var(--border-radius-md)', overflow: 'hidden', boxShadow: 'var(--box-shadow-sm)', background: 'var(--color-bg-white)' }}>
+                {/* 左: 学習目標（クリッカブル） */}
+                <div style={{ flex: 1, padding: 'var(--spacing-lg)', cursor: 'pointer', minWidth: 0 }} onClick={() => { setEditExamDate(examDate); setEditDailyGoal(dailyGoal); setShowSettingsEdit(true); }}>
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                      <span style={{ color: 'var(--color-text-sub)', display: 'flex', alignItems: 'center' }}><IconCalendarNotebook size={13} /></span>
+                      <span style={{ fontWeight: 700, fontSize: 'var(--font-size-sm)', color: 'var(--color-text-main)' }}>{ja ? '学習目標' : 'Study Goals'}</span>
+                    </div>
+                    <div style={{ width: 35, height: 35, borderRadius: '50%', border: '1px solid var(--color-primary)', background: 'transparent', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--color-primary)', flexShrink: 0 }}>
+                      <IconPenLine size={14} />
+                    </div>
+                  </div>
+                  {!targetExam ? (
+                    <p style={{ margin: 0, fontSize: 13, color: 'var(--color-text-light)' }}>{ja ? '目標資格を設定してください' : 'Set a target exam first'}</p>
+                  ) : (
+                    <>
+                      <div style={{ marginBottom: 6 }}>
+                        {examDate ? (
+                          <span>
+                            <span style={{ fontWeight: 700, fontSize: 16, color: 'var(--color-primary)' }}>{examDate.split('-').slice(1).map(Number).join('/')}</span>
+                            <span style={{ fontSize: 13, color: 'var(--color-text-main)', marginLeft: 4 }}>{ja ? '受験予定' : 'exam date'}</span>
+                          </span>
+                        ) : (
+                          <span style={{ fontSize: 13, color: 'var(--color-text-light)' }}>{ja ? '未設定' : 'Not set'}</span>
+                        )}
+                      </div>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                        <span>
+                          <span style={{ fontWeight: 700, fontSize: 16, color: 'var(--color-primary)' }}>{dailyGoal}</span>
+                          <span style={{ fontSize: 13, color: 'var(--color-text-sub)' }}>{ja ? '問 / 日' : 'Q / day'}</span>
+                        </span>
+                        {ja && <span style={{ fontSize: 10, color: 'var(--color-text-light)' }}>※達成で<span style={{ color: '#009E9E', fontWeight: 700 }}>+10p</span>！</span>}
+                        {todayCount >= dailyGoal && <span style={{ fontSize: 12, color: 'var(--color-success)' }}>✓</span>}
+                      </div>
+                    </>
+                  )}
+                </div>
+                <div style={{ width: 1, background: 'var(--color-border)', flexShrink: 0 }} />
+                {/* 右: 習慣達成状況（非クリッカブル） */}
+                <div style={{ flex: 1, minWidth: 0, padding: 'var(--spacing-md)', background: 'var(--color-bg-main)' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 8 }}>
+                    <span style={{ color: 'var(--color-text-sub)', display: 'flex', alignItems: 'center' }}><IconTrendingUp size={13} /></span>
+                    <span style={{ fontWeight: 700, fontSize: 'var(--font-size-sm)', color: 'var(--color-text-main)' }}>{ja ? '週間達成状況' : 'Weekly Progress'}</span>
+                  </div>
+                  {targetExam ? (
+                    <>
+                      <div style={{ fontSize: 11, color: 'var(--color-text-sub)', marginBottom: 8 }}>{ja ? '直近7日間' : 'Last 7 days'}</div>
+                      <div style={{ display: 'flex', gap: 6, alignItems: 'flex-end' }}>
+                        {weekDays.map((d, i) => {
+                          const count = weekCounts[i];
+                          const rewarded = !!targetExam && localStorage.getItem(`dailyGoalReward_${targetExam}_${uid}_${d}`) === '1';
+                          const achieved = rewarded || count >= dailyGoal;
+                          const pct = dailyGoal > 0 ? Math.min(1, count / dailyGoal) : 0;
+                          const isToday = d === jstToday();
+                          const dayLabel = new Date(d + 'T12:00:00').toLocaleDateString(ja ? 'ja-JP' : 'en-US', { weekday: 'short' });
+                          return (
+                            <div key={d} style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 3 }}>
+                              <div style={{ width: '100%', height: 40, borderRadius: 4, background: 'var(--color-bg-card)', position: 'relative', overflow: 'hidden' }}>
+                                <div style={{ position: 'absolute', bottom: 0, width: '100%', height: `${pct * 100}%`, background: achieved ? '#009E9E' : 'rgba(0,158,158,0.2)', borderRadius: '4px 4px 0 0', transition: 'height 0.3s' }} />
+                                {achieved && <div style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%,-50%)', fontSize: 10, color: 'white', fontWeight: 700 }}>✓</div>}
+                              </div>
+                              <span style={{ fontSize: 9, color: isToday ? '#009E9E' : 'var(--color-text-light)', fontWeight: isToday ? 700 : 400 }}>{dayLabel}</span>
+                            </div>
+                          );
+                        })}
+                      </div>
+                      <div style={{ marginTop: 6, fontSize: 11, color: 'var(--color-text-light)', textAlign: 'right' }}>
+                        {ja
+                          ? `今週の達成日数：${weekDays.filter((d, i) => (!!targetExam && localStorage.getItem(`dailyGoalReward_${targetExam}_${uid}_${d}`) === '1') || weekCounts[i] >= dailyGoal).length}/7日`
+                          : `Achieved: ${weekDays.filter((d, i) => (!!targetExam && localStorage.getItem(`dailyGoalReward_${targetExam}_${uid}_${d}`) === '1') || weekCounts[i] >= dailyGoal).length}/7 days`}
+                      </div>
+                    </>
+                  ) : (
+                    <span style={{ fontSize: 12, color: 'var(--color-text-light)' }}>{ja ? '目標資格を設定すると表示されます' : 'Set a target exam to view'}</span>
+                  )}
                 </div>
               </div>
-              {!targetExam ? (
-                <p style={{ margin: 0, fontSize: 13, color: 'var(--color-text-light)' }}>{ja ? '目標資格を設定してください' : 'Set a target exam first'}</p>
-              ) : (
-                <>
-                  {/* 受験日 */}
-                  <div style={{ marginBottom: 6 }}>
-                    {examDate ? (
-                      <span>
-                        <span style={{ fontWeight: 700, fontSize: 16, color: 'var(--color-primary)' }}>
-                          {examDate.split('-').slice(1).map(Number).join('/')}
-                        </span>
-                        <span style={{ fontSize: 13, color: 'var(--color-text-main)', marginLeft: 4 }}>{ja ? '受験予定' : 'exam date'}</span>
-                      </span>
-                    ) : (
-                      <span style={{ fontSize: 13, color: 'var(--color-text-light)' }}>{ja ? '未設定' : 'Not set'}</span>
-                    )}
+            ) : (
+              /* モバイル: 従来の単一カード2枚 */
+              <>
+                <Card style={{ marginBottom: 12, cursor: 'pointer' }} onClick={() => { setEditExamDate(examDate); setEditDailyGoal(dailyGoal); setShowSettingsEdit(true); }}>
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                      <span style={{ color: 'var(--color-text-sub)', display: 'flex', alignItems: 'center' }}><IconCalendarNotebook size={13} /></span>
+                      <span style={{ fontWeight: 700, fontSize: 'var(--font-size-sm)', color: 'var(--color-text-main)' }}>{ja ? '学習目標' : 'Study Goals'}</span>
+                    </div>
+                    <div style={{ width: 35, height: 35, borderRadius: '50%', border: '1px solid var(--color-primary)', background: 'transparent', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--color-primary)', flexShrink: 0 }}>
+                      <IconPenLine size={14} />
+                    </div>
                   </div>
-                  {/* 目標演習量 */}
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                    <span>
-                      <span style={{ fontWeight: 700, fontSize: 16, color: 'var(--color-primary)' }}>{dailyGoal}</span>
-                      <span style={{ fontSize: 13, color: 'var(--color-text-sub)' }}>{ja ? '問 / 日' : 'Q / day'}</span>
-                    </span>
-                    {ja && <span style={{ fontSize: 10, color: 'var(--color-text-light)' }}>※達成で<span style={{ color: '#009E9E', fontWeight: 700 }}>+10p</span>！</span>}
-                    {todayCount >= dailyGoal && <span style={{ fontSize: 12, color: 'var(--color-success)' }}>✓</span>}
-                  </div>
-                </>
-              )}
-            </Card>
-
-            {/* 週間達成度カード（情報表示のみ・非クリッカブル） */}
-            {targetExam && (
-              <Card style={{ marginBottom: 12, background: 'var(--color-bg-main)', boxShadow: 'none' }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 12 }}>
-                  <span style={{ color: 'var(--color-text-sub)', display: 'flex', alignItems: 'center' }}><IconTrendingUp size={13} /></span>
-                  <span style={{ fontWeight: 700, fontSize: 'var(--font-size-sm)', color: 'var(--color-text-main)' }}>{ja ? '週間達成状況' : 'Weekly Progress'}</span>
-                </div>
-                <div style={{ fontSize: 12, color: 'var(--color-text-sub)', marginBottom: 8 }}>{ja ? '直近7日間' : 'Last 7 days'}</div>
-                <div style={{ display: 'flex', gap: 6, alignItems: 'flex-end' }}>
-                  {weekDays.map((d, i) => {
-                    const count = weekCounts[i];
-                    const rewarded = !!targetExam && localStorage.getItem(`dailyGoalReward_${targetExam}_${uid}_${d}`) === '1';
-                    const achieved = rewarded || count >= dailyGoal;
-                    const pct = dailyGoal > 0 ? Math.min(1, count / dailyGoal) : 0;
-                    const isToday = d === jstToday();
-                    const dayLabel = new Date(d + 'T12:00:00').toLocaleDateString(ja ? 'ja-JP' : 'en-US', { weekday: 'short' });
-                    return (
-                      <div key={d} style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 3 }}>
-                        <div style={{ width: '100%', height: 44, borderRadius: 4, background: 'var(--color-bg-main)', position: 'relative', overflow: 'hidden' }}>
-                          <div style={{ position: 'absolute', bottom: 0, width: '100%', height: `${pct * 100}%`, background: achieved ? '#009E9E' : 'rgba(0,158,158,0.2)', borderRadius: '4px 4px 0 0', transition: 'height 0.3s' }} />
-                          {achieved && <div style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%,-50%)', fontSize: 10, color: 'white', fontWeight: 700 }}>✓</div>}
-                        </div>
-                        <span style={{ fontSize: 9, color: isToday ? '#009E9E' : 'var(--color-text-light)', fontWeight: isToday ? 700 : 400 }}>{dayLabel}</span>
+                  {!targetExam ? (
+                    <p style={{ margin: 0, fontSize: 13, color: 'var(--color-text-light)' }}>{ja ? '目標資格を設定してください' : 'Set a target exam first'}</p>
+                  ) : (
+                    <>
+                      <div style={{ marginBottom: 6 }}>
+                        {examDate ? (
+                          <span>
+                            <span style={{ fontWeight: 700, fontSize: 16, color: 'var(--color-primary)' }}>{examDate.split('-').slice(1).map(Number).join('/')}</span>
+                            <span style={{ fontSize: 13, color: 'var(--color-text-main)', marginLeft: 4 }}>{ja ? '受験予定' : 'exam date'}</span>
+                          </span>
+                        ) : (
+                          <span style={{ fontSize: 13, color: 'var(--color-text-light)' }}>{ja ? '未設定' : 'Not set'}</span>
+                        )}
                       </div>
-                    );
-                  })}
-                </div>
-                <div style={{ marginTop: 8, fontSize: 11, color: 'var(--color-text-light)', textAlign: 'right' }}>
-                  {ja
-                    ? `今週の達成日数：${weekDays.filter((d, i) => (!!targetExam && localStorage.getItem(`dailyGoalReward_${targetExam}_${uid}_${d}`) === '1') || weekCounts[i] >= dailyGoal).length}/7日`
-                    : `Achieved: ${weekDays.filter((d, i) => (!!targetExam && localStorage.getItem(`dailyGoalReward_${targetExam}_${uid}_${d}`) === '1') || weekCounts[i] >= dailyGoal).length}/7 days`}
-                </div>
-              </Card>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                        <span>
+                          <span style={{ fontWeight: 700, fontSize: 16, color: 'var(--color-primary)' }}>{dailyGoal}</span>
+                          <span style={{ fontSize: 13, color: 'var(--color-text-sub)' }}>{ja ? '問 / 日' : 'Q / day'}</span>
+                        </span>
+                        {ja && <span style={{ fontSize: 10, color: 'var(--color-text-light)' }}>※達成で<span style={{ color: '#009E9E', fontWeight: 700 }}>+10p</span>！</span>}
+                        {todayCount >= dailyGoal && <span style={{ fontSize: 12, color: 'var(--color-success)' }}>✓</span>}
+                      </div>
+                    </>
+                  )}
+                </Card>
+                {/* 週間達成状況（モバイルのみ単独カード） */}
+                {targetExam && (
+                  <Card style={{ marginBottom: 12, background: 'var(--color-bg-main)', boxShadow: 'none' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 12 }}>
+                      <span style={{ color: 'var(--color-text-sub)', display: 'flex', alignItems: 'center' }}><IconTrendingUp size={13} /></span>
+                      <span style={{ fontWeight: 700, fontSize: 'var(--font-size-sm)', color: 'var(--color-text-main)' }}>{ja ? '週間達成状況' : 'Weekly Progress'}</span>
+                    </div>
+                    <div style={{ fontSize: 12, color: 'var(--color-text-sub)', marginBottom: 8 }}>{ja ? '直近7日間' : 'Last 7 days'}</div>
+                    <div style={{ display: 'flex', gap: 6, alignItems: 'flex-end' }}>
+                      {weekDays.map((d, i) => {
+                        const count = weekCounts[i];
+                        const rewarded = !!targetExam && localStorage.getItem(`dailyGoalReward_${targetExam}_${uid}_${d}`) === '1';
+                        const achieved = rewarded || count >= dailyGoal;
+                        const pct = dailyGoal > 0 ? Math.min(1, count / dailyGoal) : 0;
+                        const isToday = d === jstToday();
+                        const dayLabel = new Date(d + 'T12:00:00').toLocaleDateString(ja ? 'ja-JP' : 'en-US', { weekday: 'short' });
+                        return (
+                          <div key={d} style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 3 }}>
+                            <div style={{ width: '100%', height: 44, borderRadius: 4, background: 'var(--color-bg-main)', position: 'relative', overflow: 'hidden' }}>
+                              <div style={{ position: 'absolute', bottom: 0, width: '100%', height: `${pct * 100}%`, background: achieved ? '#009E9E' : 'rgba(0,158,158,0.2)', borderRadius: '4px 4px 0 0', transition: 'height 0.3s' }} />
+                              {achieved && <div style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%,-50%)', fontSize: 10, color: 'white', fontWeight: 700 }}>✓</div>}
+                            </div>
+                            <span style={{ fontSize: 9, color: isToday ? '#009E9E' : 'var(--color-text-light)', fontWeight: isToday ? 700 : 400 }}>{dayLabel}</span>
+                          </div>
+                        );
+                      })}
+                    </div>
+                    <div style={{ marginTop: 8, fontSize: 11, color: 'var(--color-text-light)', textAlign: 'right' }}>
+                      {ja
+                        ? `今週の達成日数：${weekDays.filter((d, i) => (!!targetExam && localStorage.getItem(`dailyGoalReward_${targetExam}_${uid}_${d}`) === '1') || weekCounts[i] >= dailyGoal).length}/7日`
+                        : `Achieved: ${weekDays.filter((d, i) => (!!targetExam && localStorage.getItem(`dailyGoalReward_${targetExam}_${uid}_${d}`) === '1') || weekCounts[i] >= dailyGoal).length}/7 days`}
+                    </div>
+                  </Card>
+                )}
+              </>
             )}
 
 
@@ -621,170 +666,16 @@ export default function MyPage() {
             )}
 
             {/* 目標資格選択オーバーレイ */}
-            {showExamSelect && (() => {
-              const currentLevelDef = EXAM_LEVELS.find(l => l.key === activeLevel) ?? EXAM_LEVELS[0];
-              const levelColor = currentLevelDef.color;
-              return (
-                <div
-                  style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', zIndex: 1000, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16 }}
-                  onClick={() => { setShowExamSelect(false); setPreviewExam(null); }}
-                  onTouchStart={e => e.stopPropagation()}
-                  onTouchMove={e => e.stopPropagation()}
-                >
-                  <div
-                    style={{ background: 'var(--color-bg-white)', borderRadius: 'var(--border-radius-lg)', width: '100%', maxWidth: 420, boxShadow: 'var(--box-shadow-md)', height: isMobile ? '75vh' : '60vh', display: 'flex', flexDirection: 'column', overflow: 'hidden' }}
-                    onClick={e => e.stopPropagation()}
-                  >
-                    {/* ヘッダー */}
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '16px 20px 0', flexShrink: 0 }}>
-                      <span style={{ fontWeight: 700, fontSize: 16 }}>{ja ? '目標資格を選択' : 'Select Target Exam'}</span>
-                      <button onClick={() => { setShowExamSelect(false); setPreviewExam(null); }} style={{ border: 'none', background: 'none', fontSize: 20, cursor: 'pointer', color: 'var(--color-text-sub)', padding: '4px 8px', lineHeight: 1 }}>✕</button>
-                    </div>
-
-                    {/* レベルタブ */}
-                    <div
-                      style={{ display: 'flex', borderBottom: '2px solid var(--color-border)', flexShrink: 0, overflowX: 'auto' }}
-                      onTouchStart={e => e.stopPropagation()}
-                      onTouchMove={e => e.stopPropagation()}
-                    >
-                      {EXAM_LEVELS.map(({ key, color }) => (
-                        <button key={key} onClick={() => {
-                          setActiveLevel(key);
-                          const levelDef = EXAM_LEVELS.find(l => l.key === key);
-                          const examInLevel = levelDef?.exams.find(e => e === targetExam) ?? levelDef?.exams[0] ?? null;
-                          setPreviewExam(examInLevel as string | null);
-                        }} style={{
-                          padding: '10px 14px', background: 'none', border: 'none', cursor: 'pointer',
-                          borderBottom: activeLevel === key ? `2px solid ${color}` : '2px solid transparent',
-                          marginBottom: -2, color: activeLevel === key ? color : 'var(--color-text-sub)',
-                          fontWeight: activeLevel === key ? 700 : 400, fontSize: 13, whiteSpace: 'nowrap', flexShrink: 0,
-                        }}>
-                          {key}
-                        </button>
-                      ))}
-                    </div>
-
-                    {/* 資格カード（横スクロール） */}
-                    <div
-                      style={{ display: 'flex', gap: 10, padding: '14px 20px', overflowX: 'auto', flexShrink: 0 }}
-                      onTouchStart={e => e.stopPropagation()}
-                      onTouchMove={e => e.stopPropagation()}
-                    >
-                      {currentLevelDef.exams.map(exam => {
-                        const isSelected = targetExam === exam;
-                        const isPreviewing = previewExam === exam;
-                        const ExamIcon = EXAM_ICON_COMPONENTS[exam];
-                        return (
-                          <button
-                            key={exam}
-                            onClick={() => setPreviewExam(isPreviewing ? null : exam)}
-                            style={{
-                              flexShrink: 0, width: 80, padding: '10px 6px 8px', cursor: 'pointer',
-                              borderRadius: 10, textAlign: 'center', position: 'relative',
-                              border: `2px solid ${isPreviewing || isSelected ? levelColor : 'var(--color-border)'}`,
-                              background: isPreviewing
-                                ? `linear-gradient(145deg, ${levelColor}, ${levelColor}bb)`
-                                : isSelected
-                                ? `linear-gradient(145deg, ${levelColor}22, ${levelColor}44)`
-                                : `linear-gradient(145deg, var(--color-bg-card), ${levelColor}18)`,
-                            }}
-                          >
-                            {isSelected && (
-                              <div style={{ position: 'absolute', top: 4, right: 4, color: isPreviewing ? '#fff' : levelColor, lineHeight: 0 }}>
-                                <IconCircleCheck size={14} />
-                              </div>
-                            )}
-                            {ExamIcon && (
-                              <div style={{ display: 'flex', justifyContent: 'center', marginBottom: 4, color: isPreviewing ? '#fff' : isSelected ? levelColor : 'var(--color-text-light)' }}>
-                                <ExamIcon size={18} />
-                              </div>
-                            )}
-                            <div style={{ fontWeight: 800, fontSize: 15, color: isPreviewing ? '#fff' : isSelected ? levelColor : 'var(--color-text-main)', lineHeight: 1 }}>{exam}</div>
-                          </button>
-                        );
-                      })}
-                    </div>
-
-                    {/* 詳細パネル（スクロール） */}
-                    <div ref={examDetailScrollRef} style={{ flex: 1, overflowY: 'auto', borderTop: '1px solid var(--color-border)' }}>
-                      {previewExam && (() => {
-                        const exam = previewExam;
-                        const cfg = EXAM_CONFIGS[exam];
-                        return (
-                          <div style={{ padding: '16px 20px' }}>
-                            <div style={{ marginBottom: 10 }}>
-                              {EXAM_CATCHCOPY[exam] && (
-                                <div style={{ fontSize: 11, color: 'var(--color-text-light)', fontStyle: 'italic', marginBottom: 4 }}>{EXAM_CATCHCOPY[exam]}</div>
-                              )}
-                              <div style={{ fontWeight: 700, fontSize: 17, color: 'var(--color-text-main)', marginBottom: 2 }}>
-                                {(cfg?.fullName ?? exam).replace('AWS Certified ', '')}
-                              </div>
-                              <div style={{ fontSize: 11, color: levelColor, fontWeight: 600 }}>{activeLevel}</div>
-                            </div>
-                            <p style={{ margin: '0 0 12px', fontSize: 12, color: 'var(--color-text-sub)', lineHeight: 1.7 }}>{EXAM_DESC[exam] ?? ''}</p>
-                            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px 20px', marginBottom: 12, padding: '10px 12px', background: 'var(--color-bg-main)', borderRadius: 8 }}>
-                              {[
-                                { label: ja ? '試験コード' : 'Code',       value: cfg?.examCode ?? '' },
-                                { label: ja ? '問題数'     : 'Questions',  value: `${cfg?.totalQuestions ?? '—'}${ja ? '問' : 'Q'}` },
-                                { label: ja ? '試験時間'   : 'Duration',   value: `${cfg?.timeLimitMin ?? '—'}${ja ? '分' : 'min'}` },
-                                { label: ja ? '合格ライン' : 'Pass Score', value: `${PASS_SCORES[exam] ?? '—'}/1000` },
-                              ].map(({ label: lbl, value }) => (
-                                <div key={lbl}>
-                                  <div style={{ fontSize: 9, color: 'var(--color-text-light)', marginBottom: 2 }}>{lbl}</div>
-                                  <div style={{ fontSize: 13, fontWeight: 700, color: 'var(--color-text-main)' }}>{value}</div>
-                                </div>
-                              ))}
-                            </div>
-                            {EXAM_URLS[exam] && (
-                              <a href={EXAM_URLS[exam]} target="_blank" rel="noopener noreferrer" style={{ fontSize: 12, color: 'var(--color-primary)', textDecoration: 'none', fontWeight: 600 }}>
-                                {ja ? '公式ページ →' : 'Official page →'}
-                              </a>
-                            )}
-                            {passComments[exam] && (
-                              <div style={{ marginTop: 12, padding: '10px 12px', background: `${levelColor}12`, borderLeft: `3px solid ${levelColor}`, borderRadius: '0 6px 6px 0' }}>
-                                <div style={{ fontSize: 10, color: levelColor, fontWeight: 700, marginBottom: 4 }}>{ja ? '運営者コメント' : 'From the team'}</div>
-                                <div style={{ fontSize: 12, color: 'var(--color-text-sub)', lineHeight: 1.7, whiteSpace: 'pre-wrap' }}>{passComments[exam]}</div>
-                              </div>
-                            )}
-                          </div>
-                        );
-                      })()}
-                    </div>
-
-                    {/* フッター：メッセージ＋決定ボタン */}
-                    {previewExam && (() => {
-                      const exam = previewExam;
-                      const isCurrentTarget = targetExam === exam;
-                      return (
-                        <div style={{ flexShrink: 0, borderTop: `2px solid ${levelColor}33`, background: `${levelColor}08`, padding: '10px 16px', display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: 12, minHeight: 64 }}>
-                          {/* メッセージ（右揃え・ボタン直左） */}
-                          {isCurrentTarget && (
-                            <div style={{ fontSize: 13, fontWeight: 700, color: 'var(--color-success)' }}>✓ {ja ? '学習中' : 'Studying'}</div>
-                          )}
-                          {/* 決定ボタン */}
-                          {isCurrentTarget ? (
-                            <button disabled
-                              style={{ width: 44, height: 44, borderRadius: '50%', border: 'none', background: levelColor, color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'default', boxShadow: '0 2px 8px rgba(0,0,0,0.15)', flexShrink: 0 }}>
-                              <IconBookOpenCheck size={22} />
-                            </button>
-                          ) : (
-                            <button
-                              onClick={() => {
-                                localStorage.setItem(`targetExam_${uid}`, exam);
-                                window.dispatchEvent(new CustomEvent('targetExamChanged', { detail: exam }));
-                                setTargetExam(exam);
-                              }}
-                              style={{ width: 44, height: 44, borderRadius: '50%', border: `2px solid ${levelColor}`, background: 'var(--color-bg-white)', color: levelColor, display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', boxShadow: '0 2px 8px rgba(0,0,0,0.1)', flexShrink: 0 }}>
-                              <IconBook size={22} />
-                            </button>
-                          )}
-                        </div>
-                      );
-                    })()}
-                  </div>
-                </div>
-              );
-            })()}
+            {showExamSelect && (
+              <ExamSelectOverlay
+                targetExam={targetExam}
+                uid={uid}
+                lang={lang}
+                isMobile={isMobile}
+                onSelect={(exam) => { setTargetExam(exam); if (user) syncTargetExamToServer(user.userId, uid, exam); }}
+                onClose={() => setShowExamSelect(false)}
+              />
+            )}
           </>
         )}
 

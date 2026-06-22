@@ -61,13 +61,13 @@ export default function ReleaseNotes() {
             </div>
           </div>
           {i < visible.length - 1 && (
-            <div style={{ height: 1, background: 'var(--color-border)', marginBottom: 'var(--spacing-lg)' }} />
+            <div style={{ height: 1, background: 'color-mix(in srgb, var(--color-text-light) 40%, transparent)', marginBottom: 'var(--spacing-lg)' }} />
           )}
         </div>
       ))}
 
       {!showAll && hiddenCount > 0 && (
-        <div style={{ borderTop: '1px solid var(--color-border)', paddingTop: 'var(--spacing-lg)', marginTop: 'var(--spacing-sm)' }}>
+        <div style={{ borderTop: '1px solid color-mix(in srgb, var(--color-text-light) 40%, transparent)', paddingTop: 'var(--spacing-lg)', marginTop: 'var(--spacing-sm)' }}>
           <Button variant="outline" onClick={() => setShowAll(true)}>
             {t('releaseNotes.showMore', { n: hiddenCount })}
           </Button>
