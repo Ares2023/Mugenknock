@@ -3,7 +3,7 @@ import React, { useEffect, useState, useCallback } from 'react';
 import { Helmet } from '@/compat/react-helmet-async';
 import { useNavigate } from '@/compat/react-router-dom';
 import { API_ENDPOINT, EXAM_DOMAINS, EXAM_TYPES, DOMAIN_NAME_EN, EXAM_CONFIGS, DOMAIN_RATE_WARNING, DOMAIN_RATE_CAUTION, PASS_SCORES, EXAM_LEVEL, EXAM_LEVEL_COLORS } from '../constants';
-import { syncPreferencesToServer, collectExamDatesFromLocal } from '../utils/preferences';
+import { syncPreferencesToServer, syncTargetExamToServer, collectExamDatesFromLocal } from '../utils/preferences';
 import { useAuth } from '../contexts/AuthContext';
 import { useLanguage } from '../contexts/LanguageContext';
 import Card from '../components/ui/Card';
@@ -672,7 +672,7 @@ export default function MyPage() {
                 uid={uid}
                 lang={lang}
                 isMobile={isMobile}
-                onSelect={(exam) => setTargetExam(exam)}
+                onSelect={(exam) => { setTargetExam(exam); if (user) syncTargetExamToServer(user.userId, uid, exam); }}
                 onClose={() => setShowExamSelect(false)}
               />
             )}
