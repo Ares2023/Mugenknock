@@ -1200,23 +1200,20 @@ export default function Home() {
     const tsRaw = sessionStorage.getItem(TS_KEY(user.userId));
     if (tsRaw) setLastUpdated(new Date(parseInt(tsRaw)));
 
+    // セッション完了直後フラグ: どちらのケースでも確認
+    const flagRaw = localStorage.getItem(`postSessionRefresh_${user.userId}`);
+    const isPostSession = !!flagRaw && Date.now() - parseInt(flagRaw) < 60000;
+    if (flagRaw) localStorage.removeItem(`postSessionRefresh_${user.userId}`);
+
     if (cached !== null) {
       setDomainStats(cached);
-      // キャッシュがあっても常にバックグラウンドで最新化
-      doFetchStats(user.userId, true);
+      // セッション直後なら遅延バックグラウンド更新（楽観的キャッシュが古いデータを上書きしないよう少し待つ）
+      doFetchStats(user.userId, true, isPostSession ? 2000 : 0);
     } else {
-      // キャッシュなし：セッション完了直後かチェックして遅延
-      const flagRaw = localStorage.getItem(`postSessionRefresh_${uid}`);
-      let delay = 0;
-      if (flagRaw) {
-        localStorage.removeItem(`postSessionRefresh_${uid}`);
-        const age = Date.now() - parseInt(flagRaw);
-        if (age < 30000) delay = 1500; // 30秒以内なら1.5秒待つ
-      }
-      doFetchStats(user.userId, false, delay);
+      doFetchStats(user.userId, false, isPostSession ? 2000 : 0);
     }
     return () => { abortRef.current?.abort(); };
-  }, [user, doFetchStats]);
+  }, [user?.userId]); // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
     if (!user || !targetExam) { setServerScoreHistory(null); setServerSessionHistory(null); setServerSessionScoreLog(null); return; }
@@ -1329,9 +1326,12 @@ export default function Home() {
   const dailyGoal = useMemo(() =>
     Math.max(1, parseInt(localStorage.getItem(`dailyGoal_${uid}`) ?? '10', 10))
   , [uid]);
-  const dailyCount = useMemo(() =>
+  const [dailyCount, setDailyCount] = useState(() =>
     targetExam ? parseInt(localStorage.getItem(`dailyQCount_${targetExam}_${uid}_${jstDate}`) ?? '0', 10) : 0
-  , [targetExam, uid, jstDate]);
+  );
+  useEffect(() => {
+    setDailyCount(targetExam ? parseInt(localStorage.getItem(`dailyQCount_${targetExam}_${uid}_${jstDate}`) ?? '0', 10) : 0);
+  }, [targetExam, uid, jstDate, domainStats]);
 
   const [prevScore, setPrevScore] = useState<number | null>(null);
 

@@ -3,7 +3,7 @@ import React, { useState, useEffect, useMemo, useRef, useCallback } from 'react'
 import { createPortal } from 'react-dom';
 import { useNavigate, useLocation } from '@/compat/react-router-dom';
 import { API_ENDPOINT, PASS_RATE, EXAM_DOMAINS, DOMAIN_NAME_EN, EXAM_LEVEL, qDomainName } from '../constants';
-import { deleteCached } from '../utils/cache';
+import { getCached, setCached, deleteCached, DEFAULT_TTL } from '../utils/cache';
 import { addPoints } from '../utils/points';
 import { schedulePrefetchAfterSession } from '../utils/questionPrefetch';
 import { useAuth } from '../contexts/AuthContext';
@@ -585,8 +585,19 @@ export default function ExerciseSession() {
           }).catch(() => {});
         }
       } catch {}
-      // セッション完了でキャッシュ破棄 → ホーム画面が最新データをサーバーから再取得
-      deleteCached(`ustats_${userId}`);
+      // セッション完了: ローカル結果でキャッシュを楽観的更新し、バックグラウンド再取得を予約
+      try {
+        const existingStats: any[] | null = getCached(`ustats_${userId}`);
+        if (existingStats && existingStats.length > 0) {
+          const updated = existingStats.map((s: any) => ({
+            ...s,
+            recentResults: dr[s.tagId] ?? s.recentResults,
+          }));
+          setCached(`ustats_${userId}`, updated, DEFAULT_TTL);
+        } else {
+          deleteCached(`ustats_${userId}`);
+        }
+      } catch { deleteCached(`ustats_${userId}`); }
       localStorage.setItem(`postSessionRefresh_${userId}`, String(Date.now()));
       const ptsPerQ = EXAM_LEVEL[examType] === 'Foundational' ? 1 : EXAM_LEVEL[examType] === 'Associate' ? 2 : 3;
       const earnedPts = results.filter(r => r.isCorrect).length * ptsPerQ;
