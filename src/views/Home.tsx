@@ -2283,23 +2283,20 @@ export default function Home() {
                     {ja ? '重点フィルタ' : 'Focus Filter'}
                   </div>
                   {([
-                    ['unansweredOnly', ja ? '未回答を優先' : 'Unanswered First', ja ? '未回答の問題を優先して出題（不足時は既回答も含む）' : 'Prioritize unanswered questions'],
-                    ['incorrectOnly',  ja ? '不正解を優先'  : 'Incorrect First',  ja ? '不正解だった問題を優先して出題（不足時は他も含む）' : 'Prioritize previously incorrect questions'],
-                    ['bookmarkOnly',   ja ? 'ブックマークを優先' : 'Bookmarked First', ja ? 'ブックマークした問題を優先して出題（不足時は他も含む）' : 'Prioritize bookmarked questions'],
-                  ] as [string, string, string][]).map(([key, label, desc]) => {
+                    ['unansweredOnly', ja ? '未回答を優先' : 'Unanswered First'],
+                    ['incorrectOnly',  ja ? '不正解を優先'  : 'Incorrect First'],
+                    ['bookmarkOnly',   ja ? 'ブックマークを優先' : 'Bookmarked First'],
+                  ] as [string, string][]).map(([key, label]) => {
                     const on = !!(draftPrefs[key]);
                     return (
-                      <label key={key} style={{ display: 'flex', alignItems: 'flex-start', gap: 10, padding: '8px 0', cursor: 'pointer' }}>
+                      <label key={key} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '8px 0', cursor: 'pointer' }}>
                         <input
                           type="checkbox"
                           checked={on}
                           onChange={() => setDraftPrefs(p => ({ ...p, [key]: !on }))}
-                          style={{ width: 16, height: 16, flexShrink: 0, marginTop: 3, accentColor: 'var(--color-primary)' }}
+                          style={{ width: 16, height: 16, flexShrink: 0, accentColor: 'var(--color-primary)' }}
                         />
-                        <div>
-                          <div style={{ fontSize: 'var(--font-size-sm)', fontWeight: on ? 600 : 400, color: 'var(--color-text-main)' }}>{label}</div>
-                          <div style={{ fontSize: 'var(--font-size-xs)', color: 'var(--color-text-light)', marginTop: 1 }}>{desc}</div>
-                        </div>
+                        <span style={{ fontSize: 'var(--font-size-sm)', fontWeight: on ? 600 : 400, color: 'var(--color-text-main)' }}>{label}</span>
                       </label>
                     );
                   })}
@@ -2377,21 +2374,16 @@ export default function Home() {
                   <div style={{ fontWeight: 500, fontSize: 'var(--font-size-base)', color: 'var(--color-text-main)', marginBottom: 8 }}>
                     {ja ? '不正解問題フィルタ' : 'Incorrect Filter'}
                   </div>
-                  <label style={{ display: 'flex', alignItems: 'flex-start', gap: 10, cursor: 'pointer' }}>
+                  <label style={{ display: 'flex', alignItems: 'center', gap: 10, cursor: 'pointer' }}>
                     <input
                       type="checkbox"
                       checked={draftFocusedPrefs.focusIncorrect !== false}
                       onChange={() => setDraftFocusedPrefs(p => ({ ...p, focusIncorrect: p.focusIncorrect === false }))}
-                      style={{ width: 16, height: 16, flexShrink: 0, marginTop: 3, accentColor: 'var(--color-primary)' }}
+                      style={{ width: 16, height: 16, flexShrink: 0, accentColor: 'var(--color-primary)' }}
                     />
-                    <div>
-                      <div style={{ fontSize: 'var(--font-size-sm)', fontWeight: 600, color: 'var(--color-text-main)' }}>
-                        {ja ? '過去に不正解だった問題を含める' : 'Include previously incorrect questions'}
-                      </div>
-                      <div style={{ fontSize: 'var(--font-size-xs)', color: 'var(--color-text-light)', marginTop: 1 }}>
-                        {ja ? '一度でも不正解になった問題を優先出題' : 'Prioritize questions you got wrong before'}
-                      </div>
-                    </div>
+                    <span style={{ fontSize: 'var(--font-size-sm)', fontWeight: 600, color: 'var(--color-text-main)' }}>
+                      {ja ? '過去に不正解だった問題を含める' : 'Include previously incorrect questions'}
+                    </span>
                   </label>
                 </div>
                 {/* 苦手ドメインフィルタ */}
@@ -2400,24 +2392,21 @@ export default function Home() {
                     {ja ? '苦手ドメインフィルタ' : 'Weak Domain Filter'}
                   </div>
                   {([
-                    ['none',    ja ? '絞り込まない' : 'Off',                ja ? 'ドメインによる絞り込みをしない' : 'No domain filtering'],
-                    ['below60', ja ? '正答率60%以下のドメイン（3/5問）' : 'Below 60%', ja ? '正答率60%未満のドメインの問題を優先出題' : 'Prioritize questions from domains below 60%'],
-                    ['below40', ja ? '正答率40%以下のドメイン（2/5問）' : 'Below 40%', ja ? '正答率40%未満のドメインの問題を優先出題' : 'Prioritize questions from domains below 40%'],
-                  ] as [string, string, string][]).map(([val, label, desc]) => {
+                    ['none',    ja ? '絞り込まない' : 'Off'],
+                    ['below60', ja ? '正答率60%以下のドメイン（3/5問）' : 'Below 60%'],
+                    ['below40', ja ? '正答率40%以下のドメイン（2/5問）' : 'Below 40%'],
+                  ] as [string, string][]).map(([val, label]) => {
                     const selected = (draftFocusedPrefs.focusDomain ?? 'below60') === val;
                     return (
-                      <label key={val} style={{ display: 'flex', alignItems: 'flex-start', gap: 10, padding: '8px 0', cursor: 'pointer' }}>
+                      <label key={val} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '8px 0', cursor: 'pointer' }}>
                         <input
                           type="radio"
                           name="focusDomain"
                           checked={selected}
                           onChange={() => setDraftFocusedPrefs(p => ({ ...p, focusDomain: val }))}
-                          style={{ width: 16, height: 16, flexShrink: 0, marginTop: 3, accentColor: 'var(--color-primary)' }}
+                          style={{ width: 16, height: 16, flexShrink: 0, accentColor: 'var(--color-primary)' }}
                         />
-                        <div>
-                          <div style={{ fontSize: 'var(--font-size-sm)', fontWeight: selected ? 600 : 400, color: 'var(--color-text-main)' }}>{label}</div>
-                          <div style={{ fontSize: 'var(--font-size-xs)', color: 'var(--color-text-light)', marginTop: 1 }}>{desc}</div>
-                        </div>
+                        <span style={{ fontSize: 'var(--font-size-sm)', fontWeight: selected ? 600 : 400, color: 'var(--color-text-main)' }}>{label}</span>
                       </label>
                     );
                   })}
