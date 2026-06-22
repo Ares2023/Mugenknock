@@ -2034,7 +2034,7 @@ export default function Home() {
             <button
               onClick={() => {
                 if (primaryMode === 'focused') { setDraftFocusedPrefs({ ...loadFocusedPrefs(uid) }); setShowFocusedModal(true); }
-                else { setDraftPrefs({ ...loadQuickPrefs(uid) }); setShowQuickModal(true); }
+                else { const p = loadQuickPrefs(uid); const saved = p.domains; setDraftPrefs({ ...p, domains: saved && saved.length > 0 ? saved : (EXAM_DOMAINS[targetExam ?? 'SAA'] ?? []) }); setShowQuickModal(true); }
               }}
               style={{ flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', height: 44, width: 132, border: `1.5px solid ${primaryMode === 'focused' ? '#009E9E' : 'var(--color-primary)'}`, borderRadius: 'var(--border-radius-full)', background: 'var(--color-bg-white)', cursor: 'pointer', color: primaryMode === 'focused' ? '#009E9E' : 'var(--color-primary)', fontWeight: 600, fontSize: 'var(--font-size-base)' }}
             >
@@ -2188,7 +2188,7 @@ export default function Home() {
             <button
               onClick={() => {
                 if (primaryMode === 'focused') { setDraftFocusedPrefs({ ...loadFocusedPrefs(uid) }); setShowFocusedModal(true); }
-                else { setDraftPrefs({ ...loadQuickPrefs(uid) }); setShowQuickModal(true); }
+                else { const p = loadQuickPrefs(uid); const saved = p.domains; setDraftPrefs({ ...p, domains: saved && saved.length > 0 ? saved : (EXAM_DOMAINS[targetExam ?? 'SAA'] ?? []) }); setShowQuickModal(true); }
               }}
               style={{ flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', width: 44, height: 44, border: `1.5px solid ${primaryMode === 'focused' ? '#009E9E' : 'var(--color-primary)'}`, borderRadius: '50%', background: 'transparent', cursor: 'pointer', color: primaryMode === 'focused' ? '#009E9E' : 'var(--color-primary)' }}
               aria-label={ja ? '設定' : 'Settings'}
@@ -2240,29 +2240,27 @@ export default function Home() {
                 </div>
                 {targetExam && (EXAM_DOMAINS[targetExam] ?? []).length > 0 && (
                   <div style={{ padding: '14px 0', borderBottom: '1px solid var(--color-border)' }}>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
-                      <div>
-                        <div style={{ fontWeight: 500, fontSize: 'var(--font-size-base)', color: 'var(--color-text-main)' }}>
-                          {ja ? 'ドメイン' : 'Domains'}
-                        </div>
-                        <div style={{ fontSize: 'var(--font-size-xs)', color: 'var(--color-text-light)', marginTop: 2 }}>
-                          {ja ? '未選択 = すべて対象' : 'None selected = all domains'}
-                        </div>
-                      </div>
-                      {(draftPrefs.domains ?? []).length > 0 && (
-                        <button
-                          onClick={() => setDraftPrefs(p => ({ ...p, domains: [] }))}
-                          style={{ border: 'none', background: 'none', cursor: 'pointer', fontSize: 'var(--font-size-xs)', color: 'var(--color-primary)', padding: '2px 4px', textDecoration: 'underline' }}
-                        >
-                          {ja ? 'すべて解除' : 'Clear'}
-                        </button>
-                      )}
+                    <div style={{ fontWeight: 500, fontSize: 'var(--font-size-base)', color: 'var(--color-text-main)', marginBottom: 8 }}>
+                      {ja ? 'ドメイン' : 'Domains'}
                     </div>
+                    {/* 全て */}
+                    <label style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '4px 0', cursor: 'pointer', marginBottom: 4, paddingBottom: 8, borderBottom: '1px solid color-mix(in srgb, var(--color-text-light) 20%, transparent)' }}>
+                      <input
+                        type="checkbox"
+                        checked={(EXAM_DOMAINS[targetExam] ?? []).every(d => (draftPrefs.domains ?? []).includes(d))}
+                        onChange={() => {
+                          const all = EXAM_DOMAINS[targetExam] ?? [];
+                          setDraftPrefs(p => ({ ...p, domains: all.every(d => (p.domains ?? []).includes(d)) ? [] : all }));
+                        }}
+                        style={{ width: 16, height: 16, flexShrink: 0, accentColor: 'var(--color-primary)' }}
+                      />
+                      <span style={{ fontSize: 'var(--font-size-sm)', fontWeight: 600, color: 'var(--color-text-main)' }}>{ja ? '全て' : 'All'}</span>
+                    </label>
                     {(EXAM_DOMAINS[targetExam] ?? []).map(domain => {
                       const selDoms: string[] = draftPrefs.domains ?? [];
                       const checked = selDoms.includes(domain);
                       return (
-                        <label key={domain} style={{ display: 'flex', alignItems: 'flex-start', gap: 8, padding: '4px 0', cursor: 'pointer' }}>
+                        <label key={domain} style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '4px 0', cursor: 'pointer' }}>
                           <input
                             type="checkbox"
                             checked={checked}
@@ -2270,12 +2268,17 @@ export default function Home() {
                               const cur: string[] = p.domains ?? [];
                               return { ...p, domains: checked ? cur.filter(d => d !== domain) : [...cur, domain] };
                             })}
-                            style={{ width: 16, height: 16, flexShrink: 0, marginTop: 2, accentColor: 'var(--color-primary)' }}
+                            style={{ width: 16, height: 16, flexShrink: 0, accentColor: 'var(--color-primary)' }}
                           />
                           <span style={{ fontSize: 'var(--font-size-sm)', color: 'var(--color-text-main)', lineHeight: 1.4 }}>{domain}</span>
                         </label>
                       );
                     })}
+                    {(draftPrefs.domains ?? []).length === 0 && (
+                      <div style={{ fontSize: 'var(--font-size-xs)', color: 'var(--color-danger)', marginTop: 4 }}>
+                        {ja ? '1つ以上選択してください' : 'Select at least one domain'}
+                      </div>
+                    )}
                   </div>
                 )}
                 <div style={{ padding: '14px 0' }}>
@@ -2309,6 +2312,7 @@ export default function Home() {
             {/* 保存ボタン固定 */}
             <div style={{ flexShrink: 0, padding: '12px 24px 20px', borderTop: '1px solid var(--color-border)' }}>
               <Button
+                disabled={targetExam !== null && (EXAM_DOMAINS[targetExam] ?? []).length > 0 && (draftPrefs.domains ?? []).length === 0}
                 onClick={() => {
                   localStorage.setItem(`quickExercisePrefs_${uid}`, JSON.stringify(draftPrefs));
                   setShowQuickModal(false);

@@ -63,7 +63,8 @@ export default function Practice() {
   const initPrefs = (et: string) => loadExercisePrefs(et, uid);
   const [selectedDomains, setSelectedDomains] = useState<string[]>(() => {
     const et = localStorage.getItem(`targetExam_${uid}`) || 'SAA';
-    return initPrefs(et).domains ?? [];
+    const saved = initPrefs(et).domains;
+    return saved && saved.length > 0 ? saved : (EXAM_DOMAINS[et] ?? []);
   });
   const [limit, setLimit] = useState<number>(() => {
     const raw = initPrefs(localStorage.getItem(`targetExam_${uid}`) || 'SAA').limit ?? 10;
@@ -114,9 +115,10 @@ export default function Practice() {
   useEffect(() => {
     setAvailableCount(null);
     const fetchCounts = async () => {
+      if (selectedDomains.length === 0) { setAvailableCount(null); return; }
       try {
         const params = new URLSearchParams({ examType });
-        const allSelected = selectedDomains.length === 0 || EXAM_DOMAINS[examType].every(d => selectedDomains.includes(d));
+        const allSelected = EXAM_DOMAINS[examType].every(d => selectedDomains.includes(d));
         if (!allSelected) params.set('domain', selectedDomains.join(','));
         if (user && (bookmarkOnly || unansweredOnly || incorrectOnly)) {
           const [qRes, bkmRes, answeredRes, incorrectRes] = await Promise.all([
@@ -174,7 +176,8 @@ export default function Practice() {
     setExerciseLoadPct(10);
     try {
       const userId = user?.userId ?? 'guest';
-      const allSelected = selectedDomains.length === 0 || EXAM_DOMAINS[examType].every(d => selectedDomains.includes(d));
+      if (selectedDomains.length === 0) { alert(ja ? '出題ドメインを1つ以上選択してください' : 'Please select at least one domain'); return; }
+      const allSelected = EXAM_DOMAINS[examType].every(d => selectedDomains.includes(d));
       // ── プログレッシブロードパス（フィルタあり・なし共通）──
       // 1. IDのみ取得（Lambda側でフィルタ・優先度ソート）
       const idsParams = new URLSearchParams({ examType, shuffle: 'true', idsOnly: 'true' });
@@ -404,12 +407,21 @@ export default function Practice() {
             </button>
             {showExerciseOptions && (
               <div style={{ padding: '12px 14px', borderTop: '1px solid color-mix(in srgb, var(--color-text-light) 40%, transparent)', display: 'flex', flexDirection: 'column', gap: 6 }}>
-                <div style={{ fontSize: 'var(--font-size-xs)', color: 'var(--color-text-light)', marginBottom: 2 }}>
-                  {ja ? '未選択で全ドメインが対象' : 'No selection = all domains'}
-                </div>
+                {/* 全て */}
+                <label style={{ display: 'flex', alignItems: 'center', gap: 8, cursor: 'pointer', paddingBottom: 6, borderBottom: '1px solid color-mix(in srgb, var(--color-text-light) 20%, transparent)' }}>
+                  <input
+                    type="checkbox"
+                    checked={(EXAM_DOMAINS[examType] ?? []).every(d => selectedDomains.includes(d))}
+                    onChange={() => {
+                      const all = EXAM_DOMAINS[examType] ?? [];
+                      setSelectedDomains(all.every(d => selectedDomains.includes(d)) ? [] : all);
+                    }}
+                    style={{ width: 15, height: 15, flexShrink: 0, accentColor: 'var(--color-primary)' }}
+                  />
+                  <span style={{ fontSize: 'var(--font-size-sm)', fontWeight: 600, color: 'var(--color-text-main)' }}>{ja ? '全て' : 'All'}</span>
+                </label>
                 {(EXAM_DOMAINS[examType] ?? []).map(domain => {
                   const checked = selectedDomains.includes(domain);
-                  const label = lang === 'en' ? (domain) : domain;
                   const rate = user ? domainRates[domain] : undefined;
                   return (
                     <label key={domain} style={{ display: 'flex', alignItems: 'center', gap: 8, cursor: 'pointer' }}>
@@ -421,7 +433,7 @@ export default function Practice() {
                         )}
                         style={{ width: 15, height: 15, flexShrink: 0, accentColor: 'var(--color-primary)' }}
                       />
-                      <span style={{ fontSize: 'var(--font-size-sm)', color: 'var(--color-text-main)', flex: 1 }}>{label}</span>
+                      <span style={{ fontSize: 'var(--font-size-sm)', color: 'var(--color-text-main)', flex: 1 }}>{domain}</span>
                       {rate != null && (
                         <span style={{ fontSize: 10, fontWeight: 700, color: rate < 0.4 ? 'var(--color-danger)' : rate < 0.6 ? 'var(--color-caution)' : 'var(--color-text-sub)', flexShrink: 0 }}>
                           {Math.round(rate * 100)}%
@@ -430,6 +442,11 @@ export default function Practice() {
                     </label>
                   );
                 })}
+                {selectedDomains.length === 0 && (
+                  <div style={{ fontSize: 'var(--font-size-xs)', color: 'var(--color-danger)', marginTop: 2 }}>
+                    {ja ? '1つ以上選択してください' : 'Select at least one domain'}
+                  </div>
+                )}
               </div>
             )}
           </div>

@@ -487,7 +487,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
                   { level: 'Professional', pts: 3, exams: 'SAP, DOP, AIP' },
                   { level: 'Specialty',    pts: 3, exams: 'ANS, SCS' },
                 ] as const).map((row, i, arr) => (
-                  <div key={row.level} style={{ display: 'flex', alignItems: 'center', padding: '9px 12px', borderBottom: i < arr.length - 1 ? '1px solid var(--color-border)' : 'none' }}>
+                  <div key={row.level} style={{ display: 'flex', alignItems: 'center', padding: '9px 12px', borderBottom: i < arr.length - 1 ? '1px solid color-mix(in srgb, var(--color-text-light) 40%, transparent)' : 'none' }}>
                     <div style={{ flex: 1, minWidth: 0 }}>
                       <div style={{ fontSize: 12, fontWeight: 700, color: 'var(--color-text-main)' }}>{row.level}</div>
                       <div style={{ fontSize: 10, color: 'var(--color-text-light)', marginTop: 1 }}>{row.exams}</div>
@@ -815,7 +815,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
         >
           {children}
           <footer style={{
-            borderTop: '1px solid var(--color-border)',
+            borderTop: '1px solid color-mix(in srgb, var(--color-text-light) 40%, transparent)',
             padding: '16px var(--spacing-lg)',
             display: 'flex',
             flexWrap: 'wrap',
