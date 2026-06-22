@@ -3,7 +3,7 @@ import React, { useState, useEffect } from 'react';
 import { Helmet } from '@/compat/react-helmet-async';
 import { useLanguage } from '../contexts/LanguageContext';
 import { useAuth } from '../contexts/AuthContext';
-import { IconLock, IconLightbulb, ServiceIcon, isServiceIconKey, ServiceIconImg } from '../components/Icons';
+import { IconLock, IconBean, ServiceIcon, isServiceIconKey, ServiceIconImg } from '../components/Icons';
 import { CATALOG, getDailyService, ServiceEntry } from '../data/awsServiceCatalog';
 import { API_ENDPOINT } from '../constants';
 
@@ -418,7 +418,7 @@ export default function ServiceEncyclopedia() {
             {selected.trivia && (
               <div style={{ background: 'var(--color-bg-main)', borderRadius: 'var(--border-radius-md)', padding: '8px 12px', display: 'flex', gap: 8, alignItems: 'flex-start', marginBottom: 10 }}>
                 <span style={{ color: 'var(--color-text-sub)', display: 'flex', alignItems: 'center', flexShrink: 0 }}>
-                  <IconLightbulb size={14} />
+                  <IconBean size={14} />
                 </span>
                 <span style={{ fontSize: 'var(--font-size-sm)', color: 'var(--color-text-sub)', lineHeight: 1.6, overflowWrap: 'break-word', wordBreak: 'break-word' }}>
                   {selected.trivia}

@@ -17,7 +17,7 @@ import { animateLoadPct, randomPlateau } from '../utils/loadProgress';
 import { getPoints, deductPoints } from '../utils/points';
 import Card from '../components/ui/Card';
 import Button from '../components/ui/Button';
-import { IconLightbulb, IconSettings, IconChevronUp, IconChevronDown, IconLock, IconFileText, IconTrendingUp, IconBookOpen, IconCheck, IconSparkles, IconPointer, IconMousePointerClick, IconCalendarNotebook, IconRefreshCw, IconTarget, IconChart, ServiceIconImg, isServiceIconKey, IconUser } from '../components/Icons';
+import { IconLightbulb, IconBean, IconSettings, IconChevronUp, IconChevronDown, IconLock, IconFileText, IconTrendingUp, IconBookOpen, IconCheck, IconSparkles, IconPointer, IconMousePointerClick, IconCalendarNotebook, IconRefreshCw, IconTarget, IconChart, ServiceIconImg, isServiceIconKey, IconUser } from '../components/Icons';
 import { CATALOG } from '../data/awsServiceCatalog';
 import { autoScoreAndClearDrafts } from '../utils/sessionUtils';
 import { syncTargetExamToServer, loadTargetExamFromServer } from '../utils/preferences';
@@ -1014,7 +1014,7 @@ function TodayServiceSection({ lang, userId, onNavigateEncyclopedia, onReveal, i
 
       {displayService.trivia && (
         <div style={{ background: 'var(--color-bg-main)', borderRadius: 'var(--border-radius-md)', padding: '8px 12px', display: 'flex', gap: 8, alignItems: 'flex-start', marginBottom: 10 }}>
-          <span style={{ color: 'var(--color-text-sub)', display: 'flex', alignItems: 'center', flexShrink: 0 }}><IconLightbulb size={14} /></span>
+          <span style={{ color: 'var(--color-text-sub)', display: 'flex', alignItems: 'center', flexShrink: 0 }}><IconBean size={14} /></span>
           <span style={{ fontSize: 'var(--font-size-sm)', color: 'var(--color-text-sub)', lineHeight: 1.6, overflowWrap: 'break-word', wordBreak: 'break-word' }}>{displayService.trivia}</span>
         </div>
       )}
