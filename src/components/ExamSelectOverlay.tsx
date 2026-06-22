@@ -116,9 +116,10 @@ export default function ExamSelectOverlay({
           background: 'var(--color-bg-white)',
           borderRadius: 'var(--border-radius-lg)',
           width: '100%',
-          maxWidth: isMobile ? 420 : 630,
+          maxWidth: 420,
           boxShadow: 'var(--box-shadow-md)',
-          maxHeight: isMobile ? '75vh' : '86vh',
+          height: isMobile ? '75vh' : '60vh',
+          maxHeight: isMobile ? '75vh' : '60vh',
           display: 'flex', flexDirection: 'column', overflow: 'hidden',
         }}
         onClick={e => e.stopPropagation()}
