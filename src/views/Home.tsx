@@ -1074,7 +1074,7 @@ function clearUserData(uid: string) {
 }
 
 export default function Home() {
-  const { user } = useAuth();
+  const { user, loading: authLoading } = useAuth();
   const { lang } = useLanguage();
   const navigate = useNavigate();
   const location = useLocation();
@@ -1126,6 +1126,7 @@ export default function Home() {
 
 
   useEffect(() => {
+    if (authLoading) return;
     const saved = localStorage.getItem(`targetExam_${uid}`);
     if (saved !== null) {
       setTargetExam(saved);
@@ -1133,7 +1134,7 @@ export default function Home() {
     } else {
       setShowOnboarding(true);
     }
-  }, [uid]);
+  }, [uid, authLoading]);
 
   useEffect(() => {
     const handler = (e: Event) => setTargetExam((e as CustomEvent).detail);
@@ -1195,7 +1196,7 @@ export default function Home() {
   }, [user, statsLoading, statsRefreshing, doFetchStats]);
 
   useEffect(() => {
-    if (!user) { setDomainStats([]); setLastUpdated(null); return; }
+    if (!user) { if (!authLoading) { setDomainStats([]); setLastUpdated(null); } return; }
     const cached = getCached<DomainStat[]>(`ustats_${user.userId}`);
     const tsRaw = sessionStorage.getItem(TS_KEY(user.userId));
     if (tsRaw) setLastUpdated(new Date(parseInt(tsRaw)));
@@ -1213,7 +1214,7 @@ export default function Home() {
       doFetchStats(user.userId, false, isPostSession ? 2000 : 0);
     }
     return () => { abortRef.current?.abort(); };
-  }, [user?.userId]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [user?.userId, authLoading]); // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
     if (!user || !targetExam) { setServerScoreHistory(null); setServerSessionHistory(null); setServerSessionScoreLog(null); return; }
@@ -1719,7 +1720,7 @@ export default function Home() {
             const examColor = targetExam ? (EXAM_LEVEL_COLORS[EXAM_LEVEL[targetExam]] ?? 'var(--color-primary)') : 'var(--color-primary)';
             const barColor = dailyCount >= dailyGoal
               ? 'var(--bar-gradient-success)'
-              : `linear-gradient(90deg, ${examColor}cc, ${examColor})`;
+              : `linear-gradient(90deg, ${examColor}, ${examColor}cc)`;
             return (
               <div style={{ height: '100%', width: `${Math.min(100, (dailyCount / dailyGoal) * 100)}%`, borderRadius: 3, background: barColor, transformOrigin: 'left center', animation: 'growWidth 0.45s cubic-bezier(0.34, 1.56, 0.64, 1) both' }} />
             );

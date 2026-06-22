@@ -75,7 +75,7 @@ const AI_LINKS = [
 ];
 
 export default function Layout({ children }: { children: React.ReactNode }) {
-  const { user, signOut } = useAuth();
+  const { user, signOut, loading: authLoading } = useAuth();
   const { lang, setLang, t } = useLanguage();
   const { theme, toggleTheme } = useTheme();
   const navigate = useNavigate();
@@ -563,24 +563,28 @@ export default function Layout({ children }: { children: React.ReactNode }) {
               </div>
             </>
           )}
-          <button
-            onClick={() => navigate('/account')}
-            style={{
-              display: 'flex', alignItems: 'center', justifyContent: 'center',
-              background: user ? 'var(--color-primary-light)' : 'transparent',
-              border: '1px solid var(--color-border)',
-              borderRadius: '50%',
-              cursor: 'pointer', color: user ? 'var(--color-primary)' : 'var(--color-text-sub)',
-              width: 36, height: 36, padding: 0,
-              flexShrink: 0,
-              transition: 'background 0.2s',
-              fontSize: 14, fontWeight: 700, letterSpacing: 0,
-            }}
-            onMouseEnter={e => e.currentTarget.style.background = 'var(--color-bg-main)'}
-            onMouseLeave={e => e.currentTarget.style.background = user ? 'var(--color-primary-light)' : 'transparent'}
-          >
-            {user?.email ? (user.email[0].toUpperCase()) : <IconUser />}
-          </button>
+          {authLoading ? (
+            <div className="skeleton" style={{ width: 36, height: 36, borderRadius: '50%', flexShrink: 0 }} />
+          ) : (
+            <button
+              onClick={() => navigate('/account')}
+              style={{
+                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                background: user ? 'var(--color-primary-light)' : 'transparent',
+                border: '1px solid var(--color-border)',
+                borderRadius: '50%',
+                cursor: 'pointer', color: user ? 'var(--color-primary)' : 'var(--color-text-sub)',
+                width: 36, height: 36, padding: 0,
+                flexShrink: 0,
+                transition: 'background 0.2s',
+                fontSize: 14, fontWeight: 700, letterSpacing: 0,
+              }}
+              onMouseEnter={e => e.currentTarget.style.background = 'var(--color-bg-main)'}
+              onMouseLeave={e => e.currentTarget.style.background = user ? 'var(--color-primary-light)' : 'transparent'}
+            >
+              {user?.email ? (user.email[0].toUpperCase()) : <IconUser />}
+            </button>
+          )}
         </div>
       </header>
 
