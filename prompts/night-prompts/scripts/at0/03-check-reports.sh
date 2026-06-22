@@ -574,6 +574,21 @@ for r in results:
             '--key', json.dumps({'questionId': {'S': qid}, 'reportId': {'S': actual_rid}}),
         ], capture_output=True)
 
+# Claude が ok として results に含めなかった通報も削除（結果から除外された = 問題なし）
+processed_qids = {r.get('questionId') for r in results}
+for item in work.get('reported', []):
+    r_meta = item.get('report', {})
+    qid2   = r_meta.get('questionId', '')
+    rid2   = r_meta.get('reportId', '')
+    if qid2 not in processed_qids and rid2 and qid2:
+        subprocess.run([
+            'aws', 'dynamodb', 'delete-item',
+            '--table-name', 'Reports',
+            '--key', json.dumps({'questionId': {'S': qid2}, 'reportId': {'S': rid2}}),
+        ], capture_output=True)
+        ok_count += 1
+        print(f'  [OK/通報]      {qid2}: Claude除外（問題なし）→ 通報削除')
+
 print(f'\n通報問題  → OK={ok_count}  FIX={fix_count}  DELETE={del_count}')
 print(f'関連問題  → FIX={rel_fix}  DELETE={rel_del}')
 PYEOF

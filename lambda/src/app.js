@@ -895,12 +895,15 @@ app.get('/admin/reports', async (req, res) => {
 });
 
 // 通報削除（管理者用・解決済みマーク）
+// Reports テーブルは questionId(HASH) + reportId(RANGE) の複合キー
 app.delete('/admin/reports/:id', async (req, res) => {
   try {
     const docClient = getClient();
+    const { questionId } = req.query;
+    if (!questionId) return res.status(400).json({ error: 'questionId is required' });
     await docClient.send(new DeleteCommand({
       TableName: 'Reports',
-      Key: { reportId: req.params.id }
+      Key: { questionId, reportId: req.params.id }
     }));
     res.json({ success: true });
   } catch (err) {
