@@ -91,7 +91,6 @@ export default function Practice() {
   const [showNewExamPanel, setShowNewExamPanel] = useState(false);
   const [showStartConfirm, setShowStartConfirm] = useState(false);
   const [showExerciseOptions, setShowExerciseOptions] = useState(false);
-  const [showExamOptions, setShowExamOptions] = useState(false);
   // 模試用フィルタ
   const [examUnansweredOnly, setExamUnansweredOnly] = useState(false);
   const [examIncorrectOnly, setExamIncorrectOnly] = useState(false);
@@ -338,20 +337,31 @@ export default function Practice() {
                 : (isMobile ? 'Select your target exam from the top menu' : 'Select your target exam from the left sidebar')}
             </div>
           ) : (<>
-          {/* ドメイン選択 */}
-          <div style={{ marginBottom: 'var(--spacing-lg)' }}>
-            <div style={{ fontSize: 'var(--font-size-sm)', fontWeight: 700, color: 'var(--color-text-sub)', marginBottom: 'var(--spacing-sm)' }}>
-              {ja ? '出題ドメイン' : 'Domains'}
+          {/* フィルタ（展開） */}
+          {user && (
+            <div style={{ marginBottom: 'var(--spacing-md)', display: 'flex', flexDirection: 'column', gap: 8 }}>
+              {([
+                ['unansweredOnly', ja ? '未回答を優先' : 'Unanswered First'],
+                ['incorrectOnly',  ja ? '不正解を優先' : 'Incorrect First'],
+                ['bookmarkOnly',   ja ? 'ブックマークを優先' : 'Bookmarked First'],
+              ] as [string, string][]).map(([key, label]) => {
+                const stateMap: Record<string, boolean> = { unansweredOnly, incorrectOnly, bookmarkOnly };
+                const setterMap: Record<string, (v: boolean) => void> = {
+                  unansweredOnly: v => { setUnansweredOnly(v); if (v) setIncorrectOnly(false); },
+                  incorrectOnly:  v => { setIncorrectOnly(v);  if (v) setUnansweredOnly(false); },
+                  bookmarkOnly:   setBookmarkOnly,
+                };
+                const on = stateMap[key];
+                return (
+                  <label key={key} style={{ display: 'flex', alignItems: 'center', gap: 10, cursor: 'pointer' }}>
+                    <input type="checkbox" checked={on} onChange={e => setterMap[key](e.target.checked)}
+                      style={{ width: 16, height: 16, flexShrink: 0, accentColor: 'var(--color-primary)' }} />
+                    <span style={{ fontSize: 'var(--font-size-sm)', fontWeight: on ? 600 : 400, color: 'var(--color-text-main)' }}>{label}</span>
+                  </label>
+                );
+              })}
             </div>
-            <DomainSelector
-              domains={EXAM_DOMAINS[examType]}
-              selected={selectedDomains}
-              onChange={setSelectedDomains}
-              lang={lang}
-              noMargin
-              weakRates={user ? domainRates : undefined}
-            />
-          </div>
+          )}
 
           {/* 問題数 */}
           <div style={{ marginBottom: 'var(--spacing-md)' }}>
@@ -381,50 +391,28 @@ export default function Practice() {
             </div>
           )}
 
-          {/* ── オプション（折りたたみ） ── */}
-          {user && (
-            <div style={{ marginBottom: 'var(--spacing-lg)', border: '1px solid color-mix(in srgb, var(--color-text-light) 40%, transparent)', borderRadius: 'var(--border-radius-md)', overflow: 'hidden' }}>
-              <button
-                onClick={() => setShowExerciseOptions(v => !v)}
-                style={{ width: '100%', display: 'flex', alignItems: 'center', gap: 6, padding: '10px 14px', background: 'var(--color-bg-main)', border: 'none', cursor: 'pointer', fontSize: 'var(--font-size-sm)', fontWeight: 600, color: 'var(--color-text-sub)' }}
-              >
-                {showExerciseOptions ? <IconChevronDown size={14} /> : <IconChevronRight size={14} />}
-                {ja ? 'オプション' : 'Options'}
-                {(unansweredOnly || incorrectOnly || bookmarkOnly) && (
-                  <span style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', width: 16, height: 16, borderRadius: '50%', background: 'var(--color-primary)', color: '#fff', fontSize: 10, fontWeight: 700 }}>
-                    {[unansweredOnly, incorrectOnly, bookmarkOnly].filter(Boolean).length}
-                  </span>
-                )}
-              </button>
-              {showExerciseOptions && (
-                <div style={{ padding: '12px 14px', display: 'flex', flexDirection: 'column', gap: 10, borderTop: '1px solid var(--color-border)' }}>
-                  {([
-                    ['unansweredOnly', ja ? '未回答を優先' : 'Unanswered First', ja ? '未回答の問題を優先して出題（不足時は既回答も含む）' : 'Prioritize unanswered questions'],
-                    ['incorrectOnly',  ja ? '不正解を優先' : 'Incorrect First',  ja ? '不正解だった問題を優先して出題（不足時は他も含む）' : 'Prioritize previously incorrect questions'],
-                    ['bookmarkOnly',   ja ? 'ブックマークを優先' : 'Bookmarked First', ja ? 'ブックマークした問題を優先して出題（不足時は他も含む）' : 'Prioritize bookmarked questions'],
-                  ] as [string, string, string][]).map(([key, label, desc]) => {
-                    const stateMap: Record<string, boolean> = { unansweredOnly, incorrectOnly, bookmarkOnly };
-                    const setterMap: Record<string, (v: boolean) => void> = {
-                      unansweredOnly: v => { setUnansweredOnly(v); if (v) setIncorrectOnly(false); },
-                      incorrectOnly:  v => { setIncorrectOnly(v);  if (v) setUnansweredOnly(false); },
-                      bookmarkOnly:   setBookmarkOnly,
-                    };
-                    const on = stateMap[key];
-                    return (
-                      <label key={key} style={{ display: 'flex', alignItems: 'flex-start', gap: 10, cursor: 'pointer' }}>
-                        <input type="checkbox" checked={on} onChange={e => setterMap[key](e.target.checked)}
-                          style={{ width: 16, height: 16, flexShrink: 0, marginTop: 2, accentColor: 'var(--color-primary)' }} />
-                        <div>
-                          <div style={{ fontSize: 'var(--font-size-sm)', fontWeight: on ? 600 : 400, color: 'var(--color-text-main)' }}>{label}</div>
-                          <div style={{ fontSize: 'var(--font-size-xs)', color: 'var(--color-text-light)', marginTop: 1 }}>{desc}</div>
-                        </div>
-                      </label>
-                    );
-                  })}
-                </div>
-              )}
-            </div>
-          )}
+          {/* ── オプション（折りたたみ：出題ドメイン） ── */}
+          <div style={{ marginBottom: 'var(--spacing-lg)', border: '1px solid color-mix(in srgb, var(--color-text-light) 40%, transparent)', borderRadius: 'var(--border-radius-md)', overflow: 'hidden' }}>
+            <button
+              onClick={() => setShowExerciseOptions(v => !v)}
+              style={{ width: '100%', display: 'flex', alignItems: 'center', gap: 6, padding: '10px 14px', background: 'var(--color-bg-main)', border: 'none', cursor: 'pointer', fontSize: 'var(--font-size-sm)', fontWeight: 600, color: 'var(--color-text-sub)' }}
+            >
+              {showExerciseOptions ? <IconChevronDown size={14} /> : <IconChevronRight size={14} />}
+              {ja ? 'オプション' : 'Options'}
+            </button>
+            {showExerciseOptions && (
+              <div style={{ padding: '12px 14px', borderTop: '1px solid var(--color-border)' }}>
+                <DomainSelector
+                  domains={EXAM_DOMAINS[examType]}
+                  selected={selectedDomains}
+                  onChange={setSelectedDomains}
+                  lang={lang}
+                  noMargin
+                  weakRates={user ? domainRates : undefined}
+                />
+              </div>
+            )}
+          </div>
           </>)}
         </>
       )}
@@ -439,6 +427,33 @@ export default function Practice() {
           ) : (
             <>
               <div style={{ fontSize: 'var(--font-size-sm)', color: 'var(--color-text-sub)', marginBottom: 16 }}>{examCfg?.fullName}</div>
+
+              {/* フィルタ（展開） */}
+              {user && (
+                <div style={{ marginBottom: 12, display: 'flex', flexDirection: 'column', gap: 8 }}>
+                  {([
+                    ['examUnansweredOnly', ja ? '未回答を優先' : 'Unanswered First'],
+                    ['examIncorrectOnly',  ja ? '不正解を優先' : 'Incorrect First'],
+                    ['examBookmarkOnly',   ja ? 'ブックマークを優先' : 'Bookmarked First'],
+                  ] as [string, string][]).map(([key, label]) => {
+                    const stateMap: Record<string, boolean> = { examUnansweredOnly, examIncorrectOnly, examBookmarkOnly };
+                    const setterMap: Record<string, (v: boolean) => void> = {
+                      examUnansweredOnly: v => { setExamUnansweredOnly(v); if (v) setExamIncorrectOnly(false); },
+                      examIncorrectOnly:  v => { setExamIncorrectOnly(v);  if (v) setExamUnansweredOnly(false); },
+                      examBookmarkOnly:   setExamBookmarkOnly,
+                    };
+                    const on = stateMap[key];
+                    return (
+                      <label key={key} style={{ display: 'flex', alignItems: 'center', gap: 10, cursor: 'pointer' }}>
+                        <input type="checkbox" checked={on} onChange={e => setterMap[key](e.target.checked)}
+                          style={{ width: 16, height: 16, flexShrink: 0, accentColor: 'var(--color-primary)' }} />
+                        <span style={{ fontSize: 'var(--font-size-sm)', fontWeight: on ? 600 : 400, color: 'var(--color-text-main)' }}>{label}</span>
+                      </label>
+                    );
+                  })}
+                </div>
+              )}
+              <div style={{ height: 1, background: 'var(--color-border)', marginBottom: 16 }} />
 
               {/* ミニ模試チェックボックス */}
               <label style={{ display: 'inline-flex', alignItems: 'center', gap: 'var(--spacing-sm)', cursor: 'pointer', fontSize: 'var(--font-size-base)', marginBottom: 20 }}>
@@ -477,50 +492,6 @@ export default function Practice() {
                 ))}
               </div>
 
-              {/* ── オプション（模試・折りたたみ） ── */}
-              {user && (
-                <div style={{ marginBottom: 'var(--spacing-lg)', border: '1px solid color-mix(in srgb, var(--color-text-light) 40%, transparent)', borderRadius: 'var(--border-radius-md)', overflow: 'hidden' }}>
-                  <button
-                    onClick={() => setShowExamOptions(v => !v)}
-                    style={{ width: '100%', display: 'flex', alignItems: 'center', gap: 6, padding: '10px 14px', background: 'var(--color-bg-main)', border: 'none', cursor: 'pointer', fontSize: 'var(--font-size-sm)', fontWeight: 600, color: 'var(--color-text-sub)' }}
-                  >
-                    {showExamOptions ? <IconChevronDown size={14} /> : <IconChevronRight size={14} />}
-                    {ja ? 'オプション' : 'Options'}
-                    {(examUnansweredOnly || examIncorrectOnly || examBookmarkOnly) && (
-                      <span style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', width: 16, height: 16, borderRadius: '50%', background: 'var(--color-primary)', color: '#fff', fontSize: 10, fontWeight: 700 }}>
-                        {[examUnansweredOnly, examIncorrectOnly, examBookmarkOnly].filter(Boolean).length}
-                      </span>
-                    )}
-                  </button>
-                  {showExamOptions && (
-                    <div style={{ padding: '12px 14px', display: 'flex', flexDirection: 'column', gap: 10, borderTop: '1px solid var(--color-border)' }}>
-                      {([
-                        ['examUnansweredOnly', ja ? '未回答を優先' : 'Unanswered First', ja ? '未回答の問題を優先して出題（不足時は既回答も含む）' : 'Prioritize unanswered questions'],
-                        ['examIncorrectOnly',  ja ? '不正解を優先' : 'Incorrect First',  ja ? '不正解だった問題を優先して出題（不足時は他も含む）' : 'Prioritize previously incorrect questions'],
-                        ['examBookmarkOnly',   ja ? 'ブックマークを優先' : 'Bookmarked First', ja ? 'ブックマークした問題を優先して出題（不足時は他も含む）' : 'Prioritize bookmarked questions'],
-                      ] as [string, string, string][]).map(([key, label, desc]) => {
-                        const stateMap: Record<string, boolean> = { examUnansweredOnly, examIncorrectOnly, examBookmarkOnly };
-                        const setterMap: Record<string, (v: boolean) => void> = {
-                          examUnansweredOnly: v => { setExamUnansweredOnly(v); if (v) setExamIncorrectOnly(false); },
-                          examIncorrectOnly:  v => { setExamIncorrectOnly(v);  if (v) setExamUnansweredOnly(false); },
-                          examBookmarkOnly:   setExamBookmarkOnly,
-                        };
-                        const on = stateMap[key];
-                        return (
-                          <label key={key} style={{ display: 'flex', alignItems: 'flex-start', gap: 10, cursor: 'pointer' }}>
-                            <input type="checkbox" checked={on} onChange={e => setterMap[key](e.target.checked)}
-                              style={{ width: 16, height: 16, flexShrink: 0, marginTop: 2, accentColor: 'var(--color-primary)' }} />
-                            <div>
-                              <div style={{ fontSize: 'var(--font-size-sm)', fontWeight: on ? 600 : 400, color: 'var(--color-text-main)' }}>{label}</div>
-                              <div style={{ fontSize: 'var(--font-size-xs)', color: 'var(--color-text-light)', marginTop: 1 }}>{desc}</div>
-                            </div>
-                          </label>
-                        );
-                      })}
-                    </div>
-                  )}
-                </div>
-              )}
             </>
           )}
         </>

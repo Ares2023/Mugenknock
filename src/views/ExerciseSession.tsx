@@ -11,7 +11,7 @@ import { useLanguage } from '../contexts/LanguageContext';
 import Card from '../components/ui/Card';
 import Button from '../components/ui/Button';
 import ReportModal from '../components/ReportModal';
-import { IconBookOpen, IconCopy, IconCheck, IconStar, IconChevronUp, IconChevronDown } from '../components/Icons';
+import { IconBookOpen, IconBean, IconCopy, IconCheck, IconStar, IconChevronUp, IconChevronDown } from '../components/Icons';
 
 type Tip = { tipId: string; title: string; content: string; examType: string };
 
@@ -1230,7 +1230,7 @@ export default function ExerciseSession() {
             style={{ borderLeft: '4px solid var(--color-accent)' }}
           >
             <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--spacing-sm)', marginBottom: 'var(--spacing-sm)' }}>
-              <span style={{ color: 'var(--color-accent)', display: 'flex', alignItems: 'center', flexShrink: 0 }}><IconBookOpen size={22} /></span>
+              <span style={{ color: 'var(--color-accent)', display: 'flex', alignItems: 'center', flexShrink: 0 }}><IconBean size={22} /></span>
               <p style={{ fontWeight: 700, color: 'var(--color-text-main)', margin: 0, fontSize: 'var(--font-size-base)' }}>{currentTip.title}</p>
             </div>
             <p style={{ color: 'var(--color-text-sub)', margin: 0, fontSize: 'var(--font-size-sm)', lineHeight: 1.8 }}>
