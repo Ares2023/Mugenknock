@@ -339,7 +339,7 @@ export default function DailyServiceRevealModal({
                     <IconBean size={12} /> {ja ? '豆知識' : 'Trivia'}
                   </div>
                   <div style={{ fontSize: 12, color: 'rgba(255,255,255,.7)', lineHeight: 1.7, overflowWrap: 'break-word', wordBreak: 'break-word' }}>
-                    {service.trivia}
+                    {service.trivia.replace(/^🌱\s*/, '')}
                   </div>
                 </div>
               )}

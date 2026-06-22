@@ -421,7 +421,7 @@ export default function ServiceEncyclopedia() {
                   <IconBean size={14} />
                 </span>
                 <span style={{ fontSize: 'var(--font-size-sm)', color: 'var(--color-text-sub)', lineHeight: 1.6, overflowWrap: 'break-word', wordBreak: 'break-word' }}>
-                  {selected.trivia}
+                  {selected.trivia.replace(/^🌱\s*/, '')}
                 </span>
               </div>
             )}

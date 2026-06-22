@@ -1015,7 +1015,7 @@ function TodayServiceSection({ lang, userId, onNavigateEncyclopedia, onReveal, i
       {displayService.trivia && (
         <div style={{ background: 'var(--color-bg-main)', borderRadius: 'var(--border-radius-md)', padding: '8px 12px', display: 'flex', gap: 8, alignItems: 'flex-start', marginBottom: 10 }}>
           <span style={{ color: 'var(--color-text-sub)', display: 'flex', alignItems: 'center', flexShrink: 0 }}><IconBean size={14} /></span>
-          <span style={{ fontSize: 'var(--font-size-sm)', color: 'var(--color-text-sub)', lineHeight: 1.6, overflowWrap: 'break-word', wordBreak: 'break-word' }}>{displayService.trivia}</span>
+          <span style={{ fontSize: 'var(--font-size-sm)', color: 'var(--color-text-sub)', lineHeight: 1.6, overflowWrap: 'break-word', wordBreak: 'break-word' }}>{displayService.trivia.replace(/^🌱\s*/, '')}</span>
         </div>
       )}
 
