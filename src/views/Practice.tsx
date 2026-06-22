@@ -6,7 +6,6 @@ import { useAuth } from '../contexts/AuthContext';
 import { useLanguage } from '../contexts/LanguageContext';
 import { API_ENDPOINT, EXAM_CONFIGS, EXAM_DOMAINS, EXAM_TYPES, PASS_SCORES, qDomainName } from '../constants';
 import Button from '../components/ui/Button';
-import DomainSelector from '../components/DomainSelector';
 import { getCached, setCached, SHORT_TTL } from '../utils/cache';
 import { autoScoreAndClearDrafts } from '../utils/sessionUtils';
 import { animateLoadPct, randomPlateau } from '../utils/loadProgress';
@@ -64,7 +63,7 @@ export default function Practice() {
   const initPrefs = (et: string) => loadExercisePrefs(et, uid);
   const [selectedDomains, setSelectedDomains] = useState<string[]>(() => {
     const et = localStorage.getItem(`targetExam_${uid}`) || 'SAA';
-    return initPrefs(et).domains ?? EXAM_DOMAINS[et] ?? [];
+    return initPrefs(et).domains ?? [];
   });
   const [limit, setLimit] = useState<number>(() => {
     const raw = initPrefs(localStorage.getItem(`targetExam_${uid}`) || 'SAA').limit ?? 10;
@@ -115,10 +114,9 @@ export default function Practice() {
   useEffect(() => {
     setAvailableCount(null);
     const fetchCounts = async () => {
-      if (selectedDomains.length === 0) { setAvailableCount(0); return; }
       try {
         const params = new URLSearchParams({ examType });
-        const allSelected = EXAM_DOMAINS[examType].every(d => selectedDomains.includes(d));
+        const allSelected = selectedDomains.length === 0 || EXAM_DOMAINS[examType].every(d => selectedDomains.includes(d));
         if (!allSelected) params.set('domain', selectedDomains.join(','));
         if (user && (bookmarkOnly || unansweredOnly || incorrectOnly)) {
           const [qRes, bkmRes, answeredRes, incorrectRes] = await Promise.all([
@@ -168,7 +166,6 @@ export default function Practice() {
   }
 
   const startExercise = async () => {
-    if (selectedDomains.length === 0) { alert(ja ? '出題ドメインを最低1つ選択してください' : 'Please select at least one domain'); return; }
     const userId = user?.userId ?? 'guest';
     await autoScoreAndClearDrafts(userId);
     setExerciseDraft(null);
@@ -177,7 +174,7 @@ export default function Practice() {
     setExerciseLoadPct(10);
     try {
       const userId = user?.userId ?? 'guest';
-      const allSelected = EXAM_DOMAINS[examType].every(d => selectedDomains.includes(d));
+      const allSelected = selectedDomains.length === 0 || EXAM_DOMAINS[examType].every(d => selectedDomains.includes(d));
       // ── プログレッシブロードパス（フィルタあり・なし共通）──
       // 1. IDのみ取得（Lambda側でフィルタ・優先度ソート）
       const idsParams = new URLSearchParams({ examType, shuffle: 'true', idsOnly: 'true' });
@@ -318,7 +315,7 @@ export default function Practice() {
 
 
       {/* タブ */}
-      <div style={{ display: 'flex', borderBottom: '1px solid var(--color-border)', marginBottom: 'var(--spacing-lg)' }}>
+      <div style={{ display: 'flex', borderBottom: '1px solid color-mix(in srgb, var(--color-text-light) 40%, transparent)', marginBottom: 'var(--spacing-lg)' }}>
         <button style={tabBtn(tab === 'exercise')} onClick={() => setTab('exercise')}>
           {ja ? '演習' : 'Exercise'}
         </button>
@@ -399,17 +396,40 @@ export default function Practice() {
             >
               {showExerciseOptions ? <IconChevronDown size={14} /> : <IconChevronRight size={14} />}
               {ja ? 'オプション' : 'Options'}
+              {selectedDomains.length > 0 && selectedDomains.length < (EXAM_DOMAINS[examType]?.length ?? 0) && (
+                <span style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', width: 16, height: 16, borderRadius: '50%', background: 'var(--color-primary)', color: '#fff', fontSize: 10, fontWeight: 700 }}>
+                  {selectedDomains.length}
+                </span>
+              )}
             </button>
             {showExerciseOptions && (
-              <div style={{ padding: '12px 14px', borderTop: '1px solid var(--color-border)' }}>
-                <DomainSelector
-                  domains={EXAM_DOMAINS[examType]}
-                  selected={selectedDomains}
-                  onChange={setSelectedDomains}
-                  lang={lang}
-                  noMargin
-                  weakRates={user ? domainRates : undefined}
-                />
+              <div style={{ padding: '12px 14px', borderTop: '1px solid color-mix(in srgb, var(--color-text-light) 40%, transparent)', display: 'flex', flexDirection: 'column', gap: 6 }}>
+                <div style={{ fontSize: 'var(--font-size-xs)', color: 'var(--color-text-light)', marginBottom: 2 }}>
+                  {ja ? '未選択で全ドメインが対象' : 'No selection = all domains'}
+                </div>
+                {(EXAM_DOMAINS[examType] ?? []).map(domain => {
+                  const checked = selectedDomains.includes(domain);
+                  const label = lang === 'en' ? (domain) : domain;
+                  const rate = user ? domainRates[domain] : undefined;
+                  return (
+                    <label key={domain} style={{ display: 'flex', alignItems: 'center', gap: 8, cursor: 'pointer' }}>
+                      <input
+                        type="checkbox"
+                        checked={checked}
+                        onChange={() => setSelectedDomains(prev =>
+                          checked ? prev.filter(d => d !== domain) : [...prev, domain]
+                        )}
+                        style={{ width: 15, height: 15, flexShrink: 0, accentColor: 'var(--color-primary)' }}
+                      />
+                      <span style={{ fontSize: 'var(--font-size-sm)', color: 'var(--color-text-main)', flex: 1 }}>{label}</span>
+                      {rate != null && (
+                        <span style={{ fontSize: 10, fontWeight: 700, color: rate < 0.4 ? 'var(--color-danger)' : rate < 0.6 ? 'var(--color-caution)' : 'var(--color-text-sub)', flexShrink: 0 }}>
+                          {Math.round(rate * 100)}%
+                        </span>
+                      )}
+                    </label>
+                  );
+                })}
               </div>
             )}
           </div>
@@ -453,7 +473,7 @@ export default function Practice() {
                   })}
                 </div>
               )}
-              <div style={{ height: 1, background: 'var(--color-border)', marginBottom: 16 }} />
+              <div style={{ height: 1, background: 'color-mix(in srgb, var(--color-text-light) 40%, transparent)', marginBottom: 16 }} />
 
               {/* ミニ模試チェックボックス */}
               <label style={{ display: 'inline-flex', alignItems: 'center', gap: 'var(--spacing-sm)', cursor: 'pointer', fontSize: 'var(--font-size-base)', marginBottom: 20 }}>

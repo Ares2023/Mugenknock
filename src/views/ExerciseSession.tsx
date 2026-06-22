@@ -1223,7 +1223,7 @@ export default function ExerciseSession() {
               fontSize: 10, fontWeight: 700, letterSpacing: '1.5px',
               padding: '3px 10px', borderRadius: 'var(--border-radius-sm)',
             }}>COLUMN</span>
-            <span style={{ flex: 1, height: 1, background: 'var(--color-border)' }} />
+            <span style={{ flex: 1, height: 1, background: 'color-mix(in srgb, var(--color-text-light) 40%, transparent)' }} />
           </div>
           <Card
             padding="var(--spacing-md) var(--spacing-lg)"
