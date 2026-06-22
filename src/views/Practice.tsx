@@ -362,7 +362,7 @@ export default function Practice() {
               <button
                 onClick={() => setLimit(v => Math.max(5, v - 5))}
                 disabled={limit <= 5}
-                style={{ width: 36, height: 36, borderRadius: '50%', border: '1px solid color-mix(in srgb, var(--color-text-light) 70%, transparent)', background: 'transparent', cursor: limit <= 5 ? 'default' : 'pointer', fontSize: 20, display: 'flex', alignItems: 'center', justifyContent: 'center', color: limit <= 5 ? 'var(--color-text-light)' : 'var(--color-text-main)' }}
+                style={{ width: 36, height: 36, borderRadius: '50%', border: '1px solid color-mix(in srgb, var(--color-text-light) 60%, transparent)', background: 'transparent', cursor: limit <= 5 ? 'default' : 'pointer', fontSize: 20, display: 'flex', alignItems: 'center', justifyContent: 'center', color: limit <= 5 ? 'var(--color-text-light)' : 'var(--color-text-main)' }}
               >−</button>
               <span style={{ fontSize: 24, fontWeight: 800, minWidth: 64, textAlign: 'center', color: 'var(--color-primary)', fontVariantNumeric: 'tabular-nums' }}>
                 {limit}<span style={{ fontSize: 13, fontWeight: 400, marginLeft: 2, color: 'var(--color-text-sub)' }}>{ja ? '問' : 'Q'}</span>
@@ -383,7 +383,7 @@ export default function Practice() {
 
           {/* ── オプション（折りたたみ） ── */}
           {user && (
-            <div style={{ marginBottom: 'var(--spacing-lg)', border: '1px solid color-mix(in srgb, var(--color-text-light) 70%, transparent)', borderRadius: 'var(--border-radius-md)', overflow: 'hidden' }}>
+            <div style={{ marginBottom: 'var(--spacing-lg)', border: '1px solid color-mix(in srgb, var(--color-text-light) 60%, transparent)', borderRadius: 'var(--border-radius-md)', overflow: 'hidden' }}>
               <button
                 onClick={() => setShowExerciseOptions(v => !v)}
                 style={{ width: '100%', display: 'flex', alignItems: 'center', gap: 6, padding: '10px 14px', background: 'var(--color-bg-main)', border: 'none', cursor: 'pointer', fontSize: 'var(--font-size-sm)', fontWeight: 600, color: 'var(--color-text-sub)' }}
@@ -479,7 +479,7 @@ export default function Practice() {
 
               {/* ── オプション（模試・折りたたみ） ── */}
               {user && (
-                <div style={{ marginBottom: 'var(--spacing-lg)', border: '1px solid color-mix(in srgb, var(--color-text-light) 70%, transparent)', borderRadius: 'var(--border-radius-md)', overflow: 'hidden' }}>
+                <div style={{ marginBottom: 'var(--spacing-lg)', border: '1px solid color-mix(in srgb, var(--color-text-light) 60%, transparent)', borderRadius: 'var(--border-radius-md)', overflow: 'hidden' }}>
                   <button
                     onClick={() => setShowExamOptions(v => !v)}
                     style={{ width: '100%', display: 'flex', alignItems: 'center', gap: 6, padding: '10px 14px', background: 'var(--color-bg-main)', border: 'none', cursor: 'pointer', fontSize: 'var(--font-size-sm)', fontWeight: 600, color: 'var(--color-text-sub)' }}
