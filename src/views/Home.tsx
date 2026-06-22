@@ -2238,8 +2238,31 @@ export default function Home() {
                     })}
                   </div>
                 </div>
+                <div style={{ padding: '14px 0', borderBottom: targetExam && (EXAM_DOMAINS[targetExam] ?? []).length > 0 ? '1px solid var(--color-border)' : 'none' }}>
+                  <div style={{ fontWeight: 500, fontSize: 'var(--font-size-base)', color: 'var(--color-text-main)', marginBottom: 8 }}>
+                    {ja ? '重点フィルタ' : 'Focus Filter'}
+                  </div>
+                  {([
+                    ['unansweredOnly', ja ? '未回答を優先' : 'Unanswered First'],
+                    ['incorrectOnly',  ja ? '不正解を優先'  : 'Incorrect First'],
+                    ['bookmarkOnly',   ja ? 'ブックマークを優先' : 'Bookmarked First'],
+                  ] as [string, string][]).map(([key, label]) => {
+                    const on = !!(draftPrefs[key]);
+                    return (
+                      <label key={key} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '8px 0', cursor: 'pointer' }}>
+                        <input
+                          type="checkbox"
+                          checked={on}
+                          onChange={() => setDraftPrefs(p => ({ ...p, [key]: !on }))}
+                          style={{ width: 16, height: 16, flexShrink: 0, accentColor: 'var(--color-primary)' }}
+                        />
+                        <span style={{ fontSize: 'var(--font-size-sm)', fontWeight: on ? 600 : 400, color: 'var(--color-text-main)' }}>{label}</span>
+                      </label>
+                    );
+                  })}
+                </div>
                 {targetExam && (EXAM_DOMAINS[targetExam] ?? []).length > 0 && (
-                  <div style={{ padding: '14px 0', borderBottom: '1px solid var(--color-border)' }}>
+                  <div style={{ padding: '14px 0' }}>
                     <div style={{ fontWeight: 500, fontSize: 'var(--font-size-base)', color: 'var(--color-text-main)', marginBottom: 8 }}>
                       {ja ? 'ドメイン' : 'Domains'}
                     </div>
@@ -2281,29 +2304,6 @@ export default function Home() {
                     )}
                   </div>
                 )}
-                <div style={{ padding: '14px 0' }}>
-                  <div style={{ fontWeight: 500, fontSize: 'var(--font-size-base)', color: 'var(--color-text-main)', marginBottom: 8 }}>
-                    {ja ? '重点フィルタ' : 'Focus Filter'}
-                  </div>
-                  {([
-                    ['unansweredOnly', ja ? '未回答を優先' : 'Unanswered First'],
-                    ['incorrectOnly',  ja ? '不正解を優先'  : 'Incorrect First'],
-                    ['bookmarkOnly',   ja ? 'ブックマークを優先' : 'Bookmarked First'],
-                  ] as [string, string][]).map(([key, label]) => {
-                    const on = !!(draftPrefs[key]);
-                    return (
-                      <label key={key} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '8px 0', cursor: 'pointer' }}>
-                        <input
-                          type="checkbox"
-                          checked={on}
-                          onChange={() => setDraftPrefs(p => ({ ...p, [key]: !on }))}
-                          style={{ width: 16, height: 16, flexShrink: 0, accentColor: 'var(--color-primary)' }}
-                        />
-                        <span style={{ fontSize: 'var(--font-size-sm)', fontWeight: on ? 600 : 400, color: 'var(--color-text-main)' }}>{label}</span>
-                      </label>
-                    );
-                  })}
-                </div>
               </div>
               <div style={{ fontSize: 'var(--font-size-xs)', color: 'var(--color-text-light)', marginBottom: 16 }}>
                 {ja ? '※ AI確認済み問題のみが常に対象です' : '* AI-verified questions are always included'}
