@@ -1,0 +1,120 @@
+==========================================
+正当性チェック開始: Sat Jun 20 18:40:49 JST 2026
+バッチサイズ: 100問 / チャンクサイズ: 5問
+==========================================
+チェック対象: 100問
+前処理: choices ラベル接頭辞チェック...
+  前処理: ラベル接頭辞なし（全問クリーン）
+チャンク数: 20
+
+--- チャンク 1/20: 5問  開始=18:41:18 ---
+⚠️  チャンク 1 でエラー（exit 1）。このチャンクをスキップして続行
+stderr: 
+stdout: Failed to authenticate. API Error: 401 Invalid authentication credentials
+
+--- チャンク 2/20: 5問  開始=18:41:22 ---
+⚠️  チャンク 2 でエラー（exit 1）。このチャンクをスキップして続行
+stderr: 
+stdout: Failed to authenticate. API Error: 401 Invalid authentication credentials
+
+--- チャンク 3/20: 5問  開始=18:41:26 ---
+⚠️  チャンク 3 でエラー（exit 1）。このチャンクをスキップして続行
+stderr: 
+stdout: Failed to authenticate. API Error: 401 Invalid authentication credentials
+
+--- チャンク 4/20: 5問  開始=18:41:30 ---
+⚠️  チャンク 4 でエラー（exit 1）。このチャンクをスキップして続行
+stderr: 
+stdout: Failed to authenticate. API Error: 401 Invalid authentication credentials
+
+--- チャンク 5/20: 5問  開始=18:41:34 ---
+⚠️  チャンク 5 でエラー（exit 1）。このチャンクをスキップして続行
+stderr: 
+stdout: Failed to authenticate. API Error: 401 Invalid authentication credentials
+
+--- チャンク 6/20: 5問  開始=18:41:38 ---
+⚠️  チャンク 6 でエラー（exit 1）。このチャンクをスキップして続行
+stderr: 
+stdout: Failed to authenticate. API Error: 401 Invalid authentication credentials
+
+--- チャンク 7/20: 5問  開始=18:41:42 ---
+⚠️  チャンク 7 でエラー（exit 1）。このチャンクをスキップして続行
+stderr: 
+stdout: Failed to authenticate. API Error: 401 Invalid authentication credentials
+
+--- チャンク 8/20: 5問  開始=18:41:46 ---
+⚠️  チャンク 8 でエラー（exit 1）。このチャンクをスキップして続行
+stderr: 
+stdout: Failed to authenticate. API Error: 401 Invalid authentication credentials
+
+--- チャンク 9/20: 5問  開始=18:41:53 ---
+⚠️  チャンク 9 でエラー（exit 1）。このチャンクをスキップして続行
+stderr: 
+stdout: Failed to authenticate. API Error: 401 Invalid authentication credentials
+
+--- チャンク 10/20: 5問  開始=18:41:57 ---
+⚠️  チャンク 10 でエラー（exit 1）。このチャンクをスキップして続行
+stderr: 
+stdout: Failed to authenticate. API Error: 401 Invalid authentication credentials
+
+--- チャンク 11/20: 5問  開始=18:42:01 ---
+⚠️  チャンク 11 でエラー（exit 1）。このチャンクをスキップして続行
+stderr: 
+stdout: Failed to authenticate. API Error: 401 Invalid authentication credentials
+
+--- チャンク 12/20: 5問  開始=18:42:05 ---
+⚠️  チャンク 12 でエラー（exit 1）。このチャンクをスキップして続行
+stderr: 
+stdout: Failed to authenticate. API Error: 401 Invalid authentication credentials
+
+--- チャンク 13/20: 5問  開始=18:42:09 ---
+⚠️  チャンク 13 でエラー（exit 1）。このチャンクをスキップして続行
+stderr: 
+stdout: Failed to authenticate. API Error: 401 Invalid authentication credentials
+
+--- チャンク 14/20: 5問  開始=18:42:13 ---
+⚠️  チャンク 14 でエラー（exit 1）。このチャンクをスキップして続行
+stderr: 
+stdout: Failed to authenticate. API Error: 401 Invalid authentication credentials
+
+--- チャンク 15/20: 5問  開始=18:42:17 ---
+  [FIX  ] gai-ecb32aa5: 選択肢Bが他の3択（平均約35字）に対して88字と著しく長く文字数から正解が推測可能。解説に「しることは」「選択肢DBedrock」のtypo2箇所あり。 → 変更: choices, correctAnswers, explanation, choiceExplanations
+  [FIX  ] soa-b52d7fb4: 問題文の要件①②③に改行なし。解説の選択肢D説明に「イベント転送」という誤記があり実際の選択肢（ALB）と一致しない。 → 変更: questionText, explanation, choiceExplanations
+  [FIX  ] soa-251d0143: 問題文の要件①②③④が改行なしで一文に連なっており読みにくい。 → 変更: questionText
+  [FIX  ] dva-dfbf275c: 問題文のアプリ特性列挙に改行なし。解説の選択肢C・Dがなぜ不適切かを説明しておらず機能説明のみになっている。 → 変更: questionText, explanation, choiceExplanations
+  [FIX  ] gai-a7a03e07: 問題文の条件列挙（「・」区切り3条件）に改行なし。解説の選択肢C説明が「運用複雑性が高くなります」のみで不十分。 → 変更: questionText, explanation, choiceExplanations
+  → 更新完了: OK=0 修正=5 削除=0
+  終了=18:49:53  経過=456秒
+
+--- チャンク 16/20: 5問  開始=18:49:53 ---
+  [OK   ] mla-b2698bb5
+  [OK   ] aif-974ff88d
+  [FIX  ] dop-4b364f63: 問題文中のOWASPがAWS非固有の略語で注釈なし。 → 変更: questionText
+  [FIX  ] gai-ffa9ab2a: ①②③列挙箇所に改行なし・「マーケットニュース基づく」に助詞「に」の脱字・タグが「テスト、検証、トラブルシューティング」と不適切（アーキテクチャ選択問題のため「実装と統合」が正しい）・正解選択肢（約90字）が不正解平均（約57字）より約33字長く文字数から正解が推測可能。 → 変更: questionText, choices, correctAnswers, domain, tags
+  [FIX  ] dva-de513770: 複数要件の列挙箇所に改行なし・正解選択肢（約110字）が不正解平均（約55字）より約55字長く文字数で正解が推測可能。 → 変更: questionText, choices
+  → 更新完了: OK=2 修正=3 削除=0
+  終了=18:55:36  経過=343秒
+
+--- チャンク 17/20: 5問  開始=18:55:36 ---
+  [OK   ] soa-f677bd47
+  [FIX  ] dva-0164ab12: 選択肢Bの例示値「90秒以上」がAWSベストプラクティス（Lambdaタイムアウトの6倍=360秒以上）と矛盾しており解説との整合性がない。 → 変更: choices, correctAnswers, choiceExplanations
+  [FIX  ] gai-dcb1199e: 問題文内で4つの要件が改行なしで列挙されており読みにくいため、改行を追加する。 → 変更: questionText
+  [OK   ] gai-f57f4f0d
+  [FIX  ] dva-6ad61e87: 解説末尾の「選択肢DIAMAccessAnalyzerは」でスペースが欠落しており視認性が低い。 → 変更: explanation, choiceExplanations
+  → 更新完了: OK=2 修正=3 削除=0
+  終了=19:03:37  経過=481秒
+
+--- チャンク 18/20: 5問  開始=19:03:37 ---
+  [FIX  ] gai-c73923c0: 解説で正解（選択肢B）が「選択肢B（...）は〜」形式で明示されておらず、他選択肢との形式が不統一 → 変更: explanation
+  [FIX  ] mla-221aa11a: 解説で正解（選択肢C）が「選択肢C（...）は〜」形式で明示されておらず、他選択肢との形式が不統一 → 変更: explanation
+  [FIX  ] aif-2b9a4f10: 解説で正解（選択肢B）が「選択肢B（...）は〜」形式で明示されておらず、他選択肢との形式が不統一 → 変更: explanation
+  [FIX  ] gai-00193c9b: ①正解（選択肢B）が「選択肢B（...）は〜」形式で明示されていない。②選択肢Bに「（オンデマンド価格と比較して最大50%のコスト削減）」という括弧書きがあり不正解選択肢より著しく長く、文字数から正解が推測できる → 変更: choices, correctAnswers, explanation
+  [FIX  ] aif-5ab19646: ①正解（選択肢B）が「選択肢B（...）は〜」形式で明示されていない。②選択肢Bが「（Embedding）」「（意味的）」などの注釈括弧書きにより他選択肢より約30字長く、文字数から正解が推測されやすい → 変更: choices, correctAnswers, explanation
+  → 更新完了: OK=0 修正=5 削除=0
+  終了=19:09:18  経過=341秒
+
+--- チャンク 19/20: 5問  開始=19:09:18 ---
+⚠️  レート制限を検出。残りチャンクをスキップ
+stdout: You've hit your session limit · resets 7:10pm (Asia/Tokyo)
+
+完了サマリー: 問題なし=4問 / 自動修正=16問 / 削除=0問

@@ -1,0 +1,11 @@
+=== 2026-06-23 02:45:53 | generate-release-note.sh | exit:0 ===
+[release-note] 対象日: 2026-06-22
+[release-note] 2026-06-22: 18件のコミット
+[release-note] 生成結果:
+{
+  "title": "演習設定がさらに使いやすく、データ消失バグも修正！",
+  "body": "ドメイン選択に「全て」チェックボックスを追加し、サクッと演習・トレーニングの絞り込みがよりスムーズになりました！\n演習後にホーム画面の目標演習量が消えたり、目標資格の変更がリロードで元に戻るバグも合わせて修正しています。",
+  "titleEn": "Smarter Domain Filtering & Important Bug Fixes!",
+  "bodyEn": "You can now select all domains at once with a single checkbox in Quick Practice and Training settings — filtering your sessions just got easier!\nWe also fixed bugs where your home screen stats would disappear after practice and target qualification changes wouldn't save across page reloads."
+}
+[release-note] ✓ DynamoDBに挿入しました: 2026-06-22 — 演習設定がさらに使いやすく、データ消失バグも修正！

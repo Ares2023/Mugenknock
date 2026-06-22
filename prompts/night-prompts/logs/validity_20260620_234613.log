@@ -1,0 +1,59 @@
+==========================================
+正当性チェック開始: Sat Jun 20 23:46:13 JST 2026
+バッチサイズ: 30問 / チャンクサイズ: 5問
+==========================================
+チェック対象: 30問
+前処理: choices ラベル接頭辞チェック...
+  前処理: ラベル接頭辞なし（全問クリーン）
+チャンク数: 6
+
+--- チャンク 1/6: 5問  開始=23:46:40 ---
+  [OK   ] scs-2420b172
+  [OK   ] scs-56ee264a
+  [OK   ] scs-8e8ad254
+  [OK   ] ans-7fd23dad
+  [OK   ] scs-d0619903
+  → 更新完了: OK=5 修正=0 削除=0
+  終了=23:50:59  経過=259秒
+
+--- チャンク 2/6: 5問  開始=23:50:59 ---
+  [OK   ] scs-167c7f5e
+  [OK   ] ans-732bc5d9
+  [FIX  ] ans-c93c5ded: questionTextで要件①②が改行なしで1文に連続しており読みにくい。\nで分離する → 変更: questionText
+  [FIX  ] ans-d70ad13b: questionTextで要件(1)(2)(3)が改行なしで連続しており読みにくい。\nで分離する → 変更: questionText
+  [OK   ] ans-b8587138
+  → 更新完了: OK=3 修正=2 削除=0
+  終了=23:56:36  経過=337秒
+
+--- チャンク 3/6: 5問  開始=23:56:36 ---
+  [OK   ] scs-7334a39e
+  [OK   ] ans-6113e12f
+  [FIX  ] sap-2da7b62c: 問題文の課題①②③④が改行なしで1文に連結されており可読性が低いため修正。 → 変更: questionText
+  [FIX  ] gai-8c8b55eb: ドメインがテスト・検証ではなく基盤モデル統合になっている誤り、ROUGE-L解説でLCSをn-gramと誤記、選択肢D解説が極端に短い。 → 変更: explanation, choiceExplanations, domain, tags
+  [FIX  ] dva-526c0edd: 解説が選択肢CとDに言及しておらず、各選択肢説明が改行・識別されていない。 → 変更: explanation
+  → 更新完了: OK=2 修正=3 削除=0
+  終了=00:02:57  経過=381秒
+
+--- チャンク 4/6: 5問  開始=00:02:57 ---
+  [FIX  ] dva-c3991493: 正解選択肢BにSTS括弧説明が含まれ他選択肢（約43〜46字）と文字数が著しく乖離（約90字）。また解説の各選択肢説明に段落間の改行が欠如。 → 変更: choices, correctAnswers, explanation
+  [OK   ] dop-0124f0ab
+  [FIX  ] mla-112ea8c3: PIIの略語（Personally Identifiable Information）が問題文で例示のみで未展開のため正式名称の注釈を追加。 → 変更: questionText
+  [FIX  ] soa-77cec022: 「EventBridgeルールにtime-based条件を追加」はEventBridgeのイベントルール仕様として不正確。時間帯フィルターはLambda内で実装する方法が正しい。 → 変更: explanation
+  [FIX  ] soa-b8499f07: canaryの脚注が正解選択肢のみに含まれており他選択肢と文字数が著しく不均衡。脚注を問題文末に移動し選択肢の長さを揃える。解説冒頭の正解再掲と各選択肢段落間の改行不足も修正。 → 変更: questionText, choices, correctAnswers, explanation, choiceExplanations
+  → 更新完了: OK=1 修正=4 削除=0
+  終了=00:17:50  経過=893秒
+
+--- チャンク 5/6: 5問  開始=00:17:51 ---
+  [FIX  ] soa-df616d10: 選択肢Bが他より著しく長い（WORM展開が原因）。解説でWORM略語を補足し、正解選択肢ラベルを追加 → 変更: choices, correctAnswers, explanation
+  [FIX  ] soa-1724acee: 選択肢Bが他より著しく長い。解説に「Auror」誤字あり。正解選択肢ラベルが解説にない → 変更: choices, correctAnswers, explanation
+  [FIX  ] soa-c2514913: 選択肢Bが他より長い。解説の括弧位置が不自然（「選択肢Aの（加重ルーティング）」）。正解ラベルが解説にない → 変更: choices, correctAnswers, explanation
+  [FIX  ] mla-3d55de61: 解説に正解（選択肢B）のラベルがなく、各選択肢ラベルと「の」の間のスペースが不統一 → 変更: explanation
+  [FIX  ] soa-5a2e89e8: 選択肢Bが他より著しく長い。解説に選択肢A・C・Dが誤りである理由の説明がなく正解ラベルもない → 変更: choices, correctAnswers, explanation
+  → 更新完了: OK=0 修正=5 削除=0
+  終了=00:26:33  経過=522秒
+
+--- チャンク 6/6: 5問  開始=00:26:33 ---
+⚠️  レート制限を検出。残りチャンクをスキップ
+stdout: You've hit your session limit · resets 5:10am (Asia/Tokyo)
+
+完了サマリー: 問題なし=11問 / 自動修正=14問 / 削除=0問

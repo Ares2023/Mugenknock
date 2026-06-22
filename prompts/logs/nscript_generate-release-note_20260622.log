@@ -1,0 +1,11 @@
+=== 2026-06-22 01:48:30 | generate-release-note.sh | exit:0 ===
+[release-note] 対象日: 2026-06-21
+[release-note] 2026-06-21: 29件のコミット
+[release-note] 生成結果:
+{
+  "title": "演習がサクサク快適に！目標資格パネルも大幅リニューアル！",
+  "body": "演習開始時の1問目表示を先読みして高速化し、学習リズムを崩さずスタートできるようになりました！\nマイページの目標資格パネルはアイコンバッジ付きの新デザインに刷新され、トレーニング画面にも便利なオプション折りたたみパネルを追加しました。",
+  "titleEn": "Faster Quiz Start & Refreshed Goal Panel!",
+  "bodyEn": "The first question now preloads when you start a practice session, so you can dive in without any wait!\nThe goal certification panel on My Page has a fresh new look with icon badges, and a handy collapsible options panel has been added to the training screen."
+}
+[release-note] ✓ DynamoDBに挿入しました: 2026-06-21 — 演習がサクサク快適に！目標資格パネルも大幅リニューアル！

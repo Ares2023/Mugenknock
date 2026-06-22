@@ -1,0 +1,15 @@
+=== 2026-06-23 02:45:53 | 03-check-reports.sh | exit:0 ===
+==========================================
+通報チェック開始: Tue Jun 23 02:10:12 JST 2026
+関連問題チェック: ドメインあたり最大 10問
+==========================================
+通報件数: 2件 / 関連問題: 20問
+Claude 判定対象: 通報=2件 / 関連=20問
+  [FIX/通報]    dop-c36bfb88: 2024年にAWS CodeStar ConnectionsはAWS CodeConnectionsに改称された。問題文・正解選択肢・解説中の「AWS CodeStar Connections」「CodeStar接続」を「AWS CodeConnections」「CodeConnections接続」に更新する必要がある。なお、IAMアクション名「codestar-connections:UseConnection」はAPI後方互換性のため改称後も維持されているため選択肢Cは変更不要。
+
+通報問題  → OK=0  FIX=1  DELETE=0
+関連問題  → FIX=0  DELETE=0
+
+==========================================
+通報チェック完了: Tue Jun 23 02:18:55 JST 2026
+==========================================
