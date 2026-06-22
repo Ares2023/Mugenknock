@@ -10,6 +10,7 @@ import { useLanguage } from '../contexts/LanguageContext';
 import {
   API_ENDPOINT, EXAM_TYPES, EXAM_CONFIGS, EXAM_DOMAINS,
   DOMAIN_WEIGHTS, DOMAIN_NAME_EN, PASS_SCORES, qDomainName,
+  EXAM_LEVEL, EXAM_LEVEL_COLORS,
 } from '../constants';
 import { getCached, setCached, deleteCached, DEFAULT_TTL, getCachedPersist, setCachedPersist, deleteCachedPersist } from '../utils/cache';
 import { animateLoadPct, randomPlateau } from '../utils/loadProgress';
@@ -1714,7 +1715,15 @@ export default function Home() {
           </span>
         </div>
         <div style={{ height: 6, borderRadius: 3, background: 'var(--color-border)', overflow: 'hidden' }}>
-          <div style={{ height: '100%', width: `${Math.min(100, (dailyCount / dailyGoal) * 100)}%`, borderRadius: 3, background: dailyCount >= dailyGoal ? 'var(--color-success)' : 'var(--bar-gradient-teal)', transition: 'width 0.3s' }} />
+          {(() => {
+            const examColor = targetExam ? (EXAM_LEVEL_COLORS[EXAM_LEVEL[targetExam]] ?? 'var(--color-primary)') : 'var(--color-primary)';
+            const barColor = dailyCount >= dailyGoal
+              ? 'var(--bar-gradient-success)'
+              : `linear-gradient(90deg, ${examColor}cc, ${examColor})`;
+            return (
+              <div style={{ height: '100%', width: `${Math.min(100, (dailyCount / dailyGoal) * 100)}%`, borderRadius: 3, background: barColor, transformOrigin: 'left center', animation: 'growWidth 0.45s cubic-bezier(0.34, 1.56, 0.64, 1) both' }} />
+            );
+          })()}
         </div>
       </Card>
 
