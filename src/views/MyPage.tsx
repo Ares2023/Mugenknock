@@ -370,7 +370,7 @@ export default function MyPage() {
             {(() => {
               const HexBadge = ({ panelColor, ExamIcon }: { panelColor: string; ExamIcon?: React.FC<{ size?: number }> }) => (
                 <div style={{ width: 46, height: 53, flexShrink: 0, background: panelColor, clipPath: 'polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                  <div style={{ width: 41, height: 48, background: '#ffffff', clipPath: 'polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: panelColor }}>
+                  <div style={{ width: 41, height: 48, background: 'var(--color-bg-white)', clipPath: 'polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: panelColor }}>
                     {ExamIcon && <ExamIcon size={22} />}
                   </div>
                 </div>
