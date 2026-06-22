@@ -1469,7 +1469,7 @@ export default function Home() {
       if (cached && cached.questions.length > 0) {
         try {
           const count = qPrefs.questionCount ?? 5;
-          const items = cached.questions.slice(0, count);
+          const items = shuffleArray(cached.questions).slice(0, count);
           if (items.length > 0) {
             setQuickLoadPct(90);
             const sessionRes = await fetch(`${API_ENDPOINT}/sessions`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ userId, mode: 'exercise', examType: targetExam, questionIds: items.map((q: any) => q.questionId) }) });
@@ -1562,7 +1562,7 @@ export default function Home() {
       if (cached && cached.questions.length > 0) {
         try {
           const count = fPrefs.questionCount ?? 5;
-          const items = cached.questions.slice(0, count);
+          const items = shuffleArray(cached.questions).slice(0, count);
           if (items.length > 0) {
             setFocusedLoadPct(90);
             const sessionRes = await fetch(`${API_ENDPOINT}/sessions`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ userId, mode: 'exercise', examType: targetExam, questionIds: items.map((q: any) => q.questionId), isFocused: true }) });
