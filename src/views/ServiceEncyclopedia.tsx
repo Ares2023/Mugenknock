@@ -183,6 +183,14 @@ export default function ServiceEncyclopedia() {
     </svg>
   );
 
+  // 認証ロード中は guest データで誤った表示が一瞬見えるのを防ぐ
+  if (authLoading) return (
+    <div style={{ maxWidth: 900, margin: '0 auto', padding: 'var(--spacing-lg)' }}>
+      <div className="skeleton" style={{ height: 16, width: 200, borderRadius: 4, marginBottom: 'var(--spacing-md)' }} />
+      <div className="skeleton" style={{ height: 80, borderRadius: 'var(--border-radius-lg)', marginBottom: 'var(--spacing-md)' }} />
+    </div>
+  );
+
   return (
     <div style={{ maxWidth: 900, margin: '0 auto', padding: 'var(--spacing-lg)' }}>
       <Helmet>
