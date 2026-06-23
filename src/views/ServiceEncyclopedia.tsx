@@ -62,7 +62,7 @@ function renderIcon(service: EncyclopediaService, size: number): React.ReactNode
 export default function ServiceEncyclopedia() {
   const { lang } = useLanguage();
   const ja = lang === 'ja';
-  const { user } = useAuth();
+  const { user, loading: authLoading } = useAuth();
   const uid = user?.userId ?? 'guest';
 
   const [unlockedMap, setUnlockedMap] = useState<Record<string, string>>(() => {
@@ -75,10 +75,12 @@ export default function ServiceEncyclopedia() {
   const [selectedLoading, setSelectedLoading] = useState(false);
   const [activeTab, setActiveTab] = useState<'all' | 'unlocked'>('unlocked');
 
-  // uidが変わった時（ログイン/ログアウト）にlocalStorageから再読み込み
+  // 認証完了後に正しい uid で localStorage を再読み込み
   useEffect(() => {
+    if (authLoading) return;
     try { setUnlockedMap(JSON.parse(localStorage.getItem(`encyclopediaUnlocked_${uid}`) ?? '{}')); } catch {}
-  }, [uid]); // eslint-disable-line react-hooks/exhaustive-deps
+    try { setStoredServices(JSON.parse(localStorage.getItem('encyclopediaServices') ?? '{}')); } catch {}
+  }, [uid, authLoading]); // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
     const refresh = () => {

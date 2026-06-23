@@ -801,9 +801,16 @@ function TodayServiceSection({ lang, userId, onNavigateEncyclopedia, onReveal, i
         .then(d => {
           const raw = d.service ?? null;
           const s = raw ? { ...raw, icon: resolveServiceIcon(raw) } : null;
+          // サーバーが alreadyUnlocked=true を返した場合（別デバイスで解放済み）
+          const serverUnlocked = !alreadyRevealed && !!d.alreadyUnlocked;
+          const isRevealed = alreadyRevealed || serverUnlocked;
+          if (serverUnlocked) {
+            localStorage.setItem(`encyclopediaUnlockDate_${uid}`, jstDate);
+            setRevealed(true);
+          }
           if (s) {
             setCached(cacheKey, s, 60 * 60 * 1000);
-            if (alreadyRevealed) {
+            if (isRevealed) {
               saveToEncyclopedia(s, uid);
               if (userId) syncEncyclopediaToServer(userId);
             }
@@ -815,18 +822,9 @@ function TodayServiceSection({ lang, userId, onNavigateEncyclopedia, onReveal, i
     };
 
     if (!localRevealed && userId) {
-      // ローカルで未解放の場合、別デバイスで解放済みかサーバーに確認
-      fetch(`${API_ENDPOINT}/users/me/encyclopedia-unlocks?userId=${encodeURIComponent(userId)}`)
-        .then(r => r.json())
-        .then(data => {
-          const serverRevealed = data.unlockDate === jstDate;
-          if (serverRevealed) {
-            localStorage.setItem(`encyclopediaUnlockDate_${uid}`, jstDate);
-            setRevealed(true);
-          }
-          fetchService(serverRevealed);
-        })
-        .catch(() => fetchService(false));
+      // ローカルで未解放の場合、サービス取得と同時にサーバーの解放状態を確認
+      // （fetchService 内で alreadyUnlocked を処理するため単純に fetchService を呼ぶ）
+      fetchService(false);
     } else {
       fetchService(localRevealed);
     }
@@ -1342,10 +1340,10 @@ export default function Home() {
     Math.max(1, parseInt(localStorage.getItem(`dailyGoal_${uid}`) ?? '10', 10))
   , [uid]);
   const [dailyCount, setDailyCount] = useState(() =>
-    targetExam ? parseInt(localStorage.getItem(`dailyQCount_${targetExam}_${uid}_${jstDate}`) ?? '0', 10) : 0
+    EXAM_TYPES.reduce((sum, et) => sum + parseInt(localStorage.getItem(`dailyQCount_${et}_${uid}_${jstDate}`) ?? '0', 10), 0)
   );
   useEffect(() => {
-    setDailyCount(targetExam ? parseInt(localStorage.getItem(`dailyQCount_${targetExam}_${uid}_${jstDate}`) ?? '0', 10) : 0);
+    setDailyCount(EXAM_TYPES.reduce((sum, et) => sum + parseInt(localStorage.getItem(`dailyQCount_${et}_${uid}_${jstDate}`) ?? '0', 10), 0));
   }, [targetExam, uid, jstDate, domainStats]);
 
   const [prevScore, setPrevScore] = useState<number | null>(null);
@@ -1737,10 +1735,7 @@ export default function Home() {
         </div>
         <div style={{ height: 6, borderRadius: 3, background: 'var(--color-border)', overflow: 'hidden' }}>
           {(() => {
-            const examColor = targetExam ? (EXAM_LEVEL_COLORS[EXAM_LEVEL[targetExam]] ?? 'var(--color-primary)') : 'var(--color-primary)';
-            const barColor = dailyCount >= dailyGoal
-              ? 'var(--bar-gradient-success)'
-              : `linear-gradient(90deg, ${examColor}, ${examColor}cc)`;
+            const barColor = `linear-gradient(90deg, #009E9E, #009E9E${dailyCount >= dailyGoal ? '' : 'cc'})`;
             return (
               <div style={{ height: '100%', width: `${Math.min(100, (dailyCount / dailyGoal) * 100)}%`, borderRadius: 3, background: barColor, transformOrigin: 'left center', animation: 'growWidth 0.45s cubic-bezier(0.34, 1.56, 0.64, 1) both' }} />
             );
@@ -2332,12 +2327,11 @@ export default function Home() {
             </div>
             {/* 保存ボタン固定 */}
             <div style={{ flexShrink: 0, borderTop: '1px solid var(--color-border)', padding: '10px 16px', display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: 12, minHeight: 64 }}>
-              {savedQuick && <span style={{ fontSize: 13, fontWeight: 700, color: 'var(--color-success)' }}>✓ {ja ? '保存しました' : 'Saved'}</span>}
+              {savedQuick && <span style={{ fontSize: 13, fontWeight: 700, color: 'var(--color-success)', animation: 'sherpa-save-msg 2s ease-in-out both' }}>✓ {ja ? '保存しました' : 'Saved'}</span>}
               <button
                 disabled={targetExam !== null && (EXAM_DOMAINS[targetExam] ?? []).length > 0 && (draftPrefs.domains ?? []).length === 0}
                 onClick={() => {
                   localStorage.setItem(`quickExercisePrefs_${uid}`, JSON.stringify(draftPrefs));
-                  setShowQuickModal(false);
                   setSavedQuick(true);
                   setTimeout(() => setSavedQuick(false), 2000);
                   if (targetExam) {
@@ -2442,11 +2436,10 @@ export default function Home() {
             </div>
             {/* 保存ボタン固定 */}
             <div style={{ flexShrink: 0, borderTop: '1px solid var(--color-border)', padding: '10px 16px', display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: 12, minHeight: 64 }}>
-              {savedFocused && <span style={{ fontSize: 13, fontWeight: 700, color: 'var(--color-success)' }}>✓ {ja ? '保存しました' : 'Saved'}</span>}
+              {savedFocused && <span style={{ fontSize: 13, fontWeight: 700, color: 'var(--color-success)', animation: 'sherpa-save-msg 2s ease-in-out both' }}>✓ {ja ? '保存しました' : 'Saved'}</span>}
               <button
                 onClick={() => {
                   localStorage.setItem(`focusedExercisePrefs_${uid}`, JSON.stringify(draftFocusedPrefs));
-                  setShowFocusedModal(false);
                   setSavedFocused(true);
                   setTimeout(() => setSavedFocused(false), 2000);
                   if (targetExam) {
