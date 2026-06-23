@@ -1804,10 +1804,25 @@ app.get('/daily-service', async (req, res) => {
       if (locked) return res.json({ service: locked, alreadyUnlocked });
     }
 
-    // まだ決まっていない → 今日の index を確定してスケジュールに保存
-    const jstDay = Math.floor((Date.now() + 9 * 3600 * 1000) / 86400000);
-    const service = items[jstDay % items.length];
+    // まだ決まっていない → シャッフルキューから今日のサービスを確定して保存
+    // キューを使うことで全サービスを偏りなく一巡してから繰り返す（300件なら300日周期）
+    let queue = scheduleItem?.queue ? JSON.parse(scheduleItem.queue) : null;
+    let pointer = scheduleItem?.pointer ?? 0;
+
+    // キュー未生成 or 全件消化済み → 全サービスIDをシャッフルしてキューを再生成
+    if (!queue || pointer >= queue.length) {
+      queue = items.map(i => i.serviceId);
+      for (let i = queue.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [queue[i], queue[j]] = [queue[j], queue[i]];
+      }
+      pointer = 0;
+    }
+
+    const todayId = queue[pointer];
+    const service = items.find(i => i.serviceId === todayId) ?? items[0];
     schedule[jstDate] = service.serviceId;
+    pointer++;
 
     // 古いエントリを削除（直近90日分のみ保持）
     const cutoff = new Date(Date.now() + 9 * 3600 * 1000 - 90 * 86400000).toISOString().slice(0, 10);
@@ -1817,7 +1832,12 @@ app.get('/daily-service', async (req, res) => {
 
     await docClient.send(new PutCommand({
       TableName: 'DailyServices',
-      Item: { serviceId: '_schedule_', schedule: JSON.stringify(schedule) },
+      Item: {
+        serviceId: '_schedule_',
+        schedule: JSON.stringify(schedule),
+        queue: JSON.stringify(queue),
+        pointer,
+      },
     }));
 
     res.json({ service, alreadyUnlocked });
