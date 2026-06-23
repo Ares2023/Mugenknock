@@ -565,7 +565,7 @@ export default function ExerciseSession() {
         }
         localStorage.setItem(`domain_history_${examType}_${userId}`, JSON.stringify(dh));
       } catch {}
-      // domain_results に個別正誤を追加（ゲストはlocalStorageのみ、ログイン済みはサーバーにも同期）
+      // domain_results に個別正誤を追加 + キャッシュ楽観的更新
       try {
         const dr: Record<string, boolean[]> =
           JSON.parse(localStorage.getItem(`domain_results_${examType}_${userId}`) ?? '{}');
@@ -584,9 +584,7 @@ export default function ExerciseSession() {
             body: JSON.stringify({ userId, domainResults: dr }),
           }).catch(() => {});
         }
-      } catch {}
-      // セッション完了: ローカル結果でキャッシュを楽観的更新し、バックグラウンド再取得を予約
-      try {
+        // ローカル結果でキャッシュを楽観的更新（drと同スコープ内で処理）
         const existingStats: any[] | null = getCached(`ustats_${userId}`);
         if (existingStats && existingStats.length > 0) {
           const updated = existingStats.map((s: any) => ({
@@ -683,8 +681,14 @@ export default function ExerciseSession() {
           body: JSON.stringify({ userId, domainResults: dr }),
         }).catch(() => {});
       }
-    } catch {}
-    deleteCached(`ustats_${userId}`);
+      const existingStats2: any[] | null = getCached(`ustats_${userId}`);
+      if (existingStats2 && existingStats2.length > 0) {
+        const updated2 = existingStats2.map((s: any) => ({ ...s, recentResults: dr[s.tagId] ?? s.recentResults }));
+        setCached(`ustats_${userId}`, updated2, DEFAULT_TTL);
+      } else {
+        deleteCached(`ustats_${userId}`);
+      }
+    } catch { deleteCached(`ustats_${userId}`); }
     localStorage.setItem(`postSessionRefresh_${userId}`, String(Date.now()));
     const ptsPerQ = EXAM_LEVEL[examType] === 'Foundational' ? 1 : EXAM_LEVEL[examType] === 'Associate' ? 2 : 3;
     const earnedPts = results.filter(r => r.isCorrect).length * ptsPerQ;
