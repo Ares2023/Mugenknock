@@ -482,7 +482,7 @@ export default function MyPage() {
                             <span style={{ fontSize: 13, color: 'var(--color-text-main)', marginLeft: 4 }}>{ja ? '受験予定' : 'exam date'}</span>
                           </span>
                         ) : (
-                          <span style={{ fontSize: 13, color: 'var(--color-text-light)' }}>{ja ? '未設定' : 'Not set'}</span>
+                          <span style={{ fontSize: 13, color: 'var(--color-text-light)' }}>{ja ? '受験日未設定' : 'No exam date set'}</span>
                         )}
                       </div>
                       <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
@@ -560,7 +560,7 @@ export default function MyPage() {
                             <span style={{ fontSize: 13, color: 'var(--color-text-main)', marginLeft: 4 }}>{ja ? '受験予定' : 'exam date'}</span>
                           </span>
                         ) : (
-                          <span style={{ fontSize: 13, color: 'var(--color-text-light)' }}>{ja ? '未設定' : 'Not set'}</span>
+                          <span style={{ fontSize: 13, color: 'var(--color-text-light)' }}>{ja ? '受験日未設定' : 'No exam date set'}</span>
                         )}
                       </div>
                       <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
