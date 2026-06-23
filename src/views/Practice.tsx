@@ -501,7 +501,7 @@ export default function Practice() {
               </label>
 
               {/* ── 試験情報セクション ── */}
-              <div style={{ borderTop: '1px solid var(--color-border)', marginTop: 4 }} />
+              <div style={{ borderTop: '1px solid color-mix(in srgb, var(--color-text-light) 40%, transparent)', marginTop: 4 }} />
               <div style={{ background: 'var(--color-bg-white)', borderRadius: 'var(--border-radius-md)', border: '1px solid var(--color-border)', overflow: 'hidden', marginTop: 14 }}>
                 <div style={{ padding: '8px 14px', background: 'var(--color-bg-main)', borderBottom: '1px solid var(--color-border)', fontSize: 11, fontWeight: 700, color: 'var(--color-text-light)', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
                   {ja ? '試験情報' : 'Exam Info'}

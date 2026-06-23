@@ -110,18 +110,8 @@ export default function ServiceEncyclopedia() {
           localStorage.setItem(`encyclopediaUnlockDate_${uid}`, data.unlockDate);
         }
         const local = (() => { try { return JSON.parse(localStorage.getItem(`encyclopediaUnlocked_${uid}`) ?? '{}'); } catch { return {}; } })();
-        // サーバーが空でローカルにデータがある場合はサーバーを正とみなす（管理者リセット後）
-        // ただし今日の unlockDate がローカルにある場合（= 今日このデバイスで解放した直後）はサーバーへの
-        // POST が未完了の可能性があるため消去しない
-        const localUnlockDate = localStorage.getItem(`encyclopediaUnlockDate_${uid}`);
-        const jstDateNow = new Date(Date.now() + 9 * 3600 * 1000).toISOString().slice(0, 10);
-        if (Object.keys(data.unlocks).length === 0 && Object.keys(local).length > 0 && localUnlockDate !== jstDateNow) {
-          localStorage.setItem(`encyclopediaUnlocked_${uid}`, '{}');
-          localStorage.removeItem(`encyclopediaUnlockDate_${uid}`);
-          localStorage.removeItem(`encyclopediaTodayServiceId_${uid}`);
-          setUnlockedMap({});
-          return;
-        }
+        // 管理者リセット検知は Home.tsx の resetAt タイムスタンプで処理済みのため、
+        // サーバー空=ローカル消去はしない（POST失敗/遅延でも誤消去を防ぐ）
         const merged: Record<string, string> = { ...data.unlocks, ...local };
         const changed = Object.keys(merged).some(k => !(k in local));
         if (changed) {
@@ -252,7 +242,7 @@ export default function ServiceEncyclopedia() {
       </div>
 
       {/* タブ */}
-      <div style={{ display: 'flex', borderBottom: '2px solid var(--color-border)', margin: 'var(--spacing-md) 0' }}>
+      <div style={{ display: 'flex', borderBottom: '2px solid color-mix(in srgb, var(--color-text-light) 40%, transparent)', margin: 'var(--spacing-md) 0' }}>
         {(['unlocked', 'all'] as const).map(t => {
           const label = t === 'all' ? (ja ? '一覧' : 'All') : (ja ? '解放済み' : 'Unlocked');
           const active = activeTab === t;
@@ -278,7 +268,7 @@ export default function ServiceEncyclopedia() {
         const catUnlocked = cat.services.filter(s => isUnlocked(s, unlockedMap, storedServices)).length;
         return (
           <div key={cat.category} style={{ marginBottom: 20 }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 6, paddingBottom: 4, borderBottom: '2px solid var(--color-border)' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 6, paddingBottom: 4, borderBottom: '2px solid color-mix(in srgb, var(--color-text-light) 40%, transparent)' }}>
               <span style={{ fontWeight: 700, fontSize: 'var(--font-size-sm)', color: 'var(--color-text-main)' }}>
                 {cat.category}
               </span>
