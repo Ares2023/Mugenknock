@@ -1075,7 +1075,9 @@ function clearUserData(uid: string) {
     if (
       (!KEEP.has(key) && key.endsWith(suffix)) ||
       key.startsWith(`qstats_${uid}_`) ||
-      key.startsWith(`daily_service_${uid}_`)
+      key.startsWith(`daily_service_${uid}_`) ||
+      (key.startsWith('dailyQCount_') && key.includes(`_${uid}_`)) ||
+      (key.startsWith('dailyGoalReward_') && key.includes(`_${uid}_`))
     ) toRemove.push(key);
   }
   toRemove.forEach(k => localStorage.removeItem(k));
