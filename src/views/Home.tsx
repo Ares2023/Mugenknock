@@ -2448,7 +2448,7 @@ export default function Home() {
                     }
                   }
                 }}
-                variant="primary" style={{ width: '100%', background: '#009E9E', borderColor: '#009E9E' }}
+                variant="primary" style={{ width: '100%', background: '#009E9E', borderColor: '#009E9E', color: '#fff' }}
               >
                 {ja ? '保存する' : 'Save'}
               </Button>
