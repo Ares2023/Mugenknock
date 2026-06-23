@@ -463,8 +463,6 @@ export default function Practice() {
             </div>
           ) : (
             <>
-              <div style={{ fontSize: 'var(--font-size-sm)', color: 'var(--color-text-sub)', marginBottom: 16 }}>{examCfg?.fullName}</div>
-
               {/* フィルタ（展開） */}
               {user && (
                 <div style={{ marginBottom: 12, display: 'flex', flexDirection: 'column', gap: 8 }}>
@@ -490,10 +488,9 @@ export default function Practice() {
                   })}
                 </div>
               )}
-              <div style={{ height: 1, background: 'color-mix(in srgb, var(--color-text-light) 40%, transparent)', marginBottom: 16 }} />
 
               {/* ミニ模試チェックボックス */}
-              <label style={{ display: 'inline-flex', alignItems: 'center', gap: 'var(--spacing-sm)', cursor: 'pointer', fontSize: 'var(--font-size-base)', marginBottom: 20 }}>
+              <label style={{ display: 'inline-flex', alignItems: 'center', gap: 'var(--spacing-sm)', cursor: 'pointer', fontSize: 'var(--font-size-base)', marginBottom: 16 }}>
                 <input
                   type="checkbox"
                   checked={examMode === 'mini'}
@@ -503,7 +500,13 @@ export default function Practice() {
                 {ja ? 'ミニ模試（問題数・時間を1/5に短縮）' : 'Mini mode (1/5 questions & time)'}
               </label>
 
-              <div style={{ display: 'flex', gap: 24, marginBottom: 20, flexWrap: 'wrap' }}>
+              {/* ── 試験情報セクション区切り ── */}
+              <div style={{ borderTop: '1px solid var(--color-border)', margin: '0 0 14px' }} />
+              <div style={{ fontSize: 11, fontWeight: 700, color: 'var(--color-text-light)', textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: 14 }}>
+                {ja ? '試験情報' : 'Exam Info'}
+              </div>
+
+              <div style={{ display: 'flex', gap: 24, marginBottom: 16, flexWrap: 'wrap' }}>
                 <div>
                   <div style={{ fontSize: 11, color: 'var(--color-text-light)', marginBottom: 2 }}>{ja ? '問題数' : 'Questions'}</div>
                   <div style={{ fontWeight: 700, fontSize: 'var(--font-size-lg)' }}>{examQuestions}<span style={{ fontSize: 12, fontWeight: 400 }}>{ja ? '問' : ' Q'}</span></div>
