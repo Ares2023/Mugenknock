@@ -738,14 +738,19 @@ function syncEncyclopediaToServer(userId: string, forceUpload = false): void {
           window.dispatchEvent(new CustomEvent('encyclopediaUpdated'));
           return;
         }
-        const merged: Record<string, string> = { ...server, ...local };
+        // サーバー優先マージ（ローカルに新規解放分があれば残す）
+        const merged: Record<string, string> = { ...local, ...server };
         localStorage.setItem(`encyclopediaUnlocked_${uid}`, JSON.stringify(merged));
         window.dispatchEvent(new CustomEvent('encyclopediaUpdated'));
-        return fetch(`${API_ENDPOINT}/users/me/encyclopedia-unlocks`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ userId, unlocks: merged, unlockDate, todayServiceId }),
-        });
+        // POST 失敗時は1回リトライ（3秒後）
+        const body = JSON.stringify({ userId, unlocks: merged, unlockDate, todayServiceId });
+        const doPost = (retriesLeft: number) => {
+          fetch(`${API_ENDPOINT}/users/me/encyclopedia-unlocks`, {
+            method: 'POST', headers: { 'Content-Type': 'application/json' }, body,
+          }).then(r => { if (!r.ok && retriesLeft > 0) setTimeout(() => doPost(retriesLeft - 1), 3000); })
+            .catch(() => { if (retriesLeft > 0) setTimeout(() => doPost(retriesLeft - 1), 3000); });
+        };
+        doPost(1);
       })
       .catch(() => {});
   } catch {}
@@ -773,9 +778,9 @@ function TodayServiceSection({ lang, userId, onNavigateEncyclopedia, onReveal, i
     const localRevealed = localStorage.getItem(`encyclopediaUnlockDate_${uid}`) === jstDate;
     if (localRevealed) setRevealed(true);
 
-    // 再抽選キャッシュの読み込み
+    // 再抽選キャッシュの読み込み（localStorage に保存してリロード後も維持）
     const rerollCacheKey = `daily_service_reroll_${uid}_${jstDate}`;
-    const cachedReroll = getCached<DailyService>(rerollCacheKey);
+    const cachedReroll = getCachedPersist<DailyService>(rerollCacheKey);
     if (cachedReroll) {
       setRerolledService({ ...cachedReroll, icon: resolveServiceIcon(cachedReroll) });
     }
@@ -850,7 +855,7 @@ function TodayServiceSection({ lang, userId, onNavigateEncyclopedia, onReveal, i
       saveToEncyclopedia(s, uid);
       syncEncyclopediaToServer(userId, true);
       const rerollCacheKey = `daily_service_reroll_${uid}_${jstDate}`;
-      setCached(rerollCacheKey, s, 24 * 60 * 60 * 1000);
+      setCachedPersist(rerollCacheKey, s, 24 * 60 * 60 * 1000);
       setRerolledService(s);
       onReveal(s);
     } catch (err) {
@@ -1735,7 +1740,9 @@ export default function Home() {
         </div>
         <div style={{ height: 6, borderRadius: 3, background: 'var(--color-border)', overflow: 'hidden' }}>
           {(() => {
-            const barColor = `linear-gradient(90deg, #009E9E, #009E9E${dailyCount >= dailyGoal ? '' : 'cc'})`;
+            const barColor = dailyCount >= dailyGoal
+              ? 'linear-gradient(90deg, #009E9E, #4dd9d9)'
+              : 'linear-gradient(90deg, #009E9E, #00cccc)';
             return (
               <div style={{ height: '100%', width: `${Math.min(100, (dailyCount / dailyGoal) * 100)}%`, borderRadius: 3, background: barColor, transformOrigin: 'left center', animation: 'growWidth 0.45s cubic-bezier(0.34, 1.56, 0.64, 1) both' }} />
             );
@@ -2050,7 +2057,7 @@ export default function Home() {
             <button
               onClick={() => {
                 if (primaryMode === 'focused') { setDraftFocusedPrefs({ ...loadFocusedPrefs(uid) }); setShowFocusedModal(true); }
-                else { const p = loadQuickPrefs(uid); const saved = p.domains; setDraftPrefs({ ...p, domains: saved && saved.length > 0 ? saved : (EXAM_DOMAINS[targetExam ?? 'SAA'] ?? []) }); setShowQuickModal(true); }
+                else { const p = loadQuickPrefs(uid); const allDoms = EXAM_DOMAINS[targetExam ?? 'SAA'] ?? []; const validSaved = (p.domains ?? []).filter((d: string) => allDoms.includes(d)); setDraftPrefs({ ...p, domains: validSaved.length > 0 ? validSaved : allDoms }); setShowQuickModal(true); }
               }}
               style={{ flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', height: 44, width: 132, border: `1.5px solid ${primaryMode === 'focused' ? '#009E9E' : 'var(--color-primary)'}`, borderRadius: 'var(--border-radius-full)', background: 'var(--color-bg-white)', cursor: 'pointer', color: primaryMode === 'focused' ? '#009E9E' : 'var(--color-primary)', fontWeight: 600, fontSize: 'var(--font-size-base)' }}
             >
@@ -2204,7 +2211,7 @@ export default function Home() {
             <button
               onClick={() => {
                 if (primaryMode === 'focused') { setDraftFocusedPrefs({ ...loadFocusedPrefs(uid) }); setShowFocusedModal(true); }
-                else { const p = loadQuickPrefs(uid); const saved = p.domains; setDraftPrefs({ ...p, domains: saved && saved.length > 0 ? saved : (EXAM_DOMAINS[targetExam ?? 'SAA'] ?? []) }); setShowQuickModal(true); }
+                else { const p = loadQuickPrefs(uid); const allDoms = EXAM_DOMAINS[targetExam ?? 'SAA'] ?? []; const validSaved = (p.domains ?? []).filter((d: string) => allDoms.includes(d)); setDraftPrefs({ ...p, domains: validSaved.length > 0 ? validSaved : allDoms }); setShowQuickModal(true); }
               }}
               style={{ flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', width: 44, height: 44, border: `1.5px solid ${primaryMode === 'focused' ? '#009E9E' : 'var(--color-primary)'}`, borderRadius: '50%', background: 'transparent', cursor: 'pointer', color: primaryMode === 'focused' ? '#009E9E' : 'var(--color-primary)' }}
               aria-label={ja ? '設定' : 'Settings'}
@@ -2321,8 +2328,25 @@ export default function Home() {
                   </div>
                 )}
               </div>
-              <div style={{ fontSize: 'var(--font-size-xs)', color: 'var(--color-text-light)', marginBottom: 16 }}>
-                {ja ? '※ AI確認済み問題のみが常に対象です' : '* AI-verified questions are always included'}
+              {/* その他 */}
+              <div style={{ padding: '14px 0', borderTop: '1px solid var(--color-border)' }}>
+                <div style={{ fontWeight: 500, fontSize: 'var(--font-size-base)', color: 'var(--color-text-main)', marginBottom: 8 }}>
+                  {ja ? 'その他' : 'Other'}
+                </div>
+                <label style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '4px 0', cursor: 'pointer' }}>
+                  <input
+                    type="checkbox"
+                    checked={draftPrefs.strikeEnabled === false}
+                    onChange={() => setDraftPrefs(p => ({ ...p, strikeEnabled: p.strikeEnabled === false ? true : false }))}
+                    style={{ width: 16, height: 16, flexShrink: 0, accentColor: 'var(--color-primary)' }}
+                  />
+                  <span style={{ fontSize: 'var(--font-size-sm)', color: 'var(--color-text-main)' }}>
+                    {ja ? '消去法機能をオフ' : 'Disable elimination mode'}
+                  </span>
+                </label>
+                <div style={{ fontSize: 11, color: 'var(--color-text-light)', marginTop: 4, lineHeight: 1.5 }}>
+                  ※ {ja ? '選択肢のテキストをタップすると取り消し線を引いて選択肢を絞り込める機能です' : 'Tap choice text to strike through and narrow down options'}
+                </div>
               </div>
             </div>
             {/* 保存ボタン固定 */}
@@ -2432,6 +2456,26 @@ export default function Home() {
               </div>
               <div style={{ fontSize: 'var(--font-size-xs)', color: 'var(--color-text-light)', marginBottom: 16 }}>
                 {ja ? '※ 優先条件に合う問題が少ない場合は、他の問題で補充します' : '* If not enough questions match, others will be included to fill the count'}
+              </div>
+              {/* その他 */}
+              <div style={{ padding: '14px 0', borderTop: '1px solid var(--color-border)' }}>
+                <div style={{ fontWeight: 500, fontSize: 'var(--font-size-base)', color: 'var(--color-text-main)', marginBottom: 8 }}>
+                  {ja ? 'その他' : 'Other'}
+                </div>
+                <label style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '4px 0', cursor: 'pointer' }}>
+                  <input
+                    type="checkbox"
+                    checked={draftFocusedPrefs.strikeEnabled === false}
+                    onChange={() => setDraftFocusedPrefs(p => ({ ...p, strikeEnabled: p.strikeEnabled === false ? true : false }))}
+                    style={{ width: 16, height: 16, flexShrink: 0, accentColor: 'var(--color-primary)' }}
+                  />
+                  <span style={{ fontSize: 'var(--font-size-sm)', color: 'var(--color-text-main)' }}>
+                    {ja ? '消去法機能をオフ' : 'Disable elimination mode'}
+                  </span>
+                </label>
+                <div style={{ fontSize: 11, color: 'var(--color-text-light)', marginTop: 4, lineHeight: 1.5 }}>
+                  ※ {ja ? '選択肢のテキストをタップすると取り消し線を引いて選択肢を絞り込める機能です' : 'Tap choice text to strike through and narrow down options'}
+                </div>
               </div>
             </div>
             {/* 保存ボタン固定 */}

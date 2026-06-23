@@ -79,6 +79,7 @@ export default function Practice() {
   const [bookmarkOnly, setBookmarkOnly] = useState<boolean>(() => initPrefs(localStorage.getItem(`targetExam_${uid}`) || 'SAA').bookmarkOnly ?? false);
   const [unansweredOnly, setUnansweredOnly] = useState<boolean>(() => initPrefs(localStorage.getItem(`targetExam_${uid}`) || 'SAA').unansweredOnly ?? false);
   const [incorrectOnly, setIncorrectOnly] = useState<boolean>(() => initPrefs(localStorage.getItem(`targetExam_${uid}`) || 'SAA').incorrectOnly ?? false);
+  const [strikeEnabled, setStrikeEnabled] = useState<boolean>(() => initPrefs(localStorage.getItem(`targetExam_${uid}`) || 'SAA').strikeEnabled !== false);
   const [availableCount, setAvailableCount] = useState<number | null>(null);
   const [exerciseLoading, setExerciseLoading] = useState(false);
   const [exerciseLoadPct, setExerciseLoadPct] = useState(0);
@@ -111,11 +112,12 @@ export default function Practice() {
     setBookmarkOnly(prefs.bookmarkOnly ?? false);
     setUnansweredOnly(prefs.unansweredOnly ?? false);
     setIncorrectOnly(prefs.incorrectOnly ?? false);
+    setStrikeEnabled(prefs.strikeEnabled !== false);
   }, [examType]);
 
   useEffect(() => {
-    saveExercisePrefs(examType, uid, { domains: selectedDomains, limit, bookmarkOnly, unansweredOnly, incorrectOnly });
-  }, [examType, selectedDomains, limit, bookmarkOnly, unansweredOnly, incorrectOnly]);
+    saveExercisePrefs(examType, uid, { domains: selectedDomains, limit, bookmarkOnly, unansweredOnly, incorrectOnly, strikeEnabled });
+  }, [examType, selectedDomains, limit, bookmarkOnly, unansweredOnly, incorrectOnly, strikeEnabled]);
 
 
   useEffect(() => {
@@ -212,7 +214,7 @@ export default function Practice() {
           sessionId: sessionData.sessionId,
           questions: q1Data.items ?? [],
           questionIds: selectedIds,
-          userId, mode: 'exercise', examType,
+          userId, mode: 'exercise', examType, strikeEnabled,
         },
       });
     } catch (err) {
@@ -456,6 +458,27 @@ export default function Practice() {
               </div>
             )}
           </div>
+
+          {/* その他 */}
+          <div style={{ marginBottom: 'var(--spacing-md)', paddingTop: 'var(--spacing-sm)', borderTop: '1px solid color-mix(in srgb, var(--color-text-light) 30%, transparent)' }}>
+            <div style={{ fontWeight: 600, fontSize: 'var(--font-size-sm)', color: 'var(--color-text-sub)', marginBottom: 6 }}>
+              {ja ? 'その他' : 'Other'}
+            </div>
+            <label style={{ display: 'flex', alignItems: 'center', gap: 10, cursor: 'pointer' }}>
+              <input
+                type="checkbox"
+                checked={!strikeEnabled}
+                onChange={() => setStrikeEnabled(v => !v)}
+                style={{ width: 16, height: 16, flexShrink: 0, accentColor: 'var(--color-primary)' }}
+              />
+              <span style={{ fontSize: 'var(--font-size-sm)', color: 'var(--color-text-main)' }}>
+                {ja ? '消去法機能をオフ' : 'Disable elimination mode'}
+              </span>
+            </label>
+            <div style={{ fontSize: 11, color: 'var(--color-text-light)', marginTop: 4, lineHeight: 1.5 }}>
+              ※ {ja ? '選択肢のテキストをタップすると取り消し線を引いて選択肢を絞り込める機能です' : 'Tap choice text to strike through and narrow down options'}
+            </div>
+          </div>
           </>)}
         </>
       )}
@@ -522,12 +545,14 @@ export default function Practice() {
                       <div style={{ fontSize: 11, color: 'var(--color-text-light)', marginBottom: 2 }}>{ja ? '制限時間' : 'Time Limit'}</div>
                       <div style={{ fontWeight: 700, fontSize: 'var(--font-size-lg)' }}>{examTimeMin}<span style={{ fontSize: 12, fontWeight: 400 }}>{ja ? '分' : ' min'}</span></div>
                     </div>
-                    {examMode === 'full' && (
-                      <div>
-                        <div style={{ fontSize: 11, color: 'var(--color-text-light)', marginBottom: 2 }}>{ja ? '合格点' : 'Pass Score'}</div>
-                        <div style={{ fontWeight: 700, fontSize: 'var(--font-size-lg)' }}>{PASS_SCORES[targetExam]}</div>
+                    <div>
+                      <div style={{ fontSize: 11, color: 'var(--color-text-light)', marginBottom: 2 }}>{ja ? '合格点' : 'Pass Score'}</div>
+                      <div style={{ fontWeight: 700, fontSize: 'var(--font-size-lg)' }}>
+                        {examMode === 'mini'
+                          ? Math.ceil((PASS_SCORES[targetExam] ?? 0) / 5)
+                          : PASS_SCORES[targetExam]}
                       </div>
-                    )}
+                    </div>
                   </div>
                   <div style={{ background: 'var(--color-bg-main)', borderRadius: 'var(--border-radius-md)', padding: '10px 14px', marginBottom: 0 }}>
                 <div style={{ fontSize: 11, fontWeight: 700, color: 'var(--color-text-sub)', marginBottom: 6 }}>{ja ? 'ルール' : 'Rules'}</div>

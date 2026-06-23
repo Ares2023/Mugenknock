@@ -99,33 +99,36 @@ export default function ServiceEncyclopedia() {
       .then(data => {
         if (!data.unlocks || typeof data.unlocks !== 'object') return;
         // サーバーから返ったサービス詳細データをローカルにマージ（新デバイスでのアイコン復元）
+        // サービス詳細データ：サーバー優先（キャッシュより新しい情報で上書き）
         if (data.services && typeof data.services === 'object' && Object.keys(data.services).length > 0) {
           const existingSvcs = (() => { try { return JSON.parse(localStorage.getItem('encyclopediaServices') ?? '{}'); } catch { return {}; } })();
-          const mergedSvcs = { ...data.services, ...existingSvcs };
+          const mergedSvcs = { ...existingSvcs, ...data.services };
           localStorage.setItem('encyclopediaServices', JSON.stringify(mergedSvcs));
           setStoredServices(mergedSvcs);
         }
-        // todayServiceId・unlockDate をローカルに復元（ローカルデータ削除後の今日のカード復旧）
+        // todayServiceId・unlockDate はサーバー値で常に上書き（サーバー優先）
         const jstDate = new Date(Date.now() + 9 * 3600 * 1000).toISOString().slice(0, 10);
-        if (data.todayServiceId && data.unlockDate === jstDate && !localStorage.getItem(`encyclopediaTodayServiceId_${uid}`)) {
+        if (data.todayServiceId && data.unlockDate === jstDate) {
           localStorage.setItem(`encyclopediaTodayServiceId_${uid}`, data.todayServiceId);
           localStorage.setItem(`encyclopediaUnlockDate_${uid}`, data.unlockDate);
         }
         const local = (() => { try { return JSON.parse(localStorage.getItem(`encyclopediaUnlocked_${uid}`) ?? '{}'); } catch { return {}; } })();
-        // 管理者リセット検知は Home.tsx の resetAt タイムスタンプで処理済みのため、
-        // サーバー空=ローカル消去はしない（POST失敗/遅延でも誤消去を防ぐ）
-        const merged: Record<string, string> = { ...data.unlocks, ...local };
+        // サーバー優先マージ（ローカルに新規解放分があれば残す）
+        const merged: Record<string, string> = { ...local, ...data.unlocks };
         const changed = Object.keys(merged).some(k => !(k in local));
         if (changed) {
           localStorage.setItem(`encyclopediaUnlocked_${uid}`, JSON.stringify(merged));
           setUnlockedMap(merged);
           const unlockDate = localStorage.getItem(`encyclopediaUnlockDate_${uid}`) ?? data.unlockDate;
           const todayServiceId = localStorage.getItem(`encyclopediaTodayServiceId_${uid}`) ?? data.todayServiceId;
-          fetch(`${API_ENDPOINT}/users/me/encyclopedia-unlocks`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ userId: user.userId, unlocks: merged, unlockDate, todayServiceId }),
-          }).catch(() => {});
+          const postBody = JSON.stringify({ userId: user.userId, unlocks: merged, unlockDate, todayServiceId });
+          const doPost = (retriesLeft: number) => {
+            fetch(`${API_ENDPOINT}/users/me/encyclopedia-unlocks`, {
+              method: 'POST', headers: { 'Content-Type': 'application/json' }, body: postBody,
+            }).then(r => { if (!r.ok && retriesLeft > 0) setTimeout(() => doPost(retriesLeft - 1), 3000); })
+              .catch(() => { if (retriesLeft > 0) setTimeout(() => doPost(retriesLeft - 1), 3000); });
+          };
+          doPost(1);
         } else {
           // unlocks に変化がない場合でも、localStorageのtodayServiceIdが復元されたならUIを再レンダリング
           const restoredId = localStorage.getItem(`encyclopediaTodayServiceId_${uid}`);
@@ -181,6 +184,14 @@ export default function ServiceEncyclopedia() {
       <path d="M3 20a2 2 0 0 0 2 2h10a2.4 2.4 0 0 0 1.706-.706l3.588-3.588A2.4 2.4 0 0 0 21 16V6a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2z"/>
       <path d="M15 22v-5a1 1 0 0 1 1-1h5"/><path d="M8 2v4"/><path d="M16 2v4"/><path d="M3 10h18"/>
     </svg>
+  );
+
+  // 認証ロード中は guest データで誤った表示が一瞬見えるのを防ぐ
+  if (authLoading) return (
+    <div style={{ maxWidth: 900, margin: '0 auto', padding: 'var(--spacing-lg)' }}>
+      <div className="skeleton" style={{ height: 16, width: 200, borderRadius: 4, marginBottom: 'var(--spacing-md)' }} />
+      <div className="skeleton" style={{ height: 80, borderRadius: 'var(--border-radius-lg)', marginBottom: 'var(--spacing-md)' }} />
+    </div>
   );
 
   return (
