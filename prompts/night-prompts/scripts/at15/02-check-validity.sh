@@ -332,45 +332,71 @@ for q in questions:
 print('\n'.join(lines))
 PYEOF
 
-  _STDOUT_F=$(mktemp /tmp/claude_out_XXXX)
-  _STDERR_F=$(mktemp /tmp/claude_err_XXXX)
-  "$CLAUDE_CMD" -p --allowed-tools WebFetch < "$PROMPT_FILE" > "$_STDOUT_F" 2> "$_STDERR_F"
-  AI_EXIT=$?
-  RESULT=$(cat "$_STDOUT_F")
-  _STDERR=$(cat "$_STDERR_F")
-  rm -f "$_STDOUT_F" "$_STDERR_F"
+  # claude 呼び出し（529 Overloaded は最大2回リトライ）
+  _OVERLOAD_RETRY=0
+  _SKIP_CHUNK=0
+  while true; do
+    _STDOUT_F=$(mktemp /tmp/claude_out_XXXX)
+    _STDERR_F=$(mktemp /tmp/claude_err_XXXX)
+    "$CLAUDE_CMD" -p --allowed-tools WebFetch < "$PROMPT_FILE" > "$_STDOUT_F" 2> "$_STDERR_F"
+    AI_EXIT=$?
+    RESULT=$(cat "$_STDOUT_F")
+    _STDERR=$(cat "$_STDERR_F")
+    rm -f "$_STDOUT_F" "$_STDERR_F"
 
-  # npm更新による一時的なバイナリ消失 → 再探索してリトライ
-  if [ $AI_EXIT -ne 0 ] && echo "$_STDERR" | grep -q "No such file"; then
-    CLAUDE_CMD=$(_find_claude)
-    if [ -x "${CLAUDE_CMD:-}" ]; then
-      _STDOUT_F=$(mktemp /tmp/claude_out_XXXX)
-      _STDERR_F=$(mktemp /tmp/claude_err_XXXX)
-      "$CLAUDE_CMD" -p --allowed-tools WebFetch < "$PROMPT_FILE" > "$_STDOUT_F" 2> "$_STDERR_F"
-      AI_EXIT=$?
-      RESULT=$(cat "$_STDOUT_F")
-      _STDERR=$(cat "$_STDERR_F")
-      rm -f "$_STDOUT_F" "$_STDERR_F"
+    # npm更新による一時的なバイナリ消失 → 再探索してリトライ
+    if [ $AI_EXIT -ne 0 ] && echo "$_STDERR" | grep -q "No such file"; then
+      CLAUDE_CMD=$(_find_claude)
+      if [ -x "${CLAUDE_CMD:-}" ]; then
+        _STDOUT_F=$(mktemp /tmp/claude_out_XXXX)
+        _STDERR_F=$(mktemp /tmp/claude_err_XXXX)
+        "$CLAUDE_CMD" -p --allowed-tools WebFetch < "$PROMPT_FILE" > "$_STDOUT_F" 2> "$_STDERR_F"
+        AI_EXIT=$?
+        RESULT=$(cat "$_STDOUT_F")
+        _STDERR=$(cat "$_STDERR_F")
+        rm -f "$_STDOUT_F" "$_STDERR_F"
+      fi
     fi
-  fi
+
+    # 致命的エラー（認証・コマンド問題）→ 即終了
+    if echo "$_STDERR" | grep -qiE "command not found|No such file|GEMINI_API_KEY|API.?key"; then
+      rm -f "$PROMPT_FILE"
+      echo "❌ claude 実行エラー（認証またはコマンド問題）。スクリプトを終了します"
+      echo "stderr: $(echo "$_STDERR" | head -3)"
+      exit 1
+    fi
+
+    _RESULT_HEAD=$(echo "$RESULT" | head -3)
+
+    # 529 Overloaded（一時的なサーバー過負荷）→ 最大2回リトライ後、このチャンクのみスキップして続行
+    if echo "$_STDERR $_RESULT_HEAD" | grep -qiE "529|Overloaded"; then
+      if [ $_OVERLOAD_RETRY -lt 2 ]; then
+        _OVERLOAD_RETRY=$(( _OVERLOAD_RETRY + 1 ))
+        echo "⚠️  サーバー過負荷（529）を検出。60秒後にリトライ（${_OVERLOAD_RETRY}/2回目）"
+        sleep 60
+        continue
+      else
+        echo "⚠️  529 Overloaded が続くためチャンク $((CHUNK_IDX+1)) をスキップして続行"
+        echo "stdout: $_RESULT_HEAD"
+        _SKIP_CHUNK=1
+        break
+      fi
+    fi
+
+    # 真のレート制限（429・quota 超過など）→ 残りチャンクをすべてスキップ
+    if echo "$_STDERR $_RESULT_HEAD" | grep -qiE "rate.?limit|too many requests|quota exceeded|usage limit|resource_exhausted|session.?limit|hit your"; then
+      rm -f "$PROMPT_FILE"
+      echo "⚠️  レート制限を検出。残りチャンクをスキップ"
+      echo "stdout: $_RESULT_HEAD"
+      RATE_LIMITED=1
+      break 2
+    fi
+
+    break
+  done
   rm -f "$PROMPT_FILE"
 
-  # 致命的エラー（認証・コマンド問題）→ 即終了
-  if echo "$_STDERR" | grep -qiE "command not found|No such file|GEMINI_API_KEY|API.?key"; then
-    echo "❌ claude 実行エラー（認証またはコマンド問題）。スクリプトを終了します"
-    echo "stderr: $(echo "$_STDERR" | head -3)"
-    exit 1
-  fi
-
-  # レート制限 → stderr または stdout の先頭行で判定
-  # （"You've hit your session limit" など stdout に出るメッセージにも対応）
-  _RESULT_HEAD=$(echo "$RESULT" | head -3)
-  if echo "$_STDERR $_RESULT_HEAD" | grep -qiE "rate.?limit|too many requests|529|quota exceeded|usage limit|resource_exhausted|session.?limit|hit your"; then
-    echo "⚠️  レート制限を検出。残りチャンクをスキップ"
-    echo "stdout: $_RESULT_HEAD"
-    RATE_LIMITED=1
-    break
-  fi
+  [ $_SKIP_CHUNK -eq 1 ] && continue
 
   # その他の非ゼロ終了 → このチャンクのみスキップして続行
   if [ $AI_EXIT -ne 0 ]; then
