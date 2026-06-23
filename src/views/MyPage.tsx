@@ -162,10 +162,11 @@ export default function MyPage() {
   });
   const examColor = targetExam ? (EXAM_LEVEL_COLORS[EXAM_LEVEL[targetExam]] ?? 'var(--color-primary)') : 'var(--color-primary)';
 
-  const weekCounts = weekDays.map(d => {
-    if (!targetExam) return 0;
-    return parseInt(localStorage.getItem(`dailyQCount_${targetExam}_${uid}_${d}`) ?? '0', 10);
-  });
+  // 全資格の合算（資格を切り替えてもデータが消えて見えないよう）
+  const weekCounts = weekDays.map(d =>
+    EXAM_TYPES.reduce((sum, et) =>
+      sum + parseInt(localStorage.getItem(`dailyQCount_${et}_${uid}_${d}`) ?? '0', 10), 0)
+  );
   const todayCount = weekCounts[6];
 
   // ── ドメイン統計（苦手分析タブ） ──
@@ -512,7 +513,7 @@ export default function MyPage() {
                       <div style={{ display: 'flex', gap: 6, alignItems: 'flex-end' }}>
                         {weekDays.map((d, i) => {
                           const count = weekCounts[i];
-                          const rewarded = !!targetExam && localStorage.getItem(`dailyGoalReward_${targetExam}_${uid}_${d}`) === '1';
+                          const rewarded = EXAM_TYPES.some(et => localStorage.getItem(`dailyGoalReward_${et}_${uid}_${d}`) === '1');
                           const achieved = rewarded || count >= dailyGoal;
                           const pct = dailyGoal > 0 ? Math.min(1, count / dailyGoal) : 0;
                           const isToday = d === jstToday();
@@ -530,8 +531,8 @@ export default function MyPage() {
                       </div>
                       <div style={{ marginTop: 6, fontSize: 11, color: 'var(--color-text-light)', textAlign: 'right' }}>
                         {ja
-                          ? `今週の達成日数：${weekDays.filter((d, i) => (!!targetExam && localStorage.getItem(`dailyGoalReward_${targetExam}_${uid}_${d}`) === '1') || weekCounts[i] >= dailyGoal).length}/7日`
-                          : `Achieved: ${weekDays.filter((d, i) => (!!targetExam && localStorage.getItem(`dailyGoalReward_${targetExam}_${uid}_${d}`) === '1') || weekCounts[i] >= dailyGoal).length}/7 days`}
+                          ? `今週の達成日数：${weekDays.filter((d, i) => EXAM_TYPES.some(et => localStorage.getItem(`dailyGoalReward_${et}_${uid}_${d}`) === '1') || weekCounts[i] >= dailyGoal).length}/7日`
+                          : `Achieved: ${weekDays.filter((d, i) => EXAM_TYPES.some(et => localStorage.getItem(`dailyGoalReward_${et}_${uid}_${d}`) === '1') || weekCounts[i] >= dailyGoal).length}/7 days`}
                       </div>
                     </>
                   ) : (
@@ -588,7 +589,7 @@ export default function MyPage() {
                     <div style={{ display: 'flex', gap: 6, alignItems: 'flex-end' }}>
                       {weekDays.map((d, i) => {
                         const count = weekCounts[i];
-                        const rewarded = !!targetExam && localStorage.getItem(`dailyGoalReward_${targetExam}_${uid}_${d}`) === '1';
+                        const rewarded = EXAM_TYPES.some(et => localStorage.getItem(`dailyGoalReward_${et}_${uid}_${d}`) === '1');
                         const achieved = rewarded || count >= dailyGoal;
                         const pct = dailyGoal > 0 ? Math.min(1, count / dailyGoal) : 0;
                         const isToday = d === jstToday();
@@ -606,8 +607,8 @@ export default function MyPage() {
                     </div>
                     <div style={{ marginTop: 8, fontSize: 11, color: 'var(--color-text-light)', textAlign: 'right' }}>
                       {ja
-                        ? `今週の達成日数：${weekDays.filter((d, i) => (!!targetExam && localStorage.getItem(`dailyGoalReward_${targetExam}_${uid}_${d}`) === '1') || weekCounts[i] >= dailyGoal).length}/7日`
-                        : `Achieved: ${weekDays.filter((d, i) => (!!targetExam && localStorage.getItem(`dailyGoalReward_${targetExam}_${uid}_${d}`) === '1') || weekCounts[i] >= dailyGoal).length}/7 days`}
+                        ? `今週の達成日数：${weekDays.filter((d, i) => EXAM_TYPES.some(et => localStorage.getItem(`dailyGoalReward_${et}_${uid}_${d}`) === '1') || weekCounts[i] >= dailyGoal).length}/7日`
+                        : `Achieved: ${weekDays.filter((d, i) => EXAM_TYPES.some(et => localStorage.getItem(`dailyGoalReward_${et}_${uid}_${d}`) === '1') || weekCounts[i] >= dailyGoal).length}/7 days`}
                     </div>
                   </Card>
                 )}

@@ -1340,10 +1340,10 @@ export default function Home() {
     Math.max(1, parseInt(localStorage.getItem(`dailyGoal_${uid}`) ?? '10', 10))
   , [uid]);
   const [dailyCount, setDailyCount] = useState(() =>
-    targetExam ? parseInt(localStorage.getItem(`dailyQCount_${targetExam}_${uid}_${jstDate}`) ?? '0', 10) : 0
+    EXAM_TYPES.reduce((sum, et) => sum + parseInt(localStorage.getItem(`dailyQCount_${et}_${uid}_${jstDate}`) ?? '0', 10), 0)
   );
   useEffect(() => {
-    setDailyCount(targetExam ? parseInt(localStorage.getItem(`dailyQCount_${targetExam}_${uid}_${jstDate}`) ?? '0', 10) : 0);
+    setDailyCount(EXAM_TYPES.reduce((sum, et) => sum + parseInt(localStorage.getItem(`dailyQCount_${et}_${uid}_${jstDate}`) ?? '0', 10), 0));
   }, [targetExam, uid, jstDate, domainStats]);
 
   const [prevScore, setPrevScore] = useState<number | null>(null);
