@@ -275,8 +275,38 @@ app.get('/questions/growth-stats', async (req, res) => {
   }
 });
 
-// SSG用：検証済み問題を試験別に一括取得（Next.jsビルド時専用）
-// validityCheckedAt が設定された問題のみ返す
+// SSG用：検証済み問題を試験別に一括取得（Next.jsビルド時 / 静的ページ生成専用）
+// フィールド射影で最小限のペイロードを返し、ビルド時間を短縮する
+app.get('/questions/public', async (req, res) => {
+  try {
+    const docClient = getClient();
+    const { examType } = req.query;
+    if (!examType) return res.status(400).json({ error: 'examType required' });
+
+    const FIELDS = 'questionId, examType, #qt, choices, correctAnswerIndices, correctAnswers, choiceExplanations, explanation, #dom, isMultiple, validityCheckedAt';
+    let items = [];
+    let lastKey = undefined;
+    do {
+      const params = {
+        TableName: 'Questions',
+        FilterExpression: 'examType = :e AND attribute_exists(validityCheckedAt)',
+        ExpressionAttributeValues: { ':e': examType },
+        ExpressionAttributeNames: { '#qt': 'questionText', '#dom': 'domain' },
+        ProjectionExpression: FIELDS,
+      };
+      if (lastKey) params.ExclusiveStartKey = lastKey;
+      const result = await docClient.send(new ScanCommand(params));
+      items = items.concat(result.Items || []);
+      lastKey = result.LastEvaluatedKey;
+    } while (lastKey);
+
+    res.json({ items, count: items.length });
+  } catch (e) {
+    console.error(e);
+    res.status(500).json({ error: e.message });
+  }
+});
+
 // 問題一覧取得
 app.get('/questions', async (req, res) => {
   try {
