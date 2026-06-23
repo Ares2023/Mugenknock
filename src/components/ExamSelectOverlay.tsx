@@ -65,10 +65,15 @@ interface ExamSelectOverlayProps {
   onSelect: (exam: string) => void;
   /** 閉じるボタン用コールバック。未指定の場合は閉じられない（初回オンボーディング用） */
   onClose?: () => void;
+  /** デスクトップ時の最大幅（px）。省略時は 420 */
+  desktopMaxWidth?: number;
+  /** デスクトップ時の高さ（vh 文字列）。省略時は '60vh' */
+  desktopHeight?: string;
 }
 
 export default function ExamSelectOverlay({
   targetExam, uid, lang, isMobile, onSelect, onClose,
+  desktopMaxWidth = 420, desktopHeight = '60vh',
 }: ExamSelectOverlayProps) {
   const ja = lang === 'ja';
   const initLevel = targetExam
@@ -116,10 +121,10 @@ export default function ExamSelectOverlay({
           background: 'var(--color-bg-white)',
           borderRadius: 'var(--border-radius-lg)',
           width: '100%',
-          maxWidth: 420,
+          maxWidth: isMobile ? 420 : desktopMaxWidth,
           boxShadow: 'var(--box-shadow-md)',
-          height: isMobile ? '75vh' : '60vh',
-          maxHeight: isMobile ? '75vh' : '60vh',
+          height: isMobile ? '75vh' : desktopHeight,
+          maxHeight: isMobile ? '75vh' : desktopHeight,
           display: 'flex', flexDirection: 'column', overflow: 'hidden',
         }}
         onClick={e => e.stopPropagation()}

@@ -12,7 +12,7 @@ import {
   IconCalendarNotebook, IconTarget, IconAnnoyed, IconList,
   IconSparkles, IconChevronRight, IconChevronDown, IconLock, IconFlag, IconStar, IconTrendingUp, IconPenLine,
   IconSprout, IconBox, IconBot, IconCode2, IconCloud, IconDatabase, IconBrain, IconVectorSquare, IconFileCodeCorner, IconAtom, IconShieldIcon, IconWaypoints,
-  EXAM_ICON_COMPONENTS,
+  EXAM_ICON_COMPONENTS, IconSaveCheck,
 } from '../components/Icons';
 import ExamSelectOverlay, { EXAM_DESC } from '../components/ExamSelectOverlay';
 
@@ -73,6 +73,7 @@ export default function MyPage() {
 
   const [tab, setTab] = useState<'target' | 'analysis' | 'history'>('target');
   const [showSettingsEdit, setShowSettingsEdit] = useState(false);
+  const [savedGoal, setSavedGoal] = useState(false);
   const [editExamDate, setEditExamDate] = useState('');
   const [editDailyGoal, setEditDailyGoal] = useState(10); // min=10
   const [showExamSelect, setShowExamSelect] = useState(false);
@@ -576,7 +577,7 @@ export default function MyPage() {
                 </Card>
                 {/* 週間達成状況（モバイルのみ単独カード） */}
                 {targetExam && (
-                  <Card style={{ marginBottom: 12, background: 'var(--color-bg-main)', boxShadow: 'none' }}>
+                  <Card style={{ marginBottom: 12, background: 'var(--color-bg-main)', boxShadow: 'none', border: '1px solid color-mix(in srgb, var(--color-text-light) 40%, transparent)' }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 12 }}>
                       <span style={{ color: 'var(--color-text-sub)', display: 'flex', alignItems: 'center' }}><IconTrendingUp size={13} /></span>
                       <span style={{ fontWeight: 700, fontSize: 'var(--font-size-sm)', color: 'var(--color-text-main)' }}>{ja ? '週間達成状況' : 'Weekly Progress'}</span>
@@ -654,13 +655,21 @@ export default function MyPage() {
                     </div>
                   </div>
                   {/* 保存ボタン */}
-                  <Button variant="primary" size="lg" fullWidth onClick={() => {
-                    handleExamDateChange(editExamDate);
-                    handleDailyGoalChange(editDailyGoal);
-                    setShowSettingsEdit(false);
-                  }}>
-                    {ja ? '保存' : 'Save'}
-                  </Button>
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: 12, marginTop: 8 }}>
+                    {savedGoal && <span style={{ fontSize: 13, fontWeight: 700, color: 'var(--color-success)' }}>✓ {ja ? '保存しました' : 'Saved'}</span>}
+                    <button
+                      onClick={() => {
+                        handleExamDateChange(editExamDate);
+                        handleDailyGoalChange(editDailyGoal);
+                        setShowSettingsEdit(false);
+                        setSavedGoal(true);
+                        setTimeout(() => setSavedGoal(false), 2000);
+                      }}
+                      style={{ width: 44, height: 44, borderRadius: '50%', border: 'none', background: 'var(--color-accent)', color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', boxShadow: '0 2px 8px rgba(0,0,0,0.15)', flexShrink: 0 }}
+                    >
+                      <IconSaveCheck size={22} />
+                    </button>
+                  </div>
                 </div>
               </div>
             )}
@@ -674,6 +683,8 @@ export default function MyPage() {
                 isMobile={isMobile}
                 onSelect={(exam) => { setTargetExam(exam); if (user) syncTargetExamToServer(user.userId, uid, exam); }}
                 onClose={() => setShowExamSelect(false)}
+                desktopMaxWidth={672}
+                desktopHeight="78vh"
               />
             )}
           </>

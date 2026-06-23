@@ -31,7 +31,7 @@ const saveExercisePrefs = (et: string, uid: string, prefs: object) => {
 type Tab = 'exercise' | 'exam';
 
 export default function Practice() {
-  const { user } = useAuth();
+  const { user, loading: authLoading } = useAuth();
   const { lang, t } = useLanguage();
   const navigate = useNavigate();
   const ja = lang === 'ja';
@@ -45,6 +45,12 @@ export default function Practice() {
 
   const [tab, setTab] = useState<Tab>('exercise');
   const [targetExam, setTargetExam] = useState<string | null>(() => localStorage.getItem(`targetExam_${uid}`));
+
+  useEffect(() => {
+    if (authLoading) return;
+    const saved = localStorage.getItem(`targetExam_${uid}`);
+    if (saved) { setTargetExam(saved); setExamType(saved); }
+  }, [uid, authLoading]);
 
   useEffect(() => {
     const handler = (e: Event) => {
@@ -503,7 +509,7 @@ export default function Practice() {
               {/* ── 試験情報セクション ── */}
               <div style={{ borderTop: '1px solid color-mix(in srgb, var(--color-text-light) 40%, transparent)', marginTop: 4 }} />
               <div style={{ background: 'var(--color-bg-white)', borderRadius: 'var(--border-radius-md)', border: '1px solid var(--color-border)', overflow: 'hidden', marginTop: 14 }}>
-                <div style={{ padding: '8px 14px', background: 'var(--color-bg-main)', borderBottom: '1px solid var(--color-border)', fontSize: 11, fontWeight: 700, color: 'var(--color-text-light)', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+                <div style={{ padding: '8px 14px', background: 'var(--color-bg-white)', borderBottom: '1px solid var(--color-border)', fontSize: 11, fontWeight: 700, color: 'var(--color-text-light)', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
                   {ja ? '試験情報' : 'Exam Info'}
                 </div>
                 <div style={{ padding: '12px 14px' }}>
