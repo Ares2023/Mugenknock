@@ -2337,7 +2337,6 @@ export default function Home() {
                 disabled={targetExam !== null && (EXAM_DOMAINS[targetExam] ?? []).length > 0 && (draftPrefs.domains ?? []).length === 0}
                 onClick={() => {
                   localStorage.setItem(`quickExercisePrefs_${uid}`, JSON.stringify(draftPrefs));
-                  setShowQuickModal(false);
                   setSavedQuick(true);
                   setTimeout(() => setSavedQuick(false), 2000);
                   if (targetExam) {
@@ -2446,7 +2445,6 @@ export default function Home() {
               <button
                 onClick={() => {
                   localStorage.setItem(`focusedExercisePrefs_${uid}`, JSON.stringify(draftFocusedPrefs));
-                  setShowFocusedModal(false);
                   setSavedFocused(true);
                   setTimeout(() => setSavedFocused(false), 2000);
                   if (targetExam) {

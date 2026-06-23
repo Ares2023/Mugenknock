@@ -661,7 +661,6 @@ export default function MyPage() {
                       onClick={() => {
                         handleExamDateChange(editExamDate);
                         handleDailyGoalChange(editDailyGoal);
-                        setShowSettingsEdit(false);
                         setSavedGoal(true);
                         setTimeout(() => setSavedGoal(false), 2000);
                       }}
