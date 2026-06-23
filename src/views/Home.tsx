@@ -17,7 +17,7 @@ import { animateLoadPct, randomPlateau } from '../utils/loadProgress';
 import { getPoints, deductPoints } from '../utils/points';
 import Card from '../components/ui/Card';
 import Button from '../components/ui/Button';
-import { IconLightbulb, IconBean, IconSettings, IconChevronUp, IconChevronDown, IconLock, IconFileText, IconTrendingUp, IconBookOpen, IconCheck, IconSparkles, IconPointer, IconMousePointerClick, IconCalendarNotebook, IconRefreshCw, IconTarget, IconChart, ServiceIconImg, isServiceIconKey, IconUser } from '../components/Icons';
+import { IconLightbulb, IconBean, IconSettings, IconChevronUp, IconChevronDown, IconLock, IconFileText, IconTrendingUp, IconBookOpen, IconCheck, IconSparkles, IconPointer, IconMousePointerClick, IconCalendarNotebook, IconRefreshCw, IconTarget, IconChart, ServiceIconImg, isServiceIconKey, IconUser, IconSaveCheck } from '../components/Icons';
 import { CATALOG } from '../data/awsServiceCatalog';
 import { autoScoreAndClearDrafts } from '../utils/sessionUtils';
 import { syncTargetExamToServer, loadTargetExamFromServer } from '../utils/preferences';
@@ -1115,6 +1115,8 @@ export default function Home() {
   const [lastMode, setLastMode] = useState<'quick' | 'focused'>(() => (localStorage.getItem(`lastQuickMode_${uid}`) as 'quick' | 'focused') ?? 'quick');
   const [answeredCount, setAnsweredCount] = useState(0);
   const [answeredCountReady, setAnsweredCountReady] = useState(false);
+  const [savedQuick, setSavedQuick] = useState(false);
+  const [savedFocused, setSavedFocused] = useState(false);
   const [draftPrefs, setDraftPrefs] = useState<Record<string, any>>({});
   const [showFocusedModal, setShowFocusedModal] = useState(false);
   const [draftFocusedPrefs, setDraftFocusedPrefs] = useState<Record<string, any>>({});
@@ -2329,25 +2331,24 @@ export default function Home() {
               </div>
             </div>
             {/* 保存ボタン固定 */}
-            <div style={{ flexShrink: 0, padding: '12px 24px 20px', borderTop: '1px solid var(--color-border)' }}>
-              <Button
+            <div style={{ flexShrink: 0, borderTop: '1px solid var(--color-border)', padding: '10px 16px', display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: 12, minHeight: 64 }}>
+              {savedQuick && <span style={{ fontSize: 13, fontWeight: 700, color: 'var(--color-success)' }}>✓ {ja ? '保存しました' : 'Saved'}</span>}
+              <button
                 disabled={targetExam !== null && (EXAM_DOMAINS[targetExam] ?? []).length > 0 && (draftPrefs.domains ?? []).length === 0}
                 onClick={() => {
                   localStorage.setItem(`quickExercisePrefs_${uid}`, JSON.stringify(draftPrefs));
                   setShowQuickModal(false);
+                  setSavedQuick(true);
+                  setTimeout(() => setSavedQuick(false), 2000);
                   if (targetExam) {
                     const hasFilters = !!(draftPrefs.unansweredOnly || draftPrefs.incorrectOnly || draftPrefs.bookmarkOnly || (draftPrefs.domains?.length ?? 0) > 0);
-                    if (hasFilters) {
-                      prefetchTypeC(targetExam, uid, draftPrefs);
-                    } else {
-                      prefetchTypeA(targetExam, uid);
-                    }
+                    if (hasFilters) { prefetchTypeC(targetExam, uid, draftPrefs); } else { prefetchTypeA(targetExam, uid); }
                   }
                 }}
-                variant="primary" style={{ width: '100%' }}
+                style={{ width: 44, height: 44, borderRadius: '50%', border: 'none', background: 'var(--color-accent)', color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: (targetExam !== null && (EXAM_DOMAINS[targetExam] ?? []).length > 0 && (draftPrefs.domains ?? []).length === 0) ? 'default' : 'pointer', boxShadow: '0 2px 8px rgba(0,0,0,0.15)', flexShrink: 0, opacity: (targetExam !== null && (EXAM_DOMAINS[targetExam] ?? []).length > 0 && (draftPrefs.domains ?? []).length === 0) ? 0.5 : 1 }}
               >
-                {ja ? '保存する' : 'Save'}
-              </Button>
+                <IconSaveCheck size={22} />
+              </button>
             </div>
           </div>
         </div>
@@ -2440,24 +2441,23 @@ export default function Home() {
               </div>
             </div>
             {/* 保存ボタン固定 */}
-            <div style={{ flexShrink: 0, padding: '12px 24px 20px', borderTop: '1px solid var(--color-border)' }}>
-              <Button
+            <div style={{ flexShrink: 0, borderTop: '1px solid var(--color-border)', padding: '10px 16px', display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: 12, minHeight: 64 }}>
+              {savedFocused && <span style={{ fontSize: 13, fontWeight: 700, color: 'var(--color-success)' }}>✓ {ja ? '保存しました' : 'Saved'}</span>}
+              <button
                 onClick={() => {
                   localStorage.setItem(`focusedExercisePrefs_${uid}`, JSON.stringify(draftFocusedPrefs));
                   setShowFocusedModal(false);
+                  setSavedFocused(true);
+                  setTimeout(() => setSavedFocused(false), 2000);
                   if (targetExam) {
                     const hasFilters = draftFocusedPrefs.focusIncorrect !== false || (draftFocusedPrefs.focusDomain ?? 'below60') !== 'none';
-                    if (hasFilters) {
-                      prefetchTypeB(targetExam, uid, draftFocusedPrefs);
-                    } else {
-                      prefetchTypeA(targetExam, uid);
-                    }
+                    if (hasFilters) { prefetchTypeB(targetExam, uid, draftFocusedPrefs); } else { prefetchTypeA(targetExam, uid); }
                   }
                 }}
-                variant="primary" style={{ width: '100%', background: '#009E9E', borderColor: '#009E9E', color: '#fff' }}
+                style={{ width: 44, height: 44, borderRadius: '50%', border: 'none', background: 'var(--color-accent)', color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', boxShadow: '0 2px 8px rgba(0,0,0,0.15)', flexShrink: 0 }}
               >
-                {ja ? '保存する' : 'Save'}
-              </Button>
+                <IconSaveCheck size={22} />
+              </button>
             </div>
           </div>
         </div>
