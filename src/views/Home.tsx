@@ -2057,7 +2057,7 @@ export default function Home() {
             <button
               onClick={() => {
                 if (primaryMode === 'focused') { setDraftFocusedPrefs({ ...loadFocusedPrefs(uid) }); setShowFocusedModal(true); }
-                else { const p = loadQuickPrefs(uid); const saved = p.domains; setDraftPrefs({ ...p, domains: saved && saved.length > 0 ? saved : (EXAM_DOMAINS[targetExam ?? 'SAA'] ?? []) }); setShowQuickModal(true); }
+                else { const p = loadQuickPrefs(uid); const allDoms = EXAM_DOMAINS[targetExam ?? 'SAA'] ?? []; const validSaved = (p.domains ?? []).filter((d: string) => allDoms.includes(d)); setDraftPrefs({ ...p, domains: validSaved.length > 0 ? validSaved : allDoms }); setShowQuickModal(true); }
               }}
               style={{ flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', height: 44, width: 132, border: `1.5px solid ${primaryMode === 'focused' ? '#009E9E' : 'var(--color-primary)'}`, borderRadius: 'var(--border-radius-full)', background: 'var(--color-bg-white)', cursor: 'pointer', color: primaryMode === 'focused' ? '#009E9E' : 'var(--color-primary)', fontWeight: 600, fontSize: 'var(--font-size-base)' }}
             >
@@ -2211,7 +2211,7 @@ export default function Home() {
             <button
               onClick={() => {
                 if (primaryMode === 'focused') { setDraftFocusedPrefs({ ...loadFocusedPrefs(uid) }); setShowFocusedModal(true); }
-                else { const p = loadQuickPrefs(uid); const saved = p.domains; setDraftPrefs({ ...p, domains: saved && saved.length > 0 ? saved : (EXAM_DOMAINS[targetExam ?? 'SAA'] ?? []) }); setShowQuickModal(true); }
+                else { const p = loadQuickPrefs(uid); const allDoms = EXAM_DOMAINS[targetExam ?? 'SAA'] ?? []; const validSaved = (p.domains ?? []).filter((d: string) => allDoms.includes(d)); setDraftPrefs({ ...p, domains: validSaved.length > 0 ? validSaved : allDoms }); setShowQuickModal(true); }
               }}
               style={{ flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', width: 44, height: 44, border: `1.5px solid ${primaryMode === 'focused' ? '#009E9E' : 'var(--color-primary)'}`, borderRadius: '50%', background: 'transparent', cursor: 'pointer', color: primaryMode === 'focused' ? '#009E9E' : 'var(--color-primary)' }}
               aria-label={ja ? '設定' : 'Settings'}
