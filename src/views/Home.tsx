@@ -2326,6 +2326,26 @@ export default function Home() {
               <div style={{ fontSize: 'var(--font-size-xs)', color: 'var(--color-text-light)', marginBottom: 16 }}>
                 {ja ? '※ AI確認済み問題のみが常に対象です' : '* AI-verified questions are always included'}
               </div>
+              {/* その他 */}
+              <div style={{ padding: '14px 0', borderTop: '1px solid var(--color-border)' }}>
+                <div style={{ fontWeight: 500, fontSize: 'var(--font-size-base)', color: 'var(--color-text-main)', marginBottom: 8 }}>
+                  {ja ? 'その他' : 'Other'}
+                </div>
+                <label style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '4px 0', cursor: 'pointer' }}>
+                  <input
+                    type="checkbox"
+                    checked={draftPrefs.strikeEnabled === false}
+                    onChange={() => setDraftPrefs(p => ({ ...p, strikeEnabled: p.strikeEnabled === false ? true : false }))}
+                    style={{ width: 16, height: 16, flexShrink: 0, accentColor: 'var(--color-primary)' }}
+                  />
+                  <span style={{ fontSize: 'var(--font-size-sm)', color: 'var(--color-text-main)' }}>
+                    {ja ? '消去法機能をオフ' : 'Disable elimination mode'}
+                  </span>
+                </label>
+                <div style={{ fontSize: 11, color: 'var(--color-text-light)', marginTop: 4, lineHeight: 1.5 }}>
+                  ※ {ja ? '選択肢のテキストをタップすると取り消し線を引いて選択肢を絞り込める機能です' : 'Tap choice text to strike through and narrow down options'}
+                </div>
+              </div>
             </div>
             {/* 保存ボタン固定 */}
             <div style={{ flexShrink: 0, borderTop: '1px solid var(--color-border)', padding: '10px 16px', display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: 12, minHeight: 64 }}>
@@ -2434,6 +2454,26 @@ export default function Home() {
               </div>
               <div style={{ fontSize: 'var(--font-size-xs)', color: 'var(--color-text-light)', marginBottom: 16 }}>
                 {ja ? '※ 優先条件に合う問題が少ない場合は、他の問題で補充します' : '* If not enough questions match, others will be included to fill the count'}
+              </div>
+              {/* その他 */}
+              <div style={{ padding: '14px 0', borderTop: '1px solid var(--color-border)' }}>
+                <div style={{ fontWeight: 500, fontSize: 'var(--font-size-base)', color: 'var(--color-text-main)', marginBottom: 8 }}>
+                  {ja ? 'その他' : 'Other'}
+                </div>
+                <label style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '4px 0', cursor: 'pointer' }}>
+                  <input
+                    type="checkbox"
+                    checked={draftFocusedPrefs.strikeEnabled === false}
+                    onChange={() => setDraftFocusedPrefs(p => ({ ...p, strikeEnabled: p.strikeEnabled === false ? true : false }))}
+                    style={{ width: 16, height: 16, flexShrink: 0, accentColor: 'var(--color-primary)' }}
+                  />
+                  <span style={{ fontSize: 'var(--font-size-sm)', color: 'var(--color-text-main)' }}>
+                    {ja ? '消去法機能をオフ' : 'Disable elimination mode'}
+                  </span>
+                </label>
+                <div style={{ fontSize: 11, color: 'var(--color-text-light)', marginTop: 4, lineHeight: 1.5 }}>
+                  ※ {ja ? '選択肢のテキストをタップすると取り消し線を引いて選択肢を絞り込める機能です' : 'Tap choice text to strike through and narrow down options'}
+                </div>
               </div>
             </div>
             {/* 保存ボタン固定 */}

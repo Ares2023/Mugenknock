@@ -210,6 +210,14 @@ export default function ExerciseSession() {
   const [isQuick, setIsQuick] = useState<boolean>(state?.isQuick ?? false);
   const [isFocused, setIsFocused] = useState<boolean>(state?.isFocused ?? false);
   const [isMini, setIsMini] = useState<boolean>(state?.isMini ?? false);
+  // 消去法機能の有効/無効（quickExercisePrefs / focusedExercisePrefs から読む）
+  const strikeEnabled = (() => {
+    const uid = state?.userId;
+    if (!uid) return true;
+    const key = (state?.isFocused) ? `focusedExercisePrefs_${uid}` : (state?.isQuick) ? `quickExercisePrefs_${uid}` : null;
+    if (!key) return true;
+    try { return JSON.parse(localStorage.getItem(key) ?? '{}').strikeEnabled !== false; } catch { return true; }
+  })();
   const [initialized, setInitialized] = useState<boolean>(!!state);
 
   const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
@@ -977,13 +985,13 @@ export default function ExerciseSession() {
                     </div>
                   )}
                   <span
-                    onClick={!answered ? (e) => toggleStrikethrough(choice, e) : undefined}
+                    onClick={!answered && strikeEnabled ? (e) => toggleStrikethrough(choice, e) : undefined}
                     style={{
                       flex: 1, minWidth: 0, overflowWrap: 'break-word', wordBreak: 'break-word', lineHeight: 1.55,
-                      textDecoration: struckChoices.has(choice) && !answered ? 'line-through' : 'none',
+                      textDecoration: strikeEnabled && struckChoices.has(choice) && !answered ? 'line-through' : 'none',
                       textDecorationColor: 'var(--color-danger)',
                       textDecorationThickness: '2px',
-                      cursor: !answered ? 'pointer' : 'default',
+                      cursor: !answered && strikeEnabled ? 'pointer' : 'default',
                       userSelect: 'none',
                     }}
                   >
