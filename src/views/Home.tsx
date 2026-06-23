@@ -234,6 +234,8 @@ function CombinedDetailModal({ targetExam, domainAccList, estimatedScore, passSc
     <div
       style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', zIndex: 1000, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16 }}
       onClick={e => { if (e.target === e.currentTarget) onClose(); }}
+      onTouchStart={e => e.stopPropagation()}
+      onTouchMove={e => e.stopPropagation()}
     >
       <div style={{ background: 'var(--color-bg-white)', borderRadius: 'var(--border-radius-lg)', padding: isMobile ? '16px' : '20px 28px', width: '100%', maxWidth: 540, maxHeight: isMobile ? '75vh' : '60vh', overflowY: 'auto', boxShadow: '0 8px 32px rgba(0,0,0,0.2)' }}>
         {/* ヘッダー行 */}
@@ -468,6 +470,8 @@ function ScoreDetailModal({ targetExam, estimatedScore, passScore, lang, uid, on
     <div
       style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', zIndex: 1000, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16 }}
       onClick={e => { if (e.target === e.currentTarget) onClose(); }}
+      onTouchStart={e => e.stopPropagation()}
+      onTouchMove={e => e.stopPropagation()}
     >
       <div style={{ background: 'var(--color-bg-white)', borderRadius: 'var(--border-radius-lg)', padding: '20px 24px', width: '100%', maxWidth: 380, boxShadow: '0 8px 32px rgba(0,0,0,0.2)' }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
@@ -534,6 +538,8 @@ function DomainDetailModal({ targetExam, domainAccList, lang, onClose }: {
     <div
       style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', zIndex: 1000, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16 }}
       onClick={e => { if (e.target === e.currentTarget) onClose(); }}
+      onTouchStart={e => e.stopPropagation()}
+      onTouchMove={e => e.stopPropagation()}
     >
       <div style={{ background: 'var(--color-bg-white)', borderRadius: 'var(--border-radius-lg)', padding: '20px 24px', width: '100%', maxWidth: 480, maxHeight: isMobile ? '75vh' : '60vh', overflowY: 'auto', boxShadow: '0 8px 32px rgba(0,0,0,0.2)' }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
@@ -1646,12 +1652,24 @@ export default function Home() {
     }
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
-  // オーバーレイ表示中は body スクロール無効
+  // オーバーレイ表示中は body スクロール無効（iOS Safari 対応で position:fixed 方式）
   useEffect(() => {
-    const anyOpen = showQuickModal || showFocusedModal;
-    document.body.style.overflow = anyOpen ? 'hidden' : '';
-    return () => { document.body.style.overflow = ''; };
-  }, [showQuickModal, showFocusedModal]);
+    const anyOpen = showQuickModal || showFocusedModal || showCombinedDetail ||
+      (isMobile && (showNewPanel || showFocusedMenu));
+    if (!anyOpen) return;
+    const scrollY = window.scrollY;
+    document.body.style.overflow = 'hidden';
+    document.body.style.position = 'fixed';
+    document.body.style.top = `-${scrollY}px`;
+    document.body.style.width = '100%';
+    return () => {
+      document.body.style.overflow = '';
+      document.body.style.position = '';
+      document.body.style.top = '';
+      document.body.style.width = '';
+      window.scrollTo(0, scrollY);
+    };
+  }, [showQuickModal, showFocusedModal, showCombinedDetail, showNewPanel, showFocusedMenu, isMobile]);
 
   // ドメイン別成績（サーバー統計優先、ゲスト/オフライン時はローカル履歴）
   const domains = useMemo(() => targetExam ? (EXAM_DOMAINS[targetExam] ?? []) : [], [targetExam]);
