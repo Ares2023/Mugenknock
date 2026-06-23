@@ -545,12 +545,14 @@ export default function Practice() {
                       <div style={{ fontSize: 11, color: 'var(--color-text-light)', marginBottom: 2 }}>{ja ? '制限時間' : 'Time Limit'}</div>
                       <div style={{ fontWeight: 700, fontSize: 'var(--font-size-lg)' }}>{examTimeMin}<span style={{ fontSize: 12, fontWeight: 400 }}>{ja ? '分' : ' min'}</span></div>
                     </div>
-                    {examMode === 'full' && (
-                      <div>
-                        <div style={{ fontSize: 11, color: 'var(--color-text-light)', marginBottom: 2 }}>{ja ? '合格点' : 'Pass Score'}</div>
-                        <div style={{ fontWeight: 700, fontSize: 'var(--font-size-lg)' }}>{PASS_SCORES[targetExam]}</div>
+                    <div>
+                      <div style={{ fontSize: 11, color: 'var(--color-text-light)', marginBottom: 2 }}>{ja ? '合格点' : 'Pass Score'}</div>
+                      <div style={{ fontWeight: 700, fontSize: 'var(--font-size-lg)' }}>
+                        {examMode === 'mini'
+                          ? Math.ceil((PASS_SCORES[targetExam] ?? 0) / 5)
+                          : PASS_SCORES[targetExam]}
                       </div>
-                    )}
+                    </div>
                   </div>
                   <div style={{ background: 'var(--color-bg-main)', borderRadius: 'var(--border-radius-md)', padding: '10px 14px', marginBottom: 0 }}>
                 <div style={{ fontSize: 11, fontWeight: 700, color: 'var(--color-text-sub)', marginBottom: 6 }}>{ja ? 'ルール' : 'Rules'}</div>
