@@ -773,9 +773,9 @@ function TodayServiceSection({ lang, userId, onNavigateEncyclopedia, onReveal, i
     const localRevealed = localStorage.getItem(`encyclopediaUnlockDate_${uid}`) === jstDate;
     if (localRevealed) setRevealed(true);
 
-    // 再抽選キャッシュの読み込み
+    // 再抽選キャッシュの読み込み（localStorage に保存してリロード後も維持）
     const rerollCacheKey = `daily_service_reroll_${uid}_${jstDate}`;
-    const cachedReroll = getCached<DailyService>(rerollCacheKey);
+    const cachedReroll = getCachedPersist<DailyService>(rerollCacheKey);
     if (cachedReroll) {
       setRerolledService({ ...cachedReroll, icon: resolveServiceIcon(cachedReroll) });
     }
@@ -850,7 +850,7 @@ function TodayServiceSection({ lang, userId, onNavigateEncyclopedia, onReveal, i
       saveToEncyclopedia(s, uid);
       syncEncyclopediaToServer(userId, true);
       const rerollCacheKey = `daily_service_reroll_${uid}_${jstDate}`;
-      setCached(rerollCacheKey, s, 24 * 60 * 60 * 1000);
+      setCachedPersist(rerollCacheKey, s, 24 * 60 * 60 * 1000);
       setRerolledService(s);
       onReveal(s);
     } catch (err) {
