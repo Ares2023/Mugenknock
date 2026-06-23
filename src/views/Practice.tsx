@@ -500,29 +500,30 @@ export default function Practice() {
                 {ja ? 'ミニ模試（問題数・時間を1/5に短縮）' : 'Mini mode (1/5 questions & time)'}
               </label>
 
-              {/* ── 試験情報セクション区切り ── */}
-              <div style={{ borderTop: '1px solid var(--color-border)', margin: '0 0 14px' }} />
-              <div style={{ fontSize: 11, fontWeight: 700, color: 'var(--color-text-light)', textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: 14 }}>
-                {ja ? '試験情報' : 'Exam Info'}
-              </div>
-
-              <div style={{ display: 'flex', gap: 24, marginBottom: 16, flexWrap: 'wrap' }}>
-                <div>
-                  <div style={{ fontSize: 11, color: 'var(--color-text-light)', marginBottom: 2 }}>{ja ? '問題数' : 'Questions'}</div>
-                  <div style={{ fontWeight: 700, fontSize: 'var(--font-size-lg)' }}>{examQuestions}<span style={{ fontSize: 12, fontWeight: 400 }}>{ja ? '問' : ' Q'}</span></div>
+              {/* ── 試験情報セクション ── */}
+              <div style={{ borderTop: '1px solid var(--color-border)', marginTop: 4 }} />
+              <div style={{ background: 'var(--color-bg-white)', borderRadius: 'var(--border-radius-md)', border: '1px solid var(--color-border)', overflow: 'hidden', marginTop: 14 }}>
+                <div style={{ padding: '8px 14px', background: 'var(--color-bg-main)', borderBottom: '1px solid var(--color-border)', fontSize: 11, fontWeight: 700, color: 'var(--color-text-light)', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+                  {ja ? '試験情報' : 'Exam Info'}
                 </div>
-                <div>
-                  <div style={{ fontSize: 11, color: 'var(--color-text-light)', marginBottom: 2 }}>{ja ? '制限時間' : 'Time Limit'}</div>
-                  <div style={{ fontWeight: 700, fontSize: 'var(--font-size-lg)' }}>{examTimeMin}<span style={{ fontSize: 12, fontWeight: 400 }}>{ja ? '分' : ' min'}</span></div>
-                </div>
-                {examMode === 'full' && (
-                  <div>
-                    <div style={{ fontSize: 11, color: 'var(--color-text-light)', marginBottom: 2 }}>{ja ? '合格点' : 'Pass Score'}</div>
-                    <div style={{ fontWeight: 700, fontSize: 'var(--font-size-lg)' }}>{PASS_SCORES[targetExam]}</div>
+                <div style={{ padding: '12px 14px' }}>
+                  <div style={{ display: 'flex', gap: 24, marginBottom: 12, flexWrap: 'wrap' }}>
+                    <div>
+                      <div style={{ fontSize: 11, color: 'var(--color-text-light)', marginBottom: 2 }}>{ja ? '問題数' : 'Questions'}</div>
+                      <div style={{ fontWeight: 700, fontSize: 'var(--font-size-lg)' }}>{examQuestions}<span style={{ fontSize: 12, fontWeight: 400 }}>{ja ? '問' : ' Q'}</span></div>
+                    </div>
+                    <div>
+                      <div style={{ fontSize: 11, color: 'var(--color-text-light)', marginBottom: 2 }}>{ja ? '制限時間' : 'Time Limit'}</div>
+                      <div style={{ fontWeight: 700, fontSize: 'var(--font-size-lg)' }}>{examTimeMin}<span style={{ fontSize: 12, fontWeight: 400 }}>{ja ? '分' : ' min'}</span></div>
+                    </div>
+                    {examMode === 'full' && (
+                      <div>
+                        <div style={{ fontSize: 11, color: 'var(--color-text-light)', marginBottom: 2 }}>{ja ? '合格点' : 'Pass Score'}</div>
+                        <div style={{ fontWeight: 700, fontSize: 'var(--font-size-lg)' }}>{PASS_SCORES[targetExam]}</div>
+                      </div>
+                    )}
                   </div>
-                )}
-              </div>
-              <div style={{ background: 'var(--color-bg-main)', borderRadius: 'var(--border-radius-md)', padding: '10px 14px', marginBottom: 24 }}>
+                  <div style={{ background: 'var(--color-bg-main)', borderRadius: 'var(--border-radius-md)', padding: '10px 14px', marginBottom: 0 }}>
                 <div style={{ fontSize: 11, fontWeight: 700, color: 'var(--color-text-sub)', marginBottom: 6 }}>{ja ? 'ルール' : 'Rules'}</div>
                 {examRules.map((r, i) => (
                   <div key={i} style={{ fontSize: 'var(--font-size-sm)', color: 'var(--color-text-sub)', display: 'flex', gap: 6, alignItems: 'flex-start', marginBottom: i < examRules.length - 1 ? 4 : 0 }}>
@@ -530,6 +531,8 @@ export default function Practice() {
                     <span>{r}</span>
                   </div>
                 ))}
+                  </div>
+                </div>
               </div>
 
             </>
