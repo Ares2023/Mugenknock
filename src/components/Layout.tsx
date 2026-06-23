@@ -275,6 +275,23 @@ export default function Layout({ children }: { children: React.ReactNode }) {
     );
   }, [open, isMobile]);
 
+  // モーダル表示中は body スクロール無効（iOS Safari 対応で position:fixed 方式）
+  useEffect(() => {
+    if (!showContact && !showPointsInfo) return;
+    const scrollY = window.scrollY;
+    document.body.style.overflow = 'hidden';
+    document.body.style.position = 'fixed';
+    document.body.style.top = `-${scrollY}px`;
+    document.body.style.width = '100%';
+    return () => {
+      document.body.style.overflow = '';
+      document.body.style.position = '';
+      document.body.style.top = '';
+      document.body.style.width = '';
+      window.scrollTo(0, scrollY);
+    };
+  }, [showContact, showPointsInfo]);
+
   const toggle = () => setOpen(prev => {
     if (!isMobile) localStorage.setItem(`sidebarOpen_${uid}`, String(!prev));
     return !prev;
@@ -386,6 +403,8 @@ export default function Layout({ children }: { children: React.ReactNode }) {
         <div
           style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', zIndex: 1000, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 'var(--spacing-md)' }}
           onClick={e => { if (e.target === e.currentTarget) { setShowContact(false); } }}
+          onTouchStart={e => e.stopPropagation()}
+          onTouchMove={e => e.stopPropagation()}
         >
           <div style={{ background: 'var(--color-bg-white)', borderRadius: 'var(--border-radius-lg)', padding: isMobile ? '20px 18px' : '28px 32px', width: '100%', maxWidth: 480, boxShadow: 'var(--box-shadow-md)', maxHeight: isMobile ? '66vh' : '90vh', overflowY: 'auto' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 'var(--spacing-lg)' }}>
@@ -460,6 +479,8 @@ export default function Layout({ children }: { children: React.ReactNode }) {
         <div
           style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', zIndex: 1000, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 'var(--spacing-md)' }}
           onClick={e => { if (e.target === e.currentTarget) setShowPointsInfo(false); }}
+          onTouchStart={e => e.stopPropagation()}
+          onTouchMove={e => e.stopPropagation()}
         >
           <div style={{ background: 'var(--color-bg-white)', borderRadius: 'var(--border-radius-lg)', padding: isMobile ? '20px 18px' : '24px 28px', width: '100%', maxWidth: 380, boxShadow: 'var(--box-shadow-md)' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 }}>
