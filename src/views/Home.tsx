@@ -1143,6 +1143,12 @@ export default function Home() {
   }, [uid, authLoading]);
 
   useEffect(() => {
+    if (authLoading) return;
+    const saved = localStorage.getItem(`lastQuickMode_${uid}`) as 'quick' | 'focused' | null;
+    if (saved === 'quick' || saved === 'focused') setLastMode(saved);
+  }, [uid, authLoading]);
+
+  useEffect(() => {
     const handler = (e: Event) => setTargetExam((e as CustomEvent).detail);
     window.addEventListener('targetExamChanged', handler);
     return () => window.removeEventListener('targetExamChanged', handler);
