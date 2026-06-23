@@ -2345,7 +2345,7 @@ ${tipPromptExamType !== 'ALL' ? `・examType には "${tipPromptExamType}" を�
               />
               <div style={{ display: 'flex', gap: 8, marginTop: 12, borderTop: '1px solid #eaeded', paddingTop: 12 }}>
                 <button onClick={handleSaveTip}
-                  style={{ padding: '7px 20px', background: '#ff9900', color: 'var(--color-text-main)', border: '1px solid transparent', borderRadius: 9999, cursor: 'pointer', fontWeight: 700, fontSize: 14 }}>
+                  style={{ padding: '7px 20px', background: '#ff9900', color: '#fff', border: '1px solid transparent', borderRadius: 9999, cursor: 'pointer', fontWeight: 700, fontSize: 14 }}>
                   保存
                 </button>
                 <button onClick={() => { setShowTipForm(false); setEditingTip(null); }}
@@ -2446,7 +2446,7 @@ ${tipPromptExamType !== 'ALL' ? `・examType には "${tipPromptExamType}" を�
               </div>
               <div style={{ display: 'flex', gap: 8 }}>
                 <button onClick={handleSaveRelease}
-                  style={{ padding: '7px 20px', background: '#ff9900', color: 'var(--color-text-main)', border: '1px solid transparent', borderRadius: 9999, cursor: 'pointer', fontWeight: 700, fontSize: 14 }}>
+                  style={{ padding: '7px 20px', background: '#ff9900', color: '#fff', border: '1px solid transparent', borderRadius: 9999, cursor: 'pointer', fontWeight: 700, fontSize: 14 }}>
                   保存
                 </button>
                 <button onClick={() => { setShowReleaseForm(false); setEditingRelease(null); }}
@@ -2757,7 +2757,7 @@ ${tipPromptExamType !== 'ALL' ? `・examType には "${tipPromptExamType}" を�
               </button>
               <button
                 onClick={() => { setEditingDS(null); setDsForm(emptyDSForm); setShowDSForm(true); }}
-                style={{ padding: '6px 16px', background: '#ff9900', color: '#16191f', border: 'none', borderRadius: 9999, cursor: 'pointer', fontSize: 13, fontWeight: 700 }}>
+                style={{ padding: '6px 16px', background: '#ff9900', color: '#fff', border: 'none', borderRadius: 9999, cursor: 'pointer', fontSize: 13, fontWeight: 700 }}>
                 + 追加
               </button>
             </div>
@@ -2824,7 +2824,7 @@ ${tipPromptExamType !== 'ALL' ? `・examType には "${tipPromptExamType}" を�
               <div style={{ display: 'flex', alignItems: 'center', gap: 16, borderTop: '1px solid var(--color-border)', paddingTop: 12 }}>
                 <div style={{ marginLeft: 'auto', display: 'flex', gap: 8 }}>
                   <button onClick={saveDailyService}
-                    style={{ padding: '7px 20px', background: '#ff9900', color: '#16191f', border: 'none', borderRadius: 9999, cursor: 'pointer', fontWeight: 700, fontSize: 14 }}>
+                    style={{ padding: '7px 20px', background: '#ff9900', color: '#fff', border: 'none', borderRadius: 9999, cursor: 'pointer', fontWeight: 700, fontSize: 14 }}>
                     保存
                   </button>
                   <button onClick={() => { setShowDSForm(false); setEditingDS(null); setDsForm(emptyDSForm); }}
@@ -3008,7 +3008,7 @@ ${tipPromptExamType !== 'ALL' ? `・examType には "${tipPromptExamType}" を�
                 setThemeSaving(false);
               }}
               disabled={themeSaving}
-              style={{ padding: '8px 24px', background: '#ff9900', color: '#16191f', border: 'none', borderRadius: 9999, cursor: themeSaving ? 'default' : 'pointer', fontWeight: 700, fontSize: 14 }}>
+              style={{ padding: '8px 24px', background: '#ff9900', color: '#fff', border: 'none', borderRadius: 9999, cursor: themeSaving ? 'default' : 'pointer', fontWeight: 700, fontSize: 14 }}>
               {themeSaving ? '保存中...' : '全ユーザーに適用'}
             </button>
             <button
