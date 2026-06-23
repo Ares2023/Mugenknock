@@ -738,14 +738,19 @@ function syncEncyclopediaToServer(userId: string, forceUpload = false): void {
           window.dispatchEvent(new CustomEvent('encyclopediaUpdated'));
           return;
         }
-        const merged: Record<string, string> = { ...server, ...local };
+        // サーバー優先マージ（ローカルに新規解放分があれば残す）
+        const merged: Record<string, string> = { ...local, ...server };
         localStorage.setItem(`encyclopediaUnlocked_${uid}`, JSON.stringify(merged));
         window.dispatchEvent(new CustomEvent('encyclopediaUpdated'));
-        return fetch(`${API_ENDPOINT}/users/me/encyclopedia-unlocks`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ userId, unlocks: merged, unlockDate, todayServiceId }),
-        });
+        // POST 失敗時は1回リトライ（3秒後）
+        const body = JSON.stringify({ userId, unlocks: merged, unlockDate, todayServiceId });
+        const doPost = (retriesLeft: number) => {
+          fetch(`${API_ENDPOINT}/users/me/encyclopedia-unlocks`, {
+            method: 'POST', headers: { 'Content-Type': 'application/json' }, body,
+          }).then(r => { if (!r.ok && retriesLeft > 0) setTimeout(() => doPost(retriesLeft - 1), 3000); })
+            .catch(() => { if (retriesLeft > 0) setTimeout(() => doPost(retriesLeft - 1), 3000); });
+        };
+        doPost(1);
       })
       .catch(() => {});
   } catch {}
