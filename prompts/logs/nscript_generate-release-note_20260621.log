@@ -1,0 +1,6 @@
+=== 2026-06-21 00:32:44 | generate-release-note.sh | exit:0 ===
+[release-note] 対象日: 2026-06-20
+[release-note] 2026-06-20: 18件のコミット
+[release-note] 生成結果:
+{"title": "資格選択がもっと見やすく、わかりやすく！","body": "試験カードに資格アイコンと選択中バッジが加わり、今どの資格を学習中かが一目でわかるようになりました！\n「✓学習中」の緑色表示や確認フローのスムーズなアニメーションなど、資格選択まわりの体験をまるごとリニューアルしています。","titleEn": "Cleaner, Clearer Exam Selection!","bodyEn": "Exam cards now show certification icons and a check badge so you can instantly see which exam you're studying.\nWe've also refreshed the entire selection flow with a smoother confirm animation and a green '✓ Studying' indicator for your current target exam."}
+[release-note] ✓ DynamoDBに挿入しました: 2026-06-20 — 資格選択がもっと見やすく、わかりやすく！

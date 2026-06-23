@@ -570,9 +570,9 @@ export default function Admin() {
     }
   }, []);
 
-  const deleteReport = async (reportId: string) => {
+  const deleteReport = async (reportId: string, questionId: string) => {
     try {
-      await adminFetch(`${API_ENDPOINT}/admin/reports/${reportId}`, { method: 'DELETE' });
+      await adminFetch(`${API_ENDPOINT}/admin/reports/${reportId}?questionId=${encodeURIComponent(questionId)}`, { method: 'DELETE' });
       setReports(prev => prev.filter(r => r.reportId !== reportId));
     } catch (err) { console.error(err); }
   };
@@ -1806,7 +1806,7 @@ export default function Admin() {
                     問題を確認
                   </button>
                   <button
-                    onClick={() => deleteReport(r.reportId)}
+                    onClick={() => deleteReport(r.reportId, r.questionId)}
                     style={{ fontSize: 12, padding: '4px 12px', border: '1px solid #d1d5db', borderRadius: 9999, cursor: 'pointer', background: 'transparent', color: 'var(--color-text-sub)', fontWeight: 700 }}
                     title="解決済みとして削除">
                     ✓ 解決済み
