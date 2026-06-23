@@ -160,6 +160,8 @@ export default function MyPage() {
     const d = new Date(Date.now() + 9 * 3600 * 1000 - (6 - i) * 86400000);
     return d.toISOString().slice(0, 10);
   });
+  const examColor = targetExam ? (EXAM_LEVEL_COLORS[EXAM_LEVEL[targetExam]] ?? 'var(--color-primary)') : 'var(--color-primary)';
+
   const weekCounts = weekDays.map(d => {
     if (!targetExam) return 0;
     return parseInt(localStorage.getItem(`dailyQCount_${targetExam}_${uid}_${d}`) ?? '0', 10);
@@ -518,10 +520,10 @@ export default function MyPage() {
                           return (
                             <div key={d} style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 3 }}>
                               <div style={{ width: '100%', height: 40, borderRadius: 4, background: 'var(--color-bg-card)', position: 'relative', overflow: 'hidden' }}>
-                                <div style={{ position: 'absolute', bottom: 0, width: '100%', height: `${pct * 100}%`, background: achieved ? '#009E9E' : 'rgba(0,158,158,0.2)', borderRadius: '4px 4px 0 0', transition: 'height 0.3s' }} />
+                                <div style={{ position: 'absolute', bottom: 0, width: '100%', height: `${pct * 100}%`, background: achieved ? examColor : `${examColor}33`, borderRadius: '4px 4px 0 0', transition: 'height 0.3s' }} />
                                 {achieved && <div style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%,-50%)', fontSize: 10, color: 'white', fontWeight: 700 }}>✓</div>}
                               </div>
-                              <span style={{ fontSize: 9, color: isToday ? '#009E9E' : 'var(--color-text-light)', fontWeight: isToday ? 700 : 400 }}>{dayLabel}</span>
+                              <span style={{ fontSize: 9, color: isToday ? examColor : 'var(--color-text-light)', fontWeight: isToday ? 700 : 400 }}>{dayLabel}</span>
                             </div>
                           );
                         })}
@@ -594,10 +596,10 @@ export default function MyPage() {
                         return (
                           <div key={d} style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 3 }}>
                             <div style={{ width: '100%', height: 44, borderRadius: 4, background: 'var(--color-bg-main)', position: 'relative', overflow: 'hidden' }}>
-                              <div style={{ position: 'absolute', bottom: 0, width: '100%', height: `${pct * 100}%`, background: achieved ? '#009E9E' : 'rgba(0,158,158,0.2)', borderRadius: '4px 4px 0 0', transition: 'height 0.3s' }} />
+                              <div style={{ position: 'absolute', bottom: 0, width: '100%', height: `${pct * 100}%`, background: achieved ? examColor : `${examColor}33`, borderRadius: '4px 4px 0 0', transition: 'height 0.3s' }} />
                               {achieved && <div style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%,-50%)', fontSize: 10, color: 'white', fontWeight: 700 }}>✓</div>}
                             </div>
-                            <span style={{ fontSize: 9, color: isToday ? '#009E9E' : 'var(--color-text-light)', fontWeight: isToday ? 700 : 400 }}>{dayLabel}</span>
+                            <span style={{ fontSize: 9, color: isToday ? examColor : 'var(--color-text-light)', fontWeight: isToday ? 700 : 400 }}>{dayLabel}</span>
                           </div>
                         );
                       })}
