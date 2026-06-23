@@ -2328,9 +2328,6 @@ export default function Home() {
                   </div>
                 )}
               </div>
-              <div style={{ fontSize: 'var(--font-size-xs)', color: 'var(--color-text-light)', marginBottom: 16 }}>
-                {ja ? '※ AI確認済み問題のみが常に対象です' : '* AI-verified questions are always included'}
-              </div>
               {/* その他 */}
               <div style={{ padding: '14px 0', borderTop: '1px solid var(--color-border)' }}>
                 <div style={{ fontWeight: 500, fontSize: 'var(--font-size-base)', color: 'var(--color-text-main)', marginBottom: 8 }}>
