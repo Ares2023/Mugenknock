@@ -686,7 +686,7 @@ export default function MyPage() {
                 onSelect={(exam) => { setTargetExam(exam); if (user) syncTargetExamToServer(user.userId, uid, exam); }}
                 onClose={() => setShowExamSelect(false)}
                 desktopMaxWidth={672}
-                desktopHeight="78vh"
+                desktopHeight="86vh"
               />
             )}
           </>
