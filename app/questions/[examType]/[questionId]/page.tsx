@@ -28,14 +28,14 @@ export async function generateStaticParams() {
     try {
       const ctrl = new AbortController();
       const timer = setTimeout(() => ctrl.abort(), 30000); // 30秒タイムアウト
-      const res = await fetch(`${API}/questions?examType=${examType}&metaOnly=true`, {
+      const res = await fetch(`${API}/questions/public?examType=${examType}`, {
         signal: ctrl.signal,
       });
       clearTimeout(timer);
       if (!res.ok) continue;
       const data = await res.json();
       for (const q of (data.items ?? [])) {
-        params.push({ examType, questionId: q.questionId });
+        if (q.validityCheckedAt) params.push({ examType, questionId: q.questionId });
       }
       console.log(`generateStaticParams: ${examType} ${params.filter(p => p.examType === examType).length}問`);
     } catch (e) {
@@ -51,14 +51,14 @@ const fetchAllByExam = cache(async (examType: string): Promise<Question[]> => {
   try {
     const ctrl = new AbortController();
     const timer = setTimeout(() => ctrl.abort(), 30000);
-    const res = await fetch(`${API}/questions?examType=${examType}&withAnswers=true`, {
+    const res = await fetch(`${API}/questions/public?examType=${examType}`, {
       signal: ctrl.signal,
       cache: 'force-cache',
     });
     clearTimeout(timer);
     if (!res.ok) return [];
     const data = await res.json();
-    return (data.items ?? []).filter((q: Question & { validityCheckedAt?: string }) => q.validityCheckedAt);
+    return data.items ?? [];
   } catch {
     return [];
   }
