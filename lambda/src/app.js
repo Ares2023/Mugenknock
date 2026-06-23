@@ -2,14 +2,9 @@ const express = require('express');
 const { DynamoDBClient } = require('@aws-sdk/client-dynamodb');
 const { DynamoDBDocumentClient, ScanCommand, GetCommand, QueryCommand, PutCommand, UpdateCommand, TransactWriteCommand, DeleteCommand, BatchGetCommand } = require('@aws-sdk/lib-dynamodb');
 const { CognitoIdentityProviderClient, ListUsersCommand } = require('@aws-sdk/client-cognito-identity-provider');
-const { SESClient, SendEmailCommand } = require('@aws-sdk/client-ses');
 const { v4: uuidv4 } = require('uuid');
 const { CognitoJwtVerifier } = require('aws-jwt-verify');
-const { S3Client, PutObjectCommand } = require('@aws-sdk/client-s3');
 const { ADMIN_EMAIL, EXAM_DOMAINS } = require('./constants');
-
-const ERROR_LOG_BUCKET = 'mugenknock-error-logs';
-const s3Client = new S3Client({ region: 'ap-northeast-1' });
 
 // ── domain フィールドのユーティリティ ──────────────────────────
 // domain は整数インデックス（EXAM_DOMAINS[examType][domain]）
@@ -180,36 +175,6 @@ async function queryAll(docClient, params) {
 }
 
 // ヘルスチェック
-app.get('/health', (req, res) => {
-  res.json({ status: 'ok' });
-});
-
-// クライアントエラーレポート（CloudWatch Logs に記録するだけ）
-app.post('/errors', async (req, res) => {
-  const { type, message, stack, url, ua, ts, componentStack, context } = req.body || {};
-  const now = new Date();
-  const jst = new Date(now.getTime() + 9 * 3600 * 1000);
-  const yyyy = jst.getUTCFullYear();
-  const mm   = String(jst.getUTCMonth() + 1).padStart(2, '0');
-  const dd   = String(jst.getUTCDate()).padStart(2, '0');
-  const key  = `logs/${yyyy}/${mm}/${dd}/${Date.now()}-${uuidv4()}.json`;
-  const record = { type, message, stack, url, ua, ts: ts || now.toISOString(), componentStack, context };
-  // CloudWatch にも残す
-  console.error(JSON.stringify({ level: 'CLIENT_ERROR', ...record }));
-  // S3 に保存
-  try {
-    await s3Client.send(new PutObjectCommand({
-      Bucket: ERROR_LOG_BUCKET,
-      Key: key,
-      Body: JSON.stringify(record, null, 2),
-      ContentType: 'application/json',
-    }));
-  } catch (e) {
-    console.error('S3 error log write failed:', e.message);
-  }
-  res.status(204).end();
-});
-
 // 問題生成・チェック状況（日次/月次集計）
 app.get('/questions/growth-stats', async (req, res) => {
   try {
@@ -312,36 +277,6 @@ app.get('/questions/growth-stats', async (req, res) => {
 
 // SSG用：検証済み問題を試験別に一括取得（Next.jsビルド時専用）
 // validityCheckedAt が設定された問題のみ返す
-app.get('/questions/public', async (req, res) => {
-  try {
-    const docClient = getClient();
-    const { examType } = req.query;
-    if (!examType) return res.status(400).json({ error: 'examType required' });
-
-    const FIELDS = 'questionId, examType, #qt, choices, correctAnswerIndices, correctAnswers, choiceExplanations, explanation, #dom, isMultiple, validityCheckedAt';
-    let items = [];
-    let lastKey = undefined;
-    do {
-      const params = {
-        TableName: 'Questions',
-        FilterExpression: 'examType = :e AND attribute_exists(validityCheckedAt)',
-        ExpressionAttributeValues: { ':e': examType },
-        ExpressionAttributeNames: { '#qt': 'questionText', '#dom': 'domain' },
-        ProjectionExpression: FIELDS,
-      };
-      if (lastKey) params.ExclusiveStartKey = lastKey;
-      const result = await docClient.send(new ScanCommand(params));
-      items = items.concat(result.Items || []);
-      lastKey = result.LastEvaluatedKey;
-    } while (lastKey);
-
-    res.json({ items, count: items.length });
-  } catch (e) {
-    console.error(e);
-    res.status(500).json({ error: e.message });
-  }
-});
-
 // 問題一覧取得
 app.get('/questions', async (req, res) => {
   try {
@@ -934,51 +869,6 @@ app.post('/sessions', async (req, res) => {
 });
 
 // 未完了セッション確認
-app.get('/sessions/active', async (req, res) => {
-  try {
-    const docClient = getClient();
-    const { userId } = req.query;
-    const result = await docClient.send(new QueryCommand({
-      TableName: 'Sessions',
-      KeyConditionExpression: 'userId = :userId',
-      FilterExpression: '#s = :active',
-      ExpressionAttributeNames: { '#s': 'status' },
-      ExpressionAttributeValues: { ':userId': userId, ':active': 'active' }
-    }));
-    const active = result.Items && result.Items.length > 0 ? result.Items[0] : null;
-    res.json({ session: active });
-  } catch (err) {
-    console.error(err);
-    res.status(500).json({ error: 'Internal server error' });
-  }
-});
-
-// セッション進捗取得
-app.get('/sessions/:id/progress', async (req, res) => {
-  try {
-    const docClient = getClient();
-    const { userId } = req.query;
-    const sessionResult = await docClient.send(new GetCommand({
-      TableName: 'Sessions',
-      Key: { userId, sessionId: req.params.id }
-    }));
-    if (!sessionResult.Item) return res.status(404).json({ error: 'Session not found' });
-
-    const answersResult = await docClient.send(new QueryCommand({
-      TableName: 'UserAnswers',
-      KeyConditionExpression: 'userId = :userId AND begins_with(questionIdTimestamp, :prefix)',
-      ExpressionAttributeValues: {
-        ':userId': userId,
-        ':prefix': req.params.id + '#'
-      }
-    }));
-    res.json({ session: sessionResult.Item, answers: answersResult.Items || [] });
-  } catch (err) {
-    console.error(err);
-    res.status(500).json({ error: 'Internal server error' });
-  }
-});
-
 // 回答記録
 app.post('/sessions/:id/answers', async (req, res) => {
   try {
@@ -2275,13 +2165,9 @@ app.put('/users/me/preferences', async (req, res) => {
   }
 });
 
-// ── 管理者によるユーザーデータ削除（確認メール付き） ──
+// ── 管理者によるユーザーデータ削除 ──
 
 const USER_POOL_ID = 'ap-northeast-1_KIOFciGhQ';
-const SITE_URL = 'https://www.mugenknock.com';
-const DEL_REQ_PREFIX = 'delReq_';
-const DEL_AUTH_PREFIX = 'delAuth_';
-const DEL_REQ_TTL_MS = 24 * 60 * 60 * 1000;
 
 async function findCognitoUserByEmail(email) {
   const client = new CognitoIdentityProviderClient({ region: 'ap-northeast-1' });
@@ -2297,123 +2183,6 @@ async function findCognitoUserByEmail(email) {
   return sub ? { userId: sub, username: user.Username } : null;
 }
 
-async function sendDeletionConfirmEmail(toEmail, token) {
-  const sesClient = new SESClient({ region: 'ap-northeast-1' });
-  const confirmUrl = `${SITE_URL}/confirm-delete?token=${token}`;
-  await sesClient.send(new SendEmailCommand({
-    Source: ADMIN_EMAIL,
-    Destination: { ToAddresses: [toEmail] },
-    Message: {
-      Subject: { Data: '【MugenKnock】データ削除の確認', Charset: 'UTF-8' },
-      Body: {
-        Text: {
-          Data: `データ削除リクエストを受信しました。\n\n以下のリンクをクリックして削除を承認してください（24時間有効）：\n\n${confirmUrl}\n\n心当たりがない場合は、このメールを無視してください。`,
-          Charset: 'UTF-8',
-        },
-      },
-    },
-  }));
-}
-
-// 管理者: 削除リクエスト作成 → 確認メール送信（既に永続認証済みならメール不要）
-app.post('/admin/deletion-requests', async (req, res) => {
-  try {
-    const { email } = req.body;
-    if (!email) return res.status(400).json({ error: 'email required' });
-
-    const cognitoUser = await findCognitoUserByEmail(email);
-    if (!cognitoUser) return res.status(404).json({ error: 'User not found' });
-
-    const docClient = getClient();
-
-    // 永続認証レコードが存在すればメール不要
-    const authResult = await docClient.send(new GetCommand({
-      TableName: 'AppSettings',
-      Key: { settingId: `${DEL_AUTH_PREFIX}${cognitoUser.userId}` },
-    }));
-    if (authResult.Item) {
-      return res.json({ success: true, userId: cognitoUser.userId, preAuthorized: true });
-    }
-
-    const token = uuidv4();
-    const now = new Date().toISOString();
-    const expiresAt = new Date(Date.now() + DEL_REQ_TTL_MS).toISOString();
-
-    // 既存の一時リクエストを削除
-    const existing = await docClient.send(new ScanCommand({
-      TableName: 'AppSettings',
-      FilterExpression: 'begins_with(settingId, :prefix) AND #em = :email',
-      ExpressionAttributeNames: { '#em': 'email' },
-      ExpressionAttributeValues: { ':prefix': DEL_REQ_PREFIX, ':email': email },
-    }));
-    for (const item of (existing.Items || [])) {
-      await docClient.send(new DeleteCommand({ TableName: 'AppSettings', Key: { settingId: item.settingId } }));
-    }
-
-    await docClient.send(new PutCommand({
-      TableName: 'AppSettings',
-      Item: { settingId: `${DEL_REQ_PREFIX}${token}`, userId: cognitoUser.userId, email, confirmedAt: null, createdAt: now, expiresAt },
-    }));
-
-    await sendDeletionConfirmEmail(email, token);
-
-    res.json({ success: true, userId: cognitoUser.userId });
-  } catch (err) {
-    console.error(err);
-    const msg = String(err.message || err);
-    if (msg.includes('not verified') || msg.includes('MessageRejected')) {
-      return res.status(503).json({ error: `送信先メールアドレス（${req.body.email}）がSESで未検証です。SES本番アクセスへの移行、またはSESコンソールで対象アドレスを検証してください。` });
-    }
-    res.status(500).json({ error: msg });
-  }
-});
-
-// 管理者: 削除リクエストの状態確認
-app.get('/admin/deletion-requests/status', async (req, res) => {
-  try {
-    const { email } = req.query;
-    if (!email) return res.status(400).json({ error: 'email required' });
-
-    const cognitoUser = await findCognitoUserByEmail(email);
-    if (!cognitoUser) return res.json({ status: 'none' });
-
-    const docClient = getClient();
-
-    // 永続認証レコードを優先チェック
-    const authResult = await docClient.send(new GetCommand({
-      TableName: 'AppSettings',
-      Key: { settingId: `${DEL_AUTH_PREFIX}${cognitoUser.userId}` },
-    }));
-    if (authResult.Item) {
-      return res.json({
-        status: 'pre-authorized',
-        userId: cognitoUser.userId,
-        authorizedAt: authResult.Item.authorizedAt,
-      });
-    }
-
-    // 一時リクエストを確認
-    const scanResult = await docClient.send(new ScanCommand({
-      TableName: 'AppSettings',
-      FilterExpression: 'begins_with(settingId, :prefix) AND #em = :email',
-      ExpressionAttributeNames: { '#em': 'email' },
-      ExpressionAttributeValues: { ':prefix': DEL_REQ_PREFIX, ':email': email },
-    }));
-    const items = (scanResult.Items || []).filter(i => new Date(i.expiresAt) > new Date());
-    if (items.length === 0) return res.json({ status: 'none' });
-    const item = items[0];
-    res.json({
-      status: item.confirmedAt ? 'confirmed' : 'pending',
-      token: item.settingId.replace(DEL_REQ_PREFIX, ''),
-      userId: item.userId,
-      confirmedAt: item.confirmedAt || null,
-      expiresAt: item.expiresAt,
-    });
-  } catch (err) {
-    console.error(err);
-    res.status(500).json({ error: 'Internal server error' });
-  }
-});
 
 // ユーザーデータ削除の共通処理
 async function executeUserDataDeletion(docClient, userId) {
@@ -2500,98 +2269,6 @@ app.post('/admin/direct-delete', async (req, res) => {
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: String(err.message || err) });
-  }
-});
-
-// 管理者: データ削除実行
-app.post('/admin/deletion-requests/execute', async (req, res) => {
-  try {
-    const { token, userId: directUserId, email: directEmail } = req.body;
-    if (!token && !directUserId) return res.status(400).json({ error: 'token or userId required' });
-
-    const docClient = getClient();
-    let userId;
-    let tokenSettingId = null;
-    let email = directEmail || null;
-
-    if (directUserId) {
-      // pre-authorized パス: delAuth_ レコードで検証
-      const authResult = await docClient.send(new GetCommand({
-        TableName: 'AppSettings',
-        Key: { settingId: `${DEL_AUTH_PREFIX}${directUserId}` },
-      }));
-      if (!authResult.Item) return res.status(403).json({ error: 'Not authorized' });
-      userId = directUserId;
-      email = email || authResult.Item.email;
-    } else {
-      // 通常パス: 一時トークンで検証
-      const reqResult = await docClient.send(new GetCommand({
-        TableName: 'AppSettings',
-        Key: { settingId: `${DEL_REQ_PREFIX}${token}` },
-      }));
-      if (!reqResult.Item) return res.status(404).json({ error: 'Request not found' });
-      if (!reqResult.Item.confirmedAt) return res.status(403).json({ error: 'Not confirmed yet' });
-      if (new Date(reqResult.Item.expiresAt) < new Date()) return res.status(410).json({ error: 'Token expired' });
-      userId = reqResult.Item.userId;
-      email = email || reqResult.Item.email;
-      tokenSettingId = `${DEL_REQ_PREFIX}${token}`;
-    }
-
-    await executeUserDataDeletion(docClient, userId);
-
-    // 永続認証レコードを保存（なければ作成）
-    await docClient.send(new PutCommand({
-      TableName: 'AppSettings',
-      Item: { settingId: `${DEL_AUTH_PREFIX}${userId}`, userId, email, authorizedAt: new Date().toISOString() },
-      ConditionExpression: 'attribute_not_exists(settingId)',
-    })).catch(() => {});
-
-    // 一時トークンを削除
-    if (tokenSettingId) {
-      await docClient.send(new DeleteCommand({ TableName: 'AppSettings', Key: { settingId: tokenSettingId } }));
-    }
-
-    res.json({ success: true, userId });
-  } catch (err) {
-    console.error(err);
-    res.status(500).json({ error: String(err.message || err) });
-  }
-});
-
-// 公開: 確認リンク（メールからアクセス）
-app.get('/confirm-delete', async (req, res) => {
-  try {
-    const { token } = req.query;
-    if (!token) return res.status(400).json({ error: 'token required' });
-
-    const docClient = getClient();
-    const result = await docClient.send(new GetCommand({
-      TableName: 'AppSettings',
-      Key: { settingId: `${DEL_REQ_PREFIX}${token}` },
-    }));
-    if (!result.Item) return res.status(404).json({ error: 'Invalid or expired token' });
-    if (new Date(result.Item.expiresAt) < new Date()) return res.status(410).json({ error: 'Token expired' });
-    if (result.Item.confirmedAt) return res.json({ success: true, alreadyConfirmed: true, email: result.Item.email });
-
-    const now = new Date().toISOString();
-    await docClient.send(new UpdateCommand({
-      TableName: 'AppSettings',
-      Key: { settingId: `${DEL_REQ_PREFIX}${token}` },
-      UpdateExpression: 'SET confirmedAt = :now',
-      ExpressionAttributeValues: { ':now': now },
-    }));
-
-    // 永続認証レコードを保存
-    await docClient.send(new PutCommand({
-      TableName: 'AppSettings',
-      Item: { settingId: `${DEL_AUTH_PREFIX}${result.Item.userId}`, userId: result.Item.userId, email: result.Item.email, authorizedAt: now },
-      ConditionExpression: 'attribute_not_exists(settingId)',
-    })).catch(() => {});
-
-    res.json({ success: true, email: result.Item.email });
-  } catch (err) {
-    console.error(err);
-    res.status(500).json({ error: 'Internal server error' });
   }
 });
 

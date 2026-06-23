@@ -18,7 +18,6 @@ export default class ErrorBoundary extends React.Component<Props, State> {
 
   componentDidCatch(error: Error, info: React.ErrorInfo) {
     console.error('[ErrorBoundary]', error, info.componentStack);
-    reportError(error, { componentStack: info.componentStack ?? '' });
   }
 
   render() {
@@ -53,22 +52,4 @@ export default class ErrorBoundary extends React.Component<Props, State> {
     }
     return this.props.children;
   }
-}
-
-function reportError(error: Error, context: Record<string, string>) {
-  try {
-    const API = process.env.REACT_APP_API_ENDPOINT;
-    if (!API) return;
-    const body = {
-      message: error.message,
-      stack: error.stack ?? '',
-      url: window.location.href,
-      userAgent: navigator.userAgent,
-      timestamp: new Date().toISOString(),
-      ...context,
-    };
-    navigator.sendBeacon
-      ? navigator.sendBeacon(`${API}/errors`, JSON.stringify(body))
-      : fetch(`${API}/errors`, { method: 'POST', body: JSON.stringify(body), keepalive: true }).catch(() => {});
-  } catch {}
 }
