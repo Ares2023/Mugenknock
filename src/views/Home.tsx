@@ -1596,9 +1596,10 @@ export default function Home() {
       const focusIncorrect: boolean = fPrefs.focusIncorrect !== false;
       const focusDomain: string = fPrefs.focusDomain ?? 'below60';
 
-      let items: any[] = [];
+      // 優先問題を先頭に集め、不足分は全問プールから補充（絞り込みではなく優先）
+      let priorityItems: any[] = [];
       if (focusIncorrect) {
-        items = allItems.filter((q: any) => incorrectIds.has(q.questionId));
+        priorityItems = allItems.filter((q: any) => incorrectIds.has(q.questionId));
       }
       if (focusDomain !== 'none') {
         const threshold = focusDomain === 'below40' ? 0.40 : focusDomain === 'below50' ? 0.50 : focusDomain === 'below70' ? 0.70 : 0.60;
@@ -1618,24 +1619,17 @@ export default function Home() {
             return total === 0 || correct / total < threshold;
           });
         })());
-        const seenIds = new Set(items.map((q: any) => q.questionId));
+        const seenIds = new Set(priorityItems.map((q: any) => q.questionId));
         const domainItems = allItems.filter((q: any) => weakDomains.has(qDomainName(q)) && !seenIds.has(q.questionId));
-        items = [...items, ...domainItems];
-      }
-      if (items.length === 0 && !focusIncorrect && focusDomain === 'none') {
-        items = [...allItems];
+        priorityItems = [...priorityItems, ...domainItems];
       }
       const count = fPrefs.questionCount ?? 5;
-      items = shuffleArray(items);
-      let usedFallback = false;
-      if (items.length < count && items.length < allItems.length) {
-        const usedIds = new Set(items.map((q: any) => q.questionId));
-        items = [...items, ...shuffleArray(allItems.filter((q: any) => !usedIds.has(q.questionId)))];
-        usedFallback = true;
-      }
+      // 優先問題をシャッフルして先頭に、残りを補充（問題数が足りなくてもアラートなし）
+      const usedIds = new Set(priorityItems.map((q: any) => q.questionId));
+      const rest = shuffleArray(allItems.filter((q: any) => !usedIds.has(q.questionId)));
+      let items: any[] = [...shuffleArray(priorityItems), ...rest];
       items = Array.from(new Map(items.map((q: any) => [q.questionId, q])).values()).slice(0, count);
       if (items.length === 0) { alert(ja ? '条件に合う問題がありません' : 'No questions match the criteria'); return; }
-      if (usedFallback) alert(ja ? '苦手・不正解問題が不足したため、条件外の問題も含めて出題します。' : 'Not enough weak/incorrect questions. Including additional questions.');
       setFocusedLoadPct(90);
       const sessionRes = await fetch(`${API_ENDPOINT}/sessions`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ userId, mode: 'exercise', examType: targetExam, questionIds: items.map((q: any) => q.questionId), isFocused: true }) });
       const sessionData = await sessionRes.json();
@@ -2374,10 +2368,10 @@ export default function Home() {
                     })}
                   </div>
                 </div>
-                {/* 不正解問題フィルタ */}
+                {/* 不正解優先 */}
                 <div style={{ padding: '14px 0', borderBottom: '1px solid var(--color-border)' }}>
                   <div style={{ fontWeight: 500, fontSize: 'var(--font-size-base)', color: 'var(--color-text-main)', marginBottom: 8 }}>
-                    {ja ? '不正解問題フィルタ' : 'Incorrect Filter'}
+                    {ja ? '不正解を優先' : 'Prioritize Incorrect'}
                   </div>
                   <label style={{ display: 'flex', alignItems: 'center', gap: 10, cursor: 'pointer' }}>
                     <input
@@ -2387,17 +2381,17 @@ export default function Home() {
                       style={{ width: 16, height: 16, flexShrink: 0, accentColor: 'var(--color-primary)' }}
                     />
                     <span style={{ fontSize: 'var(--font-size-sm)', fontWeight: 600, color: 'var(--color-text-main)' }}>
-                      {ja ? '過去に不正解だった問題を含める' : 'Include previously incorrect questions'}
+                      {ja ? '過去に不正解だった問題を優先する' : 'Prioritize previously incorrect questions'}
                     </span>
                   </label>
                 </div>
-                {/* 苦手ドメインフィルタ */}
+                {/* 苦手ドメイン優先 */}
                 <div style={{ padding: '14px 0' }}>
                   <div style={{ fontWeight: 500, fontSize: 'var(--font-size-base)', color: 'var(--color-text-main)', marginBottom: 8 }}>
-                    {ja ? '苦手ドメインフィルタ' : 'Weak Domain Filter'}
+                    {ja ? '苦手ドメインを優先' : 'Prioritize Weak Domains'}
                   </div>
                   {([
-                    ['none',    ja ? '絞り込まない' : 'Off'],
+                    ['none',    ja ? '優先しない' : 'Off'],
                     ['below60', ja ? '正答率60%以下のドメイン（3/5問）' : 'Below 60%'],
                     ['below40', ja ? '正答率40%以下のドメイン（2/5問）' : 'Below 40%'],
                   ] as [string, string][]).map(([val, label]) => {

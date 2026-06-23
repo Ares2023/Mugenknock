@@ -1036,10 +1036,10 @@ app.get('/users/me/question-stats', async (req, res) => {
     ]);
 
     const examQuestionIds = new Set((questionsResult.Items || []).map(q => q.questionId));
-    // 演習量 = 正誤に関わらず1回以上回答した異なる問題数（correctCount + incorrectCount > 0）
+    // 演習量 = 重複あり累計解答数（正誤問わず、同じ問題を何度解いても加算）
     const answeredCount = (statsResult.Items || [])
-      .filter(s => examQuestionIds.has(s.questionId) && (s.correctCount ?? 0) + (s.incorrectCount ?? 0) > 0)
-      .length;
+      .filter(s => examQuestionIds.has(s.questionId))
+      .reduce((sum, s) => sum + (s.correctCount ?? 0) + (s.incorrectCount ?? 0), 0);
 
     res.json({ answeredCount });
   } catch (err) {
