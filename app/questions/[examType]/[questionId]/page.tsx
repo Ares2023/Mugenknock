@@ -21,6 +21,9 @@ type Question = {
 };
 
 // ビルド時に全試験×全問題のパラメータを生成
+// 試験種別あたりのSSG上限（ビルドタイムアウト防止）
+const SSG_LIMIT_PER_EXAM = 100;
+
 export async function generateStaticParams() {
   const params: { examType: string; questionId: string }[] = [];
 
@@ -34,10 +37,16 @@ export async function generateStaticParams() {
       clearTimeout(timer);
       if (!res.ok) continue;
       const data = await res.json();
-      for (const q of (data.items ?? [])) {
-        if (q.validityCheckedAt) params.push({ examType, questionId: q.questionId });
+      const items: { questionId: string; validityCheckedAt?: string }[] = data.items ?? [];
+      // 最新検証順（validityCheckedAt降順）で上限まで取得
+      const sorted = [...items]
+        .filter(q => q.validityCheckedAt)
+        .sort((a, b) => (b.validityCheckedAt ?? '').localeCompare(a.validityCheckedAt ?? ''))
+        .slice(0, SSG_LIMIT_PER_EXAM);
+      for (const q of sorted) {
+        params.push({ examType, questionId: q.questionId });
       }
-      console.log(`generateStaticParams: ${examType} ${params.filter(p => p.examType === examType).length}問`);
+      console.log(`generateStaticParams: ${examType} ${sorted.length}問（上限${SSG_LIMIT_PER_EXAM}）`);
     } catch (e) {
       console.warn(`generateStaticParams: ${examType} スキップ（${e}）`);
     }
