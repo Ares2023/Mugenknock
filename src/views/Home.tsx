@@ -2411,6 +2411,9 @@ export default function Home() {
                   })}
                 </div>
               </div>
+              <div style={{ fontSize: 'var(--font-size-xs)', color: 'var(--color-text-light)', marginBottom: 16 }}>
+                {ja ? '※ 優先条件に合う問題が少ない場合は、他の問題で補充します' : '* If not enough questions match, others will be included to fill the count'}
+              </div>
             </div>
             {/* 保存ボタン固定 */}
             <div style={{ flexShrink: 0, padding: '12px 24px 20px', borderTop: '1px solid var(--color-border)' }}>

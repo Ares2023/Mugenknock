@@ -99,9 +99,10 @@ export async function prefetchTypeB(examType: string, userId: string, prefs: Foc
     const focusIncorrect = prefs.focusIncorrect !== false;
     const focusDomain = prefs.focusDomain ?? 'below60';
 
-    let items: Question[] = [];
+    // 優先問題を先頭に集め、不足分はプール全体から補充（絞り込みではなく優先）
+    let priorityItems: Question[] = [];
     if (focusIncorrect) {
-      items = pool.filter(q => incorrectIds.has(q.questionId));
+      priorityItems = pool.filter(q => incorrectIds.has(q.questionId));
     }
     if (focusDomain !== 'none') {
       const threshold = focusDomain === 'below40' ? 0.40 : focusDomain === 'below50' ? 0.50 : focusDomain === 'below70' ? 0.70 : 0.60;
@@ -116,18 +117,14 @@ export async function prefetchTypeB(examType: string, userId: string, prefs: Foc
           return total === 0 || correct / total < threshold;
         })
       );
-      const seenIds = new Set(items.map(q => q.questionId));
-      items = [...items, ...pool.filter(q => weakDomains.has(qDomainName(q)) && !seenIds.has(q.questionId))];
+      const seenIds = new Set(priorityItems.map(q => q.questionId));
+      priorityItems = [...priorityItems, ...pool.filter(q => weakDomains.has(qDomainName(q)) && !seenIds.has(q.questionId))];
     }
-    if (items.length === 0 && !focusIncorrect && focusDomain === 'none') {
-      items = [...pool];
-    }
-    items = shuffle(items);
-    if (items.length < 30) {
-      const seenIds = new Set(items.map(q => q.questionId));
-      items = [...items, ...shuffle(pool.filter(q => !seenIds.has(q.questionId)))];
-    }
-    items = Array.from(new Map(items.map(q => [q.questionId, q])).values()).slice(0, 30);
+    const usedIds = new Set(priorityItems.map(q => q.questionId));
+    const rest = shuffle(pool.filter(q => !usedIds.has(q.questionId)));
+    let items: Question[] = Array.from(
+      new Map([...shuffle(priorityItems), ...rest].map(q => [q.questionId, q])).values()
+    ).slice(0, 30);
 
     const snap = JSON.stringify({ focusIncorrect: prefs.focusIncorrect, focusDomain: prefs.focusDomain });
     saveEntry(KEY_B(examType, userId), { questions: items, examType, userId, prefsSnapshot: snap, cachedAt: Date.now() });
