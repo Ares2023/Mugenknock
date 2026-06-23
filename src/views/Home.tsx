@@ -2328,7 +2328,7 @@ export default function Home() {
             </div>
             {/* 保存ボタン固定 */}
             <div style={{ flexShrink: 0, borderTop: '1px solid var(--color-border)', padding: '10px 16px', display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: 12, minHeight: 64 }}>
-              {savedQuick && <span style={{ fontSize: 13, fontWeight: 700, color: 'var(--color-success)' }}>✓ {ja ? '保存しました' : 'Saved'}</span>}
+              {savedQuick && <span style={{ fontSize: 13, fontWeight: 700, color: 'var(--color-success)', animation: 'sherpa-save-msg 2s ease-in-out both' }}>✓ {ja ? '保存しました' : 'Saved'}</span>}
               <button
                 disabled={targetExam !== null && (EXAM_DOMAINS[targetExam] ?? []).length > 0 && (draftPrefs.domains ?? []).length === 0}
                 onClick={() => {
@@ -2437,7 +2437,7 @@ export default function Home() {
             </div>
             {/* 保存ボタン固定 */}
             <div style={{ flexShrink: 0, borderTop: '1px solid var(--color-border)', padding: '10px 16px', display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: 12, minHeight: 64 }}>
-              {savedFocused && <span style={{ fontSize: 13, fontWeight: 700, color: 'var(--color-success)' }}>✓ {ja ? '保存しました' : 'Saved'}</span>}
+              {savedFocused && <span style={{ fontSize: 13, fontWeight: 700, color: 'var(--color-success)', animation: 'sherpa-save-msg 2s ease-in-out both' }}>✓ {ja ? '保存しました' : 'Saved'}</span>}
               <button
                 onClick={() => {
                   localStorage.setItem(`focusedExercisePrefs_${uid}`, JSON.stringify(draftFocusedPrefs));

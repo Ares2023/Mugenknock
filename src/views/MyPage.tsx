@@ -659,7 +659,7 @@ export default function MyPage() {
                   </div>
                   {/* 保存ボタン */}
                   <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: 12, marginTop: 8 }}>
-                    {savedGoal && <span style={{ fontSize: 13, fontWeight: 700, color: 'var(--color-success)' }}>✓ {ja ? '保存しました' : 'Saved'}</span>}
+                    {savedGoal && <span style={{ fontSize: 13, fontWeight: 700, color: 'var(--color-success)', animation: 'sherpa-save-msg 2s ease-in-out both' }}>✓ {ja ? '保存しました' : 'Saved'}</span>}
                     <button
                       onClick={() => {
                         handleExamDateChange(editExamDate);
