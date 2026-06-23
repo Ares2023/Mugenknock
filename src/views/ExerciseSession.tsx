@@ -210,8 +210,9 @@ export default function ExerciseSession() {
   const [isQuick, setIsQuick] = useState<boolean>(state?.isQuick ?? false);
   const [isFocused, setIsFocused] = useState<boolean>(state?.isFocused ?? false);
   const [isMini, setIsMini] = useState<boolean>(state?.isMini ?? false);
-  // 消去法機能の有効/無効（quickExercisePrefs / focusedExercisePrefs から読む）
+  // 消去法機能の有効/無効（state に明示値があれば優先、なければ prefs から読む）
   const strikeEnabled = (() => {
+    if (state?.strikeEnabled === false) return false;
     const uid = state?.userId;
     if (!uid) return true;
     const key = (state?.isFocused) ? `focusedExercisePrefs_${uid}` : (state?.isQuick) ? `quickExercisePrefs_${uid}` : null;
