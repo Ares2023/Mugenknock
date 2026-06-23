@@ -801,9 +801,16 @@ function TodayServiceSection({ lang, userId, onNavigateEncyclopedia, onReveal, i
         .then(d => {
           const raw = d.service ?? null;
           const s = raw ? { ...raw, icon: resolveServiceIcon(raw) } : null;
+          // サーバーが alreadyUnlocked=true を返した場合（別デバイスで解放済み）
+          const serverUnlocked = !alreadyRevealed && !!d.alreadyUnlocked;
+          const isRevealed = alreadyRevealed || serverUnlocked;
+          if (serverUnlocked) {
+            localStorage.setItem(`encyclopediaUnlockDate_${uid}`, jstDate);
+            setRevealed(true);
+          }
           if (s) {
             setCached(cacheKey, s, 60 * 60 * 1000);
-            if (alreadyRevealed) {
+            if (isRevealed) {
               saveToEncyclopedia(s, uid);
               if (userId) syncEncyclopediaToServer(userId);
             }
@@ -815,18 +822,9 @@ function TodayServiceSection({ lang, userId, onNavigateEncyclopedia, onReveal, i
     };
 
     if (!localRevealed && userId) {
-      // ローカルで未解放の場合、別デバイスで解放済みかサーバーに確認
-      fetch(`${API_ENDPOINT}/users/me/encyclopedia-unlocks?userId=${encodeURIComponent(userId)}`)
-        .then(r => r.json())
-        .then(data => {
-          const serverRevealed = data.unlockDate === jstDate;
-          if (serverRevealed) {
-            localStorage.setItem(`encyclopediaUnlockDate_${uid}`, jstDate);
-            setRevealed(true);
-          }
-          fetchService(serverRevealed);
-        })
-        .catch(() => fetchService(false));
+      // ローカルで未解放の場合、サービス取得と同時にサーバーの解放状態を確認
+      // （fetchService 内で alreadyUnlocked を処理するため単純に fetchService を呼ぶ）
+      fetchService(false);
     } else {
       fetchService(localRevealed);
     }

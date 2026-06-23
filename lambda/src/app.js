@@ -1785,11 +1785,23 @@ app.get('/daily-service', async (req, res) => {
       return res.json({ service: items[Math.abs(hash) % items.length] });
     }
 
+    // userId がある場合、今日すでに解放済みかを確認（クロスデバイス同期用）
+    let alreadyUnlocked = false;
+    if (req.query.userId) {
+      try {
+        const encResult = await docClient.send(new GetCommand({
+          TableName: 'EncyclopediaUnlocks',
+          Key: { userId: req.query.userId },
+        }));
+        if (encResult.Item?.unlockDate === jstDate) alreadyUnlocked = true;
+      } catch {}
+    }
+
     // スケジュールにすでに今日の結果があればそれを返す
     const schedule = JSON.parse(scheduleItem?.schedule || '{}');
     if (schedule[jstDate]) {
       const locked = items.find(s => s.serviceId === schedule[jstDate]);
-      if (locked) return res.json({ service: locked });
+      if (locked) return res.json({ service: locked, alreadyUnlocked });
     }
 
     // まだ決まっていない → 今日の index を確定してスケジュールに保存
@@ -1808,7 +1820,7 @@ app.get('/daily-service', async (req, res) => {
       Item: { serviceId: '_schedule_', schedule: JSON.stringify(schedule) },
     }));
 
-    res.json({ service });
+    res.json({ service, alreadyUnlocked });
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: 'Internal server error' });
