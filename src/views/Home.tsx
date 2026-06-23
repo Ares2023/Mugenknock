@@ -4,6 +4,7 @@ import { Helmet } from '@/compat/react-helmet-async';
 import { createPortal } from 'react-dom';
 import { useNavigate, useLocation } from '@/compat/react-router-dom';
 import DailyServiceRevealModal from '../components/DailyServiceRevealModal';
+import { CATALOG } from '../data/awsServiceCatalog';
 import ExamSelectOverlay from '../components/ExamSelectOverlay';
 import { useAuth } from '../contexts/AuthContext';
 import { useLanguage } from '../contexts/LanguageContext';
@@ -700,10 +701,24 @@ function saveToEncyclopedia(svc: DailyService, uid: string) {
     localStorage.setItem('encyclopediaServices', JSON.stringify(stored));
 
     const unlocked = JSON.parse(localStorage.getItem(`encyclopediaUnlocked_${uid}`) ?? '{}');
-    if (!(svc.serviceId in unlocked)) {
-      unlocked[svc.serviceId] = jstDate;
-      localStorage.setItem(`encyclopediaUnlocked_${uid}`, JSON.stringify(unlocked));
+    unlocked[svc.serviceId] = jstDate;
+    // カタログのserviceIdsとも照合してIDを統一（UUID vs svc-xxx-N 不一致を解消）
+    const normName = (n: string) => n.toLowerCase().replace(/^amazon\s+/, '').replace(/^aws\s+/, '').trim();
+    const normSvc = normName(svc.name);
+    for (const cat of CATALOG) {
+      for (const entry of cat.services) {
+        if (
+          entry.serviceIds?.includes(svc.serviceId) ||
+          normName(entry.name) === normSvc
+        ) {
+          for (const catId of (entry.serviceIds ?? [])) {
+            unlocked[catId] = jstDate;
+          }
+          break;
+        }
+      }
     }
+    localStorage.setItem(`encyclopediaUnlocked_${uid}`, JSON.stringify(unlocked));
 
     if (localStorage.getItem(`encyclopediaUnlockDate_${uid}`) !== jstDate) {
       localStorage.setItem(`encyclopediaUnlockDate_${uid}`, jstDate);

@@ -179,17 +179,6 @@ export default function ServiceEncyclopedia() {
   const totalServices = allServices.length;
   const unlockedCount = allServices.filter(s => isUnlocked(s, unlockedMap, storedServices)).length;
 
-  // カタログにマッチしない解放済みサービス（日めくりで追加された新サービス等）
-  const catalogMatchedIds = new Set(
-    Object.keys(unlockedMap).filter(id =>
-      allServices.some(s => isUnlocked(s, { [id]: unlockedMap[id] }, storedServices))
-    )
-  );
-  const unmatchedUnlocked = Object.entries(unlockedMap)
-    .filter(([id]) => !catalogMatchedIds.has(id) && storedServices[id])
-    .map(([id]) => storedServices[id])
-    .filter(Boolean);
-
   const calIcon = (
     <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ color: 'var(--color-primary)', flexShrink: 0 }}>
       <path d="M3 20a2 2 0 0 0 2 2h10a2.4 2.4 0 0 0 1.706-.706l3.588-3.588A2.4 2.4 0 0 0 21 16V6a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2z"/>
@@ -385,35 +374,6 @@ export default function ServiceEncyclopedia() {
           </div>
         );
       })}
-
-      {/* カタログ未登録の解放済みサービス（解放済みタブのみ表示） */}
-      {activeTab === 'unlocked' && unmatchedUnlocked.length > 0 && (
-        <div style={{ marginBottom: 20 }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 6, paddingBottom: 4, borderBottom: '2px solid color-mix(in srgb, var(--color-text-light) 40%, transparent)' }}>
-            <span style={{ fontWeight: 700, fontSize: 'var(--font-size-sm)', color: 'var(--color-text-main)' }}>
-              {ja ? 'その他' : 'Others'}
-            </span>
-          </div>
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 6 }}>
-            {unmatchedUnlocked.map(svc => (
-              <div
-                key={svc.serviceId}
-                onClick={() => setSelected(svc)}
-                style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4, padding: '10px 4px', borderRadius: 'var(--border-radius-md)', cursor: 'pointer', border: '1px solid var(--color-border)', background: 'var(--color-bg-white)' }}
-              >
-                <div style={{ width: 36, height: 36, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 24 }}>
-                  {svc.icon && svc.icon.startsWith('/') ? (
-                    <img src={svc.icon} alt={svc.name} width={32} height={32} style={{ objectFit: 'contain' }} onError={e => { (e.target as HTMLImageElement).style.display = 'none'; }} />
-                  ) : (svc.icon ?? '☁️')}
-                </div>
-                <span style={{ fontSize: 10, color: 'var(--color-text-main)', textAlign: 'center', fontWeight: 600, lineHeight: 1.3, wordBreak: 'break-all' }}>
-                  {svc.shortName ?? svc.name}
-                </span>
-              </div>
-            ))}
-          </div>
-        </div>
-      )}
 
       {/* Detail modal */}
       {selected && (
