@@ -1735,8 +1735,7 @@ export default function Home() {
         </div>
         <div style={{ height: 6, borderRadius: 3, background: 'var(--color-border)', overflow: 'hidden' }}>
           {(() => {
-            const examColor = targetExam ? (EXAM_LEVEL_COLORS[EXAM_LEVEL[targetExam]] ?? 'var(--color-primary)') : 'var(--color-primary)';
-            const barColor = `linear-gradient(90deg, ${examColor}, ${examColor}${dailyCount >= dailyGoal ? '' : 'cc'})`;
+            const barColor = `linear-gradient(90deg, #009E9E, #009E9E${dailyCount >= dailyGoal ? '' : 'cc'})`;
             return (
               <div style={{ height: '100%', width: `${Math.min(100, (dailyCount / dailyGoal) * 100)}%`, borderRadius: 3, background: barColor, transformOrigin: 'left center', animation: 'growWidth 0.45s cubic-bezier(0.34, 1.56, 0.64, 1) both' }} />
             );
