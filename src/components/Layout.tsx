@@ -849,7 +849,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
             gap: '8px 24px',
             fontSize: 'var(--font-size-xs)',
             color: 'var(--color-text-light)',
-            marginTop: 'auto',
+            marginTop: 'var(--spacing-xl)',
           }}>
             <span>© {new Date().getFullYear()} 無限ノック</span>
             <span style={{ width: '100%', textAlign: 'center', fontSize: 10, color: 'var(--color-text-light)', opacity: 0.7 }}>
