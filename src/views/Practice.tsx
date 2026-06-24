@@ -415,6 +415,7 @@ export default function Practice() {
             </button>
             {showExerciseOptions && (
               <div style={{ padding: '12px 14px', borderTop: '1px solid color-mix(in srgb, var(--color-text-light) 40%, transparent)', display: 'flex', flexDirection: 'column', gap: 6 }}>
+                <div style={{ fontSize: 11, fontWeight: 700, color: 'var(--color-text-light)', letterSpacing: '0.05em', marginBottom: 2 }}>{ja ? 'ドメイン' : 'Domain'}</div>
                 {/* 全て */}
                 <label style={{ display: 'flex', alignItems: 'center', gap: 8, cursor: 'pointer', paddingBottom: 6, borderBottom: '1px solid color-mix(in srgb, var(--color-text-light) 20%, transparent)' }}>
                   <input
@@ -456,6 +457,7 @@ export default function Practice() {
                   </div>
                 )}
                 <div style={{ paddingTop: 8, marginTop: 2, borderTop: '1px solid color-mix(in srgb, var(--color-text-light) 20%, transparent)' }}>
+                  <div style={{ fontSize: 11, fontWeight: 700, color: 'var(--color-text-light)', letterSpacing: '0.05em', marginBottom: 6 }}>{ja ? 'その他' : 'Other'}</div>
                   <label style={{ display: 'flex', alignItems: 'center', gap: 8, cursor: 'pointer' }}>
                     <input
                       type="checkbox"
