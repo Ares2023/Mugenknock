@@ -494,7 +494,8 @@ export default function ExerciseSession() {
         userId,
         questionId: currentQuestion.questionId,
         selectedAnswers,
-        isCorrect
+        isCorrect,
+        examType
       })
     }).catch(err => console.error(err));
   };

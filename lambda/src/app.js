@@ -903,7 +903,7 @@ app.post('/sessions', async (req, res) => {
 app.post('/sessions/:id/answers', async (req, res) => {
   try {
     const docClient = getClient();
-    const { userId, questionId, selectedAnswers, isCorrect } = req.body;
+    const { userId, questionId, selectedAnswers, isCorrect, examType } = req.body;
     const now = new Date().toISOString();
     const questionIdTimestamp = `${req.params.id}#${questionId}#${now}`;
 
@@ -925,6 +925,17 @@ app.post('/sessions/:id/answers', async (req, res) => {
         }
       }
     ];
+
+    if (examType && userId && userId !== 'guest') {
+      transactItems.push({
+        Update: {
+          TableName: 'AppSettings',
+          Key: { settingId: `answeredCount_${userId}_${examType}` },
+          UpdateExpression: 'ADD answeredCount :one SET userId = :uid',
+          ExpressionAttributeValues: { ':one': 1, ':uid': userId }
+        }
+      });
+    }
 
     await docClient.send(new TransactWriteCommand({ TransactItems: transactItems }));
     res.json({ success: true });
@@ -1009,25 +1020,13 @@ app.put('/sessions/:id', async (req, res) => {
     const docClient = getClient();
     const { userId, status, score, isPassed, examType, answeredCount } = req.body;
     const now = new Date().toISOString();
-    const ops = [
-      docClient.send(new UpdateCommand({
-        TableName: 'Sessions',
-        Key: { userId, sessionId: req.params.id },
-        UpdateExpression: 'SET #s = :status, score = :score, isPassed = :isPassed, endedAt = :now',
-        ExpressionAttributeNames: { '#s': 'status' },
-        ExpressionAttributeValues: { ':status': status, ':score': score, ':isPassed': isPassed, ':now': now }
-      })),
-    ];
-    // 解いた問題数を累積カウンターへ加算
-    if (examType && answeredCount > 0) {
-      ops.push(docClient.send(new UpdateCommand({
-        TableName: 'AppSettings',
-        Key: { settingId: `answeredCount_${userId}_${examType}` },
-        UpdateExpression: 'ADD answeredCount :n SET userId = :uid',
-        ExpressionAttributeValues: { ':n': answeredCount, ':uid': userId }
-      })));
-    }
-    await Promise.all(ops);
+    await docClient.send(new UpdateCommand({
+      TableName: 'Sessions',
+      Key: { userId, sessionId: req.params.id },
+      UpdateExpression: 'SET #s = :status, score = :score, isPassed = :isPassed, endedAt = :now',
+      ExpressionAttributeNames: { '#s': 'status' },
+      ExpressionAttributeValues: { ':status': status, ':score': score, ':isPassed': isPassed, ':now': now }
+    }));
     res.json({ success: true });
   } catch (err) {
     console.error(err);
