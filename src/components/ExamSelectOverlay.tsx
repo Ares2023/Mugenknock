@@ -275,7 +275,7 @@ export default function ExamSelectOverlay({
                     setConfirming(true);
                     localStorage.setItem(`targetExam_${uid}`, exam);
                     window.dispatchEvent(new CustomEvent('targetExamChanged', { detail: exam }));
-                    setTimeout(() => { onSelect(exam); setConfirming(false); }, 550);
+                    setTimeout(() => { onSelect(exam); }, 550);
                   }}
                   style={{
                     width: 44, height: 44, borderRadius: '50%', flexShrink: 0,
