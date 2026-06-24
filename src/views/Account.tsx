@@ -651,6 +651,14 @@ export default function Account() {
                 <TextInput value={resetConfirmation} onChange={setResetConfirmation} placeholder="RESET" />
               </div>
               {resetError && <p style={{ margin: '0 0 12px', fontSize: 'var(--font-size-sm)', color: 'var(--color-danger)' }}>{resetError}</p>}
+              {resetExecuting && (
+                <div style={{ marginBottom: 16, padding: '10px 12px', background: 'var(--color-bg-main)', borderRadius: 'var(--border-radius-md)', display: 'flex', alignItems: 'center', gap: 10 }}>
+                  <span className="sherpa-spinner" style={{ width: 16, height: 16, borderWidth: 2, flexShrink: 0 }} />
+                  <span style={{ fontSize: 'var(--font-size-sm)', color: 'var(--color-text-sub)' }}>
+                    {ja ? 'データを削除しています。しばらくお待ちください...' : 'Deleting your data. Please wait...'}
+                  </span>
+                </div>
+              )}
               <div style={{ display: 'flex', gap: 8 }}>
                 <Button
                   onClick={handleReset}
