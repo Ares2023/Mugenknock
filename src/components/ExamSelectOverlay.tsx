@@ -84,8 +84,6 @@ export default function ExamSelectOverlay({
   const [previewExam, setPreviewExam] = useState<string | null>(targetExam ?? EXAM_LEVELS[0].exams[0]);
   const [passComments, setPassComments] = useState<Record<string, string>>({});
   const [confirming, setConfirming] = useState(false);
-  const [btnCenter, setBtnCenter] = useState({ x: 0, y: 0 });
-  const confirmBtnRef = useRef<HTMLButtonElement>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -272,34 +270,27 @@ export default function ExamSelectOverlay({
                 </button>
               ) : (
                 <button
-                  ref={confirmBtnRef}
-                  className={confirming ? 'exam-burst' : ''}
                   onClick={() => {
                     if (confirming) return;
-                    const rect = confirmBtnRef.current?.getBoundingClientRect();
-                    if (rect) setBtnCenter({ x: rect.left + rect.width / 2, y: rect.top + rect.height / 2 });
                     setConfirming(true);
                     localStorage.setItem(`targetExam_${uid}`, exam);
                     window.dispatchEvent(new CustomEvent('targetExamChanged', { detail: exam }));
                     setTimeout(() => {
                       onSelect(exam);
                       setConfirming(false);
-                    }, 650);
+                    }, 600);
                   }}
                   style={{
-                    '--burst-color': levelColor,
-                    '--bcx': `${btnCenter.x}px`,
-                    '--bcy': `${btnCenter.y}px`,
                     width: 44, height: 44, borderRadius: '50%', flexShrink: 0,
                     border: confirming ? 'none' : `2px solid ${levelColor}`,
                     background: confirming ? levelColor : 'var(--color-bg-white)',
                     color: confirming ? '#fff' : levelColor,
                     display: 'flex', alignItems: 'center', justifyContent: 'center',
                     cursor: confirming ? 'default' : 'pointer',
-                    boxShadow: confirming ? `0 0 0 4px ${levelColor}44` : '0 2px 8px rgba(0,0,0,0.15)',
-                    transform: confirming ? 'scale(1.15)' : 'scale(1)',
-                    transition: 'transform 0.18s cubic-bezier(.34,1.56,.64,1), background 0.18s, border 0.18s, color 0.18s, box-shadow 0.18s',
-                  } as React.CSSProperties}
+                    boxShadow: '0 2px 8px rgba(0,0,0,0.15)',
+                    transform: confirming ? 'scale(1.18)' : 'scale(1)',
+                    transition: 'transform 0.2s cubic-bezier(.34,1.56,.64,1), background 0.2s, border 0.2s, color 0.2s',
+                  }}
                 >
                   {confirming ? <IconBookOpenCheck size={22} /> : <IconBook size={22} />}
                 </button>
