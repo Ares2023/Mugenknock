@@ -719,40 +719,59 @@ PYEOF
             local _NIGHT_T0
             _NIGHT_T0=$(date +%s)
 
-            # 番号付きサブディレクトリを数値順に収集
-            local _delay_dirs=()
-            mapfile -t _delay_dirs < <(
-              for _d in "$SCRIPT_DIR/night-prompts/scripts"/*/; do
-                local _dn; _dn=$(basename "$_d" 2>/dev/null)
-                # "at数字" 形式のディレクトリのみ対象（例: at0, at10, at120）
-                [[ "$_dn" =~ ^at[0-9]+$ ]] && echo "${_dn#at} $_d"
-              done | sort -n | awk '{print $2}'
-            )
+            # ── スクリプト収集（night-scripts.list から読み込み）──
+            local _SCRIPTS_LIST_FILE="$SCRIPT_DIR/night-scripts.list"
+            local _delay_entries=()  # "遅延分数:フルパス" 形式
 
-            if [ ${#_delay_dirs[@]} -gt 0 ]; then
-              # ── 新方式: 時間差ディレクトリ実行 ──
+            if [ ! -f "$_SCRIPTS_LIST_FILE" ]; then
+              echo "⚠️  night-scripts.list が見つかりません: $_SCRIPTS_LIST_FILE"
+            else
+              while IFS= read -r _line || [[ -n "$_line" ]]; do
+                _line="${_line%%#*}"                          # インラインコメント除去
+                _line="${_line#"${_line%%[![:space:]]*}"}"   # 先頭空白除去
+                _line="${_line%"${_line##*[![:space:]]}"}"   # 末尾空白除去
+                [ -z "$_line" ] && continue
+                local _dm="${_line%%,*}"
+                local _s="${_line#*,}"
+                if ! [[ "$_dm" =~ ^[0-9]+$ ]]; then
+                  echo "⚠️  書式不正（遅延分数,フルパス 形式で記載してください）: $_line"
+                  continue
+                fi
+                if [ ! -e "$_s" ]; then
+                  echo "⚠️  スクリプト不在: $_s"
+                  continue
+                fi
+                _delay_entries+=("${_dm}:${_s}")
+              done < "$_SCRIPTS_LIST_FILE"
+            fi
+
+            if [ ${#_delay_entries[@]} -gt 0 ]; then
+              # ── 遅延付き並列実行 ──
               local _dir_labels=""
-              for _ddir in "${_delay_dirs[@]}"; do
-                local _dname; _dname=$(basename "$_ddir"); local _delay_min=${_dname#at}
-                local _delay_sec=$(( _delay_min * 60 ))
-                _dir_labels+="${_delay_min}分 "
-                for s in "$_ddir"*.sh; do
-                  [ -e "$s" ] || continue
-                  local _n; _n=$(basename "$s")
-                  local _key="${_delay_min}__${_n}"
-                  echo "$_NIGHT_T0" > "$_sh_tmpdir/${_key}.t0"
-                  (
-                    _now=$(date +%s)
-                    _wait=$(( _NIGHT_T0 + _delay_sec - _now ))
-                    [ "$_wait" -gt 0 ] && sleep "$_wait"
-                    bash "$s" > "$_sh_tmpdir/${_key}.out" 2>&1
-                    echo $? > "$_sh_tmpdir/${_key}.ec"
-                  ) &
-                  _sh_pids+=($!)
-                  _sh_keys+=("${_key}:${s}")
-                done
+              local _seen_delays=" "
+              for _entry in "${_delay_entries[@]}"; do
+                local _dm="${_entry%%:*}"
+                [[ "$_seen_delays" == *" ${_dm} "* ]] || { _dir_labels+="${_dm}分 "; _seen_delays+="${_dm} "; }
               done
-              echo "  [時間差実行: ${#_sh_pids[@]}スクリプト | ディレクトリ: ${_dir_labels}]"
+
+              for _entry in "${_delay_entries[@]}"; do
+                local _dm="${_entry%%:*}"
+                local _s="${_entry#*:}"
+                local _delay_sec=$(( _dm * 60 ))
+                local _n; _n=$(basename "$_s")
+                local _key="${_dm}__${_n}"
+                echo "$_NIGHT_T0" > "$_sh_tmpdir/${_key}.t0"
+                (
+                  _now=$(date +%s)
+                  _wait=$(( _NIGHT_T0 + _delay_sec - _now ))
+                  [ "$_wait" -gt 0 ] && sleep "$_wait"
+                  bash "$_s" > "$_sh_tmpdir/${_key}.out" 2>&1
+                  echo $? > "$_sh_tmpdir/${_key}.ec"
+                ) &
+                _sh_pids+=($!)
+                _sh_keys+=("${_key}:${_s}")
+              done
+              echo "  [時間差実行: ${#_sh_pids[@]}スクリプト | 遅延グループ: ${_dir_labels}]"
               for _pid in "${_sh_pids[@]}"; do wait "$_pid" 2>/dev/null || true; done
               for _entry in "${_sh_keys[@]}"; do
                 local _key="${_entry%%:*}"
@@ -777,42 +796,6 @@ PYEOF
                   night_processed+="[sh]${_n} (FAIL), "
                 fi
               done
-            else
-              # ── 旧方式: 直下の *.sh を並列実行（後方互換）──
-              local _sh_files=()
-              for s in "$SCRIPT_DIR/night-prompts/scripts"/*.sh; do
-                [ -e "$s" ] && _sh_files+=("$s")
-              done
-              if [ ${#_sh_files[@]} -gt 0 ]; then
-                for s in "${_sh_files[@]}"; do
-                  local _n; _n=$(basename "$s")
-                  echo "$(date +%s)" > "$_sh_tmpdir/${_n}.t0"
-                  ( bash "$s" > "$_sh_tmpdir/${_n}.out" 2>&1; echo $? > "$_sh_tmpdir/${_n}.ec" ) &
-                  _sh_pids+=($!)
-                done
-                echo "  [並列実行中: night-scripts ${#_sh_files[@]}件]"
-                for _pid in "${_sh_pids[@]}"; do wait "$_pid" 2>/dev/null || true; done
-                for s in "${_sh_files[@]}"; do
-                  local _n; _n=$(basename "$s")
-                  local _t0 _ec
-                  _t0=$(cat "$_sh_tmpdir/${_n}.t0" 2>/dev/null || echo 0)
-                  _ec=$(cat "$_sh_tmpdir/${_n}.ec" 2>/dev/null || echo 1)
-                  echo "▶ [night-script] $_n"
-                  cat "$_sh_tmpdir/${_n}.out" 2>/dev/null || true
-                  printf "  → %ds\n" "$(( $(date +%s) - _t0 ))"
-                  {
-                    echo "=== $(date '+%Y-%m-%d %H:%M:%S') | $_n | exit:$_ec ==="
-                    cat "$_sh_tmpdir/${_n}.out" 2>/dev/null || true
-                  } >> "$LOG_DIR/nscript_${_n%.sh}_$(date '+%Y%m%d').log"
-                  if [ "$_ec" -eq 0 ]; then
-                    _sh_ok=$(( _sh_ok + 1 ))
-                    night_processed+="[sh]${_n} (OK), "
-                  else
-                    _sh_fail=$(( _sh_fail + 1 ))
-                    night_processed+="[sh]${_n} (FAIL), "
-                  fi
-                done
-              fi
             fi
             rm -rf "$_sh_tmpdir"
           fi

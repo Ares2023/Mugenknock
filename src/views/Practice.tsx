@@ -455,29 +455,24 @@ export default function Practice() {
                     {ja ? '1つ以上選択してください' : 'Select at least one domain'}
                   </div>
                 )}
+                <div style={{ paddingTop: 8, marginTop: 2, borderTop: '1px solid color-mix(in srgb, var(--color-text-light) 20%, transparent)' }}>
+                  <label style={{ display: 'flex', alignItems: 'center', gap: 8, cursor: 'pointer' }}>
+                    <input
+                      type="checkbox"
+                      checked={!strikeEnabled}
+                      onChange={() => setStrikeEnabled(v => !v)}
+                      style={{ width: 15, height: 15, flexShrink: 0, accentColor: 'var(--color-primary)' }}
+                    />
+                    <span style={{ fontSize: 'var(--font-size-sm)', color: 'var(--color-text-main)' }}>
+                      {ja ? '消去法機能をオフ' : 'Disable elimination mode'}
+                    </span>
+                  </label>
+                  <div style={{ fontSize: 11, color: 'var(--color-text-light)', marginTop: 4, lineHeight: 1.5 }}>
+                    ※ {ja ? '選択肢のテキストをタップすると取り消し線を引いて選択肢を絞り込める機能です' : 'Tap choice text to strike through and narrow down options'}
+                  </div>
+                </div>
               </div>
             )}
-          </div>
-
-          {/* その他 */}
-          <div style={{ marginBottom: 'var(--spacing-md)', paddingTop: 'var(--spacing-sm)', borderTop: '1px solid color-mix(in srgb, var(--color-text-light) 30%, transparent)' }}>
-            <div style={{ fontWeight: 600, fontSize: 'var(--font-size-sm)', color: 'var(--color-text-sub)', marginBottom: 6 }}>
-              {ja ? 'その他' : 'Other'}
-            </div>
-            <label style={{ display: 'flex', alignItems: 'center', gap: 10, cursor: 'pointer' }}>
-              <input
-                type="checkbox"
-                checked={!strikeEnabled}
-                onChange={() => setStrikeEnabled(v => !v)}
-                style={{ width: 16, height: 16, flexShrink: 0, accentColor: 'var(--color-primary)' }}
-              />
-              <span style={{ fontSize: 'var(--font-size-sm)', color: 'var(--color-text-main)' }}>
-                {ja ? '消去法機能をオフ' : 'Disable elimination mode'}
-              </span>
-            </label>
-            <div style={{ fontSize: 11, color: 'var(--color-text-light)', marginTop: 4, lineHeight: 1.5 }}>
-              ※ {ja ? '選択肢のテキストをタップすると取り消し線を引いて選択肢を絞り込める機能です' : 'Tap choice text to strike through and narrow down options'}
-            </div>
           </div>
           </>)}
         </>

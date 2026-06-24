@@ -4,7 +4,6 @@ import { Helmet } from '@/compat/react-helmet-async';
 import { createPortal } from 'react-dom';
 import { useNavigate, useLocation } from '@/compat/react-router-dom';
 import DailyServiceRevealModal from '../components/DailyServiceRevealModal';
-import { CATALOG } from '../data/awsServiceCatalog';
 import ExamSelectOverlay from '../components/ExamSelectOverlay';
 import { useAuth } from '../contexts/AuthContext';
 import { useLanguage } from '../contexts/LanguageContext';

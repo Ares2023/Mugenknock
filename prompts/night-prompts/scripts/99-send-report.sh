@@ -24,7 +24,7 @@ while [ "$(basename "$_d")" != "scripts" ] && [ "$_d" != "/" ]; do _d="$(dirname
 NIGHT_PROMPTS_DIR="$(dirname "$_d")"
 PROJECT_DIR="$(dirname "$(dirname "$NIGHT_PROMPTS_DIR")")"  # repo root
 LOG_DIR="$(dirname "$NIGHT_PROMPTS_DIR")/logs"              # prompts/logs/（nscriptログ）
-CANARY_SCRIPT="$NIGHT_PROMPTS_DIR/manual/canary.sh"
+CANARY_SCRIPT="$_d/canary.sh"
 MAIL_CONF="${HOME}/.mugenknock_mail.conf"
 AWS=/home/yuzuki/local/bin/aws
 REGION=ap-northeast-1
