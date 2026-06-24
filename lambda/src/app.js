@@ -1243,6 +1243,13 @@ async function executeUserDataReset(docClient, userId) {
       Item: { userId, unlocks: '{}', unlockDate: null, todayServiceId: null },
     })).catch(() => {}),
     docClient.send(new DeleteCommand({ TableName: 'UserPoints', Key: { userId } })).catch(() => {}),
+    docClient.send(new UpdateCommand({
+      TableName: 'AppSettings',
+      Key: { settingId: `userPrefs_${userId}` },
+      UpdateExpression: 'SET #targetExam = :null, #examDates = :empty',
+      ExpressionAttributeNames: { '#targetExam': 'targetExam', '#examDates': 'examDates' },
+      ExpressionAttributeValues: { ':null': null, ':empty': {} },
+    })).catch(() => {}),
   ]);
 
   // AppSettings の scoreHistData（スコア履歴・ハイスコア記録）を全 examType 分削除

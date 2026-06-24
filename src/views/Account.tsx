@@ -272,7 +272,7 @@ export default function Account() {
       // Home.tsx clearUserData と同じパターンで localStorage を消去
       const KEEP = new Set([
         `lang_${uid}`, `theme_${uid}`, `sidebarOpen_${uid}`,
-        `targetExam_${uid}`, `lastQuickMode_${uid}`,
+        `lastQuickMode_${uid}`,
         `quickExercisePrefs_${uid}`, `focusedExercisePrefs_${uid}`,
         `sherpaExerciseHint_${uid}`, `sherpaExamHint_${uid}`, `sherpaStatsHint_${uid}`,
       ]);
