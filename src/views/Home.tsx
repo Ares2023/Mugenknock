@@ -1134,6 +1134,7 @@ export default function Home() {
   const [lastMode, setLastMode] = useState<'quick' | 'focused'>(() => (localStorage.getItem(`lastQuickMode_${uid}`) as 'quick' | 'focused') ?? 'quick');
   const [answeredCount, setAnsweredCount] = useState(0);
   const [answeredCountReady, setAnsweredCountReady] = useState(false);
+  const [qRefreshTick, setQRefreshTick] = useState(0);
   const [savedQuick, setSavedQuick] = useState(false);
   const [savedFocused, setSavedFocused] = useState(false);
   const [draftPrefs, setDraftPrefs] = useState<Record<string, any>>({});
@@ -1293,9 +1294,24 @@ export default function Home() {
       .catch(() => { setServerScoreHistory(null); setServerSessionHistory(null); setServerSessionScoreLog(null); });
   }, [user, targetExam]); // eslint-disable-line react-hooks/exhaustive-deps
 
+  // セッション完了イベントを受けてキャッシュ破棄 → qRefreshTick 更新で下の useEffect を再実行
+  useEffect(() => {
+    const handler = ((e: CustomEvent<{ userId: string; examType: string }>) => {
+      if (e.detail.userId !== uid || e.detail.examType !== targetExam) return;
+      deleteCached(`qstats_${uid}_${targetExam}`);
+      setQRefreshTick(t => t + 1);
+    }) as EventListener;
+    window.addEventListener('qstatsRefresh', handler);
+    return () => window.removeEventListener('qstatsRefresh', handler);
+  }, [uid, targetExam]);
+
   useEffect(() => {
     if (!user || !targetExam) { setAnsweredCount(0); setAnsweredCountReady(true); return; }
     const cacheKey = `qstats_${user.userId}_${targetExam}`;
+    // セッション直後フラグがあればキャッシュを無視して再取得（リマウント時用）
+    const qRefreshKey = `postSessionQRefresh_${user.userId}`;
+    const isPostSession = !!localStorage.getItem(qRefreshKey);
+    if (isPostSession) { localStorage.removeItem(qRefreshKey); deleteCached(cacheKey); }
     const cached = getCached<number>(cacheKey);
     if (cached !== null) { setAnsweredCount(cached); setAnsweredCountReady(true); return; }
     fetch(`${API_ENDPOINT}/users/me/question-stats?userId=${user.userId}&examType=${targetExam}`)
@@ -1307,7 +1323,7 @@ export default function Home() {
       })
       .catch(() => {})
       .finally(() => setAnsweredCountReady(true));
-  }, [user, targetExam]);
+  }, [user, targetExam, qRefreshTick]);
 
   // ── 予想スコア計算（サーバー統計優先、オフライン/ゲスト時はローカル履歴）──
   const domainNodeResultsMap = useMemo(() => {

@@ -244,6 +244,8 @@ export default function ExamSession() {
       } catch {}
       deleteCached(`ustats_${userId}`);
       deleteCached(`qstats_${userId}_${examType}`);
+      localStorage.setItem(`postSessionQRefresh_${userId}`, '1');
+      window.dispatchEvent(new CustomEvent('qstatsRefresh', { detail: { userId, examType } }));
       localStorage.setItem(`postSessionRefresh_${userId}`, String(Date.now()));
       const ptsPerQAbort = EXAM_LEVEL[examType] === 'Foundational' ? 1 : EXAM_LEVEL[examType] === 'Associate' ? 2 : 3;
       const earnedPtsAbort = correctCount * ptsPerQAbort;
@@ -358,6 +360,8 @@ export default function ExamSession() {
       // セッション完了でキャッシュ破棄 → ホーム画面が最新データをサーバーから再取得
       deleteCached(`ustats_${userId}`);
       deleteCached(`qstats_${userId}_${examType}`);
+      localStorage.setItem(`postSessionQRefresh_${userId}`, '1');
+      window.dispatchEvent(new CustomEvent('qstatsRefresh', { detail: { userId, examType } }));
       localStorage.setItem(`postSessionRefresh_${userId}`, String(Date.now()));
       const ptsPerQ = EXAM_LEVEL[examType] === 'Foundational' ? 1 : EXAM_LEVEL[examType] === 'Associate' ? 2 : 3;
       const earnedPts = correctCount * ptsPerQ;
