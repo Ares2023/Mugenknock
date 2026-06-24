@@ -393,7 +393,9 @@ export default function Practice() {
             </div>
           </div>
 
-          {availableCount !== null && availableCount > 0 && availableCount < limit && (
+          {availableCount !== null && availableCount > 0 && availableCount < limit
+            && (bookmarkOnly || unansweredOnly || incorrectOnly || !(EXAM_DOMAINS[examType] ?? []).every(d => selectedDomains.includes(d)))
+            && (
             <div style={{ marginBottom: 'var(--spacing-md)', fontSize: 'var(--font-size-sm)', color: 'var(--color-text-warning)', background: 'var(--color-bg-warning)', border: '1px solid var(--color-border-warning)', borderRadius: 'var(--border-radius-md)', padding: '8px 12px' }}>
               ⚠️ {ja ? `条件に合う問題が${availableCount}問しかありません。${availableCount}問で開始します。` : `Only ${availableCount} questions match. Session will start with ${availableCount} questions.`}
             </div>
