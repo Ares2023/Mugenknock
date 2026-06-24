@@ -6,9 +6,10 @@ import { useAuth } from '../contexts/AuthContext';
 import { useLanguage } from '../contexts/LanguageContext';
 import { API_ENDPOINT, EXAM_CONFIGS, EXAM_DOMAINS, EXAM_TYPES, PASS_SCORES, qDomainName } from '../constants';
 import Button from '../components/ui/Button';
-import { getCached, setCached, SHORT_TTL } from '../utils/cache';
+import { getCached, setCached, SHORT_TTL, getCachedPersist, setCachedPersist } from '../utils/cache';
 import { autoScoreAndClearDrafts } from '../utils/sessionUtils';
 import { animateLoadPct, randomPlateau } from '../utils/loadProgress';
+import { getPrefetchA, getPrefetchC, prefetchTypeA } from '../utils/questionPrefetch';
 import { IconChevronUp, IconChevronDown, IconChevronRight } from '../components/Icons';
 
 function shuffleArray<T>(arr: T[]): T[] {
@@ -121,6 +122,11 @@ export default function Practice() {
     saveExercisePrefs(examType, uid, { domains: selectedDomains, limit, bookmarkOnly, unansweredOnly, incorrectOnly, strikeEnabled, hideColumn });
   }, [examType, selectedDomains, limit, bookmarkOnly, unansweredOnly, incorrectOnly, strikeEnabled]);
 
+  // 画面表示中にキャッシュを事前ウォームアップ
+  useEffect(() => {
+    if (!getPrefetchA(examType)) prefetchTypeA(examType, uid);
+  }, [examType, uid]);
+
 
   useEffect(() => {
     setAvailableCount(null);
@@ -185,10 +191,41 @@ export default function Practice() {
     setExerciseLoading(true);
     setExerciseLoadPct(10);
     try {
-      const userId = user?.userId ?? 'guest';
       if (selectedDomains.length === 0) { alert(ja ? '出題ドメインを1つ以上選択してください' : 'Please select at least one domain'); return; }
       const allSelected = EXAM_DOMAINS[examType].every(d => selectedDomains.includes(d));
-      // ── プログレッシブロードパス（フィルタあり・なし共通）──
+
+      // ── プリフェッチキャッシュを使用 ──
+      const hasFilters = !!(user && (bookmarkOnly || unansweredOnly || incorrectOnly)) || !allSelected;
+      const qPrefs = { unansweredOnly, incorrectOnly, bookmarkOnly, domains: allSelected ? [] : selectedDomains };
+      const cached = hasFilters ? getPrefetchC(examType, userId, qPrefs) : getPrefetchA(examType);
+      if (cached && cached.questions.length > 0) {
+        try {
+          let items: any[] = [...cached.questions];
+          if (!allSelected) items = items.filter((q: any) => selectedDomains.includes(qDomainName(q)));
+          items = shuffleArray(items).slice(0, limit);
+          if (items.length > 0) {
+            setExerciseLoadPct(50);
+            const sessionData = await fetch(`${API_ENDPOINT}/sessions`, {
+              method: 'POST', headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ userId, mode: 'exercise', examType, questionIds: items.map((q: any) => q.questionId) }),
+            }).then(r => r.json());
+            setExerciseLoadPct(90);
+            navigate('/aws/exercise/session', {
+              state: {
+                sessionId: sessionData.sessionId,
+                questions: items.slice(0, 1),
+                questionIds: items.map((q: any) => q.questionId),
+                userId, mode: 'exercise', examType, strikeEnabled, hideColumn,
+              },
+            });
+            return;
+          }
+        } catch (err) {
+          console.debug('[prefetch] exercise cache failed, fallback:', err);
+        }
+      }
+
+      // ── フォールバック：プログレッシブロード ──
       // 1. IDのみ取得（Lambda側でフィルタ・優先度ソート）
       const idsParams = new URLSearchParams({ examType, shuffle: 'true', idsOnly: 'true' });
       if (!allSelected) idsParams.set('domain', selectedDomains.join(','));
@@ -275,19 +312,20 @@ export default function Practice() {
     setExamLoading(true);
     setExamLoadPct(10);
     try {
-      const userId = user?.userId ?? 'guest';
-      const params = new URLSearchParams({ examType: targetExam, withAnswers: 'true' });
+      const qCacheKey = `qlist_${targetExam}`;
+      const cachedQs = getCachedPersist<{ items: any[]; total: number }>(qCacheKey);
       const plateau = randomPlateau();
-      const stopAnim = animateLoadPct(setExamLoadPct, 10, plateau);
+      const stopAnim = cachedQs ? null : animateLoadPct(setExamLoadPct, 10, plateau);
       const needFilter = user && (examUnansweredOnly || examIncorrectOnly || examBookmarkOnly);
       const [data, answeredRes, incorrectRes, bkmRes] = await Promise.all([
-        fetch(`${API_ENDPOINT}/questions?${params}`).then(r => r.json()),
+        cachedQs ? Promise.resolve(cachedQs) : fetch(`${API_ENDPOINT}/questions?examType=${targetExam}&withAnswers=true`).then(r => r.json()),
         user ? fetch(`${API_ENDPOINT}/users/me/answered-questions?userId=${userId}&examType=${targetExam}`).then(r => r.json()) : Promise.resolve(null),
         needFilter && examIncorrectOnly ? fetch(`${API_ENDPOINT}/users/me/incorrect-questions?userId=${userId}&examType=${targetExam}`).then(r => r.json()) : Promise.resolve(null),
         needFilter && examBookmarkOnly ? fetch(`${API_ENDPOINT}/users/me/bookmarks?userId=${userId}`).then(r => r.json()) : Promise.resolve(null),
       ]);
-      stopAnim();
-      setExamLoadPct(plateau);
+      stopAnim?.();
+      if (!cachedQs) setCachedPersist(qCacheKey, data);
+      setExamLoadPct(cachedQs ? 50 : plateau);
       let items: any[] = (data.items ?? []).filter((q: any) => !!q.validityCheckedAt);
       items = shuffleArray(items);
       if (needFilter) {
