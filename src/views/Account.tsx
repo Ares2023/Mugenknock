@@ -496,16 +496,24 @@ export default function Account() {
                           </Button>
                         )}
                       </div>
-                      {isConfirming && (
+                      {isDeleting && (
+                        <div style={{ marginTop: 10, padding: '10px 12px', background: 'var(--color-bg-main)', borderRadius: 'var(--border-radius-md)', display: 'flex', alignItems: 'center', gap: 10 }}>
+                          <span className="sherpa-spinner" style={{ width: 16, height: 16, borderWidth: 2, flexShrink: 0 }} />
+                          <span style={{ fontSize: 'var(--font-size-sm)', color: 'var(--color-text-sub)' }}>
+                            {ja ? `${et} のデータを削除中...` : `Deleting ${et} data...`}
+                          </span>
+                        </div>
+                      )}
+                      {isConfirming && !isDeleting && (
                         <div style={{ marginTop: 10, padding: '10px 12px', background: 'var(--color-feedback-incorrect-bg)', borderRadius: 'var(--border-radius-md)', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8 }}>
                           <span style={{ fontSize: 'var(--font-size-sm)', color: 'var(--color-danger)', fontWeight: 500 }}>
                             {ja ? `${et} のデータを削除しますか？` : `Delete all data for ${et}?`}
                           </span>
                           <div style={{ display: 'flex', gap: 6, flexShrink: 0 }}>
-                            <Button variant="danger" size="sm" onClick={() => handleDelete(et)} disabled={isDeleting}>
-                              {isDeleting ? '…' : (ja ? '削除する' : 'Delete')}
+                            <Button variant="danger" size="sm" onClick={() => handleDelete(et)}>
+                              {ja ? '削除する' : 'Delete'}
                             </Button>
-                            <Button variant="outline" size="sm" onClick={() => setConfirmingExam(null)} disabled={isDeleting}>
+                            <Button variant="outline" size="sm" onClick={() => setConfirmingExam(null)}>
                               {ja ? 'キャンセル' : 'Cancel'}
                             </Button>
                           </div>
