@@ -2525,16 +2525,16 @@ export default function Home() {
       {/* オンボーディング（目標資格未設定） */}
       {showOnboarding && (
         <ExamSelectOverlay
-          targetExam={null}
+          targetExam={targetExam}
           uid={uid}
           lang={lang}
           isMobile={isMobile}
           onSelect={(exam) => {
             setTargetExam(exam);
-            setShowOnboarding(false);
             if (user) syncTargetExamToServer(user.userId, uid, exam);
             prefetchTypeA(exam, uid);
           }}
+          onClose={() => setShowOnboarding(false)}
         />
       )}
       {(quickLoading || focusedLoading) && <div style={{ position: 'fixed', inset: 0, zIndex: 9000, cursor: 'wait' }} onTouchStart={e => e.stopPropagation()} onTouchMove={e => e.stopPropagation()} onTouchEnd={e => e.stopPropagation()} />}
