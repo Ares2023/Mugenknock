@@ -1,7 +1,7 @@
 'use client';
 import React, { useState, useRef, useEffect } from 'react';
 import { createPortal } from 'react-dom';
-import { API_ENDPOINT, EXAM_CONFIGS, PASS_SCORES } from '@/constants';
+import { API_ENDPOINT, EXAM_CONFIGS, EXAM_DOMAINS, DOMAIN_WEIGHTS, PASS_SCORES } from '@/constants';
 import { EXAM_ICON_COMPONENTS, IconBook, IconBookOpenCheck, IconCircleCheck } from '@/components/Icons';
 
 const EXAM_LEVELS = [
@@ -84,6 +84,7 @@ export default function ExamSelectOverlay({
   const [previewExam, setPreviewExam] = useState<string | null>(targetExam ?? EXAM_LEVELS[0].exams[0]);
   const [passComments, setPassComments] = useState<Record<string, string>>({});
   const [confirming, setConfirming] = useState(false);
+  const [domainOpen, setDomainOpen] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -95,6 +96,7 @@ export default function ExamSelectOverlay({
 
   useEffect(() => {
     if (scrollRef.current) scrollRef.current.scrollTop = 0;
+    setDomainOpen(false);
   }, [previewExam]);
 
   useEffect(() => {
@@ -231,18 +233,58 @@ export default function ExamSelectOverlay({
                     </a>
                   )}
                 </p>
-                <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px 20px', marginBottom: 12, padding: '10px 12px', background: 'var(--color-bg-main)', borderRadius: 8 }}>
-                  {[
-                    { label: ja ? '試験コード' : 'Code',       value: cfg?.examCode ?? '' },
-                    { label: ja ? '問題数'     : 'Questions',  value: `${cfg?.totalQuestions ?? '—'}${ja ? '問' : 'Q'}` },
-                    { label: ja ? '試験時間'   : 'Duration',   value: `${cfg?.timeLimitMin ?? '—'}${ja ? '分' : 'min'}` },
-                    { label: ja ? '合格ライン' : 'Pass Score', value: `${PASS_SCORES[exam] ?? '—'}/1000` },
-                  ].map(({ label: lbl, value }) => (
-                    <div key={lbl}>
-                      <div style={{ fontSize: 9, color: 'var(--color-text-light)', marginBottom: 2 }}>{lbl}</div>
-                      <div style={{ fontSize: 13, fontWeight: 700, color: 'var(--color-text-main)' }}>{value}</div>
-                    </div>
-                  ))}
+                <div style={{ marginBottom: 12, padding: '10px 12px', background: 'var(--color-bg-main)', borderRadius: 8 }}>
+                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px 20px' }}>
+                    {[
+                      { label: ja ? '試験コード' : 'Code',       value: cfg?.examCode ?? '' },
+                      { label: ja ? '問題数'     : 'Questions',  value: `${cfg?.totalQuestions ?? '—'}${ja ? '問' : 'Q'}` },
+                      { label: ja ? '試験時間'   : 'Duration',   value: `${cfg?.timeLimitMin ?? '—'}${ja ? '分' : 'min'}` },
+                      { label: ja ? '合格ライン' : 'Pass Score', value: `${PASS_SCORES[exam] ?? '—'}/1000` },
+                    ].map(({ label: lbl, value }) => (
+                      <div key={lbl}>
+                        <div style={{ fontSize: 9, color: 'var(--color-text-light)', marginBottom: 2 }}>{lbl}</div>
+                        <div style={{ fontSize: 13, fontWeight: 700, color: 'var(--color-text-main)' }}>{value}</div>
+                      </div>
+                    ))}
+                  </div>
+                  {(() => {
+                    const domains = EXAM_DOMAINS[exam] ?? [];
+                    const weights = DOMAIN_WEIGHTS[exam] ?? [];
+                    if (domains.length === 0 || weights.length === 0) return null;
+                    return (
+                      <>
+                        <button
+                          onClick={() => setDomainOpen(o => !o)}
+                          style={{
+                            width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+                            background: 'none', border: 'none', cursor: 'pointer',
+                            padding: '8px 0 0', fontSize: 11, color: 'var(--color-text-light)', fontWeight: 600,
+                          }}
+                        >
+                          <span>{ja ? 'ドメイン別出題割合' : 'Domain Weights'}</span>
+                          <span style={{ fontSize: 9, display: 'inline-block', transform: domainOpen ? 'rotate(180deg)' : 'rotate(0deg)', transition: 'transform 0.2s' }}>▼</span>
+                        </button>
+                        {domainOpen && (
+                          <div style={{ display: 'flex', flexDirection: 'column', gap: 7, marginTop: 8 }}>
+                            {domains.map((d, i) => {
+                              const pct = weights[i] ?? 0;
+                              return (
+                                <div key={d}>
+                                  <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 10, color: 'var(--color-text-sub)', marginBottom: 3 }}>
+                                    <span>{d}</span>
+                                    <span style={{ fontWeight: 700, color: levelColor, flexShrink: 0, marginLeft: 8 }}>{pct}%</span>
+                                  </div>
+                                  <div style={{ height: 4, background: 'var(--color-border)', borderRadius: 2 }}>
+                                    <div style={{ width: `${pct}%`, height: '100%', background: levelColor, borderRadius: 2 }} />
+                                  </div>
+                                </div>
+                              );
+                            })}
+                          </div>
+                        )}
+                      </>
+                    );
+                  })()}
                 </div>
                 {passComments[exam] && (
                   <div style={{ marginTop: 12, padding: '10px 12px', background: `${levelColor}12`, borderLeft: `3px solid ${levelColor}`, borderRadius: '0 6px 6px 0' }}>
