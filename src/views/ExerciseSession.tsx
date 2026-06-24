@@ -605,6 +605,7 @@ export default function ExerciseSession() {
           deleteCached(`ustats_${userId}`);
         }
       } catch { deleteCached(`ustats_${userId}`); }
+      deleteCached(`qstats_${userId}_${examType}`);
       localStorage.setItem(`postSessionRefresh_${userId}`, String(Date.now()));
       const ptsPerQ = EXAM_LEVEL[examType] === 'Foundational' ? 1 : EXAM_LEVEL[examType] === 'Associate' ? 2 : 3;
       const earnedPts = results.filter(r => r.isCorrect).length * ptsPerQ;
@@ -698,6 +699,7 @@ export default function ExerciseSession() {
         deleteCached(`ustats_${userId}`);
       }
     } catch { deleteCached(`ustats_${userId}`); }
+    deleteCached(`qstats_${userId}_${examType}`);
     localStorage.setItem(`postSessionRefresh_${userId}`, String(Date.now()));
     const ptsPerQ = EXAM_LEVEL[examType] === 'Foundational' ? 1 : EXAM_LEVEL[examType] === 'Associate' ? 2 : 3;
     const earnedPts = results.filter(r => r.isCorrect).length * ptsPerQ;

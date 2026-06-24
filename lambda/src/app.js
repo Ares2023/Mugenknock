@@ -1050,25 +1050,23 @@ app.get('/users/me/question-stats', async (req, res) => {
     const docClient = getClient();
     const { userId, examType } = req.query;
 
-    const [questionsResult, statsResult] = await Promise.all([
-      docClient.send(new QueryCommand({
-        TableName: 'Questions',
-        IndexName: 'examType-index',
-        KeyConditionExpression: 'examType = :et',
-        ExpressionAttributeValues: { ':et': examType },
-        ProjectionExpression: 'questionId'
-      })),
-      docClient.send(new QueryCommand({
-        TableName: 'UserQuestionStats',
-        KeyConditionExpression: 'userId = :uid',
-        ExpressionAttributeValues: { ':uid': userId }
-      }))
-    ]);
+    // 問題IDプレフィックス → 試験種別マッピング（旧コード対応）
+    const PREFIX_MAP = { 'gai': 'AIP' };
 
-    const examQuestionIds = new Set((questionsResult.Items || []).map(q => q.questionId));
-    // 演習量 = 重複あり累計解答数（正誤問わず、同じ問題を何度解いても加算）
+    const statsResult = await docClient.send(new QueryCommand({
+      TableName: 'UserQuestionStats',
+      KeyConditionExpression: 'userId = :uid',
+      ExpressionAttributeValues: { ':uid': userId }
+    }));
+
+    // 演習量 = 重複あり累計解答数（正誤問わず、削除済み問題も含む）
+    // 試験種別はIDプレフィックスから判定（DBフィルタ不要・削除問題もカウント対象）
     const answeredCount = (statsResult.Items || [])
-      .filter(s => examQuestionIds.has(s.questionId))
+      .filter(s => {
+        const prefix = (s.questionId || '').split('-')[0].toLowerCase();
+        const inferred = PREFIX_MAP[prefix] ?? prefix.toUpperCase();
+        return inferred === examType;
+      })
       .reduce((sum, s) => sum + (s.correctCount ?? 0) + (s.incorrectCount ?? 0), 0);
 
     res.json({ answeredCount });
