@@ -83,6 +83,7 @@ export default function ExamSelectOverlay({
   const [activeLevel, setActiveLevel] = useState<string>(initLevel);
   const [previewExam, setPreviewExam] = useState<string | null>(targetExam ?? EXAM_LEVELS[0].exams[0]);
   const [passComments, setPassComments] = useState<Record<string, string>>({});
+  const [confirming, setConfirming] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -270,13 +271,28 @@ export default function ExamSelectOverlay({
               ) : (
                 <button
                   onClick={() => {
+                    if (confirming) return;
+                    setConfirming(true);
                     localStorage.setItem(`targetExam_${uid}`, exam);
                     window.dispatchEvent(new CustomEvent('targetExamChanged', { detail: exam }));
-                    onSelect(exam);
+                    setTimeout(() => {
+                      onSelect(exam);
+                      setConfirming(false);
+                    }, 600);
                   }}
-                  style={{ width: 44, height: 44, borderRadius: '50%', border: `2px solid ${levelColor}`, background: 'var(--color-bg-white)', color: levelColor, display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', boxShadow: '0 2px 8px rgba(0,0,0,0.1)', flexShrink: 0 }}
+                  style={{
+                    width: 44, height: 44, borderRadius: '50%', flexShrink: 0,
+                    border: confirming ? 'none' : `2px solid ${levelColor}`,
+                    background: confirming ? levelColor : 'var(--color-bg-white)',
+                    color: confirming ? '#fff' : levelColor,
+                    display: 'flex', alignItems: 'center', justifyContent: 'center',
+                    cursor: confirming ? 'default' : 'pointer',
+                    boxShadow: '0 2px 8px rgba(0,0,0,0.15)',
+                    transform: confirming ? 'scale(1.18)' : 'scale(1)',
+                    transition: 'transform 0.2s cubic-bezier(.34,1.56,.64,1), background 0.2s, border 0.2s, color 0.2s',
+                  }}
                 >
-                  <IconBook size={22} />
+                  {confirming ? <IconBookOpenCheck size={22} /> : <IconBook size={22} />}
                 </button>
               )}
             </div>
