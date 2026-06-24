@@ -1007,19 +1007,27 @@ app.put('/users/me/domain-results', async (req, res) => {
 app.put('/sessions/:id', async (req, res) => {
   try {
     const docClient = getClient();
-    const { userId, status, score, isPassed } = req.body;
-    await docClient.send(new UpdateCommand({
-      TableName: 'Sessions',
-      Key: { userId, sessionId: req.params.id },
-      UpdateExpression: 'SET #s = :status, score = :score, isPassed = :isPassed, endedAt = :now',
-      ExpressionAttributeNames: { '#s': 'status' },
-      ExpressionAttributeValues: {
-        ':status': status,
-        ':score': score,
-        ':isPassed': isPassed,
-        ':now': new Date().toISOString()
-      }
-    }));
+    const { userId, status, score, isPassed, examType, answeredCount } = req.body;
+    const now = new Date().toISOString();
+    const ops = [
+      docClient.send(new UpdateCommand({
+        TableName: 'Sessions',
+        Key: { userId, sessionId: req.params.id },
+        UpdateExpression: 'SET #s = :status, score = :score, isPassed = :isPassed, endedAt = :now',
+        ExpressionAttributeNames: { '#s': 'status' },
+        ExpressionAttributeValues: { ':status': status, ':score': score, ':isPassed': isPassed, ':now': now }
+      })),
+    ];
+    // 解いた問題数を累積カウンターへ加算
+    if (examType && answeredCount > 0) {
+      ops.push(docClient.send(new UpdateCommand({
+        TableName: 'AppSettings',
+        Key: { settingId: `answeredCount_${userId}_${examType}` },
+        UpdateExpression: 'ADD answeredCount :n SET userId = :uid',
+        ExpressionAttributeValues: { ':n': answeredCount, ':uid': userId }
+      })));
+    }
+    await Promise.all(ops);
     res.json({ success: true });
   } catch (err) {
     console.error(err);
@@ -1049,27 +1057,32 @@ app.get('/users/me/question-stats', async (req, res) => {
   try {
     const docClient = getClient();
     const { userId, examType } = req.query;
+    const settingId = `answeredCount_${userId}_${examType}`;
 
-    // 問題IDプレフィックス → 試験種別マッピング（旧コード対応）
+    const result = await docClient.send(new GetCommand({ TableName: 'AppSettings', Key: { settingId } }));
+    if (result.Item) {
+      return res.json({ answeredCount: result.Item.answeredCount ?? 0 });
+    }
+
+    // 初回のみ：既存の UserQuestionStats から集計して移行
     const PREFIX_MAP = { 'gai': 'AIP' };
-
     const statsResult = await docClient.send(new QueryCommand({
       TableName: 'UserQuestionStats',
       KeyConditionExpression: 'userId = :uid',
       ExpressionAttributeValues: { ':uid': userId }
     }));
-
-    // 演習量 = 重複あり累計解答数（正誤問わず、削除済み問題も含む）
-    // 試験種別はIDプレフィックスから判定（DBフィルタ不要・削除問題もカウント対象）
-    const answeredCount = (statsResult.Items || [])
+    const initialCount = (statsResult.Items || [])
       .filter(s => {
         const prefix = (s.questionId || '').split('-')[0].toLowerCase();
-        const inferred = PREFIX_MAP[prefix] ?? prefix.toUpperCase();
-        return inferred === examType;
+        return (PREFIX_MAP[prefix] ?? prefix.toUpperCase()) === examType;
       })
       .reduce((sum, s) => sum + (s.correctCount ?? 0) + (s.incorrectCount ?? 0), 0);
 
-    res.json({ answeredCount });
+    await docClient.send(new PutCommand({
+      TableName: 'AppSettings',
+      Item: { settingId, userId, answeredCount: initialCount }
+    }));
+    res.json({ answeredCount: initialCount });
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: 'Internal server error' });
@@ -1250,14 +1263,17 @@ async function executeUserDataReset(docClient, userId) {
     })).catch(() => {}),
   ]);
 
-  // AppSettings の scoreHistData（スコア履歴・ハイスコア記録）を全 examType 分削除
-  const scoreHistResult = await docClient.send(new ScanCommand({
+  // AppSettings のユーザー固有データを削除（スコア履歴・解答カウンター）
+  const appSettingsResult = await docClient.send(new ScanCommand({
     TableName: 'AppSettings',
-    FilterExpression: 'begins_with(settingId, :prefix)',
-    ExpressionAttributeValues: { ':prefix': `scoreHistData_${userId}_` },
+    FilterExpression: 'begins_with(settingId, :sh) OR begins_with(settingId, :ac)',
+    ExpressionAttributeValues: {
+      ':sh': `scoreHistData_${userId}_`,
+      ':ac': `answeredCount_${userId}_`,
+    },
     ProjectionExpression: 'settingId',
   }));
-  await batchDelete('AppSettings', (scoreHistResult.Items || []).map(i => ({ settingId: i.settingId })));
+  await batchDelete('AppSettings', (appSettingsResult.Items || []).map(i => ({ settingId: i.settingId })));
 
   const resetAt = new Date().toISOString();
   await docClient.send(new PutCommand({

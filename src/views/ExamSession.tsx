@@ -204,7 +204,7 @@ export default function ExamSession() {
       await fetch(`${API_ENDPOINT}/sessions/${sessionId}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ userId, status: 'completed', score, isPassed }),
+        body: JSON.stringify({ userId, status: 'completed', score, isPassed, examType, answeredCount: abortResults.length }),
       });
       const qMap = new Map(answeredQs.map((q: Question) => [q.questionId, q]));
       const delta: Record<string, { c: number; i: number }> = {};
@@ -243,9 +243,7 @@ export default function ExamSession() {
         }
       } catch {}
       deleteCached(`ustats_${userId}`);
-      deleteCached(`qstats_${userId}_${examType}`);
-      localStorage.setItem(`postSessionQRefresh_${userId}`, '1');
-      window.dispatchEvent(new CustomEvent('qstatsRefresh', { detail: { userId, examType } }));
+      window.dispatchEvent(new CustomEvent('qstatsRefresh'));
       localStorage.setItem(`postSessionRefresh_${userId}`, String(Date.now()));
       const ptsPerQAbort = EXAM_LEVEL[examType] === 'Foundational' ? 1 : EXAM_LEVEL[examType] === 'Associate' ? 2 : 3;
       const earnedPtsAbort = correctCount * ptsPerQAbort;
@@ -316,7 +314,7 @@ export default function ExamSession() {
       await fetch(`${API_ENDPOINT}/sessions/${sessionId}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ userId, status: 'completed', score, isPassed })
+        body: JSON.stringify({ userId, status: 'completed', score, isPassed, examType, answeredCount: results.length })
       });
 
       // ドメイン別 delta 計算
@@ -359,9 +357,7 @@ export default function ExamSession() {
       } catch {}
       // セッション完了でキャッシュ破棄 → ホーム画面が最新データをサーバーから再取得
       deleteCached(`ustats_${userId}`);
-      deleteCached(`qstats_${userId}_${examType}`);
-      localStorage.setItem(`postSessionQRefresh_${userId}`, '1');
-      window.dispatchEvent(new CustomEvent('qstatsRefresh', { detail: { userId, examType } }));
+      window.dispatchEvent(new CustomEvent('qstatsRefresh'));
       localStorage.setItem(`postSessionRefresh_${userId}`, String(Date.now()));
       const ptsPerQ = EXAM_LEVEL[examType] === 'Foundational' ? 1 : EXAM_LEVEL[examType] === 'Associate' ? 2 : 3;
       const earnedPts = correctCount * ptsPerQ;

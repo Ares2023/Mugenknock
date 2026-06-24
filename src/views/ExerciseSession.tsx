@@ -548,7 +548,7 @@ export default function ExerciseSession() {
         await fetch(`${API_ENDPOINT}/sessions/${sessionId}`, {
           method: 'PUT',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ userId, status: 'completed', score, isPassed })
+          body: JSON.stringify({ userId, status: 'completed', score, isPassed, examType, answeredCount: results.length })
         });
       } catch (err) { console.error(err); }
       localStorage.removeItem(`quickExerciseDraft_${userId}`);
@@ -605,9 +605,7 @@ export default function ExerciseSession() {
           deleteCached(`ustats_${userId}`);
         }
       } catch { deleteCached(`ustats_${userId}`); }
-      deleteCached(`qstats_${userId}_${examType}`);
-      localStorage.setItem(`postSessionQRefresh_${userId}`, '1');
-      window.dispatchEvent(new CustomEvent('qstatsRefresh', { detail: { userId, examType } }));
+      window.dispatchEvent(new CustomEvent('qstatsRefresh'));
       localStorage.setItem(`postSessionRefresh_${userId}`, String(Date.now()));
       const ptsPerQ = EXAM_LEVEL[examType] === 'Foundational' ? 1 : EXAM_LEVEL[examType] === 'Associate' ? 2 : 3;
       const earnedPts = results.filter(r => r.isCorrect).length * ptsPerQ;
@@ -651,7 +649,7 @@ export default function ExerciseSession() {
       await fetch(`${API_ENDPOINT}/sessions/${sessionId}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ userId, status: 'completed', score, isPassed }),
+        body: JSON.stringify({ userId, status: 'completed', score, isPassed, examType, answeredCount: results.length }),
       });
     } catch (err) { console.error(err); }
     localStorage.removeItem(`quickExerciseDraft_${userId}`);
@@ -701,9 +699,7 @@ export default function ExerciseSession() {
         deleteCached(`ustats_${userId}`);
       }
     } catch { deleteCached(`ustats_${userId}`); }
-    deleteCached(`qstats_${userId}_${examType}`);
-    localStorage.setItem(`postSessionQRefresh_${userId}`, '1');
-    window.dispatchEvent(new CustomEvent('qstatsRefresh', { detail: { userId, examType } }));
+    window.dispatchEvent(new CustomEvent('qstatsRefresh'));
     localStorage.setItem(`postSessionRefresh_${userId}`, String(Date.now()));
     const ptsPerQ = EXAM_LEVEL[examType] === 'Foundational' ? 1 : EXAM_LEVEL[examType] === 'Associate' ? 2 : 3;
     const earnedPts = results.filter(r => r.isCorrect).length * ptsPerQ;
