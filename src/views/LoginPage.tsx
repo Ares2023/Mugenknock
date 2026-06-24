@@ -200,7 +200,7 @@ export default function LoginPage() {
         <div style={{ marginTop: 'var(--spacing-xl)', position: 'relative', zIndex: 1 }}>
           <Button
             variant="outline"
-            onClick={() => navigate('/questions')}
+            onClick={() => navigate('/aws/')}
             style={{ color: 'var(--color-primary)', fontWeight: 700 }}
           >
             {t('login.skipLogin')}

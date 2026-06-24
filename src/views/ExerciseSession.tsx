@@ -219,6 +219,15 @@ export default function ExerciseSession() {
     if (!key) return true;
     try { return JSON.parse(localStorage.getItem(key) ?? '{}').strikeEnabled !== false; } catch { return true; }
   })();
+  // コラム非表示フラグ（state に明示値があれば優先、なければ prefs から読む）
+  const hideColumn = (() => {
+    if (state?.hideColumn === true) return true;
+    const uid = state?.userId;
+    if (!uid) return false;
+    const key = (state?.isFocused) ? `focusedExercisePrefs_${uid}` : (state?.isQuick) ? `quickExercisePrefs_${uid}` : null;
+    if (!key) return false;
+    try { return JSON.parse(localStorage.getItem(key) ?? '{}').hideColumn === true; } catch { return false; }
+  })();
   const [initialized, setInitialized] = useState<boolean>(!!state);
 
   const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
@@ -1242,7 +1251,7 @@ export default function ExerciseSession() {
       })()}
 
       {/* コラム（豆知識） */}
-      {currentTip && (
+      {currentTip && !hideColumn && (
         <div style={{ marginTop: 'var(--spacing-xl)' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--spacing-md)', marginBottom: 'var(--spacing-sm)' }}>
             <span style={{

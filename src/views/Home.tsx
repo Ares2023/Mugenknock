@@ -2364,6 +2364,17 @@ export default function Home() {
                 <div style={{ fontSize: 11, color: 'var(--color-text-light)', marginTop: 4, lineHeight: 1.5 }}>
                   ※ {ja ? '選択肢のテキストをタップすると取り消し線を引いて選択肢を絞り込める機能です' : 'Tap choice text to strike through and narrow down options'}
                 </div>
+                <label style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '4px 0', cursor: 'pointer', marginTop: 8 }}>
+                  <input
+                    type="checkbox"
+                    checked={draftPrefs.hideColumn === true}
+                    onChange={() => setDraftPrefs(p => ({ ...p, hideColumn: !p.hideColumn }))}
+                    style={{ width: 16, height: 16, flexShrink: 0, accentColor: 'var(--color-primary)' }}
+                  />
+                  <span style={{ fontSize: 'var(--font-size-sm)', color: 'var(--color-text-main)' }}>
+                    {ja ? 'コラム（豆知識）を非表示' : 'Hide column tips'}
+                  </span>
+                </label>
               </div>
             </div>
             {/* 保存ボタン固定 */}
@@ -2493,6 +2504,17 @@ export default function Home() {
                 <div style={{ fontSize: 11, color: 'var(--color-text-light)', marginTop: 4, lineHeight: 1.5 }}>
                   ※ {ja ? '選択肢のテキストをタップすると取り消し線を引いて選択肢を絞り込める機能です' : 'Tap choice text to strike through and narrow down options'}
                 </div>
+                <label style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '4px 0', cursor: 'pointer', marginTop: 8 }}>
+                  <input
+                    type="checkbox"
+                    checked={draftFocusedPrefs.hideColumn === true}
+                    onChange={() => setDraftFocusedPrefs(p => ({ ...p, hideColumn: !p.hideColumn }))}
+                    style={{ width: 16, height: 16, flexShrink: 0, accentColor: 'var(--color-primary)' }}
+                  />
+                  <span style={{ fontSize: 'var(--font-size-sm)', color: 'var(--color-text-main)' }}>
+                    {ja ? 'コラム（豆知識）を非表示' : 'Hide column tips'}
+                  </span>
+                </label>
               </div>
             </div>
             {/* 保存ボタン固定 */}

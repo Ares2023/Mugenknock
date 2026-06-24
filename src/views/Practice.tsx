@@ -80,6 +80,7 @@ export default function Practice() {
   const [unansweredOnly, setUnansweredOnly] = useState<boolean>(() => initPrefs(localStorage.getItem(`targetExam_${uid}`) || 'SAA').unansweredOnly ?? false);
   const [incorrectOnly, setIncorrectOnly] = useState<boolean>(() => initPrefs(localStorage.getItem(`targetExam_${uid}`) || 'SAA').incorrectOnly ?? false);
   const [strikeEnabled, setStrikeEnabled] = useState<boolean>(() => initPrefs(localStorage.getItem(`targetExam_${uid}`) || 'SAA').strikeEnabled !== false);
+  const [hideColumn, setHideColumn] = useState<boolean>(() => initPrefs(localStorage.getItem(`targetExam_${uid}`) || 'SAA').hideColumn === true);
   const [availableCount, setAvailableCount] = useState<number | null>(null);
   const [exerciseLoading, setExerciseLoading] = useState(false);
   const [exerciseLoadPct, setExerciseLoadPct] = useState(0);
@@ -113,10 +114,11 @@ export default function Practice() {
     setUnansweredOnly(prefs.unansweredOnly ?? false);
     setIncorrectOnly(prefs.incorrectOnly ?? false);
     setStrikeEnabled(prefs.strikeEnabled !== false);
+    setHideColumn(prefs.hideColumn === true);
   }, [examType]);
 
   useEffect(() => {
-    saveExercisePrefs(examType, uid, { domains: selectedDomains, limit, bookmarkOnly, unansweredOnly, incorrectOnly, strikeEnabled });
+    saveExercisePrefs(examType, uid, { domains: selectedDomains, limit, bookmarkOnly, unansweredOnly, incorrectOnly, strikeEnabled, hideColumn });
   }, [examType, selectedDomains, limit, bookmarkOnly, unansweredOnly, incorrectOnly, strikeEnabled]);
 
 
@@ -214,7 +216,7 @@ export default function Practice() {
           sessionId: sessionData.sessionId,
           questions: q1Data.items ?? [],
           questionIds: selectedIds,
-          userId, mode: 'exercise', examType, strikeEnabled,
+          userId, mode: 'exercise', examType, strikeEnabled, hideColumn,
         },
       });
     } catch (err) {
@@ -228,9 +230,11 @@ export default function Practice() {
     navigate('/aws/exercise/session', {
       state: {
         sessionId: exerciseDraft.sessionId, questions: exerciseDraft.questions,
+        questionIds: exerciseDraft.questionIds ?? [],
         userId: exerciseDraft.userId, examType: exerciseDraft.examType, mode: 'exercise',
         resumeIndex: exerciseDraft.currentIndex, resumeResults: exerciseDraft.results,
         resumeAnswered: exerciseDraft.answered, resumeSelectedAnswers: exerciseDraft.selectedAnswers,
+        hideColumn,
       }
     });
   };
@@ -474,6 +478,17 @@ export default function Practice() {
                   <div style={{ fontSize: 11, color: 'var(--color-text-light)', marginTop: 4, lineHeight: 1.5 }}>
                     ※ {ja ? '選択肢のテキストをタップすると取り消し線を引いて選択肢を絞り込める機能です' : 'Tap choice text to strike through and narrow down options'}
                   </div>
+                  <label style={{ display: 'flex', alignItems: 'center', gap: 8, cursor: 'pointer', marginTop: 8 }}>
+                    <input
+                      type="checkbox"
+                      checked={hideColumn}
+                      onChange={() => setHideColumn(v => !v)}
+                      style={{ width: 15, height: 15, flexShrink: 0, accentColor: 'var(--color-primary)' }}
+                    />
+                    <span style={{ fontSize: 'var(--font-size-sm)', color: 'var(--color-text-main)' }}>
+                      {ja ? 'コラム（豆知識）を非表示' : 'Hide column tips'}
+                    </span>
+                  </label>
                 </div>
               </div>
             )}
