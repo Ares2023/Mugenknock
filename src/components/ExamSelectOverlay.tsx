@@ -275,24 +275,45 @@ export default function ExamSelectOverlay({
                     setConfirming(true);
                     localStorage.setItem(`targetExam_${uid}`, exam);
                     window.dispatchEvent(new CustomEvent('targetExamChanged', { detail: exam }));
-                    setTimeout(() => {
-                      onSelect(exam);
-                      setConfirming(false);
-                    }, 600);
+                    setTimeout(() => { onSelect(exam); setConfirming(false); }, 550);
                   }}
                   style={{
                     width: 44, height: 44, borderRadius: '50%', flexShrink: 0,
-                    border: confirming ? 'none' : `2px solid ${levelColor}`,
-                    background: confirming ? levelColor : 'var(--color-bg-white)',
-                    color: confirming ? '#fff' : levelColor,
-                    display: 'flex', alignItems: 'center', justifyContent: 'center',
+                    border: 'none', background: 'transparent', padding: 0,
+                    perspective: '120px',
                     cursor: confirming ? 'default' : 'pointer',
-                    boxShadow: '0 2px 8px rgba(0,0,0,0.15)',
-                    transform: confirming ? 'scale(1.18)' : 'scale(1)',
-                    transition: 'transform 0.2s cubic-bezier(.34,1.56,.64,1), background 0.2s, border 0.2s, color 0.2s',
                   }}
                 >
-                  {confirming ? <IconBookOpenCheck size={22} /> : <IconBook size={22} />}
+                  <div style={{
+                    width: '100%', height: '100%',
+                    position: 'relative',
+                    transformStyle: 'preserve-3d',
+                    transform: confirming ? 'rotateY(180deg)' : 'rotateY(0deg)',
+                    transition: 'transform 0.5s cubic-bezier(0.4, 0, 0.2, 1)',
+                  }}>
+                    {/* 表面: 本アイコン */}
+                    <div style={{
+                      position: 'absolute', inset: 0, borderRadius: '50%',
+                      border: `2px solid ${levelColor}`,
+                      background: 'var(--color-bg-white)', color: levelColor,
+                      display: 'flex', alignItems: 'center', justifyContent: 'center',
+                      backfaceVisibility: 'hidden',
+                      boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
+                    }}>
+                      <IconBook size={22} />
+                    </div>
+                    {/* 裏面: チェックアイコン（最初から180deg回転済み） */}
+                    <div style={{
+                      position: 'absolute', inset: 0, borderRadius: '50%',
+                      background: levelColor, color: '#fff',
+                      display: 'flex', alignItems: 'center', justifyContent: 'center',
+                      backfaceVisibility: 'hidden',
+                      transform: 'rotateY(180deg)',
+                      boxShadow: `0 2px 8px ${levelColor}55`,
+                    }}>
+                      <IconBookOpenCheck size={22} />
+                    </div>
+                  </div>
                 </button>
               )}
             </div>
