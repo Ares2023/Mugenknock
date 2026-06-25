@@ -172,7 +172,8 @@ export default function Account() {
   useEffect(() => {
     if (!user) return;
     // Sessions と UserTagStats を並行取得
-    const sessionsFetch = fetch(`${API_ENDPOINT}/users/me/sessions?userId=${user.userId}&limit=1000`)
+    // 資格ごとの実施回数・最終日を集計（保持上限=直近365件内での件数）。
+    const sessionsFetch = fetch(`${API_ENDPOINT}/users/me/sessions?userId=${user.userId}&limit=365`)
       .then(r => r.json())
       .then(d => {
         const map: Record<string, SessionSummary> = {};
@@ -272,7 +273,7 @@ export default function Account() {
       // Home.tsx clearUserData と同じパターンで localStorage を消去
       const KEEP = new Set([
         `lang_${uid}`, `theme_${uid}`, `sidebarOpen_${uid}`,
-        `targetExam_${uid}`, `lastQuickMode_${uid}`,
+        `lastQuickMode_${uid}`,
         `quickExercisePrefs_${uid}`, `focusedExercisePrefs_${uid}`,
         `sherpaExerciseHint_${uid}`, `sherpaExamHint_${uid}`, `sherpaStatsHint_${uid}`,
       ]);
@@ -283,7 +284,9 @@ export default function Account() {
         if (
           (!KEEP.has(key) && key.endsWith(suffix)) ||
           key.startsWith(`qstats_${uid}_`) ||
-          key.startsWith(`daily_service_${uid}_`)
+          key.startsWith(`daily_service_${uid}_`) ||
+          (key.startsWith('dailyQCount_') && key.includes(`_${uid}_`)) ||
+          (key.startsWith('dailyGoalReward_') && key.includes(`_${uid}_`))
         ) toRemove.push(key);
       }
       toRemove.forEach(k => localStorage.removeItem(k));
@@ -494,16 +497,24 @@ export default function Account() {
                           </Button>
                         )}
                       </div>
-                      {isConfirming && (
+                      {isDeleting && (
+                        <div style={{ marginTop: 10, padding: '10px 12px', background: 'var(--color-bg-main)', borderRadius: 'var(--border-radius-md)', display: 'flex', alignItems: 'center', gap: 10 }}>
+                          <span className="sherpa-spinner" style={{ width: 16, height: 16, borderWidth: 2, flexShrink: 0 }} />
+                          <span style={{ fontSize: 'var(--font-size-sm)', color: 'var(--color-text-sub)' }}>
+                            {ja ? `${et} のデータを削除中...` : `Deleting ${et} data...`}
+                          </span>
+                        </div>
+                      )}
+                      {isConfirming && !isDeleting && (
                         <div style={{ marginTop: 10, padding: '10px 12px', background: 'var(--color-feedback-incorrect-bg)', borderRadius: 'var(--border-radius-md)', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8 }}>
                           <span style={{ fontSize: 'var(--font-size-sm)', color: 'var(--color-danger)', fontWeight: 500 }}>
                             {ja ? `${et} のデータを削除しますか？` : `Delete all data for ${et}?`}
                           </span>
                           <div style={{ display: 'flex', gap: 6, flexShrink: 0 }}>
-                            <Button variant="danger" size="sm" onClick={() => handleDelete(et)} disabled={isDeleting}>
-                              {isDeleting ? '…' : (ja ? '削除する' : 'Delete')}
+                            <Button variant="danger" size="sm" onClick={() => handleDelete(et)}>
+                              {ja ? '削除する' : 'Delete'}
                             </Button>
-                            <Button variant="outline" size="sm" onClick={() => setConfirmingExam(null)} disabled={isDeleting}>
+                            <Button variant="outline" size="sm" onClick={() => setConfirmingExam(null)}>
                               {ja ? 'キャンセル' : 'Cancel'}
                             </Button>
                           </div>
@@ -641,6 +652,14 @@ export default function Account() {
                 <TextInput value={resetConfirmation} onChange={setResetConfirmation} placeholder="RESET" />
               </div>
               {resetError && <p style={{ margin: '0 0 12px', fontSize: 'var(--font-size-sm)', color: 'var(--color-danger)' }}>{resetError}</p>}
+              {resetExecuting && (
+                <div style={{ marginBottom: 16, padding: '10px 12px', background: 'var(--color-bg-main)', borderRadius: 'var(--border-radius-md)', display: 'flex', alignItems: 'center', gap: 10 }}>
+                  <span className="sherpa-spinner" style={{ width: 16, height: 16, borderWidth: 2, flexShrink: 0 }} />
+                  <span style={{ fontSize: 'var(--font-size-sm)', color: 'var(--color-text-sub)' }}>
+                    {ja ? 'データを削除しています。しばらくお待ちください...' : 'Deleting your data. Please wait...'}
+                  </span>
+                </div>
+              )}
               <div style={{ display: 'flex', gap: 8 }}>
                 <Button
                   onClick={handleReset}

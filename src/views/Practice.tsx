@@ -6,10 +6,13 @@ import { useAuth } from '../contexts/AuthContext';
 import { useLanguage } from '../contexts/LanguageContext';
 import { API_ENDPOINT, EXAM_CONFIGS, EXAM_DOMAINS, EXAM_TYPES, PASS_SCORES, qDomainName } from '../constants';
 import Button from '../components/ui/Button';
-import { getCached, setCached, SHORT_TTL } from '../utils/cache';
+import { getCached, setCached, SHORT_TTL, getCachedPersist, setCachedPersist } from '../utils/cache';
 import { autoScoreAndClearDrafts } from '../utils/sessionUtils';
 import { animateLoadPct, randomPlateau } from '../utils/loadProgress';
+import { getPrefetchA, getPrefetchC, prefetchTypeA } from '../utils/questionPrefetch';
 import { IconChevronUp, IconChevronDown, IconChevronRight } from '../components/Icons';
+
+const fmtSec = (sec: number) => `${Math.floor(sec / 60).toString().padStart(2, '0')}:${(sec % 60).toString().padStart(2, '0')}`;
 
 function shuffleArray<T>(arr: T[]): T[] {
   const a = [...arr];
@@ -80,6 +83,7 @@ export default function Practice() {
   const [unansweredOnly, setUnansweredOnly] = useState<boolean>(() => initPrefs(localStorage.getItem(`targetExam_${uid}`) || 'SAA').unansweredOnly ?? false);
   const [incorrectOnly, setIncorrectOnly] = useState<boolean>(() => initPrefs(localStorage.getItem(`targetExam_${uid}`) || 'SAA').incorrectOnly ?? false);
   const [strikeEnabled, setStrikeEnabled] = useState<boolean>(() => initPrefs(localStorage.getItem(`targetExam_${uid}`) || 'SAA').strikeEnabled !== false);
+  const [hideColumn, setHideColumn] = useState<boolean>(() => initPrefs(localStorage.getItem(`targetExam_${uid}`) || 'SAA').hideColumn === true);
   const [availableCount, setAvailableCount] = useState<number | null>(null);
   const [exerciseLoading, setExerciseLoading] = useState(false);
   const [exerciseLoadPct, setExerciseLoadPct] = useState(0);
@@ -113,11 +117,17 @@ export default function Practice() {
     setUnansweredOnly(prefs.unansweredOnly ?? false);
     setIncorrectOnly(prefs.incorrectOnly ?? false);
     setStrikeEnabled(prefs.strikeEnabled !== false);
+    setHideColumn(prefs.hideColumn === true);
   }, [examType]);
 
   useEffect(() => {
-    saveExercisePrefs(examType, uid, { domains: selectedDomains, limit, bookmarkOnly, unansweredOnly, incorrectOnly, strikeEnabled });
+    saveExercisePrefs(examType, uid, { domains: selectedDomains, limit, bookmarkOnly, unansweredOnly, incorrectOnly, strikeEnabled, hideColumn });
   }, [examType, selectedDomains, limit, bookmarkOnly, unansweredOnly, incorrectOnly, strikeEnabled]);
+
+  // 画面表示中にキャッシュを事前ウォームアップ
+  useEffect(() => {
+    if (!getPrefetchA(examType)) prefetchTypeA(examType, uid);
+  }, [examType, uid]);
 
 
   useEffect(() => {
@@ -183,10 +193,41 @@ export default function Practice() {
     setExerciseLoading(true);
     setExerciseLoadPct(10);
     try {
-      const userId = user?.userId ?? 'guest';
       if (selectedDomains.length === 0) { alert(ja ? '出題ドメインを1つ以上選択してください' : 'Please select at least one domain'); return; }
       const allSelected = EXAM_DOMAINS[examType].every(d => selectedDomains.includes(d));
-      // ── プログレッシブロードパス（フィルタあり・なし共通）──
+
+      // ── プリフェッチキャッシュを使用 ──
+      const hasFilters = !!(user && (bookmarkOnly || unansweredOnly || incorrectOnly)) || !allSelected;
+      const qPrefs = { unansweredOnly, incorrectOnly, bookmarkOnly, domains: allSelected ? [] : selectedDomains };
+      const cached = hasFilters ? getPrefetchC(examType, userId, qPrefs) : getPrefetchA(examType);
+      if (cached && cached.questions.length > 0) {
+        try {
+          let items: any[] = [...cached.questions];
+          if (!allSelected) items = items.filter((q: any) => selectedDomains.includes(qDomainName(q)));
+          items = shuffleArray(items).slice(0, limit);
+          if (items.length > 0) {
+            setExerciseLoadPct(50);
+            const sessionData = await fetch(`${API_ENDPOINT}/sessions`, {
+              method: 'POST', headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ userId, mode: 'exercise', examType, questionIds: items.map((q: any) => q.questionId) }),
+            }).then(r => r.json());
+            setExerciseLoadPct(90);
+            navigate('/aws/exercise/session', {
+              state: {
+                sessionId: sessionData.sessionId,
+                questions: items.slice(0, 1),
+                questionIds: items.map((q: any) => q.questionId),
+                userId, mode: 'exercise', examType, strikeEnabled, hideColumn,
+              },
+            });
+            return;
+          }
+        } catch (err) {
+          console.debug('[prefetch] exercise cache failed, fallback:', err);
+        }
+      }
+
+      // ── フォールバック：プログレッシブロード ──
       // 1. IDのみ取得（Lambda側でフィルタ・優先度ソート）
       const idsParams = new URLSearchParams({ examType, shuffle: 'true', idsOnly: 'true' });
       if (!allSelected) idsParams.set('domain', selectedDomains.join(','));
@@ -214,7 +255,7 @@ export default function Practice() {
           sessionId: sessionData.sessionId,
           questions: q1Data.items ?? [],
           questionIds: selectedIds,
-          userId, mode: 'exercise', examType, strikeEnabled,
+          userId, mode: 'exercise', examType, strikeEnabled, hideColumn,
         },
       });
     } catch (err) {
@@ -228,9 +269,11 @@ export default function Practice() {
     navigate('/aws/exercise/session', {
       state: {
         sessionId: exerciseDraft.sessionId, questions: exerciseDraft.questions,
+        questionIds: exerciseDraft.questionIds ?? [],
         userId: exerciseDraft.userId, examType: exerciseDraft.examType, mode: 'exercise',
         resumeIndex: exerciseDraft.currentIndex, resumeResults: exerciseDraft.results,
         resumeAnswered: exerciseDraft.answered, resumeSelectedAnswers: exerciseDraft.selectedAnswers,
+        hideColumn,
       }
     });
   };
@@ -271,19 +314,20 @@ export default function Practice() {
     setExamLoading(true);
     setExamLoadPct(10);
     try {
-      const userId = user?.userId ?? 'guest';
-      const params = new URLSearchParams({ examType: targetExam, withAnswers: 'true' });
+      const qCacheKey = `qlist_${targetExam}`;
+      const cachedQs = getCachedPersist<{ items: any[]; total: number }>(qCacheKey);
       const plateau = randomPlateau();
-      const stopAnim = animateLoadPct(setExamLoadPct, 10, plateau);
+      const stopAnim = cachedQs ? null : animateLoadPct(setExamLoadPct, 10, plateau);
       const needFilter = user && (examUnansweredOnly || examIncorrectOnly || examBookmarkOnly);
       const [data, answeredRes, incorrectRes, bkmRes] = await Promise.all([
-        fetch(`${API_ENDPOINT}/questions?${params}`).then(r => r.json()),
+        cachedQs ? Promise.resolve(cachedQs) : fetch(`${API_ENDPOINT}/questions?examType=${targetExam}&withAnswers=true`).then(r => r.json()),
         user ? fetch(`${API_ENDPOINT}/users/me/answered-questions?userId=${userId}&examType=${targetExam}`).then(r => r.json()) : Promise.resolve(null),
         needFilter && examIncorrectOnly ? fetch(`${API_ENDPOINT}/users/me/incorrect-questions?userId=${userId}&examType=${targetExam}`).then(r => r.json()) : Promise.resolve(null),
         needFilter && examBookmarkOnly ? fetch(`${API_ENDPOINT}/users/me/bookmarks?userId=${userId}`).then(r => r.json()) : Promise.resolve(null),
       ]);
-      stopAnim();
-      setExamLoadPct(plateau);
+      stopAnim?.();
+      if (!cachedQs) setCachedPersist(qCacheKey, data);
+      setExamLoadPct(cachedQs ? 50 : plateau);
       let items: any[] = (data.items ?? []).filter((q: any) => !!q.validityCheckedAt);
       items = shuffleArray(items);
       if (needFilter) {
@@ -393,7 +437,9 @@ export default function Practice() {
             </div>
           </div>
 
-          {availableCount !== null && availableCount > 0 && availableCount < limit && (
+          {availableCount !== null && availableCount > 0 && availableCount < limit
+            && (bookmarkOnly || unansweredOnly || incorrectOnly || !(EXAM_DOMAINS[examType] ?? []).every(d => selectedDomains.includes(d)))
+            && (
             <div style={{ marginBottom: 'var(--spacing-md)', fontSize: 'var(--font-size-sm)', color: 'var(--color-text-warning)', background: 'var(--color-bg-warning)', border: '1px solid var(--color-border-warning)', borderRadius: 'var(--border-radius-md)', padding: '8px 12px' }}>
               ⚠️ {ja ? `条件に合う問題が${availableCount}問しかありません。${availableCount}問で開始します。` : `Only ${availableCount} questions match. Session will start with ${availableCount} questions.`}
             </div>
@@ -415,6 +461,7 @@ export default function Practice() {
             </button>
             {showExerciseOptions && (
               <div style={{ padding: '12px 14px', borderTop: '1px solid color-mix(in srgb, var(--color-text-light) 40%, transparent)', display: 'flex', flexDirection: 'column', gap: 6 }}>
+                <div style={{ fontSize: 11, fontWeight: 700, color: 'var(--color-text-light)', letterSpacing: '0.05em', marginBottom: 2 }}>{ja ? 'ドメイン' : 'Domain'}</div>
                 {/* 全て */}
                 <label style={{ display: 'flex', alignItems: 'center', gap: 8, cursor: 'pointer', paddingBottom: 6, borderBottom: '1px solid color-mix(in srgb, var(--color-text-light) 20%, transparent)' }}>
                   <input
@@ -455,29 +502,36 @@ export default function Practice() {
                     {ja ? '1つ以上選択してください' : 'Select at least one domain'}
                   </div>
                 )}
+                <div style={{ paddingTop: 8, marginTop: 2, borderTop: '1px solid color-mix(in srgb, var(--color-text-light) 20%, transparent)' }}>
+                  <div style={{ fontSize: 11, fontWeight: 700, color: 'var(--color-text-light)', letterSpacing: '0.05em', marginBottom: 6 }}>{ja ? 'その他' : 'Other'}</div>
+                  <label style={{ display: 'flex', alignItems: 'center', gap: 8, cursor: 'pointer' }}>
+                    <input
+                      type="checkbox"
+                      checked={!strikeEnabled}
+                      onChange={() => setStrikeEnabled(v => !v)}
+                      style={{ width: 15, height: 15, flexShrink: 0, accentColor: 'var(--color-primary)' }}
+                    />
+                    <span style={{ fontSize: 'var(--font-size-sm)', color: 'var(--color-text-main)' }}>
+                      {ja ? '消去法機能をオフ' : 'Disable elimination mode'}
+                    </span>
+                  </label>
+                  <div style={{ fontSize: 11, color: 'var(--color-text-light)', marginTop: 4, lineHeight: 1.5 }}>
+                    ※ {ja ? '選択肢のテキストをタップすると取り消し線を引いて選択肢を絞り込める機能です' : 'Tap choice text to strike through and narrow down options'}
+                  </div>
+                  <label style={{ display: 'flex', alignItems: 'center', gap: 8, cursor: 'pointer', marginTop: 8 }}>
+                    <input
+                      type="checkbox"
+                      checked={hideColumn}
+                      onChange={() => setHideColumn(v => !v)}
+                      style={{ width: 15, height: 15, flexShrink: 0, accentColor: 'var(--color-primary)' }}
+                    />
+                    <span style={{ fontSize: 'var(--font-size-sm)', color: 'var(--color-text-main)' }}>
+                      {ja ? 'コラム（豆知識）を非表示' : 'Hide column tips'}
+                    </span>
+                  </label>
+                </div>
               </div>
             )}
-          </div>
-
-          {/* その他 */}
-          <div style={{ marginBottom: 'var(--spacing-md)', paddingTop: 'var(--spacing-sm)', borderTop: '1px solid color-mix(in srgb, var(--color-text-light) 30%, transparent)' }}>
-            <div style={{ fontWeight: 600, fontSize: 'var(--font-size-sm)', color: 'var(--color-text-sub)', marginBottom: 6 }}>
-              {ja ? 'その他' : 'Other'}
-            </div>
-            <label style={{ display: 'flex', alignItems: 'center', gap: 10, cursor: 'pointer' }}>
-              <input
-                type="checkbox"
-                checked={!strikeEnabled}
-                onChange={() => setStrikeEnabled(v => !v)}
-                style={{ width: 16, height: 16, flexShrink: 0, accentColor: 'var(--color-primary)' }}
-              />
-              <span style={{ fontSize: 'var(--font-size-sm)', color: 'var(--color-text-main)' }}>
-                {ja ? '消去法機能をオフ' : 'Disable elimination mode'}
-              </span>
-            </label>
-            <div style={{ fontSize: 11, color: 'var(--color-text-light)', marginTop: 4, lineHeight: 1.5 }}>
-              ※ {ja ? '選択肢のテキストをタップすると取り消し線を引いて選択肢を絞り込める機能です' : 'Tap choice text to strike through and narrow down options'}
-            </div>
           </div>
           </>)}
         </>
@@ -605,7 +659,16 @@ export default function Practice() {
                         <span style={{ width: 13, height: 13, border: '2px solid rgba(0,0,0,0.2)', borderTopColor: '#16191f', borderRadius: '50%', animation: 'sherpa-spin 0.7s linear infinite', flexShrink: 0 }} />
                         {ja ? `準備中... ${exerciseLoadPct}%` : `Loading... ${exerciseLoadPct}%`}
                       </span>
-                    ) : (ja ? '試験を再開' : 'Resume')}
+                    ) : (
+                      <>
+                        {ja ? '演習を再開' : 'Resume'}
+                        {exerciseDraft?.results != null && exerciseDraft?.questions != null && (
+                          <span style={{ fontSize: 12, fontWeight: 400, opacity: 0.85 }}>
+                            （{exerciseDraft.results.length}/{exerciseDraft.questions.length}問）
+                          </span>
+                        )}
+                      </>
+                    )}
                   </button>
                   <button
                     onClick={() => setShowNewPanel(v => !v)}
@@ -626,7 +689,7 @@ export default function Practice() {
                       <span style={{ width: 13, height: 13, border: '2px solid rgba(0,0,0,0.2)', borderTopColor: '#16191f', borderRadius: '50%', animation: 'sherpa-spin 0.7s linear infinite', flexShrink: 0 }} />
                       {ja ? `準備中... ${exerciseLoadPct}%` : `Loading... ${exerciseLoadPct}%`}
                     </span>
-                  ) : (ja ? '試験を開始' : 'Start')}
+                  ) : (ja ? '演習を開始' : 'Start')}
                 </button>
               )}
             </div>
@@ -646,7 +709,16 @@ export default function Practice() {
                         <span style={{ width: 13, height: 13, border: '2px solid rgba(0,0,0,0.2)', borderTopColor: '#16191f', borderRadius: '50%', animation: 'sherpa-spin 0.7s linear infinite', flexShrink: 0 }} />
                         {ja ? `準備中... ${exerciseLoadPct}%` : `Loading... ${exerciseLoadPct}%`}
                       </span>
-                    ) : (ja ? '試験を再開' : 'Resume')}
+                    ) : (
+                      <>
+                        {ja ? '演習を再開' : 'Resume'}
+                        {exerciseDraft?.results != null && exerciseDraft?.questions != null && (
+                          <span style={{ fontSize: 12, fontWeight: 400, opacity: 0.85 }}>
+                            （{exerciseDraft.results.length}/{exerciseDraft.questions.length}問）
+                          </span>
+                        )}
+                      </>
+                    )}
                   </button>
                   <button
                     onClick={startExercise}
@@ -667,7 +739,7 @@ export default function Practice() {
                       <span style={{ width: 13, height: 13, border: '2px solid rgba(0,0,0,0.2)', borderTopColor: '#16191f', borderRadius: '50%', animation: 'sherpa-spin 0.7s linear infinite', flexShrink: 0 }} />
                       {ja ? `準備中... ${exerciseLoadPct}%` : `Loading... ${exerciseLoadPct}%`}
                     </span>
-                  ) : (ja ? '試験を開始' : 'Start')}
+                  ) : (ja ? '演習を開始' : 'Start')}
                 </button>
               )}
             </div>
@@ -711,7 +783,16 @@ export default function Practice() {
                         <span style={{ width: 12, height: 12, border: '2px solid rgba(0,0,0,0.2)', borderTopColor: '#16191f', borderRadius: '50%', animation: 'sherpa-spin 0.7s linear infinite' }} />
                         {ja ? `準備中... ${examLoadPct}%` : `Preparing... ${examLoadPct}%`}
                       </span>
-                    ) : (ja ? '試験を再開' : 'Resume')}
+                    ) : (
+                      <>
+                        {ja ? '模試を再開' : 'Resume'}
+                        {examDraft?.timeLeft != null && (
+                          <span style={{ fontSize: 12, fontWeight: 400, opacity: 0.85 }}>
+                            （{fmtSec(examDraft.timeLeft)}・{(examDraft.currentIndex ?? 0) + 1}/{examDraft.questions?.length ?? '?'}問）
+                          </span>
+                        )}
+                      </>
+                    )}
                   </button>
                   <button
                     onClick={() => setShowNewExamPanel(v => !v)}
@@ -732,7 +813,7 @@ export default function Practice() {
                       <span style={{ width: 12, height: 12, border: '2px solid rgba(0,0,0,0.2)', borderTopColor: '#16191f', borderRadius: '50%', animation: 'sherpa-spin 0.7s linear infinite' }} />
                       {ja ? `準備中... ${examLoadPct}%` : `Preparing... ${examLoadPct}%`}
                     </span>
-                  ) : (ja ? `試験を開始${examMode === 'mini' ? '（ミニ）' : ''}` : `Start${examMode === 'mini' ? ' Mini' : ''} Exam`)}
+                  ) : (ja ? `模試を開始${examMode === 'mini' ? '（ミニ）' : ''}` : `Start${examMode === 'mini' ? ' Mini' : ''} Exam`)}
                 </button>
               )}
             </div>
@@ -752,7 +833,16 @@ export default function Practice() {
                         <span style={{ width: 12, height: 12, border: '2px solid rgba(0,0,0,0.2)', borderTopColor: '#16191f', borderRadius: '50%', animation: 'sherpa-spin 0.7s linear infinite' }} />
                         {ja ? `準備中... ${examLoadPct}%` : `Preparing... ${examLoadPct}%`}
                       </span>
-                    ) : (ja ? '試験を再開' : 'Resume')}
+                    ) : (
+                      <>
+                        {ja ? '模試を再開' : 'Resume'}
+                        {examDraft?.timeLeft != null && (
+                          <span style={{ fontSize: 12, fontWeight: 400, opacity: 0.85 }}>
+                            （{fmtSec(examDraft.timeLeft)}・{(examDraft.currentIndex ?? 0) + 1}/{examDraft.questions?.length ?? '?'}問）
+                          </span>
+                        )}
+                      </>
+                    )}
                   </button>
                   <button
                     onClick={startExam}
@@ -773,7 +863,7 @@ export default function Practice() {
                       <span style={{ width: 12, height: 12, border: '2px solid rgba(0,0,0,0.2)', borderTopColor: '#16191f', borderRadius: '50%', animation: 'sherpa-spin 0.7s linear infinite' }} />
                       {ja ? `準備中... ${examLoadPct}%` : `Preparing... ${examLoadPct}%`}
                     </span>
-                  ) : (ja ? '試験を開始' : 'Start Mock Exam')}
+                  ) : (ja ? '模試を開始' : 'Start Mock Exam')}
                 </button>
               )}
             </div>

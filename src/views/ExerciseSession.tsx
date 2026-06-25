@@ -200,8 +200,42 @@ export default function ExerciseSession() {
   const { user } = useAuth();
   const { lang, t } = useLanguage();
 
+  // リロードで compat レイヤーが初期 state を復活させると進捗が巻き戻るため、
+  // state がある場合でも同一セッションのドラフトがより多くの進捗を持てば初期値に反映する。
+  // （useState 初期化時に確定させ、保存useEffectによる上書きより前に効かせる）
+  const _resumeInit = useMemo(() => {
+    let idx: number = state?.resumeIndex ?? 0;
+    let res: { questionId: string; isCorrect: boolean }[] = state?.resumeResults ?? [];
+    let ans: boolean = state?.resumeAnswered ?? false;
+    let sel: string[] = state?.resumeSelectedAnswers ?? [];
+    let qs: Question[] | null = null;
+    if (state?.sessionId) {
+      try {
+        let best: any = null;
+        for (let i = 0; i < localStorage.length; i++) {
+          const key = localStorage.key(i);
+          if (!key) continue;
+          if (key.startsWith('practiceExerciseDraft_') || key.startsWith('quickExerciseDraft_') || key.startsWith('focusedExerciseDraft_')) {
+            try {
+              const p = JSON.parse(localStorage.getItem(key) ?? '');
+              if (p.questions?.length > 0 && p.sessionId === state.sessionId && (!best || (p.savedAt ?? 0) > (best.savedAt ?? 0))) best = p;
+            } catch {}
+          }
+        }
+        if (best && (best.results?.length ?? 0) > (res?.length ?? 0)) {
+          idx = best.currentIndex ?? 0;
+          res = best.results ?? [];
+          ans = best.answered ?? false;
+          sel = best.selectedAnswers ?? [];
+          if (best.questions?.length) qs = best.questions;
+        }
+      } catch {}
+    }
+    return { idx, res, ans, sel, qs };
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+
   const [sessionId, setSessionId] = useState<string>(state?.sessionId ?? '');
-  const [questions, setQuestions] = useState<Question[]>(state?.questions ?? []);
+  const [questions, setQuestions] = useState<Question[]>(_resumeInit.qs ?? state?.questions ?? []);
   // プログレッシブロード用: 全問IDリスト（useState で hook として登録することで TDZ を回避）
   const [allQuestionIds] = useState<string[]>(state?.questionIds ?? []);
   const loadingNextRef = React.useRef(false);
@@ -219,6 +253,15 @@ export default function ExerciseSession() {
     if (!key) return true;
     try { return JSON.parse(localStorage.getItem(key) ?? '{}').strikeEnabled !== false; } catch { return true; }
   })();
+  // コラム非表示フラグ（state に明示値があれば優先、なければ prefs から読む）
+  const hideColumn = (() => {
+    if (state?.hideColumn === true) return true;
+    const uid = state?.userId;
+    if (!uid) return false;
+    const key = (state?.isFocused) ? `focusedExercisePrefs_${uid}` : (state?.isQuick) ? `quickExercisePrefs_${uid}` : null;
+    if (!key) return false;
+    try { return JSON.parse(localStorage.getItem(key) ?? '{}').hideColumn === true; } catch { return false; }
+  })();
   const [initialized, setInitialized] = useState<boolean>(!!state);
 
   const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
@@ -229,7 +272,7 @@ export default function ExerciseSession() {
   }, []);
 
   // currentIndex は下の useEffect の依存配列で使うため先に宣言（TDZ 回避）
-  const [currentIndex, setCurrentIndex] = useState<number>(state?.resumeIndex ?? 0);
+  const [currentIndex, setCurrentIndex] = useState<number>(_resumeInit.idx);
 
   // プログレッシブロード: 現在問 + 2問先までをバックグラウンドで先読み
   useEffect(() => {
@@ -250,9 +293,9 @@ export default function ExerciseSession() {
       .catch(() => {})
       .finally(() => { loadingNextRef.current = false; });
   }, [currentIndex, questions.length]); // eslint-disable-line react-hooks/exhaustive-deps
-  const [viewedFrontier, setViewedFrontier] = useState<number>(state?.resumeIndex ?? 0);
-  const [selectedAnswers, setSelectedAnswers] = useState<string[]>(state?.resumeSelectedAnswers ?? []);
-  const [answered, setAnswered] = useState<boolean>(state?.resumeAnswered ?? false);
+  const [viewedFrontier, setViewedFrontier] = useState<number>(_resumeInit.idx);
+  const [selectedAnswers, setSelectedAnswers] = useState<string[]>(_resumeInit.sel);
+  const [answered, setAnswered] = useState<boolean>(_resumeInit.ans);
   const [detail, setDetail] = useState<Question | null>(null);
   const [detailFetchFailed, setDetailFetchFailed] = useState(false);
   const [tips, setTips] = useState<Tip[]>([]);
@@ -326,7 +369,7 @@ export default function ExerciseSession() {
     } catch (err) { console.error(err); }
     setBookmarkLoading(false);
   };
-  const [results, setResults] = useState<{ questionId: string; isCorrect: boolean }[]>(state?.resumeResults ?? []);
+  const [results, setResults] = useState<{ questionId: string; isCorrect: boolean }[]>(_resumeInit.res);
   const [selectionHistory, setSelectionHistory] = useState<Record<number, string[]>>({});
   const [hoveredNode, setHoveredNode] = useState<number | null>(null);
   const [reportOpen, setReportOpen] = useState(false);
@@ -394,20 +437,28 @@ export default function ExerciseSession() {
   const [struckChoices, setStruckChoices] = useState<Set<string>>(new Set());
 
   useEffect(() => {
-    if (state) { setInitialized(true); return; }
-    // リロード時: localStorage からドラフトを復元する
-    const candidates: any[] = [];
-    for (let i = 0; i < localStorage.length; i++) {
-      const key = localStorage.key(i);
-      if (!key) continue;
-      if (key.startsWith('practiceExerciseDraft_') || key.startsWith('quickExerciseDraft_') || key.startsWith('focusedExerciseDraft_')) {
-        try {
-          const parsed = JSON.parse(localStorage.getItem(key) ?? '');
-          if (parsed.questions?.length > 0) candidates.push(parsed);
-        } catch {}
+    // ドラフト探索（sessionId 一致を優先。指定なしは最新の savedAt）
+    const findDraft = (matchSid?: string) => {
+      const cands: any[] = [];
+      for (let i = 0; i < localStorage.length; i++) {
+        const key = localStorage.key(i);
+        if (!key) continue;
+        if (key.startsWith('practiceExerciseDraft_') || key.startsWith('quickExerciseDraft_') || key.startsWith('focusedExerciseDraft_')) {
+          try {
+            const p = JSON.parse(localStorage.getItem(key) ?? '');
+            if (!(p.questions?.length > 0)) continue;
+            if (matchSid && p.sessionId !== matchSid) continue;
+            cands.push(p);
+          } catch {}
+        }
       }
-    }
-    const draft = candidates.sort((a, b) => (b.savedAt ?? 0) - (a.savedAt ?? 0))[0];
+      return cands.sort((a, b) => (b.savedAt ?? 0) - (a.savedAt ?? 0))[0];
+    };
+
+    // state がある場合: 進捗は useState 初期化時（_resumeInit）でドラフト反映済み。
+    if (state) { setInitialized(true); return; }
+    // state なし（リロード等）: 最新ドラフトから復元する
+    const draft = findDraft();
     if (!draft) { navigate('/aws/exercise/setup', { replace: true }); return; }
     setSessionId(draft.sessionId ?? '');
     setQuestions(draft.questions);
@@ -494,7 +545,8 @@ export default function ExerciseSession() {
         userId,
         questionId: currentQuestion.questionId,
         selectedAnswers,
-        isCorrect
+        isCorrect,
+        examType
       })
     }).catch(err => console.error(err));
   };
@@ -548,7 +600,7 @@ export default function ExerciseSession() {
         await fetch(`${API_ENDPOINT}/sessions/${sessionId}`, {
           method: 'PUT',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ userId, status: 'completed', score, isPassed })
+          body: JSON.stringify({ userId, status: 'completed', score, isPassed, examType, answeredCount: results.length })
         });
       } catch (err) { console.error(err); }
       localStorage.removeItem(`quickExerciseDraft_${userId}`);
@@ -605,6 +657,7 @@ export default function ExerciseSession() {
           deleteCached(`ustats_${userId}`);
         }
       } catch { deleteCached(`ustats_${userId}`); }
+      window.dispatchEvent(new CustomEvent('qstatsRefresh'));
       localStorage.setItem(`postSessionRefresh_${userId}`, String(Date.now()));
       const ptsPerQ = EXAM_LEVEL[examType] === 'Foundational' ? 1 : EXAM_LEVEL[examType] === 'Associate' ? 2 : 3;
       const earnedPts = results.filter(r => r.isCorrect).length * ptsPerQ;
@@ -648,7 +701,7 @@ export default function ExerciseSession() {
       await fetch(`${API_ENDPOINT}/sessions/${sessionId}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ userId, status: 'completed', score, isPassed }),
+        body: JSON.stringify({ userId, status: 'completed', score, isPassed, examType, answeredCount: results.length }),
       });
     } catch (err) { console.error(err); }
     localStorage.removeItem(`quickExerciseDraft_${userId}`);
@@ -698,6 +751,7 @@ export default function ExerciseSession() {
         deleteCached(`ustats_${userId}`);
       }
     } catch { deleteCached(`ustats_${userId}`); }
+    window.dispatchEvent(new CustomEvent('qstatsRefresh'));
     localStorage.setItem(`postSessionRefresh_${userId}`, String(Date.now()));
     const ptsPerQ = EXAM_LEVEL[examType] === 'Foundational' ? 1 : EXAM_LEVEL[examType] === 'Associate' ? 2 : 3;
     const earnedPts = results.filter(r => r.isCorrect).length * ptsPerQ;
@@ -1140,9 +1194,9 @@ export default function ExerciseSession() {
           <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 'var(--spacing-sm)', marginBottom: 'var(--spacing-sm)' }}>
             <button
               onClick={() => setReportOpen(true)}
-              style={{ background: 'none', border: '1px solid var(--color-border)', borderRadius: 'var(--border-radius-full)', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 4, color: 'var(--color-text-light)', fontSize: 'var(--font-size-xs)', padding: '3px 10px', transition: 'all 0.2s' }}
+              style={{ background: 'none', border: '1px solid var(--color-border)', borderRadius: 'var(--border-radius-full)', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 4, color: 'var(--color-text-sub)', fontSize: 'var(--font-size-xs)', padding: '3px 10px', transition: 'all 0.2s' }}
               onMouseEnter={e => { e.currentTarget.style.color = 'var(--color-danger)'; e.currentTarget.style.borderColor = 'var(--color-danger)'; }}
-              onMouseLeave={e => { e.currentTarget.style.color = 'var(--color-text-light)'; e.currentTarget.style.borderColor = 'var(--color-border)'; }}
+              onMouseLeave={e => { e.currentTarget.style.color = 'var(--color-text-sub)'; e.currentTarget.style.borderColor = 'var(--color-border)'; }}
               title={lang === 'ja' ? '問題の不備を通報' : 'Report an issue'}
             >
               <span style={{ fontSize: 12 }}>⚑</span>
@@ -1154,11 +1208,13 @@ export default function ExerciseSession() {
               style={{
                 background: 'none', border: '1px solid var(--color-border)', borderRadius: 'var(--border-radius-full)',
                 padding: '3px 10px', fontSize: 11, fontWeight: 600, cursor: results.length === 0 ? 'default' : 'pointer',
-                color: results.length === 0 ? 'var(--color-text-light)' : 'var(--color-text-sub)',
+                color: 'var(--color-text-sub)',
                 opacity: results.length === 0 ? 0.45 : 1, whiteSpace: 'nowrap', transition: 'all 0.15s',
+                display: 'flex', alignItems: 'center', gap: 3,
               }}
             >
-              {lang === 'ja' ? '中断' : 'End'}
+              <IconCheck size={11} />
+              {lang === 'ja' ? '途中採点' : 'Grade'}
             </button>
           </div>
           {/* 下段: AI確認情報・問題メタデータ（左寄せ） */}
@@ -1239,7 +1295,7 @@ export default function ExerciseSession() {
       })()}
 
       {/* コラム（豆知識） */}
-      {currentTip && (
+      {currentTip && !hideColumn && (
         <div style={{ marginTop: 'var(--spacing-xl)' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--spacing-md)', marginBottom: 'var(--spacing-sm)' }}>
             <span style={{

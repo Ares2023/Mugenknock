@@ -1,0 +1,10 @@
+# 夜間自動実行スクリプト一覧
+# 形式: 遅延分数,フルパス
+# コメント行（#）と空行は無視される
+
+0,/home/yuzuki/aws-quiz-app/prompts/night-prompts/scripts/99-send-report.sh
+0,/home/yuzuki/aws-quiz-app/prompts/night-prompts/scripts/generate-release-note.sh
+# 検証(02)はゲート（未検証問題はアプリ非公開）。生成(01)より先に走らせ、限られた
+# セッション枠を検証バックログの消化に優先配分する。
+15,/home/yuzuki/aws-quiz-app/prompts/night-prompts/scripts/02-check-validity.sh
+20,/home/yuzuki/aws-quiz-app/prompts/night-prompts/scripts/01-generate-questions.sh

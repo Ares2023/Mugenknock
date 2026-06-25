@@ -299,7 +299,7 @@ url_note = ''
 if exam_guide_urls:
     url_lines = '\n'.join(f'  {k}: {v}' for k, v in sorted(exam_guide_urls.items()))
     url_note = f'\n【公式試験ガイドURL（最新の出題要件の確認に使用すること）】\n{url_lines}\n'
-PROMPT_HEADER = 'あなたはAWS認定試験の問題品質チェッカーです。\n以下の問題を精査し、資格勉強サイトの問題として適切かどうか確認してください。' + url_note + '\n【確認観点】\n- 現在のAWSサービスの仕様・機能と一致しているか（廃止サービスを現行として扱っていないか）\n- 正解が正しく、選択肢に正解が含まれているか\n- correctAnswers の各要素が choices のいずれかと完全一致しているか（「A. 」「B. 」などの記号接頭辞が付いていないか）。不一致の場合は fix で修正する\n- 解説が正確で適切か。ダミーの選択肢がだめな理由も解説しているか\n- 解説は適宜改行を入れて読みやすいか。各選択肢の説明が「選択肢Aは〜」「選択肢Bは〜」のように選択肢ごとに改行して記述されているか。されていない場合は fix で修正すること\n- 問題文（questionText）が適切に改行されているか。要件・条件を列挙する場合や複数の操作ステップがある場合は改行（\\n）が使われているか。されていない場合は fix で修正すること\n- 試験問題として適切な形式・難易度か\n- AWSに直接関係しない一般的でない略語に注釈・解説がついているか（ない場合は問題文または解説に補足を追加する）\n- タグ（出題ドメイン）が正しく設定されているか。タグが空・欠落・下記ドメイン外の値の場合はfixで正しいドメインを設定すること\n  CLF: クラウドの概念 / セキュリティとコンプライアンス / クラウドのテクノロジーとサービス / 請求、料金、およびサポート\n  SAA: セキュアなアーキテクチャの設計 / 弾力性に優れたアーキテクチャの設計 / 高性能なアーキテクチャの設計 / コスト最適化されたアーキテクチャの設計\n  SAP: 組織の複雑さに対応する設計 / 新しいソリューションのための設計 / 既存のソリューションの継続的改善 / ワークロードの移行とモダン化の加速\n  DOP: SDLC の自動化 / 構成管理と Infrastructure as Code (IaC) / 弾力性に優れたクラウドソリューション / モニタリングとロギング / インシデントとイベントへの対応 / セキュリティとコンプライアンス\n  DVA: AWSのサービスを使用した開発 / セキュリティ / デプロイ / トラブルシューティングと最適化\n  SOA: モニタリング、ロギング、分析、修復、およびパフォーマンスの最適化 / 信頼性とビジネス継続性 / デプロイ、プロビジョニング、および自動化 / セキュリティとコンプライアンス / ネットワークとコンテンツ配信\n  DEA: データの取り込みと変換 / データストアの管理 / データオペレーションとサポート / データのセキュリティとガバナンス\n  AIF: AIとMLの基礎 / 生成AIの基礎 / 基盤モデルのアプリケーション / 責任あるAIのガイドライン / AIソリューションのセキュリティ、コンプライアンス、ガバナンス\n  MLA: 機械学習のためのデータ準備 / MLモデルの開発 / MLワークフローのデプロイとオーケストレーション / MLソリューションの監視、メンテナンス、セキュリティ\n  AIP: 基盤モデルの統合、データ管理、コンプライアンス / 実装と統合 / AIの安全性、セキュリティ、ガバナンス / 生成AIアプリケーションの運用効率と最適化 / テスト、検証、トラブルシューティング\n  ANS: ネットワーク設計 / ネットワーク実装 / ネットワーク管理と運用 / ネットワークのセキュリティ、コンプライアンス、ガバナンス\n  SCS: 検出 / インシデント対応 / インフラストラクチャのセキュリティ / アイデンティティとアクセス管理 / データ保護 / セキュリティの基盤とガバナンス\n- isMultiple フラグが正しいか。correctAnswers が複数なら isMultiple: true、1つなら isMultiple: false であること。不一致の場合は fix で修正する\n- 解説の文字数が極端に短くないか（目安100字未満は不足）。短い場合は fix で解説を補足・拡充すること\n- choiceExplanations が choices と同じ長さかどうか（未設定または長さ不一致の場合は fix で choiceExplanations を生成・修正する。正解選択肢はなぜ正解かを、不正解選択肢はなぜ不正解かを100〜150字程度で記述。文頭に「正解です」「不正解です」などの判定文を入れない）\n- 正解の選択肢の文字数が不正解の選択肢群から浮いていないか（正解だけが著しく長い・短いと文字数から正解が推測できてしまう。正解の文字数が不正解の平均文字数と大きく乖離している場合は fix で正解・不正解の文章量を揃えること）\n\n【アクション】\n- "ok": 問題なし（確認日のみ更新）\n- "fix": 問題あり・修正可能（修正後の内容を含める。変更する項目のみ）\n- "delete": 修正不可能な致命的問題（正解が選択肢に存在しない、完全に誤った情報など）\n\n【出力形式】\n必ず以下のJSONのみを出力してください。説明文・前置きは不要です。\n\n{"results":[\n  {"questionId":"...","action":"ok","reason":"日本語100字以内"},\n  {"questionId":"...","action":"fix","reason":"...","fix":{"questionText":"修正後（変更する場合のみ）","choices":["A","B","C","D"],"correctAnswers":["正解（choices配列内の完全一致テキスト、記号接頭辞なし）"],"explanation":"修正後解説（変更する場合のみ）","choiceExplanations":["選択肢0の解説","選択肢1の解説","選択肢2の解説","選択肢3の解説"],"tags":["出題ドメイン（変更する場合のみ）"],"isMultiple":true}},\n  {"questionId":"...","action":"delete","reason":"..."}\n]}\n\n【問題リスト】'
+PROMPT_HEADER = 'あなたはAWS認定試験の問題品質チェッカーです。\n以下の問題を精査し、資格勉強サイトの問題として適切かどうか確認してください。' + url_note + '\n【確認観点】\n- 現在のAWSサービスの仕様・機能と一致しているか（廃止サービスを現行として扱っていないか）。ただし CodeCommit は現行サービスであり廃止扱いにしないこと（CodeCommit を理由に delete/fix しない）\n- 正解が正しく、選択肢に正解が含まれているか\n- correctAnswers の各要素が choices のいずれかと完全一致しているか（「A. 」「B. 」などの記号接頭辞が付いていないか）。不一致の場合は fix で修正する\n- 解説が正確で適切か。ダミーの選択肢がだめな理由も解説しているか\n- 解説は適宜改行を入れて読みやすいか。各選択肢の説明が「選択肢Aは〜」「選択肢Bは〜」のように選択肢ごとに改行して記述されているか。されていない場合は fix で修正すること\n- 問題文（questionText）が適切に改行されているか。要件・条件を列挙する場合や複数の操作ステップがある場合は改行（\\n）が使われているか。されていない場合は fix で修正すること\n- 試験問題として適切な形式・難易度か\n- AWSに直接関係しない一般的でない略語に注釈・解説がついているか（ない場合は問題文または解説に補足を追加する）\n- タグ（出題ドメイン）が正しく設定されているか。タグが空・欠落・下記ドメイン外の値の場合はfixで正しいドメインを設定すること\n  CLF: クラウドの概念 / セキュリティとコンプライアンス / クラウドのテクノロジーとサービス / 請求、料金、およびサポート\n  SAA: セキュアなアーキテクチャの設計 / 弾力性に優れたアーキテクチャの設計 / 高性能なアーキテクチャの設計 / コスト最適化されたアーキテクチャの設計\n  SAP: 組織の複雑さに対応する設計 / 新しいソリューションのための設計 / 既存のソリューションの継続的改善 / ワークロードの移行とモダン化の加速\n  DOP: SDLC の自動化 / 構成管理と Infrastructure as Code (IaC) / 弾力性に優れたクラウドソリューション / モニタリングとロギング / インシデントとイベントへの対応 / セキュリティとコンプライアンス\n  DVA: AWSのサービスを使用した開発 / セキュリティ / デプロイ / トラブルシューティングと最適化\n  SOA: モニタリング、ロギング、分析、修復、およびパフォーマンスの最適化 / 信頼性とビジネス継続性 / デプロイ、プロビジョニング、および自動化 / セキュリティとコンプライアンス / ネットワークとコンテンツ配信\n  DEA: データの取り込みと変換 / データストアの管理 / データオペレーションとサポート / データのセキュリティとガバナンス\n  AIF: AIとMLの基礎 / 生成AIの基礎 / 基盤モデルのアプリケーション / 責任あるAIのガイドライン / AIソリューションのセキュリティ、コンプライアンス、ガバナンス\n  MLA: 機械学習のためのデータ準備 / MLモデルの開発 / MLワークフローのデプロイとオーケストレーション / MLソリューションの監視、メンテナンス、セキュリティ\n  AIP: 基盤モデルの統合、データ管理、コンプライアンス / 実装と統合 / AIの安全性、セキュリティ、ガバナンス / 生成AIアプリケーションの運用効率と最適化 / テスト、検証、トラブルシューティング\n  ANS: ネットワーク設計 / ネットワーク実装 / ネットワーク管理と運用 / ネットワークのセキュリティ、コンプライアンス、ガバナンス\n  SCS: 検出 / インシデント対応 / インフラストラクチャのセキュリティ / アイデンティティとアクセス管理 / データ保護 / セキュリティの基盤とガバナンス\n- isMultiple フラグが正しいか。correctAnswers が複数なら isMultiple: true、1つなら isMultiple: false であること。不一致の場合は fix で修正する\n- 解説の文字数が極端に短くないか（目安100字未満は不足）。短い場合は fix で解説を補足・拡充すること\n- choiceExplanations が choices と同じ長さかどうか（未設定または長さ不一致の場合は fix で choiceExplanations を生成・修正する。正解選択肢はなぜ正解かを、不正解選択肢はなぜ不正解かを100〜150字程度で記述。文頭に「正解です」「不正解です」などの判定文を入れない）\n- choiceExplanations[i] の説明内容が choices[i] の選択肢テキストと対応しているか（順番対応チェック）。「選択肢別解説」として渡された各インデックスの解説が、同じインデックスの選択肢について説明しているかを確認すること。内容がずれている場合（例: choices[0]がマルチAZ配置なのに choiceExplanations[0] がリードレプリカについて説明しているなど）は fix で choiceExplanations を正しい順番に並び替えること\n- 正解の選択肢の文字数が不正解の選択肢群から浮いていないか（正解だけが著しく長い・短いと文字数から正解が推測できてしまう。正解の文字数が不正解の平均文字数と大きく乖離している場合は fix で正解・不正解の文章量を揃えること）\n\n【アクション】\n- "ok": 問題なし（確認日のみ更新）\n- "fix": 問題あり・修正可能（修正後の内容を含める。変更する項目のみ）\n- "delete": 修正不可能な致命的問題（正解が選択肢に存在しない、完全に誤った情報など）\n\n【出力形式】\n必ず以下のJSONのみを出力してください。説明文・前置きは不要です。\n\n{"results":[\n  {"questionId":"...","action":"ok","reason":"日本語100字以内"},\n  {"questionId":"...","action":"fix","reason":"...","fix":{"questionText":"修正後（変更する場合のみ）","choices":["A","B","C","D"],"correctAnswers":["正解（choices配列内の完全一致テキスト、記号接頭辞なし）"],"explanation":"修正後解説（変更する場合のみ）","choiceExplanations":["選択肢0の解説","選択肢1の解説","選択肢2の解説","選択肢3の解説"],"tags":["出題ドメイン（変更する場合のみ）"],"isMultiple":true}},\n  {"questionId":"...","action":"delete","reason":"..."}\n]}\n\n【問題リスト】'
 lines = [PROMPT_HEADER]
 EXAM_DOMAINS_LOCAL = {'CLF': ['クラウドの概念', 'セキュリティとコンプライアンス', 'クラウドのテクノロジーとサービス', '請求、料金、およびサポート'], 'SAA': ['セキュアなアーキテクチャの設計', '弾力性に優れたアーキテクチャの設計', '高性能なアーキテクチャの設計', 'コスト最適化されたアーキテクチャの設計'], 'SAP': ['組織の複雑さに対応する設計', '新しいソリューションのための設計', '既存のソリューションの継続的改善', 'ワークロードの移行とモダン化の加速'], 'DVA': ['AWSのサービスを使用した開発', 'セキュリティ', 'デプロイ', 'トラブルシューティングと最適化'], 'SOA': ['モニタリング、ロギング、分析、修復、およびパフォーマンスの最適化', '信頼性とビジネス継続性', 'デプロイ、プロビジョニング、および自動化', 'セキュリティとコンプライアンス', 'ネットワークとコンテンツ配信'], 'DOP': ['SDLC の自動化', '構成管理と Infrastructure as Code (IaC)', '弾力性に優れたクラウドソリューション', 'モニタリングとロギング', 'インシデントとイベントへの対応', 'セキュリティとコンプライアンス'], 'AIF': ['AIとMLの基礎', '生成AIの基礎', '基盤モデルのアプリケーション', '責任あるAIのガイドライン', 'AIソリューションのセキュリティ、コンプライアンス、ガバナンス'], 'MLA': ['機械学習のためのデータ準備', 'MLモデルの開発', 'MLワークフローのデプロイとオーケストレーション', 'MLソリューションの監視、メンテナンス、セキュリティ'], 'AIP': ['基盤モデルの統合、データ管理、コンプライアンス', '実装と統合', 'AIの安全性、セキュリティ、ガバナンス', '生成AIアプリケーションの運用効率と最適化', 'テスト、検証、トラブルシューティング'], 'DEA': ['データの取り込みと変換', 'データストアの管理', 'データオペレーションとサポート', 'データのセキュリティとガバナンス'], 'ANS': ['ネットワーク設計', 'ネットワーク実装', 'ネットワーク管理と運用', 'ネットワークのセキュリティ、コンプライアンス、ガバナンス'], 'SCS': ['検出', 'インシデント対応', 'インフラストラクチャのセキュリティ', 'アイデンティティとアクセス管理', 'データ保護', 'セキュリティの基盤とガバナンス']}
 for q in questions:
@@ -317,7 +317,13 @@ for q in questions:
         lines.append(f"解説: {exp}")
     ce = q.get('choiceExplanations', [])
     if ce:
-        lines.append(f"選択肢別解説数: {len(ce)}件（choices数: {len(choices)}件）")
+        if len(ce) == len(choices):
+            lines.append(f"選択肢別解説（choiceExplanations[i]とchoices[i]の対応を確認すること）:")
+            for i, (ch, ex) in enumerate(zip(choices, ce)):
+                lines.append(f"  [{i}] 選択肢: 「{str(ch)}」")
+                lines.append(f"      解説:   「{str(ex)}」")
+        else:
+            lines.append(f"選択肢別解説数: {len(ce)}件（choices数: {len(choices)}件・不一致）")
     else:
         lines.append(f"選択肢別解説: なし（要生成）")
     domain_int = q.get('domain')
@@ -332,45 +338,71 @@ for q in questions:
 print('\n'.join(lines))
 PYEOF
 
-  _STDOUT_F=$(mktemp /tmp/claude_out_XXXX)
-  _STDERR_F=$(mktemp /tmp/claude_err_XXXX)
-  "$CLAUDE_CMD" -p --allowed-tools WebFetch < "$PROMPT_FILE" > "$_STDOUT_F" 2> "$_STDERR_F"
-  AI_EXIT=$?
-  RESULT=$(cat "$_STDOUT_F")
-  _STDERR=$(cat "$_STDERR_F")
-  rm -f "$_STDOUT_F" "$_STDERR_F"
+  # claude 呼び出し（529 Overloaded は最大2回リトライ）
+  _OVERLOAD_RETRY=0
+  _SKIP_CHUNK=0
+  while true; do
+    _STDOUT_F=$(mktemp /tmp/claude_out_XXXX)
+    _STDERR_F=$(mktemp /tmp/claude_err_XXXX)
+    "$CLAUDE_CMD" -p --allowed-tools WebFetch < "$PROMPT_FILE" > "$_STDOUT_F" 2> "$_STDERR_F"
+    AI_EXIT=$?
+    RESULT=$(cat "$_STDOUT_F")
+    _STDERR=$(cat "$_STDERR_F")
+    rm -f "$_STDOUT_F" "$_STDERR_F"
 
-  # npm更新による一時的なバイナリ消失 → 再探索してリトライ
-  if [ $AI_EXIT -ne 0 ] && echo "$_STDERR" | grep -q "No such file"; then
-    CLAUDE_CMD=$(_find_claude)
-    if [ -x "${CLAUDE_CMD:-}" ]; then
-      _STDOUT_F=$(mktemp /tmp/claude_out_XXXX)
-      _STDERR_F=$(mktemp /tmp/claude_err_XXXX)
-      "$CLAUDE_CMD" -p --allowed-tools WebFetch < "$PROMPT_FILE" > "$_STDOUT_F" 2> "$_STDERR_F"
-      AI_EXIT=$?
-      RESULT=$(cat "$_STDOUT_F")
-      _STDERR=$(cat "$_STDERR_F")
-      rm -f "$_STDOUT_F" "$_STDERR_F"
+    # npm更新による一時的なバイナリ消失 → 再探索してリトライ
+    if [ $AI_EXIT -ne 0 ] && echo "$_STDERR" | grep -q "No such file"; then
+      CLAUDE_CMD=$(_find_claude)
+      if [ -x "${CLAUDE_CMD:-}" ]; then
+        _STDOUT_F=$(mktemp /tmp/claude_out_XXXX)
+        _STDERR_F=$(mktemp /tmp/claude_err_XXXX)
+        "$CLAUDE_CMD" -p --allowed-tools WebFetch < "$PROMPT_FILE" > "$_STDOUT_F" 2> "$_STDERR_F"
+        AI_EXIT=$?
+        RESULT=$(cat "$_STDOUT_F")
+        _STDERR=$(cat "$_STDERR_F")
+        rm -f "$_STDOUT_F" "$_STDERR_F"
+      fi
     fi
-  fi
+
+    # 致命的エラー（認証・コマンド問題）→ 即終了
+    if echo "$_STDERR" | grep -qiE "command not found|No such file|GEMINI_API_KEY|API.?key"; then
+      rm -f "$PROMPT_FILE"
+      echo "❌ claude 実行エラー（認証またはコマンド問題）。スクリプトを終了します"
+      echo "stderr: $(echo "$_STDERR" | head -3)"
+      exit 1
+    fi
+
+    _RESULT_HEAD=$(echo "$RESULT" | head -3)
+
+    # 529 Overloaded（一時的なサーバー過負荷）→ 最大2回リトライ後、このチャンクのみスキップして続行
+    if echo "$_STDERR $_RESULT_HEAD" | grep -qiE "529|Overloaded"; then
+      if [ $_OVERLOAD_RETRY -lt 2 ]; then
+        _OVERLOAD_RETRY=$(( _OVERLOAD_RETRY + 1 ))
+        echo "⚠️  サーバー過負荷（529）を検出。60秒後にリトライ（${_OVERLOAD_RETRY}/2回目）"
+        sleep 60
+        continue
+      else
+        echo "⚠️  529 Overloaded が続くためチャンク $((CHUNK_IDX+1)) をスキップして続行"
+        echo "stdout: $_RESULT_HEAD"
+        _SKIP_CHUNK=1
+        break
+      fi
+    fi
+
+    # 真のレート制限（429・quota 超過など）→ 残りチャンクをすべてスキップ
+    if echo "$_STDERR $_RESULT_HEAD" | grep -qiE "rate.?limit|too many requests|quota exceeded|usage limit|resource_exhausted|session.?limit|hit your"; then
+      rm -f "$PROMPT_FILE"
+      echo "⚠️  レート制限を検出。残りチャンクをスキップ"
+      echo "stdout: $_RESULT_HEAD"
+      RATE_LIMITED=1
+      break 2
+    fi
+
+    break
+  done
   rm -f "$PROMPT_FILE"
 
-  # 致命的エラー（認証・コマンド問題）→ 即終了
-  if echo "$_STDERR" | grep -qiE "command not found|No such file|GEMINI_API_KEY|API.?key"; then
-    echo "❌ claude 実行エラー（認証またはコマンド問題）。スクリプトを終了します"
-    echo "stderr: $(echo "$_STDERR" | head -3)"
-    exit 1
-  fi
-
-  # レート制限 → stderr または stdout の先頭行で判定
-  # （"You've hit your session limit" など stdout に出るメッセージにも対応）
-  _RESULT_HEAD=$(echo "$RESULT" | head -3)
-  if echo "$_STDERR $_RESULT_HEAD" | grep -qiE "rate.?limit|too many requests|529|quota exceeded|usage limit|resource_exhausted|session.?limit|hit your"; then
-    echo "⚠️  レート制限を検出。残りチャンクをスキップ"
-    echo "stdout: $_RESULT_HEAD"
-    RATE_LIMITED=1
-    break
-  fi
+  [ $_SKIP_CHUNK -eq 1 ] && continue
 
   # その他の非ゼロ終了 → このチャンクのみスキップして続行
   if [ $AI_EXIT -ne 0 ]; then

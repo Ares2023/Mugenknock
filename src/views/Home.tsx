@@ -700,10 +700,24 @@ function saveToEncyclopedia(svc: DailyService, uid: string) {
     localStorage.setItem('encyclopediaServices', JSON.stringify(stored));
 
     const unlocked = JSON.parse(localStorage.getItem(`encyclopediaUnlocked_${uid}`) ?? '{}');
-    if (!(svc.serviceId in unlocked)) {
-      unlocked[svc.serviceId] = jstDate;
-      localStorage.setItem(`encyclopediaUnlocked_${uid}`, JSON.stringify(unlocked));
+    unlocked[svc.serviceId] = jstDate;
+    // カタログのserviceIdsとも照合してIDを統一（UUID vs svc-xxx-N 不一致を解消）
+    const normName = (n: string) => n.toLowerCase().replace(/^amazon\s+/, '').replace(/^aws\s+/, '').trim();
+    const normSvc = normName(svc.name);
+    for (const cat of CATALOG) {
+      for (const entry of cat.services) {
+        if (
+          entry.serviceIds?.includes(svc.serviceId) ||
+          normName(entry.name) === normSvc
+        ) {
+          for (const catId of (entry.serviceIds ?? [])) {
+            unlocked[catId] = jstDate;
+          }
+          break;
+        }
+      }
     }
+    localStorage.setItem(`encyclopediaUnlocked_${uid}`, JSON.stringify(unlocked));
 
     if (localStorage.getItem(`encyclopediaUnlockDate_${uid}`) !== jstDate) {
       localStorage.setItem(`encyclopediaUnlockDate_${uid}`, jstDate);
@@ -1075,7 +1089,9 @@ function clearUserData(uid: string) {
     if (
       (!KEEP.has(key) && key.endsWith(suffix)) ||
       key.startsWith(`qstats_${uid}_`) ||
-      key.startsWith(`daily_service_${uid}_`)
+      key.startsWith(`daily_service_${uid}_`) ||
+      (key.startsWith('dailyQCount_') && key.includes(`_${uid}_`)) ||
+      (key.startsWith('dailyGoalReward_') && key.includes(`_${uid}_`))
     ) toRemove.push(key);
   }
   toRemove.forEach(k => localStorage.removeItem(k));
@@ -1118,6 +1134,7 @@ export default function Home() {
   const [lastMode, setLastMode] = useState<'quick' | 'focused'>(() => (localStorage.getItem(`lastQuickMode_${uid}`) as 'quick' | 'focused') ?? 'quick');
   const [answeredCount, setAnsweredCount] = useState(0);
   const [answeredCountReady, setAnsweredCountReady] = useState(false);
+  const [qRefreshTick, setQRefreshTick] = useState(0); // セッション完了で +1 → useEffect 再実行
   const [savedQuick, setSavedQuick] = useState(false);
   const [savedFocused, setSavedFocused] = useState(false);
   const [draftPrefs, setDraftPrefs] = useState<Record<string, any>>({});
@@ -1277,21 +1294,21 @@ export default function Home() {
       .catch(() => { setServerScoreHistory(null); setServerSessionHistory(null); setServerSessionScoreLog(null); });
   }, [user, targetExam]); // eslint-disable-line react-hooks/exhaustive-deps
 
+  // セッション完了イベントで qRefreshTick を更新 → 下の useEffect を再実行
+  useEffect(() => {
+    const h = () => setQRefreshTick(t => t + 1);
+    window.addEventListener('qstatsRefresh', h);
+    return () => window.removeEventListener('qstatsRefresh', h);
+  }, []);
+
   useEffect(() => {
     if (!user || !targetExam) { setAnsweredCount(0); setAnsweredCountReady(true); return; }
-    const cacheKey = `qstats_${user.userId}_${targetExam}`;
-    const cached = getCached<number>(cacheKey);
-    if (cached !== null) { setAnsweredCount(cached); setAnsweredCountReady(true); return; }
     fetch(`${API_ENDPOINT}/users/me/question-stats?userId=${user.userId}&examType=${targetExam}`)
       .then(r => r.json())
-      .then(d => {
-        const count = d.answeredCount ?? 0;
-        setCached(cacheKey, count, DEFAULT_TTL);
-        setAnsweredCount(count);
-      })
+      .then(d => setAnsweredCount(d.answeredCount ?? 0))
       .catch(() => {})
       .finally(() => setAnsweredCountReady(true));
-  }, [user, targetExam]);
+  }, [user, targetExam, qRefreshTick]);
 
   // ── 予想スコア計算（サーバー統計優先、オフライン/ゲスト時はローカル履歴）──
   const domainNodeResultsMap = useMemo(() => {
@@ -1971,7 +1988,17 @@ export default function Home() {
                         <span style={{ width: 14, height: 14, border: primarySpinnerBorder, borderTopColor: primarySpinnerTop, borderRadius: '50%', animation: 'sherpa-spin 0.7s linear infinite', flexShrink: 0 }} />
                         {ja ? `準備中... ${primaryLoadPct}%` : `Loading... ${primaryLoadPct}%`}
                       </span>
-                    ) : primaryMode === 'quick' ? (ja ? 'サクッと演習（続きから）' : 'Quick (Resume)') : (ja ? 'しっかり対策（続きから）' : 'Focused (Resume)')}
+                    ) : (
+                    <>
+                      {primaryMode === 'quick' ? (ja ? 'サクッと演習を再開' : 'Quick (Resume)') : (ja ? 'しっかり対策を再開' : 'Focused (Resume)')}
+                      {ja && primaryMode === 'quick' && quickDraft?.results != null && quickDraft?.questions != null && (
+                        <span style={{ fontSize: 12, fontWeight: 400, opacity: 0.85 }}>（{quickDraft.results.length}/{quickDraft.questions.length}問）</span>
+                      )}
+                      {ja && primaryMode !== 'quick' && focusedDraft?.results != null && focusedDraft?.questions != null && (
+                        <span style={{ fontSize: 12, fontWeight: 400, opacity: 0.85 }}>（{focusedDraft.results.length}/{focusedDraft.questions.length}問）</span>
+                      )}
+                    </>
+                  )}
                   </button>
                   <button
                     onClick={() => setShowWebQuickMenu(v => !v)}
@@ -2028,7 +2055,7 @@ export default function Home() {
                           <span style={{ width: 14, height: 14, border: '2px solid rgba(0,0,0,0.2)', borderTopColor: '#16191f', borderRadius: '50%', animation: 'sherpa-spin 0.7s linear infinite', flexShrink: 0 }} />
                           {ja ? `準備中... ${quickLoadPct}%` : `Loading... ${quickLoadPct}%`}
                         </span>
-                      ) : (ja ? `サクッと演習 (${loadQuickPrefs(uid).questionCount ?? 5}問)` : `Quick (${loadQuickPrefs(uid).questionCount ?? 5}Q)`)}
+                      ) : (ja ? 'サクッと演習を開始' : 'Quick')}
                     </button>
                   ) : (
                     <button
@@ -2041,7 +2068,7 @@ export default function Home() {
                           <span style={{ width: 14, height: 14, border: '2px solid rgba(255,255,255,0.3)', borderTopColor: '#fff', borderRadius: '50%', animation: 'sherpa-spin 0.7s linear infinite', flexShrink: 0 }} />
                           {ja ? `準備中... ${focusedLoadPct}%` : `Loading... ${focusedLoadPct}%`}
                         </span>
-                      ) : (ja ? 'しっかり対策' : 'Focused Practice')}
+                      ) : (ja ? 'しっかり対策を開始' : 'Focused')}
                     </button>
                   )}
                   <button
@@ -2158,7 +2185,17 @@ export default function Home() {
                       <span style={{ width: 14, height: 14, border: primarySpinnerBorder, borderTopColor: primarySpinnerTop, borderRadius: '50%', animation: 'sherpa-spin 0.7s linear infinite', flexShrink: 0 }} />
                       {ja ? `準備中... ${primaryLoadPct}%` : `Loading... ${primaryLoadPct}%`}
                     </span>
-                  ) : primaryMode === 'quick' ? (ja ? 'サクッと演習（続きから）' : 'Quick (Resume)') : (ja ? 'しっかり対策（続きから）' : 'Focused (Resume)')}
+                  ) : (
+                    <>
+                      {primaryMode === 'quick' ? (ja ? 'サクッと演習を再開' : 'Quick (Resume)') : (ja ? 'しっかり対策を再開' : 'Focused (Resume)')}
+                      {ja && primaryMode === 'quick' && quickDraft?.results != null && quickDraft?.questions != null && (
+                        <span style={{ fontSize: 12, fontWeight: 400, opacity: 0.85 }}>（{quickDraft.results.length}/{quickDraft.questions.length}問）</span>
+                      )}
+                      {ja && primaryMode !== 'quick' && focusedDraft?.results != null && focusedDraft?.questions != null && (
+                        <span style={{ fontSize: 12, fontWeight: 400, opacity: 0.85 }}>（{focusedDraft.results.length}/{focusedDraft.questions.length}問）</span>
+                      )}
+                    </>
+                  )}
                 </button>
                 <button
                   onClick={() => setShowNewPanel(v => !v)}
@@ -2182,7 +2219,7 @@ export default function Home() {
                         <span style={{ width: 14, height: 14, border: '2px solid rgba(0,0,0,0.2)', borderTopColor: '#16191f', borderRadius: '50%', animation: 'sherpa-spin 0.7s linear infinite', flexShrink: 0 }} />
                         {ja ? `準備中... ${quickLoadPct}%` : `Loading... ${quickLoadPct}%`}
                       </span>
-                    ) : (ja ? 'サクッと演習' : 'Quick')}
+                    ) : (ja ? 'サクッと演習を開始' : 'Quick')}
                   </button>
                 ) : (
                   <button
@@ -2195,7 +2232,7 @@ export default function Home() {
                         <span style={{ width: 14, height: 14, border: '2px solid rgba(255,255,255,0.3)', borderTopColor: '#fff', borderRadius: '50%', animation: 'sherpa-spin 0.7s linear infinite', flexShrink: 0 }} />
                         {ja ? `準備中... ${focusedLoadPct}%` : `Loading... ${focusedLoadPct}%`}
                       </span>
-                    ) : (ja ? 'しっかり対策' : 'Focused')}
+                    ) : (ja ? 'しっかり対策を開始' : 'Focused')}
                   </button>
                 )}
                 <button
@@ -2347,6 +2384,17 @@ export default function Home() {
                 <div style={{ fontSize: 11, color: 'var(--color-text-light)', marginTop: 4, lineHeight: 1.5 }}>
                   ※ {ja ? '選択肢のテキストをタップすると取り消し線を引いて選択肢を絞り込める機能です' : 'Tap choice text to strike through and narrow down options'}
                 </div>
+                <label style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '4px 0', cursor: 'pointer', marginTop: 8 }}>
+                  <input
+                    type="checkbox"
+                    checked={draftPrefs.hideColumn === true}
+                    onChange={() => setDraftPrefs(p => ({ ...p, hideColumn: !p.hideColumn }))}
+                    style={{ width: 16, height: 16, flexShrink: 0, accentColor: 'var(--color-primary)' }}
+                  />
+                  <span style={{ fontSize: 'var(--font-size-sm)', color: 'var(--color-text-main)' }}>
+                    {ja ? 'コラム（豆知識）を非表示' : 'Hide column tips'}
+                  </span>
+                </label>
               </div>
             </div>
             {/* 保存ボタン固定 */}
@@ -2476,6 +2524,17 @@ export default function Home() {
                 <div style={{ fontSize: 11, color: 'var(--color-text-light)', marginTop: 4, lineHeight: 1.5 }}>
                   ※ {ja ? '選択肢のテキストをタップすると取り消し線を引いて選択肢を絞り込める機能です' : 'Tap choice text to strike through and narrow down options'}
                 </div>
+                <label style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '4px 0', cursor: 'pointer', marginTop: 8 }}>
+                  <input
+                    type="checkbox"
+                    checked={draftFocusedPrefs.hideColumn === true}
+                    onChange={() => setDraftFocusedPrefs(p => ({ ...p, hideColumn: !p.hideColumn }))}
+                    style={{ width: 16, height: 16, flexShrink: 0, accentColor: 'var(--color-primary)' }}
+                  />
+                  <span style={{ fontSize: 'var(--font-size-sm)', color: 'var(--color-text-main)' }}>
+                    {ja ? 'コラム（豆知識）を非表示' : 'Hide column tips'}
+                  </span>
+                </label>
               </div>
             </div>
             {/* 保存ボタン固定 */}
@@ -2508,16 +2567,16 @@ export default function Home() {
       {/* オンボーディング（目標資格未設定） */}
       {showOnboarding && (
         <ExamSelectOverlay
-          targetExam={null}
+          targetExam={targetExam}
           uid={uid}
           lang={lang}
           isMobile={isMobile}
           onSelect={(exam) => {
             setTargetExam(exam);
-            setShowOnboarding(false);
             if (user) syncTargetExamToServer(user.userId, uid, exam);
             prefetchTypeA(exam, uid);
           }}
+          onClose={() => setShowOnboarding(false)}
         />
       )}
       {(quickLoading || focusedLoading) && <div style={{ position: 'fixed', inset: 0, zIndex: 9000, cursor: 'wait' }} onTouchStart={e => e.stopPropagation()} onTouchMove={e => e.stopPropagation()} onTouchEnd={e => e.stopPropagation()} />}

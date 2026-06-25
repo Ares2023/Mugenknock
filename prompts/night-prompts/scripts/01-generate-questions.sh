@@ -698,7 +698,8 @@ ${EXISTING_TEXTS}
 - choices にラベル（A. B. 等）を付けない（テキストのみ）
 - correctAnswers は choices と完全一致するテキスト
 - correctAnswerIndices は choices 配列内のインデックス（0始まり）
-- choiceExplanations は choices と同じ長さ・同じ順序
+- choiceExplanations は choices と同じ要素数・同じ順序（⚠最重要: choiceExplanations[i] は必ず choices[i] の選択肢を説明すること。順序ズレ厳禁）
+  - 各選択肢の解説は 100〜150 字（短すぎ・1文のみは不可）
   - 正解選択肢: なぜ正解か（根拠から書き始める）
   - 不正解選択肢: なぜ不正解か（誤りの理由から書き始める）
   - 文頭に「正解です」「不正解です」などの判定文を入れない
@@ -801,21 +802,32 @@ print(len(d.get('questions', [])))
 import sys, json, re
 d = json.loads(sys.stdin.read())
 label_re = re.compile(r'^[A-E][.\s]\s*', re.IGNORECASE)
+valid = []
+dropped = 0
 for q in d.get('questions', []):
     # choices・correctAnswers 両方からラベル接頭辞を除去してから一致確認
     choices = [label_re.sub('', str(c)).strip() for c in q.get('choices', [])]
     q['choices'] = choices
     correct = [label_re.sub('', str(c)).strip() for c in q.get('correctAnswers', [])]
     q['correctAnswers'] = correct
+    # 決定的バリデーション: 壊れた問題は取込前に除外（検証パスの負荷も減らす）
+    #  - 選択肢4つ未満 / 重複選択肢あり / 正解なし / 正解が選択肢に存在しない
+    if len(choices) < 4 or len(set(choices)) != len(choices) or not correct or any(ca not in choices for ca in correct):
+        dropped += 1
+        sys.stderr.write('  [DROP] 不正な問題を除外: ' + str(q.get('questionText',''))[:30] + '\n')
+        continue
     # choices内のインデックスを計算して保存（テキスト変更後も正解を特定できるように）
-    indices = [choices.index(ca) for ca in correct if ca in choices]
-    if indices:
-        q['correctAnswerIndices'] = indices
-    # choiceExplanations が choices と長さ不一致なら除去（生成ミス防止）
+    q['correctAnswerIndices'] = [choices.index(ca) for ca in correct]
+    # isMultiple を正解数から決定的に設定（生成側の付け忘れ・誤りを防止）
+    q['isMultiple'] = len(correct) > 1
+    # choiceExplanations が choices と長さ不一致なら除去（検証パスで再生成される）
     ce = q.get('choiceExplanations', [])
     if ce and len(ce) != len(choices):
         del q['choiceExplanations']
-print(json.dumps({'examType': '${NEXT_EXAM}', 'domain': '${domain}', 'questions': d.get('questions', [])}, ensure_ascii=False))
+    valid.append(q)
+if dropped:
+    sys.stderr.write('  取込前バリデーション: ' + str(dropped) + '件を除外\n')
+print(json.dumps({'examType': '${NEXT_EXAM}', 'domain': '${domain}', 'questions': valid}, ensure_ascii=False))
 ")
 
     HTTP_RESPONSE=$(curl -s -w "\n%{http_code}" \

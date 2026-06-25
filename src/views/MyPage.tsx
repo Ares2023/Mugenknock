@@ -520,8 +520,8 @@ export default function MyPage() {
                           const dayLabel = new Date(d + 'T12:00:00').toLocaleDateString(ja ? 'ja-JP' : 'en-US', { weekday: 'short' });
                           return (
                             <div key={d} style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 3 }}>
-                              <div style={{ width: '100%', height: 40, borderRadius: 4, background: 'var(--color-bg-card)', position: 'relative', overflow: 'hidden' }}>
-                                <div style={{ position: 'absolute', bottom: 0, width: '100%', height: `${pct * 100}%`, background: achieved ? examColor : `${examColor}33`, borderRadius: '4px 4px 0 0', transition: 'height 0.3s' }} />
+                              <div style={{ width: '100%', height: 40, borderRadius: 4, background: 'var(--color-bg-card)', position: 'relative', overflow: 'hidden', boxSizing: 'border-box', border: `1px solid ${examColor}33` }}>
+                                {pct > 0 && <div style={{ position: 'absolute', bottom: 0, width: '100%', height: `${pct * 100}%`, background: achieved ? examColor : `${examColor}55`, borderRadius: '3px 3px 0 0', transition: 'height 0.3s' }} />}
                                 {achieved && <div style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%,-50%)', fontSize: 10, color: 'white', fontWeight: 700 }}>✓</div>}
                               </div>
                               <span style={{ fontSize: 9, color: isToday ? examColor : 'var(--color-text-light)', fontWeight: isToday ? 700 : 400 }}>{dayLabel}</span>
@@ -596,8 +596,8 @@ export default function MyPage() {
                         const dayLabel = new Date(d + 'T12:00:00').toLocaleDateString(ja ? 'ja-JP' : 'en-US', { weekday: 'short' });
                         return (
                           <div key={d} style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 3 }}>
-                            <div style={{ width: '100%', height: 44, borderRadius: 4, background: 'var(--color-bg-main)', position: 'relative', overflow: 'hidden' }}>
-                              <div style={{ position: 'absolute', bottom: 0, width: '100%', height: `${pct * 100}%`, background: achieved ? examColor : `${examColor}33`, borderRadius: '4px 4px 0 0', transition: 'height 0.3s' }} />
+                            <div style={{ width: '100%', height: 44, borderRadius: 4, background: 'var(--color-bg-card)', position: 'relative', overflow: 'hidden', boxSizing: 'border-box', border: `1px solid ${examColor}33` }}>
+                              {pct > 0 && <div style={{ position: 'absolute', bottom: 0, width: '100%', height: `${pct * 100}%`, background: achieved ? examColor : `${examColor}55`, borderRadius: '3px 3px 0 0', transition: 'height 0.3s' }} />}
                               {achieved && <div style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%,-50%)', fontSize: 10, color: 'white', fontWeight: 700 }}>✓</div>}
                             </div>
                             <span style={{ fontSize: 9, color: isToday ? examColor : 'var(--color-text-light)', fontWeight: isToday ? 700 : 400 }}>{dayLabel}</span>

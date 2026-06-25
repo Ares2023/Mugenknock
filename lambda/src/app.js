@@ -59,9 +59,10 @@ async function getDailyServicesAll(docClient) {
 const _examQuestionsCache = new Map(); // examType → { items, cachedAt }
 const EXAM_QUESTIONS_CACHE_TTL = 10 * 60 * 1000;
 
-// AIP は DynamoDB 上は GAI として保存されているためエイリアス解決
-const EXAM_TYPE_DB_ALIASES = { AIP: 'GAI' };
-function resolveExamTypeForDB(et) { return EXAM_TYPE_DB_ALIASES[et] || et; }
+// 旧 GAI は examType='AIP' へ移行済み（GSI パーティション 'GAI' は0件）。
+// かつての AIP→GAI エイリアスは現データでは AIP を0件化させるため撤去。
+// 注: questionId 接頭辞は 'gai-' のまま（解放カウント集計の PREFIX_MAP gai→AIP で対応）。
+function resolveExamTypeForDB(et) { return et; }
 
 async function getAllQuestionsForExam(docClient, examType) {
   const dbType = resolveExamTypeForDB(examType);
@@ -174,6 +175,43 @@ async function queryAll(docClient, params) {
   return items;
 }
 
+// ユーザーあたり保持するセッション数の上限（フロントの最大参照=Stats 200件に余裕を持たせた値）。
+// 履歴・スコア推移は全てこの範囲内で参照されるため、これを超える古い分は保持不要。
+const SESSION_RETENTION_LIMIT = 365;
+
+// 直近 SESSION_RETENTION_LIMIT 件を超える古いセッションと、その回答明細(UserAnswers)を削除する。
+// Sessions のソートキーは sessionId(UUID) で時系列順ではないため endedAt/startedAt で並べ替える。
+// 件数キャップに一本化（UserAnswers の TTL は廃止）。剪定失敗は呼び出し側で握りつぶす。
+async function pruneUserSessions(docClient, userId) {
+  const sessions = await queryAll(docClient, {
+    TableName: 'Sessions',
+    KeyConditionExpression: 'userId = :uid',
+    ExpressionAttributeValues: { ':uid': userId },
+    ProjectionExpression: 'sessionId, endedAt, startedAt',
+  });
+  if (sessions.length <= SESSION_RETENTION_LIMIT) return;
+  sessions.sort((a, b) => {
+    const da = a.endedAt || a.startedAt || '';
+    const db = b.endedAt || b.startedAt || '';
+    return da < db ? 1 : da > db ? -1 : 0; // 新しい順
+  });
+  const overflow = sessions.slice(SESSION_RETENTION_LIMIT);
+  for (const s of overflow) {
+    const answers = await queryAll(docClient, {
+      TableName: 'UserAnswers',
+      KeyConditionExpression: 'userId = :uid AND begins_with(questionIdTimestamp, :p)',
+      ExpressionAttributeValues: { ':uid': userId, ':p': `${s.sessionId}#` },
+      ProjectionExpression: 'questionIdTimestamp',
+    });
+    await Promise.all(answers.map(a => docClient.send(new DeleteCommand({
+      TableName: 'UserAnswers', Key: { userId, questionIdTimestamp: a.questionIdTimestamp },
+    }))));
+    await docClient.send(new DeleteCommand({
+      TableName: 'Sessions', Key: { userId, sessionId: s.sessionId },
+    }));
+  }
+}
+
 // ヘルスチェック
 // 問題生成・チェック状況（日次/月次集計）
 app.get('/questions/growth-stats', async (req, res) => {
@@ -283,22 +321,13 @@ app.get('/questions/public', async (req, res) => {
     const { examType } = req.query;
     if (!examType) return res.status(400).json({ error: 'examType required' });
 
-    const FIELDS = 'questionId, examType, #qt, choices, correctAnswerIndices, correctAnswers, choiceExplanations, explanation, #dom, isMultiple, validityCheckedAt';
-    let items = [];
-    let lastKey = undefined;
-    do {
-      const params = {
-        TableName: 'Questions',
-        FilterExpression: 'examType = :e AND attribute_exists(validityCheckedAt)',
-        ExpressionAttributeValues: { ':e': examType },
-        ExpressionAttributeNames: { '#qt': 'questionText', '#dom': 'domain' },
-        ProjectionExpression: FIELDS,
-      };
-      if (lastKey) params.ExclusiveStartKey = lastKey;
-      const result = await docClient.send(new ScanCommand(params));
-      items = items.concat(result.Items || []);
-      lastKey = result.LastEvaluatedKey;
-    } while (lastKey);
+    // examType-index GSI + キャッシュ経由で取得（全テーブル Scan を回避）。
+    // getAllQuestionsForExam は AIP→GAI のエイリアスも解決する。
+    const FIELDS = ['questionId', 'examType', 'questionText', 'choices', 'correctAnswerIndices', 'correctAnswers', 'choiceExplanations', 'explanation', 'domain', 'isMultiple', 'validityCheckedAt'];
+    const all = await getAllQuestionsForExam(docClient, examType);
+    const items = all
+      .filter(q => q.validityCheckedAt)
+      .map(q => { const o = {}; for (const f of FIELDS) if (q[f] !== undefined) o[f] = q[f]; return o; });
 
     res.json({ items, count: items.length });
   } catch (e) {
@@ -907,6 +936,10 @@ app.post('/sessions/:id/answers', async (req, res) => {
     const now = new Date().toISOString();
     const questionIdTimestamp = `${req.params.id}#${questionId}#${now}`;
 
+    // UserAnswers（回答ログ）と UserQuestionStats（問題別正誤）を原子的に記録。
+    // どちらも問題ID単位の別項目なので、複数回答が並列送信されても競合しない。
+    // 解放カウントは GET /question-stats が UserQuestionStats から都度集計するため、
+    // ここで共有カウンタを更新しない（並列時の TransactionConflict / examType 欠落でドリフトしていた）。
     const transactItems = [
       {
         Put: {
@@ -941,11 +974,12 @@ app.get('/sessions/:id/answers', async (req, res) => {
     const { userId } = req.query;
     const sessionId = req.params.id;
 
+    // ソートキー questionIdTimestamp は `${sessionId}#${questionId}#${ts}` 形式。
+    // begins_with で該当セッションのみ読む（userId 全履歴の読み取り＋Filter を回避）。
     const answersResult = await docClient.send(new QueryCommand({
       TableName: 'UserAnswers',
-      KeyConditionExpression: 'userId = :uid',
-      FilterExpression: 'sessionId = :sid',
-      ExpressionAttributeValues: { ':uid': userId, ':sid': sessionId },
+      KeyConditionExpression: 'userId = :uid AND begins_with(questionIdTimestamp, :sidp)',
+      ExpressionAttributeValues: { ':uid': userId, ':sidp': `${sessionId}#` },
     }));
 
     const answers = answersResult.Items || [];
@@ -1008,18 +1042,18 @@ app.put('/sessions/:id', async (req, res) => {
   try {
     const docClient = getClient();
     const { userId, status, score, isPassed } = req.body;
+    const now = new Date().toISOString();
     await docClient.send(new UpdateCommand({
       TableName: 'Sessions',
       Key: { userId, sessionId: req.params.id },
       UpdateExpression: 'SET #s = :status, score = :score, isPassed = :isPassed, endedAt = :now',
       ExpressionAttributeNames: { '#s': 'status' },
-      ExpressionAttributeValues: {
-        ':status': status,
-        ':score': score,
-        ':isPassed': isPassed,
-        ':now': new Date().toISOString()
-      }
+      ExpressionAttributeValues: { ':status': status, ':score': score, ':isPassed': isPassed, ':now': now }
     }));
+    // セッション完了時に保持上限を超えた古い履歴を剪定（件数キャップ）。失敗しても完了応答は返す。
+    if (status === 'completed') {
+      try { await pruneUserSessions(docClient, userId); } catch (e) { console.error('prune failed', e); }
+    }
     res.json({ success: true });
   } catch (err) {
     console.error(err);
@@ -1049,26 +1083,24 @@ app.get('/users/me/question-stats', async (req, res) => {
   try {
     const docClient = getClient();
     const { userId, examType } = req.query;
+    if (!userId || !examType) return res.json({ answeredCount: 0 });
 
-    const [questionsResult, statsResult] = await Promise.all([
-      docClient.send(new QueryCommand({
-        TableName: 'Questions',
-        IndexName: 'examType-index',
-        KeyConditionExpression: 'examType = :et',
-        ExpressionAttributeValues: { ':et': examType },
-        ProjectionExpression: 'questionId'
-      })),
-      docClient.send(new QueryCommand({
-        TableName: 'UserQuestionStats',
-        KeyConditionExpression: 'userId = :uid',
-        ExpressionAttributeValues: { ':uid': userId }
-      }))
-    ]);
-
-    const examQuestionIds = new Set((questionsResult.Items || []).map(q => q.questionId));
-    // 演習量 = 重複あり累計解答数（正誤問わず、同じ問題を何度解いても加算）
+    // 解放カウント（しっかり対策・苦手分析）= 演習量。
+    // UserQuestionStats を唯一の真実源として毎回集計する。
+    // （保存カウンタ + 増分方式はトランザクション競合・examType 欠落でドリフトするため廃止）
+    // correctCount + incorrectCount の合計 = 解いた問題数（正誤・重複問わず）。
+    const PREFIX_MAP = { 'gai': 'AIP' };
+    const statsResult = await docClient.send(new QueryCommand({
+      TableName: 'UserQuestionStats',
+      KeyConditionExpression: 'userId = :uid',
+      ExpressionAttributeValues: { ':uid': userId },
+      ProjectionExpression: 'questionId, correctCount, incorrectCount',
+    }));
     const answeredCount = (statsResult.Items || [])
-      .filter(s => examQuestionIds.has(s.questionId))
+      .filter(s => {
+        const prefix = (s.questionId || '').split('-')[0].toLowerCase();
+        return (PREFIX_MAP[prefix] ?? prefix.toUpperCase()) === examType;
+      })
       .reduce((sum, s) => sum + (s.correctCount ?? 0) + (s.incorrectCount ?? 0), 0);
 
     res.json({ answeredCount });
@@ -1243,16 +1275,25 @@ async function executeUserDataReset(docClient, userId) {
       Item: { userId, unlocks: '{}', unlockDate: null, todayServiceId: null },
     })).catch(() => {}),
     docClient.send(new DeleteCommand({ TableName: 'UserPoints', Key: { userId } })).catch(() => {}),
+    docClient.send(new UpdateCommand({
+      TableName: 'AppSettings',
+      Key: { settingId: `userPrefs_${userId}` },
+      UpdateExpression: 'SET #targetExam = :null, #examDates = :empty',
+      ExpressionAttributeNames: { '#targetExam': 'targetExam', '#examDates': 'examDates' },
+      ExpressionAttributeValues: { ':null': null, ':empty': {} },
+    })).catch(() => {}),
   ]);
 
-  // AppSettings の scoreHistData（スコア履歴・ハイスコア記録）を全 examType 分削除
-  const scoreHistResult = await docClient.send(new ScanCommand({
+  // AppSettings のユーザー固有データを削除（スコア履歴・解答カウンター）
+  const appSettingsResult = await docClient.send(new ScanCommand({
     TableName: 'AppSettings',
-    FilterExpression: 'begins_with(settingId, :prefix)',
-    ExpressionAttributeValues: { ':prefix': `scoreHistData_${userId}_` },
+    FilterExpression: 'begins_with(settingId, :sh)',
+    ExpressionAttributeValues: {
+      ':sh': `scoreHistData_${userId}_`,
+    },
     ProjectionExpression: 'settingId',
   }));
-  await batchDelete('AppSettings', (scoreHistResult.Items || []).map(i => ({ settingId: i.settingId })));
+  await batchDelete('AppSettings', (appSettingsResult.Items || []).map(i => ({ settingId: i.settingId })));
 
   const resetAt = new Date().toISOString();
   await docClient.send(new PutCommand({
