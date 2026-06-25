@@ -907,6 +907,10 @@ app.post('/sessions/:id/answers', async (req, res) => {
     const now = new Date().toISOString();
     const questionIdTimestamp = `${req.params.id}#${questionId}#${now}`;
 
+    // UserAnswers（回答ログ）と UserQuestionStats（問題別正誤）を原子的に記録。
+    // どちらも問題ID単位の別項目なので、複数回答が並列送信されても競合しない。
+    // 解放カウントは GET /question-stats が UserQuestionStats から都度集計するため、
+    // ここで共有カウンタを更新しない（並列時の TransactionConflict / examType 欠落でドリフトしていた）。
     const transactItems = [
       {
         Put: {
@@ -925,17 +929,6 @@ app.post('/sessions/:id/answers', async (req, res) => {
         }
       }
     ];
-
-    if (examType && userId && userId !== 'guest') {
-      transactItems.push({
-        Update: {
-          TableName: 'AppSettings',
-          Key: { settingId: `answeredCount_${userId}_${examType}` },
-          UpdateExpression: 'ADD answeredCount :one SET userId = :uid',
-          ExpressionAttributeValues: { ':one': 1, ':uid': userId }
-        }
-      });
-    }
 
     await docClient.send(new TransactWriteCommand({ TransactItems: transactItems }));
     res.json({ success: true });
@@ -1056,32 +1049,27 @@ app.get('/users/me/question-stats', async (req, res) => {
   try {
     const docClient = getClient();
     const { userId, examType } = req.query;
-    const settingId = `answeredCount_${userId}_${examType}`;
+    if (!userId || !examType) return res.json({ answeredCount: 0 });
 
-    const result = await docClient.send(new GetCommand({ TableName: 'AppSettings', Key: { settingId } }));
-    if (result.Item) {
-      return res.json({ answeredCount: result.Item.answeredCount ?? 0 });
-    }
-
-    // 初回のみ：既存の UserQuestionStats から集計して移行
+    // 解放カウント（しっかり対策・苦手分析）= 演習量。
+    // UserQuestionStats を唯一の真実源として毎回集計する。
+    // （保存カウンタ + 増分方式はトランザクション競合・examType 欠落でドリフトするため廃止）
+    // correctCount + incorrectCount の合計 = 解いた問題数（正誤・重複問わず）。
     const PREFIX_MAP = { 'gai': 'AIP' };
     const statsResult = await docClient.send(new QueryCommand({
       TableName: 'UserQuestionStats',
       KeyConditionExpression: 'userId = :uid',
-      ExpressionAttributeValues: { ':uid': userId }
+      ExpressionAttributeValues: { ':uid': userId },
+      ProjectionExpression: 'questionId, correctCount, incorrectCount',
     }));
-    const initialCount = (statsResult.Items || [])
+    const answeredCount = (statsResult.Items || [])
       .filter(s => {
         const prefix = (s.questionId || '').split('-')[0].toLowerCase();
         return (PREFIX_MAP[prefix] ?? prefix.toUpperCase()) === examType;
       })
       .reduce((sum, s) => sum + (s.correctCount ?? 0) + (s.incorrectCount ?? 0), 0);
 
-    await docClient.send(new PutCommand({
-      TableName: 'AppSettings',
-      Item: { settingId, userId, answeredCount: initialCount }
-    }));
-    res.json({ answeredCount: initialCount });
+    res.json({ answeredCount });
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: 'Internal server error' });
