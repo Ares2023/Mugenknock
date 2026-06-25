@@ -535,39 +535,38 @@ export default function ExamSession() {
 
       {/* タイマーバー */}
       <Card padding="8px 16px" style={{ marginBottom: 'var(--spacing-lg)' }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-          {/* ⏸ 丸ボタン（保存してホームへ） */}
+        {/* 上段: ⏸ · タイマー+総時間 · ✓途中採点 */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 6 }}>
           <button
             onClick={handleSaveAndExit}
-            style={{ width: 36, height: 36, flexShrink: 0, borderRadius: '50%', border: '1px solid var(--color-border)', background: 'transparent', cursor: 'pointer', color: 'var(--color-text-sub)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+            style={{ width: 32, height: 32, flexShrink: 0, borderRadius: '50%', border: '1px solid var(--color-border)', background: 'transparent', cursor: 'pointer', color: 'var(--color-text-sub)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
             aria-label={lang === 'ja' ? '中断してホームへ' : 'Save & Home'}
           >
-            <IconCirclePause size={18} />
+            <IconCirclePause size={16} />
           </button>
-          {/* タイマー + 総時間 */}
           <span className="exam-timer-time" style={{ fontFamily: 'monospace', fontWeight: 700, fontSize: 'var(--font-size-lg)', color: timerRed ? 'var(--color-danger)' : 'var(--color-text-main)', transition: 'color 1s', whiteSpace: 'nowrap', flexShrink: 0 }}>
             {formatTime(timeLeft)}
             <span style={{ fontWeight: 400, color: 'var(--color-text-light)', fontSize: 'var(--font-size-sm)' }}> / {formatTime(totalSec)}</span>
           </span>
-          {/* 残り時間 棒グラフ */}
-          <div style={{ flex: 1, height: 6, borderRadius: 3, background: 'var(--color-border)', overflow: 'hidden', minWidth: 40 }}>
-            <div style={{
-              height: '100%',
-              width: `${Math.max(0, (timeLeft / totalSec) * 100)}%`,
-              background: timerRed ? 'var(--color-danger)' : timeLeft < totalSec * 0.3 ? 'var(--color-warning, #f59e0b)' : 'var(--color-primary)',
-              borderRadius: 3,
-              transition: 'width 1s linear, background 1s',
-            }} />
-          </div>
-          {/* ✓途中採点ボタン */}
+          <div style={{ flex: 1 }} />
           <button
             onClick={() => answeredCount > 0 && setShowAbortConfirm(true)}
             disabled={answeredCount === 0}
-            style={{ flexShrink: 0, height: 32, padding: '0 10px', border: '1px solid var(--color-border)', borderRadius: 'var(--border-radius-full)', background: 'transparent', cursor: answeredCount === 0 ? 'default' : 'pointer', color: 'var(--color-text-sub)', fontSize: 'var(--font-size-sm)', fontWeight: 600, display: 'flex', alignItems: 'center', gap: 4, opacity: answeredCount === 0 ? 0.45 : 1, whiteSpace: 'nowrap' }}
+            style={{ flexShrink: 0, height: 30, padding: '0 10px', border: '1px solid var(--color-border)', borderRadius: 'var(--border-radius-full)', background: 'transparent', cursor: answeredCount === 0 ? 'default' : 'pointer', color: 'var(--color-text-sub)', fontSize: 'var(--font-size-sm)', fontWeight: 600, display: 'flex', alignItems: 'center', gap: 4, opacity: answeredCount === 0 ? 0.45 : 1, whiteSpace: 'nowrap' }}
           >
             <IconCheck size={12} />
             {lang === 'ja' ? '途中採点' : 'Grade Now'}
           </button>
+        </div>
+        {/* 下段: 残り時間 棒グラフ */}
+        <div style={{ height: 5, borderRadius: 3, background: 'var(--color-border)', overflow: 'hidden' }}>
+          <div style={{
+            height: '100%',
+            width: `${Math.max(0, (timeLeft / totalSec) * 100)}%`,
+            background: timerRed ? 'var(--color-danger)' : timeLeft < totalSec * 0.3 ? 'var(--color-warning, #f59e0b)' : 'var(--color-primary)',
+            borderRadius: 3,
+            transition: 'width 1s linear, background 1s',
+          }} />
         </div>
       </Card>
 

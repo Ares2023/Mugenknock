@@ -12,6 +12,8 @@ import { animateLoadPct, randomPlateau } from '../utils/loadProgress';
 import { getPrefetchA, getPrefetchC, prefetchTypeA } from '../utils/questionPrefetch';
 import { IconChevronUp, IconChevronDown, IconChevronRight } from '../components/Icons';
 
+const fmtSec = (sec: number) => `${Math.floor(sec / 60).toString().padStart(2, '0')}:${(sec % 60).toString().padStart(2, '0')}`;
+
 function shuffleArray<T>(arr: T[]): T[] {
   const a = [...arr];
   for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; }
@@ -657,7 +659,7 @@ export default function Practice() {
                         <span style={{ width: 13, height: 13, border: '2px solid rgba(0,0,0,0.2)', borderTopColor: '#16191f', borderRadius: '50%', animation: 'sherpa-spin 0.7s linear infinite', flexShrink: 0 }} />
                         {ja ? `準備中... ${exerciseLoadPct}%` : `Loading... ${exerciseLoadPct}%`}
                       </span>
-                    ) : (ja ? '試験を再開' : 'Resume')}
+                    ) : (ja ? '演習を再開' : 'Resume')}
                   </button>
                   <button
                     onClick={() => setShowNewPanel(v => !v)}
@@ -678,7 +680,7 @@ export default function Practice() {
                       <span style={{ width: 13, height: 13, border: '2px solid rgba(0,0,0,0.2)', borderTopColor: '#16191f', borderRadius: '50%', animation: 'sherpa-spin 0.7s linear infinite', flexShrink: 0 }} />
                       {ja ? `準備中... ${exerciseLoadPct}%` : `Loading... ${exerciseLoadPct}%`}
                     </span>
-                  ) : (ja ? '試験を開始' : 'Start')}
+                  ) : (ja ? '演習を開始' : 'Start')}
                 </button>
               )}
             </div>
@@ -698,7 +700,7 @@ export default function Practice() {
                         <span style={{ width: 13, height: 13, border: '2px solid rgba(0,0,0,0.2)', borderTopColor: '#16191f', borderRadius: '50%', animation: 'sherpa-spin 0.7s linear infinite', flexShrink: 0 }} />
                         {ja ? `準備中... ${exerciseLoadPct}%` : `Loading... ${exerciseLoadPct}%`}
                       </span>
-                    ) : (ja ? '試験を再開' : 'Resume')}
+                    ) : (ja ? '演習を再開' : 'Resume')}
                   </button>
                   <button
                     onClick={startExercise}
@@ -719,7 +721,7 @@ export default function Practice() {
                       <span style={{ width: 13, height: 13, border: '2px solid rgba(0,0,0,0.2)', borderTopColor: '#16191f', borderRadius: '50%', animation: 'sherpa-spin 0.7s linear infinite', flexShrink: 0 }} />
                       {ja ? `準備中... ${exerciseLoadPct}%` : `Loading... ${exerciseLoadPct}%`}
                     </span>
-                  ) : (ja ? '試験を開始' : 'Start')}
+                  ) : (ja ? '演習を開始' : 'Start')}
                 </button>
               )}
             </div>
@@ -763,7 +765,16 @@ export default function Practice() {
                         <span style={{ width: 12, height: 12, border: '2px solid rgba(0,0,0,0.2)', borderTopColor: '#16191f', borderRadius: '50%', animation: 'sherpa-spin 0.7s linear infinite' }} />
                         {ja ? `準備中... ${examLoadPct}%` : `Preparing... ${examLoadPct}%`}
                       </span>
-                    ) : (ja ? '試験を再開' : 'Resume')}
+                    ) : (
+                      <span style={{ display: 'inline-flex', flexDirection: 'column', alignItems: 'center', lineHeight: 1.2 }}>
+                        <span>{ja ? '模試を再開' : 'Resume'}</span>
+                        {examDraft?.timeLeft != null && (
+                          <span style={{ fontSize: 10, fontWeight: 400, opacity: 0.85 }}>
+                            {fmtSec(examDraft.timeLeft)} · {(examDraft.currentIndex ?? 0) + 1}/{examDraft.questions?.length ?? '?'}{ja ? '問' : 'Q'}
+                          </span>
+                        )}
+                      </span>
+                    )}
                   </button>
                   <button
                     onClick={() => setShowNewExamPanel(v => !v)}
@@ -784,7 +795,7 @@ export default function Practice() {
                       <span style={{ width: 12, height: 12, border: '2px solid rgba(0,0,0,0.2)', borderTopColor: '#16191f', borderRadius: '50%', animation: 'sherpa-spin 0.7s linear infinite' }} />
                       {ja ? `準備中... ${examLoadPct}%` : `Preparing... ${examLoadPct}%`}
                     </span>
-                  ) : (ja ? `試験を開始${examMode === 'mini' ? '（ミニ）' : ''}` : `Start${examMode === 'mini' ? ' Mini' : ''} Exam`)}
+                  ) : (ja ? `模試を開始${examMode === 'mini' ? '（ミニ）' : ''}` : `Start${examMode === 'mini' ? ' Mini' : ''} Exam`)}
                 </button>
               )}
             </div>
@@ -804,7 +815,16 @@ export default function Practice() {
                         <span style={{ width: 12, height: 12, border: '2px solid rgba(0,0,0,0.2)', borderTopColor: '#16191f', borderRadius: '50%', animation: 'sherpa-spin 0.7s linear infinite' }} />
                         {ja ? `準備中... ${examLoadPct}%` : `Preparing... ${examLoadPct}%`}
                       </span>
-                    ) : (ja ? '試験を再開' : 'Resume')}
+                    ) : (
+                      <span style={{ display: 'inline-flex', flexDirection: 'column', alignItems: 'center', lineHeight: 1.2 }}>
+                        <span>{ja ? '模試を再開' : 'Resume'}</span>
+                        {examDraft?.timeLeft != null && (
+                          <span style={{ fontSize: 10, fontWeight: 400, opacity: 0.85 }}>
+                            {fmtSec(examDraft.timeLeft)} · {(examDraft.currentIndex ?? 0) + 1}/{examDraft.questions?.length ?? '?'}{ja ? '問' : 'Q'}
+                          </span>
+                        )}
+                      </span>
+                    )}
                   </button>
                   <button
                     onClick={startExam}
@@ -825,7 +845,7 @@ export default function Practice() {
                       <span style={{ width: 12, height: 12, border: '2px solid rgba(0,0,0,0.2)', borderTopColor: '#16191f', borderRadius: '50%', animation: 'sherpa-spin 0.7s linear infinite' }} />
                       {ja ? `準備中... ${examLoadPct}%` : `Preparing... ${examLoadPct}%`}
                     </span>
-                  ) : (ja ? '試験を開始' : 'Start Mock Exam')}
+                  ) : (ja ? '模試を開始' : 'Start Mock Exam')}
                 </button>
               )}
             </div>
