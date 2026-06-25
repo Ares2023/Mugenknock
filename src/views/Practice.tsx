@@ -660,14 +660,14 @@ export default function Practice() {
                         {ja ? `準備中... ${exerciseLoadPct}%` : `Loading... ${exerciseLoadPct}%`}
                       </span>
                     ) : (
-                      <span style={{ display: 'inline-flex', alignItems: 'center', gap: 8 }}>
-                        <span>{ja ? '演習を再開' : 'Resume'}</span>
+                      <>
+                        {ja ? '演習を再開' : 'Resume'}
                         {exerciseDraft?.results != null && exerciseDraft?.questions != null && (
-                          <span style={{ fontSize: 10, fontWeight: 400, opacity: 0.82 }}>
-                            {exerciseDraft.results.length}/{exerciseDraft.questions.length}{ja ? '問' : 'Q'}
+                          <span style={{ fontSize: 12, fontWeight: 400, opacity: 0.85 }}>
+                            （{exerciseDraft.results.length}/{exerciseDraft.questions.length}問）
                           </span>
                         )}
-                      </span>
+                      </>
                     )}
                   </button>
                   <button
@@ -710,14 +710,14 @@ export default function Practice() {
                         {ja ? `準備中... ${exerciseLoadPct}%` : `Loading... ${exerciseLoadPct}%`}
                       </span>
                     ) : (
-                      <span style={{ display: 'inline-flex', alignItems: 'center', gap: 8 }}>
-                        <span>{ja ? '演習を再開' : 'Resume'}</span>
+                      <>
+                        {ja ? '演習を再開' : 'Resume'}
                         {exerciseDraft?.results != null && exerciseDraft?.questions != null && (
-                          <span style={{ fontSize: 10, fontWeight: 400, opacity: 0.82 }}>
-                            {exerciseDraft.results.length}/{exerciseDraft.questions.length}{ja ? '問' : 'Q'}
+                          <span style={{ fontSize: 12, fontWeight: 400, opacity: 0.85 }}>
+                            （{exerciseDraft.results.length}/{exerciseDraft.questions.length}問）
                           </span>
                         )}
-                      </span>
+                      </>
                     )}
                   </button>
                   <button
@@ -784,14 +784,14 @@ export default function Practice() {
                         {ja ? `準備中... ${examLoadPct}%` : `Preparing... ${examLoadPct}%`}
                       </span>
                     ) : (
-                      <span style={{ display: 'inline-flex', alignItems: 'center', gap: 8 }}>
-                        <span>{ja ? '模試を再開' : 'Resume'}</span>
+                      <>
+                        {ja ? '模試を再開' : 'Resume'}
                         {examDraft?.timeLeft != null && (
-                          <span style={{ fontSize: 10, fontWeight: 400, opacity: 0.82, fontFamily: 'monospace', letterSpacing: 0 }}>
-                            {fmtSec(examDraft.timeLeft)} · {(examDraft.currentIndex ?? 0) + 1}/{examDraft.questions?.length ?? '?'}{ja ? '問' : 'Q'}
+                          <span style={{ fontSize: 12, fontWeight: 400, opacity: 0.85 }}>
+                            （{fmtSec(examDraft.timeLeft)}・{(examDraft.currentIndex ?? 0) + 1}/{examDraft.questions?.length ?? '?'}問）
                           </span>
                         )}
-                      </span>
+                      </>
                     )}
                   </button>
                   <button
@@ -834,14 +834,14 @@ export default function Practice() {
                         {ja ? `準備中... ${examLoadPct}%` : `Preparing... ${examLoadPct}%`}
                       </span>
                     ) : (
-                      <span style={{ display: 'inline-flex', alignItems: 'center', gap: 8 }}>
-                        <span>{ja ? '模試を再開' : 'Resume'}</span>
+                      <>
+                        {ja ? '模試を再開' : 'Resume'}
                         {examDraft?.timeLeft != null && (
-                          <span style={{ fontSize: 10, fontWeight: 400, opacity: 0.82, fontFamily: 'monospace', letterSpacing: 0 }}>
-                            {fmtSec(examDraft.timeLeft)} · {(examDraft.currentIndex ?? 0) + 1}/{examDraft.questions?.length ?? '?'}{ja ? '問' : 'Q'}
+                          <span style={{ fontSize: 12, fontWeight: 400, opacity: 0.85 }}>
+                            （{fmtSec(examDraft.timeLeft)}・{(examDraft.currentIndex ?? 0) + 1}/{examDraft.questions?.length ?? '?'}問）
                           </span>
                         )}
-                      </span>
+                      </>
                     )}
                   </button>
                   <button
