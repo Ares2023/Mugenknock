@@ -1,0 +1,60 @@
+=== 2026-06-25 05:01:07 | 02-check-validity.sh | exit:0 ===
+==========================================
+正当性チェック開始: Thu Jun 25 04:24:47 JST 2026
+バッチサイズ: 30問 / チャンクサイズ: 5問
+==========================================
+チェック対象: 30問
+前処理: choices ラベル接頭辞チェック...
+  前処理: ラベル接頭辞なし（全問クリーン）
+チャンク数: 6
+
+--- チャンク 1/6: 5問  開始=04:25:15 ---
+  [OK   ] mla-737ab384
+  [OK   ] mla-332d243f
+  [FIX  ] mla-05b2285f: choiceExplanations[3]に「教師なし教師なし」という重複表記の誤字がある。 → 変更: choiceExplanations
+  [OK   ] mla-b56bb076
+  [OK   ] mla-f8fa093d
+  → 更新完了: OK=4 修正=1 削除=0
+  終了=04:28:04  経過=169秒
+
+--- チャンク 2/6: 5問  開始=04:28:04 ---
+  [OK   ] mla-07b18a2c
+  [OK   ] mla-34b3a983
+  [OK   ] mla-c0267e92
+  [FIX  ] mla-35553090: 知識蒸留はモデル圧縮・開発手法であり、「MLソリューションの監視、メンテナンス、セキュリティ」は不適切。「MLモデルの開発」に修正する。 → 変更: domain, tags
+  [FIX  ] mla-ecd805ab: 問題文でS3転送・SageMaker API呼び出しの2点を列挙しているため改行を追加。正解選択肢（約82字）が不正解平均（約67字）より約22%長くヒントになり得るため文章量を調整する。 → 変更: questionText, choices, correctAnswers
+  → 更新完了: OK=3 修正=2 削除=0
+  終了=04:33:48  経過=344秒
+
+--- チャンク 3/6: 5問  開始=04:33:48 ---
+  [FIX  ] mla-2bdacd56: 問題文に複数の要件・条件（画像比率・コンプライアンス制約・コスト要件）が連続して記述されており、改行なしで読みにくい → 変更: questionText
+  [FIX  ] mla-58c923b7: 問題文のシナリオ説明・データ規模・改修最小化要件が連続しており、条件ごとの改行が必要 → 変更: questionText
+  [FIX  ] mla-880af1dc: SLA要件と追加実装最小化という複数条件が改行なしで続いており、視認性向上のために改行が必要 → 変更: questionText
+  [FIX  ] mla-c104a188: データ規模・PySpark処理要件・コスト最小化条件が改行なしで並んでおり、条件ごとの改行が必要 → 変更: questionText
+  [FIX  ] mla-e9f8b82b: 2種のワークロード仕様（エンドポイントとTraining Job）の説明と質問文が改行なしで続いており、区切りが必要 → 変更: questionText
+  → 更新完了: OK=0 修正=5 削除=0
+  終了=04:38:19  経過=271秒
+
+--- チャンク 4/6: 5問  開始=04:38:20 ---
+  [FIX  ] sap-3c4f2e3b: 「FargateはLinuxコンテナ専用」という説明が事実と異なる（2022年以降FargateはWindowsコンテナをサポート済み）。choiceExplanations[1]とmain解説の誤りを修正し、正解の優位性をCOM+/NTLM互換性の観点で正確に説明する。 → 変更: explanation, choiceExplanations
+  [FIX  ] mla-f4a0e679: choiceExplanations[1][2][3]が選択肢と対応していない（B=AutopilotなのにModel Monitorを説明、C=CloudWatchなのにAutopilotを説明、D=Model MonitorなのにCloudWatchを説明）。解説のB/C/D言及も誤り。各choiceExplanationsも短すぎる。 → 変更: explanation, choiceExplanations
+  [FIX  ] mla-3c6cdb3c: choiceExplanations[3]が65字程度と短く「タイムアウト制約の制約」という誤った日本語も含む。[0][2]も100字未満で不足。[1]の「Apacheパーケット」表記も修正。 → 変更: choiceExplanations
+  [FIX  ] mla-ad10ed8e: choiceExplanations[1][2][3]が短すぎる（特に[2]は1文のみ）。[1]では「既存ジョブのパラメータ変更」という誤った説明がグリッドサーチの選択肢に混入。解説のB説明もD（MaxNumberOfTrainingJobs）の内容と混在している。 → 変更: explanation, choiceExplanations
+  [FIX  ] mla-f4dc2691: choiceExplanations[0][1][3]が30〜45字程度と著しく短く不正解の理由が不十分。[2]は解説文を丸ごと含み長すぎる。各choiceExplanationsを100〜150字程度に揃える。 → 変更: choiceExplanations
+  → 更新完了: OK=0 修正=5 削除=0
+  終了=04:46:23  経過=483秒
+
+--- チャンク 5/6: 5問  開始=04:46:23 ---
+  [FIX  ] mla-f075eaf7: choiceExplanations[0][2]が全体解説の流用で選択肢別解説になっていない。[3]が「不適切です。」のみで皆無。解説冒頭に正解テキストが混入している。 → 変更: explanation, choiceExplanations
+  [FIX  ] mla-7c4bbe42: 解説冒頭に正解テキストが混入。choiceExplanations[2]が全体解説の流用。[3]が「開発・維持コストが増加。」のみで内容不足。 → 変更: explanation, choiceExplanations
+  [FIX  ] mla-33928a3d: 正解選択肢の文字数が不正解平均の約2.6倍で文字数から正解が推測される。choiceExplanations[0][2][3]が目安100字未満で短すぎる。 → 変更: choices, correctAnswers, explanation, choiceExplanations
+  [FIX  ] mla-4e10979b: choiceExplanations[0]が「コーディングが必要で要件を満たしません。」のみ。[3]が「も」で始まる文法的に不完全な文で内容も不足。解説にも不完全・冗長な記述あり。 → 変更: explanation, choiceExplanations
+  [FIX  ] mla-0349fdce: choiceExplanations[2]が約60字で目安100字未満。 → 変更: choiceExplanations
+  → 更新完了: OK=0 修正=5 削除=0
+  終了=04:55:47  経過=564秒
+
+--- チャンク 6/6: 5問  開始=04:55:47 ---
+⚠️  レート制限を検出。残りチャンクをスキップ
+stdout: You've hit your session limit · resets 9:10am (Asia/Tokyo)
+
+完了サマリー: 問題なし=7問 / 自動修正=18問 / 削除=0問

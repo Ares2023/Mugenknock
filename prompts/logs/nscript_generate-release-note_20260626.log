@@ -1,0 +1,11 @@
+=== 2026-06-26 00:50:06 | generate-release-note.sh | exit:0 ===
+[release-note] 対象日: 2026-06-25
+[release-note] 2026-06-25: 22件のコミット
+[release-note] 生成結果:
+{
+  "title": "演習・模試をリニューアル！タイマーと再開ボタンがパワーアップ！",
+  "body": "タイマーパネルのデザインを刷新し、再開ボタンに残り時間・問題数をひと目で確認できるようになりました！\nリロードすると進捗が巻き戻るバグも修正され、学習の続きを快適に再開できます。",
+  "titleEn": "Practice & Exam UI Refresh — Smarter Timer and Resume Button!",
+  "bodyEn": "The timer panel has been redesigned, and the resume button now shows your remaining time and question count at a glance.\nWe also fixed a bug where reloading the page reset your progress, so you can pick up right where you left off!"
+}
+[release-note] ✓ DynamoDBに挿入しました: 2026-06-25 — 演習・模試をリニューアル！タイマーと再開ボタンがパワーアップ！

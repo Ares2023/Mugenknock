@@ -1,0 +1,32 @@
+==========================================
+正当性チェック開始: Wed Jun 24 22:11:27 JST 2026
+バッチサイズ: 30問 / チャンクサイズ: 5問
+==========================================
+チェック対象: 30問
+前処理: choices ラベル接頭辞チェック...
+  前処理: ラベル接頭辞なし（全問クリーン）
+チャンク数: 6
+
+--- チャンク 1/6: 5問  開始=22:12:06 ---
+  [FIX  ] sap-2b83cf6c: 要件リスト(1)-(5)に改行がなく、COM+・MSMQに注釈がない → 変更: questionText
+  [OK   ] sap-fb175801
+  [FIX  ] sap-2f5ae29a: 解説中のFSBPが「FBSP」と誤記されている。またGxPに注釈がない → 変更: questionText, explanation
+  [FIX  ] sap-54e1317b: 要件リストに改行がなく、choiceExplanations[3]に「Knowledge経験」という誤記がある → 変更: questionText, choiceExplanations
+  [FIX  ] sap-dcbbe9b5: VM構成リストに改行がなく、choiceExplanations[0]に「アプリKには」という誤記がある → 変更: questionText, choiceExplanations
+  → 更新完了: OK=1 修正=4 削除=0
+  終了=22:21:06  経過=540秒
+
+--- チャンク 2/6: 5問  開始=22:21:06 ---
+  [FIX  ] sap-7e85b7fb: Step Functions Standard Workflowの実行履歴保持期間は最大90日（1年はワークフローの最大実行時間であり、履歴の参照可能期間ではない）。選択肢A・correctAnswers・解説・choiceExplanations[0]を修正。 → 変更: choices, correctAnswers, explanation, choiceExplanations
+  [OK   ] sap-36c290c5
+  [OK   ] sap-683a11b8
+  [FIX  ] sap-54125e7d: 移行要件(1)〜(5)が1文に連結されており可読性が低い。要件を改行区切りで列挙するよう問題文を修正する。 → 変更: questionText
+  [FIX  ] sap-d8473feb: 現行システムスペックが1文に連結されており可読性が低く、略語VSAMに注釈がない。問題文に改行とVSAMの注釈を追加する。 → 変更: questionText
+  → 更新完了: OK=2 修正=3 削除=0
+  終了=22:29:15  経過=489秒
+
+--- チャンク 3/6: 5問  開始=22:29:15 ---
+⚠️  レート制限を検出。残りチャンクをスキップ
+stdout: You've hit your session limit · resets 11:10pm (Asia/Tokyo)
+
+完了サマリー: 問題なし=3問 / 自動修正=7問 / 削除=0問

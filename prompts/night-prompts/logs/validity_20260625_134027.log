@@ -1,0 +1,68 @@
+==========================================
+正当性チェック開始: Thu Jun 25 13:40:27 JST 2026
+バッチサイズ: 100問 / チャンクサイズ: 5問
+==========================================
+チェック対象: 100問
+前処理: choices ラベル接頭辞チェック...
+  前処理: ラベル接頭辞なし（全問クリーン）
+チャンク数: 20
+
+--- チャンク 1/20: 5問  開始=13:40:57 ---
+  [FIX  ] aip-54e61e45: Cohere Embed Multilingual v3 は出力次元が1024固定で「256〜1024で調整」は仕様誤り。誤記述を削除し、解説の「選択肢BAmazon」等の語結合（の欠落）も修正。 → 変更: choices, correctAnswers, explanation, choiceExplanations
+  [OK   ] aip-addb0861
+  [OK   ] aip-5719cb69
+  [OK   ] aip-8666eb87
+  [FIX  ] aip-9554759c: DetectPiiEntities はエンティティの種類と位置を返すAPIで「マスキング済みテキストを返す」は不正確。解説を実際の挙動に修正。 → 変更: explanation
+  → 更新完了: OK=3 修正=2 削除=0
+  終了=13:44:01  経過=184秒
+
+--- チャンク 2/20: 5問  開始=13:44:01 ---
+  [OK   ] aip-1ff93185
+  [OK   ] aip-ce04da2d
+  [OK   ] aip-799aac9c
+  [OK   ] aip-3b17c08f
+  [OK   ] aip-fc96b933
+  → 更新完了: OK=5 修正=0 削除=0
+  終了=13:45:54  経過=113秒
+
+--- チャンク 3/20: 5問  開始=13:45:54 ---
+  [FIX  ] mla-a54db76c: 解説冒頭に誤った「C.」記号接頭辞があり、choiceExplanations[0]がInvocationsPerInstanceの選択肢に対し5XXErrorsの内容を説明するなど対応がずれ、判定的接頭辞も混在していたため修正。isMultipleもtrueに明示。 → 変更: explanation, choiceExplanations
+  [FIX  ] mla-0b81af9c: 内容・正解・対応関係は妥当だが、不正解選択肢のchoiceExplanationsが30字程度と極端に短く判定文的でもあったため、100字程度に拡充して順番対応を維持。 → 変更: choiceExplanations
+  [OK   ] mla-a8f84a2d
+  [OK   ] mla-ef2f71b9
+  [OK   ] mla-35a56dda
+  → 更新完了: OK=3 修正=2 削除=0
+  終了=13:48:13  経過=139秒
+
+--- チャンク 4/20: 5問  開始=13:48:13 ---
+  [OK   ] mla-6a7436b3
+  [OK   ] mla-7c188a7d
+  [OK   ] soa-11a511d2
+  [OK   ] dva-5a907e97
+  [OK   ] soa-853c0556
+  → 更新完了: OK=5 修正=0 削除=0
+  終了=13:49:52  経過=99秒
+
+--- チャンク 5/20: 5問  開始=13:49:52 ---
+  [OK   ] mla-26de089d
+  [OK   ] dva-58927009
+  [OK   ] dop-03ff5493
+  [FIX  ] soa-26267f3e: 解説およびchoiceEx[2][3]の対応がずれていた。choices[2]はDMS、choices[3]はEnhanced Monitoringだが解説が逆になっていたため順番を修正。 → 変更: explanation, choiceExplanations
+  [FIX  ] soa-dd731487: 正解の解説が選択肢文を丸ごと重複して冒頭に記載し冗長。choiceExplanationsも選択肢文の繰り返しが多いため、内容説明に整理して可読性を改善。 → 変更: explanation, choiceExplanations
+  → 更新完了: OK=3 修正=2 削除=0
+  終了=13:52:13  経過=141秒
+
+--- チャンク 6/20: 5問  開始=13:52:13 ---
+  [OK   ] aif-3fe3f753
+  [FIX  ] soa-3a6730bd: 内容・正解は正しいがchoiceExplanations[0]が選択肢全文を重複し冗長、[1][2][3]が「（AWS Backup）はいずれも」など主語不自然・判定的。各150字程度で簡潔化し順番対応を維持して修正。 → 変更: choiceExplanations
+  [OK   ] soa-16c111f0
+  [FIX  ] soa-53b21248: 内容・正解は正しいがchoiceExplanationsが「理由。」という不自然な接頭で始まり、[2]は選択肢全文を重複し冗長。判定的接頭を除き各150字程度で順番対応を保ち修正。 → 変更: choiceExplanations
+  [FIX  ] soa-57a8fcfc: 内容・正解は正しいがchoiceExplanationsが「理由。」で始まり不自然、[1]は選択肢全文を重複し冗長。判定的接頭を除き各150字程度で順番対応を保ち修正。 → 変更: choiceExplanations
+  → 更新完了: OK=2 修正=3 削除=0
+  終了=13:54:25  経過=132秒
+
+--- チャンク 7/20: 5問  開始=13:54:25 ---
+⚠️  レート制限を検出。残りチャンクをスキップ
+stdout: You've hit your session limit · resets 2:10pm (Asia/Tokyo)
+
+完了サマリー: 問題なし=21問 / 自動修正=9問 / 削除=0問

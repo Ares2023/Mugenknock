@@ -1,0 +1,46 @@
+==========================================
+正当性チェック開始: Wed Jun 24 13:40:31 JST 2026
+バッチサイズ: 30問 / チャンクサイズ: 5問
+==========================================
+チェック対象: 30問
+前処理: choices ラベル接頭辞チェック...
+  前処理: ラベル接頭辞なし（全問クリーン）
+チャンク数: 6
+
+--- チャンク 1/6: 5問  開始=13:41:11 ---
+  [OK   ] clf-397088a9
+  [OK   ] clf-bd534b1f
+  [FIX  ] clf-8d7b0509: choiceExplanations[2]で「本番環境とほぼ同規模」のDR方式を「Warm Standby」と記述しているが、Warm Standbyは縮小版スタンバイであり誤り。正しくはHot StandbyやMulti-Siteと呼ぶ → 変更: choiceExplanations
+  [FIX  ] clf-3310da20: Lambda選択肢のみ2指標（リクエスト＋GB秒）で他の選択肢より著しく長く、文字数から正解が推測されやすい。EC2・RDSにも2指標を追加してバランスを取る → 変更: choices
+  [OK   ] clf-f355b065
+  → 更新完了: OK=3 修正=2 削除=0
+  終了=13:46:41  経過=330秒
+
+--- チャンク 2/6: 5問  開始=13:46:42 ---
+  [OK   ] clf-6c40142e
+  [OK   ] clf-1e57649f
+  [OK   ] clf-fe19dd9b
+  [OK   ] clf-270655c4
+  [OK   ] clf-b6c9616d
+  → 更新完了: OK=5 修正=0 削除=0
+  終了=13:49:44  経過=182秒
+
+--- チャンク 3/6: 5問  開始=13:49:45 ---
+  [FIX  ] clf-82018e44: choiceExplanations[2][3]が文章途中で切れている → 変更: choiceExplanations
+  [FIX  ] clf-0694acf2: choiceExplanations[0]が文章途中で切れている → 変更: (変更なし)
+  [FIX  ] clf-8cf7c1ae: choiceExplanations[0]が文章途中で切れている → 変更: choiceExplanations
+  [FIX  ] clf-46f3333a: choiceExplanations[0][1][2][3]すべてが文章途中で切れている → 変更: choiceExplanations
+  [FIX  ] clf-7be1a800: choiceExplanations[3]が文章途中で切れている → 変更: choiceExplanations
+  → 更新完了: OK=0 修正=5 削除=0
+  終了=13:53:22  経過=217秒
+
+--- チャンク 4/6: 5問  開始=13:53:23 ---
+  [FIX  ] clf-4edc27ac: choiceExplanations[2]が途中切れ、全choiceExplanationsが100字未満のため拡充が必要。 → 変更: choiceExplanations
+  [FIX  ] clf-4bc05090: choiceExplanationsが全て100字未満のため拡充が必要。 → 変更: choiceExplanations
+  [FIX  ] clf-efa66514: choiceExplanations[0][2][3]が途中切れ、全体的に100字未満のため修正・拡充が必要。 → 変更: choiceExplanations
+  [FIX  ] clf-d635cb9c: choiceExplanationsが全て途中切れのため修正・拡充が必要。 → 変更: choiceExplanations
+  [FIX  ] mla-8d2bbece: 解説冒頭が正解全文の繰り返し、choiceExplanations[0]が手動CLIをポーリングと誤説明、[1]が途中切れ、全体が100字未満、正解選択肢が不正解の2倍以上の長さのため修正が必要。 → 変更: choices, explanation, choiceExplanations
+  → 更新完了: OK=0 修正=5 削除=0
+  終了=13:59:50  経過=387秒
+
+--- チャンク 5/6: 5問  開始=13:59:50 ---
