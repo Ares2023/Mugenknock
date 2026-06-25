@@ -253,8 +253,13 @@ function QuestionPreviewModal({ onClose, initId = '' }: { onClose: () => void; i
   const correctAnswers: string[] = question?.correctAnswers ?? [];
   const correctIndices: number[] = question?.correctAnswerIndices ?? [];
   const isMultiple: boolean = question?.isMultiple ?? false;
+  const choiceExplanations: string[] = question?.choiceExplanations ?? [];
 
   const isCorrectChoice = (_c: string, idx: number) => correctIndices.includes(idx);
+
+  // ユーザー画面と同じ正誤判定（選択集合 == 正解集合）
+  const selectedIdx = selected.map(c => choices.indexOf(c)).filter(i => i >= 0);
+  const isAllCorrect = selectedIdx.length === correctIndices.length && selectedIdx.every(i => correctIndices.includes(i));
 
   const toggle = (c: string) => {
     if (answered) return;
@@ -375,11 +380,49 @@ function QuestionPreviewModal({ onClose, initId = '' }: { onClose: () => void; i
                 )}
               </div>
 
-              {/* 解説 */}
-              {answered && question.explanation && (
-                <div style={{ background: 'var(--color-bg-main)', borderRadius: 8, padding: '14px 16px', fontSize: 13, lineHeight: 1.7, whiteSpace: 'pre-wrap', wordBreak: 'break-word', borderLeft: '3px solid var(--color-primary)' }}>
-                  <div style={{ fontWeight: 700, color: 'var(--color-primary)', marginBottom: 8, fontSize: 12 }}>解説</div>
-                  {question.explanation}
+              {/* 解説（ユーザー画面の結果パネルを再現：色付きフィードバック＋正解サマリ＋選択肢別解説） */}
+              {answered && (
+                <div style={{
+                  background: isAllCorrect ? 'var(--color-feedback-correct-bg)' : 'var(--color-feedback-incorrect-bg)',
+                  borderLeft: `8px solid ${isAllCorrect ? 'var(--color-success)' : 'var(--color-danger)'}`,
+                  padding: '16px 20px', borderRadius: 'var(--border-radius-sm)',
+                }}>
+                  <h3 style={{ margin: '0 0 8px', fontSize: 15, color: isAllCorrect ? 'var(--color-success)' : 'var(--color-danger)' }}>
+                    {isAllCorrect ? '正解' : '不正解'}
+                  </h3>
+                  <p style={{ margin: '0 0 12px', fontSize: 14 }}>
+                    <strong>正解: </strong>
+                    {correctAnswers.map((ca) => {
+                      const si = choices.findIndex(c => stripLabelP(c) === stripLabelP(ca));
+                      return si >= 0 ? `${CHOICE_LABELS_P[si]}. ${stripLabelP(ca)}` : stripLabelP(ca);
+                    }).join(' / ')}
+                  </p>
+                  <div style={{ fontSize: 14, lineHeight: 1.6 }}>
+                    <strong>解説</strong>
+                    {(() => {
+                      const items = choices.map((_, i) => ({
+                        i, label: CHOICE_LABELS_P[i],
+                        isCorrect: correctIndices.includes(i),
+                        expl: choiceExplanations[i] ?? '',
+                      }));
+                      const sorted = [...items.filter(x => x.isCorrect), ...items.filter(x => !x.isCorrect)];
+                      if (choiceExplanations.length > 0) {
+                        return (
+                          <div style={{ marginTop: 8, display: 'flex', flexDirection: 'column', gap: 8 }}>
+                            {sorted.map(item => (
+                              <div key={item.i} style={{ wordBreak: 'break-word' }}>
+                                <span style={{ fontWeight: 700, color: item.isCorrect ? 'var(--color-success)' : 'var(--color-text-sub)', marginRight: 4 }}>
+                                  {item.label}.{item.isCorrect ? ' (正解)' : ''}
+                                </span>
+                                <span style={{ whiteSpace: 'pre-wrap' }}>{item.expl}</span>
+                              </div>
+                            ))}
+                          </div>
+                        );
+                      }
+                      return <div style={{ marginTop: 8, whiteSpace: 'pre-wrap', wordBreak: 'break-word' }}>{question.explanation}</div>;
+                    })()}
+                  </div>
                 </div>
               )}
             </div>
@@ -1078,7 +1121,7 @@ export default function Admin() {
   });
 
   return (
-    <div style={{ maxWidth: 1200, margin: '0 auto', padding: 'var(--spacing-xl) var(--spacing-lg)', color: 'var(--color-text-main)' }} className="admin-container">
+    <div style={{ maxWidth: 1200, margin: '0 auto', padding: isMobile ? 'var(--spacing-md) var(--spacing-sm)' : 'var(--spacing-xl) var(--spacing-lg)', color: 'var(--color-text-main)' }} className="admin-container">
 
       {/* ── 問題編集モーダル ── */}
       {editingQuestion && (

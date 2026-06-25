@@ -10,56 +10,66 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   const navigate = useNavigate();
   const { theme, toggleTheme } = useTheme();
 
+  const [isMobile, setIsMobile] = React.useState(typeof window !== 'undefined' ? window.innerWidth < 768 : false);
+  React.useEffect(() => {
+    const h = () => setIsMobile(window.innerWidth < 768);
+    window.addEventListener('resize', h);
+    return () => window.removeEventListener('resize', h);
+  }, []);
+
   const handleSignOut = async () => {
     await signOut();
     navigate('/admin-login', { replace: true });
   };
 
+  const iconBtn: React.CSSProperties = {
+    background: 'none', border: 'none', color: 'var(--color-text-sub)', cursor: 'pointer',
+    padding: '6px', display: 'flex', alignItems: 'center', borderRadius: 'var(--border-radius-full)',
+  };
+
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', minHeight: '100vh', fontFamily: 'sans-serif', background: 'var(--color-bg-main)' }}>
+    <div style={{ display: 'flex', flexDirection: 'column', minHeight: '100vh', fontFamily: 'inherit', background: 'var(--color-bg-main)' }}>
+      {/* ユーザー画面と同じデザイントークン（テーマ対応）で構成したヘッダー */}
       <header style={{
-        height: 44, minHeight: 44, background: '#1a2433',
-        display: 'flex', alignItems: 'center', padding: '0 20px',
-        gap: 12, flexShrink: 0, borderBottom: '2px solid #e47911',
+        height: 52, minHeight: 52, background: 'var(--color-bg-elevated)',
+        display: 'flex', alignItems: 'center', padding: isMobile ? '0 12px' : '0 20px',
+        gap: isMobile ? 8 : 12, flexShrink: 0, borderBottom: '1px solid var(--color-border)',
       }}>
-        <span style={{ color: '#e47911', fontWeight: 700, fontSize: 13, letterSpacing: '0.06em', userSelect: 'none' }}>
+        <span style={{
+          background: 'var(--color-accent)', color: 'var(--color-btn-primary-text)',
+          fontWeight: 700, fontSize: 11, letterSpacing: '0.06em', userSelect: 'none',
+          padding: '3px 8px', borderRadius: 'var(--border-radius-full)',
+        }}>
           ADMIN
         </span>
-        <span style={{ color: '#3a4a5a', fontSize: 14, userSelect: 'none' }}>|</span>
-        <span style={{ color: '#d5dbdb', fontWeight: 700, fontSize: 14 }}>管理画面</span>
+        {!isMobile && (
+          <span style={{ color: 'var(--color-text-main)', fontWeight: 700, fontSize: 'var(--font-size-base)' }}>管理画面</span>
+        )}
 
-        <div style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: 12 }}>
-          {user && (
-            <span style={{ color: '#879596', fontSize: 12 }}>{user.email}</span>
+        <div style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: isMobile ? 6 : 12, minWidth: 0 }}>
+          {user && !isMobile && (
+            <span style={{ color: 'var(--color-text-light)', fontSize: 'var(--font-size-xs)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', maxWidth: 200 }}>{user.email}</span>
           )}
           <button
             onClick={toggleTheme}
             title={theme === 'dark' ? 'ライトモードに切り替え' : 'ダークモードに切り替え'}
-            style={{ background: 'none', border: 'none', color: '#d5dbdb', cursor: 'pointer', padding: '4px 6px', display: 'flex', alignItems: 'center', borderRadius: 6, opacity: 0.8 }}
-            onMouseEnter={e => { e.currentTarget.style.opacity = '1'; }}
-            onMouseLeave={e => { e.currentTarget.style.opacity = '0.8'; }}
+            style={iconBtn}
           >
             {theme === 'dark' ? <IconSun /> : <IconMoon />}
           </button>
           <button onClick={handleSignOut} style={{
-            background: 'none', border: '1px solid rgba(255,255,255,0.3)',
-            color: '#d5dbdb', fontSize: 12, padding: '4px 12px',
-            borderRadius: 9999, cursor: 'pointer', fontWeight: 700,
-          }}
-            onMouseEnter={e => { e.currentTarget.style.background = 'rgba(255,255,255,0.08)'; }}
-            onMouseLeave={e => { e.currentTarget.style.background = 'none'; }}
-          >
+            background: 'none', border: '1.5px solid var(--color-border)',
+            color: 'var(--color-text-sub)', fontSize: 'var(--font-size-xs)', padding: '5px 12px',
+            borderRadius: 'var(--border-radius-full)', cursor: 'pointer', fontWeight: 700, whiteSpace: 'nowrap',
+          }}>
             ログアウト
           </button>
           <button onClick={() => navigate('/')} style={{
             background: 'none', border: 'none',
-            color: '#879596', fontSize: 12, padding: '4px 8px',
-            cursor: 'pointer', fontWeight: 400,
-          }}
-            onMouseEnter={e => { e.currentTarget.style.color = '#d5dbdb'; }}
-            onMouseLeave={e => { e.currentTarget.style.color = '#879596'; }}
-          >
-            ← サイトへ戻る
+            color: 'var(--color-primary)', fontSize: 'var(--font-size-xs)', padding: '4px 6px',
+            cursor: 'pointer', fontWeight: 700, whiteSpace: 'nowrap',
+          }}>
+            {isMobile ? '← サイト' : '← サイトへ戻る'}
           </button>
         </div>
       </header>
