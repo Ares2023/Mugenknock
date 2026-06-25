@@ -937,11 +937,12 @@ app.get('/sessions/:id/answers', async (req, res) => {
     const { userId } = req.query;
     const sessionId = req.params.id;
 
+    // ソートキー questionIdTimestamp は `${sessionId}#${questionId}#${ts}` 形式。
+    // begins_with で該当セッションのみ読む（userId 全履歴の読み取り＋Filter を回避）。
     const answersResult = await docClient.send(new QueryCommand({
       TableName: 'UserAnswers',
-      KeyConditionExpression: 'userId = :uid',
-      FilterExpression: 'sessionId = :sid',
-      ExpressionAttributeValues: { ':uid': userId, ':sid': sessionId },
+      KeyConditionExpression: 'userId = :uid AND begins_with(questionIdTimestamp, :sidp)',
+      ExpressionAttributeValues: { ':uid': userId, ':sidp': `${sessionId}#` },
     }));
 
     const answers = answersResult.Items || [];
