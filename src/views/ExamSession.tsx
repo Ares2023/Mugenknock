@@ -11,7 +11,7 @@ import Card from '../components/ui/Card';
 import Button from '../components/ui/Button';
 import Badge from '../components/ui/Badge';
 import ReportModal from '../components/ReportModal';
-import { IconFlag, IconStar } from '../components/Icons';
+import { IconFlag, IconStar, IconCircleCheck } from '../components/Icons';
 
 const WAKARANAI = 'わからない';
 const stripLabel = (s: string) => s.replace(/^[A-E]\.\s*/, '');
@@ -69,6 +69,7 @@ export default function ExamSession() {
   const [showConfirm, setShowConfirm] = useState(false);
   const finishedRef = useRef(false);
   const [bookmarkedIds, setBookmarkedIds] = useState<Set<string>>(new Set());
+  const [hoveredNode, setHoveredNode] = useState<number | null>(null);
 
   useEffect(() => {
     if (!userId) return;
@@ -195,7 +196,7 @@ export default function ExamSession() {
         fetch(`${API_ENDPOINT}/sessions/${sessionId}/answers`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ userId, questionId: r.questionId, selectedAnswers: r.userAns, isCorrect: r.isCorrect }),
+          body: JSON.stringify({ userId, questionId: r.questionId, selectedAnswers: r.userAns, isCorrect: r.isCorrect, examType }),
         }).catch(() => {})
       ));
       const correctCount = abortResults.filter(r => r.isCorrect).length;
@@ -303,7 +304,7 @@ export default function ExamSession() {
         fetch(`${API_ENDPOINT}/sessions/${sessionId}/answers`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ userId, questionId: r.questionId, selectedAnswers: r.userAns, isCorrect: r.isCorrect })
+          body: JSON.stringify({ userId, questionId: r.questionId, selectedAnswers: r.userAns, isCorrect: r.isCorrect, examType })
         }).catch(() => {})
       ));
 
@@ -473,6 +474,64 @@ export default function ExamSession() {
           </Card>
         </div>
       )}
+
+      {/* 進捗ノード（画面上部に固定） */}
+      {(() => {
+        const WINDOW = 5;
+        const total = questions.length;
+        const useWindow = total > WINDOW;
+        const windowStart = useWindow
+          ? Math.max(0, Math.min(currentIndex - Math.floor(WINDOW / 2), total - WINDOW))
+          : 0;
+        const visibleIndices = useWindow
+          ? Array.from({ length: WINDOW }, (_, k) => windowStart + k)
+          : Array.from({ length: total }, (_, k) => k);
+        return (
+          <div style={{ position: 'fixed', top: 56, left: 0, right: 0, zIndex: 190, background: 'var(--color-bg-white)', borderBottom: '1px solid var(--color-border)', padding: '8px 16px', display: 'flex', alignItems: 'center', gap: 0 }}>
+            <div style={{ flex: 1, display: 'flex', alignItems: 'center' }}>
+              {visibleIndices.map((i, visIdx) => {
+                const isAnswered = !!answers[questions[i]?.questionId];
+                const isCurrent = i === currentIndex;
+                const isHovered = hoveredNode === i;
+                return (
+                  <React.Fragment key={i}>
+                    <div
+                      onClick={() => setCurrentIndex(i)}
+                      onMouseEnter={() => setHoveredNode(i)}
+                      onMouseLeave={() => setHoveredNode(null)}
+                      title={`第${i + 1}問へ`}
+                      style={{
+                        width: isCurrent ? 12 : isHovered ? 9 : 7,
+                        height: isCurrent ? 12 : isHovered ? 9 : 7,
+                        borderRadius: '50%',
+                        flexShrink: 0,
+                        background: isAnswered || isCurrent ? 'var(--color-primary)' : 'transparent',
+                        border: `2px solid ${isAnswered || isCurrent ? 'var(--color-primary)' : 'var(--color-text-light)'}`,
+                        boxShadow: isCurrent
+                          ? '0 0 0 2px var(--color-primary-light, rgba(82,130,255,0.25))'
+                          : isHovered ? '0 0 0 3px var(--color-primary-light, rgba(82,130,255,0.35))' : 'none',
+                        cursor: 'pointer',
+                        transition: 'all 0.15s',
+                        opacity: isAnswered && !isCurrent && !isHovered ? 0.75 : 1,
+                      }}
+                    />
+                    {visIdx < visibleIndices.length - 1 && (
+                      <div style={{ flex: 1, height: 2, background: isAnswered ? 'var(--color-primary)' : 'var(--color-text-light)', transition: 'background 0.2s' }} />
+                    )}
+                  </React.Fragment>
+                );
+              })}
+            </div>
+            {useWindow && (
+              <span style={{ flexShrink: 0, marginLeft: 12, fontSize: 11, fontWeight: 700, color: 'var(--color-text-light)', fontVariantNumeric: 'tabular-nums', whiteSpace: 'nowrap' }}>
+                {currentIndex + 1} / {total}
+              </span>
+            )}
+          </div>
+        );
+      })()}
+      {/* 固定ノードバーの高さ分のスペーサー */}
+      <div style={{ height: 36 }} />
 
       {/* タイマーバー */}
       <Card padding="var(--spacing-md) var(--spacing-lg)" style={{ marginBottom: 'var(--spacing-lg)' }}>
@@ -647,14 +706,15 @@ export default function ExamSession() {
             <span style={{ width: 12, height: 12, background: 'var(--color-bg-elevated)', borderRadius: 6, border: '1px solid var(--color-text-sub)' }} />{t('examSession.unansweredLegend')}
           </span>
         </div>
-        <div style={{ display: 'flex', flexWrap: 'wrap', gap: 'var(--spacing-sm)', marginBottom: 'var(--spacing-lg)' }}>
+        <div style={{ maxHeight: 176, overflowY: 'auto', marginBottom: 'var(--spacing-lg)' }}>
+          <div style={{ display: 'flex', flexWrap: 'wrap', gap: 'var(--spacing-sm)' }}>
           {questions.map((_: any, i: number) => {
             const isCurrent = i === currentIndex;
             const isAnswered = !!answers[questions[i]?.questionId];
             let bg = 'var(--color-bg-elevated)';
             let color = 'var(--color-text-sub)';
             let border = '1px solid var(--color-text-sub)';
-            
+
             if (isCurrent) {
               bg = 'var(--color-primary-light)';
               color = 'var(--color-primary)';
@@ -667,13 +727,14 @@ export default function ExamSession() {
 
             return (
               <button key={i} onClick={() => setCurrentIndex(i)}
-                style={{ width: 36, height: 36, borderRadius: 'var(--border-radius-full)', border,
+                style={{ width: 32, height: 32, borderRadius: 'var(--border-radius-full)', border,
                   background: bg, color,
                   cursor: 'pointer', fontSize: 'var(--font-size-sm)', fontWeight: isCurrent ? 700 : 400, transition: 'all 0.2s' }}>
                 {i + 1}
               </button>
             );
           })}
+          </div>
         </div>
         {answerCountError && (
           <div style={{ borderTop: '1px solid var(--color-border)', paddingTop: 'var(--spacing-sm)' }}>
@@ -686,25 +747,21 @@ export default function ExamSession() {
         isMobile ? (
           <div style={{ position: 'fixed', bottom: 56, left: 0, right: 0, zIndex: 150, padding: '8px 12px', display: 'flex', gap: 8 }}>
             <button
-              disabled={currentIndex === 0}
-              onClick={() => setCurrentIndex(i => Math.max(0, i - 1))}
-              style={{ flex: 1, height: 44, border: '1.5px solid var(--color-primary)', borderRadius: 22, background: 'var(--color-bg-white)', color: 'var(--color-primary)', fontWeight: 600, fontSize: 'var(--font-size-base)', cursor: currentIndex === 0 ? 'default' : 'pointer', opacity: currentIndex === 0 ? 0.4 : 1 }}
-            >
-              {lang === 'ja' ? '前へ' : 'Prev'}
-            </button>
-            <button
               disabled={currentIndex === questions.length - 1}
               onClick={handleNext}
               style={{ flex: 1, height: 44, border: '1.5px solid var(--color-primary)', borderRadius: 22, background: 'var(--color-bg-white)', color: 'var(--color-primary)', fontWeight: 600, fontSize: 'var(--font-size-base)', cursor: currentIndex === questions.length - 1 ? 'default' : 'pointer', opacity: currentIndex === questions.length - 1 ? 0.4 : 1 }}
             >
-              {lang === 'ja' ? '次へ' : 'Next'}
+              {lang === 'ja' ? '次の問題へ' : 'Next'}
             </button>
-            <button
-              onClick={() => setShowConfirm(true)}
-              style={{ flex: 1, height: 44, border: 'none', borderRadius: 22, background: 'var(--color-accent)', color: 'var(--color-btn-primary-text)', fontWeight: 600, fontSize: 'var(--font-size-base)', cursor: 'pointer' }}
-            >
-              {t('examSession.submit')}
-            </button>
+            {unansweredCount === 0 && (
+              <button
+                onClick={() => setShowConfirm(true)}
+                style={{ width: 44, height: 44, flexShrink: 0, border: '1.5px solid var(--color-accent)', borderRadius: '50%', background: 'var(--color-bg-white)', color: 'var(--color-accent)', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+                aria-label={t('examSession.submit')}
+              >
+                <IconCircleCheck size={22} />
+              </button>
+            )}
           </div>
         ) : (
           <div style={{ position: 'fixed', right: 24, bottom: 24, zIndex: 150 }}>
