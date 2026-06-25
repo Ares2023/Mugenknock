@@ -1988,7 +1988,17 @@ export default function Home() {
                         <span style={{ width: 14, height: 14, border: primarySpinnerBorder, borderTopColor: primarySpinnerTop, borderRadius: '50%', animation: 'sherpa-spin 0.7s linear infinite', flexShrink: 0 }} />
                         {ja ? `準備中... ${primaryLoadPct}%` : `Loading... ${primaryLoadPct}%`}
                       </span>
-                    ) : primaryMode === 'quick' ? (ja ? 'サクッと演習（続きから）' : 'Quick (Resume)') : (ja ? 'しっかり対策（続きから）' : 'Focused (Resume)')}
+                    ) : (
+                    <>
+                      {primaryMode === 'quick' ? (ja ? 'サクッと演習を再開' : 'Quick (Resume)') : (ja ? 'しっかり対策を再開' : 'Focused (Resume)')}
+                      {ja && primaryMode === 'quick' && quickDraft?.results != null && quickDraft?.questions != null && (
+                        <span style={{ fontSize: 12, fontWeight: 400, opacity: 0.85 }}>（{quickDraft.results.length}/{quickDraft.questions.length}問）</span>
+                      )}
+                      {ja && primaryMode !== 'quick' && focusedDraft?.results != null && focusedDraft?.questions != null && (
+                        <span style={{ fontSize: 12, fontWeight: 400, opacity: 0.85 }}>（{focusedDraft.results.length}/{focusedDraft.questions.length}問）</span>
+                      )}
+                    </>
+                  )}
                   </button>
                   <button
                     onClick={() => setShowWebQuickMenu(v => !v)}
@@ -2045,7 +2055,7 @@ export default function Home() {
                           <span style={{ width: 14, height: 14, border: '2px solid rgba(0,0,0,0.2)', borderTopColor: '#16191f', borderRadius: '50%', animation: 'sherpa-spin 0.7s linear infinite', flexShrink: 0 }} />
                           {ja ? `準備中... ${quickLoadPct}%` : `Loading... ${quickLoadPct}%`}
                         </span>
-                      ) : (ja ? `サクッと演習 (${loadQuickPrefs(uid).questionCount ?? 5}問)` : `Quick (${loadQuickPrefs(uid).questionCount ?? 5}Q)`)}
+                      ) : (ja ? 'サクッと演習を開始' : 'Quick')}
                     </button>
                   ) : (
                     <button
@@ -2058,7 +2068,7 @@ export default function Home() {
                           <span style={{ width: 14, height: 14, border: '2px solid rgba(255,255,255,0.3)', borderTopColor: '#fff', borderRadius: '50%', animation: 'sherpa-spin 0.7s linear infinite', flexShrink: 0 }} />
                           {ja ? `準備中... ${focusedLoadPct}%` : `Loading... ${focusedLoadPct}%`}
                         </span>
-                      ) : (ja ? 'しっかり対策' : 'Focused Practice')}
+                      ) : (ja ? 'しっかり対策を開始' : 'Focused')}
                     </button>
                   )}
                   <button
@@ -2175,7 +2185,17 @@ export default function Home() {
                       <span style={{ width: 14, height: 14, border: primarySpinnerBorder, borderTopColor: primarySpinnerTop, borderRadius: '50%', animation: 'sherpa-spin 0.7s linear infinite', flexShrink: 0 }} />
                       {ja ? `準備中... ${primaryLoadPct}%` : `Loading... ${primaryLoadPct}%`}
                     </span>
-                  ) : primaryMode === 'quick' ? (ja ? 'サクッと演習（続きから）' : 'Quick (Resume)') : (ja ? 'しっかり対策（続きから）' : 'Focused (Resume)')}
+                  ) : (
+                    <>
+                      {primaryMode === 'quick' ? (ja ? 'サクッと演習を再開' : 'Quick (Resume)') : (ja ? 'しっかり対策を再開' : 'Focused (Resume)')}
+                      {ja && primaryMode === 'quick' && quickDraft?.results != null && quickDraft?.questions != null && (
+                        <span style={{ fontSize: 12, fontWeight: 400, opacity: 0.85 }}>（{quickDraft.results.length}/{quickDraft.questions.length}問）</span>
+                      )}
+                      {ja && primaryMode !== 'quick' && focusedDraft?.results != null && focusedDraft?.questions != null && (
+                        <span style={{ fontSize: 12, fontWeight: 400, opacity: 0.85 }}>（{focusedDraft.results.length}/{focusedDraft.questions.length}問）</span>
+                      )}
+                    </>
+                  )}
                 </button>
                 <button
                   onClick={() => setShowNewPanel(v => !v)}
@@ -2199,7 +2219,7 @@ export default function Home() {
                         <span style={{ width: 14, height: 14, border: '2px solid rgba(0,0,0,0.2)', borderTopColor: '#16191f', borderRadius: '50%', animation: 'sherpa-spin 0.7s linear infinite', flexShrink: 0 }} />
                         {ja ? `準備中... ${quickLoadPct}%` : `Loading... ${quickLoadPct}%`}
                       </span>
-                    ) : (ja ? 'サクッと演習' : 'Quick')}
+                    ) : (ja ? 'サクッと演習を開始' : 'Quick')}
                   </button>
                 ) : (
                   <button
@@ -2212,7 +2232,7 @@ export default function Home() {
                         <span style={{ width: 14, height: 14, border: '2px solid rgba(255,255,255,0.3)', borderTopColor: '#fff', borderRadius: '50%', animation: 'sherpa-spin 0.7s linear infinite', flexShrink: 0 }} />
                         {ja ? `準備中... ${focusedLoadPct}%` : `Loading... ${focusedLoadPct}%`}
                       </span>
-                    ) : (ja ? 'しっかり対策' : 'Focused')}
+                    ) : (ja ? 'しっかり対策を開始' : 'Focused')}
                   </button>
                 )}
                 <button
