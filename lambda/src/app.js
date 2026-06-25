@@ -898,6 +898,9 @@ app.post('/sessions/:id/answers', async (req, res) => {
     const { userId, questionId, selectedAnswers, isCorrect } = req.body;
     const now = new Date().toISOString();
     const questionIdTimestamp = `${req.params.id}#${questionId}#${now}`;
+    // UserAnswers は「直近セッションの明細閲覧」専用ログ（集計は UserQuestionStats/Sessions）。
+    // 際限なく肥大化するため 90 日 TTL で自動失効させる（TTL 削除は無料）。
+    const expiresAt = Math.floor(Date.now() / 1000) + 90 * 24 * 60 * 60;
 
     // UserAnswers（回答ログ）と UserQuestionStats（問題別正誤）を原子的に記録。
     // どちらも問題ID単位の別項目なので、複数回答が並列送信されても競合しない。
@@ -907,7 +910,7 @@ app.post('/sessions/:id/answers', async (req, res) => {
       {
         Put: {
           TableName: 'UserAnswers',
-          Item: { userId, questionIdTimestamp, questionId, sessionId: req.params.id, selectedAnswers, isCorrect, answeredAt: now }
+          Item: { userId, questionIdTimestamp, questionId, sessionId: req.params.id, selectedAnswers, isCorrect, answeredAt: now, expiresAt }
         }
       },
       {
