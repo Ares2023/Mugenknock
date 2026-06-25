@@ -749,14 +749,14 @@ export default function ExamSession() {
             <button
               disabled={currentIndex === questions.length - 1}
               onClick={handleNext}
-              style={{ flex: 1, height: 44, border: '1.5px solid var(--color-primary)', borderRadius: 22, background: 'var(--color-bg-white)', color: 'var(--color-primary)', fontWeight: 600, fontSize: 'var(--font-size-base)', cursor: currentIndex === questions.length - 1 ? 'default' : 'pointer', opacity: currentIndex === questions.length - 1 ? 0.4 : 1 }}
+              style={{ flex: 1, height: 44, border: 'none', borderRadius: 22, background: currentIndex === questions.length - 1 ? 'var(--color-text-light)' : 'var(--color-accent)', color: 'var(--color-btn-primary-text)', fontWeight: 600, fontSize: 'var(--font-size-base)', cursor: currentIndex === questions.length - 1 ? 'default' : 'pointer', opacity: currentIndex === questions.length - 1 ? 0.5 : 1 }}
             >
               {lang === 'ja' ? '次の問題へ' : 'Next'}
             </button>
             {unansweredCount === 0 && (
               <button
                 onClick={() => setShowConfirm(true)}
-                style={{ width: 44, height: 44, flexShrink: 0, border: '1.5px solid var(--color-accent)', borderRadius: '50%', background: 'var(--color-bg-white)', color: 'var(--color-accent)', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+                style={{ width: 44, height: 44, flexShrink: 0, border: '1.5px solid var(--color-success)', borderRadius: '50%', background: 'var(--color-bg-white)', color: 'var(--color-success)', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
                 aria-label={t('examSession.submit')}
               >
                 <IconCircleCheck size={22} />
