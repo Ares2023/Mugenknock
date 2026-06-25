@@ -1152,9 +1152,9 @@ export default function ExerciseSession() {
           <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 'var(--spacing-sm)', marginBottom: 'var(--spacing-sm)' }}>
             <button
               onClick={() => setReportOpen(true)}
-              style={{ background: 'none', border: '1px solid var(--color-border)', borderRadius: 'var(--border-radius-full)', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 4, color: 'var(--color-text-light)', fontSize: 'var(--font-size-xs)', padding: '3px 10px', transition: 'all 0.2s' }}
+              style={{ background: 'none', border: '1px solid var(--color-border)', borderRadius: 'var(--border-radius-full)', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 4, color: 'var(--color-text-sub)', fontSize: 'var(--font-size-xs)', padding: '3px 10px', transition: 'all 0.2s' }}
               onMouseEnter={e => { e.currentTarget.style.color = 'var(--color-danger)'; e.currentTarget.style.borderColor = 'var(--color-danger)'; }}
-              onMouseLeave={e => { e.currentTarget.style.color = 'var(--color-text-light)'; e.currentTarget.style.borderColor = 'var(--color-border)'; }}
+              onMouseLeave={e => { e.currentTarget.style.color = 'var(--color-text-sub)'; e.currentTarget.style.borderColor = 'var(--color-border)'; }}
               title={lang === 'ja' ? '問題の不備を通報' : 'Report an issue'}
             >
               <span style={{ fontSize: 12 }}>⚑</span>
@@ -1166,11 +1166,13 @@ export default function ExerciseSession() {
               style={{
                 background: 'none', border: '1px solid var(--color-border)', borderRadius: 'var(--border-radius-full)',
                 padding: '3px 10px', fontSize: 11, fontWeight: 600, cursor: results.length === 0 ? 'default' : 'pointer',
-                color: results.length === 0 ? 'var(--color-text-light)' : 'var(--color-text-sub)',
+                color: 'var(--color-text-sub)',
                 opacity: results.length === 0 ? 0.45 : 1, whiteSpace: 'nowrap', transition: 'all 0.15s',
+                display: 'flex', alignItems: 'center', gap: 3,
               }}
             >
-              {lang === 'ja' ? '中断' : 'End'}
+              <IconCheck size={11} />
+              {lang === 'ja' ? '途中採点' : 'Grade'}
             </button>
           </div>
           {/* 下段: AI確認情報・問題メタデータ（左寄せ） */}

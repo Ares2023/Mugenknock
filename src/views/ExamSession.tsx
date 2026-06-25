@@ -11,7 +11,7 @@ import Card from '../components/ui/Card';
 import Button from '../components/ui/Button';
 import Badge from '../components/ui/Badge';
 import ReportModal from '../components/ReportModal';
-import { IconFlag, IconStar, IconCircleCheck } from '../components/Icons';
+import { IconFlag, IconStar, IconCircleCheck, IconCirclePause, IconCheck } from '../components/Icons';
 
 const WAKARANAI = 'わからない';
 const stripLabel = (s: string) => s.replace(/^[A-E]\.\s*/, '');
@@ -534,30 +534,40 @@ export default function ExamSession() {
       <div style={{ height: 36 }} />
 
       {/* タイマーバー */}
-      <Card padding="var(--spacing-md) var(--spacing-lg)" style={{ marginBottom: 'var(--spacing-lg)' }}>
-        <div className="exam-timer-bar" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--spacing-md)' }}>
-            <Badge variant="secondary">{examType} {t('examSession.mock')}</Badge>
-            {isMini && <Badge variant="warning">{lang === 'ja' ? 'ミニ' : 'Mini'}</Badge>}
-            <span className="exam-timer-time" style={{ fontSize: 'var(--font-size-xxl)', fontWeight: 700, fontFamily: 'monospace',
-              color: timerRed ? 'var(--color-danger)' : 'var(--color-text-main)', transition: 'color 1s', whiteSpace: 'nowrap' }}>
-              {formatTime(timeLeft)}
-            </span>
-            {timerRed && <Badge variant="danger">{t('examSession.timeWarning')}</Badge>}
+      <Card padding="8px 16px" style={{ marginBottom: 'var(--spacing-lg)' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+          {/* ⏸ 丸ボタン（保存してホームへ） */}
+          <button
+            onClick={handleSaveAndExit}
+            style={{ width: 36, height: 36, flexShrink: 0, borderRadius: '50%', border: '1px solid var(--color-border)', background: 'transparent', cursor: 'pointer', color: 'var(--color-text-sub)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+            aria-label={lang === 'ja' ? '中断してホームへ' : 'Save & Home'}
+          >
+            <IconCirclePause size={18} />
+          </button>
+          {/* タイマー + 総時間 */}
+          <span className="exam-timer-time" style={{ fontFamily: 'monospace', fontWeight: 700, fontSize: 'var(--font-size-lg)', color: timerRed ? 'var(--color-danger)' : 'var(--color-text-main)', transition: 'color 1s', whiteSpace: 'nowrap', flexShrink: 0 }}>
+            {formatTime(timeLeft)}
+            <span style={{ fontWeight: 400, color: 'var(--color-text-light)', fontSize: 'var(--font-size-sm)' }}> / {formatTime(totalSec)}</span>
+          </span>
+          {/* 残り時間 棒グラフ */}
+          <div style={{ flex: 1, height: 6, borderRadius: 3, background: 'var(--color-border)', overflow: 'hidden', minWidth: 40 }}>
+            <div style={{
+              height: '100%',
+              width: `${Math.max(0, (timeLeft / totalSec) * 100)}%`,
+              background: timerRed ? 'var(--color-danger)' : timeLeft < totalSec * 0.3 ? 'var(--color-warning, #f59e0b)' : 'var(--color-primary)',
+              borderRadius: 3,
+              transition: 'width 1s linear, background 1s',
+            }} />
           </div>
-          <div style={{ display: 'flex', gap: 'var(--spacing-sm)', alignItems: 'center', flexWrap: 'wrap', justifyContent: 'flex-end' }}>
-            <span style={{ fontSize: 'var(--font-size-sm)', color: 'var(--color-text-sub)', fontWeight: 700 }}>{currentIndex + 1} / {questions.length}</span>
-            <Button variant="outline" size="sm" onClick={handleSaveAndExit}>
-              {lang === 'ja' ? '中断' : 'Pause & Save'}
-            </Button>
-            <Button variant="outline" size="sm" onClick={() => answeredCount > 0 && setShowAbortConfirm(true)}
-              style={{ opacity: answeredCount === 0 ? 0.45 : 1, cursor: answeredCount === 0 ? 'default' : 'pointer' }}>
-              {lang === 'ja' ? '中断して採点' : 'Grade & End'}
-            </Button>
-            <Button variant="outline" size="sm" onClick={() => setPaused(true)}>
-              {t('examSession.pause')}
-            </Button>
-          </div>
+          {/* ✓途中採点ボタン */}
+          <button
+            onClick={() => answeredCount > 0 && setShowAbortConfirm(true)}
+            disabled={answeredCount === 0}
+            style={{ flexShrink: 0, height: 32, padding: '0 10px', border: '1px solid var(--color-border)', borderRadius: 'var(--border-radius-full)', background: 'transparent', cursor: answeredCount === 0 ? 'default' : 'pointer', color: 'var(--color-text-sub)', fontSize: 'var(--font-size-sm)', fontWeight: 600, display: 'flex', alignItems: 'center', gap: 4, opacity: answeredCount === 0 ? 0.45 : 1, whiteSpace: 'nowrap' }}
+          >
+            <IconCheck size={12} />
+            {lang === 'ja' ? '途中採点' : 'Grade Now'}
+          </button>
         </div>
       </Card>
 
