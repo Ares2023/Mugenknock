@@ -659,7 +659,16 @@ export default function Practice() {
                         <span style={{ width: 13, height: 13, border: '2px solid rgba(0,0,0,0.2)', borderTopColor: '#16191f', borderRadius: '50%', animation: 'sherpa-spin 0.7s linear infinite', flexShrink: 0 }} />
                         {ja ? `準備中... ${exerciseLoadPct}%` : `Loading... ${exerciseLoadPct}%`}
                       </span>
-                    ) : (ja ? '演習を再開' : 'Resume')}
+                    ) : (
+                      <span style={{ display: 'inline-flex', alignItems: 'center', gap: 8 }}>
+                        <span>{ja ? '演習を再開' : 'Resume'}</span>
+                        {exerciseDraft?.results != null && exerciseDraft?.questions != null && (
+                          <span style={{ fontSize: 10, fontWeight: 400, opacity: 0.82 }}>
+                            {exerciseDraft.results.length}/{exerciseDraft.questions.length}{ja ? '問' : 'Q'}
+                          </span>
+                        )}
+                      </span>
+                    )}
                   </button>
                   <button
                     onClick={() => setShowNewPanel(v => !v)}
@@ -700,7 +709,16 @@ export default function Practice() {
                         <span style={{ width: 13, height: 13, border: '2px solid rgba(0,0,0,0.2)', borderTopColor: '#16191f', borderRadius: '50%', animation: 'sherpa-spin 0.7s linear infinite', flexShrink: 0 }} />
                         {ja ? `準備中... ${exerciseLoadPct}%` : `Loading... ${exerciseLoadPct}%`}
                       </span>
-                    ) : (ja ? '演習を再開' : 'Resume')}
+                    ) : (
+                      <span style={{ display: 'inline-flex', alignItems: 'center', gap: 8 }}>
+                        <span>{ja ? '演習を再開' : 'Resume'}</span>
+                        {exerciseDraft?.results != null && exerciseDraft?.questions != null && (
+                          <span style={{ fontSize: 10, fontWeight: 400, opacity: 0.82 }}>
+                            {exerciseDraft.results.length}/{exerciseDraft.questions.length}{ja ? '問' : 'Q'}
+                          </span>
+                        )}
+                      </span>
+                    )}
                   </button>
                   <button
                     onClick={startExercise}
@@ -766,10 +784,10 @@ export default function Practice() {
                         {ja ? `準備中... ${examLoadPct}%` : `Preparing... ${examLoadPct}%`}
                       </span>
                     ) : (
-                      <span style={{ display: 'inline-flex', flexDirection: 'column', alignItems: 'center', lineHeight: 1.2 }}>
+                      <span style={{ display: 'inline-flex', alignItems: 'center', gap: 8 }}>
                         <span>{ja ? '模試を再開' : 'Resume'}</span>
                         {examDraft?.timeLeft != null && (
-                          <span style={{ fontSize: 10, fontWeight: 400, opacity: 0.85 }}>
+                          <span style={{ fontSize: 10, fontWeight: 400, opacity: 0.82, fontFamily: 'monospace', letterSpacing: 0 }}>
                             {fmtSec(examDraft.timeLeft)} · {(examDraft.currentIndex ?? 0) + 1}/{examDraft.questions?.length ?? '?'}{ja ? '問' : 'Q'}
                           </span>
                         )}
@@ -816,10 +834,10 @@ export default function Practice() {
                         {ja ? `準備中... ${examLoadPct}%` : `Preparing... ${examLoadPct}%`}
                       </span>
                     ) : (
-                      <span style={{ display: 'inline-flex', flexDirection: 'column', alignItems: 'center', lineHeight: 1.2 }}>
+                      <span style={{ display: 'inline-flex', alignItems: 'center', gap: 8 }}>
                         <span>{ja ? '模試を再開' : 'Resume'}</span>
                         {examDraft?.timeLeft != null && (
-                          <span style={{ fontSize: 10, fontWeight: 400, opacity: 0.85 }}>
+                          <span style={{ fontSize: 10, fontWeight: 400, opacity: 0.82, fontFamily: 'monospace', letterSpacing: 0 }}>
                             {fmtSec(examDraft.timeLeft)} · {(examDraft.currentIndex ?? 0) + 1}/{examDraft.questions?.length ?? '?'}{ja ? '問' : 'Q'}
                           </span>
                         )}
