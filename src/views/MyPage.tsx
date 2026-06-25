@@ -2,7 +2,7 @@
 import React, { useEffect, useState, useCallback } from 'react';
 import { Helmet } from '@/compat/react-helmet-async';
 import { useNavigate } from '@/compat/react-router-dom';
-import { API_ENDPOINT, EXAM_DOMAINS, EXAM_TYPES, DOMAIN_NAME_EN, EXAM_CONFIGS, DOMAIN_RATE_WARNING, DOMAIN_RATE_CAUTION, PASS_SCORES, EXAM_LEVEL, EXAM_LEVEL_COLORS } from '../constants';
+import { API_ENDPOINT, EXAM_DOMAINS, EXAM_TYPES, DOMAIN_NAME_EN, EXAM_CONFIGS, DOMAIN_RATE_WARNING, DOMAIN_RATE_CAUTION, PASS_SCORES, EXAM_LEVEL, EXAM_LEVEL_COLORS, tagIdMatches, toDomainIndex } from '../constants';
 import { syncPreferencesToServer, syncTargetExamToServer, collectExamDatesFromLocal } from '../utils/preferences';
 import { useAuth } from '../contexts/AuthContext';
 import { useLanguage } from '../contexts/LanguageContext';
@@ -740,7 +740,7 @@ export default function MyPage() {
                     <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
                       {[...domains].sort((a, b) => {
                         const getPct = (d: string) => {
-                          const stat = domainStats.find(s => s.tagId === d);
+                          const stat = domainStats.find(s => tagIdMatches(s.tagId, targetExam ?? '', toDomainIndex(targetExam ?? '', d)));
                           const recent = stat?.recentResults ?? [];
                           const total = recent.length;
                           if (total === 0) return -1;
@@ -748,7 +748,7 @@ export default function MyPage() {
                         };
                         return getPct(a) - getPct(b);
                       }).map((domain, i) => {
-                        const stat = domainStats.find(s => s.tagId === domain);
+                        const stat = domainStats.find(s => tagIdMatches(s.tagId, targetExam ?? '', toDomainIndex(targetExam ?? '', domain)));
                         const recent = stat?.recentResults ?? [];
                         const correct = recent.filter(Boolean).length;
                         const total = recent.length;

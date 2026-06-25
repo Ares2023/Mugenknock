@@ -1,0 +1,81 @@
+{
+  "CLF": [
+    { "ja": "クラウドの概念", "en": "Cloud Concepts", "weight": 24 },
+    { "ja": "セキュリティとコンプライアンス", "en": "Security and Compliance", "weight": 30 },
+    { "ja": "クラウドのテクノロジーとサービス", "en": "Cloud Technology and Services", "weight": 34 },
+    { "ja": "請求、料金、およびサポート", "en": "Billing, Pricing, and Support", "weight": 12 }
+  ],
+  "SAA": [
+    { "ja": "セキュアなアーキテクチャの設計", "en": "Design Secure Architectures", "weight": 30 },
+    { "ja": "弾力性に優れたアーキテクチャの設計", "en": "Design Resilient Architectures", "weight": 26 },
+    { "ja": "高性能なアーキテクチャの設計", "en": "Design High-Performing Architectures", "weight": 24 },
+    { "ja": "コスト最適化されたアーキテクチャの設計", "en": "Design Cost-Optimized Architectures", "weight": 20 }
+  ],
+  "SAP": [
+    { "ja": "組織の複雑さに対応する設計", "en": "Design for Organizational Complexity", "weight": 26 },
+    { "ja": "新しいソリューションのための設計", "en": "Design for New Solutions", "weight": 29 },
+    { "ja": "既存のソリューションの継続的改善", "en": "Continuous Improvement for Existing Solutions", "weight": 25 },
+    { "ja": "ワークロードの移行とモダン化の加速", "en": "Accelerate Workload Migration and Modernization", "weight": 20 }
+  ],
+  "DVA": [
+    { "ja": "AWSのサービスを使用した開発", "en": "Development with AWS Services", "weight": 32 },
+    { "ja": "セキュリティ", "en": "Security", "weight": 26 },
+    { "ja": "デプロイ", "en": "Deployment", "weight": 24 },
+    { "ja": "トラブルシューティングと最適化", "en": "Troubleshooting and Optimization", "weight": 18 }
+  ],
+  "SOA": [
+    { "ja": "モニタリング、ロギング、分析、修復、およびパフォーマンスの最適化", "en": "Monitoring, Logging, Analysis, Remediation, and Performance Optimization", "weight": 20 },
+    { "ja": "信頼性とビジネス継続性", "en": "Reliability and Business Continuity", "weight": 16 },
+    { "ja": "デプロイ、プロビジョニング、および自動化", "en": "Deployment, Provisioning, and Automation", "weight": 24 },
+    { "ja": "セキュリティとコンプライアンス", "en": "Security and Compliance", "weight": 16 },
+    { "ja": "ネットワークとコンテンツ配信", "en": "Networking and Content Delivery", "weight": 24 }
+  ],
+  "DOP": [
+    { "ja": "SDLC の自動化", "en": "SDLC Automation", "weight": 22 },
+    { "ja": "構成管理と Infrastructure as Code (IaC)", "en": "Configuration Management and IaC", "weight": 17 },
+    { "ja": "弾力性に優れたクラウドソリューション", "en": "Resilient Cloud Solutions", "weight": 15 },
+    { "ja": "モニタリングとロギング", "en": "Monitoring and Logging", "weight": 15 },
+    { "ja": "インシデントとイベントへの対応", "en": "Incident and Event Response", "weight": 14 },
+    { "ja": "セキュリティとコンプライアンス", "en": "Security and Compliance", "weight": 17 }
+  ],
+  "AIF": [
+    { "ja": "AIとMLの基礎", "en": "Fundamentals of AI and ML", "weight": 20 },
+    { "ja": "生成AIの基礎", "en": "Fundamentals of Generative AI", "weight": 24 },
+    { "ja": "基盤モデルのアプリケーション", "en": "Applications of Foundation Models", "weight": 28 },
+    { "ja": "責任あるAIのガイドライン", "en": "Guidelines for Responsible AI", "weight": 14 },
+    { "ja": "AIソリューションのセキュリティ、コンプライアンス、ガバナンス", "en": "Security, Compliance, and Governance for AI", "weight": 14 }
+  ],
+  "MLA": [
+    { "ja": "機械学習のためのデータ準備", "en": "Data Preparation for ML", "weight": 28 },
+    { "ja": "MLモデルの開発", "en": "ML Model Development", "weight": 26 },
+    { "ja": "MLワークフローのデプロイとオーケストレーション", "en": "Deployment and Orchestration of ML Workflows", "weight": 22 },
+    { "ja": "MLソリューションの監視、メンテナンス、セキュリティ", "en": "ML Solution Monitoring, Maintenance, and Security", "weight": 24 }
+  ],
+  "AIP": [
+    { "ja": "基盤モデルの統合、データ管理、コンプライアンス", "en": "Foundation Model Integration, Data Management, and Compliance", "weight": 31 },
+    { "ja": "実装と統合", "en": "Implementation and Integration", "weight": 26 },
+    { "ja": "AIの安全性、セキュリティ、ガバナンス", "en": "AI Safety, Security, and Governance", "weight": 20 },
+    { "ja": "生成AIアプリケーションの運用効率と最適化", "en": "Operational Efficiency and Optimization for GenAI Applications", "weight": 12 },
+    { "ja": "テスト、検証、トラブルシューティング", "en": "Testing, Validation, and Troubleshooting", "weight": 11 }
+  ],
+  "DEA": [
+    { "ja": "データの取り込みと変換", "en": "Data Ingestion and Transformation", "weight": 34 },
+    { "ja": "データストアの管理", "en": "Data Store Management", "weight": 26 },
+    { "ja": "データオペレーションとサポート", "en": "Data Operations and Support", "weight": 22 },
+    { "ja": "データのセキュリティとガバナンス", "en": "Data Security and Governance", "weight": 18 }
+  ],
+  "ANS": [
+    { "ja": "ネットワーク設計", "en": "Network Design", "weight": 30 },
+    { "ja": "ネットワーク実装", "en": "Network Implementation", "weight": 26 },
+    { "ja": "ネットワーク管理と運用", "en": "Network Management and Operation", "weight": 20 },
+    { "ja": "ネットワークのセキュリティ、コンプライアンス、ガバナンス", "en": "Network Security, Compliance, and Governance", "weight": 24 }
+  ],
+  "SCS": [
+    { "ja": "検出", "en": "Detection", "weight": 16 },
+    { "ja": "インシデント対応", "en": "Incident Response", "weight": 14 },
+    { "ja": "インフラストラクチャのセキュリティ", "en": "Infrastructure Security", "weight": 18 },
+    { "ja": "アイデンティティとアクセス管理", "en": "Identity and Access Management", "weight": 20 },
+    { "ja": "データ保護", "en": "Data Protection", "weight": 18 },
+    { "ja": "セキュリティの基盤とガバナンス", "en": "Security Foundations and Governance", "weight": 14 }
+  ]
+}

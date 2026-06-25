@@ -8,6 +8,11 @@ set -uo pipefail
 export PATH="/home/yuzuki/local/bin:/home/sera/.config/nvm/versions/node/v20.20.2/bin:$PATH"
 unset ANTHROPIC_API_KEY
 
+# ドメイン定義の単一マスタ（フロント src/data/examDomains.json と共通）。
+# 未設定なら本スクリプト位置から解決。python ブロックはこの env を読む（無ければ埋め込みdictにフォールバック）。
+_EDR_SD="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd 2>/dev/null || true)"
+export EXAM_DOMAINS_JSON_PATH="${EXAM_DOMAINS_JSON_PATH:-${_EDR_SD}/../../../src/data/examDomains.json}"
+
 _find_claude() {
   [ -x /usr/local/bin/claude ] && { echo /usr/local/bin/claude; return; }
   local _cv; _cv=$(command -v claude 2>/dev/null)
@@ -420,6 +425,14 @@ def norm(s):
     return re.sub(r'[\s　]+', ' ', s).strip()
 
 EXAM_DOMAINS = {'CLF': ['クラウドの概念', 'セキュリティとコンプライアンス', 'クラウドのテクノロジーとサービス', '請求、料金、およびサポート'], 'SAA': ['セキュアなアーキテクチャの設計', '弾力性に優れたアーキテクチャの設計', '高性能なアーキテクチャの設計', 'コスト最適化されたアーキテクチャの設計'], 'SAP': ['組織の複雑さに対応する設計', '新しいソリューションのための設計', '既存のソリューションの継続的改善', 'ワークロードの移行とモダン化の加速'], 'DVA': ['AWSのサービスを使用した開発', 'セキュリティ', 'デプロイ', 'トラブルシューティングと最適化'], 'SOA': ['モニタリング、ロギング、分析、修復、およびパフォーマンスの最適化', '信頼性とビジネス継続性', 'デプロイ、プロビジョニング、および自動化', 'セキュリティとコンプライアンス', 'ネットワークとコンテンツ配信'], 'DOP': ['SDLC の自動化', '構成管理と Infrastructure as Code (IaC)', '弾力性に優れたクラウドソリューション', 'モニタリングとロギング', 'インシデントとイベントへの対応', 'セキュリティとコンプライアンス'], 'AIF': ['AIとMLの基礎', '生成AIの基礎', '基盤モデルのアプリケーション', '責任あるAIのガイドライン', 'AIソリューションのセキュリティ、コンプライアンス、ガバナンス'], 'MLA': ['機械学習のためのデータ準備', 'MLモデルの開発', 'MLワークフローのデプロイとオーケストレーション', 'MLソリューションの監視、メンテナンス、セキュリティ'], 'AIP': ['基盤モデルの統合、データ管理、コンプライアンス', '実装と統合', 'AIの安全性、セキュリティ、ガバナンス', '生成AIアプリケーションの運用効率と最適化', 'テスト、検証、トラブルシューティング'], 'DEA': ['データの取り込みと変換', 'データストアの管理', 'データオペレーションとサポート', 'データのセキュリティとガバナンス'], 'ANS': ['ネットワーク設計', 'ネットワーク実装', 'ネットワーク管理と運用', 'ネットワークのセキュリティ、コンプライアンス、ガバナンス'], 'SCS': ['検出', 'インシデント対応', 'インフラストラクチャのセキュリティ', 'アイデンティティとアクセス管理', 'データ保護', 'セキュリティの基盤とガバナンス']}
+try:
+    import json as _ejson, os as _eos
+    _ep = _eos.environ.get('EXAM_DOMAINS_JSON_PATH')
+    if _ep and _eos.path.exists(_ep):
+        with open(_ep, encoding='utf-8') as _ef:
+            EXAM_DOMAINS = {k: [d['ja'] for d in v] for k, v in _ejson.load(_ef).items()}
+except Exception:
+    pass
 
 # AWS CLI paginates DynamoDB output as multiple concatenated JSON objects
 _all_items = []
@@ -730,15 +743,16 @@ ${EXISTING_TEXTS}
 
 ※ フォーマット規則:
 - choices にラベル（A. B. 等）を付けない（テキストのみ）
-- correctAnswers は choices と完全一致するテキスト
-- correctAnswerIndices は choices 配列内のインデックス（0始まり）
+- correctAnswerIndices が正解の正準指定（choices 配列内のインデックス・0始まり）。必ず正確に設定すること
+- correctAnswers は任意（省略可）。サーバー側で correctAnswerIndices と choices から自動生成される
 - choiceExplanations は choices と同じ要素数・同じ順序（⚠最重要: choiceExplanations[i] は必ず choices[i] の選択肢を説明すること。順序ズレ厳禁）
   - 各選択肢の解説は 100〜150 字（短すぎ・1文のみは不可）
   - 正解選択肢: なぜ正解か（根拠から書き始める）
   - 不正解選択肢: なぜ不正解か（誤りの理由から書き始める）
   - 文頭に「正解です」「不正解です」などの判定文を入れない
-- 複数正解: isMultiple true、correctAnswers/correctAnswerIndices を複数要素で
+- 複数正解: isMultiple true、correctAnswerIndices を複数要素で
 - ${_CHUNK_Q} 問を1つのJSONで返す。domain・tags フィールドは不要（インポート時にサーバー側でセットされる）。
+- 本サービスは日本語のみ。英語フィールド（questionTextEn 等）は出力しない。
 ${HARD_BLOCK}
 【品質基準】
 ${COMMON_RULES}

@@ -2,7 +2,7 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { Helmet } from '@/compat/react-helmet-async';
 import { useNavigate } from '@/compat/react-router-dom';
-import { API_ENDPOINT, EXAM_DOMAINS, DOMAIN_NAME_EN } from '../constants';
+import { API_ENDPOINT, EXAM_DOMAINS, DOMAIN_NAME_EN, tagIdMatches } from '../constants';
 import { useAuth } from '../contexts/AuthContext';
 import { useLanguage } from '../contexts/LanguageContext';
 import Card from '../components/ui/Card';
@@ -332,8 +332,8 @@ export default function Stats() {
 
   const domainStats = useMemo(() => {
     if (!targetExam) return [];
-    return (EXAM_DOMAINS[targetExam] ?? []).map(domain => {
-      const ts = tagStats.find(t => t.tagId === domain);
+    return (EXAM_DOMAINS[targetExam] ?? []).map((domain, idx) => {
+      const ts = tagStats.find(t => tagIdMatches(t.tagId, targetExam, idx));
       const correct = ts?.correctCount ?? 0;
       const incorrect = ts?.incorrectCount ?? 0;
       const total = correct + incorrect;

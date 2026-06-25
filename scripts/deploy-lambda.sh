@@ -31,6 +31,10 @@ fi
 FUNCTION_NAME="awsquizHandler-${TARGET}"
 echo "→ Branch: $(git rev-parse --abbrev-ref HEAD 2>/dev/null) → Deploying to: $FUNCTION_NAME"
 
+# ドメインマスタを単一ソース（src/data/examDomains.json）から Lambda へ同期
+cp "$REPO_ROOT/src/data/examDomains.json" "$LAMBDA_SRC/examDomains.json"
+echo "✓ Synced examDomains.json"
+
 # ZIP 作成
 cd "$LAMBDA_SRC"
 python3 -c "

@@ -37,6 +37,40 @@ function normalizeQuestion(q) {
   return { ...q, choices, correctAnswers, correctAnswerIndices };
 }
 
+// ── 問題書き込み用の正規化＋検証（import / update 共通） ──────────────
+// 正準キーは correctAnswerIndices。correctAnswers は choices から派生させ整合を保証する。
+// スキーマ不正は Error を投げる（呼び出し側で 400 / skip 扱い）。
+function buildQuestionWriteFields(input) {
+  const choices = (input.choices || []).map(c => String(c).replace(CHOICE_LABEL_RE, '').trim());
+  if (choices.length < 2) throw new Error('choices は2つ以上必要です');
+
+  // correctAnswerIndices を正準として決定（明示指定を優先、なければ correctAnswers から導出）
+  let indices = Array.isArray(input.correctAnswerIndices) ? input.correctAnswerIndices.slice() : null;
+  if (!indices || indices.length === 0) {
+    const cas = (input.correctAnswers || []).map(c => String(c).replace(CHOICE_LABEL_RE, '').trim());
+    indices = cas.map(ca => choices.findIndex(c => c === ca)).filter(i => i >= 0);
+  }
+  indices = [...new Set(indices)]
+    .filter(i => Number.isInteger(i) && i >= 0 && i < choices.length)
+    .sort((a, b) => a - b);
+  if (indices.length === 0) throw new Error('正解（correctAnswerIndices / correctAnswers）を特定できません');
+
+  // correctAnswers は indices から派生（選択肢テキスト編集時のドリフトを防ぐ）
+  const correctAnswers = indices.map(i => choices[i]);
+  const out = { choices, correctAnswers, correctAnswerIndices: indices };
+
+  // choiceExplanations は存在すれば choices と同数であること
+  if (input.choiceExplanations !== undefined && input.choiceExplanations !== null) {
+    if (!Array.isArray(input.choiceExplanations) || input.choiceExplanations.length !== choices.length) {
+      throw new Error('choiceExplanations は choices と同数の配列である必要があります');
+    }
+    out.choiceExplanations = input.choiceExplanations;
+  }
+
+  out.isMultiple = input.isMultiple ?? (indices.length > 1);
+  return out;
+}
+
 // ── DailyServices モジュールレベルキャッシュ ────────────────────────
 // Lambda ウォームインスタンス間で共有されるキャッシュ（最大 5 分）
 let _dailyServicesCache = null;
@@ -362,8 +396,9 @@ app.get('/questions', async (req, res) => {
     }
 
     if (domain) {
-      const domainList = domain.split(',').map(d => d.trim()).filter(Boolean);
-      items = items.filter(q => domainList.includes(qDomainName(q)));
+      // 正準キーは整数 index。フィルタは index のみ受理。
+      const tokens = domain.split(',').map(d => d.trim()).filter(Boolean);
+      items = items.filter(q => tokens.includes(String(q.domain)));
     }
     if (ids) {
       const idSet = new Set(ids.split(',').map(id => id.trim()).filter(Boolean));
@@ -525,6 +560,7 @@ app.post('/admin/questions', async (req, res) => {
 
     const now = new Date().toISOString();
     const created = [];
+    const errors = [];
 
     for (let i = 0; i < questions.length; i++) {
       const q = questions[i];
@@ -536,39 +572,38 @@ app.post('/admin/questions', async (req, res) => {
       const rawDomain = q.domain ?? domain;
       const domainIdx = rawDomain !== undefined && rawDomain !== null ? qDomainIndex(itemExamType, rawDomain) : -1;
 
-      // correctAnswerIndices を生成（未設定の場合）
-      let correctAnswerIndices = q.correctAnswerIndices;
-      if (!correctAnswerIndices && Array.isArray(q.correctAnswers) && Array.isArray(q.choices)) {
-        correctAnswerIndices = q.correctAnswers
-          .map(ca => q.choices.findIndex(c => c === ca || c.replace(/^[A-E]\.\s*/, '') === ca.replace(/^[A-E]\.\s*/, '')))
-          .filter(idx => idx >= 0);
+      // choices / correctAnswers(Indices) / choiceExplanations を一括正規化・検証
+      let fields;
+      try {
+        fields = buildQuestionWriteFields(q);
+      } catch (e) {
+        errors.push({ index: i, error: e.message });
+        continue;
       }
 
       const item = {
         questionId,
         examType: itemExamType,
         questionText: q.questionText,
-        choices: q.choices,
-        correctAnswers: q.correctAnswers,
+        choices: fields.choices,
+        correctAnswers: fields.correctAnswers,
+        correctAnswerIndices: fields.correctAnswerIndices,
         explanation: q.explanation || '',
-        isMultiple: q.isMultiple ?? false,
+        isMultiple: fields.isMultiple,
         createdAt: now,
       };
       if (domainIdx >= 0) item.domain = domainIdx;
-      if (correctAnswerIndices && correctAnswerIndices.length > 0) item.correctAnswerIndices = correctAnswerIndices;
+      if (fields.choiceExplanations) item.choiceExplanations = fields.choiceExplanations;
       if (q.questionTextEn) item.questionTextEn = q.questionTextEn;
       if (q.choicesEn && q.choicesEn.length > 0) item.choicesEn = q.choicesEn;
       if (q.explanationEn) item.explanationEn = q.explanationEn;
-      if (Array.isArray(q.choiceExplanations) && q.choiceExplanations.length === q.choices.length) {
-        item.choiceExplanations = q.choiceExplanations;
-      }
 
       await docClient.send(new PutCommand({ TableName: 'Questions', Item: item }));
 
       created.push(questionId);
     }
 
-    res.json({ created, count: created.length });
+    res.json({ created, count: created.length, ...(errors.length > 0 ? { errors } : {}) });
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: 'Internal server error' });
@@ -580,26 +615,30 @@ app.put('/admin/questions/:id', async (req, res) => {
   try {
     const docClient = getClient();
     const questionId = req.params.id;
-    const { questionText, questionTextEn, choices, choicesEn, correctAnswers, explanation, explanationEn, domain, isMultiple, examType } = req.body;
+    const { questionText, questionTextEn, choices, choicesEn, correctAnswers, explanation, explanationEn, domain, isMultiple, examType, correctAnswerIndices: bodyIndices } = req.body;
 
     // domain を整数インデックスに変換
     const domainIdx = qDomainIndex(examType, domain);
 
-    const correctAnswerIndices = (correctAnswers || [])
-      .map(ca => (choices || []).findIndex(c => c === ca))
-      .filter(idx => idx >= 0);
+    // choices / correctAnswers(Indices) を正規化・検証（correctAnswerIndices が正準）
+    let fields;
+    try {
+      fields = buildQuestionWriteFields({ choices, correctAnswers, correctAnswerIndices: bodyIndices, isMultiple });
+    } catch (e) {
+      return res.status(400).json({ error: e.message });
+    }
 
     const setParts = ['questionText = :qt', 'choices = :ch', 'correctAnswers = :ca', 'correctAnswerIndices = :ci', 'explanation = :ex', '#d = :d', 'isMultiple = :im', 'examType = :et', 'updatedAt = :ua'];
     const removeParts = ['tags'];  // 旧 tags フィールドを削除（domain 整数に移行済み）
     const exprNames = { '#d': 'domain' };
     const exprValues = {
       ':qt': questionText,
-      ':ch': choices,
-      ':ca': correctAnswers,
-      ':ci': correctAnswerIndices,
+      ':ch': fields.choices,
+      ':ca': fields.correctAnswers,
+      ':ci': fields.correctAnswerIndices,
       ':ex': explanation || '',
       ':d': domainIdx >= 0 ? domainIdx : 0,
-      ':im': isMultiple ?? false,
+      ':im': fields.isMultiple,
       ':et': examType,
       ':ua': new Date().toISOString(),
     };
@@ -831,8 +870,9 @@ app.get('/admin/questions', async (req, res) => {
 
     if (tag) items = items.filter(q => qDomainName(q) === tag);
     if (domain) {
-      const domainList = domain.split(',').map(d => d.trim()).filter(Boolean);
-      items = items.filter(q => domainList.includes(qDomainName(q)));
+      // 正準キーは整数 index。フィルタは index のみ受理。
+      const tokens = domain.split(',').map(d => d.trim()).filter(Boolean);
+      items = items.filter(q => tokens.includes(String(q.domain)));
     }
     if (keyword) {
       const kw = keyword.toLowerCase();
@@ -1183,9 +1223,10 @@ app.delete('/users/me/data', async (req, res) => {
     // 2. UserQuestionStats 削除
     await deleteItems('UserQuestionStats', questionIds.map(qid => ({ userId, questionId: qid })));
 
-    // 3. UserTagStats 削除（ドメインタグのみ）
+    // 3. UserTagStats 削除（ドメインタグのみ。正準キーは index 文字列）
     const domains = EXAM_DOMAINS[examType] || [];
-    await deleteItems('UserTagStats', domains.map(tagId => ({ userId, tagId })));
+    const tagIds = domains.map((_, i) => String(i));
+    await deleteItems('UserTagStats', tagIds.map(tagId => ({ userId, tagId })));
 
     // 4. Sessions を取得
     const sessionsResult = await docClient.send(new QueryCommand({

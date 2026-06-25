@@ -4,7 +4,7 @@ import { Helmet } from '@/compat/react-helmet-async';
 import { useNavigate } from '@/compat/react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { useLanguage } from '../contexts/LanguageContext';
-import { API_ENDPOINT, EXAM_CONFIGS, EXAM_DOMAINS, EXAM_TYPES, PASS_SCORES, qDomainName } from '../constants';
+import { API_ENDPOINT, EXAM_CONFIGS, EXAM_DOMAINS, EXAM_TYPES, PASS_SCORES, qDomainName, domainsToIndices, storedDomainsToNames, tagIdMatches } from '../constants';
 import Button from '../components/ui/Button';
 import { getCached, setCached, SHORT_TTL, getCachedPersist, setCachedPersist } from '../utils/cache';
 import { autoScoreAndClearDrafts } from '../utils/sessionUtils';
@@ -73,7 +73,7 @@ export default function Practice() {
   const [selectedDomains, setSelectedDomains] = useState<string[]>(() => {
     const et = localStorage.getItem(`targetExam_${uid}`) || 'SAA';
     const saved = initPrefs(et).domains;
-    return saved && saved.length > 0 ? saved : (EXAM_DOMAINS[et] ?? []);
+    return storedDomainsToNames(et, saved);
   });
   const [limit, setLimit] = useState<number>(() => {
     const raw = initPrefs(localStorage.getItem(`targetExam_${uid}`) || 'SAA').limit ?? 10;
@@ -111,7 +111,7 @@ export default function Practice() {
   useEffect(() => {
     if (isFirstRender.current) { isFirstRender.current = false; return; }
     const prefs = loadExercisePrefs(examType, uid);
-    setSelectedDomains(prefs.domains ?? EXAM_DOMAINS[examType]);
+    setSelectedDomains(storedDomainsToNames(examType, prefs.domains));
     setLimit(prefs.limit ?? 10);
     setBookmarkOnly(prefs.bookmarkOnly ?? false);
     setUnansweredOnly(prefs.unansweredOnly ?? false);
@@ -121,7 +121,7 @@ export default function Practice() {
   }, [examType]);
 
   useEffect(() => {
-    saveExercisePrefs(examType, uid, { domains: selectedDomains, limit, bookmarkOnly, unansweredOnly, incorrectOnly, strikeEnabled, hideColumn });
+    saveExercisePrefs(examType, uid, { domains: domainsToIndices(examType, selectedDomains), limit, bookmarkOnly, unansweredOnly, incorrectOnly, strikeEnabled, hideColumn });
   }, [examType, selectedDomains, limit, bookmarkOnly, unansweredOnly, incorrectOnly, strikeEnabled]);
 
   // 画面表示中にキャッシュを事前ウォームアップ
@@ -137,7 +137,7 @@ export default function Practice() {
       try {
         const params = new URLSearchParams({ examType });
         const allSelected = EXAM_DOMAINS[examType].every(d => selectedDomains.includes(d));
-        if (!allSelected) params.set('domain', selectedDomains.join(','));
+        if (!allSelected) params.set('domain', domainsToIndices(examType, selectedDomains).join(','));
         if (user && (bookmarkOnly || unansweredOnly || incorrectOnly)) {
           const [qRes, bkmRes, answeredRes, incorrectRes] = await Promise.all([
             fetch(`${API_ENDPOINT}/questions?${params}`).then(r => r.json()),
@@ -178,12 +178,12 @@ export default function Practice() {
   }, [user]);
 
   const domainRates: Record<string, number | null> = {};
-  for (const d of EXAM_DOMAINS[examType]) {
-    const s = domainStats.find(x => x.tagId === d);
-    if (!s) { domainRates[d] = null; continue; }
+  (EXAM_DOMAINS[examType] ?? []).forEach((d, idx) => {
+    const s = domainStats.find(x => tagIdMatches(x.tagId, examType, idx));
+    if (!s) { domainRates[d] = null; return; }
     const total = s.correctCount + s.incorrectCount;
     domainRates[d] = total > 0 ? s.correctCount / total : null;
-  }
+  });
 
   const startExercise = async () => {
     const userId = user?.userId ?? 'guest';
@@ -206,17 +206,14 @@ export default function Practice() {
           if (!allSelected) items = items.filter((q: any) => selectedDomains.includes(qDomainName(q)));
           items = shuffleArray(items).slice(0, limit);
           if (items.length > 0) {
-            setExerciseLoadPct(50);
-            const sessionData = await fetch(`${API_ENDPOINT}/sessions`, {
-              method: 'POST', headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({ userId, mode: 'exercise', examType, questionIds: items.map((q: any) => q.questionId) }),
-            }).then(r => r.json());
             setExerciseLoadPct(90);
+            const questionIds = items.map((q: any) => q.questionId);
+            // セッション作成は遷移先で非同期実行（クリティカルパスから除外）
             navigate('/aws/exercise/session', {
               state: {
-                sessionId: sessionData.sessionId,
+                createSession: { userId, mode: 'exercise', examType, questionIds },
                 questions: items.slice(0, 1),
-                questionIds: items.map((q: any) => q.questionId),
+                questionIds,
                 userId, mode: 'exercise', examType, strikeEnabled, hideColumn,
               },
             });
@@ -230,7 +227,7 @@ export default function Practice() {
       // ── フォールバック：プログレッシブロード ──
       // 1. IDのみ取得（Lambda側でフィルタ・優先度ソート）
       const idsParams = new URLSearchParams({ examType, shuffle: 'true', idsOnly: 'true' });
-      if (!allSelected) idsParams.set('domain', selectedDomains.join(','));
+      if (!allSelected) idsParams.set('domain', domainsToIndices(examType, selectedDomains).join(','));
       if (user && bookmarkOnly)   idsParams.set('bookmarkOnly',  'true');
       if (user && unansweredOnly) idsParams.set('unansweredOnly', 'true');
       if (user && incorrectOnly)  idsParams.set('incorrectOnly',  'true');
@@ -240,19 +237,13 @@ export default function Practice() {
       const selectedIds = allIds.slice(0, limit);
       if (selectedIds.length === 0) { alert(t('exerciseSetup.noQuestions')); setExerciseLoading(false); return; }
       setExerciseLoadPct(50);
-      // 2. セッション作成 + 最初の1問取得 を並列実行
-      const [sessionData, q1Data] = await Promise.all([
-        fetch(`${API_ENDPOINT}/sessions`, {
-          method: 'POST', headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ userId, mode: 'exercise', examType, questionIds: selectedIds }),
-        }).then(r => r.json()),
-        fetch(`${API_ENDPOINT}/questions?ids=${selectedIds[0]}&withAnswers=true`).then(r => r.json()),
-      ]);
+      // 2. 最初の1問だけ取得（セッション作成は遷移先で非同期実行）
+      const q1Data = await fetch(`${API_ENDPOINT}/questions?ids=${selectedIds[0]}&withAnswers=true`).then(r => r.json());
       setExerciseLoadPct(90);
       // 3. 最初の1問で即遷移（2問目以降は ExerciseSession 内でバックグラウンドロード）
       navigate('/aws/exercise/session', {
         state: {
-          sessionId: sessionData.sessionId,
+          createSession: { userId, mode: 'exercise', examType, questionIds: selectedIds },
           questions: q1Data.items ?? [],
           questionIds: selectedIds,
           userId, mode: 'exercise', examType, strikeEnabled, hideColumn,

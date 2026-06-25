@@ -7,6 +7,11 @@ set -uo pipefail
 export PATH="/home/yuzuki/local/bin:/home/sera/.config/nvm/versions/node/v20.20.2/bin:$PATH"
 unset ANTHROPIC_API_KEY
 
+# ドメイン定義の単一マスタ（フロント src/data/examDomains.json と共通）。
+# 未設定なら本スクリプト位置から解決。python ブロックはこの env を読む（無ければ埋め込みdictにフォールバック）。
+_EDR_SD="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd 2>/dev/null || true)"
+export EXAM_DOMAINS_JSON_PATH="${EXAM_DOMAINS_JSON_PATH:-${_EDR_SD}/../../../src/data/examDomains.json}"
+
 _find_claude() {
   [ -x /usr/local/bin/claude ] && { echo /usr/local/bin/claude; return; }
   local _cv; _cv=$(command -v claude 2>/dev/null)
@@ -305,6 +310,14 @@ PROMPT_HEADER = _re.sub(r'\n  ([A-Z]{2,4}): [^\n]+',
                         PROMPT_HEADER)
 lines = [PROMPT_HEADER]
 EXAM_DOMAINS_LOCAL = {'CLF': ['クラウドの概念', 'セキュリティとコンプライアンス', 'クラウドのテクノロジーとサービス', '請求、料金、およびサポート'], 'SAA': ['セキュアなアーキテクチャの設計', '弾力性に優れたアーキテクチャの設計', '高性能なアーキテクチャの設計', 'コスト最適化されたアーキテクチャの設計'], 'SAP': ['組織の複雑さに対応する設計', '新しいソリューションのための設計', '既存のソリューションの継続的改善', 'ワークロードの移行とモダン化の加速'], 'DVA': ['AWSのサービスを使用した開発', 'セキュリティ', 'デプロイ', 'トラブルシューティングと最適化'], 'SOA': ['モニタリング、ロギング、分析、修復、およびパフォーマンスの最適化', '信頼性とビジネス継続性', 'デプロイ、プロビジョニング、および自動化', 'セキュリティとコンプライアンス', 'ネットワークとコンテンツ配信'], 'DOP': ['SDLC の自動化', '構成管理と Infrastructure as Code (IaC)', '弾力性に優れたクラウドソリューション', 'モニタリングとロギング', 'インシデントとイベントへの対応', 'セキュリティとコンプライアンス'], 'AIF': ['AIとMLの基礎', '生成AIの基礎', '基盤モデルのアプリケーション', '責任あるAIのガイドライン', 'AIソリューションのセキュリティ、コンプライアンス、ガバナンス'], 'MLA': ['機械学習のためのデータ準備', 'MLモデルの開発', 'MLワークフローのデプロイとオーケストレーション', 'MLソリューションの監視、メンテナンス、セキュリティ'], 'AIP': ['基盤モデルの統合、データ管理、コンプライアンス', '実装と統合', 'AIの安全性、セキュリティ、ガバナンス', '生成AIアプリケーションの運用効率と最適化', 'テスト、検証、トラブルシューティング'], 'DEA': ['データの取り込みと変換', 'データストアの管理', 'データオペレーションとサポート', 'データのセキュリティとガバナンス'], 'ANS': ['ネットワーク設計', 'ネットワーク実装', 'ネットワーク管理と運用', 'ネットワークのセキュリティ、コンプライアンス、ガバナンス'], 'SCS': ['検出', 'インシデント対応', 'インフラストラクチャのセキュリティ', 'アイデンティティとアクセス管理', 'データ保護', 'セキュリティの基盤とガバナンス']}
+try:
+    import json as _ejson, os as _eos
+    _ep = _eos.environ.get('EXAM_DOMAINS_JSON_PATH')
+    if _ep and _eos.path.exists(_ep):
+        with open(_ep, encoding='utf-8') as _ef:
+            EXAM_DOMAINS_LOCAL = {k: [d['ja'] for d in v] for k, v in _ejson.load(_ef).items()}
+except Exception:
+    pass
 for q in questions:
     lines.append(f"ID: {q['questionId']}")
     lines.append(f"試験: {q.get('examType','')}")
@@ -448,9 +461,17 @@ with open(sys.argv[2]) as f:
 
 ok_count, fix_count, del_count = 0, 0, 0
 
-REMOVE_EXPR = 'REMOVE validityRating, validityNote, fixProposalJson'
+REMOVE_EXPR = 'REMOVE validityRating, validityNote, fixProposalJson, tags'
 
 EXAM_DOMAINS_FIX = {'CLF': ['クラウドの概念', 'セキュリティとコンプライアンス', 'クラウドのテクノロジーとサービス', '請求、料金、およびサポート'], 'SAA': ['セキュアなアーキテクチャの設計', '弾力性に優れたアーキテクチャの設計', '高性能なアーキテクチャの設計', 'コスト最適化されたアーキテクチャの設計'], 'SAP': ['組織の複雑さに対応する設計', '新しいソリューションのための設計', '既存のソリューションの継続的改善', 'ワークロードの移行とモダン化の加速'], 'DVA': ['AWSのサービスを使用した開発', 'セキュリティ', 'デプロイ', 'トラブルシューティングと最適化'], 'SOA': ['モニタリング、ロギング、分析、修復、およびパフォーマンスの最適化', '信頼性とビジネス継続性', 'デプロイ、プロビジョニング、および自動化', 'セキュリティとコンプライアンス', 'ネットワークとコンテンツ配信'], 'DOP': ['SDLC の自動化', '構成管理と Infrastructure as Code (IaC)', '弾力性に優れたクラウドソリューション', 'モニタリングとロギング', 'インシデントとイベントへの対応', 'セキュリティとコンプライアンス'], 'AIF': ['AIとMLの基礎', '生成AIの基礎', '基盤モデルのアプリケーション', '責任あるAIのガイドライン', 'AIソリューションのセキュリティ、コンプライアンス、ガバナンス'], 'MLA': ['機械学習のためのデータ準備', 'MLモデルの開発', 'MLワークフローのデプロイとオーケストレーション', 'MLソリューションの監視、メンテナンス、セキュリティ'], 'AIP': ['基盤モデルの統合、データ管理、コンプライアンス', '実装と統合', 'AIの安全性、セキュリティ、ガバナンス', '生成AIアプリケーションの運用効率と最適化', 'テスト、検証、トラブルシューティング'], 'DEA': ['データの取り込みと変換', 'データストアの管理', 'データオペレーションとサポート', 'データのセキュリティとガバナンス'], 'ANS': ['ネットワーク設計', 'ネットワーク実装', 'ネットワーク管理と運用', 'ネットワークのセキュリティ、コンプライアンス、ガバナンス'], 'SCS': ['検出', 'インシデント対応', 'インフラストラクチャのセキュリティ', 'アイデンティティとアクセス管理', 'データ保護', 'セキュリティの基盤とガバナンス']}
+try:
+    import json as _ejson, os as _eos
+    _ep = _eos.environ.get('EXAM_DOMAINS_JSON_PATH')
+    if _ep and _eos.path.exists(_ep):
+        with open(_ep, encoding='utf-8') as _ef:
+            EXAM_DOMAINS_FIX = {k: [d['ja'] for d in v] for k, v in _ejson.load(_ef).items()}
+except Exception:
+    pass
 
 for r in results:
     qid = r.get('questionId', '')
@@ -532,10 +553,7 @@ for r in results:
                 update_parts.append('#d = :domidx')
                 expr_values[':domidx'] = {'N': str(domain_idx)}
                 changes['domain'] = {'before': orig.get('domain'), 'after': domain_idx}
-            if new_tags != orig.get('tags', []):
-                update_parts.append('tags = :tg')
-                expr_values[':tg'] = {'L': [{'S': str(t)} for t in new_tags]}
-                changes['tags'] = {'before': orig.get('tags', []), 'after': new_tags}
+            # 旧 tags フィールドは書き込まない（domain 整数インデックスが正準。tags は REMOVE で削除）
 
         edit_log = {'action': 'fixed', 'checkedAt': now, 'reason': reason, 'changes': changes}
         expr_values[':log'] = {'S': json.dumps(edit_log, ensure_ascii=False)}

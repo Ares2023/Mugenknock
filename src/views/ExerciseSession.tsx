@@ -3,6 +3,8 @@ import React, { useState, useEffect, useMemo, useRef, useCallback } from 'react'
 import { createPortal } from 'react-dom';
 import { useNavigate, useLocation } from '@/compat/react-router-dom';
 import { API_ENDPOINT, PASS_RATE, EXAM_DOMAINS, DOMAIN_NAME_EN, EXAM_LEVEL, qDomainName } from '../constants';
+import { recordSessionDomainStats, recentForTag } from '../utils/domainStats';
+import { qText } from '../utils/i18nQuestion';
 import { getCached, setCached, deleteCached, DEFAULT_TTL } from '../utils/cache';
 import { addPoints } from '../utils/points';
 import { schedulePrefetchAfterSession } from '../utils/questionPrefetch';
@@ -235,6 +237,34 @@ export default function ExerciseSession() {
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   const [sessionId, setSessionId] = useState<string>(state?.sessionId ?? '');
+  // セッション作成を開始ボタンのクリティカルパスから外す（item1: 楽観的遷移）。
+  // sessionId が未確定でも 1 問目を即表示し、作成完了を待つ Promise を ref に保持する。
+  const sessionPromiseRef = useRef<Promise<string> | null>(null);
+  const sessionCreateStartedRef = useRef(false);
+  useEffect(() => {
+    if (sessionId) return;
+    const cs = state?.createSession;
+    if (!cs || sessionCreateStartedRef.current) return;
+    sessionCreateStartedRef.current = true;
+    sessionPromiseRef.current = fetch(`${API_ENDPOINT}/sessions`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        userId: cs.userId, mode: cs.mode ?? 'exercise', examType: cs.examType,
+        questionIds: cs.questionIds,
+        ...(cs.isFocused ? { isFocused: true } : {}),
+        ...(cs.isMini ? { isMini: true } : {}),
+      }),
+    }).then(r => r.json())
+      .then(d => { setSessionId(d.sessionId ?? ''); return d.sessionId ?? ''; })
+      .catch(err => { console.error('[session] create failed', err); return ''; });
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+  // sessionId が確定するまで待つ（回答送信・完了処理で使用）
+  const ensureSessionId = useCallback(async (): Promise<string> => {
+    if (sessionId) return sessionId;
+    if (sessionPromiseRef.current) return (await sessionPromiseRef.current) || '';
+    return '';
+  }, [sessionId]);
   const [questions, setQuestions] = useState<Question[]>(_resumeInit.qs ?? state?.questions ?? []);
   // プログレッシブロード用: 全問IDリスト（useState で hook として登録することで TDZ を回避）
   const [allQuestionIds] = useState<string[]>(state?.questionIds ?? []);
@@ -538,17 +568,23 @@ export default function ExerciseSession() {
     setJudgmentAnim(isCorrect ? 'correct' : 'incorrect');
     setTimeout(() => setJudgmentAnim(null), 600);
 
-    fetch(`${API_ENDPOINT}/sessions/${sessionId}/answers`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        userId,
-        questionId: currentQuestion.questionId,
-        selectedAnswers,
-        isCorrect,
-        examType
-      })
-    }).catch(err => console.error(err));
+    const answerPayload = {
+      userId,
+      questionId: currentQuestion.questionId,
+      selectedAnswers,
+      isCorrect,
+      examType,
+    };
+    // sessionId が未確定なら作成完了を待ってから送信（楽観的遷移時のレース対策）
+    (async () => {
+      const sid = await ensureSessionId();
+      if (!sid) return;
+      fetch(`${API_ENDPOINT}/sessions/${sid}/answers`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(answerPayload),
+      }).catch(err => console.error(err));
+    })();
   };
 
   const goToQuestion = (i: number) => {
@@ -596,8 +632,9 @@ export default function ExerciseSession() {
       const basePassRate = PASS_RATE[examType] ?? PASS_RATE['SAA'];
       const passRate = isMini ? Math.ceil(basePassRate / 5) : basePassRate;
       const isPassed = score >= passRate;
+      const sid = await ensureSessionId();
       try {
-        await fetch(`${API_ENDPOINT}/sessions/${sessionId}`, {
+        if (sid) await fetch(`${API_ENDPOINT}/sessions/${sid}`, {
           method: 'PUT',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ userId, status: 'completed', score, isPassed, examType, answeredCount: results.length })
@@ -606,51 +643,17 @@ export default function ExerciseSession() {
       localStorage.removeItem(`quickExerciseDraft_${userId}`);
       localStorage.removeItem(`focusedExerciseDraft_${userId}`);
       localStorage.removeItem(`practiceExerciseDraft_${userId}`);
-      // ドメイン別 delta 計算（全ユーザー共通）
-      const delta: Record<string, { c: number; i: number }> = {};
-      for (const r of results) {
-        const q = questions.find((q: Question) => q.questionId === r.questionId);
-        for (const tag of [qDomainName(q as any)].filter(Boolean)) {
-          if (!delta[tag]) delta[tag] = { c: 0, i: 0 };
-          if (r.isCorrect) delta[tag].c++; else delta[tag].i++;
-        }
-      }
-      // domain_history に追加（直近10セッション、ゲストでも保存）
+      // ドメイン別統計を記録（domain_history / domain_results / サーバー同期）
+      const dr = recordSessionDomainStats({
+        examType, userId, results,
+        questionById: (qId) => questions.find((q: Question) => q.questionId === qId) as any,
+      });
       try {
-        const dh: Record<string, { correct: number; total: number }[]> =
-          JSON.parse(localStorage.getItem(`domain_history_${examType}_${userId}`) ?? '{}');
-        for (const [tag, d] of Object.entries(delta)) {
-          if (d.c + d.i === 0) continue;
-          if (!dh[tag]) dh[tag] = [];
-          dh[tag] = [...dh[tag], { correct: d.c, total: d.c + d.i }].slice(-10);
-        }
-        localStorage.setItem(`domain_history_${examType}_${userId}`, JSON.stringify(dh));
-      } catch {}
-      // domain_results に個別正誤を追加 + キャッシュ楽観的更新
-      try {
-        const dr: Record<string, boolean[]> =
-          JSON.parse(localStorage.getItem(`domain_results_${examType}_${userId}`) ?? '{}');
-        for (const r of results) {
-          const q = questions.find((q: Question) => q.questionId === r.questionId);
-          for (const tag of [qDomainName(q as any)].filter(Boolean)) {
-            if (!dr[tag]) dr[tag] = [];
-            dr[tag] = [...dr[tag], r.isCorrect].slice(-5);
-          }
-        }
-        localStorage.setItem(`domain_results_${examType}_${userId}`, JSON.stringify(dr));
-        if (userId && userId !== 'guest') {
-          fetch(`${API_ENDPOINT}/users/me/domain-results`, {
-            method: 'PUT',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ userId, domainResults: dr }),
-          }).catch(() => {});
-        }
-        // ローカル結果でキャッシュを楽観的更新（drと同スコープ内で処理）
         const existingStats: any[] | null = getCached(`ustats_${userId}`);
         if (existingStats && existingStats.length > 0) {
           const updated = existingStats.map((s: any) => ({
             ...s,
-            recentResults: dr[s.tagId] ?? s.recentResults,
+            recentResults: recentForTag(dr, s.tagId) ?? s.recentResults,
           }));
           setCached(`ustats_${userId}`, updated, DEFAULT_TTL);
         } else {
@@ -678,7 +681,7 @@ export default function ExerciseSession() {
         addPoints(userId, dailyBonusPts);
       }
       schedulePrefetchAfterSession({ examType, userId, isQuick, isFocused });
-      navigate('/aws/result', { state: { results, questions, score, isPassed, sessionId, userId, examType, isQuick, isMini, earnedPts, dailyBonusPts } });
+      navigate('/aws/result', { state: { results, questions, score, isPassed, sessionId: sid, userId, examType, isQuick, isMini, earnedPts, dailyBonusPts } });
     } else {
       setCurrentIndex(prev => prev + 1);
       setSelectedAnswers([]);
@@ -697,8 +700,9 @@ export default function ExerciseSession() {
     const basePassRate = PASS_RATE[examType] ?? PASS_RATE['SAA'];
     const passRate = isMini ? Math.ceil(basePassRate / 5) : basePassRate;
     const isPassed = score >= passRate;
+    const sid = await ensureSessionId();
     try {
-      await fetch(`${API_ENDPOINT}/sessions/${sessionId}`, {
+      if (sid) await fetch(`${API_ENDPOINT}/sessions/${sid}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ userId, status: 'completed', score, isPassed, examType, answeredCount: results.length }),
@@ -707,45 +711,14 @@ export default function ExerciseSession() {
     localStorage.removeItem(`quickExerciseDraft_${userId}`);
     localStorage.removeItem(`focusedExerciseDraft_${userId}`);
     localStorage.removeItem(`practiceExerciseDraft_${userId}`);
-    const delta: Record<string, { c: number; i: number }> = {};
-    for (const r of results) {
-      const q = questions.find((q: Question) => q.questionId === r.questionId);
-      for (const tag of [qDomainName(q as any)].filter(Boolean)) {
-        if (!delta[tag]) delta[tag] = { c: 0, i: 0 };
-        if (r.isCorrect) delta[tag].c++; else delta[tag].i++;
-      }
-    }
+    const dr = recordSessionDomainStats({
+      examType, userId, results,
+      questionById: (qId) => questions.find((q: Question) => q.questionId === qId) as any,
+    });
     try {
-      const dh: Record<string, { correct: number; total: number }[]> =
-        JSON.parse(localStorage.getItem(`domain_history_${examType}_${userId}`) ?? '{}');
-      for (const [tag, d] of Object.entries(delta)) {
-        if (d.c + d.i === 0) continue;
-        if (!dh[tag]) dh[tag] = [];
-        dh[tag] = [...dh[tag], { correct: d.c, total: d.c + d.i }].slice(-10);
-      }
-      localStorage.setItem(`domain_history_${examType}_${userId}`, JSON.stringify(dh));
-    } catch {}
-    try {
-      const dr: Record<string, boolean[]> =
-        JSON.parse(localStorage.getItem(`domain_results_${examType}_${userId}`) ?? '{}');
-      for (const r of results) {
-        const q = questions.find((q: Question) => q.questionId === r.questionId);
-        for (const tag of [qDomainName(q as any)].filter(Boolean)) {
-          if (!dr[tag]) dr[tag] = [];
-          dr[tag] = [...dr[tag], r.isCorrect].slice(-5);
-        }
-      }
-      localStorage.setItem(`domain_results_${examType}_${userId}`, JSON.stringify(dr));
-      if (userId && userId !== 'guest') {
-        fetch(`${API_ENDPOINT}/users/me/domain-results`, {
-          method: 'PUT',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ userId, domainResults: dr }),
-        }).catch(() => {});
-      }
       const existingStats2: any[] | null = getCached(`ustats_${userId}`);
       if (existingStats2 && existingStats2.length > 0) {
-        const updated2 = existingStats2.map((s: any) => ({ ...s, recentResults: dr[s.tagId] ?? s.recentResults }));
+        const updated2 = existingStats2.map((s: any) => ({ ...s, recentResults: recentForTag(dr, s.tagId) ?? s.recentResults }));
         setCached(`ustats_${userId}`, updated2, DEFAULT_TTL);
       } else {
         deleteCached(`ustats_${userId}`);
@@ -772,7 +745,7 @@ export default function ExerciseSession() {
     }
     const answeredQuestions = questions.slice(0, results.length);
     schedulePrefetchAfterSession({ examType, userId, isQuick, isFocused });
-    navigate('/aws/result', { state: { results, questions: answeredQuestions, score, isPassed, sessionId, userId, examType, isQuick, isMini, aborted: true, earnedPts, dailyBonusPts: dailyBonusPts2 } });
+    navigate('/aws/result', { state: { results, questions: answeredQuestions, score, isPassed, sessionId: sid, userId, examType, isQuick, isMini, aborted: true, earnedPts, dailyBonusPts: dailyBonusPts2 } });
   };
 
   const getChoiceStyle = (choice: string): React.CSSProperties => {
@@ -1000,7 +973,7 @@ export default function ExerciseSession() {
             }} />
           </div>
           <p style={{ fontSize: 'var(--font-size-lg)', lineHeight: 1.6, fontWeight: 400, margin: 0, color: 'var(--color-text-main)', overflowWrap: 'break-word', wordBreak: 'break-word', minWidth: 0, whiteSpace: 'pre-wrap' }}>
-            {lang === 'en' && (currentQuestion as any).questionTextEn ? (currentQuestion as any).questionTextEn : currentQuestion.questionText}
+            {qText(currentQuestion as any, lang)}
           </p>
         </div>
 
