@@ -903,7 +903,7 @@ app.post('/sessions', async (req, res) => {
 app.post('/sessions/:id/answers', async (req, res) => {
   try {
     const docClient = getClient();
-    const { userId, questionId, selectedAnswers, isCorrect, examType } = req.body;
+    const { userId, questionId, selectedAnswers, isCorrect } = req.body;
     const now = new Date().toISOString();
     const questionIdTimestamp = `${req.params.id}#${questionId}#${now}`;
 
@@ -1011,7 +1011,7 @@ app.put('/users/me/domain-results', async (req, res) => {
 app.put('/sessions/:id', async (req, res) => {
   try {
     const docClient = getClient();
-    const { userId, status, score, isPassed, examType, answeredCount } = req.body;
+    const { userId, status, score, isPassed } = req.body;
     const now = new Date().toISOString();
     await docClient.send(new UpdateCommand({
       TableName: 'Sessions',
@@ -1253,10 +1253,9 @@ async function executeUserDataReset(docClient, userId) {
   // AppSettings のユーザー固有データを削除（スコア履歴・解答カウンター）
   const appSettingsResult = await docClient.send(new ScanCommand({
     TableName: 'AppSettings',
-    FilterExpression: 'begins_with(settingId, :sh) OR begins_with(settingId, :ac)',
+    FilterExpression: 'begins_with(settingId, :sh)',
     ExpressionAttributeValues: {
       ':sh': `scoreHistData_${userId}_`,
-      ':ac': `answeredCount_${userId}_`,
     },
     ProjectionExpression: 'settingId',
   }));
