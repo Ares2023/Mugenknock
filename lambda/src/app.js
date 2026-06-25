@@ -59,9 +59,10 @@ async function getDailyServicesAll(docClient) {
 const _examQuestionsCache = new Map(); // examType → { items, cachedAt }
 const EXAM_QUESTIONS_CACHE_TTL = 10 * 60 * 1000;
 
-// AIP は DynamoDB 上は GAI として保存されているためエイリアス解決
-const EXAM_TYPE_DB_ALIASES = { AIP: 'GAI' };
-function resolveExamTypeForDB(et) { return EXAM_TYPE_DB_ALIASES[et] || et; }
+// 旧 GAI は examType='AIP' へ移行済み（GSI パーティション 'GAI' は0件）。
+// かつての AIP→GAI エイリアスは現データでは AIP を0件化させるため撤去。
+// 注: questionId 接頭辞は 'gai-' のまま（解放カウント集計の PREFIX_MAP gai→AIP で対応）。
+function resolveExamTypeForDB(et) { return et; }
 
 async function getAllQuestionsForExam(docClient, examType) {
   const dbType = resolveExamTypeForDB(examType);
@@ -283,22 +284,13 @@ app.get('/questions/public', async (req, res) => {
     const { examType } = req.query;
     if (!examType) return res.status(400).json({ error: 'examType required' });
 
-    const FIELDS = 'questionId, examType, #qt, choices, correctAnswerIndices, correctAnswers, choiceExplanations, explanation, #dom, isMultiple, validityCheckedAt';
-    let items = [];
-    let lastKey = undefined;
-    do {
-      const params = {
-        TableName: 'Questions',
-        FilterExpression: 'examType = :e AND attribute_exists(validityCheckedAt)',
-        ExpressionAttributeValues: { ':e': examType },
-        ExpressionAttributeNames: { '#qt': 'questionText', '#dom': 'domain' },
-        ProjectionExpression: FIELDS,
-      };
-      if (lastKey) params.ExclusiveStartKey = lastKey;
-      const result = await docClient.send(new ScanCommand(params));
-      items = items.concat(result.Items || []);
-      lastKey = result.LastEvaluatedKey;
-    } while (lastKey);
+    // examType-index GSI + キャッシュ経由で取得（全テーブル Scan を回避）。
+    // getAllQuestionsForExam は AIP→GAI のエイリアスも解決する。
+    const FIELDS = ['questionId', 'examType', 'questionText', 'choices', 'correctAnswerIndices', 'correctAnswers', 'choiceExplanations', 'explanation', 'domain', 'isMultiple', 'validityCheckedAt'];
+    const all = await getAllQuestionsForExam(docClient, examType);
+    const items = all
+      .filter(q => q.validityCheckedAt)
+      .map(q => { const o = {}; for (const f of FIELDS) if (q[f] !== undefined) o[f] = q[f]; return o; });
 
     res.json({ items, count: items.length });
   } catch (e) {
