@@ -682,8 +682,8 @@ ${INSTRUCTION}
 【対象資格】${NEXT_EXAM}
 【対象ドメイン】${domain}
 【作成問題数】${_CHUNK_Q} 問
-${EXAM_GUIDE_URL:+【公式試験ガイドURL】${EXAM_GUIDE_URL}
-上記URLを参照し、出題ドメインの最新タスク・要件・対象サービスに基づいて問題を作成してください。
+${EXAM_GUIDE_URL:+【公式試験ガイド】${EXAM_GUIDE_URL}
+（上の「公式試験ガイド概要」は本ガイドから抽出・最新化済み。Web取得は不要。概要のタスク・対象サービスに基づいて作成すること）
 }
 
 【既存問題（重複・類似を避けること）】
@@ -710,12 +710,14 @@ ${EXISTING_TEXTS}
 ${COMMON_RULES}
 PROMPT
 
-    RESULT=$("$CLAUDE_CMD" -p --allowed-tools WebFetch < "$PROMPT_FILE" 2>&1)
+    # WebFetch は使わない（公式ガイド概要は instructions/*.txt に埋め込み済み・refresh-exam-guide.sh で最新化）。
+    # 毎チャンクのページ取得を止めてトークン消費とレート制限の逼迫を削減する。
+    RESULT=$("$CLAUDE_CMD" -p < "$PROMPT_FILE" 2>&1)
     AI_EXIT=$?
     # npm更新による一時的なバイナリ消失 → 再探索してリトライ
     if [ $AI_EXIT -ne 0 ] && echo "$RESULT" | grep -q "No such file"; then
       CLAUDE_CMD=$(_find_claude)
-      [ -x "${CLAUDE_CMD:-}" ] && { RESULT=$("$CLAUDE_CMD" -p --allowed-tools WebFetch < "$PROMPT_FILE" 2>&1); AI_EXIT=$?; }
+      [ -x "${CLAUDE_CMD:-}" ] && { RESULT=$("$CLAUDE_CMD" -p < "$PROMPT_FILE" 2>&1); AI_EXIT=$?; }
     fi
     rm -f "$PROMPT_FILE"
 
