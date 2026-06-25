@@ -58,11 +58,13 @@ usage: refresh-exam-guide.sh [EXAM...] [-h]
 EOF
 }
 
+MAX_AGE_DAYS=0   # >0 のとき: LAST_REFRESHED がこの日数以内の資格はスキップ（定期実行の自己スロットル用）
 TARGET_EXAMS=()
-for arg in "$@"; do
-  case "$arg" in
+while [[ $# -gt 0 ]]; do
+  case "$1" in
     -h|--help) show_help; exit 0 ;;
-    *) TARGET_EXAMS+=("$arg") ;;
+    --max-age-days) MAX_AGE_DAYS="${2:-0}"; shift 2 ;;
+    *) TARGET_EXAMS+=("$1"); shift ;;
   esac
 done
 [ ${#TARGET_EXAMS[@]} -eq 0 ] && TARGET_EXAMS=("${ALL_EXAMS[@]}")
@@ -85,6 +87,21 @@ for exam in "${TARGET_EXAMS[@]}"; do
   if [ ! -f "$inst_file" ]; then
     echo "⚠️  $exam: $inst_file が存在しません（スキップ）"
     continue
+  fi
+
+  # 定期実行の自己スロットル: MAX_AGE_DAYS 以内に更新済みならスキップ（claude/WebFetch を呼ばない）
+  if [ "$MAX_AGE_DAYS" -gt 0 ]; then
+    last_ref=$(grep "^# LAST_REFRESHED:" "$inst_file" | head -1 | sed 's/^# LAST_REFRESHED: *//')
+    if [ -n "$last_ref" ]; then
+      last_epoch=$(date -d "$last_ref" +%s 2>/dev/null || echo 0)
+      if [ "$last_epoch" -gt 0 ]; then
+        age_days=$(( ( $(date +%s) - last_epoch ) / 86400 ))
+        if [ "$age_days" -lt "$MAX_AGE_DAYS" ]; then
+          echo "⏭  $exam: ${age_days}日前に更新済み（< ${MAX_AGE_DAYS}日）→ スキップ"
+          continue
+        fi
+      fi
+    fi
   fi
 
   echo ""
