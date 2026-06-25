@@ -172,7 +172,8 @@ export default function Account() {
   useEffect(() => {
     if (!user) return;
     // Sessions と UserTagStats を並行取得
-    const sessionsFetch = fetch(`${API_ENDPOINT}/users/me/sessions?userId=${user.userId}&limit=1000`)
+    // 資格ごとの実施回数・最終日を集計（保持上限=直近365件内での件数）。
+    const sessionsFetch = fetch(`${API_ENDPOINT}/users/me/sessions?userId=${user.userId}&limit=365`)
       .then(r => r.json())
       .then(d => {
         const map: Record<string, SessionSummary> = {};

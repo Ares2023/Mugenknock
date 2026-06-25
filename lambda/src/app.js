@@ -175,6 +175,43 @@ async function queryAll(docClient, params) {
   return items;
 }
 
+// ユーザーあたり保持するセッション数の上限（フロントの最大参照=Stats 200件に余裕を持たせた値）。
+// 履歴・スコア推移は全てこの範囲内で参照されるため、これを超える古い分は保持不要。
+const SESSION_RETENTION_LIMIT = 365;
+
+// 直近 SESSION_RETENTION_LIMIT 件を超える古いセッションと、その回答明細(UserAnswers)を削除する。
+// Sessions のソートキーは sessionId(UUID) で時系列順ではないため endedAt/startedAt で並べ替える。
+// 件数キャップに一本化（UserAnswers の TTL は廃止）。剪定失敗は呼び出し側で握りつぶす。
+async function pruneUserSessions(docClient, userId) {
+  const sessions = await queryAll(docClient, {
+    TableName: 'Sessions',
+    KeyConditionExpression: 'userId = :uid',
+    ExpressionAttributeValues: { ':uid': userId },
+    ProjectionExpression: 'sessionId, endedAt, startedAt',
+  });
+  if (sessions.length <= SESSION_RETENTION_LIMIT) return;
+  sessions.sort((a, b) => {
+    const da = a.endedAt || a.startedAt || '';
+    const db = b.endedAt || b.startedAt || '';
+    return da < db ? 1 : da > db ? -1 : 0; // 新しい順
+  });
+  const overflow = sessions.slice(SESSION_RETENTION_LIMIT);
+  for (const s of overflow) {
+    const answers = await queryAll(docClient, {
+      TableName: 'UserAnswers',
+      KeyConditionExpression: 'userId = :uid AND begins_with(questionIdTimestamp, :p)',
+      ExpressionAttributeValues: { ':uid': userId, ':p': `${s.sessionId}#` },
+      ProjectionExpression: 'questionIdTimestamp',
+    });
+    await Promise.all(answers.map(a => docClient.send(new DeleteCommand({
+      TableName: 'UserAnswers', Key: { userId, questionIdTimestamp: a.questionIdTimestamp },
+    }))));
+    await docClient.send(new DeleteCommand({
+      TableName: 'Sessions', Key: { userId, sessionId: s.sessionId },
+    }));
+  }
+}
+
 // ヘルスチェック
 // 問題生成・チェック状況（日次/月次集計）
 app.get('/questions/growth-stats', async (req, res) => {
@@ -898,9 +935,6 @@ app.post('/sessions/:id/answers', async (req, res) => {
     const { userId, questionId, selectedAnswers, isCorrect } = req.body;
     const now = new Date().toISOString();
     const questionIdTimestamp = `${req.params.id}#${questionId}#${now}`;
-    // UserAnswers は「直近セッションの明細閲覧」専用ログ（集計は UserQuestionStats/Sessions）。
-    // 際限なく肥大化するため 90 日 TTL で自動失効させる（TTL 削除は無料）。
-    const expiresAt = Math.floor(Date.now() / 1000) + 90 * 24 * 60 * 60;
 
     // UserAnswers（回答ログ）と UserQuestionStats（問題別正誤）を原子的に記録。
     // どちらも問題ID単位の別項目なので、複数回答が並列送信されても競合しない。
@@ -910,7 +944,7 @@ app.post('/sessions/:id/answers', async (req, res) => {
       {
         Put: {
           TableName: 'UserAnswers',
-          Item: { userId, questionIdTimestamp, questionId, sessionId: req.params.id, selectedAnswers, isCorrect, answeredAt: now, expiresAt }
+          Item: { userId, questionIdTimestamp, questionId, sessionId: req.params.id, selectedAnswers, isCorrect, answeredAt: now }
         }
       },
       {
@@ -1016,6 +1050,10 @@ app.put('/sessions/:id', async (req, res) => {
       ExpressionAttributeNames: { '#s': 'status' },
       ExpressionAttributeValues: { ':status': status, ':score': score, ':isPassed': isPassed, ':now': now }
     }));
+    // セッション完了時に保持上限を超えた古い履歴を剪定（件数キャップ）。失敗しても完了応答は返す。
+    if (status === 'completed') {
+      try { await pruneUserSessions(docClient, userId); } catch (e) { console.error('prune failed', e); }
+    }
     res.json({ success: true });
   } catch (err) {
     console.error(err);
