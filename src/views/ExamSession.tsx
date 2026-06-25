@@ -60,10 +60,32 @@ export default function ExamSession() {
     return () => window.removeEventListener('resize', handler);
   }, []);
 
-  const [currentIndex, setCurrentIndex] = useState<number>(state?.resumeIndex ?? 0);
-  const [answers, setAnswers] = useState<Record<string, string[]>>(state?.resumeAnswers ?? {});
-  const [timeLeft, setTimeLeft] = useState<number>(state?.resumeTimeLeft ?? totalSec);
-  const timeLeftRef = useRef<number>(state?.resumeTimeLeft ?? totalSec);
+  // リロードで compat レイヤーが初期 state を復活させると進捗が巻き戻るため、
+  // 同一セッションの examDraft がより多くの回答を持つ場合は初期値として復元する。
+  // （useState 初期化時に反映することで、保存useEffectによる上書きより前に確定させる）
+  const _resumeInit = useMemo(() => {
+    let answers0: Record<string, string[]> = state?.resumeAnswers ?? {};
+    let index0: number = state?.resumeIndex ?? 0;
+    let timeLeft0: number = state?.resumeTimeLeft ?? totalSec;
+    try {
+      const raw = state?.userId ? localStorage.getItem(`examDraft_${state.userId}`) : null;
+      if (raw) {
+        const d = JSON.parse(raw);
+        if (d.sessionId === state?.sessionId &&
+            Object.keys(d.answers ?? {}).length > Object.keys(answers0).length) {
+          answers0 = d.answers ?? {};
+          index0 = d.currentIndex ?? 0;
+          if (typeof d.timeLeft === 'number') timeLeft0 = d.timeLeft;
+        }
+      }
+    } catch {}
+    return { answers0, index0, timeLeft0 };
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+
+  const [currentIndex, setCurrentIndex] = useState<number>(_resumeInit.index0);
+  const [answers, setAnswers] = useState<Record<string, string[]>>(_resumeInit.answers0);
+  const [timeLeft, setTimeLeft] = useState<number>(_resumeInit.timeLeft0);
+  const timeLeftRef = useRef<number>(_resumeInit.timeLeft0);
   const [paused, setPaused] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [showConfirm, setShowConfirm] = useState(false);

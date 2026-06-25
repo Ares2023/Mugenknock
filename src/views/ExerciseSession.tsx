@@ -200,8 +200,42 @@ export default function ExerciseSession() {
   const { user } = useAuth();
   const { lang, t } = useLanguage();
 
+  // リロードで compat レイヤーが初期 state を復活させると進捗が巻き戻るため、
+  // state がある場合でも同一セッションのドラフトがより多くの進捗を持てば初期値に反映する。
+  // （useState 初期化時に確定させ、保存useEffectによる上書きより前に効かせる）
+  const _resumeInit = useMemo(() => {
+    let idx: number = state?.resumeIndex ?? 0;
+    let res: { questionId: string; isCorrect: boolean }[] = state?.resumeResults ?? [];
+    let ans: boolean = state?.resumeAnswered ?? false;
+    let sel: string[] = state?.resumeSelectedAnswers ?? [];
+    let qs: Question[] | null = null;
+    if (state?.sessionId) {
+      try {
+        let best: any = null;
+        for (let i = 0; i < localStorage.length; i++) {
+          const key = localStorage.key(i);
+          if (!key) continue;
+          if (key.startsWith('practiceExerciseDraft_') || key.startsWith('quickExerciseDraft_') || key.startsWith('focusedExerciseDraft_')) {
+            try {
+              const p = JSON.parse(localStorage.getItem(key) ?? '');
+              if (p.questions?.length > 0 && p.sessionId === state.sessionId && (!best || (p.savedAt ?? 0) > (best.savedAt ?? 0))) best = p;
+            } catch {}
+          }
+        }
+        if (best && (best.results?.length ?? 0) > (res?.length ?? 0)) {
+          idx = best.currentIndex ?? 0;
+          res = best.results ?? [];
+          ans = best.answered ?? false;
+          sel = best.selectedAnswers ?? [];
+          if (best.questions?.length) qs = best.questions;
+        }
+      } catch {}
+    }
+    return { idx, res, ans, sel, qs };
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+
   const [sessionId, setSessionId] = useState<string>(state?.sessionId ?? '');
-  const [questions, setQuestions] = useState<Question[]>(state?.questions ?? []);
+  const [questions, setQuestions] = useState<Question[]>(_resumeInit.qs ?? state?.questions ?? []);
   // プログレッシブロード用: 全問IDリスト（useState で hook として登録することで TDZ を回避）
   const [allQuestionIds] = useState<string[]>(state?.questionIds ?? []);
   const loadingNextRef = React.useRef(false);
@@ -238,7 +272,7 @@ export default function ExerciseSession() {
   }, []);
 
   // currentIndex は下の useEffect の依存配列で使うため先に宣言（TDZ 回避）
-  const [currentIndex, setCurrentIndex] = useState<number>(state?.resumeIndex ?? 0);
+  const [currentIndex, setCurrentIndex] = useState<number>(_resumeInit.idx);
 
   // プログレッシブロード: 現在問 + 2問先までをバックグラウンドで先読み
   useEffect(() => {
@@ -259,9 +293,9 @@ export default function ExerciseSession() {
       .catch(() => {})
       .finally(() => { loadingNextRef.current = false; });
   }, [currentIndex, questions.length]); // eslint-disable-line react-hooks/exhaustive-deps
-  const [viewedFrontier, setViewedFrontier] = useState<number>(state?.resumeIndex ?? 0);
-  const [selectedAnswers, setSelectedAnswers] = useState<string[]>(state?.resumeSelectedAnswers ?? []);
-  const [answered, setAnswered] = useState<boolean>(state?.resumeAnswered ?? false);
+  const [viewedFrontier, setViewedFrontier] = useState<number>(_resumeInit.idx);
+  const [selectedAnswers, setSelectedAnswers] = useState<string[]>(_resumeInit.sel);
+  const [answered, setAnswered] = useState<boolean>(_resumeInit.ans);
   const [detail, setDetail] = useState<Question | null>(null);
   const [detailFetchFailed, setDetailFetchFailed] = useState(false);
   const [tips, setTips] = useState<Tip[]>([]);
@@ -335,7 +369,7 @@ export default function ExerciseSession() {
     } catch (err) { console.error(err); }
     setBookmarkLoading(false);
   };
-  const [results, setResults] = useState<{ questionId: string; isCorrect: boolean }[]>(state?.resumeResults ?? []);
+  const [results, setResults] = useState<{ questionId: string; isCorrect: boolean }[]>(_resumeInit.res);
   const [selectionHistory, setSelectionHistory] = useState<Record<number, string[]>>({});
   const [hoveredNode, setHoveredNode] = useState<number | null>(null);
   const [reportOpen, setReportOpen] = useState(false);
@@ -403,20 +437,28 @@ export default function ExerciseSession() {
   const [struckChoices, setStruckChoices] = useState<Set<string>>(new Set());
 
   useEffect(() => {
-    if (state) { setInitialized(true); return; }
-    // リロード時: localStorage からドラフトを復元する
-    const candidates: any[] = [];
-    for (let i = 0; i < localStorage.length; i++) {
-      const key = localStorage.key(i);
-      if (!key) continue;
-      if (key.startsWith('practiceExerciseDraft_') || key.startsWith('quickExerciseDraft_') || key.startsWith('focusedExerciseDraft_')) {
-        try {
-          const parsed = JSON.parse(localStorage.getItem(key) ?? '');
-          if (parsed.questions?.length > 0) candidates.push(parsed);
-        } catch {}
+    // ドラフト探索（sessionId 一致を優先。指定なしは最新の savedAt）
+    const findDraft = (matchSid?: string) => {
+      const cands: any[] = [];
+      for (let i = 0; i < localStorage.length; i++) {
+        const key = localStorage.key(i);
+        if (!key) continue;
+        if (key.startsWith('practiceExerciseDraft_') || key.startsWith('quickExerciseDraft_') || key.startsWith('focusedExerciseDraft_')) {
+          try {
+            const p = JSON.parse(localStorage.getItem(key) ?? '');
+            if (!(p.questions?.length > 0)) continue;
+            if (matchSid && p.sessionId !== matchSid) continue;
+            cands.push(p);
+          } catch {}
+        }
       }
-    }
-    const draft = candidates.sort((a, b) => (b.savedAt ?? 0) - (a.savedAt ?? 0))[0];
+      return cands.sort((a, b) => (b.savedAt ?? 0) - (a.savedAt ?? 0))[0];
+    };
+
+    // state がある場合: 進捗は useState 初期化時（_resumeInit）でドラフト反映済み。
+    if (state) { setInitialized(true); return; }
+    // state なし（リロード等）: 最新ドラフトから復元する
+    const draft = findDraft();
     if (!draft) { navigate('/aws/exercise/setup', { replace: true }); return; }
     setSessionId(draft.sessionId ?? '');
     setQuestions(draft.questions);
