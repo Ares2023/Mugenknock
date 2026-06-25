@@ -517,6 +517,13 @@ export function ServiceIconUrl({ icon, name, size }: { icon: string; name: strin
   const alreadyBroken = _brokenSvgs.has(svgSrc);
   const [src, setSrc] = React.useState(() => alreadyBroken ? icon : svgSrc);
   const [visible, setVisible] = React.useState(alreadyBroken);
+  // icon プロップが変化したら（日めくり再抽選など）内部 state をリセットして新アイコンを表示する
+  // （useState 初期化は初回のみのため、これがないと src が古いままになる）
+  React.useEffect(() => {
+    const broken = _brokenSvgs.has(svgSrc);
+    setSrc(broken ? icon : svgSrc);
+    setVisible(broken);
+  }, [icon, svgSrc]);
   return (
     <img
       src={src} alt={name}
