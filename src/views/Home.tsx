@@ -1570,7 +1570,7 @@ export default function Home() {
         navigate('/aws/exercise/session', { state: { createSession: { userId, mode: 'exercise', examType: targetExam, questionIds }, questions: items, userId, mode: 'exercise', examType: targetExam, isQuick: true } });
       } else {
         const q1Data = await fetch(`${API_ENDPOINT}/questions?ids=${questionIds[0]}&withAnswers=true&examType=${targetExam}`).then(r => r.json());
-        navigate('/aws/exercise/session', { state: { createSession: { userId, mode: 'exercise', examType: targetExam, questionIds }, questions: q1Data.items ?? [items[0]], questionIds, userId, mode: 'exercise', examType: targetExam, isQuick: true } });
+        navigate('/aws/exercise/session', { state: { createSession: { userId, mode: 'exercise', examType: targetExam, questionIds }, questions: q1Data.items ?? [], questionIds, userId, mode: 'exercise', examType: targetExam, isQuick: true } });
       }
     } catch (err) { console.error(err); alert(ja ? '演習の開始に失敗しました' : 'Failed to start exercise'); }
     finally { setQuickLoading(false); setQuickLoadPct(0); }
@@ -1674,7 +1674,7 @@ export default function Home() {
         navigate('/aws/exercise/session', { state: { createSession: { userId, mode: 'exercise', examType: targetExam, questionIds, isFocused: true }, questions: items, userId, mode: 'exercise', examType: targetExam, isQuick: true, isFocused: true } });
       } else {
         const q1Data = await fetch(`${API_ENDPOINT}/questions?ids=${questionIds[0]}&withAnswers=true&examType=${targetExam}`).then(r => r.json());
-        navigate('/aws/exercise/session', { state: { createSession: { userId, mode: 'exercise', examType: targetExam, questionIds, isFocused: true }, questions: q1Data.items ?? [items[0]], questionIds, userId, mode: 'exercise', examType: targetExam, isQuick: true, isFocused: true } });
+        navigate('/aws/exercise/session', { state: { createSession: { userId, mode: 'exercise', examType: targetExam, questionIds, isFocused: true }, questions: q1Data.items ?? [], questionIds, userId, mode: 'exercise', examType: targetExam, isQuick: true, isFocused: true } });
       }
     } catch (err) { console.error(err); alert(ja ? '演習の開始に失敗しました' : 'Failed to start exercise'); }
     finally { setFocusedLoading(false); setFocusedLoadPct(0); }
