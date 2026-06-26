@@ -163,16 +163,11 @@ export default function MyPage() {
   });
   const examColor = targetExam ? (EXAM_LEVEL_COLORS[EXAM_LEVEL[targetExam]] ?? 'var(--color-primary)') : 'var(--color-primary)';
 
-  // 全資格の合算（資格を切り替えてもデータが消えて見えないよう）
-  const weekCounts = weekDays.map(d =>
-    EXAM_TYPES.reduce((sum, et) =>
-      sum + parseInt(localStorage.getItem(`dailyQCount_${et}_${uid}_${d}`) ?? '0', 10), 0)
-  );
-  const todayCount = weekCounts[6];
-  // 週間達成状況の詳細モーダル用：目標資格のみの日別演習量
+  // 目標資格のみの日別演習量（マイページは全て目標資格基準で表示）
   const weekCountsTarget = weekDays.map(d =>
     targetExam ? parseInt(localStorage.getItem(`dailyQCount_${targetExam}_${uid}_${d}`) ?? '0', 10) : 0
   );
+  const todayCount = weekCountsTarget[6];
 
   // ── ドメイン統計（苦手分析タブ） ──
   const [domainStats, setDomainStats] = useState<DomainStat[]>([]);
@@ -229,7 +224,7 @@ export default function MyPage() {
   // ── 演習履歴（履歴タブ） ──
   const [sessions, setSessions] = useState<Session[]>([]);
   const [histLoading, setHistLoading] = useState(false);
-  const [histLoaded, setHistLoaded] = useState(false);
+  const [histLoadedExam, setHistLoadedExam] = useState<string | null>(null);
   const [expandedSession, setExpandedSession] = useState<string | null>(null);
   const [sessionAnswers, setSessionAnswers] = useState<Record<string, AnswerRecord[]>>({});
   const [answersLoading, setAnswersLoading] = useState<string | null>(null);
@@ -319,14 +314,14 @@ export default function MyPage() {
   }, [user, bookmarkedIds, bookmarkOpLoading]);
 
   useEffect(() => {
-    if (tab !== 'history' || !user || histLoaded) return;
+    if (tab !== 'history' || !user || !targetExam || histLoadedExam === targetExam) return;
     setHistLoading(true);
-    fetch(`${API_ENDPOINT}/users/me/sessions?userId=${user.userId}&limit=10`)
+    fetch(`${API_ENDPOINT}/users/me/sessions?userId=${user.userId}&examType=${targetExam}&limit=10`)
       .then(r => r.json())
-      .then(d => { setSessions(d.items ?? []); setHistLoaded(true); })
+      .then(d => { setSessions(d.items ?? []); setHistLoadedExam(targetExam); })
       .catch(() => {})
       .finally(() => setHistLoading(false));
-  }, [tab, user, histLoaded]);
+  }, [tab, user, targetExam, histLoadedExam]);
 
   const recentSessions = [...sessions]
     .sort((a, b) => (a.endedAt || a.startedAt) > (b.endedAt || b.startedAt) ? -1 : 1)

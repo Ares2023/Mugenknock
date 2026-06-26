@@ -1176,13 +1176,16 @@ app.get('/users/me/question-stats', async (req, res) => {
 app.get('/users/me/sessions', async (req, res) => {
   try {
     const docClient = getClient();
-    const { userId, limit } = req.query;
+    const { userId, limit, examType } = req.query;
+    const exprVals = { ':uid': userId, ':completed': 'completed' };
+    let filterExpr = '#s = :completed';
+    if (examType) { filterExpr += ' AND examType = :et'; exprVals[':et'] = examType; }
     const result = await docClient.send(new QueryCommand({
       TableName: T('Sessions'),
       KeyConditionExpression: 'userId = :uid',
-      FilterExpression: '#s = :completed',
+      FilterExpression: filterExpr,
       ExpressionAttributeNames: { '#s': 'status' },
-      ExpressionAttributeValues: { ':uid': userId, ':completed': 'completed' }
+      ExpressionAttributeValues: exprVals
     }));
     const items = (result.Items || [])
       .sort((a, b) => ((b.endedAt || b.startedAt) > (a.endedAt || a.startedAt) ? 1 : -1))
