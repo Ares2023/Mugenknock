@@ -654,11 +654,7 @@ export default function MyPage() {
                     <div style={{ position: 'relative', height: CH, marginTop: 18 }}>
                       {/* 目標ライン（破線） */}
                       {goal > 0 && (
-                        <div style={{ position: 'absolute', left: 0, right: 0, bottom: (Math.min(goal, maxVal) / maxVal) * CH, borderTop: '1px dashed var(--color-primary)', pointerEvents: 'none' }}>
-                          <span style={{ position: 'absolute', right: 0, top: -7, transform: 'translateY(-50%)', fontSize: 10, fontWeight: 700, color: 'var(--color-primary)', background: 'var(--color-bg-white)', padding: '0 3px' }}>
-                            {ja ? `目標 ${goal}` : `Goal ${goal}`}
-                          </span>
-                        </div>
+                        <div style={{ position: 'absolute', left: 0, right: 0, bottom: (Math.min(goal, maxVal) / maxVal) * CH, borderTop: '1px dashed var(--color-primary)', pointerEvents: 'none' }} />
                       )}
                       {/* 棒 */}
                       <div style={{ display: 'flex', gap: 8, alignItems: 'flex-end', height: '100%' }}>

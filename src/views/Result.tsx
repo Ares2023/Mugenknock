@@ -16,7 +16,9 @@ function shuffleArray<T>(arr: T[]): T[] { const a = [...arr]; for (let i = a.len
 export default function Result() {
   const navigate = useNavigate();
   const location = useLocation();
-  const { results, questions, score, isPassed, examType, mode, timeUp, isQuick, isMini, aborted, earnedPts, dailyBonusPts } = location.state as any;
+  // 遷移直後の一瞬、location.state がセッション側の state（results/questions を持たない）に
+  // 切り替わって再レンダーされることがあるため、配列系はデフォルトを与えてクラッシュを防ぐ。
+  const { results = [], questions = [], score, isPassed, examType, mode, timeUp, isQuick, isMini, aborted, earnedPts, dailyBonusPts } = (location.state as any) ?? {};
   const { user } = useAuth();
 
   const resolvedExamType = examType ?? questions?.[0]?.examType ?? 'SAA';
@@ -290,20 +292,20 @@ export default function Result() {
       </div>
 
       <div style={{ display: 'flex', gap: 'var(--spacing-md)', marginTop: 'var(--spacing-xl)' }}>
-        <Button variant="outline" onClick={() => navigate('/aws/')}>
+        <Button variant="outline" style={{ flex: 2 }} onClick={() => navigate('/aws/')}>
           {t('result.backHome')}
         </Button>
         {isQuick ? (
-          <Button variant="primary" disabled={quickLoading} onClick={restartQuick}>
+          <Button variant="primary" style={{ flex: 3 }} disabled={quickLoading} onClick={restartQuick}>
             {quickLoading ? (
               <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}>
                 <span style={{ width: 14, height: 14, border: '2px solid rgba(0,0,0,0.2)', borderTopColor: '#16191f', borderRadius: '50%', animation: 'sherpa-spin 0.7s linear infinite', flexShrink: 0 }} />
                 {ja ? '準備中...' : 'Loading...'}
               </span>
-            ) : (ja ? 'もう一度（サクッと演習）' : 'Again (Quick)')}
+            ) : (ja ? 'もう一度' : 'Again')}
           </Button>
         ) : (
-          <Button variant="primary" onClick={() => navigate(isExam ? '/aws/exam/setup' : '/aws/exercise/setup')}>
+          <Button variant="primary" style={{ flex: 3 }} onClick={() => navigate(isExam ? '/aws/exam/setup' : '/aws/exercise/setup')}>
             {t('result.retry')}
           </Button>
         )}

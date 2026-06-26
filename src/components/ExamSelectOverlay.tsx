@@ -237,7 +237,7 @@ export default function ExamSelectOverlay({
             return (
               <button
                 key={exam}
-                onClick={() => setPreviewExam(isPreviewing ? null : exam)}
+                onClick={() => setPreviewExam(exam)}
                 style={{
                   flexShrink: 0, width: 80, padding: '10px 6px 8px', cursor: 'pointer',
                   borderRadius: 10, textAlign: 'center', position: 'relative',
