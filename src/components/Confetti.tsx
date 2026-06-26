@@ -8,7 +8,7 @@ const CONFETTI_COLORS = ['#FF9900', '#006CE0', '#037f0c', '#d13212', '#8b5cf6', 
 
 export default function Confetti({
   count = 110,
-  durationMs = 4200,
+  durationMs = 3000,
   onDone,
 }: {
   count?: number;
@@ -41,10 +41,19 @@ export default function Confetti({
       0%   { transform: translateY(-12vh) translateX(0) rotate(0deg); opacity: 1; }
       85%  { opacity: 1; }
       100% { transform: translateY(112vh) translateX(${p.drift}px) rotate(${p.rot}deg); opacity: 0.85; }
-    }`).join(''), [pieces]);
+    }`).join('') + `
+    @keyframes confettiContainerOut {
+      0%      { opacity: 1; }
+      66.666% { opacity: 1; }
+      100%    { opacity: 0; }
+    }`, [pieces]);
 
   return createPortal(
-    <div aria-hidden style={{ position: 'fixed', inset: 0, zIndex: 9700, pointerEvents: 'none', overflow: 'hidden' }}>
+    <div aria-hidden style={{
+      position: 'fixed', inset: 0, zIndex: 9700, pointerEvents: 'none', overflow: 'hidden',
+      // 0〜2秒は不透明、2秒地点からフェード開始し3秒で完全消滅
+      animation: `confettiContainerOut ${durationMs}ms linear forwards`,
+    }}>
       <style>{css}</style>
       {pieces.map(p => (
         <div key={p.id} style={{
