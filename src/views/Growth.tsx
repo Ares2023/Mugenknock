@@ -168,7 +168,7 @@ function DualBarChart({ labels, s1, s2, label1, label2, color1, color2, breakdow
 }
 
 // s2/label2/color2 は optional（省略時は単系列表示）
-function DualLineChart({ labels, s1, s2, label1, label2, color1, color2, markerLabel }: {
+function DualLineChart({ labels, s1, s2, label1, label2, color1, color2, markerLabel, isMobile = false }: {
   labels: string[];
   s1: number[];
   s2?: number[];
@@ -177,6 +177,7 @@ function DualLineChart({ labels, s1, s2, label1, label2, color1, color2, markerL
   color1: string;
   color2?: string;
   markerLabel?: string;
+  isMobile?: boolean;
 }) {
   const [tooltip, setTooltip] = useState<{ i: number } | null>(null);
 
@@ -196,8 +197,16 @@ function DualLineChart({ labels, s1, s2, label1, label2, color1, color2, markerL
   const yTickCount = 4;
   const yStep = step;
 
-  const W = 560, H = 200;
-  const ML = 42, MR = 10, MT = 28, MB = 28;
+  // スマホは viewBox を狭めて（width:100%スケールで拡大）文字・グラフを大きく見せる
+  const W = isMobile ? 360 : 560, H = isMobile ? 230 : 200;
+  const ML = isMobile ? 34 : 42, MR = 10, MT = 28, MB = isMobile ? 34 : 28;
+  // SVG内フォント（スマホは拡大）
+  const fsAxis = isMobile ? 11 : 8;
+  const fsLabel = isMobile ? 12 : 9;
+  const fsLegend = isMobile ? 11 : 9;
+  const fsMarker = isMobile ? 13 : 10;
+  // スマホは点が多いとX軸ラベルが重なるため間引く（末尾は必ず表示）
+  const labelEvery = isMobile && n > 7 ? 2 : 1;
   const chartW = W - ML - MR;
   const chartH = H - MT - MB;
 
@@ -224,12 +233,12 @@ function DualLineChart({ labels, s1, s2, label1, label2, color1, color2, markerL
       {/* Legend */}
       <line x1={ML} y1={8} x2={ML + 16} y2={8} stroke={color1} strokeWidth="2" strokeLinecap="round" />
       <circle cx={ML + 8} cy={8} r={3} fill={color1} />
-      <text x={ML + 20} y={12} fontSize="9" fill="var(--color-text-sub)">{label1}</text>
+      <text x={ML + 20} y={12} fontSize={fsLegend} fill="var(--color-text-sub)">{label1}</text>
       {dual && color2 && label2 && (
         <>
           <line x1={ML + 115} y1={8} x2={ML + 131} y2={8} stroke={color2} strokeWidth="2" strokeLinecap="round" />
           <circle cx={ML + 123} cy={8} r={3} fill={color2} />
-          <text x={ML + 135} y={12} fontSize="9" fill="var(--color-text-sub)">{label2}</text>
+          <text x={ML + 135} y={12} fontSize={fsLegend} fill="var(--color-text-sub)">{label2}</text>
         </>
       )}
 
@@ -242,7 +251,7 @@ function DualLineChart({ labels, s1, s2, label1, label2, color1, color2, markerL
             <line x1={ML} y1={y} x2={ML + chartW} y2={y}
               stroke="var(--color-border)" strokeWidth="1"
               strokeDasharray={i === 0 ? undefined : '3,3'} />
-            <text x={ML - 4} y={y + 3.5} textAnchor="end" fontSize="8" fill="var(--color-text-light)">{fmt(val)}</text>
+            <text x={ML - 4} y={y + 3.5} textAnchor="end" fontSize={fsAxis} fill="var(--color-text-light)">{fmt(val)}</text>
           </g>
         );
       })}
@@ -273,17 +282,18 @@ function DualLineChart({ labels, s1, s2, label1, label2, color1, color2, markerL
         </circle>
       ))}
 
-      {/* X-axis labels */}
-      {labels.map((label, i) => (
-        <text key={i} x={px(i)} y={H - MB + 14} textAnchor="middle" fontSize="9" fill="var(--color-text-sub)">{label}</text>
-      ))}
+      {/* X-axis labels（スマホは間引き、末尾は必ず表示） */}
+      {labels.map((label, i) => {
+        if (i % labelEvery !== 0 && i !== n - 1) return null;
+        return <text key={i} x={px(i)} y={H - MB + 14} textAnchor="middle" fontSize={fsLabel} fill="var(--color-text-sub)">{label}</text>;
+      })}
 
       {/* Last-point vertical marker */}
       {markerLabel && n > 0 && (
         <g style={{ pointerEvents: 'none' }}>
           <line x1={px(n - 1)} y1={MT - 10} x2={px(n - 1)} y2={MT + chartH}
             stroke={color1} strokeWidth={1.5} strokeDasharray="4,3" opacity={0.5} />
-          <text x={px(n - 1) - 4} y={MT - 13} textAnchor="end" fontSize={10} fontWeight="700" fill={color1}>
+          <text x={px(n - 1) - 4} y={MT - 13} textAnchor="end" fontSize={fsMarker} fontWeight="700" fill={color1}>
             {markerLabel}
           </text>
         </g>
@@ -363,6 +373,12 @@ export default function Growth() {
   const [data, setData] = useState<GrowthData | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(false);
+  const [isMobile, setIsMobile] = useState(() => typeof window !== 'undefined' && window.innerWidth < 768);
+  useEffect(() => {
+    const handler = () => setIsMobile(window.innerWidth < 768);
+    window.addEventListener('resize', handler);
+    return () => window.removeEventListener('resize', handler);
+  }, []);
 
   useEffect(() => {
     // 日次: 14日、月次: 12ヶ月
@@ -497,6 +513,7 @@ export default function Growth() {
               s1={src.createdCumulative}
               label1={lang === 'ja' ? '累計生成数' : 'Cumulative'}
               color1={COLOR_GENERATION}
+              isMobile={isMobile}
             />
           </div>
         </>
@@ -536,6 +553,7 @@ export default function Growth() {
               label2={lang === 'ja' ? '累計生成数' : 'Cumulative generated'}
               color2="#94a3b8"
               markerLabel={`${checkRate.toFixed(1)}%`}
+              isMobile={isMobile}
             />
           </div>
         </>
