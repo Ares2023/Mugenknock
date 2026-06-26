@@ -1357,11 +1357,12 @@ export default function Home() {
   const dailyGoal = useMemo(() =>
     Math.max(1, parseInt(localStorage.getItem(`dailyGoal_${uid}`) ?? '10', 10))
   , [uid]);
+  // 目標資格のみの当日演習量（マイページと同じく目標資格基準で表示）
   const [dailyCount, setDailyCount] = useState(() =>
-    EXAM_TYPES.reduce((sum, et) => sum + parseInt(localStorage.getItem(`dailyQCount_${et}_${uid}_${jstDate}`) ?? '0', 10), 0)
+    targetExam ? parseInt(localStorage.getItem(`dailyQCount_${targetExam}_${uid}_${jstDate}`) ?? '0', 10) : 0
   );
   useEffect(() => {
-    setDailyCount(EXAM_TYPES.reduce((sum, et) => sum + parseInt(localStorage.getItem(`dailyQCount_${et}_${uid}_${jstDate}`) ?? '0', 10), 0));
+    setDailyCount(targetExam ? parseInt(localStorage.getItem(`dailyQCount_${targetExam}_${uid}_${jstDate}`) ?? '0', 10) : 0);
   }, [targetExam, uid, jstDate, domainStats]);
 
   const [prevScore, setPrevScore] = useState<number | null>(null);
