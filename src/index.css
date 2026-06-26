@@ -232,7 +232,7 @@ input[type="radio"] {
   0%   { opacity: 0; transform: translateX(6px); }
   12%  { opacity: 1; transform: none; }
   75%  { opacity: 1; transform: none; }
-  100% { opacity: 0; transform: translateX(6px); }
+  100% { opacity: 0; transform: none; }
 }
 
 .sherpa-spinner {
