@@ -303,8 +303,9 @@ export default function ExamSelectOverlay({
           const isCurrentTarget = targetExam === exam;
           return (
             <div style={{ flexShrink: 0, borderTop: `2px solid ${levelColor}33`, background: `${levelColor}08`, padding: '10px 16px', display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: 12, minHeight: 64 }}>
-              {isCurrentTarget && (
-                <div style={{ fontSize: 13, fontWeight: 700, color: 'var(--color-success)' }}>✓ {ja ? '学習中' : 'Studying'}</div>
+              <style>{`@keyframes examStudyingFade { from { opacity: 0; transform: translateX(6px); } to { opacity: 1; transform: none; } }`}</style>
+              {(isCurrentTarget || confirming) && (
+                <div style={{ fontSize: 13, fontWeight: 700, color: 'var(--color-success)', animation: (confirming && !isCurrentTarget) ? 'examStudyingFade 0.4s ease 0.5s both' : undefined }}>✓ {ja ? '学習中' : 'Studying'}</div>
               )}
               {isCurrentTarget ? (
                 <button disabled style={{ width: 44, height: 44, borderRadius: '50%', border: 'none', background: levelColor, color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'default', boxShadow: '0 2px 8px rgba(0,0,0,0.15)', flexShrink: 0 }}>
@@ -317,21 +318,43 @@ export default function ExamSelectOverlay({
                     setConfirming(true);
                     localStorage.setItem(`targetExam_${uid}`, exam);
                     window.dispatchEvent(new CustomEvent('targetExamChanged', { detail: exam }));
-                    setTimeout(() => { onSelect(exam); setConfirming(false); }, 600);
+                    // 押下→オセロ風フリップ(0.55s)→「学習中」フェードイン(0.5s遅延)→反映
+                    setTimeout(() => { onSelect(exam); setConfirming(false); }, 1100);
                   }}
+                  disabled={confirming}
+                  aria-label={ja ? '決定' : 'Confirm'}
                   style={{
-                    width: 44, height: 44, borderRadius: '50%', flexShrink: 0,
-                    border: confirming ? 'none' : `2px solid ${levelColor}`,
-                    background: confirming ? levelColor : 'var(--color-bg-white)',
-                    color: confirming ? '#fff' : levelColor,
-                    display: 'flex', alignItems: 'center', justifyContent: 'center',
-                    cursor: confirming ? 'default' : 'pointer',
-                    boxShadow: '0 2px 8px rgba(0,0,0,0.15)',
-                    transform: confirming ? 'scale(1.18)' : 'scale(1)',
-                    transition: 'transform 0.2s cubic-bezier(.34,1.56,.64,1), background 0.2s, border 0.2s, color 0.2s',
+                    width: 44, height: 44, flexShrink: 0, padding: 0, border: 'none',
+                    background: 'transparent', cursor: confirming ? 'default' : 'pointer',
+                    perspective: 600,
                   }}
                 >
-                  {confirming ? <IconBookOpenCheck size={22} /> : <IconBook size={22} />}
+                  {/* オセロのようにひっくり返る3Dフリップ（表=決定 / 裏=学習中） */}
+                  <div style={{
+                    position: 'relative', width: '100%', height: '100%',
+                    transformStyle: 'preserve-3d',
+                    transition: 'transform 0.55s cubic-bezier(.45,.05,.3,1)',
+                    transform: confirming ? 'rotateY(180deg)' : 'rotateY(0deg)',
+                  }}>
+                    {/* 表面：決定 */}
+                    <span style={{
+                      position: 'absolute', inset: 0, backfaceVisibility: 'hidden', WebkitBackfaceVisibility: 'hidden',
+                      display: 'flex', alignItems: 'center', justifyContent: 'center', borderRadius: '50%',
+                      border: `2px solid ${levelColor}`, background: 'var(--color-bg-white)', color: levelColor,
+                      boxShadow: '0 2px 8px rgba(0,0,0,0.15)',
+                    }}>
+                      <IconBook size={22} />
+                    </span>
+                    {/* 裏面：学習中 */}
+                    <span style={{
+                      position: 'absolute', inset: 0, backfaceVisibility: 'hidden', WebkitBackfaceVisibility: 'hidden',
+                      transform: 'rotateY(180deg)',
+                      display: 'flex', alignItems: 'center', justifyContent: 'center', borderRadius: '50%',
+                      background: levelColor, color: '#fff', boxShadow: '0 2px 8px rgba(0,0,0,0.15)',
+                    }}>
+                      <IconBookOpenCheck size={22} />
+                    </span>
+                  </div>
                 </button>
               )}
             </div>
