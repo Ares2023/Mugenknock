@@ -1,6 +1,7 @@
 'use client';
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate, useLocation } from '@/compat/react-router-dom';
+import Confetti from '../components/Confetti';
 import { PASS_SCORES, PASS_RATE, API_ENDPOINT, EXAM_DOMAINS, DOMAIN_NAME_EN, qDomainName } from '../constants';
 import { useLanguage } from '../contexts/LanguageContext';
 import { useAuth } from '../contexts/AuthContext';
@@ -35,6 +36,16 @@ export default function Result() {
   const [showDailyBonus, setShowDailyBonus] = useState(false);
   useEffect(() => { if (dailyBonusPts > 0) { const t = setTimeout(() => setShowDailyBonus(true), 600); return () => clearTimeout(t); } }, [dailyBonusPts]);
 
+  // 合格時に紙吹雪（遷移直後の state フリッカで再発火しないよう一度だけ）
+  const [showConfetti, setShowConfetti] = useState(false);
+  const confettiFiredRef = useRef(false);
+  useEffect(() => {
+    if (!isPassed || confettiFiredRef.current) return;
+    if (window.matchMedia?.('(prefers-reduced-motion: reduce)').matches) return;
+    confettiFiredRef.current = true;
+    setShowConfetti(true);
+  }, [isPassed]);
+
   const restartQuick = async () => {
     setQuickLoading(true);
     const qPrefs = loadQuickPrefs();
@@ -64,6 +75,7 @@ export default function Result() {
 
   return (
     <div style={{ maxWidth: 900, margin: '0 auto', padding: 'var(--spacing-xl) var(--spacing-lg)' }} className="result-container">
+      {showConfetti && <Confetti onDone={() => setShowConfetti(false)} />}
       <h2 style={{ fontSize: 'var(--font-size-xxl)', fontWeight: 700, margin: '0 0 var(--spacing-xl)', color: 'var(--color-text-main)' }}>
         {isExam ? t('result.examResult') : t('result.exerciseResult')}
       </h2>
