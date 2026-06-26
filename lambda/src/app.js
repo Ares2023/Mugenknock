@@ -115,6 +115,19 @@ async function getAllQuestionsForExam(docClient, examType) {
   return items;
 }
 
+// ── 汎用ウォームキャッシュ（Lambda インスタンス内メモリ・TTL付き） ──
+// read-mostly な全件スキャン（growth-stats / tips / releases 等）の繰り返しを抑え、
+// ユーザー増加時の RCU コストを削減する。更新は TTL 経過後に反映される（最大10分の遅延）。
+const _warmCache = new Map(); // key → { value, at }
+const WARM_TTL = 10 * 60 * 1000; // 10分
+async function warmCached(key, ttlMs, loader) {
+  const hit = _warmCache.get(key);
+  if (hit && Date.now() - hit.at < ttlMs) return hit.value;
+  const value = await loader();
+  _warmCache.set(key, { value, at: Date.now() });
+  return value;
+}
+
 // ── CORS（localhost + Cloudflare Pages + 本番ドメイン許可） ──
 const ALLOWED_ORIGINS = [
   'http://localhost:3000',
@@ -251,10 +264,11 @@ async function pruneUserSessions(docClient, userId) {
 app.get('/questions/growth-stats', async (req, res) => {
   try {
     const docClient = getClient();
-    const allItems = await scanAll(docClient, {
+    // 全件スキャンはウォームキャッシュで共有（集計はリクエスト毎に再計算するので日付バケットは常に最新）
+    const allItems = await warmCached('growth:questions', WARM_TTL, () => scanAll(docClient, {
       TableName: 'Questions',
       ProjectionExpression: 'examType, createdAt, validityCheckedAt',
-    });
+    }));
     // AWS専用サイトのためAWS以外の試験種別（OCIAA等）を除外
     const AWS_EXAM_TYPES = new Set(['CLF','AIF','SAA','DVA','SOA','DEA','MLA','SAP','DOP','GAI','AIP','ANS','SCS']);
     const items = allItems.filter(item => !item.examType || AWS_EXAM_TYPES.has(item.examType));
@@ -1411,14 +1425,10 @@ app.get('/tips', async (req, res) => {
   try {
     const docClient = getClient();
     const { examType } = req.query;
-    const result = await docClient.send(new ScanCommand({
-      TableName: 'Tips',
-      ...(examType ? {
-        FilterExpression: 'examType = :et OR examType = :all',
-        ExpressionAttributeValues: { ':et': examType, ':all': 'ALL' }
-      } : {})
-    }));
-    res.json({ items: result.Items || [] });
+    // 全 Tips をウォームキャッシュ（演習開始ごとに呼ばれるため）。examType 絞り込みは JS 側で行う。
+    const all = await warmCached('tips:all', WARM_TTL, () => scanAll(docClient, { TableName: 'Tips' }));
+    const items = examType ? all.filter(t => t.examType === examType || t.examType === 'ALL') : all;
+    res.json({ items });
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: 'Internal server error' });
@@ -1704,8 +1714,8 @@ app.get('/users/me/bookmarks', async (req, res) => {
 app.get('/releases', async (req, res) => {
   try {
     const docClient = getClient();
-    const result = await docClient.send(new ScanCommand({ TableName: 'Releases' }));
-    const items = (result.Items || []).sort((a, b) => b.date.localeCompare(a.date));
+    const all = await warmCached('releases:all', WARM_TTL, () => scanAll(docClient, { TableName: 'Releases' }));
+    const items = [...all].sort((a, b) => b.date.localeCompare(a.date));
     res.json({ items });
   } catch (err) {
     console.error(err);
