@@ -7,4 +7,8 @@
 # 検証(02)はゲート（未検証問題はアプリ非公開）。生成(01)より先に走らせ、限られた
 # セッション枠を検証バックログの消化に優先配分する。
 15,/home/yuzuki/aws-quiz-app/prompts/night-prompts/scripts/02-check-validity.sh
-20,/home/yuzuki/aws-quiz-app/prompts/night-prompts/scripts/01-generate-questions.sh
+# 生成は難易度強化（--hard）ラッパー経由。夜間生成は以降この難問レベルで行う。
+20,/home/yuzuki/aws-quiz-app/prompts/night-prompts/scripts/01-generate-questions-hard.sh
+# 公式試験ガイドの定期更新（30日以内更新済みはスキップ＝資格ごと実質月1回）。
+# 生成・検証のWebFetch撤去後の現行性担保。生成・検証より後に回す。
+40,/home/yuzuki/aws-quiz-app/prompts/night-prompts/scripts/refresh-exam-guide-monthly.sh

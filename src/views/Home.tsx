@@ -11,7 +11,9 @@ import {
   API_ENDPOINT, EXAM_TYPES, EXAM_CONFIGS, EXAM_DOMAINS,
   DOMAIN_WEIGHTS, DOMAIN_NAME_EN, PASS_SCORES, qDomainName,
   EXAM_LEVEL, EXAM_LEVEL_COLORS,
+  tagIdMatches, domainsToIndices, storedDomainsToNames, questionDomainIndex,
 } from '../constants';
+import { readDomainResults, readDomainHistory } from '../utils/domainStats';
 import { getCached, setCached, deleteCached, DEFAULT_TTL, getCachedPersist, setCachedPersist, deleteCachedPersist } from '../utils/cache';
 import { animateLoadPct, randomPlateau } from '../utils/loadProgress';
 import { getPoints, deductPoints } from '../utils/points';
@@ -40,13 +42,7 @@ function getGrade(pct: number | null): string {
 
 // ロード進捗を limit に向けて漸近的にアニメーション。返り値はキャンセル関数。
 
-function readDomainResults(examType: string, uid: string): Record<string, boolean[]> {
-  try { return JSON.parse(localStorage.getItem(`domain_results_${examType}_${uid}`) ?? '{}'); } catch { return {}; }
-}
-
-function readDomainHistory(examType: string, uid: string): DomainHistory {
-  try { return JSON.parse(localStorage.getItem(`domain_history_${examType}_${uid}`) ?? '{}'); } catch { return {}; }
-}
+// readDomainResults / readDomainHistory は ../utils/domainStats から import（index 文字列キーに正規化）
 
 function readScoreHistory(examType: string, uid: string): ScoreEntry[] {
   try { return JSON.parse(localStorage.getItem(`score_history_${examType}_${uid}`) ?? '[]'); } catch { return []; }
@@ -305,8 +301,8 @@ function CombinedDetailModal({ targetExam, domainAccList, estimatedScore, passSc
               {domains.map((d, i) => {
                 const fullMaxPts = Math.round(weights[i] / totalAllWeights * 1000);
                 const label = lang === 'en' ? (DOMAIN_NAME_EN[d] ?? d) : d;
-                const serverResults = domainStats.find(s => s.tagId === d)?.recentResults;
-                const nodeResults = (serverResults ?? localDomainResults[d] ?? []).slice(-5);
+                const serverResults = domainStats.find(s => tagIdMatches(s.tagId, targetExam, i))?.recentResults;
+                const nodeResults = (serverResults ?? localDomainResults[String(i)] ?? []).slice(-5);
                 const paddedNodes: (boolean | null)[] = [...Array(5 - nodeResults.length).fill(null), ...nodeResults];
                 const correctInNodes = nodeResults.filter(v => !!v).length;
                 const curPts = Math.round(correctInNodes / 5 * fullMaxPts);
@@ -1315,10 +1311,10 @@ export default function Home() {
     if (!targetExam) return {} as Record<string, boolean[]>;
     const localDR = readDomainResults(targetExam, uid);
     const result: Record<string, boolean[]> = {};
-    for (const d of (EXAM_DOMAINS[targetExam] ?? [])) {
-      const serverResults = domainStats.find(s => s.tagId === d)?.recentResults;
-      result[d] = (serverResults ?? localDR[d] ?? []).slice(-5);
-    }
+    (EXAM_DOMAINS[targetExam] ?? []).forEach((d, idx) => {
+      const serverResults = domainStats.find(s => tagIdMatches(s.tagId, targetExam, idx))?.recentResults;
+      result[d] = (serverResults ?? localDR[String(idx)] ?? []).slice(-5);
+    });
     return result;
   }, [targetExam, domainStats, uid]);
 
@@ -1506,10 +1502,10 @@ export default function Home() {
           const items = shuffleArray(cached.questions).slice(0, count);
           if (items.length > 0) {
             setQuickLoadPct(90);
-            const sessionRes = await fetch(`${API_ENDPOINT}/sessions`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ userId, mode: 'exercise', examType: targetExam, questionIds: items.map((q: any) => q.questionId) }) });
-            const sessionData = await sessionRes.json();
+            const questionIds = items.map((q: any) => q.questionId);
             setQuickLoading(false); setQuickLoadPct(0);
-            navigate('/aws/exercise/session', { state: { sessionId: sessionData.sessionId, questions: items, userId, mode: 'exercise', examType: targetExam, isQuick: true } });
+            // セッション作成は遷移先で非同期実行（クリティカルパスから除外）
+            navigate('/aws/exercise/session', { state: { createSession: { userId, mode: 'exercise', examType: targetExam, questionIds }, questions: items, userId, mode: 'exercise', examType: targetExam, isQuick: true } });
             return;
           }
         } catch (err) {
@@ -1520,22 +1516,22 @@ export default function Home() {
 
     try {
       const userId = user?.userId ?? 'guest';
-      const params = new URLSearchParams({ examType: targetExam, withAnswers: 'true' });
       const qCacheKey = `qlist_${targetExam}`;
       const cachedQs = getCachedPersist<{ items: any[]; total: number }>(qCacheKey);
       const needUserData = user && (qPrefs.unansweredOnly || qPrefs.incorrectOnly || qPrefs.bookmarkOnly);
       const plateau = randomPlateau();
       const stopAnim = cachedQs ? null : animateLoadPct(setQuickLoadPct, 10, plateau);
-      // 問題リスト（キャッシュなし時）とユーザーデータを並行フェッチ
+      // プール（フルキャッシュがあればそれを、無ければ metaOnly 軽量取得）とユーザーデータを並行フェッチ。
+      // metaOnly は questionId/domain のみ・validity 済みのみ返すため選定ロジックはそのまま使える。
       const [data, answeredRes, incorrectRes, bkmRes] = await Promise.all([
-        cachedQs ? Promise.resolve(cachedQs) : fetch(`${API_ENDPOINT}/questions?${params}`).then(r => r.json()),
+        cachedQs ? Promise.resolve(cachedQs) : fetch(`${API_ENDPOINT}/questions?examType=${targetExam}&metaOnly=true`).then(r => r.json()),
         needUserData && qPrefs.unansweredOnly ? fetch(`${API_ENDPOINT}/users/me/answered-questions?userId=${userId}&examType=${targetExam}`).then(r => r.json()) : Promise.resolve(null),
         needUserData && qPrefs.incorrectOnly  ? fetch(`${API_ENDPOINT}/users/me/incorrect-questions?userId=${userId}&examType=${targetExam}`).then(r => r.json()) : Promise.resolve(null),
         needUserData && qPrefs.bookmarkOnly   ? fetch(`${API_ENDPOINT}/users/me/bookmarks?userId=${userId}`).then(r => r.json()) : Promise.resolve(null),
       ]);
       if (stopAnim) { stopAnim(); setQuickLoadPct(plateau); }
-      if (!cachedQs) setCachedPersist(qCacheKey, data);
-      const pool: any[] = (data.items ?? []).filter((q: any) => !!q.validityCheckedAt);
+      // フルキャッシュ時のみ明示的に validity フィルタ（metaOnly はサーバ側で済み）
+      const pool: any[] = cachedQs ? (data.items ?? []).filter((q: any) => !!q.validityCheckedAt) : (data.items ?? []);
       let items = [...pool];
       if (needUserData) {
         setQuickLoadPct(80);
@@ -1551,9 +1547,9 @@ export default function Home() {
           return scoreQ(b) - scoreQ(a);
         });
       }
-      const selDomains: string[] = qPrefs.domains ?? [];
-      if (selDomains.length > 0) {
-        items = items.filter((q: any) => selDomains.includes(qDomainName(q)));
+      const selIdx = domainsToIndices(targetExam, qPrefs.domains ?? []);
+      if (selIdx.length > 0) {
+        items = items.filter((q: any) => selIdx.includes(questionDomainIndex(q)));
       }
       const count = qPrefs.questionCount ?? 5;
       items = shuffleArray(items);
@@ -1567,9 +1563,15 @@ export default function Home() {
       if (items.length === 0) { alert(ja ? '条件に合う問題がありません' : 'No questions match the criteria'); return; }
       if (usedFallback) alert(ja ? 'フィルタ条件に合う問題が不足したため、条件外の問題も含めて出題します。' : 'Not enough questions matched your filters. Including additional questions.');
       setQuickLoadPct(90);
-      const sessionRes = await fetch(`${API_ENDPOINT}/sessions`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ userId, mode: 'exercise', examType: targetExam, questionIds: items.map((q: any) => q.questionId) }) });
-      const sessionData = await sessionRes.json();
-      navigate('/aws/exercise/session', { state: { sessionId: sessionData.sessionId, questions: items, userId, mode: 'exercise', examType: targetExam, isQuick: true } });
+      const questionIds = items.map((q: any) => q.questionId);
+      // セッション作成は遷移先で非同期実行。フルキャッシュ時は全問をそのまま渡し、
+      // metaOnly 時は 1 問目だけ取得して残りはプログレッシブロード。
+      if (cachedQs) {
+        navigate('/aws/exercise/session', { state: { createSession: { userId, mode: 'exercise', examType: targetExam, questionIds }, questions: items, userId, mode: 'exercise', examType: targetExam, isQuick: true } });
+      } else {
+        const q1Data = await fetch(`${API_ENDPOINT}/questions?ids=${questionIds[0]}&withAnswers=true&examType=${targetExam}`).then(r => r.json());
+        navigate('/aws/exercise/session', { state: { createSession: { userId, mode: 'exercise', examType: targetExam, questionIds }, questions: q1Data.items ?? [], questionIds, userId, mode: 'exercise', examType: targetExam, isQuick: true } });
+      }
     } catch (err) { console.error(err); alert(ja ? '演習の開始に失敗しました' : 'Failed to start exercise'); }
     finally { setQuickLoading(false); setQuickLoadPct(0); }
   };
@@ -1599,10 +1601,10 @@ export default function Home() {
           const items = shuffleArray(cached.questions).slice(0, count);
           if (items.length > 0) {
             setFocusedLoadPct(90);
-            const sessionRes = await fetch(`${API_ENDPOINT}/sessions`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ userId, mode: 'exercise', examType: targetExam, questionIds: items.map((q: any) => q.questionId), isFocused: true }) });
-            const sessionData = await sessionRes.json();
+            const questionIds = items.map((q: any) => q.questionId);
             setFocusedLoading(false); setFocusedLoadPct(0);
-            navigate('/aws/exercise/session', { state: { sessionId: sessionData.sessionId, questions: items, userId, mode: 'exercise', examType: targetExam, isQuick: true, isFocused: true } });
+            // セッション作成は遷移先で非同期実行（クリティカルパスから除外）
+            navigate('/aws/exercise/session', { state: { createSession: { userId, mode: 'exercise', examType: targetExam, questionIds, isFocused: true }, questions: items, userId, mode: 'exercise', examType: targetExam, isQuick: true, isFocused: true } });
             return;
           }
         } catch (err) {
@@ -1613,19 +1615,19 @@ export default function Home() {
 
     try {
       const userId = user.userId;
-      const params = new URLSearchParams({ examType: targetExam, withAnswers: 'true' });
       const qCacheKey = `qlist_${targetExam}`;
       const cachedQs = getCachedPersist<{ items: any[]; total: number }>(qCacheKey);
       const plateau = randomPlateau();
       const stopAnim = cachedQs ? null : animateLoadPct(setFocusedLoadPct, 10, plateau);
-      // 問題リスト（キャッシュなし時）と苦手問題データを並行フェッチ
+      // プール（フルキャッシュがあればそれを、無ければ metaOnly 軽量取得）と苦手問題データを並行フェッチ。
+      // 弱点ドメイン判定は q.domain のみ・苦手判定は questionId のみ使うため metaOnly で足りる。
       const [data, incorrectRes] = await Promise.all([
-        cachedQs ? Promise.resolve(cachedQs) : fetch(`${API_ENDPOINT}/questions?${params}`).then(r => r.json()),
+        cachedQs ? Promise.resolve(cachedQs) : fetch(`${API_ENDPOINT}/questions?examType=${targetExam}&metaOnly=true`).then(r => r.json()),
         fetch(`${API_ENDPOINT}/users/me/incorrect-questions?userId=${userId}&examType=${targetExam}`).then(r => r.json()),
       ]);
       if (stopAnim) { stopAnim(); setFocusedLoadPct(plateau); }
-      if (!cachedQs) setCachedPersist(qCacheKey, data);
-      const allItems: any[] = (data.items ?? []).filter((q: any) => !!q.validityCheckedAt);
+      // フルキャッシュ時のみ明示的に validity フィルタ（metaOnly はサーバ側で済み）
+      const allItems: any[] = cachedQs ? (data.items ?? []).filter((q: any) => !!q.validityCheckedAt) : (data.items ?? []);
       const incorrectIds = new Set<string>(incorrectRes.questionIds ?? []);
       const focusIncorrect: boolean = fPrefs.focusIncorrect !== false;
       const focusDomain: string = fPrefs.focusDomain ?? 'below60';
@@ -1640,13 +1642,13 @@ export default function Home() {
         const examDomains = EXAM_DOMAINS[targetExam] ?? [];
         const weakDomains = new Set<string>(((): string[] => {
           const hist = readDomainHistory(targetExam, uid);
-          return examDomains.filter(domain => {
-            const stat = domainStats.find(s => s.tagId === domain);
+          return examDomains.filter((domain, idx) => {
+            const stat = domainStats.find(s => tagIdMatches(s.tagId, targetExam, idx));
             if (stat) {
               const total = (stat.correctCount ?? 0) + (stat.incorrectCount ?? 0);
               return total === 0 || (stat.correctCount ?? 0) / total < threshold;
             }
-            const sessions = hist[domain];
+            const sessions = hist[String(idx)];
             if (!sessions || sessions.length === 0) return true;
             const correct = sessions.reduce((s, r) => s + r.correct, 0);
             const total = sessions.reduce((s, r) => s + r.total, 0);
@@ -1665,9 +1667,15 @@ export default function Home() {
       items = Array.from(new Map(items.map((q: any) => [q.questionId, q])).values()).slice(0, count);
       if (items.length === 0) { alert(ja ? '条件に合う問題がありません' : 'No questions match the criteria'); return; }
       setFocusedLoadPct(90);
-      const sessionRes = await fetch(`${API_ENDPOINT}/sessions`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ userId, mode: 'exercise', examType: targetExam, questionIds: items.map((q: any) => q.questionId), isFocused: true }) });
-      const sessionData = await sessionRes.json();
-      navigate('/aws/exercise/session', { state: { sessionId: sessionData.sessionId, questions: items, userId, mode: 'exercise', examType: targetExam, isQuick: true, isFocused: true } });
+      const questionIds = items.map((q: any) => q.questionId);
+      // セッション作成は遷移先で非同期実行。フルキャッシュ時は全問をそのまま渡し、
+      // metaOnly 時は 1 問目だけ取得して残りはプログレッシブロード。
+      if (cachedQs) {
+        navigate('/aws/exercise/session', { state: { createSession: { userId, mode: 'exercise', examType: targetExam, questionIds, isFocused: true }, questions: items, userId, mode: 'exercise', examType: targetExam, isQuick: true, isFocused: true } });
+      } else {
+        const q1Data = await fetch(`${API_ENDPOINT}/questions?ids=${questionIds[0]}&withAnswers=true&examType=${targetExam}`).then(r => r.json());
+        navigate('/aws/exercise/session', { state: { createSession: { userId, mode: 'exercise', examType: targetExam, questionIds, isFocused: true }, questions: q1Data.items ?? [], questionIds, userId, mode: 'exercise', examType: targetExam, isQuick: true, isFocused: true } });
+      }
     } catch (err) { console.error(err); alert(ja ? '演習の開始に失敗しました' : 'Failed to start exercise'); }
     finally { setFocusedLoading(false); setFocusedLoadPct(0); }
   };
@@ -1704,14 +1712,14 @@ export default function Home() {
   const domainAccList = useMemo(() => {
     if (!targetExam) return [] as { correct: number; total: number; pct: number | null }[];
     const hist = readDomainHistory(targetExam, uid);
-    return domains.map(d => {
-      const stat = domainStats.find(s => s.tagId === d);
+    return domains.map((d, idx) => {
+      const stat = domainStats.find(s => tagIdMatches(s.tagId, targetExam, idx));
       if (stat) {
         const correct = stat.correctCount ?? 0;
         const total = correct + (stat.incorrectCount ?? 0);
         return { correct, total, pct: total > 0 ? Math.round(correct / total * 100) : null };
       }
-      const sessions = hist[d];
+      const sessions = hist[String(idx)];
       if (!sessions || sessions.length === 0) return { correct: 0, total: 0, pct: null };
       const correct = sessions.reduce((s, r) => s + r.correct, 0);
       const total = sessions.reduce((s, r) => s + r.total, 0);
@@ -2084,7 +2092,7 @@ export default function Home() {
             <button
               onClick={() => {
                 if (primaryMode === 'focused') { setDraftFocusedPrefs({ ...loadFocusedPrefs(uid) }); setShowFocusedModal(true); }
-                else { const p = loadQuickPrefs(uid); const allDoms = EXAM_DOMAINS[targetExam ?? 'SAA'] ?? []; const validSaved = (p.domains ?? []).filter((d: string) => allDoms.includes(d)); setDraftPrefs({ ...p, domains: validSaved.length > 0 ? validSaved : allDoms }); setShowQuickModal(true); }
+                else { const p = loadQuickPrefs(uid); setDraftPrefs({ ...p, domains: storedDomainsToNames(targetExam ?? 'SAA', p.domains) }); setShowQuickModal(true); }
               }}
               style={{ flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', height: 44, width: 132, border: `1.5px solid ${primaryMode === 'focused' ? '#009E9E' : 'var(--color-primary)'}`, borderRadius: 'var(--border-radius-full)', background: 'var(--color-bg-white)', cursor: 'pointer', color: primaryMode === 'focused' ? '#009E9E' : 'var(--color-primary)', fontWeight: 600, fontSize: 'var(--font-size-base)' }}
             >
@@ -2248,7 +2256,7 @@ export default function Home() {
             <button
               onClick={() => {
                 if (primaryMode === 'focused') { setDraftFocusedPrefs({ ...loadFocusedPrefs(uid) }); setShowFocusedModal(true); }
-                else { const p = loadQuickPrefs(uid); const allDoms = EXAM_DOMAINS[targetExam ?? 'SAA'] ?? []; const validSaved = (p.domains ?? []).filter((d: string) => allDoms.includes(d)); setDraftPrefs({ ...p, domains: validSaved.length > 0 ? validSaved : allDoms }); setShowQuickModal(true); }
+                else { const p = loadQuickPrefs(uid); setDraftPrefs({ ...p, domains: storedDomainsToNames(targetExam ?? 'SAA', p.domains) }); setShowQuickModal(true); }
               }}
               style={{ flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', width: 44, height: 44, border: `1.5px solid ${primaryMode === 'focused' ? '#009E9E' : 'var(--color-primary)'}`, borderRadius: '50%', background: 'transparent', cursor: 'pointer', color: primaryMode === 'focused' ? '#009E9E' : 'var(--color-primary)' }}
               aria-label={ja ? '設定' : 'Settings'}
@@ -2373,12 +2381,12 @@ export default function Home() {
                 <label style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '4px 0', cursor: 'pointer' }}>
                   <input
                     type="checkbox"
-                    checked={draftPrefs.strikeEnabled === false}
-                    onChange={() => setDraftPrefs(p => ({ ...p, strikeEnabled: p.strikeEnabled === false ? true : false }))}
+                    checked={draftPrefs.strikeEnabled === true}
+                    onChange={() => setDraftPrefs(p => ({ ...p, strikeEnabled: p.strikeEnabled === true ? false : true }))}
                     style={{ width: 16, height: 16, flexShrink: 0, accentColor: 'var(--color-primary)' }}
                   />
                   <span style={{ fontSize: 'var(--font-size-sm)', color: 'var(--color-text-main)' }}>
-                    {ja ? '消去法機能をオフ' : 'Disable elimination mode'}
+                    {ja ? '消去法機能をオン' : 'Enable elimination mode'}
                   </span>
                 </label>
                 <div style={{ fontSize: 11, color: 'var(--color-text-light)', marginTop: 4, lineHeight: 1.5 }}>
@@ -2403,7 +2411,7 @@ export default function Home() {
               <button
                 disabled={targetExam !== null && (EXAM_DOMAINS[targetExam] ?? []).length > 0 && (draftPrefs.domains ?? []).length === 0}
                 onClick={() => {
-                  localStorage.setItem(`quickExercisePrefs_${uid}`, JSON.stringify(draftPrefs));
+                  localStorage.setItem(`quickExercisePrefs_${uid}`, JSON.stringify({ ...draftPrefs, domains: domainsToIndices(targetExam ?? 'SAA', draftPrefs.domains ?? []) }));
                   setSavedQuick(true);
                   setTimeout(() => setSavedQuick(false), 2000);
                   if (targetExam) {
@@ -2513,12 +2521,12 @@ export default function Home() {
                 <label style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '4px 0', cursor: 'pointer' }}>
                   <input
                     type="checkbox"
-                    checked={draftFocusedPrefs.strikeEnabled === false}
-                    onChange={() => setDraftFocusedPrefs(p => ({ ...p, strikeEnabled: p.strikeEnabled === false ? true : false }))}
+                    checked={draftFocusedPrefs.strikeEnabled === true}
+                    onChange={() => setDraftFocusedPrefs(p => ({ ...p, strikeEnabled: p.strikeEnabled === true ? false : true }))}
                     style={{ width: 16, height: 16, flexShrink: 0, accentColor: 'var(--color-primary)' }}
                   />
                   <span style={{ fontSize: 'var(--font-size-sm)', color: 'var(--color-text-main)' }}>
-                    {ja ? '消去法機能をオフ' : 'Disable elimination mode'}
+                    {ja ? '消去法機能をオン' : 'Enable elimination mode'}
                   </span>
                 </label>
                 <div style={{ fontSize: 11, color: 'var(--color-text-light)', marginTop: 4, lineHeight: 1.5 }}>

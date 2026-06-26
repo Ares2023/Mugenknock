@@ -8,6 +8,11 @@ set -uo pipefail
 export PATH="/home/yuzuki/local/bin:/home/sera/.config/nvm/versions/node/v20.20.2/bin:$PATH"
 unset ANTHROPIC_API_KEY
 
+# ドメイン定義の単一マスタ（フロント src/data/examDomains.json と共通）。
+# 未設定なら本スクリプト位置から解決。python ブロックはこの env を読む（無ければ埋め込みdictにフォールバック）。
+_EDR_SD="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd 2>/dev/null || true)"
+export EXAM_DOMAINS_JSON_PATH="${EXAM_DOMAINS_JSON_PATH:-${_EDR_SD}/../../../src/data/examDomains.json}"
+
 _find_claude() {
   [ -x /usr/local/bin/claude ] && { echo /usr/local/bin/claude; return; }
   local _cv; _cv=$(command -v claude 2>/dev/null)
@@ -49,6 +54,7 @@ usage: $(basename "$0") [options]
                         部分一致で検索（例: "セキュリティ"）。省略時は全ドメインを処理
   -n, --questions N     1ドメインあたりの問題数（デフォルト: ${QUESTIONS_PER_DOMAIN}）
   -D, --deadline HH:MM  処理終了時間（JST）。この時刻を過ぎたドメインはスキップ
+  -H, --hard            難易度強化（全選択肢で同一サービス・競合要件など本試験の難問レベルへ。正解の一意性は厳守）
   -h, --help            このヘルプを表示
 
 利用可能な資格: ${exams:-（instructions/ に .txt がありません）}
@@ -60,6 +66,7 @@ FORCE_EXAM=""
 FORCE_DOMAIN=""
 DEADLINE=""
 REBUILD_COUNTS=0
+HARD_MODE=0   # --hard で有効。難易度を本試験の難問レベルへ引き上げる（正確性・一意の正解は厳守）
 
 while [[ $# -gt 0 ]]; do
   case "$1" in
@@ -81,6 +88,10 @@ while [[ $# -gt 0 ]]; do
       ;;
     -R|--rebuild-counts)
       REBUILD_COUNTS=1
+      shift
+      ;;
+    -H|--hard)
+      HARD_MODE=1
       shift
       ;;
     -h|--help)
@@ -345,6 +356,34 @@ fi
 INSTRUCTION=$(cat "$INSTRUCTION_DIR/${NEXT_EXAM}.txt")
 COMMON_RULES=$(cat "$INSTRUCTION_DIR/_common-rules.txt")
 
+# ── 難易度強化ブロック（--hard 時のみプロンプトへ注入）────────────────
+# 本物の試験の難問レベルへ引き上げる。ただし「正解は必ず一意」「不正解は
+# 明確な技術的理由で誤り」を絶対条件とし、正確性・問題としての正当性は失わない。
+HARD_BLOCK=""
+if [ "$HARD_MODE" -eq 1 ]; then
+  HARD_BLOCK=$(cat << 'HARDEOF'
+
+【難易度強化（本試験の難問レベルへ）】
+この資格の出題レベルの範囲内で、表面的な知識では解けない難問にすること。
+※絶対条件: 正解は必ず1つに定まり、不正解はいずれも「特定の技術的理由」で明確に誤りであること。複数正解・解釈次第・優劣が曖昧、になる問題は作らない。
+
+1. サービスを共通化する: 可能な限り全選択肢で同じAWSサービス（または同じサービス群）を使い、差は「設定・機能・オプション・構成・運用手順・パラメータ」のレベルに置く。サービス名だけで正解を判別できないようにする。
+   例: 全選択肢が CodeDeploy だが、デプロイ設定/フック/ロールバック条件だけが異なる。
+
+2. 不正解も実在の妥当な機能・設定にする: いかにも正しそうに見える実在の構成にしつつ、各不正解には「要件を満たさない明確な理由」（非対応・スケール/リージョン制限・前提条件の欠落・パフォーマンスやコストの不適合など）を必ず1つ持たせる。
+
+3. 競合する複数要件を入れる: シナリオにコスト/性能/可用性/運用負荷/セキュリティ等の競合要件を複数含め、すべてを同時に満たす唯一の選択肢を問う。「最も〜（コスト効率/運用負荷最小 等）」型を活用する。
+
+4. 具体条件を明示する: 数値・制限値・SLA・データ規模・AZ/リージョン構成・既存アーキテクチャなどの具体条件をシナリオに含め、条件の取捨選択を要求する。
+
+5. ヒントを残さない: 選択肢が似るぶん、正解だけが長い/短い・正解だけ用語が丁寧、などのメタな手がかりを作らない（文字数・語調を揃える）。
+
+※解説では「なぜ正解が唯一適切か」に加え、各不正解の「具体的な失格理由」を必ず明記すること。
+HARDEOF
+)
+  echo "🎯 難易度強化モード（--hard）有効"
+fi
+
 # ── Cognito 認証（ループ前に1回だけ）────────────────────────────
 echo ""
 echo "--- Cognito 認証中 ---"
@@ -386,6 +425,14 @@ def norm(s):
     return re.sub(r'[\s　]+', ' ', s).strip()
 
 EXAM_DOMAINS = {'CLF': ['クラウドの概念', 'セキュリティとコンプライアンス', 'クラウドのテクノロジーとサービス', '請求、料金、およびサポート'], 'SAA': ['セキュアなアーキテクチャの設計', '弾力性に優れたアーキテクチャの設計', '高性能なアーキテクチャの設計', 'コスト最適化されたアーキテクチャの設計'], 'SAP': ['組織の複雑さに対応する設計', '新しいソリューションのための設計', '既存のソリューションの継続的改善', 'ワークロードの移行とモダン化の加速'], 'DVA': ['AWSのサービスを使用した開発', 'セキュリティ', 'デプロイ', 'トラブルシューティングと最適化'], 'SOA': ['モニタリング、ロギング、分析、修復、およびパフォーマンスの最適化', '信頼性とビジネス継続性', 'デプロイ、プロビジョニング、および自動化', 'セキュリティとコンプライアンス', 'ネットワークとコンテンツ配信'], 'DOP': ['SDLC の自動化', '構成管理と Infrastructure as Code (IaC)', '弾力性に優れたクラウドソリューション', 'モニタリングとロギング', 'インシデントとイベントへの対応', 'セキュリティとコンプライアンス'], 'AIF': ['AIとMLの基礎', '生成AIの基礎', '基盤モデルのアプリケーション', '責任あるAIのガイドライン', 'AIソリューションのセキュリティ、コンプライアンス、ガバナンス'], 'MLA': ['機械学習のためのデータ準備', 'MLモデルの開発', 'MLワークフローのデプロイとオーケストレーション', 'MLソリューションの監視、メンテナンス、セキュリティ'], 'AIP': ['基盤モデルの統合、データ管理、コンプライアンス', '実装と統合', 'AIの安全性、セキュリティ、ガバナンス', '生成AIアプリケーションの運用効率と最適化', 'テスト、検証、トラブルシューティング'], 'DEA': ['データの取り込みと変換', 'データストアの管理', 'データオペレーションとサポート', 'データのセキュリティとガバナンス'], 'ANS': ['ネットワーク設計', 'ネットワーク実装', 'ネットワーク管理と運用', 'ネットワークのセキュリティ、コンプライアンス、ガバナンス'], 'SCS': ['検出', 'インシデント対応', 'インフラストラクチャのセキュリティ', 'アイデンティティとアクセス管理', 'データ保護', 'セキュリティの基盤とガバナンス']}
+try:
+    import json as _ejson, os as _eos
+    _ep = _eos.environ.get('EXAM_DOMAINS_JSON_PATH')
+    if _ep and _eos.path.exists(_ep):
+        with open(_ep, encoding='utf-8') as _ef:
+            EXAM_DOMAINS = {k: [d['ja'] for d in v] for k, v in _ejson.load(_ef).items()}
+except Exception:
+    pass
 
 # AWS CLI paginates DynamoDB output as multiple concatenated JSON objects
 _all_items = []
@@ -682,8 +729,8 @@ ${INSTRUCTION}
 【対象資格】${NEXT_EXAM}
 【対象ドメイン】${domain}
 【作成問題数】${_CHUNK_Q} 問
-${EXAM_GUIDE_URL:+【公式試験ガイドURL】${EXAM_GUIDE_URL}
-上記URLを参照し、出題ドメインの最新タスク・要件・対象サービスに基づいて問題を作成してください。
+${EXAM_GUIDE_URL:+【公式試験ガイド】${EXAM_GUIDE_URL}
+（上の「公式試験ガイド概要」は本ガイドから抽出・最新化済み。Web取得は不要。概要のタスク・対象サービスに基づいて作成すること）
 }
 
 【既存問題（重複・類似を避けること）】
@@ -696,26 +743,29 @@ ${EXISTING_TEXTS}
 
 ※ フォーマット規則:
 - choices にラベル（A. B. 等）を付けない（テキストのみ）
-- correctAnswers は choices と完全一致するテキスト
-- correctAnswerIndices は choices 配列内のインデックス（0始まり）
+- correctAnswerIndices が正解の正準指定（choices 配列内のインデックス・0始まり）。必ず正確に設定すること
+- correctAnswers は任意（省略可）。サーバー側で correctAnswerIndices と choices から自動生成される
 - choiceExplanations は choices と同じ要素数・同じ順序（⚠最重要: choiceExplanations[i] は必ず choices[i] の選択肢を説明すること。順序ズレ厳禁）
   - 各選択肢の解説は 100〜150 字（短すぎ・1文のみは不可）
   - 正解選択肢: なぜ正解か（根拠から書き始める）
   - 不正解選択肢: なぜ不正解か（誤りの理由から書き始める）
   - 文頭に「正解です」「不正解です」などの判定文を入れない
-- 複数正解: isMultiple true、correctAnswers/correctAnswerIndices を複数要素で
+- 複数正解: isMultiple true、correctAnswerIndices を複数要素で
 - ${_CHUNK_Q} 問を1つのJSONで返す。domain・tags フィールドは不要（インポート時にサーバー側でセットされる）。
-
+- 本サービスは日本語のみ。英語フィールド（questionTextEn 等）は出力しない。
+${HARD_BLOCK}
 【品質基準】
 ${COMMON_RULES}
 PROMPT
 
-    RESULT=$("$CLAUDE_CMD" -p --allowed-tools WebFetch < "$PROMPT_FILE" 2>&1)
+    # WebFetch は使わない（公式ガイド概要は instructions/*.txt に埋め込み済み・refresh-exam-guide.sh で最新化）。
+    # 毎チャンクのページ取得を止めてトークン消費とレート制限の逼迫を削減する。
+    RESULT=$("$CLAUDE_CMD" -p < "$PROMPT_FILE" 2>&1)
     AI_EXIT=$?
     # npm更新による一時的なバイナリ消失 → 再探索してリトライ
     if [ $AI_EXIT -ne 0 ] && echo "$RESULT" | grep -q "No such file"; then
       CLAUDE_CMD=$(_find_claude)
-      [ -x "${CLAUDE_CMD:-}" ] && { RESULT=$("$CLAUDE_CMD" -p --allowed-tools WebFetch < "$PROMPT_FILE" 2>&1); AI_EXIT=$?; }
+      [ -x "${CLAUDE_CMD:-}" ] && { RESULT=$("$CLAUDE_CMD" -p < "$PROMPT_FILE" 2>&1); AI_EXIT=$?; }
     fi
     rm -f "$PROMPT_FILE"
 

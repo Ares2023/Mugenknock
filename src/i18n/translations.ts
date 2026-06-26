@@ -214,8 +214,8 @@ export const ja: Translations = {
   'result.incorrect': '✗ 不正解',
   'result.correctAnswer': '正解：',
   'result.explanation': '解説：',
-  'result.backHome': 'ホームへ戻る',
-  'result.retry': 'もう一度挑戦する',
+  'result.backHome': 'ホーム',
+  'result.retry': 'もう一度',
 
   // ── Stats ──
   'stats.title': '統計・分析',

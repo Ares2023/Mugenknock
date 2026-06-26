@@ -1,3 +1,5 @@
+import EXAM_DOMAINS_MASTER from './data/examDomains.json';
+
 export const API_ENDPOINT = process.env.NEXT_PUBLIC_API_ENDPOINT
   ?? 'https://a0q3656qw4.execute-api.ap-northeast-1.amazonaws.com/dev';
 
@@ -38,28 +40,19 @@ export const PASS_RATE: Record<string, number> = {
   SCS: 75,
 };
 
-// 試験の出題ドメイン（公式試験ガイドの表記に完全一致）
-export const EXAM_DOMAINS: Record<string, string[]> = {
-  CLF: ['クラウドの概念', 'セキュリティとコンプライアンス', 'クラウドのテクノロジーとサービス', '請求、料金、およびサポート'],
-  SAA: ['セキュアなアーキテクチャの設計', '弾力性に優れたアーキテクチャの設計', '高性能なアーキテクチャの設計', 'コスト最適化されたアーキテクチャの設計'],
-  SAP: ['組織の複雑さに対応する設計', '新しいソリューションのための設計', '既存のソリューションの継続的改善', 'ワークロードの移行とモダン化の加速'],
-  DVA: ['AWSのサービスを使用した開発', 'セキュリティ', 'デプロイ', 'トラブルシューティングと最適化'],
-  SOA: ['モニタリング、ロギング、分析、修復、およびパフォーマンスの最適化', '信頼性とビジネス継続性', 'デプロイ、プロビジョニング、および自動化', 'セキュリティとコンプライアンス', 'ネットワークとコンテンツ配信'],
-  DOP: ['SDLC の自動化', '構成管理と Infrastructure as Code (IaC)', '弾力性に優れたクラウドソリューション', 'モニタリングとロギング', 'インシデントとイベントへの対応', 'セキュリティとコンプライアンス'],
-  AIF: ['AIとMLの基礎', '生成AIの基礎', '基盤モデルのアプリケーション', '責任あるAIのガイドライン', 'AIソリューションのセキュリティ、コンプライアンス、ガバナンス'],
-  MLA: ['機械学習のためのデータ準備', 'MLモデルの開発', 'MLワークフローのデプロイとオーケストレーション', 'MLソリューションの監視、メンテナンス、セキュリティ'],
-  AIP: ['基盤モデルの統合、データ管理、コンプライアンス', '実装と統合', 'AIの安全性、セキュリティ、ガバナンス', '生成AIアプリケーションの運用効率と最適化', 'テスト、検証、トラブルシューティング'],
-  DEA: ['データの取り込みと変換', 'データストアの管理', 'データオペレーションとサポート', 'データのセキュリティとガバナンス'],
-  ANS: ['ネットワーク設計', 'ネットワーク実装', 'ネットワーク管理と運用', 'ネットワークのセキュリティ、コンプライアンス、ガバナンス'],
-  SCS: ['検出', 'インシデント対応', 'インフラストラクチャのセキュリティ', 'アイデンティティとアクセス管理', 'データ保護', 'セキュリティの基盤とガバナンス'],
-};
+// 試験の出題ドメイン（単一マスタ src/data/examDomains.json から導出）
+// 配列 index = ドメインの正準キー。名前は表示専用ラベルとして扱う。
+export const EXAM_DOMAINS: Record<string, string[]> = Object.fromEntries(
+  Object.entries(EXAM_DOMAINS_MASTER).map(([exam, doms]) => [exam, doms.map(d => d.ja)])
+);
 
 // ── domain フィールドのユーティリティ ────────────────────────
-// domain は整数インデックス（新形式）または文字列 / tags 配列（旧形式）
-export type QuestionLike = { examType: string; domain?: number | null };
+// domain は整数インデックス（正準キー）。旧データは文字列の場合があるため両対応。
+export type QuestionLike = { examType: string; domain?: number | string | null };
 
 export function qDomainName(q: QuestionLike): string {
   if (typeof q.domain === 'number') return EXAM_DOMAINS[q.examType]?.[q.domain] ?? '';
+  if (typeof q.domain === 'string') return EXAM_DOMAINS[q.examType]?.[toDomainIndex(q.examType, q.domain)] ?? '';
   return '';
 }
 
@@ -68,76 +61,48 @@ export function qDomainIndex(examType: string, nameOrIndex: number | string): nu
   return EXAM_DOMAINS[examType]?.indexOf(nameOrIndex) ?? -1;
 }
 
-// ドメイン名の英語対応（日本語キー → 英語表示）
-export const DOMAIN_NAME_EN: Record<string, string> = {
-  // CLF
-  'クラウドの概念': 'Cloud Concepts',
-  'セキュリティとコンプライアンス': 'Security and Compliance',
-  'クラウドのテクノロジーとサービス': 'Cloud Technology and Services',
-  '請求、料金、およびサポート': 'Billing, Pricing, and Support',
-  // SAA
-  'セキュアなアーキテクチャの設計': 'Design Secure Architectures',
-  '弾力性に優れたアーキテクチャの設計': 'Design Resilient Architectures',
-  '高性能なアーキテクチャの設計': 'Design High-Performing Architectures',
-  'コスト最適化されたアーキテクチャの設計': 'Design Cost-Optimized Architectures',
-  // SAP
-  '組織の複雑さに対応する設計': 'Design for Organizational Complexity',
-  '新しいソリューションのための設計': 'Design for New Solutions',
-  '既存のソリューションの継続的改善': 'Continuous Improvement for Existing Solutions',
-  'ワークロードの移行とモダン化の加速': 'Accelerate Workload Migration and Modernization',
-  // DVA
-  'AWSのサービスを使用した開発': 'Development with AWS Services',
-  'セキュリティ': 'Security',
-  'デプロイ': 'Deployment',
-  'トラブルシューティングと最適化': 'Troubleshooting and Optimization',
-  // SOA
-  'モニタリング、ロギング、分析、修復、およびパフォーマンスの最適化': 'Monitoring, Logging, Analysis, Remediation, and Performance Optimization',
-  '信頼性とビジネス継続性': 'Reliability and Business Continuity',
-  'デプロイ、プロビジョニング、および自動化': 'Deployment, Provisioning, and Automation',
-  'ネットワークとコンテンツ配信': 'Networking and Content Delivery',
-  // 'セキュリティとコンプライアンス' は CLF と共通キーのため CLF 側で定義済み
-  // DOP
-  'SDLC の自動化': 'SDLC Automation',
-  '構成管理と Infrastructure as Code (IaC)': 'Configuration Management and IaC',
-  '弾力性に優れたクラウドソリューション': 'Resilient Cloud Solutions',
-  'モニタリングとロギング': 'Monitoring and Logging',
-  'インシデントとイベントへの対応': 'Incident and Event Response',
-  // 'セキュリティとコンプライアンス' は CLF と共通キーのため CLF 側で定義済み
-  // AIF
-  'AIとMLの基礎': 'Fundamentals of AI and ML',
-  '生成AIの基礎': 'Fundamentals of Generative AI',
-  '基盤モデルのアプリケーション': 'Applications of Foundation Models',
-  '責任あるAIのガイドライン': 'Guidelines for Responsible AI',
-  'AIソリューションのセキュリティ、コンプライアンス、ガバナンス': 'Security, Compliance, and Governance for AI',
-  // MLA
-  '機械学習のためのデータ準備': 'Data Preparation for ML',
-  'MLモデルの開発': 'ML Model Development',
-  'MLワークフローのデプロイとオーケストレーション': 'Deployment and Orchestration of ML Workflows',
-  'MLソリューションの監視、メンテナンス、セキュリティ': 'ML Solution Monitoring, Maintenance, and Security',
-  // AIP (AIP-C01)
-  '基盤モデルの統合、データ管理、コンプライアンス': 'Foundation Model Integration, Data Management, and Compliance',
-  '実装と統合': 'Implementation and Integration',
-  'AIの安全性、セキュリティ、ガバナンス': 'AI Safety, Security, and Governance',
-  '生成AIアプリケーションの運用効率と最適化': 'Operational Efficiency and Optimization for GenAI Applications',
-  'テスト、検証、トラブルシューティング': 'Testing, Validation, and Troubleshooting',
-  // DEA
-  'データの取り込みと変換': 'Data Ingestion and Transformation',
-  'データストアの管理': 'Data Store Management',
-  'データオペレーションとサポート': 'Data Operations and Support',
-  'データのセキュリティとガバナンス': 'Data Security and Governance',
-  // ANS
-  'ネットワーク設計': 'Network Design',
-  'ネットワーク実装': 'Network Implementation',
-  'ネットワーク管理と運用': 'Network Management and Operation',
-  'ネットワークのセキュリティ、コンプライアンス、ガバナンス': 'Network Security, Compliance, and Governance',
-  // SCS
-  '検出': 'Detection',
-  'インシデント対応': 'Incident Response',
-  'インフラストラクチャのセキュリティ': 'Infrastructure Security',
-  'アイデンティティとアクセス管理': 'Identity and Access Management',
-  'データ保護': 'Data Protection',
-  'セキュリティの基盤とガバナンス': 'Security Foundations and Governance',
-};
+// ── ドメイン正準キー（整数 index）変換ヘルパ ─────────────────
+// 表示は名前、永続化・転送は index を正準キーとする。
+export function domainName(examType: string, idx: number, lang: string = 'ja'): string {
+  const ja = EXAM_DOMAINS[examType]?.[idx] ?? '';
+  return lang === 'en' ? (DOMAIN_NAME_EN[ja] ?? ja) : ja;
+}
+// name / index / 数値文字列 → index（該当なしは -1）
+export function toDomainIndex(examType: string, v: string | number): number {
+  if (typeof v === 'number') return Number.isInteger(v) ? v : -1;
+  if (/^\d+$/.test(v)) return parseInt(v, 10);
+  return EXAM_DOMAINS[examType]?.indexOf(v) ?? -1;
+}
+// 名前/index 配列 → index 配列（永続化・転送用。該当なしは除外）
+export function domainsToIndices(examType: string, values: (string | number)[]): number[] {
+  return values.map(v => toDomainIndex(examType, v)).filter(i => i >= 0);
+}
+// 保存済み（index / 旧名いずれも可）→ 現在の名前配列（表示用）。未保存(undefined)は全ドメイン。
+export function storedDomainsToNames(examType: string, stored: (string | number)[] | undefined): string[] {
+  const all = EXAM_DOMAINS[examType] ?? [];
+  if (!stored) return [...all];
+  const names = stored
+    .map(v => { const i = toDomainIndex(examType, v); return i >= 0 ? all[i] : undefined; })
+    .filter((n): n is string => !!n);
+  return names.length > 0 ? names : [...all];
+}
+// UserTagStats / domain_history の tagId が当該 index に一致するか（tagId は index 文字列）。
+// 第2引数 examType は呼び出し側の安定性のため残置（照合自体には未使用）。
+export function tagIdMatches(tagId: string, _examType: string, idx: number): boolean {
+  return tagId === String(idx);
+}
+// 問題の domain index（旧データ: 文字列は変換、未設定は -1）
+export function questionDomainIndex(q: QuestionLike): number {
+  if (typeof q.domain === 'number') return q.domain;
+  if (typeof q.domain === 'string') return toDomainIndex(q.examType, q.domain);
+  return -1;
+}
+
+// ドメイン名の英語対応（日本語キー → 英語表示）— マスタから導出
+// 共通キー（例: 'セキュリティとコンプライアンス'）は同一 en のため重複しても問題なし。
+export const DOMAIN_NAME_EN: Record<string, string> = Object.fromEntries(
+  Object.values(EXAM_DOMAINS_MASTER).flat().map(d => [d.ja, d.en])
+);
 
 // 試験レベル表示
 export const EXAM_LEVEL: Record<string, string> = {
@@ -196,21 +161,10 @@ export const EXAM_DESC_EN: Record<string, string> = {
 export const DOMAIN_RATE_WARNING = 0.40;
 export const DOMAIN_RATE_CAUTION = 0.60;
 
-// ドメイン配点（公式試験ガイドの割合 %）
-export const DOMAIN_WEIGHTS: Record<string, number[]> = {
-  CLF: [24, 30, 34, 12],
-  SAA: [30, 26, 24, 20],
-  SAP: [26, 29, 25, 20],
-  DVA: [32, 26, 24, 18],
-  SOA: [20, 16, 24, 16, 24],
-  DOP: [22, 17, 15, 15, 14, 17],
-  DEA: [34, 26, 22, 18],
-  AIF: [20, 24, 28, 14, 14],
-  MLA: [28, 26, 22, 24],
-  AIP: [31, 26, 20, 12, 11],
-  ANS: [30, 26, 20, 24],
-  SCS: [16, 14, 18, 20, 18, 14],
-};
+// ドメイン配点（公式試験ガイドの割合 %）— マスタから導出
+export const DOMAIN_WEIGHTS: Record<string, number[]> = Object.fromEntries(
+  Object.entries(EXAM_DOMAINS_MASTER).map(([exam, doms]) => [exam, doms.map(d => d.weight)])
+);
 
 // 模試モードの設定
 export const EXAM_CONFIGS: Record<string, {

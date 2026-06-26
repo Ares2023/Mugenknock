@@ -2,7 +2,9 @@
 import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { createPortal } from 'react-dom';
 import { useNavigate, useLocation } from '@/compat/react-router-dom';
-import { API_ENDPOINT, EXAM_CONFIGS, PASS_RATE, EXAM_LEVEL, qDomainName } from '../constants';
+import { API_ENDPOINT, EXAM_CONFIGS, PASS_RATE, EXAM_LEVEL } from '../constants';
+import { recordSessionDomainStats } from '../utils/domainStats';
+import { qText, qChoiceAt } from '../utils/i18nQuestion';
 import { deleteCached } from '../utils/cache';
 import { addPoints } from '../utils/points';
 import { useAuth } from '../contexts/AuthContext';
@@ -230,41 +232,10 @@ export default function ExamSession() {
         body: JSON.stringify({ userId, status: 'completed', score, isPassed, examType, answeredCount: abortResults.length }),
       });
       const qMap = new Map(answeredQs.map((q: Question) => [q.questionId, q]));
-      const delta: Record<string, { c: number; i: number }> = {};
-      for (const r of abortResults) {
-        const tag = qDomainName(qMap.get(r.questionId) as any ?? {});
-        if (!tag) continue;
-        if (!delta[tag]) delta[tag] = { c: 0, i: 0 };
-        if (r.isCorrect) delta[tag].c++; else delta[tag].i++;
-      }
-      try {
-        const dh: Record<string, { correct: number; total: number }[]> =
-          JSON.parse(localStorage.getItem(`domain_history_${examType}_${userId}`) ?? '{}');
-        for (const [tag, d] of Object.entries(delta)) {
-          if (d.c + d.i === 0) continue;
-          if (!dh[tag]) dh[tag] = [];
-          dh[tag] = [...dh[tag], { correct: d.c, total: d.c + d.i }].slice(-10);
-        }
-        localStorage.setItem(`domain_history_${examType}_${userId}`, JSON.stringify(dh));
-      } catch {}
-      try {
-        const dr: Record<string, boolean[]> =
-          JSON.parse(localStorage.getItem(`domain_results_${examType}_${userId}`) ?? '{}');
-        for (const r of abortResults) {
-          const tag = qDomainName(qMap.get(r.questionId) as any ?? {});
-          if (!tag) continue;
-          if (!dr[tag]) dr[tag] = [];
-          dr[tag] = [...dr[tag], r.isCorrect].slice(-5);
-        }
-        localStorage.setItem(`domain_results_${examType}_${userId}`, JSON.stringify(dr));
-        if (userId && userId !== 'guest') {
-          fetch(`${API_ENDPOINT}/users/me/domain-results`, {
-            method: 'PUT',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ userId, domainResults: dr }),
-          }).catch(() => {});
-        }
-      } catch {}
+      recordSessionDomainStats({
+        examType, userId, results: abortResults,
+        questionById: (qId) => qMap.get(qId) as any,
+      });
       deleteCached(`ustats_${userId}`);
       window.dispatchEvent(new CustomEvent('qstatsRefresh'));
       localStorage.setItem(`postSessionRefresh_${userId}`, String(Date.now()));
@@ -340,44 +311,12 @@ export default function ExamSession() {
         body: JSON.stringify({ userId, status: 'completed', score, isPassed, examType, answeredCount: results.length })
       });
 
-      // ドメイン別 delta 計算
+      // ドメイン別統計を記録（domain_history / domain_results / サーバー同期）
       const qMapFull = new Map(questions.map((q: Question) => [q.questionId, q]));
-      const delta: Record<string, { c: number; i: number }> = {};
-      for (const r of results) {
-        const tag = qDomainName(qMapFull.get(r.questionId) as any ?? {});
-        if (!tag) continue;
-        if (!delta[tag]) delta[tag] = { c: 0, i: 0 };
-        if (r.isCorrect) delta[tag].c++; else delta[tag].i++;
-      }
-      // domain_history に追加（直近10セッション、ゲストでも保存）
-      try {
-        const dh: Record<string, { correct: number; total: number }[]> =
-          JSON.parse(localStorage.getItem(`domain_history_${examType}_${userId}`) ?? '{}');
-        for (const [tag, d] of Object.entries(delta)) {
-          if (d.c + d.i === 0) continue;
-          if (!dh[tag]) dh[tag] = [];
-          dh[tag] = [...dh[tag], { correct: d.c, total: d.c + d.i }].slice(-10);
-        }
-        localStorage.setItem(`domain_history_${examType}_${userId}`, JSON.stringify(dh));
-      } catch {}
-      try {
-        const dr: Record<string, boolean[]> =
-          JSON.parse(localStorage.getItem(`domain_results_${examType}_${userId}`) ?? '{}');
-        for (const r of results) {
-          const tag = qDomainName(qMapFull.get(r.questionId) as any ?? {});
-          if (!tag) continue;
-          if (!dr[tag]) dr[tag] = [];
-          dr[tag] = [...dr[tag], r.isCorrect].slice(-5);
-        }
-        localStorage.setItem(`domain_results_${examType}_${userId}`, JSON.stringify(dr));
-        if (userId && userId !== 'guest') {
-          fetch(`${API_ENDPOINT}/users/me/domain-results`, {
-            method: 'PUT',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ userId, domainResults: dr }),
-          }).catch(() => {});
-        }
-      } catch {}
+      recordSessionDomainStats({
+        examType, userId, results,
+        questionById: (qId) => qMapFull.get(qId) as any,
+      });
       // セッション完了でキャッシュ破棄 → ホーム画面が最新データをサーバーから再取得
       deleteCached(`ustats_${userId}`);
       window.dispatchEvent(new CustomEvent('qstatsRefresh'));
@@ -628,15 +567,14 @@ export default function ExamSession() {
             </div>
           </div>
           <p style={{ fontSize: 'var(--font-size-lg)', lineHeight: 1.6, fontWeight: 400, margin: 0, color: 'var(--color-text-main)', overflowWrap: 'break-word', wordBreak: 'break-word', minWidth: 0, whiteSpace: 'pre-wrap' }}>
-            {lang === 'en' && (currentQ as any).questionTextEn ? (currentQ as any).questionTextEn : currentQ.questionText}
+            {qText(currentQ as any, lang)}
           </p>
         </div>
 
         <div style={{ marginBottom: 'var(--spacing-xl)' }}>
           {shuffledIndices.map((ci: number, displayIdx: number) => {
             const origChoice = currentQ.choices[ci];
-            const choicesEn = (currentQ as any).choicesEn;
-            const choice = (lang === 'en' && choicesEn) ? (choicesEn[ci] ?? origChoice) : origChoice;
+            const choice = qChoiceAt(currentQ as any, lang, ci);
             const isSelected = selected.includes(origChoice);
             return (
               <button

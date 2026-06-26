@@ -1,0 +1,23 @@
+==========================================
+正当性チェック開始: Thu Jun 25 03:40:28 JST 2026
+バッチサイズ: 100問 / チャンクサイズ: 5問
+==========================================
+チェック対象: 100問
+前処理: choices ラベル接頭辞チェック...
+  前処理: ラベル接頭辞なし（全問クリーン）
+チャンク数: 20
+
+--- チャンク 1/20: 5問  開始=03:40:56 ---
+  [FIX  ] mla-3e077b08: サービス正式名称が「Amazon Data Firehose」に変更済。問題文に改行なし。 → 変更: questionText, choices, correctAnswers, explanation, choiceExplanations
+  [FIX  ] mla-c717f901: 問題文の要件・条件に改行なし。SageMaker Data Wrangler の廃止有無を要確認（2024年廃止アナウンスあり）。 → 変更: questionText
+  [FIX  ] mla-71e786c4: FirehoseのParquet変換に「Glueスキーマレジストリ」と誤記（正: データカタログ）。サービス名も旧称のため修正。問題文にも改行を追加。 → 変更: questionText, choices, correctAnswers, explanation, choiceExplanations
+  [FIX  ] mla-5b8536b3: 問題文の各条件が改行なく連続しており読みにくいため、文ごとに改行を追加する。 → 変更: questionText
+  [FIX  ] mla-69d29a10: 問題文の各条件が改行なく連続しており読みにくいため、文ごとに改行を追加する。 → 変更: questionText
+  → 更新完了: OK=0 修正=5 削除=0
+  終了=03:51:42  経過=646秒
+
+--- チャンク 2/20: 5問  開始=03:51:42 ---
+⚠️  レート制限を検出。残りチャンクをスキップ
+stdout: You've hit your session limit · resets 4:10am (Asia/Tokyo)
+
+完了サマリー: 問題なし=0問 / 自動修正=5問 / 削除=0問

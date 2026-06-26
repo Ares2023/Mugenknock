@@ -104,6 +104,15 @@
 - `./scripts/deploy-lambda.sh dev`: 強制的に dev へデプロイ
 - `./scripts/deploy-lambda.sh prod`: 強制的に prod へデプロイ
 
+### Lambda 更新ルール（重要）
+- **Lambda は `awsquizHandler-dev` と `awsquizHandler-prod` の2つが独立**している。Lambda コードを変更したら、原則 **dev と prod の両方をデプロイする**こと（`deploy-lambda.sh` を dev・prod それぞれ実行）。
+- **`git push` では Lambda は一切更新されない。** push は Cloudflare のフロントビルドのみ。Lambda は必ず `deploy-lambda.sh` で手動デプロイする。
+- 各 Lambda の利用者:
+  - **`awsquizHandler-prod`（/prod）**: 本番 mugenknock.com。**加えて現状は検証(develop preview)のフロントも /prod を叩く**（`.env.production` が全ビルドで効くため）。デプロイ済みフロントは両環境ともこれを使用。
+  - **`awsquizHandler-dev`（/dev）**: ローカル開発（`.env.local`）と**夜間スクリプト**（`01-generate-questions.sh` 等の問題生成・取込）。
+- したがって **prod だけ更新すると夜間生成・ローカルが旧コード / dev だけ更新すると本番が旧コード**になる。推奨は「dev に出して検証 → prod に反映」の二段で両方更新。
+- DynamoDB は dev/prod 共通テーブルのためデータは同じ。dev/prod Lambda の違いは「どちらのコードで処理するか」だけ。
+
 ---
 
 ## 技術スタック

@@ -1,0 +1,68 @@
+==========================================
+正当性チェック開始: Thu Jun 25 18:20:31 JST 2026
+バッチサイズ: 30問 / チャンクサイズ: 5問
+==========================================
+チェック対象: 30問
+前処理: choices ラベル接頭辞チェック...
+  前処理: ラベル接頭辞なし（全問クリーン）
+チャンク数: 6
+
+--- チャンク 1/6: 5問  開始=18:20:58 ---
+  [OK   ] sap-q-005
+  [OK   ] sap-q-003
+  [OK   ] dop-q-029
+  [FIX  ] saa-q-extra-015: 複数選択問題だが解説冒頭が「正解：C. セキュリティ」と記号接頭辞付きで不正確かつコスト最適化に未言及。choiceExplanations[0]がセキュリティの内容で誤り。explanation/choiceExplanations/isMultipleを修正。 → 変更: explanation, choiceExplanations
+  [OK   ] dop-q-022
+  → 更新完了: OK=4 修正=1 削除=0
+  終了=18:22:54  経過=116秒
+
+--- チャンク 2/6: 5問  開始=18:22:54 ---
+  [OK   ] dop-q-044
+  [OK   ] dop-q-018
+  [OK   ] dop-q-059
+  [FIX  ] sap-q-020: 内容・正解は適切だが、本文解説が一段落に詰まり選択肢ごとの改行がないため、選択肢別に改行して読みやすく修正。 → 変更: explanation
+  [FIX  ] sap-q-015: 内容・正解は適切だが、choiceExplanations[0]と[2]が同一の合成文で各選択肢に固有対応していないため、選択肢ごとに個別の解説へ修正。 → 変更: choiceExplanations
+  → 更新完了: OK=3 修正=2 削除=0
+  終了=18:25:00  経過=126秒
+
+--- チャンク 3/6: 5問  開始=18:25:01 ---
+  [OK   ] dop-q-073
+  [OK   ] saa-q-extra-001
+  [FIX  ] sap-q-018: correctAnswersが2つのためisMultiple:trueを明示。choiceExplanations[0]と[1]が同一文で重複していたため、各選択肢に対応する内容へ分離した。 → 変更: choiceExplanations
+  [FIX  ] dop-q-008: choiceExplanationsの不正解説明が文頭に判定文「誤りです」を含んでいたため、判定文を除去し内容を保ったまま修正した。 → 変更: choiceExplanations
+  [FIX  ] dop-q-028: choiceExplanationsの不正解説明が文頭に判定文「誤りです」を含んでいたため、判定文を除去し内容を保ったまま修正した。 → 変更: choiceExplanations
+  → 更新完了: OK=2 修正=3 削除=0
+  終了=18:27:18  経過=137秒
+
+--- チャンク 4/6: 5問  開始=18:27:18 ---
+  [OK   ] dop-q-050
+  [OK   ] dop-q-001
+  [FIX  ] dop-q-063: explanationとchoiceExplanations[0][1]に「正解：B.」の判定・記号接頭辞が混入し、[0]がNested Stacks選択肢の内容に対応していない。順番対応とisMultipleを修正。 → 変更: explanation, choiceExplanations
+  [FIX  ] sap-q-011: 正解・対応は妥当だが、不正解のchoiceExplanations[0][2][3]が数十字と極端に短く100字基準を満たさないため拡充。 → 変更: choiceExplanations
+  [OK   ] dop-q-023
+  → 更新完了: OK=3 修正=2 削除=0
+  終了=18:29:35  経過=137秒
+
+--- チャンク 5/6: 5問  開始=18:29:35 ---
+  [OK   ] dop-q-051
+  [OK   ] dop-q-048
+  [OK   ] dop-q-034
+  [FIX  ] dop-q-066: 解説とchoiceExplanationsに「選択肢AAWSは」「AWSはConfig評価は」等の不自然・誤った日本語表記があり読みにくいため修正。 → 変更: explanation, choiceExplanations
+  [FIX  ] dop-q-025: choiceExplanations[3]（CodeCommit）の解説が約20字と極端に短く、他選択肢と分量が乖離しているため100字程度に拡充。解説本文の該当部分も補足。 → 変更: explanation, choiceExplanations
+  → 更新完了: OK=3 修正=2 削除=0
+  終了=18:31:47  経過=132秒
+
+--- チャンク 6/6: 5問  開始=18:31:47 ---
+  [OK   ] dop-q-009
+  [FIX  ] dop-q-069: 内容・正解は妥当だが、解説および選択肢別解説[0]に「向かありません」という誤記があり、選択肢Cの解説も不十分。誤記修正と解説拡充を実施。 → 変更: explanation, choiceExplanations
+  [FIX  ] saa-q-extra-014: 正解だけが著しく長く文字数から正解を推測できてしまうため、不正解選択肢を拡充して文章量を均衡化。対応するchoiceExplanationsも更新。 → 変更: choices, correctAnswers, choiceExplanations
+  [OK   ] sap-q-009
+  [FIX  ] saa-q-extra-008: 正解は妥当だが解説および各choiceExplanationsが100字未満で著しく短いため、内容を補足・拡充して読みやすさと情報量を改善。 → 変更: explanation, choiceExplanations
+  → 更新完了: OK=2 修正=3 削除=0
+  終了=18:34:18  経過=151秒
+
+完了サマリー: 問題なし=17問 / 自動修正=13問 / 削除=0問
+
+==========================================
+チェック終了: Thu Jun 25 18:34:18 JST 2026
+==========================================

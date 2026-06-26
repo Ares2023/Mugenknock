@@ -1,0 +1,11 @@
+=== 2026-06-24 03:51:47 | generate-release-note.sh | exit:0 ===
+[release-note] 対象日: 2026-06-23
+[release-note] 2026-06-23: 45件のコミット
+[release-note] 生成結果:
+{
+  "title": "消去法のON/OFF設定など、演習の使い勝手をまとめて改善！",
+  "body": "トレーニング・サクッと演習それぞれの設定に「消去法を使わない」オプションを追加しました。\n日めくりサービスのシャッフル配信やクロスデバイス同期も強化し、図鑑や目標バーの表示もより正確・スムーズになっています。",
+  "titleEn": "Elimination Mode Toggle & Smoother Daily Service Experience!",
+  "bodyEn": "You can now turn off the elimination feature per practice session in Training and Quick Practice modes.\nWe also improved daily service shuffle/cross-device sync, fixed encyclopedia display bugs, and polished the goal progress bar."
+}
+[release-note] ✓ DynamoDBに挿入しました: 2026-06-23 — 消去法のON/OFF設定など、演習の使い勝手をまとめて改善！

@@ -1,0 +1,11 @@
+=== 2026-06-25 05:01:07 | generate-release-note.sh | exit:0 ===
+[release-note] 対象日: 2026-06-24
+[release-note] 2026-06-24: 22件のコミット
+[release-note] 生成結果:
+{
+  "title": "資格選択がもっと賢く、もっと速く！",
+  "body": "資格選択画面にドメイン別の出題割合が表示されるようになり、どの分野が多く出るかひと目でわかります！\nさらに演習・模試の開始速度も改善し、よりスムーズに学習をスタートできます。",
+  "titleEn": "Smarter Cert Selection & Faster Quiz Start!",
+  "bodyEn": "The certification selector now shows the domain-by-domain question distribution at a glance, so you know exactly what to expect before you dive in.\nPractice and mock exam sessions also launch faster thanks to prefetch caching."
+}
+[release-note] ✓ DynamoDBに挿入しました: 2026-06-24 — 資格選択がもっと賢く、もっと速く！

@@ -1,7 +1,7 @@
 'use client';
 import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from '@/compat/react-router-dom';
-import { API_ENDPOINT, EXAM_TYPES, EXAM_CONFIGS, EXAM_DOMAINS } from '../constants';
+import { API_ENDPOINT, EXAM_TYPES, EXAM_CONFIGS, EXAM_DOMAINS, domainsToIndices, storedDomainsToNames, tagIdMatches } from '../constants';
 import { useAuth } from '../contexts/AuthContext';
 import { useLanguage } from '../contexts/LanguageContext';
 import Card from '../components/ui/Card';
@@ -69,7 +69,7 @@ export default function ExamSetup() {
     setExamType(et);
     if (user) syncTargetExamToServer(user.userId, uid, et);
   };
-  const [selectedDomains, setSelectedDomains] = useState<string[]>(() => { const et = localStorage.getItem(`targetExam_${uid}`) || 'SAA'; return loadExamPrefs(et, uid).domains ?? EXAM_DOMAINS[et] ?? []; });
+  const [selectedDomains, setSelectedDomains] = useState<string[]>(() => { const et = localStorage.getItem(`targetExam_${uid}`) || 'SAA'; return storedDomainsToNames(et, loadExamPrefs(et, uid).domains); });
   const [availableCount, setAvailableCount] = useState<number | null>(null);
   const [loading, setLoading] = useState(false);
   const [showHint, setShowHint] = useState(() => !localStorage.getItem(`sherpaExamHint_${uid}`));
@@ -95,7 +95,7 @@ export default function ExamSetup() {
   useEffect(() => {
     if (isFirstRender.current) { isFirstRender.current = false; return; }
     const prefs = loadExamPrefs(examType, uid);
-    setSelectedDomains(prefs.domains ?? EXAM_DOMAINS[examType]);
+    setSelectedDomains(storedDomainsToNames(examType, prefs.domains));
     setBookmarkOnly(prefs.bookmarkOnly ?? false);
     setUnansweredOnly(prefs.unansweredOnly ?? false);
     setIncorrectOnly(prefs.incorrectOnly ?? false);
@@ -103,7 +103,7 @@ export default function ExamSetup() {
   }, [examType]);
 
   useEffect(() => {
-    saveExamPrefs(examType, uid, { domains: selectedDomains, bookmarkOnly, unansweredOnly, incorrectOnly, aiVerifiedOnly });
+    saveExamPrefs(examType, uid, { domains: domainsToIndices(examType, selectedDomains), bookmarkOnly, unansweredOnly, incorrectOnly, aiVerifiedOnly });
   }, [examType, selectedDomains, bookmarkOnly, unansweredOnly, incorrectOnly, aiVerifiedOnly]);
 
   const resumeExam = () => {
@@ -130,7 +130,7 @@ export default function ExamSetup() {
       try {
         const params = new URLSearchParams({ examType, metaOnly: 'true' });
         const allSelected = EXAM_DOMAINS[examType].every(d => selectedDomains.includes(d));
-        if (!allSelected) params.set('domain', selectedDomains.join(','));
+        if (!allSelected) params.set('domain', domainsToIndices(examType, selectedDomains).join(','));
 
         if (user && (bookmarkOnly || unansweredOnly || incorrectOnly)) {
           const userId = user?.userId;
@@ -206,7 +206,7 @@ export default function ExamSetup() {
       const allSelected = EXAM_DOMAINS[examType].every(d => selectedDomains.includes(d));
       if (user && (bookmarkOnly || unansweredOnly || incorrectOnly)) {
         const params = new URLSearchParams({ examType, withAnswers: 'true' });
-        if (!allSelected) params.set('domain', selectedDomains.join(','));
+        if (!allSelected) params.set('domain', domainsToIndices(examType, selectedDomains).join(','));
 
         const [qRes, bkmRes, answeredRes, incorrectRes] = await Promise.all([
           fetch(`${API_ENDPOINT}/questions?${params}`).then(r => r.json()),
@@ -245,7 +245,7 @@ export default function ExamSetup() {
         if (usedFallback) alert(lang === 'ja' ? 'フィルタ条件に合う問題が不足したため、条件外の問題も含めて出題します。' : 'Not enough questions matched your filters. Including additional questions.');
       } else {
         const params = new URLSearchParams({ examType, withAnswers: 'true' });
-        if (!allSelected) params.set('domain', selectedDomains.join(','));
+        if (!allSelected) params.set('domain', domainsToIndices(examType, selectedDomains).join(','));
         const data = await fetch(`${API_ENDPOINT}/questions?${params}`).then(r => r.json());
         let allItems: any[] = data.items ?? [];
         if (aiVerifiedOnly) allItems = allItems.filter((q: any) => q.aiVerified === true);
@@ -286,12 +286,12 @@ export default function ExamSetup() {
   const domainStep  = ++_s;
   const optionsStep = ++_s;
   const domainRates: Record<string, number | null> = {};
-  for (const d of EXAM_DOMAINS[examType]) {
-    const s = domainStats.find(x => x.tagId === d);
-    if (!s) { domainRates[d] = null; continue; }
+  (EXAM_DOMAINS[examType] ?? []).forEach((d, idx) => {
+    const s = domainStats.find(x => tagIdMatches(x.tagId, examType, idx));
+    if (!s) { domainRates[d] = null; return; }
     const total = s.correctCount + s.incorrectCount;
     domainRates[d] = total > 0 ? s.correctCount / total : null;
-  }
+  });
 
   const lastExam = examSessions.length > 0 ? examSessions[0] : null;
 

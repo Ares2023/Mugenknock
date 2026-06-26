@@ -1,7 +1,8 @@
 'use client';
 import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from '@/compat/react-router-dom';
-import { API_ENDPOINT, EXAM_TYPES, EXAM_DOMAINS, qDomainName } from '../constants';
+import { API_ENDPOINT, EXAM_TYPES, EXAM_DOMAINS, qDomainName, domainsToIndices, storedDomainsToNames, toDomainIndex, tagIdMatches } from '../constants';
+import { readDomainHistory } from '../utils/domainStats';
 import { useAuth } from '../contexts/AuthContext';
 import { useLanguage } from '../contexts/LanguageContext';
 import Card from '../components/ui/Card';
@@ -18,7 +19,7 @@ import { IconLightbulb } from '../components/Icons';
 const _qMetaCache = new Map<string, Promise<{ count: number; items: any[] }>>();
 function fetchQMeta(examType: string, allSelected: boolean, domains: string[]): Promise<{ count: number; items: any[] }> {
   const params = new URLSearchParams({ examType, metaOnly: 'true' });
-  if (!allSelected) params.set('domain', domains.join(','));
+  if (!allSelected) params.set('domain', domainsToIndices(examType, domains).join(','));
   const key = params.toString();
   if (!_qMetaCache.has(key)) {
     _qMetaCache.set(key,
@@ -75,11 +76,11 @@ function shuffleArray<T>(arr: T[]): T[] {
 // ドメインごとの累計演習問数（domain_history から集計）
 function getDomainExerciseCounts(examType: string, uid: string, domains: string[]): Record<string, number> {
   try {
-    const dh: Record<string, { correct: number; total: number }[]> =
-      JSON.parse(localStorage.getItem(`domain_history_${examType}_${uid}`) ?? '{}');
+    const dh = readDomainHistory(examType, uid); // index 文字列キーに正規化済み
     const counts: Record<string, number> = {};
     for (const d of domains) {
-      counts[d] = (dh[d] ?? []).reduce((sum, s) => sum + (s.total ?? 0), 0);
+      const series = dh[String(toDomainIndex(examType, d))] ?? [];
+      counts[d] = series.reduce((sum, s) => sum + (s.total ?? 0), 0);
     }
     return counts;
   } catch { return {}; }
@@ -169,7 +170,7 @@ export default function ExerciseSetup() {
   };
   const [selectedDomains, setSelectedDomains] = useState<string[]>(() => {
     const et = localStorage.getItem(`targetExam_${uid}`) || 'SAA';
-    return loadExercisePrefs(et, uid).domains ?? EXAM_DOMAINS[et] ?? [];
+    return storedDomainsToNames(et, loadExercisePrefs(et, uid).domains);
   });
   const [limit, setLimit] = useState<number>(() => loadExercisePrefs(localStorage.getItem(`targetExam_${uid}`) || 'SAA', uid).limit ?? 10);
   const [loading, setLoading] = useState(false);
@@ -191,7 +192,7 @@ export default function ExerciseSetup() {
   useEffect(() => {
     if (isFirstRender.current) { isFirstRender.current = false; return; }
     const prefs = loadExercisePrefs(examType, uid);
-    setSelectedDomains(prefs.domains ?? EXAM_DOMAINS[examType]);
+    setSelectedDomains(storedDomainsToNames(examType, prefs.domains));
     setLimit(prefs.limit ?? 10);
     setBookmarkOnly(prefs.bookmarkOnly ?? false);
     setUnansweredOnly(prefs.unansweredOnly ?? false);
@@ -199,7 +200,7 @@ export default function ExerciseSetup() {
   }, [examType]);
 
   useEffect(() => {
-    saveExercisePrefs(examType, uid, { domains: selectedDomains, limit, bookmarkOnly, unansweredOnly, incorrectOnly });
+    saveExercisePrefs(examType, uid, { domains: domainsToIndices(examType, selectedDomains), limit, bookmarkOnly, unansweredOnly, incorrectOnly });
   }, [examType, selectedDomains, limit, bookmarkOnly, unansweredOnly, incorrectOnly]);
 
   useEffect(() => {
@@ -339,20 +340,13 @@ export default function ExerciseSetup() {
 
       const questionIds = selectedItems.map((q: any) => q.questionId);
 
-      // フェーズ2: 1問目の完全データ取得とセッション作成を並列実行
-      const [firstRes, sessionRes] = await Promise.all([
-        fetch(`${API_ENDPOINT}/questions?ids=${questionIds[0]}&withAnswers=true&examType=${examType}`).then(r => r.json()),
-        fetch(`${API_ENDPOINT}/sessions`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ userId, mode: 'exercise', examType, questionIds })
-        }).then(r => r.json()),
-      ]);
+      // フェーズ2: 1問目の完全データのみ取得（セッション作成は遷移先で非同期実行）
+      const firstRes = await fetch(`${API_ENDPOINT}/questions?ids=${questionIds[0]}&withAnswers=true&examType=${examType}`).then(r => r.json());
       // 1問目は完全データ、2問目以降は questionIds でプログレッシブロード
       const firstQuestion = firstRes.items?.[0] ?? selectedItems[0];
       navigate('/aws/exercise/session', {
         state: {
-          sessionId: sessionRes.sessionId,
+          createSession: { userId, mode: 'exercise', examType, questionIds },
           questions: [firstQuestion],
           questionIds,
           userId, mode: 'exercise', examType,
@@ -373,12 +367,12 @@ export default function ExerciseSetup() {
   const countStep   = ++_s;
 
   const domainRates: Record<string, number | null> = {};
-  for (const d of EXAM_DOMAINS[examType]) {
-    const s = domainStats.find(x => x.tagId === d);
-    if (!s) { domainRates[d] = null; continue; }
+  (EXAM_DOMAINS[examType] ?? []).forEach((d, idx) => {
+    const s = domainStats.find(x => tagIdMatches(x.tagId, examType, idx));
+    if (!s) { domainRates[d] = null; return; }
     const total = s.correctCount + s.incorrectCount;
     domainRates[d] = total > 0 ? s.correctCount / total : null;
-  }
+  });
 
   return (
     <div style={{ maxWidth: 900, margin: '0 auto', padding: 'var(--spacing-xl) var(--spacing-lg)' }} className="page-container">

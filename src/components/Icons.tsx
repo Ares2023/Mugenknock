@@ -517,8 +517,23 @@ export function ServiceIconUrl({ icon, name, size }: { icon: string; name: strin
   const alreadyBroken = _brokenSvgs.has(svgSrc);
   const [src, setSrc] = React.useState(() => alreadyBroken ? icon : svgSrc);
   const [visible, setVisible] = React.useState(alreadyBroken);
+  const imgRef = React.useRef<HTMLImageElement>(null);
+  // icon プロップが変化したら（日めくり再抽選など）内部 state をリセットして新アイコンを表示する
+  // （useState 初期化は初回のみのため、これがないと src が古いままになる）
+  React.useEffect(() => {
+    const broken = _brokenSvgs.has(svgSrc);
+    setSrc(broken ? icon : svgSrc);
+    setVisible(broken);
+  }, [icon, svgSrc]);
+  // キャッシュ済み画像は onLoad が発火しないことがある（例: 小カードで先に読み込まれた
+  // アイコンを解放モーダルが後から表示する場合）。マウント時に complete を確認して救済する。
+  React.useEffect(() => {
+    const img = imgRef.current;
+    if (img && img.complete && img.naturalWidth > 0) setVisible(true);
+  });
   return (
     <img
+      ref={imgRef}
       src={src} alt={name}
       onLoad={() => setVisible(true)}
       onError={() => { _brokenSvgs.add(svgSrc); setSrc(icon); }}

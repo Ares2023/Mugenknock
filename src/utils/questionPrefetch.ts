@@ -1,5 +1,10 @@
-import { API_ENDPOINT, EXAM_DOMAINS, qDomainName } from '../constants';
-import { getCachedPersist, setCachedPersist } from './cache';
+import { API_ENDPOINT, EXAM_DOMAINS, qDomainName, domainsToIndices, questionDomainIndex } from '../constants';
+import { readDomainHistory } from './domainStats';
+import { getCachedPersist, setCachedPersist, LONG_TTL } from './cache';
+
+// プリフェッチエントリの有効期限（qlist キャッシュと揃える）。
+// 期限切れは削除済み/古い問題を出題し得るため読み出し時に破棄する。
+const PREFETCH_TTL = LONG_TTL;
 
 type Question = {
   questionId: string;
@@ -49,10 +54,6 @@ function shuffle<T>(arr: T[]): T[] {
     [a[i], a[j]] = [a[j], a[i]];
   }
   return a;
-}
-
-function readDomainHistory(examType: string, userId: string): Record<string, { correct: number; total: number }[]> {
-  try { return JSON.parse(localStorage.getItem(`domain_history_${examType}_${userId}`) ?? '{}'); } catch { return {}; }
 }
 
 async function fetchPool(examType: string): Promise<Question[]> {
@@ -107,10 +108,10 @@ export async function prefetchTypeB(examType: string, userId: string, prefs: Foc
     if (focusDomain !== 'none') {
       const threshold = focusDomain === 'below40' ? 0.40 : focusDomain === 'below50' ? 0.50 : focusDomain === 'below70' ? 0.70 : 0.60;
       const examDomains = EXAM_DOMAINS[examType] ?? [];
-      const hist = readDomainHistory(examType, userId);
+      const hist = readDomainHistory(examType, userId); // index 文字列キーに正規化済み
       const weakDomains = new Set<string>(
-        examDomains.filter(domain => {
-          const sessions = hist[domain];
+        examDomains.filter((_domain, idx) => {
+          const sessions = hist[String(idx)];
           if (!sessions || sessions.length === 0) return true;
           const correct = sessions.reduce((s, r) => s + r.correct, 0);
           const total = sessions.reduce((s, r) => s + r.total, 0);
@@ -157,9 +158,9 @@ export async function prefetchTypeC(examType: string, userId: string, prefs: Qui
         return score(b) - score(a);
       });
     }
-    const selDomains: string[] = prefs.domains ?? [];
-    if (selDomains.length > 0) {
-      items = items.filter(q => selDomains.includes(qDomainName(q)));
+    const selIdx = domainsToIndices(examType, prefs.domains ?? []);
+    if (selIdx.length > 0) {
+      items = items.filter(q => selIdx.includes(questionDomainIndex(q)));
     }
     items = shuffle(items);
     if (items.length < 20) {
@@ -168,7 +169,7 @@ export async function prefetchTypeC(examType: string, userId: string, prefs: Qui
     }
     items = Array.from(new Map(items.map(q => [q.questionId, q])).values()).slice(0, 20);
 
-    const snap = JSON.stringify({ unansweredOnly: prefs.unansweredOnly, incorrectOnly: prefs.incorrectOnly, bookmarkOnly: prefs.bookmarkOnly, domains: prefs.domains });
+    const snap = JSON.stringify({ unansweredOnly: prefs.unansweredOnly, incorrectOnly: prefs.incorrectOnly, bookmarkOnly: prefs.bookmarkOnly, domains: domainsToIndices(examType, prefs.domains ?? []) });
     saveEntry(KEY_C(examType, userId), { questions: items, examType, userId, prefsSnapshot: snap, cachedAt: Date.now() });
   } catch (err) {
     console.debug('[prefetch] C failed:', err);
@@ -183,6 +184,7 @@ export function getPrefetchA(examType: string): PrefetchEntry | null {
     if (!raw) return null;
     const entry: PrefetchEntry = JSON.parse(raw);
     if (entry.examType !== examType) return null;
+    if (Date.now() - (entry.cachedAt ?? 0) > PREFETCH_TTL) return null;
     return entry;
   } catch { return null; }
 }
@@ -193,6 +195,7 @@ export function getPrefetchB(examType: string, userId: string, prefs: FocusedPre
     if (!raw) return null;
     const entry: PrefetchEntry = JSON.parse(raw);
     if (entry.examType !== examType || entry.userId !== userId) return null;
+    if (Date.now() - (entry.cachedAt ?? 0) > PREFETCH_TTL) return null;
     const snap = JSON.stringify({ focusIncorrect: prefs.focusIncorrect, focusDomain: prefs.focusDomain });
     if (entry.prefsSnapshot !== snap) return null;
     return entry;
@@ -205,7 +208,8 @@ export function getPrefetchC(examType: string, userId: string, prefs: QuickPrefs
     if (!raw) return null;
     const entry: PrefetchEntry = JSON.parse(raw);
     if (entry.examType !== examType || entry.userId !== userId) return null;
-    const snap = JSON.stringify({ unansweredOnly: prefs.unansweredOnly, incorrectOnly: prefs.incorrectOnly, bookmarkOnly: prefs.bookmarkOnly, domains: prefs.domains });
+    if (Date.now() - (entry.cachedAt ?? 0) > PREFETCH_TTL) return null;
+    const snap = JSON.stringify({ unansweredOnly: prefs.unansweredOnly, incorrectOnly: prefs.incorrectOnly, bookmarkOnly: prefs.bookmarkOnly, domains: domainsToIndices(examType, prefs.domains ?? []) });
     if (entry.prefsSnapshot !== snap) return null;
     return entry;
   } catch { return null; }
