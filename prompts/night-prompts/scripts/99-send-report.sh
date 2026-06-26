@@ -215,88 +215,83 @@ _log_files_3days() {
   done
 }
 
-# 3日分の生成スクリプトログを集計（生成問題数合計 + 資格別明細）
-GEN_SUMMARY=$(LOG_DIR="$LOG_DIR" TODAY="$TODAY" YESTERDAY="$YESTERDAY" python3 << 'PYEOF'
-import os, re, glob
+# 3日分の生成を集計。生成スクリプトは1日に複数回実行されるため、各実行ログ
+# （night-prompts/logs/generate_{date}_HHMMSS.log）を全て読む（nscript ログは
+# 1日1セッションしか残らず過少報告になるため使わない）。
+GEN_SUMMARY=$(NIGHT_LOG_DIR="$NIGHT_PROMPTS_DIR/logs" TODAY="$TODAY" YESTERDAY="$YESTERDAY" python3 << 'PYEOF'
+import os, re, glob, datetime
 
-log_dir = os.environ.get('LOG_DIR', '')
+night_log = os.environ.get('NIGHT_LOG_DIR', '')
 today = os.environ.get('TODAY', '')
 yesterday = os.environ.get('YESTERDAY', '')
-
-dates = [today, yesterday]
-try:
-    import subprocess, datetime
-    d2 = (datetime.date.today() - datetime.timedelta(days=2)).strftime('%Y%m%d')
-    dates.append(d2)
-except:
-    pass
+d2 = (datetime.date.today() - datetime.timedelta(days=2)).strftime('%Y%m%d')
+dates = [d for d in [today, yesterday, d2] if d]
 
 total = 0
-rows = []   # (date, exam, count)
+rows = []
 rate_msgs = []
-
 for d in dates:
-    if not d:
-        continue
-    f = os.path.join(log_dir, f"nscript_01-generate-questions_{d}.log")
-    if not os.path.exists(f):
-        continue
-    content = open(f).read()
-    # 各実行セッションの合計インポート数
-    for m in re.finditer(r'選択: (\S+).*?合計インポート: (\d+)問', content, re.DOTALL):
-        exam, cnt = m.group(1), int(m.group(2))
-        total += cnt
-        rows.append(f"{d[:4]}-{d[4:6]}-{d[6:]} {exam}: {cnt}問生成")
-    if 'レート制限' in content:
-        rate_msgs.append(f"{d[:4]}-{d[4:6]}-{d[6:]}: レート制限あり")
+    day_total = 0
+    day_exam = {}
+    for f in sorted(glob.glob(os.path.join(night_log, f'generate_{d}_*.log'))):
+        try:
+            c = open(f, errors='ignore').read()
+        except Exception:
+            continue
+        em = re.search(r'(?:選択|指定資格): (\S+)', c)
+        exam = em.group(1) if em else '?'
+        n = sum(int(x) for x in re.findall(r'合計インポート: (\d+)問', c))
+        if n > 0:
+            day_total += n
+            day_exam[exam] = day_exam.get(exam, 0) + n
+        if 'レート制限' in c:
+            rate_msgs.append(f"{d[:4]}-{d[4:6]}-{d[6:]}: レート制限あり")
+    if day_total > 0:
+        total += day_total
+        ex = ' '.join(f'{k}:{v}問' for k, v in sorted(day_exam.items()))
+        rows.append(f"{d[:4]}-{d[4:6]}-{d[6:]} {day_total}問生成 ({ex})")
 
-if total == 0 and not rows:
+if total == 0:
     print("3日分の生成なし")
 else:
     print(f"合計 {total}問生成")
     for r in rows:
         print(f"  {r}")
-    for r in rate_msgs:
+    for r in dict.fromkeys(rate_msgs):
         print(f"  ⚠️ {r}")
 PYEOF
 )
 
-# 3日分の妥当性確認ログを集計
-VAL_SUMMARY=$(LOG_DIR="$LOG_DIR" TODAY="$TODAY" YESTERDAY="$YESTERDAY" python3 << 'PYEOF'
-import os, re
+# 3日分の妥当性確認を集計。1日に複数回実行されるため各実行ログを全て読み、
+# 全 "完了サマリー" 行を合算する（旧実装は re.search で1日1件しか拾えず過少報告だった）。
+VAL_SUMMARY=$(NIGHT_LOG_DIR="$NIGHT_PROMPTS_DIR/logs" TODAY="$TODAY" YESTERDAY="$YESTERDAY" python3 << 'PYEOF'
+import os, re, glob, datetime
 
-log_dir = os.environ.get('LOG_DIR', '')
+night_log = os.environ.get('NIGHT_LOG_DIR', '')
 today = os.environ.get('TODAY', '')
 yesterday = os.environ.get('YESTERDAY', '')
+d2 = (datetime.date.today() - datetime.timedelta(days=2)).strftime('%Y%m%d')
+dates = [d for d in [today, yesterday, d2] if d]
 
-dates = [today, yesterday]
-try:
-    import datetime
-    d2 = (datetime.date.today() - datetime.timedelta(days=2)).strftime('%Y%m%d')
-    dates.append(d2)
-except:
-    pass
-
-total_ok, total_fix, total_del = 0, 0, 0
+t_ok, t_fix, t_del = 0, 0, 0
 rows = []
-
 for d in dates:
-    if not d:
-        continue
-    f = os.path.join(log_dir, f"nscript_02-check-validity_{d}.log")
-    if not os.path.exists(f):
-        continue
-    content = open(f).read()
-    m = re.search(r'完了サマリー: 問題なし=(\d+)問 / 自動修正=(\d+)問 / 削除=(\d+)問', content)
-    if m:
-        ok, fix, dl = int(m.group(1)), int(m.group(2)), int(m.group(3))
-        total_ok += ok; total_fix += fix; total_del += dl
-        rows.append(f"{d[:4]}-{d[4:6]}-{d[6:]}: 問題なし={ok} 修正={fix} 削除={dl}")
+    ok = fix = dl = runs = 0
+    for f in sorted(glob.glob(os.path.join(night_log, f'validity_{d}_*.log'))):
+        try:
+            c = open(f, errors='ignore').read()
+        except Exception:
+            continue
+        for m in re.finditer(r'完了サマリー: 問題なし=(\d+)問 / 自動修正=(\d+)問 / 削除=(\d+)問', c):
+            ok += int(m.group(1)); fix += int(m.group(2)); dl += int(m.group(3)); runs += 1
+    if runs > 0:
+        t_ok += ok; t_fix += fix; t_del += dl
+        rows.append(f"{d[:4]}-{d[4:6]}-{d[6:]}: 確認{ok+fix+dl}件（問題なし={ok} 修正={fix} 削除={dl} / {runs}回）")
 
 if not rows:
     print("3日分の実行なし")
 else:
-    print(f"合計: 問題なし={total_ok}問 / 自動修正={total_fix}問 / 削除={total_del}問")
+    print(f"合計: 確認{t_ok+t_fix+t_del}件（問題なし={t_ok} 自動修正={t_fix} 削除={t_del}）")
     for r in rows:
         print(f"  {r}")
 PYEOF
@@ -371,6 +366,12 @@ total = scan_count()
 # 未妥当性確認数
 unchecked = scan_count("attribute_not_exists(validityCheckedAt)")
 
+# 直近3日の権威ある実数（DynamoDBタイムスタンプ。ログ集計のクロスチェック）
+import datetime as _dt
+_thr = (_dt.date.today() - _dt.timedelta(days=2)).strftime('%Y-%m-%d')
+gen_3d = scan_count("createdAt >= :d", {":d": {"S": _thr}})            # 直近3日の新規生成数
+chk_3d = scan_count("validityCheckedAt >= :d", {":d": {"S": _thr}})    # 直近3日に確認された問題数（distinct）
+
 # 未解決通報数
 try:
     r = subprocess.run([AWS, "dynamodb", "scan", "--table-name", "Reports",
@@ -393,6 +394,8 @@ except:
 print(json.dumps({
     "total": total,
     "unchecked": unchecked,
+    "gen_3d": gen_3d,
+    "chk_3d": chk_3d,
     "reports": reports,
     "exam_counts": exam_counts,
 }, ensure_ascii=False))
@@ -401,6 +404,8 @@ PYEOF
 
 DB_TOTAL=$(echo "$DB_STATS" | python3 -c "import json,sys; d=json.load(sys.stdin); print(d['total'])" 2>/dev/null || echo "?")
 DB_UNCHECKED=$(echo "$DB_STATS" | python3 -c "import json,sys; d=json.load(sys.stdin); print(d['unchecked'])" 2>/dev/null || echo "?")
+DB_GEN3D=$(echo "$DB_STATS" | python3 -c "import json,sys; d=json.load(sys.stdin); print(d.get('gen_3d','?'))" 2>/dev/null || echo "?")
+DB_CHK3D=$(echo "$DB_STATS" | python3 -c "import json,sys; d=json.load(sys.stdin); print(d.get('chk_3d','?'))" 2>/dev/null || echo "?")
 DB_REPORTS=$(echo "$DB_STATS" | python3 -c "import json,sys; d=json.load(sys.stdin); print(d['reports'])" 2>/dev/null || echo "?")
 DB_EXAM_TABLE=$(echo "$DB_STATS" | python3 -c "
 import json,sys
@@ -412,6 +417,8 @@ print('\n'.join(rows))
 " 2>/dev/null || echo "  取得失敗")
 
 echo "  総問題数: $DB_TOTAL 問"
+echo "  直近3日 新規生成(createdAt): $DB_GEN3D 問"
+echo "  直近3日 確認済み(validityCheckedAt): $DB_CHK3D 問"
 echo "  未妥当性確認: $DB_UNCHECKED 問"
 echo "  未解決通報: $DB_REPORTS 件"
 echo "  資格別:"
@@ -468,6 +475,8 @@ data = {
     'smtp_user': sys.argv[13],
     'smtp_pass': sys.argv[14],
     'smtp_to':   sys.argv[15],
+    'db_gen3d':  sys.argv[16],
+    'db_chk3d':  sys.argv[17],
 }
 with open('$REPORT_DATA_FILE', 'w') as f:
     json.dump(data, f, ensure_ascii=False)
@@ -476,7 +485,8 @@ with open('$REPORT_DATA_FILE', 'w') as f:
   "$CANARY_RESULT" "${CANARY_DETAIL:-}" \
   "$DB_TOTAL" "$DB_UNCHECKED" "$DB_REPORTS" "$DB_EXAM_TABLE" \
   "$CERT_NEWS" "$JST_NOW" \
-  "$SMTP_USER" "$SMTP_PASS" "$SMTP_TO"
+  "$SMTP_USER" "$SMTP_PASS" "$SMTP_TO" \
+  "$DB_GEN3D" "$DB_CHK3D"
 
 # HTML生成＋メール送信を1つのPythonスクリプトで実行
 SEND_RESULT=$(REPORT_DATA_FILE="$REPORT_DATA_FILE" python3 << 'PYEOF'
@@ -539,6 +549,7 @@ rpt      = e_lines(d['rpt']); rate    = e(d['rate'])
 canary_r = e(d['canary_r']); canary_d = e(d['canary_d'])
 db_total = e(d['db_total']); db_unchk = e(d['db_unchk'])
 db_rpts  = e(d['db_rpts']);  db_exams = e(d['db_exams'])
+db_gen3d = e(d.get('db_gen3d','?')); db_chk3d = e(d.get('db_chk3d','?'))
 cert_html = md_to_html(d['cert']); jst_now  = e(d['jst_now'])
 
 canary_color = "#27ae60" if "PASS" in d['canary_r'] else "#e74c3c"
@@ -591,6 +602,8 @@ html_body = f"""<!DOCTYPE html>
 <div class="card"><table>
   <tr><th>指標</th><th>値</th></tr>
   <tr><td>総問題数</td><td><b>{db_total} 問</b></td></tr>
+  <tr><td>直近3日 新規生成</td><td><b>{db_gen3d} 問</b></td></tr>
+  <tr><td>直近3日 確認済み</td><td><b>{db_chk3d} 問</b></td></tr>
   <tr><td>未妥当性確認</td><td style="color:{unchk_color}"><b>{db_unchk} 問</b></td></tr>
   <tr><td>未解決通報</td><td style="color:{rpts_color}"><b>{db_rpts} 件</b></td></tr>
 </table>
