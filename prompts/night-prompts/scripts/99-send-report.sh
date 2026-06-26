@@ -222,10 +222,12 @@ GEN_SUMMARY=$(NIGHT_LOG_DIR="$NIGHT_PROMPTS_DIR/logs" TODAY="$TODAY" YESTERDAY="
 import os, re, glob, datetime
 
 night_log = os.environ.get('NIGHT_LOG_DIR', '')
-today = os.environ.get('TODAY', '')
-yesterday = os.environ.get('YESTERDAY', '')
-d2 = (datetime.date.today() - datetime.timedelta(days=2)).strftime('%Y%m%d')
-dates = [d for d in [today, yesterday, d2] if d]
+# レポートは未明に実行され「当日」はまだ実績ゼロのため、完了した直近3日（前日〜3日前）を対象にする。
+try:
+    base = datetime.datetime.strptime(os.environ.get('TODAY', ''), '%Y%m%d').date()
+except Exception:
+    base = datetime.date.today()
+dates = [(base - datetime.timedelta(days=k)).strftime('%Y%m%d') for k in (1, 2, 3)]
 
 total = 0
 rows = []
@@ -233,7 +235,8 @@ rate_msgs = []
 for d in dates:
     day_total = 0
     day_exam = {}
-    for f in sorted(glob.glob(os.path.join(night_log, f'generate_{d}_*.log'))):
+    files = sorted(glob.glob(os.path.join(night_log, f'generate_{d}_*.log')))
+    for f in files:
         try:
             c = open(f, errors='ignore').read()
         except Exception:
@@ -246,19 +249,20 @@ for d in dates:
             day_exam[exam] = day_exam.get(exam, 0) + n
         if 'レート制限' in c:
             rate_msgs.append(f"{d[:4]}-{d[4:6]}-{d[6:]}: レート制限あり")
-    if day_total > 0:
-        total += day_total
+    total += day_total
+    if day_exam:
         ex = ' '.join(f'{k}:{v}問' for k, v in sorted(day_exam.items()))
-        rows.append(f"{d[:4]}-{d[4:6]}-{d[6:]} {day_total}問生成 ({ex})")
+    elif not files:
+        ex = 'ログなし'
+    else:
+        ex = '0問'
+    rows.append(f"{d[:4]}-{d[4:6]}-{d[6:]} {day_total}問生成 ({ex})")
 
-if total == 0:
-    print("3日分の生成なし")
-else:
-    print(f"合計 {total}問生成")
-    for r in rows:
-        print(f"  {r}")
-    for r in dict.fromkeys(rate_msgs):
-        print(f"  ⚠️ {r}")
+print(f"合計 {total}問生成")
+for r in rows:
+    print(f"  {r}")
+for r in dict.fromkeys(rate_msgs):
+    print(f"  ⚠️ {r}")
 PYEOF
 )
 
@@ -268,32 +272,32 @@ VAL_SUMMARY=$(NIGHT_LOG_DIR="$NIGHT_PROMPTS_DIR/logs" TODAY="$TODAY" YESTERDAY="
 import os, re, glob, datetime
 
 night_log = os.environ.get('NIGHT_LOG_DIR', '')
-today = os.environ.get('TODAY', '')
-yesterday = os.environ.get('YESTERDAY', '')
-d2 = (datetime.date.today() - datetime.timedelta(days=2)).strftime('%Y%m%d')
-dates = [d for d in [today, yesterday, d2] if d]
+# 完了した直近3日（前日〜3日前）を対象にする。
+try:
+    base = datetime.datetime.strptime(os.environ.get('TODAY', ''), '%Y%m%d').date()
+except Exception:
+    base = datetime.date.today()
+dates = [(base - datetime.timedelta(days=k)).strftime('%Y%m%d') for k in (1, 2, 3)]
 
 t_ok, t_fix, t_del = 0, 0, 0
 rows = []
 for d in dates:
     ok = fix = dl = runs = 0
-    for f in sorted(glob.glob(os.path.join(night_log, f'validity_{d}_*.log'))):
+    files = sorted(glob.glob(os.path.join(night_log, f'validity_{d}_*.log')))
+    for f in files:
         try:
             c = open(f, errors='ignore').read()
         except Exception:
             continue
         for m in re.finditer(r'完了サマリー: 問題なし=(\d+)問 / 自動修正=(\d+)問 / 削除=(\d+)問', c):
             ok += int(m.group(1)); fix += int(m.group(2)); dl += int(m.group(3)); runs += 1
-    if runs > 0:
-        t_ok += ok; t_fix += fix; t_del += dl
-        rows.append(f"{d[:4]}-{d[4:6]}-{d[6:]}: 確認{ok+fix+dl}件（問題なし={ok} 修正={fix} 削除={dl} / {runs}回）")
+    t_ok += ok; t_fix += fix; t_del += dl
+    detail = 'ログなし' if not files else f"問題なし={ok} 修正={fix} 削除={dl} / {runs}回"
+    rows.append(f"{d[:4]}-{d[4:6]}-{d[6:]}: 確認{ok+fix+dl}件（{detail}）")
 
-if not rows:
-    print("3日分の実行なし")
-else:
-    print(f"合計: 確認{t_ok+t_fix+t_del}件（問題なし={t_ok} 自動修正={t_fix} 削除={t_del}）")
-    for r in rows:
-        print(f"  {r}")
+print(f"合計: 確認{t_ok+t_fix+t_del}件（問題なし={t_ok} 自動修正={t_fix} 削除={t_del}）")
+for r in rows:
+    print(f"  {r}")
 PYEOF
 )
 
@@ -340,8 +344,8 @@ echo "  通報: $(echo "$RPT_SUMMARY" | head -1)"
 echo ""
 echo "--- [3] DynamoDB稼働状況 ---"
 
-DB_STATS=$(python3 << 'PYEOF'
-import subprocess, json, sys
+DB_STATS=$(TODAY="$TODAY" python3 << 'PYEOF'
+import subprocess, json, sys, os
 
 AWS = "/home/yuzuki/local/bin/aws"
 REGION = "ap-northeast-1"
@@ -368,9 +372,15 @@ unchecked = scan_count("attribute_not_exists(validityCheckedAt)")
 
 # 直近3日の権威ある実数（DynamoDBタイムスタンプ。ログ集計のクロスチェック）
 import datetime as _dt
-_thr = (_dt.date.today() - _dt.timedelta(days=2)).strftime('%Y-%m-%d')
-gen_3d = scan_count("createdAt >= :d", {":d": {"S": _thr}})            # 直近3日の新規生成数
-chk_3d = scan_count("validityCheckedAt >= :d", {":d": {"S": _thr}})    # 直近3日に確認された問題数（distinct）
+try:
+    _base = _dt.datetime.strptime(os.environ.get('TODAY', ''), '%Y%m%d').date()
+except Exception:
+    _base = _dt.date.today()
+_lo = (_base - _dt.timedelta(days=3)).strftime('%Y-%m-%d')   # 3日前 00:00
+_hi = _base.strftime('%Y-%m-%d')                            # 当日 00:00（未明実行のため当日は除外）
+# 完了した直近3日（前日〜3日前）の権威ある実数
+gen_3d = scan_count("createdAt >= :lo AND createdAt < :hi", {":lo": {"S": _lo}, ":hi": {"S": _hi}})
+chk_3d = scan_count("validityCheckedAt >= :lo AND validityCheckedAt < :hi", {":lo": {"S": _lo}, ":hi": {"S": _hi}})
 
 # 未解決通報数
 try:
