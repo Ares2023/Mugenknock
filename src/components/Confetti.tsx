@@ -27,6 +27,7 @@ export default function Confetti({
       dur: 2.6 + Math.random() * 1.6,            // s（落下時間）
       drift: (Math.random() * 2 - 1) * 80,       // px（横ドリフト）
       rot: (360 + Math.random() * 720) * spinDir, // deg
+      startY: -(15 + Math.random() * 35),        // vh（画面外上方の生成位置・ばらつき）
     };
   }), [count]);
 
@@ -38,7 +39,7 @@ export default function Confetti({
 
   const css = useMemo(() => pieces.map(p => `
     @keyframes confettiFall-${p.id} {
-      0%   { transform: translateY(-12vh) translateX(0) rotate(0deg); opacity: 1; }
+      0%   { transform: translateY(${p.startY}vh) translateX(0) rotate(0deg); opacity: 1; }
       85%  { opacity: 1; }
       100% { transform: translateY(112vh) translateX(${p.drift}px) rotate(${p.rot}deg); opacity: 0.85; }
     }`).join('') + `
@@ -61,7 +62,7 @@ export default function Confetti({
           width: p.size, height: p.isRect ? p.size * 0.5 : p.size,
           background: p.color,
           borderRadius: p.isRect ? 1 : '50%',
-          animation: `confettiFall-${p.id} ${p.dur}s linear ${p.delay}s forwards`,
+          animation: `confettiFall-${p.id} ${p.dur}s linear ${p.delay}s both`,
         }} />
       ))}
     </div>,
