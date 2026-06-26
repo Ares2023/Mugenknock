@@ -77,6 +77,7 @@ export default function MyPage() {
   const [editExamDate, setEditExamDate] = useState('');
   const [editDailyGoal, setEditDailyGoal] = useState(10); // min=10
   const [showExamSelect, setShowExamSelect] = useState(false);
+  const [showWeeklyDetail, setShowWeeklyDetail] = useState(false);
 
   // ── ターゲット試験 ──
   const [targetExam, setTargetExam] = useState<string | null>(() => localStorage.getItem(`targetExam_${uid}`));
@@ -150,10 +151,10 @@ export default function MyPage() {
 
   // ── オーバーレイ表示中は body スクロール無効 ──
   useEffect(() => {
-    const anyOpen = showSettingsEdit || showExamSelect;
+    const anyOpen = showSettingsEdit || showExamSelect || showWeeklyDetail;
     document.body.style.overflow = anyOpen ? 'hidden' : '';
     return () => { document.body.style.overflow = ''; };
-  }, [showSettingsEdit, showExamSelect]);
+  }, [showSettingsEdit, showExamSelect, showWeeklyDetail]);
 
   // ── 週間達成度 ──
   const weekDays = Array.from({ length: 7 }, (_, i) => {
@@ -168,6 +169,10 @@ export default function MyPage() {
       sum + parseInt(localStorage.getItem(`dailyQCount_${et}_${uid}_${d}`) ?? '0', 10), 0)
   );
   const todayCount = weekCounts[6];
+  // 週間達成状況の詳細モーダル用：目標資格のみの日別演習量
+  const weekCountsTarget = weekDays.map(d =>
+    targetExam ? parseInt(localStorage.getItem(`dailyQCount_${targetExam}_${uid}_${d}`) ?? '0', 10) : 0
+  );
 
   // ── ドメイン統計（苦手分析タブ） ──
   const [domainStats, setDomainStats] = useState<DomainStat[]>([]);
@@ -501,11 +506,14 @@ export default function MyPage() {
                   )}
                 </div>
                 <div style={{ width: 1, background: 'var(--color-border)', flexShrink: 0 }} />
-                {/* 右: 習慣達成状況（非クリッカブル） */}
-                <div style={{ flex: 1, minWidth: 0, padding: 'var(--spacing-md)', background: 'var(--color-bg-main)' }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 8 }}>
-                    <span style={{ color: 'var(--color-text-sub)', display: 'flex', alignItems: 'center' }}><IconTrendingUp size={13} /></span>
-                    <span style={{ fontWeight: 700, fontSize: 'var(--font-size-sm)', color: 'var(--color-text-main)' }}>{ja ? '週間達成状況' : 'Weekly Progress'}</span>
+                {/* 右: 週間達成状況（クリッカブル → 詳細モーダル） */}
+                <div style={{ flex: 1, minWidth: 0, padding: 'var(--spacing-md)', background: 'var(--color-bg-white)', cursor: targetExam ? 'pointer' : 'default' }} onClick={() => targetExam && setShowWeeklyDetail(true)}>
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8 }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                      <span style={{ color: 'var(--color-text-sub)', display: 'flex', alignItems: 'center' }}><IconTrendingUp size={13} /></span>
+                      <span style={{ fontWeight: 700, fontSize: 'var(--font-size-sm)', color: 'var(--color-text-main)' }}>{ja ? '週間達成状況' : 'Weekly Progress'}</span>
+                    </div>
+                    {targetExam && <span style={{ color: 'var(--color-text-light)', display: 'flex', alignItems: 'center', flexShrink: 0 }}><IconChevronRight size={16} /></span>}
                   </div>
                   {targetExam ? (
                     <>
@@ -580,10 +588,13 @@ export default function MyPage() {
                 </Card>
                 {/* 週間達成状況（モバイルのみ単独カード） */}
                 {targetExam && (
-                  <Card style={{ marginBottom: 12, background: 'var(--color-bg-main)', boxShadow: 'none', border: '1px solid color-mix(in srgb, var(--color-text-light) 40%, transparent)' }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 12 }}>
-                      <span style={{ color: 'var(--color-text-sub)', display: 'flex', alignItems: 'center' }}><IconTrendingUp size={13} /></span>
-                      <span style={{ fontWeight: 700, fontSize: 'var(--font-size-sm)', color: 'var(--color-text-main)' }}>{ja ? '週間達成状況' : 'Weekly Progress'}</span>
+                  <Card style={{ marginBottom: 12, cursor: 'pointer' }} onClick={() => setShowWeeklyDetail(true)}>
+                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                        <span style={{ color: 'var(--color-text-sub)', display: 'flex', alignItems: 'center' }}><IconTrendingUp size={13} /></span>
+                        <span style={{ fontWeight: 700, fontSize: 'var(--font-size-sm)', color: 'var(--color-text-main)' }}>{ja ? '週間達成状況' : 'Weekly Progress'}</span>
+                      </div>
+                      <span style={{ color: 'var(--color-text-light)', display: 'flex', alignItems: 'center', flexShrink: 0 }}><IconChevronRight size={16} /></span>
                     </div>
                     <div style={{ fontSize: 12, color: 'var(--color-text-sub)', marginBottom: 8 }}>{ja ? '直近7日間' : 'Last 7 days'}</div>
                     <div style={{ display: 'flex', gap: 6, alignItems: 'flex-end' }}>
@@ -615,6 +626,76 @@ export default function MyPage() {
               </>
             )}
 
+            {/* 週間達成状況 詳細ポップアップ（1週間分の演習量 棒グラフ） */}
+            {showWeeklyDetail && targetExam && (() => {
+              const goal = dailyGoal;
+              const maxVal = Math.max(...weekCountsTarget, goal, 1);
+              const CH = 150; // 棒グラフ描画領域の高さ(px)
+              const weekTotal = weekCountsTarget.reduce((a, b) => a + b, 0);
+              const achievedDays = weekCountsTarget.filter(c => goal > 0 && c >= goal).length;
+              return (
+                <div
+                  style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', zIndex: 1000, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16 }}
+                  onClick={() => setShowWeeklyDetail(false)}
+                >
+                  <div style={{ background: 'var(--color-bg-white)', borderRadius: 'var(--border-radius-lg)', padding: 20, width: '100%', maxWidth: 440, boxShadow: 'var(--box-shadow-md)' }} onClick={e => e.stopPropagation()}>
+                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 4 }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                        <span style={{ color: 'var(--color-text-sub)', display: 'flex', alignItems: 'center' }}><IconTrendingUp size={15} /></span>
+                        <span style={{ fontWeight: 700, fontSize: 'var(--font-size-base)', color: 'var(--color-text-main)' }}>{ja ? '週間達成状況' : 'Weekly Progress'}</span>
+                      </div>
+                      <button onClick={() => setShowWeeklyDetail(false)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--color-text-light)', fontSize: 20, lineHeight: 1, padding: '0 4px' }}>✕</button>
+                    </div>
+                    <div style={{ fontSize: 12, color: 'var(--color-text-sub)', marginBottom: 24 }}>
+                      {ja ? `直近7日間の演習量（${targetExam}）` : `Last 7 days · ${targetExam}`}
+                    </div>
+
+                    {/* 棒グラフ本体 */}
+                    <div style={{ position: 'relative', height: CH, marginTop: 18 }}>
+                      {/* 目標ライン（破線） */}
+                      {goal > 0 && (
+                        <div style={{ position: 'absolute', left: 0, right: 0, bottom: (Math.min(goal, maxVal) / maxVal) * CH, borderTop: '1px dashed var(--color-primary)', pointerEvents: 'none' }}>
+                          <span style={{ position: 'absolute', right: 0, top: -7, transform: 'translateY(-50%)', fontSize: 10, fontWeight: 700, color: 'var(--color-primary)', background: 'var(--color-bg-white)', padding: '0 3px' }}>
+                            {ja ? `目標 ${goal}` : `Goal ${goal}`}
+                          </span>
+                        </div>
+                      )}
+                      {/* 棒 */}
+                      <div style={{ display: 'flex', gap: 8, alignItems: 'flex-end', height: '100%' }}>
+                        {weekDays.map((d, i) => {
+                          const count = weekCountsTarget[i];
+                          const achieved = goal > 0 && count >= goal;
+                          const h = (count / maxVal) * CH;
+                          const barH = Math.max(h, count > 0 ? 3 : 0);
+                          return (
+                            <div key={d} style={{ flex: 1, position: 'relative', height: '100%', display: 'flex', alignItems: 'flex-end' }}>
+                              <div style={{ width: '100%', maxWidth: 30, margin: '0 auto', height: barH, background: achieved ? examColor : `${examColor}55`, borderRadius: '3px 3px 0 0', transition: 'height 0.3s' }} />
+                              <span style={{ position: 'absolute', bottom: barH + 2, left: '50%', transform: 'translateX(-50%)', fontSize: 11, fontWeight: 700, color: count > 0 ? (achieved ? examColor : 'var(--color-text-sub)') : 'var(--color-text-light)' }}>{count}</span>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    </div>
+                    {/* 曜日ラベル */}
+                    <div style={{ display: 'flex', gap: 8, marginTop: 6 }}>
+                      {weekDays.map((d) => {
+                        const isToday = d === jstToday();
+                        const dayLabel = new Date(d + 'T12:00:00').toLocaleDateString(ja ? 'ja-JP' : 'en-US', { weekday: 'short' });
+                        return (
+                          <div key={d} style={{ flex: 1, textAlign: 'center', fontSize: 10, color: isToday ? examColor : 'var(--color-text-light)', fontWeight: isToday ? 700 : 400 }}>{dayLabel}</div>
+                        );
+                      })}
+                    </div>
+
+                    {/* サマリー */}
+                    <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 12, color: 'var(--color-text-sub)', borderTop: '1px solid var(--color-border)', paddingTop: 12, marginTop: 18 }}>
+                      <span>{ja ? '7日間合計' : '7-day total'}: <strong style={{ color: 'var(--color-text-main)' }}>{weekTotal}{ja ? '問' : ''}</strong></span>
+                      <span>{ja ? '達成日数' : 'Achieved'}: <strong style={{ color: examColor }}>{achievedDays}/7{ja ? '日' : ''}</strong></span>
+                    </div>
+                  </div>
+                </div>
+              );
+            })()}
 
             {/* 設定編集ポップアップ */}
             {showSettingsEdit && (
