@@ -82,7 +82,7 @@ export default function Practice() {
   const [bookmarkOnly, setBookmarkOnly] = useState<boolean>(() => initPrefs(localStorage.getItem(`targetExam_${uid}`) || 'SAA').bookmarkOnly ?? false);
   const [unansweredOnly, setUnansweredOnly] = useState<boolean>(() => initPrefs(localStorage.getItem(`targetExam_${uid}`) || 'SAA').unansweredOnly ?? false);
   const [incorrectOnly, setIncorrectOnly] = useState<boolean>(() => initPrefs(localStorage.getItem(`targetExam_${uid}`) || 'SAA').incorrectOnly ?? false);
-  const [strikeEnabled, setStrikeEnabled] = useState<boolean>(() => initPrefs(localStorage.getItem(`targetExam_${uid}`) || 'SAA').strikeEnabled !== false);
+  const [strikeEnabled, setStrikeEnabled] = useState<boolean>(() => initPrefs(localStorage.getItem(`targetExam_${uid}`) || 'SAA').strikeEnabled === true);
   const [hideColumn, setHideColumn] = useState<boolean>(() => initPrefs(localStorage.getItem(`targetExam_${uid}`) || 'SAA').hideColumn === true);
   const [availableCount, setAvailableCount] = useState<number | null>(null);
   const [exerciseLoading, setExerciseLoading] = useState(false);
@@ -116,7 +116,7 @@ export default function Practice() {
     setBookmarkOnly(prefs.bookmarkOnly ?? false);
     setUnansweredOnly(prefs.unansweredOnly ?? false);
     setIncorrectOnly(prefs.incorrectOnly ?? false);
-    setStrikeEnabled(prefs.strikeEnabled !== false);
+    setStrikeEnabled(prefs.strikeEnabled === true);
     setHideColumn(prefs.hideColumn === true);
   }, [examType]);
 
@@ -498,12 +498,12 @@ export default function Practice() {
                   <label style={{ display: 'flex', alignItems: 'center', gap: 8, cursor: 'pointer' }}>
                     <input
                       type="checkbox"
-                      checked={!strikeEnabled}
+                      checked={strikeEnabled}
                       onChange={() => setStrikeEnabled(v => !v)}
                       style={{ width: 15, height: 15, flexShrink: 0, accentColor: 'var(--color-primary)' }}
                     />
                     <span style={{ fontSize: 'var(--font-size-sm)', color: 'var(--color-text-main)' }}>
-                      {ja ? '消去法機能をオフ' : 'Disable elimination mode'}
+                      {ja ? '消去法機能をオン' : 'Enable elimination mode'}
                     </span>
                   </label>
                   <div style={{ fontSize: 11, color: 'var(--color-text-light)', marginTop: 4, lineHeight: 1.5 }}>

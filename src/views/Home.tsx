@@ -2381,12 +2381,12 @@ export default function Home() {
                 <label style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '4px 0', cursor: 'pointer' }}>
                   <input
                     type="checkbox"
-                    checked={draftPrefs.strikeEnabled === false}
-                    onChange={() => setDraftPrefs(p => ({ ...p, strikeEnabled: p.strikeEnabled === false ? true : false }))}
+                    checked={draftPrefs.strikeEnabled === true}
+                    onChange={() => setDraftPrefs(p => ({ ...p, strikeEnabled: p.strikeEnabled === true ? false : true }))}
                     style={{ width: 16, height: 16, flexShrink: 0, accentColor: 'var(--color-primary)' }}
                   />
                   <span style={{ fontSize: 'var(--font-size-sm)', color: 'var(--color-text-main)' }}>
-                    {ja ? '消去法機能をオフ' : 'Disable elimination mode'}
+                    {ja ? '消去法機能をオン' : 'Enable elimination mode'}
                   </span>
                 </label>
                 <div style={{ fontSize: 11, color: 'var(--color-text-light)', marginTop: 4, lineHeight: 1.5 }}>
@@ -2521,12 +2521,12 @@ export default function Home() {
                 <label style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '4px 0', cursor: 'pointer' }}>
                   <input
                     type="checkbox"
-                    checked={draftFocusedPrefs.strikeEnabled === false}
-                    onChange={() => setDraftFocusedPrefs(p => ({ ...p, strikeEnabled: p.strikeEnabled === false ? true : false }))}
+                    checked={draftFocusedPrefs.strikeEnabled === true}
+                    onChange={() => setDraftFocusedPrefs(p => ({ ...p, strikeEnabled: p.strikeEnabled === true ? false : true }))}
                     style={{ width: 16, height: 16, flexShrink: 0, accentColor: 'var(--color-primary)' }}
                   />
                   <span style={{ fontSize: 'var(--font-size-sm)', color: 'var(--color-text-main)' }}>
-                    {ja ? '消去法機能をオフ' : 'Disable elimination mode'}
+                    {ja ? '消去法機能をオン' : 'Enable elimination mode'}
                   </span>
                 </label>
                 <div style={{ fontSize: 11, color: 'var(--color-text-light)', marginTop: 4, lineHeight: 1.5 }}>

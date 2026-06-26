@@ -274,14 +274,14 @@ export default function ExerciseSession() {
   const [isQuick, setIsQuick] = useState<boolean>(state?.isQuick ?? false);
   const [isFocused, setIsFocused] = useState<boolean>(state?.isFocused ?? false);
   const [isMini, setIsMini] = useState<boolean>(state?.isMini ?? false);
-  // 消去法機能の有効/無効（state に明示値があれば優先、なければ prefs から読む）
+  // 消去法機能の有効/無効（デフォルト OFF。明示的に true のときのみ有効）
   const strikeEnabled = (() => {
-    if (state?.strikeEnabled === false) return false;
+    if (typeof state?.strikeEnabled === 'boolean') return state.strikeEnabled;
     const uid = state?.userId;
-    if (!uid) return true;
+    if (!uid) return false;
     const key = (state?.isFocused) ? `focusedExercisePrefs_${uid}` : (state?.isQuick) ? `quickExercisePrefs_${uid}` : null;
-    if (!key) return true;
-    try { return JSON.parse(localStorage.getItem(key) ?? '{}').strikeEnabled !== false; } catch { return true; }
+    if (!key) return false;
+    try { return JSON.parse(localStorage.getItem(key) ?? '{}').strikeEnabled === true; } catch { return false; }
   })();
   // コラム非表示フラグ（state に明示値があれば優先、なければ prefs から読む）
   const hideColumn = (() => {
