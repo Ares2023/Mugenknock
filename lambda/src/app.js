@@ -6,6 +6,14 @@ const { v4: uuidv4 } = require('uuid');
 const { CognitoJwtVerifier } = require('aws-jwt-verify');
 const { ADMIN_EMAIL, EXAM_DOMAINS } = require('./constants');
 
+// ── 環境別テーブル名解決 ───────────────────────────────────────
+// ユーザーデータ系テーブルは dev/prod で分離（接尾辞 -dev / -prod）。
+// コンテンツ系（Questions/Tips/Releases/DailyServices/AppSettings/Reports 等）は共有のまま。
+// 環境は各 Lambda の既存環境変数 ENV（awsquizHandler-dev→'dev' / -prod→'prod'）で判定。
+const APP_ENV = process.env.ENV || 'prod';
+const SPLIT_TABLES = new Set(['Sessions', 'UserAnswers', 'UserQuestionStats', 'UserTagStats', 'UserPoints', 'EncyclopediaUnlocks']);
+function T(name) { return SPLIT_TABLES.has(name) ? `${name}-${APP_ENV}` : name; }
+
 // ── domain フィールドのユーティリティ ──────────────────────────
 // domain は整数インデックス（EXAM_DOMAINS[examType][domain]）
 // 旧データ: tags 配列、または domain が文字列の場合があるため両対応
@@ -231,7 +239,7 @@ const SESSION_RETENTION_LIMIT = 365;
 // 件数キャップに一本化（UserAnswers の TTL は廃止）。剪定失敗は呼び出し側で握りつぶす。
 async function pruneUserSessions(docClient, userId) {
   const sessions = await queryAll(docClient, {
-    TableName: 'Sessions',
+    TableName: T('Sessions'),
     KeyConditionExpression: 'userId = :uid',
     ExpressionAttributeValues: { ':uid': userId },
     ProjectionExpression: 'sessionId, endedAt, startedAt',
@@ -245,16 +253,16 @@ async function pruneUserSessions(docClient, userId) {
   const overflow = sessions.slice(SESSION_RETENTION_LIMIT);
   for (const s of overflow) {
     const answers = await queryAll(docClient, {
-      TableName: 'UserAnswers',
+      TableName: T('UserAnswers'),
       KeyConditionExpression: 'userId = :uid AND begins_with(questionIdTimestamp, :p)',
       ExpressionAttributeValues: { ':uid': userId, ':p': `${s.sessionId}#` },
       ProjectionExpression: 'questionIdTimestamp',
     });
     await Promise.all(answers.map(a => docClient.send(new DeleteCommand({
-      TableName: 'UserAnswers', Key: { userId, questionIdTimestamp: a.questionIdTimestamp },
+      TableName: T('UserAnswers'), Key: { userId, questionIdTimestamp: a.questionIdTimestamp },
     }))));
     await docClient.send(new DeleteCommand({
-      TableName: 'Sessions', Key: { userId, sessionId: s.sessionId },
+      TableName: T('Sessions'), Key: { userId, sessionId: s.sessionId },
     }));
   }
 }
@@ -455,7 +463,7 @@ app.get('/questions', async (req, res) => {
       const hasFilter = qUserId && (bookmarkOnly === 'true' || unansweredOnly === 'true' || incorrectOnly === 'true');
       if (hasFilter) {
         const statsResult = await docClient.send(new QueryCommand({
-          TableName: 'UserQuestionStats',
+          TableName: T('UserQuestionStats'),
           KeyConditionExpression: 'userId = :uid',
           ExpressionAttributeValues: { ':uid': qUserId }
         }));
@@ -973,7 +981,7 @@ app.post('/sessions', async (req, res) => {
     };
     if (isMini) item.isMini = true;
     if (isFocused) item.isFocused = true;
-    await docClient.send(new PutCommand({ TableName: 'Sessions', Item: item }));
+    await docClient.send(new PutCommand({ TableName: T('Sessions'), Item: item }));
     res.json({ sessionId });
   } catch (err) {
     console.error(err);
@@ -997,13 +1005,13 @@ app.post('/sessions/:id/answers', async (req, res) => {
     const transactItems = [
       {
         Put: {
-          TableName: 'UserAnswers',
+          TableName: T('UserAnswers'),
           Item: { userId, questionIdTimestamp, questionId, sessionId: req.params.id, selectedAnswers, isCorrect, answeredAt: now }
         }
       },
       {
         Update: {
-          TableName: 'UserQuestionStats',
+          TableName: T('UserQuestionStats'),
           Key: { userId, questionId },
           UpdateExpression: isCorrect
             ? 'ADD correctCount :one SET lastAnsweredAt = :now'
@@ -1031,7 +1039,7 @@ app.get('/sessions/:id/answers', async (req, res) => {
     // ソートキー questionIdTimestamp は `${sessionId}#${questionId}#${ts}` 形式。
     // begins_with で該当セッションのみ読む（userId 全履歴の読み取り＋Filter を回避）。
     const answersResult = await docClient.send(new QueryCommand({
-      TableName: 'UserAnswers',
+      TableName: T('UserAnswers'),
       KeyConditionExpression: 'userId = :uid AND begins_with(questionIdTimestamp, :sidp)',
       ExpressionAttributeValues: { ':uid': userId, ':sidp': `${sessionId}#` },
     }));
@@ -1077,7 +1085,7 @@ app.put('/users/me/domain-results', async (req, res) => {
     await Promise.all(
       Object.entries(domainResults).map(([tagId, results]) =>
         docClient.send(new UpdateCommand({
-          TableName: 'UserTagStats',
+          TableName: T('UserTagStats'),
           Key: { userId, tagId },
           UpdateExpression: 'SET recentResults = :r',
           ExpressionAttributeValues: { ':r': results }
@@ -1098,7 +1106,7 @@ app.put('/sessions/:id', async (req, res) => {
     const { userId, status, score, isPassed } = req.body;
     const now = new Date().toISOString();
     await docClient.send(new UpdateCommand({
-      TableName: 'Sessions',
+      TableName: T('Sessions'),
       Key: { userId, sessionId: req.params.id },
       UpdateExpression: 'SET #s = :status, score = :score, isPassed = :isPassed, endedAt = :now',
       ExpressionAttributeNames: { '#s': 'status' },
@@ -1121,7 +1129,7 @@ app.get('/sessions/:id', async (req, res) => {
     const docClient = getClient();
     const { userId } = req.query;
     const result = await docClient.send(new GetCommand({
-      TableName: 'Sessions',
+      TableName: T('Sessions'),
       Key: { userId, sessionId: req.params.id }
     }));
     if (!result.Item) return res.status(404).json({ error: 'Session not found' });
@@ -1145,7 +1153,7 @@ app.get('/users/me/question-stats', async (req, res) => {
     // correctCount + incorrectCount の合計 = 解いた問題数（正誤・重複問わず）。
     const PREFIX_MAP = { 'gai': 'AIP' };
     const statsResult = await docClient.send(new QueryCommand({
-      TableName: 'UserQuestionStats',
+      TableName: T('UserQuestionStats'),
       KeyConditionExpression: 'userId = :uid',
       ExpressionAttributeValues: { ':uid': userId },
       ProjectionExpression: 'questionId, correctCount, incorrectCount',
@@ -1170,7 +1178,7 @@ app.get('/users/me/sessions', async (req, res) => {
     const docClient = getClient();
     const { userId, limit } = req.query;
     const result = await docClient.send(new QueryCommand({
-      TableName: 'Sessions',
+      TableName: T('Sessions'),
       KeyConditionExpression: 'userId = :uid',
       FilterExpression: '#s = :completed',
       ExpressionAttributeNames: { '#s': 'status' },
@@ -1193,7 +1201,7 @@ app.get('/users/me/stats', async (req, res) => {
     const { userId } = req.query;
     const [statsResult, resetResult] = await Promise.all([
       docClient.send(new QueryCommand({
-        TableName: 'UserTagStats',
+        TableName: T('UserTagStats'),
         KeyConditionExpression: 'userId = :userId',
         ExpressionAttributeValues: { ':userId': userId },
       })),
@@ -1235,16 +1243,16 @@ app.delete('/users/me/data', async (req, res) => {
     const questionIds = (questionsResult.Items || []).map(q => q.questionId);
 
     // 2. UserQuestionStats 削除
-    await deleteItems('UserQuestionStats', questionIds.map(qid => ({ userId, questionId: qid })));
+    await deleteItems(T('UserQuestionStats'), questionIds.map(qid => ({ userId, questionId: qid })));
 
     // 3. UserTagStats 削除（ドメインタグのみ。正準キーは index 文字列）
     const domains = EXAM_DOMAINS[examType] || [];
     const tagIds = domains.map((_, i) => String(i));
-    await deleteItems('UserTagStats', tagIds.map(tagId => ({ userId, tagId })));
+    await deleteItems(T('UserTagStats'), tagIds.map(tagId => ({ userId, tagId })));
 
     // 4. Sessions を取得
     const sessionsResult = await docClient.send(new QueryCommand({
-      TableName: 'Sessions',
+      TableName: T('Sessions'),
       KeyConditionExpression: 'userId = :uid',
       FilterExpression: 'examType = :et',
       ExpressionAttributeValues: { ':uid': userId, ':et': examType },
@@ -1256,19 +1264,19 @@ app.delete('/users/me/data', async (req, res) => {
       let lastKey;
       do {
         const answersResult = await docClient.send(new QueryCommand({
-          TableName: 'UserAnswers',
+          TableName: T('UserAnswers'),
           KeyConditionExpression: 'userId = :uid AND begins_with(questionIdTimestamp, :prefix)',
           ExpressionAttributeValues: { ':uid': userId, ':prefix': `${sessionId}#` },
           ExclusiveStartKey: lastKey,
         }));
         const answerKeys = (answersResult.Items || []).map(a => ({ userId: a.userId, questionIdTimestamp: a.questionIdTimestamp }));
-        await deleteItems('UserAnswers', answerKeys);
+        await deleteItems(T('UserAnswers'), answerKeys);
         lastKey = answersResult.LastEvaluatedKey;
       } while (lastKey);
     }
 
     // 6. Sessions 削除
-    await deleteItems('Sessions', sessionIds.map(sid => ({ userId, sessionId: sid })));
+    await deleteItems(T('Sessions'), sessionIds.map(sid => ({ userId, sessionId: sid })));
 
     // 7. スコア履歴削除
     try {
@@ -1300,19 +1308,19 @@ async function executeUserDataReset(docClient, userId) {
 
   const [qsItems, tsItems, sessItems] = await Promise.all([
     queryAll(docClient, {
-      TableName: 'UserQuestionStats',
+      TableName: T('UserQuestionStats'),
       KeyConditionExpression: 'userId = :uid',
       ExpressionAttributeValues: { ':uid': userId },
       ProjectionExpression: 'userId, questionId',
     }),
     queryAll(docClient, {
-      TableName: 'UserTagStats',
+      TableName: T('UserTagStats'),
       KeyConditionExpression: 'userId = :uid',
       ExpressionAttributeValues: { ':uid': userId },
       ProjectionExpression: 'userId, tagId',
     }),
     queryAll(docClient, {
-      TableName: 'Sessions',
+      TableName: T('Sessions'),
       KeyConditionExpression: 'userId = :uid',
       ExpressionAttributeValues: { ':uid': userId },
       ProjectionExpression: 'userId, sessionId',
@@ -1320,16 +1328,16 @@ async function executeUserDataReset(docClient, userId) {
   ]);
 
   await Promise.all([
-    batchDelete('UserQuestionStats', qsItems.map(i => ({ userId: i.userId, questionId: i.questionId }))),
-    batchDelete('UserTagStats',      tsItems.map(i => ({ userId: i.userId, tagId: i.tagId }))),
-    batchDelete('Sessions',          sessItems.map(i => ({ userId: i.userId, sessionId: i.sessionId }))),
+    batchDelete(T('UserQuestionStats'), qsItems.map(i => ({ userId: i.userId, questionId: i.questionId }))),
+    batchDelete(T('UserTagStats'),      tsItems.map(i => ({ userId: i.userId, tagId: i.tagId }))),
+    batchDelete(T('Sessions'),          sessItems.map(i => ({ userId: i.userId, sessionId: i.sessionId }))),
     // DELETE より PUT（空上書き）の方が確実 — delete は存在しないキーに対してもエラーにならないが、
     // 型不一致や権限エラーで失敗しても catch で隠れるため、空レコードで上書きする
     docClient.send(new PutCommand({
-      TableName: 'EncyclopediaUnlocks',
+      TableName: T('EncyclopediaUnlocks'),
       Item: { userId, unlocks: '{}', unlockDate: null, todayServiceId: null },
     })).catch(() => {}),
-    docClient.send(new DeleteCommand({ TableName: 'UserPoints', Key: { userId } })).catch(() => {}),
+    docClient.send(new DeleteCommand({ TableName: T('UserPoints'), Key: { userId } })).catch(() => {}),
     docClient.send(new UpdateCommand({
       TableName: 'AppSettings',
       Key: { settingId: `userPrefs_${userId}` },
@@ -1536,7 +1544,7 @@ app.get('/users/me/answered-questions', async (req, res) => {
     const { userId, examType } = req.query;
 
     const statsResult = await docClient.send(new QueryCommand({
-      TableName: 'UserQuestionStats',
+      TableName: T('UserQuestionStats'),
       KeyConditionExpression: 'userId = :uid',
       ExpressionAttributeValues: { ':uid': userId }
     }));
@@ -1569,7 +1577,7 @@ app.get('/users/me/incorrect-questions', async (req, res) => {
     const { userId, examType } = req.query;
 
     const statsResult = await docClient.send(new QueryCommand({
-      TableName: 'UserQuestionStats',
+      TableName: T('UserQuestionStats'),
       KeyConditionExpression: 'userId = :uid',
       ExpressionAttributeValues: { ':uid': userId }
     }));
@@ -1605,7 +1613,7 @@ app.get('/users/me/weak-questions', async (req, res) => {
     const threshold = parseInt(minIncorrect);
 
     const statsResult = await docClient.send(new QueryCommand({
-      TableName: 'UserQuestionStats',
+      TableName: T('UserQuestionStats'),
       KeyConditionExpression: 'userId = :uid',
       ExpressionAttributeValues: { ':uid': userId }
     }));
@@ -1659,7 +1667,7 @@ app.post('/questions/:id/bookmark', async (req, res) => {
     const { userId } = req.body;
     const now = new Date().toISOString();
     await docClient.send(new UpdateCommand({
-      TableName: 'UserQuestionStats',
+      TableName: T('UserQuestionStats'),
       Key: { userId, questionId: req.params.id },
       UpdateExpression: 'SET bookmarked = :b, lastAnsweredAt = if_not_exists(lastAnsweredAt, :now)',
       ExpressionAttributeValues: { ':b': true, ':now': now }
@@ -1677,7 +1685,7 @@ app.delete('/questions/:id/bookmark', async (req, res) => {
     const docClient = getClient();
     const { userId } = req.query;
     await docClient.send(new UpdateCommand({
-      TableName: 'UserQuestionStats',
+      TableName: T('UserQuestionStats'),
       Key: { userId, questionId: req.params.id },
       UpdateExpression: 'SET bookmarked = :b',
       ExpressionAttributeValues: { ':b': false }
@@ -1695,7 +1703,7 @@ app.get('/users/me/bookmarks', async (req, res) => {
     const docClient = getClient();
     const { userId } = req.query;
     const result = await docClient.send(new QueryCommand({
-      TableName: 'UserQuestionStats',
+      TableName: T('UserQuestionStats'),
       KeyConditionExpression: 'userId = :uid',
       FilterExpression: 'bookmarked = :b',
       ExpressionAttributeValues: { ':uid': userId, ':b': true }
@@ -1882,7 +1890,7 @@ app.get('/daily-service', async (req, res) => {
     if (req.query.userId) {
       try {
         const encResult = await docClient.send(new GetCommand({
-          TableName: 'EncyclopediaUnlocks',
+          TableName: T('EncyclopediaUnlocks'),
           Key: { userId: req.query.userId },
         }));
         if (encResult.Item?.unlockDate === jstDate) alreadyUnlocked = true;
@@ -2166,7 +2174,7 @@ app.get('/users/me/encyclopedia-unlocks', async (req, res) => {
     if (!userId) return res.status(400).json({ error: 'userId required' });
     const docClient = getClient();
     const result = await docClient.send(new GetCommand({
-      TableName: 'EncyclopediaUnlocks',
+      TableName: T('EncyclopediaUnlocks'),
       Key: { userId },
     }));
     if (!result.Item) return res.json({ unlocks: {}, unlockDate: null, todayServiceId: null, services: {} });
@@ -2206,7 +2214,7 @@ app.post('/users/me/encyclopedia-unlocks', async (req, res) => {
     if (!userId) return res.status(400).json({ error: 'userId required' });
     const docClient = getClient();
     await docClient.send(new PutCommand({
-      TableName: 'EncyclopediaUnlocks',
+      TableName: T('EncyclopediaUnlocks'),
       Item: {
         userId,
         unlocks: JSON.stringify(unlocks || {}),
@@ -2230,7 +2238,7 @@ app.get('/users/me/points', async (req, res) => {
     if (!userId) return res.status(400).json({ error: 'userId required' });
     const docClient = getClient();
     const result = await docClient.send(new GetCommand({
-      TableName: 'UserPoints',
+      TableName: T('UserPoints'),
       Key: { userId },
     }));
     res.json({ points: result.Item?.points ?? 0 });
@@ -2247,7 +2255,7 @@ app.put('/users/me/points', async (req, res) => {
     const safePoints = Math.max(0, Math.round(Number(points)));
     const docClient = getClient();
     await docClient.send(new PutCommand({
-      TableName: 'UserPoints',
+      TableName: T('UserPoints'),
       Item: { userId, points: safePoints, updatedAt: new Date().toISOString() },
     }));
     res.json({ points: safePoints });
@@ -2347,19 +2355,19 @@ async function executeUserDataDeletion(docClient, userId) {
 
   const [qsResult, tsResult, sessResult] = await Promise.all([
     docClient.send(new QueryCommand({
-      TableName: 'UserQuestionStats',
+      TableName: T('UserQuestionStats'),
       KeyConditionExpression: 'userId = :uid',
       ExpressionAttributeValues: { ':uid': userId },
       ProjectionExpression: 'userId, questionId',
     })),
     docClient.send(new QueryCommand({
-      TableName: 'UserTagStats',
+      TableName: T('UserTagStats'),
       KeyConditionExpression: 'userId = :uid',
       ExpressionAttributeValues: { ':uid': userId },
       ProjectionExpression: 'userId, tagId',
     })),
     docClient.send(new QueryCommand({
-      TableName: 'Sessions',
+      TableName: T('Sessions'),
       KeyConditionExpression: 'userId = :uid',
       ExpressionAttributeValues: { ':uid': userId },
       ProjectionExpression: 'userId, sessionId',
@@ -2367,8 +2375,8 @@ async function executeUserDataDeletion(docClient, userId) {
   ]);
 
   await Promise.all([
-    deleteItems('UserQuestionStats', (qsResult.Items || []).map(i => ({ userId: i.userId, questionId: i.questionId }))),
-    deleteItems('UserTagStats', (tsResult.Items || []).map(i => ({ userId: i.userId, tagId: i.tagId }))),
+    deleteItems(T('UserQuestionStats'), (qsResult.Items || []).map(i => ({ userId: i.userId, questionId: i.questionId }))),
+    deleteItems(T('UserTagStats'), (tsResult.Items || []).map(i => ({ userId: i.userId, tagId: i.tagId }))),
   ]);
 
   const sessionIds = (sessResult.Items || []).map(s => s.sessionId);
@@ -2376,20 +2384,20 @@ async function executeUserDataDeletion(docClient, userId) {
     let lastKey;
     do {
       const ansResult = await docClient.send(new QueryCommand({
-        TableName: 'UserAnswers',
+        TableName: T('UserAnswers'),
         KeyConditionExpression: 'userId = :uid AND begins_with(questionIdTimestamp, :prefix)',
         ExpressionAttributeValues: { ':uid': userId, ':prefix': `${sessionId}#` },
         ExclusiveStartKey: lastKey,
         ProjectionExpression: 'userId, questionIdTimestamp',
       }));
-      await deleteItems('UserAnswers', (ansResult.Items || []).map(a => ({ userId: a.userId, questionIdTimestamp: a.questionIdTimestamp })));
+      await deleteItems(T('UserAnswers'), (ansResult.Items || []).map(a => ({ userId: a.userId, questionIdTimestamp: a.questionIdTimestamp })));
       lastKey = ansResult.LastEvaluatedKey;
     } while (lastKey);
   }
-  await deleteItems('Sessions', sessionIds.map(sid => ({ userId, sessionId: sid })));
+  await deleteItems(T('Sessions'), sessionIds.map(sid => ({ userId, sessionId: sid })));
 
-  try { await docClient.send(new DeleteCommand({ TableName: 'EncyclopediaUnlocks', Key: { userId } })); } catch {}
-  try { await docClient.send(new DeleteCommand({ TableName: 'UserPoints', Key: { userId } })); } catch {}
+  try { await docClient.send(new DeleteCommand({ TableName: T('EncyclopediaUnlocks'), Key: { userId } })); } catch {}
+  try { await docClient.send(new DeleteCommand({ TableName: T('UserPoints'), Key: { userId } })); } catch {}
 
   const reportsResult = await docClient.send(new ScanCommand({
     TableName: 'Reports',
