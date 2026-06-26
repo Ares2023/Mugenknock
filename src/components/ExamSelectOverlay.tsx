@@ -364,7 +364,7 @@ export default function ExamSelectOverlay({
                 <div style={{ fontSize: 13, fontWeight: 700, color: 'var(--color-success)', animation: (confirming && !isCurrentTarget) ? 'examStudyingFade 0.4s ease 0.5s both' : undefined }}>✓ {ja ? '学習中' : 'Studying'}</div>
               )}
               {isCurrentTarget ? (
-                <button disabled style={{ width: 44, height: 44, borderRadius: '50%', border: 'none', background: levelColor, color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'default', boxShadow: '0 2px 8px rgba(0,0,0,0.15)', flexShrink: 0 }}>
+                <button disabled style={{ width: 44, height: 44, borderRadius: '50%', border: 'none', background: levelColor, color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'default', boxShadow: '0 2px 8px rgba(0,0,0,0.15)', flexShrink: 0, transition: 'none' }}>
                   <IconBookOpenCheck size={22} />
                 </button>
               ) : (
@@ -375,17 +375,13 @@ export default function ExamSelectOverlay({
                     setConfirming(true);
                     localStorage.setItem(`targetExam_${uid}`, exam);
                     window.dispatchEvent(new CustomEvent('targetExamChanged', { detail: exam }));
-                    // 押下→オセロ風フリップ(0.55s)→「学習中」フェードイン(0.5s遅延)→反映
-                    // フリップ完了(0.55s)でボタン中心からパーティクル放散
+                    // 押下直後にフリップとパーティクル放散を同時開始
                     const reduceMotion = window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
                     if (!reduceMotion) {
                       const r = confirmBtnRef.current?.getBoundingClientRect();
-                      if (r) {
-                        const cx = r.left + r.width / 2;
-                        const cy = r.top + r.height / 2;
-                        setTimeout(() => setBurst({ x: cx, y: cy }), 550);
-                      }
+                      if (r) setBurst({ x: r.left + r.width / 2, y: r.top + r.height / 2 });
                     }
+                    // フリップ(0.55s)→「学習中」フェードイン(0.5s遅延)→反映
                     setTimeout(() => { onSelect(exam); setConfirming(false); }, 1100);
                   }}
                   disabled={confirming}
@@ -393,7 +389,7 @@ export default function ExamSelectOverlay({
                   style={{
                     width: 44, height: 44, flexShrink: 0, padding: 0, border: 'none',
                     background: 'transparent', cursor: confirming ? 'default' : 'pointer',
-                    perspective: 600,
+                    perspective: 600, transition: 'none',
                   }}
                 >
                   {/* オセロのようにひっくり返る3Dフリップ（表=決定 / 裏=学習中） */}
