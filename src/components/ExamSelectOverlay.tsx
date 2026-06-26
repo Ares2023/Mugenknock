@@ -1,8 +1,62 @@
 'use client';
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect, useMemo } from 'react';
 import { createPortal } from 'react-dom';
 import { API_ENDPOINT, EXAM_CONFIGS, EXAM_DOMAINS, DOMAIN_WEIGHTS, PASS_SCORES } from '@/constants';
 import { EXAM_ICON_COMPONENTS, IconBook, IconBookOpenCheck, IconCircleCheck } from '@/components/Icons';
+
+// 決定ボタンのフリップ完了時に飛ばすパーティクル放散。
+// パネルの overflow:hidden に切られないよう body 直下へ portal し、
+// fixed 座標（ボタン中心）から放散することで輪郭を越えて飛ばす。
+// 色は資格レベルカラー（levelColor）の濃淡 + 少量の白アクセント。
+const BURST_COUNT = 26;
+
+function ConfirmBurst({ x, y, color, onDone }: { x: number; y: number; color: string; onDone: () => void }) {
+  // 6桁hexにアルファを付けて濃淡を作る（levelColor は全て #rrggbb 形式）
+  const palette = useMemo(() => [color, color, color, `${color}cc`, `${color}99`, '#ffffff'], [color]);
+  const particles = useMemo(() => Array.from({ length: BURST_COUNT }, (_, i) => {
+    const angle = (360 / BURST_COUNT) * i + (Math.random() * 22 - 11);
+    const dist = 46 + Math.random() * 78;
+    const rad = (angle * Math.PI) / 180;
+    return {
+      id: i,
+      dx: Math.cos(rad) * dist,
+      dy: Math.sin(rad) * dist,
+      size: 6 + Math.random() * 7,
+      color: palette[Math.floor(Math.random() * palette.length)],
+      delay: Math.random() * 0.08,
+      dur: 0.5 + Math.random() * 0.28,
+      round: Math.random() > 0.4,
+    };
+  }), [palette]);
+
+  useEffect(() => {
+    const t = setTimeout(onDone, 820);
+    return () => clearTimeout(t);
+  }, [onDone]);
+
+  const css = useMemo(() => particles.map(p => `
+    @keyframes esoBurst-${p.id} {
+      0%   { transform: translate(-50%,-50%) translate(0,0) scale(1); opacity: 1; }
+      100% { transform: translate(-50%,-50%) translate(${p.dx}px,${p.dy}px) scale(0.08); opacity: 0; }
+    }`).join(''), [particles]);
+
+  return createPortal(
+    <div style={{ position: 'fixed', inset: 0, zIndex: 9900, pointerEvents: 'none' }}>
+      <style>{css}</style>
+      {particles.map(p => (
+        <div key={p.id} style={{
+          position: 'absolute', left: x, top: y,
+          width: p.size, height: p.round ? p.size : p.size * 0.5,
+          borderRadius: p.round ? '50%' : '2px',
+          background: p.color,
+          boxShadow: `0 0 ${p.size}px ${p.color}88`,
+          animation: `esoBurst-${p.id} ${p.dur}s cubic-bezier(.25,.6,.4,1) ${p.delay}s both`,
+        }} />
+      ))}
+    </div>,
+    document.body,
+  );
+}
 
 const EXAM_LEVELS = [
   { key: 'Practitioner', color: '#6b9e3a', exams: ['CLF', 'AIF'] },
@@ -86,6 +140,8 @@ export default function ExamSelectOverlay({
   const [confirming, setConfirming] = useState(false);
   const [domainOpen, setDomainOpen] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
+  const confirmBtnRef = useRef<HTMLButtonElement>(null);
+  const [burst, setBurst] = useState<{ x: number; y: number } | null>(null);
 
   useEffect(() => {
     fetch(`${API_ENDPOINT}/settings/pass-comments`)
@@ -313,12 +369,23 @@ export default function ExamSelectOverlay({
                 </button>
               ) : (
                 <button
+                  ref={confirmBtnRef}
                   onClick={() => {
                     if (confirming) return;
                     setConfirming(true);
                     localStorage.setItem(`targetExam_${uid}`, exam);
                     window.dispatchEvent(new CustomEvent('targetExamChanged', { detail: exam }));
                     // 押下→オセロ風フリップ(0.55s)→「学習中」フェードイン(0.5s遅延)→反映
+                    // フリップ完了(0.55s)でボタン中心からパーティクル放散
+                    const reduceMotion = window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
+                    if (!reduceMotion) {
+                      const r = confirmBtnRef.current?.getBoundingClientRect();
+                      if (r) {
+                        const cx = r.left + r.width / 2;
+                        const cy = r.top + r.height / 2;
+                        setTimeout(() => setBurst({ x: cx, y: cy }), 550);
+                      }
+                    }
                     setTimeout(() => { onSelect(exam); setConfirming(false); }, 1100);
                   }}
                   disabled={confirming}
@@ -361,6 +428,8 @@ export default function ExamSelectOverlay({
           );
         })()}
       </div>
+
+      {burst && <ConfirmBurst x={burst.x} y={burst.y} color={levelColor} onDone={() => setBurst(null)} />}
     </div>,
     document.body,
   );
