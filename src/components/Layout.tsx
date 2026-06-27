@@ -360,6 +360,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
   const [paneFocus, setPaneFocus] = useState<'left' | 'right'>('right');
   const [navCursor, setNavCursor] = useState(0);
   const kbnavIdxRef = useRef(-1); // 右ペイン data-kbnav 走査の現在位置
+  const kbScopeRef = useRef<ParentNode | null>(null); // 直近の走査スコープ（変化時にカーソルリセット）
   // キー入力モード（既定OFF、カーソル非表示）。矢印で有効化、Escで無効化。
   const [kbMode, setKbModeState] = useState(false);
   useEffect(() => {
@@ -373,9 +374,16 @@ export default function Layout({ children }: { children: React.ReactNode }) {
     window.dispatchEvent(new CustomEvent('panefocuschange', { detail: p }));
   }, [paneFocus, isMobile]);
   const removeKbnavHighlight = () => document.querySelectorAll('[data-kbnav-active]').forEach(x => x.removeAttribute('data-kbnav-active'));
+  // 走査範囲: オーバレイ([data-kbscope])が開いていれば最前面のそれ、なければ <main>
+  const kbScope = (): ParentNode | null => {
+    const ovs = document.querySelectorAll('[data-kbscope]');
+    if (ovs.length) return ovs[ovs.length - 1];
+    return document.querySelector('main');
+  };
+  const inOverlayScope = () => document.querySelectorAll('[data-kbscope]').length > 0;
   const kbnavEls = (): HTMLElement[] => {
-    const main = document.querySelector('main');
-    return main ? (Array.from(main.querySelectorAll('[data-kbnav]')) as HTMLElement[]).filter(x => x.offsetParent !== null) : [];
+    const scope = kbScope();
+    return scope ? (Array.from(scope.querySelectorAll('[data-kbnav]')) as HTMLElement[]).filter(x => x.offsetParent !== null) : [];
   };
   const applyKbnav = (rawIdx: number) => {
     const els = kbnavEls();
@@ -392,10 +400,17 @@ export default function Layout({ children }: { children: React.ReactNode }) {
     const el = e.target as HTMLElement | null;
     const tag = el?.tagName;
     if (tag === 'INPUT' || tag === 'TEXTAREA' || el?.isContentEditable) return;
-    if (e.key === 'Escape') { setKbMode(false); setPaneFocus('right'); return; }
+    if (e.key === 'Escape') {
+      // オーバレイが開いていれば閉じる（[data-kbclose] をクリック）。なければモード解除。
+      const ov = document.querySelector('[data-kbscope]');
+      const closeBtn = ov?.querySelector('[data-kbclose]') as HTMLElement | null;
+      if (closeBtn) { e.preventDefault(); closeBtn.click(); return; }
+      setKbMode(false); setPaneFocus('right'); return;
+    }
     const isArrow = e.key === 'ArrowUp' || e.key === 'ArrowDown' || e.key === 'ArrowLeft' || e.key === 'ArrowRight';
     if (isArrow) setKbMode(true); // ナビキーでキー入力モードを有効化（カーソル表示）。Esc以外では解除しない
     const goLeftPane = () => {
+      if (inOverlayScope()) return; // オーバレイ表示中は左ペインへ移らない
       if (!open) setOpen(true);
       const idx = navItems.findIndex(it => isActive(it.path));
       setNavCursor(idx >= 0 ? idx : 0);
@@ -415,8 +430,11 @@ export default function Layout({ children }: { children: React.ReactNode }) {
         for (let i = from + dir; i >= 0 && i < els.length; i += dir) if (isTab(els[i]) === wantTab) return i;
         return -1;
       };
+      // スコープ（オーバレイ↔背景）が変わったらカーソルをリセット
+      const scopeNow = kbScope();
+      if (scopeNow !== kbScopeRef.current) { kbScopeRef.current = scopeNow; kbnavIdxRef.current = -1; removeKbnavHighlight(); }
       let cur = kbnavIdxRef.current;
-      if (cur < 0 || cur >= els.length) { e.preventDefault(); applyKbnav(0); return; }
+      if (cur < 0 || cur >= els.length) { e.preventDefault(); const t0 = els.findIndex(x => x.getAttribute('data-kbnav') === 'tab'); applyKbnav(t0 >= 0 ? t0 : 0); return; }
       const curEl = els[cur];
       if (isTab(curEl)) {
         if (e.key === 'ArrowRight') { e.preventDefault(); const n = findIn(cur, +1, true); if (n >= 0) { applyKbnav(n); els[n].click(); } }

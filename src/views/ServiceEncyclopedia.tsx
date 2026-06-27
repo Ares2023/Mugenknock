@@ -252,7 +252,6 @@ export default function ServiceEncyclopedia() {
         </div>
 
         <div
-          {...((todayUnlocked && todayStoreData) ? { 'data-kbnav': '1' } : {})}
           style={{ display: 'flex', alignItems: 'center', gap: 12, cursor: (todayUnlocked && todayStoreData) ? 'pointer' : 'default' }}
           onClick={() => { if (todayUnlocked && todayStoreData) setSelected(todayStoreData); }}
         >

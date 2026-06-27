@@ -176,6 +176,7 @@ export default function ExamSelectOverlay({
       onTouchMove={e => e.stopPropagation()}
     >
       <div
+        data-kbscope="1"
         style={{
           background: 'var(--color-bg-white)',
           borderRadius: 'var(--border-radius-lg)',
@@ -195,6 +196,7 @@ export default function ExamSelectOverlay({
           </span>
           {dismissible && (
             <button
+              data-kbclose="1"
               onClick={onClose}
               style={{ border: 'none', background: 'none', fontSize: 20, cursor: 'pointer', color: 'var(--color-text-sub)', padding: '4px 8px', lineHeight: 1 }}
             >✕</button>
@@ -208,7 +210,7 @@ export default function ExamSelectOverlay({
           onTouchMove={e => e.stopPropagation()}
         >
           {EXAM_LEVELS.map(({ key, color }) => (
-            <button key={key} onClick={() => {
+            <button key={key} data-kbnav="tab" onClick={() => {
               setActiveLevel(key);
               const levelDef = EXAM_LEVELS.find(l => l.key === key);
               const examInLevel = levelDef?.exams.find(e => e === targetExam) ?? levelDef?.exams[0] ?? null;
@@ -237,6 +239,7 @@ export default function ExamSelectOverlay({
             return (
               <button
                 key={exam}
+                data-kbnav="1"
                 onClick={() => setPreviewExam(exam)}
                 style={{
                   flexShrink: 0, width: 80, padding: '10px 6px 8px', cursor: 'pointer',
@@ -370,6 +373,7 @@ export default function ExamSelectOverlay({
               ) : (
                 <button
                   ref={confirmBtnRef}
+                  data-kbnav="1"
                   onClick={() => {
                     if (confirming) return;
                     setConfirming(true);

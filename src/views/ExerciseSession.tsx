@@ -953,7 +953,10 @@ export default function ExerciseSession() {
           : Array.from({ length: totalCount }, (_, k) => k);
 
         return (
-          <div style={{ position: 'sticky', top: 0, zIndex: 190, background: 'var(--color-bg-white)', borderBottom: '1px solid var(--color-border)', padding: '8px 16px', display: 'flex', alignItems: 'center', gap: 0, marginBottom: 'var(--spacing-md)' }}>
+          <div style={isMobile
+            ? { position: 'sticky', top: 0, zIndex: 190, background: 'var(--color-bg-white)', borderBottom: '1px solid var(--color-border)', padding: '8px 16px', display: 'flex', alignItems: 'center', gap: 0, marginBottom: 'var(--spacing-md)' }
+            : { position: 'sticky', top: 8, zIndex: 190, background: 'var(--color-bg-white)', border: '1px solid var(--color-border)', borderRadius: 'var(--border-radius-full)', boxShadow: 'var(--box-shadow-sm)', padding: '8px 24px', display: 'flex', alignItems: 'center', gap: 0, width: 'min(440px, 100%)', margin: '0 auto var(--spacing-md)' }
+          }>
             <div style={{ flex: 1, display: 'flex', alignItems: 'center' }}>
               {visibleIndices.map((i, visIdx) => {
                 const isAnswered = i < results.length;
