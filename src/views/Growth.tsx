@@ -1,5 +1,5 @@
 'use client';
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Helmet } from '@/compat/react-helmet-async';
 import { API_ENDPOINT } from '../constants';
 import { useLanguage } from '../contexts/LanguageContext';
@@ -168,7 +168,7 @@ function DualBarChart({ labels, s1, s2, label1, label2, color1, color2, breakdow
 }
 
 // s2/label2/color2 は optional（省略時は単系列表示）
-function DualLineChart({ labels, s1, s2, label1, label2, color1, color2, markerLabel, isMobile = false }: {
+function DualLineChart({ labels, s1, s2, label1, label2, color1, color2, markerLabel, isMobile = false, animate = true }: {
   labels: string[];
   s1: number[];
   s2?: number[];
@@ -178,6 +178,7 @@ function DualLineChart({ labels, s1, s2, label1, label2, color1, color2, markerL
   color2?: string;
   markerLabel?: string;
   isMobile?: boolean;
+  animate?: boolean;
 }) {
   const [tooltip, setTooltip] = useState<{ i: number } | null>(null);
 
@@ -259,26 +260,26 @@ function DualLineChart({ labels, s1, s2, label1, label2, color1, color2, markerL
       {/* Lines */}
       {n > 1 && (
         <polyline points={pts1} fill="none" stroke={color1} strokeWidth="2" strokeLinejoin="round" strokeLinecap="round"
-          strokeDasharray={totalLength1} strokeDashoffset={totalLength1}>
-          <animate attributeName="stroke-dashoffset" from={String(totalLength1)} to="0" dur={`${totalLineDur}s`} fill="freeze" />
+          {...(animate ? { strokeDasharray: totalLength1, strokeDashoffset: totalLength1 } : {})}>
+          {animate && <animate attributeName="stroke-dashoffset" from={String(totalLength1)} to="0" dur={`${totalLineDur}s`} fill="freeze" />}
         </polyline>
       )}
       {dual && n > 1 && color2 && (
         <polyline points={pts2} fill="none" stroke={color2} strokeWidth="2" strokeLinejoin="round" strokeLinecap="round"
-          strokeDasharray={totalLength2} strokeDashoffset={totalLength2}>
-          <animate attributeName="stroke-dashoffset" from={String(totalLength2)} to="0" dur={`${totalLineDur}s`} begin="0.1" fill="freeze" />
+          {...(animate ? { strokeDasharray: totalLength2, strokeDashoffset: totalLength2 } : {})}>
+          {animate && <animate attributeName="stroke-dashoffset" from={String(totalLength2)} to="0" dur={`${totalLineDur}s`} begin="0.1" fill="freeze" />}
         </polyline>
       )}
 
       {/* Data points */}
       {safe1.map((v, i) => (
-        <circle key={i} cx={px(i)} cy={py(v)} r={0} fill={color1}>
-          <animate attributeName="r" values="0;4;3" keyTimes="0;0.65;1" dur={`${nodeDur}s`} begin={`${i * stagger}s`} fill="freeze" />
+        <circle key={i} cx={px(i)} cy={py(v)} r={animate ? 0 : 3} fill={color1}>
+          {animate && <animate attributeName="r" values="0;4;3" keyTimes="0;0.65;1" dur={`${nodeDur}s`} begin={`${i * stagger}s`} fill="freeze" />}
         </circle>
       ))}
       {dual && color2 && safe2.map((v, i) => (
-        <circle key={i} cx={px(i)} cy={py(v)} r={0} fill={color2}>
-          <animate attributeName="r" values="0;4;3" keyTimes="0;0.65;1" dur={`${nodeDur}s`} begin={`${0.1 + i * stagger}s`} fill="freeze" />
+        <circle key={i} cx={px(i)} cy={py(v)} r={animate ? 0 : 3} fill={color2}>
+          {animate && <animate attributeName="r" values="0;4;3" keyTimes="0;0.65;1" dur={`${nodeDur}s`} begin={`${0.1 + i * stagger}s`} fill="freeze" />}
         </circle>
       ))}
 
@@ -379,6 +380,11 @@ export default function Growth() {
     window.addEventListener('resize', handler);
     return () => window.removeEventListener('resize', handler);
   }, []);
+
+  // グラフのアニメは画面を開いた最初の1回だけ。タブ/日次月次の切替では再生しない。
+  const animatedRef = useRef(false);
+  const animate = !animatedRef.current;
+  useEffect(() => { if (data) animatedRef.current = true; }, [data]);
 
   useEffect(() => {
     // 日次: 14日、月次: 12ヶ月
@@ -514,6 +520,7 @@ export default function Growth() {
               label1={lang === 'ja' ? '累計生成数' : 'Cumulative'}
               color1={COLOR_GENERATION}
               isMobile={isMobile}
+              animate={animate}
             />
           </div>
         </>
@@ -554,6 +561,7 @@ export default function Growth() {
               color2="#94a3b8"
               markerLabel={`${checkRate.toFixed(1)}%`}
               isMobile={isMobile}
+              animate={animate}
             />
           </div>
         </>
