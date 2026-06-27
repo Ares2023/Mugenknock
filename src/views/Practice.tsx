@@ -731,6 +731,7 @@ export default function Practice() {
                             （{exerciseDraft.results.length}/{exerciseDraft.questions.length}問）
                           </span>
                         )}
+                        {!isMobile && <KeyHint />}
                       </>
                     )}
                   </button>
@@ -805,6 +806,7 @@ export default function Practice() {
                             （{fmtSec(examDraft.timeLeft)}・{(examDraft.currentIndex ?? 0) + 1}/{examDraft.questions?.length ?? '?'}問）
                           </span>
                         )}
+                        {!isMobile && <KeyHint />}
                       </>
                     )}
                   </button>
@@ -855,6 +857,7 @@ export default function Practice() {
                             （{fmtSec(examDraft.timeLeft)}・{(examDraft.currentIndex ?? 0) + 1}/{examDraft.questions?.length ?? '?'}問）
                           </span>
                         )}
+                        {!isMobile && <KeyHint />}
                       </>
                     )}
                   </button>

@@ -243,13 +243,14 @@ function CombinedDetailModal({ targetExam, domainAccList, estimatedScore, passSc
             </span>
             {tab === 'score' && (
               <button
+                data-kbnav="1"
                 onClick={() => setShowCalc(v => !v)}
                 style={{ width: 20, height: 20, borderRadius: '50%', border: `1.5px solid ${showCalc ? 'var(--color-primary)' : 'var(--color-border)'}`, background: showCalc ? 'var(--color-primary)' : 'transparent', color: showCalc ? '#fff' : 'var(--color-text-light)', fontSize: 11, fontWeight: 700, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, lineHeight: 1 }}
                 aria-label={ja ? '計算方法' : 'How calculated'}
               >?</button>
             )}
           </div>
-          <button onClick={onClose} style={{ border: 'none', background: 'none', fontSize: 18, cursor: 'pointer', color: 'var(--color-text-sub)', padding: '0 4px', lineHeight: 1 }}>✕</button>
+          <button data-kbclose="1" onClick={onClose} style={{ border: 'none', background: 'none', fontSize: 18, cursor: 'pointer', color: 'var(--color-text-sub)', padding: '0 4px', lineHeight: 1 }}>✕</button>
         </div>
 
         {/* タブ */}
@@ -257,6 +258,7 @@ function CombinedDetailModal({ targetExam, domainAccList, estimatedScore, passSc
           {tabs.map(t => (
             <button
               key={t.key}
+              data-kbnav="tab"
               onClick={() => { setTab(t.key); setShowCalc(false); }}
               style={{
                 background: 'none', border: 'none', cursor: 'pointer',
@@ -2047,6 +2049,7 @@ export default function Home() {
                       {ja && primaryMode !== 'quick' && focusedDraft?.results != null && focusedDraft?.questions != null && (
                         <span style={{ fontSize: 12, fontWeight: 400, opacity: 0.85 }}>（{focusedDraft.results.length}/{focusedDraft.questions.length}問）</span>
                       )}
+                      <span style={{ marginLeft: 8, display: 'inline-flex', verticalAlign: 'middle' }}><KeyHint /></span>
                     </>
                   )}
                   </button>

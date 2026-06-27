@@ -40,7 +40,7 @@ type Question = {
   createdAt?: string;
 };
 
-const CopyButton = ({ getText }: { getText: () => string }) => {
+const CopyButton = ({ getText, hint }: { getText: () => string; hint?: string }) => {
   const [copied, setCopied] = useState(false);
   const handleCopy = (e: React.MouseEvent) => {
     e.stopPropagation();
@@ -49,18 +49,23 @@ const CopyButton = ({ getText }: { getText: () => string }) => {
       setTimeout(() => setCopied(false), 1500);
     });
   };
+  const color = copied ? 'var(--color-success)' : 'var(--color-primary)';
   return (
     <button
       onClick={handleCopy}
       title={copied ? 'コピー済み' : 'コピー'}
-      style={{
-        background: 'none', border: `1.5px solid ${copied ? 'var(--color-success)' : 'var(--color-primary)'}`, borderRadius: '50%',
+      style={hint ? {
+        background: 'none', border: `1.5px solid ${color}`, borderRadius: 'var(--border-radius-full)',
+        height: 28, padding: '0 10px', display: 'flex', alignItems: 'center', gap: 5,
+        cursor: 'pointer', color, transition: 'all 0.2s', flexShrink: 0, fontSize: 11, fontWeight: 600,
+      } : {
+        background: 'none', border: `1.5px solid ${color}`, borderRadius: '50%',
         width: 28, height: 28, display: 'flex', alignItems: 'center', justifyContent: 'center',
-        cursor: 'pointer', color: copied ? 'var(--color-success)' : 'var(--color-primary)',
-        transition: 'all 0.2s', flexShrink: 0,
+        cursor: 'pointer', color, transition: 'all 0.2s', flexShrink: 0,
       }}
     >
       {copied ? <IconCheck size={13} /> : <IconCopy size={13} />}
+      {hint && <span>{hint}</span>}
     </button>
   );
 };
@@ -467,6 +472,7 @@ export default function ExerciseSession() {
 
   const [lastSelected, setLastSelected] = useState<string | null>(null);
   const [struckChoices, setStruckChoices] = useState<Set<string>>(new Set());
+  const [copyToast, setCopyToast] = useState(false); // Ctrl+Cコピーのトースト
   // キーボード操作用カーソル（Web版のみ）。choices + わからない を対象に上下移動
   const [cursorIndex, setCursorIndex] = useState(0);
   const cursorElRef = useRef<HTMLButtonElement | null>(null);
@@ -825,6 +831,28 @@ export default function ExerciseSession() {
     return () => window.removeEventListener('keydown', h);
   }, []);
 
+  // Ctrl/Cmd+C: テキスト未選択時は問題文＋選択肢をコピー（上部コピーボタンと同じ・Web版のみ）
+  useEffect(() => {
+    if (isMobile) return;
+    const onCopy = (e: KeyboardEvent) => {
+      if (!((e.ctrlKey || e.metaKey) && (e.key === 'c' || e.key === 'C'))) return;
+      const el = e.target as HTMLElement | null;
+      const tag = el?.tagName;
+      if (tag === 'INPUT' || tag === 'TEXTAREA' || el?.isContentEditable) return;
+      if ((window.getSelection()?.toString() ?? '') !== '') return; // 選択中は通常コピー優先
+      const q = questions[currentIndex];
+      if (!q) return;
+      e.preventDefault();
+      const choicesText = shuffledChoices.map((c, idx) => `${CHOICE_LABELS[idx]}. ${stripLabel(c)}`).join('\n');
+      navigator.clipboard.writeText(`${q.questionText}\n\n${choicesText}`).then(() => {
+        setCopyToast(true);
+        setTimeout(() => setCopyToast(false), 1500);
+      }).catch(() => {});
+    };
+    window.addEventListener('keydown', onCopy);
+    return () => window.removeEventListener('keydown', onCopy);
+  }, [isMobile, currentIndex, shuffledChoices, questions]);
+
   const getChoiceStyle = (choice: string): React.CSSProperties => {
     const base: React.CSSProperties = {
       padding: 'var(--spacing-md) var(--spacing-lg)',
@@ -914,6 +942,10 @@ export default function ExerciseSession() {
 
   return (
     <div style={{ maxWidth: 900, margin: '0 auto', padding: isMobile ? '0 0 var(--spacing-sm)' : '0 var(--spacing-lg) var(--spacing-xl)' }} className="session-container">
+      {copyToast && createPortal(
+        <div style={{ position: 'fixed', top: 72, left: '50%', transform: 'translateX(-50%)', zIndex: 9500, background: 'var(--color-text-main)', color: 'var(--color-bg-white)', padding: '8px 16px', borderRadius: 'var(--border-radius-full)', fontSize: 'var(--font-size-sm)', fontWeight: 600, boxShadow: 'var(--box-shadow-md)', animation: 'sherpa-fade-in 0.15s ease' }}>
+          {lang === 'ja' ? '問題文をコピーしました' : 'Copied question'}
+        </div>, document.body)}
       {/* 正誤アニメーション */}
       {judgmentAnim && (
         <div style={{
@@ -953,7 +985,7 @@ export default function ExerciseSession() {
           : Array.from({ length: totalCount }, (_, k) => k);
 
         return (
-          <div style={{ position: 'sticky', top: 0, zIndex: 190, background: 'var(--color-bg-white)', border: '1px solid var(--color-border)', borderRadius: 'var(--border-radius-full)', boxShadow: 'var(--box-shadow-sm)', padding: '8px 24px', display: 'flex', alignItems: 'center', gap: 0, width: '100%', boxSizing: 'border-box', marginBottom: 'var(--spacing-md)' }}>
+          <div style={{ position: 'sticky', top: 0, zIndex: 190, background: 'var(--color-bg-white)', borderBottom: '1px solid var(--color-border)', padding: '8px 24px', display: 'flex', alignItems: 'center', gap: 0, width: '100%', boxSizing: 'border-box', marginBottom: 'var(--spacing-md)' }}>
             <div style={{ flex: 1, display: 'flex', alignItems: 'center' }}>
               {visibleIndices.map((i, visIdx) => {
                 const isAnswered = i < results.length;
@@ -1041,7 +1073,7 @@ export default function ExerciseSession() {
                 </span>
               )}
             </div>
-            <CopyButton getText={() => {
+            <CopyButton hint={!isMobile ? 'Ctrl+C' : undefined} getText={() => {
               const choicesText = shuffledChoices.map((c: string, idx: number) => `${CHOICE_LABELS[idx]}. ${stripLabel(c)}`).join('\n');
               return `${currentQuestion.questionText}\n\n${choicesText}`;
             }} />
