@@ -872,7 +872,7 @@ export default function ExerciseSession() {
   }
 
   return (
-    <div style={{ maxWidth: 900, margin: '0 auto', padding: isMobile ? 'var(--spacing-sm) 0' : 'var(--spacing-xl) var(--spacing-lg)' }} className="session-container">
+    <div style={{ maxWidth: 900, margin: '0 auto', padding: isMobile ? 'var(--spacing-sm) 0' : 'var(--spacing-sm) var(--spacing-lg) var(--spacing-xl)' }} className="session-container">
       {/* 正誤アニメーション */}
       {judgmentAnim && (
         <div style={{
