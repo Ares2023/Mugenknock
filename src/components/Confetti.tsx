@@ -8,7 +8,7 @@ const CONFETTI_COLORS = ['#FF9900', '#006CE0', '#037f0c', '#d13212', '#8b5cf6', 
 
 export default function Confetti({
   count = 110,
-  durationMs = 3000,
+  durationMs = 2500,
   onDone,
 }: {
   count?: number;
@@ -44,9 +44,9 @@ export default function Confetti({
       100% { transform: translateY(112vh) translateX(${p.drift}px) rotate(${p.rot}deg); opacity: 0.85; }
     }`).join('') + `
     @keyframes confettiContainerOut {
-      0%      { opacity: 1; }
-      66.666% { opacity: 1; }
-      100%    { opacity: 0; }
+      0%   { opacity: 1; }
+      60%  { opacity: 1; }
+      100% { opacity: 0; }
     }`, [pieces]);
 
   return createPortal(
