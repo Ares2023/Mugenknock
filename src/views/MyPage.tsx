@@ -362,9 +362,9 @@ export default function MyPage() {
 
         {/* ── タブ ── */}
         <div style={{ display: 'flex', borderBottom: '1px solid color-mix(in srgb, var(--color-text-light) 40%, transparent)', marginBottom: 'var(--spacing-lg)' }}>
-          <button style={tabStyle(tab === 'target')} onClick={() => setTab('target')}>{ja ? '目標' : 'Goals'}</button>
-          <button style={tabStyle(tab === 'analysis')} onClick={() => setTab('analysis')}>{ja ? '苦手分析' : 'Analysis'}</button>
-          <button style={tabStyle(tab === 'history')} onClick={() => setTab('history')}>{ja ? '履歴' : 'History'}</button>
+          <button data-kbnav="1" style={tabStyle(tab === 'target')} onClick={() => setTab('target')}>{ja ? '目標' : 'Goals'}</button>
+          <button data-kbnav="1" style={tabStyle(tab === 'analysis')} onClick={() => setTab('analysis')}>{ja ? '苦手分析' : 'Analysis'}</button>
+          <button data-kbnav="1" style={tabStyle(tab === 'history')} onClick={() => setTab('history')}>{ja ? '履歴' : 'History'}</button>
         </div>
 
         {/* ════════ 目標タブ ════════ */}
@@ -419,7 +419,7 @@ export default function MyPage() {
                     <>
                       {/* カード1: 目標資格(概要) ｜ 資格情報(詳細) */}
                       <div style={{ display: 'flex', marginBottom: 12, border: '1px solid var(--color-border)', borderRadius: 'var(--border-radius-md)', overflow: 'hidden', background: 'transparent' }}>
-                        <div style={{ width: 300, flexShrink: 0, padding: 'var(--spacing-lg)', cursor: 'pointer', background: 'var(--color-bg-white)' }} onClick={() => setShowExamSelect(true)}>
+                        <div data-kbnav="1" style={{ width: 300, flexShrink: 0, padding: 'var(--spacing-lg)', cursor: 'pointer', background: 'var(--color-bg-white)' }} onClick={() => setShowExamSelect(true)}>
                           <ExamCardHeader />
                           <ExamCardContent />
                         </div>
@@ -454,7 +454,7 @@ export default function MyPage() {
 
                       {/* カード2: 学習目標(概要) ｜ 週間達成状況(詳細・直接表示・塗りなし) */}
                       <div style={{ display: 'flex', marginBottom: 12, border: '1px solid var(--color-border)', borderRadius: 'var(--border-radius-md)', overflow: 'hidden', background: 'transparent' }}>
-                        <div style={{ width: 300, flexShrink: 0, padding: 'var(--spacing-lg)', cursor: 'pointer', background: 'var(--color-bg-white)' }} onClick={() => { setEditExamDate(examDate); setEditDailyGoal(dailyGoal); setShowSettingsEdit(true); }}>
+                        <div data-kbnav="1" style={{ width: 300, flexShrink: 0, padding: 'var(--spacing-lg)', cursor: 'pointer', background: 'var(--color-bg-white)' }} onClick={() => { setEditExamDate(examDate); setEditDailyGoal(dailyGoal); setShowSettingsEdit(true); }}>
                           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
                             <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
                               <span style={{ color: 'var(--color-text-sub)', display: 'flex', alignItems: 'center' }}><IconCalendarNotebook size={13} /></span>

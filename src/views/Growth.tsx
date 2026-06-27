@@ -460,6 +460,7 @@ export default function Growth() {
         {MAIN_TABS.map(tab => (
           <button
             key={tab.key}
+            data-kbnav="1"
             onClick={() => setMainTab(tab.key)}
             style={{
               background: 'none', border: 'none', cursor: 'pointer',
@@ -482,6 +483,7 @@ export default function Growth() {
           {(['daily', 'monthly'] as ViewMode[]).map(v => (
             <button
               key={v}
+              data-kbnav="1"
               onClick={() => setView(v)}
               style={{
                 padding: '4px 14px', fontSize: 'var(--font-size-sm)', fontWeight: 600,
