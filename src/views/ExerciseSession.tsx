@@ -1127,7 +1127,7 @@ export default function ExerciseSession() {
           })()}
         </div>
 
-        <div ref={explAnchorRef} style={{ scrollMarginTop: 8 }} />
+        <div ref={explAnchorRef} style={{ scrollMarginTop: 56 }} />
         {answered && (() => {
           const displayQ = (currentQuestion.correctAnswers ? currentQuestion : detail) ?? currentQuestion;
           const lastResult = results[results.length - 1];
