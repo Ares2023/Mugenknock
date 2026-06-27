@@ -736,6 +736,14 @@ function syncEncyclopediaToServer(userId: string, forceUpload = false): void {
     const local: Record<string, string> = JSON.parse(localStorage.getItem(`encyclopediaUnlocked_${uid}`) ?? '{}');
     const unlockDate = localStorage.getItem(`encyclopediaUnlockDate_${uid}`);
     const todayServiceId = localStorage.getItem(`encyclopediaTodayServiceId_${uid}`);
+    // 解放状態をサーバーへ保存（GET失敗時もローカルの解放を必ず保存する）
+    const postUnlocks = (unlocksToSave: Record<string, string>, retriesLeft: number) => {
+      const body = JSON.stringify({ userId, unlocks: unlocksToSave, unlockDate, todayServiceId });
+      fetch(`${API_ENDPOINT}/users/me/encyclopedia-unlocks`, {
+        method: 'POST', headers: { 'Content-Type': 'application/json' }, body,
+      }).then(r => { if (!r.ok && retriesLeft > 0) setTimeout(() => postUnlocks(unlocksToSave, retriesLeft - 1), 3000); })
+        .catch(() => { if (retriesLeft > 0) setTimeout(() => postUnlocks(unlocksToSave, retriesLeft - 1), 3000); });
+    };
     fetch(`${API_ENDPOINT}/users/me/encyclopedia-unlocks?userId=${encodeURIComponent(userId)}`)
       .then(r => r.ok ? r.json() : { unlocks: {} })
       .then(data => {
@@ -753,17 +761,12 @@ function syncEncyclopediaToServer(userId: string, forceUpload = false): void {
         const merged: Record<string, string> = { ...local, ...server };
         localStorage.setItem(`encyclopediaUnlocked_${uid}`, JSON.stringify(merged));
         window.dispatchEvent(new CustomEvent('encyclopediaUpdated'));
-        // POST 失敗時は1回リトライ（3秒後）
-        const body = JSON.stringify({ userId, unlocks: merged, unlockDate, todayServiceId });
-        const doPost = (retriesLeft: number) => {
-          fetch(`${API_ENDPOINT}/users/me/encyclopedia-unlocks`, {
-            method: 'POST', headers: { 'Content-Type': 'application/json' }, body,
-          }).then(r => { if (!r.ok && retriesLeft > 0) setTimeout(() => doPost(retriesLeft - 1), 3000); })
-            .catch(() => { if (retriesLeft > 0) setTimeout(() => doPost(retriesLeft - 1), 3000); });
-        };
-        doPost(1);
+        postUnlocks(merged, 1);
       })
-      .catch(() => {});
+      .catch(() => {
+        // GET失敗時もローカルの解放状態は保存する（再ログインで未解放に戻る問題の対策）
+        postUnlocks(local, 2);
+      });
   } catch {}
 }
 
