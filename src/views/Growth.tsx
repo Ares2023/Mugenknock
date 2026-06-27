@@ -460,7 +460,7 @@ export default function Growth() {
         {MAIN_TABS.map(tab => (
           <button
             key={tab.key}
-            data-kbnav="1"
+            data-kbnav="tab"
             onClick={() => setMainTab(tab.key)}
             style={{
               background: 'none', border: 'none', cursor: 'pointer',

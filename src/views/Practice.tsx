@@ -385,10 +385,10 @@ export default function Practice() {
 
       {/* タブ */}
       <div style={{ display: 'flex', borderBottom: '1px solid color-mix(in srgb, var(--color-text-light) 40%, transparent)', marginBottom: 'var(--spacing-lg)' }}>
-        <button data-kbnav="1" style={tabBtn(tab === 'exercise')} onClick={() => setTab('exercise')}>
+        <button data-kbnav="tab" style={tabBtn(tab === 'exercise')} onClick={() => setTab('exercise')}>
           {ja ? '演習' : 'Exercise'}
         </button>
-        <button data-kbnav="1" style={tabBtn(tab === 'exam')} onClick={() => setTab('exam')}>
+        <button data-kbnav="tab" style={tabBtn(tab === 'exam')} onClick={() => setTab('exam')}>
           {ja ? '模試' : 'Mock Exam'}
         </button>
       </div>

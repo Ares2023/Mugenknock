@@ -395,22 +395,40 @@ export default function Layout({ children }: { children: React.ReactNode }) {
     if (e.key === 'Escape') { setKbMode(false); setPaneFocus('right'); return; }
     const isArrow = e.key === 'ArrowUp' || e.key === 'ArrowDown' || e.key === 'ArrowLeft' || e.key === 'ArrowRight';
     if (isArrow) setKbMode(true); // ナビキーでキー入力モードを有効化（カーソル表示）。Esc以外では解除しない
+    const goLeftPane = () => {
+      if (!open) setOpen(true);
+      const idx = navItems.findIndex(it => isActive(it.path));
+      setNavCursor(idx >= 0 ? idx : 0);
+      setPaneFocus('left');
+    };
     if (paneFocus === 'right') {
-      if (e.key === 'ArrowLeft') {
-        e.preventDefault();
-        if (!open) setOpen(true);
-        const idx = navItems.findIndex(it => isActive(it.path));
-        setNavCursor(idx >= 0 ? idx : 0);
-        setPaneFocus('left');
+      // 右ペイン内のクリック可能パネル/タブをカーソル走査（data-kbnav）。
+      // タブ(data-kbnav="tab")は左右で移動、コンテンツ(data-kbnav)は上下で移動。
+      const els = kbnavEls();
+      if (els.length === 0) {
+        // 対象が無い画面（演習/模試セッション等）は ← のみ左ペインへ、他は各画面に委ねる
+        if (e.key === 'ArrowLeft') { e.preventDefault(); goLeftPane(); }
         return;
       }
-      // 右ペイン内のクリック可能パネル/タブをカーソル走査（data-kbnav）。
-      // 対象が無い画面（演習/模試セッション等）は各画面側のキー処理に委ねる。
-      const els = kbnavEls();
-      if (els.length === 0) return;
-      if (e.key === 'ArrowDown') { e.preventDefault(); applyKbnav(kbnavIdxRef.current < 0 ? 0 : kbnavIdxRef.current + 1); }
-      else if (e.key === 'ArrowUp') { e.preventDefault(); applyKbnav(kbnavIdxRef.current < 0 ? 0 : kbnavIdxRef.current - 1); }
-      else if (e.key === 'Enter' && kbnavIdxRef.current >= 0 && kbnavIdxRef.current < els.length) { e.preventDefault(); els[kbnavIdxRef.current].click(); }
+      const isTab = (x?: HTMLElement) => x?.getAttribute('data-kbnav') === 'tab';
+      const findIn = (from: number, dir: number, wantTab: boolean) => {
+        for (let i = from + dir; i >= 0 && i < els.length; i += dir) if (isTab(els[i]) === wantTab) return i;
+        return -1;
+      };
+      let cur = kbnavIdxRef.current;
+      if (cur < 0 || cur >= els.length) { e.preventDefault(); applyKbnav(0); return; }
+      const curEl = els[cur];
+      if (isTab(curEl)) {
+        if (e.key === 'ArrowRight') { e.preventDefault(); const n = findIn(cur, +1, true); if (n >= 0) { applyKbnav(n); els[n].click(); } }
+        else if (e.key === 'ArrowLeft') { e.preventDefault(); const p = findIn(cur, -1, true); if (p >= 0) { applyKbnav(p); els[p].click(); } else goLeftPane(); }
+        else if (e.key === 'ArrowDown') { e.preventDefault(); const c = els.findIndex(x => !isTab(x)); if (c >= 0) applyKbnav(c); }
+        else if (e.key === 'Enter') { e.preventDefault(); curEl.click(); }
+      } else {
+        if (e.key === 'ArrowDown') { e.preventDefault(); const n = findIn(cur, +1, false); if (n >= 0) applyKbnav(n); }
+        else if (e.key === 'ArrowUp') { e.preventDefault(); const p = findIn(cur, -1, false); if (p >= 0) applyKbnav(p); else { const t = els.findIndex(isTab); if (t >= 0) applyKbnav(t); } }
+        else if (e.key === 'ArrowLeft') { e.preventDefault(); goLeftPane(); }
+        else if (e.key === 'Enter') { e.preventDefault(); curEl.click(); }
+      }
     } else {
       // navItems.length 番目 = 連絡先
       if (e.key === 'ArrowDown') { e.preventDefault(); setNavCursor(c => Math.min(navItems.length, c + 1)); }

@@ -362,9 +362,9 @@ export default function MyPage() {
 
         {/* ── タブ ── */}
         <div style={{ display: 'flex', borderBottom: '1px solid color-mix(in srgb, var(--color-text-light) 40%, transparent)', marginBottom: 'var(--spacing-lg)' }}>
-          <button data-kbnav="1" style={tabStyle(tab === 'target')} onClick={() => setTab('target')}>{ja ? '目標' : 'Goals'}</button>
-          <button data-kbnav="1" style={tabStyle(tab === 'analysis')} onClick={() => setTab('analysis')}>{ja ? '苦手分析' : 'Analysis'}</button>
-          <button data-kbnav="1" style={tabStyle(tab === 'history')} onClick={() => setTab('history')}>{ja ? '履歴' : 'History'}</button>
+          <button data-kbnav="tab" style={tabStyle(tab === 'target')} onClick={() => setTab('target')}>{ja ? '目標' : 'Goals'}</button>
+          <button data-kbnav="tab" style={tabStyle(tab === 'analysis')} onClick={() => setTab('analysis')}>{ja ? '苦手分析' : 'Analysis'}</button>
+          <button data-kbnav="tab" style={tabStyle(tab === 'history')} onClick={() => setTab('history')}>{ja ? '履歴' : 'History'}</button>
         </div>
 
         {/* ════════ 目標タブ ════════ */}

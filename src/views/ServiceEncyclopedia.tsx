@@ -294,7 +294,7 @@ export default function ServiceEncyclopedia() {
           return (
             <button
               key={t}
-              data-kbnav="1"
+              data-kbnav="tab"
               onClick={() => setActiveTab(t)}
               style={{ flex: 1, background: 'none', border: 'none', cursor: 'pointer', padding: '10px 0', fontSize: 'var(--font-size-base)', fontWeight: active ? 700 : 500, color: active ? 'var(--color-primary)' : 'var(--color-text-sub)', borderBottom: `2px solid ${active ? 'var(--color-primary)' : 'transparent'}`, transition: 'color 0.15s, border-color 0.15s' }}
             >
