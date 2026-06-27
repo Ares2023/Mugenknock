@@ -229,7 +229,7 @@ function CombinedDetailModal({ targetExam, domainAccList, estimatedScore, passSc
 
   return (
     <div
-      style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', zIndex: 1000, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16 }}
+      data-kbscope="1" style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', zIndex: 1000, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16 }}
       onClick={e => { if (e.target === e.currentTarget) onClose(); }}
       onTouchStart={e => e.stopPropagation()}
       onTouchMove={e => e.stopPropagation()}
@@ -465,7 +465,7 @@ function ScoreDetailModal({ targetExam, estimatedScore, passScore, lang, uid, on
   const sessionHistory = readSessionScoreHistory(targetExam, uid);
   return (
     <div
-      style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', zIndex: 1000, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16 }}
+      data-kbscope="1" style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', zIndex: 1000, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16 }}
       onClick={e => { if (e.target === e.currentTarget) onClose(); }}
       onTouchStart={e => e.stopPropagation()}
       onTouchMove={e => e.stopPropagation()}
@@ -533,7 +533,7 @@ function DomainDetailModal({ targetExam, domainAccList, lang, onClose }: {
   const domains = EXAM_DOMAINS[targetExam] ?? [];
   return (
     <div
-      style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', zIndex: 1000, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16 }}
+      data-kbscope="1" style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', zIndex: 1000, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16 }}
       onClick={e => { if (e.target === e.currentTarget) onClose(); }}
       onTouchStart={e => e.stopPropagation()}
       onTouchMove={e => e.stopPropagation()}
@@ -2322,7 +2322,7 @@ export default function Home() {
       {/* ── サクッと演習 設定モーダル ── */}
       {showQuickModal && (
         <div
-          style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', zIndex: 1000, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16 }}
+          data-kbscope="1" style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', zIndex: 1000, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16 }}
           onClick={e => { if (e.target === e.currentTarget) setShowQuickModal(false); }}
           onTouchStart={e => e.stopPropagation()}
           onTouchMove={e => e.stopPropagation()}
@@ -2483,7 +2483,7 @@ export default function Home() {
       {/* ── しっかり対策 設定モーダル ── */}
       {showFocusedModal && (
         <div
-          style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', zIndex: 1000, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16 }}
+          data-kbscope="1" style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', zIndex: 1000, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16 }}
           onClick={e => { if (e.target === e.currentTarget) setShowFocusedModal(false); }}
           onTouchStart={e => e.stopPropagation()}
           onTouchMove={e => e.stopPropagation()}

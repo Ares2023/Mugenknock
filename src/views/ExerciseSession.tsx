@@ -913,7 +913,7 @@ export default function ExerciseSession() {
   }
 
   return (
-    <div style={{ maxWidth: 900, margin: '0 auto', padding: isMobile ? 'var(--spacing-sm) 0' : 'var(--spacing-sm) var(--spacing-lg) var(--spacing-xl)' }} className="session-container">
+    <div style={{ maxWidth: 900, margin: '0 auto', padding: isMobile ? '0 0 var(--spacing-sm)' : '0 var(--spacing-lg) var(--spacing-xl)' }} className="session-container">
       {/* 正誤アニメーション */}
       {judgmentAnim && (
         <div style={{
@@ -953,7 +953,7 @@ export default function ExerciseSession() {
           : Array.from({ length: totalCount }, (_, k) => k);
 
         return (
-          <div style={{ position: 'sticky', top: 8, zIndex: 190, background: 'var(--color-bg-white)', border: '1px solid var(--color-border)', borderRadius: 'var(--border-radius-full)', boxShadow: 'var(--box-shadow-sm)', padding: '8px 24px', display: 'flex', alignItems: 'center', gap: 0, width: 'min(440px, calc(100% - 24px))', margin: '0 auto var(--spacing-md)' }}>
+          <div style={{ position: 'sticky', top: 0, zIndex: 190, background: 'var(--color-bg-white)', border: '1px solid var(--color-border)', borderRadius: 'var(--border-radius-full)', boxShadow: 'var(--box-shadow-sm)', padding: '8px 24px', display: 'flex', alignItems: 'center', gap: 0, width: '100%', boxSizing: 'border-box', marginBottom: 'var(--spacing-md)' }}>
             <div style={{ flex: 1, display: 'flex', alignItems: 'center' }}>
               {visibleIndices.map((i, visIdx) => {
                 const isAnswered = i < results.length;

@@ -361,6 +361,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
   const [navCursor, setNavCursor] = useState(0);
   const kbnavIdxRef = useRef(-1); // 右ペイン data-kbnav 走査の現在位置
   const kbScopeRef = useRef<ParentNode | null>(null); // 直近の走査スコープ（変化時にカーソルリセット）
+  const pendingNavRef = useRef(false); // 左ペインEnterでの遷移中フラグ（右復帰effectの旧画面ちらつき防止）
   // キー入力モード（既定OFF、カーソル非表示）。矢印で有効化、Escで無効化。
   const [kbMode, setKbModeState] = useState(false);
   useEffect(() => {
@@ -435,6 +436,13 @@ export default function Layout({ children }: { children: React.ReactNode }) {
       if (scopeNow !== kbScopeRef.current) { kbScopeRef.current = scopeNow; kbnavIdxRef.current = -1; removeKbnavHighlight(); }
       let cur = kbnavIdxRef.current;
       if (cur < 0 || cur >= els.length) { e.preventDefault(); const t0 = els.findIndex(x => x.getAttribute('data-kbnav') === 'tab'); applyKbnav(t0 >= 0 ? t0 : 0); return; }
+      // オーバレイ内は全矢印で線形移動（タブ/コンテンツを区別しない）
+      if (inOverlayScope()) {
+        if (e.key === 'ArrowDown' || e.key === 'ArrowRight') { e.preventDefault(); applyKbnav(cur + 1); }
+        else if (e.key === 'ArrowUp' || e.key === 'ArrowLeft') { e.preventDefault(); applyKbnav(cur - 1); }
+        else if (e.key === 'Enter') { e.preventDefault(); els[cur].click(); }
+        return;
+      }
       const curEl = els[cur];
       if (isTab(curEl)) {
         if (e.key === 'ArrowRight') { e.preventDefault(); const n = findIn(cur, +1, true); if (n >= 0) { applyKbnav(n); els[n].click(); } }
@@ -451,7 +459,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
       // navItems.length 番目 = 連絡先
       if (e.key === 'ArrowDown') { e.preventDefault(); setNavCursor(c => Math.min(navItems.length, c + 1)); }
       else if (e.key === 'ArrowUp') { e.preventDefault(); setNavCursor(c => Math.max(0, c - 1)); }
-      else if (e.key === 'Enter') { e.preventDefault(); if (navCursor < navItems.length) navigate(navItems[navCursor].path); else openContact(); setPaneFocus('right'); }
+      else if (e.key === 'Enter') { e.preventDefault(); if (navCursor < navItems.length) { pendingNavRef.current = true; navigate(navItems[navCursor].path); } else openContact(); setPaneFocus('right'); }
       else if (e.key === 'ArrowRight') { e.preventDefault(); setPaneFocus('right'); }
     }
   };
@@ -473,12 +481,14 @@ export default function Layout({ children }: { children: React.ReactNode }) {
   }, [kbMode]);
   useEffect(() => {
     if (paneFocus === 'left') { removeKbnavHighlight(); return; }
+    if (pendingNavRef.current) return; // 遷移中は旧画面に復元しない（pathname効果が新画面で当てる）
     if (kbMode) { const id = requestAnimationFrame(() => applyKbnav(kbnavIdxRef.current < 0 ? 0 : kbnavIdxRef.current)); return () => cancelAnimationFrame(id); }
   }, [paneFocus]); // eslint-disable-line react-hooks/exhaustive-deps
   // ページ遷移時: カーソルをリセットし、キー入力モード中なら新ページの要素が
   // 描画され次第カーソルを先頭(タブ優先)に当てる（遷移直後にカーソルが消える問題の対策）
   useEffect(() => {
     kbnavIdxRef.current = -1; kbScopeRef.current = null; removeKbnavHighlight();
+    pendingNavRef.current = false;
     if (isMobile || !kbMode || paneFocus !== 'right') return;
     let tries = 0; let raf = 0;
     const tryApply = () => {
