@@ -1059,6 +1059,7 @@ export default function ExerciseSession() {
                   >
                     <strong style={{ marginRight: 2 }}>{CHOICE_LABELS[idx]}.</strong> {stripLabel(choice)}
                   </span>
+                  {isCursor && !answered && <span style={{ marginLeft: 'auto', alignSelf: 'center', fontSize: 10, fontWeight: 400, opacity: 0.5, flexShrink: 0 }}>Enter</span>}
                 </div>
               </button>
             );
@@ -1284,16 +1285,18 @@ export default function ExerciseSession() {
               <button
                 onClick={submitAnswer}
                 disabled={!canSubmit}
-                style={{ height: 44, padding: '0 24px', border: 'none', borderRadius: 22, background: !canSubmit ? 'var(--color-text-light)' : 'var(--color-accent)', color: 'var(--color-btn-primary-text)', fontWeight: 600, fontSize: 'var(--font-size-base)', cursor: !canSubmit ? 'default' : 'pointer', opacity: !canSubmit ? 0.5 : 1, whiteSpace: 'nowrap', boxShadow: '0 2px 8px rgba(0,0,0,0.15)' }}
+                style={{ height: 44, padding: '0 24px', border: 'none', borderRadius: 22, background: !canSubmit ? 'var(--color-text-light)' : 'var(--color-accent)', color: 'var(--color-btn-primary-text)', fontWeight: 600, fontSize: 'var(--font-size-base)', cursor: !canSubmit ? 'default' : 'pointer', opacity: !canSubmit ? 0.5 : 1, whiteSpace: 'nowrap', boxShadow: '0 2px 8px rgba(0,0,0,0.15)', display: 'inline-flex', alignItems: 'center', gap: 8 }}
               >
                 {t('exerciseSession.answer')}
+                <span style={{ fontSize: 11, fontWeight: 400, opacity: 0.6 }}>⇧Enter</span>
               </button>
             ) : (
               <button
                 onClick={nextQuestion}
-                style={{ height: 44, padding: '0 24px', border: '1.5px solid var(--color-primary)', borderRadius: 22, background: 'var(--color-bg-white)', color: 'var(--color-primary)', fontWeight: 600, fontSize: 'var(--font-size-base)', cursor: 'pointer', whiteSpace: 'nowrap', boxShadow: '0 2px 8px rgba(0,0,0,0.15)' }}
+                style={{ height: 44, padding: '0 24px', border: '1.5px solid var(--color-primary)', borderRadius: 22, background: 'var(--color-bg-white)', color: 'var(--color-primary)', fontWeight: 600, fontSize: 'var(--font-size-base)', cursor: 'pointer', whiteSpace: 'nowrap', boxShadow: '0 2px 8px rgba(0,0,0,0.15)', display: 'inline-flex', alignItems: 'center', gap: 8 }}
               >
                 {currentIndex + 1 >= totalCount ? t('exerciseSession.showResult') : t('exerciseSession.next')}
+                <span style={{ fontSize: 11, fontWeight: 400, opacity: 0.6 }}>⇧Enter</span>
               </button>
             )}
           </div>

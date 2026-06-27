@@ -2082,7 +2082,12 @@ export default function Home() {
                           <span style={{ width: 14, height: 14, border: '2px solid rgba(0,0,0,0.2)', borderTopColor: '#16191f', borderRadius: '50%', animation: 'sherpa-spin 0.7s linear infinite', flexShrink: 0 }} />
                           {ja ? `準備中... ${quickLoadPct}%` : `Loading... ${quickLoadPct}%`}
                         </span>
-                      ) : (ja ? 'サクッと演習を開始' : 'Quick')}
+                      ) : (
+                        <span style={{ display: 'inline-flex', alignItems: 'center', gap: 8 }}>
+                          {ja ? 'サクッと演習を開始' : 'Quick'}
+                          <span style={{ fontSize: 11, fontWeight: 400, opacity: 0.6 }}>⇧Enter</span>
+                        </span>
+                      )}
                     </button>
                   ) : (
                     <button
@@ -2095,7 +2100,12 @@ export default function Home() {
                           <span style={{ width: 14, height: 14, border: '2px solid rgba(255,255,255,0.3)', borderTopColor: '#fff', borderRadius: '50%', animation: 'sherpa-spin 0.7s linear infinite', flexShrink: 0 }} />
                           {ja ? `準備中... ${focusedLoadPct}%` : `Loading... ${focusedLoadPct}%`}
                         </span>
-                      ) : (ja ? 'しっかり対策を開始' : 'Focused')}
+                      ) : (
+                        <span style={{ display: 'inline-flex', alignItems: 'center', gap: 8 }}>
+                          {ja ? 'しっかり対策を開始' : 'Focused'}
+                          <span style={{ fontSize: 11, fontWeight: 400, opacity: 0.6 }}>⇧Enter</span>
+                        </span>
+                      )}
                     </button>
                   )}
                   <button

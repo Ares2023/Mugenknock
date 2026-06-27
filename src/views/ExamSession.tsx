@@ -650,6 +650,7 @@ export default function ExamSession() {
                   <span style={{ flex: 1, minWidth: 0, overflowWrap: 'break-word', wordBreak: 'break-word' }}>
                     <strong style={{ marginRight: 2 }}>{CHOICE_LABELS[displayIdx]}.</strong> {stripLabel(choice)}
                   </span>
+                  {isCursor && <span style={{ marginLeft: 'auto', alignSelf: 'center', fontSize: 10, fontWeight: 400, opacity: 0.5, flexShrink: 0 }}>Enter</span>}
                 </div>
               </button>
             );
@@ -771,9 +772,10 @@ export default function ExamSession() {
           <div style={{ position: 'fixed', right: 24, bottom: 24, zIndex: 150 }}>
             <button
               onClick={() => setShowConfirm(true)}
-              style={{ height: 44, padding: '0 24px', border: 'none', borderRadius: 22, background: 'var(--color-accent)', color: 'var(--color-btn-primary-text)', fontWeight: 600, fontSize: 'var(--font-size-base)', cursor: 'pointer', whiteSpace: 'nowrap', boxShadow: '0 2px 8px rgba(0,0,0,0.15)' }}
+              style={{ height: 44, padding: '0 24px', border: 'none', borderRadius: 22, background: 'var(--color-accent)', color: 'var(--color-btn-primary-text)', fontWeight: 600, fontSize: 'var(--font-size-base)', cursor: 'pointer', whiteSpace: 'nowrap', boxShadow: '0 2px 8px rgba(0,0,0,0.15)', display: 'inline-flex', alignItems: 'center', gap: 8 }}
             >
               {t('examSession.submit')}
+              <span style={{ fontSize: 11, fontWeight: 400, opacity: 0.6 }}>⇧Enter</span>
             </button>
           </div>
         ),

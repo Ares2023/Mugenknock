@@ -311,6 +311,14 @@ export default function ExamSetup() {
     return () => window.removeEventListener('keydown', h);
   }, []);
 
+  // キーボードヒント表示（Web版のみ・SSRハイドレーション対策で初期false）
+  const [showKeyHint, setShowKeyHint] = useState(false);
+  useEffect(() => {
+    const f = () => setShowKeyHint(window.innerWidth >= 768);
+    f(); window.addEventListener('resize', f);
+    return () => window.removeEventListener('resize', f);
+  }, []);
+
   return (
     <div style={{ maxWidth: 900, margin: '0 auto', padding: 'var(--spacing-xl) var(--spacing-lg)' }} className="page-container">
 
@@ -508,9 +516,12 @@ export default function ExamSetup() {
               <span style={{ width: 13, height: 13, border: '2px solid rgba(0,0,0,0.25)', borderTopColor: '#16191f', borderRadius: '50%', animation: 'sherpa-spin 0.7s linear infinite', flexShrink: 0 }} />
               {t('examSetup.starting')}
             </span>
-          ) : miniExam
-            ? (lang === 'ja' ? 'ミニ模試を開始' : 'Start Mini Exam')
-            : t('examSetup.start')}
+          ) : (
+            <span style={{ display: 'inline-flex', alignItems: 'center', gap: 8 }}>
+              {miniExam ? (lang === 'ja' ? 'ミニ模試を開始' : 'Start Mini Exam') : t('examSetup.start')}
+              {showKeyHint && <span style={{ fontSize: 11, fontWeight: 400, opacity: 0.6 }}>⇧Enter</span>}
+            </span>
+          )}
         </Button>
       </div>
       {loading && <div style={{ position: 'fixed', inset: 0, zIndex: 9000, cursor: 'wait' }} onTouchStart={e => e.stopPropagation()} onTouchMove={e => e.stopPropagation()} onTouchEnd={e => e.stopPropagation()} />}
