@@ -568,24 +568,26 @@ export default function ExerciseSession() {
     });
   };
 
-  const submitAnswer = () => {
-    if (selectedAnswers.length === 0) return;
-    const isWakaranai = selectedAnswers.includes(WAKARANAI);
+  const submitAnswer = (overrideSel?: string[]) => {
+    const sel = overrideSel ?? selectedAnswers;
+    if (sel.length === 0) return;
+    if (overrideSel) setSelectedAnswers(overrideSel); // 即回答時はUIにも反映
+    const isWakaranai = sel.includes(WAKARANAI);
     if (!isWakaranai && currentQuestion.isMultiple && currentQuestion.correctAnswerCount &&
-        selectedAnswers.length !== currentQuestion.correctAnswerCount) {
+        sel.length !== currentQuestion.correctAnswerCount) {
       setAnswerCountError(lang === 'ja'
-        ? `${currentQuestion.correctAnswerCount}つ選択してください（現在${selectedAnswers.length}つ）`
-        : `Select ${currentQuestion.correctAnswerCount} answers (currently ${selectedAnswers.length})`);
+        ? `${currentQuestion.correctAnswerCount}つ選択してください（現在${sel.length}つ）`
+        : `Select ${currentQuestion.correctAnswerCount} answers (currently ${sel.length})`);
       return;
     }
     setAnswerCountError(null);
 
     const correctAnswerIndices: number[] = currentQuestion.correctAnswerIndices ?? [];
-    const selOrigIdx = selectedAnswers.map(t => { const si = shuffledChoices.indexOf(t); return si >= 0 ? origIndices[si] : -1; });
+    const selOrigIdx = sel.map(t => { const si = shuffledChoices.indexOf(t); return si >= 0 ? origIndices[si] : -1; });
     const isCorrect = correctAnswerIndices.length > 0 && correctAnswerIndices.length === selOrigIdx.length && correctAnswerIndices.every(i => selOrigIdx.includes(i));
 
     setResults(prev => [...prev, { questionId: currentQuestion.questionId, isCorrect }]);
-    setSelectionHistory(prev => ({ ...prev, [currentIndex]: selectedAnswers }));
+    setSelectionHistory(prev => ({ ...prev, [currentIndex]: sel }));
     setAnswered(true);
     setJudgmentAnim(isCorrect ? 'correct' : 'incorrect');
     setTimeout(() => setJudgmentAnim(null), 600);
@@ -593,7 +595,7 @@ export default function ExerciseSession() {
     const answerPayload = {
       userId,
       questionId: currentQuestion.questionId,
-      selectedAnswers,
+      selectedAnswers: sel,
       isCorrect,
       examType,
     };
@@ -804,7 +806,14 @@ export default function ExerciseSession() {
       else setCursorIndex(c => Math.max(0, c - 1));
     } else if (e.key === 'Enter' && e.shiftKey) {
       e.preventDefault();
-      if (!answered) submitAnswer(); else nextQuestion();
+      if (!answered) {
+        // 単一選択で未選択時はカーソルの選択肢を選んで即回答（Enter決定を省略）
+        if (selectedAnswers.length === 0 && !currentQuestion.isMultiple && cursorIndex < shuffledChoices.length) {
+          submitAnswer([shuffledChoices[cursorIndex]]);
+        } else {
+          submitAnswer();
+        }
+      } else nextQuestion();
     } else if (e.key === 'Enter' && isKbMode()) {
       e.preventDefault();
       if (!answered) toggleAnswer(cursorIndex < shuffledChoices.length ? shuffledChoices[cursorIndex] : WAKARANAI);

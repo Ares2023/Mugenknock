@@ -407,6 +407,10 @@ export default function ExamSession() {
       else setCursorIndex(c => Math.max(0, c - 1));
     } else if (e.key === 'Enter' && e.shiftKey) {
       e.preventDefault();
+      // 単一選択で未選択時はカーソルの選択肢を選んでから次へ（決定ステップ省略）
+      if (selected.length === 0 && !currentQ.isMultiple && cursorIndex < shuffledIndices.length) {
+        toggle(currentQ.choices[shuffledIndices[cursorIndex]]);
+      }
       if (currentIndex < questions.length - 1) handleNext(); else setShowConfirm(true);
     } else if (e.key === 'Enter' && isKbMode()) {
       e.preventDefault();
