@@ -353,6 +353,44 @@ export default function Layout({ children }: { children: React.ReactNode }) {
 
   const navItems = NAV_KEYS;
 
+  // ── 左右ペインのキーボードフォーカス（Web版）──
+  // 既定は右ペイン。← で左ペイン(サイドバー)へ、↑↓でタブ移動、Enterで遷移、→/Escで右へ戻る。
+  // セッション側は body.dataset.pane を見て左フォーカス中はキー操作を抑止する。
+  const [paneFocus, setPaneFocus] = useState<'left' | 'right'>('right');
+  const [navCursor, setNavCursor] = useState(0);
+  useEffect(() => {
+    const p = isMobile ? 'right' : paneFocus;
+    document.body.dataset.pane = p;
+    window.dispatchEvent(new CustomEvent('panefocuschange', { detail: p }));
+  }, [paneFocus, isMobile]);
+  const paneKeyRef = useRef<(e: KeyboardEvent) => void>(() => {});
+  paneKeyRef.current = (e: KeyboardEvent) => {
+    if (isMobile) return;
+    const el = e.target as HTMLElement | null;
+    const tag = el?.tagName;
+    if (tag === 'INPUT' || tag === 'TEXTAREA' || el?.isContentEditable) return;
+    if (paneFocus === 'right') {
+      if (e.key === 'ArrowLeft') {
+        e.preventDefault();
+        if (!open) setOpen(true);
+        const idx = navItems.findIndex(it => isActive(it.path));
+        setNavCursor(idx >= 0 ? idx : 0);
+        setPaneFocus('left');
+      }
+    } else {
+      if (e.key === 'ArrowDown') { e.preventDefault(); setNavCursor(c => Math.min(navItems.length - 1, c + 1)); }
+      else if (e.key === 'ArrowUp') { e.preventDefault(); setNavCursor(c => Math.max(0, c - 1)); }
+      else if (e.key === 'Enter') { e.preventDefault(); navigate(navItems[navCursor].path); setPaneFocus('right'); }
+      else if (e.key === 'ArrowRight' || e.key === 'Escape') { e.preventDefault(); setPaneFocus('right'); }
+    }
+  };
+  useEffect(() => {
+    const h = (e: KeyboardEvent) => paneKeyRef.current(e);
+    window.addEventListener('keydown', h);
+    return () => window.removeEventListener('keydown', h);
+  }, []);
+  const navIdxOf = (path: string) => navItems.findIndex(n => n.path === path);
+
   const breadcrumbs: Record<string, BreadcrumbItem[]> = {
     '/aws/practice':         [{ label: t('nav.home'), path: '/aws/' }, { label: t('nav.practice') }],
     '/aws/encyclopedia':     [{ label: t('nav.home'), path: '/aws/' }, { label: t('nav.encyclopedia') }],
@@ -734,6 +772,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
 
               {navItems.filter(item => !(item as any).bottom).map(({ path, labelKey, Icon }) => {
                 const active = isActive(path);
+                const isNavCursor = paneFocus === 'left' && navIdxOf(path) === navCursor;
                 return (
                   <button
                     key={path}
@@ -742,9 +781,11 @@ export default function Layout({ children }: { children: React.ReactNode }) {
                       width: '100%', textAlign: 'left',
                       display: 'flex', alignItems: 'center', gap: 12,
                       padding: '11px 24px',
-                      background: active ? 'var(--color-primary-light)' : 'none',
+                      background: isNavCursor ? 'var(--color-bg-main)' : active ? 'var(--color-primary-light)' : 'none',
                       border: 'none',
                       borderLeft: `4px solid ${active ? 'var(--color-primary)' : 'transparent'}`,
+                      outline: isNavCursor ? '2px solid var(--color-accent)' : 'none',
+                      outlineOffset: isNavCursor ? -2 : 0,
                       cursor: 'pointer',
                       color: active ? 'var(--color-primary)' : 'var(--color-text-sub)',
                       fontSize: 'var(--font-size-base)',
@@ -766,6 +807,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
               <div style={{ marginTop: 'auto', paddingBottom: 'var(--spacing-md)' }}>
                 {navItems.filter(item => (item as any).bottom).map(({ path, labelKey, Icon }) => {
                   const active = isActive(path);
+                  const isNavCursor = paneFocus === 'left' && navIdxOf(path) === navCursor;
                   return (
                     <button
                       key={path}
@@ -774,10 +816,12 @@ export default function Layout({ children }: { children: React.ReactNode }) {
                         width: '100%', textAlign: 'left',
                         display: 'flex', alignItems: 'center', gap: 12,
                         padding: '10px 24px',
-                        background: active ? 'var(--color-primary-light)' : 'none',
+                        background: isNavCursor ? 'var(--color-bg-main)' : active ? 'var(--color-primary-light)' : 'none',
                         border: 'none',
                         borderTop: '1px solid var(--color-border)',
                         borderLeft: `4px solid ${active ? 'var(--color-primary)' : 'transparent'}`,
+                        outline: isNavCursor ? '2px solid var(--color-accent)' : 'none',
+                        outlineOffset: isNavCursor ? -2 : 0,
                         cursor: 'pointer',
                         color: active ? 'var(--color-primary)' : 'var(--color-text-light)',
                         fontSize: 'var(--font-size-sm)',

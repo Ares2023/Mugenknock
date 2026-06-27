@@ -469,6 +469,14 @@ export default function ExerciseSession() {
   // キーボード操作用カーソル（Web版のみ）。choices + わからない を対象に上下移動
   const [cursorIndex, setCursorIndex] = useState(0);
   const cursorElRef = useRef<HTMLButtonElement | null>(null);
+  // 右ペインがフォーカス中か（左ペイン操作中は選択肢カーソルを隠す）
+  const [rightActive, setRightActive] = useState(true);
+  useEffect(() => {
+    setRightActive(document.body.dataset.pane !== 'left');
+    const h = (e: Event) => setRightActive((e as CustomEvent).detail !== 'left');
+    window.addEventListener('panefocuschange', h);
+    return () => window.removeEventListener('panefocuschange', h);
+  }, []);
 
   useEffect(() => {
     // ドラフト探索（sessionId 一致を優先。指定なしは最新の savedAt）
@@ -765,6 +773,7 @@ export default function ExerciseSession() {
     const el = e.target as HTMLElement | null;
     const tag = el?.tagName;
     if (tag === 'INPUT' || tag === 'TEXTAREA' || el?.isContentEditable) return;
+    if (document.body.dataset.pane === 'left') return; // 左ペイン操作中は抑止（←→はLayoutが処理）
     if (showAbortConfirm || finishing) return;
     const total = shuffledChoices.length + 1; // +1 = わからない
     const scrollMain = (toBottom: boolean) => {
@@ -772,11 +781,11 @@ export default function ExerciseSession() {
       const tgt = toBottom ? (m ? m.scrollHeight : document.body.scrollHeight) : 0;
       (m ?? window).scrollTo({ top: tgt, behavior: 'smooth' });
     };
-    if (e.key === 'ArrowDown' || e.key === 'ArrowRight') {
+    if (e.key === 'ArrowDown') {
       e.preventDefault();
       if (cursorIndex >= total - 1) scrollMain(true); // 最下選択肢でさらに下→下部(解説/コラム)へ
       else setCursorIndex(c => Math.min(total - 1, c + 1));
-    } else if (e.key === 'ArrowUp' || e.key === 'ArrowLeft') {
+    } else if (e.key === 'ArrowUp') {
       e.preventDefault();
       if (cursorIndex <= 0) scrollMain(false); // 最上選択肢でさらに上→ページ最上部へ
       else setCursorIndex(c => Math.max(0, c - 1));
@@ -1026,7 +1035,7 @@ export default function ExerciseSession() {
           </div>
           {shuffledChoices.map((choice: string, idx: number) => {
             const isSelected = selectedAnswers.includes(choice);
-            const isCursor = !isMobile && idx === cursorIndex;
+            const isCursor = !isMobile && rightActive && idx === cursorIndex;
             return (
               <button
                 key={choice}
@@ -1077,7 +1086,7 @@ export default function ExerciseSession() {
           {(() => {
             const wSelected = selectedAnswers.includes(WAKARANAI);
             const wAnsweredIncorrect = answered && wSelected;
-            const wCursor = !isMobile && cursorIndex === shuffledChoices.length;
+            const wCursor = !isMobile && rightActive && cursorIndex === shuffledChoices.length;
             return (
               <button
                 ref={wCursor ? cursorElRef : undefined}

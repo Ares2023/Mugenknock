@@ -174,6 +174,14 @@ export default function ExamSession() {
   const [cursorIndex, setCursorIndex] = useState(0);
   const cursorElRef = useRef<HTMLButtonElement | null>(null);
   useEffect(() => { setCursorIndex(0); }, [currentIndex]);
+  // 右ペインがフォーカス中か（左ペイン操作中は選択肢カーソルを隠す）
+  const [rightActive, setRightActive] = useState(true);
+  useEffect(() => {
+    setRightActive(document.body.dataset.pane !== 'left');
+    const h = (e: Event) => setRightActive((e as CustomEvent).detail !== 'left');
+    window.addEventListener('panefocuschange', h);
+    return () => window.removeEventListener('panefocuschange', h);
+  }, []);
   // カーソルの選択肢が画面内に入るようスクロール追従（Web版）
   useEffect(() => { if (!isMobile) cursorElRef.current?.scrollIntoView({ block: 'nearest' }); }, [cursorIndex, isMobile]);
 
@@ -373,17 +381,18 @@ export default function ExamSession() {
     const tag = el?.tagName;
     if (tag === 'INPUT' || tag === 'TEXTAREA' || el?.isContentEditable) return;
     if (paused || submitting || showConfirm || showAbortConfirm || reportOpen) return;
+    if (document.body.dataset.pane === 'left') return; // 左ペイン操作中は抑止（←→はLayoutが処理）
     const total = shuffledIndices.length + 1; // +1 = わからない
     const scrollMain = (toBottom: boolean) => {
       const m = document.querySelector('main');
       const tgt = toBottom ? (m ? m.scrollHeight : document.body.scrollHeight) : 0;
       (m ?? window).scrollTo({ top: tgt, behavior: 'smooth' });
     };
-    if (e.key === 'ArrowDown' || e.key === 'ArrowRight') {
+    if (e.key === 'ArrowDown') {
       e.preventDefault();
       if (cursorIndex >= total - 1) scrollMain(true);
       else setCursorIndex(c => Math.min(total - 1, c + 1));
-    } else if (e.key === 'ArrowUp' || e.key === 'ArrowLeft') {
+    } else if (e.key === 'ArrowUp') {
       e.preventDefault();
       if (cursorIndex <= 0) scrollMain(false);
       else setCursorIndex(c => Math.max(0, c - 1));
@@ -620,7 +629,7 @@ export default function ExamSession() {
             const origChoice = currentQ.choices[ci];
             const choice = qChoiceAt(currentQ as any, lang, ci);
             const isSelected = selected.includes(origChoice);
-            const isCursor = !isMobile && displayIdx === cursorIndex;
+            const isCursor = !isMobile && rightActive && displayIdx === cursorIndex;
             return (
               <button
                 key={origChoice}
@@ -670,7 +679,7 @@ export default function ExamSession() {
           })}
           {(() => {
             const wSelected = selected.includes(WAKARANAI);
-            const wCursor = !isMobile && cursorIndex === shuffledIndices.length;
+            const wCursor = !isMobile && rightActive && cursorIndex === shuffledIndices.length;
             return (
               <button
                 ref={wCursor ? cursorElRef : undefined}
