@@ -1748,7 +1748,7 @@ export default function Home() {
   // Shift+Enter で表示中のプライマリ開始ボタンを発火（Web版のみ）
   const startKeyRef = useRef<(e: KeyboardEvent) => void>(() => {});
   startKeyRef.current = (e: KeyboardEvent) => {
-    if (isMobile || !(e.key === 'Enter' && e.shiftKey)) return;
+    if (isMobile || !(e.key === 'Enter' && (e.ctrlKey || e.metaKey))) return;
     const el = e.target as HTMLElement | null;
     const tag = el?.tagName;
     if (tag === 'INPUT' || tag === 'TEXTAREA' || el?.isContentEditable) return;

@@ -810,7 +810,7 @@ export default function ExerciseSession() {
       e.preventDefault();
       if (cursorIndex <= 0) scrollMain(false); // 最上選択肢でさらに上→ページ最上部へ
       else setCursorIndex(c => Math.max(0, c - 1));
-    } else if (e.key === 'Enter' && e.shiftKey) {
+    } else if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) {
       e.preventDefault();
       if (!answered) {
         // 単一選択で未選択時はカーソルの選択肢を選んで即回答（Enter決定を省略）

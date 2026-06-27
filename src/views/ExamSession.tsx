@@ -405,7 +405,7 @@ export default function ExamSession() {
       e.preventDefault();
       if (cursorIndex <= 0) scrollMain(false);
       else setCursorIndex(c => Math.max(0, c - 1));
-    } else if (e.key === 'Enter' && e.shiftKey) {
+    } else if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) {
       e.preventDefault();
       // 単一選択で未選択時はカーソルの選択肢を選んでから次へ（決定ステップ省略）
       if (selected.length === 0 && !currentQ.isMultiple && cursorIndex < shuffledIndices.length) {

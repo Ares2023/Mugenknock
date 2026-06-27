@@ -402,10 +402,16 @@ export default function Layout({ children }: { children: React.ReactNode }) {
     const tag = el?.tagName;
     if (tag === 'INPUT' || tag === 'TEXTAREA' || el?.isContentEditable) return;
     if (e.key === 'Escape') {
-      // オーバレイが開いていれば閉じる（[data-kbclose] をクリック）。なければモード解除。
-      const ov = document.querySelector('[data-kbscope]');
-      const closeBtn = ov?.querySelector('[data-kbclose]') as HTMLElement | null;
-      if (closeBtn) { e.preventDefault(); closeBtn.click(); return; }
+      // オーバレイが開いていれば閉じる。[data-kbclose] があればそれを、無ければ背景(scope自身)を
+      // クリック（背景onClickのe.target===currentTargetでonCloseが発火）。無ければモード解除。
+      const scopes = document.querySelectorAll('[data-kbscope]');
+      const ov = scopes.length ? (scopes[scopes.length - 1] as HTMLElement) : null;
+      if (ov) {
+        const closeBtn = ov.querySelector('[data-kbclose]') as HTMLElement | null;
+        e.preventDefault();
+        if (closeBtn) closeBtn.click(); else ov.click();
+        return;
+      }
       setKbMode(false); setPaneFocus('right'); return;
     }
     const isArrow = e.key === 'ArrowUp' || e.key === 'ArrowDown' || e.key === 'ArrowLeft' || e.key === 'ArrowRight';
@@ -548,6 +554,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
       {/* ── 連絡先モーダル ── */}
       {showContact && (
         <div
+          data-kbscope="1"
           style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', zIndex: 1000, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 'var(--spacing-md)' }}
           onClick={e => { if (e.target === e.currentTarget) { setShowContact(false); } }}
           onTouchStart={e => e.stopPropagation()}
@@ -624,6 +631,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
       {/* ── SPポイント説明モーダル ── */}
       {showPointsInfo && (
         <div
+          data-kbscope="1"
           style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', zIndex: 1000, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 'var(--spacing-md)' }}
           onClick={e => { if (e.target === e.currentTarget) setShowPointsInfo(false); }}
           onTouchStart={e => e.stopPropagation()}

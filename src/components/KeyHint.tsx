@@ -3,7 +3,7 @@ import React from 'react';
 
 // キーボード操作ヒント。各キーを個別のキーキャップ（四角・グリフ中央寄せ）で表示する。
 // 既定は Shift + Enter（⇧ / ⏎）。色は currentColor を継承するためボタン内でそのまま使える。
-export default function KeyHint({ keys = ['⇧', '⏎'] }: { keys?: string[] }) {
+export default function KeyHint({ keys = ['Ctrl', '⏎'] }: { keys?: string[] }) {
   return (
     <span style={{ display: 'inline-flex', alignItems: 'center', gap: 3, verticalAlign: 'middle' }}>
       {keys.map((k, i) => (

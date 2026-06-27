@@ -299,7 +299,7 @@ export default function ExamSetup() {
   // Shift+Enter で開始ボタンを発火（Web版のみ）
   const startKeyRef = useRef<(e: KeyboardEvent) => void>(() => {});
   startKeyRef.current = (e: KeyboardEvent) => {
-    if (window.innerWidth < 768 || !(e.key === 'Enter' && e.shiftKey)) return;
+    if (window.innerWidth < 768 || !(e.key === 'Enter' && (e.ctrlKey || e.metaKey))) return;
     const el = e.target as HTMLElement | null;
     if (el?.tagName === 'TEXTAREA' || el?.isContentEditable) return;
     if (loading || availableCount === 0) return;
