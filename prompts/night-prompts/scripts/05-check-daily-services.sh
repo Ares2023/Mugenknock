@@ -149,6 +149,119 @@ echo "日めくりサービス体裁チェック開始: $(date)"
 echo "バッチサイズ: ${BATCH_SIZE}件 / チャンクサイズ: ${CHUNK_SIZE}件"
 echo "=========================================="
 
+# ── 0. 提供状態ライフサイクル（カタログ照合・決定的・WebFetch不要）──────
+#   service-catalog.json が単一の真実source。記事のサービスを名称で照合し:
+#     status が active 以外（新規受付終了/非推奨/EOL/改名）→
+#        未フラグなら警告(deprecationNote)＋deprecatedAt を付与（記事は残す＝猶予1ヶ月）
+#        deprecatedAt から30日経過なら削除
+#     status が active に戻った（復活）→ 警告フラグを解除
+#   ※判定は事前にカタログ側が claude+WebFetch で確認済みのため、ここはDB更新のみ。
+CATALOG_FILE="$SCRIPT_DIR/state/service-catalog.json"
+GRACE_DAYS=30
+if [ -f "$CATALOG_FILE" ]; then
+  echo ""
+  echo "--- 提供状態ライフサイクル照合中（猶予 ${GRACE_DAYS}日）---"
+  _LC_TMP=$(mktemp /tmp/ds_lifecycle_XXXX.json)
+  /home/yuzuki/local/bin/aws dynamodb scan --table-name DailyServices --output json 2>/dev/null > "$_LC_TMP" || echo '{}' > "$_LC_TMP"
+  CATALOG_FILE="$CATALOG_FILE" GRACE_DAYS="$GRACE_DAYS" DS_TMP="$_LC_TMP" python3 << 'PYEOF'
+import json, os, re, subprocess
+from datetime import datetime, timezone, date
+
+AWS = '/home/yuzuki/local/bin/aws'
+grace = int(os.environ['GRACE_DAYS'])
+today = date.today()
+now_iso = datetime.now(timezone.utc).strftime('%Y-%m-%dT%H:%M:%SZ')
+
+def norm(s):
+    s = (s or '').lower().strip()
+    s = re.sub(r'^(amazon|aws)\s+', '', s)
+    return re.sub(r'[^a-z0-9]', '', s)
+
+# カタログ: 正規化名 → status情報（status==unknown は判定対象外）
+with open(os.environ['CATALOG_FILE'], encoding='utf-8') as f:
+    catalog = json.load(f)
+status_map = {}
+for v in catalog.get('services', {}).values():
+    name = v.get('name')
+    st = v.get('status')
+    if not name or st in (None, 'unknown'):
+        continue
+    status_map[norm(name)] = v
+
+NON_ACTIVE = {'closed_to_new', 'deprecated', 'eol', 'renamed'}
+LABEL = {
+    'closed_to_new': '新規受付が終了しています',
+    'deprecated': '非推奨となっています',
+    'eol': '提供終了（予定）です',
+    'renamed': '別サービスへ統合・改名されました',
+}
+
+def deser(v):
+    if 'S' in v: return v['S']
+    if 'N' in v: return v['N']
+    if 'BOOL' in v: return v['BOOL']
+    return None
+
+with open(os.environ['DS_TMP']) as f:
+    ds = json.load(f)
+items = ds.get('Items', [])
+
+flagged = deleted = cleared = 0
+for it in items:
+    sid = (it.get('serviceId') or {}).get('S')
+    name = (it.get('name') or {}).get('S')
+    if not sid or not name:
+        continue
+    cat = status_map.get(norm(name))
+    cur_dep_at = (it.get('deprecatedAt') or {}).get('S')
+
+    # active（またはカタログ未収録）→ 既にフラグ済みなら解除
+    if not cat or cat.get('status') not in NON_ACTIVE:
+        if cur_dep_at:
+            subprocess.run([AWS, 'dynamodb', 'update-item', '--table-name', 'DailyServices',
+                '--key', json.dumps({'serviceId': {'S': sid}}),
+                '--update-expression', 'REMOVE deprecatedAt, deprecationNote, deprecationStatus SET updatedAt = :u',
+                '--expression-attribute-values', json.dumps({':u': {'S': now_iso}})], capture_output=True)
+            cleared += 1
+            print(f'  [復活] {name}: active復帰 → 警告解除')
+        continue
+
+    st = cat['status']
+    note_reason = cat.get('statusNote') or ''
+    # 既にフラグ済み → 猶予超過なら削除
+    if cur_dep_at:
+        try:
+            d0 = datetime.fromisoformat(cur_dep_at.replace('Z', '+00:00')).date()
+        except Exception:
+            d0 = today
+        if (today - d0).days >= grace:
+            subprocess.run([AWS, 'dynamodb', 'delete-item', '--table-name', 'DailyServices',
+                '--key', json.dumps({'serviceId': {'S': sid}})], capture_output=True)
+            deleted += 1
+            print(f'  [削除] {name}: {LABEL.get(st, st)}・猶予{grace}日経過 → 削除')
+        continue
+
+    # 未フラグ → 警告を付与（記事は残す）
+    from datetime import timedelta
+    del_on = (today + timedelta(days=grace)).isoformat()
+    base = f'このサービスはAWSで{LABEL.get(st, st)}'
+    if note_reason:
+        base += f'（{note_reason}）'
+    note = base + f'。{del_on}頃にサービス図鑑から削除されます。'
+    subprocess.run([AWS, 'dynamodb', 'update-item', '--table-name', 'DailyServices',
+        '--key', json.dumps({'serviceId': {'S': sid}}),
+        '--update-expression', 'SET deprecatedAt = :a, deprecationNote = :n, deprecationStatus = :s, updatedAt = :u',
+        '--expression-attribute-values', json.dumps({
+            ':a': {'S': today.isoformat()}, ':n': {'S': note},
+            ':s': {'S': st}, ':u': {'S': now_iso}})], capture_output=True)
+    flagged += 1
+    print(f'  [警告] {name}: {LABEL.get(st, st)} → 警告付与（{del_on}削除予定）')
+
+print(f'  → ライフサイクル: 新規警告={flagged} 削除={deleted} 復活解除={cleared}')
+PYEOF
+  rm -f "$_LC_TMP"
+fi
+
 # ── 1. DynamoDBからサービスを取得 ──────────────────────────────
 DYNAMO_TMP=$(mktemp /tmp/dynamo_XXXX.json)
 /home/yuzuki/local/bin/aws dynamodb scan --table-name DailyServices --output json 2>/dev/null > "$DYNAMO_TMP"

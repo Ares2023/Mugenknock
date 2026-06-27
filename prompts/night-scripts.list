@@ -12,3 +12,11 @@
 # 公式試験ガイドの定期更新（30日以内更新済みはスキップ＝資格ごと実質月1回）。
 # 生成・検証のWebFetch撤去後の現行性担保。生成・検証より後に回す。
 40,/home/yuzuki/aws-quiz-app/prompts/night-prompts/scripts/refresh-exam-guide-monthly.sh
+# サービスカタログの定期更新（30日以内確認済みはスキップ＝サービスごと実質月1回・-n12で有界）。
+# 全AWSサービスの提供状態・docUrlをWebFetchで確認し、記事の単一の真実sourceを最新化する。
+45,/home/yuzuki/aws-quiz-app/prompts/night-prompts/scripts/refresh-service-catalog-monthly.sh
+# 日めくり記事の提供状態ライフサイクル＋体裁チェック。冒頭の廃止照合は決定的(claude不要)で
+# 必ず走り、非推奨サービスに警告→30日後に削除する。後段の品質チェックのみclaudeを使う。
+50,/home/yuzuki/aws-quiz-app/prompts/night-prompts/scripts/05-check-daily-services.sh
+# 日めくり記事の生成（カタログ確定の現行サービスのみ・検証済みdocUrl）。最後に回す。
+55,/home/yuzuki/aws-quiz-app/prompts/night-prompts/scripts/04-generate-daily-services.sh

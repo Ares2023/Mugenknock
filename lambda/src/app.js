@@ -1855,6 +1855,26 @@ app.get('/daily-service', async (req, res) => {
   try {
     const docClient = getClient();
 
+    // ?list=1 指定時は全件一覧を返す（図鑑の母数を実データから動的算出するため）。
+    // 提供状態(deprecationNote等)も返し、廃止予定の警告表示に使う。
+    if (req.query.list) {
+      const allItems = await getDailyServicesAll(docClient);
+      const services = allItems
+        .filter(i => i.serviceId !== '_schedule_')
+        .sort((a, b) => (a.order || 0) - (b.order || 0))
+        .map(i => ({
+          serviceId: i.serviceId,
+          name: i.name,
+          shortName: i.shortName || '',
+          category: i.category || '',
+          icon: i.icon || '',
+          docUrl: i.docUrl || '',
+          deprecationNote: i.deprecationNote || undefined,
+          deprecationStatus: i.deprecationStatus || undefined,
+        }));
+      return res.json({ services, total: services.length });
+    }
+
     // ?serviceId= 指定時は特定サービスを返す（サービス図鑑の on-demand フェッチ用）
     if (req.query.serviceId) {
       const allItems = await getDailyServicesAll(docClient);
