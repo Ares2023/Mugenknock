@@ -492,7 +492,7 @@ export default function ExerciseSession() {
     if (state) { setInitialized(true); return; }
     // state なし（リロード等）: 最新ドラフトから復元する
     const draft = findDraft();
-    if (!draft) { navigate('/aws/exercise/setup', { replace: true }); return; }
+    if (!draft) { navigate('/aws/', { replace: true }); return; }
     setSessionId(draft.sessionId ?? '');
     setQuestions(draft.questions);
     setUserId(draft.userId ?? '');

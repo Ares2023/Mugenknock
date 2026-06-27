@@ -183,16 +183,12 @@ export default function Result() {
               })}
             </div>
             {showGuide && !isExam && (
-              <div style={{ marginTop: 'var(--spacing-md)', paddingTop: 'var(--spacing-md)', borderTop: '1px solid var(--color-border)', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12, flexWrap: 'wrap' }}>
-                <span style={{ fontSize: 'var(--font-size-sm)', color: 'var(--color-text-sub)', flex: 1 }}>
+              <div style={{ marginTop: 'var(--spacing-md)', paddingTop: 'var(--spacing-md)', borderTop: '1px solid var(--color-border)' }}>
+                <span style={{ fontSize: 'var(--font-size-sm)', color: 'var(--color-text-sub)' }}>
                   {ja
-                    ? `「${weakest.domain}」を重点的に演習しましょう`
-                    : `Focus on "${DOMAIN_NAME_EN[weakest.domain] ?? weakest.domain}" next`}
+                    ? `「${weakest.domain}」が弱点です。演習設定で苦手ドメインフィルタを使って重点的に対策しましょう。`
+                    : `"${DOMAIN_NAME_EN[weakest.domain] ?? weakest.domain}" is your weak area. Use the weak-domain filter in practice settings to focus on it.`}
                 </span>
-                <Button variant="outline" size="sm"
-                  onClick={() => navigate('/aws/exercise/setup', { state: { domain: weakest.domain } })}>
-                  {ja ? '集中演習する →' : 'Practice this domain →'}
-                </Button>
               </div>
             )}
           </Card>
@@ -316,9 +312,19 @@ export default function Result() {
               </span>
             ) : (ja ? 'もう一度' : 'Again')}
           </Button>
-        ) : (
-          <Button variant="primary" style={{ flex: 3 }} onClick={() => navigate(isExam ? '/aws/exam/setup' : '/aws/exercise/setup')}>
+        ) : isExam ? (
+          <Button variant="primary" style={{ flex: 3 }} onClick={() => navigate('/aws/exam/setup')}>
             {t('result.retry')}
+          </Button>
+        ) : (
+          /* 非quick演習: setupを経由せず直接新しい演習セッションを開始 */
+          <Button variant="primary" style={{ flex: 3 }} disabled={quickLoading} onClick={restartQuick}>
+            {quickLoading ? (
+              <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}>
+                <span style={{ width: 14, height: 14, border: '2px solid rgba(0,0,0,0.2)', borderTopColor: '#16191f', borderRadius: '50%', animation: 'sherpa-spin 0.7s linear infinite', flexShrink: 0 }} />
+                {ja ? '準備中...' : 'Loading...'}
+              </span>
+            ) : t('result.retry')}
           </Button>
         )}
       </div>
