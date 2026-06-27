@@ -424,6 +424,13 @@ export default function Layout({ children }: { children: React.ReactNode }) {
     window.addEventListener('keydown', h);
     return () => window.removeEventListener('keydown', h);
   }, []);
+  // マウス/タッチの実クリックでキー入力モードを解除（偽カーソル非表示）。
+  // プログラム的 .click()（Enter操作）は pointerdown を発火しないため衝突しない。
+  useEffect(() => {
+    const onPointer = () => { setKbMode(false); setPaneFocus('right'); };
+    window.addEventListener('pointerdown', onPointer);
+    return () => window.removeEventListener('pointerdown', onPointer);
+  }, []);
   // kbMode無効時は完全解除。左ペイン時はハイライトのみ消す（位置は保持）。右復帰時は復元。
   useEffect(() => {
     if (!kbMode) { kbnavIdxRef.current = -1; removeKbnavHighlight(); }
