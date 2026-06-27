@@ -359,6 +359,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
   // セッション側は body.dataset.pane を見て左フォーカス中はキー操作を抑止する。
   const [paneFocus, setPaneFocus] = useState<'left' | 'right'>('right');
   const [navCursor, setNavCursor] = useState(0);
+  const kbnavIdxRef = useRef(-1); // 右ペイン data-kbnav 走査の現在位置
   // キー入力モード（既定OFF、カーソル非表示）。矢印で有効化、Escで無効化。
   const [kbMode, setKbModeState] = useState(false);
   useEffect(() => {
@@ -387,7 +388,23 @@ export default function Layout({ children }: { children: React.ReactNode }) {
         const idx = navItems.findIndex(it => isActive(it.path));
         setNavCursor(idx >= 0 ? idx : 0);
         setPaneFocus('left');
+        return;
       }
+      // 右ペイン内のクリック可能パネル/タブをカーソル走査（data-kbnav）。
+      // 対象が無い画面（演習/模試セッション等）は各画面側のキー処理に委ねる。
+      const main = document.querySelector('main');
+      const els = main
+        ? (Array.from(main.querySelectorAll('[data-kbnav]')) as HTMLElement[]).filter(x => x.offsetParent !== null)
+        : [];
+      if (els.length === 0) return;
+      const hl = (idx: number) => {
+        document.querySelectorAll('[data-kbnav-active]').forEach(x => x.removeAttribute('data-kbnav-active'));
+        const t = els[idx];
+        if (t) { t.setAttribute('data-kbnav-active', '1'); t.scrollIntoView({ block: 'nearest' }); }
+      };
+      if (e.key === 'ArrowDown') { e.preventDefault(); kbnavIdxRef.current = Math.min(els.length - 1, kbnavIdxRef.current + 1); hl(kbnavIdxRef.current); }
+      else if (e.key === 'ArrowUp') { e.preventDefault(); kbnavIdxRef.current = kbnavIdxRef.current < 0 ? 0 : Math.max(0, kbnavIdxRef.current - 1); hl(kbnavIdxRef.current); }
+      else if (e.key === 'Enter' && kbnavIdxRef.current >= 0 && kbnavIdxRef.current < els.length) { e.preventDefault(); els[kbnavIdxRef.current].click(); }
     } else {
       if (e.key === 'ArrowDown') { e.preventDefault(); setNavCursor(c => Math.min(navItems.length - 1, c + 1)); }
       else if (e.key === 'ArrowUp') { e.preventDefault(); setNavCursor(c => Math.max(0, c - 1)); }
@@ -400,6 +417,13 @@ export default function Layout({ children }: { children: React.ReactNode }) {
     window.addEventListener('keydown', h);
     return () => window.removeEventListener('keydown', h);
   }, []);
+  // kbMode無効/左ペイン/ページ遷移時は右ペインのパネルカーソルを解除
+  const clearKbnav = () => {
+    kbnavIdxRef.current = -1;
+    document.querySelectorAll('[data-kbnav-active]').forEach(x => x.removeAttribute('data-kbnav-active'));
+  };
+  useEffect(() => { if (!kbMode || paneFocus !== 'right') clearKbnav(); }, [kbMode, paneFocus]);
+  useEffect(() => { clearKbnav(); }, [pathname]);
   const navIdxOf = (path: string) => navItems.findIndex(n => n.path === path);
 
   const breadcrumbs: Record<string, BreadcrumbItem[]> = {

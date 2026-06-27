@@ -975,7 +975,7 @@ function TodayServiceSection({ lang, userId, onNavigateEncyclopedia, onReveal, i
   const iconEl = <ServiceIconImg icon={displayService.icon} name={displayService.name} size={44} />;
 
   return (
-    <Card padding="var(--spacing-md)" style={{ marginBottom: 'var(--spacing-md)', cursor: 'pointer' }} onClick={onNavigateEncyclopedia}>
+    <Card data-kbnav="1" padding="var(--spacing-md)" style={{ marginBottom: 'var(--spacing-md)', cursor: 'pointer' }} onClick={onNavigateEncyclopedia}>
       {/* ヘッダー行 */}
       <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 8 }}>
         {calIcon}
@@ -1758,6 +1758,23 @@ export default function Home() {
     return () => window.removeEventListener('keydown', h);
   }, []);
 
+  // Esc で開いているオーバレイを閉じる（最前面を優先）
+  useEffect(() => {
+    const h = (e: KeyboardEvent) => {
+      if (e.key !== 'Escape') return;
+      if (showCombinedDetail) setShowCombinedDetail(false);
+      else if (revealService) setRevealService(null);
+      else if (showQuickModal) setShowQuickModal(false);
+      else if (showFocusedModal) setShowFocusedModal(false);
+      else if (showWebQuickMenu) setShowWebQuickMenu(false);
+      else if (showFocusedMenu) setShowFocusedMenu(false);
+      else return;
+      e.stopPropagation();
+    };
+    window.addEventListener('keydown', h);
+    return () => window.removeEventListener('keydown', h);
+  }, [showCombinedDetail, revealService, showQuickModal, showFocusedModal, showWebQuickMenu, showFocusedMenu]);
+
   return (
     <div style={{ maxWidth: 900, margin: '0 auto', padding: 'var(--spacing-lg) var(--spacing-lg)' }} className="page-container">
       <Helmet>
@@ -1767,6 +1784,7 @@ export default function Home() {
 
       {/* ── 目標演習量 ── */}
       <Card
+        data-kbnav="1"
         padding="var(--spacing-md)"
         style={{ marginBottom: 'var(--spacing-md)', cursor: 'pointer' }}
         onClick={() => navigate('/aws/mypage')}
@@ -1797,6 +1815,7 @@ export default function Home() {
 
       {/* ── ドメイン別正答率 + 予想スコア（1パネル、クリックで詳細） ── */}
       <Card
+        data-kbnav="1"
         padding="var(--spacing-md)"
         style={{ marginBottom: 'var(--spacing-md)', cursor: (targetExam && !statsLoading) ? 'pointer' : 'default', position: 'relative' }}
         onClick={() => { if (targetExam && !statsLoading) setShowCombinedDetail(true); }}

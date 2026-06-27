@@ -470,6 +470,7 @@ export default function ExerciseSession() {
   // キーボード操作用カーソル（Web版のみ）。choices + わからない を対象に上下移動
   const [cursorIndex, setCursorIndex] = useState(0);
   const cursorElRef = useRef<HTMLButtonElement | null>(null);
+  const explAnchorRef = useRef<HTMLDivElement | null>(null); // 解説パネル先頭アンカー
   // 右ペインがフォーカス中か（左ペイン操作中は選択肢カーソルを隠す）
   const [rightActive, setRightActive] = useState(true);
   useEffect(() => {
@@ -792,8 +793,11 @@ export default function ExerciseSession() {
     };
     if (e.key === 'ArrowDown') {
       e.preventDefault();
-      if (cursorIndex >= total - 1) scrollMain(true); // 最下選択肢でさらに下→下部(解説/コラム)へ
-      else setCursorIndex(c => Math.min(total - 1, c + 1));
+      if (cursorIndex >= total - 1) {
+        // 最下選択肢でさらに下：回答後は解説パネル先頭を画面上部に、未回答時は下部へ
+        if (answered && explAnchorRef.current) explAnchorRef.current.scrollIntoView({ block: 'start', behavior: 'smooth' });
+        else scrollMain(true);
+      } else setCursorIndex(c => Math.min(total - 1, c + 1));
     } else if (e.key === 'ArrowUp') {
       e.preventDefault();
       if (cursorIndex <= 0) scrollMain(false); // 最上選択肢でさらに上→ページ最上部へ
@@ -1123,6 +1127,7 @@ export default function ExerciseSession() {
           })()}
         </div>
 
+        <div ref={explAnchorRef} style={{ scrollMarginTop: 8 }} />
         {answered && (() => {
           const displayQ = (currentQuestion.correctAnswers ? currentQuestion : detail) ?? currentQuestion;
           const lastResult = results[results.length - 1];
