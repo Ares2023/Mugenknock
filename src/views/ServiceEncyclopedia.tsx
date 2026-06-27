@@ -252,6 +252,7 @@ export default function ServiceEncyclopedia() {
         </div>
 
         <div
+          {...((todayUnlocked && todayStoreData) ? { 'data-kbnav': '1' } : {})}
           style={{ display: 'flex', alignItems: 'center', gap: 12, cursor: (todayUnlocked && todayStoreData) ? 'pointer' : 'default' }}
           onClick={() => { if (todayUnlocked && todayStoreData) setSelected(todayStoreData); }}
         >
@@ -293,6 +294,7 @@ export default function ServiceEncyclopedia() {
           return (
             <button
               key={t}
+              data-kbnav="1"
               onClick={() => setActiveTab(t)}
               style={{ flex: 1, background: 'none', border: 'none', cursor: 'pointer', padding: '10px 0', fontSize: 'var(--font-size-base)', fontWeight: active ? 700 : 500, color: active ? 'var(--color-primary)' : 'var(--color-text-sub)', borderBottom: `2px solid ${active ? 'var(--color-primary)' : 'transparent'}`, transition: 'color 0.15s, border-color 0.15s' }}
             >
@@ -368,6 +370,7 @@ export default function ServiceEncyclopedia() {
                 return (
                   <div
                     key={svc.name}
+                    {...(clickable ? { 'data-kbnav': '1' } : {})}
                     onClick={handleClick}
                     style={{
                       display: 'flex', flexDirection: 'column', alignItems: 'center',
