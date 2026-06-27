@@ -352,6 +352,28 @@ export default function Practice() {
     transition: 'color 0.15s, border-color 0.15s',
   });
 
+  // Shift+Enter でアクティブタブの開始/再開ボタンを発火（Web版のみ）
+  const startKeyRef = useRef<(e: KeyboardEvent) => void>(() => {});
+  startKeyRef.current = (e: KeyboardEvent) => {
+    if (window.innerWidth < 768 || !(e.key === 'Enter' && e.shiftKey)) return;
+    const el = e.target as HTMLElement | null;
+    if (el?.tagName === 'TEXTAREA' || el?.isContentEditable) return;
+    if (exerciseLoading || examLoading || showStartConfirm || showNewPanel || showNewExamPanel) return;
+    e.preventDefault();
+    if (tab === 'exercise') {
+      if (availableCount === 0) return;
+      hasDraft ? resumeExercise() : startExercise();
+    } else {
+      if (!targetExam) return;
+      hasExamDraft ? resumeExam() : startExam();
+    }
+  };
+  useEffect(() => {
+    const h = (e: KeyboardEvent) => startKeyRef.current(e);
+    window.addEventListener('keydown', h);
+    return () => window.removeEventListener('keydown', h);
+  }, []);
+
   return (
     <div style={{ maxWidth: 900, margin: '0 auto', padding: 'var(--spacing-lg)', paddingBottom: isMobile ? 'var(--spacing-lg)' : 80 }} className="page-container">
       <Helmet>

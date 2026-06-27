@@ -169,6 +169,9 @@ export default function ExamSession() {
   }, [currentQ?.questionId]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const [lastSelected, setLastSelected] = useState<string | null>(null);
+  // キーボード操作用カーソル（Web版のみ）
+  const [cursorIndex, setCursorIndex] = useState(0);
+  useEffect(() => { setCursorIndex(0); }, [currentIndex]);
 
   const toggle = (choice: string) => {
     const qid = currentQ.questionId;
@@ -356,6 +359,34 @@ export default function ExamSession() {
   useEffect(() => {
     if (!state) navigate('/aws/exam/setup', { replace: true });
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // ── キーボード操作（Web版のみ）──
+  // ↑↓←→: カーソル移動 / Enter: カーソルの選択肢を選択・トグル / Shift+Enter: 次へ（最終問題は採点へ）
+  const keyHandlerRef = useRef<(e: KeyboardEvent) => void>(() => {});
+  keyHandlerRef.current = (e: KeyboardEvent) => {
+    if (isMobile || !currentQ) return;
+    const el = e.target as HTMLElement | null;
+    const tag = el?.tagName;
+    if (tag === 'INPUT' || tag === 'TEXTAREA' || el?.isContentEditable) return;
+    if (paused || submitting || showConfirm || showAbortConfirm || reportOpen) return;
+    const total = shuffledIndices.length + 1; // +1 = わからない
+    if (e.key === 'ArrowDown' || e.key === 'ArrowRight') {
+      e.preventDefault(); setCursorIndex(c => Math.min(total - 1, c + 1));
+    } else if (e.key === 'ArrowUp' || e.key === 'ArrowLeft') {
+      e.preventDefault(); setCursorIndex(c => Math.max(0, c - 1));
+    } else if (e.key === 'Enter' && e.shiftKey) {
+      e.preventDefault();
+      if (currentIndex < questions.length - 1) handleNext(); else setShowConfirm(true);
+    } else if (e.key === 'Enter') {
+      e.preventDefault();
+      toggle(cursorIndex < shuffledIndices.length ? currentQ.choices[shuffledIndices[cursorIndex]] : WAKARANAI);
+    }
+  };
+  useEffect(() => {
+    const h = (e: KeyboardEvent) => keyHandlerRef.current(e);
+    window.addEventListener('keydown', h);
+    return () => window.removeEventListener('keydown', h);
+  }, []);
 
   if (!state) return null;
 
@@ -576,6 +607,7 @@ export default function ExamSession() {
             const origChoice = currentQ.choices[ci];
             const choice = qChoiceAt(currentQ as any, lang, ci);
             const isSelected = selected.includes(origChoice);
+            const isCursor = !isMobile && displayIdx === cursorIndex;
             return (
               <button
                 key={origChoice}
@@ -587,6 +619,8 @@ export default function ExamSession() {
                   border: `1px solid ${isSelected ? 'var(--color-primary)' : 'var(--color-border)'}`,
                   background: isSelected ? 'var(--color-primary-light)' : 'var(--color-bg-elevated)',
                   boxShadow: isSelected ? '0 0 0 1px var(--color-primary)' : 'none',
+                  outline: isCursor ? '2px solid var(--color-accent)' : undefined,
+                  outlineOffset: isCursor ? 1 : undefined,
                   cursor: 'pointer', fontSize: 'var(--font-size-base)',
                   color: 'var(--color-text-main)',
                   transition: 'all 0.15s ease'
@@ -634,6 +668,7 @@ export default function ExamSession() {
                   cursor: 'pointer', fontSize: 'var(--font-size-sm)',
                   color: 'var(--color-text-light)',
                   transition: 'all 0.15s ease',
+                  ...((!isMobile && cursorIndex === shuffledIndices.length) ? { outline: '2px solid var(--color-accent)', outlineOffset: 1 } : {}),
                 }}>
                 <span style={{ marginRight: 10, fontSize: 12, flexShrink: 0 }}>？</span>
                 <span>{WAKARANAI}</span>

@@ -1739,6 +1739,24 @@ export default function Home() {
   const discardPrimaryDraft = primaryMode === 'focused' ? discardFocusedDraft : discardQuickDraft;
   const startPrimary = primaryMode === 'focused' ? startFocusedExercise : startQuickExercise;
 
+  // Shift+Enter で表示中のプライマリ開始ボタンを発火（Web版のみ）
+  const startKeyRef = useRef<(e: KeyboardEvent) => void>(() => {});
+  startKeyRef.current = (e: KeyboardEvent) => {
+    if (isMobile || !(e.key === 'Enter' && e.shiftKey)) return;
+    const el = e.target as HTMLElement | null;
+    const tag = el?.tagName;
+    if (tag === 'INPUT' || tag === 'TEXTAREA' || el?.isContentEditable) return;
+    if (showQuickModal || showFocusedModal || showCombinedDetail || showWebQuickMenu || showFocusedMenu || revealService) return;
+    e.preventDefault();
+    if (hasPrimaryDraft) resumePrimary();
+    else if (targetExam && !primaryLoading) startPrimary();
+  };
+  useEffect(() => {
+    const h = (e: KeyboardEvent) => startKeyRef.current(e);
+    window.addEventListener('keydown', h);
+    return () => window.removeEventListener('keydown', h);
+  }, []);
+
   return (
     <div style={{ maxWidth: 900, margin: '0 auto', padding: 'var(--spacing-lg) var(--spacing-lg)' }} className="page-container">
       <Helmet>

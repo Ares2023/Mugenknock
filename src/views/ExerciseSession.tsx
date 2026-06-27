@@ -465,6 +465,8 @@ export default function ExerciseSession() {
 
   const [lastSelected, setLastSelected] = useState<string | null>(null);
   const [struckChoices, setStruckChoices] = useState<Set<string>>(new Set());
+  // キーボード操作用カーソル（Web版のみ）。choices + わからない を対象に上下移動
+  const [cursorIndex, setCursorIndex] = useState(0);
 
   useEffect(() => {
     // ドラフト探索（sessionId 一致を優先。指定なしは最新の savedAt）
@@ -748,6 +750,37 @@ export default function ExerciseSession() {
     navigate('/aws/result', { state: { results, questions: answeredQuestions, score, isPassed, sessionId: sid, userId, examType, isQuick, isMini, aborted: true, earnedPts, dailyBonusPts: dailyBonusPts2 } });
   };
 
+  // 問題が変わったらカーソルを先頭に戻す
+  useEffect(() => { setCursorIndex(0); }, [currentIndex]);
+
+  // ── キーボード操作（Web版のみ）──
+  // ↑↓←→: カーソル移動 / Enter: カーソルの選択肢を選択・トグル / Shift+Enter: 回答→次へ
+  const keyHandlerRef = useRef<(e: KeyboardEvent) => void>(() => {});
+  keyHandlerRef.current = (e: KeyboardEvent) => {
+    if (isMobile) return;
+    const el = e.target as HTMLElement | null;
+    const tag = el?.tagName;
+    if (tag === 'INPUT' || tag === 'TEXTAREA' || el?.isContentEditable) return;
+    if (showAbortConfirm || finishing) return;
+    const total = shuffledChoices.length + 1; // +1 = わからない
+    if (e.key === 'ArrowDown' || e.key === 'ArrowRight') {
+      e.preventDefault(); setCursorIndex(c => Math.min(total - 1, c + 1));
+    } else if (e.key === 'ArrowUp' || e.key === 'ArrowLeft') {
+      e.preventDefault(); setCursorIndex(c => Math.max(0, c - 1));
+    } else if (e.key === 'Enter' && e.shiftKey) {
+      e.preventDefault();
+      if (!answered) submitAnswer(); else nextQuestion();
+    } else if (e.key === 'Enter') {
+      e.preventDefault();
+      if (!answered) toggleAnswer(cursorIndex < shuffledChoices.length ? shuffledChoices[cursorIndex] : WAKARANAI);
+    }
+  };
+  useEffect(() => {
+    const h = (e: KeyboardEvent) => keyHandlerRef.current(e);
+    window.addEventListener('keydown', h);
+    return () => window.removeEventListener('keydown', h);
+  }, []);
+
   const getChoiceStyle = (choice: string): React.CSSProperties => {
     const base: React.CSSProperties = {
       padding: 'var(--spacing-md) var(--spacing-lg)',
@@ -983,11 +1016,12 @@ export default function ExerciseSession() {
           </div>
           {shuffledChoices.map((choice: string, idx: number) => {
             const isSelected = selectedAnswers.includes(choice);
+            const isCursor = !isMobile && idx === cursorIndex;
             return (
               <button
                 key={choice}
                 onClick={() => toggleAnswer(choice)}
-                style={getChoiceStyle(choice)}
+                style={{ ...getChoiceStyle(choice), ...(isCursor ? { outline: '2px solid var(--color-accent)', outlineOffset: 1 } : {}) }}
                 className={lastSelected === choice && isSelected && !answered ? 'choice-select-anim' : ''}
               >
                 <div style={{ display: 'flex', alignItems: 'flex-start', gap: 8 }}>
@@ -1048,6 +1082,7 @@ export default function ExerciseSession() {
                   background: wAnsweredIncorrect ? 'var(--color-feedback-incorrect-bg)' : wSelected ? 'var(--color-bg-main)' : 'transparent',
                   borderColor: wAnsweredIncorrect ? 'var(--color-danger)' : wSelected ? 'var(--color-text-sub)' : 'var(--color-border)',
                   color: wAnsweredIncorrect ? 'var(--color-danger)' : 'var(--color-text-light)',
+                  ...((!isMobile && cursorIndex === shuffledChoices.length) ? { outline: '2px solid var(--color-accent)', outlineOffset: 1 } : {}),
                 }}
               >
                 <span style={{ marginRight: 10, fontSize: 12, flexShrink: 0 }}>？</span>

@@ -374,6 +374,24 @@ export default function ExerciseSetup() {
     domainRates[d] = total > 0 ? s.correctCount / total : null;
   });
 
+  // Shift+Enter で開始ボタンを発火（Web版のみ）
+  const startKeyRef = useRef<(e: KeyboardEvent) => void>(() => {});
+  startKeyRef.current = (e: KeyboardEvent) => {
+    if (window.innerWidth < 768 || !(e.key === 'Enter' && e.shiftKey)) return;
+    const el = e.target as HTMLElement | null;
+    if (el?.tagName === 'TEXTAREA' || el?.isContentEditable) return;
+    if (loading || availableCount === 0) return;
+    e.preventDefault();
+    if (showStartConfirm) { setShowStartConfirm(false); startSession(); }
+    else if (hasDraft) setShowStartConfirm(true);
+    else startSession();
+  };
+  useEffect(() => {
+    const h = (e: KeyboardEvent) => startKeyRef.current(e);
+    window.addEventListener('keydown', h);
+    return () => window.removeEventListener('keydown', h);
+  }, []);
+
   return (
     <div style={{ maxWidth: 900, margin: '0 auto', padding: 'var(--spacing-xl) var(--spacing-lg)' }} className="page-container">
 
