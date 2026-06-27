@@ -475,7 +475,20 @@ export default function Layout({ children }: { children: React.ReactNode }) {
     if (paneFocus === 'left') { removeKbnavHighlight(); return; }
     if (kbMode) { const id = requestAnimationFrame(() => applyKbnav(kbnavIdxRef.current < 0 ? 0 : kbnavIdxRef.current)); return () => cancelAnimationFrame(id); }
   }, [paneFocus]); // eslint-disable-line react-hooks/exhaustive-deps
-  useEffect(() => { kbnavIdxRef.current = -1; removeKbnavHighlight(); }, [pathname]);
+  // ページ遷移時: カーソルをリセットし、キー入力モード中なら新ページの要素が
+  // 描画され次第カーソルを先頭(タブ優先)に当てる（遷移直後にカーソルが消える問題の対策）
+  useEffect(() => {
+    kbnavIdxRef.current = -1; kbScopeRef.current = null; removeKbnavHighlight();
+    if (isMobile || !kbMode || paneFocus !== 'right') return;
+    let tries = 0; let raf = 0;
+    const tryApply = () => {
+      const els = kbnavEls();
+      if (els.length > 0) { const t0 = els.findIndex(x => x.getAttribute('data-kbnav') === 'tab'); applyKbnav(t0 >= 0 ? t0 : 0); return; }
+      if (tries++ < 30) raf = requestAnimationFrame(tryApply);
+    };
+    raf = requestAnimationFrame(tryApply);
+    return () => cancelAnimationFrame(raf);
+  }, [pathname]); // eslint-disable-line react-hooks/exhaustive-deps
   const navIdxOf = (path: string) => navItems.findIndex(n => n.path === path);
 
   const breadcrumbs: Record<string, BreadcrumbItem[]> = {
