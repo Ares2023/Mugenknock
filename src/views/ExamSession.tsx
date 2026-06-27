@@ -14,6 +14,7 @@ import Button from '../components/ui/Button';
 import Badge from '../components/ui/Badge';
 import ReportModal from '../components/ReportModal';
 import { IconFlag, IconStar, IconCircleCheck, IconCirclePause, IconCheck } from '../components/Icons';
+import KeyHint from '../components/KeyHint';
 
 const WAKARANAI = 'わからない';
 const stripLabel = (s: string) => s.replace(/^[A-E]\.\s*/, '');
@@ -373,10 +374,19 @@ export default function ExamSession() {
     if (tag === 'INPUT' || tag === 'TEXTAREA' || el?.isContentEditable) return;
     if (paused || submitting || showConfirm || showAbortConfirm || reportOpen) return;
     const total = shuffledIndices.length + 1; // +1 = わからない
+    const scrollMain = (toBottom: boolean) => {
+      const m = document.querySelector('main');
+      const tgt = toBottom ? (m ? m.scrollHeight : document.body.scrollHeight) : 0;
+      (m ?? window).scrollTo({ top: tgt, behavior: 'smooth' });
+    };
     if (e.key === 'ArrowDown' || e.key === 'ArrowRight') {
-      e.preventDefault(); setCursorIndex(c => Math.min(total - 1, c + 1));
+      e.preventDefault();
+      if (cursorIndex >= total - 1) scrollMain(true);
+      else setCursorIndex(c => Math.min(total - 1, c + 1));
     } else if (e.key === 'ArrowUp' || e.key === 'ArrowLeft') {
-      e.preventDefault(); setCursorIndex(c => Math.max(0, c - 1));
+      e.preventDefault();
+      if (cursorIndex <= 0) scrollMain(false);
+      else setCursorIndex(c => Math.max(0, c - 1));
     } else if (e.key === 'Enter' && e.shiftKey) {
       e.preventDefault();
       if (currentIndex < questions.length - 1) handleNext(); else setShowConfirm(true);
@@ -780,7 +790,7 @@ export default function ExamSession() {
               style={{ height: 44, padding: '0 24px', border: 'none', borderRadius: 22, background: 'var(--color-accent)', color: 'var(--color-btn-primary-text)', fontWeight: 600, fontSize: 'var(--font-size-base)', cursor: 'pointer', whiteSpace: 'nowrap', boxShadow: '0 2px 8px rgba(0,0,0,0.15)', display: 'inline-flex', alignItems: 'center', gap: 8 }}
             >
               {t('examSession.submit')}
-              <span style={{ fontSize: 12, fontWeight: 700, opacity: 0.9, border: '1px solid currentColor', borderRadius: 4, padding: '0 5px', lineHeight: 1.5 }}>⇧⏎</span>
+              <KeyHint />
             </button>
           </div>
         ),

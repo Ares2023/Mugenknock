@@ -20,6 +20,7 @@ import { getPoints, deductPoints } from '../utils/points';
 import Card from '../components/ui/Card';
 import Button from '../components/ui/Button';
 import { IconLightbulb, IconBean, IconSettings, IconChevronUp, IconChevronDown, IconLock, IconFileText, IconTrendingUp, IconBookOpen, IconCheck, IconSparkles, IconPointer, IconMousePointerClick, IconCalendarNotebook, IconRefreshCw, IconTarget, IconChart, ServiceIconImg, isServiceIconKey, IconUser, IconSaveCheck } from '../components/Icons';
+import KeyHint from '../components/KeyHint';
 import { CATALOG } from '../data/awsServiceCatalog';
 import { autoScoreAndClearDrafts } from '../utils/sessionUtils';
 import { syncTargetExamToServer, loadTargetExamFromServer } from '../utils/preferences';
@@ -2085,7 +2086,7 @@ export default function Home() {
                       ) : (
                         <span style={{ display: 'inline-flex', alignItems: 'center', gap: 8 }}>
                           {ja ? 'サクッと演習を開始' : 'Quick'}
-                          <span style={{ fontSize: 12, fontWeight: 700, opacity: 0.9, border: '1px solid currentColor', borderRadius: 4, padding: '0 5px', lineHeight: 1.5 }}>⇧⏎</span>
+                          <KeyHint />
                         </span>
                       )}
                     </button>
@@ -2103,7 +2104,7 @@ export default function Home() {
                       ) : (
                         <span style={{ display: 'inline-flex', alignItems: 'center', gap: 8 }}>
                           {ja ? 'しっかり対策を開始' : 'Focused'}
-                          <span style={{ fontSize: 12, fontWeight: 700, opacity: 0.9, border: '1px solid currentColor', borderRadius: 4, padding: '0 5px', lineHeight: 1.5 }}>⇧⏎</span>
+                          <KeyHint />
                         </span>
                       )}
                     </button>

@@ -11,6 +11,7 @@ import { autoScoreAndClearDrafts } from '../utils/sessionUtils';
 import { animateLoadPct, randomPlateau } from '../utils/loadProgress';
 import { getPrefetchA, getPrefetchC, prefetchTypeA } from '../utils/questionPrefetch';
 import { IconChevronUp, IconChevronDown, IconChevronRight } from '../components/Icons';
+import KeyHint from '../components/KeyHint';
 
 const fmtSec = (sec: number) => `${Math.floor(sec / 60).toString().padStart(2, '0')}:${(sec % 60).toString().padStart(2, '0')}`;
 
@@ -702,7 +703,7 @@ export default function Practice() {
                       <span style={{ width: 13, height: 13, border: '2px solid rgba(0,0,0,0.2)', borderTopColor: '#16191f', borderRadius: '50%', animation: 'sherpa-spin 0.7s linear infinite', flexShrink: 0 }} />
                       {ja ? `準備中... ${exerciseLoadPct}%` : `Loading... ${exerciseLoadPct}%`}
                     </span>
-                  ) : (ja ? '演習を開始' : 'Start')}
+                  ) : (<>{ja ? '演習を開始' : 'Start'}{!isMobile && <span style={{ marginLeft: 8, display: 'inline-flex', verticalAlign: 'middle' }}><KeyHint /></span>}</>)}
                 </button>
               )}
             </div>
@@ -752,7 +753,7 @@ export default function Practice() {
                       <span style={{ width: 13, height: 13, border: '2px solid rgba(0,0,0,0.2)', borderTopColor: '#16191f', borderRadius: '50%', animation: 'sherpa-spin 0.7s linear infinite', flexShrink: 0 }} />
                       {ja ? `準備中... ${exerciseLoadPct}%` : `Loading... ${exerciseLoadPct}%`}
                     </span>
-                  ) : (ja ? '演習を開始' : 'Start')}
+                  ) : (<>{ja ? '演習を開始' : 'Start'}{!isMobile && <span style={{ marginLeft: 8, display: 'inline-flex', verticalAlign: 'middle' }}><KeyHint /></span>}</>)}
                 </button>
               )}
             </div>
@@ -876,7 +877,7 @@ export default function Practice() {
                       <span style={{ width: 12, height: 12, border: '2px solid rgba(0,0,0,0.2)', borderTopColor: '#16191f', borderRadius: '50%', animation: 'sherpa-spin 0.7s linear infinite' }} />
                       {ja ? `準備中... ${examLoadPct}%` : `Preparing... ${examLoadPct}%`}
                     </span>
-                  ) : (ja ? '模試を開始' : 'Start Mock Exam')}
+                  ) : (<>{ja ? '模試を開始' : 'Start Mock Exam'}{!isMobile && <span style={{ marginLeft: 8, display: 'inline-flex', verticalAlign: 'middle' }}><KeyHint /></span>}</>)}
                 </button>
               )}
             </div>

@@ -11,6 +11,7 @@ import DomainSelector from '../components/DomainSelector';
 import { getCached, setCached, SHORT_TTL } from '../utils/cache';
 import { syncTargetExamToServer } from '../utils/preferences';
 import { IconLightbulb } from '../components/Icons';
+import KeyHint from '../components/KeyHint';
 
 const StepBadge = ({ n, optional = false }: { n: number; optional?: boolean }) => (
   <span style={{
@@ -519,7 +520,7 @@ export default function ExamSetup() {
           ) : (
             <span style={{ display: 'inline-flex', alignItems: 'center', gap: 8 }}>
               {miniExam ? (lang === 'ja' ? 'ミニ模試を開始' : 'Start Mini Exam') : t('examSetup.start')}
-              {showKeyHint && <span style={{ fontSize: 12, fontWeight: 700, opacity: 0.9, border: '1px solid currentColor', borderRadius: 4, padding: '0 5px', lineHeight: 1.5 }}>⇧⏎</span>}
+              {showKeyHint && <KeyHint />}
             </span>
           )}
         </Button>

@@ -14,6 +14,7 @@ import Card from '../components/ui/Card';
 import Button from '../components/ui/Button';
 import ReportModal from '../components/ReportModal';
 import { IconBookOpen, IconBean, IconCopy, IconCheck, IconStar, IconChevronUp, IconChevronDown } from '../components/Icons';
+import KeyHint from '../components/KeyHint';
 
 type Tip = { tipId: string; title: string; content: string; examType: string };
 
@@ -766,10 +767,19 @@ export default function ExerciseSession() {
     if (tag === 'INPUT' || tag === 'TEXTAREA' || el?.isContentEditable) return;
     if (showAbortConfirm || finishing) return;
     const total = shuffledChoices.length + 1; // +1 = わからない
+    const scrollMain = (toBottom: boolean) => {
+      const m = document.querySelector('main');
+      const tgt = toBottom ? (m ? m.scrollHeight : document.body.scrollHeight) : 0;
+      (m ?? window).scrollTo({ top: tgt, behavior: 'smooth' });
+    };
     if (e.key === 'ArrowDown' || e.key === 'ArrowRight') {
-      e.preventDefault(); setCursorIndex(c => Math.min(total - 1, c + 1));
+      e.preventDefault();
+      if (cursorIndex >= total - 1) scrollMain(true); // 最下選択肢でさらに下→下部(解説/コラム)へ
+      else setCursorIndex(c => Math.min(total - 1, c + 1));
     } else if (e.key === 'ArrowUp' || e.key === 'ArrowLeft') {
-      e.preventDefault(); setCursorIndex(c => Math.max(0, c - 1));
+      e.preventDefault();
+      if (cursorIndex <= 0) scrollMain(false); // 最上選択肢でさらに上→ページ最上部へ
+      else setCursorIndex(c => Math.max(0, c - 1));
     } else if (e.key === 'Enter' && e.shiftKey) {
       e.preventDefault();
       if (!answered) submitAnswer(); else nextQuestion();
@@ -912,7 +922,7 @@ export default function ExerciseSession() {
           : Array.from({ length: totalCount }, (_, k) => k);
 
         return (
-          <div style={{ position: 'fixed', top: 56, left: 0, right: 0, zIndex: 190, background: 'var(--color-bg-white)', borderBottom: '1px solid var(--color-border)', padding: '8px 16px', display: 'flex', alignItems: 'center', gap: 0 }}>
+          <div style={{ position: 'sticky', top: 0, zIndex: 190, background: 'var(--color-bg-white)', borderBottom: '1px solid var(--color-border)', padding: '8px 16px', display: 'flex', alignItems: 'center', gap: 0, marginBottom: 'var(--spacing-md)' }}>
             <div style={{ flex: 1, display: 'flex', alignItems: 'center' }}>
               {visibleIndices.map((i, visIdx) => {
                 const isAnswered = i < results.length;
@@ -967,9 +977,6 @@ export default function ExerciseSession() {
           </div>
         );
       })()}
-      {/* 固定ノードバーの高さ分のスペーサー */}
-      <div style={{ height: 36 }} />
-
       <Card padding={isMobile ? 'var(--spacing-md) var(--spacing-sm)' : 'var(--spacing-xl)'}>
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 'var(--spacing-lg)' }}>
           <h1 style={{ fontSize: 'var(--font-size-h2)', fontWeight: 700, margin: 0, color: 'var(--color-text-main)' }}>
@@ -1293,7 +1300,7 @@ export default function ExerciseSession() {
                 style={{ height: 44, padding: '0 24px', border: 'none', borderRadius: 22, background: !canSubmit ? 'var(--color-text-light)' : 'var(--color-accent)', color: 'var(--color-btn-primary-text)', fontWeight: 600, fontSize: 'var(--font-size-base)', cursor: !canSubmit ? 'default' : 'pointer', opacity: !canSubmit ? 0.5 : 1, whiteSpace: 'nowrap', boxShadow: '0 2px 8px rgba(0,0,0,0.15)', display: 'inline-flex', alignItems: 'center', gap: 8 }}
               >
                 {t('exerciseSession.answer')}
-                <span style={{ fontSize: 12, fontWeight: 700, opacity: 0.9, border: '1px solid currentColor', borderRadius: 4, padding: '0 5px', lineHeight: 1.5 }}>⇧⏎</span>
+                <KeyHint />
               </button>
             ) : (
               <button
@@ -1301,7 +1308,7 @@ export default function ExerciseSession() {
                 style={{ height: 44, padding: '0 24px', border: '1.5px solid var(--color-primary)', borderRadius: 22, background: 'var(--color-bg-white)', color: 'var(--color-primary)', fontWeight: 600, fontSize: 'var(--font-size-base)', cursor: 'pointer', whiteSpace: 'nowrap', boxShadow: '0 2px 8px rgba(0,0,0,0.15)', display: 'inline-flex', alignItems: 'center', gap: 8 }}
               >
                 {currentIndex + 1 >= totalCount ? t('exerciseSession.showResult') : t('exerciseSession.next')}
-                <span style={{ fontSize: 12, fontWeight: 700, opacity: 0.9, border: '1px solid currentColor', borderRadius: 4, padding: '0 5px', lineHeight: 1.5 }}>⇧⏎</span>
+                <KeyHint />
               </button>
             )}
           </div>
