@@ -413,40 +413,133 @@ export default function MyPage() {
 
               return (
                 <>
-                  {/* ── 目標資格 行 ── */}
+                  {/* ── 目標タブ本体 ── */}
                   {!isMobile ? (
-                    /* デスクトップ: 外枠でグルーピング / 左=目標資格 / 右=資格情報 */
+                    /* デスクトップ(B案): 左=目標資格+学習目標 / 右=資格情報+週間達成(直接表示) */
                     <div style={{ display: 'flex', marginBottom: 12, border: '1px solid var(--color-border)', borderRadius: 'var(--border-radius-md)', overflow: 'hidden', boxShadow: 'var(--box-shadow-sm)', background: 'var(--color-bg-white)' }}>
-                      <div style={{ flex: 1, padding: 'var(--spacing-lg)', cursor: 'pointer', minWidth: 0 }} onClick={() => setShowExamSelect(true)}>
-                        <ExamCardHeader />
-                        <ExamCardContent />
+                      {/* 左カラム: 目標資格 + 学習目標 */}
+                      <div style={{ width: 300, flexShrink: 0, display: 'flex', flexDirection: 'column' }}>
+                        <div style={{ padding: 'var(--spacing-lg)', cursor: 'pointer' }} onClick={() => setShowExamSelect(true)}>
+                          <ExamCardHeader />
+                          <ExamCardContent />
+                        </div>
+                        <div style={{ height: 1, background: 'var(--color-border)' }} />
+                        <div style={{ flex: 1, padding: 'var(--spacing-lg)', cursor: 'pointer' }} onClick={() => { setEditExamDate(examDate); setEditDailyGoal(dailyGoal); setShowSettingsEdit(true); }}>
+                          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                              <span style={{ color: 'var(--color-text-sub)', display: 'flex', alignItems: 'center' }}><IconCalendarNotebook size={13} /></span>
+                              <span style={{ fontWeight: 700, fontSize: 'var(--font-size-sm)', color: 'var(--color-text-main)' }}>{ja ? '学習目標' : 'Study Goals'}</span>
+                            </div>
+                            <div style={{ width: 35, height: 35, borderRadius: '50%', border: '1px solid var(--color-primary)', background: 'transparent', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--color-primary)', flexShrink: 0 }}>
+                              <IconPenLine size={14} />
+                            </div>
+                          </div>
+                          {!targetExam ? (
+                            <p style={{ margin: 0, fontSize: 13, color: 'var(--color-text-light)' }}>{ja ? '目標資格を設定してください' : 'Set a target exam first'}</p>
+                          ) : (
+                            <>
+                              <div style={{ marginBottom: 6 }}>
+                                {examDate ? (
+                                  <span>
+                                    <span style={{ fontWeight: 700, fontSize: 16, color: 'var(--color-primary)' }}>{examDate.split('-').slice(1).map(Number).join('/')}</span>
+                                    <span style={{ fontSize: 13, color: 'var(--color-text-main)', marginLeft: 4 }}>{ja ? '受験予定' : 'exam date'}</span>
+                                  </span>
+                                ) : (
+                                  <span style={{ fontSize: 13, color: 'var(--color-text-light)' }}>{ja ? '受験日未設定' : 'No exam date set'}</span>
+                                )}
+                              </div>
+                              <div style={{ display: 'flex', alignItems: 'center', gap: 6, flexWrap: 'wrap' }}>
+                                <span>
+                                  <span style={{ fontWeight: 700, fontSize: 16, color: 'var(--color-primary)' }}>{dailyGoal}</span>
+                                  <span style={{ fontSize: 13, color: 'var(--color-text-sub)' }}>{ja ? '問 / 日' : 'Q / day'}</span>
+                                </span>
+                                {ja && <span style={{ fontSize: 10, color: 'var(--color-text-light)' }}>※達成で<span style={{ color: '#009E9E', fontWeight: 700 }}>+10p</span>！</span>}
+                                {todayCount >= dailyGoal && <span style={{ fontSize: 12, color: 'var(--color-success)' }}>✓</span>}
+                              </div>
+                            </>
+                          )}
+                        </div>
                       </div>
                       <div style={{ width: 1, background: 'var(--color-border)', flexShrink: 0 }} />
-                      <div style={{ flex: 1, minWidth: 0, padding: 'var(--spacing-md)', background: 'var(--color-bg-main)', display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
-                        {targetExam ? (() => {
-                          const cfg = EXAM_CONFIGS[targetExam];
-                          const panelColor = EXAM_LEVEL_COLORS[EXAM_LEVEL[targetExam]] ?? 'var(--color-primary)';
-                          return (
-                            <>
-                              <div style={{ display: 'flex', flexWrap: 'wrap', gap: '4px 20px', marginBottom: 10 }}>
-                                {[
-                                  { label: ja ? '試験コード' : 'Code',       value: cfg?.examCode ?? '' },
-                                  { label: ja ? '問題数'     : 'Questions',   value: `${cfg?.totalQuestions ?? '—'}${ja ? '問' : 'Q'}` },
-                                  { label: ja ? '試験時間'   : 'Duration',    value: `${cfg?.timeLimitMin ?? '—'}${ja ? '分' : 'min'}` },
-                                  { label: ja ? '合格スコア' : 'Pass Score',  value: `${PASS_SCORES[targetExam] ?? '—'}/1000` },
-                                ].map(({ label, value }) => (
-                                  <div key={label}>
-                                    <div style={{ fontSize: 9, color: 'var(--color-text-light)', marginBottom: 1 }}>{label}</div>
-                                    <div style={{ fontSize: 13, fontWeight: 700, color: panelColor }}>{value}</div>
+                      {/* 右カラム: 資格情報 + 週間達成状況(直接表示) */}
+                      <div style={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column' }}>
+                        <div style={{ padding: 'var(--spacing-md) var(--spacing-lg)', background: 'var(--color-bg-main)' }}>
+                          {targetExam ? (() => {
+                            const cfg = EXAM_CONFIGS[targetExam];
+                            const panelColor = EXAM_LEVEL_COLORS[EXAM_LEVEL[targetExam]] ?? 'var(--color-primary)';
+                            return (
+                              <>
+                                <div style={{ display: 'flex', flexWrap: 'wrap', gap: '4px 20px', marginBottom: 10 }}>
+                                  {[
+                                    { label: ja ? '試験コード' : 'Code',       value: cfg?.examCode ?? '' },
+                                    { label: ja ? '問題数'     : 'Questions',   value: `${cfg?.totalQuestions ?? '—'}${ja ? '問' : 'Q'}` },
+                                    { label: ja ? '試験時間'   : 'Duration',    value: `${cfg?.timeLimitMin ?? '—'}${ja ? '分' : 'min'}` },
+                                    { label: ja ? '合格スコア' : 'Pass Score',  value: `${PASS_SCORES[targetExam] ?? '—'}/1000` },
+                                  ].map(({ label, value }) => (
+                                    <div key={label}>
+                                      <div style={{ fontSize: 9, color: 'var(--color-text-light)', marginBottom: 1 }}>{label}</div>
+                                      <div style={{ fontSize: 13, fontWeight: 700, color: panelColor }}>{value}</div>
+                                    </div>
+                                  ))}
+                                </div>
+                                <p style={{ margin: 0, fontSize: 12, color: 'var(--color-text-sub)', lineHeight: 1.6 }}>{EXAM_DESC[targetExam] ?? ''}</p>
+                              </>
+                            );
+                          })() : (
+                            <span style={{ fontSize: 12, color: 'var(--color-text-light)' }}>{ja ? '資格を選択すると詳細が表示されます' : 'Select an exam to see details'}</span>
+                          )}
+                        </div>
+                        <div style={{ height: 1, background: 'var(--color-border)' }} />
+                        <div style={{ flex: 1, padding: 'var(--spacing-lg)' }}>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 4 }}>
+                            <span style={{ color: 'var(--color-text-sub)', display: 'flex', alignItems: 'center' }}><IconTrendingUp size={13} /></span>
+                            <span style={{ fontWeight: 700, fontSize: 'var(--font-size-sm)', color: 'var(--color-text-main)' }}>{ja ? '週間達成状況' : 'Weekly Progress'}</span>
+                          </div>
+                          {targetExam ? (() => {
+                            const goal = dailyGoal;
+                            const maxVal = Math.max(...weekCountsTarget, goal, 1);
+                            const CH = 120;
+                            const weekTotal = weekCountsTarget.reduce((a, b) => a + b, 0);
+                            const achievedDays = weekCountsTarget.filter(c => goal > 0 && c >= goal).length;
+                            return (
+                              <>
+                                <div style={{ fontSize: 11, color: 'var(--color-text-sub)', marginBottom: 14 }}>{ja ? `直近7日間の演習量（${targetExam}）` : `Last 7 days · ${targetExam}`}</div>
+                                <div style={{ position: 'relative', height: CH, marginTop: 10 }}>
+                                  {goal > 0 && (
+                                    <div style={{ position: 'absolute', left: 0, right: 0, bottom: (Math.min(goal, maxVal) / maxVal) * CH, borderTop: '1px dashed var(--color-primary)', pointerEvents: 'none' }} />
+                                  )}
+                                  <div style={{ display: 'flex', gap: 8, alignItems: 'flex-end', height: '100%' }}>
+                                    {weekDays.map((d, i) => {
+                                      const count = weekCountsTarget[i];
+                                      const achieved = goal > 0 && count >= goal;
+                                      const h = (count / maxVal) * CH;
+                                      const barH = Math.max(h, count > 0 ? 3 : 0);
+                                      return (
+                                        <div key={d} style={{ flex: 1, position: 'relative', height: '100%', display: 'flex', alignItems: 'flex-end' }}>
+                                          <div style={{ width: '100%', maxWidth: 30, margin: '0 auto', height: barH, background: achieved ? examColor : `${examColor}55`, borderRadius: '3px 3px 0 0', transition: 'height 0.3s' }} />
+                                          <span style={{ position: 'absolute', bottom: barH + 2, left: '50%', transform: 'translateX(-50%)', fontSize: 11, fontWeight: 700, color: count > 0 ? (achieved ? examColor : 'var(--color-text-sub)') : 'var(--color-text-light)' }}>{count}</span>
+                                        </div>
+                                      );
+                                    })}
                                   </div>
-                                ))}
-                              </div>
-                              <p style={{ margin: 0, fontSize: 12, color: 'var(--color-text-sub)', lineHeight: 1.6 }}>{EXAM_DESC[targetExam] ?? ''}</p>
-                            </>
-                          );
-                        })() : (
-                          <span style={{ fontSize: 12, color: 'var(--color-text-light)' }}>{ja ? '資格を選択すると詳細が表示されます' : 'Select an exam to see details'}</span>
-                        )}
+                                </div>
+                                <div style={{ display: 'flex', gap: 8, marginTop: 6 }}>
+                                  {weekDays.map((d) => {
+                                    const isToday = d === jstToday();
+                                    const dayLabel = new Date(d + 'T12:00:00').toLocaleDateString(ja ? 'ja-JP' : 'en-US', { weekday: 'short' });
+                                    return (<div key={d} style={{ flex: 1, textAlign: 'center', fontSize: 10, color: isToday ? examColor : 'var(--color-text-light)', fontWeight: isToday ? 700 : 400 }}>{dayLabel}</div>);
+                                  })}
+                                </div>
+                                <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 12, color: 'var(--color-text-sub)', borderTop: '1px solid var(--color-border)', paddingTop: 12, marginTop: 14 }}>
+                                  <span>{ja ? '7日間合計' : '7-day total'}: <strong style={{ color: 'var(--color-text-main)' }}>{weekTotal}{ja ? '問' : ''}</strong></span>
+                                  <span>{ja ? '達成日数' : 'Achieved'}: <strong style={{ color: examColor }}>{achievedDays}/7{ja ? '日' : ''}</strong></span>
+                                </div>
+                              </>
+                            );
+                          })() : (
+                            <span style={{ fontSize: 12, color: 'var(--color-text-light)' }}>{ja ? '目標資格を設定すると表示されます' : 'Set a target exam to view'}</span>
+                          )}
+                        </div>
                       </div>
                     </div>
                   ) : (
@@ -460,91 +553,8 @@ export default function MyPage() {
               );
             })()}
 
-            {/* ── 学習目標 行 ── */}
-            {!isMobile ? (
-              /* デスクトップ: 外枠でグルーピング / 左=学習目標 / 右=週間達成状況 */
-              <div style={{ display: 'flex', marginBottom: 12, border: '1px solid var(--color-border)', borderRadius: 'var(--border-radius-md)', overflow: 'hidden', boxShadow: 'var(--box-shadow-sm)', background: 'var(--color-bg-white)' }}>
-                {/* 左: 学習目標（クリッカブル） */}
-                <div style={{ flex: 1, padding: 'var(--spacing-lg)', cursor: 'pointer', minWidth: 0 }} onClick={() => { setEditExamDate(examDate); setEditDailyGoal(dailyGoal); setShowSettingsEdit(true); }}>
-                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                      <span style={{ color: 'var(--color-text-sub)', display: 'flex', alignItems: 'center' }}><IconCalendarNotebook size={13} /></span>
-                      <span style={{ fontWeight: 700, fontSize: 'var(--font-size-sm)', color: 'var(--color-text-main)' }}>{ja ? '学習目標' : 'Study Goals'}</span>
-                    </div>
-                    <div style={{ width: 35, height: 35, borderRadius: '50%', border: '1px solid var(--color-primary)', background: 'transparent', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--color-primary)', flexShrink: 0 }}>
-                      <IconPenLine size={14} />
-                    </div>
-                  </div>
-                  {!targetExam ? (
-                    <p style={{ margin: 0, fontSize: 13, color: 'var(--color-text-light)' }}>{ja ? '目標資格を設定してください' : 'Set a target exam first'}</p>
-                  ) : (
-                    <>
-                      <div style={{ marginBottom: 6 }}>
-                        {examDate ? (
-                          <span>
-                            <span style={{ fontWeight: 700, fontSize: 16, color: 'var(--color-primary)' }}>{examDate.split('-').slice(1).map(Number).join('/')}</span>
-                            <span style={{ fontSize: 13, color: 'var(--color-text-main)', marginLeft: 4 }}>{ja ? '受験予定' : 'exam date'}</span>
-                          </span>
-                        ) : (
-                          <span style={{ fontSize: 13, color: 'var(--color-text-light)' }}>{ja ? '受験日未設定' : 'No exam date set'}</span>
-                        )}
-                      </div>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                        <span>
-                          <span style={{ fontWeight: 700, fontSize: 16, color: 'var(--color-primary)' }}>{dailyGoal}</span>
-                          <span style={{ fontSize: 13, color: 'var(--color-text-sub)' }}>{ja ? '問 / 日' : 'Q / day'}</span>
-                        </span>
-                        {ja && <span style={{ fontSize: 10, color: 'var(--color-text-light)' }}>※達成で<span style={{ color: '#009E9E', fontWeight: 700 }}>+10p</span>！</span>}
-                        {todayCount >= dailyGoal && <span style={{ fontSize: 12, color: 'var(--color-success)' }}>✓</span>}
-                      </div>
-                    </>
-                  )}
-                </div>
-                <div style={{ width: 1, background: 'var(--color-border)', flexShrink: 0 }} />
-                {/* 右: 週間達成状況（クリッカブル → 詳細モーダル） */}
-                <div style={{ flex: 1, minWidth: 0, padding: 'var(--spacing-md)', background: 'var(--color-bg-white)', cursor: targetExam ? 'pointer' : 'default' }} onClick={() => targetExam && setShowWeeklyDetail(true)}>
-                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8 }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                      <span style={{ color: 'var(--color-text-sub)', display: 'flex', alignItems: 'center' }}><IconTrendingUp size={13} /></span>
-                      <span style={{ fontWeight: 700, fontSize: 'var(--font-size-sm)', color: 'var(--color-text-main)' }}>{ja ? '週間達成状況' : 'Weekly Progress'}</span>
-                    </div>
-                    {targetExam && <span style={{ color: 'var(--color-text-light)', display: 'flex', alignItems: 'center', flexShrink: 0 }}><IconChevronRight size={16} /></span>}
-                  </div>
-                  {targetExam ? (
-                    <>
-                      <div style={{ fontSize: 11, color: 'var(--color-text-sub)', marginBottom: 8 }}>{ja ? '直近7日間' : 'Last 7 days'}</div>
-                      <div style={{ display: 'flex', gap: 6, alignItems: 'flex-end' }}>
-                        {weekDays.map((d, i) => {
-                          const count = weekCountsTarget[i];
-                          const rewarded = localStorage.getItem(`dailyGoalReward_${targetExam}_${uid}_${d}`) === '1';
-                          const achieved = rewarded || count >= dailyGoal;
-                          const pct = dailyGoal > 0 ? Math.min(1, count / dailyGoal) : 0;
-                          const isToday = d === jstToday();
-                          const dayLabel = new Date(d + 'T12:00:00').toLocaleDateString(ja ? 'ja-JP' : 'en-US', { weekday: 'short' });
-                          return (
-                            <div key={d} style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 3 }}>
-                              <div style={{ width: '100%', height: 40, borderRadius: 4, background: 'var(--color-bg-card)', position: 'relative', overflow: 'hidden', boxSizing: 'border-box', border: `1px solid ${examColor}33` }}>
-                                {pct > 0 && <div style={{ position: 'absolute', bottom: 0, width: '100%', height: `${pct * 100}%`, background: achieved ? examColor : `${examColor}55`, borderRadius: '3px 3px 0 0', transition: 'height 0.3s' }} />}
-                                {achieved && <div style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%,-50%)', fontSize: 10, color: 'white', fontWeight: 700 }}>✓</div>}
-                              </div>
-                              <span style={{ fontSize: 9, color: isToday ? examColor : 'var(--color-text-light)', fontWeight: isToday ? 700 : 400 }}>{dayLabel}</span>
-                            </div>
-                          );
-                        })}
-                      </div>
-                      <div style={{ marginTop: 6, fontSize: 11, color: 'var(--color-text-light)', textAlign: 'right' }}>
-                        {ja
-                          ? `今週の達成日数：${weekDays.filter((d, i) => localStorage.getItem(`dailyGoalReward_${targetExam}_${uid}_${d}`) === '1' || weekCountsTarget[i] >= dailyGoal).length}/7日`
-                          : `Achieved: ${weekDays.filter((d, i) => localStorage.getItem(`dailyGoalReward_${targetExam}_${uid}_${d}`) === '1' || weekCountsTarget[i] >= dailyGoal).length}/7 days`}
-                      </div>
-                    </>
-                  ) : (
-                    <span style={{ fontSize: 12, color: 'var(--color-text-light)' }}>{ja ? '目標資格を設定すると表示されます' : 'Set a target exam to view'}</span>
-                  )}
-                </div>
-              </div>
-            ) : (
-              /* モバイル: 従来の単一カード2枚 */
+            {/* ── 学習目標・週間達成（デスクトップは上のB案カードに統合） ── */}
+            {isMobile && (
               <>
                 <Card style={{ marginBottom: 12, cursor: 'pointer' }} onClick={() => { setEditExamDate(examDate); setEditDailyGoal(dailyGoal); setShowSettingsEdit(true); }}>
                   <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
