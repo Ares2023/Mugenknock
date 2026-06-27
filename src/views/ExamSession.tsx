@@ -15,6 +15,7 @@ import Badge from '../components/ui/Badge';
 import ReportModal from '../components/ReportModal';
 import { IconFlag, IconStar, IconCircleCheck, IconCirclePause, IconCheck } from '../components/Icons';
 import KeyHint from '../components/KeyHint';
+import { isKbMode } from '../utils/keyboardMode';
 
 const WAKARANAI = 'わからない';
 const stripLabel = (s: string) => s.replace(/^[A-E]\.\s*/, '');
@@ -181,6 +182,14 @@ export default function ExamSession() {
     const h = (e: Event) => setRightActive((e as CustomEvent).detail !== 'left');
     window.addEventListener('panefocuschange', h);
     return () => window.removeEventListener('panefocuschange', h);
+  }, []);
+  // キー入力モード（既定OFF=カーソル非表示、矢印で有効化）
+  const [kbMode, setKbModeState] = useState(false);
+  useEffect(() => {
+    setKbModeState(isKbMode());
+    const h = (e: Event) => setKbModeState((e as CustomEvent).detail === true);
+    window.addEventListener('kbmodechange', h);
+    return () => window.removeEventListener('kbmodechange', h);
   }, []);
   // カーソルの選択肢が画面内に入るようスクロール追従（Web版）
   useEffect(() => { if (!isMobile) cursorElRef.current?.scrollIntoView({ block: 'nearest' }); }, [cursorIndex, isMobile]);
@@ -399,7 +408,7 @@ export default function ExamSession() {
     } else if (e.key === 'Enter' && e.shiftKey) {
       e.preventDefault();
       if (currentIndex < questions.length - 1) handleNext(); else setShowConfirm(true);
-    } else if (e.key === 'Enter') {
+    } else if (e.key === 'Enter' && isKbMode()) {
       e.preventDefault();
       toggle(cursorIndex < shuffledIndices.length ? currentQ.choices[shuffledIndices[cursorIndex]] : WAKARANAI);
     }
@@ -629,7 +638,7 @@ export default function ExamSession() {
             const origChoice = currentQ.choices[ci];
             const choice = qChoiceAt(currentQ as any, lang, ci);
             const isSelected = selected.includes(origChoice);
-            const isCursor = !isMobile && rightActive && displayIdx === cursorIndex;
+            const isCursor = !isMobile && kbMode && rightActive && displayIdx === cursorIndex;
             return (
               <button
                 key={origChoice}
@@ -679,7 +688,7 @@ export default function ExamSession() {
           })}
           {(() => {
             const wSelected = selected.includes(WAKARANAI);
-            const wCursor = !isMobile && rightActive && cursorIndex === shuffledIndices.length;
+            const wCursor = !isMobile && kbMode && rightActive && cursorIndex === shuffledIndices.length;
             return (
               <button
                 ref={wCursor ? cursorElRef : undefined}

@@ -15,6 +15,7 @@ import Button from '../components/ui/Button';
 import ReportModal from '../components/ReportModal';
 import { IconBookOpen, IconBean, IconCopy, IconCheck, IconStar, IconChevronUp, IconChevronDown } from '../components/Icons';
 import KeyHint from '../components/KeyHint';
+import { isKbMode } from '../utils/keyboardMode';
 
 type Tip = { tipId: string; title: string; content: string; examType: string };
 
@@ -477,6 +478,14 @@ export default function ExerciseSession() {
     window.addEventListener('panefocuschange', h);
     return () => window.removeEventListener('panefocuschange', h);
   }, []);
+  // キー入力モード（既定OFF=カーソル非表示、矢印で有効化）
+  const [kbMode, setKbModeState] = useState(false);
+  useEffect(() => {
+    setKbModeState(isKbMode());
+    const h = (e: Event) => setKbModeState((e as CustomEvent).detail === true);
+    window.addEventListener('kbmodechange', h);
+    return () => window.removeEventListener('kbmodechange', h);
+  }, []);
 
   useEffect(() => {
     // ドラフト探索（sessionId 一致を優先。指定なしは最新の savedAt）
@@ -792,7 +801,7 @@ export default function ExerciseSession() {
     } else if (e.key === 'Enter' && e.shiftKey) {
       e.preventDefault();
       if (!answered) submitAnswer(); else nextQuestion();
-    } else if (e.key === 'Enter') {
+    } else if (e.key === 'Enter' && isKbMode()) {
       e.preventDefault();
       if (!answered) toggleAnswer(cursorIndex < shuffledChoices.length ? shuffledChoices[cursorIndex] : WAKARANAI);
     }
@@ -1035,7 +1044,7 @@ export default function ExerciseSession() {
           </div>
           {shuffledChoices.map((choice: string, idx: number) => {
             const isSelected = selectedAnswers.includes(choice);
-            const isCursor = !isMobile && rightActive && idx === cursorIndex;
+            const isCursor = !isMobile && kbMode && rightActive && idx === cursorIndex;
             return (
               <button
                 key={choice}
@@ -1086,7 +1095,7 @@ export default function ExerciseSession() {
           {(() => {
             const wSelected = selectedAnswers.includes(WAKARANAI);
             const wAnsweredIncorrect = answered && wSelected;
-            const wCursor = !isMobile && rightActive && cursorIndex === shuffledChoices.length;
+            const wCursor = !isMobile && kbMode && rightActive && cursorIndex === shuffledChoices.length;
             return (
               <button
                 ref={wCursor ? cursorElRef : undefined}

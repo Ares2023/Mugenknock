@@ -9,6 +9,7 @@ import { getPoints, fetchPointsFromServer } from '../utils/points';
 import { loadTargetExamFromServer } from '../utils/preferences';
 import Breadcrumb from './Breadcrumb';
 import Button from './ui/Button';
+import { setKbMode } from '../utils/keyboardMode';
 import {
   IconHome,
   IconUser, IconChart,
@@ -358,6 +359,13 @@ export default function Layout({ children }: { children: React.ReactNode }) {
   // セッション側は body.dataset.pane を見て左フォーカス中はキー操作を抑止する。
   const [paneFocus, setPaneFocus] = useState<'left' | 'right'>('right');
   const [navCursor, setNavCursor] = useState(0);
+  // キー入力モード（既定OFF、カーソル非表示）。矢印で有効化、Escで無効化。
+  const [kbMode, setKbModeState] = useState(false);
+  useEffect(() => {
+    const h = (e: Event) => setKbModeState((e as CustomEvent).detail === true);
+    window.addEventListener('kbmodechange', h);
+    return () => window.removeEventListener('kbmodechange', h);
+  }, []);
   useEffect(() => {
     const p = isMobile ? 'right' : paneFocus;
     document.body.dataset.pane = p;
@@ -369,6 +377,9 @@ export default function Layout({ children }: { children: React.ReactNode }) {
     const el = e.target as HTMLElement | null;
     const tag = el?.tagName;
     if (tag === 'INPUT' || tag === 'TEXTAREA' || el?.isContentEditable) return;
+    if (e.key === 'Escape') { setKbMode(false); setPaneFocus('right'); return; }
+    const isArrow = e.key === 'ArrowUp' || e.key === 'ArrowDown' || e.key === 'ArrowLeft' || e.key === 'ArrowRight';
+    if (isArrow) setKbMode(true); // ナビキーでキー入力モードを有効化（カーソル表示）
     if (paneFocus === 'right') {
       if (e.key === 'ArrowLeft') {
         e.preventDefault();
@@ -381,7 +392,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
       if (e.key === 'ArrowDown') { e.preventDefault(); setNavCursor(c => Math.min(navItems.length - 1, c + 1)); }
       else if (e.key === 'ArrowUp') { e.preventDefault(); setNavCursor(c => Math.max(0, c - 1)); }
       else if (e.key === 'Enter') { e.preventDefault(); navigate(navItems[navCursor].path); setPaneFocus('right'); }
-      else if (e.key === 'ArrowRight' || e.key === 'Escape') { e.preventDefault(); setPaneFocus('right'); }
+      else if (e.key === 'ArrowRight') { e.preventDefault(); setPaneFocus('right'); }
     }
   };
   useEffect(() => {
@@ -772,7 +783,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
 
               {navItems.filter(item => !(item as any).bottom).map(({ path, labelKey, Icon }) => {
                 const active = isActive(path);
-                const isNavCursor = paneFocus === 'left' && navIdxOf(path) === navCursor;
+                const isNavCursor = kbMode && paneFocus === 'left' && navIdxOf(path) === navCursor;
                 return (
                   <button
                     key={path}
@@ -807,7 +818,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
               <div style={{ marginTop: 'auto', paddingBottom: 'var(--spacing-md)' }}>
                 {navItems.filter(item => (item as any).bottom).map(({ path, labelKey, Icon }) => {
                   const active = isActive(path);
-                  const isNavCursor = paneFocus === 'left' && navIdxOf(path) === navCursor;
+                  const isNavCursor = kbMode && paneFocus === 'left' && navIdxOf(path) === navCursor;
                   return (
                     <button
                       key={path}
