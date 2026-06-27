@@ -415,16 +415,46 @@ export default function MyPage() {
                 <>
                   {/* ── 目標タブ本体 ── */}
                   {!isMobile ? (
-                    /* デスクトップ(B案): 左=目標資格+学習目標 / 右=資格情報+週間達成(直接表示) */
-                    <div style={{ display: 'flex', marginBottom: 12, border: '1px solid var(--color-border)', borderRadius: 'var(--border-radius-md)', overflow: 'hidden', boxShadow: 'var(--box-shadow-sm)', background: 'var(--color-bg-white)' }}>
-                      {/* 左カラム: 目標資格 + 学習目標 */}
-                      <div style={{ width: 300, flexShrink: 0, display: 'flex', flexDirection: 'column' }}>
-                        <div style={{ padding: 'var(--spacing-lg)', cursor: 'pointer' }} onClick={() => setShowExamSelect(true)}>
+                    /* デスクトップ: 概要(左300px)｜詳細(右) の2カード。横を揃え/右は塗りなし/目標資格と学習目標は別カードで分離 */
+                    <>
+                      {/* カード1: 目標資格(概要) ｜ 資格情報(詳細) */}
+                      <div style={{ display: 'flex', marginBottom: 'var(--spacing-lg)', border: '1px solid var(--color-border)', borderRadius: 'var(--border-radius-md)', overflow: 'hidden', boxShadow: 'var(--box-shadow-sm)', background: 'var(--color-bg-white)' }}>
+                        <div style={{ width: 300, flexShrink: 0, padding: 'var(--spacing-lg)', cursor: 'pointer' }} onClick={() => setShowExamSelect(true)}>
                           <ExamCardHeader />
                           <ExamCardContent />
                         </div>
-                        <div style={{ height: 1, background: 'var(--color-border)' }} />
-                        <div style={{ flex: 1, padding: 'var(--spacing-lg)', cursor: 'pointer' }} onClick={() => { setEditExamDate(examDate); setEditDailyGoal(dailyGoal); setShowSettingsEdit(true); }}>
+                        <div style={{ width: 1, background: 'var(--color-border)', flexShrink: 0 }} />
+                        <div style={{ flex: 1, minWidth: 0, padding: 'var(--spacing-lg)' }}>
+                          {targetExam ? (() => {
+                            const cfg = EXAM_CONFIGS[targetExam];
+                            const panelColor = EXAM_LEVEL_COLORS[EXAM_LEVEL[targetExam]] ?? 'var(--color-primary)';
+                            return (
+                              <>
+                                <div style={{ display: 'flex', flexWrap: 'wrap', gap: '4px 20px', marginBottom: 10 }}>
+                                  {[
+                                    { label: ja ? '試験コード' : 'Code',       value: cfg?.examCode ?? '' },
+                                    { label: ja ? '問題数'     : 'Questions',   value: `${cfg?.totalQuestions ?? '—'}${ja ? '問' : 'Q'}` },
+                                    { label: ja ? '試験時間'   : 'Duration',    value: `${cfg?.timeLimitMin ?? '—'}${ja ? '分' : 'min'}` },
+                                    { label: ja ? '合格スコア' : 'Pass Score',  value: `${PASS_SCORES[targetExam] ?? '—'}/1000` },
+                                  ].map(({ label, value }) => (
+                                    <div key={label}>
+                                      <div style={{ fontSize: 9, color: 'var(--color-text-light)', marginBottom: 1 }}>{label}</div>
+                                      <div style={{ fontSize: 13, fontWeight: 700, color: panelColor }}>{value}</div>
+                                    </div>
+                                  ))}
+                                </div>
+                                <p style={{ margin: 0, fontSize: 12, color: 'var(--color-text-sub)', lineHeight: 1.6 }}>{EXAM_DESC[targetExam] ?? ''}</p>
+                              </>
+                            );
+                          })() : (
+                            <span style={{ fontSize: 12, color: 'var(--color-text-light)' }}>{ja ? '資格を選択すると詳細が表示されます' : 'Select an exam to see details'}</span>
+                          )}
+                        </div>
+                      </div>
+
+                      {/* カード2: 学習目標(概要) ｜ 週間達成状況(詳細・直接表示・塗りなし) */}
+                      <div style={{ display: 'flex', marginBottom: 'var(--spacing-lg)', border: '1px solid var(--color-border)', borderRadius: 'var(--border-radius-md)', overflow: 'hidden', boxShadow: 'var(--box-shadow-sm)', background: 'var(--color-bg-white)' }}>
+                        <div style={{ width: 300, flexShrink: 0, padding: 'var(--spacing-lg)', cursor: 'pointer' }} onClick={() => { setEditExamDate(examDate); setEditDailyGoal(dailyGoal); setShowSettingsEdit(true); }}>
                           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
                             <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
                               <span style={{ color: 'var(--color-text-sub)', display: 'flex', alignItems: 'center' }}><IconCalendarNotebook size={13} /></span>
@@ -459,38 +489,8 @@ export default function MyPage() {
                             </>
                           )}
                         </div>
-                      </div>
-                      <div style={{ width: 1, background: 'var(--color-border)', flexShrink: 0 }} />
-                      {/* 右カラム: 資格情報 + 週間達成状況(直接表示) */}
-                      <div style={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column' }}>
-                        <div style={{ padding: 'var(--spacing-md) var(--spacing-lg)', background: 'var(--color-bg-main)' }}>
-                          {targetExam ? (() => {
-                            const cfg = EXAM_CONFIGS[targetExam];
-                            const panelColor = EXAM_LEVEL_COLORS[EXAM_LEVEL[targetExam]] ?? 'var(--color-primary)';
-                            return (
-                              <>
-                                <div style={{ display: 'flex', flexWrap: 'wrap', gap: '4px 20px', marginBottom: 10 }}>
-                                  {[
-                                    { label: ja ? '試験コード' : 'Code',       value: cfg?.examCode ?? '' },
-                                    { label: ja ? '問題数'     : 'Questions',   value: `${cfg?.totalQuestions ?? '—'}${ja ? '問' : 'Q'}` },
-                                    { label: ja ? '試験時間'   : 'Duration',    value: `${cfg?.timeLimitMin ?? '—'}${ja ? '分' : 'min'}` },
-                                    { label: ja ? '合格スコア' : 'Pass Score',  value: `${PASS_SCORES[targetExam] ?? '—'}/1000` },
-                                  ].map(({ label, value }) => (
-                                    <div key={label}>
-                                      <div style={{ fontSize: 9, color: 'var(--color-text-light)', marginBottom: 1 }}>{label}</div>
-                                      <div style={{ fontSize: 13, fontWeight: 700, color: panelColor }}>{value}</div>
-                                    </div>
-                                  ))}
-                                </div>
-                                <p style={{ margin: 0, fontSize: 12, color: 'var(--color-text-sub)', lineHeight: 1.6 }}>{EXAM_DESC[targetExam] ?? ''}</p>
-                              </>
-                            );
-                          })() : (
-                            <span style={{ fontSize: 12, color: 'var(--color-text-light)' }}>{ja ? '資格を選択すると詳細が表示されます' : 'Select an exam to see details'}</span>
-                          )}
-                        </div>
-                        <div style={{ height: 1, background: 'var(--color-border)' }} />
-                        <div style={{ flex: 1, padding: 'var(--spacing-lg)' }}>
+                        <div style={{ width: 1, background: 'var(--color-border)', flexShrink: 0 }} />
+                        <div style={{ flex: 1, minWidth: 0, padding: 'var(--spacing-lg)' }}>
                           <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 4 }}>
                             <span style={{ color: 'var(--color-text-sub)', display: 'flex', alignItems: 'center' }}><IconTrendingUp size={13} /></span>
                             <span style={{ fontWeight: 700, fontSize: 'var(--font-size-sm)', color: 'var(--color-text-main)' }}>{ja ? '週間達成状況' : 'Weekly Progress'}</span>
@@ -541,7 +541,7 @@ export default function MyPage() {
                           )}
                         </div>
                       </div>
-                    </div>
+                    </>
                   ) : (
                     /* モバイル: 単一カード */
                     <Card style={{ marginBottom: 12, cursor: 'pointer' }} onClick={() => setShowExamSelect(true)}>
