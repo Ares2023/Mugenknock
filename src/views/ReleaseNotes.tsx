@@ -68,7 +68,7 @@ export default function ReleaseNotes() {
 
       {!showAll && hiddenCount > 0 && (
         <div style={{ borderTop: '1px solid color-mix(in srgb, var(--color-text-light) 40%, transparent)', paddingTop: 'var(--spacing-lg)', marginTop: 'var(--spacing-sm)' }}>
-          <Button variant="outline" onClick={() => setShowAll(true)}>
+          <Button variant="outline" data-kbnav="1" onClick={() => setShowAll(true)}>
             {t('releaseNotes.showMore', { n: hiddenCount })}
           </Button>
         </div>
