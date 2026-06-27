@@ -372,6 +372,20 @@ export default function Layout({ children }: { children: React.ReactNode }) {
     document.body.dataset.pane = p;
     window.dispatchEvent(new CustomEvent('panefocuschange', { detail: p }));
   }, [paneFocus, isMobile]);
+  const removeKbnavHighlight = () => document.querySelectorAll('[data-kbnav-active]').forEach(x => x.removeAttribute('data-kbnav-active'));
+  const kbnavEls = (): HTMLElement[] => {
+    const main = document.querySelector('main');
+    return main ? (Array.from(main.querySelectorAll('[data-kbnav]')) as HTMLElement[]).filter(x => x.offsetParent !== null) : [];
+  };
+  const applyKbnav = (rawIdx: number) => {
+    const els = kbnavEls();
+    removeKbnavHighlight();
+    if (els.length === 0) { kbnavIdxRef.current = -1; return; }
+    const idx = Math.max(0, Math.min(els.length - 1, rawIdx));
+    kbnavIdxRef.current = idx;
+    els[idx].setAttribute('data-kbnav-active', '1');
+    els[idx].scrollIntoView({ block: 'nearest' });
+  };
   const paneKeyRef = useRef<(e: KeyboardEvent) => void>(() => {});
   paneKeyRef.current = (e: KeyboardEvent) => {
     if (isMobile) return;
@@ -380,7 +394,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
     if (tag === 'INPUT' || tag === 'TEXTAREA' || el?.isContentEditable) return;
     if (e.key === 'Escape') { setKbMode(false); setPaneFocus('right'); return; }
     const isArrow = e.key === 'ArrowUp' || e.key === 'ArrowDown' || e.key === 'ArrowLeft' || e.key === 'ArrowRight';
-    if (isArrow) setKbMode(true); // ナビキーでキー入力モードを有効化（カーソル表示）
+    if (isArrow) setKbMode(true); // ナビキーでキー入力モードを有効化（カーソル表示）。Esc以外では解除しない
     if (paneFocus === 'right') {
       if (e.key === 'ArrowLeft') {
         e.preventDefault();
@@ -392,23 +406,16 @@ export default function Layout({ children }: { children: React.ReactNode }) {
       }
       // 右ペイン内のクリック可能パネル/タブをカーソル走査（data-kbnav）。
       // 対象が無い画面（演習/模試セッション等）は各画面側のキー処理に委ねる。
-      const main = document.querySelector('main');
-      const els = main
-        ? (Array.from(main.querySelectorAll('[data-kbnav]')) as HTMLElement[]).filter(x => x.offsetParent !== null)
-        : [];
+      const els = kbnavEls();
       if (els.length === 0) return;
-      const hl = (idx: number) => {
-        document.querySelectorAll('[data-kbnav-active]').forEach(x => x.removeAttribute('data-kbnav-active'));
-        const t = els[idx];
-        if (t) { t.setAttribute('data-kbnav-active', '1'); t.scrollIntoView({ block: 'nearest' }); }
-      };
-      if (e.key === 'ArrowDown') { e.preventDefault(); kbnavIdxRef.current = Math.min(els.length - 1, kbnavIdxRef.current + 1); hl(kbnavIdxRef.current); }
-      else if (e.key === 'ArrowUp') { e.preventDefault(); kbnavIdxRef.current = kbnavIdxRef.current < 0 ? 0 : Math.max(0, kbnavIdxRef.current - 1); hl(kbnavIdxRef.current); }
+      if (e.key === 'ArrowDown') { e.preventDefault(); applyKbnav(kbnavIdxRef.current < 0 ? 0 : kbnavIdxRef.current + 1); }
+      else if (e.key === 'ArrowUp') { e.preventDefault(); applyKbnav(kbnavIdxRef.current < 0 ? 0 : kbnavIdxRef.current - 1); }
       else if (e.key === 'Enter' && kbnavIdxRef.current >= 0 && kbnavIdxRef.current < els.length) { e.preventDefault(); els[kbnavIdxRef.current].click(); }
     } else {
-      if (e.key === 'ArrowDown') { e.preventDefault(); setNavCursor(c => Math.min(navItems.length - 1, c + 1)); }
+      // navItems.length 番目 = 連絡先
+      if (e.key === 'ArrowDown') { e.preventDefault(); setNavCursor(c => Math.min(navItems.length, c + 1)); }
       else if (e.key === 'ArrowUp') { e.preventDefault(); setNavCursor(c => Math.max(0, c - 1)); }
-      else if (e.key === 'Enter') { e.preventDefault(); navigate(navItems[navCursor].path); setPaneFocus('right'); }
+      else if (e.key === 'Enter') { e.preventDefault(); if (navCursor < navItems.length) navigate(navItems[navCursor].path); else openContact(); setPaneFocus('right'); }
       else if (e.key === 'ArrowRight') { e.preventDefault(); setPaneFocus('right'); }
     }
   };
@@ -417,13 +424,15 @@ export default function Layout({ children }: { children: React.ReactNode }) {
     window.addEventListener('keydown', h);
     return () => window.removeEventListener('keydown', h);
   }, []);
-  // kbMode無効/左ペイン/ページ遷移時は右ペインのパネルカーソルを解除
-  const clearKbnav = () => {
-    kbnavIdxRef.current = -1;
-    document.querySelectorAll('[data-kbnav-active]').forEach(x => x.removeAttribute('data-kbnav-active'));
-  };
-  useEffect(() => { if (!kbMode || paneFocus !== 'right') clearKbnav(); }, [kbMode, paneFocus]);
-  useEffect(() => { clearKbnav(); }, [pathname]);
+  // kbMode無効時は完全解除。左ペイン時はハイライトのみ消す（位置は保持）。右復帰時は復元。
+  useEffect(() => {
+    if (!kbMode) { kbnavIdxRef.current = -1; removeKbnavHighlight(); }
+  }, [kbMode]);
+  useEffect(() => {
+    if (paneFocus === 'left') { removeKbnavHighlight(); return; }
+    if (kbMode) { const id = requestAnimationFrame(() => applyKbnav(kbnavIdxRef.current < 0 ? 0 : kbnavIdxRef.current)); return () => cancelAnimationFrame(id); }
+  }, [paneFocus]); // eslint-disable-line react-hooks/exhaustive-deps
+  useEffect(() => { kbnavIdxRef.current = -1; removeKbnavHighlight(); }, [pathname]);
   const navIdxOf = (path: string) => navItems.findIndex(n => n.path === path);
 
   const breadcrumbs: Record<string, BreadcrumbItem[]> = {
@@ -880,9 +889,12 @@ export default function Layout({ children }: { children: React.ReactNode }) {
                     width: '100%', textAlign: 'left',
                     display: 'flex', alignItems: 'center', gap: 12,
                     padding: '10px 24px',
-                    background: 'none', border: 'none',
+                    background: (kbMode && paneFocus === 'left' && navCursor === navItems.length) ? 'var(--color-bg-main)' : 'none',
+                    border: 'none',
                     borderTop: '1px solid var(--color-border)',
                     borderLeft: '4px solid transparent',
+                    outline: (kbMode && paneFocus === 'left' && navCursor === navItems.length) ? '2px solid var(--color-accent)' : 'none',
+                    outlineOffset: (kbMode && paneFocus === 'left' && navCursor === navItems.length) ? -2 : 0,
                     cursor: 'pointer', color: 'var(--color-text-light)', fontSize: 'var(--font-size-sm)', fontWeight: 400,
                     whiteSpace: 'nowrap', transition: 'all 0.2s',
                   }}
