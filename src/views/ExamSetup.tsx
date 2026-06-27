@@ -519,7 +519,7 @@ export default function ExamSetup() {
           ) : (
             <span style={{ display: 'inline-flex', alignItems: 'center', gap: 8 }}>
               {miniExam ? (lang === 'ja' ? 'ミニ模試を開始' : 'Start Mini Exam') : t('examSetup.start')}
-              {showKeyHint && <span style={{ fontSize: 11, fontWeight: 400, opacity: 0.6 }}>⇧Enter</span>}
+              {showKeyHint && <span style={{ fontSize: 12, fontWeight: 700, opacity: 0.9, border: '1px solid currentColor', borderRadius: 4, padding: '0 5px', lineHeight: 1.5 }}>⇧⏎</span>}
             </span>
           )}
         </Button>

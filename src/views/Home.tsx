@@ -2085,7 +2085,7 @@ export default function Home() {
                       ) : (
                         <span style={{ display: 'inline-flex', alignItems: 'center', gap: 8 }}>
                           {ja ? 'サクッと演習を開始' : 'Quick'}
-                          <span style={{ fontSize: 11, fontWeight: 400, opacity: 0.6 }}>⇧Enter</span>
+                          <span style={{ fontSize: 12, fontWeight: 700, opacity: 0.9, border: '1px solid currentColor', borderRadius: 4, padding: '0 5px', lineHeight: 1.5 }}>⇧⏎</span>
                         </span>
                       )}
                     </button>
@@ -2103,7 +2103,7 @@ export default function Home() {
                       ) : (
                         <span style={{ display: 'inline-flex', alignItems: 'center', gap: 8 }}>
                           {ja ? 'しっかり対策を開始' : 'Focused'}
-                          <span style={{ fontSize: 11, fontWeight: 400, opacity: 0.6 }}>⇧Enter</span>
+                          <span style={{ fontSize: 12, fontWeight: 700, opacity: 0.9, border: '1px solid currentColor', borderRadius: 4, padding: '0 5px', lineHeight: 1.5 }}>⇧⏎</span>
                         </span>
                       )}
                     </button>

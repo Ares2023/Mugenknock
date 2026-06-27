@@ -467,6 +467,7 @@ export default function ExerciseSession() {
   const [struckChoices, setStruckChoices] = useState<Set<string>>(new Set());
   // キーボード操作用カーソル（Web版のみ）。choices + わからない を対象に上下移動
   const [cursorIndex, setCursorIndex] = useState(0);
+  const cursorElRef = useRef<HTMLButtonElement | null>(null);
 
   useEffect(() => {
     // ドラフト探索（sessionId 一致を優先。指定なしは最新の savedAt）
@@ -752,6 +753,8 @@ export default function ExerciseSession() {
 
   // 問題が変わったらカーソルを先頭に戻す
   useEffect(() => { setCursorIndex(0); }, [currentIndex]);
+  // カーソルの選択肢が画面内に入るようスクロール追従（Web版）
+  useEffect(() => { if (!isMobile) cursorElRef.current?.scrollIntoView({ block: 'nearest' }); }, [cursorIndex, isMobile]);
 
   // ── キーボード操作（Web版のみ）──
   // ↑↓←→: カーソル移動 / Enter: カーソルの選択肢を選択・トグル / Shift+Enter: 回答→次へ
@@ -1020,6 +1023,7 @@ export default function ExerciseSession() {
             return (
               <button
                 key={choice}
+                ref={isCursor ? cursorElRef : undefined}
                 onClick={() => toggleAnswer(choice)}
                 style={{ ...getChoiceStyle(choice), ...(isCursor ? { outline: '2px solid var(--color-accent)', outlineOffset: 1 } : {}) }}
                 className={lastSelected === choice && isSelected && !answered ? 'choice-select-anim' : ''}
@@ -1059,7 +1063,6 @@ export default function ExerciseSession() {
                   >
                     <strong style={{ marginRight: 2 }}>{CHOICE_LABELS[idx]}.</strong> {stripLabel(choice)}
                   </span>
-                  {isCursor && !answered && <span style={{ marginLeft: 'auto', alignSelf: 'center', fontSize: 10, fontWeight: 400, opacity: 0.5, flexShrink: 0 }}>Enter</span>}
                 </div>
               </button>
             );
@@ -1067,8 +1070,10 @@ export default function ExerciseSession() {
           {(() => {
             const wSelected = selectedAnswers.includes(WAKARANAI);
             const wAnsweredIncorrect = answered && wSelected;
+            const wCursor = !isMobile && cursorIndex === shuffledChoices.length;
             return (
               <button
+                ref={wCursor ? cursorElRef : undefined}
                 onClick={() => toggleAnswer(WAKARANAI)}
                 disabled={answered}
                 style={{
@@ -1288,7 +1293,7 @@ export default function ExerciseSession() {
                 style={{ height: 44, padding: '0 24px', border: 'none', borderRadius: 22, background: !canSubmit ? 'var(--color-text-light)' : 'var(--color-accent)', color: 'var(--color-btn-primary-text)', fontWeight: 600, fontSize: 'var(--font-size-base)', cursor: !canSubmit ? 'default' : 'pointer', opacity: !canSubmit ? 0.5 : 1, whiteSpace: 'nowrap', boxShadow: '0 2px 8px rgba(0,0,0,0.15)', display: 'inline-flex', alignItems: 'center', gap: 8 }}
               >
                 {t('exerciseSession.answer')}
-                <span style={{ fontSize: 11, fontWeight: 400, opacity: 0.6 }}>⇧Enter</span>
+                <span style={{ fontSize: 12, fontWeight: 700, opacity: 0.9, border: '1px solid currentColor', borderRadius: 4, padding: '0 5px', lineHeight: 1.5 }}>⇧⏎</span>
               </button>
             ) : (
               <button
@@ -1296,7 +1301,7 @@ export default function ExerciseSession() {
                 style={{ height: 44, padding: '0 24px', border: '1.5px solid var(--color-primary)', borderRadius: 22, background: 'var(--color-bg-white)', color: 'var(--color-primary)', fontWeight: 600, fontSize: 'var(--font-size-base)', cursor: 'pointer', whiteSpace: 'nowrap', boxShadow: '0 2px 8px rgba(0,0,0,0.15)', display: 'inline-flex', alignItems: 'center', gap: 8 }}
               >
                 {currentIndex + 1 >= totalCount ? t('exerciseSession.showResult') : t('exerciseSession.next')}
-                <span style={{ fontSize: 11, fontWeight: 400, opacity: 0.6 }}>⇧Enter</span>
+                <span style={{ fontSize: 12, fontWeight: 700, opacity: 0.9, border: '1px solid currentColor', borderRadius: 4, padding: '0 5px', lineHeight: 1.5 }}>⇧⏎</span>
               </button>
             )}
           </div>

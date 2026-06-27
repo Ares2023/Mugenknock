@@ -171,7 +171,10 @@ export default function ExamSession() {
   const [lastSelected, setLastSelected] = useState<string | null>(null);
   // キーボード操作用カーソル（Web版のみ）
   const [cursorIndex, setCursorIndex] = useState(0);
+  const cursorElRef = useRef<HTMLButtonElement | null>(null);
   useEffect(() => { setCursorIndex(0); }, [currentIndex]);
+  // カーソルの選択肢が画面内に入るようスクロール追従（Web版）
+  useEffect(() => { if (!isMobile) cursorElRef.current?.scrollIntoView({ block: 'nearest' }); }, [cursorIndex, isMobile]);
 
   const toggle = (choice: string) => {
     const qid = currentQ.questionId;
@@ -611,6 +614,7 @@ export default function ExamSession() {
             return (
               <button
                 key={origChoice}
+                ref={isCursor ? cursorElRef : undefined}
                 onClick={() => toggle(origChoice)}
                 className={lastSelected === origChoice && selected.includes(origChoice) ? 'choice-select-anim' : ''}
                 style={{
@@ -650,15 +654,16 @@ export default function ExamSession() {
                   <span style={{ flex: 1, minWidth: 0, overflowWrap: 'break-word', wordBreak: 'break-word' }}>
                     <strong style={{ marginRight: 2 }}>{CHOICE_LABELS[displayIdx]}.</strong> {stripLabel(choice)}
                   </span>
-                  {isCursor && <span style={{ marginLeft: 'auto', alignSelf: 'center', fontSize: 10, fontWeight: 400, opacity: 0.5, flexShrink: 0 }}>Enter</span>}
                 </div>
               </button>
             );
           })}
           {(() => {
             const wSelected = selected.includes(WAKARANAI);
+            const wCursor = !isMobile && cursorIndex === shuffledIndices.length;
             return (
               <button
+                ref={wCursor ? cursorElRef : undefined}
                 onClick={() => toggle(WAKARANAI)}
                 style={{
                   display: 'flex', alignItems: 'center', width: '100%', textAlign: 'left',
@@ -775,7 +780,7 @@ export default function ExamSession() {
               style={{ height: 44, padding: '0 24px', border: 'none', borderRadius: 22, background: 'var(--color-accent)', color: 'var(--color-btn-primary-text)', fontWeight: 600, fontSize: 'var(--font-size-base)', cursor: 'pointer', whiteSpace: 'nowrap', boxShadow: '0 2px 8px rgba(0,0,0,0.15)', display: 'inline-flex', alignItems: 'center', gap: 8 }}
             >
               {t('examSession.submit')}
-              <span style={{ fontSize: 11, fontWeight: 400, opacity: 0.6 }}>⇧Enter</span>
+              <span style={{ fontSize: 12, fontWeight: 700, opacity: 0.9, border: '1px solid currentColor', borderRadius: 4, padding: '0 5px', lineHeight: 1.5 }}>⇧⏎</span>
             </button>
           </div>
         ),
