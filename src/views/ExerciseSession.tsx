@@ -579,9 +579,11 @@ export default function ExerciseSession() {
   };
 
   const submitAnswer = (overrideSel?: string[]) => {
-    const sel = overrideSel ?? selectedAnswers;
+    // onClick から誤ってイベントが渡るケースに備え、配列でなければ無視する
+    const useOverride = Array.isArray(overrideSel);
+    const sel = useOverride ? overrideSel! : selectedAnswers;
     if (sel.length === 0) return;
-    if (overrideSel) setSelectedAnswers(overrideSel); // 即回答時はUIにも反映
+    if (useOverride) setSelectedAnswers(overrideSel!); // 即回答時はUIにも反映
     const isWakaranai = sel.includes(WAKARANAI);
     if (!isWakaranai && currentQuestion.isMultiple && currentQuestion.correctAnswerCount &&
         sel.length !== currentQuestion.correctAnswerCount) {
@@ -1344,7 +1346,7 @@ export default function ExerciseSession() {
           <div style={{ position: 'fixed', bottom: 56, left: 0, right: 0, zIndex: 150, padding: '8px 16px', display: 'flex', gap: 8 }}>
             {!answered ? (
               <button
-                onClick={submitAnswer}
+                onClick={() => submitAnswer()}
                 disabled={!canSubmit}
                 style={{ flex: 1, height: 44, border: 'none', borderRadius: 22, background: !canSubmit ? 'var(--color-text-light)' : 'var(--color-accent)', color: 'var(--color-btn-primary-text)', fontWeight: 600, fontSize: 'var(--font-size-base)', cursor: !canSubmit ? 'default' : 'pointer', opacity: !canSubmit ? 0.5 : 1 }}
               >
@@ -1363,7 +1365,7 @@ export default function ExerciseSession() {
           <div style={{ position: 'fixed', right: 24, bottom: 24, zIndex: 150, display: 'flex', flexDirection: 'column', gap: 8 }}>
             {!answered ? (
               <button
-                onClick={submitAnswer}
+                onClick={() => submitAnswer()}
                 disabled={!canSubmit}
                 style={{ height: 44, padding: '0 24px', border: 'none', borderRadius: 22, background: !canSubmit ? 'var(--color-text-light)' : 'var(--color-accent)', color: 'var(--color-btn-primary-text)', fontWeight: 600, fontSize: 'var(--font-size-base)', cursor: !canSubmit ? 'default' : 'pointer', opacity: !canSubmit ? 0.5 : 1, whiteSpace: 'nowrap', boxShadow: '0 2px 8px rgba(0,0,0,0.15)', display: 'inline-flex', alignItems: 'center', gap: 8 }}
               >
