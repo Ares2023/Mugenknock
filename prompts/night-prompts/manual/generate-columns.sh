@@ -83,7 +83,8 @@ IDEAS_JSON=$(curl -s -H "Authorization: Bearer $ID_TOKEN" "$API_ENDPOINT/admin/c
 IDEAS_FILE=$(mktemp /tmp/column_ideas_XXXX.json)
 echo "$IDEAS_JSON" > "$IDEAS_FILE"
 
-# ideaId<TAB>examType<TAB>note<TAB>text(base64) の形式で1行ずつ出力（textの改行対策にbase64）
+# ideaId<TAB>examType<TAB>text(base64)<TAB>note の形式で1行ずつ出力。
+# text は常に非空の base64 で3番目に置く（note が空でも tab-IFS の連結で text がずれないように）。
 PARSED=$(python3 - "$IDEAS_FILE" "$LIMIT" << 'PYEOF'
 import json, sys, base64
 path, limit = sys.argv[1], int(sys.argv[2])
@@ -97,7 +98,8 @@ if limit > 0:
     items = items[:limit]
 for it in items:
     txt = base64.b64encode((it.get('text') or '').encode('utf-8')).decode('ascii')
-    print('\t'.join([it.get('ideaId',''), it.get('examType','ALL'), (it.get('note') or '').replace('\t',' ').replace('\n',' '), txt]))
+    note = (it.get('note') or '').replace('\t', ' ').replace('\n', ' ')
+    print('\t'.join([it.get('ideaId', ''), it.get('examType', 'ALL'), txt, note]))
 PYEOF
 )
 rm -f "$IDEAS_FILE"
@@ -114,7 +116,7 @@ log ""
 OK_COUNT=0; SKIP_COUNT=0; FAIL_COUNT=0
 IDX=0
 
-while IFS=$'\t' read -r IDEA_ID EXAM_TYPE NOTE TEXT_B64; do
+while IFS=$'\t' read -r IDEA_ID EXAM_TYPE TEXT_B64 NOTE; do
   [ -z "$IDEA_ID" ] && continue
   IDX=$((IDX+1))
   TEXT=$(echo "$TEXT_B64" | base64 -d)
