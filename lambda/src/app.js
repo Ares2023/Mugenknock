@@ -1540,6 +1540,89 @@ app.delete('/admin/tips/:id', async (req, res) => {
   }
 });
 
+// ── コラムのネタ（ColumnIdeas）──
+// 管理者が投稿した「ネタ」。ローカルの gcs スクリプトが裏取り→コラム(Tips)化し、
+// 使用済みネタは status='used' に無効化する（履歴として削除はしない）。
+
+// 一覧取得（?status=pending/used で絞り込み可）
+app.get('/admin/column-ideas', async (req, res) => {
+  try {
+    const docClient = getClient();
+    const { status } = req.query;
+    const result = await docClient.send(new ScanCommand({ TableName: 'ColumnIdeas' }));
+    let items = result.Items || [];
+    if (status) items = items.filter(i => i.status === status);
+    items.sort((a, b) => (b.createdAt || '').localeCompare(a.createdAt || ''));
+    res.json({ items });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+// 追加
+app.post('/admin/column-ideas', async (req, res) => {
+  try {
+    const docClient = getClient();
+    const { text, examType, note } = req.body;
+    if (!text || !text.trim()) return res.status(400).json({ error: 'text is required' });
+    const item = {
+      ideaId: uuidv4(),
+      text: text.trim(),
+      examType: examType || 'ALL',
+      note: (note || '').trim(),
+      status: 'pending',
+      createdAt: new Date().toISOString(),
+    };
+    await docClient.send(new PutCommand({ TableName: 'ColumnIdeas', Item: item }));
+    res.json(item);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+// 更新（無効化 status='used' / resultTipId 設定 / 内容編集）
+app.put('/admin/column-ideas/:id', async (req, res) => {
+  try {
+    const docClient = getClient();
+    const { status, resultTipId, text, examType, note } = req.body;
+    const sets = []; const names = {}; const values = {};
+    if (status !== undefined) {
+      sets.push('#s = :s'); names['#s'] = 'status'; values[':s'] = status;
+      if (status === 'used') { sets.push('usedAt = :u'); values[':u'] = new Date().toISOString(); }
+    }
+    if (resultTipId !== undefined) { sets.push('resultTipId = :r'); values[':r'] = resultTipId; }
+    if (text !== undefined) { sets.push('#t = :t'); names['#t'] = 'text'; values[':t'] = text; }
+    if (examType !== undefined) { sets.push('examType = :e'); values[':e'] = examType; }
+    if (note !== undefined) { sets.push('#n = :n'); names['#n'] = 'note'; values[':n'] = note; }
+    if (sets.length === 0) return res.json({ success: true });
+    await docClient.send(new UpdateCommand({
+      TableName: 'ColumnIdeas',
+      Key: { ideaId: req.params.id },
+      UpdateExpression: 'SET ' + sets.join(', '),
+      ...(Object.keys(names).length ? { ExpressionAttributeNames: names } : {}),
+      ExpressionAttributeValues: values,
+    }));
+    res.json({ success: true });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+// 削除
+app.delete('/admin/column-ideas/:id', async (req, res) => {
+  try {
+    const docClient = getClient();
+    await docClient.send(new DeleteCommand({ TableName: 'ColumnIdeas', Key: { ideaId: req.params.id } }));
+    res.json({ success: true });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
 // 回答済み問題ID一覧取得
 app.get('/users/me/answered-questions', async (req, res) => {
   try {
