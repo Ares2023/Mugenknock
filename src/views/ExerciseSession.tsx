@@ -479,6 +479,8 @@ export default function ExerciseSession() {
   const [copyToast, setCopyToast] = useState(false); // Ctrl+Cコピーのトースト
   // キーボード操作用カーソル（Web版のみ）。choices + わからない を対象に上下移動
   const [cursorIndex, setCursorIndex] = useState(0);
+  // 進捗ノード上にカーソルがあるか（最上部でさらに↑→現在問題のノードへ移動し、←→で問題移動）
+  const [cursorOnNodes, setCursorOnNodes] = useState(false);
   const cursorElRef = useRef<HTMLButtonElement | null>(null);
   const explAnchorRef = useRef<HTMLDivElement | null>(null); // 解説パネル先頭アンカー
   // 右ペインがフォーカス中か（左ペイン操作中は選択肢カーソルを隠す）
@@ -493,7 +495,7 @@ export default function ExerciseSession() {
   const [kbMode, setKbModeState] = useState(false);
   useEffect(() => {
     setKbModeState(isKbMode());
-    const h = (e: Event) => setKbModeState((e as CustomEvent).detail === true);
+    const h = (e: Event) => { const on = (e as CustomEvent).detail === true; setKbModeState(on); if (!on) setCursorOnNodes(false); };
     window.addEventListener('kbmodechange', h);
     return () => window.removeEventListener('kbmodechange', h);
   }, []);
@@ -805,6 +807,23 @@ export default function ExerciseSession() {
       const tgt = toBottom ? (m ? m.scrollHeight : document.body.scrollHeight) : 0;
       (m ?? window).scrollTo({ top: tgt, behavior: 'smooth' });
     };
+    // 進捗ノード上にカーソルがある場合：←→で前後の問題へ移動、↓で選択肢へ戻る。
+    // ←→はLayoutの左ペイン移動と競合するため stopImmediatePropagation で抑止する。
+    if (cursorOnNodes) {
+      if (e.key === 'ArrowLeft') {
+        e.preventDefault(); e.stopImmediatePropagation();
+        if (currentIndex - 1 >= 0) goToQuestion(currentIndex - 1);
+      } else if (e.key === 'ArrowRight') {
+        e.preventDefault(); e.stopImmediatePropagation();
+        if (currentIndex + 1 <= viewedFrontier && currentIndex + 1 < questions.length) goToQuestion(currentIndex + 1);
+      } else if (e.key === 'ArrowDown') {
+        e.preventDefault();
+        setCursorOnNodes(false); setCursorIndex(0);
+      } else if (e.key === 'ArrowUp') {
+        e.preventDefault();
+      }
+      return;
+    }
     if (e.key === 'ArrowDown') {
       e.preventDefault();
       if (cursorIndex >= total - 1) {
@@ -814,8 +833,13 @@ export default function ExerciseSession() {
       } else setCursorIndex(c => Math.min(total - 1, c + 1));
     } else if (e.key === 'ArrowUp') {
       e.preventDefault();
-      if (cursorIndex <= 0) scrollMain(false); // 最上選択肢でさらに上→ページ最上部へ
-      else setCursorIndex(c => Math.max(0, c - 1));
+      if (cursorIndex <= 0) {
+        // 最上選択肢でさらに上：まだ最上部でなければページ最上部へ、既に最上部なら進捗ノードへ移動
+        const m = document.querySelector('main');
+        const atTop = (m ? m.scrollTop : 0) <= 1 && window.scrollY <= 1;
+        if (atTop) setCursorOnNodes(true);
+        else scrollMain(false);
+      } else setCursorIndex(c => Math.max(0, c - 1));
     } else if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) {
       e.preventDefault();
       if (!answered) {
@@ -989,6 +1013,7 @@ export default function ExerciseSession() {
         const visibleIndices = useWindow
           ? Array.from({ length: WINDOW }, (_, k) => windowStart + k)
           : Array.from({ length: totalCount }, (_, k) => k);
+        const nodeCursorActive = !isMobile && kbMode && rightActive && cursorOnNodes;
 
         return (
           <div style={{ position: 'sticky', top: 0, zIndex: 190, background: 'var(--color-bg-white)', borderBottom: '1px solid var(--color-border)', padding: isMobile ? '8px 16px' : '8px 24px', display: 'flex', alignItems: 'center', gap: 0, width: isMobile ? 'calc(100% + 2 * var(--spacing-md))' : '100%', marginLeft: isMobile ? 'calc(-1 * var(--spacing-md))' : undefined, boxSizing: 'border-box', marginBottom: 'var(--spacing-md)' }}>
@@ -1017,7 +1042,7 @@ export default function ExerciseSession() {
                         border: `2px solid ${isAnswered || isCurrent ? 'var(--color-primary)' : 'var(--color-text-light)'}`,
                         opacity: notYetLoaded ? 0.3 : undefined,
                         boxShadow: isCurrent
-                          ? '0 0 0 2px var(--color-primary-light, rgba(82,130,255,0.25))'
+                          ? (nodeCursorActive ? '0 0 0 3px var(--color-accent)' : '0 0 0 2px var(--color-primary-light, rgba(82,130,255,0.25))')
                           : isHovered
                           ? '0 0 0 3px var(--color-primary-light, rgba(82,130,255,0.35))'
                           : 'none',
@@ -1095,7 +1120,7 @@ export default function ExerciseSession() {
           </div>
           {shuffledChoices.map((choice: string, idx: number) => {
             const isSelected = selectedAnswers.includes(choice);
-            const isCursor = !isMobile && kbMode && rightActive && idx === cursorIndex;
+            const isCursor = !isMobile && kbMode && rightActive && !cursorOnNodes && idx === cursorIndex;
             return (
               <button
                 key={choice}
@@ -1146,7 +1171,7 @@ export default function ExerciseSession() {
           {(() => {
             const wSelected = selectedAnswers.includes(WAKARANAI);
             const wAnsweredIncorrect = answered && wSelected;
-            const wCursor = !isMobile && kbMode && rightActive && cursorIndex === shuffledChoices.length;
+            const wCursor = !isMobile && kbMode && rightActive && !cursorOnNodes && cursorIndex === shuffledChoices.length;
             return (
               <button
                 ref={wCursor ? cursorElRef : undefined}
@@ -1164,7 +1189,7 @@ export default function ExerciseSession() {
                   background: wAnsweredIncorrect ? 'var(--color-feedback-incorrect-bg)' : wSelected ? 'var(--color-bg-main)' : 'transparent',
                   borderColor: wAnsweredIncorrect ? 'var(--color-danger)' : wSelected ? 'var(--color-text-sub)' : 'var(--color-border)',
                   color: wAnsweredIncorrect ? 'var(--color-danger)' : 'var(--color-text-light)',
-                  ...((!isMobile && cursorIndex === shuffledChoices.length) ? { outline: '2px solid var(--color-accent)', outlineOffset: 1 } : {}),
+                  ...((!isMobile && !cursorOnNodes && cursorIndex === shuffledChoices.length) ? { outline: '2px solid var(--color-accent)', outlineOffset: 1 } : {}),
                 }}
               >
                 <span style={{ marginRight: 10, fontSize: 12, flexShrink: 0 }}>？</span>
