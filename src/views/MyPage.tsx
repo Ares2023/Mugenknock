@@ -418,12 +418,12 @@ export default function MyPage() {
                     /* デスクトップ: 概要(左300px)｜詳細(右) の2カード。横を揃え/右は塗りなし/目標資格と学習目標は別カードで分離 */
                     <>
                       {/* カード1: 目標資格(概要) ｜ 資格情報(詳細) */}
-                      <div style={{ display: 'flex', marginBottom: 12, border: '1px solid var(--color-border)', borderRadius: 'var(--border-radius-md)', overflow: 'hidden', background: 'transparent' }}>
+                      <div style={{ display: 'flex', marginBottom: 12, border: '1px solid color-mix(in srgb, var(--color-text-light) 40%, transparent)', borderRadius: 'var(--border-radius-md)', overflow: 'hidden', background: 'transparent' }}>
                         <div data-kbnav="1" style={{ width: 300, flexShrink: 0, padding: 'var(--spacing-lg)', cursor: 'pointer', background: 'var(--color-bg-white)' }} onClick={() => setShowExamSelect(true)}>
                           <ExamCardHeader />
                           <ExamCardContent />
                         </div>
-                        <div style={{ width: 1, background: 'var(--color-border)', flexShrink: 0 }} />
+                        <div style={{ width: 1, background: 'color-mix(in srgb, var(--color-text-light) 40%, transparent)', flexShrink: 0 }} />
                         <div style={{ flex: 1, minWidth: 0, padding: 'var(--spacing-lg)' }}>
                           {targetExam ? (() => {
                             const cfg = EXAM_CONFIGS[targetExam];
@@ -453,7 +453,7 @@ export default function MyPage() {
                       </div>
 
                       {/* カード2: 学習目標(概要) ｜ 週間達成状況(詳細・直接表示・塗りなし) */}
-                      <div style={{ display: 'flex', marginBottom: 12, border: '1px solid var(--color-border)', borderRadius: 'var(--border-radius-md)', overflow: 'hidden', background: 'transparent' }}>
+                      <div style={{ display: 'flex', marginBottom: 12, border: '1px solid color-mix(in srgb, var(--color-text-light) 40%, transparent)', borderRadius: 'var(--border-radius-md)', overflow: 'hidden', background: 'transparent' }}>
                         <div data-kbnav="1" style={{ width: 300, flexShrink: 0, padding: 'var(--spacing-lg)', cursor: 'pointer', background: 'var(--color-bg-white)' }} onClick={() => { setEditExamDate(examDate); setEditDailyGoal(dailyGoal); setShowSettingsEdit(true); }}>
                           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
                             <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
@@ -489,7 +489,7 @@ export default function MyPage() {
                             </>
                           )}
                         </div>
-                        <div style={{ width: 1, background: 'var(--color-border)', flexShrink: 0 }} />
+                        <div style={{ width: 1, background: 'color-mix(in srgb, var(--color-text-light) 40%, transparent)', flexShrink: 0 }} />
                         <div style={{ flex: 1, minWidth: 0, padding: 'var(--spacing-lg)' }}>
                           <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 4 }}>
                             <span style={{ color: 'var(--color-text-sub)', display: 'flex', alignItems: 'center' }}><IconTrendingUp size={13} /></span>
