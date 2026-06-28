@@ -230,6 +230,20 @@ async function queryAll(docClient, params) {
   return items;
 }
 
+// 指定 questionId のみを取得する（問題数に依存しない O(件数) 取得）。
+// exam 全件ロード（getAllQuestionsForExam）を回避し、問題が増えてもプログレッシブロードが
+// 一定時間で済むようにするための根本対策。件数はセッション分（数〜数十件）で有界。
+// IAM 上 BatchGetItem 権限が無いため、許可済みの GetItem を並列実行する（tagId パスと同方式）。
+async function batchGetQuestions(docClient, idList) {
+  const results = await Promise.all(
+    idList.map(id =>
+      docClient.send(new GetCommand({ TableName: 'Questions', Key: { questionId: id } }))
+        .then(r => r.Item).catch(() => null)
+    )
+  );
+  return results.filter(Boolean);
+}
+
 // ユーザーあたり保持するセッション数の上限（フロントの最大参照=Stats 200件に余裕を持たせた値）。
 // 履歴・スコア推移は全てこの範囲内で参照されるため、これを超える古い分は保持不要。
 const SESSION_RETENTION_LIMIT = 365;
@@ -399,7 +413,12 @@ app.get('/questions', async (req, res) => {
     const { examType, tagId, domain, limit, shuffle: doShuffle, keyword, offset, ids } = req.query;
     let items = [];
 
-    if (tagId) {
+    if (ids) {
+      // ids 指定時は対象IDのみ取得（問題数に依存しない）。exam 全件ロードを避ける。
+      const idList = ids.split(',').map(s => s.trim()).filter(Boolean);
+      items = idList.length ? await batchGetQuestions(docClient, idList) : [];
+      if (examType) items = items.filter(q => q.examType === resolveExamTypeForDB(examType));
+    } else if (tagId) {
       const relResult = await docClient.send(new QueryCommand({
         TableName: 'QuestionTagRelations',
         KeyConditionExpression: 'tagId = :tagId',
