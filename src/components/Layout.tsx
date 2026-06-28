@@ -384,7 +384,9 @@ export default function Layout({ children }: { children: React.ReactNode }) {
   const inOverlayScope = () => document.querySelectorAll('[data-kbscope]').length > 0;
   const kbnavEls = (): HTMLElement[] => {
     const scope = kbScope();
-    return scope ? (Array.from(scope.querySelectorAll('[data-kbnav]')) as HTMLElement[]).filter(x => x.offsetParent !== null) : [];
+    // offsetParent は position:fixed 要素で null になるため getClientRects で可視判定する
+    // （固定底バーの開始ボタン等もカーソル対象に含める）
+    return scope ? (Array.from(scope.querySelectorAll('[data-kbnav]')) as HTMLElement[]).filter(x => x.getClientRects().length > 0) : [];
   };
   const applyKbnav = (rawIdx: number) => {
     const els = kbnavEls();
@@ -441,12 +443,42 @@ export default function Layout({ children }: { children: React.ReactNode }) {
       const scopeNow = kbScope();
       if (scopeNow !== kbScopeRef.current) { kbScopeRef.current = scopeNow; kbnavIdxRef.current = -1; removeKbnavHighlight(); }
       let cur = kbnavIdxRef.current;
-      if (cur < 0 || cur >= els.length) { e.preventDefault(); const t0 = els.findIndex(x => x.getAttribute('data-kbnav') === 'tab'); applyKbnav(t0 >= 0 ? t0 : 0); return; }
-      // オーバレイ内は全矢印で線形移動（タブ/コンテンツを区別しない）
+      if (cur < 0 || cur >= els.length) { e.preventDefault(); const at0 = els.findIndex(x => x.getAttribute('data-kbtab-active') === '1'); const t0 = at0 >= 0 ? at0 : els.findIndex(x => x.getAttribute('data-kbnav') === 'tab'); applyKbnav(t0 >= 0 ? t0 : 0); return; }
+      // オーバレイ内のカーソル移動。
+      // タブ(data-kbnav="tab")を持つオーバレイ（目標資格選択）は
+      // 「タブ行 → 資格カード行 → 決定ボタン(data-kbnav="confirm")」の縦3段として扱う。
+      // ←→: 同じ行内を移動（タブは選択レベルも切替）／↑↓: 段を移動。
+      // タブの無いオーバレイは従来どおり全矢印で線形移動。
       if (inOverlayScope()) {
-        if (e.key === 'ArrowDown' || e.key === 'ArrowRight') { e.preventDefault(); applyKbnav(cur + 1); }
-        else if (e.key === 'ArrowUp' || e.key === 'ArrowLeft') { e.preventDefault(); applyKbnav(cur - 1); }
-        else if (e.key === 'Enter') { e.preventDefault(); els[cur].click(); }
+        const hasTabs = els.some(isTab);
+        if (!hasTabs) {
+          if (e.key === 'ArrowDown' || e.key === 'ArrowRight') { e.preventDefault(); applyKbnav(cur + 1); }
+          else if (e.key === 'ArrowUp' || e.key === 'ArrowLeft') { e.preventDefault(); applyKbnav(cur - 1); }
+          else if (e.key === 'Enter') { e.preventDefault(); els[cur].click(); }
+          return;
+        }
+        const kindOf = (x?: HTMLElement) => x?.getAttribute('data-kbnav'); // 'tab' | 'confirm' | '1'(カード)
+        const firstCard = els.findIndex(x => kindOf(x) === '1');
+        let lastCard = -1; els.forEach((x, i) => { if (kindOf(x) === '1') lastCard = i; });
+        const confirmIdx = els.findIndex(x => kindOf(x) === 'confirm');
+        const at = els.findIndex(x => x.getAttribute('data-kbtab-active') === '1');
+        const activeTab = at >= 0 ? at : els.findIndex(isTab);
+        const curKind = kindOf(els[cur]);
+        if (curKind === 'tab') {
+          if (e.key === 'ArrowRight') { e.preventDefault(); const n = findIn(cur, +1, true); if (n >= 0) { applyKbnav(n); els[n].click(); } }
+          else if (e.key === 'ArrowLeft') { e.preventDefault(); const p = findIn(cur, -1, true); if (p >= 0) { applyKbnav(p); els[p].click(); } }
+          else if (e.key === 'ArrowDown') { e.preventDefault(); if (firstCard >= 0) applyKbnav(firstCard); }
+          else if (e.key === 'Enter') { e.preventDefault(); els[cur].click(); }
+        } else if (curKind === 'confirm') {
+          if (e.key === 'ArrowUp') { e.preventDefault(); if (firstCard >= 0) applyKbnav(firstCard); else if (activeTab >= 0) applyKbnav(activeTab); }
+          else if (e.key === 'Enter') { e.preventDefault(); els[cur].click(); }
+        } else { // 資格カード
+          if (e.key === 'ArrowRight') { e.preventDefault(); if (cur + 1 <= lastCard) applyKbnav(cur + 1); }
+          else if (e.key === 'ArrowLeft') { e.preventDefault(); if (cur - 1 >= firstCard) applyKbnav(cur - 1); }
+          else if (e.key === 'ArrowDown') { e.preventDefault(); if (confirmIdx >= 0) applyKbnav(confirmIdx); }
+          else if (e.key === 'ArrowUp') { e.preventDefault(); if (activeTab >= 0) applyKbnav(activeTab); }
+          else if (e.key === 'Enter') { e.preventDefault(); els[cur].click(); }
+        }
         return;
       }
       const curEl = els[cur];
@@ -456,10 +488,33 @@ export default function Layout({ children }: { children: React.ReactNode }) {
         else if (e.key === 'ArrowDown') { e.preventDefault(); const c = els.findIndex(x => !isTab(x)); if (c >= 0) applyKbnav(c); }
         else if (e.key === 'Enter') { e.preventDefault(); curEl.click(); }
       } else {
-        if (e.key === 'ArrowDown') { e.preventDefault(); const n = findIn(cur, +1, false); if (n >= 0) applyKbnav(n); }
-        else if (e.key === 'ArrowUp') { e.preventDefault(); const p = findIn(cur, -1, false); if (p >= 0) applyKbnav(p); else { const t = els.findIndex(isTab); if (t >= 0) applyKbnav(t); } }
-        else if (e.key === 'ArrowLeft') { e.preventDefault(); goLeftPane(); }
-        else if (e.key === 'Enter') { e.preventDefault(); curEl.click(); }
+        // コンテンツは矩形ジオメトリで方向移動する。
+        // 縦に積まれたカードは↑↓で、横並び/グリッド（例: サービス図鑑のアイコン）は←→でも移動できる。
+        const r0 = curEl.getBoundingClientRect();
+        const fx = r0.left + r0.width / 2, fy = r0.top + r0.height / 2;
+        const dirMove = (dir: 'up' | 'down' | 'left' | 'right'): number => {
+          let best = -1, bestScore = Infinity;
+          for (let i = 0; i < els.length; i++) {
+            if (i === cur || isTab(els[i])) continue;
+            const r = els[i].getBoundingClientRect();
+            const dx = (r.left + r.width / 2) - fx, dy = (r.top + r.height / 2) - fy;
+            const adx = Math.abs(dx), ady = Math.abs(dy);
+            let main: number, cross: number;
+            // 進行方向に在り、かつその軸が主となる（斜めは弾く）要素のみ候補にする
+            if (dir === 'up')         { if (dy >= -1 || adx > ady) continue; main = ady; cross = adx; }
+            else if (dir === 'down')  { if (dy <= 1  || adx > ady) continue; main = ady; cross = adx; }
+            else if (dir === 'left')  { if (dx >= -1 || ady > adx) continue; main = adx; cross = ady; }
+            else                      { if (dx <= 1  || ady > adx) continue; main = adx; cross = ady; }
+            const score = main + cross * 2; // 直交方向のズレを強めに罰し、整列した要素を優先
+            if (score < bestScore) { bestScore = score; best = i; }
+          }
+          return best;
+        };
+        if (e.key === 'ArrowDown')       { e.preventDefault(); const n = dirMove('down');  if (n >= 0) applyKbnav(n); }
+        else if (e.key === 'ArrowUp')    { e.preventDefault(); const p = dirMove('up');    if (p >= 0) applyKbnav(p); else { const t = els.findIndex(isTab); if (t >= 0) applyKbnav(t); } }
+        else if (e.key === 'ArrowRight') { e.preventDefault(); const n = dirMove('right'); if (n >= 0) applyKbnav(n); }
+        else if (e.key === 'ArrowLeft')  { e.preventDefault(); const p = dirMove('left');  if (p >= 0) applyKbnav(p); else goLeftPane(); }
+        else if (e.key === 'Enter')      { e.preventDefault(); curEl.click(); }
       }
     } else {
       // navItems.length 番目 = 連絡先

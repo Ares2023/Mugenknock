@@ -210,7 +210,7 @@ export default function ExamSelectOverlay({
           onTouchMove={e => e.stopPropagation()}
         >
           {EXAM_LEVELS.map(({ key, color }) => (
-            <button key={key} data-kbnav="tab" onClick={() => {
+            <button key={key} data-kbnav="tab" data-kbtab-active={activeLevel === key ? '1' : undefined} onClick={() => {
               setActiveLevel(key);
               const levelDef = EXAM_LEVELS.find(l => l.key === key);
               const examInLevel = levelDef?.exams.find(e => e === targetExam) ?? levelDef?.exams[0] ?? null;
@@ -373,7 +373,7 @@ export default function ExamSelectOverlay({
               ) : (
                 <button
                   ref={confirmBtnRef}
-                  data-kbnav="1"
+                  data-kbnav="confirm"
                   onClick={() => {
                     if (confirming) return;
                     setConfirming(true);

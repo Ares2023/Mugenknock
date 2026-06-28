@@ -436,6 +436,7 @@ export default function Practice() {
             </span>
             <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
               <button
+                data-kbnav="1"
                 onClick={() => setLimit(v => Math.max(5, v - 5))}
                 disabled={limit <= 5}
                 style={{ width: 36, height: 36, borderRadius: '50%', border: '1px solid color-mix(in srgb, var(--color-text-light) 40%, transparent)', background: 'transparent', cursor: limit <= 5 ? 'default' : 'pointer', fontSize: 20, display: 'flex', alignItems: 'center', justifyContent: 'center', color: limit <= 5 ? 'var(--color-text-light)' : 'var(--color-text-main)' }}
@@ -444,6 +445,7 @@ export default function Practice() {
                 {limit}<span style={{ fontSize: 13, fontWeight: 400, marginLeft: 2, color: 'var(--color-text-sub)' }}>{ja ? '問' : 'Q'}</span>
               </span>
               <button
+                data-kbnav="1"
                 onClick={() => setLimit(v => Math.min(examCfg?.totalQuestions ?? 65, v + 5))}
                 disabled={limit >= (examCfg?.totalQuestions ?? 65)}
                 style={{ width: 36, height: 36, borderRadius: '50%', border: '1px solid color-mix(in srgb, var(--color-text-light) 40%, transparent)', background: 'transparent', cursor: limit >= (examCfg?.totalQuestions ?? 65) ? 'default' : 'pointer', fontSize: 20, display: 'flex', alignItems: 'center', justifyContent: 'center', color: limit >= (examCfg?.totalQuestions ?? 65) ? 'var(--color-text-light)' : 'var(--color-text-main)' }}
@@ -462,6 +464,7 @@ export default function Practice() {
           {/* ── オプション（折りたたみ：出題ドメイン） ── */}
           <div style={{ marginBottom: 'var(--spacing-lg)', border: '1px solid color-mix(in srgb, var(--color-text-light) 40%, transparent)', borderRadius: 'var(--border-radius-md)', overflow: 'hidden' }}>
             <button
+              data-kbnav="1"
               onClick={() => setShowExerciseOptions(v => !v)}
               style={{ width: '100%', display: 'flex', alignItems: 'center', gap: 6, padding: '10px 14px', background: 'var(--color-bg-main)', border: 'none', cursor: 'pointer', fontSize: 'var(--font-size-sm)', fontWeight: 600, color: 'var(--color-text-sub)' }}
             >
@@ -664,6 +667,7 @@ export default function Practice() {
               {hasDraft ? (
                 <div style={{ flex: 1, display: 'flex', height: 44, borderRadius: 22, overflow: 'hidden', opacity: availableCount === 0 ? 0.5 : 1 }}>
                   <button
+                    data-kbnav="1"
                     disabled={exerciseLoading || availableCount === 0}
                     onClick={resumeExercise}
                     style={{ flex: 1, height: 44, border: 'none', background: 'var(--color-accent)', color: 'var(--color-btn-primary-text)', fontWeight: 600, fontSize: 'var(--font-size-base)', cursor: (exerciseLoading || availableCount === 0) ? 'default' : 'pointer', paddingLeft: 16, paddingRight: 8, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6 }}
@@ -694,6 +698,7 @@ export default function Practice() {
                 </div>
               ) : (
                 <button
+                  data-kbnav="1"
                   disabled={exerciseLoading || availableCount === 0}
                   onClick={startExercise}
                   style={{ flex: 1, height: 44, border: 'none', borderRadius: 22, background: 'var(--color-accent)', color: 'var(--color-btn-primary-text)', fontWeight: 600, fontSize: 'var(--font-size-base)', cursor: (exerciseLoading || availableCount === 0) ? 'default' : 'pointer', opacity: availableCount === 0 ? 0.5 : 1 }}
@@ -714,6 +719,7 @@ export default function Practice() {
               {hasDraft ? (
                 <div style={{ flex: 1, display: 'flex', height: 44, borderRadius: 22, overflow: 'hidden', opacity: availableCount === 0 ? 0.5 : 1 }}>
                   <button
+                    data-kbnav="1"
                     disabled={exerciseLoading || availableCount === 0}
                     onClick={resumeExercise}
                     style={{ flex: 1, height: 44, border: 'none', background: 'var(--color-accent)', color: 'var(--color-btn-primary-text)', fontWeight: 600, fontSize: 'var(--font-size-base)', cursor: (exerciseLoading || availableCount === 0) ? 'default' : 'pointer', paddingLeft: 16, paddingRight: 8, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6 }}
@@ -736,6 +742,7 @@ export default function Practice() {
                     )}
                   </button>
                   <button
+                    data-kbnav="1"
                     onClick={startExercise}
                     style={{ width: 44, height: 44, border: 'none', borderLeft: '2px solid rgba(255,255,255,0.4)', background: 'var(--color-accent)', color: 'var(--color-btn-primary-text)', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}
                     aria-label={ja ? '新規で開始' : 'Start new'}
@@ -745,6 +752,7 @@ export default function Practice() {
                 </div>
               ) : (
                 <button
+                  data-kbnav="1"
                   disabled={exerciseLoading || availableCount === 0}
                   onClick={startExercise}
                   style={{ flex: 1, height: 44, border: 'none', borderRadius: 22, background: 'var(--color-accent)', color: 'var(--color-btn-primary-text)', fontWeight: 600, fontSize: 'var(--font-size-base)', cursor: (exerciseLoading || availableCount === 0) ? 'default' : 'pointer', opacity: availableCount === 0 ? 0.5 : 1 }}
@@ -789,6 +797,7 @@ export default function Practice() {
               {hasExamDraft ? (
                 <div style={{ flex: 1, display: 'flex', height: 44, borderRadius: 22, overflow: 'hidden' }}>
                   <button
+                    data-kbnav="1"
                     disabled={examLoading}
                     onClick={resumeExam}
                     style={{ flex: 1, height: 44, border: 'none', background: 'var(--color-accent)', color: 'var(--color-btn-primary-text)', fontWeight: 600, fontSize: 'var(--font-size-base)', cursor: examLoading ? 'default' : 'pointer', paddingLeft: 16, paddingRight: 8, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6 }}
@@ -820,6 +829,7 @@ export default function Practice() {
                 </div>
               ) : (
                 <button
+                  data-kbnav="1"
                   disabled={examLoading}
                   onClick={startExam}
                   style={{ flex: 1, height: 44, border: 'none', borderRadius: 22, background: 'var(--color-accent)', color: 'var(--color-btn-primary-text)', fontWeight: 600, fontSize: 'var(--font-size-base)', cursor: examLoading ? 'default' : 'pointer' }}
@@ -840,6 +850,7 @@ export default function Practice() {
               {hasExamDraft ? (
                 <div style={{ flex: 1, display: 'flex', height: 44, borderRadius: 22, overflow: 'hidden' }}>
                   <button
+                    data-kbnav="1"
                     disabled={examLoading}
                     onClick={resumeExam}
                     style={{ flex: 1, height: 44, border: 'none', background: 'var(--color-accent)', color: 'var(--color-btn-primary-text)', fontWeight: 600, fontSize: 'var(--font-size-base)', cursor: examLoading ? 'default' : 'pointer', paddingLeft: 16, paddingRight: 8, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6 }}
@@ -862,6 +873,7 @@ export default function Practice() {
                     )}
                   </button>
                   <button
+                    data-kbnav="1"
                     onClick={startExam}
                     style={{ width: 44, height: 44, border: 'none', borderLeft: '2px solid rgba(255,255,255,0.4)', background: 'var(--color-accent)', color: 'var(--color-btn-primary-text)', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}
                     aria-label={ja ? '新規で試験を開始' : 'Start new exam'}
@@ -871,6 +883,7 @@ export default function Practice() {
                 </div>
               ) : (
                 <button
+                  data-kbnav="1"
                   disabled={examLoading}
                   onClick={startExam}
                   style={{ flex: 1, height: 44, border: 'none', borderRadius: 22, background: 'var(--color-accent)', color: 'var(--color-btn-primary-text)', fontWeight: 600, fontSize: 'var(--font-size-base)', cursor: examLoading ? 'default' : 'pointer' }}
