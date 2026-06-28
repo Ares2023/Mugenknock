@@ -35,6 +35,9 @@ type Question = {
   createdAt?: string;
 };
 
+// correctAnswerIndices が稀にスカラー値で保存されており .includes/.every でクラッシュするため必ず配列化する
+const toIdxArr = (v: any): number[] => Array.isArray(v) ? v : (v == null || v === '' ? [] : [v]);
+
 const formatTime = (sec: number) => {
   const m = Math.floor(sec / 60).toString().padStart(2, '0');
   const s = (sec % 60).toString().padStart(2, '0');
@@ -235,7 +238,7 @@ export default function ExamSession() {
     try {
       const abortResults = answeredQs.map((q: Question) => {
         const userAns = answers[q.questionId] ?? [];
-        const correctIdx: number[] = q.correctAnswerIndices ?? [];
+        const correctIdx: number[] = toIdxArr(q.correctAnswerIndices);
         const userOrigIdx = userAns.map((t: string) => q.choices.indexOf(t));
         const isCorrect = correctIdx.length > 0 && correctIdx.length === userOrigIdx.length && correctIdx.every((i: number) => userOrigIdx.includes(i));
         return { questionId: q.questionId, isCorrect, userAns };
@@ -311,7 +314,7 @@ export default function ExamSession() {
     try {
       const results = questions.map((q: Question) => {
         const userAns = answers[q.questionId] ?? [];
-        const correctIdx: number[] = q.correctAnswerIndices ?? [];
+        const correctIdx: number[] = toIdxArr(q.correctAnswerIndices);
         const userOrigIdx = userAns.map(t => q.choices.indexOf(t));
         const isCorrect = correctIdx.length > 0 && correctIdx.length === userOrigIdx.length && correctIdx.every(i => userOrigIdx.includes(i));
         return { questionId: q.questionId, isCorrect, userAns };

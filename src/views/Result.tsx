@@ -14,6 +14,8 @@ import KeyHint from '../components/KeyHint';
 const QUICK_PREFS_KEY = 'quickExercisePrefs';
 const loadQuickPrefs = () => { try { return JSON.parse(localStorage.getItem(QUICK_PREFS_KEY) ?? '{}'); } catch { return {}; } };
 function shuffleArray<T>(arr: T[]): T[] { const a = [...arr]; for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; }
+// correctAnswerIndices が稀にスカラー値で保存されており .includes でクラッシュするため必ず配列化する
+const toIdxArr = (v: any): number[] => Array.isArray(v) ? v : (v == null || v === '' ? [] : [v]);
 
 export default function Result() {
   const navigate = useNavigate();
@@ -281,7 +283,7 @@ export default function Result() {
                 <div style={{ padding: 'var(--spacing-lg) var(--spacing-xl)', borderTop: '1px solid var(--color-border)', background: 'var(--color-bg-main)', fontSize: 'var(--font-size-base)' }}>
                   <div style={{ marginBottom: 'var(--spacing-lg)', display: 'flex', flexDirection: 'column', gap: 'var(--spacing-sm)' }}>
                     {q.choices?.map((c: string, ci: number) => {
-                      const correct = q.correctAnswerIndices?.includes(ci);
+                      const correct = toIdxArr(q.correctAnswerIndices).includes(ci);
                       const label = ['A', 'B', 'C', 'D', 'E'][ci];
                       return (
                         <div key={c} style={{
@@ -314,7 +316,7 @@ export default function Result() {
                         const items = (q.choices ?? []).map((c: string, ci: number) => ({
                           ci,
                           label: LABELS[ci],
-                          isCorrect: (q.correctAnswerIndices ?? []).includes(ci),
+                          isCorrect: toIdxArr(q.correctAnswerIndices).includes(ci),
                           expl: q.choiceExplanations[ci] ?? '',
                         }));
                         const sorted = [...items.filter((x: any) => x.isCorrect), ...items.filter((x: any) => !x.isCorrect)];

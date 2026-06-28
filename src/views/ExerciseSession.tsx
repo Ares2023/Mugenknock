@@ -40,6 +40,10 @@ type Question = {
   createdAt?: string;
 };
 
+// correctAnswerIndices が稀に単一回答問題でスカラー値（数値）として保存されていることがあり、
+// .includes / .every を呼ぶとクラッシュする。必ず数値配列に正規化する。
+const toIdxArr = (v: any): number[] => Array.isArray(v) ? v : (v == null || v === '' ? [] : [v]);
+
 const CopyButton = ({ getText, hint }: { getText: () => string; hint?: string }) => {
   const [copied, setCopied] = useState(false);
   const handleCopy = (e: React.MouseEvent) => {
@@ -367,7 +371,7 @@ export default function ExerciseSession() {
       .then(r => r.json())
       .then(d => {
         setDetail(d);
-        const correctIdx: number[] = d.correctAnswerIndices ?? [];
+        const correctIdx: number[] = toIdxArr(d.correctAnswerIndices);
         const selOrigIdx = selectedAnswers.map(t => { const si = shuffledChoices.indexOf(t); return si >= 0 ? origIndices[si] : -1; });
         const isCorrect = correctIdx.length > 0 && correctIdx.length === selOrigIdx.length && correctIdx.every(i => selOrigIdx.includes(i));
         setResults(prev => {
@@ -588,7 +592,7 @@ export default function ExerciseSession() {
     }
     setAnswerCountError(null);
 
-    const correctAnswerIndices: number[] = currentQuestion.correctAnswerIndices ?? [];
+    const correctAnswerIndices: number[] = toIdxArr(currentQuestion.correctAnswerIndices);
     const selOrigIdx = sel.map(t => { const si = shuffledChoices.indexOf(t); return si >= 0 ? origIndices[si] : -1; });
     const isCorrect = correctAnswerIndices.length > 0 && correctAnswerIndices.length === selOrigIdx.length && correctAnswerIndices.every(i => selOrigIdx.includes(i));
 
@@ -889,7 +893,7 @@ export default function ExerciseSession() {
         cursor: 'default',
       };
     }
-    const correctAnswerIndices: number[] = displayQ.correctAnswerIndices ?? [];
+    const correctAnswerIndices: number[] = toIdxArr(displayQ.correctAnswerIndices);
     const shuffledIdx = shuffledChoices.indexOf(choice);
     const origIdx = shuffledIdx >= 0 ? origIndices[shuffledIdx] : -1;
     const isCorrect = correctAnswerIndices.includes(origIdx);
@@ -1234,7 +1238,7 @@ export default function ExerciseSession() {
                     di,
                     origIdx: origIndices[di],
                     label: CHOICE_LABELS[di],
-                    isCorrect: (displayQ.correctAnswerIndices ?? []).includes(origIndices[di]),
+                    isCorrect: toIdxArr(displayQ.correctAnswerIndices).includes(origIndices[di]),
                     expl: (displayQ.choiceExplanations ?? [])[origIndices[di]] ?? '',
                   }));
                   const sorted = [...items.filter(x => x.isCorrect), ...items.filter(x => !x.isCorrect)];
