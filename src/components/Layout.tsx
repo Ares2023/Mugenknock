@@ -9,6 +9,7 @@ import { getPoints, fetchPointsFromServer } from '../utils/points';
 import { loadTargetExamFromServer } from '../utils/preferences';
 import Breadcrumb from './Breadcrumb';
 import Button from './ui/Button';
+import { setKbMode } from '../utils/keyboardMode';
 import {
   IconHome,
   IconUser, IconChart,
@@ -353,12 +354,164 @@ export default function Layout({ children }: { children: React.ReactNode }) {
 
   const navItems = NAV_KEYS;
 
+  // ── 左右ペインのキーボードフォーカス（Web版）──
+  // 既定は右ペイン。← で左ペイン(サイドバー)へ、↑↓でタブ移動、Enterで遷移、→/Escで右へ戻る。
+  // セッション側は body.dataset.pane を見て左フォーカス中はキー操作を抑止する。
+  const [paneFocus, setPaneFocus] = useState<'left' | 'right'>('right');
+  const [navCursor, setNavCursor] = useState(0);
+  const kbnavIdxRef = useRef(-1); // 右ペイン data-kbnav 走査の現在位置
+  const kbScopeRef = useRef<ParentNode | null>(null); // 直近の走査スコープ（変化時にカーソルリセット）
+  const pendingNavRef = useRef(false); // 左ペインEnterでの遷移中フラグ（右復帰effectの旧画面ちらつき防止）
+  // キー入力モード（既定OFF、カーソル非表示）。矢印で有効化、Escで無効化。
+  const [kbMode, setKbModeState] = useState(false);
+  useEffect(() => {
+    const h = (e: Event) => setKbModeState((e as CustomEvent).detail === true);
+    window.addEventListener('kbmodechange', h);
+    return () => window.removeEventListener('kbmodechange', h);
+  }, []);
+  useEffect(() => {
+    const p = isMobile ? 'right' : paneFocus;
+    document.body.dataset.pane = p;
+    window.dispatchEvent(new CustomEvent('panefocuschange', { detail: p }));
+  }, [paneFocus, isMobile]);
+  const removeKbnavHighlight = () => document.querySelectorAll('[data-kbnav-active]').forEach(x => x.removeAttribute('data-kbnav-active'));
+  // 走査範囲: オーバレイ([data-kbscope])が開いていれば最前面のそれ、なければ <main>
+  const kbScope = (): ParentNode | null => {
+    const ovs = document.querySelectorAll('[data-kbscope]');
+    if (ovs.length) return ovs[ovs.length - 1];
+    return document.querySelector('main');
+  };
+  const inOverlayScope = () => document.querySelectorAll('[data-kbscope]').length > 0;
+  const kbnavEls = (): HTMLElement[] => {
+    const scope = kbScope();
+    return scope ? (Array.from(scope.querySelectorAll('[data-kbnav]')) as HTMLElement[]).filter(x => x.offsetParent !== null) : [];
+  };
+  const applyKbnav = (rawIdx: number) => {
+    const els = kbnavEls();
+    removeKbnavHighlight();
+    if (els.length === 0) { kbnavIdxRef.current = -1; return; }
+    const idx = Math.max(0, Math.min(els.length - 1, rawIdx));
+    kbnavIdxRef.current = idx;
+    els[idx].setAttribute('data-kbnav-active', '1');
+    els[idx].scrollIntoView({ block: 'nearest' });
+  };
+  const paneKeyRef = useRef<(e: KeyboardEvent) => void>(() => {});
+  paneKeyRef.current = (e: KeyboardEvent) => {
+    if (isMobile) return;
+    const el = e.target as HTMLElement | null;
+    const tag = el?.tagName;
+    if (tag === 'INPUT' || tag === 'TEXTAREA' || el?.isContentEditable) return;
+    if (e.key === 'Escape') {
+      // オーバレイが開いていれば閉じる。[data-kbclose] があればそれを、無ければ背景(scope自身)を
+      // クリック（背景onClickのe.target===currentTargetでonCloseが発火）。無ければモード解除。
+      const scopes = document.querySelectorAll('[data-kbscope]');
+      const ov = scopes.length ? (scopes[scopes.length - 1] as HTMLElement) : null;
+      if (ov) {
+        const closeBtn = ov.querySelector('[data-kbclose]') as HTMLElement | null;
+        e.preventDefault();
+        if (closeBtn) closeBtn.click(); else ov.click();
+        return;
+      }
+      setKbMode(false); setPaneFocus('right'); return;
+    }
+    const isArrow = e.key === 'ArrowUp' || e.key === 'ArrowDown' || e.key === 'ArrowLeft' || e.key === 'ArrowRight';
+    if (isArrow) setKbMode(true); // ナビキーでキー入力モードを有効化（カーソル表示）。Esc以外では解除しない
+    const goLeftPane = () => {
+      if (inOverlayScope()) return; // オーバレイ表示中は左ペインへ移らない
+      if (!open) setOpen(true);
+      const idx = navItems.findIndex(it => isActive(it.path));
+      setNavCursor(idx >= 0 ? idx : 0);
+      setPaneFocus('left');
+    };
+    if (paneFocus === 'right') {
+      // 右ペイン内のクリック可能パネル/タブをカーソル走査（data-kbnav）。
+      // タブ(data-kbnav="tab")は左右で移動、コンテンツ(data-kbnav)は上下で移動。
+      const els = kbnavEls();
+      if (els.length === 0) {
+        // 対象が無い画面（演習/模試セッション等）は ← のみ左ペインへ、他は各画面に委ねる
+        if (e.key === 'ArrowLeft') { e.preventDefault(); goLeftPane(); }
+        return;
+      }
+      const isTab = (x?: HTMLElement) => x?.getAttribute('data-kbnav') === 'tab';
+      const findIn = (from: number, dir: number, wantTab: boolean) => {
+        for (let i = from + dir; i >= 0 && i < els.length; i += dir) if (isTab(els[i]) === wantTab) return i;
+        return -1;
+      };
+      // スコープ（オーバレイ↔背景）が変わったらカーソルをリセット
+      const scopeNow = kbScope();
+      if (scopeNow !== kbScopeRef.current) { kbScopeRef.current = scopeNow; kbnavIdxRef.current = -1; removeKbnavHighlight(); }
+      let cur = kbnavIdxRef.current;
+      if (cur < 0 || cur >= els.length) { e.preventDefault(); const t0 = els.findIndex(x => x.getAttribute('data-kbnav') === 'tab'); applyKbnav(t0 >= 0 ? t0 : 0); return; }
+      // オーバレイ内は全矢印で線形移動（タブ/コンテンツを区別しない）
+      if (inOverlayScope()) {
+        if (e.key === 'ArrowDown' || e.key === 'ArrowRight') { e.preventDefault(); applyKbnav(cur + 1); }
+        else if (e.key === 'ArrowUp' || e.key === 'ArrowLeft') { e.preventDefault(); applyKbnav(cur - 1); }
+        else if (e.key === 'Enter') { e.preventDefault(); els[cur].click(); }
+        return;
+      }
+      const curEl = els[cur];
+      if (isTab(curEl)) {
+        if (e.key === 'ArrowRight') { e.preventDefault(); const n = findIn(cur, +1, true); if (n >= 0) { applyKbnav(n); els[n].click(); } }
+        else if (e.key === 'ArrowLeft') { e.preventDefault(); const p = findIn(cur, -1, true); if (p >= 0) { applyKbnav(p); els[p].click(); } else goLeftPane(); }
+        else if (e.key === 'ArrowDown') { e.preventDefault(); const c = els.findIndex(x => !isTab(x)); if (c >= 0) applyKbnav(c); }
+        else if (e.key === 'Enter') { e.preventDefault(); curEl.click(); }
+      } else {
+        if (e.key === 'ArrowDown') { e.preventDefault(); const n = findIn(cur, +1, false); if (n >= 0) applyKbnav(n); }
+        else if (e.key === 'ArrowUp') { e.preventDefault(); const p = findIn(cur, -1, false); if (p >= 0) applyKbnav(p); else { const t = els.findIndex(isTab); if (t >= 0) applyKbnav(t); } }
+        else if (e.key === 'ArrowLeft') { e.preventDefault(); goLeftPane(); }
+        else if (e.key === 'Enter') { e.preventDefault(); curEl.click(); }
+      }
+    } else {
+      // navItems.length 番目 = 連絡先
+      if (e.key === 'ArrowDown') { e.preventDefault(); setNavCursor(c => Math.min(navItems.length, c + 1)); }
+      else if (e.key === 'ArrowUp') { e.preventDefault(); setNavCursor(c => Math.max(0, c - 1)); }
+      else if (e.key === 'Enter') { e.preventDefault(); if (navCursor < navItems.length) { pendingNavRef.current = true; navigate(navItems[navCursor].path); } else openContact(); setPaneFocus('right'); }
+      else if (e.key === 'ArrowRight') { e.preventDefault(); setPaneFocus('right'); }
+    }
+  };
+  useEffect(() => {
+    const h = (e: KeyboardEvent) => paneKeyRef.current(e);
+    window.addEventListener('keydown', h);
+    return () => window.removeEventListener('keydown', h);
+  }, []);
+  // マウス/タッチの実クリックでキー入力モードを解除（偽カーソル非表示）。
+  // プログラム的 .click()（Enter操作）は pointerdown を発火しないため衝突しない。
+  useEffect(() => {
+    const onPointer = () => { setKbMode(false); setPaneFocus('right'); };
+    window.addEventListener('pointerdown', onPointer);
+    return () => window.removeEventListener('pointerdown', onPointer);
+  }, []);
+  // kbMode無効時は完全解除。左ペイン時はハイライトのみ消す（位置は保持）。右復帰時は復元。
+  useEffect(() => {
+    if (!kbMode) { kbnavIdxRef.current = -1; removeKbnavHighlight(); }
+  }, [kbMode]);
+  useEffect(() => {
+    if (paneFocus === 'left') { removeKbnavHighlight(); return; }
+    if (pendingNavRef.current) return; // 遷移中は旧画面に復元しない（pathname効果が新画面で当てる）
+    if (kbMode) { const id = requestAnimationFrame(() => applyKbnav(kbnavIdxRef.current < 0 ? 0 : kbnavIdxRef.current)); return () => cancelAnimationFrame(id); }
+  }, [paneFocus]); // eslint-disable-line react-hooks/exhaustive-deps
+  // ページ遷移時: カーソルをリセットし、キー入力モード中なら新ページの要素が
+  // 描画され次第カーソルを先頭(タブ優先)に当てる（遷移直後にカーソルが消える問題の対策）
+  useEffect(() => {
+    kbnavIdxRef.current = -1; kbScopeRef.current = null; removeKbnavHighlight();
+    pendingNavRef.current = false;
+    if (isMobile || !kbMode || paneFocus !== 'right') return;
+    let tries = 0; let raf = 0;
+    const tryApply = () => {
+      const els = kbnavEls();
+      if (els.length > 0) { const t0 = els.findIndex(x => x.getAttribute('data-kbnav') === 'tab'); applyKbnav(t0 >= 0 ? t0 : 0); return; }
+      if (tries++ < 30) raf = requestAnimationFrame(tryApply);
+    };
+    raf = requestAnimationFrame(tryApply);
+    return () => cancelAnimationFrame(raf);
+  }, [pathname]); // eslint-disable-line react-hooks/exhaustive-deps
+  const navIdxOf = (path: string) => navItems.findIndex(n => n.path === path);
+
   const breadcrumbs: Record<string, BreadcrumbItem[]> = {
     '/aws/practice':         [{ label: t('nav.home'), path: '/aws/' }, { label: t('nav.practice') }],
     '/aws/encyclopedia':     [{ label: t('nav.home'), path: '/aws/' }, { label: t('nav.encyclopedia') }],
     '/aws/growth':           [{ label: t('nav.home'), path: '/aws/' }, { label: t('nav.growth') }],
-    '/aws/exercise/setup':   [{ label: t('nav.home'), path: '/aws/' }, { label: t('exerciseSetup.title') }],
-    '/aws/exercise/session': [{ label: t('nav.home'), path: '/aws/' }, { label: t('exerciseSetup.title'), path: '/aws/exercise/setup' }, { label: t('nav.exerciseSession') }],
+    '/aws/exercise/session': [{ label: t('nav.home'), path: '/aws/' }, { label: t('nav.exerciseSession') }],
     '/aws/exam/setup':       [{ label: t('nav.home'), path: '/aws/' }, { label: t('examSetup.title') }],
     '/aws/exam/session':     [{ label: t('nav.home'), path: '/aws/' }, { label: t('examSetup.title'), path: '/aws/exam/setup' }, { label: t('nav.examSession') }],
     '/aws/result':           [{ label: t('nav.home'), path: '/aws/' }, { label: t('nav.result') }],
@@ -401,6 +554,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
       {/* ── 連絡先モーダル ── */}
       {showContact && (
         <div
+          data-kbscope="1"
           style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', zIndex: 1000, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 'var(--spacing-md)' }}
           onClick={e => { if (e.target === e.currentTarget) { setShowContact(false); } }}
           onTouchStart={e => e.stopPropagation()}
@@ -477,6 +631,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
       {/* ── SPポイント説明モーダル ── */}
       {showPointsInfo && (
         <div
+          data-kbscope="1"
           style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', zIndex: 1000, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 'var(--spacing-md)' }}
           onClick={e => { if (e.target === e.currentTarget) setShowPointsInfo(false); }}
           onTouchStart={e => e.stopPropagation()}
@@ -735,6 +890,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
 
               {navItems.filter(item => !(item as any).bottom).map(({ path, labelKey, Icon }) => {
                 const active = isActive(path);
+                const isNavCursor = kbMode && paneFocus === 'left' && navIdxOf(path) === navCursor;
                 return (
                   <button
                     key={path}
@@ -743,9 +899,11 @@ export default function Layout({ children }: { children: React.ReactNode }) {
                       width: '100%', textAlign: 'left',
                       display: 'flex', alignItems: 'center', gap: 12,
                       padding: '11px 24px',
-                      background: active ? 'var(--color-primary-light)' : 'none',
+                      background: isNavCursor ? 'var(--color-bg-main)' : active ? 'var(--color-primary-light)' : 'none',
                       border: 'none',
                       borderLeft: `4px solid ${active ? 'var(--color-primary)' : 'transparent'}`,
+                      outline: isNavCursor ? '2px solid var(--color-accent)' : 'none',
+                      outlineOffset: isNavCursor ? -2 : 0,
                       cursor: 'pointer',
                       color: active ? 'var(--color-primary)' : 'var(--color-text-sub)',
                       fontSize: 'var(--font-size-base)',
@@ -767,6 +925,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
               <div style={{ marginTop: 'auto', paddingBottom: 'var(--spacing-md)' }}>
                 {navItems.filter(item => (item as any).bottom).map(({ path, labelKey, Icon }) => {
                   const active = isActive(path);
+                  const isNavCursor = kbMode && paneFocus === 'left' && navIdxOf(path) === navCursor;
                   return (
                     <button
                       key={path}
@@ -775,10 +934,12 @@ export default function Layout({ children }: { children: React.ReactNode }) {
                         width: '100%', textAlign: 'left',
                         display: 'flex', alignItems: 'center', gap: 12,
                         padding: '10px 24px',
-                        background: active ? 'var(--color-primary-light)' : 'none',
+                        background: isNavCursor ? 'var(--color-bg-main)' : active ? 'var(--color-primary-light)' : 'none',
                         border: 'none',
                         borderTop: '1px solid var(--color-border)',
                         borderLeft: `4px solid ${active ? 'var(--color-primary)' : 'transparent'}`,
+                        outline: isNavCursor ? '2px solid var(--color-accent)' : 'none',
+                        outlineOffset: isNavCursor ? -2 : 0,
                         cursor: 'pointer',
                         color: active ? 'var(--color-primary)' : 'var(--color-text-light)',
                         fontSize: 'var(--font-size-sm)',
@@ -802,9 +963,12 @@ export default function Layout({ children }: { children: React.ReactNode }) {
                     width: '100%', textAlign: 'left',
                     display: 'flex', alignItems: 'center', gap: 12,
                     padding: '10px 24px',
-                    background: 'none', border: 'none',
+                    background: (kbMode && paneFocus === 'left' && navCursor === navItems.length) ? 'var(--color-bg-main)' : 'none',
+                    border: 'none',
                     borderTop: '1px solid var(--color-border)',
                     borderLeft: '4px solid transparent',
+                    outline: (kbMode && paneFocus === 'left' && navCursor === navItems.length) ? '2px solid var(--color-accent)' : 'none',
+                    outlineOffset: (kbMode && paneFocus === 'left' && navCursor === navItems.length) ? -2 : 0,
                     cursor: 'pointer', color: 'var(--color-text-light)', fontSize: 'var(--font-size-sm)', fontWeight: 400,
                     whiteSpace: 'nowrap', transition: 'all 0.2s',
                   }}

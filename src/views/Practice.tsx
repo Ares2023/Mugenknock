@@ -11,6 +11,7 @@ import { autoScoreAndClearDrafts } from '../utils/sessionUtils';
 import { animateLoadPct, randomPlateau } from '../utils/loadProgress';
 import { getPrefetchA, getPrefetchC, prefetchTypeA } from '../utils/questionPrefetch';
 import { IconChevronUp, IconChevronDown, IconChevronRight } from '../components/Icons';
+import KeyHint from '../components/KeyHint';
 
 const fmtSec = (sec: number) => `${Math.floor(sec / 60).toString().padStart(2, '0')}:${(sec % 60).toString().padStart(2, '0')}`;
 
@@ -352,6 +353,28 @@ export default function Practice() {
     transition: 'color 0.15s, border-color 0.15s',
   });
 
+  // Shift+Enter でアクティブタブの開始/再開ボタンを発火（Web版のみ）
+  const startKeyRef = useRef<(e: KeyboardEvent) => void>(() => {});
+  startKeyRef.current = (e: KeyboardEvent) => {
+    if (window.innerWidth < 768 || !(e.key === 'Enter' && (e.ctrlKey || e.metaKey))) return;
+    const el = e.target as HTMLElement | null;
+    if (el?.tagName === 'TEXTAREA' || el?.isContentEditable) return;
+    if (exerciseLoading || examLoading || showStartConfirm || showNewPanel || showNewExamPanel) return;
+    e.preventDefault();
+    if (tab === 'exercise') {
+      if (availableCount === 0) return;
+      hasDraft ? resumeExercise() : startExercise();
+    } else {
+      if (!targetExam) return;
+      hasExamDraft ? resumeExam() : startExam();
+    }
+  };
+  useEffect(() => {
+    const h = (e: KeyboardEvent) => startKeyRef.current(e);
+    window.addEventListener('keydown', h);
+    return () => window.removeEventListener('keydown', h);
+  }, []);
+
   return (
     <div style={{ maxWidth: 900, margin: '0 auto', padding: 'var(--spacing-lg)', paddingBottom: isMobile ? 'var(--spacing-lg)' : 80 }} className="page-container">
       <Helmet>
@@ -362,10 +385,10 @@ export default function Practice() {
 
       {/* タブ */}
       <div style={{ display: 'flex', borderBottom: '1px solid color-mix(in srgb, var(--color-text-light) 40%, transparent)', marginBottom: 'var(--spacing-lg)' }}>
-        <button style={tabBtn(tab === 'exercise')} onClick={() => setTab('exercise')}>
+        <button data-kbnav="tab" style={tabBtn(tab === 'exercise')} onClick={() => setTab('exercise')}>
           {ja ? '演習' : 'Exercise'}
         </button>
-        <button style={tabBtn(tab === 'exam')} onClick={() => setTab('exam')}>
+        <button data-kbnav="tab" style={tabBtn(tab === 'exam')} onClick={() => setTab('exam')}>
           {ja ? '模試' : 'Mock Exam'}
         </button>
       </div>
@@ -680,7 +703,7 @@ export default function Practice() {
                       <span style={{ width: 13, height: 13, border: '2px solid rgba(0,0,0,0.2)', borderTopColor: '#16191f', borderRadius: '50%', animation: 'sherpa-spin 0.7s linear infinite', flexShrink: 0 }} />
                       {ja ? `準備中... ${exerciseLoadPct}%` : `Loading... ${exerciseLoadPct}%`}
                     </span>
-                  ) : (ja ? '演習を開始' : 'Start')}
+                  ) : (<>{ja ? '演習を開始' : 'Start'}{!isMobile && <span style={{ marginLeft: 8, display: 'inline-flex', verticalAlign: 'middle' }}><KeyHint /></span>}</>)}
                 </button>
               )}
             </div>
@@ -708,6 +731,7 @@ export default function Practice() {
                             （{exerciseDraft.results.length}/{exerciseDraft.questions.length}問）
                           </span>
                         )}
+                        {!isMobile && <KeyHint />}
                       </>
                     )}
                   </button>
@@ -730,7 +754,7 @@ export default function Practice() {
                       <span style={{ width: 13, height: 13, border: '2px solid rgba(0,0,0,0.2)', borderTopColor: '#16191f', borderRadius: '50%', animation: 'sherpa-spin 0.7s linear infinite', flexShrink: 0 }} />
                       {ja ? `準備中... ${exerciseLoadPct}%` : `Loading... ${exerciseLoadPct}%`}
                     </span>
-                  ) : (ja ? '演習を開始' : 'Start')}
+                  ) : (<>{ja ? '演習を開始' : 'Start'}{!isMobile && <span style={{ marginLeft: 8, display: 'inline-flex', verticalAlign: 'middle' }}><KeyHint /></span>}</>)}
                 </button>
               )}
             </div>
@@ -782,6 +806,7 @@ export default function Practice() {
                             （{fmtSec(examDraft.timeLeft)}・{(examDraft.currentIndex ?? 0) + 1}/{examDraft.questions?.length ?? '?'}問）
                           </span>
                         )}
+                        {!isMobile && <KeyHint />}
                       </>
                     )}
                   </button>
@@ -832,6 +857,7 @@ export default function Practice() {
                             （{fmtSec(examDraft.timeLeft)}・{(examDraft.currentIndex ?? 0) + 1}/{examDraft.questions?.length ?? '?'}問）
                           </span>
                         )}
+                        {!isMobile && <KeyHint />}
                       </>
                     )}
                   </button>
@@ -854,7 +880,7 @@ export default function Practice() {
                       <span style={{ width: 12, height: 12, border: '2px solid rgba(0,0,0,0.2)', borderTopColor: '#16191f', borderRadius: '50%', animation: 'sherpa-spin 0.7s linear infinite' }} />
                       {ja ? `準備中... ${examLoadPct}%` : `Preparing... ${examLoadPct}%`}
                     </span>
-                  ) : (ja ? '模試を開始' : 'Start Mock Exam')}
+                  ) : (<>{ja ? '模試を開始' : 'Start Mock Exam'}{!isMobile && <span style={{ marginLeft: 8, display: 'inline-flex', verticalAlign: 'middle' }}><KeyHint /></span>}</>)}
                 </button>
               )}
             </div>

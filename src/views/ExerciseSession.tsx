@@ -14,6 +14,8 @@ import Card from '../components/ui/Card';
 import Button from '../components/ui/Button';
 import ReportModal from '../components/ReportModal';
 import { IconBookOpen, IconBean, IconCopy, IconCheck, IconStar, IconChevronUp, IconChevronDown } from '../components/Icons';
+import KeyHint from '../components/KeyHint';
+import { isKbMode } from '../utils/keyboardMode';
 
 type Tip = { tipId: string; title: string; content: string; examType: string };
 
@@ -38,7 +40,11 @@ type Question = {
   createdAt?: string;
 };
 
-const CopyButton = ({ getText }: { getText: () => string }) => {
+// correctAnswerIndices が稀に単一回答問題でスカラー値（数値）として保存されていることがあり、
+// .includes / .every を呼ぶとクラッシュする。必ず数値配列に正規化する。
+const toIdxArr = (v: any): number[] => Array.isArray(v) ? v : (v == null || v === '' ? [] : [v]);
+
+const CopyButton = ({ getText, hint }: { getText: () => string; hint?: string }) => {
   const [copied, setCopied] = useState(false);
   const handleCopy = (e: React.MouseEvent) => {
     e.stopPropagation();
@@ -47,18 +53,23 @@ const CopyButton = ({ getText }: { getText: () => string }) => {
       setTimeout(() => setCopied(false), 1500);
     });
   };
+  const color = copied ? 'var(--color-success)' : 'var(--color-primary)';
   return (
     <button
       onClick={handleCopy}
       title={copied ? 'コピー済み' : 'コピー'}
-      style={{
-        background: 'none', border: `1.5px solid ${copied ? 'var(--color-success)' : 'var(--color-primary)'}`, borderRadius: '50%',
+      style={hint ? {
+        background: 'none', border: `1.5px solid ${color}`, borderRadius: 'var(--border-radius-full)',
+        height: 28, padding: '0 10px', display: 'flex', alignItems: 'center', gap: 5,
+        cursor: 'pointer', color, transition: 'all 0.2s', flexShrink: 0, fontSize: 11, fontWeight: 600,
+      } : {
+        background: 'none', border: `1.5px solid ${color}`, borderRadius: '50%',
         width: 28, height: 28, display: 'flex', alignItems: 'center', justifyContent: 'center',
-        cursor: 'pointer', color: copied ? 'var(--color-success)' : 'var(--color-primary)',
-        transition: 'all 0.2s', flexShrink: 0,
+        cursor: 'pointer', color, transition: 'all 0.2s', flexShrink: 0,
       }}
     >
       {copied ? <IconCheck size={13} /> : <IconCopy size={13} />}
+      {hint && <KeyHint keys={hint.split('+')} />}
     </button>
   );
 };
@@ -360,7 +371,7 @@ export default function ExerciseSession() {
       .then(r => r.json())
       .then(d => {
         setDetail(d);
-        const correctIdx: number[] = d.correctAnswerIndices ?? [];
+        const correctIdx: number[] = toIdxArr(d.correctAnswerIndices);
         const selOrigIdx = selectedAnswers.map(t => { const si = shuffledChoices.indexOf(t); return si >= 0 ? origIndices[si] : -1; });
         const isCorrect = correctIdx.length > 0 && correctIdx.length === selOrigIdx.length && correctIdx.every(i => selOrigIdx.includes(i));
         setResults(prev => {
@@ -465,6 +476,27 @@ export default function ExerciseSession() {
 
   const [lastSelected, setLastSelected] = useState<string | null>(null);
   const [struckChoices, setStruckChoices] = useState<Set<string>>(new Set());
+  const [copyToast, setCopyToast] = useState(false); // Ctrl+Cコピーのトースト
+  // キーボード操作用カーソル（Web版のみ）。choices + わからない を対象に上下移動
+  const [cursorIndex, setCursorIndex] = useState(0);
+  const cursorElRef = useRef<HTMLButtonElement | null>(null);
+  const explAnchorRef = useRef<HTMLDivElement | null>(null); // 解説パネル先頭アンカー
+  // 右ペインがフォーカス中か（左ペイン操作中は選択肢カーソルを隠す）
+  const [rightActive, setRightActive] = useState(true);
+  useEffect(() => {
+    setRightActive(document.body.dataset.pane !== 'left');
+    const h = (e: Event) => setRightActive((e as CustomEvent).detail !== 'left');
+    window.addEventListener('panefocuschange', h);
+    return () => window.removeEventListener('panefocuschange', h);
+  }, []);
+  // キー入力モード（既定OFF=カーソル非表示、矢印で有効化）
+  const [kbMode, setKbModeState] = useState(false);
+  useEffect(() => {
+    setKbModeState(isKbMode());
+    const h = (e: Event) => setKbModeState((e as CustomEvent).detail === true);
+    window.addEventListener('kbmodechange', h);
+    return () => window.removeEventListener('kbmodechange', h);
+  }, []);
 
   useEffect(() => {
     // ドラフト探索（sessionId 一致を優先。指定なしは最新の savedAt）
@@ -489,7 +521,7 @@ export default function ExerciseSession() {
     if (state) { setInitialized(true); return; }
     // state なし（リロード等）: 最新ドラフトから復元する
     const draft = findDraft();
-    if (!draft) { navigate('/aws/exercise/setup', { replace: true }); return; }
+    if (!draft) { navigate('/aws/', { replace: true }); return; }
     setSessionId(draft.sessionId ?? '');
     setQuestions(draft.questions);
     setUserId(draft.userId ?? '');
@@ -546,24 +578,28 @@ export default function ExerciseSession() {
     });
   };
 
-  const submitAnswer = () => {
-    if (selectedAnswers.length === 0) return;
-    const isWakaranai = selectedAnswers.includes(WAKARANAI);
+  const submitAnswer = (overrideSel?: string[]) => {
+    // onClick から誤ってイベントが渡るケースに備え、配列でなければ無視する
+    const useOverride = Array.isArray(overrideSel);
+    const sel = useOverride ? overrideSel! : selectedAnswers;
+    if (sel.length === 0) return;
+    if (useOverride) setSelectedAnswers(overrideSel!); // 即回答時はUIにも反映
+    const isWakaranai = sel.includes(WAKARANAI);
     if (!isWakaranai && currentQuestion.isMultiple && currentQuestion.correctAnswerCount &&
-        selectedAnswers.length !== currentQuestion.correctAnswerCount) {
+        sel.length !== currentQuestion.correctAnswerCount) {
       setAnswerCountError(lang === 'ja'
-        ? `${currentQuestion.correctAnswerCount}つ選択してください（現在${selectedAnswers.length}つ）`
-        : `Select ${currentQuestion.correctAnswerCount} answers (currently ${selectedAnswers.length})`);
+        ? `${currentQuestion.correctAnswerCount}つ選択してください（現在${sel.length}つ）`
+        : `Select ${currentQuestion.correctAnswerCount} answers (currently ${sel.length})`);
       return;
     }
     setAnswerCountError(null);
 
-    const correctAnswerIndices: number[] = currentQuestion.correctAnswerIndices ?? [];
-    const selOrigIdx = selectedAnswers.map(t => { const si = shuffledChoices.indexOf(t); return si >= 0 ? origIndices[si] : -1; });
+    const correctAnswerIndices: number[] = toIdxArr(currentQuestion.correctAnswerIndices);
+    const selOrigIdx = sel.map(t => { const si = shuffledChoices.indexOf(t); return si >= 0 ? origIndices[si] : -1; });
     const isCorrect = correctAnswerIndices.length > 0 && correctAnswerIndices.length === selOrigIdx.length && correctAnswerIndices.every(i => selOrigIdx.includes(i));
 
     setResults(prev => [...prev, { questionId: currentQuestion.questionId, isCorrect }]);
-    setSelectionHistory(prev => ({ ...prev, [currentIndex]: selectedAnswers }));
+    setSelectionHistory(prev => ({ ...prev, [currentIndex]: sel }));
     setAnswered(true);
     setJudgmentAnim(isCorrect ? 'correct' : 'incorrect');
     setTimeout(() => setJudgmentAnim(null), 600);
@@ -571,7 +607,7 @@ export default function ExerciseSession() {
     const answerPayload = {
       userId,
       questionId: currentQuestion.questionId,
-      selectedAnswers,
+      selectedAnswers: sel,
       isCorrect,
       examType,
     };
@@ -748,6 +784,81 @@ export default function ExerciseSession() {
     navigate('/aws/result', { state: { results, questions: answeredQuestions, score, isPassed, sessionId: sid, userId, examType, isQuick, isMini, aborted: true, earnedPts, dailyBonusPts: dailyBonusPts2 } });
   };
 
+  // 問題が変わったらカーソルを先頭に戻す
+  useEffect(() => { setCursorIndex(0); }, [currentIndex]);
+  // カーソルの選択肢が画面内に入るようスクロール追従（Web版）
+  useEffect(() => { if (!isMobile) cursorElRef.current?.scrollIntoView({ block: 'nearest' }); }, [cursorIndex, isMobile]);
+
+  // ── キーボード操作（Web版のみ）──
+  // ↑↓←→: カーソル移動 / Enter: カーソルの選択肢を選択・トグル / Shift+Enter: 回答→次へ
+  const keyHandlerRef = useRef<(e: KeyboardEvent) => void>(() => {});
+  keyHandlerRef.current = (e: KeyboardEvent) => {
+    if (isMobile) return;
+    const el = e.target as HTMLElement | null;
+    const tag = el?.tagName;
+    if (tag === 'INPUT' || tag === 'TEXTAREA' || el?.isContentEditable) return;
+    if (document.body.dataset.pane === 'left') return; // 左ペイン操作中は抑止（←→はLayoutが処理）
+    if (showAbortConfirm || finishing) return;
+    const total = shuffledChoices.length + 1; // +1 = わからない
+    const scrollMain = (toBottom: boolean) => {
+      const m = document.querySelector('main');
+      const tgt = toBottom ? (m ? m.scrollHeight : document.body.scrollHeight) : 0;
+      (m ?? window).scrollTo({ top: tgt, behavior: 'smooth' });
+    };
+    if (e.key === 'ArrowDown') {
+      e.preventDefault();
+      if (cursorIndex >= total - 1) {
+        // 最下選択肢でさらに下：回答後は解説パネル先頭を画面上部に、未回答時は下部へ
+        if (answered && explAnchorRef.current) explAnchorRef.current.scrollIntoView({ block: 'start', behavior: 'smooth' });
+        else scrollMain(true);
+      } else setCursorIndex(c => Math.min(total - 1, c + 1));
+    } else if (e.key === 'ArrowUp') {
+      e.preventDefault();
+      if (cursorIndex <= 0) scrollMain(false); // 最上選択肢でさらに上→ページ最上部へ
+      else setCursorIndex(c => Math.max(0, c - 1));
+    } else if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) {
+      e.preventDefault();
+      if (!answered) {
+        // 単一選択で未選択時はカーソルの選択肢を選んで即回答（Enter決定を省略）
+        if (selectedAnswers.length === 0 && !currentQuestion.isMultiple && cursorIndex < shuffledChoices.length) {
+          submitAnswer([shuffledChoices[cursorIndex]]);
+        } else {
+          submitAnswer();
+        }
+      } else nextQuestion();
+    } else if (e.key === 'Enter' && isKbMode()) {
+      e.preventDefault();
+      if (!answered) toggleAnswer(cursorIndex < shuffledChoices.length ? shuffledChoices[cursorIndex] : WAKARANAI);
+    }
+  };
+  useEffect(() => {
+    const h = (e: KeyboardEvent) => keyHandlerRef.current(e);
+    window.addEventListener('keydown', h);
+    return () => window.removeEventListener('keydown', h);
+  }, []);
+
+  // Ctrl/Cmd+C: テキスト未選択時は問題文＋選択肢をコピー（上部コピーボタンと同じ・Web版のみ）
+  useEffect(() => {
+    if (isMobile) return;
+    const onCopy = (e: KeyboardEvent) => {
+      if (!((e.ctrlKey || e.metaKey) && (e.key === 'c' || e.key === 'C'))) return;
+      const el = e.target as HTMLElement | null;
+      const tag = el?.tagName;
+      if (tag === 'INPUT' || tag === 'TEXTAREA' || el?.isContentEditable) return;
+      if ((window.getSelection()?.toString() ?? '') !== '') return; // 選択中は通常コピー優先
+      const q = questions[currentIndex];
+      if (!q) return;
+      e.preventDefault();
+      const choicesText = shuffledChoices.map((c, idx) => `${CHOICE_LABELS[idx]}. ${stripLabel(c)}`).join('\n');
+      navigator.clipboard.writeText(`${q.questionText}\n\n${choicesText}`).then(() => {
+        setCopyToast(true);
+        setTimeout(() => setCopyToast(false), 1500);
+      }).catch(() => {});
+    };
+    window.addEventListener('keydown', onCopy);
+    return () => window.removeEventListener('keydown', onCopy);
+  }, [isMobile, currentIndex, shuffledChoices, questions]);
+
   const getChoiceStyle = (choice: string): React.CSSProperties => {
     const base: React.CSSProperties = {
       padding: 'var(--spacing-md) var(--spacing-lg)',
@@ -784,7 +895,7 @@ export default function ExerciseSession() {
         cursor: 'default',
       };
     }
-    const correctAnswerIndices: number[] = displayQ.correctAnswerIndices ?? [];
+    const correctAnswerIndices: number[] = toIdxArr(displayQ.correctAnswerIndices);
     const shuffledIdx = shuffledChoices.indexOf(choice);
     const origIdx = shuffledIdx >= 0 ? origIndices[shuffledIdx] : -1;
     const isCorrect = correctAnswerIndices.includes(origIdx);
@@ -836,7 +947,11 @@ export default function ExerciseSession() {
   }
 
   return (
-    <div style={{ maxWidth: 900, margin: '0 auto', padding: isMobile ? 'var(--spacing-sm) 0' : 'var(--spacing-xl) var(--spacing-lg)' }} className="session-container">
+    <div style={{ maxWidth: 900, margin: '0 auto', padding: isMobile ? '0 0 var(--spacing-sm)' : '0 var(--spacing-lg) var(--spacing-xl)' }} className="session-container">
+      {copyToast && createPortal(
+        <div style={{ position: 'fixed', top: 72, left: '50%', transform: 'translateX(-50%)', zIndex: 9500, background: 'var(--color-text-main)', color: 'var(--color-bg-white)', padding: '8px 16px', borderRadius: 'var(--border-radius-full)', fontSize: 'var(--font-size-sm)', fontWeight: 600, boxShadow: 'var(--box-shadow-md)', animation: 'sherpa-fade-in 0.15s ease' }}>
+          {lang === 'ja' ? '問題文をコピーしました' : 'Copied question'}
+        </div>, document.body)}
       {/* 正誤アニメーション */}
       {judgmentAnim && (
         <div style={{
@@ -876,7 +991,7 @@ export default function ExerciseSession() {
           : Array.from({ length: totalCount }, (_, k) => k);
 
         return (
-          <div style={{ position: 'fixed', top: 56, left: 0, right: 0, zIndex: 190, background: 'var(--color-bg-white)', borderBottom: '1px solid var(--color-border)', padding: '8px 16px', display: 'flex', alignItems: 'center', gap: 0 }}>
+          <div style={{ position: 'sticky', top: 0, zIndex: 190, background: 'var(--color-bg-white)', borderBottom: '1px solid var(--color-border)', padding: isMobile ? '8px 16px' : '8px 24px', display: 'flex', alignItems: 'center', gap: 0, width: isMobile ? 'calc(100% + 2 * var(--spacing-md))' : '100%', marginLeft: isMobile ? 'calc(-1 * var(--spacing-md))' : undefined, boxSizing: 'border-box', marginBottom: 'var(--spacing-md)' }}>
             <div style={{ flex: 1, display: 'flex', alignItems: 'center' }}>
               {visibleIndices.map((i, visIdx) => {
                 const isAnswered = i < results.length;
@@ -931,9 +1046,6 @@ export default function ExerciseSession() {
           </div>
         );
       })()}
-      {/* 固定ノードバーの高さ分のスペーサー */}
-      <div style={{ height: 36 }} />
-
       <Card padding={isMobile ? 'var(--spacing-md) var(--spacing-sm)' : 'var(--spacing-xl)'}>
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 'var(--spacing-lg)' }}>
           <h1 style={{ fontSize: 'var(--font-size-h2)', fontWeight: 700, margin: 0, color: 'var(--color-text-main)' }}>
@@ -967,7 +1079,7 @@ export default function ExerciseSession() {
                 </span>
               )}
             </div>
-            <CopyButton getText={() => {
+            <CopyButton hint={!isMobile ? 'Ctrl+C' : undefined} getText={() => {
               const choicesText = shuffledChoices.map((c: string, idx: number) => `${CHOICE_LABELS[idx]}. ${stripLabel(c)}`).join('\n');
               return `${currentQuestion.questionText}\n\n${choicesText}`;
             }} />
@@ -983,11 +1095,13 @@ export default function ExerciseSession() {
           </div>
           {shuffledChoices.map((choice: string, idx: number) => {
             const isSelected = selectedAnswers.includes(choice);
+            const isCursor = !isMobile && kbMode && rightActive && idx === cursorIndex;
             return (
               <button
                 key={choice}
+                ref={isCursor ? cursorElRef : undefined}
                 onClick={() => toggleAnswer(choice)}
-                style={getChoiceStyle(choice)}
+                style={{ ...getChoiceStyle(choice), ...(isCursor ? { outline: '2px solid var(--color-accent)', outlineOffset: 1 } : {}) }}
                 className={lastSelected === choice && isSelected && !answered ? 'choice-select-anim' : ''}
               >
                 <div style={{ display: 'flex', alignItems: 'flex-start', gap: 8 }}>
@@ -1032,8 +1146,10 @@ export default function ExerciseSession() {
           {(() => {
             const wSelected = selectedAnswers.includes(WAKARANAI);
             const wAnsweredIncorrect = answered && wSelected;
+            const wCursor = !isMobile && kbMode && rightActive && cursorIndex === shuffledChoices.length;
             return (
               <button
+                ref={wCursor ? cursorElRef : undefined}
                 onClick={() => toggleAnswer(WAKARANAI)}
                 disabled={answered}
                 style={{
@@ -1048,6 +1164,7 @@ export default function ExerciseSession() {
                   background: wAnsweredIncorrect ? 'var(--color-feedback-incorrect-bg)' : wSelected ? 'var(--color-bg-main)' : 'transparent',
                   borderColor: wAnsweredIncorrect ? 'var(--color-danger)' : wSelected ? 'var(--color-text-sub)' : 'var(--color-border)',
                   color: wAnsweredIncorrect ? 'var(--color-danger)' : 'var(--color-text-light)',
+                  ...((!isMobile && cursorIndex === shuffledChoices.length) ? { outline: '2px solid var(--color-accent)', outlineOffset: 1 } : {}),
                 }}
               >
                 <span style={{ marginRight: 10, fontSize: 12, flexShrink: 0 }}>？</span>
@@ -1057,6 +1174,7 @@ export default function ExerciseSession() {
           })()}
         </div>
 
+        <div ref={explAnchorRef} style={{ scrollMarginTop: 56 }} />
         {answered && (() => {
           const displayQ = (currentQuestion.correctAnswers ? currentQuestion : detail) ?? currentQuestion;
           const lastResult = results[results.length - 1];
@@ -1122,7 +1240,7 @@ export default function ExerciseSession() {
                     di,
                     origIdx: origIndices[di],
                     label: CHOICE_LABELS[di],
-                    isCorrect: (displayQ.correctAnswerIndices ?? []).includes(origIndices[di]),
+                    isCorrect: toIdxArr(displayQ.correctAnswerIndices).includes(origIndices[di]),
                     expl: (displayQ.choiceExplanations ?? [])[origIndices[di]] ?? '',
                   }));
                   const sorted = [...items.filter(x => x.isCorrect), ...items.filter(x => !x.isCorrect)];
@@ -1228,7 +1346,7 @@ export default function ExerciseSession() {
           <div style={{ position: 'fixed', bottom: 56, left: 0, right: 0, zIndex: 150, padding: '8px 16px', display: 'flex', gap: 8 }}>
             {!answered ? (
               <button
-                onClick={submitAnswer}
+                onClick={() => submitAnswer()}
                 disabled={!canSubmit}
                 style={{ flex: 1, height: 44, border: 'none', borderRadius: 22, background: !canSubmit ? 'var(--color-text-light)' : 'var(--color-accent)', color: 'var(--color-btn-primary-text)', fontWeight: 600, fontSize: 'var(--font-size-base)', cursor: !canSubmit ? 'default' : 'pointer', opacity: !canSubmit ? 0.5 : 1 }}
               >
@@ -1247,18 +1365,20 @@ export default function ExerciseSession() {
           <div style={{ position: 'fixed', right: 24, bottom: 24, zIndex: 150, display: 'flex', flexDirection: 'column', gap: 8 }}>
             {!answered ? (
               <button
-                onClick={submitAnswer}
+                onClick={() => submitAnswer()}
                 disabled={!canSubmit}
-                style={{ height: 44, padding: '0 24px', border: 'none', borderRadius: 22, background: !canSubmit ? 'var(--color-text-light)' : 'var(--color-accent)', color: 'var(--color-btn-primary-text)', fontWeight: 600, fontSize: 'var(--font-size-base)', cursor: !canSubmit ? 'default' : 'pointer', opacity: !canSubmit ? 0.5 : 1, whiteSpace: 'nowrap', boxShadow: '0 2px 8px rgba(0,0,0,0.15)' }}
+                style={{ height: 44, padding: '0 24px', border: 'none', borderRadius: 22, background: !canSubmit ? 'var(--color-text-light)' : 'var(--color-accent)', color: 'var(--color-btn-primary-text)', fontWeight: 600, fontSize: 'var(--font-size-base)', cursor: !canSubmit ? 'default' : 'pointer', opacity: !canSubmit ? 0.5 : 1, whiteSpace: 'nowrap', boxShadow: '0 2px 8px rgba(0,0,0,0.15)', display: 'inline-flex', alignItems: 'center', gap: 8 }}
               >
                 {t('exerciseSession.answer')}
+                <KeyHint />
               </button>
             ) : (
               <button
                 onClick={nextQuestion}
-                style={{ height: 44, padding: '0 24px', border: '1.5px solid var(--color-primary)', borderRadius: 22, background: 'var(--color-bg-white)', color: 'var(--color-primary)', fontWeight: 600, fontSize: 'var(--font-size-base)', cursor: 'pointer', whiteSpace: 'nowrap', boxShadow: '0 2px 8px rgba(0,0,0,0.15)' }}
+                style={{ height: 44, padding: '0 24px', border: '1.5px solid var(--color-primary)', borderRadius: 22, background: 'var(--color-bg-white)', color: 'var(--color-primary)', fontWeight: 600, fontSize: 'var(--font-size-base)', cursor: 'pointer', whiteSpace: 'nowrap', boxShadow: '0 2px 8px rgba(0,0,0,0.15)', display: 'inline-flex', alignItems: 'center', gap: 8 }}
               >
                 {currentIndex + 1 >= totalCount ? t('exerciseSession.showResult') : t('exerciseSession.next')}
+                <KeyHint />
               </button>
             )}
           </div>

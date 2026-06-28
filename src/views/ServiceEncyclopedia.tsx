@@ -1,5 +1,5 @@
 'use client';
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { Helmet } from '@/compat/react-helmet-async';
 import { useLanguage } from '../contexts/LanguageContext';
 import { useAuth } from '../contexts/AuthContext';
@@ -10,11 +10,14 @@ import { API_ENDPOINT } from '../constants';
 type EncyclopediaService = {
   serviceId: string;
   name: string;
+  shortName?: string;
   category?: string;
   icon: string;
   description: string;
   trivia?: string;
   docUrl?: string;
+  deprecationNote?: string;
+  deprecationStatus?: string;
 };
 
 
@@ -74,6 +77,9 @@ export default function ServiceEncyclopedia() {
   const [selected, setSelected] = useState<EncyclopediaService | null>(null);
   const [selectedLoading, setSelectedLoading] = useState(false);
   const [activeTab, setActiveTab] = useState<'all' | 'unlocked'>('unlocked');
+  // サービス図鑑の母数・グリッドは DailyServices 実データから動的算出する（対象変更に追従）。
+  // 取得失敗時は静的 CATALOG にフォールバックして従来表示を維持。
+  const [liveServices, setLiveServices] = useState<EncyclopediaService[] | null>(null);
 
   // 認証完了後に正しい uid で localStorage を再読み込み
   useEffect(() => {
@@ -158,6 +164,26 @@ export default function ServiceEncyclopedia() {
       .catch(() => {});
   }, [user?.userId]); // eslint-disable-line react-hooks/exhaustive-deps
 
+  // 全件一覧を取得して母数・グリッドの源にする（公開API・解放状態とは独立）
+  useEffect(() => {
+    fetch(`${API_ENDPOINT}/daily-service?list=1`)
+      .then(r => r.ok ? r.json() : null)
+      .then(d => { if (Array.isArray(d?.services) && d.services.length > 0) setLiveServices(d.services); })
+      .catch(() => {});
+  }, []);
+
+  // 実データをカテゴリ別の CATALOG 互換構造へ整形（母数・グリッドに使用）
+  const displayCatalog = useMemo(() => {
+    if (!liveServices) return CATALOG;
+    const byCat = new Map<string, ServiceEntry[]>();
+    for (const s of liveServices) {
+      const cat = s.category || 'その他';
+      if (!byCat.has(cat)) byCat.set(cat, []);
+      byCat.get(cat)!.push({ name: s.shortName || s.name, serviceIds: [s.serviceId], icon: s.icon });
+    }
+    return Array.from(byCat, ([category, services]) => ({ category, services }));
+  }, [liveServices]);
+
   const todaySvc = getDailyService(uid);
   const todayId = localStorage.getItem(`encyclopediaTodayServiceId_${uid}`);
 
@@ -175,7 +201,7 @@ export default function ServiceEncyclopedia() {
   const jstDate = new Date(Date.now() + 9 * 3600 * 1000).toISOString().slice(0, 10);
   const todayAlreadyDone = localStorage.getItem(`encyclopediaUnlockDate_${uid}`) === jstDate;
 
-  const allServices = CATALOG.flatMap(c => c.services);
+  const allServices = displayCatalog.flatMap(c => c.services);
   const totalServices = allServices.length;
   const unlockedCount = allServices.filter(s => isUnlocked(s, unlockedMap, storedServices)).length;
 
@@ -204,6 +230,11 @@ export default function ServiceEncyclopedia() {
         {ja
           ? `アプリを使った日に1つ解放されます。${unlockedCount} / ${totalServices} 解放済み`
           : `1 service unlocked per day you use the app. ${unlockedCount} / ${totalServices} unlocked`}
+      </p>
+      <p style={{ margin: '0 0 var(--spacing-md)', fontSize: 'var(--font-size-xs)', color: 'var(--color-text-light)', lineHeight: 1.6 }}>
+        {ja
+          ? '※ サービスの提供状態（新規受付終了・提供終了など）に応じて、対象サービスや記事は変更・削除される場合があります。'
+          : '* Services and articles may change or be removed depending on each service’s availability status (e.g. closed to new customers or discontinued).'}
       </p>
 
       {/* 今日の日めくりサービス */}
@@ -262,6 +293,7 @@ export default function ServiceEncyclopedia() {
           return (
             <button
               key={t}
+              data-kbnav="tab"
               onClick={() => setActiveTab(t)}
               style={{ flex: 1, background: 'none', border: 'none', cursor: 'pointer', padding: '10px 0', fontSize: 'var(--font-size-base)', fontWeight: active ? 700 : 500, color: active ? 'var(--color-primary)' : 'var(--color-text-sub)', borderBottom: `2px solid ${active ? 'var(--color-primary)' : 'transparent'}`, transition: 'color 0.15s, border-color 0.15s' }}
             >
@@ -273,7 +305,7 @@ export default function ServiceEncyclopedia() {
       </div>
 
       {/* カテゴリ別サービス一覧 */}
-      {CATALOG.map(cat => {
+      {displayCatalog.map(cat => {
         const displayServices = activeTab === 'unlocked'
           ? cat.services.filter(s => isUnlocked(s, unlockedMap, storedServices))
           : cat.services;
@@ -337,6 +369,7 @@ export default function ServiceEncyclopedia() {
                 return (
                   <div
                     key={svc.name}
+                    {...(clickable ? { 'data-kbnav': '1' } : {})}
                     onClick={handleClick}
                     style={{
                       display: 'flex', flexDirection: 'column', alignItems: 'center',
@@ -402,6 +435,17 @@ export default function ServiceEncyclopedia() {
                 )}
               </div>
             </div>
+
+            {selected.deprecationNote && (
+              <div style={{ background: '#FFF4E5', border: '1px solid #F5A623', borderRadius: 'var(--border-radius-md)', padding: '8px 12px', marginBottom: 10, display: 'flex', gap: 8, alignItems: 'flex-start' }}>
+                <span style={{ flexShrink: 0, fontSize: 14, lineHeight: 1.6 }}>⚠️</span>
+                <span style={{ fontSize: 'var(--font-size-xs)', color: '#8A5A00', lineHeight: 1.6, overflowWrap: 'break-word', wordBreak: 'break-word' }}>
+                  {ja
+                    ? selected.deprecationNote
+                    : 'This service’s availability has changed (e.g. closed to new customers or discontinued). This article may be removed soon.'}
+                </span>
+              </div>
+            )}
 
             {selectedLoading ? (
               <p style={{ margin: '0 0 10px', fontSize: 'var(--font-size-sm)', color: 'var(--color-text-light)', display: 'flex', alignItems: 'center', gap: 8 }}>

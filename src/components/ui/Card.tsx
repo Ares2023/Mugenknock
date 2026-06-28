@@ -1,13 +1,10 @@
 import React from 'react';
 
-interface CardProps {
+interface CardProps extends React.HTMLAttributes<HTMLDivElement> {
   children: React.ReactNode;
   title?: React.ReactNode;
   footer?: React.ReactNode;
-  style?: React.CSSProperties;
-  className?: string;
   padding?: string | number;
-  onClick?: React.MouseEventHandler<HTMLDivElement>;
 }
 
 const Card: React.FC<CardProps> = ({
@@ -18,11 +15,13 @@ const Card: React.FC<CardProps> = ({
   className,
   padding = 'var(--spacing-lg)',
   onClick,
+  ...rest
 }) => {
   return (
     <div
       className={className}
       onClick={onClick}
+      {...rest}
       style={{
         background: 'var(--color-bg-white)',
         border: '1px solid var(--color-border)',

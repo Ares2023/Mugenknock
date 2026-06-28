@@ -20,6 +20,7 @@ import { getPoints, deductPoints } from '../utils/points';
 import Card from '../components/ui/Card';
 import Button from '../components/ui/Button';
 import { IconLightbulb, IconBean, IconSettings, IconChevronUp, IconChevronDown, IconLock, IconFileText, IconTrendingUp, IconBookOpen, IconCheck, IconSparkles, IconPointer, IconMousePointerClick, IconCalendarNotebook, IconRefreshCw, IconTarget, IconChart, ServiceIconImg, isServiceIconKey, IconUser, IconSaveCheck } from '../components/Icons';
+import KeyHint from '../components/KeyHint';
 import { CATALOG } from '../data/awsServiceCatalog';
 import { autoScoreAndClearDrafts } from '../utils/sessionUtils';
 import { syncTargetExamToServer, loadTargetExamFromServer } from '../utils/preferences';
@@ -228,7 +229,7 @@ function CombinedDetailModal({ targetExam, domainAccList, estimatedScore, passSc
 
   return (
     <div
-      style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', zIndex: 1000, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16 }}
+      data-kbscope="1" style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', zIndex: 1000, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16 }}
       onClick={e => { if (e.target === e.currentTarget) onClose(); }}
       onTouchStart={e => e.stopPropagation()}
       onTouchMove={e => e.stopPropagation()}
@@ -242,13 +243,14 @@ function CombinedDetailModal({ targetExam, domainAccList, estimatedScore, passSc
             </span>
             {tab === 'score' && (
               <button
+                data-kbnav="1"
                 onClick={() => setShowCalc(v => !v)}
                 style={{ width: 20, height: 20, borderRadius: '50%', border: `1.5px solid ${showCalc ? 'var(--color-primary)' : 'var(--color-border)'}`, background: showCalc ? 'var(--color-primary)' : 'transparent', color: showCalc ? '#fff' : 'var(--color-text-light)', fontSize: 11, fontWeight: 700, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, lineHeight: 1 }}
                 aria-label={ja ? '計算方法' : 'How calculated'}
               >?</button>
             )}
           </div>
-          <button onClick={onClose} style={{ border: 'none', background: 'none', fontSize: 18, cursor: 'pointer', color: 'var(--color-text-sub)', padding: '0 4px', lineHeight: 1 }}>✕</button>
+          <button data-kbclose="1" onClick={onClose} style={{ border: 'none', background: 'none', fontSize: 18, cursor: 'pointer', color: 'var(--color-text-sub)', padding: '0 4px', lineHeight: 1 }}>✕</button>
         </div>
 
         {/* タブ */}
@@ -256,6 +258,7 @@ function CombinedDetailModal({ targetExam, domainAccList, estimatedScore, passSc
           {tabs.map(t => (
             <button
               key={t.key}
+              data-kbnav="tab"
               onClick={() => { setTab(t.key); setShowCalc(false); }}
               style={{
                 background: 'none', border: 'none', cursor: 'pointer',
@@ -464,7 +467,7 @@ function ScoreDetailModal({ targetExam, estimatedScore, passScore, lang, uid, on
   const sessionHistory = readSessionScoreHistory(targetExam, uid);
   return (
     <div
-      style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', zIndex: 1000, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16 }}
+      data-kbscope="1" style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', zIndex: 1000, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16 }}
       onClick={e => { if (e.target === e.currentTarget) onClose(); }}
       onTouchStart={e => e.stopPropagation()}
       onTouchMove={e => e.stopPropagation()}
@@ -532,7 +535,7 @@ function DomainDetailModal({ targetExam, domainAccList, lang, onClose }: {
   const domains = EXAM_DOMAINS[targetExam] ?? [];
   return (
     <div
-      style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', zIndex: 1000, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16 }}
+      data-kbscope="1" style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', zIndex: 1000, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16 }}
       onClick={e => { if (e.target === e.currentTarget) onClose(); }}
       onTouchStart={e => e.stopPropagation()}
       onTouchMove={e => e.stopPropagation()}
@@ -735,6 +738,14 @@ function syncEncyclopediaToServer(userId: string, forceUpload = false): void {
     const local: Record<string, string> = JSON.parse(localStorage.getItem(`encyclopediaUnlocked_${uid}`) ?? '{}');
     const unlockDate = localStorage.getItem(`encyclopediaUnlockDate_${uid}`);
     const todayServiceId = localStorage.getItem(`encyclopediaTodayServiceId_${uid}`);
+    // 解放状態をサーバーへ保存（GET失敗時もローカルの解放を必ず保存する）
+    const postUnlocks = (unlocksToSave: Record<string, string>, retriesLeft: number) => {
+      const body = JSON.stringify({ userId, unlocks: unlocksToSave, unlockDate, todayServiceId });
+      fetch(`${API_ENDPOINT}/users/me/encyclopedia-unlocks`, {
+        method: 'POST', headers: { 'Content-Type': 'application/json' }, body,
+      }).then(r => { if (!r.ok && retriesLeft > 0) setTimeout(() => postUnlocks(unlocksToSave, retriesLeft - 1), 3000); })
+        .catch(() => { if (retriesLeft > 0) setTimeout(() => postUnlocks(unlocksToSave, retriesLeft - 1), 3000); });
+    };
     fetch(`${API_ENDPOINT}/users/me/encyclopedia-unlocks?userId=${encodeURIComponent(userId)}`)
       .then(r => r.ok ? r.json() : { unlocks: {} })
       .then(data => {
@@ -752,17 +763,12 @@ function syncEncyclopediaToServer(userId: string, forceUpload = false): void {
         const merged: Record<string, string> = { ...local, ...server };
         localStorage.setItem(`encyclopediaUnlocked_${uid}`, JSON.stringify(merged));
         window.dispatchEvent(new CustomEvent('encyclopediaUpdated'));
-        // POST 失敗時は1回リトライ（3秒後）
-        const body = JSON.stringify({ userId, unlocks: merged, unlockDate, todayServiceId });
-        const doPost = (retriesLeft: number) => {
-          fetch(`${API_ENDPOINT}/users/me/encyclopedia-unlocks`, {
-            method: 'POST', headers: { 'Content-Type': 'application/json' }, body,
-          }).then(r => { if (!r.ok && retriesLeft > 0) setTimeout(() => doPost(retriesLeft - 1), 3000); })
-            .catch(() => { if (retriesLeft > 0) setTimeout(() => doPost(retriesLeft - 1), 3000); });
-        };
-        doPost(1);
+        postUnlocks(merged, 1);
       })
-      .catch(() => {});
+      .catch(() => {
+        // GET失敗時もローカルの解放状態は保存する（再ログインで未解放に戻る問題の対策）
+        postUnlocks(local, 2);
+      });
   } catch {}
 }
 
@@ -974,7 +980,7 @@ function TodayServiceSection({ lang, userId, onNavigateEncyclopedia, onReveal, i
   const iconEl = <ServiceIconImg icon={displayService.icon} name={displayService.name} size={44} />;
 
   return (
-    <Card padding="var(--spacing-md)" style={{ marginBottom: 'var(--spacing-md)', cursor: 'pointer' }} onClick={onNavigateEncyclopedia}>
+    <Card data-kbnav="1" padding="var(--spacing-md)" style={{ marginBottom: 'var(--spacing-md)', cursor: 'pointer' }} onClick={onNavigateEncyclopedia}>
       {/* ヘッダー行 */}
       <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 8 }}>
         {calIcon}
@@ -1357,11 +1363,12 @@ export default function Home() {
   const dailyGoal = useMemo(() =>
     Math.max(1, parseInt(localStorage.getItem(`dailyGoal_${uid}`) ?? '10', 10))
   , [uid]);
+  // 目標資格のみの当日演習量（マイページと同じく目標資格基準で表示）
   const [dailyCount, setDailyCount] = useState(() =>
-    EXAM_TYPES.reduce((sum, et) => sum + parseInt(localStorage.getItem(`dailyQCount_${et}_${uid}_${jstDate}`) ?? '0', 10), 0)
+    targetExam ? parseInt(localStorage.getItem(`dailyQCount_${targetExam}_${uid}_${jstDate}`) ?? '0', 10) : 0
   );
   useEffect(() => {
-    setDailyCount(EXAM_TYPES.reduce((sum, et) => sum + parseInt(localStorage.getItem(`dailyQCount_${et}_${uid}_${jstDate}`) ?? '0', 10), 0));
+    setDailyCount(targetExam ? parseInt(localStorage.getItem(`dailyQCount_${targetExam}_${uid}_${jstDate}`) ?? '0', 10) : 0);
   }, [targetExam, uid, jstDate, domainStats]);
 
   const [prevScore, setPrevScore] = useState<number | null>(null);
@@ -1738,6 +1745,41 @@ export default function Home() {
   const discardPrimaryDraft = primaryMode === 'focused' ? discardFocusedDraft : discardQuickDraft;
   const startPrimary = primaryMode === 'focused' ? startFocusedExercise : startQuickExercise;
 
+  // Shift+Enter で表示中のプライマリ開始ボタンを発火（Web版のみ）
+  const startKeyRef = useRef<(e: KeyboardEvent) => void>(() => {});
+  startKeyRef.current = (e: KeyboardEvent) => {
+    if (isMobile || !(e.key === 'Enter' && (e.ctrlKey || e.metaKey))) return;
+    const el = e.target as HTMLElement | null;
+    const tag = el?.tagName;
+    if (tag === 'INPUT' || tag === 'TEXTAREA' || el?.isContentEditable) return;
+    if (showQuickModal || showFocusedModal || showCombinedDetail || showWebQuickMenu || showFocusedMenu || revealService) return;
+    e.preventDefault();
+    if (hasPrimaryDraft) resumePrimary();
+    else if (targetExam && !primaryLoading) startPrimary();
+  };
+  useEffect(() => {
+    const h = (e: KeyboardEvent) => startKeyRef.current(e);
+    window.addEventListener('keydown', h);
+    return () => window.removeEventListener('keydown', h);
+  }, []);
+
+  // Esc で開いているオーバレイを閉じる（最前面を優先）
+  useEffect(() => {
+    const h = (e: KeyboardEvent) => {
+      if (e.key !== 'Escape') return;
+      if (showCombinedDetail) setShowCombinedDetail(false);
+      else if (revealService) setRevealService(null);
+      else if (showQuickModal) setShowQuickModal(false);
+      else if (showFocusedModal) setShowFocusedModal(false);
+      else if (showWebQuickMenu) setShowWebQuickMenu(false);
+      else if (showFocusedMenu) setShowFocusedMenu(false);
+      else return;
+      e.stopPropagation();
+    };
+    window.addEventListener('keydown', h);
+    return () => window.removeEventListener('keydown', h);
+  }, [showCombinedDetail, revealService, showQuickModal, showFocusedModal, showWebQuickMenu, showFocusedMenu]);
+
   return (
     <div style={{ maxWidth: 900, margin: '0 auto', padding: 'var(--spacing-lg) var(--spacing-lg)' }} className="page-container">
       <Helmet>
@@ -1747,6 +1789,7 @@ export default function Home() {
 
       {/* ── 目標演習量 ── */}
       <Card
+        data-kbnav="1"
         padding="var(--spacing-md)"
         style={{ marginBottom: 'var(--spacing-md)', cursor: 'pointer' }}
         onClick={() => navigate('/aws/mypage')}
@@ -1777,6 +1820,7 @@ export default function Home() {
 
       {/* ── ドメイン別正答率 + 予想スコア（1パネル、クリックで詳細） ── */}
       <Card
+        data-kbnav="1"
         padding="var(--spacing-md)"
         style={{ marginBottom: 'var(--spacing-md)', cursor: (targetExam && !statsLoading) ? 'pointer' : 'default', position: 'relative' }}
         onClick={() => { if (targetExam && !statsLoading) setShowCombinedDetail(true); }}
@@ -2005,6 +2049,7 @@ export default function Home() {
                       {ja && primaryMode !== 'quick' && focusedDraft?.results != null && focusedDraft?.questions != null && (
                         <span style={{ fontSize: 12, fontWeight: 400, opacity: 0.85 }}>（{focusedDraft.results.length}/{focusedDraft.questions.length}問）</span>
                       )}
+                      <span style={{ marginLeft: 8, display: 'inline-flex', verticalAlign: 'middle' }}><KeyHint /></span>
                     </>
                   )}
                   </button>
@@ -2063,7 +2108,12 @@ export default function Home() {
                           <span style={{ width: 14, height: 14, border: '2px solid rgba(0,0,0,0.2)', borderTopColor: '#16191f', borderRadius: '50%', animation: 'sherpa-spin 0.7s linear infinite', flexShrink: 0 }} />
                           {ja ? `準備中... ${quickLoadPct}%` : `Loading... ${quickLoadPct}%`}
                         </span>
-                      ) : (ja ? 'サクッと演習を開始' : 'Quick')}
+                      ) : (
+                        <span style={{ display: 'inline-flex', alignItems: 'center', gap: 8 }}>
+                          {ja ? 'サクッと演習を開始' : 'Quick'}
+                          <KeyHint />
+                        </span>
+                      )}
                     </button>
                   ) : (
                     <button
@@ -2076,7 +2126,12 @@ export default function Home() {
                           <span style={{ width: 14, height: 14, border: '2px solid rgba(255,255,255,0.3)', borderTopColor: '#fff', borderRadius: '50%', animation: 'sherpa-spin 0.7s linear infinite', flexShrink: 0 }} />
                           {ja ? `準備中... ${focusedLoadPct}%` : `Loading... ${focusedLoadPct}%`}
                         </span>
-                      ) : (ja ? 'しっかり対策を開始' : 'Focused')}
+                      ) : (
+                        <span style={{ display: 'inline-flex', alignItems: 'center', gap: 8 }}>
+                          {ja ? 'しっかり対策を開始' : 'Focused'}
+                          <KeyHint />
+                        </span>
+                      )}
                     </button>
                   )}
                   <button
@@ -2270,7 +2325,7 @@ export default function Home() {
       {/* ── サクッと演習 設定モーダル ── */}
       {showQuickModal && (
         <div
-          style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', zIndex: 1000, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16 }}
+          data-kbscope="1" style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', zIndex: 1000, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16 }}
           onClick={e => { if (e.target === e.currentTarget) setShowQuickModal(false); }}
           onTouchStart={e => e.stopPropagation()}
           onTouchMove={e => e.stopPropagation()}
@@ -2431,7 +2486,7 @@ export default function Home() {
       {/* ── しっかり対策 設定モーダル ── */}
       {showFocusedModal && (
         <div
-          style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', zIndex: 1000, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16 }}
+          data-kbscope="1" style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', zIndex: 1000, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16 }}
           onClick={e => { if (e.target === e.currentTarget) setShowFocusedModal(false); }}
           onTouchStart={e => e.stopPropagation()}
           onTouchMove={e => e.stopPropagation()}
