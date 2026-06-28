@@ -1,28 +1,10 @@
-import { API_ENDPOINT, EXAM_DOMAINS, qDomainName, domainsToIndices, questionDomainIndex } from '../constants';
-import { readDomainHistory } from './domainStats';
-import { getCachedPersist, setCachedPersist, LONG_TTL } from './cache';
-
-// プリフェッチエントリの有効期限（qlist キャッシュと揃える）。
-// 期限切れは削除済み/古い問題を出題し得るため読み出し時に破棄する。
-const PREFETCH_TTL = LONG_TTL;
-
-type Question = {
-  questionId: string;
-  examType: string;
-  questionText: string;
-  choices: string[];
-  correctAnswers?: string[];
-  correctAnswerIndices?: number[];
-  choiceExplanations?: string[];
-  explanation?: string;
-  domain?: number;
-  isMultiple: boolean;
-  correctAnswerCount?: number;
-  validityCheckedAt?: string;
-};
+// 問題プリフェッチは「全件＋解説の取得（withAnswers）」を行うため、問題数の増加に伴い
+// ペイロードが肥大化しタイムアウトの原因になっていた。全件取得系を廃止し、各開始フローは
+// idsOnly/metaOnly（IDのみ＝軽量）で選定 → 必要な問題だけ ids= で取得するプログレッシブ
+// ロードに一本化した。本モジュールは後方互換のためのスタブ（何もしない）として残す。
 
 export interface PrefetchEntry {
-  questions: Question[];
+  questions: { questionId: string; domain?: number; examType: string }[];
   examType: string;
   userId: string;
   prefsSnapshot: string;
@@ -43,211 +25,20 @@ type FocusedPrefs = {
   focusDomain?: string;
 };
 
-const KEY_A = (examType: string) => `pfq_A_${examType}`;
-const KEY_B = (examType: string, userId: string) => `pfq_B_${examType}_${userId}`;
-const KEY_C = (examType: string, userId: string) => `pfq_C_${examType}_${userId}`;
+// ── プリフェッチ（全件取得）は廃止。呼び出し互換のため no-op ──
+export async function prefetchTypeA(_examType: string, _userId = 'guest'): Promise<void> {}
+export async function prefetchTypeB(_examType: string, _userId: string, _prefs: FocusedPrefs): Promise<void> {}
+export async function prefetchTypeC(_examType: string, _userId: string, _prefs: QuickPrefs): Promise<void> {}
 
-function shuffle<T>(arr: T[]): T[] {
-  const a = [...arr];
-  for (let i = a.length - 1; i > 0; i--) {
-    const j = Math.floor(Math.random() * (i + 1));
-    [a[i], a[j]] = [a[j], a[i]];
-  }
-  return a;
-}
+// ── キャッシュ読み出しは常に null（＝各画面のプログレッシブ・フォールバックを使う）──
+export function getPrefetchA(_examType: string): PrefetchEntry | null { return null; }
+export function getPrefetchB(_examType: string, _userId: string, _prefs: FocusedPrefs): PrefetchEntry | null { return null; }
+export function getPrefetchC(_examType: string, _userId: string, _prefs: QuickPrefs): PrefetchEntry | null { return null; }
 
-async function fetchPool(examType: string): Promise<Question[]> {
-  const qCacheKey = `qlist_${examType}`;
-  const cached = getCachedPersist<{ items: Question[]; total: number }>(qCacheKey);
-  if (cached) {
-    return (cached.items ?? []).filter((q) => !!q.validityCheckedAt);
-  }
-  const res = await fetch(`${API_ENDPOINT}/questions?examType=${examType}&withAnswers=true`);
-  const data = await res.json();
-  // 問題リストをキャッシュに保存
-  setCachedPersist(qCacheKey, data);
-  return (data.items ?? []).filter((q: Question) => !!q.validityCheckedAt);
-}
-
-function saveEntry(key: string, entry: PrefetchEntry): void {
-  try {
-    localStorage.setItem(key, JSON.stringify(entry));
-  } catch {
-    // localStorage 容量不足の場合は無視
-  }
-}
-
-// タイプA: フィルタなし（ランダムシャッフル）
-export async function prefetchTypeA(examType: string, userId = 'guest'): Promise<void> {
-  try {
-    const pool = await fetchPool(examType);
-    const questions = shuffle(pool).slice(0, 20);
-    saveEntry(KEY_A(examType), { questions, examType, userId, prefsSnapshot: '', cachedAt: Date.now() });
-  } catch (err) {
-    console.debug('[prefetch] A failed:', err);
-  }
-}
-
-// タイプB: しっかり対策フィルタ適用
-export async function prefetchTypeB(examType: string, userId: string, prefs: FocusedPrefs): Promise<void> {
-  try {
-    const [pool, incorrectRes] = await Promise.all([
-      fetchPool(examType),
-      fetch(`${API_ENDPOINT}/users/me/incorrect-questions?userId=${userId}&examType=${examType}`).then(r => r.json()),
-    ]);
-
-    const incorrectIds = new Set<string>(incorrectRes.questionIds ?? []);
-    const focusIncorrect = prefs.focusIncorrect !== false;
-    const focusDomain = prefs.focusDomain ?? 'below60';
-
-    // 優先問題を先頭に集め、不足分はプール全体から補充（絞り込みではなく優先）
-    let priorityItems: Question[] = [];
-    if (focusIncorrect) {
-      priorityItems = pool.filter(q => incorrectIds.has(q.questionId));
-    }
-    if (focusDomain !== 'none') {
-      const threshold = focusDomain === 'below40' ? 0.40 : focusDomain === 'below50' ? 0.50 : focusDomain === 'below70' ? 0.70 : 0.60;
-      const examDomains = EXAM_DOMAINS[examType] ?? [];
-      const hist = readDomainHistory(examType, userId); // index 文字列キーに正規化済み
-      const weakDomains = new Set<string>(
-        examDomains.filter((_domain, idx) => {
-          const sessions = hist[String(idx)];
-          if (!sessions || sessions.length === 0) return true;
-          const correct = sessions.reduce((s, r) => s + r.correct, 0);
-          const total = sessions.reduce((s, r) => s + r.total, 0);
-          return total === 0 || correct / total < threshold;
-        })
-      );
-      const seenIds = new Set(priorityItems.map(q => q.questionId));
-      priorityItems = [...priorityItems, ...pool.filter(q => weakDomains.has(qDomainName(q)) && !seenIds.has(q.questionId))];
-    }
-    const usedIds = new Set(priorityItems.map(q => q.questionId));
-    const rest = shuffle(pool.filter(q => !usedIds.has(q.questionId)));
-    let items: Question[] = Array.from(
-      new Map([...shuffle(priorityItems), ...rest].map(q => [q.questionId, q])).values()
-    ).slice(0, 30);
-
-    const snap = JSON.stringify({ focusIncorrect: prefs.focusIncorrect, focusDomain: prefs.focusDomain });
-    saveEntry(KEY_B(examType, userId), { questions: items, examType, userId, prefsSnapshot: snap, cachedAt: Date.now() });
-  } catch (err) {
-    console.debug('[prefetch] B failed:', err);
-  }
-}
-
-// タイプC: サクッと演習フィルタ適用
-export async function prefetchTypeC(examType: string, userId: string, prefs: QuickPrefs): Promise<void> {
-  try {
-    const needUserData = userId !== 'guest' && !!(prefs.unansweredOnly || prefs.incorrectOnly || prefs.bookmarkOnly);
-    const [pool, answeredRes, incorrectRes, bkmRes] = await Promise.all([
-      fetchPool(examType),
-      needUserData && prefs.unansweredOnly ? fetch(`${API_ENDPOINT}/users/me/answered-questions?userId=${userId}&examType=${examType}`).then(r => r.json()) : Promise.resolve(null),
-      needUserData && prefs.incorrectOnly  ? fetch(`${API_ENDPOINT}/users/me/incorrect-questions?userId=${userId}&examType=${examType}`).then(r => r.json()) : Promise.resolve(null),
-      needUserData && prefs.bookmarkOnly   ? fetch(`${API_ENDPOINT}/users/me/bookmarks?userId=${userId}`).then(r => r.json()) : Promise.resolve(null),
-    ]);
-
-    let items = [...pool];
-    if (needUserData) {
-      const unansweredSet = prefs.unansweredOnly && answeredRes ? new Set<string>(answeredRes.questionIds ?? []) : null;
-      const incorrectSet  = prefs.incorrectOnly  && incorrectRes ? new Set<string>(incorrectRes.questionIds ?? []) : null;
-      const bookmarkSet   = prefs.bookmarkOnly   && bkmRes       ? new Set<string>(bkmRes.questionIds ?? [])      : null;
-      items.sort((a, b) => {
-        const score = (q: Question) =>
-          (unansweredSet && !unansweredSet.has(q.questionId) ? 1 : 0) +
-          (incorrectSet  && incorrectSet.has(q.questionId)   ? 1 : 0) +
-          (bookmarkSet   && bookmarkSet.has(q.questionId)    ? 1 : 0);
-        return score(b) - score(a);
-      });
-    }
-    const selIdx = domainsToIndices(examType, prefs.domains ?? []);
-    if (selIdx.length > 0) {
-      items = items.filter(q => selIdx.includes(questionDomainIndex(q)));
-    }
-    items = shuffle(items);
-    if (items.length < 20) {
-      const seenIds = new Set(items.map(q => q.questionId));
-      items = [...items, ...shuffle(pool.filter(q => !seenIds.has(q.questionId)))];
-    }
-    items = Array.from(new Map(items.map(q => [q.questionId, q])).values()).slice(0, 20);
-
-    const snap = JSON.stringify({ unansweredOnly: prefs.unansweredOnly, incorrectOnly: prefs.incorrectOnly, bookmarkOnly: prefs.bookmarkOnly, domains: domainsToIndices(examType, prefs.domains ?? []) });
-    saveEntry(KEY_C(examType, userId), { questions: items, examType, userId, prefsSnapshot: snap, cachedAt: Date.now() });
-  } catch (err) {
-    console.debug('[prefetch] C failed:', err);
-  }
-}
-
-// ── キャッシュ読み出し ──────────────────────────────────────────
-
-export function getPrefetchA(examType: string): PrefetchEntry | null {
-  try {
-    const raw = localStorage.getItem(KEY_A(examType));
-    if (!raw) return null;
-    const entry: PrefetchEntry = JSON.parse(raw);
-    if (entry.examType !== examType) return null;
-    if (Date.now() - (entry.cachedAt ?? 0) > PREFETCH_TTL) return null;
-    return entry;
-  } catch { return null; }
-}
-
-export function getPrefetchB(examType: string, userId: string, prefs: FocusedPrefs): PrefetchEntry | null {
-  try {
-    const raw = localStorage.getItem(KEY_B(examType, userId));
-    if (!raw) return null;
-    const entry: PrefetchEntry = JSON.parse(raw);
-    if (entry.examType !== examType || entry.userId !== userId) return null;
-    if (Date.now() - (entry.cachedAt ?? 0) > PREFETCH_TTL) return null;
-    const snap = JSON.stringify({ focusIncorrect: prefs.focusIncorrect, focusDomain: prefs.focusDomain });
-    if (entry.prefsSnapshot !== snap) return null;
-    return entry;
-  } catch { return null; }
-}
-
-export function getPrefetchC(examType: string, userId: string, prefs: QuickPrefs): PrefetchEntry | null {
-  try {
-    const raw = localStorage.getItem(KEY_C(examType, userId));
-    if (!raw) return null;
-    const entry: PrefetchEntry = JSON.parse(raw);
-    if (entry.examType !== examType || entry.userId !== userId) return null;
-    if (Date.now() - (entry.cachedAt ?? 0) > PREFETCH_TTL) return null;
-    const snap = JSON.stringify({ unansweredOnly: prefs.unansweredOnly, incorrectOnly: prefs.incorrectOnly, bookmarkOnly: prefs.bookmarkOnly, domains: domainsToIndices(examType, prefs.domains ?? []) });
-    if (entry.prefsSnapshot !== snap) return null;
-    return entry;
-  } catch { return null; }
-}
-
-// ── セッション終了後のプリフェッチトリガー（ExerciseSession から呼ぶ） ──
-
-export function schedulePrefetchAfterSession(params: {
+// ── セッション終了後のプリフェッチも廃止（no-op）──
+export function schedulePrefetchAfterSession(_params: {
   examType: string;
   userId: string;
   isQuick: boolean;
   isFocused: boolean;
-}): void {
-  const { examType, userId, isQuick, isFocused } = params;
-  // ナビゲーションをブロックしないよう非同期で実行
-  setTimeout(() => {
-    try {
-      if (isFocused) {
-        const fPrefs: FocusedPrefs = JSON.parse(localStorage.getItem(`focusedExercisePrefs_${userId}`) ?? '{}');
-        const hasFilters = fPrefs.focusIncorrect !== false || (fPrefs.focusDomain ?? 'below60') !== 'none';
-        if (hasFilters) {
-          prefetchTypeB(examType, userId, fPrefs);
-        } else {
-          prefetchTypeA(examType, userId);
-        }
-      } else if (isQuick) {
-        const qPrefs: QuickPrefs = JSON.parse(localStorage.getItem(`quickExercisePrefs_${userId}`) ?? '{}');
-        const hasFilters = !!(qPrefs.unansweredOnly || qPrefs.incorrectOnly || qPrefs.bookmarkOnly || (qPrefs.domains?.length ?? 0) > 0);
-        if (hasFilters) {
-          prefetchTypeC(examType, userId, qPrefs);
-        } else {
-          prefetchTypeA(examType, userId);
-        }
-      } else {
-        prefetchTypeA(examType, userId);
-      }
-    } catch (err) {
-      console.debug('[prefetch] schedulePrefetchAfterSession failed:', err);
-    }
-  }, 200);
-}
+}): void {}

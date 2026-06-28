@@ -136,7 +136,7 @@ export default function Practice() {
     const fetchCounts = async () => {
       if (selectedDomains.length === 0) { setAvailableCount(null); return; }
       try {
-        const params = new URLSearchParams({ examType });
+        const params = new URLSearchParams({ examType, metaOnly: 'true' });
         const allSelected = EXAM_DOMAINS[examType].every(d => selectedDomains.includes(d));
         if (!allSelected) params.set('domain', domainsToIndices(examType, selectedDomains).join(','));
         if (user && (bookmarkOnly || unansweredOnly || incorrectOnly)) {
@@ -155,7 +155,7 @@ export default function Practice() {
         } else if (allSelected) {
           const cached = getCached<number>(`qcount_${examType}`);
           if (cached !== null) { setAvailableCount(cached); return; }
-          const qRes = await fetch(`${API_ENDPOINT}/questions?examType=${examType}`).then(r => r.json());
+          const qRes = await fetch(`${API_ENDPOINT}/questions?examType=${examType}&metaOnly=true`).then(r => r.json());
           const count = qRes.count ?? qRes.items?.length ?? 0;
           setCached(`qcount_${examType}`, count);
           setAvailableCount(count);
@@ -306,36 +306,41 @@ export default function Practice() {
     setExamLoading(true);
     setExamLoadPct(10);
     try {
-      const qCacheKey = `qlist_${targetExam}`;
-      const cachedQs = getCachedPersist<{ items: any[]; total: number }>(qCacheKey);
       const plateau = randomPlateau();
-      const stopAnim = cachedQs ? null : animateLoadPct(setExamLoadPct, 10, plateau);
+      const stopAnim = animateLoadPct(setExamLoadPct, 10, plateau);
       const needFilter = user && (examUnansweredOnly || examIncorrectOnly || examBookmarkOnly);
-      const [data, answeredRes, incorrectRes, bkmRes] = await Promise.all([
-        cachedQs ? Promise.resolve(cachedQs) : fetch(`${API_ENDPOINT}/questions?examType=${targetExam}&withAnswers=true`).then(r => r.json()),
+      // 1. 候補IDのみ取得（idsOnly=軽量・validity済み・シャッフル）＋ユーザーのID集合を並行取得。
+      //    全件＋解説の取得(withAnswers)は問題増加で肥大化しタイムアウトの原因になるため使わない。
+      const idsParams = new URLSearchParams({ examType: targetExam, shuffle: 'true', idsOnly: 'true' });
+      const [idsData, answeredRes, incorrectRes, bkmRes] = await Promise.all([
+        fetch(`${API_ENDPOINT}/questions?${idsParams}`).then(r => r.json()),
         user ? fetch(`${API_ENDPOINT}/users/me/answered-questions?userId=${userId}&examType=${targetExam}`).then(r => r.json()) : Promise.resolve(null),
         needFilter && examIncorrectOnly ? fetch(`${API_ENDPOINT}/users/me/incorrect-questions?userId=${userId}&examType=${targetExam}`).then(r => r.json()) : Promise.resolve(null),
         needFilter && examBookmarkOnly ? fetch(`${API_ENDPOINT}/users/me/bookmarks?userId=${userId}`).then(r => r.json()) : Promise.resolve(null),
       ]);
       stopAnim?.();
-      if (!cachedQs) setCachedPersist(qCacheKey, data);
-      setExamLoadPct(cachedQs ? 50 : plateau);
-      let items: any[] = (data.items ?? []).filter((q: any) => !!q.validityCheckedAt);
-      items = shuffleArray(items);
+      setExamLoadPct(plateau);
+      let ids: string[] = idsData.questionIds ?? [];
       if (needFilter) {
-        if (examUnansweredOnly && answeredRes) { const ids = new Set<string>(answeredRes.questionIds ?? []); items = items.filter((q: any) => !ids.has(q.questionId)); }
-        if (examIncorrectOnly && incorrectRes) { const ids = new Set<string>(incorrectRes.questionIds ?? []); items = items.filter((q: any) => ids.has(q.questionId)); }
-        if (examBookmarkOnly && bkmRes) { const ids = new Set<string>(bkmRes.questionIds ?? []); items = items.filter((q: any) => ids.has(q.questionId)); }
+        if (examUnansweredOnly && answeredRes) { const s = new Set<string>(answeredRes.questionIds ?? []); ids = ids.filter(id => !s.has(id)); }
+        if (examIncorrectOnly && incorrectRes) { const s = new Set<string>(incorrectRes.questionIds ?? []); ids = ids.filter(id => s.has(id)); }
+        if (examBookmarkOnly && bkmRes)        { const s = new Set<string>(bkmRes.questionIds ?? []);       ids = ids.filter(id => s.has(id)); }
       } else if (answeredRes) {
         const answered = new Set<string>(answeredRes.questionIds ?? []);
-        items.sort((a: any, b: any) => (answered.has(a.questionId) ? 1 : 0) - (answered.has(b.questionId) ? 1 : 0));
+        ids.sort((a, b) => (answered.has(a) ? 1 : 0) - (answered.has(b) ? 1 : 0)); // 未回答を優先
       }
-      items = items.slice(0, examQuestions);
+      ids = ids.slice(0, examQuestions);
+      if (ids.length === 0) { alert(ja ? '条件に合う問題がありません' : 'No questions match'); setExamLoading(false); return; }
+      setExamLoadPct(60);
+      // 2. 選定したN問だけ取得（withAnswers, N≤試験問題数で有界）。順序は ids（シャッフル済み）に合わせる。
+      const qData = await fetch(`${API_ENDPOINT}/questions?ids=${ids.join(',')}&withAnswers=true&examType=${targetExam}`).then(r => r.json());
+      const orderMap = new Map(ids.map((id, i) => [id, i]));
+      const items: any[] = (qData.items ?? []).sort((a: any, b: any) => (orderMap.get(a.questionId) ?? 0) - (orderMap.get(b.questionId) ?? 0));
       if (items.length === 0) { alert(ja ? '条件に合う問題がありません' : 'No questions match'); setExamLoading(false); return; }
       setExamLoadPct(90);
       const sessionRes = await fetch(`${API_ENDPOINT}/sessions`, {
         method: 'POST', headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ userId, mode: 'exam', examType: targetExam, questionIds: items.map((q: any) => q.questionId) }),
+        body: JSON.stringify({ userId, mode: 'exam', examType: targetExam, questionIds: ids }),
       });
       const sessionData = await sessionRes.json();
       navigate('/aws/exam/session', { state: { sessionId: sessionData.sessionId, questions: items, userId, examType: targetExam, isMini: examMode === 'mini', timeLimitMin: examTimeMin } });
