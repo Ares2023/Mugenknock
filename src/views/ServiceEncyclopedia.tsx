@@ -411,11 +411,13 @@ export default function ServiceEncyclopedia() {
       {/* Detail modal */}
       {selected && (
         <div
+          data-kbscope="1"
           style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', zIndex: 1000, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16 }}
           onClick={e => { if (e.target === e.currentTarget) setSelected(null); }}
         >
           <div style={{ background: 'var(--color-bg-white)', borderRadius: 'var(--border-radius-lg)', padding: '24px 24px 20px', width: '100%', maxWidth: 420, boxShadow: 'var(--box-shadow-md)', maxHeight: window.innerWidth < 768 ? '66vh' : '85vh', overflowY: 'auto', position: 'relative' }}>
             <button
+              data-kbclose="1"
               onClick={() => setSelected(null)}
               style={{ position: 'absolute', top: 12, right: 12, border: 'none', background: 'none', fontSize: 20, cursor: 'pointer', color: 'var(--color-text-sub)', padding: '4px 8px', lineHeight: 1 }}
             >✕</button>

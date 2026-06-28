@@ -58,7 +58,7 @@ function readSessionScoreLog(examType: string, uid: string): ScoreEntry[] {
 }
 
 // ── スコア折れ線グラフ ───────────────────────────────────────────
-function ScoreLineChart({ data, passScore, lang = 'ja', animate = true }: { data: ScoreEntry[]; passScore: number | null; lang?: string; animate?: boolean }) {
+function ScoreLineChart({ data, passScore, lang = 'ja', animate = true, isMobile = false }: { data: ScoreEntry[]; passScore: number | null; lang?: string; animate?: boolean; isMobile?: boolean }) {
   if (data.length < 2) {
     return (
       <p style={{ color: 'var(--color-text-light)', fontSize: 12, fontStyle: 'italic', margin: 0 }}>
@@ -66,7 +66,8 @@ function ScoreLineChart({ data, passScore, lang = 'ja', animate = true }: { data
       </p>
     );
   }
-  const W = 300, H = 110, PL = 36, PR = 8, PT = 20, PB = 22;
+  // Web版は横幅いっぱいに拡大されて縦・文字が大きくなるため、viewBoxを横長・低めにして拡大率を抑える
+  const W = isMobile ? 300 : 470, H = isMobile ? 110 : 100, PL = 36, PR = 8, PT = 20, PB = 22;
   const iW = W - PL - PR, iH = H - PT - PB;
   const scores = data.map(d => d.score);
   const minS = Math.max(0, Math.min(...scores) - 50);
@@ -111,7 +112,7 @@ function ScoreLineChart({ data, passScore, lang = 'ja', animate = true }: { data
   );
 }
 
-function SessionScoreChart({ data, passScore, lang = 'ja', animate = true }: { data: number[]; passScore: number | null; lang?: string; animate?: boolean }) {
+function SessionScoreChart({ data, passScore, lang = 'ja', animate = true, isMobile = false }: { data: number[]; passScore: number | null; lang?: string; animate?: boolean; isMobile?: boolean }) {
   if (data.length < 2) {
     return (
       <p style={{ color: 'var(--color-text-light)', fontSize: 12, fontStyle: 'italic', margin: 0 }}>
@@ -119,7 +120,8 @@ function SessionScoreChart({ data, passScore, lang = 'ja', animate = true }: { d
       </p>
     );
   }
-  const W = 300, H = 90, PL = 36, PR = 8, PT = 20, PB = 18;
+  // Web版は横幅いっぱいに拡大されて縦・文字が大きくなるため、viewBoxを横長・低めにして拡大率を抑える
+  const W = isMobile ? 300 : 470, H = isMobile ? 90 : 84, PL = 36, PR = 8, PT = 20, PB = 18;
   const iW = W - PL - PR, iH = H - PT - PB;
   const minS = Math.max(0, Math.min(...data) - 50);
   const maxS = Math.min(1000, Math.max(...data) + 50);
@@ -259,6 +261,7 @@ function CombinedDetailModal({ targetExam, domainAccList, estimatedScore, passSc
             <button
               key={t.key}
               data-kbnav="tab"
+              data-kbtab-active={tab === t.key ? '1' : undefined}
               onClick={() => { setTab(t.key); setShowCalc(false); }}
               style={{
                 background: 'none', border: 'none', cursor: 'pointer',
@@ -381,13 +384,13 @@ function CombinedDetailModal({ targetExam, domainAccList, estimatedScore, passSc
               <div style={{ fontSize: 11, fontWeight: 700, color: 'var(--color-text-sub)', marginBottom: 8 }}>
                 {ja ? 'セッション別推移（直近5回）' : 'Per-Session Trend (last 5)'}
               </div>
-              <SessionScoreChart data={sessionHistory} passScore={passScore} lang={lang} animate={!visitedTabs.current.has('history')} />
+              <SessionScoreChart data={sessionHistory} passScore={passScore} lang={lang} animate={!visitedTabs.current.has('history')} isMobile={isMobile} />
             </div>
             <div style={{ borderTop: '1px solid var(--color-border)', paddingTop: 12 }}>
               <div style={{ fontSize: 11, fontWeight: 700, color: 'var(--color-text-sub)', marginBottom: 8 }}>
                 {ja ? '日次推移' : 'Daily Trend'}
               </div>
-              <ScoreLineChart data={history} passScore={passScore} lang={lang} animate={!visitedTabs.current.has('history')} />
+              <ScoreLineChart data={history} passScore={passScore} lang={lang} animate={!visitedTabs.current.has('history')} isMobile={isMobile} />
             </div>
           </div>
         ) : (

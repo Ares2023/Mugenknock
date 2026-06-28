@@ -443,6 +443,10 @@ export default function Layout({ children }: { children: React.ReactNode }) {
       const scopeNow = kbScope();
       if (scopeNow !== kbScopeRef.current) { kbScopeRef.current = scopeNow; kbnavIdxRef.current = -1; removeKbnavHighlight(); }
       let cur = kbnavIdxRef.current;
+      // 再描画(例: タブ切替で要素が出入り)でインデックスがずれても、実際にハイライト中の
+      // 要素を正としてカーソル位置を追従させる。これによりタブ間移動がずれない。
+      const activeNow = els.findIndex(x => x.hasAttribute('data-kbnav-active'));
+      if (activeNow >= 0) cur = activeNow;
       if (cur < 0 || cur >= els.length) { e.preventDefault(); const at0 = els.findIndex(x => x.getAttribute('data-kbtab-active') === '1'); const t0 = at0 >= 0 ? at0 : els.findIndex(x => x.getAttribute('data-kbnav') === 'tab'); applyKbnav(t0 >= 0 ? t0 : 0); return; }
       // オーバレイ内のカーソル移動。
       // タブ(data-kbnav="tab")を持つオーバレイ（目標資格選択）は
@@ -500,12 +504,14 @@ export default function Layout({ children }: { children: React.ReactNode }) {
             const dx = (r.left + r.width / 2) - fx, dy = (r.top + r.height / 2) - fy;
             const adx = Math.abs(dx), ady = Math.abs(dy);
             let main: number, cross: number;
-            // 進行方向に在り、かつその軸が主となる（斜めは弾く）要素のみ候補にする
-            if (dir === 'up')         { if (dy >= -1 || adx > ady) continue; main = ady; cross = adx; }
-            else if (dir === 'down')  { if (dy <= 1  || adx > ady) continue; main = ady; cross = adx; }
-            else if (dir === 'left')  { if (dx >= -1 || ady > adx) continue; main = adx; cross = ady; }
-            else                      { if (dx <= 1  || ady > adx) continue; main = adx; cross = ady; }
-            const score = main + cross * 2; // 直交方向のズレを強めに罰し、整列した要素を優先
+            // 進行方向の半平面に在る要素のみ候補。左右は同じ行を狙うため横ズレが縦ズレ以上の要素に限定し、
+            // 真下/真上にある別行の要素を誤って左右移動先にしないようにする。上下は横幅の違う要素にも移れるよう緩める。
+            if (dir === 'up')         { if (dy >= -1) continue; main = ady; cross = adx; }
+            else if (dir === 'down')  { if (dy <= 1)  continue; main = ady; cross = adx; }
+            else if (dir === 'left')  { if (dx >= -1 || adx < ady) continue; main = adx; cross = ady; }
+            else                      { if (dx <= 1  || adx < ady) continue; main = adx; cross = ady; }
+            // 上下は整列を弱めに優先（横ズレ×0.5）、左右は横移動を強く優先（縦ズレ×2）
+            const score = main + cross * (dir === 'up' || dir === 'down' ? 0.5 : 2);
             if (score < bestScore) { bestScore = score; best = i; }
           }
           return best;

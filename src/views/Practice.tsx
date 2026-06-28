@@ -419,7 +419,7 @@ export default function Practice() {
                 };
                 const on = stateMap[key];
                 return (
-                  <label key={key} style={{ display: 'flex', alignItems: 'center', gap: 10, cursor: 'pointer' }}>
+                  <label data-kbnav="1" key={key} style={{ display: 'flex', alignItems: 'center', gap: 10, cursor: 'pointer' }}>
                     <input type="checkbox" checked={on} onChange={e => setterMap[key](e.target.checked)}
                       style={{ width: 16, height: 16, flexShrink: 0, accentColor: 'var(--color-primary)' }} />
                     <span style={{ fontSize: 'var(--font-size-sm)', fontWeight: on ? 600 : 400, color: 'var(--color-text-main)' }}>{label}</span>
@@ -480,7 +480,7 @@ export default function Practice() {
               <div style={{ padding: '12px 14px', borderTop: '1px solid color-mix(in srgb, var(--color-text-light) 40%, transparent)', display: 'flex', flexDirection: 'column', gap: 6 }}>
                 <div style={{ fontSize: 11, fontWeight: 700, color: 'var(--color-text-light)', letterSpacing: '0.05em', marginBottom: 2 }}>{ja ? 'ドメイン' : 'Domain'}</div>
                 {/* 全て */}
-                <label style={{ display: 'flex', alignItems: 'center', gap: 8, cursor: 'pointer', paddingBottom: 6, borderBottom: '1px solid color-mix(in srgb, var(--color-text-light) 20%, transparent)' }}>
+                <label data-kbnav="1" style={{ display: 'flex', alignItems: 'center', gap: 8, cursor: 'pointer', paddingBottom: 6, borderBottom: '1px solid color-mix(in srgb, var(--color-text-light) 20%, transparent)' }}>
                   <input
                     type="checkbox"
                     checked={(EXAM_DOMAINS[examType] ?? []).every(d => selectedDomains.includes(d))}
@@ -496,7 +496,7 @@ export default function Practice() {
                   const checked = selectedDomains.includes(domain);
                   const rate = user ? domainRates[domain] : undefined;
                   return (
-                    <label key={domain} style={{ display: 'flex', alignItems: 'center', gap: 8, cursor: 'pointer' }}>
+                    <label data-kbnav="1" key={domain} style={{ display: 'flex', alignItems: 'center', gap: 8, cursor: 'pointer' }}>
                       <input
                         type="checkbox"
                         checked={checked}
@@ -521,7 +521,7 @@ export default function Practice() {
                 )}
                 <div style={{ paddingTop: 8, marginTop: 2, borderTop: '1px solid color-mix(in srgb, var(--color-text-light) 20%, transparent)' }}>
                   <div style={{ fontSize: 11, fontWeight: 700, color: 'var(--color-text-light)', letterSpacing: '0.05em', marginBottom: 6 }}>{ja ? 'その他' : 'Other'}</div>
-                  <label style={{ display: 'flex', alignItems: 'center', gap: 8, cursor: 'pointer' }}>
+                  <label data-kbnav="1" style={{ display: 'flex', alignItems: 'center', gap: 8, cursor: 'pointer' }}>
                     <input
                       type="checkbox"
                       checked={strikeEnabled}
@@ -535,7 +535,7 @@ export default function Practice() {
                   <div style={{ fontSize: 11, color: 'var(--color-text-light)', marginTop: 4, lineHeight: 1.5 }}>
                     ※ {ja ? '選択肢のテキストをタップすると取り消し線を引いて選択肢を絞り込める機能です' : 'Tap choice text to strike through and narrow down options'}
                   </div>
-                  <label style={{ display: 'flex', alignItems: 'center', gap: 8, cursor: 'pointer', marginTop: 8 }}>
+                  <label data-kbnav="1" style={{ display: 'flex', alignItems: 'center', gap: 8, cursor: 'pointer', marginTop: 8 }}>
                     <input
                       type="checkbox"
                       checked={hideColumn}
@@ -579,7 +579,7 @@ export default function Practice() {
                     };
                     const on = stateMap[key];
                     return (
-                      <label key={key} style={{ display: 'flex', alignItems: 'center', gap: 10, cursor: 'pointer' }}>
+                      <label data-kbnav="1" key={key} style={{ display: 'flex', alignItems: 'center', gap: 10, cursor: 'pointer' }}>
                         <input type="checkbox" checked={on} onChange={e => setterMap[key](e.target.checked)}
                           style={{ width: 16, height: 16, flexShrink: 0, accentColor: 'var(--color-primary)' }} />
                         <span style={{ fontSize: 'var(--font-size-sm)', fontWeight: on ? 600 : 400, color: 'var(--color-text-main)' }}>{label}</span>
@@ -590,7 +590,7 @@ export default function Practice() {
               )}
 
               {/* ミニ模試チェックボックス */}
-              <label style={{ display: 'inline-flex', alignItems: 'center', gap: 'var(--spacing-sm)', cursor: 'pointer', fontSize: 'var(--font-size-base)', marginBottom: 16 }}>
+              <label data-kbnav="1" style={{ display: 'inline-flex', alignItems: 'center', gap: 'var(--spacing-sm)', cursor: 'pointer', fontSize: 'var(--font-size-base)', marginBottom: 16 }}>
                 <input
                   type="checkbox"
                   checked={examMode === 'mini'}

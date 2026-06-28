@@ -15,6 +15,7 @@ import {
   EXAM_ICON_COMPONENTS, IconSaveCheck,
 } from '../components/Icons';
 import ExamSelectOverlay, { EXAM_DESC } from '../components/ExamSelectOverlay';
+import KeyHint from '../components/KeyHint';
 
 
 const FOCUSED_UNLOCK_THRESHOLD = 30;
@@ -340,6 +341,23 @@ export default function MyPage() {
     } catch { setSessionAnswers(prev => ({ ...prev, [s.sessionId]: [] })); }
     finally { setAnswersLoading(null); }
   }, [user, expandedSession, sessionAnswers, answersLoading]);
+
+  // ── Ctrl/Cmd+Enter で「しっかり対策」を開始（苦手分析タブ・Web版のみ、ホームと同挙動） ──
+  useEffect(() => {
+    if (isMobile) return;
+    const h = (e: KeyboardEvent) => {
+      if (!(e.key === 'Enter' && (e.ctrlKey || e.metaKey))) return;
+      if (tab !== 'analysis' || !focusedUnlocked) return;
+      const el = e.target as HTMLElement | null;
+      const t = el?.tagName;
+      if (t === 'INPUT' || t === 'TEXTAREA' || el?.isContentEditable) return;
+      if (showSettingsEdit || showExamSelect || showWeeklyDetail || questionModal) return;
+      e.preventDefault();
+      navigate('/aws/', { state: { startFocused: true } });
+    };
+    window.addEventListener('keydown', h);
+    return () => window.removeEventListener('keydown', h);
+  }, [isMobile, tab, focusedUnlocked, showSettingsEdit, showExamSelect, showWeeklyDetail, questionModal, navigate]);
 
   // ── UI helpers ──
   const tabStyle = (active: boolean): React.CSSProperties => ({
@@ -879,9 +897,10 @@ export default function MyPage() {
                       {focusedUnlocked ? (
                         <button
                           onClick={() => navigate('/aws/', { state: { startFocused: true } })}
-                          style={{ width: '100%', height: 44, border: 'none', background: '#009E9E', color: '#fff', fontWeight: 600, fontSize: 'var(--font-size-base)', borderRadius: 'var(--border-radius-full)', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+                          style={{ width: '100%', height: 44, border: 'none', background: '#009E9E', color: '#fff', fontWeight: 600, fontSize: 'var(--font-size-base)', borderRadius: 'var(--border-radius-full)', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8 }}
                         >
                           {ja ? 'しっかり対策' : 'Focused Practice'}
+                          {!isMobile && <KeyHint />}
                         </button>
                       ) : (
                         <button
