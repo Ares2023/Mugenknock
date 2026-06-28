@@ -463,9 +463,9 @@ button:active:not(:disabled) {
     padding: var(--spacing-md) !important;
   }
 
-  /* 演習・模試セッションのコンテナ */
+  /* 演習・模試セッションのコンテナ（上は進捗ノードをヘッダーに密着させるため0） */
   .session-container {
-    padding: var(--spacing-md) !important;
+    padding: 0 var(--spacing-md) var(--spacing-md) !important;
   }
 
   /* 結果画面 */

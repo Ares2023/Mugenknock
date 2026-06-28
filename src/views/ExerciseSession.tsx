@@ -65,7 +65,7 @@ const CopyButton = ({ getText, hint }: { getText: () => string; hint?: string })
       }}
     >
       {copied ? <IconCheck size={13} /> : <IconCopy size={13} />}
-      {hint && <span>{hint}</span>}
+      {hint && <KeyHint keys={hint.split('+')} />}
     </button>
   );
 };
@@ -985,7 +985,7 @@ export default function ExerciseSession() {
           : Array.from({ length: totalCount }, (_, k) => k);
 
         return (
-          <div style={{ position: 'sticky', top: 0, zIndex: 190, background: 'var(--color-bg-white)', borderBottom: '1px solid var(--color-border)', padding: '8px 24px', display: 'flex', alignItems: 'center', gap: 0, width: '100%', boxSizing: 'border-box', marginBottom: 'var(--spacing-md)' }}>
+          <div style={{ position: 'sticky', top: 0, zIndex: 190, background: 'var(--color-bg-white)', borderBottom: '1px solid var(--color-border)', padding: isMobile ? '8px 16px' : '8px 24px', display: 'flex', alignItems: 'center', gap: 0, width: isMobile ? 'calc(100% + 2 * var(--spacing-md))' : '100%', marginLeft: isMobile ? 'calc(-1 * var(--spacing-md))' : undefined, boxSizing: 'border-box', marginBottom: 'var(--spacing-md)' }}>
             <div style={{ flex: 1, display: 'flex', alignItems: 'center' }}>
               {visibleIndices.map((i, visIdx) => {
                 const isAnswered = i < results.length;

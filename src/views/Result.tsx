@@ -9,6 +9,7 @@ import Card from '../components/ui/Card';
 import Button from '../components/ui/Button';
 import Badge from '../components/ui/Badge';
 import { IconChevronDown, IconChevronRight, IconSparkles } from '../components/Icons';
+import KeyHint from '../components/KeyHint';
 
 const QUICK_PREFS_KEY = 'quickExercisePrefs';
 const loadQuickPrefs = () => { try { return JSON.parse(localStorage.getItem(QUICK_PREFS_KEY) ?? '{}'); } catch { return {}; } };
@@ -34,7 +35,23 @@ export default function Result() {
   const [expandedId, setExpandedId] = useState<string | null>(null);
   const [quickLoading, setQuickLoading] = useState(false);
   const [showDailyBonus, setShowDailyBonus] = useState(false);
-  useEffect(() => { if (dailyBonusPts > 0) { const t = setTimeout(() => setShowDailyBonus(true), 600); return () => clearTimeout(t); } }, [dailyBonusPts]);
+  const [bonusConfetti, setBonusConfetti] = useState(false);
+  useEffect(() => {
+    if (dailyBonusPts > 0) {
+      const t = setTimeout(() => {
+        setShowDailyBonus(true);
+        if (!window.matchMedia?.('(prefers-reduced-motion: reduce)').matches) setBonusConfetti(true);
+      }, 600);
+      return () => clearTimeout(t);
+    }
+  }, [dailyBonusPts]);
+  // 日次目標達成ポップアップは Esc で閉じる（モバイル含め共通）
+  useEffect(() => {
+    if (!showDailyBonus) return;
+    const h = (e: KeyboardEvent) => { if (e.key === 'Escape') { e.preventDefault(); setShowDailyBonus(false); } };
+    window.addEventListener('keydown', h);
+    return () => window.removeEventListener('keydown', h);
+  }, [showDailyBonus]);
 
   // 合格時に紙吹雪（遷移直後の state フリッカで再発火しないよう一度だけ）
   const [showConfetti, setShowConfetti] = useState(false);
@@ -45,6 +62,9 @@ export default function Result() {
     confettiFiredRef.current = true;
     setShowConfetti(true);
   }, [isPassed]);
+
+  const [isMobile, setIsMobile] = useState(typeof window !== 'undefined' && window.innerWidth < 768);
+  useEffect(() => { const f = () => setIsMobile(window.innerWidth < 768); window.addEventListener('resize', f); return () => window.removeEventListener('resize', f); }, []);
 
   const restartQuick = async () => {
     setQuickLoading(true);
@@ -72,6 +92,26 @@ export default function Result() {
     } catch (err) { console.error(err); alert(ja ? '演習の開始に失敗しました' : 'Failed to start exercise'); }
     finally { setQuickLoading(false); }
   };
+
+  // 「もう一度／再挑戦」の実行（Ctrl+Enter からも呼ぶ）
+  const goAgainRef = useRef<() => void>(() => {});
+  goAgainRef.current = () => {
+    if (quickLoading || showDailyBonus) return;
+    if (isExam && !isQuick) navigate('/aws/exam/setup');
+    else restartQuick();
+  };
+  useEffect(() => {
+    const h = (e: KeyboardEvent) => {
+      if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) {
+        const tag = (e.target as HTMLElement)?.tagName;
+        if (tag === 'INPUT' || tag === 'TEXTAREA') return;
+        e.preventDefault();
+        goAgainRef.current();
+      }
+    };
+    window.addEventListener('keydown', h);
+    return () => window.removeEventListener('keydown', h);
+  }, []);
 
   return (
     <div style={{ maxWidth: 900, margin: '0 auto', padding: 'var(--spacing-xl) var(--spacing-lg)' }} className="result-container">
@@ -112,8 +152,9 @@ export default function Result() {
 
       {/* 日次目標達成ボーナスポップアップ */}
       {showDailyBonus && (
-        <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', zIndex: 1000, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16 }}>
-          <div style={{ background: 'var(--color-bg-white)', borderRadius: 'var(--border-radius-lg)', padding: '28px 32px', textAlign: 'center', boxShadow: '0 8px 32px rgba(0,0,0,0.2)', maxWidth: 320, width: '100%' }}>
+        <div data-kbscope="1" style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', zIndex: 1000, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16 }}>
+          {bonusConfetti && <Confetti onDone={() => setBonusConfetti(false)} />}
+          <div style={{ background: 'var(--color-bg-white)', borderRadius: 'var(--border-radius-lg)', padding: '28px 32px', textAlign: 'center', boxShadow: '0 8px 32px rgba(0,0,0,0.2)', maxWidth: 320, width: '100%', position: 'relative', zIndex: 1 }}>
             <div style={{ fontSize: 40, marginBottom: 8 }}>🎯</div>
             <div style={{ fontWeight: 800, fontSize: 18, color: 'var(--color-text-main)', marginBottom: 6 }}>
               {ja ? '日次目標達成！' : 'Daily Goal Achieved!'}
@@ -122,10 +163,10 @@ export default function Result() {
               {ja ? '今日の演習目標をクリアしました' : 'You completed your daily exercise goal'}
             </div>
             <div style={{ display: 'inline-flex', alignItems: 'center', gap: 6, background: 'var(--color-primary-light)', borderRadius: 'var(--border-radius-full)', padding: '6px 20px', marginBottom: 20 }}>
-              <IconSparkles size={18} />
+              <span style={{ display: 'inline-flex', color: '#009E9E' }}><IconSparkles size={18} /></span>
               <span style={{ fontWeight: 800, fontSize: 20, color: 'var(--color-primary)' }}>+{dailyBonusPts}p</span>
             </div>
-            <button onClick={() => setShowDailyBonus(false)} style={{ display: 'block', width: '100%', padding: '10px 0', background: 'var(--color-primary)', color: 'var(--color-btn-primary-text)', border: 'none', borderRadius: 'var(--border-radius-full)', fontWeight: 700, fontSize: 15, cursor: 'pointer' }}>
+            <button data-kbnav="1" data-kbclose onClick={() => setShowDailyBonus(false)} style={{ display: 'block', width: '100%', padding: '10px 0', background: 'var(--color-primary)', color: 'var(--color-btn-primary-text)', border: 'none', borderRadius: 'var(--border-radius-full)', fontWeight: 700, fontSize: 15, cursor: 'pointer' }}>
               {ja ? 'OK' : 'OK'}
             </button>
           </div>
@@ -300,31 +341,35 @@ export default function Result() {
       </div>
 
       <div style={{ display: 'flex', gap: 'var(--spacing-md)', marginTop: 'var(--spacing-xl)' }}>
-        <Button variant="outline" style={{ flex: 2 }} onClick={() => navigate('/aws/')}>
+        <Button data-kbnav="1" variant="outline" style={{ flex: 2 }} onClick={() => navigate('/aws/')}>
           {t('result.backHome')}
         </Button>
         {isQuick ? (
-          <Button variant="primary" style={{ flex: 3 }} disabled={quickLoading} onClick={restartQuick}>
+          <Button data-kbnav="1" variant="primary" style={{ flex: 3 }} disabled={quickLoading} onClick={restartQuick}>
             {quickLoading ? (
               <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}>
                 <span style={{ width: 14, height: 14, border: '2px solid rgba(0,0,0,0.2)', borderTopColor: '#16191f', borderRadius: '50%', animation: 'sherpa-spin 0.7s linear infinite', flexShrink: 0 }} />
                 {ja ? '準備中...' : 'Loading...'}
               </span>
-            ) : (ja ? 'もう一度' : 'Again')}
+            ) : (
+              <span style={{ display: 'inline-flex', alignItems: 'center', gap: 8 }}>{ja ? 'もう一度' : 'Again'}{!isMobile && <KeyHint keys={['Ctrl', '⏎']} />}</span>
+            )}
           </Button>
         ) : isExam ? (
-          <Button variant="primary" style={{ flex: 3 }} onClick={() => navigate('/aws/exam/setup')}>
-            {t('result.retry')}
+          <Button data-kbnav="1" variant="primary" style={{ flex: 3 }} onClick={() => navigate('/aws/exam/setup')}>
+            <span style={{ display: 'inline-flex', alignItems: 'center', gap: 8 }}>{t('result.retry')}{!isMobile && <KeyHint keys={['Ctrl', '⏎']} />}</span>
           </Button>
         ) : (
           /* 非quick演習: setupを経由せず直接新しい演習セッションを開始 */
-          <Button variant="primary" style={{ flex: 3 }} disabled={quickLoading} onClick={restartQuick}>
+          <Button data-kbnav="1" variant="primary" style={{ flex: 3 }} disabled={quickLoading} onClick={restartQuick}>
             {quickLoading ? (
               <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}>
                 <span style={{ width: 14, height: 14, border: '2px solid rgba(0,0,0,0.2)', borderTopColor: '#16191f', borderRadius: '50%', animation: 'sherpa-spin 0.7s linear infinite', flexShrink: 0 }} />
                 {ja ? '準備中...' : 'Loading...'}
               </span>
-            ) : t('result.retry')}
+            ) : (
+              <span style={{ display: 'inline-flex', alignItems: 'center', gap: 8 }}>{t('result.retry')}{!isMobile && <KeyHint keys={['Ctrl', '⏎']} />}</span>
+            )}
           </Button>
         )}
       </div>
