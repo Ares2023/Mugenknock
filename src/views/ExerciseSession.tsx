@@ -479,8 +479,9 @@ export default function ExerciseSession() {
   const [copyToast, setCopyToast] = useState(false); // Ctrl+Cコピーのトースト
   // キーボード操作用カーソル（Web版のみ）。choices + わからない を対象に上下移動
   const [cursorIndex, setCursorIndex] = useState(0);
-  // 進捗ノード上にカーソルがあるか（最上部でさらに↑→現在問題のノードへ移動し、←→で問題移動）
+  // 進捗ノード上にカーソルがあるか（最上部でさらに↑→ノードへ移動し、←→でクリック可能ノードを移動、Enterで移動）
   const [cursorOnNodes, setCursorOnNodes] = useState(false);
+  const [nodeCursorIdx, setNodeCursorIdx] = useState(0);
   const cursorElRef = useRef<HTMLButtonElement | null>(null);
   const explAnchorRef = useRef<HTMLDivElement | null>(null); // 解説パネル先頭アンカー
   // 右ペインがフォーカス中か（左ペイン操作中は選択肢カーソルを隠す）
@@ -810,12 +811,16 @@ export default function ExerciseSession() {
     // 進捗ノード上にカーソルがある場合：←→で前後の問題へ移動、↓で選択肢へ戻る。
     // ←→はLayoutの左ペイン移動と競合するため stopImmediatePropagation で抑止する。
     if (cursorOnNodes) {
+      const maxNav = Math.min(viewedFrontier, questions.length - 1); // 移動可能（クリック可能）な最大ノード
       if (e.key === 'ArrowLeft') {
         e.preventDefault(); e.stopImmediatePropagation();
-        if (currentIndex - 1 >= 0) goToQuestion(currentIndex - 1);
+        setNodeCursorIdx(i => Math.max(0, i - 1));
       } else if (e.key === 'ArrowRight') {
         e.preventDefault(); e.stopImmediatePropagation();
-        if (currentIndex + 1 <= viewedFrontier && currentIndex + 1 < questions.length) goToQuestion(currentIndex + 1);
+        setNodeCursorIdx(i => Math.min(maxNav, i + 1));
+      } else if (e.key === 'Enter') {
+        e.preventDefault();
+        if (nodeCursorIdx !== currentIndex) goToQuestion(nodeCursorIdx); // クリック相当
       } else if (e.key === 'ArrowDown') {
         e.preventDefault();
         setCursorOnNodes(false); setCursorIndex(0);
@@ -837,7 +842,7 @@ export default function ExerciseSession() {
         // 最上選択肢でさらに上：まだ最上部でなければページ最上部へ、既に最上部なら進捗ノードへ移動
         const m = document.querySelector('main');
         const atTop = (m ? m.scrollTop : 0) <= 1 && window.scrollY <= 1;
-        if (atTop) setCursorOnNodes(true);
+        if (atTop) { setCursorOnNodes(true); setNodeCursorIdx(currentIndex); }
         else scrollMain(false);
       } else setCursorIndex(c => Math.max(0, c - 1));
     } else if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) {
@@ -1007,8 +1012,10 @@ export default function ExerciseSession() {
       {(() => {
         const WINDOW = 5;
         const useWindow = totalCount > WINDOW;
+        // ノードカーソル中はカーソル位置を中心にウィンドウを寄せ、カーソルが常に見えるようにする
+        const focusIdx = cursorOnNodes ? nodeCursorIdx : currentIndex;
         const windowStart = useWindow
-          ? Math.max(0, Math.min(currentIndex - Math.floor(WINDOW / 2), totalCount - WINDOW))
+          ? Math.max(0, Math.min(focusIdx - Math.floor(WINDOW / 2), totalCount - WINDOW))
           : 0;
         const visibleIndices = useWindow
           ? Array.from({ length: WINDOW }, (_, k) => windowStart + k)
@@ -1025,7 +1032,9 @@ export default function ExerciseSession() {
                 // 未ロード問題はタップ不可
                 const isClickable = i <= viewedFrontier && !isCurrent && isLoaded;
                 const isHovered = hoveredNode === i;
+                const isNodeCursor = nodeCursorActive && i === nodeCursorIdx;
                 const notYetLoaded = !isLoaded && !isCurrent;
+                const dotSize = isCurrent ? 12 : isNodeCursor ? 10 : isHovered ? 9 : 7;
                 return (
                   <React.Fragment key={i}>
                     <div
@@ -1034,15 +1043,17 @@ export default function ExerciseSession() {
                       onMouseLeave={isClickable ? () => setHoveredNode(null) : undefined}
                       title={isClickable ? `第${i + 1}問へ` : undefined}
                       style={{
-                        width: isCurrent ? 12 : isHovered ? 9 : 7,
-                        height: isCurrent ? 12 : isHovered ? 9 : 7,
+                        width: dotSize,
+                        height: dotSize,
                         borderRadius: '50%',
                         flexShrink: 0,
                         background: isAnswered || isCurrent ? 'var(--color-primary)' : 'transparent',
                         border: `2px solid ${isAnswered || isCurrent ? 'var(--color-primary)' : 'var(--color-text-light)'}`,
                         opacity: notYetLoaded ? 0.3 : undefined,
-                        boxShadow: isCurrent
-                          ? (nodeCursorActive ? '0 0 0 3px var(--color-accent)' : '0 0 0 2px var(--color-primary-light, rgba(82,130,255,0.25))')
+                        boxShadow: isNodeCursor
+                          ? '0 0 0 3px var(--color-accent)'
+                          : isCurrent
+                          ? '0 0 0 2px var(--color-primary-light, rgba(82,130,255,0.25))'
                           : isHovered
                           ? '0 0 0 3px var(--color-primary-light, rgba(82,130,255,0.35))'
                           : 'none',
