@@ -388,14 +388,15 @@ export default function Layout({ children }: { children: React.ReactNode }) {
     // （固定底バーの開始ボタン等もカーソル対象に含める）
     return scope ? (Array.from(scope.querySelectorAll('[data-kbnav]')) as HTMLElement[]).filter(x => x.getClientRects().length > 0) : [];
   };
-  const applyKbnav = (rawIdx: number) => {
+  const applyKbnav = (rawIdx: number, scroll = true) => {
     const els = kbnavEls();
     removeKbnavHighlight();
     if (els.length === 0) { kbnavIdxRef.current = -1; return; }
     const idx = Math.max(0, Math.min(els.length - 1, rawIdx));
     kbnavIdxRef.current = idx;
     els[idx].setAttribute('data-kbnav-active', '1');
-    els[idx].scrollIntoView({ block: 'nearest' });
+    // 遷移直後の初期カーソル配置ではスクロールしない（下部のボタン等へ画面が飛ぶのを防ぐ）
+    if (scroll) els[idx].scrollIntoView({ block: 'nearest' });
   };
   const paneKeyRef = useRef<(e: KeyboardEvent) => void>(() => {});
   paneKeyRef.current = (e: KeyboardEvent) => {
@@ -560,7 +561,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
     let tries = 0; let raf = 0;
     const tryApply = () => {
       const els = kbnavEls();
-      if (els.length > 0) { const t0 = els.findIndex(x => x.getAttribute('data-kbnav') === 'tab'); applyKbnav(t0 >= 0 ? t0 : 0); return; }
+      if (els.length > 0) { const t0 = els.findIndex(x => x.getAttribute('data-kbnav') === 'tab'); applyKbnav(t0 >= 0 ? t0 : 0, false); return; }
       if (tries++ < 30) raf = requestAnimationFrame(tryApply);
     };
     raf = requestAnimationFrame(tryApply);

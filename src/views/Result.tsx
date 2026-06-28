@@ -36,6 +36,12 @@ export default function Result() {
   const ja = lang === 'ja';
   const [expandedId, setExpandedId] = useState<string | null>(null);
   const [quickLoading, setQuickLoading] = useState(false);
+  // 結果画面は常に最上部から表示する（キー入力カーソルで下部ボタンへスクロールされるのを防ぐ）
+  useEffect(() => {
+    const m = document.querySelector('main');
+    m?.scrollTo({ top: 0 });
+    window.scrollTo({ top: 0 });
+  }, []);
   const [showDailyBonus, setShowDailyBonus] = useState(false);
   const [bonusConfetti, setBonusConfetti] = useState(false);
   useEffect(() => {
@@ -73,9 +79,12 @@ export default function Result() {
     const qPrefs = loadQuickPrefs();
     try {
       const userId = user?.userId ?? 'guest';
-      const params = new URLSearchParams({ examType: resolvedExamType, withAnswers: 'true' });
+      // metaOnly はサーバ側で validity 済み・questionId/domain のみ返す軽量レスポンス。
+      // 全問を withAnswers=true で取得すると数MB・応答20秒級になり API Gateway がタイムアウト
+      // （ブラウザでは CORS エラーに見える）するため使わない。Home の「もう一度」と同方式に揃える。
+      const params = new URLSearchParams({ examType: resolvedExamType, metaOnly: 'true' });
       const data = await fetch(`${API_ENDPOINT}/questions?${params}`).then(r => r.json());
-      let items: any[] = (data.items ?? []).filter((q: any) => !!q.validityCheckedAt);
+      let items: any[] = data.items ?? [];
       if (user && (qPrefs.unansweredOnly || qPrefs.incorrectOnly || qPrefs.bookmarkOnly)) {
         const [answeredRes, incorrectRes, bkmRes] = await Promise.all([
           qPrefs.unansweredOnly ? fetch(`${API_ENDPOINT}/users/me/answered-questions?userId=${userId}&examType=${resolvedExamType}`).then(r => r.json()) : null,
@@ -88,9 +97,10 @@ export default function Result() {
       }
       items = shuffleArray(items).slice(0, qPrefs.questionCount ?? 5);
       if (items.length === 0) { alert(ja ? '条件に合う問題がありません' : 'No questions match the criteria'); return; }
-      const sessionRes = await fetch(`${API_ENDPOINT}/sessions`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ userId, mode: 'exercise', examType: resolvedExamType, questionIds: items.map((q: any) => q.questionId) }) });
-      const sessionData = await sessionRes.json();
-      navigate('/aws/exercise/session', { state: { sessionId: sessionData.sessionId, questions: items, userId, mode: 'exercise', examType: resolvedExamType, isQuick: true } });
+      const questionIds = items.map((q: any) => q.questionId);
+      // セッション作成は遷移先で実行。先頭1問だけ取得し、残りはプログレッシブロード。
+      const q1Data = await fetch(`${API_ENDPOINT}/questions?ids=${questionIds[0]}&withAnswers=true&examType=${resolvedExamType}`).then(r => r.json());
+      navigate('/aws/exercise/session', { state: { createSession: { userId, mode: 'exercise', examType: resolvedExamType, questionIds }, questions: q1Data.items ?? [], questionIds, userId, mode: 'exercise', examType: resolvedExamType, isQuick: true } });
     } catch (err) { console.error(err); alert(ja ? '演習の開始に失敗しました' : 'Failed to start exercise'); }
     finally { setQuickLoading(false); }
   };
