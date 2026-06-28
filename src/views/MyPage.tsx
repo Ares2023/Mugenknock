@@ -418,7 +418,7 @@ export default function MyPage() {
                     /* デスクトップ: 概要(左300px)｜詳細(右) の2カード。横を揃え/右は塗りなし/目標資格と学習目標は別カードで分離 */
                     <>
                       {/* カード1: 目標資格(概要) ｜ 資格情報(詳細) */}
-                      <div style={{ display: 'flex', marginBottom: 12, border: '1px solid color-mix(in srgb, var(--color-text-light) 40%, transparent)', borderRadius: 'var(--border-radius-md)', overflow: 'hidden', background: 'transparent' }}>
+                      <div style={{ display: 'flex', minHeight: 195, marginBottom: 12, border: '1px solid color-mix(in srgb, var(--color-text-light) 40%, transparent)', borderRadius: 'var(--border-radius-md)', overflow: 'hidden', background: 'transparent' }}>
                         <div data-kbnav="1" style={{ width: 300, flexShrink: 0, padding: 'var(--spacing-lg)', cursor: 'pointer', background: 'var(--color-bg-white)' }} onClick={() => setShowExamSelect(true)}>
                           <ExamCardHeader />
                           <ExamCardContent />
@@ -453,7 +453,7 @@ export default function MyPage() {
                       </div>
 
                       {/* カード2: 学習目標(概要) ｜ 週間達成状況(詳細・直接表示・塗りなし) */}
-                      <div style={{ display: 'flex', marginBottom: 12, border: '1px solid color-mix(in srgb, var(--color-text-light) 40%, transparent)', borderRadius: 'var(--border-radius-md)', overflow: 'hidden', background: 'transparent' }}>
+                      <div style={{ display: 'flex', minHeight: 195, marginBottom: 12, border: '1px solid color-mix(in srgb, var(--color-text-light) 40%, transparent)', borderRadius: 'var(--border-radius-md)', overflow: 'hidden', background: 'transparent' }}>
                         <div data-kbnav="1" style={{ width: 300, flexShrink: 0, padding: 'var(--spacing-lg)', cursor: 'pointer', background: 'var(--color-bg-white)' }} onClick={() => { setEditExamDate(examDate); setEditDailyGoal(dailyGoal); setShowSettingsEdit(true); }}>
                           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
                             <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
@@ -516,7 +516,7 @@ export default function MyPage() {
                                       const barH = Math.max(h, count > 0 ? 3 : 0);
                                       return (
                                         <div key={d} style={{ flex: 1, position: 'relative', height: '100%', display: 'flex', alignItems: 'flex-end' }}>
-                                          <div style={{ width: '100%', maxWidth: 30, margin: '0 auto', height: barH, background: achieved ? examColor : `${examColor}55`, borderRadius: '3px 3px 0 0', transition: 'height 0.3s' }} />
+                                          <div style={{ width: '100%', maxWidth: 6, margin: '0 auto', height: barH, background: achieved ? examColor : `${examColor}55`, borderRadius: '3px 3px 0 0', transition: 'height 0.3s' }} />
                                           <span style={{ position: 'absolute', bottom: barH + 2, left: '50%', transform: 'translateX(-50%)', fontSize: 11, fontWeight: 700, color: count > 0 ? (achieved ? examColor : 'var(--color-text-sub)') : 'var(--color-text-light)' }}>{count}</span>
                                         </div>
                                       );
@@ -602,7 +602,7 @@ export default function MyPage() {
                       <span style={{ color: 'var(--color-text-light)', display: 'flex', alignItems: 'center', flexShrink: 0 }}><IconChevronRight size={16} /></span>
                     </div>
                     <div style={{ fontSize: 12, color: 'var(--color-text-sub)', marginBottom: 8 }}>{ja ? '直近7日間' : 'Last 7 days'}</div>
-                    <div style={{ display: 'flex', gap: 6, alignItems: 'flex-end' }}>
+                    <div style={{ display: 'flex', gap: 6, alignItems: 'center' }}>
                       {weekDays.map((d, i) => {
                         const count = weekCountsTarget[i];
                         const rewarded = localStorage.getItem(`dailyGoalReward_${targetExam}_${uid}_${d}`) === '1';
@@ -610,11 +610,22 @@ export default function MyPage() {
                         const pct = dailyGoal > 0 ? Math.min(1, count / dailyGoal) : 0;
                         const isToday = d === jstToday();
                         const dayLabel = new Date(d + 'T12:00:00').toLocaleDateString(ja ? 'ja-JP' : 'en-US', { weekday: 'short' });
+                        const R = 14, C = 2 * Math.PI * R; // 1周=100%達成の中空リング
                         return (
                           <div key={d} style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 3 }}>
-                            <div style={{ width: '100%', height: 44, borderRadius: 4, background: 'var(--color-bg-card)', position: 'relative', overflow: 'hidden', boxSizing: 'border-box', border: `1px solid ${examColor}33` }}>
-                              {pct > 0 && <div style={{ position: 'absolute', bottom: 0, width: '100%', height: `${pct * 100}%`, background: achieved ? examColor : `${examColor}55`, borderRadius: '3px 3px 0 0', transition: 'height 0.3s' }} />}
-                              {achieved && <div style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%,-50%)', fontSize: 10, color: 'white', fontWeight: 700 }}>✓</div>}
+                            <div style={{ position: 'relative', width: 36, height: 36 }}>
+                              <svg width={36} height={36} viewBox="0 0 36 36">
+                                <circle cx={18} cy={18} r={R} fill="none" stroke={`${examColor}22`} strokeWidth={4} />
+                                {pct > 0 && (
+                                  <circle
+                                    cx={18} cy={18} r={R} fill="none"
+                                    stroke={achieved ? examColor : `${examColor}99`} strokeWidth={4} strokeLinecap="round"
+                                    strokeDasharray={C} strokeDashoffset={C * (1 - pct)}
+                                    transform="rotate(-90 18 18)" style={{ transition: 'stroke-dashoffset 0.3s' }}
+                                  />
+                                )}
+                              </svg>
+                              {achieved && <div style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 14, fontWeight: 800, color: examColor }}>✓</div>}
                             </div>
                             <span style={{ fontSize: 9, color: isToday ? examColor : 'var(--color-text-light)', fontWeight: isToday ? 700 : 400 }}>{dayLabel}</span>
                           </div>
@@ -670,7 +681,7 @@ export default function MyPage() {
                           const barH = Math.max(h, count > 0 ? 3 : 0);
                           return (
                             <div key={d} style={{ flex: 1, position: 'relative', height: '100%', display: 'flex', alignItems: 'flex-end' }}>
-                              <div style={{ width: '100%', maxWidth: 30, margin: '0 auto', height: barH, background: achieved ? examColor : `${examColor}55`, borderRadius: '3px 3px 0 0', transition: 'height 0.3s' }} />
+                              <div style={{ width: '100%', maxWidth: 6, margin: '0 auto', height: barH, background: achieved ? examColor : `${examColor}55`, borderRadius: '3px 3px 0 0', transition: 'height 0.3s' }} />
                               <span style={{ position: 'absolute', bottom: barH + 2, left: '50%', transform: 'translateX(-50%)', fontSize: 11, fontWeight: 700, color: count > 0 ? (achieved ? examColor : 'var(--color-text-sub)') : 'var(--color-text-light)' }}>{count}</span>
                             </div>
                           );
