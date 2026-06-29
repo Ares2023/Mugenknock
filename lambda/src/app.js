@@ -1046,7 +1046,7 @@ app.delete('/admin/reports/:id', async (req, res) => {
 app.post('/sessions', async (req, res) => {
   try {
     const docClient = getClient();
-    const { userId, mode, examType, questionIds, isMini, isFocused } = req.body;
+    const { userId, mode, examType, questionIds, isMini, isFocused, sessionType } = req.body;
     const sessionId = uuidv4();
     const now = new Date().toISOString();
     const item = {
@@ -1055,8 +1055,67 @@ app.post('/sessions', async (req, res) => {
     };
     if (isMini) item.isMini = true;
     if (isFocused) item.isFocused = true;
+    // 再開用の種別（quick/focused/practice/exam/mini）。4種を独立して再開するため。
+    if (sessionType) item.sessionType = sessionType;
     await docClient.send(new PutCommand({ TableName: T('Sessions'), Item: item }));
     res.json({ sessionId });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+// 進行中セッションのドラフト保存（サーバ側・再開用）。draft は小さく保つ（index/answers/timeLeft 等）。
+app.put('/sessions/:id/progress', async (req, res) => {
+  try {
+    const docClient = getClient();
+    const { userId, draft, sessionType } = req.body;
+    if (!userId || draft == null) return res.status(400).json({ error: 'userId and draft required' });
+    const now = new Date().toISOString();
+    const names = {};
+    const values = { ':d': draft, ':s': now };
+    let expr = 'SET draft = :d, draftSavedAt = :s, lastAnsweredAt = :s';
+    if (sessionType) { expr += ', sessionType = :st'; values[':st'] = sessionType; }
+    await docClient.send(new UpdateCommand({
+      TableName: T('Sessions'),
+      Key: { userId, sessionId: req.params.id },
+      UpdateExpression: expr,
+      ...(Object.keys(names).length ? { ExpressionAttributeNames: names } : {}),
+      ExpressionAttributeValues: values,
+    }));
+    res.json({ ok: true });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+// ユーザーの進行中(再開可能)セッションを種別ごとに最新1件返す（4種独立）。
+app.get('/users/me/active-sessions', async (req, res) => {
+  try {
+    const docClient = getClient();
+    const { userId } = req.query;
+    if (!userId) return res.status(400).json({ error: 'userId required' });
+    const sessions = await queryAll(docClient, {
+      TableName: T('Sessions'),
+      KeyConditionExpression: 'userId = :uid',
+      ExpressionAttributeValues: { ':uid': userId },
+    });
+    const typeOf = (s) => s.sessionType
+      || (s.mode === 'exam' ? (s.isMini ? 'mini' : 'exam') : (s.isFocused ? 'focused' : 'practice'));
+    const latest = {};
+    for (const s of sessions) {
+      if (s.status !== 'active' || s.draft == null) continue;
+      const t = typeOf(s);
+      if (!latest[t] || (s.draftSavedAt || '') > (latest[t].draftSavedAt || '')) latest[t] = s;
+    }
+    res.json({
+      sessions: Object.entries(latest).map(([type, s]) => ({
+        type, sessionId: s.sessionId, mode: s.mode, examType: s.examType,
+        isMini: !!s.isMini, isFocused: !!s.isFocused,
+        questionIds: s.questionIds || [], draft: s.draft, draftSavedAt: s.draftSavedAt,
+      })),
+    });
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: 'Internal server error' });

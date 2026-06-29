@@ -23,6 +23,7 @@ import { IconLightbulb, IconBean, IconSettings, IconChevronUp, IconChevronDown, 
 import KeyHint from '../components/KeyHint';
 import { CATALOG } from '../data/awsServiceCatalog';
 import { autoScoreAndClearDrafts } from '../utils/sessionUtils';
+import { hydrateDraftsFromServer } from '../utils/sessionResume';
 import { syncTargetExamToServer, loadTargetExamFromServer } from '../utils/preferences';
 import { prefetchTypeA, prefetchTypeB, prefetchTypeC, getPrefetchA, getPrefetchB, getPrefetchC } from '../utils/questionPrefetch';
 
@@ -189,6 +190,12 @@ function CombinedDetailModal({ targetExam, domainAccList, estimatedScore, passSc
   const history = serverScoreHistory ?? readScoreHistory(targetExam, uid);
   const sessionHistory = serverSessionHistory ?? readSessionScoreHistory(targetExam, uid);
   const sessionLog = serverSessionScoreLog ?? readSessionScoreLog(targetExam, uid);
+  // セッション別＝直近10回 / 日次最高点＝直近1週間（7日）
+  const sessionLast10 = sessionHistory.slice(-10);
+  const dailyMaxLast7 = (() => {
+    const wk = new Date(Date.now() + 9 * 3600 * 1000 - 6 * 86400000).toISOString().slice(0, 10);
+    return history.filter(h => (h.date || '') >= wk);
+  })();
   const [showCalc, setShowCalc] = useState(false);
   const [tab, setTab] = useState<'score' | 'history' | 'hiscore'>('score');
   const scoreTabRef = useRef<HTMLDivElement>(null);
@@ -382,15 +389,15 @@ function CombinedDetailModal({ targetExam, domainAccList, estimatedScore, passSc
           <div>
             <div style={{ marginBottom: 14 }}>
               <div style={{ fontSize: 11, fontWeight: 700, color: 'var(--color-text-sub)', marginBottom: 8 }}>
-                {ja ? 'セッション別推移（直近5回）' : 'Per-Session Trend (last 5)'}
+                {ja ? 'セッション別推移（直近10回）' : 'Per-Session Trend (last 10)'}
               </div>
-              <SessionScoreChart data={sessionHistory} passScore={passScore} lang={lang} animate={!visitedTabs.current.has('history')} isMobile={isMobile} />
+              <SessionScoreChart data={sessionLast10} passScore={passScore} lang={lang} animate={!visitedTabs.current.has('history')} isMobile={isMobile} />
             </div>
             <div style={{ borderTop: '1px solid var(--color-border)', paddingTop: 12 }}>
               <div style={{ fontSize: 11, fontWeight: 700, color: 'var(--color-text-sub)', marginBottom: 8 }}>
-                {ja ? '日次推移' : 'Daily Trend'}
+                {ja ? '日次最高点推移（直近1週間）' : 'Daily Best (last 7 days)'}
               </div>
-              <ScoreLineChart data={history} passScore={passScore} lang={lang} animate={!visitedTabs.current.has('history')} isMobile={isMobile} />
+              <ScoreLineChart data={dailyMaxLast7} passScore={passScore} lang={lang} animate={!visitedTabs.current.has('history')} isMobile={isMobile} />
             </div>
           </div>
         ) : (
@@ -1130,6 +1137,15 @@ export default function Home() {
   };
   const [quickDraft, setQuickDraft] = useState<any>(() => readQuickDraft());
   const [focusedDraft, setFocusedDraft] = useState<any>(() => readFocusedDraft());
+  // 別端末/キャッシュ削除でもサーバ保存分から再開できるよう、起動時にドラフトを補完して再読込
+  useEffect(() => {
+    if (!user) return;
+    hydrateDraftsFromServer(user.userId).then(h => {
+      if (!h) return;
+      setQuickDraft(readQuickDraft());
+      setFocusedDraft(readFocusedDraft());
+    });
+  }, [user]); // eslint-disable-line react-hooks/exhaustive-deps
   const [showQuickModal, setShowQuickModal] = useState(false);
   const [showNewPanel, setShowNewPanel] = useState(false);
   const [showWebQuickMenu, setShowWebQuickMenu] = useState(false);
@@ -1387,7 +1403,8 @@ export default function Home() {
     let scoreHist: ScoreEntry[] = [];
     try { scoreHist = JSON.parse(localStorage.getItem(histKey) ?? '[]'); } catch {}
     const last = scoreHist[scoreHist.length - 1];
-    if (last?.date === jstDate) { last.score = estimatedScore; }
+    // 日次は「その日の最高点」を保持（日次最高点推移）。同日は max で更新。
+    if (last?.date === jstDate) { last.score = Math.max(last.score ?? 0, estimatedScore); }
     else { scoreHist.push({ date: jstDate, score: estimatedScore }); }
     const newHist = scoreHist.slice(-30);
     localStorage.setItem(histKey, JSON.stringify(newHist));
@@ -1412,7 +1429,7 @@ export default function Home() {
     const sessionHistKey = `score_session_history_${targetExam}_${uid}`;
     let hist: number[] = [];
     try { hist = JSON.parse(localStorage.getItem(sessionHistKey) ?? '[]'); } catch {}
-    hist = [...hist, estimatedScore].slice(-5);
+    hist = [...hist, estimatedScore].slice(-10);
     localStorage.setItem(sessionHistKey, JSON.stringify(hist));
     setServerSessionHistory(hist);
     // 全セッションのスコアログ（ハイスコア用）
@@ -1493,7 +1510,8 @@ export default function Home() {
     if (!targetExam) { alert(ja ? '試験を選択してください' : 'Please select an exam'); return; }
     if (estimatedScore !== null) localStorage.setItem(`score_prev_${targetExam}_${uid}`, String(estimatedScore));
     const userId = user?.userId ?? 'guest';
-    await autoScoreAndClearDrafts(userId);
+    // ホームのプライマリ枠（サクッと/しっかり対策）のみ確定。演習(practice)・模試(exam)は残す。
+    await autoScoreAndClearDrafts(userId, [`quickExerciseDraft_${userId}`, `focusedExerciseDraft_${userId}`]);
     discardQuickDraft();
     discardFocusedDraft();
     setLastMode('quick');
@@ -1591,7 +1609,8 @@ export default function Home() {
     if (!targetExam) { alert(ja ? '試験を選択してください' : 'Please select an exam'); return; }
     if (!user) { alert(ja ? 'ログインが必要です' : 'Login required'); return; }
     if (estimatedScore !== null) localStorage.setItem(`score_prev_${targetExam}_${uid}`, String(estimatedScore));
-    await autoScoreAndClearDrafts(user.userId);
+    // ホームのプライマリ枠（サクッと/しっかり対策）のみ確定。演習(practice)・模試(exam)は残す。
+    await autoScoreAndClearDrafts(user.userId, [`quickExerciseDraft_${user.userId}`, `focusedExerciseDraft_${user.userId}`]);
     discardQuickDraft();
     discardFocusedDraft();
     setLastMode('focused');

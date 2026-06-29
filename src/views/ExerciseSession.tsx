@@ -424,9 +424,11 @@ export default function ExerciseSession() {
   useEffect(() => {
     draftStateRef.current = { currentIndex, results, answered, selectedAnswers };
   });
+  // 完了/中断後はドラフトを保存し直さない（削除後に再作成される競合＝残存セッション/二重取得を防ぐ）
+  const finishedRef = useRef(false);
 
   const saveDraftNow = useCallback(() => {
-    if (!sessionId) return;
+    if (!sessionId || finishedRef.current) return;
     const { currentIndex: ci, results: r, answered: a, selectedAnswers: sa } = draftStateRef.current;
     try {
       const draftKey = isFocused ? `focusedExerciseDraft_${userId}` : isQuick ? `quickExerciseDraft_${userId}` : `practiceExerciseDraft_${userId}`;
@@ -436,6 +438,14 @@ export default function ExerciseSession() {
         isQuick, isFocused, isMini, savedAt: Date.now(),
       }));
     } catch { /* quota over 等は無視 */ }
+    // サーバにも進捗を保存（端末跨ぎ/キャッシュ削除でも再開可能に。questionsは送らず軽量に）
+    if (userId && userId !== 'guest') {
+      const sessionType = isFocused ? 'focused' : isQuick ? 'quick' : 'practice';
+      fetch(`${API_ENDPOINT}/sessions/${sessionId}/progress`, {
+        method: 'PUT', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ userId, sessionType, draft: { currentIndex: ci, results: r, answered: a, selectedAnswers: sa } }),
+      }).catch(() => {});
+    }
   }, [sessionId, examType, questions, userId, isQuick, isFocused, isMini]); // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
@@ -666,6 +676,7 @@ export default function ExerciseSession() {
       return;
     }
     if (nextIdx >= totalCount) {
+      finishedRef.current = true;
       setFinishing(true);
       const score = Math.round((results.filter(r => r.isCorrect).length / totalCount) * 100);
       const basePassRate = PASS_RATE[examType] ?? PASS_RATE['SAA'];
@@ -732,6 +743,7 @@ export default function ExerciseSession() {
 
   const handleAbortAndGrade = async () => {
     if (results.length === 0) return;
+    finishedRef.current = true;
     setShowAbortConfirm(false);
     setFinishing(true);
     const correctCount = results.filter(r => r.isCorrect).length;

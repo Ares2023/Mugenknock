@@ -84,18 +84,23 @@ export default function Result() {
       // （ブラウザでは CORS エラーに見える）するため使わない。Home の「もう一度」と同方式に揃える。
       const params = new URLSearchParams({ examType: resolvedExamType, metaOnly: 'true' });
       const data = await fetch(`${API_ENDPOINT}/questions?${params}`).then(r => r.json());
-      let items: any[] = data.items ?? [];
+      let items: any[] = shuffleArray(data.items ?? []);
       if (user && (qPrefs.unansweredOnly || qPrefs.incorrectOnly || qPrefs.bookmarkOnly)) {
         const [answeredRes, incorrectRes, bkmRes] = await Promise.all([
           qPrefs.unansweredOnly ? fetch(`${API_ENDPOINT}/users/me/answered-questions?userId=${userId}&examType=${resolvedExamType}`).then(r => r.json()) : null,
           qPrefs.incorrectOnly  ? fetch(`${API_ENDPOINT}/users/me/incorrect-questions?userId=${userId}&examType=${resolvedExamType}`).then(r => r.json()) : null,
           qPrefs.bookmarkOnly   ? fetch(`${API_ENDPOINT}/users/me/bookmarks?userId=${userId}`).then(r => r.json()) : null,
         ]);
-        if (qPrefs.unansweredOnly && answeredRes) { const s = new Set(answeredRes.questionIds ?? []); items = items.filter((q: any) => !s.has(q.questionId)); }
-        if (qPrefs.incorrectOnly  && incorrectRes) { const s = new Set(incorrectRes.questionIds ?? []); items = items.filter((q: any) => s.has(q.questionId)); }
-        if (qPrefs.bookmarkOnly   && bkmRes)       { const s = new Set(bkmRes.questionIds ?? []);      items = items.filter((q: any) => s.has(q.questionId)); }
+        const ansSet = qPrefs.unansweredOnly && answeredRes ? new Set(answeredRes.questionIds ?? []) : null;
+        const incSet = qPrefs.incorrectOnly  && incorrectRes ? new Set(incorrectRes.questionIds ?? []) : null;
+        const bkmSet = qPrefs.bookmarkOnly    && bkmRes ? new Set(bkmRes.questionIds ?? []) : null;
+        // フィルタは「除外」ではなく「優先」。一致を先頭に寄せ、不足分はフィルタ外から補充して設定数を満たす
+        items.sort((a: any, b: any) => {
+          const sc = (q: any) => (ansSet && !ansSet.has(q.questionId) ? 1 : 0) + (incSet && incSet.has(q.questionId) ? 1 : 0) + (bkmSet && bkmSet.has(q.questionId) ? 1 : 0);
+          return sc(b) - sc(a);
+        });
       }
-      items = shuffleArray(items).slice(0, qPrefs.questionCount ?? 5);
+      items = items.slice(0, qPrefs.questionCount ?? 5);
       if (items.length === 0) { alert(ja ? '条件に合う問題がありません' : 'No questions match the criteria'); return; }
       const questionIds = items.map((q: any) => q.questionId);
       // セッション作成は遷移先で実行。先頭1問だけ取得し、残りはプログレッシブロード。

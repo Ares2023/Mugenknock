@@ -8,6 +8,7 @@ import { API_ENDPOINT, EXAM_CONFIGS, EXAM_DOMAINS, EXAM_TYPES, PASS_SCORES, qDom
 import Button from '../components/ui/Button';
 import { getCached, setCached, SHORT_TTL, getCachedPersist, setCachedPersist } from '../utils/cache';
 import { autoScoreAndClearDrafts } from '../utils/sessionUtils';
+import { hydrateDraftsFromServer } from '../utils/sessionResume';
 import { animateLoadPct, randomPlateau } from '../utils/loadProgress';
 import { getPrefetchA, getPrefetchC, prefetchTypeA } from '../utils/questionPrefetch';
 import { IconChevronUp, IconChevronDown, IconChevronRight } from '../components/Icons';
@@ -99,6 +100,15 @@ export default function Practice() {
     try { return JSON.parse(localStorage.getItem(`examDraft_${uid}`) ?? 'null'); } catch { return null; }
   });
   const hasExamDraft = examDraft?.examType === examType;
+  // 別端末/キャッシュ削除でもサーバ保存分から再開できるよう、起動時にドラフトを補完して再読込
+  useEffect(() => {
+    if (!user) return;
+    hydrateDraftsFromServer(user.userId).then(h => {
+      if (!h) return;
+      try { setExerciseDraft(JSON.parse(localStorage.getItem(`practiceExerciseDraft_${user.userId}`) ?? 'null')); } catch {}
+      try { setExamDraft(JSON.parse(localStorage.getItem(`examDraft_${user.userId}`) ?? 'null')); } catch {}
+    });
+  }, [user]); // eslint-disable-line react-hooks/exhaustive-deps
   const [showNewPanel, setShowNewPanel] = useState(false);
   const [showNewExamPanel, setShowNewExamPanel] = useState(false);
   const [showStartConfirm, setShowStartConfirm] = useState(false);
@@ -188,7 +198,7 @@ export default function Practice() {
 
   const startExercise = async () => {
     const userId = user?.userId ?? 'guest';
-    await autoScoreAndClearDrafts(userId);
+    await autoScoreAndClearDrafts(userId, [`practiceExerciseDraft_${userId}`]);
     setExerciseDraft(null);
     setExamDraft(null);
     setExerciseLoading(true);
@@ -300,8 +310,7 @@ export default function Practice() {
   const startExam = async () => {
     if (!targetExam || !examCfg) return;
     const userId = user?.userId ?? 'guest';
-    await autoScoreAndClearDrafts(userId);
-    setExerciseDraft(null);
+    await autoScoreAndClearDrafts(userId, [`examDraft_${userId}`]);
     setExamDraft(null);
     setExamLoading(true);
     setExamLoadPct(10);
@@ -321,14 +330,18 @@ export default function Practice() {
       stopAnim?.();
       setExamLoadPct(plateau);
       let ids: string[] = idsData.questionIds ?? [];
-      if (needFilter) {
-        if (examUnansweredOnly && answeredRes) { const s = new Set<string>(answeredRes.questionIds ?? []); ids = ids.filter(id => !s.has(id)); }
-        if (examIncorrectOnly && incorrectRes) { const s = new Set<string>(incorrectRes.questionIds ?? []); ids = ids.filter(id => s.has(id)); }
-        if (examBookmarkOnly && bkmRes)        { const s = new Set<string>(bkmRes.questionIds ?? []);       ids = ids.filter(id => s.has(id)); }
-      } else if (answeredRes) {
-        const answered = new Set<string>(answeredRes.questionIds ?? []);
-        ids.sort((a, b) => (answered.has(a) ? 1 : 0) - (answered.has(b) ? 1 : 0)); // 未回答を優先
-      }
+      // フィルタは「除外」ではなく「優先」。一致を先頭に寄せ、不足分はフィルタ外から補充して設定問題数を必ず満たす。
+      const ansSet = answeredRes ? new Set<string>(answeredRes.questionIds ?? []) : null;
+      const incSet = (needFilter && examIncorrectOnly && incorrectRes) ? new Set<string>(incorrectRes.questionIds ?? []) : null;
+      const bkmSet = (needFilter && examBookmarkOnly && bkmRes) ? new Set<string>(bkmRes.questionIds ?? []) : null;
+      const wantUnanswered = !needFilter || examUnansweredOnly; // 既定は未回答優先、フィルタ時は指定に従う
+      ids.sort((a, b) => {
+        const sc = (id: string) =>
+          (wantUnanswered && ansSet && !ansSet.has(id) ? 1 : 0) +
+          (incSet && incSet.has(id) ? 1 : 0) +
+          (bkmSet && bkmSet.has(id) ? 1 : 0);
+        return sc(b) - sc(a);
+      });
       ids = ids.slice(0, examQuestions);
       if (ids.length === 0) { alert(ja ? '条件に合う問題がありません' : 'No questions match'); setExamLoading(false); return; }
       setExamLoadPct(60);

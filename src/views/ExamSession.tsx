@@ -142,6 +142,13 @@ export default function ExamSession() {
         currentIndex, answers, timeLeft: timeLeftRef.current, savedAt: Date.now(),
       }));
     } catch { /* quota over 等は無視 */ }
+    // サーバにも進捗保存（端末跨ぎ/キャッシュ削除でも再開可能に。questionsは送らず軽量に）
+    if (userId && userId !== 'guest') {
+      fetch(`${API_ENDPOINT}/sessions/${sessionId}/progress`, {
+        method: 'PUT', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ userId, sessionType: isMini ? 'mini' : 'exam', draft: { currentIndex, answers, timeLeft: timeLeftRef.current } }),
+      }).catch(() => {});
+    }
   }, [answers, currentIndex]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // タイマー
