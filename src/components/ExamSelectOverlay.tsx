@@ -191,9 +191,19 @@ export default function ExamSelectOverlay({
       >
         {/* ヘッダー */}
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '16px 20px 0', flexShrink: 0 }}>
-          <span style={{ fontWeight: 700, fontSize: 16 }}>
-            {ja ? '目標資格を選択' : 'Select Target Exam'}
-          </span>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 2, minWidth: 0 }}>
+            <span style={{ fontWeight: 700, fontSize: 16 }}>
+              {ja ? '目標資格を選択' : 'Select Target Exam'}
+            </span>
+            <a
+              href="https://d1.awsstatic.com/onedam/marketing-channels/website/aws/ja_JP/certification/approved/pdfs/AWS_certification_paths.pdf"
+              target="_blank"
+              rel="noopener noreferrer"
+              style={{ fontSize: 11, fontWeight: 600, color: 'var(--color-primary)', textDecoration: 'none' }}
+            >
+              {ja ? '資格パス（PDF）→' : 'Certification paths (PDF) →'}
+            </a>
+          </div>
           {dismissible && (
             <button
               data-kbclose="1"
