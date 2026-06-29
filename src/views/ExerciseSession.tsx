@@ -424,9 +424,11 @@ export default function ExerciseSession() {
   useEffect(() => {
     draftStateRef.current = { currentIndex, results, answered, selectedAnswers };
   });
+  // 完了/中断後はドラフトを保存し直さない（削除後に再作成される競合＝残存セッション/二重取得を防ぐ）
+  const finishedRef = useRef(false);
 
   const saveDraftNow = useCallback(() => {
-    if (!sessionId) return;
+    if (!sessionId || finishedRef.current) return;
     const { currentIndex: ci, results: r, answered: a, selectedAnswers: sa } = draftStateRef.current;
     try {
       const draftKey = isFocused ? `focusedExerciseDraft_${userId}` : isQuick ? `quickExerciseDraft_${userId}` : `practiceExerciseDraft_${userId}`;
@@ -674,6 +676,7 @@ export default function ExerciseSession() {
       return;
     }
     if (nextIdx >= totalCount) {
+      finishedRef.current = true;
       setFinishing(true);
       const score = Math.round((results.filter(r => r.isCorrect).length / totalCount) * 100);
       const basePassRate = PASS_RATE[examType] ?? PASS_RATE['SAA'];
@@ -740,6 +743,7 @@ export default function ExerciseSession() {
 
   const handleAbortAndGrade = async () => {
     if (results.length === 0) return;
+    finishedRef.current = true;
     setShowAbortConfirm(false);
     setFinishing(true);
     const correctCount = results.filter(r => r.isCorrect).length;
