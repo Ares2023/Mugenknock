@@ -320,14 +320,18 @@ export default function Practice() {
       stopAnim?.();
       setExamLoadPct(plateau);
       let ids: string[] = idsData.questionIds ?? [];
-      if (needFilter) {
-        if (examUnansweredOnly && answeredRes) { const s = new Set<string>(answeredRes.questionIds ?? []); ids = ids.filter(id => !s.has(id)); }
-        if (examIncorrectOnly && incorrectRes) { const s = new Set<string>(incorrectRes.questionIds ?? []); ids = ids.filter(id => s.has(id)); }
-        if (examBookmarkOnly && bkmRes)        { const s = new Set<string>(bkmRes.questionIds ?? []);       ids = ids.filter(id => s.has(id)); }
-      } else if (answeredRes) {
-        const answered = new Set<string>(answeredRes.questionIds ?? []);
-        ids.sort((a, b) => (answered.has(a) ? 1 : 0) - (answered.has(b) ? 1 : 0)); // 未回答を優先
-      }
+      // フィルタは「除外」ではなく「優先」。一致を先頭に寄せ、不足分はフィルタ外から補充して設定問題数を必ず満たす。
+      const ansSet = answeredRes ? new Set<string>(answeredRes.questionIds ?? []) : null;
+      const incSet = (needFilter && examIncorrectOnly && incorrectRes) ? new Set<string>(incorrectRes.questionIds ?? []) : null;
+      const bkmSet = (needFilter && examBookmarkOnly && bkmRes) ? new Set<string>(bkmRes.questionIds ?? []) : null;
+      const wantUnanswered = !needFilter || examUnansweredOnly; // 既定は未回答優先、フィルタ時は指定に従う
+      ids.sort((a, b) => {
+        const sc = (id: string) =>
+          (wantUnanswered && ansSet && !ansSet.has(id) ? 1 : 0) +
+          (incSet && incSet.has(id) ? 1 : 0) +
+          (bkmSet && bkmSet.has(id) ? 1 : 0);
+        return sc(b) - sc(a);
+      });
       ids = ids.slice(0, examQuestions);
       if (ids.length === 0) { alert(ja ? '条件に合う問題がありません' : 'No questions match'); setExamLoading(false); return; }
       setExamLoadPct(60);
