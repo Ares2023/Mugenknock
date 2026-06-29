@@ -1493,7 +1493,8 @@ export default function Home() {
     if (!targetExam) { alert(ja ? '試験を選択してください' : 'Please select an exam'); return; }
     if (estimatedScore !== null) localStorage.setItem(`score_prev_${targetExam}_${uid}`, String(estimatedScore));
     const userId = user?.userId ?? 'guest';
-    await autoScoreAndClearDrafts(userId);
+    // ホームのプライマリ枠（サクッと/しっかり対策）のみ確定。演習(practice)・模試(exam)は残す。
+    await autoScoreAndClearDrafts(userId, [`quickExerciseDraft_${userId}`, `focusedExerciseDraft_${userId}`]);
     discardQuickDraft();
     discardFocusedDraft();
     setLastMode('quick');
@@ -1591,7 +1592,8 @@ export default function Home() {
     if (!targetExam) { alert(ja ? '試験を選択してください' : 'Please select an exam'); return; }
     if (!user) { alert(ja ? 'ログインが必要です' : 'Login required'); return; }
     if (estimatedScore !== null) localStorage.setItem(`score_prev_${targetExam}_${uid}`, String(estimatedScore));
-    await autoScoreAndClearDrafts(user.userId);
+    // ホームのプライマリ枠（サクッと/しっかり対策）のみ確定。演習(practice)・模試(exam)は残す。
+    await autoScoreAndClearDrafts(user.userId, [`quickExerciseDraft_${user.userId}`, `focusedExerciseDraft_${user.userId}`]);
     discardQuickDraft();
     discardFocusedDraft();
     setLastMode('focused');

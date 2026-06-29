@@ -188,7 +188,7 @@ export default function Practice() {
 
   const startExercise = async () => {
     const userId = user?.userId ?? 'guest';
-    await autoScoreAndClearDrafts(userId);
+    await autoScoreAndClearDrafts(userId, [`practiceExerciseDraft_${userId}`]);
     setExerciseDraft(null);
     setExamDraft(null);
     setExerciseLoading(true);
@@ -300,8 +300,7 @@ export default function Practice() {
   const startExam = async () => {
     if (!targetExam || !examCfg) return;
     const userId = user?.userId ?? 'guest';
-    await autoScoreAndClearDrafts(userId);
-    setExerciseDraft(null);
+    await autoScoreAndClearDrafts(userId, [`examDraft_${userId}`]);
     setExamDraft(null);
     setExamLoading(true);
     setExamLoadPct(10);
