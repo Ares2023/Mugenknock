@@ -436,6 +436,14 @@ export default function ExerciseSession() {
         isQuick, isFocused, isMini, savedAt: Date.now(),
       }));
     } catch { /* quota over 等は無視 */ }
+    // サーバにも進捗を保存（端末跨ぎ/キャッシュ削除でも再開可能に。questionsは送らず軽量に）
+    if (userId && userId !== 'guest') {
+      const sessionType = isFocused ? 'focused' : isQuick ? 'quick' : 'practice';
+      fetch(`${API_ENDPOINT}/sessions/${sessionId}/progress`, {
+        method: 'PUT', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ userId, sessionType, draft: { currentIndex: ci, results: r, answered: a, selectedAnswers: sa } }),
+      }).catch(() => {});
+    }
   }, [sessionId, examType, questions, userId, isQuick, isFocused, isMini]); // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
