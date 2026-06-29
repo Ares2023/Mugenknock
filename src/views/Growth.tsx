@@ -283,9 +283,9 @@ function DualLineChart({ labels, s1, s2, label1, label2, color1, color2, markerL
         </circle>
       ))}
 
-      {/* X-axis labels（スマホは間引き、末尾は必ず表示） */}
+      {/* X-axis labels（スマホは今日=末尾起点で一日飛ばしに間引く。昨日と今日が重なるのを防ぐ） */}
       {labels.map((label, i) => {
-        if (i % labelEvery !== 0 && i !== n - 1) return null;
+        if ((n - 1 - i) % labelEvery !== 0) return null;
         return <text key={i} x={px(i)} y={H - MB + 14} textAnchor="middle" fontSize={fsLabel} fill="var(--color-text-sub)">{label}</text>;
       })}
 
