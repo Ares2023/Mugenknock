@@ -189,6 +189,12 @@ function CombinedDetailModal({ targetExam, domainAccList, estimatedScore, passSc
   const history = serverScoreHistory ?? readScoreHistory(targetExam, uid);
   const sessionHistory = serverSessionHistory ?? readSessionScoreHistory(targetExam, uid);
   const sessionLog = serverSessionScoreLog ?? readSessionScoreLog(targetExam, uid);
+  // セッション別＝直近10回 / 日次最高点＝直近1週間（7日）
+  const sessionLast10 = sessionHistory.slice(-10);
+  const dailyMaxLast7 = (() => {
+    const wk = new Date(Date.now() + 9 * 3600 * 1000 - 6 * 86400000).toISOString().slice(0, 10);
+    return history.filter(h => (h.date || '') >= wk);
+  })();
   const [showCalc, setShowCalc] = useState(false);
   const [tab, setTab] = useState<'score' | 'history' | 'hiscore'>('score');
   const scoreTabRef = useRef<HTMLDivElement>(null);
@@ -382,15 +388,15 @@ function CombinedDetailModal({ targetExam, domainAccList, estimatedScore, passSc
           <div>
             <div style={{ marginBottom: 14 }}>
               <div style={{ fontSize: 11, fontWeight: 700, color: 'var(--color-text-sub)', marginBottom: 8 }}>
-                {ja ? 'セッション別推移（直近5回）' : 'Per-Session Trend (last 5)'}
+                {ja ? 'セッション別推移（直近10回）' : 'Per-Session Trend (last 10)'}
               </div>
-              <SessionScoreChart data={sessionHistory} passScore={passScore} lang={lang} animate={!visitedTabs.current.has('history')} isMobile={isMobile} />
+              <SessionScoreChart data={sessionLast10} passScore={passScore} lang={lang} animate={!visitedTabs.current.has('history')} isMobile={isMobile} />
             </div>
             <div style={{ borderTop: '1px solid var(--color-border)', paddingTop: 12 }}>
               <div style={{ fontSize: 11, fontWeight: 700, color: 'var(--color-text-sub)', marginBottom: 8 }}>
-                {ja ? '日次推移' : 'Daily Trend'}
+                {ja ? '日次最高点推移（直近1週間）' : 'Daily Best (last 7 days)'}
               </div>
-              <ScoreLineChart data={history} passScore={passScore} lang={lang} animate={!visitedTabs.current.has('history')} isMobile={isMobile} />
+              <ScoreLineChart data={dailyMaxLast7} passScore={passScore} lang={lang} animate={!visitedTabs.current.has('history')} isMobile={isMobile} />
             </div>
           </div>
         ) : (
@@ -1387,7 +1393,8 @@ export default function Home() {
     let scoreHist: ScoreEntry[] = [];
     try { scoreHist = JSON.parse(localStorage.getItem(histKey) ?? '[]'); } catch {}
     const last = scoreHist[scoreHist.length - 1];
-    if (last?.date === jstDate) { last.score = estimatedScore; }
+    // 日次は「その日の最高点」を保持（日次最高点推移）。同日は max で更新。
+    if (last?.date === jstDate) { last.score = Math.max(last.score ?? 0, estimatedScore); }
     else { scoreHist.push({ date: jstDate, score: estimatedScore }); }
     const newHist = scoreHist.slice(-30);
     localStorage.setItem(histKey, JSON.stringify(newHist));
@@ -1412,7 +1419,7 @@ export default function Home() {
     const sessionHistKey = `score_session_history_${targetExam}_${uid}`;
     let hist: number[] = [];
     try { hist = JSON.parse(localStorage.getItem(sessionHistKey) ?? '[]'); } catch {}
-    hist = [...hist, estimatedScore].slice(-5);
+    hist = [...hist, estimatedScore].slice(-10);
     localStorage.setItem(sessionHistKey, JSON.stringify(hist));
     setServerSessionHistory(hist);
     // 全セッションのスコアログ（ハイスコア用）
