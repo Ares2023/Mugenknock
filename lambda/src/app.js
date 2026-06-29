@@ -208,6 +208,50 @@ function shuffle(array) {
   return array;
 }
 
+// ドメイン均等化: 「ユーザーの既回答数 + 本選定での選出数」が最小のドメインから1問ずつ拾う
+// （deficit round-robin）。回答が少ないドメインほど優先され、出題が特定ドメインに偏らない。
+// answeredPerDomain: { domainIndex: 既回答数 }。ゲスト等で空なら全0＝均等割り。
+function domainBalancedOrder(items, answeredPerDomain) {
+  const buckets = new Map();
+  for (const q of items) {
+    const d = q.domain == null ? -1 : q.domain;
+    if (!buckets.has(d)) buckets.set(d, []);
+    buckets.get(d).push(q);
+  }
+  for (const arr of buckets.values()) shuffle(arr);
+  const running = {};
+  for (const d of buckets.keys()) running[d] = (answeredPerDomain && answeredPerDomain[d]) || 0;
+  const result = [];
+  while (result.length < items.length) {
+    let bestD = null, best = Infinity;
+    for (const [d, arr] of buckets) {
+      if (arr.length === 0) continue;
+      if (running[d] < best) { best = running[d]; bestD = d; }
+    }
+    if (bestD === null) break;
+    result.push(buckets.get(bestD).shift());
+    running[bestD] += 1;
+  }
+  return result;
+}
+
+// フィルタ優先（matching を先頭）を保ちつつ、各スコア階層の中でドメイン均等化する。
+// scoreFn が無ければ純粋にドメイン均等化。
+function selectionOrder(items, answeredPerDomain, scoreFn) {
+  if (!scoreFn) return domainBalancedOrder(items, answeredPerDomain);
+  const tiers = new Map();
+  for (const q of items) {
+    const s = scoreFn(q);
+    if (!tiers.has(s)) tiers.set(s, []);
+    tiers.get(s).push(q);
+  }
+  const out = [];
+  for (const s of [...tiers.keys()].sort((a, b) => b - a)) {
+    out.push(...domainBalancedOrder(tiers.get(s), answeredPerDomain));
+  }
+  return out;
+}
+
 async function scanAll(docClient, params) {
   const items = [];
   let lastKey;
@@ -479,26 +523,37 @@ app.get('/questions', async (req, res) => {
     // idsOnly=true: 問題IDのみ返す（プログレッシブロード用・フィルタ対応）
     if (req.query.idsOnly === 'true') {
       const { bookmarkOnly, unansweredOnly, incorrectOnly, userId: qUserId } = req.query;
-      const hasFilter = qUserId && (bookmarkOnly === 'true' || unansweredOnly === 'true' || incorrectOnly === 'true');
-      if (hasFilter) {
+      let answeredPerDomain = {};
+      let scoreFn = null;
+      if (qUserId) {
         const statsResult = await docClient.send(new QueryCommand({
           TableName: T('UserQuestionStats'),
           KeyConditionExpression: 'userId = :uid',
           ExpressionAttributeValues: { ':uid': qUserId }
         }));
         const stats = statsResult.Items || [];
+        const answeredSet  = new Set(stats.map(s => s.questionId));
         const bookmarkSet  = bookmarkOnly   === 'true' ? new Set(stats.filter(s => s.bookmarked).map(s => s.questionId)) : null;
-        const answeredSet  = unansweredOnly === 'true' ? new Set(stats.map(s => s.questionId)) : null;
         const incorrectSet = incorrectOnly  === 'true' ? new Set(stats.filter(s => (s.incorrectCount ?? 0) > 0).map(s => s.questionId)) : null;
-        items.sort((a, b) => {
-          const score = q =>
+        const wantUnanswered = unansweredOnly === 'true';
+        // ユーザーの既回答数をドメイン別に集計（出題プールの domain で対応付け）
+        const qDomain = new Map(items.map(q => [q.questionId, (q.domain == null ? -1 : q.domain)]));
+        for (const qid of answeredSet) {
+          const d = qDomain.get(qid);
+          if (d === undefined) continue;
+          answeredPerDomain[d] = (answeredPerDomain[d] || 0) + 1;
+        }
+        // フィルタ指定時はその一致を最優先（フィルタが効く範囲では従来通り）
+        if (bookmarkSet || incorrectSet || wantUnanswered) {
+          scoreFn = q =>
             (bookmarkSet  && bookmarkSet.has(q.questionId)   ? 1 : 0) +
-            (answeredSet  && !answeredSet.has(q.questionId)  ? 1 : 0) +
+            (wantUnanswered && !answeredSet.has(q.questionId) ? 1 : 0) +
             (incorrectSet && incorrectSet.has(q.questionId)  ? 1 : 0);
-          return score(b) - score(a);
-        });
+        }
       }
-      return res.json({ questionIds: items.map(q => q.questionId), total: items.length });
+      // フィルタで不可能でない限り、回答数の少ないドメインを優先してドメイン偏りを是正
+      const ordered = selectionOrder(items, answeredPerDomain, scoreFn);
+      return res.json({ questionIds: ordered.map(q => q.questionId), total: ordered.length });
     }
 
     const withAnswers = req.query.withAnswers === 'true';

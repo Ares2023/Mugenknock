@@ -232,7 +232,7 @@ export default function Practice() {
       if (user && bookmarkOnly)   idsParams.set('bookmarkOnly',  'true');
       if (user && unansweredOnly) idsParams.set('unansweredOnly', 'true');
       if (user && incorrectOnly)  idsParams.set('incorrectOnly',  'true');
-      if (user && (bookmarkOnly || unansweredOnly || incorrectOnly)) idsParams.set('userId', userId);
+      if (user) idsParams.set('userId', userId); // フィルタ無しでもドメイン均等化のため常に渡す
       const idsData = await fetch(`${API_ENDPOINT}/questions?${idsParams}`).then(r => r.json());
       const allIds: string[] = idsData.questionIds ?? [];
       const selectedIds = allIds.slice(0, limit);
