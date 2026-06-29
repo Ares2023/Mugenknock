@@ -217,12 +217,18 @@ json.dump([{'name': c['name'], 'category': c.get('category', ''), 'docUrl': c.ge
 print(len(cands))
 PYEOF
   _NCAND=$(python3 -c "import json,sys;print(len(json.load(open(sys.argv[1]))))" "$_CANDIDATES_TMP" 2>/dev/null || echo 0)
-  if [ "${_NCAND:-0}" -gt 0 ]; then
-    echo "  カタログ確定の記事化対象: ${_NCAND}件（status=active・検証済みdocUrl）"
-  else
-    echo "  カタログに新規記事化対象なし → モデル選定にフォールバック"
-  fi
 fi
+# 現行性担保: カタログで status=active かつ isArticleTarget の「未作成」サービスが無ければ生成しない。
+# 以前は候補0件のときモデルの自由選定にフォールバックしていたが、それだと新規受付終了/廃止
+# サービス(例: Amazon Fraud Detector)を記事化し得たため廃止。カタログ確定の現行サービスのみ生成する。
+if [ "${_NCAND:-0}" -eq 0 ]; then
+  echo ""
+  echo "現行サービス（カタログ status=active・isArticleTarget）の新規記事化対象がありません。"
+  echo "→ 非現行サービスの混入を防ぐため、今回の生成をスキップします。"
+  rm -f "$_CANDIDATES_TMP"
+  exit 0
+fi
+echo "  カタログ確定の記事化対象: ${_NCAND}件（status=active・検証済みdocUrl）"
 
 # ── 1.5. アイコンキット ZIP の確保＋未取得アイコンのプリフェッチ ─────
 if [ ! -f "$AWS_ICON_KIT_CACHE" ]; then

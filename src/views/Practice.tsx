@@ -136,7 +136,7 @@ export default function Practice() {
     const fetchCounts = async () => {
       if (selectedDomains.length === 0) { setAvailableCount(null); return; }
       try {
-        const params = new URLSearchParams({ examType });
+        const params = new URLSearchParams({ examType, metaOnly: 'true' });
         const allSelected = EXAM_DOMAINS[examType].every(d => selectedDomains.includes(d));
         if (!allSelected) params.set('domain', domainsToIndices(examType, selectedDomains).join(','));
         if (user && (bookmarkOnly || unansweredOnly || incorrectOnly)) {
@@ -155,7 +155,7 @@ export default function Practice() {
         } else if (allSelected) {
           const cached = getCached<number>(`qcount_${examType}`);
           if (cached !== null) { setAvailableCount(cached); return; }
-          const qRes = await fetch(`${API_ENDPOINT}/questions?examType=${examType}`).then(r => r.json());
+          const qRes = await fetch(`${API_ENDPOINT}/questions?examType=${examType}&metaOnly=true`).then(r => r.json());
           const count = qRes.count ?? qRes.items?.length ?? 0;
           setCached(`qcount_${examType}`, count);
           setAvailableCount(count);
@@ -232,7 +232,7 @@ export default function Practice() {
       if (user && bookmarkOnly)   idsParams.set('bookmarkOnly',  'true');
       if (user && unansweredOnly) idsParams.set('unansweredOnly', 'true');
       if (user && incorrectOnly)  idsParams.set('incorrectOnly',  'true');
-      if (user && (bookmarkOnly || unansweredOnly || incorrectOnly)) idsParams.set('userId', userId);
+      if (user) idsParams.set('userId', userId); // フィルタ無しでもドメイン均等化のため常に渡す
       const idsData = await fetch(`${API_ENDPOINT}/questions?${idsParams}`).then(r => r.json());
       const allIds: string[] = idsData.questionIds ?? [];
       const selectedIds = allIds.slice(0, limit);
@@ -306,36 +306,41 @@ export default function Practice() {
     setExamLoading(true);
     setExamLoadPct(10);
     try {
-      const qCacheKey = `qlist_${targetExam}`;
-      const cachedQs = getCachedPersist<{ items: any[]; total: number }>(qCacheKey);
       const plateau = randomPlateau();
-      const stopAnim = cachedQs ? null : animateLoadPct(setExamLoadPct, 10, plateau);
+      const stopAnim = animateLoadPct(setExamLoadPct, 10, plateau);
       const needFilter = user && (examUnansweredOnly || examIncorrectOnly || examBookmarkOnly);
-      const [data, answeredRes, incorrectRes, bkmRes] = await Promise.all([
-        cachedQs ? Promise.resolve(cachedQs) : fetch(`${API_ENDPOINT}/questions?examType=${targetExam}&withAnswers=true`).then(r => r.json()),
+      // 1. 候補IDのみ取得（idsOnly=軽量・validity済み・シャッフル）＋ユーザーのID集合を並行取得。
+      //    全件＋解説の取得(withAnswers)は問題増加で肥大化しタイムアウトの原因になるため使わない。
+      const idsParams = new URLSearchParams({ examType: targetExam, shuffle: 'true', idsOnly: 'true' });
+      const [idsData, answeredRes, incorrectRes, bkmRes] = await Promise.all([
+        fetch(`${API_ENDPOINT}/questions?${idsParams}`).then(r => r.json()),
         user ? fetch(`${API_ENDPOINT}/users/me/answered-questions?userId=${userId}&examType=${targetExam}`).then(r => r.json()) : Promise.resolve(null),
         needFilter && examIncorrectOnly ? fetch(`${API_ENDPOINT}/users/me/incorrect-questions?userId=${userId}&examType=${targetExam}`).then(r => r.json()) : Promise.resolve(null),
         needFilter && examBookmarkOnly ? fetch(`${API_ENDPOINT}/users/me/bookmarks?userId=${userId}`).then(r => r.json()) : Promise.resolve(null),
       ]);
       stopAnim?.();
-      if (!cachedQs) setCachedPersist(qCacheKey, data);
-      setExamLoadPct(cachedQs ? 50 : plateau);
-      let items: any[] = (data.items ?? []).filter((q: any) => !!q.validityCheckedAt);
-      items = shuffleArray(items);
+      setExamLoadPct(plateau);
+      let ids: string[] = idsData.questionIds ?? [];
       if (needFilter) {
-        if (examUnansweredOnly && answeredRes) { const ids = new Set<string>(answeredRes.questionIds ?? []); items = items.filter((q: any) => !ids.has(q.questionId)); }
-        if (examIncorrectOnly && incorrectRes) { const ids = new Set<string>(incorrectRes.questionIds ?? []); items = items.filter((q: any) => ids.has(q.questionId)); }
-        if (examBookmarkOnly && bkmRes) { const ids = new Set<string>(bkmRes.questionIds ?? []); items = items.filter((q: any) => ids.has(q.questionId)); }
+        if (examUnansweredOnly && answeredRes) { const s = new Set<string>(answeredRes.questionIds ?? []); ids = ids.filter(id => !s.has(id)); }
+        if (examIncorrectOnly && incorrectRes) { const s = new Set<string>(incorrectRes.questionIds ?? []); ids = ids.filter(id => s.has(id)); }
+        if (examBookmarkOnly && bkmRes)        { const s = new Set<string>(bkmRes.questionIds ?? []);       ids = ids.filter(id => s.has(id)); }
       } else if (answeredRes) {
         const answered = new Set<string>(answeredRes.questionIds ?? []);
-        items.sort((a: any, b: any) => (answered.has(a.questionId) ? 1 : 0) - (answered.has(b.questionId) ? 1 : 0));
+        ids.sort((a, b) => (answered.has(a) ? 1 : 0) - (answered.has(b) ? 1 : 0)); // 未回答を優先
       }
-      items = items.slice(0, examQuestions);
+      ids = ids.slice(0, examQuestions);
+      if (ids.length === 0) { alert(ja ? '条件に合う問題がありません' : 'No questions match'); setExamLoading(false); return; }
+      setExamLoadPct(60);
+      // 2. 選定したN問だけ取得（withAnswers, N≤試験問題数で有界）。順序は ids（シャッフル済み）に合わせる。
+      const qData = await fetch(`${API_ENDPOINT}/questions?ids=${ids.join(',')}&withAnswers=true&examType=${targetExam}`).then(r => r.json());
+      const orderMap = new Map(ids.map((id, i) => [id, i]));
+      const items: any[] = (qData.items ?? []).sort((a: any, b: any) => (orderMap.get(a.questionId) ?? 0) - (orderMap.get(b.questionId) ?? 0));
       if (items.length === 0) { alert(ja ? '条件に合う問題がありません' : 'No questions match'); setExamLoading(false); return; }
       setExamLoadPct(90);
       const sessionRes = await fetch(`${API_ENDPOINT}/sessions`, {
         method: 'POST', headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ userId, mode: 'exam', examType: targetExam, questionIds: items.map((q: any) => q.questionId) }),
+        body: JSON.stringify({ userId, mode: 'exam', examType: targetExam, questionIds: ids }),
       });
       const sessionData = await sessionRes.json();
       navigate('/aws/exam/session', { state: { sessionId: sessionData.sessionId, questions: items, userId, examType: targetExam, isMini: examMode === 'mini', timeLimitMin: examTimeMin } });
@@ -419,7 +424,7 @@ export default function Practice() {
                 };
                 const on = stateMap[key];
                 return (
-                  <label key={key} style={{ display: 'flex', alignItems: 'center', gap: 10, cursor: 'pointer' }}>
+                  <label data-kbnav="1" key={key} style={{ display: 'flex', alignItems: 'center', gap: 10, cursor: 'pointer' }}>
                     <input type="checkbox" checked={on} onChange={e => setterMap[key](e.target.checked)}
                       style={{ width: 16, height: 16, flexShrink: 0, accentColor: 'var(--color-primary)' }} />
                     <span style={{ fontSize: 'var(--font-size-sm)', fontWeight: on ? 600 : 400, color: 'var(--color-text-main)' }}>{label}</span>
@@ -436,6 +441,7 @@ export default function Practice() {
             </span>
             <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
               <button
+                data-kbnav="1"
                 onClick={() => setLimit(v => Math.max(5, v - 5))}
                 disabled={limit <= 5}
                 style={{ width: 36, height: 36, borderRadius: '50%', border: '1px solid color-mix(in srgb, var(--color-text-light) 40%, transparent)', background: 'transparent', cursor: limit <= 5 ? 'default' : 'pointer', fontSize: 20, display: 'flex', alignItems: 'center', justifyContent: 'center', color: limit <= 5 ? 'var(--color-text-light)' : 'var(--color-text-main)' }}
@@ -444,6 +450,7 @@ export default function Practice() {
                 {limit}<span style={{ fontSize: 13, fontWeight: 400, marginLeft: 2, color: 'var(--color-text-sub)' }}>{ja ? '問' : 'Q'}</span>
               </span>
               <button
+                data-kbnav="1"
                 onClick={() => setLimit(v => Math.min(examCfg?.totalQuestions ?? 65, v + 5))}
                 disabled={limit >= (examCfg?.totalQuestions ?? 65)}
                 style={{ width: 36, height: 36, borderRadius: '50%', border: '1px solid color-mix(in srgb, var(--color-text-light) 40%, transparent)', background: 'transparent', cursor: limit >= (examCfg?.totalQuestions ?? 65) ? 'default' : 'pointer', fontSize: 20, display: 'flex', alignItems: 'center', justifyContent: 'center', color: limit >= (examCfg?.totalQuestions ?? 65) ? 'var(--color-text-light)' : 'var(--color-text-main)' }}
@@ -462,6 +469,7 @@ export default function Practice() {
           {/* ── オプション（折りたたみ：出題ドメイン） ── */}
           <div style={{ marginBottom: 'var(--spacing-lg)', border: '1px solid color-mix(in srgb, var(--color-text-light) 40%, transparent)', borderRadius: 'var(--border-radius-md)', overflow: 'hidden' }}>
             <button
+              data-kbnav="1"
               onClick={() => setShowExerciseOptions(v => !v)}
               style={{ width: '100%', display: 'flex', alignItems: 'center', gap: 6, padding: '10px 14px', background: 'var(--color-bg-main)', border: 'none', cursor: 'pointer', fontSize: 'var(--font-size-sm)', fontWeight: 600, color: 'var(--color-text-sub)' }}
             >
@@ -477,7 +485,7 @@ export default function Practice() {
               <div style={{ padding: '12px 14px', borderTop: '1px solid color-mix(in srgb, var(--color-text-light) 40%, transparent)', display: 'flex', flexDirection: 'column', gap: 6 }}>
                 <div style={{ fontSize: 11, fontWeight: 700, color: 'var(--color-text-light)', letterSpacing: '0.05em', marginBottom: 2 }}>{ja ? 'ドメイン' : 'Domain'}</div>
                 {/* 全て */}
-                <label style={{ display: 'flex', alignItems: 'center', gap: 8, cursor: 'pointer', paddingBottom: 6, borderBottom: '1px solid color-mix(in srgb, var(--color-text-light) 20%, transparent)' }}>
+                <label data-kbnav="1" style={{ display: 'flex', alignItems: 'center', gap: 8, cursor: 'pointer', paddingBottom: 6, borderBottom: '1px solid color-mix(in srgb, var(--color-text-light) 20%, transparent)' }}>
                   <input
                     type="checkbox"
                     checked={(EXAM_DOMAINS[examType] ?? []).every(d => selectedDomains.includes(d))}
@@ -493,7 +501,7 @@ export default function Practice() {
                   const checked = selectedDomains.includes(domain);
                   const rate = user ? domainRates[domain] : undefined;
                   return (
-                    <label key={domain} style={{ display: 'flex', alignItems: 'center', gap: 8, cursor: 'pointer' }}>
+                    <label data-kbnav="1" key={domain} style={{ display: 'flex', alignItems: 'center', gap: 8, cursor: 'pointer' }}>
                       <input
                         type="checkbox"
                         checked={checked}
@@ -518,7 +526,7 @@ export default function Practice() {
                 )}
                 <div style={{ paddingTop: 8, marginTop: 2, borderTop: '1px solid color-mix(in srgb, var(--color-text-light) 20%, transparent)' }}>
                   <div style={{ fontSize: 11, fontWeight: 700, color: 'var(--color-text-light)', letterSpacing: '0.05em', marginBottom: 6 }}>{ja ? 'その他' : 'Other'}</div>
-                  <label style={{ display: 'flex', alignItems: 'center', gap: 8, cursor: 'pointer' }}>
+                  <label data-kbnav="1" style={{ display: 'flex', alignItems: 'center', gap: 8, cursor: 'pointer' }}>
                     <input
                       type="checkbox"
                       checked={strikeEnabled}
@@ -532,7 +540,7 @@ export default function Practice() {
                   <div style={{ fontSize: 11, color: 'var(--color-text-light)', marginTop: 4, lineHeight: 1.5 }}>
                     ※ {ja ? '選択肢のテキストをタップすると取り消し線を引いて選択肢を絞り込める機能です' : 'Tap choice text to strike through and narrow down options'}
                   </div>
-                  <label style={{ display: 'flex', alignItems: 'center', gap: 8, cursor: 'pointer', marginTop: 8 }}>
+                  <label data-kbnav="1" style={{ display: 'flex', alignItems: 'center', gap: 8, cursor: 'pointer', marginTop: 8 }}>
                     <input
                       type="checkbox"
                       checked={hideColumn}
@@ -576,7 +584,7 @@ export default function Practice() {
                     };
                     const on = stateMap[key];
                     return (
-                      <label key={key} style={{ display: 'flex', alignItems: 'center', gap: 10, cursor: 'pointer' }}>
+                      <label data-kbnav="1" key={key} style={{ display: 'flex', alignItems: 'center', gap: 10, cursor: 'pointer' }}>
                         <input type="checkbox" checked={on} onChange={e => setterMap[key](e.target.checked)}
                           style={{ width: 16, height: 16, flexShrink: 0, accentColor: 'var(--color-primary)' }} />
                         <span style={{ fontSize: 'var(--font-size-sm)', fontWeight: on ? 600 : 400, color: 'var(--color-text-main)' }}>{label}</span>
@@ -587,7 +595,7 @@ export default function Practice() {
               )}
 
               {/* ミニ模試チェックボックス */}
-              <label style={{ display: 'inline-flex', alignItems: 'center', gap: 'var(--spacing-sm)', cursor: 'pointer', fontSize: 'var(--font-size-base)', marginBottom: 16 }}>
+              <label data-kbnav="1" style={{ display: 'inline-flex', alignItems: 'center', gap: 'var(--spacing-sm)', cursor: 'pointer', fontSize: 'var(--font-size-base)', marginBottom: 16 }}>
                 <input
                   type="checkbox"
                   checked={examMode === 'mini'}
@@ -664,6 +672,7 @@ export default function Practice() {
               {hasDraft ? (
                 <div style={{ flex: 1, display: 'flex', height: 44, borderRadius: 22, overflow: 'hidden', opacity: availableCount === 0 ? 0.5 : 1 }}>
                   <button
+                    data-kbnav="1"
                     disabled={exerciseLoading || availableCount === 0}
                     onClick={resumeExercise}
                     style={{ flex: 1, height: 44, border: 'none', background: 'var(--color-accent)', color: 'var(--color-btn-primary-text)', fontWeight: 600, fontSize: 'var(--font-size-base)', cursor: (exerciseLoading || availableCount === 0) ? 'default' : 'pointer', paddingLeft: 16, paddingRight: 8, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6 }}
@@ -694,6 +703,7 @@ export default function Practice() {
                 </div>
               ) : (
                 <button
+                  data-kbnav="1"
                   disabled={exerciseLoading || availableCount === 0}
                   onClick={startExercise}
                   style={{ flex: 1, height: 44, border: 'none', borderRadius: 22, background: 'var(--color-accent)', color: 'var(--color-btn-primary-text)', fontWeight: 600, fontSize: 'var(--font-size-base)', cursor: (exerciseLoading || availableCount === 0) ? 'default' : 'pointer', opacity: availableCount === 0 ? 0.5 : 1 }}
@@ -714,6 +724,7 @@ export default function Practice() {
               {hasDraft ? (
                 <div style={{ flex: 1, display: 'flex', height: 44, borderRadius: 22, overflow: 'hidden', opacity: availableCount === 0 ? 0.5 : 1 }}>
                   <button
+                    data-kbnav="1"
                     disabled={exerciseLoading || availableCount === 0}
                     onClick={resumeExercise}
                     style={{ flex: 1, height: 44, border: 'none', background: 'var(--color-accent)', color: 'var(--color-btn-primary-text)', fontWeight: 600, fontSize: 'var(--font-size-base)', cursor: (exerciseLoading || availableCount === 0) ? 'default' : 'pointer', paddingLeft: 16, paddingRight: 8, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6 }}
@@ -736,6 +747,7 @@ export default function Practice() {
                     )}
                   </button>
                   <button
+                    data-kbnav="1"
                     onClick={startExercise}
                     style={{ width: 44, height: 44, border: 'none', borderLeft: '2px solid rgba(255,255,255,0.4)', background: 'var(--color-accent)', color: 'var(--color-btn-primary-text)', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}
                     aria-label={ja ? '新規で開始' : 'Start new'}
@@ -745,6 +757,7 @@ export default function Practice() {
                 </div>
               ) : (
                 <button
+                  data-kbnav="1"
                   disabled={exerciseLoading || availableCount === 0}
                   onClick={startExercise}
                   style={{ flex: 1, height: 44, border: 'none', borderRadius: 22, background: 'var(--color-accent)', color: 'var(--color-btn-primary-text)', fontWeight: 600, fontSize: 'var(--font-size-base)', cursor: (exerciseLoading || availableCount === 0) ? 'default' : 'pointer', opacity: availableCount === 0 ? 0.5 : 1 }}
@@ -789,6 +802,7 @@ export default function Practice() {
               {hasExamDraft ? (
                 <div style={{ flex: 1, display: 'flex', height: 44, borderRadius: 22, overflow: 'hidden' }}>
                   <button
+                    data-kbnav="1"
                     disabled={examLoading}
                     onClick={resumeExam}
                     style={{ flex: 1, height: 44, border: 'none', background: 'var(--color-accent)', color: 'var(--color-btn-primary-text)', fontWeight: 600, fontSize: 'var(--font-size-base)', cursor: examLoading ? 'default' : 'pointer', paddingLeft: 16, paddingRight: 8, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6 }}
@@ -820,6 +834,7 @@ export default function Practice() {
                 </div>
               ) : (
                 <button
+                  data-kbnav="1"
                   disabled={examLoading}
                   onClick={startExam}
                   style={{ flex: 1, height: 44, border: 'none', borderRadius: 22, background: 'var(--color-accent)', color: 'var(--color-btn-primary-text)', fontWeight: 600, fontSize: 'var(--font-size-base)', cursor: examLoading ? 'default' : 'pointer' }}
@@ -840,6 +855,7 @@ export default function Practice() {
               {hasExamDraft ? (
                 <div style={{ flex: 1, display: 'flex', height: 44, borderRadius: 22, overflow: 'hidden' }}>
                   <button
+                    data-kbnav="1"
                     disabled={examLoading}
                     onClick={resumeExam}
                     style={{ flex: 1, height: 44, border: 'none', background: 'var(--color-accent)', color: 'var(--color-btn-primary-text)', fontWeight: 600, fontSize: 'var(--font-size-base)', cursor: examLoading ? 'default' : 'pointer', paddingLeft: 16, paddingRight: 8, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6 }}
@@ -862,6 +878,7 @@ export default function Practice() {
                     )}
                   </button>
                   <button
+                    data-kbnav="1"
                     onClick={startExam}
                     style={{ width: 44, height: 44, border: 'none', borderLeft: '2px solid rgba(255,255,255,0.4)', background: 'var(--color-accent)', color: 'var(--color-btn-primary-text)', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}
                     aria-label={ja ? '新規で試験を開始' : 'Start new exam'}
@@ -871,6 +888,7 @@ export default function Practice() {
                 </div>
               ) : (
                 <button
+                  data-kbnav="1"
                   disabled={examLoading}
                   onClick={startExam}
                   style={{ flex: 1, height: 44, border: 'none', borderRadius: 22, background: 'var(--color-accent)', color: 'var(--color-btn-primary-text)', fontWeight: 600, fontSize: 'var(--font-size-base)', cursor: examLoading ? 'default' : 'pointer' }}
