@@ -2,11 +2,13 @@ import { API_ENDPOINT, PASS_RATE } from '../constants';
 
 // 既存のドラフトセッションを採点してDBに記録し、localStorageから削除する
 export async function autoScoreAndClearDrafts(userId: string): Promise<void> {
+  // 注意: examDraft（模試）はここでは対象にしない。進行中の模試を、別の演習開始時に
+  // 勝手に「完了」採点・削除してしまい途中の模試が消える不具合を防ぐため。
+  // 模試は ExamSession 自身の終了/中断/採点でのみ確定・削除する。
   const draftKeys = [
     `quickExerciseDraft_${userId}`,
     `focusedExerciseDraft_${userId}`,
     `practiceExerciseDraft_${userId}`,
-    `examDraft_${userId}`,
   ];
 
   await Promise.all(draftKeys.map(async (key) => {
