@@ -23,6 +23,7 @@ import { IconLightbulb, IconBean, IconSettings, IconChevronUp, IconChevronDown, 
 import KeyHint from '../components/KeyHint';
 import { CATALOG } from '../data/awsServiceCatalog';
 import { autoScoreAndClearDrafts } from '../utils/sessionUtils';
+import { hydrateDraftsFromServer } from '../utils/sessionResume';
 import { syncTargetExamToServer, loadTargetExamFromServer } from '../utils/preferences';
 import { prefetchTypeA, prefetchTypeB, prefetchTypeC, getPrefetchA, getPrefetchB, getPrefetchC } from '../utils/questionPrefetch';
 
@@ -1136,6 +1137,15 @@ export default function Home() {
   };
   const [quickDraft, setQuickDraft] = useState<any>(() => readQuickDraft());
   const [focusedDraft, setFocusedDraft] = useState<any>(() => readFocusedDraft());
+  // 別端末/キャッシュ削除でもサーバ保存分から再開できるよう、起動時にドラフトを補完して再読込
+  useEffect(() => {
+    if (!user) return;
+    hydrateDraftsFromServer(user.userId).then(h => {
+      if (!h) return;
+      setQuickDraft(readQuickDraft());
+      setFocusedDraft(readFocusedDraft());
+    });
+  }, [user]); // eslint-disable-line react-hooks/exhaustive-deps
   const [showQuickModal, setShowQuickModal] = useState(false);
   const [showNewPanel, setShowNewPanel] = useState(false);
   const [showWebQuickMenu, setShowWebQuickMenu] = useState(false);

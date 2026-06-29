@@ -8,6 +8,7 @@ import { API_ENDPOINT, EXAM_CONFIGS, EXAM_DOMAINS, EXAM_TYPES, PASS_SCORES, qDom
 import Button from '../components/ui/Button';
 import { getCached, setCached, SHORT_TTL, getCachedPersist, setCachedPersist } from '../utils/cache';
 import { autoScoreAndClearDrafts } from '../utils/sessionUtils';
+import { hydrateDraftsFromServer } from '../utils/sessionResume';
 import { animateLoadPct, randomPlateau } from '../utils/loadProgress';
 import { getPrefetchA, getPrefetchC, prefetchTypeA } from '../utils/questionPrefetch';
 import { IconChevronUp, IconChevronDown, IconChevronRight } from '../components/Icons';
@@ -99,6 +100,15 @@ export default function Practice() {
     try { return JSON.parse(localStorage.getItem(`examDraft_${uid}`) ?? 'null'); } catch { return null; }
   });
   const hasExamDraft = examDraft?.examType === examType;
+  // 別端末/キャッシュ削除でもサーバ保存分から再開できるよう、起動時にドラフトを補完して再読込
+  useEffect(() => {
+    if (!user) return;
+    hydrateDraftsFromServer(user.userId).then(h => {
+      if (!h) return;
+      try { setExerciseDraft(JSON.parse(localStorage.getItem(`practiceExerciseDraft_${user.userId}`) ?? 'null')); } catch {}
+      try { setExamDraft(JSON.parse(localStorage.getItem(`examDraft_${user.userId}`) ?? 'null')); } catch {}
+    });
+  }, [user]); // eslint-disable-line react-hooks/exhaustive-deps
   const [showNewPanel, setShowNewPanel] = useState(false);
   const [showNewExamPanel, setShowNewExamPanel] = useState(false);
   const [showStartConfirm, setShowStartConfirm] = useState(false);
