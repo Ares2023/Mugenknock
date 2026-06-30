@@ -667,7 +667,7 @@ export default function Practice() {
           {hasDraft && showNewPanel && isMobile && (
             <>
               <div onClick={() => setShowNewPanel(false)} style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.4)', zIndex: 210 }} />
-              <div style={{ position: 'fixed', bottom: 116, left: 0, right: 0, zIndex: 211, background: 'var(--color-bg-white)', borderRadius: '14px 14px 0 0', padding: '14px 0 12px', boxShadow: '0 -4px 20px rgba(0,0,0,0.18)', animation: 'slideUp 0.22s ease' }}>
+              <div style={{ position: 'fixed', bottom: 116, left: 0, right: 0, zIndex: 211, background: 'var(--color-bg-white)', borderRadius: '14px 14px 0 0', padding: '14px 0 12px', boxShadow: 'var(--box-shadow-up)', animation: 'slideUp 0.22s ease' }}>
               <div style={{ padding: '0 var(--spacing-lg)' }}>
                 <div style={{ fontSize: 'var(--font-size-sm)', color: 'var(--color-text-sub)', textAlign: 'center', marginBottom: 10 }}>
                   {ja ? 'セッションを上書きして開始します' : 'This will overwrite the current session'}
@@ -682,7 +682,7 @@ export default function Practice() {
           )}
           {isMobile ? (
             /* モバイル：ホーム画面と同じスタイルの固定バー */
-            <div style={{ position: 'fixed', bottom: 56, left: 0, right: 0, zIndex: 150, background: 'var(--color-bg-white)', borderTop: '1px solid var(--color-border)', padding: '8px 12px', display: 'flex', gap: 6, boxShadow: '0 -2px 8px rgba(0,0,0,0.08)' }}>
+            <div style={{ position: 'fixed', bottom: 56, left: 0, right: 0, zIndex: 150, background: 'var(--color-bg-white)', borderTop: '1px solid var(--color-border)', padding: '8px 12px', display: 'flex', gap: 6, boxShadow: 'var(--box-shadow-up)' }}>
               {hasDraft ? (
                 <div style={{ flex: 1, display: 'flex', height: 44, borderRadius: 22, overflow: 'hidden', opacity: availableCount === 0 ? 0.5 : 1 }}>
                   <button
@@ -797,7 +797,7 @@ export default function Practice() {
           {hasExamDraft && showNewExamPanel && isMobile && (
             <>
               <div onClick={() => setShowNewExamPanel(false)} style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.4)', zIndex: 210 }} />
-              <div style={{ position: 'fixed', bottom: 116, left: 0, right: 0, zIndex: 211, background: 'var(--color-bg-white)', borderRadius: '14px 14px 0 0', padding: '14px 0 12px', boxShadow: '0 -4px 20px rgba(0,0,0,0.18)', animation: 'slideUp 0.22s ease' }}>
+              <div style={{ position: 'fixed', bottom: 116, left: 0, right: 0, zIndex: 211, background: 'var(--color-bg-white)', borderRadius: '14px 14px 0 0', padding: '14px 0 12px', boxShadow: 'var(--box-shadow-up)', animation: 'slideUp 0.22s ease' }}>
               <div style={{ padding: '0 var(--spacing-lg)' }}>
                 <div style={{ fontSize: 'var(--font-size-sm)', color: 'var(--color-text-sub)', textAlign: 'center', marginBottom: 10 }}>
                   {ja ? 'セッションを上書きして開始します' : 'This will overwrite the current session'}
@@ -812,7 +812,7 @@ export default function Practice() {
           )}
 {isMobile ? (
             /* モバイル：ホーム画面と同じスタイルの固定バー */
-            <div style={{ position: 'fixed', bottom: 56, left: 0, right: 0, zIndex: 150, background: 'var(--color-bg-white)', borderTop: '1px solid var(--color-border)', padding: '8px 12px', display: 'flex', gap: 6, boxShadow: '0 -2px 8px rgba(0,0,0,0.08)' }}>
+            <div style={{ position: 'fixed', bottom: 56, left: 0, right: 0, zIndex: 150, background: 'var(--color-bg-white)', borderTop: '1px solid var(--color-border)', padding: '8px 12px', display: 'flex', gap: 6, boxShadow: 'var(--box-shadow-up)' }}>
               {hasExamDraft ? (
                 <div style={{ flex: 1, display: 'flex', height: 44, borderRadius: 22, overflow: 'hidden' }}>
                   <button

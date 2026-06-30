@@ -220,7 +220,15 @@
 `fontSize` は `var(--font-size-*)` トークンを使う。`13` `11` などの生数値直書きは避け、階層（xs11 / sm12 / base14 / md15 / lg16 / xl20 / h3:18 / h2:22 / xxl28）に丸める。
 
 ### 影（box-shadow）
-カード等の影は `var(--box-shadow-sm)`（通常のカード）または `var(--box-shadow-md)`（モーダル・浮いた要素）の**2種のみ**。`0 2px 8px rgba(...)` のような独自値を書かない。
+影は用途別の以下トークンを使い、`0 2px 8px rgba(...)` のような独自値を書かない。
+
+| トークン | 用途 |
+|---|---|
+| `--box-shadow-sm` | カード（標準） |
+| `--box-shadow-md` | 浮いたカード・hover |
+| `--box-shadow-pop` | ドロップダウン・ポップオーバー |
+| `--box-shadow-lg` | モーダル・ダイアログ |
+| `--box-shadow-up` | 画面下部に固定するバーの上向き影 |
 
 ### 角丸
 `var(--border-radius-sm|md|lg|full)` を使う。`14px` 等の生値は使わない（pill形ボタンは `full`）。

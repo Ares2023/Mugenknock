@@ -148,7 +148,7 @@ const PromptMenu = ({ questionText, choices, explanation, lang }: { questionText
             fontSize: 11, lineHeight: 1.6, padding: '7px 11px',
             borderRadius: 6, whiteSpace: 'pre-wrap', width: 230,
             pointerEvents: 'none', zIndex: 200,
-            boxShadow: '0 2px 8px rgba(0,0,0,0.18)',
+            boxShadow: 'var(--box-shadow-pop)',
           }}>
             {isEn
               ? 'Generate and copy a prompt to ask about or verify this question.'
@@ -178,7 +178,7 @@ const PromptMenu = ({ questionText, choices, explanation, lang }: { questionText
           <div style={{
             position: 'absolute', bottom: '100%', right: 0, marginBottom: 4,
             background: 'var(--color-bg-white)', border: '1px solid var(--color-border)',
-            borderRadius: 'var(--border-radius-sm)', boxShadow: '0 4px 12px rgba(0,0,0,0.12)',
+            borderRadius: 'var(--border-radius-sm)', boxShadow: 'var(--box-shadow-md)',
             minWidth: 240, zIndex: 100,
           }}>
             {items.map((item, i) => (
@@ -980,7 +980,7 @@ export default function ExerciseSession() {
     return createPortal(
       <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.6)', zIndex: 1000,
         display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16 }}>
-        <div style={{ background: 'var(--color-bg-white)', borderRadius: 'var(--border-radius-lg)', padding: '28px 24px', width: '100%', maxWidth: 400, boxShadow: '0 8px 32px rgba(0,0,0,0.2)' }}>
+        <div style={{ background: 'var(--color-bg-white)', borderRadius: 'var(--border-radius-lg)', padding: '28px 24px', width: '100%', maxWidth: 400, boxShadow: 'var(--box-shadow-lg)' }}>
           <div style={{ fontWeight: 700, fontSize: 'var(--font-size-md)', marginBottom: 12, color: 'var(--color-text-main)' }}>
             {lang === 'ja' ? '中断して採点' : 'Interrupt & Grade'}
           </div>
@@ -1440,7 +1440,7 @@ export default function ExerciseSession() {
               <button
                 onClick={() => submitAnswer()}
                 disabled={!canSubmit}
-                style={{ height: 44, padding: '0 24px', border: 'none', borderRadius: 22, background: !canSubmit ? 'var(--color-text-light)' : 'var(--color-accent)', color: 'var(--color-btn-primary-text)', fontWeight: 600, fontSize: 'var(--font-size-base)', cursor: !canSubmit ? 'default' : 'pointer', opacity: !canSubmit ? 0.5 : 1, whiteSpace: 'nowrap', boxShadow: '0 2px 8px rgba(0,0,0,0.15)', display: 'inline-flex', alignItems: 'center', gap: 8 }}
+                style={{ height: 44, padding: '0 24px', border: 'none', borderRadius: 22, background: !canSubmit ? 'var(--color-text-light)' : 'var(--color-accent)', color: 'var(--color-btn-primary-text)', fontWeight: 600, fontSize: 'var(--font-size-base)', cursor: !canSubmit ? 'default' : 'pointer', opacity: !canSubmit ? 0.5 : 1, whiteSpace: 'nowrap', boxShadow: 'var(--box-shadow-pop)', display: 'inline-flex', alignItems: 'center', gap: 8 }}
               >
                 {t('exerciseSession.answer')}
                 <KeyHint />
@@ -1448,7 +1448,7 @@ export default function ExerciseSession() {
             ) : (
               <button
                 onClick={nextQuestion}
-                style={{ height: 44, padding: '0 24px', border: '1.5px solid var(--color-primary)', borderRadius: 22, background: 'var(--color-bg-white)', color: 'var(--color-primary)', fontWeight: 600, fontSize: 'var(--font-size-base)', cursor: 'pointer', whiteSpace: 'nowrap', boxShadow: '0 2px 8px rgba(0,0,0,0.15)', display: 'inline-flex', alignItems: 'center', gap: 8 }}
+                style={{ height: 44, padding: '0 24px', border: '1.5px solid var(--color-primary)', borderRadius: 22, background: 'var(--color-bg-white)', color: 'var(--color-primary)', fontWeight: 600, fontSize: 'var(--font-size-base)', cursor: 'pointer', whiteSpace: 'nowrap', boxShadow: 'var(--box-shadow-pop)', display: 'inline-flex', alignItems: 'center', gap: 8 }}
               >
                 {currentIndex + 1 >= totalCount ? t('exerciseSession.showResult') : t('exerciseSession.next')}
                 <KeyHint />

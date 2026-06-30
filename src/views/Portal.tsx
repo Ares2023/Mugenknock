@@ -181,7 +181,7 @@ export default function Portal() {
           borderTop: '1px solid var(--color-border)',
           padding: '12px 20px',
           display: 'flex', alignItems: 'center', gap: 12, flexWrap: 'wrap',
-          boxShadow: '0 -2px 12px rgba(0,0,0,0.1)',
+          boxShadow: 'var(--box-shadow-up)',
         }}>
           <span style={{ flex: 1, minWidth: 200, fontSize: 12, color: 'var(--color-text-sub)', lineHeight: 1.6 }}>
             {ja

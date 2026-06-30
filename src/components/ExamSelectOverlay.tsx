@@ -377,7 +377,7 @@ export default function ExamSelectOverlay({
                 <div style={{ fontSize: 13, fontWeight: 700, color: 'var(--color-success)', animation: (confirming && !isCurrentTarget) ? 'examStudyingFade 0.4s ease 0.5s both' : undefined }}>✓ {ja ? '学習中' : 'Studying'}</div>
               )}
               {isCurrentTarget ? (
-                <button disabled style={{ width: 44, height: 44, borderRadius: '50%', border: 'none', background: levelColor, color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'default', boxShadow: '0 2px 8px rgba(0,0,0,0.15)', flexShrink: 0, transition: 'none' }}>
+                <button disabled style={{ width: 44, height: 44, borderRadius: '50%', border: 'none', background: levelColor, color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'default', boxShadow: 'var(--box-shadow-pop)', flexShrink: 0, transition: 'none' }}>
                   <IconBookOpenCheck size={22} />
                 </button>
               ) : (
@@ -418,7 +418,7 @@ export default function ExamSelectOverlay({
                       position: 'absolute', inset: 0, backfaceVisibility: 'hidden', WebkitBackfaceVisibility: 'hidden',
                       display: 'flex', alignItems: 'center', justifyContent: 'center', borderRadius: '50%',
                       border: `2px solid ${levelColor}`, background: 'var(--color-bg-white)', color: levelColor,
-                      boxShadow: '0 2px 8px rgba(0,0,0,0.15)',
+                      boxShadow: 'var(--box-shadow-pop)',
                     }}>
                       <IconBook size={22} />
                     </span>
@@ -427,7 +427,7 @@ export default function ExamSelectOverlay({
                       position: 'absolute', inset: 0, backfaceVisibility: 'hidden', WebkitBackfaceVisibility: 'hidden',
                       transform: 'rotateY(180deg)',
                       display: 'flex', alignItems: 'center', justifyContent: 'center', borderRadius: '50%',
-                      background: levelColor, color: '#fff', boxShadow: '0 2px 8px rgba(0,0,0,0.15)',
+                      background: levelColor, color: '#fff', boxShadow: 'var(--box-shadow-pop)',
                     }}>
                       <IconBookOpenCheck size={22} />
                     </span>

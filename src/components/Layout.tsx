@@ -593,7 +593,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
           borderTop: '1px solid var(--color-border)',
           padding: '12px 20px',
           display: 'flex', alignItems: 'center', gap: 12, flexWrap: 'wrap',
-          boxShadow: '0 -2px 12px rgba(0,0,0,0.1)',
+          boxShadow: 'var(--box-shadow-up)',
         }}>
           <span style={{ flex: 1, minWidth: 200, fontSize: 'var(--font-size-xs)', color: 'var(--color-text-sub)', lineHeight: 1.6 }}>
             {lang === 'ja'
@@ -1108,7 +1108,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
           borderTop: '1px solid var(--color-border)',
           display: 'flex', alignItems: 'stretch',
           zIndex: 200,
-          boxShadow: '0 -2px 8px rgba(0,0,0,0.06)',
+          boxShadow: 'var(--box-shadow-up)',
         }}>
           {BOTTOM_TABS.map(({ path, Icon, ja, en }) => {
             const active = isActive(path);

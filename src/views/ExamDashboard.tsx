@@ -155,7 +155,7 @@ export default function ExamDashboard() {
                 background: 'var(--color-bg-white)',
                 border: '1px solid var(--color-primary)', borderTop: 'none',
                 borderRadius: '0 0 10px 10px',
-                boxShadow: '0 8px 24px rgba(0,0,0,0.12)',
+                boxShadow: 'var(--box-shadow-lg)',
                 overflow: 'hidden',
               }}>
                 {/* 検索入力 */}
@@ -215,7 +215,7 @@ export default function ExamDashboard() {
           </div>
 
           {/* ── 資格情報カード ── */}
-          <div style={{ border: '1px solid var(--color-border)', borderRadius: 12, overflow: 'hidden', background: 'var(--color-bg-white)', boxShadow: '0 1px 4px rgba(0,0,0,0.06)' }}>
+          <div style={{ border: '1px solid var(--color-border)', borderRadius: 12, overflow: 'hidden', background: 'var(--color-bg-white)', boxShadow: 'var(--box-shadow-pop)' }}>
 
             {/* カードヘッダー */}
             <div style={{ padding: '20px 20px 16px', borderBottom: '1px solid var(--color-border)' }}>

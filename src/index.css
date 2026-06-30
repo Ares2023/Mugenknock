@@ -83,8 +83,11 @@
   --border-radius-md: 6px;
   --border-radius-lg: 8px;
   --border-radius-full: 9999px;
-  --box-shadow-sm: 0 1px 1px 0 rgba(0, 28, 36, 0.1);
-  --box-shadow-md: 0 4px 12px rgba(0, 0, 0, 0.08);
+  --box-shadow-sm: 0 1px 1px 0 rgba(0, 28, 36, 0.1);   /* カード（標準） */
+  --box-shadow-md: 0 4px 12px rgba(0, 0, 0, 0.08);     /* 浮いたカード・hover */
+  --box-shadow-pop: 0 2px 8px rgba(0, 0, 0, 0.15);     /* ドロップダウン・ポップオーバー */
+  --box-shadow-lg: 0 8px 32px rgba(0, 0, 0, 0.2);      /* モーダル・ダイアログ */
+  --box-shadow-up: 0 -4px 20px rgba(0, 0, 0, 0.18);    /* 画面下部に固定するバーの上向き影 */
   --sidebar-width: 240px;
 }
 
@@ -114,6 +117,9 @@
   --color-text-warning-sub: #f0c060;
   --color-border-warning: #78610a;
   --box-shadow-md: 0 4px 12px rgba(0, 0, 0, 0.4);
+  --box-shadow-pop: 0 2px 8px rgba(0, 0, 0, 0.5);
+  --box-shadow-lg: 0 8px 32px rgba(0, 0, 0, 0.6);
+  --box-shadow-up: 0 -4px 20px rgba(0, 0, 0, 0.5);
   --color-on-primary: #111;
   --color-on-success: #052e16;
   --color-on-danger: #450a0a;

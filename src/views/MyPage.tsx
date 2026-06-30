@@ -779,7 +779,7 @@ export default function MyPage() {
                         setSavedGoal(true);
                         setTimeout(() => setSavedGoal(false), 2000);
                       }}
-                      style={{ width: 44, height: 44, borderRadius: '50%', border: 'none', background: 'var(--color-accent)', color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', boxShadow: '0 2px 8px rgba(0,0,0,0.15)', flexShrink: 0 }}
+                      style={{ width: 44, height: 44, borderRadius: '50%', border: 'none', background: 'var(--color-accent)', color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', boxShadow: 'var(--box-shadow-pop)', flexShrink: 0 }}
                     >
                       <IconSaveCheck size={22} />
                     </button>

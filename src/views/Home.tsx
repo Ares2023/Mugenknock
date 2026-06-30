@@ -243,7 +243,7 @@ function CombinedDetailModal({ targetExam, domainAccList, estimatedScore, passSc
       onTouchStart={e => e.stopPropagation()}
       onTouchMove={e => e.stopPropagation()}
     >
-      <div style={{ background: 'var(--color-bg-white)', borderRadius: 'var(--border-radius-lg)', padding: isMobile ? '16px' : '20px 28px', width: '100%', maxWidth: 540, maxHeight: isMobile ? '75vh' : '60vh', overflowY: 'auto', boxShadow: '0 8px 32px rgba(0,0,0,0.2)' }}>
+      <div style={{ background: 'var(--color-bg-white)', borderRadius: 'var(--border-radius-lg)', padding: isMobile ? '16px' : '20px 28px', width: '100%', maxWidth: 540, maxHeight: isMobile ? '75vh' : '60vh', overflowY: 'auto', boxShadow: 'var(--box-shadow-lg)' }}>
         {/* ヘッダー行 */}
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
@@ -482,7 +482,7 @@ function ScoreDetailModal({ targetExam, estimatedScore, passScore, lang, uid, on
       onTouchStart={e => e.stopPropagation()}
       onTouchMove={e => e.stopPropagation()}
     >
-      <div style={{ background: 'var(--color-bg-white)', borderRadius: 'var(--border-radius-lg)', padding: '20px 24px', width: '100%', maxWidth: 380, boxShadow: '0 8px 32px rgba(0,0,0,0.2)' }}>
+      <div style={{ background: 'var(--color-bg-white)', borderRadius: 'var(--border-radius-lg)', padding: '20px 24px', width: '100%', maxWidth: 380, boxShadow: 'var(--box-shadow-lg)' }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
           <span style={{ fontWeight: 700, fontSize: 'var(--font-size-base)', color: 'var(--color-text-main)' }}>
             {ja ? '予想スコア詳細' : 'Score Detail'}
@@ -550,7 +550,7 @@ function DomainDetailModal({ targetExam, domainAccList, lang, onClose }: {
       onTouchStart={e => e.stopPropagation()}
       onTouchMove={e => e.stopPropagation()}
     >
-      <div style={{ background: 'var(--color-bg-white)', borderRadius: 'var(--border-radius-lg)', padding: '20px 24px', width: '100%', maxWidth: 480, maxHeight: isMobile ? '75vh' : '60vh', overflowY: 'auto', boxShadow: '0 8px 32px rgba(0,0,0,0.2)' }}>
+      <div style={{ background: 'var(--color-bg-white)', borderRadius: 'var(--border-radius-lg)', padding: '20px 24px', width: '100%', maxWidth: 480, maxHeight: isMobile ? '75vh' : '60vh', overflowY: 'auto', boxShadow: 'var(--box-shadow-lg)' }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
           <span style={{ fontWeight: 700, fontSize: 'var(--font-size-base)', color: 'var(--color-text-main)' }}>
             {ja ? 'ドメイン別成績' : 'Domain Results'}
@@ -2057,7 +2057,7 @@ export default function Home() {
                 {showWebQuickMenu && (
                   <>
                     <div onClick={() => setShowWebQuickMenu(false)} style={{ position: 'fixed', inset: 0, zIndex: 199 }} />
-                    <div style={{ position: 'absolute', bottom: '110%', left: 0, right: 0, zIndex: 200, background: 'var(--color-bg-white)', borderRadius: 'var(--border-radius-md)', boxShadow: '0 -4px 16px rgba(0,0,0,0.15)', border: '1px solid var(--color-border)', padding: '8px', marginBottom: 6 }}>
+                    <div style={{ position: 'absolute', bottom: '110%', left: 0, right: 0, zIndex: 200, background: 'var(--color-bg-white)', borderRadius: 'var(--border-radius-md)', boxShadow: 'var(--box-shadow-up)', border: '1px solid var(--color-border)', padding: '8px', marginBottom: 6 }}>
                       <div style={{ fontSize: 'var(--font-size-xs)', color: 'var(--color-text-sub)', textAlign: 'center', marginBottom: 8 }}>
                         {ja ? 'セッションを上書きして新しく開始します' : 'This will overwrite the current session'}
                       </div>
@@ -2132,7 +2132,7 @@ export default function Home() {
                 {showFocusedMenu && (
                   <>
                     <div onClick={() => setShowFocusedMenu(false)} style={{ position: 'fixed', inset: 0, zIndex: 199 }} />
-                    <div style={{ position: 'absolute', bottom: '110%', left: 0, right: 0, zIndex: 200, background: 'var(--color-bg-white)', borderRadius: 'var(--border-radius-md)', boxShadow: '0 -4px 16px rgba(0,0,0,0.15)', border: '1px solid var(--color-border)', padding: '8px', marginBottom: 6 }}>
+                    <div style={{ position: 'absolute', bottom: '110%', left: 0, right: 0, zIndex: 200, background: 'var(--color-bg-white)', borderRadius: 'var(--border-radius-md)', boxShadow: 'var(--box-shadow-up)', border: '1px solid var(--color-border)', padding: '8px', marginBottom: 6 }}>
                       {primaryMode === 'quick' ? (
                         <>
                           {focusedUnlocked && <div style={{ textAlign: 'center', fontSize: 10, color: 'var(--color-text-light)', marginBottom: 4 }}>{ja ? '苦手・不正解問題を重点演習' : 'Focuses on weak/incorrect questions'}</div>}
@@ -2229,7 +2229,7 @@ export default function Home() {
           {hasPrimaryDraft && showNewPanel && (
             <>
               <div onClick={() => setShowNewPanel(false)} style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.4)', zIndex: 210 }} />
-              <div style={{ position: 'fixed', bottom: 116, left: 0, right: 0, zIndex: 211, background: 'var(--color-bg-white)', borderRadius: '14px 14px 0 0', padding: '14px 12px 12px', boxShadow: '0 -4px 20px rgba(0,0,0,0.18)', animation: 'slideUp 0.22s ease' }}>
+              <div style={{ position: 'fixed', bottom: 116, left: 0, right: 0, zIndex: 211, background: 'var(--color-bg-white)', borderRadius: '14px 14px 0 0', padding: '14px 12px 12px', boxShadow: 'var(--box-shadow-up)', animation: 'slideUp 0.22s ease' }}>
                 <div style={{ fontSize: 'var(--font-size-sm)', color: 'var(--color-text-sub)', textAlign: 'center', marginBottom: 10 }}>
                   {ja ? 'セッションを上書きして開始します' : 'This will overwrite the current session'}
                 </div>
@@ -2270,7 +2270,7 @@ export default function Home() {
           {!hasPrimaryDraft && showFocusedMenu && (
             <>
               <div onClick={() => setShowFocusedMenu(false)} style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.4)', zIndex: 210 }} />
-              <div style={{ position: 'fixed', bottom: 116, left: 0, right: 0, zIndex: 211, background: 'var(--color-bg-white)', borderRadius: '14px 14px 0 0', padding: '14px 12px 12px', boxShadow: '0 -4px 20px rgba(0,0,0,0.18)', animation: 'slideUp 0.22s ease' }}>
+              <div style={{ position: 'fixed', bottom: 116, left: 0, right: 0, zIndex: 211, background: 'var(--color-bg-white)', borderRadius: '14px 14px 0 0', padding: '14px 12px 12px', boxShadow: 'var(--box-shadow-up)', animation: 'slideUp 0.22s ease' }}>
                 {primaryMode === 'quick' ? (
                   <>
                     {focusedUnlocked && <div style={{ textAlign: 'center', fontSize: 11, color: 'var(--color-text-light)', marginBottom: 4 }}>{ja ? '苦手・不正解問題を重点演習' : 'Focuses on weak/incorrect questions'}</div>}
@@ -2299,7 +2299,7 @@ export default function Home() {
               </div>
             </>
           )}
-          {createPortal(<div style={{ position: 'fixed', bottom: 56, left: 0, right: 0, zIndex: 150, background: 'var(--color-bg-white)', borderTop: '1px solid var(--color-border)', padding: '8px 12px', display: 'flex', gap: 6, boxShadow: '0 -2px 8px rgba(0,0,0,0.08)' }}>
+          {createPortal(<div style={{ position: 'fixed', bottom: 56, left: 0, right: 0, zIndex: 150, background: 'var(--color-bg-white)', borderTop: '1px solid var(--color-border)', padding: '8px 12px', display: 'flex', gap: 6, boxShadow: 'var(--box-shadow-up)' }}>
             {hasPrimaryDraft ? (
               /* スプリットピル：続きから再開 + ↑ */
               <div style={{ flex: 1, display: 'flex', height: 44, borderRadius: 22, overflow: 'hidden', opacity: !targetExam ? 0.5 : 1 }}>
@@ -2539,7 +2539,7 @@ export default function Home() {
                     if (hasFilters) { prefetchTypeC(targetExam, uid, draftPrefs); } else { prefetchTypeA(targetExam, uid); }
                   }
                 }}
-                style={{ width: 44, height: 44, borderRadius: '50%', border: 'none', background: 'var(--color-accent)', color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: (targetExam !== null && (EXAM_DOMAINS[targetExam] ?? []).length > 0 && (draftPrefs.domains ?? []).length === 0) ? 'default' : 'pointer', boxShadow: '0 2px 8px rgba(0,0,0,0.15)', flexShrink: 0, opacity: (targetExam !== null && (EXAM_DOMAINS[targetExam] ?? []).length > 0 && (draftPrefs.domains ?? []).length === 0) ? 0.5 : 1 }}
+                style={{ width: 44, height: 44, borderRadius: '50%', border: 'none', background: 'var(--color-accent)', color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: (targetExam !== null && (EXAM_DOMAINS[targetExam] ?? []).length > 0 && (draftPrefs.domains ?? []).length === 0) ? 'default' : 'pointer', boxShadow: 'var(--box-shadow-pop)', flexShrink: 0, opacity: (targetExam !== null && (EXAM_DOMAINS[targetExam] ?? []).length > 0 && (draftPrefs.domains ?? []).length === 0) ? 0.5 : 1 }}
               >
                 <IconSaveCheck size={22} />
               </button>
@@ -2678,7 +2678,7 @@ export default function Home() {
                     if (hasFilters) { prefetchTypeB(targetExam, uid, draftFocusedPrefs); } else { prefetchTypeA(targetExam, uid); }
                   }
                 }}
-                style={{ width: 44, height: 44, borderRadius: '50%', border: 'none', background: 'var(--color-accent)', color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', boxShadow: '0 2px 8px rgba(0,0,0,0.15)', flexShrink: 0 }}
+                style={{ width: 44, height: 44, borderRadius: '50%', border: 'none', background: 'var(--color-accent)', color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', boxShadow: 'var(--box-shadow-pop)', flexShrink: 0 }}
               >
                 <IconSaveCheck size={22} />
               </button>
