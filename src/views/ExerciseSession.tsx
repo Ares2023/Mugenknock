@@ -277,8 +277,12 @@ export default function ExerciseSession() {
     return '';
   }, [sessionId]);
   const [questions, setQuestions] = useState<Question[]>(_resumeInit.qs ?? state?.questions ?? []);
-  // プログレッシブロード用: 全問IDリスト（useState で hook として登録することで TDZ を回避）
-  const [allQuestionIds] = useState<string[]>(state?.questionIds ?? []);
+  // プログレッシブロード用: 出題予定IDリスト（presentIds）。読み込めないIDが出たら
+  // 予備ID(spare)で補填し、設定問題数を必ず満たす。useState でhook登録しTDZを回避。
+  const [presentIds, setPresentIds] = useState<string[]>(state?.questionIds ?? []);
+  const allQuestionIds = presentIds; // 後方互換の別名（totalや先読みの基準）
+  const spareIdsRef = React.useRef<string[]>([...(state?.spareQuestionIds ?? [])]);
+  const attemptedIdsRef = React.useRef<Set<string>>(new Set()); // 取得を試みたID（欠落の再取得・重複を防ぐ）
   const loadingNextRef = React.useRef(false);
   const [userId, setUserId] = useState<string>(state?.userId ?? '');
   const [examType, setExamType] = useState<string>(state?.examType ?? '');
@@ -315,25 +319,46 @@ export default function ExerciseSession() {
   // currentIndex は下の useEffect の依存配列で使うため先に宣言（TDZ 回避）
   const [currentIndex, setCurrentIndex] = useState<number>(_resumeInit.idx);
 
-  // プログレッシブロード: 現在問 + 2問先までをバックグラウンドで先読み
+  // プログレッシブロード（自己修復型）: 現在問 + 2問先までを先読みし、
+  // 取得できないID（削除済み等）は presentIds から外して予備IDで補填する。
+  // これにより設定問題数を必ず満たす。1問目は呼び出し元で取得済みなのでロード時間は不変。
   useEffect(() => {
-    if (allQuestionIds.length === 0) return;
-    const targetIndex = Math.min(currentIndex + 2, allQuestionIds.length - 1);
-    if (targetIndex < questions.length) return; // already loaded
+    if (presentIds.length === 0) return;
+    const want = Math.min(currentIndex + 3, presentIds.length); // ここまでロードしておきたい件数
+    if (questions.length >= want) return;
     if (loadingNextRef.current) return;
-    const idsToLoad = allQuestionIds
-      .slice(questions.length, targetIndex + 1)
-      .join(',');
-    if (!idsToLoad) return;
+    const loaded = new Set(questions.map(q => q.questionId));
+    // まだ読み込んでおらず・取得試行もしていない presentIds を順に対象化
+    const queue = presentIds.filter(id => !loaded.has(id) && !attemptedIdsRef.current.has(id));
+    if (queue.length === 0) return;
+    const need = Math.max(1, want - questions.length);
+    const batch = queue.slice(0, need);
+    batch.forEach(id => attemptedIdsRef.current.add(id));
     loadingNextRef.current = true;
-    fetch(`${API_ENDPOINT}/questions?ids=${idsToLoad}&withAnswers=true`)
+    fetch(`${API_ENDPOINT}/questions?ids=${batch.join(',')}&withAnswers=true`)
       .then(r => r.json())
       .then(d => {
-        if (d.items?.length) setQuestions(prev => [...prev, ...d.items]);
+        const items: Question[] = d.items ?? [];
+        if (items.length) {
+          setQuestions(prev => {
+            const have = new Set(prev.map(q => q.questionId));
+            return [...prev, ...items.filter(i => !have.has(i.questionId))];
+          });
+        }
+        // 取得できなかったID = 削除済み等。presentIds から除外し、予備IDで同数を補填。
+        const got = new Set(items.map(i => i.questionId));
+        const missing = batch.filter(id => !got.has(id));
+        if (missing.length) {
+          setPresentIds(prev => {
+            const next = prev.filter(id => !missing.includes(id));
+            const repl = spareIdsRef.current.splice(0, missing.length);
+            return [...next, ...repl];
+          });
+        }
       })
       .catch(() => {})
       .finally(() => { loadingNextRef.current = false; });
-  }, [currentIndex, questions.length]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [currentIndex, questions.length, presentIds]); // eslint-disable-line react-hooks/exhaustive-deps
   const [viewedFrontier, setViewedFrontier] = useState<number>(_resumeInit.idx);
   const [selectedAnswers, setSelectedAnswers] = useState<string[]>(_resumeInit.sel);
   const [answered, setAnswered] = useState<boolean>(_resumeInit.ans);
