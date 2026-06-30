@@ -885,7 +885,7 @@ export default function MyPage() {
                               </div>
                             </div>
                             <div style={{ display: 'flex', gap: 2, flexShrink: 0 }}>
-                              {Array.from({ length: 5 }, (_, i) => (
+                              {Array.from({ length: 10 }, (_, i) => (
                                 <div key={i} style={{ width: 8, height: 8, borderRadius: 2, background: recent[i] === true ? 'var(--color-success)' : recent[i] === false ? 'var(--color-danger)' : 'var(--color-bg-main)' }} />
                               ))}
                             </div>
