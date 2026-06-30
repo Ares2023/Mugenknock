@@ -461,6 +461,86 @@ else
   echo "  ⚠️  canary.sh が見つかりません"
 fi
 
+# ── 4.5 監査・プロンプト改良 / カナリア整合性 / 日めくり 集計 ──────
+echo ""
+echo "--- [4.5] 監査・改良 / カナリア整合性 / 日めくり 集計 ---"
+NL_DIR="$NIGHT_PROMPTS_DIR/logs"
+
+# 問題品質監査＋プロンプト改良（audit-questions.sh -i の直近成果）
+AUDIT_SUMMARY=$(NL="$NL_DIR" python3 << 'PYEOF'
+import os, glob, json, re
+from collections import Counter
+nl = os.environ['NL']
+js = sorted(p for p in glob.glob(os.path.join(nl, 'audit_*.json')) if p.endswith('.json'))
+if not js:
+    print('監査未実施'); raise SystemExit
+try:
+    rs = json.load(open(js[-1]))
+except Exception:
+    rs = []
+vc = Counter(r.get('verdict') for r in rs)
+line = f"監査{len(rs)}問: ok={vc.get('ok',0)} warn={vc.get('warn',0)} ng={vc.get('ng',0)}"
+imp = sorted(glob.glob(os.path.join(nl, 'audit_*_improvement.md')))
+if imp:
+    txt = open(imp[-1]).read()
+    m = re.search(r'適用 (\d+)件 / 見送り (\d+)件', txt)
+    if m:
+        line += f"\nプロンプト改良: 適用{m.group(1)}件 / 見送り{m.group(2)}件"
+    m2 = re.search(r'## 改良方針\s*\n(.+)', txt)
+    if m2:
+        line += f"\n方針: {m2.group(1).strip()[:120]}"
+else:
+    line += "\nプロンプト改良: なし"
+print(line)
+PYEOF
+)
+echo "$AUDIT_SUMMARY" | sed 's/^/  /'
+
+# カナリア整合性チェック（canary-coverage-check.sh の直近結果）
+CANARY_COV_SUMMARY=$(NL="$NL_DIR" python3 << 'PYEOF'
+import os, glob, re
+nl = os.environ['NL']
+md = sorted(glob.glob(os.path.join(nl, 'canary-coverage_*.md')))
+if not md:
+    print('整合性チェック未実施'); raise SystemExit
+txt = open(md[-1]).read()
+out = []
+m = re.search(r'## 所見\s*\n(.+)', txt)
+if m:
+    out.append('所見: ' + m.group(1).strip()[:150])
+mg = re.search(r'## カバー漏れ・陳腐化\s*\n((?:- .*\n?)+)', txt)
+if mg:
+    gaps = [g for g in mg.group(1).splitlines() if g.strip().startswith('- ') and '指摘なし' not in g]
+    out.append(f"カバー漏れ/陳腐化: {len(gaps)}件")
+ma = re.search(r'## 対応\s*\n(- .+)', txt)
+if ma:
+    out.append('対応: ' + ma.group(1).strip()[2:][:120])
+print('\n'.join(out) if out else '整合性チェック結果あり')
+PYEOF
+)
+echo "$CANARY_COV_SUMMARY" | sed 's/^/  /'
+
+# 日めくりAWSサービス 生成(04)・検証(05) の直近結果（nscriptログから）
+DAILY_SUMMARY=$(LOGD="$LOG_DIR" python3 << 'PYEOF'
+import os, glob
+ld = os.environ['LOGD']
+def latest_tail(prefix, keywords):
+    fs = sorted(glob.glob(os.path.join(ld, f'nscript_{prefix}_*.log')))
+    if not fs:
+        return None
+    lines = open(fs[-1], errors='ignore').read().splitlines()
+    hits = [l.strip() for l in lines if any(k in l for k in keywords)]
+    return hits[-1] if hits else (lines[-1].strip() if lines else '')
+gen = latest_tail('04-generate-daily-services', ['記事化', '生成', 'スキップ', '対象がありません', '完了'])
+chk = latest_tail('05-check-daily-services', ['完了', 'サマリー', '修正', '削除', '警告', 'OK'])
+out = []
+out.append(f"生成: {gen}" if gen else "生成: ログなし")
+out.append(f"検証: {chk}" if chk else "検証: ログなし")
+print('\n'.join(out))
+PYEOF
+)
+echo "$DAILY_SUMMARY" | sed 's/^/  /'
+
 # ── 5. メール生成・送信 ────────────────────────────────────────
 echo ""
 echo "--- [5] メール送信 ---"
@@ -487,6 +567,9 @@ data = {
     'smtp_to':   sys.argv[15],
     'db_gen3d':  sys.argv[16],
     'db_chk3d':  sys.argv[17],
+    'audit':     sys.argv[18],
+    'canary_cov':sys.argv[19],
+    'daily':     sys.argv[20],
 }
 with open('$REPORT_DATA_FILE', 'w') as f:
     json.dump(data, f, ensure_ascii=False)
@@ -496,7 +579,8 @@ with open('$REPORT_DATA_FILE', 'w') as f:
   "$DB_TOTAL" "$DB_UNCHECKED" "$DB_REPORTS" "$DB_EXAM_TABLE" \
   "$CERT_NEWS" "$JST_NOW" \
   "$SMTP_USER" "$SMTP_PASS" "$SMTP_TO" \
-  "$DB_GEN3D" "$DB_CHK3D"
+  "$DB_GEN3D" "$DB_CHK3D" \
+  "$AUDIT_SUMMARY" "$CANARY_COV_SUMMARY" "$DAILY_SUMMARY"
 
 # HTML生成＋メール送信を1つのPythonスクリプトで実行
 SEND_RESULT=$(REPORT_DATA_FILE="$REPORT_DATA_FILE" python3 << 'PYEOF'
@@ -561,6 +645,9 @@ db_total = e(d['db_total']); db_unchk = e(d['db_unchk'])
 db_rpts  = e(d['db_rpts']);  db_exams = e(d['db_exams'])
 db_gen3d = e(d.get('db_gen3d','?')); db_chk3d = e(d.get('db_chk3d','?'))
 cert_html = md_to_html(d['cert']); jst_now  = e(d['jst_now'])
+audit_html      = e_lines(d.get('audit', '監査未実施'))
+canary_cov_html = e_lines(d.get('canary_cov', '整合性チェック未実施'))
+daily_html      = e_lines(d.get('daily', '日めくり情報なし'))
 
 canary_color = "#27ae60" if "PASS" in d['canary_r'] else "#e74c3c"
 unchk_num    = int(d['db_unchk'].replace("?","0")) if d['db_unchk'].replace("?","0").isdigit() else 0
@@ -599,16 +686,25 @@ html_body = f"""<!DOCTYPE html>
   </table>
 </div>
 
-<h2>2. Canary テスト（検証環境）</h2>
+<h2>2. 問題品質監査＋プロンプト継続改良</h2>
+<div class="card" style="font-size:13px;line-height:1.7">{audit_html}</div>
+
+<h2>3. 日めくりAWSサービス記事（生成・検証）</h2>
+<div class="card" style="font-size:13px;line-height:1.7">{daily_html}</div>
+
+<h2>4. Canary テスト（検証環境）</h2>
 <div class="card">
   <span style="color:{canary_color};font-weight:700;font-size:15px;">{canary_r}</span>
   {canary_detail_html}
+  <div style="margin-top:10px;font-size:13px;line-height:1.7;border-top:1px dashed #ddd;padding-top:8px">
+    <b>構成との整合性チェック</b><br>{canary_cov_html}
+  </div>
 </div>
 
-<h2>3. AWS資格 公式情報チェック</h2>
+<h2>5. AWS資格 公式情報チェック</h2>
 <div class="card" style="font-size:13px;line-height:1.7">{cert_html}</div>
 
-<h2>4. サイト稼働状況（DynamoDB）</h2>
+<h2>6. サイト稼働状況（DynamoDB）</h2>
 <div class="card"><table>
   <tr><th>指標</th><th>値</th></tr>
   <tr><td>総問題数</td><td><b>{db_total} 問</b></td></tr>

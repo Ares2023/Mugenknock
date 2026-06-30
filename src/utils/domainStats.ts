@@ -52,14 +52,14 @@ export function recordSessionDomainStats(opts: {
     localStorage.setItem(`domain_history_${examType}_${userId}`, JSON.stringify(dh));
   } catch {}
 
-  // domain_results（直近5問の個別正誤）+ サーバー同期
+  // domain_results（直近10問の個別正誤）+ サーバー同期
   const dr = readDomainResults(examType, userId);
   try {
     for (const r of results) {
       const idx = idxOf(r.questionId);
       if (idx < 0) continue;
       const k = String(idx);
-      dr[k] = [...(dr[k] ?? []), r.isCorrect].slice(-5);
+      dr[k] = [...(dr[k] ?? []), r.isCorrect].slice(-10);
     }
     localStorage.setItem(`domain_results_${examType}_${userId}`, JSON.stringify(dr));
     if (userId && userId !== 'guest') {

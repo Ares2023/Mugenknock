@@ -1078,6 +1078,28 @@ function shuffleArray<T>(arr: T[]): T[] {
   return a;
 }
 
+// 重み付き非復元抽出：weightFn が大きい要素ほど高確率で前方に来るよう k 件選ぶ。
+// 全要素に base 重みがあるため、優先対象が k 未満でも必ず k 件まで埋まる（多様性も維持）。
+function weightedSampleWithoutReplacement<T>(items: T[], weightFn: (item: T) => number, k: number): T[] {
+  const pool = items.map(item => ({ item, w: Math.max(0, weightFn(item)) }));
+  const picked: T[] = [];
+  const n = Math.min(k, pool.length);
+  for (let p = 0; p < n; p++) {
+    let total = 0;
+    for (const e of pool) total += e.w;
+    let idx = 0;
+    if (total <= 0) {
+      idx = Math.floor(Math.random() * pool.length); // 全重み0なら一様ランダム
+    } else {
+      let r = Math.random() * total;
+      for (let i = 0; i < pool.length; i++) { r -= pool[i].w; if (r <= 0) { idx = i; break; } }
+    }
+    picked.push(pool[idx].item);
+    pool.splice(idx, 1);
+  }
+  return picked;
+}
+
 const CHEVRON_BTN: React.CSSProperties = {
   border: 'none', background: 'none', cursor: 'pointer',
   color: 'var(--color-text-light)', fontSize: 20, lineHeight: 1,
@@ -1592,13 +1614,18 @@ export default function Home() {
       if (usedFallback) alert(ja ? 'フィルタ条件に合う問題が不足したため、条件外の問題も含めて出題します。' : 'Not enough questions matched your filters. Including additional questions.');
       setQuickLoadPct(90);
       const questionIds = items.map((q: any) => q.questionId);
+      // 予備ID: 出題中に削除済み等で読み込めないIDが出ても設定問題数を満たせるよう、
+      // プールの未使用分から控えを渡す（1問目の取得は変えないのでロード時間は不変）。
+      const _usedSel = new Set(questionIds);
+      const spareQuestionIds = shuffleArray(pool.filter((q: any) => !_usedSel.has(q.questionId)))
+        .slice(0, 10).map((q: any) => q.questionId);
       // セッション作成は遷移先で非同期実行。フルキャッシュ時は全問をそのまま渡し、
       // metaOnly 時は 1 問目だけ取得して残りはプログレッシブロード。
       if (cachedQs) {
-        navigate('/aws/exercise/session', { state: { createSession: { userId, mode: 'exercise', examType: targetExam, questionIds }, questions: items, userId, mode: 'exercise', examType: targetExam, isQuick: true } });
+        navigate('/aws/exercise/session', { state: { createSession: { userId, mode: 'exercise', examType: targetExam, questionIds }, questions: items, spareQuestionIds, userId, mode: 'exercise', examType: targetExam, isQuick: true } });
       } else {
         const q1Data = await fetch(`${API_ENDPOINT}/questions?ids=${questionIds[0]}&withAnswers=true&examType=${targetExam}`).then(r => r.json());
-        navigate('/aws/exercise/session', { state: { createSession: { userId, mode: 'exercise', examType: targetExam, questionIds }, questions: q1Data.items ?? [], questionIds, userId, mode: 'exercise', examType: targetExam, isQuick: true } });
+        navigate('/aws/exercise/session', { state: { createSession: { userId, mode: 'exercise', examType: targetExam, questionIds }, questions: q1Data.items ?? [], questionIds, spareQuestionIds, userId, mode: 'exercise', examType: targetExam, isQuick: true } });
       }
     } catch (err) { console.error(err); alert(ja ? '演習の開始に失敗しました' : 'Failed to start exercise'); }
     finally { setQuickLoading(false); setQuickLoadPct(0); }
@@ -1657,53 +1684,69 @@ export default function Home() {
       if (stopAnim) { stopAnim(); setFocusedLoadPct(plateau); }
       // フルキャッシュ時のみ明示的に validity フィルタ（metaOnly はサーバ側で済み）
       const allItems: any[] = cachedQs ? (data.items ?? []).filter((q: any) => !!q.validityCheckedAt) : (data.items ?? []);
-      const incorrectIds = new Set<string>(incorrectRes.questionIds ?? []);
+      const incorrectCounts: Record<string, number> = incorrectRes.counts ?? {};
       const focusIncorrect: boolean = fPrefs.focusIncorrect !== false;
       const focusDomain: string = fPrefs.focusDomain ?? 'below60';
 
-      // 優先問題を先頭に集め、不足分は全問プールから補充（絞り込みではなく優先）
-      let priorityItems: any[] = [];
-      if (focusIncorrect) {
-        priorityItems = allItems.filter((q: any) => incorrectIds.has(q.questionId));
-      }
-      if (focusDomain !== 'none') {
-        const threshold = focusDomain === 'below40' ? 0.40 : focusDomain === 'below50' ? 0.50 : focusDomain === 'below70' ? 0.70 : 0.60;
-        const examDomains = EXAM_DOMAINS[targetExam] ?? [];
-        const weakDomains = new Set<string>(((): string[] => {
-          const hist = readDomainHistory(targetExam, uid);
-          return examDomains.filter((domain, idx) => {
-            const stat = domainStats.find(s => tagIdMatches(s.tagId, targetExam, idx));
-            if (stat) {
-              const total = (stat.correctCount ?? 0) + (stat.incorrectCount ?? 0);
-              return total === 0 || (stat.correctCount ?? 0) / total < threshold;
-            }
-            const sessions = hist[String(idx)];
-            if (!sessions || sessions.length === 0) return true;
-            const correct = sessions.reduce((s, r) => s + r.correct, 0);
-            const total = sessions.reduce((s, r) => s + r.total, 0);
-            return total === 0 || correct / total < threshold;
-          });
-        })());
-        const seenIds = new Set(priorityItems.map((q: any) => q.questionId));
-        const domainItems = allItems.filter((q: any) => weakDomains.has(qDomainName(q)) && !seenIds.has(q.questionId));
-        priorityItems = [...priorityItems, ...domainItems];
-      }
+      // ② 弱点ドメイン判定は「直近10回」(recentResults) の正答率を優先採用。
+      //    無ければ累計 correct/incorrect → ドメイン履歴の順にフォールバック。
+      const threshold = focusDomain === 'none' ? 0
+        : focusDomain === 'below40' ? 0.40 : focusDomain === 'below50' ? 0.50 : focusDomain === 'below70' ? 0.70 : 0.60;
+      const examDomains = EXAM_DOMAINS[targetExam] ?? [];
+      const hist = readDomainHistory(targetExam, uid);
+      const domainAcc = new Map<string, number | null>(); // ドメイン名 → 直近正答率（null=データ無し）
+      examDomains.forEach((domain, idx) => {
+        const stat = domainStats.find(s => tagIdMatches(s.tagId, targetExam, idx));
+        const recent = stat?.recentResults ?? [];
+        let acc: number | null = null;
+        if (recent.length > 0) {
+          acc = recent.filter(Boolean).length / recent.length;
+        } else if (stat && ((stat.correctCount ?? 0) + (stat.incorrectCount ?? 0)) > 0) {
+          acc = (stat.correctCount ?? 0) / ((stat.correctCount ?? 0) + (stat.incorrectCount ?? 0));
+        } else {
+          const sessions = hist[String(idx)];
+          if (sessions && sessions.length > 0) {
+            const c = sessions.reduce((s, r) => s + r.correct, 0);
+            const t = sessions.reduce((s, r) => s + r.total, 0);
+            acc = t === 0 ? null : c / t;
+          }
+        }
+        domainAcc.set(domain, acc);
+      });
+      // ドメイン弱点度（0〜1）：未演習(null)は最優先の 1、閾値以上は 0、閾値内は弱いほど大。
+      const domainDeficit = (name: string): number => {
+        if (focusDomain === 'none') return 0;
+        const acc = domainAcc.get(name);
+        if (acc == null) return 1;
+        if (acc >= threshold) return 0;
+        return (threshold - acc) / threshold;
+      };
+
+      // ① 蓄積成績で重み付けして抽出：base + ミス回数×W + ドメイン弱点度×W。
+      //    弱い問題・分野ほど高確率で出題しつつ、base 重みで多様性と充足（count 件）を担保。
+      const W_INCORRECT = 4, W_DOMAIN = 6, BASE = 1;
       const count = fPrefs.questionCount ?? 5;
-      // 優先問題をシャッフルして先頭に、残りを補充（問題数が足りなくてもアラートなし）
-      const usedIds = new Set(priorityItems.map((q: any) => q.questionId));
-      const rest = shuffleArray(allItems.filter((q: any) => !usedIds.has(q.questionId)));
-      let items: any[] = [...shuffleArray(priorityItems), ...rest];
-      items = Array.from(new Map(items.map((q: any) => [q.questionId, q])).values()).slice(0, count);
+      const pool = Array.from(new Map(allItems.map((q: any) => [q.questionId, q])).values());
+      const items = weightedSampleWithoutReplacement(pool, (q: any) => {
+        let w = BASE;
+        if (focusIncorrect) w += (incorrectCounts[q.questionId] ?? 0) * W_INCORRECT;
+        w += domainDeficit(qDomainName(q)) * W_DOMAIN;
+        return w;
+      }, count);
       if (items.length === 0) { alert(ja ? '条件に合う問題がありません' : 'No questions match the criteria'); return; }
       setFocusedLoadPct(90);
       const questionIds = items.map((q: any) => q.questionId);
+      // 予備ID: 出題中に読み込めないIDが出ても設定問題数を満たせるよう控えを渡す（1問目取得は不変）。
+      const _usedSel = new Set(questionIds);
+      const spareQuestionIds = shuffleArray(pool.filter((q: any) => !_usedSel.has(q.questionId)))
+        .slice(0, 10).map((q: any) => q.questionId);
       // セッション作成は遷移先で非同期実行。フルキャッシュ時は全問をそのまま渡し、
       // metaOnly 時は 1 問目だけ取得して残りはプログレッシブロード。
       if (cachedQs) {
-        navigate('/aws/exercise/session', { state: { createSession: { userId, mode: 'exercise', examType: targetExam, questionIds, isFocused: true }, questions: items, userId, mode: 'exercise', examType: targetExam, isQuick: true, isFocused: true } });
+        navigate('/aws/exercise/session', { state: { createSession: { userId, mode: 'exercise', examType: targetExam, questionIds, isFocused: true }, questions: items, spareQuestionIds, userId, mode: 'exercise', examType: targetExam, isQuick: true, isFocused: true } });
       } else {
         const q1Data = await fetch(`${API_ENDPOINT}/questions?ids=${questionIds[0]}&withAnswers=true&examType=${targetExam}`).then(r => r.json());
-        navigate('/aws/exercise/session', { state: { createSession: { userId, mode: 'exercise', examType: targetExam, questionIds, isFocused: true }, questions: q1Data.items ?? [], questionIds, userId, mode: 'exercise', examType: targetExam, isQuick: true, isFocused: true } });
+        navigate('/aws/exercise/session', { state: { createSession: { userId, mode: 'exercise', examType: targetExam, questionIds, isFocused: true }, questions: q1Data.items ?? [], questionIds, spareQuestionIds, userId, mode: 'exercise', examType: targetExam, isQuick: true, isFocused: true } });
       }
     } catch (err) { console.error(err); alert(ja ? '演習の開始に失敗しました' : 'Failed to start exercise'); }
     finally { setFocusedLoading(false); setFocusedLoadPct(0); }

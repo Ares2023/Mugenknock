@@ -201,7 +201,7 @@ export default function ExamSelectOverlay({
               rel="noopener noreferrer"
               style={{ fontSize: 11, fontWeight: 600, color: 'var(--color-primary)', textDecoration: 'none' }}
             >
-              {ja ? '資格パス（PDF）→' : 'Certification paths (PDF) →'}
+              {ja ? '何を取るべき？→' : 'Which cert should I take? →'}
             </a>
           </div>
           {dismissible && (
