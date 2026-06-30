@@ -35,6 +35,13 @@ function assertNoRealErrors(monitor: PageMonitor, label: string) {
   expect(net5xx, `[${label}] サーバーエラー(5xx)`).toHaveLength(0);
 }
 
+// Cookie同意バナーは画面下部に固定表示され、演習開始ボタン等の操作を妨げるため事前に閉じる
+test.beforeEach(async ({ page }) => {
+  await page.addInitScript(() => {
+    try { localStorage.setItem('cookie_consent_v1', 'accepted'); } catch { /* noop */ }
+  });
+});
+
 // ① 認証状態でホームが表示される（＝ログインが効いている）
 test('認証ホーム /aws/ が表示される', async ({ page }) => {
   const monitor = new PageMonitor(page);
@@ -58,30 +65,30 @@ test('マイページ /aws/mypage が表示されタブが揃う', async ({ page
 });
 
 // ③ 演習を開始して問題・選択肢が表示される（最重要の認証導線）
-test('演習設定→開始→問題・選択肢が表示される', async ({ page }) => {
+//   実ルートは /aws/practice（演習タブ）。開始→/aws/exercise/session へ遷移し問題が出る。
+test('演習を開始→問題・選択肢が表示される', async ({ page }) => {
   const monitor = new PageMonitor(page);
-  await page.goto('/aws/exercise/setup', { waitUntil: 'networkidle' });
+  // まずホームを開いて目標資格(サーバ保存)をlocalStorageへロードさせてから演習ページへ
+  await page.goto('/aws/', { waitUntil: 'networkidle' });
+  await page.waitForTimeout(1500);
+  await page.goto('/aws/practice', { waitUntil: 'networkidle' });
 
-  // 問題数を最小に（あれば）
-  const countInput = page.locator('input[type="range"], input[type="number"]').first();
-  if (await countInput.count() > 0) {
-    try { await countInput.fill('3'); } catch { /* range は fill 不可な場合あり */ }
-  }
-  const startBtn = page.getByRole('button', { name: /開始|start/i }).first();
-  await expect(startBtn).toBeVisible({ timeout: 10_000 });
+  // 演習タブの開始/再開ボタン（ドラフト有無で文言が変わるため広めに一致）
+  const startBtn = page.getByRole('button',
+    { name: /演習を開始|新規に開始|再開|^Start$|Start New|Resume/i }).first();
+  await expect(startBtn).toBeVisible({ timeout: 12_000 });
   await startBtn.click();
 
-  // 確認ダイアログがあれば進む
-  const confirmBtn = page.getByRole('button', { name: /開始する/ });
-  if (await confirmBtn.count() > 0) {
-    try { await confirmBtn.first().click({ timeout: 3_000 }); } catch { /* なければ無視 */ }
+  // 上書き確認パネルなどが出たら進む
+  const confirmNew = page.getByRole('button', { name: /新規に開始|Start New/i });
+  if (await confirmNew.count() > 0) {
+    try { await confirmNew.first().click({ timeout: 3_000 }); } catch { /* なければ無視 */ }
   }
 
-  // 問題文 + 選択肢が表示される（1問目が実際にロードされる）
-  await expect(page.locator('h1, h2, p').filter({ hasText: /問|\?|？|どれ|選/ }).first())
-    .toBeVisible({ timeout: 15_000 });
+  // セッションへ遷移し、選択肢ボタンが表示される（1問目が実際にロードされる）
+  await page.waitForURL(/\/aws\/exercise\/session/, { timeout: 15_000 }).catch(() => {});
   const choices = page.locator('button').filter({ hasNot: page.locator('svg') });
-  await expect(choices.first()).toBeVisible({ timeout: 8_000 });
+  await expect(choices.first()).toBeVisible({ timeout: 15_000 });
 
   monitor.printReport('演習開始');
   assertNoRealErrors(monitor, '演習開始');

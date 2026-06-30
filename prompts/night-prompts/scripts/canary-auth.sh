@@ -56,9 +56,20 @@ echo "=================================================="
 
 EXIT_CODE=0
 cd "$ROOT"
-# chromium プロジェクト（認証あり）。setup(ログイン→storageState保存)が依存で先に走る。
+# 注意: テストファイルを指定すると setup プロジェクト(別ファイル)はフィルタで除外され
+# 依存ログインが走らない。そのため setup を明示実行して storageState を先に作る。
+echo "--- ログイン(setup) ---" | tee "$LOG_FILE"
+npx playwright test --project=setup --reporter=line 2>&1 | tee -a "$LOG_FILE" || true
+if [ ! -s e2e/.auth/user.json ] || ! grep -q '"cookies"' e2e/.auth/user.json 2>/dev/null; then
+  echo "❌ ログイン失敗: storageState(e2e/.auth/user.json)が生成されませんでした（認証情報を確認）" | tee -a "$LOG_FILE"
+fi
+# 認証状態が空（cookies空＝ログイン未完了）かどうかも警告
+if grep -q '"cookies": *\[\]' e2e/.auth/user.json 2>/dev/null && grep -q '"origins": *\[\]' e2e/.auth/user.json 2>/dev/null; then
+  echo "⚠️  storageStateが空（ゲスト状態）。ログインに失敗している可能性があります" | tee -a "$LOG_FILE"
+fi
+echo "--- 認証カナリア本体 ---" | tee -a "$LOG_FILE"
 npx playwright test e2e/tests/canary.auth.spec.ts --project=chromium \
-  --reporter=list 2>&1 | tee "$LOG_FILE" || EXIT_CODE=$?
+  --reporter=list 2>&1 | tee -a "$LOG_FILE" || EXIT_CODE=$?
 
 PASSED=$(awk '/✓|passed/{c++} END{print c+0}' "$LOG_FILE")
 FAILED=$(awk '/✘|failed/{c++} END{print c+0}' "$LOG_FILE")
