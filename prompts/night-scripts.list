@@ -30,3 +30,6 @@
 # systemicな品質問題があれば生成(01)・検証(02)のプロンプト規則を最小限・追記的に自動改良する。
 # 生成・検証より後（改良は次回夜間から反映）。改良内容は audit_<日時>_improvement.md に出力。
 60,/home/yuzuki/aws-quiz-app/prompts/night-prompts/scripts/audit-questions-nightly.sh
+# カナリア整合性チェック: 現在のサイト構成とカナリアtest(no-auth spec)の整合性をOpusで確認し、
+# カバー漏れ/陳腐化があれば検証ゲート(playwright --list)付きでspecを自動更新。結果はメールへ。
+65,/home/yuzuki/aws-quiz-app/prompts/night-prompts/scripts/canary-coverage-check.sh
