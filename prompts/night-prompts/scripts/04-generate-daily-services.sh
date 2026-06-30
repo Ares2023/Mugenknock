@@ -164,10 +164,12 @@ items.sort(key=lambda x: int(x.get('order', 0)))
 max_order = max((int(s.get('order', 0)) for s in items), default=0)
 
 names = [s.get('name', '') for s in items]
+docurls = [s.get('docUrl', '') for s in items if s.get('docUrl')]
 
 print('__MAX_ORDER__' + str(max_order))
 print('__COUNT__' + str(len(items)))
 print('__NAMES__' + json.dumps(names, ensure_ascii=False))
+print('__DOCURLS__' + json.dumps(docurls, ensure_ascii=False))
 
 for s in items:
     print(f"  [{str(s.get('order', '')):>3}] {s.get('name', '')} ({s.get('category', '')})")
@@ -178,6 +180,7 @@ rm -f "$_EXISTING_TMP"
 MAX_ORDER=$(echo "$EXISTING_INFO" | grep '^__MAX_ORDER__' | sed 's/^__MAX_ORDER__//')
 EXISTING_COUNT=$(echo "$EXISTING_INFO" | grep '^__COUNT__' | sed 's/^__COUNT__//')
 EXISTING_NAMES=$(echo "$EXISTING_INFO" | grep '^__NAMES__' | sed 's/^__NAMES__//')
+EXISTING_DOCURLS=$(echo "$EXISTING_INFO" | grep '^__DOCURLS__' | sed 's/^__DOCURLS__//')
 echo "$EXISTING_INFO" | grep -v '^__'
 echo ""
 echo "現在 ${EXISTING_COUNT}件 登録済み / 最大 order=${MAX_ORDER}"
@@ -190,23 +193,38 @@ _CANDIDATES_TMP=$(mktemp /tmp/daily_svc_cand_XXXX.json)
 echo '[]' > "$_CANDIDATES_TMP"
 if [ -f "$CATALOG_FILE" ]; then
   CATALOG_FILE="$CATALOG_FILE" COUNT_VAL="$COUNT" EXISTING_NAMES_JSON="$EXISTING_NAMES" \
+  EXISTING_DOCURLS_JSON="$EXISTING_DOCURLS" \
   python3 - "$_CANDIDATES_TMP" << 'PYEOF'
 import json, os, re, sys
 def norm(s):
     s = (s or '').lower().strip(); s = re.sub(r'^(amazon|aws)\s+', '', s)
     return re.sub(r'[^a-z0-9]', '', s)
+def norm_url(u):
+    # docUrl はサービスの正準ID。末尾スラッシュ・スキーム・大小・言語パス差を吸収して照合。
+    u = (u or '').lower().strip().rstrip('/')
+    u = re.sub(r'^https?://', '', u)
+    u = re.sub(r'/(jp|ja|en)(/|$)', '/', u)
+    return u
 try:
     catalog = json.load(open(os.environ['CATALOG_FILE'], encoding='utf-8'))
 except Exception:
     catalog = {'services': {}}
 existing = set(norm(n) for n in json.loads(os.environ.get('EXISTING_NAMES_JSON') or '[]'))
+existing_urls = set(norm_url(u) for u in json.loads(os.environ.get('EXISTING_DOCURLS_JSON') or '[]') if u)
 cands = []
+seen_urls = set()  # 同一実行のカタログ内で docUrl 重複があっても二重生成しない
 for v in catalog.get('services', {}).values():
     name = v.get('name')
     if not name or v.get('status') != 'active' or not v.get('isArticleTarget'):
         continue
+    # 名前一致・docUrl一致のどちらかで既存とみなしスキップ（略称⇔正式名の重複を防ぐ）
     if norm(name) in existing:
         continue
+    u = norm_url(v.get('docUrl', ''))
+    if u and (u in existing_urls or u in seen_urls):
+        continue
+    if u:
+        seen_urls.add(u)
     cands.append(v)
 # 試験関連度の高い順に優先
 rank = {'high': 0, 'medium': 1, 'low': 2, 'none': 3, 'unknown': 4}
