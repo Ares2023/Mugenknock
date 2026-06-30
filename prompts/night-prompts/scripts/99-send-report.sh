@@ -541,6 +541,15 @@ PYEOF
 )
 echo "$DAILY_SUMMARY" | sed 's/^/  /'
 
+# バックエンド稼働・コスト（Lambda/API健全性・本番エラー・AWSコスト）
+BACKEND_HEALTH="未取得"
+_BH_SCRIPT="$_d/backend-health-check.sh"
+if [ -x "$_BH_SCRIPT" ]; then
+  BACKEND_HEALTH=$(bash "$_BH_SCRIPT" 2>/dev/null)
+  [ -z "$BACKEND_HEALTH" ] && BACKEND_HEALTH="取得失敗"
+fi
+echo "$BACKEND_HEALTH" | sed 's/^/  /'
+
 # ── 5. メール生成・送信 ────────────────────────────────────────
 echo ""
 echo "--- [5] メール送信 ---"
@@ -570,6 +579,7 @@ data = {
     'audit':     sys.argv[18],
     'canary_cov':sys.argv[19],
     'daily':     sys.argv[20],
+    'backend':   sys.argv[21],
 }
 with open('$REPORT_DATA_FILE', 'w') as f:
     json.dump(data, f, ensure_ascii=False)
@@ -580,7 +590,8 @@ with open('$REPORT_DATA_FILE', 'w') as f:
   "$CERT_NEWS" "$JST_NOW" \
   "$SMTP_USER" "$SMTP_PASS" "$SMTP_TO" \
   "$DB_GEN3D" "$DB_CHK3D" \
-  "$AUDIT_SUMMARY" "$CANARY_COV_SUMMARY" "$DAILY_SUMMARY"
+  "$AUDIT_SUMMARY" "$CANARY_COV_SUMMARY" "$DAILY_SUMMARY" \
+  "$BACKEND_HEALTH"
 
 # HTML生成＋メール送信を1つのPythonスクリプトで実行
 SEND_RESULT=$(REPORT_DATA_FILE="$REPORT_DATA_FILE" python3 << 'PYEOF'
@@ -648,6 +659,7 @@ cert_html = md_to_html(d['cert']); jst_now  = e(d['jst_now'])
 audit_html      = e_lines(d.get('audit', '監査未実施'))
 canary_cov_html = e_lines(d.get('canary_cov', '整合性チェック未実施'))
 daily_html      = e_lines(d.get('daily', '日めくり情報なし'))
+backend_html    = e_lines(d.get('backend', '未取得'))
 
 canary_color = "#27ae60" if "PASS" in d['canary_r'] else "#e74c3c"
 unchk_num    = int(d['db_unchk'].replace("?","0")) if d['db_unchk'].replace("?","0").isdigit() else 0
@@ -714,6 +726,9 @@ html_body = f"""<!DOCTYPE html>
   <tr><td>未解決通報</td><td style="color:{rpts_color}"><b>{db_rpts} 件</b></td></tr>
 </table>
 <br><b>資格別問題数:</b><pre>{db_exams}</pre></div>
+
+<h2>7. バックエンド稼働・コスト（直近24h）</h2>
+<div class="card" style="font-size:13px;line-height:1.7">{backend_html}</div>
 
 <hr style="border:none;border-top:1px solid #eee;margin-top:24px;">
 <p style="color:#aaa;font-size:11px;">無限ノック 自動レポート | <a href="https://mugenknock.com">mugenknock.com</a></p>
