@@ -461,6 +461,26 @@ else
   echo "  ⚠️  canary.sh が見つかりません"
 fi
 
+# 認証カナリア（ログイン後の主要フロー）。認証情報未設定なら SKIP。
+CANARY_AUTH_RESULT="未実行"
+CANARY_AUTH_SCRIPT="$_d/canary-auth.sh"
+if [ -x "$CANARY_AUTH_SCRIPT" ]; then
+  CA_TMP=$(mktemp /tmp/canary_auth_out_XXXX.txt)
+  bash "$CANARY_AUTH_SCRIPT" > "$CA_TMP" 2>&1
+  CA_EXIT=$?
+  if grep -q "RESULT=SKIP" "$CA_TMP"; then
+    CANARY_AUTH_RESULT="⏭️ SKIP（認証情報未設定）"
+  else
+    CA_PASS=$(awk '/✓|passed/{c++} END{print c+0}' "$CA_TMP")
+    CA_FAIL=$(awk '/✘|failed/{c++} END{print c+0}' "$CA_TMP")
+    CANARY_AUTH_RESULT="$([ "$CA_EXIT" -eq 0 ] && echo '✅ PASS' || echo '❌ FAIL') (passed=${CA_PASS} failed=${CA_FAIL})"
+    CANARY_AUTH_DETAIL=$(grep -E "✘|Error|FAIL|error" "$CA_TMP" | head -15 || true)
+  fi
+  rm -f "$CA_TMP"
+  echo "  認証カナリア: $CANARY_AUTH_RESULT"
+  [ -n "${CANARY_AUTH_DETAIL:-}" ] && echo "$CANARY_AUTH_DETAIL" | sed 's/^/    /'
+fi
+
 # ── 4.5 監査・プロンプト改良 / カナリア整合性 / 日めくり 集計 ──────
 echo ""
 echo "--- [4.5] 監査・改良 / カナリア整合性 / 日めくり 集計 ---"
@@ -580,6 +600,7 @@ data = {
     'canary_cov':sys.argv[19],
     'daily':     sys.argv[20],
     'backend':   sys.argv[21],
+    'canary_auth':sys.argv[22],
 }
 with open('$REPORT_DATA_FILE', 'w') as f:
     json.dump(data, f, ensure_ascii=False)
@@ -591,7 +612,7 @@ with open('$REPORT_DATA_FILE', 'w') as f:
   "$SMTP_USER" "$SMTP_PASS" "$SMTP_TO" \
   "$DB_GEN3D" "$DB_CHK3D" \
   "$AUDIT_SUMMARY" "$CANARY_COV_SUMMARY" "$DAILY_SUMMARY" \
-  "$BACKEND_HEALTH"
+  "$BACKEND_HEALTH" "$CANARY_AUTH_RESULT"
 
 # HTML生成＋メール送信を1つのPythonスクリプトで実行
 SEND_RESULT=$(REPORT_DATA_FILE="$REPORT_DATA_FILE" python3 << 'PYEOF'
@@ -661,6 +682,8 @@ canary_cov_html = e_lines(d.get('canary_cov', '整合性チェック未実施'))
 daily_html      = e_lines(d.get('daily', '日めくり情報なし'))
 backend_html    = e_lines(d.get('backend', '未取得'))
 
+canary_auth_r = e(d.get('canary_auth', '未実行'))
+canary_auth_color = "#27ae60" if "PASS" in d.get('canary_auth', '') else ("#888" if "SKIP" in d.get('canary_auth', '') else "#e74c3c")
 canary_color = "#27ae60" if "PASS" in d['canary_r'] else "#e74c3c"
 unchk_num    = int(d['db_unchk'].replace("?","0")) if d['db_unchk'].replace("?","0").isdigit() else 0
 rpts_num     = int(d['db_rpts'].replace("?","0"))  if d['db_rpts'].replace("?","0").isdigit()  else 0
@@ -706,7 +729,8 @@ html_body = f"""<!DOCTYPE html>
 
 <h2>4. Canary テスト（検証環境）</h2>
 <div class="card">
-  <span style="color:{canary_color};font-weight:700;font-size:15px;">{canary_r}</span>
+  <div><b>未ログイン:</b> <span style="color:{canary_color};font-weight:700;font-size:15px;">{canary_r}</span></div>
+  <div style="margin-top:4px"><b>ログイン後:</b> <span style="color:{canary_auth_color};font-weight:700;font-size:15px;">{canary_auth_r}</span></div>
   {canary_detail_html}
   <div style="margin-top:10px;font-size:13px;line-height:1.7;border-top:1px dashed #ddd;padding-top:8px">
     <b>構成との整合性チェック</b><br>{canary_cov_html}
