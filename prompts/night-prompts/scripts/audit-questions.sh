@@ -50,32 +50,44 @@ SAMPLE=20
 CHUNK_SIZE=5
 EXAM_FILTER=""
 RANDOM_SAMPLE=0
+IMPROVE=0
 
 show_help() {
   cat << 'EOF'
-usage: audit-questions.sh [-n N] [-e EXAM] [-r] [-c C] [-h]
+usage: audit-questions.sh [-n N] [-e EXAM] [-r] [-c C] [-i] [-h]
 
   -n N     監査する問題数 (default: 20)
   -e EXAM  資格コードで絞り込み (例: SAA, DEA)。未指定なら全資格
   -r       ランダム抽出（既定は「直近に生成・チェックされた問題」優先）
   -c C     1チャンクあたりの問題数 (default: 5)
+  -i       改善モード: 監査結果を元に生成・検証プロンプトを継続改良し、改良結果もレポート
   -h       このヘルプ
 
 監査観点:
   A. 内容 — 現行AWS仕様として正しいか / 本番相当の難易度か / 出題範囲内か
   B. 体裁 — 問題・選択肢・解説が読みやすいか / 模試として適切か
 
-  ※ 読み取り専用。DynamoDB は一切変更しない。
+改善モード(-i):
+  監査で見つかった systemic な問題を元に、編集可能なプロンプト規則ファイルを
+  最小限・追記的に改良する（個別問題の修正ではなくルールの改良）。
+    instructions/_common-rules.txt  … 生成(01)の共通ルール
+    instructions/<EXAM>.txt          … 生成(01)の資格別指示
+    instructions/_validity-extra.txt … 検証(02)に注入される追加確認観点
+  変更前にバックアップを取り、改良内容と差分を audit_<日時>_improvement.md に出力。
+  夜間自動実行ではこのモードをONにする。
+
+  ※ 監査自体は読み取り専用（DBは変更しない）。-i 時のみプロンプト規則ファイルを編集。
   ※ レポートは標準出力 + $LOG_DIR/audit_<日時>.log、生データは audit_<日時>.json
 EOF
 }
 
-while getopts "n:e:rc:h" opt; do
+while getopts "n:e:rc:ih" opt; do
   case "$opt" in
     n) SAMPLE="$OPTARG" ;;
     e) EXAM_FILTER="$(echo "$OPTARG" | tr '[:lower:]' '[:upper:]')" ;;
     r) RANDOM_SAMPLE=1 ;;
     c) CHUNK_SIZE="$OPTARG" ;;
+    i) IMPROVE=1 ;;
     h) show_help; exit 0 ;;
     *) show_help; exit 1 ;;
   esac
@@ -462,5 +474,224 @@ PYEOF
 echo ""
 echo "生データ: $RESULTS_FILE"
 [ "$RATE_LIMITED" -eq 1 ] && echo "※ レート制限により一部チャンクが未監査です"
+
+# ── 5. 改善モード(-i): 監査結果を元に生成・検証プロンプトを継続改良 ──
+if [ "$IMPROVE" -eq 1 ]; then
+  echo ""
+  echo "=========================================="
+  echo "改善モード: 生成・検証プロンプトの継続改良"
+  echo "=========================================="
+  IMPROVE_REPORT="$LOG_DIR/audit_${DATE}_improvement.md"
+  BACKUP_DIR="$LOG_DIR/audit_${DATE}_promptbackup"
+
+  # 通報で確定した不具合（生成・検証をすり抜けた実際の誤り・直近7日）も改良の材料にする
+  DEFECTS_LOG="$NIGHT_PROMPTS_DIR/logs/report-confirmed-defects.jsonl"
+  _FLAGGED=$(python3 -c "import json;rs=json.load(open('$RESULTS_FILE'));print(sum(1 for r in rs if r.get('verdict') in ('warn','ng')))" 2>/dev/null || echo 0)
+  _DEFECTS=$(DEFECTS_LOG="$DEFECTS_LOG" python3 -c "
+import json,os,sys
+from datetime import datetime,timedelta,timezone
+p=os.environ['DEFECTS_LOG']
+if not os.path.isfile(p): print(0); sys.exit()
+cut=(datetime.now(timezone.utc)-timedelta(days=7)).strftime('%Y-%m-%d')
+n=0
+for ln in open(p):
+    ln=ln.strip()
+    if not ln: continue
+    try:
+        if json.loads(ln).get('date','') >= cut: n+=1
+    except: pass
+print(n)" 2>/dev/null || echo 0)
+  if [ "${_FLAGGED:-0}" -eq 0 ] && [ "${_DEFECTS:-0}" -eq 0 ]; then
+    echo "改善対象（監査warn/ng・通報確定不具合）がないため、プロンプト改良はスキップしました。"
+  else
+    echo "改善対象: 監査${_FLAGGED}件 / 通報確定不具合(直近7日)${_DEFECTS}件。改良案を生成中..."
+    IMP_PROMPT=$(mktemp /tmp/audit_imp_prompt_XXXX.txt)
+    RESULTS_FILE="$RESULTS_FILE" INSTRUCTION_DIR="$INSTRUCTION_DIR" DEFECTS_LOG="$DEFECTS_LOG" python3 > "$IMP_PROMPT" << 'PYEOF'
+import json, os
+from collections import OrderedDict
+from datetime import datetime, timedelta, timezone
+
+rs = json.load(open(os.environ['RESULTS_FILE']))
+inst = os.environ['INSTRUCTION_DIR']
+AWS = {'CLF','AIF','SAA','DVA','SOA','DEA','MLA','SAP','DOP','AIP','ANS','SCS'}
+flagged = [r for r in rs if r.get('verdict') in ('warn', 'ng')]
+
+# 通報で確定した不具合（直近7日）= 生成・検証をすり抜けた実際の誤り
+defects = []
+_dp = os.environ.get('DEFECTS_LOG', '')
+if _dp and os.path.isfile(_dp):
+    _cut = (datetime.now(timezone.utc) - timedelta(days=7)).strftime('%Y-%m-%d')
+    for _ln in open(_dp):
+        _ln = _ln.strip()
+        if not _ln:
+            continue
+        try:
+            _d = json.loads(_ln)
+            if _d.get('date', '') >= _cut:
+                defects.append(_d)
+        except Exception:
+            pass
+defects = defects[-30:]
+
+def cnt(key, val): return sum(1 for r in flagged if r.get(key) == val)
+summary = [
+    f"監査総数 {len(rs)}問 / 要改善 {len(flagged)}問",
+    f"古い・誤り(outdated): {cnt('currentness','outdated')} / 要確認(uncertain): {cnt('currentness','uncertain')}",
+    f"易しすぎ(too_easy): {cnt('difficulty','too_easy')} / 難しすぎ(too_hard): {cnt('difficulty','too_hard')}",
+    f"範囲外(scope=out): {cnt('scope','out')}",
+    f"読みづらい(hard_to_read): {cnt('format','hard_to_read')} / 模試不適: {sum(1 for r in flagged if r.get('mockSuitable') is False)}",
+]
+issues = []
+for r in flagged:
+    for it in (r.get('issues') or []):
+        issues.append(f"[{r.get('examType','?')}/{r.get('verdict')}] {it}")
+issues = issues[:40]
+# 通報で確定した不具合の文言（生成・検証をすり抜けた実際の誤り）
+defect_lines = [f"[{d.get('examType','?')}/{d.get('category','')}/{d.get('action','')}] {d.get('reason','')}" for d in defects]
+exam_src = [r.get('examType') for r in flagged] + [d.get('examType') for d in defects]
+exams = [e for e in OrderedDict((e, 1) for e in exam_src) if e in AWS][:4]
+allowed = ['_common-rules.txt', '_validity-extra.txt'] + [f"{e}.txt" for e in exams]
+
+blocks = []
+for fn in allowed:
+    p = os.path.join(inst, fn)
+    try:
+        content = open(p).read() if os.path.isfile(p) else '(ファイルなし。必要なら新規作成可)'
+    except Exception:
+        content = '(読込失敗)'
+    blocks.append(f"========== FILE: {fn} ==========\n{content}\n========== END {fn} ==========")
+
+print('''あなたはAWS認定試験の「問題生成・検証プロンプト」を継続的に改良する担当者です。
+以下は、生成・検証を通過した問題を第三者監査した結果、見つかった systemic（傾向的）な品質問題です。
+個別問題を直すのではなく、今後の生成・検証で同種の問題を防ぐよう、編集可能なプロンプト規則ファイルを
+最小限・追記的に改良してください。
+
+【改良の方針】
+- 監査で多かった問題クラスに対応する規則だけを、的確に・簡潔に強化する。
+- 既存ルールと矛盾させない。冗長な重複を増やさない。表現は短く具体的に。
+- 大幅な削除や全面書き換えは禁止（追記・小修正のみ）。改良不要なら changes は空配列。
+- 各ファイルの役割:
+  - _common-rules.txt … 生成(01)の共通ルール（難易度・体裁・解説・選択肢バランス等）。
+    「易しすぎ」「体裁」「模試不適」はここを強化（例: シナリオ性・ひっかけ選択肢・要件比較を必須化）。
+  - <資格>.txt … 生成(01)の資格別指示（出題範囲・対象サービス）。「範囲外」はここで範囲を明確化。
+  - _validity-extra.txt … 検証(02)に注入される「追加の確認観点」。検証で弾く/警告すべき観点を足す
+    （例: 易しすぎる定番キーワード問題を warn、現行性の裏取り強化など）。冒頭の # コメント行は残す。
+
+【監査サマリー】
+''' + '\n'.join(summary) + '''
+
+【代表的な指摘（最大40件）】
+''' + ('\n'.join(f'- {x}' for x in issues) if issues else '(なし)') + '''
+
+【ユーザー通報で確定した不具合（直近7日・生成と検証の両方をすり抜けた実際の誤り。最優先で再発防止）】
+これらは検証(02)が見逃した誤りなので、_validity-extra.txt に「この種の誤りを検出する観点」を必ず追加し、
+生成由来であれば _common-rules.txt / 資格別ファイルも強化すること。
+''' + ('\n'.join(f'- {x}' for x in defect_lines) if defect_lines else '(なし)') + '''
+
+【編集可能なファイルの現在の内容】
+''' + '\n\n'.join(blocks) + '''
+
+【出力形式】次のJSONのみを出力（説明文・前置き・コードブロック不要）。
+newContent は当該ファイルの「改良後の全文」を入れること（部分差分ではない）。
+{"summary":"全体の改良方針を1〜3文で","changes":[
+  {"file":"_common-rules.txt","rationale":"この変更がどの監査結果に対応するか","newContent":"<改良後のファイル全文>"}
+]}''')
+PYEOF
+
+    _OVERLOAD_RETRY=0
+    while true; do
+      _IO=$(mktemp /tmp/audit_imp_out_XXXX); _IE=$(mktemp /tmp/audit_imp_err_XXXX)
+      # 永続する仕組み（生成・検証プロンプト規則）を書き換えるステップは Opus で実行し誤りを減らす
+      "$CLAUDE_CMD" -p --model opus < "$IMP_PROMPT" > "$_IO" 2> "$_IE"
+      RESULT=$(cat "$_IO"); _STDERR=$(cat "$_IE"); rm -f "$_IO" "$_IE"
+      _RH=$(echo "$RESULT" | head -3)
+      if echo "$_STDERR $_RH" | grep -qiE "529|Overloaded" && [ $_OVERLOAD_RETRY -lt 2 ]; then
+        _OVERLOAD_RETRY=$(( _OVERLOAD_RETRY + 1 )); echo "⚠️  529。60秒後にリトライ（${_OVERLOAD_RETRY}/2）"; sleep 60; continue
+      fi
+      break
+    done
+    rm -f "$IMP_PROMPT"
+
+    # 適用（whitelist + バックアップ + 反破壊ガード + 差分記録）
+    RESULT="$RESULT" INSTRUCTION_DIR="$INSTRUCTION_DIR" BACKUP_DIR="$BACKUP_DIR" IMPROVE_REPORT="$IMPROVE_REPORT" DATE="$DATE" python3 << 'PYEOF'
+import json, os, sys, shutil, difflib
+
+raw = os.environ.get('RESULT', '')
+dec = json.JSONDecoder()
+obj = None
+start = raw.find('{')
+while start != -1:
+    try:
+        o, _ = dec.raw_decode(raw, start)
+        if isinstance(o, dict) and 'changes' in o:
+            obj = o; break
+    except json.JSONDecodeError:
+        pass
+    start = raw.find('{', start + 1)
+
+if obj is None:
+    print("⚠️  改良案のJSON抽出に失敗。プロンプトは変更しませんでした。")
+    sys.exit(0)
+
+inst = os.environ['INSTRUCTION_DIR']
+backup = os.environ['BACKUP_DIR']
+report = os.environ['IMPROVE_REPORT']
+AWS = {'CLF','AIF','SAA','DVA','SOA','DEA','MLA','SAP','DOP','AIP','ANS','SCS'}
+ALLOWED = {'_common-rules.txt', '_validity-extra.txt'} | {f"{e}.txt" for e in AWS}
+
+changes = obj.get('changes') or []
+applied, skipped = [], []
+for ch in changes:
+    fn = (ch.get('file') or '').strip()
+    nc = ch.get('newContent')
+    rationale = (ch.get('rationale') or '').strip()
+    if os.path.basename(fn) != fn or fn not in ALLOWED:
+        skipped.append((fn, 'whitelist外')); continue
+    if not nc or not nc.strip():
+        skipped.append((fn, 'newContentが空')); continue
+    if not nc.endswith('\n'): nc += '\n'
+    p = os.path.join(inst, fn)
+    old = open(p).read() if os.path.isfile(p) else ''
+    if len(old) > 200 and len(nc) < 0.6 * len(old):
+        skipped.append((fn, f'大幅短縮のため拒否({len(old)}→{len(nc)}字)')); continue
+    if nc == old:
+        skipped.append((fn, '実質変更なし')); continue
+    os.makedirs(backup, exist_ok=True)
+    if os.path.isfile(p):
+        shutil.copy2(p, os.path.join(backup, fn))
+    with open(p, 'w') as f:
+        f.write(nc)
+    diff = ''.join(difflib.unified_diff(old.splitlines(True), nc.splitlines(True),
+                                        fromfile=f'a/{fn}', tofile=f'b/{fn}'))
+    applied.append((fn, rationale, diff))
+
+# 改良レポート(md)
+lines = [f"# プロンプト改良レポート ({os.environ['DATE']})", '',
+         '## 改良方針', obj.get('summary', '(なし)'), '',
+         f"## 適用 {len(applied)}件 / 見送り {len(skipped)}件", '']
+for fn, rationale, diff in applied:
+    lines += [f"### ✅ {fn}", f"**理由:** {rationale}", '', '```diff', diff.rstrip('\n'), '```', '']
+for fn, why in skipped:
+    lines.append(f"- ⏭️ {fn}: {why}")
+if applied:
+    lines += ['', f"バックアップ: {backup}"]
+with open(report, 'w') as f:
+    f.write('\n'.join(lines) + '\n')
+
+# コンソール出力
+print(f"改良方針: {obj.get('summary','(なし)')}")
+print(f"適用 {len(applied)}件 / 見送り {len(skipped)}件")
+for fn, rationale, _ in applied:
+    print(f"  ✅ {fn} — {rationale[:80]}")
+for fn, why in skipped:
+    print(f"  ⏭️ {fn} — {why}")
+print(f"改良レポート: {report}")
+if applied:
+    print(f"バックアップ: {backup}")
+    print("※ 次回以降の生成(01)・検証(02)からこの改良が反映されます。")
+PYEOF
+  fi
+fi
+
 echo "監査終了: $(date)"
 } 2>&1 | tee -a "$LOG_FILE"

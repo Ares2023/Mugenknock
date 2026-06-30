@@ -4,6 +4,10 @@
 
 0,/home/yuzuki/aws-quiz-app/prompts/night-prompts/scripts/99-send-report.sh
 0,/home/yuzuki/aws-quiz-app/prompts/night-prompts/scripts/generate-release-note.sh
+# ユーザー通報の妥当性チェック＋対象修正（改変範囲は問題内容に限定・堅牢化済）。
+# 通報が妥当だった不具合は report-confirmed-defects.jsonl に記録し、監査(audit)が
+# 生成・検証プロンプトの改良材料に使う。監査(+60)より前に実行する。
+15,/home/yuzuki/aws-quiz-app/prompts/night-prompts/scripts/03-check-reports.sh
 # 検証(02)はゲート（未検証問題はアプリ非公開）。生成(01)より先に走らせ、限られた
 # セッション枠を検証バックログの消化に優先配分する。
 # [一時停止 2026-06-29] トークン枯渇で後半(日めくり/カタログ系)が飛ぶため、検証(02)と生成(01)を
@@ -22,3 +26,7 @@
 50,/home/yuzuki/aws-quiz-app/prompts/night-prompts/scripts/05-check-daily-services.sh
 # 日めくり記事の生成（カタログ確定の現行サービスのみ・検証済みdocUrl）。最後に回す。
 55,/home/yuzuki/aws-quiz-app/prompts/night-prompts/scripts/04-generate-daily-services.sh
+# 問題の品質監査＋プロンプト継続改良（改善モード-i）。直近に生成・確認した問題を監査し、
+# systemicな品質問題があれば生成(01)・検証(02)のプロンプト規則を最小限・追記的に自動改良する。
+# 生成・検証より後（改良は次回夜間から反映）。改良内容は audit_<日時>_improvement.md に出力。
+60,/home/yuzuki/aws-quiz-app/prompts/night-prompts/scripts/audit-questions-nightly.sh
