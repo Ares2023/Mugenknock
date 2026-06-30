@@ -249,8 +249,8 @@ export default function ServiceEncyclopedia() {
             <span style={{ marginLeft: 6 }}>{unlockedCount} / {totalServices}</span>
           </span>
         </div>
-        <div style={{ height: 8, borderRadius: 4, background: 'var(--color-bg-main)', overflow: 'hidden' }}>
-          <div style={{ height: '100%', width: `${unlockRate}%`, background: 'var(--bar-gradient-primary)', borderRadius: 4, transformOrigin: 'left center', animation: 'growWidth 0.45s cubic-bezier(0.34, 1.56, 0.64, 1) both' }} />
+        <div style={{ height: 6, borderRadius: 3, background: 'var(--color-border)', overflow: 'hidden' }}>
+          <div style={{ height: '100%', width: `${unlockRate}%`, minWidth: unlockRate === 0 ? undefined : 3, background: 'var(--bar-gradient-primary)', borderRadius: 3, transformOrigin: 'left center', animation: 'growWidth 0.45s cubic-bezier(0.34, 1.56, 0.64, 1) both' }} />
         </div>
       </div>
 
