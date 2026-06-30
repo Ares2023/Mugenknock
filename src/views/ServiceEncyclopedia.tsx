@@ -204,6 +204,7 @@ export default function ServiceEncyclopedia() {
   const allServices = displayCatalog.flatMap(c => c.services);
   const totalServices = allServices.length;
   const unlockedCount = allServices.filter(s => isUnlocked(s, unlockedMap, storedServices)).length;
+  const unlockRate = totalServices > 0 ? Math.round((unlockedCount / totalServices) * 100) : 0;
 
   const calIcon = (
     <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ color: 'var(--color-primary)', flexShrink: 0 }}>
@@ -236,6 +237,22 @@ export default function ServiceEncyclopedia() {
           ? '※ サービスの提供状態（新規受付終了・提供終了など）に応じて、対象サービスや記事は変更・削除される場合があります。'
           : '* Services and articles may change or be removed depending on each service’s availability status (e.g. closed to new customers or discontinued).'}
       </p>
+
+      {/* 全体解放率バー（成績グラフのバー様式を踏襲・青） */}
+      <div style={{ background: 'var(--color-bg-white)', border: '1px solid var(--color-border)', borderRadius: 'var(--border-radius-lg)', padding: 'var(--spacing-md)', marginBottom: 'var(--spacing-md)' }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: 8 }}>
+          <span style={{ fontWeight: 700, fontSize: 'var(--font-size-sm)', color: 'var(--color-text-main)' }}>
+            {ja ? '解放率' : 'Unlock Rate'}
+          </span>
+          <span style={{ fontSize: 'var(--font-size-xs)', color: 'var(--color-text-sub)' }}>
+            <span style={{ fontWeight: 800, fontSize: 'var(--font-size-md)', color: 'var(--color-primary)' }}>{unlockRate}%</span>
+            <span style={{ marginLeft: 6 }}>{unlockedCount} / {totalServices}</span>
+          </span>
+        </div>
+        <div style={{ height: 8, borderRadius: 4, background: 'var(--color-bg-main)', overflow: 'hidden' }}>
+          <div style={{ height: '100%', width: `${unlockRate}%`, background: 'var(--bar-gradient-primary)', borderRadius: 4, transformOrigin: 'left center', animation: 'growWidth 0.45s cubic-bezier(0.34, 1.56, 0.64, 1) both' }} />
+        </div>
+      </div>
 
       {/* 今日の日めくりサービス */}
       <div style={{ background: 'var(--color-bg-white)', border: '1px solid var(--color-border)', borderRadius: 'var(--border-radius-lg)', padding: 'var(--spacing-md)', marginBottom: 'var(--spacing-md)' }}>
