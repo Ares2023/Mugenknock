@@ -188,3 +188,39 @@
 - 形状：`borderRadius: '50%'`
 - 枠線：`border: '1px solid var(--color-border)'`（背景なし）
 - コンポーネント化はしない（各所でインライン定義でよい）
+
+---
+
+## 余白・間隔・サイズの標準（デザイントークン必須）
+
+画面間のデザイン不統一を防ぐため、**余白・gap・padding・フォントサイズ・影・角丸はインラインの生px値を避け、必ず `src/index.css` のトークンを使う**。
+
+### スペーシングスケール（4px基準）
+`gap` / `margin` / `padding` はこのスケールのトークンのみ使う。`10px` `7px` `14px` `6px` `5px` `13px` など**スケール外の生px値は禁止**（最も近いトークンに丸める）。
+
+| トークン | 値 | 主な用途 |
+|---|---|---|
+| `--spacing-xs` | 4px | アイコンとテキストの隙間など最小単位 |
+| `--spacing-sm` | 8px | 密なリスト・チップ間 |
+| `--spacing-md` | 16px | カード内padding・要素間の標準 |
+| `--spacing-lg` | 24px | セクション間隔・ページ左右余白 |
+| `--spacing-xl` | 32px | ページ上下余白・大きな区切り |
+
+### ページの枠は `PageLayout` を使う（`src/components/ui/PageLayout.tsx`）
+各画面が最外周padding・最大幅・センタリングを手書きせず、**`<PageLayout>` で包む**。標準値はトークンで一元管理：
+
+- 左右余白：デスクトップ `24px` / モバイル `16px`
+- 上下余白：デスクトップ `32px` / モバイル `16px`
+- セクション間隔（`stack` prop）：デスクトップ `24px` / モバイル `16px`
+- 最大幅：`960px`（`maxWidth` propで変更、`false` でフル幅）
+
+フルブリード（全幅）にしたいブロックがある画面は `noPaddingX` 等で調整する。
+
+### フォントサイズ
+`fontSize` は `var(--font-size-*)` トークンを使う。`13` `11` などの生数値直書きは避け、階層（xs11 / sm12 / base14 / md15 / lg16 / xl20 / h3:18 / h2:22 / xxl28）に丸める。
+
+### 影（box-shadow）
+カード等の影は `var(--box-shadow-sm)`（通常のカード）または `var(--box-shadow-md)`（モーダル・浮いた要素）の**2種のみ**。`0 2px 8px rgba(...)` のような独自値を書かない。
+
+### 角丸
+`var(--border-radius-sm|md|lg|full)` を使う。`14px` 等の生値は使わない（pill形ボタンは `full`）。

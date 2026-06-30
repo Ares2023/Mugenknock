@@ -6,6 +6,7 @@ import { PASS_SCORES, PASS_RATE, API_ENDPOINT, EXAM_DOMAINS, DOMAIN_NAME_EN, qDo
 import { useLanguage } from '../contexts/LanguageContext';
 import { useAuth } from '../contexts/AuthContext';
 import Card from '../components/ui/Card';
+import PageLayout from '../components/ui/PageLayout';
 import Button from '../components/ui/Button';
 import Badge from '../components/ui/Badge';
 import { IconChevronDown, IconChevronRight, IconSparkles } from '../components/Icons';
@@ -131,7 +132,7 @@ export default function Result() {
   }, []);
 
   return (
-    <div style={{ maxWidth: 900, margin: '0 auto', padding: 'var(--spacing-xl) var(--spacing-lg)' }} className="result-container">
+    <PageLayout maxWidth={900} className="result-container">
       {showConfetti && <Confetti onDone={() => setShowConfetti(false)} />}
       <h2 style={{ fontSize: 'var(--font-size-xxl)', fontWeight: 700, margin: '0 0 var(--spacing-xl)', color: 'var(--color-text-main)' }}>
         {isExam ? t('result.examResult') : t('result.exerciseResult')}
@@ -171,7 +172,7 @@ export default function Result() {
       {showDailyBonus && (
         <div data-kbscope="1" style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', zIndex: 1000, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16 }}>
           {bonusConfetti && <Confetti onDone={() => setBonusConfetti(false)} />}
-          <div style={{ background: 'var(--color-bg-white)', borderRadius: 'var(--border-radius-lg)', padding: '28px 32px', textAlign: 'center', boxShadow: '0 8px 32px rgba(0,0,0,0.2)', maxWidth: 320, width: '100%', position: 'relative', zIndex: 1 }}>
+          <div style={{ background: 'var(--color-bg-white)', borderRadius: 'var(--border-radius-lg)', padding: 'var(--spacing-xl)', textAlign: 'center', boxShadow: 'var(--box-shadow-md)', maxWidth: 320, width: '100%', position: 'relative', zIndex: 1 }}>
             <div style={{ fontSize: 40, marginBottom: 8 }}>🎯</div>
             <div style={{ fontWeight: 800, fontSize: 18, color: 'var(--color-text-main)', marginBottom: 6 }}>
               {ja ? '日次目標達成！' : 'Daily Goal Achieved!'}
@@ -390,6 +391,6 @@ export default function Result() {
           </Button>
         )}
       </div>
-    </div>
+    </PageLayout>
   );
 }

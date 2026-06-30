@@ -19,12 +19,21 @@
   --color-success: #037f0c;
   --color-warning: #ff9900;
 
-  /* Spacing */
+  /* Spacing scale (4px base) — 余白・gap・paddingは必ずこのスケールを使う */
   --spacing-xs: 4px;
   --spacing-sm: 8px;
   --spacing-md: 16px;
   --spacing-lg: 24px;
   --spacing-xl: 32px;
+
+  /* Layout standard — PageLayout が参照する画面共通の余白/間隔 */
+  --page-pad-x: var(--spacing-lg);   /* ページ左右余白（デスクトップ） */
+  --page-pad-y: var(--spacing-xl);   /* ページ上下余白（デスクトップ） */
+  --page-pad-x-mobile: var(--spacing-md); /* ページ左右余白（モバイル） */
+  --page-pad-y-mobile: var(--spacing-md); /* ページ上下余白（モバイル） */
+  --section-gap: var(--spacing-lg);  /* セクション（ブロック）間の縦間隔（デスクトップ） */
+  --section-gap-mobile: var(--spacing-md); /* セクション間の縦間隔（モバイル） */
+  --page-max-width: 960px;           /* ページ内コンテンツの最大幅 */
 
   /* Typography */
   --font-size-xs: 11px;
