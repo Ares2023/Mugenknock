@@ -7,6 +7,7 @@ import { useLanguage } from '../contexts/LanguageContext';
 import { API_ENDPOINT } from '../constants';
 import { IconBot, IconFire, IconMail, IconBookOpen } from '../components/Icons';
 import Button from '../components/ui/Button';
+import PageLayout from '../components/ui/PageLayout';
 
 const ITEMS = [
   { path: '/aws/encyclopedia',  Icon: IconBookOpen,  ja: 'サービス図鑑',           en: 'Service Encyclopedia',      desc_ja: '日めくりで解放されるAWSサービス一覧', desc_en: 'AWS services unlocked via daily service' },
@@ -53,7 +54,7 @@ export default function Others() {
   };
 
   return (
-    <div style={{ maxWidth: 900, margin: '0 auto', padding: 'var(--spacing-lg)' }}>
+    <PageLayout>
       <Helmet>
         <title>その他 | 無限ノック</title>
         <meta name="description" content="サービス図鑑・問い合わせ・ストリークなど、無限ノックの各種機能へのリンク集。" />
@@ -185,6 +186,6 @@ export default function Others() {
           </div>
         </div>
       )}
-    </div>
+    </PageLayout>
   );
 }

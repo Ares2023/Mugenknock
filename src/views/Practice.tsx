@@ -6,6 +6,7 @@ import { useAuth } from '../contexts/AuthContext';
 import { useLanguage } from '../contexts/LanguageContext';
 import { API_ENDPOINT, EXAM_CONFIGS, EXAM_DOMAINS, EXAM_TYPES, PASS_SCORES, qDomainName, domainsToIndices, storedDomainsToNames, tagIdMatches } from '../constants';
 import Button from '../components/ui/Button';
+import PageLayout from '../components/ui/PageLayout';
 import { getCached, setCached, SHORT_TTL, getCachedPersist, setCachedPersist } from '../utils/cache';
 import { autoScoreAndClearDrafts } from '../utils/sessionUtils';
 import { hydrateDraftsFromServer } from '../utils/sessionResume';
@@ -394,7 +395,7 @@ export default function Practice() {
   }, []);
 
   return (
-    <div style={{ maxWidth: 900, margin: '0 auto', padding: 'var(--spacing-lg)', paddingBottom: isMobile ? 'var(--spacing-lg)' : 80 }} className="page-container">
+    <PageLayout className="page-container" style={{ paddingBottom: isMobile ? undefined : 80 }}>
       <Helmet>
         <title>練習 | 無限ノック</title>
         <meta name="description" content="AWS認定試験の練習問題に取り組もう。苦手分野を集中的に練習して合格スコアを目指そう。" />
@@ -939,6 +940,6 @@ export default function Practice() {
         </div>
       )}
       {(exerciseLoading || examLoading) && <div style={{ position: 'fixed', inset: 0, zIndex: 9000, cursor: 'wait' }} onTouchStart={e => e.stopPropagation()} onTouchMove={e => e.stopPropagation()} onTouchEnd={e => e.stopPropagation()} />}
-    </div>
+    </PageLayout>
   );
 }

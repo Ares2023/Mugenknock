@@ -4,6 +4,7 @@ import { Helmet } from '@/compat/react-helmet-async';
 import { API_ENDPOINT } from '../constants';
 import { useLanguage } from '../contexts/LanguageContext';
 import Button from '../components/ui/Button';
+import PageLayout from '../components/ui/PageLayout';
 
 type Release = {
   releaseId: string;
@@ -34,7 +35,7 @@ export default function ReleaseNotes() {
   const hiddenCount = releases.length - SHOW_DEFAULT;
 
   return (
-    <div style={{ maxWidth: 900, margin: '0 auto', padding: 'var(--spacing-xl) var(--spacing-lg)', color: 'var(--color-text-main)' }} className="page-container">
+    <PageLayout className="page-container" style={{ color: 'var(--color-text-main)' }}>
       <Helmet>
         <title>リリースノート | 無限ノック</title>
         <meta name="description" content="無限ノックのアップデート履歴。新機能・改善・バグ修正の最新情報をご確認ください。" />
@@ -73,6 +74,6 @@ export default function ReleaseNotes() {
           </Button>
         </div>
       )}
-    </div>
+    </PageLayout>
   );
 }

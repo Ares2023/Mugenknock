@@ -7,6 +7,7 @@ import { useAuth } from '../contexts/AuthContext';
 import { useLanguage } from '../contexts/LanguageContext';
 import Card from '../components/ui/Card';
 import Button from '../components/ui/Button';
+import PageLayout from '../components/ui/PageLayout';
 import { getCached, setCached, SHORT_TTL } from '../utils/cache';
 import { IconStar, IconTarget, IconLightbulb } from '../components/Icons';
 
@@ -349,7 +350,7 @@ export default function Stats() {
   // ── 目標資格未設定 ──
   if (!targetExam) {
     return (
-      <div style={{ maxWidth: 900, margin: '0 auto', padding: 'var(--spacing-xl) var(--spacing-lg)' }} className="page-container">
+      <PageLayout className="page-container">
         <Card padding="var(--spacing-xl)">
           <div style={{ textAlign: 'center', padding: 'var(--spacing-xl) 0' }}>
             <div style={{ fontSize: 32, marginBottom: 'var(--spacing-md)', color: 'var(--color-accent)', display: 'flex', justifyContent: 'center' }}><IconTarget size={40} /></div>
@@ -361,7 +362,7 @@ export default function Stats() {
             </Button>
           </div>
         </Card>
-      </div>
+      </PageLayout>
     );
   }
 
@@ -374,7 +375,7 @@ export default function Stats() {
   });
 
   return (
-    <div style={{ maxWidth: 900, margin: '0 auto', padding: 'var(--spacing-xl) var(--spacing-lg)' }} className="page-container">
+    <PageLayout className="page-container">
       <Helmet>
         <title>足あと | 無限ノック</title>
         <meta name="description" content="AWS試験の学習履歴・スコア推移を確認。セッション別の正答率やドメイン弱点を分析して効率的に対策しよう。" />
@@ -790,6 +791,6 @@ export default function Stats() {
           })()}
         </>
       )}
-    </div>
+    </PageLayout>
   );
 }

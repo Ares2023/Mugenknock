@@ -33,7 +33,7 @@
   --page-pad-y-mobile: var(--spacing-md); /* ページ上下余白（モバイル） */
   --section-gap: var(--spacing-lg);  /* セクション（ブロック）間の縦間隔（デスクトップ） */
   --section-gap-mobile: var(--spacing-md); /* セクション間の縦間隔（モバイル） */
-  --page-max-width: 960px;           /* ページ内コンテンツの最大幅 */
+  --page-max-width: 900px;           /* ページ内コンテンツの最大幅 */
 
   /* Typography */
   --font-size-xs: 11px;

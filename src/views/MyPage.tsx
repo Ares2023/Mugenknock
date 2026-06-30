@@ -8,6 +8,7 @@ import { useAuth } from '../contexts/AuthContext';
 import { useLanguage } from '../contexts/LanguageContext';
 import Card from '../components/ui/Card';
 import Button from '../components/ui/Button';
+import PageLayout from '../components/ui/PageLayout';
 import {
   IconCalendarNotebook, IconTarget, IconAnnoyed, IconList,
   IconSparkles, IconChevronRight, IconChevronDown, IconLock, IconFlag, IconStar, IconTrendingUp, IconPenLine,
@@ -376,7 +377,7 @@ export default function MyPage() {
         <title>マイページ | 無限ノック</title>
       </Helmet>
 
-      <div style={{ maxWidth: 900, margin: '0 auto', padding: 'var(--spacing-xl) var(--spacing-lg)' }} className="page-container">
+      <PageLayout className="page-container">
 
         {/* ── タブ ── */}
         <div style={{ display: 'flex', borderBottom: '1px solid color-mix(in srgb, var(--color-text-light) 40%, transparent)', marginBottom: 'var(--spacing-lg)' }}>
@@ -1078,7 +1079,7 @@ export default function MyPage() {
             )}
           </>
         )}
-      </div>
+      </PageLayout>
 
       {/* ── 問題詳細モーダル ── */}
       {questionModal && (

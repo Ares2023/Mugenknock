@@ -6,6 +6,7 @@ import { useAuth } from '../contexts/AuthContext';
 import { IconLock, IconBean, ServiceIcon, isServiceIconKey, ServiceIconImg } from '../components/Icons';
 import { CATALOG, getDailyService, ServiceEntry } from '../data/awsServiceCatalog';
 import { API_ENDPOINT } from '../constants';
+import PageLayout from '../components/ui/PageLayout';
 
 type EncyclopediaService = {
   serviceId: string;
@@ -215,14 +216,14 @@ export default function ServiceEncyclopedia() {
 
   // 認証ロード中は guest データで誤った表示が一瞬見えるのを防ぐ
   if (authLoading) return (
-    <div style={{ maxWidth: 900, margin: '0 auto', padding: 'var(--spacing-lg)' }}>
+    <PageLayout>
       <div className="skeleton" style={{ height: 16, width: 200, borderRadius: 4, marginBottom: 'var(--spacing-md)' }} />
       <div className="skeleton" style={{ height: 80, borderRadius: 'var(--border-radius-lg)', marginBottom: 'var(--spacing-md)' }} />
-    </div>
+    </PageLayout>
   );
 
   return (
-    <div style={{ maxWidth: 900, margin: '0 auto', padding: 'var(--spacing-lg)' }}>
+    <PageLayout>
       <Helmet>
         <title>サービス図鑑 | 無限ノック</title>
         <meta name="description" content="毎日1つ解放されるAWSサービス図鑑。200以上のサービスの概要・特徴を確認して試験対策に役立てよう。" />
@@ -505,6 +506,6 @@ export default function ServiceEncyclopedia() {
           </div>
         </div>
       )}
-    </div>
+    </PageLayout>
   );
 }
