@@ -7,6 +7,7 @@ import { useLanguage } from '../contexts/LanguageContext';
 import { API_ENDPOINT, EXAM_CONFIGS, EXAM_DOMAINS, EXAM_TYPES, PASS_SCORES, qDomainName, domainsToIndices, storedDomainsToNames, tagIdMatches } from '../constants';
 import Button from '../components/ui/Button';
 import PageLayout from '../components/ui/PageLayout';
+import { getGuestAnsweredIds, getGuestIncorrectIds, getGuestBookmarkIds } from '../utils/guestProgress';
 import { getCached, setCached, SHORT_TTL, getCachedPersist, setCachedPersist } from '../utils/cache';
 import { autoScoreAndClearDrafts } from '../utils/sessionUtils';
 import { hydrateDraftsFromServer } from '../utils/sessionResume';
@@ -150,18 +151,25 @@ export default function Practice() {
         const params = new URLSearchParams({ examType, metaOnly: 'true' });
         const allSelected = EXAM_DOMAINS[examType].every(d => selectedDomains.includes(d));
         if (!allSelected) params.set('domain', domainsToIndices(examType, selectedDomains).join(','));
-        if (user && (bookmarkOnly || unansweredOnly || incorrectOnly)) {
-          const [qRes, bkmRes, answeredRes, incorrectRes] = await Promise.all([
-            fetch(`${API_ENDPOINT}/questions?${params}`).then(r => r.json()),
-            user && bookmarkOnly ? fetch(`${API_ENDPOINT}/users/me/bookmarks?userId=${user.userId}`).then(r => r.json()) : Promise.resolve(null),
-            user && unansweredOnly ? fetch(`${API_ENDPOINT}/users/me/answered-questions?userId=${user.userId}&examType=${examType}`).then(r => r.json()) : Promise.resolve(null),
-            user && incorrectOnly ? fetch(`${API_ENDPOINT}/users/me/incorrect-questions?userId=${user.userId}&examType=${examType}`).then(r => r.json()) : Promise.resolve(null),
-          ]);
+        if (bookmarkOnly || unansweredOnly || incorrectOnly) {
+          const qRes = await fetch(`${API_ENDPOINT}/questions?${params}`).then(r => r.json());
           let items: any[] = qRes.items ?? [];
-          if (bookmarkOnly && bkmRes) { const ids = new Set(bkmRes.questionIds ?? []); items = items.filter((q: any) => ids.has(q.questionId)); }
-          if (unansweredOnly && answeredRes) { const ids = new Set(answeredRes.questionIds ?? []); items = items.filter((q: any) => !ids.has(q.questionId)); }
-          if (incorrectOnly && incorrectRes) { const ids = new Set(incorrectRes.questionIds ?? []); items = items.filter((q: any) => ids.has(q.questionId)); }
-          
+          if (user) {
+            // ログイン: サーバのブックマーク/回答済み/誤答セットで絞る
+            const [bkmRes, answeredRes, incorrectRes] = await Promise.all([
+              bookmarkOnly ? fetch(`${API_ENDPOINT}/users/me/bookmarks?userId=${user.userId}`).then(r => r.json()) : Promise.resolve(null),
+              unansweredOnly ? fetch(`${API_ENDPOINT}/users/me/answered-questions?userId=${user.userId}&examType=${examType}`).then(r => r.json()) : Promise.resolve(null),
+              incorrectOnly ? fetch(`${API_ENDPOINT}/users/me/incorrect-questions?userId=${user.userId}&examType=${examType}`).then(r => r.json()) : Promise.resolve(null),
+            ]);
+            if (bookmarkOnly && bkmRes) { const ids = new Set(bkmRes.questionIds ?? []); items = items.filter((q: any) => ids.has(q.questionId)); }
+            if (unansweredOnly && answeredRes) { const ids = new Set(answeredRes.questionIds ?? []); items = items.filter((q: any) => !ids.has(q.questionId)); }
+            if (incorrectOnly && incorrectRes) { const ids = new Set(incorrectRes.questionIds ?? []); items = items.filter((q: any) => ids.has(q.questionId)); }
+          } else {
+            // ゲスト: ローカルのセットで絞る
+            if (bookmarkOnly) { const ids = getGuestBookmarkIds(); items = items.filter((q: any) => ids.has(q.questionId)); }
+            if (unansweredOnly) { const ids = getGuestAnsweredIds(examType); items = items.filter((q: any) => !ids.has(q.questionId)); }
+            if (incorrectOnly) { const ids = getGuestIncorrectIds(examType); items = items.filter((q: any) => ids.has(q.questionId)); }
+          }
           setAvailableCount(items.length);
         } else if (allSelected) {
           const cached = getCached<number>(`qcount_${examType}`);
@@ -213,6 +221,8 @@ export default function Practice() {
       // 未回答/不正解/ブックマークの「優先」フィルタ。これで設定の問題数に満たない場合は
       // 同一ドメイン内のフィルタ外の問題で不足分を補充する（ドメイン選択自体は尊重する）
       const hasStatusFilter = !!(user && (bookmarkOnly || unansweredOnly || incorrectOnly));
+      const isGuest = !user;
+      const statusFiltersOn = bookmarkOnly || unansweredOnly || incorrectOnly;
       const qPrefs = { unansweredOnly, incorrectOnly, bookmarkOnly, domains: allSelected ? [] : selectedDomains };
       const cached = hasFilters ? getPrefetchC(examType, userId, qPrefs) : getPrefetchA(examType);
       if (cached && cached.questions.length > 0) {
@@ -220,9 +230,9 @@ export default function Practice() {
           let items: any[] = [...cached.questions];
           if (!allSelected) items = items.filter((q: any) => selectedDomains.includes(qDomainName(q)));
           items = shuffleArray(items).slice(0, limit);
-          // フィルタで設定数に満たない場合はキャッシュ即遷移せず、
-          // フィルタ外から補充できるフォールバック経路へ回す
-          if (items.length > 0 && (items.length >= limit || !hasStatusFilter)) {
+          // フィルタで設定数に満たない場合はキャッシュ即遷移せず、フィルタ外から補充できる
+          // フォールバック経路へ回す。ゲストはキャッシュが状態フィルタ済みでないため常に回す。
+          if (items.length > 0 && (items.length >= limit || !hasStatusFilter) && !(isGuest && statusFiltersOn)) {
             setExerciseLoadPct(90);
             const questionIds = items.map((q: any) => q.questionId);
             // セッション作成は遷移先で非同期実行（クリティカルパスから除外）
@@ -251,6 +261,17 @@ export default function Practice() {
       if (user) idsParams.set('userId', userId); // フィルタ無しでもドメイン均等化のため常に渡す
       const idsData = await fetch(`${API_ENDPOINT}/questions?${idsParams}`).then(r => r.json());
       const allIds: string[] = idsData.questionIds ?? [];
+      // ゲストはローカルのセットで「優先」並べ替え（一致を先頭へ寄せ、不足分は自動でフィルタ外から埋まる）
+      if (isGuest && statusFiltersOn) {
+        const gAnswered = getGuestAnsweredIds(examType);
+        const gIncorrect = getGuestIncorrectIds(examType);
+        const gBookmarks = getGuestBookmarkIds();
+        const score = (id: string) =>
+          (unansweredOnly && !gAnswered.has(id) ? 1 : 0) +
+          (incorrectOnly && gIncorrect.has(id) ? 1 : 0) +
+          (bookmarkOnly && gBookmarks.has(id) ? 1 : 0);
+        allIds.sort((a, b) => score(b) - score(a));
+      }
       let selectedIds = allIds.slice(0, limit);
       // 優先フィルタで設定の問題数に満たない場合、同一ドメイン内のフィルタ外の問題で補充する
       if (selectedIds.length < limit && hasStatusFilter) {
@@ -441,8 +462,8 @@ export default function Practice() {
                 : (isMobile ? 'Select your target exam from the top menu' : 'Select your target exam from the left sidebar')}
             </div>
           ) : (<>
-          {/* フィルタ（展開） */}
-          {user && (
+          {/* フィルタ（展開）。ゲストもローカル記録で利用可能 */}
+          {(
             <div style={{ marginBottom: 'var(--spacing-md)', display: 'flex', flexDirection: 'column', gap: 8 }}>
               {([
                 ['unansweredOnly', ja ? '未回答を優先' : 'Unanswered First'],
@@ -494,7 +515,7 @@ export default function Practice() {
           {availableCount !== null && availableCount > 0 && availableCount < limit
             && (
             <div style={{ marginBottom: 'var(--spacing-md)', fontSize: 'var(--font-size-sm)', color: 'var(--color-text-warning)', background: 'var(--color-bg-warning)', border: '1px solid var(--color-border-warning)', borderRadius: 'var(--border-radius-md)', padding: '8px 12px' }}>
-              ⚠️ {user && (bookmarkOnly || unansweredOnly || incorrectOnly)
+              ⚠️ {(bookmarkOnly || unansweredOnly || incorrectOnly)
                 ? (ja
                     ? `条件に合う問題は${availableCount}問です。不足分は条件外の問題で補い、${limit}問で開始します。`
                     : `Only ${availableCount} questions match the filter. The rest will be filled from outside the filter to start with ${limit}.`)
