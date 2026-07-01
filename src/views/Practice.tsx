@@ -210,6 +210,9 @@ export default function Practice() {
 
       // ── プリフェッチキャッシュを使用 ──
       const hasFilters = !!(user && (bookmarkOnly || unansweredOnly || incorrectOnly)) || !allSelected;
+      // 未回答/不正解/ブックマークの「優先」フィルタ。これで設定の問題数に満たない場合は
+      // 同一ドメイン内のフィルタ外の問題で不足分を補充する（ドメイン選択自体は尊重する）
+      const hasStatusFilter = !!(user && (bookmarkOnly || unansweredOnly || incorrectOnly));
       const qPrefs = { unansweredOnly, incorrectOnly, bookmarkOnly, domains: allSelected ? [] : selectedDomains };
       const cached = hasFilters ? getPrefetchC(examType, userId, qPrefs) : getPrefetchA(examType);
       if (cached && cached.questions.length > 0) {
@@ -217,7 +220,9 @@ export default function Practice() {
           let items: any[] = [...cached.questions];
           if (!allSelected) items = items.filter((q: any) => selectedDomains.includes(qDomainName(q)));
           items = shuffleArray(items).slice(0, limit);
-          if (items.length > 0) {
+          // フィルタで設定数に満たない場合はキャッシュ即遷移せず、
+          // フィルタ外から補充できるフォールバック経路へ回す
+          if (items.length > 0 && (items.length >= limit || !hasStatusFilter)) {
             setExerciseLoadPct(90);
             const questionIds = items.map((q: any) => q.questionId);
             // セッション作成は遷移先で非同期実行（クリティカルパスから除外）
@@ -246,7 +251,21 @@ export default function Practice() {
       if (user) idsParams.set('userId', userId); // フィルタ無しでもドメイン均等化のため常に渡す
       const idsData = await fetch(`${API_ENDPOINT}/questions?${idsParams}`).then(r => r.json());
       const allIds: string[] = idsData.questionIds ?? [];
-      const selectedIds = allIds.slice(0, limit);
+      let selectedIds = allIds.slice(0, limit);
+      // 優先フィルタで設定の問題数に満たない場合、同一ドメイン内のフィルタ外の問題で補充する
+      if (selectedIds.length < limit && hasStatusFilter) {
+        const fillParams = new URLSearchParams({ examType, shuffle: 'true', idsOnly: 'true' });
+        if (!allSelected) fillParams.set('domain', domainsToIndices(examType, selectedDomains).join(','));
+        if (user) fillParams.set('userId', userId);
+        try {
+          const fillData = await fetch(`${API_ENDPOINT}/questions?${fillParams}`).then(r => r.json());
+          const have = new Set(selectedIds);
+          for (const id of (fillData.questionIds ?? []) as string[]) {
+            if (selectedIds.length >= limit) break;
+            if (!have.has(id)) { selectedIds.push(id); have.add(id); }
+          }
+        } catch (e) { console.debug('[exercise] fill topup failed:', e); }
+      }
       if (selectedIds.length === 0) { alert(t('exerciseSetup.noQuestions')); setExerciseLoading(false); return; }
       setExerciseLoadPct(50);
       // 2. 最初の1問だけ取得（セッション作成は遷移先で非同期実行）
@@ -473,10 +492,15 @@ export default function Practice() {
           </div>
 
           {availableCount !== null && availableCount > 0 && availableCount < limit
-            && (bookmarkOnly || unansweredOnly || incorrectOnly || !(EXAM_DOMAINS[examType] ?? []).every(d => selectedDomains.includes(d)))
             && (
             <div style={{ marginBottom: 'var(--spacing-md)', fontSize: 'var(--font-size-sm)', color: 'var(--color-text-warning)', background: 'var(--color-bg-warning)', border: '1px solid var(--color-border-warning)', borderRadius: 'var(--border-radius-md)', padding: '8px 12px' }}>
-              ⚠️ {ja ? `条件に合う問題が${availableCount}問しかありません。${availableCount}問で開始します。` : `Only ${availableCount} questions match. Session will start with ${availableCount} questions.`}
+              ⚠️ {user && (bookmarkOnly || unansweredOnly || incorrectOnly)
+                ? (ja
+                    ? `条件に合う問題は${availableCount}問です。不足分は条件外の問題で補い、${limit}問で開始します。`
+                    : `Only ${availableCount} questions match the filter. The rest will be filled from outside the filter to start with ${limit}.`)
+                : (ja
+                    ? `条件に合う問題が${availableCount}問しかありません。${availableCount}問で開始します。`
+                    : `Only ${availableCount} questions match. Session will start with ${availableCount} questions.`)}
             </div>
           )}
 
