@@ -86,6 +86,10 @@ now = datetime.now(JST)
 try:
     h, m = map(int, sys.argv[1].split(':'))
     t = now.replace(hour=h, minute=m, second=0, microsecond=0)
+    # 過去時刻は翌日扱い（01-generate と同じ繰り越し。深夜0時台のリセット時刻で
+    # 前夜のhookが「すでに過ぎた今日のHH:MM」を渡して即終了するのを防ぐ）
+    if t <= now:
+        t = t + timedelta(days=1)
     print(int(t.timestamp()))
 except Exception as e:
     print(f"❌ -D のパースエラー: {e}", file=sys.stderr); print(0)
@@ -313,7 +317,7 @@ url_note = ''
 if _chunk_urls:
     url_lines = '\n'.join(f'  {k}: {v}' for k, v in sorted(_chunk_urls.items()))
     url_note = f'\n【公式試験ガイドURL（出題範囲・現行性の確認に使用してよい）】\n{url_lines}\n'
-PROMPT_HEADER = 'あなたはAWS認定試験の問題品質チェッカーです。\n以下の問題を精査し、資格勉強サイトの問題として適切かどうか確認してください。' + url_note + '\n【確認観点】\n- 現在のAWSサービスの仕様・機能と一致しているか（廃止サービスを現行として扱っていないか）。サービスの現行仕様・廃止/非推奨状況・推奨構成・上限値や課金モデルなどに少しでも確信が持てない場合は、推測で判断せず WebFetch で公式AWSドキュメント（docs.aws.amazon.com / aws.amazon.com 等）を確認してから ok/fix/delete を判定すること。確信がある一般的事実までは取得不要（毎回の取得は避け、不確かな点のみ確認する）。ただし CodeCommit は現行サービスであり廃止扱いにしないこと（CodeCommit を理由に delete/fix しない）\n- 正解が正しく、選択肢に正解が含まれているか\n- correctAnswers の各要素が choices のいずれかと完全一致しているか（「A. 」「B. 」などの記号接頭辞が付いていないか）。不一致の場合は fix で修正する\n- 解説が正確で適切か。ダミーの選択肢がだめな理由も解説しているか\n- 解説は適宜改行を入れて読みやすいか。各選択肢の説明が「選択肢Aは〜」「選択肢Bは〜」のように選択肢ごとに改行して記述されているか。されていない場合は fix で修正すること\n- 問題文（questionText）が適切に改行されているか。要件・条件を列挙する場合や複数の操作ステップがある場合は改行（\\n）が使われているか。されていない場合は fix で修正すること\n- 試験問題として適切な形式・難易度か\n- AWSに直接関係しない一般的でない略語に注釈・解説がついているか（ない場合は問題文または解説に補足を追加する）\n- タグ（出題ドメイン）が正しく設定されているか。タグが空・欠落・下記ドメイン外の値の場合はfixで正しいドメインを設定すること\n  CLF: クラウドの概念 / セキュリティとコンプライアンス / クラウドのテクノロジーとサービス / 請求、料金、およびサポート\n  SAA: セキュアなアーキテクチャの設計 / 弾力性に優れたアーキテクチャの設計 / 高性能なアーキテクチャの設計 / コスト最適化されたアーキテクチャの設計\n  SAP: 組織の複雑さに対応する設計 / 新しいソリューションのための設計 / 既存のソリューションの継続的改善 / ワークロードの移行とモダン化の加速\n  DOP: SDLC の自動化 / 構成管理と Infrastructure as Code (IaC) / 弾力性に優れたクラウドソリューション / モニタリングとロギング / インシデントとイベントへの対応 / セキュリティとコンプライアンス\n  DVA: AWSのサービスを使用した開発 / セキュリティ / デプロイ / トラブルシューティングと最適化\n  SOA: モニタリング、ロギング、分析、修復、およびパフォーマンスの最適化 / 信頼性とビジネス継続性 / デプロイ、プロビジョニング、および自動化 / セキュリティとコンプライアンス / ネットワークとコンテンツ配信\n  DEA: データの取り込みと変換 / データストアの管理 / データオペレーションとサポート / データのセキュリティとガバナンス\n  AIF: AIとMLの基礎 / 生成AIの基礎 / 基盤モデルのアプリケーション / 責任あるAIのガイドライン / AIソリューションのセキュリティ、コンプライアンス、ガバナンス\n  MLA: 機械学習のためのデータ準備 / MLモデルの開発 / MLワークフローのデプロイとオーケストレーション / MLソリューションの監視、メンテナンス、セキュリティ\n  AIP: 基盤モデルの統合、データ管理、コンプライアンス / 実装と統合 / AIの安全性、セキュリティ、ガバナンス / 生成AIアプリケーションの運用効率と最適化 / テスト、検証、トラブルシューティング\n  ANS: ネットワーク設計 / ネットワーク実装 / ネットワーク管理と運用 / ネットワークのセキュリティ、コンプライアンス、ガバナンス\n  SCS: 検出 / インシデント対応 / インフラストラクチャのセキュリティ / アイデンティティとアクセス管理 / データ保護 / セキュリティの基盤とガバナンス\n- isMultiple フラグが正しいか。correctAnswers が複数なら isMultiple: true、1つなら isMultiple: false であること。不一致の場合は fix で修正する\n- 解説の文字数が極端に短くないか（目安100字未満は不足）。短い場合は fix で解説を補足・拡充すること\n- choiceExplanations が choices と同じ長さかどうか（未設定または長さ不一致の場合は fix で choiceExplanations を生成・修正する。正解選択肢はなぜ正解かを、不正解選択肢はなぜ不正解かを100〜150字程度で記述。文頭に「正解です」「不正解です」などの判定文を入れない）\n- choiceExplanations[i] の説明内容が choices[i] の選択肢テキストと対応しているか（順番対応チェック）。「選択肢別解説」として渡された各インデックスの解説が、同じインデックスの選択肢について説明しているかを確認すること。内容がずれている場合（例: choices[0]がマルチAZ配置なのに choiceExplanations[0] がリードレプリカについて説明しているなど）は fix で choiceExplanations を正しい順番に並び替えること\n- 正解の選択肢の文字数が不正解の選択肢群から浮いていないか（正解だけが著しく長い・短いと文字数から正解が推測できてしまう。正解の文字数が不正解の平均文字数と大きく乖離している場合は fix で正解・不正解の文章量を揃えること）\n- 正解の選択肢が全選択肢の中で最も文字数が多くなっていないか（最長の選択肢が正解になっている場合は fix で修正する。正解を短くする、または不正解選択肢の情報量を増やして正解以上の長さにし、正解が最長にならないようにする。「最も長い選択肢＝正解」というメタ読みを防ぐ）\n- 正解に酷似した紛らわしい選択肢が最低1つ含まれているか（正解と同系統、または一見要件を満たしそうだが決定的な差で不正解になる選択肢）。区別が容易な選択肢ばかりで紛らわしい不正解が無い場合は fix で不正解選択肢の1つを正解に近い紛らわしいものへ差し替え、difficultyを上げる（差の理由は choiceExplanations に反映する）\n\n【アクション】\n- "ok": 問題なし（確認日のみ更新）\n- "fix": 問題あり・修正可能（修正後の内容を含める。変更する項目のみ）\n- "delete": 修正不可能な致命的問題（正解が選択肢に存在しない、完全に誤った情報など）\n\n【出力形式】\n必ず以下のJSONのみを出力してください。説明文・前置きは不要です。\n\n{"results":[\n  {"questionId":"...","action":"ok","reason":"日本語100字以内"},\n  {"questionId":"...","action":"fix","reason":"...","fix":{"questionText":"修正後（変更する場合のみ）","choices":["A","B","C","D"],"correctAnswers":["正解（choices配列内の完全一致テキスト、記号接頭辞なし）"],"explanation":"修正後解説（変更する場合のみ）","choiceExplanations":["選択肢0の解説","選択肢1の解説","選択肢2の解説","選択肢3の解説"],"tags":["出題ドメイン（変更する場合のみ）"],"isMultiple":true}},\n  {"questionId":"...","action":"delete","reason":"..."}\n]}\n\n【問題リスト】'
+PROMPT_HEADER = 'あなたはAWS認定試験の問題品質チェッカーです。\n以下の問題を精査し、資格勉強サイトの問題として適切かどうか確認してください。' + url_note + '\n【確認観点】\n- 現在のAWSサービスの仕様・機能と一致しているか（廃止サービスを現行として扱っていないか）。サービスの現行仕様・廃止/非推奨状況・推奨構成・上限値や課金モデルなどに少しでも確信が持てない場合は、推測で判断せず WebFetch で公式AWSドキュメント（docs.aws.amazon.com / aws.amazon.com 等）を確認してから ok/fix/delete を判定すること。確信がある一般的事実までは取得不要（毎回の取得は避け、不確かな点のみ確認する）。ただし RTO/RPO・レイテンシ・スループット・上限値・保持期間・SLA などの数値要件が正解と不正解を分ける決め手になっている問題は、確信の有無にかかわらず WebFetch で公式ドキュメントによりその数値根拠を必ず裏取りしてから判定すること（生成と検証が同じモデル知識のため、確信を持った思い込みが素通りしやすい領域）。また CodeCommit は現行サービスであり廃止扱いにしないこと（2024年の新規受付停止は2025年11月24日に撤回され完全なGAへ復帰・新規受付も再開済み。学習知識が古くても CodeCommit の廃止・非推奨を理由に delete/fix しない）\n- 正解が正しく、選択肢に正解が含まれているか\n- correctAnswers の各要素が choices のいずれかと完全一致しているか（「A. 」「B. 」などの記号接頭辞が付いていないか）。不一致の場合は fix で修正する\n- 解説が正確で適切か。ダミーの選択肢がだめな理由も解説しているか\n- 解説は適宜改行を入れて読みやすいか。各選択肢の説明が「選択肢Aは〜」「選択肢Bは〜」のように選択肢ごとに改行して記述されているか。されていない場合は fix で修正すること\n- 問題文（questionText）が適切に改行されているか。要件・条件を列挙する場合や複数の操作ステップがある場合は改行（\\n）が使われているか。されていない場合は fix で修正すること\n- 試験問題として適切な形式・難易度か\n- AWSに直接関係しない一般的でない略語に注釈・解説がついているか（ない場合は問題文または解説に補足を追加する）\n- タグ（出題ドメイン）が正しく設定されているか。タグが空・欠落・下記ドメイン外の値の場合はfixで正しいドメインを設定すること\n  CLF: クラウドの概念 / セキュリティとコンプライアンス / クラウドのテクノロジーとサービス / 請求、料金、およびサポート\n  SAA: セキュアなアーキテクチャの設計 / 弾力性に優れたアーキテクチャの設計 / 高性能なアーキテクチャの設計 / コスト最適化されたアーキテクチャの設計\n  SAP: 組織の複雑さに対応する設計 / 新しいソリューションのための設計 / 既存のソリューションの継続的改善 / ワークロードの移行とモダン化の加速\n  DOP: SDLC の自動化 / 構成管理と Infrastructure as Code (IaC) / 弾力性に優れたクラウドソリューション / モニタリングとロギング / インシデントとイベントへの対応 / セキュリティとコンプライアンス\n  DVA: AWSのサービスを使用した開発 / セキュリティ / デプロイ / トラブルシューティングと最適化\n  SOA: モニタリング、ロギング、分析、修復、およびパフォーマンスの最適化 / 信頼性とビジネス継続性 / デプロイ、プロビジョニング、および自動化 / セキュリティとコンプライアンス / ネットワークとコンテンツ配信\n  DEA: データの取り込みと変換 / データストアの管理 / データオペレーションとサポート / データのセキュリティとガバナンス\n  AIF: AIとMLの基礎 / 生成AIの基礎 / 基盤モデルのアプリケーション / 責任あるAIのガイドライン / AIソリューションのセキュリティ、コンプライアンス、ガバナンス\n  MLA: 機械学習のためのデータ準備 / MLモデルの開発 / MLワークフローのデプロイとオーケストレーション / MLソリューションの監視、メンテナンス、セキュリティ\n  AIP: 基盤モデルの統合、データ管理、コンプライアンス / 実装と統合 / AIの安全性、セキュリティ、ガバナンス / 生成AIアプリケーションの運用効率と最適化 / テスト、検証、トラブルシューティング\n  ANS: ネットワーク設計 / ネットワーク実装 / ネットワーク管理と運用 / ネットワークのセキュリティ、コンプライアンス、ガバナンス\n  SCS: 検出 / インシデント対応 / インフラストラクチャのセキュリティ / アイデンティティとアクセス管理 / データ保護 / セキュリティの基盤とガバナンス\n- isMultiple フラグが正しいか。correctAnswers が複数なら isMultiple: true、1つなら isMultiple: false であること。不一致の場合は fix で修正する\n- 解説の文字数が極端に短くないか（目安100字未満は不足）。短い場合は fix で解説を補足・拡充すること\n- choiceExplanations が choices と同じ長さかどうか（未設定または長さ不一致の場合は fix で choiceExplanations を生成・修正する。正解選択肢はなぜ正解かを、不正解選択肢はなぜ不正解かを100〜150字程度で記述。文頭に「正解です」「不正解です」などの判定文を入れない）\n- choiceExplanations[i] の説明内容が choices[i] の選択肢テキストと対応しているか（順番対応チェック）。「選択肢別解説」として渡された各インデックスの解説が、同じインデックスの選択肢について説明しているかを確認すること。内容がずれている場合（例: choices[0]がマルチAZ配置なのに choiceExplanations[0] がリードレプリカについて説明しているなど）は fix で choiceExplanations を正しい順番に並び替えること\n- 正解の選択肢の文字数が不正解の選択肢群から浮いていないか（正解だけが著しく長い・短いと文字数から正解が推測できてしまう。正解の文字数が不正解の平均文字数と大きく乖離している場合は fix で正解・不正解の文章量を揃えること）\n- 正解の選択肢が全選択肢の中で最も文字数が多くなっていないか（最長の選択肢が正解になっている場合は fix で修正する。正解を短くする、または不正解選択肢の情報量を増やして正解以上の長さにし、正解が最長にならないようにする。「最も長い選択肢＝正解」というメタ読みを防ぐ）\n- 正解に酷似した紛らわしい選択肢が最低1つ含まれているか（正解と同系統、または一見要件を満たしそうだが決定的な差で不正解になる選択肢）。区別が容易な選択肢ばかりで紛らわしい不正解が無い場合は fix で不正解選択肢の1つを正解に近い紛らわしいものへ差し替え、difficultyを上げる（差の理由は choiceExplanations に反映する）\n\n【アクション】\n- "ok": 問題なし（確認日のみ更新）\n- "fix": 問題あり・修正可能（修正後の内容を含める。変更する項目のみ）\n- "delete": 修正不可能な致命的問題（正解が選択肢に存在しない、完全に誤った情報など）\n\n【出力形式】\n必ず以下のJSONのみを出力してください。説明文・前置きは不要です。\n\n{"results":[\n  {"questionId":"...","action":"ok","reason":"日本語100字以内"},\n  {"questionId":"...","action":"fix","reason":"...","fix":{"questionText":"修正後（変更する場合のみ）","choices":["A","B","C","D"],"correctAnswers":["正解（choices配列内の完全一致テキスト、記号接頭辞なし）"],"explanation":"修正後解説（変更する場合のみ）","choiceExplanations":["選択肢0の解説","選択肢1の解説","選択肢2の解説","選択肢3の解説"],"tags":["出題ドメイン（変更する場合のみ）"],"isMultiple":true}},\n  {"questionId":"...","action":"delete","reason":"..."}\n]}\n\n【問題リスト】'
 # 自動改良された追加確認観点を注入（audit-questions.sh -i が _validity-extra.txt を更新）
 _extra = (os.environ.get('VALIDITY_EXTRA', '') or '').strip()
 if _extra:
@@ -511,8 +515,28 @@ for r in results:
         _label_re = _re.compile(r'^[A-E]\.\s*')
         # Build before/after changes dict
         changes = {}
-        update_parts = ['validityCheckedAt = :t', 'updatedAt = :u', 'validityEditLog = :log']
-        expr_values = {':t': {'S': now}, ':u': {'S': now}}
+        update_parts = ['updatedAt = :u', 'validityEditLog = :log']
+        expr_values = {':u': {'S': now}}
+        # True のとき validityCheckedAt を更新せず、次回実行の再チェック対象に残す
+        needs_recheck = False
+
+        # ── 整合性ガード ──
+        # fix 適用後の correctAnswers 全件が適用後の choices に完全一致で解決できない場合、
+        # choices/correctAnswers/choiceExplanations の変更を破棄する。
+        # （correctAnswers テキストだけ更新されて correctAnswerIndices が旧値のまま残ると、
+        #   アプリの正解表示（indices が正準）と解説が食い違うため）
+        stripped_ca = [_label_re.sub('', str(c)) for c in (fix.get('correctAnswers') or [])]
+        eff_choices = fix.get('choices') or orig.get('choices', [])
+        eff_ca = stripped_ca or orig.get('correctAnswers', [])
+        if (fix.get('choices') or stripped_ca) and not (eff_ca and all(ca in eff_choices for ca in eff_ca)):
+            print(f'  [WARN ] {qid}: fix の correctAnswers が choices に解決できないため choices/correctAnswers/choiceExplanations の変更を破棄（次回再チェック）')
+            fix.pop('choices', None)
+            fix.pop('correctAnswers', None)
+            fix.pop('choiceExplanations', None)
+            stripped_ca = []
+            eff_choices = orig.get('choices', [])
+            eff_ca = orig.get('correctAnswers', [])
+            needs_recheck = True
 
         if fix.get('questionText') and fix['questionText'] != orig.get('questionText'):
             update_parts.append('questionText = :qt')
@@ -524,24 +548,18 @@ for r in results:
             expr_values[':ch'] = {'L': [{'S': str(c)} for c in fix['choices']]}
             changes['choices'] = {'before': orig.get('choices', []), 'after': fix['choices']}
 
-        if fix.get('correctAnswers'):
-            # ラベル接頭辞を除去してから比較・保存
-            stripped_ca = [_label_re.sub('', str(c)) for c in fix['correctAnswers']]
+        if stripped_ca:
             if stripped_ca != orig.get('correctAnswers'):
                 update_parts.append('correctAnswers = :ca')
                 expr_values[':ca'] = {'L': [{'S': c} for c in stripped_ca]}
                 changes['correctAnswers'] = {'before': orig.get('correctAnswers', []), 'after': stripped_ca}
-            # correctAnswerIndices を再計算（choices が変わった場合も考慮）
-            eff_choices = fix.get('choices', orig.get('choices', []))
-            indices = [eff_choices.index(ca) for ca in stripped_ca if ca in eff_choices]
-            if indices:
-                update_parts.append('correctAnswerIndices = :ci')
-                expr_values[':ci'] = {'L': [{'N': str(i)} for i in indices]}
+            # correctAnswerIndices を再計算（整合性ガード通過済み＝全件解決可能）
+            indices = [eff_choices.index(ca) for ca in stripped_ca]
+            update_parts.append('correctAnswerIndices = :ci')
+            expr_values[':ci'] = {'L': [{'N': str(i)} for i in indices]}
         elif fix.get('choices'):
-            # choices のみ変わった場合も correctAnswerIndices を更新
-            eff_choices = fix['choices']
-            orig_ca = orig.get('correctAnswers', [])
-            indices = [eff_choices.index(ca) for ca in orig_ca if ca in eff_choices]
+            # choices のみ変わった場合も correctAnswerIndices を更新（整合性ガード通過済み）
+            indices = [eff_choices.index(ca) for ca in eff_ca]
             if indices:
                 update_parts.append('correctAnswerIndices = :ci')
                 expr_values[':ci'] = {'L': [{'N': str(i)} for i in indices]}
@@ -570,6 +588,21 @@ for r in results:
                 expr_values[':domidx'] = {'N': str(domain_idx)}
                 changes['domain'] = {'before': orig.get('domain'), 'after': domain_idx}
             # 旧 tags フィールドは書き込まない（domain 整数インデックスが正準。tags は REMOVE で削除）
+
+        # ── 決定的チェック: fix 適用後に「正解が最長選択肢」になっていないか ──
+        # （_common-rules の必須規則。fix 自身がルール違反状態を作ったまま確定させない）
+        if ('choices' in changes) or ('correctAnswers' in changes):
+            _corr_lens = [len(str(c)) for c in eff_choices if c in eff_ca]
+            _inc_lens = [len(str(c)) for c in eff_choices if c not in eff_ca]
+            if _corr_lens and _inc_lens and max(_corr_lens) > max(_inc_lens):
+                needs_recheck = True
+                print(f'  [WARN ] {qid}: fix 適用後に正解が最長選択肢（正解{max(_corr_lens)}字 > 不正解最長{max(_inc_lens)}字）。次回再チェック対象に残す')
+
+        # 再チェックが必要な場合は validityCheckedAt を更新しない
+        # （未チェック扱いのままにして次回実行の先頭で再検査させる）
+        if not needs_recheck:
+            update_parts.insert(0, 'validityCheckedAt = :t')
+            expr_values[':t'] = {'S': now}
 
         edit_log = {'action': 'fixed', 'checkedAt': now, 'reason': reason, 'changes': changes}
         expr_values[':log'] = {'S': json.dumps(edit_log, ensure_ascii=False)}
