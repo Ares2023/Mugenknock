@@ -37,7 +37,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
       }}>
         <span style={{
           background: 'var(--color-accent)', color: 'var(--color-btn-primary-text)',
-          fontWeight: 700, fontSize: 11, letterSpacing: '0.06em', userSelect: 'none',
+          fontWeight: 700, fontSize: 'var(--font-size-xs)', letterSpacing: '0.06em', userSelect: 'none',
           padding: '3px 8px', borderRadius: 'var(--border-radius-full)',
         }}>
           ADMIN

@@ -36,13 +36,16 @@
   --page-max-width: 900px;           /* ページ内コンテンツの最大幅 */
 
   /* Typography */
+  --font-size-3xs: 9px;
+  --font-size-2xs: 10px;
   --font-size-xs: 11px;
   --font-size-sm: 12px;
+  --font-size-sm2: 13px;
   --font-size-base: 14px;
   --font-size-md: 15px;
   --font-size-lg: 16px;
-  --font-size-xl: 20px;
   --font-size-h3: 18px;
+  --font-size-xl: 20px;
   --font-size-h2: 22px;
   --font-size-xxl: 28px;
 

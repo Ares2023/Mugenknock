@@ -62,7 +62,7 @@ function readSessionScoreLog(examType: string, uid: string): ScoreEntry[] {
 function ScoreLineChart({ data, passScore, lang = 'ja', animate = true, isMobile = false }: { data: ScoreEntry[]; passScore: number | null; lang?: string; animate?: boolean; isMobile?: boolean }) {
   if (data.length < 2) {
     return (
-      <p style={{ color: 'var(--color-text-light)', fontSize: 12, fontStyle: 'italic', margin: 0 }}>
+      <p style={{ color: 'var(--color-text-light)', fontSize: 'var(--font-size-sm)', fontStyle: 'italic', margin: 0 }}>
         {lang === 'ja' ? '2日分以上のデータが貯まると表示されます' : 'Appears after 2+ days of data'}
       </p>
     );
@@ -116,7 +116,7 @@ function ScoreLineChart({ data, passScore, lang = 'ja', animate = true, isMobile
 function SessionScoreChart({ data, passScore, lang = 'ja', animate = true, isMobile = false }: { data: number[]; passScore: number | null; lang?: string; animate?: boolean; isMobile?: boolean }) {
   if (data.length < 2) {
     return (
-      <p style={{ color: 'var(--color-text-light)', fontSize: 12, fontStyle: 'italic', margin: 0 }}>
+      <p style={{ color: 'var(--color-text-light)', fontSize: 'var(--font-size-sm)', fontStyle: 'italic', margin: 0 }}>
         {lang === 'ja' ? '2回分以上のデータが貯まると表示されます' : 'Appears after 2+ sessions of data'}
       </p>
     );
@@ -254,12 +254,12 @@ function CombinedDetailModal({ targetExam, domainAccList, estimatedScore, passSc
               <button
                 data-kbnav="1"
                 onClick={() => setShowCalc(v => !v)}
-                style={{ width: 20, height: 20, borderRadius: '50%', border: `1.5px solid ${showCalc ? 'var(--color-primary)' : 'var(--color-border)'}`, background: showCalc ? 'var(--color-primary)' : 'transparent', color: showCalc ? '#fff' : 'var(--color-text-light)', fontSize: 11, fontWeight: 700, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, lineHeight: 1 }}
+                style={{ width: 20, height: 20, borderRadius: '50%', border: `1.5px solid ${showCalc ? 'var(--color-primary)' : 'var(--color-border)'}`, background: showCalc ? 'var(--color-primary)' : 'transparent', color: showCalc ? '#fff' : 'var(--color-text-light)', fontSize: 'var(--font-size-xs)', fontWeight: 700, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, lineHeight: 1 }}
                 aria-label={ja ? '計算方法' : 'How calculated'}
               >?</button>
             )}
           </div>
-          <button data-kbclose="1" onClick={onClose} style={{ border: 'none', background: 'none', fontSize: 18, cursor: 'pointer', color: 'var(--color-text-sub)', padding: '0 4px', lineHeight: 1 }}>✕</button>
+          <button data-kbclose="1" onClick={onClose} style={{ border: 'none', background: 'none', fontSize: 'var(--font-size-h3)', cursor: 'pointer', color: 'var(--color-text-sub)', padding: '0 4px', lineHeight: 1 }}>✕</button>
         </div>
 
         {/* タブ */}
@@ -274,7 +274,7 @@ function CombinedDetailModal({ targetExam, domainAccList, estimatedScore, passSc
                 background: 'none', border: 'none', cursor: 'pointer',
                 flex: isMobile ? undefined : 1,
                 textAlign: isMobile ? undefined : 'center',
-                padding: '6px 14px', fontSize: 13, fontWeight: tab === t.key ? 700 : 400,
+                padding: '6px 14px', fontSize: 'var(--font-size-sm2)', fontWeight: tab === t.key ? 700 : 400,
                 color: tab === t.key ? 'var(--color-primary)' : 'var(--color-text-sub)',
                 borderBottom: `2px solid ${tab === t.key ? 'var(--color-primary)' : 'transparent'}`,
                 marginBottom: -1, transition: 'color 0.15s',
@@ -285,7 +285,7 @@ function CombinedDetailModal({ targetExam, domainAccList, estimatedScore, passSc
 
         {/* 計算方法 */}
         {tab === 'score' && showCalc && (
-          <div style={{ background: 'var(--color-bg-main)', borderRadius: 8, padding: '10px 12px', marginBottom: 16, fontSize: 11, color: 'var(--color-text-sub)', lineHeight: 1.7 }}>
+          <div style={{ background: 'var(--color-bg-main)', borderRadius: 8, padding: '10px 12px', marginBottom: 16, fontSize: 'var(--font-size-xs)', color: 'var(--color-text-sub)', lineHeight: 1.7 }}>
             <p style={{ margin: 0 }}>
               {ja
                 ? '直近セッションの回答を集計。各ドメインの上限5問分で算出（5問未満は正答率×(N/5)で計算）。未演習ドメインは0点扱い。スコア = Σ(正答率 × N/5 × 出題比率%) × 1000'
@@ -300,15 +300,15 @@ function CombinedDetailModal({ targetExam, domainAccList, estimatedScore, passSc
           <div ref={scoreTabRef}>
             <div style={{ marginBottom: 16 }}>
               <span style={{ fontSize: 36, fontWeight: 800, color: 'var(--color-primary)', letterSpacing: '-1px' }}>{estimatedScore ?? '—'}</span>
-              <span style={{ fontSize: 13, color: 'var(--color-text-light)', marginLeft: 6 }}>/1000</span>
+              <span style={{ fontSize: 'var(--font-size-sm2)', color: 'var(--color-text-light)', marginLeft: 6 }}>/1000</span>
               {passScore !== null && (
-                <span style={{ fontSize: 11, color: 'var(--color-text-light)', marginLeft: 10 }}>
+                <span style={{ fontSize: 'var(--font-size-xs)', color: 'var(--color-text-light)', marginLeft: 10 }}>
                   {ja ? `合格ライン: ${passScore}` : `Pass: ${passScore}`}
                 </span>
               )}
             </div>
             <div style={{ background: 'var(--color-bg-main)', borderRadius: 8, padding: '10px 12px' }}>
-              <div style={{ fontSize: 11, fontWeight: 700, color: 'var(--color-text-sub)', marginBottom: 10, letterSpacing: '0.5px' }}>
+              <div style={{ fontSize: 'var(--font-size-xs)', fontWeight: 700, color: 'var(--color-text-sub)', marginBottom: 10, letterSpacing: '0.5px' }}>
                 {ja ? 'ドメイン別スコア内訳' : 'Score by Domain'}
               </div>
               {domains.map((d, i) => {
@@ -325,8 +325,8 @@ function CombinedDetailModal({ targetExam, domainAccList, estimatedScore, passSc
                   <div key={d} style={{ marginBottom: 12 }}>
                     {/* ドメイン名 */}
                     <div style={{ display: 'flex', alignItems: 'baseline', gap: 5, minWidth: 0, marginBottom: 5 }}>
-                      <span style={{ fontSize: 10, fontWeight: 700, color: 'var(--color-text-light)', flexShrink: 0 }}>D{i + 1}</span>
-                      <span style={{ fontSize: 11, color: 'var(--color-text-main)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', minWidth: 0 }}>{label}</span>
+                      <span style={{ fontSize: 'var(--font-size-2xs)', fontWeight: 700, color: 'var(--color-text-light)', flexShrink: 0 }}>D{i + 1}</span>
+                      <span style={{ fontSize: 'var(--font-size-xs)', color: 'var(--color-text-main)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', minWidth: 0 }}>{label}</span>
                     </div>
                     {/* ノード行 */}
                     <div style={{ display: 'flex', alignItems: 'center' }}>
@@ -367,20 +367,20 @@ function CombinedDetailModal({ targetExam, domainAccList, estimatedScore, passSc
                     {/* 計算式=点数/合計（右揃え・横並び） */}
                     <div style={{ display: 'flex', justifyContent: 'flex-end', alignItems: 'baseline', marginTop: 3 }}>
                       {formulaStr
-                        ? <span style={{ fontSize: 9, color: 'var(--color-text-light)' }}>
-                            {formulaStr} = <span style={{ fontSize: 11, fontWeight: 700, color: 'var(--color-primary)' }}>{curPts}</span> /{fullMaxPts}
+                        ? <span style={{ fontSize: 'var(--font-size-3xs)', color: 'var(--color-text-light)' }}>
+                            {formulaStr} = <span style={{ fontSize: 'var(--font-size-xs)', fontWeight: 700, color: 'var(--color-primary)' }}>{curPts}</span> /{fullMaxPts}
                           </span>
-                        : <span style={{ fontSize: 9, color: 'var(--color-text-light)' }}>—</span>
+                        : <span style={{ fontSize: 'var(--font-size-3xs)', color: 'var(--color-text-light)' }}>—</span>
                       }
                     </div>
                   </div>
                 );
               })}
               <div style={{ borderTop: '1px solid var(--color-border)', marginTop: 6, paddingTop: 8, display: 'flex', justifyContent: 'space-between', alignItems: 'baseline' }}>
-                <span style={{ fontSize: 11, fontWeight: 700, color: 'var(--color-text-sub)' }}>{ja ? '合計' : 'Total'}</span>
+                <span style={{ fontSize: 'var(--font-size-xs)', fontWeight: 700, color: 'var(--color-text-sub)' }}>{ja ? '合計' : 'Total'}</span>
                 <div>
-                  <span style={{ fontSize: 15, fontWeight: 800, color: 'var(--color-primary)' }}>{estimatedScore ?? 0}</span>
-                  <span style={{ fontSize: 11, color: 'var(--color-text-light)' }}> / 1000</span>
+                  <span style={{ fontSize: 'var(--font-size-md)', fontWeight: 800, color: 'var(--color-primary)' }}>{estimatedScore ?? 0}</span>
+                  <span style={{ fontSize: 'var(--font-size-xs)', color: 'var(--color-text-light)' }}> / 1000</span>
                 </div>
               </div>
             </div>
@@ -388,13 +388,13 @@ function CombinedDetailModal({ targetExam, domainAccList, estimatedScore, passSc
         ) : tab === 'history' ? (
           <div>
             <div style={{ marginBottom: 14 }}>
-              <div style={{ fontSize: 11, fontWeight: 700, color: 'var(--color-text-sub)', marginBottom: 8 }}>
+              <div style={{ fontSize: 'var(--font-size-xs)', fontWeight: 700, color: 'var(--color-text-sub)', marginBottom: 8 }}>
                 {ja ? 'セッション別推移（直近10回）' : 'Per-Session Trend (last 10)'}
               </div>
               <SessionScoreChart data={sessionLast10} passScore={passScore} lang={lang} animate={!visitedTabs.current.has('history')} isMobile={isMobile} />
             </div>
             <div style={{ borderTop: '1px solid var(--color-border)', paddingTop: 12 }}>
-              <div style={{ fontSize: 11, fontWeight: 700, color: 'var(--color-text-sub)', marginBottom: 8 }}>
+              <div style={{ fontSize: 'var(--font-size-xs)', fontWeight: 700, color: 'var(--color-text-sub)', marginBottom: 8 }}>
                 {ja ? '日次最高点推移（直近1週間）' : 'Daily Best (last 7 days)'}
               </div>
               <ScoreLineChart data={dailyMaxLast7} passScore={passScore} lang={lang} animate={!visitedTabs.current.has('history')} isMobile={isMobile} />
@@ -406,7 +406,7 @@ function CombinedDetailModal({ targetExam, domainAccList, estimatedScore, passSc
             const top5 = [...hiscoreSource].sort((a, b) => b.score - a.score).slice(0, 5);
             if (top5.length === 0) {
               return (
-                <p style={{ margin: 0, textAlign: 'center', fontSize: 12, color: 'var(--color-text-light)', padding: '24px 0' }}>
+                <p style={{ margin: 0, textAlign: 'center', fontSize: 'var(--font-size-sm)', color: 'var(--color-text-light)', padding: '24px 0' }}>
                   {ja ? 'まだデータがありません' : 'No data yet'}
                 </p>
               );
@@ -436,17 +436,17 @@ function CombinedDetailModal({ targetExam, domainAccList, estimatedScore, passSc
                         ? {}
                         : { animation: `hiscore-slide-up 0.35s ease both`, animationDelay: `${delay}s` }),
                     }}>
-                      <span style={{ fontSize: 16, fontWeight: 900, color: medalColor, minWidth: 24, textAlign: 'center' }}>
+                      <span style={{ fontSize: 'var(--font-size-lg)', fontWeight: 900, color: medalColor, minWidth: 24, textAlign: 'center' }}>
                         {rank < 3 ? medalEmoji[rank] : `${rank + 1}`}
                       </span>
-                      <span style={{ fontSize: 22, fontWeight: 800, color: isPass ? 'var(--color-success)' : 'var(--color-primary)', fontVariantNumeric: 'tabular-nums', minWidth: 52 }}>
+                      <span style={{ fontSize: 'var(--font-size-h2)', fontWeight: 800, color: isPass ? 'var(--color-success)' : 'var(--color-primary)', fontVariantNumeric: 'tabular-nums', minWidth: 52 }}>
                         {entry.score}
                       </span>
-                      <span style={{ fontSize: 11, color: 'var(--color-text-light)', flex: 1 }}>
+                      <span style={{ fontSize: 'var(--font-size-xs)', color: 'var(--color-text-light)', flex: 1 }}>
                         {entry.date}
                       </span>
                       {passScore !== null && (
-                        <span style={{ fontSize: 10, fontWeight: 700, padding: '2px 8px', borderRadius: 9999, flexShrink: 0,
+                        <span style={{ fontSize: 'var(--font-size-2xs)', fontWeight: 700, padding: '2px 8px', borderRadius: 9999, flexShrink: 0,
                           background: isPass ? 'rgba(22,163,74,0.1)' : 'rgba(220,38,38,0.1)',
                           color: isPass ? 'var(--color-success)' : 'var(--color-danger)',
                         }}>
@@ -487,26 +487,26 @@ function ScoreDetailModal({ targetExam, estimatedScore, passScore, lang, uid, on
           <span style={{ fontWeight: 700, fontSize: 'var(--font-size-base)', color: 'var(--color-text-main)' }}>
             {ja ? '予想スコア詳細' : 'Score Detail'}
           </span>
-          <button onClick={onClose} style={{ border: 'none', background: 'none', fontSize: 18, cursor: 'pointer', color: 'var(--color-text-sub)', padding: '0 4px', lineHeight: 1 }}>✕</button>
+          <button onClick={onClose} style={{ border: 'none', background: 'none', fontSize: 'var(--font-size-h3)', cursor: 'pointer', color: 'var(--color-text-sub)', padding: '0 4px', lineHeight: 1 }}>✕</button>
         </div>
 
         <div style={{ marginBottom: 4 }}>
           <span style={{ fontSize: 32, fontWeight: 800, color: 'var(--color-primary)', letterSpacing: '-1px' }}>{estimatedScore ?? '—'}</span>
-          <span style={{ fontSize: 13, color: 'var(--color-text-light)', marginLeft: 6 }}>/1000</span>
+          <span style={{ fontSize: 'var(--font-size-sm2)', color: 'var(--color-text-light)', marginLeft: 6 }}>/1000</span>
           {passScore !== null && (
-            <span style={{ fontSize: 11, color: 'var(--color-text-light)', marginLeft: 10 }}>
+            <span style={{ fontSize: 'var(--font-size-xs)', color: 'var(--color-text-light)', marginLeft: 10 }}>
               {ja ? `合格ライン: ${passScore}` : `Pass: ${passScore}`}
             </span>
           )}
         </div>
 
         <div style={{ marginBottom: 20 }}>
-          <div style={{ fontSize: 11, fontWeight: 700, color: 'var(--color-text-sub)', marginBottom: 8 }}>
+          <div style={{ fontSize: 'var(--font-size-xs)', fontWeight: 700, color: 'var(--color-text-sub)', marginBottom: 8 }}>
             {ja ? 'セッション別推移（直近5回）' : 'Per-Session Trend (last 5)'}
           </div>
           <SessionScoreChart data={sessionHistory} passScore={passScore} lang={lang} />
           <div style={{ marginTop: 14, paddingTop: 12, borderTop: '1px solid var(--color-border)' }}>
-            <div style={{ fontSize: 11, fontWeight: 700, color: 'var(--color-text-sub)', marginBottom: 8 }}>
+            <div style={{ fontSize: 'var(--font-size-xs)', fontWeight: 700, color: 'var(--color-text-sub)', marginBottom: 8 }}>
               {ja ? '日次推移' : 'Daily Trend'}
             </div>
             <ScoreLineChart data={history} passScore={passScore} lang={lang} />
@@ -518,13 +518,13 @@ function ScoreDetailModal({ targetExam, estimatedScore, passScore, lang, uid, on
             style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', cursor: 'pointer' }}
             onClick={() => setShowTip(v => !v)}
           >
-            <span style={{ fontSize: 12, fontWeight: 600, color: 'var(--color-text-sub)' }}>
+            <span style={{ fontSize: 'var(--font-size-sm)', fontWeight: 600, color: 'var(--color-text-sub)' }}>
               {ja ? '計算方法' : 'How calculated'}
             </span>
             <span style={{ color: 'var(--color-text-light)', display: 'flex' }}>{showTip ? <IconChevronUp size={12} /> : <IconChevronDown size={12} />}</span>
           </div>
           {showTip && (
-            <p style={{ fontSize: 11, color: 'var(--color-text-sub)', margin: '8px 0 0', lineHeight: 1.7 }}>
+            <p style={{ fontSize: 'var(--font-size-xs)', color: 'var(--color-text-sub)', margin: '8px 0 0', lineHeight: 1.7 }}>
               {ja
                 ? '直近セッションの回答を集計。各ドメインの上限5問分で算出（5問未満は正答率×(N/5)で計算）。未演習は0点扱い。スコア = Σ(正答率 × N/5 × 出題比率%) × 1000'
                 : 'Based on recent sessions. Score = Σ(accuracy × min(N,5)/5 × domain_weight%) × 1000. <5 answers reduces max contribution. Unpracticed domains = 0.'}
@@ -555,7 +555,7 @@ function DomainDetailModal({ targetExam, domainAccList, lang, onClose }: {
           <span style={{ fontWeight: 700, fontSize: 'var(--font-size-base)', color: 'var(--color-text-main)' }}>
             {ja ? 'ドメイン別成績' : 'Domain Results'}
           </span>
-          <button onClick={onClose} style={{ border: 'none', background: 'none', fontSize: 18, cursor: 'pointer', color: 'var(--color-text-sub)', padding: '0 4px', lineHeight: 1 }}>✕</button>
+          <button onClick={onClose} style={{ border: 'none', background: 'none', fontSize: 'var(--font-size-h3)', cursor: 'pointer', color: 'var(--color-text-sub)', padding: '0 4px', lineHeight: 1 }}>✕</button>
         </div>
         {domains.map((d, i) => {
           const { correct, total, pct } = domainAccList[i] ?? { correct: 0, total: 0, pct: null };
@@ -563,8 +563,8 @@ function DomainDetailModal({ targetExam, domainAccList, lang, onClose }: {
           return (
             <div key={d} style={{ marginBottom: 16, paddingBottom: 16, borderBottom: i < domains.length - 1 ? '1px solid var(--color-border)' : 'none' }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 8 }}>
-                <span style={{ fontSize: 10, fontWeight: 700, color: 'var(--color-text-light)', flexShrink: 0 }}>D{i + 1}</span>
-                <span style={{ fontSize: 12, fontWeight: 600, color: 'var(--color-text-main)', lineHeight: 1.4 }}>{label}</span>
+                <span style={{ fontSize: 'var(--font-size-2xs)', fontWeight: 700, color: 'var(--color-text-light)', flexShrink: 0 }}>D{i + 1}</span>
+                <span style={{ fontSize: 'var(--font-size-sm)', fontWeight: 600, color: 'var(--color-text-main)', lineHeight: 1.4 }}>{label}</span>
               </div>
               <div style={{ display: 'flex', gap: 24, marginBottom: 8 }}>
                 {[
@@ -573,8 +573,8 @@ function DomainDetailModal({ targetExam, domainAccList, lang, onClose }: {
                   { label: ja ? '正答率' : 'Accuracy', value: pct !== null ? `${pct}%` : '—', color: 'var(--color-primary)' },
                 ].map(({ label: l, value, color }) => (
                   <div key={l}>
-                    <div style={{ fontSize: 10, color: 'var(--color-text-light)', marginBottom: 2 }}>{l}</div>
-                    <div style={{ fontSize: 20, fontWeight: 800, color, lineHeight: 1 }}>{value}</div>
+                    <div style={{ fontSize: 'var(--font-size-2xs)', color: 'var(--color-text-light)', marginBottom: 2 }}>{l}</div>
+                    <div style={{ fontSize: 'var(--font-size-xl)', fontWeight: 800, color, lineHeight: 1 }}>{value}</div>
                   </div>
                 ))}
               </div>
@@ -637,7 +637,7 @@ function OnboardingModal({ lang, uid, onComplete }: {
       <header style={{ height: 56, minHeight: 56, display: 'flex', alignItems: 'center', justifyContent: 'flex-end', padding: '0 var(--spacing-lg)', borderBottom: '1px solid var(--color-border)', background: 'var(--color-bg-white)', flexShrink: 0 }}>
         <button
           onClick={() => navigate(user ? '/account' : '/login')}
-          style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', background: user ? 'var(--color-primary-light)' : 'transparent', border: '1px solid var(--color-border)', borderRadius: '50%', cursor: 'pointer', color: user ? 'var(--color-primary)' : 'var(--color-text-sub)', width: 36, height: 36, padding: 0, fontSize: 14, fontWeight: 700 }}
+          style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', background: user ? 'var(--color-primary-light)' : 'transparent', border: '1px solid var(--color-border)', borderRadius: '50%', cursor: 'pointer', color: user ? 'var(--color-primary)' : 'var(--color-text-sub)', width: 36, height: 36, padding: 0, fontSize: 'var(--font-size-base)', fontWeight: 700 }}
         >
           {user?.email ? user.email[0].toUpperCase() : <IconUser />}
         </button>
@@ -646,16 +646,16 @@ function OnboardingModal({ lang, uid, onComplete }: {
       {/* ── 資格選択 ── */}
       <div style={{ flex: 1, overflowY: 'auto', display: 'flex', flexDirection: 'column' }}>
         <div style={{ flex: 1, display: 'flex', flexDirection: 'column', padding: '32px 24px 0', maxWidth: 560, margin: '0 auto', width: '100%', paddingBottom: 32 }}>
-          <h2 style={{ fontSize: 20, fontWeight: 800, color: 'var(--color-text-main)', margin: '0 0 6px' }}>
+          <h2 style={{ fontSize: 'var(--font-size-xl)', fontWeight: 800, color: 'var(--color-text-main)', margin: '0 0 6px' }}>
             {ja ? '目指すAWS資格を選んでください' : 'Select your target exam'}
           </h2>
-          <p style={{ fontSize: 12, color: 'var(--color-text-sub)', margin: '0 0 20px' }}>
+          <p style={{ fontSize: 'var(--font-size-sm)', color: 'var(--color-text-sub)', margin: '0 0 20px' }}>
             {ja ? '後からホーム画面でいつでも変更できます' : 'You can change this anytime on the home screen'}
           </p>
 
           {grouped.map(({ lv, exams }) => (
             <div key={lv} style={{ marginBottom: 18 }}>
-              <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: '.06em', textTransform: 'uppercase', color: OB_LEVEL_COLOR[lv], marginBottom: 8 }}>{lv}</div>
+              <div style={{ fontSize: 'var(--font-size-xs)', fontWeight: 700, letterSpacing: '.06em', textTransform: 'uppercase', color: OB_LEVEL_COLOR[lv], marginBottom: 8 }}>{lv}</div>
               <div style={{ display: 'flex', flexDirection: 'column', gap: 7 }}>
                 {exams.map(exam => {
                   const cfg = EXAM_CONFIGS[exam];
@@ -666,8 +666,8 @@ function OnboardingModal({ lang, uid, onComplete }: {
                       style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '10px 14px', borderRadius: 10, cursor: 'pointer', textAlign: 'left', background: 'var(--color-bg-card)', border: '2px solid var(--color-border)', transition: 'border-color .15s, background .15s' }}
                     >
                       <div style={{ flex: 1, minWidth: 0 }}>
-                        <div style={{ fontWeight: 700, fontSize: 13, color: 'var(--color-text-main)' }}>{cfg.examCode}</div>
-                        <div style={{ fontSize: 11, color: 'var(--color-text-sub)', marginTop: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{OB_SHORT[exam]}</div>
+                        <div style={{ fontWeight: 700, fontSize: 'var(--font-size-sm2)', color: 'var(--color-text-main)' }}>{cfg.examCode}</div>
+                        <div style={{ fontSize: 'var(--font-size-xs)', color: 'var(--color-text-sub)', marginTop: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{OB_SHORT[exam]}</div>
                       </div>
                     </button>
                   );
@@ -967,7 +967,7 @@ function TodayServiceSection({ lang, userId, onNavigateEncyclopedia, onReveal, i
             animation: 'ds-float 3.2s ease-in-out infinite',
           }}>?</div>
           <div style={{
-            marginTop: 10, fontSize: 13, fontWeight: 600,
+            marginTop: 10, fontSize: 'var(--font-size-sm2)', fontWeight: 600,
             color: 'rgba(255,255,255,.85)',
             animation: 'ds-tap 1.5s ease-in-out infinite',
             textShadow: '0 2px 8px rgba(0,0,0,.5)',
@@ -998,14 +998,14 @@ function TodayServiceSection({ lang, userId, onNavigateEncyclopedia, onReveal, i
           {lang === 'ja' ? '日めくりAWSサービス' : 'Daily AWS Service'}
         </span>
         {displayService.category && (
-          <span style={{ marginLeft: 2, fontSize: 10, fontWeight: 700, padding: '1px 7px', borderRadius: 'var(--border-radius-full)', background: 'var(--color-primary-light)', color: 'var(--color-primary)' }}>
+          <span style={{ marginLeft: 2, fontSize: 'var(--font-size-2xs)', fontWeight: 700, padding: '1px 7px', borderRadius: 'var(--border-radius-full)', background: 'var(--color-primary-light)', color: 'var(--color-primary)' }}>
             {displayService.category}
           </span>
         )}
         {revealed && userId && (
           <div style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: 6 }}>
             {rerollError && (
-              <span style={{ fontSize: 10, color: 'var(--color-danger)', whiteSpace: 'nowrap' }}>
+              <span style={{ fontSize: 'var(--font-size-2xs)', color: 'var(--color-danger)', whiteSpace: 'nowrap' }}>
                 {lang === 'ja' ? 'P不足' : 'Not enough P'}
               </span>
             )}
@@ -1102,7 +1102,7 @@ function weightedSampleWithoutReplacement<T>(items: T[], weightFn: (item: T) => 
 
 const CHEVRON_BTN: React.CSSProperties = {
   border: 'none', background: 'none', cursor: 'pointer',
-  color: 'var(--color-text-light)', fontSize: 20, lineHeight: 1,
+  color: 'var(--color-text-light)', fontSize: 'var(--font-size-xl)', lineHeight: 1,
   padding: '0 2px', display: 'flex', alignItems: 'center',
   transition: 'color 0.15s',
 };
@@ -1866,8 +1866,8 @@ export default function Home() {
           <span style={{ fontWeight: 700, fontSize: 'var(--font-size-sm)', color: 'var(--color-text-main)' }}>
             {ja ? '目標演習量' : 'Daily Goal'}
           </span>
-          {ja && <span style={{ fontSize: 10, color: 'var(--color-text-sub)' }}>※達成で<span style={{ color: '#009E9E', fontWeight: 700 }}>+10p</span>！</span>}
-          <span style={{ marginLeft: 'auto', fontSize: 13, fontWeight: 700, color: dailyCount >= dailyGoal ? 'var(--color-success)' : 'var(--color-text-sub)' }}>
+          {ja && <span style={{ fontSize: 'var(--font-size-2xs)', color: 'var(--color-text-sub)' }}>※達成で<span style={{ color: '#009E9E', fontWeight: 700 }}>+10p</span>！</span>}
+          <span style={{ marginLeft: 'auto', fontSize: 'var(--font-size-sm2)', fontWeight: 700, color: dailyCount >= dailyGoal ? 'var(--color-success)' : 'var(--color-text-sub)' }}>
             {dailyCount} / {dailyGoal}{ja ? '問' : 'Q'}
           </span>
         </div>
@@ -1898,7 +1898,7 @@ export default function Home() {
               <span style={{ color: 'var(--color-text-sub)', display: 'flex', alignItems: 'center' }}>
                 <IconChart size={12} />
               </span>
-              <span style={{ fontSize: 11, fontWeight: 700, color: 'var(--color-text-sub)', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+              <span style={{ fontSize: 'var(--font-size-xs)', fontWeight: 700, color: 'var(--color-text-sub)', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
                 {ja ? 'ドメイン別正答率' : 'Domain Accuracy'}
               </span>
             </div>
@@ -1923,8 +1923,8 @@ export default function Home() {
                   return (
                     <div key={d}>
                       <div style={{ display: 'flex', alignItems: 'center', gap: 5, marginBottom: 3 }}>
-                        <span style={{ fontSize: 11, fontWeight: 800, color: 'var(--color-primary)', minWidth: 14, flexShrink: 0, textAlign: 'center' }}>{grade}</span>
-                        <span style={{ fontSize: 11, color: 'var(--color-text-sub)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', flex: 1 }}>{label}</span>
+                        <span style={{ fontSize: 'var(--font-size-xs)', fontWeight: 800, color: 'var(--color-primary)', minWidth: 14, flexShrink: 0, textAlign: 'center' }}>{grade}</span>
+                        <span style={{ fontSize: 'var(--font-size-xs)', color: 'var(--color-text-sub)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', flex: 1 }}>{label}</span>
                       </div>
                       <div style={{ height: 5, background: 'var(--color-border)', borderRadius: 3, overflow: 'hidden' }}>
                         {barPct !== null && <div style={{ width: `${barPct}%`, minWidth: barPct === 0 ? 3 : undefined, height: '100%', borderRadius: 3, background: 'var(--bar-gradient-primary)', transformOrigin: 'left center', animation: `growWidth 0.45s cubic-bezier(0.34, 1.56, 0.64, 1) ${i * 30}ms both` }} />}
@@ -1949,7 +1949,7 @@ export default function Home() {
                 <span style={{ color: 'var(--color-text-sub)', display: 'flex', alignItems: 'center' }}>
                   <IconTrendingUp size={12} />
                 </span>
-                <span style={{ fontSize: 11, fontWeight: 700, color: 'var(--color-text-sub)', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+                <span style={{ fontSize: 'var(--font-size-xs)', fontWeight: 700, color: 'var(--color-text-sub)', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
                   {ja ? '予想スコア' : 'Est. Score'}
                 </span>
               </div>
@@ -1994,10 +1994,10 @@ export default function Home() {
             ) : (
               <>
                 <div style={{ display: 'flex', alignItems: 'baseline', gap: 6, marginBottom: 6 }}>
-                  <span style={{ fontSize: 22, fontWeight: 800, color: 'var(--color-primary)', letterSpacing: '-0.5px' }}>{estimatedScore}</span>
-                  <span style={{ fontSize: 12, color: 'var(--color-text-light)' }}>/1000</span>
+                  <span style={{ fontSize: 'var(--font-size-h2)', fontWeight: 800, color: 'var(--color-primary)', letterSpacing: '-0.5px' }}>{estimatedScore}</span>
+                  <span style={{ fontSize: 'var(--font-size-sm)', color: 'var(--color-text-light)' }}>/1000</span>
                   {scoreDelta !== null && (
-                    <span style={{ fontSize: 12, fontWeight: 700, color: scoreDelta > 0 ? 'var(--color-success)' : scoreDelta < 0 ? 'var(--color-danger)' : 'var(--color-text-light)' }}>
+                    <span style={{ fontSize: 'var(--font-size-sm)', fontWeight: 700, color: scoreDelta > 0 ? 'var(--color-success)' : scoreDelta < 0 ? 'var(--color-danger)' : 'var(--color-text-light)' }}>
                       {scoreDelta > 0 ? `+${scoreDelta}` : scoreDelta < 0 ? `${scoreDelta}` : '±0'}
                     </span>
                   )}
@@ -2005,7 +2005,7 @@ export default function Home() {
                 <div style={{ position: 'relative', height: 7, background: 'var(--color-border)', borderRadius: 4, overflow: 'visible', marginTop: passScore !== null ? 18 : 0 }}>
                   {passScore !== null && (
                     <div style={{ position: 'absolute', left: `${(passScore / 1000) * 100}%`, transform: 'translateX(-50%)', top: 0, bottom: 0, zIndex: 2, display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-                      <div style={{ position: 'absolute', bottom: '100%', marginBottom: 3, background: '#f59e0b', color: '#fff', fontSize: 9, fontWeight: 700, padding: '1px 5px', borderRadius: 3, whiteSpace: 'nowrap', lineHeight: 1.5 }}>
+                      <div style={{ position: 'absolute', bottom: '100%', marginBottom: 3, background: '#f59e0b', color: '#fff', fontSize: 'var(--font-size-3xs)', fontWeight: 700, padding: '1px 5px', borderRadius: 3, whiteSpace: 'nowrap', lineHeight: 1.5 }}>
                         {ja ? `合格 ${passScore}` : `Pass ${passScore}`}
                       </div>
                       <div style={{ width: 2, height: '100%', background: '#f59e0b', borderRadius: 1 }} />
@@ -2067,7 +2067,7 @@ export default function Home() {
                       <div style={{ marginTop: 6 }}>
                         {primaryMode === 'quick' ? (
                           <>
-                            {focusedUnlocked && <div style={{ textAlign: 'center', fontSize: 10, color: 'var(--color-text-light)', marginBottom: 4 }}>{ja ? '苦手・不正解問題を重点演習' : 'Focuses on weak/incorrect questions'}</div>}
+                            {focusedUnlocked && <div style={{ textAlign: 'center', fontSize: 'var(--font-size-2xs)', color: 'var(--color-text-light)', marginBottom: 4 }}>{ja ? '苦手・不正解問題を重点演習' : 'Focuses on weak/incorrect questions'}</div>}
                             <button
                               disabled={!targetExam || !user || !focusedUnlocked}
                               onClick={() => { setShowWebQuickMenu(false); switchMode('focused'); }}
@@ -2077,11 +2077,11 @@ export default function Home() {
                               {ja ? 'しっかり対策モード' : 'Switch to Focused'}
                             </button>
                             {!focusedUnlocked && user && (
-                              <div style={{ textAlign: 'center', fontSize: 10, color: 'var(--color-text-light)', marginTop: 3 }}>
+                              <div style={{ textAlign: 'center', fontSize: 'var(--font-size-2xs)', color: 'var(--color-text-light)', marginTop: 3 }}>
                                 {ja ? `現在${answeredCount}問 / あと${FOCUSED_UNLOCK_THRESHOLD - answeredCount}問で解放` : `${answeredCount} answered / ${FOCUSED_UNLOCK_THRESHOLD - answeredCount} more to unlock`}
                               </div>
                             )}
-                            {!user && <div style={{ textAlign: 'center', fontSize: 10, color: 'var(--color-text-light)', marginTop: 3 }}>{ja ? 'ログインが必要です' : 'Login required'}</div>}
+                            {!user && <div style={{ textAlign: 'center', fontSize: 'var(--font-size-2xs)', color: 'var(--color-text-light)', marginTop: 3 }}>{ja ? 'ログインが必要です' : 'Login required'}</div>}
                           </>
                         ) : (
                           <>
@@ -2109,10 +2109,10 @@ export default function Home() {
                     <>
                       {primaryMode === 'quick' ? (ja ? 'サクッと演習を再開' : 'Quick (Resume)') : (ja ? 'しっかり対策を再開' : 'Focused (Resume)')}
                       {ja && primaryMode === 'quick' && quickDraft?.results != null && quickDraft?.questions != null && (
-                        <span style={{ fontSize: 12, fontWeight: 400, opacity: 0.85 }}>（{quickDraft.results.length}/{quickDraft.questions.length}問）</span>
+                        <span style={{ fontSize: 'var(--font-size-sm)', fontWeight: 400, opacity: 0.85 }}>（{quickDraft.results.length}/{quickDraft.questions.length}問）</span>
                       )}
                       {ja && primaryMode !== 'quick' && focusedDraft?.results != null && focusedDraft?.questions != null && (
-                        <span style={{ fontSize: 12, fontWeight: 400, opacity: 0.85 }}>（{focusedDraft.results.length}/{focusedDraft.questions.length}問）</span>
+                        <span style={{ fontSize: 'var(--font-size-sm)', fontWeight: 400, opacity: 0.85 }}>（{focusedDraft.results.length}/{focusedDraft.questions.length}問）</span>
                       )}
                       <span style={{ marginLeft: 8, display: 'inline-flex', verticalAlign: 'middle' }}><KeyHint /></span>
                     </>
@@ -2135,7 +2135,7 @@ export default function Home() {
                     <div style={{ position: 'absolute', bottom: '110%', left: 0, right: 0, zIndex: 200, background: 'var(--color-bg-white)', borderRadius: 'var(--border-radius-md)', boxShadow: 'var(--box-shadow-up)', border: '1px solid var(--color-border)', padding: '8px', marginBottom: 6 }}>
                       {primaryMode === 'quick' ? (
                         <>
-                          {focusedUnlocked && <div style={{ textAlign: 'center', fontSize: 10, color: 'var(--color-text-light)', marginBottom: 4 }}>{ja ? '苦手・不正解問題を重点演習' : 'Focuses on weak/incorrect questions'}</div>}
+                          {focusedUnlocked && <div style={{ textAlign: 'center', fontSize: 'var(--font-size-2xs)', color: 'var(--color-text-light)', marginBottom: 4 }}>{ja ? '苦手・不正解問題を重点演習' : 'Focuses on weak/incorrect questions'}</div>}
                           <button
                             disabled={!targetExam || !user || !focusedUnlocked}
                             onClick={() => { setShowFocusedMenu(false); switchMode('focused'); }}
@@ -2145,11 +2145,11 @@ export default function Home() {
                             {ja ? 'しっかり対策モード' : 'Switch to Focused'}
                           </button>
                           {!focusedUnlocked && user && (
-                            <div style={{ textAlign: 'center', fontSize: 10, color: 'var(--color-text-light)', marginTop: 3 }}>
+                            <div style={{ textAlign: 'center', fontSize: 'var(--font-size-2xs)', color: 'var(--color-text-light)', marginTop: 3 }}>
                               {ja ? `現在${answeredCount}問 / あと${FOCUSED_UNLOCK_THRESHOLD - answeredCount}問で解放` : `${answeredCount} answered / ${FOCUSED_UNLOCK_THRESHOLD - answeredCount} more to unlock`}
                             </div>
                           )}
-                          {!user && <div style={{ textAlign: 'center', fontSize: 10, color: 'var(--color-text-light)', marginTop: 3 }}>{ja ? 'ログインが必要です' : 'Login required'}</div>}
+                          {!user && <div style={{ textAlign: 'center', fontSize: 'var(--font-size-2xs)', color: 'var(--color-text-light)', marginTop: 3 }}>{ja ? 'ログインが必要です' : 'Login required'}</div>}
                         </>
                       ) : (
                         <>
@@ -2239,7 +2239,7 @@ export default function Home() {
                 <div style={{ marginTop: 8 }}>
                   {primaryMode === 'quick' ? (
                     <>
-                      {focusedUnlocked && <div style={{ textAlign: 'center', fontSize: 11, color: 'var(--color-text-light)', marginBottom: 4 }}>{ja ? '苦手・不正解問題を重点演習' : 'Focuses on weak/incorrect questions'}</div>}
+                      {focusedUnlocked && <div style={{ textAlign: 'center', fontSize: 'var(--font-size-xs)', color: 'var(--color-text-light)', marginBottom: 4 }}>{ja ? '苦手・不正解問題を重点演習' : 'Focuses on weak/incorrect questions'}</div>}
                       <button
                         disabled={!targetExam || !user || !focusedUnlocked}
                         onClick={() => { setShowNewPanel(false); switchMode('focused'); }}
@@ -2249,11 +2249,11 @@ export default function Home() {
                         {ja ? 'しっかり対策モード' : 'Switch to Focused'}
                       </button>
                       {!focusedUnlocked && user && (
-                        <div style={{ textAlign: 'center', fontSize: 11, color: 'var(--color-text-light)', marginTop: 4 }}>
+                        <div style={{ textAlign: 'center', fontSize: 'var(--font-size-xs)', color: 'var(--color-text-light)', marginTop: 4 }}>
                           {ja ? `現在${answeredCount}問 / あと${FOCUSED_UNLOCK_THRESHOLD - answeredCount}問で解放` : `${answeredCount} answered / ${FOCUSED_UNLOCK_THRESHOLD - answeredCount} more to unlock`}
                         </div>
                       )}
-                      {!user && <div style={{ textAlign: 'center', fontSize: 11, color: 'var(--color-text-light)', marginTop: 4 }}>{ja ? 'ログインが必要です' : 'Login required'}</div>}
+                      {!user && <div style={{ textAlign: 'center', fontSize: 'var(--font-size-xs)', color: 'var(--color-text-light)', marginTop: 4 }}>{ja ? 'ログインが必要です' : 'Login required'}</div>}
                     </>
                   ) : (
                     <>
@@ -2273,7 +2273,7 @@ export default function Home() {
               <div style={{ position: 'fixed', bottom: 116, left: 0, right: 0, zIndex: 211, background: 'var(--color-bg-white)', borderRadius: '14px 14px 0 0', padding: '14px 12px 12px', boxShadow: 'var(--box-shadow-up)', animation: 'slideUp 0.22s ease' }}>
                 {primaryMode === 'quick' ? (
                   <>
-                    {focusedUnlocked && <div style={{ textAlign: 'center', fontSize: 11, color: 'var(--color-text-light)', marginBottom: 4 }}>{ja ? '苦手・不正解問題を重点演習' : 'Focuses on weak/incorrect questions'}</div>}
+                    {focusedUnlocked && <div style={{ textAlign: 'center', fontSize: 'var(--font-size-xs)', color: 'var(--color-text-light)', marginBottom: 4 }}>{ja ? '苦手・不正解問題を重点演習' : 'Focuses on weak/incorrect questions'}</div>}
                     <button
                       disabled={!targetExam || !user || !focusedUnlocked}
                       onClick={() => { setShowFocusedMenu(false); switchMode('focused'); }}
@@ -2283,11 +2283,11 @@ export default function Home() {
                       {ja ? 'しっかり対策モード' : 'Switch to Focused'}
                     </button>
                     {!focusedUnlocked && user && (
-                      <div style={{ textAlign: 'center', fontSize: 11, color: 'var(--color-text-light)', marginTop: 4 }}>
+                      <div style={{ textAlign: 'center', fontSize: 'var(--font-size-xs)', color: 'var(--color-text-light)', marginTop: 4 }}>
                         {ja ? `現在${answeredCount}問 / あと${FOCUSED_UNLOCK_THRESHOLD - answeredCount}問で解放` : `${answeredCount} answered / ${FOCUSED_UNLOCK_THRESHOLD - answeredCount} more to unlock`}
                       </div>
                     )}
-                    {!user && <div style={{ textAlign: 'center', fontSize: 11, color: 'var(--color-text-light)', marginTop: 4 }}>{ja ? 'ログインが必要です' : 'Login required'}</div>}
+                    {!user && <div style={{ textAlign: 'center', fontSize: 'var(--font-size-xs)', color: 'var(--color-text-light)', marginTop: 4 }}>{ja ? 'ログインが必要です' : 'Login required'}</div>}
                   </>
                 ) : (
                   <>
@@ -2317,10 +2317,10 @@ export default function Home() {
                     <>
                       {primaryMode === 'quick' ? (ja ? 'サクッと演習を再開' : 'Quick (Resume)') : (ja ? 'しっかり対策を再開' : 'Focused (Resume)')}
                       {ja && primaryMode === 'quick' && quickDraft?.results != null && quickDraft?.questions != null && (
-                        <span style={{ fontSize: 12, fontWeight: 400, opacity: 0.85 }}>（{quickDraft.results.length}/{quickDraft.questions.length}問）</span>
+                        <span style={{ fontSize: 'var(--font-size-sm)', fontWeight: 400, opacity: 0.85 }}>（{quickDraft.results.length}/{quickDraft.questions.length}問）</span>
                       )}
                       {ja && primaryMode !== 'quick' && focusedDraft?.results != null && focusedDraft?.questions != null && (
-                        <span style={{ fontSize: 12, fontWeight: 400, opacity: 0.85 }}>（{focusedDraft.results.length}/{focusedDraft.questions.length}問）</span>
+                        <span style={{ fontSize: 'var(--font-size-sm)', fontWeight: 400, opacity: 0.85 }}>（{focusedDraft.results.length}/{focusedDraft.questions.length}問）</span>
                       )}
                     </>
                   )}
@@ -2401,7 +2401,7 @@ export default function Home() {
               <h3 style={{ margin: 0, fontSize: 'var(--font-size-h3)', fontWeight: 700, color: 'var(--color-accent)' }}>
                 {ja ? 'サクッと演習 設定' : 'Quick Practice Settings'}
               </h3>
-              <button onClick={() => setShowQuickModal(false)} style={{ border: 'none', background: 'none', fontSize: 20, cursor: 'pointer', color: 'var(--color-text-sub)', padding: '4px 8px', lineHeight: 1 }}>✕</button>
+              <button onClick={() => setShowQuickModal(false)} style={{ border: 'none', background: 'none', fontSize: 'var(--font-size-xl)', cursor: 'pointer', color: 'var(--color-text-sub)', padding: '4px 8px', lineHeight: 1 }}>✕</button>
             </div>
             {/* スクロール可能なコンテンツ */}
             <div style={{ flex: 1, overflowY: 'auto', padding: '0 24px' }}>
@@ -2509,7 +2509,7 @@ export default function Home() {
                     {ja ? '消去法機能をオン' : 'Enable elimination mode'}
                   </span>
                 </label>
-                <div style={{ fontSize: 11, color: 'var(--color-text-light)', marginTop: 4, lineHeight: 1.5 }}>
+                <div style={{ fontSize: 'var(--font-size-xs)', color: 'var(--color-text-light)', marginTop: 4, lineHeight: 1.5 }}>
                   ※ {ja ? '選択肢のテキストをタップすると取り消し線を引いて選択肢を絞り込める機能です' : 'Tap choice text to strike through and narrow down options'}
                 </div>
                 <label style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '4px 0', cursor: 'pointer', marginTop: 8 }}>
@@ -2527,7 +2527,7 @@ export default function Home() {
             </div>
             {/* 保存ボタン固定 */}
             <div style={{ flexShrink: 0, borderTop: '1px solid var(--color-border)', padding: '10px 16px', display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: 12, minHeight: 64 }}>
-              {savedQuick && <span style={{ fontSize: 13, fontWeight: 700, color: 'var(--color-success)', animation: 'sherpa-save-msg 2s ease-in-out both' }}>✓ {ja ? '保存しました' : 'Saved'}</span>}
+              {savedQuick && <span style={{ fontSize: 'var(--font-size-sm2)', fontWeight: 700, color: 'var(--color-success)', animation: 'sherpa-save-msg 2s ease-in-out both' }}>✓ {ja ? '保存しました' : 'Saved'}</span>}
               <button
                 disabled={targetExam !== null && (EXAM_DOMAINS[targetExam] ?? []).length > 0 && (draftPrefs.domains ?? []).length === 0}
                 onClick={() => {
@@ -2562,7 +2562,7 @@ export default function Home() {
               <h3 style={{ margin: 0, fontSize: 'var(--font-size-h3)', fontWeight: 700, color: '#009E9E' }}>
                 {ja ? 'しっかり対策 設定' : 'Focused Practice Settings'}
               </h3>
-              <button onClick={() => setShowFocusedModal(false)} style={{ border: 'none', background: 'none', fontSize: 20, cursor: 'pointer', color: 'var(--color-text-sub)', padding: '4px 8px', lineHeight: 1 }}>✕</button>
+              <button onClick={() => setShowFocusedModal(false)} style={{ border: 'none', background: 'none', fontSize: 'var(--font-size-xl)', cursor: 'pointer', color: 'var(--color-text-sub)', padding: '4px 8px', lineHeight: 1 }}>✕</button>
             </div>
             {/* スクロール可能なコンテンツ */}
             <div style={{ flex: 1, overflowY: 'auto', padding: '0 24px' }}>
@@ -2649,7 +2649,7 @@ export default function Home() {
                     {ja ? '消去法機能をオン' : 'Enable elimination mode'}
                   </span>
                 </label>
-                <div style={{ fontSize: 11, color: 'var(--color-text-light)', marginTop: 4, lineHeight: 1.5 }}>
+                <div style={{ fontSize: 'var(--font-size-xs)', color: 'var(--color-text-light)', marginTop: 4, lineHeight: 1.5 }}>
                   ※ {ja ? '選択肢のテキストをタップすると取り消し線を引いて選択肢を絞り込める機能です' : 'Tap choice text to strike through and narrow down options'}
                 </div>
                 <label style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '4px 0', cursor: 'pointer', marginTop: 8 }}>
@@ -2667,7 +2667,7 @@ export default function Home() {
             </div>
             {/* 保存ボタン固定 */}
             <div style={{ flexShrink: 0, borderTop: '1px solid var(--color-border)', padding: '10px 16px', display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: 12, minHeight: 64 }}>
-              {savedFocused && <span style={{ fontSize: 13, fontWeight: 700, color: 'var(--color-success)', animation: 'sherpa-save-msg 2s ease-in-out both' }}>✓ {ja ? '保存しました' : 'Saved'}</span>}
+              {savedFocused && <span style={{ fontSize: 'var(--font-size-sm2)', fontWeight: 700, color: 'var(--color-success)', animation: 'sherpa-save-msg 2s ease-in-out both' }}>✓ {ja ? '保存しました' : 'Saved'}</span>}
               <button
                 onClick={() => {
                   localStorage.setItem(`focusedExercisePrefs_${uid}`, JSON.stringify(draftFocusedPrefs));

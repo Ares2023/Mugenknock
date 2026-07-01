@@ -86,7 +86,7 @@ function Modal({ onClose, title, children }: { onClose: () => void; title: strin
       <div style={{ background: 'var(--color-bg-white)', borderRadius: 'var(--border-radius-lg)', padding: '24px 24px 20px', width: '100%', maxWidth: 480, boxShadow: 'var(--box-shadow-md)', maxHeight: window.innerWidth < 768 ? '66vh' : '90vh', overflowY: 'auto' }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 }}>
           <h3 style={{ margin: 0, fontSize: 'var(--font-size-h3)', fontWeight: 700, color: 'var(--color-text-main)' }}>{title}</h3>
-          <button onClick={onClose} style={{ border: 'none', background: 'none', fontSize: 20, cursor: 'pointer', color: 'var(--color-text-sub)', padding: '4px 8px', lineHeight: 1 }}>✕</button>
+          <button onClick={onClose} style={{ border: 'none', background: 'none', fontSize: 'var(--font-size-xl)', cursor: 'pointer', color: 'var(--color-text-sub)', padding: '4px 8px', lineHeight: 1 }}>✕</button>
         </div>
         {children}
       </div>
@@ -335,7 +335,7 @@ export default function Account() {
       </header>
 
     <div style={{ flex: 1, overflowY: 'auto' }}>
-    <div style={{ maxWidth: 900, margin: '0 auto', padding: '24px 16px 48px' }} className="page-container">
+    <div style={{ maxWidth: 900, margin: '0 auto', padding: 'var(--spacing-lg) var(--spacing-md) 48px' }} className="page-container">
 
       {/* ユーザー情報ヘッダー */}
       {user && (

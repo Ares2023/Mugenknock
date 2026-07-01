@@ -458,16 +458,16 @@ export default function Practice() {
                 data-kbnav="1"
                 onClick={() => setLimit(v => Math.max(5, v - 5))}
                 disabled={limit <= 5}
-                style={{ width: 36, height: 36, borderRadius: '50%', border: '1px solid color-mix(in srgb, var(--color-text-light) 40%, transparent)', background: 'transparent', cursor: limit <= 5 ? 'default' : 'pointer', fontSize: 20, display: 'flex', alignItems: 'center', justifyContent: 'center', color: limit <= 5 ? 'var(--color-text-light)' : 'var(--color-text-main)' }}
+                style={{ width: 36, height: 36, borderRadius: '50%', border: '1px solid color-mix(in srgb, var(--color-text-light) 40%, transparent)', background: 'transparent', cursor: limit <= 5 ? 'default' : 'pointer', fontSize: 'var(--font-size-xl)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: limit <= 5 ? 'var(--color-text-light)' : 'var(--color-text-main)' }}
               >−</button>
               <span style={{ fontSize: 24, fontWeight: 800, minWidth: 64, textAlign: 'center', color: 'var(--color-primary)', fontVariantNumeric: 'tabular-nums' }}>
-                {limit}<span style={{ fontSize: 13, fontWeight: 400, marginLeft: 2, color: 'var(--color-text-sub)' }}>{ja ? '問' : 'Q'}</span>
+                {limit}<span style={{ fontSize: 'var(--font-size-sm2)', fontWeight: 400, marginLeft: 2, color: 'var(--color-text-sub)' }}>{ja ? '問' : 'Q'}</span>
               </span>
               <button
                 data-kbnav="1"
                 onClick={() => setLimit(v => Math.min(examCfg?.totalQuestions ?? 65, v + 5))}
                 disabled={limit >= (examCfg?.totalQuestions ?? 65)}
-                style={{ width: 36, height: 36, borderRadius: '50%', border: '1px solid color-mix(in srgb, var(--color-text-light) 40%, transparent)', background: 'transparent', cursor: limit >= (examCfg?.totalQuestions ?? 65) ? 'default' : 'pointer', fontSize: 20, display: 'flex', alignItems: 'center', justifyContent: 'center', color: limit >= (examCfg?.totalQuestions ?? 65) ? 'var(--color-text-light)' : 'var(--color-text-main)' }}
+                style={{ width: 36, height: 36, borderRadius: '50%', border: '1px solid color-mix(in srgb, var(--color-text-light) 40%, transparent)', background: 'transparent', cursor: limit >= (examCfg?.totalQuestions ?? 65) ? 'default' : 'pointer', fontSize: 'var(--font-size-xl)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: limit >= (examCfg?.totalQuestions ?? 65) ? 'var(--color-text-light)' : 'var(--color-text-main)' }}
               >+</button>
             </div>
           </div>
@@ -490,14 +490,14 @@ export default function Practice() {
               {showExerciseOptions ? <IconChevronDown size={14} /> : <IconChevronRight size={14} />}
               {ja ? 'オプション' : 'Options'}
               {selectedDomains.length > 0 && selectedDomains.length < (EXAM_DOMAINS[examType]?.length ?? 0) && (
-                <span style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', width: 16, height: 16, borderRadius: '50%', background: 'var(--color-primary)', color: '#fff', fontSize: 10, fontWeight: 700 }}>
+                <span style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', width: 16, height: 16, borderRadius: '50%', background: 'var(--color-primary)', color: '#fff', fontSize: 'var(--font-size-2xs)', fontWeight: 700 }}>
                   {selectedDomains.length}
                 </span>
               )}
             </button>
             {showExerciseOptions && (
               <div style={{ padding: '12px 14px', borderTop: '1px solid color-mix(in srgb, var(--color-text-light) 40%, transparent)', display: 'flex', flexDirection: 'column', gap: 6 }}>
-                <div style={{ fontSize: 11, fontWeight: 700, color: 'var(--color-text-light)', letterSpacing: '0.05em', marginBottom: 2 }}>{ja ? 'ドメイン' : 'Domain'}</div>
+                <div style={{ fontSize: 'var(--font-size-xs)', fontWeight: 700, color: 'var(--color-text-light)', letterSpacing: '0.05em', marginBottom: 2 }}>{ja ? 'ドメイン' : 'Domain'}</div>
                 {/* 全て */}
                 <label data-kbnav="1" style={{ display: 'flex', alignItems: 'center', gap: 8, cursor: 'pointer', paddingBottom: 6, borderBottom: '1px solid color-mix(in srgb, var(--color-text-light) 20%, transparent)' }}>
                   <input
@@ -526,7 +526,7 @@ export default function Practice() {
                       />
                       <span style={{ fontSize: 'var(--font-size-sm)', color: 'var(--color-text-main)', flex: 1 }}>{domain}</span>
                       {rate != null && (
-                        <span style={{ fontSize: 10, fontWeight: 700, color: rate < 0.4 ? 'var(--color-danger)' : rate < 0.6 ? 'var(--color-caution)' : 'var(--color-text-sub)', flexShrink: 0 }}>
+                        <span style={{ fontSize: 'var(--font-size-2xs)', fontWeight: 700, color: rate < 0.4 ? 'var(--color-danger)' : rate < 0.6 ? 'var(--color-caution)' : 'var(--color-text-sub)', flexShrink: 0 }}>
                           {Math.round(rate * 100)}%
                         </span>
                       )}
@@ -539,7 +539,7 @@ export default function Practice() {
                   </div>
                 )}
                 <div style={{ paddingTop: 8, marginTop: 2, borderTop: '1px solid color-mix(in srgb, var(--color-text-light) 20%, transparent)' }}>
-                  <div style={{ fontSize: 11, fontWeight: 700, color: 'var(--color-text-light)', letterSpacing: '0.05em', marginBottom: 6 }}>{ja ? 'その他' : 'Other'}</div>
+                  <div style={{ fontSize: 'var(--font-size-xs)', fontWeight: 700, color: 'var(--color-text-light)', letterSpacing: '0.05em', marginBottom: 6 }}>{ja ? 'その他' : 'Other'}</div>
                   <label data-kbnav="1" style={{ display: 'flex', alignItems: 'center', gap: 8, cursor: 'pointer' }}>
                     <input
                       type="checkbox"
@@ -551,7 +551,7 @@ export default function Practice() {
                       {ja ? '消去法機能をオン' : 'Enable elimination mode'}
                     </span>
                   </label>
-                  <div style={{ fontSize: 11, color: 'var(--color-text-light)', marginTop: 4, lineHeight: 1.5 }}>
+                  <div style={{ fontSize: 'var(--font-size-xs)', color: 'var(--color-text-light)', marginTop: 4, lineHeight: 1.5 }}>
                     ※ {ja ? '選択肢のテキストをタップすると取り消し線を引いて選択肢を絞り込める機能です' : 'Tap choice text to strike through and narrow down options'}
                   </div>
                   <label data-kbnav="1" style={{ display: 'flex', alignItems: 'center', gap: 8, cursor: 'pointer', marginTop: 8 }}>
@@ -622,21 +622,21 @@ export default function Practice() {
               {/* ── 試験情報セクション ── */}
               <div style={{ borderTop: '1px solid color-mix(in srgb, var(--color-text-light) 40%, transparent)', marginTop: 4 }} />
               <div style={{ background: 'var(--color-bg-white)', borderRadius: 'var(--border-radius-md)', border: '1px solid var(--color-border)', overflow: 'hidden', marginTop: 14 }}>
-                <div style={{ padding: '8px 14px', background: 'var(--color-bg-white)', borderBottom: '1px solid var(--color-border)', fontSize: 11, fontWeight: 700, color: 'var(--color-text-light)', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+                <div style={{ padding: '8px 14px', background: 'var(--color-bg-white)', borderBottom: '1px solid var(--color-border)', fontSize: 'var(--font-size-xs)', fontWeight: 700, color: 'var(--color-text-light)', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
                   {ja ? '試験情報' : 'Exam Info'}
                 </div>
                 <div style={{ padding: '12px 14px' }}>
                   <div style={{ display: 'flex', gap: 24, marginBottom: 12, flexWrap: 'wrap' }}>
                     <div>
-                      <div style={{ fontSize: 11, color: 'var(--color-text-light)', marginBottom: 2 }}>{ja ? '問題数' : 'Questions'}</div>
-                      <div style={{ fontWeight: 700, fontSize: 'var(--font-size-lg)' }}>{examQuestions}<span style={{ fontSize: 12, fontWeight: 400 }}>{ja ? '問' : ' Q'}</span></div>
+                      <div style={{ fontSize: 'var(--font-size-xs)', color: 'var(--color-text-light)', marginBottom: 2 }}>{ja ? '問題数' : 'Questions'}</div>
+                      <div style={{ fontWeight: 700, fontSize: 'var(--font-size-lg)' }}>{examQuestions}<span style={{ fontSize: 'var(--font-size-sm)', fontWeight: 400 }}>{ja ? '問' : ' Q'}</span></div>
                     </div>
                     <div>
-                      <div style={{ fontSize: 11, color: 'var(--color-text-light)', marginBottom: 2 }}>{ja ? '制限時間' : 'Time Limit'}</div>
-                      <div style={{ fontWeight: 700, fontSize: 'var(--font-size-lg)' }}>{examTimeMin}<span style={{ fontSize: 12, fontWeight: 400 }}>{ja ? '分' : ' min'}</span></div>
+                      <div style={{ fontSize: 'var(--font-size-xs)', color: 'var(--color-text-light)', marginBottom: 2 }}>{ja ? '制限時間' : 'Time Limit'}</div>
+                      <div style={{ fontWeight: 700, fontSize: 'var(--font-size-lg)' }}>{examTimeMin}<span style={{ fontSize: 'var(--font-size-sm)', fontWeight: 400 }}>{ja ? '分' : ' min'}</span></div>
                     </div>
                     <div>
-                      <div style={{ fontSize: 11, color: 'var(--color-text-light)', marginBottom: 2 }}>{ja ? '合格点' : 'Pass Score'}</div>
+                      <div style={{ fontSize: 'var(--font-size-xs)', color: 'var(--color-text-light)', marginBottom: 2 }}>{ja ? '合格点' : 'Pass Score'}</div>
                       <div style={{ fontWeight: 700, fontSize: 'var(--font-size-lg)' }}>
                         {examMode === 'mini'
                           ? Math.ceil((PASS_SCORES[targetExam] ?? 0) / 5)
@@ -645,7 +645,7 @@ export default function Practice() {
                     </div>
                   </div>
                   <div style={{ background: 'var(--color-bg-main)', borderRadius: 'var(--border-radius-md)', padding: '10px 14px', marginBottom: 0 }}>
-                <div style={{ fontSize: 11, fontWeight: 700, color: 'var(--color-text-sub)', marginBottom: 6 }}>{ja ? 'ルール' : 'Rules'}</div>
+                <div style={{ fontSize: 'var(--font-size-xs)', fontWeight: 700, color: 'var(--color-text-sub)', marginBottom: 6 }}>{ja ? 'ルール' : 'Rules'}</div>
                 {examRules.map((r, i) => (
                   <div key={i} style={{ fontSize: 'var(--font-size-sm)', color: 'var(--color-text-sub)', display: 'flex', gap: 6, alignItems: 'flex-start', marginBottom: i < examRules.length - 1 ? 4 : 0 }}>
                     <span style={{ color: 'var(--color-primary)', flexShrink: 0, marginTop: 1 }}>•</span>
@@ -700,7 +700,7 @@ export default function Practice() {
                       <>
                         {ja ? '演習を再開' : 'Resume'}
                         {exerciseDraft?.results != null && exerciseDraft?.questions != null && (
-                          <span style={{ fontSize: 12, fontWeight: 400, opacity: 0.85 }}>
+                          <span style={{ fontSize: 'var(--font-size-sm)', fontWeight: 400, opacity: 0.85 }}>
                             （{exerciseDraft.results.length}/{exerciseDraft.questions.length}問）
                           </span>
                         )}
@@ -752,7 +752,7 @@ export default function Practice() {
                       <>
                         {ja ? '演習を再開' : 'Resume'}
                         {exerciseDraft?.results != null && exerciseDraft?.questions != null && (
-                          <span style={{ fontSize: 12, fontWeight: 400, opacity: 0.85 }}>
+                          <span style={{ fontSize: 'var(--font-size-sm)', fontWeight: 400, opacity: 0.85 }}>
                             （{exerciseDraft.results.length}/{exerciseDraft.questions.length}問）
                           </span>
                         )}
@@ -830,7 +830,7 @@ export default function Practice() {
                       <>
                         {ja ? '模試を再開' : 'Resume'}
                         {examDraft?.timeLeft != null && (
-                          <span style={{ fontSize: 12, fontWeight: 400, opacity: 0.85 }}>
+                          <span style={{ fontSize: 'var(--font-size-sm)', fontWeight: 400, opacity: 0.85 }}>
                             （{fmtSec(examDraft.timeLeft)}・{(examDraft.currentIndex ?? 0) + 1}/{examDraft.questions?.length ?? '?'}問）
                           </span>
                         )}
@@ -883,7 +883,7 @@ export default function Practice() {
                       <>
                         {ja ? '模試を再開' : 'Resume'}
                         {examDraft?.timeLeft != null && (
-                          <span style={{ fontSize: 12, fontWeight: 400, opacity: 0.85 }}>
+                          <span style={{ fontSize: 'var(--font-size-sm)', fontWeight: 400, opacity: 0.85 }}>
                             （{fmtSec(examDraft.timeLeft)}・{(examDraft.currentIndex ?? 0) + 1}/{examDraft.questions?.length ?? '?'}問）
                           </span>
                         )}

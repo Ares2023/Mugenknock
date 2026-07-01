@@ -192,14 +192,14 @@ export default function ExamSelectOverlay({
         {/* ヘッダー */}
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '16px 20px 0', flexShrink: 0 }}>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 2, minWidth: 0 }}>
-            <span style={{ fontWeight: 700, fontSize: 16 }}>
+            <span style={{ fontWeight: 700, fontSize: 'var(--font-size-lg)' }}>
               {ja ? '目標資格を選択' : 'Select Target Exam'}
             </span>
             <a
               href="https://d1.awsstatic.com/onedam/marketing-channels/website/aws/ja_JP/certification/approved/pdfs/AWS_certification_paths.pdf"
               target="_blank"
               rel="noopener noreferrer"
-              style={{ fontSize: 11, fontWeight: 600, color: 'var(--color-primary)', textDecoration: 'none' }}
+              style={{ fontSize: 'var(--font-size-xs)', fontWeight: 600, color: 'var(--color-primary)', textDecoration: 'none' }}
             >
               {ja ? '何を取るべき？→' : 'Which cert should I take? →'}
             </a>
@@ -208,7 +208,7 @@ export default function ExamSelectOverlay({
             <button
               data-kbclose="1"
               onClick={onClose}
-              style={{ border: 'none', background: 'none', fontSize: 20, cursor: 'pointer', color: 'var(--color-text-sub)', padding: '4px 8px', lineHeight: 1 }}
+              style={{ border: 'none', background: 'none', fontSize: 'var(--font-size-xl)', cursor: 'pointer', color: 'var(--color-text-sub)', padding: '4px 8px', lineHeight: 1 }}
             >✕</button>
           )}
         </div>
@@ -229,7 +229,7 @@ export default function ExamSelectOverlay({
               padding: '10px 14px', background: 'none', border: 'none', cursor: 'pointer',
               borderBottom: activeLevel === key ? `2px solid ${color}` : '2px solid transparent',
               marginBottom: -2, color: activeLevel === key ? color : 'var(--color-text-sub)',
-              fontWeight: activeLevel === key ? 700 : 400, fontSize: 13, whiteSpace: 'nowrap', flexShrink: 0,
+              fontWeight: activeLevel === key ? 700 : 400, fontSize: 'var(--font-size-sm2)', whiteSpace: 'nowrap', flexShrink: 0,
             }}>
               {key}
             </button>
@@ -272,7 +272,7 @@ export default function ExamSelectOverlay({
                     <ExamIcon size={18} />
                   </div>
                 )}
-                <div style={{ fontWeight: 800, fontSize: 15, color: isPreviewing ? '#fff' : isSelected ? levelColor : 'var(--color-text-main)', lineHeight: 1 }}>{exam}</div>
+                <div style={{ fontWeight: 800, fontSize: 'var(--font-size-md)', color: isPreviewing ? '#fff' : isSelected ? levelColor : 'var(--color-text-main)', lineHeight: 1 }}>{exam}</div>
               </button>
             );
           })}
@@ -287,13 +287,13 @@ export default function ExamSelectOverlay({
               <div style={{ padding: '16px 20px' }}>
                 <div style={{ marginBottom: 10 }}>
                   {EXAM_CATCHCOPY[exam] && (
-                    <div style={{ fontSize: 11, color: 'var(--color-text-light)', fontStyle: 'italic', marginBottom: 4 }}>{EXAM_CATCHCOPY[exam]}</div>
+                    <div style={{ fontSize: 'var(--font-size-xs)', color: 'var(--color-text-light)', fontStyle: 'italic', marginBottom: 4 }}>{EXAM_CATCHCOPY[exam]}</div>
                   )}
                   <div style={{ fontWeight: 700, fontSize: 17, color: 'var(--color-text-main)' }}>
                     {(cfg?.fullName ?? exam).replace('AWS Certified ', '')}
                   </div>
                 </div>
-                <p style={{ margin: '0 0 12px', fontSize: 12, color: 'var(--color-text-sub)', lineHeight: 1.7 }}>
+                <p style={{ margin: '0 0 12px', fontSize: 'var(--font-size-sm)', color: 'var(--color-text-sub)', lineHeight: 1.7 }}>
                   {EXAM_DESC[exam] ?? ''}
                   {EXAM_URLS[exam] && (
                     <a href={EXAM_URLS[exam]} target="_blank" rel="noopener noreferrer"
@@ -311,8 +311,8 @@ export default function ExamSelectOverlay({
                       { label: ja ? '合格ライン' : 'Pass Score', value: `${PASS_SCORES[exam] ?? '—'}/1000` },
                     ].map(({ label: lbl, value }) => (
                       <div key={lbl}>
-                        <div style={{ fontSize: 9, color: 'var(--color-text-light)', marginBottom: 2 }}>{lbl}</div>
-                        <div style={{ fontSize: 13, fontWeight: 700, color: 'var(--color-text-main)' }}>{value}</div>
+                        <div style={{ fontSize: 'var(--font-size-3xs)', color: 'var(--color-text-light)', marginBottom: 2 }}>{lbl}</div>
+                        <div style={{ fontSize: 'var(--font-size-sm2)', fontWeight: 700, color: 'var(--color-text-main)' }}>{value}</div>
                       </div>
                     ))}
                   </div>
@@ -327,11 +327,11 @@ export default function ExamSelectOverlay({
                           style={{
                             width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'space-between',
                             background: 'none', border: 'none', cursor: 'pointer',
-                            padding: '8px 0 0', fontSize: 11, color: 'var(--color-text-light)', fontWeight: 600,
+                            padding: '8px 0 0', fontSize: 'var(--font-size-xs)', color: 'var(--color-text-light)', fontWeight: 600,
                           }}
                         >
                           <span>{ja ? 'ドメイン別出題割合' : 'Domain Weights'}</span>
-                          <span style={{ fontSize: 9, display: 'inline-block', transform: domainOpen ? 'rotate(180deg)' : 'rotate(0deg)', transition: 'transform 0.2s' }}>▼</span>
+                          <span style={{ fontSize: 'var(--font-size-3xs)', display: 'inline-block', transform: domainOpen ? 'rotate(180deg)' : 'rotate(0deg)', transition: 'transform 0.2s' }}>▼</span>
                         </button>
                         {domainOpen && (
                           <div style={{ display: 'flex', flexDirection: 'column', gap: 7, marginTop: 8 }}>
@@ -339,7 +339,7 @@ export default function ExamSelectOverlay({
                               const pct = weights[i] ?? 0;
                               return (
                                 <div key={d}>
-                                  <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 10, color: 'var(--color-text-sub)', marginBottom: 3 }}>
+                                  <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 'var(--font-size-2xs)', color: 'var(--color-text-sub)', marginBottom: 3 }}>
                                     <span>{d}</span>
                                     <span style={{ fontWeight: 700, color: levelColor, flexShrink: 0, marginLeft: 8 }}>{pct}%</span>
                                   </div>
@@ -357,8 +357,8 @@ export default function ExamSelectOverlay({
                 </div>
                 {passComments[exam] && (
                   <div style={{ marginTop: 12, padding: '10px 12px', background: `${levelColor}12`, borderLeft: `3px solid ${levelColor}`, borderRadius: '0 6px 6px 0' }}>
-                    <div style={{ fontSize: 10, color: levelColor, fontWeight: 700, marginBottom: 4 }}>{ja ? '運営者コメント' : 'From the team'}</div>
-                    <div style={{ fontSize: 12, color: 'var(--color-text-sub)', lineHeight: 1.7, whiteSpace: 'pre-wrap' }}>{passComments[exam]}</div>
+                    <div style={{ fontSize: 'var(--font-size-2xs)', color: levelColor, fontWeight: 700, marginBottom: 4 }}>{ja ? '運営者コメント' : 'From the team'}</div>
+                    <div style={{ fontSize: 'var(--font-size-sm)', color: 'var(--color-text-sub)', lineHeight: 1.7, whiteSpace: 'pre-wrap' }}>{passComments[exam]}</div>
                   </div>
                 )}
               </div>
@@ -374,7 +374,7 @@ export default function ExamSelectOverlay({
             <div style={{ flexShrink: 0, borderTop: `2px solid ${levelColor}33`, background: `${levelColor}08`, padding: '10px 16px', display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: 12, minHeight: 64 }}>
               <style>{`@keyframes examStudyingFade { from { opacity: 0; transform: translateX(6px); } to { opacity: 1; transform: none; } }`}</style>
               {(isCurrentTarget || confirming) && (
-                <div style={{ fontSize: 13, fontWeight: 700, color: 'var(--color-success)', animation: (confirming && !isCurrentTarget) ? 'examStudyingFade 0.4s ease 0.5s both' : undefined }}>✓ {ja ? '学習中' : 'Studying'}</div>
+                <div style={{ fontSize: 'var(--font-size-sm2)', fontWeight: 700, color: 'var(--color-success)', animation: (confirming && !isCurrentTarget) ? 'examStudyingFade 0.4s ease 0.5s both' : undefined }}>✓ {ja ? '学習中' : 'Studying'}</div>
               )}
               {isCurrentTarget ? (
                 <button disabled style={{ width: 44, height: 44, borderRadius: '50%', border: 'none', background: levelColor, color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'default', boxShadow: 'var(--box-shadow-pop)', flexShrink: 0, transition: 'none' }}>

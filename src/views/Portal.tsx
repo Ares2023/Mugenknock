@@ -91,7 +91,7 @@ export default function Portal() {
 
       {/* ── ヘッダー ── */}
       <header style={{ height: 56, minHeight: 56, background: 'var(--color-bg-white)', display: 'flex', alignItems: 'center', justifyContent: 'flex-end', padding: isMobile ? '0 12px' : '0 var(--spacing-lg)', zIndex: 200, flexShrink: 0, borderBottom: '1px solid var(--color-border)' }}>
-        <button onClick={() => navigate(user ? '/account' : '/login')} style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', background: user ? TEAL_L : 'transparent', border: '1px solid var(--color-border)', borderRadius: '50%', cursor: 'pointer', color: user ? TEAL : 'var(--color-text-sub)', width: 36, height: 36, padding: 0, fontSize: 14, fontWeight: 700 }}>
+        <button onClick={() => navigate(user ? '/account' : '/login')} style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', background: user ? TEAL_L : 'transparent', border: '1px solid var(--color-border)', borderRadius: '50%', cursor: 'pointer', color: user ? TEAL : 'var(--color-text-sub)', width: 36, height: 36, padding: 0, fontSize: 'var(--font-size-base)', fontWeight: 700 }}>
           {user?.email ? user.email[0].toUpperCase() : <IconUser />}
         </button>
       </header>
@@ -116,7 +116,7 @@ export default function Portal() {
             {ja ? '資格を選んで演習を始める' : 'Choose a Cert & Start'}
           </button>
           {!user && (
-            <p style={{ fontSize: 12, color: '#888', marginTop: 10 }}>
+            <p style={{ fontSize: 'var(--font-size-sm)', color: '#888', marginTop: 10 }}>
               {ja ? 'アカウント登録なしで体験できます' : 'No account required to get started'}
             </p>
           )}
@@ -132,7 +132,7 @@ export default function Portal() {
             <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
               {BENEFITS.map((b, i) => (
                 <div key={i} style={{ display: 'flex', alignItems: 'flex-start', gap: 14, background: 'var(--color-bg-white)', border: '1px solid var(--color-border)', borderRadius: 8, padding: '14px 16px' }}>
-                  <span style={{ flexShrink: 0, width: 24, height: 24, borderRadius: '50%', background: TEAL, color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 13, fontWeight: 800 }}>{i + 1}</span>
+                  <span style={{ flexShrink: 0, width: 24, height: 24, borderRadius: '50%', background: TEAL, color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 'var(--font-size-sm2)', fontWeight: 800 }}>{i + 1}</span>
                   <p style={{ margin: 0, fontSize: isMobile ? 13 : 14, color: 'var(--color-text-sub)', lineHeight: 1.75 }}>{ja ? b.ja : b.en}</p>
                 </div>
               ))}
@@ -147,7 +147,7 @@ export default function Portal() {
             <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : 'repeat(3, 1fr)', gap: 14 }}>
               {FEATURES.map((f, i) => (
                 <div key={i} style={{ background: 'var(--color-bg-white)', border: '1px solid var(--color-border)', borderRadius: 8, padding: '18px 16px' }}>
-                  <div style={{ fontSize: 13, fontWeight: 800, color: TEAL, marginBottom: 8 }}>{ja ? f.ja_title : f.en_title}</div>
+                  <div style={{ fontSize: 'var(--font-size-sm2)', fontWeight: 800, color: TEAL, marginBottom: 8 }}>{ja ? f.ja_title : f.en_title}</div>
                   <p style={{ margin: 0, fontSize: isMobile ? 12 : 13, color: 'var(--color-text-sub)', lineHeight: 1.75 }}>{ja ? f.ja : f.en}</p>
                 </div>
               ))}
@@ -157,7 +157,7 @@ export default function Portal() {
         </div>
       </main>
 
-      <footer style={{ padding: '14px var(--spacing-lg)', textAlign: 'center', fontSize: 11, color: 'var(--color-text-light)', borderTop: '1px solid var(--color-border)' }}>
+      <footer style={{ padding: '14px var(--spacing-lg)', textAlign: 'center', fontSize: 'var(--font-size-xs)', color: 'var(--color-text-light)', borderTop: '1px solid var(--color-border)' }}>
         © {new Date().getFullYear()} MugenKnock
         <span style={{ margin: '0 10px' }}>|</span>
         <a href="/about#privacy" style={{ color: 'var(--color-text-light)', textDecoration: 'none' }}
@@ -183,18 +183,18 @@ export default function Portal() {
           display: 'flex', alignItems: 'center', gap: 12, flexWrap: 'wrap',
           boxShadow: 'var(--box-shadow-up)',
         }}>
-          <span style={{ flex: 1, minWidth: 200, fontSize: 12, color: 'var(--color-text-sub)', lineHeight: 1.6 }}>
+          <span style={{ flex: 1, minWidth: 200, fontSize: 'var(--font-size-sm)', color: 'var(--color-text-sub)', lineHeight: 1.6 }}>
             {ja
               ? '本サービスは、広告配信・アクセス解析のためにCookieを使用しています。'
               : 'This site uses cookies for advertising and analytics.'}
             {' '}
-            <a href="/about#privacy" style={{ color: TEAL, fontSize: 12 }}>
+            <a href="/about#privacy" style={{ color: TEAL, fontSize: 'var(--font-size-sm)' }}>
               {ja ? '詳細' : 'Learn more'}
             </a>
           </span>
           <button
             onClick={acceptCookies}
-            style={{ flexShrink: 0, padding: '6px 18px', background: TEAL, color: '#fff', border: 'none', borderRadius: 'var(--border-radius-full)', fontWeight: 700, fontSize: 12, cursor: 'pointer' }}
+            style={{ flexShrink: 0, padding: '6px 18px', background: TEAL, color: '#fff', border: 'none', borderRadius: 'var(--border-radius-full)', fontWeight: 700, fontSize: 'var(--font-size-sm)', cursor: 'pointer' }}
           >
             {ja ? '同意して閉じる' : 'Accept'}
           </button>

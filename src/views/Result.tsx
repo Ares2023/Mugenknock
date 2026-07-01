@@ -174,17 +174,17 @@ export default function Result() {
           {bonusConfetti && <Confetti onDone={() => setBonusConfetti(false)} />}
           <div style={{ background: 'var(--color-bg-white)', borderRadius: 'var(--border-radius-lg)', padding: 'var(--spacing-xl)', textAlign: 'center', boxShadow: 'var(--box-shadow-md)', maxWidth: 320, width: '100%', position: 'relative', zIndex: 1 }}>
             <div style={{ fontSize: 40, marginBottom: 8 }}>🎯</div>
-            <div style={{ fontWeight: 800, fontSize: 18, color: 'var(--color-text-main)', marginBottom: 6 }}>
+            <div style={{ fontWeight: 800, fontSize: 'var(--font-size-h3)', color: 'var(--color-text-main)', marginBottom: 6 }}>
               {ja ? '日次目標達成！' : 'Daily Goal Achieved!'}
             </div>
-            <div style={{ color: 'var(--color-text-sub)', fontSize: 13, marginBottom: 16 }}>
+            <div style={{ color: 'var(--color-text-sub)', fontSize: 'var(--font-size-sm2)', marginBottom: 16 }}>
               {ja ? '今日の演習目標をクリアしました' : 'You completed your daily exercise goal'}
             </div>
             <div style={{ display: 'inline-flex', alignItems: 'center', gap: 6, background: 'var(--color-primary-light)', borderRadius: 'var(--border-radius-full)', padding: '6px 20px', marginBottom: 20 }}>
               <span style={{ display: 'inline-flex', color: '#009E9E' }}><IconSparkles size={18} /></span>
-              <span style={{ fontWeight: 800, fontSize: 20, color: 'var(--color-primary)' }}>+{dailyBonusPts}p</span>
+              <span style={{ fontWeight: 800, fontSize: 'var(--font-size-xl)', color: 'var(--color-primary)' }}>+{dailyBonusPts}p</span>
             </div>
-            <button data-kbnav="1" data-kbclose onClick={() => setShowDailyBonus(false)} style={{ display: 'block', width: '100%', padding: '10px 0', background: 'var(--color-primary)', color: 'var(--color-btn-primary-text)', border: 'none', borderRadius: 'var(--border-radius-full)', fontWeight: 700, fontSize: 15, cursor: 'pointer' }}>
+            <button data-kbnav="1" data-kbclose onClick={() => setShowDailyBonus(false)} style={{ display: 'block', width: '100%', padding: '10px 0', background: 'var(--color-primary)', color: 'var(--color-btn-primary-text)', border: 'none', borderRadius: 'var(--border-radius-full)', fontWeight: 700, fontSize: 'var(--font-size-md)', cursor: 'pointer' }}>
               {ja ? 'OK' : 'OK'}
             </button>
           </div>

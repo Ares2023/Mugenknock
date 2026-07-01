@@ -175,7 +175,7 @@ function PrivacyPolicy() {
       <H3>8. お問い合わせ</H3>
       <P>個人情報の取り扱いに関するお問い合わせは、本ページ内の「運営者情報」に記載の連絡先までご連絡ください。</P>
 
-      <p style={{ marginTop: '2em', fontSize: 13, color: 'var(--color-text-light)' }}>
+      <p style={{ marginTop: '2em', fontSize: 'var(--font-size-sm2)', color: 'var(--color-text-light)' }}>
         このポリシーの固定URLは{' '}
         <a href="/privacy-policy" style={{ color: 'var(--color-primary)' }}>/privacy-policy</a>{' '}
         です。
@@ -320,7 +320,7 @@ function OperatorInfo() {
         掲載コンテンツの無断転載・スクレイピングは禁止しています。
         詳細は利用規約をご確認ください。
       </P>
-      <p style={{ margin: '1em 0 0', fontSize: 12, color: 'var(--color-text-light)' }}>
+      <p style={{ margin: '1em 0 0', fontSize: 'var(--font-size-sm)', color: 'var(--color-text-light)' }}>
         AWS、Amazon Web Services およびそれに関連するロゴ・サービス名は、Amazon.com, Inc. またはその関連会社の商標です。
         本サービスは Amazon.com, Inc. およびその関連会社とは一切関係のない独立した非公式サービスです。
       </p>

@@ -110,18 +110,18 @@ export default function ExamDashboard() {
         >
           <IconChevronLeft size={22} />
         </button>
-        <span style={{ fontWeight: 700, fontSize: 16, color: 'var(--color-text-main)' }}>
+        <span style={{ fontWeight: 700, fontSize: 'var(--font-size-lg)', color: 'var(--color-text-main)' }}>
           {ja ? '資格ダッシュボード' : 'Exam Dashboard'}
         </span>
       </header>
 
       {/* ── スクロール可能なコンテンツ ── */}
       <div style={{ flex: 1, overflowY: 'auto' }}>
-        <div style={{ maxWidth: 640, margin: '0 auto', padding: '24px 16px 48px', display: 'flex', flexDirection: 'column', gap: 24 }}>
+        <div style={{ maxWidth: 640, margin: '0 auto', padding: 'var(--spacing-lg) var(--spacing-md) 48px', display: 'flex', flexDirection: 'column', gap: 'var(--spacing-lg)' }}>
 
           {/* ── 資格選択 ── */}
           <div ref={dropdownRef} style={{ position: 'relative' }}>
-            <div style={{ fontSize: 11, fontWeight: 700, color: 'var(--color-text-light)', textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: 8 }}>
+            <div style={{ fontSize: 'var(--font-size-xs)', fontWeight: 700, color: 'var(--color-text-light)', textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: 8 }}>
               {ja ? '目標資格' : 'Target Certification'}
             </div>
 
@@ -139,8 +139,8 @@ export default function ExamDashboard() {
                 transition: 'border-color 0.15s',
               }}
             >
-              <span style={{ fontSize: 13, fontWeight: 800, color: 'var(--color-primary)', fontFamily: 'monospace', flexShrink: 0 }}>{selectedExam}</span>
-              <span style={{ fontSize: 13, color: 'var(--color-text-main)', flex: 1, minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+              <span style={{ fontSize: 'var(--font-size-sm2)', fontWeight: 800, color: 'var(--color-primary)', fontFamily: 'monospace', flexShrink: 0 }}>{selectedExam}</span>
+              <span style={{ fontSize: 'var(--font-size-sm2)', color: 'var(--color-text-main)', flex: 1, minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                 {EXAM_CONFIGS[selectedExam]?.fullName}
               </span>
               <span style={{ flexShrink: 0, color: 'var(--color-text-light)', transform: dropdownOpen ? 'rotate(180deg)' : 'none', transition: 'transform 0.2s' }}>
@@ -168,19 +168,19 @@ export default function ExamDashboard() {
                     style={{
                       flex: 1, border: 'none', outline: 'none',
                       background: 'transparent',
-                      fontSize: 13, color: 'var(--color-text-main)',
+                      fontSize: 'var(--font-size-sm2)', color: 'var(--color-text-main)',
                       padding: 0,
                     }}
                   />
                   {searchQuery && (
-                    <button onClick={() => setSearchQuery('')} style={{ border: 'none', background: 'none', cursor: 'pointer', color: 'var(--color-text-light)', fontSize: 14, padding: '0 2px', lineHeight: 1 }}>✕</button>
+                    <button onClick={() => setSearchQuery('')} style={{ border: 'none', background: 'none', cursor: 'pointer', color: 'var(--color-text-light)', fontSize: 'var(--font-size-base)', padding: '0 2px', lineHeight: 1 }}>✕</button>
                   )}
                 </div>
 
                 {/* リスト */}
                 <div style={{ maxHeight: 260, overflowY: 'auto' }}>
                   {filteredExams.length === 0 ? (
-                    <div style={{ padding: '12px 14px', fontSize: 12, color: 'var(--color-text-light)', textAlign: 'center' }}>
+                    <div style={{ padding: '12px 14px', fontSize: 'var(--font-size-sm)', color: 'var(--color-text-light)', textAlign: 'center' }}>
                       {ja ? '見つかりません' : 'No results'}
                     </div>
                   ) : filteredExams.map(et => {
@@ -199,11 +199,11 @@ export default function ExamDashboard() {
                         onMouseEnter={e => { if (!isSelected) e.currentTarget.style.background = 'var(--color-bg-main)'; }}
                         onMouseLeave={e => { if (!isSelected) e.currentTarget.style.background = 'transparent'; }}
                       >
-                        <span style={{ fontSize: 12, fontWeight: 800, color: 'var(--color-primary)', fontFamily: 'monospace', minWidth: 32, flexShrink: 0 }}>{et}</span>
-                        <span style={{ fontSize: 12, color: 'var(--color-text-main)', flex: 1, minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                        <span style={{ fontSize: 'var(--font-size-sm)', fontWeight: 800, color: 'var(--color-primary)', fontFamily: 'monospace', minWidth: 32, flexShrink: 0 }}>{et}</span>
+                        <span style={{ fontSize: 'var(--font-size-sm)', color: 'var(--color-text-main)', flex: 1, minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                           {EXAM_CONFIGS[et]?.fullName}
                         </span>
-                        <span style={{ fontSize: 10, fontWeight: 700, padding: '2px 7px', borderRadius: 9999, background: lc2.bg, color: lc2.text, border: `1px solid ${lc2.border}`, flexShrink: 0 }}>
+                        <span style={{ fontSize: 'var(--font-size-2xs)', fontWeight: 700, padding: '2px 7px', borderRadius: 9999, background: lc2.bg, color: lc2.text, border: `1px solid ${lc2.border}`, flexShrink: 0 }}>
                           {EXAM_LEVEL[et]}
                         </span>
                       </button>
@@ -221,21 +221,21 @@ export default function ExamDashboard() {
             <div style={{ padding: '20px 20px 16px', borderBottom: '1px solid var(--color-border)' }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 6, flexWrap: 'wrap' }}>
                 <span style={{
-                  fontSize: 11, fontWeight: 700, letterSpacing: '0.4px',
+                  fontSize: 'var(--font-size-xs)', fontWeight: 700, letterSpacing: '0.4px',
                   padding: '3px 10px', borderRadius: 9999,
                   background: lc.bg, color: lc.text, border: `1px solid ${lc.border}`,
                 }}>
                   {level}
                 </span>
-                <span style={{ fontSize: 12, color: 'var(--color-text-light)', fontWeight: 600, fontFamily: 'monospace' }}>
+                <span style={{ fontSize: 'var(--font-size-sm)', color: 'var(--color-text-light)', fontWeight: 600, fontFamily: 'monospace' }}>
                   {cfg?.examCode}
                 </span>
               </div>
-              <h1 style={{ margin: 0, fontSize: 18, fontWeight: 700, color: 'var(--color-text-main)', lineHeight: 1.3 }}>
+              <h1 style={{ margin: 0, fontSize: 'var(--font-size-h3)', fontWeight: 700, color: 'var(--color-text-main)', lineHeight: 1.3 }}>
                 {cfg?.fullName}
               </h1>
               {desc && (
-                <p style={{ margin: '8px 0 0', fontSize: 13, color: 'var(--color-text-sub)', lineHeight: 1.5 }}>
+                <p style={{ margin: '8px 0 0', fontSize: 'var(--font-size-sm2)', color: 'var(--color-text-sub)', lineHeight: 1.5 }}>
                   {desc}
                 </p>
               )}
@@ -245,7 +245,7 @@ export default function ExamDashboard() {
                     href={officialUrls.page}
                     target="_blank"
                     rel="noopener noreferrer"
-                    style={{ display: 'flex', alignItems: 'center', gap: 5, fontSize: 12, color: 'var(--color-primary)', textDecoration: 'none', fontWeight: 600 }}
+                    style={{ display: 'flex', alignItems: 'center', gap: 5, fontSize: 'var(--font-size-sm)', color: 'var(--color-primary)', textDecoration: 'none', fontWeight: 600 }}
                   >
                     <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0 }}>
                       <circle cx="12" cy="12" r="10"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/><path d="M2 12h20"/>
@@ -259,7 +259,7 @@ export default function ExamDashboard() {
                     href={officialUrls.guide}
                     target="_blank"
                     rel="noopener noreferrer"
-                    style={{ display: 'flex', alignItems: 'center', gap: 5, fontSize: 12, color: 'var(--color-primary)', textDecoration: 'none', fontWeight: 600 }}
+                    style={{ display: 'flex', alignItems: 'center', gap: 5, fontSize: 'var(--font-size-sm)', color: 'var(--color-primary)', textDecoration: 'none', fontWeight: 600 }}
                   >
                     <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0 }}>
                       <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/>
@@ -275,7 +275,7 @@ export default function ExamDashboard() {
 
             {/* 試験ルール */}
             <div style={{ padding: '16px 20px', borderBottom: '1px solid var(--color-border)' }}>
-              <div style={{ fontSize: 11, fontWeight: 700, color: 'var(--color-text-light)', textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: 12 }}>
+              <div style={{ fontSize: 'var(--font-size-xs)', fontWeight: 700, color: 'var(--color-text-light)', textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: 12 }}>
                 {ja ? '試験ルール' : 'Exam Rules'}
               </div>
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 12 }}>
@@ -285,8 +285,8 @@ export default function ExamDashboard() {
                   { label: ja ? '合格点' : 'Pass Score', value: `${passRate}%` },
                 ].map(({ label, value }) => (
                   <div key={label} style={{ background: 'var(--color-bg-main)', borderRadius: 8, padding: '12px 14px', textAlign: 'center' }}>
-                    <div style={{ fontSize: 11, color: 'var(--color-text-light)', fontWeight: 600, marginBottom: 4 }}>{label}</div>
-                    <div style={{ fontSize: 20, fontWeight: 800, color: 'var(--color-text-main)', fontVariantNumeric: 'tabular-nums' }}>{value}</div>
+                    <div style={{ fontSize: 'var(--font-size-xs)', color: 'var(--color-text-light)', fontWeight: 600, marginBottom: 4 }}>{label}</div>
+                    <div style={{ fontSize: 'var(--font-size-xl)', fontWeight: 800, color: 'var(--color-text-main)', fontVariantNumeric: 'tabular-nums' }}>{value}</div>
                   </div>
                 ))}
               </div>
@@ -294,18 +294,18 @@ export default function ExamDashboard() {
 
             {/* 出題ドメイン */}
             <div style={{ padding: '16px 20px' }}>
-              <div style={{ fontSize: 11, fontWeight: 700, color: 'var(--color-text-light)', textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: 12 }}>
+              <div style={{ fontSize: 'var(--font-size-xs)', fontWeight: 700, color: 'var(--color-text-light)', textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: 12 }}>
                 {ja ? '出題ドメイン' : 'Exam Domains'}
               </div>
               <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
                 {domains.map((d, i) => (
                   <div key={d} style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-                    <span style={{ fontSize: 11, fontWeight: 700, color: 'var(--color-primary)', minWidth: 24, fontVariantNumeric: 'tabular-nums', flexShrink: 0 }}>
+                    <span style={{ fontSize: 'var(--font-size-xs)', fontWeight: 700, color: 'var(--color-primary)', minWidth: 24, fontVariantNumeric: 'tabular-nums', flexShrink: 0 }}>
                       {i + 1}
                     </span>
-                    <span style={{ fontSize: 13, color: 'var(--color-text-main)', lineHeight: 1.4, flex: 1 }}>{d}</span>
+                    <span style={{ fontSize: 'var(--font-size-sm2)', color: 'var(--color-text-main)', lineHeight: 1.4, flex: 1 }}>{d}</span>
                     {weights[i] !== undefined && (
-                      <span style={{ fontSize: 12, fontWeight: 700, color: 'var(--color-text-sub)', flexShrink: 0, fontVariantNumeric: 'tabular-nums' }}>
+                      <span style={{ fontSize: 'var(--font-size-sm)', fontWeight: 700, color: 'var(--color-text-sub)', flexShrink: 0, fontVariantNumeric: 'tabular-nums' }}>
                         {weights[i]}%
                       </span>
                     )}
@@ -317,10 +317,10 @@ export default function ExamDashboard() {
             {/* 合格コメント */}
             {passComment && (
               <div style={{ padding: '16px 20px', borderTop: '1px solid var(--color-border)' }}>
-                <div style={{ fontSize: 11, fontWeight: 700, color: 'var(--color-text-light)', textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: 10 }}>
+                <div style={{ fontSize: 'var(--font-size-xs)', fontWeight: 700, color: 'var(--color-text-light)', textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: 10 }}>
                   {ja ? '合格コメント' : 'Pass Comment'}
                 </div>
-                <p style={{ margin: 0, fontSize: 13, color: 'var(--color-text-main)', lineHeight: 1.7, whiteSpace: 'pre-wrap' }}>
+                <p style={{ margin: 0, fontSize: 'var(--font-size-sm2)', color: 'var(--color-text-main)', lineHeight: 1.7, whiteSpace: 'pre-wrap' }}>
                   {passComment}
                 </p>
               </div>

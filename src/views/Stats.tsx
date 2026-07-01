@@ -391,7 +391,7 @@ export default function Stats() {
           <span style={{ flexShrink: 0, display: 'flex', alignItems: 'center', color: 'var(--color-text-sub)' }}><IconLightbulb size={16} /></span>
           <span style={{ flex: 1, lineHeight: 1.5 }}>{t('stats.hint')}</span>
           <button onClick={() => { localStorage.setItem(`sherpaStatsHint_${uid}`, '1'); setShowHint(false); }}
-            style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--color-text-light)', fontSize: 18, lineHeight: 1, padding: '0 4px', flexShrink: 0 }}>✕</button>
+            style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--color-text-light)', fontSize: 'var(--font-size-h3)', lineHeight: 1, padding: '0 4px', flexShrink: 0 }}>✕</button>
         </div>
       )}
 
@@ -649,7 +649,7 @@ export default function Stats() {
                         style={{ display: 'flex', alignItems: 'center', gap: 10, cursor: 'pointer', userSelect: 'none' }}
                         onClick={handleToggle}
                       >
-                        <span style={{ fontSize: 10, fontWeight: 700, padding: '2px 8px', borderRadius: 'var(--border-radius-full)', background: modeBg, color: modeColor, flexShrink: 0 }}>
+                        <span style={{ fontSize: 'var(--font-size-2xs)', fontWeight: 700, padding: '2px 8px', borderRadius: 'var(--border-radius-full)', background: modeBg, color: modeColor, flexShrink: 0 }}>
                           {modeLabel}
                         </span>
                         <span style={{ fontSize: 'var(--font-size-xs)', color: 'var(--color-text-sub)', flex: 1, minWidth: 0 }}>
@@ -659,7 +659,7 @@ export default function Stats() {
                         <span style={{ fontWeight: 700, fontSize: 'var(--font-size-base)', color: scoreColor, flexShrink: 0 }}>
                           {s.score}%
                         </span>
-                        <span style={{ color: 'var(--color-text-light)', fontSize: 14, transition: 'transform 0.2s', transform: isExpanded ? 'rotate(90deg)' : 'none', flexShrink: 0 }}>›</span>
+                        <span style={{ color: 'var(--color-text-light)', fontSize: 'var(--font-size-base)', transition: 'transform 0.2s', transform: isExpanded ? 'rotate(90deg)' : 'none', flexShrink: 0 }}>›</span>
                       </div>
 
                       {isExpanded && (
@@ -716,13 +716,13 @@ export default function Stats() {
                                       onClick={handleQuestionToggle}
                                       style={{ display: 'flex', gap: 8, alignItems: 'flex-start', padding: '8px 10px', cursor: 'pointer', background: qExpanded ? 'var(--color-bg-main)' : 'transparent' }}
                                     >
-                                      <span style={{ flexShrink: 0, width: 16, height: 16, borderRadius: '50%', background: a.isCorrect ? 'var(--color-success)' : 'var(--color-danger)', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', color: '#fff', fontSize: 9, fontWeight: 700, marginTop: 1 }}>
+                                      <span style={{ flexShrink: 0, width: 16, height: 16, borderRadius: '50%', background: a.isCorrect ? 'var(--color-success)' : 'var(--color-danger)', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', color: '#fff', fontSize: 'var(--font-size-3xs)', fontWeight: 700, marginTop: 1 }}>
                                         {a.isCorrect ? '○' : '×'}
                                       </span>
                                       <span style={{ color: 'var(--color-text-sub)', lineHeight: 1.5, flex: 1, fontSize: 'var(--font-size-xs)' }}>
                                         {a.questionText || a.questionId}
                                       </span>
-                                      <span style={{ color: 'var(--color-text-light)', fontSize: 11, flexShrink: 0, marginTop: 2, transition: 'transform 0.2s', transform: qExpanded ? 'rotate(90deg)' : 'none' }}>›</span>
+                                      <span style={{ color: 'var(--color-text-light)', fontSize: 'var(--font-size-xs)', flexShrink: 0, marginTop: 2, transition: 'transform 0.2s', transform: qExpanded ? 'rotate(90deg)' : 'none' }}>›</span>
                                     </div>
 
                                     {/* 展開：選択肢 + 解説 + ブックマーク */}
@@ -742,7 +742,7 @@ export default function Stats() {
                                                   const isCorrect = (detail.correctAnswerIndices ?? []).includes(ci);
                                                   return (
                                                     <div key={ci} style={{ display: 'flex', gap: 6, marginBottom: 4, alignItems: 'flex-start' }}>
-                                                      <span style={{ flexShrink: 0, fontWeight: 700, fontSize: 10, color: isCorrect ? 'var(--color-success)' : 'var(--color-text-light)', minWidth: 14, marginTop: 1 }}>{label}.</span>
+                                                      <span style={{ flexShrink: 0, fontWeight: 700, fontSize: 'var(--font-size-2xs)', color: isCorrect ? 'var(--color-success)' : 'var(--color-text-light)', minWidth: 14, marginTop: 1 }}>{label}.</span>
                                                       <span style={{ fontSize: 'var(--font-size-xs)', color: isCorrect ? 'var(--color-text-main)' : 'var(--color-text-sub)', fontWeight: isCorrect ? 600 : 400, lineHeight: 1.5 }}>{c.replace(/^[A-Z]\.\s*/, '')}</span>
                                                     </div>
                                                   );

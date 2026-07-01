@@ -263,7 +263,7 @@ export default function ServiceEncyclopedia() {
             {ja ? '今日の日めくりAWSサービス' : "Today's Daily AWS Service"}
           </span>
           {todayAlreadyDone && (
-            <span style={{ marginLeft: 2, fontSize: 10, fontWeight: 700, padding: '1px 7px', borderRadius: 'var(--border-radius-full)', background: 'var(--color-primary-light)', color: 'var(--color-primary)' }}>
+            <span style={{ marginLeft: 2, fontSize: 'var(--font-size-2xs)', fontWeight: 700, padding: '1px 7px', borderRadius: 'var(--border-radius-full)', background: 'var(--color-primary-light)', color: 'var(--color-primary)' }}>
               {ja ? '解放済み' : 'Unlocked'}
             </span>
           )}
@@ -287,7 +287,7 @@ export default function ServiceEncyclopedia() {
             </div>
           </div>
           {todayUnlocked && todayStoreData && (
-            <span style={{ marginLeft: 'auto', color: 'var(--color-text-light)', fontSize: 14 }}>›</span>
+            <span style={{ marginLeft: 'auto', color: 'var(--color-text-light)', fontSize: 'var(--font-size-base)' }}>›</span>
           )}
         </div>
 
@@ -316,7 +316,7 @@ export default function ServiceEncyclopedia() {
               style={{ flex: 1, background: 'none', border: 'none', cursor: 'pointer', padding: '10px 0', fontSize: 'var(--font-size-base)', fontWeight: active ? 700 : 500, color: active ? 'var(--color-primary)' : 'var(--color-text-sub)', borderBottom: `2px solid ${active ? 'var(--color-primary)' : 'transparent'}`, transition: 'color 0.15s, border-color 0.15s' }}
             >
               {label}
-              {t === 'unlocked' && <span style={{ marginLeft: 4, fontSize: 10, color: active ? 'var(--color-primary)' : 'var(--color-text-light)' }}>{unlockedCount}</span>}
+              {t === 'unlocked' && <span style={{ marginLeft: 4, fontSize: 'var(--font-size-2xs)', color: active ? 'var(--color-primary)' : 'var(--color-text-light)' }}>{unlockedCount}</span>}
             </button>
           );
         })}
@@ -336,7 +336,7 @@ export default function ServiceEncyclopedia() {
                 {cat.category}
               </span>
               {activeTab === 'all' && (
-                <span style={{ fontSize: 11, color: 'var(--color-text-light)', marginLeft: 2 }}>
+                <span style={{ fontSize: 'var(--font-size-xs)', color: 'var(--color-text-light)', marginLeft: 2 }}>
                   {catUnlocked}/{cat.services.length}
                 </span>
               )}
@@ -408,7 +408,7 @@ export default function ServiceEncyclopedia() {
                           : <IconLock size={14} />}
                     </div>
                     <span style={{
-                      fontSize: 10,
+                      fontSize: 'var(--font-size-2xs)',
                       color: unlocked ? 'var(--color-text-main)' : 'var(--color-text-light)',
                       fontWeight: unlocked ? 600 : 400,
                       textAlign: 'center',
@@ -437,7 +437,7 @@ export default function ServiceEncyclopedia() {
             <button
               data-kbclose="1"
               onClick={() => setSelected(null)}
-              style={{ position: 'absolute', top: 12, right: 12, border: 'none', background: 'none', fontSize: 20, cursor: 'pointer', color: 'var(--color-text-sub)', padding: '4px 8px', lineHeight: 1 }}
+              style={{ position: 'absolute', top: 12, right: 12, border: 'none', background: 'none', fontSize: 'var(--font-size-xl)', cursor: 'pointer', color: 'var(--color-text-sub)', padding: '4px 8px', lineHeight: 1 }}
             >✕</button>
 
             <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 10 }}>
@@ -449,7 +449,7 @@ export default function ServiceEncyclopedia() {
                   {selected.name}
                 </div>
                 {selected.category && (
-                  <span style={{ fontSize: 10, fontWeight: 700, padding: '1px 7px', borderRadius: 'var(--border-radius-full)', background: 'var(--color-primary-light)', color: 'var(--color-primary)' }}>
+                  <span style={{ fontSize: 'var(--font-size-2xs)', fontWeight: 700, padding: '1px 7px', borderRadius: 'var(--border-radius-full)', background: 'var(--color-primary-light)', color: 'var(--color-primary)' }}>
                     {selected.category}
                   </span>
                 )}
@@ -458,7 +458,7 @@ export default function ServiceEncyclopedia() {
 
             {selected.deprecationNote && (
               <div style={{ background: '#FFF4E5', border: '1px solid #F5A623', borderRadius: 'var(--border-radius-md)', padding: '8px 12px', marginBottom: 10, display: 'flex', gap: 8, alignItems: 'flex-start' }}>
-                <span style={{ flexShrink: 0, fontSize: 14, lineHeight: 1.6 }}>⚠️</span>
+                <span style={{ flexShrink: 0, fontSize: 'var(--font-size-base)', lineHeight: 1.6 }}>⚠️</span>
                 <span style={{ fontSize: 'var(--font-size-xs)', color: '#8A5A00', lineHeight: 1.6, overflowWrap: 'break-word', wordBreak: 'break-word' }}>
                   {ja
                     ? selected.deprecationNote

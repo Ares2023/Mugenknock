@@ -360,7 +360,7 @@ function SummaryCard({ title, value }: { title: string; value: number }) {
       padding: '14px 18px',
     }}>
       <div style={{ fontSize: 'var(--font-size-xs)', color: 'var(--color-text-sub)', fontWeight: 600, marginBottom: 6 }}>{title}</div>
-      <div style={{ fontSize: 28, fontWeight: 800, color: 'var(--color-text-main)', lineHeight: 1 }}>
+      <div style={{ fontSize: 'var(--font-size-xxl)', fontWeight: 800, color: 'var(--color-text-main)', lineHeight: 1 }}>
         {value.toLocaleString()}<span style={{ fontSize: 'var(--font-size-sm)', fontWeight: 400, color: 'var(--color-text-sub)', marginLeft: 4 }}>件</span>
       </div>
     </div>
@@ -397,14 +397,14 @@ export default function Growth() {
 
   if (loading) {
     return (
-      <div style={{ padding: '48px 24px', display: 'flex', justifyContent: 'center' }}>
+      <div style={{ padding: '48px var(--spacing-lg)', display: 'flex', justifyContent: 'center' }}>
         <div className="sherpa-spinner" style={{ width: 32, height: 32, borderWidth: 3 }} />
       </div>
     );
   }
   if (error || !data) {
     return (
-      <div style={{ padding: '48px 24px', textAlign: 'center', color: 'var(--color-danger)' }}>
+      <div style={{ padding: '48px var(--spacing-lg)', textAlign: 'center', color: 'var(--color-danger)' }}>
         {lang === 'ja' ? 'データの取得に失敗しました' : 'Failed to load data'}
       </div>
     );

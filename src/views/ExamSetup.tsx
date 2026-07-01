@@ -19,7 +19,7 @@ const StepBadge = ({ n, optional = false }: { n: number; optional?: boolean }) =
     width: 20, height: 20, borderRadius: '50%', flexShrink: 0,
     background: 'var(--color-primary)',
     color: 'var(--color-on-primary)',
-    fontSize: 11, fontWeight: 700,
+    fontSize: 'var(--font-size-xs)', fontWeight: 700,
   }}>{n}</span>
 );
 
@@ -334,7 +334,7 @@ export default function ExamSetup() {
           <span style={{ flex: 1, lineHeight: 1.5 }}>{t('examSetup.hint')}</span>
           <button
             onClick={() => { localStorage.setItem(`sherpaExamHint_${uid}`, '1'); setShowHint(false); }}
-            style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--color-text-light)', fontSize: 18, lineHeight: 1, padding: '0 4px', flexShrink: 0 }}
+            style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--color-text-light)', fontSize: 'var(--font-size-h3)', lineHeight: 1, padding: '0 4px', flexShrink: 0 }}
           >✕</button>
         </div>
       )}
@@ -478,7 +478,7 @@ export default function ExamSetup() {
               background: 'var(--color-bg-warning)', border: '1px solid var(--color-border-warning)', borderRadius: 'var(--border-radius-md)',
             }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--spacing-sm)' }}>
-                <span style={{ fontSize: 18 }}>⏸</span>
+                <span style={{ fontSize: 'var(--font-size-h3)' }}>⏸</span>
                 <div>
                   <div style={{ fontSize: 'var(--font-size-sm)', fontWeight: 700, color: 'var(--color-text-warning)' }}>{t('examSetup.resumeNotice')}</div>
                   <div style={{ fontSize: 'var(--font-size-xs)', color: 'var(--color-text-warning-sub)' }}>{t('examSetup.resumeNoticeDesc')}</div>

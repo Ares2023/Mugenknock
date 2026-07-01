@@ -72,7 +72,7 @@ export default function PublicEncyclopedia() {
           <img src="/mugen-icon.png"   alt="無限ノック" style={{ height: 26, width: 'auto' }} />
           <img src="/mugen-header.png" alt=""           style={{ height: 26, width: 'auto' }} />
         </Link>
-        <button onClick={() => navigate(user ? '/account' : '/login')} style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', background: user ? TEAL_L : 'transparent', border: '1px solid var(--color-border)', borderRadius: '50%', cursor: 'pointer', color: user ? TEAL : 'var(--color-text-sub)', width: 36, height: 36, padding: 0, fontSize: 14, fontWeight: 700 }}>
+        <button onClick={() => navigate(user ? '/account' : '/login')} style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', background: user ? TEAL_L : 'transparent', border: '1px solid var(--color-border)', borderRadius: '50%', cursor: 'pointer', color: user ? TEAL : 'var(--color-text-sub)', width: 36, height: 36, padding: 0, fontSize: 'var(--font-size-base)', fontWeight: 700 }}>
           {user?.email ? user.email[0].toUpperCase() : <IconUser />}
         </button>
       </header>
@@ -94,7 +94,7 @@ export default function PublicEncyclopedia() {
               placeholder="サービス名で検索…"
               value={search}
               onChange={e => setSearch(e.target.value)}
-              style={{ width: '100%', maxWidth: 360, padding: '8px 14px', borderRadius: 8, border: '1px solid var(--color-border)', background: 'var(--color-bg-white)', color: 'var(--color-text-main)', fontSize: 14, outline: 'none', boxSizing: 'border-box' }}
+              style={{ width: '100%', maxWidth: 360, padding: '8px 14px', borderRadius: 8, border: '1px solid var(--color-border)', background: 'var(--color-bg-white)', color: 'var(--color-text-main)', fontSize: 'var(--font-size-base)', outline: 'none', boxSizing: 'border-box' }}
             />
           </div>
         </section>
@@ -105,7 +105,7 @@ export default function PublicEncyclopedia() {
             <section key={category} style={{ marginBottom: isMobile ? 32 : 40 }}>
               <h2 style={{ fontSize: isMobile ? 14 : 16, fontWeight: 800, color: TEAL_D, margin: '0 0 6px' }}>{category}</h2>
               {CATEGORY_DESC[category] && (
-                <p style={{ fontSize: 12, color: 'var(--color-text-sub)', margin: '0 0 12px', lineHeight: 1.6 }}>{CATEGORY_DESC[category]}</p>
+                <p style={{ fontSize: 'var(--font-size-sm)', color: 'var(--color-text-sub)', margin: '0 0 12px', lineHeight: 1.6 }}>{CATEGORY_DESC[category]}</p>
               )}
               <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
                 {services.map(svc => (
@@ -113,7 +113,7 @@ export default function PublicEncyclopedia() {
                     {svc.icon && (
                       <ServiceIconImg icon={svc.icon} name={svc.name} size={18} />
                     )}
-                    <span style={{ fontSize: 12, fontWeight: 600, color: 'var(--color-text-main)' }}>{svc.name}</span>
+                    <span style={{ fontSize: 'var(--font-size-sm)', fontWeight: 600, color: 'var(--color-text-main)' }}>{svc.name}</span>
                   </div>
                 ))}
               </div>
@@ -126,17 +126,17 @@ export default function PublicEncyclopedia() {
 
           {/* ── CTA ── */}
           <div style={{ borderTop: '1px solid var(--color-border)', paddingTop: 32, marginTop: 8, textAlign: 'center' }}>
-            <p style={{ fontSize: 14, color: 'var(--color-text-sub)', marginBottom: 16 }}>
+            <p style={{ fontSize: 'var(--font-size-base)', color: 'var(--color-text-sub)', marginBottom: 16 }}>
               各サービスの詳細な説明・トリビアは演習内で解放できます
             </p>
-            <button onClick={() => navigate('/aws/')} style={{ background: TEAL, color: '#fff', border: 'none', borderRadius: 8, padding: '12px 28px', fontSize: 14, fontWeight: 700, cursor: 'pointer' }}>
+            <button onClick={() => navigate('/aws/')} style={{ background: TEAL, color: '#fff', border: 'none', borderRadius: 8, padding: '12px 28px', fontSize: 'var(--font-size-base)', fontWeight: 700, cursor: 'pointer' }}>
               無限ノックで演習を始める →
             </button>
           </div>
         </div>
       </main>
 
-      <footer style={{ padding: '14px var(--spacing-lg)', textAlign: 'center', fontSize: 11, color: 'var(--color-text-light)', borderTop: '1px solid var(--color-border)' }}>
+      <footer style={{ padding: '14px var(--spacing-lg)', textAlign: 'center', fontSize: 'var(--font-size-xs)', color: 'var(--color-text-light)', borderTop: '1px solid var(--color-border)' }}>
         © {new Date().getFullYear()} MugenKnock
       </footer>
     </div>
