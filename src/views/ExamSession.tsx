@@ -534,7 +534,7 @@ export default function ExamSession() {
           ? Array.from({ length: WINDOW }, (_, k) => windowStart + k)
           : Array.from({ length: total }, (_, k) => k);
         return (
-          <div style={{ position: 'fixed', top: 56, left: 0, right: 0, zIndex: 190, background: 'var(--color-bg-white)', borderBottom: '1px solid var(--color-border)', padding: '8px 16px', display: 'flex', alignItems: 'center', gap: 0 }}>
+          <div style={{ position: 'fixed', top: 56, left: 0, right: 0, zIndex: 190, background: 'var(--color-bg-white)', borderBottom: '1px solid var(--color-border)', padding: '15px 16px 8px', display: 'flex', alignItems: 'center', gap: 0 }}>
             <div style={{ flex: 1, display: 'flex', alignItems: 'center' }}>
               {visibleIndices.map((i, visIdx) => {
                 const isAnswered = !!answers[questions[i]?.questionId];
@@ -586,7 +586,7 @@ export default function ExamSession() {
         );
       })()}
       {/* 固定ノードバーの高さ分のスペーサー */}
-      <div style={{ height: 36 }} />
+      <div style={{ height: 44 }} />
 
       {/* タイマーバー */}
       <Card padding="8px 16px" style={{ marginBottom: 'var(--spacing-lg)' }}>
@@ -604,14 +604,6 @@ export default function ExamSession() {
             <span style={{ fontWeight: 400, color: 'var(--color-text-light)', fontSize: 'var(--font-size-sm)' }}> / {formatTime(totalSec)}</span>
           </span>
           <div style={{ flex: 1 }} />
-          <button
-            onClick={() => answeredCount > 0 && setShowAbortConfirm(true)}
-            disabled={answeredCount === 0}
-            style={{ flexShrink: 0, height: 30, padding: '0 10px', border: '1px solid var(--color-border)', borderRadius: 'var(--border-radius-full)', background: 'transparent', cursor: answeredCount === 0 ? 'default' : 'pointer', color: 'var(--color-text-sub)', fontSize: 'var(--font-size-sm)', fontWeight: 600, display: 'flex', alignItems: 'center', gap: 4, opacity: answeredCount === 0 ? 0.45 : 1, whiteSpace: 'nowrap' }}
-          >
-            <IconCheck size={12} />
-            {lang === 'ja' ? '途中採点' : 'Grade Now'}
-          </button>
         </div>
         {/* 下段: 残り時間 棒グラフ */}
         <div style={{ height: 5, borderRadius: 3, background: 'var(--color-border)', overflow: 'hidden' }}>
@@ -628,46 +620,43 @@ export default function ExamSession() {
       <Card padding="var(--spacing-xl)" style={{ marginBottom: 'var(--spacing-lg)' }}>
         {/* 問題 */}
         <div style={{ marginBottom: 'var(--spacing-xl)' }}>
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 'var(--spacing-sm)' }}>
-            <div>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 'var(--spacing-sm)', marginBottom: 'var(--spacing-md)' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--spacing-sm)', minWidth: 0 }}>
+              {/* あとで確認フラグ（模試特有・問題左上） */}
+              <button
+                onClick={() => toggleFlag(currentQ.questionId)}
+                title={flaggedIds.has(currentQ.questionId)
+                  ? (lang === 'ja' ? 'あとで確認のフラグを外す' : 'Remove review flag')
+                  : (lang === 'ja' ? 'あとで見直す問題としてフラグを立てる（模試のみ・提出前に一覧から戻れます）' : 'Flag this question for later review (exam only)')}
+                style={{
+                  display: 'inline-flex', alignItems: 'center', gap: 5, flexShrink: 0,
+                  padding: '4px 12px 4px 10px', borderRadius: 'var(--border-radius-full)', cursor: 'pointer',
+                  border: `1px solid ${flaggedIds.has(currentQ.questionId) ? 'var(--color-accent)' : 'var(--color-border)'}`,
+                  background: flaggedIds.has(currentQ.questionId) ? 'color-mix(in srgb, var(--color-accent) 12%, transparent)' : 'transparent',
+                  color: flaggedIds.has(currentQ.questionId) ? 'var(--color-accent)' : 'var(--color-text-sub)',
+                  fontSize: 'var(--font-size-xs)', fontWeight: 700, transition: 'all 0.15s',
+                }}
+              >
+                <IconFlag size={13} filled={flaggedIds.has(currentQ.questionId)} />
+                <span>{lang === 'ja' ? 'あとで確認' : 'Review later'}</span>
+              </button>
               {currentQ.isMultiple && (
                 <Badge variant="outline">
                   {t('examSession.multiple')}{currentQ.correctAnswerCount ? ` (${currentQ.correctAnswerCount})` : ''}
                 </Badge>
               )}
             </div>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--spacing-sm)' }}>
-              {user && (
-                <button
-                  onClick={() => toggleBookmark(currentQ.questionId)}
-                  title={bookmarkedIds.has(currentQ.questionId) ? t('examSession.removeBookmark') : t('examSession.bookmark')}
-                  style={{ background: 'none', border: 'none', cursor: 'pointer', padding: '4px', display: 'flex', alignItems: 'center' }}
-                >
-                  <span style={{ color: bookmarkedIds.has(currentQ.questionId) ? 'var(--color-warning, #f59e0b)' : 'var(--color-text-light)' }}>
-                    <IconStar filled={bookmarkedIds.has(currentQ.questionId)} size={20} />
-                  </span>
-                </button>
-              )}
+            {user && (
               <button
-                onClick={() => toggleFlag(currentQ.questionId)}
-                title={flaggedIds.has(currentQ.questionId)
-                  ? (lang === 'ja' ? 'あとで確認のフラグを外す' : 'Remove review flag')
-                  : (lang === 'ja' ? 'あとで確認するフラグを立てる' : 'Flag for later review')}
-                style={{ background: 'none', border: 'none', cursor: 'pointer', padding: '4px', display: 'flex', alignItems: 'center', color: flaggedIds.has(currentQ.questionId) ? 'var(--color-accent)' : 'var(--color-text-light)' }}
+                onClick={() => toggleBookmark(currentQ.questionId)}
+                title={bookmarkedIds.has(currentQ.questionId) ? t('examSession.removeBookmark') : t('examSession.bookmark')}
+                style={{ background: 'none', border: 'none', cursor: 'pointer', padding: '4px', display: 'flex', alignItems: 'center', flexShrink: 0 }}
               >
-                <IconFlag size={18} filled={flaggedIds.has(currentQ.questionId)} />
+                <span style={{ color: bookmarkedIds.has(currentQ.questionId) ? 'var(--color-warning, #f59e0b)' : 'var(--color-text-light)' }}>
+                  <IconStar filled={bookmarkedIds.has(currentQ.questionId)} size={20} />
+                </span>
               </button>
-              <button
-                onClick={() => setReportOpen(true)}
-                style={{ background: 'none', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 4, color: 'var(--color-text-light)', fontSize: 'var(--font-size-sm)', padding: '4px 8px', borderRadius: 'var(--border-radius-sm)', transition: 'all 0.2s' }}
-                onMouseEnter={e => { e.currentTarget.style.color = 'var(--color-danger)'; e.currentTarget.style.background = 'var(--color-feedback-incorrect-bg)'; }}
-                onMouseLeave={e => { e.currentTarget.style.color = 'var(--color-text-light)'; e.currentTarget.style.background = 'none'; }}
-                title={lang === 'ja' ? '問題の不備を通報' : 'Report an issue'}
-              >
-                <IconAlertTriangle size={14} />
-                <span>{lang === 'ja' ? '通報' : 'Report'}</span>
-              </button>
-            </div>
+            )}
           </div>
           <p style={{ fontSize: 'var(--font-size-lg)', lineHeight: 1.6, fontWeight: 400, margin: 0, color: 'var(--color-text-main)', overflowWrap: 'break-word', wordBreak: 'break-word', minWidth: 0, whiteSpace: 'pre-wrap' }}>
             {qText(currentQ as any, lang)}
@@ -750,6 +739,28 @@ export default function ExamSession() {
               </button>
             );
           })()}
+        </div>
+
+        {/* 通報・途中採点（問題の下・演習系と統一） */}
+        <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 'var(--spacing-sm)', marginBottom: 'var(--spacing-md)' }}>
+          <button
+            onClick={() => setReportOpen(true)}
+            style={{ background: 'none', border: '1px solid var(--color-border)', borderRadius: 'var(--border-radius-full)', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 4, color: 'var(--color-text-sub)', fontSize: 'var(--font-size-xs)', padding: '3px 10px', transition: 'all 0.2s' }}
+            onMouseEnter={e => { e.currentTarget.style.color = 'var(--color-danger)'; e.currentTarget.style.borderColor = 'var(--color-danger)'; }}
+            onMouseLeave={e => { e.currentTarget.style.color = 'var(--color-text-sub)'; e.currentTarget.style.borderColor = 'var(--color-border)'; }}
+            title={lang === 'ja' ? '問題の不備を通報' : 'Report an issue'}
+          >
+            <IconAlertTriangle size={13} />
+            <span>{lang === 'ja' ? '通報' : 'Report'}</span>
+          </button>
+          <button
+            onClick={() => answeredCount > 0 && setShowAbortConfirm(true)}
+            disabled={answeredCount === 0}
+            style={{ background: 'none', border: '1px solid var(--color-border)', borderRadius: 'var(--border-radius-full)', padding: '3px 10px', fontSize: 'var(--font-size-xs)', fontWeight: 600, cursor: answeredCount === 0 ? 'default' : 'pointer', color: 'var(--color-text-sub)', opacity: answeredCount === 0 ? 0.45 : 1, whiteSpace: 'nowrap', transition: 'all 0.15s', display: 'flex', alignItems: 'center', gap: 3 }}
+          >
+            <IconCheck size={11} />
+            {lang === 'ja' ? '途中採点' : 'Grade'}
+          </button>
         </div>
 
         {/* メタデータ */}

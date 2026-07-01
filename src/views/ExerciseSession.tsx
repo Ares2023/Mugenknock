@@ -1119,7 +1119,7 @@ export default function ExerciseSession() {
           </div>
         );
       })()}
-      <Card padding={isMobile ? 'var(--spacing-md) var(--spacing-sm)' : 'var(--spacing-xl)'}>
+      <Card padding={isMobile ? 'var(--spacing-md)' : 'var(--spacing-xl)'}>
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 'var(--spacing-lg)' }}>
           <h1 style={{ fontSize: 'var(--font-size-h2)', fontWeight: 700, margin: 0, color: 'var(--color-text-main)' }}>
             {t('exerciseSession.qLabel')} {currentIndex + 1}
