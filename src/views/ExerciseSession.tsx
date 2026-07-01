@@ -13,7 +13,7 @@ import { useLanguage } from '../contexts/LanguageContext';
 import Card from '../components/ui/Card';
 import Button from '../components/ui/Button';
 import ReportModal from '../components/ReportModal';
-import { IconBookOpen, IconBean, IconCopy, IconCheck, IconStar, IconChevronUp, IconChevronDown } from '../components/Icons';
+import { IconBookOpen, IconBean, IconCopy, IconCheck, IconStar, IconChevronUp, IconChevronDown, IconAlertTriangle } from '../components/Icons';
 import KeyHint from '../components/KeyHint';
 import { isKbMode } from '../utils/keyboardMode';
 
@@ -1363,7 +1363,7 @@ export default function ExerciseSession() {
               onMouseLeave={e => { e.currentTarget.style.color = 'var(--color-text-sub)'; e.currentTarget.style.borderColor = 'var(--color-border)'; }}
               title={lang === 'ja' ? '問題の不備を通報' : 'Report an issue'}
             >
-              <span style={{ fontSize: 'var(--font-size-sm)' }}>⚑</span>
+              <IconAlertTriangle size={13} />
               <span>{lang === 'ja' ? '通報' : 'Report'}</span>
             </button>
             <button

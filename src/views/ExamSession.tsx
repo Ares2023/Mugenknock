@@ -13,7 +13,7 @@ import Card from '../components/ui/Card';
 import Button from '../components/ui/Button';
 import Badge from '../components/ui/Badge';
 import ReportModal from '../components/ReportModal';
-import { IconFlag, IconStar, IconCircleCheck, IconCirclePause, IconCheck } from '../components/Icons';
+import { IconFlag, IconStar, IconCircleCheck, IconCirclePause, IconCheck, IconAlertTriangle } from '../components/Icons';
 import KeyHint from '../components/KeyHint';
 import { isKbMode } from '../utils/keyboardMode';
 
@@ -74,10 +74,12 @@ export default function ExamSession() {
     let answers0: Record<string, string[]> = state?.resumeAnswers ?? {};
     let index0: number = state?.resumeIndex ?? 0;
     let timeLeft0: number = state?.resumeTimeLeft ?? totalSec;
+    let flagged0: string[] = state?.resumeFlagged ?? [];
     try {
       const raw = state?.userId ? localStorage.getItem(`examDraft_${state.userId}`) : null;
       if (raw) {
         const d = JSON.parse(raw);
+        if (d.sessionId === state?.sessionId && Array.isArray(d.flagged)) flagged0 = d.flagged;
         if (d.sessionId === state?.sessionId &&
             Object.keys(d.answers ?? {}).length > Object.keys(answers0).length) {
           answers0 = d.answers ?? {};
@@ -86,7 +88,7 @@ export default function ExamSession() {
         }
       }
     } catch {}
-    return { answers0, index0, timeLeft0 };
+    return { answers0, index0, timeLeft0, flagged0 };
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   const [currentIndex, setCurrentIndex] = useState<number>(_resumeInit.index0);
@@ -98,7 +100,13 @@ export default function ExamSession() {
   const [showConfirm, setShowConfirm] = useState(false);
   const finishedRef = useRef(false);
   const [bookmarkedIds, setBookmarkedIds] = useState<Set<string>>(new Set());
+  const [flaggedIds, setFlaggedIds] = useState<Set<string>>(new Set(_resumeInit.flagged0));
   const [hoveredNode, setHoveredNode] = useState<number | null>(null);
+
+  // 「後で確認する」フラグの切替（セッション内のみ・localStorageの examDraft に保存）
+  const toggleFlag = (qid: string) => {
+    setFlaggedIds(prev => { const n = new Set(prev); if (n.has(qid)) n.delete(qid); else n.add(qid); return n; });
+  };
 
   useEffect(() => {
     if (!userId) return;
@@ -139,7 +147,7 @@ export default function ExamSession() {
     try {
       localStorage.setItem(`examDraft_${userId}`, JSON.stringify({
         sessionId, examType, questions, userId, isMini,
-        currentIndex, answers, timeLeft: timeLeftRef.current, savedAt: Date.now(),
+        currentIndex, answers, timeLeft: timeLeftRef.current, flagged: [...flaggedIds], savedAt: Date.now(),
       }));
     } catch { /* quota over 等は無視 */ }
     // サーバにも進捗保存（端末跨ぎ/キャッシュ削除でも再開可能に。questionsは送らず軽量に）
@@ -149,7 +157,7 @@ export default function ExamSession() {
         body: JSON.stringify({ userId, sessionType: isMini ? 'mini' : 'exam', draft: { currentIndex, answers, timeLeft: timeLeftRef.current } }),
       }).catch(() => {});
     }
-  }, [answers, currentIndex]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [answers, currentIndex, flaggedIds]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // タイマー
   useEffect(() => {
@@ -470,7 +478,9 @@ export default function ExamSession() {
           <Card title={t('examSession.confirmTitle')} style={{ maxWidth: 420, width: '100%', boxShadow: 'var(--box-shadow-md)' }} padding="var(--spacing-xl)">
             <div style={{ fontSize: 'var(--font-size-base)', color: 'var(--color-text-sub)', marginBottom: 'var(--spacing-xl)', lineHeight: 1.6, textAlign: 'center' }}>
               {t('examSession.answered')}: <strong>{answeredCount}</strong> / {questions.length} {lang === 'ja' ? '問' : 'Q'}<br />
-              {t('examSession.unanswered')}: <strong style={{ color: unansweredCount > 0 ? 'var(--color-danger)' : 'var(--color-success)' }}>{unansweredCount}</strong> {lang === 'ja' ? '問' : 'Q'}<br /><br />
+              {t('examSession.unanswered')}: <strong style={{ color: unansweredCount > 0 ? 'var(--color-danger)' : 'var(--color-success)' }}>{unansweredCount}</strong> {lang === 'ja' ? '問' : 'Q'}<br />
+              {flaggedIds.size > 0 && (<>{lang === 'ja' ? 'あとで確認' : 'Flagged'}: <strong style={{ color: 'var(--color-accent)' }}>{flaggedIds.size}</strong> {lang === 'ja' ? '問' : 'Q'}<br /></>)}
+              <br />
               {t('examSession.confirmQ')}
             </div>
             <div style={{ display: 'flex', gap: 'var(--spacing-md)', justifyContent: 'center' }}>
@@ -530,8 +540,15 @@ export default function ExamSession() {
                 const isAnswered = !!answers[questions[i]?.questionId];
                 const isCurrent = i === currentIndex;
                 const isHovered = hoveredNode === i;
+                const isFlagged = flaggedIds.has(questions[i]?.questionId);
                 return (
                   <React.Fragment key={i}>
+                    <span style={{ position: 'relative', display: 'flex', flexShrink: 0 }}>
+                      {isFlagged && (
+                        <span style={{ position: 'absolute', bottom: '100%', left: '50%', transform: 'translateX(-50%)', marginBottom: 2, color: 'var(--color-accent)', lineHeight: 0 }}>
+                          <IconFlag size={9} filled />
+                        </span>
+                      )}
                     <div
                       onClick={() => setCurrentIndex(i)}
                       onMouseEnter={() => setHoveredNode(i)}
@@ -552,6 +569,7 @@ export default function ExamSession() {
                         opacity: isAnswered && !isCurrent && !isHovered ? 0.75 : 1,
                       }}
                     />
+                    </span>
                     {visIdx < visibleIndices.length - 1 && (
                       <div style={{ flex: 1, height: 2, background: isAnswered ? 'var(--color-primary)' : 'var(--color-text-light)', transition: 'background 0.2s' }} />
                     )}
@@ -631,13 +649,22 @@ export default function ExamSession() {
                 </button>
               )}
               <button
+                onClick={() => toggleFlag(currentQ.questionId)}
+                title={flaggedIds.has(currentQ.questionId)
+                  ? (lang === 'ja' ? 'あとで確認のフラグを外す' : 'Remove review flag')
+                  : (lang === 'ja' ? 'あとで確認するフラグを立てる' : 'Flag for later review')}
+                style={{ background: 'none', border: 'none', cursor: 'pointer', padding: '4px', display: 'flex', alignItems: 'center', color: flaggedIds.has(currentQ.questionId) ? 'var(--color-accent)' : 'var(--color-text-light)' }}
+              >
+                <IconFlag size={18} filled={flaggedIds.has(currentQ.questionId)} />
+              </button>
+              <button
                 onClick={() => setReportOpen(true)}
                 style={{ background: 'none', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 4, color: 'var(--color-text-light)', fontSize: 'var(--font-size-sm)', padding: '4px 8px', borderRadius: 'var(--border-radius-sm)', transition: 'all 0.2s' }}
                 onMouseEnter={e => { e.currentTarget.style.color = 'var(--color-danger)'; e.currentTarget.style.background = 'var(--color-feedback-incorrect-bg)'; }}
                 onMouseLeave={e => { e.currentTarget.style.color = 'var(--color-text-light)'; e.currentTarget.style.background = 'none'; }}
                 title={lang === 'ja' ? '問題の不備を通報' : 'Report an issue'}
               >
-                <IconFlag size={14} />
+                <IconAlertTriangle size={14} />
                 <span>{lang === 'ja' ? '通報' : 'Report'}</span>
               </button>
             </div>
@@ -763,6 +790,7 @@ export default function ExamSession() {
           {questions.map((_: any, i: number) => {
             const isCurrent = i === currentIndex;
             const isAnswered = !!answers[questions[i]?.questionId];
+            const isFlagged = flaggedIds.has(questions[i]?.questionId);
             let bg = 'var(--color-bg-elevated)';
             let color = 'var(--color-text-sub)';
             let border = '1px solid var(--color-text-sub)';
@@ -779,10 +807,15 @@ export default function ExamSession() {
 
             return (
               <button key={i} onClick={() => setCurrentIndex(i)}
-                style={{ width: 32, height: 32, borderRadius: 'var(--border-radius-full)', border,
+                style={{ position: 'relative', width: 32, height: 32, borderRadius: 'var(--border-radius-full)', border,
                   background: bg, color,
                   cursor: 'pointer', fontSize: 'var(--font-size-sm)', fontWeight: isCurrent ? 700 : 400, transition: 'all 0.2s' }}>
                 {i + 1}
+                {isFlagged && (
+                  <span style={{ position: 'absolute', top: -4, right: -4, color: 'var(--color-accent)', background: 'var(--color-bg-white)', borderRadius: '50%', display: 'flex', padding: 1, lineHeight: 0 }}>
+                    <IconFlag size={11} filled />
+                  </span>
+                )}
               </button>
             );
           })}
