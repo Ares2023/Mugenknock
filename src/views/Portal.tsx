@@ -5,6 +5,7 @@ import { Navigate, useNavigate } from '@/compat/react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { useLanguage } from '../contexts/LanguageContext';
 import { IconUser } from '../components/Icons';
+import Reveal from '../components/Reveal';
 
 const TEAL   = '#009E9E';
 const TEAL_D = '#007878';
@@ -131,10 +132,10 @@ export default function Portal() {
             </h2>
             <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
               {BENEFITS.map((b, i) => (
-                <div key={i} style={{ display: 'flex', alignItems: 'flex-start', gap: 14, background: 'var(--color-bg-white)', border: '1px solid var(--color-border)', borderRadius: 8, padding: '14px 16px' }}>
+                <Reveal key={i} delay={i * 70} style={{ display: 'flex', alignItems: 'flex-start', gap: 14, background: 'var(--color-bg-white)', border: '1px solid var(--color-border)', borderRadius: 8, padding: '14px 16px' }}>
                   <span style={{ flexShrink: 0, width: 24, height: 24, borderRadius: '50%', background: TEAL, color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 'var(--font-size-sm2)', fontWeight: 800 }}>{i + 1}</span>
                   <p style={{ margin: 0, fontSize: isMobile ? 13 : 14, color: 'var(--color-text-sub)', lineHeight: 1.75 }}>{ja ? b.ja : b.en}</p>
-                </div>
+                </Reveal>
               ))}
             </div>
           </section>
@@ -146,10 +147,10 @@ export default function Portal() {
             </h2>
             <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : 'repeat(3, 1fr)', gap: 14 }}>
               {FEATURES.map((f, i) => (
-                <div key={i} style={{ background: 'var(--color-bg-white)', border: '1px solid var(--color-border)', borderRadius: 8, padding: '18px 16px' }}>
+                <Reveal key={i} delay={i * 70} style={{ background: 'var(--color-bg-white)', border: '1px solid var(--color-border)', borderRadius: 8, padding: '18px 16px' }}>
                   <div style={{ fontSize: 'var(--font-size-sm2)', fontWeight: 800, color: TEAL, marginBottom: 8 }}>{ja ? f.ja_title : f.en_title}</div>
                   <p style={{ margin: 0, fontSize: isMobile ? 12 : 13, color: 'var(--color-text-sub)', lineHeight: 1.75 }}>{ja ? f.ja : f.en}</p>
-                </div>
+                </Reveal>
               ))}
             </div>
           </section>
@@ -159,29 +160,43 @@ export default function Portal() {
             <h2 style={{ fontSize: isMobile ? 'var(--font-size-h3)' : 'var(--font-size-h2)', fontWeight: 800, color: TEAL_D, margin: '0 0 20px', letterSpacing: '-0.3px' }}>
               {ja ? 'なぜ作ったのか' : 'Why I Built This'}
             </h2>
-            <div style={{ background: 'var(--color-bg-white)', border: '1px solid var(--color-border)', borderRadius: 'var(--border-radius-lg)', padding: isMobile ? 'var(--spacing-md)' : 'var(--spacing-lg) var(--spacing-xl)', lineHeight: 1.9 }}>
-              <p style={{ margin: '0 0 var(--spacing-md)', fontSize: isMobile ? 'var(--font-size-sm2)' : 'var(--font-size-md)', color: 'var(--color-text-main)' }}>
+            <Reveal style={{ background: 'var(--color-bg-white)', border: '1px solid var(--color-border)', borderLeft: `4px solid ${TEAL}`, borderRadius: 'var(--border-radius-lg)', padding: isMobile ? 'var(--spacing-md)' : 'var(--spacing-lg) var(--spacing-xl)', lineHeight: 1.95 }}>
+              <p style={{ margin: '0 0 var(--spacing-md)', fontSize: isMobile ? 'var(--font-size-base)' : 'var(--font-size-lg)', fontWeight: 700, color: 'var(--color-text-main)' }}>
                 {ja
-                  ? '無限ノックは、AWS認定 SAP（Solutions Architect – Professional）を持つ開発者が、AWS全資格の取得を目指して作った個人開発サービスです。'
-                  : 'Mugenknock is a solo-built service created by a developer who holds the AWS Certified Solutions Architect – Professional (SAP), on a personal mission to earn every AWS certification.'}
+                  ? 'AWS認定 SAP を持つ、いちエンジニアです。いまはAWS全12資格の制覇に挑んでいます。'
+                  : 'I\'m an engineer with the AWS Certified Solutions Architect – Professional (SAP), now taking on all 12 AWS certifications.'}
+              </p>
+              <p style={{ margin: '0 0 var(--spacing-md)', fontSize: isMobile ? 'var(--font-size-sm2)' : 'var(--font-size-base)', color: 'var(--color-text-sub)' }}>
+                {ja
+                  ? '正直に言うと、既存の問題演習サービスにずっと不満がありました。開くたびに待たされるロード。何百問解いても「あなたの弱点はここ」と教えてくれない作り。どこか不自然な日本語。そして、いつの間にか古くなった情報。——「本当に欲しい教材はこれじゃない」。その苛立ちが限界を超えて、"なら自分で作る" とキーボードを叩き始めました。'
+                  : 'Honestly, I was fed up with the practice services out there. Loads that make you wait. Hundreds of questions, yet nothing tells you where you\'re actually weak. Japanese that reads a little off. Content that quietly goes stale. "This isn\'t the study tool I want." That frustration boiled over — so I started building the one I did.'}
               </p>
               <p style={{ margin: '0 0 var(--spacing-sm)', fontSize: isMobile ? 'var(--font-size-sm2)' : 'var(--font-size-base)', color: 'var(--color-text-sub)' }}>
-                {ja
-                  ? '既存の資格演習サービスへの不満が積もり積もって、「それなら自分が欲しいものを作ろう」と生まれました。'
-                  : 'It was born out of frustration with existing practice services — so I decided to build the tool I actually wanted.'}
+                {ja ? 'だから無限ノックは、その不満のひとつひとつに答えを用意しました。' : 'So Mugenknock answers every one of those frustrations, head-on.'}
               </p>
-              <ul style={{ margin: '0 0 var(--spacing-md)', paddingLeft: '1.3em', color: 'var(--color-text-sub)', fontSize: isMobile ? 'var(--font-size-sm2)' : 'var(--font-size-base)' }}>
-                <li>{ja ? 'ロードが遅い' : 'Slow loading'}</li>
-                <li>{ja ? '弱点へのパーソナライズが弱い' : 'Weak personalization to your weak points'}</li>
-                <li>{ja ? '日本語が充実していない' : 'Thin Japanese support'}</li>
-                <li>{ja ? '情報が古い' : 'Outdated content'}</li>
-              </ul>
-              <p style={{ margin: 0, fontSize: isMobile ? 'var(--font-size-sm2)' : 'var(--font-size-base)', color: 'var(--color-text-main)', fontWeight: 600 }}>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 8, margin: '0 0 var(--spacing-md)' }}>
+                {[
+                  { p: ['ロードが遅い', 'Slow loading'], s: ['待たせない表示速度', 'Loads that never make you wait'] },
+                  { p: ['弱点分析が甘い', 'Weak personalization'], s: ['解くほど穴が見える弱点特化', 'Weak-point focus that sharpens as you solve'] },
+                  { p: ['日本語が不自然', 'Awkward Japanese'], s: ['自然で読みやすい日本語', 'Natural, readable Japanese'] },
+                  { p: ['情報が古い', 'Outdated content'], s: ['最新試験に合わせて作り直し', 'Rebuilt to match the current exams'] },
+                ].map((row, i) => (
+                  <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
+                    <span style={{ fontSize: isMobile ? 'var(--font-size-xs)' : 'var(--font-size-sm)', color: 'var(--color-text-light)', textDecoration: 'line-through' }}>{ja ? row.p[0] : row.p[1]}</span>
+                    <span style={{ color: TEAL, fontWeight: 800, flexShrink: 0 }}>→</span>
+                    <span style={{ fontSize: isMobile ? 'var(--font-size-sm2)' : 'var(--font-size-base)', color: 'var(--color-text-main)', fontWeight: 700 }}>{ja ? row.s[0] : row.s[1]}</span>
+                  </div>
+                ))}
+              </div>
+              <p style={{ margin: 0, fontSize: isMobile ? 'var(--font-size-sm2)' : 'var(--font-size-base)', color: 'var(--color-text-main)', fontWeight: 700 }}>
                 {ja
-                  ? '開発者自身が全資格を取り切るまでは、少なくとも開発を続けます。同じ課題を感じている方は、どうぞ使ってください。'
-                  : 'I\'ll keep developing it at least until I\'ve earned every certification myself. If you share the same frustrations, you\'re welcome to use it.'}
+                  ? 'まだ全冠していません。少なくとも自分が獲り切るまで、この教材は磨き続けます。同じ悔しさを知っている人は、遠慮なく相乗りしてください。一緒にノックしましょう。'
+                  : 'I haven\'t earned them all yet. At least until I do, I\'ll keep sharpening this tool. If you know the same frustration, hop on — let\'s knock these out together.'}
               </p>
-            </div>
+              <p style={{ margin: 'var(--spacing-md) 0 0', textAlign: 'right', fontSize: 'var(--font-size-sm)', color: 'var(--color-text-light)' }}>
+                {ja ? '— 無限ノック 開発者' : '— The developer, Mugenknock'}
+              </p>
+            </Reveal>
           </section>
 
         </div>
