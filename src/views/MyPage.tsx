@@ -17,6 +17,8 @@ import {
 } from '../components/Icons';
 import ExamSelectOverlay, { EXAM_DESC } from '../components/ExamSelectOverlay';
 import KeyHint from '../components/KeyHint';
+import { readDomainResults } from '../utils/domainStats';
+import { getGuestAnsweredCount } from '../utils/guestProgress';
 
 
 const FOCUSED_UNLOCK_THRESHOLD = 30;
@@ -177,7 +179,14 @@ export default function MyPage() {
   const [statsLoading, setStatsLoading] = useState(false);
 
   useEffect(() => {
-    if (tab !== 'analysis' || !user || !targetExam) return;
+    if (tab !== 'analysis' || !targetExam) return;
+    // ゲスト: ローカルのドメイン別成績(domain_results)＋解答数で苦手分析を表示
+    if (!user) {
+      const dr = readDomainResults(targetExam, 'guest');
+      setDomainStats(Object.entries(dr).map(([idx, rr]) => ({ tagId: idx, recentResults: rr as boolean[] })));
+      setAnsweredCount(getGuestAnsweredCount(targetExam));
+      return;
+    }
     setStatsLoading(true);
     Promise.all([
       fetch(`${API_ENDPOINT}/users/me/stats?userId=${user.userId}`).then(r => r.json()),
@@ -188,7 +197,7 @@ export default function MyPage() {
     }).catch(() => {}).finally(() => setStatsLoading(false));
   }, [tab, user, targetExam]);
 
-  const focusedUnlocked = !!user && answeredCount >= FOCUSED_UNLOCK_THRESHOLD;
+  const focusedUnlocked = answeredCount >= FOCUSED_UNLOCK_THRESHOLD; // ゲストもローカル解答数で解放
 
   // ── 頻出ミス問題（苦手分析タブ） ──
   const [weakQuestions, setWeakQuestions] = useState<WeakQuestion[]>([]);
@@ -807,13 +816,7 @@ export default function MyPage() {
         {/* ════════ 苦手分析タブ ════════ */}
         {tab === 'analysis' && (
           <>
-            {!user ? (
-              <Card padding="var(--spacing-xl)">
-                <p style={{ margin: 0, textAlign: 'center', fontSize: 'var(--font-size-sm2)', color: 'var(--color-text-light)' }}>
-                  {ja ? 'ログインすると苦手分析が表示されます' : 'Log in to view your analysis'}
-                </p>
-              </Card>
-            ) : !targetExam ? (
+            {!targetExam ? (
               <Card padding="var(--spacing-xl)">
                 <p style={{ margin: 0, textAlign: 'center', fontSize: 'var(--font-size-sm2)', color: 'var(--color-text-light)' }}>
                   {ja ? '目標資格を設定してください' : 'Set a target exam first'}
@@ -897,11 +900,11 @@ export default function MyPage() {
                     <div style={{ marginTop: 16, paddingTop: 14, borderTop: '1px solid var(--color-border)' }}>
                       {focusedUnlocked ? (
                         <button
-                          onClick={() => navigate('/aws/', { state: { startFocused: true } })}
+                          onClick={() => user ? navigate('/aws/', { state: { startFocused: true } }) : navigate('/login')}
                           style={{ width: '100%', height: 44, border: 'none', background: '#009E9E', color: '#fff', fontWeight: 600, fontSize: 'var(--font-size-base)', borderRadius: 'var(--border-radius-full)', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8 }}
                         >
-                          {ja ? 'しっかり対策' : 'Focused Practice'}
-                          {!isMobile && <KeyHint />}
+                          {user ? (ja ? 'しっかり対策' : 'Focused Practice') : (ja ? 'ログインしてしっかり対策' : 'Log in for Focused Practice')}
+                          {user && !isMobile && <KeyHint />}
                         </button>
                       ) : (
                         <button
@@ -930,6 +933,12 @@ export default function MyPage() {
                         {ja ? `あと${Math.max(0, FOCUSED_UNLOCK_THRESHOLD - answeredCount)}問でアンロック` : `${Math.max(0, FOCUSED_UNLOCK_THRESHOLD - answeredCount)} more to unlock`}
                       </span>
                     </div>
+                  ) : !user ? (
+                    <button onClick={() => navigate('/login')} style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '10px 14px', borderRadius: 8, background: 'var(--color-bg-main)', border: 'none', cursor: 'pointer', width: '100%', textAlign: 'left' }}>
+                      <span style={{ fontSize: 'var(--font-size-sm2)', color: 'var(--color-text-sub)' }}>
+                        {ja ? 'ログインすると間違えやすい問題をまとめて復習できます' : 'Log in to review your frequently-missed questions'}
+                      </span>
+                    </button>
                   ) : weakLoading ? (
                     <div style={{ display: 'flex', justifyContent: 'center', padding: '16px 0' }}>
                       <div className="sherpa-spinner" style={{ width: 20, height: 20, borderWidth: 2 }} />
