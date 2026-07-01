@@ -154,6 +154,36 @@ export default function Portal() {
             </div>
           </section>
 
+          {/* ── 開発の意図・目的 ── */}
+          <section style={{ marginBottom: isMobile ? 40 : 56 }}>
+            <h2 style={{ fontSize: isMobile ? 'var(--font-size-h3)' : 'var(--font-size-h2)', fontWeight: 800, color: TEAL_D, margin: '0 0 20px', letterSpacing: '-0.3px' }}>
+              {ja ? 'なぜ作ったのか' : 'Why I Built This'}
+            </h2>
+            <div style={{ background: 'var(--color-bg-white)', border: '1px solid var(--color-border)', borderRadius: 'var(--border-radius-lg)', padding: isMobile ? 'var(--spacing-md)' : 'var(--spacing-lg) var(--spacing-xl)', lineHeight: 1.9 }}>
+              <p style={{ margin: '0 0 var(--spacing-md)', fontSize: isMobile ? 'var(--font-size-sm2)' : 'var(--font-size-md)', color: 'var(--color-text-main)' }}>
+                {ja
+                  ? '無限ノックは、AWS認定 SAP（Solutions Architect – Professional）を持つ開発者が、AWS全資格の取得を目指して作った個人開発サービスです。'
+                  : 'Mugenknock is a solo-built service created by a developer who holds the AWS Certified Solutions Architect – Professional (SAP), on a personal mission to earn every AWS certification.'}
+              </p>
+              <p style={{ margin: '0 0 var(--spacing-sm)', fontSize: isMobile ? 'var(--font-size-sm2)' : 'var(--font-size-base)', color: 'var(--color-text-sub)' }}>
+                {ja
+                  ? '既存の資格演習サービスへの不満が積もり積もって、「それなら自分が欲しいものを作ろう」と生まれました。'
+                  : 'It was born out of frustration with existing practice services — so I decided to build the tool I actually wanted.'}
+              </p>
+              <ul style={{ margin: '0 0 var(--spacing-md)', paddingLeft: '1.3em', color: 'var(--color-text-sub)', fontSize: isMobile ? 'var(--font-size-sm2)' : 'var(--font-size-base)' }}>
+                <li>{ja ? 'ロードが遅い' : 'Slow loading'}</li>
+                <li>{ja ? '弱点へのパーソナライズが弱い' : 'Weak personalization to your weak points'}</li>
+                <li>{ja ? '日本語が充実していない' : 'Thin Japanese support'}</li>
+                <li>{ja ? '情報が古い' : 'Outdated content'}</li>
+              </ul>
+              <p style={{ margin: 0, fontSize: isMobile ? 'var(--font-size-sm2)' : 'var(--font-size-base)', color: 'var(--color-text-main)', fontWeight: 600 }}>
+                {ja
+                  ? '開発者自身が全資格を取り切るまでは、少なくとも開発を続けます。同じ課題を感じている方は、どうぞ使ってください。'
+                  : 'I\'ll keep developing it at least until I\'ve earned every certification myself. If you share the same frustrations, you\'re welcome to use it.'}
+              </p>
+            </div>
+          </section>
+
         </div>
       </main>
 
