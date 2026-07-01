@@ -2111,32 +2111,45 @@ app.get('/daily-service', async (req, res) => {
     // 今日の日付（JST）
     const jstDate = new Date(Date.now() + 9 * 3600 * 1000).toISOString().slice(0, 10);
 
-    // 再抽選（rerollSeed あり）のみユーザー別ハッシュで選択
-    // 通常アクセスは userId の有無を問わず _schedule_ を使用し、
-    // サービス追加後も当日のサービスが変わらないようにする
-    if (req.query.userId && req.query.rerollSeed) {
-      const str = req.query.userId + jstDate + req.query.rerollSeed;
-      let hash = 0;
-      for (let i = 0; i < str.length; i++) {
-        hash = ((hash << 5) - hash) + str.charCodeAt(i);
-        hash |= 0;
-      }
-      return res.json({ service: items[Math.abs(hash) % items.length] });
-    }
-
-    // userId がある場合、今日すでに解放済みかを確認（クロスデバイス同期用）
+    // userId がある場合、そのユーザーの解放済みサービス・当日の解放状況を取得
     let alreadyUnlocked = false;
+    let unlockedIds = [];
+    let recordTodayId = null;
     if (req.query.userId) {
       try {
         const encResult = await docClient.send(new GetCommand({
           TableName: T('EncyclopediaUnlocks'),
           Key: { userId: req.query.userId },
         }));
-        if (encResult.Item?.unlockDate === jstDate) alreadyUnlocked = true;
+        if (encResult.Item?.unlockDate === jstDate) {
+          alreadyUnlocked = true;
+          recordTodayId = encResult.Item?.todayServiceId || null;
+        }
+        const unlocks = JSON.parse(encResult.Item?.unlocks || '{}');
+        unlockedIds = Object.keys(unlocks).filter(k => k && k !== '_schedule_');
       } catch {}
     }
 
-    // スケジュールにすでに今日の結果があればそれを返す
+    // userId がある場合は「そのユーザーがまだ見ていない（解放していない）サービス」から
+    // 当日分を決定し、常に初めましてにする。当日すでに解放済みなら見たものを返す（一貫性）。
+    // 同日内は userId+日付 のハッシュで安定。再抽選(rerollSeed)時も未見プールから選ぶ。
+    if (req.query.userId) {
+      if (alreadyUnlocked && recordTodayId) {
+        const seen = items.find(s => s.serviceId === recordTodayId);
+        if (seen) return res.json({ service: seen, alreadyUnlocked });
+      }
+      const unseen = items.filter(s => !unlockedIds.includes(s.serviceId));
+      const pool = unseen.length > 0 ? unseen : items;
+      const str = req.query.userId + jstDate + (req.query.rerollSeed || '');
+      let hash = 0;
+      for (let i = 0; i < str.length; i++) {
+        hash = ((hash << 5) - hash) + str.charCodeAt(i);
+        hash |= 0;
+      }
+      return res.json({ service: pool[Math.abs(hash) % pool.length], alreadyUnlocked });
+    }
+
+    // 匿名アクセス: 従来どおりグローバルの _schedule_ キューを使用（全ユーザー共通・偏りなく一巡）
     const schedule = JSON.parse(scheduleItem?.schedule || '{}');
     if (schedule[jstDate]) {
       const locked = items.find(s => s.serviceId === schedule[jstDate]);
