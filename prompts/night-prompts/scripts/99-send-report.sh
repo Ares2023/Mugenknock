@@ -434,6 +434,74 @@ echo "  未解決通報: $DB_REPORTS 件"
 echo "  資格別:"
 echo "$DB_EXAM_TABLE"
 
+# ── Cognito 新規ユーザー（前日1日分・JST） ────────────────────
+echo ""
+echo "--- [3b] Cognito 新規ユーザー（前日） ---"
+# 認証カナリアのテストユーザーは実登録ではないため集計から除外する
+CANARY_EMAIL=""
+[ -f "${HOME}/.mugenknock_canary.conf" ] && CANARY_EMAIL=$(grep -E '^PLAYWRIGHT_EMAIL=' "${HOME}/.mugenknock_canary.conf" | head -1 | cut -d= -f2- | tr -d '"'"'"' \r')
+COGNITO_NEW=$(AWS="$AWS" TODAY="$TODAY" CANARY_EMAIL="$CANARY_EMAIL" python3 << 'PYEOF'
+import subprocess, json, os, datetime as dt
+
+AWS = os.environ.get('AWS', '/home/yuzuki/local/bin/aws')
+REGION = "ap-northeast-1"
+POOL = "ap-northeast-1_KIOFciGhQ"
+JST = dt.timezone(dt.timedelta(hours=9))
+# 除外アカウント（認証カナリア等のシステム用ユーザー）
+EXCLUDE = {e.strip().lower() for e in [os.environ.get('CANARY_EMAIL', ''), 'e2e-canary@mugenknock.com'] if e.strip()}
+
+# レポートは未明実行のため、集計対象は「前日 00:00〜当日 00:00（JST）」の1日分
+try:
+    base = dt.datetime.strptime(os.environ.get('TODAY', ''), '%Y%m%d').date()
+except Exception:
+    base = dt.datetime.now(JST).date()
+lo = dt.datetime.combine(base - dt.timedelta(days=1), dt.time(0, 0), JST)
+hi = dt.datetime.combine(base, dt.time(0, 0), JST)
+
+users = []
+token = None
+try:
+    while True:
+        cmd = [AWS, "cognito-idp", "list-users", "--user-pool-id", POOL,
+               "--region", REGION, "--attributes-to-get", "email", "--max-items", "60"]
+        if token:
+            cmd += ["--starting-token", token]
+        r = subprocess.run(cmd, capture_output=True, text=True, timeout=30)
+        data = json.loads(r.stdout)
+        users += data.get("Users", [])
+        token = data.get("NextToken")
+        if not token:
+            break
+except Exception as ex:
+    print(f"取得失敗: {ex}")
+    raise SystemExit(0)
+
+new = []
+for u in users:
+    cd = u.get("UserCreateDate")
+    if not cd:
+        continue
+    try:
+        t = dt.datetime.fromisoformat(cd)
+    except Exception:
+        continue
+    if lo <= t < hi:
+        email = next((a["Value"] for a in u.get("Attributes", []) if a.get("Name") == "email"), "(email不明)")
+        if email.strip().lower() in EXCLUDE:
+            continue
+        new.append((t, email, u.get("UserStatus", "")))
+
+new.sort()
+if not new:
+    print("新規登録なし")
+else:
+    print(f"新規登録 {len(new)}件")
+    for t, email, st in new:
+        print(f"{t.strftime('%m/%d %H:%M')} {email} [{st}]")
+PYEOF
+)
+echo "$COGNITO_NEW" | sed 's/^/  /'
+
 # ── 3. canary テスト ─────────────────────────────────────────
 echo ""
 echo "--- [4] canary テスト ---"
@@ -601,6 +669,7 @@ data = {
     'daily':     sys.argv[20],
     'backend':   sys.argv[21],
     'canary_auth':sys.argv[22],
+    'cognito_new':sys.argv[23],
 }
 with open('$REPORT_DATA_FILE', 'w') as f:
     json.dump(data, f, ensure_ascii=False)
@@ -612,7 +681,7 @@ with open('$REPORT_DATA_FILE', 'w') as f:
   "$SMTP_USER" "$SMTP_PASS" "$SMTP_TO" \
   "$DB_GEN3D" "$DB_CHK3D" \
   "$AUDIT_SUMMARY" "$CANARY_COV_SUMMARY" "$DAILY_SUMMARY" \
-  "$BACKEND_HEALTH" "$CANARY_AUTH_RESULT"
+  "$BACKEND_HEALTH" "$CANARY_AUTH_RESULT" "$COGNITO_NEW"
 
 # HTML生成＋メール送信を1つのPythonスクリプトで実行
 SEND_RESULT=$(REPORT_DATA_FILE="$REPORT_DATA_FILE" python3 << 'PYEOF'
@@ -682,6 +751,10 @@ canary_cov_html = e_lines(d.get('canary_cov', '整合性チェック未実施'))
 daily_html      = e_lines(d.get('daily', '日めくり情報なし'))
 backend_html    = e_lines(d.get('backend', '未取得'))
 
+cognito_raw     = str(d.get('cognito_new', '')).strip()
+cognito_has_new = bool(cognito_raw) and not cognito_raw.startswith('新規登録なし') and '取得失敗' not in cognito_raw
+cognito_html    = e_lines(cognito_raw) if cognito_raw else e('新規登録なし')
+
 canary_auth_r = e(d.get('canary_auth', '未実行'))
 canary_auth_color = "#27ae60" if "PASS" in d.get('canary_auth', '') else ("#888" if "SKIP" in d.get('canary_auth', '') else "#e74c3c")
 canary_color = "#27ae60" if "PASS" in d['canary_r'] else "#e74c3c"
@@ -691,6 +764,12 @@ unchk_color  = "#e74c3c" if unchk_num > 50 else "#333"
 rpts_color   = "#e74c3c" if rpts_num > 0  else "#27ae60"
 
 rate_row     = f"<tr><td>レート制限</td><td class='warn'>{rate}</td></tr>" if d['rate'].strip() else ""
+
+# 新規ユーザー登録は「登録があった時だけ」目立つカードで表示する
+cognito_section = (
+    f'<h2 style="border-left-color:#27ae60">&#128100; 新規ユーザー登録（前日）</h2>'
+    f'<div class="card" style="font-size:13px;line-height:1.7;background:#eafaf1;border:1px solid #27ae60">{cognito_html}</div>'
+) if cognito_has_new else ""
 canary_detail_html = f"<br><br><b>失敗詳細:</b><pre>{canary_d}</pre>" if d['canary_d'].strip() else ""
 
 html_body = f"""<!DOCTYPE html>
@@ -750,6 +829,8 @@ html_body = f"""<!DOCTYPE html>
   <tr><td>未解決通報</td><td style="color:{rpts_color}"><b>{db_rpts} 件</b></td></tr>
 </table>
 <br><b>資格別問題数:</b><pre>{db_exams}</pre></div>
+
+{cognito_section}
 
 <h2>7. バックエンド稼働・コスト（直近24h）</h2>
 <div class="card" style="font-size:13px;line-height:1.7">{backend_html}</div>
