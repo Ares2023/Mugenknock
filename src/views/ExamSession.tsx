@@ -4,7 +4,6 @@ import { createPortal } from 'react-dom';
 import { useNavigate, useLocation } from '@/compat/react-router-dom';
 import { API_ENDPOINT, EXAM_CONFIGS, PASS_RATE, EXAM_LEVEL } from '../constants';
 import { recordSessionDomainStats } from '../utils/domainStats';
-import { recordGuestAnswers } from '../utils/guestProgress';
 import { qText, qChoiceAt } from '../utils/i18nQuestion';
 import { deleteCached } from '../utils/cache';
 import { addPoints } from '../utils/points';
@@ -271,7 +270,6 @@ export default function ExamSession() {
         examType, userId, results: abortResults,
         questionById: (qId) => qMap.get(qId) as any,
       });
-      if (userId === 'guest') recordGuestAnswers(examType, abortResults); // 未回答/誤答フィルタ用（ゲスト）
       deleteCached(`ustats_${userId}`);
       window.dispatchEvent(new CustomEvent('qstatsRefresh'));
       localStorage.setItem(`postSessionRefresh_${userId}`, String(Date.now()));
@@ -353,7 +351,6 @@ export default function ExamSession() {
         examType, userId, results,
         questionById: (qId) => qMapFull.get(qId) as any,
       });
-      if (userId === 'guest') recordGuestAnswers(examType, results); // 未回答/誤答フィルタ用（ゲスト）
       // セッション完了でキャッシュ破棄 → ホーム画面が最新データをサーバーから再取得
       deleteCached(`ustats_${userId}`);
       window.dispatchEvent(new CustomEvent('qstatsRefresh'));

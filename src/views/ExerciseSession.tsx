@@ -4,7 +4,6 @@ import { createPortal } from 'react-dom';
 import { useNavigate, useLocation } from '@/compat/react-router-dom';
 import { API_ENDPOINT, PASS_RATE, EXAM_DOMAINS, DOMAIN_NAME_EN, EXAM_LEVEL, qDomainName } from '../constants';
 import { recordSessionDomainStats, recentForTag } from '../utils/domainStats';
-import { recordGuestAnswers, getGuestBookmarkIds, toggleGuestBookmark } from '../utils/guestProgress';
 import { qText } from '../utils/i18nQuestion';
 import { getCached, setCached, deleteCached, DEFAULT_TTL } from '../utils/cache';
 import { addPoints } from '../utils/points';
@@ -411,7 +410,6 @@ export default function ExerciseSession() {
 
   useEffect(() => {
     if (!userId) return;
-    if (userId === 'guest') { setBookmarkedIds(getGuestBookmarkIds()); return; } // ゲストはローカル
     fetch(`${API_ENDPOINT}/users/me/bookmarks?userId=${userId}`)
       .then(r => r.json())
       .then(d => setBookmarkedIds(new Set(d.questionIds ?? [])))
@@ -421,11 +419,6 @@ export default function ExerciseSession() {
   const toggleBookmark = async () => {
     const qid = currentQuestion.questionId;
     const isBookmarked = bookmarkedIds.has(qid);
-    if (userId === 'guest') { // ゲストはローカルに保存（ログイン不要でブックマーク可能）
-      const now = toggleGuestBookmark(qid);
-      setBookmarkedIds(prev => { const next = new Set(prev); if (now) next.add(qid); else next.delete(qid); return next; });
-      return;
-    }
     setBookmarkLoading(true);
     try {
       if (isBookmarked) {
@@ -730,7 +723,6 @@ export default function ExerciseSession() {
         examType, userId, results,
         questionById: (qId) => questions.find((q: Question) => q.questionId === qId) as any,
       });
-      if (userId === 'guest') recordGuestAnswers(examType, results); // 未回答/誤答フィルタ用（ゲスト）
       try {
         const existingStats: any[] | null = getCached(`ustats_${userId}`);
         if (existingStats && existingStats.length > 0) {
@@ -799,7 +791,6 @@ export default function ExerciseSession() {
       examType, userId, results,
       questionById: (qId) => questions.find((q: Question) => q.questionId === qId) as any,
     });
-    if (userId === 'guest') recordGuestAnswers(examType, results); // 未回答/誤答フィルタ用（ゲスト）
     try {
       const existingStats2: any[] | null = getCached(`ustats_${userId}`);
       if (existingStats2 && existingStats2.length > 0) {
