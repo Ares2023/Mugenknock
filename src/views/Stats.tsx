@@ -8,6 +8,7 @@ import { useLanguage } from '../contexts/LanguageContext';
 import Card from '../components/ui/Card';
 import Button from '../components/ui/Button';
 import PageLayout from '../components/ui/PageLayout';
+import { getGuestAnsweredIds } from '../utils/guestProgress';
 import { getCached, setCached, SHORT_TTL } from '../utils/cache';
 import { IconStar, IconTarget, IconLightbulb } from '../components/Icons';
 
@@ -247,7 +248,18 @@ export default function Stats() {
 
   // ── 初期ロード（ノック量に必要なデータのみ） ──
   useEffect(() => {
-    if (!user || !targetExam) { setLoading(false); return; }
+    if (!targetExam) { setLoading(false); return; }
+    // ゲスト: ローカルの解答記録＋総問題数でカバレッジを表示（サーバ不要）
+    if (!user) {
+      setAnsweredCount(getGuestAnsweredIds(targetExam).size);
+      const cachedTotal = getCached<number>(`qcount_${targetExam}`);
+      if (cachedTotal !== null) { setTotalCount(cachedTotal); setLoading(false); return; }
+      setLoading(true);
+      fetch(`${API_ENDPOINT}/questions?examType=${targetExam}&limit=0`).then(r => r.json())
+        .then(qRes => { const count = qRes.total ?? qRes.count ?? 0; setTotalCount(count); setCached(`qcount_${targetExam}`, count); })
+        .catch(console.error).finally(() => setLoading(false));
+      return;
+    }
     const cachedTotal = getCached<number>(`qcount_${targetExam}`);
     if (cachedTotal !== null) setTotalCount(cachedTotal);
     setLoading(true);
@@ -305,6 +317,19 @@ export default function Stats() {
   const dailyData = useMemo(() => {
     const today = new Date();
     const todayStr = today.toISOString().slice(0, 10);
+    // ゲスト: ローカルの日次カウント（dailyQCount, JSTキー）から集計する
+    if (!user) {
+      const jstStr = (d: Date) => new Date(d.getTime() + 9 * 3600 * 1000).toISOString().slice(0, 10);
+      const jstTodayStr = jstStr(today);
+      const gRange = activityRange === 'all' ? 30 : activityRange;
+      return Array.from({ length: gRange }, (_, i) => {
+        const d = new Date(today);
+        d.setDate(d.getDate() - (gRange - 1 - i));
+        const dateStr = jstStr(d);
+        const count = targetExam ? parseInt(localStorage.getItem(`dailyQCount_${targetExam}_guest_${dateStr}`) ?? '0', 10) : 0;
+        return { label: `${+dateStr.slice(5, 7)}/${+dateStr.slice(8, 10)}`, count, isToday: dateStr === jstTodayStr };
+      });
+    }
     let range: number;
     if (activityRange === 'all') {
       if (sessions.length === 0) {
@@ -329,7 +354,7 @@ export default function Stats() {
       }, 0);
       return { label: `${d.getMonth() + 1}/${d.getDate()}`, count, isToday: dateStr === todayStr };
     });
-  }, [sessions, activityRange]);
+  }, [sessions, activityRange, user, targetExam]);
 
   const domainStats = useMemo(() => {
     if (!targetExam) return [];
@@ -425,10 +450,6 @@ export default function Stats() {
                 <div className="skeleton" style={{ height: 8, borderRadius: 10, marginBottom: 6 }} />
                 <div className="skeleton" style={{ height: 12, width: '20%', borderRadius: 4, marginLeft: 'auto' }} />
               </>
-            ) : !user ? (
-              <p style={{ margin: 0, fontSize: 'var(--font-size-sm)', color: 'var(--color-text-light)' }}>
-                {lang === 'ja' ? 'ログインすると表示されます' : 'Log in to view'}
-              </p>
             ) : (
               <>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: 'var(--spacing-sm)' }}>
@@ -480,10 +501,6 @@ export default function Stats() {
               <div style={{ position: 'relative', paddingBottom: '26.7%' }}>
                 <div className="skeleton" style={{ position: 'absolute', inset: 0, borderRadius: 'var(--border-radius-md)' }} />
               </div>
-            ) : !user ? (
-              <p style={{ margin: 0, fontSize: 'var(--font-size-sm)', color: 'var(--color-text-light)' }}>
-                {lang === 'ja' ? 'ログインすると表示されます' : 'Log in to view'}
-              </p>
             ) : (
               <>
                 <ActivityChart data={dailyData} lang={lang} />
