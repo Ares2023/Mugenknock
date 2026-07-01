@@ -1177,6 +1177,9 @@ export default function Home() {
   const [lastMode, setLastMode] = useState<'quick' | 'focused'>(() => (localStorage.getItem(`lastQuickMode_${uid}`) as 'quick' | 'focused') ?? 'quick');
   const [answeredCount, setAnsweredCount] = useState(0);
   const [answeredCountReady, setAnsweredCountReady] = useState(false);
+  const [guestBannerHidden, setGuestBannerHidden] = useState(() => {
+    try { return localStorage.getItem('guestBannerHidden') === '1'; } catch { return false; }
+  });
   const [qRefreshTick, setQRefreshTick] = useState(0); // セッション完了で +1 → useEffect 再実行
   const [savedQuick, setSavedQuick] = useState(false);
   const [savedFocused, setSavedFocused] = useState(false);
@@ -2040,11 +2043,18 @@ export default function Home() {
         />
       )}
 
-      {/* ── 非ログイン時バナー ── */}
-      {!user && (
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 'var(--spacing-md)', marginTop: 'var(--spacing-md)', background: 'var(--color-primary-light)', border: '1px solid var(--color-primary)', borderRadius: 'var(--border-radius-md)', padding: '10px var(--spacing-md)', fontSize: 'var(--font-size-sm)', color: 'var(--color-text-main)' }}>
-          <span style={{ lineHeight: 1.6 }}>{ja ? 'ログインすると演習・模試の結果が保存され、予想スコアが表示されます。' : 'Log in to save results and view your estimated score.'}</span>
-          <Button variant="primary" size="sm" onClick={() => navigate('/login')} style={{ flexShrink: 0 }}>{ja ? 'ログイン →' : 'Log in →'}</Button>
+      {/* ── 非ログイン時バナー（控えめ・閉じ可能。演習はログイン不要で使える前提の案内） ── */}
+      {!user && !guestBannerHidden && (
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 'var(--spacing-sm)', marginTop: 'var(--spacing-md)', background: 'var(--color-bg-white)', border: '1px solid var(--color-border)', borderRadius: 'var(--border-radius-md)', padding: '8px var(--spacing-md)', fontSize: 'var(--font-size-sm)', color: 'var(--color-text-sub)' }}>
+          <span style={{ lineHeight: 1.6 }}>{ja ? 'そのまま演習できます。ログインすると記録の保存や端末間同期ができます。' : 'You can practice right away. Log in to save your records and sync across devices.'}</span>
+          <span style={{ display: 'inline-flex', alignItems: 'center', gap: 'var(--spacing-xs)', flexShrink: 0 }}>
+            <Button variant="outline" size="sm" onClick={() => navigate('/login')}>{ja ? 'ログイン' : 'Log in'}</Button>
+            <button
+              aria-label={ja ? '閉じる' : 'Dismiss'}
+              onClick={() => { setGuestBannerHidden(true); try { localStorage.setItem('guestBannerHidden', '1'); } catch {} }}
+              style={{ border: 'none', background: 'none', cursor: 'pointer', color: 'var(--color-text-light)', fontSize: 'var(--font-size-lg)', lineHeight: 1, padding: '0 var(--spacing-xs)' }}
+            >✕</button>
+          </span>
         </div>
       )}
 
