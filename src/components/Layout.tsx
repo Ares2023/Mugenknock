@@ -593,7 +593,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
           borderTop: '1px solid var(--color-border)',
           padding: '12px 20px',
           display: 'flex', alignItems: 'center', gap: 12, flexWrap: 'wrap',
-          boxShadow: '0 -2px 12px rgba(0,0,0,0.1)',
+          boxShadow: 'var(--box-shadow-up)',
         }}>
           <span style={{ flex: 1, minWidth: 200, fontSize: 'var(--font-size-xs)', color: 'var(--color-text-sub)', lineHeight: 1.6 }}>
             {lang === 'ja'
@@ -625,7 +625,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
           <div style={{ background: 'var(--color-bg-white)', borderRadius: 'var(--border-radius-lg)', padding: isMobile ? '20px 18px' : '28px 32px', width: '100%', maxWidth: 480, boxShadow: 'var(--box-shadow-md)', maxHeight: isMobile ? '66vh' : '90vh', overflowY: 'auto' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 'var(--spacing-lg)' }}>
               <h3 style={{ margin: 0, fontSize: 'var(--font-size-h3)', fontWeight: 700, color: 'var(--color-text-main)' }}>{t('contact.title')}</h3>
-              <button onClick={() => setShowContact(false)} style={{ border: 'none', background: 'none', fontSize: 20, cursor: 'pointer', color: 'var(--color-text-sub)', padding: '4px 8px' }}>✕</button>
+              <button onClick={() => setShowContact(false)} style={{ border: 'none', background: 'none', fontSize: 'var(--font-size-xl)', cursor: 'pointer', color: 'var(--color-text-sub)', padding: '4px 8px' }}>✕</button>
             </div>
             {contactDone ? (
               <div style={{ textAlign: 'center', padding: '24px 0' }}>
@@ -707,15 +707,15 @@ export default function Layout({ children }: { children: React.ReactNode }) {
                   {lang === 'ja' ? 'SPとは？' : 'What is SP?'}
                 </span>
               </div>
-              <button onClick={() => setShowPointsInfo(false)} style={{ border: 'none', background: 'none', fontSize: 18, cursor: 'pointer', color: 'var(--color-text-sub)', padding: '4px 8px', lineHeight: 1 }}>✕</button>
+              <button onClick={() => setShowPointsInfo(false)} style={{ border: 'none', background: 'none', fontSize: 'var(--font-size-h3)', cursor: 'pointer', color: 'var(--color-text-sub)', padding: '4px 8px', lineHeight: 1 }}>✕</button>
             </div>
 
             {/* 獲得方法 */}
             <div style={{ marginBottom: 20 }}>
-              <div style={{ fontSize: 12, fontWeight: 700, color: 'var(--color-text-sub)', marginBottom: 10, letterSpacing: '0.5px' }}>
+              <div style={{ fontSize: 'var(--font-size-sm)', fontWeight: 700, color: 'var(--color-text-sub)', marginBottom: 10, letterSpacing: '0.5px' }}>
                 {lang === 'ja' ? '獲得方法' : 'How to earn'}
               </div>
-              <div style={{ fontSize: 13, color: 'var(--color-text-sub)', marginBottom: 8 }}>
+              <div style={{ fontSize: 'var(--font-size-sm2)', color: 'var(--color-text-sub)', marginBottom: 8 }}>
                 {lang === 'ja' ? '問題に正解するとSPを獲得できます。資格のレベルが高いほど多く獲得できます。' : 'Earn SP by answering questions correctly. Higher certification levels give more SP.'}
               </div>
               <div style={{ background: 'var(--color-bg-main)', borderRadius: 8, overflow: 'hidden' }}>
@@ -727,12 +727,12 @@ export default function Layout({ children }: { children: React.ReactNode }) {
                 ] as const).map((row, i, arr) => (
                   <div key={row.level} style={{ display: 'flex', alignItems: 'center', padding: '9px 12px', borderBottom: i < arr.length - 1 ? '1px solid color-mix(in srgb, var(--color-text-light) 40%, transparent)' : 'none' }}>
                     <div style={{ flex: 1, minWidth: 0 }}>
-                      <div style={{ fontSize: 12, fontWeight: 700, color: 'var(--color-text-main)' }}>{row.level}</div>
-                      <div style={{ fontSize: 10, color: 'var(--color-text-light)', marginTop: 1 }}>{row.exams}</div>
+                      <div style={{ fontSize: 'var(--font-size-sm)', fontWeight: 700, color: 'var(--color-text-main)' }}>{row.level}</div>
+                      <div style={{ fontSize: 'var(--font-size-2xs)', color: 'var(--color-text-light)', marginTop: 1 }}>{row.exams}</div>
                     </div>
                     <div style={{ display: 'flex', alignItems: 'baseline', gap: 2, flexShrink: 0 }}>
-                      <span style={{ fontSize: 20, fontWeight: 800, color: '#009E9E', fontVariantNumeric: 'tabular-nums' }}>+{row.pts}</span>
-                      <span style={{ fontSize: 11, color: 'var(--color-text-light)' }}>{lang === 'ja' ? 'SP/問' : 'SP/q'}</span>
+                      <span style={{ fontSize: 'var(--font-size-xl)', fontWeight: 800, color: '#009E9E', fontVariantNumeric: 'tabular-nums' }}>+{row.pts}</span>
+                      <span style={{ fontSize: 'var(--font-size-xs)', color: 'var(--color-text-light)' }}>{lang === 'ja' ? 'SP/問' : 'SP/q'}</span>
                     </div>
                   </div>
                 ))}
@@ -741,16 +741,16 @@ export default function Layout({ children }: { children: React.ReactNode }) {
 
             {/* 使い道 */}
             <div>
-              <div style={{ fontSize: 12, fontWeight: 700, color: 'var(--color-text-sub)', marginBottom: 10, letterSpacing: '0.5px' }}>
+              <div style={{ fontSize: 'var(--font-size-sm)', fontWeight: 700, color: 'var(--color-text-sub)', marginBottom: 10, letterSpacing: '0.5px' }}>
                 {lang === 'ja' ? '使い道' : 'How to use'}
               </div>
               <div style={{ background: 'var(--color-bg-main)', borderRadius: 8, padding: '10px 12px', display: 'flex', alignItems: 'center', gap: 10 }}>
-                <div style={{ flex: 1, fontSize: 13, color: 'var(--color-text-main)' }}>
+                <div style={{ flex: 1, fontSize: 'var(--font-size-sm2)', color: 'var(--color-text-main)' }}>
                   {lang === 'ja' ? '日めくりサービスの更新' : 'Daily service reroll'}
                 </div>
                 <div style={{ display: 'flex', alignItems: 'baseline', gap: 2, flexShrink: 0 }}>
-                  <span style={{ fontSize: 20, fontWeight: 800, color: '#009E9E', fontVariantNumeric: 'tabular-nums' }}>30</span>
-                  <span style={{ fontSize: 11, color: 'var(--color-text-light)' }}>SP</span>
+                  <span style={{ fontSize: 'var(--font-size-xl)', fontWeight: 800, color: '#009E9E', fontVariantNumeric: 'tabular-nums' }}>30</span>
+                  <span style={{ fontSize: 'var(--font-size-xs)', color: 'var(--color-text-light)' }}>SP</span>
                 </div>
               </div>
             </div>
@@ -786,11 +786,11 @@ export default function Layout({ children }: { children: React.ReactNode }) {
               `}</style>
               <div onClick={() => setShowPointsInfo(true)} style={{ display: 'flex', alignItems: 'center', gap: 4, userSelect: 'none', position: 'relative', border: '1.5px solid #009E9E', borderRadius: 6, padding: '3px 8px 3px 6px', background: 'rgba(0,158,158,0.05)', cursor: 'pointer' }}>
                 <span style={{ color: '#009E9E', display: 'flex', alignItems: 'center' }}><IconSparkles size={17} /></span>
-                <span style={{ color: '#009E9E', fontWeight: 800, fontSize: 'var(--font-size-sm)', minWidth: '3ch', textAlign: 'right', fontVariantNumeric: 'tabular-nums' }}>{points}<span style={{ fontSize: 10, fontWeight: 600, marginLeft: 1 }}>p</span></span>
+                <span style={{ color: '#009E9E', fontWeight: 800, fontSize: 'var(--font-size-sm)', minWidth: '3ch', textAlign: 'right', fontVariantNumeric: 'tabular-nums' }}>{points}<span style={{ fontSize: 'var(--font-size-2xs)', fontWeight: 600, marginLeft: 1 }}>p</span></span>
                 {ptsDelta !== null && (
                   <span style={{
                     position: 'absolute', right: -32, top: -2,
-                    fontSize: 11, fontWeight: 800,
+                    fontSize: 'var(--font-size-xs)', fontWeight: 800,
                     color: ptsDelta > 0 ? '#009E9E' : 'var(--color-danger)',
                     whiteSpace: 'nowrap', pointerEvents: 'none',
                     animation: 'pts-delta-fly 1.8s ease-out forwards',
@@ -815,7 +815,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
                 width: 36, height: 36, padding: 0,
                 flexShrink: 0,
                 transition: 'background 0.2s',
-                fontSize: 14, fontWeight: 700, letterSpacing: 0,
+                fontSize: 'var(--font-size-base)', fontWeight: 700, letterSpacing: 0,
               }}
               onMouseEnter={e => e.currentTarget.style.background = 'var(--color-bg-main)'}
               onMouseLeave={e => e.currentTarget.style.background = user ? 'var(--color-primary-light)' : 'transparent'}
@@ -839,7 +839,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
         {!isMobile && (
           <button onClick={toggle} style={{
             background: open ? 'var(--color-bg-main)' : 'none', border: 'none', cursor: 'pointer',
-            color: open ? 'var(--color-text-main)' : 'var(--color-text-sub)', fontSize: 16, lineHeight: 1,
+            color: open ? 'var(--color-text-main)' : 'var(--color-text-sub)', fontSize: 'var(--font-size-lg)', lineHeight: 1,
             padding: '6px 10px',
             display: 'flex', alignItems: 'center', borderRadius: 'var(--border-radius-sm)',
             transition: 'all 0.2s', flexShrink: 0,
@@ -882,7 +882,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
               <span style={{
                 display: 'block',
                 minWidth: 0,
-                fontSize: 13, fontWeight: 700,
+                fontSize: 'var(--font-size-sm2)', fontWeight: 700,
                 color: 'var(--color-text-sub)',
                 whiteSpace: 'nowrap',
                 overflow: 'hidden', textOverflow: 'ellipsis',
@@ -1078,7 +1078,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
             marginTop: 'var(--spacing-xl)',
           }}>
             <span>© {new Date().getFullYear()} 無限ノック</span>
-            <span style={{ width: '100%', textAlign: 'center', fontSize: 10, color: 'var(--color-text-light)', opacity: 0.7 }}>
+            <span style={{ width: '100%', textAlign: 'center', fontSize: 'var(--font-size-2xs)', color: 'var(--color-text-light)', opacity: 0.7 }}>
               {lang === 'ja'
                 ? 'AWSはAmazon Web Services, Inc.の商標です。本サービスはAmazonと無関係の非公式サービスです。'
                 : 'AWS is a trademark of Amazon Web Services, Inc. This is an unofficial service unaffiliated with Amazon.'}
@@ -1108,7 +1108,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
           borderTop: '1px solid var(--color-border)',
           display: 'flex', alignItems: 'stretch',
           zIndex: 200,
-          boxShadow: '0 -2px 8px rgba(0,0,0,0.06)',
+          boxShadow: 'var(--box-shadow-up)',
         }}>
           {BOTTOM_TABS.map(({ path, Icon, ja, en }) => {
             const active = isActive(path);
@@ -1127,7 +1127,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
                 <span style={{ display: 'flex', alignItems: 'center', transform: 'scale(1.2)', marginBottom: 2 }}>
                   <Icon />
                 </span>
-                <span style={{ fontSize: 11, fontWeight: active ? 700 : 400, lineHeight: 1, whiteSpace: 'nowrap' }}>
+                <span style={{ fontSize: 'var(--font-size-xs)', fontWeight: active ? 700 : 400, lineHeight: 1, whiteSpace: 'nowrap' }}>
                   {label}
                 </span>
               </button>
@@ -1146,7 +1146,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
             <span style={{ display: 'flex', alignItems: 'center' }}>
               <IconMore />
             </span>
-            <span style={{ fontSize: 11, fontWeight: isOthersActive ? 700 : 400, lineHeight: 1 }}>
+            <span style={{ fontSize: 'var(--font-size-xs)', fontWeight: isOthersActive ? 700 : 400, lineHeight: 1 }}>
               {lang === 'ja' ? 'その他' : 'More'}
             </span>
           </button>

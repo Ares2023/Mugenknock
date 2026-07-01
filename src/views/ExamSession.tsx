@@ -443,7 +443,7 @@ export default function ExamSession() {
     return (
       <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: '60vh', gap: 16 }}>
         <div className="sherpa-spinner" style={{ width: 36, height: 36, borderWidth: 3 }} />
-        <div style={{ fontSize: 18, color: 'var(--color-text-sub)' }}>{t('examSession.scoring')}</div>
+        <div style={{ fontSize: 'var(--font-size-h3)', color: 'var(--color-text-sub)' }}>{t('examSession.scoring')}</div>
       </div>
     );
   }
@@ -560,7 +560,7 @@ export default function ExamSession() {
               })}
             </div>
             {useWindow && (
-              <span style={{ flexShrink: 0, marginLeft: 12, fontSize: 11, fontWeight: 700, color: 'var(--color-text-light)', fontVariantNumeric: 'tabular-nums', whiteSpace: 'nowrap' }}>
+              <span style={{ flexShrink: 0, marginLeft: 12, fontSize: 'var(--font-size-xs)', fontWeight: 700, color: 'var(--color-text-light)', fontVariantNumeric: 'tabular-nums', whiteSpace: 'nowrap' }}>
                 {currentIndex + 1} / {total}
               </span>
             )}
@@ -680,7 +680,7 @@ export default function ExamSession() {
                       display: 'flex', alignItems: 'center', justifyContent: 'center',
                       pointerEvents: 'none',
                     }}>
-                      {isSelected && <span style={{ color: 'white', fontSize: 10, lineHeight: 1, fontWeight: 700 }}>✓</span>}
+                      {isSelected && <span style={{ color: 'white', fontSize: 'var(--font-size-2xs)', lineHeight: 1, fontWeight: 700 }}>✓</span>}
                     </div>
                   ) : (
                     <div style={{
@@ -718,7 +718,7 @@ export default function ExamSession() {
                   transition: 'all 0.15s ease',
                   ...((!isMobile && cursorIndex === shuffledIndices.length) ? { outline: '2px solid var(--color-accent)', outlineOffset: 1 } : {}),
                 }}>
-                <span style={{ marginRight: 10, fontSize: 12, flexShrink: 0 }}>？</span>
+                <span style={{ marginRight: 10, fontSize: 'var(--font-size-sm)', flexShrink: 0 }}>？</span>
                 <span>{WAKARANAI}</span>
               </button>
             );
@@ -819,7 +819,7 @@ export default function ExamSession() {
           <div style={{ position: 'fixed', right: 24, bottom: 24, zIndex: 150 }}>
             <button
               onClick={() => setShowConfirm(true)}
-              style={{ height: 44, padding: '0 24px', border: 'none', borderRadius: 22, background: 'var(--color-accent)', color: 'var(--color-btn-primary-text)', fontWeight: 600, fontSize: 'var(--font-size-base)', cursor: 'pointer', whiteSpace: 'nowrap', boxShadow: '0 2px 8px rgba(0,0,0,0.15)', display: 'inline-flex', alignItems: 'center', gap: 8 }}
+              style={{ height: 44, padding: '0 24px', border: 'none', borderRadius: 22, background: 'var(--color-accent)', color: 'var(--color-btn-primary-text)', fontWeight: 600, fontSize: 'var(--font-size-base)', cursor: 'pointer', whiteSpace: 'nowrap', boxShadow: 'var(--box-shadow-pop)', display: 'inline-flex', alignItems: 'center', gap: 8 }}
             >
               {t('examSession.submit')}
               <KeyHint />

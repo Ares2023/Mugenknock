@@ -7,6 +7,7 @@ import { useLanguage } from '../contexts/LanguageContext';
 import { API_ENDPOINT } from '../constants';
 import { IconBot, IconFire, IconMail, IconBookOpen } from '../components/Icons';
 import Button from '../components/ui/Button';
+import PageLayout from '../components/ui/PageLayout';
 
 const ITEMS = [
   { path: '/aws/encyclopedia',  Icon: IconBookOpen,  ja: 'サービス図鑑',           en: 'Service Encyclopedia',      desc_ja: '日めくりで解放されるAWSサービス一覧', desc_en: 'AWS services unlocked via daily service' },
@@ -53,7 +54,7 @@ export default function Others() {
   };
 
   return (
-    <div style={{ maxWidth: 900, margin: '0 auto', padding: 'var(--spacing-lg)' }}>
+    <PageLayout>
       <Helmet>
         <title>その他 | 無限ノック</title>
         <meta name="description" content="サービス図鑑・問い合わせ・ストリークなど、無限ノックの各種機能へのリンク集。" />
@@ -87,7 +88,7 @@ export default function Others() {
                 {ja ? desc_ja : desc_en}
               </div>
             </div>
-            <span style={{ color: 'var(--color-text-light)', fontSize: 16, flexShrink: 0 }}>›</span>
+            <span style={{ color: 'var(--color-text-light)', fontSize: 'var(--font-size-lg)', flexShrink: 0 }}>›</span>
           </button>
         ))}
 
@@ -118,7 +119,7 @@ export default function Others() {
               {ja ? 'ご意見・不具合報告' : 'Send feedback or report issues'}
             </div>
           </div>
-          <span style={{ color: 'var(--color-text-light)', fontSize: 16, flexShrink: 0 }}>›</span>
+          <span style={{ color: 'var(--color-text-light)', fontSize: 'var(--font-size-lg)', flexShrink: 0 }}>›</span>
         </button>
 
       </div>
@@ -132,7 +133,7 @@ export default function Others() {
           <div style={{ background: 'var(--color-bg-white)', borderRadius: 'var(--border-radius-lg)', padding: '24px 24px 20px', width: '100%', maxWidth: 480, boxShadow: 'var(--box-shadow-md)', maxHeight: window.innerWidth < 768 ? '66vh' : '90vh', overflowY: 'auto' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 'var(--spacing-lg)' }}>
               <h3 style={{ margin: 0, fontSize: 'var(--font-size-h3)', fontWeight: 700, color: 'var(--color-text-main)' }}>{t('contact.title')}</h3>
-              <button onClick={() => setShowContact(false)} style={{ border: 'none', background: 'none', fontSize: 20, cursor: 'pointer', color: 'var(--color-text-sub)', padding: '4px 8px' }}>✕</button>
+              <button onClick={() => setShowContact(false)} style={{ border: 'none', background: 'none', fontSize: 'var(--font-size-xl)', cursor: 'pointer', color: 'var(--color-text-sub)', padding: '4px 8px' }}>✕</button>
             </div>
             {contactDone ? (
               <div style={{ textAlign: 'center', padding: '24px 0' }}>
@@ -185,6 +186,6 @@ export default function Others() {
           </div>
         </div>
       )}
-    </div>
+    </PageLayout>
   );
 }

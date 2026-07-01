@@ -6,6 +6,7 @@ import { useAuth } from '../contexts/AuthContext';
 import { useLanguage } from '../contexts/LanguageContext';
 import { API_ENDPOINT, EXAM_CONFIGS, EXAM_DOMAINS, EXAM_TYPES, PASS_SCORES, qDomainName, domainsToIndices, storedDomainsToNames, tagIdMatches } from '../constants';
 import Button from '../components/ui/Button';
+import PageLayout from '../components/ui/PageLayout';
 import { getCached, setCached, SHORT_TTL, getCachedPersist, setCachedPersist } from '../utils/cache';
 import { autoScoreAndClearDrafts } from '../utils/sessionUtils';
 import { hydrateDraftsFromServer } from '../utils/sessionResume';
@@ -209,6 +210,9 @@ export default function Practice() {
 
       // ── プリフェッチキャッシュを使用 ──
       const hasFilters = !!(user && (bookmarkOnly || unansweredOnly || incorrectOnly)) || !allSelected;
+      // 未回答/不正解/ブックマークの「優先」フィルタ。これで設定の問題数に満たない場合は
+      // 同一ドメイン内のフィルタ外の問題で不足分を補充する（ドメイン選択自体は尊重する）
+      const hasStatusFilter = !!(user && (bookmarkOnly || unansweredOnly || incorrectOnly));
       const qPrefs = { unansweredOnly, incorrectOnly, bookmarkOnly, domains: allSelected ? [] : selectedDomains };
       const cached = hasFilters ? getPrefetchC(examType, userId, qPrefs) : getPrefetchA(examType);
       if (cached && cached.questions.length > 0) {
@@ -216,7 +220,9 @@ export default function Practice() {
           let items: any[] = [...cached.questions];
           if (!allSelected) items = items.filter((q: any) => selectedDomains.includes(qDomainName(q)));
           items = shuffleArray(items).slice(0, limit);
-          if (items.length > 0) {
+          // フィルタで設定数に満たない場合はキャッシュ即遷移せず、
+          // フィルタ外から補充できるフォールバック経路へ回す
+          if (items.length > 0 && (items.length >= limit || !hasStatusFilter)) {
             setExerciseLoadPct(90);
             const questionIds = items.map((q: any) => q.questionId);
             // セッション作成は遷移先で非同期実行（クリティカルパスから除外）
@@ -245,7 +251,21 @@ export default function Practice() {
       if (user) idsParams.set('userId', userId); // フィルタ無しでもドメイン均等化のため常に渡す
       const idsData = await fetch(`${API_ENDPOINT}/questions?${idsParams}`).then(r => r.json());
       const allIds: string[] = idsData.questionIds ?? [];
-      const selectedIds = allIds.slice(0, limit);
+      let selectedIds = allIds.slice(0, limit);
+      // 優先フィルタで設定の問題数に満たない場合、同一ドメイン内のフィルタ外の問題で補充する
+      if (selectedIds.length < limit && hasStatusFilter) {
+        const fillParams = new URLSearchParams({ examType, shuffle: 'true', idsOnly: 'true' });
+        if (!allSelected) fillParams.set('domain', domainsToIndices(examType, selectedDomains).join(','));
+        if (user) fillParams.set('userId', userId);
+        try {
+          const fillData = await fetch(`${API_ENDPOINT}/questions?${fillParams}`).then(r => r.json());
+          const have = new Set(selectedIds);
+          for (const id of (fillData.questionIds ?? []) as string[]) {
+            if (selectedIds.length >= limit) break;
+            if (!have.has(id)) { selectedIds.push(id); have.add(id); }
+          }
+        } catch (e) { console.debug('[exercise] fill topup failed:', e); }
+      }
       if (selectedIds.length === 0) { alert(t('exerciseSetup.noQuestions')); setExerciseLoading(false); return; }
       setExerciseLoadPct(50);
       // 2. 最初の1問だけ取得（セッション作成は遷移先で非同期実行）
@@ -394,7 +414,7 @@ export default function Practice() {
   }, []);
 
   return (
-    <div style={{ maxWidth: 900, margin: '0 auto', padding: 'var(--spacing-lg)', paddingBottom: isMobile ? 'var(--spacing-lg)' : 80 }} className="page-container">
+    <PageLayout className="page-container" style={{ paddingBottom: isMobile ? undefined : 80 }}>
       <Helmet>
         <title>練習 | 無限ノック</title>
         <meta name="description" content="AWS認定試験の練習問題に取り組もう。苦手分野を集中的に練習して合格スコアを目指そう。" />
@@ -457,25 +477,30 @@ export default function Practice() {
                 data-kbnav="1"
                 onClick={() => setLimit(v => Math.max(5, v - 5))}
                 disabled={limit <= 5}
-                style={{ width: 36, height: 36, borderRadius: '50%', border: '1px solid color-mix(in srgb, var(--color-text-light) 40%, transparent)', background: 'transparent', cursor: limit <= 5 ? 'default' : 'pointer', fontSize: 20, display: 'flex', alignItems: 'center', justifyContent: 'center', color: limit <= 5 ? 'var(--color-text-light)' : 'var(--color-text-main)' }}
+                style={{ width: 36, height: 36, borderRadius: '50%', border: '1px solid color-mix(in srgb, var(--color-text-light) 40%, transparent)', background: 'transparent', cursor: limit <= 5 ? 'default' : 'pointer', fontSize: 'var(--font-size-xl)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: limit <= 5 ? 'var(--color-text-light)' : 'var(--color-text-main)' }}
               >−</button>
               <span style={{ fontSize: 24, fontWeight: 800, minWidth: 64, textAlign: 'center', color: 'var(--color-primary)', fontVariantNumeric: 'tabular-nums' }}>
-                {limit}<span style={{ fontSize: 13, fontWeight: 400, marginLeft: 2, color: 'var(--color-text-sub)' }}>{ja ? '問' : 'Q'}</span>
+                {limit}<span style={{ fontSize: 'var(--font-size-sm2)', fontWeight: 400, marginLeft: 2, color: 'var(--color-text-sub)' }}>{ja ? '問' : 'Q'}</span>
               </span>
               <button
                 data-kbnav="1"
                 onClick={() => setLimit(v => Math.min(examCfg?.totalQuestions ?? 65, v + 5))}
                 disabled={limit >= (examCfg?.totalQuestions ?? 65)}
-                style={{ width: 36, height: 36, borderRadius: '50%', border: '1px solid color-mix(in srgb, var(--color-text-light) 40%, transparent)', background: 'transparent', cursor: limit >= (examCfg?.totalQuestions ?? 65) ? 'default' : 'pointer', fontSize: 20, display: 'flex', alignItems: 'center', justifyContent: 'center', color: limit >= (examCfg?.totalQuestions ?? 65) ? 'var(--color-text-light)' : 'var(--color-text-main)' }}
+                style={{ width: 36, height: 36, borderRadius: '50%', border: '1px solid color-mix(in srgb, var(--color-text-light) 40%, transparent)', background: 'transparent', cursor: limit >= (examCfg?.totalQuestions ?? 65) ? 'default' : 'pointer', fontSize: 'var(--font-size-xl)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: limit >= (examCfg?.totalQuestions ?? 65) ? 'var(--color-text-light)' : 'var(--color-text-main)' }}
               >+</button>
             </div>
           </div>
 
           {availableCount !== null && availableCount > 0 && availableCount < limit
-            && (bookmarkOnly || unansweredOnly || incorrectOnly || !(EXAM_DOMAINS[examType] ?? []).every(d => selectedDomains.includes(d)))
             && (
             <div style={{ marginBottom: 'var(--spacing-md)', fontSize: 'var(--font-size-sm)', color: 'var(--color-text-warning)', background: 'var(--color-bg-warning)', border: '1px solid var(--color-border-warning)', borderRadius: 'var(--border-radius-md)', padding: '8px 12px' }}>
-              ⚠️ {ja ? `条件に合う問題が${availableCount}問しかありません。${availableCount}問で開始します。` : `Only ${availableCount} questions match. Session will start with ${availableCount} questions.`}
+              ⚠️ {user && (bookmarkOnly || unansweredOnly || incorrectOnly)
+                ? (ja
+                    ? `条件に合う問題は${availableCount}問です。不足分は条件外の問題で補い、${limit}問で開始します。`
+                    : `Only ${availableCount} questions match the filter. The rest will be filled from outside the filter to start with ${limit}.`)
+                : (ja
+                    ? `条件に合う問題が${availableCount}問しかありません。${availableCount}問で開始します。`
+                    : `Only ${availableCount} questions match. Session will start with ${availableCount} questions.`)}
             </div>
           )}
 
@@ -489,14 +514,14 @@ export default function Practice() {
               {showExerciseOptions ? <IconChevronDown size={14} /> : <IconChevronRight size={14} />}
               {ja ? 'オプション' : 'Options'}
               {selectedDomains.length > 0 && selectedDomains.length < (EXAM_DOMAINS[examType]?.length ?? 0) && (
-                <span style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', width: 16, height: 16, borderRadius: '50%', background: 'var(--color-primary)', color: '#fff', fontSize: 10, fontWeight: 700 }}>
+                <span style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', width: 16, height: 16, borderRadius: '50%', background: 'var(--color-primary)', color: '#fff', fontSize: 'var(--font-size-2xs)', fontWeight: 700 }}>
                   {selectedDomains.length}
                 </span>
               )}
             </button>
             {showExerciseOptions && (
               <div style={{ padding: '12px 14px', borderTop: '1px solid color-mix(in srgb, var(--color-text-light) 40%, transparent)', display: 'flex', flexDirection: 'column', gap: 6 }}>
-                <div style={{ fontSize: 11, fontWeight: 700, color: 'var(--color-text-light)', letterSpacing: '0.05em', marginBottom: 2 }}>{ja ? 'ドメイン' : 'Domain'}</div>
+                <div style={{ fontSize: 'var(--font-size-xs)', fontWeight: 700, color: 'var(--color-text-light)', letterSpacing: '0.05em', marginBottom: 2 }}>{ja ? 'ドメイン' : 'Domain'}</div>
                 {/* 全て */}
                 <label data-kbnav="1" style={{ display: 'flex', alignItems: 'center', gap: 8, cursor: 'pointer', paddingBottom: 6, borderBottom: '1px solid color-mix(in srgb, var(--color-text-light) 20%, transparent)' }}>
                   <input
@@ -525,7 +550,7 @@ export default function Practice() {
                       />
                       <span style={{ fontSize: 'var(--font-size-sm)', color: 'var(--color-text-main)', flex: 1 }}>{domain}</span>
                       {rate != null && (
-                        <span style={{ fontSize: 10, fontWeight: 700, color: rate < 0.4 ? 'var(--color-danger)' : rate < 0.6 ? 'var(--color-caution)' : 'var(--color-text-sub)', flexShrink: 0 }}>
+                        <span style={{ fontSize: 'var(--font-size-2xs)', fontWeight: 700, color: rate < 0.4 ? 'var(--color-danger)' : rate < 0.6 ? 'var(--color-caution)' : 'var(--color-text-sub)', flexShrink: 0 }}>
                           {Math.round(rate * 100)}%
                         </span>
                       )}
@@ -538,7 +563,7 @@ export default function Practice() {
                   </div>
                 )}
                 <div style={{ paddingTop: 8, marginTop: 2, borderTop: '1px solid color-mix(in srgb, var(--color-text-light) 20%, transparent)' }}>
-                  <div style={{ fontSize: 11, fontWeight: 700, color: 'var(--color-text-light)', letterSpacing: '0.05em', marginBottom: 6 }}>{ja ? 'その他' : 'Other'}</div>
+                  <div style={{ fontSize: 'var(--font-size-xs)', fontWeight: 700, color: 'var(--color-text-light)', letterSpacing: '0.05em', marginBottom: 6 }}>{ja ? 'その他' : 'Other'}</div>
                   <label data-kbnav="1" style={{ display: 'flex', alignItems: 'center', gap: 8, cursor: 'pointer' }}>
                     <input
                       type="checkbox"
@@ -550,7 +575,7 @@ export default function Practice() {
                       {ja ? '消去法機能をオン' : 'Enable elimination mode'}
                     </span>
                   </label>
-                  <div style={{ fontSize: 11, color: 'var(--color-text-light)', marginTop: 4, lineHeight: 1.5 }}>
+                  <div style={{ fontSize: 'var(--font-size-xs)', color: 'var(--color-text-light)', marginTop: 4, lineHeight: 1.5 }}>
                     ※ {ja ? '選択肢のテキストをタップすると取り消し線を引いて選択肢を絞り込める機能です' : 'Tap choice text to strike through and narrow down options'}
                   </div>
                   <label data-kbnav="1" style={{ display: 'flex', alignItems: 'center', gap: 8, cursor: 'pointer', marginTop: 8 }}>
@@ -621,21 +646,21 @@ export default function Practice() {
               {/* ── 試験情報セクション ── */}
               <div style={{ borderTop: '1px solid color-mix(in srgb, var(--color-text-light) 40%, transparent)', marginTop: 4 }} />
               <div style={{ background: 'var(--color-bg-white)', borderRadius: 'var(--border-radius-md)', border: '1px solid var(--color-border)', overflow: 'hidden', marginTop: 14 }}>
-                <div style={{ padding: '8px 14px', background: 'var(--color-bg-white)', borderBottom: '1px solid var(--color-border)', fontSize: 11, fontWeight: 700, color: 'var(--color-text-light)', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+                <div style={{ padding: '8px 14px', background: 'var(--color-bg-white)', borderBottom: '1px solid var(--color-border)', fontSize: 'var(--font-size-xs)', fontWeight: 700, color: 'var(--color-text-light)', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
                   {ja ? '試験情報' : 'Exam Info'}
                 </div>
                 <div style={{ padding: '12px 14px' }}>
                   <div style={{ display: 'flex', gap: 24, marginBottom: 12, flexWrap: 'wrap' }}>
                     <div>
-                      <div style={{ fontSize: 11, color: 'var(--color-text-light)', marginBottom: 2 }}>{ja ? '問題数' : 'Questions'}</div>
-                      <div style={{ fontWeight: 700, fontSize: 'var(--font-size-lg)' }}>{examQuestions}<span style={{ fontSize: 12, fontWeight: 400 }}>{ja ? '問' : ' Q'}</span></div>
+                      <div style={{ fontSize: 'var(--font-size-xs)', color: 'var(--color-text-light)', marginBottom: 2 }}>{ja ? '問題数' : 'Questions'}</div>
+                      <div style={{ fontWeight: 700, fontSize: 'var(--font-size-lg)' }}>{examQuestions}<span style={{ fontSize: 'var(--font-size-sm)', fontWeight: 400 }}>{ja ? '問' : ' Q'}</span></div>
                     </div>
                     <div>
-                      <div style={{ fontSize: 11, color: 'var(--color-text-light)', marginBottom: 2 }}>{ja ? '制限時間' : 'Time Limit'}</div>
-                      <div style={{ fontWeight: 700, fontSize: 'var(--font-size-lg)' }}>{examTimeMin}<span style={{ fontSize: 12, fontWeight: 400 }}>{ja ? '分' : ' min'}</span></div>
+                      <div style={{ fontSize: 'var(--font-size-xs)', color: 'var(--color-text-light)', marginBottom: 2 }}>{ja ? '制限時間' : 'Time Limit'}</div>
+                      <div style={{ fontWeight: 700, fontSize: 'var(--font-size-lg)' }}>{examTimeMin}<span style={{ fontSize: 'var(--font-size-sm)', fontWeight: 400 }}>{ja ? '分' : ' min'}</span></div>
                     </div>
                     <div>
-                      <div style={{ fontSize: 11, color: 'var(--color-text-light)', marginBottom: 2 }}>{ja ? '合格点' : 'Pass Score'}</div>
+                      <div style={{ fontSize: 'var(--font-size-xs)', color: 'var(--color-text-light)', marginBottom: 2 }}>{ja ? '合格点' : 'Pass Score'}</div>
                       <div style={{ fontWeight: 700, fontSize: 'var(--font-size-lg)' }}>
                         {examMode === 'mini'
                           ? Math.ceil((PASS_SCORES[targetExam] ?? 0) / 5)
@@ -644,7 +669,7 @@ export default function Practice() {
                     </div>
                   </div>
                   <div style={{ background: 'var(--color-bg-main)', borderRadius: 'var(--border-radius-md)', padding: '10px 14px', marginBottom: 0 }}>
-                <div style={{ fontSize: 11, fontWeight: 700, color: 'var(--color-text-sub)', marginBottom: 6 }}>{ja ? 'ルール' : 'Rules'}</div>
+                <div style={{ fontSize: 'var(--font-size-xs)', fontWeight: 700, color: 'var(--color-text-sub)', marginBottom: 6 }}>{ja ? 'ルール' : 'Rules'}</div>
                 {examRules.map((r, i) => (
                   <div key={i} style={{ fontSize: 'var(--font-size-sm)', color: 'var(--color-text-sub)', display: 'flex', gap: 6, alignItems: 'flex-start', marginBottom: i < examRules.length - 1 ? 4 : 0 }}>
                     <span style={{ color: 'var(--color-primary)', flexShrink: 0, marginTop: 1 }}>•</span>
@@ -666,7 +691,7 @@ export default function Practice() {
           {hasDraft && showNewPanel && isMobile && (
             <>
               <div onClick={() => setShowNewPanel(false)} style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.4)', zIndex: 210 }} />
-              <div style={{ position: 'fixed', bottom: 116, left: 0, right: 0, zIndex: 211, background: 'var(--color-bg-white)', borderRadius: '14px 14px 0 0', padding: '14px 0 12px', boxShadow: '0 -4px 20px rgba(0,0,0,0.18)', animation: 'slideUp 0.22s ease' }}>
+              <div style={{ position: 'fixed', bottom: 116, left: 0, right: 0, zIndex: 211, background: 'var(--color-bg-white)', borderRadius: '14px 14px 0 0', padding: '14px 0 12px', boxShadow: 'var(--box-shadow-up)', animation: 'slideUp 0.22s ease' }}>
               <div style={{ padding: '0 var(--spacing-lg)' }}>
                 <div style={{ fontSize: 'var(--font-size-sm)', color: 'var(--color-text-sub)', textAlign: 'center', marginBottom: 10 }}>
                   {ja ? 'セッションを上書きして開始します' : 'This will overwrite the current session'}
@@ -681,7 +706,7 @@ export default function Practice() {
           )}
           {isMobile ? (
             /* モバイル：ホーム画面と同じスタイルの固定バー */
-            <div style={{ position: 'fixed', bottom: 56, left: 0, right: 0, zIndex: 150, background: 'var(--color-bg-white)', borderTop: '1px solid var(--color-border)', padding: '8px 12px', display: 'flex', gap: 6, boxShadow: '0 -2px 8px rgba(0,0,0,0.08)' }}>
+            <div style={{ position: 'fixed', bottom: 56, left: 0, right: 0, zIndex: 150, background: 'var(--color-bg-white)', borderTop: '1px solid var(--color-border)', padding: '8px 12px', display: 'flex', gap: 6, boxShadow: 'var(--box-shadow-up)' }}>
               {hasDraft ? (
                 <div style={{ flex: 1, display: 'flex', height: 44, borderRadius: 22, overflow: 'hidden', opacity: availableCount === 0 ? 0.5 : 1 }}>
                   <button
@@ -699,7 +724,7 @@ export default function Practice() {
                       <>
                         {ja ? '演習を再開' : 'Resume'}
                         {exerciseDraft?.results != null && exerciseDraft?.questions != null && (
-                          <span style={{ fontSize: 12, fontWeight: 400, opacity: 0.85 }}>
+                          <span style={{ fontSize: 'var(--font-size-sm)', fontWeight: 400, opacity: 0.85 }}>
                             （{exerciseDraft.results.length}/{exerciseDraft.questions.length}問）
                           </span>
                         )}
@@ -751,7 +776,7 @@ export default function Practice() {
                       <>
                         {ja ? '演習を再開' : 'Resume'}
                         {exerciseDraft?.results != null && exerciseDraft?.questions != null && (
-                          <span style={{ fontSize: 12, fontWeight: 400, opacity: 0.85 }}>
+                          <span style={{ fontSize: 'var(--font-size-sm)', fontWeight: 400, opacity: 0.85 }}>
                             （{exerciseDraft.results.length}/{exerciseDraft.questions.length}問）
                           </span>
                         )}
@@ -796,7 +821,7 @@ export default function Practice() {
           {hasExamDraft && showNewExamPanel && isMobile && (
             <>
               <div onClick={() => setShowNewExamPanel(false)} style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.4)', zIndex: 210 }} />
-              <div style={{ position: 'fixed', bottom: 116, left: 0, right: 0, zIndex: 211, background: 'var(--color-bg-white)', borderRadius: '14px 14px 0 0', padding: '14px 0 12px', boxShadow: '0 -4px 20px rgba(0,0,0,0.18)', animation: 'slideUp 0.22s ease' }}>
+              <div style={{ position: 'fixed', bottom: 116, left: 0, right: 0, zIndex: 211, background: 'var(--color-bg-white)', borderRadius: '14px 14px 0 0', padding: '14px 0 12px', boxShadow: 'var(--box-shadow-up)', animation: 'slideUp 0.22s ease' }}>
               <div style={{ padding: '0 var(--spacing-lg)' }}>
                 <div style={{ fontSize: 'var(--font-size-sm)', color: 'var(--color-text-sub)', textAlign: 'center', marginBottom: 10 }}>
                   {ja ? 'セッションを上書きして開始します' : 'This will overwrite the current session'}
@@ -811,7 +836,7 @@ export default function Practice() {
           )}
 {isMobile ? (
             /* モバイル：ホーム画面と同じスタイルの固定バー */
-            <div style={{ position: 'fixed', bottom: 56, left: 0, right: 0, zIndex: 150, background: 'var(--color-bg-white)', borderTop: '1px solid var(--color-border)', padding: '8px 12px', display: 'flex', gap: 6, boxShadow: '0 -2px 8px rgba(0,0,0,0.08)' }}>
+            <div style={{ position: 'fixed', bottom: 56, left: 0, right: 0, zIndex: 150, background: 'var(--color-bg-white)', borderTop: '1px solid var(--color-border)', padding: '8px 12px', display: 'flex', gap: 6, boxShadow: 'var(--box-shadow-up)' }}>
               {hasExamDraft ? (
                 <div style={{ flex: 1, display: 'flex', height: 44, borderRadius: 22, overflow: 'hidden' }}>
                   <button
@@ -829,7 +854,7 @@ export default function Practice() {
                       <>
                         {ja ? '模試を再開' : 'Resume'}
                         {examDraft?.timeLeft != null && (
-                          <span style={{ fontSize: 12, fontWeight: 400, opacity: 0.85 }}>
+                          <span style={{ fontSize: 'var(--font-size-sm)', fontWeight: 400, opacity: 0.85 }}>
                             （{fmtSec(examDraft.timeLeft)}・{(examDraft.currentIndex ?? 0) + 1}/{examDraft.questions?.length ?? '?'}問）
                           </span>
                         )}
@@ -882,7 +907,7 @@ export default function Practice() {
                       <>
                         {ja ? '模試を再開' : 'Resume'}
                         {examDraft?.timeLeft != null && (
-                          <span style={{ fontSize: 12, fontWeight: 400, opacity: 0.85 }}>
+                          <span style={{ fontSize: 'var(--font-size-sm)', fontWeight: 400, opacity: 0.85 }}>
                             （{fmtSec(examDraft.timeLeft)}・{(examDraft.currentIndex ?? 0) + 1}/{examDraft.questions?.length ?? '?'}問）
                           </span>
                         )}
@@ -939,6 +964,6 @@ export default function Practice() {
         </div>
       )}
       {(exerciseLoading || examLoading) && <div style={{ position: 'fixed', inset: 0, zIndex: 9000, cursor: 'wait' }} onTouchStart={e => e.stopPropagation()} onTouchMove={e => e.stopPropagation()} onTouchEnd={e => e.stopPropagation()} />}
-    </div>
+    </PageLayout>
   );
 }

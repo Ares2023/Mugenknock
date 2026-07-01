@@ -61,7 +61,7 @@ const CopyButton = ({ getText, hint }: { getText: () => string; hint?: string })
       style={hint ? {
         background: 'none', border: `1.5px solid ${color}`, borderRadius: 'var(--border-radius-full)',
         height: 28, padding: '0 10px', display: 'flex', alignItems: 'center', gap: 5,
-        cursor: 'pointer', color, transition: 'all 0.2s', flexShrink: 0, fontSize: 11, fontWeight: 600,
+        cursor: 'pointer', color, transition: 'all 0.2s', flexShrink: 0, fontSize: 'var(--font-size-xs)', fontWeight: 600,
       } : {
         background: 'none', border: `1.5px solid ${color}`, borderRadius: '50%',
         width: 28, height: 28, display: 'flex', alignItems: 'center', justifyContent: 'center',
@@ -138,17 +138,17 @@ const PromptMenu = ({ questionText, choices, explanation, lang }: { questionText
         <span style={{
           width: 16, height: 16, borderRadius: '50%', border: '1.5px solid var(--color-text-light)',
           display: 'flex', alignItems: 'center', justifyContent: 'center',
-          fontSize: 10, fontWeight: 700, color: 'var(--color-text-light)',
+          fontSize: 'var(--font-size-2xs)', fontWeight: 700, color: 'var(--color-text-light)',
           cursor: 'default', lineHeight: 1, userSelect: 'none',
         }}>i</span>
         {infoHovered && (
           <div style={{
             position: 'absolute', bottom: '100%', left: 0, marginBottom: 6,
             background: 'rgba(30,30,30,0.88)', color: '#fff',
-            fontSize: 11, lineHeight: 1.6, padding: '7px 11px',
+            fontSize: 'var(--font-size-xs)', lineHeight: 1.6, padding: '7px 11px',
             borderRadius: 6, whiteSpace: 'pre-wrap', width: 230,
             pointerEvents: 'none', zIndex: 200,
-            boxShadow: '0 2px 8px rgba(0,0,0,0.18)',
+            boxShadow: 'var(--box-shadow-pop)',
           }}>
             {isEn
               ? 'Generate and copy a prompt to ask about or verify this question.'
@@ -178,7 +178,7 @@ const PromptMenu = ({ questionText, choices, explanation, lang }: { questionText
           <div style={{
             position: 'absolute', bottom: '100%', right: 0, marginBottom: 4,
             background: 'var(--color-bg-white)', border: '1px solid var(--color-border)',
-            borderRadius: 'var(--border-radius-sm)', boxShadow: '0 4px 12px rgba(0,0,0,0.12)',
+            borderRadius: 'var(--border-radius-sm)', boxShadow: 'var(--box-shadow-md)',
             minWidth: 240, zIndex: 100,
           }}>
             {items.map((item, i) => (
@@ -980,7 +980,7 @@ export default function ExerciseSession() {
     return createPortal(
       <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.6)', zIndex: 1000,
         display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16 }}>
-        <div style={{ background: 'var(--color-bg-white)', borderRadius: 'var(--border-radius-lg)', padding: '28px 24px', width: '100%', maxWidth: 400, boxShadow: '0 8px 32px rgba(0,0,0,0.2)' }}>
+        <div style={{ background: 'var(--color-bg-white)', borderRadius: 'var(--border-radius-lg)', padding: '28px 24px', width: '100%', maxWidth: 400, boxShadow: 'var(--box-shadow-lg)' }}>
           <div style={{ fontWeight: 700, fontSize: 'var(--font-size-md)', marginBottom: 12, color: 'var(--color-text-main)' }}>
             {lang === 'ja' ? '中断して採点' : 'Interrupt & Grade'}
           </div>
@@ -1007,7 +1007,7 @@ export default function ExerciseSession() {
     return (
       <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: '60vh', gap: 16 }}>
         <div className="sherpa-spinner" style={{ width: 36, height: 36, borderWidth: 3 }} />
-        <div style={{ fontSize: 18, color: 'var(--color-text-sub)' }}>{lang === 'ja' ? '結果を集計中...' : 'Calculating results...'}</div>
+        <div style={{ fontSize: 'var(--font-size-h3)', color: 'var(--color-text-sub)' }}>{lang === 'ja' ? '結果を集計中...' : 'Calculating results...'}</div>
       </div>
     );
   }
@@ -1112,7 +1112,7 @@ export default function ExerciseSession() {
               })}
             </div>
             {useWindow && (
-              <span style={{ flexShrink: 0, marginLeft: 12, fontSize: 11, fontWeight: 700, color: 'var(--color-text-light)', fontVariantNumeric: 'tabular-nums', whiteSpace: 'nowrap' }}>
+              <span style={{ flexShrink: 0, marginLeft: 12, fontSize: 'var(--font-size-xs)', fontWeight: 700, color: 'var(--color-text-light)', fontVariantNumeric: 'tabular-nums', whiteSpace: 'nowrap' }}>
                 {currentIndex + 1} / {totalCount}
               </span>
             )}
@@ -1145,7 +1145,7 @@ export default function ExerciseSession() {
                 <span style={{
                   display: 'inline-flex', alignItems: 'center',
                   border: '1.5px solid var(--color-border)', borderRadius: 4,
-                  padding: '2px 8px', fontSize: 11, fontWeight: 700,
+                  padding: '2px 8px', fontSize: 'var(--font-size-xs)', fontWeight: 700,
                   color: 'var(--color-text-sub)', background: 'transparent', whiteSpace: 'nowrap',
                 }}>
                   {t('exerciseSession.multiple')}{currentQuestion.correctAnswerCount ? ` (${currentQuestion.correctAnswerCount})` : ''}
@@ -1186,7 +1186,7 @@ export default function ExerciseSession() {
                       display: 'flex', alignItems: 'center', justifyContent: 'center',
                       pointerEvents: 'none',
                     }}>
-                      {isSelected && <span style={{ color: 'white', fontSize: 10, lineHeight: 1, fontWeight: 700 }}>✓</span>}
+                      {isSelected && <span style={{ color: 'white', fontSize: 'var(--font-size-2xs)', lineHeight: 1, fontWeight: 700 }}>✓</span>}
                     </div>
                   ) : (
                     <div style={{
@@ -1240,7 +1240,7 @@ export default function ExerciseSession() {
                   ...((!isMobile && !cursorOnNodes && cursorIndex === shuffledChoices.length) ? { outline: '2px solid var(--color-accent)', outlineOffset: 1 } : {}),
                 }}
               >
-                <span style={{ marginRight: 10, fontSize: 12, flexShrink: 0 }}>？</span>
+                <span style={{ marginRight: 10, fontSize: 'var(--font-size-sm)', flexShrink: 0 }}>？</span>
                 <span>{WAKARANAI}</span>
               </button>
             );
@@ -1363,7 +1363,7 @@ export default function ExerciseSession() {
               onMouseLeave={e => { e.currentTarget.style.color = 'var(--color-text-sub)'; e.currentTarget.style.borderColor = 'var(--color-border)'; }}
               title={lang === 'ja' ? '問題の不備を通報' : 'Report an issue'}
             >
-              <span style={{ fontSize: 12 }}>⚑</span>
+              <span style={{ fontSize: 'var(--font-size-sm)' }}>⚑</span>
               <span>{lang === 'ja' ? '通報' : 'Report'}</span>
             </button>
             <button
@@ -1371,7 +1371,7 @@ export default function ExerciseSession() {
               disabled={results.length === 0}
               style={{
                 background: 'none', border: '1px solid var(--color-border)', borderRadius: 'var(--border-radius-full)',
-                padding: '3px 10px', fontSize: 11, fontWeight: 600, cursor: results.length === 0 ? 'default' : 'pointer',
+                padding: '3px 10px', fontSize: 'var(--font-size-xs)', fontWeight: 600, cursor: results.length === 0 ? 'default' : 'pointer',
                 color: 'var(--color-text-sub)',
                 opacity: results.length === 0 ? 0.45 : 1, whiteSpace: 'nowrap', transition: 'all 0.15s',
                 display: 'flex', alignItems: 'center', gap: 3,
@@ -1440,7 +1440,7 @@ export default function ExerciseSession() {
               <button
                 onClick={() => submitAnswer()}
                 disabled={!canSubmit}
-                style={{ height: 44, padding: '0 24px', border: 'none', borderRadius: 22, background: !canSubmit ? 'var(--color-text-light)' : 'var(--color-accent)', color: 'var(--color-btn-primary-text)', fontWeight: 600, fontSize: 'var(--font-size-base)', cursor: !canSubmit ? 'default' : 'pointer', opacity: !canSubmit ? 0.5 : 1, whiteSpace: 'nowrap', boxShadow: '0 2px 8px rgba(0,0,0,0.15)', display: 'inline-flex', alignItems: 'center', gap: 8 }}
+                style={{ height: 44, padding: '0 24px', border: 'none', borderRadius: 22, background: !canSubmit ? 'var(--color-text-light)' : 'var(--color-accent)', color: 'var(--color-btn-primary-text)', fontWeight: 600, fontSize: 'var(--font-size-base)', cursor: !canSubmit ? 'default' : 'pointer', opacity: !canSubmit ? 0.5 : 1, whiteSpace: 'nowrap', boxShadow: 'var(--box-shadow-pop)', display: 'inline-flex', alignItems: 'center', gap: 8 }}
               >
                 {t('exerciseSession.answer')}
                 <KeyHint />
@@ -1448,7 +1448,7 @@ export default function ExerciseSession() {
             ) : (
               <button
                 onClick={nextQuestion}
-                style={{ height: 44, padding: '0 24px', border: '1.5px solid var(--color-primary)', borderRadius: 22, background: 'var(--color-bg-white)', color: 'var(--color-primary)', fontWeight: 600, fontSize: 'var(--font-size-base)', cursor: 'pointer', whiteSpace: 'nowrap', boxShadow: '0 2px 8px rgba(0,0,0,0.15)', display: 'inline-flex', alignItems: 'center', gap: 8 }}
+                style={{ height: 44, padding: '0 24px', border: '1.5px solid var(--color-primary)', borderRadius: 22, background: 'var(--color-bg-white)', color: 'var(--color-primary)', fontWeight: 600, fontSize: 'var(--font-size-base)', cursor: 'pointer', whiteSpace: 'nowrap', boxShadow: 'var(--box-shadow-pop)', display: 'inline-flex', alignItems: 'center', gap: 8 }}
               >
                 {currentIndex + 1 >= totalCount ? t('exerciseSession.showResult') : t('exerciseSession.next')}
                 <KeyHint />
@@ -1466,7 +1466,7 @@ export default function ExerciseSession() {
           <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--spacing-md)', marginBottom: 'var(--spacing-sm)' }}>
             <span style={{
               background: 'var(--color-accent-hover)', color: 'white',
-              fontSize: 10, fontWeight: 700, letterSpacing: '1.5px',
+              fontSize: 'var(--font-size-2xs)', fontWeight: 700, letterSpacing: '1.5px',
               padding: '3px 10px', borderRadius: 'var(--border-radius-sm)',
             }}>COLUMN</span>
             <span style={{ flex: 1, height: 1, background: 'color-mix(in srgb, var(--color-text-light) 40%, transparent)' }} />

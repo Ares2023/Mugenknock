@@ -31,7 +31,7 @@ export default function KeyHint({ keys = ['Ctrl', '⏎'] }: { keys?: string[] })
             display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
             minWidth: 20, height: 20, padding: '0 3px', boxSizing: 'border-box',
             border: '1px solid currentColor', borderRadius: 4,
-            fontSize: 12, fontWeight: 700, lineHeight: 1, opacity: 0.9,
+            fontSize: 'var(--font-size-sm)', fontWeight: 700, lineHeight: 1, opacity: 0.9,
           }}
         >
           <KeyGlyph k={k} />

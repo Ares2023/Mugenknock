@@ -188,7 +188,7 @@ export default function DailyServiceRevealModal({
           {/* label */}
           <div style={{
             color: 'rgba(255,255,255,.9)',
-            fontSize: 11, fontWeight: 700, letterSpacing: '.12em',
+            fontSize: 'var(--font-size-xs)', fontWeight: 700, letterSpacing: '.12em',
             textTransform: 'uppercase', marginBottom: 18,
             textShadow: '0 1px 8px rgba(0,0,0,.4)',
             animation: 'dp-text-up .4s ease both',
@@ -258,7 +258,7 @@ export default function DailyServiceRevealModal({
               <div style={{
                 position: 'absolute', top: 14, right: 14,
                 background: 'linear-gradient(135deg,#FF9900,#FF4400)',
-                color: 'white', fontWeight: 900, fontSize: 11,
+                color: 'white', fontWeight: 900, fontSize: 'var(--font-size-xs)',
                 padding: '3px 10px', borderRadius: 20,
                 letterSpacing: '.04em',
                 boxShadow: '0 2px 10px rgba(255,100,0,.55)',
@@ -274,7 +274,7 @@ export default function DailyServiceRevealModal({
               style={{
                 marginTop: 24,
                 color: 'rgba(255,255,255,.85)',
-                fontSize: 15, fontWeight: 600,
+                fontSize: 'var(--font-size-md)', fontWeight: 600,
                 animation: 'dp-tap-hint 1.5s ease-in-out infinite',
                 textShadow: '0 2px 8px rgba(0,0,0,.5)',
                 cursor: 'pointer',
@@ -312,7 +312,7 @@ export default function DailyServiceRevealModal({
                   display: 'inline-block',
                   background: 'rgba(255,153,0,.16)',
                   border: '1px solid rgba(255,153,0,.4)',
-                  color: 'white', fontSize: 12, fontWeight: 700,
+                  color: 'white', fontSize: 'var(--font-size-sm)', fontWeight: 700,
                   padding: '2px 12px', borderRadius: 20, marginBottom: 12,
                 }}>
                   {service.category}
@@ -320,7 +320,7 @@ export default function DailyServiceRevealModal({
               )}
 
               <div style={{
-                fontSize: 13, color: 'rgba(255,255,255,.75)',
+                fontSize: 'var(--font-size-sm2)', color: 'rgba(255,255,255,.75)',
                 lineHeight: 1.7, marginBottom: service.trivia ? 12 : 22,
                 textAlign: 'left', overflowWrap: 'break-word', wordBreak: 'break-word',
               }}>
@@ -336,10 +336,10 @@ export default function DailyServiceRevealModal({
                   marginBottom: 22,
                   textAlign: 'left',
                 }}>
-                  <div style={{ fontSize: 11, fontWeight: 700, color: 'white', marginBottom: 4, letterSpacing: '.06em', display: 'flex', alignItems: 'center', gap: 5 }}>
+                  <div style={{ fontSize: 'var(--font-size-xs)', fontWeight: 700, color: 'white', marginBottom: 4, letterSpacing: '.06em', display: 'flex', alignItems: 'center', gap: 5 }}>
                     <IconBean size={12} /> {ja ? '豆知識' : 'Trivia'}
                   </div>
-                  <div style={{ fontSize: 12, color: 'rgba(255,255,255,.7)', lineHeight: 1.7, overflowWrap: 'break-word', wordBreak: 'break-word' }}>
+                  <div style={{ fontSize: 'var(--font-size-sm)', color: 'rgba(255,255,255,.7)', lineHeight: 1.7, overflowWrap: 'break-word', wordBreak: 'break-word' }}>
                     {service.trivia.replace(/^🌱\s*/, '')}
                   </div>
                 </div>

@@ -5,6 +5,7 @@ import { Navigate, useNavigate } from '@/compat/react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { useLanguage } from '../contexts/LanguageContext';
 import { IconUser } from '../components/Icons';
+import Reveal from '../components/Reveal';
 
 const TEAL   = '#009E9E';
 const TEAL_D = '#007878';
@@ -91,7 +92,7 @@ export default function Portal() {
 
       {/* ── ヘッダー ── */}
       <header style={{ height: 56, minHeight: 56, background: 'var(--color-bg-white)', display: 'flex', alignItems: 'center', justifyContent: 'flex-end', padding: isMobile ? '0 12px' : '0 var(--spacing-lg)', zIndex: 200, flexShrink: 0, borderBottom: '1px solid var(--color-border)' }}>
-        <button onClick={() => navigate(user ? '/account' : '/login')} style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', background: user ? TEAL_L : 'transparent', border: '1px solid var(--color-border)', borderRadius: '50%', cursor: 'pointer', color: user ? TEAL : 'var(--color-text-sub)', width: 36, height: 36, padding: 0, fontSize: 14, fontWeight: 700 }}>
+        <button onClick={() => navigate(user ? '/account' : '/login')} style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', background: user ? TEAL_L : 'transparent', border: '1px solid var(--color-border)', borderRadius: '50%', cursor: 'pointer', color: user ? TEAL : 'var(--color-text-sub)', width: 36, height: 36, padding: 0, fontSize: 'var(--font-size-base)', fontWeight: 700 }}>
           {user?.email ? user.email[0].toUpperCase() : <IconUser />}
         </button>
       </header>
@@ -116,7 +117,7 @@ export default function Portal() {
             {ja ? '資格を選んで演習を始める' : 'Choose a Cert & Start'}
           </button>
           {!user && (
-            <p style={{ fontSize: 12, color: '#888', marginTop: 10 }}>
+            <p style={{ fontSize: 'var(--font-size-sm)', color: '#888', marginTop: 10 }}>
               {ja ? 'アカウント登録なしで体験できます' : 'No account required to get started'}
             </p>
           )}
@@ -131,10 +132,10 @@ export default function Portal() {
             </h2>
             <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
               {BENEFITS.map((b, i) => (
-                <div key={i} style={{ display: 'flex', alignItems: 'flex-start', gap: 14, background: 'var(--color-bg-white)', border: '1px solid var(--color-border)', borderRadius: 8, padding: '14px 16px' }}>
-                  <span style={{ flexShrink: 0, width: 24, height: 24, borderRadius: '50%', background: TEAL, color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 13, fontWeight: 800 }}>{i + 1}</span>
+                <Reveal key={i} delay={i * 70} style={{ display: 'flex', alignItems: 'flex-start', gap: 14, background: 'var(--color-bg-white)', border: '1px solid var(--color-border)', borderRadius: 8, padding: '14px 16px' }}>
+                  <span style={{ flexShrink: 0, width: 24, height: 24, borderRadius: '50%', background: TEAL, color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 'var(--font-size-sm2)', fontWeight: 800 }}>{i + 1}</span>
                   <p style={{ margin: 0, fontSize: isMobile ? 13 : 14, color: 'var(--color-text-sub)', lineHeight: 1.75 }}>{ja ? b.ja : b.en}</p>
-                </div>
+                </Reveal>
               ))}
             </div>
           </section>
@@ -146,18 +147,62 @@ export default function Portal() {
             </h2>
             <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : 'repeat(3, 1fr)', gap: 14 }}>
               {FEATURES.map((f, i) => (
-                <div key={i} style={{ background: 'var(--color-bg-white)', border: '1px solid var(--color-border)', borderRadius: 8, padding: '18px 16px' }}>
-                  <div style={{ fontSize: 13, fontWeight: 800, color: TEAL, marginBottom: 8 }}>{ja ? f.ja_title : f.en_title}</div>
+                <Reveal key={i} delay={i * 70} style={{ background: 'var(--color-bg-white)', border: '1px solid var(--color-border)', borderRadius: 8, padding: '18px 16px' }}>
+                  <div style={{ fontSize: 'var(--font-size-sm2)', fontWeight: 800, color: TEAL, marginBottom: 8 }}>{ja ? f.ja_title : f.en_title}</div>
                   <p style={{ margin: 0, fontSize: isMobile ? 12 : 13, color: 'var(--color-text-sub)', lineHeight: 1.75 }}>{ja ? f.ja : f.en}</p>
-                </div>
+                </Reveal>
               ))}
             </div>
+          </section>
+
+          {/* ── 開発の意図・目的 ── */}
+          <section style={{ marginBottom: isMobile ? 40 : 56 }}>
+            <h2 style={{ fontSize: isMobile ? 'var(--font-size-h3)' : 'var(--font-size-h2)', fontWeight: 800, color: TEAL_D, margin: '0 0 20px', letterSpacing: '-0.3px' }}>
+              {ja ? 'なぜ作ったのか' : 'Why I Built This'}
+            </h2>
+            <Reveal style={{ background: 'var(--color-bg-white)', border: '1px solid var(--color-border)', borderLeft: `4px solid ${TEAL}`, borderRadius: 'var(--border-radius-lg)', padding: isMobile ? 'var(--spacing-md)' : 'var(--spacing-lg) var(--spacing-xl)', lineHeight: 1.95 }}>
+              <p style={{ margin: '0 0 var(--spacing-md)', fontSize: isMobile ? 'var(--font-size-base)' : 'var(--font-size-lg)', fontWeight: 700, color: 'var(--color-text-main)' }}>
+                {ja
+                  ? 'AWS認定 SAP を持つ、いちエンジニアです。いまはAWS全12資格の制覇に挑んでいます。'
+                  : 'I\'m an engineer with the AWS Certified Solutions Architect – Professional (SAP), now taking on all 12 AWS certifications.'}
+              </p>
+              <p style={{ margin: '0 0 var(--spacing-md)', fontSize: isMobile ? 'var(--font-size-sm2)' : 'var(--font-size-base)', color: 'var(--color-text-sub)' }}>
+                {ja
+                  ? '正直に言うと、既存の問題演習サービスにずっと不満がありました。開くたびに待たされるロード。何百問解いても「あなたの弱点はここ」と教えてくれない作り。どこか不自然な日本語。そして、いつの間にか古くなった情報。——「本当に欲しい教材はこれじゃない」。その苛立ちが限界を超えて、"なら自分で作る" とキーボードを叩き始めました。'
+                  : 'Honestly, I was fed up with the practice services out there. Loads that make you wait. Hundreds of questions, yet nothing tells you where you\'re actually weak. Japanese that reads a little off. Content that quietly goes stale. "This isn\'t the study tool I want." That frustration boiled over — so I started building the one I did.'}
+              </p>
+              <p style={{ margin: '0 0 var(--spacing-sm)', fontSize: isMobile ? 'var(--font-size-sm2)' : 'var(--font-size-base)', color: 'var(--color-text-sub)' }}>
+                {ja ? 'だから無限ノックは、その不満のひとつひとつに答えを用意しました。' : 'So Mugenknock answers every one of those frustrations, head-on.'}
+              </p>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 8, margin: '0 0 var(--spacing-md)' }}>
+                {[
+                  { p: ['ロードが遅い', 'Slow loading'], s: ['待たせない表示速度', 'Loads that never make you wait'] },
+                  { p: ['弱点分析が甘い', 'Weak personalization'], s: ['解くほど穴が見える弱点特化', 'Weak-point focus that sharpens as you solve'] },
+                  { p: ['日本語が不自然', 'Awkward Japanese'], s: ['自然で読みやすい日本語', 'Natural, readable Japanese'] },
+                  { p: ['情報が古い', 'Outdated content'], s: ['最新試験に合わせて作り直し', 'Rebuilt to match the current exams'] },
+                ].map((row, i) => (
+                  <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
+                    <span style={{ fontSize: isMobile ? 'var(--font-size-xs)' : 'var(--font-size-sm)', color: 'var(--color-text-light)', textDecoration: 'line-through' }}>{ja ? row.p[0] : row.p[1]}</span>
+                    <span style={{ color: TEAL, fontWeight: 800, flexShrink: 0 }}>→</span>
+                    <span style={{ fontSize: isMobile ? 'var(--font-size-sm2)' : 'var(--font-size-base)', color: 'var(--color-text-main)', fontWeight: 700 }}>{ja ? row.s[0] : row.s[1]}</span>
+                  </div>
+                ))}
+              </div>
+              <p style={{ margin: 0, fontSize: isMobile ? 'var(--font-size-sm2)' : 'var(--font-size-base)', color: 'var(--color-text-main)', fontWeight: 700 }}>
+                {ja
+                  ? 'まだ全冠していません。少なくとも自分が獲り切るまで、この教材は磨き続けます。同じ悔しさを知っている人は、遠慮なく相乗りしてください。一緒にノックしましょう。'
+                  : 'I haven\'t earned them all yet. At least until I do, I\'ll keep sharpening this tool. If you know the same frustration, hop on — let\'s knock these out together.'}
+              </p>
+              <p style={{ margin: 'var(--spacing-md) 0 0', textAlign: 'right', fontSize: 'var(--font-size-sm)', color: 'var(--color-text-light)' }}>
+                {ja ? '— 無限ノック 開発者' : '— The developer, Mugenknock'}
+              </p>
+            </Reveal>
           </section>
 
         </div>
       </main>
 
-      <footer style={{ padding: '14px var(--spacing-lg)', textAlign: 'center', fontSize: 11, color: 'var(--color-text-light)', borderTop: '1px solid var(--color-border)' }}>
+      <footer style={{ padding: '14px var(--spacing-lg)', textAlign: 'center', fontSize: 'var(--font-size-xs)', color: 'var(--color-text-light)', borderTop: '1px solid var(--color-border)' }}>
         © {new Date().getFullYear()} MugenKnock
         <span style={{ margin: '0 10px' }}>|</span>
         <a href="/about#privacy" style={{ color: 'var(--color-text-light)', textDecoration: 'none' }}
@@ -181,20 +226,20 @@ export default function Portal() {
           borderTop: '1px solid var(--color-border)',
           padding: '12px 20px',
           display: 'flex', alignItems: 'center', gap: 12, flexWrap: 'wrap',
-          boxShadow: '0 -2px 12px rgba(0,0,0,0.1)',
+          boxShadow: 'var(--box-shadow-up)',
         }}>
-          <span style={{ flex: 1, minWidth: 200, fontSize: 12, color: 'var(--color-text-sub)', lineHeight: 1.6 }}>
+          <span style={{ flex: 1, minWidth: 200, fontSize: 'var(--font-size-sm)', color: 'var(--color-text-sub)', lineHeight: 1.6 }}>
             {ja
               ? '本サービスは、広告配信・アクセス解析のためにCookieを使用しています。'
               : 'This site uses cookies for advertising and analytics.'}
             {' '}
-            <a href="/about#privacy" style={{ color: TEAL, fontSize: 12 }}>
+            <a href="/about#privacy" style={{ color: TEAL, fontSize: 'var(--font-size-sm)' }}>
               {ja ? '詳細' : 'Learn more'}
             </a>
           </span>
           <button
             onClick={acceptCookies}
-            style={{ flexShrink: 0, padding: '6px 18px', background: TEAL, color: '#fff', border: 'none', borderRadius: 'var(--border-radius-full)', fontWeight: 700, fontSize: 12, cursor: 'pointer' }}
+            style={{ flexShrink: 0, padding: '6px 18px', background: TEAL, color: '#fff', border: 'none', borderRadius: 'var(--border-radius-full)', fontWeight: 700, fontSize: 'var(--font-size-sm)', cursor: 'pointer' }}
           >
             {ja ? '同意して閉じる' : 'Accept'}
           </button>

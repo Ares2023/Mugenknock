@@ -30,7 +30,7 @@ export default class ErrorBoundary extends React.Component<Props, State> {
         }}>
           <div style={{ fontSize: 32, marginBottom: 12 }}>⚠</div>
           <div style={{ fontWeight: 700, marginBottom: 8 }}>画面の表示中にエラーが発生しました</div>
-          <div style={{ fontSize: 13, color: 'var(--color-text-sub)', marginBottom: 20 }}>
+          <div style={{ fontSize: 'var(--font-size-sm2)', color: 'var(--color-text-sub)', marginBottom: 20 }}>
             {this.state.error.message}
           </div>
           <button
@@ -41,7 +41,7 @@ export default class ErrorBoundary extends React.Component<Props, State> {
               border: '1.5px solid var(--color-border)',
               background: 'transparent',
               cursor: 'pointer',
-              fontSize: 14,
+              fontSize: 'var(--font-size-base)',
               color: 'var(--color-text-main)',
             }}
           >

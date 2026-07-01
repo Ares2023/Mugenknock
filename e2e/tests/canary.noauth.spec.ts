@@ -60,10 +60,14 @@ async function assertPageVisible(page: import('@playwright/test').Page, selector
 // ── ① ページ表示 ──────────────────────────────────────────────────────
 test.describe('ページ表示チェック', () => {
   const pages = [
-    { path: '/',             label: 'ランディングページ',    check: 'header, main, h1, h2' },
-    { path: '/login',        label: 'ログインページ',        check: 'input[type="email"]' },
-    { path: '/about',        label: 'Aboutページ',           check: 'text=プライバシーポリシー' },
-    { path: '/encyclopedia', label: 'サービス図鑑（公開）',  check: 'main' },
+    { path: '/',                label: 'ランディングページ',      check: 'header, main, h1, h2' },
+    { path: '/login',           label: 'ログインページ',          check: 'input[type="email"]' },
+    { path: '/about',           label: 'Aboutページ',             check: 'text=プライバシーポリシー' },
+    { path: '/encyclopedia',    label: 'サービス図鑑（公開）',    check: 'main' },
+    { path: '/privacy-policy',  label: 'プライバシーポリシー',    check: 'h1' },
+    { path: '/exam-guide',      label: '試験別ガイド一覧',        check: 'h1' },
+    { path: '/services',        label: 'AWSサービス図鑑（SEO）',  check: 'h1' },
+    { path: '/questions/SAA',   label: '練習問題一覧（SAA）',     check: 'h1' },
   ];
 
   for (const { path, label, check } of pages) {

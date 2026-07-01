@@ -18,7 +18,7 @@ const chipStyle: React.CSSProperties = {
   alignItems: 'center',
   gap: 3,
   padding: '2px 8px 4px',
-  fontSize: 11,
+  fontSize: 'var(--font-size-xs)',
   background: 'var(--color-primary-light)',
   color: 'var(--color-primary)',
   border: '1px solid var(--color-primary)',
@@ -29,7 +29,7 @@ const chipStyle: React.CSSProperties = {
 const chipXStyle: React.CSSProperties = {
   display: 'flex', alignItems: 'center', justifyContent: 'center',
   background: 'none', border: 'none', cursor: 'pointer',
-  color: 'var(--color-primary)', fontSize: 12, lineHeight: 1,
+  color: 'var(--color-primary)', fontSize: 'var(--font-size-sm)', lineHeight: 1,
   padding: 0, width: 14, height: 14, flexShrink: 0,
 };
 
@@ -47,7 +47,7 @@ function WeakBadge({ rate }: { rate: number }) {
       display: 'inline-flex', alignItems: 'center',
       padding: '1px 6px', borderRadius: 10,
       background: bg, border: `1px solid ${border}`,
-      fontSize: 10, fontWeight: 700, color, flexShrink: 0,
+      fontSize: 'var(--font-size-2xs)', fontWeight: 700, color, flexShrink: 0,
     }}>
       {pct}%
     </span>

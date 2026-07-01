@@ -262,6 +262,59 @@ PYEOF
   rm -f "$_LC_TMP"
 fi
 
+# ── 0.5 重複記事の自動削除（docUrlで正準照合・決定的・WebFetch不要）──────
+#   同一サービス(docUrl一致)の記事が複数ある場合、order最小の確立済み1件を残して残りを削除。
+#   略称⇔正式名の二重生成(例 AWS DMS / AWS Database Migration Service)を機械的に解消する。
+echo ""
+echo "--- 重複記事チェック（docUrl照合・自動削除）---"
+_DUP_TMP=$(mktemp /tmp/ds_dup_XXXX.json)
+/home/yuzuki/local/bin/aws dynamodb scan --table-name DailyServices --output json 2>/dev/null > "$_DUP_TMP" || echo '{}' > "$_DUP_TMP"
+DS_TMP="$_DUP_TMP" python3 << 'PYEOF'
+import json, os, re, subprocess
+from datetime import datetime, timezone
+AWS = '/home/yuzuki/local/bin/aws'
+now_iso = datetime.now(timezone.utc).strftime('%Y-%m-%dT%H:%M:%SZ')
+
+def norm_url(u):
+    u = (u or '').lower().strip().rstrip('/')
+    u = re.sub(r'^https?://', '', u)
+    u = re.sub(r'/(jp|ja|en)(/|$)', '/', u)
+    return u
+
+with open(os.environ['DS_TMP']) as f:
+    items = json.load(f).get('Items', [])
+
+groups = {}
+for it in items:
+    sid = (it.get('serviceId') or {}).get('S')
+    url = norm_url((it.get('docUrl') or {}).get('S'))
+    if not sid or not url:
+        continue
+    try:
+        order = int((it.get('order') or {}).get('N', '0'))
+    except Exception:
+        order = 0
+    name = (it.get('name') or {}).get('S', '')
+    groups.setdefault(url, []).append({'sid': sid, 'order': order, 'name': name})
+
+removed = 0
+for url, g in groups.items():
+    if len(g) < 2:
+        continue
+    # order最小（＝確立済み・解放者が多い想定）を残し、残りを削除
+    g.sort(key=lambda x: (x['order'], x['sid']))
+    keep, drops = g[0], g[1:]
+    print(f'  重複検出 docUrl={url}: 残す[{keep["name"]}/{keep["sid"]}] 削除{len(drops)}件')
+    for d in drops:
+        subprocess.run([AWS, 'dynamodb', 'delete-item', '--table-name', 'DailyServices',
+            '--key', json.dumps({'serviceId': {'S': d['sid']}})], capture_output=True)
+        removed += 1
+        print(f'    [削除] {d["name"]}/{d["sid"]} (order={d["order"]})')
+
+print(f'  → 重複削除: {removed}件' if removed else '  → 重複なし')
+PYEOF
+rm -f "$_DUP_TMP"
+
 # ── 1. DynamoDBからサービスを取得 ──────────────────────────────
 DYNAMO_TMP=$(mktemp /tmp/dynamo_XXXX.json)
 /home/yuzuki/local/bin/aws dynamodb scan --table-name DailyServices --output json 2>/dev/null > "$DYNAMO_TMP"

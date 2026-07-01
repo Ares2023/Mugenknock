@@ -118,7 +118,7 @@ export default function LoginPage() {
               }}
             >
               <span style={{
-                fontSize: 10,
+                fontSize: 'var(--font-size-2xs)',
                 fontWeight: 600,
                 color: LEVEL_COLOR[badge.level],
                 letterSpacing: '0.05em',
@@ -127,7 +127,7 @@ export default function LoginPage() {
                 {badge.level}
               </span>
               <span style={{
-                fontSize: 15,
+                fontSize: 'var(--font-size-md)',
                 fontWeight: 700,
                 color: '#16191f',
                 whiteSpace: 'nowrap',
@@ -135,7 +135,7 @@ export default function LoginPage() {
                 {badge.code}
               </span>
               <span style={{
-                fontSize: 11,
+                fontSize: 'var(--font-size-xs)',
                 color: '#545b64',
                 whiteSpace: 'nowrap',
               }}>
@@ -173,7 +173,7 @@ export default function LoginPage() {
                   return (
                     <div style={{
                       padding: '0 24px 20px',
-                      fontSize: 12,
+                      fontSize: 'var(--font-size-sm)',
                       color: 'var(--color-text-sub)',
                       lineHeight: 1.6,
                       textAlign: 'center',
