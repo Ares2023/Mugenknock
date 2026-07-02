@@ -23,8 +23,11 @@ const SYNC_PREFIXES = [
   'lastQuickMode_',        // ホームの quick/focused トグル
   'dailyGoalReward_',      // 日次目標報酬の付与済みフラグ（二重付与防止）
   'score_prev_',           // 前回の予想スコア（差分表示用）
-  'domain_history_',       // ドメイン別 直近セッション履歴（各10件キャップ）
-  'domain_results_',       // ドメイン別 直近正誤（各10件キャップ）
+  // 注: domain_history_ / domain_results_ はここで同期しない。
+  //   これらは各ドメインの配列を蓄積する「まるごとブロブ」で、キー単位のLWW上書きだと
+  //   初回プル時（ローカルmeta=0）にサーバの古い/部分データがローカルの蓄積を消してしまう。
+  //   ドメイン別正答率はサーバの累計統計(/users/me/stats)＋domainStatsの /domain-results 同期で
+  //   すでにデバイス間連携されるため、kvSync では扱わない（過去記録の消失・未更新を防ぐ）。
   'theme_',                // テーマ（ライト/ダーク）
   'sherpaExamHint_',       // ヒント消去フラグ
   'sherpaStatsHint_',

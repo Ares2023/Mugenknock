@@ -186,7 +186,20 @@ else:
                 except Exception:
                     pass
         return datetime(1970, 1, 1, tzinfo=timezone.utc)
+    # 実測正答率が極端な問題（易しすぎ/悪問の疑い）は最優先で監査対象に入れる。
+    # 回答10件以上で 正答率90%以上（易しすぎ疑い）または20%以下（誤正解・悪問疑い）。
+    def extreme_accuracy(q):
+        try:
+            a = float(q.get('globalAttempts') or 0)
+            c = float(q.get('globalCorrect') or 0)
+        except (TypeError, ValueError):
+            return False
+        if a < 10:
+            return False
+        acc = c / a
+        return acc >= 0.9 or acc <= 0.2
     questions.sort(key=recency, reverse=True)
+    questions.sort(key=lambda q: 0 if extreme_accuracy(q) else 1)  # 安定ソートで極端問題を先頭へ
     sample = questions[:n]
 
 print(json.dumps(sample, ensure_ascii=False))
@@ -263,7 +276,9 @@ HEADER = (
 'サービスの現行仕様・上限・課金・推奨構成に少しでも確信が持てない場合は推測せず WebFetch で公式ドキュメント（docs.aws.amazon.com / aws.amazon.com）を確認してから判定すること（確信できる一般的事実は取得不要）。'
 'なお CodeCommit は現行サービスであり古い扱いにしないこと。\n'
 '- 難易度: 本番の試験問題に近い難易度・内容か。単なる用語の暗記や一読で正解が自明な問題は too_easy。'
-'本番はシナリオベースで、もっともらしい不正解（ひっかけ）があり、要件の取捨選択や比較を要する。明らかに簡単すぎる場合は指摘すること。\n'
+'本番はシナリオベースで、もっともらしい不正解（ひっかけ）があり、要件の取捨選択や比較を要する。明らかに簡単すぎる場合は指摘すること。'
+'「実測正答率」が併記されている問題は実ユーザーの成績。90%以上なら易しすぎ（too_easy）の有力な証拠、'
+'20%以下なら正解設定の誤り・紛らわしすぎ・解説と正解の不一致など悪問の疑いとして、内容を特に精査すること。\n'
 '- 範囲: 当該資格の出題範囲（ドメイン・対象サービス）に収まっているか。範囲外・別資格向けの内容は out。\n'
 '\n'
 '【監査観点B: 体裁】\n'
@@ -310,6 +325,13 @@ for i, q in enumerate(chunk, 1):
     if cai is not None:
         lines.append(f"正解index: {cai}")
     lines.append(f"isMultiple: {q.get('isMultiple', False)}")
+    try:
+        _ga = float(q.get('globalAttempts') or 0)
+        _gc = float(q.get('globalCorrect') or 0)
+        if _ga >= 5:
+            lines.append(f"実測正答率(全ユーザー): {round(_gc / _ga * 100)}% (回答{int(_ga)}件)")
+    except (TypeError, ValueError):
+        pass
     lines.append(f"解説: {q.get('explanation','')}")
     ce = q.get('choiceExplanations') or []
     if ce:

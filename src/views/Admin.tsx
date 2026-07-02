@@ -1702,6 +1702,19 @@ export default function Admin() {
                 <span style={{ fontSize: 14, color: 'var(--color-text-main)', flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                   {q.questionText}
                 </span>
+                {!isMobile && (() => {
+                  // 全ユーザー実測正答率（正解率が極端な問題の品質監視用）
+                  const ga = Number((q as any).globalAttempts ?? 0);
+                  const gc = Number((q as any).globalCorrect ?? 0);
+                  if (ga < 1) return null;
+                  const acc = Math.round(gc / ga * 100);
+                  const color = ga >= 10 && acc >= 90 ? 'var(--color-warning, #e67e22)' : ga >= 10 && acc <= 20 ? 'var(--color-danger)' : 'var(--color-text-light)';
+                  return (
+                    <span title={`全ユーザーの回答 ${ga}件中 ${gc}件正解`} style={{ fontSize: 11, color, fontWeight: 700, flexShrink: 0, whiteSpace: 'nowrap' }}>
+                      正答率 {acc}% ({ga})
+                    </span>
+                  );
+                })()}
                 {!isMobile && q.validityCheckedAt && (
                   <span style={{ fontSize: 11, color: 'var(--color-text-light)', flexShrink: 0, whiteSpace: 'nowrap', display: 'flex', alignItems: 'center', gap: 3 }}>
                     <span style={{ color: 'var(--color-success)', fontWeight: 700 }}>✓</span>

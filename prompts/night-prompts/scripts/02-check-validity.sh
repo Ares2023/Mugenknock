@@ -607,7 +607,12 @@ for r in results:
         edit_log = {'action': 'fixed', 'checkedAt': now, 'reason': reason, 'changes': changes}
         expr_values[':log'] = {'S': json.dumps(edit_log, ensure_ascii=False)}
 
-        update_expr = f'SET {", ".join(update_parts)} {REMOVE_EXPR}'
+        # 正解・選択肢が変わるfixでは全ユーザー正答率カウンタもリセットする
+        # （旧内容に対する正答率が新内容に引き継がれるのを防ぐ）
+        remove_expr = REMOVE_EXPR
+        if ('choices' in changes) or ('correctAnswers' in changes):
+            remove_expr += ', globalAttempts, globalCorrect'
+        update_expr = f'SET {", ".join(update_parts)} {remove_expr}'
         cmd = ['aws', 'dynamodb', 'update-item',
             '--table-name', 'Questions',
             '--key', json.dumps({'questionId': {'S': qid}}),

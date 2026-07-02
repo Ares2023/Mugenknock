@@ -734,7 +734,7 @@ export default function Practice() {
                         {ja ? '演習を再開' : 'Resume'}
                         {exerciseDraft?.results != null && exerciseDraft?.questions != null && (
                           <span style={{ fontSize: 'var(--font-size-sm)', fontWeight: 400, opacity: 0.85 }}>
-                            （{exerciseDraft.results.length}/{exerciseDraft.questions.length}問）
+                            （{exerciseDraft.results.length}/{exerciseDraft.questionIds?.length ?? exerciseDraft.questions.length}問）
                           </span>
                         )}
                       </>
@@ -786,7 +786,7 @@ export default function Practice() {
                         {ja ? '演習を再開' : 'Resume'}
                         {exerciseDraft?.results != null && exerciseDraft?.questions != null && (
                           <span style={{ fontSize: 'var(--font-size-sm)', fontWeight: 400, opacity: 0.85 }}>
-                            （{exerciseDraft.results.length}/{exerciseDraft.questions.length}問）
+                            （{exerciseDraft.results.length}/{exerciseDraft.questionIds?.length ?? exerciseDraft.questions.length}問）
                           </span>
                         )}
                         {!isMobile && <KeyHint />}

@@ -327,7 +327,7 @@ export default function ExamSession() {
       const dailyGoalAbort = parseInt(localStorage.getItem(`dailyGoal_${userId}`) ?? '10', 10);
       const rewardKeyAbort = `dailyGoalReward_${examType}_${userId}_${jstTodayAbort}`;
       let dailyBonusPtsAbort = 0;
-      if (newDailyAbort >= dailyGoalAbort && prevDailyAbort < dailyGoalAbort && !localStorage.getItem(rewardKeyAbort) && userId !== 'guest') {
+      if (serverDailyAbort != null && newDailyAbort >= dailyGoalAbort && prevDailyAbort < dailyGoalAbort && !localStorage.getItem(rewardKeyAbort) && userId !== 'guest') {
         localStorage.setItem(rewardKeyAbort, '1');
         dailyBonusPtsAbort = 10;
         addPoints(userId, dailyBonusPtsAbort);
@@ -411,7 +411,7 @@ export default function ExamSession() {
       const dailyGoal = parseInt(localStorage.getItem(`dailyGoal_${userId}`) ?? '10', 10);
       const rewardKey = `dailyGoalReward_${examType}_${userId}_${jstToday}`;
       let dailyBonusPts = 0;
-      if (newDaily >= dailyGoal && prevDaily < dailyGoal && !localStorage.getItem(rewardKey) && userId !== 'guest') {
+      if (serverDaily != null && newDaily >= dailyGoal && prevDaily < dailyGoal && !localStorage.getItem(rewardKey) && userId !== 'guest') {
         localStorage.setItem(rewardKey, '1');
         dailyBonusPts = 10;
         addPoints(userId, dailyBonusPts);

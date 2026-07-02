@@ -437,7 +437,7 @@ app.get('/questions/public', async (req, res) => {
 
     // examType-index GSI + キャッシュ経由で取得（全テーブル Scan を回避）。
     // getAllQuestionsForExam は AIP→GAI のエイリアスも解決する。
-    const FIELDS = ['questionId', 'examType', 'questionText', 'choices', 'correctAnswerIndices', 'correctAnswers', 'choiceExplanations', 'explanation', 'domain', 'isMultiple', 'validityCheckedAt'];
+    const FIELDS = ['questionId', 'examType', 'questionText', 'choices', 'correctAnswerIndices', 'correctAnswers', 'choiceExplanations', 'explanation', 'domain', 'isMultiple', 'validityCheckedAt', 'globalAttempts', 'globalCorrect'];
     const all = await getAllQuestionsForExam(docClient, examType);
     const items = all
       .filter(q => q.validityCheckedAt)
@@ -726,6 +726,21 @@ app.put('/admin/questions/:id', async (req, res) => {
 
     const setParts = ['questionText = :qt', 'choices = :ch', 'correctAnswers = :ca', 'correctAnswerIndices = :ci', 'explanation = :ex', '#d = :d', 'isMultiple = :im', 'examType = :et', 'updatedAt = :ua'];
     const removeParts = ['tags'];  // 旧 tags フィールドを削除（domain 整数に移行済み）
+
+    // 正解・選択肢が変わる編集では全ユーザー正答率カウンタをリセットする
+    // （旧内容に対する正答率が新内容に引き継がれるのを防ぐ）
+    try {
+      const prev = await docClient.send(new GetCommand({
+        TableName: 'Questions',
+        Key: { questionId },
+        ProjectionExpression: 'choices, correctAnswerIndices',
+      }));
+      const prevChoices = prev.Item?.choices ?? [];
+      const prevIndices = prev.Item?.correctAnswerIndices ?? [];
+      const changed = JSON.stringify(prevChoices) !== JSON.stringify(fields.choices)
+        || JSON.stringify(prevIndices) !== JSON.stringify(fields.correctAnswerIndices);
+      if (changed) removeParts.push('globalAttempts', 'globalCorrect');
+    } catch (e) { /* 取得失敗時はリセットしない */ }
     const exprNames = { '#d': 'domain' };
     const exprValues = {
       ':qt': questionText,
@@ -959,7 +974,7 @@ app.get('/admin/questions', async (req, res) => {
       // explanation・validityEditLog を除外して 6MB 上限を回避（編集時は GET /admin/questions/:id で取得）
       items = await scanAll(docClient, {
         TableName: 'Questions',
-        ProjectionExpression: 'questionId, examType, questionText, choices, correctAnswers, correctAnswerIndices, #dom, isMultiple, isHidden, createdAt, updatedAt, validityCheckedAt, formatCheckedAt',
+        ProjectionExpression: 'questionId, examType, questionText, choices, correctAnswers, correctAnswerIndices, #dom, isMultiple, isHidden, createdAt, updatedAt, validityCheckedAt, formatCheckedAt, globalAttempts, globalCorrect',
         ExpressionAttributeNames: { '#dom': 'domain' },
       });
     }
@@ -1156,6 +1171,20 @@ app.post('/sessions/:id/answers', async (req, res) => {
     ];
 
     await docClient.send(new TransactWriteCommand({ TransactItems: transactItems }));
+
+    // 全ユーザー正答率のグローバル集計（全試行ベース・ゲスト含む）。
+    // トランザクション外の条件付き加算にする: 削除済み問題への幽霊項目作成を防ぎつつ、
+    // 集計失敗が回答記録本体を失敗させないようにする。
+    try {
+      await docClient.send(new UpdateCommand({
+        TableName: 'Questions',
+        Key: { questionId },
+        UpdateExpression: 'ADD globalAttempts :one, globalCorrect :corr',
+        ConditionExpression: 'attribute_exists(questionId)',
+        ExpressionAttributeValues: { ':one': 1, ':corr': isCorrect ? 1 : 0 },
+      }));
+    } catch (e) { /* 削除済み問題・一時エラーは無視 */ }
+
     res.json({ success: true });
   } catch (err) {
     console.error(err);
@@ -2138,11 +2167,16 @@ app.get('/daily-service', async (req, res) => {
     // 当日分を決定し、常に初めましてにする。当日すでに解放済みなら見たものを返す（一貫性）。
     // 同日内は userId+日付 のハッシュで安定。再抽選(rerollSeed)時も未見プールから選ぶ。
     if (req.query.userId) {
-      if (alreadyUnlocked && recordTodayId) {
+      // 再抽選(rerollSeed)時は「当日すでに解放済みでも別の未見サービスを引き直せる」ようにするため、
+      // 解放済み短絡は rerollSeed が無い通常アクセスのみに適用する。
+      if (alreadyUnlocked && recordTodayId && !req.query.rerollSeed) {
         const seen = items.find(s => s.serviceId === recordTodayId);
         if (seen) return res.json({ service: seen, alreadyUnlocked });
       }
-      const unseen = items.filter(s => !unlockedIds.includes(s.serviceId));
+      // 再抽選では今日すでに解放したサービスも除外し、毎回別の未見サービスを返す
+      const excluded = new Set(unlockedIds);
+      if (req.query.rerollSeed && recordTodayId) excluded.add(recordTodayId);
+      const unseen = items.filter(s => !excluded.has(s.serviceId));
       const pool = unseen.length > 0 ? unseen : items;
       const str = req.query.userId + jstDate + (req.query.rerollSeed || '');
       let hash = 0;

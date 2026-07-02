@@ -599,6 +599,23 @@ def apply_fix(qid, fix, orig):
     update_parts = ['validityCheckedAt = :t', 'updatedAt = :u']
     expr_values  = {':t': {'S': now}, ':u': {'S': now}}
 
+    # 整合性ガード: 適用後の correctAnswers 全件が適用後の choices に完全一致で解決
+    # できない場合、choices/correctAnswers/choiceExplanations の変更を破棄する
+    # （correctAnswerIndices が正準のため、テキストだけ変わると正解表示がズレる）
+    stripped = [_label_re.sub('', str(c)) for c in (fix.get('correctAnswers') or [])]
+    eff_choices = fix.get('choices') or orig.get('choices', [])
+    eff_ca = stripped or orig.get('correctAnswers', [])
+    if (fix.get('choices') or stripped) and not (eff_ca and all(c in eff_choices for c in eff_ca)):
+        fix.pop('choices', None)
+        fix.pop('correctAnswers', None)
+        fix.pop('choiceExplanations', None)
+        stripped = []
+        eff_choices = orig.get('choices', [])
+        eff_ca = orig.get('correctAnswers', [])
+
+    # 正解・選択肢が変わる修正では全ユーザー正答率カウンタをリセットする
+    reset_counters = False
+
     if fix.get('questionText') and fix['questionText'] != orig.get('questionText'):
         update_parts.append('questionText = :qt')
         expr_values[':qt'] = {'S': fix['questionText']}
@@ -606,22 +623,37 @@ def apply_fix(qid, fix, orig):
     if fix.get('choices') and fix['choices'] != orig.get('choices'):
         update_parts.append('choices = :ch')
         expr_values[':ch'] = {'L': [{'S': str(c)} for c in fix['choices']]}
+        reset_counters = True
 
-    if fix.get('correctAnswers'):
-        stripped = [_label_re.sub('', str(c)) for c in fix['correctAnswers']]
+    if stripped:
         if stripped != orig.get('correctAnswers'):
             update_parts.append('correctAnswers = :ca')
             expr_values[':ca'] = {'L': [{'S': c} for c in stripped]}
+            reset_counters = True
+        # correctAnswerIndices を再計算（ガード通過済み＝全件解決可能）
+        indices = [eff_choices.index(c) for c in stripped]
+        update_parts.append('correctAnswerIndices = :ci')
+        expr_values[':ci'] = {'L': [{'N': str(i)} for i in indices]}
+    elif fix.get('choices'):
+        # choices のみ変わった場合も indices を追随させる（ガード通過済み）
+        indices = [eff_choices.index(c) for c in eff_ca]
+        if indices:
+            update_parts.append('correctAnswerIndices = :ci')
+            expr_values[':ci'] = {'L': [{'N': str(i)} for i in indices]}
 
     if fix.get('explanation') and fix['explanation'] != orig.get('explanation'):
         update_parts.append('explanation = :ex')
         expr_values[':ex'] = {'S': fix['explanation']}
 
     if fix.get('choiceExplanations'):
-        eff_choices = fix.get('choices', orig.get('choices', []))
-        if len(fix['choiceExplanations']) == len(eff_choices):
+        eff_ce_choices = fix.get('choices', orig.get('choices', []))
+        if len(fix['choiceExplanations']) == len(eff_ce_choices):
             update_parts.append('choiceExplanations = :ce')
             expr_values[':ce'] = {'L': [{'S': str(e)} for e in fix['choiceExplanations']]}
+
+    update_expr = 'SET ' + ', '.join(update_parts)
+    if reset_counters:
+        update_expr += ' REMOVE globalAttempts, globalCorrect'
 
     ef = tempfile.mktemp(suffix='.json', prefix='/tmp/rep_fix_')
     with open(ef, 'w') as fh:
@@ -630,7 +662,7 @@ def apply_fix(qid, fix, orig):
         'aws', 'dynamodb', 'update-item',
         '--table-name', 'Questions',
         '--key', json.dumps({'questionId': {'S': qid}}),
-        '--update-expression', 'SET ' + ', '.join(update_parts),
+        '--update-expression', update_expr,
         '--expression-attribute-values', f'file://{ef}',
         '--output', 'json',
     ], capture_output=True, text=True)
