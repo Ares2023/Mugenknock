@@ -1,5 +1,5 @@
 'use client';
-import React, { useState, useEffect, useRef, useMemo } from 'react';
+import React, { useState, useEffect, useRef, useMemo, useCallback } from 'react';
 import { createPortal } from 'react-dom';
 import { useNavigate, useLocation } from '@/compat/react-router-dom';
 import { API_ENDPOINT, EXAM_CONFIGS, PASS_RATE, EXAM_LEVEL } from '../constants';
@@ -158,6 +158,38 @@ export default function ExamSession() {
       }).catch(() => {});
     }
   }, [answers, currentIndex, flaggedIds]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // 途中離脱時の保存: 上の効果は回答・移動時のみ発火し、SPA内遷移では何も走らないため、
+  // beforeunload/pagehide とアンマウント時に最新の残り時間込みで確実に保存する。
+  const examDraftRef = useRef({ answers, currentIndex, flaggedIds });
+  useEffect(() => { examDraftRef.current = { answers, currentIndex, flaggedIds }; });
+  const saveExamDraftNow = useCallback(() => {
+    if (!sessionId || finishedRef.current) return;
+    const { answers: a, currentIndex: ci, flaggedIds: f } = examDraftRef.current;
+    try {
+      localStorage.setItem(`examDraft_${userId}`, JSON.stringify({
+        sessionId, examType, questions, userId, isMini,
+        currentIndex: ci, answers: a, timeLeft: timeLeftRef.current, flagged: [...f], savedAt: Date.now(),
+      }));
+    } catch { /* quota over 等は無視 */ }
+    if (userId && userId !== 'guest') {
+      fetch(`${API_ENDPOINT}/sessions/${sessionId}/progress`, {
+        method: 'PUT', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ userId, sessionType: isMini ? 'mini' : 'exam', draft: { currentIndex: ci, answers: a, timeLeft: timeLeftRef.current } }),
+      }).catch(() => {});
+    }
+  }, [sessionId, examType, questions, userId, isMini]); // eslint-disable-line react-hooks/exhaustive-deps
+  useEffect(() => {
+    if (!sessionId) return;
+    window.addEventListener('beforeunload', saveExamDraftNow);
+    window.addEventListener('pagehide', saveExamDraftNow);
+    return () => {
+      window.removeEventListener('beforeunload', saveExamDraftNow);
+      window.removeEventListener('pagehide', saveExamDraftNow);
+      // SPA内遷移では beforeunload が発火しないためアンマウント時にも保存（完了後は no-op）
+      saveExamDraftNow();
+    };
+  }, [saveExamDraftNow]);
 
   // タイマー
   useEffect(() => {

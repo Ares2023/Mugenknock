@@ -1162,6 +1162,10 @@ export default function Home() {
   // 別端末/キャッシュ削除でもサーバ保存分から再開できるよう、起動時にドラフトを補完して再読込
   useEffect(() => {
     if (!user) return;
+    // 認証は非同期のため、初期 useState は uid='guest' で読んでいる可能性がある。
+    // user 確定時にまずローカルを正しい uid で再読込する（サーバ補完の成否に関わらず必要）。
+    setQuickDraft(readQuickDraft());
+    setFocusedDraft(readFocusedDraft());
     hydrateDraftsFromServer(user.userId).then(h => {
       if (!h) return;
       setQuickDraft(readQuickDraft());
@@ -1485,6 +1489,10 @@ export default function Home() {
       state: {
         sessionId: quickDraft.sessionId,
         questions: quickDraft.questions,
+        // 出題予定ID・予備IDを渡す（無いと totalCount がロード済み問題数まで縮み、
+        // 設定した問題数より少ないまま演習が終わってしまう）
+        questionIds: quickDraft.questionIds ?? [],
+        spareQuestionIds: quickDraft.spareIds ?? [],
         userId: quickDraft.userId,
         examType: quickDraft.examType,
         mode: 'exercise',
@@ -1503,6 +1511,8 @@ export default function Home() {
       state: {
         sessionId: focusedDraft.sessionId,
         questions: focusedDraft.questions,
+        questionIds: focusedDraft.questionIds ?? [],
+        spareQuestionIds: focusedDraft.spareIds ?? [],
         userId: focusedDraft.userId,
         examType: focusedDraft.examType,
         mode: 'exercise',
@@ -1553,7 +1563,8 @@ export default function Home() {
         try {
           const count = qPrefs.questionCount ?? 5;
           const items = shuffleArray(cached.questions).slice(0, count);
-          if (items.length > 0) {
+          // キャッシュが設定問題数に満たない場合は使わず、通常経路（プール全体）で選定する
+          if (items.length >= count) {
             setQuickLoadPct(90);
             const questionIds = items.map((q: any) => q.questionId);
             setQuickLoading(false); setQuickLoadPct(0);
@@ -1658,7 +1669,8 @@ export default function Home() {
         try {
           const count = fPrefs.questionCount ?? 5;
           const items = shuffleArray(cached.questions).slice(0, count);
-          if (items.length > 0) {
+          // キャッシュが設定問題数に満たない場合は使わず、通常経路（プール全体）で選定する
+          if (items.length >= count) {
             setFocusedLoadPct(90);
             const questionIds = items.map((q: any) => q.questionId);
             setFocusedLoading(false); setFocusedLoadPct(0);

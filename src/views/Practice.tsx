@@ -104,6 +104,10 @@ export default function Practice() {
   // 別端末/キャッシュ削除でもサーバ保存分から再開できるよう、起動時にドラフトを補完して再読込
   useEffect(() => {
     if (!user) return;
+    // 認証は非同期のため、初期 useState は uid='guest' で読んでいる可能性がある。
+    // user 確定時にまずローカルを正しい uid で再読込する（サーバ補完の成否に関わらず必要）。
+    try { setExerciseDraft(JSON.parse(localStorage.getItem(`practiceExerciseDraft_${user.userId}`) ?? 'null')); } catch {}
+    try { setExamDraft(JSON.parse(localStorage.getItem(`examDraft_${user.userId}`) ?? 'null')); } catch {}
     hydrateDraftsFromServer(user.userId).then(h => {
       if (!h) return;
       try { setExerciseDraft(JSON.parse(localStorage.getItem(`practiceExerciseDraft_${user.userId}`) ?? 'null')); } catch {}
@@ -268,6 +272,9 @@ export default function Practice() {
       }
       if (selectedIds.length === 0) { alert(t('exerciseSetup.noQuestions')); setExerciseLoading(false); return; }
       setExerciseLoadPct(50);
+      // 予備ID: 出題中に削除済み等で読み込めないIDが出ても設定問題数を満たせるよう控えを渡す
+      const _usedSel = new Set(selectedIds);
+      const spareQuestionIds = allIds.filter(id => !_usedSel.has(id)).slice(0, 10);
       // 2. 最初の1問だけ取得（セッション作成は遷移先で非同期実行）
       const q1Data = await fetch(`${API_ENDPOINT}/questions?ids=${selectedIds[0]}&withAnswers=true`).then(r => r.json());
       setExerciseLoadPct(90);
@@ -277,6 +284,7 @@ export default function Practice() {
           createSession: { userId, mode: 'exercise', examType, questionIds: selectedIds },
           questions: q1Data.items ?? [],
           questionIds: selectedIds,
+          spareQuestionIds,
           userId, mode: 'exercise', examType, strikeEnabled, hideColumn,
         },
       });
@@ -292,6 +300,7 @@ export default function Practice() {
       state: {
         sessionId: exerciseDraft.sessionId, questions: exerciseDraft.questions,
         questionIds: exerciseDraft.questionIds ?? [],
+        spareQuestionIds: exerciseDraft.spareIds ?? [],
         userId: exerciseDraft.userId, examType: exerciseDraft.examType, mode: 'exercise',
         resumeIndex: exerciseDraft.currentIndex, resumeResults: exerciseDraft.results,
         resumeAnswered: exerciseDraft.answered, resumeSelectedAnswers: exerciseDraft.selectedAnswers,

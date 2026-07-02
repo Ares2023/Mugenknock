@@ -1105,7 +1105,8 @@ app.get('/users/me/active-sessions', async (req, res) => {
       || (s.mode === 'exam' ? (s.isMini ? 'mini' : 'exam') : (s.isFocused ? 'focused' : 'practice'));
     const latest = {};
     for (const s of sessions) {
-      if (s.status !== 'active' || s.draft == null) continue;
+      // endedAt があるものは完了/中断済み（status 更新が取りこぼされた行の防御）
+      if (s.status !== 'active' || s.draft == null || s.endedAt) continue;
       const t = typeOf(s);
       if (!latest[t] || (s.draftSavedAt || '') > (latest[t].draftSavedAt || '')) latest[t] = s;
     }
@@ -1238,10 +1239,13 @@ app.put('/sessions/:id', async (req, res) => {
     const docClient = getClient();
     const { userId, status, score, isPassed } = req.body;
     const now = new Date().toISOString();
+    // 完了時は再開用ドラフトも削除する。残すと遅延した progress PUT や過去の
+    // 取りこぼしと合わさって active-sessions に露出し「終わったのに演習中」表示の原因になる。
+    const removeDraft = status === 'completed' ? ' REMOVE draft, draftSavedAt' : '';
     await docClient.send(new UpdateCommand({
       TableName: T('Sessions'),
       Key: { userId, sessionId: req.params.id },
-      UpdateExpression: 'SET #s = :status, score = :score, isPassed = :isPassed, endedAt = :now',
+      UpdateExpression: 'SET #s = :status, score = :score, isPassed = :isPassed, endedAt = :now' + removeDraft,
       ExpressionAttributeNames: { '#s': 'status' },
       ExpressionAttributeValues: { ':status': status, ':score': score, ':isPassed': isPassed, ':now': now }
     }));
