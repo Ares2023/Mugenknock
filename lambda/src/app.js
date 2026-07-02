@@ -1510,10 +1510,14 @@ async function executeUserDataReset(docClient, userId) {
     docClient.send(new UpdateCommand({
       TableName: 'AppSettings',
       Key: { settingId: `userPrefs_${userId}` },
-      UpdateExpression: 'SET #targetExam = :null, #examDates = :empty',
-      ExpressionAttributeNames: { '#targetExam': 'targetExam', '#examDates': 'examDates' },
+      // targetExam/examDates に加え、kvSync のデバイス間同期マップ(kv)も空にする。
+      // 空にしないと初期化後の kvSync プルで各種設定・実績（dailyGoalReward等）が復活する。
+      UpdateExpression: 'SET #targetExam = :null, #examDates = :empty, #kv = :empty',
+      ExpressionAttributeNames: { '#targetExam': 'targetExam', '#examDates': 'examDates', '#kv': 'kv' },
       ExpressionAttributeValues: { ':null': null, ':empty': {} },
     })).catch(() => {}),
+    // 日次目標の進捗カウント（目標演習量達成率）。消さないと fetchDailyProgress で復活する。
+    docClient.send(new DeleteCommand({ TableName: 'AppSettings', Key: { settingId: `dailyProgress_${userId}` } })).catch(() => {}),
   ]);
 
   // AppSettings のユーザー固有データを削除（スコア履歴・解答カウンター）
