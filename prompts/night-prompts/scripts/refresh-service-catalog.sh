@@ -196,8 +196,18 @@ work = []
 for key, v in services.items():
     if v.get('needsResolution') or v.get('status') == 'unknown' or is_stale(v):
         work.append(key)
-# 優先度: 既存記事(seed) > SSM stub。記事の現行性確認を優先
-work.sort(key=lambda k: 0 if services[k].get('source') == 'daily-services-seed' else 1)
+# 優先度: 未検証(unknown)の「新規サービス(=未記事化候補)」を最優先し、日めくり記事の
+# 新規候補が増えるようにする。次に未検証の既存記事、最後に確認済みの鮮度切れ再確認。
+def _prio(k):
+    v = services[k]
+    is_seed = v.get('source') == 'daily-services-seed'  # 既存記事＝登録済み
+    is_unknown = v.get('status') == 'unknown'
+    if is_unknown and not is_seed:
+        return 0  # 未検証の新規サービス（active化すれば新規記事候補）
+    if is_unknown:
+        return 1  # 未検証の既存記事
+    return 2      # 確認済み・鮮度切れの再確認（現行性維持）
+work.sort(key=_prio)
 work = work[:limit]
 
 # カタログを保存（seed/stub反映）。確認結果は後段でマージ

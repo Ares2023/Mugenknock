@@ -521,7 +521,7 @@ if [ -x "$CANARY_SCRIPT" ]; then
   CANARY_WARNINGS=$(awk '/⚠️/{c++} END{print c+0}' "$CANARY_TMP")
   CANARY_RESULT="$([ "$CANARY_EXIT" -eq 0 ] && echo '✅ PASS' || echo '❌ FAIL') (passed=${CANARY_PASS} failed=${CANARY_FAIL} warnings=${CANARY_WARNINGS})"
   # 失敗詳細（最大20行）
-  CANARY_DETAIL=$(grep -E "✘|Error|FAIL|error" "$CANARY_TMP" | head -20 || true)
+  CANARY_DETAIL=$(grep -E "✘|Error|FAIL|error" "$CANARY_TMP" | head -80 || true)
   rm -f "$CANARY_TMP"
   echo "  $CANARY_RESULT"
   [ -n "$CANARY_DETAIL" ] && echo "  失敗詳細:" && echo "$CANARY_DETAIL" | sed 's/^/    /'
@@ -542,7 +542,7 @@ if [ -x "$CANARY_AUTH_SCRIPT" ]; then
     CA_PASS=$(awk '/✓|passed/{c++} END{print c+0}' "$CA_TMP")
     CA_FAIL=$(awk '/✘|failed/{c++} END{print c+0}' "$CA_TMP")
     CANARY_AUTH_RESULT="$([ "$CA_EXIT" -eq 0 ] && echo '✅ PASS' || echo '❌ FAIL') (passed=${CA_PASS} failed=${CA_FAIL})"
-    CANARY_AUTH_DETAIL=$(grep -E "✘|Error|FAIL|error" "$CA_TMP" | head -15 || true)
+    CANARY_AUTH_DETAIL=$(grep -E "✘|Error|FAIL|error" "$CA_TMP" | head -80 || true)
   fi
   rm -f "$CA_TMP"
   echo "  認証カナリア: $CANARY_AUTH_RESULT"
@@ -576,7 +576,7 @@ if imp:
         line += f"\nプロンプト改良: 適用{m.group(1)}件 / 見送り{m.group(2)}件"
     m2 = re.search(r'## 改良方針\s*\n(.+)', txt)
     if m2:
-        line += f"\n方針: {m2.group(1).strip()[:120]}"
+        line += f"\n方針: {m2.group(1).strip()}"
 else:
     line += "\nプロンプト改良: なし"
 print(line)
@@ -595,14 +595,14 @@ txt = open(md[-1]).read()
 out = []
 m = re.search(r'## 所見\s*\n(.+)', txt)
 if m:
-    out.append('所見: ' + m.group(1).strip()[:150])
+    out.append('所見: ' + m.group(1).strip())
 mg = re.search(r'## カバー漏れ・陳腐化\s*\n((?:- .*\n?)+)', txt)
 if mg:
     gaps = [g for g in mg.group(1).splitlines() if g.strip().startswith('- ') and '指摘なし' not in g]
     out.append(f"カバー漏れ/陳腐化: {len(gaps)}件")
 ma = re.search(r'## 対応\s*\n(- .+)', txt)
 if ma:
-    out.append('対応: ' + ma.group(1).strip()[2:][:120])
+    out.append('対応: ' + ma.group(1).strip()[2:])
 print('\n'.join(out) if out else '整合性チェック結果あり')
 PYEOF
 )
@@ -670,6 +670,7 @@ data = {
     'backend':   sys.argv[21],
     'canary_auth':sys.argv[22],
     'cognito_new':sys.argv[23],
+    'canary_auth_d':sys.argv[24],
 }
 with open('$REPORT_DATA_FILE', 'w') as f:
     json.dump(data, f, ensure_ascii=False)
@@ -681,7 +682,8 @@ with open('$REPORT_DATA_FILE', 'w') as f:
   "$SMTP_USER" "$SMTP_PASS" "$SMTP_TO" \
   "$DB_GEN3D" "$DB_CHK3D" \
   "$AUDIT_SUMMARY" "$CANARY_COV_SUMMARY" "$DAILY_SUMMARY" \
-  "$BACKEND_HEALTH" "$CANARY_AUTH_RESULT" "$COGNITO_NEW"
+  "$BACKEND_HEALTH" "$CANARY_AUTH_RESULT" "$COGNITO_NEW" \
+  "${CANARY_AUTH_DETAIL:-}"
 
 # HTML生成＋メール送信を1つのPythonスクリプトで実行
 SEND_RESULT=$(REPORT_DATA_FILE="$REPORT_DATA_FILE" python3 << 'PYEOF'
@@ -756,6 +758,7 @@ cognito_has_new = bool(cognito_raw) and not cognito_raw.startswith('新規登録
 cognito_html    = e_lines(cognito_raw) if cognito_raw else e('新規登録なし')
 
 canary_auth_r = e(d.get('canary_auth', '未実行'))
+canary_auth_d = e(d.get('canary_auth_d', ''))
 canary_auth_color = "#27ae60" if "PASS" in d.get('canary_auth', '') else ("#888" if "SKIP" in d.get('canary_auth', '') else "#e74c3c")
 canary_color = "#27ae60" if "PASS" in d['canary_r'] else "#e74c3c"
 unchk_num    = int(d['db_unchk'].replace("?","0")) if d['db_unchk'].replace("?","0").isdigit() else 0
@@ -771,6 +774,7 @@ cognito_section = (
     f'<div class="card" style="font-size:13px;line-height:1.7;background:#eafaf1;border:1px solid #27ae60">{cognito_html}</div>'
 ) if cognito_has_new else ""
 canary_detail_html = f"<br><br><b>失敗詳細:</b><pre>{canary_d}</pre>" if d['canary_d'].strip() else ""
+canary_auth_detail_html = f"<br><b>ログイン後 失敗詳細:</b><pre>{canary_auth_d}</pre>" if d.get('canary_auth_d','').strip() else ""
 
 html_body = f"""<!DOCTYPE html>
 <html lang="ja"><head><meta charset="UTF-8">
@@ -811,6 +815,7 @@ html_body = f"""<!DOCTYPE html>
   <div><b>未ログイン:</b> <span style="color:{canary_color};font-weight:700;font-size:15px;">{canary_r}</span></div>
   <div style="margin-top:4px"><b>ログイン後:</b> <span style="color:{canary_auth_color};font-weight:700;font-size:15px;">{canary_auth_r}</span></div>
   {canary_detail_html}
+  {canary_auth_detail_html}
   <div style="margin-top:10px;font-size:13px;line-height:1.7;border-top:1px dashed #ddd;padding-top:8px">
     <b>構成との整合性チェック</b><br>{canary_cov_html}
   </div>
