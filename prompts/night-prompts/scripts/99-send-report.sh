@@ -188,7 +188,8 @@ ${CONFIG_SECTION}
   必要なアクション: [具体的にすること]
 PROMPT
 
-    CERT_NEWS=$("$CLAUDE_CMD" -p < "$DETAIL_PROMPT" 2>&1 | head -60)
+    # 60行制限だと変更が多い日に文章が途中で切れるため上限を大きく取る（暴走時の安全弁のみ）
+    CERT_NEWS=$("$CLAUDE_CMD" -p < "$DETAIL_PROMPT" 2>&1 | head -300)
     rm -f "$DETAIL_PROMPT"
     echo "  フェーズ2完了"
     echo "$CERT_NEWS" | head -5
@@ -555,6 +556,9 @@ echo "--- [4.5] 監査・改良 / カナリア整合性 / 日めくり 集計 --
 NL_DIR="$NIGHT_PROMPTS_DIR/logs"
 
 # 問題品質監査＋プロンプト改良（audit-questions.sh -i の直近成果）
+# 出力は行頭マーカーで構造化し、メール側の audit_to_html が装飾する:
+#   1行目=ヘッダ / 【〜】=小見出し / ⚠・✖=指摘問題 / ・=指摘詳細 / ✅=改良適用 / その他=本文
+# 文字数スライスはしない（全文を載せる。途切れ防止）
 AUDIT_SUMMARY=$(NL="$NL_DIR" python3 << 'PYEOF'
 import os, glob, json, re
 from collections import Counter
@@ -567,19 +571,40 @@ try:
 except Exception:
     rs = []
 vc = Counter(r.get('verdict') for r in rs)
-line = f"監査{len(rs)}問: ok={vc.get('ok',0)} warn={vc.get('warn',0)} ng={vc.get('ng',0)}"
+exams = sorted({r.get('examType', '') for r in rs if r.get('examType')})
+exam_note = f"（{'/'.join(exams)}）" if exams else ''
+lines = [f"監査 {len(rs)}問{exam_note}: OK {vc.get('ok',0)} / 注意 {vc.get('warn',0)} / 要修正 {vc.get('ng',0)}"]
+
+# 指摘のあった問題は指摘内容を全文で列挙（従来は件数のみで中身が見えなかった）
+flagged = [r for r in rs if r.get('verdict') in ('warn', 'ng')]
+if flagged:
+    lines.append('【指摘のあった問題】')
+    for r in flagged:
+        mark = '✖' if r.get('verdict') == 'ng' else '⚠'
+        extra = ''
+        diff_v = r.get('difficulty')
+        if diff_v and diff_v != 'appropriate':
+            extra = f"（難易度: {diff_v}）"
+        lines.append(f"{mark} {r.get('questionId', '?')}{extra}")
+        for issue in (r.get('issues') or []):
+            lines.append(f"・{issue}")
+
 imp = sorted(glob.glob(os.path.join(nl, 'audit_*_improvement.md')))
 if imp:
     txt = open(imp[-1]).read()
     m = re.search(r'適用 (\d+)件 / 見送り (\d+)件', txt)
-    if m:
-        line += f"\nプロンプト改良: 適用{m.group(1)}件 / 見送り{m.group(2)}件"
-    m2 = re.search(r'## 改良方針\s*\n(.+)', txt)
+    lines.append('【プロンプト自動改良】' + (f" 適用 {m.group(1)}件 / 見送り {m.group(2)}件" if m else ''))
+    # 改良方針は複数行でもセクション全体を取り込む（行頭 .+ だと初行で途切れる）
+    m2 = re.search(r'## 改良方針\s*\n(.*?)(?=\n#|\Z)', txt, re.S)
     if m2:
-        line += f"\n方針: {m2.group(1).strip()}"
+        lines.append('方針: ' + m2.group(1).strip())
+    # 適用先ファイルと理由（全文）
+    for fm in re.finditer(r'### ✅ (\S+)\s*\n\*\*理由:\*\*\s*(.*?)(?=\n```|\n###|\Z)', txt, re.S):
+        reason = ' '.join(fm.group(2).split())
+        lines.append(f"✅ {fm.group(1)}: {reason}")
 else:
-    line += "\nプロンプト改良: なし"
-print(line)
+    lines.append('【プロンプト自動改良】なし')
+print('\n'.join(lines))
 PYEOF
 )
 echo "$AUDIT_SUMMARY" | sed 's/^/  /'
@@ -593,16 +618,24 @@ if not md:
     print('整合性チェック未実施'); raise SystemExit
 txt = open(md[-1]).read()
 out = []
-m = re.search(r'## 所見\s*\n(.+)', txt)
-if m:
-    out.append('所見: ' + m.group(1).strip())
+# 所見・対応はセクション全体を取り込む（行頭 .+ の1行マッチだと複数行の文章が初行で途切れる）
+m = re.search(r'## 所見\s*\n(.*?)(?=\n## |\Z)', txt, re.S)
+if m and m.group(1).strip():
+    out.append('所見: ' + ' '.join(m.group(1).split('```')[0].split()))
 mg = re.search(r'## カバー漏れ・陳腐化\s*\n((?:- .*\n?)+)', txt)
+gaps = []
 if mg:
-    gaps = [g for g in mg.group(1).splitlines() if g.strip().startswith('- ') and '指摘なし' not in g]
+    gaps = [g.strip()[2:] for g in mg.group(1).splitlines() if g.strip().startswith('- ') and '指摘なし' not in g]
     out.append(f"カバー漏れ/陳腐化: {len(gaps)}件")
-ma = re.search(r'## 対応\s*\n(- .+)', txt)
-if ma:
-    out.append('対応: ' + ma.group(1).strip()[2:])
+    for g in gaps:
+        out.append(f"・{g}")
+ma = re.search(r'## 対応\s*\n(.*?)(?=\n## |\Z)', txt, re.S)
+if ma and ma.group(1).strip():
+    # diff等のコードブロックはメールに載せない（specファイル側で確認できる）
+    body = ma.group(1).split('```')[0]
+    resp = [l.strip()[2:] if l.strip().startswith('- ') else l.strip() for l in body.strip().splitlines() if l.strip()]
+    if resp:
+        out.append('対応: ' + ' / '.join(resp))
 print('\n'.join(out) if out else '整合性チェック結果あり')
 PYEOF
 )
@@ -741,6 +774,32 @@ def e_pre(s):
     """プレーンテキスト表示用（コードブロック・ログ等）"""
     return html.escape(str(s))
 
+def audit_to_html(s):
+    """監査サマリー専用レンダラー。行頭マーカーで装飾を分ける:
+    1行目=太字ヘッダ / 【〜】=小見出し / ✖=赤 / ⚠=橙 / ・=詳細(小さめ) / ✅=緑 / その他=本文"""
+    lines = [l for l in str(s).strip().split('\n')]
+    if not lines:
+        return ''
+    parts = [f'<b>{html.escape(lines[0])}</b>']
+    for line in lines[1:]:
+        st = line.strip()
+        if not st:
+            continue
+        esc = html.escape(st)
+        if st.startswith('【'):
+            parts.append(f'<div style="font-weight:700;margin-top:10px;color:#232f3e">{esc}</div>')
+        elif st.startswith('✖'):
+            parts.append(f'<div style="margin:4px 0 0 4px;color:#e74c3c;font-weight:600">{esc}</div>')
+        elif st.startswith('⚠'):
+            parts.append(f'<div style="margin:4px 0 0 4px;color:#e67e22;font-weight:600">{esc}</div>')
+        elif st.startswith('・'):
+            parts.append(f'<div style="margin-left:22px;font-size:12px;color:#555;line-height:1.6">{esc}</div>')
+        elif st.startswith('✅'):
+            parts.append(f'<div style="margin:4px 0 0 4px;color:#1e8449">{esc}</div>')
+        else:
+            parts.append(f'<div style="margin:2px 0 0 8px;font-size:12.5px;color:#444;line-height:1.7">{esc}</div>')
+    return ''.join(parts)
+
 gen      = e_lines(d['gen']); val     = e_lines(d['val'])
 rpt      = e_lines(d['rpt']); rate    = e(d['rate'])
 canary_r = e(d['canary_r']); canary_d = e(d['canary_d'])
@@ -748,8 +807,8 @@ db_total = e(d['db_total']); db_unchk = e(d['db_unchk'])
 db_rpts  = e(d['db_rpts']);  db_exams = e(d['db_exams'])
 db_gen3d = e(d.get('db_gen3d','?')); db_chk3d = e(d.get('db_chk3d','?'))
 cert_html = md_to_html(d['cert']); jst_now  = e(d['jst_now'])
-audit_html      = e_lines(d.get('audit', '監査未実施'))
-canary_cov_html = e_lines(d.get('canary_cov', '整合性チェック未実施'))
+audit_html      = audit_to_html(d.get('audit', '監査未実施'))
+canary_cov_html = audit_to_html(d.get('canary_cov', '整合性チェック未実施'))
 daily_html      = e_lines(d.get('daily', '日めくり情報なし'))
 backend_html    = e_lines(d.get('backend', '未取得'))
 
