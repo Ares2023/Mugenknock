@@ -673,18 +673,20 @@ PYEOF
       fi
 
       # ── ping: Claudeセッションを開始させるための軽い呼び出し ──
+      #    JSON出力で usage.output_tokens / session_id / is_error を取得し、
+      #    「応答テキストはあるが実受信していない（見せかけOK）」を検知できるようにする。
       if [ "${is_deadline:-0}" -eq 0 ]; then
         echo "▶ [ping] Claudeセッション確認..."
         local _pt0=$(date +%s)
         local _ping_out _ping_ec
         local _ping_bin
         _ping_bin=$( { [ -x /usr/local/bin/claude ] && echo /usr/local/bin/claude; } || command -v claude 2>/dev/null )
-        _ping_out=$("${_ping_bin:-claude}" --dangerously-skip-permissions -p "." 2>&1)
+        _ping_out=$("${_ping_bin:-claude}" --dangerously-skip-permissions -p "." --output-format json 2>&1)
         _ping_ec=$?
         local _ping_s=$(( $(date +%s) - _pt0 ))
         printf "  → %ds\n" "$_ping_s"
-        echo "$_ping_out"
-        if [ $_ping_ec -ne 0 ] || echo "$_ping_out" | grep -qiE "rate.?limit|too many requests|overload|quota exceeded|hit your limit|usage limit"; then
+        if [ $_ping_ec -ne 0 ] || echo "$_ping_out" | grep -qiE "rate.?limit|too many requests|overload|quota exceeded|hit your limit|usage limit|session limit"; then
+          echo "$_ping_out"
           local _reset
           _reset=$(echo "$_ping_out" | grep -ioE "resets [0-9]{1,2}:[0-9]{2}[ap]m" | grep -ioE "[0-9]{1,2}:[0-9]{2}[ap]m" | head -n 1)
           [ -n "$_reset" ] && extracted_reset_time="$_reset"
@@ -692,8 +694,36 @@ PYEOF
           _ping_result="LIMIT(${extracted_reset_time:-?})"
           echo "⚠️ レート制限 (reset: ${extracted_reset_time:-不明})"
         else
-          _ping_result="OK(${_ping_s}s)"
-          echo "✓ ping OK"
+          # JSONをパースし、実際に応答（usage.output_tokens>0 かつ is_error=false）が返ったか検証
+          local _verify
+          _verify=$(printf '%s' "$_ping_out" | python3 -c '
+import sys, json
+raw = sys.stdin.read()
+try:
+    d = json.loads(raw)
+except Exception:
+    print("PARSE_FAIL|0||" + raw[:100].replace("\n", " ").replace("|", "/"))
+    sys.exit(0)
+u = d.get("usage") or {}
+out_tok = u.get("output_tokens") or 0
+sid = d.get("session_id", "") or ""
+is_err = bool(d.get("is_error", False))
+result = (d.get("result") or "")[:100].replace("\n", " ").replace("|", "/")
+status = "REAL" if (out_tok and not is_err) else "SUSPECT"
+print(f"{status}|{out_tok}|{sid}|{result}")
+' 2>/dev/null)
+          local _vstatus="${_verify%%|*}"; local _vr="${_verify#*|}"
+          local _votok="${_vr%%|*}"; _vr="${_vr#*|}"
+          local _vsid="${_vr%%|*}"; local _vtext="${_vr#*|}"
+          echo "  応答: \"${_vtext}\""
+          echo "  検証: status=${_vstatus:-?} out_tokens=${_votok:-0} sid=${_vsid:0:12}"
+          if [ "${_vstatus}" = "REAL" ]; then
+            _ping_result="OK(${_ping_s}s,${_votok}tok)"
+            echo "✓ ping OK（実受信を確認: 出力${_votok}トークン）"
+          else
+            _ping_result="UNVERIFIED(${_ping_s}s)"
+            echo "⚠️ ping 応答はあるが実受信の証拠なし（見せかけの可能性）status=${_vstatus:-?}"
+          fi
         fi
       fi
 

@@ -165,9 +165,33 @@ export default function MyPage() {
   });
   const examColor = targetExam ? (EXAM_LEVEL_COLORS[EXAM_LEVEL[targetExam]] ?? 'var(--color-primary)') : 'var(--color-primary)';
 
+  // 週間達成状況はサーバの sessions から日別集計し、端末を変えても連携されるようにする。
+  // （ログイン時のみ。未ログイン/取得失敗時は localStorage の dailyQCount にフォールバック）
+  const [serverDayCounts, setServerDayCounts] = useState<Record<string, number> | null>(null);
+  useEffect(() => {
+    if (!user || !targetExam) { setServerDayCounts(null); return; }
+    fetch(`${API_ENDPOINT}/users/me/sessions?userId=${user.userId}&limit=200`)
+      .then(r => r.json())
+      .then(d => {
+        const map: Record<string, number> = {};
+        for (const s of (d.items ?? [])) {
+          if (s.examType !== targetExam) continue;
+          const ts = s.endedAt || s.startedAt;
+          if (!ts) continue;
+          const jst = new Date(new Date(ts).getTime() + 9 * 3600 * 1000).toISOString().slice(0, 10);
+          const cnt = typeof s.answeredCount === 'number' ? s.answeredCount : (Array.isArray(s.questionIds) ? s.questionIds.length : 0);
+          map[jst] = (map[jst] ?? 0) + cnt;
+        }
+        setServerDayCounts(map);
+      })
+      .catch(() => setServerDayCounts(null));
+  }, [user, targetExam]);
+
   // 目標資格のみの日別演習量（マイページは全て目標資格基準で表示）
   const weekCountsTarget = weekDays.map(d =>
-    targetExam ? parseInt(localStorage.getItem(`dailyQCount_${targetExam}_${uid}_${d}`) ?? '0', 10) : 0
+    serverDayCounts
+      ? (serverDayCounts[d] ?? 0)
+      : (targetExam ? parseInt(localStorage.getItem(`dailyQCount_${targetExam}_${uid}_${d}`) ?? '0', 10) : 0)
   );
   const todayCount = weekCountsTarget[6];
 

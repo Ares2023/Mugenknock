@@ -374,9 +374,12 @@ export default function ExamSelectOverlay({
             <div style={{ flexShrink: 0, borderTop: `2px solid ${levelColor}33`, background: `${levelColor}08`, padding: '10px 16px', display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: 12, minHeight: 64 }}>
               <style>{`@keyframes examStudyingFade { from { opacity: 0; transform: translateX(6px); } to { opacity: 1; transform: none; } }`}</style>
               {(isCurrentTarget || confirming) && (
-                <div style={{ fontSize: 'var(--font-size-sm2)', fontWeight: 700, color: 'var(--color-success)', animation: (confirming && !isCurrentTarget) ? 'examStudyingFade 0.4s ease 0.5s both' : undefined }}>✓ {ja ? '学習中' : 'Studying'}</div>
+                <div style={{ fontSize: 'var(--font-size-sm2)', fontWeight: 700, color: 'var(--color-success)', animation: confirming ? 'examStudyingFade 0.4s ease 0.5s both' : undefined }}>✓ {ja ? '学習中' : 'Studying'}</div>
               )}
-              {isCurrentTarget ? (
+              {/* confirming 中は isCurrentTarget になっても静的ボタンへ差し替えない。
+                  呼び出し元(Home)が targetExamChanged イベントで即座に targetExam を更新すると
+                  フリップ演出が途中で切れるため（MyPage 経由と挙動が揃わない）、演出完了まで維持する */}
+              {(isCurrentTarget && !confirming) ? (
                 <button disabled style={{ width: 44, height: 44, borderRadius: '50%', border: 'none', background: levelColor, color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'default', boxShadow: 'var(--box-shadow-pop)', flexShrink: 0, transition: 'none' }}>
                   <IconBookOpenCheck size={22} />
                 </button>

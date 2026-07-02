@@ -7,12 +7,6 @@ import { useLanguage } from '../contexts/LanguageContext';
 import { IconUser } from '../components/Icons';
 import Reveal from '../components/Reveal';
 
-const TEAL   = '#009E9E';
-const TEAL_D = '#007878';
-const TEAL_L = '#e6f7f7';
-const TEAL_M = '#b2e8e8';
-
-
 const BENEFITS: { ja: string; en: string }[] = [
   {
     ja: 'キャリアアップに直結。AWS認定は世界標準のクラウド資格として採用市場で高く評価されています。',
@@ -90,77 +84,114 @@ export default function Portal() {
         <meta name="description" content="AWS認定試験（SAA・CLF・SAPなど）の無料練習問題サービス。AI生成の本番同等問題2,600問以上、演習・模試・統計の3本柱でスコアアップをサポート。全12資格対応。" />
       </Helmet>
 
-      {/* ── ヘッダー ── */}
-      <header style={{ height: 56, minHeight: 56, background: 'var(--color-bg-white)', display: 'flex', alignItems: 'center', justifyContent: 'flex-end', padding: isMobile ? '0 12px' : '0 var(--spacing-lg)', zIndex: 200, flexShrink: 0, borderBottom: '1px solid var(--color-border)' }}>
-        <button onClick={() => navigate(user ? '/account' : '/login')} style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', background: user ? TEAL_L : 'transparent', border: '1px solid var(--color-border)', borderRadius: '50%', cursor: 'pointer', color: user ? TEAL : 'var(--color-text-sub)', width: 36, height: 36, padding: 0, fontSize: 'var(--font-size-base)', fontWeight: 700 }}>
-          {user?.email ? user.email[0].toUpperCase() : <IconUser />}
-        </button>
+      {/* ── ヘッダー（ホーム画面と同一デザイン：ロゴ＋アカウントのみ） ── */}
+      <header style={{
+        height: 56, minHeight: 56, background: 'var(--color-bg-white)',
+        display: 'flex', alignItems: 'center',
+        padding: isMobile ? '0 12px 0 8px' : '0 var(--spacing-lg)',
+        gap: 'var(--spacing-md)', zIndex: 200, flexShrink: 0,
+        borderBottom: '1px solid var(--color-border)',
+      }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 6, userSelect: 'none', flexShrink: 0, padding: '0 4px' }}>
+          <img src="/mugen-icon.png"   alt="無限ノック" style={{ height: 28, width: 'auto', display: 'block', flexShrink: 0 }} />
+          <img src="/mugen-header.png" alt=""           style={{ height: 28, width: 'auto', display: 'block', flexShrink: 0 }} />
+        </div>
+        <div style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center', flexShrink: 0 }}>
+          <button
+            onClick={() => navigate(user ? '/account' : '/login')}
+            style={{
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+              background: user ? 'var(--color-primary-light)' : 'transparent',
+              border: '1px solid var(--color-border)', borderRadius: '50%',
+              cursor: 'pointer', color: user ? 'var(--color-primary)' : 'var(--color-text-sub)',
+              width: 36, height: 36, padding: 0, flexShrink: 0, transition: 'background 0.2s',
+              fontSize: 'var(--font-size-base)', fontWeight: 700, letterSpacing: 0,
+            }}
+            onMouseEnter={e => e.currentTarget.style.background = 'var(--color-bg-main)'}
+            onMouseLeave={e => e.currentTarget.style.background = user ? 'var(--color-primary-light)' : 'transparent'}
+          >
+            {user?.email ? user.email[0].toUpperCase() : <IconUser />}
+          </button>
+        </div>
       </header>
 
       <main style={{ flex: 1, overflowY: 'auto' }}>
+        <div style={{ maxWidth: 860, margin: '0 auto', padding: isMobile ? 'var(--spacing-md) var(--spacing-md) var(--spacing-xl)' : 'var(--spacing-lg) var(--spacing-xl) var(--spacing-xl)' }}>
 
-        {/* ── ヒーロー ── */}
-        <section style={{ background: TEAL_L, borderBottom: `3px solid ${TEAL_M}`, padding: isMobile ? '40px 20px 36px' : '64px 40px 56px', textAlign: 'center' }}>
-          <div style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 10, marginBottom: 24 }}>
-            <img src="/mugen-icon.png"   alt="無限ノック" style={{ height: isMobile ? 40 : 52, width: 'auto' }} />
-            <img src="/mugen-header.png" alt=""           style={{ height: isMobile ? 40 : 52, width: 'auto' }} />
-          </div>
-          <h1 style={{ fontSize: isMobile ? 22 : 32, fontWeight: 900, color: TEAL_D, margin: '0 0 14px', letterSpacing: '-0.5px', lineHeight: 1.3 }}>
-            {ja ? 'AWS認定試験の練習問題サービス' : 'AWS Certification Practice'}
-          </h1>
-          <p style={{ fontSize: isMobile ? 14 : 16, color: '#555', margin: '0 auto 28px', maxWidth: 480, lineHeight: 1.8 }}>
-            {ja
-              ? 'AI生成の本番同等問題で実力を磨き、ドメイン別分析で弱点を克服。全12資格に対応。'
-              : 'Sharpen your skills with AI-generated questions and conquer your weak domains across all 12 certifications.'}
-          </p>
-          <button onClick={handleStart} style={{ background: TEAL, color: '#fff', border: 'none', borderRadius: 8, padding: isMobile ? '12px 28px' : '14px 36px', fontSize: isMobile ? 15 : 16, fontWeight: 700, cursor: 'pointer', letterSpacing: '0.02em', transition: 'background 0.15s' }} onMouseEnter={e => { e.currentTarget.style.background = TEAL_D; }} onMouseLeave={e => { e.currentTarget.style.background = TEAL; }}>
-            {ja ? '資格を選んで演習を始める' : 'Choose a Cert & Start'}
-          </button>
-          {!user && (
-            <p style={{ fontSize: 'var(--font-size-sm)', color: '#888', marginTop: 10 }}>
-              {ja ? 'アカウント登録なしで体験できます' : 'No account required to get started'}
+          {/* ── ブランド＋サービス説明カード ── */}
+          <section style={{ background: 'var(--color-bg-white)', border: '1px solid var(--color-border)', borderRadius: 'var(--border-radius-lg)', boxShadow: 'var(--box-shadow-sm)', padding: isMobile ? 'var(--spacing-lg) var(--spacing-md)' : 'var(--spacing-xl) var(--spacing-xl)', textAlign: 'center', marginBottom: 'var(--spacing-md)' }}>
+            <div style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 10, marginBottom: 'var(--spacing-md)' }}>
+              <img src="/mugen-icon.png"   alt="無限ノック" style={{ height: isMobile ? 44 : 56, width: 'auto' }} />
+              <img src="/mugen-header.png" alt=""           style={{ height: isMobile ? 44 : 56, width: 'auto' }} />
+            </div>
+            <h1 style={{ fontSize: isMobile ? 'var(--font-size-h3)' : 'var(--font-size-h2)', fontWeight: 800, color: 'var(--color-text-main)', margin: '0 0 var(--spacing-md)', letterSpacing: '-0.3px', lineHeight: 1.4 }}>
+              {ja ? 'AWS認定試験の練習問題サービス' : 'AWS Certification Practice'}
+            </h1>
+            <p style={{ fontSize: isMobile ? 'var(--font-size-base)' : 'var(--font-size-md)', color: 'var(--color-text-sub)', margin: '0 auto', maxWidth: 620, lineHeight: 2, textAlign: 'left' }}>
+              {ja
+                ? '「無限ノック」は、AWS認定 全12資格の本番同等問題（2,600問以上）から出題する完全解説付きのWeb問題集です。PC・スマホ・タブレットを使って、スキマ時間に無料で演習に取り組むことができ、学習履歴の記録やドメイン別の苦手分析も可能です。試験対策としてご活用ください。'
+                : 'Mugenknock is a fully-explained web question bank drawing from 2,600+ exam-grade questions across all 12 AWS certifications. Practice free in spare moments on PC, phone, or tablet, with learning history and per-domain weak-point analysis. '}
             </p>
-          )}
-        </section>
+          </section>
 
-        <div style={{ maxWidth: 860, margin: '0 auto', padding: isMobile ? '32px 16px' : '52px 32px' }}>
+          {/* ── 演習開始ボタン（ホームのサクッと演習ボタンと同デザイン・全幅） ── */}
+          <div style={{ margin: '0 0 var(--spacing-lg)' }}>
+            <button
+              onClick={handleStart}
+              style={{
+                width: '100%', height: 44, border: 'none', borderRadius: 22,
+                background: 'var(--color-accent)', color: 'var(--color-btn-primary-text)',
+                fontWeight: 600, fontSize: 'var(--font-size-base)', cursor: 'pointer',
+                transition: 'background 0.15s',
+              }}
+              onMouseEnter={e => { e.currentTarget.style.background = 'var(--color-accent-hover)'; }}
+              onMouseLeave={e => { e.currentTarget.style.background = 'var(--color-accent)'; }}
+            >
+              {ja ? '演習開始' : 'Start Practice'}
+            </button>
+            {!user && (
+              <p style={{ fontSize: 'var(--font-size-sm)', color: 'var(--color-text-light)', marginTop: 'var(--spacing-sm)', textAlign: 'center' }}>
+                {ja ? 'アカウント登録なしで体験できます' : 'No account required to get started'}
+              </p>
+            )}
+          </div>
 
           {/* ── メリット ── */}
-          <section style={{ marginBottom: isMobile ? 40 : 56 }}>
-            <h2 style={{ fontSize: isMobile ? 17 : 22, fontWeight: 800, color: TEAL_D, margin: '0 0 20px', letterSpacing: '-0.3px' }}>
+          <section style={{ marginBottom: isMobile ? 'var(--spacing-xl)' : 48 }}>
+            <h2 style={{ fontSize: isMobile ? 'var(--font-size-h3)' : 'var(--font-size-h2)', fontWeight: 800, color: 'var(--color-text-main)', margin: '0 0 var(--spacing-md)', letterSpacing: '-0.3px', borderLeft: '4px solid var(--color-accent)', paddingLeft: 'var(--spacing-sm)' }}>
               {ja ? 'AWS認定資格を取得するメリット' : 'Why Get AWS Certified?'}
             </h2>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--spacing-sm)' }}>
               {BENEFITS.map((b, i) => (
-                <Reveal key={i} delay={i * 70} style={{ display: 'flex', alignItems: 'flex-start', gap: 14, background: 'var(--color-bg-white)', border: '1px solid var(--color-border)', borderRadius: 8, padding: '14px 16px' }}>
-                  <span style={{ flexShrink: 0, width: 24, height: 24, borderRadius: '50%', background: TEAL, color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 'var(--font-size-sm2)', fontWeight: 800 }}>{i + 1}</span>
-                  <p style={{ margin: 0, fontSize: isMobile ? 13 : 14, color: 'var(--color-text-sub)', lineHeight: 1.75 }}>{ja ? b.ja : b.en}</p>
+                <Reveal key={i} delay={i * 70} style={{ display: 'flex', alignItems: 'flex-start', gap: 14, background: 'var(--color-bg-white)', border: '1px solid var(--color-border)', borderRadius: 'var(--border-radius-md)', boxShadow: 'var(--box-shadow-sm)', padding: '14px 16px' }}>
+                  <span style={{ flexShrink: 0, width: 24, height: 24, borderRadius: '50%', background: 'var(--color-accent)', color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 'var(--font-size-sm2)', fontWeight: 800 }}>{i + 1}</span>
+                  <p style={{ margin: 0, fontSize: isMobile ? 'var(--font-size-sm2)' : 'var(--font-size-base)', color: 'var(--color-text-sub)', lineHeight: 1.75 }}>{ja ? b.ja : b.en}</p>
                 </Reveal>
               ))}
             </div>
           </section>
 
           {/* ── 機能 ── */}
-          <section style={{ marginBottom: isMobile ? 40 : 56 }}>
-            <h2 style={{ fontSize: isMobile ? 17 : 22, fontWeight: 800, color: TEAL_D, margin: '0 0 20px', letterSpacing: '-0.3px' }}>
+          <section style={{ marginBottom: isMobile ? 'var(--spacing-xl)' : 48 }}>
+            <h2 style={{ fontSize: isMobile ? 'var(--font-size-h3)' : 'var(--font-size-h2)', fontWeight: 800, color: 'var(--color-text-main)', margin: '0 0 var(--spacing-md)', letterSpacing: '-0.3px', borderLeft: '4px solid var(--color-accent)', paddingLeft: 'var(--spacing-sm)' }}>
               {ja ? '無限ノックでできること' : 'What You Can Do'}
             </h2>
             <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : 'repeat(3, 1fr)', gap: 14 }}>
               {FEATURES.map((f, i) => (
-                <Reveal key={i} delay={i * 70} style={{ background: 'var(--color-bg-white)', border: '1px solid var(--color-border)', borderRadius: 8, padding: '18px 16px' }}>
-                  <div style={{ fontSize: 'var(--font-size-sm2)', fontWeight: 800, color: TEAL, marginBottom: 8 }}>{ja ? f.ja_title : f.en_title}</div>
-                  <p style={{ margin: 0, fontSize: isMobile ? 12 : 13, color: 'var(--color-text-sub)', lineHeight: 1.75 }}>{ja ? f.ja : f.en}</p>
+                <Reveal key={i} delay={i * 70} style={{ background: 'var(--color-bg-white)', border: '1px solid var(--color-border)', borderRadius: 'var(--border-radius-md)', boxShadow: 'var(--box-shadow-sm)', padding: '18px 16px' }}>
+                  <div style={{ fontSize: 'var(--font-size-sm2)', fontWeight: 800, color: 'var(--color-primary)', marginBottom: 'var(--spacing-sm)' }}>{ja ? f.ja_title : f.en_title}</div>
+                  <p style={{ margin: 0, fontSize: isMobile ? 'var(--font-size-sm)' : 'var(--font-size-sm2)', color: 'var(--color-text-sub)', lineHeight: 1.75 }}>{ja ? f.ja : f.en}</p>
                 </Reveal>
               ))}
             </div>
           </section>
 
           {/* ── 開発の意図・目的 ── */}
-          <section style={{ marginBottom: isMobile ? 40 : 56 }}>
-            <h2 style={{ fontSize: isMobile ? 'var(--font-size-h3)' : 'var(--font-size-h2)', fontWeight: 800, color: TEAL_D, margin: '0 0 20px', letterSpacing: '-0.3px' }}>
+          <section>
+            <h2 style={{ fontSize: isMobile ? 'var(--font-size-h3)' : 'var(--font-size-h2)', fontWeight: 800, color: 'var(--color-text-main)', margin: '0 0 var(--spacing-md)', letterSpacing: '-0.3px', borderLeft: '4px solid var(--color-accent)', paddingLeft: 'var(--spacing-sm)' }}>
               {ja ? 'なぜ作ったのか' : 'Why I Built This'}
             </h2>
-            <Reveal style={{ background: 'var(--color-bg-white)', border: '1px solid var(--color-border)', borderLeft: `4px solid ${TEAL}`, borderRadius: 'var(--border-radius-lg)', padding: isMobile ? 'var(--spacing-md)' : 'var(--spacing-lg) var(--spacing-xl)', lineHeight: 1.95 }}>
+            <Reveal style={{ background: 'var(--color-bg-white)', border: '1px solid var(--color-border)', borderLeft: '4px solid var(--color-accent)', borderRadius: 'var(--border-radius-lg)', boxShadow: 'var(--box-shadow-sm)', padding: isMobile ? 'var(--spacing-md)' : 'var(--spacing-lg) var(--spacing-xl)', lineHeight: 1.95 }}>
               <p style={{ margin: '0 0 var(--spacing-md)', fontSize: isMobile ? 'var(--font-size-base)' : 'var(--font-size-lg)', fontWeight: 700, color: 'var(--color-text-main)' }}>
                 {ja
                   ? 'AWS認定 SAP を持つ、いちエンジニアです。いまはAWS全12資格の制覇に挑んでいます。'
@@ -174,16 +205,16 @@ export default function Portal() {
               <p style={{ margin: '0 0 var(--spacing-sm)', fontSize: isMobile ? 'var(--font-size-sm2)' : 'var(--font-size-base)', color: 'var(--color-text-sub)' }}>
                 {ja ? 'だから無限ノックは、その不満のひとつひとつに答えを用意しました。' : 'So Mugenknock answers every one of those frustrations, head-on.'}
               </p>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 8, margin: '0 0 var(--spacing-md)' }}>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--spacing-sm)', margin: '0 0 var(--spacing-md)' }}>
                 {[
                   { p: ['ロードが遅い', 'Slow loading'], s: ['待たせない表示速度', 'Loads that never make you wait'] },
                   { p: ['弱点分析が甘い', 'Weak personalization'], s: ['解くほど穴が見える弱点特化', 'Weak-point focus that sharpens as you solve'] },
                   { p: ['日本語が不自然', 'Awkward Japanese'], s: ['自然で読みやすい日本語', 'Natural, readable Japanese'] },
                   { p: ['情報が古い', 'Outdated content'], s: ['最新試験に合わせて作り直し', 'Rebuilt to match the current exams'] },
                 ].map((row, i) => (
-                  <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
+                  <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 'var(--spacing-sm)', flexWrap: 'wrap' }}>
                     <span style={{ fontSize: isMobile ? 'var(--font-size-xs)' : 'var(--font-size-sm)', color: 'var(--color-text-light)', textDecoration: 'line-through' }}>{ja ? row.p[0] : row.p[1]}</span>
-                    <span style={{ color: TEAL, fontWeight: 800, flexShrink: 0 }}>→</span>
+                    <span style={{ color: 'var(--color-accent)', fontWeight: 800, flexShrink: 0 }}>→</span>
                     <span style={{ fontSize: isMobile ? 'var(--font-size-sm2)' : 'var(--font-size-base)', color: 'var(--color-text-main)', fontWeight: 700 }}>{ja ? row.s[0] : row.s[1]}</span>
                   </div>
                 ))}
@@ -202,7 +233,7 @@ export default function Portal() {
         </div>
       </main>
 
-      <footer style={{ padding: '14px var(--spacing-lg)', textAlign: 'center', fontSize: 'var(--font-size-xs)', color: 'var(--color-text-light)', borderTop: '1px solid var(--color-border)' }}>
+      <footer style={{ padding: '14px var(--spacing-lg)', textAlign: 'center', fontSize: 'var(--font-size-xs)', color: 'var(--color-text-light)', borderTop: '1px solid var(--color-border)', background: 'var(--color-bg-white)' }}>
         © {new Date().getFullYear()} MugenKnock
         <span style={{ margin: '0 10px' }}>|</span>
         <a href="/about#privacy" style={{ color: 'var(--color-text-light)', textDecoration: 'none' }}
@@ -233,13 +264,13 @@ export default function Portal() {
               ? '本サービスは、広告配信・アクセス解析のためにCookieを使用しています。'
               : 'This site uses cookies for advertising and analytics.'}
             {' '}
-            <a href="/about#privacy" style={{ color: TEAL, fontSize: 'var(--font-size-sm)' }}>
+            <a href="/about#privacy" style={{ color: 'var(--color-primary)', fontSize: 'var(--font-size-sm)' }}>
               {ja ? '詳細' : 'Learn more'}
             </a>
           </span>
           <button
             onClick={acceptCookies}
-            style={{ flexShrink: 0, padding: '6px 18px', background: TEAL, color: '#fff', border: 'none', borderRadius: 'var(--border-radius-full)', fontWeight: 700, fontSize: 'var(--font-size-sm)', cursor: 'pointer' }}
+            style={{ flexShrink: 0, padding: '6px 18px', background: 'var(--color-accent)', color: 'var(--color-btn-primary-text)', border: 'none', borderRadius: 'var(--border-radius-full)', fontWeight: 700, fontSize: 'var(--font-size-sm)', cursor: 'pointer' }}
           >
             {ja ? '同意して閉じる' : 'Accept'}
           </button>

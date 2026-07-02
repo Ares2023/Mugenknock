@@ -410,7 +410,7 @@ aws dynamodb query \
   --index-name examType-index \
   --key-condition-expression "examType = :e" \
   --expression-attribute-values "{\":e\": {\"S\": \"$NEXT_EXAM\"}}" \
-  --projection-expression "#dom, questionText" \
+  --projection-expression "#dom, questionText, correctAnswers" \
   --expression-attribute-names '{"#dom":"domain"}' \
   --output json 2>/dev/null > "$_EXISTING_TMP" || echo '{"Items":[]}' > "$_EXISTING_TMP"
 
@@ -460,6 +460,12 @@ domain_qs = defaultdict(list)
 
 for item in data.get('Items', []):
     qt = item.get('questionText', {}).get('S', '')
+    ca_raw = item.get('correctAnswers', {})
+    ca_list = []
+    if 'L' in ca_raw:
+        ca_list = [c.get('S', '') for c in ca_raw['L'] if c.get('S', '')]
+    elif 'SS' in ca_raw:
+        ca_list = [str(v) for v in ca_raw['SS'] if str(v)]
     domain_name = ''
     # 新形式: domain 整数インデックス → ドメイン名に変換
     # ※ examType はプロジェクションに含まれないため argv[5] で受け取る
@@ -483,7 +489,8 @@ for item in data.get('Items', []):
     if domain_name:
         counts[domain_name] += 1
         if qt:
-            domain_qs[domain_name].append(qt)
+            # 問題文と正解を組で保持（重複回避プロンプトで「正解サービス＋論点」を提示するため）
+            domain_qs[domain_name].append({'q': qt, 'a': ca_list})
 
 # ドメイン名のみのカウント（逆数割り当て計算用）
 domain_counts = {k: v for k, v in counts.items() if norm(k) in domain_set} if domain_set else dict(counts)
@@ -702,7 +709,17 @@ if not texts:
     print('（まだ問題はありません）')
 else:
     for t in texts[-max_qs:]:
-        print('・' + t.replace('\n', ' ')[:max_ch])
+        # 新形式: {'q': 問題文, 'a': [正解,...]} / 旧形式: 問題文のみ（後方互換）
+        if isinstance(t, dict):
+            q = t.get('q', '')
+            a = ' / '.join(str(x) for x in t.get('a', []))
+            line = '・' + q.replace('\n', ' ')[:max_ch]
+            if a:
+                # 問題文冒頭は似通うため、識別力の高い「正解」を必ず添える
+                line += '〔正解: ' + a[:40] + '〕'
+            print(line)
+        else:
+            print('・' + str(t).replace('\n', ' ')[:max_ch])
 PYEOF
 )
 
@@ -744,7 +761,7 @@ ${EXISTING_TEXTS}
 ※ フォーマット規則:
 - choices にラベル（A. B. 等）を付けない（テキストのみ）
 - correctAnswerIndices が正解の正準指定（choices 配列内のインデックス・0始まり）。必ず正確に設定すること
-- correctAnswers は任意（省略可）。サーバー側で correctAnswerIndices と choices から自動生成される
+- correctAnswers は必須。choices 配列内の正解テキストと完全一致で記載すること（欠落・不一致の問題は取込前バリデーションで破棄される）
 - choiceExplanations は choices と同じ要素数・同じ順序（⚠最重要: choiceExplanations[i] は必ず choices[i] の選択肢を説明すること。順序ズレ厳禁）
   - 各選択肢の解説は 100〜150 字（短すぎ・1文のみは不可）
   - 正解選択肢: なぜ正解か（根拠から書き始める）
@@ -913,6 +930,24 @@ entry.setdefault("domains", {})[domain] = entry["domains"].get(domain, 0) + n
 cache["updated_at"] = datetime.now().isoformat()
 with open(cache_file, 'w') as f: json.dump(cache, f, ensure_ascii=False, indent=2)
 PYEOF
+      # 同一実行内の後続チャンクへ重複回避情報を伝搬（DB取得はループ前の1回だけで、
+      # このチャンクの生成分は EXISTING_TEXTS に含まれていないため）
+      if [ "$_chunk" -lt "$CHUNKS_TOTAL" ]; then
+        _NEW_TEXTS=$(echo "$API_PAYLOAD" | PYTHONIOENCODING=utf-8 python3 -c "
+import sys, json
+d = json.loads(sys.stdin.read())
+exam = d.get('examType', '')
+max_ch = 40 if exam in ('SAP', 'ANS', 'SCS', 'DOP') else 55
+for q in d.get('questions', []):
+    line = '・' + str(q.get('questionText', '')).replace('\n', ' ')[:max_ch]
+    a = ' / '.join(str(x) for x in q.get('correctAnswers', []))
+    if a:
+        line += '〔正解: ' + a[:40] + '〕'
+    print(line)
+" 2>/dev/null)
+        [ -n "$_NEW_TEXTS" ] && EXISTING_TEXTS="${EXISTING_TEXTS}
+${_NEW_TEXTS}"
+      fi
     else
       echo "  ❌ チャンク${_chunk} API エラー (HTTP $HTTP_CODE): $HTTP_BODY"
     fi

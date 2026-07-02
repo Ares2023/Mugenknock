@@ -7,13 +7,14 @@ import { recordSessionDomainStats, recentForTag } from '../utils/domainStats';
 import { qText } from '../utils/i18nQuestion';
 import { getCached, setCached, deleteCached, DEFAULT_TTL } from '../utils/cache';
 import { addPoints } from '../utils/points';
+import { incrementDailyProgress } from '../utils/dailyProgress';
 import { schedulePrefetchAfterSession } from '../utils/questionPrefetch';
 import { useAuth } from '../contexts/AuthContext';
 import { useLanguage } from '../contexts/LanguageContext';
 import Card from '../components/ui/Card';
 import Button from '../components/ui/Button';
 import ReportModal from '../components/ReportModal';
-import { IconBookOpen, IconBean, IconCopy, IconCheck, IconStar, IconChevronUp, IconChevronDown } from '../components/Icons';
+import { IconBookOpen, IconBean, IconCopy, IconCheck, IconStar, IconChevronUp, IconChevronDown, IconAlertTriangle } from '../components/Icons';
 import KeyHint from '../components/KeyHint';
 import { isKbMode } from '../utils/keyboardMode';
 
@@ -222,6 +223,8 @@ export default function ExerciseSession() {
     let ans: boolean = state?.resumeAnswered ?? false;
     let sel: string[] = state?.resumeSelectedAnswers ?? [];
     let qs: Question[] | null = null;
+    let qids: string[] | null = null;
+    let spares: string[] | null = null;
     if (state?.sessionId) {
       try {
         let best: any = null;
@@ -242,9 +245,16 @@ export default function ExerciseSession() {
           sel = best.selectedAnswers ?? [];
           if (best.questions?.length) qs = best.questions;
         }
+        // 出題予定ID・予備IDは進捗の多寡に関わらずドラフトから補完する。
+        // 再開navigateのstateにquestionIdsが含まれない場合でも、これが無いと
+        // totalCountがロード済み問題数まで縮み、設定した問題数を満たせなくなる。
+        if (best) {
+          if (best.questionIds?.length) qids = best.questionIds;
+          if (best.spareIds?.length) spares = best.spareIds;
+        }
       } catch {}
     }
-    return { idx, res, ans, sel, qs };
+    return { idx, res, ans, sel, qs, qids, spares };
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   const [sessionId, setSessionId] = useState<string>(state?.sessionId ?? '');
@@ -279,9 +289,9 @@ export default function ExerciseSession() {
   const [questions, setQuestions] = useState<Question[]>(_resumeInit.qs ?? state?.questions ?? []);
   // プログレッシブロード用: 出題予定IDリスト（presentIds）。読み込めないIDが出たら
   // 予備ID(spare)で補填し、設定問題数を必ず満たす。useState でhook登録しTDZを回避。
-  const [presentIds, setPresentIds] = useState<string[]>(state?.questionIds ?? []);
+  const [presentIds, setPresentIds] = useState<string[]>(state?.questionIds ?? _resumeInit.qids ?? []);
   const allQuestionIds = presentIds; // 後方互換の別名（totalや先読みの基準）
-  const spareIdsRef = React.useRef<string[]>([...(state?.spareQuestionIds ?? [])]);
+  const spareIdsRef = React.useRef<string[]>([...(state?.spareQuestionIds ?? _resumeInit.spares ?? [])]);
   const attemptedIdsRef = React.useRef<Set<string>>(new Set()); // 取得を試みたID（欠落の再取得・重複を防ぐ）
   const loadingNextRef = React.useRef(false);
   const [userId, setUserId] = useState<string>(state?.userId ?? '');
@@ -356,7 +366,13 @@ export default function ExerciseSession() {
           });
         }
       })
-      .catch(() => {})
+      .catch(() => {
+        // ネットワーク失敗時は取得試行済みマークを取り消し、後続の再試行で再取得できるようにする
+        // （取り消さないと該当IDが永久に読み込まれず、設定問題数に到達できなくなる）
+        batch.forEach(id => attemptedIdsRef.current.delete(id));
+        // 状態変化が無いとロード効果が再発火しないため、少し待ってから再試行をトリガーする
+        setTimeout(() => setPresentIds(prev => [...prev]), 1500);
+      })
       .finally(() => { loadingNextRef.current = false; });
   }, [currentIndex, questions.length, presentIds]); // eslint-disable-line react-hooks/exhaustive-deps
   const [viewedFrontier, setViewedFrontier] = useState<number>(_resumeInit.idx);
@@ -458,7 +474,7 @@ export default function ExerciseSession() {
     try {
       const draftKey = isFocused ? `focusedExerciseDraft_${userId}` : isQuick ? `quickExerciseDraft_${userId}` : `practiceExerciseDraft_${userId}`;
       localStorage.setItem(draftKey, JSON.stringify({
-        sessionId, examType, questions, questionIds: allQuestionIds, userId,
+        sessionId, examType, questions, questionIds: allQuestionIds, spareIds: spareIdsRef.current, userId,
         currentIndex: ci, results: r, answered: a, selectedAnswers: sa,
         isQuick, isFocused, isMini, savedAt: Date.now(),
       }));
@@ -471,11 +487,13 @@ export default function ExerciseSession() {
         body: JSON.stringify({ userId, sessionType, draft: { currentIndex: ci, results: r, answered: a, selectedAnswers: sa } }),
       }).catch(() => {});
     }
-  }, [sessionId, examType, questions, userId, isQuick, isFocused, isMini]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [sessionId, examType, questions, allQuestionIds, userId, isQuick, isFocused, isMini]); // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
     saveDraftNow();
-  }, [currentIndex, results, answered, selectedAnswers]); // eslint-disable-line react-hooks/exhaustive-deps
+    // sessionId を依存に含める: セッション作成は非同期のため、作成完了直後に一度保存する
+    // （含めないと、作成前の保存がすべて no-op になり最初の回答まで進捗が消える）
+  }, [currentIndex, results, answered, selectedAnswers, sessionId]); // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
     if (!sessionId) return;
@@ -485,6 +503,9 @@ export default function ExerciseSession() {
     return () => {
       window.removeEventListener('beforeunload', saveDraftNow);
       window.removeEventListener('pagehide', saveDraftNow);
+      // SPA内遷移（ホームへ戻る等）では beforeunload/pagehide が発火しないため、
+      // アンマウント時にも必ず保存する（finishedRef 完了後は saveDraftNow 側で no-op）
+      saveDraftNow();
     };
   }, [saveDraftNow]);
 
@@ -572,6 +593,10 @@ export default function ExerciseSession() {
     setResults(draft.results ?? []);
     setAnswered(draft.answered ?? false);
     setSelectedAnswers(draft.selectedAnswers ?? []);
+    // 出題予定ID・予備IDも復元する（欠けると totalCount がロード済み分まで縮み、
+    // リロード後に設定した問題数より少ない問題数で終了してしまう）
+    if (draft.questionIds?.length) setPresentIds(draft.questionIds);
+    if (draft.spareIds?.length) spareIdsRef.current = [...draft.spareIds];
     setInitialized(true);
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
@@ -686,9 +711,17 @@ export default function ExerciseSession() {
       setAnswerCountError(null);
       return;
     }
-    // 次問がまだロードされていない場合は待機（通常は先読みで間に合う）
+    // 次問がまだロードされていない場合: インデックスは進めてスピナーを表示し、
+    // ロード効果（currentIndex 依存）を再発火させる。過去に取得失敗したIDは
+    // 試行済みマークを外して再取得させる（ボタンが無反応のまま止まるのを防ぐ）。
     if (nextIdx < totalCount && nextIdx >= questions.length) {
-      // プリフェッチを即時トリガーして少し待つ
+      const loaded = new Set(questions.map(q => q.questionId));
+      presentIds.forEach(id => { if (!loaded.has(id)) attemptedIdsRef.current.delete(id); });
+      setCurrentIndex(nextIdx);
+      setSelectedAnswers([]);
+      setAnswered(false);
+      setDetail(null); setDetailFetchFailed(false);
+      setAnswerCountError(null);
       return;
     }
     // frontierに戻ってきた場合（かつ未回答の問題が残っている）→ 未回答モードへ
@@ -741,11 +774,13 @@ export default function ExerciseSession() {
       const earnedPts = results.filter(r => r.isCorrect).length * ptsPerQ;
       if (userId && earnedPts > 0) addPoints(userId, earnedPts);
       localStorage.setItem(`sessionScoreAdd_${examType}_${userId}`, '1');
-      // 日次演習カウント更新
+      // 日次演習カウント更新（ログイン時はサーバへアトミック加算＝デバイス間で正しく合算）
       const jstToday = new Date(Date.now() + 9 * 3600 * 1000).toISOString().slice(0, 10);
       const dailyKey = `dailyQCount_${examType}_${userId}_${jstToday}`;
-      const prevDaily = parseInt(localStorage.getItem(dailyKey) ?? '0', 10);
-      const newDaily = prevDaily + results.length;
+      const localPrevDaily = parseInt(localStorage.getItem(dailyKey) ?? '0', 10);
+      const serverDaily = await incrementDailyProgress(userId, examType, results.length);
+      const prevDaily = serverDaily != null ? serverDaily - results.length : localPrevDaily;
+      const newDaily = serverDaily != null ? serverDaily : localPrevDaily + results.length;
       localStorage.setItem(dailyKey, String(newDaily));
       const dailyGoal = parseInt(localStorage.getItem(`dailyGoal_${userId}`) ?? '10', 10);
       const rewardKey = `dailyGoalReward_${examType}_${userId}_${jstToday}`;
@@ -808,8 +843,10 @@ export default function ExerciseSession() {
     localStorage.setItem(`sessionScoreAdd_${examType}_${userId}`, '1');
     const jstToday2 = new Date(Date.now() + 9 * 3600 * 1000).toISOString().slice(0, 10);
     const dailyKey2 = `dailyQCount_${examType}_${userId}_${jstToday2}`;
-    const prevDaily2 = parseInt(localStorage.getItem(dailyKey2) ?? '0', 10);
-    const newDaily2 = prevDaily2 + results.length;
+    const localPrevDaily2 = parseInt(localStorage.getItem(dailyKey2) ?? '0', 10);
+    const serverDaily2 = await incrementDailyProgress(userId, examType, results.length);
+    const prevDaily2 = serverDaily2 != null ? serverDaily2 - results.length : localPrevDaily2;
+    const newDaily2 = serverDaily2 != null ? serverDaily2 : localPrevDaily2 + results.length;
     localStorage.setItem(dailyKey2, String(newDaily2));
     const dailyGoal2 = parseInt(localStorage.getItem(`dailyGoal_${userId}`) ?? '10', 10);
     const rewardKey2 = `dailyGoalReward_${examType}_${userId}_${jstToday2}`;
@@ -1119,7 +1156,7 @@ export default function ExerciseSession() {
           </div>
         );
       })()}
-      <Card padding={isMobile ? 'var(--spacing-md) var(--spacing-sm)' : 'var(--spacing-xl)'}>
+      <Card padding={isMobile ? 'var(--spacing-md)' : 'var(--spacing-xl)'}>
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 'var(--spacing-lg)' }}>
           <h1 style={{ fontSize: 'var(--font-size-h2)', fontWeight: 700, margin: 0, color: 'var(--color-text-main)' }}>
             {t('exerciseSession.qLabel')} {currentIndex + 1}
@@ -1363,7 +1400,7 @@ export default function ExerciseSession() {
               onMouseLeave={e => { e.currentTarget.style.color = 'var(--color-text-sub)'; e.currentTarget.style.borderColor = 'var(--color-border)'; }}
               title={lang === 'ja' ? '問題の不備を通報' : 'Report an issue'}
             >
-              <span style={{ fontSize: 'var(--font-size-sm)' }}>⚑</span>
+              <IconAlertTriangle size={13} />
               <span>{lang === 'ja' ? '通報' : 'Report'}</span>
             </button>
             <button

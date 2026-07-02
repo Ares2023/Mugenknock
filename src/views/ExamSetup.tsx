@@ -262,6 +262,12 @@ export default function ExamSetup() {
         setLoading(false);
         return;
       }
+      // プール不足で設定問題数に届かない場合は無言で減らさず、ユーザーに通知して続行する
+      if (selectedItems.length < targetCount) {
+        alert(lang === 'ja'
+          ? `対象の問題が不足しているため、${selectedItems.length}問で開始します（設定: ${targetCount}問）`
+          : `Only ${selectedItems.length} questions available (requested: ${targetCount}). Starting with ${selectedItems.length}.`);
+      }
 
       const questionIds = selectedItems.map((q: any) => q.questionId);
       const sessionRes = await fetch(`${API_ENDPOINT}/sessions`, {

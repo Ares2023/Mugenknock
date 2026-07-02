@@ -1105,7 +1105,8 @@ app.get('/users/me/active-sessions', async (req, res) => {
       || (s.mode === 'exam' ? (s.isMini ? 'mini' : 'exam') : (s.isFocused ? 'focused' : 'practice'));
     const latest = {};
     for (const s of sessions) {
-      if (s.status !== 'active' || s.draft == null) continue;
+      // endedAt があるものは完了/中断済み（status 更新が取りこぼされた行の防御）
+      if (s.status !== 'active' || s.draft == null || s.endedAt) continue;
       const t = typeOf(s);
       if (!latest[t] || (s.draftSavedAt || '') > (latest[t].draftSavedAt || '')) latest[t] = s;
     }
@@ -1238,10 +1239,13 @@ app.put('/sessions/:id', async (req, res) => {
     const docClient = getClient();
     const { userId, status, score, isPassed } = req.body;
     const now = new Date().toISOString();
+    // 完了時は再開用ドラフトも削除する。残すと遅延した progress PUT や過去の
+    // 取りこぼしと合わさって active-sessions に露出し「終わったのに演習中」表示の原因になる。
+    const removeDraft = status === 'completed' ? ' REMOVE draft, draftSavedAt' : '';
     await docClient.send(new UpdateCommand({
       TableName: T('Sessions'),
       Key: { userId, sessionId: req.params.id },
-      UpdateExpression: 'SET #s = :status, score = :score, isPassed = :isPassed, endedAt = :now',
+      UpdateExpression: 'SET #s = :status, score = :score, isPassed = :isPassed, endedAt = :now' + removeDraft,
       ExpressionAttributeNames: { '#s': 'status' },
       ExpressionAttributeValues: { ':status': status, ':score': score, ':isPassed': isPassed, ':now': now }
     }));
@@ -2111,32 +2115,45 @@ app.get('/daily-service', async (req, res) => {
     // 今日の日付（JST）
     const jstDate = new Date(Date.now() + 9 * 3600 * 1000).toISOString().slice(0, 10);
 
-    // 再抽選（rerollSeed あり）のみユーザー別ハッシュで選択
-    // 通常アクセスは userId の有無を問わず _schedule_ を使用し、
-    // サービス追加後も当日のサービスが変わらないようにする
-    if (req.query.userId && req.query.rerollSeed) {
-      const str = req.query.userId + jstDate + req.query.rerollSeed;
-      let hash = 0;
-      for (let i = 0; i < str.length; i++) {
-        hash = ((hash << 5) - hash) + str.charCodeAt(i);
-        hash |= 0;
-      }
-      return res.json({ service: items[Math.abs(hash) % items.length] });
-    }
-
-    // userId がある場合、今日すでに解放済みかを確認（クロスデバイス同期用）
+    // userId がある場合、そのユーザーの解放済みサービス・当日の解放状況を取得
     let alreadyUnlocked = false;
+    let unlockedIds = [];
+    let recordTodayId = null;
     if (req.query.userId) {
       try {
         const encResult = await docClient.send(new GetCommand({
           TableName: T('EncyclopediaUnlocks'),
           Key: { userId: req.query.userId },
         }));
-        if (encResult.Item?.unlockDate === jstDate) alreadyUnlocked = true;
+        if (encResult.Item?.unlockDate === jstDate) {
+          alreadyUnlocked = true;
+          recordTodayId = encResult.Item?.todayServiceId || null;
+        }
+        const unlocks = JSON.parse(encResult.Item?.unlocks || '{}');
+        unlockedIds = Object.keys(unlocks).filter(k => k && k !== '_schedule_');
       } catch {}
     }
 
-    // スケジュールにすでに今日の結果があればそれを返す
+    // userId がある場合は「そのユーザーがまだ見ていない（解放していない）サービス」から
+    // 当日分を決定し、常に初めましてにする。当日すでに解放済みなら見たものを返す（一貫性）。
+    // 同日内は userId+日付 のハッシュで安定。再抽選(rerollSeed)時も未見プールから選ぶ。
+    if (req.query.userId) {
+      if (alreadyUnlocked && recordTodayId) {
+        const seen = items.find(s => s.serviceId === recordTodayId);
+        if (seen) return res.json({ service: seen, alreadyUnlocked });
+      }
+      const unseen = items.filter(s => !unlockedIds.includes(s.serviceId));
+      const pool = unseen.length > 0 ? unseen : items;
+      const str = req.query.userId + jstDate + (req.query.rerollSeed || '');
+      let hash = 0;
+      for (let i = 0; i < str.length; i++) {
+        hash = ((hash << 5) - hash) + str.charCodeAt(i);
+        hash |= 0;
+      }
+      return res.json({ service: pool[Math.abs(hash) % pool.length], alreadyUnlocked });
+    }
+
+    // 匿名アクセス: 従来どおりグローバルの _schedule_ キューを使用（全ユーザー共通・偏りなく一巡）
     const schedule = JSON.parse(scheduleItem?.schedule || '{}');
     if (schedule[jstDate]) {
       const locked = items.find(s => s.serviceId === schedule[jstDate]);
@@ -2504,6 +2521,70 @@ app.put('/users/me/points', async (req, res) => {
   }
 });
 
+// ── 日次演習カウント（サーバ集計・デバイス間合算） ──
+// セッション終了ごとにクライアントが加算をPOSTする。DynamoDBのアトミック加算のため
+// 複数デバイスの同日演習も正しく合算される（localStorage同期は不要）。
+
+const jstDateStr = () => new Date(Date.now() + 9 * 3600 * 1000).toISOString().slice(0, 10);
+
+app.post('/users/me/daily-progress', async (req, res) => {
+  try {
+    const { userId, examType, count } = req.body;
+    const n = Math.round(Number(count));
+    if (!userId || !examType || !Number.isFinite(n) || n <= 0 || n > 1000) {
+      return res.status(400).json({ error: 'userId, examType and positive count required' });
+    }
+    const key = `${examType}_${jstDateStr()}`;
+    const docClient = getClient();
+    const result = await docClient.send(new UpdateCommand({
+      TableName: 'AppSettings',
+      Key: { settingId: `dailyProgress_${userId}` },
+      UpdateExpression: 'SET #k = if_not_exists(#k, :z) + :n, updatedAt = :now',
+      ExpressionAttributeNames: { '#k': key },
+      ExpressionAttributeValues: { ':z': 0, ':n': n, ':now': new Date().toISOString() },
+      ReturnValues: 'UPDATED_NEW',
+    }));
+    res.json({ count: result.Attributes?.[key] ?? n, date: jstDateStr() });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+app.get('/users/me/daily-progress', async (req, res) => {
+  try {
+    const { userId, examType } = req.query;
+    if (!userId || !examType) return res.status(400).json({ error: 'userId and examType required' });
+    const docClient = getClient();
+    const result = await docClient.send(new GetCommand({
+      TableName: 'AppSettings',
+      Key: { settingId: `dailyProgress_${userId}` },
+    }));
+    const item = result.Item ?? {};
+    const today = jstDateStr();
+    // 肥大化防止: 日付付き属性が溜まったら14日より古いものを剪定（ベストエフォート）
+    const dated = Object.keys(item).filter(k => /_\d{4}-\d{2}-\d{2}$/.test(k));
+    if (dated.length > 100) {
+      const cutoff = new Date(Date.now() + 9 * 3600 * 1000 - 14 * 86400000).toISOString().slice(0, 10);
+      const stale = dated.filter(k => k.slice(-10) < cutoff).slice(0, 80);
+      if (stale.length) {
+        const names = {};
+        stale.forEach((k, i) => { names[`#s${i}`] = k; });
+        docClient.send(new UpdateCommand({
+          TableName: 'AppSettings',
+          Key: { settingId: `dailyProgress_${userId}` },
+          UpdateExpression: 'REMOVE ' + stale.map((_, i) => `#s${i}`).join(', '),
+          ExpressionAttributeNames: names,
+        })).catch(() => {});
+      }
+    }
+    res.json({ count: item[`${examType}_${today}`] ?? 0, date: today });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
 // ── ユーザー設定（目標資格などのデバイス間同期） ──
 
 app.get('/users/me/preferences', async (req, res) => {
@@ -2519,6 +2600,7 @@ app.get('/users/me/preferences', async (req, res) => {
       targetExam: result.Item?.targetExam ?? null,
       examDates:  result.Item?.examDates  ?? {},
       dailyGoal:  result.Item?.dailyGoal  ?? null,
+      kv:         result.Item?.kv         ?? {},
     });
   } catch (err) {
     console.error(err);
@@ -2528,13 +2610,45 @@ app.get('/users/me/preferences', async (req, res) => {
 
 app.put('/users/me/preferences', async (req, res) => {
   try {
-    const { userId, targetExam, examDates, dailyGoal } = req.body;
+    const { userId, targetExam, examDates, dailyGoal, kvPatch } = req.body;
     if (!userId) return res.status(400).json({ error: 'userId required' });
     const docClient = getClient();
 
     const sets = ['updatedAt = :now'];
     const names = {};
     const values = { ':now': new Date().toISOString() };
+
+    // 汎用KV同期（設定・演習実績フラグ等のデバイス間同期）。
+    // kvPatch: { key: { v: string|null, t: epochMs } }。v=null は削除トゥームストーン。
+    // キーごとに Last-Writer-Wins（t が新しい方を採用）でマージし、肥大化防止の剪定を行う。
+    if (kvPatch !== undefined && kvPatch !== null && typeof kvPatch === 'object') {
+      const cur = await docClient.send(new GetCommand({
+        TableName: 'AppSettings',
+        Key: { settingId: `userPrefs_${userId}` },
+      }));
+      const kv = cur.Item?.kv ?? {};
+      const now = Date.now();
+      for (const [k, e] of Object.entries(kvPatch)) {
+        if (!e || typeof e.t !== 'number') continue;
+        if (k.length > 200) continue;
+        if (typeof e.v === 'string' && e.v.length > 8192) continue; // 1キー8KB上限
+        const prev = kv[k];
+        if (prev && typeof prev.t === 'number' && prev.t >= e.t) continue;
+        kv[k] = { v: e.v ?? null, t: e.t };
+      }
+      // 剪定: 日付付きカウンタ系は14日、それ以外は90日、削除トゥームストーンは30日で破棄
+      const DAY = 86400000;
+      for (const [k, e] of Object.entries(kv)) {
+        const t = typeof e?.t === 'number' ? e.t : 0;
+        const dated = k.startsWith('dailyQCount_') || k.startsWith('dailyGoalReward_');
+        if ((dated && t < now - 14 * DAY) || t < now - 90 * DAY || (e?.v == null && t < now - 30 * DAY)) {
+          delete kv[k];
+        }
+      }
+      sets.push('#kv = :kv');
+      names['#kv'] = 'kv';
+      values[':kv'] = kv;
+    }
 
     if (targetExam !== undefined) {
       sets.push('#targetExam = :targetExam');

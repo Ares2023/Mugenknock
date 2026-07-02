@@ -74,6 +74,19 @@ export const ThemeProvider = ({ children }: { children: React.ReactNode }) => {
     if (saved === 'dark' || saved === 'light') setTheme(saved as Theme);
   }, [uid]);
 
+  // デバイス間同期（kvSync）が theme_ を更新したら反映する
+  useEffect(() => {
+    if (!uid) return;
+    const handler = (e: Event) => {
+      const keys: string[] = (e as CustomEvent).detail?.keys ?? [];
+      if (!keys.includes(`theme_${uid}`)) return;
+      const saved = localStorage.getItem(`theme_${uid}`);
+      if (saved === 'dark' || saved === 'light') setTheme(saved as Theme);
+    };
+    window.addEventListener('kvSynced', handler);
+    return () => window.removeEventListener('kvSynced', handler);
+  }, [uid]);
+
   useLayoutEffect(() => {
     document.documentElement.setAttribute('data-theme', theme);
     if (theme === 'dark' || !customColorsEnabled) {
