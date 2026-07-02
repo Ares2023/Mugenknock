@@ -787,7 +787,9 @@ export default function ExerciseSession() {
       const dailyGoal = parseInt(localStorage.getItem(`dailyGoal_${userId}`) ?? '10', 10);
       const rewardKey = `dailyGoalReward_${examType}_${userId}_${jstToday}`;
       let dailyBonusPts = 0;
-      if (newDaily >= dailyGoal && prevDaily < dailyGoal && !localStorage.getItem(rewardKey) && userId !== 'guest') {
+      // 達成判定はサーバ確定の当日合計(serverDaily)がある時のみ。null時はstaleなローカル値で
+      // prevDaily<goalが誤成立し同日に報酬が重複付与されるため、判定を見送る。
+      if (serverDaily != null && newDaily >= dailyGoal && prevDaily < dailyGoal && !localStorage.getItem(rewardKey) && userId !== 'guest') {
         localStorage.setItem(rewardKey, '1');
         dailyBonusPts = 10;
         addPoints(userId, dailyBonusPts);
