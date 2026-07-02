@@ -7,6 +7,7 @@ import { recordSessionDomainStats, recentForTag } from '../utils/domainStats';
 import { qText } from '../utils/i18nQuestion';
 import { getCached, setCached, deleteCached, DEFAULT_TTL } from '../utils/cache';
 import { addPoints } from '../utils/points';
+import { incrementDailyProgress } from '../utils/dailyProgress';
 import { schedulePrefetchAfterSession } from '../utils/questionPrefetch';
 import { useAuth } from '../contexts/AuthContext';
 import { useLanguage } from '../contexts/LanguageContext';
@@ -773,11 +774,13 @@ export default function ExerciseSession() {
       const earnedPts = results.filter(r => r.isCorrect).length * ptsPerQ;
       if (userId && earnedPts > 0) addPoints(userId, earnedPts);
       localStorage.setItem(`sessionScoreAdd_${examType}_${userId}`, '1');
-      // 日次演習カウント更新
+      // 日次演習カウント更新（ログイン時はサーバへアトミック加算＝デバイス間で正しく合算）
       const jstToday = new Date(Date.now() + 9 * 3600 * 1000).toISOString().slice(0, 10);
       const dailyKey = `dailyQCount_${examType}_${userId}_${jstToday}`;
-      const prevDaily = parseInt(localStorage.getItem(dailyKey) ?? '0', 10);
-      const newDaily = prevDaily + results.length;
+      const localPrevDaily = parseInt(localStorage.getItem(dailyKey) ?? '0', 10);
+      const serverDaily = await incrementDailyProgress(userId, examType, results.length);
+      const prevDaily = serverDaily != null ? serverDaily - results.length : localPrevDaily;
+      const newDaily = serverDaily != null ? serverDaily : localPrevDaily + results.length;
       localStorage.setItem(dailyKey, String(newDaily));
       const dailyGoal = parseInt(localStorage.getItem(`dailyGoal_${userId}`) ?? '10', 10);
       const rewardKey = `dailyGoalReward_${examType}_${userId}_${jstToday}`;
@@ -840,8 +843,10 @@ export default function ExerciseSession() {
     localStorage.setItem(`sessionScoreAdd_${examType}_${userId}`, '1');
     const jstToday2 = new Date(Date.now() + 9 * 3600 * 1000).toISOString().slice(0, 10);
     const dailyKey2 = `dailyQCount_${examType}_${userId}_${jstToday2}`;
-    const prevDaily2 = parseInt(localStorage.getItem(dailyKey2) ?? '0', 10);
-    const newDaily2 = prevDaily2 + results.length;
+    const localPrevDaily2 = parseInt(localStorage.getItem(dailyKey2) ?? '0', 10);
+    const serverDaily2 = await incrementDailyProgress(userId, examType, results.length);
+    const prevDaily2 = serverDaily2 != null ? serverDaily2 - results.length : localPrevDaily2;
+    const newDaily2 = serverDaily2 != null ? serverDaily2 : localPrevDaily2 + results.length;
     localStorage.setItem(dailyKey2, String(newDaily2));
     const dailyGoal2 = parseInt(localStorage.getItem(`dailyGoal_${userId}`) ?? '10', 10);
     const rewardKey2 = `dailyGoalReward_${examType}_${userId}_${jstToday2}`;

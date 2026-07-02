@@ -25,6 +25,7 @@ import { CATALOG } from '../data/awsServiceCatalog';
 import { autoScoreAndClearDrafts } from '../utils/sessionUtils';
 import { hydrateDraftsFromServer } from '../utils/sessionResume';
 import { syncTargetExamToServer, loadTargetExamFromServer } from '../utils/preferences';
+import { fetchDailyProgress } from '../utils/dailyProgress';
 import { prefetchTypeA, prefetchTypeB, prefetchTypeC, getPrefetchA, getPrefetchB, getPrefetchC } from '../utils/questionPrefetch';
 
 type DomainStat = { tagId: string; correctCount?: number; incorrectCount?: number; recentResults?: boolean[] };
@@ -1418,6 +1419,13 @@ export default function Home() {
   useEffect(() => {
     setDailyCount(targetExam ? parseInt(localStorage.getItem(`dailyQCount_${targetExam}_${uid}_${jstDate}`) ?? '0', 10) : 0);
   }, [targetExam, uid, jstDate, domainStats]);
+  // ログイン時はサーバの当日合算値を取得して反映（別デバイスで解いた分も進捗に含める）
+  useEffect(() => {
+    if (!user || !targetExam) return;
+    fetchDailyProgress(user.userId, targetExam).then(n => {
+      if (n != null) setDailyCount(prev => Math.max(prev, n));
+    });
+  }, [user?.userId, targetExam, jstDate]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const [prevScore, setPrevScore] = useState<number | null>(null);
 

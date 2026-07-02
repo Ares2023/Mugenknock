@@ -2521,6 +2521,70 @@ app.put('/users/me/points', async (req, res) => {
   }
 });
 
+// ── 日次演習カウント（サーバ集計・デバイス間合算） ──
+// セッション終了ごとにクライアントが加算をPOSTする。DynamoDBのアトミック加算のため
+// 複数デバイスの同日演習も正しく合算される（localStorage同期は不要）。
+
+const jstDateStr = () => new Date(Date.now() + 9 * 3600 * 1000).toISOString().slice(0, 10);
+
+app.post('/users/me/daily-progress', async (req, res) => {
+  try {
+    const { userId, examType, count } = req.body;
+    const n = Math.round(Number(count));
+    if (!userId || !examType || !Number.isFinite(n) || n <= 0 || n > 1000) {
+      return res.status(400).json({ error: 'userId, examType and positive count required' });
+    }
+    const key = `${examType}_${jstDateStr()}`;
+    const docClient = getClient();
+    const result = await docClient.send(new UpdateCommand({
+      TableName: 'AppSettings',
+      Key: { settingId: `dailyProgress_${userId}` },
+      UpdateExpression: 'SET #k = if_not_exists(#k, :z) + :n, updatedAt = :now',
+      ExpressionAttributeNames: { '#k': key },
+      ExpressionAttributeValues: { ':z': 0, ':n': n, ':now': new Date().toISOString() },
+      ReturnValues: 'UPDATED_NEW',
+    }));
+    res.json({ count: result.Attributes?.[key] ?? n, date: jstDateStr() });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+app.get('/users/me/daily-progress', async (req, res) => {
+  try {
+    const { userId, examType } = req.query;
+    if (!userId || !examType) return res.status(400).json({ error: 'userId and examType required' });
+    const docClient = getClient();
+    const result = await docClient.send(new GetCommand({
+      TableName: 'AppSettings',
+      Key: { settingId: `dailyProgress_${userId}` },
+    }));
+    const item = result.Item ?? {};
+    const today = jstDateStr();
+    // 肥大化防止: 日付付き属性が溜まったら14日より古いものを剪定（ベストエフォート）
+    const dated = Object.keys(item).filter(k => /_\d{4}-\d{2}-\d{2}$/.test(k));
+    if (dated.length > 100) {
+      const cutoff = new Date(Date.now() + 9 * 3600 * 1000 - 14 * 86400000).toISOString().slice(0, 10);
+      const stale = dated.filter(k => k.slice(-10) < cutoff).slice(0, 80);
+      if (stale.length) {
+        const names = {};
+        stale.forEach((k, i) => { names[`#s${i}`] = k; });
+        docClient.send(new UpdateCommand({
+          TableName: 'AppSettings',
+          Key: { settingId: `dailyProgress_${userId}` },
+          UpdateExpression: 'REMOVE ' + stale.map((_, i) => `#s${i}`).join(', '),
+          ExpressionAttributeNames: names,
+        })).catch(() => {});
+      }
+    }
+    res.json({ count: item[`${examType}_${today}`] ?? 0, date: today });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
 // ── ユーザー設定（目標資格などのデバイス間同期） ──
 
 app.get('/users/me/preferences', async (req, res) => {
@@ -2536,6 +2600,7 @@ app.get('/users/me/preferences', async (req, res) => {
       targetExam: result.Item?.targetExam ?? null,
       examDates:  result.Item?.examDates  ?? {},
       dailyGoal:  result.Item?.dailyGoal  ?? null,
+      kv:         result.Item?.kv         ?? {},
     });
   } catch (err) {
     console.error(err);
@@ -2545,13 +2610,45 @@ app.get('/users/me/preferences', async (req, res) => {
 
 app.put('/users/me/preferences', async (req, res) => {
   try {
-    const { userId, targetExam, examDates, dailyGoal } = req.body;
+    const { userId, targetExam, examDates, dailyGoal, kvPatch } = req.body;
     if (!userId) return res.status(400).json({ error: 'userId required' });
     const docClient = getClient();
 
     const sets = ['updatedAt = :now'];
     const names = {};
     const values = { ':now': new Date().toISOString() };
+
+    // 汎用KV同期（設定・演習実績フラグ等のデバイス間同期）。
+    // kvPatch: { key: { v: string|null, t: epochMs } }。v=null は削除トゥームストーン。
+    // キーごとに Last-Writer-Wins（t が新しい方を採用）でマージし、肥大化防止の剪定を行う。
+    if (kvPatch !== undefined && kvPatch !== null && typeof kvPatch === 'object') {
+      const cur = await docClient.send(new GetCommand({
+        TableName: 'AppSettings',
+        Key: { settingId: `userPrefs_${userId}` },
+      }));
+      const kv = cur.Item?.kv ?? {};
+      const now = Date.now();
+      for (const [k, e] of Object.entries(kvPatch)) {
+        if (!e || typeof e.t !== 'number') continue;
+        if (k.length > 200) continue;
+        if (typeof e.v === 'string' && e.v.length > 8192) continue; // 1キー8KB上限
+        const prev = kv[k];
+        if (prev && typeof prev.t === 'number' && prev.t >= e.t) continue;
+        kv[k] = { v: e.v ?? null, t: e.t };
+      }
+      // 剪定: 日付付きカウンタ系は14日、それ以外は90日、削除トゥームストーンは30日で破棄
+      const DAY = 86400000;
+      for (const [k, e] of Object.entries(kv)) {
+        const t = typeof e?.t === 'number' ? e.t : 0;
+        const dated = k.startsWith('dailyQCount_') || k.startsWith('dailyGoalReward_');
+        if ((dated && t < now - 14 * DAY) || t < now - 90 * DAY || (e?.v == null && t < now - 30 * DAY)) {
+          delete kv[k];
+        }
+      }
+      sets.push('#kv = :kv');
+      names['#kv'] = 'kv';
+      values[':kv'] = kv;
+    }
 
     if (targetExam !== undefined) {
       sets.push('#targetExam = :targetExam');

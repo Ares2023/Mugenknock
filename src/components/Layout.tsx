@@ -7,6 +7,7 @@ import { useTheme } from '../contexts/ThemeContext';
 import { API_ENDPOINT, EXAM_TYPES, EXAM_CONFIGS, EXAM_LEVEL, EXAM_LEVEL_COLORS } from '../constants';
 import { getPoints, fetchPointsFromServer } from '../utils/points';
 import { loadTargetExamFromServer } from '../utils/preferences';
+import { initKvSync } from '../utils/kvSync';
 import Breadcrumb from './Breadcrumb';
 import Button from './ui/Button';
 import { setKbMode } from '../utils/keyboardMode';
@@ -234,6 +235,8 @@ export default function Layout({ children }: { children: React.ReactNode }) {
   // ログイン済みのときサーバーからポイントと設定を取得してローカルを上書き
   useEffect(() => {
     if (!user) return;
+    // 設定・実績フラグ等の汎用KV同期を開始（プル＋以降の書き込みを自動プッシュ）
+    initKvSync(user.userId);
     fetchPointsFromServer(uid).then(pts => {
       if (pts === null) return;
       localStorage.setItem(`userPoints_${uid}`, String(pts));
