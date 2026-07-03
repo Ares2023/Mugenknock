@@ -5,6 +5,7 @@ import { createPortal } from 'react-dom';
 import { useNavigate, useLocation } from '@/compat/react-router-dom';
 import DailyServiceRevealModal from '../components/DailyServiceRevealModal';
 import ExamSelectOverlay from '../components/ExamSelectOverlay';
+import AnnouncementBanner from '../components/AnnouncementBanner';
 import { useAuth } from '../contexts/AuthContext';
 import { useLanguage } from '../contexts/LanguageContext';
 import {
@@ -1874,6 +1875,8 @@ export default function Home() {
         <title>ホーム | 無限ノック</title>
         <meta name="description" content="あなたのAWS試験スコアと学習進捗を確認。ドメイン別正答率・予想スコア・直近の演習結果をひと目で把握できます。" />
       </Helmet>
+
+      <AnnouncementBanner />
 
       {/* ── 目標演習量 ── */}
       <Card

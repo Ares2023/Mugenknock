@@ -2052,6 +2052,124 @@ app.delete('/admin/releases/:id', async (req, res) => {
   }
 });
 
+// ── お知らせ（開発者からユーザーへのメッセージ）──
+
+// 公開用：公開済みのみ取得（送信日時降順）
+app.get('/announcements', async (req, res) => {
+  try {
+    const docClient = getClient();
+    const all = await warmCached('announcements:all', WARM_TTL, () => scanAll(docClient, { TableName: 'Announcements' }));
+    const items = all
+      .filter(a => a.status === 'published')
+      .sort((a, b) => (b.publishedAt || '').localeCompare(a.publishedAt || ''));
+    res.json({ items });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+// 管理者用：全件取得（下書き含む）
+app.get('/admin/announcements', async (req, res) => {
+  try {
+    const docClient = getClient();
+    const result = await docClient.send(new ScanCommand({ TableName: 'Announcements' }));
+    const items = (result.Items || []).sort((a, b) => (b.createdAt || '').localeCompare(a.createdAt || ''));
+    res.json({ items });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+// 管理者用：追加（下書きとして作成）
+app.post('/admin/announcements', async (req, res) => {
+  try {
+    const docClient = getClient();
+    const { title, body } = req.body;
+    if (!title || !body) return res.status(400).json({ error: 'title, body are required' });
+    const announcementId = uuidv4();
+    const now = new Date().toISOString();
+    await docClient.send(new PutCommand({
+      TableName: 'Announcements',
+      Item: { announcementId, title, body, status: 'draft', createdAt: now, updatedAt: now, publishedAt: null }
+    }));
+    res.json({ announcementId });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+// 管理者用：更新（タイトル・本文のみ、ステータスは変更しない）
+app.put('/admin/announcements/:id', async (req, res) => {
+  try {
+    const docClient = getClient();
+    const { title, body } = req.body;
+    await docClient.send(new UpdateCommand({
+      TableName: 'Announcements',
+      Key: { announcementId: req.params.id },
+      UpdateExpression: 'SET title = :title, body = :body, updatedAt = :updatedAt',
+      ExpressionAttributeValues: { ':title': title, ':body': body, ':updatedAt': new Date().toISOString() }
+    }));
+    res.json({ success: true });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+// 管理者用：送信（公開）
+app.post('/admin/announcements/:id/publish', async (req, res) => {
+  try {
+    const docClient = getClient();
+    await docClient.send(new UpdateCommand({
+      TableName: 'Announcements',
+      Key: { announcementId: req.params.id },
+      UpdateExpression: 'SET #s = :published, publishedAt = :publishedAt',
+      ExpressionAttributeNames: { '#s': 'status' },
+      ExpressionAttributeValues: { ':published': 'published', ':publishedAt': new Date().toISOString() }
+    }));
+    res.json({ success: true });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+// 管理者用：取り下げ
+app.post('/admin/announcements/:id/unpublish', async (req, res) => {
+  try {
+    const docClient = getClient();
+    await docClient.send(new UpdateCommand({
+      TableName: 'Announcements',
+      Key: { announcementId: req.params.id },
+      UpdateExpression: 'SET #s = :draft, publishedAt = :publishedAt',
+      ExpressionAttributeNames: { '#s': 'status' },
+      ExpressionAttributeValues: { ':draft': 'draft', ':publishedAt': null }
+    }));
+    res.json({ success: true });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+// 管理者用：削除
+app.delete('/admin/announcements/:id', async (req, res) => {
+  try {
+    const docClient = getClient();
+    await docClient.send(new DeleteCommand({
+      TableName: 'Announcements',
+      Key: { announcementId: req.params.id }
+    }));
+    res.json({ success: true });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
 // ── 連絡先メッセージ送信（認証不要） ──
 app.post('/contact', async (req, res) => {
   try {

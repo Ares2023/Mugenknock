@@ -13,6 +13,7 @@ export const ja: Translations = {
   'nav.encyclopedia': 'サービス図鑑',
   'nav.growth': '問題生成・チェック状況',
   'nav.releaseNotes': 'リリースノート',
+  'nav.announcements': 'お知らせ',
   'nav.about': 'このサイトについて',
   'nav.architecture': 'システム構成',
   'nav.close': '閉じる',
@@ -276,6 +277,12 @@ export const ja: Translations = {
   'releaseNotes.loading': '読み込み中...',
   'releaseNotes.empty': 'まだ情報はありません。',
   'releaseNotes.showMore': '過去の更新を見る（{n}件）',
+
+  // ── Announcements ──
+  'announcements.title': 'お知らせ',
+  'announcements.loading': '読み込み中...',
+  'announcements.empty': '現在お知らせはありません。',
+  'announcements.showMore': '過去のお知らせを見る（{n}件）',
 
   // ── Login ──
   'login.tagline': 'ログインして演習を始めましょう',
