@@ -642,21 +642,34 @@ PYEOF
 echo "$CANARY_COV_SUMMARY" | sed 's/^/  /'
 
 # 日めくりAWSサービス 生成(04)・検証(05) の直近結果（nscriptログから）
-DAILY_SUMMARY=$(LOGD="$LOG_DIR" python3 << 'PYEOF'
-import os, glob
+# レポートは未明に実行されるため当日ログはまだ完成途中（スキップ等の中間状態を誤報告しやすい）。
+# GEN_SUMMARY と同様に「前日〜3日前」を優先して読む。
+DAILY_SUMMARY=$(LOGD="$LOG_DIR" TODAY="$TODAY" YESTERDAY="$YESTERDAY" python3 << 'PYEOF'
+import os, glob, datetime
 ld = os.environ['LOGD']
-def latest_tail(prefix, keywords):
-    fs = sorted(glob.glob(os.path.join(ld, f'nscript_{prefix}_*.log')))
-    if not fs:
-        return None
-    lines = open(fs[-1], errors='ignore').read().splitlines()
-    hits = [l.strip() for l in lines if any(k in l for k in keywords)]
-    return hits[-1] if hits else (lines[-1].strip() if lines else '')
-gen = latest_tail('04-generate-daily-services', ['記事化', '生成', 'スキップ', '対象がありません', '完了'])
-chk = latest_tail('05-check-daily-services', ['完了', 'サマリー', '修正', '削除', '警告', 'OK'])
+try:
+    base = datetime.date.fromisoformat(os.environ.get('TODAY', '')[:4] + '-' + os.environ.get('TODAY', '')[4:6] + '-' + os.environ.get('TODAY', '')[6:])
+except Exception:
+    base = datetime.date.today()
+# 前日〜3日前を優先（当日は未完成のためスキップ）
+dates = [(base - datetime.timedelta(days=k)).strftime('%Y%m%d') for k in (1, 2, 3)]
+
+def dated_tail(prefix, keywords):
+    for d in dates:
+        f = os.path.join(ld, f'nscript_{prefix}_{d}.log')
+        if not os.path.exists(f):
+            continue
+        lines = open(f, errors='ignore').read().splitlines()
+        hits = [l.strip() for l in lines if any(k in l for k in keywords)]
+        if hits:
+            return f"{d[:4]}-{d[4:6]}-{d[6:]} {hits[-1]}"
+    return None
+
+gen = dated_tail('04-generate-daily-services', ['件 生成完了', '登録完了', 'スキップ', '対象がありません', '完了'])
+chk = dated_tail('05-check-daily-services', ['完了サマリー', 'サマリー', '修正', '削除', '警告'])
 out = []
-out.append(f"生成: {gen}" if gen else "生成: ログなし")
-out.append(f"検証: {chk}" if chk else "検証: ログなし")
+out.append(f"生成: {gen}" if gen else "生成: ログなし（直近3日）")
+out.append(f"検証: {chk}" if chk else "検証: ログなし（直近3日）")
 print('\n'.join(out))
 PYEOF
 )

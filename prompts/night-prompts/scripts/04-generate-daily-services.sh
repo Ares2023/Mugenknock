@@ -673,28 +673,82 @@ ICON_ZIP_MAP = {
     "CloudShell":              "Architecture-Service-Icons_04302026/Arch_Developer-Tools/64/Arch_AWS-CloudShell_64",
 }
 
+def _norm_zip(path):
+    """ZIP 内パスのベース名を正規化: Arch_ / Amazon- / AWS- プレフィクスと _64 サフィックスを除去して英数字小文字化。"""
+    fn = os.path.basename(path)
+    fn = re.sub(r'^Arch_', '', fn)
+    fn = re.sub(r'^(Amazon|AWS)-', '', fn, flags=re.IGNORECASE)
+    fn = re.sub(r'_64\.(png|svg)$', '', fn)
+    return re.sub(r'[^a-z0-9]', '', fn.lower())
+
+def _norm_key(s):
+    """アイコンキーまたはサービス名を同じ空間に正規化。"""
+    s = re.sub(r'^(Amazon|AWS)\s+', '', s, flags=re.IGNORECASE)
+    return re.sub(r'[^a-z0-9]', '', s.lower())
+
+def _extract_paths(zf, zip_names, zip_base_or_png_path, dest_fname):
+    """ZIP から PNG+SVG を抽出して icon_dir へ保存。PNG が取れたら True。"""
+    # zip_base_or_png_path は拡張子なし（ICON_ZIP_MAP用）か .png パス（自動検出用）
+    if zip_base_or_png_path.endswith('.png'):
+        base = zip_base_or_png_path[:-4]
+    else:
+        base = zip_base_or_png_path
+    extracted_png = False
+    for ext in ('png', 'svg'):
+        src  = f'{base}.{ext}'
+        dest = os.path.join(icon_dir, f'{dest_fname}.{ext}')
+        if src in zip_names and not os.path.exists(dest):
+            with zf.open(src) as sf, open(dest, 'wb') as df:
+                df.write(sf.read())
+            if ext == 'png':
+                extracted_png = True
+    return extracted_png
+
 def try_extract_from_zip(fname):
-    """ZIP からアイコンを抽出。PNG が取得できたら True を返す。"""
+    """ICON_ZIP_MAP → ZIP自動検索 の順でアイコンを取得。PNG が取れたら True。"""
     if not zip_cache or not os.path.exists(zip_cache):
-        return False
-    zip_base = ICON_ZIP_MAP.get(fname)
-    if not zip_base:
         return False
     try:
         with zipfile.ZipFile(zip_cache) as zf:
             zip_names = set(zf.namelist())
-            extracted_png = False
-            for ext in ('png', 'svg'):
-                src  = f'{zip_base}.{ext}'
-                dest = os.path.join(icon_dir, f'{fname}.{ext}')
-                if src in zip_names and not os.path.exists(dest):
-                    with zf.open(src) as sf, open(dest, 'wb') as df:
-                        df.write(sf.read())
-                    if ext == 'png':
-                        extracted_png = True
-            return extracted_png
+            # ── 1. ICON_ZIP_MAP（手書きマッピング）で試みる ──
+            zip_base = ICON_ZIP_MAP.get(fname)
+            if zip_base and _extract_paths(zf, zip_names, zip_base, fname):
+                return True
+            # ── 2. フォールバック: ファイル名を正規化してZIPを自動検索 ──
+            target = _norm_key(fname)
+            candidates = [p for p in zip_names
+                         if p.endswith('_64.png') and '/64/' in p and '__MACOSX' not in p
+                         and _norm_zip(p) == target]
+            if len(candidates) == 1:
+                if _extract_paths(zf, zip_names, candidates[0], fname):
+                    print(f'    → 自動検出: {os.path.basename(candidates[0])} → {fname}.png/svg')
+                    return True
     except Exception:
-        return False
+        pass
+    return False
+
+def try_auto_detect_icon(service_name):
+    """サービス名からアイコンキーを生成しZIPを自動検索。成功したらアイコンキーを返す。"""
+    if not zip_cache or not os.path.exists(zip_cache):
+        return None
+    # "AWS AppConfig" → "AppConfig", "Amazon GameLift Streams" → "GameLiftStreams"
+    auto_key = re.sub(r'^(Amazon|AWS)\s+', '', service_name, flags=re.IGNORECASE)
+    auto_key = re.sub(r'\s+', '', auto_key)
+    try:
+        with zipfile.ZipFile(zip_cache) as zf:
+            zip_names = set(zf.namelist())
+            target = _norm_key(auto_key)
+            candidates = [p for p in zip_names
+                         if p.endswith('_64.png') and '/64/' in p and '__MACOSX' not in p
+                         and _norm_zip(p) == target]
+            if len(candidates) == 1:
+                if _extract_paths(zf, zip_names, candidates[0], auto_key):
+                    print(f'    → 自動検出: {os.path.basename(candidates[0])} → {auto_key}.png/svg')
+                    return auto_key
+    except Exception:
+        pass
+    return None
 
 missing_icons = []
 imported = []
@@ -722,8 +776,13 @@ for svc in services:
                 missing_icons.append({'name': name, 'icon': icon})
                 icon = '☁️'
     else:
-        missing_icons.append({'name': name, 'icon': '(未指定)'})
-        icon = '☁️'
+        # アイコン未指定 → サービス名でZIPを自動検索
+        auto_key = try_auto_detect_icon(name)
+        if auto_key:
+            icon = f'/icons/aws/{auto_key}.png'
+        else:
+            missing_icons.append({'name': name, 'icon': '(未指定・ZIP内にも不在)'})
+            icon = '☁️'
 
     item = {
         'serviceId':   {'S': service_id},
