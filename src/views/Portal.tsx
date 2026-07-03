@@ -95,10 +95,6 @@ export default function Portal() {
         gap: 'var(--spacing-md)', zIndex: 200, flexShrink: 0,
         borderBottom: '1px solid var(--color-border)',
       }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 6, userSelect: 'none', flexShrink: 0, padding: '0 4px' }}>
-          <img src="/mugen-icon.png"   alt="無限ノック" style={{ height: 28, width: 'auto', display: 'block', flexShrink: 0 }} />
-          <img src="/mugen-header.png" alt=""           style={{ height: 28, width: 'auto', display: 'block', flexShrink: 0 }} />
-        </div>
         <div style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center', flexShrink: 0 }}>
           <button
             onClick={() => navigate(user ? '/account' : '/login')}
