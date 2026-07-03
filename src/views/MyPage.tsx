@@ -602,10 +602,11 @@ export default function MyPage() {
                                       const achieved = goal > 0 && count >= goal;
                                       const h = (count / maxVal) * CH;
                                       const barH = Math.max(h, count > 0 ? 3 : 0);
+                                      const staggerIdx = weekCountsTarget.slice(0, i).filter(c => c > 0).length;
                                       return (
                                         <div key={d} style={{ flex: 1, position: 'relative', height: '100%', display: 'flex', alignItems: 'flex-end' }}>
-                                          <div style={{ width: '100%', maxWidth: 6, margin: '0 auto', height: barAnimated ? barH : 0, background: achieved ? examColor : `${examColor}55`, borderRadius: '3px 3px 0 0', transition: `height 0.45s cubic-bezier(0.4,0,0.2,1) ${i * 0.07}s` }} />
-                                          <span style={{ position: 'absolute', bottom: barH + 2, left: '50%', transform: 'translateX(-50%)', fontSize: 'var(--font-size-xs)', fontWeight: 700, color: count > 0 ? (achieved ? examColor : 'var(--color-text-sub)') : 'var(--color-text-light)', opacity: barAnimated ? 1 : 0, transition: `opacity 0.2s ease ${0.3 + i * 0.07}s` }}>{count}</span>
+                                          <div style={{ width: '100%', maxWidth: 6, margin: '0 auto', height: barAnimated ? barH : 0, background: achieved ? examColor : `${examColor}55`, borderRadius: '3px 3px 0 0', transition: count > 0 ? `height 0.45s cubic-bezier(0.4,0,0.2,1) ${staggerIdx * 0.07}s` : 'none' }} />
+                                          <span style={{ position: 'absolute', bottom: barH + 2, left: '50%', transform: 'translateX(-50%)', fontSize: 'var(--font-size-xs)', fontWeight: 700, color: count > 0 ? (achieved ? examColor : 'var(--color-text-sub)') : 'var(--color-text-light)', opacity: barAnimated ? 1 : 0, transition: count > 0 ? `opacity 0.2s ease ${0.3 + staggerIdx * 0.07}s` : 'none' }}>{count}</span>
                                         </div>
                                       );
                                     })}
@@ -699,6 +700,7 @@ export default function MyPage() {
                         const isToday = d === jstToday();
                         const dayLabel = new Date(d + 'T12:00:00').toLocaleDateString(ja ? 'ja-JP' : 'en-US', { weekday: 'short' });
                         const R = 14, C = 2 * Math.PI * R; // 1周=100%達成の中空リング
+                        const staggerIdx = weekCountsTarget.slice(0, i).filter(c => c > 0).length;
                         return (
                           <div key={d} style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 3 }}>
                             <div style={{ position: 'relative', width: 36, height: 36 }}>
@@ -710,7 +712,7 @@ export default function MyPage() {
                                   strokeDasharray={C}
                                   strokeDashoffset={circleAnimated ? C * (1 - pct) : C}
                                   transform="rotate(-90 18 18)"
-                                  style={{ transition: `stroke-dashoffset 0.55s cubic-bezier(0.4,0,0.2,1) ${i * 0.1}s` }}
+                                  style={{ transition: count > 0 ? `stroke-dashoffset 0.55s cubic-bezier(0.4,0,0.2,1) ${staggerIdx * 0.1}s` : 'none' }}
                                 />
                               </svg>
                               {achieved && (
@@ -719,7 +721,7 @@ export default function MyPage() {
                                   fontSize: 'var(--font-size-base)', fontWeight: 800, color: examColor,
                                   opacity: circleAnimated ? 1 : 0,
                                   transform: circleAnimated ? 'scale(1)' : 'scale(0.4)',
-                                  transition: `opacity 0.2s ease ${0.5 + i * 0.1}s, transform 0.25s ease ${0.5 + i * 0.1}s`,
+                                  transition: `opacity 0.2s ease ${0.5 + staggerIdx * 0.1}s, transform 0.25s ease ${0.5 + staggerIdx * 0.1}s`,
                                 }}>✓</div>
                               )}
                             </div>
@@ -775,10 +777,11 @@ export default function MyPage() {
                           const achieved = goal > 0 && count >= goal;
                           const h = (count / maxVal) * CH;
                           const barH = Math.max(h, count > 0 ? 3 : 0);
+                          const staggerIdx = weekCountsTarget.slice(0, i).filter(c => c > 0).length;
                           return (
                             <div key={d} style={{ flex: 1, position: 'relative', height: '100%', display: 'flex', alignItems: 'flex-end' }}>
-                              <div style={{ width: '100%', maxWidth: 6, margin: '0 auto', height: popupBarAnimated ? barH : 0, background: achieved ? examColor : `${examColor}55`, borderRadius: '3px 3px 0 0', transition: `height 0.45s cubic-bezier(0.4,0,0.2,1) ${i * 0.07}s` }} />
-                              <span style={{ position: 'absolute', bottom: barH + 2, left: '50%', transform: 'translateX(-50%)', fontSize: 'var(--font-size-xs)', fontWeight: 700, color: count > 0 ? (achieved ? examColor : 'var(--color-text-sub)') : 'var(--color-text-light)', opacity: popupBarAnimated ? 1 : 0, transition: `opacity 0.2s ease ${0.3 + i * 0.07}s` }}>{count}</span>
+                              <div style={{ width: '100%', maxWidth: 6, margin: '0 auto', height: popupBarAnimated ? barH : 0, background: achieved ? examColor : `${examColor}55`, borderRadius: '3px 3px 0 0', transition: count > 0 ? `height 0.45s cubic-bezier(0.4,0,0.2,1) ${staggerIdx * 0.07}s` : 'none' }} />
+                              <span style={{ position: 'absolute', bottom: barH + 2, left: '50%', transform: 'translateX(-50%)', fontSize: 'var(--font-size-xs)', fontWeight: 700, color: count > 0 ? (achieved ? examColor : 'var(--color-text-sub)') : 'var(--color-text-light)', opacity: popupBarAnimated ? 1 : 0, transition: count > 0 ? `opacity 0.2s ease ${0.3 + staggerIdx * 0.07}s` : 'none' }}>{count}</span>
                             </div>
                           );
                         })}
