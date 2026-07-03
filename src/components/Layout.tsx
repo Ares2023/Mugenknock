@@ -14,7 +14,7 @@ import { setKbMode } from '../utils/keyboardMode';
 import {
   IconHome,
   IconUser, IconChart,
-  IconDumbbell, IconFire, IconMegaphone, IconMenu, IconClose, IconChevronLeft, IconMail,
+  IconDumbbell, IconFire, IconMegaphone, IconBell, IconMenu, IconClose, IconChevronLeft, IconMail,
   IconSparkles, IconBot, IconUserCircle, IconBookOpen,
   IconSun, IconMoon, IconMore, IconChevronDown,
   EXAM_ICON_COMPONENTS,
@@ -28,8 +28,8 @@ const NAV_KEYS = [
   { path: '/aws/mypage',       labelKey: 'nav.mypage',       Icon: IconUserCircle },
   { path: '/aws/encyclopedia', labelKey: 'nav.encyclopedia', Icon: IconBookOpen, bottom: true },
   { path: '/aws/growth',       labelKey: 'nav.growth',       Icon: IconBot, bottom: true },
-  { path: '/aws/release-notes', labelKey: 'nav.releaseNotes', Icon: IconFire, bottom: true },
   { path: '/aws/announcements', labelKey: 'nav.announcements', Icon: IconMegaphone, bottom: true },
+  { path: '/aws/release-notes', labelKey: 'nav.releaseNotes', Icon: IconFire, bottom: true },
 ];
 
 const BOTTOM_TABS = [
@@ -39,10 +39,10 @@ const BOTTOM_TABS = [
 ];
 
 const OTHERS_ITEMS = [
-  { path: '/aws/encyclopedia',  Icon: IconBookOpen, labelKey: 'nav.encyclopedia' },
-  { path: '/aws/growth',        Icon: IconBot,      labelKey: 'nav.growth'       },
-  { path: '/aws/release-notes', Icon: IconFire,     labelKey: 'nav.releaseNotes' },
+  { path: '/aws/encyclopedia',  Icon: IconBookOpen,  labelKey: 'nav.encyclopedia'  },
+  { path: '/aws/growth',        Icon: IconBot,       labelKey: 'nav.growth'        },
   { path: '/aws/announcements', Icon: IconMegaphone, labelKey: 'nav.announcements' },
+  { path: '/aws/release-notes', Icon: IconFire,      labelKey: 'nav.releaseNotes'  },
 ];
 
 const AI_LINKS = [
@@ -113,6 +113,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
   const animFrame = useRef<number | null>(null);
   const [showContact, setShowContact] = useState(false);
   const [showPointsInfo, setShowPointsInfo] = useState(false);
+  const [hasUnreadAnnouncements, setHasUnreadAnnouncements] = useState(false);
   const [contactSubject, setContactSubject] = useState('');
   const [contactMessage, setContactMessage] = useState('');
   const [contactSending, setContactSending] = useState(false);
@@ -257,6 +258,27 @@ export default function Layout({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     mainRef.current?.scrollTo({ top: 0 });
   }, [location.pathname]);
+
+  useEffect(() => {
+    fetch(`${API_ENDPOINT}/announcements`)
+      .then(r => r.json())
+      .then(d => {
+        const ids: string[] = (d.items || []).map((a: { announcementId: string }) => a.announcementId);
+        if (ids.length === 0) return;
+        try {
+          const seen: string[] = JSON.parse(localStorage.getItem('seenAnnouncementIds') ?? '[]');
+          setHasUnreadAnnouncements(ids.some(id => !seen.includes(id)));
+        } catch {
+          setHasUnreadAnnouncements(true);
+        }
+      })
+      .catch(() => {});
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+
+  useEffect(() => {
+    if (!pathname.startsWith('/aws/announcements')) return;
+    setHasUnreadAnnouncements(false);
+  }, [pathname]);
 
   // ルート変更でサイドバー・モバイルパネルを閉じる
   useEffect(() => {
@@ -776,11 +798,36 @@ export default function Layout({ children }: { children: React.ReactNode }) {
         {/* サービス名 */}
         <div onClick={() => navigate('/aws/')} style={{ display: 'flex', alignItems: 'center', gap: 6, cursor: 'pointer', userSelect: 'none', flexShrink: 0, padding: '0 4px' }}>
           <img src="/mugen-icon.png"   alt="無限ノック" style={{ height: 28, width: 'auto', display: 'block', flexShrink: 0 }} />
-          <img src="/mugen-header.png" alt=""           style={{ height: 28, width: 'auto', display: 'block', flexShrink: 0 }} />
+          {!isMobile && <img src="/mugen-header.png" alt="" style={{ height: 28, width: 'auto', display: 'block', flexShrink: 0 }} />}
         </div>
 
         {/* ポイント表示＋アカウントボタン（モバイル・デスクトップ共通） */}
         <div style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: 8, flexShrink: 0 }}>
+          {/* ベルアイコン（お知らせ） */}
+          <button
+            onClick={() => navigate('/aws/announcements')}
+            title="お知らせ"
+            style={{
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+              background: 'transparent', border: '1px solid var(--color-border)',
+              borderRadius: '50%', cursor: 'pointer',
+              color: 'var(--color-text-sub)',
+              width: 36, height: 36, padding: 0, flexShrink: 0,
+              position: 'relative', transition: 'background 0.2s',
+            }}
+            onMouseEnter={e => e.currentTarget.style.background = 'var(--color-bg-main)'}
+            onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
+          >
+            <IconBell size={18} />
+            {hasUnreadAnnouncements && (
+              <span style={{
+                position: 'absolute', top: 6, right: 6,
+                width: 8, height: 8, borderRadius: '50%',
+                background: 'var(--color-danger)',
+                border: '1.5px solid var(--color-bg-white)',
+              }} />
+            )}
+          </button>
           {user && (
             <>
               <style>{`

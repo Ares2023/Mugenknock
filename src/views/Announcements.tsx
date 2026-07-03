@@ -24,7 +24,15 @@ export default function Announcements() {
   useEffect(() => {
     fetch(`${API_ENDPOINT}/announcements`)
       .then(r => r.json())
-      .then(d => setAnnouncements(d.items || []))
+      .then(d => {
+        const items: Announcement[] = d.items || [];
+        setAnnouncements(items);
+        try {
+          const ids = items.map(a => a.announcementId);
+          const seen: string[] = JSON.parse(localStorage.getItem('seenAnnouncementIds') ?? '[]');
+          localStorage.setItem('seenAnnouncementIds', JSON.stringify(Array.from(new Set([...seen, ...ids]))));
+        } catch { /* ignore */ }
+      })
       .catch(() => {})
       .finally(() => setLoading(false));
   }, []);
