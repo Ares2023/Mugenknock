@@ -296,6 +296,7 @@ export default function MyPage() {
   const [sessions, setSessions] = useState<Session[]>([]);
   const [histLoading, setHistLoading] = useState(false);
   const [histLoadedExam, setHistLoadedExam] = useState<string | null>(null);
+  const [totalExercised, setTotalExercised] = useState<number | null>(null);
   const [expandedSession, setExpandedSession] = useState<string | null>(null);
   const [sessionAnswers, setSessionAnswers] = useState<Record<string, AnswerRecord[]>>({});
   const [answersLoading, setAnswersLoading] = useState<string | null>(null);
@@ -387,9 +388,15 @@ export default function MyPage() {
   useEffect(() => {
     if (tab !== 'history' || !user || !targetExam || histLoadedExam === targetExam) return;
     setHistLoading(true);
-    fetch(`${API_ENDPOINT}/users/me/sessions?userId=${user.userId}&examType=${targetExam}&limit=10`)
-      .then(r => r.json())
-      .then(d => { setSessions(d.items ?? []); setHistLoadedExam(targetExam); })
+    Promise.all([
+      fetch(`${API_ENDPOINT}/users/me/sessions?userId=${user.userId}&examType=${targetExam}&limit=10`).then(r => r.json()),
+      fetch(`${API_ENDPOINT}/users/me/daily-progress?userId=${encodeURIComponent(user.userId)}&examType=${encodeURIComponent(targetExam)}`).then(r => r.json()),
+    ])
+      .then(([sessData, progData]) => {
+        setSessions(sessData.items ?? []);
+        setTotalExercised(progData.total ?? 0);
+        setHistLoadedExam(targetExam);
+      })
       .catch(() => {})
       .finally(() => setHistLoading(false));
   }, [tab, user, targetExam, histLoadedExam]);
@@ -1047,14 +1054,30 @@ export default function MyPage() {
               <div style={{ display: 'flex', justifyContent: 'center', padding: '32px 0' }}>
                 <div className="sherpa-spinner" style={{ width: 28, height: 28, borderWidth: 3 }} />
               </div>
-            ) : recentSessions.length === 0 ? (
-              <Card padding="var(--spacing-xl)">
-                <p style={{ margin: 0, textAlign: 'center', fontSize: 'var(--font-size-sm2)', color: 'var(--color-text-light)' }}>
-                  {ja ? 'まだセッションがありません' : 'No sessions yet'}
-                </p>
-              </Card>
             ) : (
               <>
+                {totalExercised !== null && (
+                  <Card style={{ marginBottom: 'var(--spacing-md)' }}>
+                    <div style={{ fontSize: 'var(--font-size-xs)', fontWeight: 700, color: 'var(--color-text-sub)', textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: 'var(--spacing-xs)' }}>
+                      {ja ? '累計演習量' : 'Total Exercises'}
+                      {targetExam && <span style={{ marginLeft: 6, fontWeight: 400, textTransform: 'none', letterSpacing: 0 }}>({targetExam})</span>}
+                    </div>
+                    <div style={{ display: 'flex', alignItems: 'baseline', gap: 4 }}>
+                      <span style={{ fontSize: 'var(--font-size-xxl)', fontWeight: 700, color: 'var(--color-primary)' }}>
+                        {totalExercised.toLocaleString()}
+                      </span>
+                      <span style={{ fontSize: 'var(--font-size-sm)', color: 'var(--color-text-light)' }}>{ja ? '問' : 'Q'}</span>
+                    </div>
+                  </Card>
+                )}
+                {recentSessions.length === 0 ? (
+                  <Card padding="var(--spacing-xl)">
+                    <p style={{ margin: 0, textAlign: 'center', fontSize: 'var(--font-size-sm2)', color: 'var(--color-text-light)' }}>
+                      {ja ? 'まだセッションがありません' : 'No sessions yet'}
+                    </p>
+                  </Card>
+                ) : (
+                <>
                 <div style={{ fontSize: 'var(--font-size-sm)', color: 'var(--color-text-sub)', marginBottom: 10 }}>
                   {ja ? '直近10セッション' : 'Last 10 sessions'}
                 </div>
@@ -1139,6 +1162,8 @@ export default function MyPage() {
                     </Card>
                   );
                 })}
+                </>
+                )}
               </>
             )}
           </>
