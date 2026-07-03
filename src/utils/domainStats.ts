@@ -56,21 +56,21 @@ export function recordSessionDomainStats(opts: {
   // サーバーへはセッションの新規回答デルタのみ送信。サーバー側で既存データにマージするため
   // ローカルストレージが空の状態でも蓄積データが上書きされない。
   const dr = readDomainResults(examType, userId);
-  const delta: Record<string, boolean[]> = {};
+  const resultsDelta: Record<string, boolean[]> = {};
   try {
     for (const r of results) {
       const idx = idxOf(r.questionId);
       if (idx < 0) continue;
       const k = String(idx);
       dr[k] = [...(dr[k] ?? []), r.isCorrect].slice(-10);
-      (delta[k] = delta[k] ?? []).push(r.isCorrect);
+      (resultsDelta[k] = resultsDelta[k] ?? []).push(r.isCorrect);
     }
     localStorage.setItem(`domain_results_${examType}_${userId}`, JSON.stringify(dr));
     if (userId && userId !== 'guest') {
       fetch(`${API_ENDPOINT}/users/me/domain-results`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ userId, domainResults: delta }),
+        body: JSON.stringify({ userId, domainResults: resultsDelta }),
       }).catch(() => {});
     }
   } catch {}

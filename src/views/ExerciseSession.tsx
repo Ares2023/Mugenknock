@@ -1356,13 +1356,6 @@ export default function ExerciseSession() {
                   return `${currentQuestion.questionText}\n\n${choicesText}\n\n${t('exerciseSession.correctAnswer')}${correctLabels}\n\n${t('exerciseSession.explanation')}\n${expl}`;
                 }} />
               </div>
-              <p style={{ margin: '0 0 12px', fontSize: 'var(--font-size-base)' }}>
-                <strong>{t('exerciseSession.correctAnswer')}</strong>
-                {displayQ.correctAnswers?.map((ca: string) => {
-                  const si = shuffledChoices.findIndex((c: string) => stripLabel(c) === stripLabel(ca));
-                  return si >= 0 ? `${CHOICE_LABELS[si]}. ${stripLabel(ca)}` : stripLabel(ca);
-                }).join(' / ')}
-              </p>
               <div style={{ fontSize: 'var(--font-size-base)', lineHeight: 1.6 }}>
                 <strong>{t('exerciseSession.explanation')}</strong>
                 {(() => {
