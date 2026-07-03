@@ -1238,6 +1238,7 @@ app.get('/sessions/:id/answers', async (req, res) => {
 });
 
 // ドメイン別直近正誤保存（デバイス間共有用）
+// domainResults はセッションの新規回答デルタのみ。サーバー側で既存データにマージし末尾10件に絞る。
 app.put('/users/me/domain-results', async (req, res) => {
   try {
     const docClient = getClient();
@@ -1246,14 +1247,24 @@ app.put('/users/me/domain-results', async (req, res) => {
       return res.status(400).json({ error: 'userId and domainResults are required' });
     }
     await Promise.all(
-      Object.entries(domainResults).map(([tagId, results]) =>
-        docClient.send(new UpdateCommand({
+      Object.entries(domainResults).map(async ([tagId, newResults]) => {
+        let existingResults = [];
+        try {
+          const existing = await docClient.send(new GetCommand({
+            TableName: T('UserTagStats'),
+            Key: { userId, tagId },
+            ProjectionExpression: 'recentResults',
+          }));
+          existingResults = existing.Item?.recentResults ?? [];
+        } catch {}
+        const merged = [...existingResults, ...newResults].slice(-10);
+        return docClient.send(new UpdateCommand({
           TableName: T('UserTagStats'),
           Key: { userId, tagId },
           UpdateExpression: 'SET recentResults = :r',
-          ExpressionAttributeValues: { ':r': results }
-        }))
-      )
+          ExpressionAttributeValues: { ':r': merged },
+        }));
+      })
     );
     res.json({ success: true });
   } catch (err) {
