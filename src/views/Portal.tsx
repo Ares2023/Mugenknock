@@ -7,6 +7,9 @@ import { useLanguage } from '../contexts/LanguageContext';
 import { IconUser } from '../components/Icons';
 import Reveal from '../components/Reveal';
 
+// 問題数の下限値（実際の収録数を下回らない範囲で更新する）
+const QUESTION_COUNT = 3600;
+
 const BENEFITS: { ja: string; en: string }[] = [
   {
     ja: 'キャリアアップに直結。AWS認定は世界標準のクラウド資格として採用市場で高く評価されています。',
@@ -26,20 +29,20 @@ const FEATURES: { ja_title: string; en_title: string; ja: string; en: string }[]
   {
     ja_title: 'AI生成の練習問題',
     en_title: 'AI-Generated Questions',
-    ja: 'Claude AIが作成した本番試験同等の問題を2,600問以上収録。選択肢別の解説付きで理解が深まります。',
-    en: 'Over 2,600 exam-quality questions by Claude AI with per-choice explanations for deeper understanding.',
+    ja: `Claude AIが作成した全12資格・本番同等の問題を${QUESTION_COUNT.toLocaleString()}問以上収録。各選択肢ごとの解説付きで、正解だけでなく不正解の理由まで理解できます。`,
+    en: `Over ${QUESTION_COUNT.toLocaleString()} exam-grade questions across all 12 AWS certifications, created by Claude AI with per-choice explanations — learn not just what's right, but why each option is wrong.`,
   },
   {
-    ja_title: '演習・模試・トレーニング',
-    en_title: 'Exercise, Exam & Training',
-    ja: '1問ずつ確認する演習モード、本番形式の模試、苦手分野を繰り返すトレーニングの3モードに対応。',
-    en: 'Three modes: step-by-step exercise, full timed exam simulation, and targeted training on weak areas.',
+    ja_title: '4つの学習モード',
+    en_title: 'Four Study Modes',
+    ja: 'サクッと演習・演習・模試・しっかり対策の4モードを搭載。スキマ時間の短期演習から本番形式の模試、苦手問題の重点練習まで目的に合わせて選べます。',
+    en: 'Four modes: quick session, step-by-step practice, timed exam simulation, and focused training on weak/incorrect questions — pick what fits your goal.',
   },
   {
-    ja_title: 'ドメイン別の弱点分析',
-    en_title: 'Domain-by-Domain Analysis',
-    ja: 'ドメイン別の正答率グラフで苦手分野を一目で把握。学習の進捗を記録し、スコアアップを実感できます。',
-    en: 'Visualize your weak domains at a glance. Track your progress and watch your score improve over time.',
+    ja_title: '弱点分析・学習記録',
+    en_title: 'Analysis & Progress Tracking',
+    ja: 'ドメイン別の正答率グラフで苦手分野を即把握。週間達成状況・予想スコア推移・解答履歴を記録し、成長の軌跡を可視化します。',
+    en: 'Spot weak domains instantly with per-domain accuracy charts. Track weekly goals, estimated score trends, and answer history to see your growth over time.',
   },
 ];
 
@@ -81,7 +84,7 @@ export default function Portal() {
     <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', background: 'var(--color-bg-main)', color: 'var(--color-text-main)', fontFamily: 'inherit' }}>
       <Helmet>
         <title>無限ノック｜AWS認定試験 練習問題サービス</title>
-        <meta name="description" content="AWS認定試験（SAA・CLF・SAPなど）の無料練習問題サービス。AI生成の本番同等問題2,600問以上、演習・模試・統計の3本柱でスコアアップをサポート。全12資格対応。" />
+        <meta name="description" content={`AWS認定試験（SAA・CLF・SAPなど）の無料練習問題サービス。AI生成の本番同等問題${QUESTION_COUNT.toLocaleString()}問以上・全12資格対応。4つの学習モードとドメイン別弱点分析でスコアアップをサポート。`} />
       </Helmet>
 
       {/* ── ヘッダー（ホーム画面と同一デザイン：ロゴ＋アカウントのみ） ── */}
@@ -129,8 +132,8 @@ export default function Portal() {
             </h1>
             <p style={{ fontSize: isMobile ? 'var(--font-size-base)' : 'var(--font-size-md)', color: 'var(--color-text-sub)', margin: '0 auto', maxWidth: 620, lineHeight: 2, textAlign: 'left' }}>
               {ja
-                ? '「無限ノック」は、AWS認定 全12資格の本番同等問題（2,600問以上）から出題する完全解説付きのWeb問題集です。PC・スマホ・タブレットを使って、スキマ時間に無料で演習に取り組むことができ、学習履歴の記録やドメイン別の苦手分析も可能です。試験対策としてご活用ください。'
-                : 'Mugenknock is a fully-explained web question bank drawing from 2,600+ exam-grade questions across all 12 AWS certifications. Practice free in spare moments on PC, phone, or tablet, with learning history and per-domain weak-point analysis. '}
+                ? `「無限ノック」は、AWS認定 全12資格の本番同等問題（${QUESTION_COUNT.toLocaleString()}問以上）から出題する完全解説付きのWeb問題集です。PC・スマホ・タブレットで無料で演習でき、4つの学習モード・ドメイン別の弱点分析・週間目標管理で合格をサポートします。`
+                : `Mugenknock is a fully-explained web question bank with ${QUESTION_COUNT.toLocaleString()}+ exam-grade questions across all 12 AWS certifications. Practice free on PC, phone, or tablet — with four study modes, per-domain weak-point analysis, and weekly goal tracking to keep you on track.`}
             </p>
           </section>
 
