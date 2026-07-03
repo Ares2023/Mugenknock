@@ -111,6 +111,15 @@ function getGroupForTab(t: Tab): Group {
   return 'content';
 }
 
+const ANNOUNCEMENT_BUG_REPORT_TEMPLATE = `【不具合の内容】
+
+
+【影響範囲】
+
+
+【対応状況】
+現在調査中です。復旧までしばらくお待ちください。`;
+
 type DailyServiceItem = {
   serviceId: string;
   name: string;
@@ -2803,7 +2812,7 @@ ${tipPromptExamType !== 'ALL' ? `・examType には "${tipPromptExamType}" を�
             <button
               onClick={() => {
                 setEditingAnnouncement(null);
-                setAnnForm({ title: '', body: '' });
+                setAnnForm({ title: '', body: ANNOUNCEMENT_BUG_REPORT_TEMPLATE });
                 setShowAnnForm(true);
               }}
               style={{ padding: '7px 16px', background: 'transparent', color: 'var(--color-primary)', border: '1.5px solid var(--color-primary)', borderRadius: 9999, cursor: 'pointer', fontSize: 13, fontWeight: 700 }}>
