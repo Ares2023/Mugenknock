@@ -954,14 +954,14 @@ export default function MyPage() {
                             <span style={{ flex: 1, minWidth: 0, fontSize: 'var(--font-size-sm)', color: isWeak ? 'var(--color-danger)' : 'var(--color-text-main)', fontWeight: isWeak ? 700 : 400, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                               {isWeak && '⚠ '}{domainLabel}
                             </span>
-                            <div style={{ display: 'flex', gap: 2, flexShrink: 0 }}>
+                            <div style={{ position: 'relative', display: 'flex', gap: 3, flexShrink: 0, alignItems: 'center' }}>
+                              <div style={{ position: 'absolute', left: 0, right: 0, height: 1, background: 'var(--color-border)', top: '50%', transform: 'translateY(-50%)', pointerEvents: 'none' }} />
                               {Array.from({ length: 10 }, (_, j) => {
                                 const dataIdx = j - (10 - recent.length);
                                 const r = dataIdx >= 0 ? recent[dataIdx] : undefined;
+                                const borderColor = r === true ? 'var(--color-success)' : r === false ? 'var(--color-danger)' : 'var(--color-border)';
                                 return (
-                                  <span key={j} style={{ flexShrink: 0, width: 14, height: 14, borderRadius: '50%', background: r === true ? 'var(--color-success)' : r === false ? 'var(--color-danger)' : 'transparent', border: r == null ? '1px solid var(--color-border)' : 'none', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', color: '#fff', fontSize: 7, fontWeight: 700, lineHeight: 1 }}>
-                                    {r === true ? '○' : r === false ? '×' : ''}
-                                  </span>
+                                  <span key={j} style={{ flexShrink: 0, width: 12, height: 12, borderRadius: '50%', background: 'var(--color-bg-white)', border: `2px solid ${borderColor}`, position: 'relative', zIndex: 1, display: 'inline-block' }} />
                                 );
                               })}
                             </div>
