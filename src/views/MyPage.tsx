@@ -956,16 +956,15 @@ export default function MyPage() {
                               </span>
                               <span style={{ fontSize: 'var(--font-size-sm)', fontWeight: 700, color, flexShrink: 0 }}>
                                 {pct !== null ? `${pct}%` : (ja ? '未演習' : 'N/A')}
-                                {pct !== null && <span style={{ fontSize: 'var(--font-size-xs)', fontWeight: 400, color: 'var(--color-text-light)', marginLeft: 4 }}>{correct}/{total}</span>}
                               </span>
                             </div>
-                            <div style={{ position: 'relative', display: 'flex', justifyContent: 'space-between', alignItems: 'center', height: 12 }}>
+                            <div style={{ position: 'relative', display: 'flex', justifyContent: 'space-between', alignItems: 'center', height: 6 }}>
                               <div style={{ position: 'absolute', left: 0, right: 0, height: 1, background: 'var(--color-border)', top: '50%', transform: 'translateY(-50%)', pointerEvents: 'none' }} />
                               {Array.from({ length: 10 }, (_, j) => {
                                 const dataIdx = j - (10 - recent.length);
                                 const r = dataIdx >= 0 ? recent[dataIdx] : undefined;
                                 return (
-                                  <span key={j} style={{ flexShrink: 0, width: 12, height: 12, borderRadius: '50%', background: 'var(--color-bg-white)', border: `2px solid ${r === true ? 'var(--color-success)' : r === false ? 'var(--color-danger)' : 'var(--color-border)'}`, position: 'relative', zIndex: 1, display: 'inline-block' }} />
+                                  <span key={j} style={{ flexShrink: 0, width: 6, height: 6, borderRadius: '50%', background: 'var(--color-bg-white)', border: `1px solid ${r === true ? 'var(--color-success)' : r === false ? 'var(--color-danger)' : 'var(--color-border)'}`, position: 'relative', zIndex: 1, display: 'inline-block' }} />
                                 );
                               })}
                             </div>
