@@ -105,6 +105,9 @@ export default function MyPage() {
   const [editDailyGoal, setEditDailyGoal] = useState(10); // min=10
   const [showExamSelect, setShowExamSelect] = useState(false);
   const [showWeeklyDetail, setShowWeeklyDetail] = useState(false);
+  const [circleAnimated, setCircleAnimated] = useState(false);
+  const [barAnimated, setBarAnimated] = useState(false);
+  const [popupBarAnimated, setPopupBarAnimated] = useState(false);
 
   // ── ターゲット試験 ──
   const [targetExam, setTargetExam] = useState<string | null>(() => localStorage.getItem(`targetExam_${uid}`));
@@ -211,6 +214,23 @@ export default function MyPage() {
       })
       .catch(() => setServerDayCounts(null));
   }, [user, targetExam]);
+
+  useEffect(() => {
+    setCircleAnimated(false);
+    setBarAnimated(false);
+    const id = requestAnimationFrame(() => requestAnimationFrame(() => {
+      setCircleAnimated(true);
+      setBarAnimated(true);
+    }));
+    return () => cancelAnimationFrame(id);
+  }, [serverDayCounts, targetExam]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  useEffect(() => {
+    if (!showWeeklyDetail) return;
+    setPopupBarAnimated(false);
+    const id = requestAnimationFrame(() => requestAnimationFrame(() => setPopupBarAnimated(true)));
+    return () => cancelAnimationFrame(id);
+  }, [showWeeklyDetail]);
 
   // 目標資格のみの日別演習量（マイページは全て目標資格基準で表示）
   const weekCountsTarget = weekDays.map(d =>
@@ -584,8 +604,8 @@ export default function MyPage() {
                                       const barH = Math.max(h, count > 0 ? 3 : 0);
                                       return (
                                         <div key={d} style={{ flex: 1, position: 'relative', height: '100%', display: 'flex', alignItems: 'flex-end' }}>
-                                          <div style={{ width: '100%', maxWidth: 6, margin: '0 auto', height: barH, background: achieved ? examColor : `${examColor}55`, borderRadius: '3px 3px 0 0', transition: 'height 0.3s' }} />
-                                          <span style={{ position: 'absolute', bottom: barH + 2, left: '50%', transform: 'translateX(-50%)', fontSize: 'var(--font-size-xs)', fontWeight: 700, color: count > 0 ? (achieved ? examColor : 'var(--color-text-sub)') : 'var(--color-text-light)' }}>{count}</span>
+                                          <div style={{ width: '100%', maxWidth: 6, margin: '0 auto', height: barAnimated ? barH : 0, background: achieved ? examColor : `${examColor}55`, borderRadius: '3px 3px 0 0', transition: `height 0.45s cubic-bezier(0.4,0,0.2,1) ${i * 0.07}s` }} />
+                                          <span style={{ position: 'absolute', bottom: barH + 2, left: '50%', transform: 'translateX(-50%)', fontSize: 'var(--font-size-xs)', fontWeight: 700, color: count > 0 ? (achieved ? examColor : 'var(--color-text-sub)') : 'var(--color-text-light)', opacity: barAnimated ? 1 : 0, transition: `opacity 0.2s ease ${0.3 + i * 0.07}s` }}>{count}</span>
                                         </div>
                                       );
                                     })}
@@ -684,16 +704,24 @@ export default function MyPage() {
                             <div style={{ position: 'relative', width: 36, height: 36 }}>
                               <svg width={36} height={36} viewBox="0 0 36 36">
                                 <circle cx={18} cy={18} r={R} fill="none" stroke={`${examColor}22`} strokeWidth={4} />
-                                {pct > 0 && (
-                                  <circle
-                                    cx={18} cy={18} r={R} fill="none"
-                                    stroke={achieved ? examColor : `${examColor}99`} strokeWidth={4} strokeLinecap="round"
-                                    strokeDasharray={C} strokeDashoffset={C * (1 - pct)}
-                                    transform="rotate(-90 18 18)" style={{ transition: 'stroke-dashoffset 0.3s' }}
-                                  />
-                                )}
+                                <circle
+                                  cx={18} cy={18} r={R} fill="none"
+                                  stroke={achieved ? examColor : `${examColor}99`} strokeWidth={4} strokeLinecap="round"
+                                  strokeDasharray={C}
+                                  strokeDashoffset={circleAnimated ? C * (1 - pct) : C}
+                                  transform="rotate(-90 18 18)"
+                                  style={{ transition: `stroke-dashoffset 0.55s cubic-bezier(0.4,0,0.2,1) ${i * 0.1}s` }}
+                                />
                               </svg>
-                              {achieved && <div style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 'var(--font-size-base)', fontWeight: 800, color: examColor }}>✓</div>}
+                              {achieved && (
+                                <div style={{
+                                  position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center',
+                                  fontSize: 'var(--font-size-base)', fontWeight: 800, color: examColor,
+                                  opacity: circleAnimated ? 1 : 0,
+                                  transform: circleAnimated ? 'scale(1)' : 'scale(0.4)',
+                                  transition: `opacity 0.2s ease ${0.5 + i * 0.1}s, transform 0.25s ease ${0.5 + i * 0.1}s`,
+                                }}>✓</div>
+                              )}
                             </div>
                             <span style={{ fontSize: 'var(--font-size-3xs)', color: isToday ? examColor : 'var(--color-text-light)', fontWeight: isToday ? 700 : 400 }}>{dayLabel}</span>
                           </div>
@@ -749,8 +777,8 @@ export default function MyPage() {
                           const barH = Math.max(h, count > 0 ? 3 : 0);
                           return (
                             <div key={d} style={{ flex: 1, position: 'relative', height: '100%', display: 'flex', alignItems: 'flex-end' }}>
-                              <div style={{ width: '100%', maxWidth: 6, margin: '0 auto', height: barH, background: achieved ? examColor : `${examColor}55`, borderRadius: '3px 3px 0 0', transition: 'height 0.3s' }} />
-                              <span style={{ position: 'absolute', bottom: barH + 2, left: '50%', transform: 'translateX(-50%)', fontSize: 'var(--font-size-xs)', fontWeight: 700, color: count > 0 ? (achieved ? examColor : 'var(--color-text-sub)') : 'var(--color-text-light)' }}>{count}</span>
+                              <div style={{ width: '100%', maxWidth: 6, margin: '0 auto', height: popupBarAnimated ? barH : 0, background: achieved ? examColor : `${examColor}55`, borderRadius: '3px 3px 0 0', transition: `height 0.45s cubic-bezier(0.4,0,0.2,1) ${i * 0.07}s` }} />
+                              <span style={{ position: 'absolute', bottom: barH + 2, left: '50%', transform: 'translateX(-50%)', fontSize: 'var(--font-size-xs)', fontWeight: 700, color: count > 0 ? (achieved ? examColor : 'var(--color-text-sub)') : 'var(--color-text-light)', opacity: popupBarAnimated ? 1 : 0, transition: `opacity 0.2s ease ${0.3 + i * 0.07}s` }}>{count}</span>
                             </div>
                           );
                         })}
