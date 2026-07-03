@@ -13,7 +13,7 @@ import {
   IconCalendarNotebook, IconTarget, IconAnnoyed, IconList,
   IconSparkles, IconChevronRight, IconChevronDown, IconLock, IconFlag, IconStar, IconTrendingUp, IconPenLine,
   IconSprout, IconBox, IconBot, IconCode2, IconCloud, IconDatabase, IconBrain, IconVectorSquare, IconFileCodeCorner, IconAtom, IconShieldIcon, IconWaypoints,
-  EXAM_ICON_COMPONENTS, IconSaveCheck,
+  EXAM_ICON_COMPONENTS, IconSaveCheck, IconCopy, IconCheck,
 } from '../components/Icons';
 import ExamSelectOverlay, { EXAM_DESC } from '../components/ExamSelectOverlay';
 import KeyHint from '../components/KeyHint';
@@ -58,6 +58,31 @@ type DomainStat = {
 function jstToday(): string {
   return new Date(Date.now() + 9 * 3600 * 1000).toISOString().slice(0, 10);
 }
+
+const CopyButton = ({ getText }: { getText: () => string }) => {
+  const [copied, setCopied] = useState(false);
+  const handleCopy = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    navigator.clipboard.writeText(getText()).then(() => {
+      setCopied(true);
+      setTimeout(() => setCopied(false), 1500);
+    });
+  };
+  const color = copied ? 'var(--color-success)' : 'var(--color-primary)';
+  return (
+    <button
+      onClick={handleCopy}
+      title={copied ? 'コピー済み' : 'コピー'}
+      style={{
+        background: 'none', border: `1.5px solid ${color}`, borderRadius: '50%',
+        width: 28, height: 28, display: 'flex', alignItems: 'center', justifyContent: 'center',
+        cursor: 'pointer', color, transition: 'all 0.2s', flexShrink: 0,
+      }}
+    >
+      {copied ? <IconCheck size={13} /> : <IconCopy size={13} />}
+    </button>
+  );
+};
 
 function daysUntil(dateStr: string): number {
   const examDate = new Date(dateStr + 'T00:00:00+09:00');
@@ -1134,6 +1159,13 @@ export default function MyPage() {
             ) : questionModal.detail ? (
               <div style={{ userSelect: 'text' }}>
                 {/* 問題文 */}
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 'var(--spacing-sm)' }}>
+                  <span style={{ fontSize: 'var(--font-size-xs)', fontWeight: 700, color: 'var(--color-text-sub)' }}>{ja ? '問題文' : 'Question'}</span>
+                  <CopyButton getText={() => {
+                    const choices = (questionModal.detail.choices ?? []).map((c: string, i: number) => `${String.fromCharCode(65 + i)}. ${c.replace(/^[A-E]\.\s*/, '')}`).join('\n');
+                    return `${questionModal.detail.questionText}\n\n${choices}`;
+                  }} />
+                </div>
                 <p style={{ fontSize: 'var(--font-size-base)', color: 'var(--color-text-main)', lineHeight: 1.75, margin: '0 0 var(--spacing-lg)', whiteSpace: 'pre-wrap', fontWeight: 500 }}>
                   {questionModal.detail.questionText}
                 </p>
@@ -1152,7 +1184,13 @@ export default function MyPage() {
                 {/* 解説 */}
                 {questionModal.detail.explanation && (
                   <div style={{ padding: 'var(--spacing-md)', borderRadius: 'var(--border-radius-md)', background: 'var(--color-bg-info)', border: '1px solid var(--color-border-info)' }}>
-                    <div style={{ fontSize: 'var(--font-size-xs)', fontWeight: 700, color: 'var(--color-text-info)', marginBottom: 6 }}>{ja ? '解説' : 'Explanation'}</div>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 6 }}>
+                      <span style={{ fontSize: 'var(--font-size-xs)', fontWeight: 700, color: 'var(--color-text-info)' }}>{ja ? '解説' : 'Explanation'}</span>
+                      <CopyButton getText={() => {
+                        const choices = (questionModal.detail.choices ?? []).map((c: string, i: number) => `${String.fromCharCode(65 + i)}. ${c.replace(/^[A-E]\.\s*/, '')}`).join('\n');
+                        return `${questionModal.detail.questionText}\n\n${choices}\n\n${ja ? '解説' : 'Explanation'}\n${questionModal.detail.explanation}`;
+                      }} />
+                    </div>
                     <p style={{ fontSize: 'var(--font-size-sm)', color: 'var(--color-text-sub)', margin: 0, lineHeight: 1.75, whiteSpace: 'pre-wrap' }}>{questionModal.detail.explanation}</p>
                   </div>
                 )}
