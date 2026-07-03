@@ -907,9 +907,8 @@ export default function MyPage() {
               <>
                 {/* 苦手ドメイン */}
                 <Card style={{ marginBottom: 12 }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 12 }}>
-                    <IconAnnoyed size={14} />
-                    <span style={{ fontWeight: 700, fontSize: 'var(--font-size-base)' }}>{ja ? '苦手ドメイン' : 'Weak Domains'}</span>
+                  <div style={{ fontSize: 'var(--font-size-xs)', fontWeight: 700, color: 'var(--color-text-sub)', textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: 'var(--spacing-md)' }}>
+                    {ja ? '苦手ドメイン' : 'Weak Domains'}
                   </div>
                   {!focusedUnlocked ? (
                     <div style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '10px 14px', borderRadius: 8, background: 'var(--color-bg-main)' }}>
@@ -929,7 +928,7 @@ export default function MyPage() {
                     </p>
                   ) : (
                     <>
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
                       {[...domains].sort((a, b) => {
                         const getPct = (d: string) => {
                           const stat = domainStats.find(s => tagIdMatches(s.tagId, targetExam ?? '', toDomainIndex(targetExam ?? '', d)));
@@ -939,7 +938,7 @@ export default function MyPage() {
                           return recent.filter(Boolean).length / total;
                         };
                         return getPct(a) - getPct(b);
-                      }).map((domain, i) => {
+                      }).map((domain) => {
                         const stat = domainStats.find(s => tagIdMatches(s.tagId, targetExam ?? '', toDomainIndex(targetExam ?? '', domain)));
                         const recent = stat?.recentResults ?? [];
                         const correct = recent.filter(Boolean).length;
@@ -950,24 +949,26 @@ export default function MyPage() {
                         const color = pct === null ? 'var(--color-text-light)' : isWeak ? 'var(--color-danger)' : isFair ? 'var(--color-caution)' : 'var(--color-success)';
                         const domainLabel = lang === 'en' ? (DOMAIN_NAME_EN[domain] ?? domain) : domain;
                         return (
-                          <div key={domain} style={{ display: 'flex', alignItems: 'center', gap: 'var(--spacing-sm)' }}>
-                            <span style={{ flex: 1, minWidth: 0, fontSize: 'var(--font-size-sm)', color: isWeak ? 'var(--color-danger)' : 'var(--color-text-main)', fontWeight: isWeak ? 700 : 400, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                              {isWeak && '⚠ '}{domainLabel}
-                            </span>
-                            <div style={{ position: 'relative', display: 'flex', gap: 3, flexShrink: 0, alignItems: 'center' }}>
+                          <div key={domain}>
+                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: 4 }}>
+                              <span style={{ fontSize: 'var(--font-size-sm)', color: isWeak ? 'var(--color-danger)' : 'var(--color-text-main)', flex: 1, marginRight: 8, lineHeight: 1.4, fontWeight: isWeak ? 700 : 400 }}>
+                                {isWeak && '⚠ '}{domainLabel}
+                              </span>
+                              <span style={{ fontSize: 'var(--font-size-sm)', fontWeight: 700, color, flexShrink: 0 }}>
+                                {pct !== null ? `${pct}%` : (ja ? '未演習' : 'N/A')}
+                                {pct !== null && <span style={{ fontSize: 'var(--font-size-xs)', fontWeight: 400, color: 'var(--color-text-light)', marginLeft: 4 }}>{correct}/{total}</span>}
+                              </span>
+                            </div>
+                            <div style={{ position: 'relative', display: 'flex', justifyContent: 'space-between', alignItems: 'center', height: 12 }}>
                               <div style={{ position: 'absolute', left: 0, right: 0, height: 1, background: 'var(--color-border)', top: '50%', transform: 'translateY(-50%)', pointerEvents: 'none' }} />
                               {Array.from({ length: 10 }, (_, j) => {
                                 const dataIdx = j - (10 - recent.length);
                                 const r = dataIdx >= 0 ? recent[dataIdx] : undefined;
-                                const borderColor = r === true ? 'var(--color-success)' : r === false ? 'var(--color-danger)' : 'var(--color-border)';
                                 return (
-                                  <span key={j} style={{ flexShrink: 0, width: 12, height: 12, borderRadius: '50%', background: 'var(--color-bg-white)', border: `2px solid ${borderColor}`, position: 'relative', zIndex: 1, display: 'inline-block' }} />
+                                  <span key={j} style={{ flexShrink: 0, width: 12, height: 12, borderRadius: '50%', background: 'var(--color-bg-white)', border: `2px solid ${r === true ? 'var(--color-success)' : r === false ? 'var(--color-danger)' : 'var(--color-border)'}`, position: 'relative', zIndex: 1, display: 'inline-block' }} />
                                 );
                               })}
                             </div>
-                            <span style={{ fontSize: 'var(--font-size-sm)', fontWeight: 700, color, flexShrink: 0, minWidth: 34, textAlign: 'right' }}>
-                              {pct !== null ? `${pct}%` : (ja ? '未' : 'N/A')}
-                            </span>
                           </div>
                         );
                       })}
