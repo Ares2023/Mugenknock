@@ -105,6 +105,9 @@ export default function MyPage() {
   const [editDailyGoal, setEditDailyGoal] = useState(10); // min=10
   const [showExamSelect, setShowExamSelect] = useState(false);
   const [showWeeklyDetail, setShowWeeklyDetail] = useState(false);
+  const [circleAnimated, setCircleAnimated] = useState(false);
+  const [barAnimated, setBarAnimated] = useState(false);
+  const [popupBarAnimated, setPopupBarAnimated] = useState(false);
 
   // ── ターゲット試験 ──
   const [targetExam, setTargetExam] = useState<string | null>(() => localStorage.getItem(`targetExam_${uid}`));
@@ -211,6 +214,23 @@ export default function MyPage() {
       })
       .catch(() => setServerDayCounts(null));
   }, [user, targetExam]);
+
+  useEffect(() => {
+    setCircleAnimated(false);
+    setBarAnimated(false);
+    const id = requestAnimationFrame(() => requestAnimationFrame(() => {
+      setCircleAnimated(true);
+      setBarAnimated(true);
+    }));
+    return () => cancelAnimationFrame(id);
+  }, [serverDayCounts, targetExam]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  useEffect(() => {
+    if (!showWeeklyDetail) return;
+    setPopupBarAnimated(false);
+    const id = requestAnimationFrame(() => requestAnimationFrame(() => setPopupBarAnimated(true)));
+    return () => cancelAnimationFrame(id);
+  }, [showWeeklyDetail]);
 
   // 目標資格のみの日別演習量（マイページは全て目標資格基準で表示）
   const weekCountsTarget = weekDays.map(d =>
@@ -582,10 +602,11 @@ export default function MyPage() {
                                       const achieved = goal > 0 && count >= goal;
                                       const h = (count / maxVal) * CH;
                                       const barH = Math.max(h, count > 0 ? 3 : 0);
+                                      const staggerIdx = weekCountsTarget.slice(0, i).filter(c => c > 0).length;
                                       return (
                                         <div key={d} style={{ flex: 1, position: 'relative', height: '100%', display: 'flex', alignItems: 'flex-end' }}>
-                                          <div style={{ width: '100%', maxWidth: 6, margin: '0 auto', height: barH, background: achieved ? examColor : `${examColor}55`, borderRadius: '3px 3px 0 0', transition: 'height 0.3s' }} />
-                                          <span style={{ position: 'absolute', bottom: barH + 2, left: '50%', transform: 'translateX(-50%)', fontSize: 'var(--font-size-xs)', fontWeight: 700, color: count > 0 ? (achieved ? examColor : 'var(--color-text-sub)') : 'var(--color-text-light)' }}>{count}</span>
+                                          <div style={{ width: '100%', maxWidth: 6, margin: '0 auto', height: barAnimated ? barH : 0, background: achieved ? examColor : `${examColor}55`, borderRadius: '3px 3px 0 0', transition: count > 0 ? `height 0.45s cubic-bezier(0.4,0,0.2,1) ${staggerIdx * 0.07}s` : 'none' }} />
+                                          <span style={{ position: 'absolute', bottom: barH + 2, left: '50%', transform: 'translateX(-50%)', fontSize: 'var(--font-size-xs)', fontWeight: 700, color: count > 0 ? (achieved ? examColor : 'var(--color-text-sub)') : 'var(--color-text-light)', opacity: barAnimated ? 1 : 0, transition: count > 0 ? `opacity 0.2s ease ${0.3 + staggerIdx * 0.07}s` : 'none' }}>{count}</span>
                                         </div>
                                       );
                                     })}
@@ -679,21 +700,30 @@ export default function MyPage() {
                         const isToday = d === jstToday();
                         const dayLabel = new Date(d + 'T12:00:00').toLocaleDateString(ja ? 'ja-JP' : 'en-US', { weekday: 'short' });
                         const R = 14, C = 2 * Math.PI * R; // 1周=100%達成の中空リング
+                        const staggerIdx = weekCountsTarget.slice(0, i).filter(c => c > 0).length;
                         return (
                           <div key={d} style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 3 }}>
                             <div style={{ position: 'relative', width: 36, height: 36 }}>
                               <svg width={36} height={36} viewBox="0 0 36 36">
                                 <circle cx={18} cy={18} r={R} fill="none" stroke={`${examColor}22`} strokeWidth={4} />
-                                {pct > 0 && (
-                                  <circle
-                                    cx={18} cy={18} r={R} fill="none"
-                                    stroke={achieved ? examColor : `${examColor}99`} strokeWidth={4} strokeLinecap="round"
-                                    strokeDasharray={C} strokeDashoffset={C * (1 - pct)}
-                                    transform="rotate(-90 18 18)" style={{ transition: 'stroke-dashoffset 0.3s' }}
-                                  />
-                                )}
+                                <circle
+                                  cx={18} cy={18} r={R} fill="none"
+                                  stroke={achieved ? examColor : `${examColor}99`} strokeWidth={4} strokeLinecap="round"
+                                  strokeDasharray={C}
+                                  strokeDashoffset={circleAnimated ? C * (1 - pct) : C}
+                                  transform="rotate(-90 18 18)"
+                                  style={{ transition: count > 0 ? `stroke-dashoffset 0.55s cubic-bezier(0.4,0,0.2,1) ${staggerIdx * 0.1}s` : 'none' }}
+                                />
                               </svg>
-                              {achieved && <div style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 'var(--font-size-base)', fontWeight: 800, color: examColor }}>✓</div>}
+                              {achieved && (
+                                <div style={{
+                                  position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center',
+                                  fontSize: 'var(--font-size-base)', fontWeight: 800, color: examColor,
+                                  opacity: circleAnimated ? 1 : 0,
+                                  transform: circleAnimated ? 'scale(1)' : 'scale(0.4)',
+                                  transition: `opacity 0.2s ease ${0.5 + staggerIdx * 0.1}s, transform 0.25s ease ${0.5 + staggerIdx * 0.1}s`,
+                                }}>✓</div>
+                              )}
                             </div>
                             <span style={{ fontSize: 'var(--font-size-3xs)', color: isToday ? examColor : 'var(--color-text-light)', fontWeight: isToday ? 700 : 400 }}>{dayLabel}</span>
                           </div>
@@ -747,10 +777,11 @@ export default function MyPage() {
                           const achieved = goal > 0 && count >= goal;
                           const h = (count / maxVal) * CH;
                           const barH = Math.max(h, count > 0 ? 3 : 0);
+                          const staggerIdx = weekCountsTarget.slice(0, i).filter(c => c > 0).length;
                           return (
                             <div key={d} style={{ flex: 1, position: 'relative', height: '100%', display: 'flex', alignItems: 'flex-end' }}>
-                              <div style={{ width: '100%', maxWidth: 6, margin: '0 auto', height: barH, background: achieved ? examColor : `${examColor}55`, borderRadius: '3px 3px 0 0', transition: 'height 0.3s' }} />
-                              <span style={{ position: 'absolute', bottom: barH + 2, left: '50%', transform: 'translateX(-50%)', fontSize: 'var(--font-size-xs)', fontWeight: 700, color: count > 0 ? (achieved ? examColor : 'var(--color-text-sub)') : 'var(--color-text-light)' }}>{count}</span>
+                              <div style={{ width: '100%', maxWidth: 6, margin: '0 auto', height: popupBarAnimated ? barH : 0, background: achieved ? examColor : `${examColor}55`, borderRadius: '3px 3px 0 0', transition: count > 0 ? `height 0.45s cubic-bezier(0.4,0,0.2,1) ${staggerIdx * 0.07}s` : 'none' }} />
+                              <span style={{ position: 'absolute', bottom: barH + 2, left: '50%', transform: 'translateX(-50%)', fontSize: 'var(--font-size-xs)', fontWeight: 700, color: count > 0 ? (achieved ? examColor : 'var(--color-text-sub)') : 'var(--color-text-light)', opacity: popupBarAnimated ? 1 : 0, transition: count > 0 ? `opacity 0.2s ease ${0.3 + staggerIdx * 0.07}s` : 'none' }}>{count}</span>
                             </div>
                           );
                         })}
@@ -876,9 +907,8 @@ export default function MyPage() {
               <>
                 {/* 苦手ドメイン */}
                 <Card style={{ marginBottom: 12 }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 12 }}>
-                    <IconAnnoyed size={14} />
-                    <span style={{ fontWeight: 700, fontSize: 'var(--font-size-base)' }}>{ja ? '苦手ドメイン' : 'Weak Domains'}</span>
+                  <div style={{ fontSize: 'var(--font-size-xs)', fontWeight: 700, color: 'var(--color-text-sub)', textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: 'var(--spacing-md)' }}>
+                    {ja ? '苦手ドメイン' : 'Weak Domains'}
                   </div>
                   {!focusedUnlocked ? (
                     <div style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '10px 14px', borderRadius: 8, background: 'var(--color-bg-main)' }}>
@@ -898,7 +928,7 @@ export default function MyPage() {
                     </p>
                   ) : (
                     <>
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
                       {[...domains].sort((a, b) => {
                         const getPct = (d: string) => {
                           const stat = domainStats.find(s => tagIdMatches(s.tagId, targetExam ?? '', toDomainIndex(targetExam ?? '', d)));
@@ -908,7 +938,7 @@ export default function MyPage() {
                           return recent.filter(Boolean).length / total;
                         };
                         return getPct(a) - getPct(b);
-                      }).map((domain, i) => {
+                      }).map((domain) => {
                         const stat = domainStats.find(s => tagIdMatches(s.tagId, targetExam ?? '', toDomainIndex(targetExam ?? '', domain)));
                         const recent = stat?.recentResults ?? [];
                         const correct = recent.filter(Boolean).length;
@@ -917,50 +947,35 @@ export default function MyPage() {
                         const isWeak = pct !== null && pct < DOMAIN_RATE_WARNING * 100;
                         const isFair = pct !== null && pct < DOMAIN_RATE_CAUTION * 100 && !isWeak;
                         const color = pct === null ? 'var(--color-text-light)' : isWeak ? 'var(--color-danger)' : isFair ? 'var(--color-caution)' : 'var(--color-success)';
-                        const barGradient = isWeak ? 'var(--bar-gradient-danger)' : isFair ? 'var(--bar-gradient-caution)' : 'var(--bar-gradient-success)';
                         const domainLabel = lang === 'en' ? (DOMAIN_NAME_EN[domain] ?? domain) : domain;
                         return (
-                          <div key={domain} style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-                            <div style={{ flex: 1, minWidth: 0 }}>
-                              <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 3 }}>
-                                <span style={{ fontSize: 'var(--font-size-sm)', color: isWeak ? 'var(--color-danger)' : 'var(--color-text-sub)', fontWeight: isWeak ? 700 : 400, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                                  {isWeak && '⚠ '}{domainLabel}
-                                </span>
-                                <span style={{ fontSize: 'var(--font-size-sm)', fontWeight: 700, color, flexShrink: 0, marginLeft: 6 }}>
-                                  {pct !== null ? `${pct}%` : (ja ? '未演習' : 'N/A')}
-                                </span>
-                              </div>
-                              <div style={{ height: 6, borderRadius: 3, background: 'var(--color-bg-main)', overflow: 'hidden' }}>
-                                {pct !== null && <div style={{ height: '100%', width: `${pct}%`, background: barGradient, borderRadius: 3, transformOrigin: 'left center', animation: `growWidth 0.45s cubic-bezier(0.34, 1.56, 0.64, 1) ${i * 30}ms both` }} />}
-                              </div>
+                          <div key={domain}>
+                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: 4 }}>
+                              <span style={{ fontSize: 'var(--font-size-sm)', color: isWeak ? 'var(--color-danger)' : 'var(--color-text-main)', flex: 1, marginRight: 8, lineHeight: 1.4, fontWeight: isWeak ? 700 : 400 }}>
+                                {isWeak && '⚠ '}{domainLabel}
+                              </span>
+                              <span style={{ fontSize: 'var(--font-size-sm)', fontWeight: 700, color, flexShrink: 0 }}>
+                                {pct !== null ? `${pct}%` : (ja ? '未演習' : 'N/A')}
+                              </span>
                             </div>
-                            <div style={{ display: 'flex', gap: 2, flexShrink: 0 }}>
-                              {Array.from({ length: 10 }, (_, i) => (
-                                <div key={i} style={{ width: 8, height: 8, borderRadius: 2, background: recent[i] === true ? 'var(--color-success)' : recent[i] === false ? 'var(--color-danger)' : 'var(--color-bg-main)' }} />
-                              ))}
+                            <div style={{ position: 'relative', display: 'flex', justifyContent: 'space-between', alignItems: 'center', height: 6 }}>
+                              <div style={{ position: 'absolute', left: 0, right: 0, height: 1, background: 'var(--color-border)', top: '50%', transform: 'translateY(-50%)', pointerEvents: 'none' }} />
+                              {Array.from({ length: 10 }, (_, j) => {
+                                const dataIdx = j - (10 - recent.length);
+                                const r = dataIdx >= 0 ? recent[dataIdx] : undefined;
+                                return (
+                                  <span key={j} style={{ flexShrink: 0, width: 6, height: 6, borderRadius: '50%', background: 'var(--color-bg-white)', border: `1px solid ${r === true ? 'var(--color-success)' : r === false ? 'var(--color-danger)' : 'var(--color-border)'}`, position: 'relative', zIndex: 1, display: 'inline-block' }} />
+                                );
+                              })}
                             </div>
                           </div>
                         );
                       })}
                     </div>
-                    <div style={{ marginTop: 16, paddingTop: 14, borderTop: '1px solid var(--color-border)' }}>
-                      {focusedUnlocked ? (
-                        <button
-                          onClick={() => navigate('/aws/', { state: { startFocused: true } })}
-                          style={{ width: '100%', height: 44, border: 'none', background: '#009E9E', color: '#fff', fontWeight: 600, fontSize: 'var(--font-size-base)', borderRadius: 'var(--border-radius-full)', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8 }}
-                        >
-                          {ja ? 'しっかり対策' : 'Focused Practice'}
-                          {!isMobile && <KeyHint />}
-                        </button>
-                      ) : (
-                        <button
-                          disabled
-                          style={{ width: '100%', height: 44, border: '1.5px solid var(--color-border)', borderRadius: 'var(--border-radius-full)', background: 'transparent', color: 'var(--color-text-light)', fontWeight: 600, fontSize: 'var(--font-size-base)', cursor: 'not-allowed', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 5 }}
-                        >
-                          <IconLock size={13} />
-                          {ja ? 'しっかり対策' : 'Focused Practice'}
-                        </button>
-                      )}
+                    <div style={{ marginTop: 12, paddingTop: 10, borderTop: '1px solid var(--color-border)', fontSize: 'var(--font-size-xs)', color: 'var(--color-text-light)', lineHeight: 1.6 }}>
+                      {ja
+                        ? '「しっかり対策」モードでは苦手問題・誤答問題を優先して出題します。ホーム画面から開始できます。'
+                        : '"Focused Practice" mode prioritizes your weak and incorrect questions. Start it from the home screen.'}
                     </div>
                     </>
                   )}

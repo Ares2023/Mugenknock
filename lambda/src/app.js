@@ -1238,6 +1238,7 @@ app.get('/sessions/:id/answers', async (req, res) => {
 });
 
 // ドメイン別直近正誤保存（デバイス間共有用）
+// domainResults はセッションの新規回答デルタのみ。サーバー側で既存データにマージし末尾10件に絞る。
 app.put('/users/me/domain-results', async (req, res) => {
   try {
     const docClient = getClient();
@@ -1246,14 +1247,24 @@ app.put('/users/me/domain-results', async (req, res) => {
       return res.status(400).json({ error: 'userId and domainResults are required' });
     }
     await Promise.all(
-      Object.entries(domainResults).map(([tagId, results]) =>
-        docClient.send(new UpdateCommand({
+      Object.entries(domainResults).map(async ([tagId, newResults]) => {
+        let existingResults = [];
+        try {
+          const existing = await docClient.send(new GetCommand({
+            TableName: T('UserTagStats'),
+            Key: { userId, tagId },
+            ProjectionExpression: 'recentResults',
+          }));
+          existingResults = existing.Item?.recentResults ?? [];
+        } catch {}
+        const merged = [...existingResults, ...newResults].slice(-10);
+        return docClient.send(new UpdateCommand({
           TableName: T('UserTagStats'),
           Key: { userId, tagId },
           UpdateExpression: 'SET recentResults = :r',
-          ExpressionAttributeValues: { ':r': results }
-        }))
-      )
+          ExpressionAttributeValues: { ':r': merged },
+        }));
+      })
     );
     res.json({ success: true });
   } catch (err) {
@@ -2063,6 +2074,49 @@ app.get('/announcements', async (req, res) => {
       .filter(a => a.status === 'published')
       .sort((a, b) => (b.publishedAt || '').localeCompare(a.publishedAt || ''));
     res.json({ items });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+// 既読状態取得（ログインユーザー用）
+app.get('/announcements/read-status', async (req, res) => {
+  const { userId } = req.query;
+  if (!userId) return res.status(400).json({ error: 'userId required' });
+  try {
+    const docClient = getClient();
+    const [prefs, all] = await Promise.all([
+      docClient.send(new GetCommand({ TableName: 'AppSettings', Key: { settingId: `userPrefs_${userId}` } })),
+      warmCached('announcements:all', WARM_TTL, () => scanAll(docClient, { TableName: 'Announcements' })),
+    ]);
+    const readIds = prefs.Item?.readAnnouncementIds ?? [];
+    const publishedIds = all.filter(a => a.status === 'published').map(a => a.announcementId);
+    const hasUnread = publishedIds.some(id => !readIds.includes(id));
+    res.json({ readIds, hasUnread });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+// 既読登録（ログインユーザー用）
+app.post('/announcements/mark-read', async (req, res) => {
+  const { userId, ids } = req.body;
+  if (!userId || !Array.isArray(ids) || ids.length === 0) return res.status(400).json({ error: 'userId and ids required' });
+  try {
+    const docClient = getClient();
+    const key = { settingId: `userPrefs_${userId}` };
+    const cur = await docClient.send(new GetCommand({ TableName: 'AppSettings', Key: key }));
+    const existing = cur.Item?.readAnnouncementIds ?? [];
+    const merged = Array.from(new Set([...existing, ...ids.filter(id => typeof id === 'string')]));
+    await docClient.send(new UpdateCommand({
+      TableName: 'AppSettings',
+      Key: key,
+      UpdateExpression: 'SET readAnnouncementIds = :ids, updatedAt = :now',
+      ExpressionAttributeValues: { ':ids': merged, ':now': new Date().toISOString() },
+    }));
+    res.json({ ok: true });
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: 'Internal server error' });

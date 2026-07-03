@@ -260,20 +260,12 @@ export default function Layout({ children }: { children: React.ReactNode }) {
   }, [location.pathname]);
 
   useEffect(() => {
-    fetch(`${API_ENDPOINT}/announcements`)
+    if (!user) return;
+    fetch(`${API_ENDPOINT}/announcements/read-status?userId=${encodeURIComponent(user.userId)}`)
       .then(r => r.json())
-      .then(d => {
-        const ids: string[] = (d.items || []).map((a: { announcementId: string }) => a.announcementId);
-        if (ids.length === 0) return;
-        try {
-          const seen: string[] = JSON.parse(localStorage.getItem('seenAnnouncementIds') ?? '[]');
-          setHasUnreadAnnouncements(ids.some(id => !seen.includes(id)));
-        } catch {
-          setHasUnreadAnnouncements(true);
-        }
-      })
+      .then(d => setHasUnreadAnnouncements(!!d.hasUnread))
       .catch(() => {});
-  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [user?.userId]); // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
     if (!pathname.startsWith('/aws/announcements')) return;

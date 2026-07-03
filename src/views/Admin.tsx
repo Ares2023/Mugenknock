@@ -2875,49 +2875,47 @@ ${tipPromptExamType !== 'ALL' ? `・examType には "${tipPromptExamType}" を�
           )}
 
           {[...announcements].sort((a, b) => b.createdAt.localeCompare(a.createdAt)).map(a => (
-            <div key={a.announcementId} style={{ border: '1px solid #eaeded', borderRadius: 6, padding: '14px 18px', marginBottom: 8, background: 'var(--color-bg-white)', boxShadow: 'var(--box-shadow-sm)' }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 16, flexWrap: 'wrap' }}>
-                <div style={{ flex: 1, minWidth: 0 }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 3, flexWrap: 'wrap' }}>
-                    <span style={{
-                      fontSize: 11, fontWeight: 700, padding: '2px 8px', borderRadius: 9999,
-                      background: a.status === 'published' ? '#e6f4ea' : 'var(--color-bg-main)',
-                      color: a.status === 'published' ? 'var(--color-success)' : 'var(--color-text-sub)',
-                    }}>
-                      {a.status === 'published' ? '公開中' : '下書き'}
-                    </span>
-                    <span style={{ fontSize: 12, color: '#879596', fontWeight: 700 }}>
-                      {(a.publishedAt || a.createdAt)?.slice(0, 10)}
-                    </span>
-                  </div>
-                  <div style={{ fontSize: 14, fontWeight: 700, color: 'var(--color-text-main)', marginBottom: 4, overflowWrap: 'break-word', wordBreak: 'break-word' }}>{a.title}</div>
-                  <div style={{ fontSize: 13, color: 'var(--color-text-sub)', lineHeight: 1.6, whiteSpace: 'pre-wrap', overflowWrap: 'break-word', wordBreak: 'break-word' }}>{a.body}</div>
-                </div>
-                <div style={{ display: 'flex', gap: 6, flexShrink: 0 }}>
+            <div key={a.announcementId} style={{ border: '1px solid #eaeded', borderRadius: 6, padding: '12px 14px', marginBottom: 8, background: 'var(--color-bg-white)', boxShadow: 'var(--box-shadow-sm)' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 4 }}>
+                <span style={{
+                  fontSize: 11, fontWeight: 700, padding: '2px 8px', borderRadius: 9999, flexShrink: 0,
+                  background: a.status === 'published' ? '#e6f4ea' : 'var(--color-bg-main)',
+                  color: a.status === 'published' ? 'var(--color-success)' : 'var(--color-text-sub)',
+                }}>
+                  {a.status === 'published' ? '公開中' : '下書き'}
+                </span>
+                <span style={{ fontSize: 12, color: '#879596', fontWeight: 700, flexShrink: 0 }}>
+                  {(a.publishedAt || a.createdAt)?.slice(0, 10)}
+                </span>
+              </div>
+              <div style={{ fontSize: 14, fontWeight: 700, color: 'var(--color-text-main)', marginBottom: 3, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{a.title}</div>
+              <div style={{ fontSize: 13, color: 'var(--color-text-sub)', lineHeight: 1.5, overflow: 'hidden', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical' as const, marginBottom: 10 }}>
+                {a.body.replace(/\n+/g, ' ')}
+              </div>
+              <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
+                <button
+                  onClick={() => { setEditingAnnouncement(a); setAnnForm({ title: a.title, body: a.body }); setShowAnnForm(true); }}
+                  style={{ padding: '4px 10px', border: '1px solid var(--color-border)', borderRadius: 9999, cursor: 'pointer', background: 'transparent', fontSize: 12, fontWeight: 700 }}>
+                  編集
+                </button>
+                {a.status === 'published' ? (
                   <button
-                    onClick={() => { setEditingAnnouncement(a); setAnnForm({ title: a.title, body: a.body }); setShowAnnForm(true); }}
+                    onClick={() => handleUnpublishAnnouncement(a)}
                     style={{ padding: '4px 10px', border: '1px solid var(--color-border)', borderRadius: 9999, cursor: 'pointer', background: 'transparent', fontSize: 12, fontWeight: 700 }}>
-                    編集
+                    取り下げ
                   </button>
-                  {a.status === 'published' ? (
-                    <button
-                      onClick={() => handleUnpublishAnnouncement(a)}
-                      style={{ padding: '4px 10px', border: '1px solid var(--color-border)', borderRadius: 9999, cursor: 'pointer', background: 'transparent', fontSize: 12, fontWeight: 700 }}>
-                      取り下げ
-                    </button>
-                  ) : (
-                    <button
-                      onClick={() => handlePublishAnnouncement(a)}
-                      style={{ padding: '4px 10px', background: '#ff9900', color: '#fff', border: '1px solid transparent', borderRadius: 9999, cursor: 'pointer', fontSize: 12, fontWeight: 700 }}>
-                      送信
-                    </button>
-                  )}
+                ) : (
                   <button
-                    onClick={() => handleDeleteAnnouncement(a)}
-                    style={{ padding: '4px 10px', background: 'transparent', color: 'var(--color-danger)', border: '1px solid #d13212', borderRadius: 9999, cursor: 'pointer', fontSize: 12, fontWeight: 700 }}>
-                    削除
+                    onClick={() => handlePublishAnnouncement(a)}
+                    style={{ padding: '4px 10px', background: '#ff9900', color: '#fff', border: '1px solid transparent', borderRadius: 9999, cursor: 'pointer', fontSize: 12, fontWeight: 700 }}>
+                    送信
                   </button>
-                </div>
+                )}
+                <button
+                  onClick={() => handleDeleteAnnouncement(a)}
+                  style={{ padding: '4px 10px', background: 'transparent', color: 'var(--color-danger)', border: '1px solid #d13212', borderRadius: 9999, cursor: 'pointer', fontSize: 12, fontWeight: 700 }}>
+                  削除
+                </button>
               </div>
             </div>
           ))}
