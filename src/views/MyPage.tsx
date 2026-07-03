@@ -954,10 +954,16 @@ export default function MyPage() {
                             <span style={{ flex: 1, minWidth: 0, fontSize: 'var(--font-size-sm)', color: isWeak ? 'var(--color-danger)' : 'var(--color-text-main)', fontWeight: isWeak ? 700 : 400, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                               {isWeak && '⚠ '}{domainLabel}
                             </span>
-                            <div style={{ display: 'flex', gap: 3, flexShrink: 0 }}>
-                              {Array.from({ length: 10 }, (_, j) => (
-                                <div key={j} style={{ width: 10, height: 10, borderRadius: '50%', background: recent[j] === true ? 'var(--color-success)' : recent[j] === false ? 'var(--color-danger)' : 'var(--color-border)' }} />
-                              ))}
+                            <div style={{ display: 'flex', gap: 2, flexShrink: 0 }}>
+                              {Array.from({ length: 10 }, (_, j) => {
+                                const dataIdx = j - (10 - recent.length);
+                                const r = dataIdx >= 0 ? recent[dataIdx] : undefined;
+                                return (
+                                  <span key={j} style={{ flexShrink: 0, width: 14, height: 14, borderRadius: '50%', background: r === true ? 'var(--color-success)' : r === false ? 'var(--color-danger)' : 'transparent', border: r == null ? '1px solid var(--color-border)' : 'none', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', color: '#fff', fontSize: 7, fontWeight: 700, lineHeight: 1 }}>
+                                    {r === true ? '○' : r === false ? '×' : ''}
+                                  </span>
+                                );
+                              })}
                             </div>
                             <span style={{ fontSize: 'var(--font-size-sm)', fontWeight: 700, color, flexShrink: 0, minWidth: 34, textAlign: 'right' }}>
                               {pct !== null ? `${pct}%` : (ja ? '未' : 'N/A')}
