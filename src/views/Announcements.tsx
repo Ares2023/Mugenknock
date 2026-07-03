@@ -2,6 +2,7 @@
 import React, { useEffect, useState } from 'react';
 import { Helmet } from '@/compat/react-helmet-async';
 import { API_ENDPOINT } from '../constants';
+import { useAuth } from '../contexts/AuthContext';
 import { useLanguage } from '../contexts/LanguageContext';
 import PageLayout from '../components/ui/PageLayout';
 import { IconChevronDown, IconChevronUp } from '../components/Icons';
@@ -13,33 +14,51 @@ type Announcement = {
   publishedAt: string;
 };
 
-const READ_IDS_KEY = 'readAnnouncementIds';
-
-function readReadIds(): string[] {
-  try { return JSON.parse(localStorage.getItem(READ_IDS_KEY) ?? '[]'); } catch { return []; }
+const LS_KEY = 'readAnnouncementIds';
+function lsReadIds(): string[] {
+  try { return JSON.parse(localStorage.getItem(LS_KEY) ?? '[]'); } catch { return []; }
 }
 
 export default function Announcements() {
   const { t } = useLanguage();
+  const { user } = useAuth();
   const [announcements, setAnnouncements] = useState<Announcement[]>([]);
   const [loading, setLoading] = useState(true);
   const [expandedId, setExpandedId] = useState<string | null>(null);
   const [readIds, setReadIds] = useState<string[]>([]);
 
   useEffect(() => {
-    setReadIds(readReadIds());
-    fetch(`${API_ENDPOINT}/announcements`)
-      .then(r => r.json())
-      .then(d => setAnnouncements(d.items || []))
-      .catch(() => {})
-      .finally(() => setLoading(false));
-  }, []);
+    const fetchAll = async () => {
+      const [itemsRes, statusRes] = await Promise.allSettled([
+        fetch(`${API_ENDPOINT}/announcements`).then(r => r.json()),
+        user
+          ? fetch(`${API_ENDPOINT}/announcements/read-status?userId=${encodeURIComponent(user.userId)}`).then(r => r.json())
+          : Promise.resolve(null),
+      ]);
+      if (itemsRes.status === 'fulfilled') setAnnouncements(itemsRes.value?.items ?? []);
+      if (statusRes.status === 'fulfilled' && statusRes.value) {
+        setReadIds(statusRes.value.readIds ?? []);
+      } else {
+        setReadIds(lsReadIds());
+      }
+      setLoading(false);
+    };
+    fetchAll().catch(() => setLoading(false));
+  }, [user?.userId]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const markRead = (id: string) => {
     if (readIds.includes(id)) return;
     const next = [...readIds, id];
     setReadIds(next);
-    localStorage.setItem(READ_IDS_KEY, JSON.stringify(next));
+    if (user) {
+      fetch(`${API_ENDPOINT}/announcements/mark-read`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ userId: user.userId, ids: [id] }),
+      }).catch(() => {});
+    } else {
+      localStorage.setItem(LS_KEY, JSON.stringify(next));
+    }
   };
 
   return (

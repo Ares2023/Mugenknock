@@ -2069,6 +2069,49 @@ app.get('/announcements', async (req, res) => {
   }
 });
 
+// 既読状態取得（ログインユーザー用）
+app.get('/announcements/read-status', async (req, res) => {
+  const { userId } = req.query;
+  if (!userId) return res.status(400).json({ error: 'userId required' });
+  try {
+    const docClient = getClient();
+    const [prefs, all] = await Promise.all([
+      docClient.send(new GetCommand({ TableName: 'AppSettings', Key: { settingId: `userPrefs_${userId}` } })),
+      warmCached('announcements:all', WARM_TTL, () => scanAll(docClient, { TableName: 'Announcements' })),
+    ]);
+    const readIds = prefs.Item?.readAnnouncementIds ?? [];
+    const publishedIds = all.filter(a => a.status === 'published').map(a => a.announcementId);
+    const hasUnread = publishedIds.some(id => !readIds.includes(id));
+    res.json({ readIds, hasUnread });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+// 既読登録（ログインユーザー用）
+app.post('/announcements/mark-read', async (req, res) => {
+  const { userId, ids } = req.body;
+  if (!userId || !Array.isArray(ids) || ids.length === 0) return res.status(400).json({ error: 'userId and ids required' });
+  try {
+    const docClient = getClient();
+    const key = { settingId: `userPrefs_${userId}` };
+    const cur = await docClient.send(new GetCommand({ TableName: 'AppSettings', Key: key }));
+    const existing = cur.Item?.readAnnouncementIds ?? [];
+    const merged = Array.from(new Set([...existing, ...ids.filter(id => typeof id === 'string')]));
+    await docClient.send(new UpdateCommand({
+      TableName: 'AppSettings',
+      Key: key,
+      UpdateExpression: 'SET readAnnouncementIds = :ids, updatedAt = :now',
+      ExpressionAttributeValues: { ':ids': merged, ':now': new Date().toISOString() },
+    }));
+    res.json({ ok: true });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
 // 管理者用：全件取得（下書き含む）
 app.get('/admin/announcements', async (req, res) => {
   try {
