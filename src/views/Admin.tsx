@@ -111,6 +111,15 @@ function getGroupForTab(t: Tab): Group {
   return 'content';
 }
 
+const ANNOUNCEMENT_BUG_REPORT_TEMPLATE = `【不具合の内容】
+
+
+【影響範囲】
+
+
+【対応状況】
+現在調査中です。復旧までしばらくお待ちください。`;
+
 type DailyServiceItem = {
   serviceId: string;
   name: string;
@@ -2803,7 +2812,7 @@ ${tipPromptExamType !== 'ALL' ? `・examType には "${tipPromptExamType}" を�
             <button
               onClick={() => {
                 setEditingAnnouncement(null);
-                setAnnForm({ title: '', body: '' });
+                setAnnForm({ title: '', body: ANNOUNCEMENT_BUG_REPORT_TEMPLATE });
                 setShowAnnForm(true);
               }}
               style={{ padding: '7px 16px', background: 'transparent', color: 'var(--color-primary)', border: '1.5px solid var(--color-primary)', borderRadius: 9999, cursor: 'pointer', fontSize: 13, fontWeight: 700 }}>
@@ -2867,9 +2876,9 @@ ${tipPromptExamType !== 'ALL' ? `・examType には "${tipPromptExamType}" を�
 
           {[...announcements].sort((a, b) => b.createdAt.localeCompare(a.createdAt)).map(a => (
             <div key={a.announcementId} style={{ border: '1px solid #eaeded', borderRadius: 6, padding: '14px 18px', marginBottom: 8, background: 'var(--color-bg-white)', boxShadow: 'var(--box-shadow-sm)' }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 16 }}>
-                <div style={{ flex: 1 }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 3 }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 16, flexWrap: 'wrap' }}>
+                <div style={{ flex: 1, minWidth: 0 }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 3, flexWrap: 'wrap' }}>
                     <span style={{
                       fontSize: 11, fontWeight: 700, padding: '2px 8px', borderRadius: 9999,
                       background: a.status === 'published' ? '#e6f4ea' : 'var(--color-bg-main)',
@@ -2881,8 +2890,8 @@ ${tipPromptExamType !== 'ALL' ? `・examType には "${tipPromptExamType}" を�
                       {(a.publishedAt || a.createdAt)?.slice(0, 10)}
                     </span>
                   </div>
-                  <div style={{ fontSize: 14, fontWeight: 700, color: 'var(--color-text-main)', marginBottom: 4 }}>{a.title}</div>
-                  <div style={{ fontSize: 13, color: 'var(--color-text-sub)', lineHeight: 1.6, whiteSpace: 'pre-wrap' }}>{a.body}</div>
+                  <div style={{ fontSize: 14, fontWeight: 700, color: 'var(--color-text-main)', marginBottom: 4, overflowWrap: 'break-word', wordBreak: 'break-word' }}>{a.title}</div>
+                  <div style={{ fontSize: 13, color: 'var(--color-text-sub)', lineHeight: 1.6, whiteSpace: 'pre-wrap', overflowWrap: 'break-word', wordBreak: 'break-word' }}>{a.body}</div>
                 </div>
                 <div style={{ display: 'flex', gap: 6, flexShrink: 0 }}>
                   <button

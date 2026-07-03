@@ -3,8 +3,8 @@ import React, { useEffect, useState } from 'react';
 import { Helmet } from '@/compat/react-helmet-async';
 import { API_ENDPOINT } from '../constants';
 import { useLanguage } from '../contexts/LanguageContext';
-import Button from '../components/ui/Button';
 import PageLayout from '../components/ui/PageLayout';
+import { IconChevronDown, IconChevronUp } from '../components/Icons';
 
 type Announcement = {
   announcementId: string;
@@ -13,15 +13,21 @@ type Announcement = {
   publishedAt: string;
 };
 
-const SHOW_DEFAULT = 5;
+const READ_IDS_KEY = 'readAnnouncementIds';
+
+function readReadIds(): string[] {
+  try { return JSON.parse(localStorage.getItem(READ_IDS_KEY) ?? '[]'); } catch { return []; }
+}
 
 export default function Announcements() {
   const { t } = useLanguage();
   const [announcements, setAnnouncements] = useState<Announcement[]>([]);
   const [loading, setLoading] = useState(true);
-  const [showAll, setShowAll] = useState(false);
+  const [expandedId, setExpandedId] = useState<string | null>(null);
+  const [readIds, setReadIds] = useState<string[]>([]);
 
   useEffect(() => {
+    setReadIds(readReadIds());
     fetch(`${API_ENDPOINT}/announcements`)
       .then(r => r.json())
       .then(d => setAnnouncements(d.items || []))
@@ -29,8 +35,12 @@ export default function Announcements() {
       .finally(() => setLoading(false));
   }, []);
 
-  const visible = showAll ? announcements : announcements.slice(0, SHOW_DEFAULT);
-  const hiddenCount = announcements.length - SHOW_DEFAULT;
+  const markRead = (id: string) => {
+    if (readIds.includes(id)) return;
+    const next = [...readIds, id];
+    setReadIds(next);
+    localStorage.setItem(READ_IDS_KEY, JSON.stringify(next));
+  };
 
   return (
     <PageLayout className="page-container" style={{ color: 'var(--color-text-main)' }}>
@@ -48,32 +58,49 @@ export default function Announcements() {
         <p style={{ color: 'var(--color-text-sub)', fontSize: 'var(--font-size-base)' }}>{t('announcements.empty')}</p>
       )}
 
-      {visible.map((a, i) => (
-        <div key={a.announcementId}>
-          <div style={{ marginBottom: 'var(--spacing-lg)' }}>
-            <div style={{ fontSize: 'var(--font-size-xs)', color: 'var(--color-text-light)', fontWeight: 700, marginBottom: 'var(--spacing-xs)' }}>
-              {a.publishedAt?.slice(0, 10)}
-            </div>
-            <div style={{ fontSize: 'var(--font-size-lg)', fontWeight: 700, color: 'var(--color-text-main)', marginBottom: 'var(--spacing-sm)' }}>
-              {a.title}
-            </div>
-            <div style={{ fontSize: 'var(--font-size-base)', color: 'var(--color-text-sub)', lineHeight: 1.8, whiteSpace: 'pre-wrap' }}>
-              {a.body}
-            </div>
+      {announcements.map((a, i) => {
+        const expanded = expandedId === a.announcementId;
+        const unread = !readIds.includes(a.announcementId);
+        return (
+          <div key={a.announcementId}>
+            <button
+              onClick={() => {
+                setExpandedId(expanded ? null : a.announcementId);
+                markRead(a.announcementId);
+              }}
+              style={{
+                display: 'flex', alignItems: 'center', gap: 'var(--spacing-sm)', width: '100%',
+                padding: 'var(--spacing-sm) 0', background: 'none', border: 'none', cursor: 'pointer',
+                textAlign: 'left', color: 'inherit', font: 'inherit',
+              }}
+            >
+              {unread && (
+                <span style={{ width: 8, height: 8, borderRadius: '50%', background: 'var(--color-danger)', flexShrink: 0 }} />
+              )}
+              <span style={{ fontSize: 'var(--font-size-xs)', color: 'var(--color-text-light)', fontWeight: 700, flexShrink: 0, minWidth: 76 }}>
+                {a.publishedAt?.slice(0, 10)}
+              </span>
+              <span style={{ flex: 1, minWidth: 0, fontSize: 'var(--font-size-base)', fontWeight: unread ? 700 : 400, color: 'var(--color-text-main)', overflowWrap: 'break-word', wordBreak: 'break-word' }}>
+                {a.title}
+              </span>
+              <span style={{ color: 'var(--color-text-light)', flexShrink: 0, display: 'flex' }}>
+                {expanded ? <IconChevronUp size={16} /> : <IconChevronDown size={16} />}
+              </span>
+            </button>
+            {expanded && (
+              <div style={{
+                fontSize: 'var(--font-size-base)', color: 'var(--color-text-sub)', lineHeight: 1.8, whiteSpace: 'pre-wrap',
+                overflowWrap: 'break-word', wordBreak: 'break-word', padding: '0 0 var(--spacing-md)',
+              }}>
+                {a.body}
+              </div>
+            )}
+            {i < announcements.length - 1 && (
+              <div style={{ height: 1, background: 'color-mix(in srgb, var(--color-text-light) 40%, transparent)' }} />
+            )}
           </div>
-          {i < visible.length - 1 && (
-            <div style={{ height: 1, background: 'color-mix(in srgb, var(--color-text-light) 40%, transparent)', marginBottom: 'var(--spacing-lg)' }} />
-          )}
-        </div>
-      ))}
-
-      {!showAll && hiddenCount > 0 && (
-        <div style={{ borderTop: '1px solid color-mix(in srgb, var(--color-text-light) 40%, transparent)', paddingTop: 'var(--spacing-lg)', marginTop: 'var(--spacing-sm)' }}>
-          <Button variant="outline" data-kbnav="1" onClick={() => setShowAll(true)}>
-            {t('announcements.showMore', { n: hiddenCount })}
-          </Button>
-        </div>
-      )}
+        );
+      })}
     </PageLayout>
   );
 }
