@@ -280,9 +280,7 @@ export const ja: Translations = {
 
   // ── Announcements ──
   'announcements.title': 'お知らせ',
-  'announcements.loading': '読み込み中...',
   'announcements.empty': '現在お知らせはありません。',
-  'announcements.showMore': '過去のお知らせを見る（{n}件）',
 
   // ── Login ──
   'login.tagline': 'ログインして演習を始めましょう',
