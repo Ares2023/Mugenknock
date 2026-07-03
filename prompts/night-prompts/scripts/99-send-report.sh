@@ -232,7 +232,6 @@ dates = [(base - datetime.timedelta(days=k)).strftime('%Y%m%d') for k in (1, 2, 
 
 total = 0
 rows = []
-rate_msgs = []
 for d in dates:
     day_total = 0
     day_exam = {}
@@ -248,8 +247,6 @@ for d in dates:
         if n > 0:
             day_total += n
             day_exam[exam] = day_exam.get(exam, 0) + n
-        if 'レート制限' in c:
-            rate_msgs.append(f"{d[:4]}-{d[4:6]}-{d[6:]}: レート制限あり")
     total += day_total
     if day_exam:
         ex = ' '.join(f'{k}:{v}問' for k, v in sorted(day_exam.items()))
@@ -262,8 +259,6 @@ for d in dates:
 print(f"合計 {total}問生成")
 for r in rows:
     print(f"  {r}")
-for r in dict.fromkeys(rate_msgs):
-    print(f"  ⚠️ {r}")
 PYEOF
 )
 
@@ -333,9 +328,6 @@ for d in dates:
 print('\n'.join(rows) if rows else "3日分の実行なし")
 PYEOF
 )
-
-# レート制限情報（生成サマリー内に含まれるが別途抽出）
-GEN_RATE_INFO=$(echo "$GEN_SUMMARY" | grep "レート制限" | tr '\n' ' ')
 
 echo "  生成: $(echo "$GEN_SUMMARY" | head -1)"
 echo "  妥当性: $(echo "$VAL_SUMMARY" | head -1)"
@@ -696,32 +688,31 @@ data = {
     'gen':       sys.argv[1],
     'val':       sys.argv[2],
     'rpt':       sys.argv[3],
-    'rate':      sys.argv[4],
-    'canary_r':  sys.argv[5],
-    'canary_d':  sys.argv[6],
-    'db_total':  sys.argv[7],
-    'db_unchk':  sys.argv[8],
-    'db_rpts':   sys.argv[9],
-    'db_exams':  sys.argv[10],
-    'cert':      sys.argv[11],
-    'jst_now':   sys.argv[12],
-    'smtp_user': sys.argv[13],
-    'smtp_pass': sys.argv[14],
-    'smtp_to':   sys.argv[15],
-    'db_gen3d':  sys.argv[16],
-    'db_chk3d':  sys.argv[17],
-    'audit':     sys.argv[18],
-    'canary_cov':sys.argv[19],
-    'daily':     sys.argv[20],
-    'backend':   sys.argv[21],
-    'canary_auth':sys.argv[22],
-    'cognito_new':sys.argv[23],
-    'canary_auth_d':sys.argv[24],
+    'canary_r':  sys.argv[4],
+    'canary_d':  sys.argv[5],
+    'db_total':  sys.argv[6],
+    'db_unchk':  sys.argv[7],
+    'db_rpts':   sys.argv[8],
+    'db_exams':  sys.argv[9],
+    'cert':      sys.argv[10],
+    'jst_now':   sys.argv[11],
+    'smtp_user': sys.argv[12],
+    'smtp_pass': sys.argv[13],
+    'smtp_to':   sys.argv[14],
+    'db_gen3d':  sys.argv[15],
+    'db_chk3d':  sys.argv[16],
+    'audit':     sys.argv[17],
+    'canary_cov':sys.argv[18],
+    'daily':     sys.argv[19],
+    'backend':   sys.argv[20],
+    'canary_auth':sys.argv[21],
+    'cognito_new':sys.argv[22],
+    'canary_auth_d':sys.argv[23],
 }
 with open('$REPORT_DATA_FILE', 'w') as f:
     json.dump(data, f, ensure_ascii=False)
 " \
-  "$GEN_SUMMARY" "$VAL_SUMMARY" "$RPT_SUMMARY" "$GEN_RATE_INFO" \
+  "$GEN_SUMMARY" "$VAL_SUMMARY" "$RPT_SUMMARY" \
   "$CANARY_RESULT" "${CANARY_DETAIL:-}" \
   "$DB_TOTAL" "$DB_UNCHECKED" "$DB_REPORTS" "$DB_EXAM_TABLE" \
   "$CERT_NEWS" "$JST_NOW" \
@@ -814,7 +805,7 @@ def audit_to_html(s):
     return ''.join(parts)
 
 gen      = e_lines(d['gen']); val     = e_lines(d['val'])
-rpt      = e_lines(d['rpt']); rate    = e(d['rate'])
+rpt      = e_lines(d['rpt'])
 canary_r = e(d['canary_r']); canary_d = e(d['canary_d'])
 db_total = e(d['db_total']); db_unchk = e(d['db_unchk'])
 db_rpts  = e(d['db_rpts']);  db_exams = e(d['db_exams'])
@@ -837,8 +828,6 @@ unchk_num    = int(d['db_unchk'].replace("?","0")) if d['db_unchk'].replace("?",
 rpts_num     = int(d['db_rpts'].replace("?","0"))  if d['db_rpts'].replace("?","0").isdigit()  else 0
 unchk_color  = "#e74c3c" if unchk_num > 50 else "#333"
 rpts_color   = "#e74c3c" if rpts_num > 0  else "#27ae60"
-
-rate_row     = f"<tr><td>レート制限</td><td class='warn'>{rate}</td></tr>" if d['rate'].strip() else ""
 
 # 新規ユーザー登録は「登録があった時だけ」目立つカードで表示する
 cognito_section = (
@@ -872,7 +861,6 @@ html_body = f"""<!DOCTYPE html>
     <tr><td>問題生成</td><td>{gen}</td></tr>
     <tr><td>妥当性確認</td><td>{val}</td></tr>
     <tr><td>通報チェック</td><td>{rpt}</td></tr>
-    {rate_row}
   </table>
 </div>
 
