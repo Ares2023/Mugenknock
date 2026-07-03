@@ -948,50 +948,28 @@ export default function MyPage() {
                         const isWeak = pct !== null && pct < DOMAIN_RATE_WARNING * 100;
                         const isFair = pct !== null && pct < DOMAIN_RATE_CAUTION * 100 && !isWeak;
                         const color = pct === null ? 'var(--color-text-light)' : isWeak ? 'var(--color-danger)' : isFair ? 'var(--color-caution)' : 'var(--color-success)';
-                        const barGradient = isWeak ? 'var(--bar-gradient-danger)' : isFair ? 'var(--bar-gradient-caution)' : 'var(--bar-gradient-success)';
                         const domainLabel = lang === 'en' ? (DOMAIN_NAME_EN[domain] ?? domain) : domain;
                         return (
-                          <div key={domain} style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-                            <div style={{ flex: 1, minWidth: 0 }}>
-                              <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 3 }}>
-                                <span style={{ fontSize: 'var(--font-size-sm)', color: isWeak ? 'var(--color-danger)' : 'var(--color-text-sub)', fontWeight: isWeak ? 700 : 400, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                                  {isWeak && '⚠ '}{domainLabel}
-                                </span>
-                                <span style={{ fontSize: 'var(--font-size-sm)', fontWeight: 700, color, flexShrink: 0, marginLeft: 6 }}>
-                                  {pct !== null ? `${pct}%` : (ja ? '未演習' : 'N/A')}
-                                </span>
-                              </div>
-                              <div style={{ height: 6, borderRadius: 3, background: 'var(--color-bg-main)', overflow: 'hidden' }}>
-                                {pct !== null && <div style={{ height: '100%', width: `${pct}%`, background: barGradient, borderRadius: 3, transformOrigin: 'left center', animation: `growWidth 0.45s cubic-bezier(0.34, 1.56, 0.64, 1) ${i * 30}ms both` }} />}
-                              </div>
-                            </div>
-                            <div style={{ display: 'flex', gap: 2, flexShrink: 0 }}>
-                              {Array.from({ length: 10 }, (_, i) => (
-                                <div key={i} style={{ width: 8, height: 8, borderRadius: 2, background: recent[i] === true ? 'var(--color-success)' : recent[i] === false ? 'var(--color-danger)' : 'var(--color-bg-main)' }} />
+                          <div key={domain} style={{ display: 'flex', alignItems: 'center', gap: 'var(--spacing-sm)' }}>
+                            <span style={{ flex: 1, minWidth: 0, fontSize: 'var(--font-size-sm)', color: isWeak ? 'var(--color-danger)' : 'var(--color-text-main)', fontWeight: isWeak ? 700 : 400, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                              {isWeak && '⚠ '}{domainLabel}
+                            </span>
+                            <div style={{ display: 'flex', gap: 3, flexShrink: 0 }}>
+                              {Array.from({ length: 10 }, (_, j) => (
+                                <div key={j} style={{ width: 10, height: 10, borderRadius: '50%', background: recent[j] === true ? 'var(--color-success)' : recent[j] === false ? 'var(--color-danger)' : 'var(--color-border)' }} />
                               ))}
                             </div>
+                            <span style={{ fontSize: 'var(--font-size-sm)', fontWeight: 700, color, flexShrink: 0, minWidth: 34, textAlign: 'right' }}>
+                              {pct !== null ? `${pct}%` : (ja ? '未' : 'N/A')}
+                            </span>
                           </div>
                         );
                       })}
                     </div>
-                    <div style={{ marginTop: 16, paddingTop: 14, borderTop: '1px solid var(--color-border)' }}>
-                      {focusedUnlocked ? (
-                        <button
-                          onClick={() => navigate('/aws/', { state: { startFocused: true } })}
-                          style={{ width: '100%', height: 44, border: 'none', background: '#009E9E', color: '#fff', fontWeight: 600, fontSize: 'var(--font-size-base)', borderRadius: 'var(--border-radius-full)', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8 }}
-                        >
-                          {ja ? 'しっかり対策' : 'Focused Practice'}
-                          {!isMobile && <KeyHint />}
-                        </button>
-                      ) : (
-                        <button
-                          disabled
-                          style={{ width: '100%', height: 44, border: '1.5px solid var(--color-border)', borderRadius: 'var(--border-radius-full)', background: 'transparent', color: 'var(--color-text-light)', fontWeight: 600, fontSize: 'var(--font-size-base)', cursor: 'not-allowed', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 5 }}
-                        >
-                          <IconLock size={13} />
-                          {ja ? 'しっかり対策' : 'Focused Practice'}
-                        </button>
-                      )}
+                    <div style={{ marginTop: 12, paddingTop: 10, borderTop: '1px solid var(--color-border)', fontSize: 'var(--font-size-xs)', color: 'var(--color-text-light)', lineHeight: 1.6 }}>
+                      {ja
+                        ? '「しっかり対策」モードでは苦手問題・誤答問題を優先して出題します。ホーム画面から開始できます。'
+                        : '"Focused Practice" mode prioritizes your weak and incorrect questions. Start it from the home screen.'}
                     </div>
                     </>
                   )}

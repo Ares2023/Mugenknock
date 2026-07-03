@@ -5,7 +5,7 @@ import { API_ENDPOINT } from '../constants';
 import { useAuth } from '../contexts/AuthContext';
 import { useLanguage } from '../contexts/LanguageContext';
 import PageLayout from '../components/ui/PageLayout';
-import { IconChevronDown, IconChevronUp } from '../components/Icons';
+import Card from '../components/ui/Card';
 
 type Announcement = {
   announcementId: string;
@@ -77,47 +77,34 @@ export default function Announcements() {
         <p style={{ color: 'var(--color-text-sub)', fontSize: 'var(--font-size-base)' }}>{t('announcements.empty')}</p>
       )}
 
-      {announcements.map((a, i) => {
+      {announcements.map((a) => {
         const expanded = expandedId === a.announcementId;
         const unread = !readIds.includes(a.announcementId);
         return (
-          <div key={a.announcementId}>
-            <button
-              onClick={() => {
-                setExpandedId(expanded ? null : a.announcementId);
-                markRead(a.announcementId);
-              }}
-              style={{
-                display: 'flex', alignItems: 'center', gap: 'var(--spacing-sm)', width: '100%',
-                padding: 'var(--spacing-sm) 0', background: 'none', border: 'none', cursor: 'pointer',
-                textAlign: 'left', color: 'inherit', font: 'inherit',
-              }}
+          <Card key={a.announcementId} style={{ marginBottom: 'var(--spacing-sm)' }}>
+            <div
+              style={{ display: 'flex', alignItems: 'center', gap: 10, cursor: 'pointer', userSelect: 'none' }}
+              onClick={() => { setExpandedId(expanded ? null : a.announcementId); markRead(a.announcementId); }}
             >
               {unread && (
-                <span style={{ width: 8, height: 8, borderRadius: '50%', background: 'var(--color-danger)', flexShrink: 0 }} />
+                <span style={{ fontSize: 'var(--font-size-2xs)', fontWeight: 700, padding: '2px 6px', borderRadius: 'var(--border-radius-full)', background: 'var(--color-danger)', color: '#fff', flexShrink: 0, lineHeight: 1.4 }}>
+                  NEW
+                </span>
               )}
-              <span style={{ fontSize: 'var(--font-size-xs)', color: 'var(--color-text-light)', fontWeight: 700, flexShrink: 0, minWidth: 76 }}>
+              <span style={{ fontSize: 'var(--font-size-xs)', color: 'var(--color-text-light)', fontWeight: 700, flexShrink: 0 }}>
                 {a.publishedAt?.slice(0, 10)}
               </span>
-              <span style={{ flex: 1, minWidth: 0, fontSize: 'var(--font-size-base)', fontWeight: unread ? 700 : 400, color: 'var(--color-text-main)', overflowWrap: 'break-word', wordBreak: 'break-word' }}>
+              <span style={{ flex: 1, minWidth: 0, fontSize: 'var(--font-size-sm2)', fontWeight: unread ? 700 : 400, color: 'var(--color-text-main)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                 {a.title}
               </span>
-              <span style={{ color: 'var(--color-text-light)', flexShrink: 0, display: 'flex' }}>
-                {expanded ? <IconChevronUp size={16} /> : <IconChevronDown size={16} />}
-              </span>
-            </button>
+              <span style={{ color: 'var(--color-text-light)', fontSize: 'var(--font-size-base)', transition: 'transform 0.2s', transform: expanded ? 'rotate(90deg)' : 'none', flexShrink: 0 }}>›</span>
+            </div>
             {expanded && (
-              <div style={{
-                fontSize: 'var(--font-size-base)', color: 'var(--color-text-sub)', lineHeight: 1.8, whiteSpace: 'pre-wrap',
-                overflowWrap: 'break-word', wordBreak: 'break-word', padding: '0 0 var(--spacing-md)',
-              }}>
+              <div style={{ marginTop: 10, borderTop: '1px solid var(--color-border)', paddingTop: 'var(--spacing-sm)', fontSize: 'var(--font-size-base)', color: 'var(--color-text-sub)', lineHeight: 1.8, whiteSpace: 'pre-wrap', overflowWrap: 'break-word', wordBreak: 'break-word' }}>
                 {a.body}
               </div>
             )}
-            {i < announcements.length - 1 && (
-              <div style={{ height: 1, background: 'color-mix(in srgb, var(--color-text-light) 40%, transparent)' }} />
-            )}
-          </div>
+          </Card>
         );
       })}
     </PageLayout>
