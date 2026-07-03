@@ -5,6 +5,7 @@ import { createPortal } from 'react-dom';
 import { useNavigate, useLocation } from '@/compat/react-router-dom';
 import DailyServiceRevealModal from '../components/DailyServiceRevealModal';
 import ExamSelectOverlay from '../components/ExamSelectOverlay';
+import AnnouncementBanner from '../components/AnnouncementBanner';
 import { useAuth } from '../contexts/AuthContext';
 import { useLanguage } from '../contexts/LanguageContext';
 import {
@@ -1875,6 +1876,8 @@ export default function Home() {
         <meta name="description" content="あなたのAWS試験スコアと学習進捗を確認。ドメイン別正答率・予想スコア・直近の演習結果をひと目で把握できます。" />
       </Helmet>
 
+      <AnnouncementBanner />
+
       {/* ── 目標演習量 ── */}
       <Card
         data-kbnav="1"
@@ -2139,10 +2142,10 @@ export default function Home() {
                     <>
                       {primaryMode === 'quick' ? (ja ? 'サクッと演習を再開' : 'Quick (Resume)') : (ja ? 'しっかり対策を再開' : 'Focused (Resume)')}
                       {ja && primaryMode === 'quick' && quickDraft?.results != null && quickDraft?.questions != null && (
-                        <span style={{ fontSize: 'var(--font-size-sm)', fontWeight: 400, opacity: 0.85 }}>（{quickDraft.results.length}/{quickDraft.questions.length}問）</span>
+                        <span style={{ fontSize: 'var(--font-size-sm)', fontWeight: 400, opacity: 0.85 }}>（{quickDraft.results.length}/{quickDraft.questionIds?.length ?? quickDraft.questions.length}問）</span>
                       )}
                       {ja && primaryMode !== 'quick' && focusedDraft?.results != null && focusedDraft?.questions != null && (
-                        <span style={{ fontSize: 'var(--font-size-sm)', fontWeight: 400, opacity: 0.85 }}>（{focusedDraft.results.length}/{focusedDraft.questions.length}問）</span>
+                        <span style={{ fontSize: 'var(--font-size-sm)', fontWeight: 400, opacity: 0.85 }}>（{focusedDraft.results.length}/{focusedDraft.questionIds?.length ?? focusedDraft.questions.length}問）</span>
                       )}
                       <span style={{ marginLeft: 8, display: 'inline-flex', verticalAlign: 'middle' }}><KeyHint /></span>
                     </>
@@ -2347,10 +2350,10 @@ export default function Home() {
                     <>
                       {primaryMode === 'quick' ? (ja ? 'サクッと演習を再開' : 'Quick (Resume)') : (ja ? 'しっかり対策を再開' : 'Focused (Resume)')}
                       {ja && primaryMode === 'quick' && quickDraft?.results != null && quickDraft?.questions != null && (
-                        <span style={{ fontSize: 'var(--font-size-sm)', fontWeight: 400, opacity: 0.85 }}>（{quickDraft.results.length}/{quickDraft.questions.length}問）</span>
+                        <span style={{ fontSize: 'var(--font-size-sm)', fontWeight: 400, opacity: 0.85 }}>（{quickDraft.results.length}/{quickDraft.questionIds?.length ?? quickDraft.questions.length}問）</span>
                       )}
                       {ja && primaryMode !== 'quick' && focusedDraft?.results != null && focusedDraft?.questions != null && (
-                        <span style={{ fontSize: 'var(--font-size-sm)', fontWeight: 400, opacity: 0.85 }}>（{focusedDraft.results.length}/{focusedDraft.questions.length}問）</span>
+                        <span style={{ fontSize: 'var(--font-size-sm)', fontWeight: 400, opacity: 0.85 }}>（{focusedDraft.results.length}/{focusedDraft.questionIds?.length ?? focusedDraft.questions.length}問）</span>
                       )}
                     </>
                   )}

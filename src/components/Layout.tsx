@@ -14,7 +14,7 @@ import { setKbMode } from '../utils/keyboardMode';
 import {
   IconHome,
   IconUser, IconChart,
-  IconDumbbell, IconFire, IconMenu, IconClose, IconChevronLeft, IconMail,
+  IconDumbbell, IconFire, IconMegaphone, IconMenu, IconClose, IconChevronLeft, IconMail,
   IconSparkles, IconBot, IconUserCircle, IconBookOpen,
   IconSun, IconMoon, IconMore, IconChevronDown,
   EXAM_ICON_COMPONENTS,
@@ -29,6 +29,7 @@ const NAV_KEYS = [
   { path: '/aws/encyclopedia', labelKey: 'nav.encyclopedia', Icon: IconBookOpen, bottom: true },
   { path: '/aws/growth',       labelKey: 'nav.growth',       Icon: IconBot, bottom: true },
   { path: '/aws/release-notes', labelKey: 'nav.releaseNotes', Icon: IconFire, bottom: true },
+  { path: '/aws/announcements', labelKey: 'nav.announcements', Icon: IconMegaphone, bottom: true },
 ];
 
 const BOTTOM_TABS = [
@@ -41,6 +42,7 @@ const OTHERS_ITEMS = [
   { path: '/aws/encyclopedia',  Icon: IconBookOpen, labelKey: 'nav.encyclopedia' },
   { path: '/aws/growth',        Icon: IconBot,      labelKey: 'nav.growth'       },
   { path: '/aws/release-notes', Icon: IconFire,     labelKey: 'nav.releaseNotes' },
+  { path: '/aws/announcements', Icon: IconMegaphone, labelKey: 'nav.announcements' },
 ];
 
 const AI_LINKS = [
@@ -582,6 +584,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
     '/aws/result':           [{ label: t('nav.home'), path: '/aws/' }, { label: t('nav.result') }],
     '/aws/stats':            [{ label: t('nav.home'), path: '/aws/' }, { label: t('stats.title') }],
     '/aws/release-notes':    [{ label: t('nav.home'), path: '/aws/' }, { label: t('nav.releaseNotes') }],
+    '/aws/announcements':    [{ label: t('nav.home'), path: '/aws/' }, { label: t('nav.announcements') }],
     '/about':                [{ label: t('nav.home'), path: '/aws/' }, { label: t('nav.about') }],
   };
 

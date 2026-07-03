@@ -1249,6 +1249,15 @@ PYEOF
     # 2. 常に最新版に更新（Auto-update failed の解消）
     # npm の atomic rename で ENOTEMPTY になる古い temp dir を削除
     rm -rf "$_npm_prefix/lib/node_modules/@anthropic-ai/.claude-code-"* 2>/dev/null || true
+    # 自動更新が rename 途中で中断すると、正規名 claude-code/ 自体が
+    # bin を欠いた不完全な状態（node_modules/ だけ等）で残ることがある。
+    # そのままだと npm install が同名ディレクトリへの rename で ENOTEMPTY になり
+    # 再インストールが失敗し続けるため、bin/claude.exe が無ければ丸ごと削除してからやり直す。
+    _cc_dir="$_npm_prefix/lib/node_modules/@anthropic-ai/claude-code"
+    if [ -d "$_cc_dir" ] && [ ! -f "$_cc_dir/bin/claude.exe" ]; then
+      echo "  ⚠️  不完全なインストールを検出（bin/claude.exe 欠落）→ 削除して再インストール"
+      rm -rf "$_cc_dir" 2>/dev/null || true
+    fi
     echo "  → npm install -g @anthropic-ai/claude-code ..."
     npm install -g @anthropic-ai/claude-code --prefix "$_npm_prefix" 2>&1 | tail -2
     # 3. native package (optional dependency) を明示インストール

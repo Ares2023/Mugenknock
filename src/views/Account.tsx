@@ -270,12 +270,10 @@ export default function Account() {
       }
       const { resetAt } = await res.json();
       const uid = user.userId;
-      // Home.tsx clearUserData と同じパターンで localStorage を消去
+      // 「ログイン直後のまっさらな状態」に戻すため、端末表示系（言語・テーマ・サイドバー）だけ残し、
+      // 演習設定・ヒント・トグル等の実績/体験データは全て消す。
       const KEEP = new Set([
         `lang_${uid}`, `theme_${uid}`, `sidebarOpen_${uid}`,
-        `lastQuickMode_${uid}`,
-        `quickExercisePrefs_${uid}`, `focusedExercisePrefs_${uid}`,
-        `sherpaExerciseHint_${uid}`, `sherpaExamHint_${uid}`, `sherpaStatsHint_${uid}`,
       ]);
       const suffix = `_${uid}`;
       const toRemove: string[] = [];

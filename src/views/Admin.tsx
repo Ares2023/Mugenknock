@@ -71,6 +71,15 @@ type Release = {
   body: string;
 };
 
+type Announcement = {
+  announcementId: string;
+  title: string;
+  body: string;
+  status: 'draft' | 'published';
+  createdAt: string;
+  publishedAt: string | null;
+};
+
 type ImportQuestion = {
   examType?: string;
   domain?: string;
@@ -82,17 +91,18 @@ type ImportQuestion = {
   isMultiple?: boolean;
 };
 
-type Tab = 'questions' | 'reports' | 'tips' | 'columnideas' | 'import' | 'releases' | 'scan' | 'messages' | 'dailyservice' | 'theme' | 'admins' | 'about' | 'deleteuser' | 'passcomments' | 'growth';
+type Tab = 'questions' | 'reports' | 'tips' | 'columnideas' | 'import' | 'releases' | 'announcements' | 'scan' | 'messages' | 'dailyservice' | 'theme' | 'admins' | 'about' | 'deleteuser' | 'passcomments' | 'growth';
 type Group = 'content' | 'ops' | 'settings';
 
 const TAB_GROUPS: { key: Group; label: string; tabs: Tab[] }[] = [
   { key: 'content',  label: 'コンテンツ', tabs: ['questions', 'import', 'growth', 'scan', 'tips', 'columnideas', 'dailyservice', 'releases', 'passcomments'] },
-  { key: 'ops',      label: '運営',       tabs: ['reports', 'messages', 'deleteuser'] },
+  { key: 'ops',      label: '運営',       tabs: ['announcements', 'reports', 'messages', 'deleteuser'] },
   { key: 'settings', label: '設定',       tabs: ['theme', 'admins', 'about'] },
 ];
 const TAB_LABELS: Record<Tab, string> = {
   questions: '問題管理', import: '問題追加', tips: 'コラム管理', columnideas: 'コラムのネタ',
   releases: 'リリースノート', dailyservice: '日めくりAWSサービス',
+  announcements: 'お知らせ管理',
   reports: '通報確認', scan: 'スキャン結果', messages: 'メッセージ', deleteuser: 'データ削除', growth: '生成状況',
   theme: 'テーマ設定', admins: '管理者設定', about: 'サイト情報', passcomments: '合格コメント',
 };
@@ -560,6 +570,13 @@ export default function Admin() {
   const [releaseForm, setReleaseForm] = useState({ date: '', title: '', body: '' });
   const [showReleaseForm, setShowReleaseForm] = useState(false);
 
+  // お知らせ管理
+  const [announcements, setAnnouncements] = useState<Announcement[]>([]);
+  const [loadingAnn, setLoadingAnn] = useState(false);
+  const [editingAnnouncement, setEditingAnnouncement] = useState<Announcement | null>(null);
+  const [annForm, setAnnForm] = useState({ title: '', body: '' });
+  const [showAnnForm, setShowAnnForm] = useState(false);
+
   const fetchSummary = useCallback(async (sd?: string) => {
     try {
       const params = sd ? `?sinceDate=${encodeURIComponent(sd)}` : '';
@@ -688,6 +705,15 @@ export default function Admin() {
     } catch (err) { console.error(err); } finally { setLoadingRel(false); }
   }, []);
 
+  const fetchAnnouncements = useCallback(async () => {
+    setLoadingAnn(true);
+    try {
+      const res = await adminFetch(`${API_ENDPOINT}/admin/announcements`);
+      const data = await res.json();
+      setAnnouncements(data.items || []);
+    } catch (err) { console.error(err); } finally { setLoadingAnn(false); }
+  }, []);
+
   const fetchMessages = useCallback(async () => {
     setLoadingMsg(true);
     try {
@@ -773,6 +799,65 @@ export default function Admin() {
     try {
       await adminFetch(`${API_ENDPOINT}/admin/releases/${r.releaseId}`, { method: 'DELETE' });
       setReleases(prev => prev.filter(x => x.releaseId !== r.releaseId));
+    } catch (err) { console.error(err); }
+  };
+
+  const handleSaveAnnouncement = async () => {
+    if (!annForm.title.trim() || !annForm.body.trim()) return;
+    try {
+      if (editingAnnouncement) {
+        await adminFetch(`${API_ENDPOINT}/admin/announcements/${editingAnnouncement.announcementId}`, {
+          method: 'PUT', headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(annForm),
+        });
+      } else {
+        await adminFetch(`${API_ENDPOINT}/admin/announcements`, {
+          method: 'POST', headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(annForm),
+        });
+      }
+      setShowAnnForm(false);
+      setEditingAnnouncement(null);
+      setAnnForm({ title: '', body: '' });
+      fetchAnnouncements();
+    } catch (err) { console.error(err); }
+  };
+
+  const handleSaveAndPublishAnnouncement = async () => {
+    if (!annForm.title.trim() || !annForm.body.trim()) return;
+    try {
+      const res = await adminFetch(`${API_ENDPOINT}/admin/announcements`, {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(annForm),
+      });
+      const { announcementId } = await res.json();
+      await adminFetch(`${API_ENDPOINT}/admin/announcements/${announcementId}/publish`, { method: 'POST' });
+      setShowAnnForm(false);
+      setAnnForm({ title: '', body: '' });
+      fetchAnnouncements();
+    } catch (err) { console.error(err); }
+  };
+
+  const handlePublishAnnouncement = async (a: Announcement) => {
+    try {
+      await adminFetch(`${API_ENDPOINT}/admin/announcements/${a.announcementId}/publish`, { method: 'POST' });
+      fetchAnnouncements();
+    } catch (err) { console.error(err); }
+  };
+
+  const handleUnpublishAnnouncement = async (a: Announcement) => {
+    if (!window.confirm(`「${a.title}」を取り下げますか？`)) return;
+    try {
+      await adminFetch(`${API_ENDPOINT}/admin/announcements/${a.announcementId}/unpublish`, { method: 'POST' });
+      fetchAnnouncements();
+    } catch (err) { console.error(err); }
+  };
+
+  const handleDeleteAnnouncement = async (a: Announcement) => {
+    if (!window.confirm(`「${a.title}」を削除しますか？`)) return;
+    try {
+      await adminFetch(`${API_ENDPOINT}/admin/announcements/${a.announcementId}`, { method: 'DELETE' });
+      setAnnouncements(prev => prev.filter(x => x.announcementId !== a.announcementId));
     } catch (err) { console.error(err); }
   };
 
@@ -936,6 +1021,7 @@ export default function Admin() {
   useEffect(() => { if (tab === 'tips') fetchTips(); }, [tab]);
   useEffect(() => { if (tab === 'columnideas') fetchColumnIdeas(); }, [tab]);
   useEffect(() => { if (tab === 'releases') fetchReleases(); }, [tab]);
+  useEffect(() => { if (tab === 'announcements') fetchAnnouncements(); }, [tab]);
   useEffect(() => { if (tab === 'scan') fetchFlagged('all'); }, [tab]);
   useEffect(() => { if (tab === 'messages') fetchMessages(); }, [tab]);
   useEffect(() => { if (tab === 'dailyservice') fetchDailyServices(); }, [tab]);
@@ -2703,6 +2789,132 @@ ${tipPromptExamType !== 'ALL' ? `・examType には "${tipPromptExamType}" を�
 
           {!loadingRel && releases.length === 0 && (
             <p style={{ color: 'var(--color-text-light)', textAlign: 'center', padding: 40 }}>リリースノートはありません</p>
+          )}
+        </div>
+      )}
+
+      {/* ── お知らせ管理 ── */}
+      {tab === 'announcements' && (
+        <div>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
+            <p style={{ color: 'var(--color-text-light)', fontSize: 13, margin: 0 }}>
+              {loadingAnn ? '読み込み中...' : `${announcements.length} 件`}
+            </p>
+            <button
+              onClick={() => {
+                setEditingAnnouncement(null);
+                setAnnForm({ title: '', body: '' });
+                setShowAnnForm(true);
+              }}
+              style={{ padding: '7px 16px', background: 'transparent', color: 'var(--color-primary)', border: '1.5px solid var(--color-primary)', borderRadius: 9999, cursor: 'pointer', fontSize: 13, fontWeight: 700 }}>
+              ＋ 新規追加
+            </button>
+          </div>
+
+          {showAnnForm && (
+            <div style={{ border: '1px solid #eaeded', borderRadius: 6, padding: '20px 24px', marginBottom: 20, background: 'var(--color-bg-main)', boxShadow: 'var(--box-shadow-sm)' }}>
+              <h4 style={{ margin: '0 0 14px', fontSize: 15, fontWeight: 700, color: 'var(--color-text-main)' }}>
+                {editingAnnouncement ? 'お知らせを編集' : '新規お知らせ'}
+              </h4>
+              <div style={{ marginBottom: 10 }}>
+                <label style={{ display: 'block', fontSize: 12, color: 'var(--color-text-sub)', fontWeight: 700, marginBottom: 4 }}>タイトル</label>
+                <input
+                  value={annForm.title}
+                  onChange={e => setAnnForm(f => ({ ...f, title: e.target.value }))}
+                  placeholder="例：一部の問題で選択肢が表示されない不具合について"
+                  style={{ width: '100%', padding: '7px 10px', border: '1px solid #d1d5db', borderRadius: 6, fontSize: 14, boxSizing: 'border-box', outline: 'none' }}
+                  onFocus={e => e.currentTarget.style.borderColor = 'var(--color-primary)'}
+                  onBlur={e => e.currentTarget.style.borderColor = 'var(--color-border)'}
+                />
+              </div>
+              <div style={{ marginBottom: 14 }}>
+                <label style={{ display: 'block', fontSize: 12, color: 'var(--color-text-sub)', fontWeight: 700, marginBottom: 4 }}>本文</label>
+                <textarea
+                  value={annForm.body}
+                  onChange={e => setAnnForm(f => ({ ...f, body: e.target.value }))}
+                  placeholder="ユーザーに伝える内容を記入してください"
+                  rows={5}
+                  style={{ width: '100%', padding: '7px 10px', border: '1px solid #d1d5db', borderRadius: 6, fontSize: 14, resize: 'vertical', boxSizing: 'border-box', outline: 'none' }}
+                  onFocus={e => e.currentTarget.style.borderColor = 'var(--color-primary)'}
+                  onBlur={e => e.currentTarget.style.borderColor = 'var(--color-border)'}
+                />
+              </div>
+              <div style={{ display: 'flex', gap: 8 }}>
+                {editingAnnouncement ? (
+                  <button onClick={handleSaveAnnouncement}
+                    style={{ padding: '7px 20px', background: '#ff9900', color: '#fff', border: '1px solid transparent', borderRadius: 9999, cursor: 'pointer', fontWeight: 700, fontSize: 14 }}>
+                    保存
+                  </button>
+                ) : (
+                  <>
+                    <button onClick={handleSaveAnnouncement}
+                      style={{ padding: '7px 20px', border: '1px solid var(--color-border)', borderRadius: 9999, cursor: 'pointer', background: 'transparent', fontWeight: 700, fontSize: 14 }}>
+                      下書き保存
+                    </button>
+                    <button onClick={handleSaveAndPublishAnnouncement}
+                      style={{ padding: '7px 20px', background: '#ff9900', color: '#fff', border: '1px solid transparent', borderRadius: 9999, cursor: 'pointer', fontWeight: 700, fontSize: 14 }}>
+                      今すぐ送信
+                    </button>
+                  </>
+                )}
+                <button onClick={() => { setShowAnnForm(false); setEditingAnnouncement(null); }}
+                  style={{ padding: '7px 16px', border: '1px solid var(--color-border)', borderRadius: 9999, cursor: 'pointer', background: 'transparent', fontWeight: 700, fontSize: 14 }}>
+                  キャンセル
+                </button>
+              </div>
+            </div>
+          )}
+
+          {[...announcements].sort((a, b) => b.createdAt.localeCompare(a.createdAt)).map(a => (
+            <div key={a.announcementId} style={{ border: '1px solid #eaeded', borderRadius: 6, padding: '14px 18px', marginBottom: 8, background: 'var(--color-bg-white)', boxShadow: 'var(--box-shadow-sm)' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 16 }}>
+                <div style={{ flex: 1 }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 3 }}>
+                    <span style={{
+                      fontSize: 11, fontWeight: 700, padding: '2px 8px', borderRadius: 9999,
+                      background: a.status === 'published' ? '#e6f4ea' : 'var(--color-bg-main)',
+                      color: a.status === 'published' ? 'var(--color-success)' : 'var(--color-text-sub)',
+                    }}>
+                      {a.status === 'published' ? '公開中' : '下書き'}
+                    </span>
+                    <span style={{ fontSize: 12, color: '#879596', fontWeight: 700 }}>
+                      {(a.publishedAt || a.createdAt)?.slice(0, 10)}
+                    </span>
+                  </div>
+                  <div style={{ fontSize: 14, fontWeight: 700, color: 'var(--color-text-main)', marginBottom: 4 }}>{a.title}</div>
+                  <div style={{ fontSize: 13, color: 'var(--color-text-sub)', lineHeight: 1.6, whiteSpace: 'pre-wrap' }}>{a.body}</div>
+                </div>
+                <div style={{ display: 'flex', gap: 6, flexShrink: 0 }}>
+                  <button
+                    onClick={() => { setEditingAnnouncement(a); setAnnForm({ title: a.title, body: a.body }); setShowAnnForm(true); }}
+                    style={{ padding: '4px 10px', border: '1px solid var(--color-border)', borderRadius: 9999, cursor: 'pointer', background: 'transparent', fontSize: 12, fontWeight: 700 }}>
+                    編集
+                  </button>
+                  {a.status === 'published' ? (
+                    <button
+                      onClick={() => handleUnpublishAnnouncement(a)}
+                      style={{ padding: '4px 10px', border: '1px solid var(--color-border)', borderRadius: 9999, cursor: 'pointer', background: 'transparent', fontSize: 12, fontWeight: 700 }}>
+                      取り下げ
+                    </button>
+                  ) : (
+                    <button
+                      onClick={() => handlePublishAnnouncement(a)}
+                      style={{ padding: '4px 10px', background: '#ff9900', color: '#fff', border: '1px solid transparent', borderRadius: 9999, cursor: 'pointer', fontSize: 12, fontWeight: 700 }}>
+                      送信
+                    </button>
+                  )}
+                  <button
+                    onClick={() => handleDeleteAnnouncement(a)}
+                    style={{ padding: '4px 10px', background: 'transparent', color: 'var(--color-danger)', border: '1px solid #d13212', borderRadius: 9999, cursor: 'pointer', fontSize: 12, fontWeight: 700 }}>
+                    削除
+                  </button>
+                </div>
+              </div>
+            </div>
+          ))}
+
+          {!loadingAnn && announcements.length === 0 && (
+            <p style={{ color: 'var(--color-text-light)', textAlign: 'center', padding: 40 }}>お知らせはありません</p>
           )}
         </div>
       )}

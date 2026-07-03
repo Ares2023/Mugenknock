@@ -66,7 +66,9 @@ test.describe('ページ表示チェック', () => {
     { path: '/encyclopedia',    label: 'サービス図鑑（公開）',    check: 'main' },
     { path: '/privacy-policy',  label: 'プライバシーポリシー',    check: 'h1' },
     { path: '/exam-guide',      label: '試験別ガイド一覧',        check: 'h1' },
+    { path: '/exam-guide/SAA',  label: '試験別ガイド詳細（SAA）', check: 'h1' },
     { path: '/services',        label: 'AWSサービス図鑑（SEO）',  check: 'h1' },
+    { path: '/services/ec2',    label: 'サービス詳細（EC2）',     check: 'h1' },
     { path: '/questions/SAA',   label: '練習問題一覧（SAA）',     check: 'h1' },
   ];
 
@@ -88,7 +90,7 @@ test.describe('ランディングページ', () => {
     const monitor = new PageMonitor(page);
     await page.goto('/', { waitUntil: 'networkidle' });
 
-    const cta = page.getByRole('button', { name: /資格を選んで|始める|Start/i }).first();
+    const cta = page.getByRole('button', { name: /演習開始|資格を選んで|始める|Start/i }).first();
     await expect(cta).toBeVisible({ timeout: 10_000 });
     await cta.click();
 
@@ -179,7 +181,30 @@ test.describe('ナビゲーション連続操作', () => {
   });
 });
 
-// ── ⑤ 404 / リダイレクト ───────────────────────────────────────────
+// ── ⑤ 練習問題詳細ページ（クリック導線） ────────────────────────────
+// questionId は DB 由来で非確定的なため直リンクを固定せず、一覧からの導線で被覆する
+test.describe('練習問題の詳細ページ', () => {
+  test('練習問題一覧から個別問題ページ (/questions/SAA/:id) に遷移できる', async ({ page }) => {
+    const monitor = new PageMonitor(page);
+    await page.goto('/questions/SAA', { waitUntil: 'networkidle' });
+
+    // 問題詳細への内部リンク（/questions/SAA/<questionId>/）
+    const detailLinks = page.locator('a[href*="/questions/SAA/"]');
+    const count = await detailLinks.count();
+    // 問題が0件の環境ではスキップ（陳腐化ではなくデータ都合）
+    test.skip(count === 0, '公開済み練習問題が存在しないためスキップ');
+
+    await detailLinks.first().click();
+    await expect(page).toHaveURL(/\/questions\/SAA\/.+/, { timeout: 10_000 });
+    // 詳細ページ本体（解説見出し等）が描画されること
+    await assertPageVisible(page, 'h2, main, p', 10_000);
+
+    monitor.printReport('練習問題詳細');
+    assertNoRealErrors(monitor, '練習問題詳細');
+  });
+});
+
+// ── ⑥ 404 / リダイレクト ───────────────────────────────────────────
 test.describe('404・リダイレクト', () => {
   test('存在しないパスで 404 ページが表示される（アプリはクラッシュしない）', async ({ page }) => {
     const monitor = new PageMonitor(page);
