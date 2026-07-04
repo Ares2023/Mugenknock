@@ -25,6 +25,7 @@ unset ANTHROPIC_API_KEY
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 NIGHT_PROMPTS_DIR="$(dirname "$SCRIPT_DIR")"
 CATALOG_FILE="$SCRIPT_DIR/state/service-catalog.json"
+ICON_DIR="$(dirname "$(dirname "$NIGHT_PROMPTS_DIR")")/public/icons/aws"
 AWS_CMD="/home/yuzuki/local/bin/aws"
 TODAY=$(date '+%Y-%m-%d')
 
@@ -268,10 +269,21 @@ for chunk_file in "$CHUNKS_DIR"/*.json; do
   echo "--- ${CN}件を確認中（WebFetchで公式裏取り）開始=$(date '+%H:%M:%S') ---"
 
   PROMPT_FILE=$(mktemp /tmp/catalog_prompt_XXXX.txt)
-  python3 - "$chunk_file" > "$PROMPT_FILE" << 'PYEOF'
-import json, sys
+  ICON_DIR_VAL="$ICON_DIR" python3 - "$chunk_file" > "$PROMPT_FILE" << 'PYEOF'
+import json, sys, os
 work = json.load(open(sys.argv[1]))
 VALID_CATEGORIES = ['コンピューティング','ストレージ','データベース','ネットワーキング','メッセージング','コンテナ','セキュリティ','モニタリング','アプリケーション統合','DevOps','データ分析','機械学習','生成AI','マネジメント','移行']
+
+# png+svg 両方揃っているアイコンのbasename一覧
+icon_dir = os.environ.get('ICON_DIR_VAL', '')
+available_icons = []
+if icon_dir and os.path.isdir(icon_dir):
+    for f in sorted(os.listdir(icon_dir)):
+        if f.endswith('.png'):
+            base = f[:-4]
+            if os.path.exists(f'{icon_dir}/{base}.svg'):
+                available_icons.append(base)
+
 lines = []
 lines.append('あなたはAWSサービスのカタログ管理者です。以下の各AWSサービスについて、公式情報に基づき最新の属性を確定してください。')
 lines.append('現行性・廃止/新規受付終了/EOL/改名 の判定や docUrl は、少しでも不確かなら推測せず WebFetch で公式（aws.amazon.com / docs.aws.amazon.com / What\'s New / 公式ブログ）を確認してから答えること。確信のある定番サービスは取得不要。')
@@ -290,10 +302,18 @@ lines.append('- statusNote: status の根拠を簡潔に（時期・代替サー
 lines.append('- docUrl: 実在を確認した公式ページURL（https://aws.amazon.com/jp/... 推奨。無ければ英語版可）')
 lines.append('- isArticleTarget: 学習サイトの「日めくりAWSサービス」記事にふさわしいか（true/false）。')
 lines.append('    現行で試験/実務で意味のある主要サービスは true。status が active 以外、極端にニッチ/地域限定/内部用は false。')
+lines.append('    ただし icon（下記）が空文字の場合は、コンテンツ的に対象でも false にすること。')
 lines.append('- examRelevance: AWS認定試験での重要度 → high / medium / low / none')
+lines.append('- icon: このサービスのアイコンファイル名（拡張子なし）。下記【利用可能アイコン一覧】から最も近いものを選ぶ。')
+lines.append('    対応するアイコンが一覧にない場合は空文字 "" を返すこと（推測で存在しないファイル名を返さない）。')
+lines.append('    _new サフィックス付きがあれば新しい方を優先。')
 lines.append('')
+if available_icons:
+    lines.append(f'【利用可能アイコン一覧】（png+svg 両方揃っているもの・{len(available_icons)}件）')
+    lines.append(', '.join(available_icons))
+    lines.append('')
 lines.append('【出力】JSONのみ。前置き・コードブロック不要。入力のkeyをそのまま返すこと。')
-lines.append('{"results":[{"key":"<入力key>","name":"...","shortName":"...","category":"...","status":"active","statusNote":"","docUrl":"https://...","isArticleTarget":true,"examRelevance":"high"}]}')
+lines.append('{"results":[{"key":"<入力key>","name":"...","shortName":"...","category":"...","status":"active","statusNote":"","docUrl":"https://...","isArticleTarget":true,"examRelevance":"high","icon":"Lambda_new"}]}')
 lines.append('')
 lines.append('【対象サービス】')
 for w in work:
@@ -326,12 +346,13 @@ PYEOF
   fi
 
   # 結果をカタログにマージ
-  _MERGED=$(CATALOG_FILE="$CATALOG_FILE" TODAY="$TODAY" RESULT_RAW="$RESULT" python3 << 'PYEOF'
+  _MERGED=$(CATALOG_FILE="$CATALOG_FILE" TODAY="$TODAY" RESULT_RAW="$RESULT" ICON_DIR_VAL="$ICON_DIR" python3 << 'PYEOF'
 import json, os, re
 from datetime import datetime
 catalog_file = os.environ['CATALOG_FILE']
 today = os.environ['TODAY']
 raw = os.environ['RESULT_RAW']
+icon_dir = os.environ.get('ICON_DIR_VAL', '')
 # JSON抽出
 m = raw.find('{')
 results = []
@@ -361,6 +382,21 @@ for r in results:
     if r.get('docUrl'): e['docUrl'] = r['docUrl']
     if r.get('isArticleTarget') is not None: e['isArticleTarget'] = bool(r['isArticleTarget'])
     if r.get('examRelevance'): e['examRelevance'] = r['examRelevance']
+    # アイコン: claudeが選んだbasename をそのまま記録
+    if 'icon' in r:
+        e['icon'] = r.get('icon') or ''
+    # アイコン存在チェック: isArticleTarget=true でも png+svg 両方なければ false に強制
+    icon_name = e.get('icon', '')
+    if e.get('isArticleTarget'):
+        if not icon_name:
+            e['isArticleTarget'] = False
+            print(f'  [icon欠] {name}: アイコン未指定 → isArticleTarget=false')
+        elif icon_dir:
+            has_png = os.path.exists(f'{icon_dir}/{icon_name}.png')
+            has_svg = os.path.exists(f'{icon_dir}/{icon_name}.svg')
+            if not (has_png and has_svg):
+                e['isArticleTarget'] = False
+                print(f'  [icon欠] {name}: {icon_name}.png={has_png} .svg={has_svg} → isArticleTarget=false')
     e['lastVerifiedAt'] = today
     e.pop('needsResolution', None)
     # SSM stub(__code__...) が名称解決できたら正式名称キーへ移設
