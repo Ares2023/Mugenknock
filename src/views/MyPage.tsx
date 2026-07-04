@@ -939,15 +939,23 @@ export default function MyPage() {
                       {[...domains].sort((a, b) => {
                         const getPct = (d: string) => {
                           const st = domainStats.find(s => tagIdMatches(s.tagId, targetExam ?? '', toDomainIndex(targetExam ?? '', d)));
-                          const c = st?.correctCount ?? 0; const t = c + (st?.incorrectCount ?? 0);
+                          // 累計(correctCount/incorrectCount)があればそれを、無ければ既存の recentResults を流用
+                          const cc = st?.correctCount ?? 0; const cum = cc + (st?.incorrectCount ?? 0);
+                          const rec = st?.recentResults ?? [];
+                          const t = cum > 0 ? cum : rec.length;
+                          const c = cum > 0 ? cc : rec.filter(Boolean).length;
                           return t === 0 ? 101 : (c / t) * 100; // 未演習は末尾へ
                         };
                         return getPct(a) - getPct(b);
                       }).map((domain, di) => {
                         const dIdx = toDomainIndex(targetExam ?? '', domain);
                         const stat = domainStats.find(s => tagIdMatches(s.tagId, targetExam ?? '', dIdx));
-                        const correct = stat?.correctCount ?? 0;
-                        const total = correct + (stat?.incorrectCount ?? 0);
+                        // 累計があればそれを、無ければ recentResults（直近の正誤履歴）を流用して集計
+                        const cumCorrect = stat?.correctCount ?? 0;
+                        const cumTotal = cumCorrect + (stat?.incorrectCount ?? 0);
+                        const recent = stat?.recentResults ?? [];
+                        const correct = cumTotal > 0 ? cumCorrect : recent.filter(Boolean).length;
+                        const total = cumTotal > 0 ? cumTotal : recent.length;
                         const pct = total > 0 ? Math.round((correct / total) * 100) : null;
                         const isWeak = pct !== null && pct < DOMAIN_RATE_WARNING * 100;
                         const isFair = pct !== null && pct < DOMAIN_RATE_CAUTION * 100 && !isWeak;
