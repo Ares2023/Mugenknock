@@ -750,7 +750,16 @@ def try_auto_detect_icon(service_name):
         pass
     return None
 
-skipped_no_icon = []  # アイコンが解決できず記事を作成しなかったサービス
+def ensure_both_formats(fname):
+    """{fname}.png と .svg の両方を icon_dir に揃える。欠けていれば ZIP から取得を試みる。
+    両方揃えば True。要件: 公式アイコンは png も svg も取り込む（svg欠け記事を作らない）。"""
+    p = os.path.join(icon_dir, f'{fname}.png')
+    s = os.path.join(icon_dir, f'{fname}.svg')
+    if not (os.path.exists(p) and os.path.exists(s)):
+        try_extract_from_zip(fname)  # png/svg の欠けている方を ZIP から補完
+    return os.path.exists(p) and os.path.exists(s)
+
+skipped_no_icon = []  # アイコン(png+svg両方)が解決できず記事を作成しなかったサービス
 imported = []
 
 for svc in services:
@@ -766,26 +775,19 @@ for svc in services:
     slug       = slug_re.sub('-', short_name.lower()).strip('-')
     service_id = f'svc-{slug}-{order}'
 
-    # アイコンが無いサービスは記事を作成しない（画像なし日めくりを生まないため登録スキップ）。
+    # アイコン(png+svg両方)が無いサービスは記事を作成しない。
+    # png か svg のどちらかしか無い場合も「未完成アイコン」として作成しない（svg欠け記事を防ぐ）。
     if icon:
-        fname     = os.path.splitext(os.path.basename(icon))[0]
-        icon_file = os.path.join(icon_dir, os.path.basename(icon))
-        if not os.path.exists(icon_file):
-            if try_extract_from_zip(fname):
-                print(f'    → ZIP から {fname}.png/svg を取得')
-            else:
-                skipped_no_icon.append({'name': name, 'icon': icon})
-                print(f'  ⏭  [{order:>3}] {name}: アイコン未解決のため記事を作成しません')
-                continue
+        fname = os.path.splitext(os.path.basename(icon))[0]
     else:
-        # アイコン未指定 → サービス名でZIPを自動検索
-        auto_key = try_auto_detect_icon(name)
-        if auto_key:
-            icon = f'/icons/aws/{auto_key}.png'
-        else:
-            skipped_no_icon.append({'name': name, 'icon': '(未指定・ZIP内にも不在)'})
-            print(f'  ⏭  [{order:>3}] {name}: アイコン未解決のため記事を作成しません')
-            continue
+        # アイコン未指定 → サービス名でZIPを自動検索（png/svg両方を抽出）
+        fname = try_auto_detect_icon(name)
+    if not fname or not ensure_both_formats(fname):
+        skipped_no_icon.append({'name': name, 'icon': icon or '(未指定)'})
+        print(f'  ⏭  [{order:>3}] {name}: png+svg が揃わないため記事を作成しません')
+        continue
+    # icon は常に .png パスに正規化（フロントの ServiceIconImg は .png 前提で svg を優先読み込み）
+    icon = f'/icons/aws/{fname}.png'
 
     item = {
         'serviceId':   {'S': service_id},
@@ -831,7 +833,7 @@ echo "登録完了: ${IMPORTED_COUNT}件"
 SKIPPED_COUNT=$(echo "$SKIPPED_ICONS" | python3 -c "import json,sys; print(len(json.loads(sys.stdin.read())))" 2>/dev/null || echo 0)
 if [ "$SKIPPED_COUNT" -gt 0 ]; then
   echo ""
-  echo "⏭  アイコンが無いため記事を作成しなかったサービス（${SKIPPED_COUNT}件）:"
+  echo "⏭  アイコン(png+svg両方)が揃わず記事を作成しなかったサービス（${SKIPPED_COUNT}件）:"
   echo "$SKIPPED_ICONS" | python3 -c "
 import json, sys
 items = json.loads(sys.stdin.read())
