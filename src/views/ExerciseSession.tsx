@@ -890,12 +890,16 @@ export default function ExerciseSession() {
     // ←→はLayoutの左ペイン移動と競合するため stopImmediatePropagation で抑止する。
     if (cursorOnNodes) {
       const maxNav = Math.min(viewedFrontier, questions.length - 1); // 移動可能（クリック可能）な最大ノード
+      // オレンジカーソルは「過去の問題（＝現在の問題以外のクリック可能ノード）」だけを対象にする。
+      // 現在の問題ノードは移動対象から除外（飛ばす）。
+      const navNodes: number[] = [];
+      for (let k = 0; k <= maxNav; k++) if (k !== currentIndex) navNodes.push(k);
       if (e.key === 'ArrowLeft') {
         e.preventDefault(); e.stopImmediatePropagation();
-        setNodeCursorIdx(i => Math.max(0, i - 1));
+        setNodeCursorIdx(i => { const pos = navNodes.indexOf(i); return pos > 0 ? navNodes[pos - 1] : (navNodes[0] ?? i); });
       } else if (e.key === 'ArrowRight') {
         e.preventDefault(); e.stopImmediatePropagation();
-        setNodeCursorIdx(i => Math.min(maxNav, i + 1));
+        setNodeCursorIdx(i => { const pos = navNodes.indexOf(i); return (pos >= 0 && pos < navNodes.length - 1) ? navNodes[pos + 1] : (navNodes[navNodes.length - 1] ?? i); });
       } else if (e.key === 'Enter') {
         e.preventDefault();
         if (nodeCursorIdx !== currentIndex) goToQuestion(nodeCursorIdx); // クリック相当
@@ -920,7 +924,13 @@ export default function ExerciseSession() {
         // 最上選択肢でさらに上：まだ最上部でなければページ最上部へ、既に最上部なら進捗ノードへ移動
         const m = document.querySelector('main');
         const atTop = (m ? m.scrollTop : 0) <= 1 && window.scrollY <= 1;
-        if (atTop) { setCursorOnNodes(true); setNodeCursorIdx(currentIndex); }
+        if (atTop) {
+          // 過去の問題ノードにカーソルを合わせる（現在の問題ノードには乗せない）。
+          // 直前の問題を優先。無ければ現在より後ろの最小ノード。過去問題が無ければノードへ移動しない。
+          const maxNav = Math.min(viewedFrontier, questions.length - 1);
+          const target = currentIndex - 1 >= 0 ? currentIndex - 1 : (currentIndex + 1 <= maxNav ? currentIndex + 1 : -1);
+          if (target >= 0) { setCursorOnNodes(true); setNodeCursorIdx(target); }
+        }
         else scrollMain(false);
       } else setCursorIndex(c => Math.max(0, c - 1));
     } else if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) {
