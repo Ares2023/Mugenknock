@@ -46,6 +46,11 @@ export const EXAM_DOMAINS: Record<string, string[]> = Object.fromEntries(
   Object.entries(EXAM_DOMAINS_MASTER).map(([exam, doms]) => [exam, doms.map(d => d.ja)])
 );
 
+// ドメインごとの頻出サービス・機能（苦手分析の学習ガイド用）。index = ドメインの正準キー。
+export const EXAM_DOMAIN_SERVICES: Record<string, string[][]> = Object.fromEntries(
+  Object.entries(EXAM_DOMAINS_MASTER).map(([exam, doms]) => [exam, doms.map(d => (d as { services?: string[] }).services ?? [])])
+);
+
 // ── domain フィールドのユーティリティ ────────────────────────
 // domain は整数インデックス（正準キー）。旧データは文字列の場合があるため両対応。
 export type QuestionLike = { examType: string; domain?: number | string | null };

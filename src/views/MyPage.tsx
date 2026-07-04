@@ -2,7 +2,7 @@
 import React, { useEffect, useState, useCallback } from 'react';
 import { Helmet } from '@/compat/react-helmet-async';
 import { useNavigate } from '@/compat/react-router-dom';
-import { API_ENDPOINT, EXAM_DOMAINS, EXAM_TYPES, DOMAIN_NAME_EN, EXAM_CONFIGS, DOMAIN_RATE_WARNING, DOMAIN_RATE_CAUTION, PASS_SCORES, EXAM_LEVEL, EXAM_LEVEL_COLORS, tagIdMatches, toDomainIndex } from '../constants';
+import { API_ENDPOINT, EXAM_DOMAINS, EXAM_DOMAIN_SERVICES, EXAM_TYPES, DOMAIN_NAME_EN, EXAM_CONFIGS, DOMAIN_RATE_WARNING, DOMAIN_RATE_CAUTION, PASS_SCORES, EXAM_LEVEL, EXAM_LEVEL_COLORS, tagIdMatches, toDomainIndex } from '../constants';
 import { syncPreferencesToServer, syncTargetExamToServer, collectExamDatesFromLocal } from '../utils/preferences';
 import { useAuth } from '../contexts/AuthContext';
 import { useLanguage } from '../contexts/LanguageContext';
@@ -244,14 +244,6 @@ export default function MyPage() {
   const [domainStats, setDomainStats] = useState<DomainStat[]>([]);
   const [answeredCount, setAnsweredCount] = useState(0);
   const [statsLoading, setStatsLoading] = useState(false);
-  const [nodesVisible, setNodesVisible] = useState(false);
-
-  // 苦手ドメインのノードをパネル表示時にポップイン（スコア内訳と同じ演出）
-  useEffect(() => {
-    if (tab !== 'analysis' || statsLoading) { setNodesVisible(false); return; }
-    const id = requestAnimationFrame(() => requestAnimationFrame(() => setNodesVisible(true)));
-    return () => cancelAnimationFrame(id);
-  }, [tab, statsLoading]);
 
   useEffect(() => {
     if (tab !== 'analysis' || !user || !targetExam) return;
@@ -943,58 +935,47 @@ export default function MyPage() {
                     </p>
                   ) : (
                     <>
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: 0 }}>
                       {[...domains].sort((a, b) => {
                         const getPct = (d: string) => {
-                          const stat = domainStats.find(s => tagIdMatches(s.tagId, targetExam ?? '', toDomainIndex(targetExam ?? '', d)));
-                          const recent = stat?.recentResults ?? [];
-                          const total = recent.length;
-                          if (total === 0) return -1;
-                          return recent.filter(Boolean).length / total;
+                          const st = domainStats.find(s => tagIdMatches(s.tagId, targetExam ?? '', toDomainIndex(targetExam ?? '', d)));
+                          const c = st?.correctCount ?? 0; const t = c + (st?.incorrectCount ?? 0);
+                          return t === 0 ? 101 : (c / t) * 100; // 未演習は末尾へ
                         };
                         return getPct(a) - getPct(b);
-                      }).map((domain) => {
-                        const stat = domainStats.find(s => tagIdMatches(s.tagId, targetExam ?? '', toDomainIndex(targetExam ?? '', domain)));
-                        const recent = stat?.recentResults ?? [];
-                        const correct = recent.filter(Boolean).length;
-                        const total = recent.length;
+                      }).map((domain, di) => {
+                        const dIdx = toDomainIndex(targetExam ?? '', domain);
+                        const stat = domainStats.find(s => tagIdMatches(s.tagId, targetExam ?? '', dIdx));
+                        const correct = stat?.correctCount ?? 0;
+                        const total = correct + (stat?.incorrectCount ?? 0);
                         const pct = total > 0 ? Math.round((correct / total) * 100) : null;
                         const isWeak = pct !== null && pct < DOMAIN_RATE_WARNING * 100;
                         const isFair = pct !== null && pct < DOMAIN_RATE_CAUTION * 100 && !isWeak;
                         const color = pct === null ? 'var(--color-text-light)' : isWeak ? 'var(--color-danger)' : isFair ? 'var(--color-caution)' : 'var(--color-success)';
                         const domainLabel = lang === 'en' ? (DOMAIN_NAME_EN[domain] ?? domain) : domain;
+                        const services = EXAM_DOMAIN_SERVICES[targetExam ?? '']?.[dIdx] ?? [];
+                        const notLast = di < domains.length - 1;
                         return (
-                          <div key={domain}>
-                            <div style={{ display: 'flex', alignItems: 'baseline', gap: 8, marginBottom: 4 }}>
-                              <span style={{ fontSize: 'var(--font-size-sm)', fontWeight: 700, color, flexShrink: 0, width: 44 }}>
+                          <div key={domain} style={{ display: 'grid', gridTemplateColumns: 'auto 1fr', columnGap: 12, rowGap: 4, alignItems: 'baseline', paddingTop: di === 0 ? 0 : 14, paddingBottom: notLast ? 14 : 0, borderBottom: notLast ? '1px solid var(--color-border)' : 'none' }}>
+                            <span style={{ gridColumn: 1, whiteSpace: 'nowrap' }}>
+                              <span style={{ fontSize: 'var(--font-size-lg)', fontWeight: 800, color }}>
                                 {pct !== null ? `${pct}%` : (ja ? '未演習' : 'N/A')}
                               </span>
-                              <span style={{ fontSize: 'var(--font-size-sm)', color: isWeak ? 'var(--color-danger)' : 'var(--color-text-main)', flex: 1, lineHeight: 1.4, fontWeight: isWeak ? 700 : 400 }}>
-                                {isWeak && '⚠ '}{domainLabel}
-                              </span>
-                            </div>
-                            <div style={{ display: 'flex', alignItems: 'center', height: 9 }}>
-                              {Array.from({ length: 10 }, (_, j) => {
-                                const dataIdx = j - (10 - recent.length);
-                                const r = dataIdx >= 0 ? recent[dataIdx] : undefined;
-                                return (
-                                  <React.Fragment key={j}>
-                                    {j === 0
-                                      ? <div style={{ flex: 1, display: 'flex', alignItems: 'center' }}>
-                                          <div style={{ flex: 1, display: 'flex', alignItems: 'center' }}>
-                                            {[1, 1.5, 2, 2.5, 3].map((dash, idx) => (
-                                              <div key={idx} style={{ flex: 1, height: 1, background: `repeating-linear-gradient(to right, var(--color-text-light) 0px, var(--color-text-light) ${dash}px, transparent ${dash}px, transparent ${dash + 3}px)` }} />
-                                            ))}
-                                          </div>
-                                          <div style={{ flex: 1, height: 1, background: 'var(--color-text-light)' }} />
-                                        </div>
-                                      : <div style={{ flex: 1, height: 1, background: 'var(--color-text-light)' }} />
-                                    }
-                                    <span style={{ flexShrink: 0, width: 9, height: 9, borderRadius: '50%', background: r === true ? 'var(--color-feedback-correct-bg)' : r === false ? 'var(--color-feedback-incorrect-bg)' : 'var(--color-bg-white)', border: `1px solid ${r === true ? 'var(--color-success)' : r === false ? 'var(--color-danger)' : 'var(--color-text-light)'}`, position: 'relative', zIndex: 1, display: 'inline-block', opacity: nodesVisible ? 1 : 0, transform: nodesVisible ? 'scale(1)' : 'scale(0.3)', transition: 'opacity 0.2s, transform 0.2s', transitionDelay: `${j * 70}ms` }} />
-                                  </React.Fragment>
-                                );
-                              })}
-                            </div>
+                              {total > 0 && (
+                                <span style={{ fontSize: 'var(--font-size-2xs)', color: 'var(--color-text-light)', marginLeft: 3 }}>
+                                  （{correct}/{total}{ja ? '問' : ''}）
+                                </span>
+                              )}
+                            </span>
+                            <span style={{ gridColumn: 2, fontSize: 'var(--font-size-sm2)', color: isWeak ? 'var(--color-danger)' : 'var(--color-text-main)', fontWeight: isWeak ? 700 : 600, lineHeight: 1.45 }}>
+                              {isWeak && '⚠ '}{domainLabel}
+                            </span>
+                            {services.length > 0 && (
+                              <div style={{ gridColumn: 2, fontSize: 'var(--font-size-xs)', color: 'var(--color-text-sub)', lineHeight: 1.65 }}>
+                                <span style={{ fontWeight: 700 }}>{ja ? '頻出サービス・機能：' : 'Key services: '}</span>
+                                {services.join(' / ')}
+                              </div>
+                            )}
                           </div>
                         );
                       })}
