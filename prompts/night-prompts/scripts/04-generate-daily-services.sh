@@ -750,7 +750,7 @@ def try_auto_detect_icon(service_name):
         pass
     return None
 
-missing_icons = []
+skipped_no_icon = []  # アイコンが解決できず記事を作成しなかったサービス
 imported = []
 
 for svc in services:
@@ -766,6 +766,7 @@ for svc in services:
     slug       = slug_re.sub('-', short_name.lower()).strip('-')
     service_id = f'svc-{slug}-{order}'
 
+    # アイコンが無いサービスは記事を作成しない（画像なし日めくりを生まないため登録スキップ）。
     if icon:
         fname     = os.path.splitext(os.path.basename(icon))[0]
         icon_file = os.path.join(icon_dir, os.path.basename(icon))
@@ -773,16 +774,18 @@ for svc in services:
             if try_extract_from_zip(fname):
                 print(f'    → ZIP から {fname}.png/svg を取得')
             else:
-                missing_icons.append({'name': name, 'icon': icon})
-                icon = '☁️'
+                skipped_no_icon.append({'name': name, 'icon': icon})
+                print(f'  ⏭  [{order:>3}] {name}: アイコン未解決のため記事を作成しません')
+                continue
     else:
         # アイコン未指定 → サービス名でZIPを自動検索
         auto_key = try_auto_detect_icon(name)
         if auto_key:
             icon = f'/icons/aws/{auto_key}.png'
         else:
-            missing_icons.append({'name': name, 'icon': '(未指定・ZIP内にも不在)'})
-            icon = '☁️'
+            skipped_no_icon.append({'name': name, 'icon': '(未指定・ZIP内にも不在)'})
+            print(f'  ⏭  [{order:>3}] {name}: アイコン未解決のため記事を作成しません')
+            continue
 
     item = {
         'serviceId':   {'S': service_id},
@@ -811,30 +814,32 @@ for svc in services:
         print(f'  ❌ [{order:>3}] {name}: {result.stderr.strip()[:100]}')
 
 print(f'__IMPORTED__{len(imported)}')
-print('__MISSING_ICONS__' + json.dumps(missing_icons, ensure_ascii=False))
+print('__SKIPPED_NO_ICON__' + json.dumps(skipped_no_icon, ensure_ascii=False))
 PYEOF
 )
 
 IMPORTED_COUNT=$(echo "$IMPORT_RESULT" | grep '^__IMPORTED__' | sed 's/^__IMPORTED__//')
-MISSING_ICONS=$(echo "$IMPORT_RESULT" | grep '^__MISSING_ICONS__' | sed 's/^__MISSING_ICONS__//')
+SKIPPED_ICONS=$(echo "$IMPORT_RESULT" | grep '^__SKIPPED_NO_ICON__' | sed 's/^__SKIPPED_NO_ICON__//')
 echo "$IMPORT_RESULT" | grep -v '^__'
 
 echo ""
 echo "登録完了: ${IMPORTED_COUNT}件"
 
-# ── 6. アイコン未解決の警告 ──────────────────────────────────
-MISSING_COUNT=$(echo "$MISSING_ICONS" | python3 -c "import json,sys; print(len(json.loads(sys.stdin.read())))" 2>/dev/null || echo 0)
-if [ "$MISSING_COUNT" -gt 0 ]; then
+# ── 6. アイコン未解決でスキップしたサービスの警告 ──────────────────
+#   方針: アイコンが無いサービスは記事を作成しない（画像なし日めくりを生まない）。
+#   下記は今回スキップしたもの。記事化したい場合はアイコンを用意して再実行する。
+SKIPPED_COUNT=$(echo "$SKIPPED_ICONS" | python3 -c "import json,sys; print(len(json.loads(sys.stdin.read())))" 2>/dev/null || echo 0)
+if [ "$SKIPPED_COUNT" -gt 0 ]; then
   echo ""
-  echo "⚠️  アイコンが解決できなかったサービス（${MISSING_COUNT}件）:"
-  echo "$MISSING_ICONS" | python3 -c "
+  echo "⏭  アイコンが無いため記事を作成しなかったサービス（${SKIPPED_COUNT}件）:"
+  echo "$SKIPPED_ICONS" | python3 -c "
 import json, sys
 items = json.loads(sys.stdin.read())
 for item in items:
     print(f\"  - {item['name']}: {item['icon']}\")
 print()
-print('  ICON_ZIP_MAP に ZIP 内パスを追加するか、')
-print('  public/icons/aws/ に PNG/SVG を手動配置してください。')
+print('  記事化するには ICON_ZIP_MAP に ZIP 内パスを追加するか、')
+print('  public/icons/aws/ に PNG/SVG を手動配置して再実行してください。')
 "
 fi
 
