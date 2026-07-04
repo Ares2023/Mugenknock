@@ -172,7 +172,7 @@ function SessionScoreChart({ data, passScore, lang = 'ja', animate = true, isMob
 }
 
 // ── 成績詳細モーダル（ドメイン別 + 予想スコア 統合） ───────────
-function CombinedDetailModal({ targetExam, domainAccList, estimatedScore, passScore, lang, isMobile, uid, domainStats, scoreHistory: serverScoreHistory, sessionHistory: serverSessionHistory, sessionScoreLog: serverSessionScoreLog, onClose }: {
+function CombinedDetailModal({ targetExam, domainAccList, estimatedScore, passScore, lang, isMobile, uid, domainStats, scoreHistory: serverScoreHistory, sessionHistory: serverSessionHistory, sessionScoreLog: serverSessionScoreLog, nodeWindow, onNodeWindowChange, onClose }: {
   targetExam: string;
   domainAccList: { correct: number; total: number; pct: number | null }[];
   estimatedScore: number | null;
@@ -184,6 +184,8 @@ function CombinedDetailModal({ targetExam, domainAccList, estimatedScore, passSc
   scoreHistory?: ScoreEntry[];
   sessionHistory?: number[];
   sessionScoreLog?: ScoreEntry[];
+  nodeWindow: 5 | 10;
+  onNodeWindowChange: (w: 5 | 10) => void;
   onClose: () => void;
 }) {
   const ja = lang === 'ja';
@@ -199,7 +201,6 @@ function CombinedDetailModal({ targetExam, domainAccList, estimatedScore, passSc
   })();
   const [showCalc, setShowCalc] = useState(false);
   const [tab, setTab] = useState<'score' | 'history' | 'hiscore'>('score');
-  const [nodeWindow, setNodeWindow] = useState<5 | 10>(5);
   const scoreTabRef = useRef<HTMLDivElement>(null);
   const [contentMinH, setContentMinH] = useState(0);
   const [nodesVisible, setNodesVisible] = useState(false);
@@ -318,7 +319,7 @@ function CombinedDetailModal({ targetExam, domainAccList, estimatedScore, passSc
                   {([5, 10] as const).map(w => {
                     const active = nodeWindow === w;
                     return (
-                      <button key={w} onClick={() => { setNodeWindow(w); setNodesVisible(false); requestAnimationFrame(() => requestAnimationFrame(() => setNodesVisible(true))); }}
+                      <button key={w} onClick={() => { onNodeWindowChange(w); setNodesVisible(false); requestAnimationFrame(() => requestAnimationFrame(() => setNodesVisible(true))); }}
                         style={{ border: 'none', borderLeft: w === 5 ? 'none' : '1px solid var(--color-border)', background: active ? 'var(--color-primary)' : 'transparent', color: active ? 'var(--color-btn-primary-text, #fff)' : 'var(--color-text-sub)', fontSize: 'var(--font-size-xs)', fontWeight: 700, padding: '3px 10px', cursor: 'pointer', transition: 'background 0.15s' }}>
                         {ja ? `直近${w}回` : `Last ${w}`}
                       </button>
@@ -1156,6 +1157,10 @@ export default function Home() {
   const ja = lang === 'ja';
   const uid = user?.userId ?? 'guest';
 
+  const [nodeWindow, setNodeWindow] = useState<5 | 10>(() =>
+    localStorage.getItem(`scoreWindow_${uid}`) === '10' ? 10 : 5
+  );
+
   const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
   const [revealService, setRevealService] = useState<DailyService | null>(null);
   const [targetExam, setTargetExam] = useState<string | null>(() => localStorage.getItem(`targetExam_${uid}`));
@@ -1383,10 +1388,10 @@ export default function Home() {
     const result: Record<string, boolean[]> = {};
     (EXAM_DOMAINS[targetExam] ?? []).forEach((d, idx) => {
       const serverResults = domainStats.find(s => tagIdMatches(s.tagId, targetExam, idx))?.recentResults;
-      result[d] = (serverResults ?? localDR[String(idx)] ?? []).slice(-5);
+      result[d] = (serverResults ?? localDR[String(idx)] ?? []).slice(-nodeWindow);
     });
     return result;
-  }, [targetExam, domainStats, uid]);
+  }, [targetExam, domainStats, uid, nodeWindow]);
 
   const estimatedScore = useMemo(() => {
     if (!targetExam) return null;
@@ -1400,12 +1405,12 @@ export default function Home() {
       const nodeResults = domainNodeResultsMap[domainList[i]] ?? [];
       if (nodeResults.length === 0) continue;
       const correctInNodes = nodeResults.filter((v: boolean) => !!v).length;
-      weightedSum += (correctInNodes / 5) * weights[i];
+      weightedSum += (correctInNodes / nodeWindow) * weights[i];
       hasAnyData = true;
     }
     if (!hasAnyData) return null;
     return Math.round((weightedSum / totalAllWeights) * 1000);
-  }, [targetExam, domainNodeResultsMap]);
+  }, [targetExam, domainNodeResultsMap, nodeWindow]);
 
   const focusedUnlocked = !!user && answeredCount >= FOCUSED_UNLOCK_THRESHOLD;
   const focusedUnlockedCached = localStorage.getItem(`focusedUnlockedCache_${uid}`) === '1';
@@ -1417,6 +1422,18 @@ export default function Home() {
       localStorage.setItem(`focusedUnlockedCache_${uid}`, focusedUnlocked ? '1' : '0');
     }
   }, [answeredCountReady, focusedUnlocked, uid]);
+
+  // 別デバイスで scoreWindow が変更された場合に kvSynced で反映する
+  useEffect(() => {
+    const h = (e: Event) => {
+      const keys: string[] = (e as CustomEvent).detail?.keys ?? [];
+      if (keys.some(k => k.startsWith('scoreWindow_'))) {
+        setNodeWindow(localStorage.getItem(`scoreWindow_${uid}`) === '10' ? 10 : 5);
+      }
+    };
+    window.addEventListener('kvSynced', h);
+    return () => window.removeEventListener('kvSynced', h);
+  }, [uid]);
 
   const passScore = targetExam ? PASS_SCORES[targetExam] : null;
 
@@ -2721,7 +2738,7 @@ export default function Home() {
 
       {/* 成績詳細モーダル */}
       {showCombinedDetail && targetExam && (
-        <CombinedDetailModal targetExam={targetExam} domainAccList={domainAccList} estimatedScore={estimatedScore} passScore={passScore} lang={lang} isMobile={isMobile} uid={uid} domainStats={domainStats} scoreHistory={serverScoreHistory ?? undefined} sessionHistory={serverSessionHistory ?? undefined} sessionScoreLog={serverSessionScoreLog ?? undefined} onClose={() => setShowCombinedDetail(false)} />
+        <CombinedDetailModal targetExam={targetExam} domainAccList={domainAccList} estimatedScore={estimatedScore} passScore={passScore} lang={lang} isMobile={isMobile} uid={uid} domainStats={domainStats} scoreHistory={serverScoreHistory ?? undefined} sessionHistory={serverSessionHistory ?? undefined} sessionScoreLog={serverSessionScoreLog ?? undefined} nodeWindow={nodeWindow} onNodeWindowChange={w => { setNodeWindow(w); localStorage.setItem(`scoreWindow_${uid}`, String(w)); }} onClose={() => setShowCombinedDetail(false)} />
       )}
 
       {/* オンボーディング（目標資格未設定） */}
