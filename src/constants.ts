@@ -162,9 +162,10 @@ export const EXAM_DESC_EN: Record<string, string> = {
   SCS: 'Specialty certification for AWS cloud security expertise',
 };
 
-// ドメイン正答率の色分けしきい値（0–1スケール）
-export const DOMAIN_RATE_WARNING = 0.40;
-export const DOMAIN_RATE_CAUTION = 0.60;
+// ドメイン正答率の色分けしきい値（0–1スケール・全資格共通）
+// 60%未満=赤（苦手）／60〜79%=黄（要注意）／80%以上=緑（良好）
+export const DOMAIN_RATE_WARNING = 0.60;
+export const DOMAIN_RATE_CAUTION = 0.80;
 
 // ドメイン配点（公式試験ガイドの割合 %）— マスタから導出
 export const DOMAIN_WEIGHTS: Record<string, number[]> = Object.fromEntries(
