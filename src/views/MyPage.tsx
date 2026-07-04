@@ -244,6 +244,14 @@ export default function MyPage() {
   const [domainStats, setDomainStats] = useState<DomainStat[]>([]);
   const [answeredCount, setAnsweredCount] = useState(0);
   const [statsLoading, setStatsLoading] = useState(false);
+  const [nodesVisible, setNodesVisible] = useState(false);
+
+  // 苦手ドメインのノードをパネル表示時にポップイン（スコア内訳と同じ演出）
+  useEffect(() => {
+    if (tab !== 'analysis' || statsLoading) { setNodesVisible(false); return; }
+    const id = requestAnimationFrame(() => requestAnimationFrame(() => setNodesVisible(true)));
+    return () => cancelAnimationFrame(id);
+  }, [tab, statsLoading]);
 
   useEffect(() => {
     if (tab !== 'analysis' || !user || !targetExam) return;
@@ -982,7 +990,7 @@ export default function MyPage() {
                                         </div>
                                       : <div style={{ flex: 1, height: 1, background: 'var(--color-text-light)' }} />
                                     }
-                                    <span style={{ flexShrink: 0, width: 9, height: 9, borderRadius: '50%', background: r === true ? 'var(--color-feedback-correct-bg)' : r === false ? 'var(--color-feedback-incorrect-bg)' : 'var(--color-bg-white)', border: `1px solid ${r === true ? 'var(--color-success)' : r === false ? 'var(--color-danger)' : 'var(--color-text-light)'}`, position: 'relative', zIndex: 1, display: 'inline-block' }} />
+                                    <span style={{ flexShrink: 0, width: 9, height: 9, borderRadius: '50%', background: r === true ? 'var(--color-feedback-correct-bg)' : r === false ? 'var(--color-feedback-incorrect-bg)' : 'var(--color-bg-white)', border: `1px solid ${r === true ? 'var(--color-success)' : r === false ? 'var(--color-danger)' : 'var(--color-text-light)'}`, position: 'relative', zIndex: 1, display: 'inline-block', opacity: nodesVisible ? 1 : 0, transform: nodesVisible ? 'scale(1)' : 'scale(0.3)', transition: 'opacity 0.2s, transform 0.2s', transitionDelay: `${j * 70}ms` }} />
                                   </React.Fragment>
                                 );
                               })}
