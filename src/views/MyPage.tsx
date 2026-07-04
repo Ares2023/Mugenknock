@@ -244,6 +244,14 @@ export default function MyPage() {
   const [domainStats, setDomainStats] = useState<DomainStat[]>([]);
   const [answeredCount, setAnsweredCount] = useState(0);
   const [statsLoading, setStatsLoading] = useState(false);
+  const [nodesVisible, setNodesVisible] = useState(false);
+
+  // 苦手ドメインのノードをパネル表示時にポップイン（スコア内訳と同じ演出）
+  useEffect(() => {
+    if (tab !== 'analysis' || statsLoading) { setNodesVisible(false); return; }
+    const id = requestAnimationFrame(() => requestAnimationFrame(() => setNodesVisible(true)));
+    return () => cancelAnimationFrame(id);
+  }, [tab, statsLoading]);
 
   useEffect(() => {
     if (tab !== 'analysis' || !user || !targetExam) return;
@@ -957,21 +965,33 @@ export default function MyPage() {
                         const domainLabel = lang === 'en' ? (DOMAIN_NAME_EN[domain] ?? domain) : domain;
                         return (
                           <div key={domain}>
-                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: 4 }}>
-                              <span style={{ fontSize: 'var(--font-size-sm)', color: isWeak ? 'var(--color-danger)' : 'var(--color-text-main)', flex: 1, marginRight: 8, lineHeight: 1.4, fontWeight: isWeak ? 700 : 400 }}>
-                                {isWeak && '⚠ '}{domainLabel}
-                              </span>
-                              <span style={{ fontSize: 'var(--font-size-sm)', fontWeight: 700, color, flexShrink: 0 }}>
+                            <div style={{ display: 'flex', alignItems: 'baseline', gap: 8, marginBottom: 4 }}>
+                              <span style={{ fontSize: 'var(--font-size-sm)', fontWeight: 700, color, flexShrink: 0, width: 44 }}>
                                 {pct !== null ? `${pct}%` : (ja ? '未演習' : 'N/A')}
                               </span>
+                              <span style={{ fontSize: 'var(--font-size-sm)', color: isWeak ? 'var(--color-danger)' : 'var(--color-text-main)', flex: 1, lineHeight: 1.4, fontWeight: isWeak ? 700 : 400 }}>
+                                {isWeak && '⚠ '}{domainLabel}
+                              </span>
                             </div>
-                            <div style={{ position: 'relative', display: 'flex', justifyContent: 'space-between', alignItems: 'center', height: 6 }}>
-                              <div style={{ position: 'absolute', left: 0, right: 0, height: 1, background: 'var(--color-border)', top: '50%', transform: 'translateY(-50%)', pointerEvents: 'none' }} />
+                            <div style={{ display: 'flex', alignItems: 'center', height: 9 }}>
                               {Array.from({ length: 10 }, (_, j) => {
                                 const dataIdx = j - (10 - recent.length);
                                 const r = dataIdx >= 0 ? recent[dataIdx] : undefined;
                                 return (
-                                  <span key={j} style={{ flexShrink: 0, width: 6, height: 6, borderRadius: '50%', background: 'var(--color-bg-white)', border: `1px solid ${r === true ? 'var(--color-success)' : r === false ? 'var(--color-danger)' : 'var(--color-border)'}`, position: 'relative', zIndex: 1, display: 'inline-block' }} />
+                                  <React.Fragment key={j}>
+                                    {j === 0
+                                      ? <div style={{ flex: 1, display: 'flex', alignItems: 'center' }}>
+                                          <div style={{ flex: 1, display: 'flex', alignItems: 'center' }}>
+                                            {[1, 1.5, 2, 2.5, 3].map((dash, idx) => (
+                                              <div key={idx} style={{ flex: 1, height: 1, background: `repeating-linear-gradient(to right, var(--color-text-light) 0px, var(--color-text-light) ${dash}px, transparent ${dash}px, transparent ${dash + 3}px)` }} />
+                                            ))}
+                                          </div>
+                                          <div style={{ flex: 1, height: 1, background: 'var(--color-text-light)' }} />
+                                        </div>
+                                      : <div style={{ flex: 1, height: 1, background: 'var(--color-text-light)' }} />
+                                    }
+                                    <span style={{ flexShrink: 0, width: 9, height: 9, borderRadius: '50%', background: r === true ? 'var(--color-feedback-correct-bg)' : r === false ? 'var(--color-feedback-incorrect-bg)' : 'var(--color-bg-white)', border: `1px solid ${r === true ? 'var(--color-success)' : r === false ? 'var(--color-danger)' : 'var(--color-text-light)'}`, position: 'relative', zIndex: 1, display: 'inline-block', opacity: nodesVisible ? 1 : 0, transform: nodesVisible ? 'scale(1)' : 'scale(0.3)', transition: 'opacity 0.2s, transform 0.2s', transitionDelay: `${j * 70}ms` }} />
+                                  </React.Fragment>
                                 );
                               })}
                             </div>

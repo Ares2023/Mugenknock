@@ -9,6 +9,7 @@ import Button from '../components/ui/Button';
 import Badge from '../components/ui/Badge';
 import DomainSelector from '../components/DomainSelector';
 import { getCached, setCached, SHORT_TTL } from '../utils/cache';
+import { domainBalancedOrder } from '../utils/domainBalance';
 import { syncTargetExamToServer } from '../utils/preferences';
 import { IconLightbulb } from '../components/Icons';
 import KeyHint from '../components/KeyHint';
@@ -230,15 +231,13 @@ export default function ExamSetup() {
           const incorrectIds = new Set(incorrectRes.questionIds ?? []);
           filtered = filtered.filter((q: any) => incorrectIds.has(q.questionId));
         }
-        for (let i = filtered.length - 1; i > 0; i--) {
-          const j = Math.floor(Math.random() * (i + 1));
-          [filtered[i], filtered[j]] = [filtered[j], filtered[i]];
-        }
+        // ドメイン均等化（deficit round-robin）で並べ替え、特定ドメインへの偏りを防ぐ。
+        const getDom = (q: any) => (typeof q.domain === 'number' ? q.domain : -1);
+        filtered = domainBalancedOrder(filtered, getDom);
         let usedFallback = false;
         if (filtered.length < limit && filtered.length < pool.length) {
           const usedIds = new Set(filtered.map((q: any) => q.questionId));
-          const extras = pool.filter((q: any) => !usedIds.has(q.questionId));
-          for (let i = extras.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [extras[i], extras[j]] = [extras[j], extras[i]]; }
+          const extras = domainBalancedOrder(pool.filter((q: any) => !usedIds.has(q.questionId)), getDom);
           filtered = [...filtered, ...extras];
           usedFallback = true;
         }
@@ -250,10 +249,8 @@ export default function ExamSetup() {
         const data = await fetch(`${API_ENDPOINT}/questions?${params}`).then(r => r.json());
         let allItems: any[] = data.items ?? [];
         if (aiVerifiedOnly) allItems = allItems.filter((q: any) => q.aiVerified === true);
-        for (let i = allItems.length - 1; i > 0; i--) {
-          const j = Math.floor(Math.random() * (i + 1));
-          [allItems[i], allItems[j]] = [allItems[j], allItems[i]];
-        }
+        // ドメイン均等化（deficit round-robin）で並べ替え、特定ドメインへの偏りを防ぐ。
+        allItems = domainBalancedOrder(allItems, (q: any) => (typeof q.domain === 'number' ? q.domain : -1));
         selectedItems = allItems.slice(0, limit);
       }
 

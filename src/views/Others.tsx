@@ -5,7 +5,7 @@ import { useNavigate } from '@/compat/react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { useLanguage } from '../contexts/LanguageContext';
 import { API_ENDPOINT } from '../constants';
-import { IconBot, IconFire, IconMail, IconBookOpen, IconMegaphone } from '../components/Icons';
+import { IconBot, IconFire, IconMail, IconBookOpen, IconMegaphone, IconInfo } from '../components/Icons';
 import Button from '../components/ui/Button';
 import PageLayout from '../components/ui/PageLayout';
 
@@ -118,6 +118,36 @@ export default function Others() {
             </div>
             <div style={{ fontSize: 'var(--font-size-sm)', color: 'var(--color-text-sub)' }}>
               {ja ? 'ご意見・不具合報告' : 'Send feedback or report issues'}
+            </div>
+          </div>
+          <span style={{ color: 'var(--color-text-light)', fontSize: 'var(--font-size-lg)', flexShrink: 0 }}>›</span>
+        </button>
+
+        {/* 無限ノックについて（ランディングページ） */}
+        <button
+          onClick={() => navigate('/?view=1')}
+          style={{
+            width: '100%', display: 'flex', alignItems: 'center', gap: 16,
+            padding: '16px var(--spacing-md)', border: '1px solid var(--color-border)',
+            borderRadius: 'var(--border-radius-lg)', background: 'var(--color-bg-white)',
+            cursor: 'pointer', textAlign: 'left', transition: 'box-shadow 0.15s, border-color 0.15s',
+          }}
+          onMouseEnter={e => { e.currentTarget.style.borderColor = 'var(--color-primary)'; e.currentTarget.style.boxShadow = '0 2px 8px rgba(0,108,224,0.1)'; }}
+          onMouseLeave={e => { e.currentTarget.style.borderColor = 'var(--color-border)'; e.currentTarget.style.boxShadow = 'none'; }}
+        >
+          <div style={{
+            width: 44, height: 44, borderRadius: 'var(--border-radius-md)', flexShrink: 0,
+            background: 'var(--color-primary-light)', color: 'var(--color-primary)',
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+          }}>
+            <IconInfo />
+          </div>
+          <div style={{ flex: 1, minWidth: 0 }}>
+            <div style={{ fontSize: 'var(--font-size-base)', fontWeight: 700, color: 'var(--color-text-main)', marginBottom: 2 }}>
+              {ja ? '無限ノックについて' : 'About Mugenknock'}
+            </div>
+            <div style={{ fontSize: 'var(--font-size-sm)', color: 'var(--color-text-sub)' }}>
+              {ja ? 'サービス紹介ページを見る' : 'View the service intro page'}
             </div>
           </div>
           <span style={{ color: 'var(--color-text-light)', fontSize: 'var(--font-size-lg)', flexShrink: 0 }}>›</span>
