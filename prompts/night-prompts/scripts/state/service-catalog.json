@@ -2189,14 +2189,14 @@
       "category": "コンピューティング",
       "docUrl": "https://aws.amazon.com/jp/appstream2/",
       "examRelevance": "low",
-      "isArticleTarget": true,
+      "isArticleTarget": false,
       "lastVerifiedAt": "2026-07-04",
       "name": "Amazon WorkSpaces applications",
       "serviceCode": "appstream",
       "shortName": "WorkSpaces Applications",
       "source": "ssm",
       "status": "active",
-      "statusNote": "Amazon AppStream 2.0 から改名した現行サービス。"
+      "statusNote": "Amazon AppStream 2.0 から改名した現行サービス。ただし適切な公式アイコン(png+svg)が未入手のため記事化を保留。アイコンが用意でき次第 isArticleTarget=true に戻す。"
     },
     "Application Auto Scaling": {
       "category": "コンピューティング",
