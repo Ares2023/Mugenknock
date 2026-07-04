@@ -13,6 +13,7 @@ type DailyService = {
   description: string;
   trivia?: string;
   docUrl?: string;
+  contentCheckedAt?: string;
 };
 
 type Phase = 'waiting' | 'revealing' | 'revealed';
@@ -344,6 +345,14 @@ export default function DailyServiceRevealModal({
                   </div>
                 </div>
               )}
+
+              <div style={{ fontSize: 'var(--font-size-xs)', color: 'rgba(255,255,255,.4)', marginBottom: 16, textAlign: 'left' }}>
+                {ja ? 'AI確認' : 'AI review'}:{' '}
+                {service.contentCheckedAt
+                  ? <span style={{ color: 'rgba(100,230,140,.75)', fontWeight: 700 }}>✓ {new Date(service.contentCheckedAt).toLocaleDateString('ja-JP', { year: 'numeric', month: '2-digit', day: '2-digit' })}</span>
+                  : <span>{ja ? '未確認' : 'not reviewed'}</span>
+                }
+              </div>
 
               {isMobile && (
                 <div onClick={e => e.stopPropagation()} style={{ display: 'flex', gap: 10, justifyContent: 'center', flexWrap: 'wrap' }}>

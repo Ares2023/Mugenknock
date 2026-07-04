@@ -19,6 +19,7 @@ type EncyclopediaService = {
   docUrl?: string;
   deprecationNote?: string;
   deprecationStatus?: string;
+  contentCheckedAt?: string;
 };
 
 
@@ -503,6 +504,14 @@ export default function ServiceEncyclopedia() {
                 {ja ? '公式ページを見る →' : 'Official page →'}
               </a>
             )}
+
+            <div style={{ marginTop: 12, fontSize: 'var(--font-size-xs)', color: 'var(--color-text-light)' }}>
+              {ja ? 'AI確認' : 'AI review'}:{' '}
+              {selected.contentCheckedAt
+                ? <strong style={{ color: 'var(--color-success)' }}>✓ {new Date(selected.contentCheckedAt).toLocaleDateString('ja-JP', { year: 'numeric', month: '2-digit', day: '2-digit' })}</strong>
+                : <strong>{ja ? '未確認' : 'not reviewed'}</strong>
+              }
+            </div>
           </div>
         </div>
       )}
