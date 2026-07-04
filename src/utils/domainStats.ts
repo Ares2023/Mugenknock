@@ -52,9 +52,10 @@ export function recordSessionDomainStats(opts: {
     localStorage.setItem(`domain_history_${examType}_${userId}`, JSON.stringify(dh));
   } catch {}
 
-  // domain_results（直近10問の個別正誤）+ サーバー同期
+  // domain_results（直近30問の個別正誤）+ サーバー同期
   // サーバーへはセッションの新規回答デルタのみ送信。サーバー側で既存データにマージするため
   // ローカルストレージが空の状態でも蓄積データが上書きされない。
+  // 最大30問保持し、苦手分析で直近10/20/30問のフィルタ表示に使う（30問以前は破棄）。
   const dr = readDomainResults(examType, userId);
   const resultsDelta: Record<string, boolean[]> = {};
   try {
@@ -62,7 +63,7 @@ export function recordSessionDomainStats(opts: {
       const idx = idxOf(r.questionId);
       if (idx < 0) continue;
       const k = String(idx);
-      dr[k] = [...(dr[k] ?? []), r.isCorrect].slice(-10);
+      dr[k] = [...(dr[k] ?? []), r.isCorrect].slice(-30);
       (resultsDelta[k] = resultsDelta[k] ?? []).push(r.isCorrect);
     }
     localStorage.setItem(`domain_results_${examType}_${userId}`, JSON.stringify(dr));

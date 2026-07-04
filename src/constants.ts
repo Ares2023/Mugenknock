@@ -46,6 +46,11 @@ export const EXAM_DOMAINS: Record<string, string[]> = Object.fromEntries(
   Object.entries(EXAM_DOMAINS_MASTER).map(([exam, doms]) => [exam, doms.map(d => d.ja)])
 );
 
+// ドメインごとの頻出サービス・機能（苦手分析の学習ガイド用）。index = ドメインの正準キー。
+export const EXAM_DOMAIN_SERVICES: Record<string, string[][]> = Object.fromEntries(
+  Object.entries(EXAM_DOMAINS_MASTER).map(([exam, doms]) => [exam, doms.map(d => (d as { services?: string[] }).services ?? [])])
+);
+
 // ── domain フィールドのユーティリティ ────────────────────────
 // domain は整数インデックス（正準キー）。旧データは文字列の場合があるため両対応。
 export type QuestionLike = { examType: string; domain?: number | string | null };
@@ -157,9 +162,10 @@ export const EXAM_DESC_EN: Record<string, string> = {
   SCS: 'Specialty certification for AWS cloud security expertise',
 };
 
-// ドメイン正答率の色分けしきい値（0–1スケール）
-export const DOMAIN_RATE_WARNING = 0.40;
-export const DOMAIN_RATE_CAUTION = 0.60;
+// ドメイン正答率の色分けしきい値（0–1スケール・全資格共通）
+// 60%未満=赤（苦手）／60〜79%=黄（要注意）／80%以上=緑（良好）
+export const DOMAIN_RATE_WARNING = 0.60;
+export const DOMAIN_RATE_CAUTION = 0.80;
 
 // ドメイン配点（公式試験ガイドの割合 %）— マスタから導出
 export const DOMAIN_WEIGHTS: Record<string, number[]> = Object.fromEntries(

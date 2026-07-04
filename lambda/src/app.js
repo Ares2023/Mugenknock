@@ -1238,7 +1238,8 @@ app.get('/sessions/:id/answers', async (req, res) => {
 });
 
 // ドメイン別直近正誤保存（デバイス間共有用）
-// domainResults はセッションの新規回答デルタのみ。サーバー側で既存データにマージし末尾10件に絞る。
+// domainResults はセッションの新規回答デルタのみ。サーバー側で既存データにマージし末尾30件に絞る。
+// （苦手分析で直近10/20/30問のフィルタ表示に使うため最大30件保持。30問以前は破棄）
 app.put('/users/me/domain-results', async (req, res) => {
   try {
     const docClient = getClient();
@@ -1257,7 +1258,7 @@ app.put('/users/me/domain-results', async (req, res) => {
           }));
           existingResults = existing.Item?.recentResults ?? [];
         } catch {}
-        const merged = [...existingResults, ...newResults].slice(-10);
+        const merged = [...existingResults, ...newResults].slice(-30);
         return docClient.send(new UpdateCommand({
           TableName: T('UserTagStats'),
           Key: { userId, tagId },

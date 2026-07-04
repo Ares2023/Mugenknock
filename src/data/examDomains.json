@@ -1,81 +1,81 @@
 {
   "CLF": [
-    { "ja": "クラウドの概念", "en": "Cloud Concepts", "weight": 24 },
-    { "ja": "セキュリティとコンプライアンス", "en": "Security and Compliance", "weight": 30 },
-    { "ja": "クラウドのテクノロジーとサービス", "en": "Cloud Technology and Services", "weight": 34 },
-    { "ja": "請求、料金、およびサポート", "en": "Billing, Pricing, and Support", "weight": 12 }
+    { "ja": "クラウドの概念", "en": "Cloud Concepts", "weight": 24, "services": ["リージョン/AZ/エッジロケーション", "Well-Architected Framework", "クラウド導入フレームワーク(CAF)", "Auto Scaling", "Elastic Load Balancing", "責任共有モデル"] },
+    { "ja": "セキュリティとコンプライアンス", "en": "Security and Compliance", "weight": 30, "services": ["IAM", "Organizations", "IAM Identity Center", "Shield", "WAF", "GuardDuty", "KMS", "Artifact"] },
+    { "ja": "クラウドのテクノロジーとサービス", "en": "Cloud Technology and Services", "weight": 34, "services": ["EC2", "S3", "RDS", "Lambda", "VPC", "CloudFront", "Elastic Beanstalk", "CloudFormation", "CloudWatch"] },
+    { "ja": "請求、料金、およびサポート", "en": "Billing, Pricing, and Support", "weight": 12, "services": ["Cost Explorer", "Budgets", "Pricing Calculator", "Cost and Usage Report", "Savings Plans", "Organizations一括請求", "サポートプラン", "Trusted Advisor"] }
   ],
   "SAA": [
-    { "ja": "セキュアなアーキテクチャの設計", "en": "Design Secure Architectures", "weight": 30 },
-    { "ja": "弾力性に優れたアーキテクチャの設計", "en": "Design Resilient Architectures", "weight": 26 },
-    { "ja": "高性能なアーキテクチャの設計", "en": "Design High-Performing Architectures", "weight": 24 },
-    { "ja": "コスト最適化されたアーキテクチャの設計", "en": "Design Cost-Optimized Architectures", "weight": 20 }
+    { "ja": "セキュアなアーキテクチャの設計", "en": "Design Secure Architectures", "weight": 30, "services": ["IAM(ロール/ポリシー)", "セキュリティグループ/NACL", "KMS", "Secrets Manager", "WAF/Shield", "Cognito", "VPCエンドポイント/プライベートサブネット"] },
+    { "ja": "弾力性に優れたアーキテクチャの設計", "en": "Design Resilient Architectures", "weight": 26, "services": ["Auto Scaling", "ELB", "RDS Multi-AZ", "Route 53(フェイルオーバー)", "SQS", "S3(バージョニング/レプリケーション)", "Aurora"] },
+    { "ja": "高性能なアーキテクチャの設計", "en": "Design High-Performing Architectures", "weight": 24, "services": ["CloudFront", "ElastiCache", "RDSリードレプリカ", "S3/EFS/FSx", "Global Accelerator", "Kinesis", "インスタンスタイプ選定"] },
+    { "ja": "コスト最適化されたアーキテクチャの設計", "en": "Design Cost-Optimized Architectures", "weight": 20, "services": ["S3ストレージクラス/ライフサイクル", "Spot/Reserved Instances", "Savings Plans", "Auto Scaling", "Cost Explorer/Budgets", "Compute Optimizer"] }
   ],
   "SAP": [
-    { "ja": "組織の複雑さに対応する設計", "en": "Design for Organizational Complexity", "weight": 26 },
-    { "ja": "新しいソリューションのための設計", "en": "Design for New Solutions", "weight": 29 },
-    { "ja": "既存のソリューションの継続的改善", "en": "Continuous Improvement for Existing Solutions", "weight": 25 },
-    { "ja": "ワークロードの移行とモダン化の加速", "en": "Accelerate Workload Migration and Modernization", "weight": 20 }
+    { "ja": "組織の複雑さに対応する設計", "en": "Design for Organizational Complexity", "weight": 26, "services": ["Organizations", "Control Tower", "IAM Identity Center", "RAM", "Transit Gateway", "SCP", "マルチアカウント戦略"] },
+    { "ja": "新しいソリューションのための設計", "en": "Design for New Solutions", "weight": 29, "services": ["Lambda/Fargate/ECS/EKS", "API Gateway", "Step Functions", "EventBridge", "DynamoDB", "SQS/SNS", "Well-Architected"] },
+    { "ja": "既存のソリューションの継続的改善", "en": "Continuous Improvement for Existing Solutions", "weight": 25, "services": ["CloudWatch", "Auto Scaling", "Aurora", "ElastiCache", "CloudFront", "Trusted Advisor", "Compute Optimizer"] },
+    { "ja": "ワークロードの移行とモダン化の加速", "en": "Accelerate Workload Migration and Modernization", "weight": 20, "services": ["Migration Hub", "Application Migration Service(MGN)", "DMS", "DataSync", "Snow Family", "Transfer Family", "Storage Gateway"] }
   ],
   "DVA": [
-    { "ja": "AWSのサービスを使用した開発", "en": "Development with AWS Services", "weight": 32 },
-    { "ja": "セキュリティ", "en": "Security", "weight": 26 },
-    { "ja": "デプロイ", "en": "Deployment", "weight": 24 },
-    { "ja": "トラブルシューティングと最適化", "en": "Troubleshooting and Optimization", "weight": 18 }
+    { "ja": "AWSのサービスを使用した開発", "en": "Development with AWS Services", "weight": 32, "services": ["Lambda", "DynamoDB", "API Gateway", "S3", "SQS/SNS", "Step Functions", "ElastiCache", "SDK/CLI"] },
+    { "ja": "セキュリティ", "en": "Security", "weight": 26, "services": ["IAM/STS(一時認証情報)", "Cognito", "KMS", "Secrets Manager", "Parameter Store", "署名付きURL"] },
+    { "ja": "デプロイ", "en": "Deployment", "weight": 24, "services": ["Elastic Beanstalk", "CodePipeline/CodeBuild/CodeDeploy", "CloudFormation/SAM", "ECR", "Blue/Green・Canaryデプロイ"] },
+    { "ja": "トラブルシューティングと最適化", "en": "Troubleshooting and Optimization", "weight": 18, "services": ["CloudWatch(Logs/メトリクス)", "X-Ray", "DynamoDB(DAX/キャパシティ)", "Lambda最適化", "CloudTrail"] }
   ],
   "SOA": [
-    { "ja": "モニタリング、ロギング、分析、修復、およびパフォーマンスの最適化", "en": "Monitoring, Logging, Analysis, Remediation, and Performance Optimization", "weight": 20 },
-    { "ja": "信頼性とビジネス継続性", "en": "Reliability and Business Continuity", "weight": 16 },
-    { "ja": "デプロイ、プロビジョニング、および自動化", "en": "Deployment, Provisioning, and Automation", "weight": 24 },
-    { "ja": "セキュリティとコンプライアンス", "en": "Security and Compliance", "weight": 16 },
-    { "ja": "ネットワークとコンテンツ配信", "en": "Networking and Content Delivery", "weight": 24 }
+    { "ja": "モニタリング、ロギング、分析、修復、およびパフォーマンスの最適化", "en": "Monitoring, Logging, Analysis, Remediation, and Performance Optimization", "weight": 20, "services": ["CloudWatch(アラーム/Logs/Dashboards)", "X-Ray", "EventBridge", "Systems Manager", "Compute Optimizer"] },
+    { "ja": "信頼性とビジネス継続性", "en": "Reliability and Business Continuity", "weight": 16, "services": ["Auto Scaling", "ELB", "RDS Multi-AZ/リードレプリカ", "AWS Backup", "S3(ライフサイクル/レプリケーション)", "Route 53"] },
+    { "ja": "デプロイ、プロビジョニング、および自動化", "en": "Deployment, Provisioning, and Automation", "weight": 24, "services": ["CloudFormation", "Systems Manager", "Elastic Beanstalk", "Auto Scaling", "AMI/ゴールデンイメージ", "OpsWorks"] },
+    { "ja": "セキュリティとコンプライアンス", "en": "Security and Compliance", "weight": 16, "services": ["IAM", "KMS", "Secrets Manager", "Config", "CloudTrail", "GuardDuty", "Security Hub", "Certificate Manager"] },
+    { "ja": "ネットワークとコンテンツ配信", "en": "Networking and Content Delivery", "weight": 24, "services": ["VPC", "Route 53", "CloudFront", "ELB", "VPCエンドポイント", "セキュリティグループ/NACL", "VPN/Direct Connect"] }
   ],
   "DOP": [
-    { "ja": "SDLC の自動化", "en": "SDLC Automation", "weight": 22 },
-    { "ja": "構成管理と Infrastructure as Code (IaC)", "en": "Configuration Management and IaC", "weight": 17 },
-    { "ja": "弾力性に優れたクラウドソリューション", "en": "Resilient Cloud Solutions", "weight": 15 },
-    { "ja": "モニタリングとロギング", "en": "Monitoring and Logging", "weight": 15 },
-    { "ja": "インシデントとイベントへの対応", "en": "Incident and Event Response", "weight": 14 },
-    { "ja": "セキュリティとコンプライアンス", "en": "Security and Compliance", "weight": 17 }
+    { "ja": "SDLC の自動化", "en": "SDLC Automation", "weight": 22, "services": ["CodePipeline", "CodeBuild", "CodeDeploy", "CodeCommit/CodeArtifact", "ECR", "Blue/Green・Canaryデプロイ"] },
+    { "ja": "構成管理と Infrastructure as Code (IaC)", "en": "Configuration Management and IaC", "weight": 17, "services": ["CloudFormation", "CDK", "Systems Manager", "Service Catalog", "StackSets", "Elastic Beanstalk"] },
+    { "ja": "弾力性に優れたクラウドソリューション", "en": "Resilient Cloud Solutions", "weight": 15, "services": ["Auto Scaling", "ELB", "Multi-AZ/マルチリージョン", "Route 53", "SQS", "Aurora", "DynamoDB Global Table"] },
+    { "ja": "モニタリングとロギング", "en": "Monitoring and Logging", "weight": 15, "services": ["CloudWatch(Logs/メトリクス/アラーム)", "X-Ray", "EventBridge", "CloudTrail", "Kinesis", "OpenSearch"] },
+    { "ja": "インシデントとイベントへの対応", "en": "Incident and Event Response", "weight": 14, "services": ["EventBridge", "CloudWatch Alarms", "SNS", "Systems Manager(Automation/OpsCenter)", "Lambda", "Auto Scaling"] },
+    { "ja": "セキュリティとコンプライアンス", "en": "Security and Compliance", "weight": 17, "services": ["IAM", "Config", "CloudTrail", "GuardDuty", "Security Hub", "Secrets Manager", "KMS", "Inspector"] }
   ],
   "AIF": [
-    { "ja": "AIとMLの基礎", "en": "Fundamentals of AI and ML", "weight": 20 },
-    { "ja": "生成AIの基礎", "en": "Fundamentals of Generative AI", "weight": 24 },
-    { "ja": "基盤モデルのアプリケーション", "en": "Applications of Foundation Models", "weight": 28 },
-    { "ja": "責任あるAIのガイドライン", "en": "Guidelines for Responsible AI", "weight": 14 },
-    { "ja": "AIソリューションのセキュリティ、コンプライアンス、ガバナンス", "en": "Security, Compliance, and Governance for AI", "weight": 14 }
+    { "ja": "AIとMLの基礎", "en": "Fundamentals of AI and ML", "weight": 20, "services": ["SageMaker", "教師あり/なし学習の概念", "データの種類(構造化/非構造化)", "モデル評価指標", "推論と学習"] },
+    { "ja": "生成AIの基礎", "en": "Fundamentals of Generative AI", "weight": 24, "services": ["Amazon Bedrock", "基盤モデル(FM)", "トークン/プロンプト", "埋め込み(Embeddings)", "PartyRock"] },
+    { "ja": "基盤モデルのアプリケーション", "en": "Applications of Foundation Models", "weight": 28, "services": ["Amazon Bedrock", "プロンプトエンジニアリング", "RAG", "ファインチューニング", "Knowledge Bases", "エージェント"] },
+    { "ja": "責任あるAIのガイドライン", "en": "Guidelines for Responsible AI", "weight": 14, "services": ["Guardrails for Bedrock", "SageMaker Clarify", "バイアス/公平性", "説明可能性", "透明性"] },
+    { "ja": "AIソリューションのセキュリティ、コンプライアンス、ガバナンス", "en": "Security, Compliance, and Governance for AI", "weight": 14, "services": ["IAM", "KMS", "Macie", "PrivateLink", "Bedrock Guardrails", "データプライバシー"] }
   ],
   "MLA": [
-    { "ja": "機械学習のためのデータ準備", "en": "Data Preparation for ML", "weight": 28 },
-    { "ja": "MLモデルの開発", "en": "ML Model Development", "weight": 26 },
-    { "ja": "MLワークフローのデプロイとオーケストレーション", "en": "Deployment and Orchestration of ML Workflows", "weight": 22 },
-    { "ja": "MLソリューションの監視、メンテナンス、セキュリティ", "en": "ML Solution Monitoring, Maintenance, and Security", "weight": 24 }
+    { "ja": "機械学習のためのデータ準備", "en": "Data Preparation for ML", "weight": 28, "services": ["SageMaker Data Wrangler", "SageMaker Feature Store", "Glue", "Athena", "S3", "EMR", "Ground Truth"] },
+    { "ja": "MLモデルの開発", "en": "ML Model Development", "weight": 26, "services": ["SageMaker Training", "組み込みアルゴリズム", "Autopilot/AutoML", "ハイパーパラメータ調整", "評価指標"] },
+    { "ja": "MLワークフローのデプロイとオーケストレーション", "en": "Deployment and Orchestration of ML Workflows", "weight": 22, "services": ["SageMaker Endpoints", "SageMaker Pipelines", "Step Functions", "MLOps/CI-CD", "ECR(コンテナ)"] },
+    { "ja": "MLソリューションの監視、メンテナンス、セキュリティ", "en": "ML Solution Monitoring, Maintenance, and Security", "weight": 24, "services": ["SageMaker Model Monitor", "SageMaker Clarify", "CloudWatch", "IAM", "KMS", "データドリフト検知"] }
   ],
   "AIP": [
-    { "ja": "基盤モデルの統合、データ管理、コンプライアンス", "en": "Foundation Model Integration, Data Management, and Compliance", "weight": 31 },
-    { "ja": "実装と統合", "en": "Implementation and Integration", "weight": 26 },
-    { "ja": "AIの安全性、セキュリティ、ガバナンス", "en": "AI Safety, Security, and Governance", "weight": 20 },
-    { "ja": "生成AIアプリケーションの運用効率と最適化", "en": "Operational Efficiency and Optimization for GenAI Applications", "weight": 12 },
-    { "ja": "テスト、検証、トラブルシューティング", "en": "Testing, Validation, and Troubleshooting", "weight": 11 }
+    { "ja": "基盤モデルの統合、データ管理、コンプライアンス", "en": "Foundation Model Integration, Data Management, and Compliance", "weight": 31, "services": ["Amazon Bedrock", "Knowledge Bases", "RAG", "OpenSearch/ベクトルDB", "S3", "KMS", "データガバナンス"] },
+    { "ja": "実装と統合", "en": "Implementation and Integration", "weight": 26, "services": ["Bedrock Agents", "Lambda", "API Gateway", "Step Functions", "PrivateLink", "SDK"] },
+    { "ja": "AIの安全性、セキュリティ、ガバナンス", "en": "AI Safety, Security, and Governance", "weight": 20, "services": ["Bedrock Guardrails", "IAM", "Macie", "CloudTrail", "コンテンツフィルタリング"] },
+    { "ja": "生成AIアプリケーションの運用効率と最適化", "en": "Operational Efficiency and Optimization for GenAI Applications", "weight": 12, "services": ["プロンプト最適化", "モデル選定", "推論キャッシュ", "CloudWatch", "コスト最適化"] },
+    { "ja": "テスト、検証、トラブルシューティング", "en": "Testing, Validation, and Troubleshooting", "weight": 11, "services": ["モデル評価", "ハルシネーション対策", "A/Bテスト", "CloudWatch", "X-Ray"] }
   ],
   "DEA": [
-    { "ja": "データの取り込みと変換", "en": "Data Ingestion and Transformation", "weight": 34 },
-    { "ja": "データストアの管理", "en": "Data Store Management", "weight": 26 },
-    { "ja": "データオペレーションとサポート", "en": "Data Operations and Support", "weight": 22 },
-    { "ja": "データのセキュリティとガバナンス", "en": "Data Security and Governance", "weight": 18 }
+    { "ja": "データの取り込みと変換", "en": "Data Ingestion and Transformation", "weight": 34, "services": ["Glue", "Kinesis(Data Streams/Firehose)", "MSK", "Lambda", "EMR", "Step Functions"] },
+    { "ja": "データストアの管理", "en": "Data Store Management", "weight": 26, "services": ["S3", "Redshift", "DynamoDB", "RDS/Aurora", "Lake Formation", "Glue Data Catalog"] },
+    { "ja": "データオペレーションとサポート", "en": "Data Operations and Support", "weight": 22, "services": ["Athena", "QuickSight", "CloudWatch", "Glue", "EMR", "Step Functions"] },
+    { "ja": "データのセキュリティとガバナンス", "en": "Data Security and Governance", "weight": 18, "services": ["Lake Formation", "IAM", "KMS", "Macie", "暗号化", "データマスキング"] }
   ],
   "ANS": [
-    { "ja": "ネットワーク設計", "en": "Network Design", "weight": 30 },
-    { "ja": "ネットワーク実装", "en": "Network Implementation", "weight": 26 },
-    { "ja": "ネットワーク管理と運用", "en": "Network Management and Operation", "weight": 20 },
-    { "ja": "ネットワークのセキュリティ、コンプライアンス、ガバナンス", "en": "Network Security, Compliance, and Governance", "weight": 24 }
+    { "ja": "ネットワーク設計", "en": "Network Design", "weight": 30, "services": ["VPC", "Transit Gateway", "Direct Connect", "VPN", "Route 53", "Global Accelerator", "PrivateLink"] },
+    { "ja": "ネットワーク実装", "en": "Network Implementation", "weight": 26, "services": ["VPCピアリング", "Transit Gateway", "VPCエンドポイント", "ELB", "CloudFront", "Direct Connect Gateway"] },
+    { "ja": "ネットワーク管理と運用", "en": "Network Management and Operation", "weight": 20, "services": ["CloudWatch", "VPC Flow Logs", "Transit Gateway Network Manager", "Reachability Analyzer", "Route 53 Resolver"] },
+    { "ja": "ネットワークのセキュリティ、コンプライアンス、ガバナンス", "en": "Network Security, Compliance, and Governance", "weight": 24, "services": ["セキュリティグループ/NACL", "Network Firewall", "WAF", "Shield", "GuardDuty", "ACM/TLS"] }
   ],
   "SCS": [
-    { "ja": "検出", "en": "Detection", "weight": 16 },
-    { "ja": "インシデント対応", "en": "Incident Response", "weight": 14 },
-    { "ja": "インフラストラクチャのセキュリティ", "en": "Infrastructure Security", "weight": 18 },
-    { "ja": "アイデンティティとアクセス管理", "en": "Identity and Access Management", "weight": 20 },
-    { "ja": "データ保護", "en": "Data Protection", "weight": 18 },
-    { "ja": "セキュリティの基盤とガバナンス", "en": "Security Foundations and Governance", "weight": 14 }
+    { "ja": "検出", "en": "Detection", "weight": 16, "services": ["GuardDuty", "Security Hub", "Config", "CloudTrail", "Inspector", "Detective", "Macie"] },
+    { "ja": "インシデント対応", "en": "Incident Response", "weight": 14, "services": ["CloudTrail", "EventBridge", "Systems Manager Automation", "Lambda", "Detective", "認証情報のローテーション"] },
+    { "ja": "インフラストラクチャのセキュリティ", "en": "Infrastructure Security", "weight": 18, "services": ["VPC(セキュリティグループ/NACL)", "WAF", "Shield", "Network Firewall", "SSM Session Manager", "Systems Manager"] },
+    { "ja": "アイデンティティとアクセス管理", "en": "Identity and Access Management", "weight": 20, "services": ["IAM(ポリシー/ロール/STS)", "IAM Identity Center", "Cognito", "Organizations(SCP)", "RAM", "権限境界"] },
+    { "ja": "データ保護", "en": "Data Protection", "weight": 18, "services": ["KMS", "CloudHSM", "ACM", "Secrets Manager", "S3暗号化", "Macie", "TLS"] },
+    { "ja": "セキュリティの基盤とガバナンス", "en": "Security Foundations and Governance", "weight": 14, "services": ["Organizations", "Control Tower", "Config", "Audit Manager", "Artifact", "IAM Access Analyzer"] }
   ]
 }
