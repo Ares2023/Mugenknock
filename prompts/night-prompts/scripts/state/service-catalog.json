@@ -1174,14 +1174,14 @@
       "category": "コンピューティング",
       "docUrl": "https://aws.amazon.com/jp/appstream2/",
       "examRelevance": "low",
-      "isArticleTarget": true,
-      "lastVerifiedAt": "2026-07-01",
+      "isArticleTarget": false,
+      "lastVerifiedAt": "2026-07-04",
       "name": "Amazon AppStream 2.0",
       "serviceCode": "",
       "shortName": "AppStream 2.0",
       "source": "daily-services-seed",
-      "status": "active",
-      "statusNote": ""
+      "status": "renamed",
+      "statusNote": "Amazon WorkSpaces applications に改名（旧名）。現行名は WorkSpaces applications。"
     },
     "Amazon Application Recovery Controller (ARC)": {
       "category": "ネットワーキング",
@@ -2189,14 +2189,14 @@
       "category": "コンピューティング",
       "docUrl": "https://aws.amazon.com/jp/appstream2/",
       "examRelevance": "low",
-      "isArticleTarget": false,
-      "lastVerifiedAt": "2026-07-03",
+      "isArticleTarget": true,
+      "lastVerifiedAt": "2026-07-04",
       "name": "Amazon WorkSpaces applications",
       "serviceCode": "appstream",
       "shortName": "WorkSpaces Applications",
       "source": "ssm",
-      "status": "renamed",
-      "statusNote": "Amazon AppStream 2.0 から Amazon WorkSpaces applications に改名（改名後は現行サービスとして提供中）"
+      "status": "active",
+      "statusNote": "Amazon AppStream 2.0 から改名した現行サービス。"
     },
     "Application Auto Scaling": {
       "category": "コンピューティング",
