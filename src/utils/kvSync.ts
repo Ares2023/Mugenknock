@@ -31,6 +31,7 @@ const SYNC_PREFIXES = [
   'theme_',                // テーマ（ライト/ダーク）
   'sherpaExamHint_',       // ヒント消去フラグ
   'sherpaStatsHint_',
+  'scoreWindow_',          // 予想スコア計算の直近N回設定
 ];
 
 type KvEntry = { v: string | null; t: number };

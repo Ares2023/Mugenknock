@@ -172,7 +172,7 @@ function SessionScoreChart({ data, passScore, lang = 'ja', animate = true, isMob
 }
 
 // ── 成績詳細モーダル（ドメイン別 + 予想スコア 統合） ───────────
-function CombinedDetailModal({ targetExam, domainAccList, estimatedScore, passScore, lang, isMobile, uid, domainStats, scoreHistory: serverScoreHistory, sessionHistory: serverSessionHistory, sessionScoreLog: serverSessionScoreLog, onClose }: {
+function CombinedDetailModal({ targetExam, domainAccList, estimatedScore, passScore, lang, isMobile, uid, domainStats, scoreHistory: serverScoreHistory, sessionHistory: serverSessionHistory, sessionScoreLog: serverSessionScoreLog, nodeWindow, onNodeWindowChange, onClose }: {
   targetExam: string;
   domainAccList: { correct: number; total: number; pct: number | null }[];
   estimatedScore: number | null;
@@ -184,6 +184,8 @@ function CombinedDetailModal({ targetExam, domainAccList, estimatedScore, passSc
   scoreHistory?: ScoreEntry[];
   sessionHistory?: number[];
   sessionScoreLog?: ScoreEntry[];
+  nodeWindow: 5 | 10;
+  onNodeWindowChange: (w: 5 | 10) => void;
   onClose: () => void;
 }) {
   const ja = lang === 'ja';
@@ -289,8 +291,8 @@ function CombinedDetailModal({ targetExam, domainAccList, estimatedScore, passSc
           <div style={{ background: 'var(--color-bg-main)', borderRadius: 8, padding: '10px 12px', marginBottom: 16, fontSize: 'var(--font-size-xs)', color: 'var(--color-text-sub)', lineHeight: 1.7 }}>
             <p style={{ margin: 0 }}>
               {ja
-                ? '直近セッションの回答を集計。各ドメインの上限5問分で算出（5問未満は正答率×(N/5)で計算）。未演習ドメインは0点扱い。スコア = Σ(正答率 × N/5 × 出題比率%) × 1000'
-                : 'Based on recent sessions. Score = Σ(accuracy × min(N,5)/5 × domain_weight%) × 1000. Fewer than 5 answers reduces the max contribution. Unpracticed domains count as 0.'}
+                ? `直近セッションの回答を集計。各ドメインの上限${nodeWindow}問分で算出（${nodeWindow}問未満は正答率×(N/${nodeWindow})で計算）。未演習ドメインは0点扱い。スコア = Σ(正答率 × N/${nodeWindow} × 出題比率%) × 1000`
+                : `Based on recent sessions. Score = Σ(accuracy × min(N,${nodeWindow})/${nodeWindow} × domain_weight%) × 1000. Fewer than ${nodeWindow} answers reduces the max contribution. Unpracticed domains count as 0.`}
             </p>
           </div>
         )}
@@ -309,19 +311,32 @@ function CombinedDetailModal({ targetExam, domainAccList, estimatedScore, passSc
               )}
             </div>
             <div style={{ background: 'var(--color-bg-main)', borderRadius: 8, padding: '10px 12px' }}>
-              <div style={{ fontSize: 'var(--font-size-xs)', fontWeight: 700, color: 'var(--color-text-sub)', marginBottom: 10, letterSpacing: '0.5px' }}>
-                {ja ? 'ドメイン別スコア内訳' : 'Score by Domain'}
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10 }}>
+                <span style={{ fontSize: 'var(--font-size-xs)', fontWeight: 700, color: 'var(--color-text-sub)', letterSpacing: '0.5px' }}>
+                  {ja ? 'ドメイン別スコア内訳' : 'Score by Domain'}
+                </span>
+                <div style={{ display: 'inline-flex', border: '1px solid var(--color-border)', borderRadius: 'var(--border-radius-full)', overflow: 'hidden' }}>
+                  {([5, 10] as const).map(w => {
+                    const active = nodeWindow === w;
+                    return (
+                      <button key={w} onClick={() => { onNodeWindowChange(w); setNodesVisible(false); requestAnimationFrame(() => requestAnimationFrame(() => setNodesVisible(true))); }}
+                        style={{ border: 'none', borderLeft: w === 5 ? 'none' : '1px solid var(--color-border)', background: active ? 'var(--color-primary)' : 'transparent', color: active ? 'var(--color-btn-primary-text, #fff)' : 'var(--color-text-sub)', fontSize: 'var(--font-size-xs)', fontWeight: 700, padding: '3px 10px', cursor: 'pointer', transition: 'background 0.15s' }}>
+                        {ja ? `直近${w}回` : `Last ${w}`}
+                      </button>
+                    );
+                  })}
+                </div>
               </div>
               {domains.map((d, i) => {
                 const fullMaxPts = Math.round(weights[i] / totalAllWeights * 1000);
                 const label = lang === 'en' ? (DOMAIN_NAME_EN[d] ?? d) : d;
                 const serverResults = domainStats.find(s => tagIdMatches(s.tagId, targetExam, i))?.recentResults;
-                const nodeResults = (serverResults ?? localDomainResults[String(i)] ?? []).slice(-5);
-                const paddedNodes: (boolean | null)[] = [...Array(5 - nodeResults.length).fill(null), ...nodeResults];
+                const nodeResults = (serverResults ?? localDomainResults[String(i)] ?? []).slice(-nodeWindow);
+                const paddedNodes: (boolean | null)[] = [...Array(nodeWindow - nodeResults.length).fill(null), ...nodeResults];
                 const correctInNodes = nodeResults.filter(v => !!v).length;
-                const curPts = Math.round(correctInNodes / 5 * fullMaxPts);
+                const curPts = Math.round(correctInNodes / nodeWindow * fullMaxPts);
                 const hasPracticed = nodeResults.length > 0;
-                const formulaStr = hasPracticed ? `${fullMaxPts}×${correctInNodes}/5` : null;
+                const formulaStr = hasPracticed ? `${fullMaxPts}×${correctInNodes}/${nodeWindow}` : null;
                 return (
                   <div key={d} style={{ marginBottom: 12 }}>
                     {/* ドメイン名 */}
@@ -1142,6 +1157,10 @@ export default function Home() {
   const ja = lang === 'ja';
   const uid = user?.userId ?? 'guest';
 
+  const [nodeWindow, setNodeWindow] = useState<5 | 10>(() =>
+    localStorage.getItem(`scoreWindow_${uid}`) === '10' ? 10 : 5
+  );
+
   const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
   const [revealService, setRevealService] = useState<DailyService | null>(null);
   const [targetExam, setTargetExam] = useState<string | null>(() => localStorage.getItem(`targetExam_${uid}`));
@@ -1369,10 +1388,10 @@ export default function Home() {
     const result: Record<string, boolean[]> = {};
     (EXAM_DOMAINS[targetExam] ?? []).forEach((d, idx) => {
       const serverResults = domainStats.find(s => tagIdMatches(s.tagId, targetExam, idx))?.recentResults;
-      result[d] = (serverResults ?? localDR[String(idx)] ?? []).slice(-5);
+      result[d] = (serverResults ?? localDR[String(idx)] ?? []).slice(-nodeWindow);
     });
     return result;
-  }, [targetExam, domainStats, uid]);
+  }, [targetExam, domainStats, uid, nodeWindow]);
 
   const estimatedScore = useMemo(() => {
     if (!targetExam) return null;
@@ -1386,12 +1405,12 @@ export default function Home() {
       const nodeResults = domainNodeResultsMap[domainList[i]] ?? [];
       if (nodeResults.length === 0) continue;
       const correctInNodes = nodeResults.filter((v: boolean) => !!v).length;
-      weightedSum += (correctInNodes / 5) * weights[i];
+      weightedSum += (correctInNodes / nodeWindow) * weights[i];
       hasAnyData = true;
     }
     if (!hasAnyData) return null;
     return Math.round((weightedSum / totalAllWeights) * 1000);
-  }, [targetExam, domainNodeResultsMap]);
+  }, [targetExam, domainNodeResultsMap, nodeWindow]);
 
   const focusedUnlocked = !!user && answeredCount >= FOCUSED_UNLOCK_THRESHOLD;
   const focusedUnlockedCached = localStorage.getItem(`focusedUnlockedCache_${uid}`) === '1';
@@ -1403,6 +1422,18 @@ export default function Home() {
       localStorage.setItem(`focusedUnlockedCache_${uid}`, focusedUnlocked ? '1' : '0');
     }
   }, [answeredCountReady, focusedUnlocked, uid]);
+
+  // 別デバイスで scoreWindow が変更された場合に kvSynced で反映する
+  useEffect(() => {
+    const h = (e: Event) => {
+      const keys: string[] = (e as CustomEvent).detail?.keys ?? [];
+      if (keys.some(k => k.startsWith('scoreWindow_'))) {
+        setNodeWindow(localStorage.getItem(`scoreWindow_${uid}`) === '10' ? 10 : 5);
+      }
+    };
+    window.addEventListener('kvSynced', h);
+    return () => window.removeEventListener('kvSynced', h);
+  }, [uid]);
 
   const passScore = targetExam ? PASS_SCORES[targetExam] : null;
 
@@ -1697,13 +1728,14 @@ export default function Home() {
       // ② 弱点ドメイン判定は「直近10回」(recentResults) の正答率を優先採用。
       //    無ければ累計 correct/incorrect → ドメイン履歴の順にフォールバック。
       const threshold = focusDomain === 'none' ? 0
-        : focusDomain === 'below40' ? 0.40 : focusDomain === 'below50' ? 0.50 : focusDomain === 'below70' ? 0.70 : 0.60;
+        : focusDomain === 'below40' ? 0.40 : focusDomain === 'below50' ? 0.50 : focusDomain === 'below70' ? 0.70 : focusDomain === 'below80' ? 0.80 : 0.60;
       const examDomains = EXAM_DOMAINS[targetExam] ?? [];
       const hist = readDomainHistory(targetExam, uid);
       const domainAcc = new Map<string, number | null>(); // ドメイン名 → 直近正答率（null=データ無し）
       examDomains.forEach((domain, idx) => {
         const stat = domainStats.find(s => tagIdMatches(s.tagId, targetExam, idx));
-        const recent = stat?.recentResults ?? [];
+        // マイページ苦手分析と同じ「直近10回」にスライス
+        const recent = (stat?.recentResults ?? []).slice(-10);
         let acc: number | null = null;
         if (recent.length > 0) {
           acc = recent.filter(Boolean).length / recent.length;
@@ -2619,13 +2651,17 @@ export default function Home() {
                 </div>
                 {/* 苦手ドメイン優先 */}
                 <div style={{ padding: '14px 0' }}>
-                  <div style={{ fontWeight: 500, fontSize: 'var(--font-size-base)', color: 'var(--color-text-main)', marginBottom: 8 }}>
+                  <div style={{ fontWeight: 500, fontSize: 'var(--font-size-base)', color: 'var(--color-text-main)', marginBottom: 4 }}>
                     {ja ? '苦手ドメインを優先' : 'Prioritize Weak Domains'}
+                  </div>
+                  <div style={{ fontSize: 'var(--font-size-xs)', color: 'var(--color-text-light)', marginBottom: 8 }}>
+                    {ja ? 'マイページ「苦手分析」の直近10回分の演習結果を参照' : 'Based on last 10 results in My Page analysis'}
                   </div>
                   {([
                     ['none',    ja ? '優先しない' : 'Off'],
-                    ['below60', ja ? '正答率60%以下のドメイン（3/5問）' : 'Below 60%'],
-                    ['below40', ja ? '正答率40%以下のドメイン（2/5問）' : 'Below 40%'],
+                    ['below80', ja ? '正答率80%以下のドメイン（8/10問）' : 'Below 80% (8/10)'],
+                    ['below60', ja ? '正答率60%以下のドメイン（6/10問）' : 'Below 60% (6/10)'],
+                    ['below40', ja ? '正答率40%以下のドメイン（4/10問）' : 'Below 40% (4/10)'],
                   ] as [string, string][]).map(([val, label]) => {
                     const selected = (draftFocusedPrefs.focusDomain ?? 'below60') === val;
                     return (
@@ -2702,7 +2738,7 @@ export default function Home() {
 
       {/* 成績詳細モーダル */}
       {showCombinedDetail && targetExam && (
-        <CombinedDetailModal targetExam={targetExam} domainAccList={domainAccList} estimatedScore={estimatedScore} passScore={passScore} lang={lang} isMobile={isMobile} uid={uid} domainStats={domainStats} scoreHistory={serverScoreHistory ?? undefined} sessionHistory={serverSessionHistory ?? undefined} sessionScoreLog={serverSessionScoreLog ?? undefined} onClose={() => setShowCombinedDetail(false)} />
+        <CombinedDetailModal targetExam={targetExam} domainAccList={domainAccList} estimatedScore={estimatedScore} passScore={passScore} lang={lang} isMobile={isMobile} uid={uid} domainStats={domainStats} scoreHistory={serverScoreHistory ?? undefined} sessionHistory={serverSessionHistory ?? undefined} sessionScoreLog={serverSessionScoreLog ?? undefined} nodeWindow={nodeWindow} onNodeWindowChange={w => { setNodeWindow(w); localStorage.setItem(`scoreWindow_${uid}`, String(w)); }} onClose={() => setShowCombinedDetail(false)} />
       )}
 
       {/* オンボーディング（目標資格未設定） */}

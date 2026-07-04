@@ -446,6 +446,8 @@ export default function Layout({ children }: { children: React.ReactNode }) {
       setPaneFocus('left');
     };
     if (paneFocus === 'right') {
+      // Ctrl/Meta+Enter は各画面固有のショートカット（演習開始など）に委ねる。kbnav クリックを発火させない。
+      if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) return;
       // 右ペイン内のクリック可能パネル/タブをカーソル走査（data-kbnav）。
       // タブ(data-kbnav="tab")は左右で移動、コンテンツ(data-kbnav)は上下で移動。
       const els = kbnavEls();
