@@ -1187,6 +1187,8 @@ export default function Home() {
     // user 確定時にまずローカルを正しい uid で再読込する（サーバ補完の成否に関わらず必要）。
     setQuickDraft(readQuickDraft());
     setFocusedDraft(readFocusedDraft());
+    // scoreWindow も正しい uid で再読込（kvSync プル完了前でもローカル値を反映）
+    setNodeWindow(localStorage.getItem(`scoreWindow_${user.userId}`) === '10' ? 10 : 5);
     hydrateDraftsFromServer(user.userId).then(h => {
       if (!h) return;
       setQuickDraft(readQuickDraft());
