@@ -70,7 +70,10 @@ export default function Portal() {
     );
   }
 
-  if (user && localStorage.getItem(`targetExam_${user.userId}`)) {
+  // ナビの「無限ノックについて」からは ?view=1 付きで来る。その場合はログイン済みでも
+  // 自動リダイレクトせず、紹介ページ（ランディング）を閲覧できるようにする。
+  const forceView = typeof window !== 'undefined' && new URLSearchParams(window.location.search).has('view');
+  if (user && !forceView && localStorage.getItem(`targetExam_${user.userId}`)) {
     return <Navigate to="/aws/" replace />;
   }
 

@@ -14,7 +14,7 @@ import { setKbMode } from '../utils/keyboardMode';
 import {
   IconHome,
   IconUser, IconChart,
-  IconDumbbell, IconFire, IconMegaphone, IconBell, IconMenu, IconClose, IconChevronLeft, IconMail,
+  IconDumbbell, IconFire, IconMegaphone, IconBell, IconMenu, IconClose, IconChevronLeft, IconMail, IconInfo,
   IconSparkles, IconBot, IconUserCircle, IconBookOpen,
   IconSun, IconMoon, IconMore, IconChevronDown,
   EXAM_ICON_COMPONENTS,
@@ -543,10 +543,10 @@ export default function Layout({ children }: { children: React.ReactNode }) {
         else if (e.key === 'Enter')      { e.preventDefault(); curEl.click(); }
       }
     } else {
-      // navItems.length 番目 = 連絡先
-      if (e.key === 'ArrowDown') { e.preventDefault(); setNavCursor(c => Math.min(navItems.length, c + 1)); }
+      // navItems.length 番目 = 連絡先、navItems.length + 1 番目 = 無限ノックについて
+      if (e.key === 'ArrowDown') { e.preventDefault(); setNavCursor(c => Math.min(navItems.length + 1, c + 1)); }
       else if (e.key === 'ArrowUp') { e.preventDefault(); setNavCursor(c => Math.max(0, c - 1)); }
-      else if (e.key === 'Enter') { e.preventDefault(); if (navCursor < navItems.length) { pendingNavRef.current = true; navigate(navItems[navCursor].path); } else openContact(); setPaneFocus('right'); }
+      else if (e.key === 'Enter') { e.preventDefault(); if (navCursor < navItems.length) { pendingNavRef.current = true; navigate(navItems[navCursor].path); } else if (navCursor === navItems.length) openContact(); else { pendingNavRef.current = true; navigate('/?view=1'); } setPaneFocus('right'); }
       else if (e.key === 'ArrowRight') { e.preventDefault(); setPaneFocus('right'); }
     }
   };
@@ -1084,6 +1084,27 @@ export default function Layout({ children }: { children: React.ReactNode }) {
                 >
                   <span style={{ display: 'flex', alignItems: 'center', opacity: 0.6 }}><IconMail /></span>
                   <span>{t('contact.sidebarLabel')}</span>
+                </button>
+                <button
+                  onClick={() => navigate('/?view=1')}
+                  style={{
+                    width: '100%', textAlign: 'left',
+                    display: 'flex', alignItems: 'center', gap: 12,
+                    padding: '10px 24px',
+                    background: (kbMode && paneFocus === 'left' && navCursor === navItems.length + 1) ? 'var(--color-bg-main)' : 'none',
+                    border: 'none',
+                    borderTop: '1px solid var(--color-border)',
+                    borderLeft: '4px solid transparent',
+                    outline: (kbMode && paneFocus === 'left' && navCursor === navItems.length + 1) ? '2px solid var(--color-accent)' : 'none',
+                    outlineOffset: (kbMode && paneFocus === 'left' && navCursor === navItems.length + 1) ? -2 : 0,
+                    cursor: 'pointer', color: 'var(--color-text-light)', fontSize: 'var(--font-size-sm)', fontWeight: 400,
+                    whiteSpace: 'nowrap', transition: 'all 0.2s',
+                  }}
+                  onMouseEnter={e => { (e.currentTarget as HTMLElement).style.background = 'var(--color-bg-main)'; }}
+                  onMouseLeave={e => { (e.currentTarget as HTMLElement).style.background = 'none'; }}
+                >
+                  <span style={{ display: 'flex', alignItems: 'center', opacity: 0.6 }}><IconInfo /></span>
+                  <span>{lang === 'ja' ? '無限ノックについて' : 'About Mugenknock'}</span>
                 </button>
               </div>
             </div>
