@@ -15,7 +15,7 @@ import {
   IconSprout, IconBox, IconBot, IconCode2, IconCloud, IconDatabase, IconBrain, IconVectorSquare, IconFileCodeCorner, IconAtom, IconShieldIcon, IconWaypoints,
   EXAM_ICON_COMPONENTS, IconSaveCheck, IconCopy, IconCheck,
 } from '../components/Icons';
-import ExamSelectOverlay, { EXAM_DESC } from '../components/ExamSelectOverlay';
+import ExamSelectOverlay, { EXAM_DESC, EXAM_URLS } from '../components/ExamSelectOverlay';
 import KeyHint from '../components/KeyHint';
 
 
@@ -541,6 +541,12 @@ export default function MyPage() {
                                   ))}
                                 </div>
                                 <p style={{ margin: 0, fontSize: 'var(--font-size-sm)', color: 'var(--color-text-sub)', lineHeight: 1.6 }}>{EXAM_DESC[targetExam] ?? ''}</p>
+                                {EXAM_URLS[targetExam] && (
+                                  <a href={EXAM_URLS[targetExam]} target="_blank" rel="noopener noreferrer"
+                                    style={{ display: 'inline-block', marginTop: 'var(--spacing-sm)', fontSize: 'var(--font-size-sm)', color: 'var(--color-primary)', fontWeight: 600, textDecoration: 'none' }}>
+                                    {ja ? '公式ページを見る →' : 'Official page →'}
+                                  </a>
+                                )}
                               </>
                             );
                           })() : (
