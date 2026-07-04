@@ -957,12 +957,12 @@ export default function MyPage() {
                         const domainLabel = lang === 'en' ? (DOMAIN_NAME_EN[domain] ?? domain) : domain;
                         return (
                           <div key={domain}>
-                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: 4 }}>
-                              <span style={{ fontSize: 'var(--font-size-sm)', color: isWeak ? 'var(--color-danger)' : 'var(--color-text-main)', flex: 1, marginRight: 8, lineHeight: 1.4, fontWeight: isWeak ? 700 : 400 }}>
-                                {isWeak && '⚠ '}{domainLabel}
-                              </span>
-                              <span style={{ fontSize: 'var(--font-size-sm)', fontWeight: 700, color, flexShrink: 0 }}>
+                            <div style={{ display: 'flex', alignItems: 'baseline', gap: 8, marginBottom: 4 }}>
+                              <span style={{ fontSize: 'var(--font-size-sm)', fontWeight: 700, color, flexShrink: 0, width: 44 }}>
                                 {pct !== null ? `${pct}%` : (ja ? '未演習' : 'N/A')}
+                              </span>
+                              <span style={{ fontSize: 'var(--font-size-sm)', color: isWeak ? 'var(--color-danger)' : 'var(--color-text-main)', flex: 1, lineHeight: 1.4, fontWeight: isWeak ? 700 : 400 }}>
+                                {isWeak && '⚠ '}{domainLabel}
                               </span>
                             </div>
                             <div style={{ display: 'flex', alignItems: 'center', height: 9 }}>
