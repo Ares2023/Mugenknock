@@ -11,7 +11,7 @@ import {
   API_ENDPOINT, EXAM_TYPES, EXAM_CONFIGS, EXAM_DOMAINS,
   DOMAIN_WEIGHTS, DOMAIN_NAME_EN, PASS_SCORES, qDomainName,
   EXAM_LEVEL, EXAM_LEVEL_COLORS,
-  tagIdMatches, domainsToIndices, storedDomainsToNames, questionDomainIndex,
+  tagIdMatches, domainsToIndices, storedDomainsToNames,
 } from '../constants';
 import { readDomainResults, readDomainHistory } from '../utils/domainStats';
 import { getCached, setCached, deleteCached, DEFAULT_TTL, getCachedPersist, setCachedPersist, deleteCachedPersist } from '../utils/cache';
@@ -1588,67 +1588,49 @@ export default function Home() {
 
     try {
       const userId = user?.userId ?? 'guest';
-      const qCacheKey = `qlist_${targetExam}`;
-      const cachedQs = getCachedPersist<{ items: any[]; total: number }>(qCacheKey);
-      const needUserData = user && (qPrefs.unansweredOnly || qPrefs.incorrectOnly || qPrefs.bookmarkOnly);
-      const plateau = randomPlateau();
-      const stopAnim = cachedQs ? null : animateLoadPct(setQuickLoadPct, 10, plateau);
-      // プール（フルキャッシュがあればそれを、無ければ metaOnly 軽量取得）とユーザーデータを並行フェッチ。
-      // metaOnly は questionId/domain のみ・validity 済みのみ返すため選定ロジックはそのまま使える。
-      const [data, answeredRes, incorrectRes, bkmRes] = await Promise.all([
-        cachedQs ? Promise.resolve(cachedQs) : fetch(`${API_ENDPOINT}/questions?examType=${targetExam}&metaOnly=true`).then(r => r.json()),
-        needUserData && qPrefs.unansweredOnly ? fetch(`${API_ENDPOINT}/users/me/answered-questions?userId=${userId}&examType=${targetExam}`).then(r => r.json()) : Promise.resolve(null),
-        needUserData && qPrefs.incorrectOnly  ? fetch(`${API_ENDPOINT}/users/me/incorrect-questions?userId=${userId}&examType=${targetExam}`).then(r => r.json()) : Promise.resolve(null),
-        needUserData && qPrefs.bookmarkOnly   ? fetch(`${API_ENDPOINT}/users/me/bookmarks?userId=${userId}`).then(r => r.json()) : Promise.resolve(null),
-      ]);
-      if (stopAnim) { stopAnim(); setQuickLoadPct(plateau); }
-      // フルキャッシュ時のみ明示的に validity フィルタ（metaOnly はサーバ側で済み）
-      const pool: any[] = cachedQs ? (data.items ?? []).filter((q: any) => !!q.validityCheckedAt) : (data.items ?? []);
-      let items = [...pool];
-      if (needUserData) {
-        setQuickLoadPct(80);
-        const unansweredSet = qPrefs.unansweredOnly && answeredRes ? new Set<string>(answeredRes.questionIds ?? []) : null;
-        const incorrectSet  = qPrefs.incorrectOnly  && incorrectRes ? new Set<string>(incorrectRes.questionIds ?? []) : null;
-        const bookmarkSet   = qPrefs.bookmarkOnly   && bkmRes       ? new Set<string>(bkmRes.questionIds ?? [])      : null;
-        // 条件に合う問題を優先（先頭に並べる）、なければ全問から補充
-        items.sort((a, b) => {
-          const scoreQ = (q: any) =>
-            (unansweredSet && !unansweredSet.has(q.questionId) ? 1 : 0) +
-            (incorrectSet  && incorrectSet.has(q.questionId)   ? 1 : 0) +
-            (bookmarkSet   && bookmarkSet.has(q.questionId)    ? 1 : 0);
-          return scoreQ(b) - scoreQ(a);
-        });
-      }
+      const hasStatusFilter = !!(user && (qPrefs.unansweredOnly || qPrefs.incorrectOnly || qPrefs.bookmarkOnly));
       const selIdx = domainsToIndices(targetExam, qPrefs.domains ?? []);
-      if (selIdx.length > 0) {
-        items = items.filter((q: any) => selIdx.includes(questionDomainIndex(q)));
-      }
+      const allDomains = EXAM_DOMAINS[targetExam] ?? [];
+      const allSelected = selIdx.length === 0 || selIdx.length >= allDomains.length;
       const count = qPrefs.questionCount ?? 5;
-      items = shuffleArray(items);
-      let usedFallback = false;
-      if (items.length < count && items.length < pool.length) {
-        const usedIds = new Set(items.map((q: any) => q.questionId));
-        items = [...items, ...shuffleArray(pool.filter((q: any) => !usedIds.has(q.questionId)))];
-        usedFallback = true;
+      const plateau = randomPlateau();
+      const stopAnim = animateLoadPct(setQuickLoadPct, 10, plateau);
+
+      // IDのみ取得（Lambda 側でフィルタ・ドメイン均等化）。フィルタ無しでも userId を渡すと
+      // 回答数の少ないドメインを優先する deficit round-robin が効き、出題が特定ドメインに偏らない。
+      const idsParams = new URLSearchParams({ examType: targetExam, shuffle: 'true', idsOnly: 'true' });
+      if (!allSelected) idsParams.set('domain', selIdx.join(','));
+      if (user && qPrefs.bookmarkOnly)   idsParams.set('bookmarkOnly',   'true');
+      if (user && qPrefs.unansweredOnly) idsParams.set('unansweredOnly', 'true');
+      if (user && qPrefs.incorrectOnly)  idsParams.set('incorrectOnly',  'true');
+      if (user) idsParams.set('userId', userId); // フィルタ無しでもドメイン均等化のため常に渡す
+      const idsData = await fetch(`${API_ENDPOINT}/questions?${idsParams}`).then(r => r.json());
+      if (stopAnim) { stopAnim(); setQuickLoadPct(plateau); }
+      const allIds: string[] = idsData.questionIds ?? [];
+      let selectedIds = allIds.slice(0, count);
+      // 優先フィルタで設定数に満たない場合、同一ドメイン内のフィルタ外の問題で補充する
+      if (selectedIds.length < count && hasStatusFilter) {
+        const fillParams = new URLSearchParams({ examType: targetExam, shuffle: 'true', idsOnly: 'true' });
+        if (!allSelected) fillParams.set('domain', selIdx.join(','));
+        if (user) fillParams.set('userId', userId);
+        try {
+          const fillData = await fetch(`${API_ENDPOINT}/questions?${fillParams}`).then(r => r.json());
+          const have = new Set(selectedIds);
+          for (const id of (fillData.questionIds ?? []) as string[]) {
+            if (selectedIds.length >= count) break;
+            if (!have.has(id)) { selectedIds.push(id); have.add(id); }
+          }
+        } catch (e) { console.debug('[quick] fill topup failed:', e); }
       }
-      items = Array.from(new Map(items.map((q: any) => [q.questionId, q])).values()).slice(0, count);
-      if (items.length === 0) { alert(ja ? '条件に合う問題がありません' : 'No questions match the criteria'); return; }
-      if (usedFallback) alert(ja ? 'フィルタ条件に合う問題が不足したため、条件外の問題も含めて出題します。' : 'Not enough questions matched your filters. Including additional questions.');
+      if (selectedIds.length === 0) { alert(ja ? '条件に合う問題がありません' : 'No questions match the criteria'); return; }
       setQuickLoadPct(90);
-      const questionIds = items.map((q: any) => q.questionId);
-      // 予備ID: 出題中に削除済み等で読み込めないIDが出ても設定問題数を満たせるよう、
-      // プールの未使用分から控えを渡す（1問目の取得は変えないのでロード時間は不変）。
+      const questionIds = selectedIds;
+      // 予備ID: 出題中に削除済み等で読み込めないIDが出ても設定問題数を満たせるよう控えを渡す。
       const _usedSel = new Set(questionIds);
-      const spareQuestionIds = shuffleArray(pool.filter((q: any) => !_usedSel.has(q.questionId)))
-        .slice(0, 10).map((q: any) => q.questionId);
-      // セッション作成は遷移先で非同期実行。フルキャッシュ時は全問をそのまま渡し、
-      // metaOnly 時は 1 問目だけ取得して残りはプログレッシブロード。
-      if (cachedQs) {
-        navigate('/aws/exercise/session', { state: { createSession: { userId, mode: 'exercise', examType: targetExam, questionIds }, questions: items, spareQuestionIds, userId, mode: 'exercise', examType: targetExam, isQuick: true } });
-      } else {
-        const q1Data = await fetch(`${API_ENDPOINT}/questions?ids=${questionIds[0]}&withAnswers=true&examType=${targetExam}`).then(r => r.json());
-        navigate('/aws/exercise/session', { state: { createSession: { userId, mode: 'exercise', examType: targetExam, questionIds }, questions: q1Data.items ?? [], questionIds, spareQuestionIds, userId, mode: 'exercise', examType: targetExam, isQuick: true } });
-      }
+      const spareQuestionIds = allIds.filter(id => !_usedSel.has(id)).slice(0, 10);
+      // セッション作成は遷移先で非同期実行。1 問目だけ取得して残りはプログレッシブロード。
+      const q1Data = await fetch(`${API_ENDPOINT}/questions?ids=${questionIds[0]}&withAnswers=true&examType=${targetExam}`).then(r => r.json());
+      navigate('/aws/exercise/session', { state: { createSession: { userId, mode: 'exercise', examType: targetExam, questionIds }, questions: q1Data.items ?? [], questionIds, spareQuestionIds, userId, mode: 'exercise', examType: targetExam, isQuick: true } });
     } catch (err) { console.error(err); alert(ja ? '演習の開始に失敗しました' : 'Failed to start exercise'); }
     finally { setQuickLoading(false); setQuickLoadPct(0); }
   };
