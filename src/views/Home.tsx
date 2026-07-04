@@ -199,6 +199,7 @@ function CombinedDetailModal({ targetExam, domainAccList, estimatedScore, passSc
   })();
   const [showCalc, setShowCalc] = useState(false);
   const [tab, setTab] = useState<'score' | 'history' | 'hiscore'>('score');
+  const [nodeWindow, setNodeWindow] = useState<5 | 10>(5);
   const scoreTabRef = useRef<HTMLDivElement>(null);
   const [contentMinH, setContentMinH] = useState(0);
   const [nodesVisible, setNodesVisible] = useState(false);
@@ -289,8 +290,8 @@ function CombinedDetailModal({ targetExam, domainAccList, estimatedScore, passSc
           <div style={{ background: 'var(--color-bg-main)', borderRadius: 8, padding: '10px 12px', marginBottom: 16, fontSize: 'var(--font-size-xs)', color: 'var(--color-text-sub)', lineHeight: 1.7 }}>
             <p style={{ margin: 0 }}>
               {ja
-                ? '直近セッションの回答を集計。各ドメインの上限5問分で算出（5問未満は正答率×(N/5)で計算）。未演習ドメインは0点扱い。スコア = Σ(正答率 × N/5 × 出題比率%) × 1000'
-                : 'Based on recent sessions. Score = Σ(accuracy × min(N,5)/5 × domain_weight%) × 1000. Fewer than 5 answers reduces the max contribution. Unpracticed domains count as 0.'}
+                ? `直近セッションの回答を集計。各ドメインの上限${nodeWindow}問分で算出（${nodeWindow}問未満は正答率×(N/${nodeWindow})で計算）。未演習ドメインは0点扱い。スコア = Σ(正答率 × N/${nodeWindow} × 出題比率%) × 1000`
+                : `Based on recent sessions. Score = Σ(accuracy × min(N,${nodeWindow})/${nodeWindow} × domain_weight%) × 1000. Fewer than ${nodeWindow} answers reduces the max contribution. Unpracticed domains count as 0.`}
             </p>
           </div>
         )}
@@ -309,19 +310,32 @@ function CombinedDetailModal({ targetExam, domainAccList, estimatedScore, passSc
               )}
             </div>
             <div style={{ background: 'var(--color-bg-main)', borderRadius: 8, padding: '10px 12px' }}>
-              <div style={{ fontSize: 'var(--font-size-xs)', fontWeight: 700, color: 'var(--color-text-sub)', marginBottom: 10, letterSpacing: '0.5px' }}>
-                {ja ? 'ドメイン別スコア内訳' : 'Score by Domain'}
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10 }}>
+                <span style={{ fontSize: 'var(--font-size-xs)', fontWeight: 700, color: 'var(--color-text-sub)', letterSpacing: '0.5px' }}>
+                  {ja ? 'ドメイン別スコア内訳' : 'Score by Domain'}
+                </span>
+                <div style={{ display: 'inline-flex', border: '1px solid var(--color-border)', borderRadius: 'var(--border-radius-full)', overflow: 'hidden' }}>
+                  {([5, 10] as const).map(w => {
+                    const active = nodeWindow === w;
+                    return (
+                      <button key={w} onClick={() => { setNodeWindow(w); setNodesVisible(false); requestAnimationFrame(() => requestAnimationFrame(() => setNodesVisible(true))); }}
+                        style={{ border: 'none', borderLeft: w === 5 ? 'none' : '1px solid var(--color-border)', background: active ? 'var(--color-primary)' : 'transparent', color: active ? 'var(--color-btn-primary-text, #fff)' : 'var(--color-text-sub)', fontSize: 'var(--font-size-xs)', fontWeight: 700, padding: '3px 10px', cursor: 'pointer', transition: 'background 0.15s' }}>
+                        {ja ? `直近${w}回` : `Last ${w}`}
+                      </button>
+                    );
+                  })}
+                </div>
               </div>
               {domains.map((d, i) => {
                 const fullMaxPts = Math.round(weights[i] / totalAllWeights * 1000);
                 const label = lang === 'en' ? (DOMAIN_NAME_EN[d] ?? d) : d;
                 const serverResults = domainStats.find(s => tagIdMatches(s.tagId, targetExam, i))?.recentResults;
-                const nodeResults = (serverResults ?? localDomainResults[String(i)] ?? []).slice(-5);
-                const paddedNodes: (boolean | null)[] = [...Array(5 - nodeResults.length).fill(null), ...nodeResults];
+                const nodeResults = (serverResults ?? localDomainResults[String(i)] ?? []).slice(-nodeWindow);
+                const paddedNodes: (boolean | null)[] = [...Array(nodeWindow - nodeResults.length).fill(null), ...nodeResults];
                 const correctInNodes = nodeResults.filter(v => !!v).length;
-                const curPts = Math.round(correctInNodes / 5 * fullMaxPts);
+                const curPts = Math.round(correctInNodes / nodeWindow * fullMaxPts);
                 const hasPracticed = nodeResults.length > 0;
-                const formulaStr = hasPracticed ? `${fullMaxPts}×${correctInNodes}/5` : null;
+                const formulaStr = hasPracticed ? `${fullMaxPts}×${correctInNodes}/${nodeWindow}` : null;
                 return (
                   <div key={d} style={{ marginBottom: 12 }}>
                     {/* ドメイン名 */}
