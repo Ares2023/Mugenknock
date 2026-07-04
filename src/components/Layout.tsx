@@ -546,7 +546,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
       // navItems.length 番目 = 連絡先、navItems.length + 1 番目 = 無限ノックについて
       if (e.key === 'ArrowDown') { e.preventDefault(); setNavCursor(c => Math.min(navItems.length + 1, c + 1)); }
       else if (e.key === 'ArrowUp') { e.preventDefault(); setNavCursor(c => Math.max(0, c - 1)); }
-      else if (e.key === 'Enter') { e.preventDefault(); if (navCursor < navItems.length) { pendingNavRef.current = true; navigate(navItems[navCursor].path); } else if (navCursor === navItems.length) openContact(); else { pendingNavRef.current = true; navigate('/?view=1'); } setPaneFocus('right'); }
+      else if (e.key === 'Enter') { e.preventDefault(); if (navCursor < navItems.length) { pendingNavRef.current = true; navigate(navItems[navCursor].path); } else if (navCursor === navItems.length) openContact(); else { pendingNavRef.current = true; navigate('/#about'); } setPaneFocus('right'); }
       else if (e.key === 'ArrowRight') { e.preventDefault(); setPaneFocus('right'); }
     }
   };
@@ -1086,7 +1086,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
                   <span>{t('contact.sidebarLabel')}</span>
                 </button>
                 <button
-                  onClick={() => navigate('/?view=1')}
+                  onClick={() => navigate('/#about')}
                   style={{
                     width: '100%', textAlign: 'left',
                     display: 'flex', alignItems: 'center', gap: 12,

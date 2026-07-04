@@ -70,9 +70,14 @@ export default function Portal() {
     );
   }
 
-  // ナビの「無限ノックについて」からは ?view=1 付きで来る。その場合はログイン済みでも
+  // ナビの「無限ノックについて」からは /#about で来る。その場合はログイン済みでも
   // 自動リダイレクトせず、紹介ページ（ランディング）を閲覧できるようにする。
-  const forceView = typeof window !== 'undefined' && new URLSearchParams(window.location.search).has('view');
+  // hash は trailingSlash 正規化の影響を受けず、初回レンダー時に同期的に読めるため確実。
+  // （旧 ?view=1 も後方互換で許可）
+  const forceView = typeof window !== 'undefined' && (
+    window.location.hash === '#about' ||
+    new URLSearchParams(window.location.search).has('view')
+  );
   if (user && !forceView && localStorage.getItem(`targetExam_${user.userId}`)) {
     return <Navigate to="/aws/" replace />;
   }
