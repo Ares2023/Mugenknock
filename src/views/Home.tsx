@@ -1697,13 +1697,14 @@ export default function Home() {
       // ② 弱点ドメイン判定は「直近10回」(recentResults) の正答率を優先採用。
       //    無ければ累計 correct/incorrect → ドメイン履歴の順にフォールバック。
       const threshold = focusDomain === 'none' ? 0
-        : focusDomain === 'below40' ? 0.40 : focusDomain === 'below50' ? 0.50 : focusDomain === 'below70' ? 0.70 : 0.60;
+        : focusDomain === 'below40' ? 0.40 : focusDomain === 'below50' ? 0.50 : focusDomain === 'below70' ? 0.70 : focusDomain === 'below80' ? 0.80 : 0.60;
       const examDomains = EXAM_DOMAINS[targetExam] ?? [];
       const hist = readDomainHistory(targetExam, uid);
       const domainAcc = new Map<string, number | null>(); // ドメイン名 → 直近正答率（null=データ無し）
       examDomains.forEach((domain, idx) => {
         const stat = domainStats.find(s => tagIdMatches(s.tagId, targetExam, idx));
-        const recent = stat?.recentResults ?? [];
+        // マイページ苦手分析と同じ「直近10回」にスライス
+        const recent = (stat?.recentResults ?? []).slice(-10);
         let acc: number | null = null;
         if (recent.length > 0) {
           acc = recent.filter(Boolean).length / recent.length;
@@ -2619,13 +2620,17 @@ export default function Home() {
                 </div>
                 {/* 苦手ドメイン優先 */}
                 <div style={{ padding: '14px 0' }}>
-                  <div style={{ fontWeight: 500, fontSize: 'var(--font-size-base)', color: 'var(--color-text-main)', marginBottom: 8 }}>
+                  <div style={{ fontWeight: 500, fontSize: 'var(--font-size-base)', color: 'var(--color-text-main)', marginBottom: 4 }}>
                     {ja ? '苦手ドメインを優先' : 'Prioritize Weak Domains'}
+                  </div>
+                  <div style={{ fontSize: 'var(--font-size-xs)', color: 'var(--color-text-light)', marginBottom: 8 }}>
+                    {ja ? 'マイページ「苦手分析」の直近10回分の演習結果を参照' : 'Based on last 10 results in My Page analysis'}
                   </div>
                   {([
                     ['none',    ja ? '優先しない' : 'Off'],
-                    ['below60', ja ? '正答率60%以下のドメイン（3/5問）' : 'Below 60%'],
-                    ['below40', ja ? '正答率40%以下のドメイン（2/5問）' : 'Below 40%'],
+                    ['below80', ja ? '正答率80%以下のドメイン（8/10問）' : 'Below 80% (8/10)'],
+                    ['below60', ja ? '正答率60%以下のドメイン（6/10問）' : 'Below 60% (6/10)'],
+                    ['below40', ja ? '正答率40%以下のドメイン（4/10問）' : 'Below 40% (4/10)'],
                   ] as [string, string][]).map(([val, label]) => {
                     const selected = (draftFocusedPrefs.focusDomain ?? 'below60') === val;
                     return (
