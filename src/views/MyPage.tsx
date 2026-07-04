@@ -15,7 +15,7 @@ import {
   IconSprout, IconBox, IconBot, IconCode2, IconCloud, IconDatabase, IconBrain, IconVectorSquare, IconFileCodeCorner, IconAtom, IconShieldIcon, IconWaypoints,
   EXAM_ICON_COMPONENTS, IconSaveCheck, IconCopy, IconCheck,
 } from '../components/Icons';
-import ExamSelectOverlay, { EXAM_DESC } from '../components/ExamSelectOverlay';
+import ExamSelectOverlay, { EXAM_DESC, EXAM_URLS } from '../components/ExamSelectOverlay';
 import KeyHint from '../components/KeyHint';
 
 
@@ -541,6 +541,12 @@ export default function MyPage() {
                                   ))}
                                 </div>
                                 <p style={{ margin: 0, fontSize: 'var(--font-size-sm)', color: 'var(--color-text-sub)', lineHeight: 1.6 }}>{EXAM_DESC[targetExam] ?? ''}</p>
+                                {EXAM_URLS[targetExam] && (
+                                  <a href={EXAM_URLS[targetExam]} target="_blank" rel="noopener noreferrer"
+                                    style={{ display: 'inline-block', marginTop: 'var(--spacing-sm)', fontSize: 'var(--font-size-sm)', color: 'var(--color-primary)', fontWeight: 600, textDecoration: 'none' }}>
+                                    {ja ? '公式ページを見る →' : 'Official page →'}
+                                  </a>
+                                )}
                               </>
                             );
                           })() : (
@@ -595,13 +601,17 @@ export default function MyPage() {
                           {targetExam ? (() => {
                             const goal = dailyGoal;
                             const maxVal = Math.max(...weekCountsTarget, goal, 1);
-                            const CH = 120;
+                            const CH = 80;
                             const weekTotal = weekCountsTarget.reduce((a, b) => a + b, 0);
                             const achievedDays = weekCountsTarget.filter(c => goal > 0 && c >= goal).length;
                             return (
                               <>
-                                <div style={{ fontSize: 'var(--font-size-xs)', color: 'var(--color-text-sub)', marginBottom: 14 }}>{ja ? `直近7日間の演習量（${targetExam}）` : `Last 7 days · ${targetExam}`}</div>
-                                <div style={{ position: 'relative', height: CH, marginTop: 10 }}>
+                                <div style={{ fontSize: 'var(--font-size-xs)', color: 'var(--color-text-sub)', marginBottom: 8 }}>
+                                  {ja ? `${weekTotal}問` : `${weekTotal}Q`}
+                                  <span style={{ margin: '0 6px', color: 'var(--color-border)' }}>·</span>
+                                  {ja ? `達成 ${achievedDays}/7日` : `${achievedDays}/7 days`}
+                                </div>
+                                <div style={{ position: 'relative', height: CH, marginTop: 4 }}>
                                   {goal > 0 && (
                                     <div style={{ position: 'absolute', left: 0, right: 0, bottom: (Math.min(goal, maxVal) / maxVal) * CH, borderTop: '1px dashed var(--color-primary)', pointerEvents: 'none' }} />
                                   )}
@@ -621,16 +631,12 @@ export default function MyPage() {
                                     })}
                                   </div>
                                 </div>
-                                <div style={{ display: 'flex', gap: 8, marginTop: 6 }}>
+                                <div style={{ display: 'flex', gap: 8, marginTop: 4 }}>
                                   {weekDays.map((d) => {
                                     const isToday = d === jstToday();
                                     const dayLabel = new Date(d + 'T12:00:00').toLocaleDateString(ja ? 'ja-JP' : 'en-US', { weekday: 'short' });
                                     return (<div key={d} style={{ flex: 1, textAlign: 'center', fontSize: 'var(--font-size-2xs)', color: isToday ? examColor : 'var(--color-text-light)', fontWeight: isToday ? 700 : 400 }}>{dayLabel}</div>);
                                   })}
-                                </div>
-                                <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 'var(--font-size-sm)', color: 'var(--color-text-sub)', borderTop: '1px solid var(--color-border)', paddingTop: 12, marginTop: 14 }}>
-                                  <span>{ja ? '7日間合計' : '7-day total'}: <strong style={{ color: 'var(--color-text-main)' }}>{weekTotal}{ja ? '問' : ''}</strong></span>
-                                  <span>{ja ? '達成日数' : 'Achieved'}: <strong style={{ color: examColor }}>{achievedDays}/7{ja ? '日' : ''}</strong></span>
                                 </div>
                               </>
                             );

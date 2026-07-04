@@ -111,8 +111,8 @@ usage: 05-check-daily-services.sh [-n N] [-D HH:MM] [-h]
 EOF
 }
 
-BATCH_SIZE=30
-CHUNK_SIZE=8
+BATCH_SIZE=5
+CHUNK_SIZE=5
 DEADLINE=""
 
 while [[ $# -gt 0 ]]; do
@@ -422,9 +422,10 @@ VALID_CATEGORIES = [
 ]
 
 lines = [
-    '日めくりAWSサービスのコンテンツ品質をチェックし、JSONのみで返してください。',
+    '日めくりAWSサービスのコンテンツ品質と現行性をチェックし、JSONのみで返してください。',
     '',
     '【確認項目】',
+    '- 【現行性】このサービスは2025年時点でAWSから現行サービスとして提供されているか。廃止・提供終了・別サービスへ統合・改名済みの場合は delete（例: Amazon Forecast 2026年7月終了、など）',
     '- 必須フィールド（name/shortName/category/description/trivia）が空でないか',
     '- description: 80〜120字。何ができるか・どんな場面で使うかを試験受験者向けに。複数特徴は\\nで区切る（なければfixで追加）',
     '- trivia: 80〜150字。名前の由来・覚え方・試験ポイント・有名企業事例など。複数事実は\\nで区切る（なければfixで追加）',
@@ -433,7 +434,7 @@ lines = [
     '- docUrl: "https://aws.amazon.com/jp/..."形式か空文字（違う形式はfixで修正または空文字に）',
     '- "本アプリでも利用しています"は Cognito/API Gateway/Lambda/DynamoDB/Amplify/S3 使用サービスのみ許可（他はfixで削除）',
     '',
-    '【アクション】ok=問題なし / fix=修正可能（変更フィールドのみ含める） / delete=致命的問題（存在しないサービス等）',
+    '【アクション】ok=問題なし / fix=修正可能（変更フィールドのみ含める） / delete=廃止・提供終了・致命的問題（存在しないサービス等）',
     '',
     '【出力】JSONのみ。前置き不要。',
     '{"results":[{"serviceId":"...","action":"ok","reason":"100字以内"},{"serviceId":"...","action":"fix","reason":"...","fix":{"フィールド名":"修正後（変更のみ）"}},{"serviceId":"...","action":"delete","reason":"..."}]}',

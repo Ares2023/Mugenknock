@@ -95,7 +95,7 @@ const EXAM_CATCHCOPY: Record<string, string> = {
   ANS: 'ネットワークの深淵へ！AWS屈指の難関資格！',
 };
 
-const EXAM_URLS: Record<string, string> = {
+export const EXAM_URLS: Record<string, string> = {
   CLF: 'https://aws.amazon.com/jp/certification/certified-cloud-practitioner/',
   SAA: 'https://aws.amazon.com/jp/certification/certified-solutions-architect-associate/',
   SAP: 'https://aws.amazon.com/jp/certification/certified-solutions-architect-professional/',

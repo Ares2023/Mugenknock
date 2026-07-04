@@ -688,6 +688,7 @@ function OnboardingModal({ lang, uid, onComplete }: {
 type DailyService = {
   serviceId: string; name: string; shortName?: string; category?: string;
   icon: string; description: string; trivia?: string; docUrl?: string;
+  contentCheckedAt?: string;
 };
 
 function resolveServiceIcon(service: DailyService): string {
