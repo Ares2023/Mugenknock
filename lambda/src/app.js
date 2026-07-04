@@ -2745,16 +2745,17 @@ app.post('/users/me/daily-progress', async (req, res) => {
       return res.status(400).json({ error: 'userId, examType and positive count required' });
     }
     const key = `${examType}_${jstDateStr()}`;
+    const totalKey = `total_${examType}`;
     const docClient = getClient();
     const result = await docClient.send(new UpdateCommand({
       TableName: 'AppSettings',
       Key: { settingId: `dailyProgress_${userId}` },
-      UpdateExpression: 'SET #k = if_not_exists(#k, :z) + :n, updatedAt = :now',
-      ExpressionAttributeNames: { '#k': key },
+      UpdateExpression: 'SET #k = if_not_exists(#k, :z) + :n, #t = if_not_exists(#t, :z) + :n, updatedAt = :now',
+      ExpressionAttributeNames: { '#k': key, '#t': totalKey },
       ExpressionAttributeValues: { ':z': 0, ':n': n, ':now': new Date().toISOString() },
       ReturnValues: 'UPDATED_NEW',
     }));
-    res.json({ count: result.Attributes?.[key] ?? n, date: jstDateStr() });
+    res.json({ count: result.Attributes?.[key] ?? n, total: result.Attributes?.[totalKey] ?? n, date: jstDateStr() });
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: 'Internal server error' });
@@ -2788,7 +2789,7 @@ app.get('/users/me/daily-progress', async (req, res) => {
         })).catch(() => {});
       }
     }
-    res.json({ count: item[`${examType}_${today}`] ?? 0, date: today });
+    res.json({ count: item[`${examType}_${today}`] ?? 0, total: item[`total_${examType}`] ?? 0, date: today });
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: 'Internal server error' });
