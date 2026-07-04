@@ -170,28 +170,30 @@ export default function Portal() {
           {/* ── 開発の意図・目的 ── */}
           <section>
             <h2 style={{ fontSize: isMobile ? 'var(--font-size-h3)' : 'var(--font-size-h2)', fontWeight: 800, color: 'var(--color-text-main)', margin: '0 0 var(--spacing-md)', letterSpacing: '-0.3px', borderLeft: '4px solid var(--color-accent)', paddingLeft: 'var(--spacing-sm)' }}>
-              {ja ? 'なぜ作ったのか' : 'Why I Built This'}
+              {ja ? '本サイトのポリシー' : 'Our Policy'}
             </h2>
             <Reveal style={{ background: 'var(--color-bg-white)', border: '1px solid var(--color-border)', borderLeft: '4px solid var(--color-accent)', borderRadius: 'var(--border-radius-lg)', boxShadow: 'var(--box-shadow-sm)', padding: isMobile ? 'var(--spacing-md)' : 'var(--spacing-lg) var(--spacing-xl)', lineHeight: 1.95 }}>
               <p style={{ margin: '0 0 var(--spacing-md)', fontSize: isMobile ? 'var(--font-size-base)' : 'var(--font-size-lg)', fontWeight: 700, color: 'var(--color-text-main)' }}>
                 {ja
-                  ? 'AWS認定SAPを持つ、いちエンジニアです。いまは全12資格の制覇に挑んでいます。'
-                  : 'I\'m an engineer with the AWS Certified Solutions Architect – Professional (SAP), now taking on all 12 AWS certifications.'}
+                  ? '本サイト「無限ノック」は、管理者である大森が AWS 資格 全12種の全冠を目指して作成した資格演習サイトです。'
+                  : 'Mugenknock is a certification practice site that I — Omori, the site\'s owner — built to conquer all 12 AWS certifications.'}
               </p>
               <p style={{ margin: '0 0 var(--spacing-md)', fontSize: isMobile ? 'var(--font-size-sm2)' : 'var(--font-size-base)', color: 'var(--color-text-sub)' }}>
                 {ja
-                  ? '正直に言うと、既存の問題演習サービスにずっと不満がありました。開くたびに待たされるロード。何百問解いても弱点を教えてくれない作り。どこか不自然な日本語。いつの間にか古くなった情報。「本当に欲しい教材はこれじゃない」——その苛立ちが限界に達して、自分で作ると決めてキーボードを叩き始めました。'
-                  : 'Honestly, I was fed up with the practice services out there. Loads that make you wait. Hundreds of questions, yet nothing tells you where you\'re actually weak. Japanese that reads a little off. Content that quietly goes stale. "This isn\'t the study tool I want." That frustration hit a wall — so I decided to build the one I did.'}
+                  ? '個人的に、既存の問題演習サービスにはずっと不満がありました。サイトを開くたびに待たされるロード。弱点ドメインを集計・分析してくれない不親切さ。どこか不自然な日本語。そして更新が少なく新情報をキャッチアップできていない問題・解説文。'
+                  : 'Personally, I was never satisfied with the existing practice services. Loading that keeps you waiting every time you open the site. The unhelpfulness of never tallying or analyzing your weak domains. Japanese that reads a little unnatural. And questions and explanations that are rarely updated and fail to keep up with new information.'}
               </p>
               <p style={{ margin: '0 0 var(--spacing-sm)', fontSize: isMobile ? 'var(--font-size-sm2)' : 'var(--font-size-base)', color: 'var(--color-text-sub)' }}>
-                {ja ? 'だから、その不満のひとつひとつに答えを出すつもりで作りました。' : 'So I built this with the goal of answering every one of those frustrations, head-on.'}
+                {ja
+                  ? 'そんな不満の結果、「ないなら作ってしまおう！」と思い立ちました。なので、このウェブサイトは私が感じていたその不満のひとつひとつに答えを出すつもりで作りました。'
+                  : 'Fed up with all of that, I thought, "If it doesn\'t exist, I\'ll just build it!" So I built this website intending to answer every one of those frustrations, one by one.'}
               </p>
               <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--spacing-sm)', margin: '0 0 var(--spacing-md)' }}>
                 {[
-                  { p: ['ロードが遅い', 'Slow loading'], s: ['待たせない表示速度', 'Loads that never make you wait'] },
-                  { p: ['弱点分析が甘い', 'Weak personalization'], s: ['解くほど穴が見える弱点特化', 'Weak-point focus that sharpens as you solve'] },
-                  { p: ['日本語が不自然', 'Awkward Japanese'], s: ['自然で読みやすい日本語', 'Natural, readable Japanese'] },
-                  { p: ['情報が古い', 'Outdated content'], s: ['最新試験に合わせて作り直し', 'Rebuilt to match the current exams'] },
+                  { p: ['ロードが遅い', 'Slow loading'], s: ['待たせない表示速度（ローカルに自動プリフェッチ＆キャッシュ）', 'Instant display that never makes you wait (auto local prefetch & cache)'] },
+                  { p: ['弱点分析が甘い', 'Weak personalization'], s: ['解くほど穴が見える弱点特化（出題ドメイン別に集計・分析）', 'Weak-point focus that sharpens as you solve (tallied & analyzed by exam domain)'] },
+                  { p: ['日本語が不自然', 'Awkward Japanese'], s: ['自然で読みやすい日本語（自動AI監査スクリプトを毎晩実行）', 'Natural, readable Japanese (nightly automated AI audit script)'] },
+                  { p: ['情報が古い', 'Outdated content'], s: ['最新試験に合わせて作り直し（自動AI監査スクリプトを毎晩実行）', 'Rebuilt to match the latest exams (nightly automated AI audit script)'] },
                 ].map((row, i) => (
                   <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 'var(--spacing-sm)', flexWrap: 'wrap' }}>
                     <span style={{ fontSize: isMobile ? 'var(--font-size-xs)' : 'var(--font-size-sm)', color: 'var(--color-text-light)', textDecoration: 'line-through' }}>{ja ? row.p[0] : row.p[1]}</span>
@@ -202,11 +204,11 @@ export default function Portal() {
               </div>
               <p style={{ margin: 0, fontSize: isMobile ? 'var(--font-size-sm2)' : 'var(--font-size-base)', color: 'var(--color-text-main)', fontWeight: 700 }}>
                 {ja
-                  ? 'まだ全冠はしていません。少なくとも自分が獲り切るまで、磨き続けるつもりです。同じ悔しさを抱えている方は、遠慮なく使い倒してください。一緒にノックしましょう。'
-                  : 'I haven\'t earned them all yet. At least until I do, I\'ll keep sharpening this tool. If you share the same frustration, make yourself at home — let\'s knock these out together.'}
+                  ? '現在私が取得している資格は「CLF」「SAA」「SAP」の3つです。少なくとも私が全冠するまで、このサイトは改良し続けます。どうぞ、私と同じく AWS 資格の取得へ向けて努力している方は使ってみてください。問題の通報やメッセージ機能などで、フィードバックをいただけたら幸いです。'
+                  : 'The certifications I currently hold are CLF, SAA, and SAP — three so far. At least until I earn them all, I\'ll keep improving this site. If you\'re working toward AWS certifications like me, please give it a try. I\'d be grateful for any feedback via the report or message features.'}
               </p>
               <p style={{ margin: 'var(--spacing-md) 0 0', textAlign: 'right', fontSize: 'var(--font-size-sm)', color: 'var(--color-text-light)' }}>
-                {ja ? '— 無限ノック 開発者' : '— The developer, Mugenknock'}
+                {ja ? '開発者　大森かいづ' : '— Kaizu Omori, Developer'}
               </p>
             </Reveal>
           </section>
