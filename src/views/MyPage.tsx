@@ -244,6 +244,8 @@ export default function MyPage() {
   const [domainStats, setDomainStats] = useState<DomainStat[]>([]);
   const [answeredCount, setAnsweredCount] = useState(0);
   const [statsLoading, setStatsLoading] = useState(false);
+  // 苦手ドメインの正答率フィルタ（直近N問。演習開始当初のデータを除外して現在の実力を測る）
+  const [recentWindow, setRecentWindow] = useState<10 | 20 | 30>(10);
 
   useEffect(() => {
     if (tab !== 'analysis' || !user || !targetExam) return;
@@ -935,27 +937,45 @@ export default function MyPage() {
                     </p>
                   ) : (
                     <>
+                    {/* 直近N問フィルタ：演習開始当初の古いデータを除外して現在の正答率を測る */}
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 14, flexWrap: 'wrap' }}>
+                      <span style={{ fontSize: 'var(--font-size-xs)', color: 'var(--color-text-light)', fontWeight: 700 }}>{ja ? '集計対象' : 'Window'}</span>
+                      <div style={{ display: 'inline-flex', border: '1px solid var(--color-border)', borderRadius: 'var(--border-radius-full)', overflow: 'hidden' }}>
+                        {([10, 20, 30] as const).map((w) => {
+                          const active = recentWindow === w;
+                          return (
+                            <button
+                              key={w}
+                              onClick={() => setRecentWindow(w)}
+                              style={{ border: 'none', borderLeft: w === 10 ? 'none' : '1px solid var(--color-border)', background: active ? 'var(--color-primary)' : 'transparent', color: active ? 'var(--color-btn-primary-text, #fff)' : 'var(--color-text-sub)', fontSize: 'var(--font-size-xs)', fontWeight: 700, padding: '5px 14px', cursor: 'pointer', transition: 'background 0.15s' }}
+                            >
+                              {ja ? `直近${w}問` : `Last ${w}`}
+                            </button>
+                          );
+                        })}
+                      </div>
+                    </div>
                     <div style={{ display: 'flex', flexDirection: 'column', gap: 0 }}>
                       {[...domains].sort((a, b) => {
                         const getPct = (d: string) => {
                           const st = domainStats.find(s => tagIdMatches(s.tagId, targetExam ?? '', toDomainIndex(targetExam ?? '', d)));
-                          // 累計(correctCount/incorrectCount)があればそれを、無ければ既存の recentResults を流用
+                          // 直近 recentWindow 問でフィルタ（演習開始当初の古いデータは除外）。
+                          // 履歴が無い場合のみ累計(correctCount/incorrectCount)にフォールバック。
+                          const rec = (st?.recentResults ?? []).slice(-recentWindow);
+                          if (rec.length > 0) return (rec.filter(Boolean).length / rec.length) * 100;
                           const cc = st?.correctCount ?? 0; const cum = cc + (st?.incorrectCount ?? 0);
-                          const rec = st?.recentResults ?? [];
-                          const t = cum > 0 ? cum : rec.length;
-                          const c = cum > 0 ? cc : rec.filter(Boolean).length;
-                          return t === 0 ? 101 : (c / t) * 100; // 未演習は末尾へ
+                          return cum > 0 ? (cc / cum) * 100 : 101; // 未演習は末尾へ
                         };
                         return getPct(a) - getPct(b);
                       }).map((domain, di) => {
                         const dIdx = toDomainIndex(targetExam ?? '', domain);
                         const stat = domainStats.find(s => tagIdMatches(s.tagId, targetExam ?? '', dIdx));
-                        // 累計があればそれを、無ければ recentResults（直近の正誤履歴）を流用して集計
+                        // 直近 recentWindow 問で集計。履歴が無ければ累計にフォールバック。
+                        const recent = (stat?.recentResults ?? []).slice(-recentWindow);
                         const cumCorrect = stat?.correctCount ?? 0;
                         const cumTotal = cumCorrect + (stat?.incorrectCount ?? 0);
-                        const recent = stat?.recentResults ?? [];
-                        const correct = cumTotal > 0 ? cumCorrect : recent.filter(Boolean).length;
-                        const total = cumTotal > 0 ? cumTotal : recent.length;
+                        const correct = recent.length > 0 ? recent.filter(Boolean).length : cumCorrect;
+                        const total = recent.length > 0 ? recent.length : cumTotal;
                         const pct = total > 0 ? Math.round((correct / total) * 100) : null;
                         const isWeak = pct !== null && pct < DOMAIN_RATE_WARNING * 100;
                         const isFair = pct !== null && pct < DOMAIN_RATE_CAUTION * 100 && !isWeak;
