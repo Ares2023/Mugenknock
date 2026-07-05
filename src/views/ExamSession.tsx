@@ -209,8 +209,8 @@ export default function ExamSession() {
 
   const CHOICE_LABELS = ['A', 'B', 'C', 'D', 'E'];
 
-  const shuffledIndices = useMemo(() => {
-    if (!currentQ?.choices) return [];
+  const choiceShuffleMap = useRef(new Map<string, number[]>());
+  if (currentQ?.choices && !choiceShuffleMap.current.has(currentQ.questionId)) {
     const idx = currentQ.choices
       .map((_: unknown, i: number) => i)
       .filter((i: number) => currentQ.choices[i] !== WAKARANAI);
@@ -218,8 +218,9 @@ export default function ExamSession() {
       const j = Math.floor(Math.random() * (i + 1));
       [idx[i], idx[j]] = [idx[j], idx[i]];
     }
-    return idx;
-  }, [currentQ?.questionId]); // eslint-disable-line react-hooks/exhaustive-deps
+    choiceShuffleMap.current.set(currentQ.questionId, idx);
+  }
+  const shuffledIndices = choiceShuffleMap.current.get(currentQ?.questionId) ?? [];
 
   const [lastSelected, setLastSelected] = useState<string | null>(null);
   // キーボード操作用カーソル（Web版のみ）

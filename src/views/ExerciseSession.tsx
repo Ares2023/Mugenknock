@@ -515,8 +515,9 @@ export default function ExerciseSession() {
 
   const CHOICE_LABELS = ['A', 'B', 'C', 'D', 'E'];
 
-  const { shuffledChoices, origIndices, labelRemap } = useMemo(() => {
-    if (!currentQuestion?.choices) return { shuffledChoices: [], origIndices: [] as number[], labelRemap: {} as Record<string, string> };
+  type ShuffledQuestion = { shuffledChoices: string[]; origIndices: number[]; labelRemap: Record<string, string> };
+  const choiceShuffleMap = useRef(new Map<string, ShuffledQuestion>());
+  if (currentQuestion?.choices && !choiceShuffleMap.current.has(currentQuestion.questionId)) {
     const indexed = currentQuestion.choices
       .filter((c: string) => c !== WAKARANAI)
       .map((c: string, i: number) => ({ text: c, origIdx: i, origLabel: CHOICE_LABELS[i] }));
@@ -526,8 +527,14 @@ export default function ExerciseSession() {
     }
     const remap: Record<string, string> = {};
     indexed.forEach((item, newIdx) => { remap[item.origLabel] = CHOICE_LABELS[newIdx]; });
-    return { shuffledChoices: indexed.map(x => x.text), origIndices: indexed.map(x => x.origIdx), labelRemap: remap };
-  }, [currentQuestion?.questionId]); // eslint-disable-line react-hooks/exhaustive-deps
+    choiceShuffleMap.current.set(currentQuestion.questionId, {
+      shuffledChoices: indexed.map(x => x.text),
+      origIndices: indexed.map(x => x.origIdx),
+      labelRemap: remap,
+    });
+  }
+  const { shuffledChoices, origIndices, labelRemap } = choiceShuffleMap.current.get(currentQuestion?.questionId)
+    ?? { shuffledChoices: [], origIndices: [] as number[], labelRemap: {} as Record<string, string> };
 
   const remapLabels = (text: string) =>
     text.replace(/(?<![A-Za-z])([A-E])(?![A-Za-z])/g, (_, l) => labelRemap[l] ?? l);
