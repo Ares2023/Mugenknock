@@ -506,7 +506,7 @@ export default function Admin() {
   const [domainFilter, setDomainFilter] = useState('');
   const [keyword, setKeyword] = useState('');
   const [keywordInput, setKeywordInput] = useState('');
-  const [sortBy, setSortBy] = useState<'id_asc' | 'updatedAt_desc' | 'updatedAt_asc' | 'validityCheckedAt_desc' | 'validityCheckedAt_asc' | 'createdAt_desc' | 'createdAt_asc' | 'formatCheckedAt_desc' | 'formatCheckedAt_asc'>('id_asc');
+  const [sortBy, setSortBy] = useState<'id_asc' | 'updatedAt_desc' | 'updatedAt_asc' | 'validityCheckedAt_desc' | 'validityCheckedAt_asc' | 'createdAt_desc' | 'createdAt_asc' | 'formatCheckedAt_desc' | 'formatCheckedAt_asc' | 'correctRate_asc' | 'correctRate_desc' | 'attempts_desc' | 'attempts_asc'>('id_asc');
   const [loadingQ, setLoadingQ] = useState(false);
   const [expandedId, setExpandedId] = useState<string | null>(null);
   const [expandedDetail, setExpandedDetail] = useState<Record<string, Question>>({});
@@ -598,6 +598,8 @@ export default function Admin() {
       if (data.formatCheckedCount   != null) setFormatCheckedCount(data.formatCheckedCount);
       setValidityCheckedSinceCount(data.validityCheckedSinceCount ?? null);
       setFormatCheckedSinceCount(data.formatCheckedSinceCount ?? null);
+      setExerciseCounts(data.exerciseCounts || {});
+      setExerciseCorrectCounts(data.exerciseCorrectCounts || {});
     } catch (err) {
       console.error(err);
     }
@@ -885,6 +887,8 @@ export default function Admin() {
   const [sinceDate, setSinceDate] = useState('');
   const [validityCheckedSinceCount, setValidityCheckedSinceCount] = useState<number | null>(null);
   const [formatCheckedSinceCount, setFormatCheckedSinceCount] = useState<number | null>(null);
+  const [exerciseCounts, setExerciseCounts] = useState<Record<string, number>>({});
+  const [exerciseCorrectCounts, setExerciseCorrectCounts] = useState<Record<string, number>>({});
 
   // 問題プレビュー
   const [showPreview, setShowPreview] = useState(false);
@@ -1510,6 +1514,46 @@ export default function Admin() {
               更新
             </button>
           </div>
+          {/* 演習量サマリー */}
+          {Object.keys(exerciseCounts).length > 0 && (() => {
+            const totalExercise = Object.values(exerciseCounts).reduce((a, b) => a + b, 0);
+            const totalCorrect = Object.values(exerciseCorrectCounts).reduce((a, b) => a + b, 0);
+            const levels = ['Foundational', 'Associate', 'Professional', 'Specialty'] as const;
+            const byLevel: Record<string, string[]> = {};
+            for (const t of EXAM_TYPES) {
+              if (exerciseCounts[t] == null || exerciseCounts[t] === 0) continue;
+              const lv = EXAM_LEVEL[t] ?? 'Other';
+              (byLevel[lv] ??= []).push(t);
+            }
+            return (
+              <div style={{ marginBottom: 14, padding: '10px 14px', background: 'var(--color-bg-main)', borderRadius: 8, border: '1px solid var(--color-border)' }}>
+                <div style={{ display: 'flex', alignItems: 'baseline', gap: 12, marginBottom: 8, flexWrap: 'wrap' }}>
+                  <span style={{ fontSize: 13, fontWeight: 700, color: 'var(--color-text-main)' }}>全ユーザー演習量</span>
+                  <span style={{ fontSize: 18, fontWeight: 700, color: 'var(--color-primary)', fontVariantNumeric: 'tabular-nums' }}>{totalExercise.toLocaleString()}<span style={{ fontSize: 12, fontWeight: 400, color: 'var(--color-text-sub)', marginLeft: 2 }}>回</span></span>
+                  {totalExercise > 0 && <span style={{ fontSize: 12, color: 'var(--color-text-sub)', fontVariantNumeric: 'tabular-nums' }}>正答率 {Math.round(totalCorrect / totalExercise * 100)}%</span>}
+                </div>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+                  {levels.map(lv => !byLevel[lv]?.length ? null : (
+                    <div key={lv} style={{ display: 'flex', gap: 8, alignItems: 'center', flexWrap: 'wrap' }}>
+                      <span style={{ fontSize: 11, color: 'var(--color-text-light)', fontWeight: 700, minWidth: isMobile ? 56 : 88, textAlign: 'right', flexShrink: 0 }}>{isMobile ? lv.slice(0, 4) : lv}</span>
+                      <span style={{ width: 1, height: 14, background: 'var(--color-border)', display: 'inline-block', flexShrink: 0 }} />
+                      {byLevel[lv].map(t => {
+                        const cnt = exerciseCounts[t] ?? 0;
+                        const cor = exerciseCorrectCounts[t] ?? 0;
+                        const rate = cnt > 0 ? Math.round(cor / cnt * 100) : null;
+                        return (
+                          <span key={t} style={{ fontSize: 12, color: 'var(--color-text-sub)', whiteSpace: 'nowrap', fontVariantNumeric: 'tabular-nums' }}>
+                            <span style={{ fontWeight: 700, color: 'var(--color-text-main)' }}>{t}</span>
+                            {' '}{cnt.toLocaleString()}回{rate != null ? <span style={{ color: 'var(--color-text-light)', marginLeft: 2 }}>({rate}%)</span> : null}
+                          </span>
+                        );
+                      })}
+                    </div>
+                  ))}
+                </div>
+              </div>
+            );
+          })()}
           {/* カバレッジ */}
           {totalCount > 0 && (validityCheckedCount != null || formatCheckedCount != null) && (
             <div style={{ marginBottom: 14 }}>
@@ -1638,6 +1682,10 @@ export default function Admin() {
                 <option value="validityCheckedAt_asc">AI確認 (古い順)</option>
                 <option value="formatCheckedAt_desc">体裁確認 (新しい順)</option>
                 <option value="formatCheckedAt_asc">体裁確認 (古い順)</option>
+                <option value="correctRate_asc">正答率 (低い順)</option>
+                <option value="correctRate_desc">正答率 (高い順)</option>
+                <option value="attempts_desc">演習回数 (多い順)</option>
+                <option value="attempts_asc">演習回数 (少ない順)</option>
               </select>
             </div>
 
