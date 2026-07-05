@@ -323,10 +323,9 @@ PYEOF
   [ "${_PC:-0}" -gt 0 ] && echo "✓ ${_PC}件のアイコンをプリフェッチ"
 fi
 
-# ── 2. 利用可能なアイコンファイル一覧を取得（PNG＋SVG両方あるもののみ）─
+# ── 2. 利用可能なアイコンファイル一覧を取得（PNG があれば OK。SVG は優先表示されるが必須ではない）
 ICON_FILES=$(find "$ICON_DIR" -name "*.png" 2>/dev/null | while read p; do
-  base=$(basename "$p" .png)
-  [ -f "${ICON_DIR}/${base}.svg" ] && echo "$base"
+  basename "$p" .png
 done | sort | tr '\n' ',' | sed 's/,$//')
 
 # ── 3. Claude にサービスを生成させる ──────────────────────────
@@ -751,13 +750,13 @@ def try_auto_detect_icon(service_name):
     return None
 
 def ensure_both_formats(fname):
-    """{fname}.png と .svg の両方を icon_dir に揃える。欠けていれば ZIP から取得を試みる。
-    両方揃えば True。要件: 公式アイコンは png も svg も取り込む（svg欠け記事を作らない）。"""
+    """PNG があれば True。SVG もあれば自動的に優先表示されるが必須ではない。
+    欠けている形式があれば ZIP から補完を試みる。"""
     p = os.path.join(icon_dir, f'{fname}.png')
     s = os.path.join(icon_dir, f'{fname}.svg')
     if not (os.path.exists(p) and os.path.exists(s)):
-        try_extract_from_zip(fname)  # png/svg の欠けている方を ZIP から補完
-    return os.path.exists(p) and os.path.exists(s)
+        try_extract_from_zip(fname)  # 欠けている方を ZIP から補完（失敗しても PNG があれば続行）
+    return os.path.exists(p)  # PNG のみで十分
 
 skipped_no_icon = []  # アイコン(png+svg両方)が解決できず記事を作成しなかったサービス
 imported = []
@@ -775,8 +774,7 @@ for svc in services:
     slug       = slug_re.sub('-', short_name.lower()).strip('-')
     service_id = f'svc-{slug}-{order}'
 
-    # アイコン(png+svg両方)が無いサービスは記事を作成しない。
-    # png か svg のどちらかしか無い場合も「未完成アイコン」として作成しない（svg欠け記事を防ぐ）。
+    # PNG がないサービスは記事を作成しない。SVG はあれば優先表示されるが必須ではない。
     if icon:
         fname = os.path.splitext(os.path.basename(icon))[0]
     else:
@@ -784,7 +782,7 @@ for svc in services:
         fname = try_auto_detect_icon(name)
     if not fname or not ensure_both_formats(fname):
         skipped_no_icon.append({'name': name, 'icon': icon or '(未指定)'})
-        print(f'  ⏭  [{order:>3}] {name}: png+svg が揃わないため記事を作成しません')
+        print(f'  ⏭  [{order:>3}] {name}: PNG が無いため記事を作成しません')
         continue
     # icon は常に .png パスに正規化（フロントの ServiceIconImg は .png 前提で svg を優先読み込み）
     icon = f'/icons/aws/{fname}.png'
