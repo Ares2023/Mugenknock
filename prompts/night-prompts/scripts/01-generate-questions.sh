@@ -367,8 +367,13 @@ if [ "$HARD_MODE" -eq 1 ]; then
 この資格の出題レベルの範囲内で、表面的な知識では解けない難問にすること。
 ※絶対条件: 正解は必ず1つに定まり、不正解はいずれも「特定の技術的理由」で明確に誤りであること。複数正解・解釈次第・優劣が曖昧、になる問題は作らない。
 
-1. サービスを共通化する: 可能な限り全選択肢で同じAWSサービス（または同じサービス群）を使い、差は「設定・機能・オプション・構成・運用手順・パラメータ」のレベルに置く。サービス名だけで正解を判別できないようにする。
-   例: 全選択肢が CodeDeploy だが、デプロイ設定/フック/ロールバック条件だけが異なる。
+1. ペア構成で惑わせる（本試験の最頻出パターン・必須）: 4択の選択肢を「2サービス×各2案」のペア構造にすること。
+   - A・B: サービスXを使う2案（設定・構成・動作が異なる）
+   - C・D: サービスYを使う2案（設定・構成・動作が異なる）
+   例: A・B は EC2 Auto Scaling ベース（トリガー条件が異なる2案）、C・D は ECS Fargate ベース（タスク定義が異なる2案）
+   → 「どちらのサービス群が正解か」に加え「そのサービスのどの設定が正しいか」の2段階判断を要求する。
+   → 5択・複数正解の場合も同様に、2〜3のサービス/アプローチを2案ずつ用意して混乱させること。
+   ※ 全選択肢が1サービスだけ（例：全部 CodeDeploy）でも良いが、その場合は設定の差を極力細かくすること。
 
 2. 不正解も実在の妥当な機能・設定にする: いかにも正しそうに見える実在の構成にしつつ、各不正解には「要件を満たさない明確な理由」（非対応・スケール/リージョン制限・前提条件の欠落・パフォーマンスやコストの不適合など）を必ず1つ持たせる。
 
@@ -672,11 +677,15 @@ PYEOF
   )
 
   # チャンク分割（試験の情報量に合わせたサイズ）
-  # 8問なら 3×2+2×1=3回（旧: SAP/ANSは2×4=4回だったが3問に統一）
+  # --hard（拡張思考）は出力トークンが大幅増大するため半減。通常モードより小さくして64000上限に収める。
   case "$NEXT_EXAM" in
     SAP|ANS|SCS|DOP|SOA) CHUNK_SIZE=3; MIN_CHUNK_Q=2 ;;
     *) CHUNK_SIZE=5; MIN_CHUNK_Q=3 ;;
   esac
+  if [ "$HARD_MODE" -eq 1 ]; then
+    CHUNK_SIZE=$(( CHUNK_SIZE > 2 ? CHUNK_SIZE / 2 : 1 ))
+    MIN_CHUNK_Q=1
+  fi
   CHUNKS_TOTAL=$(( (Q_FOR_DOMAIN + CHUNK_SIZE - 1) / CHUNK_SIZE ))
   # 端数チャンクが最低問題数を下回る場合、最初のチャンクに吸収（チャンク数を1減らす）
   _LAST_Q=$(( Q_FOR_DOMAIN % CHUNK_SIZE ))
@@ -777,12 +786,13 @@ PROMPT
 
     # WebFetch は使わない（公式ガイド概要は instructions/*.txt に埋め込み済み・refresh-exam-guide.sh で最新化）。
     # 毎チャンクのページ取得を止めてトークン消費とレート制限の逼迫を削減する。
-    RESULT=$("$CLAUDE_CMD" -p < "$PROMPT_FILE" 2>&1)
+    # CLAUDE_CODE_MAX_OUTPUT_TOKENS=64000: --hard（拡張思考）モードで32000上限エラーを防ぐ
+    RESULT=$(CLAUDE_CODE_MAX_OUTPUT_TOKENS=64000 "$CLAUDE_CMD" -p < "$PROMPT_FILE" 2>&1)
     AI_EXIT=$?
     # npm更新による一時的なバイナリ消失 → 再探索してリトライ
     if [ $AI_EXIT -ne 0 ] && echo "$RESULT" | grep -q "No such file"; then
       CLAUDE_CMD=$(_find_claude)
-      [ -x "${CLAUDE_CMD:-}" ] && { RESULT=$("$CLAUDE_CMD" -p < "$PROMPT_FILE" 2>&1); AI_EXIT=$?; }
+      [ -x "${CLAUDE_CMD:-}" ] && { RESULT=$(CLAUDE_CODE_MAX_OUTPUT_TOKENS=64000 "$CLAUDE_CMD" -p < "$PROMPT_FILE" 2>&1); AI_EXIT=$?; }
     fi
     rm -f "$PROMPT_FILE"
 
@@ -794,6 +804,8 @@ PROMPT
     _HAS_QUESTIONS=0; echo "$RESULT" | grep -q '"questions"' && _HAS_QUESTIONS=1
     # ネットワーク接続エラーはレート制限ではなく一時的な障害として扱う（ロックファイルを作らない）
     _IS_NET_ERROR=0; echo "$_RESULT_HEAD" | grep -qiE "FailedToOpenSocket|connection refused|network error|socket|ECONNREFUSED|ETIMEDOUT" && _IS_NET_ERROR=1
+    # 出力トークン上限超過: 設定ミスか思考過多。このドメインをスキップ（ロックは作らない）
+    _IS_TOKEN_LIMIT=0; echo "$_RESULT_HEAD" | grep -qiE "exceeded.*output token|output token.*maximum|CLAUDE_CODE_MAX_OUTPUT_TOKENS" && _IS_TOKEN_LIMIT=1
     if [ $_RATE_IN_TEXT -eq 1 ] || { [ $AI_EXIT -ne 0 ] && [ $_HAS_QUESTIONS -eq 0 ]; }; then
       if echo "$_RESULT_HEAD" | grep -qiE "command not found|No such file|GEMINI_API_KEY|API.?key"; then
         echo "❌ claude 実行エラー（認証またはコマンド問題）。スクリプトを終了します"
@@ -802,6 +814,12 @@ PROMPT
       fi
       if [ $_IS_NET_ERROR -eq 1 ]; then
         echo "⚠️  ネットワーク接続エラー。残りをスキップ（レート制限ロックは作成しない）"
+        echo "出力: $_RESULT_HEAD"
+        DOMAIN_RATE_LIMITED=1
+        break
+      fi
+      if [ $_IS_TOKEN_LIMIT -eq 1 ]; then
+        echo "⚠️  出力トークン上限超過。このドメインをスキップ（CLAUDE_CODE_MAX_OUTPUT_TOKENS を上げるか、チャンク数を増やしてください）"
         echo "出力: $_RESULT_HEAD"
         DOMAIN_RATE_LIMITED=1
         break

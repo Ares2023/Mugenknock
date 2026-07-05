@@ -20,9 +20,18 @@ AWS Certified DevOps Engineer – Professional (DOP-C02) の模擬試験問題�
 - 問題文（questionText）: 150〜400字（現行パイプライン構成・要件・制約を詳述）
 - 選択肢（choices）: 各40〜100字（DevOpsツールと設定・戦略を明示）
 
+【出題を特に強化するトピック（現在の問題プールで不足しているため積極的に出題すること）】
+- OU（組織単位）を使った SCP 適用スコープの設計・除外戦略（特定OUのみ免除する設計など）
+- Cognito User Pools / Identity Pools を絡めた認証・CI/CD連携（フェデレーション、カスタムドメイン、ユーザーグループ権限など）
+- 委任された管理者（Delegated Administrator）: Organizations 機能の特定サービスをメンバーアカウントに委任するパターン（Security Hub, GuardDuty, Inspector など）
+- Amazon Inspector v2 による脆弱性スキャン自動化（EC2・ECR・Lambda対応、EventBridgeとの連携、修復パイプラインへの組み込み）
+- AWS Organizations における権限管理・ユーザー管理（SCP の継承・上書き・条件キー、IAM Identity Center との連携、クロスアカウントロール委任）
+- AWS Config Rules による変更検知と自動修復（カスタムルール・マネージドルール・Conformance Pack・修復アクション・EventBridge連携）
+
 【避けること】
 - 正解の選択肢の文字数が不正解の選択肢群から浮かないようにすること（正解の文字数を不正解の平均文字数に近づけること）
 - 単純な知識確認（SAA以下レベルの問題）
+- 用語の定義・単一サービスの目的・2サービスの違いをそのまま問う暗記問題（例「Service Catalogの主な目的は？」「ECSタスク定義のCPU/メモリ制限の目的は？」「GuardDutyとSecurity Hubの違いは？」）。Professional水準では必ず複数の要件・制約（可用性/コスト/権限境界/デプロイ速度/監査要件 等）を提示し、それらを同時に満たす構成を比較・取捨選択させるシナリオにすること。誤答も一読で消去できる別サービスの定義文にせず、要件次第で選ばれうるもっともらしい候補にする。
 - DevOpsと無関係なインフラ設計問題
 - 廃止・非推奨のサービス
 

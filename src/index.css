@@ -453,6 +453,43 @@ button:active:not(:disabled) {
   animation: choiceSelect 0.18s ease;
 }
 
+/* ── Portal ランディングページ ── */
+@keyframes portalLogoFloat {
+  0%, 100% { transform: translateY(0px); }
+  50%       { transform: translateY(-6px); }
+}
+
+@keyframes portalStatIn {
+  from { opacity: 0; transform: translateY(10px) scale(0.9); }
+  to   { opacity: 1; transform: none; }
+}
+
+@keyframes portalPulseRing {
+  0%   { box-shadow: 0 4px 18px rgba(255,153,0,0.28), 0 0 0 0 rgba(255,153,0,0.45); }
+  60%  { box-shadow: 0 4px 18px rgba(255,153,0,0.28), 0 0 0 14px rgba(255,153,0,0); }
+  100% { box-shadow: 0 4px 18px rgba(255,153,0,0.28), 0 0 0 0 rgba(255,153,0,0); }
+}
+
+.portal-logo-float {
+  animation: portalLogoFloat 3.8s ease-in-out 0.6s infinite;
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.portal-card {
+  transition: transform 0.28s cubic-bezier(0.22, 1, 0.36, 1), box-shadow 0.28s ease !important;
+  cursor: default;
+}
+.portal-card:hover {
+  transform: translateY(-5px) !important;
+  box-shadow: var(--box-shadow-md) !important;
+}
+
+.portal-cta-pulse {
+  animation: portalPulseRing 2.8s ease-in-out 1.2s infinite;
+}
+
 /* ── レスポンシブ ── */
 
 /* 設定画面の2カラムグリッド → スマホでは縦積み */

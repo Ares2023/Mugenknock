@@ -709,9 +709,14 @@ type DailyService = {
 function resolveServiceIcon(service: DailyService): string {
   const icon = service.icon ?? '';
   if (icon.startsWith('/') || icon.startsWith('http') || isServiceIconKey(icon)) return icon;
+  const norm = (n: string) => n.toLowerCase().replace(/^(amazon|aws)\s+/i, '').trim();
   const lower = service.name.toLowerCase();
+  const normLower = norm(lower);
   for (const cat of CATALOG) {
-    const entry = cat.services.find(s => s.name.toLowerCase() === lower);
+    const entry = cat.services.find(s => {
+      const sl = s.name.toLowerCase();
+      return sl === lower || norm(sl) === normLower;
+    });
     if (entry?.icon) return entry.icon;
   }
   return icon;
@@ -1187,6 +1192,8 @@ export default function Home() {
     // user 確定時にまずローカルを正しい uid で再読込する（サーバ補完の成否に関わらず必要）。
     setQuickDraft(readQuickDraft());
     setFocusedDraft(readFocusedDraft());
+    // scoreWindow も正しい uid で再読込（kvSync プル完了前でもローカル値を反映）
+    setNodeWindow(localStorage.getItem(`scoreWindow_${user.userId}`) === '10' ? 10 : 5);
     hydrateDraftsFromServer(user.userId).then(h => {
       if (!h) return;
       setQuickDraft(readQuickDraft());
@@ -1465,7 +1472,16 @@ export default function Home() {
     if (!targetExam || estimatedScore === null) { setPrevScore(null); return; }
     const prevKey = `score_prev_${targetExam}_${uid}`;
     const raw = localStorage.getItem(prevKey);
-    setPrevScore(raw ? parseInt(raw, 10) : null);
+    if (raw) {
+      try {
+        const parsed = JSON.parse(raw);
+        setPrevScore(parsed && typeof parsed === 'object' && parsed.w === nodeWindow ? parsed.s : null);
+      } catch {
+        setPrevScore(null);
+      }
+    } else {
+      setPrevScore(null);
+    }
 
     // スコア履歴に追記（折れ線グラフ用）
     const histKey = `score_history_${targetExam}_${uid}`;
@@ -1583,7 +1599,7 @@ export default function Home() {
   // サクッと演習
   const startQuickExercise = async () => {
     if (!targetExam) { alert(ja ? '試験を選択してください' : 'Please select an exam'); return; }
-    if (estimatedScore !== null) localStorage.setItem(`score_prev_${targetExam}_${uid}`, String(estimatedScore));
+    if (estimatedScore !== null) localStorage.setItem(`score_prev_${targetExam}_${uid}`, JSON.stringify({ s: estimatedScore, w: nodeWindow }));
     const userId = user?.userId ?? 'guest';
     // ホームのプライマリ枠（サクッと/しっかり対策）のみ確定。演習(practice)・模試(exam)は残す。
     await autoScoreAndClearDrafts(userId, [`quickExerciseDraft_${userId}`, `focusedExerciseDraft_${userId}`]);
@@ -1671,7 +1687,7 @@ export default function Home() {
   const startFocusedExercise = async () => {
     if (!targetExam) { alert(ja ? '試験を選択してください' : 'Please select an exam'); return; }
     if (!user) { alert(ja ? 'ログインが必要です' : 'Login required'); return; }
-    if (estimatedScore !== null) localStorage.setItem(`score_prev_${targetExam}_${uid}`, String(estimatedScore));
+    if (estimatedScore !== null) localStorage.setItem(`score_prev_${targetExam}_${uid}`, JSON.stringify({ s: estimatedScore, w: nodeWindow }));
     // ホームのプライマリ枠（サクッと/しっかり対策）のみ確定。演習(practice)・模試(exam)は残す。
     await autoScoreAndClearDrafts(user.userId, [`quickExerciseDraft_${user.userId}`, `focusedExerciseDraft_${user.userId}`]);
     discardQuickDraft();
@@ -1955,7 +1971,7 @@ export default function Home() {
                 {domains.map((d, i) => {
                   const nodeResults = domainNodeResultsMap[d] ?? [];
                   const correctInNodes = nodeResults.filter(v => !!v).length;
-                  const barPct = nodeResults.length > 0 ? correctInNodes / 5 * 100 : null;
+                  const barPct = nodeResults.length > 0 ? correctInNodes / nodeWindow * 100 : null;
                   const grade = getGrade(barPct);
                   const label = lang === 'en' ? (DOMAIN_NAME_EN[d] ?? d) : d;
                   return (

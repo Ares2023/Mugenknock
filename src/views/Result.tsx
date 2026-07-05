@@ -9,8 +9,33 @@ import Card from '../components/ui/Card';
 import PageLayout from '../components/ui/PageLayout';
 import Button from '../components/ui/Button';
 import Badge from '../components/ui/Badge';
-import { IconChevronDown, IconChevronRight, IconSparkles } from '../components/Icons';
+import { IconChevronDown, IconChevronRight, IconSparkles, IconCopy, IconCheck } from '../components/Icons';
 import KeyHint from '../components/KeyHint';
+
+const CopyButton = ({ getText }: { getText: () => string }) => {
+  const [copied, setCopied] = useState(false);
+  const handleCopy = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    navigator.clipboard.writeText(getText()).then(() => {
+      setCopied(true);
+      setTimeout(() => setCopied(false), 1500);
+    });
+  };
+  const color = copied ? 'var(--color-success)' : 'var(--color-primary)';
+  return (
+    <button
+      onClick={handleCopy}
+      title={copied ? 'コピー済み' : 'コピー'}
+      style={{
+        background: 'none', border: `1.5px solid ${color}`, borderRadius: '50%',
+        width: 28, height: 28, display: 'flex', alignItems: 'center', justifyContent: 'center',
+        cursor: 'pointer', color, transition: 'all 0.2s', flexShrink: 0,
+      }}
+    >
+      {copied ? <IconCheck size={13} /> : <IconCopy size={13} />}
+    </button>
+  );
+};
 
 const QUICK_PREFS_KEY = 'quickExercisePrefs';
 const loadQuickPrefs = () => { try { return JSON.parse(localStorage.getItem(QUICK_PREFS_KEY) ?? '{}'); } catch { return {}; } };
@@ -294,9 +319,22 @@ export default function Result() {
                 </Badge>
               </div>
 
-              {/* 展開：選択肢・解説 */}
+              {/* 展開：問題文・選択肢・解説 */}
               {expanded && (
                 <div style={{ padding: 'var(--spacing-lg) var(--spacing-xl)', borderTop: '1px solid var(--color-border)', background: 'var(--color-bg-main)', fontSize: 'var(--font-size-base)' }}>
+                  {/* 問題文（全文） */}
+                  <div style={{ marginBottom: 'var(--spacing-lg)' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 'var(--spacing-sm)' }}>
+                      <span style={{ fontSize: 'var(--font-size-sm)', color: 'var(--color-text-sub)', fontWeight: 700 }}>{ja ? '問題文' : 'Question'}</span>
+                      <CopyButton getText={() => {
+                        const choicesText = (q.choices ?? []).map((c: string, ci: number) => `${['A','B','C','D','E'][ci]}. ${c}`).join('\n');
+                        return `${q.questionText}\n\n${choicesText}`;
+                      }} />
+                    </div>
+                    <p style={{ margin: 0, fontSize: 'var(--font-size-base)', lineHeight: 1.7, color: 'var(--color-text-main)', whiteSpace: 'pre-wrap', overflowWrap: 'break-word', wordBreak: 'break-word' }}>
+                      {q.questionText}
+                    </p>
+                  </div>
                   <div style={{ marginBottom: 'var(--spacing-lg)', display: 'flex', flexDirection: 'column', gap: 'var(--spacing-sm)' }}>
                     {q.choices?.map((c: string, ci: number) => {
                       const correct = toIdxArr(q.correctAnswerIndices).includes(ci);

@@ -1,7 +1,7 @@
 // ドメイン別統計の永続化ヘルパ。
-// 正準キーは「ドメインの整数 index」。localStorage / UserTagStats / domain-results すべて
-// index 文字列キーで保存する。旧データ（ドメイン名キー）は読み取り時に index へ正規化する。
-import { API_ENDPOINT, questionDomainIndex, QuestionLike } from '../constants';
+// 正準キーは「examType_index」形式（例: "SAA_0"）。
+// localStorage はexamType別キー / UserTagStats も同形式で保存する。
+import { API_ENDPOINT, questionDomainIndex, makeTagId, QuestionLike } from '../constants';
 
 type Sess = { correct: number; total: number };
 
@@ -57,6 +57,8 @@ export function recordSessionDomainStats(opts: {
   // ローカルストレージが空の状態でも蓄積データが上書きされない。
   // 最大30問保持し、苦手分析で直近10/20/30問のフィルタ表示に使う（30問以前は破棄）。
   const dr = readDomainResults(examType, userId);
+  // サーバー送信用: tagId は "examType_index" 形式（例: "SAA_0"）。
+  // 旧形式 ("0") は試験間で共有されていたため廃止。
   const resultsDelta: Record<string, boolean[]> = {};
   try {
     for (const r of results) {
@@ -64,14 +66,15 @@ export function recordSessionDomainStats(opts: {
       if (idx < 0) continue;
       const k = String(idx);
       dr[k] = [...(dr[k] ?? []), r.isCorrect].slice(-30);
-      (resultsDelta[k] = resultsDelta[k] ?? []).push(r.isCorrect);
+      const tagId = makeTagId(examType, idx);
+      (resultsDelta[tagId] = resultsDelta[tagId] ?? []).push(r.isCorrect);
     }
     localStorage.setItem(`domain_results_${examType}_${userId}`, JSON.stringify(dr));
     if (userId && userId !== 'guest') {
       fetch(`${API_ENDPOINT}/users/me/domain-results`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ userId, domainResults: resultsDelta }),
+        body: JSON.stringify({ userId, examType, domainResults: resultsDelta }),
       }).catch(() => {});
     }
   } catch {}
