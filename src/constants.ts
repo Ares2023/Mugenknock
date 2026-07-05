@@ -91,10 +91,15 @@ export function storedDomainsToNames(examType: string, stored: (string | number)
     .filter((n): n is string => !!n);
   return names.length > 0 ? names : [...all];
 }
-// UserTagStats / domain_history の tagId が当該 index に一致するか（tagId は index 文字列）。
-// 第2引数 examType は呼び出し側の安定性のため残置（照合自体には未使用）。
-export function tagIdMatches(tagId: string, _examType: string, idx: number): boolean {
-  return tagId === String(idx);
+// UserTagStats の tagId が当該試験・index に一致するか。
+// 形式: "SAA_0", "DOP_1" 等の "examType_index" 文字列。
+// 旧形式 ("0", "1") はすべての試験で共有されていたため意図的に無視する（試験切替バグの原因）。
+export function tagIdMatches(tagId: string, examType: string, idx: number): boolean {
+  return tagId === `${examType}_${idx}`;
+}
+// domain-results に送る tagId を生成する（"SAA_0" 等）。
+export function makeTagId(examType: string, idx: number): string {
+  return `${examType}_${idx}`;
 }
 // 問題の domain index（旧データ: 文字列は変換、未設定は -1）
 export function questionDomainIndex(q: QuestionLike): number {
