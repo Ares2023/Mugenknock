@@ -11,7 +11,7 @@ AWS Certified DevOps Engineer – Professional (DOP-C02) の模擬試験問題�
 - AWS DevOps ツールチェーンの深い理解が必要
 
 【問題スタイル】
-- 4択（単一正解）または5択から2択の複数正解
+- 4択（単一正解）、5択から2択の複数正解、または6択から3択の複数正解
 - 具体的なパイプライン構成・インシデント対応・運用シナリオを提示
 - CodePipeline / CodeBuild / CodeDeploy / CloudFormation / Systems Manager 等を活用した解決策を問う
 - トレードオフ（デプロイ速度 vs 安全性、自動化 vs 柔軟性）を含める
