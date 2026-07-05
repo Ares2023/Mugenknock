@@ -672,11 +672,15 @@ PYEOF
   )
 
   # チャンク分割（試験の情報量に合わせたサイズ）
-  # 8問なら 3×2+2×1=3回（旧: SAP/ANSは2×4=4回だったが3問に統一）
+  # --hard（拡張思考）は出力トークンが大幅増大するため半減。通常モードより小さくして64000上限に収める。
   case "$NEXT_EXAM" in
     SAP|ANS|SCS|DOP|SOA) CHUNK_SIZE=3; MIN_CHUNK_Q=2 ;;
     *) CHUNK_SIZE=5; MIN_CHUNK_Q=3 ;;
   esac
+  if [ "$HARD_MODE" -eq 1 ]; then
+    CHUNK_SIZE=$(( CHUNK_SIZE > 2 ? CHUNK_SIZE / 2 : 1 ))
+    MIN_CHUNK_Q=1
+  fi
   CHUNKS_TOTAL=$(( (Q_FOR_DOMAIN + CHUNK_SIZE - 1) / CHUNK_SIZE ))
   # 端数チャンクが最低問題数を下回る場合、最初のチャンクに吸収（チャンク数を1減らす）
   _LAST_Q=$(( Q_FOR_DOMAIN % CHUNK_SIZE ))
@@ -777,12 +781,13 @@ PROMPT
 
     # WebFetch は使わない（公式ガイド概要は instructions/*.txt に埋め込み済み・refresh-exam-guide.sh で最新化）。
     # 毎チャンクのページ取得を止めてトークン消費とレート制限の逼迫を削減する。
-    RESULT=$("$CLAUDE_CMD" -p < "$PROMPT_FILE" 2>&1)
+    # CLAUDE_CODE_MAX_OUTPUT_TOKENS=64000: --hard（拡張思考）モードで32000上限エラーを防ぐ
+    RESULT=$(CLAUDE_CODE_MAX_OUTPUT_TOKENS=64000 "$CLAUDE_CMD" -p < "$PROMPT_FILE" 2>&1)
     AI_EXIT=$?
     # npm更新による一時的なバイナリ消失 → 再探索してリトライ
     if [ $AI_EXIT -ne 0 ] && echo "$RESULT" | grep -q "No such file"; then
       CLAUDE_CMD=$(_find_claude)
-      [ -x "${CLAUDE_CMD:-}" ] && { RESULT=$("$CLAUDE_CMD" -p < "$PROMPT_FILE" 2>&1); AI_EXIT=$?; }
+      [ -x "${CLAUDE_CMD:-}" ] && { RESULT=$(CLAUDE_CODE_MAX_OUTPUT_TOKENS=64000 "$CLAUDE_CMD" -p < "$PROMPT_FILE" 2>&1); AI_EXIT=$?; }
     fi
     rm -f "$PROMPT_FILE"
 
@@ -794,6 +799,8 @@ PROMPT
     _HAS_QUESTIONS=0; echo "$RESULT" | grep -q '"questions"' && _HAS_QUESTIONS=1
     # ネットワーク接続エラーはレート制限ではなく一時的な障害として扱う（ロックファイルを作らない）
     _IS_NET_ERROR=0; echo "$_RESULT_HEAD" | grep -qiE "FailedToOpenSocket|connection refused|network error|socket|ECONNREFUSED|ETIMEDOUT" && _IS_NET_ERROR=1
+    # 出力トークン上限超過: 設定ミスか思考過多。このドメインをスキップ（ロックは作らない）
+    _IS_TOKEN_LIMIT=0; echo "$_RESULT_HEAD" | grep -qiE "exceeded.*output token|output token.*maximum|CLAUDE_CODE_MAX_OUTPUT_TOKENS" && _IS_TOKEN_LIMIT=1
     if [ $_RATE_IN_TEXT -eq 1 ] || { [ $AI_EXIT -ne 0 ] && [ $_HAS_QUESTIONS -eq 0 ]; }; then
       if echo "$_RESULT_HEAD" | grep -qiE "command not found|No such file|GEMINI_API_KEY|API.?key"; then
         echo "❌ claude 実行エラー（認証またはコマンド問題）。スクリプトを終了します"
@@ -802,6 +809,12 @@ PROMPT
       fi
       if [ $_IS_NET_ERROR -eq 1 ]; then
         echo "⚠️  ネットワーク接続エラー。残りをスキップ（レート制限ロックは作成しない）"
+        echo "出力: $_RESULT_HEAD"
+        DOMAIN_RATE_LIMITED=1
+        break
+      fi
+      if [ $_IS_TOKEN_LIMIT -eq 1 ]; then
+        echo "⚠️  出力トークン上限超過。このドメインをスキップ（CLAUDE_CODE_MAX_OUTPUT_TOKENS を上げるか、チャンク数を増やしてください）"
         echo "出力: $_RESULT_HEAD"
         DOMAIN_RATE_LIMITED=1
         break
