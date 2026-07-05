@@ -791,7 +791,7 @@ app.get('/admin/questions/summary', async (req, res) => {
         IndexName: 'examType-index',
         KeyConditionExpression: 'examType = :e',
         ExpressionAttributeValues: { ':e': et },
-        ProjectionExpression: 'examType, #dom, isHidden, validityCheckedAt, formatCheckedAt',
+        ProjectionExpression: 'examType, #dom, isHidden, validityCheckedAt, formatCheckedAt, globalAttempts, globalCorrect',
         ExpressionAttributeNames: { '#dom': 'domain' },
       })
     ));
@@ -799,16 +799,20 @@ app.get('/admin/questions/summary', async (req, res) => {
     const visible = items.filter(i => !i.isHidden);
     const examCounts = {};
     const domainCounts = {};
+    const exerciseCounts = {};
+    const exerciseCorrectCounts = {};
     for (const item of visible) {
       const { examType } = item;
       examCounts[examType] = (examCounts[examType] || 0) + 1;
       if (!domainCounts[examType]) domainCounts[examType] = {};
       const dn = qDomainName(item);
       if (dn) domainCounts[examType][dn] = (domainCounts[examType][dn] || 0) + 1;
+      exerciseCounts[examType] = (exerciseCounts[examType] || 0) + (item.globalAttempts || 0);
+      exerciseCorrectCounts[examType] = (exerciseCorrectCounts[examType] || 0) + (item.globalCorrect || 0);
     }
     const validityCheckedCount = visible.filter(i => i.validityCheckedAt).length;
     const formatCheckedCount   = visible.filter(i => i.formatCheckedAt).length;
-    const result = { examCounts, domainCounts, totalCount: visible.length, validityCheckedCount, formatCheckedCount };
+    const result = { examCounts, domainCounts, totalCount: visible.length, validityCheckedCount, formatCheckedCount, exerciseCounts, exerciseCorrectCounts };
     if (sinceDate && /^\d{4}-\d{2}-\d{2}$/.test(sinceDate)) {
       const threshold = sinceDate + 'T00:00:00';
       result.validityCheckedSinceCount = visible.filter(i => i.validityCheckedAt && i.validityCheckedAt >= threshold).length;
@@ -1008,6 +1012,13 @@ app.get('/admin/questions', async (req, res) => {
       } else if (sortField === 'formatCheckedAt') {
         const da = a.formatCheckedAt || '0', db = b.formatCheckedAt || '0';
         return sortDir === 'desc' ? db.localeCompare(da) : da.localeCompare(db);
+      } else if (sortField === 'correctRate') {
+        const ra = (a.globalAttempts || 0) > 0 ? (a.globalCorrect || 0) / a.globalAttempts : -1;
+        const rb = (b.globalAttempts || 0) > 0 ? (b.globalCorrect || 0) / b.globalAttempts : -1;
+        return sortDir === 'desc' ? rb - ra : ra - rb;
+      } else if (sortField === 'attempts') {
+        const ra = a.globalAttempts || 0, rb = b.globalAttempts || 0;
+        return sortDir === 'desc' ? rb - ra : ra - rb;
       } else {
         return a.questionId.localeCompare(b.questionId);
       }
