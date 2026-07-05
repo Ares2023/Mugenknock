@@ -249,6 +249,7 @@ export const CATALOG: Category[] = [
       { name: 'AWS Firewall Manager',                 serviceIds: ['svc-firewall-manager-96'],                icon: '/icons/aws/FirewallManager.png' },
       { name: 'AWS Network Firewall',                 serviceIds: ['svc-network-firewall-76'],                icon: '/icons/aws/NetworkFirewall.png' },
       { name: 'AWS Artifact',                         icon: '/icons/aws/Artifact.png' },
+      { name: 'AWS Audit Manager',                    icon: '/icons/aws/AuditManager.png' },
       { name: 'Detective',                            serviceIds: ['svc-detective-97'],                       icon: '/icons/aws/Detective.png' },
       { name: 'AWS Signer' },
       { name: 'Security Lake',                        icon: '/icons/aws/SecurityLake.png' },
