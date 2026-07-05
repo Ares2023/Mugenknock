@@ -11,6 +11,8 @@ interface RevealProps extends React.HTMLAttributes<HTMLDivElement> {
   offset?: number;
   /** アニメーション種別: fade(下から上)・pop(スケール)・left(左から右) */
   variant?: RevealVariant;
+  /** IntersectionObserver の rootMargin。負値でトリガーを遅らせる。例: '-10px 0px -80px 0px' */
+  rootMargin?: string;
 }
 
 /**
@@ -23,6 +25,7 @@ const Reveal: React.FC<RevealProps> = ({
   threshold = 0.12,
   offset = 16,
   variant = 'fade',
+  rootMargin = '0px 0px 0px 0px',
   style,
   ...rest
 }) => {
@@ -49,7 +52,7 @@ const Reveal: React.FC<RevealProps> = ({
           }
         }
       },
-      { threshold },
+      { threshold, rootMargin },
     );
     ob.observe(el);
     return () => ob.disconnect();

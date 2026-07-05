@@ -4,7 +4,7 @@ import { Helmet } from '@/compat/react-helmet-async';
 import { Navigate, useNavigate } from '@/compat/react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { useLanguage } from '../contexts/LanguageContext';
-import { IconUser } from '../components/Icons';
+import { IconUser, IconBot, IconTarget, IconTrendingUp } from '../components/Icons';
 import Reveal from '../components/Reveal';
 
 const QUESTION_COUNT = 3600;
@@ -24,23 +24,23 @@ const BENEFITS: { ja: string; en: string }[] = [
   },
 ];
 
-const FEATURES: { ja_title: string; en_title: string; ja: string; en: string; icon: string }[] = [
+const FEATURES: { ja_title: string; en_title: string; ja: string; en: string; icon: React.ReactNode }[] = [
   {
-    icon: '🤖',
+    icon: <IconBot size={24} />,
     ja_title: 'AI生成の練習問題',
     en_title: 'AI-Generated Questions',
     ja: `Claude AIが作成した全12資格対応の本番同等問題を${QUESTION_COUNT.toLocaleString()}問以上収録。各選択肢ごとの解説付きで、正解だけでなく不正解の理由まで理解できます。`,
     en: `Over ${QUESTION_COUNT.toLocaleString()} exam-grade questions across all 12 AWS certifications, created by Claude AI with per-choice explanations — learn not just what's right, but why each option is wrong.`,
   },
   {
-    icon: '🎯',
+    icon: <IconTarget size={24} />,
     ja_title: '4つの学習モード',
     en_title: 'Four Study Modes',
     ja: 'サクッと演習・演習・模試・しっかり対策の4モードを搭載。スキマ時間の短期演習から本番形式の模試、苦手問題の重点練習まで目的に合わせて選べます。',
     en: 'Four modes: quick session, step-by-step practice, timed exam simulation, and focused training on weak/incorrect questions — pick what fits your goal.',
   },
   {
-    icon: '📊',
+    icon: <IconTrendingUp size={24} />,
     ja_title: '弱点分析・学習記録',
     en_title: 'Analysis & Progress Tracking',
     ja: 'ドメイン別の正答率グラフで苦手分野を即把握。週間達成状況・予想スコア推移・解答履歴を記録し、成長の軌跡を可視化します。',
@@ -108,6 +108,9 @@ export default function Portal() {
 
   const trans = (delay: number) =>
     `opacity 0.65s ease ${delay}ms, transform 0.65s cubic-bezier(0.22, 1, 0.36, 1) ${delay}ms`;
+
+  // スクロールRevealのトリガーを遅らせる: -80px で要素が80px以上ビューポート内に入ってから発火
+  const rv = { rootMargin: '-10px 0px -80px 0px', threshold: 0.1 } as const;
 
   return (
     <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', background: 'var(--color-bg-main)', color: 'var(--color-text-main)', fontFamily: 'inherit' }}>
@@ -242,7 +245,7 @@ export default function Portal() {
 
           {/* ── メリット ── */}
           <section style={{ marginBottom: isMobile ? 'var(--spacing-xl)' : 48 }}>
-            <Reveal variant="left" offset={20}>
+            <Reveal {...rv} variant="left" offset={20}>
               <h2 style={{
                 fontSize: isMobile ? 'var(--font-size-h3)' : 'var(--font-size-h2)',
                 fontWeight: 800, color: 'var(--color-text-main)',
@@ -254,7 +257,7 @@ export default function Portal() {
             </Reveal>
             <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--spacing-sm)' }}>
               {BENEFITS.map((b, i) => (
-                <Reveal key={i} delay={i * 80} offset={20} style={{
+                <Reveal key={i} {...rv} delay={i * 80} offset={20} style={{
                   display: 'flex', alignItems: 'flex-start', gap: 14,
                   background: 'var(--color-bg-white)',
                   border: '1px solid var(--color-border)',
@@ -262,7 +265,7 @@ export default function Portal() {
                   boxShadow: 'var(--box-shadow-sm)',
                   padding: '14px 16px',
                 }}>
-                  <Reveal variant="pop" delay={i * 80 + 60} style={{ flexShrink: 0 }}>
+                  <Reveal variant="pop" {...rv} delay={i * 80 + 60} style={{ flexShrink: 0 }}>
                     <span style={{
                       width: 24, height: 24, borderRadius: '50%',
                       background: 'var(--color-accent)', color: '#fff',
@@ -278,7 +281,7 @@ export default function Portal() {
 
           {/* ── 機能 ── */}
           <section style={{ marginBottom: isMobile ? 'var(--spacing-xl)' : 48 }}>
-            <Reveal variant="left" offset={20}>
+            <Reveal {...rv} variant="left" offset={20}>
               <h2 style={{
                 fontSize: isMobile ? 'var(--font-size-h3)' : 'var(--font-size-h2)',
                 fontWeight: 800, color: 'var(--color-text-main)',
@@ -290,14 +293,19 @@ export default function Portal() {
             </Reveal>
             <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : 'repeat(3, 1fr)', gap: 14 }}>
               {FEATURES.map((f, i) => (
-                <Reveal key={i} delay={i * 80} offset={20} className="portal-card" style={{
+                <Reveal key={i} {...rv} delay={i * 80} offset={20} className="portal-card" style={{
                   background: 'var(--color-bg-white)',
                   border: '1px solid var(--color-border)',
                   borderRadius: 'var(--border-radius-md)',
                   boxShadow: 'var(--box-shadow-sm)',
                   padding: '20px 16px',
                 }}>
-                  <div style={{ fontSize: 28, marginBottom: 'var(--spacing-sm)', lineHeight: 1 }}>{f.icon}</div>
+                  <div style={{
+                    width: 40, height: 40, borderRadius: 'var(--border-radius-md)',
+                    background: 'var(--color-primary-light)', color: 'var(--color-primary)',
+                    display: 'flex', alignItems: 'center', justifyContent: 'center',
+                    marginBottom: 'var(--spacing-sm)',
+                  }}>{f.icon}</div>
                   <div style={{ fontSize: 'var(--font-size-sm2)', fontWeight: 800, color: 'var(--color-primary)', marginBottom: 'var(--spacing-sm)' }}>{ja ? f.ja_title : f.en_title}</div>
                   <p style={{ margin: 0, fontSize: isMobile ? 'var(--font-size-sm)' : 'var(--font-size-sm2)', color: 'var(--color-text-sub)', lineHeight: 1.75 }}>{ja ? f.ja : f.en}</p>
                 </Reveal>
@@ -307,7 +315,7 @@ export default function Portal() {
 
           {/* ── 開発の意図・目的 ── */}
           <section>
-            <Reveal variant="left" offset={20}>
+            <Reveal {...rv} variant="left" offset={20}>
               <h2 style={{
                 fontSize: isMobile ? 'var(--font-size-h3)' : 'var(--font-size-h2)',
                 fontWeight: 800, color: 'var(--color-text-main)',
@@ -317,7 +325,7 @@ export default function Portal() {
                 {ja ? '本サイトのポリシー' : 'Our Policy'}
               </h2>
             </Reveal>
-            <Reveal style={{
+            <Reveal {...rv} style={{
               background: 'var(--color-bg-white)',
               border: '1px solid var(--color-border)',
               borderLeft: '4px solid var(--color-accent)',
@@ -345,7 +353,7 @@ export default function Portal() {
               {/* 比較行 — スタッガーReveal */}
               <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--spacing-sm)', margin: '0 0 var(--spacing-md)' }}>
                 {COMPARE_ROWS.map((row, i) => (
-                  <Reveal key={i} delay={i * 70} offset={12} style={{ display: 'flex', alignItems: 'center', gap: 'var(--spacing-sm)', flexWrap: 'wrap' }}>
+                  <Reveal key={i} {...rv} delay={i * 70} offset={12} style={{ display: 'flex', alignItems: 'center', gap: 'var(--spacing-sm)', flexWrap: 'wrap' }}>
                     <span style={{ fontSize: isMobile ? 'var(--font-size-xs)' : 'var(--font-size-sm)', color: 'var(--color-text-light)', textDecoration: 'line-through' }}>{ja ? row.p[0] : row.p[1]}</span>
                     <span style={{ color: 'var(--color-accent)', fontWeight: 800, flexShrink: 0 }}>→</span>
                     <span style={{ fontSize: isMobile ? 'var(--font-size-sm2)' : 'var(--font-size-base)', color: 'var(--color-text-main)', fontWeight: 700 }}>{ja ? row.s[0] : row.s[1]}</span>
