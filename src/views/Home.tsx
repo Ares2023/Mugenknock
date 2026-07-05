@@ -709,9 +709,14 @@ type DailyService = {
 function resolveServiceIcon(service: DailyService): string {
   const icon = service.icon ?? '';
   if (icon.startsWith('/') || icon.startsWith('http') || isServiceIconKey(icon)) return icon;
+  const norm = (n: string) => n.toLowerCase().replace(/^(amazon|aws)\s+/i, '').trim();
   const lower = service.name.toLowerCase();
+  const normLower = norm(lower);
   for (const cat of CATALOG) {
-    const entry = cat.services.find(s => s.name.toLowerCase() === lower);
+    const entry = cat.services.find(s => {
+      const sl = s.name.toLowerCase();
+      return sl === lower || norm(sl) === normLower;
+    });
     if (entry?.icon) return entry.icon;
   }
   return icon;
