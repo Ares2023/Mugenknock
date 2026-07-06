@@ -514,12 +514,14 @@ export default function Growth() {
           </div>
           <div style={chartBoxStyle}>
             <div style={{ fontSize: 'var(--font-size-sm)', fontWeight: 700, color: 'var(--color-text-sub)', marginBottom: 8 }}>
-              {lang === 'ja' ? '累計生成数の推移' : 'Cumulative generated'}
+              {lang === 'ja'
+                ? (isDaily ? '日次生成数の推移' : '月次生成数の推移')
+                : (isDaily ? 'Daily generated' : 'Monthly generated')}
             </div>
             <DualLineChart
               labels={labels}
-              s1={src.createdCumulative}
-              label1={lang === 'ja' ? '累計生成数' : 'Cumulative'}
+              s1={src.created}
+              label1={lang === 'ja' ? '生成数' : 'Generated'}
               color1={COLOR_GENERATION}
               isMobile={isMobile}
               animate={animate}
@@ -544,7 +546,9 @@ export default function Growth() {
           <div style={chartBoxStyle}>
             <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', marginBottom: 8 }}>
               <span style={{ fontSize: 'var(--font-size-sm)', fontWeight: 700, color: 'var(--color-text-sub)' }}>
-                {lang === 'ja' ? '累計チェック数の推移' : 'Cumulative verified'}
+                {lang === 'ja'
+                  ? (isDaily ? '日次チェック数の推移' : '月次チェック数の推移')
+                  : (isDaily ? 'Daily verified' : 'Monthly verified')}
               </span>
               <span style={{ fontSize: 'var(--font-size-xs)', color: 'var(--color-text-light)', flexShrink: 0, marginLeft: 12 }}>
                 {lang === 'ja'
@@ -555,13 +559,12 @@ export default function Growth() {
             </div>
             <DualLineChart
               labels={labels}
-              s1={src.verifiedCumulative}
-              label1={lang === 'ja' ? '累計チェック数' : 'Cumulative checked'}
+              s1={src.verified}
+              label1={lang === 'ja' ? 'チェック数' : 'Verified'}
               color1={COLOR_CHECK}
-              s2={src.createdCumulative}
-              label2={lang === 'ja' ? '累計生成数' : 'Cumulative generated'}
+              s2={src.created}
+              label2={lang === 'ja' ? '生成数' : 'Generated'}
               color2="#94a3b8"
-              markerLabel={`${checkRate.toFixed(1)}%`}
               isMobile={isMobile}
               animate={animate}
             />
