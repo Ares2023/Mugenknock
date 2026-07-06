@@ -1,0 +1,133 @@
+[
+  {
+    "questionId": "clf-637af08d",
+    "examType": "CLF",
+    "verdict": "warn",
+    "currentness": "ok",
+    "difficulty": "appropriate",
+    "scope": "in",
+    "format": "ok",
+    "mockSuitable": true,
+    "issues": [
+      "実測正答率20%（10件）は悪問疑い水準に近い。Elastic BeanstalkもLB・ASを自動管理するため「EC2ベースであり、より多くの管理が発生します」という解説だけでは不十分。『EC2インスタンスが見えるためインフラ意識が残る』『App Runnerはインフラの概念自体が不要』という根本的差異を明示しないと受験者が誤答しやすい。",
+      "FargateをApp Runnerとの対比で「コンテナオーケストレーション基盤」と表現しているが、FargateはECS/EKSのコンピューティングエンジンでありオーケストレーター自体ではない。誤解を生む表現。"
+    ]
+  },
+  {
+    "questionId": "clf-3405ed73",
+    "examType": "CLF",
+    "verdict": "warn",
+    "currentness": "ok",
+    "difficulty": "appropriate",
+    "scope": "in",
+    "format": "ok",
+    "mockSuitable": true,
+    "issues": [
+      "実測正答率14%（14件）は悪問疑い水準。SNSの不正解理由の解説が致命的に弱い：SNS単体はEC2状態変化イベントを能動的に検知できず、EventBridgeがイベント検知役を担って初めてSNSにファンアウトできる。この構造的差異（イベント検知 vs メッセージ配送）を解説に書かなければ、SNSでも要件を満たせると考えた受験者が納得できない。正解はEventBridgeで正しいが解説の補強が必要。"
+    ]
+  },
+  {
+    "questionId": "clf-3b10138e",
+    "examType": "CLF",
+    "verdict": "ok",
+    "currentness": "ok",
+    "difficulty": "appropriate",
+    "scope": "in",
+    "format": "ok",
+    "mockSuitable": true,
+    "issues": []
+  },
+  {
+    "questionId": "clf-fb985595",
+    "examType": "CLF",
+    "verdict": "warn",
+    "currentness": "ok",
+    "difficulty": "too_easy",
+    "scope": "in",
+    "format": "ok",
+    "mockSuitable": true,
+    "issues": [
+      "問題文に『単一のアベイラビリティーゾーンで障害が発生してもサービス提供を中断させない』と書いており、高可用性の定義そのものをほぼ直接述べている。消去法（弾力性＝スケール、スケーラビリティ＝容量拡張、俊敏性＝速度）でも容易に正解でき、ひっかけが機能しない。『複数AZへの分散配置』を自明に示さない別シナリオ設計（例：RTO要件や冗長構成費用を絡める）にすると本番相当の難易度になる。"
+    ]
+  },
+  {
+    "questionId": "clf-3ab26829",
+    "examType": "CLF",
+    "verdict": "ok",
+    "currentness": "ok",
+    "difficulty": "appropriate",
+    "scope": "in",
+    "format": "ok",
+    "mockSuitable": true,
+    "issues": []
+  },
+  {
+    "questionId": "clf-b517c863",
+    "examType": "CLF",
+    "verdict": "warn",
+    "currentness": "ok",
+    "difficulty": "too_easy",
+    "scope": "in",
+    "format": "ok",
+    "mockSuitable": true,
+    "issues": [
+      "問題文に「消費モデル（使った分だけ支払う）」「ビジネス価値あたりのコストを下げること」というコスト最適化の定義そのものが盛り込まれており、正解がほぼ自明。本番CLFはもう少し間接的な言い回しで正解を隠す。",
+      "正解選択肢[0]の説明文も問題文のキーワードをほぼそのまま繰り返しており、消去法すら不要で正解に到達できる。"
+    ]
+  },
+  {
+    "questionId": "clf-613279db",
+    "examType": "CLF",
+    "verdict": "ok",
+    "currentness": "ok",
+    "difficulty": "appropriate",
+    "scope": "in",
+    "format": "ok",
+    "mockSuitable": true,
+    "issues": [
+      "選択肢[1][2]がAWS側の費用である点は容易に除外でき実質2択に絞られやすい。改善するなら、不正解にハードウェア減価償却・保守契約費など別のオンプレコスト項目を混ぜるとひっかけ力が上がる（現状は軽微な指摘のみ）。"
+    ]
+  },
+  {
+    "questionId": "dop-q-039",
+    "examType": "DOP",
+    "verdict": "ng",
+    "currentness": "ok",
+    "difficulty": "too_easy",
+    "scope": "in",
+    "format": "ok",
+    "mockSuitable": false,
+    "issues": [
+      "「AWS Service Catalogの主な目的は？」という定義問いはProfessional試験の水準を大きく下回る。本番DOPはLaunch ConstraintやSCP連携によるガバナンス設計、複数アカウントへのPortfolio共有、CI/CDパイプラインとの統合などをシナリオ形式で問う。",
+      "不正解の選択肢がECR・Marketplace・Cost Explorerと全く別カテゴリのサービスを指しており、Professional受験者なら消去法で即座に正解へ到達できる。もっともらしい誤答（例：CloudFormation StackSetsとの使い分け、AWS Configとの混同）が必要。"
+    ]
+  },
+  {
+    "questionId": "dop-q-049",
+    "examType": "DOP",
+    "verdict": "warn",
+    "currentness": "ok",
+    "difficulty": "too_easy",
+    "scope": "in",
+    "format": "ok",
+    "mockSuitable": true,
+    "issues": [
+      "ECSタスク定義のCPU・メモリ制限の目的を問う設問はAssociate相当の基礎知識。DOP水準にするには、EC2起動タイプにおけるハードリミット vs ソフトリミットの使い分けやFargate課金への影響をシナリオで問うべき。",
+      "不正解の選択肢（イメージサイズ制限・ネットワーク帯域・起動順序）はいずれもCPU/メモリ設定と明らかに無関係であり、Professional受験者には即時除外できる水準。"
+    ]
+  },
+  {
+    "questionId": "dop-q-024",
+    "examType": "DOP",
+    "verdict": "warn",
+    "currentness": "ok",
+    "difficulty": "appropriate",
+    "scope": "in",
+    "format": "ok",
+    "mockSuitable": true,
+    "issues": [
+      "選択肢[2]「両サービスはまったく同じ機能でリージョンが異なるだけ」は非現実的すぎる誤答であり本番試験には登場しないレベル。Inspector連携やEventBridgeによる自動修復との混同など、もっともらしい誤答に差し替えるべき。",
+      "2サービスの比較という方向性はDOPに適切だが、問い方をマルチアカウントでの検出結果集約設計などの実践シナリオに変えるとProfessional水準に見合った難易度になる。"
+    ]
+  }
+]

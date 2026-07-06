@@ -1,0 +1,366 @@
+[
+  {
+    "questionId": "sap-b89a4e75",
+    "examType": "SAP",
+    "verdict": "ok",
+    "currentness": "ok",
+    "difficulty": "appropriate",
+    "scope": "in",
+    "format": "ok",
+    "mockSuitable": true,
+    "issues": [
+      "正解肢に「Strangler Figパターン」という語が明示されており、パターン名を知っていれば選びやすい面はあるが、不正解肢（API GW全面再実装/CloudFrontフェイルオーバー/App2Container）はいずれも要件との差分を要判断でひっかけとして機能しており本番相当。"
+    ]
+  },
+  {
+    "questionId": "sap-b40b6f25",
+    "examType": "SAP",
+    "verdict": "ok",
+    "currentness": "ok",
+    "difficulty": "appropriate",
+    "scope": "in",
+    "format": "ok",
+    "issues": [],
+    "mockSuitable": true
+  },
+  {
+    "questionId": "sap-d40e1ed8",
+    "examType": "SAP",
+    "verdict": "warn",
+    "currentness": "ok",
+    "difficulty": "appropriate",
+    "scope": "in",
+    "format": "ok",
+    "mockSuitable": true,
+    "issues": [
+      "正解肢の「S3イベントでジョブを投入」は厳密には不正確。S3イベントから直接AWS Batchのジョブは投入できず、実際はLambda/EventBridgeを介在させる必要がある。正誤判定には影響しないが、正解肢の記述としては技術的に曖昧。"
+    ]
+  },
+  {
+    "questionId": "sap-f04c7e4d",
+    "examType": "SAP",
+    "verdict": "ok",
+    "currentness": "ok",
+    "difficulty": "appropriate",
+    "scope": "in",
+    "format": "ok",
+    "issues": [],
+    "mockSuitable": true
+  },
+  {
+    "questionId": "sap-d9a02639",
+    "examType": "SAP",
+    "verdict": "ok",
+    "currentness": "ok",
+    "difficulty": "appropriate",
+    "scope": "in",
+    "format": "ok",
+    "issues": [],
+    "mockSuitable": true
+  },
+  {
+    "questionId": "sap-1da40fd4",
+    "examType": "SAP",
+    "verdict": "warn",
+    "currentness": "ok",
+    "difficulty": "too_easy",
+    "scope": "in",
+    "format": "ok",
+    "mockSuitable": true,
+    "issues": [
+      "S3/DynamoDBのゲートウェイエンドポイントでNATコストを削るのは頻出かつ半ばAssociate級の定番論点で、SAPとしてはやや易しい",
+      "不正解選択肢の質が弱い（選択肢2のDAX/Transfer Acceleration、選択肢3の同一VPC内AZ間ピアリングは明らかに誤りで消去が容易）。ひっかけの練り込みが不足",
+      "後述の問題4と論点がほぼ重複（NATコスト削減×ゲートウェイエンドポイント）しており、同一模試内では冗長"
+    ]
+  },
+  {
+    "questionId": "sap-8ca16660",
+    "examType": "SAP",
+    "verdict": "ok",
+    "currentness": "ok",
+    "difficulty": "appropriate",
+    "scope": "in",
+    "format": "ok",
+    "mockSuitable": true,
+    "issues": [
+      "AWS Fault Injection Service（FIS）は現行名称・仕様と一致。Resilience Hubを含む不正解がもっともらしくSAP相当のシナリオとして良質",
+      "解説本文で選択肢を「A/C/D」と英字で参照しているが問題は数字インデックスであり、表記が不統一（軽微）"
+    ]
+  },
+  {
+    "questionId": "sap-98adeecc",
+    "examType": "SAP",
+    "verdict": "ok",
+    "currentness": "ok",
+    "difficulty": "appropriate",
+    "scope": "in",
+    "format": "ok",
+    "mockSuitable": true,
+    "issues": [
+      "Patch Manager＋メンテナンスウィンドウ＋State Manager＋Explorer（Organizations横断集約）はいずれも現行仕様と整合。破壊的置換・Inspector手動記録など不正解も妥当",
+      "解説本文で「A/C/D」と英字参照しており数字インデックスと不統一（軽微）"
+    ]
+  },
+  {
+    "questionId": "sap-3a9cd8c2",
+    "examType": "SAP",
+    "verdict": "ok",
+    "currentness": "ok",
+    "difficulty": "appropriate",
+    "scope": "in",
+    "format": "ok",
+    "mockSuitable": true,
+    "issues": [
+      "ゲートウェイVPCエンドポイント＋Topology Aware RoutingでNATコストとAZ間転送を同時に抑える構成は現行で妥当。S3インターフェイスエンドポイントの課金差など不正解も正確",
+      "問題1とNATコスト削減×ゲートウェイエンドポイントの主眼が重複。ただしEKS＋クロスAZルーティングの要素で難易度は上がっており単体では成立"
+    ]
+  },
+  {
+    "questionId": "sap-b6a10bc2",
+    "examType": "SAP",
+    "verdict": "ok",
+    "currentness": "ok",
+    "difficulty": "appropriate",
+    "scope": "in",
+    "format": "ok",
+    "mockSuitable": true,
+    "issues": [
+      "SQS FIFO（メッセージグループID＝順序と分散）＋コンテンツベース重複排除＋DynamoDB条件付き書き込みの冪等制御は要件を最も確実に満たし、Kinesis/SNS FIFOファンアウト/標準キューの不正解も的確。現行仕様と整合"
+    ]
+  },
+  {
+    "questionId": "sap-eb201dd4",
+    "examType": "SAP",
+    "verdict": "warn",
+    "currentness": "ok",
+    "difficulty": "appropriate",
+    "scope": "in",
+    "format": "ok",
+    "mockSuitable": true,
+    "issues": [
+      "問題2(sap-0fa653fa)と正解(DRS＋リードレプリカ)・要件(RTO30分/RPO5分・常時同規模稼働不可・コスト最小)がほぼ同一で、出題プールとして重複感が強い",
+      "制約『本番同規模の常時稼働は認めない』が選択肢2を一読で除外させ、消去法で正解が絞りやすい（ひっかけ度がやや低い）"
+    ]
+  },
+  {
+    "questionId": "sap-0fa653fa",
+    "examType": "SAP",
+    "verdict": "warn",
+    "currentness": "ok",
+    "difficulty": "appropriate",
+    "scope": "in",
+    "format": "ok",
+    "mockSuitable": true,
+    "issues": [
+      "問題1(sap-eb201dd4)とDRSを正解とするDRシナリオが実質重複（オンプレ発 vs AWS内という差はあるが問われる知識は同一）",
+      "選択肢D(ウォームスタンバイ)以外はRTO/RPOで即除外でき、実質2択に絞られやすい"
+    ]
+  },
+  {
+    "questionId": "sap-6937c4ad",
+    "examType": "SAP",
+    "verdict": "ok",
+    "currentness": "ok",
+    "difficulty": "appropriate",
+    "scope": "in",
+    "format": "ok",
+    "mockSuitable": true,
+    "issues": []
+  },
+  {
+    "questionId": "sap-f7ad233a",
+    "examType": "SAP",
+    "verdict": "warn",
+    "currentness": "ok",
+    "difficulty": "appropriate",
+    "scope": "in",
+    "format": "ok",
+    "mockSuitable": true,
+    "issues": [
+      "要件に『顧客単位の処理順序の維持』が含まれるが、正解の冪等性キー方式は順序保証を本質的に提供せず解説も『属性で担保』と曖昧に流している。順序をネイティブに保証するのは選択肢0(SQS FIFO)の側で、両要件を単独で満たす選択肢が存在しない設問になっている",
+      "SQS FIFOの重複排除5分制限という核心の知識で正誤が決まる良問だが、上記の順序要件の扱いで論理が甘い"
+    ]
+  },
+  {
+    "questionId": "sap-b5f6c99b",
+    "examType": "SAP",
+    "verdict": "ok",
+    "currentness": "ok",
+    "difficulty": "appropriate",
+    "scope": "in",
+    "format": "ok",
+    "mockSuitable": true,
+    "issues": []
+  },
+  {
+    "questionId": "sap-71c2f7ae",
+    "examType": "SAP",
+    "verdict": "ok",
+    "currentness": "ok",
+    "difficulty": "appropriate",
+    "scope": "in",
+    "format": "ok",
+    "mockSuitable": true,
+    "issues": []
+  },
+  {
+    "questionId": "sap-c2026c53",
+    "examType": "SAP",
+    "verdict": "ok",
+    "currentness": "ok",
+    "difficulty": "appropriate",
+    "scope": "in",
+    "format": "ok",
+    "mockSuitable": true,
+    "issues": [
+      "Aurora Global Database + DynamoDB グローバルテーブルの組み合わせはSAPでは頻出の定番パターンで、上級者にはやや自明寄り。ただし不正解肢（RDSクロスリージョンリードレプリカ／ElastiCache／AWS Backup+パイロットライト）が妥当な比較を要するため本番相当と判断。"
+    ]
+  },
+  {
+    "questionId": "sap-f3fde893",
+    "examType": "SAP",
+    "verdict": "ok",
+    "currentness": "ok",
+    "difficulty": "appropriate",
+    "scope": "in",
+    "format": "ok",
+    "mockSuitable": true,
+    "issues": []
+  },
+  {
+    "questionId": "sap-60413049",
+    "examType": "SAP",
+    "verdict": "warn",
+    "currentness": "ok",
+    "difficulty": "appropriate",
+    "scope": "in",
+    "format": "ok",
+    "mockSuitable": true,
+    "issues": [
+      "問題1（sap-71c2f7ae）と『マルチリージョンTGW＋TGWピアリング＋Direct Connect Gateway/Transit VIF』という中核概念がほぼ重複しており、同一セット内で出題すると冗長。本問はRAM共有と集中インスペクションVPCの要素が加わり単体では妥当だが、セット構成上は片方に寄せるのが望ましい。"
+    ]
+  },
+  {
+    "questionId": "sap-5144f261",
+    "examType": "SAP",
+    "verdict": "ok",
+    "currentness": "ok",
+    "difficulty": "appropriate",
+    "scope": "in",
+    "format": "ok",
+    "mockSuitable": true,
+    "issues": []
+  },
+  {
+    "questionId": "ans-ff80f0c4",
+    "examType": "ANS",
+    "verdict": "ok",
+    "currentness": "ok",
+    "difficulty": "appropriate",
+    "scope": "in",
+    "format": "ok",
+    "mockSuitable": true,
+    "issues": []
+  },
+  {
+    "questionId": "ans-bfa85a02",
+    "examType": "ANS",
+    "verdict": "ok",
+    "currentness": "ok",
+    "difficulty": "appropriate",
+    "scope": "in",
+    "format": "ok",
+    "mockSuitable": true,
+    "issues": [
+      "PrivateLink＋CIDR重複は頻出の定番パターンで、上級者にはやや見抜かれやすいが、ひっかけの質は本番相当"
+    ]
+  },
+  {
+    "questionId": "ans-6477b6c6",
+    "examType": "ANS",
+    "verdict": "ok",
+    "currentness": "ok",
+    "difficulty": "appropriate",
+    "scope": "in",
+    "format": "ok",
+    "mockSuitable": true,
+    "issues": []
+  },
+  {
+    "questionId": "ans-4cee26cc",
+    "examType": "ANS",
+    "verdict": "ok",
+    "currentness": "ok",
+    "difficulty": "appropriate",
+    "scope": "in",
+    "format": "ok",
+    "mockSuitable": true,
+    "issues": []
+  },
+  {
+    "questionId": "ans-8bf7a9ef",
+    "examType": "ANS",
+    "verdict": "ok",
+    "currentness": "ok",
+    "difficulty": "appropriate",
+    "scope": "in",
+    "format": "ok",
+    "mockSuitable": true,
+    "issues": []
+  },
+  {
+    "questionId": "ans-aa2d50ad",
+    "examType": "ANS",
+    "verdict": "ok",
+    "currentness": "ok",
+    "difficulty": "appropriate",
+    "scope": "in",
+    "format": "ok",
+    "mockSuitable": true,
+    "issues": []
+  },
+  {
+    "questionId": "ans-d57abfc6",
+    "examType": "ANS",
+    "verdict": "ok",
+    "currentness": "ok",
+    "difficulty": "appropriate",
+    "scope": "in",
+    "format": "ok",
+    "mockSuitable": true,
+    "issues": []
+  },
+  {
+    "questionId": "ans-f762bf67",
+    "examType": "ANS",
+    "verdict": "ok",
+    "currentness": "ok",
+    "difficulty": "appropriate",
+    "scope": "in",
+    "format": "ok",
+    "mockSuitable": true,
+    "issues": []
+  },
+  {
+    "questionId": "ans-650cd2ec",
+    "examType": "ANS",
+    "verdict": "ok",
+    "currentness": "ok",
+    "difficulty": "appropriate",
+    "scope": "in",
+    "format": "ok",
+    "mockSuitable": true,
+    "issues": []
+  },
+  {
+    "questionId": "ans-807f36dd",
+    "examType": "ANS",
+    "verdict": "ok",
+    "currentness": "ok",
+    "difficulty": "appropriate",
+    "scope": "in",
+    "format": "ok",
+    "mockSuitable": true,
+    "issues": []
+  }
+]

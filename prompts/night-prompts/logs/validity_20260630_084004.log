@@ -1,0 +1,86 @@
+==========================================
+正当性チェック開始: Tue Jun 30 08:40:04 JST 2026
+バッチサイズ: 100問 / チャンクサイズ: 5問
+==========================================
+チェック対象: 100問
+前処理: choices ラベル接頭辞チェック...
+  前処理: ラベル接頭辞なし（全問クリーン）
+チャンク数: 20
+
+--- チャンク 1/20: 5問  開始=08:40:59 ---
+  [FIX  ] dea-3c423817: choiceExplanations[0]と[1]が入れ替わっており、choices[0]（ホット保持）に対し正解選択肢の解説が、choices[1]（UltraWarm正解）にホット保持の解説が付いていた。順番対応を修正。 → 変更: choiceExplanations
+  [FIX  ] dea-fed6f684: choiceExplanations[0]と[1]が入れ替わり（choices[0]フェデレーテッドにCTAS解説、choices[1]CTASにフェデレーテッド解説）。また[3]に誤字「Gle外」。順番修正と誤字訂正。 → 変更: choiceExplanations
+  [OK   ] dea-91c1cd6e
+  [OK   ] dea-f2bef952
+  [OK   ] dea-b144c3ed
+  → 更新完了: OK=3 修正=2 削除=0
+  終了=08:43:04  経過=125秒
+
+--- チャンク 2/20: 5問  開始=08:43:04 ---
+  [OK   ] dea-29828c4f
+  [FIX  ] dea-6baf6568: choiceExplanations[0]とchoiceExplanations[1]の内容が入れ替わっている（[0]にEMR Serverlessの解説、[1]にEC2スポットの解説）。順番対応を修正。 → 変更: choiceExplanations
+  [OK   ] dea-383661fa
+  [FIX  ] dea-ddc9f0ec: choiceExplanations[0]とchoiceExplanations[1]の内容が入れ替わっている（[0]にGlue Data Qualityの解説、[1]に独自Python実装の解説）。順番対応を修正。 → 変更: choiceExplanations
+  [OK   ] dea-714566a1
+  → 更新完了: OK=3 修正=2 削除=0
+  終了=08:45:04  経過=120秒
+
+--- チャンク 3/20: 5問  開始=08:45:04 ---
+  [OK   ] dea-f0b20c64
+  [OK   ] dea-6eef6291
+  [OK   ] dea-78cdc02b
+  [OK   ] dea-bc7dbd6e
+  [FIX  ] dea-3fa017cf: choiceExplanations[0]と[1]が入れ替わっており、choices[0]（Snowball）の枠にDataSyncの説明、choices[1]（DataSync）の枠にSnowballの説明が記載されている。順番を修正。 → 変更: choiceExplanations
+  → 更新完了: OK=4 修正=1 削除=0
+  終了=08:47:02  経過=118秒
+
+--- チャンク 4/20: 5問  開始=08:47:02 ---
+  [OK   ] dea-e705a7e4
+  [OK   ] dea-6a7a4a50
+  [OK   ] dea-28089c34
+  [OK   ] dea-def44ded
+  [OK   ] dea-d7448189
+  → 更新完了: OK=5 修正=0 削除=0
+  終了=08:48:39  経過=97秒
+
+--- チャンク 5/20: 5問  開始=08:48:39 ---
+  [OK   ] saa-3c0b67f2
+  [OK   ] clf-50f25e4f
+  [OK   ] sap-7445d7ca
+  [OK   ] saa-d0f18f9d
+  [OK   ] soa-969ca03a
+  → 更新完了: OK=5 修正=0 削除=0
+  終了=08:50:16  経過=97秒
+
+--- チャンク 6/20: 5問  開始=08:50:16 ---
+  [OK   ] soa-c7dd564e
+  [OK   ] soa-9eaf219e
+  [OK   ] soa-ad0948b6
+  [OK   ] soa-07bd8560
+  [OK   ] sap-d8b072a5
+  → 更新完了: OK=5 修正=0 削除=0
+  終了=08:52:01  経過=105秒
+
+--- チャンク 7/20: 5問  開始=08:52:01 ---
+  [OK   ] saa-96481e28
+  [OK   ] clf-f2fd3af5
+  [OK   ] mla-7855284d
+  [OK   ] mla-04ef1f14
+  [OK   ] mla-7171674d
+  → 更新完了: OK=5 修正=0 削除=0
+  終了=08:53:41  経過=100秒
+
+--- チャンク 8/20: 5問  開始=08:53:41 ---
+  [OK   ] mla-ecaf4439
+  [OK   ] mla-a137cb52
+  [FIX  ] mla-46344bba: 内容・正解・解説は適切だが、問題文の要件①〜④が改行されておらず読みにくいため questionText に改行を追加。 → 変更: questionText
+  [FIX  ] mla-5d0c804c: 正解・選択肢・順番対応は適切だが、解説冒頭で「正解：」＋正解選択肢全文が重複しており冗長なため explanation を整理。 → 変更: explanation
+  [OK   ] mla-1d92e14f
+  → 更新完了: OK=3 修正=2 削除=0
+  終了=08:55:57  経過=136秒
+
+--- チャンク 9/20: 5問  開始=08:55:57 ---
+⚠️  レート制限を検出。残りチャンクをスキップ
+stdout: You've hit your session limit · resets 9:10am (Asia/Tokyo)
+
+完了サマリー: 問題なし=33問 / 自動修正=7問 / 削除=0問

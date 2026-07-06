@@ -1,0 +1,11 @@
+=== 2026-07-05 01:45:07 | generate-release-note.sh | exit:0 ===
+[release-note] 対象日: 2026-07-04
+[release-note] 2026-07-04: 27件のコミット
+[release-note] 生成結果:
+{
+  "title": "苦手分析がリニューアル！直近の成績で今の弱点を見極めよう！",
+  "body": "苦手ドメイン分析画面を一新。直近10/20/30問に絞ったフィルタや、スコアの5回/10回切替で「今のリアルな実力」がひと目でわかるようになりました。\n目標資格パネルから公式試験ページへのリンクも追加し、受験準備がよりスムーズになりました！",
+  "titleEn": "Weak Domain Analysis Revamped — Track Your Real Progress!",
+  "bodyEn": "The weak domain analysis screen has been redesigned with new filters (last 10/20/30 questions) and score toggles (last 5/10 attempts), giving you a sharper view of where you actually stand right now.\nWe also added direct links to official exam pages from your target certification panel, making exam prep smoother than ever."
+}
+[release-note] ✓ DynamoDBに挿入しました: 2026-07-04 — 苦手分析がリニューアル！直近の成績で今の弱点を見極めよう！

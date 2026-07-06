@@ -1,0 +1,60 @@
+=== 2026-07-03 04:51:34 | 05-check-daily-services.sh | exit:0 ===
+==========================================
+日めくりサービス体裁チェック開始: Fri Jul  3 04:30:05 JST 2026
+バッチサイズ: 30件 / チャンクサイズ: 8件
+==========================================
+
+--- 提供状態ライフサイクル照合中（猶予 30日）---
+  → ライフサイクル: 新規警告=0 削除=0 復活解除=0
+
+--- 重複記事チェック（docUrl照合・自動削除）---
+  → 重複なし
+チェック対象: 30件
+チャンク数: 4
+
+--- チャンク 1/4: 8件  開始=04:31:07 ---
+  [DELETE] _schedule_: name/shortName/category/description/triviaが全て空。実在するAWSサービスではなくスケジューラー用プレースホルダーのため削除対象。
+  [FIX  ] svc-outposts-107: description：複数特徴を区切る\nがない → 変更: description
+  [FIX  ] svc-appsync-108: description：複数特徴を区切る\nがない → 変更: description
+  [FIX  ] svc-cloud-map-129: description：複数特徴を区切る\nがない → 変更: description
+  [FIX  ] svc-cloudshell-126: description：複数特徴を区切る\nがない → 変更: description
+  [FIX  ] svc-iot-core-110: description：複数特徴を区切る\nがない → 変更: description
+  [FIX  ] svc-connect-109: description：複数特徴を区切る\nがない → 変更: description
+  [FIX  ] svc-cdk-117: description：複数特徴を区切る\nがない → 変更: description
+  → 更新完了: OK=0 修正=7 削除=1
+  終了=04:38:35  経過=448秒
+
+--- チャンク 2/4: 8件  開始=04:38:35 ---
+  [FIX  ] svc-mgn-115: descriptionの2特徴（リフト＆シフト移行・継続的レプリケーション）が\nで区切られていない → 変更: description
+  [FIX  ] svc-elastic-dr-123: descriptionの2特徴が\n区切りなし。triviaの3文目（フェイルオーバー）が2文目に連続しており\n区切りがない → 変更: description, trivia
+  [FIX  ] svc-verified-permissions-125: descriptionの2特徴が\n区切りなし。triviaの1・2文目（Cedar採用とIAMとの違い）が\n区切りなく連続している → 変更: description, trivia
+  [FIX  ] svc-security-lake-124: descriptionの2特徴（ログ自動集約・一元管理と分析ツール連携）が\nで区切られていない → 変更: description
+  [FIX  ] svc-cloud-wan-120: descriptionの2特徴（WAN一元管理・拠点VPC統合と視覚的構築監視）が\nで区切られていない → 変更: description
+  [FIX  ] svc-pinpoint-119: descriptionの2特徴（複数チャネル一元管理・パーソナライズ配信とエンゲージメント分析）が\nで区切られていない → 変更: description
+  [FIX  ] svc-vpc-lattice-122: descriptionの2特徴（サービス間通信一元管理・認証認可モニタリング組み込み）が\nで区切られていない → 変更: description
+  [FIX  ] svc-kinesis-data-streams-112: descriptionの2特徴（シャード単位の取り込み処理・ログ収集とリアルタイム分析基盤構築）が\nで区切られていない → 変更: description
+  → 更新完了: OK=0 修正=8 削除=0
+  終了=04:46:43  経過=488秒
+
+--- チャンク 3/4: 8件  開始=04:46:43 ---
+  [OK   ] svc-amazon-q-114
+  [FIX  ] svc-ebs-25: triviaが151字で上限150字を1字超過。「EBSを複数EC2で同時利用する」を「複数EC2で同時利用できる」に短縮し148字に。 → 変更: trivia
+  [OK   ] svc-transit-gateway-56
+  [OK   ] svc-textract-92
+  [OK   ] svc-kms-34
+  [OK   ] svc-transfer-family-86
+  [OK   ] svc-workspaces-106
+  [OK   ] svc-snowball-90
+  → 更新完了: OK=7 修正=1 削除=0
+  終了=04:51:32  経過=289秒
+
+--- チャンク 4/4: 6件  開始=04:51:32 ---
+⚠️  チャンク 4 でエラー（exit 1）。このチャンクをスキップして続行
+stderr: 
+stdout: You've hit your session limit · resets 8:40am (Asia/Tokyo)
+
+完了サマリー: 問題なし=7件 / 自動修正=16件 / 削除=1件
+
+==========================================
+チェック終了: Fri Jul  3 04:51:34 JST 2026
+==========================================

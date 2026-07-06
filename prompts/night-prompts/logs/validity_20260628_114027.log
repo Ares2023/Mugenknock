@@ -1,0 +1,68 @@
+==========================================
+正当性チェック開始: Sun Jun 28 11:40:27 JST 2026
+バッチサイズ: 100問 / チャンクサイズ: 5問
+==========================================
+チェック対象: 100問
+前処理: choices ラベル接頭辞チェック...
+  前処理: ラベル接頭辞なし（全問クリーン）
+チャンク数: 20
+
+--- チャンク 1/20: 5問  開始=11:41:07 ---
+  [OK   ] aip-c200f957
+  [OK   ] aip-cd7dd8c0
+  [FIX  ] aip-978d0d62: 解説とchoiceExplanations[2]に文字化けの混入「本文such自体」がある。「本文自体」へ修正。内容・正解・順番対応・isMultipleは正しい。 → 変更: explanation, choiceExplanations
+  [OK   ] aip-b9072f2b
+  [OK   ] aip-adebc972
+  → 更新完了: OK=4 修正=1 削除=0
+  終了=11:42:59  経過=112秒
+
+--- チャンク 2/20: 5問  開始=11:42:59 ---
+  [OK   ] soa-741785e4
+  [OK   ] dva-c32af360
+  [OK   ] gai-f0133ea8
+  [OK   ] gai-398126c1
+  [OK   ] dva-1febf18e
+  → 更新完了: OK=5 修正=0 削除=0
+  終了=11:45:01  経過=122秒
+
+--- チャンク 3/20: 5問  開始=11:45:01 ---
+  [OK   ] soa-b86563d1
+  [OK   ] dva-213cc036
+  [OK   ] soa-607b623e
+  [OK   ] dop-03a3ba19
+  [FIX  ] dva-0a414af6: choiceExplanations[1]（Catch）が[0]（Retry）と完全に同一文で、選択肢テキストと対応していないため、Catch固有の解説に修正する。 → 変更: choiceExplanations
+  → 更新完了: OK=4 修正=1 削除=0
+  終了=11:46:57  経過=116秒
+
+--- チャンク 4/20: 5問  開始=11:46:57 ---
+  [OK   ] aif-efce2605
+  [OK   ] dva-17342a14
+  [OK   ] soa-6b03eb0d
+  [OK   ] dva-54040772
+  [FIX  ] gai-a8da6acf: 内容は正確だが解説冒頭の「正解：」と正解文の重複、不正解選択肢が改行なしで列挙されている。読みやすさのため選択肢ごとに改行する形へ修正。 → 変更: explanation
+  → 更新完了: OK=4 修正=1 削除=0
+  終了=11:48:45  経過=108秒
+
+--- チャンク 5/20: 5問  開始=11:48:45 ---
+  [FIX  ] gai-b3682037: 内容は正確。ただし正解選択肢のchoiceExplanations[0][2]が解説全文の重複かつ「正解：」判定文付きで規定違反のため、各150字程度・判定文なしに整形。isMultiple:trueを明示。 → 変更: choiceExplanations
+  [FIX  ] gai-728b892b: 内容は正確（CloudTrailはプロンプト/応答本文を記録しない、Model Invocation Loggingが該当）。正解のchoiceExplanations[1]が解説全文重複・判定文付きのため整形。 → 変更: choiceExplanations
+  [FIX  ] gai-2cc7136f: 内容は妥当だがドメインがアーキテクチャ設計の問題のため「実装と統合」が適切。正解のchoiceExplanations[1]が解説全文重複・判定文付きのため整形。 → 変更: choiceExplanations, domain
+  [FIX  ] soa-61490814: 内容は正確（クラスタープレイスメントグループ＋EFA、最大100Gbps）。正解のchoiceExplanations[1]が解説全文重複・判定文付きのため整形。 → 変更: choiceExplanations
+  [FIX  ] dop-fab6c071: 内容は正確（CloudFormationリソースインポートでの取り込み）。正解のchoiceExplanations[1]が解説全文重複・判定文付きのため整形。 → 変更: choiceExplanations
+  → 更新完了: OK=0 修正=5 削除=0
+  終了=11:51:08  経過=143秒
+
+--- チャンク 6/20: 5問  開始=11:51:08 ---
+  [FIX  ] mla-c217baeb: 内容は正確。choiceExplanationsの正解項に「正解：」の判定接頭辞があり、不正解項が短すぎるため、接頭辞を除去し各100〜150字に統一・拡充。 → 変更: choiceExplanations
+  [FIX  ] dva-11c13790: 内容は正確。choiceExplanationsの正解項に判定接頭辞があり不正解項が短いため、接頭辞を除去し各100〜150字に統一・拡充。 → 変更: choiceExplanations
+  [FIX  ] gai-06fc3e75: 内容は正確。choiceExplanationsの正解項が冗長で不正解項が短いため、各100〜150字に統一・拡充。 → 変更: choiceExplanations
+  [FIX  ] clf-c7fbb3b2: 内容は正確。choiceExplanationsの正解項に判定接頭辞があり不正解項が短いため、接頭辞を除去し各100〜150字に統一・拡充。 → 変更: choiceExplanations
+  [FIX  ] clf-da9ac14b: 内容は正確。choiceExplanationsの正解項に判定接頭辞があり不正解項が短いため、接頭辞を除去し各100〜150字に統一・拡充。 → 変更: choiceExplanations
+  → 更新完了: OK=0 修正=5 削除=0
+  終了=11:53:43  経過=155秒
+
+--- チャンク 7/20: 5問  開始=11:53:43 ---
+⚠️  レート制限を検出。残りチャンクをスキップ
+stdout: You've hit your session limit · resets 12:10pm (Asia/Tokyo)
+
+完了サマリー: 問題なし=17問 / 自動修正=13問 / 削除=0問

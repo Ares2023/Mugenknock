@@ -1,0 +1,14 @@
+==========================================
+カナリア整合性チェック 開始: Sat Jul  4 05:45:05 JST 2026
+==========================================
+現在のルート数: 28
+Opusで整合性を判定中...
+所見: 現行のapp/ルートとカナリアspecはほぼ整合しており、陳腐化（存在しない/改名ルートを指すテスト）は無い。ユーザー向け公開ページ（/, /about, /encyclopedia, /privacy-policy, /exam-guide[/type], /services[/name], /questions/[type][/id], /login）は全てカバー済み。唯一、公開ながら未カバーの `/admin-login`（未ログインで到達可・Amplify Authenticatorのemail入力を描画、リダイレクトしない）だけスモークが欠けていたため、既存の『ページ表示チェック』様式で1行追記した。
+  - カバー漏れ: /admin-login が未ログインで到達可能な公開ルート（AdminLogin が Amplify Authenticator を描画、認証前でもリダイレクトせず表示される）にも関わらず、canary.noauth.spec.ts のページ表示チェックに含まれていない。→ 既存様式で input[type="email"] の表示確認を追記。
+  - 陳腐化: 検出なし。テスト対象パス（/services/ec2, /exam-guide/SAA, /questions/SAA 等）は全て app/ に実在し、改名・削除されたルートを指すテストは無い。
+  - 対象外の確認: /aws/*・/account・/admin は認証必須のため no-auth カナリア対象外として据え置き（テスト追加せず）。
+更新版specを検証中（playwright --list）...
+✅ 検証OK。更新版specを適用しました。
+
+レポート: /home/yuzuki/aws-quiz-app/prompts/night-prompts/logs/canary-coverage_20260704_054505.md
+カナリア整合性チェック 終了: Sat Jul  4 05:47:06 JST 2026

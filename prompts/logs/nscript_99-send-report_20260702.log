@@ -1,0 +1,74 @@
+=== 2026-07-02 02:17:21 | 99-send-report.sh | exit:0 ===
+==========================================
+日次レポート生成 開始: 2026-07-02 01:10 JST
+==========================================
+
+--- [1] AWS資格公式情報 変更チェック ---
+  フェーズ1完了: has_changes=False
+  直近3日以内の変更声明なし
+
+--- [2] 夜間スクリプト成果集計 ---
+  生成: 合計 232問生成
+  妥当性: 合計: 確認635件（問題なし=520 自動修正=114 削除=1）
+  通報: 2026-07-01: 4件処理
+
+--- [3] DynamoDB稼働状況 ---
+  総問題数: 3659 問
+  直近3日 新規生成(createdAt): 217 問
+  直近3日 確認済み(validityCheckedAt): 571 問
+  未妥当性確認: 20 問
+  未解決通報: 0 件
+  資格別:
+  CLF: 293問
+  AIF: 311問
+  SAA: 308問
+  DVA: 306問
+  SOA: 290問
+  DEA: 298問
+  MLA: 294問
+  SAP: 309問
+  DOP: 352問
+  AIP: 298問
+  SCS: 291問
+  ANS: 309問
+
+--- [3b] Cognito 新規ユーザー（前日） ---
+  新規登録なし
+
+--- [4] canary テスト ---
+  ✅ PASS (passed=17 failed=0 warnings=0)
+  失敗詳細:
+    [練習問題一覧（SAA）] ❌ Console Errors (7):
+    [練習問題一覧（SAA）] 🌐 Network Errors (7):
+      ログ:    s3://mugenknock-error-logs/canary-logs/staging/20260702-011148.log
+      サマリー: s3://mugenknock-error-logs/canary-logs/staging/20260702-011148.json
+  認証カナリア: ✅ PASS (passed=8 failed=2)
+
+--- [4.5] 監査・改良 / カナリア整合性 / 日めくり 集計 ---
+  監査30問: ok=21 warn=9 ng=0
+  プロンプト改良: 適用3件 / 見送り0件
+  方針: 監査の主因である「易しすぎ」と、検証をすり抜けた2件の確定不具合（要件キーワードが正解のみに出現／不正解の自己否定文で消去法成立）に対応。生成側(_common-rules.txt)にひっかけ強度・キーワード分散・自己否定禁止・推敲・現行名
+  所見: 既存カナリアが指すルート（/ , /login , /about , /encyclopedia , 404）は全て現存し陳腐化はない。一方、未ログインで到達できる公開SEOページ（/privacy-policy, /exam-guide, /services, /questions/[examTy
+  カバー漏れ/陳腐化: 4件
+  対応: specを更新（検証OK=playwright --list 成功）。
+  生成: → 非現行サービスの混入を防ぐため、今回の生成をスキップします。
+  検証: 完了サマリー: 問題なし=28件 / 自動修正=1件 / 削除=0件
+  Lambda(直近24h):
+    prod: 実行6018 エラー0 スロットル0 最大1940ms
+    dev: 実行163 エラー0 スロットル0 最大1116ms
+  API(prod,24h): リクエスト6476 ⚠️ 5xx=6 4xx=1 p99=1062ms
+  ⚠️ 本番エラーログ(prod,24h): 12件
+    ・2026-07-01T00:09:31.848Z 4135d5d0-7201-4925-9080-a3cc3cc3f2f5 INFO ERROR: @vendia/serverless-express connection error
+    ・2026-07-01T00:09:31.848Z 4135d5d0-7201-4925-9080-a3cc3cc3f2f5 ERROR Error: read ECONNRESET at Pipe.onStreamRead (node:internal/stream_base_commons:216:20) { err
+    ・2026-07-01T00:43:23.401Z 5bd88316-6269-4426-8904-a3e806541dfe INFO ERROR: @vendia/serverless-express connection error
+  AWSコスト(2026-06-30): $0.09 （前日比 ▼12%）
+    ・AWS Cost Explorer: $0.03
+    ・AWS Key Management Service: $0.03
+    ・Amazon DynamoDB: $0.03
+
+--- [5] メール送信 ---
+  ✅ メール送信完了 → mugenknock@gmail.com
+
+==========================================
+日次レポート 完了: 2026-07-02 01:13 JST
+==========================================

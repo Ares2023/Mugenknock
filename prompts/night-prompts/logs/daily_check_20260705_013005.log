@@ -1,0 +1,30 @@
+==========================================
+日めくりサービス体裁チェック開始: Sun Jul  5 01:30:05 JST 2026
+バッチサイズ: 5件 / チャンクサイズ: 5件
+==========================================
+
+--- 提供状態ライフサイクル照合中（猶予 30日）---
+  [復活] AWS CodeCommit: active復帰 → 警告解除
+  → ライフサイクル: 新規警告=0 削除=0 復活解除=1
+
+--- 重複記事チェック（docUrl照合・自動削除）---
+  重複検出 docUrl=aws.amazon.com/api-gateway: 残す[Amazon API Gateway (HTTP API / WebSocket API)/svc-api-gateway-v2-141] 削除1件
+    [削除] Amazon API Gateway/svc-api-gateway-15 (order=15)
+  → 重複削除: 1件
+チェック対象: 5件
+チャンク数: 1
+
+--- チャンク 1/1: 5件  開始=01:31:48 ---
+  [OK   ] svc-ec2-auto-scaling-148
+  [DELETE] _schedule_: name/category/description/triviaがすべて空。AWSサービスではなくシステムプレースホルダーと判断。
+  [OK   ] svc-managed-prometheus-155
+  [OK   ] svc-audit-manager-149
+  [FIX  ] svc-bedrock-agentcore-153: docUrlが/jp/形式でない（英語URLのまま）。 → 変更: docUrl
+  → 更新完了: OK=3 修正=1 削除=1
+  終了=01:34:39  経過=171秒
+
+完了サマリー: 問題なし=3件 / 自動修正=1件 / 削除=1件
+
+==========================================
+チェック終了: Sun Jul  5 01:34:39 JST 2026
+==========================================

@@ -1,0 +1,11 @@
+=== 2026-07-02 02:17:21 | generate-release-note.sh | exit:0 ===
+[release-note] 対象日: 2026-07-01
+[release-note] 2026-07-01: 22件のコミット
+[release-note] 生成結果:
+{
+  "title": "模試に「あとで確認」フラグが登場！",
+  "body": "模試を解きながら気になった問題に「あとで確認」フラグを付けられるようになりました！\n見直したい問題を後からまとめてチェックでき、復習がぐっと効率的になります。",
+  "titleEn": "New \"Review Later\" Flag in Mock Exams!",
+  "bodyEn": "You can now flag questions with \"Review Later\" while taking a mock exam!\nMark the questions you want to revisit and review them all together afterward for smarter, more efficient study."
+}
+[release-note] ✓ DynamoDBに挿入しました: 2026-07-01 — 模試に「あとで確認」フラグが登場！

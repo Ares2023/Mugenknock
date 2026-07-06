@@ -1,0 +1,67 @@
+==========================================
+正当性チェック開始: Mon Jun 29 23:13:54 JST 2026
+バッチサイズ: 30問 / チャンクサイズ: 5問
+==========================================
+チェック対象: 30問
+前処理: choices ラベル接頭辞チェック...
+  前処理: ラベル接頭辞なし（全問クリーン）
+チャンク数: 6
+
+--- チャンク 1/6: 5問  開始=23:14:42 ---
+  [FIX  ] clf-136272d7: choiceExplanations[0]と[1]が入れ替わっている。choices[0]はECSなのに解説はECR(レジストリ)を、choices[1]はECRなのに解説はECS(オーケストレーション)を説明している。順番を修正。 → 変更: choiceExplanations
+  [OK   ] soa-26e03de6
+  [OK   ] soa-b4b36499
+  [OK   ] soa-2f610a82
+  [OK   ] clf-af104bbe
+  → 更新完了: OK=4 修正=1 削除=0
+  終了=23:16:28  経過=106秒
+
+--- チャンク 2/6: 5問  開始=23:16:28 ---
+  [FIX  ] clf-c94bfe8d: choiceExplanationsの順番が選択肢とずれている（[0]Macieの位置にDetectiveの説明、[1]ConfigにMacie、[2]DetectiveにConfigの説明）。正しい順番に並び替えた。 → 変更: choiceExplanations
+  [FIX  ] clf-d5b487cd: choiceExplanationsの[0]AWS IQと[1]re:Postの内容が入れ替わっている（IQの位置にre:Postの説明、re:Postの位置にIQの説明）。正しい順番に修正した。 → 変更: choiceExplanations
+  [OK   ] soa-759c2538
+  [OK   ] soa-7f786faa
+  [OK   ] clf-0b91de3f
+  → 更新完了: OK=3 修正=2 削除=0
+  終了=23:18:30  経過=122秒
+
+--- チャンク 3/6: 5問  開始=23:18:30 ---
+  [OK   ] soa-996ef0bf
+  [FIX  ] clf-4eb12b07: choiceExplanations[0]とchoiceExplanations[1]が入れ替わっている（[0]SQSの位置にStep Functionsの説明、[1]Step Functionsの位置にSQSの説明）。順番を選択肢に合わせて修正。 → 変更: choiceExplanations
+  [FIX  ] clf-8100d499: choiceExplanations[0][1][2]が選択肢とずれている（[0]EBSの位置にEFS説明、[1]S3の位置にEBS説明、[2]EFSの位置にS3説明）。順番を選択肢に合わせて修正。 → 変更: choiceExplanations
+  [FIX  ] clf-24d22b81: choiceExplanations[0][1][2]が選択肢とずれている（[0]Local Zonesの位置にOutposts説明、[1]Lightsailの位置にLocal Zones説明、[2]Outpostsの位置にLightsail説明）。順番を選択肢に合わせて修正。 → 変更: choiceExplanations
+  → 更新完了: OK=1 修正=3 削除=0
+  終了=23:20:19  経過=109秒
+
+--- チャンク 4/6: 5問  開始=23:20:19 ---
+  [OK   ] soa-3d104329
+  [OK   ] clf-e2cfe054
+  [FIX  ] clf-aa40c24f: choiceExplanations[0]とchoiceExplanations[1]の内容が入れ替わっている（Cognitoの位置にIAM Identity Centerの説明、その逆も）。正しい順番に並び替えた。 → 変更: choiceExplanations
+  [OK   ] soa-28529760
+  [OK   ] soa-f277f074
+  → 更新完了: OK=4 修正=1 削除=0
+  終了=23:22:03  経過=104秒
+
+--- チャンク 5/6: 5問  開始=23:22:03 ---
+  [OK   ] clf-0539060e
+  [OK   ] soa-1a5a2072
+  [OK   ] clf-f6d81a6b
+  [OK   ] clf-447ae999
+  [OK   ] soa-a4e6a9b8
+  → 更新完了: OK=5 修正=0 削除=0
+  終了=23:23:40  経過=98秒
+
+--- チャンク 6/6: 5問  開始=23:23:41 ---
+  [OK   ] clf-90bb79bc
+  [OK   ] clf-dff63b26
+  [OK   ] mla-39062bd3
+  [OK   ] dop-75e70ddc
+  [OK   ] mla-cee1c13e
+  → 更新完了: OK=5 修正=0 削除=0
+  終了=23:25:38  経過=117秒
+
+完了サマリー: 問題なし=22問 / 自動修正=7問 / 削除=0問
+
+==========================================
+チェック終了: Mon Jun 29 23:25:38 JST 2026
+==========================================

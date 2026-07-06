@@ -1,0 +1,120 @@
+=== 2026-07-06 02:45:07 | 99-send-report.sh | exit:0 ===
+==========================================
+日次レポート生成 開始: 2026-07-06 01:40 JST
+==========================================
+
+--- [1] AWS資格公式情報 変更チェック ---
+  フェーズ1完了: has_changes=False
+  直近3日以内の変更声明なし
+
+--- [2] 夜間スクリプト成果集計 ---
+  生成: 合計 48問生成
+  妥当性: 合計: 確認140件（問題なし=95 自動修正=45 削除=0）
+  通報: 2026-07-05: 4件処理
+
+--- [3] DynamoDB稼働状況 ---
+  総問題数: 3723 問
+  直近3日 新規生成(createdAt): 64 問
+  直近3日 確認済み(validityCheckedAt): 138 問
+  未妥当性確認: 8 問
+  未解決通報: 6 件
+  資格別:
+  CLF: 298問
+  AIF: 311問
+  SAA: 308問
+  DVA: 306問
+  SOA: 306問
+  DEA: 298問
+  MLA: 298問
+  SAP: 309問
+  DOP: 373問
+  AIP: 298問
+  SCS: 309問
+  ANS: 309問
+
+--- [3b] Cognito 新規ユーザー（前日） ---
+  新規登録なし
+
+--- [4] canary テスト ---
+  ✅ PASS (passed=21 failed=0 warnings=0)
+  失敗詳細:
+    [サービス図鑑（公開）] ❌ Console Errors (9):
+    [サービス図鑑（公開）] 🌐 Network Errors (9):
+    [練習問題一覧（SAA）] ❌ Console Errors (8):
+    [練習問題一覧（SAA）] 🌐 Network Errors (8):
+    [連続ナビゲーション] ❌ Console Errors (9):
+    [連続ナビゲーション] 🌐 Network Errors (9):
+    [練習問題詳細] ❌ Console Errors (9):
+    [練習問題詳細] 🌐 Network Errors (9):
+      ログ:    s3://mugenknock-error-logs/canary-logs/staging/20260706-014213.log
+      サマリー: s3://mugenknock-error-logs/canary-logs/staging/20260706-014213.json
+  認証カナリア: ✅ PASS (passed=8 failed=2)
+
+--- [4.5] 監査・改良 / カナリア整合性 / 日めくり 集計 ---
+  監査 10問（CLF/DOP）: OK 3 / 注意 6 / 要修正 1
+  【指摘のあった問題】
+  ⚠ clf-637af08d
+  ・実測正答率20%（10件）は悪問疑い水準に近い。Elastic BeanstalkもLB・ASを自動管理するため「EC2ベースであり、より多くの管理が発生します」という解説だけでは不十分。『EC2インスタンスが見えるためインフラ意識が残る』『App Runnerはインフラの概念自体が不要』という根本的差異を明示しないと受験者が誤答しやすい。
+  ・FargateをApp Runnerとの対比で「コンテナオーケストレーション基盤」と表現しているが、FargateはECS/EKSのコンピューティングエンジンでありオーケストレーター自体ではない。誤解を生む表現。
+  ⚠ clf-3405ed73
+  ・実測正答率14%（14件）は悪問疑い水準。SNSの不正解理由の解説が致命的に弱い：SNS単体はEC2状態変化イベントを能動的に検知できず、EventBridgeがイベント検知役を担って初めてSNSにファンアウトできる。この構造的差異（イベント検知 vs メッセージ配送）を解説に書かなければ、SNSでも要件を満たせると考えた受験者が納得できない。正解はEventBridgeで正しいが解説の補強が必要。
+  ⚠ clf-fb985595（難易度: too_easy）
+  ・問題文に『単一のアベイラビリティーゾーンで障害が発生してもサービス提供を中断させない』と書いており、高可用性の定義そのものをほぼ直接述べている。消去法（弾力性＝スケール、スケーラビリティ＝容量拡張、俊敏性＝速度）でも容易に正解でき、ひっかけが機能しない。『複数AZへの分散配置』を自明に示さない別シナリオ設計（例：RTO要件や冗長構成費用を絡める）にすると本番相当の難易度になる。
+  ⚠ clf-b517c863（難易度: too_easy）
+  ・問題文に「消費モデル（使った分だけ支払う）」「ビジネス価値あたりのコストを下げること」というコスト最適化の定義そのものが盛り込まれており、正解がほぼ自明。本番CLFはもう少し間接的な言い回しで正解を隠す。
+  ・正解選択肢[0]の説明文も問題文のキーワードをほぼそのまま繰り返しており、消去法すら不要で正解に到達できる。
+  ✖ dop-q-039（難易度: too_easy）
+  ・「AWS Service Catalogの主な目的は？」という定義問いはProfessional試験の水準を大きく下回る。本番DOPはLaunch ConstraintやSCP連携によるガバナンス設計、複数アカウントへのPortfolio共有、CI/CDパイプラインとの統合などをシナリオ形式で問う。
+  ・不正解の選択肢がECR・Marketplace・Cost Explorerと全く別カテゴリのサービスを指しており、Professional受験者なら消去法で即座に正解へ到達できる。もっともらしい誤答（例：CloudFormation StackSetsとの使い分け、AWS Configとの混同）が必要。
+  ⚠ dop-q-049（難易度: too_easy）
+  ・ECSタスク定義のCPU・メモリ制限の目的を問う設問はAssociate相当の基礎知識。DOP水準にするには、EC2起動タイプにおけるハードリミット vs ソフトリミットの使い分けやFargate課金への影響をシナリオで問うべき。
+  ・不正解の選択肢（イメージサイズ制限・ネットワーク帯域・起動順序）はいずれもCPU/メモリ設定と明らかに無関係であり、Professional受験者には即時除外できる水準。
+  ⚠ dop-q-024
+  ・選択肢[2]「両サービスはまったく同じ機能でリージョンが異なるだけ」は非現実的すぎる誤答であり本番試験には登場しないレベル。Inspector連携やEventBridgeによる自動修復との混同など、もっともらしい誤答に差し替えるべき。
+  ・2サービスの比較という方向性はDOPに適切だが、問い方をマルチアカウントでの検出結果集約設計などの実践シナリオに変えるとProfessional水準に見合った難易度になる。
+  【プロンプト自動改良】 適用 3件 / 見送り 0件
+  方針: 監査で最多だったDOPの用語定義・単一概念の暗記問題（模試不適・易しすぎ）と、ユーザー通報で確定した「正解選択肢が自己解説的・過長で正解が特定できる」誤り、および解説の機能過大主張を再発防止する。生成側(DOP.txt/_common-rules.txt)で禁止事項を明確化し、検証側(_validity-extra.txt)に検出観点を追加。CLFは同系統サービスの過度に微妙な識別で正答率が極端に下がる問題を避ける注意を1行追記。いずれも追記・小修正のみ。
+  ✅ _common-rules.txt: ユーザー通報で確定したDOPの choice_error（正解選択肢だけが自己解説的な末尾を持ち内容・長さの両面で正解が露見）に対応。既存の『不正解の自己否定文禁止』『最長を正解にしない』の隣に、正解側の自己解説末尾を禁じる規則を追記して対を成す。
+  ✅ DOP.txt: 監査でng判定が集中したDOPの用語定義・単一概念・2サービスの違いを問う暗記問題（Professional水準未達）に対応。【避けること】に具体例付きで禁止し、複数要件のシナリオ比較を必須化。
+  ✅ _validity-extra.txt: 検証(02)が見逃した3種の誤りを検出する観点を追加：(1)プロ資格の用語定義・違い暗記問題（模試不適/易しすぎ）、(2)正解選択肢の自己解説的末尾による正解特定、(3)機能の適用範囲・タイミングの過大主張（CloudWatch Logsマスキングの遡及不可）。CLFの過度に微妙な識別による極端な低正答率も1行追加。
+  所見: (判定失敗)
+  カバー漏れ/陳腐化: 0件
+  対応: JSON抽出失敗のため未対応
+  生成: 2026-07-05 完了: Sun Jul  5 01:38:50 JST 2026
+  検証: 2026-07-05 完了サマリー: 問題なし=3件 / 自動修正=1件 / 削除=1件
+  Lambda(直近24h):
+    prod: 実行5766 エラー0 スロットル0 最大2135ms
+    dev: 実行8 エラー0 スロットル0 最大768ms
+  API(prod,24h): リクエスト6216 5xx=0 4xx=0 p99=1042ms
+  ⚠️ 本番エラーログ(prod,24h): 6件
+    ・2026-07-05T03:31:17.423Z 8847c890-6789-471f-bb74-63640efb1bf9 INFO EVENT: {"resource":"/sessions/{proxy+}","path":"/sessions/caaaee4c-0544-4c93-a477-d628fe1799b
+    ・2026-07-05T03:31:18.005Z 5696389c-962c-455c-9594-715c18038e24 INFO EVENT: {"resource":"/sessions/{proxy+}","path":"/sessions/caaaee4c-0544-4c93-a477-d628fe1799b
+    ・2026-07-05T03:31:18.068Z f942f18f-61fe-4726-82a6-0c8051bc66fc INFO EVENT: {"resource":"/sessions/{proxy+}","path":"/sessions/caaaee4c-0544-4c93-a477-d628fe1799b
+  AWSコスト(2026-07-04): $0.10 （前日比 ▼20%）
+    ・Amazon DynamoDB: $0.06
+    ・AWS Key Management Service: $0.03
+    ・AWS Cost Explorer: $0.01
+
+--- [4.8] テストユーザー データ整合性チェック ---
+Traceback (most recent call last):
+  File "<stdin>", line 40, in <module>
+  File "<stdin>", line 10, in dynamo_get
+  File "/usr/lib/python3.12/subprocess.py", line 550, in run
+    stdout, stderr = process.communicate(input, timeout=timeout)
+                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/lib/python3.12/subprocess.py", line 1209, in communicate
+    stdout, stderr = self._communicate(input, endtime, timeout)
+                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/lib/python3.12/subprocess.py", line 2116, in _communicate
+    self._check_timeout(endtime, orig_timeout, stdout, stderr)
+  File "/usr/lib/python3.12/subprocess.py", line 1253, in _check_timeout
+    raise TimeoutExpired(
+subprocess.TimeoutExpired: Command '['/home/yuzuki/local/bin/aws', 'dynamodb', 'get-item', '--table-name', 'AppSettings', '--key', '{"settingId": {"S": "dailyProgress_0734fa28-60c1-707d-f888-f2cb860e561d"}}', '--region', 'ap-northeast-1']' timed out after 20 seconds
+  
+
+--- [5] メール送信 ---
+  ✅ メール送信完了 → mugenknock@gmail.com
+
+==========================================
+日次レポート 完了: 2026-07-06 01:45 JST
+==========================================

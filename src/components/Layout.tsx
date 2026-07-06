@@ -15,7 +15,7 @@ import {
   IconHome,
   IconUser, IconChart,
   IconDumbbell, IconFire, IconMegaphone, IconBell, IconMenu, IconClose, IconChevronLeft, IconMail, IconInfo,
-  IconSparkles, IconBot, IconUserCircle, IconBookOpen,
+  IconSparkles, IconBot, IconUserCircle, IconBookOpen, IconBook,
   IconSun, IconMoon, IconMore, IconChevronDown,
   EXAM_ICON_COMPONENTS,
 } from './Icons';
@@ -27,7 +27,7 @@ const NAV_KEYS = [
   { path: '/aws/practice',     labelKey: 'nav.practice',     Icon: IconDumbbell  },
   { path: '/aws/mypage',       labelKey: 'nav.mypage',       Icon: IconUserCircle },
   { path: '/aws/encyclopedia', labelKey: 'nav.encyclopedia', Icon: IconBookOpen, bottom: true },
-  { path: '/aws/growth',       labelKey: 'nav.growth',       Icon: IconBot, bottom: true },
+  { path: '/aws/cheatsheet',    labelKey: 'nav.cheatsheet',   Icon: IconBook, bottom: true },
   { path: '/aws/announcements', labelKey: 'nav.announcements', Icon: IconMegaphone, bottom: true },
   { path: '/aws/release-notes', labelKey: 'nav.releaseNotes', Icon: IconFire, bottom: true },
 ];
@@ -40,7 +40,7 @@ const BOTTOM_TABS = [
 
 const OTHERS_ITEMS = [
   { path: '/aws/encyclopedia',  Icon: IconBookOpen,  labelKey: 'nav.encyclopedia'  },
-  { path: '/aws/growth',        Icon: IconBot,       labelKey: 'nav.growth'        },
+  { path: '/aws/cheatsheet',    Icon: IconBook,      labelKey: 'nav.cheatsheet'    },
   { path: '/aws/announcements', Icon: IconMegaphone, labelKey: 'nav.announcements' },
   { path: '/aws/release-notes', Icon: IconFire,      labelKey: 'nav.releaseNotes'  },
 ];
@@ -593,7 +593,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
   const breadcrumbs: Record<string, BreadcrumbItem[]> = {
     '/aws/practice':         [{ label: t('nav.home'), path: '/aws/' }, { label: t('nav.practice') }],
     '/aws/encyclopedia':     [{ label: t('nav.home'), path: '/aws/' }, { label: t('nav.encyclopedia') }],
-    '/aws/growth':           [{ label: t('nav.home'), path: '/aws/' }, { label: t('nav.growth') }],
+    '/aws/cheatsheet':       [{ label: t('nav.home'), path: '/aws/' }, { label: t('nav.cheatsheet') }],
     '/aws/exercise/session': [{ label: t('nav.home'), path: '/aws/' }, { label: t('nav.exerciseSession') }],
     '/aws/exam/setup':       [{ label: t('nav.home'), path: '/aws/' }, { label: t('examSetup.title') }],
     '/aws/exam/session':     [{ label: t('nav.home'), path: '/aws/' }, { label: t('examSetup.title'), path: '/aws/exam/setup' }, { label: t('nav.examSession') }],

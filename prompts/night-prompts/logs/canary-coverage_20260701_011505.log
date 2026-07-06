@@ -1,0 +1,15 @@
+==========================================
+カナリア整合性チェック 開始: Wed Jul  1 01:15:05 JST 2026
+==========================================
+現在のルート数: 27
+Opusで整合性を判定中...
+所見: 既存カナリアが指すルート（/ , /login , /about , /encyclopedia , 404）は全て現存し陳腐化はない。一方、未ログインで到達できる公開SEOページ（/privacy-policy, /exam-guide, /services, /questions/[examType]）が後から追加されたがスモークテスト対象外でカバー漏れがある。認証必須の /aws/* /account /admin /admin-login は対象外のまま据え置く。
+  - カバー漏れ: /privacy-policy（公開・認証不要のプライバシーポリシーページ）が表示チェック対象外
+  - カバー漏れ: /exam-guide（公開の試験別ガイド一覧、SEOランディング）が未テスト
+  - カバー漏れ: /services（公開のAWSサービス図鑑SEOページ、/encyclopedia とは別ルート）が未テスト
+  - カバー漏れ: /questions/[examType]（公開の練習問題一覧、例: /questions/SAA）が未テスト
+更新版specを検証中（playwright --list）...
+✅ 検証OK。更新版specを適用しました。
+
+レポート: /home/yuzuki/aws-quiz-app/prompts/night-prompts/logs/canary-coverage_20260701_011505.md
+カナリア整合性チェック 終了: Wed Jul  1 01:16:44 JST 2026

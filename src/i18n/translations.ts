@@ -12,6 +12,7 @@ export const ja: Translations = {
   'nav.questions': '問題一覧',
   'nav.encyclopedia': 'サービス図鑑',
   'nav.growth': '問題生成・チェック状況',
+  'nav.cheatsheet': 'チートシート',
   'nav.releaseNotes': 'リリースノート',
   'nav.announcements': 'お知らせ',
   'nav.about': 'このサイトについて',

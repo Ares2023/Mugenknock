@@ -1,0 +1,11 @@
+=== 2026-06-29 04:10:50 | generate-release-note.sh | exit:0 ===
+[release-note] 対象日: 2026-06-28
+[release-note] 2026-06-28: 14件のコミット
+[release-note] 生成結果:
+{
+  "title": "キーボードだけでサクサク操作！演習も図鑑も快適に！",
+  "body": "目標資格の選択からトレーニング、サービス図鑑まで、キーボードのカーソル操作を大幅に改善しました！\n採点画面がクラッシュする不具合も解消し、結果画面や進捗ノードの操作もより使いやすくなっています。",
+  "titleEn": "Breeze Through Everything with Your Keyboard!",
+  "bodyEn": "We've greatly improved keyboard navigation across exam selection, training, and the Service Encyclopedia!\nWe also fixed a crash on the scoring screen and refined the results view and progress-node controls for a smoother experience."
+}
+[release-note] ✓ DynamoDBに挿入しました: 2026-06-28 — キーボードだけでサクサク操作！演習も図鑑も快適に！

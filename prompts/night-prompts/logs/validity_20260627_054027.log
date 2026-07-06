@@ -1,0 +1,77 @@
+==========================================
+正当性チェック開始: Sat Jun 27 05:40:27 JST 2026
+バッチサイズ: 100問 / チャンクサイズ: 5問
+==========================================
+チェック対象: 100問
+前処理: choices ラベル接頭辞チェック...
+  前処理: ラベル接頭辞なし（全問クリーン）
+チャンク数: 20
+
+--- チャンク 1/20: 5問  開始=05:40:58 ---
+  [OK   ] aif-20e1a501
+  [OK   ] aif-0082ccee
+  [OK   ] aif-cab3ba5d
+  [OK   ] aif-02a49fef
+  [OK   ] aif-c4983ac1
+  → 更新完了: OK=5 修正=0 削除=0
+  終了=05:42:37  経過=99秒
+
+--- チャンク 2/20: 5問  開始=05:42:38 ---
+  [OK   ] aif-84ed62fa
+  [OK   ] aif-171dcd8b
+  [OK   ] aif-d1a43e4d
+  [OK   ] aif-1ebe3b57
+  [OK   ] aif-5c4dfbd8
+  → 更新完了: OK=5 修正=0 削除=0
+  終了=05:44:13  経過=95秒
+
+--- チャンク 3/20: 5問  開始=05:44:13 ---
+  [OK   ] aif-68d53060
+  [OK   ] aif-e5a2e67a
+  [OK   ] aif-e55cddfc
+  [OK   ] aif-e6f2d8ec
+  [OK   ] aif-231efd91
+  → 更新完了: OK=5 修正=0 削除=0
+  終了=05:45:49  経過=96秒
+
+--- チャンク 4/20: 5問  開始=05:45:49 ---
+  [OK   ] aif-3d5c52b8
+  [OK   ] aif-f97d57f2
+  [OK   ] aif-a82880a4
+  [OK   ] aif-8c50618f
+  [OK   ] aif-6a11ba05
+  → 更新完了: OK=5 修正=0 削除=0
+  終了=05:47:27  経過=98秒
+
+--- チャンク 5/20: 5問  開始=05:47:27 ---
+  [FIX  ] aif-bf77b3d4: 解説の誤字「Knowledge BasesはやRAG用途」を「Knowledge BasesはRAG用途」に修正。内容・正解・選択肢解説は妥当。 → 変更: explanation
+  [OK   ] aif-c69a9e94
+  [FIX  ] aif-5aa82f80: 解説中の選択肢ラベル「選択肢1/2/3」が他問やchoices並び（B/C/D）と不一致で紛らわしいため、選択肢B/C/D表記に統一。内容は妥当。 → 変更: explanation
+  [OK   ] aif-b84e41cb
+  [OK   ] aif-31f43710
+  → 更新完了: OK=3 修正=2 削除=0
+  終了=05:49:22  経過=115秒
+
+--- チャンク 6/20: 5問  開始=05:49:22 ---
+  [FIX  ] dva-05f21f74: 正解と解説は正確だが、不正解選択肢のchoiceExplanationsが短く、正解選択肢のみ文字数が突出していたため、選択肢の文章量を均し解説を100字程度に拡充した。 → 変更: choices, choiceExplanations
+  [FIX  ] gai-b52e4a07: 正解と解説は正確だが、不正解選択肢のchoiceExplanationsが極端に短かったため、各選択肢の不正解理由を100字程度に拡充した。 → 変更: choiceExplanations
+  [FIX  ] soa-676bb21f: 正解と解説は正確だが、不正解選択肢のchoiceExplanationsが短かったため、各選択肢の不正解理由を100字程度に拡充した。 → 変更: choiceExplanations
+  [FIX  ] gai-adb73a49: 正解と解説は正確だが、不正解選択肢のchoiceExplanationsが短く正解選択肢のみ文字数が突出していたため、選択肢の文章量を均し解説を100字程度に拡充した。 → 変更: choices, choiceExplanations
+  [FIX  ] mla-ff9c7788: choiceExplanations[0]と[2]の内容が選択肢と入れ替わっており（[0]がマルチバリアント、[2]がALBを説明）、解説本文の選択肢A/Cの参照も誤っていたため、正しい順番に修正し解説を整えた。 → 変更: explanation, choiceExplanations
+  → 更新完了: OK=0 修正=5 削除=0
+  終了=05:53:09  経過=227秒
+
+--- チャンク 7/20: 5問  開始=05:53:09 ---
+  [OK   ] aif-a89641fb
+  [OK   ] soa-914f83d9
+  [OK   ] aif-d9869adf
+  [OK   ] dop-eb52fb8a
+  [OK   ] soa-f1c69dbd
+  → 更新完了: OK=5 修正=0 削除=0
+  終了=05:54:48  経過=99秒
+
+--- チャンク 8/20: 5問  開始=05:54:48 ---
+⚠️  レート制限を検出。残りチャンクをスキップ
+stdout: You've hit your session limit · resets 6:10am (Asia/Tokyo)
+
+完了サマリー: 問題なし=28問 / 自動修正=7問 / 削除=0問

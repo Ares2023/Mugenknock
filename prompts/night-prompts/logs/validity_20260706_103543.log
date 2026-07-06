@@ -1,0 +1,32 @@
+==========================================
+正当性チェック開始: Mon Jul  6 10:35:43 JST 2026
+バッチサイズ: 30問 / チャンクサイズ: 5問
+==========================================
+チェック対象: 30問
+前処理: choices ラベル接頭辞チェック...
+  前処理: ラベル接頭辞なし（全問クリーン）
+チャンク数: 6
+
+--- チャンク 1/6: 5問  開始=10:36:26 ---
+  [FIX  ] scs-5518c4ad: SCS 4択のペア構造が未形成（選択肢Aを差し替えてA&Bを「スナップショット後に封じ込め有/無」のペアに再構成）。choiceExplanations[0][1]が100字未満のため拡充。 → 変更: choices, explanation, choiceExplanations
+  [OK   ] scs-0cc05a61
+  [OK   ] scs-e0528c90
+  [FIX  ] scs-6657d6ef: 問題文の要件に「GuardDutyの調査結果として記録」と明記されており、正解選択肢（GuardDuty RDS Protection）のキーワードと直接照合できるため難度が低下。要件表現を中立化する。なお公式ドキュメントにてRDS for PostgreSQL（非Aurora）がGuardDuty RDS Protectionの正式サポート対象であることを確認済み。 → 変更: questionText
+  [FIX  ] mla-826026f3: questionTextに4要件①②③④が改行なしで列挙されており可読性が低い。要件ごとに改行を挿入する。 → 変更: questionText
+  → 更新完了: OK=2 修正=3 削除=0
+  終了=10:49:41  経過=795秒
+
+--- チャンク 2/6: 5問  開始=10:49:41 ---
+  [OK   ] scs-b55b1d3d
+  [FIX  ] scs-0d0c920d: choiceExplanations[0]で「StackSetsは新規アカウントに自動適用できない」と誤記。StackSetsはOrganizations自動デプロイ機能で新規アカウントへの自動展開が可能。Bが優れる本質的理由は運用の一元化にある。解説本文およびchoiceExplanations[0]を訂正。 → 変更: explanation, choiceExplanations
+  [OK   ] scs-f3ea8732
+  [FIX  ] dop-1e3befd1: 正解選択肢（A）が他の3選択肢より著しく長く最長。解説冒頭が正解文の逐語反復で冗長。選択肢B・C・Dを拡充して正解が最長にならないよう修正し、解説冒頭の重複を削除する。 → 変更: choices, explanation, choiceExplanations
+  [FIX  ] sap-8fc8857a: choiceExplanationsが全て50字以下と著しく短い（要件100〜150字）。またSAP水準に対して複合要件・トレードオフが乏しく暗記寄りのため、問題文にDirect Connect・複数VPC・複数制約を追加してSAP相当の難度に引き上げ、choiceExplanationsを拡充する。 → 変更: questionText, choices, explanation, choiceExplanations
+  → 更新完了: OK=2 修正=3 削除=0
+  終了=11:04:43  経過=902秒
+
+--- チャンク 3/6: 5問  開始=11:04:44 ---
+⚠️  レート制限を検出。残りチャンクをスキップ
+stdout: You've hit your session limit · resets 11:40am (Asia/Tokyo)
+
+完了サマリー: 問題なし=4問 / 自動修正=6問 / 削除=0問

@@ -1,0 +1,29 @@
+=== 2026-07-06 02:45:07 | 05-check-daily-services.sh | exit:0 ===
+==========================================
+日めくりサービス体裁チェック開始: Mon Jul  6 02:30:04 JST 2026
+バッチサイズ: 5件 / チャンクサイズ: 5件
+==========================================
+
+--- 提供状態ライフサイクル照合中（猶予 30日）---
+  [警告] AWS App Runner: 新規受付が終了しています → 警告付与（2026-08-05削除予定）
+  → ライフサイクル: 新規警告=1 削除=0 復活解除=0
+
+--- 重複記事チェック（docUrl照合・自動削除）---
+  → 重複なし
+チェック対象: 5件
+チャンク数: 1
+
+--- チャンク 1/1: 5件  開始=02:31:30 ---
+  [FIX  ] svc-app-runner-162: description が126字で上限120字超過。内容は正確なので最小限圧縮する → 変更: description
+  [DELETE] _schedule_: name・shortName・category・description・triviaがすべて空。有効なサービスエントリではなく誤混入したプレースホルダー
+  [OK   ] svc-b2b-data-interchange-163
+  [FIX  ] svc-app-auto-scaling-161: docUrlがdocs.aws.amazon.com形式でaws.amazon.com/jp/形式でない（専用jpページ非存在のため空文字へ）。またdescriptionが132字で上限超過 → 変更: description, docUrl
+  [FIX  ] svc-bedrock-data-automation-160: docUrlに/jp/が欠如しておりaws.amazon.com/jp/形式でない → 変更: docUrl
+  → 更新完了: OK=1 修正=3 削除=1
+  終了=02:36:18  経過=288秒
+
+完了サマリー: 問題なし=1件 / 自動修正=3件 / 削除=1件
+
+==========================================
+チェック終了: Mon Jul  6 02:36:18 JST 2026
+==========================================

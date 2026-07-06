@@ -1,0 +1,11 @@
+=== 2026-06-28 03:12:48 | generate-release-note.sh | exit:0 ===
+[release-note] 対象日: 2026-06-27
+[release-note] 2026-06-27: 32件のコミット
+[release-note] 生成結果:
+{
+  "title": "Web版がキーボードだけでサクサク操作できるように！",
+  "body": "矢印キーで選択肢やタブ・パネルを自在に移動し、Ctrl+Enterで即回答、Ctrl+Cで問題文コピー、Escでオーバレイを閉じられるようになりました！\nマウスに持ち替えずに演習から図鑑・履歴まで一気に進められます。",
+  "titleEn": "Breeze through the web app with keyboard-only controls!",
+  "bodyEn": "Use arrow keys to move across choices, tabs, and panels, press Ctrl+Enter to answer instantly, Ctrl+C to copy a question, and Esc to close overlays!\nNow you can fly from quizzes to the service guide and history without ever reaching for the mouse."
+}
+[release-note] ✓ DynamoDBに挿入しました: 2026-06-27 — Web版がキーボードだけでサクサク操作できるように！

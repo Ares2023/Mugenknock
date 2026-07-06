@@ -1,0 +1,32 @@
+==========================================
+正当性チェック開始: Mon Jun 29 22:27:56 JST 2026
+バッチサイズ: 30問 / チャンクサイズ: 5問
+==========================================
+チェック対象: 30問
+前処理: choices ラベル接頭辞チェック...
+  前処理: ラベル接頭辞なし（全問クリーン）
+チャンク数: 6
+
+--- チャンク 1/6: 5問  開始=22:28:27 ---
+  [OK   ] soa-fe0b7358
+  [OK   ] clf-5d43dd1a
+  [OK   ] soa-faa41879
+  [OK   ] soa-251f3276
+  [OK   ] soa-d65acfeb
+  → 更新完了: OK=5 修正=0 削除=0
+  終了=22:30:04  経過=97秒
+
+--- チャンク 2/6: 5問  開始=22:30:04 ---
+  [FIX  ] clf-e7ebabc2: choiceExplanations[0]と[1]が入れ替わっている。index0(Transcribe)にPollyの説明、index1(Polly)にTranscribeの説明が付いており順番不一致。正しい対応に並び替える。 → 変更: choiceExplanations
+  [OK   ] soa-0d1cdc0f
+  [OK   ] clf-21c3edb5
+  [OK   ] soa-9fcd30bd
+  [FIX  ] clf-43677c7f: choiceExplanations[0]と[1]が入れ替わっている。index0(Service Catalog)にMarketplaceの説明、index1(Marketplace)にService Catalogの説明が付いており順番不一致。正しい対応に並び替える。 → 変更: choiceExplanations
+  → 更新完了: OK=3 修正=2 削除=0
+  終了=22:31:56  経過=112秒
+
+--- チャンク 3/6: 5問  開始=22:31:56 ---
+⚠️  レート制限を検出。残りチャンクをスキップ
+stdout: You've hit your session limit · resets 11:10pm (Asia/Tokyo)
+
+完了サマリー: 問題なし=8問 / 自動修正=2問 / 削除=0問

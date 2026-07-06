@@ -1,0 +1,11 @@
+=== 2026-07-04 05:48:21 | generate-release-note.sh | exit:0 ===
+[release-note] 対象日: 2026-07-03
+[release-note] 2026-07-03: 28件のコミット
+[release-note] 生成結果:
+{
+  "title": "お知らせ機能が登場！大事な更新を見逃さない！",
+  "body": "開発者からの最新情報をアプリ内でお届けする「お知らせ」機能を追加しました！ベルアイコンから未読がひと目でわかり、複数の端末でも既読状態がぴったり同期します。\nさらに履歴タブに累計演習量を表示し、履歴モーダルには問題文・解説のコピーボタンも追加しました。",
+  "titleEn": "Introducing Announcements — never miss an update!",
+  "bodyEn": "We've added an in-app Announcements feature so you can catch the latest news from the developers! A bell icon shows unread items at a glance, and your read status now syncs seamlessly across all your devices.\nWe've also added your total practice volume to the History tab, plus copy buttons for questions and explanations in the history view."
+}
+[release-note] ✓ DynamoDBに挿入しました: 2026-07-03 — お知らせ機能が登場！大事な更新を見逃さない！

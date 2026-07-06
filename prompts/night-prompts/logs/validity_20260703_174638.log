@@ -1,0 +1,71 @@
+==========================================
+正当性チェック開始: Fri Jul  3 17:46:38 JST 2026
+バッチサイズ: 30問 / チャンクサイズ: 5問
+==========================================
+チェック対象: 30問
+前処理: choices ラベル接頭辞チェック...
+  前処理: ラベル接頭辞なし（全問クリーン）
+チャンク数: 6
+
+--- チャンク 1/6: 5問  開始=17:47:20 ---
+  [OK   ] soa-418630f3
+  [OK   ] soa-19262b42
+  [OK   ] soa-aabec5b0
+  [OK   ] soa-f6551b74
+  [OK   ] soa-da9545e7
+  → 更新完了: OK=5 修正=0 削除=0
+  終了=17:49:31  経過=131秒
+
+--- チャンク 2/6: 5問  開始=17:49:31 ---
+  [FIX  ] soa-730af381: choiceExplanationsの順番がchoicesと不一致。[0]に正解(index2)の解説、[1]にAuto Recovery(index0)、[2]にscale-in(index1)の解説が入り1つずれていたため正しい順番に並び替え。 → 変更: choiceExplanations
+  [OK   ] soa-b22940cf
+  [OK   ] soa-e9cf6719
+  [OK   ] soa-7d1d6331
+  [OK   ] soa-377a22e0
+  → 更新完了: OK=4 修正=1 削除=0
+  終了=17:52:23  経過=172秒
+
+--- チャンク 3/6: 5問  開始=17:52:23 ---
+  [OK   ] soa-cc334366
+  [FIX  ] soa-36db081d: choiceExplanations[0]と[1]が入れ替わっている（[0]がX-Ray説明でchoices[0]はLogs Insights、[1]がLogs Insights説明でchoices[1]はX-Ray）。順番対応を修正。 → 変更: choiceExplanations
+  [OK   ] soa-6430dbdc
+  [OK   ] soa-49e20104
+  [OK   ] sap-eb201dd4
+  → 更新完了: OK=4 修正=1 削除=0
+  終了=17:54:53  経過=150秒
+
+--- チャンク 4/6: 5問  開始=17:54:53 ---
+  [OK   ] sap-f7ad233a
+  [OK   ] soa-d25fd402
+  [OK   ] sap-3a9cd8c2
+  [OK   ] sap-f04c7e4d
+  [OK   ] sap-5144f261
+  → 更新完了: OK=5 修正=0 削除=0
+  終了=17:57:13  経過=140秒
+
+--- チャンク 5/6: 5問  開始=17:57:13 ---
+  [OK   ] soa-dea2ca58
+  [FIX  ] dop-7a116bdf: 内容・正解は妥当だが、本文解説がB：C：D：と改行なしの一段落で読みにくい。選択肢ごとに改行し「選択肢Bは〜」形式へ修正した。 → 変更: explanation
+  [FIX  ] dop-04792861: 正解Bが全選択肢中で突出して最長で「最長＝正解」のメタ読みが可能だった。各不正解にもコントロールプレーンログ対応を加えて文字量を揃え、正解を最長から外した。choiceExplanationsも対応させた。 → 変更: choices, correctAnswers, choiceExplanations
+  [OK   ] aif-32a978a8
+  [FIX  ] dop-99770afb: 内容・正解は妥当だが、本文解説冒頭の「正解：」による重複と、選択肢A解説の「（ML…」が閉じ括弧のない誤記で推敲不足。解説とchoiceExplanations[0]の括弧・文面を修正した。 → 変更: explanation, choiceExplanations
+  → 更新完了: OK=2 修正=3 削除=0
+  終了=18:00:48  経過=215秒
+
+--- チャンク 6/6: 5問  開始=18:00:48 ---
+  [WARN ] dop-a87a18ed: fix 適用後に正解が最長選択肢（正解146字 > 不正解最長135字）。次回再チェック対象に残す
+  [FIX  ] dop-a87a18ed: 正解が最長でメタ読み可能。正解を短縮し不正解と文字数を均衡化。ARC・Readiness Check・Routing Controlの記述は現行仕様と一致で内容は妥当。 → 変更: choices, correctAnswers, choiceExplanations
+  [FIX  ] dop-c45c1103: 正解が最長かつRTO/RPO要件語が正解のみに出現し特定容易。正解を短縮し不正解にRTO/RPO準拠等の情報を加え均衡化。Resilience Hub・StartAppAssessmentは現行仕様。 → 変更: choices, correctAnswers, choiceExplanations
+  [FIX  ] dop-3e90afa4: 公式確認: EFSレプリケーションのRPOは15分（数分以内ではなく大規模FSでは超過し得る）。要件を「15分未満」→「15分」に、解説の「数分以内」を「RPO15分」に訂正。正解が最長のため長さ均衡化と改行も追加。 → 変更: questionText, choices, correctAnswers, explanation, choiceExplanations
+  [WARN ] dop-44630711: fix 適用後に正解が最長選択肢（正解200字 > 不正解最長179字）。次回再チェック対象に残す
+  [FIX  ] dop-44630711: 可視性タイムアウトを関数タイムアウトの6倍とする推奨・DLQは現行仕様で内容は正確。ただし正解が突出して最長のため正解を短縮し不正解の情報量を増やして均衡化。 → 変更: choices, correctAnswers, explanation, choiceExplanations
+  [WARN ] dop-66c370a2: fix 適用後に正解が最長選択肢（正解153字 > 不正解最長119字）。次回再チェック対象に残す
+  [FIX  ] dop-66c370a2: 解説の「選択肢Aは理由。」等が推敲不足の誤記。文言を整え選択肢ごとに改行。正解C（[2]）が最長だったため不正解Dを情報量増で長くし均衡化。isMultipleをtrueに明示。 → 変更: choices, explanation, choiceExplanations
+  → 更新完了: OK=0 修正=5 削除=0
+  終了=18:08:46  経過=478秒
+
+完了サマリー: 問題なし=20問 / 自動修正=10問 / 削除=0問
+
+==========================================
+チェック終了: Fri Jul  3 18:08:46 JST 2026
+==========================================

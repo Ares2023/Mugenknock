@@ -1,0 +1,26 @@
+[
+  {
+    "questionId": "saa-50634aa0",
+    "examType": "SAA",
+    "verdict": "ok",
+    "currentness": "ok",
+    "difficulty": "appropriate",
+    "scope": "in",
+    "format": "ok",
+    "mockSuitable": true,
+    "issues": []
+  },
+  {
+    "questionId": "saa-1bc92b70",
+    "examType": "SAA",
+    "verdict": "warn",
+    "currentness": "ok",
+    "difficulty": "too_easy",
+    "scope": "in",
+    "format": "ok",
+    "mockSuitable": true,
+    "issues": [
+      "「DynamoDB＋マイクロ秒レイテンシ」はDAXを直接連想させる定番キーワードで、シナリオの要件比較をほぼ要さず正解が自明になりやすい。ひっかけ選択肢(B/C/D)も消去が容易で本番のシナリオ難易度よりやや易しい"
+    ]
+  }
+]
