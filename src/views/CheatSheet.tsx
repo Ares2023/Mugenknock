@@ -1,8 +1,8 @@
 'use client';
 import React, { useState, useMemo } from 'react';
 import { Helmet } from '@/compat/react-helmet-async';
-import { EXAM_LEVEL, EXAM_LEVEL_COLORS, EXAM_CONFIGS, EXAM_OFFICIAL_URLS, EXAM_TYPES } from '../constants';
-import { EXAM_ICON_COMPONENTS } from '../components/Icons';
+import { EXAM_LEVEL, EXAM_LEVEL_COLORS, EXAM_CONFIGS, EXAM_OFFICIAL_URLS } from '../constants';
+import { EXAM_ICON_COMPONENTS, IconSearch } from '../components/Icons';
 import { useLanguage } from '../contexts/LanguageContext';
 import PageLayout from '../components/ui/PageLayout';
 
@@ -598,19 +598,34 @@ const CHEAT_DATA: CheatData = {
   ],
 };
 
-// ── コンポーネント ────────────────────────────────────────────
-const EXAM_ORDER = ['CLF', 'AIF', 'SAA', 'DVA', 'SOA', 'DEA', 'MLA', 'SAP', 'DOP', 'AIP', 'ANS', 'SCS'] as const;
+// ── レベル定義（ExamSelectOverlay と同じ構成） ─────────────────
+const EXAM_LEVELS = [
+  { key: 'Practitioner', color: '#6b9e3a', exams: ['CLF', 'AIF'] },
+  { key: 'Associate',    color: '#006CE0', exams: ['SAA', 'DVA', 'SOA', 'DEA', 'MLA'] },
+  { key: 'Professional', color: '#8b5cf6', exams: ['SAP', 'DOP', 'AIP'] },
+  { key: 'Specialty',    color: '#0ea5e9', exams: ['ANS', 'SCS'] },
+] as const;
 
+type LevelKey = typeof EXAM_LEVELS[number]['key'];
+
+function levelOf(exam: string): LevelKey {
+  return (EXAM_LEVELS.find(l => (l.exams as readonly string[]).includes(exam))?.key ?? 'Associate') as LevelKey;
+}
+
+// ── コンポーネント ────────────────────────────────────────────
 export default function CheatSheet() {
-  const { lang } = useLanguage();
+  const { lang: _lang } = useLanguage();
+  const [activeLevel, setActiveLevel] = useState<LevelKey>('Associate');
   const [selectedExam, setSelectedExam] = useState<string>('SAA');
   const [search, setSearch] = useState('');
 
   const examColor = EXAM_LEVEL_COLORS[EXAM_LEVEL[selectedExam]] ?? 'var(--color-primary)';
+  const levelColor = EXAM_LEVELS.find(l => l.key === activeLevel)?.color ?? examColor;
   const ExamIcon = EXAM_ICON_COMPONENTS[selectedExam];
   const officialUrl = EXAM_OFFICIAL_URLS[selectedExam];
   const config = EXAM_CONFIGS[selectedExam];
   const sections = CHEAT_DATA[selectedExam] ?? [];
+  const currentLevelExams = EXAM_LEVELS.find(l => l.key === activeLevel)?.exams ?? [];
 
   const q = search.trim().toLowerCase();
 
@@ -630,6 +645,18 @@ export default function CheatSheet() {
 
   const totalHits = filteredSections.reduce((s, sec) => s + sec.items.length, 0);
 
+  function selectExam(exam: string) {
+    setSelectedExam(exam);
+    setSearch('');
+  }
+
+  function selectLevel(lv: LevelKey) {
+    setActiveLevel(lv);
+    const lvDef = EXAM_LEVELS.find(l => l.key === lv);
+    const first = lvDef?.exams.find(e => CHEAT_DATA[e]) ?? lvDef?.exams[0];
+    if (first) selectExam(first);
+  }
+
   return (
     <PageLayout maxWidth={860}>
       <Helmet>
@@ -637,85 +664,64 @@ export default function CheatSheet() {
         <meta name="description" content="AWS認定試験ごとの代表的サービス・機能・概念を試験前の見直し用にまとめたチートシート。" />
       </Helmet>
 
-      {/* ヘッダー */}
-      <div style={{ marginBottom: 'var(--spacing-md)' }}>
-        <h1 style={{ fontSize: 'var(--font-size-xl)', fontWeight: 800, color: 'var(--color-text-main)', margin: 0, lineHeight: 1.3 }}>
-          チートシート
-        </h1>
-        <p style={{ margin: '4px 0 0', fontSize: 'var(--font-size-sm)', color: 'var(--color-text-sub)' }}>
-          試験前の確認・用語把握用。公式試験ガイドベース。
-        </p>
-      </div>
-
-      {/* 試験選択 + 検索 */}
-      <div style={{ display: 'flex', gap: 'var(--spacing-sm)', marginBottom: 'var(--spacing-md)', flexWrap: 'wrap' }}>
-        <div style={{ position: 'relative', flexShrink: 0 }}>
-          <select
-            value={selectedExam}
-            onChange={e => { setSelectedExam(e.target.value); setSearch(''); }}
+      {/* レベルタブ */}
+      <div style={{ display: 'flex', borderBottom: '2px solid var(--color-border)', marginBottom: 0 }}>
+        {EXAM_LEVELS.map(({ key, color }) => (
+          <button
+            key={key}
+            onClick={() => selectLevel(key as LevelKey)}
             style={{
-              appearance: 'none',
-              paddingLeft: 36,
-              paddingRight: 32,
-              paddingTop: 8,
-              paddingBottom: 8,
-              borderRadius: 'var(--border-radius-full)',
-              border: `2px solid ${examColor}`,
-              background: `${examColor}14`,
-              color: examColor,
-              fontWeight: 700,
-              fontSize: 'var(--font-size-base)',
-              cursor: 'pointer',
-              outline: 'none',
+              padding: '10px 14px',
+              background: 'none', border: 'none', cursor: 'pointer',
+              borderBottom: activeLevel === key ? `2px solid ${color}` : '2px solid transparent',
+              marginBottom: -2,
+              color: activeLevel === key ? color : 'var(--color-text-sub)',
+              fontWeight: activeLevel === key ? 700 : 400,
+              fontSize: 'var(--font-size-sm2)',
+              whiteSpace: 'nowrap', flexShrink: 0,
+              transition: 'all 0.15s',
             }}
           >
-            {EXAM_ORDER.filter(e => CHEAT_DATA[e]).map(exam => {
-              const lv = EXAM_LEVEL[exam];
-              const col = EXAM_LEVEL_COLORS[lv] ?? '#000';
-              return (
-                <option key={exam} value={exam} style={{ color: col, fontWeight: 700 }}>
-                  {exam} — {EXAM_CONFIGS[exam]?.fullName?.replace('AWS Certified ', '')}
-                </option>
-              );
-            })}
-          </select>
-          {ExamIcon && (
-            <span style={{ position: 'absolute', left: 10, top: '50%', transform: 'translateY(-50%)', color: examColor, display: 'flex', pointerEvents: 'none' }}>
-              <ExamIcon size={16} />
-            </span>
-          )}
-          <span style={{ position: 'absolute', right: 10, top: '50%', transform: 'translateY(-50%)', color: examColor, pointerEvents: 'none', fontSize: 10 }}>▼</span>
-        </div>
-
-        {/* 検索バー */}
-        <div style={{ flex: 1, minWidth: 160, position: 'relative' }}>
-          <input
-            type="search"
-            value={search}
-            onChange={e => setSearch(e.target.value)}
-            placeholder="サービス名・キーワードで絞り込み"
-            style={{
-              width: '100%',
-              boxSizing: 'border-box',
-              padding: '8px 12px 8px 36px',
-              borderRadius: 'var(--border-radius-full)',
-              border: '1.5px solid var(--color-border)',
-              background: 'var(--color-bg-white)',
-              color: 'var(--color-text-main)',
-              fontSize: 'var(--font-size-sm)',
-              outline: 'none',
-            }}
-          />
-          <span style={{ position: 'absolute', left: 12, top: '50%', transform: 'translateY(-50%)', color: 'var(--color-text-light)', fontSize: 14, pointerEvents: 'none' }}>🔍</span>
-        </div>
+            {key}
+          </button>
+        ))}
       </div>
 
-      {/* 試験ヘッダー */}
+      {/* 試験カード（横スクロール） */}
+      <div style={{ display: 'flex', gap: 10, padding: '14px 0', overflowX: 'auto', flexShrink: 0 }}>
+        {currentLevelExams.filter(e => CHEAT_DATA[e]).map(exam => {
+          const isSelected = selectedExam === exam;
+          const EIcon = EXAM_ICON_COMPONENTS[exam];
+          return (
+            <button
+              key={exam}
+              onClick={() => selectExam(exam)}
+              style={{
+                flexShrink: 0, width: 80, padding: '10px 6px 8px', cursor: 'pointer',
+                borderRadius: 10, textAlign: 'center',
+                border: `2px solid ${isSelected ? levelColor : 'var(--color-border)'}`,
+                background: isSelected
+                  ? `linear-gradient(145deg, ${levelColor}, ${levelColor}bb)`
+                  : 'var(--color-bg-white)',
+                color: isSelected ? '#fff' : 'var(--color-text-sub)',
+                transition: 'all 0.15s',
+              }}
+            >
+              <div style={{ display: 'flex', justifyContent: 'center', marginBottom: 4, opacity: isSelected ? 1 : 0.6 }}>
+                {EIcon ? <EIcon size={20} /> : null}
+              </div>
+              <div style={{ fontSize: 'var(--font-size-sm)', fontWeight: 700 }}>{exam}</div>
+            </button>
+          );
+        })}
+      </div>
+
+      {/* 試験情報バー */}
       <div style={{
         background: `${examColor}10`,
-        border: `1.5px solid ${examColor}40`,
+        border: `1.5px solid ${examColor}30`,
         borderRadius: 'var(--border-radius-lg)',
-        padding: '12px 16px',
+        padding: '10px 14px',
         marginBottom: 'var(--spacing-md)',
         display: 'flex',
         alignItems: 'center',
@@ -723,60 +729,22 @@ export default function CheatSheet() {
         flexWrap: 'wrap',
         gap: 8,
       }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-          {ExamIcon && <ExamIcon size={20} />}
-          <div>
-            <div style={{ fontSize: 'var(--font-size-sm)', fontWeight: 800, color: examColor }}>{config?.examCode}</div>
-            <div style={{ fontSize: 'var(--font-size-xs)', color: 'var(--color-text-sub)', marginTop: 1 }}>{config?.fullName}</div>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8, minWidth: 0 }}>
+          {ExamIcon && <ExamIcon size={18} />}
+          <div style={{ minWidth: 0 }}>
+            <span style={{ fontSize: 'var(--font-size-sm)', fontWeight: 800, color: examColor }}>{config?.examCode}</span>
+            <span style={{ fontSize: 'var(--font-size-xs)', color: 'var(--color-text-sub)', marginLeft: 8 }}>{config?.fullName}</span>
           </div>
-          <span style={{
-            marginLeft: 4,
-            fontSize: 'var(--font-size-xs)',
-            padding: '2px 8px',
-            borderRadius: 'var(--border-radius-full)',
-            background: examColor,
-            color: '#fff',
-            fontWeight: 700,
-            flexShrink: 0,
-          }}>
-            {EXAM_LEVEL[selectedExam]}
-          </span>
         </div>
-        <div style={{ display: 'flex', gap: 8 }}>
+        <div style={{ display: 'flex', gap: 8, flexShrink: 0 }}>
           {officialUrl && (
             <>
-              <a
-                href={officialUrl.page}
-                target="_blank"
-                rel="noopener noreferrer"
-                style={{
-                  fontSize: 'var(--font-size-xs)',
-                  color: examColor,
-                  border: `1px solid ${examColor}`,
-                  borderRadius: 'var(--border-radius-full)',
-                  padding: '3px 10px',
-                  textDecoration: 'none',
-                  fontWeight: 600,
-                  whiteSpace: 'nowrap',
-                }}
-              >
+              <a href={officialUrl.page} target="_blank" rel="noopener noreferrer"
+                style={{ fontSize: 'var(--font-size-xs)', color: examColor, border: `1px solid ${examColor}`, borderRadius: 'var(--border-radius-full)', padding: '3px 10px', textDecoration: 'none', fontWeight: 600, whiteSpace: 'nowrap' }}>
                 公式ページ ↗
               </a>
-              <a
-                href={officialUrl.guide}
-                target="_blank"
-                rel="noopener noreferrer"
-                style={{
-                  fontSize: 'var(--font-size-xs)',
-                  color: 'var(--color-text-sub)',
-                  border: '1px solid var(--color-border)',
-                  borderRadius: 'var(--border-radius-full)',
-                  padding: '3px 10px',
-                  textDecoration: 'none',
-                  fontWeight: 600,
-                  whiteSpace: 'nowrap',
-                }}
-              >
+              <a href={officialUrl.guide} target="_blank" rel="noopener noreferrer"
+                style={{ fontSize: 'var(--font-size-xs)', color: 'var(--color-text-sub)', border: '1px solid var(--color-border)', borderRadius: 'var(--border-radius-full)', padding: '3px 10px', textDecoration: 'none', fontWeight: 600, whiteSpace: 'nowrap' }}>
                 試験ガイド PDF ↗
               </a>
             </>
@@ -784,10 +752,34 @@ export default function CheatSheet() {
         </div>
       </div>
 
-      {/* 検索結果ヒント */}
+      {/* 検索バー */}
+      <div style={{ position: 'relative', marginBottom: 'var(--spacing-md)' }}>
+        <div style={{ position: 'absolute', left: 12, top: '50%', transform: 'translateY(-50%)', color: 'var(--color-text-light)', display: 'flex', pointerEvents: 'none' }}>
+          <IconSearch />
+        </div>
+        <input
+          type="search"
+          value={search}
+          onChange={e => setSearch(e.target.value)}
+          placeholder="サービス名・キーワードで絞り込み"
+          style={{
+            width: '100%',
+            boxSizing: 'border-box',
+            padding: '8px 12px 8px 34px',
+            borderRadius: 'var(--border-radius-full)',
+            border: '1.5px solid var(--color-border)',
+            background: 'var(--color-bg-white)',
+            color: 'var(--color-text-main)',
+            fontSize: 'var(--font-size-sm)',
+            outline: 'none',
+          }}
+        />
+      </div>
+
+      {/* 検索ヒット数 */}
       {q && (
         <p style={{ fontSize: 'var(--font-size-xs)', color: 'var(--color-text-sub)', marginBottom: 'var(--spacing-sm)' }}>
-          「{search}」の検索結果: {totalHits} 件
+          「{search}」: {totalHits} 件
         </p>
       )}
       {q && totalHits === 0 && (
