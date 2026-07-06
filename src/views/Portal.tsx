@@ -363,8 +363,8 @@ export default function Portal() {
 
               <p style={{ margin: 0, fontSize: isMobile ? 'var(--font-size-sm2)' : 'var(--font-size-base)', color: 'var(--color-text-main)', fontWeight: 700 }}>
                 {ja
-                  ? '現在私が取得している資格は「CLF」「SAA」「SAP」の3つです。少なくとも私が全冠するまで、このサイトは改良し続けます。どうぞ、私と同じく AWS 資格の取得へ向けて努力している方は使ってみてください。問題の通報やメッセージ機能などで、フィードバックをいただけたら幸いです。'
-                  : 'The certifications I currently hold are CLF, SAA, and SAP — three so far. At least until I earn them all, I\'ll keep improving this site. If you\'re working toward AWS certifications like me, please give it a try. I\'d be grateful for any feedback via the report or message features.'}
+                  ? '現在私が取得している資格は「CLF」「SAA」「SAP」「DOP」の4つです。少なくとも私が全冠するまで、このサイトは改良し続けます。どうぞ、私と同じく AWS 資格の取得へ向けて努力している方は使ってみてください。問題の通報やメッセージ機能などで、フィードバックをいただけたら幸いです。'
+                  : 'The certifications I currently hold are CLF, SAA, SAP, and DOP — four so far. At least until I earn them all, I\'ll keep improving this site. If you\'re working toward AWS certifications like me, please give it a try. I\'d be grateful for any feedback via the report or message features.'}
               </p>
               <p style={{ margin: 'var(--spacing-md) 0 0', textAlign: 'right', fontSize: 'var(--font-size-sm)', color: 'var(--color-text-light)' }}>
                 {ja ? '開発者　大森かいづ' : '— Kaizu Omori, Developer'}
