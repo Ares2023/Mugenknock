@@ -125,7 +125,7 @@ export default function Others() {
 
         {/* 無限ノックについて（ランディングページ） */}
         <button
-          onClick={() => navigate('/#about')}
+          onClick={() => navigate('/?view=1')}
           style={{
             width: '100%', display: 'flex', alignItems: 'center', gap: 16,
             padding: '16px var(--spacing-md)', border: '1px solid var(--color-border)',

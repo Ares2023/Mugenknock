@@ -1514,46 +1514,6 @@ export default function Admin() {
               更新
             </button>
           </div>
-          {/* 演習量サマリー */}
-          {Object.keys(exerciseCounts).length > 0 && (() => {
-            const totalExercise = Object.values(exerciseCounts).reduce((a, b) => a + b, 0);
-            const totalCorrect = Object.values(exerciseCorrectCounts).reduce((a, b) => a + b, 0);
-            const levels = ['Foundational', 'Associate', 'Professional', 'Specialty'] as const;
-            const byLevel: Record<string, string[]> = {};
-            for (const t of EXAM_TYPES) {
-              if (exerciseCounts[t] == null || exerciseCounts[t] === 0) continue;
-              const lv = EXAM_LEVEL[t] ?? 'Other';
-              (byLevel[lv] ??= []).push(t);
-            }
-            return (
-              <div style={{ marginBottom: 14, padding: '10px 14px', background: 'var(--color-bg-main)', borderRadius: 8, border: '1px solid var(--color-border)' }}>
-                <div style={{ display: 'flex', alignItems: 'baseline', gap: 12, marginBottom: 8, flexWrap: 'wrap' }}>
-                  <span style={{ fontSize: 13, fontWeight: 700, color: 'var(--color-text-main)' }}>全ユーザー演習量</span>
-                  <span style={{ fontSize: 18, fontWeight: 700, color: 'var(--color-primary)', fontVariantNumeric: 'tabular-nums' }}>{totalExercise.toLocaleString()}<span style={{ fontSize: 12, fontWeight: 400, color: 'var(--color-text-sub)', marginLeft: 2 }}>回</span></span>
-                  {totalExercise > 0 && <span style={{ fontSize: 12, color: 'var(--color-text-sub)', fontVariantNumeric: 'tabular-nums' }}>正答率 {Math.round(totalCorrect / totalExercise * 100)}%</span>}
-                </div>
-                <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
-                  {levels.map(lv => !byLevel[lv]?.length ? null : (
-                    <div key={lv} style={{ display: 'flex', gap: 8, alignItems: 'center', flexWrap: 'wrap' }}>
-                      <span style={{ fontSize: 11, color: 'var(--color-text-light)', fontWeight: 700, minWidth: isMobile ? 56 : 88, textAlign: 'right', flexShrink: 0 }}>{isMobile ? lv.slice(0, 4) : lv}</span>
-                      <span style={{ width: 1, height: 14, background: 'var(--color-border)', display: 'inline-block', flexShrink: 0 }} />
-                      {byLevel[lv].map(t => {
-                        const cnt = exerciseCounts[t] ?? 0;
-                        const cor = exerciseCorrectCounts[t] ?? 0;
-                        const rate = cnt > 0 ? Math.round(cor / cnt * 100) : null;
-                        return (
-                          <span key={t} style={{ fontSize: 12, color: 'var(--color-text-sub)', whiteSpace: 'nowrap', fontVariantNumeric: 'tabular-nums' }}>
-                            <span style={{ fontWeight: 700, color: 'var(--color-text-main)' }}>{t}</span>
-                            {' '}{cnt.toLocaleString()}回{rate != null ? <span style={{ color: 'var(--color-text-light)', marginLeft: 2 }}>({rate}%)</span> : null}
-                          </span>
-                        );
-                      })}
-                    </div>
-                  ))}
-                </div>
-              </div>
-            );
-          })()}
           {/* カバレッジ */}
           {totalCount > 0 && (validityCheckedCount != null || formatCheckedCount != null) && (
             <div style={{ marginBottom: 14 }}>
@@ -1604,20 +1564,37 @@ export default function Admin() {
           <form onSubmit={handleSearch} style={{ marginBottom: 16 }}>
             {/* 試験種別 */}
             {(() => {
-              const examBtn = (type: string) => (
-                <button key={type} type="button" onClick={() => { setExamFilter(type); setDomainFilter(''); }}
-                  style={{
-                    padding: '4px 12px', border: examFilter === type ? '2px solid' : '1.5px solid', borderRadius: 6, cursor: 'pointer',
-                    background: examFilter === type ? 'var(--color-primary-light)' : 'transparent',
-                    color: examFilter === type ? 'var(--color-primary)' : 'var(--color-text-sub)',
-                    borderColor: examFilter === type ? 'var(--color-primary)' : 'var(--color-border)',
-                    fontWeight: examFilter === type ? 700 : 400, fontSize: 13
-                  }}>
-                  {type === 'ALL'
-                    ? `ALL${totalCount > 0 ? `(${totalCount})` : ''}`
-                    : `${type}${examCounts[type] != null ? `(${examCounts[type]})` : ''}`}
-                </button>
-              );
+              const totalExercise = Object.values(exerciseCounts).reduce((a, b) => a + b, 0);
+              const totalCorrect = Object.values(exerciseCorrectCounts).reduce((a, b) => a + b, 0);
+              const hasExercise = totalExercise > 0;
+              const examBtn = (type: string) => {
+                const exCnt = exerciseCounts[type] ?? 0;
+                const exCor = exerciseCorrectCounts[type] ?? 0;
+                const rate = exCnt > 0 ? Math.round(exCor / exCnt * 100) : null;
+                return (
+                  <button key={type} type="button" onClick={() => { setExamFilter(type); setDomainFilter(''); }}
+                    style={{
+                      padding: '4px 12px', border: examFilter === type ? '2px solid' : '1.5px solid', borderRadius: 6, cursor: 'pointer',
+                      background: examFilter === type ? 'var(--color-primary-light)' : 'transparent',
+                      color: examFilter === type ? 'var(--color-primary)' : 'var(--color-text-sub)',
+                      borderColor: examFilter === type ? 'var(--color-primary)' : 'var(--color-border)',
+                      fontWeight: examFilter === type ? 700 : 400, fontSize: 13,
+                      lineHeight: 1.3,
+                    }}>
+                    {type === 'ALL' ? (
+                      <span>
+                        ALL{totalCount > 0 ? `(${totalCount})` : ''}
+                        {hasExercise && <span style={{ fontSize: 11, color: examFilter === 'ALL' ? 'var(--color-primary)' : 'var(--color-text-light)', marginLeft: 4, fontVariantNumeric: 'tabular-nums' }}>{totalExercise.toLocaleString()}回 {Math.round(totalCorrect / totalExercise * 100)}%</span>}
+                      </span>
+                    ) : (
+                      <span>
+                        {type}{examCounts[type] != null ? `(${examCounts[type]})` : ''}
+                        {exCnt > 0 && <span style={{ fontSize: 11, color: examFilter === type ? 'var(--color-primary)' : 'var(--color-text-light)', marginLeft: 4, fontVariantNumeric: 'tabular-nums', display: 'block' }}>{exCnt.toLocaleString()}回{rate != null ? ` ${rate}%` : ''}</span>}
+                      </span>
+                    )}
+                  </button>
+                );
+              };
               const levels = ['Foundational', 'Associate', 'Professional', 'Specialty'] as const;
               const byLevel: Record<string, string[]> = {};
               for (const t of EXAM_TYPES) {
