@@ -5,13 +5,13 @@ import { useNavigate } from '@/compat/react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { useLanguage } from '../contexts/LanguageContext';
 import { API_ENDPOINT } from '../constants';
-import { IconFire, IconMail, IconBookOpen, IconMegaphone, IconInfo } from '../components/Icons';
+import { IconFire, IconMail, IconMegaphone, IconInfo, IconLayoutGrid, IconSwatchBook } from '../components/Icons';
 import Button from '../components/ui/Button';
 import PageLayout from '../components/ui/PageLayout';
 
 const ITEMS = [
-  { path: '/aws/encyclopedia',  Icon: IconBookOpen,  ja: 'サービス図鑑',           en: 'Service Encyclopedia',      desc_ja: '日めくりで解放されるAWSサービス一覧', desc_en: 'AWS services unlocked via daily service' },
-  { path: '/aws/cheatsheet',    Icon: IconBookOpen,  ja: 'チートシート',           en: 'Cheat Sheet',               desc_ja: '資格別のサービス・概念早見表', desc_en: 'Quick-reference guide for each certification' },
+  { path: '/aws/encyclopedia',  Icon: IconLayoutGrid,  ja: 'サービス図鑑',           en: 'Service Encyclopedia',      desc_ja: '日めくりで解放されるAWSサービス一覧', desc_en: 'AWS services unlocked via daily service' },
+  { path: '/aws/cheatsheet',    Icon: IconSwatchBook,  ja: 'チートシート',           en: 'Cheat Sheet',               desc_ja: '資格別のサービス・概念早見表', desc_en: 'Quick-reference guide for each certification' },
   { path: '/aws/announcements', Icon: IconMegaphone, ja: 'お知らせ',               en: 'Announcements',             desc_ja: '運営からの重要なお知らせ',     desc_en: 'Important notices from the team' },
   { path: '/aws/release-notes', Icon: IconFire,      ja: 'リリースノート',         en: 'Release Notes',             desc_ja: 'アップデート情報',             desc_en: 'App update history'       },
 ];

@@ -15,7 +15,7 @@ import {
   IconHome,
   IconUser, IconChart,
   IconDumbbell, IconFire, IconMegaphone, IconBell, IconMenu, IconClose, IconChevronLeft, IconMail, IconInfo,
-  IconSparkles, IconBot, IconUserCircle, IconBookOpen, IconBook,
+  IconSparkles, IconBot, IconUserCircle, IconBookOpen, IconBook, IconLayoutGrid, IconSwatchBook,
   IconSun, IconMoon, IconMore, IconChevronDown,
   EXAM_ICON_COMPONENTS,
 } from './Icons';
@@ -26,8 +26,8 @@ const NAV_KEYS = [
   { path: '/aws/',             labelKey: 'nav.home',         Icon: IconHome      },
   { path: '/aws/practice',     labelKey: 'nav.practice',     Icon: IconDumbbell  },
   { path: '/aws/mypage',       labelKey: 'nav.mypage',       Icon: IconUserCircle },
-  { path: '/aws/encyclopedia', labelKey: 'nav.encyclopedia', Icon: IconBookOpen, bottom: true },
-  { path: '/aws/cheatsheet',    labelKey: 'nav.cheatsheet',   Icon: IconBook, bottom: true },
+  { path: '/aws/encyclopedia', labelKey: 'nav.encyclopedia', Icon: IconLayoutGrid, bottom: true },
+  { path: '/aws/cheatsheet',    labelKey: 'nav.cheatsheet',   Icon: IconSwatchBook, bottom: true },
   { path: '/aws/announcements', labelKey: 'nav.announcements', Icon: IconMegaphone, bottom: true },
   { path: '/aws/release-notes', labelKey: 'nav.releaseNotes', Icon: IconFire, bottom: true },
 ];
@@ -39,8 +39,8 @@ const BOTTOM_TABS = [
 ];
 
 const OTHERS_ITEMS = [
-  { path: '/aws/encyclopedia',  Icon: IconBookOpen,  labelKey: 'nav.encyclopedia'  },
-  { path: '/aws/cheatsheet',    Icon: IconBook,      labelKey: 'nav.cheatsheet'    },
+  { path: '/aws/encyclopedia',  Icon: IconLayoutGrid,  labelKey: 'nav.encyclopedia'  },
+  { path: '/aws/cheatsheet',    Icon: IconSwatchBook,  labelKey: 'nav.cheatsheet'    },
   { path: '/aws/announcements', Icon: IconMegaphone, labelKey: 'nav.announcements' },
   { path: '/aws/release-notes', Icon: IconFire,      labelKey: 'nav.releaseNotes'  },
 ];

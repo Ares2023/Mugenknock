@@ -8,7 +8,7 @@ import { useAuth } from '../contexts/AuthContext';
 import PageLayout from '../components/ui/PageLayout';
 
 // ── データ型 ─────────────────────────────────────────────────
-interface Item { name: string; desc: string; tags: string[] }
+interface Item { name: string; desc: string; tags: string[]; keyword?: string }
 interface Section { title: string; items: Item[] }
 type CheatData = Record<string, Section[]>
 
@@ -18,11 +18,11 @@ const CHEAT_DATA: CheatData = {
     {
       title: 'クラウドの概念',
       items: [
-        { name: '責任共有モデル', desc: 'AWSと顧客でセキュリティ責任を分担するモデル。\nAWS負担: 物理インフラ・ホスト・ネットワーク・ストレージハードウェア\n顧客負担: OS・ミドルウェア・アプリ・データ・IAM設定', tags: ['分担', 'セキュリティ', '範囲'] },
-        { name: 'Well-Architectedフレームワーク', desc: '6本柱でクラウド設計を評価するAWS公式のベストプラクティス集。\n① 運用上の優秀性（変化への対応・自動化）\n② セキュリティ（最小権限・暗号化）\n③ 信頼性（障害自動回復・水平スケール）\n④ パフォーマンス効率（適切なリソース選択）\n⑤ コスト最適化（不要リソース排除）\n⑥ 持続可能性（エネルギー効率）', tags: ['6本柱', '設計', 'ベストプラクティス'] },
-        { name: 'CAF（Cloud Adoption Framework）', desc: 'クラウド移行を組織全体で成功させる6つの視点のフレームワーク。\nビジネス: ROI・ビジネスケース\n人: スキル・文化変革\nガバナンス: リスク管理・コンプライアンス\nプラットフォーム: アーキテクチャ基盤\nセキュリティ: セキュリティ管理\n運用: 運用モデル', tags: ['移行', '6視点', 'フレームワーク'] },
-        { name: 'サービスモデル', desc: 'IaaS（Infrastructure as a Service）: EC2のような仮想インフラ。OS以上は自分で管理\nPaaS（Platform as a Service）: Elastic Beanstalkのような実行基盤。アプリのみ管理\nSaaS（Software as a Service）: WorkSpacesのような完成品アプリ。設定のみ管理', tags: ['IaaS', 'PaaS', 'SaaS'] },
-        { name: 'クラウドメリット', desc: '俊敏性: 数分でリソース調達（オンプレは数週間）\n弾力性: 需要に合わせて自動でスケールアップ/ダウン\nグローバル展開: 世界中のリージョンに即座にデプロイ\nコスト: CAPEX（設備投資）→ OPEX（運用費）に転換し初期投資不要\nスケールメリット: AWSの大規模調達によりユーザーのコストが下がる', tags: ['俊敏性', '弾力性', 'OPEX'] },
+        { name: '責任共有モデル', desc: 'AWSと顧客でセキュリティ責任を分担するモデル。\nAWS負担: 物理インフラ・ホスト・ネットワーク・ストレージハードウェア\n顧客負担: OS・ミドルウェア・アプリ・データ・IAM設定', keyword: 'AWS 責任共有モデル', tags: ['分担', 'セキュリティ', '範囲'] },
+        { name: 'Well-Architectedフレームワーク', desc: '6本柱でクラウド設計を評価するAWS公式のベストプラクティス集。\n① 運用上の優秀性（変化への対応・自動化）\n② セキュリティ（最小権限・暗号化）\n③ 信頼性（障害自動回復・水平スケール）\n④ パフォーマンス効率（適切なリソース選択）\n⑤ コスト最適化（不要リソース排除）\n⑥ 持続可能性（エネルギー効率）', keyword: 'AWS Well-Architected Framework', tags: ['6本柱', '設計', 'ベストプラクティス'] },
+        { name: 'CAF（Cloud Adoption Framework）', desc: 'クラウド移行を組織全体で成功させる6つの視点のフレームワーク。\nビジネス: ROI・ビジネスケース\n人: スキル・文化変革\nガバナンス: リスク管理・コンプライアンス\nプラットフォーム: アーキテクチャ基盤\nセキュリティ: セキュリティ管理\n運用: 運用モデル', keyword: 'Cloud Adoption Framework', tags: ['移行', '6視点', 'フレームワーク'] },
+        { name: 'サービスモデル', desc: 'IaaS（Infrastructure as a Service）: EC2のような仮想インフラ。OS以上は自分で管理\nPaaS（Platform as a Service）: Elastic Beanstalkのような実行基盤。アプリのみ管理\nSaaS（Software as a Service）: WorkSpacesのような完成品アプリ。設定のみ管理', keyword: 'IaaS PaaS SaaS クラウドサービスモデル', tags: ['IaaS', 'PaaS', 'SaaS'] },
+        { name: 'クラウドメリット', desc: '俊敏性: 数分でリソース調達（オンプレは数週間）\n弾力性: 需要に合わせて自動でスケールアップ/ダウン\nグローバル展開: 世界中のリージョンに即座にデプロイ\nコスト: CAPEX（設備投資）→ OPEX（運用費）に転換し初期投資不要\nスケールメリット: AWSの大規模調達によりユーザーのコストが下がる', keyword: 'AWSクラウドのメリット', tags: ['俊敏性', '弾力性', 'OPEX'] },
       ],
     },
     {
@@ -87,10 +87,10 @@ const CHEAT_DATA: CheatData = {
     {
       title: '料金・サポート',
       items: [
-        { name: '料金モデル', desc: '基本は「使った分だけ払う」従量課金（オンデマンド）。\nリザーブドインスタンス: 1〜3年コミットで最大72%割引\nSavings Plans: 1〜3年間の利用量をコミットする柔軟な割引（EC2・Fargate・Lambdaに適用）\nスポットインスタンス: 最大90%割引だが中断あり\nデータ転送: AWSへの受信は無料。送信は有料（リージョン外へ）', tags: ['オンデマンド', 'リザーブド', 'Savings Plans'] },
+        { name: '料金モデル', desc: '基本は「使った分だけ払う」従量課金（オンデマンド）。\nリザーブドインスタンス: 1〜3年コミットで最大72%割引\nSavings Plans: 1〜3年間の利用量をコミットする柔軟な割引（EC2・Fargate・Lambdaに適用）\nスポットインスタンス: 最大90%割引だが中断あり\nデータ転送: AWSへの受信は無料。送信は有料（リージョン外へ）', keyword: 'AWS 料金 リザーブドインスタンス Savings Plans', tags: ['オンデマンド', 'リザーブド', 'Savings Plans'] },
         { name: 'Cost Explorer', desc: '過去・現在・将来のAWSコストをグラフで可視化・分析するツール。\nサービス別・リソース別・タグ別・アカウント別にコストをフィルタリングでき、リザーブドインスタンスやSavings Plansの推奨事項も提示してくれる。', tags: ['コスト分析', '可視化', '予測'] },
         { name: 'Budgets', desc: '月額コスト・使用量・リザーブドインスタンス・Savings Plansに対してしきい値アラートを設定するコスト管理ツール。\n予算の80%・100%に達したらメール通知するよう設定することが多い。', tags: ['予算管理', 'アラート', 'しきい値'] },
-        { name: 'サポートプラン', desc: '5段階のサポートプランから選択する。\nベーシック: 無料。ドキュメント・フォーラムのみ\nデベロッパー: 有料。メールサポート（翌日以内応答）\nビジネス: 有料。24時間電話・チャット。信頼できるアドバイザー全チェック\nエンタープライズOn-Ramp: TAM（テクニカルアカウントマネージャー）へのプール制アクセス\nエンタープライズ: 専任TAM・15分以内のSLA', tags: ['ベーシック', 'ビジネス', 'エンタープライズ'] },
+        { name: 'サポートプラン', desc: '5段階のサポートプランから選択する。\nベーシック: 無料。ドキュメント・フォーラムのみ\nデベロッパー: 有料。メールサポート（翌日以内応答）\nビジネス: 有料。24時間電話・チャット。信頼できるアドバイザー全チェック\nエンタープライズOn-Ramp: TAM（テクニカルアカウントマネージャー）へのプール制アクセス\nエンタープライズ: 専任TAM・15分以内のSLA', keyword: 'AWS サポートプラン TAM テクニカルアカウントマネージャー', tags: ['ベーシック', 'ビジネス', 'エンタープライズ'] },
       ],
     },
   ],
@@ -99,20 +99,20 @@ const CHEAT_DATA: CheatData = {
     {
       title: 'AI・MLの基礎',
       items: [
-        { name: '機械学習の種類', desc: '教師あり学習: 正解ラベル付きデータで学習。分類（カテゴリ予測）と回帰（数値予測）が代表例\n教師なし学習: ラベルなしデータのパターンを発見。クラスタリング（グループ化）・次元削減が代表例\n強化学習: 報酬を最大化する行動を試行錯誤で学習。ゲームAI・ロボット制御に使用', tags: ['教師あり', '教師なし', '強化学習'] },
-        { name: 'モデル評価指標', desc: 'Accuracy（精度）: 全予測中の正解率。クラス不均衡時は注意\nPrecision（適合率）: 「陽性」と予測した中で実際に陽性の割合（偽陽性を減らしたい時に重視）\nRecall（再現率）: 実際の陽性のうち正しく検出できた割合（見逃しを減らしたい時に重視）\nF1スコア: PrecisionとRecallの調和平均\nAUC-ROC: 閾値変化に対するモデルの識別能力を示す（1に近いほど優秀）', tags: ['Accuracy', 'F1スコア', 'AUC-ROC'] },
-        { name: '過学習と正則化', desc: '過学習（Overfitting）: 訓練データに過剰適合し、未知データで性能が落ちる問題。\n対策手法:\nL1正則化（Lasso）: 不要な特徴量の重みをゼロにして特徴量選択の効果\nL2正則化（Ridge）: 重みを小さく抑えてモデルを単純化\nドロップアウト: ニューラルネットのニューロンをランダムに無効化して汎化性能を向上\nデータ拡張: 学習データを水増しして多様性を高める', tags: ['過学習', 'L1/L2正則化', 'ドロップアウト'] },
-        { name: 'MLのライフサイクル', desc: '① データ収集・取り込み\n② データ前処理（クリーニング・正規化・欠損値処理）\n③ 特徴量エンジニアリング（モデルの入力に適した形に変換）\n④ モデル学習（アルゴリズムを選んでパラメータを調整）\n⑤ 評価（テストデータで指標を計測）\n⑥ デプロイ（本番環境への公開）\n⑦ 監視（モデルの性能劣化を検出して再学習）', tags: ['MLOps', 'ライフサイクル', 'パイプライン'] },
+        { name: '機械学習の種類', desc: '教師あり学習: 正解ラベル付きデータで学習。分類（カテゴリ予測）と回帰（数値予測）が代表例\n教師なし学習: ラベルなしデータのパターンを発見。クラスタリング（グループ化）・次元削減が代表例\n強化学習: 報酬を最大化する行動を試行錯誤で学習。ゲームAI・ロボット制御に使用', keyword: '機械学習 教師あり学習 教師なし学習 強化学習', tags: ['教師あり', '教師なし', '強化学習'] },
+        { name: 'モデル評価指標', desc: 'Accuracy（精度）: 全予測中の正解率。クラス不均衡時は注意\nPrecision（適合率）: 「陽性」と予測した中で実際に陽性の割合（偽陽性を減らしたい時に重視）\nRecall（再現率）: 実際の陽性のうち正しく検出できた割合（見逃しを減らしたい時に重視）\nF1スコア: PrecisionとRecallの調和平均\nAUC-ROC: 閾値変化に対するモデルの識別能力を示す（1に近いほど優秀）', keyword: 'F1スコア Precision Recall AUC-ROC 機械学習評価指標', tags: ['Accuracy', 'F1スコア', 'AUC-ROC'] },
+        { name: '過学習と正則化', desc: '過学習（Overfitting）: 訓練データに過剰適合し、未知データで性能が落ちる問題。\n対策手法:\nL1正則化（Lasso）: 不要な特徴量の重みをゼロにして特徴量選択の効果\nL2正則化（Ridge）: 重みを小さく抑えてモデルを単純化\nドロップアウト: ニューラルネットのニューロンをランダムに無効化して汎化性能を向上\nデータ拡張: 学習データを水増しして多様性を高める', keyword: '過学習 Overfitting L1正則化 L2正則化', tags: ['過学習', 'L1/L2正則化', 'ドロップアウト'] },
+        { name: 'MLのライフサイクル', desc: '① データ収集・取り込み\n② データ前処理（クリーニング・正規化・欠損値処理）\n③ 特徴量エンジニアリング（モデルの入力に適した形に変換）\n④ モデル学習（アルゴリズムを選んでパラメータを調整）\n⑤ 評価（テストデータで指標を計測）\n⑥ デプロイ（本番環境への公開）\n⑦ 監視（モデルの性能劣化を検出して再学習）', keyword: 'MLOps 機械学習ライフサイクル', tags: ['MLOps', 'ライフサイクル', 'パイプライン'] },
       ],
     },
     {
       title: '生成AIの基礎',
       items: [
-        { name: '基盤モデル（FM）', desc: '大量のテキスト・画像等で事前学習済みの大規模AI モデル（Foundation Model）。LLM（大規模言語モデル）が代表例。\n様々なタスクにファインチューニング（追加学習）やプロンプト（指示文）だけで適用できる汎用性が特徴。', tags: ['LLM', '事前学習', 'Foundation Model'] },
-        { name: 'プロンプトエンジニアリング', desc: 'FMへの指示（プロンプト）を工夫してより良い出力を引き出す技術。\nZero-shot: 例示なしで直接タスクを指示\nFew-shot: 入出力例を数件示して形式を教える\nChain-of-Thought（CoT）: 「ステップごとに考えてください」と思考過程を明示させる\nSystem prompt: AIの役割・制約・口調を事前に設定する', tags: ['Zero-shot', 'Few-shot', 'Chain-of-Thought'] },
+        { name: '基盤モデル（FM）', desc: '大量のテキスト・画像等で事前学習済みの大規模AI モデル（Foundation Model）。LLM（大規模言語モデル）が代表例。\n様々なタスクにファインチューニング（追加学習）やプロンプト（指示文）だけで適用できる汎用性が特徴。', keyword: 'Foundation Model LLM 大規模言語モデル', tags: ['LLM', '事前学習', 'Foundation Model'] },
+        { name: 'プロンプトエンジニアリング', desc: 'FMへの指示（プロンプト）を工夫してより良い出力を引き出す技術。\nZero-shot: 例示なしで直接タスクを指示\nFew-shot: 入出力例を数件示して形式を教える\nChain-of-Thought（CoT）: 「ステップごとに考えてください」と思考過程を明示させる\nSystem prompt: AIの役割・制約・口調を事前に設定する', keyword: 'プロンプトエンジニアリング Prompt Engineering Chain-of-Thought', tags: ['Zero-shot', 'Few-shot', 'Chain-of-Thought'] },
         { name: 'RAG（検索拡張生成）', desc: 'Retrieval-Augmented Generation。FMが学習していない最新情報や社内情報を活用する仕組み。\n仕組み: ユーザーの質問 → 外部知識ベースをベクトル検索 → 関連情報を取得 → FMへのプロンプトに追加して回答生成\nFMの知識の欠如（学習カットオフ）やハルシネーションを補う', tags: ['検索拡張生成', 'ベクトル検索', '知識ベース'] },
-        { name: 'ハルシネーション', desc: 'FMが事実と異なる情報を自信満々に生成してしまう問題（幻覚）。\n対策:\nグラウンディング: 回答を引用元のドキュメントに根拠付ける\nRAG: 検索した文書からのみ回答させる\n温度パラメータ（Temperature）を低くする: 出力をより決定論的にする\nガードレール: 誤情報に対してチェックを追加する', tags: ['幻覚', 'グラウンディング', '正確性'] },
-        { name: 'ファインチューニング', desc: '事前学習済みFMを特定タスク用のデータで追加学習してカスタマイズする手法。\nRLHF（Reinforcement Learning from Human Feedback）: 人間がFMの出力に評価をつけ、その評価を報酬として強化学習で人間の好みに合わせる手法。ChatGPT等で広く使用されている。', tags: ['追加学習', 'RLHF', 'カスタマイズ'] },
+        { name: 'ハルシネーション', desc: 'FMが事実と異なる情報を自信満々に生成してしまう問題（幻覚）。\n対策:\nグラウンディング: 回答を引用元のドキュメントに根拠付ける\nRAG: 検索した文書からのみ回答させる\n温度パラメータ（Temperature）を低くする: 出力をより決定論的にする\nガードレール: 誤情報に対してチェックを追加する', keyword: 'LLM ハルシネーション 幻覚 グラウンディング', tags: ['幻覚', 'グラウンディング', '正確性'] },
+        { name: 'ファインチューニング', desc: '事前学習済みFMを特定タスク用のデータで追加学習してカスタマイズする手法。\nRLHF（Reinforcement Learning from Human Feedback）: 人間がFMの出力に評価をつけ、その評価を報酬として強化学習で人間の好みに合わせる手法。ChatGPT等で広く使用されている。', keyword: 'Fine-tuning ファインチューニング RLHF', tags: ['追加学習', 'RLHF', 'カスタマイズ'] },
       ],
     },
     {
@@ -133,10 +133,10 @@ const CHEAT_DATA: CheatData = {
     {
       title: '責任あるAI・ガバナンス',
       items: [
-        { name: '公平性（Fairness）', desc: 'AIモデルが特定の人種・性別・年齢・地域等に対して不公平な予測をしないようにすること。\n訓練データのバイアス（偏り）を検出・除去し、モデルの予測が集団間で均等になるよう評価・調整する。\nSageMaker Clarifyを使ってバイアスレポートを自動生成できる。', tags: ['バイアス', '公平性', '差別防止'] },
-        { name: '説明可能性（XAI）', desc: 'Explainable AI。「なぜその予測をしたか」を人間が理解できるようにする技術。\nSHAP値（Shapley Additive exPlanations）: 各特徴量が予測にどれだけ貢献したかを定量的に示す手法。SageMaker Clarifyで計算できる。ブラックボックスなモデルの透明性を確保するために重要。', tags: ['XAI', 'SHAP', '透明性'] },
-        { name: 'プライバシーとセキュリティ', desc: 'PII（Personally Identifiable Information: 個人識別情報）を訓練データに含めないことが原則。\n差分プライバシー: 個人データを統計的に保護しながら学習する手法\nフェデレーテッドラーニング: データを送らずにモデルの更新情報だけを集めて分散学習する手法\nAmazon Macieを使ってS3上のPIIを自動検出できる。', tags: ['PII', '差分プライバシー', 'データ保護'] },
-        { name: 'AIガバナンス', desc: 'AIモデルのライフサイクル全体（開発→デプロイ→運用）にわたるリスク管理・監査・ポリシー遵守の枠組み。\nAWS AI Service Cards: AWSが各AIサービスの設計・用途・評価結果を公開して透明性を確保するドキュメント\nAmazon Bedrock Guardrails: 有害コンテンツ・PII・特定トピックのフィルタリングを一元管理', tags: ['ガバナンス', 'リスク管理', 'コンプライアンス'] },
+        { name: '公平性（Fairness）', desc: 'AIモデルが特定の人種・性別・年齢・地域等に対して不公平な予測をしないようにすること。\n訓練データのバイアス（偏り）を検出・除去し、モデルの予測が集団間で均等になるよう評価・調整する。\nSageMaker Clarifyを使ってバイアスレポートを自動生成できる。', keyword: 'AI 公平性 バイアス SageMaker Clarify', tags: ['バイアス', '公平性', '差別防止'] },
+        { name: '説明可能性（XAI）', desc: 'Explainable AI。「なぜその予測をしたか」を人間が理解できるようにする技術。\nSHAP値（Shapley Additive exPlanations）: 各特徴量が予測にどれだけ貢献したかを定量的に示す手法。SageMaker Clarifyで計算できる。ブラックボックスなモデルの透明性を確保するために重要。', keyword: 'Explainable AI XAI SHAP値', tags: ['XAI', 'SHAP', '透明性'] },
+        { name: 'プライバシーとセキュリティ', desc: 'PII（Personally Identifiable Information: 個人識別情報）を訓練データに含めないことが原則。\n差分プライバシー: 個人データを統計的に保護しながら学習する手法\nフェデレーテッドラーニング: データを送らずにモデルの更新情報だけを集めて分散学習する手法\nAmazon Macieを使ってS3上のPIIを自動検出できる。', keyword: 'PII 個人情報 差分プライバシー フェデレーテッドラーニング', tags: ['PII', '差分プライバシー', 'データ保護'] },
+        { name: 'AIガバナンス', desc: 'AIモデルのライフサイクル全体（開発→デプロイ→運用）にわたるリスク管理・監査・ポリシー遵守の枠組み。\nAWS AI Service Cards: AWSが各AIサービスの設計・用途・評価結果を公開して透明性を確保するドキュメント\nAmazon Bedrock Guardrails: 有害コンテンツ・PII・特定トピックのフィルタリングを一元管理', keyword: 'AIガバナンス AWS AI Service Cards Bedrock Guardrails', tags: ['ガバナンス', 'リスク管理', 'コンプライアンス'] },
       ],
     },
   ],
@@ -177,7 +177,7 @@ const CHEAT_DATA: CheatData = {
     {
       title: 'ネットワーキング',
       items: [
-        { name: 'VPC基礎', desc: 'NACL（ネットワークアクセスコントロールリスト）:\nステートレス（行き・戻り両方を明示的に許可必要）\nサブネットに適用。番号が小さいルールから順に評価\nSG（セキュリティグループ）:\nステートフル（戻りパケットは自動許可）\nENI（ネットワークインターフェース）に適用。全ルールを評価', tags: ['NACL', 'セキュリティグループ', 'ステートレス'] },
+        { name: 'VPC基礎', desc: 'NACL（ネットワークアクセスコントロールリスト）:\nステートレス（行き・戻り両方を明示的に許可必要）\nサブネットに適用。番号が小さいルールから順に評価\nSG（セキュリティグループ）:\nステートフル（戻りパケットは自動許可）\nENI（ネットワークインターフェース）に適用。全ルールを評価', keyword: 'Amazon VPC セキュリティグループ NACL', tags: ['NACL', 'セキュリティグループ', 'ステートレス'] },
         { name: 'VPCピアリング / TGW', desc: 'VPCピアリング: 2つのVPCを1対1で接続。推移的ルーティング不可（A-B-CでAからCには直接ピアリングが必要）\nTransit Gateway（TGW）: ハブ&スポーク型でN個のVPCを一元接続。各VPCはTGWにアタッチするだけでN対N接続が実現。アタッチメント種別: VPC / Site-to-Site VPN / Direct Connect', tags: ['ピアリング', 'TGW', 'ハブ&スポーク'] },
         { name: 'VPCエンドポイント', desc: 'インターネットを経由せずAWSサービスにプライベートアクセスする仕組み。\nゲートウェイ型: S3・DynamoDBのみ対応。ルートテーブルにエントリを追加。追加料金なし\nインターフェース型（PrivateLink）: その他多数のAWSサービスに対応。ENIをサブネットに作成。時間課金あり', tags: ['ゲートウェイ型', 'PrivateLink', 'インターフェース型'] },
         { name: 'ALB / NLB', desc: 'ALB（Application Load Balancer）: HTTP/HTTPS（L7）\nURLパス・ホストヘッダー・HTTPメソッドでコンテンツベースルーティング\nターゲットグループにEC2・ECS・Lambda・IPを登録\nNLB（Network Load Balancer）: TCP/UDP（L4）\n固定IPを提供（ElasticIPを割り当て可能）\n超低レイテンシ・大量同時接続。TLSパススルーが可能', tags: ['ALB', 'NLB', 'ターゲットグループ'] },
@@ -343,8 +343,11 @@ const CHEAT_DATA: CheatData = {
       items: [
         { name: 'Auto Scaling（DOP観点）', desc: 'ライフサイクルフック:\n起動時フック（Launching）: インスタンス起動後にアプリ設定・エージェントインストールが完了するまで待機\n終了時フック（Terminating）: ログ退避・セッション切断などの後処理が完了するまで終了を待機\n予測スケーリング: 過去2週間のメトリクスパターンをMLで学習して事前にスケールアウト\nウォームプール（Warm Pool）: 停止済みEC2をプールして起動時間を短縮する仕組み', tags: ['ライフサイクルフック', '予測スケーリング', 'ウォームプール'] },
         { name: 'Service Quotas', desc: 'AWSサービスの上限値（クォータ）を一元的に確認・申請するサービス。\nCloudWatchアラームとの統合でクォータ使用率が閾値を超えたら事前に通知\n自動クォータリクエスト: Lambda・Fargateなど一部サービスは使用量に応じて自動で上限引き上げを申請できる', tags: ['上限値', 'クォータ管理', '申請'] },
-        { name: 'IAM高度管理', desc: 'Permissions Boundary（アクセス許可の境界）: IAMユーザー/ロールに付与できる権限の最大上限を設定するポリシー。開発者が自分より強い権限を持つロールを作れないよう制限する\nABAC（Attribute-Based Access Control: 属性ベースのアクセス制御）: IAMロール・リソースのタグを使って動的にアクセス許可を決定する仕組み。チーム・環境別の権限管理に有効', tags: ['Permissions Boundary', 'ABAC', '最小権限'] },
-        { name: 'Config + Security Hub（DOP）', desc: 'Configコンフォーマンスパック: 複数のConfigルールをまとめてYAMLでパッケージ化し、組織全体に一括展開できる\nSecurity Hub CIS/PCI自動チェック: CIS AWS Foundations Benchmark（セキュリティのベースライン）やPCI-DSS（クレジットカード業界基準）への準拠状況をAWS Configと連携して自動評価\n自動修復: 違反検出時にSSM Automationで自動修正するパターンが頻出', tags: ['コンフォーマンスパック', 'CISベンチマーク', '自動修復'] },
+        { name: 'IAM高度管理', desc: 'Permissions Boundary（アクセス許可の境界）: IAMユーザー/ロールに付与できる権限の最大上限を設定するポリシー。開発者が自分より強い権限を持つロールを作れないよう制限する\nABAC（Attribute-Based Access Control: 属性ベースのアクセス制御）: IAMロール・リソースのタグを使って動的にアクセス許可を決定する仕組み。チーム・環境別の権限管理に有効', keyword: 'IAM Permissions Boundary ABAC 属性ベースアクセス制御', tags: ['Permissions Boundary', 'ABAC', '最小権限'] },
+        { name: 'Config + Security Hub（DOP）', desc: 'Configコンフォーマンスパック: 複数のConfigルールをまとめてYAMLでパッケージ化し、組織全体に一括展開できる\nSecurity Hub CIS/PCI自動チェック: CIS AWS Foundations Benchmark（セキュリティのベースライン）やPCI-DSS（クレジットカード業界基準）への準拠状況をAWS Configと連携して自動評価\n自動修復: 違反検出時にSSM Automationで自動修正するパターンが頻出', keyword: 'AWS Config コンフォーマンスパック Security Hub', tags: ['コンフォーマンスパック', 'CISベンチマーク', '自動修復'] },
+        { name: 'Organizations（マルチアカウント管理）', desc: 'SCP（サービスコントロールポリシー）: OU（組織単位）やアカウントに適用するガードレール。IAM許可とのAND評価で最大権限を制限するだけで権限を付与しない\nOU設計: 開発・ステージング・本番アカウントを別OUで分離し、誤操作・権限逸脱を組織レベルで防ぐ\nStackSets: CloudFormationテンプレートを複数アカウント・リージョンに一括デプロイする仕組み\nConfig組織アグリゲーター: 全アカウント・全リージョンのConfig設定データを1か所に集約して一元監視', tags: ['SCP', 'StackSets', '組織アグリゲーター'] },
+        { name: 'Inspector（脆弱性管理）', desc: '脆弱性（セキュリティの弱点）を継続的にスキャンして優先順位付けするサービス。\nスキャン対象:\nEC2インスタンス: SSMエージェント経由でエージェントレスにOSの既知脆弱性を検出\nECRコンテナイメージ: プッシュ時に自動スキャンして脆弱なイメージのデプロイを防ぐ\nLambda関数: コードと依存パッケージの脆弱性をスキャン\nCVSSスコアでリスク優先順位付けし、Security Hubに集約してDOP全体のセキュリティ可視化に活用', tags: ['CVE', 'CVSS', 'コンテナスキャン'] },
+        { name: 'GuardDuty（脅威検出）', desc: 'CloudTrail・VPCフローログ・DNSクエリログを機械学習と脅威インテリジェンスフィードで自動分析して脅威を検出するサービス。\n検出例: EC2のポートスキャン・IAMクレデンシャルの外部漏洩・S3への不正アクセス・クリプトマイニング\nOrganizations連携: 全アカウントにGuardDutyを一括有効化し、管理アカウントで検出結果を集約\nEventBridge → Lambda で自動隔離・SNS通知の自動応答パターンが頻出', tags: ['脅威検出', '機械学習', '自動応答'] },
       ],
     },
   ],
@@ -435,7 +438,7 @@ const CHEAT_DATA: CheatData = {
         { name: 'Control Tower', desc: 'AWS Organizationsの上でマルチアカウント環境の推奨アーキテクチャ（ランディングゾーン）を自動セットアップするサービス。\nGuardrails（ガードレール）: 予防的（SCPで禁止）と検出的（Configルールで違反を検出）の2種類\nAccount Factory: 新しいAWSアカウントを承認済み設定で自動プロビジョニング\nログアーカイブアカウント: CloudTrail・Configのログを集約保存する専用アカウント', tags: ['ランディングゾーン', 'Guardrails', 'Account Factory'] },
         { name: 'RAM（Resource Access Manager）', desc: 'AWS Organizationsまたはアカウント間でAWSリソースを共有するサービス。\n共有可能なリソース例: VPCサブネット・Transit Gateway・Route 53 Resolverルール・ライセンス\nVPCサブネット共有: 別アカウントのリソースを同一VPCのサブネットに配置できる。VPCピアリングやTGWなしで済む', tags: ['リソース共有', 'VPC共有', 'クロスアカウント'] },
         { name: 'Service Catalog', desc: 'ITサービスのポートフォリオを管理してユーザーにセルフサービスで承認済みリソースを提供するサービス。\nCloudFormationテンプレートをベースに「製品」を定義し、ユーザーが承認済み製品だけをデプロイできるガバナンスを実現。コスト管理・コンプライアンス維持に有効。', tags: ['セルフサービス', 'カタログ', 'ガバナンス'] },
-        { name: 'Config + Organizations', desc: 'Config組織アグリゲーター: 全アカウント・全リージョンの設定データを1か所に集約して一元管理する機能\nコンフォーマンスパック: 複数のConfigルールをまとめてYAMLでパッケージ化し、Organizationsを通じて全アカウントに一括展開する', tags: ['アグリゲーター', 'コンフォーマンスパック', '一元管理'] },
+        { name: 'Config + Organizations', desc: 'Config組織アグリゲーター: 全アカウント・全リージョンの設定データを1か所に集約して一元管理する機能\nコンフォーマンスパック: 複数のConfigルールをまとめてYAMLでパッケージ化し、Organizationsを通じて全アカウントに一括展開する', keyword: 'AWS Config 組織アグリゲーター コンフォーマンスパック', tags: ['アグリゲーター', 'コンフォーマンスパック', '一元管理'] },
       ],
     },
     {
@@ -473,7 +476,7 @@ const CHEAT_DATA: CheatData = {
     {
       title: 'Amazon Bedrock - コア',
       items: [
-        { name: 'Bedrock 基盤モデル', desc: '単一のAPIで複数の基盤モデルを呼び出せるサービス。サーバー管理不要。\n利用可能モデル例:\nAmazon Titan: AWSが独自開発したテキスト・エンベディング・画像生成モデル\nAnthropic Claude: テキスト理解・生成・コーディング・分析に優れた大規模言語モデル\nMeta Llama: オープンソースベースの高性能テキスト生成モデル\nMistral: 軽量・高速・多言語対応の高コスパモデル\nCohere: エンタープライズ向けテキスト分類・エンベディング特化モデル\nStability AI: 画像生成（Stable Diffusion系）モデル', tags: ['Claude', 'Titan', 'マルチモデル'] },
+        { name: 'Bedrock 基盤モデル', desc: '単一のAPIで複数の基盤モデルを呼び出せるサービス。サーバー管理不要。\n利用可能モデル例:\nAmazon Titan: AWSが独自開発したテキスト・エンベディング・画像生成モデル\nAnthropic Claude: テキスト理解・生成・コーディング・分析に優れた大規模言語モデル\nMeta Llama: オープンソースベースの高性能テキスト生成モデル\nMistral: 軽量・高速・多言語対応の高コスパモデル\nCohere: エンタープライズ向けテキスト分類・エンベディング特化モデル\nStability AI: 画像生成（Stable Diffusion系）モデル', keyword: 'Amazon Bedrock 基盤モデル Claude Titan', tags: ['Claude', 'Titan', 'マルチモデル'] },
         { name: 'Bedrock Knowledge Bases', desc: 'RAG（検索拡張生成）を簡単に構築するマネージドサービス。\n仕組み:\n① S3のドキュメントを適切なサイズの「チャンク」に分割\n② エンベディングモデルで各チャンクをベクトル（数値ベクトル）に変換\n③ ベクトルストアに格納して類似度検索を可能にする\n④ ユーザーの質問ベクトルと近いチャンクを取得してFMへのプロンプトに追加\nベクトルストア選択: OpenSearch Serverless / Aurora PostgreSQL（pgvector）/ Pinecone等', tags: ['RAG', 'ベクトルストア', 'チャンキング'] },
         { name: 'Bedrock Agents', desc: 'FMをオーケストレーターとして複数のツールを使って複雑なタスクを自律実行するサービス。\nAction Groups（アクションのグループ）: Lambda関数でバックエンドAPIを呼び出す能力を定義\nKnowledge Base連携: 必要に応じて社内ドキュメントを検索\nReActアーキテクチャ: 推論（Reason）→行動（Act）→観察（Observe）のループでゴールに向かって自律的に進む\nメモリ: セッション内の会話履歴をコンテキストとして保持するマルチターン対応', tags: ['Action Groups', 'ReAct', 'マルチターン'] },
         { name: 'Bedrock Guardrails', desc: 'FMの出力をポリシーに従ってフィルタリングする安全機能。\nコンテンツフィルタリング: 暴力・ヘイトスピーチ・性的コンテンツ・誤情報を自動ブロック\nPII（個人識別情報）検出・マスキング: 名前・メールアドレス・クレジットカード番号等を検出して匿名化\nグラウンディングチェック: 参照ドキュメントに根拠のない回答（ハルシネーション）を検出・ブロック\n特定トピックの拒否: 扱ってはいけないテーマ（競合他社の製品等）を定義して拒否', tags: ['コンテンツフィルタ', 'PII', 'グラウンディング'] },
@@ -484,25 +487,25 @@ const CHEAT_DATA: CheatData = {
     {
       title: '生成AIアーキテクチャパターン',
       items: [
-        { name: 'RAGパターン', desc: 'Retrieval-Augmented Generation（検索拡張生成）の実装フロー:\n① ユーザーの質問をエンベディングモデルでベクトルに変換\n② ベクトルDBで類似度検索して関連チャンクを取得\n③ 取得したチャンクをコンテキストとしてプロンプトに追加\n④ FMが根拠のある回答を生成\n精度向上のポイント: チャンクサイズの調整（小さすぎると文脈不足・大きすぎると雑音）/ ハイブリッド検索（ベクトル＋キーワード）/ リランキング（再順位付け）', tags: ['チャンキング', 'エンベディング', 'ランク付け'] },
-        { name: 'プロンプトエンジニアリング（AIP）', desc: 'AIP試験でよく問われるプロンプト技法:\nSystem prompt: AIの役割・制約・口調を定義する（「あなたは医療専門家です」等）\nFew-shot: 入出力例を3〜5件示してフォーマットや判断基準を教える\nChain-of-Thought: 「ステップごとに考えてください」で複雑な推論精度を向上\nXML構造: タグでセクションを区切って指示を明確化（Claudeに特に有効）\nネガティブプロンプト: してはいけないことを明示して誤動作を防止', tags: ['System prompt', 'Few-shot', 'Chain-of-Thought'] },
-        { name: 'エージェントパターン', desc: 'FMが自律的にタスクを実行するためのアーキテクチャパターン。\nReActフレームワーク: Reason（推論）→ Act（行動）→ Observe（観察）のループを繰り返してゴールに到達する\nFunction Calling（ツール呼び出し）: FMが外部ツール（天気API・DBクエリ等）をいつ・どのように呼ぶかを決定する能力\nマルチエージェントオーケストレーション: 複数のFMエージェントが協調してより複雑なタスクを分担して実行する', tags: ['ReAct', 'Function Calling', 'マルチエージェント'] },
-        { name: 'ベクトルDB選択', desc: 'RAGのベクトル検索バックエンドを選択する基準:\nAmazon OpenSearch Serverless（ベクトルエンジン）: サーバーレスで管理不要。大規模対応\nAurora PostgreSQL（pgvector拡張）: 既存のRDSとの統合・SQLでベクトル検索が可能\nAmazon MemoryDB（Redis互換）: 低レイテンシのインメモリベクトル検索\nPinecone・Weaviate・Qdrant: 外部マネージドベクトルDBサービス。高精度・高機能', tags: ['OpenSearch', 'pgvector', 'MemoryDB'] },
+        { name: 'RAGパターン', desc: 'Retrieval-Augmented Generation（検索拡張生成）の実装フロー:\n① ユーザーの質問をエンベディングモデルでベクトルに変換\n② ベクトルDBで類似度検索して関連チャンクを取得\n③ 取得したチャンクをコンテキストとしてプロンプトに追加\n④ FMが根拠のある回答を生成\n精度向上のポイント: チャンクサイズの調整（小さすぎると文脈不足・大きすぎると雑音）/ ハイブリッド検索（ベクトル＋キーワード）/ リランキング（再順位付け）', keyword: 'RAG 検索拡張生成 Retrieval-Augmented Generation', tags: ['チャンキング', 'エンベディング', 'ランク付け'] },
+        { name: 'プロンプトエンジニアリング（AIP）', desc: 'AIP試験でよく問われるプロンプト技法:\nSystem prompt: AIの役割・制約・口調を定義する（「あなたは医療専門家です」等）\nFew-shot: 入出力例を3〜5件示してフォーマットや判断基準を教える\nChain-of-Thought: 「ステップごとに考えてください」で複雑な推論精度を向上\nXML構造: タグでセクションを区切って指示を明確化（Claudeに特に有効）\nネガティブプロンプト: してはいけないことを明示して誤動作を防止', keyword: 'プロンプトエンジニアリング Few-shot Chain-of-Thought', tags: ['System prompt', 'Few-shot', 'Chain-of-Thought'] },
+        { name: 'エージェントパターン', desc: 'FMが自律的にタスクを実行するためのアーキテクチャパターン。\nReActフレームワーク: Reason（推論）→ Act（行動）→ Observe（観察）のループを繰り返してゴールに到達する\nFunction Calling（ツール呼び出し）: FMが外部ツール（天気API・DBクエリ等）をいつ・どのように呼ぶかを決定する能力\nマルチエージェントオーケストレーション: 複数のFMエージェントが協調してより複雑なタスクを分担して実行する', keyword: 'AI エージェント ReAct Function Calling Bedrock Agents', tags: ['ReAct', 'Function Calling', 'マルチエージェント'] },
+        { name: 'ベクトルDB選択', desc: 'RAGのベクトル検索バックエンドを選択する基準:\nAmazon OpenSearch Serverless（ベクトルエンジン）: サーバーレスで管理不要。大規模対応\nAurora PostgreSQL（pgvector拡張）: 既存のRDSとの統合・SQLでベクトル検索が可能\nAmazon MemoryDB（Redis互換）: 低レイテンシのインメモリベクトル検索\nPinecone・Weaviate・Qdrant: 外部マネージドベクトルDBサービス。高精度・高機能', keyword: 'ベクトルデータベース Vector Database pgvector OpenSearch', tags: ['OpenSearch', 'pgvector', 'MemoryDB'] },
       ],
     },
     {
       title: '責任あるAI・ガバナンス',
       items: [
-        { name: '安全とコンテンツポリシー', desc: 'Bedrock Guardrailsで有害コンテンツ・PII・特定トピックのフィルタリングをモデルとアプリに横断して適用。\nモデル提供者（Anthropic・Meta等）のUsage Policy（利用規約）への遵守が義務付けられる。\nAWS AI Service Cards: 各AIサービスの設計意図・評価方法・想定外の使い方を公開して透明性を確保するドキュメント', tags: ['ガードレール', 'Usage Policy', '透明性'] },
-        { name: 'データプライバシー', desc: 'Bedrockはデフォルトでユーザーのプロンプト・レスポンスをモデル学習に使用しない（データはAWSに保持される）。\nVPCエンドポイント: インターネットを経由せずBedrockのAPIにアクセスしてデータをAWS内に留める\nKMS暗号化: 知識ベースのデータやモデルカスタマイズ用データを顧客管理キーで暗号化', tags: ['データ保護', 'VPCエンドポイント', 'KMS'] },
-        { name: 'モニタリングと監査', desc: 'CloudTrail: BedrockのすべてのAPIコール（InvokeModel・RetrieveAndGenerate等）を記録して監査証跡を保持\nCloudWatch メトリクス:\nInvocationCount: モデル呼び出し回数\nInvocationLatency: 呼び出しから応答までの時間\nInputTokenCount / OutputTokenCount: トークン使用量\nModelInvocationThrottledRequests: スロットリングされたリクエスト数', tags: ['CloudTrail', 'CloudWatch', 'APIログ'] },
+        { name: '安全とコンテンツポリシー', desc: 'Bedrock Guardrailsで有害コンテンツ・PII・特定トピックのフィルタリングをモデルとアプリに横断して適用。\nモデル提供者（Anthropic・Meta等）のUsage Policy（利用規約）への遵守が義務付けられる。\nAWS AI Service Cards: 各AIサービスの設計意図・評価方法・想定外の使い方を公開して透明性を確保するドキュメント', keyword: 'Bedrock Guardrails コンテンツポリシー AWS AI Service Cards', tags: ['ガードレール', 'Usage Policy', '透明性'] },
+        { name: 'データプライバシー', desc: 'Bedrockはデフォルトでユーザーのプロンプト・レスポンスをモデル学習に使用しない（データはAWSに保持される）。\nVPCエンドポイント: インターネットを経由せずBedrockのAPIにアクセスしてデータをAWS内に留める\nKMS暗号化: 知識ベースのデータやモデルカスタマイズ用データを顧客管理キーで暗号化', keyword: 'Amazon Bedrock データプライバシー KMS暗号化', tags: ['データ保護', 'VPCエンドポイント', 'KMS'] },
+        { name: 'モニタリングと監査', desc: 'CloudTrail: BedrockのすべてのAPIコール（InvokeModel・RetrieveAndGenerate等）を記録して監査証跡を保持\nCloudWatch メトリクス:\nInvocationCount: モデル呼び出し回数\nInvocationLatency: 呼び出しから応答までの時間\nInputTokenCount / OutputTokenCount: トークン使用量\nModelInvocationThrottledRequests: スロットリングされたリクエスト数', keyword: 'Bedrock CloudTrail CloudWatch 監視 監査', tags: ['CloudTrail', 'CloudWatch', 'APIログ'] },
       ],
     },
     {
       title: '最適化・運用',
       items: [
-        { name: 'コスト最適化', desc: '料金モデルの選択:\nオンデマンド: APIコールごとに課金。小規模・不定期な利用に適する\nプロビジョニドスループット: 一定スループットを月/6か月/1年コミットで割引購入。大規模・定常的な利用に適する\nプロンプトキャッシュ（Prompt Caching）: 同じプレフィックスのプロンプト部分をキャッシュして再利用するとトークンコストを削減できる機能', tags: ['プロビジョニドスループット', 'プロンプトキャッシュ', 'コスト'] },
-        { name: 'レイテンシ最適化', desc: 'ストリーミングレスポンス: 応答を生成しながらトークン単位で逐次返す。TTFT（Time to First Token: 最初のトークンが届くまでの時間）の体感を改善\n適切なモデルサイズの選択: タスクの複雑さに応じて大きなモデルと小さなモデルを使い分け（小モデルの方が速くコストも安い）\nリージョンの最適化: ユーザーに近いリージョンのBedrockを使用して物理的レイテンシを削減', tags: ['ストリーミング', 'TTFT', 'モデルサイズ'] },
+        { name: 'コスト最適化', desc: '料金モデルの選択:\nオンデマンド: APIコールごとに課金。小規模・不定期な利用に適する\nプロビジョニドスループット: 一定スループットを月/6か月/1年コミットで割引購入。大規模・定常的な利用に適する\nプロンプトキャッシュ（Prompt Caching）: 同じプレフィックスのプロンプト部分をキャッシュして再利用するとトークンコストを削減できる機能', keyword: 'Bedrock コスト プロビジョニドスループット Prompt Caching', tags: ['プロビジョニドスループット', 'プロンプトキャッシュ', 'コスト'] },
+        { name: 'レイテンシ最適化', desc: 'ストリーミングレスポンス: 応答を生成しながらトークン単位で逐次返す。TTFT（Time to First Token: 最初のトークンが届くまでの時間）の体感を改善\n適切なモデルサイズの選択: タスクの複雑さに応じて大きなモデルと小さなモデルを使い分け（小モデルの方が速くコストも安い）\nリージョンの最適化: ユーザーに近いリージョンのBedrockを使用して物理的レイテンシを削減', keyword: 'Bedrock レイテンシ ストリーミングレスポンス TTFT', tags: ['ストリーミング', 'TTFT', 'モデルサイズ'] },
         { name: 'Amazon Q', desc: 'AWSが提供するAIアシスタント製品ファミリー。\nQ Business: 企業の社内ドキュメント（Confluence・Slack・S3等）に接続して自然言語でナレッジを検索・回答するチャットボット\nQ Developer: コード生成・補完・デバッグ・変換・セキュリティスキャンを行うAIコーディングアシスタント（IDE・AWSコンソール統合）\nQ in Amazon QuickSight: BIダッシュボードのNL2SQL（自然言語からSQLを生成して自動でグラフを作成）', tags: ['Q Business', 'Q Developer', 'NL2SQL'] },
       ],
     },
@@ -512,8 +515,8 @@ const CHEAT_DATA: CheatData = {
     {
       title: 'VPC詳細',
       items: [
-        { name: 'VPC設計', desc: 'CIDRブロック（IPアドレス範囲）の設計が基本。\nプライベートアドレス空間: 10.0.0.0/8 / 172.16.0.0/12 / 192.168.0.0/16 の3範囲\nサブネット分割: VPCの/16 CIDR → AZごとに/24サブネット等に分割してパブリック/プライベートに分ける\nセカンダリCIDR: VPCに後からCIDRを追加追加して既存サブネットと合わせて使用できる\nIPv6: VPCに/56を割り当て、サブネットに/64を割り当てるデュアルスタック構成', tags: ['CIDR設計', 'IPv6', 'セカンダリCIDR'] },
-        { name: 'セキュリティグループ vs NACL', desc: 'SG（セキュリティグループ）:\nステートフル: 戻りパケットは自動的に許可\nENI（ネットワークインターフェース）に適用\n全ルールを評価してからアクションを決定\nNACL（ネットワークアクセスコントロールリスト）:\nステートレス: 行き・戻りを両方明示的に許可が必要\nサブネット境界に適用\n番号が小さいルールから順に評価して最初にマッチしたルールを適用', tags: ['ステートフル', 'ステートレス', '評価順序'] },
+        { name: 'VPC設計', desc: 'CIDRブロック（IPアドレス範囲）の設計が基本。\nプライベートアドレス空間: 10.0.0.0/8 / 172.16.0.0/12 / 192.168.0.0/16 の3範囲\nサブネット分割: VPCの/16 CIDR → AZごとに/24サブネット等に分割してパブリック/プライベートに分ける\nセカンダリCIDR: VPCに後からCIDRを追加追加して既存サブネットと合わせて使用できる\nIPv6: VPCに/56を割り当て、サブネットに/64を割り当てるデュアルスタック構成', keyword: 'VPC CIDR サブネット設計 IPv6', tags: ['CIDR設計', 'IPv6', 'セカンダリCIDR'] },
+        { name: 'セキュリティグループ vs NACL', desc: 'SG（セキュリティグループ）:\nステートフル: 戻りパケットは自動的に許可\nENI（ネットワークインターフェース）に適用\n全ルールを評価してからアクションを決定\nNACL（ネットワークアクセスコントロールリスト）:\nステートレス: 行き・戻りを両方明示的に許可が必要\nサブネット境界に適用\n番号が小さいルールから順に評価して最初にマッチしたルールを適用', keyword: 'セキュリティグループ NACL ステートフル ステートレス 違い', tags: ['ステートフル', 'ステートレス', '評価順序'] },
         { name: 'VPCフローログ', desc: 'VPC内のENI（ネットワークインターフェース）を通過するIPトラフィックを記録するログ機能。\n取得レベル: ENI単位 / サブネット単位 / VPC単位\n送信先: CloudWatch Logs または S3\nカスタムフォーマット: 送信元IP・宛先IP・ポート・プロトコル・許可/拒否等に加えて追加フィールド（pkt-src-aws-service等）を選択できる\nネットワークトラブルシューティング・セキュリティ分析に活用', tags: ['フローログ', 'カスタムフォーマット', 'トラブルシュート'] },
         { name: 'VPCトラフィックミラーリング', desc: 'ENIのインバウンド/アウトバウンドトラフィックをコピーして別のENI（モニタリングアプライアンス）に転送する機能。\nDPI（Deep Packet Inspection）: パケットの内容まで詳しく検査してセキュリティ分析や侵入検知に活用できる。\nミラーフィルター: 特定のプロトコル・ポート・方向のみミラーリングするようフィルタを設定できる', tags: ['ミラーリング', 'DPI', 'ネットワーク分析'] },
       ],
@@ -581,18 +584,18 @@ const CHEAT_DATA: CheatData = {
     {
       title: 'IAM・アイデンティティ',
       items: [
-        { name: 'IAM高度な管理', desc: 'Permissions Boundary（アクセス許可の境界）: IAMエンティティが持てる権限の最大上限を設定するポリシー。IAM許可とのAND評価\nセッションポリシー: AssumeRoleで取得した一時認証情報のセッションにさらに制限を加えるポリシー\nSCP（サービスコントロールポリシー）: Organizations OU/アカウントへの最大権限制限（ガードレール）\nRCP（リソースコントロールポリシー）: S3・KMS等のリソース側への横断的アクセス制限。SCP と組み合わせて使用\n優先順位: 明示的Deny > SCP > RCP > Permissions Boundary > IAMポリシー', tags: ['Permission Boundary', 'SCP', 'RCP'] },
+        { name: 'IAM高度な管理', desc: 'Permissions Boundary（アクセス許可の境界）: IAMエンティティが持てる権限の最大上限を設定するポリシー。IAM許可とのAND評価\nセッションポリシー: AssumeRoleで取得した一時認証情報のセッションにさらに制限を加えるポリシー\nSCP（サービスコントロールポリシー）: Organizations OU/アカウントへの最大権限制限（ガードレール）\nRCP（リソースコントロールポリシー）: S3・KMS等のリソース側への横断的アクセス制限。SCP と組み合わせて使用\n優先順位: 明示的Deny > SCP > RCP > Permissions Boundary > IAMポリシー', keyword: 'IAM Permissions Boundary SCP RCP セッションポリシー', tags: ['Permission Boundary', 'SCP', 'RCP'] },
         { name: 'IAM Identity Center（SSO）', desc: '複数のAWSアカウントとSaaSアプリへのシングルサインオン（SSO）を一元管理するサービス。\n外部IdP連携: Okta / Azure AD等のSAML 2.0準拠のIdP（アイデンティティプロバイダー）とフェデレーション\n権限セット（Permission Set）: アカウントごとに付与するIAMポリシーの集合を定義して一元管理\nSCIMプロトコルでユーザー/グループを外部ディレクトリから自動プロビジョニング', tags: ['SSO', 'SAML', '権限セット'] },
         { name: 'Cognito詳細（SCS）', desc: 'User Pool:\nOpenID Connect（OIDC）準拠のIDプロバイダー\nJWT（JSON Web Token）形式のIDトークン・アクセストークンを発行\nMFA（多要素認証）・高度なセキュリティ機能（不審なサインインを検知・ブロック）\nIdentity Pool:\nフェデレーションされた認証情報（User Pool JWT・Google・Facebook等）をもとにSTS（Security Token Service）から一時的なAWS認証情報を払い出す\nロールマッピングで認証済み/未認証ユーザーに異なるIAMロールを割り当て', tags: ['OIDC', 'JWT', '高度なセキュリティ'] },
-        { name: 'Organizations SCP/RCP', desc: 'SCP（サービスコントロールポリシー）: アカウント/OUが持てる最大権限の上限を設定\n→ IAMの許可とのAND評価。SCPが許可していないとIAMで許可しても実行できない\nRCP（リソースコントロールポリシー）: S3・KMS・SQS等のリソース側にOrganizations横断で制限を適用\n→ 「このS3バケットにはOrganization外からのアクセスを禁止」といった制御が可能\n2つのアプローチ:\nDenyリスト方式: 全てを許可してから禁止事項を明示（デフォルト）\n許可リスト方式: 全てを禁止してから許可事項を明示（より厳格）', tags: ['SCP', 'RCP', 'Denyリスト'] },
+        { name: 'Organizations SCP/RCP', desc: 'SCP（サービスコントロールポリシー）: アカウント/OUが持てる最大権限の上限を設定\n→ IAMの許可とのAND評価。SCPが許可していないとIAMで許可しても実行できない\nRCP（リソースコントロールポリシー）: S3・KMS・SQS等のリソース側にOrganizations横断で制限を適用\n→ 「このS3バケットにはOrganization外からのアクセスを禁止」といった制御が可能\n2つのアプローチ:\nDenyリスト方式: 全てを許可してから禁止事項を明示（デフォルト）\n許可リスト方式: 全てを禁止してから許可事項を明示（より厳格）', keyword: 'AWS Organizations SCP RCP サービスコントロールポリシー', tags: ['SCP', 'RCP', 'Denyリスト'] },
       ],
     },
     {
       title: 'データ保護',
       items: [
-        { name: 'KMS詳細', desc: 'キーポリシー（リソースベースポリシー）: KMSキーへのアクセスを定義。IAMポリシーとのAND評価\nマルチリージョンキー: 同一のキーIDを複数リージョンでレプリケーション。リージョン間で暗号化したデータを別リージョンで復号可能\nXKS（External Key Store）: AWS外部のHSM（ハードウェアセキュリティモジュール）でキーを管理して規制要件を満たす\nエンベロープ暗号化: DEK（Data Encryption Key）でデータを暗号化し、DEK自体をCMKで暗号化する2層構造', tags: ['キーポリシー', 'マルチリージョンキー', 'XKS'] },
+        { name: 'KMS詳細', desc: 'キーポリシー（リソースベースポリシー）: KMSキーへのアクセスを定義。IAMポリシーとのAND評価\nマルチリージョンキー: 同一のキーIDを複数リージョンでレプリケーション。リージョン間で暗号化したデータを別リージョンで復号可能\nXKS（External Key Store）: AWS外部のHSM（ハードウェアセキュリティモジュール）でキーを管理して規制要件を満たす\nエンベロープ暗号化: DEK（Data Encryption Key）でデータを暗号化し、DEK自体をCMKで暗号化する2層構造', keyword: 'AWS KMS キーポリシー マルチリージョンキー エンベロープ暗号化', tags: ['キーポリシー', 'マルチリージョンキー', 'XKS'] },
         { name: 'Secrets Manager', desc: 'DBパスワード・APIキー・OAuthトークン等のシークレットを安全に保管・管理するサービス。\n自動ローテーション: Lambda関数でRDS・Redshift・DocumentDB等のパスワードを定期的に自動更新（組み込みサポートあり）\nクロスアカウント共有: リソースベースポリシーで別アカウントからのアクセスを許可\nVPCエンドポイント経由: インターネットを経由せずシークレットにアクセスして安全性を高める', tags: ['自動ローテーション', 'クロスアカウント', 'VPCエンドポイント'] },
-        { name: 'S3データ保護', desc: 'バケットポリシー: JSON形式でバケット・オブジェクトへのアクセスを細かく制御\nACL無効化: 推奨設定。バケットポリシーのみで一元管理するシンプルな構成\nS3ブロックパブリックアクセス: 設定ミスによる意図しない公開を防ぐ4つのブロック設定\nObject Lock（WORM: Write Once Read Many）: 一度書いたオブジェクトを一定期間変更・削除できないように保護。コンプライアンス要件に使用\nサーバーサイド暗号化:\nSSE-S3: AWSがキーを管理する最もシンプルな暗号化\nSSE-KMS: KMSキーを使用。アクセスログとキーポリシーで細かい制御が可能\nSSE-C: 顧客がキーを管理してAWS側には渡さない（最高の機密性）', tags: ['Object Lock', 'WORM', 'SSE-KMS'] },
+        { name: 'S3データ保護', desc: 'バケットポリシー: JSON形式でバケット・オブジェクトへのアクセスを細かく制御\nACL無効化: 推奨設定。バケットポリシーのみで一元管理するシンプルな構成\nS3ブロックパブリックアクセス: 設定ミスによる意図しない公開を防ぐ4つのブロック設定\nObject Lock（WORM: Write Once Read Many）: 一度書いたオブジェクトを一定期間変更・削除できないように保護。コンプライアンス要件に使用\nサーバーサイド暗号化:\nSSE-S3: AWSがキーを管理する最もシンプルな暗号化\nSSE-KMS: KMSキーを使用。アクセスログとキーポリシーで細かい制御が可能\nSSE-C: 顧客がキーを管理してAWS側には渡さない（最高の機密性）', keyword: 'S3 Object Lock WORM SSE-KMS バケットポリシー', tags: ['Object Lock', 'WORM', 'SSE-KMS'] },
         { name: 'Audit Manager', desc: 'AWSの利用状況から証拠を自動収集して、コンプライアンスフレームワークへの準拠状況をレポート化するサービス。\n対応フレームワーク: PCI DSS / HIPAA / GDPR / ISO 27001 / NIST 等\n証拠収集: Config・CloudTrail・Security Hub・IAM等からデータを自動取得してフレームワーク要件にマッピング\n監査担当者に証拠レポートを提出するまでのプロセスを簡素化する', tags: ['コンプライアンス', 'PCI DSS', '証拠収集'] },
       ],
     },
@@ -851,7 +854,8 @@ function ItemCard({ item, q }: { item: Item; q: string }) {
   };
 
   const handleCopy = () => {
-    navigator.clipboard.writeText(item.name);
+    const text = item.keyword ?? item.name.replace(/[（(][^）)]*[）)]/g, '').trim();
+    navigator.clipboard.writeText(text);
     setCopied(true);
     setTimeout(() => setCopied(false), 1500);
   };
@@ -883,12 +887,22 @@ function ItemCard({ item, q }: { item: Item; q: string }) {
         </button>
       </div>
       <p style={{ fontSize: 'var(--font-size-sm)', color: 'var(--color-text-sub)', margin: 0, lineHeight: 1.6 }}>
-        {item.desc.split('\n').map((line, i) => (
-          <React.Fragment key={i}>
-            {i > 0 && <br />}
-            {highlight(line)}
-          </React.Fragment>
-        ))}
+        {item.desc.split('\n').map((line, i) => {
+          const colonIdx = line.indexOf(': ');
+          const content = colonIdx > 0 ? (
+            <>
+              <span style={{ fontWeight: 700, color: 'var(--color-text-main)' }}>{highlight(line.slice(0, colonIdx))}</span>
+              {': '}
+              {highlight(line.slice(colonIdx + 2))}
+            </>
+          ) : highlight(line);
+          return (
+            <React.Fragment key={i}>
+              {i > 0 && <br />}
+              {content}
+            </React.Fragment>
+          );
+        })}
       </p>
     </div>
   );
