@@ -1108,6 +1108,38 @@ export default function Layout({ children }: { children: React.ReactNode }) {
           </nav>
         )}
 
+        {/* スワイプ矢印インジケーター */}
+        {isMobile && swipeOffset !== 0 && (() => {
+          const opacity = Math.min(Math.abs(swipeOffset) / SWIPE_THRESHOLD, 1);
+          const circleStyle: React.CSSProperties = {
+            position: 'fixed', top: '50%', transform: 'translateY(-50%)',
+            width: 44, height: 44, borderRadius: '50%',
+            border: '1px solid var(--color-border)',
+            background: 'var(--color-bg-white)',
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            pointerEvents: 'none', zIndex: 200,
+            color: 'var(--color-text-main)', opacity,
+          };
+          return (
+            <>
+              {swipeOffset < 0 && (
+                <div style={{ ...circleStyle, right: 12 }}>
+                  <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="m9 18 6-6-6-6"/>
+                  </svg>
+                </div>
+              )}
+              {swipeOffset > 0 && (
+                <div style={{ ...circleStyle, left: 12 }}>
+                  <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="m15 18-6-6 6-6"/>
+                  </svg>
+                </div>
+              )}
+            </>
+          );
+        })()}
+
         {/* メインコンテンツ */}
         <main
           id="main-scroll"
