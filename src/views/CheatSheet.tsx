@@ -795,6 +795,13 @@ export default function CheatSheet() {
         />
       </div>
 
+      {/* 用語コピーヒント */}
+      {!q && (
+        <p style={{ fontSize: 'var(--font-size-xs)', color: 'var(--color-text-light)', marginBottom: 'var(--spacing-sm)', marginTop: 'calc(var(--spacing-sm) * -1)' }}>
+          太字の用語はタップしてコピーできます
+        </p>
+      )}
+
       {/* 検索ヒット数 */}
       {q && (
         <p style={{ fontSize: 'var(--font-size-xs)', color: 'var(--color-text-sub)', marginBottom: 'var(--spacing-sm)' }}>
