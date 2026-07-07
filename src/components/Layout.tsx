@@ -1115,6 +1115,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
 
         {/* メインコンテンツ */}
         <main
+          id="main-scroll"
           ref={mainRef}
           onTouchStart={isMobile ? handleTouchStart : undefined}
           onTouchMove={isMobile ? handleTouchMove : undefined}

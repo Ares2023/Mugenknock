@@ -662,9 +662,11 @@ export default function CheatSheet() {
   }
 
   useEffect(() => {
-    const onScroll = () => setShowScrollTop(window.scrollY > 300);
-    window.addEventListener('scroll', onScroll, { passive: true });
-    return () => window.removeEventListener('scroll', onScroll);
+    const container = document.getElementById('main-scroll');
+    if (!container) return;
+    const onScroll = () => setShowScrollTop(container.scrollTop > 300);
+    container.addEventListener('scroll', onScroll, { passive: true });
+    return () => container.removeEventListener('scroll', onScroll);
   }, []);
 
   useEffect(() => {
@@ -855,7 +857,7 @@ export default function CheatSheet() {
       {/* トップへ戻るボタン */}
       {showScrollTop && (
         <button
-          onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
+          onClick={() => document.getElementById('main-scroll')?.scrollTo({ top: 0, behavior: 'smooth' })}
           title="トップへ戻る"
           style={{
             position: 'fixed',
