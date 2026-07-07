@@ -677,10 +677,13 @@ PYEOF
   )
 
   # チャンク分割（試験の情報量に合わせたサイズ）
-  # --hard（拡張思考）は出力トークンが大幅増大するため半減。通常モードより小さくして64000上限に収める。
+  # トークン律速対策: チャンクを大きくして固定オーバーヘッド（指示文・共通ルール・
+  # claude 起動ごとのシステムプロンプト）の再送回数を減らし、1トークンあたりの問題数を増やす。
+  # 出力は64000トークン上限。非hardは拡張思考を使わないため余裕があり、重量級=5・軽量級=8まで拡大。
+  # --hard（拡張思考）は出力トークンが大幅増大するため従来どおり半減して上限に収める。
   case "$NEXT_EXAM" in
-    SAP|ANS|SCS|DOP|SOA) CHUNK_SIZE=3; MIN_CHUNK_Q=2 ;;
-    *) CHUNK_SIZE=5; MIN_CHUNK_Q=3 ;;
+    SAP|ANS|SCS|DOP|SOA) CHUNK_SIZE=5; MIN_CHUNK_Q=2 ;;
+    *) CHUNK_SIZE=8; MIN_CHUNK_Q=3 ;;
   esac
   if [ "$HARD_MODE" -eq 1 ]; then
     CHUNK_SIZE=$(( CHUNK_SIZE > 2 ? CHUNK_SIZE / 2 : 1 ))
@@ -786,13 +789,15 @@ PROMPT
 
     # WebFetch は使わない（公式ガイド概要は instructions/*.txt に埋め込み済み・refresh-exam-guide.sh で最新化）。
     # 毎チャンクのページ取得を止めてトークン消費とレート制限の逼迫を削減する。
+    # --tools "": 生成はJSON出力のみでツール不要。全ツールスキーマの送信を止めて
+    #             呼び出しごとの固定トークンを削減する（トークン律速対策）。
     # CLAUDE_CODE_MAX_OUTPUT_TOKENS=64000: --hard（拡張思考）モードで32000上限エラーを防ぐ
-    RESULT=$(CLAUDE_CODE_MAX_OUTPUT_TOKENS=64000 "$CLAUDE_CMD" -p < "$PROMPT_FILE" 2>&1)
+    RESULT=$(CLAUDE_CODE_MAX_OUTPUT_TOKENS=64000 "$CLAUDE_CMD" -p --tools "" < "$PROMPT_FILE" 2>&1)
     AI_EXIT=$?
     # npm更新による一時的なバイナリ消失 → 再探索してリトライ
     if [ $AI_EXIT -ne 0 ] && echo "$RESULT" | grep -q "No such file"; then
       CLAUDE_CMD=$(_find_claude)
-      [ -x "${CLAUDE_CMD:-}" ] && { RESULT=$(CLAUDE_CODE_MAX_OUTPUT_TOKENS=64000 "$CLAUDE_CMD" -p < "$PROMPT_FILE" 2>&1); AI_EXIT=$?; }
+      [ -x "${CLAUDE_CMD:-}" ] && { RESULT=$(CLAUDE_CODE_MAX_OUTPUT_TOKENS=64000 "$CLAUDE_CMD" -p --tools "" < "$PROMPT_FILE" 2>&1); AI_EXIT=$?; }
     fi
     rm -f "$PROMPT_FILE"
 
