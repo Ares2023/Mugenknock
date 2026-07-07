@@ -124,7 +124,7 @@ const CHEAT_DATA: CheatData = {
       title: 'AWSのAI/MLサービス',
       items: [
         { name: 'Amazon Bedrock', desc: 'サーバーレスで複数の基盤モデルにAPIアクセスできるサービス。\n利用可能モデル: Anthropic Claude / Meta Llama / Amazon Titan / Mistral / Cohere 等\n追加機能: Knowledge Bases（RAG構築）/ Agents（自律タスク実行）/ Guardrails（有害コンテンツフィルタ）/ Model Evaluation', tags: ['Claude', 'Titan', 'サーバーレス'] },
-        { name: 'Amazon SageMaker', desc: 'ML全ライフサイクルをカバーする統合プラットフォーム。\nデータ準備（Data Wrangler）→ 学習（Training Jobs）→ ハイパーパラメータ調整（AMT）→ モデル登録（Model Registry）→ デプロイ（Endpoints）→ 監視（Model Monitor）まで一気通貫で対応', tags: ['ML全般', 'Studio', 'エンドポイント'] },
+        { name: 'Amazon SageMaker', desc: 'ML全ライフサイクルをカバーする統合プラットフォーム。\nデータ準備（Data Wrangler）→ 学習（Training Jobs）→ ハイパーパラメータ調整（AMT）→ モデル登録（Model Registry）→ デプロイ（Endpoints）→ 監視（Model Monitor）まで一気通貫で対応', tags: ['ML全般', 'Studio', 'エンドポイント'], seeAlso: ['SageMaker Data Wrangler', 'SageMaker Training', 'SageMaker Automatic Model Tuning（AMT）', 'SageMaker Endpoints（推論）', 'SageMaker Model Monitor'] },
         { name: 'Amazon Rekognition', desc: '事前学習済みコンピュータービジョンAPI（画像・動画の分析）。\n顔認識・物体検出・シーン検出・テキスト抽出・コンテンツモデレーション（不適切コンテンツ検出）・有名人認識・PPE（個人用保護具）検出等', tags: ['画像認識', '顔認識', '物体検出'] },
         { name: 'Amazon Comprehend', desc: 'テキストのNLP（自然言語処理）API。\n感情分析（ポジティブ/ネガティブ判定）/ エンティティ抽出（人名・地名・組織名等）/ 言語検出 / キーフレーズ検出 / 構文解析\nComprehend Medical: 医療テキスト特化版', tags: ['NLP', '感情分析', 'エンティティ'] },
         { name: 'Amazon Polly', desc: 'テキストを自然な音声に変換するTTS（Text-to-Speech）サービス。\n60言語以上・多様な声種（ニューラル音声で自然度が高い）に対応。\nSSML（Speech Synthesis Markup Language）で話速・ポーズ・強調等を細かく制御できる。', tags: ['TTS', '音声合成', 'SSML'] },
@@ -138,10 +138,10 @@ const CHEAT_DATA: CheatData = {
     {
       title: '責任あるAI・ガバナンス',
       items: [
-        { name: '公平性（Fairness）', desc: 'AIモデルが特定の人種・性別・年齢・地域等に対して不公平な予測をしないようにすること。\n訓練データのバイアス（偏り）を検出・除去し、モデルの予測が集団間で均等になるよう評価・調整する。\nSageMaker Clarifyを使ってバイアスレポートを自動生成できる。', keyword: 'AI 公平性 バイアス SageMaker Clarify', tags: ['バイアス', '公平性', '差別防止'] },
-        { name: '説明可能性（XAI）', desc: 'Explainable AI。「なぜその予測をしたか」を人間が理解できるようにする技術。\nSHAP値（Shapley Additive exPlanations）: 各特徴量が予測にどれだけ貢献したかを定量的に示す手法。SageMaker Clarifyで計算できる。ブラックボックスなモデルの透明性を確保するために重要。', keyword: 'Explainable AI XAI SHAP値', tags: ['XAI', 'SHAP', '透明性'] },
-        { name: 'プライバシーとセキュリティ', desc: 'PII（Personally Identifiable Information: 個人識別情報）を訓練データに含めないことが原則。\n差分プライバシー: 個人データを統計的に保護しながら学習する手法\nフェデレーテッドラーニング: データを送らずにモデルの更新情報だけを集めて分散学習する手法\nAmazon Macieを使ってS3上のPIIを自動検出できる。', keyword: 'PII 個人情報 差分プライバシー フェデレーテッドラーニング', tags: ['PII', '差分プライバシー', 'データ保護'] },
-        { name: 'AIガバナンス', desc: 'AIモデルのライフサイクル全体（開発→デプロイ→運用）にわたるリスク管理・監査・ポリシー遵守の枠組み。\nAWS AI Service Cards: AWSが各AIサービスの設計・用途・評価結果を公開して透明性を確保するドキュメント\nAmazon Bedrock Guardrails: 有害コンテンツ・PII・特定トピックのフィルタリングを一元管理', keyword: 'AIガバナンス AWS AI Service Cards Bedrock Guardrails', tags: ['ガバナンス', 'リスク管理', 'コンプライアンス'] },
+        { name: '公平性（Fairness）', desc: 'AIモデルが特定の人種・性別・年齢・地域等に対して不公平な予測をしないようにすること。\n訓練データのバイアス（偏り）を検出・除去し、モデルの予測が集団間で均等になるよう評価・調整する。\nSageMaker Clarifyを使ってバイアスレポートを自動生成できる。', keyword: 'AI 公平性 バイアス SageMaker Clarify', tags: ['バイアス', '公平性', '差別防止'], seeAlso: ['SageMaker Clarify'] },
+        { name: '説明可能性（XAI）', desc: 'Explainable AI。「なぜその予測をしたか」を人間が理解できるようにする技術。\nSHAP値（Shapley Additive exPlanations）: 各特徴量が予測にどれだけ貢献したかを定量的に示す手法。SageMaker Clarifyで計算できる。ブラックボックスなモデルの透明性を確保するために重要。', keyword: 'Explainable AI XAI SHAP値', tags: ['XAI', 'SHAP', '透明性'], seeAlso: ['SageMaker Clarify'] },
+        { name: 'プライバシーとセキュリティ', desc: 'PII（Personally Identifiable Information: 個人識別情報）を訓練データに含めないことが原則。\n差分プライバシー: 個人データを統計的に保護しながら学習する手法\nフェデレーテッドラーニング: データを送らずにモデルの更新情報だけを集めて分散学習する手法\nAmazon Macieを使ってS3上のPIIを自動検出できる。', keyword: 'PII 個人情報 差分プライバシー フェデレーテッドラーニング', tags: ['PII', '差分プライバシー', 'データ保護'], seeAlso: ['Macie'] },
+        { name: 'AIガバナンス', desc: 'AIモデルのライフサイクル全体（開発→デプロイ→運用）にわたるリスク管理・監査・ポリシー遵守の枠組み。\nAWS AI Service Cards: AWSが各AIサービスの設計・用途・評価結果を公開して透明性を確保するドキュメント\nAmazon Bedrock Guardrails: 有害コンテンツ・PII・特定トピックのフィルタリングを一元管理', keyword: 'AIガバナンス AWS AI Service Cards Bedrock Guardrails', tags: ['ガバナンス', 'リスク管理', 'コンプライアンス'], seeAlso: ['Bedrock Guardrails'] },
       ],
     },
   ],
@@ -374,10 +374,10 @@ const CHEAT_DATA: CheatData = {
     {
       title: 'データの変換・処理',
       items: [
-        { name: 'AWS Glue', desc: 'サーバーレスETL（Extract・Transform・Load）サービス。インフラ管理不要で大規模データ処理が可能。\nクローラー: S3・RDS・DynamoDB等のデータを自動スキャンしてGlue Data Catalogにスキーマを登録\nETLジョブ: SparkまたはPython ShellベースでデータをS3やRedshiftに変換・格納\nGlue Studio: ビジュアルなUIでETLジョブを構築できるツール\nGlue DataBrew: SQLやコードなしでデータをクリーニング・変換できるノーコードツール', tags: ['ETL', 'クローラー', 'Spark'] },
+        { name: 'AWS Glue', desc: 'サーバーレスETL（Extract・Transform・Load）サービス。インフラ管理不要で大規模データ処理が可能。\nクローラー: S3・RDS・DynamoDB等のデータを自動スキャンしてGlue Data Catalogにスキーマを登録\nETLジョブ: SparkまたはPython ShellベースでデータをS3やRedshiftに変換・格納\nGlue Studio: ビジュアルなUIでETLジョブを構築できるツール\nGlue DataBrew: SQLやコードなしでデータをクリーニング・変換できるノーコードツール', tags: ['ETL', 'クローラー', 'Spark'], seeAlso: ['Glue Data Catalog'] },
         { name: 'EMR（Elastic MapReduce）', desc: 'Apache Spark・Hive・Presto・HBaseなどのビッグデータフレームワークをEC2またはFargate上で実行するマネージドクラスタサービス。\nノードの役割:\nマスターノード: クラスタ全体を管理・調整\nコアノード: データ処理＋HDFSデータを保持（削除すると不可）\nタスクノード: データ処理のみ（HDFS保持なし）。スポットEC2を使うことでコスト削減', tags: ['Spark', 'Hive', 'スポット'] },
         { name: 'Lambda（データ処理）', desc: 'Kinesis Data StreamsやDynamoDB Streamsのトリガーで起動してリアルタイムにデータを処理・変換するサーバーレス関数。\n軽量な変換処理やイベント駆動のデータパイプライン（フィルタリング・エンリッチメント・ルーティング）に適している。', tags: ['リアルタイム', 'ストリーム処理', 'イベント駆動'] },
-        { name: 'Step Functions（データパイプライン）', desc: 'Glue・EMR・Lambda・Athena等を組み合わせた複雑なETLパイプラインのオーケストレーション（実行順序・状態管理）サービス。\nDAG（有向非巡回グラフ）として処理フローを定義し、並列実行・条件分岐・エラーリトライを自動的に管理する。', tags: ['オーケストレーション', 'パイプライン', 'ワークフロー'] },
+        { name: 'Step Functions（データパイプライン）', desc: 'Glue・EMR・Lambda・Athena等を組み合わせた複雑なETLパイプラインのオーケストレーション（実行順序・状態管理）サービス。\nDAG（有向非巡回グラフ）として処理フローを定義し、並列実行・条件分岐・エラーリトライを自動的に管理する。', tags: ['オーケストレーション', 'パイプライン', 'ワークフロー'], seeAlso: ['AWS Glue', 'EMR（Elastic MapReduce）', 'Athena'] },
       ],
     },
     {
@@ -385,7 +385,7 @@ const CHEAT_DATA: CheatData = {
       items: [
         { name: 'S3（データレイク）', desc: 'データレイク（あらゆる形式のデータを生のまま保存するリポジトリ）の基盤として最も多く使用される。\nパーティション設計: データをyear=xxx/month=xxx/day=xxx等のフォルダ構造で分割しAthena・Sparkのフィルタ高速化に活用\n推奨フォーマット: Parquet（列指向・高圧縮）/ ORC（Hive向け列指向）/ Avro（スキーマ進化に強い）\nS3 Select: S3オブジェクト内の一部データのみをSQLで取得してネットワーク転送量を削減\nObject Lock（WORM）: 書き込み後の変更・削除を防ぐコンプライアンス要件向けの機能', tags: ['パーティション', 'Parquet/ORC', 'データレイク'] },
         { name: 'Redshift', desc: '列指向ストレージのDWH（データウェアハウス）。\n分散スタイル（各ノードへのデータ配置方式）:\nKEY: 特定カラムの値が同じ行を同じノードに配置（JUSTINでの結合高速化）\nALL: 全行を全ノードにコピー（小テーブル向け）\nEVEN: ラウンドロビンで均等分散\nAUTO: Redshiftが最適な方式を自動選択\nソートキー: よく使うWHERE条件カラムに設定してゾーンマップによるスキャン削減\nバキューム（VACUUM）: 削除マーク行の物理削除とソートキー順の再整列', tags: ['分散スタイル', 'ソートキー', 'Spectrum'] },
-        { name: 'Lake Formation', desc: 'データレイクの構築・管理・セキュリティを一元管理するサービス。\n列・行レベルのきめ細かいアクセス制御: Athena・GlueからS3のデータへのアクセスをカラム・行単位で制限できる\nBlueprint（ブループリント）: S3やRDBのデータを定期的にGlueワークフローでデータレイクに取り込むパイプラインを自動生成する機能', tags: ['列/行レベル', 'Blueprint', 'アクセス制御'] },
+        { name: 'Lake Formation', desc: 'データレイクの構築・管理・セキュリティを一元管理するサービス。\n列・行レベルのきめ細かいアクセス制御: Athena・GlueからS3のデータへのアクセスをカラム・行単位で制限できる\nBlueprint（ブループリント）: S3やRDBのデータを定期的にGlueワークフローでデータレイクに取り込むパイプラインを自動生成する機能', tags: ['列/行レベル', 'Blueprint', 'アクセス制御'], seeAlso: ['AWS Glue', 'Athena', 'Glue Data Catalog'] },
         { name: 'Athena', desc: 'S3上のデータをサーバーレスSQLでクエリするサービス。\nワークグループ: チーム・プロジェクト別にクエリを分離してコスト制御・アクセス制御を行う仕組み\nクエリフェデレーション: Lambda Connectorを使ってS3以外のRDS・CloudWatch・DynamoDBのデータも横断的にクエリ可能\nIcebergテーブル: SCHEMAの変更やタイムトラベル（過去の状態をクエリ）・UPDATEをサポートするテーブル形式', tags: ['ワークグループ', 'クエリフェデレーション', 'Iceberg'] },
         { name: 'DynamoDB（DEA観点）', desc: '大規模なリアルタイムアクセスが必要なKV（キーバリュー）ストア。\nパーティションキー設計: ホットパーティション（特定キーへのアクセス集中）を避けるため書き込みシャーディング（サフィックス追加）等を使用\nDAX（DynamoDB Accelerator）: マイクロ秒レイテンシのインメモリキャッシュ。API互換でアプリ変更が最小限\nTTL（Time to Live）: 有効期限付きアイテムを自動削除してストレージコストを削減', tags: ['KVストア', 'DAX', 'TTL'] },
       ],
@@ -395,7 +395,7 @@ const CHEAT_DATA: CheatData = {
       items: [
         { name: 'KMS（データ暗号化）', desc: 'S3・Redshift・Glue・Athena等のデータサービスとシームレスに統合して保存データを暗号化するサービス。\nキーポリシー: KMSキーへのアクセスをJSON形式で制御するリソースベースポリシー\nグラント（Grant）: 特定の操作（Decrypt等）を特定のAWSプリンシパルに委譲する一時的なアクセス許可の仕組み', tags: ['暗号化', 'キーポリシー', 'グラント'] },
         { name: 'Macie', desc: 'S3バケット内のPII（Personally Identifiable Information: 個人識別情報）・認証情報・金融データ等の機密データを機械学習で自動検出・分類するサービス。\nバケットの公開設定ミスも検出する。GDPR・HIPAAなどのコンプライアンス対応に活用される。', tags: ['PII検出', 'S3スキャン', 'データ分類'] },
-        { name: 'Glue Data Catalog', desc: 'データのスキーマ（テーブル定義・カラム型）・場所（S3パス等）・メタデータを一元管理するメタデータリポジトリ。\nAthena・Redshift Spectrum・EMR・Lake Formationと連携してデータソースのスキーマを共有する。クローラーで自動登録が可能。', tags: ['メタデータ', 'スキーマ管理', 'データカタログ'] },
+        { name: 'Glue Data Catalog', desc: 'データのスキーマ（テーブル定義・カラム型）・場所（S3パス等）・メタデータを一元管理するメタデータリポジトリ。\nAthena・Redshift Spectrum・EMR・Lake Formationと連携してデータソースのスキーマを共有する。クローラーで自動登録が可能。', tags: ['メタデータ', 'スキーマ管理', 'データカタログ'], seeAlso: ['AWS Glue', 'Athena', 'Lake Formation'] },
       ],
     },
   ],
@@ -412,26 +412,26 @@ const CHEAT_DATA: CheatData = {
     {
       title: 'SageMaker - モデル開発',
       items: [
-        { name: 'SageMaker Studio', desc: 'ML開発のための統合IDE（開発環境）。Jupyter Notebookを拡張したWebベースの環境で以下を統一UIで利用:\nExperiments: 複数の学習実行の条件・メトリクスを比較管理\nPipelines: MLパイプラインの定義・実行・可視化\nModel Registry: モデルのバージョン管理・承認\nClarify: バイアス・説明可能性の分析', tags: ['IDE', 'Experiments', '統合環境'] },
+        { name: 'SageMaker Studio', desc: 'ML開発のための統合IDE（開発環境）。Jupyter Notebookを拡張したWebベースの環境で以下を統一UIで利用:\nExperiments: 複数の学習実行の条件・メトリクスを比較管理\nPipelines: MLパイプラインの定義・実行・可視化\nModel Registry: モデルのバージョン管理・承認\nClarify: バイアス・説明可能性の分析', tags: ['IDE', 'Experiments', '統合環境'], seeAlso: ['SageMaker Clarify', 'SageMaker Pipelines', 'SageMaker Model Registry'] },
         { name: 'SageMaker Training', desc: 'マネージドなMLモデル学習サービス。\n組み込みアルゴリズム: XGBoost（勾配ブースティング）/ Linear Learner（線形モデル）/ DeepAR（時系列予測）/ BlazingText（テキスト分類）等\nカスタムコンテナ: 独自のTensorFlow・PyTorch等のコードをDockerイメージで実行\n分散学習 (Distributed Training): データ並列（大量データを複数GPU/インスタンスで分割学習）とモデル並列（大規模モデルを複数GPUに分割）\nスポットトレーニング: EC2スポットインスタンスで最大90%コスト削減（中断を考慮してチェックポイント設定が必要）', tags: ['組み込みアルゴリズム', '分散学習', 'スポット'] },
         { name: 'SageMaker Automatic Model Tuning（AMT）', desc: 'ハイパーパラメータ（学習率・バッチサイズ等）を自動探索してモデルを最適化するHPO（Hyperparameter Optimization）機能。\n探索戦略:\nBayesian最適化: 過去の試行結果を学習して効率的に次のパラメータ候補を選択\nGrid Search: 指定した全パラメータ組み合わせを網羅的に試行\nRandom Search: ランダムにパラメータを選択\nウォームスタート: 前回のチューニング結果を引き継いで効率化', tags: ['HPO', 'Bayesian最適化', 'ウォームスタート'] },
-        { name: 'SageMaker Clarify', desc: '学習前後のバイアス検出と説明可能性の分析を行うサービス。\nバイアス検出: 訓練データのバイアス（学習前）とモデルの予測バイアス（学習後）を統計指標で測定\nSHAP（Shapley Additive exPlanations）値: 各特徴量が予測に与えた貢献度を定量化するFeature Importance手法\nModel Monitorと統合してデプロイ後のバイアスドリフトも継続監視', tags: ['バイアス検出', 'SHAP', '説明可能性'] },
+        { name: 'SageMaker Clarify', desc: '学習前後のバイアス検出と説明可能性の分析を行うサービス。\nバイアス検出: 訓練データのバイアス（学習前）とモデルの予測バイアス（学習後）を統計指標で測定\nSHAP（Shapley Additive exPlanations）値: 各特徴量が予測に与えた貢献度を定量化するFeature Importance手法\nModel Monitorと統合してデプロイ後のバイアスドリフトも継続監視', tags: ['バイアス検出', 'SHAP', '説明可能性'], seeAlso: ['SageMaker Model Monitor', '公平性（Fairness）', '説明可能性（XAI）'] },
       ],
     },
     {
       title: 'SageMaker - デプロイ・MLOps',
       items: [
         { name: 'SageMaker Endpoints（推論）', desc: '推論エンドポイントの4種類:\nリアルタイムエンドポイント: 同期API。低レイテンシが必要な場合\n非同期推論: リクエストをキューに積んでバックグラウンドで処理。大きなペイロードや処理時間が長い推論向け\nサーバーレス推論: トラフィックがゼロの間はコストゼロ。断続的なトラフィック向け\nバッチ変換: S3のデータをバッチ処理。推論エンドポイントの常時起動不要\nマルチモデルエンドポイント（MME）: 1つのエンドポイントで複数モデルをホスティングしてコスト削減', tags: ['リアルタイム', '非同期', 'バッチ変換'] },
-        { name: 'SageMaker Pipelines', desc: 'MLワークフロー（データ処理→学習→評価→モデル登録→デプロイ）をDAG（有向非巡回グラフ）として定義してCI/CD化するサービス。\n各ステップはProcessing・Training・Evaluation・Condition・Register等のタイプから選択。\nExperimentsと自動統合して実行履歴・メトリクスを管理する。', tags: ['MLパイプライン', 'CI/CD', 'DAG'] },
-        { name: 'SageMaker Model Registry', desc: 'モデルのバージョン管理・メタデータ（精度・訓練データ・パラメータ）・承認ワークフローを管理するカタログ。\n承認（Approved）/拒否（Rejected）のステータスを管理し、承認済みモデルのみをCodePipeline・Lambda経由で自動デプロイするパターンが重要。', tags: ['モデル管理', 'バージョン管理', '承認ワークフロー'] },
-        { name: 'SageMaker Model Monitor', desc: 'デプロイ済みモデルを継続的に監視する4種類のモニター:\nデータ品質: 入力データの統計的特性がベースラインから逸脱していないか（データドリフト）\nモデル品質: 予測精度が劣化していないか\nバイアスドリフト: 特定グループへの偏りが増加していないか\n説明可能性ドリフト: Feature Importanceが変化していないか', tags: ['データドリフト', 'モデル品質', '継続的監視'] },
+        { name: 'SageMaker Pipelines', desc: 'MLワークフロー（データ処理→学習→評価→モデル登録→デプロイ）をDAG（有向非巡回グラフ）として定義してCI/CD化するサービス。\n各ステップはProcessing・Training・Evaluation・Condition・Register等のタイプから選択。\nExperimentsと自動統合して実行履歴・メトリクスを管理する。', tags: ['MLパイプライン', 'CI/CD', 'DAG'], seeAlso: ['SageMaker Studio', 'SageMaker Model Registry'] },
+        { name: 'SageMaker Model Registry', desc: 'モデルのバージョン管理・メタデータ（精度・訓練データ・パラメータ）・承認ワークフローを管理するカタログ。\n承認（Approved）/拒否（Rejected）のステータスを管理し、承認済みモデルのみをCodePipeline・Lambda経由で自動デプロイするパターンが重要。', tags: ['モデル管理', 'バージョン管理', '承認ワークフロー'], seeAlso: ['SageMaker Pipelines', 'SageMaker Studio'] },
+        { name: 'SageMaker Model Monitor', desc: 'デプロイ済みモデルを継続的に監視する4種類のモニター:\nデータ品質: 入力データの統計的特性がベースラインから逸脱していないか（データドリフト）\nモデル品質: 予測精度が劣化していないか\nバイアスドリフト: 特定グループへの偏りが増加していないか\n説明可能性ドリフト: Feature Importanceが変化していないか', tags: ['データドリフト', 'モデル品質', '継続的監視'], seeAlso: ['SageMaker Clarify', 'SageMaker Endpoints（推論）'] },
       ],
     },
     {
       title: 'MLインフラ・セキュリティ',
       items: [
         { name: 'ECR（Elastic Container Registry）', desc: 'Dockerコンテナイメージを保存・バージョン管理するAWSのプライベートコンテナレジストリ。\nSageMakerのカスタムTraining Job・Inference Jobでは独自のMLライブラリや依存関係を含んだコンテナイメージをECRに保存して使用する。\nECRのイメージスキャン機能でコンテナの脆弱性を検出できる。', tags: ['コンテナ', 'カスタムイメージ', 'バージョン管理'] },
-        { name: 'CloudWatch + SageMaker', desc: 'SageMakerはトレーニング・推論のメトリクスをCloudWatchに自動送信する。\nトレーニングジョブ: CPU/GPU使用率・メモリ使用率・学習損失（カスタムメトリクス）\n推論エンドポイント: Invocations（呼び出し回数）/ Latency（レイテンシ）/ ModelLatency / 4xx・5xxエラー数\nこれらにCloudWatchアラームを設定してスケーリング・通知を自動化する', tags: ['GPU監視', 'レイテンシ', 'アラーム'] },
+        { name: 'CloudWatch + SageMaker', desc: 'SageMakerはトレーニング・推論のメトリクスをCloudWatchに自動送信する。\nトレーニングジョブ: CPU/GPU使用率・メモリ使用率・学習損失（カスタムメトリクス）\n推論エンドポイント: Invocations（呼び出し回数）/ Latency（レイテンシ）/ ModelLatency / 4xx・5xxエラー数\nこれらにCloudWatchアラームを設定してスケーリング・通知を自動化する', tags: ['GPU監視', 'レイテンシ', 'アラーム'], seeAlso: ['SageMaker Endpoints（推論）', 'SageMaker Model Monitor'] },
         { name: 'IAM + VPC統合（SageMaker）', desc: 'SageMakerのジョブをVPC内で実行することでインターネットアクセスを遮断してネットワーク分離を実現。\n実行ロール（Execution Role）: SageMakerがS3・ECR・CloudWatch等にアクセスするためのIAMロール。最小権限の原則で必要なリソースのみに限定する。\nVPCエンドポイント: VPC内からS3・SageMaker APIにプライベートアクセスするために設定', tags: ['VPC統合', '実行ロール', 'ネットワーク分離'] },
       ],
     },
@@ -484,26 +484,26 @@ const CHEAT_DATA: CheatData = {
       title: 'Amazon Bedrock - コア',
       items: [
         { name: 'Bedrock 基盤モデル', desc: '単一のAPIで複数の基盤モデルを呼び出せるサービス。サーバー管理不要。\n利用可能モデル例:\nAmazon Titan: AWSが独自開発したテキスト・エンベディング・画像生成モデル\nAnthropic Claude: テキスト理解・生成・コーディング・分析に優れた大規模言語モデル\nMeta Llama: オープンソースベースの高性能テキスト生成モデル\nMistral: 軽量・高速・多言語対応の高コスパモデル\nCohere: エンタープライズ向けテキスト分類・エンベディング特化モデル\nStability AI: 画像生成（Stable Diffusion系）モデル', keyword: 'Amazon Bedrock 基盤モデル Claude Titan', tags: ['Claude', 'Titan', 'マルチモデル'] },
-        { name: 'Bedrock Knowledge Bases', desc: 'RAG（検索拡張生成）を簡単に構築するマネージドサービス。\n仕組み:\n① S3のドキュメントを適切なサイズの「チャンク」に分割\n② エンベディングモデルで各チャンクをベクトル（数値ベクトル）に変換\n③ ベクトルストアに格納して類似度検索を可能にする\n④ ユーザーの質問ベクトルと近いチャンクを取得してFMへのプロンプトに追加\nベクトルストア選択: OpenSearch Serverless / Aurora PostgreSQL（pgvector）/ Pinecone等', tags: ['RAG', 'ベクトルストア', 'チャンキング'] },
-        { name: 'Bedrock Agents', desc: 'FMをオーケストレーターとして複数のツールを使って複雑なタスクを自律実行するサービス。\nAction Groups（アクションのグループ）: Lambda関数でバックエンドAPIを呼び出す能力を定義\nKnowledge Base連携: 必要に応じて社内ドキュメントを検索\nReActアーキテクチャ: 推論（Reason）→行動（Act）→観察（Observe）のループでゴールに向かって自律的に進む\nメモリ: セッション内の会話履歴をコンテキストとして保持するマルチターン対応', tags: ['Action Groups', 'ReAct', 'マルチターン'] },
-        { name: 'Bedrock Guardrails', desc: 'FMの出力をポリシーに従ってフィルタリングする安全機能。\nコンテンツフィルタリング: 暴力・ヘイトスピーチ・性的コンテンツ・誤情報を自動ブロック\nPII（個人識別情報）検出・マスキング: 名前・メールアドレス・クレジットカード番号等を検出して匿名化\nグラウンディングチェック: 参照ドキュメントに根拠のない回答（ハルシネーション）を検出・ブロック\n特定トピックの拒否: 扱ってはいけないテーマ（競合他社の製品等）を定義して拒否', tags: ['コンテンツフィルタ', 'PII', 'グラウンディング'] },
-        { name: 'Bedrock Model Customization', desc: 'FMを自社データでカスタマイズする方法:\nファインチューニング（Fine-tuning）: ラベル付きの入出力ペアで追加学習してタスク特化したモデルを作成\n継続事前学習（Continued Pre-training）: ドメイン固有の大量テキストでFMを追加学習して知識を拡充\nDistillation（知識蒸留）: 大きなモデル（教師）の出力を使って小さなモデル（生徒）を学習してコンパクト化', tags: ['ファインチューニング', '継続事前学習', 'Distillation'] },
+        { name: 'Bedrock Knowledge Bases', desc: 'RAG（検索拡張生成）を簡単に構築するマネージドサービス。\n仕組み:\n① S3のドキュメントを適切なサイズの「チャンク」に分割\n② エンベディングモデルで各チャンクをベクトル（数値ベクトル）に変換\n③ ベクトルストアに格納して類似度検索を可能にする\n④ ユーザーの質問ベクトルと近いチャンクを取得してFMへのプロンプトに追加\nベクトルストア選択: OpenSearch Serverless / Aurora PostgreSQL（pgvector）/ Pinecone等', tags: ['RAG', 'ベクトルストア', 'チャンキング'], seeAlso: ['RAGパターン', 'RAG（検索拡張生成）', 'ベクトルDB選択'] },
+        { name: 'Bedrock Agents', desc: 'FMをオーケストレーターとして複数のツールを使って複雑なタスクを自律実行するサービス。\nAction Groups（アクションのグループ）: Lambda関数でバックエンドAPIを呼び出す能力を定義\nKnowledge Base連携: 必要に応じて社内ドキュメントを検索\nReActアーキテクチャ: 推論（Reason）→行動（Act）→観察（Observe）のループでゴールに向かって自律的に進む\nメモリ: セッション内の会話履歴をコンテキストとして保持するマルチターン対応', tags: ['Action Groups', 'ReAct', 'マルチターン'], seeAlso: ['Bedrock Knowledge Bases', 'エージェントパターン'] },
+        { name: 'Bedrock Guardrails', desc: 'FMの出力をポリシーに従ってフィルタリングする安全機能。\nコンテンツフィルタリング: 暴力・ヘイトスピーチ・性的コンテンツ・誤情報を自動ブロック\nPII（個人識別情報）検出・マスキング: 名前・メールアドレス・クレジットカード番号等を検出して匿名化\nグラウンディングチェック: 参照ドキュメントに根拠のない回答（ハルシネーション）を検出・ブロック\n特定トピックの拒否: 扱ってはいけないテーマ（競合他社の製品等）を定義して拒否', tags: ['コンテンツフィルタ', 'PII', 'グラウンディング'], seeAlso: ['安全とコンテンツポリシー', 'AIガバナンス'] },
+        { name: 'Bedrock Model Customization', desc: 'FMを自社データでカスタマイズする方法:\nファインチューニング（Fine-tuning）: ラベル付きの入出力ペアで追加学習してタスク特化したモデルを作成\n継続事前学習（Continued Pre-training）: ドメイン固有の大量テキストでFMを追加学習して知識を拡充\nDistillation（知識蒸留）: 大きなモデル（教師）の出力を使って小さなモデル（生徒）を学習してコンパクト化', tags: ['ファインチューニング', '継続事前学習', 'Distillation'], seeAlso: ['ファインチューニング'] },
         { name: 'Bedrock Model Evaluation', desc: 'モデルを評価・比較してユースケースに最適なモデルを選定するサービス。\n自動評価: 精度・堅牢性・毒性等の組み込みメトリクスでモデルをベンチマーク評価\n人間評価: Mechanical Turkや社内チームが出力品質を評価するHuman Evaluationワーカーチームを設定\n評価結果を基に各タスク（要約・分類・Q&A等）に最適なモデルを選定する', tags: ['モデル評価', '自動評価', '比較'] },
       ],
     },
     {
       title: '生成AIアーキテクチャパターン',
       items: [
-        { name: 'RAGパターン', desc: 'Retrieval-Augmented Generation（検索拡張生成）の実装フロー:\n① ユーザーの質問をエンベディングモデルでベクトルに変換\n② ベクトルDBで類似度検索して関連チャンクを取得\n③ 取得したチャンクをコンテキストとしてプロンプトに追加\n④ FMが根拠のある回答を生成\n精度向上のポイント: チャンクサイズの調整（小さすぎると文脈不足・大きすぎると雑音）/ ハイブリッド検索（ベクトル＋キーワード）/ リランキング（再順位付け）', keyword: 'RAG 検索拡張生成 Retrieval-Augmented Generation', tags: ['チャンキング', 'エンベディング', 'ランク付け'] },
+        { name: 'RAGパターン', desc: 'Retrieval-Augmented Generation（検索拡張生成）の実装フロー:\n① ユーザーの質問をエンベディングモデルでベクトルに変換\n② ベクトルDBで類似度検索して関連チャンクを取得\n③ 取得したチャンクをコンテキストとしてプロンプトに追加\n④ FMが根拠のある回答を生成\n精度向上のポイント: チャンクサイズの調整（小さすぎると文脈不足・大きすぎると雑音）/ ハイブリッド検索（ベクトル＋キーワード）/ リランキング（再順位付け）', keyword: 'RAG 検索拡張生成 Retrieval-Augmented Generation', tags: ['チャンキング', 'エンベディング', 'ランク付け'], seeAlso: ['Bedrock Knowledge Bases', 'RAG（検索拡張生成）', 'ベクトルDB選択'] },
         { name: 'プロンプトエンジニアリング（AIP）', desc: 'AIP試験でよく問われるプロンプト技法:\nSystem prompt: AIの役割・制約・口調を定義する（「あなたは医療専門家です」等）\nFew-shot: 入出力例を3〜5件示してフォーマットや判断基準を教える\nChain-of-Thought: 「ステップごとに考えてください」で複雑な推論精度を向上\nXML構造: タグでセクションを区切って指示を明確化（Claudeに特に有効）\nネガティブプロンプト: してはいけないことを明示して誤動作を防止', keyword: 'プロンプトエンジニアリング Few-shot Chain-of-Thought', tags: ['System prompt', 'Few-shot', 'Chain-of-Thought'] },
-        { name: 'エージェントパターン', desc: 'FMが自律的にタスクを実行するためのアーキテクチャパターン。\nReActフレームワーク: Reason（推論）→ Act（行動）→ Observe（観察）のループを繰り返してゴールに到達する\nFunction Calling（ツール呼び出し）: FMが外部ツール（天気API・DBクエリ等）をいつ・どのように呼ぶかを決定する能力\nマルチエージェントオーケストレーション: 複数のFMエージェントが協調してより複雑なタスクを分担して実行する', keyword: 'AI エージェント ReAct Function Calling Bedrock Agents', tags: ['ReAct', 'Function Calling', 'マルチエージェント'] },
+        { name: 'エージェントパターン', desc: 'FMが自律的にタスクを実行するためのアーキテクチャパターン。\nReActフレームワーク: Reason（推論）→ Act（行動）→ Observe（観察）のループを繰り返してゴールに到達する\nFunction Calling（ツール呼び出し）: FMが外部ツール（天気API・DBクエリ等）をいつ・どのように呼ぶかを決定する能力\nマルチエージェントオーケストレーション: 複数のFMエージェントが協調してより複雑なタスクを分担して実行する', keyword: 'AI エージェント ReAct Function Calling Bedrock Agents', tags: ['ReAct', 'Function Calling', 'マルチエージェント'], seeAlso: ['Bedrock Agents'] },
         { name: 'ベクトルDB選択', desc: 'RAGのベクトル検索バックエンドを選択する基準:\nAmazon OpenSearch Serverless（ベクトルエンジン）: サーバーレスで管理不要。大規模対応\nAurora PostgreSQL（pgvector拡張）: 既存のRDSとの統合・SQLでベクトル検索が可能\nAmazon MemoryDB（Redis互換）: 低レイテンシのインメモリベクトル検索\nPinecone・Weaviate・Qdrant: 外部マネージドベクトルDBサービス。高精度・高機能', keyword: 'ベクトルデータベース Vector Database pgvector OpenSearch', tags: ['OpenSearch', 'pgvector', 'MemoryDB'] },
       ],
     },
     {
       title: '責任あるAI・ガバナンス',
       items: [
-        { name: '安全とコンテンツポリシー', desc: 'Bedrock Guardrailsで有害コンテンツ・PII・特定トピックのフィルタリングをモデルとアプリに横断して適用。\nモデル提供者（Anthropic・Meta等）のUsage Policy（利用規約）への遵守が義務付けられる。\nAWS AI Service Cards: 各AIサービスの設計意図・評価方法・想定外の使い方を公開して透明性を確保するドキュメント', keyword: 'Bedrock Guardrails コンテンツポリシー AWS AI Service Cards', tags: ['ガードレール', 'Usage Policy', '透明性'] },
+        { name: '安全とコンテンツポリシー', desc: 'Bedrock Guardrailsで有害コンテンツ・PII・特定トピックのフィルタリングをモデルとアプリに横断して適用。\nモデル提供者（Anthropic・Meta等）のUsage Policy（利用規約）への遵守が義務付けられる。\nAWS AI Service Cards: 各AIサービスの設計意図・評価方法・想定外の使い方を公開して透明性を確保するドキュメント', keyword: 'Bedrock Guardrails コンテンツポリシー AWS AI Service Cards', tags: ['ガードレール', 'Usage Policy', '透明性'], seeAlso: ['Bedrock Guardrails'] },
         { name: 'データプライバシー', desc: 'Bedrockはデフォルトでユーザーのプロンプト・レスポンスをモデル学習に使用しない（データはAWSに保持される）。\nVPCエンドポイント: インターネットを経由せずBedrockのAPIにアクセスしてデータをAWS内に留める\nKMS暗号化: 知識ベースのデータやモデルカスタマイズ用データを顧客管理キーで暗号化', keyword: 'Amazon Bedrock データプライバシー KMS暗号化', tags: ['データ保護', 'VPCエンドポイント', 'KMS'] },
         { name: 'モニタリングと監査', desc: 'CloudTrail: BedrockのすべてのAPIコール（InvokeModel・RetrieveAndGenerate等）を記録して監査証跡を保持\nCloudWatch メトリクス:\nInvocationCount: モデル呼び出し回数\nInvocationLatency: 呼び出しから応答までの時間\nInputTokenCount / OutputTokenCount: トークン使用量\nModelInvocationThrottledRequests: スロットリングされたリクエスト数', keyword: 'Bedrock CloudTrail CloudWatch 監視 監査', tags: ['CloudTrail', 'CloudWatch', 'APIログ'] },
       ],
@@ -567,7 +567,7 @@ const CHEAT_DATA: CheatData = {
         { name: 'Macie', desc: 'S3バケット内の機密データを機械学習で自動検出・分類するデータセキュリティサービス。\n検出対象: PII（Personally Identifiable Information: 個人識別情報）/ 認証情報 / 金融データ / 医療情報\nバケットの公開設定ミス（パブリックアクセスが開いているバケット）も検出して通知\nGDPR・HIPAAなどのコンプライアンス対応に活用される', tags: ['PII検出', 'S3スキャン', 'データ分類'] },
         { name: 'Detective', desc: 'GuardDuty・CloudTrail・VPCフローログのデータからグラフデータモデル（振る舞いグラフ）を自動構築してセキュリティインシデントを視覚的に調査・分析するサービス。\n「このEC2インスタンスへの不審な接続はどこから来ているか？」「このIAMユーザーはどのリソースにアクセスしたか？」という調査クエリに素早く回答できる。', tags: ['グラフ分析', 'インシデント調査', '可視化'], seeAlso: ['GuardDuty'] },
         { name: 'Incident Manager', desc: 'Systems Managerの機能でインシデントを体系的に管理するサービス。\nフロー: インシデント検出（CloudWatchアラーム等） → 対応計画（Response Plan）の自動起動 → Runbook（対応手順）の実行 → エスカレーション（担当者通知） → PIR（Post-Incident Review: 事後分析）\nRunbook: Systems Manager Automationドキュメントで対応手順を自動実行', tags: ['対応計画', 'Runbook', 'PIR'] },
-        { name: 'Security Lake', desc: 'AWSと外部のセキュリティデータを一元的に収集・正規化してS3データレイクに格納するサービス。\nOCSF（Open Cybersecurity Schema Framework）: セキュリティデータの共通スキーマ規格。異なるソースのデータを統一フォーマットに変換することで横断的な分析が可能\n収集元: CloudTrail / VPCフローログ / GuardDuty / Security Hub / Route 53 / 外部SIEMツール', tags: ['OCSF', 'データ集約', 'セキュリティログ'] },
+        { name: 'Security Lake', desc: 'AWSと外部のセキュリティデータを一元的に収集・正規化してS3データレイクに格納するサービス。\nOCSF（Open Cybersecurity Schema Framework）: セキュリティデータの共通スキーマ規格。異なるソースのデータを統一フォーマットに変換することで横断的な分析が可能\n収集元: CloudTrail / VPCフローログ / GuardDuty / Security Hub / Route 53 / 外部SIEMツール', tags: ['OCSF', 'データ集約', 'セキュリティログ'], seeAlso: ['GuardDuty', 'Security Hub'] },
       ],
     },
     {
