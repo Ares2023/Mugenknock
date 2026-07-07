@@ -633,6 +633,7 @@ export default function CheatSheet() {
   const [goalInit, setGoalInit] = useState(false);
   const [copiedTerm, setCopiedTerm] = useState<string | null>(null);
   const [pendingScrollTo, setPendingScrollTo] = useState<string | null>(null);
+  const [showScrollTop, setShowScrollTop] = useState(false);
 
   function handleTermCopy(term: string) {
     navigator.clipboard.writeText(term);
@@ -659,6 +660,12 @@ export default function CheatSheet() {
     }
     setPendingScrollTo(name);
   }
+
+  useEffect(() => {
+    const onScroll = () => setShowScrollTop(window.scrollY > 300);
+    window.addEventListener('scroll', onScroll, { passive: true });
+    return () => window.removeEventListener('scroll', onScroll);
+  }, []);
 
   useEffect(() => {
     if (!pendingScrollTo) return;
@@ -845,6 +852,34 @@ export default function CheatSheet() {
           </div>
         ))}
       </div>
+      {/* トップへ戻るボタン */}
+      {showScrollTop && (
+        <button
+          onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
+          title="トップへ戻る"
+          style={{
+            position: 'fixed',
+            bottom: 80,
+            right: 16,
+            width: 44,
+            height: 44,
+            borderRadius: '50%',
+            border: '1px solid var(--color-border)',
+            background: 'var(--color-bg-white)',
+            boxShadow: 'var(--box-shadow-md)',
+            cursor: 'pointer',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            zIndex: 100,
+            color: 'var(--color-text-main)',
+          }}
+        >
+          <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <path d="m18 15-6-6-6 6"/>
+          </svg>
+        </button>
+      )}
       {/* コピー完了トースト */}
       {copiedTerm !== null && (
         <div style={{
