@@ -131,11 +131,27 @@ export default function Layout({ children }: { children: React.ReactNode }) {
   const TAB_PATHS_NORM = TAB_PATHS.map(p => p !== '/' ? p.replace(/\/$/, '') : p);
   const [swipeOffset, setSwipeOffset] = useState(0);
   const [swipeTrans, setSwipeTrans] = useState(false);
+  const [overlayOpacity, setOverlayOpacity] = useState(0);
+  const [overlayFading, setOverlayFading] = useState(false);
 
-  const doTabNavigate = (nextPath: string, _dir: 'left' | 'right') => {
-    setSwipeTrans(false);
-    setSwipeOffset(0);
-    navigate(nextPath);
+  const doTabNavigate = (nextPath: string, dir: 'left' | 'right') => {
+    // ① 現在画面をスライドアウト（240ms）
+    const outX = dir === 'left' ? -window.innerWidth : window.innerWidth;
+    setSwipeTrans(true);
+    setSwipeOffset(outX);
+    setTimeout(() => {
+      // ② 白オーバーレイを瞬時に全面表示してから navigate
+      setOverlayFading(false);
+      setOverlayOpacity(1);
+      navigate(nextPath);
+      setSwipeTrans(false);
+      setSwipeOffset(0);
+      // ③ 次フレームでフェードアウト開始（新画面が下に描画済み）
+      requestAnimationFrame(() => requestAnimationFrame(() => {
+        setOverlayFading(true);
+        setOverlayOpacity(0);
+      }));
+    }, 240);
   };
 
   const handleTouchStart = (e: React.TouchEvent) => {
@@ -958,6 +974,17 @@ export default function Layout({ children }: { children: React.ReactNode }) {
 
       {/* ── ボディ ── */}
       <div style={{ display: 'flex', flex: 1, overflow: 'hidden', position: 'relative' }}>
+
+        {/* スワイプ遷移フェードオーバーレイ */}
+        {isMobile && (
+          <div style={{
+            position: 'fixed', inset: 0, background: 'var(--color-bg-main)',
+            opacity: overlayOpacity,
+            transition: overlayFading ? 'opacity 0.3s ease' : 'none',
+            pointerEvents: overlayOpacity > 0 ? 'all' : 'none',
+            zIndex: 998,
+          }} />
+        )}
 
         {/* デスクトップ: サイドバーオーバーレイ（モバイルでは使わない） */}
         {!isMobile && open === false && false /* no overlay needed on desktop */ && (
