@@ -897,9 +897,19 @@ function ItemCard({ item, q, onCopy }: { item: Item; q: string; onCopy: (term: s
       boxShadow: 'var(--box-shadow-sm)',
     }}>
       <div style={{ marginBottom: 4 }}>
-        <div style={{ fontWeight: 700, fontSize: 'var(--font-size-base)', color: 'var(--color-text-main)' }}>
-          {highlight(item.name)}
-        </div>
+        {(/[A-Za-z]/.test(item.name) || /[゠-ヿ]{5,}/.test(item.name)) ? (
+          <div
+            onClick={() => onCopy(item.keyword ?? item.name.replace(/[（(][^）)]*[）)]/g, '').trim())}
+            title="タップしてコピー"
+            style={{ fontWeight: 700, fontSize: 'var(--font-size-base)', color: '#009E9E', cursor: 'pointer' }}
+          >
+            {highlight(item.name)}
+          </div>
+        ) : (
+          <div style={{ fontWeight: 700, fontSize: 'var(--font-size-base)', color: 'var(--color-text-main)' }}>
+            {highlight(item.name)}
+          </div>
+        )}
       </div>
       <p style={{ fontSize: 'var(--font-size-sm)', color: 'var(--color-text-sub)', margin: 0, lineHeight: 1.6 }}>
         {item.desc.split('\n').map((line, i) => {
