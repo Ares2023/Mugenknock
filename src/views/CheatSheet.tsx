@@ -22,7 +22,7 @@ const CHEAT_DATA: CheatData = {
         { name: 'Well-Architectedフレームワーク', desc: '6本柱でクラウド設計を評価するAWS公式のベストプラクティス集。\n① 運用上の優秀性（変化への対応・自動化）\n② セキュリティ（最小権限・暗号化）\n③ 信頼性（障害自動回復・水平スケール）\n④ パフォーマンス効率（適切なリソース選択）\n⑤ コスト最適化（不要リソース排除）\n⑥ 持続可能性（エネルギー効率）', keyword: 'AWS Well-Architected Framework', tags: ['6本柱', '設計', 'ベストプラクティス'] },
         { name: 'CAF（Cloud Adoption Framework）', desc: 'クラウド移行を組織全体で成功させる6つの視点のフレームワーク。\nビジネス: ROI・ビジネスケース\n人: スキル・文化変革\nガバナンス: リスク管理・コンプライアンス\nプラットフォーム: アーキテクチャ基盤\nセキュリティ: セキュリティ管理\n運用: 運用モデル', keyword: 'Cloud Adoption Framework', tags: ['移行', '6視点', 'フレームワーク'] },
         { name: 'サービスモデル', desc: 'IaaS（Infrastructure as a Service）: EC2のような仮想インフラ。OS以上は自分で管理\nPaaS（Platform as a Service）: Elastic Beanstalkのような実行基盤。アプリのみ管理\nSaaS（Software as a Service）: WorkSpacesのような完成品アプリ。設定のみ管理', keyword: 'IaaS PaaS SaaS クラウドサービスモデル', tags: ['IaaS', 'PaaS', 'SaaS'] },
-        { name: 'クラウドメリット', desc: '俊敏性: 数分でリソース調達（オンプレは数週間）\n弾力性: 需要に合わせて自動でスケールアップ/ダウン\nグローバル展開: 世界中のリージョンに即座にデプロイ\nコスト: CAPEX（設備投資）→ OPEX（運用費）に転換し初期投資不要\nスケールメリット: AWSの大規模調達によりユーザーのコストが下がる', keyword: 'AWSクラウドのメリット', tags: ['俊敏性', '弾力性', 'OPEX'] },
+        { name: 'クラウドメリット', desc: '俊敏性 (Agility): 数分でリソース調達（オンプレは数週間）\n弾力性 (Elasticity): 需要に合わせて自動でスケールアップ/ダウン\nグローバル展開: 世界中のリージョンに即座にデプロイ\nコスト: CAPEX（設備投資）→ OPEX（運用費）に転換し初期投資不要\nスケールメリット: AWSの大規模調達によりユーザーのコストが下がる', keyword: 'AWSクラウドのメリット', tags: ['俊敏性', '弾力性', 'OPEX'] },
       ],
     },
     {
@@ -99,7 +99,7 @@ const CHEAT_DATA: CheatData = {
     {
       title: 'AI・MLの基礎',
       items: [
-        { name: '機械学習の種類', desc: '教師あり学習: 正解ラベル付きデータで学習。分類（カテゴリ予測）と回帰（数値予測）が代表例\n教師なし学習: ラベルなしデータのパターンを発見。クラスタリング（グループ化）・次元削減が代表例\n強化学習: 報酬を最大化する行動を試行錯誤で学習。ゲームAI・ロボット制御に使用', keyword: '機械学習 教師あり学習 教師なし学習 強化学習', tags: ['教師あり', '教師なし', '強化学習'] },
+        { name: '機械学習の種類', desc: '教師あり学習 (Supervised Learning): 正解ラベル付きデータで学習。分類（カテゴリ予測）と回帰（数値予測）が代表例\n教師なし学習 (Unsupervised Learning): ラベルなしデータのパターンを発見。クラスタリング（グループ化）・次元削減が代表例\n強化学習 (Reinforcement Learning): 報酬を最大化する行動を試行錯誤で学習。ゲームAI・ロボット制御に使用', keyword: '機械学習 教師あり学習 教師なし学習 強化学習', tags: ['教師あり', '教師なし', '強化学習'] },
         { name: 'モデル評価指標', desc: 'Accuracy（精度）: 全予測中の正解率。クラス不均衡時は注意\nPrecision（適合率）: 「陽性」と予測した中で実際に陽性の割合（偽陽性を減らしたい時に重視）\nRecall（再現率）: 実際の陽性のうち正しく検出できた割合（見逃しを減らしたい時に重視）\nF1スコア: PrecisionとRecallの調和平均\nAUC-ROC: 閾値変化に対するモデルの識別能力を示す（1に近いほど優秀）', keyword: 'F1スコア Precision Recall AUC-ROC 機械学習評価指標', tags: ['Accuracy', 'F1スコア', 'AUC-ROC'] },
         { name: '過学習と正則化', desc: '過学習（Overfitting）: 訓練データに過剰適合し、未知データで性能が落ちる問題。\n対策手法:\nL1正則化（Lasso）: 不要な特徴量の重みをゼロにして特徴量選択の効果\nL2正則化（Ridge）: 重みを小さく抑えてモデルを単純化\nドロップアウト: ニューラルネットのニューロンをランダムに無効化して汎化性能を向上\nデータ拡張: 学習データを水増しして多様性を高める', keyword: '過学習 Overfitting L1正則化 L2正則化', tags: ['過学習', 'L1/L2正則化', 'ドロップアウト'] },
         { name: 'MLのライフサイクル', desc: '① データ収集・取り込み\n② データ前処理（クリーニング・正規化・欠損値処理）\n③ 特徴量エンジニアリング（モデルの入力に適した形に変換）\n④ モデル学習（アルゴリズムを選んでパラメータを調整）\n⑤ 評価（テストデータで指標を計測）\n⑥ デプロイ（本番環境への公開）\n⑦ 監視（モデルの性能劣化を検出して再学習）', keyword: 'MLOps 機械学習ライフサイクル', tags: ['MLOps', 'ライフサイクル', 'パイプライン'] },
@@ -406,7 +406,7 @@ const CHEAT_DATA: CheatData = {
       title: 'SageMaker - モデル開発',
       items: [
         { name: 'SageMaker Studio', desc: 'ML開発のための統合IDE（開発環境）。Jupyter Notebookを拡張したWebベースの環境で以下を統一UIで利用:\nExperiments: 複数の学習実行の条件・メトリクスを比較管理\nPipelines: MLパイプラインの定義・実行・可視化\nModel Registry: モデルのバージョン管理・承認\nClarify: バイアス・説明可能性の分析', tags: ['IDE', 'Experiments', '統合環境'] },
-        { name: 'SageMaker Training', desc: 'マネージドなMLモデル学習サービス。\n組み込みアルゴリズム: XGBoost（勾配ブースティング）/ Linear Learner（線形モデル）/ DeepAR（時系列予測）/ BlazingText（テキスト分類）等\nカスタムコンテナ: 独自のTensorFlow・PyTorch等のコードをDockerイメージで実行\n分散学習: データ並列（大量データを複数GPU/インスタンスで分割学習）とモデル並列（大規模モデルを複数GPUに分割）\nスポットトレーニング: EC2スポットインスタンスで最大90%コスト削減（中断を考慮してチェックポイント設定が必要）', tags: ['組み込みアルゴリズム', '分散学習', 'スポット'] },
+        { name: 'SageMaker Training', desc: 'マネージドなMLモデル学習サービス。\n組み込みアルゴリズム: XGBoost（勾配ブースティング）/ Linear Learner（線形モデル）/ DeepAR（時系列予測）/ BlazingText（テキスト分類）等\nカスタムコンテナ: 独自のTensorFlow・PyTorch等のコードをDockerイメージで実行\n分散学習 (Distributed Training): データ並列（大量データを複数GPU/インスタンスで分割学習）とモデル並列（大規模モデルを複数GPUに分割）\nスポットトレーニング: EC2スポットインスタンスで最大90%コスト削減（中断を考慮してチェックポイント設定が必要）', tags: ['組み込みアルゴリズム', '分散学習', 'スポット'] },
         { name: 'SageMaker Automatic Model Tuning（AMT）', desc: 'ハイパーパラメータ（学習率・バッチサイズ等）を自動探索してモデルを最適化するHPO（Hyperparameter Optimization）機能。\n探索戦略:\nBayesian最適化: 過去の試行結果を学習して効率的に次のパラメータ候補を選択\nGrid Search: 指定した全パラメータ組み合わせを網羅的に試行\nRandom Search: ランダムにパラメータを選択\nウォームスタート: 前回のチューニング結果を引き継いで効率化', tags: ['HPO', 'Bayesian最適化', 'ウォームスタート'] },
         { name: 'SageMaker Clarify', desc: '学習前後のバイアス検出と説明可能性の分析を行うサービス。\nバイアス検出: 訓練データのバイアス（学習前）とモデルの予測バイアス（学習後）を統計指標で測定\nSHAP（Shapley Additive exPlanations）値: 各特徴量が予測に与えた貢献度を定量化するFeature Importance手法\nModel Monitorと統合してデプロイ後のバイアスドリフトも継続監視', tags: ['バイアス検出', 'SHAP', '説明可能性'] },
       ],
@@ -624,6 +624,13 @@ export default function CheatSheet() {
   const [selectedExam, setSelectedExam] = useState<string>('SAA');
   const [search, setSearch] = useState('');
   const [goalInit, setGoalInit] = useState(false);
+  const [copiedTerm, setCopiedTerm] = useState<string | null>(null);
+
+  function handleTermCopy(term: string) {
+    navigator.clipboard.writeText(term);
+    setCopiedTerm(term);
+    setTimeout(() => setCopiedTerm(null), 1500);
+  }
 
   useEffect(() => {
     if (loading || goalInit) return;
@@ -797,8 +804,8 @@ export default function CheatSheet() {
 
       {/* 用語コピーヒント */}
       {!q && (
-        <p style={{ fontSize: 'var(--font-size-xs)', color: 'var(--color-text-light)', marginBottom: 'var(--spacing-sm)', marginTop: 'calc(var(--spacing-sm) * -1)' }}>
-          太字の用語はタップしてコピーできます
+        <p style={{ fontSize: 'var(--font-size-xs)', color: '#009E9E', marginBottom: 'var(--spacing-sm)', marginTop: 'calc(var(--spacing-sm) * -1)' }}>
+          色付き太字の用語はタップしてコピーできます
         </p>
       )}
 
@@ -834,17 +841,38 @@ export default function CheatSheet() {
             </h2>
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(260px, 1fr))', gap: 'var(--spacing-sm)' }}>
               {section.items.map(item => (
-                <ItemCard key={item.name} item={item} q={q} />
+                <ItemCard key={item.name} item={item} q={q} onCopy={handleTermCopy} />
               ))}
             </div>
           </div>
         ))}
       </div>
+      {/* コピー完了トースト */}
+      {copiedTerm !== null && (
+        <div style={{
+          position: 'fixed',
+          bottom: 80,
+          left: '50%',
+          transform: 'translateX(-50%)',
+          background: '#009E9E',
+          color: '#fff',
+          padding: '8px 20px',
+          borderRadius: 'var(--border-radius-full)',
+          fontSize: 'var(--font-size-sm)',
+          fontWeight: 600,
+          boxShadow: 'var(--box-shadow-md)',
+          zIndex: 9999,
+          pointerEvents: 'none',
+          whiteSpace: 'nowrap',
+        }}>
+          コピーしました
+        </div>
+      )}
     </PageLayout>
   );
 }
 
-function ItemCard({ item, q }: { item: Item; q: string }) {
+function ItemCard({ item, q, onCopy }: { item: Item; q: string; onCopy: (term: string) => void }) {
   const highlight = (text: string): React.ReactNode => {
     if (!q) return text;
     const idx = text.toLowerCase().indexOf(q);
@@ -875,14 +903,17 @@ function ItemCard({ item, q }: { item: Item; q: string }) {
         {item.desc.split('\n').map((line, i) => {
           const colonIdx = line.indexOf(': ');
           const term = colonIdx > 0 ? line.slice(0, colonIdx) : '';
-          // ASCII英字を含む場合のみ強調（汎用日本語ラベルは対象外）
-          const isITTerm = colonIdx > 0 && /[A-Za-z]/.test(term);
+          // ASCII英字を含む、または5文字以上の連続カタカナを含む場合にIT用語として強調
+          const isITTerm = colonIdx > 0 && (
+            /[A-Za-z]/.test(term) ||
+            /[゠-ヿ]{5,}/.test(term)
+          );
           const content = isITTerm ? (
             <>
               <span
-                onClick={() => navigator.clipboard.writeText(term)}
+                onClick={() => onCopy(term)}
                 title="タップしてコピー"
-                style={{ fontWeight: 700, color: 'var(--color-text-main)', cursor: 'pointer' }}
+                style={{ fontWeight: 700, color: '#009E9E', cursor: 'pointer' }}
               >{highlight(term)}</span>
               {': '}
               {highlight(line.slice(colonIdx + 2))}
