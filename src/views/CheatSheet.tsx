@@ -8,9 +8,14 @@ import { useAuth } from '../contexts/AuthContext';
 import PageLayout from '../components/ui/PageLayout';
 
 // ── データ型 ─────────────────────────────────────────────────
-interface Item { name: string; desc: string; tags: string[]; keyword?: string }
+interface Item { name: string; desc: string; tags: string[]; keyword?: string; seeAlso?: string[] }
 interface Section { title: string; items: Item[] }
 type CheatData = Record<string, Section[]>
+
+// ── 共有アイテム（複数の試験セクションで使い回す場合はここに定義して参照する） ──
+// 同じ Item オブジェクトを複数の items 配列に含めることで1箇所の定義を使い回せる
+// 例: const ITEM_FOO: Item = { name: 'Foo', desc: '...', tags: [] };
+//     SOA → items: [..., ITEM_FOO]  /  SCS → items: [..., ITEM_FOO]
 
 // ── 試験別チートシートデータ ──────────────────────────────────
 const CHEAT_DATA: CheatData = {
@@ -302,8 +307,8 @@ const CHEAT_DATA: CheatData = {
     {
       title: 'セキュリティ・コスト',
       items: [
-        { name: 'GuardDuty', desc: 'CloudTrail・VPCフローログ・DNSクエリログを機械学習と脅威インテリジェンスフィードで分析して脅威を自動検出するサービス。\nEC2のポートスキャン・認証情報の外部への漏洩・S3への不正アクセス等を検出。\nEventBridge → Lambda で自動隔離・通知のパターンが頻出。マルチアカウント（Organizations）にも一括適用可能。', tags: ['脅威検出', '機械学習', '自動応答'] },
-        { name: 'Security Hub', desc: 'GuardDuty・Inspector・Macie・Firewall Manager等の検出結果をASFF（Amazon Security Finding Format）形式で集約して一元管理するサービス。\nコンプライアンス基準への準拠状況:\nCIS AWS Foundations Benchmark / PCI-DSS / NIST 800-53 への自動チェックが可能', tags: ['集約', 'ASFF', '準拠状況'] },
+        { name: 'GuardDuty', desc: 'CloudTrail・VPCフローログ・DNSクエリログを機械学習と脅威インテリジェンスフィードで分析して脅威を自動検出するサービス。\nEC2のポートスキャン・認証情報の外部への漏洩・S3への不正アクセス等を検出。\nEventBridge → Lambda で自動隔離・通知のパターンが頻出。マルチアカウント（Organizations）にも一括適用可能。', tags: ['脅威検出', '機械学習', '自動応答'], seeAlso: ['Security Hub'] },
+        { name: 'Security Hub', desc: 'GuardDuty・Inspector・Macie・Firewall Manager等の検出結果をASFF（Amazon Security Finding Format）形式で集約して一元管理するサービス。\nコンプライアンス基準への準拠状況:\nCIS AWS Foundations Benchmark / PCI-DSS / NIST 800-53 への自動チェックが可能', tags: ['集約', 'ASFF', '準拠状況'], seeAlso: ['GuardDuty'] },
         { name: 'Cost Explorer', desc: 'AWSのコストと使用量を可視化・分析するツール。\nサービス別・リソース別・タグ別・リンクアカウント別にフィルタリング・グループ化が可能。\nRI（リザーブドインスタンス）やSavings Plansの利用率・カバレッジ分析と推奨事項を提示してくれる。', tags: ['コスト可視化', 'RI推奨', 'Savings Plans'] },
         { name: 'Compute Optimizer', desc: 'EC2・Lambda・EBS・ECS・Auto Scalingリソースの過去の使用状況を機械学習で分析して適正サイズを推奨するサービス。\nオーバープロビジョニング（無駄なリソース）とアンダープロビジョニング（性能不足）の両方を検出してコスト削減と性能改善を同時に達成できる。', tags: ['適正サイズ', 'EC2推奨', 'コスト最適化'] },
       ],
@@ -344,12 +349,12 @@ const CHEAT_DATA: CheatData = {
         { name: 'Auto Scaling（DOP観点）', desc: 'ライフサイクルフック:\n起動時フック（Launching）: インスタンス起動後にアプリ設定・エージェントインストールが完了するまで待機\n終了時フック（Terminating）: ログ退避・セッション切断などの後処理が完了するまで終了を待機\n予測スケーリング: 過去2週間のメトリクスパターンをMLで学習して事前にスケールアウト\nウォームプール（Warm Pool）: 停止済みEC2をプールして起動時間を短縮する仕組み', tags: ['ライフサイクルフック', '予測スケーリング', 'ウォームプール'] },
         { name: 'Service Quotas', desc: 'AWSサービスの上限値（クォータ）を一元的に確認・申請するサービス。\nCloudWatchアラームとの統合でクォータ使用率が閾値を超えたら事前に通知\n自動クォータリクエスト: Lambda・Fargateなど一部サービスは使用量に応じて自動で上限引き上げを申請できる', tags: ['上限値', 'クォータ管理', '申請'] },
         { name: 'IAM高度管理', desc: 'Permissions Boundary（アクセス許可の境界）: IAMユーザー/ロールに付与できる権限の最大上限を設定するポリシー。開発者が自分より強い権限を持つロールを作れないよう制限する\nABAC（Attribute-Based Access Control: 属性ベースのアクセス制御）: IAMロール・リソースのタグを使って動的にアクセス許可を決定する仕組み。チーム・環境別の権限管理に有効', keyword: 'IAM Permissions Boundary ABAC 属性ベースアクセス制御', tags: ['Permissions Boundary', 'ABAC', '最小権限'] },
-        { name: 'Config + Security Hub（DOP）', desc: 'Configコンフォーマンスパック: 複数のConfigルールをまとめてYAMLでパッケージ化し、組織全体に一括展開できる\nSecurity Hub CIS/PCI自動チェック: CIS AWS Foundations Benchmark（セキュリティのベースライン）やPCI-DSS（クレジットカード業界基準）への準拠状況をAWS Configと連携して自動評価\n自動修復: 違反検出時にSSM Automationで自動修正するパターンが頻出', keyword: 'AWS Config コンフォーマンスパック Security Hub', tags: ['コンフォーマンスパック', 'CISベンチマーク', '自動修復'] },
-        { name: 'Organizations（マルチアカウント管理）', desc: 'SCP（サービスコントロールポリシー）: OU（組織単位）やアカウントに適用するガードレール。IAM許可とのAND評価で最大権限を制限するだけで権限を付与しない\nOU設計: 開発・ステージング・本番アカウントを別OUで分離し、誤操作・権限逸脱を組織レベルで防ぐ\nStackSets: CloudFormationテンプレートを複数アカウント・リージョンに一括デプロイする仕組み\nConfig組織アグリゲーター: 全アカウント・全リージョンのConfig設定データを1か所に集約して一元監視\n委任された管理者（Delegated Administrator）: 管理アカウント以外のメンバーアカウントにSecurity Hub・GuardDuty・Inspector等の管理権限を委任できる仕組み。セキュリティ専用アカウントに集約して管理アカウントとの職務分離を実現', keyword: 'AWS Organizations SCP OU 委任された管理者 Delegated Administrator マルチアカウント', tags: ['SCP', 'StackSets', '委任された管理者'] },
-        { name: 'IAM Identity Center（SSO）+ Organizations', desc: '複数のAWSアカウントへのシングルサインオン（SSO）をOrganizations全体で一元管理するサービス（旧AWS SSO）。\nアイデンティティソース（認証先の選択）:\nAWS組み込みIDストア: Identity Centerが管理するユーザー/グループ（シンプルな構成）\n外部IdP（SAML 2.0）: Okta・Azure AD等のIdPと連携。SCIMで自動プロビジョニング\nActive Directory: AWS Managed Microsoft ADまたはAD Connectorで社内ADと同期\nCognito User Pool連携: CognitoをOIDCアイデンティティソースとしてIdentity Centerに登録することでアプリのユーザーにAWSアカウントアクセスを付与するパターン\n権限セット（Permission Set）: アカウントごとに付与するIAMポリシーの組み合わせを定義して一元管理\nCognitoとの違い: CognitoはB2Cアプリのエンドユーザー認証（ユーザープール）/ Identity CenterはAWSアカウントへの社員アクセス管理', keyword: 'IAM Identity Center AWS SSO Organizations SSO 権限セット Cognito SAML SCIM', tags: ['SSO', '権限セット', 'SAML/SCIM'] },
-        { name: 'Inspector / GuardDuty / Security Hub 使い分け', desc: '3サービスの役割の違い:\nGuardDuty（脅威検出）: CloudTrail・VPCフロー・DNSログをML+脅威インテリジェンスで分析して「今起きている脅威」を検出。ポートスキャン・クレデンシャル漏洩・クリプトマイニングを発見\nInspector（脆弱性管理）: EC2・ECR・Lambdaの既知脆弱性（CVE）を継続スキャンして「これから起きうる弱点」を予防的に発見。CVSSスコアで優先順位付け\nSecurity Hub（統合・コンプライアンス）: GuardDuty・Inspector・Macie等の検出結果をASFF形式で集約し優先順位付け。CIS AWS Foundations Benchmark・PCI-DSSへの準拠状況を自動評価\n典型的な連携パターン: GuardDuty（脅威を検出）→ EventBridge → Lambda（EC2を自動隔離）+ Security Hub（全体の状態を追跡・管理）+ Inspector（悪用された脆弱性を特定）', keyword: 'GuardDuty Inspector Security Hub 使い分け 脅威検出 脆弱性管理 コンプライアンス', tags: ['GuardDuty', 'Inspector', 'Security Hub'] },
-        { name: 'Inspector（脆弱性管理）', desc: '脆弱性（セキュリティの弱点）を継続的にスキャンして優先順位付けするサービス。\nスキャン対象:\nEC2インスタンス: SSMエージェント経由でエージェントレスにOSの既知脆弱性を検出\nECRコンテナイメージ: プッシュ時に自動スキャンして脆弱なイメージのデプロイを防ぐ\nLambda関数: コードと依存パッケージの脆弱性をスキャン\nCVSSスコアでリスク優先順位付けし、Security Hubに集約してDOP全体のセキュリティ可視化に活用', tags: ['CVE', 'CVSS', 'コンテナスキャン'] },
-        { name: 'GuardDuty（脅威検出）', desc: 'CloudTrail・VPCフローログ・DNSクエリログを機械学習と脅威インテリジェンスフィードで自動分析して脅威を検出するサービス。\n検出例: EC2のポートスキャン・IAMクレデンシャルの外部漏洩・S3への不正アクセス・クリプトマイニング\nOrganizations連携: 全アカウントにGuardDutyを一括有効化し、管理アカウントで検出結果を集約\nEventBridge → Lambda で自動隔離・SNS通知の自動応答パターンが頻出', tags: ['脅威検出', '機械学習', '自動応答'] },
+        { name: 'Config + Security Hub（DOP）', desc: 'Configコンフォーマンスパック: 複数のConfigルールをまとめてYAMLでパッケージ化し、組織全体に一括展開できる\nSecurity Hub CIS/PCI自動チェック: CIS AWS Foundations Benchmark（セキュリティのベースライン）やPCI-DSS（クレジットカード業界基準）への準拠状況をAWS Configと連携して自動評価\n自動修復: 違反検出時にSSM Automationで自動修正するパターンが頻出', keyword: 'AWS Config コンフォーマンスパック Security Hub', tags: ['コンフォーマンスパック', 'CISベンチマーク', '自動修復'], seeAlso: ['Inspector / GuardDuty / Security Hub 使い分け', 'GuardDuty（脅威検出）'] },
+        { name: 'Organizations（マルチアカウント管理）', desc: 'SCP（サービスコントロールポリシー）: OU（組織単位）やアカウントに適用するガードレール。IAM許可とのAND評価で最大権限を制限するだけで権限を付与しない\nOU設計: 開発・ステージング・本番アカウントを別OUで分離し、誤操作・権限逸脱を組織レベルで防ぐ\nStackSets: CloudFormationテンプレートを複数アカウント・リージョンに一括デプロイする仕組み\nConfig組織アグリゲーター: 全アカウント・全リージョンのConfig設定データを1か所に集約して一元監視\n委任された管理者（Delegated Administrator）: 管理アカウント以外のメンバーアカウントにSecurity Hub・GuardDuty・Inspector等の管理権限を委任できる仕組み。セキュリティ専用アカウントに集約して管理アカウントとの職務分離を実現', keyword: 'AWS Organizations SCP OU 委任された管理者 Delegated Administrator マルチアカウント', tags: ['SCP', 'StackSets', '委任された管理者'], seeAlso: ['IAM Identity Center（SSO）+ Organizations'] },
+        { name: 'IAM Identity Center（SSO）+ Organizations', desc: '複数のAWSアカウントへのシングルサインオン（SSO）をOrganizations全体で一元管理するサービス（旧AWS SSO）。\nアイデンティティソース（認証先の選択）:\nAWS組み込みIDストア: Identity Centerが管理するユーザー/グループ（シンプルな構成）\n外部IdP（SAML 2.0）: Okta・Azure AD等のIdPと連携。SCIMで自動プロビジョニング\nActive Directory: AWS Managed Microsoft ADまたはAD Connectorで社内ADと同期\nCognito User Pool連携: CognitoをOIDCアイデンティティソースとしてIdentity Centerに登録することでアプリのユーザーにAWSアカウントアクセスを付与するパターン\n権限セット（Permission Set）: アカウントごとに付与するIAMポリシーの組み合わせを定義して一元管理\nCognitoとの違い: CognitoはB2Cアプリのエンドユーザー認証（ユーザープール）/ Identity CenterはAWSアカウントへの社員アクセス管理', keyword: 'IAM Identity Center AWS SSO Organizations SSO 権限セット Cognito SAML SCIM', tags: ['SSO', '権限セット', 'SAML/SCIM'], seeAlso: ['Organizations（マルチアカウント管理）'] },
+        { name: 'Inspector / GuardDuty / Security Hub 使い分け', desc: '3サービスの役割の違い:\nGuardDuty（脅威検出）: CloudTrail・VPCフロー・DNSログをML+脅威インテリジェンスで分析して「今起きている脅威」を検出。ポートスキャン・クレデンシャル漏洩・クリプトマイニングを発見\nInspector（脆弱性管理）: EC2・ECR・Lambdaの既知脆弱性（CVE）を継続スキャンして「これから起きうる弱点」を予防的に発見。CVSSスコアで優先順位付け\nSecurity Hub（統合・コンプライアンス）: GuardDuty・Inspector・Macie等の検出結果をASFF形式で集約し優先順位付け。CIS AWS Foundations Benchmark・PCI-DSSへの準拠状況を自動評価\n典型的な連携パターン: GuardDuty（脅威を検出）→ EventBridge → Lambda（EC2を自動隔離）+ Security Hub（全体の状態を追跡・管理）+ Inspector（悪用された脆弱性を特定）', keyword: 'GuardDuty Inspector Security Hub 使い分け 脅威検出 脆弱性管理 コンプライアンス', tags: ['GuardDuty', 'Inspector', 'Security Hub'], seeAlso: ['Inspector（脆弱性管理）', 'GuardDuty（脅威検出）', 'Config + Security Hub（DOP）'] },
+        { name: 'Inspector（脆弱性管理）', desc: '脆弱性（セキュリティの弱点）を継続的にスキャンして優先順位付けするサービス。\nスキャン対象:\nEC2インスタンス: SSMエージェント経由でエージェントレスにOSの既知脆弱性を検出\nECRコンテナイメージ: プッシュ時に自動スキャンして脆弱なイメージのデプロイを防ぐ\nLambda関数: コードと依存パッケージの脆弱性をスキャン\nCVSSスコアでリスク優先順位付けし、Security Hubに集約してDOP全体のセキュリティ可視化に活用', tags: ['CVE', 'CVSS', 'コンテナスキャン'], seeAlso: ['GuardDuty（脅威検出）', 'Inspector / GuardDuty / Security Hub 使い分け'] },
+        { name: 'GuardDuty（脅威検出）', desc: 'CloudTrail・VPCフローログ・DNSクエリログを機械学習と脅威インテリジェンスフィードで自動分析して脅威を検出するサービス。\n検出例: EC2のポートスキャン・IAMクレデンシャルの外部漏洩・S3への不正アクセス・クリプトマイニング\nOrganizations連携: 全アカウントにGuardDutyを一括有効化し、管理アカウントで検出結果を集約\nEventBridge → Lambda で自動隔離・SNS通知の自動応答パターンが頻出', tags: ['脅威検出', '機械学習', '自動応答'], seeAlso: ['Inspector（脆弱性管理）', 'Inspector / GuardDuty / Security Hub 使い分け'] },
       ],
     },
   ],
@@ -558,9 +563,9 @@ const CHEAT_DATA: CheatData = {
     {
       title: '脅威検出・インシデント対応',
       items: [
-        { name: 'GuardDuty', desc: '複数のデータソースを機械学習と脅威インテリジェンスフィードで分析して脅威を自動検出するサービス。\n分析対象: CloudTrail（APIコール）/ VPCフローログ（ネットワーク）/ DNSログ / S3データイベント / EKS監査ログ\n検出例: EC2のポートスキャン・クレデンシャルの外部漏洩・S3への不正アクセス・マイニングマルウェア\nEventBridge → Lambda で自動隔離・SNS通知のパターンが頻出', tags: ['脅威検出', '機械学習', '自動修復'] },
+        { name: 'GuardDuty', desc: '複数のデータソースを機械学習と脅威インテリジェンスフィードで分析して脅威を自動検出するサービス。\n分析対象: CloudTrail（APIコール）/ VPCフローログ（ネットワーク）/ DNSログ / S3データイベント / EKS監査ログ\n検出例: EC2のポートスキャン・クレデンシャルの外部漏洩・S3への不正アクセス・マイニングマルウェア\nEventBridge → Lambda で自動隔離・SNS通知のパターンが頻出', tags: ['脅威検出', '機械学習', '自動修復'], seeAlso: ['Inspector', 'Security Hub', 'Detective'] },
         { name: 'Macie', desc: 'S3バケット内の機密データを機械学習で自動検出・分類するデータセキュリティサービス。\n検出対象: PII（Personally Identifiable Information: 個人識別情報）/ 認証情報 / 金融データ / 医療情報\nバケットの公開設定ミス（パブリックアクセスが開いているバケット）も検出して通知\nGDPR・HIPAAなどのコンプライアンス対応に活用される', tags: ['PII検出', 'S3スキャン', 'データ分類'] },
-        { name: 'Detective', desc: 'GuardDuty・CloudTrail・VPCフローログのデータからグラフデータモデル（振る舞いグラフ）を自動構築してセキュリティインシデントを視覚的に調査・分析するサービス。\n「このEC2インスタンスへの不審な接続はどこから来ているか？」「このIAMユーザーはどのリソースにアクセスしたか？」という調査クエリに素早く回答できる。', tags: ['グラフ分析', 'インシデント調査', '可視化'] },
+        { name: 'Detective', desc: 'GuardDuty・CloudTrail・VPCフローログのデータからグラフデータモデル（振る舞いグラフ）を自動構築してセキュリティインシデントを視覚的に調査・分析するサービス。\n「このEC2インスタンスへの不審な接続はどこから来ているか？」「このIAMユーザーはどのリソースにアクセスしたか？」という調査クエリに素早く回答できる。', tags: ['グラフ分析', 'インシデント調査', '可視化'], seeAlso: ['GuardDuty'] },
         { name: 'Incident Manager', desc: 'Systems Managerの機能でインシデントを体系的に管理するサービス。\nフロー: インシデント検出（CloudWatchアラーム等） → 対応計画（Response Plan）の自動起動 → Runbook（対応手順）の実行 → エスカレーション（担当者通知） → PIR（Post-Incident Review: 事後分析）\nRunbook: Systems Manager Automationドキュメントで対応手順を自動実行', tags: ['対応計画', 'Runbook', 'PIR'] },
         { name: 'Security Lake', desc: 'AWSと外部のセキュリティデータを一元的に収集・正規化してS3データレイクに格納するサービス。\nOCSF（Open Cybersecurity Schema Framework）: セキュリティデータの共通スキーマ規格。異なるソースのデータを統一フォーマットに変換することで横断的な分析が可能\n収集元: CloudTrail / VPCフローログ / GuardDuty / Security Hub / Route 53 / 外部SIEMツール', tags: ['OCSF', 'データ集約', 'セキュリティログ'] },
       ],
@@ -568,9 +573,9 @@ const CHEAT_DATA: CheatData = {
     {
       title: 'セキュリティ監視・ログ',
       items: [
-        { name: 'Security Hub', desc: 'GuardDuty・Inspector・Macie・Firewall Manager等の検出結果をASFF（Amazon Security Finding Format: セキュリティ検出結果の標準形式）で集約・優先順位付けするサービス。\nコンプライアンス基準への自動チェック:\nCIS AWS Foundations Benchmark: AWSのセキュリティ設定ベースライン\nPCI DSS: クレジットカード業界のデータセキュリティ基準\nNIST 800-53: 米国政府のセキュリティフレームワーク', tags: ['ASFF', 'CIS', 'PCI DSS準拠'] },
+        { name: 'Security Hub', desc: 'GuardDuty・Inspector・Macie・Firewall Manager等の検出結果をASFF（Amazon Security Finding Format: セキュリティ検出結果の標準形式）で集約・優先順位付けするサービス。\nコンプライアンス基準への自動チェック:\nCIS AWS Foundations Benchmark: AWSのセキュリティ設定ベースライン\nPCI DSS: クレジットカード業界のデータセキュリティ基準\nNIST 800-53: 米国政府のセキュリティフレームワーク', tags: ['ASFF', 'CIS', 'PCI DSS準拠'], seeAlso: ['GuardDuty', 'Inspector', 'Audit Manager'] },
         { name: 'CloudTrail（SCS観点）', desc: 'セキュリティ監査の中核。イベントの種類:\n管理イベント: リソースの作成・削除・IAM変更等（デフォルト有効）\nデータイベント: S3オブジェクト操作・Lambda実行等（明示的に有効化が必要）\nInsightsイベント: 異常なAPI呼び出しパターンを自動検出\nS3証跡保護: 証跡をS3に保存する場合はMFAによる削除防止・KMS暗号化・ログファイル整合性検証（改ざん検出）を有効化することが重要', tags: ['管理イベント', 'データイベント', '整合性検証'] },
-        { name: 'Inspector', desc: '脆弱性（セキュリティの弱点）を継続的にスキャンして優先順位付けするサービス。\nスキャン対象:\nEC2インスタンス: エージェント不要でSSMエージェント経由。OSの既知脆弱性を検出\nECRコンテナイメージ: プッシュ時に自動スキャン\nLambda関数: コードと依存パッケージの脆弱性をスキャン\nCVE（Common Vulnerabilities and Exposures）: 既知の脆弱性のIDデータベースと照合してリスクスコア（CVSS）で優先順位付け', tags: ['脆弱性スキャン', 'CVE', 'コンテナ'] },
+        { name: 'Inspector', desc: '脆弱性（セキュリティの弱点）を継続的にスキャンして優先順位付けするサービス。\nスキャン対象:\nEC2インスタンス: エージェント不要でSSMエージェント経由。OSの既知脆弱性を検出\nECRコンテナイメージ: プッシュ時に自動スキャン\nLambda関数: コードと依存パッケージの脆弱性をスキャン\nCVE（Common Vulnerabilities and Exposures）: 既知の脆弱性のIDデータベースと照合してリスクスコア（CVSS）で優先順位付け', tags: ['脆弱性スキャン', 'CVE', 'コンテナ'], seeAlso: ['GuardDuty', 'Security Hub'] },
         { name: 'AWS Config（SCS観点）', desc: 'リソース設定変更の継続的記録とコンプライアンス評価。\nルール評価: マネージドルール（AWS事前定義）またはカスタムルール（Lambda）でリソースの準拠状況を常時評価\nコンフォーマンスパック: 複数のConfigルールをまとめて一括適用。CIS・PCIに対応したパックが利用可能\n自動修復: ルール違反検出時にSSM Automationを起動してリソースを自動修正', tags: ['設定記録', 'ルール評価', '自動修復'] },
       ],
     },
@@ -627,12 +632,42 @@ export default function CheatSheet() {
   const [search, setSearch] = useState('');
   const [goalInit, setGoalInit] = useState(false);
   const [copiedTerm, setCopiedTerm] = useState<string | null>(null);
+  const [pendingScrollTo, setPendingScrollTo] = useState<string | null>(null);
 
   function handleTermCopy(term: string) {
     navigator.clipboard.writeText(term);
     setCopiedTerm(term);
     setTimeout(() => setCopiedTerm(null), 1500);
   }
+
+  function navigateToItem(name: string) {
+    setSearch('');
+    let targetExam: string | null = null;
+    outer: for (const [exam, secs] of Object.entries(CHEAT_DATA)) {
+      for (const sec of secs) {
+        if (sec.items.some(it => it.name === name)) {
+          targetExam = exam;
+          break outer;
+        }
+      }
+    }
+    if (!targetExam) return;
+    if (targetExam !== selectedExam) {
+      const lv = levelOf(targetExam) as LevelKey;
+      setActiveLevel(lv);
+      setSelectedExam(targetExam);
+    }
+    setPendingScrollTo(name);
+  }
+
+  useEffect(() => {
+    if (!pendingScrollTo) return;
+    const el = document.querySelector(`[data-item-name="${pendingScrollTo.replace(/\\/g, '\\\\').replace(/"/g, '\\"')}"]`);
+    if (el) {
+      el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      setPendingScrollTo(null);
+    }
+  }, [selectedExam, pendingScrollTo]);
 
   useEffect(() => {
     if (loading || goalInit) return;
@@ -804,7 +839,7 @@ export default function CheatSheet() {
             </h2>
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(260px, 1fr))', gap: 'var(--spacing-sm)' }}>
               {section.items.map(item => (
-                <ItemCard key={item.name} item={item} q={q} onCopy={handleTermCopy} />
+                <ItemCard key={item.name} item={item} q={q} onCopy={handleTermCopy} onNavigate={navigateToItem} />
               ))}
             </div>
           </div>
@@ -835,7 +870,7 @@ export default function CheatSheet() {
   );
 }
 
-function ItemCard({ item, q, onCopy }: { item: Item; q: string; onCopy: (term: string) => void }) {
+function ItemCard({ item, q, onCopy, onNavigate }: { item: Item; q: string; onCopy: (term: string) => void; onNavigate: (name: string) => void }) {
   const highlight = (text: string): React.ReactNode => {
     if (!q) return text;
     const idx = text.toLowerCase().indexOf(q);
@@ -850,13 +885,16 @@ function ItemCard({ item, q, onCopy }: { item: Item; q: string; onCopy: (term: s
   };
 
   return (
-    <div style={{
-      background: 'var(--color-bg-white)',
-      border: '1px solid var(--color-border)',
-      borderRadius: 'var(--border-radius-md)',
-      padding: '10px 12px',
-      boxShadow: 'var(--box-shadow-sm)',
-    }}>
+    <div
+      data-item-name={item.name}
+      style={{
+        background: 'var(--color-bg-white)',
+        border: '1px solid var(--color-border)',
+        borderRadius: 'var(--border-radius-md)',
+        padding: '10px 12px',
+        boxShadow: 'var(--box-shadow-sm)',
+      }}
+    >
       <div style={{ marginBottom: 4 }}>
         {(/[A-Za-z]/.test(item.name) || /[゠-ヿ]{5,}/.test(item.name)) ? (
           <div
@@ -900,6 +938,27 @@ function ItemCard({ item, q, onCopy }: { item: Item; q: string; onCopy: (term: s
           );
         })}
       </p>
+      {item.seeAlso && item.seeAlso.length > 0 && (
+        <div style={{ marginTop: 8, paddingTop: 6, borderTop: '1px solid var(--color-border)', display: 'flex', gap: 4, flexWrap: 'wrap', alignItems: 'center' }}>
+          <span style={{ fontSize: 'var(--font-size-2xs)', color: 'var(--color-text-light)' }}>関連:</span>
+          {item.seeAlso.map(name => (
+            <button
+              key={name}
+              onClick={() => onNavigate(name)}
+              style={{
+                fontSize: 'var(--font-size-2xs)',
+                color: '#009E9E',
+                background: 'rgba(0,158,158,0.08)',
+                border: '1px solid rgba(0,158,158,0.25)',
+                borderRadius: 'var(--border-radius-full)',
+                padding: '1px 8px',
+                cursor: 'pointer',
+                whiteSpace: 'nowrap',
+              }}
+            >→ {name}</button>
+          ))}
+        </div>
+      )}
     </div>
   );
 }
