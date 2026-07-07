@@ -38,6 +38,7 @@ const CHEAT_DATA: CheatData = {
         { name: 'Elastic Beanstalk', desc: 'アプリのコードをアップロードするだけで、EC2・ELB（ロードバランサー）・Auto Scalingを自動設定するPaaSサービス。\nインフラを意識せずにアプリを素早くデプロイしたい場合に適している。', tags: ['PaaS', 'デプロイ', '自動設定'] , seeAlso: ['Auto Scaling', 'EC2', 'ELB']},
         { name: 'ECS / EKS', desc: 'コンテナ管理サービス（Docker コンテナを実行・管理する）。\nECS（Elastic Container Service）: AWS独自のコンテナオーケストレーター。シンプルで使いやすい\nEKS（Elastic Kubernetes Service）: Kubernetes（コンテナ管理の業界標準OSS）のマネージドサービス\nどちらもFargate（サーバーレス起動モード）でEC2管理を省略できる', tags: ['コンテナ', 'Kubernetes', 'Fargate'] , seeAlso: ['EC2']},
         { name: 'Lightsail', desc: 'シンプルなVPS（仮想専用サーバー）サービス。固定月額料金でサーバー・SSD・データ転送量が含まれるため料金が予測しやすい。WordPress・小規模WebサイトなどEC2より簡単に使いたい場合に最適。', tags: ['VPS', '固定料金', 'シンプル'] , seeAlso: ['EC2']},
+        { name: 'Auto Scaling', desc: '需要の変化に応じてEC2インスタンス数を自動で増減するサービス。\nスケールアウト（インスタンスを追加して処理能力を増強）とスケールイン（インスタンスを削減してコストを節約）を自動化する。\nスケーリングポリシー: CPU使用率などのメトリクスに基づくダイナミックスケーリングと、スケジュール指定のスケーリングがある。\nELBと組み合わせることでアクセス増加時にインスタンスを自動追加してトラフィックを分散する構成が基本形。', keyword: 'Auto Scaling スケールアウト スケールイン 弾力性 水平スケール', tags: ['スケールアウト', '弾力性', '自動化'], seeAlso: ['EC2', 'ELB', 'CloudWatch'] },
       ],
     },
     {
@@ -87,6 +88,13 @@ const CHEAT_DATA: CheatData = {
         { name: 'AWS Config', desc: 'AWSリソースの設定変更を継続的に記録し、望ましい状態からの逸脱を検出するサービス。\nルール（例: 「S3バケットの公開設定を禁止」）を定義して準拠状況を自動チェックし、違反を通知・自動修復できる。', tags: ['設定管理', 'ルール', 'コンプライアンス'] , seeAlso: ['Lambda', 'S3']},
         { name: 'Systems Manager', desc: 'EC2などのインフラを一元管理する運用サービス群。\nSession Manager: SSHポートを開けずにブラウザからEC2にアクセス\nPatch Manager: OSのセキュリティパッチを自動適用\nParameter Store: 設定値・秘密情報を安全に保管\nRun Command: 複数EC2に同時コマンド実行', tags: ['パッチ管理', 'Session Manager', '自動化'] , seeAlso: ['EC2']},
         { name: 'Organizations', desc: '複数のAWSアカウントを階層的に管理するサービス。\nOU（組織単位）でアカウントをグループ化し、SCP（サービスコントロールポリシー）でOU/アカウントに使用できるサービスや操作を制限できる。請求を一括でまとめられる（コンソリデーテッドビリング）。', tags: ['マルチアカウント', '一括請求', 'SCP'] },
+      ],
+    },
+    {
+      title: '統合・メッセージング',
+      items: [
+        { name: 'SNS', desc: 'パブリッシュ/サブスクライブ型の通知サービス（Simple Notification Service）。\n1つのメッセージを複数の宛先（Lambda・SQS・Eメール・HTTP/S等）へ同時配信（ファンアウト）できる。\nCloudWatchアラームの通知先として設定したり、S3イベントを複数サービスへ同報するパターンで広く使われる。', keyword: 'SNS Simple Notification Service Pub/Sub ファンアウト 通知', tags: ['Pub/Sub', 'ファンアウト', '通知'], seeAlso: ['SQS', 'Lambda', 'CloudWatch'] },
+        { name: 'SQS', desc: 'フルマネージドなメッセージキューサービス（Simple Queue Service）。\nメッセージをキューに蓄積し、受信側が非同期で取り出して処理するデカップリングパターンを実現する。\n標準キュー: 高スループット・ベストエフォートの順序\nFIFOキュー: 厳密な順序保証と重複排除が必要な場合', keyword: 'SQS Simple Queue Service キュー 非同期 デカップリング FIFO', tags: ['キュー', '非同期', 'デカップリング'], seeAlso: ['SNS', 'Lambda'] },
       ],
     },
     {
@@ -199,6 +207,7 @@ const CHEAT_DATA: CheatData = {
         { name: 'KMS', desc: 'AWSマネージドキー: AWSが自動作成・管理。キーポリシーのカスタマイズ不可\nCMK（カスタマーマネージドキー）: ユーザーが作成・管理。キーポリシーで細かいアクセス制御が可能\nエンベロープ暗号化: データキー（DEK）でデータを暗号化し、DEK自体をCMKで暗号化する二層構造。大きなデータを効率よく暗号化する仕組み', tags: ['CMK', 'エンベロープ暗号化', 'キーポリシー'] , seeAlso: ['DynamoDB', 'EBS', 'RDS', 'S3']},
         { name: 'Secrets Manager', desc: 'パスワード・APIキー・DB認証情報等のシークレットを安全に保管・管理するサービス。\n自動ローテーション: Lambda関数を使ってRDS・Redshift・DocumentDB等のパスワードを定期的に自動更新\nSSM Parameter Store との違い: Parameter Storeはシークレットの自動ローテーション機能がない。Secrets Managerはローテーションが必要なDB認証情報に適している', tags: ['自動ローテーション', 'DB認証情報', 'Lambda'] , seeAlso: ['Lambda', 'RDS', 'Redshift', 'SSM Parameter Store', 'VPC', 'VPCエンドポイント']},
         { name: 'Cognito', desc: 'User Pool: ユーザー認証（サインアップ・サインイン）を管理するIDプロバイダー。認証成功時にJWT（IDトークン・アクセストークン・リフレッシュトークン）を発行\nIdentity Pool: フェデレーション（Google・Facebook・User Pool等）した認証情報をもとに一時的なAWS認証情報（IAMロールの権限）を払い出してAWSリソースに直接アクセスさせる', tags: ['User Pool', 'Identity Pool', 'フェデレーション'] , seeAlso: ['IAM', 'Lambda']},
+        { name: 'ACM', desc: 'SSL/TLS証明書を無料で発行・自動更新するマネージドサービス（AWS Certificate Manager）。\nCloudFront・ALB・API GatewayにHTTPS証明書を適用して暗号化通信を有効化できる。\nドメイン検証（DNS検証またはEメール検証）で証明書を発行する。EC2への直接適用は不可（ELB経由で適用する）。\nACM Private CAを使うとプライベートCAを構築して内部サービス間のmTLSも実現できる。', keyword: 'ACM AWS Certificate Manager SSL TLS HTTPS 証明書 mTLS', tags: ['SSL/TLS', 'HTTPS', '証明書'], seeAlso: ['CloudFront', 'ALB / NLB', 'API Gateway', 'Route 53 ルーティング'] },
         { name: 'Organizations / SCP', desc: 'SCP（サービスコントロールポリシー）: OU（組織単位）やアカウントに適用するガードレール。\n最大権限の上限を設定するだけで権限を付与する機能はない（IAM許可とのAND評価）\n例: 「このOUでは東京リージョン以外のEC2起動を禁止」というルールを一括適用できる', tags: ['SCP', 'OU', 'ガードレール'] , seeAlso: ['EC2', 'IAM']},
       ],
     },
@@ -378,6 +387,7 @@ const CHEAT_DATA: CheatData = {
         { name: 'EMR（Elastic MapReduce）', desc: 'Apache Spark・Hive・Presto・HBaseなどのビッグデータフレームワークをEC2またはFargate上で実行するマネージドクラスタサービス。\nノードの役割:\nマスターノード: クラスタ全体を管理・調整\nコアノード: データ処理＋HDFSデータを保持（削除すると不可）\nタスクノード: データ処理のみ（HDFS保持なし）。スポットEC2を使うことでコスト削減', tags: ['Spark', 'Hive', 'スポット'] , seeAlso: ['EC2']},
         { name: 'Lambda（データ処理）', desc: 'Kinesis Data StreamsやDynamoDB Streamsのトリガーで起動してリアルタイムにデータを処理・変換するサーバーレス関数。\n軽量な変換処理やイベント駆動のデータパイプライン（フィルタリング・エンリッチメント・ルーティング）に適している。', tags: ['リアルタイム', 'ストリーム処理', 'イベント駆動'] , seeAlso: ['DynamoDB', 'Kinesis', 'Kinesis Data Streams']},
         { name: 'Step Functions（データパイプライン）', desc: 'Glue・EMR・Lambda・Athena等を組み合わせた複雑なETLパイプラインのオーケストレーション（実行順序・状態管理）サービス。\nDAG（有向非巡回グラフ）として処理フローを定義し、並列実行・条件分岐・エラーリトライを自動的に管理する。', tags: ['オーケストレーション', 'パイプライン', 'ワークフロー'], seeAlso: ['AWS Glue', 'EMR（Elastic MapReduce）', 'Athena', 'Lambda'] },
+        { name: 'Managed Service for Apache Flink', desc: 'ストリームデータをリアルタイムに処理するフルマネージドサービス（旧Kinesis Data Analytics）。\nApache Flinkアプリケーション（Java/Python/Scala）をサーバーレスで実行し、Kinesis Data StreamsやMSKからのデータを低レイテンシで集計・変換・フィルタリングできる。\n処理結果はKinesis Data Firehose・S3・OpenSearch Service等へ出力できる。', keyword: 'Managed Service for Apache Flink Kinesis Data Analytics KDA MSF ストリーム処理 リアルタイム', tags: ['ストリーム処理', 'リアルタイム', 'Apache Flink'], seeAlso: ['Kinesis Data Streams', 'Kinesis Data Firehose', 'MSK（Managed Streaming for Apache Kafka）'] },
       ],
     },
     {
@@ -396,6 +406,8 @@ const CHEAT_DATA: CheatData = {
         { name: 'KMS（データ暗号化）', desc: 'S3・Redshift・Glue・Athena等のデータサービスとシームレスに統合して保存データを暗号化するサービス。\nキーポリシー: KMSキーへのアクセスをJSON形式で制御するリソースベースポリシー\nグラント（Grant）: 特定の操作（Decrypt等）を特定のAWSプリンシパルに委譲する一時的なアクセス許可の仕組み', tags: ['暗号化', 'キーポリシー', 'グラント'] , seeAlso: ['Athena', 'Glue', 'KMS', 'Redshift', 'S3']},
         { name: 'Macie', desc: 'S3バケット内のPII（Personally Identifiable Information: 個人識別情報）・認証情報・金融データ等の機密データを機械学習で自動検出・分類するサービス。\nバケットの公開設定ミスも検出する。GDPR・HIPAAなどのコンプライアンス対応に活用される。', tags: ['PII検出', 'S3スキャン', 'データ分類'] , seeAlso: ['S3']},
         { name: 'Glue Data Catalog', desc: 'データのスキーマ（テーブル定義・カラム型）・場所（S3パス等）・メタデータを一元管理するメタデータリポジトリ。\nAthena・Redshift Spectrum・EMR・Lake Formationと連携してデータソースのスキーマを共有する。クローラーで自動登録が可能。', tags: ['メタデータ', 'スキーマ管理', 'データカタログ'], seeAlso: ['AWS Glue', 'Athena', 'Lake Formation', 'Redshift', 'S3'] },
+        { name: 'OpenSearch Service', desc: 'フルマネージドな全文検索・ログ分析エンジン（旧Elasticsearch Service）。\nKinesis Data Firehose・CloudWatch Logs・S3等からデータを取り込みリアルタイムに検索・集計できる。\nOpenSearch Dashboards（旧Kibana）で可視化UIを構築できる。\nログ解析・アプリケーション検索・セキュリティ分析（SIEM）の3用途が頻出。', keyword: 'OpenSearch Elasticsearch ログ解析 全文検索 Kibana OpenSearch Dashboards SIEM', tags: ['全文検索', 'ログ分析', 'SIEM'], seeAlso: ['Kinesis Data Firehose', 'S3（データレイク）', 'AWS Glue', 'Managed Service for Apache Flink'] },
+        { name: 'QuickSight', desc: 'クラウドネイティブなBI（Business Intelligence）・可視化サービス。\nAthena・Redshift・S3・RDS等のデータソースに接続してインタラクティブなダッシュボードを作成できる。\nSPICE（Super-fast Parallel In-memory Calculation Engine）という独自インメモリエンジンで大量データを高速集計する。\nML Insights機能で異常検知・予測をノーコードで利用できる。', keyword: 'QuickSight BI ダッシュボード 可視化 SPICE ML Insights', tags: ['BI', '可視化', 'SPICE'], seeAlso: ['Athena', 'Redshift', 'S3（データレイク）', 'Lake Formation'] },
       ],
     },
   ],
@@ -526,6 +538,7 @@ const CHEAT_DATA: CheatData = {
         { name: 'セキュリティグループ vs NACL', desc: 'SG（セキュリティグループ）:\nステートフル: 戻りパケットは自動的に許可\nENI（ネットワークインターフェース）に適用\n全ルールを評価してからアクションを決定\nNACL（ネットワークアクセスコントロールリスト）:\nステートレス: 行き・戻りを両方明示的に許可が必要\nサブネット境界に適用\n番号が小さいルールから順に評価して最初にマッチしたルールを適用', keyword: 'セキュリティグループ NACL ステートフル ステートレス 違い', tags: ['ステートフル', 'ステートレス', '評価順序'] },
         { name: 'VPCフローログ', desc: 'VPC内のENI（ネットワークインターフェース）を通過するIPトラフィックを記録するログ機能。\n取得レベル: ENI単位 / サブネット単位 / VPC単位\n送信先: CloudWatch Logs または S3\nカスタムフォーマット: 送信元IP・宛先IP・ポート・プロトコル・許可/拒否等に加えて追加フィールド（pkt-src-aws-service等）を選択できる\nネットワークトラブルシューティング・セキュリティ分析に活用', tags: ['フローログ', 'カスタムフォーマット', 'トラブルシュート'] , seeAlso: ['CloudWatch', 'CloudWatch Logs', 'S3', 'VPC']},
         { name: 'VPCトラフィックミラーリング', desc: 'ENIのインバウンド/アウトバウンドトラフィックをコピーして別のENI（モニタリングアプライアンス）に転送する機能。\nDPI（Deep Packet Inspection）: パケットの内容まで詳しく検査してセキュリティ分析や侵入検知に活用できる。\nミラーフィルター: 特定のプロトコル・ポート・方向のみミラーリングするようフィルタを設定できる', tags: ['ミラーリング', 'DPI', 'ネットワーク分析'] },
+        { name: 'PrivateLink / VPC Endpoint', desc: 'AWSサービスや他アカウントのサービスへインターネットを経由せずプライベートにアクセスする仕組み。\nInterface Endpoint（PrivateLink）: ENI（プライベートIP）をVPC内に作成して接続。ほぼ全AWSサービスに対応。サービスプロバイダー側がVPC Endpoint Serviceを作成して自分のサービスをPrivateLinkで公開することもできる\nGateway Endpoint: S3・DynamoDB専用の無料エンドポイント。ルートテーブルでターゲットを指定して制御\nANS観点: エンドポイントポリシー・DNS解決（enableDnsSupport）・オンプレ→Interface Endpoint（Direct Connect経由）のアクセスパターンが重要', keyword: 'PrivateLink VPC Endpoint Interface Endpoint Gateway Endpoint VPC Endpoint Service エンドポイントポリシー', tags: ['Interface Endpoint', 'Gateway Endpoint', 'エンドポイントポリシー'], seeAlso: ['VPC設計', 'Direct Connect（ANS詳細）', 'Route 53 Resolver（ハイブリッドDNS）', 'Transit Gateway（ANS観点）'] },
       ],
     },
     {
@@ -555,6 +568,7 @@ const CHEAT_DATA: CheatData = {
         { name: 'Shield Advanced', desc: '有料のDDoS高度保護サービス。L3（IP層）〜L7（アプリ層）のDDoS攻撃を包括的に保護。\nSRT（Shield Response Team）: AWSのDDoS専門チームへ24時間365日アクセスして攻撃への対応サポートを受けられる\nヘルスベースDDoS検出: CloudWatchのヘルスチェックと連動して正常時のベースラインから検出\nコスト保護: DDoS攻撃起因のEC2・CloudFront・Route 53等のスパイクコストを保護', tags: ['SRT', 'L3-L7保護', 'コスト保護'] , seeAlso: ['CloudFront', 'CloudWatch', 'EC2', 'Route 53', 'Shield']},
         { name: 'Firewall Manager', desc: 'AWS Organizations全体で複数のセキュリティサービスのポリシーを一元管理して強制適用するサービス。\n管理対象: WAF / Shield Advanced / Network Firewall / セキュリティグループ / Route 53 Resolver DNS Firewall\n新しいリソースが作成された際に自動的にポリシーを適用する「自動適用」機能が重要', tags: ['一元管理', '自動適用', 'Organizations'] , seeAlso: ['AWS Organizations', 'Network Firewall', 'Route 53', 'Shield', 'Shield Advanced', 'WAF']},
         { name: 'VPCフローログ分析', desc: 'VPCフローログを分析ツールと組み合わせてネットワークトラフィックを可視化する。\nAthena: S3に保存したフローログをSQLでアドホッククエリ（特定IPへの通信量を集計等）\nCloudWatch Logs Insights: リアルタイムに近い分析。メトリクスフィルターでアラームにも使用可能\nAmazon OpenSearch: Kibanaダッシュボードでリアルタイム可視化・異常検知', tags: ['Athena', 'Logs Insights', 'OpenSearch'] , seeAlso: ['Athena', 'CloudWatch', 'CloudWatch Logs', 'S3', 'VPC', 'VPCフローログ']},
+        { name: 'Gateway Load Balancer（GWLB）', desc: 'サードパーティのネットワーク仮想アプライアンス（IDS/IPS・ファイアウォール・DPI等）をインラインで透過的に挿入するロードバランサー。\nGWLBエンドポイント（GWLBe）をルートテーブルのネクストホップに設定し、トラフィックをアプライアンスに通してから宛先へ転送するBump-in-the-wire構成。\nアプライアンスをAuto Scalingして高可用性と水平スケールを両立できる。', keyword: 'Gateway Load Balancer GWLB GWLBe アプライアンス IDS IPS インライン検査 Bump-in-the-wire', tags: ['インライン検査', 'アプライアンス', 'GWLB'], seeAlso: ['Network Firewall（ANS）', 'VPC設計', 'Firewall Manager'] },
       ],
     },
   ],
