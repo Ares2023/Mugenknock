@@ -1,0 +1,11 @@
+=== コラム生成 (gcs) 2026-06-28 11:43:57 / stage=prod / dry_run=0 ===
+--- Cognito 認証中 ---
+✓ 認証完了
+--- 未使用ネタを取得中 ---
+未使用ネタ: 1 件を処理します
+
+── [1/1] idea=e435ce73-8c9a-42d7-b6d4-85c6dad9c8e1 exam=SAA ──
+ネタ: 
+❌ 出力の解析に失敗（API Error: Claude Code is unable to respond to this request, which appears to violate our Usage Policy (https://www.anth）
+=== 完了: 生成 0 件 / skip 0 件 / 失敗 1 件 ===
+ログ: /home/yuzuki/aws-quiz-app/prompts/night-prompts/logs/generate-columns_20260628_114357.log

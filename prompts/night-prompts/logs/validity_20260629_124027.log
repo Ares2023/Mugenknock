@@ -1,0 +1,77 @@
+==========================================
+正当性チェック開始: Mon Jun 29 12:40:27 JST 2026
+バッチサイズ: 100問 / チャンクサイズ: 5問
+==========================================
+チェック対象: 100問
+前処理: choices ラベル接頭辞チェック...
+  前処理: ラベル接頭辞なし（全問クリーン）
+チャンク数: 20
+
+--- チャンク 1/20: 5問  開始=12:40:56 ---
+  [OK   ] clf-88837aca
+  [OK   ] aif-d668c3ce
+  [OK   ] saa-372eb64e
+  [OK   ] dva-e968befc
+  [OK   ] gai-8e101580
+  → 更新完了: OK=5 修正=0 削除=0
+  終了=12:42:32  経過=96秒
+
+--- チャンク 2/20: 5問  開始=12:42:32 ---
+  [FIX  ] dva-f6cc8058: 正解・選択肢は妥当だが、不正解Dの解説がブルー/グリーンを肯定的に述べるだけで「なぜ不正解か」を説明していない。Beanstalkの組み込みポリシーでない点・別環境維持コスト・DNS反映の遅延を補足し、解説とchoiceExplanations[3]を修正。 → 変更: explanation, choiceExplanations
+  [FIX  ] mla-16a95705: 内容・正解は妥当だが、主解説が選択肢ごとの改行・分割になっておらず、不正解D(Debugger)の不適理由が解説本文で触れられていない。選択肢ごとに改行し、isMultiple:trueを明示。 → 変更: explanation
+  [OK   ] aif-bfbb1c69
+  [OK   ] aif-c334d3d3
+  [OK   ] aif-e95136d9
+  → 更新完了: OK=3 修正=2 削除=0
+  終了=12:45:26  経過=174秒
+
+--- チャンク 3/20: 5問  開始=12:45:26 ---
+  [OK   ] aif-5731a01b
+  [OK   ] aif-59ff0f5d
+  [OK   ] aif-b06dcf7d
+  [OK   ] aif-77eb1f2f
+  [OK   ] aif-f6c350ef
+  → 更新完了: OK=5 修正=0 削除=0
+  終了=12:47:05  経過=99秒
+
+--- チャンク 4/20: 5問  開始=12:47:05 ---
+  [OK   ] aif-be592160
+  [OK   ] aif-cdeba76e
+  [OK   ] dva-9f5524bd
+  [OK   ] soa-de44afe0
+  [OK   ] sap-ce97e052
+  → 更新完了: OK=5 修正=0 削除=0
+  終了=12:48:52  経過=107秒
+
+--- チャンク 5/20: 5問  開始=12:48:52 ---
+  [OK   ] dva-83814f35
+  [OK   ] dva-933306c7
+  [OK   ] dop-732e2a6d
+  [OK   ] dva-b852f951
+  [OK   ] gai-4463d678
+  → 更新完了: OK=5 修正=0 削除=0
+  終了=12:50:36  経過=104秒
+
+--- チャンク 6/20: 5問  開始=12:50:36 ---
+  [FIX  ] dva-d2531c13: 内容・正解・タグは適切だが、不正解選択肢のchoiceExplanationsが15〜20字程度と極端に短く、正解の解説のみ長いため文字数を均すよう各100〜130字に補強する。 → 変更: choiceExplanations
+  [OK   ] aif-69fc0bb8
+  [OK   ] mla-5f8bd49b
+  [OK   ] gai-79ae1330
+  [FIX  ] soa-8aa48486: Traffic splitting＝カナリアの説明は正確で正解も妥当だが、不正解選択肢のchoiceExplanationsが正解より大幅に短く（特にImmutableが約30字）不均衡なため、各選択肢を100〜130字に補強し均す。 → 変更: choiceExplanations
+  → 更新完了: OK=3 修正=2 削除=0
+  終了=12:53:14  経過=158秒
+
+--- チャンク 7/20: 5問  開始=12:53:14 ---
+  [FIX  ] gai-e0e3bb9f: 正解・選択肢は妥当だが、解説とchoiceExplanations[2]の「proptSessionAttributes」が誤記。また不正解選択肢の解説が極端に短いため拡充。 → 変更: explanation, choiceExplanations
+  [FIX  ] aif-3cb3db10: 正解・解説は正確だが、不正解選択肢のchoiceExplanationsが極端に短いため100字程度に拡充。 → 変更: choiceExplanations
+  [OK   ] aif-13366eda
+  [FIX  ] clf-9874e17e: 正解・解説内容は正確だが「選択肢BTrusted Advisor」の助詞欠落の誤記があり、不正解選択肢の解説も短いため修正・拡充。 → 変更: explanation, choiceExplanations
+  [FIX  ] aif-8ebbe49a: 正解は正確だが解説の「データドリフトのMonitor」が冗長で不自然、不正解選択肢の解説も短いため修正・拡充。 → 変更: explanation, choiceExplanations
+  → 更新完了: OK=1 修正=4 削除=0
+  終了=12:55:46  経過=152秒
+
+--- チャンク 8/20: 5問  開始=12:55:46 ---
+⚠️  レート制限を検出。残りチャンクをスキップ
+stdout: You've hit your session limit · resets 1:10pm (Asia/Tokyo)
+
+完了サマリー: 問題なし=27問 / 自動修正=8問 / 削除=0問

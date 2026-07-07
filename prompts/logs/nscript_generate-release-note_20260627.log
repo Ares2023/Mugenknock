@@ -1,0 +1,11 @@
+=== 2026-06-27 01:50:06 | generate-release-note.sh | exit:0 ===
+[release-note] 対象日: 2026-06-26
+[release-note] 2026-06-26: 25件のコミット
+[release-note] 生成結果:
+{
+  "title": "合格時に紙吹雪でお祝い！マイページも目標資格にフォーカス！",
+  "body": "模試などに合格すると結果画面で紙吹雪が舞うお祝い演出を追加しました！\nマイページの履歴・演習量・週間達成状況も目標資格だけで集計するようになり、今の目標に集中できます。",
+  "titleEn": "Celebrate your pass with confetti, and a goal-focused My Page!",
+  "bodyEn": "Passing an exam now triggers a festive confetti animation on the results screen!\nYour My Page history, practice counts, and weekly progress now focus solely on your target certification, so you can stay locked in on your current goal."
+}
+[release-note] ✓ DynamoDBに挿入しました: 2026-06-26 — 合格時に紙吹雪でお祝い！マイページも目標資格にフォーカス！

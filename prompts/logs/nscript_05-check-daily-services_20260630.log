@@ -1,0 +1,62 @@
+=== 2026-06-30 05:12:07 | 05-check-daily-services.sh | exit:0 ===
+==========================================
+日めくりサービス体裁チェック開始: Tue Jun 30 05:00:05 JST 2026
+バッチサイズ: 30件 / チャンクサイズ: 8件
+==========================================
+
+--- 提供状態ライフサイクル照合中（猶予 30日）---
+  → ライフサイクル: 新規警告=0 削除=0 復活解除=0
+チェック対象: 30件
+チャンク数: 4
+
+--- チャンク 1/4: 8件  開始=05:00:37 ---
+  [FIX  ] svc-service-catalog-136: iconが絵文字☁️で規定形式外。空文字に修正。他フィールドは規定どおり。 → 変更: icon
+  [DELETE] _schedule_: name/category/description/trivia等が全て空のプレースホルダ。実在サービスでなく必須フィールド欠落のため削除。
+  [FIX  ] svc-appstream-2-0-135: iconが絵文字☁️で規定形式外。空文字に修正。他は問題なし。 → 変更: icon
+  [OK   ] svc-application-discovery-137
+  [FIX  ] svc-data-firehose-133: iconが絵文字☁️で規定形式外。空文字に修正。他は問題なし。 → 変更: icon
+  [FIX  ] svc-aws-fis-140: iconが絵文字☁️で規定形式外。空文字に修正。他は問題なし。 → 変更: icon
+  [FIX  ] svc-managed-grafana-139: iconが絵文字☁️で規定形式外。空文字に修正。他は問題なし。 → 変更: icon
+  [OK   ] svc-workmail-138
+  → 更新完了: OK=2 修正=5 削除=1
+  終了=05:03:06  経過=149秒
+
+--- チャンク 2/4: 8件  開始=05:03:06 ---
+  [FIX  ] svc-aws-ram-134: iconが絵文字「☁️」で規定の「/icons/aws/...」形式でないため空文字に修正。他フィールドは要件を満たす → 変更: icon
+  [OK   ] 37a9abeb-8fd3-4549-b88d-485144978ef8
+  [OK   ] svc-shield-46
+  [OK   ] svc-direct-connect-42
+  [OK   ] svc-athena-36
+  [OK   ] svc-codeartifact-79
+  [OK   ] svc-cloudwatch-10
+  [OK   ] svc-emr-41
+  → 更新完了: OK=7 修正=1 削除=0
+  終了=05:05:27  経過=141秒
+
+--- チャンク 3/4: 8件  開始=05:05:27 ---
+  [OK   ] svc-documentdb-45
+  [OK   ] svc-polly-85
+  [FIX  ] svc-inspector-50: 内容は妥当だがdescription/triviaが複数特徴を含むのに\n区切りなし。\nを挿入して整形。 → 変更: description, trivia
+  [FIX  ] svc-api-gateway-15: 内容妥当だが複数特徴のdescription/triviaが\n未区切り。\nを挿入して整形。 → 変更: description, trivia
+  [FIX  ] svc-global-accelerator-64: 内容妥当だが複数特徴のdescription/triviaが\n未区切り。\nを挿入して整形。 → 変更: description, trivia
+  [FIX  ] svc-auto-scaling-74: 内容妥当だが複数特徴のdescription/triviaが\n未区切り。\nを挿入して整形。 → 変更: description, trivia
+  [FIX  ] svc-budgets-80: 内容妥当だが複数特徴のdescription/triviaが\n未区切り。\nを挿入して整形。 → 変更: description, trivia
+  [FIX  ] svc-config-51: 内容妥当だが複数特徴のdescription/triviaが\n未区切り。\nを挿入して整形。 → 変更: description, trivia
+  → 更新完了: OK=2 修正=6 削除=0
+  終了=05:09:17  経過=230秒
+
+--- チャンク 4/4: 6件  開始=05:09:17 ---
+  [OK   ] svc-aurora-29
+  [FIX  ] svc-vpc-8: triviaに誤り。デフォルトVPCは各リージョン1つ自動作成で、5はVPC作成数の初期上限。両者を混同しているため修正。 → 変更: trivia
+  [OK   ] svc-lightsail-87
+  [OK   ] svc-waf-32
+  [OK   ] svc-sagemaker-23
+  [FIX  ] svc-transcribe-91: trivia後半のNASA事例が検証不能で出典不確か。確実な機能事例（Transcribe Medical等）に差し替え。 → 変更: trivia
+  → 更新完了: OK=4 修正=2 削除=0
+  終了=05:12:07  経過=170秒
+
+完了サマリー: 問題なし=15件 / 自動修正=14件 / 削除=1件
+
+==========================================
+チェック終了: Tue Jun 30 05:12:07 JST 2026
+==========================================

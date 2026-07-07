@@ -1,0 +1,95 @@
+==========================================
+正当性チェック開始: Fri Jun 26 19:40:27 JST 2026
+バッチサイズ: 100問 / チャンクサイズ: 5問
+==========================================
+チェック対象: 100問
+前処理: choices ラベル接頭辞チェック...
+  前処理: ラベル接頭辞なし（全問クリーン）
+チャンク数: 20
+
+--- チャンク 1/20: 5問  開始=19:40:57 ---
+  [OK   ] aif-82cb4d23
+  [OK   ] aif-43947f35
+  [OK   ] soa-eb150f27
+  [OK   ] aif-9e5c13c5
+  [OK   ] soa-33b23da5
+  → 更新完了: OK=5 修正=0 削除=0
+  終了=19:42:53  経過=116秒
+
+--- チャンク 2/20: 5問  開始=19:42:53 ---
+  [OK   ] aif-1d7b8a0c
+  [OK   ] aif-64a9eea6
+  [OK   ] soa-541c3b98
+  [OK   ] soa-81b6b9c4
+  [FIX  ] soa-434e5408: 複数正解のためisMultipleをtrueに修正。choiceExplanations[1]と[4]が同一文だったため、各選択肢の内容に対応した個別解説に修正した。 → 変更: choiceExplanations
+  → 更新完了: OK=4 修正=1 削除=0
+  終了=19:44:44  経過=111秒
+
+--- チャンク 3/20: 5問  開始=19:44:44 ---
+  [OK   ] soa-c8eb7bcc
+  [OK   ] aif-2c1bfed0
+  [FIX  ] soa-d69ed20e: 内容・正解は妥当だが、①②の条件列挙が改行されていないため questionText に改行を追加して可読性を改善。 → 変更: questionText
+  [OK   ] aif-98d5e8dc
+  [FIX  ] soa-0086e400: 正解は妥当だが、解説と選択肢別解説に未整形の角括弧[...]プレースホルダが残り可読性が低いため整形・拡充。PIIに注釈追加。 → 変更: explanation, choiceExplanations
+  → 更新完了: OK=3 修正=2 削除=0
+  終了=19:46:58  経過=134秒
+
+--- チャンク 4/20: 5問  開始=19:46:58 ---
+  [FIX  ] soa-0d270dfa: 不正解選択肢のchoiceExplanationsが極端に短く角括弧の機械的表現になっているため、各選択肢に対応する100字程度の説明に拡充し解説も整える → 変更: explanation, choiceExplanations
+  [FIX  ] mla-98e8194b: choiceExplanationsの正解2つが同一の汎用文で各選択肢固有の理由を説明しておらず短いため修正。複数正解なのでisMultipleをtrueに → 変更: choiceExplanations
+  [FIX  ] dva-e27ca1a8: choiceExplanations[3]に「解決策として〜」という全体解説の文が混入しGSIの説明とずれているほか不正解説明が短いため修正 → 変更: choiceExplanations
+  [FIX  ] soa-b65ffc98: 不正解選択肢のchoiceExplanationsが短いため、各選択肢が不適な理由を100字程度に拡充 → 変更: choiceExplanations
+  [FIX  ] aif-88a8370d: 不正解選択肢のchoiceExplanationsが短いため、各選択肢が外部API呼び出しに不適な理由を100字程度に拡充 → 変更: choiceExplanations
+  → 更新完了: OK=0 修正=5 削除=0
+  終了=19:49:40  経過=162秒
+
+--- チャンク 5/20: 5問  開始=19:49:40 ---
+  [OK   ] dva-ec1b1e6e
+  [OK   ] soa-c82528a4
+  [OK   ] dva-2623c38b
+  [OK   ] dva-5b3ee537
+  [OK   ] soa-1b2c3187
+  → 更新完了: OK=5 修正=0 削除=0
+  終了=19:51:13  経過=93秒
+
+--- チャンク 6/20: 5問  開始=19:51:13 ---
+  [FIX  ] mla-9d586029: 内容・正解・順番対応は適切だが、不正解選択肢の choiceExplanations が各1文・約30字と極端に短いため、100〜150字程度に拡充した。 → 変更: choiceExplanations
+  [OK   ] dop-e887d8e9
+  [OK   ] aif-78e50f47
+  [OK   ] gai-13061c3d
+  [OK   ] dva-3409e44d
+  → 更新完了: OK=4 修正=1 削除=0
+  終了=19:53:33  経過=140秒
+
+--- チャンク 7/20: 5問  開始=19:53:33 ---
+  [OK   ] dva-f0d7e22f
+  [OK   ] mla-c966a1b6
+  [OK   ] gai-1a90ed86
+  [OK   ] mla-7708719c
+  [FIX  ] gai-7812917a: 内容はBedrock Agentsメモリ機能の実装方法を問うもので、タグ「テスト、検証、トラブルシューティング」は不適切。出題ドメインを「実装と統合」に修正。 → 変更: domain
+  → 更新完了: OK=4 修正=1 削除=0
+  終了=19:55:09  経過=96秒
+
+--- チャンク 8/20: 5問  開始=19:55:09 ---
+  [OK   ] aif-727d3a4b
+  [OK   ] aif-6be65d29
+  [OK   ] gai-d13cdaf7
+  [OK   ] dop-f051420a
+  [OK   ] dva-5f655efa
+  → 更新完了: OK=5 修正=0 削除=0
+  終了=19:56:44  経過=95秒
+
+--- チャンク 9/20: 5問  開始=19:56:44 ---
+  [FIX  ] dop-ab3243b4: 内容・正解・選択肢別解説は適切。ただし3つの要件が①②③で一行に列挙され改行されていないため、questionTextに\nを追加して可読性を改善する。 → 変更: questionText
+  [OK   ] dva-f1f98968
+  [OK   ] dop-464b8eab
+  [OK   ] gai-15b3dd4f
+  [OK   ] soa-ecd0ee8f
+  → 更新完了: OK=4 修正=1 削除=0
+  終了=19:58:38  経過=114秒
+
+--- チャンク 10/20: 5問  開始=19:58:38 ---
+⚠️  レート制限を検出。残りチャンクをスキップ
+stdout: You've hit your session limit · resets 8:10pm (Asia/Tokyo)
+
+完了サマリー: 問題なし=34問 / 自動修正=11問 / 削除=0問

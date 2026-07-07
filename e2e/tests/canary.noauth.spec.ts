@@ -62,6 +62,7 @@ test.describe('ページ表示チェック', () => {
   const pages = [
     { path: '/',                label: 'ランディングページ',      check: 'header, main, h1, h2' },
     { path: '/login',           label: 'ログインページ',          check: 'input[type="email"]' },
+    { path: '/admin-login',     label: '管理者ログインページ',    check: 'input[type="email"]' },
     { path: '/about',           label: 'Aboutページ',             check: 'text=プライバシーポリシー' },
     { path: '/encyclopedia',    label: 'サービス図鑑（公開）',    check: 'main' },
     { path: '/privacy-policy',  label: 'プライバシーポリシー',    check: 'h1' },

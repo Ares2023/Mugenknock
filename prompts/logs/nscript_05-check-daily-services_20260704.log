@@ -1,0 +1,66 @@
+=== 2026-07-04 05:48:21 | 05-check-daily-services.sh | exit:0 ===
+==========================================
+日めくりサービス体裁チェック開始: Sat Jul  4 05:30:05 JST 2026
+バッチサイズ: 30件 / チャンクサイズ: 8件
+==========================================
+
+--- 提供状態ライフサイクル照合中（猶予 30日）---
+  [警告] AWS App Runner: 新規受付が終了しています → 警告付与（2026-08-03削除予定）
+  → ライフサイクル: 新規警告=1 削除=0 復活解除=0
+
+--- 重複記事チェック（docUrl照合・自動削除）---
+  → 重複なし
+チェック対象: 30件
+チャンク数: 4
+
+--- チャンク 1/4: 8件  開始=05:31:28 ---
+  [OK   ] _schedule_
+  [OK   ] svc-gamelift-streams-146
+  [FIX  ] svc-appconfig-142: docUrlがdocs.aws.amazon.com形式。専用のjp紹介ページがないため空文字化 → 変更: docUrl
+  [FIX  ] svc-api-gateway-v2-141: docUrlがdocs.aws.amazon.com形式のためjp紹介ページ形式に修正 → 変更: docUrl
+  [OK   ] svc-aws-private-ca-144
+  [FIX  ] svc-cw-investigations-145: iconが絵文字☁️で規定形式外、docUrlがdocs形式のため両方修正 → 変更: icon, docUrl
+  [OK   ] svc-healthlake-147
+  [FIX  ] svc-iam-access-analyzer-143: iconが絵文字☁️で規定形式外のため空文字化。docUrlはjp形式で正常 → 変更: icon
+  → 更新完了: OK=4 修正=4 削除=0
+  終了=05:34:50  経過=202秒
+
+--- チャンク 2/4: 8件  開始=05:34:50 ---
+  [OK   ] svc-mq-78
+  [OK   ] svc-lex-72
+  [OK   ] svc-security-hub-75
+  [OK   ] svc-eventbridge-28
+  [OK   ] svc-opensearch-52
+  [OK   ] svc-sns-11
+  [OK   ] svc-quicksight-48
+  [OK   ] svc-backup-54
+  → 更新完了: OK=8 修正=0 削除=0
+  終了=05:37:54  経過=184秒
+
+--- チャンク 3/4: 8件  開始=05:37:54 ---
+  [OK   ] svc-neptune-55
+  [OK   ] svc-kinesis-18
+  [OK   ] svc-keyspaces-104
+  [OK   ] svc-personalize-102
+  [OK   ] svc-elasticache-20
+  [OK   ] svc-firewall-manager-96
+  [OK   ] svc-compute-optimizer-81
+  [OK   ] svc-guardduty-39
+  → 更新完了: OK=8 修正=0 削除=0
+  終了=05:41:13  経過=199秒
+
+--- チャンク 4/4: 6件  開始=05:41:13 ---
+  [OK   ] svc-macie-62
+  [OK   ] svc-appflow-82
+  [OK   ] svc-organizations-38
+  [OK   ] svc-dms-43
+  [OK   ] svc-timestream-65
+  [OK   ] 2ca534b1-a776-424a-8d0f-0d7a05aab154
+  → 更新完了: OK=6 修正=0 削除=0
+  終了=05:43:48  経過=155秒
+
+完了サマリー: 問題なし=26件 / 自動修正=4件 / 削除=0件
+
+==========================================
+チェック終了: Sat Jul  4 05:43:48 JST 2026
+==========================================

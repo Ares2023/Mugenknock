@@ -1,0 +1,11 @@
+=== 2026-07-01 01:17:43 | generate-release-note.sh | exit:0 ===
+[release-note] 対象日: 2026-06-30
+[release-note] 2026-06-30: 12件のコミット
+[release-note] 生成結果:
+{
+  "title": "サービス図鑑に解放率バー登場！苦手対策ももっと賢く！",
+  "body": "サービス図鑑に「いま全体の何％を解放したか」がひと目でわかる解放率バーを追加しました！\nさらに、しっかり対策はあなたのミス頻度と直近の傾向を重み付けして出題し、苦手分析も直近10回分まで振り返れるようになりました。",
+  "titleEn": "New unlock-progress bar in the Service Encyclopedia, plus smarter weak-point practice!",
+  "bodyEn": "The Service Encyclopedia now shows an overall unlock-rate bar so you can see your collection progress at a glance!\nReview Mode now weights questions by how often you miss them and your recent trends, and weak-point analysis now looks back over your last 10 attempts."
+}
+[release-note] ✓ DynamoDBに挿入しました: 2026-06-30 — サービス図鑑に解放率バー登場！苦手対策ももっと賢く！

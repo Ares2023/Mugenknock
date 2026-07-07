@@ -1,0 +1,65 @@
+==========================================
+日めくりサービス体裁チェック開始: Sun Jun 28 03:00:06 JST 2026
+バッチサイズ: 30件 / チャンクサイズ: 8件
+==========================================
+
+--- 提供状態ライフサイクル照合中（猶予 30日）---
+  [警告] AWS CodeCommit: 新規受付が終了しています → 警告付与（2026-07-28削除予定）
+  [警告] AWS Cloud9: 新規受付が終了しています → 警告付与（2026-07-28削除予定）
+  → ライフサイクル: 新規警告=2 削除=0 復活解除=0
+チェック対象: 30件
+チャンク数: 4
+
+--- チャンク 1/4: 8件  開始=03:01:09 ---
+  [OK   ] svc-amplify-111
+  [OK   ] svc-artifact-128
+  [OK   ] svc-data-exchange-113
+  [OK   ] svc-image-builder-118
+  [OK   ] svc-directory-service-116
+  [OK   ] _schedule_
+  [OK   ] svc-location-service-127
+  [OK   ] svc-outposts-107
+  → 更新完了: OK=8 修正=0 削除=0
+  終了=03:04:04  経過=175秒
+
+--- チャンク 2/4: 8件  開始=03:04:04 ---
+  [OK   ] svc-appsync-108
+  [OK   ] svc-cloud-map-129
+  [OK   ] svc-cloudshell-126
+  [OK   ] svc-fraud-detector-121
+  [OK   ] svc-iot-core-110
+  [OK   ] svc-connect-109
+  [OK   ] svc-cdk-117
+  [OK   ] svc-mgn-115
+  → 更新完了: OK=8 修正=0 削除=0
+  終了=03:06:45  経過=161秒
+
+--- チャンク 3/4: 8件  開始=03:06:45 ---
+  [OK   ] svc-elastic-dr-123
+  [OK   ] svc-verified-permissions-125
+  [OK   ] svc-security-lake-124
+  [OK   ] svc-cloud-wan-120
+  [OK   ] svc-pinpoint-119
+  [OK   ] svc-vpc-lattice-122
+  [OK   ] svc-kinesis-data-streams-112
+  [OK   ] svc-amazon-q-114
+  → 更新完了: OK=8 修正=0 削除=0
+  終了=03:09:30  経過=165秒
+
+--- チャンク 4/4: 6件  開始=03:09:30 ---
+  [OK   ] svc-workspaces-106
+  [FIX  ] svc-ebs-25: 内容・長さ・形式は適切だが、descriptionとtriviaに複数の特徴・事実が含まれるのに
+区切りがないため追加。 → 変更: description, trivia
+  [OK   ] svc-transit-gateway-56
+  [OK   ] svc-textract-92
+  [FIX  ] svc-kms-34: 内容・長さ・形式は適切だが、descriptionとtriviaに複数の特徴・事実が含まれるのに
+区切りがないため追加。 → 変更: description, trivia
+  [OK   ] svc-transfer-family-86
+  → 更新完了: OK=4 修正=2 削除=0
+  終了=03:12:48  経過=198秒
+
+完了サマリー: 問題なし=28件 / 自動修正=2件 / 削除=0件
+
+==========================================
+チェック終了: Sun Jun 28 03:12:48 JST 2026
+==========================================

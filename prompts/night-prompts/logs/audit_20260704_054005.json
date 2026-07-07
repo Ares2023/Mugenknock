@@ -1,0 +1,362 @@
+[
+  {
+    "questionId": "clf-637af08d",
+    "examType": "CLF",
+    "verdict": "warn",
+    "currentness": "ok",
+    "difficulty": "appropriate",
+    "scope": "in",
+    "format": "ok",
+    "mockSuitable": true,
+    "issues": [
+      "正解のApp Runnerは正しく現行サービスだが、Elastic Beanstalkもインフラ管理不要でLB/ASGを自動構成するため強い引っかけになっており、実測正答率20%(10件)の低さはこの紛らわしさを裏付ける。解説でBeanstalkとの決定的な差(コンテナ/ソースから直接・完全抽象化)をより明確に示すと良い",
+      "App RunnerはCLFとしてはやや踏み込んだサービスだが範囲内で許容"
+    ]
+  },
+  {
+    "questionId": "clf-3405ed73",
+    "examType": "CLF",
+    "verdict": "warn",
+    "currentness": "ok",
+    "difficulty": "appropriate",
+    "scope": "in",
+    "format": "ok",
+    "mockSuitable": true,
+    "issues": [
+      "正解EventBridgeは正しいが、実測正答率14%(14件)と極端に低い。『同時に通知』『複数ターゲット』の表現はSNSのファンアウトを強く連想させ、ルールベース振り分けという差別化要因を読み取れないと誤答しやすい。CLFとしてはやや難度が高くSNSとの識別が過度に紛らわしい"
+    ]
+  },
+  {
+    "questionId": "dop-q-039",
+    "examType": "DOP",
+    "verdict": "ng",
+    "currentness": "ok",
+    "difficulty": "too_easy",
+    "scope": "in",
+    "format": "ok",
+    "mockSuitable": false,
+    "issues": [
+      "『Service Catalogの主な目的は？』という単なる用語定義の暗記問題で、DOP(Professional)の水準に達していない。本番はシナリオベースで要件比較を要する。誤答選択肢も別サービスの説明で一読で消去可能",
+      "Professional試験としては明らかに易しすぎる"
+    ]
+  },
+  {
+    "questionId": "dop-q-049",
+    "examType": "DOP",
+    "verdict": "ng",
+    "currentness": "ok",
+    "difficulty": "too_easy",
+    "scope": "in",
+    "format": "ok",
+    "mockSuitable": false,
+    "issues": [
+      "ECSタスク定義のCPU/メモリ制限の目的を問う単一概念の定義問題。ひっかけはあるが正解が自明で、シナリオや要件の取捨選択がなくDOP(Professional)の難易度に届かない"
+    ]
+  },
+  {
+    "questionId": "dop-q-024",
+    "examType": "DOP",
+    "verdict": "ng",
+    "currentness": "ok",
+    "difficulty": "too_easy",
+    "scope": "in",
+    "format": "ok",
+    "mockSuitable": false,
+    "issues": [
+      "GuardDutyとSecurity Hubの違いを問う基礎的な暗記問題。選択肢C(機能が全く同じでリージョンが違うだけ)やD(VPCフローログ分析専用)は明らかに誤りで容易に消去でき、Associate以下の水準。DOP(Professional)のシナリオ問題として不適切"
+    ]
+  },
+  {
+    "questionId": "dop-13c0ce8e",
+    "examType": "DOP",
+    "verdict": "warn",
+    "currentness": "ok",
+    "difficulty": "appropriate",
+    "scope": "in",
+    "format": "ok",
+    "mockSuitable": true,
+    "issues": [
+      "設問文と解説が「既存および新規のログイベントをマスキングできる」としているが、CloudWatch Logsのデータ保護ポリシーは取り込み時にマスクする仕様で、ポリシー適用前に取り込まれた既存ログイベントはマスクされない（公式明記）。要件・解説に事実の過大主張がある。選択肢[1]自体は相対比較で最良であり正解設定・logs:Unmaskの記述は正しい"
+    ]
+  },
+  {
+    "questionId": "dop-edae87e4",
+    "examType": "DOP",
+    "verdict": "ok",
+    "currentness": "ok",
+    "difficulty": "appropriate",
+    "scope": "in",
+    "format": "ok",
+    "mockSuitable": true,
+    "issues": []
+  },
+  {
+    "questionId": "dop-34df284e",
+    "examType": "DOP",
+    "verdict": "ok",
+    "currentness": "ok",
+    "difficulty": "appropriate",
+    "scope": "in",
+    "format": "ok",
+    "mockSuitable": true,
+    "issues": []
+  },
+  {
+    "questionId": "dop-08455a6e",
+    "examType": "DOP",
+    "verdict": "ok",
+    "currentness": "ok",
+    "difficulty": "appropriate",
+    "scope": "in",
+    "format": "ok",
+    "mockSuitable": true,
+    "issues": [
+      "正解の異常検知が季節性キーワードから比較的想起しやすく、DOPとしてはやや平易寄り。ただしコンポジットアラーム・予測スケーリング等の不正解は妥当なひっかけで許容範囲"
+    ]
+  },
+  {
+    "questionId": "dop-bf8c9df7",
+    "examType": "DOP",
+    "verdict": "ok",
+    "currentness": "ok",
+    "difficulty": "appropriate",
+    "scope": "in",
+    "format": "ok",
+    "mockSuitable": true,
+    "issues": []
+  },
+  {
+    "questionId": "dop-06483161",
+    "examType": "DOP",
+    "verdict": "ok",
+    "currentness": "ok",
+    "difficulty": "appropriate",
+    "scope": "in",
+    "format": "ok",
+    "mockSuitable": true,
+    "issues": []
+  },
+  {
+    "questionId": "dop-16f63ec2",
+    "examType": "DOP",
+    "verdict": "warn",
+    "currentness": "ok",
+    "difficulty": "too_easy",
+    "scope": "in",
+    "format": "ok",
+    "mockSuitable": true,
+    "issues": [
+      "メトリクスフィルター→アラームは定番パターンで、DevOpsプロレベルとしてはやや易しめ。ただしFirehose+Athena・Logs Insights等の比較を要する点で許容範囲"
+    ]
+  },
+  {
+    "questionId": "dop-046d9658",
+    "examType": "DOP",
+    "verdict": "ok",
+    "currentness": "ok",
+    "difficulty": "appropriate",
+    "scope": "in",
+    "format": "ok",
+    "mockSuitable": true,
+    "issues": []
+  },
+  {
+    "questionId": "dop-f7e0702f",
+    "examType": "DOP",
+    "verdict": "ok",
+    "currentness": "ok",
+    "difficulty": "appropriate",
+    "scope": "in",
+    "format": "ok",
+    "mockSuitable": true,
+    "issues": []
+  },
+  {
+    "questionId": "dop-b64a27ef",
+    "examType": "DOP",
+    "verdict": "ok",
+    "currentness": "ok",
+    "difficulty": "appropriate",
+    "scope": "in",
+    "format": "ok",
+    "mockSuitable": true,
+    "issues": []
+  },
+  {
+    "questionId": "dop-bd7c6b28",
+    "examType": "DOP",
+    "verdict": "ok",
+    "currentness": "ok",
+    "difficulty": "appropriate",
+    "scope": "in",
+    "format": "ok",
+    "mockSuitable": true,
+    "issues": []
+  },
+  {
+    "questionId": "dop-8110f41c",
+    "examType": "DOP",
+    "verdict": "ok",
+    "currentness": "ok",
+    "difficulty": "appropriate",
+    "scope": "in",
+    "format": "ok",
+    "mockSuitable": true,
+    "issues": []
+  },
+  {
+    "questionId": "dop-0b56eb1d",
+    "examType": "DOP",
+    "verdict": "ok",
+    "currentness": "ok",
+    "difficulty": "appropriate",
+    "scope": "in",
+    "format": "ok",
+    "mockSuitable": true,
+    "issues": [
+      "主解説では選択肢をB/C/Dのアルファベットで参照しているが、選択肢自体は0起点のインデックス表示。内部的にA=0で整合しており読解に支障はないが、他問（Q1は数字参照）と表記が不統一"
+    ]
+  },
+  {
+    "questionId": "dop-1dc42154",
+    "examType": "DOP",
+    "verdict": "ok",
+    "currentness": "ok",
+    "difficulty": "appropriate",
+    "scope": "in",
+    "format": "ok",
+    "mockSuitable": true,
+    "issues": [
+      "主解説の選択肢参照がB/C/D表記で、選択肢の0起点インデックスと表記系が不統一（読解には支障なし）"
+    ]
+  },
+  {
+    "questionId": "dop-b465a1fe",
+    "examType": "DOP",
+    "verdict": "ok",
+    "currentness": "ok",
+    "difficulty": "appropriate",
+    "scope": "in",
+    "format": "ok",
+    "mockSuitable": true,
+    "issues": [
+      "主解説の選択肢参照がC/D/E表記で、選択肢の0起点インデックスと表記系が不統一（読解には支障なし）"
+    ]
+  },
+  {
+    "questionId": "dop-c3acc3de",
+    "examType": "DOP",
+    "verdict": "ok",
+    "currentness": "ok",
+    "difficulty": "appropriate",
+    "scope": "in",
+    "format": "ok",
+    "mockSuitable": true,
+    "issues": []
+  },
+  {
+    "questionId": "dop-d5fc0433",
+    "examType": "DOP",
+    "verdict": "ok",
+    "currentness": "ok",
+    "difficulty": "appropriate",
+    "scope": "in",
+    "format": "ok",
+    "mockSuitable": true,
+    "issues": []
+  },
+  {
+    "questionId": "dop-e2fd0d98",
+    "examType": "DOP",
+    "verdict": "ok",
+    "currentness": "ok",
+    "difficulty": "appropriate",
+    "scope": "in",
+    "format": "ok",
+    "mockSuitable": true,
+    "issues": []
+  },
+  {
+    "questionId": "dop-b78af7c4",
+    "examType": "DOP",
+    "verdict": "ok",
+    "currentness": "ok",
+    "difficulty": "appropriate",
+    "scope": "in",
+    "format": "ok",
+    "mockSuitable": true,
+    "issues": []
+  },
+  {
+    "questionId": "dop-98d2c412",
+    "examType": "DOP",
+    "verdict": "warn",
+    "currentness": "ok",
+    "difficulty": "too_easy",
+    "scope": "in",
+    "format": "ok",
+    "mockSuitable": true,
+    "issues": [
+      "Config（何が変わったか）とCloudTrail（誰がいつ変えたか）の組み合わせは根本原因分析の定番で、DOPとしてはやや自明。誤答のGuardDuty/Trusted Advisor/Inspectorはいずれも構成変更追跡と無関係で消去が容易なため、ひっかけとしての紛らわしさが弱い"
+    ]
+  },
+  {
+    "questionId": "dop-affa9033",
+    "examType": "DOP",
+    "verdict": "ok",
+    "currentness": "ok",
+    "difficulty": "appropriate",
+    "scope": "in",
+    "format": "ok",
+    "mockSuitable": true,
+    "issues": []
+  },
+  {
+    "questionId": "scs-6e722881",
+    "examType": "SCS",
+    "verdict": "ok",
+    "currentness": "ok",
+    "difficulty": "appropriate",
+    "scope": "in",
+    "format": "ok",
+    "mockSuitable": true,
+    "issues": []
+  },
+  {
+    "questionId": "scs-8cb229a5",
+    "examType": "SCS",
+    "verdict": "ok",
+    "currentness": "ok",
+    "difficulty": "appropriate",
+    "scope": "in",
+    "format": "ok",
+    "mockSuitable": true,
+    "issues": [
+      "Object Lockコンプライアンスモード＝WORMは頻出の定番パターンで、選択肢の消去も比較的容易。良問だがやや典型的"
+    ]
+  },
+  {
+    "questionId": "scs-bfe1681f",
+    "examType": "SCS",
+    "verdict": "ok",
+    "currentness": "ok",
+    "difficulty": "appropriate",
+    "scope": "in",
+    "format": "ok",
+    "mockSuitable": true,
+    "issues": [
+      "SSE-Cは各リクエストでキーヘッダを送る必要があり『実装変更が最小』はやや誇張だが、他選択肢との相対比較としては妥当"
+    ]
+  },
+  {
+    "questionId": "scs-d95b8924",
+    "examType": "SCS",
+    "verdict": "ok",
+    "currentness": "ok",
+    "difficulty": "appropriate",
+    "scope": "in",
+    "format": "ok",
+    "mockSuitable": true,
+    "issues": []
+  }
+]

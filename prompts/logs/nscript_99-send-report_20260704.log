@@ -1,0 +1,109 @@
+=== 2026-07-04 05:48:21 | 99-send-report.sh | exit:0 ===
+==========================================
+日次レポート生成 開始: 2026-07-04 04:40 JST
+==========================================
+
+--- [1] AWS資格公式情報 変更チェック ---
+  フェーズ1完了: has_changes=False
+  直近3日以内の変更声明なし
+
+--- [2] 夜間スクリプト成果集計 ---
+  生成: 合計 74問生成
+  妥当性: 合計: 確認218件（問題なし=160 自動修正=57 削除=1）
+  通報: 2026-07-03: 0件処理
+
+--- [3] DynamoDB稼働状況 ---
+  総問題数: 3700 問
+  直近3日 新規生成(createdAt): 81 問
+  直近3日 確認済み(validityCheckedAt): 209 問
+  未妥当性確認: 12 問
+  未解決通報: 12 件
+  資格別:
+  CLF: 293問
+  AIF: 311問
+  SAA: 308問
+  DVA: 306問
+  SOA: 306問
+  DEA: 298問
+  MLA: 294問
+  SAP: 309問
+  DOP: 373問
+  AIP: 298問
+  SCS: 295問
+  ANS: 309問
+
+--- [3b] Cognito 新規ユーザー（前日） ---
+  新規登録なし
+
+--- [4] canary テスト ---
+  ✅ PASS (passed=20 failed=0 warnings=0)
+  失敗詳細:
+    [練習問題一覧（SAA）] ❌ Console Errors (8):
+    [練習問題一覧（SAA）] 🌐 Network Errors (8):
+    [練習問題詳細] ❌ Console Errors (9):
+    [練習問題詳細] 🌐 Network Errors (9):
+      ログ:    s3://mugenknock-error-logs/canary-logs/staging/20260704-044210.log
+      サマリー: s3://mugenknock-error-logs/canary-logs/staging/20260704-044210.json
+  認証カナリア: ✅ PASS (passed=8 failed=2)
+
+--- [4.5] 監査・改良 / カナリア整合性 / 日めくり 集計 ---
+  監査 15問（CLF/SAP）: OK 9 / 注意 5 / 要修正 1
+  【指摘のあった問題】
+  ⚠ clf-637af08d
+  ・実測正答率20%（10件）はCLFとして低め。正解のApp Runnerは現行サービスで技術的に正しいが、Elastic Beanstalkに比べ知名度が低く誤選されやすい。App Runnerが「LB/オートスケーリング設定ゼロ」なのに対しElastic Beanstalkは「最小限の設定が必要」という差異が、解説では『より多くの管理が発生します』の一言に留まっており、この差異をもう少し明確に示すと正答率が改善する可能性がある。問題の成立自体に問題はない。
+  ✖ clf-3405ed73（難易度: too_hard）
+  ・実測正答率14%（14件）は悪問疑いライン（20%以下）を大幅に下回る。正解はEventBridgeで正しく、選択肢別解説の内容も正確。しかし『EC2サービスイベントを直接受信し、Lambda・SQS・Slack APIエンドポイントへ同時ルーティング』という統合アーキテクチャの詳細はSAA/SAP相当の知識であり、CLF向けの設問としては難易度過多。SNSも『複数ターゲットへのファンアウト』として魅力的な選択肢に見えるが、SNSがEC2ライフサイクルイベントを直接受信できないという仕様差はCLFで問いにくい粒度。SAA向け問題として再分類するか、CLF向けに『イベント駆動で単純なルーティング』程度のシナリオに簡略化することを推奨。
+  ⚠ sap-b40b6f25
+  ・Application Discovery ServiceのAgentless Collector（エージェントレスコレクター）はVMware vCenter環境専用であり、非VMwareのベアメタルや他のハイパーバイザーには使用できない。問題文には『オンプレミスのデータセンター2拠点』とのみ記載されVMware環境かどうか明示されておらず、解説にも補足がない。非VMware環境ではエージェントを導入できないサーバーの収集手段が実質存在しないことになるため、SAP受験者には仕様齟齬として映る。問題文か解説に『VMware vCenter環境を含む』旨を補記して前提を明示することを推奨。
+  ⚠ sap-1da40fd4
+  ・選択肢3の選択肢別解説に『S3・DynamoDBへインターネットゲートウェイ経由でアクセスしてもパブリック経路のデータ転送料金は発生し』とあるが、同一リージョン内のEC2↔S3データ転送は経路（IGW経由含む）によらず無料であり技術的に不正確。誤答の補足説明内の軽微な誤りで正解の妥当性・正誤関係には影響しない。
+  ⚠ sap-3a9cd8c2
+  ・解説本文で誤答を「選択肢A／選択肢B／選択肢D」とアルファベット表記しているが、実際の選択肢はインデックス 0〜3 で提示されており表記が不統一。他の問題は内容の直接引用かインデックス表記で統一されているため、受験者が対応関係を読み取りにくい。選択肢番号かアルファベットのどちらかに統一すること
+  ⚠ sap-0fa653fa
+  ・問題 sap-eb201dd4 と出題パターンがほぼ同一（正解が DRS・RTO 30 分・コスト最小化・常時フル稼働不可という要件構造が共通）。オンプレ起点・カスタム DB という差分は存在するが、同一バッチに両問を並べると受験者には『DRS を選ばせるパターン問題』と見抜かれやすく問題バンクとしての多様性が低下する。片方を別ドメイン（移行）の文脈に再設計するか、バッチ内での共存を避けることを推奨
+  【プロンプト自動改良】 適用 3件 / 見送り 0件
+  方針: 監査で最多だった『セット内の論点重複』、確定した『正解肢が実在しないサービス間直接連携を前提にする技術的不正確さ(S3→Batch直接投入)』、および『SAPでAssociate級定番論点が決め手＝易しすぎ』の3クラスに絞って、生成(共通/資格別)と検証観点を追記的に強化した。既にルール化済みのDOP確定2件(キーワード偏り・自己否定選択肢)は重複追加していない。
+  ✅ _common-rules.txt: 『正解肢が実在しないサービス間直接連携を前提にする不正確さ(S3イベント→AWS Batch直接投入)』の再発防止を推敲・現行性節に、『中核論点/正解サービスの使い回しによるセット内重複』の防止をひっかけ強度節に追記。
+  ✅ _validity-extra.txt: 検証がすり抜けた『正解肢の実在しない直接連携(S3→Batch)』を弾く観点と、SAP等プロ資格でAssociate級論点が決め手＝易しすぎを弾く観点を追加。監査最多の重複クラスへの現行性・技術正確性の裏取りを補強。
+  ✅ SAP.txt: SAPでtoo_easy/warnが集中したAssociate級論点(ゲートウェイエンドポイントでのNAT削減等)を単独の決め手にしないよう、資格別の『避けること』を具体化。
+  所見: 現行の公開ルート（/, /about, /login, /privacy-policy, /encyclopedia, /exam-guide 一覧・詳細, /services 一覧・詳細, /questions 一覧・詳細）はすべてカナリアで被覆済みで、テストが指す動的パラメータ（SAA・ec2）も generateStaticParams で有効。陳腐化した（存在しない/改名済み）ルートを指すテストも無く、spec とサイト構成は整合している。
+  カバー漏れ/陳腐化: 0件
+  対応: 整合済み。spec更新なし。
+  生成: 2026-07-03 完了: Fri Jul  3 04:40:56 JST 2026
+  検証: 2026-07-03 完了サマリー: 問題なし=7件 / 自動修正=16件 / 削除=1件
+  Lambda(直近24h):
+    prod: 実行11171 エラー0 スロットル0 最大2253ms
+    dev: 実行762 エラー0 スロットル0 最大2159ms
+  API(prod,24h): リクエスト12157 ⚠️ 5xx=1 4xx=1 p99=1039ms
+  ⚠️ 本番エラーログ(prod,24h): 5件
+    ・2026-07-03T01:14:24.256Z 6c81f837-7302-48cf-8aca-64b3df744ffb INFO ERROR: @vendia/serverless-express connection error
+    ・2026-07-03T01:14:24.256Z 6c81f837-7302-48cf-8aca-64b3df744ffb ERROR Error: read ECONNRESET at Pipe.onStreamRead (node:internal/stream_base_commons:216:20) { err
+    ・2026-07-03T14:29:03.019Z 803bbf25-a2e7-46d6-af2d-91c76c83b08d INFO EVENT: {"resource":"/sessions/{proxy+}","path":"/sessions/5b5b31f3-f53f-4f53-8971-7170a4a135b
+  AWSコスト(2026-07-02): $0.06 （前日比 ▼33%）
+    ・AWS Key Management Service: $0.03
+    ・Amazon DynamoDB: $0.03
+    ・AWS Cost Explorer: $0.01
+
+--- [4.8] テストユーザー データ整合性チェック ---
+Traceback (most recent call last):
+  File "<stdin>", line 40, in <module>
+  File "<stdin>", line 10, in dynamo_get
+  File "/usr/lib/python3.12/subprocess.py", line 550, in run
+    stdout, stderr = process.communicate(input, timeout=timeout)
+                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/lib/python3.12/subprocess.py", line 1209, in communicate
+    stdout, stderr = self._communicate(input, endtime, timeout)
+                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/lib/python3.12/subprocess.py", line 2116, in _communicate
+    self._check_timeout(endtime, orig_timeout, stdout, stderr)
+  File "/usr/lib/python3.12/subprocess.py", line 1253, in _check_timeout
+    raise TimeoutExpired(
+subprocess.TimeoutExpired: Command '['/home/yuzuki/local/bin/aws', 'dynamodb', 'get-item', '--table-name', 'AppSettings', '--key', '{"settingId": {"S": "dailyProgress_0734fa28-60c1-707d-f888-f2cb860e561d"}}', '--region', 'ap-northeast-1']' timed out after 20 seconds
+  
+
+--- [5] メール送信 ---
+  ✅ メール送信完了 → mugenknock@gmail.com
+
+==========================================
+日次レポート 完了: 2026-07-04 04:45 JST
+==========================================

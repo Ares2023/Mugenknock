@@ -1,0 +1,727 @@
+
+--- hook[0] 開始: 2026-07-06 01:10:04 (-30min) | ~/aws-quiz-app/prompts/night-prompts/scripts/02-check-validity.sh -n 100 -D 01:40 ---
+==========================================
+正当性チェック開始: Mon Jul  6 01:10:04 JST 2026
+バッチサイズ: 100問 / チャンクサイズ: 5問
+==========================================
+チェック対象: 100問
+前処理: choices ラベル接頭辞チェック...
+  前処理: ラベル接頭辞なし（全問クリーン）
+チャンク数: 20
+
+--- チャンク 1/20: 5問  開始=01:10:41 ---
+⚠️  レート制限を検出。残りチャンクをスキップ
+stdout: You've hit your session limit · resets 1:40am (Asia/Tokyo)
+
+完了サマリー: 問題なし=0問 / 自動修正=0問 / 削除=0問
+--- hook[0] 完了: 2026-07-06 01:10:43 ---
+
+--- hook[1] 開始: 2026-07-06 01:20:04 (-20min) | ~/aws-quiz-app/prompts/night-prompts/scripts/01-generate-questions.sh -n 5 -D 01:40 --hard ---
+⏰ デッドライン: 01:40 JST (epoch=1783269600)
+==========================================
+問題自動生成 開始: Mon Jul  6 01:20:04 JST 2026
+==========================================
+対象資格: CLF SAA SAP DVA SOA DEA DOP AIF MLA AIP ANS SCS
+問題数キャッシュを使用...
+  CLF: 298問 (キャッシュ)
+  SAA: 308問 (キャッシュ)
+  SAP: 309問 (キャッシュ)
+  DVA: 306問 (キャッシュ)
+  SOA: 306問 (キャッシュ)
+  DEA: 298問 (キャッシュ)
+  DOP: 373問 (キャッシュ)
+  AIF: 311問 (キャッシュ)
+  MLA: 298問 (キャッシュ)
+  AIP: 298問 (キャッシュ)
+  ANS: 309問 (キャッシュ)
+  SCS: 309問 (キャッシュ)
+選択: CLF (現在298問 — 最少)
+試験ガイドURL: https://aws.amazon.com/jp/certification/certified-cloud-practitioner/
+ドメイン数: 4  /  基本 5問/ドメイン（重み付きで配分）  /  合計予算 20問
+開始ドメイン: [0] クラウドの概念
+🎯 難易度強化モード（--hard）有効
+
+--- Cognito 認証中 ---
+✓ 認証完了
+
+--- ドメイン別問題数を取得・割り当て計算中 ---
+  請求、料金、およびサポート: 74問
+  クラウドのテクノロジーとサービス: 74問
+  セキュリティとコンプライアンス: 74問
+  クラウドの概念: 76問
+
+ドメイン別生成数（逆数重み付き割り当て）:
+  6問 → セキュリティとコンプライアンス (現在74問)
+  6問 → クラウドのテクノロジーとサービス (現在74問)
+  5問 → 請求、料金、およびサポート (現在74問)
+  3問 → クラウドの概念 (現在76問)
+  合計: 20問
+処理順（問題数少ない順）: クラウドのテクノロジーとサービス,セキュリティとコンプライアンス,請求、料金、およびサポート,クラウドの概念
+
+--- [クラウドのテクノロジーとサービス] 6問 生成中 (2問×3チャンク) --- 開始=01:20:48
+  チャンク 1/3: 2問 生成中...
+⚠️  レート制限を検出。残りをスキップ
+出力: You've hit your session limit · resets 1:40am (Asia/Tokyo)
+  終了=01:20:50  経過=2秒
+
+合計インポート: 0問 / 20問
+
+--- 問題数キャッシュを再構築中（DynamoDBから正確な値を取得）---
+  CLF: 298問
+  SAA: 308問
+  SAP: 309問
+  DVA: 306問
+  SOA: 306問
+  DEA: 298問
+  DOP: 373問
+  AIF: 311問
+  MLA: 298問
+  AIP: 298問
+  ANS: 309問
+  SCS: 309問
+キャッシュ更新完了
+--- hook[1] 完了: 2026-07-06 01:25:02 ---
+
+==========================================
+実行開始: 2026-07-06 01:40:00
+==========================================
+▶ [ping] Claudeセッション確認...
+  → 4s
+  応答: "何かご用件はありますか？"
+  検証: status=REAL out_tokens=52 sid=0bbdc177-f78
+✓ ping OK（実受信を確認: 出力52トークン）
+🌙 夜間初回実行を開始します (01:40)
+  [時間差実行: 9スクリプト | 遅延グループ: 0分 15分 40分 45分 50分 55分 60分 65分 ]
+▶ [night-script +0m] 99-send-report.sh
+==========================================
+日次レポート生成 開始: 2026-07-06 01:40 JST
+==========================================
+
+--- [1] AWS資格公式情報 変更チェック ---
+  フェーズ1完了: has_changes=False
+  直近3日以内の変更声明なし
+
+--- [2] 夜間スクリプト成果集計 ---
+  生成: 合計 48問生成
+  妥当性: 合計: 確認140件（問題なし=95 自動修正=45 削除=0）
+  通報: 2026-07-05: 4件処理
+
+--- [3] DynamoDB稼働状況 ---
+  総問題数: 3723 問
+  直近3日 新規生成(createdAt): 64 問
+  直近3日 確認済み(validityCheckedAt): 138 問
+  未妥当性確認: 8 問
+  未解決通報: 6 件
+  資格別:
+  CLF: 298問
+  AIF: 311問
+  SAA: 308問
+  DVA: 306問
+  SOA: 306問
+  DEA: 298問
+  MLA: 298問
+  SAP: 309問
+  DOP: 373問
+  AIP: 298問
+  SCS: 309問
+  ANS: 309問
+
+--- [3b] Cognito 新規ユーザー（前日） ---
+  新規登録なし
+
+--- [4] canary テスト ---
+  ✅ PASS (passed=21 failed=0 warnings=0)
+  失敗詳細:
+    [サービス図鑑（公開）] ❌ Console Errors (9):
+    [サービス図鑑（公開）] 🌐 Network Errors (9):
+    [練習問題一覧（SAA）] ❌ Console Errors (8):
+    [練習問題一覧（SAA）] 🌐 Network Errors (8):
+    [連続ナビゲーション] ❌ Console Errors (9):
+    [連続ナビゲーション] 🌐 Network Errors (9):
+    [練習問題詳細] ❌ Console Errors (9):
+    [練習問題詳細] 🌐 Network Errors (9):
+      ログ:    s3://mugenknock-error-logs/canary-logs/staging/20260706-014213.log
+      サマリー: s3://mugenknock-error-logs/canary-logs/staging/20260706-014213.json
+  認証カナリア: ✅ PASS (passed=8 failed=2)
+
+--- [4.5] 監査・改良 / カナリア整合性 / 日めくり 集計 ---
+  監査 10問（CLF/DOP）: OK 3 / 注意 6 / 要修正 1
+  【指摘のあった問題】
+  ⚠ clf-637af08d
+  ・実測正答率20%（10件）は悪問疑い水準に近い。Elastic BeanstalkもLB・ASを自動管理するため「EC2ベースであり、より多くの管理が発生します」という解説だけでは不十分。『EC2インスタンスが見えるためインフラ意識が残る』『App Runnerはインフラの概念自体が不要』という根本的差異を明示しないと受験者が誤答しやすい。
+  ・FargateをApp Runnerとの対比で「コンテナオーケストレーション基盤」と表現しているが、FargateはECS/EKSのコンピューティングエンジンでありオーケストレーター自体ではない。誤解を生む表現。
+  ⚠ clf-3405ed73
+  ・実測正答率14%（14件）は悪問疑い水準。SNSの不正解理由の解説が致命的に弱い：SNS単体はEC2状態変化イベントを能動的に検知できず、EventBridgeがイベント検知役を担って初めてSNSにファンアウトできる。この構造的差異（イベント検知 vs メッセージ配送）を解説に書かなければ、SNSでも要件を満たせると考えた受験者が納得できない。正解はEventBridgeで正しいが解説の補強が必要。
+  ⚠ clf-fb985595（難易度: too_easy）
+  ・問題文に『単一のアベイラビリティーゾーンで障害が発生してもサービス提供を中断させない』と書いており、高可用性の定義そのものをほぼ直接述べている。消去法（弾力性＝スケール、スケーラビリティ＝容量拡張、俊敏性＝速度）でも容易に正解でき、ひっかけが機能しない。『複数AZへの分散配置』を自明に示さない別シナリオ設計（例：RTO要件や冗長構成費用を絡める）にすると本番相当の難易度になる。
+  ⚠ clf-b517c863（難易度: too_easy）
+  ・問題文に「消費モデル（使った分だけ支払う）」「ビジネス価値あたりのコストを下げること」というコスト最適化の定義そのものが盛り込まれており、正解がほぼ自明。本番CLFはもう少し間接的な言い回しで正解を隠す。
+  ・正解選択肢[0]の説明文も問題文のキーワードをほぼそのまま繰り返しており、消去法すら不要で正解に到達できる。
+  ✖ dop-q-039（難易度: too_easy）
+  ・「AWS Service Catalogの主な目的は？」という定義問いはProfessional試験の水準を大きく下回る。本番DOPはLaunch ConstraintやSCP連携によるガバナンス設計、複数アカウントへのPortfolio共有、CI/CDパイプラインとの統合などをシナリオ形式で問う。
+  ・不正解の選択肢がECR・Marketplace・Cost Explorerと全く別カテゴリのサービスを指しており、Professional受験者なら消去法で即座に正解へ到達できる。もっともらしい誤答（例：CloudFormation StackSetsとの使い分け、AWS Configとの混同）が必要。
+  ⚠ dop-q-049（難易度: too_easy）
+  ・ECSタスク定義のCPU・メモリ制限の目的を問う設問はAssociate相当の基礎知識。DOP水準にするには、EC2起動タイプにおけるハードリミット vs ソフトリミットの使い分けやFargate課金への影響をシナリオで問うべき。
+  ・不正解の選択肢（イメージサイズ制限・ネットワーク帯域・起動順序）はいずれもCPU/メモリ設定と明らかに無関係であり、Professional受験者には即時除外できる水準。
+  ⚠ dop-q-024
+  ・選択肢[2]「両サービスはまったく同じ機能でリージョンが異なるだけ」は非現実的すぎる誤答であり本番試験には登場しないレベル。Inspector連携やEventBridgeによる自動修復との混同など、もっともらしい誤答に差し替えるべき。
+  ・2サービスの比較という方向性はDOPに適切だが、問い方をマルチアカウントでの検出結果集約設計などの実践シナリオに変えるとProfessional水準に見合った難易度になる。
+  【プロンプト自動改良】 適用 3件 / 見送り 0件
+  方針: 監査で最多だったDOPの用語定義・単一概念の暗記問題（模試不適・易しすぎ）と、ユーザー通報で確定した「正解選択肢が自己解説的・過長で正解が特定できる」誤り、および解説の機能過大主張を再発防止する。生成側(DOP.txt/_common-rules.txt)で禁止事項を明確化し、検証側(_validity-extra.txt)に検出観点を追加。CLFは同系統サービスの過度に微妙な識別で正答率が極端に下がる問題を避ける注意を1行追記。いずれも追記・小修正のみ。
+  ✅ _common-rules.txt: ユーザー通報で確定したDOPの choice_error（正解選択肢だけが自己解説的な末尾を持ち内容・長さの両面で正解が露見）に対応。既存の『不正解の自己否定文禁止』『最長を正解にしない』の隣に、正解側の自己解説末尾を禁じる規則を追記して対を成す。
+  ✅ DOP.txt: 監査でng判定が集中したDOPの用語定義・単一概念・2サービスの違いを問う暗記問題（Professional水準未達）に対応。【避けること】に具体例付きで禁止し、複数要件のシナリオ比較を必須化。
+  ✅ _validity-extra.txt: 検証(02)が見逃した3種の誤りを検出する観点を追加：(1)プロ資格の用語定義・違い暗記問題（模試不適/易しすぎ）、(2)正解選択肢の自己解説的末尾による正解特定、(3)機能の適用範囲・タイミングの過大主張（CloudWatch Logsマスキングの遡及不可）。CLFの過度に微妙な識別による極端な低正答率も1行追加。
+  所見: (判定失敗)
+  カバー漏れ/陳腐化: 0件
+  対応: JSON抽出失敗のため未対応
+  生成: 2026-07-05 完了: Sun Jul  5 01:38:50 JST 2026
+  検証: 2026-07-05 完了サマリー: 問題なし=3件 / 自動修正=1件 / 削除=1件
+  Lambda(直近24h):
+    prod: 実行5766 エラー0 スロットル0 最大2135ms
+    dev: 実行8 エラー0 スロットル0 最大768ms
+  API(prod,24h): リクエスト6216 5xx=0 4xx=0 p99=1042ms
+  ⚠️ 本番エラーログ(prod,24h): 6件
+    ・2026-07-05T03:31:17.423Z 8847c890-6789-471f-bb74-63640efb1bf9 INFO EVENT: {"resource":"/sessions/{proxy+}","path":"/sessions/caaaee4c-0544-4c93-a477-d628fe1799b
+    ・2026-07-05T03:31:18.005Z 5696389c-962c-455c-9594-715c18038e24 INFO EVENT: {"resource":"/sessions/{proxy+}","path":"/sessions/caaaee4c-0544-4c93-a477-d628fe1799b
+    ・2026-07-05T03:31:18.068Z f942f18f-61fe-4726-82a6-0c8051bc66fc INFO EVENT: {"resource":"/sessions/{proxy+}","path":"/sessions/caaaee4c-0544-4c93-a477-d628fe1799b
+  AWSコスト(2026-07-04): $0.10 （前日比 ▼20%）
+    ・Amazon DynamoDB: $0.06
+    ・AWS Key Management Service: $0.03
+    ・AWS Cost Explorer: $0.01
+
+--- [4.8] テストユーザー データ整合性チェック ---
+Traceback (most recent call last):
+  File "<stdin>", line 40, in <module>
+  File "<stdin>", line 10, in dynamo_get
+  File "/usr/lib/python3.12/subprocess.py", line 550, in run
+    stdout, stderr = process.communicate(input, timeout=timeout)
+                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/lib/python3.12/subprocess.py", line 1209, in communicate
+    stdout, stderr = self._communicate(input, endtime, timeout)
+                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/lib/python3.12/subprocess.py", line 2116, in _communicate
+    self._check_timeout(endtime, orig_timeout, stdout, stderr)
+  File "/usr/lib/python3.12/subprocess.py", line 1253, in _check_timeout
+    raise TimeoutExpired(
+subprocess.TimeoutExpired: Command '['/home/yuzuki/local/bin/aws', 'dynamodb', 'get-item', '--table-name', 'AppSettings', '--key', '{"settingId": {"S": "dailyProgress_0734fa28-60c1-707d-f888-f2cb860e561d"}}', '--region', 'ap-northeast-1']' timed out after 20 seconds
+  
+
+--- [5] メール送信 ---
+  ✅ メール送信完了 → mugenknock@gmail.com
+
+==========================================
+日次レポート 完了: 2026-07-06 01:45 JST
+==========================================
+  → 3903s
+▶ [night-script +0m] generate-release-note.sh
+[release-note] 対象日: 2026-07-05
+[release-note] 2026-07-05: 16件のコミット
+[release-note] 生成結果:
+{
+  "title": "結果画面で問題文をコピーできるように！バグ修正も！",
+  "body": "演習の結果画面で問題を展開すると、問題文の全文とコピーボタンが表示されるようになりました！\nあわせて、試験を切り替えたときに成績データが更新されないバグを修正しました。",
+  "titleEn": "Copy Questions from Results Screen — Plus Bug Fixes!",
+  "bodyEn": "Expanding a question in the results screen now shows the full question text with a one-click copy button.\nWe also fixed a bug where switching exams didn't refresh your stats correctly."
+}
+[release-note] ✓ DynamoDBに挿入しました: 2026-07-05 — 結果画面で問題文をコピーできるように！バグ修正も！
+  → 3903s
+▶ [night-script +15m] 03-check-reports.sh
+==========================================
+通報チェック開始: Mon Jul  6 01:55:04 JST 2026
+関連問題チェック: ドメインあたり最大 10問
+==========================================
+通報件数: 6件 / 関連問題: 30問
+Claude 判定対象: 通報=6件 / 関連=30問
+⚠️  Claude でエラー（exit 1）
+stderr: 
+  → 3903s
+▶ [night-script +40m] refresh-exam-guide-monthly.sh
+==========================================
+試験ガイド更新: Mon Jul  6 02:20:04 JST 2026
+対象: CLF AIF SAA DVA SOA DEA MLA SAP DOP AIP SCS ANS
+==========================================
+⏭  CLF: 15日前に更新済み（< 30日）→ スキップ
+⏭  AIF: 15日前に更新済み（< 30日）→ スキップ
+⏭  SAA: 15日前に更新済み（< 30日）→ スキップ
+⏭  DVA: 15日前に更新済み（< 30日）→ スキップ
+⏭  SOA: 15日前に更新済み（< 30日）→ スキップ
+⏭  DEA: 15日前に更新済み（< 30日）→ スキップ
+⏭  MLA: 15日前に更新済み（< 30日）→ スキップ
+⏭  SAP: 15日前に更新済み（< 30日）→ スキップ
+⏭  DOP: 15日前に更新済み（< 30日）→ スキップ
+⏭  AIP: 15日前に更新済み（< 30日）→ スキップ
+⏭  SCS: 15日前に更新済み（< 30日）→ スキップ
+⏭  ANS: 15日前に更新済み（< 30日）→ スキップ
+
+==========================================
+完了: Mon Jul  6 02:20:04 JST 2026
+==========================================
+  → 3903s
+▶ [night-script +45m] refresh-service-catalog-monthly.sh
+==========================================
+サービスカタログ更新: Mon Jul  6 02:25:04 JST 2026
+==========================================
+--- AWS公式SSMから全サービスコード取得中 ---
+  SSMサービスコード: 402件
+  seed追加(既存記事): 0件 / SSM stub追加: 0件
+  カタログ総数: 536件 / 今回の確認対象: 10件（上限 10）
+
+--- 4件を確認中（WebFetchで公式裏取り）開始=02:25:53 ---
+  ✓ 4件をカタログに反映（確認日=2026-07-06）
+
+--- 4件を確認中（WebFetchで公式裏取り）開始=02:28:09 ---
+  ✓ 4件をカタログに反映（確認日=2026-07-06）
+
+--- 2件を確認中（WebFetchで公式裏取り）開始=02:29:18 ---
+  ✓ 2件をカタログに反映（確認日=2026-07-06）
+
+==========================================
+完了: 確認 10件 / カタログ: /home/yuzuki/aws-quiz-app/prompts/night-prompts/scripts/state/service-catalog.json
+==========================================
+  → 3903s
+▶ [night-script +50m] 05-check-daily-services.sh
+==========================================
+日めくりサービス体裁チェック開始: Mon Jul  6 02:30:04 JST 2026
+バッチサイズ: 5件 / チャンクサイズ: 5件
+==========================================
+
+--- 提供状態ライフサイクル照合中（猶予 30日）---
+  [警告] AWS App Runner: 新規受付が終了しています → 警告付与（2026-08-05削除予定）
+  → ライフサイクル: 新規警告=1 削除=0 復活解除=0
+
+--- 重複記事チェック（docUrl照合・自動削除）---
+  → 重複なし
+チェック対象: 5件
+チャンク数: 1
+
+--- チャンク 1/1: 5件  開始=02:31:30 ---
+  [FIX  ] svc-app-runner-162: description が126字で上限120字超過。内容は正確なので最小限圧縮する → 変更: description
+  [DELETE] _schedule_: name・shortName・category・description・triviaがすべて空。有効なサービスエントリではなく誤混入したプレースホルダー
+  [OK   ] svc-b2b-data-interchange-163
+  [FIX  ] svc-app-auto-scaling-161: docUrlがdocs.aws.amazon.com形式でaws.amazon.com/jp/形式でない（専用jpページ非存在のため空文字へ）。またdescriptionが132字で上限超過 → 変更: description, docUrl
+  [FIX  ] svc-bedrock-data-automation-160: docUrlに/jp/が欠如しておりaws.amazon.com/jp/形式でない → 変更: docUrl
+  → 更新完了: OK=1 修正=3 削除=1
+  終了=02:36:18  経過=288秒
+
+完了サマリー: 問題なし=1件 / 自動修正=3件 / 削除=1件
+
+==========================================
+チェック終了: Mon Jul  6 02:36:18 JST 2026
+==========================================
+  → 3903s
+▶ [night-script +55m] 04-generate-daily-services.sh
+==========================================
+日めくりAWSサービス生成
+生成件数: 8件
+==========================================
+
+--- 既存サービスを取得中 ---
+  [  1] Amazon S3 (ストレージ)
+  [  2] AWS Lambda (コンピューティング)
+  [  3] Amazon DynamoDB (データベース)
+  [  4] Amazon CloudFront (ネットワーキング)
+  [  5] Amazon SQS (メッセージング)
+  [  6] Amazon EC2 (コンピューティング)
+  [  7] Amazon RDS (データベース)
+  [  8] Amazon VPC (ネットワーキング)
+  [  9] AWS IAM (セキュリティ)
+  [ 10] Amazon CloudWatch (モニタリング)
+  [ 11] Amazon SNS (メッセージング)
+  [ 12] Amazon ECS (コンテナ)
+  [ 13] Amazon EKS (コンテナ)
+  [ 14] Amazon Bedrock (生成AI)
+  [ 16] AWS CloudFormation (マネジメント)
+  [ 17] Amazon Route 53 (ネットワーキング)
+  [ 18] Amazon Kinesis (データ分析)
+  [ 19] Amazon Redshift (データ分析)
+  [ 20] Amazon ElastiCache (データベース)
+  [ 21] Amazon Cognito (セキュリティ)
+  [ 22] AWS Step Functions (アプリケーション統合)
+  [ 23] Amazon SageMaker (機械学習)
+  [ 24] AWS CodePipeline (DevOps)
+  [ 25] Amazon EBS (ストレージ)
+  [ 26] AWS CloudTrail (モニタリング)
+  [ 27] AWS IAM Identity Center (セキュリティ)
+  [ 28] Amazon EventBridge (アプリケーション統合)
+  [ 29] Amazon Aurora (データベース)
+  [ 30] AWS Glue (データ分析)
+  [ 31] Amazon EFS (ストレージ)
+  [ 32] AWS WAF (セキュリティ)
+  [ 33] AWS Systems Manager (マネジメント)
+  [ 34] AWS KMS (セキュリティ)
+  [ 35] Elastic Load Balancing (ネットワーキング)
+  [ 36] Amazon Athena (データ分析)
+  [ 37] AWS Fargate (コンテナ)
+  [ 38] AWS Organizations (マネジメント)
+  [ 39] Amazon GuardDuty (セキュリティ)
+  [ 40] AWS Secrets Manager (セキュリティ)
+  [ 41] Amazon EMR (データ分析)
+  [ 42] AWS Direct Connect (ネットワーキング)
+  [ 43] AWS DMS (移行)
+  [ 44] Amazon S3 Glacier (ストレージ)
+  [ 45] Amazon DocumentDB (データベース)
+  [ 46] AWS Shield (セキュリティ)
+  [ 47] AWS X-Ray (モニタリング)
+  [ 48] Amazon QuickSight (データ分析)
+  [ 49] AWS Elastic Beanstalk (コンピューティング)
+  [ 50] Amazon Inspector (セキュリティ)
+  [ 51] AWS Config (マネジメント)
+  [ 52] Amazon OpenSearch Service (データ分析)
+  [ 53] Amazon SES (アプリケーション統合)
+  [ 54] AWS Backup (ストレージ)
+  [ 55] Amazon Neptune (データベース)
+  [ 56] AWS Transit Gateway (ネットワーキング)
+  [ 57] Amazon Comprehend (機械学習)
+  [ 58] AWS Lake Formation (データ分析)
+  [ 59] AWS Batch (コンピューティング)
+  [ 60] Amazon MSK (メッセージング)
+  [ 61] AWS CodeBuild (DevOps)
+  [ 62] Amazon Macie (セキュリティ)
+  [ 63] AWS Control Tower (マネジメント)
+  [ 64] AWS Global Accelerator (ネットワーキング)
+  [ 65] Amazon Timestream (データベース)
+  [ 66] AWS CodeDeploy (DevOps)
+  [ 67] Amazon Rekognition (機械学習)
+  [ 68] AWS Cost Explorer (マネジメント)
+  [ 69] AWS Certificate Manager (セキュリティ)
+  [ 70] Amazon FSx (ストレージ)
+  [ 71] AWS Trusted Advisor (マネジメント)
+  [ 72] AWS PrivateLink (ネットワーキング)
+  [ 73] Amazon MemoryDB (データベース)
+  [ 74] AWS Auto Scaling (コンピューティング)
+  [ 75] AWS Security Hub (セキュリティ)
+  [ 76] AWS Network Firewall (セキュリティ)
+  [ 77] Amazon Translate (機械学習)
+  [ 78] Amazon MQ (メッセージング)
+  [ 79] AWS CodeArtifact (DevOps)
+  [ 80] AWS Budgets (マネジメント)
+  [ 81] AWS Compute Optimizer (マネジメント)
+  [ 82] Amazon AppFlow (アプリケーション統合)
+  [ 83] AWS DataSync (移行)
+  [ 84] Amazon Kendra (機械学習)
+  [ 85] Amazon Polly (機械学習)
+  [ 86] AWS Transfer Family (移行)
+  [ 87] Amazon Lightsail (コンピューティング)
+  [ 89] AWS Storage Gateway (ストレージ)
+  [ 90] AWS Snowball (移行)
+  [ 91] Amazon Transcribe (機械学習)
+  [ 92] Amazon Textract (機械学習)
+  [ 93] Amazon Forecast (機械学習)
+  [ 95] AWS CodeCommit (DevOps)
+  [ 96] AWS Firewall Manager (セキュリティ)
+  [ 97] Amazon Detective (セキュリティ)
+  [ 98] AWS Health Dashboard (モニタリング)
+  [ 99] AWS Savings Plans (マネジメント)
+  [100] Amazon Lex (機械学習)
+  [101] Amazon ECR (コンテナ)
+  [102] Amazon Personalize (機械学習)
+  [103] Amazon CloudHSM (セキュリティ)
+  [104] Amazon Keyspaces (データベース)
+  [105] AWS Migration Hub (移行)
+  [106] Amazon WorkSpaces (コンピューティング)
+  [107] AWS Outposts (コンピューティング)
+  [108] AWS AppSync (アプリケーション統合)
+  [109] Amazon Connect (アプリケーション統合)
+  [110] AWS IoT Core (アプリケーション統合)
+  [111] AWS Amplify (DevOps)
+  [112] Amazon Kinesis Data Streams (データ分析)
+  [113] AWS Data Exchange (データ分析)
+  [114] Amazon Q (生成AI)
+  [115] AWS Application Migration Service (移行)
+  [116] AWS Directory Service (セキュリティ)
+  [117] AWS Cloud Development Kit (DevOps)
+  [118] Amazon EC2 Image Builder (コンピューティング)
+  [119] Amazon Pinpoint (アプリケーション統合)
+  [120] AWS Cloud WAN (ネットワーキング)
+  [122] Amazon VPC Lattice (ネットワーキング)
+  [123] AWS Elastic Disaster Recovery (移行)
+  [124] Amazon Security Lake (セキュリティ)
+  [125] Amazon Verified Permissions (セキュリティ)
+  [126] AWS CloudShell (DevOps)
+  [127] Amazon Location Service (アプリケーション統合)
+  [128] AWS Artifact (セキュリティ)
+  [129] AWS Cloud Map (ネットワーキング)
+  [133] Amazon Data Firehose (データ分析)
+  [134] AWS Resource Access Manager (マネジメント)
+  [136] AWS Service Catalog (マネジメント)
+  [137] AWS Application Discovery Service (移行)
+  [138] Amazon WorkMail (アプリケーション統合)
+  [139] Amazon Managed Grafana (モニタリング)
+  [140] AWS Fault Injection Service (DevOps)
+  [141] Amazon API Gateway (HTTP API / WebSocket API) (ネットワーキング)
+  [142] AWS AppConfig (DevOps)
+  [144] AWS Private Certificate Authority (セキュリティ)
+  [146] Amazon GameLift Streams (コンピューティング)
+  [147] Amazon HealthLake (データ分析)
+  [148] Amazon EC2 Auto Scaling (コンピューティング)
+  [149] AWS Audit Manager (セキュリティ)
+  [153] Amazon Bedrock AgentCore (生成AI)
+  [155] Amazon Managed Service for Prometheus (モニタリング)
+  [160] Amazon Bedrock Data Automation (生成AI)
+  [161] Application Auto Scaling (コンピューティング)
+  [162] AWS App Runner (コンテナ)
+  [163] AWS B2B Data Interchange (アプリケーション統合)
+
+現在 145件 登録済み / 最大 order=163
+5
+  カタログ確定の記事化対象: 5件（status=active・検証済みdocUrl）
+
+--- Claude でサービスを生成中 ---
+✓ 5件 生成完了
+
+--- DynamoDB に登録中 ---
+  ⏭  [164] AWS DevOps Agent: PNG が無いため記事を作成しません
+  ⏭  [165] AWS Transform: PNG が無いため記事を作成しません
+  ⏭  [166] Amazon Application Recovery Controller (ARC): PNG が無いため記事を作成しません
+  ✓ [167] Amazon CloudWatch AI Ops investigations (モニタリング)
+  ✓ [168] Amazon CloudWatch Application Insights (モニタリング)
+
+登録完了: 2件
+
+⏭  アイコン(png+svg両方)が揃わず記事を作成しなかったサービス（3件）:
+  - AWS DevOps Agent: (未指定)
+  - AWS Transform: (未指定)
+  - Amazon Application Recovery Controller (ARC): (未指定)
+
+  記事化するには ICON_ZIP_MAP に ZIP 内パスを追加するか、
+  public/icons/aws/ に PNG/SVG を手動配置して再実行してください。
+
+==========================================
+完了: Mon Jul  6 02:38:20 JST 2026
+==========================================
+  → 3903s
+▶ [night-script +60m] audit-questions-nightly.sh
+==========================================
+問題監査 開始: Mon Jul  6 02:40:04 JST 2026
+サンプル数: 30問 / チャンク: 5問 / 抽出: 直近優先
+（読み取り専用 — DBは変更しません）
+==========================================
+監査対象: 30問
+チャンク数: 6
+
+--- チャンク 1/6: 5問  開始=02:40:42 ---
+  ⚠️  clf-637af08d (CLF)  実測正答率20%はCLFとして低め（悪問疑いの閾値付近）。App Runnerの認知度がElastic Beanstalkより低いため多くの受験者がDを選んでいる可能性が高い。正解・解説の内容は現行仕様と一致しており事実上の問題はない。ただし選択肢DのElastic Beanstalkについて『EC2ベースであり管理が多い』という否定理由だけでは弱い。Elastic BeanstalkもLB/オートスケーリングを自動構成するため要件を満たしうるように見える点を補足し、App Runnerとの差別化（インフラ概念が完全に抽象化されている点）をより明確に解説に追記すべき。
+  ⚠️  clf-3405ed73 (CLF) [難しすぎ]  実測正答率14%は悪問疑いの閾値（20%以下）を下回っており、精査が必要。正解はEventBridgeで内容は正しいが、CLF受験者がSNSを選ぶのは自然（ファンアウト通知のイメージが強い）。解説がSNSを排除する肝心な根拠（SNSはEC2起動・停止などのAWSサービス状態変化イベントを直接受信できず、EventBridgeを介す必要がある）を明記していないため、受験者が誤った選択肢に納得できない可能性が高い。シナリオの複雑さ（複数サービス同時ルーティング・ルールベース振り分け）はCLFよりSAA/DVA向けの難易度。SNSの否定理由を技術的に補強するか、CLF向けにシナリオを単純化することを推奨。
+  ✅ scs-7c893f37 (SCS)
+  ✅ scs-f7bfc5da (SCS)
+  ⚠️  scs-0d0c920d (SCS)  選択肢Aの排除理由に事実の不正確さあり。CloudFormation StackSetsはサービスマネージドアクセス許可＋「自動デプロイ」を有効にすることで、Organizationsへ新規参加したアカウントへ追加の手動作業なしに自動デプロイできる（AWS Organizations統合機能）。したがって『新規アカウントオンボード時に毎回StackSetsを実行する追加作業が生じる』という解説は不正確。正解（選択肢B）の優位性は正しいが、Aの否定理由は『各メンバーアカウントにリソースが分散するため運用・変更管理の負荷が高く、デプロイ完了まで新規アカウントが保護されない空白時間が生じる』等の観点に修正すべき。
+  終了=02:42:44
+
+--- チャンク 2/6: 5問  開始=02:42:44 ---
+⚠️  レート制限を検出。残りチャンクをスキップ
+==========================================
+監査レポート
+==========================================
+総監査数: 5問
+  ✅ ok  : 2問 (40%)
+  ⚠️  warn: 3問 (60%)
+  ❌ ng  : 0問 (0%)
+
+内容観点:
+  現行性 : 正常=5
+  難易度 : 適切=4, 難しすぎ=1
+  範囲   : 範囲内=5
+体裁観点:
+  読みやすさ: 良=5
+  模試適性  : 不適=0問
+
+資格別 (ok/warn/ng):
+  CLF: 0/2/0
+  SCS: 2/1/0
+
+要対応の問題 (3件):
+  ⚠️  clf-637af08d (CLF): 実測正答率20%はCLFとして低め（悪問疑いの閾値付近）。App Runnerの認知度がElastic Beanstalkより低いため多くの受験者がDを選んでいる可能性が高い。正解・解説の内容は現行仕様と一致しており事実上の問題はない。ただし選択肢DのElastic Beanstalkについて『EC2ベースであり管理が多い』という否定理由だけでは弱い。Elastic BeanstalkもLB/オートスケーリングを自動構成するため要件を満たしうるように見える点を補足し、App Runnerとの差別化（インフラ概念が完全に抽象化されている点）をより明確に解説に追記すべき。
+  ⚠️  clf-3405ed73 (CLF): 実測正答率14%は悪問疑いの閾値（20%以下）を下回っており、精査が必要。正解はEventBridgeで内容は正しいが、CLF受験者がSNSを選ぶのは自然（ファンアウト通知のイメージが強い）。解説がSNSを排除する肝心な根拠（SNSはEC2起動・停止などのAWSサービス状態変化イベントを直接受信できず、EventBridgeを介す必要がある）を明記していないため、受験者が誤った選択肢に納得できない可能性が高い。シナリオの複雑さ（複数サービス同時ルーティング・ルールベース振り分け）はCLFよりSAA/DVA向けの難易度。SNSの否定理由を技術的に補強するか、CLF向けにシナリオを単純化することを推奨。
+  ⚠️  scs-0d0c920d (SCS): 選択肢Aの排除理由に事実の不正確さあり。CloudFormation StackSetsはサービスマネージドアクセス許可＋「自動デプロイ」を有効にすることで、Organizationsへ新規参加したアカウントへ追加の手動作業なしに自動デプロイできる（AWS Organizations統合機能）。したがって『新規アカウントオンボード時に毎回StackSetsを実行する追加作業が生じる』という解説は不正確。正解（選択肢B）の優位性は正しいが、Aの否定理由は『各メンバーアカウントにリソースが分散するため運用・変更管理の負荷が高く、デプロイ完了まで新規アカウントが保護されない空白時間が生じる』等の観点に修正すべき。
+
+生データ: /home/yuzuki/aws-quiz-app/prompts/night-prompts/logs/audit_20260706_024004.json
+※ レート制限により一部チャンクが未監査です
+
+==========================================
+改善モード: 生成・検証プロンプトの継続改良
+==========================================
+改善対象: 監査3件 / 通報確定不具合(直近7日)11件。改良案を生成中...
+⚠️  改良案のJSON抽出に失敗。プロンプトは変更しませんでした。
+監査終了: Mon Jul  6 02:42:48 JST 2026
+  → 3903s
+▶ [night-script +65m] canary-coverage-check.sh
+==========================================
+カナリア整合性チェック 開始: Mon Jul  6 02:45:04 JST 2026
+==========================================
+現在のルート数: 28
+Opusで整合性を判定中...
+⚠️ 判定結果のJSON抽出に失敗。specは変更しません。
+
+レポート: /home/yuzuki/aws-quiz-app/prompts/night-prompts/logs/canary-coverage_20260706_024504.md
+カナリア整合性チェック 終了: Mon Jul  6 02:45:07 JST 2026
+  → 3903s
+  [並列実行中: texts 2件]
+▶ [ai-router] monday-job.txt
+You've hit your session limit · resets 6:40am (Asia/Tokyo)
+  → 1s
+▶ [ai-router] nght-prompts-check.txt
+You've hit your session limit · resets 6:40am (Asia/Tokyo)
+  → 1s
+==========================================
+終了: 2026-07-06 02:45:08
+==========================================
+
+--- hook[0] 開始: 2026-07-06 06:12:04 (-30min) | ~/aws-quiz-app/prompts/night-prompts/scripts/02-check-validity.sh -n 100 -D 06:42 ---
+==========================================
+正当性チェック開始: Mon Jul  6 06:12:04 JST 2026
+バッチサイズ: 100問 / チャンクサイズ: 5問
+==========================================
+❌ DynamoDB scan 失敗:
+
+aws: [ERROR]: Could not connect to the endpoint URL: "https://dynamodb.ap-northeast-1.amazonaws.com/"
+--- hook[0] 完了: 2026-07-06 06:14:07 ---
+
+--- hook[1] 開始: 2026-07-06 06:22:04 (-20min) | ~/aws-quiz-app/prompts/night-prompts/scripts/01-generate-questions.sh -n 5 -D 06:42 --hard ---
+⏰ デッドライン: 06:42 JST (epoch=1783287720)
+==========================================
+問題自動生成 開始: Mon Jul  6 06:22:04 JST 2026
+==========================================
+対象資格: CLF SAA SAP DVA SOA DEA DOP AIF MLA AIP ANS SCS
+問題数キャッシュを使用...
+  CLF: 298問 (キャッシュ)
+  SAA: 308問 (キャッシュ)
+  SAP: 309問 (キャッシュ)
+  DVA: 306問 (キャッシュ)
+  SOA: 306問 (キャッシュ)
+  DEA: 298問 (キャッシュ)
+  DOP: 373問 (キャッシュ)
+  AIF: 311問 (キャッシュ)
+  MLA: 298問 (キャッシュ)
+  AIP: 298問 (キャッシュ)
+  ANS: 309問 (キャッシュ)
+  SCS: 309問 (キャッシュ)
+選択: CLF (現在298問 — 最少)
+試験ガイドURL: https://aws.amazon.com/jp/certification/certified-cloud-practitioner/
+ドメイン数: 4  /  基本 5問/ドメイン（重み付きで配分）  /  合計予算 20問
+開始ドメイン: [0] クラウドの概念
+🎯 難易度強化モード（--hard）有効
+
+--- Cognito 認証中 ---
+
+aws: [ERROR]: Could not connect to the endpoint URL: "https://ssm.ap-northeast-1.amazonaws.com/"
+❌ Cognito 認証失敗
+--- hook[1] 完了: 2026-07-06 06:26:10 ---
+
+==========================================
+実行開始: 2026-07-06 06:42:00
+==========================================
+▶ [ping] Claudeセッション確認...
+  → 218s
+  応答: "何かお手伝いできることはありますか？"
+  検証: status=REAL out_tokens=64 sid=3c0c23e8-a85
+✓ ping OK（実受信を確認: 出力64トークン）
+==========================================
+終了: 2026-07-06 06:45:38
+==========================================
+
+--- hook[0] 開始: 2026-07-06 11:10:04 (-30min) | ~/aws-quiz-app/prompts/night-prompts/scripts/02-check-validity.sh -n 100 -D 11:40 ---
+==========================================
+正当性チェック開始: Mon Jul  6 11:10:04 JST 2026
+バッチサイズ: 100問 / チャンクサイズ: 5問
+==========================================
+チェック対象: 100問
+前処理: choices ラベル接頭辞チェック...
+  前処理: ラベル接頭辞なし（全問クリーン）
+チャンク数: 20
+
+--- チャンク 1/20: 5問  開始=11:10:45 ---
+
+--- hook[1] 開始: 2026-07-06 11:20:04 (-20min) | ~/aws-quiz-app/prompts/night-prompts/scripts/01-generate-questions.sh -n 5 -D 11:40 --hard ---
+⏰ デッドライン: 11:40 JST (epoch=1783305600)
+==========================================
+問題自動生成 開始: Mon Jul  6 11:20:04 JST 2026
+==========================================
+対象資格: CLF SAA SAP DVA SOA DEA DOP AIF MLA AIP ANS SCS
+問題数キャッシュを使用...
+  CLF: 298問 (キャッシュ)
+  SAA: 308問 (キャッシュ)
+  SAP: 309問 (キャッシュ)
+  DVA: 306問 (キャッシュ)
+  SOA: 306問 (キャッシュ)
+  DEA: 298問 (キャッシュ)
+  DOP: 373問 (キャッシュ)
+  AIF: 311問 (キャッシュ)
+  MLA: 298問 (キャッシュ)
+  AIP: 298問 (キャッシュ)
+  ANS: 309問 (キャッシュ)
+  SCS: 309問 (キャッシュ)
+選択: CLF (現在298問 — 最少)
+試験ガイドURL: https://aws.amazon.com/jp/certification/certified-cloud-practitioner/
+ドメイン数: 4  /  基本 5問/ドメイン（重み付きで配分）  /  合計予算 20問
+開始ドメイン: [0] クラウドの概念
+🎯 難易度強化モード（--hard）有効
+
+--- Cognito 認証中 ---
+✓ 認証完了
+
+--- ドメイン別問題数を取得・割り当て計算中 ---
+  請求、料金、およびサポート: 74問
+  クラウドのテクノロジーとサービス: 74問
+  セキュリティとコンプライアンス: 74問
+  クラウドの概念: 76問
+
+ドメイン別生成数（逆数重み付き割り当て）:
+  6問 → セキュリティとコンプライアンス (現在74問)
+  6問 → クラウドのテクノロジーとサービス (現在74問)
+  5問 → 請求、料金、およびサポート (現在74問)
+  3問 → クラウドの概念 (現在76問)
+  合計: 20問
+処理順（問題数少ない順）: クラウドのテクノロジーとサービス,セキュリティとコンプライアンス,請求、料金、およびサポート,クラウドの概念
+
+--- [クラウドのテクノロジーとサービス] 6問 生成中 (2問×3チャンク) --- 開始=11:20:47
+  チャンク 1/3: 2問 生成中...
+⚠️  レート制限を検出。残りをスキップ
+出力: You've hit your session limit · resets 11:40am (Asia/Tokyo)
+  終了=11:20:50  経過=3秒
+
+合計インポート: 0問 / 20問
+
+--- 問題数キャッシュを再構築中（DynamoDBから正確な値を取得）---
+  CLF: 298問
+  SAA: 308問
+  SAP: 309問
+  DVA: 306問
+  SOA: 306問
+  DEA: 298問
+  DOP: 373問
+  AIF: 311問
+  MLA: 298問
+  AIP: 298問
+  ANS: 309問
+  SCS: 309問
+キャッシュ更新完了
+--- hook[1] 完了: 2026-07-06 11:24:58 ---
+⚠️  レート制限を検出。残りチャンクをスキップ
+stdout: You've hit your session limit · resets 11:40am (Asia/Tokyo)
+
+完了サマリー: 問題なし=0問 / 自動修正=0問 / 削除=0問
+--- hook[0] 完了: 2026-07-06 11:28:27 ---
+
+==========================================
+実行開始: 2026-07-06 11:40:00
+==========================================
+▶ [ping] Claudeセッション確認...
+  → 5s
+  応答: "何かお手伝いできることはありますか？"
+  検証: status=REAL out_tokens=59 sid=27a44325-43b
+✓ ping OK（実受信を確認: 出力59トークン）
+==========================================
+終了: 2026-07-06 11:40:05
+==========================================
+
+==========================================
+実行開始: 2026-07-06 16:40:00
+==========================================
+▶ [ping] Claudeセッション確認...
+  → 7s
+  応答: "何かお手伝いできることはありますか？"
+  検証: status=REAL out_tokens=74 sid=19af19de-941
+✓ ping OK（実受信を確認: 出力74トークン）
+==========================================
+終了: 2026-07-06 16:40:07
+==========================================

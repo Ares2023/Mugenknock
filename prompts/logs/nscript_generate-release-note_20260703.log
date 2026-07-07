@@ -1,0 +1,11 @@
+=== 2026-07-03 04:51:34 | generate-release-note.sh | exit:0 ===
+[release-note] 対象日: 2026-07-02
+[release-note] 2026-07-02: 15件のコミット
+[release-note] 生成結果:
+{
+  "title": "どのデバイスでも学習がつながる！マルチデバイス同期が完成！",
+  "body": "スマホ・PCを問わず、演習の進捗・週間目標・正答率がすべてリアルタイムで同期されるようになりました！\nさらに、日めくりサービスはログイン中なら必ず「はじめまして」のサービスだけが登場し、毎日確実に新しいAWSサービスと出会えます。",
+  "titleEn": "Learn Anywhere — Full Cross-Device Sync Is Here!",
+  "bodyEn": "Your progress, weekly goals, and accuracy stats now sync instantly across all your devices — phone, tablet, or PC.\nPlus, the Daily Service now guarantees logged-in users always discover a brand-new AWS service they've never seen before!"
+}
+[release-note] ✓ DynamoDBに挿入しました: 2026-07-02 — どのデバイスでも学習がつながる！マルチデバイス同期が完成！

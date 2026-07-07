@@ -1,0 +1,104 @@
+==========================================
+正当性チェック開始: Mon Jun 29 02:40:27 JST 2026
+バッチサイズ: 100問 / チャンクサイズ: 5問
+==========================================
+チェック対象: 100問
+前処理: choices ラベル接頭辞チェック...
+  前処理: ラベル接頭辞なし（全問クリーン）
+チャンク数: 20
+
+--- チャンク 1/20: 5問  開始=02:40:57 ---
+  [OK   ] saa-abeca07c
+  [OK   ] saa-f3addec8
+  [OK   ] saa-5b527420
+  [OK   ] dva-80b260b5
+  [OK   ] dva-13ad4cf3
+  → 更新完了: OK=5 修正=0 削除=0
+  終了=02:42:32  経過=95秒
+
+--- チャンク 2/20: 5問  開始=02:42:32 ---
+  [FIX  ] dva-39739e4d: choiceExplanations[0]と[1]がchoicesと順番対応していない（[0]がDeviceId解説、[1]がソートキー解説で逆転）。正しい順番に並び替えた。 → 変更: choiceExplanations
+  [OK   ] saa-3355e3da
+  [OK   ] saa-d525b223
+  [OK   ] soa-b229d0f2
+  [OK   ] sap-b9383ad1
+  → 更新完了: OK=4 修正=1 削除=0
+  終了=02:44:50  経過=138秒
+
+--- チャンク 3/20: 5問  開始=02:44:50 ---
+  [OK   ] clf-f274b049
+  [OK   ] clf-49bfd04f
+  [OK   ] soa-53da4104
+  [OK   ] sap-b9a08bf7
+  [FIX  ] sap-5835b896: 内容・正解は正確だがchoiceExplanationsの不正解説明が「誤りです。」という判定文で始まっており規約違反のため削除。 → 変更: choiceExplanations
+  → 更新完了: OK=4 修正=1 削除=0
+  終了=02:46:49  経過=119秒
+
+--- チャンク 4/20: 5問  開始=02:46:49 ---
+  [FIX  ] sap-d20aab43: choiceExplanations[0]と[1]が同一の結合文になっており選択肢ごとの対応が崩れている。また[2][3][4]が「誤りです」の判定文で始まっている。各選択肢に対応する解説へ分離・修正。 → 変更: explanation, choiceExplanations
+  [OK   ] sap-45d81516
+  [OK   ] sap-07d2570c
+  [OK   ] soa-c2cf5c4c
+  [OK   ] clf-bc7a49cd
+  → 更新完了: OK=4 修正=1 削除=0
+  終了=02:49:00  経過=131秒
+
+--- チャンク 5/20: 5問  開始=02:49:00 ---
+  [OK   ] saa-9e3322cc
+  [OK   ] sap-d7919e70
+  [OK   ] saa-09869ec5
+  [OK   ] sap-590d3e8b
+  [FIX  ] sap-af38a99c: 内容は委任管理者+Auto-enableで正しいが、choiceExplanations[2]に「GuardDuly」というサービス名の誤字があるため修正。 → 変更: choiceExplanations
+  → 更新完了: OK=4 修正=1 削除=0
+  終了=02:51:06  経過=126秒
+
+--- チャンク 6/20: 5問  開始=02:51:06 ---
+  [FIX  ] saa-b1f13665: 内容・正解・解説は正確。要件①〜④が1行に列挙されており可読性が低いため、questionTextに改行を追加。 → 変更: questionText
+  [OK   ] soa-2bdc1d5a
+  [OK   ] saa-2b0c1af9
+  [FIX  ] soa-2da2cdef: 内容・正解は正確だが、explanation内で不正解A/C/Dの説明が改行なしの一段落に連結されており可読性が低いため、選択肢ごとに改行を追加。 → 変更: explanation
+  [OK   ] sap-296b1497
+  → 更新完了: OK=3 修正=2 削除=0
+  終了=02:53:09  経過=123秒
+
+--- チャンク 7/20: 5問  開始=02:53:09 ---
+  [OK   ] clf-e29b5a64
+  [OK   ] saa-c6d7fa87
+  [OK   ] soa-6c120962
+  [FIX  ] sap-0df68872: choiceExplanations[4]が空欄のため補完。5択2正解でisMultiple:trueを明示。内容・正解は妥当。 → 変更: choiceExplanations
+  [OK   ] soa-f47fa76a
+  → 更新完了: OK=4 修正=1 削除=0
+  終了=02:55:06  経過=117秒
+
+--- チャンク 8/20: 5問  開始=02:55:06 ---
+  [OK   ] clf-74a29574
+  [OK   ] clf-d00f6e17
+  [OK   ] soa-99a342cd
+  [OK   ] soa-7ce37692
+  [FIX  ] clf-8ef115f9: 内容は正確だがchoiceExplanationsが各40字未満と短く本文の流用に留まるため、100字程度に拡充して不正解理由を補足した。 → 変更: choiceExplanations
+  → 更新完了: OK=4 修正=1 削除=0
+  終了=02:57:00  経過=114秒
+
+--- チャンク 9/20: 5問  開始=02:57:00 ---
+  [OK   ] saa-e8f1f4cc
+  [OK   ] saa-528b79d4
+  [OK   ] clf-b8f35095
+  [OK   ] sap-3fb70029
+  [OK   ] saa-fdb9d51c
+  → 更新完了: OK=5 修正=0 削除=0
+  終了=02:58:39  経過=99秒
+
+--- チャンク 10/20: 5問  開始=02:58:39 ---
+  [OK   ] soa-49380030
+  [OK   ] sap-29862f8c
+  [FIX  ] soa-7134bbe4: 解説とchoiceExplanations[3]に本問と無関係な「DynamoDB」への言及があり誤り。RDS文脈に合わせ選択肢Dの不正解理由を修正。 → 変更: explanation, choiceExplanations
+  [OK   ] sap-b3b6a852
+  [OK   ] clf-27229558
+  → 更新完了: OK=4 修正=1 削除=0
+  終了=03:00:35  経過=116秒
+
+--- チャンク 11/20: 5問  開始=03:00:35 ---
+⚠️  レート制限を検出。残りチャンクをスキップ
+stdout: You've hit your session limit · resets 3:10am (Asia/Tokyo)
+
+完了サマリー: 問題なし=41問 / 自動修正=9問 / 削除=0問

@@ -1,0 +1,122 @@
+==========================================
+正当性チェック開始: Sun Jun 28 21:40:27 JST 2026
+バッチサイズ: 100問 / チャンクサイズ: 5問
+==========================================
+チェック対象: 100問
+前処理: choices ラベル接頭辞チェック...
+  前処理: ラベル接頭辞なし（全問クリーン）
+チャンク数: 20
+
+--- チャンク 1/20: 5問  開始=21:41:03 ---
+  [OK   ] scs-e0960d2d
+  [OK   ] scs-e80961a7
+  [OK   ] scs-06d47e5a
+  [FIX  ] scs-7df1d192: 内容は正確だが解説本文で4番目の選択肢を『選択肢Cognito』と誤記しており『選択肢D』が正しいため表記を修正。 → 変更: explanation
+  [OK   ] scs-9025fe42
+  → 更新完了: OK=4 修正=1 削除=0
+  終了=21:42:55  経過=112秒
+
+--- チャンク 2/20: 5問  開始=21:42:55 ---
+  [OK   ] scs-ad7ac30a
+  [FIX  ] scs-711a5225: choiceExplanations[0]と[1]が入れ替わっており、選択肢テキストと解説内容が対応していない（[0]に正解の解説、[1]にs3:GetEncryptionConfigurationの解説）。順番を修正。 → 変更: choiceExplanations
+  [OK   ] mla-d6019364
+  [OK   ] mla-f38810ac
+  [OK   ] mla-365bae64
+  → 更新完了: OK=4 修正=1 削除=0
+  終了=21:44:54  経過=119秒
+
+--- チャンク 3/20: 5問  開始=21:44:54 ---
+  [OK   ] clf-31d030e5
+  [OK   ] clf-0baa793a
+  [OK   ] clf-87681534
+  [OK   ] mla-5b038e13
+  [OK   ] mla-b7d25360
+  → 更新完了: OK=5 修正=0 削除=0
+  終了=21:46:32  経過=98秒
+
+--- チャンク 4/20: 5問  開始=21:46:32 ---
+  [OK   ] mla-27051746
+  [OK   ] mla-2ab4ee3b
+  [OK   ] mla-448ff39d
+  [OK   ] mla-6439f6ad
+  [FIX  ] mla-fdb66a91: 解説本文とchoiceExplanationsの選択肢ラベルが選択肢B/C/Dの内容とずれていたため、ElastiCache/Batch Transform/Serverlessの説明を各選択肢に正しく対応させて修正。正解は妥当。 → 変更: explanation, choiceExplanations
+  → 更新完了: OK=4 修正=1 削除=0
+  終了=21:48:37  経過=125秒
+
+--- チャンク 5/20: 5問  開始=21:48:37 ---
+  [OK   ] mla-2a271b48
+  [OK   ] mla-8932fed4
+  [FIX  ] mla-1a5409f5: isMultiple未確定のため複数選択としてtrueを明示。choiceExplanations[0]と[2]が同一の汎用文で各選択肢に未対応のため、OutputDataConfigとResourceConfigを区別した個別説明に修正。 → 変更: choiceExplanations
+  [OK   ] mla-08325fb0
+  [FIX  ] mla-73dadd82: explanation冒頭の冗長な「正解：」と、ダミー選択肢A/C/Dの説明が改行なしで1段落に混在しており可読性不足。選択肢ごとに改行する形へ整形。 → 変更: explanation
+  → 更新完了: OK=3 修正=2 削除=0
+  終了=21:50:38  経過=121秒
+
+--- チャンク 6/20: 5問  開始=21:50:38 ---
+  [FIX  ] mla-65fe92d6: 内容・正解・タグは適切。ただしchoiceExplanations[0][3]に解説本文全文（「正解：」判定文付き）が重複コピーされており、各選択肢固有の説明になっていない。判定文を除き選択肢ごとの解説に修正。 → 変更: choiceExplanations
+  [OK   ] soa-011fc081
+  [OK   ] soa-590eb616
+  [FIX  ] gai-e14e562a: 正解・内容は適切だがchoiceExplanations[2][3]が同一の「多層防御…」全文の重複で各選択肢固有の説明になっていない。選択肢ごとの解説に分割修正。 → 変更: choiceExplanations
+  [OK   ] aif-5b1b9c76
+  → 更新完了: OK=3 修正=2 削除=0
+  終了=21:52:47  経過=129秒
+
+--- チャンク 7/20: 5問  開始=21:52:47 ---
+  [OK   ] dva-d1ac9c47
+  [OK   ] dva-ca646af4
+  [OK   ] mla-d7c5b3b8
+  [FIX  ] gai-d36ae5f9: 内容は正確だがタグが不適切。WebSocket+Lambda+BedrockでConverseStreamを使った実装手法を問う問題のためドメインは『実装と統合』が適切。 → 変更: domain
+  [OK   ] dva-6424dc9f
+  → 更新完了: OK=4 修正=1 削除=0
+  終了=21:54:43  経過=116秒
+
+--- チャンク 8/20: 5問  開始=21:54:43 ---
+  [OK   ] dva-b6a96526
+  [OK   ] gai-51d3f38e
+  [OK   ] dva-bc1ba2ea
+  [OK   ] soa-b14f77a3
+  [FIX  ] soa-9c9c5ef2: 内容・正解は正確だが解説と選択肢別解説に誤字（「はま」）や文末が途切れた不完全な文（「運用負荷が高く。」）があり読みにくいため、文章を整え選択肢ごとに改行する形に修正。 → 変更: explanation, choiceExplanations
+  → 更新完了: OK=4 修正=1 削除=0
+  終了=21:56:47  経過=124秒
+
+--- チャンク 9/20: 5問  開始=21:56:47 ---
+  [OK   ] gai-c3c88b0e
+  [OK   ] mla-1201e5a9
+  [OK   ] dop-3c35f1b1
+  [FIX  ] soa-81249335: 内容は正確だがWAFによるSQLi/XSS防御は本質的にセキュリティ領域のため、タグを『ネットワークとコンテンツ配信』から『セキュリティとコンプライアンス』へ修正。 → 変更: domain
+  [FIX  ] dva-ee19c63a: 解説冒頭の正解文に『B.』の記号接頭辞が付き、選択肢ごとの改行もないため、接頭辞を除去し選択肢別に改行する形へ修正。技術内容は正確。 → 変更: explanation
+  → 更新完了: OK=3 修正=2 削除=0
+  終了=21:58:58  経過=131秒
+
+--- チャンク 10/20: 5問  開始=21:58:58 ---
+  [OK   ] soa-bedd25c6
+  [OK   ] dva-f1aba38b
+  [OK   ] mla-ef3ea5dc
+  [OK   ] mla-4b6efaa4
+  [OK   ] soa-770616c3
+  → 更新完了: OK=5 修正=0 削除=0
+  終了=22:00:43  経過=105秒
+
+--- チャンク 11/20: 5問  開始=22:00:43 ---
+  [OK   ] saa-3cad3383
+  [OK   ] soa-a602def5
+  [OK   ] saa-ff6fe7e0
+  [OK   ] clf-1a579c8e
+  [FIX  ] saa-ceaaa982: 解説とchoiceExplanationsに「理由。」というテンプレ残骸があり、正解のchoiceExplanationが選択肢文を重複して冗長。文言整理と分量調整を実施。 → 変更: explanation, choiceExplanations
+  → 更新完了: OK=4 修正=1 削除=0
+  終了=22:02:54  経過=131秒
+
+--- チャンク 12/20: 5問  開始=22:02:55 ---
+  [FIX  ] mla-0a58271d: choiceExplanations[0]が解説全文を含み極端に長く正解が推測可能。各選択肢解説を100〜150字程度に揃え、「理由。」等の不要な接頭辞を除去。内容・正解は妥当。 → 変更: choiceExplanations
+  [OK   ] saa-a692557f
+  [OK   ] clf-b70c786f
+  [OK   ] soa-d8e7fcb1
+  [OK   ] sap-0267b749
+  → 更新完了: OK=4 修正=1 削除=0
+  終了=22:04:51  経過=116秒
+
+--- チャンク 13/20: 5問  開始=22:04:51 ---
+⚠️  レート制限を検出。残りチャンクをスキップ
+stdout: You've hit your session limit · resets 10:10pm (Asia/Tokyo)
+
+完了サマリー: 問題なし=47問 / 自動修正=13問 / 削除=0問

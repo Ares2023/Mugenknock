@@ -15,7 +15,7 @@ import {
   IconHome,
   IconUser, IconChart,
   IconDumbbell, IconFire, IconMegaphone, IconBell, IconMenu, IconClose, IconChevronLeft, IconMail, IconInfo,
-  IconSparkles, IconBot, IconUserCircle, IconBookOpen,
+  IconSparkles, IconBot, IconUserCircle, IconBookOpen, IconBook, IconLayoutGrid, IconSwatchBook,
   IconSun, IconMoon, IconMore, IconChevronDown,
   EXAM_ICON_COMPONENTS,
 } from './Icons';
@@ -26,8 +26,8 @@ const NAV_KEYS = [
   { path: '/aws/',             labelKey: 'nav.home',         Icon: IconHome      },
   { path: '/aws/practice',     labelKey: 'nav.practice',     Icon: IconDumbbell  },
   { path: '/aws/mypage',       labelKey: 'nav.mypage',       Icon: IconUserCircle },
-  { path: '/aws/encyclopedia', labelKey: 'nav.encyclopedia', Icon: IconBookOpen, bottom: true },
-  { path: '/aws/growth',       labelKey: 'nav.growth',       Icon: IconBot, bottom: true },
+  { path: '/aws/encyclopedia', labelKey: 'nav.encyclopedia', Icon: IconLayoutGrid, bottom: true },
+  { path: '/aws/cheatsheet',    labelKey: 'nav.cheatsheet',   Icon: IconSwatchBook, bottom: true },
   { path: '/aws/announcements', labelKey: 'nav.announcements', Icon: IconMegaphone, bottom: true },
   { path: '/aws/release-notes', labelKey: 'nav.releaseNotes', Icon: IconFire, bottom: true },
 ];
@@ -39,8 +39,8 @@ const BOTTOM_TABS = [
 ];
 
 const OTHERS_ITEMS = [
-  { path: '/aws/encyclopedia',  Icon: IconBookOpen,  labelKey: 'nav.encyclopedia'  },
-  { path: '/aws/growth',        Icon: IconBot,       labelKey: 'nav.growth'        },
+  { path: '/aws/encyclopedia',  Icon: IconLayoutGrid,  labelKey: 'nav.encyclopedia'  },
+  { path: '/aws/cheatsheet',    Icon: IconSwatchBook,  labelKey: 'nav.cheatsheet'    },
   { path: '/aws/announcements', Icon: IconMegaphone, labelKey: 'nav.announcements' },
   { path: '/aws/release-notes', Icon: IconFire,      labelKey: 'nav.releaseNotes'  },
 ];
@@ -131,15 +131,26 @@ export default function Layout({ children }: { children: React.ReactNode }) {
   const TAB_PATHS_NORM = TAB_PATHS.map(p => p !== '/' ? p.replace(/\/$/, '') : p);
   const [swipeOffset, setSwipeOffset] = useState(0);
   const [swipeTrans, setSwipeTrans] = useState(false);
+  const [overlayOpacity, setOverlayOpacity] = useState(0);
+  const [overlayFading, setOverlayFading] = useState(false);
 
   const doTabNavigate = (nextPath: string, dir: 'left' | 'right') => {
+    // ① 現在画面をスライドアウト（240ms）
     const outX = dir === 'left' ? -window.innerWidth : window.innerWidth;
     setSwipeTrans(true);
     setSwipeOffset(outX);
     setTimeout(() => {
+      // ② 白オーバーレイを瞬時に全面表示してから navigate
+      setOverlayFading(false);
+      setOverlayOpacity(1);
       navigate(nextPath);
       setSwipeTrans(false);
       setSwipeOffset(0);
+      // ③ 次フレームでフェードアウト開始（新画面が下に描画済み）
+      requestAnimationFrame(() => requestAnimationFrame(() => {
+        setOverlayFading(true);
+        setOverlayOpacity(0);
+      }));
     }, 240);
   };
 
@@ -593,7 +604,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
   const breadcrumbs: Record<string, BreadcrumbItem[]> = {
     '/aws/practice':         [{ label: t('nav.home'), path: '/aws/' }, { label: t('nav.practice') }],
     '/aws/encyclopedia':     [{ label: t('nav.home'), path: '/aws/' }, { label: t('nav.encyclopedia') }],
-    '/aws/growth':           [{ label: t('nav.home'), path: '/aws/' }, { label: t('nav.growth') }],
+    '/aws/cheatsheet':       [{ label: t('nav.home'), path: '/aws/' }, { label: t('nav.cheatsheet') }],
     '/aws/exercise/session': [{ label: t('nav.home'), path: '/aws/' }, { label: t('nav.exerciseSession') }],
     '/aws/exam/setup':       [{ label: t('nav.home'), path: '/aws/' }, { label: t('examSetup.title') }],
     '/aws/exam/session':     [{ label: t('nav.home'), path: '/aws/' }, { label: t('examSetup.title'), path: '/aws/exam/setup' }, { label: t('nav.examSession') }],
@@ -964,6 +975,17 @@ export default function Layout({ children }: { children: React.ReactNode }) {
       {/* ── ボディ ── */}
       <div style={{ display: 'flex', flex: 1, overflow: 'hidden', position: 'relative' }}>
 
+        {/* スワイプ遷移フェードオーバーレイ */}
+        {isMobile && (
+          <div style={{
+            position: 'fixed', inset: 0, background: 'var(--color-bg-main)',
+            opacity: overlayOpacity,
+            transition: overlayFading ? 'opacity 0.3s ease' : 'none',
+            pointerEvents: overlayOpacity > 0 ? 'all' : 'none',
+            zIndex: 998,
+          }} />
+        )}
+
         {/* デスクトップ: サイドバーオーバーレイ（モバイルでは使わない） */}
         {!isMobile && open === false && false /* no overlay needed on desktop */ && (
           <div onClick={() => setOpen(false)} style={{
@@ -1113,8 +1135,41 @@ export default function Layout({ children }: { children: React.ReactNode }) {
           </nav>
         )}
 
+        {/* スワイプ矢印インジケーター */}
+        {isMobile && swipeOffset !== 0 && (() => {
+          const opacity = Math.min(Math.abs(swipeOffset) / SWIPE_THRESHOLD, 1);
+          const circleStyle: React.CSSProperties = {
+            position: 'fixed', top: '50%', transform: 'translateY(-50%)',
+            width: 44, height: 44, borderRadius: '50%',
+            border: '1px solid var(--color-border)',
+            background: 'var(--color-bg-white)',
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            pointerEvents: 'none', zIndex: 200,
+            color: 'var(--color-text-main)', opacity,
+          };
+          return (
+            <>
+              {swipeOffset < 0 && (
+                <div style={{ ...circleStyle, right: 12 }}>
+                  <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="m9 18 6-6-6-6"/>
+                  </svg>
+                </div>
+              )}
+              {swipeOffset > 0 && (
+                <div style={{ ...circleStyle, left: 12 }}>
+                  <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="m15 18-6-6 6-6"/>
+                  </svg>
+                </div>
+              )}
+            </>
+          );
+        })()}
+
         {/* メインコンテンツ */}
         <main
+          id="main-scroll"
           ref={mainRef}
           onTouchStart={isMobile ? handleTouchStart : undefined}
           onTouchMove={isMobile ? handleTouchMove : undefined}

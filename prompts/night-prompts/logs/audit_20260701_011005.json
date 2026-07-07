@@ -1,0 +1,361 @@
+[
+  {
+    "questionId": "aip-0e32421d",
+    "examType": "AIP",
+    "verdict": "warn",
+    "currentness": "ok",
+    "difficulty": "appropriate",
+    "scope": "in",
+    "format": "ok",
+    "mockSuitable": true,
+    "issues": [
+      "選択肢[1]Denied topicsと[2]Sensitive information filterはハルシネーション検出と無関係なことが一読で明らかで、実質[0]と[3]の二択に縮退する。プロフェッショナル試験としては誤答の妥当性が弱く、やや易しい",
+      "Contextual grounding checkという機能名を1つ知っていれば即答できる暗記寄りの面がある"
+    ]
+  },
+  {
+    "questionId": "aip-478ca46c",
+    "examType": "AIP",
+    "verdict": "ok",
+    "currentness": "ok",
+    "difficulty": "appropriate",
+    "scope": "in",
+    "format": "ok",
+    "mockSuitable": true,
+    "issues": []
+  },
+  {
+    "questionId": "aip-255e3806",
+    "examType": "AIP",
+    "verdict": "ok",
+    "currentness": "ok",
+    "difficulty": "appropriate",
+    "scope": "in",
+    "format": "ok",
+    "mockSuitable": true,
+    "issues": [
+      "選択肢[3]Toxicityは要約品質と無関係で捨て選択肢になっている点のみやや弱いが、人手評価・独自ROUGE実装との比較が成立しており全体は妥当"
+    ]
+  },
+  {
+    "questionId": "aip-b80f487b",
+    "examType": "AIP",
+    "verdict": "ok",
+    "currentness": "ok",
+    "difficulty": "appropriate",
+    "scope": "in",
+    "format": "ok",
+    "mockSuitable": true,
+    "issues": [
+      "選択肢[3]CloudWatchのトークン/エラー率は品質指標として明らかに不適で捨て選択肢。残り3択の弁別は良好"
+    ]
+  },
+  {
+    "questionId": "aip-bb6eed91",
+    "examType": "AIP",
+    "verdict": "warn",
+    "currentness": "ok",
+    "difficulty": "appropriate",
+    "scope": "in",
+    "format": "ok",
+    "mockSuitable": true,
+    "issues": [
+      "問題文は『マネージドな仕組みで両バージョンへトラフィックを分割』を要件とするが、正解[0]はトラフィック分割をアプリ側実装に依存しており、BedrockにプロンプトのネイティブA/B分割機能がない点と要件文の表現に軽い齟齬がある",
+      "選択肢[3]Bedrock Flowsで長い要約を採用は非現実的な捨て選択肢で誤答の質を下げている"
+    ]
+  },
+  {
+    "questionId": "aip-ef8b8bda",
+    "examType": "AIP",
+    "verdict": "ok",
+    "currentness": "ok",
+    "difficulty": "appropriate",
+    "scope": "in",
+    "format": "ok",
+    "mockSuitable": true,
+    "issues": []
+  },
+  {
+    "questionId": "aip-1c6451b3",
+    "examType": "AIP",
+    "verdict": "warn",
+    "currentness": "ok",
+    "difficulty": "appropriate",
+    "scope": "in",
+    "format": "ok",
+    "mockSuitable": true,
+    "issues": [
+      "シナリオと正解の論理に矛盾がある。ハイブリッド検索が追加する語彙的一致（BM25）は型番など具体語クエリの取得を強化するが、本問では具体語クエリは『既に正解が出る』とされ、失敗しているのは語彙的特徴の乏しい抽象・概念クエリ。語彙一致の追加は失敗ケースの直接的な根治になりにくく、本来はクエリ拡張/書き換え・埋め込みモデル/セマンティックチャンク見直し等が妥当。正解は4択中では最も妥当だが、解説の『抽象クエリにハイブリッドで網羅性向上』という根拠付けが甘く、知識のある受験者を混乱させうる"
+    ]
+  },
+  {
+    "questionId": "aip-c4d02d2c",
+    "examType": "AIP",
+    "verdict": "ok",
+    "currentness": "ok",
+    "difficulty": "appropriate",
+    "scope": "in",
+    "format": "ok",
+    "mockSuitable": true,
+    "issues": []
+  },
+  {
+    "questionId": "aip-8fe5a442",
+    "examType": "AIP",
+    "verdict": "ok",
+    "currentness": "ok",
+    "difficulty": "appropriate",
+    "scope": "in",
+    "format": "ok",
+    "mockSuitable": true,
+    "issues": []
+  },
+  {
+    "questionId": "saa-50634aa0",
+    "examType": "SAA",
+    "verdict": "ok",
+    "currentness": "ok",
+    "difficulty": "appropriate",
+    "scope": "in",
+    "format": "ok",
+    "mockSuitable": true,
+    "issues": []
+  },
+  {
+    "questionId": "saa-1bc92b70",
+    "examType": "SAA",
+    "verdict": "warn",
+    "currentness": "ok",
+    "difficulty": "too_easy",
+    "scope": "in",
+    "format": "ok",
+    "mockSuitable": true,
+    "issues": [
+      "要件キーワード『マイクロ秒』が問題文と正解選択肢[0]にのみ出現し、キーワード照合だけで正解が特定できてしまう（ひっかけ性が弱い）",
+      "DynamoDB＋マイクロ秒＝DAX は定番の即答パターンで、本番のシナリオ型に比べやや易しい"
+    ]
+  },
+  {
+    "questionId": "saa-1c15bb17",
+    "examType": "SAA",
+    "verdict": "ok",
+    "currentness": "ok",
+    "difficulty": "appropriate",
+    "scope": "in",
+    "format": "ok",
+    "mockSuitable": true,
+    "issues": []
+  },
+  {
+    "questionId": "saa-fc3c3eec",
+    "examType": "SAA",
+    "verdict": "warn",
+    "currentness": "outdated",
+    "difficulty": "appropriate",
+    "scope": "in",
+    "format": "ok",
+    "mockSuitable": true,
+    "issues": [
+      "『Amazon Kinesis Data Firehose』は2024年に『Amazon Data Firehose』へ名称変更済み。旧名称を現行として使用しており表記を更新すべき（機能・正解の妥当性自体は維持）"
+    ]
+  },
+  {
+    "questionId": "saa-5e81fa24",
+    "examType": "SAA",
+    "verdict": "ok",
+    "currentness": "ok",
+    "difficulty": "appropriate",
+    "scope": "in",
+    "format": "ok",
+    "mockSuitable": true,
+    "issues": []
+  },
+  {
+    "questionId": "saa-555363b2",
+    "examType": "SAA",
+    "verdict": "warn",
+    "currentness": "ok",
+    "difficulty": "too_easy",
+    "scope": "in",
+    "format": "ok",
+    "mockSuitable": true,
+    "issues": [
+      "『複数AZ・マネージド・共有ファイルストレージ』＝EFS はSAAの最頻出かつ教科書的な定番問題で、要件から正解が自明",
+      "不正解選択肢（単一NFSサーバ＝SPOF、相互同期スクリプト）が明らかに弱く、消去法で容易に絞れる。本番相当のひっかけ強度に達していない"
+    ]
+  },
+  {
+    "questionId": "saa-d19398a9",
+    "examType": "SAA",
+    "verdict": "ok",
+    "currentness": "ok",
+    "difficulty": "appropriate",
+    "scope": "in",
+    "format": "ok",
+    "mockSuitable": true,
+    "issues": []
+  },
+  {
+    "questionId": "saa-4e9bb879",
+    "examType": "SAA",
+    "verdict": "warn",
+    "currentness": "ok",
+    "difficulty": "too_easy",
+    "scope": "in",
+    "format": "ok",
+    "mockSuitable": true,
+    "issues": [
+      "『単一AZ→マルチAZ冗長化』という基礎レベルで、Multi-AZ RDSとASG+ALBという定番の正解が想起しやすい。誤答（同一AZリードレプリカ・スケールアップ・スナップショット）も明白に弱く、ひっかけとしての強度が低い。本番のシナリオ問題よりやや易しい。"
+    ]
+  },
+  {
+    "questionId": "saa-be238736",
+    "examType": "SAA",
+    "verdict": "ok",
+    "currentness": "ok",
+    "difficulty": "appropriate",
+    "scope": "in",
+    "format": "ok",
+    "mockSuitable": true,
+    "issues": []
+  },
+  {
+    "questionId": "saa-4cc8dcb8",
+    "examType": "SAA",
+    "verdict": "ok",
+    "currentness": "ok",
+    "difficulty": "appropriate",
+    "scope": "in",
+    "format": "ok",
+    "mockSuitable": true,
+    "issues": []
+  },
+  {
+    "questionId": "saa-2e3fb04c",
+    "examType": "SAA",
+    "verdict": "ok",
+    "currentness": "ok",
+    "difficulty": "appropriate",
+    "scope": "in",
+    "format": "ok",
+    "mockSuitable": true,
+    "issues": []
+  },
+  {
+    "questionId": "saa-e60ebd9d",
+    "examType": "SAA",
+    "verdict": "ok",
+    "currentness": "ok",
+    "difficulty": "appropriate",
+    "scope": "in",
+    "format": "ok",
+    "mockSuitable": true,
+    "issues": []
+  },
+  {
+    "questionId": "saa-4114e31a",
+    "examType": "SAA",
+    "verdict": "ok",
+    "currentness": "ok",
+    "difficulty": "appropriate",
+    "scope": "in",
+    "format": "ok",
+    "mockSuitable": true,
+    "issues": [
+      "KMSグラントはSAAの中ではやや専門的だが範囲内・現行仕様と整合しており妥当"
+    ]
+  },
+  {
+    "questionId": "saa-9af5cb26",
+    "examType": "SAA",
+    "verdict": "warn",
+    "currentness": "ok",
+    "difficulty": "too_easy",
+    "scope": "in",
+    "format": "ok",
+    "mockSuitable": true,
+    "issues": [
+      "選択肢Dの『全ユーザーにフルアクセス＋CloudTrailで事後検知』が明らかに不適切で消去法が容易。ABACの正解が用語想起で当てやすく、本番のひっかけ強度にやや不足"
+    ]
+  },
+  {
+    "questionId": "saa-27abe12c",
+    "examType": "SAA",
+    "verdict": "ok",
+    "currentness": "ok",
+    "difficulty": "appropriate",
+    "scope": "in",
+    "format": "ok",
+    "mockSuitable": true,
+    "issues": []
+  },
+  {
+    "questionId": "saa-ce1211cc",
+    "examType": "SAA",
+    "verdict": "ok",
+    "currentness": "ok",
+    "difficulty": "appropriate",
+    "scope": "in",
+    "format": "ok",
+    "mockSuitable": true,
+    "issues": []
+  },
+  {
+    "questionId": "saa-6057708e",
+    "examType": "SAA",
+    "verdict": "ok",
+    "currentness": "ok",
+    "difficulty": "appropriate",
+    "scope": "in",
+    "format": "ok",
+    "mockSuitable": true,
+    "issues": []
+  },
+  {
+    "questionId": "saa-7ecf27a2",
+    "examType": "SAA",
+    "verdict": "ok",
+    "currentness": "ok",
+    "difficulty": "appropriate",
+    "scope": "in",
+    "format": "ok",
+    "mockSuitable": true,
+    "issues": []
+  },
+  {
+    "questionId": "saa-543f70f7",
+    "examType": "SAA",
+    "verdict": "ok",
+    "currentness": "ok",
+    "difficulty": "appropriate",
+    "scope": "in",
+    "format": "ok",
+    "mockSuitable": true,
+    "issues": []
+  },
+  {
+    "questionId": "saa-e3235bc7",
+    "examType": "SAA",
+    "verdict": "ok",
+    "currentness": "ok",
+    "difficulty": "appropriate",
+    "scope": "in",
+    "format": "ok",
+    "mockSuitable": true,
+    "issues": []
+  },
+  {
+    "questionId": "aif-b4fa30be",
+    "examType": "AIF",
+    "verdict": "warn",
+    "currentness": "ok",
+    "difficulty": "too_easy",
+    "scope": "in",
+    "format": "hard_to_read",
+    "mockSuitable": true,
+    "issues": [
+      "解説に「マネージドなマネージドAPI経由」という重複した誤記があり推敲不足",
+      "不正解の選択肢C/D（重み完全公開・ゼロから事前学習必須）が露骨に誤りでひっかけとして弱く、AIFとしても一読で正解が判別できる易しめの問題"
+    ]
+  }
+]

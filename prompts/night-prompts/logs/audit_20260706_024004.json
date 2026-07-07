@@ -1,0 +1,63 @@
+[
+  {
+    "questionId": "clf-637af08d",
+    "examType": "CLF",
+    "verdict": "warn",
+    "currentness": "ok",
+    "difficulty": "appropriate",
+    "scope": "in",
+    "format": "ok",
+    "mockSuitable": true,
+    "issues": [
+      "実測正答率20%はCLFとして低め（悪問疑いの閾値付近）。App Runnerの認知度がElastic Beanstalkより低いため多くの受験者がDを選んでいる可能性が高い。正解・解説の内容は現行仕様と一致しており事実上の問題はない。ただし選択肢DのElastic Beanstalkについて『EC2ベースであり管理が多い』という否定理由だけでは弱い。Elastic BeanstalkもLB/オートスケーリングを自動構成するため要件を満たしうるように見える点を補足し、App Runnerとの差別化（インフラ概念が完全に抽象化されている点）をより明確に解説に追記すべき。"
+    ]
+  },
+  {
+    "questionId": "clf-3405ed73",
+    "examType": "CLF",
+    "verdict": "warn",
+    "currentness": "ok",
+    "difficulty": "too_hard",
+    "scope": "in",
+    "format": "ok",
+    "mockSuitable": true,
+    "issues": [
+      "実測正答率14%は悪問疑いの閾値（20%以下）を下回っており、精査が必要。正解はEventBridgeで内容は正しいが、CLF受験者がSNSを選ぶのは自然（ファンアウト通知のイメージが強い）。解説がSNSを排除する肝心な根拠（SNSはEC2起動・停止などのAWSサービス状態変化イベントを直接受信できず、EventBridgeを介す必要がある）を明記していないため、受験者が誤った選択肢に納得できない可能性が高い。シナリオの複雑さ（複数サービス同時ルーティング・ルールベース振り分け）はCLFよりSAA/DVA向けの難易度。SNSの否定理由を技術的に補強するか、CLF向けにシナリオを単純化することを推奨。"
+    ]
+  },
+  {
+    "questionId": "scs-7c893f37",
+    "examType": "SCS",
+    "verdict": "ok",
+    "currentness": "ok",
+    "difficulty": "appropriate",
+    "scope": "in",
+    "format": "ok",
+    "mockSuitable": true,
+    "issues": []
+  },
+  {
+    "questionId": "scs-f7bfc5da",
+    "examType": "SCS",
+    "verdict": "ok",
+    "currentness": "ok",
+    "difficulty": "appropriate",
+    "scope": "in",
+    "format": "ok",
+    "mockSuitable": true,
+    "issues": []
+  },
+  {
+    "questionId": "scs-0d0c920d",
+    "examType": "SCS",
+    "verdict": "warn",
+    "currentness": "ok",
+    "difficulty": "appropriate",
+    "scope": "in",
+    "format": "ok",
+    "mockSuitable": true,
+    "issues": [
+      "選択肢Aの排除理由に事実の不正確さあり。CloudFormation StackSetsはサービスマネージドアクセス許可＋「自動デプロイ」を有効にすることで、Organizationsへ新規参加したアカウントへ追加の手動作業なしに自動デプロイできる（AWS Organizations統合機能）。したがって『新規アカウントオンボード時に毎回StackSetsを実行する追加作業が生じる』という解説は不正確。正解（選択肢B）の優位性は正しいが、Aの否定理由は『各メンバーアカウントにリソースが分散するため運用・変更管理の負荷が高く、デプロイ完了まで新規アカウントが保護されない空白時間が生じる』等の観点に修正すべき。"
+    ]
+  }
+]

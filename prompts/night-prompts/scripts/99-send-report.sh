@@ -676,6 +676,149 @@ if [ -x "$_BH_SCRIPT" ]; then
 fi
 echo "$BACKEND_HEALTH" | sed 's/^/  /'
 
+# ── 4.8 テストユーザー データ整合性チェック ──────────────────────
+echo ""
+echo "--- [4.8] テストユーザー データ整合性チェック ---"
+
+TEST_USER_ID="0734fa28-60c1-707d-f888-f2cb860e561d"
+TEST_USER_SNAPSHOT="$_d/state/test_user_snapshot.json"
+TODAY_DATE=$(TZ='Asia/Tokyo' date '+%Y-%m-%d')
+
+TEST_USER_CHECK=$(AWS_BIN="$AWS" REGION="$REGION" USERID="$TEST_USER_ID" \
+  SNAPSHOT_FILE="$TEST_USER_SNAPSHOT" TODAY_DATE="$TODAY_DATE" python3 << 'PYEOF'
+import os, json, subprocess, datetime
+
+aws  = os.environ['AWS_BIN']
+reg  = os.environ['REGION']
+uid  = os.environ['USERID']
+snap = os.environ['SNAPSHOT_FILE']
+today = os.environ['TODAY_DATE']
+
+def dynamo_get(table, key_json):
+    r = subprocess.run(
+        [aws, 'dynamodb', 'get-item', '--table-name', table,
+         '--key', key_json, '--region', reg],
+        capture_output=True, text=True, timeout=20)
+    if r.returncode != 0:
+        return None
+    try:
+        return json.loads(r.stdout).get('Item')
+    except Exception:
+        return None
+
+def dynamo_query(table, key_expr, expr_vals):
+    r = subprocess.run(
+        [aws, 'dynamodb', 'query', '--table-name', table,
+         '--key-condition-expression', key_expr,
+         '--expression-attribute-values', json.dumps(expr_vals),
+         '--region', reg, '--select', 'COUNT'],
+        capture_output=True, text=True, timeout=20)
+    if r.returncode != 0:
+        return None
+    try:
+        return json.loads(r.stdout).get('Count')
+    except Exception:
+        return None
+
+lines = ['テストユーザー (yuzukisera00@gmail.com) データ整合性チェック']
+issues = []
+
+# ── 1. 今日の演習量 (dailyProgress) ──
+daily_key = json.dumps({'settingId': {'S': f'dailyProgress_{uid}'}})
+daily_item = dynamo_get('AppSettings', daily_key)
+today_count = 0
+if daily_item:
+    attr_key = f'DOP_{today}'
+    v = daily_item.get(attr_key, {}).get('N')
+    today_count = int(v) if v else 0
+    lines.append(f'今日の演習量: {today_count} 問 ({today})')
+else:
+    lines.append('今日の演習量: データなし')
+
+# ── 2. UserTagStats 件数 (distinct tagId 数) ──
+tag_count = dynamo_query(
+    'UserTagStats',
+    'userId = :uid',
+    {':uid': {'S': uid}}
+)
+if tag_count is None:
+    lines.append('UserTagStats: クエリ失敗')
+    issues.append('UserTagStats クエリ失敗')
+else:
+    lines.append(f'UserTagStats エントリ数: {tag_count} tagId')
+
+# ── 3. resetAt チェック ──
+reset_key = json.dumps({'settingId': {'S': f'userReset_{uid}'}})
+reset_item = dynamo_get('AppSettings', reset_key)
+reset_at = reset_item.get('resetAt', {}).get('S', '') if reset_item else ''
+lines.append(f'resetAt: {reset_at if reset_at else "なし"}')
+
+# ── 4. スナップショット比較 ──
+prev = {}
+if os.path.exists(snap):
+    try:
+        prev = json.load(open(snap))
+    except Exception:
+        pass
+
+prev_tag_count = prev.get('tag_count')
+prev_reset_at  = prev.get('reset_at', '')
+
+if prev_tag_count is not None and tag_count is not None:
+    diff = tag_count - prev_tag_count
+    if diff < -2:
+        msg = f'⚠ UserTagStats が前回より {abs(diff)} tagId 減少 ({prev_tag_count} → {tag_count})'
+        lines.append(msg)
+        issues.append(msg)
+    elif diff < 0:
+        lines.append(f'UserTagStats 微減: {prev_tag_count} → {tag_count}（許容範囲）')
+    else:
+        lines.append(f'UserTagStats 増減: {prev_tag_count} → {tag_count}（正常）')
+else:
+    lines.append('スナップショット比較: 前回データなし（初回実行）')
+
+if prev_reset_at and prev_reset_at != reset_at:
+    msg = f'⚠ resetAt 変化: {prev_reset_at} → {reset_at if reset_at else "なし"}'
+    lines.append(msg)
+    issues.append(msg)
+
+# ── 5. 演習量 vs tagId の整合性チェック ──
+# tagId 1件につき最大10問なので、today_count > 0 かつ tag_count == 0 は明らかな異常
+if today_count > 5 and tag_count is not None and tag_count == 0:
+    msg = f'✖ 演習量 {today_count} 問あるが UserTagStats が 0 — データ消失の可能性'
+    lines.append(msg)
+    issues.append(msg)
+elif today_count > 0 and tag_count is not None:
+    # 10問/tagId なので tag_count * 10 < today_count は怪しい
+    max_expected = tag_count * 10
+    if today_count > max_expected + 5:
+        msg = f'⚠ 演習量 ({today_count}) が UserTagStats ({tag_count} tagId, 最大 {max_expected} 問) を大幅に超過'
+        lines.append(msg)
+        issues.append(msg)
+
+if issues:
+    lines.append(f'--- {len(issues)}件の問題を検出 ---')
+else:
+    lines.append('✅ 整合性OK（問題なし）')
+
+# ── 6. スナップショット保存 ──
+new_snap = {
+    'date': today,
+    'tag_count': tag_count,
+    'today_count': today_count,
+    'reset_at': reset_at,
+}
+try:
+    with open(snap, 'w') as f:
+        json.dump(new_snap, f, ensure_ascii=False)
+except Exception as e:
+    lines.append(f'スナップショット保存失敗: {e}')
+
+print('\n'.join(lines))
+PYEOF
+)
+echo "$TEST_USER_CHECK" | sed 's/^/  /'
+
 # ── 5. メール生成・送信 ────────────────────────────────────────
 echo ""
 echo "--- [5] メール送信 ---"
@@ -708,6 +851,7 @@ data = {
     'canary_auth':sys.argv[21],
     'cognito_new':sys.argv[22],
     'canary_auth_d':sys.argv[23],
+    'test_user_check':sys.argv[24],
 }
 with open('$REPORT_DATA_FILE', 'w') as f:
     json.dump(data, f, ensure_ascii=False)
@@ -720,7 +864,7 @@ with open('$REPORT_DATA_FILE', 'w') as f:
   "$DB_GEN3D" "$DB_CHK3D" \
   "$AUDIT_SUMMARY" "$CANARY_COV_SUMMARY" "$DAILY_SUMMARY" \
   "$BACKEND_HEALTH" "$CANARY_AUTH_RESULT" "$COGNITO_NEW" \
-  "${CANARY_AUTH_DETAIL:-}"
+  "${CANARY_AUTH_DETAIL:-}" "$TEST_USER_CHECK"
 
 # HTML生成＋メール送信を1つのPythonスクリプトで実行
 SEND_RESULT=$(REPORT_DATA_FILE="$REPORT_DATA_FILE" python3 << 'PYEOF'
@@ -815,6 +959,9 @@ audit_html      = audit_to_html(d.get('audit', '監査未実施'))
 canary_cov_html = audit_to_html(d.get('canary_cov', '整合性チェック未実施'))
 daily_html      = e_lines(d.get('daily', '日めくり情報なし'))
 backend_html    = e_lines(d.get('backend', '未取得'))
+test_user_html  = audit_to_html(d.get('test_user_check', 'チェック未実施'))
+test_user_raw   = str(d.get('test_user_check', ''))
+test_user_has_issue = any(m in test_user_raw for m in ('⚠', '✖', '問題を検出'))
 
 cognito_raw     = str(d.get('cognito_new', '')).strip()
 cognito_has_new = bool(cognito_raw) and not cognito_raw.startswith('新規登録なし') and '取得失敗' not in cognito_raw
@@ -899,6 +1046,9 @@ html_body = f"""<!DOCTYPE html>
 
 <h2>7. バックエンド稼働・コスト（直近24h）</h2>
 <div class="card" style="font-size:13px;line-height:1.7">{backend_html}</div>
+
+<h2 style="border-left-color:{'#e74c3c' if test_user_has_issue else '#ff9900'}">8. テストユーザー データ整合性（yuzukisera00）</h2>
+<div class="card" style="font-size:13px;line-height:1.7;{'background:#fef9f0;border:1px solid #e67e22' if test_user_has_issue else ''}">{test_user_html}</div>
 
 <hr style="border:none;border-top:1px solid #eee;margin-top:24px;">
 <p style="color:#aaa;font-size:11px;">無限ノック 自動レポート | <a href="https://mugenknock.com">mugenknock.com</a></p>

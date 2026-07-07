@@ -1,0 +1,76 @@
+[
+  {
+    "questionId": "saa-50634aa0",
+    "examType": "SAA",
+    "verdict": "ok",
+    "currentness": "ok",
+    "difficulty": "appropriate",
+    "scope": "in",
+    "format": "ok",
+    "mockSuitable": true,
+    "issues": []
+  },
+  {
+    "questionId": "saa-1bc92b70",
+    "examType": "SAA",
+    "verdict": "warn",
+    "currentness": "ok",
+    "difficulty": "too_easy",
+    "scope": "in",
+    "format": "ok",
+    "mockSuitable": true,
+    "issues": [
+      "「マイクロ秒」というキーワードがDAXを直接想起させ、本番のシナリオ問題より正解が特定しやすい。不正解選択肢も明確に外れるため、ひっかけの妙がやや弱い"
+    ]
+  },
+  {
+    "questionId": "saa-1c15bb17",
+    "examType": "SAA",
+    "verdict": "ok",
+    "currentness": "ok",
+    "difficulty": "appropriate",
+    "scope": "in",
+    "format": "ok",
+    "mockSuitable": true,
+    "issues": []
+  },
+  {
+    "questionId": "saa-fc3c3eec",
+    "examType": "SAA",
+    "verdict": "warn",
+    "currentness": "uncertain",
+    "difficulty": "appropriate",
+    "scope": "in",
+    "format": "ok",
+    "mockSuitable": true,
+    "issues": [
+      "Kinesis Data Firehose は2024年に「Amazon Data Firehose」へ名称変更されており、現行名称への更新が望ましい（機能・正解の妥当性自体は現行で問題なし）",
+      "正解と不正解の差別化（MSK Connect・Glue ストリーミング ETL との比較）は妥当で本番相当だが、Firehose の Parquet 変換は定番パターンでやや想起しやすい"
+    ]
+  },
+  {
+    "questionId": "saa-5e81fa24",
+    "examType": "SAA",
+    "verdict": "ok",
+    "currentness": "ok",
+    "difficulty": "appropriate",
+    "scope": "in",
+    "format": "ok",
+    "mockSuitable": true,
+    "issues": []
+  },
+  {
+    "questionId": "saa-555363b2",
+    "examType": "SAA",
+    "verdict": "warn",
+    "currentness": "ok",
+    "difficulty": "too_easy",
+    "scope": "in",
+    "format": "ok",
+    "mockSuitable": true,
+    "issues": [
+      "マルチAZ共有ストレージ＝EFS は SAA の定番中の定番で、EFS を知っていれば一読で正解が自明。EBS Multi-Attach のひっかけは効いているが全体としてやや易しい",
+      "不正解の選択肢（単一NFSサーバー・同期スクリプト）が明らかに弱く、消去法で容易に絞れる"
+    ]
+  }
+]

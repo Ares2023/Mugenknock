@@ -1,0 +1,15 @@
+=== 2026-07-02 02:17:21 | canary-coverage-check.sh | exit:0 ===
+==========================================
+カナリア整合性チェック 開始: Thu Jul  2 02:15:07 JST 2026
+==========================================
+現在のルート数: 27
+Opusで整合性を判定中...
+所見: カナリアの参照ルートに陳腐化（存在しない/改名パス）は無く、既存テストは全て有効。ただし公開SSGのSEO詳細ページ3種（/exam-guide/[type]・/services/[name]・/questions/[examType]/[questionId]）がスモーク対象から漏れている。認証必須ページ（/aws/*・/account・/admin）は対象外のまま維持。
+  - 公開の試験別ガイド詳細 /exam-guide/[type] が未テスト（EXAM_TYPESから /exam-guide/SAA が確定的に到達可）
+  - 公開のサービス詳細 /services/[name] が未テスト（toSlug('EC2')='ec2' でserviceIds有りのため /services/ec2 が確定的に生成される）
+  - 公開の練習問題詳細 /questions/[examType]/[questionId] が未テスト。questionIdはDB由来で非確定的なため直リンクは陳腐化しやすい→一覧ページからのクリック導線で被覆（データ0件時はskip）
+更新版specを検証中（playwright --list）...
+✅ 検証OK。更新版specを適用しました。
+
+レポート: /home/yuzuki/aws-quiz-app/prompts/night-prompts/logs/canary-coverage_20260702_021507.md
+カナリア整合性チェック 終了: Thu Jul  2 02:17:21 JST 2026

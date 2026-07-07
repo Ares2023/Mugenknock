@@ -1,0 +1,119 @@
+=== 2026-07-05 01:45:07 | 99-send-report.sh | exit:0 ===
+==========================================
+日次レポート生成 開始: 2026-07-05 00:40 JST
+==========================================
+
+--- [1] AWS資格公式情報 変更チェック ---
+  フェーズ1完了: has_changes=False
+  直近3日以内の変更声明なし
+
+--- [2] 夜間スクリプト成果集計 ---
+  生成: 合計 34問生成
+  妥当性: 合計: 確認140件（問題なし=99 自動修正=41 削除=0）
+  通報: 2026-07-04: 12件処理
+
+--- [3] DynamoDB稼働状況 ---
+  総問題数: 3705 問
+  直近3日 新規生成(createdAt): 46 問
+  直近3日 確認済み(validityCheckedAt): 119 問
+  未妥当性確認: 0 問
+  未解決通報: 4 件
+  資格別:
+  CLF: 298問
+  AIF: 311問
+  SAA: 308問
+  DVA: 306問
+  SOA: 306問
+  DEA: 298問
+  MLA: 294問
+  SAP: 309問
+  DOP: 373問
+  AIP: 298問
+  SCS: 295問
+  ANS: 309問
+
+--- [3b] Cognito 新規ユーザー（前日） ---
+  新規登録なし
+
+--- [4] canary テスト ---
+  ✅ PASS (passed=21 failed=0 warnings=0)
+  失敗詳細:
+    [練習問題一覧（SAA）] ❌ Console Errors (8):
+    [練習問題一覧（SAA）] 🌐 Network Errors (8):
+    [CTA クリック] ❌ Console Errors (1):
+    [練習問題詳細] ❌ Console Errors (9):
+    [練習問題詳細] 🌐 Network Errors (9):
+      ログ:    s3://mugenknock-error-logs/canary-logs/staging/20260705-004208.log
+      サマリー: s3://mugenknock-error-logs/canary-logs/staging/20260705-004208.json
+  認証カナリア: ✅ PASS (passed=8 failed=2)
+
+--- [4.5] 監査・改良 / カナリア整合性 / 日めくり 集計 ---
+  監査 30問（CLF/DOP/SCS）: OK 22 / 注意 5 / 要修正 3
+  【指摘のあった問題】
+  ⚠ clf-637af08d
+  ・正解のApp Runnerは正しく現行サービスだが、Elastic Beanstalkもインフラ管理不要でLB/ASGを自動構成するため強い引っかけになっており、実測正答率20%(10件)の低さはこの紛らわしさを裏付ける。解説でBeanstalkとの決定的な差(コンテナ/ソースから直接・完全抽象化)をより明確に示すと良い
+  ・App RunnerはCLFとしてはやや踏み込んだサービスだが範囲内で許容
+  ⚠ clf-3405ed73
+  ・正解EventBridgeは正しいが、実測正答率14%(14件)と極端に低い。『同時に通知』『複数ターゲット』の表現はSNSのファンアウトを強く連想させ、ルールベース振り分けという差別化要因を読み取れないと誤答しやすい。CLFとしてはやや難度が高くSNSとの識別が過度に紛らわしい
+  ✖ dop-q-039（難易度: too_easy）
+  ・『Service Catalogの主な目的は？』という単なる用語定義の暗記問題で、DOP(Professional)の水準に達していない。本番はシナリオベースで要件比較を要する。誤答選択肢も別サービスの説明で一読で消去可能
+  ・Professional試験としては明らかに易しすぎる
+  ✖ dop-q-049（難易度: too_easy）
+  ・ECSタスク定義のCPU/メモリ制限の目的を問う単一概念の定義問題。ひっかけはあるが正解が自明で、シナリオや要件の取捨選択がなくDOP(Professional)の難易度に届かない
+  ✖ dop-q-024（難易度: too_easy）
+  ・GuardDutyとSecurity Hubの違いを問う基礎的な暗記問題。選択肢C(機能が全く同じでリージョンが違うだけ)やD(VPCフローログ分析専用)は明らかに誤りで容易に消去でき、Associate以下の水準。DOP(Professional)のシナリオ問題として不適切
+  ⚠ dop-13c0ce8e
+  ・設問文と解説が「既存および新規のログイベントをマスキングできる」としているが、CloudWatch Logsのデータ保護ポリシーは取り込み時にマスクする仕様で、ポリシー適用前に取り込まれた既存ログイベントはマスクされない（公式明記）。要件・解説に事実の過大主張がある。選択肢[1]自体は相対比較で最良であり正解設定・logs:Unmaskの記述は正しい
+  ⚠ dop-16f63ec2（難易度: too_easy）
+  ・メトリクスフィルター→アラームは定番パターンで、DevOpsプロレベルとしてはやや易しめ。ただしFirehose+Athena・Logs Insights等の比較を要する点で許容範囲
+  ⚠ dop-98d2c412（難易度: too_easy）
+  ・Config（何が変わったか）とCloudTrail（誰がいつ変えたか）の組み合わせは根本原因分析の定番で、DOPとしてはやや自明。誤答のGuardDuty/Trusted Advisor/Inspectorはいずれも構成変更追跡と無関係で消去が容易なため、ひっかけとしての紛らわしさが弱い
+  【プロンプト自動改良】 適用 3件 / 見送り 0件
+  方針: 監査で最多だったDOPの用語定義・単一概念の暗記問題（模試不適・易しすぎ）と、ユーザー通報で確定した「正解選択肢が自己解説的・過長で正解が特定できる」誤り、および解説の機能過大主張を再発防止する。生成側(DOP.txt/_common-rules.txt)で禁止事項を明確化し、検証側(_validity-extra.txt)に検出観点を追加。CLFは同系統サービスの過度に微妙な識別で正答率が極端に下がる問題を避ける注意を1行追記。いずれも追記・小修正のみ。
+  ✅ _common-rules.txt: ユーザー通報で確定したDOPの choice_error（正解選択肢だけが自己解説的な末尾を持ち内容・長さの両面で正解が露見）に対応。既存の『不正解の自己否定文禁止』『最長を正解にしない』の隣に、正解側の自己解説末尾を禁じる規則を追記して対を成す。
+  ✅ DOP.txt: 監査でng判定が集中したDOPの用語定義・単一概念・2サービスの違いを問う暗記問題（Professional水準未達）に対応。【避けること】に具体例付きで禁止し、複数要件のシナリオ比較を必須化。
+  ✅ _validity-extra.txt: 検証(02)が見逃した3種の誤りを検出する観点を追加：(1)プロ資格の用語定義・違い暗記問題（模試不適/易しすぎ）、(2)正解選択肢の自己解説的末尾による正解特定、(3)機能の適用範囲・タイミングの過大主張（CloudWatch Logsマスキングの遡及不可）。CLFの過度に微妙な識別による極端な低正答率も1行追加。
+  所見: 現行のapp/ルートとカナリアspecはほぼ整合しており、陳腐化（存在しない/改名ルートを指すテスト）は無い。ユーザー向け公開ページ（/, /about, /encyclopedia, /privacy-policy, /exam-guide[/type], /services[/name], /questions/[type][/id], /login）は全てカバー済み。唯一、公開ながら未カバーの `/admin-login`（未ログインで到達可・Amplify Authenticatorのemail入力を描画、リダイレクトしない）だけスモークが欠けていたため、既存の『ページ表示チェック』様式で1行追記した。
+  カバー漏れ/陳腐化: 3件
+  ・カバー漏れ: /admin-login が未ログインで到達可能な公開ルート（AdminLogin が Amplify Authenticator を描画、認証前でもリダイレクトせず表示される）にも関わらず、canary.noauth.spec.ts のページ表示チェックに含まれていない。→ 既存様式で input[type="email"] の表示確認を追記。
+  ・陳腐化: 検出なし。テスト対象パス（/services/ec2, /exam-guide/SAA, /questions/SAA 等）は全て app/ に実在し、改名・削除されたルートを指すテストは無い。
+  ・対象外の確認: /aws/*・/account・/admin は認証必須のため no-auth カナリア対象外として据え置き（テスト追加せず）。
+  対応: specを更新（検証OK=playwright --list 成功）。 / バックアップ: /home/yuzuki/aws-quiz-app/prompts/night-prompts/logs/canary-coverage_20260704_054505_spec.bak
+  生成: 2026-07-04 完了: Sat Jul  4 05:39:10 JST 2026
+  検証: 2026-07-04 完了サマリー: 問題なし=26件 / 自動修正=4件 / 削除=0件
+  Lambda(直近24h):
+    ⚠️ prod: 実行9713 エラー1 スロットル0 最大29000ms
+    dev: 実行674 エラー0 スロットル0 最大1197ms
+  API(prod,24h): リクエスト10279 ⚠️ 5xx=4 4xx=0 p99=1016ms
+  ⚠️ 本番エラーログ(prod,24h): 9件
+    ・2026-07-04T08:36:55.614Z 73d2f7cd-0717-4840-922e-461756542abc INFO ERROR: @vendia/serverless-express connection error
+    ・2026-07-04T08:36:55.614Z 73d2f7cd-0717-4840-922e-461756542abc ERROR Error: read ECONNRESET at Pipe.onStreamRead (node:internal/stream_base_commons:216:20) { err
+    ・2026-07-04T12:24:00.044Z c8f71b26-02d2-4ec0-9fc4-dcd2933c4f29 INFO EVENT: {"resource":"/sessions/{proxy+}","path":"/sessions/b01d677b-f156-4759-bcaf-98392af51da
+  AWSコスト(2026-07-03): $0.13 （前日比 ▲81%）
+    ・Amazon DynamoDB: $0.08
+    ・AWS Key Management Service: $0.03
+    ・AWS Cost Explorer: $0.01
+
+--- [4.8] テストユーザー データ整合性チェック ---
+Traceback (most recent call last):
+  File "<stdin>", line 40, in <module>
+  File "<stdin>", line 10, in dynamo_get
+  File "/usr/lib/python3.12/subprocess.py", line 550, in run
+    stdout, stderr = process.communicate(input, timeout=timeout)
+                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/lib/python3.12/subprocess.py", line 1209, in communicate
+    stdout, stderr = self._communicate(input, endtime, timeout)
+                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/lib/python3.12/subprocess.py", line 2116, in _communicate
+    self._check_timeout(endtime, orig_timeout, stdout, stderr)
+  File "/usr/lib/python3.12/subprocess.py", line 1253, in _check_timeout
+    raise TimeoutExpired(
+subprocess.TimeoutExpired: Command '['/home/yuzuki/local/bin/aws', 'dynamodb', 'get-item', '--table-name', 'AppSettings', '--key', '{"settingId": {"S": "dailyProgress_0734fa28-60c1-707d-f888-f2cb860e561d"}}', '--region', 'ap-northeast-1']' timed out after 20 seconds
+  
+
+--- [5] メール送信 ---
+  ✅ メール送信完了 → mugenknock@gmail.com
+
+==========================================
+日次レポート 完了: 2026-07-05 00:45 JST
+==========================================

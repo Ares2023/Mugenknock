@@ -1,0 +1,179 @@
+[
+  {
+    "questionId": "clf-637af08d",
+    "examType": "CLF",
+    "verdict": "warn",
+    "currentness": "ok",
+    "difficulty": "appropriate",
+    "scope": "in",
+    "format": "ok",
+    "mockSuitable": true,
+    "issues": [
+      "実測正答率20%（10件）はCLFとして低め。正解のApp Runnerは現行サービスで技術的に正しいが、Elastic Beanstalkに比べ知名度が低く誤選されやすい。App Runnerが「LB/オートスケーリング設定ゼロ」なのに対しElastic Beanstalkは「最小限の設定が必要」という差異が、解説では『より多くの管理が発生します』の一言に留まっており、この差異をもう少し明確に示すと正答率が改善する可能性がある。問題の成立自体に問題はない。"
+    ]
+  },
+  {
+    "questionId": "clf-3405ed73",
+    "examType": "CLF",
+    "verdict": "ng",
+    "currentness": "ok",
+    "difficulty": "too_hard",
+    "scope": "in",
+    "format": "ok",
+    "mockSuitable": false,
+    "issues": [
+      "実測正答率14%（14件）は悪問疑いライン（20%以下）を大幅に下回る。正解はEventBridgeで正しく、選択肢別解説の内容も正確。しかし『EC2サービスイベントを直接受信し、Lambda・SQS・Slack APIエンドポイントへ同時ルーティング』という統合アーキテクチャの詳細はSAA/SAP相当の知識であり、CLF向けの設問としては難易度過多。SNSも『複数ターゲットへのファンアウト』として魅力的な選択肢に見えるが、SNSがEC2ライフサイクルイベントを直接受信できないという仕様差はCLFで問いにくい粒度。SAA向け問題として再分類するか、CLF向けに『イベント駆動で単純なルーティング』程度のシナリオに簡略化することを推奨。"
+    ]
+  },
+  {
+    "questionId": "sap-b89a4e75",
+    "examType": "SAP",
+    "verdict": "ok",
+    "currentness": "ok",
+    "difficulty": "appropriate",
+    "scope": "in",
+    "format": "ok",
+    "mockSuitable": true,
+    "issues": []
+  },
+  {
+    "questionId": "sap-b40b6f25",
+    "examType": "SAP",
+    "verdict": "warn",
+    "currentness": "ok",
+    "difficulty": "appropriate",
+    "scope": "in",
+    "format": "ok",
+    "mockSuitable": true,
+    "issues": [
+      "Application Discovery ServiceのAgentless Collector（エージェントレスコレクター）はVMware vCenter環境専用であり、非VMwareのベアメタルや他のハイパーバイザーには使用できない。問題文には『オンプレミスのデータセンター2拠点』とのみ記載されVMware環境かどうか明示されておらず、解説にも補足がない。非VMware環境ではエージェントを導入できないサーバーの収集手段が実質存在しないことになるため、SAP受験者には仕様齟齬として映る。問題文か解説に『VMware vCenter環境を含む』旨を補記して前提を明示することを推奨。"
+    ]
+  },
+  {
+    "questionId": "sap-d40e1ed8",
+    "examType": "SAP",
+    "verdict": "ok",
+    "currentness": "ok",
+    "difficulty": "appropriate",
+    "scope": "in",
+    "format": "ok",
+    "mockSuitable": true,
+    "issues": []
+  },
+  {
+    "questionId": "sap-f04c7e4d",
+    "examType": "SAP",
+    "verdict": "ok",
+    "currentness": "ok",
+    "difficulty": "appropriate",
+    "scope": "in",
+    "format": "ok",
+    "mockSuitable": true,
+    "issues": []
+  },
+  {
+    "questionId": "sap-d9a02639",
+    "examType": "SAP",
+    "verdict": "ok",
+    "currentness": "ok",
+    "difficulty": "appropriate",
+    "scope": "in",
+    "format": "ok",
+    "mockSuitable": true,
+    "issues": []
+  },
+  {
+    "questionId": "sap-1da40fd4",
+    "examType": "SAP",
+    "verdict": "warn",
+    "currentness": "ok",
+    "difficulty": "appropriate",
+    "scope": "in",
+    "format": "ok",
+    "mockSuitable": true,
+    "issues": [
+      "選択肢3の選択肢別解説に『S3・DynamoDBへインターネットゲートウェイ経由でアクセスしてもパブリック経路のデータ転送料金は発生し』とあるが、同一リージョン内のEC2↔S3データ転送は経路（IGW経由含む）によらず無料であり技術的に不正確。誤答の補足説明内の軽微な誤りで正解の妥当性・正誤関係には影響しない。"
+    ]
+  },
+  {
+    "questionId": "sap-8ca16660",
+    "examType": "SAP",
+    "verdict": "ok",
+    "currentness": "ok",
+    "difficulty": "appropriate",
+    "scope": "in",
+    "format": "ok",
+    "mockSuitable": true,
+    "issues": []
+  },
+  {
+    "questionId": "sap-98adeecc",
+    "examType": "SAP",
+    "verdict": "ok",
+    "currentness": "ok",
+    "difficulty": "appropriate",
+    "scope": "in",
+    "format": "ok",
+    "mockSuitable": true,
+    "issues": []
+  },
+  {
+    "questionId": "sap-3a9cd8c2",
+    "examType": "SAP",
+    "verdict": "warn",
+    "currentness": "ok",
+    "difficulty": "appropriate",
+    "scope": "in",
+    "format": "ok",
+    "mockSuitable": true,
+    "issues": [
+      "解説本文で誤答を「選択肢A／選択肢B／選択肢D」とアルファベット表記しているが、実際の選択肢はインデックス 0〜3 で提示されており表記が不統一。他の問題は内容の直接引用かインデックス表記で統一されているため、受験者が対応関係を読み取りにくい。選択肢番号かアルファベットのどちらかに統一すること"
+    ]
+  },
+  {
+    "questionId": "sap-b6a10bc2",
+    "examType": "SAP",
+    "verdict": "ok",
+    "currentness": "ok",
+    "difficulty": "appropriate",
+    "scope": "in",
+    "format": "ok",
+    "mockSuitable": true,
+    "issues": []
+  },
+  {
+    "questionId": "sap-eb201dd4",
+    "examType": "SAP",
+    "verdict": "ok",
+    "currentness": "ok",
+    "difficulty": "appropriate",
+    "scope": "in",
+    "format": "ok",
+    "mockSuitable": true,
+    "issues": []
+  },
+  {
+    "questionId": "sap-0fa653fa",
+    "examType": "SAP",
+    "verdict": "warn",
+    "currentness": "ok",
+    "difficulty": "appropriate",
+    "scope": "in",
+    "format": "ok",
+    "mockSuitable": true,
+    "issues": [
+      "問題 sap-eb201dd4 と出題パターンがほぼ同一（正解が DRS・RTO 30 分・コスト最小化・常時フル稼働不可という要件構造が共通）。オンプレ起点・カスタム DB という差分は存在するが、同一バッチに両問を並べると受験者には『DRS を選ばせるパターン問題』と見抜かれやすく問題バンクとしての多様性が低下する。片方を別ドメイン（移行）の文脈に再設計するか、バッチ内での共存を避けることを推奨"
+    ]
+  },
+  {
+    "questionId": "sap-6937c4ad",
+    "examType": "SAP",
+    "verdict": "ok",
+    "currentness": "ok",
+    "difficulty": "appropriate",
+    "scope": "in",
+    "format": "ok",
+    "mockSuitable": true,
+    "issues": []
+  }
+]

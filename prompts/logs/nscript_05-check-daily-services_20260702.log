@@ -1,0 +1,65 @@
+=== 2026-07-02 02:17:21 | 05-check-daily-services.sh | exit:0 ===
+==========================================
+日めくりサービス体裁チェック開始: Thu Jul  2 02:00:07 JST 2026
+バッチサイズ: 30件 / チャンクサイズ: 8件
+==========================================
+
+--- 提供状態ライフサイクル照合中（猶予 30日）---
+  → ライフサイクル: 新規警告=0 削除=0 復活解除=0
+
+--- 重複記事チェック（docUrl照合・自動削除）---
+  → 重複なし
+チェック対象: 30件
+チャンク数: 4
+
+--- チャンク 1/4: 8件  開始=02:00:54 ---
+  [DELETE] _schedule_: 実在するAWSサービスではなくname/shortName/category/description/triviaがすべて空のプレースホルダ行。必須フィールドを全て欠くため図鑑コンテンツとして無効。
+  [OK   ] svc-detective-97
+  [FIX  ] svc-fargate-37: 内容・カテゴリ・icon・docUrlは適正だが、descriptionとtriviaが複数特徴を単一行に詰めているため\nで区切って可読性を確保。 → 変更: description, trivia
+  [FIX  ] 68c89b55-eeb0-4d01-be0a-e37b0e57d76f: DynamoDBは本アプリ使用サービスで記述も妥当だが、descriptionとtriviaが複数事実を単一行にまとめているため\nで区切り。 → 変更: description, trivia
+  [FIX  ] svc-iam-identity-center-27: カテゴリ・icon・docUrlは適正だが、descriptionとtriviaが複数特徴を単一行に詰めているため\nで区切り。 → 変更: description, trivia
+  [OK   ] svc-cost-explorer-68
+  [OK   ] svc-eks-13
+  [OK   ] svc-ecr-101
+  → 更新完了: OK=4 修正=3 削除=1
+  終了=02:04:46  経過=232秒
+
+--- チャンク 2/4: 8件  開始=02:04:46 ---
+  [OK   ] svc-storage-gateway-89
+  [OK   ] svc-comprehend-57
+  [OK   ] svc-forecast-93
+  [OK   ] svc-elastic-beanstalk-49
+  [OK   ] svc-s3-glacier-44
+  [OK   ] svc-step-functions-22
+  [OK   ] svc-ecs-12
+  [OK   ] svc-fsx-70
+  → 更新完了: OK=8 修正=0 削除=0
+  終了=02:07:12  経過=146秒
+
+--- チャンク 3/4: 8件  開始=02:07:12 ---
+  [OK   ] svc-batch-59
+  [OK   ] svc-health-dashboard-98
+  [OK   ] 398b303b-1873-4cfb-b4f2-fa71ad5a4b8c
+  [OK   ] svc-codepipeline-24
+  [OK   ] svc-datasync-83
+  [OK   ] svc-ec2-6
+  [OK   ] svc-savings-plans-99
+  [OK   ] svc-cloudtrail-26
+  → 更新完了: OK=8 修正=0 削除=0
+  終了=02:09:51  経過=159秒
+
+--- チャンク 4/4: 6件  開始=02:09:51 ---
+  [OK   ] svc-amplify-111
+  [FIX  ] svc-artifact-128: Artifactはコンプライアンスレポート提供サービスでAWS公式でも「Security, Identity & Compliance」に分類される。マネジメントより最近傍のセキュリティが適切。 → 変更: category
+  [OK   ] svc-data-exchange-113
+  [OK   ] svc-image-builder-118
+  [OK   ] svc-directory-service-116
+  [OK   ] svc-location-service-127
+  → 更新完了: OK=5 修正=1 削除=0
+  終了=02:11:57  経過=126秒
+
+完了サマリー: 問題なし=25件 / 自動修正=4件 / 削除=1件
+
+==========================================
+チェック終了: Thu Jul  2 02:11:57 JST 2026
+==========================================

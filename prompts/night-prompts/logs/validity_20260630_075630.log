@@ -1,0 +1,68 @@
+==========================================
+正当性チェック開始: Tue Jun 30 07:56:30 JST 2026
+バッチサイズ: 30問 / チャンクサイズ: 5問
+==========================================
+チェック対象: 30問
+前処理: choices ラベル接頭辞チェック...
+  前処理: ラベル接頭辞なし（全問クリーン）
+チャンク数: 6
+
+--- チャンク 1/6: 5問  開始=07:57:15 ---
+  [OK   ] scs-8cd86f89
+  [OK   ] scs-5e7df98b
+  [OK   ] scs-a1e1f9d3
+  [OK   ] scs-d0056c7e
+  [OK   ] scs-bd9069da
+  → 更新完了: OK=5 修正=0 削除=0
+  終了=07:59:17  経過=122秒
+
+--- チャンク 2/6: 5問  開始=07:59:17 ---
+  [OK   ] scs-bda9144e
+  [OK   ] scs-a8a31cc5
+  [OK   ] scs-9eef685c
+  [OK   ] scs-b2a42c98
+  [OK   ] scs-9a9f81d6
+  → 更新完了: OK=5 修正=0 削除=0
+  終了=08:00:59  経過=102秒
+
+--- チャンク 3/6: 5問  開始=08:00:59 ---
+  [OK   ] scs-c7c51594
+  [OK   ] scs-30551041
+  [OK   ] scs-112a4752
+  [OK   ] scs-51c116ee
+  [FIX  ] saa-09431b9d: 解説・choiceExplanationsに「AWSStep Functions」等のタイポがあり、SNS・Step Functionsの選択肢別解説が極端に短く文字数も不均衡。タイポ修正と解説拡充を実施。 → 変更: explanation, choiceExplanations
+  → 更新完了: OK=4 修正=1 削除=0
+  終了=08:03:06  経過=127秒
+
+--- チャンク 4/6: 5問  開始=08:03:07 ---
+  [FIX  ] clf-78552fd5: 内容は正確だが、不正解選択肢のchoiceExplanationsが30字程度と短く、正解の解説に冒頭タイトル重複があるため、各解説を100〜150字に拡充し読みやすく修正。 → 変更: explanation, choiceExplanations
+  [FIX  ] clf-af20ee12: 内容は正確だが、不正解選択肢のchoiceExplanationsが短く、正解解説に冒頭の語句重複があるため、各解説を100〜150字に拡充し整理。 → 変更: explanation, choiceExplanations
+  [FIX  ] clf-54dd9a42: 内容は正確だが、不正解選択肢のchoiceExplanationsが30字程度と短いため、各解説を100〜150字に拡充して修正。 → 変更: choiceExplanations
+  [FIX  ] clf-7ca57dc8: 内容は正確だが、不正解選択肢のchoiceExplanationsが短く根拠が薄いため、各解説を100〜150字に拡充して修正。 → 変更: choiceExplanations
+  [FIX  ] clf-7e80ec57: 内容は正確だが、不正解選択肢のchoiceExplanationsが短いため、各解説を100〜150字に拡充して修正。 → 変更: choiceExplanations
+  → 更新完了: OK=0 修正=5 削除=0
+  終了=08:05:41  経過=154秒
+
+--- チャンク 5/6: 5問  開始=08:05:42 ---
+  [OK   ] clf-a21f15f7
+  [OK   ] saa-1a372796
+  [OK   ] saa-cc3ae020
+  [OK   ] clf-62ffe4af
+  [OK   ] sap-f59ce8e0
+  → 更新完了: OK=5 修正=0 削除=0
+  終了=08:07:17  経過=95秒
+
+--- チャンク 6/6: 5問  開始=08:07:17 ---
+  [FIX  ] clf-c936b66d: 最小権限の原則はセキュリティ概念であり、ドメインが「クラウドの概念」となっていたため「セキュリティとコンプライアンス」に修正。内容・正解・解説は適切。 → 変更: domain
+  [OK   ] clf-b7dab56b
+  [OK   ] sap-879caa2c
+  [OK   ] clf-bca255cb
+  [FIX  ] sap-bc9ea176: choiceExplanations[0]がShield Advancedの説明であるべきところWAF中心の記述で順番対応がずれ、[4]も極端に短いため、各選択肢に対応した解説へ修正。正解・isMultipleは適切。 → 変更: choiceExplanations
+  → 更新完了: OK=3 修正=2 削除=0
+  終了=08:09:11  経過=114秒
+
+完了サマリー: 問題なし=22問 / 自動修正=8問 / 削除=0問
+
+==========================================
+チェック終了: Tue Jun 30 08:09:11 JST 2026
+==========================================

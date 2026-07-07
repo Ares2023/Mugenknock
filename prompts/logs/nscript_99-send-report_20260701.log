@@ -1,0 +1,76 @@
+=== 2026-07-01 01:17:43 | 99-send-report.sh | exit:0 ===
+==========================================
+日次レポート生成 開始: 2026-07-01 00:10 JST
+==========================================
+
+--- [1] AWS資格公式情報 変更チェック ---
+  フェーズ1完了: has_changes=False
+  直近3日以内の変更声明なし
+
+--- [2] 夜間スクリプト成果集計 ---
+  生成: 合計 262問生成
+  妥当性: 合計: 確認652件（問題なし=528 自動修正=124 削除=0）
+  通報: 3日分の実行なし
+
+--- [3] DynamoDB稼働状況 ---
+  総問題数: 3620 問
+  直近3日 新規生成(createdAt): 256 問
+  直近3日 確認済み(validityCheckedAt): 635 問
+  未妥当性確認: 54 問
+  未解決通報: 4 件
+  資格別:
+  CLF: 293問
+  AIF: 311問
+  SAA: 308問
+  DVA: 306問
+  SOA: 290問
+  DEA: 298問
+  MLA: 294問
+  SAP: 290問
+  DOP: 352問
+  AIP: 298問
+  SCS: 291問
+  ANS: 289問
+
+--- [4] canary テスト ---
+  ✅ PASS (passed=13 failed=0 warnings=0)
+  失敗詳細:
+      ログ:    s3://mugenknock-error-logs/canary-logs/staging/20260701-001145.log
+      サマリー: s3://mugenknock-error-logs/canary-logs/staging/20260701-001145.json
+  認証カナリア: ❌ FAIL (passed=2 failed=6)
+    Error: No tests found
+      ✘  1 [chromium] › e2e/tests/canary.auth.spec.ts:39:5 › 認証ホーム /aws/ が表示される (4ms)
+      ✘  2 [chromium] › e2e/tests/canary.auth.spec.ts:50:5 › マイページ /aws/mypage が表示されタブが揃う (4ms)
+      ✘  3 [chromium] › e2e/tests/canary.auth.spec.ts:61:5 › 演習設定→開始→問題・選択肢が表示される (4ms)
+        Error: Error reading storage state from e2e/.auth/user.json:
+        Error Context: e2e/test-results/canary.auth-認証ホーム-aws-が表示される-chromium/error-context.md
+        Error: Error reading storage state from e2e/.auth/user.json:
+        Error Context: e2e/test-results/canary.auth-マイページ-aws-mypage-が表示されタブが揃う-chromium/error-context.md
+        Error: Error reading storage state from e2e/.auth/user.json:
+        Error Context: e2e/test-results/canary.auth-演習設定→開始→問題・選択肢が表示される-chromium/error-context.md
+     結果: ❌ FAIL
+    RESULT=FAIL passed=0 failed=4
+
+--- [4.5] 監査・改良 / カナリア整合性 / 日めくり 集計 ---
+  監査6問: ok=3 warn=3 ng=0
+  プロンプト改良: 適用2件 / 見送り0件
+  方針: 監査の主クラスは『易しすぎ（単一キーワードで正解が一意に想起／不正解選択肢が弱く消去法で容易）』と『要確認（旧名称サービス）』。生成側(_common-rules)に弁別性・ひっかけ選択肢の必須化を追記し、検証側(_validity-ext
+  整合性チェック未実施
+  生成: → 非現行サービスの混入を防ぐため、今回の生成をスキップします。
+  検証: 完了サマリー: 問題なし=15件 / 自動修正=14件 / 削除=1件
+  Lambda(直近24h):
+    prod: 実行4842 エラー0 スロットル0 最大1139ms
+    dev: 実行26 エラー0 スロットル0 最大676ms
+  API(prod,24h): リクエスト5212 5xx=0 4xx=0 p99=1181ms
+  本番エラーログ(prod,24h): 0件
+  AWSコスト(2026-06-29): $0.10 （前日比 ▲33%）
+    ・Amazon DynamoDB: $0.03
+    ・AWS Key Management Service: $0.03
+    ・AWS Cost Explorer: $0.03
+
+--- [5] メール送信 ---
+  ✅ メール送信完了 → mugenknock@gmail.com
+
+==========================================
+日次レポート 完了: 2026-07-01 00:13 JST
+==========================================

@@ -1,0 +1,11 @@
+=== 2026-07-06 02:45:07 | generate-release-note.sh | exit:0 ===
+[release-note] 対象日: 2026-07-05
+[release-note] 2026-07-05: 16件のコミット
+[release-note] 生成結果:
+{
+  "title": "結果画面で問題文をコピーできるように！バグ修正も！",
+  "body": "演習の結果画面で問題を展開すると、問題文の全文とコピーボタンが表示されるようになりました！\nあわせて、試験を切り替えたときに成績データが更新されないバグを修正しました。",
+  "titleEn": "Copy Questions from Results Screen — Plus Bug Fixes!",
+  "bodyEn": "Expanding a question in the results screen now shows the full question text with a one-click copy button.\nWe also fixed a bug where switching exams didn't refresh your stats correctly."
+}
+[release-note] ✓ DynamoDBに挿入しました: 2026-07-05 — 結果画面で問題文をコピーできるように！バグ修正も！

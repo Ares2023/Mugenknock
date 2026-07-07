@@ -1,0 +1,11 @@
+=== 2026-06-30 05:12:07 | generate-release-note.sh | exit:0 ===
+[release-note] 対象日: 2026-06-29
+[release-note] 2026-06-29: 15件のコミット
+[release-note] 生成結果:
+{
+  "title": "中断した演習・模試がどの端末でも続きから再開！",
+  "body": "演習や模試の進捗をサーバーに自動保存するようにしました。\n別の端末に乗り換えても、キャッシュを消しても、続きからそのまま再開できます。",
+  "titleEn": "Resume your quizzes and mock exams on any device!",
+  "bodyEn": "Your practice and mock exam progress is now saved automatically to the server.\nPick up right where you left off—even on a different device or after clearing your cache."
+}
+[release-note] ✓ DynamoDBに挿入しました: 2026-06-29 — 中断した演習・模試がどの端末でも続きから再開！

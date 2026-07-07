@@ -1,0 +1,63 @@
+==========================================
+日めくりサービス体裁チェック開始: Wed Jul  1 01:00:05 JST 2026
+バッチサイズ: 30件 / チャンクサイズ: 8件
+==========================================
+
+--- 提供状態ライフサイクル照合中（猶予 30日）---
+  → ライフサイクル: 新規警告=0 削除=0 復活解除=0
+
+--- 重複記事チェック（docUrl照合・自動削除）---
+  → 重複なし
+チェック対象: 30件
+チャンク数: 4
+
+--- チャンク 1/4: 8件  開始=01:00:53 ---
+  [OK   ] _schedule_
+  [OK   ] svc-kendra-84
+  [FIX  ] svc-cloudhsm-103: サービス正式名称はAWS CloudHSM。Amazon表記は誤りのため修正。他フィールドは適合 → 変更: (変更なし)
+  [OK   ] svc-codedeploy-66
+  [OK   ] svc-network-firewall-76
+  [OK   ] svc-cloudformation-16
+  [OK   ] svc-route-53-17
+  → 更新完了: OK=6 修正=1 削除=0
+  終了=01:03:15  経過=142秒
+
+--- チャンク 2/4: 8件  開始=01:03:15 ---
+  [OK   ] svc-translate-77
+  [OK   ] svc-elb-35
+  [OK   ] svc-glue-30
+  [OK   ] svc-trusted-advisor-71
+  [OK   ] b3d71a09-b495-4573-933f-34be6cbdb9b5
+  [OK   ] svc-codebuild-61
+  [OK   ] svc-iam-9
+  [OK   ] svc-acm-69
+  → 更新完了: OK=8 修正=0 削除=0
+  終了=01:05:45  経過=150秒
+
+--- チャンク 3/4: 8件  開始=01:05:45 ---
+  [OK   ] svc-codecommit-95
+  [OK   ] svc-memorydb-73
+  [OK   ] svc-msk-60
+  [OK   ] svc-rekognition-67
+  [OK   ] svc-ses-53
+  [OK   ] svc-privatelink-72
+  [OK   ] svc-cognito-21
+  [OK   ] svc-control-tower-63
+  → 更新完了: OK=8 修正=0 削除=0
+  終了=01:08:33  経過=168秒
+
+--- チャンク 4/4: 6件  開始=01:08:33 ---
+  [OK   ] svc-rds-7
+  [OK   ] svc-ssm-33
+  [OK   ] svc-x-ray-47
+  [OK   ] svc-efs-31
+  [OK   ] svc-lake-formation-58
+  [OK   ] svc-migration-hub-105
+  → 更新完了: OK=6 修正=0 削除=0
+  終了=01:10:26  経過=113秒
+
+完了サマリー: 問題なし=28件 / 自動修正=1件 / 削除=0件
+
+==========================================
+チェック終了: Wed Jul  1 01:10:26 JST 2026
+==========================================
