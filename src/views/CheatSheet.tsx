@@ -1,7 +1,7 @@
 'use client';
 import React, { useState, useMemo, useEffect } from 'react';
 import { Helmet } from '@/compat/react-helmet-async';
-import { EXAM_LEVEL, EXAM_LEVEL_COLORS, EXAM_CONFIGS, EXAM_OFFICIAL_URLS } from '../constants';
+import { EXAM_LEVEL, EXAM_LEVEL_COLORS } from '../constants';
 import { EXAM_ICON_COMPONENTS, IconSearch } from '../components/Icons';
 import { useLanguage } from '../contexts/LanguageContext';
 import { useAuth } from '../contexts/AuthContext';
@@ -649,9 +649,6 @@ export default function CheatSheet() {
 
   const examColor = EXAM_LEVEL_COLORS[EXAM_LEVEL[selectedExam]] ?? 'var(--color-primary)';
   const levelColor = EXAM_LEVELS.find(l => l.key === activeLevel)?.color ?? examColor;
-  const ExamIcon = EXAM_ICON_COMPONENTS[selectedExam];
-  const officialUrl = EXAM_OFFICIAL_URLS[selectedExam];
-  const config = EXAM_CONFIGS[selectedExam];
   const sections = CHEAT_DATA[selectedExam] ?? [];
   const currentLevelExams = EXAM_LEVELS.find(l => l.key === activeLevel)?.exams ?? [];
 
@@ -742,42 +739,6 @@ export default function CheatSheet() {
             </button>
           );
         })}
-      </div>
-
-      {/* 試験情報バー */}
-      <div style={{
-        background: `${examColor}10`,
-        border: `1.5px solid ${examColor}30`,
-        borderRadius: 'var(--border-radius-lg)',
-        padding: '10px 14px',
-        marginBottom: 'var(--spacing-md)',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'space-between',
-        flexWrap: 'wrap',
-        gap: 8,
-      }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 8, minWidth: 0 }}>
-          {ExamIcon && <ExamIcon size={18} />}
-          <div style={{ minWidth: 0 }}>
-            <span style={{ fontSize: 'var(--font-size-sm)', fontWeight: 800, color: examColor }}>{config?.examCode}</span>
-            <span style={{ fontSize: 'var(--font-size-xs)', color: 'var(--color-text-sub)', marginLeft: 8 }}>{config?.fullName}</span>
-          </div>
-        </div>
-        <div style={{ display: 'flex', gap: 8, flexShrink: 0 }}>
-          {officialUrl && (
-            <>
-              <a href={officialUrl.page} target="_blank" rel="noopener noreferrer"
-                style={{ fontSize: 'var(--font-size-xs)', color: examColor, border: `1px solid ${examColor}`, borderRadius: 'var(--border-radius-full)', padding: '3px 10px', textDecoration: 'none', fontWeight: 600, whiteSpace: 'nowrap' }}>
-                公式ページ ↗
-              </a>
-              <a href={officialUrl.guide} target="_blank" rel="noopener noreferrer"
-                style={{ fontSize: 'var(--font-size-xs)', color: 'var(--color-text-sub)', border: '1px solid var(--color-border)', borderRadius: 'var(--border-radius-full)', padding: '3px 10px', textDecoration: 'none', fontWeight: 600, whiteSpace: 'nowrap' }}>
-                試験ガイド PDF ↗
-              </a>
-            </>
-          )}
-        </div>
       </div>
 
       {/* 検索バー */}
