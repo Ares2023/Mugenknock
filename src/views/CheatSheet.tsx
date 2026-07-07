@@ -2,7 +2,7 @@
 import React, { useState, useMemo, useEffect } from 'react';
 import { Helmet } from '@/compat/react-helmet-async';
 import { EXAM_LEVEL, EXAM_LEVEL_COLORS } from '../constants';
-import { EXAM_ICON_COMPONENTS, IconSearch } from '../components/Icons';
+import { EXAM_ICON_COMPONENTS, IconSearch, IconCopy, IconCheck } from '../components/Icons';
 import { useLanguage } from '../contexts/LanguageContext';
 import { useAuth } from '../contexts/AuthContext';
 import PageLayout from '../components/ui/PageLayout';
@@ -919,6 +919,15 @@ export default function CheatSheet() {
 }
 
 function ItemCard({ item, q, onCopy, onNavigate }: { item: Item; q: string; onCopy: (term: string) => void; onNavigate: (name: string) => void }) {
+  const [allCopied, setAllCopied] = useState(false);
+  const handleCopyAll = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    navigator.clipboard.writeText(`${item.name}\n\n${item.desc}`).then(() => {
+      setAllCopied(true);
+      setTimeout(() => setAllCopied(false), 1500);
+    });
+  };
+
   const highlight = (text: string): React.ReactNode => {
     if (!q) return text;
     const idx = text.toLowerCase().indexOf(q);
@@ -943,20 +952,39 @@ function ItemCard({ item, q, onCopy, onNavigate }: { item: Item; q: string; onCo
         boxShadow: 'var(--box-shadow-sm)',
       }}
     >
-      <div style={{ marginBottom: 4 }}>
-        {(/[A-Za-z]/.test(item.name) || /[゠-ヿ]{5,}/.test(item.name)) ? (
-          <div
-            onClick={() => onCopy(item.keyword ?? item.name.replace(/[（(][^）)]*[）)]/g, '').trim())}
-            title="タップしてコピー"
-            style={{ fontWeight: 700, fontSize: 'var(--font-size-base)', color: '#009E9E', cursor: 'pointer' }}
-          >
-            {highlight(item.name)}
-          </div>
-        ) : (
-          <div style={{ fontWeight: 700, fontSize: 'var(--font-size-base)', color: 'var(--color-text-main)' }}>
-            {highlight(item.name)}
-          </div>
-        )}
+      <div style={{ marginBottom: 4, display: 'flex', alignItems: 'flex-start', gap: 'var(--spacing-xs)' }}>
+        <div style={{ flex: 1, minWidth: 0 }}>
+          {(/[A-Za-z]/.test(item.name) || /[゠-ヿ]{5,}/.test(item.name)) ? (
+            <div
+              onClick={() => onCopy(item.keyword ?? item.name.replace(/[（(][^）)]*[）)]/g, '').trim())}
+              title="タップしてコピー"
+              style={{ fontWeight: 700, fontSize: 'var(--font-size-base)', color: '#009E9E', cursor: 'pointer' }}
+            >
+              {highlight(item.name)}
+            </div>
+          ) : (
+            <div style={{ fontWeight: 700, fontSize: 'var(--font-size-base)', color: 'var(--color-text-main)' }}>
+              {highlight(item.name)}
+            </div>
+          )}
+        </div>
+        <button
+          onClick={handleCopyAll}
+          title={allCopied ? 'コピー済み' : '記事全体をコピー（AI質問用）'}
+          style={{
+            flexShrink: 0,
+            background: 'none',
+            border: `1.5px solid ${allCopied ? 'var(--color-success)' : 'var(--color-border)'}`,
+            borderRadius: '50%',
+            width: 28, height: 28,
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            cursor: 'pointer',
+            color: allCopied ? 'var(--color-success)' : 'var(--color-text-light)',
+            transition: 'all 0.2s',
+          }}
+        >
+          {allCopied ? <IconCheck size={13} /> : <IconCopy size={13} />}
+        </button>
       </div>
       <p style={{ fontSize: 'var(--font-size-sm)', color: 'var(--color-text-sub)', margin: 0, lineHeight: 1.6 }}>
         {item.desc.split('\n').map((line, i) => {
