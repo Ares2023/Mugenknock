@@ -706,6 +706,7 @@ export default function CheatSheet() {
         items: sec.items.filter(item =>
           item.name.toLowerCase().includes(q) ||
           item.desc.toLowerCase().includes(q) ||
+          (item.keyword && item.keyword.toLowerCase().includes(q)) ||
           item.tags.some(t => t.toLowerCase().includes(q))
         ),
       }))
@@ -713,6 +714,31 @@ export default function CheatSheet() {
   }, [sections, q]);
 
   const totalHits = filteredSections.reduce((s, sec) => s + sec.items.length, 0);
+
+  // 全試験横断検索
+  const allExamsSearchResults = useMemo(() => {
+    if (!q) return [];
+    const results: Array<{ exam: string; items: Item[] }> = [];
+    for (const [exam, secs] of Object.entries(CHEAT_DATA)) {
+      const matched: Item[] = [];
+      for (const sec of secs) {
+        for (const item of sec.items) {
+          if (
+            item.name.toLowerCase().includes(q) ||
+            item.desc.toLowerCase().includes(q) ||
+            (item.keyword && item.keyword.toLowerCase().includes(q)) ||
+            item.tags.some(t => t.toLowerCase().includes(q))
+          ) {
+            matched.push(item);
+          }
+        }
+      }
+      if (matched.length > 0) results.push({ exam, items: matched });
+    }
+    return results;
+  }, [q]);
+
+  const allExamsTotalHits = allExamsSearchResults.reduce((s, g) => s + g.items.length, 0);
 
   function selectExam(exam: string) {
     setSelectedExam(exam);
@@ -732,6 +758,30 @@ export default function CheatSheet() {
         <title>チートシート | 無限ノック</title>
         <meta name="description" content="AWS認定試験ごとの代表的サービス・機能・概念を試験前の見直し用にまとめたチートシート。" />
       </Helmet>
+
+      {/* 検索バー（最上部） */}
+      <div style={{ position: 'relative', marginBottom: 'var(--spacing-sm)' }}>
+        <div style={{ position: 'absolute', left: 12, top: '50%', transform: 'translateY(-50%)', color: 'var(--color-text-light)', display: 'flex', pointerEvents: 'none' }}>
+          <IconSearch />
+        </div>
+        <input
+          type="search"
+          value={search}
+          onChange={e => setSearch(e.target.value)}
+          placeholder="全資格を横断検索（サービス名・キーワード）"
+          style={{
+            width: '100%',
+            boxSizing: 'border-box',
+            padding: '8px 12px 8px 34px',
+            borderRadius: 'var(--border-radius-full)',
+            border: '1.5px solid var(--color-border)',
+            background: 'var(--color-bg-white)',
+            color: 'var(--color-text-main)',
+            fontSize: 'var(--font-size-sm)',
+            outline: 'none',
+          }}
+        />
+      </div>
 
       {/* レベルタブ */}
       <div style={{ display: 'flex', borderBottom: '2px solid var(--color-border)', marginBottom: 0 }}>
@@ -785,75 +835,80 @@ export default function CheatSheet() {
         })}
       </div>
 
-      {/* 検索バー */}
-      <div style={{ position: 'relative', marginBottom: 'var(--spacing-md)' }}>
-        <div style={{ position: 'absolute', left: 12, top: '50%', transform: 'translateY(-50%)', color: 'var(--color-text-light)', display: 'flex', pointerEvents: 'none' }}>
-          <IconSearch />
-        </div>
-        <input
-          type="search"
-          value={search}
-          onChange={e => setSearch(e.target.value)}
-          placeholder="サービス名・キーワードで絞り込み"
-          style={{
-            width: '100%',
-            boxSizing: 'border-box',
-            padding: '8px 12px 8px 34px',
-            borderRadius: 'var(--border-radius-full)',
-            border: '1.5px solid var(--color-border)',
-            background: 'var(--color-bg-white)',
-            color: 'var(--color-text-main)',
-            fontSize: 'var(--font-size-sm)',
-            outline: 'none',
-          }}
-        />
-      </div>
-
       {/* 用語コピーヒント */}
       {!q && (
-        <p style={{ fontSize: 'var(--font-size-xs)', color: '#009E9E', marginBottom: 'var(--spacing-sm)', marginTop: 'calc(var(--spacing-sm) * -1)' }}>
+        <p style={{ fontSize: 'var(--font-size-xs)', color: '#009E9E', marginBottom: 'var(--spacing-sm)', marginTop: 'calc(var(--spacing-xs) * -1)' }}>
           色付き太字の用語はタップしてコピーできます（検索向けに文脈補足が付く場合あり）
         </p>
       )}
 
-      {/* 検索ヒット数 */}
+      {/* 全試験横断検索結果 */}
       {q && (
-        <p style={{ fontSize: 'var(--font-size-xs)', color: 'var(--color-text-sub)', marginBottom: 'var(--spacing-sm)' }}>
-          「{search}」: {totalHits} 件
-        </p>
-      )}
-      {q && totalHits === 0 && (
-        <p style={{ color: 'var(--color-text-light)', fontSize: 'var(--font-size-sm)', textAlign: 'center', padding: 'var(--spacing-xl)' }}>
-          該当するサービス・概念が見つかりませんでした
-        </p>
+        <>
+          <p style={{ fontSize: 'var(--font-size-xs)', color: 'var(--color-text-sub)', marginBottom: 'var(--spacing-sm)' }}>
+            全資格: 「{search}」 {allExamsTotalHits} 件
+          </p>
+          {allExamsTotalHits === 0 && (
+            <p style={{ color: 'var(--color-text-light)', fontSize: 'var(--font-size-sm)', textAlign: 'center', padding: 'var(--spacing-xl)' }}>
+              該当するサービス・概念が見つかりませんでした
+            </p>
+          )}
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--spacing-md)' }}>
+            {allExamsSearchResults.map(({ exam, items }) => {
+              const ec = EXAM_LEVEL_COLORS[EXAM_LEVEL[exam]] ?? 'var(--color-primary)';
+              const EIcon = EXAM_ICON_COMPONENTS[exam];
+              return (
+                <div key={exam}>
+                  <div style={{
+                    display: 'flex', alignItems: 'center', gap: 6,
+                    marginBottom: 'var(--spacing-sm)',
+                    paddingBottom: 6,
+                    borderBottom: `2px solid ${ec}30`,
+                  }}>
+                    {EIcon && <span style={{ opacity: 0.7 }}><EIcon size={14} /></span>}
+                    <span style={{ fontWeight: 700, fontSize: 'var(--font-size-sm)', color: ec }}>{exam}</span>
+                    <span style={{ fontSize: 'var(--font-size-xs)', color: 'var(--color-text-light)' }}>{items.length}件</span>
+                  </div>
+                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(260px, 1fr))', gap: 'var(--spacing-sm)' }}>
+                    {items.map(item => (
+                      <ItemCard key={`${exam}-${item.name}`} item={item} q={q} onCopy={handleTermCopy} onNavigate={navigateToItem} />
+                    ))}
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </>
       )}
 
-      {/* セクション一覧 */}
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--spacing-md)' }}>
-        {filteredSections.map(section => (
-          <div key={section.title}>
-            <h2 style={{
-              fontSize: 'var(--font-size-sm)',
-              fontWeight: 700,
-              color: examColor,
-              margin: '0 0 var(--spacing-sm)',
-              paddingBottom: 6,
-              borderBottom: `2px solid ${examColor}30`,
-              display: 'flex',
-              alignItems: 'center',
-              gap: 6,
-            }}>
-              <span style={{ display: 'inline-block', width: 3, height: 14, background: examColor, borderRadius: 2 }} />
-              {section.title}
-            </h2>
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(260px, 1fr))', gap: 'var(--spacing-sm)' }}>
-              {section.items.map(item => (
-                <ItemCard key={item.name} item={item} q={q} onCopy={handleTermCopy} onNavigate={navigateToItem} />
-              ))}
+      {/* 通常表示: 選択試験のセクション一覧 */}
+      {!q && (
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--spacing-md)' }}>
+          {filteredSections.map(section => (
+            <div key={section.title}>
+              <h2 style={{
+                fontSize: 'var(--font-size-sm)',
+                fontWeight: 700,
+                color: examColor,
+                margin: '0 0 var(--spacing-sm)',
+                paddingBottom: 6,
+                borderBottom: `2px solid ${examColor}30`,
+                display: 'flex',
+                alignItems: 'center',
+                gap: 6,
+              }}>
+                <span style={{ display: 'inline-block', width: 3, height: 14, background: examColor, borderRadius: 2 }} />
+                {section.title}
+              </h2>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(260px, 1fr))', gap: 'var(--spacing-sm)' }}>
+                {section.items.map(item => (
+                  <ItemCard key={item.name} item={item} q={q} onCopy={handleTermCopy} onNavigate={navigateToItem} />
+                ))}
+              </div>
             </div>
-          </div>
-        ))}
-      </div>
+          ))}
+        </div>
+      )}
       {/* トップへ戻るボタン */}
       {showScrollTop && (
         <button
