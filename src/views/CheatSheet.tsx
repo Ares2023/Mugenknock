@@ -8,7 +8,7 @@ import { useAuth } from '../contexts/AuthContext';
 import PageLayout from '../components/ui/PageLayout';
 
 // ── データ型 ─────────────────────────────────────────────────
-interface Item { name: string; desc: string; tags: string[]; keyword?: string; seeAlso?: string[] }
+interface Item { name: string; desc: string; tags: string[]; keyword?: string; seeAlso?: string[]; termKeywords?: Record<string, string> }
 interface Section { title: string; items: Item[] }
 type CheatData = Record<string, Section[]>
 
@@ -329,7 +329,7 @@ const CHEAT_DATA: CheatData = {
       title: 'IaC・構成管理',
       items: [
         { name: 'CloudFormation', desc: '変更セット（Change Set）: スタック変更を実際に適用する前に影響範囲を確認・レビューできる\nドリフト検出: 実際のリソース設定とCloudFormationテンプレートの差分を検出（手動変更の発見に使用）\nカスタムリソース: Lambda関数でCloudFormationが対応していないリソースを管理する仕組み\nStackSets: 複数のAWSアカウント・リージョンに同一スタックを一括展開\nCloudFormation Hooks: リソース変更前にカスタムバリデーションを実行してポリシー違反を防止', tags: ['変更セット', 'ドリフト検出', 'StackSets'] },
-        { name: 'CDK（Cloud Development Kit）', desc: 'TypeScript・Python・Java・C#等のプログラミング言語でCloudFormationテンプレートを生成するIaCフレームワーク。\nConstruct（コンストラクト）の3層:\nL1: CloudFormationリソースを直接ラップ（低レベル）\nL2: AWSサービスを使いやすくした高レベル抽象（セキュアなデフォルト付き）\nL3: 複数サービスを組み合わせた完全なパターン（例: Static Website Hosting）\nCDK Pipelines: CDKアプリ自体をCI/CDパイプラインで自動デプロイするライブラリ', tags: ['CDK', 'Construct', 'CDK Pipelines'] },
+        { name: 'CDK（Cloud Development Kit）', desc: 'TypeScript・Python・Java・C#等のプログラミング言語でCloudFormationテンプレートを生成するIaCフレームワーク。\nConstruct（コンストラクト）の3層:\nL1: CloudFormationリソースを直接ラップ（低レベル）\nL2: AWSサービスを使いやすくした高レベル抽象（セキュアなデフォルト付き）\nL3: 複数サービスを組み合わせた完全なパターン（例: Static Website Hosting）\nCDK Pipelines: CDKアプリ自体をCI/CDパイプラインで自動デプロイするライブラリ', tags: ['CDK', 'Construct', 'CDK Pipelines'], termKeywords: { 'L1': 'L1（CDK Construct）', 'L2': 'L2（CDK Construct）', 'L3': 'L3（CDK Construct）' } },
         { name: 'Systems Manager（DOP観点）', desc: 'Automation Runbook（旧Document）: 複数ステップの運用タスクをYAMLで定義して自動実行\nState Manager: EC2の設定が常に望ましい状態に保たれることを保証する（設定ドリフトの自動修正）\nRun Command: 複数EC2に対して一括でコマンド実行（パッチ確認・ログ収集等）\nParameter Store: 階層的な設定値・秘密情報の管理。CDK/CloudFormationとの統合でシームレスに利用', tags: ['Automation Runbook', 'State Manager', '設定継続適用'] },
         { name: 'OpsWorks', desc: 'Chef（Rubyベース）またはPuppet（宣言型）を使ったサーバー設定管理サービス。\nDOPでは複雑な設定管理シナリオや既存のChef/Puppetコードベースを継続利用するケースで登場する。', tags: ['Chef', 'Puppet', '設定管理'] },
       ],
@@ -812,7 +812,7 @@ export default function CheatSheet() {
       {/* 用語コピーヒント */}
       {!q && (
         <p style={{ fontSize: 'var(--font-size-xs)', color: '#009E9E', marginBottom: 'var(--spacing-sm)', marginTop: 'calc(var(--spacing-sm) * -1)' }}>
-          色付き太字の用語はタップしてコピーできます
+          色付き太字の用語はタップしてコピーできます（検索向けに文脈補足が付く場合あり）
         </p>
       )}
 
@@ -967,11 +967,12 @@ function ItemCard({ item, q, onCopy, onNavigate }: { item: Item; q: string; onCo
             /[A-Za-z]/.test(term) ||
             /[゠-ヿ]{5,}/.test(term)
           );
+          const copyTerm = item.termKeywords?.[term] ?? term;
           const content = isITTerm ? (
             <>
               <span
-                onClick={() => onCopy(term)}
-                title="タップしてコピー"
+                onClick={() => onCopy(copyTerm)}
+                title={copyTerm !== term ? `コピー: ${copyTerm}` : 'タップしてコピー'}
                 style={{ fontWeight: 700, color: '#009E9E', cursor: 'pointer' }}
               >{highlight(term)}</span>
               {': '}
