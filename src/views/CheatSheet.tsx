@@ -864,7 +864,7 @@ export default function CheatSheet() {
             const t0 = performance.now();
             const step = (now: number) => {
               const p = Math.min((now - t0) / 200, 1);
-              el.scrollTop = start * (1 - (1 - p) ** 3);
+              el.scrollTop = start * (1 - p) ** 3;
               if (p < 1) requestAnimationFrame(step);
             };
             requestAnimationFrame(step);

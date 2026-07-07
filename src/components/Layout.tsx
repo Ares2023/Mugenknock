@@ -132,15 +132,10 @@ export default function Layout({ children }: { children: React.ReactNode }) {
   const [swipeOffset, setSwipeOffset] = useState(0);
   const [swipeTrans, setSwipeTrans] = useState(false);
 
-  const doTabNavigate = (nextPath: string, dir: 'left' | 'right') => {
-    const outX = dir === 'left' ? -window.innerWidth : window.innerWidth;
-    setSwipeTrans(true);
-    setSwipeOffset(outX);
-    setTimeout(() => {
-      navigate(nextPath);
-      setSwipeTrans(false);
-      setSwipeOffset(0);
-    }, 240);
+  const doTabNavigate = (nextPath: string, _dir: 'left' | 'right') => {
+    setSwipeTrans(false);
+    setSwipeOffset(0);
+    navigate(nextPath);
   };
 
   const handleTouchStart = (e: React.TouchEvent) => {
