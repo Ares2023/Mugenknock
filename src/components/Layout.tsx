@@ -991,9 +991,9 @@ export default function Layout({ children }: { children: React.ReactNode }) {
       {/* ── ボディ ── */}
       <div style={{ display: 'flex', flex: 1, overflow: 'hidden', position: 'relative' }}>
 
-        {/* ページ遷移フェードオーバーレイ（モバイル・デスクトップ共通） */}
+        {/* ページ遷移フェードオーバーレイ（header/subbar/bottom-tabs の下、コンテンツ領域のみ） */}
         <div style={{
-          position: 'fixed', inset: 0, background: 'var(--color-bg-main)',
+          position: 'absolute', inset: 0, background: 'var(--color-bg-main)',
           opacity: overlayOpacity,
           transition: overlayFading ? 'opacity 0.3s ease' : 'none',
           pointerEvents: overlayOpacity > 0 ? 'all' : 'none',
@@ -1017,6 +1017,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
             overflow: 'hidden',
             transition: 'all 0.2s ease-out',
             display: 'flex', flexDirection: 'column',
+            position: 'relative', zIndex: 999,
           }}>
             <div style={{ width: 'var(--sidebar-width)', paddingTop: 'var(--spacing-sm)', display: 'flex', flexDirection: 'column', height: '100%' }}>
               <button onClick={toggle} style={{
@@ -1244,7 +1245,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
           background: 'var(--color-bg-white)',
           borderTop: '1px solid var(--color-border)',
           display: 'flex', alignItems: 'stretch',
-          zIndex: 200,
+          zIndex: 999,
           boxShadow: 'var(--box-shadow-up)',
         }}>
           {BOTTOM_TABS.map(({ path, Icon, ja, en }) => {
