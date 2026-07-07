@@ -915,9 +915,28 @@ export default function MyPage() {
                 </p>
               </Card>
             ) : statsLoading ? (
-              <div style={{ display: 'flex', justifyContent: 'center', padding: '32px 0' }}>
-                <div className="sherpa-spinner" style={{ width: 28, height: 28, borderWidth: 3 }} />
-              </div>
+              <>
+                <Card style={{ marginBottom: 12 }}>
+                  <div className="skeleton" style={{ height: 10, width: '35%', borderRadius: 3, marginBottom: 'var(--spacing-md)' }} />
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: 0 }}>
+                    {[68, 55, 82, 46, 73].map((w, i) => (
+                      <div key={i} style={{ paddingTop: i === 0 ? 0 : 14, paddingBottom: i < 4 ? 14 : 0, borderBottom: i < 4 ? '1px solid var(--color-border)' : 'none', display: 'grid', gridTemplateColumns: 'auto 1fr', columnGap: 12, rowGap: 4, alignItems: 'baseline' }}>
+                        <div className="skeleton" style={{ height: 18, width: 44, borderRadius: 4 }} />
+                        <div className="skeleton" style={{ height: 14, width: `${w}%`, borderRadius: 3 }} />
+                        <div style={{ gridColumn: 2 }}><div className="skeleton" style={{ height: 10, width: '88%', borderRadius: 3 }} /></div>
+                      </div>
+                    ))}
+                  </div>
+                </Card>
+                <Card>
+                  <div className="skeleton" style={{ height: 14, width: '55%', borderRadius: 4, marginBottom: 12 }} />
+                  {[1, 2, 3].map(i => (
+                    <div key={i} style={{ height: 44, borderRadius: 8, border: '1px solid var(--color-border)', marginBottom: i < 3 ? 6 : 0, overflow: 'hidden' }}>
+                      <div className="skeleton" style={{ height: '100%', borderRadius: 0 }} />
+                    </div>
+                  ))}
+                </Card>
+              </>
             ) : (
               <>
                 {/* 苦手ドメイン */}
@@ -1037,8 +1056,12 @@ export default function MyPage() {
                       </span>
                     </div>
                   ) : weakLoading ? (
-                    <div style={{ display: 'flex', justifyContent: 'center', padding: '16px 0' }}>
-                      <div className="sherpa-spinner" style={{ width: 20, height: 20, borderWidth: 2 }} />
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+                      {[1, 2, 3].map(i => (
+                        <div key={i} style={{ height: 48, borderRadius: 8, border: '1px solid var(--color-border)', overflow: 'hidden' }}>
+                          <div className="skeleton" style={{ height: '100%', borderRadius: 0 }} />
+                        </div>
+                      ))}
                     </div>
                   ) : weakQuestions.length === 0 ? (
                     <p style={{ margin: 0, fontSize: 'var(--font-size-sm2)', color: 'var(--color-text-light)', textAlign: 'center', padding: '8px 0' }}>
@@ -1086,9 +1109,21 @@ export default function MyPage() {
                 </p>
               </Card>
             ) : histLoading ? (
-              <div style={{ display: 'flex', justifyContent: 'center', padding: '32px 0' }}>
-                <div className="sherpa-spinner" style={{ width: 28, height: 28, borderWidth: 3 }} />
-              </div>
+              <>
+                <Card style={{ marginBottom: 'var(--spacing-md)' }}>
+                  <div className="skeleton" style={{ height: 10, width: '40%', borderRadius: 3, marginBottom: 'var(--spacing-xs)' }} />
+                  <div className="skeleton" style={{ height: 28, width: '45%', borderRadius: 4 }} />
+                </Card>
+                {[1, 2, 3, 4, 5].map(i => (
+                  <Card key={i} style={{ marginBottom: 8 }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                      <div className="skeleton" style={{ height: 20, width: 52, borderRadius: 'var(--border-radius-full)', flexShrink: 0 }} />
+                      <div className="skeleton" style={{ height: 14, flex: 1, borderRadius: 3 }} />
+                      <div className="skeleton" style={{ height: 16, width: 36, borderRadius: 3, flexShrink: 0 }} />
+                    </div>
+                  </Card>
+                ))}
+              </>
             ) : (
               <>
                 {totalExercised !== null && (
