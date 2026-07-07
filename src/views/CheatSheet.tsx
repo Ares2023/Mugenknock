@@ -857,7 +857,18 @@ export default function CheatSheet() {
       {/* トップへ戻るボタン */}
       {showScrollTop && (
         <button
-          onClick={() => document.getElementById('main-scroll')?.scrollTo({ top: 0, behavior: 'smooth' })}
+          onClick={() => {
+            const el = document.getElementById('main-scroll');
+            if (!el) return;
+            const start = el.scrollTop;
+            const t0 = performance.now();
+            const step = (now: number) => {
+              const p = Math.min((now - t0) / 200, 1);
+              el.scrollTop = start * (1 - (1 - p) ** 3);
+              if (p < 1) requestAnimationFrame(step);
+            };
+            requestAnimationFrame(step);
+          }}
           title="トップへ戻る"
           style={{
             position: 'fixed',
