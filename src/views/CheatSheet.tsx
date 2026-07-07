@@ -2,7 +2,7 @@
 import React, { useState, useMemo, useEffect } from 'react';
 import { Helmet } from '@/compat/react-helmet-async';
 import { EXAM_LEVEL, EXAM_LEVEL_COLORS, EXAM_CONFIGS, EXAM_OFFICIAL_URLS } from '../constants';
-import { EXAM_ICON_COMPONENTS, IconSearch, IconCopy } from '../components/Icons';
+import { EXAM_ICON_COMPONENTS, IconSearch } from '../components/Icons';
 import { useLanguage } from '../contexts/LanguageContext';
 import { useAuth } from '../contexts/AuthContext';
 import PageLayout from '../components/ui/PageLayout';
@@ -838,8 +838,6 @@ export default function CheatSheet() {
 }
 
 function ItemCard({ item, q }: { item: Item; q: string }) {
-  const [copied, setCopied] = useState(false);
-
   const highlight = (text: string): React.ReactNode => {
     if (!q) return text;
     const idx = text.toLowerCase().indexOf(q);
@@ -853,13 +851,6 @@ function ItemCard({ item, q }: { item: Item; q: string }) {
     );
   };
 
-  const handleCopy = () => {
-    const text = item.keyword ?? item.name.replace(/[（(][^）)]*[）)]/g, '').trim();
-    navigator.clipboard.writeText(text);
-    setCopied(true);
-    setTimeout(() => setCopied(false), 1500);
-  };
-
   return (
     <div style={{
       background: 'var(--color-bg-white)',
@@ -868,30 +859,24 @@ function ItemCard({ item, q }: { item: Item; q: string }) {
       padding: '10px 12px',
       boxShadow: 'var(--box-shadow-sm)',
     }}>
-      <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 4, marginBottom: 4 }}>
+      <div style={{ marginBottom: 4 }}>
         <div style={{ fontWeight: 700, fontSize: 'var(--font-size-base)', color: 'var(--color-text-main)' }}>
           {highlight(item.name)}
         </div>
-        <button
-          onClick={handleCopy}
-          title={copied ? 'コピーしました' : 'クリップボードにコピー'}
-          style={{
-            flexShrink: 0, background: 'none', border: 'none', cursor: 'pointer',
-            padding: '1px 4px', display: 'flex', alignItems: 'center', gap: 2,
-            color: copied ? 'var(--color-success)' : 'var(--color-text-light)',
-            fontSize: 'var(--font-size-xs)', borderRadius: 'var(--border-radius-sm)',
-            transition: 'color 0.15s',
-          }}
-        >
-          {copied ? '✓' : <IconCopy size={13} />}
-        </button>
       </div>
       <p style={{ fontSize: 'var(--font-size-sm)', color: 'var(--color-text-sub)', margin: 0, lineHeight: 1.6 }}>
         {item.desc.split('\n').map((line, i) => {
           const colonIdx = line.indexOf(': ');
-          const content = colonIdx > 0 ? (
+          const term = colonIdx > 0 ? line.slice(0, colonIdx) : '';
+          // ASCII英字を含む場合のみ強調（汎用日本語ラベルは対象外）
+          const isITTerm = colonIdx > 0 && /[A-Za-z]/.test(term);
+          const content = isITTerm ? (
             <>
-              <span style={{ fontWeight: 700, color: 'var(--color-text-main)' }}>{highlight(line.slice(0, colonIdx))}</span>
+              <span
+                onClick={() => navigator.clipboard.writeText(term)}
+                title="タップしてコピー"
+                style={{ fontWeight: 700, color: 'var(--color-text-main)', cursor: 'pointer' }}
+              >{highlight(term)}</span>
               {': '}
               {highlight(line.slice(colonIdx + 2))}
             </>

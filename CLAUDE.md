@@ -84,10 +84,7 @@
 
 | リモート名 | URL | 用途 |
 |-----------|-----|------|
-| `github` | `git@github.com:Ares2023/Mugenknock.git` | GitHub（Cloudflare Pages 連携・**メイン**） |
-| `origin` | `codecommit::ap-northeast-1://aws-quiz-app` | AWS CodeCommit（バックアップ） |
-
-- **プッシュは `github` を優先**。`origin`（CodeCommit）にも同時にプッシュする。
+| `github` | `git@github.com:Ares2023/Mugenknock.git` | GitHub（Cloudflare Pages 連携） |
 
 ---
 
@@ -98,8 +95,7 @@
 1. develop ブランチで作業・ファイル編集
 2. git add / git commit
 3. git push github develop   # Cloudflare Pages が検証環境を自動ビルド・デプロイ
-4. git push origin develop   # CodeCommit にもバックアップ
-5. ./prompts/night-prompts/manual/cf-deploy-status.sh wait   # ビルド完了を待って結果確認
+4. ./prompts/night-prompts/manual/cf-deploy-status.sh wait   # ビルド完了を待って結果確認
 ```
 
 ### Lambda も変更した場合
@@ -108,8 +104,7 @@
 2. ./scripts/deploy-lambda.sh        # develop → awsquizHandler-dev に自動デプロイ
 3. git add / git commit
 4. git push github develop
-5. git push origin develop
-6. ./prompts/night-prompts/manual/cf-deploy-status.sh wait   # ビルド完了を待って結果確認
+5. ./prompts/night-prompts/manual/cf-deploy-status.sh wait   # ビルド完了を待って結果確認
 ```
 
 ### 本番リリース（ユーザーから明示的な指示があった場合のみ）
@@ -117,10 +112,9 @@
 1. git checkout master
 2. git merge develop
 3. git push github master            # Cloudflare Pages が本番を自動ビルド・デプロイ
-4. git push origin master
-5. ./scripts/deploy-lambda.sh prod   # Lambda も本番に反映
-6. ./prompts/night-prompts/manual/cf-deploy-status.sh wait   # ビルド完了を待って結果確認
-7. git checkout develop              # 作業ブランチを戻す
+4. ./scripts/deploy-lambda.sh prod   # Lambda も本番に反映
+5. ./prompts/night-prompts/manual/cf-deploy-status.sh wait   # ビルド完了を待って結果確認
+6. git checkout develop              # 作業ブランチを戻す
 ```
 
 ### Lambda デプロイスクリプト
