@@ -159,6 +159,11 @@ export default function Layout({ children }: { children: React.ReactNode }) {
     setSwipeTrans(true);
     setSwipeOffset(outX);
     setTimeout(() => {
+      // スライド完了直後に白幕を被せてから navigate することで、
+      // swipeOffset リセット時に旧コンテンツが一瞬見えるフラッシュを防ぐ。
+      // pendingFade は useLayoutEffect([pathname]) が pathname 変化後にセットする。
+      setOverlayFading(false);
+      setOverlayOpacity(1);
       navigate(nextPath);
       setSwipeTrans(false);
       setSwipeOffset(0);
