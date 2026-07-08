@@ -702,80 +702,43 @@ export default function CheatSheet() {
 
   return (
     <>
-      {/* デスクトップ: 固定左サイドバー（portal） */}
+      {/* デスクトップ: 資格レベルペイン（左1列目） */}
       {!isMobile && createPortal(
         <aside style={{
           position: 'fixed',
           top: 96,
           left: 'var(--content-left)',
           bottom: 0,
-          width: 160,
+          width: 120,
           background: 'var(--color-bg-white)',
           borderRight: '1px solid var(--color-border)',
           zIndex: 5,
           overflowY: 'auto',
-          display: 'flex',
-          flexDirection: 'column',
         }}>
-          {/* ツリーナビ: 資格レベル → 試験カード（常時展開） */}
           <div style={{ paddingTop: 'var(--spacing-sm)' }}>
-            {EXAM_LEVELS.map(({ key, color, exams }) => {
+            {EXAM_LEVELS.map(({ key, color }) => {
               const isActive = activeLevel === key;
-              const levelExams = exams.filter(e => CHEAT_DATA[e]);
               return (
-                <div key={key}>
-                  {/* 資格レベル行（メインナビと同スタイル） */}
-                  <button onClick={() => selectLevel(key as LevelKey)} style={{
-                    width: '100%', textAlign: 'left',
-                    display: 'flex', alignItems: 'center',
-                    padding: '10px 12px 10px 16px',
-                    background: isActive ? `${color}18` : 'none',
-                    border: 'none',
-                    borderLeft: `4px solid ${isActive ? color : 'transparent'}`,
-                    cursor: 'pointer',
-                    color: isActive ? color : 'var(--color-text-sub)',
-                    fontWeight: isActive ? 700 : 400,
-                    fontSize: 'var(--font-size-base)',
-                    whiteSpace: 'nowrap',
-                    transition: 'all 0.2s',
-                  }}
-                    onMouseEnter={e => { if (!isActive) (e.currentTarget as HTMLElement).style.background = 'var(--color-bg-main)'; }}
-                    onMouseLeave={e => { if (!isActive) (e.currentTarget as HTMLElement).style.background = 'none'; }}
-                  >
-                    {key}
-                  </button>
-                  {/* 試験カード（常時表示・インデント） */}
-                  <div>
-                    {levelExams.map(exam => {
-                      const isSelected = selectedExam === exam;
-                      const EIcon = EXAM_ICON_COMPONENTS[exam];
-                      return (
-                        <button key={exam} data-exam={exam} onClick={() => selectExam(exam)} style={{
-                          width: '100%', textAlign: 'left',
-                          display: 'flex', alignItems: 'center', gap: 8,
-                          padding: '8px 8px 8px 28px',
-                          background: isSelected ? `${color}18` : 'none',
-                          border: 'none',
-                          borderLeft: `4px solid ${isSelected ? color : 'transparent'}`,
-                          cursor: 'pointer',
-                          color: isSelected ? color : 'var(--color-text-light)',
-                          fontWeight: isSelected ? 700 : 400,
-                          fontSize: 'var(--font-size-sm)',
-                          whiteSpace: 'nowrap',
-                          transition: 'all 0.2s',
-                        }}
-                          onMouseEnter={e => { if (!isSelected) (e.currentTarget as HTMLElement).style.background = 'var(--color-bg-main)'; }}
-                          onMouseLeave={e => { if (!isSelected) (e.currentTarget as HTMLElement).style.background = 'none'; }}
-                        >
-                          <span style={{ flexShrink: 0, display: 'flex', opacity: isSelected ? 1 : 0.6 }}>
-                            {EIcon ? <EIcon size={14} /> : null}
-                          </span>
-                          <span>{exam}</span>
-                        </button>
-                      );
-                    })}
-                  </div>
-                </div>
+                <button key={key} onClick={() => selectLevel(key as LevelKey)} style={{
+                  width: '100%', textAlign: 'left',
+                  display: 'flex', alignItems: 'center',
+                  padding: '10px 8px 10px 12px',
+                  background: isActive ? `${color}18` : 'none',
+                  border: 'none',
+                  borderLeft: `4px solid ${isActive ? color : 'transparent'}`,
+                  cursor: 'pointer',
+                  color: isActive ? color : 'var(--color-text-sub)',
+                  fontWeight: isActive ? 700 : 400,
+                  fontSize: 'var(--font-size-sm)',
+                  whiteSpace: 'nowrap',
+                  overflow: 'hidden',
+                  transition: 'all 0.2s',
+                }}
+                  onMouseEnter={e => { if (!isActive) (e.currentTarget as HTMLElement).style.background = 'var(--color-bg-main)'; }}
+                  onMouseLeave={e => { if (!isActive) (e.currentTarget as HTMLElement).style.background = 'none'; }}
+                >
+                  {key}
+                </button>
               );
             })}
           </div>
@@ -783,7 +746,54 @@ export default function CheatSheet() {
         document.body
       )}
 
-      <div style={!isMobile ? { paddingLeft: 160 } : undefined}>
+      {/* デスクトップ: 試験カードペイン（左2列目） */}
+      {!isMobile && createPortal(
+        <aside style={{
+          position: 'fixed',
+          top: 96,
+          left: 'calc(var(--content-left) + 120px)',
+          bottom: 0,
+          width: 120,
+          background: 'var(--color-bg-white)',
+          borderRight: '1px solid var(--color-border)',
+          zIndex: 5,
+          overflowY: 'auto',
+        }}>
+          <div style={{ paddingTop: 'var(--spacing-sm)' }}>
+            {currentLevelExams.filter(e => CHEAT_DATA[e]).map(exam => {
+              const isSelected = selectedExam === exam;
+              const EIcon = EXAM_ICON_COMPONENTS[exam];
+              return (
+                <button key={exam} data-exam={exam} onClick={() => selectExam(exam)} style={{
+                  width: '100%', textAlign: 'left',
+                  display: 'flex', alignItems: 'center', gap: 8,
+                  padding: '10px 8px 10px 16px',
+                  background: isSelected ? `${levelColor}18` : 'none',
+                  border: 'none',
+                  borderLeft: `4px solid ${isSelected ? levelColor : 'transparent'}`,
+                  cursor: 'pointer',
+                  color: isSelected ? levelColor : 'var(--color-text-light)',
+                  fontWeight: isSelected ? 700 : 400,
+                  fontSize: 'var(--font-size-sm)',
+                  whiteSpace: 'nowrap',
+                  transition: 'all 0.2s',
+                }}
+                  onMouseEnter={e => { if (!isSelected) (e.currentTarget as HTMLElement).style.background = 'var(--color-bg-main)'; }}
+                  onMouseLeave={e => { if (!isSelected) (e.currentTarget as HTMLElement).style.background = 'none'; }}
+                >
+                  <span style={{ flexShrink: 0, display: 'flex', opacity: isSelected ? 1 : 0.6 }}>
+                    {EIcon ? <EIcon size={14} /> : null}
+                  </span>
+                  <span>{exam}</span>
+                </button>
+              );
+            })}
+          </div>
+        </aside>,
+        document.body
+      )}
+
+      <div style={!isMobile ? { paddingLeft: 240 } : undefined}>
       <PageLayout maxWidth={580} style={!isMobile ? { marginLeft: 0 } : undefined}>
         <Helmet>
           <title>チートシート | 無限ノック</title>
