@@ -717,65 +717,57 @@ export default function CheatSheet() {
           display: 'flex',
           flexDirection: 'column',
         }}>
-          {/* ツリーナビ: 資格レベル → 試験カード（アコーディオン） */}
+          {/* ツリーナビ: 資格レベル → 試験カード（常時展開） */}
           <div style={{ paddingTop: 'var(--spacing-sm)' }}>
             {EXAM_LEVELS.map(({ key, color, exams }) => {
-              const isOpen = activeLevel === key;
+              const isActive = activeLevel === key;
               const levelExams = exams.filter(e => CHEAT_DATA[e]);
               return (
                 <div key={key}>
                   {/* 資格レベル行 */}
                   <button onClick={() => selectLevel(key as LevelKey)} style={{
                     width: '100%', textAlign: 'left',
-                    display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+                    display: 'flex', alignItems: 'center',
                     padding: '7px 10px 7px 13px',
-                    background: isOpen ? `${color}12` : 'none',
+                    background: isActive ? `${color}12` : 'none',
                     border: 'none',
-                    borderLeft: `3px solid ${isOpen ? color : 'transparent'}`,
+                    borderLeft: `3px solid ${isActive ? color : 'transparent'}`,
                     cursor: 'pointer',
-                    color: isOpen ? color : 'var(--color-text-sub)',
-                    fontWeight: isOpen ? 700 : 400,
+                    color: isActive ? color : 'var(--color-text-sub)',
+                    fontWeight: isActive ? 700 : 400,
                     fontSize: 'var(--font-size-lg)',
                     whiteSpace: 'nowrap',
                     transition: 'all 0.15s',
                   }}>
-                    <span>{key}</span>
-                    <span style={{
-                      fontSize: 10, display: 'inline-block',
-                      transform: isOpen ? 'rotate(90deg)' : 'rotate(0deg)',
-                      transition: 'transform 0.15s',
-                      color: isOpen ? color : 'var(--color-text-light)',
-                    }}>▶</span>
+                    {key}
                   </button>
-                  {/* 試験カード（展開時のみ表示） */}
-                  {isOpen && (
-                    <div style={{ paddingLeft: 8, paddingRight: 4, paddingBottom: 4, display: 'flex', flexDirection: 'column', gap: 'var(--spacing-xs)' }}>
-                      {levelExams.map(exam => {
-                        const isSelected = selectedExam === exam;
-                        const EIcon = EXAM_ICON_COMPONENTS[exam];
-                        return (
-                          <button key={exam} data-exam={exam} onClick={() => selectExam(exam)} style={{
-                            width: '100%', padding: '6px 10px',
-                            cursor: 'pointer',
-                            borderRadius: 'var(--border-radius-sm)',
-                            border: `1.5px solid ${isSelected ? color : 'var(--color-border)'}`,
-                            background: isSelected
-                              ? `linear-gradient(135deg, ${color}22, ${color}44)`
-                              : 'var(--color-bg-white)',
-                            display: 'flex', alignItems: 'center', gap: 8,
-                            transition: 'all 0.15s',
-                          }}>
-                            <span style={{ flexShrink: 0, display: 'flex', color: isSelected ? color : 'var(--color-text-light)', opacity: isSelected ? 1 : 0.7 }}>
-                              {EIcon ? <EIcon size={16} /> : null}
-                            </span>
-                            <span style={{ fontSize: 'var(--font-size-sm)', fontWeight: 700, color: isSelected ? color : 'var(--color-text-sub)' }}>
-                              {exam}
-                            </span>
-                          </button>
-                        );
-                      })}
-                    </div>
-                  )}
+                  {/* 試験カード（常時表示） */}
+                  <div style={{ paddingLeft: 8, paddingRight: 4, paddingBottom: 4, display: 'flex', flexDirection: 'column', gap: 'var(--spacing-xs)' }}>
+                    {levelExams.map(exam => {
+                      const isSelected = selectedExam === exam;
+                      const EIcon = EXAM_ICON_COMPONENTS[exam];
+                      return (
+                        <button key={exam} data-exam={exam} onClick={() => selectExam(exam)} style={{
+                          width: '100%', padding: '6px 10px',
+                          cursor: 'pointer',
+                          borderRadius: 'var(--border-radius-sm)',
+                          border: `1.5px solid ${isSelected ? color : 'var(--color-border)'}`,
+                          background: isSelected
+                            ? `linear-gradient(135deg, ${color}22, ${color}44)`
+                            : 'var(--color-bg-white)',
+                          display: 'flex', alignItems: 'center', gap: 8,
+                          transition: 'all 0.15s',
+                        }}>
+                          <span style={{ flexShrink: 0, display: 'flex', color: isSelected ? color : 'var(--color-text-light)', opacity: isSelected ? 1 : 0.7 }}>
+                            {EIcon ? <EIcon size={16} /> : null}
+                          </span>
+                          <span style={{ fontSize: 'var(--font-size-sm)', fontWeight: 700, color: isSelected ? color : 'var(--color-text-sub)' }}>
+                            {exam}
+                          </span>
+                        </button>
+                      );
+                    })}
+                  </div>
                 </div>
               );
             })}
