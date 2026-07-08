@@ -1,5 +1,5 @@
 'use client';
-import React, { useState, useMemo, useEffect } from 'react';
+import React, { useState, useMemo, useEffect, useRef } from 'react';
 import { Helmet } from '@/compat/react-helmet-async';
 import { EXAM_LEVEL, EXAM_LEVEL_COLORS } from '../constants';
 import { EXAM_ICON_COMPONENTS, IconSearch, IconCopy, IconCheck } from '../components/Icons';
@@ -827,7 +827,7 @@ export default function CheatSheet() {
                   </div>
                   <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(260px, 1fr))', gap: 'var(--spacing-sm)', alignItems: 'start' }}>
                     {items.map(item => (
-                      <ItemCard key={`${exam}-${item.name}`} item={item} q={q} onCopy={handleTermCopy} onNavigate={navigateToItem} />
+                      <ItemCard key={`${exam}-${item.name}`} item={item} q={q} onCopy={handleTermCopy} onNavigate={navigateToItem} isMobile={isMobile} />
                     ))}
                   </div>
                 </div>
@@ -858,7 +858,7 @@ export default function CheatSheet() {
               </h2>
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(260px, 1fr))', gap: 'var(--spacing-sm)', alignItems: 'start' }}>
                 {section.items.map(item => (
-                  <ItemCard key={item.name} item={item} q={q} onCopy={handleTermCopy} onNavigate={navigateToItem} />
+                  <ItemCard key={item.name} item={item} q={q} onCopy={handleTermCopy} onNavigate={navigateToItem} isMobile={isMobile} />
                 ))}
               </div>
             </div>
@@ -929,8 +929,34 @@ export default function CheatSheet() {
   );
 }
 
-function ItemCard({ item, q, onCopy, onNavigate }: { item: Item; q: string; onCopy: (term: string) => void; onNavigate: (name: string) => void }) {
+// 1列の自然な高さからカラムスパンを決定する閾値
+const SPAN2_H = 210; // これを超えたら2列に拡張
+const SPAN3_H = 400; // 2列でも収まらない場合は3列（400px ÷ ~2 = ~200px）
+
+function ItemCard({ item, q, onCopy, onNavigate, isMobile }: { item: Item; q: string; onCopy: (term: string) => void; onNavigate: (name: string) => void; isMobile: boolean }) {
   const [allCopied, setAllCopied] = useState(false);
+  const [colSpan, setColSpan] = useState(1);
+  const cardRef = useRef<HTMLDivElement>(null);
+  const measured = useRef(false);
+
+  useEffect(() => {
+    if (isMobile) { setColSpan(1); return; }
+    measured.current = false;
+    const el = cardRef.current;
+    if (!el) return;
+    const ro = new ResizeObserver(() => {
+      if (measured.current) return;
+      const h = el.offsetHeight;
+      if (h === 0) return; // まだレイアウト前
+      measured.current = true;
+      ro.disconnect();
+      if (h > SPAN3_H) setColSpan(3);
+      else if (h > SPAN2_H) setColSpan(2);
+    });
+    ro.observe(el);
+    return () => ro.disconnect();
+  }, [isMobile]);
+
   const handleCopyAll = (e: React.MouseEvent) => {
     e.stopPropagation();
     navigator.clipboard.writeText(`${item.name}\n\n${item.desc}`).then(() => {
@@ -954,6 +980,7 @@ function ItemCard({ item, q, onCopy, onNavigate }: { item: Item; q: string; onCo
 
   return (
     <div
+      ref={cardRef}
       data-item-name={item.name}
       style={{
         background: 'var(--color-bg-white)',
@@ -961,6 +988,7 @@ function ItemCard({ item, q, onCopy, onNavigate }: { item: Item; q: string; onCo
         borderRadius: 'var(--border-radius-md)',
         padding: '10px 12px',
         boxShadow: 'var(--box-shadow-sm)',
+        gridColumn: colSpan > 1 ? `span ${colSpan}` : undefined,
       }}
     >
       <div style={{ marginBottom: 4, display: 'flex', alignItems: 'flex-start', gap: 'var(--spacing-xs)' }}>
