@@ -100,6 +100,15 @@ PYEOF
 )
 fi
 
+# 並列実行の競合防止: 日付単位の共有セッションで処理中の問題IDをクレーム
+# 同日に複数インスタンスが起動しても、同じ問題IDを二重処理しないようにする
+_SESSION_DIR="/tmp/validity_session_$(date '+%Y%m%d')"
+mkdir -p "$_SESSION_DIR"
+export SESSION_CLAIMED="$_SESSION_DIR/claimed.json"
+export SESSION_LOCK="$_SESSION_DIR/lock"
+[ -f "$SESSION_CLAIMED" ] || echo '[]' > "$SESSION_CLAIMED"
+touch "$SESSION_LOCK"
+
 {
 echo "=========================================="
 echo "正当性チェック開始: $(date)"
@@ -166,7 +175,37 @@ for q in questions:
 
 candidates.sort(key=lambda x: x[0])
 batch = int(os.environ.get('BATCH_SIZE', 30))
-print(json.dumps([q for _, q in candidates[:batch]]))
+
+# ── クレーム処理（並列競合防止） ──
+# flock で同日セッションの claimed.json を排他ロックし、
+# 他インスタンスがすでに処理中のIDを除外してからバッチを確定する
+import fcntl
+session_lock_path = os.environ.get('SESSION_LOCK', '')
+session_claimed_path = os.environ.get('SESSION_CLAIMED', '')
+if session_lock_path and session_claimed_path:
+    lock_fd = open(session_lock_path, 'w')
+    fcntl.flock(lock_fd, fcntl.LOCK_EX)
+    try:
+        claimed = set()
+        try:
+            with open(session_claimed_path) as f:
+                claimed = set(json.load(f))
+        except Exception:
+            pass
+        # 既クレーム済みを除外
+        remaining = [(sk, q) for sk, q in candidates if q.get('questionId') not in claimed]
+        selected = [q for _, q in remaining[:batch]]
+        # 今回のバッチをクレーム登録
+        new_claimed = list(claimed | {q['questionId'] for q in selected})
+        with open(session_claimed_path, 'w') as f:
+            json.dump(new_claimed, f)
+    finally:
+        fcntl.flock(lock_fd, fcntl.LOCK_UN)
+        lock_fd.close()
+else:
+    selected = [q for _, q in candidates[:batch]]
+
+print(json.dumps(selected))
 PYEOF
 )
 rm -f "$DYNAMO_TMP"
@@ -679,3 +718,5 @@ echo "=========================================="
 } 2>&1 | tee -a "$LOG_FILE"
 
 find "$LOG_DIR" -name "validity_*.log" -mtime +30 -delete
+# 2日以上前のセッションディレクトリを削除（当日分は並列実行中の他インスタンスが使うため残す）
+find /tmp -maxdepth 1 -name "validity_session_*" -type d -mtime +1 -exec rm -rf {} + 2>/dev/null || true
