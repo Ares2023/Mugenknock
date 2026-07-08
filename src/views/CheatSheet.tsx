@@ -700,17 +700,19 @@ export default function CheatSheet() {
         <meta name="description" content="AWS認定試験ごとの代表的サービス・機能・概念を試験前の見直し用にまとめたチートシート。" />
       </Helmet>
 
-      {/* 検索バー・レベルタブ・試験カード（スマホでは sticky オーバーレイ） */}
-      <div style={isMobile ? {
+      {/* 検索バー・レベルタブ・試験カード（sticky オーバーレイ） */}
+      <div style={{
         position: 'sticky',
         top: 0,
         zIndex: 10,
         background: 'var(--color-bg-main)',
-        marginLeft: 'calc(-1 * var(--page-pad-x-mobile))',
-        marginRight: 'calc(-1 * var(--page-pad-x-mobile))',
-        padding: `var(--spacing-sm) var(--page-pad-x-mobile) 0`,
+        marginLeft: isMobile ? 'calc(-1 * var(--page-pad-x-mobile))' : 'calc(-1 * var(--page-pad-x))',
+        marginRight: isMobile ? 'calc(-1 * var(--page-pad-x-mobile))' : 'calc(-1 * var(--page-pad-x))',
+        paddingLeft: isMobile ? 'var(--page-pad-x-mobile)' : 'var(--page-pad-x)',
+        paddingRight: isMobile ? 'var(--page-pad-x-mobile)' : 'var(--page-pad-x)',
+        paddingTop: 'var(--spacing-sm)',
         boxShadow: showScrollTop ? 'var(--box-shadow-up)' : undefined,
-      } : {}}>
+      }}>
 
         {/* 検索バー */}
         <div style={{ position: 'relative', marginBottom: 'var(--spacing-sm)' }}>
