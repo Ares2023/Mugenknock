@@ -1247,7 +1247,7 @@ export default function MyPage() {
           onClick={() => setQuestionModal(null)}
         >
           <div
-            style={{ background: 'var(--color-bg-white)', borderRadius: isMobile ? '16px 16px 0 0' : 'var(--border-radius-lg)', padding: 'var(--spacing-xl)', width: '100%', maxWidth: isMobile ? '100%' : 600, maxHeight: isMobile ? '85vh' : '80vh', overflowY: 'auto', boxShadow: 'var(--box-shadow-lg)' }}
+            style={{ background: 'var(--color-bg-white)', borderRadius: isMobile ? '16px 16px 0 0' : 'var(--border-radius-lg)', padding: isMobile ? 'var(--spacing-xl) var(--spacing-xl) 0' : 'var(--spacing-xl)', width: '100%', maxWidth: isMobile ? '100%' : 600, maxHeight: isMobile ? '85vh' : '80vh', overflowY: 'auto', boxShadow: 'var(--box-shadow-lg)' }}
             onClick={e => e.stopPropagation()}
           >
             {/* ヘッダー */}
@@ -1304,6 +1304,8 @@ export default function MyPage() {
                     <p style={{ fontSize: 'var(--font-size-sm)', color: 'var(--color-text-sub)', margin: 0, lineHeight: 1.75, whiteSpace: 'pre-wrap' }}>{questionModal.detail.explanation}</p>
                   </div>
                 )}
+                {/* iOS Safari の padding-bottom スクロール欠落 + safe area 対策 */}
+                {isMobile && <div style={{ height: 'calc(var(--spacing-xl) + env(safe-area-inset-bottom, 0px))' }} aria-hidden="true" />}
               </div>
             ) : (
               <p style={{ margin: 0, fontSize: 'var(--font-size-sm)', color: 'var(--color-text-light)' }}>{ja ? '詳細を取得できませんでした' : 'Failed to load details'}</p>

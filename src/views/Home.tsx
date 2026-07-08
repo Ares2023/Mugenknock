@@ -246,7 +246,7 @@ function CombinedDetailModal({ targetExam, domainAccList, estimatedScore, passSc
       onTouchStart={e => e.stopPropagation()}
       onTouchMove={e => e.stopPropagation()}
     >
-      <div style={{ background: 'var(--color-bg-white)', borderRadius: 'var(--border-radius-lg)', padding: isMobile ? '16px' : '20px 28px', width: '100%', maxWidth: 540, maxHeight: isMobile ? '75vh' : '60vh', overflowY: 'auto', boxShadow: 'var(--box-shadow-lg)' }}>
+      <div style={{ background: 'var(--color-bg-white)', borderRadius: 'var(--border-radius-lg)', padding: isMobile ? '16px 16px 0' : '20px 28px', width: '100%', maxWidth: 540, maxHeight: isMobile ? '75vh' : '60vh', overflowY: 'auto', boxShadow: 'var(--box-shadow-lg)' }}>
         {/* ヘッダー行 */}
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
@@ -478,6 +478,7 @@ function CombinedDetailModal({ targetExam, domainAccList, estimatedScore, passSc
           })()
         )}
         </div>
+        {isMobile && <div style={{ height: 16 }} aria-hidden="true" />}
       </div>
     </div>
   );
@@ -566,7 +567,7 @@ function DomainDetailModal({ targetExam, domainAccList, lang, onClose }: {
       onTouchStart={e => e.stopPropagation()}
       onTouchMove={e => e.stopPropagation()}
     >
-      <div style={{ background: 'var(--color-bg-white)', borderRadius: 'var(--border-radius-lg)', padding: '20px 24px', width: '100%', maxWidth: 480, maxHeight: isMobile ? '75vh' : '60vh', overflowY: 'auto', boxShadow: 'var(--box-shadow-lg)' }}>
+      <div style={{ background: 'var(--color-bg-white)', borderRadius: 'var(--border-radius-lg)', padding: '20px 24px 0', width: '100%', maxWidth: 480, maxHeight: isMobile ? '75vh' : '60vh', overflowY: 'auto', boxShadow: 'var(--box-shadow-lg)' }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
           <span style={{ fontWeight: 700, fontSize: 'var(--font-size-base)', color: 'var(--color-text-main)' }}>
             {ja ? 'ドメイン別成績' : 'Domain Results'}
@@ -602,6 +603,7 @@ function DomainDetailModal({ targetExam, domainAccList, lang, onClose }: {
             </div>
           );
         })}
+        <div style={{ height: 20 }} aria-hidden="true" />
       </div>
     </div>
   );

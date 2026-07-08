@@ -808,7 +808,7 @@ export default function CheatSheet() {
                     <span style={{ fontWeight: 700, fontSize: 'var(--font-size-sm)', color: ec }}>{exam}</span>
                     <span style={{ fontSize: 'var(--font-size-xs)', color: 'var(--color-text-light)' }}>{items.length}件</span>
                   </div>
-                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(260px, 1fr))', gap: 'var(--spacing-sm)' }}>
+                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(260px, 1fr))', gap: 'var(--spacing-sm)', alignItems: 'start' }}>
                     {items.map(item => (
                       <ItemCard key={`${exam}-${item.name}`} item={item} q={q} onCopy={handleTermCopy} onNavigate={navigateToItem} />
                     ))}
@@ -839,7 +839,7 @@ export default function CheatSheet() {
                 <span style={{ display: 'inline-block', width: 3, height: 14, background: examColor, borderRadius: 2 }} />
                 {section.title}
               </h2>
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(260px, 1fr))', gap: 'var(--spacing-sm)' }}>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(260px, 1fr))', gap: 'var(--spacing-sm)', alignItems: 'start' }}>
                 {section.items.map(item => (
                   <ItemCard key={item.name} item={item} q={q} onCopy={handleTermCopy} onNavigate={navigateToItem} />
                 ))}
