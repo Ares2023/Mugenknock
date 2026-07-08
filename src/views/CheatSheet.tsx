@@ -724,46 +724,53 @@ export default function CheatSheet() {
               const levelExams = exams.filter(e => CHEAT_DATA[e]);
               return (
                 <div key={key}>
-                  {/* 資格レベル行 */}
+                  {/* 資格レベル行（メインナビと同スタイル） */}
                   <button onClick={() => selectLevel(key as LevelKey)} style={{
                     width: '100%', textAlign: 'left',
                     display: 'flex', alignItems: 'center',
-                    padding: '7px 10px 7px 13px',
-                    background: isActive ? `${color}12` : 'none',
+                    padding: '10px 12px 10px 16px',
+                    background: isActive ? `${color}18` : 'none',
                     border: 'none',
-                    borderLeft: `3px solid ${isActive ? color : 'transparent'}`,
+                    borderLeft: `4px solid ${isActive ? color : 'transparent'}`,
                     cursor: 'pointer',
                     color: isActive ? color : 'var(--color-text-sub)',
                     fontWeight: isActive ? 700 : 400,
-                    fontSize: 'var(--font-size-lg)',
+                    fontSize: 'var(--font-size-base)',
                     whiteSpace: 'nowrap',
-                    transition: 'all 0.15s',
-                  }}>
+                    transition: 'all 0.2s',
+                  }}
+                    onMouseEnter={e => { if (!isActive) (e.currentTarget as HTMLElement).style.background = 'var(--color-bg-main)'; }}
+                    onMouseLeave={e => { if (!isActive) (e.currentTarget as HTMLElement).style.background = 'none'; }}
+                  >
                     {key}
                   </button>
-                  {/* 試験カード（常時表示） */}
-                  <div style={{ paddingLeft: 8, paddingRight: 4, paddingBottom: 4, display: 'flex', flexDirection: 'column', gap: 'var(--spacing-xs)' }}>
+                  {/* 試験カード（常時表示・インデント） */}
+                  <div>
                     {levelExams.map(exam => {
                       const isSelected = selectedExam === exam;
                       const EIcon = EXAM_ICON_COMPONENTS[exam];
                       return (
                         <button key={exam} data-exam={exam} onClick={() => selectExam(exam)} style={{
-                          width: '100%', padding: '6px 10px',
-                          cursor: 'pointer',
-                          borderRadius: 'var(--border-radius-sm)',
-                          border: `1.5px solid ${isSelected ? color : 'var(--color-border)'}`,
-                          background: isSelected
-                            ? `linear-gradient(135deg, ${color}22, ${color}44)`
-                            : 'var(--color-bg-white)',
+                          width: '100%', textAlign: 'left',
                           display: 'flex', alignItems: 'center', gap: 8,
-                          transition: 'all 0.15s',
-                        }}>
-                          <span style={{ flexShrink: 0, display: 'flex', color: isSelected ? color : 'var(--color-text-light)', opacity: isSelected ? 1 : 0.7 }}>
-                            {EIcon ? <EIcon size={16} /> : null}
+                          padding: '8px 8px 8px 28px',
+                          background: isSelected ? `${color}18` : 'none',
+                          border: 'none',
+                          borderLeft: `4px solid ${isSelected ? color : 'transparent'}`,
+                          cursor: 'pointer',
+                          color: isSelected ? color : 'var(--color-text-light)',
+                          fontWeight: isSelected ? 700 : 400,
+                          fontSize: 'var(--font-size-sm)',
+                          whiteSpace: 'nowrap',
+                          transition: 'all 0.2s',
+                        }}
+                          onMouseEnter={e => { if (!isSelected) (e.currentTarget as HTMLElement).style.background = 'var(--color-bg-main)'; }}
+                          onMouseLeave={e => { if (!isSelected) (e.currentTarget as HTMLElement).style.background = 'none'; }}
+                        >
+                          <span style={{ flexShrink: 0, display: 'flex', opacity: isSelected ? 1 : 0.6 }}>
+                            {EIcon ? <EIcon size={14} /> : null}
                           </span>
-                          <span style={{ fontSize: 'var(--font-size-sm)', fontWeight: 700, color: isSelected ? color : 'var(--color-text-sub)' }}>
-                            {exam}
-                          </span>
+                          <span>{exam}</span>
                         </button>
                       );
                     })}
@@ -777,7 +784,7 @@ export default function CheatSheet() {
       )}
 
       <div style={!isMobile ? { paddingLeft: 160 } : undefined}>
-      <PageLayout maxWidth={580}>
+      <PageLayout maxWidth={580} style={!isMobile ? { marginLeft: 0 } : undefined}>
         <Helmet>
           <title>チートシート | 無限ノック</title>
           <meta name="description" content="AWS認定試験ごとの代表的サービス・機能・概念を試験前の見直し用にまとめたチートシート。" />
