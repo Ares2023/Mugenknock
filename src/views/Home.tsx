@@ -4,7 +4,7 @@ import { Helmet } from '@/compat/react-helmet-async';
 import { createPortal } from 'react-dom';
 import { useNavigate, useLocation } from '@/compat/react-router-dom';
 import DailyServiceRevealModal from '../components/DailyServiceRevealModal';
-import ExamSelectOverlay from '../components/ExamSelectOverlay';
+import ExamSelectOverlay, { ConfirmBurst } from '../components/ExamSelectOverlay';
 import { useAuth } from '../contexts/AuthContext';
 import { useLanguage } from '../contexts/LanguageContext';
 import {
@@ -1215,11 +1215,22 @@ export default function Home() {
     try { return localStorage.getItem('guestBannerHidden') === '1'; } catch { return false; }
   });
   const [qRefreshTick, setQRefreshTick] = useState(0); // セッション完了で +1 → useEffect 再実行
-  const [savedQuick, setSavedQuick] = useState(false);
-  const [savedFocused, setSavedFocused] = useState(false);
+  const [quickSaveMsg, setQuickSaveMsg] = useState<'saved' | 'already' | null>(null);
+  const [focusedSaveMsg, setFocusedSaveMsg] = useState<'saved' | 'already' | null>(null);
+  const savedQuick = quickSaveMsg === 'saved';
+  const savedFocused = focusedSaveMsg === 'saved';
   const [draftPrefs, setDraftPrefs] = useState<Record<string, any>>({});
+  const savedQuickPrefsRef = useRef<Record<string, any>>({});
   const [showFocusedModal, setShowFocusedModal] = useState(false);
   const [draftFocusedPrefs, setDraftFocusedPrefs] = useState<Record<string, any>>({});
+  const savedFocusedPrefsRef = useRef<Record<string, any>>({});
+  const [quickBurst, setQuickBurst] = useState<{ x: number; y: number } | null>(null);
+  const [focusedBurst, setFocusedBurst] = useState<{ x: number; y: number } | null>(null);
+  const [quickSaveSpinning, setQuickSaveSpinning] = useState(false);
+  const [focusedSaveSpinning, setFocusedSaveSpinning] = useState(false);
+  const saveBtnQuickRef = useRef<HTMLButtonElement>(null);
+  const saveBtnFocusedRef = useRef<HTMLButtonElement>(null);
+  const SAVE_BURST_COLOR = '#e74c3c';
   const [showCombinedDetail, setShowCombinedDetail] = useState(false);
   const [serverScoreHistory, setServerScoreHistory] = useState<ScoreEntry[] | null>(null);
   const [serverSessionHistory, setServerSessionHistory] = useState<number[] | null>(null);
@@ -2274,8 +2285,8 @@ export default function Home() {
             )}
             <button
               onClick={() => {
-                if (primaryMode === 'focused') { setDraftFocusedPrefs({ ...loadFocusedPrefs(uid) }); setShowFocusedModal(true); }
-                else { const p = loadQuickPrefs(uid); setDraftPrefs({ ...p, domains: storedDomainsToNames(targetExam ?? 'SAA', p.domains) }); setShowQuickModal(true); }
+                if (primaryMode === 'focused') { const fp = loadFocusedPrefs(uid); savedFocusedPrefsRef.current = fp; setDraftFocusedPrefs({ ...fp }); setShowFocusedModal(true); }
+                else { const p = loadQuickPrefs(uid); const d = { ...p, domains: storedDomainsToNames(targetExam ?? 'SAA', p.domains) }; savedQuickPrefsRef.current = d; setDraftPrefs(d); setShowQuickModal(true); }
               }}
               style={{ flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', height: 44, width: 132, border: `1.5px solid ${primaryMode === 'focused' ? '#009E9E' : 'var(--color-primary)'}`, borderRadius: 'var(--border-radius-full)', background: 'var(--color-bg-white)', cursor: 'pointer', color: primaryMode === 'focused' ? '#009E9E' : 'var(--color-primary)', fontWeight: 600, fontSize: 'var(--font-size-base)' }}
             >
@@ -2438,8 +2449,8 @@ export default function Home() {
             {/* 設定アイコン（常に表示） */}
             <button
               onClick={() => {
-                if (primaryMode === 'focused') { setDraftFocusedPrefs({ ...loadFocusedPrefs(uid) }); setShowFocusedModal(true); }
-                else { const p = loadQuickPrefs(uid); setDraftPrefs({ ...p, domains: storedDomainsToNames(targetExam ?? 'SAA', p.domains) }); setShowQuickModal(true); }
+                if (primaryMode === 'focused') { const fp = loadFocusedPrefs(uid); savedFocusedPrefsRef.current = fp; setDraftFocusedPrefs({ ...fp }); setShowFocusedModal(true); }
+                else { const p = loadQuickPrefs(uid); const d = { ...p, domains: storedDomainsToNames(targetExam ?? 'SAA', p.domains) }; savedQuickPrefsRef.current = d; setDraftPrefs(d); setShowQuickModal(true); }
               }}
               style={{ flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', width: 44, height: 44, border: `1.5px solid ${primaryMode === 'focused' ? '#009E9E' : 'var(--color-primary)'}`, borderRadius: '50%', background: 'transparent', cursor: 'pointer', color: primaryMode === 'focused' ? '#009E9E' : 'var(--color-primary)' }}
               aria-label={ja ? '設定' : 'Settings'}
@@ -2589,24 +2600,53 @@ export default function Home() {
               </div>
             </div>
             {/* 保存ボタン固定 */}
-            <div style={{ flexShrink: 0, borderTop: '1px solid var(--color-border)', padding: '10px 16px', display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: 12, minHeight: 64 }}>
-              {savedQuick && <span style={{ fontSize: 'var(--font-size-sm2)', fontWeight: 700, color: 'var(--color-success)', animation: 'sherpa-save-msg 2s ease-in-out both' }}>✓ {ja ? '保存しました' : 'Saved'}</span>}
-              <button
-                disabled={targetExam !== null && (EXAM_DOMAINS[targetExam] ?? []).length > 0 && (draftPrefs.domains ?? []).length === 0}
-                onClick={() => {
-                  localStorage.setItem(`quickExercisePrefs_${uid}`, JSON.stringify({ ...draftPrefs, domains: domainsToIndices(targetExam ?? 'SAA', draftPrefs.domains ?? []) }));
-                  setSavedQuick(true);
-                  setTimeout(() => setSavedQuick(false), 2000);
-                  if (targetExam) {
-                    const hasFilters = !!(draftPrefs.unansweredOnly || draftPrefs.incorrectOnly || draftPrefs.bookmarkOnly || (draftPrefs.domains?.length ?? 0) > 0);
-                    if (hasFilters) { prefetchTypeC(targetExam, uid, draftPrefs); } else { prefetchTypeA(targetExam, uid); }
-                  }
-                }}
-                style={{ width: 44, height: 44, borderRadius: '50%', border: 'none', background: 'var(--color-accent)', color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: (targetExam !== null && (EXAM_DOMAINS[targetExam] ?? []).length > 0 && (draftPrefs.domains ?? []).length === 0) ? 'default' : 'pointer', boxShadow: 'var(--box-shadow-pop)', flexShrink: 0, opacity: (targetExam !== null && (EXAM_DOMAINS[targetExam] ?? []).length > 0 && (draftPrefs.domains ?? []).length === 0) ? 0.5 : 1 }}
-              >
-                <IconSaveCheck size={22} />
-              </button>
-            </div>
+            {(() => {
+              const isDisabled = targetExam !== null && (EXAM_DOMAINS[targetExam] ?? []).length > 0 && (draftPrefs.domains ?? []).length === 0;
+              const quickDirty = JSON.stringify(draftPrefs) !== JSON.stringify(savedQuickPrefsRef.current);
+              return (
+                <div style={{ flexShrink: 0, borderTop: '1px solid var(--color-border)', padding: '10px 16px', display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: 12, minHeight: 64 }}>
+                  {quickSaveMsg && (
+                    <span style={{ fontSize: 'var(--font-size-sm2)', fontWeight: 700, color: quickSaveMsg === 'saved' ? 'var(--color-success)' : 'var(--color-text-sub)', animation: 'sherpa-save-msg 2s ease-in-out both' }}>
+                      {quickSaveMsg === 'saved' ? `✓ ${ja ? '保存しました' : 'Saved'}` : (ja ? '保存済です' : 'Already saved')}
+                    </span>
+                  )}
+                  <div style={{ position: 'relative', flexShrink: 0 }}>
+                    {quickDirty && !isDisabled && (
+                      <span style={{ position: 'absolute', top: -2, right: -2, width: 10, height: 10, borderRadius: '50%', background: SAVE_BURST_COLOR, border: '1.5px solid var(--color-bg-white)', zIndex: 1, pointerEvents: 'none' }} />
+                    )}
+                    <button
+                      ref={saveBtnQuickRef}
+                      disabled={isDisabled}
+                      onClick={() => {
+                        if (!quickDirty) {
+                          setQuickSaveMsg('already');
+                          setTimeout(() => setQuickSaveMsg(null), 2000);
+                          return;
+                        }
+                        localStorage.setItem(`quickExercisePrefs_${uid}`, JSON.stringify({ ...draftPrefs, domains: domainsToIndices(targetExam ?? 'SAA', draftPrefs.domains ?? []) }));
+                        savedQuickPrefsRef.current = draftPrefs;
+                        setQuickSaveMsg('saved');
+                        setTimeout(() => setQuickSaveMsg(null), 2000);
+                        setQuickSaveSpinning(true);
+                        setTimeout(() => setQuickSaveSpinning(false), 600);
+                        const reduceMotion = window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
+                        if (!reduceMotion) {
+                          const r = saveBtnQuickRef.current?.getBoundingClientRect();
+                          if (r) setQuickBurst({ x: r.left + r.width / 2, y: r.top + r.height / 2 });
+                        }
+                        if (targetExam) {
+                          const hasFilters = !!(draftPrefs.unansweredOnly || draftPrefs.incorrectOnly || draftPrefs.bookmarkOnly || (draftPrefs.domains?.length ?? 0) > 0);
+                          if (hasFilters) { prefetchTypeC(targetExam, uid, draftPrefs); } else { prefetchTypeA(targetExam, uid); }
+                        }
+                      }}
+                      style={{ width: 44, height: 44, borderRadius: '50%', border: 'none', background: 'var(--color-accent)', color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: isDisabled ? 'default' : 'pointer', boxShadow: 'var(--box-shadow-pop)', flexShrink: 0, opacity: isDisabled ? 0.5 : 1, animation: quickSaveSpinning ? 'sherpa-spin 0.5s cubic-bezier(0.45,0.05,0.3,1) both' : undefined }}
+                    >
+                      <IconSaveCheck size={22} />
+                    </button>
+                  </div>
+                </div>
+              );
+            })()}
           </div>
         </div>
       )}
@@ -2733,23 +2773,51 @@ export default function Home() {
               </div>
             </div>
             {/* 保存ボタン固定 */}
-            <div style={{ flexShrink: 0, borderTop: '1px solid var(--color-border)', padding: '10px 16px', display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: 12, minHeight: 64 }}>
-              {savedFocused && <span style={{ fontSize: 'var(--font-size-sm2)', fontWeight: 700, color: 'var(--color-success)', animation: 'sherpa-save-msg 2s ease-in-out both' }}>✓ {ja ? '保存しました' : 'Saved'}</span>}
-              <button
-                onClick={() => {
-                  localStorage.setItem(`focusedExercisePrefs_${uid}`, JSON.stringify(draftFocusedPrefs));
-                  setSavedFocused(true);
-                  setTimeout(() => setSavedFocused(false), 2000);
-                  if (targetExam) {
-                    const hasFilters = draftFocusedPrefs.focusIncorrect !== false || (draftFocusedPrefs.focusDomain ?? 'below60') !== 'none';
-                    if (hasFilters) { prefetchTypeB(targetExam, uid, draftFocusedPrefs); } else { prefetchTypeA(targetExam, uid); }
-                  }
-                }}
-                style={{ width: 44, height: 44, borderRadius: '50%', border: 'none', background: 'var(--color-accent)', color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', boxShadow: 'var(--box-shadow-pop)', flexShrink: 0 }}
-              >
-                <IconSaveCheck size={22} />
-              </button>
-            </div>
+            {(() => {
+              const focusedDirty = JSON.stringify(draftFocusedPrefs) !== JSON.stringify(savedFocusedPrefsRef.current);
+              return (
+                <div style={{ flexShrink: 0, borderTop: '1px solid var(--color-border)', padding: '10px 16px', display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: 12, minHeight: 64 }}>
+                  {focusedSaveMsg && (
+                    <span style={{ fontSize: 'var(--font-size-sm2)', fontWeight: 700, color: focusedSaveMsg === 'saved' ? 'var(--color-success)' : 'var(--color-text-sub)', animation: 'sherpa-save-msg 2s ease-in-out both' }}>
+                      {focusedSaveMsg === 'saved' ? `✓ ${ja ? '保存しました' : 'Saved'}` : (ja ? '保存済です' : 'Already saved')}
+                    </span>
+                  )}
+                  <div style={{ position: 'relative', flexShrink: 0 }}>
+                    {focusedDirty && (
+                      <span style={{ position: 'absolute', top: -2, right: -2, width: 10, height: 10, borderRadius: '50%', background: SAVE_BURST_COLOR, border: '1.5px solid var(--color-bg-white)', zIndex: 1, pointerEvents: 'none' }} />
+                    )}
+                    <button
+                      ref={saveBtnFocusedRef}
+                      onClick={() => {
+                        if (!focusedDirty) {
+                          setFocusedSaveMsg('already');
+                          setTimeout(() => setFocusedSaveMsg(null), 2000);
+                          return;
+                        }
+                        localStorage.setItem(`focusedExercisePrefs_${uid}`, JSON.stringify(draftFocusedPrefs));
+                        savedFocusedPrefsRef.current = draftFocusedPrefs;
+                        setFocusedSaveMsg('saved');
+                        setTimeout(() => setFocusedSaveMsg(null), 2000);
+                        setFocusedSaveSpinning(true);
+                        setTimeout(() => setFocusedSaveSpinning(false), 600);
+                        const reduceMotion = window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
+                        if (!reduceMotion) {
+                          const r = saveBtnFocusedRef.current?.getBoundingClientRect();
+                          if (r) setFocusedBurst({ x: r.left + r.width / 2, y: r.top + r.height / 2 });
+                        }
+                        if (targetExam) {
+                          const hasFilters = draftFocusedPrefs.focusIncorrect !== false || (draftFocusedPrefs.focusDomain ?? 'below60') !== 'none';
+                          if (hasFilters) { prefetchTypeB(targetExam, uid, draftFocusedPrefs); } else { prefetchTypeA(targetExam, uid); }
+                        }
+                      }}
+                      style={{ width: 44, height: 44, borderRadius: '50%', border: 'none', background: 'var(--color-accent)', color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', boxShadow: 'var(--box-shadow-pop)', flexShrink: 0, animation: focusedSaveSpinning ? 'sherpa-spin 0.5s cubic-bezier(0.45,0.05,0.3,1) both' : undefined }}
+                    >
+                      <IconSaveCheck size={22} />
+                    </button>
+                  </div>
+                </div>
+              );
+            })()}
           </div>
         </div>
       )}
@@ -2766,6 +2834,7 @@ export default function Home() {
           uid={uid}
           lang={lang}
           isMobile={isMobile}
+          onboarding
           onSelect={(exam) => {
             setTargetExam(exam);
             if (user) syncTargetExamToServer(user.userId, uid, exam);
@@ -2775,6 +2844,8 @@ export default function Home() {
         />
       )}
       {(quickLoading || focusedLoading) && <div style={{ position: 'fixed', inset: 0, zIndex: 9000, cursor: 'wait' }} onTouchStart={e => e.stopPropagation()} onTouchMove={e => e.stopPropagation()} onTouchEnd={e => e.stopPropagation()} />}
+      {quickBurst && <ConfirmBurst x={quickBurst.x} y={quickBurst.y} color={SAVE_BURST_COLOR} onDone={() => setQuickBurst(null)} />}
+      {focusedBurst && <ConfirmBurst x={focusedBurst.x} y={focusedBurst.y} color={SAVE_BURST_COLOR} onDone={() => setFocusedBurst(null)} />}
     </div>
   );
 }

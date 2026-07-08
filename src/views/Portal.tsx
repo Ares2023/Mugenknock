@@ -2,6 +2,7 @@
 import React, { useState, useEffect } from 'react';
 import { Helmet } from '@/compat/react-helmet-async';
 import { Navigate, useNavigate } from '@/compat/react-router-dom';
+import { useSearchParams } from 'next/navigation';
 import { useAuth } from '../contexts/AuthContext';
 import { useLanguage } from '../contexts/LanguageContext';
 import { IconUser, IconBot, IconTarget, IconTrendingUp } from '../components/Icons';
@@ -64,6 +65,7 @@ const COMPARE_ROWS: { p: [string, string]; s: [string, string] }[] = [
 export default function Portal() {
   const navigate = useNavigate();
   const { user, loading } = useAuth();
+  const searchParams = useSearchParams();
   const { lang } = useLanguage();
   const ja = lang === 'ja';
   const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
@@ -92,10 +94,8 @@ export default function Portal() {
     );
   }
 
-  const forceView = typeof window !== 'undefined' && (
-    window.location.hash === '#about' ||
-    new URLSearchParams(window.location.search).has('view')
-  );
+  const forceView = searchParams?.has('view') ||
+    (typeof window !== 'undefined' && window.location.hash === '#about');
   if (user && !forceView && localStorage.getItem(`targetExam_${user.userId}`)) {
     return <Navigate to="/aws/" replace />;
   }

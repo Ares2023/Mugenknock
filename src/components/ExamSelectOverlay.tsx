@@ -10,7 +10,7 @@ import { EXAM_ICON_COMPONENTS, IconBook, IconBookOpenCheck, IconCircleCheck } fr
 // 色は資格レベルカラー（levelColor）の濃淡 + 少量の白アクセント。
 const BURST_COUNT = 26;
 
-function ConfirmBurst({ x, y, color, onDone }: { x: number; y: number; color: string; onDone: () => void }) {
+export function ConfirmBurst({ x, y, color, onDone }: { x: number; y: number; color: string; onDone: () => void }) {
   // 6桁hexにアルファを付けて濃淡を作る（levelColor は全て #rrggbb 形式）
   const palette = useMemo(() => [color, color, color, `${color}cc`, `${color}99`, '#ffffff'], [color]);
   const particles = useMemo(() => Array.from({ length: BURST_COUNT }, (_, i) => {
@@ -123,11 +123,13 @@ interface ExamSelectOverlayProps {
   desktopMaxWidth?: number;
   /** デスクトップ時の高さ（vh 文字列）。省略時は '60vh' */
   desktopHeight?: string;
+  /** true のとき確定ボタンをパルスアニメーションで強調（初回オンボーディング時） */
+  onboarding?: boolean;
 }
 
 export default function ExamSelectOverlay({
   targetExam, uid, lang, isMobile, onSelect, onClose,
-  desktopMaxWidth = 420, desktopHeight = '60vh',
+  desktopMaxWidth = 420, desktopHeight = '60vh', onboarding = false,
 }: ExamSelectOverlayProps) {
   const ja = lang === 'ja';
   const initLevel = targetExam
@@ -381,7 +383,13 @@ export default function ExamSelectOverlay({
           const isCurrentTarget = targetExam === exam;
           return (
             <div style={{ flexShrink: 0, borderTop: `2px solid ${levelColor}33`, background: `${levelColor}08`, padding: '10px 16px', display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: 12, minHeight: 64 }}>
-              <style>{`@keyframes examStudyingFade { from { opacity: 0; transform: translateX(6px); } to { opacity: 1; transform: none; } }`}</style>
+              <style>{`
+                @keyframes examStudyingFade { from { opacity: 0; transform: translateX(6px); } to { opacity: 1; transform: none; } }
+                @keyframes eso-onboarding-pulse {
+                  0%, 100% { box-shadow: 0 0 0 0 ${levelColor}66, var(--box-shadow-pop); }
+                  50%       { box-shadow: 0 0 0 8px ${levelColor}00, var(--box-shadow-pop); }
+                }
+              `}</style>
               {(isCurrentTarget || confirming) && (
                 <div style={{ fontSize: 'var(--font-size-sm2)', fontWeight: 700, color: 'var(--color-success)', animation: confirming ? 'examStudyingFade 0.4s ease 0.5s both' : undefined }}>✓ {ja ? '学習中' : 'Studying'}</div>
               )}
@@ -431,6 +439,7 @@ export default function ExamSelectOverlay({
                       display: 'flex', alignItems: 'center', justifyContent: 'center', borderRadius: '50%',
                       border: `2px solid ${levelColor}`, background: 'var(--color-bg-white)', color: levelColor,
                       boxShadow: 'var(--box-shadow-pop)',
+                      animation: (onboarding && !confirming) ? 'eso-onboarding-pulse 1.6s ease-in-out infinite' : undefined,
                     }}>
                       <IconBook size={22} />
                     </span>
