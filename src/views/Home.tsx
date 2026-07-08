@@ -19,7 +19,7 @@ import { animateLoadPct, randomPlateau } from '../utils/loadProgress';
 import { getPoints, deductPoints } from '../utils/points';
 import Card from '../components/ui/Card';
 import Button from '../components/ui/Button';
-import { IconLightbulb, IconBean, IconSettings, IconChevronUp, IconChevronDown, IconLock, IconFileText, IconTrendingUp, IconBookOpen, IconCheck, IconSparkles, IconPointer, IconMousePointerClick, IconCalendarNotebook, IconRefreshCw, IconTarget, IconChart, ServiceIconImg, isServiceIconKey, IconUser, IconSaveCheck } from '../components/Icons';
+import { IconLightbulb, IconBean, IconSettings, IconChevronUp, IconChevronDown, IconLock, IconFileText, IconTrendingUp, IconBookOpen, IconCheck, IconSparkles, IconPointer, IconMousePointerClick, IconCalendarNotebook, IconRefreshCw, IconTarget, IconChart, ServiceIconImg, isServiceIconKey, IconUser, IconSave, IconSaveCheck } from '../components/Icons';
 import KeyHint from '../components/KeyHint';
 import { CATALOG } from '../data/awsServiceCatalog';
 import { autoScoreAndClearDrafts } from '../utils/sessionUtils';
@@ -1226,8 +1226,8 @@ export default function Home() {
   const savedFocusedPrefsRef = useRef<Record<string, any>>({});
   const [quickBurst, setQuickBurst] = useState<{ x: number; y: number } | null>(null);
   const [focusedBurst, setFocusedBurst] = useState<{ x: number; y: number } | null>(null);
-  const [quickSaveSpinning, setQuickSaveSpinning] = useState(false);
-  const [focusedSaveSpinning, setFocusedSaveSpinning] = useState(false);
+  const [quickSaving, setQuickSaving] = useState(false);
+  const [focusedSaving, setFocusedSaving] = useState(false);
   const saveBtnQuickRef = useRef<HTMLButtonElement>(null);
   const saveBtnFocusedRef = useRef<HTMLButtonElement>(null);
   const SAVE_BURST_COLOR = '#e74c3c';
@@ -2603,6 +2603,7 @@ export default function Home() {
             {(() => {
               const isDisabled = targetExam !== null && (EXAM_DOMAINS[targetExam] ?? []).length > 0 && (draftPrefs.domains ?? []).length === 0;
               const quickDirty = JSON.stringify(draftPrefs) !== JSON.stringify(savedQuickPrefsRef.current);
+              const flipped = !quickDirty || quickSaving;
               return (
                 <div style={{ flexShrink: 0, borderTop: '1px solid var(--color-border)', padding: '10px 16px', display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: 12, minHeight: 64 }}>
                   {quickSaveMsg && (
@@ -2616,7 +2617,7 @@ export default function Home() {
                     )}
                     <button
                       ref={saveBtnQuickRef}
-                      disabled={isDisabled}
+                      disabled={isDisabled || quickSaving}
                       onClick={() => {
                         if (!quickDirty) {
                           setQuickSaveMsg('already');
@@ -2627,8 +2628,8 @@ export default function Home() {
                         savedQuickPrefsRef.current = draftPrefs;
                         setQuickSaveMsg('saved');
                         setTimeout(() => setQuickSaveMsg(null), 2000);
-                        setQuickSaveSpinning(true);
-                        setTimeout(() => setQuickSaveSpinning(false), 600);
+                        setQuickSaving(true);
+                        setTimeout(() => setQuickSaving(false), 600);
                         const reduceMotion = window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
                         if (!reduceMotion) {
                           const r = saveBtnQuickRef.current?.getBoundingClientRect();
@@ -2639,9 +2640,18 @@ export default function Home() {
                           if (hasFilters) { prefetchTypeC(targetExam, uid, draftPrefs); } else { prefetchTypeA(targetExam, uid); }
                         }
                       }}
-                      style={{ width: 44, height: 44, borderRadius: '50%', border: 'none', background: 'var(--color-accent)', color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: isDisabled ? 'default' : 'pointer', boxShadow: 'var(--box-shadow-pop)', flexShrink: 0, opacity: isDisabled ? 0.5 : 1, animation: quickSaveSpinning ? 'sherpa-spin 0.5s cubic-bezier(0.45,0.05,0.3,1) both' : undefined }}
+                      style={{ width: 44, height: 44, flexShrink: 0, padding: 0, border: 'none', background: 'transparent', cursor: (isDisabled || quickSaving) ? 'default' : 'pointer', opacity: isDisabled ? 0.5 : 1, perspective: 600, transition: 'none' }}
                     >
-                      <IconSaveCheck size={22} />
+                      <div style={{ position: 'relative', width: '100%', height: '100%', transformStyle: 'preserve-3d', transition: quickSaving ? 'transform 0.55s cubic-bezier(.45,.05,.3,1)' : 'none', transform: flipped ? 'rotateY(180deg)' : 'rotateY(0deg)' }}>
+                        {/* 表面：未保存（白ベース・色枠） */}
+                        <span style={{ position: 'absolute', inset: 0, backfaceVisibility: 'hidden', WebkitBackfaceVisibility: 'hidden', display: 'flex', alignItems: 'center', justifyContent: 'center', borderRadius: '50%', border: '2px solid var(--color-accent)', background: 'var(--color-bg-white)', color: 'var(--color-accent)', boxShadow: 'var(--box-shadow-pop)' }}>
+                          <IconSave size={22} />
+                        </span>
+                        {/* 裏面：保存済（オレンジ塗り・白アイコン） */}
+                        <span style={{ position: 'absolute', inset: 0, backfaceVisibility: 'hidden', WebkitBackfaceVisibility: 'hidden', transform: 'rotateY(180deg)', display: 'flex', alignItems: 'center', justifyContent: 'center', borderRadius: '50%', background: 'var(--color-accent)', color: '#fff', boxShadow: 'var(--box-shadow-pop)' }}>
+                          <IconSaveCheck size={22} />
+                        </span>
+                      </div>
                     </button>
                   </div>
                 </div>
@@ -2775,6 +2785,7 @@ export default function Home() {
             {/* 保存ボタン固定 */}
             {(() => {
               const focusedDirty = JSON.stringify(draftFocusedPrefs) !== JSON.stringify(savedFocusedPrefsRef.current);
+              const flipped = !focusedDirty || focusedSaving;
               return (
                 <div style={{ flexShrink: 0, borderTop: '1px solid var(--color-border)', padding: '10px 16px', display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: 12, minHeight: 64 }}>
                   {focusedSaveMsg && (
@@ -2798,8 +2809,8 @@ export default function Home() {
                         savedFocusedPrefsRef.current = draftFocusedPrefs;
                         setFocusedSaveMsg('saved');
                         setTimeout(() => setFocusedSaveMsg(null), 2000);
-                        setFocusedSaveSpinning(true);
-                        setTimeout(() => setFocusedSaveSpinning(false), 600);
+                        setFocusedSaving(true);
+                        setTimeout(() => setFocusedSaving(false), 600);
                         const reduceMotion = window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
                         if (!reduceMotion) {
                           const r = saveBtnFocusedRef.current?.getBoundingClientRect();
@@ -2810,9 +2821,19 @@ export default function Home() {
                           if (hasFilters) { prefetchTypeB(targetExam, uid, draftFocusedPrefs); } else { prefetchTypeA(targetExam, uid); }
                         }
                       }}
-                      style={{ width: 44, height: 44, borderRadius: '50%', border: 'none', background: 'var(--color-accent)', color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', boxShadow: 'var(--box-shadow-pop)', flexShrink: 0, animation: focusedSaveSpinning ? 'sherpa-spin 0.5s cubic-bezier(0.45,0.05,0.3,1) both' : undefined }}
+                      disabled={focusedSaving}
+                      style={{ width: 44, height: 44, flexShrink: 0, padding: 0, border: 'none', background: 'transparent', cursor: focusedSaving ? 'default' : 'pointer', perspective: 600, transition: 'none' }}
                     >
-                      <IconSaveCheck size={22} />
+                      <div style={{ position: 'relative', width: '100%', height: '100%', transformStyle: 'preserve-3d', transition: focusedSaving ? 'transform 0.55s cubic-bezier(.45,.05,.3,1)' : 'none', transform: flipped ? 'rotateY(180deg)' : 'rotateY(0deg)' }}>
+                        {/* 表面：未保存（白ベース・色枠） */}
+                        <span style={{ position: 'absolute', inset: 0, backfaceVisibility: 'hidden', WebkitBackfaceVisibility: 'hidden', display: 'flex', alignItems: 'center', justifyContent: 'center', borderRadius: '50%', border: '2px solid var(--color-accent)', background: 'var(--color-bg-white)', color: 'var(--color-accent)', boxShadow: 'var(--box-shadow-pop)' }}>
+                          <IconSave size={22} />
+                        </span>
+                        {/* 裏面：保存済（オレンジ塗り・白アイコン） */}
+                        <span style={{ position: 'absolute', inset: 0, backfaceVisibility: 'hidden', WebkitBackfaceVisibility: 'hidden', transform: 'rotateY(180deg)', display: 'flex', alignItems: 'center', justifyContent: 'center', borderRadius: '50%', background: 'var(--color-accent)', color: '#fff', boxShadow: 'var(--box-shadow-pop)' }}>
+                          <IconSaveCheck size={22} />
+                        </span>
+                      </div>
                     </button>
                   </div>
                 </div>
