@@ -140,6 +140,7 @@ export default function ExamSelectOverlay({
   const [confirming, setConfirming] = useState(false);
   const [domainOpen, setDomainOpen] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
+  const cardStripRef = useRef<HTMLDivElement>(null);
   const confirmBtnRef = useRef<HTMLButtonElement>(null);
   const [burst, setBurst] = useState<{ x: number; y: number } | null>(null);
 
@@ -154,6 +155,12 @@ export default function ExamSelectOverlay({
     if (scrollRef.current) scrollRef.current.scrollTop = 0;
     setDomainOpen(false);
   }, [previewExam]);
+
+  useEffect(() => {
+    const examToShow = currentLevelDef.exams.find(e => e === previewExam) ?? currentLevelDef.exams[0];
+    const el = cardStripRef.current?.querySelector<HTMLElement>(`[data-exam="${examToShow}"]`);
+    el?.scrollIntoView({ behavior: 'instant', block: 'nearest', inline: 'nearest' });
+  }, [activeLevel]);
 
   useEffect(() => {
     const prev = document.body.style.overflow;
@@ -238,6 +245,7 @@ export default function ExamSelectOverlay({
 
         {/* 資格カード（横スクロール） */}
         <div
+          ref={cardStripRef}
           style={{ display: 'flex', gap: 10, padding: '14px 20px', overflowX: 'auto', flexShrink: 0 }}
           onTouchStart={e => e.stopPropagation()}
           onTouchMove={e => e.stopPropagation()}
@@ -250,6 +258,7 @@ export default function ExamSelectOverlay({
               <button
                 key={exam}
                 data-kbnav="1"
+                data-exam={exam}
                 onClick={() => setPreviewExam(exam)}
                 style={{
                   flexShrink: 0, width: 80, padding: '10px 6px 8px', cursor: 'pointer',

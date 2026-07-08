@@ -575,6 +575,7 @@ export default function CheatSheet() {
   const [copiedTerm, setCopiedTerm] = useState<string | null>(null);
   const [pendingScrollTo, setPendingScrollTo] = useState<string | null>(null);
   const [showScrollTop, setShowScrollTop] = useState(false);
+  const examStripRef = useRef<HTMLDivElement>(null);
 
   function handleTermCopy(term: string) {
     navigator.clipboard.writeText(term);
@@ -631,6 +632,11 @@ export default function CheatSheet() {
       }
     }
   }, [user, loading, goalInit]);
+
+  useEffect(() => {
+    const el = examStripRef.current?.querySelector<HTMLElement>(`[data-exam="${selectedExam}"]`);
+    el?.scrollIntoView({ behavior: 'instant', block: 'nearest', inline: 'nearest' });
+  }, [selectedExam]);
 
   const examColor = EXAM_LEVEL_COLORS[EXAM_LEVEL[selectedExam]] ?? 'var(--color-primary)';
   const levelColor = EXAM_LEVELS.find(l => l.key === activeLevel)?.color ?? examColor;
@@ -762,13 +768,14 @@ export default function CheatSheet() {
         </div>
 
         {/* 試験カード（横スクロール） */}
-        <div style={{ display: 'flex', gap: 10, padding: '14px 0', overflowX: 'auto', flexShrink: 0 }}>
+        <div ref={examStripRef} style={{ display: 'flex', gap: 10, padding: '14px 0', overflowX: 'auto', flexShrink: 0 }}>
           {currentLevelExams.filter(e => CHEAT_DATA[e]).map(exam => {
             const isSelected = selectedExam === exam;
             const EIcon = EXAM_ICON_COMPONENTS[exam];
             return (
               <button
                 key={exam}
+                data-exam={exam}
                 onClick={() => selectExam(exam)}
                 style={{
                   flexShrink: 0, width: 80, padding: '10px 6px 8px', cursor: 'pointer',
