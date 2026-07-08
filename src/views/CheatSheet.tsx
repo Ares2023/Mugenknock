@@ -570,6 +570,7 @@ export default function CheatSheet() {
   const [goalInit, setGoalInit] = useState(false);
   const [copiedTerm, setCopiedTerm] = useState<string | null>(null);
   const [pendingScrollTo, setPendingScrollTo] = useState<string | null>(null);
+  const [highlightedItem, setHighlightedItem] = useState<string | null>(null);
   const [showScrollTop, setShowScrollTop] = useState(false);
   const examStripRef = useRef<HTMLDivElement>(null);
 
@@ -581,22 +582,32 @@ export default function CheatSheet() {
 
   function navigateToItem(name: string) {
     setSearch('');
-    let targetExam: string | null = null;
-    outer: for (const [exam, secs] of Object.entries(CHEAT_DATA)) {
-      for (const sec of secs) {
-        if (sec.items.some(it => it.name === name)) {
-          targetExam = exam;
-          break outer;
-        }
+    // 候補試験を全収集
+    const candidates: string[] = [];
+    for (const [exam, secs] of Object.entries(CHEAT_DATA)) {
+      if (secs.some(sec => sec.items.some(it => it.name === name))) {
+        candidates.push(exam);
       }
     }
-    if (!targetExam) return;
+    if (candidates.length === 0) return;
+
+    // 優先順位: 1) 現在の試験, 2) 同レベルの試験, 3) 先頭
+    let targetExam: string;
+    if (candidates.includes(selectedExam)) {
+      targetExam = selectedExam;
+    } else {
+      const currentLevelExams = EXAM_LEVELS.find(l => l.key === levelOf(selectedExam))?.exams ?? [];
+      targetExam = currentLevelExams.find(e => candidates.includes(e)) ?? candidates[0];
+    }
+
     if (targetExam !== selectedExam) {
       const lv = levelOf(targetExam) as LevelKey;
       setActiveLevel(lv);
       setSelectedExam(targetExam);
     }
-    setPendingScrollTo(name);
+    // pendingScrollTo が同値でも useEffect を再発火させるためいったん null にリセット
+    setPendingScrollTo(null);
+    setTimeout(() => setPendingScrollTo(name), 0);
   }
 
   useEffect(() => {
@@ -609,9 +620,21 @@ export default function CheatSheet() {
 
   useEffect(() => {
     if (!pendingScrollTo) return;
-    const el = document.querySelector(`[data-item-name="${pendingScrollTo.replace(/\\/g, '\\\\').replace(/"/g, '\\"')}"]`);
+    const escaped = pendingScrollTo.replace(/\\/g, '\\\\').replace(/"/g, '\\"');
+    const el = document.querySelector<HTMLElement>(`[data-item-name="${escaped}"]`);
     if (el) {
-      el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      // #main-scroll コンテナ内で正確にセンタリング
+      const container = document.getElementById('main-scroll');
+      if (container) {
+        const rect = el.getBoundingClientRect();
+        const cRect = container.getBoundingClientRect();
+        const offset = container.scrollTop + rect.top - cRect.top - cRect.height / 2 + rect.height / 2;
+        container.scrollTo({ top: Math.max(0, offset), behavior: 'smooth' });
+      } else {
+        el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      }
+      setHighlightedItem(pendingScrollTo);
+      setTimeout(() => setHighlightedItem(null), 1500);
       setPendingScrollTo(null);
     }
   }, [selectedExam, pendingScrollTo]);
@@ -937,7 +960,7 @@ export default function CheatSheet() {
                     </div>
                     <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--spacing-sm)' }}>
                       {items.map(item => (
-                        <ItemCard key={`${exam}-${item.name}`} item={item} q={q} onCopy={handleTermCopy} onNavigate={navigateToItem} />
+                        <ItemCard key={`${exam}-${item.name}`} item={item} q={q} highlighted={highlightedItem === item.name} onCopy={handleTermCopy} onNavigate={navigateToItem} />
                       ))}
                     </div>
                   </div>
@@ -963,7 +986,7 @@ export default function CheatSheet() {
                 </h2>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--spacing-sm)' }}>
                   {section.items.map(item => (
-                    <ItemCard key={item.name} item={item} q={q} onCopy={handleTermCopy} onNavigate={navigateToItem} />
+                    <ItemCard key={item.name} item={item} q={q} highlighted={highlightedItem === item.name} onCopy={handleTermCopy} onNavigate={navigateToItem} />
                   ))}
                 </div>
               </div>
@@ -1022,7 +1045,7 @@ export default function CheatSheet() {
   );
 }
 
-function ItemCard({ item, q, onCopy, onNavigate }: { item: Item; q: string; onCopy: (term: string) => void; onNavigate: (name: string) => void }) {
+function ItemCard({ item, q, highlighted, onCopy, onNavigate }: { item: Item; q: string; highlighted?: boolean; onCopy: (term: string) => void; onNavigate: (name: string) => void }) {
   const [allCopied, setAllCopied] = useState(false);
 
   const handleCopyAll = (e: React.MouseEvent) => {
@@ -1051,10 +1074,11 @@ function ItemCard({ item, q, onCopy, onNavigate }: { item: Item; q: string; onCo
       data-item-name={item.name}
       style={{
         background: 'var(--color-bg-white)',
-        border: '1px solid var(--color-border)',
+        border: highlighted ? '2px solid #009E9E' : '1px solid var(--color-border)',
         borderRadius: 'var(--border-radius-md)',
-        padding: '10px 12px',
-        boxShadow: 'var(--box-shadow-sm)',
+        padding: highlighted ? '9px 11px' : '10px 12px',
+        boxShadow: highlighted ? '0 0 0 3px #009E9E33' : 'var(--box-shadow-sm)',
+        transition: 'border-color 0.3s, box-shadow 0.3s',
       }}
     >
       <div style={{ marginBottom: 4, display: 'flex', alignItems: 'flex-start', gap: 'var(--spacing-xs)' }}>
