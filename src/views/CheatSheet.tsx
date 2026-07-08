@@ -700,7 +700,7 @@ export default function CheatSheet() {
   }
 
   return (
-    <PageLayout maxWidth={860}>
+    <PageLayout maxWidth={580}>
       <Helmet>
         <title>チートシート | 無限ノック</title>
         <meta name="description" content="AWS認定試験ごとの代表的サービス・機能・概念を試験前の見直し用にまとめたチートシート。" />
@@ -832,9 +832,9 @@ export default function CheatSheet() {
                     <span style={{ fontWeight: 700, fontSize: 'var(--font-size-sm)', color: ec }}>{exam}</span>
                     <span style={{ fontSize: 'var(--font-size-xs)', color: 'var(--color-text-light)' }}>{items.length}件</span>
                   </div>
-                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(260px, 1fr))', gap: 'var(--spacing-sm)', alignItems: 'start' }}>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--spacing-sm)' }}>
                     {items.map(item => (
-                      <ItemCard key={`${exam}-${item.name}`} item={item} q={q} onCopy={handleTermCopy} onNavigate={navigateToItem} isMobile={isMobile} />
+                      <ItemCard key={`${exam}-${item.name}`} item={item} q={q} onCopy={handleTermCopy} onNavigate={navigateToItem} />
                     ))}
                   </div>
                 </div>
@@ -863,9 +863,9 @@ export default function CheatSheet() {
                 <span style={{ display: 'inline-block', width: 3, height: 14, background: examColor, borderRadius: 2 }} />
                 {section.title}
               </h2>
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(260px, 1fr))', gap: 'var(--spacing-sm)', alignItems: 'start' }}>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--spacing-sm)' }}>
                 {section.items.map(item => (
-                  <ItemCard key={item.name} item={item} q={q} onCopy={handleTermCopy} onNavigate={navigateToItem} isMobile={isMobile} />
+                  <ItemCard key={item.name} item={item} q={q} onCopy={handleTermCopy} onNavigate={navigateToItem} />
                 ))}
               </div>
             </div>
@@ -936,33 +936,8 @@ export default function CheatSheet() {
   );
 }
 
-// 1列の自然な高さからカラムスパンを決定する閾値
-const SPAN2_H = 210; // これを超えたら2列に拡張
-const SPAN3_H = 400; // 2列でも収まらない場合は3列（400px ÷ ~2 = ~200px）
-
-function ItemCard({ item, q, onCopy, onNavigate, isMobile }: { item: Item; q: string; onCopy: (term: string) => void; onNavigate: (name: string) => void; isMobile: boolean }) {
+function ItemCard({ item, q, onCopy, onNavigate }: { item: Item; q: string; onCopy: (term: string) => void; onNavigate: (name: string) => void }) {
   const [allCopied, setAllCopied] = useState(false);
-  const [colSpan, setColSpan] = useState(1);
-  const cardRef = useRef<HTMLDivElement>(null);
-  const measured = useRef(false);
-
-  useEffect(() => {
-    if (isMobile) { setColSpan(1); return; }
-    measured.current = false;
-    const el = cardRef.current;
-    if (!el) return;
-    const ro = new ResizeObserver(() => {
-      if (measured.current) return;
-      const h = el.offsetHeight;
-      if (h === 0) return; // まだレイアウト前
-      measured.current = true;
-      ro.disconnect();
-      if (h > SPAN3_H) setColSpan(3);
-      else if (h > SPAN2_H) setColSpan(2);
-    });
-    ro.observe(el);
-    return () => ro.disconnect();
-  }, [isMobile]);
 
   const handleCopyAll = (e: React.MouseEvent) => {
     e.stopPropagation();
@@ -987,7 +962,6 @@ function ItemCard({ item, q, onCopy, onNavigate, isMobile }: { item: Item; q: st
 
   return (
     <div
-      ref={cardRef}
       data-item-name={item.name}
       style={{
         background: 'var(--color-bg-white)',
@@ -995,7 +969,6 @@ function ItemCard({ item, q, onCopy, onNavigate, isMobile }: { item: Item; q: st
         borderRadius: 'var(--border-radius-md)',
         padding: '10px 12px',
         boxShadow: 'var(--box-shadow-sm)',
-        gridColumn: colSpan > 1 ? `span ${colSpan}` : undefined,
       }}
     >
       <div style={{ marginBottom: 4, display: 'flex', alignItems: 'flex-start', gap: 'var(--spacing-xs)' }}>
