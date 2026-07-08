@@ -794,7 +794,7 @@ export default function CheatSheet() {
       )}
 
       <div style={!isMobile ? { paddingLeft: 240 } : undefined}>
-      <PageLayout maxWidth={580} style={!isMobile ? { marginLeft: 0 } : undefined}>
+      <PageLayout maxWidth={!isMobile ? 696 : 580} style={!isMobile ? { marginLeft: 0 } : undefined}>
         <Helmet>
           <title>チートシート | 無限ノック</title>
           <meta name="description" content="AWS認定試験ごとの代表的サービス・機能・概念を試験前の見直し用にまとめたチートシート。" />
