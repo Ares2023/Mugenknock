@@ -733,6 +733,30 @@ export default function CheatSheet() {
         <meta name="description" content="AWS認定試験ごとの代表的サービス・機能・概念を試験前の見直し用にまとめたチートシート。" />
       </Helmet>
 
+      {/* 検索バー */}
+      <div style={{ position: 'relative', marginBottom: 'var(--spacing-md)' }}>
+        <div style={{ position: 'absolute', left: 12, top: '50%', transform: 'translateY(-50%)', color: 'var(--color-text-light)', display: 'flex', pointerEvents: 'none' }}>
+          <IconSearch />
+        </div>
+        <input
+          type="search"
+          value={search}
+          onChange={e => setSearch(e.target.value)}
+          placeholder="サービス名・キーワードで絞り込み"
+          style={{
+            width: '100%',
+            boxSizing: 'border-box',
+            padding: '8px 12px 8px 34px',
+            borderRadius: 'var(--border-radius-full)',
+            border: '1.5px solid var(--color-border)',
+            background: 'var(--color-bg-white)',
+            color: 'var(--color-text-main)',
+            fontSize: 'var(--font-size-sm)',
+            outline: 'none',
+          }}
+        />
+      </div>
+
       {/* レベルタブ */}
       <div style={{ display: 'flex', borderBottom: '2px solid var(--color-border)', marginBottom: 0 }}>
         {EXAM_LEVELS.map(({ key, color }) => (
@@ -785,30 +809,6 @@ export default function CheatSheet() {
         })}
       </div>
 
-      {/* 検索バー */}
-      <div style={{ position: 'relative', marginBottom: 'var(--spacing-md)' }}>
-        <div style={{ position: 'absolute', left: 12, top: '50%', transform: 'translateY(-50%)', color: 'var(--color-text-light)', display: 'flex', pointerEvents: 'none' }}>
-          <IconSearch />
-        </div>
-        <input
-          type="search"
-          value={search}
-          onChange={e => setSearch(e.target.value)}
-          placeholder="サービス名・キーワードで絞り込み"
-          style={{
-            width: '100%',
-            boxSizing: 'border-box',
-            padding: '8px 12px 8px 34px',
-            borderRadius: 'var(--border-radius-full)',
-            border: '1.5px solid var(--color-border)',
-            background: 'var(--color-bg-white)',
-            color: 'var(--color-text-main)',
-            fontSize: 'var(--font-size-sm)',
-            outline: 'none',
-          }}
-        />
-      </div>
-
       {/* 用語コピーヒント */}
       {!q && (
         <p style={{ fontSize: 'var(--font-size-xs)', color: '#009E9E', marginBottom: 'var(--spacing-sm)', marginTop: 'calc(var(--spacing-sm) * -1)' }}>
@@ -846,7 +846,7 @@ export default function CheatSheet() {
               <span style={{ display: 'inline-block', width: 3, height: 14, background: examColor, borderRadius: 2 }} />
               {section.title}
             </h2>
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(260px, 1fr))', gap: 'var(--spacing-sm)' }}>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(400px, 1fr))', gap: 'var(--spacing-sm)' }}>
               {section.items.map(item => (
                 <ItemCard key={item.name} item={item} q={q} onCopy={handleTermCopy} onNavigate={navigateToItem} />
               ))}
