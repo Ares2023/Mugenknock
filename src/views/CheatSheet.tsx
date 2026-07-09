@@ -740,6 +740,16 @@ export default function CheatSheet() {
 
   const totalHits = filteredSections.reduce((s, sec) => s + sec.items.length, 0);
 
+  const allNames = useMemo(() => {
+    const seen = new Set<string>();
+    for (const secs of Object.values(CHEAT_DATA)) {
+      for (const sec of secs) {
+        for (const it of sec.items) seen.add(it.name);
+      }
+    }
+    return [...seen].sort((a, b) => b.length - a.length);
+  }, []);
+
   function selectExam(exam: string) {
     setSelectedExam(exam);
     setSearch('');
@@ -901,7 +911,7 @@ export default function CheatSheet() {
             </h2>
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(min(400px, 100%), 1fr))', gap: 'var(--spacing-sm)' }}>
               {section.items.map(item => (
-                <ItemCard key={item.name} item={item} q={q} onCopy={handleTermCopy} onNavigate={navigateToItem} />
+                <ItemCard key={item.name} item={item} q={q} allNames={allNames} onCopy={handleTermCopy} onNavigate={navigateToItem} />
               ))}
             </div>
           </div>
@@ -972,7 +982,7 @@ export default function CheatSheet() {
   );
 }
 
-function ItemCard({ item, q, onCopy, onNavigate }: { item: Item; q: string; onCopy: (term: string) => void; onNavigate: (name: string) => void }) {
+function ItemCard({ item, q, allNames, onCopy, onNavigate }: { item: Item; q: string; allNames: string[]; onCopy: (term: string) => void; onNavigate: (name: string) => void }) {
   const [allCopied, setAllCopied] = useState(false);
   const handleCopyAll = (e: React.MouseEvent) => {
     e.stopPropagation();
@@ -995,6 +1005,38 @@ function ItemCard({ item, q, onCopy, onNavigate }: { item: Item; q: string; onCo
     );
   };
 
+  const renderText = (text: string): React.ReactNode => {
+    const names = allNames.filter(n => n !== item.name);
+    if (names.length === 0) return highlight(text);
+    const escaped = names.map(n => n.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'));
+    const regex = new RegExp(`(${escaped.join('|')})`, 'g');
+    const parts: React.ReactNode[] = [];
+    let lastIdx = 0;
+    let match: RegExpExecArray | null;
+    while ((match = regex.exec(text)) !== null) {
+      if (match.index > lastIdx) parts.push(highlight(text.slice(lastIdx, match.index)));
+      const mn = match[0];
+      parts.push(
+        <button
+          key={match.index}
+          onClick={(e) => { e.stopPropagation(); onNavigate(mn); }}
+          style={{
+            background: 'none', border: 'none', padding: 0,
+            color: '#009E9E', textDecoration: 'underline',
+            textDecorationColor: 'rgba(0,158,158,0.4)',
+            cursor: 'pointer', fontSize: 'inherit', fontWeight: 600, display: 'inline',
+          }}
+        >
+          {q ? highlight(mn) : mn}
+        </button>
+      );
+      lastIdx = match.index + mn.length;
+    }
+    if (lastIdx < text.length) parts.push(highlight(text.slice(lastIdx)));
+    if (parts.length === 0) return highlight(text);
+    return parts.length === 1 ? parts[0] : <>{parts}</>;
+  };
+
   return (
     <div
       data-item-name={item.name}
@@ -1008,7 +1050,7 @@ function ItemCard({ item, q, onCopy, onNavigate }: { item: Item; q: string; onCo
     >
       <div style={{ marginBottom: 4, display: 'flex', alignItems: 'flex-start', gap: 'var(--spacing-xs)' }}>
         <div style={{ flex: 1, minWidth: 0 }}>
-          {(/[A-Za-z]/.test(item.name) || /[゠-ヿ]{5,}/.test(item.name)) ? (
+          {(/[A-Za-z]/.test(item.name) || /[゠-ヿ]{4,}/.test(item.name)) ? (
             <div
               onClick={() => onCopy(item.keyword ?? item.name.replace(/[（(][^）)]*[）)]/g, '').trim())}
               title="タップしてコピー"
@@ -1044,10 +1086,10 @@ function ItemCard({ item, q, onCopy, onNavigate }: { item: Item; q: string; onCo
         {item.desc.split('\n').map((line, i) => {
           const colonIdx = line.indexOf(': ');
           const term = colonIdx > 0 ? line.slice(0, colonIdx) : '';
-          // ASCII英字を含む、または5文字以上の連続カタカナを含む場合にIT用語として強調
+          // ASCII英字を含む、または4文字以上の連続カタカナを含む場合にIT用語として強調
           const isITTerm = colonIdx > 0 && (
             /[A-Za-z]/.test(term) ||
-            /[゠-ヿ]{5,}/.test(term)
+            /[゠-ヿ]{4,}/.test(term)
           );
           const copyTerm = item.termKeywords?.[term] ?? term;
           const content = isITTerm ? (
@@ -1058,9 +1100,9 @@ function ItemCard({ item, q, onCopy, onNavigate }: { item: Item; q: string; onCo
                 style={{ fontWeight: 700, color: '#009E9E', cursor: 'pointer' }}
               >{highlight(term)}</span>
               {': '}
-              {highlight(line.slice(colonIdx + 2))}
+              {renderText(line.slice(colonIdx + 2))}
             </>
-          ) : highlight(line);
+          ) : renderText(line);
           return (
             <React.Fragment key={i}>
               {i > 0 && <br />}
