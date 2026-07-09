@@ -715,7 +715,6 @@ export default function MyPage() {
                         const isToday = d === jstToday();
                         const dayLabel = new Date(d + 'T12:00:00').toLocaleDateString(ja ? 'ja-JP' : 'en-US', { weekday: 'short' });
                         const R = 14, C = 2 * Math.PI * R; // 1周=100%達成の中空リング
-                        const staggerIdx = weekCountsTarget.slice(0, i).filter(c => c > 0).length;
                         return (
                           <div key={d} style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 3 }}>
                             <div style={{ position: 'relative', width: 36, height: 36 }}>
@@ -727,7 +726,7 @@ export default function MyPage() {
                                   strokeDasharray={C}
                                   strokeDashoffset={circleAnimated ? C * (1 - pct) : C}
                                   transform="rotate(-90 18 18)"
-                                  style={{ transition: count > 0 ? `stroke-dashoffset 0.55s cubic-bezier(0.4,0,0.2,1) ${staggerIdx * 0.1}s` : 'none' }}
+                                  style={{ transition: count > 0 ? `stroke-dashoffset 0.55s cubic-bezier(0.4,0,0.2,1) ${i * 0.1}s` : 'none' }}
                                 />
                               </svg>
                               {achieved && (
@@ -736,7 +735,7 @@ export default function MyPage() {
                                   fontSize: 'var(--font-size-base)', fontWeight: 800, color: examColor,
                                   opacity: circleAnimated ? 1 : 0,
                                   transform: circleAnimated ? 'scale(1)' : 'scale(0.4)',
-                                  transition: `opacity 0.2s ease ${0.5 + staggerIdx * 0.1}s, transform 0.25s ease ${0.5 + staggerIdx * 0.1}s`,
+                                  transition: `opacity 0.2s ease ${0.5 + i * 0.1}s, transform 0.25s ease ${0.5 + i * 0.1}s`,
                                 }}>✓</div>
                               )}
                             </div>
