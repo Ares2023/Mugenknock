@@ -1,11 +1,13 @@
 'use client';
-import React, { useState, useMemo, useEffect } from 'react';
+import React, { useState, useMemo, useEffect, useRef } from 'react';
+import { createPortal } from 'react-dom';
 import { Helmet } from '@/compat/react-helmet-async';
 import { EXAM_LEVEL, EXAM_LEVEL_COLORS } from '../constants';
 import { EXAM_ICON_COMPONENTS, IconSearch, IconCopy, IconCheck } from '../components/Icons';
 import { useLanguage } from '../contexts/LanguageContext';
 import { useAuth } from '../contexts/AuthContext';
 import PageLayout from '../components/ui/PageLayout';
+import { useIsMobile } from '../hooks/useWindowWidth';
 
 // ── データ型 ─────────────────────────────────────────────────
 interface Item { name: string; desc: string; tags: string[]; keyword?: string; seeAlso?: string[]; termKeywords?: Record<string, string> }
@@ -627,6 +629,7 @@ function levelOf(exam: string): LevelKey {
 export default function CheatSheet() {
   const { lang: _lang } = useLanguage();
   const { user, loading } = useAuth();
+  const isMobile = useIsMobile();
   const [activeLevel, setActiveLevel] = useState<LevelKey>('Associate');
   const [selectedExam, setSelectedExam] = useState<string>('SAA');
   const [search, setSearch] = useState('');
@@ -634,6 +637,10 @@ export default function CheatSheet() {
   const [copiedTerm, setCopiedTerm] = useState<string | null>(null);
   const [pendingScrollTo, setPendingScrollTo] = useState<string | null>(null);
   const [showScrollTop, setShowScrollTop] = useState(false);
+  const [headerVisible, setHeaderVisible] = useState(true);
+  const [headerHeight, setHeaderHeight] = useState(0);
+  const headerRef = useRef<HTMLDivElement>(null);
+  const lastScrollRef = useRef(0);
 
   function handleTermCopy(term: string) {
     navigator.clipboard.writeText(term);
@@ -662,9 +669,28 @@ export default function CheatSheet() {
   }
 
   useEffect(() => {
+    const el = headerRef.current;
+    if (!el) return;
+    const ro = new ResizeObserver(() => setHeaderHeight(el.offsetHeight));
+    ro.observe(el);
+    setHeaderHeight(el.offsetHeight);
+    return () => ro.disconnect();
+  }, []);
+
+  useEffect(() => {
     const container = document.getElementById('main-scroll');
     if (!container) return;
-    const onScroll = () => setShowScrollTop(container.scrollTop > 300);
+    const onScroll = () => {
+      const st = container.scrollTop;
+      setShowScrollTop(st > 300);
+      const delta = st - lastScrollRef.current;
+      if (st <= 0) {
+        setHeaderVisible(true);
+      } else if (Math.abs(delta) > 4) {
+        setHeaderVisible(delta < 0);
+      }
+      lastScrollRef.current = st;
+    };
     container.addEventListener('scroll', onScroll, { passive: true });
     return () => container.removeEventListener('scroll', onScroll);
   }, []);
@@ -726,61 +752,88 @@ export default function CheatSheet() {
     if (first) selectExam(first);
   }
 
-  return (
-    <PageLayout maxWidth={860}>
-      <Helmet>
-        <title>チートシート | 無限ノック</title>
-        <meta name="description" content="AWS認定試験ごとの代表的サービス・機能・概念を試験前の見直し用にまとめたチートシート。" />
-      </Helmet>
+  const padX = isMobile ? 'var(--page-pad-x-mobile)' : 'var(--page-pad-x)';
+  const padY = isMobile ? 'var(--page-pad-y-mobile)' : 'var(--page-pad-y)';
 
-      {/* 検索バー */}
-      <div style={{ position: 'relative', marginBottom: 'var(--spacing-md)' }}>
-        <div style={{ position: 'absolute', left: 12, top: '50%', transform: 'translateY(-50%)', color: 'var(--color-text-light)', display: 'flex', pointerEvents: 'none' }}>
-          <IconSearch />
-        </div>
-        <input
-          type="search"
-          value={search}
-          onChange={e => setSearch(e.target.value)}
-          placeholder="サービス名・キーワードで絞り込み"
-          style={{
-            width: '100%',
-            boxSizing: 'border-box',
-            padding: '8px 12px 8px 34px',
-            borderRadius: 'var(--border-radius-full)',
-            border: '1.5px solid var(--color-border)',
-            background: 'var(--color-bg-white)',
-            color: 'var(--color-text-main)',
-            fontSize: 'var(--font-size-sm)',
-            outline: 'none',
-          }}
-        />
-      </div>
-
-      {/* レベルタブ */}
-      <div style={{ display: 'flex', borderBottom: '2px solid var(--color-border)', marginBottom: 0 }}>
-        {EXAM_LEVELS.map(({ key, color }) => (
-          <button
-            key={key}
-            onClick={() => selectLevel(key as LevelKey)}
+  const stickyHeader = (
+    <div
+      ref={headerRef}
+      style={{
+        position: 'fixed',
+        top: 56,
+        left: 'var(--content-left, 0px)',
+        right: 0,
+        zIndex: 80,
+        background: 'var(--color-bg-main)',
+        borderBottom: '1px solid var(--color-border)',
+        boxShadow: 'var(--box-shadow-sm)',
+        transform: headerVisible ? 'translateY(0)' : 'translateY(-100%)',
+        transition: 'transform 0.25s ease',
+      }}
+    >
+      <div style={{ maxWidth: 860, margin: '0 auto', padding: `var(--spacing-sm) ${padX} 0` }}>
+        {/* 検索バー */}
+        <div style={{ position: 'relative', marginBottom: 'var(--spacing-md)' }}>
+          <div style={{ position: 'absolute', left: 12, top: '50%', transform: 'translateY(-50%)', color: 'var(--color-text-light)', display: 'flex', pointerEvents: 'none' }}>
+            <IconSearch />
+          </div>
+          <input
+            type="search"
+            value={search}
+            onChange={e => setSearch(e.target.value)}
+            placeholder="サービス名・キーワードで絞り込み"
             style={{
-              padding: '10px 14px',
-              background: 'none', border: 'none', cursor: 'pointer',
-              borderBottom: activeLevel === key ? `2px solid ${color}` : '2px solid transparent',
-              marginBottom: -2,
-              color: activeLevel === key ? color : 'var(--color-text-sub)',
-              fontWeight: activeLevel === key ? 700 : 400,
-              fontSize: 'var(--font-size-sm2)',
-              whiteSpace: 'nowrap', flexShrink: 0,
-              transition: 'all 0.15s',
+              width: '100%',
+              boxSizing: 'border-box',
+              padding: '8px 12px 8px 34px',
+              borderRadius: 'var(--border-radius-full)',
+              border: '1.5px solid var(--color-border)',
+              background: 'var(--color-bg-white)',
+              color: 'var(--color-text-main)',
+              fontSize: 'var(--font-size-sm)',
+              outline: 'none',
             }}
-          >
-            {key}
-          </button>
-        ))}
+          />
+        </div>
+        {/* レベルタブ */}
+        <div style={{ display: 'flex', borderBottom: '2px solid var(--color-border)', marginBottom: 0 }}>
+          {EXAM_LEVELS.map(({ key, color }) => (
+            <button
+              key={key}
+              onClick={() => selectLevel(key as LevelKey)}
+              style={{
+                padding: '10px 14px',
+                background: 'none', border: 'none', cursor: 'pointer',
+                borderBottom: activeLevel === key ? `2px solid ${color}` : '2px solid transparent',
+                marginBottom: -2,
+                color: activeLevel === key ? color : 'var(--color-text-sub)',
+                fontWeight: activeLevel === key ? 700 : 400,
+                fontSize: 'var(--font-size-sm2)',
+                whiteSpace: 'nowrap', flexShrink: 0,
+                transition: 'all 0.15s',
+              }}
+            >
+              {key}
+            </button>
+          ))}
+        </div>
       </div>
+    </div>
+  );
 
-      {/* 試験カード（横スクロール） */}
+  return (
+    <>
+      {typeof window !== 'undefined' && createPortal(stickyHeader, document.body)}
+      <PageLayout maxWidth={860}>
+        <Helmet>
+          <title>チートシート | 無限ノック</title>
+          <meta name="description" content="AWS認定試験ごとの代表的サービス・機能・概念を試験前の見直し用にまとめたチートシート。" />
+        </Helmet>
+
+        {/* 固定ヘッダー分の余白スペーサー（marginTop で PageLayout の top padding を相殺） */}
+        <div style={{ height: headerHeight || 104, marginTop: `calc(-1 * ${padY})` }} />
+
+        {/* 試験カード（横スクロール） */}
       <div style={{ display: 'flex', gap: 10, padding: '14px 0', overflowX: 'auto', flexShrink: 0 }}>
         {currentLevelExams.filter(e => CHEAT_DATA[e]).map(exam => {
           const isSelected = selectedExam === exam;
@@ -914,7 +967,8 @@ export default function CheatSheet() {
           コピーしました
         </div>
       )}
-    </PageLayout>
+      </PageLayout>
+    </>
   );
 }
 
