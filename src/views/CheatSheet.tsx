@@ -1092,11 +1092,11 @@ function ItemCard({ item, q, allNames, highlighted, onCopy, onNavigate }: { item
       data-item-name={item.name}
       style={{
         background: 'var(--color-bg-white)',
-        border: highlighted ? '2px solid #009E9E' : '1px solid var(--color-border)',
+        border: highlighted ? '1px solid #009E9E' : '1px solid var(--color-border)',
         borderRadius: 'var(--border-radius-md)',
-        padding: highlighted ? '9px 11px' : '10px 12px',
+        padding: '10px 12px',
         boxShadow: highlighted ? '0 0 0 3px rgba(0,158,158,0.2)' : 'var(--box-shadow-sm)',
-        transition: 'border 0.3s, box-shadow 0.3s, padding 0.3s',
+        transition: 'border-color 0.3s, box-shadow 0.3s',
       }}
     >
       <div style={{ marginBottom: 4, display: 'flex', alignItems: 'flex-start', gap: 'var(--spacing-xs)' }}>
