@@ -715,7 +715,6 @@ export default function MyPage() {
                         const isToday = d === jstToday();
                         const dayLabel = new Date(d + 'T12:00:00').toLocaleDateString(ja ? 'ja-JP' : 'en-US', { weekday: 'short' });
                         const R = 14, C = 2 * Math.PI * R; // 1周=100%達成の中空リング
-                        const staggerIdx = weekCountsTarget.slice(0, i).filter(c => c > 0).length;
                         return (
                           <div key={d} style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 3 }}>
                             <div style={{ position: 'relative', width: 36, height: 36 }}>
@@ -727,7 +726,7 @@ export default function MyPage() {
                                   strokeDasharray={C}
                                   strokeDashoffset={circleAnimated ? C * (1 - pct) : C}
                                   transform="rotate(-90 18 18)"
-                                  style={{ transition: count > 0 ? `stroke-dashoffset 0.55s cubic-bezier(0.4,0,0.2,1) ${staggerIdx * 0.1}s` : 'none' }}
+                                  style={{ transition: count > 0 ? `stroke-dashoffset 0.55s cubic-bezier(0.4,0,0.2,1) ${i * 0.1}s` : 'none' }}
                                 />
                               </svg>
                               {achieved && (
@@ -736,7 +735,7 @@ export default function MyPage() {
                                   fontSize: 'var(--font-size-base)', fontWeight: 800, color: examColor,
                                   opacity: circleAnimated ? 1 : 0,
                                   transform: circleAnimated ? 'scale(1)' : 'scale(0.4)',
-                                  transition: `opacity 0.2s ease ${0.5 + staggerIdx * 0.1}s, transform 0.25s ease ${0.5 + staggerIdx * 0.1}s`,
+                                  transition: `opacity 0.2s ease ${0.5 + i * 0.1}s, transform 0.25s ease ${0.5 + i * 0.1}s`,
                                 }}>✓</div>
                               )}
                             </div>
@@ -915,9 +914,28 @@ export default function MyPage() {
                 </p>
               </Card>
             ) : statsLoading ? (
-              <div style={{ display: 'flex', justifyContent: 'center', padding: '32px 0' }}>
-                <div className="sherpa-spinner" style={{ width: 28, height: 28, borderWidth: 3 }} />
-              </div>
+              <>
+                <Card style={{ marginBottom: 12 }}>
+                  <div className="skeleton" style={{ height: 10, width: '35%', borderRadius: 3, marginBottom: 'var(--spacing-md)' }} />
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: 0 }}>
+                    {[68, 55, 82, 46, 73].map((w, i) => (
+                      <div key={i} style={{ paddingTop: i === 0 ? 0 : 14, paddingBottom: i < 4 ? 14 : 0, borderBottom: i < 4 ? '1px solid var(--color-border)' : 'none', display: 'grid', gridTemplateColumns: 'auto 1fr', columnGap: 12, rowGap: 4, alignItems: 'baseline' }}>
+                        <div className="skeleton" style={{ height: 18, width: 44, borderRadius: 4 }} />
+                        <div className="skeleton" style={{ height: 14, width: `${w}%`, borderRadius: 3 }} />
+                        <div style={{ gridColumn: 2 }}><div className="skeleton" style={{ height: 10, width: '88%', borderRadius: 3 }} /></div>
+                      </div>
+                    ))}
+                  </div>
+                </Card>
+                <Card>
+                  <div className="skeleton" style={{ height: 14, width: '55%', borderRadius: 4, marginBottom: 12 }} />
+                  {[1, 2, 3].map(i => (
+                    <div key={i} style={{ height: 44, borderRadius: 8, border: '1px solid var(--color-border)', marginBottom: i < 3 ? 6 : 0, overflow: 'hidden' }}>
+                      <div className="skeleton" style={{ height: '100%', borderRadius: 0 }} />
+                    </div>
+                  ))}
+                </Card>
+              </>
             ) : (
               <>
                 {/* 苦手ドメイン */}
@@ -1037,8 +1055,12 @@ export default function MyPage() {
                       </span>
                     </div>
                   ) : weakLoading ? (
-                    <div style={{ display: 'flex', justifyContent: 'center', padding: '16px 0' }}>
-                      <div className="sherpa-spinner" style={{ width: 20, height: 20, borderWidth: 2 }} />
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+                      {[1, 2, 3].map(i => (
+                        <div key={i} style={{ height: 48, borderRadius: 8, border: '1px solid var(--color-border)', overflow: 'hidden' }}>
+                          <div className="skeleton" style={{ height: '100%', borderRadius: 0 }} />
+                        </div>
+                      ))}
                     </div>
                   ) : weakQuestions.length === 0 ? (
                     <p style={{ margin: 0, fontSize: 'var(--font-size-sm2)', color: 'var(--color-text-light)', textAlign: 'center', padding: '8px 0' }}>
@@ -1086,9 +1108,21 @@ export default function MyPage() {
                 </p>
               </Card>
             ) : histLoading ? (
-              <div style={{ display: 'flex', justifyContent: 'center', padding: '32px 0' }}>
-                <div className="sherpa-spinner" style={{ width: 28, height: 28, borderWidth: 3 }} />
-              </div>
+              <>
+                <Card style={{ marginBottom: 'var(--spacing-md)' }}>
+                  <div className="skeleton" style={{ height: 10, width: '40%', borderRadius: 3, marginBottom: 'var(--spacing-xs)' }} />
+                  <div className="skeleton" style={{ height: 28, width: '45%', borderRadius: 4 }} />
+                </Card>
+                {[1, 2, 3, 4, 5].map(i => (
+                  <Card key={i} style={{ marginBottom: 8 }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                      <div className="skeleton" style={{ height: 20, width: 52, borderRadius: 'var(--border-radius-full)', flexShrink: 0 }} />
+                      <div className="skeleton" style={{ height: 14, flex: 1, borderRadius: 3 }} />
+                      <div className="skeleton" style={{ height: 16, width: 36, borderRadius: 3, flexShrink: 0 }} />
+                    </div>
+                  </Card>
+                ))}
+              </>
             ) : (
               <>
                 {totalExercised !== null && (
@@ -1212,7 +1246,7 @@ export default function MyPage() {
           onClick={() => setQuestionModal(null)}
         >
           <div
-            style={{ background: 'var(--color-bg-white)', borderRadius: isMobile ? '16px 16px 0 0' : 'var(--border-radius-lg)', padding: 'var(--spacing-xl)', width: '100%', maxWidth: isMobile ? '100%' : 600, maxHeight: isMobile ? '85vh' : '80vh', overflowY: 'auto', boxShadow: 'var(--box-shadow-lg)' }}
+            style={{ background: 'var(--color-bg-white)', borderRadius: isMobile ? '16px 16px 0 0' : 'var(--border-radius-lg)', padding: isMobile ? 'var(--spacing-xl) var(--spacing-xl) 0' : 'var(--spacing-xl)', width: '100%', maxWidth: isMobile ? '100%' : 600, maxHeight: isMobile ? '85vh' : '80vh', overflowY: 'auto', boxShadow: 'var(--box-shadow-lg)' }}
             onClick={e => e.stopPropagation()}
           >
             {/* ヘッダー */}
@@ -1269,6 +1303,8 @@ export default function MyPage() {
                     <p style={{ fontSize: 'var(--font-size-sm)', color: 'var(--color-text-sub)', margin: 0, lineHeight: 1.75, whiteSpace: 'pre-wrap' }}>{questionModal.detail.explanation}</p>
                   </div>
                 )}
+                {/* iOS Safari の padding-bottom スクロール欠落 + safe area 対策 */}
+                {isMobile && <div style={{ height: 'calc(var(--spacing-xl) + env(safe-area-inset-bottom, 0px))' }} aria-hidden="true" />}
               </div>
             ) : (
               <p style={{ margin: 0, fontSize: 'var(--font-size-sm)', color: 'var(--color-text-light)' }}>{ja ? '詳細を取得できませんでした' : 'Failed to load details'}</p>

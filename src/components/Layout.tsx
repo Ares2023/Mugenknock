@@ -1,5 +1,5 @@
 'use client';
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useLayoutEffect, useRef } from 'react';
 import { useNavigate, useLocation } from '@/compat/react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { useLanguage } from '../contexts/LanguageContext';
@@ -133,24 +133,40 @@ export default function Layout({ children }: { children: React.ReactNode }) {
   const [swipeTrans, setSwipeTrans] = useState(false);
   const [overlayOpacity, setOverlayOpacity] = useState(0);
   const [overlayFading, setOverlayFading] = useState(false);
+  const [pendingFade, setPendingFade] = useState(false);
+  const isFirstPathRender = useRef(true);
+
+  // 全ページ遷移（スワイプ・タブ・サイドバー・any navigate）で白オーバーレイを即時表示
+  useLayoutEffect(() => {
+    if (isFirstPathRender.current) { isFirstPathRender.current = false; return; }
+    setOverlayFading(false);
+    setOverlayOpacity(1);
+    setPendingFade(true);
+  }, [pathname]);
+
+  // authLoading が解決してからフェードアウト開始（authLoading 中はレイアウト確定待ち）
+  useEffect(() => {
+    if (!pendingFade || authLoading) return;
+    setPendingFade(false);
+    requestAnimationFrame(() => requestAnimationFrame(() => {
+      setOverlayFading(true);
+      setOverlayOpacity(0);
+    }));
+  }, [pendingFade, authLoading]);
 
   const doTabNavigate = (nextPath: string, dir: 'left' | 'right') => {
-    // ① 現在画面をスライドアウト（240ms）
     const outX = dir === 'left' ? -window.innerWidth : window.innerWidth;
     setSwipeTrans(true);
     setSwipeOffset(outX);
     setTimeout(() => {
-      // ② 白オーバーレイを瞬時に全面表示してから navigate
+      // スライド完了直後に白幕を被せてから navigate することで、
+      // swipeOffset リセット時に旧コンテンツが一瞬見えるフラッシュを防ぐ。
+      // pendingFade は useLayoutEffect([pathname]) が pathname 変化後にセットする。
       setOverlayFading(false);
       setOverlayOpacity(1);
       navigate(nextPath);
       setSwipeTrans(false);
       setSwipeOffset(0);
-      // ③ 次フレームでフェードアウト開始（新画面が下に描画済み）
-      requestAnimationFrame(() => requestAnimationFrame(() => {
-        setOverlayFading(true);
-        setOverlayOpacity(0);
-      }));
     }, 240);
   };
 
@@ -975,16 +991,14 @@ export default function Layout({ children }: { children: React.ReactNode }) {
       {/* ── ボディ ── */}
       <div style={{ display: 'flex', flex: 1, overflow: 'hidden', position: 'relative' }}>
 
-        {/* スワイプ遷移フェードオーバーレイ */}
-        {isMobile && (
-          <div style={{
-            position: 'fixed', inset: 0, background: 'var(--color-bg-main)',
-            opacity: overlayOpacity,
-            transition: overlayFading ? 'opacity 0.3s ease' : 'none',
-            pointerEvents: overlayOpacity > 0 ? 'all' : 'none',
-            zIndex: 998,
-          }} />
-        )}
+        {/* ページ遷移フェードオーバーレイ（header/subbar/bottom-tabs の下、コンテンツ領域のみ） */}
+        <div style={{
+          position: 'absolute', inset: 0, background: 'var(--color-bg-main)',
+          opacity: overlayOpacity,
+          transition: overlayFading ? 'opacity 0.3s ease' : 'none',
+          pointerEvents: overlayOpacity > 0 ? 'all' : 'none',
+          zIndex: 998,
+        }} />
 
         {/* デスクトップ: サイドバーオーバーレイ（モバイルでは使わない） */}
         {!isMobile && open === false && false /* no overlay needed on desktop */ && (
@@ -1003,6 +1017,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
             overflow: 'hidden',
             transition: 'all 0.2s ease-out',
             display: 'flex', flexDirection: 'column',
+            position: 'relative', zIndex: 999,
           }}>
             <div style={{ width: 'var(--sidebar-width)', paddingTop: 'var(--spacing-sm)', display: 'flex', flexDirection: 'column', height: '100%' }}>
               <button onClick={toggle} style={{
@@ -1230,7 +1245,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
           background: 'var(--color-bg-white)',
           borderTop: '1px solid var(--color-border)',
           display: 'flex', alignItems: 'stretch',
-          zIndex: 200,
+          zIndex: 999,
           boxShadow: 'var(--box-shadow-up)',
         }}>
           {BOTTOM_TABS.map(({ path, Icon, ja, en }) => {

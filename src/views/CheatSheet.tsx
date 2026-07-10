@@ -1,16 +1,65 @@
 'use client';
-import React, { useState, useMemo, useEffect } from 'react';
+import React, { useState, useMemo, useEffect, useRef } from 'react';
+import { createPortal } from 'react-dom';
 import { Helmet } from '@/compat/react-helmet-async';
 import { EXAM_LEVEL, EXAM_LEVEL_COLORS } from '../constants';
 import { EXAM_ICON_COMPONENTS, IconSearch, IconCopy, IconCheck } from '../components/Icons';
 import { useLanguage } from '../contexts/LanguageContext';
 import { useAuth } from '../contexts/AuthContext';
 import PageLayout from '../components/ui/PageLayout';
+import { useIsMobile } from '../hooks/useWindowWidth';
 
 // ── データ型 ─────────────────────────────────────────────────
 interface Item { name: string; desc: string; tags: string[]; keyword?: string; seeAlso?: string[]; termKeywords?: Record<string, string> }
 interface Section { title: string; items: Item[] }
 type CheatData = Record<string, Section[]>
+
+// ── descのIT用語ハイライト対象（ASCII以外でコピー価値のある用語を網羅）──
+const EXTRA_COPYABLE_TERMS = new Set([
+  'アイデンティティベースポリシー', 'アウトバウンドエンドポイント', 'アクセスログ', 'アノテーション',
+  'アラーム', 'アーカイブ＆リプレイ', 'イベントアーカイブ＆リプレイ', 'イベントパターンマッチング',
+  'インスタンスストア', 'インスタンスタイプ', 'インバウンドエンドポイント', 'ウォームアップ期間',
+  'ウォームスタート', 'エンタープライズ', 'エンドポイントグループ', 'エンドポイント監視',
+  'エンベロープ暗号化', 'エージェント', 'オンデマンド', 'オンラインストア',
+  'カスタムイベントバス', 'カスタムオーソライザー', 'カスタムコンテナ', 'カスタムフォーマット',
+  'カスタムメトリクス', 'カスタムリソース', 'カスタムルール', 'ガバナンス',
+  'ガードレール', 'キャッシュ', 'キーポリシー', 'キーポリシー（リソースベースポリシー）',
+  'クエリフェデレーション', 'クックブック', 'クラスタ', 'クロスアカウント/クロスリージョンデプロイ',
+  'クロスアカウントアクセス', 'クロスアカウントイベントバス', 'クロスアカウントデプロイ', 'クロスアカウント共有',
+  'クロスゾーン負荷分散', 'クローラー', 'グラウンディング', 'グラウンディングチェック',
+  'グローバルテーブル', 'グローバル展開', 'ゲートウェイ型', 'コアノード',
+  'コンソリデーテッドビリング', 'コンテンツフィルタリング', 'コンピューティング環境', 'コンフォーマンスパック',
+  'サブスクリプションフィルタポリシー', 'サブスクリプションフィルター', 'サブネット', 'サブネット分割',
+  'サプライチェーンセキュリティ', 'サンプリングルール', 'サーバーレス推論', 'サービスマップ',
+  'シャード', 'ジオブロッキング', 'ジョブキュー', 'スケジュール',
+  'スケールメリット', 'スコープダウンステートメント', 'スタック', 'ステートフル',
+  'ステートフルルール', 'ステートマシン', 'ステートレス', 'ステートレスルール',
+  'ストリーミングレスポンス', 'ストレージ', 'スナップショット', 'スプリットトンネリング',
+  'スポットインスタンス', 'スポットトレーニング', 'セキュリティ', 'セッションポリシー',
+  'ソートキー', 'タスクノード', 'ターゲット追跡', 'テストレポート',
+  'デフォルトイベントバス', 'デベロッパー', 'データイベント', 'データマッピング',
+  'データ品質レポート', 'トラフィックダイヤル', 'トレーニングジョブ', 'ドリフト検出',
+  'ドロップアウト', 'ネガティブプロンプト', 'バイアスドリフト', 'バイアス検出',
+  'バケットポリシー', 'バッファリング', 'バージョニング', 'バージョン番号（バージョン衝突回避）',
+  'パーティション', 'パーティションキー設計', 'パーティション設計', 'パートナーイベントバス',
+  'ビヘイビア', 'フィルタポリシー', 'フェイルオーバー', 'フェデレーテッドラーニング',
+  'プライベートアドレス空間', 'プラットフォーム', 'プロアクティブエンゲージメント', 'プロビジョニドスループット',
+  'プロビジョニング済み同時実行', 'ベクトルストア選択', 'ベーシック', 'ポリシー',
+  'ポリシー評価順', 'マスターノード', 'マッピングテンプレート', 'マネージドフェイルオーバー',
+  'マネージドルール', 'マルチアタッチ', 'マルチエージェントオーケストレーション', 'マルチキャストサポート',
+  'マルチパートアップロード', 'マルチリージョンキー', 'ミラーフィルター', 'メタデータ',
+  'メトリクス', 'メトリクスフィルター', 'モニターの種類', 'ユースケース',
+  'ライフサイクルフック', 'リアルタイムエンドポイント', 'リザーブド', 'リザーブドインスタンス',
+  'リソースベースポリシー', 'リージョンの最適化', 'リードレプリカ', 'リードレプリカのプロモーション',
+  'ルートテーブル', 'レイテンシ', 'レイヤー', 'レートベースルール',
+  'ログアーカイブアカウント', 'ロググループ', 'ログストリーム', 'ロングポーリング',
+  'ロールバック', 'ワークグループ', '予測スケーリング', '他ヘルスチェック監視',
+  '分離ルーティング', '列・行レベルのきめ細かいアクセス制御', '可視性タイムアウト', '対応フレームワーク',
+  '差分プライバシー', '手動承認アクション', '拡張ファンアウト', '推奨フォーマット',
+  '推論エンドポイント', '特定トピックの拒否', '管理イベント', '組み込みアルゴリズム',
+  '自動クォータリクエスト', '自動ローテーション', '複合アラーム', '説明可能性ドリフト',
+  '起動テンプレート', '適切なモデルサイズの選択', '集中型アーキテクチャ',
+]);
 
 // ── 共有アイテム（複数の試験セクションで使い回す場合はここに定義して参照する） ──
 // 同じ Item オブジェクトを複数の items 配列に含めることで1箇所の定義を使い回せる
@@ -627,13 +676,20 @@ function levelOf(exam: string): LevelKey {
 export default function CheatSheet() {
   const { lang: _lang } = useLanguage();
   const { user, loading } = useAuth();
+  const isMobile = useIsMobile();
   const [activeLevel, setActiveLevel] = useState<LevelKey>('Associate');
   const [selectedExam, setSelectedExam] = useState<string>('SAA');
   const [search, setSearch] = useState('');
   const [goalInit, setGoalInit] = useState(false);
   const [copiedTerm, setCopiedTerm] = useState<string | null>(null);
   const [pendingScrollTo, setPendingScrollTo] = useState<string | null>(null);
+  const [highlightedItem, setHighlightedItem] = useState<string | null>(null);
   const [showScrollTop, setShowScrollTop] = useState(false);
+  const [headerVisible, setHeaderVisible] = useState(true);
+  const [headerHeight, setHeaderHeight] = useState(0);
+  const headerRef = useRef<HTMLDivElement>(null);
+  const lastScrollRef = useRef(0);
+  const navigatingRef = useRef(false);
 
   function handleTermCopy(term: string) {
     navigator.clipboard.writeText(term);
@@ -643,6 +699,8 @@ export default function CheatSheet() {
 
   function navigateToItem(name: string) {
     setSearch('');
+    setHeaderVisible(true);
+    navigatingRef.current = true;
     let targetExam: string | null = null;
     outer: for (const [exam, secs] of Object.entries(CHEAT_DATA)) {
       for (const sec of secs) {
@@ -652,28 +710,60 @@ export default function CheatSheet() {
         }
       }
     }
-    if (!targetExam) return;
+    if (!targetExam) { navigatingRef.current = false; return; }
     if (targetExam !== selectedExam) {
       const lv = levelOf(targetExam) as LevelKey;
       setActiveLevel(lv);
       setSelectedExam(targetExam);
     }
     setPendingScrollTo(name);
+    setTimeout(() => { navigatingRef.current = false; }, 1000);
   }
+
+  useEffect(() => {
+    const el = headerRef.current;
+    if (!el) return;
+    const ro = new ResizeObserver(() => setHeaderHeight(el.offsetHeight));
+    ro.observe(el);
+    setHeaderHeight(el.offsetHeight);
+    return () => ro.disconnect();
+  }, []);
 
   useEffect(() => {
     const container = document.getElementById('main-scroll');
     if (!container) return;
-    const onScroll = () => setShowScrollTop(container.scrollTop > 300);
+    const onScroll = () => {
+      const st = container.scrollTop;
+      setShowScrollTop(st > 300);
+      if (navigatingRef.current) { lastScrollRef.current = st; return; }
+      const delta = st - lastScrollRef.current;
+      if (st <= 0) {
+        setHeaderVisible(true);
+      } else if (Math.abs(delta) > 4) {
+        setHeaderVisible(delta < 0);
+      }
+      lastScrollRef.current = st;
+    };
     container.addEventListener('scroll', onScroll, { passive: true });
     return () => container.removeEventListener('scroll', onScroll);
   }, []);
 
   useEffect(() => {
     if (!pendingScrollTo) return;
-    const el = document.querySelector(`[data-item-name="${pendingScrollTo.replace(/\\/g, '\\\\').replace(/"/g, '\\"')}"]`);
+    const escaped = pendingScrollTo.replace(/\\/g, '\\\\').replace(/"/g, '\\"');
+    const el = document.querySelector<HTMLElement>(`[data-item-name="${escaped}"]`);
     if (el) {
-      el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      const container = document.getElementById('main-scroll');
+      if (container) {
+        const rect = el.getBoundingClientRect();
+        const cRect = container.getBoundingClientRect();
+        const offset = container.scrollTop + rect.top - cRect.top - cRect.height / 2 + rect.height / 2;
+        container.scrollTo({ top: Math.max(0, offset), behavior: 'smooth' });
+      } else {
+        el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      }
+      setHighlightedItem(pendingScrollTo);
+      setTimeout(() => setHighlightedItem(null), 1500);
       setPendingScrollTo(null);
     }
   }, [selectedExam, pendingScrollTo]);
@@ -714,6 +804,16 @@ export default function CheatSheet() {
 
   const totalHits = filteredSections.reduce((s, sec) => s + sec.items.length, 0);
 
+  const allNames = useMemo(() => {
+    const seen = new Set<string>();
+    for (const secs of Object.values(CHEAT_DATA)) {
+      for (const sec of secs) {
+        for (const it of sec.items) seen.add(it.name);
+      }
+    }
+    return [...seen].sort((a, b) => b.length - a.length);
+  }, []);
+
   function selectExam(exam: string) {
     setSelectedExam(exam);
     setSearch('');
@@ -726,88 +826,114 @@ export default function CheatSheet() {
     if (first) selectExam(first);
   }
 
-  return (
-    <PageLayout maxWidth={860}>
-      <Helmet>
-        <title>チートシート | 無限ノック</title>
-        <meta name="description" content="AWS認定試験ごとの代表的サービス・機能・概念を試験前の見直し用にまとめたチートシート。" />
-      </Helmet>
+  const padX = isMobile ? 'var(--page-pad-x-mobile)' : 'var(--page-pad-x)';
+  const padY = isMobile ? 'var(--page-pad-y-mobile)' : 'var(--page-pad-y)';
 
-      {/* レベルタブ */}
-      <div style={{ display: 'flex', borderBottom: '2px solid var(--color-border)', marginBottom: 0 }}>
-        {EXAM_LEVELS.map(({ key, color }) => (
-          <button
-            key={key}
-            onClick={() => selectLevel(key as LevelKey)}
+  const stickyHeader = (
+    <div
+      ref={headerRef}
+      style={{
+        position: 'fixed',
+        top: 56,
+        left: 'var(--content-left, 0px)',
+        right: 0,
+        zIndex: 80,
+        background: 'var(--color-bg-main)',
+        borderBottom: '1px solid var(--color-border)',
+        boxShadow: 'var(--box-shadow-sm)',
+        transform: headerVisible ? 'translateY(0)' : 'translateY(-100%)',
+        transition: 'transform 0.25s ease',
+      }}
+    >
+      <div style={{ maxWidth: 860, margin: '0 auto', padding: `var(--spacing-sm) ${padX} 0` }}>
+        {/* 検索バー */}
+        <div style={{ position: 'relative', marginBottom: 'var(--spacing-md)' }}>
+          <div style={{ position: 'absolute', left: 12, top: '50%', transform: 'translateY(-50%)', color: 'var(--color-text-light)', display: 'flex', pointerEvents: 'none' }}>
+            <IconSearch />
+          </div>
+          <input
+            type="search"
+            value={search}
+            onChange={e => setSearch(e.target.value)}
+            placeholder="サービス名・キーワードで絞り込み"
             style={{
-              padding: '10px 14px',
-              background: 'none', border: 'none', cursor: 'pointer',
-              borderBottom: activeLevel === key ? `2px solid ${color}` : '2px solid transparent',
-              marginBottom: -2,
-              color: activeLevel === key ? color : 'var(--color-text-sub)',
-              fontWeight: activeLevel === key ? 700 : 400,
-              fontSize: 'var(--font-size-sm2)',
-              whiteSpace: 'nowrap', flexShrink: 0,
-              transition: 'all 0.15s',
+              width: '100%',
+              boxSizing: 'border-box',
+              padding: '8px 12px 8px 34px',
+              borderRadius: 'var(--border-radius-full)',
+              border: '1.5px solid var(--color-border)',
+              background: 'var(--color-bg-white)',
+              color: 'var(--color-text-main)',
+              fontSize: 'var(--font-size-sm)',
+              outline: 'none',
             }}
-          >
-            {key}
-          </button>
-        ))}
-      </div>
-
-      {/* 試験カード（横スクロール） */}
-      <div style={{ display: 'flex', gap: 10, padding: '14px 0', overflowX: 'auto', flexShrink: 0 }}>
-        {currentLevelExams.filter(e => CHEAT_DATA[e]).map(exam => {
-          const isSelected = selectedExam === exam;
-          const EIcon = EXAM_ICON_COMPONENTS[exam];
-          return (
+          />
+        </div>
+        {/* レベルタブ */}
+        <div style={{ display: 'flex', borderBottom: '2px solid var(--color-border)', marginBottom: 0 }}>
+          {EXAM_LEVELS.map(({ key, color }) => (
             <button
-              key={exam}
-              onClick={() => selectExam(exam)}
+              key={key}
+              onClick={() => selectLevel(key as LevelKey)}
               style={{
-                flexShrink: 0, width: 80, padding: '10px 6px 8px', cursor: 'pointer',
-                borderRadius: 10, textAlign: 'center',
-                border: `2px solid ${isSelected ? levelColor : 'var(--color-border)'}`,
-                background: isSelected
-                  ? `linear-gradient(145deg, ${levelColor}, ${levelColor}bb)`
-                  : 'var(--color-bg-white)',
-                color: isSelected ? '#fff' : 'var(--color-text-sub)',
+                padding: '10px 14px',
+                background: 'none', border: 'none', cursor: 'pointer',
+                borderBottom: activeLevel === key ? `2px solid ${color}` : '2px solid transparent',
+                marginBottom: -2,
+                color: activeLevel === key ? color : 'var(--color-text-sub)',
+                fontWeight: activeLevel === key ? 700 : 400,
+                fontSize: 'var(--font-size-sm2)',
+                whiteSpace: 'nowrap', flexShrink: 0,
                 transition: 'all 0.15s',
               }}
             >
-              <div style={{ display: 'flex', justifyContent: 'center', marginBottom: 4, opacity: isSelected ? 1 : 0.6 }}>
-                {EIcon ? <EIcon size={20} /> : null}
-              </div>
-              <div style={{ fontSize: 'var(--font-size-sm)', fontWeight: 700 }}>{exam}</div>
+              {key}
             </button>
-          );
-        })}
-      </div>
-
-      {/* 検索バー */}
-      <div style={{ position: 'relative', marginBottom: 'var(--spacing-md)' }}>
-        <div style={{ position: 'absolute', left: 12, top: '50%', transform: 'translateY(-50%)', color: 'var(--color-text-light)', display: 'flex', pointerEvents: 'none' }}>
-          <IconSearch />
+          ))}
         </div>
-        <input
-          type="search"
-          value={search}
-          onChange={e => setSearch(e.target.value)}
-          placeholder="サービス名・キーワードで絞り込み"
-          style={{
-            width: '100%',
-            boxSizing: 'border-box',
-            padding: '8px 12px 8px 34px',
-            borderRadius: 'var(--border-radius-full)',
-            border: '1.5px solid var(--color-border)',
-            background: 'var(--color-bg-white)',
-            color: 'var(--color-text-main)',
-            fontSize: 'var(--font-size-sm)',
-            outline: 'none',
-          }}
-        />
+        {/* 試験カード（横スクロール） */}
+        <div style={{ display: 'flex', gap: 8, padding: isMobile ? '8px 0' : '3px 0', overflowX: 'auto', flexShrink: 0 }}>
+          {currentLevelExams.filter(e => CHEAT_DATA[e]).map(exam => {
+            const isSelected = selectedExam === exam;
+            const EIcon = EXAM_ICON_COMPONENTS[exam];
+            return (
+              <button
+                key={exam}
+                onClick={() => selectExam(exam)}
+                style={{
+                  flexShrink: 0, width: 72, padding: '8px 6px 6px', cursor: 'pointer',
+                  borderRadius: 8, textAlign: 'center',
+                  border: `2px solid ${isSelected ? levelColor : 'var(--color-border)'}`,
+                  background: isSelected
+                    ? `linear-gradient(145deg, ${levelColor}, ${levelColor}bb)`
+                    : 'var(--color-bg-white)',
+                  color: isSelected ? '#fff' : 'var(--color-text-sub)',
+                  transition: 'all 0.15s',
+                }}
+              >
+                <div style={{ display: 'flex', justifyContent: 'center', marginBottom: 2, opacity: isSelected ? 1 : 0.6 }}>
+                  {EIcon ? <EIcon size={16} /> : null}
+                </div>
+                <div style={{ fontSize: 'var(--font-size-xs)', fontWeight: 700 }}>{exam}</div>
+              </button>
+            );
+          })}
+        </div>
       </div>
+    </div>
+  );
+
+  return (
+    <>
+      {typeof window !== 'undefined' && createPortal(stickyHeader, document.body)}
+      <PageLayout maxWidth={860}>
+        <Helmet>
+          <title>チートシート | 無限ノック</title>
+          <meta name="description" content="AWS認定試験ごとの代表的サービス・機能・概念を試験前の見直し用にまとめたチートシート。" />
+        </Helmet>
+
+        {/* 固定ヘッダー分の余白スペーサー（marginTop で PageLayout の top padding を相殺） */}
+        <div style={{ height: headerHeight || 104, marginTop: `calc(-1 * ${padY})` }} />
 
       {/* 用語コピーヒント */}
       {!q && (
@@ -846,9 +972,9 @@ export default function CheatSheet() {
               <span style={{ display: 'inline-block', width: 3, height: 14, background: examColor, borderRadius: 2 }} />
               {section.title}
             </h2>
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(260px, 1fr))', gap: 'var(--spacing-sm)' }}>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(min(400px, 100%), 1fr))', gap: 'var(--spacing-sm)' }}>
               {section.items.map(item => (
-                <ItemCard key={item.name} item={item} q={q} onCopy={handleTermCopy} onNavigate={navigateToItem} />
+                <ItemCard key={item.name} item={item} q={q} allNames={allNames} highlighted={highlightedItem === item.name} onCopy={handleTermCopy} onNavigate={navigateToItem} />
               ))}
             </div>
           </div>
@@ -914,11 +1040,12 @@ export default function CheatSheet() {
           コピーしました
         </div>
       )}
-    </PageLayout>
+      </PageLayout>
+    </>
   );
 }
 
-function ItemCard({ item, q, onCopy, onNavigate }: { item: Item; q: string; onCopy: (term: string) => void; onNavigate: (name: string) => void }) {
+function ItemCard({ item, q, allNames, highlighted, onCopy, onNavigate }: { item: Item; q: string; allNames: string[]; highlighted?: boolean; onCopy: (term: string) => void; onNavigate: (name: string) => void }) {
   const [allCopied, setAllCopied] = useState(false);
   const handleCopyAll = (e: React.MouseEvent) => {
     e.stopPropagation();
@@ -941,15 +1068,28 @@ function ItemCard({ item, q, onCopy, onNavigate }: { item: Item; q: string; onCo
     );
   };
 
+  const autoSeeAlso = useMemo(() => {
+    const existing = new Set(item.seeAlso ?? []);
+    const names = allNames.filter(n => n !== item.name && !existing.has(n));
+    if (names.length === 0) return [];
+    const escaped = names.map(n => n.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'));
+    const regex = new RegExp(escaped.join('|'), 'g');
+    const found = new Set<string>();
+    let match: RegExpExecArray | null;
+    while ((match = regex.exec(item.desc)) !== null) found.add(match[0]);
+    return [...found].sort((a, b) => a.localeCompare(b, 'ja'));
+  }, [item, allNames]);
+
   return (
     <div
       data-item-name={item.name}
       style={{
         background: 'var(--color-bg-white)',
-        border: '1px solid var(--color-border)',
+        border: highlighted ? '2px solid #009E9E' : '1px solid var(--color-border)',
         borderRadius: 'var(--border-radius-md)',
-        padding: '10px 12px',
-        boxShadow: 'var(--box-shadow-sm)',
+        padding: highlighted ? '9px 11px' : '10px 12px',
+        boxShadow: highlighted ? '0 0 0 3px rgba(0,158,158,0.2)' : 'var(--box-shadow-sm)',
+        transition: 'border 0.3s, box-shadow 0.3s, padding 0.3s',
       }}
     >
       <div style={{ marginBottom: 4, display: 'flex', alignItems: 'flex-start', gap: 'var(--spacing-xs)' }}>
@@ -990,10 +1130,10 @@ function ItemCard({ item, q, onCopy, onNavigate }: { item: Item; q: string; onCo
         {item.desc.split('\n').map((line, i) => {
           const colonIdx = line.indexOf(': ');
           const term = colonIdx > 0 ? line.slice(0, colonIdx) : '';
-          // ASCII英字を含む、または5文字以上の連続カタカナを含む場合にIT用語として強調
+          // ASCII英字を含む、またはEXTRA_COPYABLE_TERMSに含まれる場合にIT用語として強調
           const isITTerm = colonIdx > 0 && (
             /[A-Za-z]/.test(term) ||
-            /[゠-ヿ]{5,}/.test(term)
+            EXTRA_COPYABLE_TERMS.has(term)
           );
           const copyTerm = item.termKeywords?.[term] ?? term;
           const content = isITTerm ? (
@@ -1015,10 +1155,10 @@ function ItemCard({ item, q, onCopy, onNavigate }: { item: Item; q: string; onCo
           );
         })}
       </p>
-      {item.seeAlso && item.seeAlso.length > 0 && (
+      {((item.seeAlso && item.seeAlso.length > 0) || autoSeeAlso.length > 0) && (
         <div style={{ marginTop: 8, paddingTop: 6, borderTop: '1px solid var(--color-border)', display: 'flex', gap: 4, flexWrap: 'wrap', alignItems: 'center' }}>
           <span style={{ fontSize: 'var(--font-size-2xs)', color: 'var(--color-text-light)' }}>関連:</span>
-          {item.seeAlso.map(name => (
+          {[...(item.seeAlso ?? []), ...autoSeeAlso].map(name => (
             <button
               key={name}
               onClick={() => onNavigate(name)}
