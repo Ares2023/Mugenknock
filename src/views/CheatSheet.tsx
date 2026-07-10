@@ -689,6 +689,7 @@ export default function CheatSheet() {
   const [headerHeight, setHeaderHeight] = useState(0);
   const headerRef = useRef<HTMLDivElement>(null);
   const lastScrollRef = useRef(0);
+  const navigatingRef = useRef(false);
 
   function handleTermCopy(term: string) {
     navigator.clipboard.writeText(term);
@@ -698,6 +699,8 @@ export default function CheatSheet() {
 
   function navigateToItem(name: string) {
     setSearch('');
+    setHeaderVisible(true);
+    navigatingRef.current = true;
     let targetExam: string | null = null;
     outer: for (const [exam, secs] of Object.entries(CHEAT_DATA)) {
       for (const sec of secs) {
@@ -707,13 +710,14 @@ export default function CheatSheet() {
         }
       }
     }
-    if (!targetExam) return;
+    if (!targetExam) { navigatingRef.current = false; return; }
     if (targetExam !== selectedExam) {
       const lv = levelOf(targetExam) as LevelKey;
       setActiveLevel(lv);
       setSelectedExam(targetExam);
     }
     setPendingScrollTo(name);
+    setTimeout(() => { navigatingRef.current = false; }, 1000);
   }
 
   useEffect(() => {
@@ -731,6 +735,7 @@ export default function CheatSheet() {
     const onScroll = () => {
       const st = container.scrollTop;
       setShowScrollTop(st > 300);
+      if (navigatingRef.current) { lastScrollRef.current = st; return; }
       const delta = st - lastScrollRef.current;
       if (st <= 0) {
         setHeaderVisible(true);
