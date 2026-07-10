@@ -14,6 +14,14 @@ interface Item { name: string; desc: string; tags: string[]; keyword?: string; s
 interface Section { title: string; items: Item[] }
 type CheatData = Record<string, Section[]>
 
+// ── 4文字カタカナ等で isITTerm の自動判定をすり抜けるが検索対象として有用な用語 ──
+const EXTRA_COPYABLE_TERMS = new Set([
+  'シャード', 'レイヤー', 'ポリシー', 'アラーム', 'スタック', 'クラスタ',
+  '複合アラーム', '管理イベント', 'ドリフト検出', 'ポリシー評価順',
+  'バイアス検出', '説明可能性ドリフト', '特定トピックの拒否',
+  'データ品質レポート', 'モニターの種類', '列・行レベルのきめ細かいアクセス制御',
+]);
+
 // ── 共有アイテム（複数の試験セクションで使い回す場合はここに定義して参照する） ──
 // 同じ Item オブジェクトを複数の items 配列に含めることで1箇所の定義を使い回せる
 // 例: const ITEM_FOO: Item = { name: 'Foo', desc: '...', tags: [] };
@@ -1050,7 +1058,7 @@ function ItemCard({ item, q, allNames, onCopy, onNavigate }: { item: Item; q: st
     >
       <div style={{ marginBottom: 4, display: 'flex', alignItems: 'flex-start', gap: 'var(--spacing-xs)' }}>
         <div style={{ flex: 1, minWidth: 0 }}>
-          {(/[A-Za-z]/.test(item.name) || /[゠-ヿ]{4,}/.test(item.name)) ? (
+          {(/[A-Za-z]/.test(item.name) || /[゠-ヿ]{5,}/.test(item.name)) ? (
             <div
               onClick={() => onCopy(item.keyword ?? item.name.replace(/[（(][^）)]*[）)]/g, '').trim())}
               title="タップしてコピー"
@@ -1086,10 +1094,11 @@ function ItemCard({ item, q, allNames, onCopy, onNavigate }: { item: Item; q: st
         {item.desc.split('\n').map((line, i) => {
           const colonIdx = line.indexOf(': ');
           const term = colonIdx > 0 ? line.slice(0, colonIdx) : '';
-          // ASCII英字を含む、または4文字以上の連続カタカナを含む場合にIT用語として強調
+          // ASCII英字・5文字以上連続カタカナ・または明示リストに含まれる場合にIT用語として強調
           const isITTerm = colonIdx > 0 && (
             /[A-Za-z]/.test(term) ||
-            /[゠-ヿ]{4,}/.test(term)
+            /[゠-ヿ]{5,}/.test(term) ||
+            EXTRA_COPYABLE_TERMS.has(term)
           );
           const copyTerm = item.termKeywords?.[term] ?? term;
           const content = isITTerm ? (
