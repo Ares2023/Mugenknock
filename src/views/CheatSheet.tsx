@@ -817,6 +817,8 @@ export default function CheatSheet() {
   function selectExam(exam: string) {
     setSelectedExam(exam);
     setSearch('');
+    setPendingScrollTo(null);
+    document.getElementById('main-scroll')?.scrollTo({ top: 0, behavior: 'instant' });
   }
 
   function selectLevel(lv: LevelKey) {
@@ -937,7 +939,7 @@ export default function CheatSheet() {
 
       {/* 用語コピーヒント */}
       {!q && (
-        <p style={{ fontSize: 'var(--font-size-xs)', color: '#009E9E', marginBottom: 'var(--spacing-sm)', marginTop: 'calc(var(--spacing-sm) * -1)' }}>
+        <p style={{ fontSize: 'var(--font-size-xs)', color: '#009E9E', marginBottom: 'var(--spacing-sm)', marginTop: 0 }}>
           色付き太字の用語はタップしてコピーできます（検索向けに文脈補足が付く場合あり）
         </p>
       )}
@@ -1080,23 +1082,28 @@ function ItemCard({ item, q, allNames, highlighted, onCopy, onNavigate }: { item
     return [...found].sort((a, b) => a.localeCompare(b, 'ja'));
   }, [item, allNames]);
 
+  function copyWithContext(text: string) {
+    const enhanced = text.toLowerCase().includes(item.name.toLowerCase()) ? text : `${text} (${item.name})`;
+    onCopy(enhanced);
+  }
+
   return (
     <div
       data-item-name={item.name}
       style={{
         background: 'var(--color-bg-white)',
-        border: highlighted ? '2px solid #009E9E' : '1px solid var(--color-border)',
+        border: highlighted ? '1px solid #009E9E' : '1px solid var(--color-border)',
         borderRadius: 'var(--border-radius-md)',
-        padding: highlighted ? '9px 11px' : '10px 12px',
+        padding: '10px 12px',
         boxShadow: highlighted ? '0 0 0 3px rgba(0,158,158,0.2)' : 'var(--box-shadow-sm)',
-        transition: 'border 0.3s, box-shadow 0.3s, padding 0.3s',
+        transition: 'border-color 0.3s, box-shadow 0.3s',
       }}
     >
       <div style={{ marginBottom: 4, display: 'flex', alignItems: 'flex-start', gap: 'var(--spacing-xs)' }}>
         <div style={{ flex: 1, minWidth: 0 }}>
           {(/[A-Za-z]/.test(item.name) || /[゠-ヿ]{5,}/.test(item.name)) ? (
             <div
-              onClick={() => onCopy(item.keyword ?? item.name.replace(/[（(][^）)]*[）)]/g, '').trim())}
+              onClick={() => copyWithContext(item.keyword ?? item.name.replace(/[（(][^）)]*[）)]/g, '').trim())}
               title="タップしてコピー"
               style={{ fontWeight: 700, fontSize: 'var(--font-size-base)', color: '#009E9E', cursor: 'pointer' }}
             >
@@ -1139,7 +1146,7 @@ function ItemCard({ item, q, allNames, highlighted, onCopy, onNavigate }: { item
           const content = isITTerm ? (
             <>
               <span
-                onClick={() => onCopy(copyTerm)}
+                onClick={() => copyWithContext(copyTerm)}
                 title={copyTerm !== term ? `コピー: ${copyTerm}` : 'タップしてコピー'}
                 style={{ fontWeight: 700, color: '#009E9E', cursor: 'pointer' }}
               >{highlight(term)}</span>
