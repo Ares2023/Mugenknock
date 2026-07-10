@@ -679,11 +679,11 @@ PYEOF
   # チャンク分割（試験の情報量に合わせたサイズ）
   # トークン律速対策: チャンクを大きくして固定オーバーヘッド（指示文・共通ルール・
   # claude 起動ごとのシステムプロンプト）の再送回数を減らし、1トークンあたりの問題数を増やす。
-  # 出力は64000トークン上限。非hardは拡張思考を使わないため余裕があり、重量級=5・軽量級=8まで拡大。
+  # 逐次インポートにより途中切れ時の全損がなくなったため、重量級=10・軽量級=15に拡大。
   # --hard（拡張思考）は出力トークンが大幅増大するため従来どおり半減して上限に収める。
   case "$NEXT_EXAM" in
-    SAP|ANS|SCS|DOP|SOA) CHUNK_SIZE=5; MIN_CHUNK_Q=2 ;;
-    *) CHUNK_SIZE=8; MIN_CHUNK_Q=3 ;;
+    SAP|ANS|SCS|DOP|SOA) CHUNK_SIZE=10; MIN_CHUNK_Q=3 ;;
+    *) CHUNK_SIZE=15; MIN_CHUNK_Q=5 ;;
   esac
   if [ "$HARD_MODE" -eq 1 ]; then
     CHUNK_SIZE=$(( CHUNK_SIZE > 2 ? CHUNK_SIZE / 2 : 1 ))
@@ -766,9 +766,9 @@ ${EXAM_GUIDE_URL:+【公式試験ガイド】${EXAM_GUIDE_URL}
 ${EXISTING_TEXTS}
 → 上記と異なるサービス・機能・ユースケース・出題角度で作成してください。
 
-【出力形式】JSONのみ。説明文・前置き・コードブロック不要。
+【出力形式】1問ずつ以下のJSON形式で1行に出力。前置き・後書き・コードブロック不要。${_CHUNK_Q} 問出力後は何も追記しない。
 
-{"questions":[{"questionText":"問題文","choices":["選択肢0","選択肢1","選択肢2","選択肢3"],"correctAnswers":["正解の選択肢テキスト"],"correctAnswerIndices":[1],"explanation":"全体解説（200字程度）","choiceExplanations":["選択肢0の解説","選択肢1の解説","選択肢2の解説","選択肢3の解説"],"isMultiple":false},...]}
+{"q":{"questionText":"問題文","choices":["選択肢0","選択肢1","選択肢2","選択肢3"],"correctAnswers":["正解の選択肢テキスト"],"correctAnswerIndices":[1],"explanation":"全体解説（200字程度）","choiceExplanations":["選択肢0の解説","選択肢1の解説","選択肢2の解説","選択肢3の解説"],"isMultiple":false}}
 
 ※ フォーマット規則:
 - choices にラベル（A. B. 等）を付けない（テキストのみ）
@@ -780,64 +780,118 @@ ${EXISTING_TEXTS}
   - 不正解選択肢: なぜ不正解か（誤りの理由から書き始める）
   - 文頭に「正解です」「不正解です」などの判定文を入れない
 - 複数正解: isMultiple true、correctAnswerIndices を複数要素で
-- ${_CHUNK_Q} 問を1つのJSONで返す。domain・tags フィールドは不要（インポート時にサーバー側でセットされる）。
+- domain・tags フィールドは不要（インポート時にサーバー側でセットされる）
 - 本サービスは日本語のみ。英語フィールド（questionTextEn 等）は出力しない。
 ${HARD_BLOCK}
 【品質基準】
 ${COMMON_RULES}
 PROMPT
 
-    # WebFetch は使わない（公式ガイド概要は instructions/*.txt に埋め込み済み・refresh-exam-guide.sh で最新化）。
-    # 毎チャンクのページ取得を止めてトークン消費とレート制限の逼迫を削減する。
-    # --tools "": 生成はJSON出力のみでツール不要。全ツールスキーマの送信を止めて
-    #             呼び出しごとの固定トークンを削減する（トークン律速対策）。
-    # CLAUDE_CODE_MAX_OUTPUT_TOKENS=64000: --hard（拡張思考）モードで32000上限エラーを防ぐ
-    RESULT=$(CLAUDE_CODE_MAX_OUTPUT_TOKENS=64000 "$CLAUDE_CMD" -p --tools "" < "$PROMPT_FILE" 2>&1)
-    AI_EXIT=$?
-    # npm更新による一時的なバイナリ消失 → 再探索してリトライ
-    if [ $AI_EXIT -ne 0 ] && echo "$RESULT" | grep -q "No such file"; then
-      CLAUDE_CMD=$(_find_claude)
-      [ -x "${CLAUDE_CMD:-}" ] && { RESULT=$(CLAUDE_CODE_MAX_OUTPUT_TOKENS=64000 "$CLAUDE_CMD" -p --tools "" < "$PROMPT_FILE" 2>&1); AI_EXIT=$?; }
-    fi
-    rm -f "$PROMPT_FILE"
+    # 1問ずつNDJSON形式でストリーミング出力→即インポート。
+    # < <() プロセス置換でサブシェルを作らずに外部変数を更新できる。
+    # チャンクを大きくしても途中切れ時の全損がなく、出力済み分はDBに保存済み。
+    _CHUNK_RATE_LIMITED=0
+    _CHUNK_IMPORTED=0
+    _line_count=0
+    _CHUNK_T0=$(date +%s)
 
-    # エラー判定は出力の先頭3行のみを対象にする
-    # （問題文・解説中に rate limit / API key 等のフレーズが含まれても誤検知しないため）
-    _RESULT_HEAD=$(echo "$RESULT" | head -3)
-    _RATE_IN_TEXT=0; echo "$_RESULT_HEAD" | grep -qiE "rate.?limit|too many requests|overload|quota exceeded|usage limit|resource_exhausted" && _RATE_IN_TEXT=1
-    # claude -p が稀に exit 非ゼロを返すが questions JSON があれば成功扱い（誤検知防止）
-    _HAS_QUESTIONS=0; echo "$RESULT" | grep -q '"questions"' && _HAS_QUESTIONS=1
-    # ネットワーク接続エラーはレート制限ではなく一時的な障害として扱う（ロックファイルを作らない）
-    _IS_NET_ERROR=0; echo "$_RESULT_HEAD" | grep -qiE "FailedToOpenSocket|connection refused|network error|socket|ECONNREFUSED|ETIMEDOUT" && _IS_NET_ERROR=1
-    # 出力トークン上限超過: 設定ミスか思考過多。このドメインをスキップ（ロックは作らない）
-    _IS_TOKEN_LIMIT=0; echo "$_RESULT_HEAD" | grep -qiE "exceeded.*output token|output token.*maximum|CLAUDE_CODE_MAX_OUTPUT_TOKENS" && _IS_TOKEN_LIMIT=1
-    if [ $_RATE_IN_TEXT -eq 1 ] || { [ $AI_EXIT -ne 0 ] && [ $_HAS_QUESTIONS -eq 0 ]; }; then
-      if echo "$_RESULT_HEAD" | grep -qiE "command not found|No such file|GEMINI_API_KEY|API.?key"; then
-        echo "❌ claude 実行エラー（認証またはコマンド問題）。スクリプトを終了します"
-        echo "出力: $_RESULT_HEAD"
-        exit 1
-      fi
-      if [ $_IS_NET_ERROR -eq 1 ]; then
-        echo "⚠️  ネットワーク接続エラー。残りをスキップ（レート制限ロックは作成しない）"
-        echo "出力: $_RESULT_HEAD"
-        DOMAIN_RATE_LIMITED=1
-        break
-      fi
-      if [ $_IS_TOKEN_LIMIT -eq 1 ]; then
-        echo "⚠️  出力トークン上限超過。このドメインをスキップ（CLAUDE_CODE_MAX_OUTPUT_TOKENS を上げるか、チャンク数を増やしてください）"
-        echo "出力: $_RESULT_HEAD"
-        DOMAIN_RATE_LIMITED=1
-        break
-      fi
-      echo "⚠️  レート制限を検出。残りをスキップ"
-      echo "出力: $_RESULT_HEAD"
-      DOMAIN_RATE_LIMITED=1
-      break
-    fi
+    while IFS= read -r _line || [ -n "$_line" ]; do
+      _line_count=$(( _line_count + 1 ))
 
-    # 1チャンク目成功時のみ state を更新（ドメイン手動指定時は更新しない）
-    if [ "$DOMAIN_ALLOC_SKIP" -eq 0 ] && [ "$STATE_UPDATED" -eq 0 ]; then
-      python3 - "$STATE_FILE" "$NEXT_EXAM" "$_DOMAIN_IDX" << 'PYEOF' 2>/dev/null || true
+      # 先頭数行でエラー検出（問題文・解説中に同語句があっても誤検知しないよう、
+      # まだ1問もインポートされていない最初の5行のみ対象にする）
+      if [ "$_CHUNK_IMPORTED" -eq 0 ] && [ "$_line_count" -le 5 ]; then
+        _head="${_line:0:300}"
+        if echo "$_head" | grep -qiE "command not found|No such file|GEMINI_API_KEY|API.?key"; then
+          echo "❌ claude 実行エラー（認証またはコマンド問題）。スクリプトを終了します"
+          echo "出力: $_head"
+          exit 1
+        fi
+        if echo "$_head" | grep -qiE "FailedToOpenSocket|connection refused|network error|socket|ECONNREFUSED|ETIMEDOUT"; then
+          echo "⚠️  ネットワーク接続エラー。残りをスキップ"
+          echo "出力: $_head"
+          _CHUNK_RATE_LIMITED=1; break
+        fi
+        if echo "$_head" | grep -qiE "exceeded.*output token|output token.*maximum|CLAUDE_CODE_MAX_OUTPUT_TOKENS"; then
+          echo "⚠️  出力トークン上限超過。チャンクサイズを下げてください"
+          echo "出力: $_head"
+          _CHUNK_RATE_LIMITED=1; break
+        fi
+        if echo "$_head" | grep -qiE "rate.?limit|too many requests|overload|quota exceeded|usage limit|resource_exhausted|session.?limit|hit your"; then
+          echo "⚠️  レート制限を検出。残りをスキップ"
+          echo "出力: $_head"
+          _CHUNK_RATE_LIMITED=1; break
+        fi
+      fi
+
+      # {"q":{...,"questionText":...}} 形式の行のみ処理（前置き・後書きをスキップ）
+      [[ "$_line" == *'"q"'*'"questionText"'* ]] || continue
+
+      # バリデーション + APIペイロード生成（1問単位）
+      _validated=$(echo "$_line" | PYTHONIOENCODING=utf-8 python3 -c "
+import sys, json, re
+label_re = re.compile(r'^[A-E][.\s]\s*', re.IGNORECASE)
+try:
+    obj = json.loads(sys.stdin.read().strip())
+    q = obj.get('q')
+    if not q or 'questionText' not in q:
+        sys.exit(1)
+    choices = [label_re.sub('', str(c)).strip() for c in q.get('choices', [])]
+    correct = [label_re.sub('', str(c)).strip() for c in q.get('correctAnswers', [])]
+    if len(choices) < 4 or len(set(choices)) != len(choices) or not correct:
+        sys.stderr.write('  [DROP] 不正な問題: ' + str(q.get('questionText',''))[:30] + '\n')
+        sys.exit(1)
+    if any(ca not in choices for ca in correct):
+        sys.stderr.write('  [DROP] 正解が選択肢にない: ' + str(q.get('questionText',''))[:30] + '\n')
+        sys.exit(1)
+    q['choices'] = choices
+    q['correctAnswers'] = correct
+    q['correctAnswerIndices'] = [choices.index(ca) for ca in correct]
+    q['isMultiple'] = len(correct) > 1
+    ce = q.get('choiceExplanations', [])
+    if ce and len(ce) != len(choices):
+        del q['choiceExplanations']
+    print(json.dumps({'examType': '${NEXT_EXAM}', 'domain': '${domain}', 'questions': [q]},
+                     ensure_ascii=False))
+except Exception:
+    sys.exit(1)
+" 2>/dev/null) || continue
+
+      # 即インポート
+      _http_resp=$(curl -s -w "\n%{http_code}" \
+        -X POST \
+        -H "Content-Type: application/json" \
+        -H "Authorization: Bearer ${ID_TOKEN}" \
+        -d "$_validated" \
+        "${API_ENDPOINT}/admin/questions")
+      _http_body=$(echo "$_http_resp" | head -n -1)
+      _http_code=$(echo "$_http_resp" | tail -n 1)
+
+      if [ "$_http_code" -eq 200 ] || [ "$_http_code" -eq 201 ]; then
+        _created_id=$(echo "$_http_body" | python3 -c \
+          "import sys,json; print(json.load(sys.stdin).get('created',['?'])[0])" 2>/dev/null || echo "?")
+        echo "  ✓ インポート: $_created_id"
+        _CHUNK_IMPORTED=$(( _CHUNK_IMPORTED + 1 ))
+        DOMAIN_IMPORTED=$(( DOMAIN_IMPORTED + 1 ))
+
+        # キャッシュをインクリメント（1問単位）
+        python3 - "$COUNT_CACHE_FILE" "$NEXT_EXAM" "$domain" << 'PYEOF' 2>/dev/null || true
+import json, sys
+from datetime import datetime
+cache_file, exam, domain_name = sys.argv[1], sys.argv[2], sys.argv[3]
+try:
+    with open(cache_file) as f: cache = json.load(f)
+except Exception: cache = {"exams": {}}
+entry = cache.setdefault("exams", {}).setdefault(exam, {})
+entry["total"] = entry.get("total", 0) + 1
+entry.setdefault("domains", {})[domain_name] = entry["domains"].get(domain_name, 0) + 1
+cache["updated_at"] = datetime.now().isoformat()
+with open(cache_file, 'w') as f: json.dump(cache, f, ensure_ascii=False, indent=2)
+PYEOF
+
+        # State 更新（最初の成功インポート時のみ・ドメイン手動指定時はスキップ）
+        if [ "$DOMAIN_ALLOC_SKIP" -eq 0 ] && [ "$STATE_UPDATED" -eq 0 ]; then
+          python3 - "$STATE_FILE" "$NEXT_EXAM" "$_DOMAIN_IDX" << 'PYEOF' 2>/dev/null || true
 import json, sys
 sf, exam, idx = sys.argv[1], sys.argv[2], int(sys.argv[3])
 try:
@@ -847,118 +901,13 @@ except:
 state[exam] = idx
 with open(sf, 'w') as f: json.dump(state, f)
 PYEOF
-      STATE_UPDATED=1
-    fi
+          STATE_UPDATED=1
+        fi
 
-    DOMAIN_JSON=$(echo "$RESULT" | python3 -c "
-import sys, json, re
-text = sys.stdin.read()
-
-# markdown コードブロック除去
-cb = re.search(r'\`\`\`(?:json)?\s*(\{)', text, re.DOTALL)
-if cb:
-    text = text[cb.start(1):]
-    text = re.sub(r'\s*\`\`\`.*$', '', text, flags=re.DOTALL)
-
-start = text.find('{')
-if start == -1:
-    print('{}')
-    exit(0)
-try:
-    obj, _ = json.JSONDecoder().raw_decode(text, start)
-    if 'questions' in obj:
-        print(json.dumps(obj))
-    else:
-        print('{}')
-except:
-    print('{}')
-")
-
-    Q_COUNT=$(echo "$DOMAIN_JSON" | python3 -c "
+        # EXISTING_TEXTS 更新（後続チャンク・後続呼び出しの重複回避）
+        _new_q=$(echo "$_validated" | PYTHONIOENCODING=utf-8 python3 -c "
 import sys, json
-d = json.loads(sys.stdin.read())
-print(len(d.get('questions', [])))
-" 2>/dev/null || echo 0)
-
-    if [ "$Q_COUNT" -eq 0 ]; then
-      echo "❌ [${domain}] チャンク${_chunk} JSON抽出失敗。スキップ"
-      echo "$RESULT" | head -c 300
-      continue
-    fi
-
-    echo "  抽出: ${Q_COUNT}問 → APIインポート中..."
-
-    API_PAYLOAD=$(echo "$DOMAIN_JSON" | python3 -c "
-import sys, json, re
-d = json.loads(sys.stdin.read())
-label_re = re.compile(r'^[A-E][.\s]\s*', re.IGNORECASE)
-valid = []
-dropped = 0
-for q in d.get('questions', []):
-    # choices・correctAnswers 両方からラベル接頭辞を除去してから一致確認
-    choices = [label_re.sub('', str(c)).strip() for c in q.get('choices', [])]
-    q['choices'] = choices
-    correct = [label_re.sub('', str(c)).strip() for c in q.get('correctAnswers', [])]
-    q['correctAnswers'] = correct
-    # 決定的バリデーション: 壊れた問題は取込前に除外（検証パスの負荷も減らす）
-    #  - 選択肢4つ未満 / 重複選択肢あり / 正解なし / 正解が選択肢に存在しない
-    if len(choices) < 4 or len(set(choices)) != len(choices) or not correct or any(ca not in choices for ca in correct):
-        dropped += 1
-        sys.stderr.write('  [DROP] 不正な問題を除外: ' + str(q.get('questionText',''))[:30] + '\n')
-        continue
-    # choices内のインデックスを計算して保存（テキスト変更後も正解を特定できるように）
-    q['correctAnswerIndices'] = [choices.index(ca) for ca in correct]
-    # isMultiple を正解数から決定的に設定（生成側の付け忘れ・誤りを防止）
-    q['isMultiple'] = len(correct) > 1
-    # choiceExplanations が choices と長さ不一致なら除去（検証パスで再生成される）
-    ce = q.get('choiceExplanations', [])
-    if ce and len(ce) != len(choices):
-        del q['choiceExplanations']
-    valid.append(q)
-if dropped:
-    sys.stderr.write('  取込前バリデーション: ' + str(dropped) + '件を除外\n')
-print(json.dumps({'examType': '${NEXT_EXAM}', 'domain': '${domain}', 'questions': valid}, ensure_ascii=False))
-")
-
-    HTTP_RESPONSE=$(curl -s -w "\n%{http_code}" \
-      -X POST \
-      -H "Content-Type: application/json" \
-      -H "Authorization: Bearer ${ID_TOKEN}" \
-      -d "$API_PAYLOAD" \
-      "${API_ENDPOINT}/admin/questions")
-
-    HTTP_BODY=$(echo "$HTTP_RESPONSE" | head -n -1)
-    HTTP_CODE=$(echo "$HTTP_RESPONSE" | tail -n 1)
-
-    if [ "$HTTP_CODE" -eq 200 ] || [ "$HTTP_CODE" -eq 201 ]; then
-      CREATED_IDS=$(echo "$HTTP_BODY" | python3 -c "
-import sys, json
-d = json.loads(sys.stdin.read())
-ids = d.get('created', [])
-print(f'{len(ids)}件: ' + ', '.join(ids[:3]) + ('...' if len(ids) > 3 else ''))
-" 2>/dev/null || echo "$HTTP_BODY")
-      echo "  ✓ チャンク${_chunk} インポート成功: $CREATED_IDS"
-      DOMAIN_IMPORTED=$(( DOMAIN_IMPORTED + Q_COUNT ))
-      # キャッシュをインクリメント
-      python3 - "$COUNT_CACHE_FILE" "$NEXT_EXAM" "$domain" "$Q_COUNT" << 'PYEOF' 2>/dev/null || true
-import json, sys
-from datetime import datetime
-cache_file, exam, domain, n = sys.argv[1], sys.argv[2], sys.argv[3], int(sys.argv[4])
-try:
-    with open(cache_file) as f: cache = json.load(f)
-except Exception: cache = {"exams": {}}
-entry = cache.setdefault("exams", {}).setdefault(exam, {})
-entry["total"] = entry.get("total", 0) + n
-entry.setdefault("domains", {})[domain] = entry["domains"].get(domain, 0) + n
-cache["updated_at"] = datetime.now().isoformat()
-with open(cache_file, 'w') as f: json.dump(cache, f, ensure_ascii=False, indent=2)
-PYEOF
-      # 同一実行内の後続チャンクへ重複回避情報を伝搬（DB取得はループ前の1回だけで、
-      # このチャンクの生成分は EXISTING_TEXTS に含まれていないため）
-      if [ "$_chunk" -lt "$CHUNKS_TOTAL" ]; then
-        _NEW_TEXTS=$(echo "$API_PAYLOAD" | PYTHONIOENCODING=utf-8 python3 -c "
-import sys, json
-d = json.loads(sys.stdin.read())
+d = json.load(sys.stdin)
 exam = d.get('examType', '')
 max_ch = 40 if exam in ('SAP', 'ANS', 'SCS', 'DOP') else 55
 for q in d.get('questions', []):
@@ -968,12 +917,26 @@ for q in d.get('questions', []):
         line += '〔正解: ' + a[:40] + '〕'
     print(line)
 " 2>/dev/null)
-        [ -n "$_NEW_TEXTS" ] && EXISTING_TEXTS="${EXISTING_TEXTS}
-${_NEW_TEXTS}"
+        [ -n "$_new_q" ] && EXISTING_TEXTS="${EXISTING_TEXTS}
+${_new_q}"
+      else
+        echo "  ❌ API エラー (HTTP $_http_code): $_http_body"
       fi
-    else
-      echo "  ❌ チャンク${_chunk} API エラー (HTTP $HTTP_CODE): $HTTP_BODY"
+
+    done < <(CLAUDE_CODE_MAX_OUTPUT_TOKENS=64000 "$CLAUDE_CMD" -p --tools "" < "$PROMPT_FILE" 2>&1)
+    rm -f "$PROMPT_FILE"
+
+    echo "  チャンク${_chunk}: ${_CHUNK_IMPORTED}問インポート  経過=$(( $(date +%s) - _CHUNK_T0 ))秒"
+
+    if [ "$_CHUNK_IMPORTED" -eq 0 ] && [ "$_line_count" -gt 3 ]; then
+      echo "❌ [${domain}] チャンク${_chunk}: {\"q\":...} 形式の問題が取得できませんでした（出力 ${_line_count} 行）"
     fi
+
+    if [ "$_CHUNK_RATE_LIMITED" -eq 1 ]; then
+      DOMAIN_RATE_LIMITED=1
+      break
+    fi
+
   done  # チャンクループ終了
 
   if [ "$DOMAIN_RATE_LIMITED" -eq 1 ]; then
