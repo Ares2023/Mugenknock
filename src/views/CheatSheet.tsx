@@ -1052,37 +1052,17 @@ function ItemCard({ item, q, allNames, onCopy, onNavigate }: { item: Item; q: st
     );
   };
 
-  const renderText = (text: string): React.ReactNode => {
-    const names = allNames.filter(n => n !== item.name);
-    if (names.length === 0) return highlight(text);
+  const autoSeeAlso = useMemo(() => {
+    const existing = new Set(item.seeAlso ?? []);
+    const names = allNames.filter(n => n !== item.name && !existing.has(n));
+    if (names.length === 0) return [];
     const escaped = names.map(n => n.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'));
-    const regex = new RegExp(`(${escaped.join('|')})`, 'g');
-    const parts: React.ReactNode[] = [];
-    let lastIdx = 0;
+    const regex = new RegExp(escaped.join('|'), 'g');
+    const found = new Set<string>();
     let match: RegExpExecArray | null;
-    while ((match = regex.exec(text)) !== null) {
-      if (match.index > lastIdx) parts.push(highlight(text.slice(lastIdx, match.index)));
-      const mn = match[0];
-      parts.push(
-        <button
-          key={match.index}
-          onClick={(e) => { e.stopPropagation(); onNavigate(mn); }}
-          style={{
-            background: 'none', border: 'none', padding: 0,
-            color: '#009E9E', textDecoration: 'underline',
-            textDecorationColor: 'rgba(0,158,158,0.4)',
-            cursor: 'pointer', fontSize: 'inherit', fontWeight: 600, display: 'inline',
-          }}
-        >
-          {q ? highlight(mn) : mn}
-        </button>
-      );
-      lastIdx = match.index + mn.length;
-    }
-    if (lastIdx < text.length) parts.push(highlight(text.slice(lastIdx)));
-    if (parts.length === 0) return highlight(text);
-    return parts.length === 1 ? parts[0] : <>{parts}</>;
-  };
+    while ((match = regex.exec(item.desc)) !== null) found.add(match[0]);
+    return [...found].sort((a, b) => a.localeCompare(b, 'ja'));
+  }, [item, allNames]);
 
   return (
     <div
@@ -1147,9 +1127,9 @@ function ItemCard({ item, q, allNames, onCopy, onNavigate }: { item: Item; q: st
                 style={{ fontWeight: 700, color: '#009E9E', cursor: 'pointer' }}
               >{highlight(term)}</span>
               {': '}
-              {renderText(line.slice(colonIdx + 2))}
+              {highlight(line.slice(colonIdx + 2))}
             </>
-          ) : renderText(line);
+          ) : highlight(line);
           return (
             <React.Fragment key={i}>
               {i > 0 && <br />}
@@ -1158,10 +1138,10 @@ function ItemCard({ item, q, allNames, onCopy, onNavigate }: { item: Item; q: st
           );
         })}
       </p>
-      {item.seeAlso && item.seeAlso.length > 0 && (
+      {((item.seeAlso && item.seeAlso.length > 0) || autoSeeAlso.length > 0) && (
         <div style={{ marginTop: 8, paddingTop: 6, borderTop: '1px solid var(--color-border)', display: 'flex', gap: 4, flexWrap: 'wrap', alignItems: 'center' }}>
           <span style={{ fontSize: 'var(--font-size-2xs)', color: 'var(--color-text-light)' }}>関連:</span>
-          {item.seeAlso.map(name => (
+          {[...(item.seeAlso ?? []), ...autoSeeAlso].map(name => (
             <button
               key={name}
               onClick={() => onNavigate(name)}
