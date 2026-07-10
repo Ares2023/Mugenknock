@@ -683,6 +683,7 @@ export default function CheatSheet() {
   const [goalInit, setGoalInit] = useState(false);
   const [copiedTerm, setCopiedTerm] = useState<string | null>(null);
   const [pendingScrollTo, setPendingScrollTo] = useState<string | null>(null);
+  const [highlightedItem, setHighlightedItem] = useState<string | null>(null);
   const [showScrollTop, setShowScrollTop] = useState(false);
   const [headerVisible, setHeaderVisible] = useState(true);
   const [headerHeight, setHeaderHeight] = useState(0);
@@ -744,9 +745,20 @@ export default function CheatSheet() {
 
   useEffect(() => {
     if (!pendingScrollTo) return;
-    const el = document.querySelector(`[data-item-name="${pendingScrollTo.replace(/\\/g, '\\\\').replace(/"/g, '\\"')}"]`);
+    const escaped = pendingScrollTo.replace(/\\/g, '\\\\').replace(/"/g, '\\"');
+    const el = document.querySelector<HTMLElement>(`[data-item-name="${escaped}"]`);
     if (el) {
-      el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      const container = document.getElementById('main-scroll');
+      if (container) {
+        const rect = el.getBoundingClientRect();
+        const cRect = container.getBoundingClientRect();
+        const offset = container.scrollTop + rect.top - cRect.top - cRect.height / 2 + rect.height / 2;
+        container.scrollTo({ top: Math.max(0, offset), behavior: 'smooth' });
+      } else {
+        el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      }
+      setHighlightedItem(pendingScrollTo);
+      setTimeout(() => setHighlightedItem(null), 1500);
       setPendingScrollTo(null);
     }
   }, [selectedExam, pendingScrollTo]);
@@ -958,7 +970,7 @@ export default function CheatSheet() {
             </h2>
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(min(400px, 100%), 1fr))', gap: 'var(--spacing-sm)' }}>
               {section.items.map(item => (
-                <ItemCard key={item.name} item={item} q={q} allNames={allNames} onCopy={handleTermCopy} onNavigate={navigateToItem} />
+                <ItemCard key={item.name} item={item} q={q} allNames={allNames} highlighted={highlightedItem === item.name} onCopy={handleTermCopy} onNavigate={navigateToItem} />
               ))}
             </div>
           </div>
@@ -1029,7 +1041,7 @@ export default function CheatSheet() {
   );
 }
 
-function ItemCard({ item, q, allNames, onCopy, onNavigate }: { item: Item; q: string; allNames: string[]; onCopy: (term: string) => void; onNavigate: (name: string) => void }) {
+function ItemCard({ item, q, allNames, highlighted, onCopy, onNavigate }: { item: Item; q: string; allNames: string[]; highlighted?: boolean; onCopy: (term: string) => void; onNavigate: (name: string) => void }) {
   const [allCopied, setAllCopied] = useState(false);
   const handleCopyAll = (e: React.MouseEvent) => {
     e.stopPropagation();
@@ -1069,10 +1081,11 @@ function ItemCard({ item, q, allNames, onCopy, onNavigate }: { item: Item; q: st
       data-item-name={item.name}
       style={{
         background: 'var(--color-bg-white)',
-        border: '1px solid var(--color-border)',
+        border: highlighted ? '2px solid #009E9E' : '1px solid var(--color-border)',
         borderRadius: 'var(--border-radius-md)',
-        padding: '10px 12px',
-        boxShadow: 'var(--box-shadow-sm)',
+        padding: highlighted ? '9px 11px' : '10px 12px',
+        boxShadow: highlighted ? '0 0 0 3px rgba(0,158,158,0.2)' : 'var(--box-shadow-sm)',
+        transition: 'border 0.3s, box-shadow 0.3s, padding 0.3s',
       }}
     >
       <div style={{ marginBottom: 4, display: 'flex', alignItems: 'flex-start', gap: 'var(--spacing-xs)' }}>
