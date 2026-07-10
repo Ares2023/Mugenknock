@@ -817,6 +817,8 @@ export default function CheatSheet() {
   function selectExam(exam: string) {
     setSelectedExam(exam);
     setSearch('');
+    setPendingScrollTo(null);
+    document.getElementById('main-scroll')?.scrollTo({ top: 0, behavior: 'instant' });
   }
 
   function selectLevel(lv: LevelKey) {
