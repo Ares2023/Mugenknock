@@ -1080,6 +1080,11 @@ function ItemCard({ item, q, allNames, highlighted, onCopy, onNavigate }: { item
     return [...found].sort((a, b) => a.localeCompare(b, 'ja'));
   }, [item, allNames]);
 
+  function copyWithContext(text: string) {
+    const enhanced = text.toLowerCase().includes(item.name.toLowerCase()) ? text : `${text} (${item.name})`;
+    onCopy(enhanced);
+  }
+
   return (
     <div
       data-item-name={item.name}
@@ -1096,7 +1101,7 @@ function ItemCard({ item, q, allNames, highlighted, onCopy, onNavigate }: { item
         <div style={{ flex: 1, minWidth: 0 }}>
           {(/[A-Za-z]/.test(item.name) || /[゠-ヿ]{5,}/.test(item.name)) ? (
             <div
-              onClick={() => onCopy(item.keyword ?? item.name.replace(/[（(][^）)]*[）)]/g, '').trim())}
+              onClick={() => copyWithContext(item.keyword ?? item.name.replace(/[（(][^）)]*[）)]/g, '').trim())}
               title="タップしてコピー"
               style={{ fontWeight: 700, fontSize: 'var(--font-size-base)', color: '#009E9E', cursor: 'pointer' }}
             >
@@ -1139,7 +1144,7 @@ function ItemCard({ item, q, allNames, highlighted, onCopy, onNavigate }: { item
           const content = isITTerm ? (
             <>
               <span
-                onClick={() => onCopy(copyTerm)}
+                onClick={() => copyWithContext(copyTerm)}
                 title={copyTerm !== term ? `コピー: ${copyTerm}` : 'タップしてコピー'}
                 style={{ fontWeight: 700, color: '#009E9E', cursor: 'pointer' }}
               >{highlight(term)}</span>
