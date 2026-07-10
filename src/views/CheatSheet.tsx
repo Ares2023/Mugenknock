@@ -886,6 +886,34 @@ export default function CheatSheet() {
             </button>
           ))}
         </div>
+        {/* 試験カード（横スクロール） */}
+        <div style={{ display: 'flex', gap: 8, padding: isMobile ? '8px 0' : '3px 0', overflowX: 'auto', flexShrink: 0 }}>
+          {currentLevelExams.filter(e => CHEAT_DATA[e]).map(exam => {
+            const isSelected = selectedExam === exam;
+            const EIcon = EXAM_ICON_COMPONENTS[exam];
+            return (
+              <button
+                key={exam}
+                onClick={() => selectExam(exam)}
+                style={{
+                  flexShrink: 0, width: 72, padding: '8px 6px 6px', cursor: 'pointer',
+                  borderRadius: 8, textAlign: 'center',
+                  border: `2px solid ${isSelected ? levelColor : 'var(--color-border)'}`,
+                  background: isSelected
+                    ? `linear-gradient(145deg, ${levelColor}, ${levelColor}bb)`
+                    : 'var(--color-bg-white)',
+                  color: isSelected ? '#fff' : 'var(--color-text-sub)',
+                  transition: 'all 0.15s',
+                }}
+              >
+                <div style={{ display: 'flex', justifyContent: 'center', marginBottom: 2, opacity: isSelected ? 1 : 0.6 }}>
+                  {EIcon ? <EIcon size={16} /> : null}
+                </div>
+                <div style={{ fontSize: 'var(--font-size-xs)', fontWeight: 700 }}>{exam}</div>
+              </button>
+            );
+          })}
+        </div>
       </div>
     </div>
   );
@@ -901,35 +929,6 @@ export default function CheatSheet() {
 
         {/* 固定ヘッダー分の余白スペーサー（marginTop で PageLayout の top padding を相殺） */}
         <div style={{ height: headerHeight || 104, marginTop: `calc(-1 * ${padY})` }} />
-
-        {/* 試験カード（横スクロール） */}
-      <div style={{ display: 'flex', gap: 10, padding: '14px 0', overflowX: 'auto', flexShrink: 0 }}>
-        {currentLevelExams.filter(e => CHEAT_DATA[e]).map(exam => {
-          const isSelected = selectedExam === exam;
-          const EIcon = EXAM_ICON_COMPONENTS[exam];
-          return (
-            <button
-              key={exam}
-              onClick={() => selectExam(exam)}
-              style={{
-                flexShrink: 0, width: 80, padding: '10px 6px 8px', cursor: 'pointer',
-                borderRadius: 10, textAlign: 'center',
-                border: `2px solid ${isSelected ? levelColor : 'var(--color-border)'}`,
-                background: isSelected
-                  ? `linear-gradient(145deg, ${levelColor}, ${levelColor}bb)`
-                  : 'var(--color-bg-white)',
-                color: isSelected ? '#fff' : 'var(--color-text-sub)',
-                transition: 'all 0.15s',
-              }}
-            >
-              <div style={{ display: 'flex', justifyContent: 'center', marginBottom: 4, opacity: isSelected ? 1 : 0.6 }}>
-                {EIcon ? <EIcon size={20} /> : null}
-              </div>
-              <div style={{ fontSize: 'var(--font-size-sm)', fontWeight: 700 }}>{exam}</div>
-            </button>
-          );
-        })}
-      </div>
 
       {/* 用語コピーヒント */}
       {!q && (
