@@ -611,11 +611,11 @@ export default function MyPage() {
                                   <span style={{ margin: '0 6px', color: 'var(--color-border)' }}>·</span>
                                   {ja ? `達成 ${achievedDays}/7日` : `${achievedDays}/7 days`}
                                 </div>
-                                <div style={{ position: 'relative', height: CH, marginTop: 4 }}>
+                                <div style={{ position: 'relative', height: CH + 18, marginTop: 4 }}>
                                   {goal > 0 && (
                                     <div style={{ position: 'absolute', left: 0, right: 0, bottom: (Math.min(goal, maxVal) / maxVal) * CH, borderTop: '1px dashed var(--color-primary)', pointerEvents: 'none' }} />
                                   )}
-                                  <div style={{ display: 'flex', gap: 8, alignItems: 'flex-end', height: '100%' }}>
+                                  <div style={{ display: 'flex', gap: 8, alignItems: 'flex-end', height: CH }}>
                                     {weekDays.map((d, i) => {
                                       const count = weekCountsTarget[i];
                                       const achieved = goal > 0 && count >= goal;
