@@ -624,7 +624,7 @@ PYEOF
     while true; do
       _IO=$(mktemp /tmp/audit_imp_out_XXXX); _IE=$(mktemp /tmp/audit_imp_err_XXXX)
       # 永続する仕組み（生成・検証プロンプト規則）を書き換えるステップは Opus で実行し誤りを減らす
-      "$CLAUDE_CMD" -p --model opus < "$IMP_PROMPT" > "$_IO" 2> "$_IE"
+      CLAUDE_CODE_MAX_OUTPUT_TOKENS=32000 "$CLAUDE_CMD" -p --model opus --tools "" < "$IMP_PROMPT" > "$_IO" 2> "$_IE"
       RESULT=$(cat "$_IO"); _STDERR=$(cat "$_IE"); rm -f "$_IO" "$_IE"
       _RH=$(echo "$RESULT" | head -3)
       if echo "$_STDERR $_RH" | grep -qiE "529|Overloaded" && [ $_OVERLOAD_RETRY -lt 2 ]; then

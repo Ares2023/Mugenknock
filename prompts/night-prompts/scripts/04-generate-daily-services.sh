@@ -578,23 +578,23 @@ rm -f "$_NAMES_TMP" "$_ICONS_TMP" "$_CANDIDATES_TMP"
 
 _STDOUT_F=$(mktemp /tmp/claude_out_XXXX)
 _STDERR_F=$(mktemp /tmp/claude_err_XXXX)
-"$CLAUDE_CMD" -p < "$PROMPT_FILE" > "$_STDOUT_F" 2> "$_STDERR_F"
+CLAUDE_CODE_MAX_OUTPUT_TOKENS=32000 "$CLAUDE_CMD" -p --tools "" < "$PROMPT_FILE" > "$_STDOUT_F" 2> "$_STDERR_F"
 AI_EXIT=$?
 RESULT=$(cat "$_STDOUT_F")
 _STDERR_OUT=$(cat "$_STDERR_F")
 rm -f "$_STDOUT_F" "$_STDERR_F" "$PROMPT_FILE"
 
-if [ $AI_EXIT -ne 0 ]; then
-  echo "❌ Claude 実行エラー (exit=$AI_EXIT)"
-  echo "stderr: $(echo "$_STDERR_OUT" | head -5)"
-  exit 1
-fi
-
-if echo "$_STDERR_OUT" | grep -qiE "rate.?limit|too many requests|overload|quota exceeded" || \
+if echo "$_STDERR_OUT" | grep -qiE "rate.?limit|too many requests|overload|quota exceeded|session.?limit|hit your" || \
    echo "$RESULT" | grep -qiE "You've hit|rate.?limit|too many requests"; then
   echo "⚠️  レート制限を検出"
   echo "stderr: $(echo "$_STDERR_OUT" | head -3)"
   record_rate_limit "$(echo "$RESULT $_STDERR_OUT" | head -10)"
+  exit 1
+fi
+
+if [ $AI_EXIT -ne 0 ]; then
+  echo "❌ Claude 実行エラー (exit=$AI_EXIT)"
+  echo "stderr: $(echo "$_STDERR_OUT" | head -5)"
   exit 1
 fi
 
