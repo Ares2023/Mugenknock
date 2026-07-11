@@ -11,11 +11,12 @@
 import { test, expect } from '@playwright/test';
 import { PageMonitor } from '../helpers/monitor';
 
-// dev/prod を PLAYWRIGHT_BASE_URL から自動判定
+// デプロイ済み環境（pages.dev / mugenknock.com）は両方とも /prod を使用
+// ローカル (localhost) のみ /dev を使用（CLAUDE.md 参照）
 const BASE_URL = process.env.PLAYWRIGHT_BASE_URL ?? 'http://localhost:3000';
-const isProd = BASE_URL.includes('mugenknock.com') && !BASE_URL.includes('pages.dev');
+const isLocal = BASE_URL.includes('localhost') || BASE_URL.includes('127.0.0.1');
 const API_BASE = process.env.PLAYWRIGHT_API_URL
-  ?? `https://a0q3656qw4.execute-api.ap-northeast-1.amazonaws.com/${isProd ? 'prod' : 'dev'}`;
+  ?? `https://a0q3656qw4.execute-api.ap-northeast-1.amazonaws.com/${isLocal ? 'dev' : 'prod'}`;
 
 // ── ヘルパー ──────────────────────────────────────────────────────────
 function isCorsError(text: string) {
