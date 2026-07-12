@@ -21,8 +21,8 @@ type Question = {
 };
 
 // ビルド時に全試験×全問題のパラメータを生成
-// 試験種別あたりのSSG上限（ビルドタイムアウト防止）
-const SSG_LIMIT_PER_EXAM = 100;
+// データは fetchAllByExam で試験種別ごと1回取得・cache()でメモ化されるため上限を外しても重くならない
+const SSG_LIMIT_PER_EXAM = 9999;
 
 export async function generateStaticParams() {
   const params: { examType: string; questionId: string }[] = [];
