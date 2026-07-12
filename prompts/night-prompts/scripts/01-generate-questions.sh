@@ -682,8 +682,8 @@ PYEOF
   # 逐次インポートにより途中切れ時の全損がなくなったため、重量級=10・軽量級=15に拡大。
   # --hard（拡張思考）は出力トークンが大幅増大するため従来どおり半減して上限に収める。
   case "$NEXT_EXAM" in
-    SAP|ANS|SCS|DOP|SOA) CHUNK_SIZE=10; MIN_CHUNK_Q=3 ;;
-    *) CHUNK_SIZE=15; MIN_CHUNK_Q=5 ;;
+    SAP|ANS|SCS|DOP|SOA|AIP) CHUNK_SIZE=10; MIN_CHUNK_Q=3 ;;
+    *) CHUNK_SIZE=15; MIN_CHUNK_Q=1 ;;
   esac
   if [ "$HARD_MODE" -eq 1 ]; then
     CHUNK_SIZE=$(( CHUNK_SIZE > 2 ? CHUNK_SIZE / 2 : 1 ))
@@ -923,7 +923,7 @@ ${_new_q}"
         echo "  ❌ API エラー (HTTP $_http_code): $_http_body"
       fi
 
-    done < <(CLAUDE_CODE_MAX_OUTPUT_TOKENS=28000 "$CLAUDE_CMD" -p --tools "" < "$PROMPT_FILE" 2>&1)
+    done < <(CLAUDE_CODE_MAX_OUTPUT_TOKENS=56000 "$CLAUDE_CMD" -p --tools "" < "$PROMPT_FILE" 2>&1)
     rm -f "$PROMPT_FILE"
 
     echo "  チャンク${_chunk}: ${_CHUNK_IMPORTED}問インポート  経過=$(( $(date +%s) - _CHUNK_T0 ))秒"
