@@ -525,6 +525,8 @@ for ln in open(p):
 print(n)" 2>/dev/null || echo 0)
   if [ "${_FLAGGED:-0}" -eq 0 ] && [ "${_DEFECTS:-0}" -eq 0 ]; then
     echo "改善対象（監査warn/ng・通報確定不具合）がないため、プロンプト改良はスキップしました。"
+  elif [ -f "$RATE_LIMIT_FILE" ]; then
+    echo "⚠️  レート制限中のためプロンプト改良をスキップしました（次回実行時に処理）"
   else
     echo "改善対象: 監査${_FLAGGED}件 / 通報確定不具合(直近7日)${_DEFECTS}件。改良案を生成中..."
     IMP_PROMPT=$(mktemp /tmp/audit_imp_prompt_XXXX.txt)
@@ -621,18 +623,26 @@ newContent は当該ファイルの「改良後の全文」を入れること（
 PYEOF
 
     _OVERLOAD_RETRY=0
+    _IMPROVE_SKIP=0
     while true; do
       _IO=$(mktemp /tmp/audit_imp_out_XXXX); _IE=$(mktemp /tmp/audit_imp_err_XXXX)
       # 永続する仕組み（生成・検証プロンプト規則）を書き換えるステップは Opus で実行し誤りを減らす
       CLAUDE_CODE_MAX_OUTPUT_TOKENS=32000 "$CLAUDE_CMD" -p --model opus --tools "" < "$IMP_PROMPT" > "$_IO" 2> "$_IE"
       RESULT=$(cat "$_IO"); _STDERR=$(cat "$_IE"); rm -f "$_IO" "$_IE"
       _RH=$(echo "$RESULT" | head -3)
-      if echo "$_STDERR $_RH" | grep -qiE "529|Overloaded" && [ $_OVERLOAD_RETRY -lt 2 ]; then
-        _OVERLOAD_RETRY=$(( _OVERLOAD_RETRY + 1 )); echo "⚠️  529。60秒後にリトライ（${_OVERLOAD_RETRY}/2）"; sleep 60; continue
+      if echo "$_STDERR $_RH" | grep -qiE "529|Overloaded|rate.?limit|session.?limit|hit your|usage limit|too many requests" && [ $_OVERLOAD_RETRY -lt 2 ]; then
+        _OVERLOAD_RETRY=$(( _OVERLOAD_RETRY + 1 )); echo "⚠️  レート制限。60秒後にリトライ（${_OVERLOAD_RETRY}/2）"; sleep 60; continue
+      fi
+      # レート制限でリトライ上限に達した場合はスキップ
+      if echo "$_STDERR $_RH" | grep -qiE "529|Overloaded|rate.?limit|session.?limit|hit your|usage limit|too many requests"; then
+        echo "⚠️  レート制限によりプロンプト改良をスキップしました（次回実行時に処理）"
+        _IMPROVE_SKIP=1
       fi
       break
     done
     rm -f "$IMP_PROMPT"
+
+    [ $_IMPROVE_SKIP -eq 1 ] && { echo "監査終了: $(date)"; exit 0; }
 
     # 適用（whitelist + バックアップ + 反破壊ガード + 差分記録）
     RESULT="$RESULT" INSTRUCTION_DIR="$INSTRUCTION_DIR" BACKUP_DIR="$BACKUP_DIR" IMPROVE_REPORT="$IMPROVE_REPORT" DATE="$DATE" python3 << 'PYEOF'
