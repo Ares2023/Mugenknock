@@ -963,7 +963,59 @@ cert_html = md_to_html(d['cert']); jst_now  = e(d['jst_now'])
 audit_html      = audit_to_html(d.get('audit', '監査未実施'))
 canary_cov_html = audit_to_html(d.get('canary_cov', '整合性チェック未実施'))
 daily_html      = e_lines(d.get('daily', '日めくり情報なし'))
-backend_html    = e_lines(d.get('backend', '未取得'))
+def backend_to_html(raw):
+    """backend-health-check.sh の出力をテーブル形式 HTML に変換"""
+    import re
+    rows = []
+    cost_rows = []
+    for line in str(raw).strip().split('\n'):
+        s = line.strip()
+        if not s:
+            continue
+        warn = '⚠️' in s
+        color = ' style="color:#e67e22;font-weight:700"' if warn else ''
+        # Lambda prod/dev
+        m = re.match(r'(⚠️\s*)?(prod|dev): 実行(\S+) エラー(\S+) スロットル(\S+) 最大(\S+)', s)
+        if m:
+            fn = m.group(2); inv = m.group(3); err = m.group(4); thr = m.group(5); dur = m.group(6)
+            err_style = ' style="color:#e74c3c;font-weight:700"' if err != '0' else ''
+            rows.append(f'<tr><td>Lambda({fn})</td><td>実行 {inv}</td>'
+                        f'<td{err_style}>エラー {err}</td><td>スロットル {thr}</td><td>最大 {dur}</td></tr>')
+            continue
+        # API
+        m = re.match(r'(⚠️\s*)?API\(prod,24h\): リクエスト(\S+) 5xx=(\S+) 4xx=(\S+) p99=(\S+)', s)
+        if m:
+            req = m.group(2); e5 = m.group(3); e4 = m.group(4); p99 = m.group(5)
+            e5_style = ' style="color:#e74c3c;font-weight:700"' if e5 != '0' else ''
+            rows.append(f'<tr><td>API Gateway(prod)</td><td>リクエスト {req}</td>'
+                        f'<td{e5_style}>5xx {e5}</td><td>4xx {e4}</td><td>p99 {p99}</td></tr>')
+            continue
+        # エラーログ
+        m = re.match(r'(⚠️\s*)?本番エラーログ.*?(\d+)件', s)
+        if m:
+            cnt = m.group(2)
+            style = ' style="color:#e74c3c;font-weight:700"' if cnt != '0' else ''
+            rows.append(f'<tr><td colspan="5"{style}>本番エラーログ(24h): {cnt}件</td></tr>')
+            continue
+        # コスト合計
+        m = re.match(r'AWSコスト\((.+?)\): (\$[\d.]+)(.*)', s)
+        if m:
+            date = m.group(1); total = m.group(2); delta = m.group(3).strip()
+            cost_rows.append(f'<tr><td colspan="4"><b>AWSコスト ({date}): {total}</b> {html.escape(delta)}</td></tr>')
+            continue
+        # サービス別コスト
+        m = re.match(r'[・\-]\s*(.+?): (\$[\d.]+)', s)
+        if m:
+            cost_rows.append(f'<tr><td style="padding-left:16px;color:#666">{html.escape(m.group(1))}</td>'
+                             f'<td colspan="3" style="color:#666">{html.escape(m.group(2))}</td></tr>')
+            continue
+        # その他
+        rows.append(f'<tr><td colspan="5"{color}>{html.escape(s)}</td></tr>')
+    header = '<tr><th>対象</th><th>実行</th><th>エラー</th><th>スロットル/4xx</th><th>最大レイテンシ</th></tr>'
+    return (f'<table>{header}{"".join(rows)}</table>'
+            + (f'<table style="margin-top:8px">{"".join(cost_rows)}</table>' if cost_rows else ''))
+
+backend_html    = backend_to_html(d.get('backend', '未取得'))
 test_user_html  = audit_to_html(d.get('test_user_check', 'チェック未実施'))
 test_user_raw   = str(d.get('test_user_check', ''))
 test_user_has_issue = any(m in test_user_raw for m in ('⚠', '✖', '問題を検出'))
