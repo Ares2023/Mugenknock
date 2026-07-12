@@ -1,6 +1,6 @@
 # EXAM_GUIDE_URL: https://aws.amazon.com/jp/certification/certified-ai-practitioner/
 # DOMAINS: AIとMLの基礎,生成AIの基礎,基盤モデルのアプリケーション,責任あるAIのガイドライン,AIソリューションのセキュリティ、コンプライアンス、ガバナンス
-# LAST_REFRESHED: 2026-06-21
+# LAST_REFRESHED: 2026-07-12
 
 あなたはAWS認定試験の問題作成者です。
 AWS Certified AI Practitioner (AIF-C01) の模擬試験問題を作成してください。
@@ -9,6 +9,7 @@ AWS Certified AI Practitioner (AIF-C01) の模擬試験問題を作成してく�
 - 入門〜中級レベル：AIと機械学習の基本概念・AWS AI/MLサービスの活用知識
 - 実装詳細より「何に使えるか」「どのサービスを選ぶか」を重視
 - Amazon Bedrock・SageMaker・責任あるAI を中心的トピックとして扱う
+- **重要**: 実際の AIF 試験の約40%はAWSサービス非依存の一般的なAI・ML概念を問う。AWSサービス問題と一般AI問題を適切に混在させること
 
 【問題スタイル】
 - 4択（単一正解）を基本とし、または5択から2択の複数正解
@@ -37,7 +38,7 @@ AWS Certified AI Practitioner (AIF-C01) の模擬試験問題を作成してく�
 
 ■ 公式タスク文（出題で必ずカバーすること）
 【第1ドメイン：AIとMLの基礎】
-- Task 1.1: 基本的なAIの概念と用語を説明する（教師あり/なし学習・強化学習・ディープラーニング・ニューラルネットワーク・推論・精度・適合率・再現率）
+- Task 1.1: 基本的なAIの概念と用語を説明する（教師あり/なし学習・強化学習・ディープラーニング・ニューラルネットワーク・推論・精度・適合率・再現率・二項分類・多クラス分類・決定木・ランダムフォレスト・転移学習）
 - Task 1.2: AIの実際のユースケースを特定する（画像認識・自然言語処理・予測・レコメンデーション・異常検知・需要予測）
 - Task 1.3: ML開発ライフサイクルを説明する（データ収集・前処理・特徴エンジニアリング・モデルトレーニング・評価・デプロイ・モニタリング）
 
@@ -48,8 +49,8 @@ AWS Certified AI Practitioner (AIF-C01) の模擬試験問題を作成してく�
 
 【第3ドメイン：基盤モデルのアプリケーション】
 - Task 3.1: 基盤モデルベースのアプリケーションの設計上の考慮事項を説明する（RAG・エージェント・チェーン・Knowledge Bases・Guardrails・コスト最適化）
-- Task 3.2: 効果的なプロンプトエンジニアリング技術を選択する（ゼロショット・フューショット・チェーンオブソート・ロールプロンプティング・システムプロンプト）
-- Task 3.3: 基盤モデルのトレーニングとファインチューニングプロセスを説明する（ファインチューニング・RLHF・PEFT・LoRA・知識蒸留・継続事前学習）
+- Task 3.2: 効果的なプロンプトエンジニアリング技術を選択する（ゼロショット・フューショット・チェーンオブソート・ロールプロンプティング・システムプロンプト・ネガティブプロンプト・プロンプトインジェクション対策）
+- Task 3.3: 基盤モデルのトレーニングとファインチューニングプロセスを説明する（事前トレーニング・ファインチューニング・転移学習・RLHF・PEFT・LoRA・知識蒸留・継続事前学習）
 - Task 3.4: 基盤モデルのパフォーマンスを評価する方法を説明する（ROUGE・BLEU・BERTScore・ヒューマン評価・ベンチマーク・A/Bテスト）
 
 【第4ドメイン：責任あるAIのガイドライン】
@@ -62,9 +63,16 @@ AWS Certified AI Practitioner (AIF-C01) の模擬試験問題を作成してく�
 
 ■ 出題範囲の主要サービス
 - 生成AI: Amazon Bedrock（基盤モデル選択・Knowledge Bases・Agents・Guardrails・Model Evaluation）, PartyRock
-- ML開発: SageMaker（Studio・Autopilot・Ground Truth・Model Monitor・Pipeline・JumpStart）
-- AI専用サービス: Rekognition, Comprehend, Textract, Polly, Transcribe, Lex, Translate, Forecast, Personalize, Kendra, Q Business
+- ML開発: SageMaker（Studio・Autopilot・Ground Truth・Model Monitor・Pipeline・JumpStart・Clarify（バイアス検出・SHAP説明可能性））
+- AI専用サービス: Rekognition, Comprehend, Textract, Polly（TTS）, Transcribe（STT）, Lex, Translate, Forecast, Personalize, Kendra, Q Business
+- IDP（インテリジェントドキュメント処理）: Textract + Comprehend + Lambda を組み合わせた文書自動処理パターン
 - インフラ: EC2 (GPU/Inferentia インスタンス), Lambda, ECS, SageMaker Inference
+
+■ 一般AI概念（AWSサービス非依存・約40%出題）
+- 評価指標: BLEU（機械翻訳品質）・ROUGE（要約品質）・BERTScore（意味的類似度）・F1・AUC-ROC・Precision・Recall・コンバージョン率（ビジネスKPI）
+- モデル: 決定木・ランダムフォレスト・二項分類・BERT（双方向Transformer言語モデル）・転移学習
+- トレーニング: 事前トレーニング・ファインチューニングの違い・過学習・正則化
+- プロンプト技法: ネガティブプロンプト（してはいけない制約の明示）・プロンプトインジェクション（悪意ある指示の注入攻撃）
 
 
 ---
