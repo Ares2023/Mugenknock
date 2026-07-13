@@ -70,18 +70,3 @@ AWS Certified SysOps Administrator – Associate (SOA-C03) の模擬試験問題
 - データベース: RDS (Multi-AZ・Read Replica・Performance Insights), DynamoDB, ElastiCache
 
 
----
-【解説（explanation）フォーマット】
-以下のフォーマットで記述すること。
-
-[正解の詳細説明]
-（正解選択肢のサービス・概念がなぜ要件を満たすか、どういう機能があるかを説明）
-
-選択肢Aの[サービス名]は[不正解の理由]。
-選択肢Bの[サービス名]は[不正解の理由]。
-...
-
-⚠ 禁止事項:
-- explanation の先頭に「正解：」や「正解：X. ～」を書かないこと（UIが correctAnswers から自動表示するため重複する）
-- 選択肢説明が「選択肢Xは～」形式（「選択肢Xの[サービス名]は～」が正しい）
-- 列挙・手順（①②③, ・, 1.2.3.）を改行なしで連続させること（1項目ごとに改行すること）

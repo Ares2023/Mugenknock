@@ -424,7 +424,7 @@ _COUNTS_TMP_EARLY=$(mktemp /tmp/domain_counts_XXXX.json)
 
 TAG_COUNT_TEXT=$(python3 - "$_EXISTING_TMP" "$EXISTING_QS_FILE" "$_COUNTS_TMP_EARLY" "$DOMAIN_STR" "$NEXT_EXAM" << 'PYEOF'
 import json, sys, re
-from collections import Counter, defaultdict
+from collections import Counter
 
 def norm(s):
     return re.sub(r'[\s　]+', ' ', s).strip()
@@ -461,16 +461,8 @@ data = {'Items': _all_items}
 domain_set = {norm(d.strip()) for d in sys.argv[4].split(',')} if len(sys.argv) > 4 else set()
 
 counts = Counter()
-domain_qs = defaultdict(list)
 
 for item in data.get('Items', []):
-    qt = item.get('questionText', {}).get('S', '')
-    ca_raw = item.get('correctAnswers', {})
-    ca_list = []
-    if 'L' in ca_raw:
-        ca_list = [c.get('S', '') for c in ca_raw['L'] if c.get('S', '')]
-    elif 'SS' in ca_raw:
-        ca_list = [str(v) for v in ca_raw['SS'] if str(v)]
     domain_name = ''
     # 新形式: domain 整数インデックス → ドメイン名に変換
     # ※ examType はプロジェクションに含まれないため argv[5] で受け取る
@@ -493,16 +485,10 @@ for item in data.get('Items', []):
             domain_name = tags[0]
     if domain_name:
         counts[domain_name] += 1
-        if qt:
-            # 問題文と正解を組で保持（重複回避プロンプトで「正解サービス＋論点」を提示するため）
-            domain_qs[domain_name].append({'q': qt, 'a': ca_list})
 
 # ドメイン名のみのカウント（逆数割り当て計算用）
 domain_counts = {k: v for k, v in counts.items() if norm(k) in domain_set} if domain_set else dict(counts)
 
-# EXISTING_QS_FILE は全タグ保持（EXISTING_TEXTS のルックアップで使うため）
-with open(sys.argv[2], 'w', encoding='utf-8') as f:
-    json.dump({k: v[-60:] for k, v in domain_qs.items()}, f, ensure_ascii=False)
 # _COUNTS_TMP_EARLY はドメイン名のみ（割り当て計算の入力）
 with open(sys.argv[3], 'w', encoding='utf-8') as f:
     json.dump(domain_counts, f, ensure_ascii=False)
@@ -705,36 +691,6 @@ PYEOF
     echo "--- [${domain}] ${Q_FOR_DOMAIN}問 生成中 --- 開始=$(date '+%H:%M:%S')"
   fi
 
-  # このドメインの既存問題テキストを抽出（重量試験は件数・文字数を絞る）
-  EXISTING_TEXTS=$(PYTHONIOENCODING=utf-8 python3 - "$EXISTING_QS_FILE" "$domain" "$NEXT_EXAM" << 'PYEOF'
-import json, sys
-try:
-    with open(sys.argv[1]) as f:
-        qs_by_domain = json.load(f)
-except Exception:
-    qs_by_domain = {}
-exam = sys.argv[3] if len(sys.argv) > 3 else ''
-max_qs = 10 if exam in ('SAP', 'ANS', 'SCS', 'DOP') else 20
-max_ch = 40 if exam in ('SAP', 'ANS', 'SCS', 'DOP') else 55
-texts = qs_by_domain.get(sys.argv[2], [])
-if not texts:
-    print('（まだ問題はありません）')
-else:
-    for t in texts[-max_qs:]:
-        # 新形式: {'q': 問題文, 'a': [正解,...]} / 旧形式: 問題文のみ（後方互換）
-        if isinstance(t, dict):
-            q = t.get('q', '')
-            a = ' / '.join(str(x) for x in t.get('a', []))
-            line = '・' + q.replace('\n', ' ')[:max_ch]
-            if a:
-                # 問題文冒頭は似通うため、識別力の高い「正解」を必ず添える
-                line += '〔正解: ' + a[:40] + '〕'
-            print(line)
-        else:
-            print('・' + str(t).replace('\n', ' ')[:max_ch])
-PYEOF
-)
-
   DOMAIN_IMPORTED=0
   STATE_UPDATED=0
   DOMAIN_RATE_LIMITED=0
@@ -762,13 +718,9 @@ ${EXAM_GUIDE_URL:+【公式試験ガイド】${EXAM_GUIDE_URL}
 （上の「公式試験ガイド概要」は本ガイドから抽出・最新化済み。Web取得は不要。概要のタスク・対象サービスに基づいて作成すること）
 }
 
-【既存問題（重複・類似を避けること）】
-${EXISTING_TEXTS}
-→ 上記と異なるサービス・機能・ユースケース・出題角度で作成してください。
-
 【出力形式】1問ずつ以下のJSON形式で1行に出力。前置き・後書き・コードブロック不要。${_CHUNK_Q} 問出力後は何も追記しない。
 
-{"q":{"questionText":"問題文","choices":["選択肢0","選択肢1","選択肢2","選択肢3"],"correctAnswers":["正解の選択肢テキスト"],"correctAnswerIndices":[1],"explanation":"全体解説（200字程度）","choiceExplanations":["選択肢0の解説","選択肢1の解説","選択肢2の解説","選択肢3の解説"],"isMultiple":false}}
+{"q":{"questionText":"問題文","choices":["選択肢0","選択肢1","選択肢2","選択肢3"],"correctAnswers":["正解の選択肢テキスト"],"correctAnswerIndices":[1],"explanation":"全体解説（120字以内）","choiceExplanations":["選択肢0の解説","選択肢1の解説","選択肢2の解説","選択肢3の解説"],"isMultiple":false}}
 
 ※ フォーマット規則:
 - choices にラベル（A. B. 等）を付けない（テキストのみ）
@@ -904,21 +856,6 @@ PYEOF
           STATE_UPDATED=1
         fi
 
-        # EXISTING_TEXTS 更新（後続チャンク・後続呼び出しの重複回避）
-        _new_q=$(echo "$_validated" | PYTHONIOENCODING=utf-8 python3 -c "
-import sys, json
-d = json.load(sys.stdin)
-exam = d.get('examType', '')
-max_ch = 40 if exam in ('SAP', 'ANS', 'SCS', 'DOP') else 55
-for q in d.get('questions', []):
-    line = '・' + str(q.get('questionText', '')).replace('\n', ' ')[:max_ch]
-    a = ' / '.join(str(x) for x in q.get('correctAnswers', []))
-    if a:
-        line += '〔正解: ' + a[:40] + '〕'
-    print(line)
-" 2>/dev/null)
-        [ -n "$_new_q" ] && EXISTING_TEXTS="${EXISTING_TEXTS}
-${_new_q}"
       else
         echo "  ❌ API エラー (HTTP $_http_code): $_http_body"
       fi
