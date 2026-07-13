@@ -28,46 +28,25 @@ AWS Certified Generative AI Developer – Professional (AIP-C01) の模擬試験
 
 ---
 【公式試験ガイド概要 (AIP-C01)】
-■ 試験の配分
-- 第1ドメイン：基盤モデルの統合、データ管理、コンプライアンス (31%)
-- 第2ドメイン：実装と統合 (26%)
-- 第3ドメイン：AIの安全性、セキュリティ、ガバナンス (20%)
-- 第4ドメイン：生成AIアプリケーションの運用効率と最適化 (15%)
-- 第5ドメイン：テスト、検証、トラブルシューティング (8%)
-
 ■ 公式タスク文（出題で必ずカバーすること）
 【第1ドメイン：基盤モデルの統合、データ管理、コンプライアンス】
-- Task 1.1: 要件に合った基盤モデルを選択する（Bedrock モデル比較・Claude/Titan/Llama/Mistral/Stable Diffusion・コンテキストウィンドウ・コスト・レイテンシー・モダリティ）
+- Task 1.1: 要件に合った基盤モデルを選択する
 - Task 1.2: RAGアーキテクチャを設計・実装する（Bedrock Knowledge Bases・ベクターストア（OpenSearch/Pinecone/Aurora pgvector）・チャンキング戦略・埋め込みモデル選択）
-- Task 1.3: データパイプラインを構築する（データ取り込み・前処理・埋め込み生成・インデクシング・S3・Glue・Lambda）
-- Task 1.4: コンプライアンスとデータ管理要件を満たす（データ主権・PII処理・暗号化・アクセス制御・監査ログ・Lake Formation）
-
+- Task 1.3: データパイプラインを構築する
+- Task 1.4: コンプライアンスとデータ管理要件を満たす
 【第2ドメイン：実装と統合】
-- Task 2.1: Bedrockエージェントを設計・実装する（Agents for Bedrock・アクショングループ・Lambda ツール定義・オーケストレーション・マルチエージェント）
-- Task 2.2: プロンプトエンジニアリングを高度に活用する（システムプロンプト設計・フューショット・チェーンオブソート・構造化出力・プロンプトキャッシング・Prompt Management）
-- Task 2.3: モデルのカスタマイズを実装する（ファインチューニング・継続事前学習・RLHF・LoRA・SageMaker との統合・カスタムモデルインポート）
-- Task 2.4: 既存システムと統合する（API Gateway・Lambda・EventBridge・SQS・Step Functions・ストリーミングレスポンス）
-
+- Task 2.1: Bedrockエージェントを設計・実装する
+- Task 2.2: プロンプトエンジニアリングを高度に活用する
+- Task 2.3: モデルのカスタマイズを実装する
+- Task 2.4: 既存システムと統合する
 【第3ドメイン：AIの安全性、セキュリティ、ガバナンス】
-- Task 3.1: 生成AIアプリケーションのセキュリティを設計する（Bedrock Guardrails・プロンプトインジェクション対策・コンテンツフィルタリング・機密情報マスキング・IAM）
-- Task 3.2: 責任あるAIの原則を実装する（バイアス検出・公平性・透明性・Guardrails ポリシー・RACI・AIガバナンスフレームワーク）
-- Task 3.3: コンプライアンスとガバナンス要件を満たす（Bedrock Model Evaluation・監査ログ・CloudTrail・SageMaker Role Manager・AI Act対応）
-
+- Task 3.1: 生成AIアプリケーションのセキュリティを設計する
+- Task 3.2: 責任あるAIの原則を実装する
+- Task 3.3: コンプライアンスとガバナンス要件を満たす
 【第4ドメイン：生成AIアプリケーションの運用効率と最適化】
-- Task 4.1: コストを最適化する（Bedrock プロビジョンドスループット・オンデマンド vs プロビジョンド・プロンプトキャッシング・モデル選択最適化）
-- Task 4.2: パフォーマンスを最適化する（レイテンシー削減・ストリーミング・並列処理・バッチ推論 API・Bedrock Converse API）
-- Task 4.3: 可観測性を実装する（CloudWatch・Bedrock モデル呼び出しログ・トークン使用量監視・エラー率・X-Ray）
-
+- Task 4.1: コストを最適化する
+- Task 4.2: パフォーマンスを最適化する
+- Task 4.3: 可観測性を実装する
 【第5ドメイン：テスト、検証、トラブルシューティング】
-- Task 5.1: 生成AIアプリケーションをテスト・検証する（Bedrock Model Evaluation・自動評価・ヒューマン評価・RAGAS・ベンチマーク・A/Bテスト）
-- Task 5.2: 問題をトラブルシューティングする（ハルシネーション対策・RAG精度改善・Guardrails 調整・モデル出力品質・プロンプト改善）
-
-■ 出題範囲の主要サービス
-- 生成AI中核: Amazon Bedrock (基盤モデル・Knowledge Bases・Agents・Guardrails・Model Evaluation・Flows・Prompt Management・プロビジョンドスループット)
-- ベクターストア: OpenSearch Serverless, Aurora PostgreSQL (pgvector), RDS PostgreSQL
-- データ処理: S3, Glue, Lambda, SageMaker Processing
-- 統合: API Gateway, Lambda, Step Functions, EventBridge, SQS, AppSync
-- MLOps: SageMaker, CodePipeline, CloudWatch
-- セキュリティ: IAM, KMS, VPC, CloudTrail, Macie
-
-
+- Task 5.1: 生成AIアプリケーションをテスト・検証する
+- Task 5.2: 問題をトラブルシューティングする

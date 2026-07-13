@@ -29,34 +29,24 @@ AWS Certified Developer – Associate (DVA-C02) の模擬試験問題を作成�
 
 ---
 【公式試験ガイド概要 (DVA-C02)】
-■ 試験の配分
-- 第1ドメイン：AWSのサービスを使用した開発 (32%)
-- 第2ドメイン：セキュリティ (26%)
-- 第3ドメイン：デプロイ (24%)
-- 第4ドメイン：トラブルシューティングと最適化 (18%)
-
 ■ 公式タスク文（出題で必ずカバーすること）
 【第1ドメイン：AWSのサービスを使用した開発】
-- Task 1.1: AWSでホストされるアプリケーションのコードを開発する（Lambda関数URL・レイヤー・コンカレンシー・デスティネーション・DynamoDB設計・S3署名付きURL）
-- Task 1.2: AWS Lambda のコードを開発する（イベントソースマッピング・デスティネーション・カスタムランタイム・コンテナイメージ・コールドスタート対策）
-- Task 1.3: アプリケーション開発にデータストアを使用する（DynamoDB パーティションキー設計・GSI/LSI・トランザクション・Streams・DAX・S3マルチパートアップロード）
-
+- Task 1.1: AWSでホストされるアプリケーションのコードを開発する
+- Task 1.2: AWS Lambda のコードを開発する
+- Task 1.3: アプリケーション開発にデータストアを使用する
 【第2ドメイン：セキュリティ】
-- Task 2.1: アプリケーションとAWSサービスの認証/認可を実装する（IAMロール・AssumeRole・Cognito User Pools/Identity Pools・JWT検証・API Gatewayオーソライザー）
-- Task 2.2: AWSサービスを使用した暗号化を実装する（KMS CMK・エンベロープ暗号化・S3 SSE-KMS・Parameter Store SecureString・RDS暗号化）
-- Task 2.3: アプリケーションコード内の機密データを管理する（Secrets Manager・SSM Parameter Store・環境変数暗号化・認証情報プロバイダーチェーン）
-
+- Task 2.1: アプリケーションとAWSサービスの認証/認可を実装する
+- Task 2.2: AWSサービスを使用した暗号化を実装する
+- Task 2.3: アプリケーションコード内の機密データを管理する
 【第3ドメイン：デプロイ】
-- Task 3.1: アプリケーションアーティファクトのデプロイ準備をする（SAM・CloudFormation・コンテナイメージ・Elastic Beanstalk .ebextensions）
-- Task 3.2: 開発環境でアプリケーションをテストする（SAM Local・API Gateway テスト・X-Rayトレーシング）
-- Task 3.3: デプロイテストを自動化する（CodeBuild buildspec・CodePipeline・テスト自動化）
-- Task 3.4: AWS CI/CDサービスを使ってコードをデプロイする（CodePipeline・CodeBuild・CodeDeploy AppSpec・Blue/Green・Canary・Linear・Rolling）
-
+- Task 3.1: アプリケーションアーティファクトのデプロイ準備をする
+- Task 3.2: 開発環境でアプリケーションをテストする
+- Task 3.3: デプロイテストを自動化する
+- Task 3.4: AWS CI/CDサービスを使ってコードをデプロイする
 【第4ドメイン：トラブルシューティングと最適化】
-- Task 4.1: 根本原因分析を支援する（CloudWatch Logs Insights・X-Ray サービスマップ・Lambda エラーログ・DynamoDBスロットリング診断）
-- Task 4.2: 可観測性のためのコードをインストゥルメント化する（X-Ray SDK・セグメント・サブセグメント・アノテーション・CloudWatch Embedded Metrics）
-- Task 4.3: AWSのサービスと機能を使ってアプリケーションを最適化する（Lambda パワーチューニング・SQSロングポーリング・DynamoDB読み取りキャッシュ・ElastiCache・DAX）
-
+- Task 4.1: 根本原因分析を支援する
+- Task 4.2: 可観測性のためのコードをインストゥルメント化する
+- Task 4.3: AWSのサービスと機能を使ってアプリケーションを最適化する
 ■ 出題範囲の主要サービスと概念
 - コンピューティング: Lambda（関数URL・レイヤー・コンカレンシー・デスティネーション）, ECS, Fargate, EC2, Elastic Beanstalk, App Runner
 - サーバーレス: Lambda, API Gateway (REST/HTTP), DynamoDB, SQS, SNS, Step Functions, EventBridge, SAM
@@ -67,5 +57,3 @@ AWS Certified Developer – Associate (DVA-C02) の模擬試験問題を作成�
 - メッセージング: SQS (標準・FIFO・可視性タイムアウト・DLQ・ロングポーリング), SNS (フィルタリング), ElastiCache (Redis・Memcached), DAX
 - コンテナ: ECS (タスク定義・サービス), ECR, Fargate, EKS
 - デプロイ戦略: Blue/Green, Canary, Linear, Rolling (Elastic Beanstalk・CodeDeploy・Lambda エイリアス)
-
-
