@@ -707,7 +707,6 @@ PYEOF
     [ "$CHUNKS_TOTAL" -gt 1 ] && echo "  チャンク ${_chunk}/${CHUNKS_TOTAL}: ${_CHUNK_Q}問 生成中..."
 
     PROMPT_FILE=$(mktemp /tmp/gen_prompt_XXXX.txt)
-    if [ "$_chunk" -eq 1 ]; then
     cat > "$PROMPT_FILE" << PROMPT
 ${INSTRUCTION}
 
@@ -738,34 +737,6 @@ ${HARD_BLOCK}
 【品質基準】
 ${COMMON_RULES}
 PROMPT
-    else
-    # チャンク2以降: 試験ファイル(${INSTRUCTION})のみ省略。品質基準・フォーマット規則は必須。
-    # ※ 各チャンクは独立した claude -p 呼び出しでステートレス。前チャンクのコンテキストは引き継がれない。
-    cat > "$PROMPT_FILE" << PROMPT
-あなたはAWS認定試験の問題作成者です。
-${NEXT_EXAM} の「${domain}」ドメイン向け模擬試験問題を ${_CHUNK_Q} 問生成してください。
-
-【出力形式】1問ずつ以下のJSON形式で1行に出力。前置き・後書き・コードブロック不要。${_CHUNK_Q} 問出力後は何も追記しない。
-
-{"q":{"questionText":"問題文","choices":["選択肢0","選択肢1","選択肢2","選択肢3"],"correctAnswers":["正解の選択肢テキスト"],"correctAnswerIndices":[1],"explanation":"全体解説（120字以内）","choiceExplanations":["選択肢0の解説","選択肢1の解説","選択肢2の解説","選択肢3の解説"],"isMultiple":false}}
-
-※ フォーマット規則:
-- choices にラベル（A. B. 等）を付けない（テキストのみ）
-- correctAnswerIndices が正解の正準指定（choices 配列内のインデックス・0始まり）。必ず正確に設定すること
-- correctAnswers は必須。choices 配列内の正解テキストと完全一致で記載すること（欠落・不一致の問題は取込前バリデーションで破棄される）
-- choiceExplanations は choices と同じ要素数・同じ順序（⚠最重要: choiceExplanations[i] は必ず choices[i] の選択肢を説明すること。順序ズレ厳禁）
-  - 各選択肢の解説は簡潔に（上限80字。1文で完結でよい）
-  - 正解選択肢: なぜ正解か（根拠から書き始める）
-  - 不正解選択肢: なぜ不正解か（誤りの理由から書き始める）
-  - 文頭に「正解です」「不正解です」などの判定文を入れない
-- 複数正解: isMultiple true、correctAnswerIndices を複数要素で
-- domain・tags フィールドは不要（インポート時にサーバー側でセットされる）
-- 本サービスは日本語のみ。英語フィールド（questionTextEn 等）は出力しない。
-${HARD_BLOCK}
-【品質基準】
-${COMMON_RULES}
-PROMPT
-    fi
 
     # 1問ずつNDJSON形式でストリーミング出力→即インポート。
     # < <() プロセス置換でサブシェルを作らずに外部変数を更新できる。
