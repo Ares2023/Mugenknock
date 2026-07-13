@@ -2182,12 +2182,8 @@ export default function Home() {
                     ) : (
                     <>
                       {primaryMode === 'quick' ? (ja ? 'サクッと演習を再開' : 'Quick (Resume)') : (ja ? 'しっかり対策を再開' : 'Focused (Resume)')}
-                      {ja && primaryMode === 'quick' && quickDraft?.results != null && quickDraft?.questions != null && (
-                        <span style={{ fontSize: 'var(--font-size-sm)', fontWeight: 400, opacity: 0.85 }}>（{quickDraft.results.length}/{quickDraft.questionIds?.length ?? quickDraft.questions.length}問）</span>
-                      )}
-                      {ja && primaryMode !== 'quick' && focusedDraft?.results != null && focusedDraft?.questions != null && (
-                        <span style={{ fontSize: 'var(--font-size-sm)', fontWeight: 400, opacity: 0.85 }}>（{focusedDraft.results.length}/{focusedDraft.questionIds?.length ?? focusedDraft.questions.length}問）</span>
-                      )}
+                      {ja && primaryMode === 'quick' && quickDraft?.results != null && quickDraft?.questions != null && (() => { const tot = quickDraft.questionIds?.length ?? quickDraft.questions.length; return <span style={{ fontSize: 'var(--font-size-sm)', fontWeight: 400, opacity: 0.85 }}>（{Math.min(quickDraft.results.length + 1, tot)}/{tot}問）</span>; })()}
+                      {ja && primaryMode !== 'quick' && focusedDraft?.results != null && focusedDraft?.questions != null && (() => { const tot = focusedDraft.questionIds?.length ?? focusedDraft.questions.length; return <span style={{ fontSize: 'var(--font-size-sm)', fontWeight: 400, opacity: 0.85 }}>（{Math.min(focusedDraft.results.length + 1, tot)}/{tot}問）</span>; })()}
                       <span style={{ marginLeft: 8, display: 'inline-flex', verticalAlign: 'middle' }}><KeyHint /></span>
                     </>
                   )}
@@ -2390,12 +2386,8 @@ export default function Home() {
                   ) : (
                     <>
                       {primaryMode === 'quick' ? (ja ? 'サクッと演習を再開' : 'Quick (Resume)') : (ja ? 'しっかり対策を再開' : 'Focused (Resume)')}
-                      {ja && primaryMode === 'quick' && quickDraft?.results != null && quickDraft?.questions != null && (
-                        <span style={{ fontSize: 'var(--font-size-sm)', fontWeight: 400, opacity: 0.85 }}>（{quickDraft.results.length}/{quickDraft.questionIds?.length ?? quickDraft.questions.length}問）</span>
-                      )}
-                      {ja && primaryMode !== 'quick' && focusedDraft?.results != null && focusedDraft?.questions != null && (
-                        <span style={{ fontSize: 'var(--font-size-sm)', fontWeight: 400, opacity: 0.85 }}>（{focusedDraft.results.length}/{focusedDraft.questionIds?.length ?? focusedDraft.questions.length}問）</span>
-                      )}
+                      {ja && primaryMode === 'quick' && quickDraft?.results != null && quickDraft?.questions != null && (() => { const tot = quickDraft.questionIds?.length ?? quickDraft.questions.length; return <span style={{ fontSize: 'var(--font-size-sm)', fontWeight: 400, opacity: 0.85 }}>（{Math.min(quickDraft.results.length + 1, tot)}/{tot}問）</span>; })()}
+                      {ja && primaryMode !== 'quick' && focusedDraft?.results != null && focusedDraft?.questions != null && (() => { const tot = focusedDraft.questionIds?.length ?? focusedDraft.questions.length; return <span style={{ fontSize: 'var(--font-size-sm)', fontWeight: 400, opacity: 0.85 }}>（{Math.min(focusedDraft.results.length + 1, tot)}/{tot}問）</span>; })()}
                     </>
                   )}
                 </button>
