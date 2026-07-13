@@ -663,13 +663,12 @@ PYEOF
   )
 
   # チャンク分割（試験の情報量に合わせたサイズ）
-  # トークン律速対策: チャンクを大きくして固定オーバーヘッド（指示文・共通ルール・
-  # claude 起動ごとのシステムプロンプト）の再送回数を減らし、1トークンあたりの問題数を増やす。
-  # 逐次インポートにより途中切れ時の全損がなくなったため、重量級=10・軽量級=15に拡大。
-  # --hard（拡張思考）は出力トークンが大幅増大するため従来どおり半減して上限に収める。
+  # セッション枯渇前にチャンクを完走させるため小さめに設定する。
+  # チャンク2以降は最小プロンプトで送るので固定オーバーヘッドの影響は限定的。
+  # --hard（拡張思考）は出力トークンが大幅増大するため半減して上限に収める。
   case "$NEXT_EXAM" in
-    SAP|ANS|SCS|DOP|SOA|AIP) CHUNK_SIZE=10; MIN_CHUNK_Q=3 ;;
-    *) CHUNK_SIZE=15; MIN_CHUNK_Q=1 ;;
+    SAP|ANS|SCS|DOP|SOA|AIP) CHUNK_SIZE=5; MIN_CHUNK_Q=2 ;;
+    *) CHUNK_SIZE=8; MIN_CHUNK_Q=2 ;;
   esac
   if [ "$HARD_MODE" -eq 1 ]; then
     CHUNK_SIZE=$(( CHUNK_SIZE > 2 ? CHUNK_SIZE / 2 : 1 ))
@@ -708,6 +707,7 @@ PYEOF
     [ "$CHUNKS_TOTAL" -gt 1 ] && echo "  チャンク ${_chunk}/${CHUNKS_TOTAL}: ${_CHUNK_Q}問 生成中..."
 
     PROMPT_FILE=$(mktemp /tmp/gen_prompt_XXXX.txt)
+    if [ "$_chunk" -eq 1 ]; then
     cat > "$PROMPT_FILE" << PROMPT
 ${INSTRUCTION}
 
@@ -738,6 +738,20 @@ ${HARD_BLOCK}
 【品質基準】
 ${COMMON_RULES}
 PROMPT
+    else
+    # チャンク2以降: 指示文・共通ルールを省略した最小プロンプト
+    cat > "$PROMPT_FILE" << PROMPT
+【追加生成】${NEXT_EXAM} / ${domain} / ${_CHUNK_Q} 問
+チャンク1と同じ資格・ドメイン向けの問題を${_CHUNK_Q}問追加生成してください。前のチャンクと異なるサービス・機能・論点を選ぶこと。
+
+【出力形式】1問ずつ以下のJSON形式で1行に出力。前置き・後書き・コードブロック不要。${_CHUNK_Q}問出力後は何も追記しない。
+
+{"q":{"questionText":"問題文","choices":["選択肢0","選択肢1","選択肢2","選択肢3"],"correctAnswers":["正解の選択肢テキスト"],"correctAnswerIndices":[1],"explanation":"全体解説（120字以内）","choiceExplanations":["選択肢0の解説","選択肢1の解説","選択肢2の解説","選択肢3の解説"],"isMultiple":false}}
+
+※ correctAnswers は choices のいずれかと完全一致・choiceExplanations[i] は choices[i] の解説（順序ズレ厳禁・上限80字・判定文不可）・explanation 120字以内・isMultiple 複数正解時 true・日本語のみ出力
+${HARD_BLOCK}
+PROMPT
+    fi
 
     # 1問ずつNDJSON形式でストリーミング出力→即インポート。
     # < <() プロセス置換でサブシェルを作らずに外部変数を更新できる。
