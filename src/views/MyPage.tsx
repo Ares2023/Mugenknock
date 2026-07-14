@@ -13,7 +13,7 @@ import {
   IconCalendarNotebook, IconTarget, IconAnnoyed, IconList,
   IconSparkles, IconChevronRight, IconChevronDown, IconLock, IconFlag, IconStar, IconTrendingUp, IconPenLine,
   IconSprout, IconBox, IconBot, IconCode2, IconCloud, IconDatabase, IconBrain, IconVectorSquare, IconFileCodeCorner, IconAtom, IconShieldIcon, IconWaypoints,
-  EXAM_ICON_COMPONENTS, IconSaveCheck, IconCopy, IconCheck,
+  EXAM_ICON_COMPONENTS, IconSaveCheck, IconCopy, IconCheck, IconTrophy,
 } from '../components/Icons';
 import ExamSelectOverlay, { EXAM_DESC, EXAM_URLS } from '../components/ExamSelectOverlay';
 import KeyHint from '../components/KeyHint';
@@ -114,6 +114,7 @@ export default function MyPage() {
   useEffect(() => {
     const saved = localStorage.getItem(`targetExam_${uid}`);
     setTargetExam(saved);
+    try { setObtainedCerts(JSON.parse(localStorage.getItem(`obtainedCerts_${uid}`) ?? '[]')); } catch { setObtainedCerts([]); }
   }, [uid]);
 
   // ── 受験日 ──
@@ -300,6 +301,19 @@ export default function MyPage() {
   const [histLoadedExam, setHistLoadedExam] = useState<string | null>(null);
   const [totalExercised, setTotalExercised] = useState<number | null>(null);
   const [totalSessionCount, setTotalSessionCount] = useState<number | null>(null);
+
+  // ── 取得済資格（履歴タブ） ──
+  const [obtainedCerts, setObtainedCerts] = useState<string[]>(() => {
+    try { return JSON.parse(localStorage.getItem(`obtainedCerts_${uid}`) ?? '[]'); } catch { return []; }
+  });
+  const toggleObtainedCert = (exam: string) => {
+    setObtainedCerts(prev => {
+      const next = prev.includes(exam) ? prev.filter(e => e !== exam) : [...prev, exam];
+      localStorage.setItem(`obtainedCerts_${uid}`, JSON.stringify(next));
+      return next;
+    });
+  };
+
   const [expandedSession, setExpandedSession] = useState<string | null>(null);
   const [sessionAnswers, setSessionAnswers] = useState<Record<string, AnswerRecord[]>>({});
   const [answersLoading, setAnswersLoading] = useState<string | null>(null);
@@ -1132,6 +1146,53 @@ export default function MyPage() {
               </>
             ) : (
               <>
+                {/* 取得済資格パネル */}
+                <Card style={{ marginBottom: 'var(--spacing-md)' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--spacing-xs)', marginBottom: 'var(--spacing-md)' }}>
+                    <IconTrophy size={14} />
+                    <span style={{ fontSize: 'var(--font-size-xs)', fontWeight: 700, color: 'var(--color-text-sub)', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+                      {ja ? '取得済資格' : 'Certifications'}
+                    </span>
+                  </div>
+                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 'var(--spacing-sm)' }}>
+                    {EXAM_TYPES.map(exam => {
+                      const obtained = obtainedCerts.includes(exam);
+                      const level = EXAM_LEVEL[exam];
+                      const color = EXAM_LEVEL_COLORS[level] ?? 'var(--color-primary)';
+                      const ExamIcon = EXAM_ICON_COMPONENTS[exam];
+                      return (
+                        <button
+                          key={exam}
+                          onClick={() => toggleObtainedCert(exam)}
+                          style={{
+                            border: `2px solid ${obtained ? color : 'var(--color-border)'}`,
+                            borderRadius: 'var(--border-radius-md)',
+                            background: obtained ? `${color}18` : 'transparent',
+                            padding: '8px 4px 6px',
+                            cursor: 'pointer',
+                            textAlign: 'center',
+                            opacity: obtained ? 1 : 0.4,
+                            transition: 'all 0.15s',
+                            position: 'relative',
+                          }}
+                        >
+                          {obtained && (
+                            <div style={{ position: 'absolute', top: 3, right: 3, color, lineHeight: 0 }}>
+                              <IconCheck size={10} />
+                            </div>
+                          )}
+                          {ExamIcon && (
+                            <div style={{ display: 'flex', justifyContent: 'center', marginBottom: 2, color: obtained ? color : 'var(--color-text-sub)' }}>
+                              <ExamIcon size={16} />
+                            </div>
+                          )}
+                          <div style={{ fontSize: 'var(--font-size-xs)', fontWeight: 800, color: obtained ? color : 'var(--color-text-sub)', lineHeight: 1 }}>{exam}</div>
+                        </button>
+                      );
+                    })}
+                  </div>
+                </Card>
+
                 {recentSessions.length === 0 ? (
                   <Card padding="var(--spacing-xl)">
                     <p style={{ margin: 0, textAlign: 'center', fontSize: 'var(--font-size-sm2)', color: 'var(--color-text-light)' }}>
