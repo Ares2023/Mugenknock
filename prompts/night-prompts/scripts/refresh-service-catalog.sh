@@ -324,7 +324,7 @@ print('\n'.join(lines))
 PYEOF
 
   _OUT=$(mktemp /tmp/catalog_out_XXXX); _ERR=$(mktemp /tmp/catalog_err_XXXX)
-  "$CLAUDE_CMD" -p --allowed-tools WebFetch < "$PROMPT_FILE" > "$_OUT" 2> "$_ERR"
+  "$CLAUDE_CMD" -p --model sonnet --allowed-tools WebFetch < "$PROMPT_FILE" > "$_OUT" 2> "$_ERR"
   AI_EXIT=$?
   RESULT=$(cat "$_OUT"); ERRTXT=$(cat "$_ERR")
   rm -f "$_OUT" "$_ERR" "$PROMPT_FILE"
@@ -332,7 +332,7 @@ PYEOF
   # npm更新でバイナリ消失 → 再探索リトライ
   if [ $AI_EXIT -ne 0 ] && echo "$ERRTXT" | grep -q "No such file"; then
     CLAUDE_CMD=$(_find_claude)
-    [ -x "${CLAUDE_CMD:-}" ] && { RESULT=$("$CLAUDE_CMD" -p --allowed-tools WebFetch < "$chunk_file" 2>&1); AI_EXIT=$?; }
+    [ -x "${CLAUDE_CMD:-}" ] && { RESULT=$("$CLAUDE_CMD" -p --model sonnet --allowed-tools WebFetch < "$chunk_file" 2>&1); AI_EXIT=$?; }
   fi
   # レート制限/セッション上限 → 残りをスキップ（seedは保存済み）
   if echo "$RESULT $ERRTXT" | grep -qiE "rate.?limit|too many requests|usage limit|session.?limit|hit your|resource_exhausted"; then
