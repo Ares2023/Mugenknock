@@ -998,7 +998,11 @@ export default function MyPage() {
                       <span style={{ fontSize: 'var(--font-size-xs)', color: 'var(--color-text-light)', fontWeight: 700 }}>{ja ? '集計対象' : 'Window'}</span>
                       <div style={{ display: 'inline-flex', border: '1px solid var(--color-border)', borderRadius: 'var(--border-radius-full)', overflow: 'hidden' }}>
                         {(() => {
-                          const maxEx = Math.max(0, ...domainStats.map(s => (s.recentResults ?? []).length));
+                          // 現在の対象資格のドメインだけで最大演習数を算出（domainStatsは全資格横断のため絞り込む）
+                          const maxEx = Math.max(0, ...domains.map(d => {
+                            const st = domainStats.find(s => tagIdMatches(s.tagId, targetExam ?? '', toDomainIndex(targetExam ?? '', d)));
+                            return (st?.recentResults ?? []).length;
+                          }));
                           return ([10, 20, 30] as const).map((w) => {
                             const active = recentWindow === w;
                             const disabled = w - 10 >= maxEx;
