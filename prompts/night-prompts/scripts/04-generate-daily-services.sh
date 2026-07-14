@@ -578,7 +578,7 @@ rm -f "$_NAMES_TMP" "$_ICONS_TMP" "$_CANDIDATES_TMP"
 
 _STDOUT_F=$(mktemp /tmp/claude_out_XXXX)
 _STDERR_F=$(mktemp /tmp/claude_err_XXXX)
-CLAUDE_CODE_MAX_OUTPUT_TOKENS=32000 "$CLAUDE_CMD" -p --tools "" < "$PROMPT_FILE" > "$_STDOUT_F" 2> "$_STDERR_F"
+CLAUDE_CODE_MAX_OUTPUT_TOKENS=32000 "$CLAUDE_CMD" -p --model sonnet --tools "" < "$PROMPT_FILE" > "$_STDOUT_F" 2> "$_STDERR_F"
 AI_EXIT=$?
 RESULT=$(cat "$_STDOUT_F")
 _STDERR_OUT=$(cat "$_STDERR_F")
