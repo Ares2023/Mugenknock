@@ -666,9 +666,11 @@ PYEOF
   # セッション枯渇前にチャンクを完走させるため小さめに設定する。
   # チャンク2以降は最小プロンプトで送るので固定オーバーヘッドの影響は限定的。
   # --hard（拡張思考）は出力トークンが大幅増大するため半減して上限に収める。
+  # チャンクは小さく保つ（6月下旬の高スループット時と同値）。予算は必ず途中で尽きる前提で、
+  # 尽きる「前に」完走・バンクできるチャンク数を最大化するのが狙い。大きいチャンクは完走前に落ちる。
   case "$NEXT_EXAM" in
-    SAP|ANS|SCS|DOP|SOA|AIP) CHUNK_SIZE=5; MIN_CHUNK_Q=2 ;;
-    *) CHUNK_SIZE=8; MIN_CHUNK_Q=2 ;;
+    SAP|ANS|SCS|DOP|SOA|AIP) CHUNK_SIZE=3; MIN_CHUNK_Q=2 ;;
+    *) CHUNK_SIZE=5; MIN_CHUNK_Q=3 ;;
   esac
   if [ "$HARD_MODE" -eq 1 ]; then
     CHUNK_SIZE=$(( CHUNK_SIZE > 2 ? CHUNK_SIZE / 2 : 1 ))
@@ -859,7 +861,7 @@ PYEOF
         echo "  ❌ API エラー (HTTP $_http_code): $_http_body"
       fi
 
-    done < <(CLAUDE_CODE_MAX_OUTPUT_TOKENS=56000 "$CLAUDE_CMD" -p --tools "" < "$PROMPT_FILE" 2>&1)
+    done < <(CLAUDE_CODE_MAX_OUTPUT_TOKENS=56000 "$CLAUDE_CMD" -p --model sonnet --tools "" < "$PROMPT_FILE" 2>&1)
     rm -f "$PROMPT_FILE"
 
     echo "  チャンク${_chunk}: ${_CHUNK_IMPORTED}問インポート  経過=$(( $(date +%s) - _CHUNK_T0 ))秒"
