@@ -1202,7 +1202,7 @@ export default function MyPage() {
                       ].map(row => (
                         <div key={row.color} style={{ display: 'flex', gap: 10, alignItems: 'flex-end', marginBottom: 6 }}>
                           {row.exams.map(exam => (
-                            <CertHex key={exam} exam={exam} obtained={obtainedCerts.includes(exam)} color={row.color} size={37} />
+                            <CertHex key={exam} exam={exam} obtained={obtainedCerts.includes(exam)} color={row.color} size={41} />
                           ))}
                         </div>
                       ))}
