@@ -1180,7 +1180,7 @@ export default function MyPage() {
                     );
                   };
                   return (
-                    <Card style={{ marginBottom: 'var(--spacing-md)', cursor: 'pointer' }} onClick={() => setShowCertOverlay(true)}>
+                    <Card style={{ marginBottom: 'var(--spacing-md)', cursor: 'pointer' }} onClick={() => { setCertConfetti(false); setCertBurst(null); setShowCertOverlay(true); }}>
                       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 'var(--spacing-md)' }}>
                         <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
                           <span style={{ color: 'var(--color-text-sub)', display: 'flex', alignItems: 'center' }}><IconTrophy size={13} /></span>
