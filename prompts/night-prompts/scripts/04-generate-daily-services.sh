@@ -728,12 +728,21 @@ def try_extract_from_zip(fname):
     return False
 
 def try_auto_detect_icon(service_name):
-    """サービス名からアイコンキーを生成しZIPを自動検索。成功したらアイコンキーを返す。"""
+    """サービス名からアイコンキーを生成。まずローカル icon_dir の既存PNGを確認し、
+    無ければ ZIP を自動検索する。ZIP未収録で手動追加した新サービスのアイコンにも対応。"""
+    # "AWS AppConfig" → "AppConfig", "Amazon GameLift Streams" → "GameLiftStreams"
+    # 末尾/途中の括弧注記（例: "(ARC)", "(MongoDB 互換)"）はアイコン名に含まれないため除去。
+    base = re.sub(r'^(Amazon|AWS)\s+', '', service_name, flags=re.IGNORECASE)
+    base = re.sub(r'\s*[（(].*?[）)]', '', base)
+    auto_key = re.sub(r'\s+', '', base)
+    if not auto_key:
+        return None
+    # ① ローカルに既存の同名PNGがあれば即採用（手動追加・ZIP未収録の新サービス対応）
+    if os.path.exists(os.path.join(icon_dir, f'{auto_key}.png')):
+        return auto_key
+    # ② ZIP から自動検索
     if not zip_cache or not os.path.exists(zip_cache):
         return None
-    # "AWS AppConfig" → "AppConfig", "Amazon GameLift Streams" → "GameLiftStreams"
-    auto_key = re.sub(r'^(Amazon|AWS)\s+', '', service_name, flags=re.IGNORECASE)
-    auto_key = re.sub(r'\s+', '', auto_key)
     try:
         with zipfile.ZipFile(zip_cache) as zf:
             zip_names = set(zf.namelist())
