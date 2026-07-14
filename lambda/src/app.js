@@ -1376,10 +1376,10 @@ app.get('/users/me/sessions', async (req, res) => {
       ExpressionAttributeNames: { '#s': 'status' },
       ExpressionAttributeValues: exprVals
     }));
-    const items = (result.Items || [])
-      .sort((a, b) => ((b.endedAt || b.startedAt) > (a.endedAt || a.startedAt) ? 1 : -1))
-      .slice(0, parseInt(limit) || 20);
-    res.json({ items });
+    const all = (result.Items || [])
+      .sort((a, b) => ((b.endedAt || b.startedAt) > (a.endedAt || a.startedAt) ? 1 : -1));
+    const items = all.slice(0, parseInt(limit) || 20);
+    res.json({ items, totalCount: all.length });
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: 'Internal server error' });

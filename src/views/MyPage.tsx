@@ -299,6 +299,7 @@ export default function MyPage() {
   const [histLoading, setHistLoading] = useState(false);
   const [histLoadedExam, setHistLoadedExam] = useState<string | null>(null);
   const [totalExercised, setTotalExercised] = useState<number | null>(null);
+  const [totalSessionCount, setTotalSessionCount] = useState<number | null>(null);
   const [expandedSession, setExpandedSession] = useState<string | null>(null);
   const [sessionAnswers, setSessionAnswers] = useState<Record<string, AnswerRecord[]>>({});
   const [answersLoading, setAnswersLoading] = useState<string | null>(null);
@@ -396,6 +397,7 @@ export default function MyPage() {
     ])
       .then(([sessData, progData]) => {
         setSessions(sessData.items ?? []);
+        setTotalSessionCount(sessData.totalCount ?? null);
         setTotalExercised(progData.total ?? 0);
         setHistLoadedExam(targetExam);
       })
@@ -1130,20 +1132,6 @@ export default function MyPage() {
               </>
             ) : (
               <>
-                {totalExercised !== null && (
-                  <Card style={{ marginBottom: 'var(--spacing-md)' }}>
-                    <div style={{ fontSize: 'var(--font-size-xs)', fontWeight: 700, color: 'var(--color-text-sub)', textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: 'var(--spacing-xs)' }}>
-                      {ja ? '累計演習量' : 'Total Exercises'}
-                      {targetExam && <span style={{ marginLeft: 6, fontWeight: 400, textTransform: 'none', letterSpacing: 0 }}>({targetExam})</span>}
-                    </div>
-                    <div style={{ display: 'flex', alignItems: 'baseline', gap: 4 }}>
-                      <span style={{ fontSize: 'var(--font-size-xxl)', fontWeight: 700, color: 'var(--color-primary)' }}>
-                        {totalExercised.toLocaleString()}
-                      </span>
-                      <span style={{ fontSize: 'var(--font-size-sm)', color: 'var(--color-text-light)' }}>{ja ? '問' : 'Q'}</span>
-                    </div>
-                  </Card>
-                )}
                 {recentSessions.length === 0 ? (
                   <Card padding="var(--spacing-xl)">
                     <p style={{ margin: 0, textAlign: 'center', fontSize: 'var(--font-size-sm2)', color: 'var(--color-text-light)' }}>
@@ -1152,8 +1140,16 @@ export default function MyPage() {
                   </Card>
                 ) : (
                 <>
-                <div style={{ fontSize: 'var(--font-size-sm)', color: 'var(--color-text-sub)', marginBottom: 10 }}>
-                  {ja ? '直近10セッション' : 'Last 10 sessions'}
+                <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', marginBottom: 10, gap: 8 }}>
+                  <span style={{ fontSize: 'var(--font-size-sm)', color: 'var(--color-text-sub)' }}>{ja ? '直近10セッション' : 'Last 10 sessions'}</span>
+                  {(totalSessionCount !== null || totalExercised !== null) && (
+                    <span style={{ fontSize: 'var(--font-size-xs)', color: 'var(--color-text-light)', whiteSpace: 'nowrap' }}>
+                      {ja ? '累計' : 'Total'}{' '}
+                      {totalSessionCount !== null && <>{totalSessionCount.toLocaleString()}{ja ? 'セッション' : ' sessions'}</>}
+                      {totalSessionCount !== null && totalExercised !== null && ' / '}
+                      {totalExercised !== null && <>{totalExercised.toLocaleString()}{ja ? '問' : 'Q'}</>}
+                    </span>
+                  )}
                 </div>
                 {recentSessions.map(s => {
                   const modeLabel = s.mode === 'exam'
