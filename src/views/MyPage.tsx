@@ -191,12 +191,6 @@ export default function MyPage() {
   }, [user?.userId]); // eslint-disable-line react-hooks/exhaustive-deps
 
 
-  // ── オーバーレイ表示中は body スクロール・横スワイプ無効 ──
-  useEffect(() => {
-    const anyOpen = showSettingsEdit || showExamSelect || showWeeklyDetail || showCertOverlay || !!questionModal;
-    if (!anyOpen) return;
-    return lockBodyScroll();
-  }, [showSettingsEdit, showExamSelect, showWeeklyDetail, showCertOverlay, questionModal]);
 
   // ── 週間達成度 ──
   const weekDays = Array.from({ length: 7 }, (_, i) => {
@@ -362,6 +356,13 @@ export default function MyPage() {
 
   // ── 問題詳細モーダル ──
   const [questionModal, setQuestionModal] = useState<{ qid: string; detail: any | null; loading: boolean; isCorrect?: boolean } | null>(null);
+
+  // ── オーバーレイ表示中は body スクロール・横スワイプ無効 ──
+  useEffect(() => {
+    const anyOpen = showSettingsEdit || showExamSelect || showWeeklyDetail || showCertOverlay || !!questionModal;
+    if (!anyOpen) return;
+    return lockBodyScroll();
+  }, [showSettingsEdit, showExamSelect, showWeeklyDetail, showCertOverlay, questionModal]);
 
   const openWeakQModal = useCallback(async (qid: string) => {
     const cached = weakQDetails[qid];
