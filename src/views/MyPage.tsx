@@ -1184,9 +1184,9 @@ export default function MyPage() {
                     const ExamIcon = EXAM_ICON_COMPONENTS[exam];
                     const inner = Math.round(size * 0.88);
                     return (
-                      <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 3, opacity: obtained ? 1 : 0.28 }}>
-                        <div style={{ width: size, height: Math.round(size * 1.15), background: obtained ? color : 'var(--color-border)', clipPath: HEX, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-                          <div style={{ width: inner, height: Math.round(inner * 1.15), background: obtained ? 'var(--color-bg-white)' : 'var(--color-bg-main)', clipPath: HEX, display: 'flex', alignItems: 'center', justifyContent: 'center', color: obtained ? color : 'var(--color-text-light)' }}>
+                      <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 3 }}>
+                        <div style={{ width: size, height: Math.round(size * 1.15), background: obtained ? color : 'var(--color-text-light)', clipPath: HEX, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                          <div style={{ width: inner, height: Math.round(inner * 1.15), background: obtained ? 'var(--color-bg-white)' : 'var(--color-bg-main)', clipPath: HEX, display: 'flex', alignItems: 'center', justifyContent: 'center', color: obtained ? color : 'var(--color-border)', opacity: obtained ? 1 : 0.8 }}>
                             {ExamIcon && <ExamIcon size={Math.round(size * 0.42)} />}
                           </div>
                         </div>
