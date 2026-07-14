@@ -305,7 +305,7 @@ export default function ExamSelectOverlay({
 
         {/* レベルタブ */}
         <div
-          style={{ display: 'flex', borderBottom: '2px solid var(--color-border)', flexShrink: 0, overflowX: 'auto' }}
+          style={{ display: 'flex', borderBottom: '2px solid var(--color-border)', flexShrink: 0 }}
           onTouchStart={e => e.stopPropagation()}
           onTouchMove={e => e.stopPropagation()}
         >
@@ -316,10 +316,13 @@ export default function ExamSelectOverlay({
               const examInLevel = levelDef?.exams.find(e => e === targetExam) ?? levelDef?.exams[0] ?? null;
               setPreviewExam(examInLevel as string | null);
             }} style={{
-              padding: '10px 14px', background: 'none', border: 'none', cursor: 'pointer',
+              flex: 1, textAlign: 'center',
+              padding: isMobile ? '10px 4px' : '10px 14px',
+              background: 'none', border: 'none', cursor: 'pointer',
               borderBottom: activeLevel === key ? `2px solid ${color}` : '2px solid transparent',
               marginBottom: -2, color: activeLevel === key ? color : 'var(--color-text-sub)',
-              fontWeight: activeLevel === key ? 700 : 400, fontSize: 'var(--font-size-sm2)', whiteSpace: 'nowrap', flexShrink: 0,
+              fontWeight: activeLevel === key ? 700 : 400,
+              fontSize: isMobile ? 'var(--font-size-xs)' : 'var(--font-size-sm2)',
             }}>
               {key}
             </button>
