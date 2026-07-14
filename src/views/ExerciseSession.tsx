@@ -14,7 +14,7 @@ import { useLanguage } from '../contexts/LanguageContext';
 import Card from '../components/ui/Card';
 import Button from '../components/ui/Button';
 import ReportModal from '../components/ReportModal';
-import { IconBookOpen, IconBean, IconCopy, IconCheck, IconStar, IconChevronUp, IconChevronDown, IconAlertTriangle } from '../components/Icons';
+import { IconBookOpen, IconBean, IconCopy, IconCheck, IconStar, IconChevronUp, IconChevronDown, IconAlertTriangle, IconCircleCheck, IconCircleX } from '../components/Icons';
 import KeyHint from '../components/KeyHint';
 import { isKbMode } from '../utils/keyboardMode';
 
@@ -1338,9 +1338,9 @@ export default function ExerciseSession() {
           return (
             <div className="fade-slide-in" style={{
               background: lastResult?.isCorrect ? 'var(--color-feedback-correct-bg)' : 'var(--color-feedback-incorrect-bg)',
-              borderLeft: `8px solid ${lastResult?.isCorrect ? 'var(--color-success)' : 'var(--color-danger)'}`,
+              border: `1px solid ${lastResult?.isCorrect ? 'var(--color-success)' : 'var(--color-danger)'}`,
               padding: '16px 20px', marginBottom: 'var(--spacing-xl)',
-              borderRadius: 'var(--border-radius-sm)',
+              borderRadius: 'var(--border-radius-md)',
             }}>
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 'var(--spacing-sm)', gap: 'var(--spacing-md)' }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--spacing-sm)', minWidth: 0 }}>
@@ -1349,7 +1349,9 @@ export default function ExerciseSession() {
                     color: lastResult?.isCorrect ? 'var(--color-success)' : 'var(--color-danger)',
                     display: 'flex', alignItems: 'center', gap: 'var(--spacing-sm)'
                   }}>
-                    {lastResult?.isCorrect ? t('exerciseSession.correct') : t('exerciseSession.incorrect')}
+                    {lastResult?.isCorrect
+                      ? <><IconCircleCheck size={16} />{t('exerciseSession.correct')}</>
+                      : <><IconCircleX size={16} />{t('exerciseSession.incorrect')}</>}
                   </h3>
                   {(() => {
                     // 全ユーザーの実測正答率（回答5件以上で表示・回答後のみ見える位置）

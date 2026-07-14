@@ -14,7 +14,7 @@ import {
   IconCalendarNotebook, IconTarget, IconAnnoyed, IconList,
   IconSparkles, IconChevronRight, IconChevronDown, IconLock, IconFlag, IconStar, IconTrendingUp, IconPenLine,
   IconSprout, IconBox, IconBot, IconCode2, IconCloud, IconDatabase, IconBrain, IconVectorSquare, IconFileCodeCorner, IconAtom, IconShieldIcon, IconWaypoints,
-  EXAM_ICON_COMPONENTS, IconSaveCheck, IconCopy, IconCheck, IconTrophy,
+  EXAM_ICON_COMPONENTS, IconSaveCheck, IconCopy, IconCheck, IconTrophy, IconCircleCheck, IconCircleX,
 } from '../components/Icons';
 import ExamSelectOverlay, { EXAM_DESC, EXAM_URLS, ConfirmBurst } from '../components/ExamSelectOverlay';
 import Confetti from '../components/Confetti';
@@ -1406,8 +1406,8 @@ export default function MyPage() {
               <span style={{ fontSize: 'var(--font-size-sm)', fontWeight: 700, color: 'var(--color-text-sub)' }}>
                 {questionModal.isCorrect !== undefined
                   ? (questionModal.isCorrect
-                    ? <span style={{ color: 'var(--color-success)' }}>○ {ja ? '正解' : 'Correct'}</span>
-                    : <span style={{ color: 'var(--color-danger)' }}>× {ja ? '不正解' : 'Incorrect'}</span>)
+                    ? <span style={{ color: 'var(--color-success)', display: 'inline-flex', alignItems: 'center', gap: 4 }}><IconCircleCheck size={14} />{ja ? '正解' : 'Correct'}</span>
+                    : <span style={{ color: 'var(--color-danger)', display: 'inline-flex', alignItems: 'center', gap: 4 }}><IconCircleX size={14} />{ja ? '不正解' : 'Incorrect'}</span>)
                   : (ja ? '問題詳細' : 'Question Detail')}
               </span>
               <button onClick={() => setQuestionModal(null)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--color-text-sub)', fontSize: 'var(--font-size-xl)', lineHeight: 1, padding: '2px 6px' }}>✕</button>
