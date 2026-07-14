@@ -1186,7 +1186,7 @@ export default function MyPage() {
                           <span style={{ color: 'var(--color-text-sub)', display: 'flex', alignItems: 'center' }}><IconTrophy size={13} /></span>
                           <span style={{ fontWeight: 700, fontSize: 'var(--font-size-sm)', color: 'var(--color-text-main)' }}>{ja ? '取得済資格' : 'Certifications'}</span>
                         </div>
-                        <div style={{ width: 35, height: 35, borderRadius: '50%', border: '1px solid var(--color-border)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--color-text-sub)', flexShrink: 0 }}>
+                        <div style={{ width: 35, height: 35, borderRadius: '50%', border: '1px solid var(--color-primary)', background: 'transparent', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--color-primary)', flexShrink: 0 }}>
                           <IconPenLine size={14} />
                         </div>
                       </div>
@@ -1198,7 +1198,7 @@ export default function MyPage() {
                       ].map(row => (
                         <div key={row.color} style={{ display: 'flex', gap: 10, alignItems: 'flex-end', marginBottom: 6 }}>
                           {row.exams.map(exam => (
-                            <CertHex key={exam} exam={exam} obtained={obtainedCerts.includes(exam)} color={row.color} size={34} />
+                            <CertHex key={exam} exam={exam} obtained={obtainedCerts.includes(exam)} color={row.color} size={41} />
                           ))}
                         </div>
                       ))}
@@ -1210,10 +1210,10 @@ export default function MyPage() {
                 {showCertOverlay && (() => {
                   const HEX = 'polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%)';
                   const CERT_LEVELS = [
-                    { key: 'Foundational', label: ja ? '基礎' : 'Foundational', color: '#6b9e3a', exams: ['CLF', 'AIF'] },
-                    { key: 'Associate',    label: ja ? 'アソシエイト' : 'Associate',    color: '#006CE0', exams: ['SAA', 'DVA', 'SOA', 'DEA', 'MLA'] },
-                    { key: 'Professional', label: ja ? 'プロフェッショナル' : 'Professional', color: '#8b5cf6', exams: ['SAP', 'DOP', 'AIP'] },
-                    { key: 'Specialty',    label: ja ? 'スペシャリティ' : 'Specialty',    color: '#0ea5e9', exams: ['ANS', 'SCS'] },
+                    { key: 'Foundational', label: 'Foundational', color: '#6b9e3a', exams: ['CLF', 'AIF'] },
+                    { key: 'Associate',    label: 'Associate',    color: '#006CE0', exams: ['SAA', 'DVA', 'SOA', 'DEA', 'MLA'] },
+                    { key: 'Professional', label: 'Professional', color: '#8b5cf6', exams: ['SAP', 'DOP', 'AIP'] },
+                    { key: 'Specialty',    label: 'Specialty',    color: '#0ea5e9', exams: ['ANS', 'SCS'] },
                   ] as const;
                   const currentLevel = CERT_LEVELS.find(l => l.key === certOverlayLevel) ?? CERT_LEVELS[0];
                   return createPortal(
@@ -1222,7 +1222,7 @@ export default function MyPage() {
                         @keyframes certObtainPop { 0%{transform:scale(1)} 40%{transform:scale(1.18)} 70%{transform:scale(0.94)} 100%{transform:scale(1)} }
                         @keyframes certHexSpin { 0%{transform:rotateY(0deg)} 100%{transform:rotateY(360deg)} }
                       `}</style>
-                      {certConfetti && <Confetti count={70} durationMs={2200} onDone={() => setCertConfetti(false)} />}
+                      {certConfetti && <Confetti count={70} durationMs={2200} zIndex={9900} onDone={() => setCertConfetti(false)} />}
                       {certBurst && <ConfirmBurst x={certBurst.x} y={certBurst.y} color={certBurst.color} onDone={() => setCertBurst(null)} />}
                       <div style={{ background: 'var(--color-bg-white)', borderRadius: 'var(--border-radius-lg)', width: '100%', maxWidth: 420, boxShadow: 'var(--box-shadow-lg)', display: 'flex', flexDirection: 'column', overflow: 'hidden', maxHeight: '80vh' }} onClick={e => e.stopPropagation()}>
                         {/* ヘッダー */}
@@ -1242,7 +1242,7 @@ export default function MyPage() {
                           ))}
                         </div>
                         {/* 資格カード */}
-                        <div style={{ display: 'flex', gap: 10, padding: '20px 20px', flexWrap: 'wrap', overflowY: 'auto' }}>
+                        <div style={{ display: 'flex', gap: 10, padding: '20px 20px', flexWrap: 'wrap', alignContent: 'flex-start', minHeight: 180, overflowY: 'auto' }}>
                           {currentLevel.exams.map(exam => {
                             const obtained = obtainedCerts.includes(exam);
                             const ExamIcon = EXAM_ICON_COMPONENTS[exam];
