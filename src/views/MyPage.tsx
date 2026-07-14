@@ -1,5 +1,6 @@
 'use client';
-import React, { useEffect, useState, useCallback } from 'react';
+import React, { useEffect, useState, useCallback, useMemo } from 'react';
+import { createPortal } from 'react-dom';
 import { Helmet } from '@/compat/react-helmet-async';
 import { useNavigate } from '@/compat/react-router-dom';
 import { API_ENDPOINT, EXAM_DOMAINS, EXAM_DOMAIN_SERVICES, EXAM_TYPES, DOMAIN_NAME_EN, EXAM_CONFIGS, DOMAIN_RATE_WARNING, DOMAIN_RATE_CAUTION, PASS_SCORES, EXAM_LEVEL, EXAM_LEVEL_COLORS, tagIdMatches, toDomainIndex } from '../constants';
@@ -15,7 +16,8 @@ import {
   IconSprout, IconBox, IconBot, IconCode2, IconCloud, IconDatabase, IconBrain, IconVectorSquare, IconFileCodeCorner, IconAtom, IconShieldIcon, IconWaypoints,
   EXAM_ICON_COMPONENTS, IconSaveCheck, IconCopy, IconCheck, IconTrophy,
 } from '../components/Icons';
-import ExamSelectOverlay, { EXAM_DESC, EXAM_URLS } from '../components/ExamSelectOverlay';
+import ExamSelectOverlay, { EXAM_DESC, EXAM_URLS, ConfirmBurst } from '../components/ExamSelectOverlay';
+import Confetti from '../components/Confetti';
 import KeyHint from '../components/KeyHint';
 
 
@@ -306,10 +308,24 @@ export default function MyPage() {
   const [obtainedCerts, setObtainedCerts] = useState<string[]>(() => {
     try { return JSON.parse(localStorage.getItem(`obtainedCerts_${uid}`) ?? '[]'); } catch { return []; }
   });
-  const toggleObtainedCert = (exam: string) => {
+  const [showCertOverlay, setShowCertOverlay] = useState(false);
+  const [certOverlayLevel, setCertOverlayLevel] = useState<string>('Foundational');
+  const [certBurst, setCertBurst] = useState<{ x: number; y: number; color: string } | null>(null);
+  const [certConfetti, setCertConfetti] = useState(false);
+  const [justObtained, setJustObtained] = useState<string | null>(null);
+  const toggleObtainedCert = (exam: string, btnEl: HTMLButtonElement) => {
     setObtainedCerts(prev => {
-      const next = prev.includes(exam) ? prev.filter(e => e !== exam) : [...prev, exam];
+      const isObtained = prev.includes(exam);
+      const next = isObtained ? prev.filter(e => e !== exam) : [...prev, exam];
       localStorage.setItem(`obtainedCerts_${uid}`, JSON.stringify(next));
+      if (!isObtained) {
+        const r = btnEl.getBoundingClientRect();
+        const color = EXAM_LEVEL_COLORS[EXAM_LEVEL[exam]] ?? 'var(--color-primary)';
+        setCertBurst({ x: r.left + r.width / 2, y: r.top + r.height / 2, color });
+        setCertConfetti(true);
+        setJustObtained(exam);
+        setTimeout(() => setJustObtained(null), 400);
+      }
       return next;
     });
   };
@@ -1146,52 +1162,122 @@ export default function MyPage() {
               </>
             ) : (
               <>
-                {/* 取得済資格パネル */}
-                <Card style={{ marginBottom: 'var(--spacing-md)' }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--spacing-xs)', marginBottom: 'var(--spacing-md)' }}>
-                    <IconTrophy size={14} />
-                    <span style={{ fontSize: 'var(--font-size-xs)', fontWeight: 700, color: 'var(--color-text-sub)', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
-                      {ja ? '取得済資格' : 'Certifications'}
-                    </span>
-                  </div>
-                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 'var(--spacing-sm)' }}>
-                    {EXAM_TYPES.map(exam => {
-                      const obtained = obtainedCerts.includes(exam);
-                      const level = EXAM_LEVEL[exam];
-                      const color = EXAM_LEVEL_COLORS[level] ?? 'var(--color-primary)';
-                      const ExamIcon = EXAM_ICON_COMPONENTS[exam];
-                      return (
-                        <button
-                          key={exam}
-                          onClick={() => toggleObtainedCert(exam)}
-                          style={{
-                            border: `2px solid ${obtained ? color : 'var(--color-border)'}`,
-                            borderRadius: 'var(--border-radius-md)',
-                            background: obtained ? `${color}18` : 'transparent',
-                            padding: '8px 4px 6px',
-                            cursor: 'pointer',
-                            textAlign: 'center',
-                            opacity: obtained ? 1 : 0.4,
-                            transition: 'all 0.15s',
-                            position: 'relative',
-                          }}
-                        >
-                          {obtained && (
-                            <div style={{ position: 'absolute', top: 3, right: 3, color, lineHeight: 0 }}>
-                              <IconCheck size={10} />
-                            </div>
-                          )}
-                          {ExamIcon && (
-                            <div style={{ display: 'flex', justifyContent: 'center', marginBottom: 2, color: obtained ? color : 'var(--color-text-sub)' }}>
-                              <ExamIcon size={16} />
-                            </div>
-                          )}
-                          <div style={{ fontSize: 'var(--font-size-xs)', fontWeight: 800, color: obtained ? color : 'var(--color-text-sub)', lineHeight: 1 }}>{exam}</div>
-                        </button>
-                      );
-                    })}
-                  </div>
-                </Card>
+                {/* 取得済資格パネル（クリックでオーバーレイを開く） */}
+                {(() => {
+                  const HEX = 'polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%)';
+                  const CertHex = ({ exam, obtained, color, size = 38 }: { exam: string; obtained: boolean; color: string; size?: number }) => {
+                    const ExamIcon = EXAM_ICON_COMPONENTS[exam];
+                    const inner = Math.round(size * 0.88);
+                    return (
+                      <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 3, opacity: obtained ? 1 : 0.28 }}>
+                        <div style={{ width: size, height: Math.round(size * 1.15), background: obtained ? color : 'var(--color-border)', clipPath: HEX, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                          <div style={{ width: inner, height: Math.round(inner * 1.15), background: obtained ? 'var(--color-bg-white)' : 'var(--color-bg-main)', clipPath: HEX, display: 'flex', alignItems: 'center', justifyContent: 'center', color: obtained ? color : 'var(--color-text-light)' }}>
+                            {ExamIcon && <ExamIcon size={Math.round(size * 0.42)} />}
+                          </div>
+                        </div>
+                        <div style={{ fontSize: 'var(--font-size-3xs)', fontWeight: 800, color: obtained ? color : 'var(--color-text-light)', lineHeight: 1 }}>{exam}</div>
+                      </div>
+                    );
+                  };
+                  return (
+                    <Card style={{ marginBottom: 'var(--spacing-md)', cursor: 'pointer' }} onClick={() => setShowCertOverlay(true)}>
+                      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 'var(--spacing-md)' }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                          <span style={{ color: 'var(--color-text-sub)', display: 'flex', alignItems: 'center' }}><IconTrophy size={13} /></span>
+                          <span style={{ fontWeight: 700, fontSize: 'var(--font-size-sm)', color: 'var(--color-text-main)' }}>{ja ? '取得済資格' : 'Certifications'}</span>
+                        </div>
+                        <div style={{ width: 35, height: 35, borderRadius: '50%', border: '1px solid var(--color-border)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--color-text-sub)', flexShrink: 0 }}>
+                          <IconPenLine size={14} />
+                        </div>
+                      </div>
+                      {[
+                        { color: '#6b9e3a', exams: ['CLF', 'AIF'] },
+                        { color: '#006CE0', exams: ['SAA', 'DVA', 'SOA', 'DEA', 'MLA'] },
+                        { color: '#8b5cf6', exams: ['SAP', 'DOP', 'AIP'] },
+                        { color: '#0ea5e9', exams: ['ANS', 'SCS'] },
+                      ].map(row => (
+                        <div key={row.color} style={{ display: 'flex', gap: 10, alignItems: 'flex-end', marginBottom: 6 }}>
+                          {row.exams.map(exam => (
+                            <CertHex key={exam} exam={exam} obtained={obtainedCerts.includes(exam)} color={row.color} size={34} />
+                          ))}
+                        </div>
+                      ))}
+                    </Card>
+                  );
+                })()}
+
+                {/* 取得済資格オーバーレイ */}
+                {showCertOverlay && (() => {
+                  const HEX = 'polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%)';
+                  const CERT_LEVELS = [
+                    { key: 'Foundational', label: ja ? '基礎' : 'Foundational', color: '#6b9e3a', exams: ['CLF', 'AIF'] },
+                    { key: 'Associate',    label: ja ? 'アソシエイト' : 'Associate',    color: '#006CE0', exams: ['SAA', 'DVA', 'SOA', 'DEA', 'MLA'] },
+                    { key: 'Professional', label: ja ? 'プロフェッショナル' : 'Professional', color: '#8b5cf6', exams: ['SAP', 'DOP', 'AIP'] },
+                    { key: 'Specialty',    label: ja ? 'スペシャリティ' : 'Specialty',    color: '#0ea5e9', exams: ['ANS', 'SCS'] },
+                  ] as const;
+                  const currentLevel = CERT_LEVELS.find(l => l.key === certOverlayLevel) ?? CERT_LEVELS[0];
+                  return createPortal(
+                    <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', zIndex: 9800, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16 }} onClick={() => setShowCertOverlay(false)}>
+                      <style>{`
+                        @keyframes certObtainPop { 0%{transform:scale(1)} 40%{transform:scale(1.18)} 70%{transform:scale(0.94)} 100%{transform:scale(1)} }
+                        @keyframes certHexSpin { 0%{transform:rotateY(0deg)} 100%{transform:rotateY(360deg)} }
+                      `}</style>
+                      {certConfetti && <Confetti count={70} durationMs={2200} onDone={() => setCertConfetti(false)} />}
+                      {certBurst && <ConfirmBurst x={certBurst.x} y={certBurst.y} color={certBurst.color} onDone={() => setCertBurst(null)} />}
+                      <div style={{ background: 'var(--color-bg-white)', borderRadius: 'var(--border-radius-lg)', width: '100%', maxWidth: 420, boxShadow: 'var(--box-shadow-lg)', display: 'flex', flexDirection: 'column', overflow: 'hidden', maxHeight: '80vh' }} onClick={e => e.stopPropagation()}>
+                        {/* ヘッダー */}
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '16px 20px 12px', flexShrink: 0, borderBottom: '1px solid var(--color-border)' }}>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                            <IconTrophy size={16} />
+                            <span style={{ fontWeight: 700, fontSize: 'var(--font-size-lg)' }}>{ja ? '取得済資格を設定' : 'Set Certifications'}</span>
+                          </div>
+                          <button onClick={() => setShowCertOverlay(false)} style={{ border: 'none', background: 'transparent', cursor: 'pointer', color: 'var(--color-text-light)', fontSize: 20, lineHeight: 1, padding: 4 }}>✕</button>
+                        </div>
+                        {/* レベルタブ */}
+                        <div style={{ display: 'flex', borderBottom: '1px solid var(--color-border)', flexShrink: 0 }}>
+                          {CERT_LEVELS.map(lv => (
+                            <button key={lv.key} onClick={() => setCertOverlayLevel(lv.key)} style={{ flex: 1, padding: '10px 4px', border: 'none', borderBottom: `3px solid ${certOverlayLevel === lv.key ? lv.color : 'transparent'}`, background: 'transparent', cursor: 'pointer', fontSize: 'var(--font-size-xs)', fontWeight: 700, color: certOverlayLevel === lv.key ? lv.color : 'var(--color-text-light)', transition: 'color 0.15s' }}>
+                              {lv.label}
+                            </button>
+                          ))}
+                        </div>
+                        {/* 資格カード */}
+                        <div style={{ display: 'flex', gap: 10, padding: '20px 20px', flexWrap: 'wrap', overflowY: 'auto' }}>
+                          {currentLevel.exams.map(exam => {
+                            const obtained = obtainedCerts.includes(exam);
+                            const ExamIcon = EXAM_ICON_COMPONENTS[exam];
+                            const c = currentLevel.color;
+                            return (
+                              <button
+                                key={exam}
+                                onClick={e => toggleObtainedCert(exam, e.currentTarget)}
+                                style={{ flexShrink: 0, width: 80, padding: '10px 6px 8px', cursor: 'pointer', borderRadius: 10, textAlign: 'center', position: 'relative', border: `2px solid ${obtained ? c : 'var(--color-border)'}`, background: obtained ? `linear-gradient(145deg, ${c}, ${c}bb)` : `linear-gradient(145deg, var(--color-bg-card), ${c}18)`, animation: justObtained === exam ? 'certObtainPop 0.38s cubic-bezier(.36,.07,.19,.97)' : undefined, transition: 'border-color 0.15s, background 0.15s' }}
+                              >
+                                {obtained && <div style={{ position: 'absolute', top: 4, right: 4, color: '#fff', lineHeight: 0 }}><IconCheck size={14} /></div>}
+                                {/* 六角形バッジ */}
+                                <div style={{ display: 'flex', justifyContent: 'center', marginBottom: 6, perspective: 200 }}>
+                                  <div style={{ width: 40, height: 46, background: obtained ? 'rgba(255,255,255,0.25)' : c + '33', clipPath: HEX, display: 'flex', alignItems: 'center', justifyContent: 'center', animation: justObtained === exam ? 'certHexSpin 0.52s ease' : undefined }}>
+                                    <div style={{ width: 34, height: 39, background: obtained ? 'rgba(255,255,255,0.85)' : 'var(--color-bg-card)', clipPath: HEX, display: 'flex', alignItems: 'center', justifyContent: 'center', color: obtained ? c : 'var(--color-text-light)' }}>
+                                      {ExamIcon && <ExamIcon size={17} />}
+                                    </div>
+                                  </div>
+                                </div>
+                                <div style={{ fontWeight: 800, fontSize: 'var(--font-size-md)', color: obtained ? '#fff' : 'var(--color-text-main)', lineHeight: 1 }}>{exam}</div>
+                              </button>
+                            );
+                          })}
+                        </div>
+                        {/* フッター */}
+                        <div style={{ padding: '12px 20px', borderTop: '1px solid var(--color-border)', flexShrink: 0, textAlign: 'center' }}>
+                          <span style={{ fontSize: 'var(--font-size-xs)', color: 'var(--color-text-light)' }}>
+                            {ja ? `${obtainedCerts.length} / 12 資格取得済` : `${obtainedCerts.length} / 12 certified`}
+                          </span>
+                        </div>
+                      </div>
+                    </div>,
+                    document.body
+                  );
+                })()}
 
                 {recentSessions.length === 0 ? (
                   <Card padding="var(--spacing-xl)">
