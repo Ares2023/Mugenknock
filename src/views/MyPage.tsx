@@ -184,7 +184,7 @@ export default function MyPage() {
 
   // ── オーバーレイ表示中は body スクロール無効 ──
   useEffect(() => {
-    const anyOpen = showSettingsEdit || showExamSelect || showWeeklyDetail;
+    const anyOpen = showSettingsEdit || showExamSelect || showWeeklyDetail || showCertOverlay || !!questionModal;
     document.body.style.overflow = anyOpen ? 'hidden' : '';
     return () => { document.body.style.overflow = ''; };
   }, [showSettingsEdit, showExamSelect, showWeeklyDetail]);
@@ -1202,7 +1202,7 @@ export default function MyPage() {
                       ].map(row => (
                         <div key={row.color} style={{ display: 'flex', gap: 10, alignItems: 'flex-end', marginBottom: 6 }}>
                           {row.exams.map(exam => (
-                            <CertHex key={exam} exam={exam} obtained={obtainedCerts.includes(exam)} color={row.color} size={41} />
+                            <CertHex key={exam} exam={exam} obtained={obtainedCerts.includes(exam)} color={row.color} size={37} />
                           ))}
                         </div>
                       ))}
@@ -1246,7 +1246,7 @@ export default function MyPage() {
                           ))}
                         </div>
                         {/* 資格カード */}
-                        <div style={{ display: 'flex', gap: 10, padding: '20px 20px', flexWrap: 'wrap', alignContent: 'flex-start', minHeight: 180, overflowY: 'auto' }}>
+                        <div style={{ display: 'flex', gap: 10, padding: '20px 20px', flexWrap: 'wrap', alignContent: 'flex-start', height: 240, overflowY: 'auto' }}>
                           {currentLevel.exams.map(exam => {
                             const obtained = obtainedCerts.includes(exam);
                             const ExamIcon = EXAM_ICON_COMPONENTS[exam];
