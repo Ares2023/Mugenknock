@@ -256,7 +256,7 @@ export default function ExamSelectOverlay({
             /* モバイル: タイトル左・リンク+✕右（タブとの距離を確保） */
             <>
               <span style={{ fontWeight: 700, fontSize: 'var(--font-size-lg)' }}>
-                {ja ? 'AWS資格パス' : 'AWS Cert Path'}
+                {ja ? '目標資格を選択' : 'Select Target Exam'}
               </span>
               <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexShrink: 0 }}>
                 <a
@@ -265,7 +265,7 @@ export default function ExamSelectOverlay({
                   rel="noopener noreferrer"
                   style={{ fontSize: 'var(--font-size-xs)', fontWeight: 600, color: 'var(--color-primary)', textDecoration: 'none', whiteSpace: 'nowrap' }}
                 >
-                  {ja ? '何を取るべき？→' : 'Which cert?→'}
+                  {ja ? 'AWS資格パス→' : 'AWS Cert Path→'}
                 </a>
                 {dismissible && (
                   <button
@@ -281,7 +281,7 @@ export default function ExamSelectOverlay({
             <>
               <div style={{ display: 'flex', flexDirection: 'column', gap: 2, minWidth: 0 }}>
                 <span style={{ fontWeight: 700, fontSize: 'var(--font-size-lg)' }}>
-                  {ja ? 'AWS資格パス' : 'AWS Cert Path'}
+                  {ja ? '目標資格を選択' : 'Select Target Exam'}
                 </span>
                 <a
                   href="https://d1.awsstatic.com/onedam/marketing-channels/website/aws/ja_JP/certification/approved/pdfs/AWS_certification_paths.pdf"
@@ -289,7 +289,7 @@ export default function ExamSelectOverlay({
                   rel="noopener noreferrer"
                   style={{ fontSize: 'var(--font-size-xs)', fontWeight: 600, color: 'var(--color-primary)', textDecoration: 'none' }}
                 >
-                  {ja ? '何を取るべき？→' : 'Which cert should I take? →'}
+                  {ja ? 'AWS資格パス→' : 'AWS Cert Path →'}
                 </a>
               </div>
               {dismissible && (
