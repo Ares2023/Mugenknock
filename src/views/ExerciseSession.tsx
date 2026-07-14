@@ -462,6 +462,11 @@ export default function ExerciseSession() {
   const [judgmentAnim, setJudgmentAnim] = useState<'correct' | 'incorrect' | null>(null);
   const [showAbortConfirm, setShowAbortConfirm] = useState(false);
 
+  useEffect(() => {
+    document.body.style.overflow = showAbortConfirm ? 'hidden' : '';
+    return () => { document.body.style.overflow = ''; };
+  }, [showAbortConfirm]);
+
   // ドラフト保存 — 常に最新値を ref に保持し、状態変化時と beforeunload 両方で保存する
   const draftStateRef = useRef({ currentIndex, results, answered, selectedAnswers });
   useEffect(() => {

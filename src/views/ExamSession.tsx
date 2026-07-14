@@ -434,6 +434,12 @@ export default function ExamSession() {
   const [showAbortConfirm, setShowAbortConfirm] = useState(false);
 
   useEffect(() => {
+    const anyOpen = paused || showConfirm || showAbortConfirm;
+    document.body.style.overflow = anyOpen ? 'hidden' : '';
+    return () => { document.body.style.overflow = ''; };
+  }, [paused, showConfirm, showAbortConfirm]);
+
+  useEffect(() => {
     if (!state) navigate('/aws/exam/setup', { replace: true });
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 

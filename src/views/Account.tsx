@@ -170,6 +170,12 @@ export default function Account() {
   };
 
   useEffect(() => {
+    const anyOpen = showPasswordModal || showEmailModal || showDeleteModal || showDataModal || showResetModal || showThemeModal;
+    document.body.style.overflow = anyOpen ? 'hidden' : '';
+    return () => { document.body.style.overflow = ''; };
+  }, [showPasswordModal, showEmailModal, showDeleteModal, showDataModal, showResetModal, showThemeModal]);
+
+  useEffect(() => {
     if (!user) return;
     // Sessions と UserTagStats を並行取得
     // 資格ごとの実施回数・最終日を集計（保持上限=直近365件内での件数）。
