@@ -1201,7 +1201,9 @@ export default function MyPage() {
                         { color: '#0ea5e9', exams: ['ANS', 'SCS'] },
                       ].map(row => (
                         <div key={row.color} style={{ display: 'flex', gap: 10, alignItems: 'flex-end', marginBottom: 6 }}>
-                          {row.exams.map(exam => (
+                          {[...row.exams].sort((a, b) =>
+                            (obtainedCerts.includes(b) ? 1 : 0) - (obtainedCerts.includes(a) ? 1 : 0)
+                          ).map(exam => (
                             <CertHex key={exam} exam={exam} obtained={obtainedCerts.includes(exam)} color={row.color} size={41} />
                           ))}
                         </div>
