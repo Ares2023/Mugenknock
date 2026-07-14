@@ -965,18 +965,23 @@ export default function MyPage() {
                     <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 14, flexWrap: 'wrap' }}>
                       <span style={{ fontSize: 'var(--font-size-xs)', color: 'var(--color-text-light)', fontWeight: 700 }}>{ja ? '集計対象' : 'Window'}</span>
                       <div style={{ display: 'inline-flex', border: '1px solid var(--color-border)', borderRadius: 'var(--border-radius-full)', overflow: 'hidden' }}>
-                        {([10, 20, 30] as const).map((w) => {
-                          const active = recentWindow === w;
-                          return (
-                            <button
-                              key={w}
-                              onClick={() => setRecentWindow(w)}
-                              style={{ border: 'none', borderLeft: w === 10 ? 'none' : '1px solid var(--color-border)', background: active ? 'var(--color-primary)' : 'transparent', color: active ? 'var(--color-btn-primary-text, #fff)' : 'var(--color-text-sub)', fontSize: 'var(--font-size-xs)', fontWeight: 700, padding: '5px 14px', cursor: 'pointer', transition: 'background 0.15s' }}
-                            >
-                              {ja ? `直近${w}問` : `Last ${w}`}
-                            </button>
-                          );
-                        })}
+                        {(() => {
+                          const maxEx = Math.max(0, ...domainStats.map(s => (s.recentResults ?? []).length));
+                          return ([10, 20, 30] as const).map((w) => {
+                            const active = recentWindow === w;
+                            const disabled = w - 10 >= maxEx;
+                            return (
+                              <button
+                                key={w}
+                                onClick={() => !disabled && setRecentWindow(w)}
+                                disabled={disabled}
+                                style={{ border: 'none', borderLeft: w === 10 ? 'none' : '1px solid var(--color-border)', background: active ? 'var(--color-primary)' : 'transparent', color: disabled ? 'var(--color-text-light)' : active ? 'var(--color-btn-primary-text, #fff)' : 'var(--color-text-sub)', fontSize: 'var(--font-size-xs)', fontWeight: 700, padding: '5px 14px', cursor: disabled ? 'default' : 'pointer', opacity: disabled ? 0.4 : 1, transition: 'background 0.15s' }}
+                              >
+                                {ja ? `直近${w}問` : `Last ${w}`}
+                              </button>
+                            );
+                          });
+                        })()}
                       </div>
                     </div>
                     <div style={{ display: 'flex', flexDirection: 'column', gap: 0 }}>
