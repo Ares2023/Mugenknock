@@ -41,24 +41,28 @@ AWS Certified Advanced Networking – Specialty (ANS-C01) の模擬試験問題�
 【公式試験ガイド概要 (ANS-C01)】
 ■ 公式タスク文（出題で必ずカバーすること）
 【第1ドメイン：ネットワーク設計】
-- Task 1.1: グローバルアーキテクチャのユーザーパフォーマンスとトラフィック管理を最適化するエッジネットワークサービスを組み込んだソリューションを設計する
-- Task 1.2: パブリック・プライベート・ハイブリッド要件を満たすDNSソリューションを設計する
-- Task 1.3: 高可用性・スケーラビリティ・セキュリティ要件を満たすロードバランシングを統合したソリューションを設計する
-- Task 1.4: AWSとハイブリッドネットワーク全体のロギング・モニタリング要件を定義する
-- Task 1.5: セキュリティとコンプライアンス要件を満たすネットワークアーキテクチャを設計する
+- Task 1.1: グローバルアーキテクチャのユーザーパフォーマンスとトラフィック管理を最適化するエッジネットワークサービスを組み込んだソリューションを設計する（CloudFront・Global Accelerator・Route 53 ルーティングポリシー・レイテンシー最適化）
+- Task 1.2: パブリック・プライベート・ハイブリッド要件を満たすDNSソリューションを設計する（Route 53 Resolver・プライベートホストゾーン・条件付き転送・ハイブリッドDNS・Split-horizon）
+- Task 1.3: 高可用性・スケーラビリティ・セキュリティ要件を満たすロードバランシングを統合したソリューションを設計する（ALB・NLB・GLB・スティッキーセッション・クロスゾーン負荷分散・ターゲットグループ）
+- Task 1.4: AWSとハイブリッドネットワーク全体のロギング・モニタリング要件を定義する（VPC Flow Logs・CloudTrail・CloudWatch・Reachability Analyzer・Network Access Analyzer）
+- Task 1.5: セキュリティとコンプライアンス要件を満たすネットワークアーキテクチャを設計する（Network Firewall・WAF・Shield・Security Groups・NACLs・PrivateLink・VPC Endpoints）
+
 【第2ドメイン：ネットワーク実装】
-- Task 2.1: オンプレミス環境とAWSクラウド間のルーティングと接続性を実装する
-- Task 2.2: 異なる接続パターンをサポートするために複数のAWSアカウント・リージョン・VPC間のルーティングと接続性を実装する
-- Task 2.3: 複雑なハイブリッドおよびマルチアカウントDNSアーキテクチャを実装する
-- Task 2.4: ネットワークインフラストラクチャを自動化・設定する
+- Task 2.1: オンプレミス環境とAWSクラウド間のルーティングと接続性を実装する（Direct Connect・Site-to-Site VPN・Client VPN・BGP・MACsec・LAG・Virtual Interface種類）
+- Task 2.2: 異なる接続パターンをサポートするために複数のAWSアカウント・リージョン・VPC間のルーティングと接続性を実装する（Transit Gateway・VPCピアリング・RAM・PrivateLink・Shared VPC・VPC Lattice）
+- Task 2.3: 複雑なハイブリッドおよびマルチアカウントDNSアーキテクチャを実装する（Route 53 Resolver Endpoints・転送ルール・プライベートゾーン共有・オンプレDNS統合）
+- Task 2.4: ネットワークインフラストラクチャを自動化・設定する（CloudFormation・CDK・Systems Manager・Network Manager・AWS CLI）
+
 【第3ドメイン：ネットワーク管理と運用】
-- Task 3.1: AWSとハイブリッドネットワーク上のルーティングと接続性を維持する
-- Task 3.2: 接続パターンを最適化するためにネットワークトラフィックを監視・分析する
-- Task 3.3: コスト効率・信頼性・パフォーマンスのためにAWSネットワークを最適化する
+- Task 3.1: AWSとハイブリッドネットワーク上のルーティングと接続性を維持する（BGPフェイルオーバー・Direct Connect冗長性・BFD・ルート集約・トラブルシューティング）
+- Task 3.2: 接続パターンを最適化するためにネットワークトラフィックを監視・分析する（VPC Flow Logs分析・Traffic Mirroring・CloudWatch メトリクス・Network Manager・パフォーマンス最適化）
+- Task 3.3: コスト効率・信頼性・パフォーマンスのためにAWSネットワークを最適化する（データ転送コスト・Placement Groups・Enhanced Networking・SR-IOV・ECMP・帯域幅最適化）
+
 【第4ドメイン：ネットワークのセキュリティ、コンプライアンス、ガバナンス】
-- Task 4.1: セキュリティとコンプライアンスのニーズと要件を満たすネットワーク機能を実装・維持する
-- Task 4.2: ネットワークモニタリング・ロギングサービスを使ってセキュリティを検証・監査する
-- Task 4.3: 複雑なマルチアカウント環境でVPCを実装・使用する
+- Task 4.1: セキュリティとコンプライアンスのニーズと要件を満たすネットワーク機能を実装・維持する（Network Firewall・WAF・Shield Advanced・Firewall Manager・AWS Verified Access・PrivateLink）
+- Task 4.2: ネットワークモニタリング・ロギングサービスを使ってセキュリティを検証・監査する（VPC Flow Logs・CloudTrail・Config Rules・Security Hub・GuardDuty・Detective）
+- Task 4.3: 複雑なマルチアカウント環境でVPCを実装・使用する（RAM・Transit Gateway・Shared VPC・PrivateLink・VPC Endpoints・Service Endpoint Policies）
+
 ■ 出題範囲の主要サービスと概念
 - VPC: サブネット設計, CIDR, ルートテーブル, VPCピアリング, VPC Lattice, Shared VPC
 - 接続性: Direct Connect (Gateway・LAG・Virtual Interface・MACsec), Transit Gateway, Site-to-Site VPN, Client VPN, PrivateLink, VPC Endpoints

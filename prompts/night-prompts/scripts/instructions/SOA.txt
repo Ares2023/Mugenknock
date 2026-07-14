@@ -30,20 +30,34 @@ AWS Certified SysOps Administrator – Associate (SOA-C03) の模擬試験問題
 【公式試験ガイド概要 (SOA-C03)】
 ■ 公式タスク文（出題で必ずカバーすること）
 【第1ドメイン：モニタリング、ロギング、分析、修復、およびパフォーマンスの最適化】
-- Task 1.1: AWSのモニタリング・ロギングサービスを使ってメトリクス・アラーム・フィルターを実装する
-- Task 1.2: モニタリングと可用性メトリクスに基づいて問題を修復する
-- Task 1.3: パフォーマンスを最適化する
+- Task 1.1: AWSのモニタリング・ロギングサービスを使ってメトリクス・アラーム・フィルターを実装する（CloudWatch カスタムメトリクス・Logs Insights・Contributor Insights・CloudTrail・VPC Flow Logs）
+- Task 1.2: モニタリングと可用性メトリクスに基づいて問題を修復する（Auto Scaling・Systems Manager Automation・EventBridge ルール・Lambda修復・AWS Health）
+- Task 1.3: パフォーマンスを最適化する（Compute Optimizer・RDS Performance Insights・ElastiCache・CloudFront・EC2インスタンス適正化）
+
 【第2ドメイン：信頼性とビジネス継続性】
-- Task 2.1: スケーラビリティと弾力性を実装する
-- Task 2.2: 高可用性と弾力性に優れた環境を実装する
-- Task 2.3: バックアップと復元戦略を実装する
+- Task 2.1: スケーラビリティと弾力性を実装する（Auto Scaling グループ・スケーリングポリシー・Application Auto Scaling・Spot Fleet）
+- Task 2.2: 高可用性と弾力性に優れた環境を実装する（Multi-AZ・ALB/NLB・Route 53ヘルスチェック・EFS・RDS Read Replica）
+- Task 2.3: バックアップと復元戦略を実装する（AWS Backup・RDSスナップショット・EBSスナップショット・S3バージョニング・DynamoDBポイントインタイムリカバリ）
+
 【第3ドメイン：デプロイ、プロビジョニング、および自動化】
-- Task 3.1: クラウドリソースをプロビジョニング・維持する
-- Task 3.2: 手動または繰り返しプロセスを自動化する
+- Task 3.1: クラウドリソースをプロビジョニング・維持する（CloudFormation・Systems Manager・Elastic Beanstalk・EC2 Auto Scaling・AMI管理）
+- Task 3.2: 手動または繰り返しプロセスを自動化する（Systems Manager Run Command・Automation・State Manager・Patch Manager・EventBridge・Lambda）
+
 【第4ドメイン：セキュリティとコンプライアンス】
-- Task 4.1: セキュリティおよびコンプライアンスポリシーを実装・管理する
-- Task 4.2: データとインフラストラクチャの保護戦略を実装する
+- Task 4.1: セキュリティおよびコンプライアンスポリシーを実装・管理する（IAM・SCPs・Config Rules・Security Hub・GuardDuty・Inspector・Trusted Advisor）
+- Task 4.2: データとインフラストラクチャの保護戦略を実装する（KMS・ACM・WAF・Shield・S3バケットポリシー・セキュリティグループ・NACL）
+
 【第5ドメイン：ネットワークとコンテンツ配信】
-- Task 5.1: ネットワーク機能と接続性を実装する
-- Task 5.2: ドメイン・DNSサービス・コンテンツ配信を設定する
-- Task 5.3: ネットワーク接続の問題をトラブルシューティングする
+- Task 5.1: ネットワーク機能と接続性を実装する（VPC・サブネット・ルートテーブル・VPCピアリング・Transit Gateway・Direct Connect・VPN・PrivateLink）
+- Task 5.2: ドメイン・DNSサービス・コンテンツ配信を設定する（Route 53 ルーティングポリシー・ヘルスチェック・CloudFront・Global Accelerator・ACM）
+- Task 5.3: ネットワーク接続の問題をトラブルシューティングする（VPC Flow Logs・Reachability Analyzer・Network Access Analyzer・セキュリティグループ診断）
+
+■ 出題範囲の主要サービス
+- モニタリング: CloudWatch (Logs・Metrics・Alarms・Dashboards・Logs Insights・Contributor Insights), CloudTrail, AWS Config, X-Ray, AWS Health
+- 自動化・運用: Systems Manager (Run Command・Automation・State Manager・Patch Manager・Parameter Store・Session Manager), EventBridge, Lambda
+- デプロイ: CloudFormation (StackSets・変更セット・ドリフト検出), Elastic Beanstalk, CodeDeploy, OpsWorks
+- コンピューティング: EC2 (AMI・Auto Scaling・スケーリングポリシー), ECS, Fargate, Lambda
+- ストレージ・バックアップ: S3, EBS, EFS, AWS Backup, Elastic Disaster Recovery
+- ネットワーク: VPC, Route 53, CloudFront, ALB/NLB, Global Accelerator, Direct Connect, Transit Gateway
+- セキュリティ: IAM, KMS, WAF, Shield, GuardDuty, Inspector, Security Hub, Config Rules
+- データベース: RDS (Multi-AZ・Read Replica・Performance Insights), DynamoDB, ElastiCache
