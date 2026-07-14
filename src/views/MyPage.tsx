@@ -1204,7 +1204,7 @@ export default function MyPage() {
                           {[...row.exams].sort((a, b) =>
                             (obtainedCerts.includes(b) ? 1 : 0) - (obtainedCerts.includes(a) ? 1 : 0)
                           ).map(exam => (
-                            <CertHex key={exam} exam={exam} obtained={obtainedCerts.includes(exam)} color={row.color} size={41} />
+                            <CertHex key={exam} exam={exam} obtained={obtainedCerts.includes(exam)} color={row.color} size={50} />
                           ))}
                         </div>
                       ))}
