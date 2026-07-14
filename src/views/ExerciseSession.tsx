@@ -8,6 +8,7 @@ import { qText } from '../utils/i18nQuestion';
 import { getCached, setCached, deleteCached, DEFAULT_TTL } from '../utils/cache';
 import { addPoints } from '../utils/points';
 import { incrementDailyProgress } from '../utils/dailyProgress';
+import { lockBodyScroll } from '../utils/bodyScrollLock';
 import { schedulePrefetchAfterSession } from '../utils/questionPrefetch';
 import { useAuth } from '../contexts/AuthContext';
 import { useLanguage } from '../contexts/LanguageContext';
@@ -463,8 +464,8 @@ export default function ExerciseSession() {
   const [showAbortConfirm, setShowAbortConfirm] = useState(false);
 
   useEffect(() => {
-    document.body.style.overflow = showAbortConfirm ? 'hidden' : '';
-    return () => { document.body.style.overflow = ''; };
+    if (!showAbortConfirm) return;
+    return lockBodyScroll();
   }, [showAbortConfirm]);
 
   // ドラフト保存 — 常に最新値を ref に保持し、状態変化時と beforeunload 両方で保存する

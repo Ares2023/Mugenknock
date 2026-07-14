@@ -5,6 +5,7 @@ import { Helmet } from '@/compat/react-helmet-async';
 import { useNavigate } from '@/compat/react-router-dom';
 import { API_ENDPOINT, EXAM_DOMAINS, EXAM_DOMAIN_SERVICES, EXAM_TYPES, DOMAIN_NAME_EN, EXAM_CONFIGS, DOMAIN_RATE_WARNING, DOMAIN_RATE_CAUTION, PASS_SCORES, EXAM_LEVEL, EXAM_LEVEL_COLORS, tagIdMatches, toDomainIndex } from '../constants';
 import { syncPreferencesToServer, syncTargetExamToServer, collectExamDatesFromLocal } from '../utils/preferences';
+import { lockBodyScroll } from '../utils/bodyScrollLock';
 import { useAuth } from '../contexts/AuthContext';
 import { useLanguage } from '../contexts/LanguageContext';
 import Card from '../components/ui/Card';
@@ -190,12 +191,12 @@ export default function MyPage() {
   }, [user?.userId]); // eslint-disable-line react-hooks/exhaustive-deps
 
 
-  // ── オーバーレイ表示中は body スクロール無効 ──
+  // ── オーバーレイ表示中は body スクロール・横スワイプ無効 ──
   useEffect(() => {
     const anyOpen = showSettingsEdit || showExamSelect || showWeeklyDetail || showCertOverlay || !!questionModal;
-    document.body.style.overflow = anyOpen ? 'hidden' : '';
-    return () => { document.body.style.overflow = ''; };
-  }, [showSettingsEdit, showExamSelect, showWeeklyDetail]);
+    if (!anyOpen) return;
+    return lockBodyScroll();
+  }, [showSettingsEdit, showExamSelect, showWeeklyDetail, showCertOverlay, questionModal]);
 
   // ── 週間達成度 ──
   const weekDays = Array.from({ length: 7 }, (_, i) => {
@@ -1213,7 +1214,7 @@ export default function MyPage() {
                           {[...row.exams].sort((a, b) =>
                             (obtainedCerts.includes(b) ? 1 : 0) - (obtainedCerts.includes(a) ? 1 : 0)
                           ).map(exam => (
-                            <CertHex key={exam} exam={exam} obtained={obtainedCerts.includes(exam)} color={row.color} size={50} />
+                            <CertHex key={exam} exam={exam} obtained={obtainedCerts.includes(exam)} color={row.color} size={45} />
                           ))}
                         </div>
                       ))}

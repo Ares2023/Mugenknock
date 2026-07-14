@@ -7,6 +7,7 @@ import { useTheme } from '../contexts/ThemeContext';
 import { API_ENDPOINT, EXAM_TYPES, EXAM_CONFIGS, EXAM_LEVEL, EXAM_LEVEL_COLORS } from '../constants';
 import { getPoints, fetchPointsFromServer } from '../utils/points';
 import { loadTargetExamFromServer } from '../utils/preferences';
+import { lockSwipe } from '../utils/bodyScrollLock';
 import { initKvSync } from '../utils/kvSync';
 import Breadcrumb from './Breadcrumb';
 import Button from './ui/Button';
@@ -330,12 +331,14 @@ export default function Layout({ children }: { children: React.ReactNode }) {
     document.body.style.position = 'fixed';
     document.body.style.top = `-${scrollY}px`;
     document.body.style.width = '100%';
+    const unlockSwipe = lockSwipe();
     return () => {
       document.body.style.overflow = '';
       document.body.style.position = '';
       document.body.style.top = '';
       document.body.style.width = '';
       window.scrollTo(0, scrollY);
+      unlockSwipe();
     };
   }, [showContact, showPointsInfo]);
 

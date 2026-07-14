@@ -3,6 +3,7 @@ import React, { useState, useEffect, useRef, useMemo, useCallback } from 'react'
 import { createPortal } from 'react-dom';
 import { useNavigate, useLocation } from '@/compat/react-router-dom';
 import { API_ENDPOINT, EXAM_CONFIGS, PASS_RATE, EXAM_LEVEL } from '../constants';
+import { lockBodyScroll } from '../utils/bodyScrollLock';
 import { recordSessionDomainStats } from '../utils/domainStats';
 import { qText, qChoiceAt } from '../utils/i18nQuestion';
 import { deleteCached } from '../utils/cache';
@@ -435,8 +436,8 @@ export default function ExamSession() {
 
   useEffect(() => {
     const anyOpen = paused || showConfirm || showAbortConfirm;
-    document.body.style.overflow = anyOpen ? 'hidden' : '';
-    return () => { document.body.style.overflow = ''; };
+    if (!anyOpen) return;
+    return lockBodyScroll();
   }, [paused, showConfirm, showAbortConfirm]);
 
   useEffect(() => {

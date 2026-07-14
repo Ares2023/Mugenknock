@@ -14,6 +14,7 @@ import {
   tagIdMatches, domainsToIndices, storedDomainsToNames,
 } from '../constants';
 import { readDomainResults, readDomainHistory } from '../utils/domainStats';
+import { lockBodyScroll, lockSwipe } from '../utils/bodyScrollLock';
 import { getCached, setCached, deleteCached, DEFAULT_TTL, getCachedPersist, setCachedPersist, deleteCachedPersist } from '../utils/cache';
 import { animateLoadPct, randomPlateau } from '../utils/loadProgress';
 import { getPoints, deductPoints } from '../utils/points';
@@ -214,9 +215,7 @@ function CombinedDetailModal({ targetExam, domainAccList, estimatedScore, passSc
   }, [tab, showCalc]);
 
   useEffect(() => {
-    const prev = document.body.style.overflow;
-    document.body.style.overflow = 'hidden';
-    return () => { document.body.style.overflow = prev; };
+    return lockBodyScroll();
   }, []);
 
   useEffect(() => {
@@ -1837,12 +1836,14 @@ export default function Home() {
     document.body.style.position = 'fixed';
     document.body.style.top = `-${scrollY}px`;
     document.body.style.width = '100%';
+    const unlockSwipe = lockSwipe();
     return () => {
       document.body.style.overflow = '';
       document.body.style.position = '';
       document.body.style.top = '';
       document.body.style.width = '';
       window.scrollTo(0, scrollY);
+      unlockSwipe();
     };
   }, [showQuickModal, showFocusedModal, showCombinedDetail, showNewPanel, showFocusedMenu, isMobile]);
 

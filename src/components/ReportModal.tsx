@@ -2,6 +2,7 @@
 import React, { useState, useEffect } from 'react';
 import { API_ENDPOINT } from '../constants';
 import Button from './ui/Button';
+import { lockBodyScroll } from '../utils/bodyScrollLock';
 
 type Category = 'question_error' | 'choice_error' | 'explanation_error' | 'other';
 
@@ -27,9 +28,7 @@ export default function ReportModal({ questionId, userId, lang, onClose }: Props
   const [error, setError] = useState(false);
 
   useEffect(() => {
-    const prev = document.body.style.overflow;
-    document.body.style.overflow = 'hidden';
-    return () => { document.body.style.overflow = prev; };
+    return lockBodyScroll();
   }, []);
 
   const handleSubmit = async () => {
