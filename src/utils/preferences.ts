@@ -49,7 +49,7 @@ export async function loadTargetExamFromServer(userId: string, uid: string): Pro
 export async function syncPreferencesToServer(
   userId: string,
   uid: string,
-  patch: { examDates?: Record<string, string>; dailyGoal?: number },
+  patch: { examDates?: Record<string, string>; dailyGoal?: number; obtainedCerts?: string[] },
 ): Promise<void> {
   try {
     await fetch(`${API_ENDPOINT}/users/me/preferences`, {

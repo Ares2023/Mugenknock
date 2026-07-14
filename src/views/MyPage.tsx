@@ -177,6 +177,14 @@ export default function MyPage() {
           localStorage.setItem(`dailyGoal_${uid}`, String(serverGoal));
           setDailyGoal(serverGoal);
         }
+        // 取得済資格（サーバー優先・ローカルとマージして和集合）
+        if (Array.isArray(data.obtainedCerts) && data.obtainedCerts.length > 0) {
+          setObtainedCerts(prev => {
+            const merged = [...new Set([...prev, ...data.obtainedCerts])];
+            localStorage.setItem(`obtainedCerts_${uid}`, JSON.stringify(merged));
+            return merged;
+          });
+        }
       })
       .catch(() => {});
   }, [user?.userId]); // eslint-disable-line react-hooks/exhaustive-deps
@@ -318,6 +326,7 @@ export default function MyPage() {
       const isObtained = prev.includes(exam);
       const next = isObtained ? prev.filter(e => e !== exam) : [...prev, exam];
       localStorage.setItem(`obtainedCerts_${uid}`, JSON.stringify(next));
+      if (user) syncPreferencesToServer(user.userId, uid, { obtainedCerts: next });
       if (!isObtained) {
         const r = btnEl.getBoundingClientRect();
         const color = EXAM_LEVEL_COLORS[EXAM_LEVEL[exam]] ?? 'var(--color-primary)';
