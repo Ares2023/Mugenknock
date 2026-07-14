@@ -14,7 +14,7 @@ import {
   tagIdMatches, domainsToIndices, storedDomainsToNames,
 } from '../constants';
 import { readDomainResults, readDomainHistory } from '../utils/domainStats';
-import { lockBodyScroll, lockSwipe } from '../utils/bodyScrollLock';
+import { lockBodyScroll } from '../utils/bodyScrollLock';
 import { getCached, setCached, deleteCached, DEFAULT_TTL, getCachedPersist, setCachedPersist, deleteCachedPersist } from '../utils/cache';
 import { animateLoadPct, randomPlateau } from '../utils/loadProgress';
 import { getPoints, deductPoints } from '../utils/points';
@@ -1826,25 +1826,12 @@ export default function Home() {
     }
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
-  // オーバーレイ表示中は body スクロール無効（iOS Safari 対応で position:fixed 方式）
+  // オーバーレイ表示中は body スクロール・横スワイプ無効
   useEffect(() => {
     const anyOpen = showQuickModal || showFocusedModal || showCombinedDetail ||
       (isMobile && (showNewPanel || showFocusedMenu));
     if (!anyOpen) return;
-    const scrollY = window.scrollY;
-    document.body.style.overflow = 'hidden';
-    document.body.style.position = 'fixed';
-    document.body.style.top = `-${scrollY}px`;
-    document.body.style.width = '100%';
-    const unlockSwipe = lockSwipe();
-    return () => {
-      document.body.style.overflow = '';
-      document.body.style.position = '';
-      document.body.style.top = '';
-      document.body.style.width = '';
-      window.scrollTo(0, scrollY);
-      unlockSwipe();
-    };
+    return lockBodyScroll();
   }, [showQuickModal, showFocusedModal, showCombinedDetail, showNewPanel, showFocusedMenu, isMobile]);
 
   // ドメイン別成績（サーバー統計優先、ゲスト/オフライン時はローカル履歴）
