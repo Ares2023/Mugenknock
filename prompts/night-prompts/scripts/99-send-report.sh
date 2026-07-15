@@ -509,12 +509,27 @@ if [ -x "$CANARY_SCRIPT" ]; then
   CANARY_TMP=$(mktemp /tmp/canary_out_XXXX.txt)
   bash "$CANARY_SCRIPT" > "$CANARY_TMP" 2>&1
   CANARY_EXIT=$?
-  CANARY_PASS=$(awk '/✓/{c++} END{print c+0}' "$CANARY_TMP")
-  CANARY_FAIL=$(awk '/✘/{c++} END{print c+0}' "$CANARY_TMP")
-  CANARY_WARNINGS=$(awk '/⚠️/{c++} END{print c+0}' "$CANARY_TMP")
+  # canary.sh 自身が出力する権威あるサマリー行（" passed=X  failed=Y  warnings=Z"）を信頼する。
+  # ✓/✘ マークの再カウントはログ本文や S3 パス（mugenknock-error-logs 等）を巻き込んで
+  # 実態と乖離するため使わない。
+  CANARY_SUMMARY_LINE=$(grep -oE 'passed=[0-9]+[[:space:]]+failed=[0-9]+[[:space:]]+warnings=[0-9]+' "$CANARY_TMP" | tail -1)
+  if [ -n "$CANARY_SUMMARY_LINE" ]; then
+    CANARY_PASS=$(echo "$CANARY_SUMMARY_LINE" | grep -oE 'passed=[0-9]+' | cut -d= -f2)
+    CANARY_FAIL=$(echo "$CANARY_SUMMARY_LINE" | grep -oE 'failed=[0-9]+' | cut -d= -f2)
+    CANARY_WARNINGS=$(echo "$CANARY_SUMMARY_LINE" | grep -oE 'warnings=[0-9]+' | cut -d= -f2)
+  else
+    CANARY_PASS=$(awk '/✓/{c++} END{print c+0}' "$CANARY_TMP")
+    CANARY_FAIL=$(awk '/✘/{c++} END{print c+0}' "$CANARY_TMP")
+    CANARY_WARNINGS=$(awk '/⚠️/{c++} END{print c+0}' "$CANARY_TMP")
+  fi
   CANARY_RESULT="$([ "$CANARY_EXIT" -eq 0 ] && echo '✅ PASS' || echo '❌ FAIL') (passed=${CANARY_PASS} failed=${CANARY_FAIL} warnings=${CANARY_WARNINGS})"
-  # 失敗詳細（最大20行）
-  CANARY_DETAIL=$(grep -E "✘|Error|FAIL|error" "$CANARY_TMP" | head -80 || true)
+  # 失敗詳細は FAIL 時のみ・実マーカー（✘/❌/FAIL）に限定する。
+  # PASS 時に "error" 部分一致で S3 パス等を拾い赤字表示していた誤りを防ぐ。
+  if [ "$CANARY_EXIT" -ne 0 ]; then
+    CANARY_DETAIL=$(grep -E "✘|❌|FAIL" "$CANARY_TMP" | head -80 || true)
+  else
+    CANARY_DETAIL=""
+  fi
   rm -f "$CANARY_TMP"
   echo "  $CANARY_RESULT"
   [ -n "$CANARY_DETAIL" ] && echo "  失敗詳細:" && echo "$CANARY_DETAIL" | sed 's/^/    /'
@@ -532,10 +547,17 @@ if [ -x "$CANARY_AUTH_SCRIPT" ]; then
   if grep -q "RESULT=SKIP" "$CA_TMP"; then
     CANARY_AUTH_RESULT="⏭️ SKIP（認証情報未設定）"
   else
-    CA_PASS=$(awk '/✓|passed/{c++} END{print c+0}' "$CA_TMP")
-    CA_FAIL=$(awk '/✘|failed/{c++} END{print c+0}' "$CA_TMP")
+    # canary-auth.sh が末尾に出す "RESULT=PASS passed=X failed=Y" を信頼する。
+    # 旧実装は awk /passed|failed/ でこのサマリー行自体の単語まで数え、
+    # 実際は失敗0でも passed/failed を水増し（毎晩 failed=2）していた。
+    CA_RESULT_LINE=$(grep -E '^RESULT=' "$CA_TMP" | tail -1)
+    CA_PASS=$(echo "$CA_RESULT_LINE" | grep -oE 'passed=[0-9]+' | cut -d= -f2); CA_PASS=${CA_PASS:-0}
+    CA_FAIL=$(echo "$CA_RESULT_LINE" | grep -oE 'failed=[0-9]+' | cut -d= -f2); CA_FAIL=${CA_FAIL:-0}
     CANARY_AUTH_RESULT="$([ "$CA_EXIT" -eq 0 ] && echo '✅ PASS' || echo '❌ FAIL') (passed=${CA_PASS} failed=${CA_FAIL})"
-    CANARY_AUTH_DETAIL=$(grep -E "✘|Error|FAIL|error" "$CA_TMP" | head -80 || true)
+    # 失敗詳細は FAIL 時のみ・実マーカーに限定（error 部分一致のノイズを排除）。
+    if [ "$CA_EXIT" -ne 0 ]; then
+      CANARY_AUTH_DETAIL=$(grep -E "✘|❌|FAIL" "$CA_TMP" | head -80 || true)
+    fi
   fi
   rm -f "$CA_TMP"
   echo "  認証カナリア: $CANARY_AUTH_RESULT"
@@ -551,8 +573,8 @@ NL_DIR="$NIGHT_PROMPTS_DIR/logs"
 # 出力は行頭マーカーで構造化し、メール側の audit_to_html が装飾する:
 #   1行目=ヘッダ / 【〜】=小見出し / ⚠・✖=指摘問題 / ・=指摘詳細 / ✅=改良適用 / その他=本文
 # 文字数スライスはしない（全文を載せる。途切れ防止）
-AUDIT_SUMMARY=$(NL="$NL_DIR" python3 << 'PYEOF'
-import os, glob, json, re
+AUDIT_SUMMARY=$(NL="$NL_DIR" TODAY="$TODAY" python3 << 'PYEOF'
+import os, glob, json, re, datetime
 from collections import Counter
 nl = os.environ['NL']
 js = sorted(p for p in glob.glob(os.path.join(nl, 'audit_*.json')) if p.endswith('.json'))
@@ -581,7 +603,23 @@ if flagged:
         for issue in (r.get('issues') or []):
             lines.append(f"・{issue}")
 
-imp = sorted(glob.glob(os.path.join(nl, 'audit_*_improvement.md')))
+# 直近3日以内に生成された改良のみ対象にする。最新ファイルを無条件に読むと、
+# 何日も前に一度適用した改良を毎晩「今夜の成果」として重複再掲してしまうため。
+try:
+    _base = datetime.datetime.strptime(os.environ.get('TODAY', ''), '%Y%m%d').date()
+except Exception:
+    _base = datetime.date.today()
+_cutoff = _base - datetime.timedelta(days=3)
+def _imp_date(p):
+    m = re.search(r'audit_(\d{8})_', os.path.basename(p))
+    if not m:
+        return None
+    try:
+        return datetime.datetime.strptime(m.group(1), '%Y%m%d').date()
+    except Exception:
+        return None
+imp = sorted(p for p in glob.glob(os.path.join(nl, 'audit_*_improvement.md'))
+             if (_d := _imp_date(p)) and _d >= _cutoff)
 if imp:
     txt = open(imp[-1]).read()
     m = re.search(r'適用 (\d+)件 / 見送り (\d+)件', txt)
@@ -595,7 +633,7 @@ if imp:
         reason = ' '.join(fm.group(2).split())
         lines.append(f"✅ {fm.group(1)}: {reason}")
 else:
-    lines.append('【プロンプト自動改良】なし')
+    lines.append('【プロンプト自動改良】直近3日は改良なし')
 print('\n'.join(lines))
 PYEOF
 )
@@ -609,6 +647,12 @@ md = sorted(glob.glob(os.path.join(nl, 'canary-coverage_*.md')))
 if not md:
     print('整合性チェック未実施'); raise SystemExit
 txt = open(md[-1]).read()
+# 整合性チェック自体が失敗した回（Claudeの判定/JSON抽出エラー）は、
+# 「所見:(判定失敗) / 対応:JSON抽出失敗のため未対応」を生のまま載せると
+# 毎回の障害表示になり紛らわしいので、簡潔な1行に丸める。
+if '(判定失敗)' in txt or 'JSON抽出失敗' in txt:
+    print('整合性チェック: 今回は判定不可（実行時エラーによりスキップ）')
+    raise SystemExit
 out = []
 # 所見・対応はセクション全体を取り込む（行頭 .+ の1行マッチだと複数行の文章が初行で途切れる）
 m = re.search(r'## 所見\s*\n(.*?)(?=\n## |\Z)', txt, re.S)
@@ -699,7 +743,7 @@ def dynamo_get(table, key_json):
         r = subprocess.run(
             [aws, 'dynamodb', 'get-item', '--table-name', table,
              '--key', key_json, '--region', reg],
-            capture_output=True, text=True, timeout=45)
+            capture_output=True, text=True, timeout=60)
         if r.returncode != 0:
             return None
         return json.loads(r.stdout).get('Item')
@@ -713,7 +757,7 @@ def dynamo_query(table, key_expr, expr_vals):
              '--key-condition-expression', key_expr,
              '--expression-attribute-values', json.dumps(expr_vals),
              '--region', reg, '--select', 'COUNT'],
-            capture_output=True, text=True, timeout=45)
+            capture_output=True, text=True, timeout=60)
         if r.returncode != 0:
             return None
         return json.loads(r.stdout).get('Count')
