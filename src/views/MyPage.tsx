@@ -1183,10 +1183,14 @@ export default function MyPage() {
                   const CertHex = ({ exam, obtained, color, size = 38 }: { exam: string; obtained: boolean; color: string; size?: number }) => {
                     const ExamIcon = EXAM_ICON_COMPONENTS[exam];
                     const inner = Math.round(size * 0.88);
+                    const hexH = Math.round(size * 1.15);
+                    const innerH = Math.round(inner * 1.15);
+                    const grayOpacity = 0.6;
                     return (
                       <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 3 }}>
-                        <div style={{ width: size, height: Math.round(size * 1.15), background: obtained ? color : 'var(--color-text-light)', clipPath: HEX, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-                          <div style={{ width: inner, height: Math.round(inner * 1.15), background: obtained ? 'var(--color-bg-white)' : 'var(--color-bg-main)', clipPath: HEX, display: 'flex', alignItems: 'center', justifyContent: 'center', color: obtained ? color : 'var(--color-border)', opacity: obtained ? 1 : 0.8 }}>
+                        <div style={{ position: 'relative', width: size, height: hexH, flexShrink: 0 }}>
+                          <div style={{ position: 'absolute', inset: 0, background: obtained ? color : 'var(--color-text-light)', clipPath: HEX, opacity: obtained ? 1 : grayOpacity }} />
+                          <div style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)', width: inner, height: innerH, background: obtained ? 'var(--color-bg-white)' : 'var(--color-bg-main)', clipPath: HEX, display: 'flex', alignItems: 'center', justifyContent: 'center', color: obtained ? color : 'var(--color-text-light)', opacity: obtained ? 1 : grayOpacity }}>
                             {ExamIcon && <ExamIcon size={Math.round(size * 0.42)} />}
                           </div>
                         </div>
