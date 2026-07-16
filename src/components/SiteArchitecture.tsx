@@ -103,6 +103,18 @@ export function SiteArchitecture({ ja, isMobile }: { ja: boolean; isMobile: bool
         @media (prefers-reduced-motion: reduce) { .arch-node, .arch-line { animation: none !important; } }
       `}</style>
 
+      {/* 導入：AWS資格の学習サイトが、実はAWS自身で動いているという気づき */}
+      <div className="arch-node" style={{ width: '100%', marginBottom: isMobile ? 16 : 20, padding: isMobile ? '12px 14px' : '14px 18px', background: 'var(--color-primary-light)', border: '1px solid var(--color-primary)', borderRadius: 'var(--border-radius-lg)', animationDelay: '0ms' }}>
+        <div style={{ fontWeight: 800, fontSize: isMobile ? 'var(--font-size-base)' : 'var(--font-size-lg)', color: 'var(--color-primary)', marginBottom: 4 }}>
+          {ja ? '実は、この学習サイト自体も AWS で動いています。' : 'This study site itself runs on AWS.'}
+        </div>
+        <div style={{ fontSize: isMobile ? 'var(--font-size-xs)' : 'var(--font-size-sm)', color: 'var(--color-text-sub)', lineHeight: 1.7 }}>
+          {ja
+            ? 'AWS 資格の演習サイトが、まさに学習対象の AWS サービス（Lambda・DynamoDB・API Gateway・Cognito）で構築・運用されています。その全体像がこちらです。'
+            : 'An AWS certification practice site, built and operated on the very AWS services you study — Lambda, DynamoDB, API Gateway, Cognito. Here is the whole picture.'}
+        </div>
+      </div>
+
       {MAIN_NODES.map((node, i) => {
         const nodeDelay = delay; delay += step;
         return (
