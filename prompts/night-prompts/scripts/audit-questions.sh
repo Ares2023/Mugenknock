@@ -348,7 +348,9 @@ PYEOF
   while true; do
     _STDOUT_F=$(mktemp /tmp/audit_out_XXXX)
     _STDERR_F=$(mktemp /tmp/audit_err_XXXX)
-    "$CLAUDE_CMD" -p --allowed-tools WebFetch < "$PROMPT_FILE" > "$_STDOUT_F" 2> "$_STDERR_F"
+    # 監査は生成/検証プロンプトを自動改良する仕組みの中核のため opus を明示指定する
+    # （アカウント既定モデルへの依存で意図せず変わるのを防ぐ）。
+    "$CLAUDE_CMD" -p --model opus --allowed-tools WebFetch < "$PROMPT_FILE" > "$_STDOUT_F" 2> "$_STDERR_F"
     AI_EXIT=$?
     RESULT=$(cat "$_STDOUT_F"); _STDERR=$(cat "$_STDERR_F")
     rm -f "$_STDOUT_F" "$_STDERR_F"
