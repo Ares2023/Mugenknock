@@ -1437,9 +1437,11 @@ app.delete('/users/me/data', async (req, res) => {
     // 2. UserQuestionStats 削除
     await deleteItems(T('UserQuestionStats'), questionIds.map(qid => ({ userId, questionId: qid })));
 
-    // 3. UserTagStats 削除（ドメインタグのみ。正準キーは index 文字列）
+    // 3. UserTagStats 削除（正準キー形式 "examType_index" のみ対象にする。
+    //    旧形式の裸index("0","1"...)は全試験で共有されるキーのため、
+    //    ここで触ると他試験の苦手分析データを巻き込んで消してしまう事故になる）
     const domains = EXAM_DOMAINS[examType] || [];
-    const tagIds = domains.map((_, i) => String(i));
+    const tagIds = domains.map((_, i) => `${examType}_${i}`);
     await deleteItems(T('UserTagStats'), tagIds.map(tagId => ({ userId, tagId })));
 
     // 4. Sessions を取得

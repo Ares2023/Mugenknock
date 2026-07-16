@@ -3,7 +3,7 @@ import React, { useState, useEffect, useMemo } from 'react';
 import { Helmet } from '@/compat/react-helmet-async';
 import { useLanguage } from '../contexts/LanguageContext';
 import { useAuth } from '../contexts/AuthContext';
-import { IconLock, IconBean, ServiceIcon, isServiceIconKey, ServiceIconImg } from '../components/Icons';
+import { IconLock, IconBean, ServiceIcon, isServiceIconKey, ServiceIconImg, IconExternalLink } from '../components/Icons';
 import { CATALOG, getDailyService, ServiceEntry } from '../data/awsServiceCatalog';
 import { API_ENDPOINT } from '../constants';
 import PageLayout from '../components/ui/PageLayout';
@@ -499,9 +499,9 @@ export default function ServiceEncyclopedia() {
                 href={selected.docUrl}
                 target="_blank"
                 rel="noopener noreferrer"
-                style={{ fontSize: 'var(--font-size-sm)', color: 'var(--color-primary)', textDecoration: 'none', fontWeight: 600 }}
+                style={{ display: 'inline-flex', alignItems: 'center', gap: 4, fontSize: 'var(--font-size-sm)', color: 'var(--color-primary)', textDecoration: 'none', fontWeight: 600 }}
               >
-                {ja ? '公式ページを見る →' : 'Official page →'}
+                {ja ? '公式ページを見る' : 'Official page'}<IconExternalLink size={13} />
               </a>
             )}
 
