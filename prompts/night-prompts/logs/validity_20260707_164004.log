@@ -1,0 +1,23 @@
+==========================================
+正当性チェック開始: Tue Jul  7 16:40:04 JST 2026
+バッチサイズ: 100問 / チャンクサイズ: 5問
+==========================================
+チェック対象: 100問
+前処理: choices ラベル接頭辞チェック...
+  前処理: ラベル接頭辞なし（全問クリーン）
+チャンク数: 20
+
+--- チャンク 1/20: 5問  開始=16:40:38 ---
+  [FIX  ] clf-7b5ab46a: ①サービス名「Amazon MemoryDB for Redis」は現在「Amazon MemoryDB」に改名済み（Valkey・Redis OSS両対応）。②正解選択肢が全選択肢中最長で文字数からメタ読み可能。choice/explanation/choiceExplanationsを修正。 → 変更: choices, correctAnswers, explanation, choiceExplanations
+  [OK   ] dea-7cefe432
+  [OK   ] clf-0555dce8
+  [OK   ] clf-f3da40ef
+  [FIX  ] dea-fc6fe661: 解説・choiceExplanations[1]でFirehose→OpenSearchの「最短60秒に固定」と記述しているが、公式ドキュメントではOpenSearch向け最小バッファ間隔は0秒（デフォルト300秒）。誤った根拠のため選択肢[1]本文とexplanation・choiceExplanations[1]を正しい300秒デフォルトに修正。 → 変更: choices, explanation, choiceExplanations
+  → 更新完了: OK=3 修正=2 削除=0
+  終了=16:52:23  経過=705秒
+
+--- チャンク 2/20: 5問  開始=16:52:23 ---
+⚠️  レート制限を検出。残りチャンクをスキップ
+stdout: You've hit your session limit · resets 5:10pm (Asia/Tokyo)
+
+完了サマリー: 問題なし=3問 / 自動修正=2問 / 削除=0問

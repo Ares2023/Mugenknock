@@ -75,9 +75,20 @@ def build_item(item: dict) -> dict:
         "isMultiple": len(item["correctAnswers"]) > 1,
     }
     for opt in ("domain", "questionTextEn", "choicesEn", "explanationEn"):
-        if item.get(opt):
+        if item.get(opt) is not None and item.get(opt) != "":
             val = item[opt]
-            built[opt] = [c.strip() for c in val] if isinstance(val, list) else val.strip()
+            if isinstance(val, int):
+                built[opt] = val
+            elif isinstance(val, list):
+                built[opt] = [c.strip() for c in val]
+            else:
+                built[opt] = val.strip()
+    if item.get("correctAnswerIndices"):
+        built["correctAnswerIndices"] = item["correctAnswerIndices"]
+    if item.get("choiceExplanations"):
+        built["choiceExplanations"] = item["choiceExplanations"]
+    if "isMultiple" in item:
+        built["isMultiple"] = item["isMultiple"]
     return built
 
 

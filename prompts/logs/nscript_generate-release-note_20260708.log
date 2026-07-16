@@ -1,0 +1,11 @@
+=== 2026-07-08 04:15:41 | generate-release-note.sh | exit:0 ===
+[release-note] 対象日: 2026-07-07
+[release-note] 2026-07-07: 25件のコミット
+[release-note] 生成結果:
+{
+  "title": "チートシートが大幅パワーアップ！",
+  "body": "検索バーが全資格横断に対応し、どの試験の用語もまとめて一発検索できるようになりました！\n各カードにAI質問用のワンタップコピーボタンも追加、画面遷移アニメーションも滑らかに進化しています。",
+  "titleEn": "Cheat Sheet Got a Major Upgrade!",
+  "bodyEn": "The search bar now covers all certifications at once, so you can find any term across all exams in a single search.\nEach card also has a one-tap copy button to paste content straight into your AI assistant, plus smoother page transitions throughout."
+}
+[release-note] ✓ DynamoDBに挿入しました: 2026-07-07 — チートシートが大幅パワーアップ！

@@ -1,0 +1,11 @@
+=== 2026-07-09 05:15:07 | generate-release-note.sh | exit:0 ===
+[release-note] 対象日: 2026-07-08
+[release-note] 2026-07-08: 22件のコミット
+[release-note] 生成結果:
+{
+  "title": "チートシートがPC版で大幅リニューアル！",
+  "body": "Web版チートシートに左サイドバーを新設し、資格レベル・試験カテゴリをツリー形式で一覧できるようになりました！\n記事横幅も広がり、重複記事の整理やリンク不具合の修正も合わせて、より快適に学習できます。",
+  "titleEn": "Cheat Sheet Gets a Major Desktop Makeover!",
+  "bodyEn": "The web version of the Cheat Sheet now features a new left sidebar with a tree-style navigation for certification levels and exam categories.\nArticle width has also been expanded, duplicate entries cleaned up, and several link/copy bugs fixed for a smoother study experience."
+}
+[release-note] ✓ DynamoDBに挿入しました: 2026-07-08 — チートシートがPC版で大幅リニューアル！

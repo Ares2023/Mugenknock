@@ -1,0 +1,188 @@
+[
+  {
+    "questionId": "clf-637af08d",
+    "examType": "CLF",
+    "verdict": "ng",
+    "currentness": "outdated",
+    "difficulty": "appropriate",
+    "scope": "in",
+    "format": "ok",
+    "mockSuitable": false,
+    "issues": [
+      "【致命的】公式ドキュメント確認済み：「AWS App Runner is no longer open to new customers」と明記されており、新規顧客への提供が終了済み。正解として提示できないサービスを問う問題は即刻削除が必要。",
+      "実測正答率20%（悪問疑い閾値）も当該問題の品質問題と整合する。"
+    ]
+  },
+  {
+    "questionId": "clf-3405ed73",
+    "examType": "CLF",
+    "verdict": "warn",
+    "currentness": "ok",
+    "difficulty": "too_hard",
+    "scope": "in",
+    "format": "ok",
+    "mockSuitable": true,
+    "issues": [
+      "実測正答率14%は悪問疑い閾値（20%以下）を下回る。SNSもサブスクリプションでLambda・SQS・HTTPエンドポイントへファンアウト配信できるため、SNSとEventBridgeの区別（SNS単体ではEC2状態変化イベントをネイティブ受信できない）がCLF受験者には難解すぎる。",
+      "「EC2起動・停止イベントをルールに基づき複数ターゲットに同時振り分け」という要件の技術的詳細度はSAA相当。CLFとして適切か要検討。"
+    ]
+  },
+  {
+    "questionId": "clf-4d758d3e",
+    "examType": "CLF",
+    "verdict": "warn",
+    "currentness": "ok",
+    "difficulty": "too_easy",
+    "scope": "in",
+    "format": "ok",
+    "mockSuitable": true,
+    "issues": [
+      "選択肢[1]（AWSがITスタッフ採用を支援）は一読で除外できる明らかな誤り。選択肢[3]（Global Acceleratorが課金レートを自動調整）も非現実的で識別容易。もっともらしい不正解が不足しており本番相当の引っかけになっていない。"
+    ]
+  },
+  {
+    "questionId": "clf-6c240e76",
+    "examType": "CLF",
+    "verdict": "warn",
+    "currentness": "ok",
+    "difficulty": "too_easy",
+    "scope": "in",
+    "format": "ok",
+    "mockSuitable": true,
+    "issues": [
+      "各選択肢が概念の定義を内包しており、シナリオ（数週間→数分）と定義文の照合だけで正解できる。暗記不要で自明。選択肢から概念説明を取り除き、概念名のみにすれば適切な難易度になる。"
+    ]
+  },
+  {
+    "questionId": "clf-e7122bd9",
+    "examType": "CLF",
+    "verdict": "ok",
+    "currentness": "ok",
+    "difficulty": "appropriate",
+    "scope": "in",
+    "format": "ok",
+    "mockSuitable": true,
+    "issues": []
+  },
+  {
+    "questionId": "clf-792bc525",
+    "examType": "CLF",
+    "verdict": "warn",
+    "currentness": "ok",
+    "difficulty": "too_easy",
+    "scope": "in",
+    "format": "hard_to_read",
+    "mockSuitable": false,
+    "issues": [
+      "選択肢に各用語の定義が埋め込まれており、問題文の「需要に応じてリソースを自動的に増減」と選択肢[0]の記述がほぼ一致するため正解が自明。本番形式では選択肢を用語名のみとし、知識の想起を問う構成にすべき。",
+      "「堅牢性（Robustness）」はAWSクラウドの標準的な特性として定義された用語ではなく、造語的な選択肢が受験者を不要に混乱させる恐れがある。"
+    ]
+  },
+  {
+    "questionId": "clf-898b7cfb",
+    "examType": "CLF",
+    "verdict": "warn",
+    "currentness": "ok",
+    "difficulty": "too_easy",
+    "scope": "in",
+    "format": "ok",
+    "mockSuitable": false,
+    "issues": [
+      "不正解選択肢がすべて「コスト・料金が上昇する」という明らかに誤った内容で統一されており、AWSの基礎知識がなくても消去法で正解できる。規模の経済のメリットを別の側面（例：個々の顧客がインフラ効率化の恩恵を受けにくい、価格低下は保証されない等）から述べた紛らわしい選択肢を加えると本番相当になる。"
+    ]
+  },
+  {
+    "questionId": "clf-b0c4b1a0",
+    "examType": "CLF",
+    "verdict": "ok",
+    "currentness": "ok",
+    "difficulty": "appropriate",
+    "scope": "in",
+    "format": "ok",
+    "mockSuitable": true,
+    "issues": []
+  },
+  {
+    "questionId": "clf-9ad21082",
+    "examType": "CLF",
+    "verdict": "ok",
+    "currentness": "ok",
+    "difficulty": "appropriate",
+    "scope": "in",
+    "format": "ok",
+    "mockSuitable": true,
+    "issues": []
+  },
+  {
+    "questionId": "clf-8d589a5d",
+    "examType": "CLF",
+    "verdict": "warn",
+    "currentness": "ok",
+    "difficulty": "too_easy",
+    "scope": "in",
+    "format": "ok",
+    "mockSuitable": false,
+    "issues": [
+      "不正解選択肢がいずれも内容として明らかに誤り（「減価償却費が増大」「ハードウェア調達コストが維持」「月次固定料金制」）であり、AWSについて少しでも知識があれば即時排除できる。CapEx/OpExの区別をより細かく問う（どの費用項目がOpEx化されるか、Reserved Instanceの前払いはCapExかどうか等）設問にすると本番相当の難易度になる。"
+    ]
+  },
+  {
+    "questionId": "dea-a37942d8",
+    "examType": "DEA",
+    "verdict": "ok",
+    "currentness": "ok",
+    "difficulty": "appropriate",
+    "scope": "in",
+    "format": "ok",
+    "mockSuitable": true,
+    "issues": []
+  },
+  {
+    "questionId": "dea-ec920614",
+    "examType": "DEA",
+    "verdict": "ok",
+    "currentness": "ok",
+    "difficulty": "appropriate",
+    "scope": "in",
+    "format": "ok",
+    "mockSuitable": true,
+    "issues": []
+  },
+  {
+    "questionId": "dea-fe9196b6",
+    "examType": "DEA",
+    "verdict": "ok",
+    "currentness": "ok",
+    "difficulty": "appropriate",
+    "scope": "in",
+    "format": "ok",
+    "mockSuitable": true,
+    "issues": [
+      "選択肢Cの解説で『AWS RAM は VPC や Transit Gateway などのリソース共有に使用』と説明しているが、実際には RAM は Lake Formation タグ・Glue Data Catalog リソースの共有にも使われる（Lake Formation はクロスアカウントグラントの実装に内部的に RAM を利用する）。解説の比喩が誤解を招く可能性があるため、『RAM は S3 バケットを直接共有できないうえ Lake Formation の細粒度アクセス制御を提供しない』という論点に絞って記述するとより正確になる。軽微なため warn 未満だが念のため指摘。"
+    ]
+  },
+  {
+    "questionId": "dea-ce354563",
+    "examType": "DEA",
+    "verdict": "ok",
+    "currentness": "ok",
+    "difficulty": "appropriate",
+    "scope": "in",
+    "format": "ok",
+    "mockSuitable": true,
+    "issues": []
+  },
+  {
+    "questionId": "dea-0ecbb1a1",
+    "examType": "DEA",
+    "verdict": "warn",
+    "currentness": "ok",
+    "difficulty": "too_easy",
+    "scope": "in",
+    "format": "ok",
+    "mockSuitable": true,
+    "issues": [
+      "問題文に『既存の不正検知モデルは Gremlin クエリで実装されており、移行時の書き換えを最小化したい』と明記されており、AWS で Gremlin をネイティブサポートするのは Neptune のみ。この一文だけで正解が確定するため、グラフトラバーサルの性能特性を理解していなくても単純な知識照合で正解できる。他の選択肢（DynamoDB・Redshift・Aurora PostgreSQL）もグラフ用途では明らかに不適切であり、有効なひっかけとして機能しにくい。Gremlin の言及を削除してグラフ要件のみで判断させるか、SPARQL など複数のクエリ言語が選択肢に絡む形にするなど難易度を上げることを推奨。"
+    ]
+  }
+]

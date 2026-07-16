@@ -19,3 +19,27 @@ dirname: write error: Broken pipe
 2026/07/02 08:15:43 CRITICAL: Failed to create file system for "gdrive:": drive: failed when making oauth client: failed to create oauth client: empty token found - please run "rclone config reconnect gdrive:"
 2026-07-02 08:15:43 ERROR: rclone exited 1
 /home/yuzuki/aws-quiz-app/prompts/sync-drive-recovery.sh: line 6: pwd: write error: Broken pipe
+2026-07-07 11:39:58 updating Drive: next_recovery=2026-07-07 12:10:00
+2026/07/07 11:39:59 CRITICAL: Failed to create file system for "gdrive:": drive: failed when making oauth client: failed to create oauth client: empty token found - please run "rclone config reconnect gdrive:"
+2026-07-07 11:39:59 ERROR: rclone exited 1
+2026-07-09 09:12:06 updating Drive: next_recovery=2026-07-09 14:10:00
+/home/yuzuki/aws-quiz-app/prompts/sync-drive-recovery.sh: line 25: printf: write error: Broken pipe
+2026-07-10 08:50:41 updating Drive: next_recovery=2026-07-11 08:50:00
+2026/07/10 08:50:42 CRITICAL: Failed to create file system for "gdrive:": drive: failed when making oauth client: failed to create oauth client: empty token found - please run "rclone config reconnect gdrive:"
+2026-07-10 08:50:42 ERROR: rclone exited 1
+2026-07-10 08:51:15 updating Drive: next_recovery=2026-07-10 13:50:00
+2026/07/10 08:51:15 CRITICAL: Failed to create file system for "gdrive:": drive: failed when making oauth client: failed to create oauth client: empty token found - please run "rclone config reconnect gdrive:"
+2026-07-10 08:51:15 ERROR: rclone exited 1
+date: write error: Broken pipe
+2026-07-12 15:50:06 updating Drive: next_recovery=2026-07-12 20:50:00
+/home/yuzuki/aws-quiz-app/prompts/sync-drive-recovery.sh: line 25: printf: write error: Broken pipe
+date: write error: Broken pipe
+2026-07-15 22:11:43 updating Drive: next_recovery=2026-07-16 03:10:00
+2026/07/15 22:11:46 CRITICAL: Failed to create file system for "gdrive:": drive: failed when making oauth client: failed to create oauth client: empty token found - please run "rclone config reconnect gdrive:"
+2026-07-15 22:11:47 ERROR: rclone exited 1
+2026-07-15 22:35:34 updating Drive: next_recovery=2026-07-16 03:00:00
+2026/07/15 22:35:40 CRITICAL: Failed to create file system for "gdrive:": drive: failed when making oauth client: failed to create oauth client: empty token found - please run "rclone config reconnect gdrive:"
+2026-07-15 22:35:40 ERROR: rclone exited 1
+2026-07-16 09:15:50 updating Drive: next_recovery=2026-07-16 12:20:00
+2026/07/16 09:15:51 CRITICAL: Failed to create file system for "gdrive:": drive: failed when making oauth client: failed to create oauth client: empty token found - please run "rclone config reconnect gdrive:"
+2026-07-16 09:15:51 ERROR: rclone exited 1

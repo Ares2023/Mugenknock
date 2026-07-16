@@ -1,0 +1,9 @@
+==========================================
+通報チェック開始: Tue Jul 14 03:05:05 JST 2026
+関連問題チェック: ドメインあたり最大 10問
+==========================================
+通報件数: 10件 / 関連問題: 50問
+Claude 判定対象: 通報=10件 / 関連=50問
+⚠️  Claude でエラー（exit 1）
+stderr: 
+stdout: API Error: Claude's response exceeded the 32000 output token maximum. To configure this behavior, set the CLAUDE_CODE_MAX_OUTPUT_TOKENS environment variable.

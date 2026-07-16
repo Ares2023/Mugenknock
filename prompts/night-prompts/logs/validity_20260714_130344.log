@@ -1,0 +1,37 @@
+==========================================
+正当性チェック開始: Tue Jul 14 13:03:44 JST 2026
+バッチサイズ: 20問 / チャンクサイズ: 5問
+==========================================
+チェック対象: 20問
+前処理: choices ラベル接頭辞チェック...
+  前処理: ラベル接頭辞なし（全問クリーン）
+チャンク数: 4
+
+--- チャンク 1/4: 5問  開始=13:04:27 ---
+  [OK   ] dop-11035f1e
+  [OK   ] clf-284585ea
+  [FIX  ] sap-e4ef61c7: 複数正解問題（選択肢0と2）だが4択になっており、AWS試験基準違反。複数正解は5択以上（5択から2択）が必須。 → 変更: (変更なし)
+  [FIX  ] sap-84ac6b1c: choiceExplanations[2]が選択肢[2]（Permission Boundary+SCP）と対応しておらず、選択肢[0]（IAM Identity Center）の解説が誤配置されている。choiceExplanations配列の並び替え・修正が必要。 → 変更: choiceExplanations
+  [OK   ] sap-b7163e65
+  → 更新完了: OK=3 修正=2 削除=0
+  終了=13:07:23  経過=176秒
+
+--- チャンク 2/4: 5問  開始=13:07:23 ---
+  [FIX  ] clf-33ac7327: choiceExplanations[2]（Neptune）の解説がサービス名を主語として含んでいない。「グラフデータベースが最適です」で始まっており、Neptune の説明として主語がない。 → 変更: choiceExplanations
+  [FIX  ] clf-326d11ef: choiceExplanations[1]と[3]がサービス/概念名を主語として含んでいない。[1]は「需要変化に応じて」で代名詞開始、[3]は「複数の地理的ロケーション」で概念名なし開始。 → 変更: choiceExplanations
+  [FIX  ] dop-656106af: choiceExplanations[3]が代名詞「これは」で開始しており、指示に違反。DriftDetection という機能名を主語として明記すべき。 → 変更: choiceExplanations
+  [FIX  ] saa-b7c87e50: choiceExplanations[1]がAWS Trusted Advisorというサービス名を主語として含まず、[2]がAmazon EventBridgeとLambdaのサービス名を解説の主語として含んでいない。 → 変更: choiceExplanations
+  [OK   ] clf-90cb97b7
+  → 更新完了: OK=1 修正=4 削除=0
+  終了=13:10:12  経過=169秒
+
+--- チャンク 3/4: 5問  開始=13:10:12 ---
+  [OK   ] clf-051f96c2
+  [FIX  ] clf-50d74f11: choiceExplanations が括弧形式（「（Amazon Inspector）は」など）で統一されていない。正解説明も80字超過。主語を直接記載する形に統一・圧縮が必要。 → 変更: choiceExplanations
+  [FIX  ] sap-ae7f72d4: choiceExplanations[1]（正解）が130字超過、[2]も80字超過で基準違反。各解説を80字以内に圧縮し、[0]の主語も明確化が必要。 → 変更: choiceExplanations
+  [FIX  ] clf-2f888b83: choiceExplanations[3]（正解）が100字超過で80字基準を違反。最適性の説明を圧縮が必要。 → 変更: choiceExplanations
+  [FIX  ] sap-69703f67: choiceExplanations[1]（正解）が130字超過で基準大幅違反。[2]の主語も不明確。各解説を80字以内に圧縮・主語明確化が必要。 → 変更: choiceExplanations
+  → 更新完了: OK=1 修正=4 削除=0
+  終了=13:14:08  経過=236秒
+
+--- チャンク 4/4: 5問  開始=13:14:09 ---

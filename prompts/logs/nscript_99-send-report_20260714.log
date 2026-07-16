@@ -1,0 +1,92 @@
+=== 2026-07-14 03:56:16 | 99-send-report.sh | exit:0 ===
+==========================================
+日次レポート生成 開始: 2026-07-14 02:50 JST
+==========================================
+
+--- [1] AWS資格公式情報 変更チェック ---
+  フェーズ1完了: has_changes=False
+  直近3日以内の変更声明なし
+
+--- [2] 夜間スクリプト成果集計 ---
+  生成: 合計 0問生成
+  妥当性: 合計: 確認10件（問題なし=10 自動修正=0 削除=0）
+  通報: 2026-07-13: 10件処理
+
+--- [3] DynamoDB稼働状況 ---
+  総問題数: 3790 問
+  直近3日 新規生成(createdAt): 8 問
+  直近3日 確認済み(validityCheckedAt): 0 問
+  未妥当性確認: 37 問
+  未解決通報: 10 件
+  資格別:
+  CLF: 323問
+  AIF: 337問
+  SAA: 308問
+  DVA: 306問
+  SOA: 306問
+  DEA: 306問
+  MLA: 304問
+  SAP: 308問
+  DOP: 373問
+  AIP: 301問
+  SCS: 309問
+  ANS: 309問
+
+--- [3b] Cognito 新規ユーザー（前日） ---
+  新規登録 1件
+  07/13 20:54 daikiuwagoya@icloud.com [CONFIRMED]
+
+--- [4] canary テスト ---
+  ✅ PASS (passed=21 failed=0 warnings=0)
+  失敗詳細:
+      ログ:    s3://mugenknock-error-logs/canary-logs/staging/20260714-025213.log
+      サマリー: s3://mugenknock-error-logs/canary-logs/staging/20260714-025213.json
+  認証カナリア: ✅ PASS (passed=8 failed=2)
+
+--- [4.5] 監査・改良 / カナリア整合性 / 日めくり 集計 ---
+  監査 10問（AIP/CLF/DEA）: OK 5 / 注意 5 / 要修正 0
+  【指摘のあった問題】
+  ⚠ clf-637af08d
+  ・実測正答率20%（サンプル10件と少ない）は低い。Elastic BeanstalkもLBやオートスケーリングを自動管理し、ソースコードやコンテナからのデプロイも対応しているため、「EC2ベースで管理が多い」という解説だけではApp Runnerとの差別化が不十分。「Beanstalkはインスタンスタイプ・環境設定の選択が必要なのに対し、App Runnerはインフラ設定が一切不要」という核心的な差を解説に明示すべき。
+  ⚠ clf-3405ed73（難易度: too_hard）
+  ・実測正答率14%（サンプル14件）は極めて低く、CLFには難しすぎる可能性が高い。SNSもLambda・SQS・HTTPエンドポイント（Slack Webhook）への同時ファンアウトが可能なため、CLF受験者にはEventBridgeとの区別が難解。正解の核心である「SNSはAWSサービスイベントを自律的に受信できず、EC2の起動/停止イベントを直接トリガーにできない」という点が解説に欠けており誤答を誘発している。シナリオ複雑度・サービス知識の深さともSAA/DVA相当。
+  ⚠ dea-0ecbb1a1（難易度: too_easy）
+  ・「Gremlinクエリをそのまま移行」「グラフトラバーサル」「サブ秒レイテンシ」の3条件が揃うと他の選択肢が完全排除され正解が自明になる。DEA本番相当の難易度を確保するには、選択肢をNeptune Database vs Neptune Analytics の使い分け、あるいはNeptuneのユースケース境界を問う形に改訂することを推奨。
+  ⚠ dea-121c49aa（難易度: too_easy）
+  ・「MongoDB互換」「既存ドライバーをそのまま利用」という条件がDocumentDBを直接指示しており正解が自明。また解説がDocumentDBとMongoDBの互換性の実際の限界（一部の集計パイプラインオペレータ・クライアントドライバーバージョンへの非互換）を一切言及しておらず、完全互換と誤読させる恐れがある。互換性の注意点を解説に補足するか、要件をより複雑にして難易度を調整することを推奨。
+  ⚠ aip-748d3993
+  ・公式APIリファレンス（HumanWorkflowConfig）およびコンソール用IAMポリシーの調査により、Bedrock Model Evaluationのヒューマン評価ジョブのワーカー管理は Amazon Cognito User Pools + SageMaker Workforce/Workteam を使用する（ポリシーに cognito-idp:* と sagemaker:CreateWorkforce が必要）ことを確認。正解選択肢および解説で「AWS IAM Identity Center で管理した医師チームをレビュアーとして割り当てる」と記述しているが、これは標準の仕組みと異なる。SageMaker OIDCワークフォースを介したIAM Identity Center連携は技術的には可能だが非標準経路であり、IAM Identity Center = ヒューマン評価ワーカー管理という記述はAIP Professional受験者に誤った知識を植え付けるリスクがある。「Amazon Cognito で管理したプライベートワークフォースをレビュアーとして設定する」に修正することを推奨。なおコアコンセプト（Bedrock Model Evaluationのヒューマン評価ジョブが適切なサービス）は正しいためwarnとする。
+  【プロンプト自動改良】 適用 3件 / 見送り 0件
+  方針: 監査で最多だったDOPの用語定義・単一概念の暗記問題（模試不適・易しすぎ）と、ユーザー通報で確定した「正解選択肢が自己解説的・過長で正解が特定できる」誤り、および解説の機能過大主張を再発防止する。生成側(DOP.txt/_common-rules.txt)で禁止事項を明確化し、検証側(_validity-extra.txt)に検出観点を追加。CLFは同系統サービスの過度に微妙な識別で正答率が極端に下がる問題を避ける注意を1行追記。いずれも追記・小修正のみ。
+  ✅ _common-rules.txt: ユーザー通報で確定したDOPの choice_error（正解選択肢だけが自己解説的な末尾を持ち内容・長さの両面で正解が露見）に対応。既存の『不正解の自己否定文禁止』『最長を正解にしない』の隣に、正解側の自己解説末尾を禁じる規則を追記して対を成す。
+  ✅ DOP.txt: 監査でng判定が集中したDOPの用語定義・単一概念・2サービスの違いを問う暗記問題（Professional水準未達）に対応。【避けること】に具体例付きで禁止し、複数要件のシナリオ比較を必須化。
+  ✅ _validity-extra.txt: 検証(02)が見逃した3種の誤りを検出する観点を追加：(1)プロ資格の用語定義・違い暗記問題（模試不適/易しすぎ）、(2)正解選択肢の自己解説的末尾による正解特定、(3)機能の適用範囲・タイミングの過大主張（CloudWatch Logsマスキングの遡及不可）。CLFの過度に微妙な識別による極端な低正答率も1行追加。
+  所見: 現在の app/ ルート一覧とカナリアspecは整合している。未ログインで到達可能な公開ルート（/, /about, /admin-login, /login, /encyclopedia, /privacy-policy, /exam-guide, /exam-guide/[type], /services, /services/[name], /questions/[examType], /questions/[examType]/[questionId]）はすべてスモークテストで被覆済みで、認証必須の /account・/admin・/aws/* は正しく対象外。specが参照するルートはすべて実在し陳腐化なし。
+  カバー漏れ/陳腐化: 0件
+  対応: 整合済み。spec更新なし。
+  生成: 2026-07-13 完了: Mon Jul 13 02:46:14 JST 2026
+  検証: 2026-07-13 完了サマリー: 問題なし=4件 / 自動修正=0件 / 削除=1件
+  Lambda(直近24h):
+    prod: 実行2094 エラー0 スロットル0 最大2372ms
+    dev: 実行8 エラー0 スロットル0 最大476ms
+  API(prod,24h): リクエスト2392 5xx=0 4xx=3 p99=1039ms
+  本番エラーログ(prod,24h): 0件
+  AWSコスト(2026-07-12): $0.12 （前日比 ▲104%）
+    ・Amazon DynamoDB: $0.04
+    ・AWS Key Management Service: $0.03
+    ・AWS Cost Explorer: $0.03
+
+--- [4.8] テストユーザー データ整合性チェック ---
+  テストユーザー (yuzukisera00@gmail.com) データ整合性チェック
+  今日の演習量: 0 問 (2026-07-14) [なし]
+  UserTagStats エントリ数: 7 tagId
+  resetAt: 2026-07-03T13:16:32.641Z
+  UserTagStats 増減: 7 → 7（正常）
+  ✅ 整合性OK（問題なし）
+
+--- [5] メール送信 ---
+  ✅ メール送信完了 → mugenknock@gmail.com
+
+==========================================
+日次レポート 完了: 2026-07-14 02:55 JST
+==========================================
