@@ -587,7 +587,7 @@ for ln in open(p):
 print(n)" 2>/dev/null || echo 0)
   if [ "${_FLAGGED:-0}" -eq 0 ] && [ "${_DEFECTS:-0}" -eq 0 ]; then
     echo "改善対象（監査warn/ng・通報確定不具合）がないため、プロンプト改良はスキップしました。"
-  elif [ -f "$RATE_LIMIT_FILE" ]; then
+  elif [ "$RATE_LIMITED" -eq 1 ]; then
     echo "⚠️  レート制限中のためプロンプト改良をスキップしました（次回実行時に処理）"
   else
     echo "改善対象: 監査${_FLAGGED}件 / 通報確定不具合(直近7日)${_DEFECTS}件。改良案を生成中..."

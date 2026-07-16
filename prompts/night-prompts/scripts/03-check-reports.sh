@@ -433,6 +433,10 @@ print('\n'.join(lines))
 PYEOF
 }
 
+# build_prompt 用の入力（有効な通報＋関連問題）と出力プロンプトの一時ファイルを用意
+_VALID_TMP=$(mktemp /tmp/reports_valid_XXXX.json)
+echo "$VALID_JSON" > "$_VALID_TMP"
+PROMPT_FILE=$(mktemp /tmp/reports_prompt_XXXX.txt)
 build_prompt "$_VALID_TMP" "$PROMPT_FILE"
 
 # ── 5. Claude 実行 ────────────────────────────────────────────
