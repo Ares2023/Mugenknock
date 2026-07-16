@@ -1548,7 +1548,6 @@ export default function ExerciseSession() {
           </div>
           <Card
             padding="var(--spacing-md) var(--spacing-lg)"
-            style={{ borderLeft: '4px solid var(--color-accent)' }}
           >
             <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--spacing-sm)', marginBottom: 'var(--spacing-sm)' }}>
               <span style={{ color: 'var(--color-accent)', display: 'flex', alignItems: 'center', flexShrink: 0 }}><IconBean size={22} /></span>
