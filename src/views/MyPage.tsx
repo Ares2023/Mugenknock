@@ -1185,7 +1185,8 @@ export default function MyPage() {
                     const inner = Math.round(size * 0.88);
                     const hexH = Math.round(size * 1.15);
                     const innerH = Math.round(inner * 1.15);
-                    const grayOpacity = 0.6;
+                    // 未取得時の縁・アイコンのグレー濃度。塗り(color-bg-main)より濃く保ちつつ少し薄めに。
+                    const grayOpacity = 0.48;
                     return (
                       <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 3 }}>
                         <div style={{ position: 'relative', width: size, height: hexH, flexShrink: 0 }}>
