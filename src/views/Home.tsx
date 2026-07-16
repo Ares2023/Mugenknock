@@ -5,6 +5,10 @@ import { createPortal } from 'react-dom';
 import { useNavigate, useLocation } from '@/compat/react-router-dom';
 import DailyServiceRevealModal from '../components/DailyServiceRevealModal';
 import ExamSelectOverlay, { ConfirmBurst } from '../components/ExamSelectOverlay';
+import StartTutorialSpotlight from '../components/StartTutorialSpotlight';
+
+// 初回オンボーディング完了フラグ（サイト全体で1回だけチュートリアルを出す）
+const ONBOARDING_TUTORIAL_KEY = 'mk_onboarding_tutorial_done_v1';
 import { useAuth } from '../contexts/AuthContext';
 import { useLanguage } from '../contexts/LanguageContext';
 import {
@@ -1171,6 +1175,7 @@ export default function Home() {
   const [revealService, setRevealService] = useState<DailyService | null>(null);
   const [targetExam, setTargetExam] = useState<string | null>(() => localStorage.getItem(`targetExam_${uid}`));
   const [showOnboarding, setShowOnboarding] = useState(false);
+  const [showStartTutorial, setShowStartTutorial] = useState(false);
   const [domainStats, setDomainStats] = useState<DomainStat[]>([]);
   const [statsLoading, setStatsLoading] = useState(false);
   const [statsRefreshing, setStatsRefreshing] = useState(false);
@@ -1611,6 +1616,7 @@ export default function Home() {
   // サクッと演習
   const startQuickExercise = async () => {
     if (!targetExam) { alert(ja ? '試験を選択してください' : 'Please select an exam'); return; }
+    setShowStartTutorial(false);
     if (estimatedScore !== null) localStorage.setItem(`score_prev_${targetExam}_${uid}`, JSON.stringify({ s: estimatedScore, w: nodeWindow }));
     const userId = user?.userId ?? 'guest';
     // ホームのプライマリ枠（サクッと/しっかり対策）のみ確定。演習(practice)・模試(exam)は残す。
@@ -1699,6 +1705,7 @@ export default function Home() {
   const startFocusedExercise = async () => {
     if (!targetExam) { alert(ja ? '試験を選択してください' : 'Please select an exam'); return; }
     if (!user) { alert(ja ? 'ログインが必要です' : 'Login required'); return; }
+    setShowStartTutorial(false);
     if (estimatedScore !== null) localStorage.setItem(`score_prev_${targetExam}_${uid}`, JSON.stringify({ s: estimatedScore, w: nodeWindow }));
     // ホームのプライマリ枠（サクッと/しっかり対策）のみ確定。演習(practice)・模試(exam)は残す。
     await autoScoreAndClearDrafts(user.userId, [`quickExerciseDraft_${user.userId}`, `focusedExerciseDraft_${user.userId}`]);
@@ -2219,7 +2226,7 @@ export default function Home() {
                     </div>
                   </>
                 )}
-                <div style={{ display: 'flex', height: 44, borderRadius: 22, overflow: 'hidden' }}>
+                <div data-tutorial="start" style={{ display: 'flex', height: 44, borderRadius: 22, overflow: 'hidden' }}>
                   {primaryMode === 'quick' ? (
                     <button
                       disabled={!targetExam || quickLoading}
@@ -2389,7 +2396,7 @@ export default function Home() {
               </div>
             ) : (
               /* スプリットピル：primaryMode依存 */
-              <div style={{ flex: 1, display: 'flex', height: 44, borderRadius: 22, overflow: 'hidden', opacity: !targetExam ? 0.5 : 1 }}>
+              <div data-tutorial="start" style={{ flex: 1, display: 'flex', height: 44, borderRadius: 22, overflow: 'hidden', opacity: !targetExam ? 0.5 : 1 }}>
                 {primaryMode === 'quick' ? (
                   <button
                     disabled={!targetExam || quickLoading}
@@ -2840,8 +2847,25 @@ export default function Home() {
             setTargetExam(exam);
             if (user) syncTargetExamToServer(user.userId, uid, exam);
             prefetchTypeA(exam, uid);
+            // 初回のみ：保存時にパネルを自動で閉じ、ホームの演習開始チュートリアルを開始する
+            if (typeof window !== 'undefined' && !localStorage.getItem(ONBOARDING_TUTORIAL_KEY)) {
+              localStorage.setItem(ONBOARDING_TUTORIAL_KEY, '1');
+              setShowOnboarding(false);
+              // オーバーレイのアンマウント後に開始ボタンが描画されてから表示する
+              setTimeout(() => setShowStartTutorial(true), 400);
+            }
           }}
           onClose={() => setShowOnboarding(false)}
+        />
+      )}
+
+      {/* 初回オンボーディング：演習開始へのスポットライト誘導 */}
+      {showStartTutorial && (
+        <StartTutorialSpotlight
+          targetSelector='[data-tutorial="start"]'
+          message={ja ? 'さっそく1問目を解いてみよう！' : 'Try your first question now!'}
+          skipLabel={ja ? 'スキップ' : 'Skip'}
+          onClose={() => setShowStartTutorial(false)}
         />
       )}
       {(quickLoading || focusedLoading) && <div style={{ position: 'fixed', inset: 0, zIndex: 9000, cursor: 'wait' }} onTouchStart={e => e.stopPropagation()} onTouchMove={e => e.stopPropagation()} onTouchEnd={e => e.stopPropagation()} />}

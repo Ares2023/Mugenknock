@@ -472,7 +472,15 @@ export default function ExamSelectOverlay({
                   0%, 100% { box-shadow: 0 0 0 0 ${levelColor}66, var(--box-shadow-pop); }
                   50%       { box-shadow: 0 0 0 8px ${levelColor}00, var(--box-shadow-pop); }
                 }
+                @keyframes eso-onboarding-arrow { 0%, 100% { transform: translateX(0); } 50% { transform: translateX(7px); } }
               `}</style>
+              {/* 初回オンボーディング：小さな決定ボタンへ矢印で誘導 */}
+              {onboarding && !confirming && !isCurrentTarget && (
+                <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginRight: 'auto' }}>
+                  <span style={{ fontSize: 'var(--font-size-sm2)', fontWeight: 700, color: levelColor }}>{ja ? 'これで決定！' : 'Confirm!'}</span>
+                  <span style={{ display: 'inline-flex', animation: 'eso-onboarding-arrow 0.9s ease-in-out infinite', color: levelColor, fontSize: 22, lineHeight: 1 }}>➜</span>
+                </div>
+              )}
               {(isCurrentTarget || confirming) && (
                 <div style={{ fontSize: 'var(--font-size-sm2)', fontWeight: 700, color: 'var(--color-success)', animation: confirming ? 'examStudyingFade 0.4s ease 0.5s both' : undefined }}>✓ {ja ? '学習中' : 'Studying'}</div>
               )}
