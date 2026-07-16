@@ -3,7 +3,7 @@ import React, { useState, useRef, useEffect, useMemo } from 'react';
 import { createPortal } from 'react-dom';
 import { lockBodyScroll } from '../utils/bodyScrollLock';
 import { API_ENDPOINT, EXAM_CONFIGS, EXAM_DOMAINS, DOMAIN_WEIGHTS, PASS_SCORES } from '@/constants';
-import { EXAM_ICON_COMPONENTS, IconBook, IconBookOpenCheck, IconCircleCheck } from '@/components/Icons';
+import { EXAM_ICON_COMPONENTS, IconBook, IconBookOpenCheck, IconCircleCheck, IconExternalLink } from '@/components/Icons';
 
 // テキストの inline 記法（**bold** / *italic* / `code` / [text](url)）をパースして React 要素に変換する
 function parseInline(text: string, keyPrefix: string): React.ReactNode[] {
@@ -252,43 +252,43 @@ export default function ExamSelectOverlay({
         {/* ヘッダー */}
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '16px 20px 0', flexShrink: 0 }}>
           {isMobile ? (
-            /* モバイル: タイトル左・リンク+✕右（タブとの距離を確保） */
+            /* モバイル: タイトル+リンクを左に横並び・✕右 */
             <>
-              <span style={{ fontWeight: 700, fontSize: 'var(--font-size-lg)' }}>
-                {ja ? '目標資格を選択' : 'Select Target Exam'}
-              </span>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexShrink: 0 }}>
-                <a
-                  href="https://d1.awsstatic.com/onedam/marketing-channels/website/aws/ja_JP/certification/approved/pdfs/AWS_certification_paths.pdf"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  style={{ fontSize: 'var(--font-size-xs)', fontWeight: 600, color: 'var(--color-primary)', textDecoration: 'none', whiteSpace: 'nowrap' }}
-                >
-                  {ja ? 'AWS資格パス→' : 'AWS Cert Path→'}
-                </a>
-                {dismissible && (
-                  <button
-                    data-kbclose="1"
-                    onClick={onClose}
-                    style={{ border: 'none', background: 'none', fontSize: 'var(--font-size-xl)', cursor: 'pointer', color: 'var(--color-text-sub)', padding: '4px 8px', lineHeight: 1 }}
-                  >✕</button>
-                )}
-              </div>
-            </>
-          ) : (
-            /* デスクトップ: タイトル+リンク縦並び左・✕右 */
-            <>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 2, minWidth: 0 }}>
-                <span style={{ fontWeight: 700, fontSize: 'var(--font-size-lg)' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8, minWidth: 0 }}>
+                <span style={{ fontWeight: 700, fontSize: 'var(--font-size-lg)', whiteSpace: 'nowrap' }}>
                   {ja ? '目標資格を選択' : 'Select Target Exam'}
                 </span>
                 <a
                   href="https://d1.awsstatic.com/onedam/marketing-channels/website/aws/ja_JP/certification/approved/pdfs/AWS_certification_paths.pdf"
                   target="_blank"
                   rel="noopener noreferrer"
-                  style={{ fontSize: 'var(--font-size-xs)', fontWeight: 600, color: 'var(--color-primary)', textDecoration: 'none' }}
+                  style={{ display: 'inline-flex', alignItems: 'center', gap: 3, fontSize: 'var(--font-size-xs)', fontWeight: 600, color: 'var(--color-primary)', textDecoration: 'none', whiteSpace: 'nowrap' }}
                 >
-                  {ja ? 'AWS資格パス→' : 'AWS Cert Path →'}
+                  {ja ? 'AWS資格パス' : 'AWS Cert Path'}<IconExternalLink size={12} />
+                </a>
+              </div>
+              {dismissible && (
+                <button
+                  data-kbclose="1"
+                  onClick={onClose}
+                  style={{ border: 'none', background: 'none', fontSize: 'var(--font-size-xl)', cursor: 'pointer', color: 'var(--color-text-sub)', padding: '4px 8px', lineHeight: 1, flexShrink: 0 }}
+                >✕</button>
+              )}
+            </>
+          ) : (
+            /* デスクトップ: タイトル+リンクを左に横並び・✕右 */
+            <>
+              <div style={{ display: 'flex', flexDirection: 'row', alignItems: 'center', gap: 8, minWidth: 0 }}>
+                <span style={{ fontWeight: 700, fontSize: 'var(--font-size-lg)', whiteSpace: 'nowrap' }}>
+                  {ja ? '目標資格を選択' : 'Select Target Exam'}
+                </span>
+                <a
+                  href="https://d1.awsstatic.com/onedam/marketing-channels/website/aws/ja_JP/certification/approved/pdfs/AWS_certification_paths.pdf"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  style={{ display: 'inline-flex', alignItems: 'center', gap: 3, fontSize: 'var(--font-size-xs)', fontWeight: 600, color: 'var(--color-primary)', textDecoration: 'none', whiteSpace: 'nowrap' }}
+                >
+                  {ja ? 'AWS資格パス' : 'AWS Cert Path'}<IconExternalLink size={12} />
                 </a>
               </div>
               {dismissible && (
@@ -391,8 +391,8 @@ export default function ExamSelectOverlay({
                   {EXAM_DESC[exam] ?? ''}
                   {EXAM_URLS[exam] && (
                     <a href={EXAM_URLS[exam]} target="_blank" rel="noopener noreferrer"
-                      style={{ marginLeft: 4, color: 'var(--color-primary)', textDecoration: 'none', fontWeight: 600, whiteSpace: 'nowrap' }}>
-                      {ja ? '公式ページ →' : 'Official page →'}
+                      style={{ display: 'inline-flex', alignItems: 'center', gap: 3, marginLeft: 4, color: 'var(--color-primary)', textDecoration: 'none', fontWeight: 600, whiteSpace: 'nowrap' }}>
+                      {ja ? '公式ページ' : 'Official page'}<IconExternalLink size={12} />
                     </a>
                   )}
                 </p>
