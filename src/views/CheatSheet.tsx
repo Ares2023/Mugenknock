@@ -813,16 +813,19 @@ export default function CheatSheet() {
       if (container) {
         const rect = el.getBoundingClientRect();
         const cRect = container.getBoundingClientRect();
-        const offset = container.scrollTop + rect.top - cRect.top - cRect.height / 2 + rect.height / 2;
+        // 記事パネルの上端を（固定ヘッダーの下に）合わせる。中央寄せだと大きい記事の
+        // 冒頭が見切れるため、上端基準にして記事の始まりを常に見せる。
+        const topMargin = (headerHeight || 104) + 8;
+        const offset = container.scrollTop + rect.top - cRect.top - topMargin;
         container.scrollTo({ top: Math.max(0, offset), behavior: 'smooth' });
       } else {
-        el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        el.scrollIntoView({ behavior: 'smooth', block: 'start' });
       }
       setHighlightedItem(pendingScrollTo);
       setTimeout(() => setHighlightedItem(null), 1500);
       setPendingScrollTo(null);
     }
-  }, [selectedExam, pendingScrollTo]);
+  }, [selectedExam, pendingScrollTo, headerHeight]);
 
   useEffect(() => {
     if (loading || goalInit) return;
