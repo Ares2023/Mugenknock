@@ -661,6 +661,66 @@ const CHEAT_DATA: CheatData = {
   ],
 };
 
+// ── 同一サービスの記事グルーピング ───────────────────────────
+// 同じサービスの記事（例: Lambda が CLF/SAA/DVA…に別粒度で存在）を束ねて、
+//   ・記事同士を相互リンク（同じサービス欄）
+//   ・関連(seeAlso)にサービスを挙げたらその全記事を列挙
+//   ・タイトルを Lambda①/Lambda② のように番号付きにする
+// を実現するためのインデックス。
+// グループ化キー = 基底サービス名（括弧の観点ラベルは除去して同一視）。
+// スラッシュを含む複合名（比較・複合記事）は過剰グルーピングを避けて独立扱い。
+interface Article { id: string; exam: string; secIdx: number; name: string; item: Item; serviceKey: string }
+
+function serviceKeyOf(name: string): string {
+  const base = name.replace(/[（(].*$/, '').trim();
+  if (!base) return name;
+  if (base.includes('/')) return name; // 複合名（ECS / EKS 等の同一表記のみ束ねる）
+  return base;
+}
+
+// serviceKey -> その全記事（CHEAT_DATA の出現順）
+const SERVICE_GROUPS: Map<string, Article[]> = (() => {
+  const m = new Map<string, Article[]>();
+  for (const [exam, secs] of Object.entries(CHEAT_DATA)) {
+    secs.forEach((sec, secIdx) => {
+      for (const item of sec.items) {
+        const key = serviceKeyOf(item.name);
+        let arr = m.get(key);
+        if (!arr) { arr = []; m.set(key, arr); }
+        arr.push({ id: `${exam}::${secIdx}::${item.name}`, exam, secIdx, name: item.name, item, serviceKey: key });
+      }
+    });
+  }
+  return m;
+})();
+
+// (資格, 名前) で記事を一意特定（資格内で item 名は一意）
+function findArticle(exam: string, name: string): Article | undefined {
+  return SERVICE_GROUPS.get(serviceKeyOf(name))?.find(a => a.exam === exam && a.name === name);
+}
+
+// 名前 → 同じサービスの全記事（seeAlso 展開用）
+function groupOfName(name: string): Article[] {
+  return SERVICE_GROUPS.get(serviceKeyOf(name)) ?? [];
+}
+
+// 記事の表示番号（グループが2件以上の時のみ 1..、単独なら 0）
+function articleNumber(art: Article): number {
+  const g = SERVICE_GROUPS.get(art.serviceKey);
+  if (!g || g.length < 2) return 0;
+  return g.findIndex(a => a.id === art.id) + 1;
+}
+
+function circledNumber(n: number): string {
+  return n >= 1 && n <= 20 ? String.fromCharCode(0x2460 + n - 1) : `(${n})`;
+}
+
+// 表示タイトル: 複数記事あるサービスは「基底名＋丸数字」、単独記事はそのまま
+function articleTitle(art: Article): string {
+  const n = articleNumber(art);
+  return n > 0 ? `${art.serviceKey}${circledNumber(n)}` : art.name;
+}
+
 // ── レベル定義（ExamSelectOverlay と同じ構成） ─────────────────
 const EXAM_LEVELS = [
   { key: 'Practitioner', color: '#6b9e3a', exams: ['CLF', 'AIF'] },
@@ -700,26 +760,19 @@ export default function CheatSheet() {
     setTimeout(() => setCopiedTerm(null), 1500);
   }
 
-  function navigateToItem(name: string) {
+  // 記事ID（`${exam}::${secIdx}::${name}`）で特定の記事へ遷移する。
+  // 同名記事が複数資格にあるため、名前ではなくIDで一意に飛ぶ。
+  function navigateToArticle(id: string) {
+    const targetExam = id.split('::')[0];
     setSearch('');
     setHeaderVisible(true);
     navigatingRef.current = true;
-    let targetExam: string | null = null;
-    outer: for (const [exam, secs] of Object.entries(CHEAT_DATA)) {
-      for (const sec of secs) {
-        if (sec.items.some(it => it.name === name)) {
-          targetExam = exam;
-          break outer;
-        }
-      }
-    }
-    if (!targetExam) { navigatingRef.current = false; return; }
+    if (!CHEAT_DATA[targetExam]) { navigatingRef.current = false; return; }
     if (targetExam !== selectedExam) {
-      const lv = levelOf(targetExam) as LevelKey;
-      setActiveLevel(lv);
+      setActiveLevel(levelOf(targetExam) as LevelKey);
       setSelectedExam(targetExam);
     }
-    setPendingScrollTo(name);
+    setPendingScrollTo(id);
     setTimeout(() => { navigatingRef.current = false; }, 1000);
   }
 
@@ -754,7 +807,7 @@ export default function CheatSheet() {
   useEffect(() => {
     if (!pendingScrollTo) return;
     const escaped = pendingScrollTo.replace(/\\/g, '\\\\').replace(/"/g, '\\"');
-    const el = document.querySelector<HTMLElement>(`[data-item-name="${escaped}"]`);
+    const el = document.querySelector<HTMLElement>(`[data-article-id="${escaped}"]`);
     if (el) {
       const container = document.getElementById('main-scroll');
       if (container) {
@@ -979,7 +1032,7 @@ export default function CheatSheet() {
             </h2>
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(min(400px, 100%), 1fr))', gap: 'var(--spacing-sm)' }}>
               {section.items.map(item => (
-                <ItemCard key={item.name} item={item} q={q} allNames={allNames} highlighted={highlightedItem === item.name} onCopy={handleTermCopy} onNavigate={navigateToItem} />
+                <ItemCard key={item.name} item={item} exam={selectedExam} q={q} allNames={allNames} highlightedId={highlightedItem} onCopy={handleTermCopy} onNavigate={navigateToArticle} />
               ))}
             </div>
           </div>
@@ -1050,8 +1103,12 @@ export default function CheatSheet() {
   );
 }
 
-function ItemCard({ item, q, allNames, highlighted, onCopy, onNavigate }: { item: Item; q: string; allNames: string[]; highlighted?: boolean; onCopy: (term: string) => void; onNavigate: (name: string) => void }) {
+function ItemCard({ item, exam, q, allNames, highlightedId, onCopy, onNavigate }: { item: Item; exam: string; q: string; allNames: string[]; highlightedId: string | null; onCopy: (term: string) => void; onNavigate: (id: string) => void }) {
   const [allCopied, setAllCopied] = useState(false);
+  // この記事のグループ情報（表示番号・同じサービスの兄弟記事の解決に使う）
+  const article = useMemo(() => findArticle(exam, item.name), [exam, item.name]);
+  const title = article ? articleTitle(article) : item.name;
+  const highlighted = !!article && highlightedId === article.id;
   const handleCopyAll = (e: React.MouseEvent) => {
     e.stopPropagation();
     navigator.clipboard.writeText(`${item.name}\n\n${item.desc}`).then(() => {
@@ -1085,6 +1142,29 @@ function ItemCard({ item, q, allNames, highlighted, onCopy, onNavigate }: { item
     return [...found].sort((a, b) => a.localeCompare(b, 'ja'));
   }, [item, allNames]);
 
+  // 同じサービスの他記事（別資格・別観点版）— 自分を除く
+  const siblings = useMemo(() => {
+    if (!article) return [] as Article[];
+    return (SERVICE_GROUPS.get(article.serviceKey) ?? []).filter(a => a.id !== article.id);
+  }, [article]);
+
+  // 関連サービス — seeAlso/自動検出で挙がった各サービスの「全記事」を展開して列挙。
+  // 自分自身と、上の「同じサービス」で既に出す兄弟は除外。
+  const relatedArticles = useMemo(() => {
+    const seen = new Set<string>();
+    if (article) seen.add(article.id);
+    siblings.forEach(a => seen.add(a.id));
+    const out: Article[] = [];
+    for (const nm of [...(item.seeAlso ?? []), ...autoSeeAlso]) {
+      for (const a of groupOfName(nm)) {
+        if (seen.has(a.id)) continue;
+        seen.add(a.id);
+        out.push(a);
+      }
+    }
+    return out;
+  }, [item.seeAlso, autoSeeAlso, article, siblings]);
+
   function copyWithContext(text: string) {
     const enhanced = text.toLowerCase().includes(item.name.toLowerCase()) ? text : `${text} (${item.name})`;
     onCopy(enhanced);
@@ -1092,7 +1172,7 @@ function ItemCard({ item, q, allNames, highlighted, onCopy, onNavigate }: { item
 
   return (
     <div
-      data-item-name={item.name}
+      data-article-id={article?.id ?? item.name}
       style={{
         background: 'var(--color-bg-white)',
         border: highlighted ? '1px solid #009E9E' : '1px solid var(--color-border)',
@@ -1110,11 +1190,11 @@ function ItemCard({ item, q, allNames, highlighted, onCopy, onNavigate }: { item
               title="タップしてコピー"
               style={{ fontWeight: 700, fontSize: 'var(--font-size-base)', color: '#009E9E', cursor: 'pointer' }}
             >
-              {highlight(item.name)}
+              {highlight(title)}
             </div>
           ) : (
             <div style={{ fontWeight: 700, fontSize: 'var(--font-size-base)', color: 'var(--color-text-main)' }}>
-              {highlight(item.name)}
+              {highlight(title)}
             </div>
           )}
         </div>
@@ -1165,27 +1245,46 @@ function ItemCard({ item, q, allNames, highlighted, onCopy, onNavigate }: { item
           );
         })}
       </p>
-      {((item.seeAlso && item.seeAlso.length > 0) || autoSeeAlso.length > 0) && (
-        <div style={{ marginTop: 8, paddingTop: 6, borderTop: '1px solid var(--color-border)', display: 'flex', gap: 4, flexWrap: 'wrap', alignItems: 'center' }}>
-          <span style={{ fontSize: 'var(--font-size-2xs)', color: 'var(--color-text-light)' }}>関連:</span>
-          {[...(item.seeAlso ?? []), ...autoSeeAlso].map(name => (
-            <button
-              key={name}
-              onClick={() => onNavigate(name)}
-              style={{
-                fontSize: 'var(--font-size-2xs)',
-                color: '#009E9E',
-                background: 'rgba(0,158,158,0.08)',
-                border: '1px solid rgba(0,158,158,0.25)',
-                borderRadius: 'var(--border-radius-full)',
-                padding: '1px 8px',
-                cursor: 'pointer',
-                whiteSpace: 'nowrap',
-              }}
-            >→ {name}</button>
-          ))}
+      {(siblings.length > 0 || relatedArticles.length > 0) && (
+        <div style={{ marginTop: 8, paddingTop: 6, borderTop: '1px solid var(--color-border)', display: 'flex', flexDirection: 'column', gap: 4 }}>
+          {/* 同じサービスの他資格・他観点版へのリンク */}
+          {siblings.length > 0 && (
+            <div style={{ display: 'flex', gap: 4, flexWrap: 'wrap', alignItems: 'center' }}>
+              <span style={{ fontSize: 'var(--font-size-2xs)', color: 'var(--color-text-light)' }}>同じサービス:</span>
+              {siblings.map(a => (
+                <ArticleChip key={a.id} label={articleTitle(a)} onClick={() => onNavigate(a.id)} />
+              ))}
+            </div>
+          )}
+          {/* 関連サービス（挙げたサービスの全記事を展開） */}
+          {relatedArticles.length > 0 && (
+            <div style={{ display: 'flex', gap: 4, flexWrap: 'wrap', alignItems: 'center' }}>
+              <span style={{ fontSize: 'var(--font-size-2xs)', color: 'var(--color-text-light)' }}>関連:</span>
+              {relatedArticles.map(a => (
+                <ArticleChip key={a.id} label={articleTitle(a)} onClick={() => onNavigate(a.id)} />
+              ))}
+            </div>
+          )}
         </div>
       )}
     </div>
+  );
+}
+
+function ArticleChip({ label, onClick }: { label: string; onClick: () => void }) {
+  return (
+    <button
+      onClick={onClick}
+      style={{
+        fontSize: 'var(--font-size-2xs)',
+        color: '#009E9E',
+        background: 'rgba(0,158,158,0.08)',
+        border: '1px solid rgba(0,158,158,0.25)',
+        borderRadius: 'var(--border-radius-full)',
+        padding: '1px 8px',
+        cursor: 'pointer',
+        whiteSpace: 'nowrap',
+      }}
+    >→ {label}</button>
   );
 }
