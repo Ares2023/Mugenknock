@@ -2855,7 +2855,7 @@ export default function Home() {
               setTimeout(() => setShowStartTutorial(true), 400);
             }
           }}
-          onClose={() => setShowOnboarding(false)}
+          // onClose は渡さない：目標資格未設定のうちは閉じられないようにする（onClose未指定=非表示）
         />
       )}
 
