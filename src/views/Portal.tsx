@@ -9,7 +9,7 @@ import { IconUser, IconBot, IconTarget, IconTrendingUp, IconNetwork } from '../c
 import Reveal from '../components/Reveal';
 import SiteArchitectureOverlay from '../components/SiteArchitecture';
 
-const QUESTION_COUNT = 3600;
+const QUESTION_COUNT = 3800;
 
 const BENEFITS: { ja: string; en: string }[] = [
   {
