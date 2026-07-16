@@ -8,13 +8,14 @@ import { qText } from '../utils/i18nQuestion';
 import { getCached, setCached, deleteCached, DEFAULT_TTL } from '../utils/cache';
 import { addPoints } from '../utils/points';
 import { incrementDailyProgress } from '../utils/dailyProgress';
+import { lockBodyScroll } from '../utils/bodyScrollLock';
 import { schedulePrefetchAfterSession } from '../utils/questionPrefetch';
 import { useAuth } from '../contexts/AuthContext';
 import { useLanguage } from '../contexts/LanguageContext';
 import Card from '../components/ui/Card';
 import Button from '../components/ui/Button';
 import ReportModal from '../components/ReportModal';
-import { IconBookOpen, IconBean, IconCopy, IconCheck, IconStar, IconChevronUp, IconChevronDown, IconAlertTriangle } from '../components/Icons';
+import { IconBookOpen, IconBean, IconCopy, IconCheck, IconStar, IconChevronUp, IconChevronDown, IconAlertTriangle, IconCircleCheck, IconCircleX } from '../components/Icons';
 import KeyHint from '../components/KeyHint';
 import { isKbMode } from '../utils/keyboardMode';
 
@@ -461,6 +462,11 @@ export default function ExerciseSession() {
   const [finishing, setFinishing] = useState(false);
   const [judgmentAnim, setJudgmentAnim] = useState<'correct' | 'incorrect' | null>(null);
   const [showAbortConfirm, setShowAbortConfirm] = useState(false);
+
+  useEffect(() => {
+    if (!showAbortConfirm) return;
+    return lockBodyScroll();
+  }, [showAbortConfirm]);
 
   // ドラフト保存 — 常に最新値を ref に保持し、状態変化時と beforeunload 両方で保存する
   const draftStateRef = useRef({ currentIndex, results, answered, selectedAnswers });
@@ -1333,9 +1339,9 @@ export default function ExerciseSession() {
           return (
             <div className="fade-slide-in" style={{
               background: lastResult?.isCorrect ? 'var(--color-feedback-correct-bg)' : 'var(--color-feedback-incorrect-bg)',
-              borderLeft: `8px solid ${lastResult?.isCorrect ? 'var(--color-success)' : 'var(--color-danger)'}`,
+              border: `1px solid ${lastResult?.isCorrect ? 'var(--color-success)' : 'var(--color-danger)'}`,
               padding: '16px 20px', marginBottom: 'var(--spacing-xl)',
-              borderRadius: 'var(--border-radius-sm)',
+              borderRadius: 'var(--border-radius-md)',
             }}>
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 'var(--spacing-sm)', gap: 'var(--spacing-md)' }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--spacing-sm)', minWidth: 0 }}>
@@ -1344,7 +1350,9 @@ export default function ExerciseSession() {
                     color: lastResult?.isCorrect ? 'var(--color-success)' : 'var(--color-danger)',
                     display: 'flex', alignItems: 'center', gap: 'var(--spacing-sm)'
                   }}>
-                    {lastResult?.isCorrect ? t('exerciseSession.correct') : t('exerciseSession.incorrect')}
+                    {lastResult?.isCorrect
+                      ? <><IconCircleCheck size={16} />{t('exerciseSession.correct')}</>
+                      : <><IconCircleX size={16} />{t('exerciseSession.incorrect')}</>}
                   </h3>
                   {(() => {
                     // 全ユーザーの実測正答率（回答5件以上で表示・回答後のみ見える位置）

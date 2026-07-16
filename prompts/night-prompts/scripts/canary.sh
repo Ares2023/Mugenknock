@@ -2,7 +2,7 @@
 # カナリアテスト実行スクリプト
 #
 # 使い方:
-#   ./prompts/night-prompts/manual/canary.sh         → 検証環境 (mugenknock.pages.dev)
+#   ./prompts/night-prompts/manual/canary.sh         → 検証環境 (develop.mugenknock.pages.dev)
 #   ./prompts/night-prompts/manual/canary.sh prod    → 本番環境 (mugenknock.com)
 #   PLAYWRIGHT_BASE_URL=https://xxx.pages.dev ./prompts/night-prompts/manual/canary.sh
 #
@@ -23,7 +23,8 @@ if [ "$TARGET" = "prod" ]; then
   export PLAYWRIGHT_BASE_URL="${PLAYWRIGHT_BASE_URL:-https://mugenknock.com}"
   ENV_LABEL="prod"
 else
-  export PLAYWRIGHT_BASE_URL="${PLAYWRIGHT_BASE_URL:-https://mugenknock.pages.dev}"
+  # develop ブランチの Cloudflare Pages branch-preview URL（mugenknock.pages.dev は master 専用）
+  export PLAYWRIGHT_BASE_URL="${PLAYWRIGHT_BASE_URL:-https://develop.mugenknock.pages.dev}"
   ENV_LABEL="staging"
 fi
 

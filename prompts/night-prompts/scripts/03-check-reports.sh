@@ -424,7 +424,7 @@ rm -f "$_VALID_TMP"
 # ── 5. Claude 実行 ────────────────────────────────────────────
 _STDOUT_F=$(mktemp /tmp/claude_out_XXXX)
 _STDERR_F=$(mktemp /tmp/claude_err_XXXX)
-"$CLAUDE_CMD" -p < "$PROMPT_FILE" > "$_STDOUT_F" 2> "$_STDERR_F"
+CLAUDE_CODE_MAX_OUTPUT_TOKENS=32000 "$CLAUDE_CMD" -p --tools "" < "$PROMPT_FILE" > "$_STDOUT_F" 2> "$_STDERR_F"
 AI_EXIT=$?
 RESULT=$(cat "$_STDOUT_F")
 _STDERR=$(cat "$_STDERR_F")
@@ -436,7 +436,7 @@ if [ $AI_EXIT -ne 0 ] && echo "$_STDERR" | grep -q "No such file"; then
   if [ -x "${CLAUDE_CMD:-}" ]; then
     _STDOUT_F=$(mktemp /tmp/claude_out_XXXX)
     _STDERR_F=$(mktemp /tmp/claude_err_XXXX)
-    "$CLAUDE_CMD" -p < "$PROMPT_FILE" > "$_STDOUT_F" 2> "$_STDERR_F"
+    CLAUDE_CODE_MAX_OUTPUT_TOKENS=32000 "$CLAUDE_CMD" -p --tools "" < "$PROMPT_FILE" > "$_STDOUT_F" 2> "$_STDERR_F"
     AI_EXIT=$?
     RESULT=$(cat "$_STDOUT_F")
     _STDERR=$(cat "$_STDERR_F")
@@ -452,8 +452,8 @@ if echo "$_STDERR" | grep -qiE "command not found|No such file|GEMINI_API_KEY|AP
   exit 1
 fi
 
-# レート制限
-if echo "$_STDERR" | grep -qiE "rate.?limit|too many requests|529|quota exceeded|usage limit|resource_exhausted"; then
+# レート制限（stderr と stdout の両方を確認。セッション制限は stdout に出る場合がある）
+if echo "$_STDERR $RESULT" | grep -qiE "rate.?limit|too many requests|529|quota exceeded|usage limit|resource_exhausted|session.?limit|hit your"; then
   echo "⚠️  レート制限を検出"
   record_rate_limit "$(echo "${RESULT:-} ${_STDERR:-}" | head -10)"
   exit 1
@@ -462,6 +462,7 @@ fi
 if [ $AI_EXIT -ne 0 ]; then
   echo "⚠️  Claude でエラー（exit $AI_EXIT）"
   echo "stderr: $(echo "$_STDERR" | head -5)"
+  echo "stdout: $(echo "$RESULT" | head -5)"
   exit 1
 fi
 

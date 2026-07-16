@@ -78,10 +78,11 @@ generate_single_date() {
     return 1
   fi
 
-  # 対象日のgitコミットメッセージを収集
+  # 対象日のgitコミットメッセージを収集（本番 master のみ）
   cd "$REPO_DIR"
+  git fetch github master --quiet 2>/dev/null || true
   local commits
-  commits=$(git log --after="${date} 00:00:00" --before="${date} 23:59:59" \
+  commits=$(git log github/master --after="${date} 00:00:00" --before="${date} 23:59:59" \
     --format='%s' --no-merges 2>/dev/null || true)
   if [ -z "$commits" ]; then
     echo "[release-note] $date にコミットがありません。スキップ。"
@@ -191,10 +192,11 @@ if [ "${1:-}" = "--backfill" ]; then
   # レート制限チェック
   check_rate_limit || exit 2
 
-  # gitコミットが存在する全日付を取得（今日より前のみ）
+  # gitコミットが存在する全日付を取得（今日より前・本番 master のみ）
   TODAY=$(date +%Y-%m-%d)
   cd "$REPO_DIR"
-  ALL_COMMIT_DATES=$(git log --format='%ad' --date=format:'%Y-%m-%d' --no-merges 2>/dev/null \
+  git fetch github master --quiet 2>/dev/null || true
+  ALL_COMMIT_DATES=$(git log github/master --format='%ad' --date=format:'%Y-%m-%d' --no-merges 2>/dev/null \
     | sort -u \
     | awk -v today="$TODAY" '$0 < today')
 

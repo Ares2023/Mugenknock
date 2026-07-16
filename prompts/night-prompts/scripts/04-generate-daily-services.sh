@@ -578,23 +578,23 @@ rm -f "$_NAMES_TMP" "$_ICONS_TMP" "$_CANDIDATES_TMP"
 
 _STDOUT_F=$(mktemp /tmp/claude_out_XXXX)
 _STDERR_F=$(mktemp /tmp/claude_err_XXXX)
-"$CLAUDE_CMD" -p < "$PROMPT_FILE" > "$_STDOUT_F" 2> "$_STDERR_F"
+CLAUDE_CODE_MAX_OUTPUT_TOKENS=32000 "$CLAUDE_CMD" -p --model sonnet --tools "" < "$PROMPT_FILE" > "$_STDOUT_F" 2> "$_STDERR_F"
 AI_EXIT=$?
 RESULT=$(cat "$_STDOUT_F")
 _STDERR_OUT=$(cat "$_STDERR_F")
 rm -f "$_STDOUT_F" "$_STDERR_F" "$PROMPT_FILE"
 
-if [ $AI_EXIT -ne 0 ]; then
-  echo "❌ Claude 実行エラー (exit=$AI_EXIT)"
-  echo "stderr: $(echo "$_STDERR_OUT" | head -5)"
-  exit 1
-fi
-
-if echo "$_STDERR_OUT" | grep -qiE "rate.?limit|too many requests|overload|quota exceeded" || \
+if echo "$_STDERR_OUT" | grep -qiE "rate.?limit|too many requests|overload|quota exceeded|session.?limit|hit your" || \
    echo "$RESULT" | grep -qiE "You've hit|rate.?limit|too many requests"; then
   echo "⚠️  レート制限を検出"
   echo "stderr: $(echo "$_STDERR_OUT" | head -3)"
   record_rate_limit "$(echo "$RESULT $_STDERR_OUT" | head -10)"
+  exit 1
+fi
+
+if [ $AI_EXIT -ne 0 ]; then
+  echo "❌ Claude 実行エラー (exit=$AI_EXIT)"
+  echo "stderr: $(echo "$_STDERR_OUT" | head -5)"
   exit 1
 fi
 
@@ -728,12 +728,21 @@ def try_extract_from_zip(fname):
     return False
 
 def try_auto_detect_icon(service_name):
-    """サービス名からアイコンキーを生成しZIPを自動検索。成功したらアイコンキーを返す。"""
+    """サービス名からアイコンキーを生成。まずローカル icon_dir の既存PNGを確認し、
+    無ければ ZIP を自動検索する。ZIP未収録で手動追加した新サービスのアイコンにも対応。"""
+    # "AWS AppConfig" → "AppConfig", "Amazon GameLift Streams" → "GameLiftStreams"
+    # 末尾/途中の括弧注記（例: "(ARC)", "(MongoDB 互換)"）はアイコン名に含まれないため除去。
+    base = re.sub(r'^(Amazon|AWS)\s+', '', service_name, flags=re.IGNORECASE)
+    base = re.sub(r'\s*[（(].*?[）)]', '', base)
+    auto_key = re.sub(r'\s+', '', base)
+    if not auto_key:
+        return None
+    # ① ローカルに既存の同名PNGがあれば即採用（手動追加・ZIP未収録の新サービス対応）
+    if os.path.exists(os.path.join(icon_dir, f'{auto_key}.png')):
+        return auto_key
+    # ② ZIP から自動検索
     if not zip_cache or not os.path.exists(zip_cache):
         return None
-    # "AWS AppConfig" → "AppConfig", "Amazon GameLift Streams" → "GameLiftStreams"
-    auto_key = re.sub(r'^(Amazon|AWS)\s+', '', service_name, flags=re.IGNORECASE)
-    auto_key = re.sub(r'\s+', '', auto_key)
     try:
         with zipfile.ZipFile(zip_cache) as zf:
             zip_names = set(zf.namelist())

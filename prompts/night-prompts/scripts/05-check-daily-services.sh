@@ -453,7 +453,7 @@ PYEOF
 
   _STDOUT_F=$(mktemp /tmp/claude_out_XXXX)
   _STDERR_F=$(mktemp /tmp/claude_err_XXXX)
-  "$CLAUDE_CMD" -p < "$PROMPT_FILE" > "$_STDOUT_F" 2> "$_STDERR_F"
+  CLAUDE_CODE_MAX_OUTPUT_TOKENS=32000 "$CLAUDE_CMD" -p --model sonnet --tools "" < "$PROMPT_FILE" > "$_STDOUT_F" 2> "$_STDERR_F"
   AI_EXIT=$?
   RESULT=$(cat "$_STDOUT_F")
   _STDERR=$(cat "$_STDERR_F")
@@ -465,7 +465,7 @@ PYEOF
     if [ -x "${CLAUDE_CMD:-}" ]; then
       _STDOUT_F=$(mktemp /tmp/claude_out_XXXX)
       _STDERR_F=$(mktemp /tmp/claude_err_XXXX)
-      "$CLAUDE_CMD" -p < "$PROMPT_FILE" > "$_STDOUT_F" 2> "$_STDERR_F"
+      CLAUDE_CODE_MAX_OUTPUT_TOKENS=32000 "$CLAUDE_CMD" -p --model sonnet --tools "" < "$PROMPT_FILE" > "$_STDOUT_F" 2> "$_STDERR_F"
       AI_EXIT=$?
       RESULT=$(cat "$_STDOUT_F")
       _STDERR=$(cat "$_STDERR_F")

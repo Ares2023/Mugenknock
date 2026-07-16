@@ -1,9 +1,11 @@
 'use client';
-import React, { useEffect, useState, useCallback } from 'react';
+import React, { useEffect, useState, useCallback, useMemo } from 'react';
+import { createPortal } from 'react-dom';
 import { Helmet } from '@/compat/react-helmet-async';
 import { useNavigate } from '@/compat/react-router-dom';
 import { API_ENDPOINT, EXAM_DOMAINS, EXAM_DOMAIN_SERVICES, EXAM_TYPES, DOMAIN_NAME_EN, EXAM_CONFIGS, DOMAIN_RATE_WARNING, DOMAIN_RATE_CAUTION, PASS_SCORES, EXAM_LEVEL, EXAM_LEVEL_COLORS, tagIdMatches, toDomainIndex } from '../constants';
 import { syncPreferencesToServer, syncTargetExamToServer, collectExamDatesFromLocal } from '../utils/preferences';
+import { lockBodyScroll } from '../utils/bodyScrollLock';
 import { useAuth } from '../contexts/AuthContext';
 import { useLanguage } from '../contexts/LanguageContext';
 import Card from '../components/ui/Card';
@@ -13,9 +15,10 @@ import {
   IconCalendarNotebook, IconTarget, IconAnnoyed, IconList,
   IconSparkles, IconChevronRight, IconChevronDown, IconLock, IconFlag, IconStar, IconTrendingUp, IconPenLine,
   IconSprout, IconBox, IconBot, IconCode2, IconCloud, IconDatabase, IconBrain, IconVectorSquare, IconFileCodeCorner, IconAtom, IconShieldIcon, IconWaypoints,
-  EXAM_ICON_COMPONENTS, IconSaveCheck, IconCopy, IconCheck,
+  EXAM_ICON_COMPONENTS, IconSaveCheck, IconCopy, IconCheck, IconTrophy, IconCircleCheck, IconCircleX,
 } from '../components/Icons';
-import ExamSelectOverlay, { EXAM_DESC, EXAM_URLS } from '../components/ExamSelectOverlay';
+import ExamSelectOverlay, { EXAM_DESC, EXAM_URLS, ConfirmBurst } from '../components/ExamSelectOverlay';
+import Confetti from '../components/Confetti';
 import KeyHint from '../components/KeyHint';
 
 
@@ -114,6 +117,7 @@ export default function MyPage() {
   useEffect(() => {
     const saved = localStorage.getItem(`targetExam_${uid}`);
     setTargetExam(saved);
+    try { setObtainedCerts(JSON.parse(localStorage.getItem(`obtainedCerts_${uid}`) ?? '[]')); } catch { setObtainedCerts([]); }
   }, [uid]);
 
   // ── 受験日 ──
@@ -174,17 +178,19 @@ export default function MyPage() {
           localStorage.setItem(`dailyGoal_${uid}`, String(serverGoal));
           setDailyGoal(serverGoal);
         }
+        // 取得済資格（サーバー優先・ローカルとマージして和集合）
+        if (Array.isArray(data.obtainedCerts) && data.obtainedCerts.length > 0) {
+          setObtainedCerts(prev => {
+            const merged = [...new Set([...prev, ...data.obtainedCerts])];
+            localStorage.setItem(`obtainedCerts_${uid}`, JSON.stringify(merged));
+            return merged;
+          });
+        }
       })
       .catch(() => {});
   }, [user?.userId]); // eslint-disable-line react-hooks/exhaustive-deps
 
 
-  // ── オーバーレイ表示中は body スクロール無効 ──
-  useEffect(() => {
-    const anyOpen = showSettingsEdit || showExamSelect || showWeeklyDetail;
-    document.body.style.overflow = anyOpen ? 'hidden' : '';
-    return () => { document.body.style.overflow = ''; };
-  }, [showSettingsEdit, showExamSelect, showWeeklyDetail]);
 
   // ── 週間達成度 ──
   const weekDays = Array.from({ length: 7 }, (_, i) => {
@@ -299,6 +305,35 @@ export default function MyPage() {
   const [histLoading, setHistLoading] = useState(false);
   const [histLoadedExam, setHistLoadedExam] = useState<string | null>(null);
   const [totalExercised, setTotalExercised] = useState<number | null>(null);
+  const [totalSessionCount, setTotalSessionCount] = useState<number | null>(null);
+
+  // ── 取得済資格（履歴タブ） ──
+  const [obtainedCerts, setObtainedCerts] = useState<string[]>(() => {
+    try { return JSON.parse(localStorage.getItem(`obtainedCerts_${uid}`) ?? '[]'); } catch { return []; }
+  });
+  const [showCertOverlay, setShowCertOverlay] = useState(false);
+  const [certOverlayLevel, setCertOverlayLevel] = useState<string>('Foundational');
+  const [certBurst, setCertBurst] = useState<{ x: number; y: number; color: string } | null>(null);
+  const [certConfetti, setCertConfetti] = useState(false);
+  const [justObtained, setJustObtained] = useState<string | null>(null);
+  const toggleObtainedCert = (exam: string, btnEl: HTMLButtonElement) => {
+    setObtainedCerts(prev => {
+      const isObtained = prev.includes(exam);
+      const next = isObtained ? prev.filter(e => e !== exam) : [...prev, exam];
+      localStorage.setItem(`obtainedCerts_${uid}`, JSON.stringify(next));
+      if (user) syncPreferencesToServer(user.userId, uid, { obtainedCerts: next });
+      if (!isObtained) {
+        const r = btnEl.getBoundingClientRect();
+        const color = EXAM_LEVEL_COLORS[EXAM_LEVEL[exam]] ?? 'var(--color-primary)';
+        setCertBurst({ x: r.left + r.width / 2, y: r.top + r.height / 2, color });
+        setCertConfetti(true);
+        setJustObtained(exam);
+        setTimeout(() => setJustObtained(null), 400);
+      }
+      return next;
+    });
+  };
+
   const [expandedSession, setExpandedSession] = useState<string | null>(null);
   const [sessionAnswers, setSessionAnswers] = useState<Record<string, AnswerRecord[]>>({});
   const [answersLoading, setAnswersLoading] = useState<string | null>(null);
@@ -321,6 +356,13 @@ export default function MyPage() {
 
   // ── 問題詳細モーダル ──
   const [questionModal, setQuestionModal] = useState<{ qid: string; detail: any | null; loading: boolean; isCorrect?: boolean } | null>(null);
+
+  // ── オーバーレイ表示中は body スクロール・横スワイプ無効 ──
+  useEffect(() => {
+    const anyOpen = showSettingsEdit || showExamSelect || showWeeklyDetail || showCertOverlay || !!questionModal;
+    if (!anyOpen) return;
+    return lockBodyScroll();
+  }, [showSettingsEdit, showExamSelect, showWeeklyDetail, showCertOverlay, questionModal]);
 
   const openWeakQModal = useCallback(async (qid: string) => {
     const cached = weakQDetails[qid];
@@ -396,6 +438,7 @@ export default function MyPage() {
     ])
       .then(([sessData, progData]) => {
         setSessions(sessData.items ?? []);
+        setTotalSessionCount(sessData.totalCount ?? null);
         setTotalExercised(progData.total ?? 0);
         setHistLoadedExam(targetExam);
       })
@@ -611,11 +654,11 @@ export default function MyPage() {
                                   <span style={{ margin: '0 6px', color: 'var(--color-border)' }}>·</span>
                                   {ja ? `達成 ${achievedDays}/7日` : `${achievedDays}/7 days`}
                                 </div>
-                                <div style={{ position: 'relative', height: CH, marginTop: 4 }}>
+                                <div style={{ position: 'relative', height: CH + 18, marginTop: 4 }}>
                                   {goal > 0 && (
                                     <div style={{ position: 'absolute', left: 0, right: 0, bottom: (Math.min(goal, maxVal) / maxVal) * CH, borderTop: '1px dashed var(--color-primary)', pointerEvents: 'none' }} />
                                   )}
-                                  <div style={{ display: 'flex', gap: 8, alignItems: 'flex-end', height: '100%' }}>
+                                  <div style={{ display: 'flex', gap: 8, alignItems: 'flex-end', height: CH }}>
                                     {weekDays.map((d, i) => {
                                       const count = weekCountsTarget[i];
                                       const achieved = goal > 0 && count >= goal;
@@ -965,18 +1008,27 @@ export default function MyPage() {
                     <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 14, flexWrap: 'wrap' }}>
                       <span style={{ fontSize: 'var(--font-size-xs)', color: 'var(--color-text-light)', fontWeight: 700 }}>{ja ? '集計対象' : 'Window'}</span>
                       <div style={{ display: 'inline-flex', border: '1px solid var(--color-border)', borderRadius: 'var(--border-radius-full)', overflow: 'hidden' }}>
-                        {([10, 20, 30] as const).map((w) => {
-                          const active = recentWindow === w;
-                          return (
-                            <button
-                              key={w}
-                              onClick={() => setRecentWindow(w)}
-                              style={{ border: 'none', borderLeft: w === 10 ? 'none' : '1px solid var(--color-border)', background: active ? 'var(--color-primary)' : 'transparent', color: active ? 'var(--color-btn-primary-text, #fff)' : 'var(--color-text-sub)', fontSize: 'var(--font-size-xs)', fontWeight: 700, padding: '5px 14px', cursor: 'pointer', transition: 'background 0.15s' }}
-                            >
-                              {ja ? `直近${w}問` : `Last ${w}`}
-                            </button>
-                          );
-                        })}
+                        {(() => {
+                          // 現在の対象資格のドメインだけで最大演習数を算出（domainStatsは全資格横断のため絞り込む）
+                          const maxEx = Math.max(0, ...domains.map(d => {
+                            const st = domainStats.find(s => tagIdMatches(s.tagId, targetExam ?? '', toDomainIndex(targetExam ?? '', d)));
+                            return (st?.recentResults ?? []).length;
+                          }));
+                          return ([10, 20, 30] as const).map((w) => {
+                            const active = recentWindow === w;
+                            const disabled = w - 10 >= maxEx;
+                            return (
+                              <button
+                                key={w}
+                                onClick={() => !disabled && setRecentWindow(w)}
+                                disabled={disabled}
+                                style={{ border: 'none', borderLeft: w === 10 ? 'none' : '1px solid var(--color-border)', background: active ? 'var(--color-primary)' : 'transparent', color: disabled ? 'var(--color-text-light)' : active ? 'var(--color-btn-primary-text, #fff)' : 'var(--color-text-sub)', fontSize: 'var(--font-size-xs)', fontWeight: 700, padding: '5px 14px', cursor: disabled ? 'default' : 'pointer', opacity: disabled ? 0.4 : 1, transition: 'background 0.15s' }}
+                              >
+                                {ja ? `直近${w}問` : `Last ${w}`}
+                              </button>
+                            );
+                          });
+                        })()}
                       </div>
                     </div>
                     <div style={{ display: 'flex', flexDirection: 'column', gap: 0 }}>
@@ -1125,20 +1177,129 @@ export default function MyPage() {
               </>
             ) : (
               <>
-                {totalExercised !== null && (
-                  <Card style={{ marginBottom: 'var(--spacing-md)' }}>
-                    <div style={{ fontSize: 'var(--font-size-xs)', fontWeight: 700, color: 'var(--color-text-sub)', textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: 'var(--spacing-xs)' }}>
-                      {ja ? '累計演習量' : 'Total Exercises'}
-                      {targetExam && <span style={{ marginLeft: 6, fontWeight: 400, textTransform: 'none', letterSpacing: 0 }}>({targetExam})</span>}
-                    </div>
-                    <div style={{ display: 'flex', alignItems: 'baseline', gap: 4 }}>
-                      <span style={{ fontSize: 'var(--font-size-xxl)', fontWeight: 700, color: 'var(--color-primary)' }}>
-                        {totalExercised.toLocaleString()}
-                      </span>
-                      <span style={{ fontSize: 'var(--font-size-sm)', color: 'var(--color-text-light)' }}>{ja ? '問' : 'Q'}</span>
-                    </div>
-                  </Card>
-                )}
+                {/* 取得済資格パネル（クリックでオーバーレイを開く） */}
+                {(() => {
+                  const HEX = 'polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%)';
+                  const CertHex = ({ exam, obtained, color, size = 38 }: { exam: string; obtained: boolean; color: string; size?: number }) => {
+                    const ExamIcon = EXAM_ICON_COMPONENTS[exam];
+                    const inner = Math.round(size * 0.88);
+                    const hexH = Math.round(size * 1.15);
+                    const innerH = Math.round(inner * 1.15);
+                    const grayOpacity = 0.6;
+                    return (
+                      <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 3 }}>
+                        <div style={{ position: 'relative', width: size, height: hexH, flexShrink: 0 }}>
+                          <div style={{ position: 'absolute', inset: 0, background: obtained ? color : 'var(--color-text-light)', clipPath: HEX, opacity: obtained ? 1 : grayOpacity }} />
+                          <div style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)', width: inner, height: innerH, background: obtained ? 'var(--color-bg-white)' : 'var(--color-bg-main)', clipPath: HEX, display: 'flex', alignItems: 'center', justifyContent: 'center', color: obtained ? color : 'var(--color-text-light)', opacity: obtained ? 1 : grayOpacity }}>
+                            {ExamIcon && <ExamIcon size={Math.round(size * 0.42)} />}
+                          </div>
+                        </div>
+                        <div style={{ fontSize: 'var(--font-size-3xs)', fontWeight: 800, color: obtained ? color : 'var(--color-text-light)', lineHeight: 1 }}>{exam}</div>
+                      </div>
+                    );
+                  };
+                  return (
+                    <Card style={{ marginBottom: 'var(--spacing-md)', cursor: 'pointer' }} onClick={() => { setCertConfetti(false); setCertBurst(null); setShowCertOverlay(true); }}>
+                      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 'var(--spacing-md)' }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                          <span style={{ color: 'var(--color-text-sub)', display: 'flex', alignItems: 'center' }}><IconTrophy size={13} /></span>
+                          <span style={{ fontWeight: 700, fontSize: 'var(--font-size-sm)', color: 'var(--color-text-main)' }}>{ja ? '取得済資格' : 'Certifications'}</span>
+                        </div>
+                        <div style={{ width: 35, height: 35, borderRadius: '50%', border: '1px solid var(--color-primary)', background: 'transparent', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--color-primary)', flexShrink: 0 }}>
+                          <IconPenLine size={14} />
+                        </div>
+                      </div>
+                      {[
+                        { color: '#6b9e3a', exams: ['CLF', 'AIF'] },
+                        { color: '#006CE0', exams: ['SAA', 'DVA', 'SOA', 'DEA', 'MLA'] },
+                        { color: '#8b5cf6', exams: ['SAP', 'DOP', 'AIP'] },
+                        { color: '#0ea5e9', exams: ['ANS', 'SCS'] },
+                      ].map(row => (
+                        <div key={row.color} style={{ display: 'flex', gap: 10, alignItems: 'flex-end', marginBottom: 6 }}>
+                          {[...row.exams].sort((a, b) =>
+                            (obtainedCerts.includes(b) ? 1 : 0) - (obtainedCerts.includes(a) ? 1 : 0)
+                          ).map(exam => (
+                            <CertHex key={exam} exam={exam} obtained={obtainedCerts.includes(exam)} color={row.color} size={45} />
+                          ))}
+                        </div>
+                      ))}
+                    </Card>
+                  );
+                })()}
+
+                {/* 取得済資格オーバーレイ */}
+                {showCertOverlay && (() => {
+                  const HEX = 'polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%)';
+                  const CERT_LEVELS = [
+                    { key: 'Foundational', label: 'Foundational', color: '#6b9e3a', exams: ['CLF', 'AIF'] },
+                    { key: 'Associate',    label: 'Associate',    color: '#006CE0', exams: ['SAA', 'DVA', 'SOA', 'DEA', 'MLA'] },
+                    { key: 'Professional', label: 'Professional', color: '#8b5cf6', exams: ['SAP', 'DOP', 'AIP'] },
+                    { key: 'Specialty',    label: 'Specialty',    color: '#0ea5e9', exams: ['ANS', 'SCS'] },
+                  ] as const;
+                  const currentLevel = CERT_LEVELS.find(l => l.key === certOverlayLevel) ?? CERT_LEVELS[0];
+                  return createPortal(
+                    <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', zIndex: 9800, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16 }} onClick={() => setShowCertOverlay(false)}>
+                      <style>{`
+                        @keyframes certObtainPop { 0%{transform:scale(1)} 40%{transform:scale(1.18)} 70%{transform:scale(0.94)} 100%{transform:scale(1)} }
+                        @keyframes certHexSpin { 0%{transform:rotateY(0deg)} 100%{transform:rotateY(360deg)} }
+                      `}</style>
+                      {certConfetti && <Confetti count={70} durationMs={2200} zIndex={9900} onDone={() => setCertConfetti(false)} />}
+                      {certBurst && <ConfirmBurst x={certBurst.x} y={certBurst.y} color={certBurst.color} onDone={() => setCertBurst(null)} />}
+                      <div style={{ background: 'var(--color-bg-white)', borderRadius: 'var(--border-radius-lg)', width: '100%', maxWidth: 420, boxShadow: 'var(--box-shadow-lg)', display: 'flex', flexDirection: 'column', overflow: 'hidden', maxHeight: '80vh' }} onClick={e => e.stopPropagation()}>
+                        {/* ヘッダー */}
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '16px 20px 12px', flexShrink: 0, borderBottom: '1px solid var(--color-border)' }}>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                            <IconTrophy size={16} />
+                            <span style={{ fontWeight: 700, fontSize: 'var(--font-size-lg)' }}>{ja ? '取得済資格を設定' : 'Set Certifications'}</span>
+                          </div>
+                          <button onClick={() => setShowCertOverlay(false)} style={{ border: 'none', background: 'transparent', cursor: 'pointer', color: 'var(--color-text-light)', fontSize: 20, lineHeight: 1, padding: 4 }}>✕</button>
+                        </div>
+                        {/* レベルタブ */}
+                        <div style={{ display: 'flex', borderBottom: '1px solid var(--color-border)', flexShrink: 0 }}>
+                          {CERT_LEVELS.map(lv => (
+                            <button key={lv.key} onClick={() => setCertOverlayLevel(lv.key)} style={{ flex: 1, padding: '10px 4px', border: 'none', borderBottom: `3px solid ${certOverlayLevel === lv.key ? lv.color : 'transparent'}`, background: 'transparent', cursor: 'pointer', fontSize: 'var(--font-size-xs)', fontWeight: 700, color: certOverlayLevel === lv.key ? lv.color : 'var(--color-text-light)', transition: 'color 0.15s' }}>
+                              {lv.label}
+                            </button>
+                          ))}
+                        </div>
+                        {/* 資格カード */}
+                        <div style={{ display: 'flex', gap: 10, padding: '20px 20px', flexWrap: 'wrap', alignContent: 'flex-start', height: 240, overflowY: 'auto' }}>
+                          {currentLevel.exams.map(exam => {
+                            const obtained = obtainedCerts.includes(exam);
+                            const ExamIcon = EXAM_ICON_COMPONENTS[exam];
+                            const c = currentLevel.color;
+                            return (
+                              <button
+                                key={exam}
+                                onClick={e => toggleObtainedCert(exam, e.currentTarget)}
+                                style={{ flexShrink: 0, width: 80, padding: '10px 6px 8px', cursor: 'pointer', borderRadius: 10, textAlign: 'center', position: 'relative', border: `2px solid ${obtained ? c : 'var(--color-border)'}`, background: obtained ? `linear-gradient(145deg, ${c}, ${c}bb)` : `linear-gradient(145deg, var(--color-bg-card), ${c}18)`, animation: justObtained === exam ? 'certObtainPop 0.38s cubic-bezier(.36,.07,.19,.97)' : undefined, transition: 'border-color 0.15s, background 0.15s' }}
+                              >
+                                {obtained && <div style={{ position: 'absolute', top: 4, right: 4, color: '#fff', lineHeight: 0 }}><IconCheck size={14} /></div>}
+                                {/* 六角形バッジ */}
+                                <div style={{ display: 'flex', justifyContent: 'center', marginBottom: 6, perspective: 200 }}>
+                                  <div style={{ width: 40, height: 46, background: obtained ? 'rgba(255,255,255,0.25)' : c + '33', clipPath: HEX, display: 'flex', alignItems: 'center', justifyContent: 'center', animation: justObtained === exam ? 'certHexSpin 0.52s ease' : undefined }}>
+                                    <div style={{ width: 34, height: 39, background: obtained ? 'rgba(255,255,255,0.85)' : 'var(--color-bg-card)', clipPath: HEX, display: 'flex', alignItems: 'center', justifyContent: 'center', color: obtained ? c : 'var(--color-text-light)' }}>
+                                      {ExamIcon && <ExamIcon size={17} />}
+                                    </div>
+                                  </div>
+                                </div>
+                                <div style={{ fontWeight: 800, fontSize: 'var(--font-size-md)', color: obtained ? '#fff' : 'var(--color-text-main)', lineHeight: 1 }}>{exam}</div>
+                              </button>
+                            );
+                          })}
+                        </div>
+                        {/* フッター */}
+                        <div style={{ padding: '12px 20px', borderTop: '1px solid var(--color-border)', flexShrink: 0, textAlign: 'center' }}>
+                          <span style={{ fontSize: 'var(--font-size-xs)', color: 'var(--color-text-light)' }}>
+                            {ja ? `${obtainedCerts.length} / 12 資格取得済` : `${obtainedCerts.length} / 12 certified`}
+                          </span>
+                        </div>
+                      </div>
+                    </div>,
+                    document.body
+                  );
+                })()}
+
                 {recentSessions.length === 0 ? (
                   <Card padding="var(--spacing-xl)">
                     <p style={{ margin: 0, textAlign: 'center', fontSize: 'var(--font-size-sm2)', color: 'var(--color-text-light)' }}>
@@ -1147,8 +1308,16 @@ export default function MyPage() {
                   </Card>
                 ) : (
                 <>
-                <div style={{ fontSize: 'var(--font-size-sm)', color: 'var(--color-text-sub)', marginBottom: 10 }}>
-                  {ja ? '直近10セッション' : 'Last 10 sessions'}
+                <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', marginBottom: 10, gap: 8 }}>
+                  <span style={{ fontSize: 'var(--font-size-sm)', color: 'var(--color-text-sub)' }}>{ja ? '直近10セッション' : 'Last 10 sessions'}</span>
+                  {(totalSessionCount !== null || totalExercised !== null) && (
+                    <span style={{ fontSize: 'var(--font-size-xs)', color: 'var(--color-text-light)', whiteSpace: 'nowrap' }}>
+                      {ja ? '累計' : 'Total'}{' '}
+                      {totalSessionCount !== null && <>{totalSessionCount.toLocaleString()}{ja ? 'セッション' : ' sessions'}</>}
+                      {totalSessionCount !== null && totalExercised !== null && ' / '}
+                      {totalExercised !== null && <>{totalExercised.toLocaleString()}{ja ? '問' : 'Q'}</>}
+                    </span>
+                  )}
                 </div>
                 {recentSessions.map(s => {
                   const modeLabel = s.mode === 'exam'
@@ -1254,8 +1423,8 @@ export default function MyPage() {
               <span style={{ fontSize: 'var(--font-size-sm)', fontWeight: 700, color: 'var(--color-text-sub)' }}>
                 {questionModal.isCorrect !== undefined
                   ? (questionModal.isCorrect
-                    ? <span style={{ color: 'var(--color-success)' }}>○ {ja ? '正解' : 'Correct'}</span>
-                    : <span style={{ color: 'var(--color-danger)' }}>× {ja ? '不正解' : 'Incorrect'}</span>)
+                    ? <span style={{ color: 'var(--color-success)', display: 'inline-flex', alignItems: 'center', gap: 4 }}><IconCircleCheck size={14} />{ja ? '正解' : 'Correct'}</span>
+                    : <span style={{ color: 'var(--color-danger)', display: 'inline-flex', alignItems: 'center', gap: 4 }}><IconCircleX size={14} />{ja ? '不正解' : 'Incorrect'}</span>)
                   : (ja ? '問題詳細' : 'Question Detail')}
               </span>
               <button onClick={() => setQuestionModal(null)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--color-text-sub)', fontSize: 'var(--font-size-xl)', lineHeight: 1, padding: '2px 6px' }}>✕</button>

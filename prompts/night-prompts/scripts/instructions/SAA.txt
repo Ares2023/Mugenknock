@@ -29,12 +29,6 @@ AWS Certified Solutions Architect – Associate (SAA-C03) の模擬試験問題�
 
 ---
 【公式試験ガイド概要 (SAA-C03)】
-■ 試験の配分
-- 第1ドメイン：セキュアなアーキテクチャの設計 (30%)
-- 第2ドメイン：弾力性に優れたアーキテクチャの設計 (26%)
-- 第3ドメイン：高性能なアーキテクチャの設計 (24%)
-- 第4ドメイン：コスト最適化されたアーキテクチャの設計 (20%)
-
 ■ 公式タスク文（出題で必ずカバーすること）
 【第1ドメイン：セキュアなアーキテクチャの設計】
 - Task 1.1: AWSリソースへのセキュアなアクセスを設計する（IAMロール・ポリシー・SCP・Permission Boundary・クロスアカウントアクセス）
@@ -70,20 +64,3 @@ AWS Certified Solutions Architect – Associate (SAA-C03) の模擬試験問題�
 - コンテナ: ECS, EKS, ECR, Fargate
 - 移行: Migration Hub, Application Migration Service (MGN), DMS, Snow Family, DataSync, Transfer Family
 - AI/ML: SageMaker, Rekognition, Polly, Lex, Comprehend, Transcribe, Bedrock
-
-
----
-【解説（explanation）フォーマット】
-以下のフォーマットで記述すること。
-
-[正解の詳細説明]
-（正解選択肢のサービス・概念がなぜ要件を満たすか、どういう機能があるかを説明）
-
-選択肢Aの[サービス名]は[不正解の理由]。
-選択肢Bの[サービス名]は[不正解の理由]。
-...
-
-⚠ 禁止事項:
-- explanation の先頭に「正解：」や「正解：X. ～」を書かないこと（UIが correctAnswers から自動表示するため重複する）
-- 選択肢説明が「選択肢Xは～」形式（「選択肢Xの[サービス名]は～」が正しい）
-- 列挙・手順（①②③, ・, 1.2.3.）を改行なしで連続させること（1項目ごとに改行すること）

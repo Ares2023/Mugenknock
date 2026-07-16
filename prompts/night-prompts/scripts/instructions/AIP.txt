@@ -28,13 +28,6 @@ AWS Certified Generative AI Developer – Professional (AIP-C01) の模擬試験
 
 ---
 【公式試験ガイド概要 (AIP-C01)】
-■ 試験の配分
-- 第1ドメイン：基盤モデルの統合、データ管理、コンプライアンス (31%)
-- 第2ドメイン：実装と統合 (26%)
-- 第3ドメイン：AIの安全性、セキュリティ、ガバナンス (20%)
-- 第4ドメイン：生成AIアプリケーションの運用効率と最適化 (15%)
-- 第5ドメイン：テスト、検証、トラブルシューティング (8%)
-
 ■ 公式タスク文（出題で必ずカバーすること）
 【第1ドメイン：基盤モデルの統合、データ管理、コンプライアンス】
 - Task 1.1: 要件に合った基盤モデルを選択する（Bedrock モデル比較・Claude/Titan/Llama/Mistral/Stable Diffusion・コンテキストウィンドウ・コスト・レイテンシー・モダリティ）
@@ -69,20 +62,3 @@ AWS Certified Generative AI Developer – Professional (AIP-C01) の模擬試験
 - 統合: API Gateway, Lambda, Step Functions, EventBridge, SQS, AppSync
 - MLOps: SageMaker, CodePipeline, CloudWatch
 - セキュリティ: IAM, KMS, VPC, CloudTrail, Macie
-
-
----
-【解説（explanation）フォーマット】
-以下のフォーマットで記述すること。
-
-[正解の詳細説明]
-（正解選択肢のサービス・概念がなぜ要件を満たすか、どういう機能があるかを説明）
-
-選択肢Aの[サービス名]は[不正解の理由]。
-選択肢Bの[サービス名]は[不正解の理由]。
-...
-
-⚠ 禁止事項:
-- explanation の先頭に「正解：」や「正解：X. ～」を書かないこと（UIが correctAnswers から自動表示するため重複する）
-- 選択肢説明が「選択肢Xは～」形式（「選択肢Xの[サービス名]は～」が正しい）
-- 列挙・手順（①②③, ・, 1.2.3.）を改行なしで連続させること（1項目ごとに改行すること）

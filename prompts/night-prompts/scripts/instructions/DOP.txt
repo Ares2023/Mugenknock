@@ -47,14 +47,6 @@ AWS Certified DevOps Engineer – Professional (DOP-C02) の模擬試験問題�
 
 ---
 【公式試験ガイド概要 (DOP-C02)】
-■ 試験の配分
-- 第1ドメイン：SDLC の自動化 (22%)
-- 第2ドメイン：構成管理と Infrastructure as Code (IaC) (17%)
-- 第3ドメイン：弾力性に優れたクラウドソリューション (15%)
-- 第4ドメイン：モニタリングとロギング (15%)
-- 第5ドメイン：インシデントとイベントへの対応 (14%)
-- 第6ドメイン：セキュリティとコンプライアンス (17%)
-
 ■ 公式タスク文（出題で必ずカバーすること）
 【第1ドメイン：SDLC の自動化】
 - Task 1.1: CI/CDパイプラインを実装する（CodePipeline・CodeBuild buildspec・テスト自動化・アーティファクト管理・GitHub Actions）
@@ -94,20 +86,3 @@ AWS Certified DevOps Engineer – Professional (DOP-C02) の模擬試験問題�
 - セキュリティ・ガバナンス: IAM, Secrets Manager, KMS, Security Hub, GuardDuty, WAF, Shield, Firewall Manager, Config, Organizations, Control Tower
 - ネットワーク: VPC, Route 53, API Gateway, CloudFront
 - デプロイ戦略: Blue/Green, Canary, Rolling, All-at-once (Beanstalk, CodeDeploy, CloudFormation での実現手法)
-
-
----
-【解説（explanation）フォーマット】
-以下のフォーマットで記述すること。
-
-[正解の詳細説明]
-（正解選択肢のサービス・概念がなぜ要件を満たすか、どういう機能があるかを説明）
-
-選択肢Aの[サービス名]は[不正解の理由]。
-選択肢Bの[サービス名]は[不正解の理由]。
-...
-
-⚠ 禁止事項:
-- explanation の先頭に「正解：」や「正解：X. ～」を書かないこと（UIが correctAnswers から自動表示するため重複する）
-- 選択肢説明が「選択肢Xは～」形式（「選択肢Xの[サービス名]は～」が正しい）
-- 列挙・手順（①②③, ・, 1.2.3.）を改行なしで連続させること（1項目ごとに改行すること）

@@ -10,10 +10,12 @@ export default function Confetti({
   count = 110,
   durationMs = 2500,
   onDone,
+  zIndex = 9700,
 }: {
   count?: number;
   durationMs?: number;
   onDone?: () => void;
+  zIndex?: number;
 }) {
   const pieces = useMemo(() => Array.from({ length: count }, (_, i) => {
     const spinDir = Math.random() > 0.5 ? 1 : -1;
@@ -51,7 +53,7 @@ export default function Confetti({
 
   return createPortal(
     <div aria-hidden style={{
-      position: 'fixed', inset: 0, zIndex: 9700, pointerEvents: 'none', overflow: 'hidden',
+      position: 'fixed', inset: 0, zIndex, pointerEvents: 'none', overflow: 'hidden',
       // 0〜2秒は不透明、2秒地点からフェード開始し3秒で完全消滅
       animation: `confettiContainerOut ${durationMs}ms linear forwards`,
     }}>

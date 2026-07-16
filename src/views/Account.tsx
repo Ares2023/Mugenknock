@@ -1,5 +1,6 @@
 'use client';
 import React, { useEffect, useState } from 'react';
+import { lockBodyScroll } from '../utils/bodyScrollLock';
 import { useNavigate } from '@/compat/react-router-dom';
 import { updatePassword, deleteUser, updateUserAttributes } from 'aws-amplify/auth';
 import { API_ENDPOINT, EXAM_TYPES, EXAM_LEVEL, EXAM_CONFIGS } from '../constants';
@@ -168,6 +169,12 @@ export default function Account() {
       return false;
     } catch { return false; }
   };
+
+  useEffect(() => {
+    const anyOpen = showPasswordModal || showEmailModal || showDeleteModal || showDataModal || showResetModal || showThemeModal;
+    if (!anyOpen) return;
+    return lockBodyScroll();
+  }, [showPasswordModal, showEmailModal, showDeleteModal, showDataModal, showResetModal, showThemeModal]);
 
   useEffect(() => {
     if (!user) return;

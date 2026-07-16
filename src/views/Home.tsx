@@ -14,6 +14,7 @@ import {
   tagIdMatches, domainsToIndices, storedDomainsToNames,
 } from '../constants';
 import { readDomainResults, readDomainHistory } from '../utils/domainStats';
+import { lockBodyScroll } from '../utils/bodyScrollLock';
 import { getCached, setCached, deleteCached, DEFAULT_TTL, getCachedPersist, setCachedPersist, deleteCachedPersist } from '../utils/cache';
 import { animateLoadPct, randomPlateau } from '../utils/loadProgress';
 import { getPoints, deductPoints } from '../utils/points';
@@ -214,9 +215,7 @@ function CombinedDetailModal({ targetExam, domainAccList, estimatedScore, passSc
   }, [tab, showCalc]);
 
   useEffect(() => {
-    const prev = document.body.style.overflow;
-    document.body.style.overflow = 'hidden';
-    return () => { document.body.style.overflow = prev; };
+    return lockBodyScroll();
   }, []);
 
   useEffect(() => {
@@ -1827,23 +1826,12 @@ export default function Home() {
     }
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
-  // オーバーレイ表示中は body スクロール無効（iOS Safari 対応で position:fixed 方式）
+  // オーバーレイ表示中は body スクロール・横スワイプ無効
   useEffect(() => {
     const anyOpen = showQuickModal || showFocusedModal || showCombinedDetail ||
       (isMobile && (showNewPanel || showFocusedMenu));
     if (!anyOpen) return;
-    const scrollY = window.scrollY;
-    document.body.style.overflow = 'hidden';
-    document.body.style.position = 'fixed';
-    document.body.style.top = `-${scrollY}px`;
-    document.body.style.width = '100%';
-    return () => {
-      document.body.style.overflow = '';
-      document.body.style.position = '';
-      document.body.style.top = '';
-      document.body.style.width = '';
-      window.scrollTo(0, scrollY);
-    };
+    return lockBodyScroll();
   }, [showQuickModal, showFocusedModal, showCombinedDetail, showNewPanel, showFocusedMenu, isMobile]);
 
   // ドメイン別成績（サーバー統計優先、ゲスト/オフライン時はローカル履歴）
@@ -2182,12 +2170,8 @@ export default function Home() {
                     ) : (
                     <>
                       {primaryMode === 'quick' ? (ja ? 'サクッと演習を再開' : 'Quick (Resume)') : (ja ? 'しっかり対策を再開' : 'Focused (Resume)')}
-                      {ja && primaryMode === 'quick' && quickDraft?.results != null && quickDraft?.questions != null && (
-                        <span style={{ fontSize: 'var(--font-size-sm)', fontWeight: 400, opacity: 0.85 }}>（{quickDraft.results.length}/{quickDraft.questionIds?.length ?? quickDraft.questions.length}問）</span>
-                      )}
-                      {ja && primaryMode !== 'quick' && focusedDraft?.results != null && focusedDraft?.questions != null && (
-                        <span style={{ fontSize: 'var(--font-size-sm)', fontWeight: 400, opacity: 0.85 }}>（{focusedDraft.results.length}/{focusedDraft.questionIds?.length ?? focusedDraft.questions.length}問）</span>
-                      )}
+                      {ja && primaryMode === 'quick' && quickDraft?.results != null && quickDraft?.questions != null && (() => { const tot = quickDraft.questionIds?.length ?? quickDraft.questions.length; return <span style={{ fontSize: 'var(--font-size-sm)', fontWeight: 400, opacity: 0.85 }}>（{Math.min(quickDraft.results.length + 1, tot)}/{tot}問）</span>; })()}
+                      {ja && primaryMode !== 'quick' && focusedDraft?.results != null && focusedDraft?.questions != null && (() => { const tot = focusedDraft.questionIds?.length ?? focusedDraft.questions.length; return <span style={{ fontSize: 'var(--font-size-sm)', fontWeight: 400, opacity: 0.85 }}>（{Math.min(focusedDraft.results.length + 1, tot)}/{tot}問）</span>; })()}
                       <span style={{ marginLeft: 8, display: 'inline-flex', verticalAlign: 'middle' }}><KeyHint /></span>
                     </>
                   )}
@@ -2390,12 +2374,8 @@ export default function Home() {
                   ) : (
                     <>
                       {primaryMode === 'quick' ? (ja ? 'サクッと演習を再開' : 'Quick (Resume)') : (ja ? 'しっかり対策を再開' : 'Focused (Resume)')}
-                      {ja && primaryMode === 'quick' && quickDraft?.results != null && quickDraft?.questions != null && (
-                        <span style={{ fontSize: 'var(--font-size-sm)', fontWeight: 400, opacity: 0.85 }}>（{quickDraft.results.length}/{quickDraft.questionIds?.length ?? quickDraft.questions.length}問）</span>
-                      )}
-                      {ja && primaryMode !== 'quick' && focusedDraft?.results != null && focusedDraft?.questions != null && (
-                        <span style={{ fontSize: 'var(--font-size-sm)', fontWeight: 400, opacity: 0.85 }}>（{focusedDraft.results.length}/{focusedDraft.questionIds?.length ?? focusedDraft.questions.length}問）</span>
-                      )}
+                      {ja && primaryMode === 'quick' && quickDraft?.results != null && quickDraft?.questions != null && (() => { const tot = quickDraft.questionIds?.length ?? quickDraft.questions.length; return <span style={{ fontSize: 'var(--font-size-sm)', fontWeight: 400, opacity: 0.85 }}>（{Math.min(quickDraft.results.length + 1, tot)}/{tot}問）</span>; })()}
+                      {ja && primaryMode !== 'quick' && focusedDraft?.results != null && focusedDraft?.questions != null && (() => { const tot = focusedDraft.questionIds?.length ?? focusedDraft.questions.length; return <span style={{ fontSize: 'var(--font-size-sm)', fontWeight: 400, opacity: 0.85 }}>（{Math.min(focusedDraft.results.length + 1, tot)}/{tot}問）</span>; })()}
                     </>
                   )}
                 </button>

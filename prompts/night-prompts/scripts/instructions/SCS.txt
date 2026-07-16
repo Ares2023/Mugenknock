@@ -39,14 +39,6 @@ AWS Certified Security – Specialty (SCS-C03) の模擬試験問題を作成し
 
 ---
 【公式試験ガイド概要 (SCS-C03)】
-■ 試験の配分
-- 第1ドメイン：検出 (14%)
-- 第2ドメイン：インシデント対応 (18%)
-- 第3ドメイン：インフラストラクチャのセキュリティ (20%)
-- 第4ドメイン：アイデンティティとアクセス管理 (16%)
-- 第5ドメイン：データ保護 (18%)
-- 第6ドメイン：セキュリティの基盤とガバナンス (14%)
-
 ■ 公式タスク文（出題で必ずカバーすること）
 【第1ドメイン：検出】
 - Task 1.1: モニタリングとアラートを設計・実装する（GuardDuty・Security Hub・CloudTrail・CloudWatch Alarms・Config Rules・VPC Flow Logs・Macie・Detective）
@@ -86,20 +78,3 @@ AWS Certified Security – Specialty (SCS-C03) の模擬試験問題を作成し
 - データ保護: KMS (CMK・AWS managed key), CloudHSM, S3暗号化 (SSE-S3・SSE-KMS・SSE-C・DSSE-KMS), Secrets Manager, ACM, ACM Private CA
 - コンプライアンス・ガバナンス: Artifact, Audit Manager, Config Rules, Organizations, Control Tower, Well-Architected Framework
 - 生成AIセキュリティ: Bedrock Guardrails, 責任あるAI, プロンプトインジェクション対策
-
-
----
-【解説（explanation）フォーマット】
-以下のフォーマットで記述すること。
-
-[正解の詳細説明]
-（正解選択肢のサービス・概念がなぜ要件を満たすか、どういう機能があるかを説明）
-
-選択肢Aの[サービス名]は[不正解の理由]。
-選択肢Bの[サービス名]は[不正解の理由]。
-...
-
-⚠ 禁止事項:
-- explanation の先頭に「正解：」や「正解：X. ～」を書かないこと（UIが correctAnswers から自動表示するため重複する）
-- 選択肢説明が「選択肢Xは～」形式（「選択肢Xの[サービス名]は～」が正しい）
-- 列挙・手順（①②③, ・, 1.2.3.）を改行なしで連続させること（1項目ごとに改行すること）

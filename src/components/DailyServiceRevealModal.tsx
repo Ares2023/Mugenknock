@@ -1,5 +1,6 @@
 'use client';
 import { useState, useEffect, useMemo } from 'react';
+import { lockBodyScroll } from '../utils/bodyScrollLock';
 import { createPortal } from 'react-dom';
 import { ServiceIconImg, IconSparkles, IconPointer, IconMousePointerClick, IconBean } from './Icons';
 import Button from './ui/Button';
@@ -63,9 +64,7 @@ export default function DailyServiceRevealModal({
   };
 
   useEffect(() => {
-    const prev = document.body.style.overflow;
-    document.body.style.overflow = 'hidden';
-    return () => { document.body.style.overflow = prev; };
+    return lockBodyScroll();
   }, []);
 
   const isMobile = window.innerWidth < 768;

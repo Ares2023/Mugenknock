@@ -3,6 +3,7 @@ import React, { useState, useEffect, useRef, useMemo, useCallback } from 'react'
 import { createPortal } from 'react-dom';
 import { useNavigate, useLocation } from '@/compat/react-router-dom';
 import { API_ENDPOINT, EXAM_CONFIGS, PASS_RATE, EXAM_LEVEL } from '../constants';
+import { lockBodyScroll } from '../utils/bodyScrollLock';
 import { recordSessionDomainStats } from '../utils/domainStats';
 import { qText, qChoiceAt } from '../utils/i18nQuestion';
 import { deleteCached } from '../utils/cache';
@@ -432,6 +433,12 @@ export default function ExamSession() {
   const [reportOpen, setReportOpen] = useState(false);
   const [answerCountError, setAnswerCountError] = useState<string | null>(null);
   const [showAbortConfirm, setShowAbortConfirm] = useState(false);
+
+  useEffect(() => {
+    const anyOpen = paused || showConfirm || showAbortConfirm;
+    if (!anyOpen) return;
+    return lockBodyScroll();
+  }, [paused, showConfirm, showAbortConfirm]);
 
   useEffect(() => {
     if (!state) navigate('/aws/exam/setup', { replace: true });

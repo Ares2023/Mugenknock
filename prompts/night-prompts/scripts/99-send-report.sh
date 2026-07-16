@@ -509,12 +509,27 @@ if [ -x "$CANARY_SCRIPT" ]; then
   CANARY_TMP=$(mktemp /tmp/canary_out_XXXX.txt)
   bash "$CANARY_SCRIPT" > "$CANARY_TMP" 2>&1
   CANARY_EXIT=$?
-  CANARY_PASS=$(awk '/✓/{c++} END{print c+0}' "$CANARY_TMP")
-  CANARY_FAIL=$(awk '/✘/{c++} END{print c+0}' "$CANARY_TMP")
-  CANARY_WARNINGS=$(awk '/⚠️/{c++} END{print c+0}' "$CANARY_TMP")
+  # canary.sh 自身が出力する権威あるサマリー行（" passed=X  failed=Y  warnings=Z"）を信頼する。
+  # ✓/✘ マークの再カウントはログ本文や S3 パス（mugenknock-error-logs 等）を巻き込んで
+  # 実態と乖離するため使わない。
+  CANARY_SUMMARY_LINE=$(grep -oE 'passed=[0-9]+[[:space:]]+failed=[0-9]+[[:space:]]+warnings=[0-9]+' "$CANARY_TMP" | tail -1)
+  if [ -n "$CANARY_SUMMARY_LINE" ]; then
+    CANARY_PASS=$(echo "$CANARY_SUMMARY_LINE" | grep -oE 'passed=[0-9]+' | cut -d= -f2)
+    CANARY_FAIL=$(echo "$CANARY_SUMMARY_LINE" | grep -oE 'failed=[0-9]+' | cut -d= -f2)
+    CANARY_WARNINGS=$(echo "$CANARY_SUMMARY_LINE" | grep -oE 'warnings=[0-9]+' | cut -d= -f2)
+  else
+    CANARY_PASS=$(awk '/✓/{c++} END{print c+0}' "$CANARY_TMP")
+    CANARY_FAIL=$(awk '/✘/{c++} END{print c+0}' "$CANARY_TMP")
+    CANARY_WARNINGS=$(awk '/⚠️/{c++} END{print c+0}' "$CANARY_TMP")
+  fi
   CANARY_RESULT="$([ "$CANARY_EXIT" -eq 0 ] && echo '✅ PASS' || echo '❌ FAIL') (passed=${CANARY_PASS} failed=${CANARY_FAIL} warnings=${CANARY_WARNINGS})"
-  # 失敗詳細（最大20行）
-  CANARY_DETAIL=$(grep -E "✘|Error|FAIL|error" "$CANARY_TMP" | head -80 || true)
+  # 失敗詳細は FAIL 時のみ・実マーカー（✘/❌/FAIL）に限定する。
+  # PASS 時に "error" 部分一致で S3 パス等を拾い赤字表示していた誤りを防ぐ。
+  if [ "$CANARY_EXIT" -ne 0 ]; then
+    CANARY_DETAIL=$(grep -E "✘|❌|FAIL" "$CANARY_TMP" | head -80 || true)
+  else
+    CANARY_DETAIL=""
+  fi
   rm -f "$CANARY_TMP"
   echo "  $CANARY_RESULT"
   [ -n "$CANARY_DETAIL" ] && echo "  失敗詳細:" && echo "$CANARY_DETAIL" | sed 's/^/    /'
@@ -532,10 +547,17 @@ if [ -x "$CANARY_AUTH_SCRIPT" ]; then
   if grep -q "RESULT=SKIP" "$CA_TMP"; then
     CANARY_AUTH_RESULT="⏭️ SKIP（認証情報未設定）"
   else
-    CA_PASS=$(awk '/✓|passed/{c++} END{print c+0}' "$CA_TMP")
-    CA_FAIL=$(awk '/✘|failed/{c++} END{print c+0}' "$CA_TMP")
+    # canary-auth.sh が末尾に出す "RESULT=PASS passed=X failed=Y" を信頼する。
+    # 旧実装は awk /passed|failed/ でこのサマリー行自体の単語まで数え、
+    # 実際は失敗0でも passed/failed を水増し（毎晩 failed=2）していた。
+    CA_RESULT_LINE=$(grep -E '^RESULT=' "$CA_TMP" | tail -1)
+    CA_PASS=$(echo "$CA_RESULT_LINE" | grep -oE 'passed=[0-9]+' | cut -d= -f2); CA_PASS=${CA_PASS:-0}
+    CA_FAIL=$(echo "$CA_RESULT_LINE" | grep -oE 'failed=[0-9]+' | cut -d= -f2); CA_FAIL=${CA_FAIL:-0}
     CANARY_AUTH_RESULT="$([ "$CA_EXIT" -eq 0 ] && echo '✅ PASS' || echo '❌ FAIL') (passed=${CA_PASS} failed=${CA_FAIL})"
-    CANARY_AUTH_DETAIL=$(grep -E "✘|Error|FAIL|error" "$CA_TMP" | head -80 || true)
+    # 失敗詳細は FAIL 時のみ・実マーカーに限定（error 部分一致のノイズを排除）。
+    if [ "$CA_EXIT" -ne 0 ]; then
+      CANARY_AUTH_DETAIL=$(grep -E "✘|❌|FAIL" "$CA_TMP" | head -80 || true)
+    fi
   fi
   rm -f "$CA_TMP"
   echo "  認証カナリア: $CANARY_AUTH_RESULT"
@@ -551,8 +573,8 @@ NL_DIR="$NIGHT_PROMPTS_DIR/logs"
 # 出力は行頭マーカーで構造化し、メール側の audit_to_html が装飾する:
 #   1行目=ヘッダ / 【〜】=小見出し / ⚠・✖=指摘問題 / ・=指摘詳細 / ✅=改良適用 / その他=本文
 # 文字数スライスはしない（全文を載せる。途切れ防止）
-AUDIT_SUMMARY=$(NL="$NL_DIR" python3 << 'PYEOF'
-import os, glob, json, re
+AUDIT_SUMMARY=$(NL="$NL_DIR" TODAY="$TODAY" python3 << 'PYEOF'
+import os, glob, json, re, datetime
 from collections import Counter
 nl = os.environ['NL']
 js = sorted(p for p in glob.glob(os.path.join(nl, 'audit_*.json')) if p.endswith('.json'))
@@ -581,7 +603,23 @@ if flagged:
         for issue in (r.get('issues') or []):
             lines.append(f"・{issue}")
 
-imp = sorted(glob.glob(os.path.join(nl, 'audit_*_improvement.md')))
+# 直近3日以内に生成された改良のみ対象にする。最新ファイルを無条件に読むと、
+# 何日も前に一度適用した改良を毎晩「今夜の成果」として重複再掲してしまうため。
+try:
+    _base = datetime.datetime.strptime(os.environ.get('TODAY', ''), '%Y%m%d').date()
+except Exception:
+    _base = datetime.date.today()
+_cutoff = _base - datetime.timedelta(days=3)
+def _imp_date(p):
+    m = re.search(r'audit_(\d{8})_', os.path.basename(p))
+    if not m:
+        return None
+    try:
+        return datetime.datetime.strptime(m.group(1), '%Y%m%d').date()
+    except Exception:
+        return None
+imp = sorted(p for p in glob.glob(os.path.join(nl, 'audit_*_improvement.md'))
+             if (_d := _imp_date(p)) and _d >= _cutoff)
 if imp:
     txt = open(imp[-1]).read()
     m = re.search(r'適用 (\d+)件 / 見送り (\d+)件', txt)
@@ -595,7 +633,7 @@ if imp:
         reason = ' '.join(fm.group(2).split())
         lines.append(f"✅ {fm.group(1)}: {reason}")
 else:
-    lines.append('【プロンプト自動改良】なし')
+    lines.append('【プロンプト自動改良】直近3日は改良なし')
 print('\n'.join(lines))
 PYEOF
 )
@@ -609,6 +647,12 @@ md = sorted(glob.glob(os.path.join(nl, 'canary-coverage_*.md')))
 if not md:
     print('整合性チェック未実施'); raise SystemExit
 txt = open(md[-1]).read()
+# 整合性チェック自体が失敗した回（Claudeの判定/JSON抽出エラー）は、
+# 「所見:(判定失敗) / 対応:JSON抽出失敗のため未対応」を生のまま載せると
+# 毎回の障害表示になり紛らわしいので、簡潔な1行に丸める。
+if '(判定失敗)' in txt or 'JSON抽出失敗' in txt:
+    print('整合性チェック: 今回は判定不可（実行時エラーによりスキップ）')
+    raise SystemExit
 out = []
 # 所見・対応はセクション全体を取り込む（行頭 .+ の1行マッチだと複数行の文章が初行で途切れる）
 m = re.search(r'## 所見\s*\n(.*?)(?=\n## |\Z)', txt, re.S)
@@ -695,124 +739,129 @@ snap = os.environ['SNAPSHOT_FILE']
 today = os.environ['TODAY_DATE']
 
 def dynamo_get(table, key_json):
-    r = subprocess.run(
-        [aws, 'dynamodb', 'get-item', '--table-name', table,
-         '--key', key_json, '--region', reg],
-        capture_output=True, text=True, timeout=20)
-    if r.returncode != 0:
-        return None
     try:
+        r = subprocess.run(
+            [aws, 'dynamodb', 'get-item', '--table-name', table,
+             '--key', key_json, '--region', reg],
+            capture_output=True, text=True, timeout=60)
+        if r.returncode != 0:
+            return None
         return json.loads(r.stdout).get('Item')
     except Exception:
         return None
 
 def dynamo_query(table, key_expr, expr_vals):
-    r = subprocess.run(
-        [aws, 'dynamodb', 'query', '--table-name', table,
-         '--key-condition-expression', key_expr,
-         '--expression-attribute-values', json.dumps(expr_vals),
-         '--region', reg, '--select', 'COUNT'],
-        capture_output=True, text=True, timeout=20)
-    if r.returncode != 0:
-        return None
     try:
+        r = subprocess.run(
+            [aws, 'dynamodb', 'query', '--table-name', table,
+             '--key-condition-expression', key_expr,
+             '--expression-attribute-values', json.dumps(expr_vals),
+             '--region', reg, '--select', 'COUNT'],
+            capture_output=True, text=True, timeout=60)
+        if r.returncode != 0:
+            return None
         return json.loads(r.stdout).get('Count')
     except Exception:
         return None
 
 lines = ['テストユーザー (yuzukisera00@gmail.com) データ整合性チェック']
 issues = []
-
-# ── 1. 今日の演習量 (dailyProgress) ──
-daily_key = json.dumps({'settingId': {'S': f'dailyProgress_{uid}'}})
-daily_item = dynamo_get('AppSettings', daily_key)
+tag_count = None
 today_count = 0
-if daily_item:
-    attr_key = f'DOP_{today}'
-    v = daily_item.get(attr_key, {}).get('N')
-    today_count = int(v) if v else 0
-    lines.append(f'今日の演習量: {today_count} 問 ({today})')
-else:
-    lines.append('今日の演習量: データなし')
+reset_at = ''
 
-# ── 2. UserTagStats 件数 (distinct tagId 数) ──
-tag_count = dynamo_query(
-    'UserTagStats',
-    'userId = :uid',
-    {':uid': {'S': uid}}
-)
-if tag_count is None:
-    lines.append('UserTagStats: クエリ失敗')
-    issues.append('UserTagStats クエリ失敗')
-else:
-    lines.append(f'UserTagStats エントリ数: {tag_count} tagId')
-
-# ── 3. resetAt チェック ──
-reset_key = json.dumps({'settingId': {'S': f'userReset_{uid}'}})
-reset_item = dynamo_get('AppSettings', reset_key)
-reset_at = reset_item.get('resetAt', {}).get('S', '') if reset_item else ''
-lines.append(f'resetAt: {reset_at if reset_at else "なし"}')
-
-# ── 4. スナップショット比較 ──
-prev = {}
-if os.path.exists(snap):
-    try:
-        prev = json.load(open(snap))
-    except Exception:
-        pass
-
-prev_tag_count = prev.get('tag_count')
-prev_reset_at  = prev.get('reset_at', '')
-
-if prev_tag_count is not None and tag_count is not None:
-    diff = tag_count - prev_tag_count
-    if diff < -2:
-        msg = f'⚠ UserTagStats が前回より {abs(diff)} tagId 減少 ({prev_tag_count} → {tag_count})'
-        lines.append(msg)
-        issues.append(msg)
-    elif diff < 0:
-        lines.append(f'UserTagStats 微減: {prev_tag_count} → {tag_count}（許容範囲）')
-    else:
-        lines.append(f'UserTagStats 増減: {prev_tag_count} → {tag_count}（正常）')
-else:
-    lines.append('スナップショット比較: 前回データなし（初回実行）')
-
-if prev_reset_at and prev_reset_at != reset_at:
-    msg = f'⚠ resetAt 変化: {prev_reset_at} → {reset_at if reset_at else "なし"}'
-    lines.append(msg)
-    issues.append(msg)
-
-# ── 5. 演習量 vs tagId の整合性チェック ──
-# tagId 1件につき最大10問なので、today_count > 0 かつ tag_count == 0 は明らかな異常
-if today_count > 5 and tag_count is not None and tag_count == 0:
-    msg = f'✖ 演習量 {today_count} 問あるが UserTagStats が 0 — データ消失の可能性'
-    lines.append(msg)
-    issues.append(msg)
-elif today_count > 0 and tag_count is not None:
-    # 10問/tagId なので tag_count * 10 < today_count は怪しい
-    max_expected = tag_count * 10
-    if today_count > max_expected + 5:
-        msg = f'⚠ 演習量 ({today_count}) が UserTagStats ({tag_count} tagId, 最大 {max_expected} 問) を大幅に超過'
-        lines.append(msg)
-        issues.append(msg)
-
-if issues:
-    lines.append(f'--- {len(issues)}件の問題を検出 ---')
-else:
-    lines.append('✅ 整合性OK（問題なし）')
-
-# ── 6. スナップショット保存 ──
-new_snap = {
-    'date': today,
-    'tag_count': tag_count,
-    'today_count': today_count,
-    'reset_at': reset_at,
-}
 try:
-    with open(snap, 'w') as f:
-        json.dump(new_snap, f, ensure_ascii=False)
+    # ── 1. 今日の演習量 (dailyProgress) — 全試験種別の合計 ──
+    daily_key = json.dumps({'settingId': {'S': f'dailyProgress_{uid}'}})
+    daily_item = dynamo_get('AppSettings', daily_key)
+    if daily_item:
+        # 属性キーは {examType}_{date} 形式 — 今日分を全試験種別で合計
+        today_count = sum(
+            int(v.get('N', 0))
+            for k, v in daily_item.items()
+            if k.endswith(f'_{today}') and 'N' in v
+        )
+        exam_breakdown = {k.split('_')[0]: int(v['N']) for k, v in daily_item.items()
+                          if k.endswith(f'_{today}') and 'N' in v and int(v['N']) > 0}
+        detail = ' / '.join(f'{e}:{n}問' for e, n in sorted(exam_breakdown.items())) or 'なし'
+        lines.append(f'今日の演習量: {today_count} 問 ({today}) [{detail}]')
+    else:
+        lines.append('今日の演習量: データなし')
+
+    # ── 2. UserTagStats 件数 (distinct tagId 数) ──
+    tag_count = dynamo_query(
+        'UserTagStats',
+        'userId = :uid',
+        {':uid': {'S': uid}}
+    )
+    if tag_count is None:
+        lines.append('UserTagStats: クエリ失敗')
+        issues.append('UserTagStats クエリ失敗')
+    else:
+        lines.append(f'UserTagStats エントリ数: {tag_count} tagId')
+
+    # ── 3. resetAt チェック ──
+    reset_key = json.dumps({'settingId': {'S': f'userReset_{uid}'}})
+    reset_item = dynamo_get('AppSettings', reset_key)
+    reset_at = reset_item.get('resetAt', {}).get('S', '') if reset_item else ''
+    lines.append(f'resetAt: {reset_at if reset_at else "なし"}')
+
+    # ── 4. スナップショット比較 ──
+    prev = {}
+    if os.path.exists(snap):
+        try:
+            prev = json.load(open(snap))
+        except Exception:
+            pass
+
+    prev_tag_count = prev.get('tag_count')
+    prev_reset_at  = prev.get('reset_at', '')
+
+    if prev_tag_count is not None and tag_count is not None:
+        diff = tag_count - prev_tag_count
+        if diff < -2:
+            msg = f'⚠ UserTagStats が前回より {abs(diff)} tagId 減少 ({prev_tag_count} → {tag_count})'
+            lines.append(msg)
+            issues.append(msg)
+        elif diff < 0:
+            lines.append(f'UserTagStats 微減: {prev_tag_count} → {tag_count}（許容範囲）')
+        else:
+            lines.append(f'UserTagStats 増減: {prev_tag_count} → {tag_count}（正常）')
+    else:
+        lines.append('スナップショット比較: 前回データなし（初回実行）')
+
+    if prev_reset_at and prev_reset_at != reset_at:
+        msg = f'⚠ resetAt 変化: {prev_reset_at} → {reset_at if reset_at else "なし"}'
+        lines.append(msg)
+        issues.append(msg)
+
+    # ── 5. 演習量 vs tagId の整合性チェック ──
+    if today_count > 5 and tag_count is not None and tag_count == 0:
+        msg = f'✖ 演習量 {today_count} 問あるが UserTagStats が 0 — データ消失の可能性'
+        lines.append(msg)
+        issues.append(msg)
+    elif today_count > 0 and tag_count is not None:
+        max_expected = tag_count * 10
+        if today_count > max_expected + 5:
+            msg = f'⚠ 演習量 ({today_count}) が UserTagStats ({tag_count} tagId, 最大 {max_expected} 問) を大幅に超過'
+            lines.append(msg)
+            issues.append(msg)
+
+    if issues:
+        lines.append(f'--- {len(issues)}件の問題を検出 ---')
+    else:
+        lines.append('✅ 整合性OK（問題なし）')
+
+    # ── 6. スナップショット保存 ──
+    new_snap = {'date': today, 'tag_count': tag_count, 'today_count': today_count, 'reset_at': reset_at}
+    try:
+        with open(snap, 'w') as f:
+            json.dump(new_snap, f, ensure_ascii=False)
+    except Exception as e:
+        lines.append(f'スナップショット保存失敗: {e}')
+
 except Exception as e:
-    lines.append(f'スナップショット保存失敗: {e}')
+    lines.append(f'⚠ チェック中断 ({type(e).__name__}): {e}')
 
 print('\n'.join(lines))
 PYEOF
@@ -958,7 +1007,59 @@ cert_html = md_to_html(d['cert']); jst_now  = e(d['jst_now'])
 audit_html      = audit_to_html(d.get('audit', '監査未実施'))
 canary_cov_html = audit_to_html(d.get('canary_cov', '整合性チェック未実施'))
 daily_html      = e_lines(d.get('daily', '日めくり情報なし'))
-backend_html    = e_lines(d.get('backend', '未取得'))
+def backend_to_html(raw):
+    """backend-health-check.sh の出力をテーブル形式 HTML に変換"""
+    import re
+    rows = []
+    cost_rows = []
+    for line in str(raw).strip().split('\n'):
+        s = line.strip()
+        if not s:
+            continue
+        warn = '⚠️' in s
+        color = ' style="color:#e67e22;font-weight:700"' if warn else ''
+        # Lambda prod/dev
+        m = re.match(r'(⚠️\s*)?(prod|dev): 実行(\S+) エラー(\S+) スロットル(\S+) 最大(\S+)', s)
+        if m:
+            fn = m.group(2); inv = m.group(3); err = m.group(4); thr = m.group(5); dur = m.group(6)
+            err_style = ' style="color:#e74c3c;font-weight:700"' if err != '0' else ''
+            rows.append(f'<tr><td>Lambda({fn})</td><td>実行 {inv}</td>'
+                        f'<td{err_style}>エラー {err}</td><td>スロットル {thr}</td><td>最大 {dur}</td></tr>')
+            continue
+        # API
+        m = re.match(r'(⚠️\s*)?API\(prod,24h\): リクエスト(\S+) 5xx=(\S+) 4xx=(\S+) p99=(\S+)', s)
+        if m:
+            req = m.group(2); e5 = m.group(3); e4 = m.group(4); p99 = m.group(5)
+            e5_style = ' style="color:#e74c3c;font-weight:700"' if e5 != '0' else ''
+            rows.append(f'<tr><td>API Gateway(prod)</td><td>リクエスト {req}</td>'
+                        f'<td{e5_style}>5xx {e5}</td><td>4xx {e4}</td><td>p99 {p99}</td></tr>')
+            continue
+        # エラーログ
+        m = re.match(r'(⚠️\s*)?本番エラーログ.*?(\d+)件', s)
+        if m:
+            cnt = m.group(2)
+            style = ' style="color:#e74c3c;font-weight:700"' if cnt != '0' else ''
+            rows.append(f'<tr><td colspan="5"{style}>本番エラーログ(24h): {cnt}件</td></tr>')
+            continue
+        # コスト合計
+        m = re.match(r'AWSコスト\((.+?)\): (\$[\d.]+)(.*)', s)
+        if m:
+            date = m.group(1); total = m.group(2); delta = m.group(3).strip()
+            cost_rows.append(f'<tr><td colspan="4"><b>AWSコスト ({date}): {total}</b> {html.escape(delta)}</td></tr>')
+            continue
+        # サービス別コスト
+        m = re.match(r'[・\-]\s*(.+?): (\$[\d.]+)', s)
+        if m:
+            cost_rows.append(f'<tr><td style="padding-left:16px;color:#666">{html.escape(m.group(1))}</td>'
+                             f'<td colspan="3" style="color:#666">{html.escape(m.group(2))}</td></tr>')
+            continue
+        # その他
+        rows.append(f'<tr><td colspan="5"{color}>{html.escape(s)}</td></tr>')
+    header = '<tr><th>対象</th><th>実行</th><th>エラー</th><th>スロットル/4xx</th><th>最大レイテンシ</th></tr>'
+    return (f'<table>{header}{"".join(rows)}</table>'
+            + (f'<table style="margin-top:8px">{"".join(cost_rows)}</table>' if cost_rows else ''))
+
+backend_html    = backend_to_html(d.get('backend', '未取得'))
 test_user_html  = audit_to_html(d.get('test_user_check', 'チェック未実施'))
 test_user_raw   = str(d.get('test_user_check', ''))
 test_user_has_issue = any(m in test_user_raw for m in ('⚠', '✖', '問題を検出'))

@@ -1,8 +1,61 @@
 'use client';
 import React, { useState, useRef, useEffect, useMemo } from 'react';
 import { createPortal } from 'react-dom';
+import { lockBodyScroll } from '../utils/bodyScrollLock';
 import { API_ENDPOINT, EXAM_CONFIGS, EXAM_DOMAINS, DOMAIN_WEIGHTS, PASS_SCORES } from '@/constants';
 import { EXAM_ICON_COMPONENTS, IconBook, IconBookOpenCheck, IconCircleCheck } from '@/components/Icons';
+
+// テキストの inline 記法（**bold** / *italic* / `code` / [text](url)）をパースして React 要素に変換する
+function parseInline(text: string, keyPrefix: string): React.ReactNode[] {
+  const parts: React.ReactNode[] = [];
+  const re = /(\*\*(.+?)\*\*|\*(.+?)\*|`(.+?)`|\[([^\]]+)\]\((https?:\/\/[^)]+)\))/g;
+  let last = 0, m: RegExpExecArray | null;
+  let i = 0;
+  while ((m = re.exec(text)) !== null) {
+    if (m.index > last) parts.push(text.slice(last, m.index));
+    if (m[2] != null) parts.push(<strong key={`${keyPrefix}-b${i}`}>{m[2]}</strong>);
+    else if (m[3] != null) parts.push(<em key={`${keyPrefix}-i${i}`}>{m[3]}</em>);
+    else if (m[4] != null) parts.push(<code key={`${keyPrefix}-c${i}`} style={{ background: 'rgba(0,0,0,.08)', borderRadius: 3, padding: '0 4px', fontSize: '0.9em' }}>{m[4]}</code>);
+    else if (m[5] != null) parts.push(<a key={`${keyPrefix}-a${i}`} href={m[6]} target="_blank" rel="noopener noreferrer" style={{ color: 'inherit', textDecoration: 'underline' }}>{m[5]}</a>);
+    last = m.index + m[0].length;
+    i++;
+  }
+  if (last < text.length) parts.push(text.slice(last));
+  return parts;
+}
+
+// Markdown を React 要素にレンダリングする（見出し・リスト・段落・インライン記法対応）
+function MarkdownText({ text, color }: { text: string; color?: string }) {
+  const lines = text.split('\n');
+  const nodes: React.ReactNode[] = [];
+  let listItems: React.ReactNode[] = [];
+  const flushList = () => {
+    if (listItems.length) { nodes.push(<ul key={`ul-${nodes.length}`} style={{ margin: '4px 0 4px 16px', padding: 0 }}>{listItems}</ul>); listItems = []; }
+  };
+  lines.forEach((line, idx) => {
+    const h2 = line.match(/^##\s+(.*)/);
+    const h1 = line.match(/^#\s+(.*)/);
+    const li = line.match(/^[-*]\s+(.*)/);
+    if (h2) {
+      flushList();
+      nodes.push(<div key={idx} style={{ fontWeight: 700, fontSize: 'var(--font-size-sm2)', color: color ?? 'inherit', marginTop: 6, marginBottom: 2 }}>{parseInline(h2[1], String(idx))}</div>);
+    } else if (h1) {
+      flushList();
+      nodes.push(<div key={idx} style={{ fontWeight: 700, fontSize: 'var(--font-size-base)', color: color ?? 'inherit', marginTop: 8, marginBottom: 2 }}>{parseInline(h1[1], String(idx))}</div>);
+    } else if (li) {
+      listItems.push(<li key={idx} style={{ listStyle: 'disc' }}>{parseInline(li[1], String(idx))}</li>);
+    } else {
+      flushList();
+      if (line === '') {
+        nodes.push(<br key={idx} />);
+      } else {
+        nodes.push(<span key={idx}>{parseInline(line, String(idx))}<br /></span>);
+      }
+    }
+  });
+  flushList();
+  return <>{nodes}</>;
+}
 
 // 決定ボタンのフリップ完了時に飛ばすパーティクル放散。
 // パネルの overflow:hidden に切られないよう body 直下へ portal し、
@@ -165,9 +218,7 @@ export default function ExamSelectOverlay({
   }, [activeLevel]);
 
   useEffect(() => {
-    const prev = document.body.style.overflow;
-    document.body.style.overflow = 'hidden';
-    return () => { document.body.style.overflow = prev; };
+    return lockBodyScroll();
   }, []);
 
   const currentLevelDef = EXAM_LEVELS.find(l => l.key === activeLevel) ?? EXAM_LEVELS[0];
@@ -200,31 +251,60 @@ export default function ExamSelectOverlay({
       >
         {/* ヘッダー */}
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '16px 20px 0', flexShrink: 0 }}>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 2, minWidth: 0 }}>
-            <span style={{ fontWeight: 700, fontSize: 'var(--font-size-lg)' }}>
-              {ja ? '目標資格を選択' : 'Select Target Exam'}
-            </span>
-            <a
-              href="https://d1.awsstatic.com/onedam/marketing-channels/website/aws/ja_JP/certification/approved/pdfs/AWS_certification_paths.pdf"
-              target="_blank"
-              rel="noopener noreferrer"
-              style={{ fontSize: 'var(--font-size-xs)', fontWeight: 600, color: 'var(--color-primary)', textDecoration: 'none' }}
-            >
-              {ja ? '何を取るべき？→' : 'Which cert should I take? →'}
-            </a>
-          </div>
-          {dismissible && (
-            <button
-              data-kbclose="1"
-              onClick={onClose}
-              style={{ border: 'none', background: 'none', fontSize: 'var(--font-size-xl)', cursor: 'pointer', color: 'var(--color-text-sub)', padding: '4px 8px', lineHeight: 1 }}
-            >✕</button>
+          {isMobile ? (
+            /* モバイル: タイトル左・リンク+✕右（タブとの距離を確保） */
+            <>
+              <span style={{ fontWeight: 700, fontSize: 'var(--font-size-lg)' }}>
+                {ja ? '目標資格を選択' : 'Select Target Exam'}
+              </span>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexShrink: 0 }}>
+                <a
+                  href="https://d1.awsstatic.com/onedam/marketing-channels/website/aws/ja_JP/certification/approved/pdfs/AWS_certification_paths.pdf"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  style={{ fontSize: 'var(--font-size-xs)', fontWeight: 600, color: 'var(--color-primary)', textDecoration: 'none', whiteSpace: 'nowrap' }}
+                >
+                  {ja ? 'AWS資格パス→' : 'AWS Cert Path→'}
+                </a>
+                {dismissible && (
+                  <button
+                    data-kbclose="1"
+                    onClick={onClose}
+                    style={{ border: 'none', background: 'none', fontSize: 'var(--font-size-xl)', cursor: 'pointer', color: 'var(--color-text-sub)', padding: '4px 8px', lineHeight: 1 }}
+                  >✕</button>
+                )}
+              </div>
+            </>
+          ) : (
+            /* デスクトップ: タイトル+リンク縦並び左・✕右 */
+            <>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 2, minWidth: 0 }}>
+                <span style={{ fontWeight: 700, fontSize: 'var(--font-size-lg)' }}>
+                  {ja ? '目標資格を選択' : 'Select Target Exam'}
+                </span>
+                <a
+                  href="https://d1.awsstatic.com/onedam/marketing-channels/website/aws/ja_JP/certification/approved/pdfs/AWS_certification_paths.pdf"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  style={{ fontSize: 'var(--font-size-xs)', fontWeight: 600, color: 'var(--color-primary)', textDecoration: 'none' }}
+                >
+                  {ja ? 'AWS資格パス→' : 'AWS Cert Path →'}
+                </a>
+              </div>
+              {dismissible && (
+                <button
+                  data-kbclose="1"
+                  onClick={onClose}
+                  style={{ border: 'none', background: 'none', fontSize: 'var(--font-size-xl)', cursor: 'pointer', color: 'var(--color-text-sub)', padding: '4px 8px', lineHeight: 1 }}
+                >✕</button>
+              )}
+            </>
           )}
         </div>
 
         {/* レベルタブ */}
         <div
-          style={{ display: 'flex', borderBottom: '2px solid var(--color-border)', flexShrink: 0, overflowX: 'auto' }}
+          style={{ display: 'flex', borderBottom: '2px solid var(--color-border)', flexShrink: 0 }}
           onTouchStart={e => e.stopPropagation()}
           onTouchMove={e => e.stopPropagation()}
         >
@@ -235,10 +315,13 @@ export default function ExamSelectOverlay({
               const examInLevel = levelDef?.exams.find(e => e === targetExam) ?? levelDef?.exams[0] ?? null;
               setPreviewExam(examInLevel as string | null);
             }} style={{
-              padding: '10px 14px', background: 'none', border: 'none', cursor: 'pointer',
+              flex: 1, textAlign: 'center',
+              padding: isMobile ? '10px 4px' : '10px 14px',
+              background: 'none', border: 'none', cursor: 'pointer',
               borderBottom: activeLevel === key ? `2px solid ${color}` : '2px solid transparent',
               marginBottom: -2, color: activeLevel === key ? color : 'var(--color-text-sub)',
-              fontWeight: activeLevel === key ? 700 : 400, fontSize: 'var(--font-size-sm2)', whiteSpace: 'nowrap', flexShrink: 0,
+              fontWeight: activeLevel === key ? 700 : 400,
+              fontSize: isMobile ? 'var(--font-size-xs)' : 'var(--font-size-sm2)',
             }}>
               {key}
             </button>
@@ -369,7 +452,7 @@ export default function ExamSelectOverlay({
                 {passComments[exam] && (
                   <div style={{ marginTop: 12, padding: '10px 12px', background: `${levelColor}12`, borderLeft: `3px solid ${levelColor}`, borderRadius: '0 6px 6px 0' }}>
                     <div style={{ fontSize: 'var(--font-size-2xs)', color: levelColor, fontWeight: 700, marginBottom: 4 }}>{ja ? '運営者コメント' : 'From the team'}</div>
-                    <div style={{ fontSize: 'var(--font-size-sm)', color: 'var(--color-text-sub)', lineHeight: 1.7, whiteSpace: 'pre-wrap' }}>{passComments[exam]}</div>
+                    <div style={{ fontSize: 'var(--font-size-sm)', color: 'var(--color-text-sub)', lineHeight: 1.7 }}><MarkdownText text={passComments[exam]} color={levelColor} /></div>
                   </div>
                 )}
               </div>

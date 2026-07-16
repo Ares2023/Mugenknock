@@ -1376,10 +1376,10 @@ app.get('/users/me/sessions', async (req, res) => {
       ExpressionAttributeNames: { '#s': 'status' },
       ExpressionAttributeValues: exprVals
     }));
-    const items = (result.Items || [])
-      .sort((a, b) => ((b.endedAt || b.startedAt) > (a.endedAt || a.startedAt) ? 1 : -1))
-      .slice(0, parseInt(limit) || 20);
-    res.json({ items });
+    const all = (result.Items || [])
+      .sort((a, b) => ((b.endedAt || b.startedAt) > (a.endedAt || a.startedAt) ? 1 : -1));
+    const items = all.slice(0, parseInt(limit) || 20);
+    res.json({ items, totalCount: all.length });
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: 'Internal server error' });
@@ -2820,10 +2820,11 @@ app.get('/users/me/preferences', async (req, res) => {
       Key: { settingId: `userPrefs_${userId}` },
     }));
     res.json({
-      targetExam: result.Item?.targetExam ?? null,
-      examDates:  result.Item?.examDates  ?? {},
-      dailyGoal:  result.Item?.dailyGoal  ?? null,
-      kv:         result.Item?.kv         ?? {},
+      targetExam:    result.Item?.targetExam    ?? null,
+      examDates:     result.Item?.examDates     ?? {},
+      dailyGoal:     result.Item?.dailyGoal     ?? null,
+      kv:            result.Item?.kv            ?? {},
+      obtainedCerts: result.Item?.obtainedCerts ?? [],
     });
   } catch (err) {
     console.error(err);
@@ -2833,7 +2834,7 @@ app.get('/users/me/preferences', async (req, res) => {
 
 app.put('/users/me/preferences', async (req, res) => {
   try {
-    const { userId, targetExam, examDates, dailyGoal, kvPatch } = req.body;
+    const { userId, targetExam, examDates, dailyGoal, kvPatch, obtainedCerts } = req.body;
     if (!userId) return res.status(400).json({ error: 'userId required' });
     const docClient = getClient();
 
@@ -2887,6 +2888,11 @@ app.put('/users/me/preferences', async (req, res) => {
       sets.push('#dailyGoal = :dailyGoal');
       names['#dailyGoal'] = 'dailyGoal';
       values[':dailyGoal'] = dailyGoal;
+    }
+    if (obtainedCerts !== undefined && Array.isArray(obtainedCerts)) {
+      sets.push('#obtainedCerts = :obtainedCerts');
+      names['#obtainedCerts'] = 'obtainedCerts';
+      values[':obtainedCerts'] = obtainedCerts;
     }
 
     await docClient.send(new UpdateCommand({

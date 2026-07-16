@@ -153,17 +153,18 @@ const CHEAT_DATA: CheatData = {
     {
       title: 'AI・MLの基礎',
       items: [
-        { name: '機械学習の種類', desc: '教師あり学習 (Supervised Learning): 正解ラベル付きデータで学習。分類（カテゴリ予測）と回帰（数値予測）が代表例\n教師なし学習 (Unsupervised Learning): ラベルなしデータのパターンを発見。クラスタリング（グループ化）・次元削減が代表例\n強化学習 (Reinforcement Learning): 報酬を最大化する行動を試行錯誤で学習。ゲームAI・ロボット制御に使用', keyword: '機械学習 教師あり学習 教師なし学習 強化学習', tags: ['教師あり', '教師なし', '強化学習'] },
+        { name: '機械学習の種類', desc: '教師あり学習 (Supervised Learning): 正解ラベル付きデータで学習。分類（カテゴリ予測）と回帰（数値予測）が代表例\n教師なし学習 (Unsupervised Learning): ラベルなしデータのパターンを発見。クラスタリング（グループ化）・次元削減が代表例\n強化学習 (Reinforcement Learning): 報酬を最大化する行動を試行錯誤で学習。ゲームAI・ロボット制御に使用\n二項分類: 2クラスに振り分ける分類問題（スパム/非スパム・陽性/陰性等）\n決定木 (Decision Tree): 条件分岐を木構造で表したモデル。解釈しやすいが過学習しやすい。ランダムフォレストは決定木を多数組み合わせたアンサンブル手法', keyword: '機械学習 教師あり学習 教師なし学習 強化学習 二項分類 決定木', tags: ['教師あり', '教師なし', '強化学習'] },
         { name: 'モデル評価指標', desc: 'Accuracy（精度）: 全予測中の正解率。クラス不均衡時は注意\nPrecision（適合率）: 「陽性」と予測した中で実際に陽性の割合（偽陽性を減らしたい時に重視）\nRecall（再現率）: 実際の陽性のうち正しく検出できた割合（見逃しを減らしたい時に重視）\nF1スコア: PrecisionとRecallの調和平均\nAUC-ROC: 閾値変化に対するモデルの識別能力を示す（1に近いほど優秀）', keyword: 'F1スコア Precision Recall AUC-ROC 機械学習評価指標', tags: ['Accuracy', 'F1スコア', 'AUC-ROC'] },
         { name: '過学習と正則化', desc: '過学習（Overfitting）: 訓練データに過剰適合し、未知データで性能が落ちる問題。\n対策手法:\nL1正則化（Lasso）: 不要な特徴量の重みをゼロにして特徴量選択の効果\nL2正則化（Ridge）: 重みを小さく抑えてモデルを単純化\nドロップアウト: ニューラルネットのニューロンをランダムに無効化して汎化性能を向上\nデータ拡張: 学習データを水増しして多様性を高める', keyword: '過学習 Overfitting L1正則化 L2正則化', tags: ['過学習', 'L1/L2正則化', 'ドロップアウト'] },
         { name: 'MLのライフサイクル', desc: '① データ収集・取り込み\n② データ前処理（クリーニング・正規化・欠損値処理）\n③ 特徴量エンジニアリング（モデルの入力に適した形に変換）\n④ モデル学習（アルゴリズムを選んでパラメータを調整）\n⑤ 評価（テストデータで指標を計測）\n⑥ デプロイ（本番環境への公開）\n⑦ 監視（モデルの性能劣化を検出して再学習）', keyword: 'MLOps 機械学習ライフサイクル', tags: ['MLOps', 'ライフサイクル', 'パイプライン'] },
+        { name: '転移学習とモデル評価指標（生成AI）', desc: '転移学習 (Transfer Learning): 大量データで事前学習済みのモデルを別タスクに流用する手法。ゼロから学習するより少ないデータで高精度を実現。\n事前トレーニング vs ファインチューニング: 事前トレーニングは大規模データでの汎用学習、ファインチューニングは特定タスクのデータで追加学習してカスタマイズする段階。\n\n生成AIの評価指標:\nBLEU: 機械翻訳の品質評価。参照訳とのn-gram一致率で測定\nROUGE: 要約品質の評価。参照要約とのn-gram再現率で測定\nBERTScore: BERTの埋め込みを使った意味的類似度評価。表面一致だけでなく意味の近さも考慮\nF1・Precision・Recall: 分類タスクの標準指標\nコンバージョン率: AIを活用したマーケティング・レコメンドの最終ビジネス成果を測定するKPI', keyword: '転移学習 BLEU ROUGE BERTScore ファインチューニング 事前学習', tags: ['転移学習', 'BLEU/ROUGE', 'BERTScore'] },
       ],
     },
     {
       title: '生成AIの基礎',
       items: [
         { name: '基盤モデル（FM）', desc: '大量のテキスト・画像等で事前学習済みの大規模AI モデル（Foundation Model）。LLM（大規模言語モデル）が代表例。\n様々なタスクにファインチューニング（追加学習）やプロンプト（指示文）だけで適用できる汎用性が特徴。', keyword: 'Foundation Model LLM 大規模言語モデル', tags: ['LLM', '事前学習', 'Foundation Model'] },
-        { name: 'プロンプトエンジニアリング', desc: 'FMへの指示（プロンプト）を工夫してより良い出力を引き出す技術。\nZero-shot: 例示なしで直接タスクを指示\nFew-shot: 入出力例を数件示して形式を教える\nChain-of-Thought（CoT）: 「ステップごとに考えてください」と思考過程を明示させる\nSystem prompt: AIの役割・制約・口調を事前に設定する', keyword: 'プロンプトエンジニアリング Prompt Engineering Chain-of-Thought', tags: ['Zero-shot', 'Few-shot', 'Chain-of-Thought'] },
+        { name: 'プロンプトエンジニアリング', desc: 'FMへの指示（プロンプト）を工夫してより良い出力を引き出す技術。\nZero-shot: 例示なしで直接タスクを指示\nFew-shot: 入出力例を数件示して形式を教える\nChain-of-Thought（CoT）: 「ステップごとに考えてください」と思考過程を明示させる\nSystem prompt: AIの役割・制約・口調を事前に設定する\nネガティブプロンプト: してはいけない制約を明示的に記述して誤動作を防ぐ（「〜するな」「〜は出力しない」等）\nプロンプトインジェクション: 悪意あるユーザーがプロンプトに追加指示を埋め込んでシステムプロンプトを無効化する攻撃。Bedrock Guardrailsで対策', keyword: 'プロンプトエンジニアリング Prompt Engineering Chain-of-Thought ネガティブプロンプト プロンプトインジェクション', tags: ['Zero-shot', 'Few-shot', 'ネガティブプロンプト'] },
         { name: 'RAG（検索拡張生成）', desc: 'Retrieval-Augmented Generation。FMが学習していない最新情報や社内情報を活用する仕組み。\n仕組み: ユーザーの質問 → 外部知識ベースをベクトル検索 → 関連情報を取得 → FMへのプロンプトに追加して回答生成\nFMの知識の欠如（学習カットオフ）やハルシネーションを補う', tags: ['検索拡張生成', 'ベクトル検索', '知識ベース'] },
         { name: 'ハルシネーション', desc: 'FMが事実と異なる情報を自信満々に生成してしまう問題（幻覚）。\n対策:\nグラウンディング: 回答を引用元のドキュメントに根拠付ける\nRAG: 検索した文書からのみ回答させる\n温度パラメータ（Temperature）を低くする: 出力をより決定論的にする\nガードレール: 誤情報に対してチェックを追加する', keyword: 'LLM ハルシネーション 幻覚 グラウンディング', tags: ['幻覚', 'グラウンディング', '正確性'] },
         { name: 'ファインチューニング', desc: '事前学習済みFMを特定タスク用のデータで追加学習してカスタマイズする手法。\nRLHF（Reinforcement Learning from Human Feedback）: 人間がFMの出力に評価をつけ、その評価を報酬として強化学習で人間の好みに合わせる手法。ChatGPT等で広く使用されている。', keyword: 'Fine-tuning ファインチューニング RLHF', tags: ['追加学習', 'RLHF', 'カスタマイズ'] },
@@ -181,6 +182,8 @@ const CHEAT_DATA: CheatData = {
         { name: 'Amazon Lex', desc: 'Alexaと同じ技術を使った会話型AIボットの構築サービス。音声・テキスト両対応。\nインテント（ユーザーの意図）/ スロット（情報の収集項目）/ 発話サンプルを設定してチャットボットを作成し、Lambda関数と連携してバックエンド処理を実行する。', tags: ['チャットボット', '会話AI', 'Alexa'] },
         { name: 'Amazon Kendra', desc: '企業向けインテリジェント検索エンジン。自然言語の質問に対してS3・SharePoint・Confluence・Salesforce等の文書から正確に回答を見つけ出す。\nFAQや手順書の検索・社内ポータルのQ&A機能に活用できる。', tags: ['企業検索', 'ナレッジ', 'RAG'] },
         { name: 'Amazon Textract', desc: '文書・フォームからテキストやデータを自動抽出するOCR（光学文字認識）サービス。\n単純なOCRと異なりテーブル構造・フォームのキー・バリュー対・署名等も理解して抽出できる。請求書・契約書・医療フォームの処理に使用。', tags: ['OCR', 'フォーム抽出', '文書解析'] },
+        { name: 'IDP（インテリジェントドキュメント処理）', desc: 'Intelligent Document Processing。AIで文書を自動処理する設計パターン。\nTextract（OCR・フォーム抽出）→ Comprehend（NLP・感情分析・エンティティ抽出）→ Lambda（後処理・振り分け）を組み合わせた典型構成。\n請求書・申請書・医療記録等の大量文書を人手介入なしに処理でき、S3をハブとして各サービスを連携させる。', keyword: 'IDP Textract Comprehend 文書処理 インテリジェントドキュメント', tags: ['IDP', 'Textract+Comprehend', '文書自動化'] },
+        { name: 'Amazon SageMaker Clarify', desc: 'モデルのバイアス検出と説明可能性（XAI）を提供するSageMakerの機能。\nバイアス検出: 訓練データのバイアス（学習前）とモデル予測のバイアス（学習後）を統計指標で測定\nSHAP値: 各特徴量が予測に与えた貢献度を定量化する手法（Shapley Additive exPlanations）\nModel Monitorと連携してデプロイ後のバイアスドリフトを継続監視できる', keyword: 'SageMaker Clarify バイアス検出 SHAP 説明可能性', tags: ['バイアス検出', 'SHAP', 'XAI'] },
         { name: 'Amazon Translate', desc: '75言語以上に対応するニューラル機械翻訳API。\nカスタム用語集を設定することで専門用語・ブランド名・製品名を正確に翻訳できる。リアルタイム翻訳とバッチ翻訳の両方に対応。', tags: ['翻訳', '多言語', 'ニューラル'] },
       ],
     },
@@ -658,6 +661,66 @@ const CHEAT_DATA: CheatData = {
   ],
 };
 
+// ── 同一サービスの記事グルーピング ───────────────────────────
+// 同じサービスの記事（例: Lambda が CLF/SAA/DVA…に別粒度で存在）を束ねて、
+//   ・記事同士を相互リンク（同じサービス欄）
+//   ・関連(seeAlso)にサービスを挙げたらその全記事を列挙
+//   ・タイトルを Lambda①/Lambda② のように番号付きにする
+// を実現するためのインデックス。
+// グループ化キー = 基底サービス名（括弧の観点ラベルは除去して同一視）。
+// スラッシュを含む複合名（比較・複合記事）は過剰グルーピングを避けて独立扱い。
+interface Article { id: string; exam: string; secIdx: number; name: string; item: Item; serviceKey: string }
+
+function serviceKeyOf(name: string): string {
+  const base = name.replace(/[（(].*$/, '').trim();
+  if (!base) return name;
+  if (base.includes('/')) return name; // 複合名（ECS / EKS 等の同一表記のみ束ねる）
+  return base;
+}
+
+// serviceKey -> その全記事（CHEAT_DATA の出現順）
+const SERVICE_GROUPS: Map<string, Article[]> = (() => {
+  const m = new Map<string, Article[]>();
+  for (const [exam, secs] of Object.entries(CHEAT_DATA)) {
+    secs.forEach((sec, secIdx) => {
+      for (const item of sec.items) {
+        const key = serviceKeyOf(item.name);
+        let arr = m.get(key);
+        if (!arr) { arr = []; m.set(key, arr); }
+        arr.push({ id: `${exam}::${secIdx}::${item.name}`, exam, secIdx, name: item.name, item, serviceKey: key });
+      }
+    });
+  }
+  return m;
+})();
+
+// (資格, 名前) で記事を一意特定（資格内で item 名は一意）
+function findArticle(exam: string, name: string): Article | undefined {
+  return SERVICE_GROUPS.get(serviceKeyOf(name))?.find(a => a.exam === exam && a.name === name);
+}
+
+// 名前 → 同じサービスの全記事（seeAlso 展開用）
+function groupOfName(name: string): Article[] {
+  return SERVICE_GROUPS.get(serviceKeyOf(name)) ?? [];
+}
+
+// 記事の表示番号（グループが2件以上の時のみ 1..、単独なら 0）
+function articleNumber(art: Article): number {
+  const g = SERVICE_GROUPS.get(art.serviceKey);
+  if (!g || g.length < 2) return 0;
+  return g.findIndex(a => a.id === art.id) + 1;
+}
+
+function circledNumber(n: number): string {
+  return n >= 1 && n <= 20 ? String.fromCharCode(0x2460 + n - 1) : `(${n})`;
+}
+
+// 表示タイトル: 複数記事あるサービスは「基底名＋丸数字」、単独記事はそのまま
+function articleTitle(art: Article): string {
+  const n = articleNumber(art);
+  return n > 0 ? `${art.serviceKey}${circledNumber(n)}` : art.name;
+}
+
 // ── レベル定義（ExamSelectOverlay と同じ構成） ─────────────────
 const EXAM_LEVELS = [
   { key: 'Practitioner', color: '#6b9e3a', exams: ['CLF', 'AIF'] },
@@ -697,26 +760,19 @@ export default function CheatSheet() {
     setTimeout(() => setCopiedTerm(null), 1500);
   }
 
-  function navigateToItem(name: string) {
+  // 記事ID（`${exam}::${secIdx}::${name}`）で特定の記事へ遷移する。
+  // 同名記事が複数資格にあるため、名前ではなくIDで一意に飛ぶ。
+  function navigateToArticle(id: string) {
+    const targetExam = id.split('::')[0];
     setSearch('');
     setHeaderVisible(true);
     navigatingRef.current = true;
-    let targetExam: string | null = null;
-    outer: for (const [exam, secs] of Object.entries(CHEAT_DATA)) {
-      for (const sec of secs) {
-        if (sec.items.some(it => it.name === name)) {
-          targetExam = exam;
-          break outer;
-        }
-      }
-    }
-    if (!targetExam) { navigatingRef.current = false; return; }
+    if (!CHEAT_DATA[targetExam]) { navigatingRef.current = false; return; }
     if (targetExam !== selectedExam) {
-      const lv = levelOf(targetExam) as LevelKey;
-      setActiveLevel(lv);
+      setActiveLevel(levelOf(targetExam) as LevelKey);
       setSelectedExam(targetExam);
     }
-    setPendingScrollTo(name);
+    setPendingScrollTo(id);
     setTimeout(() => { navigatingRef.current = false; }, 1000);
   }
 
@@ -751,22 +807,25 @@ export default function CheatSheet() {
   useEffect(() => {
     if (!pendingScrollTo) return;
     const escaped = pendingScrollTo.replace(/\\/g, '\\\\').replace(/"/g, '\\"');
-    const el = document.querySelector<HTMLElement>(`[data-item-name="${escaped}"]`);
+    const el = document.querySelector<HTMLElement>(`[data-article-id="${escaped}"]`);
     if (el) {
       const container = document.getElementById('main-scroll');
       if (container) {
         const rect = el.getBoundingClientRect();
         const cRect = container.getBoundingClientRect();
-        const offset = container.scrollTop + rect.top - cRect.top - cRect.height / 2 + rect.height / 2;
+        // 記事パネルの上端を（固定ヘッダーの下に）合わせる。中央寄せだと大きい記事の
+        // 冒頭が見切れるため、上端基準にして記事の始まりを常に見せる。
+        const topMargin = (headerHeight || 104) + 8;
+        const offset = container.scrollTop + rect.top - cRect.top - topMargin;
         container.scrollTo({ top: Math.max(0, offset), behavior: 'smooth' });
       } else {
-        el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        el.scrollIntoView({ behavior: 'smooth', block: 'start' });
       }
       setHighlightedItem(pendingScrollTo);
       setTimeout(() => setHighlightedItem(null), 1500);
       setPendingScrollTo(null);
     }
-  }, [selectedExam, pendingScrollTo]);
+  }, [selectedExam, pendingScrollTo, headerHeight]);
 
   useEffect(() => {
     if (loading || goalInit) return;
@@ -976,7 +1035,7 @@ export default function CheatSheet() {
             </h2>
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(min(400px, 100%), 1fr))', gap: 'var(--spacing-sm)' }}>
               {section.items.map(item => (
-                <ItemCard key={item.name} item={item} q={q} allNames={allNames} highlighted={highlightedItem === item.name} onCopy={handleTermCopy} onNavigate={navigateToItem} />
+                <ItemCard key={item.name} item={item} exam={selectedExam} q={q} allNames={allNames} highlightedId={highlightedItem} onCopy={handleTermCopy} onNavigate={navigateToArticle} />
               ))}
             </div>
           </div>
@@ -1047,8 +1106,12 @@ export default function CheatSheet() {
   );
 }
 
-function ItemCard({ item, q, allNames, highlighted, onCopy, onNavigate }: { item: Item; q: string; allNames: string[]; highlighted?: boolean; onCopy: (term: string) => void; onNavigate: (name: string) => void }) {
+function ItemCard({ item, exam, q, allNames, highlightedId, onCopy, onNavigate }: { item: Item; exam: string; q: string; allNames: string[]; highlightedId: string | null; onCopy: (term: string) => void; onNavigate: (id: string) => void }) {
   const [allCopied, setAllCopied] = useState(false);
+  // この記事のグループ情報（表示番号・同じサービスの兄弟記事の解決に使う）
+  const article = useMemo(() => findArticle(exam, item.name), [exam, item.name]);
+  const title = article ? articleTitle(article) : item.name;
+  const highlighted = !!article && highlightedId === article.id;
   const handleCopyAll = (e: React.MouseEvent) => {
     e.stopPropagation();
     navigator.clipboard.writeText(`${item.name}\n\n${item.desc}`).then(() => {
@@ -1082,6 +1145,29 @@ function ItemCard({ item, q, allNames, highlighted, onCopy, onNavigate }: { item
     return [...found].sort((a, b) => a.localeCompare(b, 'ja'));
   }, [item, allNames]);
 
+  // 同じサービスの他記事（別資格・別観点版）— 自分を除く
+  const siblings = useMemo(() => {
+    if (!article) return [] as Article[];
+    return (SERVICE_GROUPS.get(article.serviceKey) ?? []).filter(a => a.id !== article.id);
+  }, [article]);
+
+  // 関連サービス — seeAlso/自動検出で挙がった各サービスの「全記事」を展開して列挙。
+  // 自分自身と、上の「同じサービス」で既に出す兄弟は除外。
+  const relatedArticles = useMemo(() => {
+    const seen = new Set<string>();
+    if (article) seen.add(article.id);
+    siblings.forEach(a => seen.add(a.id));
+    const out: Article[] = [];
+    for (const nm of [...(item.seeAlso ?? []), ...autoSeeAlso]) {
+      for (const a of groupOfName(nm)) {
+        if (seen.has(a.id)) continue;
+        seen.add(a.id);
+        out.push(a);
+      }
+    }
+    return out;
+  }, [item.seeAlso, autoSeeAlso, article, siblings]);
+
   function copyWithContext(text: string) {
     const enhanced = text.toLowerCase().includes(item.name.toLowerCase()) ? text : `${text} (${item.name})`;
     onCopy(enhanced);
@@ -1089,7 +1175,7 @@ function ItemCard({ item, q, allNames, highlighted, onCopy, onNavigate }: { item
 
   return (
     <div
-      data-item-name={item.name}
+      data-article-id={article?.id ?? item.name}
       style={{
         background: 'var(--color-bg-white)',
         border: highlighted ? '1px solid #009E9E' : '1px solid var(--color-border)',
@@ -1107,11 +1193,11 @@ function ItemCard({ item, q, allNames, highlighted, onCopy, onNavigate }: { item
               title="タップしてコピー"
               style={{ fontWeight: 700, fontSize: 'var(--font-size-base)', color: '#009E9E', cursor: 'pointer' }}
             >
-              {highlight(item.name)}
+              {highlight(title)}
             </div>
           ) : (
             <div style={{ fontWeight: 700, fontSize: 'var(--font-size-base)', color: 'var(--color-text-main)' }}>
-              {highlight(item.name)}
+              {highlight(title)}
             </div>
           )}
         </div>
@@ -1162,27 +1248,46 @@ function ItemCard({ item, q, allNames, highlighted, onCopy, onNavigate }: { item
           );
         })}
       </p>
-      {((item.seeAlso && item.seeAlso.length > 0) || autoSeeAlso.length > 0) && (
-        <div style={{ marginTop: 8, paddingTop: 6, borderTop: '1px solid var(--color-border)', display: 'flex', gap: 4, flexWrap: 'wrap', alignItems: 'center' }}>
-          <span style={{ fontSize: 'var(--font-size-2xs)', color: 'var(--color-text-light)' }}>関連:</span>
-          {[...(item.seeAlso ?? []), ...autoSeeAlso].map(name => (
-            <button
-              key={name}
-              onClick={() => onNavigate(name)}
-              style={{
-                fontSize: 'var(--font-size-2xs)',
-                color: '#009E9E',
-                background: 'rgba(0,158,158,0.08)',
-                border: '1px solid rgba(0,158,158,0.25)',
-                borderRadius: 'var(--border-radius-full)',
-                padding: '1px 8px',
-                cursor: 'pointer',
-                whiteSpace: 'nowrap',
-              }}
-            >→ {name}</button>
-          ))}
+      {(siblings.length > 0 || relatedArticles.length > 0) && (
+        <div style={{ marginTop: 8, paddingTop: 6, borderTop: '1px solid var(--color-border)', display: 'flex', flexDirection: 'column', gap: 4 }}>
+          {/* 同じサービスの他資格・他観点版へのリンク */}
+          {siblings.length > 0 && (
+            <div style={{ display: 'flex', gap: 4, flexWrap: 'wrap', alignItems: 'center' }}>
+              <span style={{ fontSize: 'var(--font-size-2xs)', color: 'var(--color-text-light)' }}>同じサービス:</span>
+              {siblings.map(a => (
+                <ArticleChip key={a.id} label={articleTitle(a)} onClick={() => onNavigate(a.id)} />
+              ))}
+            </div>
+          )}
+          {/* 関連サービス（挙げたサービスの全記事を展開） */}
+          {relatedArticles.length > 0 && (
+            <div style={{ display: 'flex', gap: 4, flexWrap: 'wrap', alignItems: 'center' }}>
+              <span style={{ fontSize: 'var(--font-size-2xs)', color: 'var(--color-text-light)' }}>関連:</span>
+              {relatedArticles.map(a => (
+                <ArticleChip key={a.id} label={articleTitle(a)} onClick={() => onNavigate(a.id)} />
+              ))}
+            </div>
+          )}
         </div>
       )}
     </div>
+  );
+}
+
+function ArticleChip({ label, onClick }: { label: string; onClick: () => void }) {
+  return (
+    <button
+      onClick={onClick}
+      style={{
+        fontSize: 'var(--font-size-2xs)',
+        color: '#009E9E',
+        background: 'rgba(0,158,158,0.08)',
+        border: '1px solid rgba(0,158,158,0.25)',
+        borderRadius: 'var(--border-radius-full)',
+        padding: '1px 8px',
+        cursor: 'pointer',
+        whiteSpace: 'nowrap',
+      }}
+    >→ {label}</button>
   );
 }

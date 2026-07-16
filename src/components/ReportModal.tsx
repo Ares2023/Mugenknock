@@ -1,7 +1,8 @@
 'use client';
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { API_ENDPOINT } from '../constants';
 import Button from './ui/Button';
+import { lockBodyScroll } from '../utils/bodyScrollLock';
 
 type Category = 'question_error' | 'choice_error' | 'explanation_error' | 'other';
 
@@ -25,6 +26,10 @@ export default function ReportModal({ questionId, userId, lang, onClose }: Props
   const [sending, setSending] = useState(false);
   const [done, setDone] = useState(false);
   const [error, setError] = useState(false);
+
+  useEffect(() => {
+    return lockBodyScroll();
+  }, []);
 
   const handleSubmit = async () => {
     setSending(true);
