@@ -42,6 +42,11 @@ NIGHT_PROMPTS_DIR="$(dirname "$_d")"
 INSTRUCTION_DIR="$_d/instructions"
 LOG_DIR="$NIGHT_PROMPTS_DIR/logs"
 mkdir -p "$LOG_DIR"
+# 監査クールダウン: 直近監査済みの問題を選定から一定期間除外し、同じ問題の毎晩再監査を防ぐ。
+STATE_DIR="$_d/state"
+mkdir -p "$STATE_DIR"
+AUDIT_COOLDOWN_FILE="$STATE_DIR/audit_cooldown.json"
+AUDIT_COOLDOWN_DAYS="${AUDIT_COOLDOWN_DAYS:-7}"
 DATE=$(date '+%Y%m%d_%H%M%S')
 LOG_FILE="$LOG_DIR/audit_${DATE}.log"
 RESULTS_FILE="$LOG_DIR/audit_${DATE}.json"
@@ -131,7 +136,8 @@ if [ ! -s "$DYNAMO_TMP" ]; then
   echo "❌ DynamoDB scan: レスポンスが空です（ネットワーク障害の可能性）"; rm -f "$DYNAMO_TMP"; exit 1
 fi
 
-QUESTIONS_JSON=$(SAMPLE=$SAMPLE EXAM_FILTER="$EXAM_FILTER" RANDOM_SAMPLE=$RANDOM_SAMPLE DYNAMO_TMP="$DYNAMO_TMP" python3 << 'PYEOF'
+QUESTIONS_JSON=$(SAMPLE=$SAMPLE EXAM_FILTER="$EXAM_FILTER" RANDOM_SAMPLE=$RANDOM_SAMPLE DYNAMO_TMP="$DYNAMO_TMP" \
+  AUDIT_COOLDOWN_FILE="$AUDIT_COOLDOWN_FILE" AUDIT_COOLDOWN_DAYS="$AUDIT_COOLDOWN_DAYS" python3 << 'PYEOF'
 import json, os, sys, random
 from datetime import datetime, timezone
 
@@ -200,7 +206,61 @@ else:
         return acc >= 0.9 or acc <= 0.2
     questions.sort(key=recency, reverse=True)
     questions.sort(key=lambda q: 0 if extreme_accuracy(q) else 1)  # 安定ソートで極端問題を先頭へ
-    sample = questions[:n]
+
+    # ── クールダウン: 直近 AUDIT_COOLDOWN_DAYS 日に監査済みの問題を除外して選定を回転させる。
+    #    決定的ソート（極端正答率→新しい順）のままだと同じ問題が毎晩再監査されるため。
+    #    除外後に n 件に満たない場合のみ、監査が最も古いものから補充する。
+    cd_file = os.environ.get('AUDIT_COOLDOWN_FILE', '')
+    cd_days = int(os.environ.get('AUDIT_COOLDOWN_DAYS', '7') or 7)
+    audited = {}
+    if cd_file and os.path.exists(cd_file):
+        try:
+            with open(cd_file, encoding='utf-8') as f:
+                audited = json.load(f) or {}
+        except Exception:
+            audited = {}
+    now = datetime.now(timezone.utc)
+    def audited_dt(qid):
+        v = audited.get(qid)
+        if not v:
+            return None
+        try:
+            return datetime.fromisoformat(str(v).replace('Z', '+00:00'))
+        except Exception:
+            return None
+    def in_cooldown(q):
+        dt = audited_dt(q.get('questionId', ''))
+        return dt is not None and (now - dt).days < cd_days
+    fresh = [q for q in questions if not in_cooldown(q)]
+    sample = fresh[:n]
+    if len(sample) < n:
+        # 補充は「監査が最も古い順」（最も久しぶりの問題を優先）
+        picked = {q.get('questionId') for q in sample}
+        leftover = [q for q in questions if q.get('questionId') not in picked]
+        leftover.sort(key=lambda q: audited_dt(q.get('questionId', '')) or datetime(1970, 1, 1, tzinfo=timezone.utc))
+        sample += leftover[:n - len(sample)]
+
+    # 選定した問題を監査済みとして記録（次回以降のクールダウン対象に）。
+    # ファイル肥大化を防ぐため 60 日より古いエントリは掃除する。
+    if cd_file:
+        today_iso = now.strftime('%Y-%m-%dT%H:%M:%SZ')
+        for q in sample:
+            qid = q.get('questionId')
+            if qid:
+                audited[qid] = today_iso
+        pruned = {}
+        for qid, v in audited.items():
+            try:
+                dt = datetime.fromisoformat(str(v).replace('Z', '+00:00'))
+                if (now - dt).days <= 60:
+                    pruned[qid] = v
+            except Exception:
+                pass
+        try:
+            with open(cd_file, 'w', encoding='utf-8') as f:
+                json.dump(pruned, f, ensure_ascii=False)
+        except Exception:
+            pass
 
 print(json.dumps(sample, ensure_ascii=False))
 PYEOF
