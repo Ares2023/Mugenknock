@@ -8,8 +8,6 @@ import { API_ENDPOINT } from '../constants';
 import { IconFire, IconMail, IconMegaphone, IconInfo, IconLayoutGrid, IconSwatchBook, IconNetwork } from '../components/Icons';
 import Button from '../components/ui/Button';
 import PageLayout from '../components/ui/PageLayout';
-import { useIsMobile } from '../hooks/useWindowWidth';
-import SiteArchitectureOverlay from '../components/SiteArchitecture';
 
 const ITEMS = [
   { path: '/aws/encyclopedia',  Icon: IconLayoutGrid,  ja: 'サービス図鑑',           en: 'Service Encyclopedia',      desc_ja: '日めくりで解放されるAWSサービス一覧', desc_en: 'AWS services unlocked via daily service' },
@@ -23,8 +21,6 @@ export default function Others() {
   const { user } = useAuth();
   const { lang, t } = useLanguage();
   const ja = lang === 'ja';
-  const isMobile = useIsMobile();
-  const [showArch, setShowArch] = useState(false);
 
   const [showContact, setShowContact] = useState(false);
   const [contactSubject, setContactSubject] = useState('');
@@ -159,7 +155,7 @@ export default function Others() {
 
         {/* Webサイトの構成図 */}
         <button
-          onClick={() => setShowArch(true)}
+          onClick={() => navigate('/architecture')}
           style={{
             width: '100%', display: 'flex', alignItems: 'center', gap: 16,
             padding: '16px var(--spacing-md)', border: '1px solid var(--color-border)',
@@ -188,8 +184,6 @@ export default function Others() {
         </button>
 
       </div>
-
-      <SiteArchitectureOverlay open={showArch} onClose={() => setShowArch(false)} ja={ja} isMobile={isMobile} />
 
       {/* お問い合わせモーダル */}
       {showContact && (

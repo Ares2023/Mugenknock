@@ -7,7 +7,7 @@ import { useAuth } from '../contexts/AuthContext';
 import { useLanguage } from '../contexts/LanguageContext';
 import { IconUser, IconBot, IconTarget, IconTrendingUp, IconNetwork } from '../components/Icons';
 import Reveal from '../components/Reveal';
-import SiteArchitectureOverlay from '../components/SiteArchitecture';
+import { SiteArchitecture } from '../components/SiteArchitecture';
 
 const QUESTION_COUNT = 3800;
 
@@ -70,7 +70,6 @@ export default function Portal() {
   const { lang } = useLanguage();
   const ja = lang === 'ja';
   const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
-  const [showArch, setShowArch] = useState(false);
   const [cookieConsent, setCookieConsent] = useState<boolean>(() =>
     localStorage.getItem('cookie_consent_v1') === 'accepted'
   );
@@ -374,32 +373,27 @@ export default function Portal() {
             </Reveal>
           </section>
 
-          {/* ── Webサイトの構成図ボタン（ランディング最下部） ── */}
-          <section style={{ marginTop: isMobile ? 'var(--spacing-xl)' : 40, display: 'flex', justifyContent: 'center' }}>
-            <Reveal {...rv} offset={16}>
-              <button
-                onClick={() => setShowArch(true)}
-                style={{
-                  display: 'inline-flex', alignItems: 'center', gap: 10,
-                  padding: isMobile ? '12px 20px' : '14px 28px',
-                  border: '1.5px solid var(--color-primary)', borderRadius: 'var(--border-radius-full)',
-                  background: 'var(--color-bg-white)', color: 'var(--color-primary)',
-                  fontWeight: 700, fontSize: isMobile ? 'var(--font-size-base)' : 'var(--font-size-lg)',
-                  cursor: 'pointer', boxShadow: 'var(--box-shadow-sm)', transition: 'box-shadow 0.15s, transform 0.1s',
-                }}
-                onMouseEnter={e => { e.currentTarget.style.boxShadow = 'var(--box-shadow-md)'; }}
-                onMouseLeave={e => { e.currentTarget.style.boxShadow = 'var(--box-shadow-sm)'; }}
-              >
-                <IconNetwork size={20} />
+          {/* ── Webサイトの構成図（ランディング最下部にそのまま掲載） ── */}
+          <section style={{ marginTop: isMobile ? 'var(--spacing-xl)' : 48 }}>
+            <Reveal {...rv} variant="left" offset={20}>
+              <h2 style={{
+                fontSize: isMobile ? 'var(--font-size-h3)' : 'var(--font-size-h2)',
+                fontWeight: 800, color: 'var(--color-text-main)',
+                margin: '0 0 var(--spacing-lg)', letterSpacing: '-0.3px',
+                borderLeft: '4px solid var(--color-accent)', paddingLeft: 'var(--spacing-sm)',
+                display: 'flex', alignItems: 'center', gap: 10,
+              }}>
+                <IconNetwork size={isMobile ? 22 : 26} />
                 {ja ? 'Webサイトの構成図' : 'Site Architecture'}
-              </button>
+              </h2>
+            </Reveal>
+            <Reveal {...rv} offset={16}>
+              <SiteArchitecture ja={ja} isMobile={isMobile} />
             </Reveal>
           </section>
 
         </div>
       </main>
-
-      <SiteArchitectureOverlay open={showArch} onClose={() => setShowArch(false)} ja={ja} isMobile={isMobile} />
 
       <footer style={{ padding: '14px var(--spacing-lg)', textAlign: 'center', fontSize: 'var(--font-size-xs)', color: 'var(--color-text-light)', borderTop: '1px solid var(--color-border)', background: 'var(--color-bg-white)' }}>
         © {new Date().getFullYear()} MugenKnock
