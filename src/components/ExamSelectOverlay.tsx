@@ -474,10 +474,10 @@ export default function ExamSelectOverlay({
                 }
                 @keyframes eso-onboarding-arrow { 0%, 100% { transform: translateX(0); } 50% { transform: translateX(7px); } }
               `}</style>
-              {/* 初回オンボーディング：小さな決定ボタンへ矢印で誘導 */}
+              {/* 初回オンボーディング：小さな決定ボタンへ矢印で誘導（ボタンのすぐ左に配置） */}
               {onboarding && !confirming && !isCurrentTarget && (
-                <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginRight: 'auto' }}>
-                  <span style={{ fontSize: 'var(--font-size-sm2)', fontWeight: 700, color: levelColor }}>{ja ? 'これで決定！' : 'Confirm!'}</span>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                  <span style={{ fontSize: 'var(--font-size-sm2)', fontWeight: 700, color: levelColor }}>{ja ? '目標資格を決定' : 'Confirm'}</span>
                   <span style={{ display: 'inline-flex', animation: 'eso-onboarding-arrow 0.9s ease-in-out infinite', color: levelColor, fontSize: 22, lineHeight: 1 }}>➜</span>
                 </div>
               )}
