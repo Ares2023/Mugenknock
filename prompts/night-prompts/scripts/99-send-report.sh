@@ -189,7 +189,7 @@ ${CONFIG_SECTION}
 PROMPT
 
     # 60行制限だと変更が多い日に文章が途中で切れるため上限を大きく取る（暴走時の安全弁のみ）
-    CERT_NEWS=$("$CLAUDE_CMD" -p < "$DETAIL_PROMPT" 2>&1 | head -300)
+    CERT_NEWS=$("$CLAUDE_CMD" -p --model sonnet < "$DETAIL_PROMPT" 2>&1 | head -300)
     rm -f "$DETAIL_PROMPT"
     echo "  フェーズ2完了"
     echo "$CERT_NEWS" | head -5

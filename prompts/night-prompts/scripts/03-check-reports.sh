@@ -127,7 +127,8 @@ EOF
 }
 
 MAX_REPORTS=0   # 0 = 全件
-RELATED_PER_DOMAIN=10  # ドメインごとの関連問題サンプル数
+RELATED_PER_DOMAIN=4    # ドメインごとの関連問題サンプル数（旧10。出力トークン超過で毎晩全滅していたため縮小）
+MAX_RELATED_TOTAL=20    # 関連問題の総数上限（ドメイン数が多い日でも出力トークン超過を防ぐ）
 
 while [[ $# -gt 0 ]]; do
   case "$1" in
@@ -152,7 +153,7 @@ aws dynamodb scan --table-name Reports --output json 2>/dev/null > "$REPORTS_TMP
 aws dynamodb scan --table-name Questions --output json 2>/dev/null > "$QUESTIONS_TMP"
 
 # ── 2. 通報・問題のマージ + 関連問題の収集 ────────────────────
-WORK_JSON=$(MAX_REPORTS=$MAX_REPORTS RELATED_PER_DOMAIN=$RELATED_PER_DOMAIN \
+WORK_JSON=$(MAX_REPORTS=$MAX_REPORTS RELATED_PER_DOMAIN=$RELATED_PER_DOMAIN MAX_RELATED_TOTAL=$MAX_RELATED_TOTAL \
   python3 - "$REPORTS_TMP" "$QUESTIONS_TMP" << 'PYEOF'
 import json, sys, os, random
 from datetime import datetime, timezone
@@ -217,11 +218,19 @@ for r in reports:
             reported_domain_keys.add((et, dn))
 
 # 同じ examType + domain から関連問題をサンプリング
+# 総数に上限を設ける: 通報が多い日（＝distinct domainが多い日）に際限なく増えると
+# Claude の出力トークン上限を超えて全滅する（通報0件処理のまま毎晩同じ通報が残り続ける）ため、
+# ドメインの処理順をシャッフルして偏りなく MAX_RELATED_TOTAL 件で打ち切る。
 related_per = int(os.environ.get('RELATED_PER_DOMAIN', '10'))
+max_related_total = int(os.environ.get('MAX_RELATED_TOTAL', '20'))
 related_questions = []
 seen_related = set()
 
-for (et, domain) in sorted(reported_domain_keys):
+domain_key_list = sorted(reported_domain_keys)
+random.shuffle(domain_key_list)
+for (et, domain) in domain_key_list:
+    if len(related_questions) >= max_related_total:
+        break
     candidates = [
         q for q in all_questions.values()
         if q.get('examType') == et
@@ -231,7 +240,8 @@ for (et, domain) in sorted(reported_domain_keys):
     ]
     # 確認日が古い順（未確認を優先）→ ランダムにrelated_per件
     candidates.sort(key=lambda q: q.get('validityCheckedAt') or '')
-    sampled = candidates[:related_per]
+    remaining = max_related_total - len(related_questions)
+    sampled = candidates[:min(related_per, remaining)]
     for q in sampled:
         seen_related.add(q['questionId'])
         related_questions.append({'examType': et, 'domain': domain, 'question': q})
@@ -288,10 +298,12 @@ VALID_REPORT_COUNT=$(echo "$VALID_JSON" | python3 -c "import json,sys; print(len
 echo "Claude 判定対象: 通報=${VALID_REPORT_COUNT}件 / 関連=${RELATED_COUNT}問"
 
 # ── 4. プロンプト生成 ─────────────────────────────────────────
-PROMPT_FILE=$(mktemp /tmp/reports_prompt_XXXX.txt)
-_VALID_TMP=$(mktemp /tmp/reports_valid_XXXX.json)
-echo "$VALID_JSON" > "$_VALID_TMP"
-python3 - "$_VALID_TMP" << 'PYEOF' > "$PROMPT_FILE"
+# 関数化: Claude呼び出しが出力トークン超過で失敗した場合に、関連問題なし（通報のみ）で
+# 再構築・再試行できるようにする（通報の処理そのものが毎晩全滅するのを防ぐ安全弁）。
+build_prompt() {
+  local in_file="$1"
+  local out_file="$2"
+  python3 - "$in_file" << 'PYEOF' > "$out_file"
 import json, sys
 
 EXAM_DOMAINS = {'CLF': ['クラウドの概念', 'セキュリティとコンプライアンス', 'クラウドのテクノロジーとサービス', '請求、料金、およびサポート'], 'SAA': ['セキュアなアーキテクチャの設計', '弾力性に優れたアーキテクチャの設計', '高性能なアーキテクチャの設計', 'コスト最適化されたアーキテクチャの設計'], 'SAP': ['組織の複雑さに対応する設計', '新しいソリューションのための設計', '既存のソリューションの継続的改善', 'ワークロードの移行とモダン化の加速'], 'DVA': ['AWSのサービスを使用した開発', 'セキュリティ', 'デプロイ', 'トラブルシューティングと最適化'], 'SOA': ['モニタリング、ロギング、分析、修復、およびパフォーマンスの最適化', '信頼性とビジネス継続性', 'デプロイ、プロビジョニング、および自動化', 'セキュリティとコンプライアンス', 'ネットワークとコンテンツ配信'], 'DOP': ['SDLC の自動化', '構成管理と Infrastructure as Code (IaC)', '弾力性に優れたクラウドソリューション', 'モニタリングとロギング', 'インシデントとイベントへの対応', 'セキュリティとコンプライアンス'], 'AIF': ['AIとMLの基礎', '生成AIの基礎', '基盤モデルのアプリケーション', '責任あるAIのガイドライン', 'AIソリューションのセキュリティ、コンプライアンス、ガバナンス'], 'MLA': ['機械学習のためのデータ準備', 'MLモデルの開発', 'MLワークフローのデプロイとオーケストレーション', 'MLソリューションの監視、メンテナンス、セキュリティ'], 'AIP': ['基盤モデルの統合、データ管理、コンプライアンス', '実装と統合', 'AIの安全性、セキュリティ、ガバナンス', '生成AIアプリケーションの運用効率と最適化', 'テスト、検証、トラブルシューティング'], 'DEA': ['データの取り込みと変換', 'データストアの管理', 'データオペレーションとサポート', 'データのセキュリティとガバナンス'], 'ANS': ['ネットワーク設計', 'ネットワーク実装', 'ネットワーク管理と運用', 'ネットワークのセキュリティ、コンプライアンス、ガバナンス'], 'SCS': ['検出', 'インシデント対応', 'インフラストラクチャのセキュリティ', 'アイデンティティとアクセス管理', 'データ保護', 'セキュリティの基盤とガバナンス']}
@@ -419,31 +431,54 @@ if related_questions:
 
 print('\n'.join(lines))
 PYEOF
-rm -f "$_VALID_TMP"
+}
+
+build_prompt "$_VALID_TMP" "$PROMPT_FILE"
 
 # ── 5. Claude 実行 ────────────────────────────────────────────
-_STDOUT_F=$(mktemp /tmp/claude_out_XXXX)
-_STDERR_F=$(mktemp /tmp/claude_err_XXXX)
-CLAUDE_CODE_MAX_OUTPUT_TOKENS=32000 "$CLAUDE_CMD" -p --tools "" < "$PROMPT_FILE" > "$_STDOUT_F" 2> "$_STDERR_F"
-AI_EXIT=$?
-RESULT=$(cat "$_STDOUT_F")
-_STDERR=$(cat "$_STDERR_F")
-rm -f "$_STDOUT_F" "$_STDERR_F"
+# 出力トークン上限は余裕を持たせつつ（32000→64000）、それでも超過する日に備えて
+# 「関連問題なし・通報のみ」に縮小して1回だけ再試行するフォールバックを持つ。
+# これが無いと、超過が起きた夜は通報0件処理のまま同じ通報が翌日以降も残り続ける。
+_MAX_OUT_TOKENS=64000
+run_claude() {
+  local prompt_file="$1"
+  _STDOUT_F=$(mktemp /tmp/claude_out_XXXX)
+  _STDERR_F=$(mktemp /tmp/claude_err_XXXX)
+  CLAUDE_CODE_MAX_OUTPUT_TOKENS=$_MAX_OUT_TOKENS "$CLAUDE_CMD" -p --model sonnet --tools "" < "$prompt_file" > "$_STDOUT_F" 2> "$_STDERR_F"
+  AI_EXIT=$?
+  RESULT=$(cat "$_STDOUT_F")
+  _STDERR=$(cat "$_STDERR_F")
+  rm -f "$_STDOUT_F" "$_STDERR_F"
+}
+
+run_claude "$PROMPT_FILE"
 
 # npm更新による一時的なバイナリ消失 → 再探索してリトライ
 if [ $AI_EXIT -ne 0 ] && echo "$_STDERR" | grep -q "No such file"; then
   CLAUDE_CMD=$(_find_claude)
   if [ -x "${CLAUDE_CMD:-}" ]; then
-    _STDOUT_F=$(mktemp /tmp/claude_out_XXXX)
-    _STDERR_F=$(mktemp /tmp/claude_err_XXXX)
-    CLAUDE_CODE_MAX_OUTPUT_TOKENS=32000 "$CLAUDE_CMD" -p --tools "" < "$PROMPT_FILE" > "$_STDOUT_F" 2> "$_STDERR_F"
-    AI_EXIT=$?
-    RESULT=$(cat "$_STDOUT_F")
-    _STDERR=$(cat "$_STDERR_F")
-    rm -f "$_STDOUT_F" "$_STDERR_F"
+    run_claude "$PROMPT_FILE"
   fi
 fi
-rm -f "$PROMPT_FILE"
+
+# 出力トークン上限超過 → 関連問題を切り捨てて通報のみで1回だけ再試行
+if [ $AI_EXIT -ne 0 ] && echo "$_STDERR $RESULT" | grep -qiE "output token maximum|exceeded.*token"; then
+  echo "⚠️  出力トークン上限超過。関連問題チェックを省略し、通報のみで再試行します"
+  _REPORTS_ONLY_TMP=$(mktemp /tmp/reports_only_XXXX.json)
+  echo "$VALID_JSON" | python3 -c "
+import json, sys
+d = json.load(sys.stdin)
+d['related'] = []
+print(json.dumps(d, ensure_ascii=False))
+" > "$_REPORTS_ONLY_TMP"
+  RETRY_PROMPT_FILE=$(mktemp /tmp/reports_prompt_retry_XXXX.txt)
+  build_prompt "$_REPORTS_ONLY_TMP" "$RETRY_PROMPT_FILE"
+  rm -f "$_REPORTS_ONLY_TMP"
+  run_claude "$RETRY_PROMPT_FILE"
+  rm -f "$RETRY_PROMPT_FILE"
+fi
+
+rm -f "$_VALID_TMP" "$PROMPT_FILE"
 
 # 致命的エラー
 if echo "$_STDERR" | grep -qiE "command not found|No such file|GEMINI_API_KEY|API.?key"; then

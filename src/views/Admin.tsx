@@ -2066,12 +2066,15 @@ export default function Admin() {
             examType: "SAA",
             domain: "セキュアなアーキテクチャの設計",
             questionText: "Amazon S3バケットへのアクセスを特定のVPCからのみに制限するために使用すべきものはどれですか？",
-            questionTextEn: "What should you use to restrict access to an Amazon S3 bucket to only a specific VPC?",
-            choices: ["A. バケットACL", "B. S3バケットポリシーとVPCエンドポイント", "C. IAMユーザーポリシー", "D. セキュリティグループ"],
-            choicesEn: ["A. Bucket ACL", "B. S3 bucket policy with VPC endpoint", "C. IAM user policy", "D. Security group"],
-            correctAnswers: ["B. S3バケットポリシーとVPCエンドポイント"],
+            choices: ["バケットACL", "S3バケットポリシーとVPCエンドポイント", "IAMユーザーポリシー", "セキュリティグループ"],
+            correctAnswerIndices: [1],
             explanation: "VPCエンドポイントを使用しS3バケットポリシーでaws:sourceVpceを条件にすることでVPC外からのアクセスを制限できます。",
-            explanationEn: "By using a VPC endpoint and setting aws:sourceVpce as a condition in the S3 bucket policy, you can restrict access from outside the VPC.",
+            choiceExplanations: [
+              "バケットACLはオブジェクト単位の権限管理であり、VPC単位でのアクセス制限はできません。",
+              "VPCエンドポイント経由のアクセスのみ許可する条件をS3バケットポリシーに設定することで、指定VPCからのアクセスに制限できます。",
+              "IAMユーザーポリシーはユーザー単位の権限であり、アクセス元のVPCを条件にすることはできません。",
+              "セキュリティグループはEC2等のインスタンス向けのファイアウォールで、S3バケットには適用できません。",
+            ],
             isMultiple: false
           }
         ], null, 2);
@@ -2086,7 +2089,12 @@ export default function Admin() {
             for (const q of parsed) {
               if (!q.questionText) throw new Error('questionText が必要です');
               if (!Array.isArray(q.choices) || q.choices.length < 2) throw new Error('choices は2つ以上必要です');
-              if (!Array.isArray(q.correctAnswers) || q.correctAnswers.length === 0) throw new Error('correctAnswers が必要です');
+              // 正解指定は correctAnswerIndices（数値配列・AIプロンプトが出力する正準形式）または
+              // correctAnswers（文字列配列・旧形式/手動入力）のどちらかがあればよい。
+              // バックエンド(buildQuestionWriteFields)も同様にどちらか一方で受け付ける。
+              const hasIndices = Array.isArray(q.correctAnswerIndices) && q.correctAnswerIndices.length > 0;
+              const hasAnswers = Array.isArray(q.correctAnswers) && q.correctAnswers.length > 0;
+              if (!hasIndices && !hasAnswers) throw new Error('correctAnswerIndices または correctAnswers が必要です');
             }
             setImportParsed(parsed);
           } catch (e: any) {
