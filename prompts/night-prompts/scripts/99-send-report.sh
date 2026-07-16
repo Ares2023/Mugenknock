@@ -427,9 +427,29 @@ echo "  未解決通報: $DB_REPORTS 件"
 echo "  資格別:"
 echo "$DB_EXAM_TABLE"
 
+# ── Portal.tsx 問題数更新 ────────────────────────────────────
+echo ""
+echo "--- [3b] Portal.tsx 問題数更新 ---"
+PORTAL_TSX="$PROJECT_DIR/src/views/Portal.tsx"
+if [ "$DB_TOTAL" != "?" ] && [ -n "$DB_TOTAL" ] && echo "$DB_TOTAL" | grep -qE '^[0-9]+$'; then
+  PORTAL_COUNT=$(( (DB_TOTAL / 100) * 100 ))
+  CURRENT_COUNT=$(grep -oP 'const QUESTION_COUNT = \K[0-9]+' "$PORTAL_TSX" 2>/dev/null || echo "0")
+  if [ "$PORTAL_COUNT" != "$CURRENT_COUNT" ]; then
+    sed -i "s/const QUESTION_COUNT = [0-9]*/const QUESTION_COUNT = $PORTAL_COUNT/" "$PORTAL_TSX"
+    git -C "$PROJECT_DIR" add src/views/Portal.tsx
+    git -C "$PROJECT_DIR" commit -m "chore(portal): 問題数を ${CURRENT_COUNT} → ${PORTAL_COUNT} に更新 (DB実績: ${DB_TOTAL}問)"
+    git -C "$PROJECT_DIR" push github develop
+    echo "  ✅ Portal.tsx 更新・push完了: ${CURRENT_COUNT} → ${PORTAL_COUNT} (DB: ${DB_TOTAL}問)"
+  else
+    echo "  ℹ️  変更なし: ${CURRENT_COUNT}問 (100問刻み未達)"
+  fi
+else
+  echo "  ⚠️  DB_TOTAL取得失敗のためスキップ (DB_TOTAL='${DB_TOTAL}')"
+fi
+
 # ── Cognito 新規ユーザー（前日1日分・JST） ────────────────────
 echo ""
-echo "--- [3b] Cognito 新規ユーザー（前日） ---"
+echo "--- [3c] Cognito 新規ユーザー（前日） ---"
 # 認証カナリアのテストユーザーは実登録ではないため集計から除外する
 CANARY_EMAIL=""
 [ -f "${HOME}/.mugenknock_canary.conf" ] && CANARY_EMAIL=$(grep -E '^PLAYWRIGHT_EMAIL=' "${HOME}/.mugenknock_canary.conf" | head -1 | cut -d= -f2- | tr -d '"'"'"' \r')
