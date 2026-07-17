@@ -209,9 +209,10 @@ function CombinedDetailModal({ targetExam, domainAccList, estimatedScore, passSc
   const scoreTabRef = useRef<HTMLDivElement>(null);
   const [contentMinH, setContentMinH] = useState(0);
   // ノード出現アニメーション制御: 各ノードを「右端からの距離 dk=(nodeWindow-1-ni)」で識別し、
-  // 既にアニメ済みのノードは再生しない。5→10拡張時は新規(左側)のみ右→左で表示、既存(右5個)は即時。
+  // アニメ文字列を初出時に一度だけ確定して固定する（再レンダーで再計算＝中断/再発火しない）。
+  // 5→10拡張時は新規(左側)のみ右→左で表示、既存(右5個)は前回の文字列を再利用＝再生されない。
   const prevWindowRef = useRef(nodeWindow);
-  const animatedRef = useRef<Set<number>>(new Set());
+  const animStyleRef = useRef<Map<number, string>>(new Map());
   const visitedTabs = useRef(new Set<string>(['score']));
 
   // スコアタブ（calc非表示時）の高さを記録してタブ切替でサイズが変わらないようにする
@@ -229,9 +230,9 @@ function CombinedDetailModal({ targetExam, domainAccList, estimatedScore, passSc
   // 再表示時にまたアニメさせるため animated から外す。表示中の dk は animated に登録。
   useEffect(() => {
     prevWindowRef.current = nodeWindow;
-    const s = animatedRef.current;
-    for (const k of [...s]) if (k >= nodeWindow) s.delete(k);
-    for (let k = 0; k < nodeWindow; k++) s.add(k);
+    // 非表示になったノード(dk>=nodeWindow)は再表示時にまたアニメさせるため固定文字列を破棄。
+    const m = animStyleRef.current;
+    for (const k of [...m.keys()]) if (k >= nodeWindow) m.delete(k);
   }, [nodeWindow]);
 
   useEffect(() => {
@@ -358,12 +359,17 @@ function CombinedDetailModal({ targetExam, domainAccList, estimatedScore, passSc
                     <div style={{ display: 'flex', alignItems: 'center' }}>
                       {paddedNodes.map((correct, ni) => {
                         const dk = nodeWindow - 1 - ni;                      // 右端からの距離
-                        const isExpand = nodeWindow > prevWindowRef.current;  // 直近5→10へ拡張中か
-                        const expandNewCount = isExpand ? nodeWindow - prevWindowRef.current : 0;
-                        const already = animatedRef.current.has(dk);
-                        // 既アニメ済み(=既存ノード)は再生しない。新規のみ: 拡張時は右→左、通常(初回)は左→右。
-                        const delay = isExpand ? Math.max(0, expandNewCount - 1 - ni) * 70 : ni * 70;
-                        const nodeAnim = already ? 'none' : `scoreNodePop 0.22s ease ${delay}ms both`;
+                        // アニメ文字列は初出時に一度だけ確定して固定（再レンダーで中断/再発火させない）。
+                        // 既存ノードは前回の文字列を再利用するので再生されない。
+                        let nodeAnim = animStyleRef.current.get(dk);
+                        if (nodeAnim === undefined) {
+                          const isExpand = nodeWindow > prevWindowRef.current;  // 直近5→10へ拡張中か
+                          const expandNewCount = isExpand ? nodeWindow - prevWindowRef.current : 0;
+                          // 拡張時の新規は右→左、通常(初回)は左→右。
+                          const delay = isExpand ? Math.max(0, expandNewCount - 1 - ni) * 70 : ni * 70;
+                          nodeAnim = `scoreNodePop 0.22s ease ${delay}ms both`;
+                          animStyleRef.current.set(dk, nodeAnim);
+                        }
                         return (
                         <React.Fragment key={dk}>
                           {ni === 0
