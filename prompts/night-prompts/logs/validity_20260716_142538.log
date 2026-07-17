@@ -17,3 +17,12 @@
   終了=14:31:54  経過=334秒
 
 --- チャンク 2/6: 5問  開始=14:31:54 ---
+  [FIX  ] dea-fd99a777: 解説で選択肢C・Dの接頭辞直後にサービス名が連結している表記を修正。choiceExplanations[0]が80字超え・[1]がサービス名主語でないため修正。isMultiple: falseを追加。 → 変更: explanation, choiceExplanations
+  [FIX  ] dea-d12b2a4f: choiceExplanations[0]がサービス名主語でない。[1][2]が80字超え。isMultiple: falseを追加。 → 変更: choiceExplanations
+  [FIX  ] ans-2b967cb6: choiceExplanations[0][1]がサービス名主語でない。[2][3]が80字超え。isMultiple: falseを追加。 → 変更: choiceExplanations
+  [FIX  ] dea-740b4780: 問題の主題がアクセス制御・セキュリティであるためタグをデータのセキュリティとガバナンスに変更。choiceExplanationsが80字超えまたはサービス名主語でない。isMultiple: falseを追加。 → 変更: choiceExplanations, domain
+  [FIX  ] dea-749bcbd9: choiceExplanations[0][1][2]がサービス名主語でない。isMultiple: falseを追加。 → 変更: choiceExplanations
+  → 更新完了: OK=0 修正=5 削除=0
+  終了=14:51:23  経過=1169秒
+
+--- チャンク 3/6: 5問  開始=14:51:23 ---

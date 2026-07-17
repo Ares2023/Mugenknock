@@ -1,0 +1,68 @@
+==========================================
+正当性チェック開始: Thu Jul 16 19:31:41 JST 2026
+バッチサイズ: 30問 / チャンクサイズ: 5問
+==========================================
+チェック対象: 30問
+前処理: choices ラベル接頭辞チェック...
+  前処理: ラベル接頭辞なし（全問クリーン）
+チャンク数: 6
+
+--- チャンク 1/6: 5問  開始=19:32:13 ---
+  [FIX  ] sap-27573dcf: 問題文のバッチ処理特性5項目が改行なしで列挙されているため改行を追加 → 変更: questionText
+  [FIX  ] dop-d97aaacf: choiceExplanations[0]の文頭が「100%サンプリングは」となっておりサービス名主語の要件を満たしていないため修正 → 変更: choiceExplanations
+  [FIX  ] dop-9007bcbb: 問題文の3要件（自動修復・SNS通知・監査ログ保持）が改行なしで連続しているため改行を追加 → 変更: questionText
+  [FIX  ] dop-672e52a2: choiceExplanations[0][2][3]が「（Logs Insights）」「（X-Ray）」「（MetricMath）」という括弧書きで始まりサービス名主語の要件を満たしていないため修正 → 変更: choiceExplanations
+  [FIX  ] saa-9f2bcb78: 問題文の4要件が改行なし、かつchoiceExplanations[0][2][3]がサービス名主語なしの括弧書き形式で始まっているため修正 → 変更: questionText, choiceExplanations
+  → 更新完了: OK=0 修正=5 削除=0
+  終了=19:36:56  経過=283秒
+
+--- チャンク 2/6: 5問  開始=19:36:56 ---
+  [FIX  ] dop-d0bc8553: choiceExplanations[0][3][4]が括弧始まりでサービス名が主語になっていない。[1]にB選択肢の解説へC選択肢の説明が混在、[2]にC選択肢の解説へB選択肢の説明が混在しており各選択肢と対応していない。 → 変更: choiceExplanations
+  [FIX  ] sap-db089a4e: choiceExplanations[1]が「SCPによる強制がなく」で始まりサービス名が主語になっていない。choiceExplanations[2]に問題文に存在しない「400+ VPC規模」という不正確な記述がある。 → 変更: choiceExplanations
+  [FIX  ] clf-ec5abb13: choiceExplanations[0][1][3]が括弧始まりでサービス名が主語になっていない。 → 変更: choiceExplanations
+  [OK   ] scs-2aa32bfc
+  [FIX  ] scs-6fd70e77: choiceExplanations[0][2][3]が「誤りです。」で始まりサービス名・機能名が主語になっていない。 → 変更: choiceExplanations
+  → 更新完了: OK=1 修正=4 削除=0
+  終了=19:42:24  経過=328秒
+
+--- チャンク 3/6: 5問  開始=19:42:24 ---
+  [OK   ] scs-9b4be60c
+  [FIX  ] scs-6e784f51: 問題文の要件3項目が改行なしで列挙されている。choiceExplanations全4件が「誤りです。」「が正解です。」から始まりサービス名・機能名が文頭主語になっていない。 → 変更: questionText, choiceExplanations
+  [OK   ] scs-281da138
+  [FIX  ] scs-28a57b0c: choiceExplanations全4件がサービス名・機能名を文頭主語としていない（[0]は「混乱した代理攻撃は」、[1][2][3]は「誤りです。」で開始）。 → 変更: choiceExplanations
+  [FIX  ] clf-bf751002: choiceExplanations[0][2][3]が「誤りです。」から始まりサービス名主語なし。[1]もエッジロケーションではなく「AWSのグローバルインフラストラクチャ」が文頭でサービス名主語の要件を満たさない。 → 変更: choiceExplanations
+  → 更新完了: OK=2 修正=3 削除=0
+  終了=19:47:37  経過=313秒
+
+--- チャンク 4/6: 5問  開始=19:47:37 ---
+  [OK   ] scs-d7d3ca77
+  [FIX  ] scs-cb4ed61e: choiceExplanations[0〜3]が「誤りです。」または「が正解です。」で始まりサービス名・機能名が文頭の主語になっていない。 → 変更: choiceExplanations
+  [FIX  ] scs-17a50051: choiceExplanations[1〜3]が「誤りです。」で始まりサービス名が文頭の主語になっていない。 → 変更: choiceExplanations
+  [OK   ] scs-d140636b
+  [FIX  ] sap-de5d3e94: choiceExplanations[1]に選択肢Cの解説が混入し[2]に選択肢Aの解説が誤設定されている（対応ズレ）。[3][4]もサービス名主語なし。 → 変更: choiceExplanations
+  → 更新完了: OK=2 修正=3 削除=0
+  終了=19:56:27  経過=530秒
+
+--- チャンク 5/6: 5問  開始=19:56:27 ---
+  [OK   ] dop-2649d903
+  [OK   ] clf-501ecda2
+  [FIX  ] sap-dfeafd86: choiceExplanations[0][1]に解説本文全体（「正解：B.」テキスト含む）が混入し、各選択肢の個別説明になっていない。explanationの「正解：B.」冗長テキストも削除。 → 変更: explanation, choiceExplanations
+  [OK   ] sap-fd84f702
+  [FIX  ] sap-f8581e62: choiceExplanations[1][4]に解説本文全体（「正解：E.」テキスト含む）が混入し、各選択肢の個別説明になっていない。explanationの「正解：E.」冗長テキストも削除。 → 変更: explanation, choiceExplanations
+  → 更新完了: OK=3 修正=2 削除=0
+  終了=20:02:17  経過=350秒
+
+--- チャンク 6/6: 5問  開始=20:02:17 ---
+  [FIX  ] sap-37ff60e7: 解説冒頭が「正解：C.」のみで正解AとCを示していない。「パイシング」誤字。選択肢D解説が「のはが」と文章破綻。choiceExplanations[0][2]が全体解説の丸写しで選択肢と不対応かつサービス名主語なし。[3]は主語欠落で破綻。問題文の要件列挙に改行なし。isMultiple未設定。 → 変更: questionText, explanation, choiceExplanations
+  [FIX  ] sap-889281c1: choiceExplanations[1]が「スケールアップで...」と動詞句で始まりサービス名主語なし。 → 変更: choiceExplanations
+  [FIX  ] dop-322cc6a4: 4択複数正解はAWS試験規約違反（5択以上が必要）。解説冒頭「正解：D.」が不正確（正解はAとD）。choiceExplanations[0][3]が「（正解）の」接頭辞でサービス名が文頭の直接主語になっていない。 → 変更: choices, explanation, choiceExplanations
+  [FIX  ] dop-a78d23ee: choiceExplanations[0][1][3]が引用符で選択肢全体を引用する形式でサービス名が文頭の直接主語になっていない。 → 変更: choiceExplanations
+  [FIX  ] sap-af2600ca: 解説冒頭「正解：C.」が不正確（正解はAとC）。choiceExplanations[1][3][4]が引用符で選択肢全体を引用する形式でサービス名主語なし。 → 変更: explanation, choiceExplanations
+  → 更新完了: OK=0 修正=5 削除=0
+  終了=20:13:44  経過=687秒
+
+完了サマリー: 問題なし=8問 / 自動修正=22問 / 削除=0問
+
+==========================================
+チェック終了: Thu Jul 16 20:13:44 JST 2026
+==========================================

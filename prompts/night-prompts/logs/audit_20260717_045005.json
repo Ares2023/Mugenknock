@@ -1,0 +1,388 @@
+[
+  {
+    "questionId": "clf-637af08d",
+    "examType": "CLF",
+    "verdict": "warn",
+    "currentness": "ok",
+    "difficulty": "appropriate",
+    "scope": "in",
+    "format": "ok",
+    "mockSuitable": true,
+    "issues": [
+      "解説でFargateを「コンテナオーケストレーション基盤」と説明しているが、Fargateはオーケストレーション基盤ではなくサーバーレスのコンテナ実行エンジン（コンピューティング）であり、この表現は不正確",
+      "実測正答率20%と低く、多くがElastic Beanstalkを選んでいると推測される。App RunnerとBeanstalkの区別はCLF受験者にはやや難しめだが、シナリオ上App Runnerが最適解であること自体は妥当"
+    ]
+  },
+  {
+    "questionId": "clf-3405ed73",
+    "examType": "CLF",
+    "verdict": "warn",
+    "currentness": "ok",
+    "difficulty": "appropriate",
+    "scope": "in",
+    "format": "ok",
+    "mockSuitable": true,
+    "issues": [
+      "正解・現行性・範囲とも問題なし。ただし実測正答率14%と極端に低く、SNSを選ぶ受験者が多いと推測される。EventBridgeとSNSの使い分けはCLFとしてはやや高度だが範囲内で、紛らわしい正解設定ではなく妥当なひっかけと判断"
+    ]
+  },
+  {
+    "questionId": "aif-q-013",
+    "examType": "AIF",
+    "verdict": "warn",
+    "currentness": "ok",
+    "difficulty": "too_easy",
+    "scope": "in",
+    "format": "ok",
+    "mockSuitable": true,
+    "issues": [
+      "「1例を提示＝One-shot」という用語の定義をそのまま問う暗記寄りの問題で、シナリオ性・要件の取捨選択に乏しくやや易しい",
+      "不正解肢のネガティブプロンプティング／プロンプトインジェクションはZero/One/Few-shot系列と粒度が揃っておらず、消去法で正解が絞りやすい"
+    ]
+  },
+  {
+    "questionId": "aif-q-024",
+    "examType": "AIF",
+    "verdict": "ok",
+    "currentness": "ok",
+    "difficulty": "appropriate",
+    "scope": "in",
+    "format": "ok",
+    "mockSuitable": true,
+    "issues": []
+  },
+  {
+    "questionId": "aif-q-010",
+    "examType": "AIF",
+    "verdict": "ok",
+    "currentness": "ok",
+    "difficulty": "appropriate",
+    "scope": "in",
+    "format": "ok",
+    "mockSuitable": true,
+    "issues": []
+  },
+  {
+    "questionId": "aif-q-018",
+    "examType": "AIF",
+    "verdict": "warn",
+    "currentness": "ok",
+    "difficulty": "too_easy",
+    "scope": "in",
+    "format": "ok",
+    "mockSuitable": true,
+    "issues": [
+      "選択肢4つのうちBLEU（翻訳）・RMSE（回帰）はドメインが明らかに異なり消去が容易。実質Accuracyとの二択で、F1=Precision/Recallの調和平均という定義を知っていれば一読で自明。AIF基礎レベルとしては許容範囲だがやや易しい",
+      "aif-q-022/019と評価指標識別の出題テーマが重複気味"
+    ]
+  },
+  {
+    "questionId": "aif-q-022",
+    "examType": "AIF",
+    "verdict": "warn",
+    "currentness": "ok",
+    "difficulty": "too_easy",
+    "scope": "in",
+    "format": "ok",
+    "mockSuitable": true,
+    "issues": [
+      "F1・BLEUは回帰問題では明らかに場違いで、実質MAE対RMSEの二択。MAE=全誤差を等重みという定義暗記で即答でき、ひっかけ要素に乏しい"
+    ]
+  },
+  {
+    "questionId": "aif-q-001",
+    "examType": "AIF",
+    "verdict": "ok",
+    "currentness": "ok",
+    "difficulty": "appropriate",
+    "scope": "in",
+    "format": "ok",
+    "mockSuitable": true,
+    "issues": []
+  },
+  {
+    "questionId": "aif-q-017",
+    "examType": "AIF",
+    "verdict": "ok",
+    "currentness": "ok",
+    "difficulty": "appropriate",
+    "scope": "in",
+    "format": "ok",
+    "mockSuitable": true,
+    "issues": [
+      "Recall・ROC-AUCがもっともらしい不正解として機能しており、他問より弁別力がある。良問寄り"
+    ]
+  },
+  {
+    "questionId": "aif-q-019",
+    "examType": "AIF",
+    "verdict": "warn",
+    "currentness": "ok",
+    "difficulty": "too_easy",
+    "scope": "in",
+    "format": "ok",
+    "mockSuitable": true,
+    "issues": [
+      "F1・BLEU・Recallの3つが全て分類/翻訳向けで回帰問題には明らかに不適。回帰系の紛らわしい選択肢（MAE/MSE等）が無く、消去法で即座に正解でき難易度が低い"
+    ]
+  },
+  {
+    "questionId": "aif-q-009",
+    "examType": "AIF",
+    "verdict": "warn",
+    "currentness": "ok",
+    "difficulty": "too_easy",
+    "scope": "in",
+    "format": "ok",
+    "mockSuitable": true,
+    "issues": [
+      "誤答選択肢（ネガティブ/ゼロショット/プロンプトインジェクション）がいずれも『手順を明示する』という設問状況と全く噛み合わず、正解が消去法で自明。AIF基礎レベルとしても紛らわしさが不足",
+      "『ステップ・バイ・ステッププロンプティング』は用語として一般的な Chain-of-Thought（思考の連鎖）ほど定着しておらず、本番の用語表記としてやや非標準"
+    ]
+  },
+  {
+    "questionId": "aif-q-015",
+    "examType": "AIF",
+    "verdict": "ok",
+    "currentness": "ok",
+    "difficulty": "appropriate",
+    "scope": "in",
+    "format": "ok",
+    "mockSuitable": true,
+    "issues": [
+      "ワンショットという近い誤答があり例数の識別を要するため、AIF基礎レベルの妥当な難度。良問"
+    ]
+  },
+  {
+    "questionId": "aif-q-016",
+    "examType": "AIF",
+    "verdict": "ok",
+    "currentness": "ok",
+    "difficulty": "appropriate",
+    "scope": "in",
+    "format": "ok",
+    "mockSuitable": true,
+    "issues": [
+      "Recall と Precision の識別を要する良い設計。BLEU/RMSE は明らかな別ドメイン指標で捨て選択肢だが、本質的な二択が成立しておりAIFとして妥当"
+    ]
+  },
+  {
+    "questionId": "aif-q-002",
+    "examType": "AIF",
+    "verdict": "warn",
+    "currentness": "ok",
+    "difficulty": "too_easy",
+    "scope": "in",
+    "format": "ok",
+    "mockSuitable": true,
+    "issues": [
+      "誤答（プロンプトを短く/繰り返す/解像度を上げる）がいずれも明らかに無関係で、一読で正解が自明。ひっかけとして機能していない",
+      "解説は正確だが冗長気味"
+    ]
+  },
+  {
+    "questionId": "aif-q-023",
+    "examType": "AIF",
+    "verdict": "ok",
+    "currentness": "ok",
+    "difficulty": "appropriate",
+    "scope": "in",
+    "format": "ok",
+    "mockSuitable": true,
+    "issues": [
+      "Perplexity という生成AI固有指標の理解を問う適切な設問。誤答が別タスク用指標である点も学習効果があり妥当"
+    ]
+  },
+  {
+    "questionId": "aip-712c9504",
+    "examType": "AIP",
+    "verdict": "ok",
+    "currentness": "ok",
+    "difficulty": "appropriate",
+    "scope": "in",
+    "format": "ok",
+    "mockSuitable": true,
+    "issues": []
+  },
+  {
+    "questionId": "aip-7fdae584",
+    "examType": "AIP",
+    "verdict": "ok",
+    "currentness": "ok",
+    "difficulty": "appropriate",
+    "scope": "in",
+    "format": "ok",
+    "mockSuitable": true,
+    "issues": [
+      "継続監視の本来の第一候補はSageMaker Model Monitor（Clarify統合）だが、SageMaker Pipelinesの定期ジョブも妥当であり許容範囲"
+    ]
+  },
+  {
+    "questionId": "aip-8e7520c7",
+    "examType": "AIP",
+    "verdict": "ok",
+    "currentness": "ok",
+    "difficulty": "appropriate",
+    "scope": "in",
+    "format": "ok",
+    "mockSuitable": true,
+    "issues": []
+  },
+  {
+    "questionId": "aip-e31bf3c4",
+    "examType": "AIP",
+    "verdict": "ng",
+    "currentness": "outdated",
+    "difficulty": "appropriate",
+    "scope": "in",
+    "format": "ok",
+    "mockSuitable": false,
+    "issues": [
+      "重大な事実誤認：正解とされるClaude 3.5 Haikuは画像入力に非対応のテキスト専用モデルであり、要件①のマルチモーダル画像処理を満たせない。解説の「マルチモーダル入力対応」は誤り",
+      "要件を全て満たすのは実際には選択肢[0]（Claude 3.5 Sonnet＝真にマルチモーダル・200Kコンテキスト）のみで、正解設定が破綻している",
+      "旧世代モデル（Claude 3.5系・Claude 3 Opus）のみで構成されており、現行の生成AI試験としては現行性が乏しい"
+    ]
+  },
+  {
+    "questionId": "aip-c03c5690",
+    "examType": "AIP",
+    "verdict": "ok",
+    "currentness": "ok",
+    "difficulty": "appropriate",
+    "scope": "in",
+    "format": "ok",
+    "mockSuitable": true,
+    "issues": []
+  },
+  {
+    "questionId": "aip-76acc430",
+    "examType": "AIP",
+    "verdict": "ok",
+    "currentness": "ok",
+    "difficulty": "appropriate",
+    "scope": "in",
+    "format": "ok",
+    "mockSuitable": true,
+    "issues": [
+      "OpenSearch ServerlessはBedrock KBのベクターストアとしてハイブリッド検索(BM25+ベクター)・メタデータフィルタ・自動スケールを満たし正解として妥当。ディストラクタも各要件に的確に矛盾させており良問"
+    ]
+  },
+  {
+    "questionId": "aip-605e6546",
+    "examType": "AIP",
+    "verdict": "ok",
+    "currentness": "ok",
+    "difficulty": "appropriate",
+    "scope": "in",
+    "format": "ok",
+    "mockSuitable": true,
+    "issues": [
+      "Bedrock Guardrailsの機密情報(PII)フィルタが入出力双方＋コンソール管理で3要件を満たす点は正しい",
+      "問題5(aip-e0d4323b)とテーマ・正解の型がほぼ重複しており、セット内での出題被りに注意"
+    ]
+  },
+  {
+    "questionId": "aip-e274ef54",
+    "examType": "AIP",
+    "verdict": "warn",
+    "currentness": "uncertain",
+    "difficulty": "appropriate",
+    "scope": "in",
+    "format": "ok",
+    "mockSuitable": true,
+    "issues": [
+      "特定モデル間のトークン単価比較はモデル追加・価格改定で陳腐化しやすく、資格試験としては脆い出題",
+      "選択肢[0]の『他モデルより低いトークン単価』は不正確。Nova Lite/MicroはNova Proより安価かつマルチモーダル対応であり絶対的最安ではない(提示4択の中では妥当だが表現が過度)",
+      "日本語生成品質でNova Pro＞Claudeとする前提は主観的でマーケティング寄り"
+    ]
+  },
+  {
+    "questionId": "aip-8bee3ce0",
+    "examType": "AIP",
+    "verdict": "ok",
+    "currentness": "ok",
+    "difficulty": "appropriate",
+    "scope": "in",
+    "format": "ok",
+    "mockSuitable": true,
+    "issues": [
+      "階層型チャンキング(子チャンクで検索・親チャンクで文脈補完)はBedrock KBの現行機能で正解として正確。シナリオ・ひっかけ(セマンティック/固定サイズ拡大/Lambda)も妥当で良問"
+    ]
+  },
+  {
+    "questionId": "aip-e0d4323b",
+    "examType": "AIP",
+    "verdict": "warn",
+    "currentness": "ok",
+    "difficulty": "appropriate",
+    "scope": "in",
+    "format": "ok",
+    "mockSuitable": true,
+    "issues": [
+      "問題2(aip-605e6546)と論点(Guardrails PIIマスキングの入出力適用・パイプライン非変更)がほぼ同一で重複",
+      "本シナリオのPII源はKB文書側であり『モデルへの入力段階でのマスキング』を不足理由に挙げる選択肢[0]の解説は論点がややズレている(正解自体は妥当)"
+    ]
+  },
+  {
+    "questionId": "aip-88b99dff",
+    "examType": "AIP",
+    "verdict": "ok",
+    "currentness": "ok",
+    "difficulty": "appropriate",
+    "scope": "in",
+    "format": "ok",
+    "mockSuitable": true,
+    "issues": []
+  },
+  {
+    "questionId": "aip-9646071f",
+    "examType": "AIP",
+    "verdict": "ok",
+    "currentness": "ok",
+    "difficulty": "appropriate",
+    "scope": "in",
+    "format": "ok",
+    "mockSuitable": true,
+    "issues": [
+      "選択肢[3]Pineconeはリモートストアとして正式にKnowledge Basesと統合可能なため『整合しない』という否定解説はやや不正確だが、運用最小化の観点でOpenSearch Serverless優位は妥当"
+    ]
+  },
+  {
+    "questionId": "aip-4db28343",
+    "examType": "AIP",
+    "verdict": "warn",
+    "currentness": "ok",
+    "difficulty": "appropriate",
+    "scope": "in",
+    "format": "ok",
+    "mockSuitable": true,
+    "issues": [
+      "Claude 3 Haikuは現在アップグレード世代（3.5 Haiku等）やAmazon Novaなど、より新しい低コストモデルが登場しており選択肢が世代的にやや古い。ただし提示選択肢の中では正解として妥当",
+      "180Kトークン＋構造化JSON出力で200Kコンテキストにほぼ上限まで詰める前提であり、実運用ではやや余裕不足"
+    ]
+  },
+  {
+    "questionId": "aif-q-011",
+    "examType": "AIF",
+    "verdict": "ok",
+    "currentness": "ok",
+    "difficulty": "appropriate",
+    "scope": "in",
+    "format": "ok",
+    "mockSuitable": true,
+    "issues": []
+  },
+  {
+    "questionId": "aif-q-004",
+    "examType": "AIF",
+    "verdict": "warn",
+    "currentness": "ok",
+    "difficulty": "too_easy",
+    "scope": "in",
+    "format": "ok",
+    "mockSuitable": true,
+    "issues": [
+      "用語の一読で正解が自明な純粋暗記問題。シナリオ性や取捨選択がなく、ひっかけ選択肢（クラスタリング/回帰/次単語予測）も容易に除外できる。AIF基礎レベルとしては許容範囲だが本番のシナリオ問題より易しい"
+    ]
+  }
+]

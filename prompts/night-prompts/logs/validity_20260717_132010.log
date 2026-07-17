@@ -1,0 +1,32 @@
+==========================================
+正当性チェック開始: Fri Jul 17 13:20:10 JST 2026
+バッチサイズ: 100問 / チャンクサイズ: 5問
+==========================================
+チェック対象: 100問
+前処理: choices ラベル接頭辞チェック...
+  前処理: ラベル接頭辞なし（全問クリーン）
+チャンク数: 20
+
+--- チャンク 1/20: 5問  開始=13:20:43 ---
+  [OK   ] clf-b8db2fa2
+  [FIX  ] scs-3adfc5e8: choiceExplanations[3]が「セキュリティチームが」で始まりサービス名・機能名が主語になっていない。 → 変更: choiceExplanations
+  [FIX  ] scs-8e4268a4: choiceExplanations[0]がサービス名なしで「分散攻撃に対して」と開始し、[1]も「IPベースのレートリミット」という機能説明語で開始しており、いずれもサービス名が主語になっていない。 → 変更: choiceExplanations
+  [FIX  ] scs-4add56fe: 解説本文とchoiceExplanations[0]に誤記「はま」がある（「CloudTrail Lakeはま SQL」→「CloudTrail LakeはSQL」）。 → 変更: explanation, choiceExplanations
+  [FIX  ] saa-a3f86916: choiceExplanations[0][1][2][3]すべてが構成パターン名や状況説明で始まり、サービス名・機能名が文頭の主語になっていない。 → 変更: choiceExplanations
+  → 更新完了: OK=1 修正=4 削除=0
+  終了=13:27:47  経過=424秒
+
+--- チャンク 2/20: 5問  開始=13:27:47 ---
+  [OK   ] saa-19379dd6
+  [OK   ] saa-3d7b6492
+  [OK   ] saa-a42e7e77
+  [OK   ] saa-3d51e9f5
+  [OK   ] clf-6eebd63c
+  → 更新完了: OK=5 修正=0 削除=0
+  終了=13:32:42  経過=295秒
+
+--- チャンク 3/20: 5問  開始=13:32:42 ---
+⚠️  レート制限を検出。残りチャンクをスキップ
+stdout: You've hit your session limit · resets 1:50pm (Asia/Tokyo)
+
+完了サマリー: 問題なし=6問 / 自動修正=4問 / 削除=0問

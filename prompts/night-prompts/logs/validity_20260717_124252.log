@@ -1,0 +1,68 @@
+==========================================
+正当性チェック開始: Fri Jul 17 12:42:53 JST 2026
+バッチサイズ: 30問 / チャンクサイズ: 5問
+==========================================
+チェック対象: 30問
+前処理: choices ラベル接頭辞チェック...
+  前処理: ラベル接頭辞なし（全問クリーン）
+チャンク数: 6
+
+--- チャンク 1/6: 5問  開始=12:43:27 ---
+  [OK   ] ans-3a699bf6
+  [OK   ] ans-e43acf6d
+  [FIX  ] ans-e8f6ed26: choiceExplanations[0]〜[3]がいずれもサービス名・機能名を主語として文頭に置いていないため修正。 → 変更: choiceExplanations
+  [FIX  ] ans-abf679d5: 問題文の要件(1)〜(4)が改行なしで列挙されており、\n区切りが必要。 → 変更: questionText
+  [FIX  ] ans-b6a4cd33: choiceExplanations[1]が「ようにして」で始まる断片（解説文からの誤コピー）で不完全。[2][3]もサービス名主語なし。3項目を修正。 → 変更: choiceExplanations
+  → 更新完了: OK=2 修正=3 削除=0
+  終了=12:48:59  経過=332秒
+
+--- チャンク 2/6: 5問  開始=12:48:59 ---
+  [FIX  ] ans-50e6881d: choiceExplanations[0]が「カスタムIPアドレス管理システムの構築は〜」で始まりサービス名が主語でない。Lambda/DynamoDB/EventBridgeを文頭主語に修正。 → 変更: choiceExplanations
+  [FIX  ] ans-87127393: choiceExplanations[2]が「カスタムDNSサーバーへの転送は〜」で始まりサービス名が主語でない。Route 53 Resolverアウトバウンドエンドポイントを文頭主語に修正。 → 変更: choiceExplanations
+  [OK   ] ans-b656e4d7
+  [FIX  ] ans-584444c3: choiceExplanations[0〜3]がすべて「誤り。」「正しい。」の判定文で始まりサービス名が主語でない。各サービス名を文頭主語に修正。 → 変更: choiceExplanations
+  [FIX  ] ans-2c8c8343: choiceExplanations[0]が「PrivateLinkも有効な〜」で始まりサービス名が主語でない。「AWS PrivateLink」を文頭主語に修正。 → 変更: choiceExplanations
+  → 更新完了: OK=1 修正=4 削除=0
+  終了=12:53:06  経過=247秒
+
+--- チャンク 3/6: 5問  開始=12:53:06 ---
+  [FIX  ] ans-df5d464f: choiceExplanations[0]が「が正解です。」で始まりサービス名主語がない。[3]も CloudWatch の記載なく「BytesIn/BytesOut」のみで始まるため修正。 → 変更: choiceExplanations
+  [FIX  ] ans-7308c801: choiceExplanations[0][2][3]が「誤り。」で始まりサービス名が文頭主語でないため修正。 → 変更: choiceExplanations
+  [FIX  ] ans-717b3471: 問題文の(1)(2)(3)要件列挙が改行なし。choiceExplanations全4項目でサービス名主語がないため修正。 → 変更: questionText, choiceExplanations
+  [FIX  ] ans-7a7b9f14: choiceExplanations全4項目が「誤りです。」または「が正解です。」で始まりサービス名主語がないため修正。 → 変更: choiceExplanations
+  [FIX  ] scs-d0002806: choiceExplanations全4項目が括弧書きや「サードパーティ」で始まりサービス名主語がないため修正。 → 変更: choiceExplanations
+  → 更新完了: OK=0 修正=5 削除=0
+  終了=12:59:08  経過=362秒
+
+--- チャンク 4/6: 5問  開始=12:59:08 ---
+  [FIX  ] scs-7e13734c: choiceExplanations[0][1][3]が「誤りです。」で始まりサービス名が主語になっていないため修正 → 変更: choiceExplanations
+  [FIX  ] scs-8b408aca: choiceExplanations[0]が「VPNを使用する時点で〜」と始まりサービス名が主語になっていないため修正 → 変更: choiceExplanations
+  [FIX  ] scs-ed0f1d57: 解説中「選択肢DAWSConfigは」に「の」が欠落している誤記を修正 → 変更: explanation
+  [FIX  ] scs-5752a43c: 問題文の2要件間に改行なし・choiceExplanations[0]が「BAAの締結に〜」と始まりサービス名が主語でないため修正 → 変更: questionText, choiceExplanations
+  [FIX  ] scs-ff6d69cb: choiceExplanations[0]がサービス名を主語としていない・[2]が「では、」で始まり文頭欠損のため修正 → 変更: choiceExplanations
+  → 更新完了: OK=0 修正=5 削除=0
+  終了=13:06:00  経過=412秒
+
+--- チャンク 5/6: 5問  開始=13:06:01 ---
+  [OK   ] scs-d284198c
+  [OK   ] scs-1b611853
+  [OK   ] scs-abe5bd22
+  [OK   ] scs-b9577a88
+  [OK   ] scs-49645238
+  → 更新完了: OK=5 修正=0 削除=0
+  終了=13:10:25  経過=264秒
+
+--- チャンク 6/6: 5問  開始=13:10:25 ---
+  [FIX  ] scs-87b056ac: choiceExplanations[3]が「モバイルユーザーのIPアドレスは」で始まりサービス名・機能名を文頭主語に置くルール違反。 → 変更: choiceExplanations
+  [FIX  ] scs-e62f618d: choiceExplanations[0]が「インスタンスが」で始まりIAMポリシーのサービス名が主語になっていない。 → 変更: choiceExplanations
+  [OK   ] scs-5e2ef805
+  [FIX  ] scs-efdaa616: choiceExplanations[0][2][3]が「誤りです。」で始まりサービス名・機能名を文頭主語に置くルール違反。 → 変更: choiceExplanations
+  [FIX  ] saa-95dc602b: choiceExplanations[0][2][3]が選択肢名引用（「〜」は）形式で始まりサービス名主語ルール違反。[2][3]は「は〜は」の二重表現誤記も含む。 → 変更: choiceExplanations
+  → 更新完了: OK=1 修正=4 削除=0
+  終了=13:16:22  経過=357秒
+
+完了サマリー: 問題なし=9問 / 自動修正=21問 / 削除=0問
+
+==========================================
+チェック終了: Fri Jul 17 13:16:22 JST 2026
+==========================================
