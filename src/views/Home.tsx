@@ -222,11 +222,15 @@ function CombinedDetailModal({ targetExam, domainAccList, estimatedScore, passSc
     return lockBodyScroll();
   }, []);
 
+  // ノード出現アニメーション: モーダル表示時と、直近5⇄10回の切替時に発火。
+  // 各ノードの transitionDelay が ni*70ms（左端=ni0が最速）なので左→右へ順次フェードインする。
+  // ノードの並び順は変えない（新しい結果は右のまま）。
   useEffect(() => {
+    setNodesVisible(false);
     let id1: number, id2: number;
     id1 = requestAnimationFrame(() => { id2 = requestAnimationFrame(() => setNodesVisible(true)); });
     return () => { cancelAnimationFrame(id1); cancelAnimationFrame(id2); };
-  }, []);
+  }, [nodeWindow]);
 
   useEffect(() => {
     visitedTabs.current.add(tab);
