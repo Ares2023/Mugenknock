@@ -64,6 +64,9 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <link rel="icon" type="image/png" href="/mugen-icon.png" />
         <link rel="apple-touch-icon" href="/mugen-icon.png" />
         <link rel="manifest" href="/manifest.json" />
+        {/* ログイン済み(目標資格設定済み)ユーザーはトップのランディングをペイントせず即アプリへ。
+            本文がSSRで静的HTMLに残るためSEOは維持。ゲスト/クローラはCognitoトークンが無いので素通り。 */}
+        <script dangerouslySetInnerHTML={{ __html: `(function(){try{var p=location.pathname;if(p!=='/'&&p!=='/index.html')return;if(location.search.indexOf('view=')!==-1||location.hash==='#about')return;var sub=null;for(var i=0;i<localStorage.length;i++){var k=localStorage.key(i);if(k&&k.indexOf('CognitoIdentityServiceProvider.')===0&&/\\.idToken$/.test(k)){var t=localStorage.getItem(k);if(t){try{sub=JSON.parse(decodeURIComponent(escape(atob(t.split('.')[1].replace(/-/g,'+').replace(/_/g,'/'))))).sub;}catch(e){}}break;}}if(sub&&localStorage.getItem('targetExam_'+sub)){location.replace('/aws/');}}catch(e){}})();` }} />
         {/* AdSense 広告配信: コンテンツページ（AD_CONTENT_PREFIXES）でのみ読み込む。
             演習/模試/図鑑・ログイン・管理・結果/ローディング等の行動・薄い画面では出さない。 */}
         {showAds && (
