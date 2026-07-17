@@ -84,6 +84,27 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           'inLanguage': 'ja',
           'offers': { '@type': 'Offer', 'price': '0', 'priceCurrency': 'JPY' },
         }) }} />
+        {/* Organization / WebSite（ブランド認識・サイトリンク対象化） */}
+        <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify({
+          '@context': 'https://schema.org',
+          '@graph': [
+            {
+              '@type': 'Organization',
+              '@id': 'https://mugenknock.com/#org',
+              'name': '無限ノック',
+              'url': 'https://mugenknock.com/',
+              'logo': 'https://mugenknock.com/mugen-icon.png',
+            },
+            {
+              '@type': 'WebSite',
+              '@id': 'https://mugenknock.com/#website',
+              'name': '無限ノック',
+              'url': 'https://mugenknock.com/',
+              'inLanguage': 'ja',
+              'publisher': { '@id': 'https://mugenknock.com/#org' },
+            },
+          ],
+        }) }} />
         <style dangerouslySetInnerHTML={{ __html: `
           #initial-loader{position:fixed;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;background:#f2f3f3;gap:28px;z-index:9999;}
           html[data-theme="dark"] #initial-loader{background:#0d1117;}
