@@ -18,11 +18,18 @@ const openSans = Open_Sans({
   display: 'swap',
 });
 
+// AdSense 広告を許可するコンテンツURL接頭辞。
+// 過去問道場と同じく「問題+解説などの閲覧コンテンツページ」だけで広告を出し、
+// 演習/模試/図鑑のアプリ体験（/aws/*）・ログイン・管理・アカウント等の
+// 行動/認証/薄い画面では広告スクリプト自体を読み込まない（AdSenseポリシー遵守）。
+const AD_CONTENT_PREFIXES = ['/questions', '/services', '/encyclopedia', '/exam-guide', '/about', '/architecture'];
+
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
-  const isAdmin = pathname?.startsWith('/admin') ?? false;
+  const showAds = !!pathname && AD_CONTENT_PREFIXES.some(p => pathname === p || pathname.startsWith(p + '/'));
 
-  // AdSense は <head> 内の <script> タグ（静的 HTML）として出力するため useEffect 不要
+  // AdSense は <head> 内の <script> タグ（静的 HTML）として出力するため useEffect 不要。
+  // コンテンツページ（showAds=true）でのみ読み込む。
 
   // エラービーコン（グローバルエラーハンドラ）
   useEffect(() => {
@@ -57,9 +64,12 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <link rel="icon" type="image/png" href="/mugen-icon.png" />
         <link rel="apple-touch-icon" href="/mugen-icon.png" />
         <link rel="manifest" href="/manifest.json" />
-        {/* AdSense 所有権確認・広告配信（/admin では isAdmin により body 側で除外） */}
-        {/* eslint-disable-next-line @next/next/no-sync-scripts */}
-        <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-7579739275405898" crossOrigin="anonymous" />
+        {/* AdSense 広告配信: コンテンツページ（AD_CONTENT_PREFIXES）でのみ読み込む。
+            演習/模試/図鑑・ログイン・管理・結果/ローディング等の行動・薄い画面では出さない。 */}
+        {showAds && (
+          // eslint-disable-next-line @next/next/no-sync-scripts
+          <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-7579739275405898" crossOrigin="anonymous" />
+        )}
         {/* テーマちらつき防止スクリプト */}
         <script dangerouslySetInnerHTML={{ __html: `(function(){var t=localStorage.getItem('theme');if(t==='dark')document.documentElement.setAttribute('data-theme','dark');})();` }} />
         {/* JSON-LD */}

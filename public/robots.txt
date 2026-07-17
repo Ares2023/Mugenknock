@@ -2,10 +2,12 @@ User-agent: *
 Disallow: /admin/
 Disallow: /admin-login/
 Disallow: /aws/
+Allow: /questions/
 Allow: /services/
 Allow: /exam-guide/
 Allow: /encyclopedia/
 Allow: /sample/
 Allow: /about/
+Allow: /architecture/
 
 Sitemap: https://mugenknock.com/sitemap.xml
