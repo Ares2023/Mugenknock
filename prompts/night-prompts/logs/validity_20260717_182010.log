@@ -1,0 +1,32 @@
+==========================================
+正当性チェック開始: Fri Jul 17 18:20:10 JST 2026
+バッチサイズ: 100問 / チャンクサイズ: 5問
+==========================================
+チェック対象: 100問
+前処理: choices ラベル接頭辞チェック...
+  前処理: ラベル接頭辞なし（全問クリーン）
+チャンク数: 20
+
+--- チャンク 1/20: 5問  開始=18:20:44 ---
+  [OK   ] ans-9c62955a
+  [OK   ] ans-05f457d8
+  [OK   ] saa-825d94f0
+  [OK   ] saa-e848c7a4
+  [FIX  ] clf-b3cdbaa3: choiceExplanations[0]に「ソートウェア層」という明らかな誤記があり、正しいレイヤー用語に修正する。 → 変更: choiceExplanations
+  → 更新完了: OK=4 修正=1 削除=0
+  終了=18:33:48  経過=784秒
+
+--- チャンク 2/20: 5問  開始=18:33:48 ---
+  [OK   ] clf-57670714
+  [OK   ] sap-9bada816
+  [FIX  ] clf-badaac18: choiceExplanations[1][2]が「パフォーマンスもカテゴリです」「セキュリティもカテゴリです」とAWS Trusted Advisorへの言及なく単体で文脈が不明。 → 変更: choiceExplanations
+  [FIX  ] sap-d266cd1b: choiceExplanations[0][4]に全体解説がコピペされており選択肢固有の解説になっていない。解説冒頭の「正解：E.」が誤り（正解はAとE両方）。choiceExplanations[1][2]がサービス名主語なし。 → 変更: explanation, choiceExplanations
+  [OK   ] saa-fdfe0148
+  → 更新完了: OK=3 修正=2 削除=0
+  終了=18:38:17  経過=269秒
+
+--- チャンク 3/20: 5問  開始=18:38:17 ---
+⚠️  レート制限を検出。残りチャンクをスキップ
+stdout: You've hit your session limit · resets 6:50pm (Asia/Tokyo)
+
+完了サマリー: 問題なし=7問 / 自動修正=3問 / 削除=0問

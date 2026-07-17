@@ -1669,15 +1669,37 @@ app.put('/users/me/score-history', async (req, res) => {
     const docClient = getClient();
     const { userId, examType, scoreHistory, sessionScoreHistory, sessionScoreLog } = req.body;
     if (!userId || !examType) return res.status(400).json({ error: 'userId and examType are required' });
+    const key = { settingId: `scoreHistData_${userId}_${examType}` };
+    // 蓄積保護ガード: 空/疎なローカルを基にした短い配列で、サーバーの蓄積を上書きさせない。
+    // クライアントのレース・キャッシュクリア・別オリジン等でデータが消えるのを防ぐ。
+    const existing = (await docClient.send(new GetCommand({ TableName: 'AppSettings', Key: key }))).Item || {};
     const updateParts = [];
     const exprValues = {};
-    if (scoreHistory !== undefined) { updateParts.push('scoreHistory = :sh'); exprValues[':sh'] = scoreHistory; }
-    if (sessionScoreHistory !== undefined) { updateParts.push('sessionScoreHistory = :ssh'); exprValues[':ssh'] = sessionScoreHistory; }
-    if (sessionScoreLog !== undefined) { updateParts.push('sessionScoreLog = :ssl'); exprValues[':ssl'] = sessionScoreLog; }
+
+    // 日次スコア履歴: 日付でマージし各日の最大点を保持（短い配列でも既存の日を消さない）。
+    if (scoreHistory !== undefined) {
+      const byDate = new Map();
+      const add = (arr) => { for (const e of (Array.isArray(arr) ? arr : [])) { if (e && e.date) byDate.set(e.date, Math.max(byDate.get(e.date) ?? 0, Number(e.score) || 0)); } };
+      add(existing.scoreHistory);
+      add(scoreHistory);
+      const merged = [...byDate.entries()].map(([date, score]) => ({ date, score }))
+        .sort((a, b) => (a.date < b.date ? -1 : a.date > b.date ? 1 : 0)).slice(-30);
+      updateParts.push('scoreHistory = :sh'); exprValues[':sh'] = merged;
+    }
+    // セッション系: 受信が既存より短い場合は蓄積の破壊とみなして無視する。
+    const guardLonger = (name, exprKey, incoming) => {
+      if (incoming === undefined) return;
+      const stored = existing[name];
+      if (Array.isArray(stored) && Array.isArray(incoming) && incoming.length < stored.length) return;
+      updateParts.push(`${name} = ${exprKey}`); exprValues[exprKey] = incoming;
+    };
+    guardLonger('sessionScoreHistory', ':ssh', sessionScoreHistory);
+    guardLonger('sessionScoreLog', ':ssl', sessionScoreLog);
+
     if (updateParts.length === 0) return res.json({ success: true });
     await docClient.send(new UpdateCommand({
       TableName: 'AppSettings',
-      Key: { settingId: `scoreHistData_${userId}_${examType}` },
+      Key: key,
       UpdateExpression: `SET ${updateParts.join(', ')}`,
       ExpressionAttributeValues: exprValues,
     }));
