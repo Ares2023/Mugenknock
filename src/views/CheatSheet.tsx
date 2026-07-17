@@ -2,7 +2,7 @@
 import React, { useState, useMemo, useEffect, useRef } from 'react';
 import { createPortal } from 'react-dom';
 import { Helmet } from '@/compat/react-helmet-async';
-import { EXAM_LEVEL, EXAM_LEVEL_COLORS } from '../constants';
+import { EXAM_LEVEL, EXAM_LEVEL_COLORS, API_ENDPOINT } from '../constants';
 import { EXAM_ICON_COMPONENTS, IconSearch, IconCopy, IconCheck } from '../components/Icons';
 import { useLanguage } from '../contexts/LanguageContext';
 import { useAuth } from '../contexts/AuthContext';
@@ -287,6 +287,7 @@ const CHEAT_DATA: CheatData = {
         { name: 'S3', desc: 'プレサインドURL: 一時的なアクセス権限をURLに埋め込み、未認証ユーザーがS3に安全にアクセスできる仕組み\nマルチパートアップロード: 大きなファイルを分割してアップロードし、失敗時のリトライが部分的になるため大容量ファイルに推奨\nS3イベント通知: オブジェクトのPUT/DELETEなどのイベントをLambda・SQS・SNSに転送\nCORS（Cross-Origin Resource Sharing）: 異なるオリジンからのブラウザアクセスを許可する設定', tags: ['プレサインドURL', 'マルチパート', 'CORS'] },
         { name: 'Cognito', desc: 'User Pool（ユーザー認証）:\nサインアップ・サインイン・MFA（多要素認証）・パスワードポリシー管理\nトリガーLambda: サインアップ前・認証後等のタイミングでカスタム処理を実行\nIdentity Pool（AWSアクセス）:\nGoogle・Facebook・User Pool等でフェデレーションして一時的なIAM認証情報を払い出す\nロールマッピングで認証済み/未認証ユーザーに異なる権限を付与', tags: ['User Pool', 'Identity Pool', 'MFA'] },
         { name: 'ElastiCache', desc: 'キャッシュ戦略:\nLazy Loading（キャッシュに無ければDBから取得してキャッシュに保存）: キャッシュミス時のみDBアクセスが発生\nWrite-Through（DB書き込みと同時にキャッシュも更新）: データの鮮度が高いが書き込みのオーバーヘッドあり\nRedis: セッションストア・リアルタイムランキング・Pub/Subに適する\nMemcached: シンプルなキャッシュ・マルチスレッドでの高スループット向け', tags: ['Lazy Loading', 'Write-Through', 'セッション'] },
+        { name: 'AWS App Runner', desc: 'コンテナイメージまたはソースコードから直接Webアプリ・APIをデプロイできるフルマネージドサービス。インフラ管理・ロードバランサー・オートスケール設定が不要。\nデプロイトリガー: 「自動」に設定するとECRイメージの更新やソースリポジトリのプッシュを検知して自動再デプロイ\n用途: EC2やECSほどの制御は不要で、素早くコンテナ化Webアプリを公開したい場合に適する', tags: ['コンテナ', 'フルマネージド', '自動デプロイ'] },
       ],
     },
     {
@@ -753,6 +754,23 @@ export default function CheatSheet() {
   const headerRef = useRef<HTMLDivElement>(null);
   const lastScrollRef = useRef(0);
   const navigatingRef = useRef(false);
+  const [deletionMap, setDeletionMap] = useState<Record<string, { reason: string; deleteDate: string }>>({});
+
+  // 削除予定フラグ（`${exam}::${item.name}` キー）。期日を過ぎた項目は非表示、
+  // 未到達の項目は警告バナー表示に使う。
+  useEffect(() => {
+    fetch(`${API_ENDPOINT}/cheatsheet-deletions`)
+      .then(res => res.ok ? res.json() : null)
+      .then(data => {
+        const items: { itemKey: string; reason: string; deleteDate: string }[] = data?.items ?? [];
+        const map: Record<string, { reason: string; deleteDate: string }> = {};
+        for (const it of items) {
+          if (it.itemKey) map[it.itemKey] = { reason: it.reason, deleteDate: it.deleteDate };
+        }
+        setDeletionMap(map);
+      })
+      .catch(() => {});
+  }, []);
 
   function handleTermCopy(term: string) {
     navigator.clipboard.writeText(term);
@@ -842,8 +860,22 @@ export default function CheatSheet() {
 
   const examColor = EXAM_LEVEL_COLORS[EXAM_LEVEL[selectedExam]] ?? 'var(--color-primary)';
   const levelColor = EXAM_LEVELS.find(l => l.key === activeLevel)?.color ?? examColor;
-  const sections = CHEAT_DATA[selectedExam] ?? [];
+  const rawSections = CHEAT_DATA[selectedExam] ?? [];
   const currentLevelExams = EXAM_LEVELS.find(l => l.key === activeLevel)?.exams ?? [];
+  const today = useMemo(() => new Date().toISOString().slice(0, 10), []);
+
+  // 削除予定日を過ぎた項目は一覧から除外（ソース側のCHEAT_DATAは変更しない非表示化）
+  const sections = useMemo(() => {
+    return rawSections
+      .map(sec => ({
+        ...sec,
+        items: sec.items.filter(item => {
+          const d = deletionMap[`${selectedExam}::${item.name}`];
+          return !d || d.deleteDate > today;
+        }),
+      }))
+      .filter(sec => sec.items.length > 0);
+  }, [rawSections, deletionMap, selectedExam, today]);
 
   const q = search.trim().toLowerCase();
 
@@ -1035,7 +1067,7 @@ export default function CheatSheet() {
             </h2>
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(min(400px, 100%), 1fr))', gap: 'var(--spacing-sm)' }}>
               {section.items.map(item => (
-                <ItemCard key={item.name} item={item} exam={selectedExam} q={q} allNames={allNames} highlightedId={highlightedItem} onCopy={handleTermCopy} onNavigate={navigateToArticle} />
+                <ItemCard key={item.name} item={item} exam={selectedExam} q={q} allNames={allNames} highlightedId={highlightedItem} onCopy={handleTermCopy} onNavigate={navigateToArticle} scheduledDeletion={deletionMap[`${selectedExam}::${item.name}`]} />
               ))}
             </div>
           </div>
@@ -1106,7 +1138,7 @@ export default function CheatSheet() {
   );
 }
 
-function ItemCard({ item, exam, q, allNames, highlightedId, onCopy, onNavigate }: { item: Item; exam: string; q: string; allNames: string[]; highlightedId: string | null; onCopy: (term: string) => void; onNavigate: (id: string) => void }) {
+function ItemCard({ item, exam, q, allNames, highlightedId, onCopy, onNavigate, scheduledDeletion }: { item: Item; exam: string; q: string; allNames: string[]; highlightedId: string | null; onCopy: (term: string) => void; onNavigate: (id: string) => void; scheduledDeletion?: { reason: string; deleteDate: string } }) {
   const [allCopied, setAllCopied] = useState(false);
   // この記事のグループ情報（表示番号・同じサービスの兄弟記事の解決に使う）
   const article = useMemo(() => findArticle(exam, item.name), [exam, item.name]);
@@ -1219,6 +1251,14 @@ function ItemCard({ item, exam, q, allNames, highlightedId, onCopy, onNavigate }
           {allCopied ? <IconCheck size={13} /> : <IconCopy size={13} />}
         </button>
       </div>
+      {scheduledDeletion && (
+        <div style={{ background: '#FFF4E5', border: '1px solid #F5A623', borderRadius: 'var(--border-radius-md)', padding: '8px 12px', marginBottom: 8, display: 'flex', gap: 8, alignItems: 'flex-start' }}>
+          <span style={{ flexShrink: 0, fontSize: 'var(--font-size-base)', lineHeight: 1.6 }}>⚠️</span>
+          <span style={{ fontSize: 'var(--font-size-xs)', color: '#8A5A00', lineHeight: 1.6, overflowWrap: 'break-word', wordBreak: 'break-word' }}>
+            この項目は「{scheduledDeletion.reason}」のため「{scheduledDeletion.deleteDate}」に削除されます。
+          </span>
+        </div>
+      )}
       <p style={{ fontSize: 'var(--font-size-sm)', color: 'var(--color-text-sub)', margin: 0, lineHeight: 1.6 }}>
         {item.desc.split('\n').map((line, i) => {
           const colonIdx = line.indexOf(': ');

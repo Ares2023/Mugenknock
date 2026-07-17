@@ -943,6 +943,70 @@ app.put('/admin/questions/:id/visibility', async (req, res) => {
   }
 });
 
+// ── チートシート項目の削除予定フラグ ────────────────────────────
+// CHEAT_DATA はフロントの静的コードが実データのため、DBはオーバーレイ（削除予定
+// フラグのみ）として持つ。itemKey は `${examType}::${item.name}`。
+// フロント側で deleteDate 経過時に一覧から非表示にする（ソースコードは変更しない）。
+app.get('/cheatsheet-deletions', async (req, res) => {
+  try {
+    const docClient = getClient();
+    const result = await docClient.send(new ScanCommand({ TableName: 'CheatSheetDeletions' }));
+    res.json({ items: result.Items || [] });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+app.put('/admin/cheatsheet-deletions/:itemKey', async (req, res) => {
+  try {
+    const docClient = getClient();
+    const { reason, date } = req.body;
+    const itemKey = decodeURIComponent(req.params.itemKey);
+    if (reason && date) {
+      await docClient.send(new PutCommand({
+        TableName: 'CheatSheetDeletions',
+        Item: { itemKey, reason, deleteDate: date, updatedAt: new Date().toISOString() },
+      }));
+    } else {
+      await docClient.send(new DeleteCommand({
+        TableName: 'CheatSheetDeletions',
+        Key: { itemKey },
+      }));
+    }
+    res.json({ success: true });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+// 削除予定フラグ設定/解除（reason・date両方指定でSET、省略でREMOVE）
+app.put('/admin/questions/:id/scheduled-deletion', async (req, res) => {
+  try {
+    const docClient = getClient();
+    const { reason, date } = req.body;
+    if (reason && date) {
+      await docClient.send(new UpdateCommand({
+        TableName: 'Questions',
+        Key: { questionId: req.params.id },
+        UpdateExpression: 'SET scheduledDeletionReason = :r, scheduledDeletionDate = :d',
+        ExpressionAttributeValues: { ':r': reason, ':d': date },
+      }));
+    } else {
+      await docClient.send(new UpdateCommand({
+        TableName: 'Questions',
+        Key: { questionId: req.params.id },
+        UpdateExpression: 'REMOVE scheduledDeletionReason, scheduledDeletionDate',
+      }));
+    }
+    res.json({ success: true });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
 app.get('/admin/questions/:id', async (req, res) => {
   try {
     const docClient = getClient();

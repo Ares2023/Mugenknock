@@ -35,6 +35,8 @@ type Question = {
   validityCheckedAt?: string;
   updatedAt?: string;
   createdAt?: string;
+  scheduledDeletionReason?: string;
+  scheduledDeletionDate?: string;
 };
 
 // correctAnswerIndices が稀にスカラー値で保存されており .includes/.every でクラッシュするため必ず配列化する
@@ -703,6 +705,14 @@ export default function ExamSession() {
               </button>
             )}
           </div>
+          {currentQ.scheduledDeletionDate && (
+            <div style={{ background: '#FFF4E5', border: '1px solid #F5A623', borderRadius: 'var(--border-radius-md)', padding: '8px 12px', marginBottom: 'var(--spacing-sm)', display: 'flex', gap: 8, alignItems: 'flex-start' }}>
+              <span style={{ flexShrink: 0, fontSize: 'var(--font-size-base)', lineHeight: 1.6 }}>⚠️</span>
+              <span style={{ fontSize: 'var(--font-size-xs)', color: '#8A5A00', lineHeight: 1.6, overflowWrap: 'break-word', wordBreak: 'break-word' }}>
+                この問題は「{currentQ.scheduledDeletionReason}」のため「{currentQ.scheduledDeletionDate}」に削除されます。
+              </span>
+            </div>
+          )}
           <p style={{ fontSize: 'var(--font-size-lg)', lineHeight: 1.6, fontWeight: 400, margin: 0, color: 'var(--color-text-main)', overflowWrap: 'break-word', wordBreak: 'break-word', minWidth: 0, whiteSpace: 'pre-wrap' }}>
             {qText(currentQ as any, lang)}
           </p>
