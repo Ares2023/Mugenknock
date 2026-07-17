@@ -139,7 +139,7 @@ for exam in "${TARGET_EXAMS[@]}"; do
 ${CURRENT_BODY}
 PROMPT
 
-  RESULT=$("$CLAUDE_CMD" -p --allowed-tools WebFetch < "$PROMPT_FILE" 2>&1)
+  RESULT=$("$CLAUDE_CMD" -p --model sonnet --allowed-tools WebFetch < "$PROMPT_FILE" 2>&1)
   EXIT_CODE=$?
   rm -f "$PROMPT_FILE"
 

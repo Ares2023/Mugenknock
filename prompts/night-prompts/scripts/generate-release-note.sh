@@ -136,7 +136,7 @@ $commits
 PROMPT_EOF
 
   local raw_output claude_exit
-  raw_output=$("$CLAUDE_CMD" -p < "$_prompt_file" 2>&1) || true
+  raw_output=$("$CLAUDE_CMD" -p --model sonnet < "$_prompt_file" 2>&1) || true
   claude_exit=$?
 
   # レート制限検出

@@ -1,0 +1,11 @@
+=== 2026-07-11 05:55:08 | generate-release-note.sh | exit:0 ===
+[release-note] 対象日: 2026-07-10
+[release-note] 2026-07-10: 12件のコミット
+[release-note] 生成結果:
+{
+  "title": "チートシートが使いやすくなりました！",
+  "body": "試験カードが画面上部に常時固定され、スクロール中もどの資格を学習中か一目で確認できるようになりました。\nテキストをコピーすると記事タイトルが自動で末尾に付くため、メモへの貼り付けや共有がさらに便利になります。",
+  "titleEn": "Cheatsheet Gets a Major UX Upgrade!",
+  "bodyEn": "The exam card is now pinned to the top header so it stays visible as you scroll through articles. When you copy text, the article title is automatically appended — making it easy to keep track of your notes and references."
+}
+[release-note] ✓ DynamoDBに挿入しました: 2026-07-10 — チートシートが使いやすくなりました！

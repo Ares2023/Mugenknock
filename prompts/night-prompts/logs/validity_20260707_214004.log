@@ -1,0 +1,23 @@
+==========================================
+正当性チェック開始: Tue Jul  7 21:40:04 JST 2026
+バッチサイズ: 100問 / チャンクサイズ: 5問
+==========================================
+チェック対象: 100問
+前処理: choices ラベル接頭辞チェック...
+  前処理: ラベル接頭辞なし（全問クリーン）
+チャンク数: 20
+
+--- チャンク 1/20: 5問  開始=21:40:52 ---
+  [FIX  ] sap-fd9de3af: 正解選択肢（B）が全選択肢中で最長。C・Dを拡充して最長とならないよう修正。choiceExplanations[2]が100字未満で不足。 → 変更: choices, choiceExplanations
+  [FIX  ] dop-24da5076: 正解選択肢（A）が最長かつ紛らわしい不正解がない。選択肢DをAccess Analyzer Unused Accessに差し替えてペア構造を改善。choiceExplanations[1][2][3]が極端に短い。 → 変更: choices, explanation, choiceExplanations
+  [FIX  ] sap-9e51714d: choiceExplanations[1][3]に全体解説が誤設定され個別説明になっていない。正解選択肢が不正解より著しく長く、不正解選択肢を拡充して修正。 → 変更: choices, choiceExplanations
+  [FIX  ] clf-14dc008d: 解説本文に誤字（「選択肢DAmazon」→「選択肢DのAmazon」）。choiceExplanations[0]が約50字で100字未満。 → 変更: explanation, choiceExplanations
+  [FIX  ] sap-67664368: 正解選択肢（B）が全選択肢中で最長。A・C・Dを拡充して最長とならないよう修正。解説にDの説明が欠落。 → 変更: choices, explanation, choiceExplanations
+  → 更新完了: OK=0 修正=5 削除=0
+  終了=22:00:00  経過=1148秒
+
+--- チャンク 2/20: 5問  開始=22:00:00 ---
+⚠️  レート制限を検出。残りチャンクをスキップ
+stdout: You've hit your session limit · resets 10:10pm (Asia/Tokyo)
+
+完了サマリー: 問題なし=0問 / 自動修正=5問 / 削除=0問

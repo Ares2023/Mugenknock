@@ -1,0 +1,8 @@
+=== 2026-07-17 04:57:07 | 03-check-reports.sh | exit:1 ===
+==========================================
+通報チェック開始: Fri Jul 17 04:05:05 JST 2026
+関連問題チェック: ドメインあたり最大 4問
+==========================================
+通報件数: 12件 / 関連問題: 20問
+Claude 判定対象: 通報=12件 / 関連=20問
+/home/yuzuki/aws-quiz-app/prompts/night-prompts/scripts/03-check-reports.sh: line 436: _VALID_TMP: unbound variable

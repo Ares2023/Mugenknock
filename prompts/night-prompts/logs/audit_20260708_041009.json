@@ -1,0 +1,186 @@
+[
+  {
+    "questionId": "clf-637af08d",
+    "examType": "CLF",
+    "verdict": "warn",
+    "currentness": "ok",
+    "difficulty": "appropriate",
+    "scope": "in",
+    "format": "ok",
+    "mockSuitable": true,
+    "issues": [
+      "実測正答率20%（n=10）が非常に低い。Elastic BeanstalkもソースコードからのデプロイやALB・Auto Scalingを内包するため、App Runnerとの差別化はCLFレベルでは難解な2択になっている。",
+      "解説でElastic Beanstalkを『EC2ベースで管理が多い』と一言で片付けており、App Runnerとの本質的な差（インフラ設定ゼロ・完全サーバーレス）の説明が不十分で誤答を誘発しやすい。"
+    ]
+  },
+  {
+    "questionId": "clf-3405ed73",
+    "examType": "CLF",
+    "verdict": "warn",
+    "currentness": "ok",
+    "difficulty": "too_hard",
+    "scope": "in",
+    "format": "ok",
+    "mockSuitable": true,
+    "issues": [
+      "実測正答率14%（n=14）は著しく低く、CLFレベルとして難しすぎる可能性が高い。20%を大きく下回るため悪問・難問の疑いを精査すべき水準。",
+      "SNSもEC2 State Change通知のサブスクリプションでLambda・SQSへのファンアウト配信が可能であり、EventBridgeとの実質的な差異（ルールベースの細粒度フィルタリング・API Destinations経由のSlack直接送信）はCLFには踏み込みすぎ。",
+      "解説でSNSの不採用理由を『柔軟性に劣る』と相対表現に留めており、EventBridgeが正解である根拠（EC2イベントのネイティブ統合・サードパーティ直接送信）が具体的に示されていない。"
+    ]
+  },
+  {
+    "questionId": "dea-7cefe432",
+    "examType": "DEA",
+    "verdict": "warn",
+    "currentness": "ok",
+    "difficulty": "appropriate",
+    "scope": "in",
+    "format": "ok",
+    "mockSuitable": true,
+    "issues": [
+      "Short Query Acceleration（SQA）は主に短時間SELECT系クエリをMLで予測し専用スロットへ振り分ける機能であり、COPY・INSERT INTO SELECT等のETL DML操作に同様に適用されるとは言えない。正解の主要機構はAutomatic WLM + Highest優先度であり、SQAをETLの実行開始保証の一手段として解説するのは正確性に欠ける。コア正答は正しいが、SQAの役割説明が誤解を招く。"
+    ]
+  },
+  {
+    "questionId": "dea-fc6fe661",
+    "examType": "DEA",
+    "verdict": "ok",
+    "currentness": "ok",
+    "difficulty": "appropriate",
+    "scope": "in",
+    "format": "ok",
+    "mockSuitable": true,
+    "issues": []
+  },
+  {
+    "questionId": "clf-547f7d88",
+    "examType": "CLF",
+    "verdict": "ok",
+    "currentness": "ok",
+    "difficulty": "appropriate",
+    "scope": "in",
+    "format": "ok",
+    "mockSuitable": true,
+    "issues": [
+      "各選択肢内に応答時間とTAM提供形態を明記しているため、最も厳しい数値（15分＋専任TAM）を選ぶと正解できると見通しやすい面がある。CLFレベルでは許容範囲内だが、数値を伏せて支援体制の説明のみにする等で難度調整の余地あり。"
+    ]
+  },
+  {
+    "questionId": "clf-aa02a9fd",
+    "examType": "CLF",
+    "verdict": "warn",
+    "currentness": "ok",
+    "difficulty": "too_easy",
+    "scope": "in",
+    "format": "ok",
+    "mockSuitable": true,
+    "issues": [
+      "問題文が『費用を支払うことなく』と明示しているため有償のAWS IQ・Professional Servicesを即時除外できる。残るre:Post（Q&Aコミュニティ）とTraining（学習プラットフォーム）の区別も自明で、選択肢[0]の括弧内説明『認定エキスパートが回答する知識ベースも提供する』が問題文の要件をほぼそのまま反映しており、正解に必要な実質的知識量が低い"
+    ]
+  },
+  {
+    "questionId": "clf-0ae56806",
+    "examType": "CLF",
+    "verdict": "ok",
+    "currentness": "ok",
+    "difficulty": "appropriate",
+    "scope": "in",
+    "format": "ok",
+    "mockSuitable": true,
+    "issues": []
+  },
+  {
+    "questionId": "clf-0555dce8",
+    "examType": "CLF",
+    "verdict": "warn",
+    "currentness": "ok",
+    "difficulty": "too_easy",
+    "scope": "in",
+    "format": "ok",
+    "mockSuitable": true,
+    "issues": [
+      "選択肢[3]の括弧内に『ソケット数・コア数・ホストIDを把握して管理できる』と明記されており、問題文の『物理サーバーのソケット数やコア数を把握できる環境が必要』を直接反映している。説明文の照合だけで正解が導けるため、Dedicated Host vs Dedicated Instanceの実質的な識別知識がテストされない懸念がある"
+    ]
+  },
+  {
+    "questionId": "clf-f3da40ef",
+    "examType": "CLF",
+    "verdict": "ok",
+    "currentness": "ok",
+    "difficulty": "appropriate",
+    "scope": "in",
+    "format": "ok",
+    "mockSuitable": true,
+    "issues": []
+  },
+  {
+    "questionId": "clf-52ccd863",
+    "examType": "CLF",
+    "verdict": "ok",
+    "currentness": "ok",
+    "difficulty": "appropriate",
+    "scope": "in",
+    "format": "ok",
+    "mockSuitable": true,
+    "issues": []
+  },
+  {
+    "questionId": "clf-748934fe",
+    "examType": "CLF",
+    "verdict": "warn",
+    "currentness": "ok",
+    "difficulty": "too_easy",
+    "scope": "in",
+    "format": "ok",
+    "mockSuitable": true,
+    "issues": [
+      "問題文に『機密情報でない』『自動ローテーション不要』『コストを抑えたい』と3条件が明示されており、各条件が選択肢A・C・Dをそれぞれ一対一で否定する。選択肢を読む前に正解が絞れてしまう過剰誘導。本番はもっと曖昧な要件でサービスの比較判断を求める形式にすべき"
+    ]
+  },
+  {
+    "questionId": "clf-ca43f2a7",
+    "examType": "CLF",
+    "verdict": "ok",
+    "currentness": "ok",
+    "difficulty": "appropriate",
+    "scope": "in",
+    "format": "ok",
+    "mockSuitable": true,
+    "issues": []
+  },
+  {
+    "questionId": "clf-edc886cc",
+    "examType": "CLF",
+    "verdict": "ok",
+    "currentness": "ok",
+    "difficulty": "appropriate",
+    "scope": "in",
+    "format": "ok",
+    "mockSuitable": true,
+    "issues": []
+  },
+  {
+    "questionId": "clf-720f18a3",
+    "examType": "CLF",
+    "verdict": "ok",
+    "currentness": "ok",
+    "difficulty": "appropriate",
+    "scope": "in",
+    "format": "ok",
+    "mockSuitable": true,
+    "issues": []
+  },
+  {
+    "questionId": "clf-09acc9bc",
+    "examType": "CLF",
+    "verdict": "warn",
+    "currentness": "ok",
+    "difficulty": "too_easy",
+    "scope": "in",
+    "format": "ok",
+    "mockSuitable": true,
+    "issues": [
+      "問題文の『誰が・いつ・どこから』はCloudTrailの公式キャッチフレーズそのものであり、選択肢を読まずとも正解が確定できる。正解サービス名を問題文が実質的に述べている状態。キーワードを変えるか、複数サービスを組み合わせた調査シナリオに再構成することを推奨"
+    ]
+  }
+]

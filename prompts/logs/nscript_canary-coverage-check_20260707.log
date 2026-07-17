@@ -1,0 +1,11 @@
+=== 2026-07-07 09:35:23 | canary-coverage-check.sh | exit:0 ===
+==========================================
+カナリア整合性チェック 開始: Tue Jul  7 09:35:23 JST 2026
+==========================================
+現在のルート数: 28
+Opusで整合性を判定中...
+所見: 現在の公開ルート（未ログイン到達可）12種はすべてカナリアspecでカバー済みで、spec が参照する動的パラメータ（exam-guide/SAA・services/ec2・questions/SAA）もいずれも generateStaticParams に含まれる有効値。陳腐化・カバー漏れは無く、認証必須の /aws/* /account /admin も正しく対象外になっている。
+→ spec更新は不要（整合済み）。
+
+レポート: /home/yuzuki/aws-quiz-app/prompts/night-prompts/logs/canary-coverage_20260707_093523.md
+カナリア整合性チェック 終了: Tue Jul  7 09:36:24 JST 2026

@@ -5,10 +5,11 @@ import { Navigate, useNavigate } from '@/compat/react-router-dom';
 import { useSearchParams } from 'next/navigation';
 import { useAuth } from '../contexts/AuthContext';
 import { useLanguage } from '../contexts/LanguageContext';
-import { IconUser, IconBot, IconTarget, IconTrendingUp } from '../components/Icons';
+import { IconUser, IconBot, IconTarget, IconTrendingUp, IconNetwork } from '../components/Icons';
 import Reveal from '../components/Reveal';
+import { SiteArchitecture } from '../components/SiteArchitecture';
 
-const QUESTION_COUNT = 3600;
+const QUESTION_COUNT = 3800;
 
 const BENEFITS: { ja: string; en: string }[] = [
   {
@@ -369,6 +370,25 @@ export default function Portal() {
               <p style={{ margin: 'var(--spacing-md) 0 0', textAlign: 'right', fontSize: 'var(--font-size-sm)', color: 'var(--color-text-light)' }}>
                 {ja ? '開発者　大森かいづ' : '— Kaizu Omori, Developer'}
               </p>
+            </Reveal>
+          </section>
+
+          {/* ── Webサイトの構成図（ランディング最下部にそのまま掲載） ── */}
+          <section style={{ marginTop: isMobile ? 'var(--spacing-xl)' : 48 }}>
+            <Reveal {...rv} variant="left" offset={20}>
+              <h2 style={{
+                fontSize: isMobile ? 'var(--font-size-h3)' : 'var(--font-size-h2)',
+                fontWeight: 800, color: 'var(--color-text-main)',
+                margin: '0 0 var(--spacing-lg)', letterSpacing: '-0.3px',
+                borderLeft: '4px solid var(--color-accent)', paddingLeft: 'var(--spacing-sm)',
+                display: 'flex', alignItems: 'center', gap: 10,
+              }}>
+                <IconNetwork size={isMobile ? 22 : 26} />
+                {ja ? 'Webサイトの構成図' : 'Site Architecture'}
+              </h2>
+            </Reveal>
+            <Reveal {...rv} offset={16}>
+              <SiteArchitecture ja={ja} isMobile={isMobile} />
             </Reveal>
           </section>
 

@@ -1373,6 +1373,9 @@ export default function Home() {
         // サーバーデータが localStorage より多い場合は localStorage に書き込む。
         // 別デバイスや localStorage クリア後にセッション完了 effect が空ログをベースに
         // PUT してサーバーの全履歴を上書きしてしまうバグを防ぐ。
+        if (uploadSH.length > localSH.length) {
+          try { localStorage.setItem(`score_history_${targetExam}_${user.userId}`, JSON.stringify(uploadSH)); } catch {}
+        }
         if (uploadSSL.length > localSSL.length) {
           try { localStorage.setItem(`score_session_log_${targetExam}_${user.userId}`, JSON.stringify(uploadSSL)); } catch {}
         }
@@ -2855,7 +2858,7 @@ export default function Home() {
               setTimeout(() => setShowStartTutorial(true), 400);
             }
           }}
-          onClose={() => setShowOnboarding(false)}
+          // onClose は渡さない：目標資格未設定のうちは閉じられないようにする（onClose未指定=非表示）
         />
       )}
 

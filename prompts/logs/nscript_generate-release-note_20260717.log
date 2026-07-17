@@ -1,0 +1,11 @@
+=== 2026-07-17 04:57:07 | generate-release-note.sh | exit:0 ===
+[release-note] 対象日: 2026-07-16
+[release-note] 2026-07-16: 10件のコミット
+[release-note] 生成結果:
+{
+  "title": "初めての方もすぐ学習スタート！チートシートも強化！",
+  "body": "初回訪問者向けに、目標資格の設定から最初の演習開始までをガイドするフローを新設しました。\nチートシートでは同じサービスの複数記事が相互リンクされ、番号付きタイトルで前後の記事へ移動しやすくなりました。",
+  "titleEn": "Smoother Start for New Visitors & Smarter Cheatsheet Links!",
+  "bodyEn": "First-time visitors are now guided step-by-step from choosing their target certification to starting their first practice session.\nCheatsheet articles for the same AWS service are now cross-linked with numbered titles, making it easy to navigate between related entries."
+}
+[release-note] ✓ DynamoDBに挿入しました: 2026-07-16 — 初めての方もすぐ学習スタート！チートシートも強化！

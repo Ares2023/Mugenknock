@@ -1,0 +1,32 @@
+==========================================
+正当性チェック開始: Tue Jul  7 22:35:23 JST 2026
+バッチサイズ: 30問 / チャンクサイズ: 5問
+==========================================
+チェック対象: 30問
+前処理: choices ラベル接頭辞チェック...
+  前処理: ラベル接頭辞なし（全問クリーン）
+チャンク数: 6
+
+--- チャンク 1/6: 5問  開始=22:36:14 ---
+  [FIX  ] sap-4073c4cd: 4択複数正解は監査ルール違反（実際のAWS試験の複数正解は5択以上）。5択に拡張。choiceExplanations[0][3]が同内容で各選択肢の具体的正解理由が不足。isMultiple: true を明示。 → 変更: choices, explanation, choiceExplanations
+  [FIX  ] sap-e029a143: choiceExplanations[2]が「CloudFormationテンプレートのインポート機能」という不正確な説明。[2][3]が50字程度と短すぎ。全4要素を修正・拡充する。 → 変更: choiceExplanations
+  [FIX  ] dop-39980625: choiceExplanations[0][2]が括弧残りの不自然な形式で50字程度と短すぎ。公式ドキュメントにはlag時間の明示的数値記載はないが内容は概ね正確。全4要素を自然な文章に修正・拡充する。 → 変更: choiceExplanations
+  [FIX  ] dop-24bb74de: choiceExplanations[0][2]が35字程度と極端に短く100字未満。全4要素を拡充する。 → 変更: choiceExplanations
+  [FIX  ] sap-e46aa443: choiceExplanations[1][2][3]が30〜70字程度と100字未満で短すぎ。全4要素を拡充する。 → 変更: choiceExplanations
+  → 更新完了: OK=0 修正=5 削除=0
+  終了=22:48:53  経過=759秒
+
+--- チャンク 2/6: 5問  開始=22:48:53 ---
+  [FIX  ] dop-11d62064: 正解選択肢（B）が最長のためメタ読み可能。不正解選択肢A/C/Dを拡充して正解が最長にならないよう修正。 → 変更: choices, choiceExplanations
+  [FIX  ] saa-ab13d296: isMultipleがtrueであるべき。choiceExplanations[0]が両正解を混在、[3]がCloudTrailでなくSecrets Managerの説明になっており内容が誤っている。 → 変更: explanation, choiceExplanations
+  [FIX  ] saa-f96943fb: 解説で選択肢DがCの説明文中に埋没し「選択肢Dは」の独立段落がない。各選択肢を独立した段落で説明するよう修正。 → 変更: explanation
+  [FIX  ] saa-5ca288c0: 正解（クラスターPG）が最長。VPCピアリングは明らかに不適切で紛らわしい選択肢がないため、パーティションPGに差し替えて混乱度を上げる。他選択肢拡充で正解が最長にならないよう修正。公式ドキュメントにて単一フロー上限10Gbpsのため「最大100Gbps」表現も修正。 → 変更: choices, explanation, choiceExplanations
+  [FIX  ] sap-fca49369: 正解選択肢（A）が最長のためメタ読み可能。公式ドキュメントによりRTO「1分以内」でなく「数分以内」が正確（docs: 'within a few minutes'）。choices[1]を拡充して正解が最長にならないよう修正し、解説の「1分以内」を訂正。 → 変更: choices, explanation, choiceExplanations
+  → 更新完了: OK=0 修正=5 削除=0
+  終了=23:04:28  経過=935秒
+
+--- チャンク 3/6: 5問  開始=23:04:28 ---
+⚠️  レート制限を検出。残りチャンクをスキップ
+stdout: You've hit your session limit · resets 3:10am (Asia/Tokyo)
+
+完了サマリー: 問題なし=0問 / 自動修正=10問 / 削除=0問

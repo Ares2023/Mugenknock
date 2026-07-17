@@ -1412,11 +1412,11 @@ export default function MyPage() {
       {/* ── 問題詳細モーダル ── */}
       {questionModal && (
         <div
-          data-kbscope="1" style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', zIndex: 999, display: 'flex', alignItems: isMobile ? 'flex-end' : 'center', justifyContent: 'center', padding: isMobile ? 0 : 'var(--spacing-lg)' }}
+          data-kbscope="1" style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', zIndex: 1000, display: 'flex', alignItems: isMobile ? 'flex-end' : 'center', justifyContent: 'center', padding: isMobile ? 0 : 'var(--spacing-lg)' }}
           onClick={() => setQuestionModal(null)}
         >
           <div
-            style={{ background: 'var(--color-bg-white)', borderRadius: isMobile ? '16px 16px 0 0' : 'var(--border-radius-lg)', padding: isMobile ? 'var(--spacing-xl) var(--spacing-xl) 0' : 'var(--spacing-xl)', width: '100%', maxWidth: isMobile ? '100%' : 600, maxHeight: isMobile ? '85vh' : '80vh', overflowY: 'auto', boxShadow: 'var(--box-shadow-lg)' }}
+            style={{ background: 'var(--color-bg-white)', borderRadius: isMobile ? '16px 16px 0 0' : 'var(--border-radius-lg)', padding: isMobile ? 'var(--spacing-xl) var(--spacing-xl) var(--spacing-xl)' : 'var(--spacing-xl)', width: '100%', maxWidth: isMobile ? '100%' : 600, maxHeight: isMobile ? '85vh' : '80vh', overflowY: 'auto', boxShadow: 'var(--box-shadow-lg)' }}
             onClick={e => e.stopPropagation()}
           >
             {/* ヘッダー */}

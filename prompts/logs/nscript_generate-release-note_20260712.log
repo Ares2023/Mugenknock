@@ -1,0 +1,11 @@
+=== 2026-07-12 01:55:09 | generate-release-note.sh | exit:0 ===
+[release-note] 対象日: 2026-07-11
+[release-note] 2026-07-11: 2件のコミット
+[release-note] 生成結果:
+{
+  "title": "マイページのグラフ表示がスッキリ！",
+  "body": "週間達成グラフの曜日ラベルが上のテキストと重なって見づらかった問題を修正しました。\n毎日の学習進捗がより見やすくなっています！",
+  "titleEn": "Weekly Progress Graph Now Displays Cleanly!",
+  "bodyEn": "Fixed an issue where day labels on the weekly achievement graph were overlapping with the text above.\nYour daily learning progress is now easier to read at a glance."
+}
+[release-note] ✓ DynamoDBに挿入しました: 2026-07-11 — マイページのグラフ表示がスッキリ！

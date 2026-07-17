@@ -619,6 +619,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
     '/aws/release-notes':    [{ label: t('nav.home'), path: '/aws/' }, { label: t('nav.releaseNotes') }],
     '/aws/announcements':    [{ label: t('nav.home'), path: '/aws/' }, { label: t('nav.announcements') }],
     '/about':                [{ label: t('nav.home'), path: '/aws/' }, { label: t('nav.about') }],
+    '/architecture':         [{ label: t('nav.home'), path: '/aws/' }, { label: lang === 'ja' ? 'Webサイトの構成図' : 'Site Architecture' }],
   };
 
   return (

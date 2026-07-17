@@ -1,0 +1,11 @@
+=== 2026-07-10 01:15:07 | generate-release-note.sh | exit:0 ===
+[release-note] 対象日: 2026-07-09
+[release-note] 2026-07-09: 6件のコミット
+[release-note] 生成結果:
+{
+  "title": "チートシートがスクロールしても使いやすくなりました！",
+  "body": "検索バーとレベルタブが常に画面上部に固定され、スクロール中でもすぐ絞り込めるようになりました！\n資格カードを切り替えると記事が先頭に戻るようになり、マイページの週間達成グラフのアニメーションも自然な順序で流れるよう改善しています。",
+  "titleEn": "Cheatsheet Header Stays With You While You Scroll!",
+  "bodyEn": "The search bar and level tabs are now pinned to the top so you can filter articles without scrolling back up.\nSwitching certification cards now resets the view to the top, and the weekly progress chart on My Page animates in the correct order."
+}
+[release-note] ✓ DynamoDBに挿入しました: 2026-07-09 — チートシートがスクロールしても使いやすくなりました！

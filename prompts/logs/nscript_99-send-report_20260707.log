@@ -1,0 +1,100 @@
+=== 2026-07-07 09:50:09 | 99-send-report.sh | exit:0 ===
+==========================================
+日次レポート生成 開始: 2026-07-07 09:50 JST
+==========================================
+
+--- [1] AWS資格公式情報 変更チェック ---
+  フェーズ1完了: has_changes=False
+  直近3日以内の変更声明なし
+
+--- [2] 夜間スクリプト成果集計 ---
+  生成: 合計 31問生成
+  妥当性: 合計: 確認90件（問題なし=51 自動修正=39 削除=0）
+  通報: 2026-07-07: 7件処理
+
+--- [3] DynamoDB稼働状況 ---
+  総問題数: 3742 問
+  直近3日 新規生成(createdAt): 42 問
+  直近3日 確認済み(validityCheckedAt): 102 問
+  未妥当性確認: 5 問
+  未解決通報: 7 件
+  資格別:
+  CLF: 315問
+  AIF: 311問
+  SAA: 308問
+  DVA: 306問
+  SOA: 306問
+  DEA: 300問
+  MLA: 298問
+  SAP: 309問
+  DOP: 373問
+  AIP: 298問
+  SCS: 309問
+  ANS: 309問
+
+--- [3b] Cognito 新規ユーザー（前日） ---
+  新規登録なし
+
+--- [4] canary テスト ---
+  ✅ PASS (passed=21 failed=0 warnings=0)
+  失敗詳細:
+    [サービス図鑑（公開）] ❌ Console Errors (3):
+    [サービス図鑑（公開）] 🌐 Network Errors (3):
+    [練習問題一覧（SAA）] ❌ Console Errors (8):
+    [練習問題一覧（SAA）] 🌐 Network Errors (8):
+    [連続ナビゲーション] ❌ Console Errors (9):
+    [連続ナビゲーション] 🌐 Network Errors (9):
+    [練習問題詳細] ❌ Console Errors (9):
+    [練習問題詳細] 🌐 Network Errors (9):
+      ログ:    s3://mugenknock-error-logs/canary-logs/staging/20260707-095159.log
+      サマリー: s3://mugenknock-error-logs/canary-logs/staging/20260707-095159.json
+  認証カナリア: ✅ PASS (passed=8 failed=2)
+
+--- [4.5] 監査・改良 / カナリア整合性 / 日めくり 集計 ---
+  監査 0問: OK 0 / 注意 0 / 要修正 0
+  【プロンプト自動改良】 適用 3件 / 見送り 0件
+  方針: 監査で最多だったDOPの用語定義・単一概念の暗記問題（模試不適・易しすぎ）と、ユーザー通報で確定した「正解選択肢が自己解説的・過長で正解が特定できる」誤り、および解説の機能過大主張を再発防止する。生成側(DOP.txt/_common-rules.txt)で禁止事項を明確化し、検証側(_validity-extra.txt)に検出観点を追加。CLFは同系統サービスの過度に微妙な識別で正答率が極端に下がる問題を避ける注意を1行追記。いずれも追記・小修正のみ。
+  ✅ _common-rules.txt: ユーザー通報で確定したDOPの choice_error（正解選択肢だけが自己解説的な末尾を持ち内容・長さの両面で正解が露見）に対応。既存の『不正解の自己否定文禁止』『最長を正解にしない』の隣に、正解側の自己解説末尾を禁じる規則を追記して対を成す。
+  ✅ DOP.txt: 監査でng判定が集中したDOPの用語定義・単一概念・2サービスの違いを問う暗記問題（Professional水準未達）に対応。【避けること】に具体例付きで禁止し、複数要件のシナリオ比較を必須化。
+  ✅ _validity-extra.txt: 検証(02)が見逃した3種の誤りを検出する観点を追加：(1)プロ資格の用語定義・違い暗記問題（模試不適/易しすぎ）、(2)正解選択肢の自己解説的末尾による正解特定、(3)機能の適用範囲・タイミングの過大主張（CloudWatch Logsマスキングの遡及不可）。CLFの過度に微妙な識別による極端な低正答率も1行追加。
+  所見: 現在の公開ルート（未ログイン到達可）12種はすべてカナリアspecでカバー済みで、spec が参照する動的パラメータ（exam-guide/SAA・services/ec2・questions/SAA）もいずれも generateStaticParams に含まれる有効値。陳腐化・カバー漏れは無く、認証必須の /aws/* /account /admin も正しく対象外になっている。
+  カバー漏れ/陳腐化: 0件
+  対応: 整合済み。spec更新なし。
+  生成: 2026-07-06 完了: Mon Jul  6 02:38:20 JST 2026
+  検証: 2026-07-06 完了サマリー: 問題なし=1件 / 自動修正=3件 / 削除=1件
+  Lambda(直近24h):
+    ⚠️ prod: 実行4115 エラー1 スロットル0 最大4638ms
+    dev: 実行5 エラー0 スロットル0 最大915ms
+  API(prod,24h): リクエスト4517 ⚠️ 5xx=2 4xx=3 p99=1050ms
+  ⚠️ 本番エラーログ(prod,24h): 3件
+    ・2026-07-06T01:32:45.282Z 51e77a0c-65ab-465c-8e01-170ecbec935a INFO ERROR: @vendia/serverless-express connection error
+    ・2026-07-06T01:32:45.282Z 51e77a0c-65ab-465c-8e01-170ecbec935a ERROR Error: read ECONNRESET at Pipe.onStreamRead (node:internal/stream_base_commons:216:20) { err
+    ・[ERROR] [1783321198976] LAMBDA_RUNTIME Failed to post handler success response. Http response code: 413. {"errorMessage":"Exceeded maximum allowed payload size 
+  AWSコスト(2026-07-06): $0.08 （前日比 ▼7%）
+    ・Amazon DynamoDB: $0.03
+    ・AWS Cost Explorer: $0.03
+    ・AWS Key Management Service: $0.02
+
+--- [4.8] テストユーザー データ整合性チェック ---
+Traceback (most recent call last):
+  File "<stdin>", line 40, in <module>
+  File "<stdin>", line 10, in dynamo_get
+  File "/usr/lib/python3.12/subprocess.py", line 550, in run
+    stdout, stderr = process.communicate(input, timeout=timeout)
+                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/lib/python3.12/subprocess.py", line 1209, in communicate
+    stdout, stderr = self._communicate(input, endtime, timeout)
+                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/lib/python3.12/subprocess.py", line 2116, in _communicate
+    self._check_timeout(endtime, orig_timeout, stdout, stderr)
+  File "/usr/lib/python3.12/subprocess.py", line 1253, in _check_timeout
+    raise TimeoutExpired(
+subprocess.TimeoutExpired: Command '['/home/yuzuki/local/bin/aws', 'dynamodb', 'get-item', '--table-name', 'AppSettings', '--key', '{"settingId": {"S": "dailyProgress_0734fa28-60c1-707d-f888-f2cb860e561d"}}', '--region', 'ap-northeast-1']' timed out after 20 seconds
+  
+
+--- [5] メール送信 ---
+  ✅ メール送信完了 → mugenknock@gmail.com
+
+==========================================
+日次レポート 完了: 2026-07-07 09:54 JST
+==========================================

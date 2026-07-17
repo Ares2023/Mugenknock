@@ -1,0 +1,113 @@
+=== 2026-07-09 05:15:07 | 99-send-report.sh | exit:0 ===
+==========================================
+日次レポート生成 開始: 2026-07-09 04:10 JST
+==========================================
+
+--- [1] AWS資格公式情報 変更チェック ---
+  フェーズ1完了: has_changes=False
+  直近3日以内の変更声明なし
+
+--- [2] 夜間スクリプト成果集計 ---
+  生成: 合計 24問生成
+  妥当性: 合計: 確認43件（問題なし=8 自動修正=35 削除=0）
+  通報: 2026-07-08: 8件処理
+
+--- [3] DynamoDB稼働状況 ---
+  総問題数: 3749 問
+  直近3日 新規生成(createdAt): 26 問
+  直近3日 確認済み(validityCheckedAt): 61 問
+  未妥当性確認: 7 問
+  未解決通報: 8 件
+  資格別:
+  CLF: 315問
+  AIF: 311問
+  SAA: 308問
+  DVA: 306問
+  SOA: 306問
+  DEA: 300問
+  MLA: 304問
+  SAP: 309問
+  DOP: 373問
+  AIP: 299問
+  SCS: 309問
+  ANS: 309問
+
+--- [3b] Cognito 新規ユーザー（前日） ---
+  新規登録なし
+
+--- [4] canary テスト ---
+  ✅ PASS (passed=21 failed=0 warnings=0)
+  失敗詳細:
+    [練習問題一覧（SAA）] ❌ Console Errors (8):
+    [練習問題一覧（SAA）] 🌐 Network Errors (8):
+    [練習問題詳細] ❌ Console Errors (9):
+    [練習問題詳細] 🌐 Network Errors (9):
+      ログ:    s3://mugenknock-error-logs/canary-logs/staging/20260709-041222.log
+      サマリー: s3://mugenknock-error-logs/canary-logs/staging/20260709-041222.json
+  認証カナリア: ✅ PASS (passed=8 failed=2)
+
+--- [4.5] 監査・改良 / カナリア整合性 / 日めくり 集計 ---
+  監査 15問（CLF/DEA）: OK 8 / 注意 7 / 要修正 0
+  【指摘のあった問題】
+  ⚠ clf-637af08d
+  ・実測正答率20%（n=10）が非常に低い。Elastic BeanstalkもソースコードからのデプロイやALB・Auto Scalingを内包するため、App Runnerとの差別化はCLFレベルでは難解な2択になっている。
+  ・解説でElastic Beanstalkを『EC2ベースで管理が多い』と一言で片付けており、App Runnerとの本質的な差（インフラ設定ゼロ・完全サーバーレス）の説明が不十分で誤答を誘発しやすい。
+  ⚠ clf-3405ed73（難易度: too_hard）
+  ・実測正答率14%（n=14）は著しく低く、CLFレベルとして難しすぎる可能性が高い。20%を大きく下回るため悪問・難問の疑いを精査すべき水準。
+  ・SNSもEC2 State Change通知のサブスクリプションでLambda・SQSへのファンアウト配信が可能であり、EventBridgeとの実質的な差異（ルールベースの細粒度フィルタリング・API Destinations経由のSlack直接送信）はCLFには踏み込みすぎ。
+  ・解説でSNSの不採用理由を『柔軟性に劣る』と相対表現に留めており、EventBridgeが正解である根拠（EC2イベントのネイティブ統合・サードパーティ直接送信）が具体的に示されていない。
+  ⚠ dea-7cefe432
+  ・Short Query Acceleration（SQA）は主に短時間SELECT系クエリをMLで予測し専用スロットへ振り分ける機能であり、COPY・INSERT INTO SELECT等のETL DML操作に同様に適用されるとは言えない。正解の主要機構はAutomatic WLM + Highest優先度であり、SQAをETLの実行開始保証の一手段として解説するのは正確性に欠ける。コア正答は正しいが、SQAの役割説明が誤解を招く。
+  ⚠ clf-aa02a9fd（難易度: too_easy）
+  ・問題文が『費用を支払うことなく』と明示しているため有償のAWS IQ・Professional Servicesを即時除外できる。残るre:Post（Q&Aコミュニティ）とTraining（学習プラットフォーム）の区別も自明で、選択肢[0]の括弧内説明『認定エキスパートが回答する知識ベースも提供する』が問題文の要件をほぼそのまま反映しており、正解に必要な実質的知識量が低い
+  ⚠ clf-0555dce8（難易度: too_easy）
+  ・選択肢[3]の括弧内に『ソケット数・コア数・ホストIDを把握して管理できる』と明記されており、問題文の『物理サーバーのソケット数やコア数を把握できる環境が必要』を直接反映している。説明文の照合だけで正解が導けるため、Dedicated Host vs Dedicated Instanceの実質的な識別知識がテストされない懸念がある
+  ⚠ clf-748934fe（難易度: too_easy）
+  ・問題文に『機密情報でない』『自動ローテーション不要』『コストを抑えたい』と3条件が明示されており、各条件が選択肢A・C・Dをそれぞれ一対一で否定する。選択肢を読む前に正解が絞れてしまう過剰誘導。本番はもっと曖昧な要件でサービスの比較判断を求める形式にすべき
+  ⚠ clf-09acc9bc（難易度: too_easy）
+  ・問題文の『誰が・いつ・どこから』はCloudTrailの公式キャッチフレーズそのものであり、選択肢を読まずとも正解が確定できる。正解サービス名を問題文が実質的に述べている状態。キーワードを変えるか、複数サービスを組み合わせた調査シナリオに再構成することを推奨
+  【プロンプト自動改良】 適用 3件 / 見送り 0件
+  方針: 監査で最多だったDOPの用語定義・単一概念の暗記問題（模試不適・易しすぎ）と、ユーザー通報で確定した「正解選択肢が自己解説的・過長で正解が特定できる」誤り、および解説の機能過大主張を再発防止する。生成側(DOP.txt/_common-rules.txt)で禁止事項を明確化し、検証側(_validity-extra.txt)に検出観点を追加。CLFは同系統サービスの過度に微妙な識別で正答率が極端に下がる問題を避ける注意を1行追記。いずれも追記・小修正のみ。
+  ✅ _common-rules.txt: ユーザー通報で確定したDOPの choice_error（正解選択肢だけが自己解説的な末尾を持ち内容・長さの両面で正解が露見）に対応。既存の『不正解の自己否定文禁止』『最長を正解にしない』の隣に、正解側の自己解説末尾を禁じる規則を追記して対を成す。
+  ✅ DOP.txt: 監査でng判定が集中したDOPの用語定義・単一概念・2サービスの違いを問う暗記問題（Professional水準未達）に対応。【避けること】に具体例付きで禁止し、複数要件のシナリオ比較を必須化。
+  ✅ _validity-extra.txt: 検証(02)が見逃した3種の誤りを検出する観点を追加：(1)プロ資格の用語定義・違い暗記問題（模試不適/易しすぎ）、(2)正解選択肢の自己解説的末尾による正解特定、(3)機能の適用範囲・タイミングの過大主張（CloudWatch Logsマスキングの遡及不可）。CLFの過度に微妙な識別による極端な低正答率も1行追加。
+  所見: (判定失敗)
+  カバー漏れ/陳腐化: 0件
+  対応: JSON抽出失敗のため未対応
+  生成: 2026-07-08 完了: Wed Jul  8 04:06:13 JST 2026
+  検証: 2026-07-08 完了サマリー: 問題なし=2件 / 自動修正=2件 / 削除=1件
+  Lambda(直近24h):
+    prod: 実行6745 エラー0 スロットル0 最大1953ms
+    dev: 実行2 エラー0 スロットル0 最大539ms
+  API(prod,24h): リクエスト7095 ⚠️ 5xx=1 4xx=4 p99=1043ms
+  ⚠️ 本番エラーログ(prod,24h): 2件
+    ・2026-07-08T08:55:05.785Z 8e99cd58-c3f7-4b6a-aa42-390bc91d49e6 INFO ERROR: @vendia/serverless-express connection error
+    ・2026-07-08T08:55:05.785Z 8e99cd58-c3f7-4b6a-aa42-390bc91d49e6 ERROR Error: read ECONNRESET at Pipe.onStreamRead (node:internal/stream_base_commons:216:20) { err
+  AWSコスト(2026-07-07): $0.14 （前日比 ▲21%）
+    ・Amazon DynamoDB: $0.05
+    ・Amazon API Gateway: $0.04
+    ・AWS Key Management Service: $0.03
+
+--- [4.8] テストユーザー データ整合性チェック ---
+Traceback (most recent call last):
+  File "<stdin>", line 40, in <module>
+  File "<stdin>", line 10, in dynamo_get
+  File "/usr/lib/python3.12/subprocess.py", line 550, in run
+    stdout, stderr = process.communicate(input, timeout=timeout)
+                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/lib/python3.12/subprocess.py", line 1209, in communicate
+    stdout, stderr = self._communicate(input, endtime, timeout)
+                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/lib/python3.12/subprocess.py", line 2116, in _communicate
+    self._check_timeout(endtime, orig_timeout, stdout, stderr)
+  File "/usr/lib/python3.12/subprocess.py", line 1253, in _check_timeout
+    raise TimeoutExpired(
+subprocess.TimeoutExpired: Command '['/home/yuzuki/local/bin/aws', 'dynamodb', 'get-item', '--table-name', 'AppSettings', '--key', '{"settingId": {"S": "dailyProgress_0734fa28-60c1-707d-f888-f2cb860e561d"}}', '--region', 'ap-northeast-1']' timed out after 20 seconds
+  
+
+--- [5] メール送信 ---
+  ✅ メール送信完了 → mugenknock@gmail.com
+
+==========================================
+日次レポート 完了: 2026-07-09 04:15 JST
+==========================================

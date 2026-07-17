@@ -1,0 +1,38 @@
+==========================================
+正当性チェック開始: Tue Jul  7 07:10:04 JST 2026
+バッチサイズ: 100問 / チャンクサイズ: 5問
+==========================================
+チェック対象: 100問
+前処理: choices ラベル接頭辞チェック...
+  前処理: ラベル接頭辞なし（全問クリーン）
+チャンク数: 20
+
+--- チャンク 1/20: 5問  開始=07:10:42 ---
+  [OK   ] clf-52ccd863
+  [FIX  ] clf-c21670c3: EFSの不正解理由がDirect Connect必要性のみで、「EFSはS3にデータを保存しない」という主要要件不一致の説明が欠落しており、誤解を招く。 → 変更: explanation, choiceExplanations
+  [OK   ] clf-547f7d88
+  [OK   ] clf-748934fe
+  [OK   ] clf-94848eae
+  → 更新完了: OK=4 修正=1 削除=0
+  終了=07:22:09  経過=687秒
+
+--- チャンク 2/20: 5問  開始=07:22:09 ---
+  [OK   ] clf-19d14dcf
+  [FIX  ] clf-ca43f2a7: questionTextに「DNS問い合わせログ」とあるが、公式ドキュメント上DetectiveのデータソースはCloudTrail・VPC Flow Logs・GuardDuty findingsのみ。DNS query logsはGuardDutyが利用するものでDetectiveは直接取り込まない。questionTextを事実に即した表現に修正する。 → 変更: questionText
+  [OK   ] clf-edc886cc
+  [OK   ] clf-d8b35011
+  [OK   ] clf-720f18a3
+  → 更新完了: OK=4 修正=1 削除=0
+  終了=07:27:15  経過=306秒
+
+--- チャンク 3/20: 5問  開始=07:27:15 ---
+  [WARN ] clf-7b5ab46a: fix 適用後に正解が最長選択肢（正解56字 > 不正解最長47字）。次回再チェック対象に残す
+  [FIX  ] clf-7b5ab46a: 正解選択肢にのみ「プライマリ」が出現し、問題文との単純なキーワード照合で正解が特定できる。選択肢1を「プライマリストア」を使わない表現に変更する。 → 変更: choices, correctAnswers, choiceExplanations
+  [OK   ] clf-09acc9bc
+  [OK   ] clf-aa02a9fd
+  [FIX  ] clf-cb54c3e5: 「基盤モデル」「APIアクセス」が問題文と正解選択肢の両方にのみ出現し、キーワード照合だけで正解が特定できる。選択肢1を問題文キーワードを使わない表現に変更する。 → 変更: choices, correctAnswers, choiceExplanations
+  [OK   ] clf-0ae56806
+  → 更新完了: OK=3 修正=2 削除=0
+  終了=07:37:38  経過=623秒
+
+--- チャンク 4/20: 5問  開始=07:37:38 ---

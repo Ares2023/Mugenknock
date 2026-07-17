@@ -1,0 +1,11 @@
+=== 2026-07-14 03:56:16 | generate-release-note.sh | exit:0 ===
+[release-note] 対象日: 2026-07-13
+[release-note] 2026-07-13: 8件のコミット
+[release-note] 生成結果:
+{
+  "title": "問題がもっと増えやすく、再開ボタンの表示も正確に！",
+  "body": "毎日の問題自動生成の効率が大幅に改善され、より多くのAWS問題が届きやすくなりました。\nあわせて、途中から再開するボタンに表示される進捗（〇問目/全問）が実際に次に出題される問題番号と一致するよう修正されました。",
+  "titleEn": "More questions incoming & accurate resume progress!",
+  "bodyEn": "Daily question generation has been significantly optimized, making it easier to deliver more AWS practice questions every day.\nThe resume button now correctly displays the exact question number you'll start from next."
+}
+[release-note] ✓ DynamoDBに挿入しました: 2026-07-13 — 問題がもっと増えやすく、再開ボタンの表示も正確に！

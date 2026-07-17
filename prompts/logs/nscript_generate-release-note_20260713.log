@@ -1,0 +1,6 @@
+=== 2026-07-13 02:56:17 | generate-release-note.sh | exit:0 ===
+[release-note] 対象日: 2026-07-12
+[release-note] 2026-07-12: 12件のコミット
+[release-note] 生成結果:
+{"title": "AIF・AIPの試験情報を公式値に更新！","body": "AWS AI Foundations（AIF）と AI Practitioner（AIP）の問題数・試験時間を公式の正確な値に修正しました。\n試験選択画面の運営者コメントも Markdown 対応でより読みやすくなっています。","titleEn": "AIF & AIP Exam Info Updated to Official Values!","bodyEn": "We've corrected the question count and time limit for AIF and AIP exams to match the official figures.\nOperator comments on the exam selection screen are now rendered in Markdown for easier reading."}
+[release-note] ✓ DynamoDBに挿入しました: 2026-07-12 — AIF・AIPの試験情報を公式値に更新！

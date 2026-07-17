@@ -4,6 +4,9 @@
 
 0,/home/yuzuki/aws-quiz-app/prompts/night-prompts/scripts/99-send-report.sh
 0,/home/yuzuki/aws-quiz-app/prompts/night-prompts/scripts/generate-release-note.sh
+# 問題の削除予定日（scheduledDeletionDate）チェック・自動削除。決定的でclaude不要のため
+# トークン残量に関わらず毎晩必ず実行する（02/01のトークン律速の影響を受けない）。
+0,/home/yuzuki/aws-quiz-app/prompts/night-prompts/scripts/check-scheduled-deletions.sh
 # ユーザー通報の妥当性チェック＋対象修正（改変範囲は問題内容に限定・堅牢化済）。
 # 通報が妥当だった不具合は report-confirmed-defects.jsonl に記録し、監査(audit)が
 # 生成・検証プロンプトの改良材料に使う。監査(+60)より前に実行する。

@@ -1,0 +1,65 @@
+[
+  {
+    "questionId": "clf-637af08d",
+    "examType": "CLF",
+    "verdict": "warn",
+    "currentness": "ok",
+    "difficulty": "appropriate",
+    "scope": "in",
+    "format": "ok",
+    "mockSuitable": true,
+    "issues": [
+      "実測正答率20%（10件）は低すぎる危険水準。Elastic BeanstalkもLBとオートスケーリングを自動管理するため選択肢Dとの差分が不明確。解説で「EC2インスタンス上で動作するため構成概念の理解が必要」というApp Runnerとの本質的差異（完全ゼロコンフィグ）を明記すべき。"
+    ]
+  },
+  {
+    "questionId": "clf-3405ed73",
+    "examType": "CLF",
+    "verdict": "warn",
+    "currentness": "ok",
+    "difficulty": "too_hard",
+    "scope": "in",
+    "format": "ok",
+    "mockSuitable": true,
+    "issues": [
+      "実測正答率14%（14件）は著しく低い。CLFレベルでEC2状態変化イベントの複数ターゲットルーティングを問うのはSAA相当の複雑さ。SNSもLambda・SQS・HTTPエンドポイント（Slack webhook）へファンアウト可能なため、「EC2の状態変化イベントを自動検知できるのはEventBridgeのみ（SNSは自分では検知できない）」という根本的差異を解説でより強調しないと紛らわしい。"
+    ]
+  },
+  {
+    "questionId": "aip-f3329527",
+    "examType": "AIP",
+    "verdict": "warn",
+    "currentness": "ok",
+    "difficulty": "appropriate",
+    "scope": "in",
+    "format": "ok",
+    "mockSuitable": true,
+    "issues": [
+      "選択肢Dの「増分同期（Incremental Sync）モードに切り替える」は存在しない機能。公式ドキュメント（knowledge-base-ingest）によりBedrock KBのSyncは常に増分処理（差分のみ）がデフォルト動作であり、フルとインクリメンタルを切り替えるモード設定はない。誤った前提の選択肢はフィクション選択肢となり悪問化するリスクがある。選択肢Dを「Ingestion Jobのスケジュール間隔を短縮して同期時間を最適化する」など実在する設定変更に差し替えることを推奨。"
+    ]
+  },
+  {
+    "questionId": "mla-91116edb",
+    "examType": "MLA",
+    "verdict": "ok",
+    "currentness": "ok",
+    "difficulty": "appropriate",
+    "scope": "in",
+    "format": "ok",
+    "mockSuitable": true,
+    "issues": []
+  },
+  {
+    "questionId": "mla-63da91b5",
+    "examType": "MLA",
+    "verdict": "ok",
+    "currentness": "ok",
+    "difficulty": "appropriate",
+    "scope": "in",
+    "format": "ok",
+    "mockSuitable": true,
+    "issues": [
+      "AWSサービス固有の知識を問わない純粋なML理論問題だが、MLAの「MLモデルの開発」ドメインは評価指標を明示的に含むため範囲内。問題・解説とも技術的に正確。"
+    ]
+  }
+]

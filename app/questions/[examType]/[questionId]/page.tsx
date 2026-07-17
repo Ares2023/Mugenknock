@@ -18,6 +18,8 @@ type Question = {
   explanation: string;
   domain?: number;
   isMultiple: boolean;
+  scheduledDeletionReason?: string;
+  scheduledDeletionDate?: string;
 };
 
 // ビルド時に全試験×全問題のパラメータを生成
@@ -151,6 +153,20 @@ export default async function QuestionPage(
           </span>
         )}
       </div>
+
+      {/* 削除予定通知 */}
+      {q.scheduledDeletionDate && (
+        <div style={{
+          display: 'flex', gap: 8, alignItems: 'flex-start',
+          background: '#FFF4E5', border: '1px solid #F5A623', borderRadius: 10,
+          padding: '12px 16px', marginBottom: 20,
+        }}>
+          <span style={{ flexShrink: 0, fontSize: 16, lineHeight: 1.6 }}>⚠️</span>
+          <span style={{ fontSize: 13, color: '#8A5A00', lineHeight: 1.6 }}>
+            この問題は{q.scheduledDeletionDate}に削除されます（理由: {q.scheduledDeletionReason}）。
+          </span>
+        </div>
+      )}
 
       {/* 問題文 */}
       <div style={{

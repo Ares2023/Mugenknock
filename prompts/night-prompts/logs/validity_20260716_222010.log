@@ -1,0 +1,33 @@
+==========================================
+正当性チェック開始: Thu Jul 16 22:20:10 JST 2026
+バッチサイズ: 100問 / チャンクサイズ: 5問
+==========================================
+チェック対象: 100問
+前処理: choices ラベル接頭辞チェック...
+  前処理: ラベル接頭辞なし（全問クリーン）
+チャンク数: 20
+
+--- チャンク 1/20: 5問  開始=22:20:40 ---
+  [OK   ] dop-ac6617a6
+  [OK   ] saa-1a576bf4
+  [OK   ] dop-a7d061b2
+  [OK   ] dea-a49b09b7
+  [FIX  ] ans-2b504127: choiceExplanations[1]と[2]が同一テキスト（両問題の説明を合体）で正解選択肢ごとの個別説明になっていない。また[0]と[4]がサービス名・機能名を主語として文頭に置いていない。 → 変更: choiceExplanations
+  → 更新完了: OK=4 修正=1 削除=0
+  終了=22:24:53  経過=253秒
+
+--- チャンク 2/20: 5問  開始=22:24:53 ---
+  [WARN ] dea-44146962: fix 適用後に正解が最長選択肢（正解103字 > 不正解最長81字）。次回再チェック対象に残す
+  [FIX  ] dea-44146962: Amazon Kinesis Data FirehoseはAmazon Data Firehoseに名称変更済み（choices[3]・explanation・choiceExplanations[3]）。choiceExplanations[1]が「実装可能ですが」で始まりサービス名を文頭主語にしていない。 → 変更: choices, explanation, choiceExplanations
+  [FIX  ] ans-8b8b420f: choiceExplanations[1]が「SNIを利用した」、[3]が「TLSインスペクション設定には」で始まりサービス名を文頭主語にしていない。 → 変更: choiceExplanations
+  [OK   ] ans-5016c947
+  [FIX  ] dea-6384f712: choiceExplanations[0][2][3]が括弧書き参照（「（AWS Glue ETL でロード）は」等）で始まりサービス名を文頭主語にしていない。 → 変更: choiceExplanations
+  [OK   ] dea-cd7fd9f2
+  → 更新完了: OK=2 修正=3 削除=0
+  終了=22:29:09  経過=256秒
+
+--- チャンク 3/20: 5問  開始=22:29:09 ---
+⚠️  レート制限を検出。残りチャンクをスキップ
+stdout: You've hit your session limit · resets 10:50pm (Asia/Tokyo)
+
+完了サマリー: 問題なし=6問 / 自動修正=4問 / 削除=0問

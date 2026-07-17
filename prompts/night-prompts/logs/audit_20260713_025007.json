@@ -1,0 +1,126 @@
+[
+  {
+    "questionId": "clf-637af08d",
+    "examType": "CLF",
+    "verdict": "warn",
+    "currentness": "ok",
+    "difficulty": "appropriate",
+    "scope": "in",
+    "format": "ok",
+    "mockSuitable": true,
+    "issues": [
+      "実測正答率20%（サンプル10件と少ない）は低い。Elastic BeanstalkもLBやオートスケーリングを自動管理し、ソースコードやコンテナからのデプロイも対応しているため、「EC2ベースで管理が多い」という解説だけではApp Runnerとの差別化が不十分。「Beanstalkはインスタンスタイプ・環境設定の選択が必要なのに対し、App Runnerはインフラ設定が一切不要」という核心的な差を解説に明示すべき。"
+    ]
+  },
+  {
+    "questionId": "clf-3405ed73",
+    "examType": "CLF",
+    "verdict": "warn",
+    "currentness": "ok",
+    "difficulty": "too_hard",
+    "scope": "in",
+    "format": "ok",
+    "mockSuitable": true,
+    "issues": [
+      "実測正答率14%（サンプル14件）は極めて低く、CLFには難しすぎる可能性が高い。SNSもLambda・SQS・HTTPエンドポイント（Slack Webhook）への同時ファンアウトが可能なため、CLF受験者にはEventBridgeとの区別が難解。正解の核心である「SNSはAWSサービスイベントを自律的に受信できず、EC2の起動/停止イベントを直接トリガーにできない」という点が解説に欠けており誤答を誘発している。シナリオ複雑度・サービス知識の深さともSAA/DVA相当。"
+    ]
+  },
+  {
+    "questionId": "dea-a37942d8",
+    "examType": "DEA",
+    "verdict": "ok",
+    "currentness": "ok",
+    "difficulty": "appropriate",
+    "scope": "in",
+    "format": "ok",
+    "mockSuitable": true,
+    "issues": [
+      "S3 Intelligent-Tieringには128KBを超えるオブジェクトへのモニタリング費用（月次/オブジェクト）が発生する。数百万件規模では無視できないコストであり、DEAレベルのコスト最適化問題としては解説にこの点を補足するとより完成度が高い。軽微な指摘。"
+    ]
+  },
+  {
+    "questionId": "dea-ec920614",
+    "examType": "DEA",
+    "verdict": "ok",
+    "currentness": "ok",
+    "difficulty": "appropriate",
+    "scope": "in",
+    "format": "ok",
+    "mockSuitable": true,
+    "issues": []
+  },
+  {
+    "questionId": "dea-fe9196b6",
+    "examType": "DEA",
+    "verdict": "ok",
+    "currentness": "ok",
+    "difficulty": "appropriate",
+    "scope": "in",
+    "format": "ok",
+    "mockSuitable": true,
+    "issues": [
+      "選択肢CのAWS RAM説明が『VPCやTransit Gatewayなどのリソース共有に使用』と過度に限定的（実際にはGlue Data Catalogなど多様なリソースも共有可能）。ただし『S3バケットを直接共有リソースとして登録できない』という不正解理由自体は正しく、結論は妥当。説明の正確性向上のためRAMの制約をS3非対応に絞って記述する形にするとよい。"
+    ]
+  },
+  {
+    "questionId": "dea-ce354563",
+    "examType": "DEA",
+    "verdict": "ok",
+    "currentness": "ok",
+    "difficulty": "appropriate",
+    "scope": "in",
+    "format": "ok",
+    "mockSuitable": true,
+    "issues": []
+  },
+  {
+    "questionId": "dea-0ecbb1a1",
+    "examType": "DEA",
+    "verdict": "warn",
+    "currentness": "ok",
+    "difficulty": "too_easy",
+    "scope": "in",
+    "format": "ok",
+    "mockSuitable": true,
+    "issues": [
+      "「Gremlinクエリをそのまま移行」「グラフトラバーサル」「サブ秒レイテンシ」の3条件が揃うと他の選択肢が完全排除され正解が自明になる。DEA本番相当の難易度を確保するには、選択肢をNeptune Database vs Neptune Analytics の使い分け、あるいはNeptuneのユースケース境界を問う形に改訂することを推奨。"
+    ]
+  },
+  {
+    "questionId": "dea-121c49aa",
+    "examType": "DEA",
+    "verdict": "warn",
+    "currentness": "ok",
+    "difficulty": "too_easy",
+    "scope": "in",
+    "format": "ok",
+    "mockSuitable": true,
+    "issues": [
+      "「MongoDB互換」「既存ドライバーをそのまま利用」という条件がDocumentDBを直接指示しており正解が自明。また解説がDocumentDBとMongoDBの互換性の実際の限界（一部の集計パイプラインオペレータ・クライアントドライバーバージョンへの非互換）を一切言及しておらず、完全互換と誤読させる恐れがある。互換性の注意点を解説に補足するか、要件をより複雑にして難易度を調整することを推奨。"
+    ]
+  },
+  {
+    "questionId": "aip-748d3993",
+    "examType": "AIP",
+    "verdict": "warn",
+    "currentness": "uncertain",
+    "difficulty": "appropriate",
+    "scope": "in",
+    "format": "ok",
+    "mockSuitable": true,
+    "issues": [
+      "公式APIリファレンス（HumanWorkflowConfig）およびコンソール用IAMポリシーの調査により、Bedrock Model Evaluationのヒューマン評価ジョブのワーカー管理は Amazon Cognito User Pools + SageMaker Workforce/Workteam を使用する（ポリシーに cognito-idp:* と sagemaker:CreateWorkforce が必要）ことを確認。正解選択肢および解説で「AWS IAM Identity Center で管理した医師チームをレビュアーとして割り当てる」と記述しているが、これは標準の仕組みと異なる。SageMaker OIDCワークフォースを介したIAM Identity Center連携は技術的には可能だが非標準経路であり、IAM Identity Center = ヒューマン評価ワーカー管理という記述はAIP Professional受験者に誤った知識を植え付けるリスクがある。「Amazon Cognito で管理したプライベートワークフォースをレビュアーとして設定する」に修正することを推奨。なおコアコンセプト（Bedrock Model Evaluationのヒューマン評価ジョブが適切なサービス）は正しいためwarnとする。"
+    ]
+  },
+  {
+    "questionId": "aip-cc97e1a2",
+    "examType": "AIP",
+    "verdict": "ok",
+    "currentness": "ok",
+    "difficulty": "appropriate",
+    "scope": "in",
+    "format": "ok",
+    "mockSuitable": true,
+    "issues": []
+  }
+]
