@@ -213,6 +213,8 @@ function CombinedDetailModal({ targetExam, domainAccList, estimatedScore, passSc
   // 5→10拡張時は新規(左側)のみ右→左で表示、既存(右5個)は前回の文字列を再利用＝再生されない。
   const prevWindowRef = useRef(nodeWindow);
   const animStyleRef = useRef<Map<number, string>>(new Map());
+  // アニメ完了済みノード(dk)。タブ切替で戻っても再生しない（開き直し=モーダル再マウントでのみリセット）。
+  const playedRef = useRef<Set<number>>(new Set());
   const visitedTabs = useRef(new Set<string>(['score']));
 
   // スコアタブ（calc非表示時）の高さを記録してタブ切替でサイズが変わらないようにする
@@ -230,9 +232,10 @@ function CombinedDetailModal({ targetExam, domainAccList, estimatedScore, passSc
   // 再表示時にまたアニメさせるため animated から外す。表示中の dk は animated に登録。
   useEffect(() => {
     prevWindowRef.current = nodeWindow;
-    // 非表示になったノード(dk>=nodeWindow)は再表示時にまたアニメさせるため固定文字列を破棄。
+    // 非表示になったノード(dk>=nodeWindow)は再表示時にまたアニメさせるため記録を破棄。
     const m = animStyleRef.current;
     for (const k of [...m.keys()]) if (k >= nodeWindow) m.delete(k);
+    for (const k of [...playedRef.current]) if (k >= nodeWindow) playedRef.current.delete(k);
   }, [nodeWindow]);
 
   useEffect(() => {
@@ -359,16 +362,23 @@ function CombinedDetailModal({ targetExam, domainAccList, estimatedScore, passSc
                     <div style={{ display: 'flex', alignItems: 'center' }}>
                       {paddedNodes.map((correct, ni) => {
                         const dk = nodeWindow - 1 - ni;                      // 右端からの距離
-                        // アニメ文字列は初出時に一度だけ確定して固定（再レンダーで中断/再発火させない）。
-                        // 既存ノードは前回の文字列を再利用するので再生されない。
-                        let nodeAnim = animStyleRef.current.get(dk);
-                        if (nodeAnim === undefined) {
-                          const isExpand = nodeWindow > prevWindowRef.current;  // 直近5→10へ拡張中か
-                          const expandNewCount = isExpand ? nodeWindow - prevWindowRef.current : 0;
-                          // 拡張時の新規は右→左、通常(初回)は左→右。
-                          const delay = isExpand ? Math.max(0, expandNewCount - 1 - ni) * 70 : ni * 70;
-                          nodeAnim = `scoreNodePop 0.22s ease ${delay}ms both`;
-                          animStyleRef.current.set(dk, nodeAnim);
+                        // 完了済みノードは再生しない（タブ切替で戻っても静止）。
+                        // 未完了ノードのアニメ文字列は初出時に一度だけ確定して固定（再レンダーで中断/再発火させない）。
+                        let nodeAnim: string;
+                        if (playedRef.current.has(dk)) {
+                          nodeAnim = 'none';
+                        } else {
+                          const cached = animStyleRef.current.get(dk);
+                          if (cached !== undefined) {
+                            nodeAnim = cached;
+                          } else {
+                            const isExpand = nodeWindow > prevWindowRef.current;  // 直近5→10へ拡張中か
+                            const expandNewCount = isExpand ? nodeWindow - prevWindowRef.current : 0;
+                            // 拡張時の新規は右→左、通常(初回)は左→右。
+                            const delay = isExpand ? Math.max(0, expandNewCount - 1 - ni) * 70 : ni * 70;
+                            nodeAnim = `scoreNodePop 0.22s ease ${delay}ms both`;
+                            animStyleRef.current.set(dk, nodeAnim);
+                          }
                         }
                         return (
                         <React.Fragment key={dk}>
@@ -383,7 +393,9 @@ function CombinedDetailModal({ targetExam, domainAccList, estimatedScore, passSc
                               </div>
                             : <div style={{ flex: 1, height: 1.5, background: '#AEBCBD' }} />
                           }
-                          <div style={{
+                          <div
+                            onAnimationEnd={() => { playedRef.current.add(dk); }}
+                            style={{
                             width: 14, height: 14, borderRadius: '50%', flexShrink: 0,
                             border: `1.5px solid ${correct === null ? '#AEBCBD' : correct ? 'var(--color-success)' : 'var(--color-danger)'}`,
                             background: correct === null ? 'transparent' : correct ? 'var(--color-feedback-correct-bg)' : 'var(--color-feedback-incorrect-bg)',
