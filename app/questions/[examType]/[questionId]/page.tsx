@@ -90,8 +90,8 @@ export async function generateMetadata(
   const domainName = qDomainName(q as any);
   const preview = q.questionText.slice(0, 80);
   return {
-    title: `${preview}… | ${examType} 練習問題 | 無限ノック`,
-    description: `AWS ${cfg?.fullName}（${examType}）${domainName ? `「${domainName}」` : ''}の練習問題。正解・解説つき。`,
+    title: `【${examType}】${preview}…｜練習問題と解説｜無限ノック`,
+    description: `AWS ${cfg?.fullName}（${examType}）${domainName ? `「${domainName}」` : ''}の練習問題。正解・選択肢別解説つきで無料。`,
     openGraph: {
       title: `${examType} 練習問題 | 無限ノック`,
       url: `https://mugenknock.com/questions/${examType}/${questionId}`,
@@ -117,26 +117,39 @@ export default async function QuestionPage(
   const correctTexts = (q.correctAnswers && q.correctAnswers.length > 0)
     ? q.correctAnswers
     : q.correctAnswerIndices.map(i => q.choices[i]).filter(Boolean);
+  const baseUrl = 'https://mugenknock.com';
   const jsonLd = {
     '@context': 'https://schema.org',
-    '@type': 'QAPage',
-    mainEntity: {
-      '@type': 'Question',
-      name: q.questionText.slice(0, 110),
-      text: q.questionText,
-      answerCount: 1,
-      acceptedAnswer: {
-        '@type': 'Answer',
-        text: `正解: ${correctTexts.join(' / ')}。${q.explanation}`,
+    '@graph': [
+      {
+        '@type': 'QAPage',
+        mainEntity: {
+          '@type': 'Question',
+          name: q.questionText.slice(0, 110),
+          text: q.questionText,
+          answerCount: 1,
+          acceptedAnswer: {
+            '@type': 'Answer',
+            text: `正解: ${correctTexts.join(' / ')}。${q.explanation}`,
+          },
+          suggestedAnswer: q.choices
+            .map((c, i) => ({ c, i }))
+            .filter(({ i }) => !correctSet.has(i))
+            .map(({ c, i }) => ({
+              '@type': 'Answer',
+              text: q.choiceExplanations?.[i] ? `${c} — ${q.choiceExplanations[i]}` : c,
+            })),
+        },
       },
-      suggestedAnswer: q.choices
-        .map((c, i) => ({ c, i }))
-        .filter(({ i }) => !correctSet.has(i))
-        .map(({ c, i }) => ({
-          '@type': 'Answer',
-          text: q.choiceExplanations?.[i] ? `${c} — ${q.choiceExplanations[i]}` : c,
-        })),
-    },
+      {
+        '@type': 'BreadcrumbList',
+        itemListElement: [
+          { '@type': 'ListItem', position: 1, name: '無限ノック', item: `${baseUrl}/` },
+          { '@type': 'ListItem', position: 2, name: `${examType} 練習問題`, item: `${baseUrl}/questions/${examType}/` },
+          { '@type': 'ListItem', position: 3, name: '問題', item: `${baseUrl}/questions/${examType}/${questionId}/` },
+        ],
+      },
+    ],
   };
 
   return (

@@ -7,6 +7,7 @@ import { useLanguage } from '../contexts/LanguageContext';
 import { IconUser, IconBot, IconTarget, IconTrendingUp, IconNetwork } from '../components/Icons';
 import Reveal from '../components/Reveal';
 import { SiteArchitecture } from '../components/SiteArchitecture';
+import { EXAM_TYPES } from '../constants';
 
 const QUESTION_COUNT = 3800;
 
@@ -400,6 +401,27 @@ export default function Portal() {
 
         </div>
       </main>
+
+      {/* ── コンテンツへの内部リンク（SEO: トップから各コンテンツ面へクロールを流す） ── */}
+      <nav aria-label={ja ? 'コンテンツ' : 'Content'} style={{
+        borderTop: '1px solid var(--color-border)', background: 'var(--color-bg-white)',
+        padding: isMobile ? 'var(--spacing-md)' : 'var(--spacing-lg) var(--spacing-xl)',
+        fontSize: 'var(--font-size-xs)', color: 'var(--color-text-light)',
+      }}>
+        <div style={{ maxWidth: 860, margin: '0 auto', display: 'flex', flexDirection: 'column', gap: 'var(--spacing-sm)' }}>
+          <div style={{ display: 'flex', flexWrap: 'wrap', gap: 'var(--spacing-md)' }}>
+            <a href="/encyclopedia/" style={{ color: 'var(--color-primary)', textDecoration: 'none' }}>{ja ? 'AWSサービス図鑑' : 'AWS Service Encyclopedia'}</a>
+            <a href="/exam-guide/" style={{ color: 'var(--color-primary)', textDecoration: 'none' }}>{ja ? '試験別攻略ガイド' : 'Exam Guides'}</a>
+            <a href="/services/" style={{ color: 'var(--color-primary)', textDecoration: 'none' }}>{ja ? 'AWSサービス一覧' : 'AWS Services'}</a>
+          </div>
+          <div style={{ display: 'flex', flexWrap: 'wrap', gap: 'var(--spacing-sm) var(--spacing-md)', alignItems: 'baseline' }}>
+            <span style={{ fontWeight: 700, color: 'var(--color-text-sub)' }}>{ja ? '資格別の練習問題:' : 'Practice by exam:'}</span>
+            {EXAM_TYPES.map(e => (
+              <a key={e} href={`/questions/${e}/`} style={{ color: 'var(--color-primary)', textDecoration: 'none' }}>{e}</a>
+            ))}
+          </div>
+        </div>
+      </nav>
 
       <footer style={{ padding: '14px var(--spacing-lg)', textAlign: 'center', fontSize: 'var(--font-size-xs)', color: 'var(--color-text-light)', borderTop: '1px solid var(--color-border)', background: 'var(--color-bg-white)' }}>
         © {new Date().getFullYear()} MugenKnock
