@@ -1239,6 +1239,10 @@ export default function Home() {
   const [serverScoreHistory, setServerScoreHistory] = useState<ScoreEntry[] | null>(null);
   const [serverSessionHistory, setServerSessionHistory] = useState<number[] | null>(null);
   const [serverSessionScoreLog, setServerSessionScoreLog] = useState<ScoreEntry[] | null>(null);
+  // スコア履歴のサーバー読込が完了しローカルと同期済みか。
+  // 追記effect（日次/セッション）はこれがtrueになるまで待つ。空/疎なローカルを基に
+  // サーバーの蓄積を上書きPUTしたり、読み込んだサーバー値をstate上で疎データに戻すのを防ぐ。
+  const [scoreHistLoaded, setScoreHistLoaded] = useState(false);
   const abortRef = useRef<AbortController | null>(null);
 
   useEffect(() => {
@@ -1347,6 +1351,8 @@ export default function Home() {
 
   useEffect(() => {
     if (!user || !targetExam) { setServerScoreHistory(null); setServerSessionHistory(null); setServerSessionScoreLog(null); return; }
+    // 読込中は未同期。追記effectはこの間 return して待つ（レースによる疎データ上書きを防ぐ）。
+    setScoreHistLoaded(false);
     // セッション完了直後かどうかを事前にチェック（非同期GETと追記useEffectの競合を防ぐ）
     const addKey = `sessionScoreAdd_${targetExam}_${user.userId}`;
     const hasPendingSession = !!localStorage.getItem(addKey);
@@ -1388,7 +1394,10 @@ export default function Home() {
           setServerSessionHistory(uploadSSH);
           setServerSessionScoreLog(uploadSSL);
         }
+        // ローカルをサーバー値へ同期済み。以降の追記effectを解禁する。
+        setScoreHistLoaded(true);
       })
+      // 取得失敗時は同期未完了のまま（追記effectを走らせずサーバー蓄積の上書きを避ける）。
       .catch(() => { setServerScoreHistory(null); setServerSessionHistory(null); setServerSessionScoreLog(null); });
   }, [user, targetExam]); // eslint-disable-line react-hooks/exhaustive-deps
 
@@ -1503,6 +1512,9 @@ export default function Home() {
       setPrevScore(null);
     }
 
+    // サーバー読込が完了しローカルと同期されるまで追記しない（疎ローカルでの上書き防止）。
+    if (!scoreHistLoaded) return;
+
     // スコア履歴に追記（折れ線グラフ用）
     const histKey = `score_history_${targetExam}_${uid}`;
     let scoreHist: ScoreEntry[] = [];
@@ -1521,11 +1533,13 @@ export default function Home() {
         body: JSON.stringify({ userId: user.userId, examType: targetExam, scoreHistory: newHist }),
       }).catch(() => {});
     }
-  }, [targetExam, estimatedScore, jstDate, uid]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [targetExam, estimatedScore, jstDate, uid, scoreHistLoaded]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // セッション完了後にセッション別スコア履歴を追記
   useEffect(() => {
     if (!targetExam || estimatedScore === null) return;
+    // サーバー読込・ローカル同期が済むまで待つ（疎ローカルを基にサーバー蓄積を上書きしない）。
+    if (!scoreHistLoaded) return;
     const addKey = `sessionScoreAdd_${targetExam}_${uid}`;
     if (!localStorage.getItem(addKey)) return;
     localStorage.removeItem(addKey);
@@ -1551,7 +1565,7 @@ export default function Home() {
         body: JSON.stringify({ userId: user.userId, examType: targetExam, sessionScoreHistory: hist, sessionScoreLog: log }),
       }).catch(() => {});
     }
-  }, [domainStats, targetExam, uid, estimatedScore]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [domainStats, targetExam, uid, estimatedScore, scoreHistLoaded]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const scoreDelta = prevScore !== null && estimatedScore !== null ? estimatedScore - prevScore : null;
 
