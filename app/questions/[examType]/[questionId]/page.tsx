@@ -163,7 +163,7 @@ export default async function QuestionPage(
         }}>
           <span style={{ flexShrink: 0, fontSize: 16, lineHeight: 1.6 }}>⚠️</span>
           <span style={{ fontSize: 13, color: '#8A5A00', lineHeight: 1.6 }}>
-            この問題は{q.scheduledDeletionReason}、{q.scheduledDeletionDate}に削除されます。
+            この問題は{q.scheduledDeletionDate}に削除されます（理由: {q.scheduledDeletionReason}）。
           </span>
         </div>
       )}

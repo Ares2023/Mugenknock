@@ -1208,7 +1208,7 @@ export default function ExerciseSession() {
           <div style={{ background: '#FFF4E5', border: '1px solid #F5A623', borderRadius: 'var(--border-radius-md)', padding: '8px 12px', marginBottom: 'var(--spacing-md)', display: 'flex', gap: 8, alignItems: 'flex-start' }}>
             <span style={{ flexShrink: 0, fontSize: 'var(--font-size-base)', lineHeight: 1.6 }}>⚠️</span>
             <span style={{ fontSize: 'var(--font-size-xs)', color: '#8A5A00', lineHeight: 1.6, overflowWrap: 'break-word', wordBreak: 'break-word' }}>
-              この問題は{currentQuestion.scheduledDeletionReason}、{currentQuestion.scheduledDeletionDate}に削除されます。
+              この問題は{currentQuestion.scheduledDeletionDate}に削除されます（理由: {currentQuestion.scheduledDeletionReason}）。
             </span>
           </div>
         )}
