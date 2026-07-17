@@ -279,28 +279,6 @@ export default function Result() {
         );
       })()}
 
-      {/* ===== TEST: 配置型広告プレビュー枠（検証環境の見た目確認用）=====
-          承認後に実広告ユニット(<ins class="adsbygoogle">)へ差し替える。本番マージ前に削除すること。 */}
-      <div style={{
-        margin: 'var(--spacing-lg) 0',
-        minHeight: 250,
-        display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
-        gap: 8,
-        border: '2px dashed var(--color-border)',
-        borderRadius: 'var(--border-radius-md)',
-        background: 'var(--color-bg-main)',
-        textAlign: 'center',
-        padding: 'var(--spacing-lg)',
-      }}>
-        <span style={{ fontSize: 'var(--font-size-xs)', letterSpacing: 1, textTransform: 'uppercase', color: 'var(--color-text-light)' }}>Advertisement</span>
-        <span style={{ fontSize: 'var(--font-size-sm)', color: 'var(--color-text-sub)', fontWeight: 700 }}>広告（プレビュー枠）</span>
-        <span style={{ fontSize: 'var(--font-size-xs)', color: 'var(--color-text-light)', maxWidth: 360, lineHeight: 1.6 }}>
-          {ja
-            ? '承認後、この位置にレスポンシブ広告が表示されます（結果サマリーと問題別レビューの間）。'
-            : 'After approval, a responsive ad will appear here (between the summary and the per-question review).'}
-        </span>
-      </div>
-
       {/* 問題ごとの結果 */}
       <h3 style={{ fontSize: 'var(--font-size-h2)', fontWeight: 700, margin: '0 0 var(--spacing-lg)', color: 'var(--color-text-main)' }}>{t('result.perQuestion')}</h3>
       <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--spacing-sm)' }}>
