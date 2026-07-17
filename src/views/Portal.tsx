@@ -92,14 +92,14 @@ export default function Portal() {
     return () => cancelAnimationFrame(t);
   }, []);
 
-  // 目標資格を設定済みのログインユーザーはアプリ本体へリダイレクト（クライアント判定・SSR安全）。
+  // ログイン済みユーザーはランディングを表示せずアプリ本体へリダイレクト（クライアント判定・SSR安全）。
   // ?view= または #about のときはランディングを表示したままにする。
   useEffect(() => {
     if (loading || !user) return;
     const forceView =
       new URLSearchParams(window.location.search).has('view') ||
       window.location.hash === '#about';
-    if (!forceView && localStorage.getItem(`targetExam_${user.userId}`)) {
+    if (!forceView) {
       setDoRedirect(true);
     }
   }, [loading, user]);
