@@ -2,7 +2,6 @@
 import React, { useState, useEffect } from 'react';
 import { Helmet } from '@/compat/react-helmet-async';
 import { Navigate, useNavigate } from '@/compat/react-router-dom';
-import { useSearchParams } from 'next/navigation';
 import { useAuth } from '../contexts/AuthContext';
 import { useLanguage } from '../contexts/LanguageContext';
 import { IconUser, IconBot, IconTarget, IconTrendingUp, IconNetwork } from '../components/Icons';
@@ -66,19 +65,24 @@ const COMPARE_ROWS: { p: [string, string]; s: [string, string] }[] = [
 export default function Portal() {
   const navigate = useNavigate();
   const { user, loading } = useAuth();
-  const searchParams = useSearchParams();
   const { lang } = useLanguage();
   const ja = lang === 'ja';
-  const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
-  const [cookieConsent, setCookieConsent] = useState<boolean>(() =>
-    localStorage.getItem('cookie_consent_v1') === 'accepted'
-  );
+  // SSR安全: 初期値はサーバー/初回クライアントで一致する固定値にし、実値はマウント後に反映する
+  // （静的HTMLにランディング本文を出すため、レンダー中は window/localStorage を参照しない）。
+  const [isMobile, setIsMobile] = useState(false);
+  const [cookieConsent, setCookieConsent] = useState(false);
   const [mounted, setMounted] = useState(false);
+  const [doRedirect, setDoRedirect] = useState(false);
 
   useEffect(() => {
     const handler = () => setIsMobile(window.innerWidth < 768);
+    handler(); // マウント時に実際の画面幅を反映
     window.addEventListener('resize', handler);
     return () => window.removeEventListener('resize', handler);
+  }, []);
+
+  useEffect(() => {
+    setCookieConsent(localStorage.getItem('cookie_consent_v1') === 'accepted');
   }, []);
 
   useEffect(() => {
@@ -87,17 +91,19 @@ export default function Portal() {
     return () => cancelAnimationFrame(t);
   }, []);
 
-  if (loading) {
-    return (
-      <div style={{ position: 'fixed', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'var(--color-bg-main)' }}>
-        <div className="sherpa-spinner" />
-      </div>
-    );
-  }
+  // 目標資格を設定済みのログインユーザーはアプリ本体へリダイレクト（クライアント判定・SSR安全）。
+  // ?view= または #about のときはランディングを表示したままにする。
+  useEffect(() => {
+    if (loading || !user) return;
+    const forceView =
+      new URLSearchParams(window.location.search).has('view') ||
+      window.location.hash === '#about';
+    if (!forceView && localStorage.getItem(`targetExam_${user.userId}`)) {
+      setDoRedirect(true);
+    }
+  }, [loading, user]);
 
-  const forceView = searchParams?.has('view') ||
-    (typeof window !== 'undefined' && window.location.hash === '#about');
-  if (user && !forceView && localStorage.getItem(`targetExam_${user.userId}`)) {
+  if (doRedirect) {
     return <Navigate to="/aws/" replace />;
   }
 
@@ -413,7 +419,7 @@ export default function Portal() {
 
       {/* ── 演習開始ボタン（固定） ── */}
       <div style={{
-        position: 'fixed', bottom: cookieConsent ? 0 : 72, left: 0, right: 0, zIndex: 500,
+        position: 'fixed', bottom: mounted && !cookieConsent ? 72 : 0, left: 0, right: 0, zIndex: 500,
         background: 'var(--color-bg-white)',
         borderTop: '1px solid var(--color-border)',
         padding: isMobile ? '10px 16px 16px' : '12px 24px 14px',
@@ -449,7 +455,7 @@ export default function Portal() {
       </div>
 
       {/* ── Cookie 同意バナー ── */}
-      {!cookieConsent && (
+      {mounted && !cookieConsent && (
         <div style={{
           position: 'fixed', bottom: 0, left: 0, right: 0, zIndex: 9999,
           background: 'var(--color-bg-white)',

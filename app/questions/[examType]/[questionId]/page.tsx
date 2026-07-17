@@ -113,8 +113,35 @@ export default async function QuestionPage(
   const domainName = qDomainName(q as any);
   const correctSet = new Set(q.correctAnswerIndices);
 
+  // 構造化データ（QAPage）: 検索エンジンに「問題・正解・解説」を明示する。表示には影響しない。
+  const correctTexts = (q.correctAnswers && q.correctAnswers.length > 0)
+    ? q.correctAnswers
+    : q.correctAnswerIndices.map(i => q.choices[i]).filter(Boolean);
+  const jsonLd = {
+    '@context': 'https://schema.org',
+    '@type': 'QAPage',
+    mainEntity: {
+      '@type': 'Question',
+      name: q.questionText.slice(0, 110),
+      text: q.questionText,
+      answerCount: 1,
+      acceptedAnswer: {
+        '@type': 'Answer',
+        text: `正解: ${correctTexts.join(' / ')}。${q.explanation}`,
+      },
+      suggestedAnswer: q.choices
+        .map((c, i) => ({ c, i }))
+        .filter(({ i }) => !correctSet.has(i))
+        .map(({ c, i }) => ({
+          '@type': 'Answer',
+          text: q.choiceExplanations?.[i] ? `${c} — ${q.choiceExplanations[i]}` : c,
+        })),
+    },
+  };
+
   return (
     <div style={{ maxWidth: 800, margin: '0 auto', padding: '40px 20px', fontFamily: 'system-ui, sans-serif' }}>
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }} />
       {/* パンくず */}
       <nav style={{ marginBottom: 24, fontSize: 14, color: '#666' }}>
         <Link href="/" style={{ color: '#0047A3', textDecoration: 'none' }}>無限ノック</Link>
