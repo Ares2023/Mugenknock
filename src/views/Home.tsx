@@ -208,7 +208,13 @@ function CombinedDetailModal({ targetExam, domainAccList, estimatedScore, passSc
   const [tab, setTab] = useState<'score' | 'history' | 'hiscore'>('score');
   const scoreTabRef = useRef<HTMLDivElement>(null);
   const [contentMinH, setContentMinH] = useState(0);
-  const [nodesVisible, setNodesVisible] = useState(false);
+  // ノード出現アニメーション制御: 各ノードを「右端からの距離 dk=(nodeWindow-1-ni)」で識別し、
+  // アニメ文字列を初出時に一度だけ確定して固定する（再レンダーで再計算＝中断/再発火しない）。
+  // 5→10拡張時は新規(左側)のみ右→左で表示、既存(右5個)は前回の文字列を再利用＝再生されない。
+  const prevWindowRef = useRef(nodeWindow);
+  const animStyleRef = useRef<Map<number, string>>(new Map());
+  // アニメ完了済みノード(dk)。タブ切替で戻っても再生しない（開き直し=モーダル再マウントでのみリセット）。
+  const playedRef = useRef<Set<number>>(new Set());
   const visitedTabs = useRef(new Set<string>(['score']));
 
   // スコアタブ（calc非表示時）の高さを記録してタブ切替でサイズが変わらないようにする
@@ -222,11 +228,15 @@ function CombinedDetailModal({ targetExam, domainAccList, estimatedScore, passSc
     return lockBodyScroll();
   }, []);
 
+  // レンダー後に prevWindow と animated を更新。非表示になったノード(dk>=nodeWindow)は
+  // 再表示時にまたアニメさせるため animated から外す。表示中の dk は animated に登録。
   useEffect(() => {
-    let id1: number, id2: number;
-    id1 = requestAnimationFrame(() => { id2 = requestAnimationFrame(() => setNodesVisible(true)); });
-    return () => { cancelAnimationFrame(id1); cancelAnimationFrame(id2); };
-  }, []);
+    prevWindowRef.current = nodeWindow;
+    // 非表示になったノード(dk>=nodeWindow)は再表示時にまたアニメさせるため記録を破棄。
+    const m = animStyleRef.current;
+    for (const k of [...m.keys()]) if (k >= nodeWindow) m.delete(k);
+    for (const k of [...playedRef.current]) if (k >= nodeWindow) playedRef.current.delete(k);
+  }, [nodeWindow]);
 
   useEffect(() => {
     visitedTabs.current.add(tab);
@@ -304,6 +314,7 @@ function CombinedDetailModal({ targetExam, domainAccList, estimatedScore, passSc
         <div style={{ minHeight: contentMinH || undefined }}>
         {tab === 'score' ? (
           <div ref={scoreTabRef}>
+            <style>{`@keyframes scoreNodePop { from { opacity: 0; transform: scale(0.3); } to { opacity: 1; transform: scale(1); } }`}</style>
             <div style={{ marginBottom: 16 }}>
               <span style={{ fontSize: 36, fontWeight: 800, color: 'var(--color-primary)', letterSpacing: '-1px' }}>{estimatedScore ?? '—'}</span>
               <span style={{ fontSize: 'var(--font-size-sm2)', color: 'var(--color-text-light)', marginLeft: 6 }}>/1000</span>
@@ -349,8 +360,28 @@ function CombinedDetailModal({ targetExam, domainAccList, estimatedScore, passSc
                     </div>
                     {/* ノード行 */}
                     <div style={{ display: 'flex', alignItems: 'center' }}>
-                      {paddedNodes.map((correct, ni) => (
-                        <React.Fragment key={ni}>
+                      {paddedNodes.map((correct, ni) => {
+                        const dk = nodeWindow - 1 - ni;                      // 右端からの距離
+                        // 完了済みノードは再生しない（タブ切替で戻っても静止）。
+                        // 未完了ノードのアニメ文字列は初出時に一度だけ確定して固定（再レンダーで中断/再発火させない）。
+                        let nodeAnim: string;
+                        if (playedRef.current.has(dk)) {
+                          nodeAnim = 'none';
+                        } else {
+                          const cached = animStyleRef.current.get(dk);
+                          if (cached !== undefined) {
+                            nodeAnim = cached;
+                          } else {
+                            const isExpand = nodeWindow > prevWindowRef.current;  // 直近5→10へ拡張中か
+                            const expandNewCount = isExpand ? nodeWindow - prevWindowRef.current : 0;
+                            // 拡張時の新規は右→左、通常(初回)は左→右。
+                            const delay = isExpand ? Math.max(0, expandNewCount - 1 - ni) * 70 : ni * 70;
+                            nodeAnim = `scoreNodePop 0.22s ease ${delay}ms both`;
+                            animStyleRef.current.set(dk, nodeAnim);
+                          }
+                        }
+                        return (
+                        <React.Fragment key={dk}>
                           {ni === 0
                             ? <div style={{ flex: 1, display: 'flex', alignItems: 'center' }}>
                                 <div style={{ flex: 1, display: 'flex', alignItems: 'center' }}>
@@ -362,17 +393,16 @@ function CombinedDetailModal({ targetExam, domainAccList, estimatedScore, passSc
                               </div>
                             : <div style={{ flex: 1, height: 1.5, background: '#AEBCBD' }} />
                           }
-                          <div style={{
+                          <div
+                            onAnimationEnd={() => { playedRef.current.add(dk); }}
+                            style={{
                             width: 14, height: 14, borderRadius: '50%', flexShrink: 0,
                             border: `1.5px solid ${correct === null ? '#AEBCBD' : correct ? 'var(--color-success)' : 'var(--color-danger)'}`,
                             background: correct === null ? 'transparent' : correct ? 'var(--color-feedback-correct-bg)' : 'var(--color-feedback-incorrect-bg)',
                             display: 'flex', alignItems: 'center', justifyContent: 'center',
                             fontSize: 8, fontWeight: 700, lineHeight: 1,
                             color: correct === null ? '#AEBCBD' : correct ? 'var(--color-success)' : 'var(--color-danger)',
-                            opacity: nodesVisible ? 1 : 0,
-                            transform: nodesVisible ? 'scale(1)' : 'scale(0.3)',
-                            transition: 'opacity 0.2s, transform 0.2s',
-                            transitionDelay: `${ni * 70}ms`,
+                            animation: nodeAnim,
                           }}>
                             {correct === null ? <span style={{ fontSize: 8, lineHeight: 1 }}>−</span>
                               : correct
@@ -381,7 +411,8 @@ function CombinedDetailModal({ targetExam, domainAccList, estimatedScore, passSc
                             }
                           </div>
                         </React.Fragment>
-                      ))}
+                        );
+                      })}
                     </div>
                     {/* 計算式=点数/合計（右揃え・横並び） */}
                     <div style={{ display: 'flex', justifyContent: 'flex-end', alignItems: 'baseline', marginTop: 3 }}>

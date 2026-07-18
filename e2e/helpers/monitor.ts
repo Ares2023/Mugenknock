@@ -32,13 +32,23 @@ export class PageMonitor {
     /Non-Error promise rejection captured/,
     /Warning: ReactDOM.render is deprecated/,
     /Support for defaultProps will be removed/,
+    // 第三者の解析/広告リソース。ビーコンのRUM送信がheadless環境でCORS/読込失敗しても
+    // アプリの不具合ではないため無視（テキストに当該ドメインが含まれる）。
+    /cloudflareinsights/,   // Cloudflare Web Analytics（/cdn-cgi/rum への RUM POST 等）
+    /googlesyndication/,    // Google AdSense
+    /doubleclick/,          // 広告配信
+    /pagead/,               // AdSense
   ];
 
-  // 無視するネットワーク URL パターン
+  // 無視するネットワーク URL パターン（第三者の解析/広告リソースは読込失敗しても無害）
   private readonly ignoreNetworkPatterns: RegExp[] = [
     /google-analytics/,
     /analytics/,
     /favicon\.ico/,
+    /cloudflareinsights/,   // Cloudflare Web Analytics ビーコン（headless環境で ERR_FAILED になりうる）
+    /googlesyndication/,    // Google AdSense
+    /doubleclick/,          // 広告配信
+    /pagead/,               // AdSense
   ];
 
   constructor(private readonly page: Page) {
@@ -47,10 +57,14 @@ export class PageMonitor {
       if (type !== 'error' && type !== 'warning') return;
       const text = msg.text();
       if (this.ignorePatterns.some(p => p.test(text))) return;
+      // 「Failed to load resource: net::ERR_*」等は失敗リソースのURLで判定し、
+      // 既知の第三者(解析/広告)ドメインの読込失敗は無視する。
+      const resUrl = msg.location()?.url ?? '';
+      if (resUrl && this.ignoreNetworkPatterns.some(p => p.test(resUrl))) return;
       this.consoleEntries.push({
         type: type as 'error' | 'warning',
         text,
-        url: page.url(),
+        url: resUrl || page.url(),
       });
     });
 
