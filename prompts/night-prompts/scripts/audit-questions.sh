@@ -687,9 +687,10 @@ print('''あなたはAWS認定試験の「問題生成・検証プロンプト�
 ''' + '\n\n'.join(blocks) + '''
 
 【出力形式】次のJSONのみを出力（説明文・前置き・コードブロック不要）。
-newContent は当該ファイルの「改良後の全文」を入れること（部分差分ではない）。
-{"summary":"全体の改良方針を1〜3文で","changes":[
-  {"file":"_common-rules.txt","rationale":"この変更がどの監査結果に対応するか","newContent":"<改良後のファイル全文>"}
+トークン節約のため、ファイル全文ではなく「そのファイルの末尾に追記する新しい観点(数行のみ)」を append に入れること。
+既存行の編集・削除はしない。同種の観点が既にあるファイルには追記しない。改良不要なら changes は空配列（[]）。
+{"summary":"改良方針を1〜2文で","changes":[
+  {"file":"_validity-extra.txt","rationale":"どの監査結果に対応するか(短く)","append":"末尾に追記する新しい観点(数行のみ・全文ではない)"}
 ]}''')
 PYEOF
 
@@ -697,9 +698,10 @@ PYEOF
     _IMPROVE_SKIP=0
     while true; do
       _IO=$(mktemp /tmp/audit_imp_out_XXXX); _IE=$(mktemp /tmp/audit_imp_err_XXXX)
-      # 永続する仕組み（生成・検証プロンプト規則）を書き換えるステップは Opus で実行し誤りを減らす
-      CLAUDE_CODE_MAX_OUTPUT_TOKENS=32000 "$CLAUDE_CMD" -p --model opus --tools "" < "$IMP_PROMPT" > "$_IO" 2> "$_IE"
-      RESULT=$(cat "$_IO"); _STDERR=$(cat "$_IE"); rm -f "$_IO" "$_IE"
+      # 永続する仕組み（生成・検証プロンプト規則）を書き換えるステップは Opus で実行し誤りを減らす。
+      # 出力は「追記する数行」だけなので上限は小さくてよい（トークン節約）。
+      CLAUDE_CODE_MAX_OUTPUT_TOKENS=6000 "$CLAUDE_CMD" -p --model opus --tools "" < "$IMP_PROMPT" > "$_IO" 2> "$_IE"
+      RESULT=$(head -c 4000 "$_IO"); _STDERR=$(cat "$_IE"); rm -f "$_IE"  # _IO(全文)はパース用に残す
       _RH=$(echo "$RESULT" | head -3)
       if echo "$_STDERR $_RH" | grep -qiE "529|Overloaded|rate.?limit|session.?limit|hit your|usage limit|too many requests" && [ $_OVERLOAD_RETRY -lt 2 ]; then
         _OVERLOAD_RETRY=$(( _OVERLOAD_RETRY + 1 )); echo "⚠️  レート制限。60秒後にリトライ（${_OVERLOAD_RETRY}/2）"; sleep 60; continue
@@ -713,13 +715,14 @@ PYEOF
     done
     rm -f "$IMP_PROMPT"
 
-    [ $_IMPROVE_SKIP -eq 1 ] && { echo "監査終了: $(date)"; exit 0; }
+    [ $_IMPROVE_SKIP -eq 1 ] && { rm -f "$_IO"; echo "監査終了: $(date)"; exit 0; }
 
-    # 適用（whitelist + バックアップ + 反破壊ガード + 差分記録）
-    RESULT="$RESULT" INSTRUCTION_DIR="$INSTRUCTION_DIR" BACKUP_DIR="$BACKUP_DIR" IMPROVE_REPORT="$IMPROVE_REPORT" DATE="$DATE" python3 << 'PYEOF'
-import json, os, sys, shutil, difflib
+    # 適用（whitelist + バックアップ + 重複ガード + 追記記録）。大きな出力は env ではなくファイルで受け取る。
+    IMP_RESULT_FILE="$_IO" INSTRUCTION_DIR="$INSTRUCTION_DIR" BACKUP_DIR="$BACKUP_DIR" IMPROVE_REPORT="$IMPROVE_REPORT" DATE="$DATE" python3 << 'PYEOF'
+import json, os, sys, shutil
 
-raw = os.environ.get('RESULT', '')
+_rf = os.environ.get('IMP_RESULT_FILE', '')
+raw = open(_rf).read() if _rf and os.path.isfile(_rf) else ''
 dec = json.JSONDecoder()
 obj = None
 start = raw.find('{')
@@ -744,36 +747,37 @@ ALLOWED = {'_common-rules.txt', '_validity-extra.txt'} | {f"{e}.txt" for e in AW
 
 changes = obj.get('changes') or []
 applied, skipped = [], []
+def _norm(s): return ''.join((s or '').split())
 for ch in changes:
     fn = (ch.get('file') or '').strip()
-    nc = ch.get('newContent')
+    ap = ch.get('append')
     rationale = (ch.get('rationale') or '').strip()
     if os.path.basename(fn) != fn or fn not in ALLOWED:
         skipped.append((fn, 'whitelist外')); continue
-    if not nc or not nc.strip():
-        skipped.append((fn, 'newContentが空')); continue
-    if not nc.endswith('\n'): nc += '\n'
+    if not ap or not str(ap).strip():
+        skipped.append((fn, 'appendが空')); continue
+    ap = str(ap).rstrip('\n')
+    if len(ap) > 1500:
+        skipped.append((fn, f'追記が長すぎ({len(ap)}字)のため拒否')); continue
     p = os.path.join(inst, fn)
     old = open(p).read() if os.path.isfile(p) else ''
-    if len(old) > 200 and len(nc) < 0.6 * len(old):
-        skipped.append((fn, f'大幅短縮のため拒否({len(old)}→{len(nc)}字)')); continue
-    if nc == old:
-        skipped.append((fn, '実質変更なし')); continue
+    # 既存とほぼ同一の観点は追記しない（重複防止）
+    if _norm(ap) and _norm(ap) in _norm(old):
+        skipped.append((fn, '既存と重複のため追記せず')); continue
     os.makedirs(backup, exist_ok=True)
     if os.path.isfile(p):
         shutil.copy2(p, os.path.join(backup, fn))
-    with open(p, 'w') as f:
-        f.write(nc)
-    diff = ''.join(difflib.unified_diff(old.splitlines(True), nc.splitlines(True),
-                                        fromfile=f'a/{fn}', tofile=f'b/{fn}'))
-    applied.append((fn, rationale, diff))
+    with open(p, 'a') as f:
+        if old and not old.endswith('\n'): f.write('\n')
+        f.write(ap + '\n')
+    applied.append((fn, rationale, ap))
 
 # 改良レポート(md)
 lines = [f"# プロンプト改良レポート ({os.environ['DATE']})", '',
          '## 改良方針', obj.get('summary', '(なし)'), '',
          f"## 適用 {len(applied)}件 / 見送り {len(skipped)}件", '']
-for fn, rationale, diff in applied:
-    lines += [f"### ✅ {fn}", f"**理由:** {rationale}", '', '```diff', diff.rstrip('\n'), '```', '']
+for fn, rationale, ap in applied:
+    lines += [f"### ✅ {fn}（末尾に追記）", f"**理由:** {rationale}", '', '```', ap, '```', '']
 for fn, why in skipped:
     lines.append(f"- ⏭️ {fn}: {why}")
 if applied:
@@ -793,6 +797,7 @@ if applied:
     print(f"バックアップ: {backup}")
     print("※ 次回以降の生成(01)・検証(02)からこの改良が反映されます。")
 PYEOF
+    rm -f "$_IO"
   fi
 fi
 
