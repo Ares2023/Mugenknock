@@ -546,7 +546,7 @@ if [ -x "$CANARY_SCRIPT" ]; then
   # 失敗詳細は FAIL 時のみ・実マーカー（✘/❌/FAIL）に限定する。
   # PASS 時に "error" 部分一致で S3 パス等を拾い赤字表示していた誤りを防ぐ。
   if [ "$CANARY_EXIT" -ne 0 ]; then
-    CANARY_DETAIL=$(grep -E "✘|❌|FAIL" "$CANARY_TMP" | head -80 || true)
+    CANARY_DETAIL=$(grep -E "✘|❌|FAIL" "$CANARY_TMP" | head -30 || true)
   else
     CANARY_DETAIL=""
   fi
@@ -576,7 +576,7 @@ if [ -x "$CANARY_AUTH_SCRIPT" ]; then
     CANARY_AUTH_RESULT="$([ "$CA_EXIT" -eq 0 ] && echo '✅ PASS' || echo '❌ FAIL') (passed=${CA_PASS} failed=${CA_FAIL})"
     # 失敗詳細は FAIL 時のみ・実マーカーに限定（error 部分一致のノイズを排除）。
     if [ "$CA_EXIT" -ne 0 ]; then
-      CANARY_AUTH_DETAIL=$(grep -E "✘|❌|FAIL" "$CA_TMP" | head -80 || true)
+      CANARY_AUTH_DETAIL=$(grep -E "✘|❌|FAIL" "$CA_TMP" | head -30 || true)
     fi
   fi
   rm -f "$CA_TMP"
@@ -609,19 +609,25 @@ exams = sorted({r.get('examType', '') for r in rs if r.get('examType')})
 exam_note = f"（{'/'.join(exams)}）" if exams else ''
 lines = [f"監査 {len(rs)}問{exam_note}: OK {vc.get('ok',0)} / 注意 {vc.get('warn',0)} / 要修正 {vc.get('ng',0)}"]
 
-# 指摘のあった問題は指摘内容を全文で列挙（従来は件数のみで中身が見えなかった）
+# 指摘のあった問題を列挙。ng(要修正=自動修正対象)は全文、warn(注意)は1行要約＋上限で
+# レポート量を抑える（トークン不足対策・メール肥大化防止）。
 flagged = [r for r in rs if r.get('verdict') in ('warn', 'ng')]
+def _extra(r):
+    d = r.get('difficulty')
+    return f"（難易度: {d}）" if d and d != 'appropriate' else ''
 if flagged:
     lines.append('【指摘のあった問題】')
-    for r in flagged:
-        mark = '✖' if r.get('verdict') == 'ng' else '⚠'
-        extra = ''
-        diff_v = r.get('difficulty')
-        if diff_v and diff_v != 'appropriate':
-            extra = f"（難易度: {diff_v}）"
-        lines.append(f"{mark} {r.get('questionId', '?')}{extra}")
+    for r in [x for x in flagged if x.get('verdict') == 'ng']:
+        lines.append(f"✖ {r.get('questionId', '?')}{_extra(r)}")
         for issue in (r.get('issues') or []):
             lines.append(f"・{issue}")
+    warn_items = [x for x in flagged if x.get('verdict') == 'warn']
+    WARN_CAP = 10
+    for r in warn_items[:WARN_CAP]:
+        first = (r.get('issues') or ['(詳細なし)'])[0]
+        lines.append(f"⚠ {r.get('questionId', '?')}{_extra(r)}: {first}")
+    if len(warn_items) > WARN_CAP:
+        lines.append(f"…他 warn {len(warn_items) - WARN_CAP} 件（詳細は生データ audit_*.json 参照）")
 
 # 直近3日以内に生成された改良のみ対象にする。最新ファイルを無条件に読むと、
 # 何日も前に一度適用した改良を毎晩「今夜の成果」として重複再掲してしまうため。
