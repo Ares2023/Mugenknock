@@ -62,20 +62,29 @@ echo ""
 echo "--- [1] AWS資格公式情報 変更チェック ---"
 
 CERT_NEWS="取得失敗"
-if [ -n "${CLAUDE_CMD:-}" ] && [ -x "${CLAUDE_CMD:-}" ]; then
+# 資格変更チェックはLLM+WebFetch(大きなページ取得)でトークンを消費する。変更は稀なので
+# 週次(月曜)のみ実行してトークンを節約する。他曜日はLLMを呼ばずスキップ。
+_CERT_DOW=$(date '+%u' 2>/dev/null || echo 1)  # 1=月 .. 7=日
+if [ -z "${CLAUDE_CMD:-}" ] || [ ! -x "${CLAUDE_CMD:-}" ]; then
+  CERT_NEWS="Claude コマンドが見つからないため取得不可"
+  echo "  ⚠️  Claude 未検出"
+elif [ "$_CERT_DOW" != "1" ]; then
+  CERT_NEWS="資格変更チェックは週次（月曜のみ実行）。今夜はスキップ。"
+  echo "  資格変更チェック: 週次（月曜のみ実行）。今夜はスキップ（トークン節約）。"
+else
 
-  # ── フェーズ1: 直近3日の声明を高速スキャン（設定値は注入しない）──
+  # ── フェーズ1: 直近7日の声明を高速スキャン（週次実行・設定値は注入しない）──
   SCAN_PROMPT=$(mktemp /tmp/cert_scan_XXXX.txt)
-  SCAN_SINCE=$(date -d '3 days ago' '+%Y-%m-%d' 2>/dev/null || date -v-3d '+%Y-%m-%d' 2>/dev/null || echo "")
+  SCAN_SINCE=$(date -d '7 days ago' '+%Y-%m-%d' 2>/dev/null || date -v-7d '+%Y-%m-%d' 2>/dev/null || echo "")
   cat > "$SCAN_PROMPT" << PROMPT
-以下の2つのURLを確認し、${SCAN_SINCE}以降（直近3日以内）に公開されたAWS認定試験の変更声明だけを抽出してください。
+以下の2つのURLを確認し、${SCAN_SINCE}以降（直近7日以内）に公開されたAWS認定試験の変更声明だけを抽出してください。
 
 確認URL:
 - https://aws.amazon.com/certification/coming-soon/
 - https://aws.amazon.com/blogs/training-and-certification/
 
 【出力形式】JSONのみ。前置き・説明文不要。
-直近3日以内に変更声明がなければ: {"has_changes": false}
+直近7日以内に変更声明がなければ: {"has_changes": false}
 変更声明がある場合:
 {
   "has_changes": true,
@@ -167,7 +176,7 @@ PYEOF
 AWS認定試験学習サイトの運営担当です。
 以下の直近の公式声明について、このサイトで対応が必要かどうかを判断してください。
 
-【直近3日以内の公式声明】
+【直近7日以内の公式声明】
 ${CHANGE_SUMMARY}
 
 【影響を受ける資格の現在のサイト設定】
@@ -195,11 +204,8 @@ PROMPT
     echo "$CERT_NEWS" | head -5
   else
     CERT_NEWS="変更なし（対応不要）"
-    echo "  直近3日以内の変更声明なし"
+    echo "  直近7日以内の変更声明なし"
   fi
-else
-  CERT_NEWS="Claude コマンドが見つからないため取得不可"
-  echo "  ⚠️  Claude 未検出"
 fi
 
 # ── 2. 夜間スクリプト成果をログから集計 ─────────────────────
