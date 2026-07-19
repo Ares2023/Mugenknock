@@ -48,6 +48,8 @@ show_help() {
 usage: refresh-exam-guide.sh [EXAM...] [-h]
 
   EXAM   更新する資格コード（CLF / SAA / AIP 等）。省略時は全資格を更新
+  --max-age-days N  LAST_REFRESHED が N 日以内の資格はスキップ（定期実行の自己スロットル）
+  --max-per-run N   1回の実行で更新する資格を古い順に N 件までに制限（複数日へ分散）
   -h     このヘルプを表示
 
 挙動:
@@ -59,17 +61,50 @@ EOF
 }
 
 MAX_AGE_DAYS=0   # >0 のとき: LAST_REFRESHED がこの日数以内の資格はスキップ（定期実行の自己スロットル用）
+MAX_PER_RUN=0    # >0 のとき: この1回の実行で更新する資格を「最終更新が古い順」に上限件数まで絞る（複数日に分散）
 TARGET_EXAMS=()
 while [[ $# -gt 0 ]]; do
   case "$1" in
     -h|--help) show_help; exit 0 ;;
     --max-age-days) MAX_AGE_DAYS="${2:-0}"; shift 2 ;;
+    --max-per-run) MAX_PER_RUN="${2:-0}"; shift 2 ;;
     *) TARGET_EXAMS+=("$1"); shift ;;
   esac
 done
 [ ${#TARGET_EXAMS[@]} -eq 0 ] && TARGET_EXAMS=("${ALL_EXAMS[@]}")
 
+# 複数日分散: MAX_PER_RUN>0 のとき、更新対象を「最終更新が古い順」に MAX_PER_RUN 件へ絞る。
+# 重いWebFetchが1晩に集中しないよう、12資格が同時に陳腐化しても数日かけてローテーション更新する。
+# 更新した資格は LAST_REFRESHED が当日=最新になり列の最後尾へ回るため、自然に巡回する。
+if [ "$MAX_PER_RUN" -gt 0 ]; then
+  _now_epoch=$(date +%s)
+  _scored=()   # "epoch<TAB>exam"（未更新/古いほど epoch が小さく先頭に来る）
+  for _e in "${TARGET_EXAMS[@]}"; do
+    _f="${INSTRUCTION_DIR}/${_e}.txt"
+    [ -f "$_f" ] || continue
+    _lr=$(grep "^# LAST_REFRESHED:" "$_f" | head -1 | sed 's/^# LAST_REFRESHED: *//')
+    _le=$(date -d "${_lr:-1970-01-01}" +%s 2>/dev/null || echo 0)
+    # MAX_AGE_DAYS 以内に更新済み（十分新しい）は今回の候補から除外
+    if [ "$MAX_AGE_DAYS" -gt 0 ] && [ "$_le" -gt 0 ]; then
+      _age=$(( (_now_epoch - _le) / 86400 ))
+      [ "$_age" -lt "$MAX_AGE_DAYS" ] && continue
+    fi
+    _scored+=("${_le}	${_e}")
+  done
+  if [ ${#_scored[@]} -eq 0 ]; then
+    TARGET_EXAMS=()
+  else
+    mapfile -t TARGET_EXAMS < <(printf '%s\n' "${_scored[@]}" | sort -n | head -n "$MAX_PER_RUN" | cut -f2)
+  fi
+  echo "分散更新: 古い順 最大${MAX_PER_RUN}件 → ${TARGET_EXAMS[*]:-（今回の対象なし）}"
+fi
+
 TODAY=$(date '+%Y-%m-%d')
+
+if [ ${#TARGET_EXAMS[@]} -eq 0 ]; then
+  echo "更新対象の資格がありません（すべて ${MAX_AGE_DAYS}日以内に更新済み）。終了します。"
+  exit 0
+fi
 
 echo "=========================================="
 echo "試験ガイド更新: $(date)"
