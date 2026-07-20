@@ -1,0 +1,11 @@
+# Fargate夜間バッチ用イメージには不要な重量物を除外
+.git
+node_modules
+out
+.next
+*.log
+prompts/logs
+prompts/night-prompts/logs
+prompts/night-prompts/scripts/logs
+.env.local
+.env.production
