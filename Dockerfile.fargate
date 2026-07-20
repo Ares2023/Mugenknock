@@ -34,6 +34,7 @@ COPY . .
 RUN chmod +x /app/scripts/fargate-entrypoint.sh \
              /app/scripts/fargate-hook-entrypoint.sh \
              /app/scripts/fargate-report-entrypoint.sh \
+             /app/scripts/fargate-ping-entrypoint.sh \
     && chown -R node:node /app /home/node
 
 USER node

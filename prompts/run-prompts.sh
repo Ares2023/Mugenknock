@@ -721,7 +721,7 @@ PYEOF
       # ── ping: Claudeセッションを開始させるための軽い呼び出し ──
       #    JSON出力で usage.output_tokens / session_id / is_error を取得し、
       #    「応答テキストはあるが実受信していない（見せかけOK）」を検知できるようにする。
-      if [ "${is_deadline:-0}" -eq 0 ]; then
+      if [ "${is_deadline:-0}" -eq 0 ] && [ "${SKIP_PING:-0}" != "1" ]; then
         echo "▶ [ping] Claudeセッション確認..."
         local _pt0=$(date +%s)
         local _ping_out _ping_ec
@@ -782,10 +782,10 @@ print(f"{status}|{out_tok}|{sid}|{result}")
         fi
       fi
 
-      if [ $is_rate_limited -eq 0 ] && [ "${is_deadline:-0}" -eq 0 ]; then
+      if [ $is_rate_limited -eq 0 ] && [ "${is_deadline:-0}" -eq 0 ] && [ "${PING_ONLY:-0}" != "1" ]; then
         TODAY=$(date +%Y-%m-%d)
         HOUR=$(date +%-H)
-        if [ "$force_night" -eq 1 ] || { [ "$TODAY" != "$(cat "$SCRIPT_DIR/.last_run_date" 2>/dev/null)" ] && [ "$HOUR" -lt 5 ]; }; then
+        if [ "$force_night" -eq 1 ] || [ "${FORCE_NIGHT:-0}" = "1" ] || { [ "$TODAY" != "$(cat "$SCRIPT_DIR/.last_run_date" 2>/dev/null)" ] && [ "$HOUR" -lt 5 ]; }; then
           if [ "$force_night" -eq 1 ]; then
             echo "🌙 夜間タスク手動実行 ($(date '+%H:%M'))$([ "$TODAY" = "$(cat "$SCRIPT_DIR/.last_run_date" 2>/dev/null)" ] && echo " ※本日完了済みのため再実行")"
           else
