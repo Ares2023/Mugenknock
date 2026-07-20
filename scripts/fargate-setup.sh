@@ -229,6 +229,21 @@ if [ -z "$TASK_ROLE_ARN" ]; then
       "Effect": "Allow",
       "Action": ["iam:PassRole"],
       "Resource": "arn:aws:iam::${ACCOUNT_ID}:role/${PROJECT}-eventbridge-fargate"
+    },
+    {
+      "Effect": "Allow",
+      "Action": ["cloudwatch:GetMetricData","cloudwatch:GetMetricStatistics","ce:GetCostAndUsage"],
+      "Resource": "*"
+    },
+    {
+      "Effect": "Allow",
+      "Action": ["logs:FilterLogEvents","logs:GetLogEvents","logs:DescribeLogGroups","logs:DescribeLogStreams"],
+      "Resource": "arn:aws:logs:${REGION}:${ACCOUNT_ID}:log-group:/aws/lambda/awsquizHandler-*"
+    },
+    {
+      "Effect": "Allow",
+      "Action": ["s3:GetObject","s3:ListBucket"],
+      "Resource": ["arn:aws:s3:::mugenknock-error-logs","arn:aws:s3:::mugenknock-error-logs/*"]
     }
   ]
 }

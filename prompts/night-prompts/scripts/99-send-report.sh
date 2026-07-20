@@ -531,36 +531,48 @@ CANARY_FAIL=0
 CANARY_WARNINGS=0
 CANARY_EXIT=0
 
-if [ -x "$CANARY_SCRIPT" ]; then
-  CANARY_TMP=$(mktemp /tmp/canary_out_XXXX.txt)
-  bash "$CANARY_SCRIPT" > "$CANARY_TMP" 2>&1
-  CANARY_EXIT=$?
-  # canary.sh 自身が出力する権威あるサマリー行（" passed=X  failed=Y  warnings=Z"）を信頼する。
-  # ✓/✘ マークの再カウントはログ本文や S3 パス（mugenknock-error-logs 等）を巻き込んで
-  # 実態と乖離するため使わない。
-  CANARY_SUMMARY_LINE=$(grep -oE 'passed=[0-9]+[[:space:]]+failed=[0-9]+[[:space:]]+warnings=[0-9]+' "$CANARY_TMP" | tail -1)
-  if [ -n "$CANARY_SUMMARY_LINE" ]; then
-    CANARY_PASS=$(echo "$CANARY_SUMMARY_LINE" | grep -oE 'passed=[0-9]+' | cut -d= -f2)
-    CANARY_FAIL=$(echo "$CANARY_SUMMARY_LINE" | grep -oE 'failed=[0-9]+' | cut -d= -f2)
-    CANARY_WARNINGS=$(echo "$CANARY_SUMMARY_LINE" | grep -oE 'warnings=[0-9]+' | cut -d= -f2)
-  else
-    CANARY_PASS=$(awk '/✓/{c++} END{print c+0}' "$CANARY_TMP")
-    CANARY_FAIL=$(awk '/✘/{c++} END{print c+0}' "$CANARY_TMP")
-    CANARY_WARNINGS=$(awk '/⚠️/{c++} END{print c+0}' "$CANARY_TMP")
-  fi
-  CANARY_RESULT="$([ "$CANARY_EXIT" -eq 0 ] && echo '✅ PASS' || echo '❌ FAIL') (passed=${CANARY_PASS} failed=${CANARY_FAIL} warnings=${CANARY_WARNINGS})"
-  # 失敗詳細は FAIL 時のみ・実マーカー（✘/❌/FAIL）に限定する。
-  # PASS 時に "error" 部分一致で S3 パス等を拾い赤字表示していた誤りを防ぐ。
-  if [ "$CANARY_EXIT" -ne 0 ]; then
-    CANARY_DETAIL=$(grep -E "✘|❌|FAIL" "$CANARY_TMP" | head -30 || true)
-  else
-    CANARY_DETAIL=""
-  fi
-  rm -f "$CANARY_TMP"
+# canary はライブ実行せず、S3(mugenknock-error-logs/canary-logs/)の最新結果を読む。
+# canary 本体(canary.sh)はローカル/専用タスクで実行し、その結果をここで参照する
+# （Fargateレポートにplaywrightを同梱しないための方針）。
+CANARY_S3_BUCKET="mugenknock-error-logs"
+CANARY_S3_PREFIX="canary-logs"
+CANARY_REGION="${REGION:-ap-northeast-1}"
+CANARY_DETAIL=""
+CANARY_LATEST_KEY=$("$AWS" s3api list-objects-v2 \
+  --bucket "$CANARY_S3_BUCKET" --prefix "${CANARY_S3_PREFIX}/" \
+  --query "reverse(sort_by(Contents[?ends_with(Key, '.json')], &LastModified))[0].Key" \
+  --output text --region "$CANARY_REGION" 2>/dev/null)
+if [ -n "$CANARY_LATEST_KEY" ] && [ "$CANARY_LATEST_KEY" != "None" ]; then
+  CANARY_JSON_TMP=$(mktemp)
+  "$AWS" s3 cp "s3://${CANARY_S3_BUCKET}/${CANARY_LATEST_KEY}" "$CANARY_JSON_TMP" --quiet --region "$CANARY_REGION" 2>/dev/null
+  # env/ts/age は空白を含まない単一トークンなので read で安全に取得
+  read -r CANARY_PASS CANARY_FAIL CANARY_WARNINGS CANARY_EXIT CANARY_ENV CANARY_TS CANARY_AGE < <(python3 -c "
+import json,datetime
+try:
+    d=json.load(open('$CANARY_JSON_TMP'))
+except Exception:
+    print('0 0 0 1 ? ? ?'); raise SystemExit
+ts=d.get('timestamp','?')
+try:
+    t=datetime.datetime.strptime(ts,'%Y%m%d-%H%M%S'); days=(datetime.datetime.now()-t).days
+    age=('本日' if days<=0 else str(days)+'日前')
+except Exception:
+    age='?'
+print(d.get('passed',0), d.get('failed',0), d.get('warnings',0), d.get('exit_code',1), d.get('env','?'), ts, age)
+")
+  rm -f "$CANARY_JSON_TMP"
+  CANARY_RESULT="$([ "${CANARY_EXIT:-1}" -eq 0 ] && echo '✅ PASS' || echo '❌ FAIL') (passed=${CANARY_PASS} failed=${CANARY_FAIL} warnings=${CANARY_WARNINGS}) [${CANARY_ENV} 最終${CANARY_TS} ${CANARY_AGE}]"
   echo "  $CANARY_RESULT"
-  [ -n "$CANARY_DETAIL" ] && echo "  失敗詳細:" && echo "$CANARY_DETAIL" | sed 's/^/    /'
+  if [ "${CANARY_AGE}" != "本日" ] && [ "${CANARY_AGE}" != "?" ]; then
+    echo "  ⚠️ 最新canaryが古い（${CANARY_AGE}）。canary.sh を実行して更新してください"
+  fi
+  if [ "${CANARY_EXIT:-1}" -ne 0 ]; then
+    CANARY_DETAIL="最新canary(${CANARY_TS} ${CANARY_ENV})がFAIL。ログ: s3://${CANARY_S3_BUCKET}/${CANARY_LATEST_KEY%.json}.log"
+    echo "  失敗詳細: $CANARY_DETAIL"
+  fi
 else
-  echo "  ⚠️  canary.sh が見つかりません"
+  echo "  ⚠️ S3にcanary結果がありません（canary.sh未実行）: s3://${CANARY_S3_BUCKET}/${CANARY_S3_PREFIX}/"
+  CANARY_RESULT="結果なし（S3にcanary記録なし）"
 fi
 
 # 認証カナリア（ログイン後の主要フロー）。認証情報未設定なら SKIP。
