@@ -358,6 +358,51 @@ PYEOF
     --region "$REGION" > /dev/null
 ok "フック用タスク定義登録: $HOOK_FAMILY"
 
+# ── 8c. レポート用タスク定義 (99-send-report のみ実行・手動/検証用) ──
+REPORT_FAMILY="${PROJECT}-night-report"
+log "8c. レポート用タスク定義 (${REPORT_FAMILY})..."
+REPORT_TASK_DEF_JSON=$(python3 - << PYEOF
+import json
+td = {
+  "family": "${REPORT_FAMILY}",
+  "requiresCompatibilities": ["FARGATE"],
+  "networkMode": "awsvpc",
+  "cpu": "512",
+  "memory": "1024",
+  "executionRoleArn": "${EXEC_ROLE_ARN}",
+  "taskRoleArn": "${TASK_ROLE_ARN}",
+  "containerDefinitions": [{
+    "name": "${REPORT_FAMILY}",
+    "image": "${ECR_URI}:latest",
+    "essential": True,
+    "entryPoint": ["/app/scripts/fargate-report-entrypoint.sh"],
+    "environment": [
+      {"name": "FARGATE_MODE",         "value": "1"},
+      {"name": "FARGATE_STATE_BUCKET", "value": "${S3_BUCKET}"},
+      {"name": "TZ",                   "value": "Asia/Tokyo"}
+    ],
+    "secrets": [
+      {"name": "SMTP_USER",         "valueFrom": "${SECRET_ARN}:SMTP_USER::"},
+      {"name": "SMTP_PASS",         "valueFrom": "${SECRET_ARN}:SMTP_PASS::"}
+    ],
+    "logConfiguration": {
+      "logDriver": "awslogs",
+      "options": {
+        "awslogs-group":         "${LOG_GROUP}",
+        "awslogs-region":        "${REGION}",
+        "awslogs-stream-prefix": "report"
+      }
+    }
+  }]
+}
+print(json.dumps(td))
+PYEOF
+)
+"$AWS" ecs register-task-definition \
+    --cli-input-json "$REPORT_TASK_DEF_JSON" \
+    --region "$REGION" > /dev/null
+ok "レポート用タスク定義登録: $REPORT_FAMILY"
+
 # ── 9. EventBridgeスケジューラー用ロール ─────────────────────
 log "9. EventBridgeスケジューラー..."
 SCHED_ROLE_ARN=$("$AWS" iam get-role --role-name "$SCHED_ROLE" \
