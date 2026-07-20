@@ -486,8 +486,9 @@ EOF
 _send_login_alert() {
   local reason="$1"
   local mail_conf="${HOME}/.mugenknock_mail.conf"
-  local smtp_user="" smtp_pass="" smtp_to="mugenknock@gmail.com"
+  local SMTP_USER="" SMTP_PASS="" SMTP_TO="mugenknock@gmail.com"
   [ -f "$mail_conf" ] && source "$mail_conf"
+  local smtp_user="$SMTP_USER" smtp_pass="$SMTP_PASS" smtp_to="${SMTP_TO:-mugenknock@gmail.com}"
   if [ -z "$smtp_user" ] || [ -z "$smtp_pass" ]; then
     echo "  ⚠️  メール設定未設定のためアラート送信スキップ ($mail_conf)"
     return

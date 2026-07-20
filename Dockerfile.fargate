@@ -21,10 +21,19 @@ RUN pip3 install boto3 --break-system-packages
 # 既存スクリプトのハードコードパスへの互換シムリンク
 RUN mkdir -p /home/yuzuki/local/bin && ln -sf /usr/local/bin/aws /home/yuzuki/local/bin/aws
 
+# claude --dangerously-skip-permissions はroot下で拒否されるため非rootで動かす。
+# node:20-slim に既存の "node" ユーザ (uid 1000) を使う。
+# 自動更新は非rootで失敗し得るので無効化。
+ENV DISABLE_AUTOUPDATER=1 \
+    HOME=/home/node
+
 WORKDIR /app
 COPY . .
 
 RUN chmod +x /app/scripts/fargate-entrypoint.sh \
-             /app/scripts/fargate-hook-entrypoint.sh
+             /app/scripts/fargate-hook-entrypoint.sh \
+    && chown -R node:node /app /home/node
+
+USER node
 
 ENTRYPOINT ["/app/scripts/fargate-entrypoint.sh"]
