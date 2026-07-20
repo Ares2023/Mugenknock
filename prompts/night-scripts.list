@@ -29,6 +29,10 @@
 50,/home/yuzuki/aws-quiz-app/prompts/night-prompts/scripts/05-check-daily-services.sh
 # 日めくり記事の生成（カタログ確定の現行サービスのみ・検証済みdocUrl）。最後に回す。
 55,/home/yuzuki/aws-quiz-app/prompts/night-prompts/scripts/04-generate-daily-services.sh
+# 改行チェック（軽量モデル/Haiku）。検証(02)から外した体裁(改行)の可読性を低コストで担保する。
+# 問題文・解説・選択肢別解説の改行のみ整え、非空白文字の変化は決定的ガードで破棄（内容は不変）。
+# 生成後・監査前に回す。linebreakCheckedAt 未設定を優先し古い順に回転（引数非対応のため既定 -n 20）。
+58,/home/yuzuki/aws-quiz-app/prompts/night-prompts/scripts/09-check-linebreaks.sh
 # 問題の品質監査＋プロンプト継続改良（改善モード-i）。直近に生成・確認した問題を監査し、
 # systemicな品質問題があれば生成(01)・検証(02)のプロンプト規則を最小限・追記的に自動改良する。
 # 生成・検証より後（改良は次回夜間から反映）。改良内容は audit_<日時>_improvement.md に出力。
