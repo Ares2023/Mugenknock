@@ -17,6 +17,9 @@ PROMPTS_DIR="/app/prompts"
 
 log() { printf '[%s] %s\n' "$(date '+%H:%M:%S')" "$*"; }
 
+# ログ書き戻し用ディレクトリを用意 (イメージに同梱されないため)
+mkdir -p "$NIGHT_LOG_DIR"
+
 # 1. メール設定をファイルに書き出し (env → ~/.mugenknock_mail.conf)
 if [ -n "${SMTP_USER:-}" ] && [ -n "${SMTP_PASS:-}" ]; then
     cat > ~/.mugenknock_mail.conf << EOF

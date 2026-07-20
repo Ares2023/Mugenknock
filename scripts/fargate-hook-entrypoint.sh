@@ -17,6 +17,9 @@ NIGHT_LOG_DIR="$SCRIPTS_DIR/logs"
 
 log() { printf '[%s] %s\n' "$(date '+%H:%M:%S')" "$*"; }
 
+# ログ書き戻し用ディレクトリを用意 (イメージに同梱されないため)
+mkdir -p "$NIGHT_LOG_DIR"
+
 # メール設定
 if [ -n "${SMTP_USER:-}" ] && [ -n "${SMTP_PASS:-}" ]; then
     cat > ~/.mugenknock_mail.conf << EOF
