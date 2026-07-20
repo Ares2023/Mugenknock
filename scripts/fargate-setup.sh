@@ -554,23 +554,37 @@ PYEOF
 )" --region "$REGION"
 
 # EventBridgeルール → SNSターゲット
+# InputTemplate は「二重引用符で囲んだJSON文字列」でなければならない (改行は \n)
+EB_TARGETS_FILE=$(mktemp)
+ALERT_TOPIC_ARN="$ALERT_TOPIC_ARN" PROJECT="$PROJECT" python3 - "$EB_TARGETS_FILE" << 'PYEOF'
+import json, os, sys
+tmpl = ('"[mugenknock] Fargateタスク失敗\\n\\n'
+        '時刻: <time>\\n'
+        'タスク: <taskArn>\\n'
+        '停止コード: <stopCode>\\n'
+        '理由: <stopReason>\\n\\n'
+        'CloudWatch Logs \\u2192 /ecs/%s-night-batch"' % os.environ['PROJECT'])
+targets = [{
+  "Id": "sns-alert",
+  "Arn": os.environ['ALERT_TOPIC_ARN'],
+  "InputTransformer": {
+    "InputPathsMap": {
+      "taskArn":    "$.detail.taskArn",
+      "stopCode":   "$.detail.stopCode",
+      "stopReason": "$.detail.stoppedReason",
+      "time":       "$.time"
+    },
+    "InputTemplate": tmpl
+  }
+}]
+with open(sys.argv[1], "w") as f:
+    json.dump(targets, f)
+PYEOF
 "$AWS" events put-targets \
     --rule "$EB_RULE_NAME" \
-    --targets "[{
-        \"Id\": \"sns-alert\",
-        \"Arn\": \"${ALERT_TOPIC_ARN}\",
-        \"InputTransformer\": {
-            \"InputPathsMap\": {
-                \"cluster\":    \"$.detail.clusterArn\",
-                \"taskArn\":    \"$.detail.taskArn\",
-                \"stopCode\":   \"$.detail.stopCode\",
-                \"stopReason\": \"$.detail.stoppedReason\",
-                \"time\":       \"$.time\"
-            },
-            \"InputTemplate\": \"[mugenknock] Fargateタスク失敗\\n\\n時刻: <time>\\nタスク: <taskArn>\\n停止コード: <stopCode>\\n理由: <stopReason>\\n\\nCloudWatch Logs → /ecs/${PROJECT}-night-batch\"
-        }
-    }]" \
+    --targets "file://${EB_TARGETS_FILE}" \
     --region "$REGION" > /dev/null
+rm -f "$EB_TARGETS_FILE"
 ok "失敗通知ルール作成: $EB_RULE_NAME → $ALERT_EMAIL"
 
 # ── 完了 ──────────────────────────────────────────────────────
