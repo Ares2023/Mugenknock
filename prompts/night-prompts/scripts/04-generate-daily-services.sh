@@ -15,7 +15,7 @@
 set -uo pipefail
 
 export PATH="/home/yuzuki/local/bin:$PATH"
-unset ANTHROPIC_API_KEY
+[ "${FARGATE_MODE:-0}" = "1" ] || unset ANTHROPIC_API_KEY
 
 _find_claude() {
   [ -x /usr/local/bin/claude ] && { echo /usr/local/bin/claude; return; }

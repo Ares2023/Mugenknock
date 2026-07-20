@@ -16,7 +16,7 @@
 set -uo pipefail
 
 export PATH="/home/yuzuki/local/bin:/home/sera/.config/nvm/versions/node/v20.20.2/bin:$PATH"
-unset ANTHROPIC_API_KEY
+[ "${FARGATE_MODE:-0}" = "1" ] || unset ANTHROPIC_API_KEY
 
 # scripts/ 配下のどの深さに置かれても動作するパス解決
 _d="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"

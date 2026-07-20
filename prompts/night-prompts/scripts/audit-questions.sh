@@ -15,7 +15,7 @@
 set -uo pipefail
 
 export PATH="/home/yuzuki/local/bin:/home/sera/.config/nvm/versions/node/v20.20.2/bin:$PATH"
-unset ANTHROPIC_API_KEY
+[ "${FARGATE_MODE:-0}" = "1" ] || unset ANTHROPIC_API_KEY
 
 _EDR_SD="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd 2>/dev/null || true)"
 export EXAM_DOMAINS_JSON_PATH="${EXAM_DOMAINS_JSON_PATH:-${_EDR_SD}/../../../src/data/examDomains.json}"

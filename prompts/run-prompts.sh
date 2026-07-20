@@ -302,6 +302,7 @@ EOF
 
 # ── 次の実行時刻を予約する ───────────────────────────────────
 schedule_next() {
+  [ "${FARGATE_MODE:-0}" = "1" ] && return 0
   local mode="${1:-cycle}"
   local arg="${2:-}"
   local start_epoch="${3:-}"   # run開始時刻(epoch秒) — cycle自動スケジュール用
@@ -395,6 +396,7 @@ PYEOF
 # $2 = "service" : systemd サービス内から呼ぶ場合 (cgroup 脱出が必要)
 # $2 = ""        : インタラクティブ端末から呼ぶ場合 (直接登録)
 schedule_hooks() {
+  [ "${FARGATE_MODE:-0}" = "1" ] && return 0
   local main_time="$1"
   local context="${2:-}"
   [ ! -f "$HOOKS_FILE" ] || [ ! -s "$HOOKS_FILE" ] && return 0
@@ -478,6 +480,49 @@ EOF
     echo "hook[$idx] 予約: $hook_time (${sign}${offset}分) | $cmd"
     idx=$(( idx + 1 ))
   done < "$HOOKS_FILE"
+}
+
+# ── セッション開始失敗アラートメール ─────────────────────────────
+_send_login_alert() {
+  local reason="$1"
+  local mail_conf="${HOME}/.mugenknock_mail.conf"
+  local smtp_user="" smtp_pass="" smtp_to="mugenknock@gmail.com"
+  [ -f "$mail_conf" ] && source "$mail_conf"
+  if [ -z "$smtp_user" ] || [ -z "$smtp_pass" ]; then
+    echo "  ⚠️  メール設定未設定のためアラート送信スキップ ($mail_conf)"
+    return
+  fi
+  local _ts; _ts=$(date '+%Y-%m-%d %H:%M:%S')
+  local _result
+  _result=$(ALERT_SMTP_USER="$smtp_user" ALERT_SMTP_PASS="$smtp_pass" \
+            ALERT_SMTP_TO="$smtp_to" ALERT_BODY="$reason" ALERT_TS="$_ts" \
+    python3 << 'PYEOF'
+import smtplib, ssl, os
+from email.mime.text import MIMEText
+smtp_user = os.environ['ALERT_SMTP_USER']
+smtp_pass = os.environ['ALERT_SMTP_PASS']
+smtp_to   = os.environ['ALERT_SMTP_TO']
+body      = os.environ['ALERT_BODY']
+ts        = os.environ['ALERT_TS']
+subject = f"[mugenknock] ⚠️ Claudeセッション開始失敗 {ts[:16]}"
+msg = MIMEText(body, 'plain', 'utf-8')
+msg['Subject'] = subject
+msg['From'] = smtp_user
+msg['To'] = smtp_to
+try:
+    ctx = ssl.create_default_context()
+    with smtplib.SMTP("smtp.gmail.com", 587) as s:
+        s.ehlo(); s.starttls(context=ctx); s.ehlo()
+        s.login(smtp_user, smtp_pass)
+        s.sendmail(smtp_user, smtp_to, msg.as_string())
+    print("SENT")
+except Exception as e:
+    import sys
+    print(f"FAIL: {e}", file=sys.stderr)
+    print("FAIL")
+PYEOF
+  )
+  echo "  📧 アラートメール: $_result → $smtp_to"
 }
 
 # ── 実行メインロジック ──────────────────────────────────────
@@ -693,6 +738,15 @@ PYEOF
           is_rate_limited=1
           _ping_result="LIMIT(${extracted_reset_time:-?})"
           echo "⚠️ レート制限 (reset: ${extracted_reset_time:-不明})"
+          local _alert_reason
+          _alert_reason="$(date '+%Y-%m-%d %H:%M:%S') — Claudeセッション開始に失敗しました。
+
+終了コード: $_ping_ec
+次回スケジュール: ${extracted_reset_time:+reset $extracted_reset_time}${extracted_reset_time:-自動計算}
+
+エラー出力 (先頭1500字):
+$(printf '%s' "$_ping_out" | head -c 1500)"
+          _send_login_alert "$_alert_reason"
         else
           # JSONをパースし、実際に応答（usage.output_tokens>0 かつ is_error=false）が返ったか検証
           local _verify

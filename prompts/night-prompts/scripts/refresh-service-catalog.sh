@@ -20,7 +20,7 @@
 
 set -uo pipefail
 export PATH="/home/yuzuki/local/bin:$PATH"
-unset ANTHROPIC_API_KEY
+[ "${FARGATE_MODE:-0}" = "1" ] || unset ANTHROPIC_API_KEY
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 NIGHT_PROMPTS_DIR="$(dirname "$SCRIPT_DIR")"
