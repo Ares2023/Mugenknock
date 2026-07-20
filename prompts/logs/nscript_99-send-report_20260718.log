@@ -1,0 +1,198 @@
+=== 2026-07-18 05:55:06 | 99-send-report.sh | exit:0 ===
+==========================================
+日次レポート生成 開始: 2026-07-18 04:50 JST
+==========================================
+
+--- [1] AWS資格公式情報 変更チェック ---
+  フェーズ1完了: has_changes=False
+  直近3日以内の変更声明なし
+
+--- [2] 夜間スクリプト成果集計 ---
+  生成: 合計 10問生成
+  妥当性: 合計: 確認160件（問題なし=82 自動修正=77 削除=1）
+  通報: 2026-07-17: 12件処理
+
+--- [3] DynamoDB稼働状況 ---
+  総問題数: 3816 問
+  直近3日 新規生成(createdAt): 13 問
+  直近3日 確認済み(validityCheckedAt): 187 問
+  未妥当性確認: 0 問
+  未解決通報: 12 件
+  資格別:
+  CLF: 338問
+  AIF: 337問
+  SAA: 308問
+  DVA: 306問
+  SOA: 306問
+  DEA: 306問
+  MLA: 304問
+  SAP: 308問
+  DOP: 373問
+  AIP: 314問
+  SCS: 309問
+  ANS: 309問
+
+--- [3b] Portal.tsx 問題数更新 ---
+  ℹ️  変更なし: 3800問 (100問刻み未達)
+
+--- [3c] Cognito 新規ユーザー（前日） ---
+  新規登録なし
+
+--- [4] canary テスト ---
+  ❌ FAIL (passed=1 failed=19 warnings=0)
+  失敗詳細:
+    [ランディングページ] ❌ Console Errors (2):
+      → Failed to load resource: net::ERR_FAILED
+      Failed to load resource: net::ERR_FAILED
+      ✘   1 [no-auth] › e2e/tests/canary.noauth.spec.ts:78:9 › ページ表示チェック › ランディングページ が表示される (/) (2.9s)
+    [ログインページ] ❌ Console Errors (2):
+      → Failed to load resource: net::ERR_FAILED
+      Failed to load resource: net::ERR_FAILED
+      ✘   2 [no-auth] › e2e/tests/canary.noauth.spec.ts:78:9 › ページ表示チェック › ログインページ が表示される (/login) (1.6s)
+    [管理者ログインページ] ❌ Console Errors (2):
+      → Failed to load resource: net::ERR_FAILED
+      Failed to load resource: net::ERR_FAILED
+      ✘   3 [no-auth] › e2e/tests/canary.noauth.spec.ts:78:9 › ページ表示チェック › 管理者ログインページ が表示される (/admin-login) (1.7s)
+    [Aboutページ] ❌ Console Errors (2):
+      → Failed to load resource: net::ERR_FAILED
+      Failed to load resource: net::ERR_FAILED
+      ✘   4 [no-auth] › e2e/tests/canary.noauth.spec.ts:78:9 › ページ表示チェック › Aboutページ が表示される (/about) (2.7s)
+    [サービス図鑑（公開）] ❌ Console Errors (2):
+      → Failed to load resource: net::ERR_FAILED
+      Failed to load resource: net::ERR_FAILED
+      ✘   5 [no-auth] › e2e/tests/canary.noauth.spec.ts:78:9 › ページ表示チェック › サービス図鑑（公開） が表示される (/encyclopedia) (3.0s)
+    [プライバシーポリシー] ❌ Console Errors (2):
+      → Failed to load resource: net::ERR_FAILED
+      Failed to load resource: net::ERR_FAILED
+      ✘   6 [no-auth] › e2e/tests/canary.noauth.spec.ts:78:9 › ページ表示チェック › プライバシーポリシー が表示される (/privacy-policy) (1.6s)
+    [試験別ガイド一覧] ❌ Console Errors (2):
+      → Failed to load resource: net::ERR_FAILED
+      Failed to load resource: net::ERR_FAILED
+      ✘   7 [no-auth] › e2e/tests/canary.noauth.spec.ts:78:9 › ページ表示チェック › 試験別ガイド一覧 が表示される (/exam-guide) (2.8s)
+    [試験別ガイド詳細（SAA）] ❌ Console Errors (2):
+      → Failed to load resource: net::ERR_FAILED
+      Failed to load resource: net::ERR_FAILED
+      ✘   8 [no-auth] › e2e/tests/canary.noauth.spec.ts:78:9 › ページ表示チェック › 試験別ガイド詳細（SAA） が表示される (/exam-guide/SAA) (2.8s)
+    [AWSサービス図鑑（SEO）] ❌ Console Errors (2):
+      → Failed to load resource: net::ERR_FAILED
+      Failed to load resource: net::ERR_FAILED
+      ✘   9 [no-auth] › e2e/tests/canary.noauth.spec.ts:78:9 › ページ表示チェック › AWSサービス図鑑（SEO） が表示される (/services) (2.7s)
+    [サービス詳細（EC2）] ❌ Console Errors (2):
+      → Failed to load resource: net::ERR_FAILED
+      Failed to load resource: net::ERR_FAILED
+      ✘  10 [no-auth] › e2e/tests/canary.noauth.spec.ts:78:9 › ページ表示チェック › サービス詳細（EC2） が表示される (/services/ec2) (2.7s)
+    [練習問題一覧（SAA）] ❌ Console Errors (2):
+      → Failed to load resource: net::ERR_FAILED
+      Failed to load resource: net::ERR_FAILED
+      ✘  11 [no-auth] › e2e/tests/canary.noauth.spec.ts:78:9 › ページ表示チェック › 練習問題一覧（SAA） が表示される (/questions/SAA) (3.2s)
+    [CTA クリック] ❌ Console Errors (2):
+      → Failed to load resource: net::ERR_FAILED
+      Failed to load resource: net::ERR_FAILED
+      ✘  12 [no-auth] › e2e/tests/canary.noauth.spec.ts:91:7 › ランディングページ › CTA ボタンをクリックして遷移する (1.2s)
+    [アカウントボタン] ❌ Console Errors (2):
+      → Failed to load resource: net::ERR_FAILED
+      Failed to load resource: net::ERR_FAILED
+      ✘  13 [no-auth] › e2e/tests/canary.noauth.spec.ts:105:7 › ランディングページ › ヘッダーのアカウントボタンで /login に遷移する (2.0s)
+    [settings/theme] ❌ Console Errors (2):
+      → Failed to load resource: net::ERR_FAILED
+      ✘  14 [no-auth] › e2e/tests/canary.noauth.spec.ts:121:7 › API ヘルスチェック › settings/theme API が CORS エラーなく応答する (1.2s)
+    [questions API] ❌ Console Errors (2):
+      → Failed to load resource: net::ERR_FAILED
+      ✘  15 [no-auth] › e2e/tests/canary.noauth.spec.ts:132:7 › API ヘルスチェック › questions API (metaOnly) が CORS エラーなく 200 を返す (1.8s)
+    [連続ナビゲーション] ❌ Console Errors (8):
+      → Failed to load resource: net::ERR_FAILED
+      → Failed to load resource: net::ERR_FAILED
+      → Failed to load resource: net::ERR_FAILED
+      → Failed to load resource: net::ERR_FAILED
+      Failed to load resource: net::ERR_FAILED
+      Failed to load resource: net::ERR_FAILED
+      Failed to load resource: net::ERR_FAILED
+      Failed to load resource: net::ERR_FAILED
+      ✘  16 [no-auth] › e2e/tests/canary.noauth.spec.ts:157:7 › ナビゲーション連続操作 › ランディング → サービス図鑑 → About → ログイン を連続遷移してもエラーなし (5.7s)
+    [モバイル表示] ❌ Console Errors (2):
+      → Failed to load resource: net::ERR_FAILED
+      Failed to load resource: net::ERR_FAILED
+      ✘  17 [no-auth] › e2e/tests/canary.noauth.spec.ts:169:7 › ナビゲーション連続操作 › モバイルサイズ (390px) でランディングページが壊れない (1.3s)
+    [練習問題詳細] ❌ Console Errors (2):
+      → Failed to load resource: net::ERR_FAILED
+      Failed to load resource: net::ERR_FAILED
+      ✘  18 [no-auth] › e2e/tests/canary.noauth.spec.ts:189:7 › 練習問題の詳細ページ › 練習問題一覧から個別問題ページ (/questions/SAA/:id) に遷移できる (2.9s)
+    [About #privacy] ❌ Console Errors (4):
+      → Failed to load resource: net::ERR_FAILED
+      → Failed to load resource: net::ERR_FAILED
+      Failed to load resource: net::ERR_FAILED
+  認証カナリア: ✅ PASS (passed=6 failed=0)
+
+--- [4.5] 監査・改良 / カナリア整合性 / 日めくり 集計 ---
+  監査 30問（AIF/AIP/CLF）: OK 17 / 注意 12 / 要修正 1
+  【指摘のあった問題】
+  ⚠ clf-637af08d
+  ・解説でFargateを「コンテナオーケストレーション基盤」と説明しているが、Fargateはオーケストレーション基盤ではなくサーバーレスのコンテナ実行エンジン（コンピューティング）であり、この表現は不正確
+  ・実測正答率20%と低く、多くがElastic Beanstalkを選んでいると推測される。App RunnerとBeanstalkの区別はCLF受験者にはやや難しめだが、シナリオ上App Runnerが最適解であること自体は妥当
+  ⚠ clf-3405ed73
+  ・正解・現行性・範囲とも問題なし。ただし実測正答率14%と極端に低く、SNSを選ぶ受験者が多いと推測される。EventBridgeとSNSの使い分けはCLFとしてはやや高度だが範囲内で、紛らわしい正解設定ではなく妥当なひっかけと判断
+  ⚠ aif-q-013（難易度: too_easy）
+  ・「1例を提示＝One-shot」という用語の定義をそのまま問う暗記寄りの問題で、シナリオ性・要件の取捨選択に乏しくやや易しい
+  ・不正解肢のネガティブプロンプティング／プロンプトインジェクションはZero/One/Few-shot系列と粒度が揃っておらず、消去法で正解が絞りやすい
+  ⚠ aif-q-018（難易度: too_easy）
+  ・選択肢4つのうちBLEU（翻訳）・RMSE（回帰）はドメインが明らかに異なり消去が容易。実質Accuracyとの二択で、F1=Precision/Recallの調和平均という定義を知っていれば一読で自明。AIF基礎レベルとしては許容範囲だがやや易しい
+  ・aif-q-022/019と評価指標識別の出題テーマが重複気味
+  ⚠ aif-q-022（難易度: too_easy）
+  ・F1・BLEUは回帰問題では明らかに場違いで、実質MAE対RMSEの二択。MAE=全誤差を等重みという定義暗記で即答でき、ひっかけ要素に乏しい
+  ⚠ aif-q-019（難易度: too_easy）
+  ・F1・BLEU・Recallの3つが全て分類/翻訳向けで回帰問題には明らかに不適。回帰系の紛らわしい選択肢（MAE/MSE等）が無く、消去法で即座に正解でき難易度が低い
+  ⚠ aif-q-009（難易度: too_easy）
+  ・誤答選択肢（ネガティブ/ゼロショット/プロンプトインジェクション）がいずれも『手順を明示する』という設問状況と全く噛み合わず、正解が消去法で自明。AIF基礎レベルとしても紛らわしさが不足
+  ・『ステップ・バイ・ステッププロンプティング』は用語として一般的な Chain-of-Thought（思考の連鎖）ほど定着しておらず、本番の用語表記としてやや非標準
+  ⚠ aif-q-002（難易度: too_easy）
+  ・誤答（プロンプトを短く/繰り返す/解像度を上げる）がいずれも明らかに無関係で、一読で正解が自明。ひっかけとして機能していない
+  ・解説は正確だが冗長気味
+  ✖ aip-e31bf3c4
+  ・重大な事実誤認：正解とされるClaude 3.5 Haikuは画像入力に非対応のテキスト専用モデルであり、要件①のマルチモーダル画像処理を満たせない。解説の「マルチモーダル入力対応」は誤り
+  ・要件を全て満たすのは実際には選択肢[0]（Claude 3.5 Sonnet＝真にマルチモーダル・200Kコンテキスト）のみで、正解設定が破綻している
+  ・旧世代モデル（Claude 3.5系・Claude 3 Opus）のみで構成されており、現行の生成AI試験としては現行性が乏しい
+  ⚠ aip-e274ef54
+  ・特定モデル間のトークン単価比較はモデル追加・価格改定で陳腐化しやすく、資格試験としては脆い出題
+  ・選択肢[0]の『他モデルより低いトークン単価』は不正確。Nova Lite/MicroはNova Proより安価かつマルチモーダル対応であり絶対的最安ではない(提示4択の中では妥当だが表現が過度)
+  ・日本語生成品質でNova Pro＞Claudeとする前提は主観的でマーケティング寄り
+  ⚠ aip-e0d4323b
+  ・問題2(aip-605e6546)と論点(Guardrails PIIマスキングの入出力適用・パイプライン非変更)がほぼ同一で重複
+  ・本シナリオのPII源はKB文書側であり『モデルへの入力段階でのマスキング』を不足理由に挙げる選択肢[0]の解説は論点がややズレている(正解自体は妥当)
+  ⚠ aip-4db28343
+  ・Claude 3 Haikuは現在アップグレード世代（3.5 Haiku等）やAmazon Novaなど、より新しい低コストモデルが登場しており選択肢が世代的にやや古い。ただし提示選択肢の中では正解として妥当
+  ・180Kトークン＋構造化JSON出力で200Kコンテキストにほぼ上限まで詰める前提であり、実運用ではやや余裕不足
+  ⚠ aif-q-004（難易度: too_easy）
+  ・用語の一読で正解が自明な純粋暗記問題。シナリオ性や取捨選択がなく、ひっかけ選択肢（クラスタリング/回帰/次単語予測）も容易に除外できる。AIF基礎レベルとしては許容範囲だが本番のシナリオ問題より易しい
+  【プロンプト自動改良】直近3日は改良なし
+  所見: カナリアspecの対象パスは app/ の実ルートと完全一致しており、陳腐化した参照はない。未ログインで到達可能な公開ルート（/, /about, /admin-login, /encyclopedia, /exam-guide, /exam-guide/[type], /login, /privacy-policy, /services, /services/[name], /questions/[examType], /questions/[examType]/[questionId]）はすべてスモークテストで被覆済み。認証必須の /account・/admin・/aws/* は方針どおり対象外。
+  カバー漏れ/陳腐化: 0件
+  対応: 整合済み。spec更新なし。
+  生成: 2026-07-17 完了: Fri Jul 17 04:46:33 JST 2026
+  検証: 2026-07-17 完了サマリー: 問題なし=1件 / 自動修正=3件 / 削除=1件
+  Lambda(直近24h):
+    prod: 実行13340 エラー0 スロットル0 最大2229ms
+    dev: 実行7 エラー0 スロットル0 最大831ms
+  API(prod,24h): リクエスト13770 ⚠️ 5xx=3 4xx=16 p99=1014ms
+  ⚠️ 本番エラーログ(prod,24h): 14件
+    ・2026-07-17T00:43:53.574Z 39baab47-7f5a-4a05-8590-52ba45d1f900 ERROR AccessDeniedException: User: arn:aws:sts::570827308321:assumed-role/awsquizappLambdaRolee2ba
+    ・2026-07-17T02:46:04.167Z c85e69e5-e291-4cea-b544-ce203e94718e INFO ERROR: @vendia/serverless-express connection error
+    ・2026-07-17T02:46:04.225Z c85e69e5-e291-4cea-b544-ce203e94718e ERROR Error: read ECONNRESET at Pipe.onStreamRead (node:internal/stream_base_commons:216:20) { err
+  AWSコスト(2026-07-16): $0.13 （前日比 ▲174%）
+    ・Amazon API Gateway: $0.05
+    ・Amazon DynamoDB: $0.05
+    ・AWS Key Management Service: $0.03
+
+--- [4.8] テストユーザー データ整合性チェック ---
+  テストユーザー (yuzukisera00@gmail.com) データ整合性チェック
+  今日の演習量: 0 問 (2026-07-18) [なし]
+  UserTagStats エントリ数: 7 tagId
+  resetAt: 2026-07-03T13:16:32.641Z
+  UserTagStats 増減: 7 → 7（正常）
+  ✅ 整合性OK（問題なし）
+
+--- [5] メール送信 ---
+  ✅ メール送信完了 → mugenknock@gmail.com
+
+==========================================
+日次レポート 完了: 2026-07-18 04:54 JST
+==========================================

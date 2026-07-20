@@ -5,7 +5,7 @@
 set -uo pipefail
 
 export PATH="/home/yuzuki/local/bin:/home/sera/.config/nvm/versions/node/v20.20.2/bin:$PATH"
-[ "${FARGATE_MODE:-0}" = "1" ] || unset ANTHROPIC_API_KEY
+unset ANTHROPIC_API_KEY
 
 # ドメイン定義の単一マスタ（フロント src/data/examDomains.json と共通）。
 # 未設定なら本スクリプト位置から解決。python ブロックはこの env を読む（無ければ埋め込みdictにフォールバック）。

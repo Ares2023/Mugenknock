@@ -286,7 +286,6 @@ td = {
       {"name": "TZ",                   "value": "Asia/Tokyo"}
     ],
     "secrets": [
-      {"name": "ANTHROPIC_API_KEY", "valueFrom": "${SECRET_ARN}:ANTHROPIC_API_KEY::"},
       {"name": "SMTP_USER",         "valueFrom": "${SECRET_ARN}:SMTP_USER::"},
       {"name": "SMTP_PASS",         "valueFrom": "${SECRET_ARN}:SMTP_PASS::"}
     ],
@@ -338,7 +337,6 @@ td = {
       {"name": "TZ",                   "value": "Asia/Tokyo"}
     ],
     "secrets": [
-      {"name": "ANTHROPIC_API_KEY", "valueFrom": "${SECRET_ARN}:ANTHROPIC_API_KEY::"},
       {"name": "SMTP_USER",         "valueFrom": "${SECRET_ARN}:SMTP_USER::"},
       {"name": "SMTP_PASS",         "valueFrom": "${SECRET_ARN}:SMTP_PASS::"}
     ],
@@ -601,14 +599,13 @@ printf "  %-20s %s\n" "フックcron:"    "${HOOK_SCHEDULE} (30分前)"
 printf "  %-20s %s\n" "失敗通知:"      "${ALERT_EMAIL}"
 echo ""
 echo "次のステップ:"
-echo "  1. シークレット設定:"
-echo "     AWS Console → Secrets Manager → ${SECRET_NAME} → 値を編集"
-echo "       ANTHROPIC_API_KEY : Claude API キー (sk-ant-...)"
-echo "       SMTP_USER         : Gmail アドレス"
-echo "       SMTP_PASS         : Gmail アプリパスワード"
+echo "  1. 認証: Claudeサブスクリプションの OAuth 資格情報をS3へアップロード"
+echo "     (APIキーは使わない。~/.claude/.credentials.json を claude-auth/ へ)"
+echo "       ./scripts/fargate-upload-auth.sh"
+echo "     ※ SMTPはSecretsに設定済み"
 echo ""
 echo "  2. SNS確認メールを承認 (mugenknock@gmail.com 宛に届きます)"
 echo ""
-echo "  3. 初回イメージビルド・プッシュ:"
+echo "  3. 初回イメージビルド・プッシュ (dockerが必要):"
 echo "     ./scripts/fargate-build-push.sh"
 echo "================================================"

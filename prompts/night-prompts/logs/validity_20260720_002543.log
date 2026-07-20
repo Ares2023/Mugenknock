@@ -1,0 +1,70 @@
+==========================================
+正当性チェック開始: Mon Jul 20 00:25:43 JST 2026
+バッチサイズ: 30問 / チャンクサイズ: 5問
+==========================================
+チェック対象: 30問
+前処理: choices ラベル接頭辞チェック...
+  前処理: ラベル接頭辞なし（全問クリーン）
+チャンク数: 6
+
+--- チャンク 1/6: 5問  開始=00:26:24 ---
+  [OK   ] dva-758661bf
+  [FIX  ] dva-6e69c3f2: 選択肢・正解・解説・choiceExplanationsにDEK（Data Encryption Key）という暗号化専門略語が注釈なしで使われているため、「DEK（データ暗号化キー）」と補足する。 → 変更: choices, correctAnswers, explanation, choiceExplanations
+  [FIX  ] dva-93393c23: DynamoDBは現在テーブル・インデックス・ストリームのリソースベースポリシーをサポートしており（公式ドキュメント確認済み）、選択肢2の解説「サポートしていない」は事実誤認。「技術的には可能だがSTS AssumeRoleより権限の一元管理が難しく推奨されない」旨に修正する。 → 変更: choiceExplanations
+  [OK   ] dva-d3bc04fb
+  [OK   ] dva-2aa9524d
+  → 更新完了: OK=3 修正=2 削除=0
+  終了=00:31:26  経過=302秒
+
+--- チャンク 2/6: 5問  開始=00:31:26 ---
+  [FIX  ] dva-4fff55e4: JWT略語に注釈なし／解説で選択肢B・C・Dの不正解理由が「選択肢Xは〜」形式で未記載 → 変更: questionText, explanation
+  [OK   ] dea-14ac974d
+  [FIX  ] sap-754290ae: 問題文のRACに注釈なし／要件列挙に改行なし／choiceExplanations[0]がサービス名主語でない → 変更: questionText, choiceExplanations
+  [WARN ] sap-021374b7: fix 適用後に正解が最長選択肢（正解194字 > 不正解最長153字）。次回再チェック対象に残す
+  [FIX  ] sap-021374b7: 選択肢AのP2V略語に注釈なし／要件列挙に改行なし／choiceExplanations[2]がサービス名主語でない → 変更: questionText, choices, choiceExplanations
+  [FIX  ] dea-7e2dcb63: choiceExplanations[0]が「アナリストに〜」で始まりサービス名主語でない → 変更: choiceExplanations
+  → 更新完了: OK=1 修正=4 削除=0
+  終了=00:42:20  経過=654秒
+
+--- チャンク 3/6: 5問  開始=00:42:21 ---
+  [OK   ] dea-96c63d5d
+  [OK   ] dea-dc0f5a00
+  [OK   ] dop-e67a2be4
+  [FIX  ] sap-5b873e33: choiceExplanations[0]と[2]が正解全文コピーで同一内容となっており、個別選択肢に対応した解説になっていないため修正。 → 変更: choiceExplanations
+  [FIX  ] sap-70bdd3ef: 解説に誤字「rootユーザーW」（正：rootユーザー）あり。またchoiceExplanations[0][2]が全文コピーで個別選択肢対応になっていないため両方修正。 → 変更: explanation, choiceExplanations
+  → 更新完了: OK=3 修正=2 削除=0
+  終了=00:50:09  経過=468秒
+
+--- チャンク 4/6: 5問  開始=00:50:09 ---
+  [OK   ] saa-df193a98
+  [FIX  ] saa-9c63f96c: choiceExplanations[4]が「もアーキテクチャ変更なし…」と助詞「も」から始まる孤立した断片になっており、主語なしで意味不明なため修正。ECS Service Connect outlier detectionは公式ドキュメントで確認済み・事実正確。 → 変更: choiceExplanations
+  [OK   ] dop-3604bce9
+  [OK   ] dop-7d4d2269
+  [OK   ] sap-2a7052e2
+  → 更新完了: OK=4 修正=1 削除=0
+  終了=00:58:17  経過=488秒
+
+--- チャンク 5/6: 5問  開始=00:58:18 ---
+  [FIX  ] dop-c8b69de8: choiceExplanations[1][2][3]が「組み合わせは」「方法は」「構成は」で始まりサービス名が文頭主語になっていないため修正。 → 変更: choiceExplanations
+  [OK   ] dop-a7183cce
+  [FIX  ] dop-9ab389b6: choiceExplanations[3]が「Cloudwatch Alarmチェックを組み込む考え方自体は」で始まりサービス名が文頭主語でない。ECRを主語に修正。 → 変更: choiceExplanations
+  [WARN ] dop-ebf9015a: fix 適用後に正解が最長選択肢（正解142字 > 不正解最長86字）。次回再チェック対象に残す
+  [FIX  ] dop-ebf9015a: 「Kinesis Data Firehose」は2024年に「Amazon Data Firehose」へ改称済み。choices[1]・correctAnswersの旧名称を修正。 → 変更: choices, correctAnswers
+  [FIX  ] saa-7ee525c2: choiceExplanations[1]が動作説明から始まりS3が主語でない。[3]が「アップロード受付と〜設計であり」で始まりElastic Beanstalkが主語でない。各サービス名を文頭主語に修正。 → 変更: choiceExplanations
+  → 更新完了: OK=1 修正=4 削除=0
+  終了=01:05:00  経過=402秒
+
+--- チャンク 6/6: 5問  開始=01:05:00 ---
+  [OK   ] sap-7c10b7ca
+  [OK   ] sap-7e172cae
+  [OK   ] sap-733114eb
+  [OK   ] ans-90d857d7
+  [OK   ] ans-03874228
+  → 更新完了: OK=5 修正=0 削除=0
+  終了=01:11:15  経過=375秒
+
+完了サマリー: 問題なし=17問 / 自動修正=13問 / 削除=0問
+
+==========================================
+チェック終了: Mon Jul 20 01:11:15 JST 2026
+==========================================

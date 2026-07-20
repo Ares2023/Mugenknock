@@ -1,0 +1,70 @@
+==========================================
+正当性チェック開始: Sat Jul 18 17:57:45 JST 2026
+バッチサイズ: 30問 / チャンクサイズ: 5問
+==========================================
+チェック対象: 30問
+前処理: choices ラベル接頭辞チェック...
+  前処理: ラベル接頭辞なし（全問クリーン）
+チャンク数: 6
+
+--- チャンク 1/6: 5問  開始=17:58:18 ---
+  [OK   ] dea-7603dd2f
+  [FIX  ] dea-70024b83: choiceExplanations[0][2][3]が括弧書き（例「（Amazon S3のバケットに〜）は」）で始まっており、サービス名を文頭主語として置いていない。 → 変更: choiceExplanations
+  [FIX  ] ans-9c696a87: choiceExplanations[0][2][3]が括弧書き（例「（Site-to-Site VPN）は」）で始まっており、サービス名を文頭主語として置いていない。 → 変更: choiceExplanations
+  [FIX  ] ans-1f7c5625: choiceExplanations[0]〜[3]すべてがサービス名主語なしで始まっている（「送信元と宛先の〜」「ルートテーブル・SG〜」「SG個別ルール〜」「実際に発生した〜」）。 → 変更: choiceExplanations
+  [FIX  ] ans-ab4f612b: choiceExplanations[0]が「各スポークVPCに個別デプロイするため」、[1]が「AWSが推奨する集中型Egressアーキテクチャでは」でサービス名主語なし。 → 変更: choiceExplanations
+  → 更新完了: OK=1 修正=4 削除=0
+  終了=18:09:47  経過=689秒
+
+--- チャンク 2/6: 5問  開始=18:09:48 ---
+  [OK   ] ans-6bf20924
+  [OK   ] dea-f37096c6
+  [OK   ] ans-9f4aff7d
+  [OK   ] ans-c239fa77
+  [OK   ] dea-2279424f
+  → 更新完了: OK=5 修正=0 削除=0
+  終了=18:15:10  経過=322秒
+
+--- チャンク 3/6: 5問  開始=18:15:11 ---
+  [OK   ] ans-8e8ad5a7
+  [OK   ] dea-8d8fd49d
+  [OK   ] ans-f77ef0da
+  [WARN ] dea-4a321f7d: fix 適用後に正解が最長選択肢（正解109字 > 不正解最長77字）。次回再チェック対象に残す
+  [FIX  ] dea-4a321f7d: 選択肢Dで旧サービス名「Amazon Kinesis Data Firehose」を使用。現行名は「Amazon Data Firehose」（追加確認観点に明記）。 → 変更: choices
+  [OK   ] dea-09789912
+  → 更新完了: OK=4 修正=1 削除=0
+  終了=18:19:36  経過=265秒
+
+--- チャンク 4/6: 5問  開始=18:19:36 ---
+  [OK   ] dea-5892d7b3
+  [OK   ] scs-d6db7d72
+  [OK   ] scs-e02cad26
+  [OK   ] scs-750f2851
+  [OK   ] scs-69a03c1b
+  → 更新完了: OK=5 修正=0 削除=0
+  終了=18:25:54  経過=378秒
+
+--- チャンク 5/6: 5問  開始=18:25:54 ---
+  [FIX  ] scs-3d11ebc3: choiceExplanations[0]が条件節（「IAMユーザーを削除すると」）で開始しサービス名が主語でない。[3]がCloudTrailに言及せず「調査を先行させている間も」で始まりサービス名主語なし。 → 変更: choiceExplanations
+  [OK   ] scs-d8f08629
+  [WARN ] scs-b7c24419: fix 適用後に正解が最長選択肢（正解98字 > 不正解最長76字）。次回再チェック対象に残す
+  [FIX  ] scs-b7c24419: 「AWS Certificate Manager Private CA（ACM Private CA）」は旧名称。現行の正式名称は「AWS Private Certificate Authority（AWS Private CA）」に変更済み。選択肢・正解・解説・choiceExplanationsを更新。 → 変更: choices, correctAnswers, explanation, choiceExplanations
+  [FIX  ] scs-a0e59d00: choiceExplanations[2]が「ネットワーク隔離を行わずに」という条件節で始まりALB/EC2等のサービス名が主語でない。 → 変更: choiceExplanations
+  [FIX  ] dea-b8d563eb: choiceExplanations[3]に「Kinesis Data Streams へ移行は他のストリーミングサービスへの移行は」と「移行は」が二重になる誤記がある。 → 変更: choiceExplanations
+  → 更新完了: OK=1 修正=4 削除=0
+  終了=18:33:39  経過=465秒
+
+--- チャンク 6/6: 5問  開始=18:33:39 ---
+  [FIX  ] ans-8e2f9249: choiceExplanations[2]がOSレベルのエージェント方式という汎称で始まりサービス名主語が欠落しているため修正。 → 変更: choiceExplanations
+  [OK   ] ans-73a114c2
+  [FIX  ] scs-22c7dac8: choiceExplanations[0]が「インシデント対応の原則は」、[2]が「封じ込め前に」と始まりサービス名主語が欠落しているため修正。 → 変更: choiceExplanations
+  [FIX  ] dea-31d40819: choiceExplanations[0][1]が同一文で両方の正解をまとめて説明しており、各選択肢の個別解説になっていないため修正。 → 変更: choiceExplanations
+  [OK   ] dea-33006d6c
+  → 更新完了: OK=2 修正=3 削除=0
+  終了=18:37:48  経過=249秒
+
+完了サマリー: 問題なし=18問 / 自動修正=12問 / 削除=0問
+
+==========================================
+チェック終了: Sat Jul 18 18:37:48 JST 2026
+==========================================

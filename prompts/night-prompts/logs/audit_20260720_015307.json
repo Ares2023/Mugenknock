@@ -1,0 +1,366 @@
+[
+  {
+    "questionId": "dva-93393c23",
+    "examType": "DVA",
+    "verdict": "warn",
+    "currentness": "ok",
+    "difficulty": "appropriate",
+    "scope": "in",
+    "format": "ok",
+    "mockSuitable": true,
+    "issues": [
+      "DynamoDBは2024年3月からリソースベースポリシーをサポートしており、選択肢[1]のクロスアカウント直接アクセスは現行では技術的に有効な実装。解説も『技術的には可能』と認めており、単一正解の前提がやや弱い。STS AssumeRoleを最善とする根拠(権限一元管理)は妥当だが、正解が二択気味になっている点に注意"
+    ]
+  },
+  {
+    "questionId": "dva-d3bc04fb",
+    "examType": "DVA",
+    "verdict": "ok",
+    "currentness": "ok",
+    "difficulty": "appropriate",
+    "scope": "in",
+    "format": "ok",
+    "mockSuitable": true,
+    "issues": []
+  },
+  {
+    "questionId": "dva-758661bf",
+    "examType": "DVA",
+    "verdict": "ok",
+    "currentness": "ok",
+    "difficulty": "appropriate",
+    "scope": "in",
+    "format": "ok",
+    "mockSuitable": true,
+    "issues": []
+  },
+  {
+    "questionId": "dva-4fff55e4",
+    "examType": "DVA",
+    "verdict": "warn",
+    "currentness": "ok",
+    "difficulty": "appropriate",
+    "scope": "in",
+    "format": "hard_to_read",
+    "mockSuitable": true,
+    "issues": [
+      "解説が重複している。『選択肢B/C/D』形式の説明と『選択肢別解説[0]〜[3]』がほぼ同一内容で二重掲載されており体裁が冗長。内容・正解自体は妥当"
+    ]
+  },
+  {
+    "questionId": "dva-6e69c3f2",
+    "examType": "DVA",
+    "verdict": "ok",
+    "currentness": "ok",
+    "difficulty": "appropriate",
+    "scope": "in",
+    "format": "ok",
+    "mockSuitable": true,
+    "issues": []
+  },
+  {
+    "questionId": "dva-2aa9524d",
+    "examType": "DVA",
+    "verdict": "ok",
+    "currentness": "ok",
+    "difficulty": "appropriate",
+    "scope": "in",
+    "format": "ok",
+    "mockSuitable": true,
+    "issues": []
+  },
+  {
+    "questionId": "mla-01fbae30",
+    "examType": "MLA",
+    "verdict": "ok",
+    "currentness": "ok",
+    "difficulty": "appropriate",
+    "scope": "in",
+    "format": "ok",
+    "mockSuitable": true,
+    "issues": [
+      "選択肢[3]の誤答理由『GitHub ActionsはAWSネイティブでない』はやや説得力が弱いが、正解判定には影響しない"
+    ]
+  },
+  {
+    "questionId": "mla-4387eebf",
+    "examType": "MLA",
+    "verdict": "ok",
+    "currentness": "ok",
+    "difficulty": "appropriate",
+    "scope": "in",
+    "format": "ok",
+    "mockSuitable": true,
+    "issues": []
+  },
+  {
+    "questionId": "mla-be055c6a",
+    "examType": "MLA",
+    "verdict": "warn",
+    "currentness": "ok",
+    "difficulty": "too_easy",
+    "scope": "in",
+    "format": "ok",
+    "mockSuitable": true,
+    "issues": [
+      "『PythonまたはTypeScript＋型チェック＋IDE補完』という要件がCDKを直接指し示すキーワードマッチ型で、比較・取捨選択の思考が薄く本番よりやや易しい",
+      "選択肢[3]の誤答理由『TerraformはAWSネイティブのIaCツールでもない』は誤解を招く記述。TerraformはAWS対応が充実しており、実際の失格理由はHCLがPython/TypeScript要件を満たさない点のみに絞るべき"
+    ]
+  },
+  {
+    "questionId": "mla-2da7b510",
+    "examType": "MLA",
+    "verdict": "warn",
+    "currentness": "uncertain",
+    "difficulty": "appropriate",
+    "scope": "in",
+    "format": "ok",
+    "mockSuitable": true,
+    "issues": [
+      "正解の選択肢がinf1（Inferentia第1世代）固定だが、2024年以降のMLA試験文脈ではNLP/トランスフォーマー推論の現行推奨はinf2（Inferentia2）寄り。inf1は依然提供中で誤りではないが、現行性の観点でinf2を正解に据える方が望ましい"
+    ]
+  },
+  {
+    "questionId": "mla-9b4c8f07",
+    "examType": "MLA",
+    "verdict": "ok",
+    "currentness": "ok",
+    "difficulty": "appropriate",
+    "scope": "in",
+    "format": "ok",
+    "mockSuitable": true,
+    "issues": []
+  },
+  {
+    "questionId": "mla-22601e05",
+    "examType": "MLA",
+    "verdict": "ok",
+    "currentness": "ok",
+    "difficulty": "appropriate",
+    "scope": "in",
+    "format": "ok",
+    "mockSuitable": true,
+    "issues": []
+  },
+  {
+    "questionId": "mla-0a1ae6eb",
+    "examType": "MLA",
+    "verdict": "warn",
+    "currentness": "ok",
+    "difficulty": "appropriate",
+    "scope": "in",
+    "format": "ok",
+    "mockSuitable": true,
+    "issues": [
+      "選択肢別解説[0]の『最大15分の長時間処理』は誤り。SageMaker非同期推論の最大処理時間は最長1時間、ペイロードは最大1GB（公式ドキュメントで確認）。正解自体は妥当だが解説の数値を『最大1時間』へ修正すべき。"
+    ]
+  },
+  {
+    "questionId": "scs-f130f8a2",
+    "examType": "SCS",
+    "verdict": "ok",
+    "currentness": "ok",
+    "difficulty": "appropriate",
+    "scope": "in",
+    "format": "ok",
+    "mockSuitable": true,
+    "issues": []
+  },
+  {
+    "questionId": "scs-149fba07",
+    "examType": "SCS",
+    "verdict": "ok",
+    "currentness": "ok",
+    "difficulty": "appropriate",
+    "scope": "in",
+    "format": "ok",
+    "mockSuitable": true,
+    "issues": []
+  },
+  {
+    "questionId": "scs-6657d6ef",
+    "examType": "SCS",
+    "verdict": "ok",
+    "currentness": "ok",
+    "difficulty": "appropriate",
+    "scope": "in",
+    "format": "ok",
+    "mockSuitable": true,
+    "issues": []
+  },
+  {
+    "questionId": "scs-69528ab6",
+    "examType": "SCS",
+    "verdict": "ok",
+    "currentness": "ok",
+    "difficulty": "appropriate",
+    "scope": "in",
+    "format": "ok",
+    "mockSuitable": true,
+    "issues": [
+      "選択肢の『セキュリティカテゴリのHealthイベント』はやや不正確（アビューズ通知はaccountNotificationカテゴリで届く）だが正解判定には影響しない軽微な表現"
+    ]
+  },
+  {
+    "questionId": "scs-b55b1d3d",
+    "examType": "SCS",
+    "verdict": "ok",
+    "currentness": "ok",
+    "difficulty": "appropriate",
+    "scope": "in",
+    "format": "ok",
+    "mockSuitable": true,
+    "issues": [
+      "Macie=S3のPII検出という連想は比較的直接的だが、Organizations委任管理者・GuardDuty S3 Protectionとの識別が必要な点で本番相当"
+    ]
+  },
+  {
+    "questionId": "scs-f3ea8732",
+    "examType": "SCS",
+    "verdict": "ok",
+    "currentness": "ok",
+    "difficulty": "appropriate",
+    "scope": "in",
+    "format": "ok",
+    "mockSuitable": true,
+    "issues": []
+  },
+  {
+    "questionId": "mla-27ec246c",
+    "examType": "MLA",
+    "verdict": "ok",
+    "currentness": "ok",
+    "difficulty": "appropriate",
+    "scope": "in",
+    "format": "ok",
+    "mockSuitable": true,
+    "issues": []
+  },
+  {
+    "questionId": "mla-f70d68d7",
+    "examType": "MLA",
+    "verdict": "ok",
+    "currentness": "ok",
+    "difficulty": "appropriate",
+    "scope": "in",
+    "format": "ok",
+    "mockSuitable": true,
+    "issues": []
+  },
+  {
+    "questionId": "mla-6e08953b",
+    "examType": "MLA",
+    "verdict": "warn",
+    "currentness": "ok",
+    "difficulty": "appropriate",
+    "scope": "in",
+    "format": "ok",
+    "mockSuitable": true,
+    "issues": [
+      "現行費用$5,400の根拠が曖昧（ml.m5.large×50の常時稼働は概算で$4,100〜4,800程度）だが結論の妥当性には影響しない軽微な難",
+      "Serverless Inferenceは1モデル=1エンドポイントのため50エンドポイントを個別作成する必要がある点が問題文・解説で明示されておらず、選択肢AのMMEとの対比がやや不正確"
+    ]
+  },
+  {
+    "questionId": "mla-826026f3",
+    "examType": "MLA",
+    "verdict": "ng",
+    "currentness": "outdated",
+    "difficulty": "appropriate",
+    "scope": "in",
+    "format": "ok",
+    "mockSuitable": false,
+    "issues": [
+      "正解と解説の技術的前提が誤り。AWS公式ドキュメントは『複数インスタンスのトレーニングジョブではネットワークの内外通信はトレーニングコンテナのピア間通信に限定される』と明記しており、enable_network_isolation=Trueでもノード間(NCCL)ピア通信は許可される。したがって『network_isolation=TrueだとDDPが起動直後に失敗する』という解説の中核根拠は事実誤認",
+      "この誤認により、より安全でネットワーク分離を確実に満たす選択肢A(network_isolation=True)を不正解と断定しているが、実際にはAは4要件を満たしうる。むしろ要件①(インターネット直接アクセス禁止)はnetwork isolationが最も確実に保証する。正解キー自体が議論の余地あり(A/Bどちらも成立しうる)",
+      "network isolation有効時もS3のダウンロード/アップロードは実行ロールでSageMaker側が処理する(コンテナ外)ため、要件③との関係の説明も不正確"
+    ]
+  },
+  {
+    "questionId": "clf-3b10138e",
+    "examType": "CLF",
+    "verdict": "warn",
+    "currentness": "ok",
+    "difficulty": "too_easy",
+    "scope": "in",
+    "format": "ok",
+    "mockSuitable": true,
+    "issues": [
+      "正解選択肢[0]の文言『役割・スキル・組織文化の変革』が問題文のキーワードとほぼ一致しており、CAFの他パースペクティブを知らなくてもパターンマッチで正解可能。CLFとしては許容範囲だがやや易しい"
+    ]
+  },
+  {
+    "questionId": "clf-fb985595",
+    "examType": "CLF",
+    "verdict": "warn",
+    "currentness": "ok",
+    "difficulty": "too_easy",
+    "scope": "in",
+    "format": "ok",
+    "mockSuitable": true,
+    "issues": [
+      "『単一AZ障害でも中断させない』→高可用性という定義の一読自明な用語照合問題。各選択肢に定義が併記され消去も容易。CLFレベルとして使用可だが本番のシナリオ性には乏しい"
+    ]
+  },
+  {
+    "questionId": "clf-3ab26829",
+    "examType": "CLF",
+    "verdict": "ok",
+    "currentness": "ok",
+    "difficulty": "appropriate",
+    "scope": "in",
+    "format": "ok",
+    "mockSuitable": true,
+    "issues": []
+  },
+  {
+    "questionId": "clf-b517c863",
+    "examType": "CLF",
+    "verdict": "warn",
+    "currentness": "ok",
+    "difficulty": "too_easy",
+    "scope": "in",
+    "format": "ok",
+    "mockSuitable": true,
+    "issues": [
+      "設問文が『消費モデルを採用し過剰投資を排除』とコスト最適化の柱の定義をほぼそのまま述べており、キーワード照合で正解が導ける。CLFとしては許容だが、やや易しい定義想起寄り"
+    ]
+  },
+  {
+    "questionId": "clf-613279db",
+    "examType": "CLF",
+    "verdict": "ok",
+    "currentness": "ok",
+    "difficulty": "appropriate",
+    "scope": "in",
+    "format": "ok",
+    "mockSuitable": true,
+    "issues": []
+  },
+  {
+    "questionId": "dop-q-039",
+    "examType": "DOP",
+    "verdict": "ng",
+    "currentness": "ok",
+    "difficulty": "too_easy",
+    "scope": "in",
+    "format": "ok",
+    "mockSuitable": false,
+    "issues": [
+      "『AWS Service Catalogの主な目的は？』という単純な用語定義の想起問題で、Professional(DOP)相当のシナリオ性・要件比較・ひっかけが皆無。内容は正確だが難易度が本番のProfessionalレベルに全く達していない"
+    ]
+  },
+  {
+    "questionId": "dop-q-049",
+    "examType": "DOP",
+    "verdict": "ng",
+    "currentness": "ok",
+    "difficulty": "too_easy",
+    "scope": "in",
+    "format": "ok",
+    "mockSuitable": false,
+    "issues": [
+      "『ECSタスク定義でCPU/メモリ制限を設定する理由は？』の単純な定義想起問題。Professional(DOP)で問われる運用シナリオ・トレードオフ判断がなく、一読で正解が自明。内容は正しいが難易度が資格レベルに不足"
+    ]
+  }
+]

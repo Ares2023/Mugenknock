@@ -1,0 +1,26 @@
+=== 2026-07-19 01:55:10 | 05-check-daily-services.sh | exit:0 ===
+==========================================
+日めくりサービス体裁チェック開始: Sun Jul 19 01:40:05 JST 2026
+バッチサイズ: 5件 / チャンクサイズ: 5件
+==========================================
+
+--- 提供状態ライフサイクル照合中（猶予 30日）---
+  → ライフサイクル: 新規警告=0 削除=0 復活解除=0
+
+--- 重複記事チェック（docUrl照合・自動削除）---
+  重複検出 docUrl=aws.amazon.com/route53/application-recovery-controller: 残す[Amazon Application Recovery Controller/svc-arc-171] 削除1件
+    [削除] Amazon Application Recovery Controller/svc-arc-174 (order=0)
+  → 重複削除: 1件
+チェック対象: 5件
+チャンク数: 1
+
+--- チャンク 1/1: 5件  開始=01:41:15 ---
+⚠️  チャンク 1 でエラー（exit 1）。このチャンクをスキップして続行
+stderr: 
+stdout: You've hit your session limit · resets 5:50am (Asia/Tokyo)
+
+完了サマリー: 問題なし=0件 / 自動修正=0件 / 削除=0件
+
+==========================================
+チェック終了: Sun Jul 19 01:41:17 JST 2026
+==========================================

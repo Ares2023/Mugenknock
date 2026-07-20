@@ -1,0 +1,11 @@
+=== 2026-07-18 05:55:06 | generate-release-note.sh | exit:0 ===
+[release-note] 対象日: 2026-07-17
+[release-note] 2026-07-17: 28件のコミット
+[release-note] 生成結果:
+{
+  "title": "このサイト自体のAWS構成図が登場！スコア表示バグも修正！",
+  "body": "無限ノック自体がどんなAWS構成で動いているかを確認できる「構成図」ページが新登場しました！\nあわせて、スコア推移やハイスコアがサーバーに履歴があるのに表示されなかった不具合も修正しています。",
+  "titleEn": "AWS Architecture Diagram Page is Here & Score Display Bug Fixed!",
+  "bodyEn": "A new 'Architecture' page is now available showing the real AWS infrastructure powering this site — learn AWS by seeing it in action!\nWe also fixed a bug where score history and high scores failed to display even when server-side data existed."
+}
+[release-note] ✓ DynamoDBに挿入しました: 2026-07-17 — このサイト自体のAWS構成図が登場！スコア表示バグも修正！

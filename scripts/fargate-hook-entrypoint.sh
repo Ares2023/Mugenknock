@@ -26,6 +26,14 @@ SMTP_TO=${SMTP_TO:-mugenknock@gmail.com}
 EOF
 fi
 
+# Claude OAuth 資格情報をS3から復元 (サブスク認証)
+log "Claude OAuth資格情報を復元中..."
+mkdir -p ~/.claude
+aws s3 cp "s3://${S3_BUCKET}/claude-auth/.credentials.json" ~/.claude/.credentials.json --quiet 2>/dev/null \
+    && log "  .credentials.json 復元OK" || log "  ⚠️ .credentials.json が見つかりません"
+aws s3 cp "s3://${S3_BUCKET}/claude-auth/.claude.json" ~/.claude.json --quiet 2>/dev/null || true
+unset ANTHROPIC_API_KEY
+
 # S3から状態を同期 (validityチェックは state/ と instructions/ が必要)
 log "S3から状態を同期中..."
 aws s3 sync "s3://${S3_BUCKET}/state/"        "${STATE_DIR}/"  --quiet 2>&1 || true
@@ -43,8 +51,12 @@ log "妥当性確認開始 (n=100, deadline=${DEADLINE})"
 bash /app/prompts/night-prompts/scripts/02-check-validity.sh -n 100 -D "$DEADLINE"
 EXIT_CODE=$?
 
-# 状態を書き戻し
+# 状態を書き戻し (更新後のOAuthトークンも)
 log "S3へ状態を書き戻し中..."
+[ -f ~/.claude/.credentials.json ] && \
+    aws s3 cp ~/.claude/.credentials.json "s3://${S3_BUCKET}/claude-auth/.credentials.json" --quiet 2>/dev/null || true
+[ -f ~/.claude.json ] && \
+    aws s3 cp ~/.claude.json "s3://${S3_BUCKET}/claude-auth/.claude.json" --quiet 2>/dev/null || true
 aws s3 sync "${STATE_DIR}/"     "s3://${S3_BUCKET}/state/"      --quiet 2>&1 || true
 aws s3 sync "${NIGHT_LOG_DIR}/" "s3://${S3_BUCKET}/night-logs/"  --quiet 2>&1 || true
 

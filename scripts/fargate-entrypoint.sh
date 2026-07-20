@@ -27,6 +27,14 @@ EOF
     log "mail config written"
 fi
 
+# 1b. Claude OAuth 資格情報をS3から復元 (サブスク認証: APIキーは使わない)
+log "Claude OAuth資格情報を復元中..."
+mkdir -p ~/.claude
+aws s3 cp "s3://${S3_BUCKET}/claude-auth/.credentials.json" ~/.claude/.credentials.json --quiet 2>/dev/null \
+    && log "  .credentials.json 復元OK" || log "  ⚠️ .credentials.json が見つかりません (OAuth未設定)"
+aws s3 cp "s3://${S3_BUCKET}/claude-auth/.claude.json" ~/.claude.json --quiet 2>/dev/null || true
+unset ANTHROPIC_API_KEY
+
 # 2. S3から状態を同期 (前回実行の続きから)
 log "S3から状態を同期中 (s3://${S3_BUCKET})..."
 aws s3 sync "s3://${S3_BUCKET}/state/"        "${STATE_DIR}/"     --quiet 2>&1 || true
@@ -43,8 +51,12 @@ bash /app/prompts/run-prompts.sh --run
 EXIT_CODE=$?
 log "夜間バッチ完了 (exit ${EXIT_CODE})"
 
-# 4. 状態をS3へ書き戻し
+# 4. 状態をS3へ書き戻し (更新後のOAuthトークンも書き戻す)
 log "S3へ状態を書き戻し中..."
+[ -f ~/.claude/.credentials.json ] && \
+    aws s3 cp ~/.claude/.credentials.json "s3://${S3_BUCKET}/claude-auth/.credentials.json" --quiet 2>/dev/null || true
+[ -f ~/.claude.json ] && \
+    aws s3 cp ~/.claude.json "s3://${S3_BUCKET}/claude-auth/.claude.json" --quiet 2>/dev/null || true
 aws s3 sync "${STATE_DIR}/"        "s3://${S3_BUCKET}/state/"        --quiet 2>&1 || true
 aws s3 sync "${INST_DIR}/"         "s3://${S3_BUCKET}/instructions/"  --quiet 2>&1 || true
 aws s3 sync "${NIGHT_LOG_DIR}/"    "s3://${S3_BUCKET}/night-logs/"    --quiet 2>&1 || true
