@@ -743,7 +743,7 @@ PYEOF
 )
 echo "$DAILY_SUMMARY" | sed 's/^/  /'
 
-# バックエンド稼働・コスト（Lambda/API健全性・本番エラー・AWSコスト）
+# バックエンド稼働・コスト（Lambda/API健全性・本番エラー・AWS前日コスト・今月累計コスト:AWS/Cloudflare/ほか）
 BACKEND_HEALTH="未取得"
 _BH_SCRIPT="$_d/backend-health-check.sh"
 if [ -x "$_BH_SCRIPT" ]; then
@@ -1072,6 +1072,15 @@ def backend_to_html(raw):
             cnt = m.group(2)
             style = ' style="color:#e74c3c;font-weight:700"' if cnt != '0' else ''
             rows.append(f'<tr><td colspan="5"{style}>本番エラーログ(24h): {cnt}件</td></tr>')
+            continue
+        # 月次累計コスト（見出し: AWS / Cloudflare / ほか / 合計）
+        m = re.match(r'月次コスト\((.+?)\)\s*(.+?): (\$[\d.]+)(.*)', s)
+        if m:
+            scope = m.group(1); label = m.group(2); total = m.group(3); note = m.group(4).strip()
+            is_total = label == '合計'
+            style = 'padding-top:6px;font-weight:700;border-top:1px solid #ddd' if is_total else 'padding-top:4px'
+            cost_rows.append(f'<tr><td colspan="4" style="{style}">📅 今月 {html.escape(label)} '
+                             f'({html.escape(scope)}): <b>{total}</b> {html.escape(note)}</td></tr>')
             continue
         # コスト合計
         m = re.match(r'AWSコスト\((.+?)\): (\$[\d.]+)(.*)', s)
