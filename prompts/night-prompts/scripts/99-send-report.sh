@@ -343,7 +343,7 @@ echo "  通報: $(echo "$RPT_SUMMARY" | head -1)"
 echo ""
 echo "--- [3] DynamoDB稼働状況 ---"
 
-DB_STATS=$(TODAY="$TODAY" python3 << 'PYEOF'
+DB_STATS=$(TODAY="$TODAY" STATE_DIR="$_d/state" python3 << 'PYEOF'
 import subprocess, json, sys, os
 
 AWS = "/home/yuzuki/local/bin/aws"
@@ -391,7 +391,7 @@ except:
     reports = -1
 
 # 資格別問題数（DynamoDBのキャッシュを使う）
-cache_file = "/home/yuzuki/aws-quiz-app/prompts/night-prompts/scripts/state/question_counts.json"
+cache_file = os.path.join(os.environ.get("STATE_DIR", "."), "question_counts.json")
 try:
     with open(cache_file) as f:
         cache = json.load(f)

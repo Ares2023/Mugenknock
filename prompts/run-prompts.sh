@@ -822,6 +822,12 @@ print(f"{status}|{out_tok}|{sid}|{result}")
                   echo "⚠️  書式不正（遅延分数,フルパス 形式で記載してください）: $_line"
                   continue
                 fi
+                # パスをSCRIPT_DIR基準で解決（ホスト絶対パス/相対どちらも可・コンテナ /app 対応）
+                case "$_s" in
+                  */prompts/*) _s="$SCRIPT_DIR/${_s#*/prompts/}" ;;  # …/prompts/ 以降を現SCRIPT_DIRに接ぐ
+                  /*)          : ;;                                  # その他の絶対パスはそのまま
+                  *)           _s="$SCRIPT_DIR/$_s" ;;               # 相対パス
+                esac
                 if [ ! -e "$_s" ]; then
                   echo "⚠️  スクリプト不在: $_s"
                   continue
