@@ -86,9 +86,10 @@ phases:
       - echo "ECRプッシュ..."
       - docker push "${IMAGE}:${TAG}"
       - docker push "${IMAGE}:latest"
-      - echo "完了: ${IMAGE}:${TAG}"
+      - echo "done ${IMAGE}:${TAG}"
 SPEC
 )
+export BUILDSPEC
 
 # ── 4. CodeBuildプロジェクト (冪等) ─────────────────────────
 log "4. CodeBuildプロジェクト..."
@@ -117,7 +118,6 @@ print(json.dumps({
 }))
 PYEOF
 )
-export BUILDSPEC
 
 if "$AWS" codebuild batch-get-projects --names "$CB_PROJECT" --region "$REGION" \
      --query "projects[0].name" --output text 2>/dev/null | grep -q "$CB_PROJECT"; then
