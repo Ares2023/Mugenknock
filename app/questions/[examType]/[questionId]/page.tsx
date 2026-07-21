@@ -56,15 +56,14 @@ export async function generateStaticParams() {
   return params;
 }
 
-// cache() でメモ化：同じexamTypeへの呼び出しは1回のfetchで済む
-// generateMetadata と QuestionPage の両方で呼ばれても実際のHTTPリクエストは1回
-const fetchAllByExam = cache(async (examType: string): Promise<Question[]> => {
+async function fetchExamItems(examType: string, opts: { fresh?: boolean } = {}): Promise<Question[]> {
   try {
     const ctrl = new AbortController();
     const timer = setTimeout(() => ctrl.abort(), 30000);
     const res = await fetch(`${API}/questions/public?examType=${examType}`, {
       signal: ctrl.signal,
-      cache: 'force-cache',
+      // 通常は force-cache でビルド中の重複fetchを1回に。fresh時はキャッシュを介さず取り直す。
+      cache: opts.fresh ? 'no-store' : 'force-cache',
     });
     clearTimeout(timer);
     if (!res.ok) return [];
@@ -73,11 +72,22 @@ const fetchAllByExam = cache(async (examType: string): Promise<Question[]> => {
   } catch {
     return [];
   }
-});
+}
+
+// cache() でメモ化：同じexamTypeへの呼び出しは1回のfetchで済む
+// generateMetadata と QuestionPage の両方で呼ばれても実際のHTTPリクエストは1回
+const fetchAllByExam = cache((examType: string): Promise<Question[]> => fetchExamItems(examType));
 
 async function fetchQuestion(examType: string, questionId: string): Promise<Question | null> {
   const items = await fetchAllByExam(examType);
-  return items.find(q => q.questionId === questionId) ?? null;
+  const found = items.find(q => q.questionId === questionId);
+  if (found) return found;
+  // generateStaticParams には在ったIDが見つからない場合、ビルド時の一時的なfetch不整合
+  // （force-cacheの陳腐化・夜間バッチによるデータ更新との重複）の可能性がある。
+  // キャッシュを介さず取り直して再探索し、生きた問題を静かに noindex 404 化させない。
+  // それでも見つからなければ本当に削除済み → notFound（正しく noindex）。
+  const fresh = await fetchExamItems(examType, { fresh: true });
+  return fresh.find(q => q.questionId === questionId) ?? null;
 }
 
 export async function generateMetadata(
