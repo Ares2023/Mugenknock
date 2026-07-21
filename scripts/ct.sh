@@ -7,8 +7,8 @@
 #
 # usage: ct [command]
 #   (なし)        状況表示 (EventBridgeピン + ローカルタイマー)
-#   set HH:MM    ピン時刻を HH:MM に変更 (EventBridge + ローカル同期)
-#   resume       定期スケジュール(cron 0/5/10/15/20時)に戻す
+#   set HH:MM    次回ピン時刻を HH:MM に変更 (EventBridge + ローカル同期。以降5h毎)
+#   resume       5時間ドリフト再開 (次回ピン=now+5h。以降Fargateが+5hずつ)
 #   cancel       スケジュール停止 (Fargateピン+ローカル)
 #   sync         EventBridgeに合わせてローカルタイマーを再同期
 #   run          今すぐピンを手動実行 (Fargate)
@@ -24,7 +24,6 @@ SCHEDULE_NAME="${PROJECT}-ping"
 CLUSTER="${PROJECT}-batch"
 TASK_FAMILY="${PROJECT}-ping"
 LOG_GROUP="/ecs/${PROJECT}-night-batch"
-MAIN_CRON="cron(2 0,5,10,15,20 * * ? *)"
 SYNC_SCRIPT="/home/yuzuki/aws-quiz-app/scripts/sync-local-schedule.sh"
 
 # ── ヘルパー ──────────────────────────────────────────────────
@@ -123,13 +122,15 @@ PYEOF
 }
 
 # ── ct resume ────────────────────────────────────────────────
+# ドリフト再開: 次回ピンを now+5h に置く(以降Fargateがピンごとに+5hずつずらす)
 resume_schedule() {
+  local next_iso; next_iso=$(python3 -c "from datetime import datetime,timedelta; print((datetime.now()+timedelta(hours=5)).strftime('%Y-%m-%dT%H:%M:%S'))")
   local target_json; target_json=$(_get_target_json)
   "$AWS" scheduler update-schedule --name "$SCHEDULE_NAME" \
-    --schedule-expression "$MAIN_CRON" --schedule-expression-timezone "Asia/Tokyo" \
+    --schedule-expression "at(${next_iso})" --schedule-expression-timezone "Asia/Tokyo" \
     --flexible-time-window '{"Mode":"OFF"}' --state ENABLED --target "$target_json" \
     --region "$REGION" > /dev/null
-  echo "✓ 再開: $MAIN_CRON"
+  echo "✓ 再開(ドリフト): 次回ピン ${next_iso/T/ } (以降5時間ごと)"
   echo "ローカルタイマーを同期中..."
   _sync_local
 }
@@ -137,8 +138,9 @@ resume_schedule() {
 # ── ct cancel ────────────────────────────────────────────────
 cancel_schedule() {
   local target_json; target_json=$(_get_target_json)
+  local cur_expr; cur_expr=$(_get_schedule | python3 -c "import sys,json; print(json.load(sys.stdin).get('ScheduleExpression','cron(2 0,5,10,15,20 * * ? *)'))" 2>/dev/null)
   "$AWS" scheduler update-schedule --name "$SCHEDULE_NAME" \
-    --schedule-expression "$MAIN_CRON" --schedule-expression-timezone "Asia/Tokyo" \
+    --schedule-expression "$cur_expr" --schedule-expression-timezone "Asia/Tokyo" \
     --flexible-time-window '{"Mode":"OFF"}' --state DISABLED --target "$target_json" \
     --region "$REGION" > /dev/null
   echo "✓ 停止 (ct resume で再開)"
@@ -220,7 +222,7 @@ while [[ $# -gt 0 ]]; do
 usage: ct [command]
   (なし)        状況表示 (ピン + ローカルタイマー)
   set HH:MM    ピン時刻を変更 (EventBridge + ローカル同期)
-  resume       cron(0/5/10/15/20時)に戻す
+  resume       5時間ドリフト再開 (次回ピン=now+5h)
   cancel       停止
   sync         ローカルタイマーをEventBridgeに再同期
   run          ピン即時実行 (Fargate)

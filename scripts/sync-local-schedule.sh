@@ -1,9 +1,16 @@
 #!/bin/bash
 # EventBridgeのピンスケジュール(=トークンリセット基準時刻の唯一の正)を読み、
-# ローカルsystemd userタイマー(夜間バッチ/フック)をその時刻に同期生成する。
-#   - フック: 各ピンサイクルの30分前(トークン消化)
-#   - 夜間バッチ: 5時前(<05:00)のサイクル時刻(生成/検証/監査/レポート/日めくり)
-# ct set/resume/cancel 後や日次で呼ばれ、EventBridge変更にローカルを追従させる。
+# ローカルsystemd userタイマーをその「次回ピン時刻」に同期する。
+#
+# ドリフト構成: EventBridgeのピンは at(次回) を保持し、Fargateがピン完了ごとに
+# now+5h へ更新する(5時間ごと・毎日ずれる)。ローカルは次回ピン時刻を読み、
+#   - mugenknock-hook     : 次回ピンの30分前(トークン消化)
+#   - mugenknock-postping : 次回ピンの10分後(=このスクリプトを再実行して次サイクルへ
+#                           自己再アーム。夜間サイクルなら夜間バッチも実行)
+# を一発(one-shot)で仕込む。postpingが毎サイクル自身を再アームして追従する。
+#
+# watchdog: 次回ピンが過去(=ピン連鎖が壊れた/PC復帰直後)なら EventBridge を
+# at(now+5h) に張り直してから同期する。
 set -euo pipefail
 
 AWS=/home/yuzuki/local/bin/aws
@@ -12,99 +19,125 @@ PROJECT=mugenknock
 SCHEDULE_NAME="${PROJECT}-ping"
 REPO=/home/yuzuki/aws-quiz-app
 UNIT_DIR="$HOME/.config/systemd/user"
+ACCT=$("$AWS" sts get-caller-identity --query Account --output text --region "$REGION" 2>/dev/null || echo "")
+S3="${PROJECT}-fargate-state-${ACCT}"
 
 EXPR=$("$AWS" scheduler get-schedule --name "$SCHEDULE_NAME" --region "$REGION" \
   --query "ScheduleExpression" --output text 2>/dev/null || echo "")
 STATE=$("$AWS" scheduler get-schedule --name "$SCHEDULE_NAME" --region "$REGION" \
   --query "State" --output text 2>/dev/null || echo "")
-if [ -z "$EXPR" ]; then
-  echo "❌ EventBridgeスケジュール($SCHEDULE_NAME)が取得できません"; exit 1
-fi
-
-# スケジュール式 → フック/夜間のOnCalendar行を算出
-CAL=$(python3 - "$EXPR" << 'PYEOF'
-import sys, re
-from datetime import datetime, timedelta
-expr = sys.argv[1].strip()
-mains = []  # (hour, minute, date_or_None)
-m = re.match(r'cron\((\d+)\s+([\d,]+)\s', expr)
-a = re.match(r'at\((\d{4}-\d{2}-\d{2})T(\d{2}):(\d{2}):(\d{2})\)', expr)
-if m:
-    minute = int(m.group(1))
-    for h in m.group(2).split(','):
-        mains.append((int(h), minute, None))
-elif a:
-    mains.append((int(a.group(2)), int(a.group(3)), a.group(1)))
-else:
-    # rate() 等は非対応。既定cronにフォールバック。
-    for h in (0,5,10,15,20):
-        mains.append((h, 2, None))
-
-hook_lines, night_lines = [], []
-for (h, mi, d) in mains:
-    base = datetime(2000,1,1,h,mi)
-    hook = base - timedelta(minutes=30)
-    if d:  # at(): 絶対日時。明示指定なので時刻に関わらず夜間バッチも実行する
-        maind = datetime.strptime(d, '%Y-%m-%d').replace(hour=h, minute=mi)
-        hookd = maind - timedelta(minutes=30)
-        hook_lines.append(hookd.strftime('%Y-%m-%d %H:%M:00'))
-        night_lines.append(maind.strftime('%Y-%m-%d %H:%M:00'))
-    else:  # cron: 毎日。夜間バッチは5時前(<05:00)のサイクルのみ
-        hook_lines.append('*-*-* %02d:%02d:00' % (hook.hour, hook.minute))
-        if h < 5:
-            night_lines.append('*-*-* %02d:%02d:00' % (h, mi))
-
-print("HOOK")
-for l in hook_lines: print(l)
-print("NIGHT")
-for l in night_lines: print(l)
-PYEOF
-)
-
-HOOK_CALS=$(echo "$CAL" | sed -n '/^HOOK$/,/^NIGHT$/p' | grep -vE '^HOOK$|^NIGHT$')
-NIGHT_CALS=$(echo "$CAL" | sed -n '/^NIGHT$/,$p' | grep -vE '^NIGHT$')
+[ -z "$EXPR" ] && { echo "❌ EventBridgeスケジュール($SCHEDULE_NAME)が取得できません"; exit 1; }
 
 mkdir -p "$UNIT_DIR"
 
-_write_timer() {
-  local name="$1" desc="$2" exec="$3" cals="$4"
-  cat > "$UNIT_DIR/${name}.service" << EOF
+# DISABLED(ct cancel)ならローカルタイマーも停止して終了
+if [ "$STATE" = "DISABLED" ]; then
+  systemctl --user disable --now mugenknock-hook.timer mugenknock-postping.timer 2>/dev/null || true
+  echo "スケジュール停止中(DISABLED) → ローカルタイマー停止"
+  exit 0
+fi
+
+# 前回夜間実行日(once/day判定用)
+LAST_RUN_DATE=$("$AWS" s3 cp "s3://$S3/meta/.last_run_date" - --quiet 2>/dev/null | tr -d '\n' || echo "")
+
+# 次回ピン時刻を算出(at/cron両対応)。過去なら now+5h とみなす(watchdog)。
+read -r NEXT_DT RUN_NIGHT STALE < <(python3 - "$EXPR" "$LAST_RUN_DATE" << 'PYEOF'
+import sys, re
+from datetime import datetime, timedelta
+expr, last_run_date = sys.argv[1].strip(), (sys.argv[2].strip() if len(sys.argv) > 2 else "")
+now = datetime.now()
+a = re.match(r'at\((\d{4}-\d{2}-\d{2})T(\d{2}):(\d{2}):(\d{2})\)', expr)
+c = re.match(r'cron\((\d+)\s+([\d,]+)\s', expr)
+if a:
+    dt = datetime.strptime(expr[3:-1], '%Y-%m-%dT%H:%M:%S')
+elif c:
+    minute = int(c.group(1)); hours = sorted(int(h) for h in c.group(2).split(','))
+    cand = []
+    for d in (0, 1):
+        day = now + timedelta(days=d)
+        for h in hours:
+            t = day.replace(hour=h, minute=minute, second=0, microsecond=0)
+            if t > now: cand.append(t)
+    dt = min(cand)
+else:
+    dt = now + timedelta(hours=5)
+stale = 0
+if dt <= now + timedelta(minutes=1):   # 過去/直近=連鎖切れ → 張り直し
+    dt = now + timedelta(hours=5); stale = 1
+# 夜間サイクル判定: 次回ピンが 0:00-4:59 かつ その日まだ夜間未実行
+run_night = 1 if (dt.hour < 5 and last_run_date != dt.strftime('%Y-%m-%d')) else 0
+print(dt.strftime('%Y-%m-%dT%H:%M:%S'), run_night, stale)
+PYEOF
+)
+
+# watchdog: 連鎖が切れていたら EventBridge を at(NEXT_DT) に張り直す
+if [ "$STALE" = "1" ]; then
+  TARGET_JSON=$("$AWS" scheduler get-schedule --name "$SCHEDULE_NAME" --region "$REGION" \
+    --output json 2>/dev/null | python3 -c "import sys,json; print(json.dumps(json.load(sys.stdin)['Target']))")
+  "$AWS" scheduler update-schedule --name "$SCHEDULE_NAME" \
+    --schedule-expression "at(${NEXT_DT})" --schedule-expression-timezone "Asia/Tokyo" \
+    --flexible-time-window '{"Mode":"OFF"}' --state ENABLED --target "$TARGET_JSON" \
+    --region "$REGION" > /dev/null 2>&1 \
+  && echo "⚠️ ピン連鎖切れを検出 → EventBridgeを at(${NEXT_DT}) に張り直し" || true
+fi
+
+# 次回ピンから hook(-30分) / postping(+10分) の絶対時刻を算出
+HOOK_CAL=$(python3 -c "from datetime import datetime,timedelta; print((datetime.strptime('$NEXT_DT','%Y-%m-%dT%H:%M:%S')-timedelta(minutes=30)).strftime('%Y-%m-%d %H:%M:00'))")
+POST_CAL=$(python3 -c "from datetime import datetime,timedelta; print((datetime.strptime('$NEXT_DT','%Y-%m-%dT%H:%M:%S')+timedelta(minutes=10)).strftime('%Y-%m-%d %H:%M:00'))")
+
+# hook タイマー(one-shot)
+cat > "$UNIT_DIR/mugenknock-hook.service" << EOF
 [Unit]
-Description=${desc}
+Description=mugenknock local validity hook (before ping)
 
 [Service]
 Type=oneshot
 WorkingDirectory=${REPO}
-ExecStart=/bin/bash -lc '${exec}'
+ExecStart=/bin/bash -lc '${REPO}/scripts/local-hook-run.sh'
 EOF
-  {
-    echo "[Unit]"
-    echo "Description=${desc} timer (synced from EventBridge ${SCHEDULE_NAME})"
-    echo ""
-    echo "[Timer]"
-    while IFS= read -r c; do [ -n "$c" ] && echo "OnCalendar=${c}"; done <<< "$cals"
-    echo "Persistent=true"
-    echo ""
-    echo "[Install]"
-    echo "WantedBy=timers.target"
-  } > "$UNIT_DIR/${name}.timer"
-}
+cat > "$UNIT_DIR/mugenknock-hook.timer" << EOF
+[Unit]
+Description=mugenknock hook timer (synced from EventBridge ${SCHEDULE_NAME})
 
-_write_timer "mugenknock-hook"  "mugenknock local validity hook" \
-  "${REPO}/scripts/local-hook-run.sh"  "$HOOK_CALS"
-_write_timer "mugenknock-night" "mugenknock local night batch" \
-  "${REPO}/scripts/local-night-run.sh" "$NIGHT_CALS"
+[Timer]
+OnCalendar=${HOOK_CAL}
+Persistent=true
+
+[Install]
+WantedBy=timers.target
+EOF
+
+# postping タイマー(one-shot): 再同期 + (夜間サイクルなら)夜間バッチ
+cat > "$UNIT_DIR/mugenknock-postping.service" << EOF
+[Unit]
+Description=mugenknock post-ping resync (+ night batch on night cycle)
+
+[Service]
+Type=oneshot
+WorkingDirectory=${REPO}
+Environment=RUN_NIGHT=${RUN_NIGHT}
+ExecStart=/bin/bash -lc '${REPO}/scripts/local-postping-run.sh'
+EOF
+cat > "$UNIT_DIR/mugenknock-postping.timer" << EOF
+[Unit]
+Description=mugenknock post-ping timer (synced from EventBridge ${SCHEDULE_NAME})
+
+[Timer]
+OnCalendar=${POST_CAL}
+Persistent=true
+
+[Install]
+WantedBy=timers.target
+EOF
 
 systemctl --user daemon-reload
-if [ "$STATE" = "DISABLED" ]; then
-  systemctl --user disable --now mugenknock-hook.timer mugenknock-night.timer 2>/dev/null || true
-  echo "スケジュール停止中(DISABLED) → ローカルタイマーも停止"
-else
-  systemctl --user enable --now mugenknock-hook.timer mugenknock-night.timer
-fi
+systemctl --user enable mugenknock-hook.timer mugenknock-postping.timer >/dev/null 2>&1 || true
+# one-shot絶対時刻タイマーは restart で新OnCalendarを反映
+systemctl --user restart mugenknock-hook.timer mugenknock-postping.timer 2>/dev/null || \
+  systemctl --user start mugenknock-hook.timer mugenknock-postping.timer 2>/dev/null || true
 loginctl enable-linger "$USER" 2>/dev/null || true
 
 echo "✓ ローカルタイマーを EventBridge(${EXPR}) に同期"
-echo "  hook :"; echo "$HOOK_CALS"  | sed 's/^/    /'
-echo "  night:"; echo "$NIGHT_CALS" | sed 's/^/    /'
-systemctl --user list-timers 'mugenknock-*' --all --no-legend 2>/dev/null | grep -E 'hook|night' || true
+echo "  次回ピン : ${NEXT_DT/T/ }"
+echo "  hook     : ${HOOK_CAL}"
+echo "  postping : ${POST_CAL}  (RUN_NIGHT=${RUN_NIGHT})"

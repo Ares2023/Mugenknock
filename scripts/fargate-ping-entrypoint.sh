@@ -56,21 +56,25 @@ done
 # run-logs も保存(ct log -d 用)
 aws s3 sync "${PROMPTS_DIR}/logs/" "s3://${S3_BUCKET}/run-logs/" --quiet 2>&1 || true
 
-# at() 一時変更後は通常cronへ自動リセット(メインのみ・フックはローカル管理)
+# ── ドリフト: 次回ピンを now+5h に再スケジュール ──
+# Claudeの5時間利用ウィンドウに合わせ、ピン完了ごとに次回を「今から5時間後」に置く。
+# これにより毎回5時間間隔で、実行時刻は毎日少しずつずれていく(要件どおり)。
+# State=DISABLED(ct cancel)のときは再スケジュールしない(停止を尊重)。
 SCHEDULE_NAME="${FARGATE_PROJECT:-mugenknock}-ping"
 REGION="${AWS_DEFAULT_REGION:-ap-northeast-1}"
-DEFAULT_SCHEDULE_EXPR="cron(2 0,5,10,15,20 * * ? *)"
-CURRENT_EXPR=$(aws scheduler get-schedule --name "$SCHEDULE_NAME" --region "$REGION" \
-    --query "ScheduleExpression" --output text 2>/dev/null || echo "")
-if [[ "$CURRENT_EXPR" == at\(* ]]; then
-    log "at() 一時変更を検出 → ${DEFAULT_SCHEDULE_EXPR} にリセット中..."
+STATE=$(aws scheduler get-schedule --name "$SCHEDULE_NAME" --region "$REGION" \
+    --query "State" --output text 2>/dev/null || echo "")
+if [ "$STATE" = "ENABLED" ]; then
+    NEXT=$(python3 -c "from datetime import datetime,timedelta; print((datetime.now()+timedelta(hours=5)).strftime('%Y-%m-%dT%H:%M:%S'))")
     TARGET_JSON=$(aws scheduler get-schedule --name "$SCHEDULE_NAME" --region "$REGION" \
         --output json 2>/dev/null | python3 -c "import sys,json; print(json.dumps(json.load(sys.stdin)['Target']))")
     aws scheduler update-schedule --name "$SCHEDULE_NAME" \
-        --schedule-expression "$DEFAULT_SCHEDULE_EXPR" --schedule-expression-timezone "Asia/Tokyo" \
+        --schedule-expression "at(${NEXT})" --schedule-expression-timezone "Asia/Tokyo" \
         --flexible-time-window '{"Mode":"OFF"}' --state ENABLED --target "$TARGET_JSON" \
         --region "$REGION" > /dev/null 2>&1 \
-    && log "スケジュール: ${DEFAULT_SCHEDULE_EXPR} に戻しました" || log "⚠️ スケジュールリセット失敗"
+    && log "次回ピン: at(${NEXT}) (now+5h ドリフト)" || log "⚠️ 次回ピン再スケジュール失敗"
+else
+    log "スケジュールがENABLEDでない(${STATE:-不明})ため再スケジュールしない"
 fi
 
 log "完了"
