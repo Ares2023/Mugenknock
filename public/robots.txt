@@ -4,6 +4,7 @@ Disallow: /admin-login/
 Disallow: /aws/
 Allow: /questions/
 Allow: /services/
+Allow: /compare/
 Allow: /exam-guide/
 Allow: /encyclopedia/
 Allow: /sample/
