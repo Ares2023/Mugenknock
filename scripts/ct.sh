@@ -88,9 +88,9 @@ PYEOF
   printf "  state %s\n  last  %s\n  next  %s\n" "$state" "$last" "$next_str"
 
   echo "── ローカル systemd タイマー ──"
-  systemctl --user list-timers 'mugenknock-hook.timer' 'mugenknock-night.timer' 'mugenknock-canary.timer' \
+  systemctl --user list-timers 'mugenknock-hook.timer' 'mugenknock-postping.timer' 'mugenknock-canary.timer' \
     --all --no-legend 2>/dev/null \
-    | awk '{printf "  %-22s next %s %s\n", $NF, $1, $2}' \
+    | awk '{printf "  %-24s next %s %s\n", $NF, $1, $2}' \
     || echo "  (タイマー未設定 — ct sync で作成)"
 }
 
