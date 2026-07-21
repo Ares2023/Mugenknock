@@ -44,13 +44,12 @@ hook_lines, night_lines = [], []
 for (h, mi, d) in mains:
     base = datetime(2000,1,1,h,mi)
     hook = base - timedelta(minutes=30)
-    if d:  # at(): 絶対日時
+    if d:  # at(): 絶対日時。明示指定なので時刻に関わらず夜間バッチも実行する
         maind = datetime.strptime(d, '%Y-%m-%d').replace(hour=h, minute=mi)
         hookd = maind - timedelta(minutes=30)
         hook_lines.append(hookd.strftime('%Y-%m-%d %H:%M:00'))
-        if h < 5:
-            night_lines.append(maind.strftime('%Y-%m-%d %H:%M:00'))
-    else:  # cron: 毎日
+        night_lines.append(maind.strftime('%Y-%m-%d %H:%M:00'))
+    else:  # cron: 毎日。夜間バッチは5時前(<05:00)のサイクルのみ
         hook_lines.append('*-*-* %02d:%02d:00' % (hook.hour, hook.minute))
         if h < 5:
             night_lines.append('*-*-* %02d:%02d:00' % (h, mi))
