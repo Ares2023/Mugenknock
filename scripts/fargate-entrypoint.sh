@@ -33,10 +33,63 @@ fi
 # 1b. Claude OAuth 資格情報をS3から復元 (サブスク認証: APIキーは使わない)
 log "Claude OAuth資格情報を復元中..."
 mkdir -p ~/.claude
+CRED_OK=0
 aws s3 cp "s3://${S3_BUCKET}/claude-auth/.credentials.json" ~/.claude/.credentials.json --quiet 2>/dev/null \
-    && log "  .credentials.json 復元OK" || log "  ⚠️ .credentials.json が見つかりません (OAuth未設定)"
+    && log "  .credentials.json 復元OK" && CRED_OK=1 \
+    || log "  ⚠️ .credentials.json が見つかりません"
 aws s3 cp "s3://${S3_BUCKET}/claude-auth/.claude.json" ~/.claude.json --quiet 2>/dev/null || true
 unset ANTHROPIC_API_KEY
+
+# 1c. 認証情報プリチェック: 無効なら通知してスキップ
+_check_claude_creds() {
+    [ "$CRED_OK" -eq 0 ] && return 1
+    python3 -c "
+import json, sys
+try:
+    d = json.load(open('$HOME/.claude/.credentials.json'))
+    o = d.get('claudeAiOauth', {})
+    ok = bool(o.get('refreshToken') or o.get('accessToken'))
+    sys.exit(0 if ok else 1)
+except:
+    sys.exit(1)
+" 2>/dev/null
+}
+
+_send_auth_alert() {
+    local reason="$1"
+    [ -z "${SMTP_USER:-}" ] || [ -z "${SMTP_PASS:-}" ] && return 0
+    python3 -c "
+import smtplib, ssl
+from email.mime.text import MIMEText
+msg = MIMEText('''$reason
+
+対処方法:
+  1. ローカルで claude /login を実行
+  2. ./scripts/fargate-upload-auth.sh を実行
+  3. または次の自動同期(Stopフック)まで待つ
+
+Fargate実行: \$(date '+%Y-%m-%d %H:%M JST')
+''', 'plain', 'utf-8')
+msg['Subject'] = '[mugenknock] Fargate: Claude認証エラー - 再ログインが必要です'
+msg['From'] = '${SMTP_USER}'
+msg['To'] = '${SMTP_TO:-mugenknock@gmail.com}'
+ctx = ssl.create_default_context()
+with smtplib.SMTP('smtp.gmail.com', 587) as s:
+    s.starttls(context=ctx)
+    s.login('${SMTP_USER}', '${SMTP_PASS}')
+    s.sendmail('${SMTP_USER}', '${SMTP_TO:-mugenknock@gmail.com}', msg.as_string())
+print('auth_alert_sent')
+" 2>/dev/null && log "  認証エラー通知メールを送信しました" || log "  ⚠️ 通知メール送信失敗"
+}
+
+if ! _check_claude_creds; then
+    MSG="S3にClaude OAuth認証情報が存在しないか無効です。夜間バッチをスキップします。"
+    [ "$CRED_OK" -eq 0 ] && MSG="S3にClaude OAuth認証情報が見つかりません (claude-auth/.credentials.json)。夜間バッチをスキップします。"
+    log "❌ $MSG"
+    _send_auth_alert "$MSG"
+    exit 2
+fi
+log "  認証情報OK (refreshToken確認済み)"
 
 # 2. S3から状態を同期 (前回実行の続きから)
 log "S3から状態を同期中 (s3://${S3_BUCKET})..."

@@ -64,13 +64,18 @@ else
     ok "作成: $ECR_REPO"
 fi
 ECR_URI="${ACCOUNT_ID}.dkr.ecr.${REGION}.amazonaws.com/${ECR_REPO}"
+"$AWS" ecr put-lifecycle-policy \
+    --repository-name "$ECR_REPO" \
+    --region "$REGION" \
+    --lifecycle-policy-text '{"rules":[{"rulePriority":1,"description":"Keep last 3 images","selection":{"tagStatus":"any","countType":"imageCountMoreThan","countNumber":3},"action":{"type":"expire"}}]}' > /dev/null
+ok "ECRライフサイクルポリシー: 最新3件のみ保持"
 
 # ── 3. CloudWatch Logs ────────────────────────────────────────
 log "3. CloudWatch Logs..."
 "$AWS" logs create-log-group --log-group-name "$LOG_GROUP" --region "$REGION" 2>/dev/null \
     && ok "作成: $LOG_GROUP" || ok "既存: $LOG_GROUP"
 "$AWS" logs put-retention-policy \
-    --log-group-name "$LOG_GROUP" --retention-in-days 30 --region "$REGION"
+    --log-group-name "$LOG_GROUP" --retention-in-days 7 --region "$REGION"
 
 # ── 4. ネットワーク (Fargate専用VPC) ──────────────────────────
 log "4. ネットワーク (Fargate専用VPC)..."
@@ -287,7 +292,7 @@ td = {
   "family": "${TASK_FAMILY}",
   "requiresCompatibilities": ["FARGATE"],
   "networkMode": "awsvpc",
-  "cpu": "1024",
+  "cpu": "512",
   "memory": "2048",
   "executionRoleArn": "${EXEC_ROLE_ARN}",
   "taskRoleArn": "${TASK_ROLE_ARN}",
@@ -474,7 +479,10 @@ target = {
   "RoleArn": "${SCHED_ROLE_ARN}",
   "EcsParameters": {
     "TaskDefinitionArn": sys.argv[1],
-    "LaunchType": "FARGATE",
+    "CapacityProviderStrategy": [
+      {"capacityProvider": "FARGATE_SPOT", "weight": 1},
+      {"capacityProvider": "FARGATE",      "weight": 0, "base": 1}
+    ],
     "NetworkConfiguration": {
       "awsvpcConfiguration": {
         "Subnets": ["${SUBNET_ID}"],

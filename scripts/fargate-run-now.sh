@@ -24,7 +24,7 @@ echo "ECSタスク起動中..."
 TASK_ARN=$("$AWS" ecs run-task \
     --cluster "$CLUSTER" \
     --task-definition "$TASK_FAMILY" \
-    --launch-type FARGATE \
+    --capacity-provider-strategy "capacityProvider=FARGATE_SPOT,weight=1" "capacityProvider=FARGATE,weight=0,base=1" \
     --network-configuration "awsvpcConfiguration={subnets=[${SUBNET_ID}],securityGroups=[${SG_ID}],assignPublicIp=ENABLED}" \
     --region "$REGION" \
     --query "tasks[0].taskArn" --output text)

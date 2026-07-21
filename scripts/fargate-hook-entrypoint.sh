@@ -32,10 +32,24 @@ fi
 # Claude OAuth 資格情報をS3から復元 (サブスク認証)
 log "Claude OAuth資格情報を復元中..."
 mkdir -p ~/.claude
+CRED_OK=0
 aws s3 cp "s3://${S3_BUCKET}/claude-auth/.credentials.json" ~/.claude/.credentials.json --quiet 2>/dev/null \
-    && log "  .credentials.json 復元OK" || log "  ⚠️ .credentials.json が見つかりません"
+    && log "  .credentials.json 復元OK" && CRED_OK=1 \
+    || log "  ⚠️ .credentials.json が見つかりません"
 aws s3 cp "s3://${S3_BUCKET}/claude-auth/.claude.json" ~/.claude.json --quiet 2>/dev/null || true
 unset ANTHROPIC_API_KEY
+
+if [ "$CRED_OK" -eq 0 ] || ! python3 -c "
+import json,sys
+try:
+    o=json.load(open('$HOME/.claude/.credentials.json')).get('claudeAiOauth',{})
+    sys.exit(0 if o.get('refreshToken') or o.get('accessToken') else 1)
+except: sys.exit(1)
+" 2>/dev/null; then
+    log "❌ Claude認証情報が無効です。フックをスキップします（メイン実行前に通知済みのはず）"
+    exit 2
+fi
+log "  認証情報OK"
 
 # S3から状態を同期 (validityチェックは state/ と instructions/ が必要)
 log "S3から状態を同期中..."
