@@ -785,7 +785,9 @@ print(f"{status}|{out_tok}|{sid}|{result}")
       if [ $is_rate_limited -eq 0 ] && [ "${is_deadline:-0}" -eq 0 ] && [ "${PING_ONLY:-0}" != "1" ]; then
         TODAY=$(date +%Y-%m-%d)
         HOUR=$(date +%-H)
-        if [ "$force_night" -eq 1 ] || [ "${FORCE_NIGHT:-0}" = "1" ] || { [ "$TODAY" != "$(cat "$SCRIPT_DIR/.last_run_date" 2>/dev/null)" ] && [ "$HOUR" -lt 5 ]; }; then
+        # FORCE_NIGHT(ローカルpostpingからの自動夜間トリガー)は once/day 判定(.last_run_date)を
+        # 迂回しない。二重実行防止の最終防波堤。force_night(=ct night手動実行)のみ意図的に迂回する。
+        if [ "$force_night" -eq 1 ] || { [ "${FORCE_NIGHT:-0}" = "1" ] && [ "$TODAY" != "$(cat "$SCRIPT_DIR/.last_run_date" 2>/dev/null)" ]; } || { [ "$TODAY" != "$(cat "$SCRIPT_DIR/.last_run_date" 2>/dev/null)" ] && [ "$HOUR" -lt 5 ]; }; then
           if [ "$force_night" -eq 1 ]; then
             echo "🌙 夜間タスク手動実行 ($(date '+%H:%M'))$([ "$TODAY" = "$(cat "$SCRIPT_DIR/.last_run_date" 2>/dev/null)" ] && echo " ※本日完了済みのため再実行")"
           else

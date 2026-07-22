@@ -22,9 +22,16 @@ log "S3から資格情報・状態を取得..."
 "$AWS" s3 cp "s3://$S3/claude-auth/.claude.json"       ~/.claude.json               --quiet 2>/dev/null || true
 "$AWS" s3 sync "s3://$S3/state/"        "$SC/state/"        --quiet 2>/dev/null || true
 "$AWS" s3 sync "s3://$S3/instructions/" "$SC/instructions/" --quiet 2>/dev/null || true
-for f in .last_run .last_run_date .claude_history .night_history; do
+for f in .last_run .claude_history .night_history; do
   "$AWS" s3 cp "s3://$S3/meta/$f" "$REPO/prompts/$f" --quiet 2>/dev/null || true
 done
+# .last_run_date は二重実行防止の要。S3で盲目上書きせずローカル/S3の新しい方を残す
+# (他プロセスが直前にローカルへ書いた"本日"がS3の古い値で消されるのを防ぐ)
+_S3_LRD=$("$AWS" s3 cp "s3://$S3/meta/.last_run_date" - --quiet 2>/dev/null | tr -d '\n')
+_LOCAL_LRD=$(cat "$REPO/prompts/.last_run_date" 2>/dev/null || echo "")
+if [ -n "$_S3_LRD" ] && { [ -z "$_LOCAL_LRD" ] || [ "$_S3_LRD" \> "$_LOCAL_LRD" ]; }; then
+  echo "$_S3_LRD" > "$REPO/prompts/.last_run_date"
+fi
 
 # ── 実行: ping抑止・夜間強制・自己スケジュール抑止 ──
 log "夜間バッチ実行 (SKIP_PING/FORCE_NIGHT)..."
