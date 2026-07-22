@@ -2605,59 +2605,6 @@ app.delete('/admin/daily-services/:id', async (req, res) => {
   }
 });
 
-// ─── 比較ページ（Comparisons） ────────────────────────────────────────────────
-// AWSサービス比較コンテンツ。夜間/手動スクリプトが直接DynamoDBに書き込む（管理APIは持たない）。
-// フロント（/compare/[slug]）がビルド時に読む。DailyServices と同型の運用・キャッシュ。
-let _comparisonsCache = null;
-let _comparisonsCachedAt = 0;
-const COMPARISONS_TTL = 5 * 60 * 1000;
-
-async function getComparisonsAll(docClient) {
-  if (_comparisonsCache && Date.now() - _comparisonsCachedAt < COMPARISONS_TTL) {
-    return _comparisonsCache;
-  }
-  const result = await docClient.send(new ScanCommand({ TableName: 'Comparisons' }));
-  _comparisonsCache = result.Items || [];
-  _comparisonsCachedAt = Date.now();
-  return _comparisonsCache;
-}
-
-// 公開：一覧（isActive のみ）。SSG の generateStaticParams・一覧ハブ・サイトマップ用。
-app.get('/comparisons/public', async (req, res) => {
-  try {
-    const docClient = getClient();
-    const all = await getComparisonsAll(docClient);
-    const items = all
-      .filter(c => c.slug && c.isActive !== false)
-      .sort((a, b) => (a.order || 0) - (b.order || 0));
-    res.json({ items });
-  } catch (err) {
-    console.error(err);
-    res.status(500).json({ error: 'Internal server error' });
-  }
-});
-
-// 公開：詳細（slug 指定）。
-app.get('/comparisons/item', async (req, res) => {
-  try {
-    const slug = req.query.slug;
-    if (!slug) return res.status(400).json({ error: 'slug is required' });
-    const docClient = getClient();
-    const result = await docClient.send(new GetCommand({
-      TableName: 'Comparisons',
-      Key: { slug: String(slug) },
-    }));
-    const comparison = result.Item;
-    if (!comparison || comparison.isActive === false) {
-      return res.status(404).json({ error: 'Not found' });
-    }
-    res.json({ comparison });
-  } catch (err) {
-    console.error(err);
-    res.status(500).json({ error: 'Internal server error' });
-  }
-});
-
 // ─── テーマ設定 ───────────────────────────────────────────────────────────────
 app.get('/admin/settings/admins', async (req, res) => {
   try {
