@@ -1,0 +1,3236 @@
+{
+  "Items": [
+    {
+      "services": {
+        "L": [
+          {
+            "S": "Amazon EFS"
+          },
+          {
+            "S": "Amazon FSx"
+          }
+        ]
+      },
+      "slug": {
+        "S": "efs-vs-fsx"
+      },
+      "createdAt": {
+        "S": "2026-07-21T10:14:18Z"
+      },
+      "order": {
+        "N": "9"
+      },
+      "docUrls": {
+        "L": [
+          {
+            "S": "https://aws.amazon.com/jp/efs/"
+          },
+          {
+            "S": "https://aws.amazon.com/jp/fsx/"
+          }
+        ]
+      },
+      "useCases": {
+        "L": [
+          {
+            "M": {
+              "scenario": {
+                "S": "ECS・EKSのPodやLambda関数で複数インスタンスが同一ファイルを読み書きしたい"
+              },
+              "why": {
+                "S": "NFSマウントをコンテナやLambdaから透過的に使用でき、容量管理不要で自動スケール。Kubernetes PVとしても標準対応。"
+              },
+              "recommend": {
+                "S": "Amazon EFS"
+              }
+            }
+          },
+          {
+            "M": {
+              "scenario": {
+                "S": "オンプレのWindows Serverファイル共有をAWSに移行。Active DirectoryやDFSを維持したい"
+              },
+              "why": {
+                "S": "FSx for Windows File ServerはSMBプロトコル・AD統合・DFSネームスペースをネイティブサポートし、既存環境を最小変更で移行できる。"
+              },
+              "recommend": {
+                "S": "Amazon FSx"
+              }
+            }
+          },
+          {
+            "M": {
+              "scenario": {
+                "S": "機械学習モデルのトレーニングで大量データをGPUクラスターへ高速供給したい"
+              },
+              "why": {
+                "S": "FSx for LustreはS3と直接統合でき、数百GB/sのスループットを提供。SageMakerとの組み合わせが公式推奨。"
+              },
+              "recommend": {
+                "S": "Amazon FSx"
+              }
+            }
+          },
+          {
+            "M": {
+              "scenario": {
+                "S": "LinuxのWebアプリ複数台が共通の静的コンテンツ・設定ファイルを参照したい"
+              },
+              "why": {
+                "S": "自動スケールで運用負荷なし。EC2・Fargate・Lambdaから同時マウント可能。初期容量見積もりが不要で小規模から始めやすい。"
+              },
+              "recommend": {
+                "S": "Amazon EFS"
+              }
+            }
+          },
+          {
+            "M": {
+              "scenario": {
+                "S": "Oracle/SQL Server以外のエンタープライズアプリがNFS・SMB・iSCSIを混在利用する"
+              },
+              "why": {
+                "S": "FSx for NetApp ONTAPはマルチプロトコルをサポートし、スナップショット・レプリケーション等ONTAP機能をマネージドで利用できる。"
+              },
+              "recommend": {
+                "S": "Amazon FSx"
+              }
+            }
+          }
+        ]
+      },
+      "isActive": {
+        "BOOL": true
+      },
+      "examTypes": {
+        "L": [
+          {
+            "S": "SAA"
+          },
+          {
+            "S": "SAP"
+          }
+        ]
+      },
+      "category": {
+        "S": "ストレージ"
+      },
+      "intro": {
+        "S": "Amazon EFSはLinux向けフルマネージドNFSで、容量を事前設定せずペタバイト規模まで自動拡張する汎用共有ストレージ。Amazon FSxはWindows File Server・Lustre・NetApp ONTAP・OpenZFSの4種類があり、それぞれ特定OS・プロトコル・ワークロードに最適化された高性能ファイルシステムを提供する。「Linux汎用NFS共有か、OS／性能特化ファイルシステムか」が選択の核心。"
+      },
+      "axes": {
+        "L": [
+          {
+            "M": {
+              "axis": {
+                "S": "対応OSとプロトコル"
+              },
+              "values": {
+                "M": {
+                  "Amazon EFS": {
+                    "S": "NFSv4.0/4.1のみ対応。LinuxおよびPOSIX互換環境専用。WindowsからのSMBマウント不可。"
+                  },
+                  "Amazon FSx": {
+                    "S": "サブタイプ別に異なる。Windows=SMB、Lustre=Lustreプロトコル、ONTAP=NFS/SMB/iSCSI、OpenZFS=NFS/SMBに対応。"
+                  }
+                }
+              }
+            }
+          },
+          {
+            "M": {
+              "axis": {
+                "S": "スケーラビリティ"
+              },
+              "values": {
+                "M": {
+                  "Amazon EFS": {
+                    "S": "ファイルの追加・削除に応じてペタバイト規模まで自動拡張。容量プロビジョニング不要。"
+                  },
+                  "Amazon FSx": {
+                    "S": "ストレージ容量とスループットを事前にプロビジョニングして起動。後からスケールアップは可能。"
+                  }
+                }
+              }
+            }
+          },
+          {
+            "M": {
+              "axis": {
+                "S": "性能特性"
+              },
+              "values": {
+                "M": {
+                  "Amazon EFS": {
+                    "S": "汎用モードとMax I/Oモード、バーストとプロビジョニングスループットを選択。レイテンシはミリ秒単位。"
+                  },
+                  "Amazon FSx": {
+                    "S": "サブタイプで大きく異なる。Lustreは数百GB/sの超高スループットを実現しHPC・ML向け。"
+                  }
+                }
+              }
+            }
+          },
+          {
+            "M": {
+              "axis": {
+                "S": "耐久性・可用性"
+              },
+              "values": {
+                "M": {
+                  "Amazon EFS": {
+                    "S": "StandardはマルチAZ冗長。One Zoneはシングル低コスト。どちらも高耐久性（11ナイン）。"
+                  },
+                  "Amazon FSx": {
+                    "S": "サブタイプにより異なる。Windows/ONTAPはマルチAZ選択可能。LustreはシングルAZ（S3連携で耐久性補完）。"
+                  }
+                }
+              }
+            }
+          },
+          {
+            "M": {
+              "axis": {
+                "S": "料金モデル"
+              },
+              "values": {
+                "M": {
+                  "Amazon EFS": {
+                    "S": "実際に使用したストレージ量に対して従量課金。アクセス頻度に応じてStandard/IAで自動移動可。"
+                  },
+                  "Amazon FSx": {
+                    "S": "プロビジョニングしたストレージ容量・スループット・バックアップ量に対して時間課金。"
+                  }
+                }
+              }
+            }
+          },
+          {
+            "M": {
+              "axis": {
+                "S": "Active Directory連携"
+              },
+              "values": {
+                "M": {
+                  "Amazon EFS": {
+                    "S": "AD連携機能なし。IAMとNFSレベルのアクセス制御（POSIX権限）。"
+                  },
+                  "Amazon FSx": {
+                    "S": "FSx for Windows File ServerはAWS Managed AD/Self-managed ADとネイティブ統合。DFSネームスペース対応。"
+                  }
+                }
+              }
+            }
+          },
+          {
+            "M": {
+              "axis": {
+                "S": "S3連携"
+              },
+              "values": {
+                "M": {
+                  "Amazon EFS": {
+                    "S": "S3との自動連携機能なし。"
+                  },
+                  "Amazon FSx": {
+                    "S": "FSx for LustreはS3バケットを入出力リポジトリとして直接リンク。ML学習データの高速読み込みに活用。"
+                  }
+                }
+              }
+            }
+          },
+          {
+            "M": {
+              "axis": {
+                "S": "代表ユースケース"
+              },
+              "values": {
+                "M": {
+                  "Amazon EFS": {
+                    "S": "Webコンテンツ共有・CMS・コンテナ共有ストレージ（ECS/EKS）・Lambdaとの統合・CI/CD共有ビルドキャッシュ。"
+                  },
+                  "Amazon FSx": {
+                    "S": "Windows共有フォルダ移行・機械学習トレーニング（Lustre）・エンタープライズNAS移行（ONTAP）・HPC。"
+                  }
+                }
+              }
+            }
+          }
+        ]
+      },
+      "title": {
+        "S": "EFS と FSx の違いと使い分け"
+      },
+      "examPoints": {
+        "S": "試験でのポイントは主に3点。①EFSはLinux/POSIXのみ・SMB非対応。Windowsが絡む問題では必ずFSx for Windows File Serverを選ぶ。②FSxはサブタイプの使い分けが頻出。HPC・ML→Lustre、Windows AD→Windows File Server、マルチプロトコル→ONTAP と機械的に対応させると解きやすい。③スケーリングモデルの違い。EFSは「使った分だけ自動拡張（プロビジョニング不要）」、FSxは「容量・スループットを事前指定」が特徴で、コスト予測性 vs 柔軟性のトレードオフとして問われる。FSx for LustreのS3自動連携（データリポジトリ機能）も押さえておくこと。"
+      }
+    },
+    {
+      "services": {
+        "L": [
+          {
+            "S": "Cognito ユーザープール"
+          },
+          {
+            "S": "Cognito IDプール"
+          }
+        ]
+      },
+      "slug": {
+        "S": "cognito-user-pool-vs-identity-pool"
+      },
+      "createdAt": {
+        "S": "2026-07-21T10:17:26Z"
+      },
+      "order": {
+        "N": "11"
+      },
+      "docUrls": {
+        "L": [
+          {
+            "S": "https://docs.aws.amazon.com/ja_jp/cognito/latest/developerguide/cognito-user-identity-pools.html"
+          },
+          {
+            "S": "https://docs.aws.amazon.com/ja_jp/cognito/latest/developerguide/cognito-identity.html"
+          }
+        ]
+      },
+      "useCases": {
+        "L": [
+          {
+            "M": {
+              "scenario": {
+                "S": "モバイルアプリにユーザー登録・ログイン機能を追加し、メールアドレスとパスワードで認証したい"
+              },
+              "why": {
+                "S": "ユーザーディレクトリとしてサインアップ・サインイン・MFA・パスワードリセットをすべてマネージドで提供するため"
+              },
+              "recommend": {
+                "S": "Cognito ユーザープール"
+              }
+            }
+          },
+          {
+            "M": {
+              "scenario": {
+                "S": "認証済みユーザーのみ自分専用のS3フォルダに画像をアップロードできるようにしたい"
+              },
+              "why": {
+                "S": "一時的IAMクレデンシャルを発行しIAMポリシーで各ユーザーのパスプレフィックスに限定したS3アクセスを付与できるため"
+              },
+              "recommend": {
+                "S": "Cognito IDプール"
+              }
+            }
+          },
+          {
+            "M": {
+              "scenario": {
+                "S": "ログイン不要のゲストユーザーにも特定のDynamoDBテーブルの読み取りを許可したい"
+              },
+              "why": {
+                "S": "未認証IAMロールを設定することで、アカウント登録なしのゲストにも限定的なAWSリソースアクセスを付与できるため"
+              },
+              "recommend": {
+                "S": "Cognito IDプール"
+              }
+            }
+          },
+          {
+            "M": {
+              "scenario": {
+                "S": "既存のGoogle/Facebookアカウントでソーシャルログインさせ、アプリ独自のJWTも取得したい"
+              },
+              "why": {
+                "S": "ソーシャルIdPとのフェデレーションをユーザープール側で吸収し、統一されたJWTトークンをアプリに返せるため"
+              },
+              "recommend": {
+                "S": "Cognito ユーザープール"
+              }
+            }
+          },
+          {
+            "M": {
+              "scenario": {
+                "S": "社内SSOのSAMLプロバイダーで認証した社員に、IAMロール経由でAWSコンソールや特定サービスへのアクセスを委任したい"
+              },
+              "why": {
+                "S": "SAMLアサーションをIDプールでIAMロールにマッピングし、一時クレデンシャルでAWSリソースアクセスを実現できるため"
+              },
+              "recommend": {
+                "S": "Cognito IDプール"
+              }
+            }
+          }
+        ]
+      },
+      "isActive": {
+        "BOOL": true
+      },
+      "examTypes": {
+        "L": [
+          {
+            "S": "DVA"
+          },
+          {
+            "S": "SAA"
+          },
+          {
+            "S": "SCS"
+          }
+        ]
+      },
+      "category": {
+        "S": "セキュリティ"
+      },
+      "intro": {
+        "S": "ユーザープールはアプリケーション向けのユーザー認証基盤で、サインアップ・サインイン・JWTトークン発行を担う。IDプールはAWSリソースへの一時的なIAMクレデンシャルを発行し、ユーザーがS3やDynamoDBへ直接アクセスできるようにする。本質的な違いは「アプリへのログイン管理（誰であるか）」か「AWSリソースへのアクセス制御（何ができるか）」かにある。両者は組み合わせて使うことも多い。"
+      },
+      "axes": {
+        "L": [
+          {
+            "M": {
+              "axis": {
+                "S": "主な役割"
+              },
+              "values": {
+                "M": {
+                  "Cognito IDプール": {
+                    "S": "認証済み・未認証ユーザーにAWSの一時的IAMクレデンシャルをSTS経由で発行する"
+                  },
+                  "Cognito ユーザープール": {
+                    "S": "アプリのサインアップ・サインインを管理し、JWTトークンを発行するユーザーディレクトリ"
+                  }
+                }
+              }
+            }
+          },
+          {
+            "M": {
+              "axis": {
+                "S": "発行するもの"
+              },
+              "values": {
+                "M": {
+                  "Cognito IDプール": {
+                    "S": "STS経由の一時的アクセスキー・シークレット・セッショントークン"
+                  },
+                  "Cognito ユーザープール": {
+                    "S": "IDトークン・アクセストークン・リフレッシュトークン（JWT形式）"
+                  }
+                }
+              }
+            }
+          },
+          {
+            "M": {
+              "axis": {
+                "S": "ユーザー情報の管理"
+              },
+              "values": {
+                "M": {
+                  "Cognito IDプール": {
+                    "S": "ユーザーディレクトリを持たず、外部IdPのIDをIAMロールに一時マッピングするのみ"
+                  },
+                  "Cognito ユーザープール": {
+                    "S": "自前のユーザーディレクトリを持ち、属性・パスワード・MFAをプール内で管理する"
+                  }
+                }
+              }
+            }
+          },
+          {
+            "M": {
+              "axis": {
+                "S": "対応する認証プロバイダー"
+              },
+              "values": {
+                "M": {
+                  "Cognito IDプール": {
+                    "S": "Cognitoユーザープール・Google・Facebook・SAML・OpenID Connect・独自開発者認証と連携可能"
+                  },
+                  "Cognito ユーザープール": {
+                    "S": "独自ユーザー登録のほかGoogle・Facebook・Apple等ソーシャルIdPとSAML/OIDCで連携可能"
+                  }
+                }
+              }
+            }
+          },
+          {
+            "M": {
+              "axis": {
+                "S": "ゲスト（未認証）アクセス"
+              },
+              "values": {
+                "M": {
+                  "Cognito IDプール": {
+                    "S": "未認証（ゲスト）ユーザーにも制限付きIAMロールを割り当て、限定的なAWSアクセスを許可できる"
+                  },
+                  "Cognito ユーザープール": {
+                    "S": "未認証アクセスの概念はなく、すべてのユーザーは認証を経る必要がある"
+                  }
+                }
+              }
+            }
+          },
+          {
+            "M": {
+              "axis": {
+                "S": "アクセス制御の仕組み"
+              },
+              "values": {
+                "M": {
+                  "Cognito IDプール": {
+                    "S": "IAMロールへのマッピングでAWSサービスへのアクセス権限を直接制御する"
+                  },
+                  "Cognito ユーザープール": {
+                    "S": "グループやカスタム属性を使いアプリ側でロールベース制御を実装する"
+                  }
+                }
+              }
+            }
+          },
+          {
+            "M": {
+              "axis": {
+                "S": "料金モデル"
+              },
+              "values": {
+                "M": {
+                  "Cognito IDプール": {
+                    "S": "月次アクティブユーザー（MAU）数で課金。無料枠は毎月5万MAUまで"
+                  },
+                  "Cognito ユーザープール": {
+                    "S": "月次アクティブユーザー（MAU）数で課金。無料枠は毎月5万MAUまで"
+                  }
+                }
+              }
+            }
+          },
+          {
+            "M": {
+              "axis": {
+                "S": "代表ユースケース"
+              },
+              "values": {
+                "M": {
+                  "Cognito IDプール": {
+                    "S": "モバイルアプリやフロントエンドからS3・DynamoDB等のAWSリソースへ直接アクセスさせる場合"
+                  },
+                  "Cognito ユーザープール": {
+                    "S": "Webアプリやモバイルアプリのユーザーログインとアカウントセルフ管理（パスワードリセット・MFA等）"
+                  }
+                }
+              }
+            }
+          }
+        ]
+      },
+      "title": {
+        "S": "Cognito ユーザープール と IDプール の違いと使い分け"
+      },
+      "examPoints": {
+        "S": "試験では「ユーザープール＝アプリ認証（JWTを発行）」「IDプール＝AWS認証情報発行（IAMクレデンシャルをSTSで発行）」の役割の違いが最頻出。よくあるひっかけは、①IDプールにユーザーディレクトリがあると思い込む（実際は持たない）、②ユーザープールのJWTだけでS3に直接アクセスできると思い込む（IDプールを経由してIAMクレデンシャルへの変換が必要）、③両者は必ずセットで使わなければならないと思い込む（IDプールはCognito以外のIdPも単独で受け付けられる）。ユーザープールのIDトークンをIDプールのフェデレーションに渡して一時クレデンシャルを得る連携パターンも頻出で、図とセットで理解しておくこと。"
+      }
+    },
+    {
+      "services": {
+        "L": [
+          {
+            "S": "AWS Lambda"
+          },
+          {
+            "S": "Amazon EC2"
+          },
+          {
+            "S": "AWS Fargate"
+          }
+        ]
+      },
+      "slug": {
+        "S": "lambda-vs-ec2-vs-fargate"
+      },
+      "createdAt": {
+        "S": "2026-07-21T10:07:33Z"
+      },
+      "order": {
+        "N": "5"
+      },
+      "docUrls": {
+        "L": [
+          {
+            "S": "https://aws.amazon.com/jp/lambda/"
+          },
+          {
+            "S": "https://aws.amazon.com/jp/ec2/"
+          },
+          {
+            "S": "https://aws.amazon.com/jp/fargate/"
+          }
+        ]
+      },
+      "useCases": {
+        "L": [
+          {
+            "M": {
+              "scenario": {
+                "S": "S3へのファイルアップロードをトリガーにサムネイル生成や通知など短時間の処理を自動化したい"
+              },
+              "why": {
+                "S": "イベント駆動で自動起動しアイドル時のコストがゼロ。処理が15分以内に収まるならLambdaが最も適している"
+              },
+              "recommend": {
+                "S": "AWS Lambda"
+              }
+            }
+          },
+          {
+            "M": {
+              "scenario": {
+                "S": "Dockerコンテナ化済みの夜間バッチ処理を定期実行したいが、サーバー管理の手間を省きたい"
+              },
+              "why": {
+                "S": "コンテナをそのまま実行でき、ホストOSの管理が不要。Lambdaの15分制限を気にせず長時間バッチを動かせる"
+              },
+              "recommend": {
+                "S": "AWS Fargate"
+              }
+            }
+          },
+          {
+            "M": {
+              "scenario": {
+                "S": "既存のJavaアプリをOSレベルのチューニングや依存ライブラリを維持したままクラウド移行したい"
+              },
+              "why": {
+                "S": "OSへのフルアクセスが可能でリフト＆シフトが容易。既存バイナリや設定をほぼそのまま稼働させられる"
+              },
+              "recommend": {
+                "S": "Amazon EC2"
+              }
+            }
+          },
+          {
+            "M": {
+              "scenario": {
+                "S": "トラフィックが予測不能でスパイク時のみ大量リクエストが来る軽量REST APIを低コストで運用したい"
+              },
+              "why": {
+                "S": "リクエストがない時間帯の費用がゼロ。API Gatewayと組み合わせることで自動スケールの費用効率の高いAPIを構築できる"
+              },
+              "recommend": {
+                "S": "AWS Lambda"
+              }
+            }
+          },
+          {
+            "M": {
+              "scenario": {
+                "S": "常時稼働のWebアプリとRDSを同一VPC内で安定稼働させ、レイテンシを一定に保ちたい"
+              },
+              "why": {
+                "S": "常時起動でレイテンシが安定し、VPC内のRDSへ低遅延でアクセス可能。長期安定負荷ではリザーブドインスタンスで費用対効果も高い"
+              },
+              "recommend": {
+                "S": "Amazon EC2"
+              }
+            }
+          }
+        ]
+      },
+      "isActive": {
+        "BOOL": true
+      },
+      "examTypes": {
+        "L": [
+          {
+            "S": "SAA"
+          },
+          {
+            "S": "DVA"
+          },
+          {
+            "S": "SAP"
+          }
+        ]
+      },
+      "category": {
+        "S": "コンピューティング"
+      },
+      "intro": {
+        "S": "三サービスの本質的な差は「どこまで自分で管理するか」にある。EC2はOSレベルから自前管理が必要な仮想マシン、FargateはコンテナをAWS管理インフラで実行するサーバーレスコンピューティング、Lambdaはコードだけを管理しイベント駆動で動くFaaS。実行時間・状態管理・コスト構造が大きく異なるため、ワークロードの性質に応じた使い分けが重要。"
+      },
+      "axes": {
+        "L": [
+          {
+            "M": {
+              "axis": {
+                "S": "管理責任範囲"
+              },
+              "values": {
+                "M": {
+                  "AWS Lambda": {
+                    "S": "関数コードとランタイム設定のみ管理。OS・コンテナ・スケーリング基盤はすべてAWSが担当する"
+                  },
+                  "Amazon EC2": {
+                    "S": "OSパッチ・ミドルウェア・スケーリング設定まで利用者がフルに管理する仮想マシン"
+                  },
+                  "AWS Fargate": {
+                    "S": "コンテナイメージと実行設定のみ管理。ホストOSやサーバーインフラはAWSが担当"
+                  }
+                }
+              }
+            }
+          },
+          {
+            "M": {
+              "axis": {
+                "S": "実行モデル"
+              },
+              "values": {
+                "M": {
+                  "AWS Lambda": {
+                    "S": "イベント発生時のみ起動するFaaS。最長15分（900秒）の実行時間制限がある"
+                  },
+                  "Amazon EC2": {
+                    "S": "常時起動型の仮想マシン。プロセスが継続動作し実行時間に制限なし"
+                  },
+                  "AWS Fargate": {
+                    "S": "コンテナ単位で起動・停止するサーバーレスコンテナ実行環境。実行時間制限なし"
+                  }
+                }
+              }
+            }
+          },
+          {
+            "M": {
+              "axis": {
+                "S": "スケーリング"
+              },
+              "values": {
+                "M": {
+                  "AWS Lambda": {
+                    "S": "リクエスト増加に応じ自動で並列実行数が増加。デフォルトの同時実行数上限は1アカウント1000"
+                  },
+                  "Amazon EC2": {
+                    "S": "Auto Scalingで水平スケール可能だが設定・管理が必要。新インスタンス追加起動に数分かかる"
+                  },
+                  "AWS Fargate": {
+                    "S": "ECS/EKSのスケーリングポリシーでタスク単位に自動スケールが可能"
+                  }
+                }
+              }
+            }
+          },
+          {
+            "M": {
+              "axis": {
+                "S": "料金モデル"
+              },
+              "values": {
+                "M": {
+                  "AWS Lambda": {
+                    "S": "リクエスト数とGB秒（メモリ×実行時間）で課金。月100万リクエスト・40万GB秒の永久無料枠あり"
+                  },
+                  "Amazon EC2": {
+                    "S": "インスタンス起動時間で課金（秒単位）。リザーブドやSpotインスタンスで大幅割引が可能"
+                  },
+                  "AWS Fargate": {
+                    "S": "タスク実行中のvCPUとメモリを秒単位で課金。タスク停止中はコストが発生しない"
+                  }
+                }
+              }
+            }
+          },
+          {
+            "M": {
+              "axis": {
+                "S": "コールドスタート"
+              },
+              "values": {
+                "M": {
+                  "AWS Lambda": {
+                    "S": "非実行状態からの初回起動時にコールドスタートが発生（数十〜数百ms）。Provisioned Concurrencyで回避可能"
+                  },
+                  "Amazon EC2": {
+                    "S": "常時起動のため実質なし。ただし新インスタンスのAuto Scaling追加起動には数分かかる"
+                  },
+                  "AWS Fargate": {
+                    "S": "タスク起動時に数十秒の遅延が発生する場合がある。ECSではサービス設定で軽減可能"
+                  }
+                }
+              }
+            }
+          },
+          {
+            "M": {
+              "axis": {
+                "S": "状態・ストレージ"
+              },
+              "values": {
+                "M": {
+                  "AWS Lambda": {
+                    "S": "実行中はメモリ内のみ状態保持。/tmpに最大10GBの一時領域あり。永続化はS3・DynamoDB等の外部サービス必須"
+                  },
+                  "Amazon EC2": {
+                    "S": "ローカルディスク・EBS・インスタンスメモリで状態を柔軟に保持できる。永続ストレージに強い"
+                  },
+                  "AWS Fargate": {
+                    "S": "EFS・S3で永続化。コンテナ内エフェメラルストレージは最大200GBまで拡張可能"
+                  }
+                }
+              }
+            }
+          },
+          {
+            "M": {
+              "axis": {
+                "S": "VPC・ネットワーク統合"
+              },
+              "values": {
+                "M": {
+                  "AWS Lambda": {
+                    "S": "VPC内への配置が可能。ただしENI生成が必要でコールドスタートや初期設定の考慮が要る"
+                  },
+                  "Amazon EC2": {
+                    "S": "VPC内にデプロイし、セキュリティグループやENIを直接管理。ネットワーク制御の自由度が最も高い"
+                  },
+                  "AWS Fargate": {
+                    "S": "ECS/EKSタスクをVPC内に配置。タスクごとにENIが割り当てられVPC機能をフル活用できる"
+                  }
+                }
+              }
+            }
+          },
+          {
+            "M": {
+              "axis": {
+                "S": "代表ユースケース"
+              },
+              "values": {
+                "M": {
+                  "AWS Lambda": {
+                    "S": "APIバックエンド・S3トリガー処理・CloudWatchイベント定期実行・軽量自動化処理"
+                  },
+                  "Amazon EC2": {
+                    "S": "Webサーバー・RDB・長時間バッチ・既存アプリのリフト＆シフト・GPUワークロード"
+                  },
+                  "AWS Fargate": {
+                    "S": "マイクロサービス・コンテナ化バッチジョブ・CI/CDタスク・長時間コンテナ処理"
+                  }
+                }
+              }
+            }
+          }
+        ]
+      },
+      "title": {
+        "S": "Lambda / EC2 / Fargate の違いと使い分け"
+      },
+      "examPoints": {
+        "S": "Lambdaの実行時間上限15分（900秒）はSAA・DVAで頻出。VPC内LambdaはENI生成によるコールドスタート増加に注意。FargateはEC2インスタンスそのものの管理は不要だが、コンテナイメージの管理とECS/EKSの設定は利用者責任である点がひっかけになる。コスト比較では「常時高負荷ならEC2・スパイク負荷ならLambda・コンテナ運用ならFargate」が基本軸。Provisioned ConcurrencyはコールドスタートをなくすLambda固有の機能で、FargateやEC2の概念と混同しないよう注意。"
+      }
+    },
+    {
+      "services": {
+        "L": [
+          {
+            "S": "Application Load Balancer"
+          },
+          {
+            "S": "Network Load Balancer"
+          }
+        ]
+      },
+      "slug": {
+        "S": "alb-vs-nlb"
+      },
+      "createdAt": {
+        "S": "2026-07-21T10:09:27Z"
+      },
+      "order": {
+        "N": "6"
+      },
+      "docUrls": {
+        "L": [
+          {
+            "S": "https://aws.amazon.com/jp/elasticloadbalancing/application-load-balancer/"
+          },
+          {
+            "S": "https://aws.amazon.com/jp/elasticloadbalancing/network-load-balancer/"
+          }
+        ]
+      },
+      "useCases": {
+        "L": [
+          {
+            "M": {
+              "scenario": {
+                "S": "/apiと/adminのパスで異なるバックエンドサービスへトラフィックを振り分けるWebアプリを構築したい"
+              },
+              "why": {
+                "S": "ALBはURLパスに基づくルーティングルールを設定できる。NLBはHTTPの中身を参照しないためパスベース振り分けは不可。"
+              },
+              "recommend": {
+                "S": "Application Load Balancer"
+              }
+            }
+          },
+          {
+            "M": {
+              "scenario": {
+                "S": "オンプレミスのファイアウォールにIPアドレスをホワイトリスト登録してAWS上のサービスへ接続させたい"
+              },
+              "why": {
+                "S": "NLBはElastic IPを各AZに割り当て固定IPでの受信が可能。ALBのIPは変動するためホワイトリスト登録に適さない。"
+              },
+              "recommend": {
+                "S": "Network Load Balancer"
+              }
+            }
+          },
+          {
+            "M": {
+              "scenario": {
+                "S": "毎秒数十万リクエストのゲーム対戦マッチング（UDPプロトコル）を外部公開したい"
+              },
+              "why": {
+                "S": "NLBはUDPをサポートし超低レイテンシで大量接続を処理できる。ALBはUDP非対応のため選択肢にならない。"
+              },
+              "recommend": {
+                "S": "Network Load Balancer"
+              }
+            }
+          },
+          {
+            "M": {
+              "scenario": {
+                "S": "自社サービスをAWS PrivateLinkで他アカウントのVPCに安全にプライベート公開したい"
+              },
+              "why": {
+                "S": "PrivateLinkのエンドポイントサービスはNLBのみをフロントエンドとして使用できる。ALBは直接PrivateLinkサービスに使用不可。"
+              },
+              "recommend": {
+                "S": "Network Load Balancer"
+              }
+            }
+          },
+          {
+            "M": {
+              "scenario": {
+                "S": "社内WebアプリへのアクセスをCognitoのユーザープールで認証しロールベースでページを制御したい"
+              },
+              "why": {
+                "S": "ALBはリスナールールにCognito/OIDCによる認証アクションを組み込める。NLBはHTTP層の認証機能を持たない。"
+              },
+              "recommend": {
+                "S": "Application Load Balancer"
+              }
+            }
+          }
+        ]
+      },
+      "isActive": {
+        "BOOL": true
+      },
+      "examTypes": {
+        "L": [
+          {
+            "S": "SAA"
+          },
+          {
+            "S": "ANS"
+          },
+          {
+            "S": "SAP"
+          }
+        ]
+      },
+      "category": {
+        "S": "ネットワーキング"
+      },
+      "intro": {
+        "S": "ALB（Application Load Balancer）はOSIモデルのレイヤー7（HTTP/HTTPS/gRPC）で動作し、URLパス・ホスト名・HTTPヘッダ・クエリ文字列といったコンテンツに基づく高度なルーティングが可能。NLB（Network Load Balancer）はレイヤー4（TCP/UDP/TLS）で動作し、超低レイテンシと毎秒数百万リクエストの大量処理を実現する。「HTTPの中身を見るか・IPとポートだけを見るか」が本質的な違いであり、プロトコルと要件で選択が決まる。"
+      },
+      "axes": {
+        "L": [
+          {
+            "M": {
+              "axis": {
+                "S": "動作レイヤー・プロトコル"
+              },
+              "values": {
+                "M": {
+                  "Application Load Balancer": {
+                    "S": "OSIレイヤー7。HTTP・HTTPS・gRPCを解析してルーティングする。WebSocketにも対応。UDP・生TCPは非対応。"
+                  },
+                  "Network Load Balancer": {
+                    "S": "OSIレイヤー4。TCP・UDP・TLSをサポート。HTTPの内容は参照せずIPとポートのみでルーティングする。"
+                  }
+                }
+              }
+            }
+          },
+          {
+            "M": {
+              "axis": {
+                "S": "ルーティング方式"
+              },
+              "values": {
+                "M": {
+                  "Application Load Balancer": {
+                    "S": "URLパス・ホスト名・HTTPヘッダ・クエリ文字列・HTTPメソッドに基づくコンテンツベースルーティングが可能。"
+                  },
+                  "Network Load Balancer": {
+                    "S": "送信先IPとポートのみによるルーティング。コンテンツの中身は参照せず、高度な条件分岐は行えない。"
+                  }
+                }
+              }
+            }
+          },
+          {
+            "M": {
+              "axis": {
+                "S": "パフォーマンス・レイテンシ"
+              },
+              "values": {
+                "M": {
+                  "Application Load Balancer": {
+                    "S": "HTTPパースのオーバーヘッドがあり、NLBと比較してレイテンシがやや高い。通常のWebアプリには十分な性能を持つ。"
+                  },
+                  "Network Load Balancer": {
+                    "S": "数百マイクロ秒レベルの超低レイテンシで毎秒数百万リクエストを処理可能。極限の高スループット・低遅延が特徴。"
+                  }
+                }
+              }
+            }
+          },
+          {
+            "M": {
+              "axis": {
+                "S": "固定IPアドレス"
+              },
+              "values": {
+                "M": {
+                  "Application Load Balancer": {
+                    "S": "Elastic IPを直接割り当て不可。DNSベースで利用しIPは変動する。Global Acceleratorと組み合わせることで固定IPを実現できる。"
+                  },
+                  "Network Load Balancer": {
+                    "S": "AZごとにElastic IPを直接割り当て可能。固定IPが必要なファイアウォールのホワイトリスト登録などの用途に適する。"
+                  }
+                }
+              }
+            }
+          },
+          {
+            "M": {
+              "axis": {
+                "S": "送信元IPアドレスの扱い"
+              },
+              "values": {
+                "M": {
+                  "Application Load Balancer": {
+                    "S": "クライアントの元IPはX-Forwarded-ForヘッダでターゲットへHTTPレベルで伝達。ターゲットが受け取るIPはALBのIPアドレス。"
+                  },
+                  "Network Load Balancer": {
+                    "S": "TCPとUDPではクライアントの送信元IPをそのままターゲットに渡す（IPパススルー）。ネットワーク層で透過的に扱える。"
+                  }
+                }
+              }
+            }
+          },
+          {
+            "M": {
+              "axis": {
+                "S": "セキュリティ・認証統合"
+              },
+              "values": {
+                "M": {
+                  "Application Load Balancer": {
+                    "S": "AWS WAFを直接統合可能。リスナールールでCognitoまたはOIDCプロバイダーによる認証アクションを設定できる。"
+                  },
+                  "Network Load Balancer": {
+                    "S": "AWS WAF非対応。TLSターミネーションは対応するが、HTTPアプリケーション層の認証機能は持たない。"
+                  }
+                }
+              }
+            }
+          },
+          {
+            "M": {
+              "axis": {
+                "S": "ターゲットタイプ・連携サービス"
+              },
+              "values": {
+                "M": {
+                  "Application Load Balancer": {
+                    "S": "EC2インスタンス・IPアドレス・Lambda関数をターゲットに指定可能。Lambda関数ターゲットはALBのみの機能。"
+                  },
+                  "Network Load Balancer": {
+                    "S": "EC2インスタンス・IPアドレス・ALBをターゲットに指定可能。AWS PrivateLinkのエンドポイントサービスのフロントエンドとして利用可能。"
+                  }
+                }
+              }
+            }
+          },
+          {
+            "M": {
+              "axis": {
+                "S": "代表ユースケース"
+              },
+              "values": {
+                "M": {
+                  "Application Load Balancer": {
+                    "S": "マイクロサービスのパスベースルーティング・WebアプリのHTTPS終端・ECS/FargateのコンテナへのL7トラフィック制御。"
+                  },
+                  "Network Load Balancer": {
+                    "S": "ゲーム・IoT・金融など超低レイテンシが必須の用途。固定IP必須のシステム連携。AWS PrivateLinkによるサービス公開。"
+                  }
+                }
+              }
+            }
+          }
+        ]
+      },
+      "title": {
+        "S": "ALB と NLB の違いと使い分け"
+      },
+      "examPoints": {
+        "S": "試験の頻出パターンは「レイヤー番号×固定IP×プロトコル」の三角形。ALB＝レイヤー7・固定IP不可・UDP非対応、NLB＝レイヤー4・Elastic IP可・UDP対応という対比は必須暗記。ひっかけとして「Lambda関数をターゲットにしたい→NLBを使う」という選択肢が出るが正解はALBのみ。「AWS WAFを使いたい→ALBに統合」「PrivateLinkエンドポイントサービス→NLBが必要」も頻出。送信元IP保持の違い（NLBはパススルー・ALBはX-Forwarded-For）、「高スループット・低レイテンシが最優先→NLB」という判断軸も狙われやすい。"
+      }
+    },
+    {
+      "services": {
+        "L": [
+          {
+            "S": "Amazon ECS"
+          },
+          {
+            "S": "Amazon EKS"
+          },
+          {
+            "S": "AWS Fargate"
+          }
+        ]
+      },
+      "slug": {
+        "S": "ecs-vs-eks-vs-fargate"
+      },
+      "createdAt": {
+        "S": "2026-07-21T10:05:13Z"
+      },
+      "order": {
+        "N": "4"
+      },
+      "docUrls": {
+        "L": [
+          {
+            "S": "https://aws.amazon.com/jp/ecs/"
+          },
+          {
+            "S": "https://aws.amazon.com/jp/eks/"
+          },
+          {
+            "S": "https://aws.amazon.com/jp/fargate/"
+          }
+        ]
+      },
+      "useCases": {
+        "L": [
+          {
+            "M": {
+              "scenario": {
+                "S": "AWSのみで完結するマイクロサービスを構築したい。Kubernetesは使わず、AWSサービスとの統合を重視する。"
+              },
+              "why": {
+                "S": "AWS独自APIでシンプルに管理でき、ALB・IAM・CloudWatchとのネイティブ統合が容易。学習コストが低く運用負荷が軽い。"
+              },
+              "recommend": {
+                "S": "Amazon ECS"
+              }
+            }
+          },
+          {
+            "M": {
+              "scenario": {
+                "S": "オンプレやGCPでKubernetesを既に運用中で、AWSにも同じツールチェーンでワークロードを展開したい。"
+              },
+              "why": {
+                "S": "kubectl・Helm・Istioなど既存のKubernetesツールをそのまま活用でき、ベンダーロックインを最小化しながら移行できる。"
+              },
+              "recommend": {
+                "S": "Amazon EKS"
+              }
+            }
+          },
+          {
+            "M": {
+              "scenario": {
+                "S": "コンテナを動かしたいが、EC2インスタンスのパッチ管理やキャパシティプランニングを一切行いたくない。"
+              },
+              "why": {
+                "S": "ECS+FargateまたはEKS+Fargateでサーバー管理が完全不要になる。タスク/ポッド単位でリソースを指定するだけで起動できる。"
+              },
+              "recommend": {
+                "S": "AWS Fargate"
+              }
+            }
+          },
+          {
+            "M": {
+              "scenario": {
+                "S": "日中は高トラフィック・夜間はほぼゼロというスパイク性のあるバッチ処理を低コストで運用したい。"
+              },
+              "why": {
+                "S": "処理時間の秒単位課金でアイドルコストがゼロ。EC2の常時起動と比べて断続的なワークロードでコスト効率が高い。"
+              },
+              "recommend": {
+                "S": "AWS Fargate"
+              }
+            }
+          },
+          {
+            "M": {
+              "scenario": {
+                "S": "数十〜数百のマイクロサービスをポッドアフィニティやカスタムスケジューリングで細かく制御したい。"
+              },
+              "why": {
+                "S": "KubernetesのスケジューラーやOperatorパターンを活用した高度な配置制御が可能で、大規模複雑なオーケストレーションに対応できる。"
+              },
+              "recommend": {
+                "S": "Amazon EKS"
+              }
+            }
+          }
+        ]
+      },
+      "isActive": {
+        "BOOL": true
+      },
+      "examTypes": {
+        "L": [
+          {
+            "S": "SAA"
+          },
+          {
+            "S": "DVA"
+          },
+          {
+            "S": "DOP"
+          }
+        ]
+      },
+      "category": {
+        "S": "コンテナ"
+      },
+      "intro": {
+        "S": "ECSはAWSが提供する独自のコンテナオーケストレーター、EKSはマネージドKubernetes、FargateはECS・EKSどちらでも利用できるサーバーレスのコンテナ実行エンジン（起動タイプ）。ECS・EKSは「どうコンテナを管理するか（オーケストレーション層）」を担い、Fargateは「どのインフラで動かすか（データプレーン層）」を担う。この役割分離と組み合わせ方を理解することが試験対策の核心となる。"
+      },
+      "axes": {
+        "L": [
+          {
+            "M": {
+              "axis": {
+                "S": "サービスの役割"
+              },
+              "values": {
+                "M": {
+                  "AWS Fargate": {
+                    "S": "ECSおよびEKS両方で選択できるサーバーレスのコンテナ実行エンジン。オーケストレーターではなく起動タイプ（インフラ層）を担う。"
+                  },
+                  "Amazon ECS": {
+                    "S": "AWSが開発した独自のコンテナオーケストレーター。タスク定義でコンテナ群を管理し、ELB・IAM・CloudWatchと緊密に統合される。"
+                  },
+                  "Amazon EKS": {
+                    "S": "AWSがコントロールプレーンを管理するマネージドKubernetesサービス。OSS Kubernetesと高い互換性を持つオーケストレーター。"
+                  }
+                }
+              }
+            }
+          },
+          {
+            "M": {
+              "axis": {
+                "S": "インフラ管理責任"
+              },
+              "values": {
+                "M": {
+                  "AWS Fargate": {
+                    "S": "EC2インスタンスのプロビジョニング・パッチ・スケーリングが完全不要。タスク/ポッド単位でvCPUとメモリを指定するだけでよい。"
+                  },
+                  "Amazon ECS": {
+                    "S": "EC2起動タイプ選択時はEC2インスタンスのプロビジョニング・パッチ・スケーリングをユーザーが管理。Fargate起動タイプも選択可能。"
+                  },
+                  "Amazon EKS": {
+                    "S": "EC2ノードグループではワーカーノードのOSパッチ・スケーリングをユーザーが管理。Fargate Profileで一部ポッドをサーバーレス化可能。"
+                  }
+                }
+              }
+            }
+          },
+          {
+            "M": {
+              "axis": {
+                "S": "Kubernetes互換性"
+              },
+              "values": {
+                "M": {
+                  "AWS Fargate": {
+                    "S": "Fargate自体にK8s互換性はなく、ECS上ではECS APIで、EKS上ではKubernetes APIで操作する。"
+                  },
+                  "Amazon ECS": {
+                    "S": "Kubernetesとは無関係のAWS独自API。kubectlやHelmは使用できず、Kubernetesエコシステムとの連携はない。"
+                  },
+                  "Amazon EKS": {
+                    "S": "OSS Kubernetesと互換。kubectl・Helm・Istioなどのツールがそのまま使用可能で、他クラウドとのワークフロー共有がしやすい。"
+                  }
+                }
+              }
+            }
+          },
+          {
+            "M": {
+              "axis": {
+                "S": "コントロールプレーン料金"
+              },
+              "values": {
+                "M": {
+                  "AWS Fargate": {
+                    "S": "独立した料金体系はなく、ECSかEKSと組み合わせた上でvCPU・メモリの使用量に応じて秒単位で課金される。"
+                  },
+                  "Amazon ECS": {
+                    "S": "コントロールプレーン自体は無料。費用はEC2インスタンスまたはFargateの利用料のみ発生する。"
+                  },
+                  "Amazon EKS": {
+                    "S": "クラスターごとに約0.10USD/時のコントロールプレーン料金が発生。ワーカーノードのEC2またはFargate料金が別途かかる。"
+                  }
+                }
+              }
+            }
+          },
+          {
+            "M": {
+              "axis": {
+                "S": "スケーリング方式"
+              },
+              "values": {
+                "M": {
+                  "AWS Fargate": {
+                    "S": "タスク/ポッド単位での起動で即時スケール可能だが、コールドスタートが存在するため超低レイテンシ要件には不向きな場合がある。"
+                  },
+                  "Amazon ECS": {
+                    "S": "Service Auto ScalingでタスクをスケールアウトしEC2タイプではCluster Auto Scalerでノード数も自動増減できる。"
+                  },
+                  "Amazon EKS": {
+                    "S": "Kubernetes標準のHPA・VPA・Cluster Autoscalerを活用でき、高度なポッド配置制御やカスタムスケジューリングが可能。"
+                  }
+                }
+              }
+            }
+          },
+          {
+            "M": {
+              "axis": {
+                "S": "代表ユースケース"
+              },
+              "values": {
+                "M": {
+                  "AWS Fargate": {
+                    "S": "EC2管理を排除したいスパイク的なバッチ・イベント駆動ワークロード。ECSまたはEKSと必ず組み合わせて利用する。"
+                  },
+                  "Amazon ECS": {
+                    "S": "AWSに閉じたマイクロサービスやバッチ処理。Kubernetesの学習コストを避けたいチームや、AWSサービスとの深い統合が必要な場面。"
+                  },
+                  "Amazon EKS": {
+                    "S": "既存のKubernetesワークロードのリフト＆シフト、マルチクラウド展開、大規模で複雑なコンテナオーケストレーションが必要な組織。"
+                  }
+                }
+              }
+            }
+          }
+        ]
+      },
+      "title": {
+        "S": "ECS / EKS / Fargate の違いと使い分け"
+      },
+      "examPoints": {
+        "S": "最重要ポイントは「FargateはECSまたはEKSの起動タイプであり単独では機能しない」という構造理解。「ECS or EKS（オーケストレーター選択）」と「EC2 or Fargate（起動タイプ選択）」は独立した2軸であり4通りの組み合わせが存在する。EKSはコントロールプレーンに約0.10USD/時の料金が発生するがECSは無料。EC2起動タイプではOSパッチ・ノード管理がユーザー責任だが、Fargateでは不要になる。ECSはAWS独自APIでKubernetes非互換、EKSはOSS Kubernetesと互換でkubectlが使用可能。問題文に「サーバーレスでコンテナを実行」とあればFargate（ECS+Fargate構成）を想起する。EKSはコントロールプレーンコストが発生するため小規模用途ではECSが選ばれることが多い点も出題される。"
+      }
+    },
+    {
+      "services": {
+        "L": [
+          {
+            "S": "Amazon Kinesis Data Streams"
+          },
+          {
+            "S": "Amazon Data Firehose"
+          }
+        ]
+      },
+      "slug": {
+        "S": "kinesis-data-streams-vs-firehose"
+      },
+      "createdAt": {
+        "S": "2026-07-21T10:19:12Z"
+      },
+      "order": {
+        "N": "12"
+      },
+      "docUrls": {
+        "L": [
+          {
+            "S": "https://aws.amazon.com/jp/kinesis/data-streams/"
+          },
+          {
+            "S": "https://aws.amazon.com/jp/firehose/"
+          }
+        ]
+      },
+      "useCases": {
+        "L": [
+          {
+            "M": {
+              "scenario": {
+                "S": "不正検知・リアルタイム推薦など複数のサービスが同一イベントストリームを独立して並列処理したい"
+              },
+              "why": {
+                "S": "複数コンシューマーが同一シャードを独立して読めるため並列処理に適する。Firehoseは単一宛先への配信のみ。"
+              },
+              "recommend": {
+                "S": "Amazon Kinesis Data Streams"
+              }
+            }
+          },
+          {
+            "M": {
+              "scenario": {
+                "S": "アプリケーションのアクセスログをS3データレイクに継続的に蓄積してAthenaで分析したい"
+              },
+              "why": {
+                "S": "コンシューマー実装不要でS3へ自動配信。Parquet変換やGlueカタログ連携も組み込みで利用できる。"
+              },
+              "recommend": {
+                "S": "Amazon Data Firehose"
+              }
+            }
+          },
+          {
+            "M": {
+              "scenario": {
+                "S": "障害時に過去のストリームデータを再処理・遡及バッチ実行するリプレイが必要"
+              },
+              "why": {
+                "S": "保持期間内であれば任意のシーケンス番号から再読み取りが可能。Firehoseはデータを保持しないためリプレイ不可。"
+              },
+              "recommend": {
+                "S": "Amazon Kinesis Data Streams"
+              }
+            }
+          },
+          {
+            "M": {
+              "scenario": {
+                "S": "CloudWatchログやVPCフローログを可視化のためOpenSearch Serviceへリアルタイムに転送したい"
+              },
+              "why": {
+                "S": "OpenSearchをネイティブ宛先としてサポートし、コード不要で転送・インデックス作成が自動化される。"
+              },
+              "recommend": {
+                "S": "Amazon Data Firehose"
+              }
+            }
+          },
+          {
+            "M": {
+              "scenario": {
+                "S": "IoTデバイスから毎秒数千件のテレメトリを受信しミリ秒レベルの低遅延でアラートを発火させたい"
+              },
+              "why": {
+                "S": "バッファリングのないリアルタイム処理が可能。Firehoseは最低60秒のバッファ遅延があり要件を満たせない。"
+              },
+              "recommend": {
+                "S": "Amazon Kinesis Data Streams"
+              }
+            }
+          }
+        ]
+      },
+      "isActive": {
+        "BOOL": true
+      },
+      "examTypes": {
+        "L": [
+          {
+            "S": "DEA"
+          },
+          {
+            "S": "SAA"
+          },
+          {
+            "S": "DOP"
+          }
+        ]
+      },
+      "category": {
+        "S": "データ分析"
+      },
+      "intro": {
+        "S": "Kinesis Data Streams（KDS）はデータを保持しながら複数コンシューマーがリアルタイムに読み取るストリーム基盤。Data FirehoseはS3・Redshift・OpenSearch等の宛先へデータを自動配信するフルマネージドETLサービス。「誰がいつ読むか」を制御したいならKDS、宛先への自動転送ならFirehoseと使い分ける。"
+      },
+      "axes": {
+        "L": [
+          {
+            "M": {
+              "axis": {
+                "S": "基本的な用途"
+              },
+              "values": {
+                "M": {
+                  "Amazon Kinesis Data Streams": {
+                    "S": "複数コンシューマーによるリアルタイムデータ処理基盤。コンシューマーが自前でデータを読み取る。"
+                  },
+                  "Amazon Data Firehose": {
+                    "S": "S3・Redshift・OpenSearch等の宛先へデータを自動配信するフルマネージドETLサービス。"
+                  }
+                }
+              }
+            }
+          },
+          {
+            "M": {
+              "axis": {
+                "S": "データ保持・再読み取り"
+              },
+              "values": {
+                "M": {
+                  "Amazon Kinesis Data Streams": {
+                    "S": "デフォルト24時間〜最大365日間データを保持。過去データの再読み取り（リプレイ）が可能。"
+                  },
+                  "Amazon Data Firehose": {
+                    "S": "データを保持しない。宛先に配信されたら消える。リプレイ不可。"
+                  }
+                }
+              }
+            }
+          },
+          {
+            "M": {
+              "axis": {
+                "S": "スケーリング・管理"
+              },
+              "values": {
+                "M": {
+                  "Amazon Kinesis Data Streams": {
+                    "S": "シャード単位でスループット容量を管理。シャード数の調整（手動またはOn-demandモード）が必要。"
+                  },
+                  "Amazon Data Firehose": {
+                    "S": "完全サーバーレス・フルマネージド。容量管理不要で自動スケール。"
+                  }
+                }
+              }
+            }
+          },
+          {
+            "M": {
+              "axis": {
+                "S": "遅延特性"
+              },
+              "values": {
+                "M": {
+                  "Amazon Kinesis Data Streams": {
+                    "S": "リアルタイム処理。Enhanced Fan-Out利用時は約70msの低遅延でデータを受信できる。"
+                  },
+                  "Amazon Data Firehose": {
+                    "S": "ほぼリアルタイム。バッファリング（最低60秒またはサイズ閾値）により数十秒〜数分の遅延が生じる。"
+                  }
+                }
+              }
+            }
+          },
+          {
+            "M": {
+              "axis": {
+                "S": "コンシューマー・配信先"
+              },
+              "values": {
+                "M": {
+                  "Amazon Kinesis Data Streams": {
+                    "S": "複数コンシューマーが独立して同一データを読める。Lambda・EC2・Kinesis Data Analytics等でカスタム処理を実装。"
+                  },
+                  "Amazon Data Firehose": {
+                    "S": "S3・Redshift・OpenSearch・Splunk・HTTPエンドポイント等に配信。コンシューマーコードは不要。"
+                  }
+                }
+              }
+            }
+          },
+          {
+            "M": {
+              "axis": {
+                "S": "データ変換"
+              },
+              "values": {
+                "M": {
+                  "Amazon Kinesis Data Streams": {
+                    "S": "変換はコンシューマー側で自由に実装する。Firehoseのような組み込み変換機能はない。"
+                  },
+                  "Amazon Data Firehose": {
+                    "S": "Lambda連携による変換、Parquet/ORC等へのフォーマット変換をビルトインで提供。"
+                  }
+                }
+              }
+            }
+          },
+          {
+            "M": {
+              "axis": {
+                "S": "料金モデル"
+              },
+              "values": {
+                "M": {
+                  "Amazon Kinesis Data Streams": {
+                    "S": "シャード時間＋PUTペイロードユニット量で課金。長期保持・Enhanced Fan-Outは追加料金。"
+                  },
+                  "Amazon Data Firehose": {
+                    "S": "取り込みデータ量（GB単位）で課金。シャード管理コストが不要でシンプル。"
+                  }
+                }
+              }
+            }
+          }
+        ]
+      },
+      "title": {
+        "S": "Kinesis Data Streams と Data Firehose の違いと使い分け"
+      },
+      "examPoints": {
+        "S": "試験でよく問われる罠：①Firehoseはデータを保持しない（リプレイ不可）点はKDSと根本的に異なる。②Firehoseは「ほぼリアルタイム」であり最低60秒のバッファ遅延があるため厳密なリアルタイム要件には不適。③KDSはシャード管理が必要だがFirehoseは完全サーバーレス。④複数コンシューマーが必要な場合はKDS、単一宛先への自動転送ならFirehose。⑤FirehoseはLambda不要でParquet/ORCへの変換が可能で、Athenaとの組み合わせ問題として頻出。"
+      }
+    },
+    {
+      "services": {
+        "L": [
+          {
+            "S": "Amazon S3"
+          },
+          {
+            "S": "Amazon EBS"
+          },
+          {
+            "S": "Amazon EFS"
+          }
+        ]
+      },
+      "slug": {
+        "S": "s3-vs-ebs-vs-efs"
+      },
+      "createdAt": {
+        "S": "2026-07-21T09:57:14Z"
+      },
+      "order": {
+        "N": "1"
+      },
+      "docUrls": {
+        "L": [
+          {
+            "S": "https://aws.amazon.com/jp/s3/"
+          },
+          {
+            "S": "https://aws.amazon.com/jp/ebs/"
+          },
+          {
+            "S": "https://aws.amazon.com/jp/efs/"
+          }
+        ]
+      },
+      "useCases": {
+        "L": [
+          {
+            "M": {
+              "scenario": {
+                "S": "EC2上でMySQLなどRDBMSを稼働させ、低レイテンシのディスクI/Oが必要な場合"
+              },
+              "why": {
+                "S": "ブロックストレージとしてEC2にアタッチしOSから通常のディスクとして利用できる。gp3・io2でIOPSとスループットをチューニング可能。"
+              },
+              "recommend": {
+                "S": "Amazon EBS"
+              }
+            }
+          },
+          {
+            "M": {
+              "scenario": {
+                "S": "Auto Scalingで増減する複数のWebサーバーから同一ファイルを同時に読み書きしたい"
+              },
+              "why": {
+                "S": "NFSv4で複数インスタンスから同時マウント可能。単一ファイルシステムをリージョン内の複数AZのEC2で共有できる。"
+              },
+              "recommend": {
+                "S": "Amazon EFS"
+              }
+            }
+          },
+          {
+            "M": {
+              "scenario": {
+                "S": "大量の画像・動画・ログを長期保存し、コストを抑えながら必要時にアクセスしたい"
+              },
+              "why": {
+                "S": "11ナインの高耐久性かつ低コスト。アクセス頻度に応じてStorageクラスを切り替えコスト最適化が可能。"
+              },
+              "recommend": {
+                "S": "Amazon S3"
+              }
+            }
+          },
+          {
+            "M": {
+              "scenario": {
+                "S": "AWS Fargateで動作するコンテナタスクに永続ストレージを持たせたい"
+              },
+              "why": {
+                "S": "FargateタスクはEBSボリュームを直接アタッチできないため、コンテナの永続ファイルストレージが必要な場合はEFSを使用する。"
+              },
+              "recommend": {
+                "S": "Amazon EFS"
+              }
+            }
+          },
+          {
+            "M": {
+              "scenario": {
+                "S": "静的HTML・CSS・JSをホスティングしてCloudFront経由でグローバル配信したい"
+              },
+              "why": {
+                "S": "静的ウェブサイトホスティング機能を標準搭載。CloudFrontのオリジンとして設定するだけでグローバルCDN配信を実現できる。"
+              },
+              "recommend": {
+                "S": "Amazon S3"
+              }
+            }
+          }
+        ]
+      },
+      "isActive": {
+        "BOOL": true
+      },
+      "examTypes": {
+        "L": [
+          {
+            "S": "SAA"
+          },
+          {
+            "S": "SOA"
+          },
+          {
+            "S": "SAP"
+          }
+        ]
+      },
+      "category": {
+        "S": "ストレージ"
+      },
+      "intro": {
+        "S": "S3・EBS・EFSはそれぞれオブジェクト／ブロック／ファイルという根本的に異なるストレージ種別。S3はHTTP APIで誰でもアクセスできる大容量・高耐久のオブジェクト置き場、EBSはEC2に1対1でアタッチするブロックデバイス（仮想ディスク）、EFSはNFSで複数EC2から同時マウントできるフルマネージドファイルシステム。「何を・どこから・どう使うか」で選択が決まる。"
+      },
+      "axes": {
+        "L": [
+          {
+            "M": {
+              "axis": {
+                "S": "ストレージタイプ"
+              },
+              "values": {
+                "M": {
+                  "Amazon EBS": {
+                    "S": "ブロックストレージ。EC2に仮想ディスクとしてアタッチし、OSレベルでフォーマット・マウントして使用する。"
+                  },
+                  "Amazon EFS": {
+                    "S": "ファイルストレージ（NFSv4）。フルマネージドのNFSファイルシステムを複数EC2から同時にマウントできる。"
+                  },
+                  "Amazon S3": {
+                    "S": "オブジェクトストレージ。データをキーと値のフラット構造で保存し、HTTP/HTTPS REST APIでアクセスする。"
+                  }
+                }
+              }
+            }
+          },
+          {
+            "M": {
+              "axis": {
+                "S": "アクセス方式"
+              },
+              "values": {
+                "M": {
+                  "Amazon EBS": {
+                    "S": "同一AZ内の1つのEC2インスタンスにのみアタッチして利用（io1/io2のマルチアタッチは同一AZ内の例外）。"
+                  },
+                  "Amazon EFS": {
+                    "S": "NFSv4で複数のEC2インスタンス・コンテナから同時マウント可能。Linux専用（Windowsは非対応）。"
+                  },
+                  "Amazon S3": {
+                    "S": "AWS SDK・CLI・REST APIでHTTPS経由。EC2不要で直接アクセス可能。パブリック公開や署名付きURLも利用できる。"
+                  }
+                }
+              }
+            }
+          },
+          {
+            "M": {
+              "axis": {
+                "S": "スケーラビリティ"
+              },
+              "values": {
+                "M": {
+                  "Amazon EBS": {
+                    "S": "手動でボリュームサイズを変更（拡張のみ・縮小不可）。最大64TiB。ダウンタイムなしで拡張可能。"
+                  },
+                  "Amazon EFS": {
+                    "S": "使用量に応じて自動でPBスケールまで拡張・縮小。事前プロビジョニング不要。"
+                  },
+                  "Amazon S3": {
+                    "S": "自動で実質無制限にスケール。1オブジェクト最大5TB、バケット全体に容量上限なし。"
+                  }
+                }
+              }
+            }
+          },
+          {
+            "M": {
+              "axis": {
+                "S": "耐久性・可用性"
+              },
+              "values": {
+                "M": {
+                  "Amazon EBS": {
+                    "S": "単一AZ内でデータを複製。AZ障害時はアクセス不可。スナップショットをS3に保存しAZ間移行が可能。"
+                  },
+                  "Amazon EFS": {
+                    "S": "リージョナルファイルシステムは複数AZに自動複製。ワンゾーンオプション（単一AZ）も選択可。"
+                  },
+                  "Amazon S3": {
+                    "S": "耐久性99.999999999%（11ナイン）。Standardクラスはデータを複数AZへ自動複製。"
+                  }
+                }
+              }
+            }
+          },
+          {
+            "M": {
+              "axis": {
+                "S": "性能特性"
+              },
+              "values": {
+                "M": {
+                  "Amazon EBS": {
+                    "S": "サブミリ秒の低レイテンシ。gp3・io2などボリュームタイプ別にIOPS・スループットをチューニング可能。"
+                  },
+                  "Amazon EFS": {
+                    "S": "EBSより高レイテンシ。複数クライアントへの一貫したNFSアクセスを提供。バーストスループットモードあり。"
+                  },
+                  "Amazon S3": {
+                    "S": "スループットは大きいがレイテンシは数十ms以上。低レイテンシが必要なDBの直接ストレージには不向き。"
+                  }
+                }
+              }
+            }
+          },
+          {
+            "M": {
+              "axis": {
+                "S": "料金モデル"
+              },
+              "values": {
+                "M": {
+                  "Amazon EBS": {
+                    "S": "プロビジョンしたボリュームサイズに対して課金。未使用領域も料金が発生する点に注意。"
+                  },
+                  "Amazon EFS": {
+                    "S": "実際に使用したストレージ量の従量課金。標準クラスとIA（低頻度アクセス）クラスで単価が異なる。"
+                  },
+                  "Amazon S3": {
+                    "S": "保存データ量とリクエスト数に応じた従量課金。未使用領域への課金なし。ストレージクラス選択でコスト最適化可能。"
+                  }
+                }
+              }
+            }
+          },
+          {
+            "M": {
+              "axis": {
+                "S": "代表ユースケース"
+              },
+              "values": {
+                "M": {
+                  "Amazon EBS": {
+                    "S": "EC2のOSルートボリューム・RDBMSやNoSQLのデータボリューム・高IOPSが必要なトランザクション処理。"
+                  },
+                  "Amazon EFS": {
+                    "S": "複数EC2間での共有コンテンツ・Fargateコンテナの永続ストレージ・CMS・機械学習訓練データ共有。"
+                  },
+                  "Amazon S3": {
+                    "S": "静的ウェブサイトホスティング・バックアップ・データレイク・ログ保存・CloudFrontオリジン・ML学習データ。"
+                  }
+                }
+              }
+            }
+          }
+        ]
+      },
+      "title": {
+        "S": "S3 / EBS / EFS の違いと使い分け"
+      },
+      "examPoints": {
+        "S": "試験頻出ポイント：①EBSは原則1ボリューム＝1インスタンス。io1/io2のマルチアタッチは同一AZ内・最大16インスタンスに限られる例外。②EBSは同一AZ内のEC2にしかアタッチできない。AZをまたぐにはスナップショットを取得し別AZで復元する。③EFSはLinux（NFSv4）専用でWindowsは非対応。EBSはWindowsにも利用可能。④FargateはEBSを直接アタッチできないため、コンテナ永続化にはEFSを使う。⑤S3の耐久性は11ナイン（99.999999999%）だが、可用性はクラスにより異なる（Standard=99.99%、One Zone-IA=99.5%）。⑥「複数EC2から同時アクセス」が条件に含まれたらEFS、「低レイテンシ単一ボリューム」ならEBSを選ぶ。"
+      }
+    },
+    {
+      "services": {
+        "L": [
+          {
+            "S": "セキュリティグループ"
+          },
+          {
+            "S": "ネットワークACL"
+          }
+        ]
+      },
+      "slug": {
+        "S": "security-group-vs-nacl"
+      },
+      "createdAt": {
+        "S": "2026-07-21T10:11:26Z"
+      },
+      "order": {
+        "N": "7"
+      },
+      "docUrls": {
+        "L": [
+          {
+            "S": "https://docs.aws.amazon.com/ja_jp/vpc/latest/userguide/vpc-security-groups.html"
+          },
+          {
+            "S": "https://docs.aws.amazon.com/ja_jp/vpc/latest/userguide/vpc-network-acls.html"
+          }
+        ]
+      },
+      "useCases": {
+        "L": [
+          {
+            "M": {
+              "scenario": {
+                "S": "VPC内のWebサーバーからDBサーバーへのアクセスを特定インスタンスのみに絞りたい"
+              },
+              "why": {
+                "S": "WebサーバーのSGをDBサーバーSGのソースに指定することでIPアドレス不要のインスタンス単位制御が可能。ステートフルのため戻りパケットの許可も自動で行われる。"
+              },
+              "recommend": {
+                "S": "セキュリティグループ"
+              }
+            }
+          },
+          {
+            "M": {
+              "scenario": {
+                "S": "既知の悪意あるIPアドレス範囲をサブネット内のすべてのインスタンスに対して明示的にブロックしたい"
+              },
+              "why": {
+                "S": "SGは許可ルールしか持てないため特定IPを明示的にDenyできない。NACLのDenyルールを使えばサブネット全体への着信を確実にブロックできる。"
+              },
+              "recommend": {
+                "S": "ネットワークACL"
+              }
+            }
+          },
+          {
+            "M": {
+              "scenario": {
+                "S": "同一サブネット内の複数インスタンスにそれぞれ異なるアクセス制御ルールを適用したい"
+              },
+              "why": {
+                "S": "NACLはサブネット単位のため同一サブネット内でのインスタンス別制御は不可。SGはインスタンスごとに別のグループをアタッチできるため細粒度の制御に適する。"
+              },
+              "recommend": {
+                "S": "セキュリティグループ"
+              }
+            }
+          },
+          {
+            "M": {
+              "scenario": {
+                "S": "SGとNACLを組み合わせてインターネットゲートウェイ側とインスタンス側の多層防御を実現したい"
+              },
+              "why": {
+                "S": "NACLをサブネット境界の第一防衛線、SGをインスタンス単位の第二防衛線として使う多層防御が推奨構成。両者は補完関係にあり、どちらかに統一する必要はない。"
+              },
+              "recommend": {
+                "S": "ネットワークACL"
+              }
+            }
+          },
+          {
+            "M": {
+              "scenario": {
+                "S": "NACLでHTTPSを許可したがレスポンスが返らない問題を調査している"
+              },
+              "why": {
+                "S": "NACLはステートレスのため戻りトラフィック用にエフェメラルポート（1024〜65535）のアウトバウンド許可が別途必要。この設定漏れが最も多い運用ミスの一つ。"
+              },
+              "recommend": {
+                "S": "ネットワークACL"
+              }
+            }
+          }
+        ]
+      },
+      "isActive": {
+        "BOOL": true
+      },
+      "examTypes": {
+        "L": [
+          {
+            "S": "SAA"
+          },
+          {
+            "S": "SCS"
+          },
+          {
+            "S": "ANS"
+          }
+        ]
+      },
+      "category": {
+        "S": "セキュリティ"
+      },
+      "intro": {
+        "S": "セキュリティグループはインスタンス（ENI）単位に適用されるステートフルなファイアウォールで、許可ルールのみを持つ。ネットワークACLはサブネット単位に適用されるステートレスなファイアウォールで、許可・拒否の両方を設定できる。本質的な違いは「ステートフル vs ステートレス」と「インスタンス単位 vs サブネット単位」の2点に集約される。"
+      },
+      "axes": {
+        "L": [
+          {
+            "M": {
+              "axis": {
+                "S": "適用レベル"
+              },
+              "values": {
+                "M": {
+                  "セキュリティグループ": {
+                    "S": "インスタンス（ENI）単位に適用。同一サブネット内でもインスタンスごとに異なるルールを設定できる。"
+                  },
+                  "ネットワークACL": {
+                    "S": "サブネット単位に適用。サブネット内のすべてのインスタンスに同じルールが一律に適用される。"
+                  }
+                }
+              }
+            }
+          },
+          {
+            "M": {
+              "axis": {
+                "S": "ステートフル性"
+              },
+              "values": {
+                "M": {
+                  "セキュリティグループ": {
+                    "S": "ステートフル。許可したインバウンドの戻りトラフィックはアウトバウンドルールに関係なく自動で通過する。"
+                  },
+                  "ネットワークACL": {
+                    "S": "ステートレス。インバウンドとアウトバウンドを独立評価するため、戻りトラフィックも明示的な許可が必要。"
+                  }
+                }
+              }
+            }
+          },
+          {
+            "M": {
+              "axis": {
+                "S": "許可・拒否ルール"
+              },
+              "values": {
+                "M": {
+                  "セキュリティグループ": {
+                    "S": "許可ルールのみ設定可能。明示的に許可されていないトラフィックはすべて暗黙的に拒否される。"
+                  },
+                  "ネットワークACL": {
+                    "S": "許可・拒否の両ルールを設定可能。特定のIPアドレス範囲を明示的にDenyするルールが書ける。"
+                  }
+                }
+              }
+            }
+          },
+          {
+            "M": {
+              "axis": {
+                "S": "ルール評価方式"
+              },
+              "values": {
+                "M": {
+                  "セキュリティグループ": {
+                    "S": "すべてのルールを総合評価し、いずれかが許可すれば通過。ルール番号による優先順位は存在しない。"
+                  },
+                  "ネットワークACL": {
+                    "S": "ルール番号の昇順に評価し、最初にマッチしたルールを適用（最初一致）。番号が小さいほど優先される。"
+                  }
+                }
+              }
+            }
+          },
+          {
+            "M": {
+              "axis": {
+                "S": "デフォルト動作"
+              },
+              "values": {
+                "M": {
+                  "セキュリティグループ": {
+                    "S": "デフォルトでインバウンドをすべて拒否・アウトバウンドをすべて許可。VPCデフォルトSGは同一SG間のみ許可。"
+                  },
+                  "ネットワークACL": {
+                    "S": "VPCデフォルトNACLはインバウンド・アウトバウンドともに全許可。カスタムNACLは全拒否から開始。"
+                  }
+                }
+              }
+            }
+          },
+          {
+            "M": {
+              "axis": {
+                "S": "参照可能なソース・宛先"
+              },
+              "values": {
+                "M": {
+                  "セキュリティグループ": {
+                    "S": "送信元・宛先に別のセキュリティグループIDを指定可能。IPアドレス変動に依存しないグループ単位の制御ができる。"
+                  },
+                  "ネットワークACL": {
+                    "S": "CIDRブロック（IPアドレス範囲）のみ指定可能。セキュリティグループや他NACLを参照することはできない。"
+                  }
+                }
+              }
+            }
+          },
+          {
+            "M": {
+              "axis": {
+                "S": "適用数の制限"
+              },
+              "values": {
+                "M": {
+                  "セキュリティグループ": {
+                    "S": "1インスタンスに最大5つ（デフォルト）のSGを同時アタッチ可能。後から変更でき、複数SGのルールはORで評価。"
+                  },
+                  "ネットワークACL": {
+                    "S": "1サブネットに関連付けられるNACLは1つのみ。1つのNACLは複数サブネットに関連付けることは可能。"
+                  }
+                }
+              }
+            }
+          }
+        ]
+      },
+      "title": {
+        "S": "セキュリティグループ と ネットワークACL の違いと使い分け"
+      },
+      "examPoints": {
+        "S": "最頻出は「ステートフル vs ステートレス」の区別。SGはステートフルのため戻りトラフィックが自動許可されるが、NACLはステートレスのためインバウンド・アウトバウンドを独立して設定する必要がある。試験で狙われる頻出ポイント：①NACLのルール評価は番号昇順の最初一致（SGはすべてのルールをOR評価）、②SGは許可ルールのみ・NACLはDenyルールを記述可能、③デフォルトNACLは全許可・カスタムNACLは全拒否から開始、④NACLでTCP通信を許可する際はエフェメラルポートのアウトバウンド許可が必要という落とし穴。"
+      }
+    },
+    {
+      "services": {
+        "L": [
+          {
+            "S": "AWS Direct Connect"
+          },
+          {
+            "S": "AWS Site-to-Site VPN"
+          }
+        ]
+      },
+      "slug": {
+        "S": "direct-connect-vs-vpn"
+      },
+      "createdAt": {
+        "S": "2026-07-21T10:12:57Z"
+      },
+      "order": {
+        "N": "8"
+      },
+      "docUrls": {
+        "L": [
+          {
+            "S": "https://aws.amazon.com/jp/directconnect/"
+          },
+          {
+            "S": "https://aws.amazon.com/jp/vpn/site-to-site-vpn/"
+          }
+        ]
+      },
+      "useCases": {
+        "L": [
+          {
+            "M": {
+              "scenario": {
+                "S": "大量データを安定した帯域で継続的にオンプレミスとAWS間で転送したい"
+              },
+              "why": {
+                "S": "専用帯域により安定した大容量通信を保証。インターネット輻輳の影響を受けずSLAによる品質担保ができる"
+              },
+              "recommend": {
+                "S": "AWS Direct Connect"
+              }
+            }
+          },
+          {
+            "M": {
+              "scenario": {
+                "S": "低コストで素早くオンプレミス拠点とAWSを接続したい"
+              },
+              "why": {
+                "S": "コンソール操作のみで数分で設定でき、既存インターネット回線を活用。初期費用ゼロで小〜中規模接続に最適"
+              },
+              "recommend": {
+                "S": "AWS Site-to-Site VPN"
+              }
+            }
+          },
+          {
+            "M": {
+              "scenario": {
+                "S": "Direct Connect障害時にも通信を継続できる冗長構成を組みたい"
+              },
+              "why": {
+                "S": "Direct Connectのバックアップ回線として構成するパターンが定番。障害時に自動フェイルオーバーさせることで高可用性を実現"
+              },
+              "recommend": {
+                "S": "AWS Site-to-Site VPN"
+              }
+            }
+          },
+          {
+            "M": {
+              "scenario": {
+                "S": "コンプライアンス要件上、通信の暗号化が必須で大容量・低レイテンシも必要"
+              },
+              "why": {
+                "S": "Direct Connect上でIPsec VPNを重ねることで暗号化と安定した大容量接続を両立できる。専用線の安定性も維持される"
+              },
+              "recommend": {
+                "S": "AWS Direct Connect"
+              }
+            }
+          },
+          {
+            "M": {
+              "scenario": {
+                "S": "複数の小規模拠点をそれぞれAWSに接続したい"
+              },
+              "why": {
+                "S": "各拠点に個別のVPN接続をコスト効率よく設定可能。Transit Gatewayと組み合わせれば集中管理も実現できる"
+              },
+              "recommend": {
+                "S": "AWS Site-to-Site VPN"
+              }
+            }
+          }
+        ]
+      },
+      "isActive": {
+        "BOOL": true
+      },
+      "examTypes": {
+        "L": [
+          {
+            "S": "SAA"
+          },
+          {
+            "S": "ANS"
+          },
+          {
+            "S": "SAP"
+          }
+        ]
+      },
+      "category": {
+        "S": "ネットワーキング"
+      },
+      "intro": {
+        "S": "AWS Direct ConnectはオンプレミスとAWS間を専用物理線で接続するプライベート接続サービス。AWS Site-to-Site VPNは既存のインターネット回線を使いIPsecで暗号化トンネルを構築する論理的接続サービス。本質的な違いは「インターネットを経由するか否か」と「帯域・レイテンシの安定性」にあり、用途・コスト・構築速度が大きく異なる。"
+      },
+      "axes": {
+        "L": [
+          {
+            "M": {
+              "axis": {
+                "S": "接続方式"
+              },
+              "values": {
+                "M": {
+                  "AWS Direct Connect": {
+                    "S": "物理専用線によるプライベート接続。インターネットを経由せずAWSネットワークに直結する"
+                  },
+                  "AWS Site-to-Site VPN": {
+                    "S": "公衆インターネット経由のIPsec暗号化トンネル。既存のインターネット回線を利用して接続する"
+                  }
+                }
+              }
+            }
+          },
+          {
+            "M": {
+              "axis": {
+                "S": "帯域幅・速度"
+              },
+              "values": {
+                "M": {
+                  "AWS Direct Connect": {
+                    "S": "専用接続で1/10/100 Gbps、ホスト型接続で50 Mbps〜10 Gbpsを提供。安定した大容量通信が可能"
+                  },
+                  "AWS Site-to-Site VPN": {
+                    "S": "1トンネルあたり最大約1.25 Gbps。インターネット帯域に依存するため変動する"
+                  }
+                }
+              }
+            }
+          },
+          {
+            "M": {
+              "axis": {
+                "S": "暗号化"
+              },
+              "values": {
+                "M": {
+                  "AWS Direct Connect": {
+                    "S": "デフォルトでは暗号化されない。機密性が必要な場合はDirect Connect上でIPsec VPNを重ねて構成する"
+                  },
+                  "AWS Site-to-Site VPN": {
+                    "S": "IPsecにより通信がデフォルトで暗号化される。追加設定なしでセキュアな通信が実現する"
+                  }
+                }
+              }
+            }
+          },
+          {
+            "M": {
+              "axis": {
+                "S": "レイテンシ・安定性"
+              },
+              "values": {
+                "M": {
+                  "AWS Direct Connect": {
+                    "S": "一貫した低レイテンシを提供。インターネットの輻輳や遅延の影響を受けず予測可能なパフォーマンスを実現"
+                  },
+                  "AWS Site-to-Site VPN": {
+                    "S": "インターネット経由のためレイテンシが変動する。リアルタイム処理や大容量転送には不向き"
+                  }
+                }
+              }
+            }
+          },
+          {
+            "M": {
+              "axis": {
+                "S": "構築時間・コスト"
+              },
+              "values": {
+                "M": {
+                  "AWS Direct Connect": {
+                    "S": "物理回線の手配が必要で数週間〜数ヶ月を要する。ポート時間料金・回線費用・データ転送料金が発生し高コスト"
+                  },
+                  "AWS Site-to-Site VPN": {
+                    "S": "コンソールで数分〜数時間で設定完了。接続時間課金制で初期費用が低くコスト効率がよい"
+                  }
+                }
+              }
+            }
+          },
+          {
+            "M": {
+              "axis": {
+                "S": "可用性・冗長性"
+              },
+              "values": {
+                "M": {
+                  "AWS Direct Connect": {
+                    "S": "単一接続では単一障害点になるため複数ロケーション・複数接続の冗長構成を推奨。冗長構成時に99.99% SLA"
+                  },
+                  "AWS Site-to-Site VPN": {
+                    "S": "1接続につき2本のトンネルを自動的に提供。Active/Active構成やDirect Connectの冗長バックアップとして利用可能"
+                  }
+                }
+              }
+            }
+          },
+          {
+            "M": {
+              "axis": {
+                "S": "料金モデル"
+              },
+              "values": {
+                "M": {
+                  "AWS Direct Connect": {
+                    "S": "ポートの時間課金＋データ転送料金。大容量を継続利用する場合はVPNより割安になるケースがある"
+                  },
+                  "AWS Site-to-Site VPN": {
+                    "S": "接続の時間課金＋データ転送料金。小〜中規模の通信量であればDirect Connectより大幅に安価"
+                  }
+                }
+              }
+            }
+          },
+          {
+            "M": {
+              "axis": {
+                "S": "代表ユースケース"
+              },
+              "values": {
+                "M": {
+                  "AWS Direct Connect": {
+                    "S": "大規模データ転送・金融や医療などミッションクリティカルな業務・オンプレ環境とのハイブリッドクラウド基盤"
+                  },
+                  "AWS Site-to-Site VPN": {
+                    "S": "リモートオフィス接続・DR用バックアップ接続・Direct Connect導入前の暫定接続・冗長化手段"
+                  }
+                }
+              }
+            }
+          }
+        ]
+      },
+      "title": {
+        "S": "Direct Connect と Site-to-Site VPN の違いと使い分け"
+      },
+      "examPoints": {
+        "S": "最頻出ポイントは「暗号化の有無」。Direct Connectはデフォルト非暗号化であり、暗号化が必要な場合はVPNと組み合わせる必要がある。一方Site-to-Site VPNはIPsecによりデフォルト暗号化される。「安定した低レイテンシ・大容量」→Direct Connect、「素早く安価に接続」→VPNという使い分けが頻繁に問われる。Direct Connectのバックアップ手段としてVPNを併用する構成も定番の選択肢。また帯域幅の上限（VPNは1トンネル約1.25 Gbps）や、Direct Connect単体では可用性SLAを得るために冗長構成が必要な点も引っかけとして出題される。"
+      }
+    },
+    {
+      "services": {
+        "L": [
+          {
+            "S": "Amazon SQS"
+          },
+          {
+            "S": "Amazon SNS"
+          },
+          {
+            "S": "Amazon EventBridge"
+          }
+        ]
+      },
+      "slug": {
+        "S": "sqs-vs-sns-vs-eventbridge"
+      },
+      "createdAt": {
+        "S": "2026-07-21T10:03:14Z"
+      },
+      "order": {
+        "N": "3"
+      },
+      "docUrls": {
+        "L": [
+          {
+            "S": "https://aws.amazon.com/jp/sqs/"
+          },
+          {
+            "S": "https://aws.amazon.com/jp/sns/"
+          },
+          {
+            "S": "https://aws.amazon.com/jp/eventbridge/"
+          }
+        ]
+      },
+      "useCases": {
+        "L": [
+          {
+            "M": {
+              "scenario": {
+                "S": "注文受付後、在庫・メール・分析の3システムに同時通知したい"
+              },
+              "why": {
+                "S": "1つのトピックに複数サブスクライバー（SQS・Lambda・メール等）を登録しファンアウト配信できる。SNS→SQSパターンで各システムを非同期に分離するのが定番構成。"
+              },
+              "recommend": {
+                "S": "Amazon SNS"
+              }
+            }
+          },
+          {
+            "M": {
+              "scenario": {
+                "S": "EC2インスタンスの起動イベントを検知して自動タグ付けしたい"
+              },
+              "why": {
+                "S": "EC2ライフサイクルイベントがデフォルトバスに自動送信されるため、ルールでフィルタしLambdaをターゲットにするだけで実装できる。"
+              },
+              "recommend": {
+                "S": "Amazon EventBridge"
+              }
+            }
+          },
+          {
+            "M": {
+              "scenario": {
+                "S": "バックエンド処理の速度差を吸収し、ピーク時の処理を平準化したい"
+              },
+              "why": {
+                "S": "メッセージをキューに蓄積してコンシューマーが処理可能なペースで取得する。バーストトラフィックを吸収するバッファとして最適。"
+              },
+              "recommend": {
+                "S": "Amazon SQS"
+              }
+            }
+          },
+          {
+            "M": {
+              "scenario": {
+                "S": "Salesforceのイベントを受信してAWSのワークフローをトリガーしたい"
+              },
+              "why": {
+                "S": "EventBridgeはSalesforce等のSaaSパートナーからのイベントを専用パートナーイベントバスで受信できる。外部SaaS連携はEventBridgeの差別化強み。"
+              },
+              "recommend": {
+                "S": "Amazon EventBridge"
+              }
+            }
+          },
+          {
+            "M": {
+              "scenario": {
+                "S": "処理の順序を保証しながら重複なくタスクを1件ずつ実行したい"
+              },
+              "why": {
+                "S": "SQS FIFOキューは送信順序の保証と重複排除IDによる厳密な1回処理を提供する。金融トランザクション等の順序重要な処理に適する。"
+              },
+              "recommend": {
+                "S": "Amazon SQS"
+              }
+            }
+          }
+        ]
+      },
+      "isActive": {
+        "BOOL": true
+      },
+      "examTypes": {
+        "L": [
+          {
+            "S": "SAA"
+          },
+          {
+            "S": "DVA"
+          },
+          {
+            "S": "SAP"
+          }
+        ]
+      },
+      "category": {
+        "S": "アプリケーション統合"
+      },
+      "intro": {
+        "S": "SQSはキュー型（プル式）の非同期処理分離、SNSはPub/Sub型（プッシュ式）のファンアウト通知、EventBridgeはイベントバス型のルーティング基盤。「誰が・どう受け取るか」の観点で使い分ける。SNSとEventBridgeはどちらも複数宛先への配信が可能だが、EventBridgeはイベント内容に基づく高度なルーティングとAWSサービス・SaaS連携が強み。"
+      },
+      "axes": {
+        "L": [
+          {
+            "M": {
+              "axis": {
+                "S": "通信モデル"
+              },
+              "values": {
+                "M": {
+                  "Amazon SQS": {
+                    "S": "キュー型。コンシューマーがポーリングして取得するプル方式。1メッセージを1コンシューマーが競合受信する。"
+                  },
+                  "Amazon EventBridge": {
+                    "S": "イベントバス型。イベントをバスに送信し、ルールが内容を評価して一致するターゲットにルーティングする。"
+                  },
+                  "Amazon SNS": {
+                    "S": "Pub/Sub型。パブリッシャーがトピックに送信し、全サブスクライバーにプッシュ配信するファンアウト方式。"
+                  }
+                }
+              }
+            }
+          },
+          {
+            "M": {
+              "axis": {
+                "S": "メッセージ保持"
+              },
+              "values": {
+                "M": {
+                  "Amazon SQS": {
+                    "S": "キューにメッセージを蓄積（最大14日）。コンシューマーが取得・削除するまで保持するためバーストに強い。"
+                  },
+                  "Amazon EventBridge": {
+                    "S": "標準はイベントを保持しないが、アーカイブ機能で過去イベントを保存しリプレイが可能。"
+                  },
+                  "Amazon SNS": {
+                    "S": "メッセージを永続保持しない。配信失敗時の再試行はあるが、基本はリアルタイム配信のみ。"
+                  }
+                }
+              }
+            }
+          },
+          {
+            "M": {
+              "axis": {
+                "S": "サブスクライバー・ターゲット"
+              },
+              "values": {
+                "M": {
+                  "Amazon SQS": {
+                    "S": "キューを直接ポーリングするコンシューマー（EC2・Lambda等）のみ。複数コンシューマーは競合受信になる。"
+                  },
+                  "Amazon EventBridge": {
+                    "S": "Lambda・SQS・SNS・Step Functions・API Gateway・Kinesis等、多数のAWSサービスをターゲットに設定可能。"
+                  },
+                  "Amazon SNS": {
+                    "S": "Lambda・SQS・HTTP/HTTPS・メール・SMS・モバイルプッシュ等、複数プロトコルを同時サブスクライブ可能。"
+                  }
+                }
+              }
+            }
+          },
+          {
+            "M": {
+              "axis": {
+                "S": "フィルタリング・ルーティング"
+              },
+              "values": {
+                "M": {
+                  "Amazon SQS": {
+                    "S": "フィルタリング機能なし。送られたメッセージは全コンシューマーが競合受信するかDLQで分岐するのみ。"
+                  },
+                  "Amazon EventBridge": {
+                    "S": "イベントパターンマッチング（JSON内容・フィールド値・プレフィックス等）で高度な条件付きルーティングが可能。"
+                  },
+                  "Amazon SNS": {
+                    "S": "サブスクリプションフィルターポリシーでメッセージ属性に基づき配信先を絞り込める（基本的なフィルタリング）。"
+                  }
+                }
+              }
+            }
+          },
+          {
+            "M": {
+              "axis": {
+                "S": "AWSサービスとの自動連携"
+              },
+              "values": {
+                "M": {
+                  "Amazon SQS": {
+                    "S": "アプリや他サービスが明示的にメッセージを送信する必要がある。AWS標準イベントの自動取り込みはない。"
+                  },
+                  "Amazon EventBridge": {
+                    "S": "100以上のAWSサービスがデフォルトイベントバスに自動でイベントを送信。SaaSパートナーバスもサポート。"
+                  },
+                  "Amazon SNS": {
+                    "S": "CloudWatchアラームなど一部のAWSサービスが直接SNSに通知を送信できる。"
+                  }
+                }
+              }
+            }
+          },
+          {
+            "M": {
+              "axis": {
+                "S": "順序保証・重複排除"
+              },
+              "values": {
+                "M": {
+                  "Amazon SQS": {
+                    "S": "標準キューは順序・重複の保証なし。FIFOキューは順序保証と重複排除を提供（スループット制限あり）。"
+                  },
+                  "Amazon EventBridge": {
+                    "S": "順序保証なし。at-least-once配信のため重複受信の可能性がある。�べき等な処理設計が推奨。"
+                  },
+                  "Amazon SNS": {
+                    "S": "標準トピックは順序保証なし。FIFOトピックでSQS FIFOへの順序付き・重複排除配信が可能。"
+                  }
+                }
+              }
+            }
+          },
+          {
+            "M": {
+              "axis": {
+                "S": "代表ユースケース"
+              },
+              "values": {
+                "M": {
+                  "Amazon SQS": {
+                    "S": "マイクロサービス間の非同期処理・ワークキュー・バッチ処理の負荷平準化・アプリケーションの疎結合化。"
+                  },
+                  "Amazon EventBridge": {
+                    "S": "AWSサービス変化への反応・SaaS連携・イベント駆動アーキテクチャ・複雑なルーティング要件の実装。"
+                  },
+                  "Amazon SNS": {
+                    "S": "同一イベントを複数宛先に同時通知するファンアウト・アラート・モバイルプッシュ通知の一斉配信。"
+                  }
+                }
+              }
+            }
+          }
+        ]
+      },
+      "title": {
+        "S": "SQS / SNS / EventBridge の違いと使い分け"
+      },
+      "examPoints": {
+        "S": "試験では3サービスの混同を狙った選択肢が頻出。識別キーは「SQS＝プル型・永続キュー・競合受信」「SNS＝プッシュ型・ファンアウト・永続化なし」「EventBridge＝イベントルーティング・AWSサービス自動連携・コンテンツベースフィルタリング」。「同一メッセージを複数サービスに届ける」はSNSまたはEventBridgeだが、EC2起動等のAWSサービスイベント自動検知はEventBridge。SNS→SQSファンアウトパターン（信頼性のある非同期ファンアウト）も頻出テーマ。DLQはSQS・SNS・EventBridgeいずれも対応。EventBridgeのアーカイブ・リプレイはSQS・SNSにはない差別化点として問われる。"
+      }
+    },
+    {
+      "services": {
+        "L": [
+          {
+            "S": "Amazon RDS"
+          },
+          {
+            "S": "Amazon Aurora"
+          },
+          {
+            "S": "Amazon DynamoDB"
+          }
+        ]
+      },
+      "slug": {
+        "S": "rds-vs-aurora-vs-dynamodb"
+      },
+      "createdAt": {
+        "S": "2026-07-21T10:01:21Z"
+      },
+      "order": {
+        "N": "2"
+      },
+      "docUrls": {
+        "L": [
+          {
+            "S": "https://aws.amazon.com/jp/rds/"
+          },
+          {
+            "S": "https://aws.amazon.com/jp/rds/aurora/"
+          },
+          {
+            "S": "https://aws.amazon.com/jp/dynamodb/"
+          }
+        ]
+      },
+      "useCases": {
+        "L": [
+          {
+            "M": {
+              "scenario": {
+                "S": "既存のOracle／SQL Serverシステムをクラウドへリフト＆シフト移行したい"
+              },
+              "why": {
+                "S": "Oracle・SQL ServerエンジンはRDSのみサポート。既存ライセンスをBYOL形式で持ち込める"
+              },
+              "recommend": {
+                "S": "Amazon RDS"
+              }
+            }
+          },
+          {
+            "M": {
+              "scenario": {
+                "S": "MySQL/PostgreSQL互換で高可用性・高スループットなRDBが必要"
+              },
+              "why": {
+                "S": "3AZへの6コピー保存と高速フェイルオーバーにより、RDSより可用性と書き込み性能が大幅に向上"
+              },
+              "recommend": {
+                "S": "Amazon Aurora"
+              }
+            }
+          },
+          {
+            "M": {
+              "scenario": {
+                "S": "数百万ユーザーのセッション情報を一桁ミリ秒で読み書きしたい"
+              },
+              "why": {
+                "S": "キー単位の低レイテンシアクセスと自動水平スケールにより大量の同時リクエストを安定処理できる"
+              },
+              "recommend": {
+                "S": "Amazon DynamoDB"
+              }
+            }
+          },
+          {
+            "M": {
+              "scenario": {
+                "S": "サーバーレスアーキテクチャ（Lambda等）でインフラ管理を最小化したい"
+              },
+              "why": {
+                "S": "フルマネージド型でインスタンス管理が不要。オンデマンドキャパシティで負荷変動にも自動対応"
+              },
+              "recommend": {
+                "S": "Amazon DynamoDB"
+              }
+            }
+          },
+          {
+            "M": {
+              "scenario": {
+                "S": "ECサイトの注文・在庫管理でACIDトランザクションが必要かつ高負荷に耐えたい"
+              },
+              "why": {
+                "S": "RDS互換のACIDトランザクションを備えつつ、高負荷時の性能とフェイルオーバー速度でRDSを上回る"
+              },
+              "recommend": {
+                "S": "Amazon Aurora"
+              }
+            }
+          }
+        ]
+      },
+      "isActive": {
+        "BOOL": true
+      },
+      "examTypes": {
+        "L": [
+          {
+            "S": "SAA"
+          },
+          {
+            "S": "DEA"
+          },
+          {
+            "S": "DVA"
+          },
+          {
+            "S": "SAP"
+          }
+        ]
+      },
+      "category": {
+        "S": "データベース"
+      },
+      "intro": {
+        "S": "RDSとAuroraはリレーショナルDB（SQL）、DynamoDBはNoSQL（キー・バリュー／ドキュメント型）という根本的な違いがある。AuroraはRDSのMySQL/PostgreSQL互換だがAWS独自の分散ストレージ層により性能・可用性が大幅に向上。試験では3サービスの選択基準とAurora固有の仕様の理解が問われる。"
+      },
+      "axes": {
+        "L": [
+          {
+            "M": {
+              "axis": {
+                "S": "データモデル"
+              },
+              "values": {
+                "M": {
+                  "Amazon Aurora": {
+                    "S": "RDSと同じリレーショナルモデル。MySQL／PostgreSQL互換のSQLをそのまま利用可能"
+                  },
+                  "Amazon RDS": {
+                    "S": "リレーショナル（テーブル・行・列）。SQLでJOINや複雑なクエリ・トランザクションを扱える"
+                  },
+                  "Amazon DynamoDB": {
+                    "S": "キー・バリュー＋ドキュメント型のNoSQL。スキーマレスで柔軟な属性定義が可能"
+                  }
+                }
+              }
+            }
+          },
+          {
+            "M": {
+              "axis": {
+                "S": "エンジン・互換性"
+              },
+              "values": {
+                "M": {
+                  "Amazon Aurora": {
+                    "S": "MySQL互換とPostgreSQL互換の2エディション。既存MySQL/PostgreSQL資産を移行しやすい"
+                  },
+                  "Amazon RDS": {
+                    "S": "MySQL・PostgreSQL・Oracle・SQL Server・MariaDB・Db2の6エンジンをサポート"
+                  },
+                  "Amazon DynamoDB": {
+                    "S": "独自API（AWS SDK）。PartiQLで部分的なSQL風クエリも可能だがJOINは非対応"
+                  }
+                }
+              }
+            }
+          },
+          {
+            "M": {
+              "axis": {
+                "S": "スケーラビリティ"
+              },
+              "values": {
+                "M": {
+                  "Amazon Aurora": {
+                    "S": "レプリカ最大15台で読み取りスケールアウト。ストレージは最大128TBまで自動拡張"
+                  },
+                  "Amazon RDS": {
+                    "S": "垂直スケール（インスタンスタイプ変更）が主体。Read Replicaで読み取りのみ水平分散"
+                  },
+                  "Amazon DynamoDB": {
+                    "S": "水平スケールを自動処理。RCU/WCUをオンデマンドまたはプロビジョンドで柔軟に設定"
+                  }
+                }
+              }
+            }
+          },
+          {
+            "M": {
+              "axis": {
+                "S": "耐久性・可用性"
+              },
+              "values": {
+                "M": {
+                  "Amazon Aurora": {
+                    "S": "データを3AZに6コピー保存。フェイルオーバーは通常30秒以内でRDSより高速"
+                  },
+                  "Amazon RDS": {
+                    "S": "Multi-AZ配置でスタンバイに自動フェイルオーバー（通常1〜2分）。SLA 99.95%"
+                  },
+                  "Amazon DynamoDB": {
+                    "S": "データを3AZに自動レプリケーション。SLA 99.99%（グローバルテーブルは99.999%）"
+                  }
+                }
+              }
+            }
+          },
+          {
+            "M": {
+              "axis": {
+                "S": "性能特性"
+              },
+              "values": {
+                "M": {
+                  "Amazon Aurora": {
+                    "S": "MySQL比で書き込み最大5倍、ストレージI/Oも最適化済み。高スループットに強い"
+                  },
+                  "Amazon RDS": {
+                    "S": "汎用的なOLTPワークロードに対応。大規模アクセスにはインスタンスサイズの引き上げが必要"
+                  },
+                  "Amazon DynamoDB": {
+                    "S": "一桁ミリ秒の低レイテンシを保証。DAX（インメモリキャッシュ）でマイクロ秒応答も可能"
+                  }
+                }
+              }
+            }
+          },
+          {
+            "M": {
+              "axis": {
+                "S": "料金モデル"
+              },
+              "values": {
+                "M": {
+                  "Amazon Aurora": {
+                    "S": "インスタンス時間＋ストレージ実使用量（GB/月）＋I/Oリクエスト数で課金"
+                  },
+                  "Amazon RDS": {
+                    "S": "インスタンス稼働時間＋ストレージ（GB/月）＋I/O（一部エンジン）の時間課金"
+                  },
+                  "Amazon DynamoDB": {
+                    "S": "プロビジョンドRCU/WCU（時間課金）またはオンデマンド（リクエスト単位）＋ストレージ"
+                  }
+                }
+              }
+            }
+          },
+          {
+            "M": {
+              "axis": {
+                "S": "代表ユースケース"
+              },
+              "values": {
+                "M": {
+                  "Amazon Aurora": {
+                    "S": "ECサイト・SaaS・金融系など高可用性と高性能が同時に求められる新規RDBワークロード"
+                  },
+                  "Amazon RDS": {
+                    "S": "Oracle・SQL Serverなど既存ライセンス移行先。ストアドプロシージャが必要な業務システム"
+                  },
+                  "Amazon DynamoDB": {
+                    "S": "セッション管理・IoTデータ・ゲームスコアボード・商品カタログなど大規模キーアクセス"
+                  }
+                }
+              }
+            }
+          }
+        ]
+      },
+      "title": {
+        "S": "RDS / Aurora / DynamoDB の違いと使い分け"
+      },
+      "examPoints": {
+        "S": "試験頻出は「AuroraとRDSの違い」。Auroraは分散ストレージ（3AZ×2コピー＝6コピー）が特徴でRDSとは設計が根本的に異なる。RDSのMulti-AZはスタンバイへの同期レプリケーション（Read不可）、Read Replicaは非同期（Read可）という区別も頻出。DynamoDBはSQLが使えない点・プライマリキー（パーティションキー＋ソートキー）設計が重要。DAXはDynamoDB専用インメモリキャッシュでElastiCacheとは別物。グローバルテーブルは複数リージョン間のマルチマスターレプリケーション。"
+      }
+    },
+    {
+      "services": {
+        "L": [
+          {
+            "S": "Amazon CloudFront"
+          },
+          {
+            "S": "AWS Global Accelerator"
+          }
+        ]
+      },
+      "slug": {
+        "S": "cloudfront-vs-global-accelerator"
+      },
+      "createdAt": {
+        "S": "2026-07-21T10:16:02Z"
+      },
+      "order": {
+        "N": "10"
+      },
+      "docUrls": {
+        "L": [
+          {
+            "S": "https://aws.amazon.com/jp/cloudfront/"
+          },
+          {
+            "S": "https://aws.amazon.com/jp/global-accelerator/"
+          }
+        ]
+      },
+      "useCases": {
+        "L": [
+          {
+            "M": {
+              "scenario": {
+                "S": "グローバルユーザー向けに画像・動画・JavaScriptなどの静的コンテンツを高速・低コストで配信したい"
+              },
+              "why": {
+                "S": "エッジキャッシュによりオリジンへのリクエストを削減しつつ、ユーザーに最も近い拠点から低遅延で配信できる。"
+              },
+              "recommend": {
+                "S": "Amazon CloudFront"
+              }
+            }
+          },
+          {
+            "M": {
+              "scenario": {
+                "S": "マルチプレイヤーゲームでUDPを使い、世界中のプレイヤーとゲームサーバー間の遅延を最小化したい"
+              },
+              "why": {
+                "S": "TCP/UDP問わずAWSグローバルネットワーク経由でルーティングし、インターネット経由より安定した低レイテンシー通信を実現できる。"
+              },
+              "recommend": {
+                "S": "AWS Global Accelerator"
+              }
+            }
+          },
+          {
+            "M": {
+              "scenario": {
+                "S": "複数リージョンのALBへのトラフィックを固定IPで受け、障害時にDNS変更なしで自動フェイルオーバーさせたい"
+              },
+              "why": {
+                "S": "2つの静的AnycastIPを保持したまま秒単位のフェイルオーバーが可能。IPホワイトリストを変更する必要がない。"
+              },
+              "recommend": {
+                "S": "AWS Global Accelerator"
+              }
+            }
+          },
+          {
+            "M": {
+              "scenario": {
+                "S": "APIレスポンスをキャッシュしてオリジンサーバーの負荷を下げながらグローバルに高速化したい"
+              },
+              "why": {
+                "S": "CloudFrontはHTTPレスポンスをエッジでキャッシュできるため、オリジン負荷の軽減と低遅延配信を同時に実現できる。"
+              },
+              "recommend": {
+                "S": "Amazon CloudFront"
+              }
+            }
+          },
+          {
+            "M": {
+              "scenario": {
+                "S": "セキュリティ要件でIPホワイトリストが必要だが、複数リージョンに分散したWebアプリも使いたい"
+              },
+              "why": {
+                "S": "2つの静的AnycastIPをファイアウォール許可リストに登録するだけで、背後の複数リージョンエンドポイントへのルーティングが可能。"
+              },
+              "recommend": {
+                "S": "AWS Global Accelerator"
+              }
+            }
+          }
+        ]
+      },
+      "isActive": {
+        "BOOL": true
+      },
+      "examTypes": {
+        "L": [
+          {
+            "S": "SAA"
+          },
+          {
+            "S": "ANS"
+          }
+        ]
+      },
+      "category": {
+        "S": "ネットワーキング"
+      },
+      "intro": {
+        "S": "CloudFrontはHTTPコンテンツをエッジでキャッシュするCDNであり、静的・動的コンテンツの配信を高速化する。Global AcceleratorはAWSグローバルネットワーク経由でTCP/UDPトラフィックをルーティングするアクセラレーターで、キャッシュ機能は持たない。「キャッシュにより配信を最適化するか」「プロトコルを問わず通信経路を最適化するか」が本質的な違いである。"
+      },
+      "axes": {
+        "L": [
+          {
+            "M": {
+              "axis": {
+                "S": "主な役割"
+              },
+              "values": {
+                "M": {
+                  "Amazon CloudFront": {
+                    "S": "CDN。コンテンツをエッジロケーションにキャッシュし、ユーザーに近い拠点から配信することでレイテンシーを削減する。"
+                  },
+                  "AWS Global Accelerator": {
+                    "S": "ネットワークアクセラレーター。AWSグローバルネットワーク経由でトラフィックをルーティングし通信経路を最適化する。キャッシュは持たない。"
+                  }
+                }
+              }
+            }
+          },
+          {
+            "M": {
+              "axis": {
+                "S": "対応プロトコル"
+              },
+              "values": {
+                "M": {
+                  "Amazon CloudFront": {
+                    "S": "HTTP/HTTPSのみ対応。Webコンテンツ・API・動画ストリーミングなどHTTPベースのワークロードに特化している。"
+                  },
+                  "AWS Global Accelerator": {
+                    "S": "TCP/UDP全般に対応。ゲーム・VoIP・IoTなど、HTTPに限定されないプロトコルのアプリケーションを加速できる。"
+                  }
+                }
+              }
+            }
+          },
+          {
+            "M": {
+              "axis": {
+                "S": "IPアドレス"
+              },
+              "values": {
+                "M": {
+                  "Amazon CloudFront": {
+                    "S": "エッジロケーションのIPは動的に変わる。固定のグローバルIPアドレスは提供されない。"
+                  },
+                  "AWS Global Accelerator": {
+                    "S": "2つの静的AnycastグローバルIPを提供。IPホワイトリスト設定のまま利用でき、DNSの伝播を待たずフェイルオーバーが可能。"
+                  }
+                }
+              }
+            }
+          },
+          {
+            "M": {
+              "axis": {
+                "S": "キャッシュ機能"
+              },
+              "values": {
+                "M": {
+                  "Amazon CloudFront": {
+                    "S": "エッジでコンテンツをキャッシュ。TTL設定・キャッシュ無効化によりオリジンへの負荷を大幅に軽減できる。"
+                  },
+                  "AWS Global Accelerator": {
+                    "S": "キャッシュ機能を持たない。全リクエストはAWSネットワーク経由でオリジンエンドポイントまで転送される。"
+                  }
+                }
+              }
+            }
+          },
+          {
+            "M": {
+              "axis": {
+                "S": "エンドポイント種別"
+              },
+              "values": {
+                "M": {
+                  "Amazon CloudFront": {
+                    "S": "S3・ALB・EC2・API Gatewayなど、HTTPSで公開されたオリジンを設定する。Lambda@Edgeによるエッジ処理も可能。"
+                  },
+                  "AWS Global Accelerator": {
+                    "S": "ALB・NLB・EC2・Elastic IPをエンドポイントとして登録。複数リージョン間の重み付きルーティングとヘルスチェックに対応。"
+                  }
+                }
+              }
+            }
+          },
+          {
+            "M": {
+              "axis": {
+                "S": "セキュリティ機能"
+              },
+              "values": {
+                "M": {
+                  "Amazon CloudFront": {
+                    "S": "AWS WAFおよびShieldとネイティブ統合。HTTPS強制・署名付きURL・フィールドレベル暗号化・Geo制限が利用可能。"
+                  },
+                  "AWS Global Accelerator": {
+                    "S": "AWS Shield Standardが標準で有効。エッジでDDoSトラフィックを吸収しオリジンを保護する。WAFとの直接統合はない。"
+                  }
+                }
+              }
+            }
+          },
+          {
+            "M": {
+              "axis": {
+                "S": "料金モデル"
+              },
+              "values": {
+                "M": {
+                  "Amazon CloudFront": {
+                    "S": "データ転送量（アウト）＋HTTPリクエスト数で課金。キャッシュヒット率を高めるほどオリジン転送コストを削減できる。"
+                  },
+                  "AWS Global Accelerator": {
+                    "S": "アクセラレーター稼働時間（固定時間料金）＋転送データ量（DPU）で課金。キャッシュなしのためCloudFrontより割高になりやすい。"
+                  }
+                }
+              }
+            }
+          },
+          {
+            "M": {
+              "axis": {
+                "S": "代表ユースケース"
+              },
+              "values": {
+                "M": {
+                  "Amazon CloudFront": {
+                    "S": "Webサイト・画像・動画のグローバル配信、REST APIキャッシュ、Lambda@Edgeによるエッジコンピューティング。"
+                  },
+                  "AWS Global Accelerator": {
+                    "S": "ゲームサーバー・VoIP・金融取引システムなど低遅延が重要な非HTTPアプリ、または静的IP必須のシステム。"
+                  }
+                }
+              }
+            }
+          }
+        ]
+      },
+      "title": {
+        "S": "CloudFront と Global Accelerator の違いと使い分け"
+      },
+      "examPoints": {
+        "S": "試験では「キャッシュが必要か」と「HTTP以外のプロトコルが必要か」「静的IPが必要か」の3点が主な判断軸になる。CloudFrontはHTTP(S)専用でエッジキャッシュを持ち、コンテンツ配信・Webアプリ高速化に使う。Global AcceleratorはTCP/UDP対応でキャッシュなし、静的AnycastIPと秒単位フェイルオーバーが特徴。よくあるひっかけは「Global AcceleratorもCloudFrontと同様にコンテンツをキャッシュする（誤り）」「CloudFrontで静的IPが取得できる（誤り）」の2点。また両者ともAWSグローバルネットワークを活用する点は共通だが、目的が「配信の最適化（CF）」か「ルーティングの最適化（GA）」かを区別することが重要である。"
+      }
+    }
+  ],
+  "Count": 12,
+  "ScannedCount": 12,
+  "ConsumedCapacity": null
+}
