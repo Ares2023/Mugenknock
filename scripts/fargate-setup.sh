@@ -228,7 +228,7 @@ if [ -z "$TASK_ROLE_ARN" ]; then
       "Action": [
         "scheduler:GetSchedule","scheduler:UpdateSchedule"
       ],
-      "Resource": "arn:aws:scheduler:${REGION}:${ACCOUNT_ID}:schedule/default/${PROJECT}-night-*"
+      "Resource": "arn:aws:scheduler:${REGION}:${ACCOUNT_ID}:schedule/default/${PROJECT}-*"
     },
     {
       "Effect": "Allow",

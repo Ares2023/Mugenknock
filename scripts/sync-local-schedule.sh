@@ -22,6 +22,38 @@ UNIT_DIR="$HOME/.config/systemd/user"
 ACCT=$("$AWS" sts get-caller-identity --query Account --output text --region "$REGION" 2>/dev/null || echo "")
 S3="${PROJECT}-fargate-state-${ACCT}"
 
+# ── メールアラート送信（~/.mugenknock_mail.conf 使用・失敗してもスクリプトは止めない）──
+# ピン連鎖切れ(watchdog)検知時に mugenknock@gmail.com へ通知する。
+_send_alert() {
+  local subject="$1" body="$2"
+  local mail_conf="${HOME}/.mugenknock_mail.conf"
+  local SMTP_USER="" SMTP_PASS="" SMTP_TO="mugenknock@gmail.com"
+  [ -f "$mail_conf" ] && source "$mail_conf"
+  local smtp_user="$SMTP_USER" smtp_pass="$SMTP_PASS" smtp_to="${SMTP_TO:-mugenknock@gmail.com}"
+  if [ -z "$smtp_user" ] || [ -z "$smtp_pass" ]; then
+    echo "  ⚠️ メール設定未設定のためアラート送信スキップ ($mail_conf)"; return 0
+  fi
+  local _res
+  _res=$(ALERT_USER="$smtp_user" ALERT_PASS="$smtp_pass" ALERT_TO="$smtp_to" \
+         ALERT_SUBJECT="$subject" ALERT_BODY="$body" python3 << 'PYEOF'
+import smtplib, ssl, os
+from email.mime.text import MIMEText
+u = os.environ['ALERT_USER']; p = os.environ['ALERT_PASS']; to = os.environ['ALERT_TO']
+msg = MIMEText(os.environ['ALERT_BODY'], 'plain', 'utf-8')
+msg['Subject'] = os.environ['ALERT_SUBJECT']; msg['From'] = u; msg['To'] = to
+try:
+    ctx = ssl.create_default_context()
+    with smtplib.SMTP("smtp.gmail.com", 587) as s:
+        s.ehlo(); s.starttls(context=ctx); s.ehlo(); s.login(u, p)
+        s.sendmail(u, to, msg.as_string())
+    print("SENT")
+except Exception as e:
+    print(f"FAIL:{e}")
+PYEOF
+) || true
+  echo "  📧 アラートメール: ${_res} → ${smtp_to}"
+}
+
 EXPR=$("$AWS" scheduler get-schedule --name "$SCHEDULE_NAME" --region "$REGION" \
   --query "ScheduleExpression" --output text 2>/dev/null || echo "")
 STATE=$("$AWS" scheduler get-schedule --name "$SCHEDULE_NAME" --region "$REGION" \
@@ -70,7 +102,7 @@ print(dt.strftime('%Y-%m-%dT%H:%M:%S'), run_night, stale)
 PYEOF
 )
 
-# watchdog: 連鎖が切れていたら EventBridge を at(NEXT_DT) に張り直す
+# watchdog: 連鎖が切れていたら EventBridge を at(NEXT_DT) に張り直す＋メール通知
 if [ "$STALE" = "1" ]; then
   TARGET_JSON=$("$AWS" scheduler get-schedule --name "$SCHEDULE_NAME" --region "$REGION" \
     --output json 2>/dev/null | python3 -c "import sys,json; print(json.dumps(json.load(sys.stdin)['Target']))")
@@ -79,6 +111,16 @@ if [ "$STALE" = "1" ]; then
     --flexible-time-window '{"Mode":"OFF"}' --state ENABLED --target "$TARGET_JSON" \
     --region "$REGION" > /dev/null 2>&1 \
   && echo "⚠️ ピン連鎖切れを検出 → EventBridgeを at(${NEXT_DT}) に張り直し" || true
+  # 障害通知: 連鎖切れ=前回ピンが再スケジュールに失敗（今回のような不調）。メールで知らせる。
+  _send_alert "[mugenknock] ⚠️ Fargateピン連鎖切れを検出・自動復旧" \
+"Fargateピンのドリフト連鎖が切れていました（EventBridgeの次回ピンが過去 = 前回ピンが次回を再スケジュールできていない）。
+
+ローカルのウォッチドッグが EventBridge を張り直して自動復旧しました。
+  検知時刻     : $(date '+%Y-%m-%d %H:%M:%S %Z')
+  復旧後の次回ピン: ${NEXT_DT/T/ } JST
+
+再発する場合は、Fargateタスクロール(mugenknock-fargate-task)のscheduler権限、
+またはFargateイメージ/認証(S3のOAuth資格情報)を確認してください。"
 fi
 
 # 次回ピンから hook(-30分) / postping(+10分) の絶対時刻を算出
