@@ -449,8 +449,7 @@ fi
       "Effect": "Allow",
       "Action": ["ecs:RunTask"],
       "Resource": [
-        "arn:aws:ecs:${REGION}:${ACCOUNT_ID}:task-definition/${TASK_FAMILY}*",
-        "arn:aws:ecs:${REGION}:${ACCOUNT_ID}:task-definition/${HOOK_FAMILY}*"
+        "arn:aws:ecs:${REGION}:${ACCOUNT_ID}:task-definition/${PROJECT}-*"
       ]
     },
     {
