@@ -587,7 +587,12 @@ pattern = {
   "detail": {
     "clusterArn": ["arn:aws:ecs:${REGION}:${ACCOUNT_ID}:cluster/${CLUSTER}"],
     "lastStatus": ["STOPPED"],
-    "stopCode": ["TaskFailed","EssentialContainerExited","ServiceSchedulerInitializationError","SystemInitializationError"]
+    # 短命タスク(ping/夜間バッチ)の正常終了は EssentialContainerExited(exit=0)になるため、
+    # それは失敗扱いにしない。EssentialContainerExited は exit!=0 の時のみ通知する。
+    "$or": [
+      {"stopCode": ["TaskFailed","ServiceSchedulerInitializationError","SystemInitializationError"]},
+      {"stopCode": ["EssentialContainerExited"], "containers": {"exitCode": [{"anything-but": 0}]}}
+    ]
   }
 }
 print(json.dumps(pattern))
