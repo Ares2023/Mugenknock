@@ -840,8 +840,8 @@ function syncEncyclopediaToServer(userId: string, forceUpload = false): void {
   } catch {}
 }
 
-function TodayServiceSection({ lang, userId, onNavigateEncyclopedia, onReveal, isMobile }: {
-  lang: string; userId?: string;
+function TodayServiceSection({ lang, userId, authReady, onNavigateEncyclopedia, onReveal, isMobile }: {
+  lang: string; userId?: string; authReady: boolean;
   onNavigateEncyclopedia: () => void;
   onReveal: (svc: DailyService) => void;
   isMobile: boolean;
@@ -856,6 +856,9 @@ function TodayServiceSection({ lang, userId, onNavigateEncyclopedia, onReveal, i
   const jstToday = () => new Date(Date.now() + 9 * 3600 * 1000).toISOString().slice(0, 10);
 
   useEffect(() => {
+    // 認証確定前(authReady=false)は抽選しない。userId未確定のまま走ると未ログイン(guest)用
+    // サービスが抽選・キャッシュされてしまうため、確定後にのみ userId 有無で抽選する。
+    if (!authReady) return;
     const uid = userId ?? 'guest';
     const jstDate = jstToday();
 
@@ -917,7 +920,7 @@ function TodayServiceSection({ lang, userId, onNavigateEncyclopedia, onReveal, i
     } else {
       fetchService(localRevealed);
     }
-  }, [userId]);
+  }, [userId, authReady]);
 
   const handleReroll = async () => {
     if (!userId || !service || rerolling) return;
@@ -2145,6 +2148,7 @@ export default function Home() {
       <TodayServiceSection
         lang={lang}
         userId={user?.userId}
+        authReady={!authLoading}
         onNavigateEncyclopedia={() => navigate('/aws/encyclopedia')}
         onReveal={svc => setRevealService(svc)}
         isMobile={isMobile}
