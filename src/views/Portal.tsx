@@ -2,7 +2,7 @@
 import React, { useState, useEffect } from 'react';
 import { Helmet } from '@/compat/react-helmet-async';
 import { Navigate, useNavigate } from '@/compat/react-router-dom';
-import { useAuth } from '../contexts/AuthContext';
+import { useAuth, hadPriorSession } from '../contexts/AuthContext';
 import { useLanguage } from '../contexts/LanguageContext';
 import { IconUser, IconBot, IconTarget, IconTrendingUp, IconNetwork } from '../components/Icons';
 import Reveal from '../components/Reveal';
@@ -106,6 +106,22 @@ export default function Portal() {
 
   if (doRedirect) {
     return <Navigate to="/aws/" replace />;
+  }
+
+  // ログイン経験者は、認証確定までランディング(未ログイン向け)を描画しない(?view=/#aboutは除く)。
+  // SSR/初回ハイドレーション(!mounted)ではSEO維持のため従来どおり描画し、未ログイン/初回訪問
+  // ユーザー(hadPriorSession=false)にも即座にランディングを見せる。
+  if (mounted && hadPriorSession() && (loading || user)) {
+    const forceView =
+      new URLSearchParams(window.location.search).has('view') ||
+      window.location.hash === '#about';
+    if (!forceView) {
+      return (
+        <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'var(--color-bg-main)' }}>
+          <div className="sherpa-spinner" style={{ width: 28, height: 28, borderWidth: 3 }} />
+        </div>
+      );
+    }
   }
 
   const handleStart = () => navigate('/aws/');

@@ -9,7 +9,7 @@ import StartTutorialSpotlight from '../components/StartTutorialSpotlight';
 
 // 初回オンボーディング完了フラグ（サイト全体で1回だけチュートリアルを出す）
 const ONBOARDING_TUTORIAL_KEY = 'mk_onboarding_tutorial_done_v1';
-import { useAuth } from '../contexts/AuthContext';
+import { useAuth, hadPriorSession } from '../contexts/AuthContext';
 import { useLanguage } from '../contexts/LanguageContext';
 import {
   API_ENDPOINT, EXAM_TYPES, EXAM_CONFIGS, EXAM_DOMAINS,
@@ -1954,6 +1954,16 @@ export default function Home() {
     window.addEventListener('keydown', h);
     return () => window.removeEventListener('keydown', h);
   }, [showCombinedDetail, revealService, showQuickModal, showFocusedModal, showWebQuickMenu, showFocusedMenu]);
+
+  // ログイン経験者は、認証確定(authLoading完了)まで未ログイン用UI(日めくり記事等)を描画しない。
+  // 未ログイン/初回訪問ユーザー(hadPriorSession=false)は従来どおり即表示する。
+  if (authLoading && !user && hadPriorSession()) {
+    return (
+      <div style={{ maxWidth: 900, margin: '0 auto', padding: 'var(--spacing-lg) var(--spacing-lg)', minHeight: '60vh', display: 'flex', alignItems: 'center', justifyContent: 'center' }} className="page-container">
+        <div className="sherpa-spinner" style={{ width: 28, height: 28, borderWidth: 3 }} />
+      </div>
+    );
+  }
 
   return (
     <div style={{ maxWidth: 900, margin: '0 auto', padding: 'var(--spacing-lg) var(--spacing-lg)' }} className="page-container">
