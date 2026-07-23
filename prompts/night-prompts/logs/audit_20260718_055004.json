@@ -1,0 +1,257 @@
+[
+  {
+    "questionId": "dop-q-073",
+    "examType": "DOP",
+    "verdict": "warn",
+    "currentness": "ok",
+    "difficulty": "appropriate",
+    "scope": "in",
+    "format": "ok",
+    "mockSuitable": true,
+    "issues": [
+      "Inspector V2のECRスキャンは非同期完了であり、EventBridge→Lambda→StopPipelineExecutionはビルド後デプロイまでの間にタイミングの競合が生じうる。選択肢[1]のCodeBuild内スキャン(exit1でブロック)も本番デプロイを確実に止める同期ゲートとして実務上有力で、『最も適切』が一意に絞りにくい。解説の『Trivyは継続的再スキャンができない』という優劣付けはCI/CDゲート要件に対してやや論点ずれ"
+    ]
+  },
+  {
+    "questionId": "aif-q-003",
+    "examType": "AIF",
+    "verdict": "warn",
+    "currentness": "ok",
+    "difficulty": "too_easy",
+    "scope": "in",
+    "format": "ok",
+    "mockSuitable": true,
+    "issues": [
+      "BLEUの用語を知っていれば即答できる単一事実の暗記問題。距離のある不正解(F1/ROC-AUC/MSE)ばかりでひっかけ性が乏しく、本番のシナリオベース問題より易しい"
+    ]
+  },
+  {
+    "questionId": "aif-q-021",
+    "examType": "AIF",
+    "verdict": "warn",
+    "currentness": "ok",
+    "difficulty": "too_easy",
+    "scope": "in",
+    "format": "ok",
+    "mockSuitable": true,
+    "issues": [
+      "BLEU/ROUGEが明らかにNLP指標で除外でき、実質ROC-AUC対Accuracyの二択で易しめ",
+      "『ROC-AUCは不均衡データの影響を受けにくい』は厳密には不正確で、強い不均衡ではPR-AUC(適合率-再現率曲線)の方が適切とされる。foundationalとして許容範囲だが解説の断定はやや強い"
+    ]
+  },
+  {
+    "questionId": "aif-q-025",
+    "examType": "AIF",
+    "verdict": "warn",
+    "currentness": "ok",
+    "difficulty": "appropriate",
+    "scope": "in",
+    "format": "ok",
+    "mockSuitable": true,
+    "issues": [
+      "BLEU=n-gram一致、BERTScore=意味的類似という理解を要する良問だが、不正解[1][2][3]が回帰/分類特化など的外れで明白に除外でき、正解が浮きやすい"
+    ]
+  },
+  {
+    "questionId": "aif-q-005",
+    "examType": "AIF",
+    "verdict": "ok",
+    "currentness": "ok",
+    "difficulty": "appropriate",
+    "scope": "in",
+    "format": "ok",
+    "mockSuitable": true,
+    "issues": []
+  },
+  {
+    "questionId": "aif-q-020",
+    "examType": "AIF",
+    "verdict": "ok",
+    "currentness": "ok",
+    "difficulty": "appropriate",
+    "scope": "in",
+    "format": "ok",
+    "mockSuitable": true,
+    "issues": [
+      "BLEUが同カテゴリの妥当なひっかけとして機能しており、ROC-AUC/MAEは明確に無関係。要約タスクの評価指標選択はAIF範囲内で妥当。foundational試験としてやや易しめだが許容範囲"
+    ]
+  },
+  {
+    "questionId": "aif-q-014",
+    "examType": "AIF",
+    "verdict": "warn",
+    "currentness": "ok",
+    "difficulty": "too_easy",
+    "scope": "in",
+    "format": "ok",
+    "mockSuitable": true,
+    "issues": [
+      "「例を一切提示していない」という記述がゼロショットに直結し、一読で正解が自明。Zero/One/Few-shotの単純な用語暗記問題でシナリオ性に乏しい",
+      "ネガティブプロンプティングが他選択肢とカテゴリが異なり距離感で除外可能"
+    ]
+  },
+  {
+    "questionId": "aif-q-008",
+    "examType": "AIF",
+    "verdict": "warn",
+    "currentness": "ok",
+    "difficulty": "too_easy",
+    "scope": "in",
+    "format": "ok",
+    "mockSuitable": true,
+    "issues": [
+      "転移学習・ファインチューニング・知識蒸留はいずれも攻撃手法ではなく学習技術であり、『攻撃』を問う設問で消去法により即座に正解が絞れる。ひっかけとしての質が低く一読で自明",
+      "本番相当のシナリオベースの取捨選択要素がなく用語識別問題にとどまる"
+    ]
+  },
+  {
+    "questionId": "aif-q-026",
+    "examType": "AIF",
+    "verdict": "ok",
+    "currentness": "ok",
+    "difficulty": "appropriate",
+    "scope": "in",
+    "format": "ok",
+    "mockSuitable": true,
+    "issues": [
+      "BLEUとBERTScoreの評価特性の違い（表層一致 vs 意味的類似）を問う設問で、foundationalとしては適切な理解度を要求。他選択肢は明確に無関係だが正解肢の理解に一定の知識を要する"
+    ]
+  },
+  {
+    "questionId": "aif-q-007",
+    "examType": "AIF",
+    "verdict": "warn",
+    "currentness": "ok",
+    "difficulty": "too_easy",
+    "scope": "in",
+    "format": "ok",
+    "mockSuitable": true,
+    "issues": [
+      "『条件を順番に判定する木構造』という記述が決定木を直接説明しており正解が自明。BERT/k-means/PCAはカテゴリが全く異なり距離感で除外可能で、ひっかけとして機能していない",
+      "用語と特徴の単純な対応付け問題でシナリオ判断要素が薄い"
+    ]
+  },
+  {
+    "questionId": "aif-q-006",
+    "examType": "AIF",
+    "verdict": "warn",
+    "currentness": "ok",
+    "difficulty": "too_easy",
+    "scope": "in",
+    "format": "ok",
+    "mockSuitable": true,
+    "issues": [
+      "不正解の3つ(決定木・k-NN・線形回帰)がいずれもディープなNLPモデルでなく、BERTが唯一の言語モデルとして一読で自明。ひっかけが弱く消去法で即答できる",
+      "本番のAIFはシナリオ+AWSサービスの比較を問う傾向が強く、素の学習アルゴリズム名の暗記に近いため難易度が低い"
+    ]
+  },
+  {
+    "questionId": "clf-d3bfdeee",
+    "examType": "CLF",
+    "verdict": "ok",
+    "currentness": "ok",
+    "difficulty": "appropriate",
+    "scope": "in",
+    "format": "ok",
+    "mockSuitable": true,
+    "issues": [
+      "Amazon Data Firehose(旧Kinesis Data Firehose)の現行名称を正しく使用。CLF相当の難易度で妥当"
+    ]
+  },
+  {
+    "questionId": "clf-0cb479dd",
+    "examType": "CLF",
+    "verdict": "ok",
+    "currentness": "ok",
+    "difficulty": "appropriate",
+    "scope": "in",
+    "format": "ok",
+    "mockSuitable": true,
+    "issues": []
+  },
+  {
+    "questionId": "clf-16b7ffad",
+    "examType": "CLF",
+    "verdict": "ok",
+    "currentness": "ok",
+    "difficulty": "appropriate",
+    "scope": "in",
+    "format": "ok",
+    "mockSuitable": true,
+    "issues": []
+  },
+  {
+    "questionId": "clf-4f5199a2",
+    "examType": "CLF",
+    "verdict": "ok",
+    "currentness": "ok",
+    "difficulty": "appropriate",
+    "scope": "in",
+    "format": "ok",
+    "mockSuitable": true,
+    "issues": []
+  },
+  {
+    "questionId": "clf-0b4beab3",
+    "examType": "CLF",
+    "verdict": "ok",
+    "currentness": "ok",
+    "difficulty": "appropriate",
+    "scope": "in",
+    "format": "ok",
+    "mockSuitable": true,
+    "issues": []
+  },
+  {
+    "questionId": "clf-93912b5a",
+    "examType": "CLF",
+    "verdict": "ok",
+    "currentness": "ok",
+    "difficulty": "appropriate",
+    "scope": "in",
+    "format": "ok",
+    "mockSuitable": true,
+    "issues": [
+      "CloudWatch請求アラームも閾値通知は可能なため選択肢[1]は完全な誤りではないが、Budgetsが最適解として妥当。CLF定番問題でやや平易"
+    ]
+  },
+  {
+    "questionId": "clf-b8ff3df9",
+    "examType": "CLF",
+    "verdict": "warn",
+    "currentness": "ok",
+    "difficulty": "too_easy",
+    "scope": "in",
+    "format": "ok",
+    "mockSuitable": true,
+    "issues": [
+      "「中断可能＋コスト最小化」からスポットインスタンスが一読で自明。ひっかけ要素が弱く、本番よりやや平易"
+    ]
+  },
+  {
+    "questionId": "clf-3130ebc0",
+    "examType": "CLF",
+    "verdict": "ok",
+    "currentness": "ok",
+    "difficulty": "appropriate",
+    "scope": "in",
+    "format": "ok",
+    "mockSuitable": true,
+    "issues": [
+      "Trusted Advisorも低使用率EC2の推奨を出すため選択肢[1]の切り分けがやや微妙だが、ML分析＋具体的リサイズ推奨はCompute Optimizerで妥当"
+    ]
+  },
+  {
+    "questionId": "clf-fe5ff023",
+    "examType": "CLF",
+    "verdict": "ok",
+    "currentness": "ok",
+    "difficulty": "appropriate",
+    "scope": "in",
+    "format": "ok",
+    "mockSuitable": true,
+    "issues": [
+      "Enterprise On-Rampの『TAMプール vs 専任TAM』の区別が良い識別ポイントで現行仕様とも一致"
+    ]
+  }
+]

@@ -62,20 +62,29 @@ echo ""
 echo "--- [1] AWS資格公式情報 変更チェック ---"
 
 CERT_NEWS="取得失敗"
-if [ -n "${CLAUDE_CMD:-}" ] && [ -x "${CLAUDE_CMD:-}" ]; then
+# 資格変更チェックはLLM+WebFetch(大きなページ取得)でトークンを消費する。変更は稀なので
+# 週次(月曜)のみ実行してトークンを節約する。他曜日はLLMを呼ばずスキップ。
+_CERT_DOW=$(date '+%u' 2>/dev/null || echo 1)  # 1=月 .. 7=日
+if [ -z "${CLAUDE_CMD:-}" ] || [ ! -x "${CLAUDE_CMD:-}" ]; then
+  CERT_NEWS="Claude コマンドが見つからないため取得不可"
+  echo "  ⚠️  Claude 未検出"
+elif [ "$_CERT_DOW" != "1" ]; then
+  CERT_NEWS="資格変更チェックは週次（月曜のみ実行）。今夜はスキップ。"
+  echo "  資格変更チェック: 週次（月曜のみ実行）。今夜はスキップ（トークン節約）。"
+else
 
-  # ── フェーズ1: 直近3日の声明を高速スキャン（設定値は注入しない）──
+  # ── フェーズ1: 直近7日の声明を高速スキャン（週次実行・設定値は注入しない）──
   SCAN_PROMPT=$(mktemp /tmp/cert_scan_XXXX.txt)
-  SCAN_SINCE=$(date -d '3 days ago' '+%Y-%m-%d' 2>/dev/null || date -v-3d '+%Y-%m-%d' 2>/dev/null || echo "")
+  SCAN_SINCE=$(date -d '7 days ago' '+%Y-%m-%d' 2>/dev/null || date -v-7d '+%Y-%m-%d' 2>/dev/null || echo "")
   cat > "$SCAN_PROMPT" << PROMPT
-以下の2つのURLを確認し、${SCAN_SINCE}以降（直近3日以内）に公開されたAWS認定試験の変更声明だけを抽出してください。
+以下の2つのURLを確認し、${SCAN_SINCE}以降（直近7日以内）に公開されたAWS認定試験の変更声明だけを抽出してください。
 
 確認URL:
 - https://aws.amazon.com/certification/coming-soon/
 - https://aws.amazon.com/blogs/training-and-certification/
 
 【出力形式】JSONのみ。前置き・説明文不要。
-直近3日以内に変更声明がなければ: {"has_changes": false}
+直近7日以内に変更声明がなければ: {"has_changes": false}
 変更声明がある場合:
 {
   "has_changes": true,
@@ -167,7 +176,7 @@ PYEOF
 AWS認定試験学習サイトの運営担当です。
 以下の直近の公式声明について、このサイトで対応が必要かどうかを判断してください。
 
-【直近3日以内の公式声明】
+【直近7日以内の公式声明】
 ${CHANGE_SUMMARY}
 
 【影響を受ける資格の現在のサイト設定】
@@ -195,11 +204,8 @@ PROMPT
     echo "$CERT_NEWS" | head -5
   else
     CERT_NEWS="変更なし（対応不要）"
-    echo "  直近3日以内の変更声明なし"
+    echo "  直近7日以内の変更声明なし"
   fi
-else
-  CERT_NEWS="Claude コマンドが見つからないため取得不可"
-  echo "  ⚠️  Claude 未検出"
 fi
 
 # ── 2. 夜間スクリプト成果をログから集計 ─────────────────────
@@ -337,7 +343,7 @@ echo "  通報: $(echo "$RPT_SUMMARY" | head -1)"
 echo ""
 echo "--- [3] DynamoDB稼働状況 ---"
 
-DB_STATS=$(TODAY="$TODAY" python3 << 'PYEOF'
+DB_STATS=$(TODAY="$TODAY" STATE_DIR="$_d/state" python3 << 'PYEOF'
 import subprocess, json, sys, os
 
 AWS = "/home/yuzuki/local/bin/aws"
@@ -385,7 +391,7 @@ except:
     reports = -1
 
 # 資格別問題数（DynamoDBのキャッシュを使う）
-cache_file = "/home/yuzuki/aws-quiz-app/prompts/night-prompts/scripts/state/question_counts.json"
+cache_file = os.path.join(os.environ.get("STATE_DIR", "."), "question_counts.json")
 try:
     with open(cache_file) as f:
         cache = json.load(f)
@@ -525,36 +531,48 @@ CANARY_FAIL=0
 CANARY_WARNINGS=0
 CANARY_EXIT=0
 
-if [ -x "$CANARY_SCRIPT" ]; then
-  CANARY_TMP=$(mktemp /tmp/canary_out_XXXX.txt)
-  bash "$CANARY_SCRIPT" > "$CANARY_TMP" 2>&1
-  CANARY_EXIT=$?
-  # canary.sh 自身が出力する権威あるサマリー行（" passed=X  failed=Y  warnings=Z"）を信頼する。
-  # ✓/✘ マークの再カウントはログ本文や S3 パス（mugenknock-error-logs 等）を巻き込んで
-  # 実態と乖離するため使わない。
-  CANARY_SUMMARY_LINE=$(grep -oE 'passed=[0-9]+[[:space:]]+failed=[0-9]+[[:space:]]+warnings=[0-9]+' "$CANARY_TMP" | tail -1)
-  if [ -n "$CANARY_SUMMARY_LINE" ]; then
-    CANARY_PASS=$(echo "$CANARY_SUMMARY_LINE" | grep -oE 'passed=[0-9]+' | cut -d= -f2)
-    CANARY_FAIL=$(echo "$CANARY_SUMMARY_LINE" | grep -oE 'failed=[0-9]+' | cut -d= -f2)
-    CANARY_WARNINGS=$(echo "$CANARY_SUMMARY_LINE" | grep -oE 'warnings=[0-9]+' | cut -d= -f2)
-  else
-    CANARY_PASS=$(awk '/✓/{c++} END{print c+0}' "$CANARY_TMP")
-    CANARY_FAIL=$(awk '/✘/{c++} END{print c+0}' "$CANARY_TMP")
-    CANARY_WARNINGS=$(awk '/⚠️/{c++} END{print c+0}' "$CANARY_TMP")
-  fi
-  CANARY_RESULT="$([ "$CANARY_EXIT" -eq 0 ] && echo '✅ PASS' || echo '❌ FAIL') (passed=${CANARY_PASS} failed=${CANARY_FAIL} warnings=${CANARY_WARNINGS})"
-  # 失敗詳細は FAIL 時のみ・実マーカー（✘/❌/FAIL）に限定する。
-  # PASS 時に "error" 部分一致で S3 パス等を拾い赤字表示していた誤りを防ぐ。
-  if [ "$CANARY_EXIT" -ne 0 ]; then
-    CANARY_DETAIL=$(grep -E "✘|❌|FAIL" "$CANARY_TMP" | head -80 || true)
-  else
-    CANARY_DETAIL=""
-  fi
-  rm -f "$CANARY_TMP"
+# canary はライブ実行せず、S3(mugenknock-error-logs/canary-logs/)の最新結果を読む。
+# canary 本体(canary.sh)はローカル/専用タスクで実行し、その結果をここで参照する
+# （Fargateレポートにplaywrightを同梱しないための方針）。
+CANARY_S3_BUCKET="mugenknock-error-logs"
+CANARY_S3_PREFIX="canary-logs"
+CANARY_REGION="${REGION:-ap-northeast-1}"
+CANARY_DETAIL=""
+CANARY_LATEST_KEY=$("$AWS" s3api list-objects-v2 \
+  --bucket "$CANARY_S3_BUCKET" --prefix "${CANARY_S3_PREFIX}/" \
+  --query "reverse(sort_by(Contents[?ends_with(Key, '.json')], &LastModified))[0].Key" \
+  --output text --region "$CANARY_REGION" 2>/dev/null)
+if [ -n "$CANARY_LATEST_KEY" ] && [ "$CANARY_LATEST_KEY" != "None" ]; then
+  CANARY_JSON_TMP=$(mktemp)
+  "$AWS" s3 cp "s3://${CANARY_S3_BUCKET}/${CANARY_LATEST_KEY}" "$CANARY_JSON_TMP" --quiet --region "$CANARY_REGION" 2>/dev/null
+  # env/ts/age は空白を含まない単一トークンなので read で安全に取得
+  read -r CANARY_PASS CANARY_FAIL CANARY_WARNINGS CANARY_EXIT CANARY_ENV CANARY_TS CANARY_AGE < <(python3 -c "
+import json,datetime
+try:
+    d=json.load(open('$CANARY_JSON_TMP'))
+except Exception:
+    print('0 0 0 1 ? ? ?'); raise SystemExit
+ts=d.get('timestamp','?')
+try:
+    t=datetime.datetime.strptime(ts,'%Y%m%d-%H%M%S'); days=(datetime.datetime.now()-t).days
+    age=('本日' if days<=0 else str(days)+'日前')
+except Exception:
+    age='?'
+print(d.get('passed',0), d.get('failed',0), d.get('warnings',0), d.get('exit_code',1), d.get('env','?'), ts, age)
+")
+  rm -f "$CANARY_JSON_TMP"
+  CANARY_RESULT="$([ "${CANARY_EXIT:-1}" -eq 0 ] && echo '✅ PASS' || echo '❌ FAIL') (passed=${CANARY_PASS} failed=${CANARY_FAIL} warnings=${CANARY_WARNINGS}) [${CANARY_ENV} 最終${CANARY_TS} ${CANARY_AGE}]"
   echo "  $CANARY_RESULT"
-  [ -n "$CANARY_DETAIL" ] && echo "  失敗詳細:" && echo "$CANARY_DETAIL" | sed 's/^/    /'
+  if [ "${CANARY_AGE}" != "本日" ] && [ "${CANARY_AGE}" != "?" ]; then
+    echo "  ⚠️ 最新canaryが古い（${CANARY_AGE}）。canary.sh を実行して更新してください"
+  fi
+  if [ "${CANARY_EXIT:-1}" -ne 0 ]; then
+    CANARY_DETAIL="最新canary(${CANARY_TS} ${CANARY_ENV})がFAIL。ログ: s3://${CANARY_S3_BUCKET}/${CANARY_LATEST_KEY%.json}.log"
+    echo "  失敗詳細: $CANARY_DETAIL"
+  fi
 else
-  echo "  ⚠️  canary.sh が見つかりません"
+  echo "  ⚠️ S3にcanary結果がありません（canary.sh未実行）: s3://${CANARY_S3_BUCKET}/${CANARY_S3_PREFIX}/"
+  CANARY_RESULT="結果なし（S3にcanary記録なし）"
 fi
 
 # 認証カナリア（ログイン後の主要フロー）。認証情報未設定なら SKIP。
@@ -576,7 +594,7 @@ if [ -x "$CANARY_AUTH_SCRIPT" ]; then
     CANARY_AUTH_RESULT="$([ "$CA_EXIT" -eq 0 ] && echo '✅ PASS' || echo '❌ FAIL') (passed=${CA_PASS} failed=${CA_FAIL})"
     # 失敗詳細は FAIL 時のみ・実マーカーに限定（error 部分一致のノイズを排除）。
     if [ "$CA_EXIT" -ne 0 ]; then
-      CANARY_AUTH_DETAIL=$(grep -E "✘|❌|FAIL" "$CA_TMP" | head -80 || true)
+      CANARY_AUTH_DETAIL=$(grep -E "✘|❌|FAIL" "$CA_TMP" | head -30 || true)
     fi
   fi
   rm -f "$CA_TMP"
@@ -609,19 +627,25 @@ exams = sorted({r.get('examType', '') for r in rs if r.get('examType')})
 exam_note = f"（{'/'.join(exams)}）" if exams else ''
 lines = [f"監査 {len(rs)}問{exam_note}: OK {vc.get('ok',0)} / 注意 {vc.get('warn',0)} / 要修正 {vc.get('ng',0)}"]
 
-# 指摘のあった問題は指摘内容を全文で列挙（従来は件数のみで中身が見えなかった）
+# 指摘のあった問題を列挙。ng(要修正=自動修正対象)は全文、warn(注意)は1行要約＋上限で
+# レポート量を抑える（トークン不足対策・メール肥大化防止）。
 flagged = [r for r in rs if r.get('verdict') in ('warn', 'ng')]
+def _extra(r):
+    d = r.get('difficulty')
+    return f"（難易度: {d}）" if d and d != 'appropriate' else ''
 if flagged:
     lines.append('【指摘のあった問題】')
-    for r in flagged:
-        mark = '✖' if r.get('verdict') == 'ng' else '⚠'
-        extra = ''
-        diff_v = r.get('difficulty')
-        if diff_v and diff_v != 'appropriate':
-            extra = f"（難易度: {diff_v}）"
-        lines.append(f"{mark} {r.get('questionId', '?')}{extra}")
+    for r in [x for x in flagged if x.get('verdict') == 'ng']:
+        lines.append(f"✖ {r.get('questionId', '?')}{_extra(r)}")
         for issue in (r.get('issues') or []):
             lines.append(f"・{issue}")
+    warn_items = [x for x in flagged if x.get('verdict') == 'warn']
+    WARN_CAP = 10
+    for r in warn_items[:WARN_CAP]:
+        first = (r.get('issues') or ['(詳細なし)'])[0]
+        lines.append(f"⚠ {r.get('questionId', '?')}{_extra(r)}: {first}")
+    if len(warn_items) > WARN_CAP:
+        lines.append(f"…他 warn {len(warn_items) - WARN_CAP} 件（詳細は生データ audit_*.json 参照）")
 
 # 直近3日以内に生成された改良のみ対象にする。最新ファイルを無条件に読むと、
 # 何日も前に一度適用した改良を毎晩「今夜の成果」として重複再掲してしまうため。
@@ -731,7 +755,7 @@ PYEOF
 )
 echo "$DAILY_SUMMARY" | sed 's/^/  /'
 
-# バックエンド稼働・コスト（Lambda/API健全性・本番エラー・AWSコスト）
+# バックエンド稼働・コスト（Lambda/API健全性・本番エラー・AWS前日コスト・今月累計コスト:AWS/Cloudflare/ほか）
 BACKEND_HEALTH="未取得"
 _BH_SCRIPT="$_d/backend-health-check.sh"
 if [ -x "$_BH_SCRIPT" ]; then
@@ -1060,6 +1084,15 @@ def backend_to_html(raw):
             cnt = m.group(2)
             style = ' style="color:#e74c3c;font-weight:700"' if cnt != '0' else ''
             rows.append(f'<tr><td colspan="5"{style}>本番エラーログ(24h): {cnt}件</td></tr>')
+            continue
+        # 月次累計コスト（見出し: AWS / Cloudflare / ほか / 合計）
+        m = re.match(r'月次コスト\((.+?)\)\s*(.+?): (\$[\d.]+)(.*)', s)
+        if m:
+            scope = m.group(1); label = m.group(2); total = m.group(3); note = m.group(4).strip()
+            is_total = label == '合計'
+            style = 'padding-top:6px;font-weight:700;border-top:1px solid #ddd' if is_total else 'padding-top:4px'
+            cost_rows.append(f'<tr><td colspan="4" style="{style}">📅 今月 {html.escape(label)} '
+                             f'({html.escape(scope)}): <b>{total}</b> {html.escape(note)}</td></tr>')
             continue
         # コスト合計
         m = re.match(r'AWSコスト\((.+?)\): (\$[\d.]+)(.*)', s)

@@ -1,0 +1,59 @@
+==========================================
+正当性チェック開始: Sun Jul 19 20:20:10 JST 2026
+バッチサイズ: 100問 / チャンクサイズ: 5問
+==========================================
+チェック対象: 100問
+前処理: choices ラベル接頭辞チェック...
+  前処理: ラベル接頭辞なし（全問クリーン）
+チャンク数: 20
+
+--- チャンク 1/20: 5問  開始=20:20:49 ---
+  [OK   ] scs-586b4d75
+  [OK   ] dea-9670bd29
+  [OK   ] ans-9f5e3a3b
+  [OK   ] scs-e410c46a
+  [FIX  ] dea-790821a3: 解説とchoiceExplanations[1]に記載の「MatchesGlob」はDQDLに存在しないルール名。正規表現パターン照合はColumnValuesのmatchesキーワードで実現する（AWS公式ドキュメント確認済み）。 → 変更: explanation, choiceExplanations
+  → 更新完了: OK=4 修正=1 削除=0
+  終了=20:25:19  経過=270秒
+
+--- チャンク 2/20: 5問  開始=20:25:19 ---
+  [OK   ] dea-a9ba57d9
+  [OK   ] dea-0dfe5d06
+  [OK   ] dea-e475f2ff
+  [OK   ] dea-d05b23e0
+  [OK   ] dea-cfbfff7d
+  → 更新完了: OK=5 修正=0 削除=0
+  終了=20:28:07  経過=168秒
+
+--- チャンク 3/20: 5問  開始=20:28:07 ---
+  [FIX  ] dea-e522ac6d: 問題文の非AWS略語 SaaS・HIPAA に注釈がないため追記。 → 変更: questionText
+  [FIX  ] dea-38da752c: choiceExplanations[0]が「プッシュ型のため」・[1]が「スケジュールルールで」と始まりサービス名主語が不明確。 → 変更: choiceExplanations
+  [FIX  ] dea-2129dcea: choiceExplanations[3]が「第三者アカウントへのデータアップロードは」と始まりサービス名主語がない。 → 変更: choiceExplanations
+  [OK   ] saa-de1649b1
+  [OK   ] dop-c2d21ceb
+  → 更新完了: OK=2 修正=3 削除=0
+  終了=20:34:26  経過=379秒
+
+--- チャンク 4/20: 5問  開始=20:34:26 ---
+  [FIX  ] mla-dc6abcdb: 問題文のコンプライアンス要件3項目が改行なしで「」で並記されており、未改行のためfixで区切る。 → 変更: questionText
+  [OK   ] ans-e86ca019
+  [FIX  ] dea-838347d6: isMultiple=true なのに選択肢が4択。AWS試験規格では複数正解は5択以上必須のため、誤り選択肢を1つ追加して5択にする。 → 変更: choices, explanation, choiceExplanations
+  [OK   ] dea-70bf01e5
+  [OK   ] dea-2469746b
+  → 更新完了: OK=3 修正=2 削除=0
+  終了=20:40:14  経過=348秒
+
+--- チャンク 5/20: 5問  開始=20:40:14 ---
+  [FIX  ] dea-ce86aa7c: 選択肢D・解説の選択肢D部分・choiceExplanations[3]で旧称「Amazon Kinesis Data Firehose」を使用。現行名称「Amazon Data Firehose」に修正。 → 変更: choices, explanation, choiceExplanations
+  [FIX  ] dea-ee105f53: 問題文・解説・choiceExplanations全体で旧称「Amazon Kinesis Data Firehose」「Firehose」を使用。現行名称「Amazon Data Firehose」に修正。 → 変更: questionText, explanation, choiceExplanations
+  [OK   ] dea-6d04b5cd
+  [OK   ] dea-07e572d8
+  [OK   ] dea-8b9939c8
+  → 更新完了: OK=3 修正=2 削除=0
+  終了=20:44:54  経過=280秒
+
+--- チャンク 6/20: 5問  開始=20:44:54 ---
+⚠️  レート制限を検出。残りチャンクをスキップ
+stdout: You've hit your session limit · resets 8:50pm (Asia/Tokyo)
+
+完了サマリー: 問題なし=17問 / 自動修正=8問 / 削除=0問

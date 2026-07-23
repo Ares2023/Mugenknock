@@ -1,7 +1,8 @@
 #!/bin/bash
 # バックエンド稼働・コスト監視（読み取り専用）
 #
-# 直近24hの本番バックエンド健全性とAWSコストを集計し、コンパクトなサマリを stdout に出力する。
+# 直近24hの本番バックエンド健全性とAWSコスト（前日＋今月累計）を集計し、コンパクトなサマリを stdout に出力する。
+# 今月累計は AWS(Cost Explorer MTD) + Cloudflare(Pages無料枠=$0・使用状況併記) + ほか固定費(~/.mugenknock_costs.conf)。
 # 99-send-report.sh がこれを実行して日次メールの「バックエンド稼働・コスト」へ載せる。
 # 単体実行も可（手動確認用）。CloudWatch / CloudWatch Logs / Cost Explorer を読むのみで変更しない。
 #
@@ -14,7 +15,12 @@ CE_REGION=us-east-1                 # Cost Explorer は us-east-1 エンドポ�
 API_NAME=awsquizapi
 PROD_LOG_GROUP=/aws/lambda/awsquizHandler-prod
 
+# Cloudflare 認証（月次コストの無料枠使用状況取得用。未設定でも AWS 集計は続行）
+CF_TOKEN="${CLOUDFLARE_API_TOKEN:-$(grep 'CLOUDFLARE_API_TOKEN' ~/.bashrc 2>/dev/null | head -1 | sed 's/.*="\(.*\)"/\1/')}"
+CF_ACCOUNT="${CLOUDFLARE_ACCOUNT_ID:-$(grep 'CLOUDFLARE_ACCOUNT_ID' ~/.bashrc 2>/dev/null | head -1 | sed 's/.*="\(.*\)"/\1/')}"
+
 AWS="$AWS" REGION="$REGION" CE_REGION="$CE_REGION" API_NAME="$API_NAME" \
+CF_TOKEN="$CF_TOKEN" CF_ACCOUNT="$CF_ACCOUNT" \
 PROD_LOG_GROUP="$PROD_LOG_GROUP" python3 << 'PYEOF'
 import os, subprocess, json, tempfile
 from datetime import datetime, timezone, timedelta
@@ -114,6 +120,67 @@ try:
             out.append(f"  ・{svc}: ${amt:.2f}")
 except Exception:
     out.append("AWSコスト: 取得失敗")
+
+# ── 月次累計コスト（今月・月初〜前日）: AWS(MTD) + Cloudflare + ほか固定費 ──
+try:
+    first = now.strftime('%Y-%m-01')
+    today = now.strftime('%Y-%m-%d')
+    ym = now.strftime('%Y-%m')
+
+    # AWS 月初〜前日の累計（サービス別）
+    r = subprocess.run([AWS, 'ce', 'get-cost-and-usage',
+        '--time-period', f'Start={first},End={today}', '--granularity', 'MONTHLY',
+        '--metrics', 'UnblendedCost', '--group-by', 'Type=DIMENSION,Key=SERVICE',
+        '--region', CE_REGION, '--output', 'json'], capture_output=True, text=True, timeout=45)
+    g = {}
+    for res in json.loads(r.stdout).get('ResultsByTime', []):
+        for x in res.get('Groups', []):
+            g[x['Keys'][0]] = g.get(x['Keys'][0], 0.0) + float(x['Metrics']['UnblendedCost']['Amount'])
+    aws_mtd = sum(g.values())
+    out.append(f"月次コスト({ym}/月初〜前日) AWS: ${aws_mtd:.2f}")
+    for svc, amt in sorted(g.items(), key=lambda x: -x[1])[:5]:
+        if amt >= 0.005:
+            out.append(f"  ・{svc}: ${amt:.2f}")
+
+    # Cloudflare: Pages 無料枠のため実費 $0。使用状況（今月のビルド数）を併記
+    cf_cost = 0.0
+    cf_note = ''
+    cf_token = os.environ.get('CF_TOKEN', ''); cf_account = os.environ.get('CF_ACCOUNT', '')
+    if cf_token and cf_account:
+        try:
+            cr = subprocess.run(['curl', '-s',
+                f'https://api.cloudflare.com/client/v4/accounts/{cf_account}/pages/projects/mugenknock/deployments',
+                '-H', f'Authorization: Bearer {cf_token}'], capture_output=True, text=True, timeout=30)
+            cd = json.loads(cr.stdout)
+            if cd.get('success'):
+                builds = sum(1 for i in cd.get('result', []) if i.get('created_on', '')[:7] == ym)
+                cf_note = f"（Pages無料枠 {builds}/500ビルド）"
+        except Exception:
+            cf_note = ''
+    out.append(f"月次コスト({ym}) Cloudflare: ${cf_cost:.2f} {cf_note}".rstrip())
+
+    # ほか: ~/.mugenknock_costs.conf の固定費（1行「名称=月額USD」。# はコメント）
+    other_total = 0.0; other_lines = []
+    conf = os.path.expanduser('~/.mugenknock_costs.conf')
+    if os.path.isfile(conf):
+        for ln in open(conf, encoding='utf-8'):
+            ln = ln.split('#', 1)[0].strip()
+            if not ln or '=' not in ln:
+                continue
+            k, v = ln.split('=', 1)
+            try:
+                amt = float(v.strip().lstrip('$'))
+            except ValueError:
+                continue
+            other_total += amt; other_lines.append((k.strip(), amt))
+    if other_lines:
+        out.append(f"月次コスト({ym}) ほか: ${other_total:.2f}")
+        for k, amt in other_lines:
+            out.append(f"  ・{k}: ${amt:.2f}")
+
+    out.append(f"月次コスト({ym}) 合計: ${aws_mtd + cf_cost + other_total:.2f}")
+except Exception:
+    out.append("月次コスト: 取得失敗")
 
 print('\n'.join(out))
 PYEOF

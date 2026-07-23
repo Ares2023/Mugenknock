@@ -46,3 +46,10 @@ date: write error: Broken pipe
 2026-07-16 17:20:03 updating Drive: next_recovery=2026-07-16 17:52:00
 2026-07-16 22:50:05 updating Drive: next_recovery=2026-07-17 03:50:00
 2026-07-17 18:50:11 updating Drive: next_recovery=2026-07-17 23:50:00
+2026-07-19 15:50:04 updating Drive: next_recovery=2026-07-19 20:50:00
+2026-07-20 10:45:51 updating Drive: next_recovery=2026-07-20 15:40:00
+2026/07/20 10:45:53 CRITICAL: Failed to create file system for "gdrive:": drive: failed when making oauth client: failed to create oauth client: empty token found - please run "rclone config reconnect gdrive:"
+2026-07-20 10:45:53 ERROR: rclone exited 1
+2026-07-20 22:34:53 updating Drive: next_recovery=2026-07-21 03:30:00
+2026/07/20 22:34:53 CRITICAL: Failed to create file system for "gdrive:": drive: failed when making oauth client: failed to create oauth client: empty token found - please run "rclone config reconnect gdrive:"
+2026-07-20 22:34:53 ERROR: rclone exited 1

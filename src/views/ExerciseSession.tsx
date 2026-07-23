@@ -230,6 +230,7 @@ export default function ExerciseSession() {
     let qs: Question[] | null = null;
     let qids: string[] | null = null;
     let spares: string[] | null = null;
+    let orders: Record<string, number[]> = {};
     if (state?.sessionId) {
       try {
         let best: any = null;
@@ -256,10 +257,12 @@ export default function ExerciseSession() {
         if (best) {
           if (best.questionIds?.length) qids = best.questionIds;
           if (best.spareIds?.length) spares = best.spareIds;
+          // 選択肢の並び順（同一セッション内で固定）を復元する
+          if (best.choiceOrders && typeof best.choiceOrders === 'object') orders = best.choiceOrders;
         }
       } catch {}
     }
-    return { idx, res, ans, sel, qs, qids, spares };
+    return { idx, res, ans, sel, qs, qids, spares, orders };
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   const [sessionId, setSessionId] = useState<string>(state?.sessionId ?? '');
@@ -297,6 +300,9 @@ export default function ExerciseSession() {
   const [presentIds, setPresentIds] = useState<string[]>(state?.questionIds ?? _resumeInit.qids ?? []);
   const allQuestionIds = presentIds; // 後方互換の別名（totalや先読みの基準）
   const spareIdsRef = React.useRef<string[]>([...(state?.spareQuestionIds ?? _resumeInit.spares ?? [])]);
+  // 選択肢の並び順（questionId → origIndices）。初回シャッフル時に記録し、ドラフトへ永続化する。
+  // 同一セッション内は固定（再開しても同順）、次セッションでは空から再シャッフル。
+  const savedOrdersRef = useRef<Record<string, number[]>>(_resumeInit.orders ?? {});
   const attemptedIdsRef = React.useRef<Set<string>>(new Set()); // 取得を試みたID（欠落の再取得・重複を防ぐ）
   const loadingNextRef = React.useRef(false);
   const [userId, setUserId] = useState<string>(state?.userId ?? '');
@@ -486,6 +492,7 @@ export default function ExerciseSession() {
       localStorage.setItem(draftKey, JSON.stringify({
         sessionId, examType, questions, questionIds: allQuestionIds, spareIds: spareIdsRef.current, userId,
         currentIndex: ci, results: r, answered: a, selectedAnswers: sa,
+        choiceOrders: savedOrdersRef.current,
         isQuick, isFocused, isMini, savedAt: Date.now(),
       }));
     } catch { /* quota over 等は無視 */ }
@@ -526,18 +533,25 @@ export default function ExerciseSession() {
   type ShuffledQuestion = { shuffledChoices: string[]; origIndices: number[]; labelRemap: Record<string, string> };
   const choiceShuffleMap = useRef(new Map<string, ShuffledQuestion>());
   if (currentQuestion?.choices && !choiceShuffleMap.current.has(currentQuestion.questionId)) {
-    const indexed = currentQuestion.choices
-      .filter((c: string) => c !== WAKARANAI)
-      .map((c: string, i: number) => ({ text: c, origIdx: i, origLabel: CHOICE_LABELS[i] }));
-    for (let i = indexed.length - 1; i > 0; i--) {
-      const j = Math.floor(Math.random() * (i + 1));
-      [indexed[i], indexed[j]] = [indexed[j], indexed[i]];
+    const filtered = (currentQuestion.choices as string[]).filter((c: string) => c !== WAKARANAI);
+    // 保存済みの順があれば復元（＝同一セッションで既に確定した順）。無ければ初回シャッフルして記録。
+    const saved = savedOrdersRef.current[currentQuestion.questionId];
+    let order: number[];
+    if (saved && saved.length === filtered.length) {
+      order = saved;
+    } else {
+      order = filtered.map((_c, i) => i);
+      for (let i = order.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [order[i], order[j]] = [order[j], order[i]];
+      }
+      savedOrdersRef.current[currentQuestion.questionId] = order;
     }
     const remap: Record<string, string> = {};
-    indexed.forEach((item, newIdx) => { remap[item.origLabel] = CHOICE_LABELS[newIdx]; });
+    order.forEach((origIdx, newIdx) => { remap[CHOICE_LABELS[origIdx]] = CHOICE_LABELS[newIdx]; });
     choiceShuffleMap.current.set(currentQuestion.questionId, {
-      shuffledChoices: indexed.map(x => x.text),
-      origIndices: indexed.map(x => x.origIdx),
+      shuffledChoices: order.map(i => filtered[i]),
+      origIndices: order,
       labelRemap: remap,
     });
   }

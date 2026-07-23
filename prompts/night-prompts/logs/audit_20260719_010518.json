@@ -1,0 +1,185 @@
+[
+  {
+    "questionId": "clf-b0c4b1a0",
+    "examType": "CLF",
+    "verdict": "warn",
+    "currentness": "ok",
+    "difficulty": "too_easy",
+    "scope": "in",
+    "format": "ok",
+    "mockSuitable": true,
+    "issues": [
+      "正解選択肢の文言『既存のアーキテクチャを変更せず…リフト＆シフト』が問題文の要件『アーキテクチャを変更せず最短』をほぼそのまま反復しており、消去法を使わずとも正解が自明。ひっかけ性が弱く本番のシナリオ問題より易しい"
+    ]
+  },
+  {
+    "questionId": "clf-9ad21082",
+    "examType": "CLF",
+    "verdict": "warn",
+    "currentness": "ok",
+    "difficulty": "too_easy",
+    "scope": "in",
+    "format": "ok",
+    "mockSuitable": true,
+    "issues": [
+      "問題文が柱（Pillar）を『6つの設計原則』と表現しているが、Well-Architected の『設計原則(Design Principles)』は柱とは別概念であり用語がやや不正確",
+      "6つの柱の単純暗記問題でCLFとしても易しめ。ScalabilityとAvailabilityの罠は妥当だが一読で解ける"
+    ]
+  },
+  {
+    "questionId": "clf-8d589a5d",
+    "examType": "CLF",
+    "verdict": "warn",
+    "currentness": "ok",
+    "difficulty": "too_easy",
+    "scope": "in",
+    "format": "ok",
+    "mockSuitable": true,
+    "issues": [
+      "CapEx→OpExはCLFの最頻出かつ基礎中の基礎で、他選択肢も明らかに不自然なため正解が即断できる。本番のシナリオ問題より易しい"
+    ]
+  },
+  {
+    "questionId": "dea-a37942d8",
+    "examType": "DEA",
+    "verdict": "ok",
+    "currentness": "ok",
+    "difficulty": "appropriate",
+    "scope": "in",
+    "format": "ok",
+    "mockSuitable": true,
+    "issues": []
+  },
+  {
+    "questionId": "dea-ec920614",
+    "examType": "DEA",
+    "verdict": "ok",
+    "currentness": "ok",
+    "difficulty": "appropriate",
+    "scope": "in",
+    "format": "ok",
+    "mockSuitable": true,
+    "issues": []
+  },
+  {
+    "questionId": "dea-fe9196b6",
+    "examType": "DEA",
+    "verdict": "ok",
+    "currentness": "ok",
+    "difficulty": "appropriate",
+    "scope": "in",
+    "format": "ok",
+    "mockSuitable": true,
+    "issues": []
+  },
+  {
+    "questionId": "dea-ce354563",
+    "examType": "DEA",
+    "verdict": "ok",
+    "currentness": "ok",
+    "difficulty": "appropriate",
+    "scope": "in",
+    "format": "ok",
+    "mockSuitable": true,
+    "issues": []
+  },
+  {
+    "questionId": "dea-0ecbb1a1",
+    "examType": "DEA",
+    "verdict": "warn",
+    "currentness": "ok",
+    "difficulty": "too_easy",
+    "scope": "in",
+    "format": "ok",
+    "mockSuitable": true,
+    "issues": [
+      "問題文に「Gremlin クエリで実装」というキーワードが含まれるため、Neptune がほぼ一読で自明。本番のシナリオ問題としてはやや易しく、キーワードマッチングで解けてしまう"
+    ]
+  },
+  {
+    "questionId": "dea-121c49aa",
+    "examType": "DEA",
+    "verdict": "warn",
+    "currentness": "ok",
+    "difficulty": "too_easy",
+    "scope": "in",
+    "format": "ok",
+    "mockSuitable": true,
+    "issues": [
+      "「MongoDB の集計パイプライン／MongoDB 互換」というキーワードから DocumentDB が一読で自明で、消去法の思考をあまり要さない",
+      "DocumentDB の地理空間クエリ対応は MongoDB に比べ機能制限があり、『そのまま利用できる』はやや過大表現（2dsphere 等一部のみ対応）"
+    ]
+  },
+  {
+    "questionId": "aip-748d3993",
+    "examType": "AIP",
+    "verdict": "ng",
+    "currentness": "outdated",
+    "difficulty": "appropriate",
+    "scope": "in",
+    "format": "ok",
+    "mockSuitable": false,
+    "issues": [
+      "正解[0]の決め手である『AWS IAM Identity Center で医師チームをレビュアーとして割り当てる』が事実誤り。Bedrock Model Evaluation のヒューマン評価のワークチームは Amazon Cognito／SageMaker Ground Truth のプライベートワークフォースで管理され、IAM Identity Center は使用しない（公式ドキュメントで確認）",
+      "不正確な選択肢[1]の『SageMaker Ground Truth のプライベートワークフォース』がむしろ実際の内部メカニズムを正しく表現しており、知識のある受験者ほど正解[0]を誤りとして排除しかねず、問題の妥当性が崩れている",
+      "サービス選択（Bedrock Model Evaluation ヒューマン評価ジョブ）自体は妥当だが、正解の識別根拠が誤情報のため模試として不適切。認証機構の記述を Cognito ベースに修正すべき"
+    ]
+  },
+  {
+    "questionId": "aip-cc97e1a2",
+    "examType": "AIP",
+    "verdict": "ok",
+    "currentness": "ok",
+    "difficulty": "appropriate",
+    "scope": "in",
+    "format": "ok",
+    "mockSuitable": true,
+    "issues": []
+  },
+  {
+    "questionId": "aip-f3329527",
+    "examType": "AIP",
+    "verdict": "ok",
+    "currentness": "ok",
+    "difficulty": "appropriate",
+    "scope": "in",
+    "format": "ok",
+    "mockSuitable": true,
+    "issues": []
+  },
+  {
+    "questionId": "mla-91116edb",
+    "examType": "MLA",
+    "verdict": "warn",
+    "currentness": "ok",
+    "difficulty": "too_easy",
+    "scope": "in",
+    "format": "ok",
+    "mockSuitable": true,
+    "issues": [
+      "問題文が「前回の探索で蓄積したベイズモデルを引き継いで」と正解機能(Warm Start)をほぼ直接示唆しており、用語を知っていれば選択が自明になりやすい。本番相当ならシナリオをやや抽象化し誘導表現を弱めると良い"
+    ]
+  },
+  {
+    "questionId": "mla-63da91b5",
+    "examType": "MLA",
+    "verdict": "ok",
+    "currentness": "ok",
+    "difficulty": "appropriate",
+    "scope": "in",
+    "format": "ok",
+    "mockSuitable": true,
+    "issues": []
+  },
+  {
+    "questionId": "mla-1fb174e2",
+    "examType": "MLA",
+    "verdict": "ok",
+    "currentness": "ok",
+    "difficulty": "appropriate",
+    "scope": "in",
+    "format": "ok",
+    "mockSuitable": true,
+    "issues": []
+  }
+]

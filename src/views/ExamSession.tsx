@@ -79,11 +79,14 @@ export default function ExamSession() {
     let index0: number = state?.resumeIndex ?? 0;
     let timeLeft0: number = state?.resumeTimeLeft ?? totalSec;
     let flagged0: string[] = state?.resumeFlagged ?? [];
+    let orders0: Record<string, number[]> = {};
     try {
       const raw = state?.userId ? localStorage.getItem(`examDraft_${state.userId}`) : null;
       if (raw) {
         const d = JSON.parse(raw);
         if (d.sessionId === state?.sessionId && Array.isArray(d.flagged)) flagged0 = d.flagged;
+        // 選択肢の並び順（同一セッション内で固定）を復元する
+        if (d.sessionId === state?.sessionId && d.choiceOrders && typeof d.choiceOrders === 'object') orders0 = d.choiceOrders;
         if (d.sessionId === state?.sessionId &&
             Object.keys(d.answers ?? {}).length > Object.keys(answers0).length) {
           answers0 = d.answers ?? {};
@@ -92,13 +95,16 @@ export default function ExamSession() {
         }
       }
     } catch {}
-    return { answers0, index0, timeLeft0, flagged0 };
+    return { answers0, index0, timeLeft0, flagged0, orders0 };
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   const [currentIndex, setCurrentIndex] = useState<number>(_resumeInit.index0);
   const [answers, setAnswers] = useState<Record<string, string[]>>(_resumeInit.answers0);
   const [timeLeft, setTimeLeft] = useState<number>(_resumeInit.timeLeft0);
   const timeLeftRef = useRef<number>(_resumeInit.timeLeft0);
+  // 選択肢の並び順（questionId → シャッフル済みの元インデックス列）。初回のみシャッフルし
+  // ドラフトへ永続化。同一セッション内は固定（再開しても同順）、次セッションで再シャッフル。
+  const savedOrdersRef = useRef<Record<string, number[]>>(_resumeInit.orders0 ?? {});
   const [paused, setPaused] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [showConfirm, setShowConfirm] = useState(false);
@@ -151,7 +157,8 @@ export default function ExamSession() {
     try {
       localStorage.setItem(`examDraft_${userId}`, JSON.stringify({
         sessionId, examType, questions, userId, isMini,
-        currentIndex, answers, timeLeft: timeLeftRef.current, flagged: [...flaggedIds], savedAt: Date.now(),
+        currentIndex, answers, timeLeft: timeLeftRef.current, flagged: [...flaggedIds],
+        choiceOrders: savedOrdersRef.current, savedAt: Date.now(),
       }));
     } catch { /* quota over 等は無視 */ }
     // サーバにも進捗保存（端末跨ぎ/キャッシュ削除でも再開可能に。questionsは送らず軽量に）
@@ -214,12 +221,21 @@ export default function ExamSession() {
 
   const choiceShuffleMap = useRef(new Map<string, number[]>());
   if (currentQ?.choices && !choiceShuffleMap.current.has(currentQ.questionId)) {
-    const idx = currentQ.choices
+    const validIdx = currentQ.choices
       .map((_: unknown, i: number) => i)
       .filter((i: number) => currentQ.choices[i] !== WAKARANAI);
-    for (let i = idx.length - 1; i > 0; i--) {
-      const j = Math.floor(Math.random() * (i + 1));
-      [idx[i], idx[j]] = [idx[j], idx[i]];
+    // 保存済みの順があれば復元（＝同一セッションで確定済み）。無ければ初回シャッフルして記録。
+    const saved = savedOrdersRef.current[currentQ.questionId];
+    let idx: number[];
+    if (saved && saved.length === validIdx.length) {
+      idx = saved;
+    } else {
+      idx = [...validIdx];
+      for (let i = idx.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [idx[i], idx[j]] = [idx[j], idx[i]];
+      }
+      savedOrdersRef.current[currentQ.questionId] = idx;
     }
     choiceShuffleMap.current.set(currentQ.questionId, idx);
   }

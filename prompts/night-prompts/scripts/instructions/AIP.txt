@@ -62,3 +62,7 @@ AWS Certified Generative AI Developer – Professional (AIP-C01) の模擬試験
 - 統合: API Gateway, Lambda, Step Functions, EventBridge, SQS, AppSync
 - MLOps: SageMaker, CodePipeline, CloudWatch
 - セキュリティ: IAM, KMS, VPC, CloudTrail, Macie
+
+■ 生成AIモデル選定問題の作り方（陳腐化・能力誤認の防止）
+- 特定モデル間の絶対的なトークン単価比較を正否の決め手にしない（価格改定で陳腐化する）。相対的な特性（マルチモーダル対応/コンテキスト長/レイテンシ/多言語/用途）で正解が決まる設計にする。
+- 現行世代のモデルを用いる。モデルの能力を正確に：Claude 3.5 Haikuはテキスト専用で画像入力に非対応、Claude 3.5 Sonnetは画像入力対応・200Kコンテキスト。Embeddings系はベクター生成用で説明文生成はできない。誤った能力を正解の根拠にしない。

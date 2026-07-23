@@ -1,0 +1,32 @@
+==========================================
+正当性チェック開始: Sat Jul 18 19:20:10 JST 2026
+バッチサイズ: 100問 / チャンクサイズ: 5問
+==========================================
+チェック対象: 100問
+前処理: choices ラベル接頭辞チェック...
+  前処理: ラベル接頭辞なし（全問クリーン）
+チャンク数: 20
+
+--- チャンク 1/20: 5問  開始=19:20:45 ---
+  [FIX  ] ans-01b10933: choiceExplanation[3]が「アプライアンスを各スポーク…」と始まりサービス名が主語として文頭にない → 変更: choiceExplanations
+  [OK   ] ans-42eb4c40
+  [FIX  ] ans-305d08ae: choiceExplanation[3]が接続詞「も」で始まり主語のサービス名がなく文意も不完全 → 変更: choiceExplanations
+  [OK   ] ans-205d2b13
+  [FIX  ] dea-a27f68a4: choiceExplanation[0]が「スナップショット手動リストアのため」、[2]が「2ドメイン構成で」と始まりサービス名が主語として文頭にない → 変更: choiceExplanations
+  → 更新完了: OK=2 修正=3 削除=0
+  終了=19:27:53  経過=428秒
+
+--- チャンク 2/20: 5問  開始=19:27:53 ---
+  [FIX  ] ans-e5038884: 解説の誤り選択肢段落に「選択肢B/C/D は」形式がなく、choiceExplanation[2]がサービス名を主語とせず「記載された構成では」で開始しているため修正 → 変更: explanation, choiceExplanations
+  [FIX  ] scs-f2c5ad4c: choiceExplanation[3]がSCPをサービス名の主語として文頭に置かず「SCPで〜構成は」という構成名が実質主語になっているため修正 → 変更: choiceExplanations
+  [OK   ] scs-e35d2d70
+  [FIX  ] scs-1c4cc91d: choiceExplanations[0][2][3]がサービス名を主語とせず「〜することは〜」という動作句で開始しているため修正 → 変更: choiceExplanations
+  [FIX  ] dea-723037fc: choiceExplanation[1]がCloudTrailをサービス名の主語として文頭に置かず「マネジメントイベントのみで」（手段形）で開始しているため修正 → 変更: choiceExplanations
+  → 更新完了: OK=1 修正=4 削除=0
+  終了=19:36:26  経過=513秒
+
+--- チャンク 3/20: 5問  開始=19:36:26 ---
+⚠️  レート制限を検出。残りチャンクをスキップ
+stdout: You've hit your session limit · resets 7:50pm (Asia/Tokyo)
+
+完了サマリー: 問題なし=3問 / 自動修正=7問 / 削除=0問

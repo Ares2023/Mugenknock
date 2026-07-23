@@ -1,0 +1,80 @@
+==========================================
+正当性チェック開始: Sun Jul 19 15:20:10 JST 2026
+バッチサイズ: 100問 / チャンクサイズ: 5問
+==========================================
+チェック対象: 100問
+前処理: choices ラベル接頭辞チェック...
+  前処理: ラベル接頭辞なし（全問クリーン）
+チャンク数: 20
+
+--- チャンク 1/20: 5問  開始=15:20:41 ---
+  [WARN ] ans-5a09c41d: fix 適用後に正解が最長選択肢（正解108字 > 不正解最長71字）。次回再チェック対象に残す
+  [FIX  ] ans-5a09c41d: 選択肢Aで旧名称「Amazon Kinesis Data Firehose」を使用。現行名称は「Amazon Data Firehose」に変更済みのため修正。 → 変更: choices
+  [OK   ] ans-78a1da1d
+  [OK   ] ans-86dd9103
+  [OK   ] ans-10949ccb
+  [OK   ] ans-3188149a
+  → 更新完了: OK=4 修正=1 削除=0
+  終了=15:23:36  経過=175秒
+
+--- チャンク 2/20: 5問  開始=15:23:37 ---
+  [OK   ] ans-297ab65d
+  [OK   ] ans-8b5dc5dc
+  [OK   ] ans-3997a08c
+  [OK   ] ans-00016d66
+  [WARN ] ans-50fbf2fc: fix 適用後に正解が最長選択肢（正解239字 > 不正解最長170字）。次回再チェック対象に残す
+  [FIX  ] ans-50fbf2fc: 問題文のIPS/IDSおよび選択肢・解説中のGENEVEに専門略語の注釈が必要。 → 変更: questionText, choices, correctAnswers, explanation, choiceExplanations
+  → 更新完了: OK=4 修正=1 削除=0
+  終了=15:28:34  経過=297秒
+
+--- チャンク 3/20: 5問  開始=15:28:35 ---
+  [OK   ] dea-6d1648a9
+  [OK   ] dea-a7609184
+  [OK   ] ans-00412ec2
+  [FIX  ] dea-17815a8d: IAM Access AnalyzerのサポートリソースにAWS Glue Data Catalogは含まれない（公式ドキュメント確認済）。問題文・解説・choiceExplanations[1]のGlue Data Catalog記述を削除し正確な仕様に修正。 → 変更: questionText, explanation, choiceExplanations
+  [OK   ] scs-4594a211
+  → 更新完了: OK=4 修正=1 削除=0
+  終了=15:32:54  経過=259秒
+
+--- チャンク 4/20: 5問  開始=15:32:54 ---
+  [OK   ] scs-6d0ac63f
+  [OK   ] ans-74d97f8a
+  [FIX  ] dea-8757196a: 複数正解問題(isMultiple=true)が4択構成。AWS試験規則では複数正解は5択以上が必要なため5択に拡張。加えてchoiceExplanations[0][1]が同一テキストのため各選択肢固有の内容に修正。 → 変更: choices, explanation, choiceExplanations
+  [OK   ] ans-bfad1882
+  [OK   ] scs-a70104be
+  → 更新完了: OK=4 修正=1 削除=0
+  終了=15:36:54  経過=240秒
+
+--- チャンク 5/20: 5問  開始=15:36:54 ---
+  [OK   ] ans-2869b0d7
+  [OK   ] scs-e7b95bae
+  [WARN ] dea-75b99609: fix 適用後に正解が最長選択肢（正解64字 > 不正解最長58字）。次回再チェック対象に残す
+  [FIX  ] dea-75b99609: choices[0]・explanation・choiceExplanations[0]で旧称「Amazon Kinesis Data Firehose」を使用。現行名「Amazon Data Firehose」に修正。 → 変更: choices, explanation, choiceExplanations
+  [OK   ] dea-2dbdaef9
+  [OK   ] scs-82a21928
+  → 更新完了: OK=4 修正=1 削除=0
+  終了=15:39:59  経過=185秒
+
+--- チャンク 6/20: 5問  開始=15:39:59 ---
+  [OK   ] dea-451afad0
+  [OK   ] ans-68cd1927
+  [OK   ] scs-a5a92329
+  [OK   ] dea-193f251a
+  [OK   ] dea-83440aa8
+  → 更新完了: OK=5 修正=0 削除=0
+  終了=15:42:05  経過=126秒
+
+--- チャンク 7/20: 5問  開始=15:42:05 ---
+  [OK   ] scs-87a8e0b9
+  [FIX  ] ans-b6f0c1a0: choiceExplanations[0]が「コミュニティなし構成は」で始まりDirect Connect等のサービス名・機能名を文頭主語に含まないため修正。 → 変更: choiceExplanations
+  [OK   ] dea-c6462991
+  [OK   ] dea-cfd11a13
+  [FIX  ] dea-8dacb305: 選択肢D・解説・choiceExplanations[3]でKinesis Data Firehoseの旧名称を使用。現行名称「Amazon Data Firehose」に修正。 → 変更: choices, explanation, choiceExplanations
+  → 更新完了: OK=3 修正=2 削除=0
+  終了=15:45:35  経過=210秒
+
+--- チャンク 8/20: 5問  開始=15:45:35 ---
+⚠️  レート制限を検出。残りチャンクをスキップ
+stdout: You've hit your session limit · resets 3:50pm (Asia/Tokyo)
+
+完了サマリー: 問題なし=28問 / 自動修正=7問 / 削除=0問

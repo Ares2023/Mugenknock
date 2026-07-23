@@ -1,5 +1,5 @@
 #!/bin/bash
-# 問題監査スクリプト（読み取り専用・DBは一切変更しない）
+# 問題監査スクリプト（既定は読み取り専用。-i 時のみ ng 問題のDB修正とプロンプト改良を行う）
 #
 # 目的: 生成(01)・正当性チェック(02)スクリプトの「出力品質」を監査しレポートする。
 #   生成・確認を通過した問題が、本当に資格模試として妥当かを第三者視点で採点する。
@@ -81,7 +81,7 @@ usage: audit-questions.sh [-n N] [-e EXAM] [-r] [-c C] [-i] [-h]
   変更前にバックアップを取り、改良内容と差分を audit_<日時>_improvement.md に出力。
   夜間自動実行ではこのモードをONにする。
 
-  ※ 監査自体は読み取り専用（DBは変更しない）。-i 時のみプロンプト規則ファイルを編集。
+  ※ 既定は読み取り専用。-i 時のみ ng 問題を fix-ng-questions.py でDB修正し、プロンプト規則ファイルも改良する。
   ※ レポートは標準出力 + $LOG_DIR/audit_<日時>.log、生データは audit_<日時>.json
 EOF
 }
@@ -124,7 +124,7 @@ PYEOF
 echo "=========================================="
 echo "問題監査 開始: $(date)"
 echo "サンプル数: ${SAMPLE}問 / チャンク: ${CHUNK_SIZE}問 / 抽出: $([ "$RANDOM_SAMPLE" -eq 1 ] && echo ランダム || echo 直近優先)${EXAM_FILTER:+ / 資格=$EXAM_FILTER}"
-echo "（読み取り専用 — DBは変更しません）"
+[ "$IMPROVE" -eq 1 ] && echo "（-i: ng問題のDB修正とプロンプト改良を行います）" || echo "（読み取り専用 — DBは変更しません）"
 echo "=========================================="
 
 # ── 1. DynamoDB から問題を取得 ──────────────────────────────────
@@ -559,6 +559,14 @@ echo ""
 echo "生データ: $RESULTS_FILE"
 [ "$RATE_LIMITED" -eq 1 ] && echo "※ レート制限により一部チャンクが未監査です"
 
+# ── ng 問題のDB修正（-i 時。監査で見つかった不備はプロンプトだけでなく問題自体も修正する方針）──
+#   ng と判定された問題を fix-ng-questions.py が指摘に基づき修正/削除/再検査に回す（02同等の整合性ガード）。
+if [ "$IMPROVE" -eq 1 ] && [ "$RATE_LIMITED" -ne 1 ]; then
+  echo ""
+  echo "--- ng 問題のDB修正 ---"
+  python3 "$_d/fix-ng-questions.py" "$RESULTS_FILE" "$CLAUDE_CMD" 2>&1 || echo "  ⚠️ ng修正ステップでエラー（監査結果は保存済み）"
+fi
+
 # ── 5. 改善モード(-i): 監査結果を元に生成・検証プロンプトを継続改良 ──
 if [ "$IMPROVE" -eq 1 ]; then
   echo ""
@@ -663,6 +671,8 @@ print('''あなたはAWS認定試験の「問題生成・検証プロンプト�
   - _validity-extra.txt … 検証(02)に注入される「追加の確認観点」。検証で弾く/警告すべき観点を足す
     （例: 易しすぎる定番キーワード問題を warn、現行性の裏取り強化など）。冒頭の # コメント行は残す。
     難易度・構成（易しすぎ/ペア構造/消去法/暗記寄り）の観点は warn 止まりとし、既存問題を fix・作り直しさせる表現（「FIXを推奨」等）は書かないこと。検証(02)の fix は事実・正確性・データ整合の問題に限る（難易度・構成は生成時に担保）。
+    さらに、解説(explanation・choiceExplanations)の文字数・字数上限に関する観点は、生成(01)でのみ気にすべき事項であり検証(02)では無視する方針のため、_validity-extra.txt には warn も fix も一切追記しないこと（_common-rules.txt や資格別ファイルへの生成側ルールとしての追記は可）。ただし「正解選択肢が最長／選択肢の長さから正解が特定できる」観点は解説の字数とは別で、検証(02)で継続して確認・修正するため対象外（削除・弱体化しないこと）。
+    同様に、体裁（問題文・解説の改行や列挙・手順の整形、AWS以外の略語の注釈補足、choiceExplanations 文頭のサービス名主語、番号手順の連番順）もトークン節約のため生成(01)でのみ担保し検証(02)では扱わない方針のため、_validity-extra.txt には warn も fix も追記しないこと（_common-rules.txt や資格別ファイルへの生成側ルールとしての追記は可）。
 
 【監査サマリー】
 ''' + '\n'.join(summary) + '''
@@ -679,9 +689,10 @@ print('''あなたはAWS認定試験の「問題生成・検証プロンプト�
 ''' + '\n\n'.join(blocks) + '''
 
 【出力形式】次のJSONのみを出力（説明文・前置き・コードブロック不要）。
-newContent は当該ファイルの「改良後の全文」を入れること（部分差分ではない）。
-{"summary":"全体の改良方針を1〜3文で","changes":[
-  {"file":"_common-rules.txt","rationale":"この変更がどの監査結果に対応するか","newContent":"<改良後のファイル全文>"}
+トークン節約のため、ファイル全文ではなく「そのファイルの末尾に追記する新しい観点(数行のみ)」を append に入れること。
+既存行の編集・削除はしない。同種の観点が既にあるファイルには追記しない。改良不要なら changes は空配列（[]）。
+{"summary":"改良方針を1〜2文で","changes":[
+  {"file":"_validity-extra.txt","rationale":"どの監査結果に対応するか(短く)","append":"末尾に追記する新しい観点(数行のみ・全文ではない)"}
 ]}''')
 PYEOF
 
@@ -689,9 +700,10 @@ PYEOF
     _IMPROVE_SKIP=0
     while true; do
       _IO=$(mktemp /tmp/audit_imp_out_XXXX); _IE=$(mktemp /tmp/audit_imp_err_XXXX)
-      # 永続する仕組み（生成・検証プロンプト規則）を書き換えるステップは Opus で実行し誤りを減らす
-      CLAUDE_CODE_MAX_OUTPUT_TOKENS=32000 "$CLAUDE_CMD" -p --model opus --tools "" < "$IMP_PROMPT" > "$_IO" 2> "$_IE"
-      RESULT=$(cat "$_IO"); _STDERR=$(cat "$_IE"); rm -f "$_IO" "$_IE"
+      # 永続する仕組み（生成・検証プロンプト規則）を書き換えるステップは Opus で実行し誤りを減らす。
+      # 出力は「追記する数行」だけなので上限は小さくてよい（トークン節約）。
+      CLAUDE_CODE_MAX_OUTPUT_TOKENS=6000 "$CLAUDE_CMD" -p --model opus --tools "" < "$IMP_PROMPT" > "$_IO" 2> "$_IE"
+      RESULT=$(head -c 4000 "$_IO"); _STDERR=$(cat "$_IE"); rm -f "$_IE"  # _IO(全文)はパース用に残す
       _RH=$(echo "$RESULT" | head -3)
       if echo "$_STDERR $_RH" | grep -qiE "529|Overloaded|rate.?limit|session.?limit|hit your|usage limit|too many requests" && [ $_OVERLOAD_RETRY -lt 2 ]; then
         _OVERLOAD_RETRY=$(( _OVERLOAD_RETRY + 1 )); echo "⚠️  レート制限。60秒後にリトライ（${_OVERLOAD_RETRY}/2）"; sleep 60; continue
@@ -705,13 +717,14 @@ PYEOF
     done
     rm -f "$IMP_PROMPT"
 
-    [ $_IMPROVE_SKIP -eq 1 ] && { echo "監査終了: $(date)"; exit 0; }
+    [ $_IMPROVE_SKIP -eq 1 ] && { rm -f "$_IO"; echo "監査終了: $(date)"; exit 0; }
 
-    # 適用（whitelist + バックアップ + 反破壊ガード + 差分記録）
-    RESULT="$RESULT" INSTRUCTION_DIR="$INSTRUCTION_DIR" BACKUP_DIR="$BACKUP_DIR" IMPROVE_REPORT="$IMPROVE_REPORT" DATE="$DATE" python3 << 'PYEOF'
-import json, os, sys, shutil, difflib
+    # 適用（whitelist + バックアップ + 重複ガード + 追記記録）。大きな出力は env ではなくファイルで受け取る。
+    IMP_RESULT_FILE="$_IO" INSTRUCTION_DIR="$INSTRUCTION_DIR" BACKUP_DIR="$BACKUP_DIR" IMPROVE_REPORT="$IMPROVE_REPORT" DATE="$DATE" python3 << 'PYEOF'
+import json, os, sys, shutil
 
-raw = os.environ.get('RESULT', '')
+_rf = os.environ.get('IMP_RESULT_FILE', '')
+raw = open(_rf).read() if _rf and os.path.isfile(_rf) else ''
 dec = json.JSONDecoder()
 obj = None
 start = raw.find('{')
@@ -736,36 +749,37 @@ ALLOWED = {'_common-rules.txt', '_validity-extra.txt'} | {f"{e}.txt" for e in AW
 
 changes = obj.get('changes') or []
 applied, skipped = [], []
+def _norm(s): return ''.join((s or '').split())
 for ch in changes:
     fn = (ch.get('file') or '').strip()
-    nc = ch.get('newContent')
+    ap = ch.get('append')
     rationale = (ch.get('rationale') or '').strip()
     if os.path.basename(fn) != fn or fn not in ALLOWED:
         skipped.append((fn, 'whitelist外')); continue
-    if not nc or not nc.strip():
-        skipped.append((fn, 'newContentが空')); continue
-    if not nc.endswith('\n'): nc += '\n'
+    if not ap or not str(ap).strip():
+        skipped.append((fn, 'appendが空')); continue
+    ap = str(ap).rstrip('\n')
+    if len(ap) > 1500:
+        skipped.append((fn, f'追記が長すぎ({len(ap)}字)のため拒否')); continue
     p = os.path.join(inst, fn)
     old = open(p).read() if os.path.isfile(p) else ''
-    if len(old) > 200 and len(nc) < 0.6 * len(old):
-        skipped.append((fn, f'大幅短縮のため拒否({len(old)}→{len(nc)}字)')); continue
-    if nc == old:
-        skipped.append((fn, '実質変更なし')); continue
+    # 既存とほぼ同一の観点は追記しない（重複防止）
+    if _norm(ap) and _norm(ap) in _norm(old):
+        skipped.append((fn, '既存と重複のため追記せず')); continue
     os.makedirs(backup, exist_ok=True)
     if os.path.isfile(p):
         shutil.copy2(p, os.path.join(backup, fn))
-    with open(p, 'w') as f:
-        f.write(nc)
-    diff = ''.join(difflib.unified_diff(old.splitlines(True), nc.splitlines(True),
-                                        fromfile=f'a/{fn}', tofile=f'b/{fn}'))
-    applied.append((fn, rationale, diff))
+    with open(p, 'a') as f:
+        if old and not old.endswith('\n'): f.write('\n')
+        f.write(ap + '\n')
+    applied.append((fn, rationale, ap))
 
 # 改良レポート(md)
 lines = [f"# プロンプト改良レポート ({os.environ['DATE']})", '',
          '## 改良方針', obj.get('summary', '(なし)'), '',
          f"## 適用 {len(applied)}件 / 見送り {len(skipped)}件", '']
-for fn, rationale, diff in applied:
-    lines += [f"### ✅ {fn}", f"**理由:** {rationale}", '', '```diff', diff.rstrip('\n'), '```', '']
+for fn, rationale, ap in applied:
+    lines += [f"### ✅ {fn}（末尾に追記）", f"**理由:** {rationale}", '', '```', ap, '```', '']
 for fn, why in skipped:
     lines.append(f"- ⏭️ {fn}: {why}")
 if applied:
@@ -785,6 +799,7 @@ if applied:
     print(f"バックアップ: {backup}")
     print("※ 次回以降の生成(01)・検証(02)からこの改良が反映されます。")
 PYEOF
+    rm -f "$_IO"
   fi
 fi
 

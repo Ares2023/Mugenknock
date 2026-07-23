@@ -1,0 +1,48 @@
+==========================================
+正当性チェック開始: Sat Jul 18 14:20:10 JST 2026
+バッチサイズ: 100問 / チャンクサイズ: 5問
+==========================================
+チェック対象: 100問
+前処理: choices ラベル接頭辞チェック...
+  前処理: ラベル接頭辞なし（全問クリーン）
+チャンク数: 20
+
+--- チャンク 1/20: 5問  開始=14:21:06 ---
+  [WARN ] sap-99b3f572: fix 適用後に正解が最長選択肢（正解415字 > 不正解最長289字）。次回再チェック対象に残す
+  [FIX  ] sap-99b3f572: 選択肢B・C・解説内の「Amazon Kinesis Data Firehose」は現行サービス名「Amazon Data Firehose」への修正が必要。choiceExplanations[0]〜[3]がサービス名を主語とせず「選択肢Aは正解です」「不正解です」等の判定文で始まっている。isMultipleをtrueに明示。 → 変更: choices, correctAnswers, explanation, choiceExplanations
+  [FIX  ] scs-4d30c4d3: choiceExplanations[0]が「通知機能はありますが」、[2]が「検出結果の処理には適していますが」とサービス名なしの説明文で始まっており修正が必要。 → 変更: choiceExplanations
+  [FIX  ] scs-6c9c6f15: choiceExplanations[0]が「インプレース暗号化は不正解です」とサービス名なしの判定文で始まっており修正が必要。 → 変更: choiceExplanations
+  [OK   ] saa-76fda137
+  [FIX  ] saa-3efc7caf: choiceExplanations[3]が「クライアントサイドと」とサービス名なしで始まっており修正が必要。 → 変更: choiceExplanations
+  → 更新完了: OK=1 修正=4 削除=0
+  終了=14:30:25  経過=559秒
+
+--- チャンク 2/20: 5問  開始=14:30:25 ---
+  [OK   ] sap-5c445f7d
+  [OK   ] saa-b05c0002
+  [OK   ] sap-6b596152
+  [FIX  ] dop-25ad52fd: 解説本文とchoiceExplanations[2]で選択肢C（Organizations＋aws:PrincipalOrgID構成）の説明に誤ってRAMへの言及がある。選択肢CにRAMは登場しないため正しいサービス・条件名に修正する。 → 変更: explanation, choiceExplanations
+  [FIX  ] saa-156999c3: 選択肢[4]に旧サービス名「Amazon Kinesis Data Firehose」を使用。現行名「Amazon Data Firehose」に修正する（名称変更済み）。 → 変更: choices
+  → 更新完了: OK=3 修正=2 削除=0
+  終了=14:35:05  経過=280秒
+
+--- チャンク 3/20: 5問  開始=14:35:06 ---
+  [OK   ] saa-1f6f1ab3
+  [FIX  ] sap-7d440b22: choiceExplanations[1]と[3]がどちらも「インスタンス変更」と「カットオーバー手順」両方の正解理由を混在して記載しており、各インデックスが対応するchoicesの解説になっていない。 → 変更: choiceExplanations
+  [OK   ] sap-4d77a4bf
+  [OK   ] clf-7b1692ab
+  [FIX  ] clf-3405ed73: 問題文でLambda実行・SQSメッセージ送信・Slack通知の3要件が改行なしで列挙されており、未改行のためfix。 → 変更: questionText
+  → 更新完了: OK=3 修正=2 削除=0
+  終了=14:39:01  経過=235秒
+
+--- チャンク 4/20: 5問  開始=14:39:01 ---
+  [OK   ] clf-7d977460
+  [WARN ] clf-c46e075c: fix 適用後に正解が最長選択肢（正解73字 > 不正解最長63字）。次回再チェック対象に残す
+  [FIX  ] clf-c46e075c: 複数正解（isMultiple=true）で選択肢が4択は試験形式上不可。5択以上が必要なため選択肢Eを追加し、解説・choiceExplanationsも更新。 → 変更: choices, explanation, choiceExplanations
+  [OK   ] dea-51c9c3b3
+  [OK   ] ans-e1836e6e
+  [OK   ] ans-702f6f73
+  → 更新完了: OK=4 修正=1 削除=0
+  終了=14:44:45  経過=344秒
+
+--- チャンク 5/20: 5問  開始=14:44:46 ---
