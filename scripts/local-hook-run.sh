@@ -17,8 +17,8 @@ log() { printf '[%s] %s\n' "$(date '+%H:%M:%S')" "$*"; }
 mkdir -p ~/.claude "$SC/state" "$SC/instructions" "$SC/logs"
 
 # pull
-"$AWS" s3 cp "s3://$S3/claude-auth/.credentials.json" ~/.claude/.credentials.json --quiet 2>/dev/null || true
-"$AWS" s3 cp "s3://$S3/claude-auth/.claude.json"       ~/.claude.json               --quiet 2>/dev/null || true
+# creds はスマート同期（expiresAtが新しい方を残す＝フレッシュなローカルを古いS3で潰さない）
+AWS="$AWS" bash "$REPO/scripts/pull-claude-creds.sh" "$S3" || true
 "$AWS" s3 sync "s3://$S3/state/"        "$SC/state/"        --quiet 2>/dev/null || true
 "$AWS" s3 sync "s3://$S3/instructions/" "$SC/instructions/" --quiet 2>/dev/null || true
 
