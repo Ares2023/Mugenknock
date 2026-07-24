@@ -15,7 +15,7 @@
 - [warn] 入門資格(CLF)で、正解と紛らわしい選択肢の決定的な差が実装詳細レベルで微妙すぎ、CLF受験者には判別できず正答率が極端に下がる（例 App Runner対Elastic Beanstalk、EventBridgeのルールベース振り分け対SNSのファンアウト）。類似サービスは含めてよいが、差別化要因が「何のために使うか」レベルで判別でき、解説で決定的な差を明示しているか確認する。
 - [warn] 問題文の要件とシナリオの論理が正解の根拠と整合しているか（要件の表現と正解機能の挙動に齟齬がないか）。
 - [warn] 解説・選択肢に重複表現や誤記（例「マネージドなマネージドAPI」）があり推敲不足。
-- 現行性: サービスの旧名称を現行として使っていないか裏取りする（例 Kinesis Data Firehose は Amazon Data Firehose に名称変更済み）。
+- [fix] 現行性: サービスの旧名称を現行として使っていないか裏取りする。特に以下は頻出のため必ず確認する: (1) Kinesis Data Firehose/Amazon Kinesis Data Firehose → Amazon Data Firehose、(2) AWS Certificate Manager Private CA/ACM Private CA → AWS Private Certificate Authority/AWS Private CA、(3) CloudWatch Events → Amazon EventBridge、(4) DRT/DDoS Response Team → SRT/Shield Response Team（Shield Advanced文脈で頻出）。ただし「現行名（旧称〇〇）」のように歴史的に正しく注記されている場合は対象外（fixしない）。
 - [warn] 複数正解問題(isMultiple=true)の選択肢数が4択になっている。実際のAWS試験の複数正解は5択以上（5択から2択、または6択から3択）のため、4択複数正解は誤り。選択肢を5つ以上に修正すること。ただし、DOPは6択から3択も使用可。
 - [warn] プロフェッショナル/スペシャリティ資格(SAP/DOP/ANS/SCS)の4択問題で、選択肢が「2案ペア×2組」になっていない（A・Bが類似ペア、C・Dが類似ペアの構造）。4択が並列に4つ並んでいるだけの構成はペア構造要件不満として warn とする（既存問題は難易度・構成都合では fix せず action=ok。ペア構造は生成時に担保する）。ただし複数正解問題(isMultiple=true)は対象外。ペア構造とは「同一のアプローチ/サービス内で設定・構成・パラメータが異なる2案を1ペアとし、別アプローチ/サービスのペアを並べた4択」を指す。
 
@@ -46,3 +46,6 @@
 
 ## 追加の確認観点（不正解理由の正確性）
 - [warn] choiceExplanationsの不正解理由が事実誤認・過度な一般化になっていないか（例「TerraformはAWSネイティブIaCでもない」は誤りで、TerraformのAWS対応は充実している）。失格理由は当該要件との不一致(例 HCLがPython/TypeScript＋型チェック要件を満たさない)に限定し、事実として正確か確認する。事実誤認であればfix。
+
+## 追加の確認観点（優越性断定と公式制約の齟齬）
+- [warn] 「最もコスト効率が高い」「低RTOを最小設定で実現」等の優越性/充足を断定する解説が、正解サービスの公式制約と齟齬していないか裏取りする。例: Athena CTAS は1クエリ最大100パーティション・書き込みタイムアウトがありTB規模の多数パーティション一括変換で最善とは限らない。DynamoDB PITR復元は新規テーブル作成のため大規模テーブルでRTO=30分は保証されない。制約に無関係な断定なら過大主張として指摘、正解キー自体が制約で破綻するならfix。
