@@ -198,6 +198,15 @@ export const EXAM_CONFIGS: Record<string, {
   SCS: { examCode: 'SCS-C03', fullName: 'AWS Certified Security – Specialty',                     totalQuestions: 65, timeLimitMin: 170 },
 };
 
+// 管理者画面「AIプロンプト生成」用の資格別補足ルール（任意）。
+// 夜間バッチの生成ルール(prompts/night-prompts/scripts/instructions/*.txt)で
+// 実データ調査により手薄と判明したテーマを、手動生成プロンプトにも反映する。
+export const EXAM_SUPPLEMENTARY_RULES: Partial<Record<string, string>> = {
+  AIF: `・実際のAIF試験の約40%はAWSサービス非依存の一般的なAI・ML概念（BLEU/BERT/決定木/転移学習等）を問う。AWSサービス問題と適切に混在させること
+・特にIDP（インテリジェントドキュメント処理）・ネガティブプロンプト・コンバージョン率（ビジネスKPI）は出題頻度が低くなりがちなので優先的に含めること`,
+  AIP: `・特にRLHF・LoRA（フルファインチューニングとの比較）・Lake Formation（データガバナンス）は出題頻度が低くなりがちなので優先的に含めること`,
+};
+
 export const EXAM_OFFICIAL_URLS: Record<string, { page: string; guide: string }> = {
   CLF: { page: 'https://aws.amazon.com/certification/certified-cloud-practitioner/',                    guide: 'https://d1.awsstatic.com/training-and-certification/docs-cloud-practitioner/AWS-Certified-Cloud-Practitioner_Exam-Guide.pdf' },
   AIF: { page: 'https://aws.amazon.com/certification/certified-ai-practitioner/',                       guide: 'https://d1.awsstatic.com/training-and-certification/docs-ai-practitioner/AWS-Certified-AI-Practitioner_Exam-Guide.pdf' },

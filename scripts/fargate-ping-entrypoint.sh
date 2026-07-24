@@ -65,7 +65,10 @@ REGION="${AWS_DEFAULT_REGION:-ap-northeast-1}"
 STATE=$(aws scheduler get-schedule --name "$SCHEDULE_NAME" --region "$REGION" \
     --query "State" --output text 2>/dev/null || echo "")
 if [ "$STATE" = "ENABLED" ]; then
-    NEXT=$(python3 -c "from datetime import datetime,timedelta; print((datetime.now()+timedelta(hours=5)).strftime('%Y-%m-%dT%H:%M:%S'))")
+    # セッション開始時刻(=今)の分を一桁切り捨て(10分単位に切り下げ)して +5時間。
+    # Claudeのトークン枠が「開始時刻の分を切り捨て + 5時間」でリセットされる仕様に合わせる
+    # (例: 15:23開始→15:20判定→20:20回復)。実行の所要時間(秒)の累積ズレも同時に解消。
+    NEXT=$(python3 -c "from datetime import datetime,timedelta; n=datetime.now(); b=n.replace(minute=(n.minute//10)*10, second=0, microsecond=0); print((b+timedelta(hours=5)).strftime('%Y-%m-%dT%H:%M:%S'))")
     TARGET_JSON=$(aws scheduler get-schedule --name "$SCHEDULE_NAME" --region "$REGION" \
         --output json 2>/dev/null | python3 -c "import sys,json; print(json.dumps(json.load(sys.stdin)['Target']))")
     aws scheduler update-schedule --name "$SCHEDULE_NAME" \

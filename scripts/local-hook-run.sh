@@ -22,9 +22,14 @@ mkdir -p ~/.claude "$SC/state" "$SC/instructions" "$SC/logs"
 "$AWS" s3 sync "s3://$S3/state/"        "$SC/state/"        --quiet 2>/dev/null || true
 "$AWS" s3 sync "s3://$S3/instructions/" "$SC/instructions/" --quiet 2>/dev/null || true
 
-# deadline = 30分後(= 次のピンサイクル時刻)
-DEADLINE=$(date -d '+30 min' +%H:%M 2>/dev/null || date -v+30M +%H:%M)
-log "妥当性チェック実行 (deadline=$DEADLINE)..."
+# deadline = 次のピンサイクル(=トークン回復)の数分前で止める。
+# フックはピンの30分前に発動するため +30分 = 回復時刻ちょうど。ここから MARGIN_MIN 分手前に置く。
+# -D は「判定時に走行中のチャンクは完走」する仕様なので、そのはみ出し(1チャンク≒数分)も
+# 回復前に収まるよう余裕を確保し、トークン回復後に妥当性チェックが継続しないようにする。
+MARGIN_MIN=5
+DRAIN_MIN=$((30 - MARGIN_MIN))
+DEADLINE=$(date -d "+${DRAIN_MIN} min" +%H:%M 2>/dev/null || date -v+${DRAIN_MIN}M +%H:%M)
+log "妥当性チェック実行 (deadline=$DEADLINE / 回復の${MARGIN_MIN}分前で停止)..."
 cd "$REPO"
 FARGATE_MODE=1 bash prompts/night-prompts/scripts/02-check-validity.sh -n 100 -D "$DEADLINE"
 EC=$?

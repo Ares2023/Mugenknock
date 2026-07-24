@@ -78,6 +78,9 @@ import sys, re
 from datetime import datetime, timedelta
 expr, last_run_date = sys.argv[1].strip(), (sys.argv[2].strip() if len(sys.argv) > 2 else "")
 now = datetime.now()
+# 分を一桁切り捨て(10分単位)して +5時間（Claudeのトークン枠のリセット則。例:15:23→15:20→20:20）
+def next5(base):
+    return base.replace(minute=(base.minute // 10) * 10, second=0, microsecond=0) + timedelta(hours=5)
 a = re.match(r'at\((\d{4}-\d{2}-\d{2})T(\d{2}):(\d{2}):(\d{2})\)', expr)
 c = re.match(r'cron\((\d+)\s+([\d,]+)\s', expr)
 if a:
@@ -92,10 +95,10 @@ elif c:
             if t > now: cand.append(t)
     dt = min(cand)
 else:
-    dt = now + timedelta(hours=5)
+    dt = next5(now)
 stale = 0
 if dt <= now + timedelta(minutes=1):   # 過去/直近=連鎖切れ → 張り直し
-    dt = now + timedelta(hours=5); stale = 1
+    dt = next5(now); stale = 1
 # 夜間サイクル判定: 次回ピンが 0:00-4:59 かつ その日まだ夜間未実行
 run_night = 1 if (dt.hour < 5 and last_run_date != dt.strftime('%Y-%m-%d')) else 0
 print(dt.strftime('%Y-%m-%dT%H:%M:%S'), run_night, stale)

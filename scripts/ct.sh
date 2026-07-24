@@ -124,7 +124,8 @@ PYEOF
 # ── ct resume ────────────────────────────────────────────────
 # ドリフト再開: 次回ピンを now+5h に置く(以降Fargateがピンごとに+5hずつずらす)
 resume_schedule() {
-  local next_iso; next_iso=$(python3 -c "from datetime import datetime,timedelta; print((datetime.now()+timedelta(hours=5)).strftime('%Y-%m-%dT%H:%M:%S'))")
+  # 分を一桁切り捨て(10分単位)して +5時間（Claudeのリセット則に合わせる。例:15:23→15:20→20:20）
+  local next_iso; next_iso=$(python3 -c "from datetime import datetime,timedelta; n=datetime.now(); b=n.replace(minute=(n.minute//10)*10, second=0, microsecond=0); print((b+timedelta(hours=5)).strftime('%Y-%m-%dT%H:%M:%S'))")
   local target_json; target_json=$(_get_target_json)
   "$AWS" scheduler update-schedule --name "$SCHEDULE_NAME" \
     --schedule-expression "at(${next_iso})" --schedule-expression-timezone "Asia/Tokyo" \

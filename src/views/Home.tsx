@@ -9,7 +9,7 @@ import StartTutorialSpotlight from '../components/StartTutorialSpotlight';
 
 // 初回オンボーディング完了フラグ（サイト全体で1回だけチュートリアルを出す）
 const ONBOARDING_TUTORIAL_KEY = 'mk_onboarding_tutorial_done_v1';
-import { useAuth } from '../contexts/AuthContext';
+import { useAuth, hadPriorSession } from '../contexts/AuthContext';
 import { useLanguage } from '../contexts/LanguageContext';
 import {
   API_ENDPOINT, EXAM_TYPES, EXAM_CONFIGS, EXAM_DOMAINS,
@@ -840,8 +840,8 @@ function syncEncyclopediaToServer(userId: string, forceUpload = false): void {
   } catch {}
 }
 
-function TodayServiceSection({ lang, userId, onNavigateEncyclopedia, onReveal, isMobile }: {
-  lang: string; userId?: string;
+function TodayServiceSection({ lang, userId, authReady, onNavigateEncyclopedia, onReveal, isMobile }: {
+  lang: string; userId?: string; authReady: boolean;
   onNavigateEncyclopedia: () => void;
   onReveal: (svc: DailyService) => void;
   isMobile: boolean;
@@ -856,6 +856,9 @@ function TodayServiceSection({ lang, userId, onNavigateEncyclopedia, onReveal, i
   const jstToday = () => new Date(Date.now() + 9 * 3600 * 1000).toISOString().slice(0, 10);
 
   useEffect(() => {
+    // 認証確定前(authReady=false)は抽選しない。userId未確定のまま走ると未ログイン(guest)用
+    // サービスが抽選・キャッシュされてしまうため、確定後にのみ userId 有無で抽選する。
+    if (!authReady) return;
     const uid = userId ?? 'guest';
     const jstDate = jstToday();
 
@@ -917,7 +920,7 @@ function TodayServiceSection({ lang, userId, onNavigateEncyclopedia, onReveal, i
     } else {
       fetchService(localRevealed);
     }
-  }, [userId]);
+  }, [userId, authReady]);
 
   const handleReroll = async () => {
     if (!userId || !service || rerolling) return;
@@ -1955,6 +1958,16 @@ export default function Home() {
     return () => window.removeEventListener('keydown', h);
   }, [showCombinedDetail, revealService, showQuickModal, showFocusedModal, showWebQuickMenu, showFocusedMenu]);
 
+  // ログイン経験者は、認証確定(authLoading完了)まで未ログイン用UI(日めくり記事等)を描画しない。
+  // 未ログイン/初回訪問ユーザー(hadPriorSession=false)は従来どおり即表示する。
+  if (authLoading && !user && hadPriorSession()) {
+    return (
+      <div style={{ maxWidth: 900, margin: '0 auto', padding: 'var(--spacing-lg) var(--spacing-lg)', minHeight: '60vh', display: 'flex', alignItems: 'center', justifyContent: 'center' }} className="page-container">
+        <div className="sherpa-spinner" style={{ width: 28, height: 28, borderWidth: 3 }} />
+      </div>
+    );
+  }
+
   return (
     <div style={{ maxWidth: 900, margin: '0 auto', padding: 'var(--spacing-lg) var(--spacing-lg)' }} className="page-container">
       <Helmet>
@@ -2135,6 +2148,7 @@ export default function Home() {
       <TodayServiceSection
         lang={lang}
         userId={user?.userId}
+        authReady={!authLoading}
         onNavigateEncyclopedia={() => navigate('/aws/encyclopedia')}
         onReveal={svc => setRevealService(svc)}
         isMobile={isMobile}

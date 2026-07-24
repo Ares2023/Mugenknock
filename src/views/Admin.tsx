@@ -1,7 +1,7 @@
 'use client';
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { fetchAuthSession } from 'aws-amplify/auth';
-import { API_ENDPOINT, ADMIN_EMAIL, EXAM_TYPES, EXAM_DOMAINS, EXAM_CONFIGS, EXAM_LEVEL, toDomainIndex, qDomainName } from '../constants';
+import { API_ENDPOINT, ADMIN_EMAIL, EXAM_TYPES, EXAM_DOMAINS, EXAM_CONFIGS, EXAM_LEVEL, EXAM_SUPPLEMENTARY_RULES, toDomainIndex, qDomainName } from '../constants';
 import Card from '../components/ui/Card';
 import Button from '../components/ui/Button';
 import Badge from '../components/ui/Badge';
@@ -2232,7 +2232,7 @@ export default function Admin() {
 ・examType には "${importExamType}" を必ず設定すること
 ・domain には以下のいずれかを文字列で設定すること（保存時に内部インデックスへ変換されます）: ${EXAM_DOMAINS[importExamType]?.join(' / ')}
 ・choiceExplanations は choices と必ず同じ順序・同じ数（4つ）で生成すること（正解はなぜ正解か、不正解はなぜ不正解かを100〜150字で。文頭に「正解です」「不正解です」は入れない）
-
+${EXAM_SUPPLEMENTARY_RULES[importExamType] ? `${EXAM_SUPPLEMENTARY_RULES[importExamType]}\n` : ''}
 【出力形式】
 [
   {
