@@ -30,9 +30,9 @@ const MAIN_NODES: ArchNode[] = [
   },
   {
     kind: 'cloudflare', tint: '#F38020',
-    title: 'Cloudflare Pages', sub: 'フロントエンド配信', subEn: 'Frontend hosting', tech: 'Next.js 静的サイト',
-    detail: 'Next.jsで静的サイトとしてビルドしたフロントエンドを配信するホスティングサービスです。世界中のエッジサーバーから配信するため表示が高速です。',
-    detailEn: 'Hosts the frontend, built as a static Next.js site, and serves it from edge servers worldwide for fast page loads.',
+    title: 'Cloudflare Pages', sub: 'フロントエンド配信（AWSサービスではありません）', subEn: 'Frontend hosting (not an AWS service)', tech: 'Next.js 静的サイト',
+    detail: 'Next.jsで静的サイトとしてビルドしたフロントエンドを配信するホスティングサービスです。世界中のエッジサーバーから配信するため表示が高速です。AWSではなくCloudflare社が提供するサービスで、この構成図内で唯一のAWS以外のサービスです。',
+    detailEn: 'Hosts the frontend, built as a static Next.js site, and serves it from edge servers worldwide for fast page loads. This is a Cloudflare service, not an AWS service — the only non-AWS component in this diagram.',
   },
   {
     kind: 'aws', awsIcon: '/icons/aws/APIGateway.svg', tint: '#a166ff',
