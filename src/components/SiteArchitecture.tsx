@@ -142,11 +142,11 @@ function Connector({ label, delayMs, dashed }: { label: string | null; delayMs: 
 }
 
 // 構成図本体（マウント時＝表示時にアニメーション再生）
-export function SiteArchitecture({ ja, isMobile }: { ja: boolean; isMobile: boolean }) {
+export function SiteArchitecture({ ja, isMobile, maxWidth = 440 }: { ja: boolean; isMobile: boolean; maxWidth?: number }) {
   let delay = 0;
   const step = 150;
   return (
-    <div style={{ width: '100%', maxWidth: 440, margin: '0 auto', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+    <div style={{ width: '100%', maxWidth, margin: '0 auto', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
       <style>{`
         @keyframes archIn { from { opacity: 0; transform: translateY(12px) scale(0.98); } to { opacity: 1; transform: none; } }
         .arch-node { animation: archIn 0.5s cubic-bezier(.2,.7,.3,1) both; }
