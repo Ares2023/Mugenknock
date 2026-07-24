@@ -3,14 +3,8 @@
     <!-- Generator: Sketch 64 (93537) - https://sketch.com -->
     <title>Icon-Architecture/64/Arch_Amazon-Kinesis-Firehose_64</title>
     <desc>Created with Sketch.</desc>
-    <defs>
-        <linearGradient x1="0%" y1="100%" x2="100%" y2="0%" id="linearGradient-1">
-            <stop stop-color="#4D27A8" offset="0%"></stop>
-            <stop stop-color="#A166FF" offset="100%"></stop>
-        </linearGradient>
-    </defs>
     <g id="Icon-Architecture/64/Arch_Amazon-Kinesis-Firehose_64" stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">
-        <g id="Icon-Architecture-BG/64/Analytics" fill="url(#linearGradient-1)">
+        <g id="Icon-Architecture-BG/64/Analytics" fill="#8C4FFF">
             <rect id="Rectangle" x="0" y="0" width="80" height="80"></rect>
         </g>
         <g id="Icon-Service/64/Amazon-Kinesis-Data-Firehose" transform="translate(8.000000, 8.000000)" fill="#FFFFFF">
