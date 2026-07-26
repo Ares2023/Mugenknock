@@ -625,7 +625,20 @@ except Exception:
 vc = Counter(r.get('verdict') for r in rs)
 exams = sorted({r.get('examType', '') for r in rs if r.get('examType')})
 exam_note = f"（{'/'.join(exams)}）" if exams else ''
-lines = [f"監査 {len(rs)}問{exam_note}: OK {vc.get('ok',0)} / 注意 {vc.get('warn',0)} / 要修正 {vc.get('ng',0)}"]
+# レポート送信(+0分)は監査(+60分)より先に走るため、ここに載るのは通常「前夜の監査」。
+# 件数が偶然一致すると当夜分と誤読するので、元ファイルの実施日時と何日前かを明示する。
+try:
+    _base = datetime.datetime.strptime(os.environ.get('TODAY', ''), '%Y%m%d').date()
+except Exception:
+    _base = datetime.date.today()
+_src = ''
+_m = re.search(r'audit_(\d{8}_\d{6})', os.path.basename(js[-1]))
+if _m:
+    _dt = datetime.datetime.strptime(_m.group(1), '%Y%m%d_%H%M%S')
+    _days = (_base - _dt.date()).days
+    _age = '本日分' if _days <= 0 else ('前夜分' if _days == 1 else f'{_days}日前')
+    _src = f"　［実施 {_dt.strftime('%m/%d %H:%M')} {_age}］"
+lines = [f"監査 {len(rs)}問{exam_note}: OK {vc.get('ok',0)} / 注意 {vc.get('warn',0)} / 要修正 {vc.get('ng',0)}{_src}"]
 
 # 指摘のあった問題を列挙。ng(要修正=自動修正対象)は全文、warn(注意)は1行要約＋上限で
 # レポート量を抑える（トークン不足対策・メール肥大化防止）。
@@ -649,10 +662,6 @@ if flagged:
 
 # 直近3日以内に生成された改良のみ対象にする。最新ファイルを無条件に読むと、
 # 何日も前に一度適用した改良を毎晩「今夜の成果」として重複再掲してしまうため。
-try:
-    _base = datetime.datetime.strptime(os.environ.get('TODAY', ''), '%Y%m%d').date()
-except Exception:
-    _base = datetime.date.today()
 _cutoff = _base - datetime.timedelta(days=3)
 def _imp_date(p):
     m = re.search(r'audit_(\d{8})_', os.path.basename(p))
