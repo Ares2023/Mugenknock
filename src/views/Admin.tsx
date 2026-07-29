@@ -232,6 +232,54 @@ const DEFAULT_COLORS: CustomColors = {
 };
 
 // ─────────────────────────────────────────────────────────────
+// 一覧の並び替え（各タブ共通）
+// ─────────────────────────────────────────────────────────────
+type SortOption = { key: string; label: string };
+
+// 'field_asc' / 'field_desc' 形式のキーで配列を並び替える。
+// accessors に無いフィールドが来たら（保存済み設定が古い等）元の順序をそのまま返す。
+// 値が未設定のものは昇順・降順どちらでも末尾に送る。未設定を先頭に集めても探しづらいだけのため。
+function sortItems<T>(
+  items: T[],
+  sortKey: string,
+  accessors: Record<string, (x: T) => string | number | undefined | null>,
+): T[] {
+  const sep = sortKey.lastIndexOf('_');
+  const field = sortKey.slice(0, sep);
+  const dir = sortKey.slice(sep + 1) === 'asc' ? 1 : -1;
+  const get = accessors[field];
+  if (!get) return items;
+  const isEmpty = (v: unknown) => v === undefined || v === null || v === '';
+  return [...items].sort((a, b) => {
+    const va = get(a), vb = get(b);
+    if (isEmpty(va) && isEmpty(vb)) return 0;
+    if (isEmpty(va)) return 1;
+    if (isEmpty(vb)) return -1;
+    if (typeof va === 'number' && typeof vb === 'number') return (va - vb) * dir;
+    return String(va).localeCompare(String(vb), 'ja') * dir;
+  });
+}
+
+function SortSelect({ value, onChange, options }: { value: string; onChange: (v: string) => void; options: SortOption[] }) {
+  return (
+    <label style={{ display: 'inline-flex', alignItems: 'center', gap: 'var(--spacing-xs)' }}>
+      <span style={{ fontSize: 'var(--font-size-xs)', color: 'var(--color-text-light)', fontWeight: 700 }}>並び替え</span>
+      <select
+        value={value}
+        onChange={e => onChange(e.target.value)}
+        style={{
+          padding: '5px 10px', border: '1px solid var(--color-border)',
+          borderRadius: 'var(--border-radius-full)', fontSize: 'var(--font-size-sm)',
+          background: 'var(--color-bg-white)', color: 'var(--color-text-main)',
+          cursor: 'pointer', outline: 'none',
+        }}>
+        {options.map(o => <option key={o.key} value={o.key}>{o.label}</option>)}
+      </select>
+    </label>
+  );
+}
+
+// ─────────────────────────────────────────────────────────────
 // 問題プレビューモーダル（演習時の見え方を再現）
 // ─────────────────────────────────────────────────────────────
 const CHOICE_LABELS_P = ['A', 'B', 'C', 'D', 'E'];
@@ -571,6 +619,18 @@ export default function Admin() {
   const [showDSForm, setShowDSForm] = useState(false);
   const emptyDSForm = { name: '', shortName: '', category: '', icon: '☁️', description: '', trivia: '', docUrl: '', order: 0, isActive: true };
   const [dsForm, setDsForm] = useState(emptyDSForm);
+  const [dsSort, setDsSort] = useState('order_asc');
+  // 一覧タブの並び順（タブごとに独立）
+  const [reportSort, setReportSort] = useState('reportedAt_desc');
+  const [tipSort, setTipSort] = useState('title_asc');
+  const [ciSort, setCiSort] = useState('createdAt_desc');
+  const [relSort, setRelSort] = useState('date_desc');
+  const [annSort, setAnnSort] = useState('createdAt_desc');
+  const [msgSort, setMsgSort] = useState('sentAt_desc');
+  // 画像パスのアイコンが実際に読み込めなかった serviceId。
+  // DB に icon 文字列があってもファイルが未デプロイなら 404 になるので、
+  // 実表示の onError でしか検出できない。抽選対象から外す判断の材料として出す。
+  const [dsBrokenIcons, setDsBrokenIcons] = useState<Set<string>>(new Set());
 
   // リリースノート管理
   const [releases, setReleases] = useState<Release[]>([]);
@@ -2010,11 +2070,23 @@ export default function Admin() {
       {/* ── 通報確認 ── */}
       {tab === 'reports' && (
         <div>
-          <p style={{ color: 'var(--color-text-light)', fontSize: 13, marginBottom: 16 }}>
-            {loadingR ? '読み込み中...' : `${reports.length} 件`}
-          </p>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 8, flexWrap: 'wrap', marginBottom: 16 }}>
+            <p style={{ color: 'var(--color-text-light)', fontSize: 13, margin: 0 }}>
+              {loadingR ? '読み込み中...' : `${reports.length} 件`}
+            </p>
+            <SortSelect value={reportSort} onChange={setReportSort} options={[
+              { key: 'reportedAt_desc', label: '通報日時（新しい順）' },
+              { key: 'reportedAt_asc', label: '通報日時（古い順）' },
+              { key: 'category_asc', label: 'カテゴリ' },
+              { key: 'questionId_asc', label: '問題ID' },
+            ]} />
+          </div>
 
-          {reports.map(r => (
+          {sortItems(reports, reportSort, {
+            reportedAt: r => r.reportedAt,
+            category: r => r.category,
+            questionId: r => r.questionId,
+          }).map(r => (
             <div key={r.reportId} style={{ border: '1px solid #eaeded', borderRadius: 6, padding: '14px 16px', marginBottom: 8, background: 'var(--color-bg-white)', boxShadow: 'var(--box-shadow-sm)' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 8, gap: 8 }}>
                 <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: 8 }}>
@@ -2305,7 +2377,12 @@ ${EXAM_SUPPLEMENTARY_RULES[importExamType] ? `${EXAM_SUPPLEMENTARY_RULES[importE
             <p style={{ color: 'var(--color-text-light)', fontSize: 13, margin: 0 }}>
               {loadingT ? '読み込み中...' : `${tips.length} 件`}
             </p>
-            <div style={{ display: 'flex', gap: 8 }}>
+            <div style={{ display: 'flex', gap: 8, alignItems: 'center', flexWrap: 'wrap' }}>
+              <SortSelect value={tipSort} onChange={setTipSort} options={[
+                { key: 'title_asc', label: 'タイトル（A→Z）' },
+                { key: 'title_desc', label: 'タイトル（Z→A）' },
+                { key: 'examType_asc', label: '試験種別' },
+              ]} />
               <button onClick={() => { setShowTipPrompt(v => !v); setShowTipImport(false); setShowTipForm(false); }}
                 style={{ padding: '7px 16px', background: showTipPrompt ? 'var(--color-primary-light)' : 'transparent', color: 'var(--color-primary)', border: '1.5px solid var(--color-primary)', borderRadius: 9999, cursor: 'pointer', fontSize: 13, fontWeight: 700 }}>
                 AIプロンプト
@@ -2593,7 +2670,10 @@ ${tipPromptExamType !== 'ALL' ? `・examType には "${tipPromptExamType}" を�
           )}
 
           {/* コラム一覧 */}
-          {tips.map(tip => (
+          {sortItems(tips, tipSort, {
+            title: t => t.title,
+            examType: t => t.examType,
+          }).map(tip => (
             <div key={tip.tipId} style={{ border: '1px solid #eaeded', borderRadius: 6, padding: '12px 16px', marginBottom: 8, background: 'var(--color-bg-white)', boxShadow: 'var(--box-shadow-sm)' }}>
               <div style={{ display: 'flex', alignItems: 'flex-start', gap: 10 }}>
                 <span style={{
@@ -2695,11 +2775,19 @@ ${tipPromptExamType !== 'ALL' ? `・examType には "${tipPromptExamType}" を�
                   style={{ padding: '6px 14px', background: !ciShowUsed ? 'var(--color-primary-light)' : 'transparent', color: 'var(--color-primary)', border: '1.5px solid var(--color-primary)', borderRadius: 9999, cursor: 'pointer', fontSize: 13, fontWeight: 700 }}>未使用</button>
                 <button onClick={() => setCiShowUsed(true)}
                   style={{ padding: '6px 14px', background: ciShowUsed ? 'var(--color-primary-light)' : 'transparent', color: 'var(--color-primary)', border: '1.5px solid var(--color-primary)', borderRadius: 9999, cursor: 'pointer', fontSize: 13, fontWeight: 700 }}>使用済み</button>
+                <SortSelect value={ciSort} onChange={setCiSort} options={[
+                  { key: 'createdAt_desc', label: '投稿日（新しい順）' },
+                  { key: 'createdAt_asc', label: '投稿日（古い順）' },
+                  { key: 'examType_asc', label: '試験種別' },
+                ]} />
               </div>
             </div>
 
             <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-              {list.map(idea => (
+              {sortItems(list, ciSort, {
+                createdAt: (i: any) => i.createdAt,
+                examType: (i: any) => i.examType,
+              }).map(idea => (
                 <div key={idea.ideaId} style={{ border: '1px solid var(--color-border)', borderRadius: 8, padding: '14px 16px', background: 'var(--color-bg-white)', opacity: idea.status === 'used' ? 0.7 : 1 }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 8, flexWrap: 'wrap' }}>
                     <span style={{ fontSize: 11, fontWeight: 700, color: 'var(--color-primary)', background: 'var(--color-primary-light)', padding: '2px 10px', borderRadius: 9999 }}>{idea.examType || 'ALL'}</span>
@@ -2743,6 +2831,12 @@ ${tipPromptExamType !== 'ALL' ? `・examType には "${tipPromptExamType}" を�
             <p style={{ color: 'var(--color-text-light)', fontSize: 13, margin: 0 }}>
               {loadingRel ? '読み込み中...' : `${releases.length} 件`}
             </p>
+            <div style={{ display: 'flex', gap: 8, alignItems: 'center', flexWrap: 'wrap' }}>
+            <SortSelect value={relSort} onChange={setRelSort} options={[
+              { key: 'date_desc', label: '日付（新しい順）' },
+              { key: 'date_asc', label: '日付（古い順）' },
+              { key: 'title_asc', label: 'タイトル（A→Z）' },
+            ]} />
             <button
               onClick={() => {
                 setEditingRelease(null);
@@ -2752,6 +2846,7 @@ ${tipPromptExamType !== 'ALL' ? `・examType には "${tipPromptExamType}" を�
               style={{ padding: '7px 16px', background: 'transparent', color: 'var(--color-primary)', border: '1.5px solid var(--color-primary)', borderRadius: 9999, cursor: 'pointer', fontSize: 13, fontWeight: 700 }}>
               ＋ 新規追加
             </button>
+            </div>
           </div>
 
           {showReleaseForm && (
@@ -2805,7 +2900,10 @@ ${tipPromptExamType !== 'ALL' ? `・examType には "${tipPromptExamType}" を�
             </div>
           )}
 
-          {[...releases].sort((a, b) => b.date.localeCompare(a.date)).map(r => (
+          {sortItems(releases, relSort, {
+            date: r => r.date,
+            title: r => r.title,
+          }).map(r => (
             <div key={r.releaseId} style={{ border: '1px solid #eaeded', borderRadius: 6, padding: '14px 18px', marginBottom: 8, background: 'var(--color-bg-white)', boxShadow: 'var(--box-shadow-sm)' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 16 }}>
                 <div style={{ flex: 1 }}>
@@ -2842,6 +2940,14 @@ ${tipPromptExamType !== 'ALL' ? `・examType には "${tipPromptExamType}" を�
             <p style={{ color: 'var(--color-text-light)', fontSize: 13, margin: 0 }}>
               {loadingAnn ? '読み込み中...' : `${announcements.length} 件`}
             </p>
+            <div style={{ display: 'flex', gap: 8, alignItems: 'center', flexWrap: 'wrap' }}>
+            <SortSelect value={annSort} onChange={setAnnSort} options={[
+              { key: 'createdAt_desc', label: '作成日（新しい順）' },
+              { key: 'createdAt_asc', label: '作成日（古い順）' },
+              { key: 'publishedAt_desc', label: '公開日（新しい順）' },
+              { key: 'status_asc', label: '状態（下書き→公開中）' },
+              { key: 'title_asc', label: 'タイトル（A→Z）' },
+            ]} />
             <button
               onClick={() => {
                 setEditingAnnouncement(null);
@@ -2851,6 +2957,7 @@ ${tipPromptExamType !== 'ALL' ? `・examType には "${tipPromptExamType}" を�
               style={{ padding: '7px 16px', background: 'transparent', color: 'var(--color-primary)', border: '1.5px solid var(--color-primary)', borderRadius: 9999, cursor: 'pointer', fontSize: 13, fontWeight: 700 }}>
               ＋ 新規追加
             </button>
+            </div>
           </div>
 
           {showAnnForm && (
@@ -2907,7 +3014,12 @@ ${tipPromptExamType !== 'ALL' ? `・examType には "${tipPromptExamType}" を�
             </div>
           )}
 
-          {[...announcements].sort((a, b) => b.createdAt.localeCompare(a.createdAt)).map(a => (
+          {sortItems(announcements, annSort, {
+            createdAt: a => a.createdAt,
+            publishedAt: a => a.publishedAt,
+            title: a => a.title,
+            status: a => a.status,
+          }).map(a => (
             <div key={a.announcementId} style={{ border: '1px solid #eaeded', borderRadius: 6, padding: '12px 14px', marginBottom: 8, background: 'var(--color-bg-white)', boxShadow: 'var(--box-shadow-sm)' }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 4 }}>
                 <span style={{
@@ -3185,16 +3297,26 @@ ${tipPromptExamType !== 'ALL' ? `・examType には "${tipPromptExamType}" を�
             <p style={{ color: 'var(--color-text-sub)', fontSize: 13, margin: 0 }}>
               {loadingMsg ? '読み込み中...' : `${messages.length} 件`}
             </p>
+            <div style={{ display: 'flex', gap: 8, alignItems: 'center', flexWrap: 'wrap' }}>
+            <SortSelect value={msgSort} onChange={setMsgSort} options={[
+              { key: 'sentAt_desc', label: '受信日時（新しい順）' },
+              { key: 'sentAt_asc', label: '受信日時（古い順）' },
+              { key: 'subject_asc', label: '件名（A→Z）' },
+            ]} />
             <button onClick={fetchMessages} style={{ padding: '6px 16px', background: 'transparent', color: 'var(--color-primary)', border: '1.5px solid var(--color-primary)', borderRadius: 9999, cursor: 'pointer', fontSize: 13, fontWeight: 700 }}>
               更新
             </button>
+            </div>
           </div>
 
           {!loadingMsg && messages.length === 0 && (
             <p style={{ color: 'var(--color-text-light)', textAlign: 'center', padding: 40 }}>メッセージはありません</p>
           )}
 
-          {messages.map(m => (
+          {sortItems(messages, msgSort, {
+            sentAt: m => m.sentAt,
+            subject: m => m.subject,
+          }).map(m => (
             <div key={m.messageId} style={{ border: '1px solid #eaeded', borderRadius: 6, padding: '16px 20px', marginBottom: 10, background: 'var(--color-bg-white)', boxShadow: 'var(--box-shadow-sm)' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 10 }}>
                 <span style={{ fontSize: 12, color: '#879596' }}>
@@ -3218,11 +3340,20 @@ ${tipPromptExamType !== 'ALL' ? `・examType には "${tipPromptExamType}" を�
       {/* ── 日めくりAWSサービス管理 ── */}
       {tab === 'dailyservice' && (
         <div>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 8, flexWrap: 'wrap', marginBottom: 16 }}>
             <p style={{ color: 'var(--color-text-sub)', fontSize: 13, margin: 0 }}>
               {loadingDS ? '' : `${dailyServices.length} 件`}
             </p>
-            <div style={{ display: 'flex', gap: 8 }}>
+            <div style={{ display: 'flex', gap: 8, alignItems: 'center', flexWrap: 'wrap' }}>
+              <SortSelect value={dsSort} onChange={setDsSort} options={[
+                { key: 'order_asc', label: '表示順（昇順）' },
+                { key: 'order_desc', label: '表示順（降順）' },
+                { key: 'createdAt_desc', label: '作成日（新しい順）' },
+                { key: 'createdAt_asc', label: '作成日（古い順）' },
+                { key: 'name_asc', label: 'サービス名（A→Z）' },
+                { key: 'name_desc', label: 'サービス名（Z→A）' },
+                { key: 'category_asc', label: 'カテゴリ' },
+              ]} />
               <button onClick={fetchDailyServices}
                 style={{ padding: '6px 14px', background: 'transparent', color: 'var(--color-primary)', border: '1.5px solid var(--color-primary)', borderRadius: 9999, cursor: 'pointer', fontSize: 13, fontWeight: 700 }}>
                 更新
@@ -3234,6 +3365,14 @@ ${tipPromptExamType !== 'ALL' ? `・examType には "${tipPromptExamType}" を�
               </button>
             </div>
           </div>
+
+          {dsBrokenIcons.size > 0 && (
+            <div style={{ border: '1px solid var(--color-danger)', background: '#fff5f4', borderRadius: 6, padding: '10px 14px', marginBottom: 12, fontSize: 13, color: 'var(--color-danger)', lineHeight: 1.6 }}>
+              <b>アイコンを読み込めないサービスが {dsBrokenIcons.size} 件あります。</b><br />
+              画像ファイルが未デプロイの可能性があります（<code>public/icons/aws/</code> に配置してコミットしてください）。
+              直せない場合は「公開」をオフにすると、抽選対象からも図鑑の母数からも外れます。
+            </div>
+          )}
 
           {showDSForm && (
             <div style={{ border: '2px solid var(--color-primary)', borderRadius: 8, padding: '20px 20px 16px', marginBottom: 20, background: 'var(--color-bg-main)' }}>
@@ -3294,6 +3433,11 @@ ${tipPromptExamType !== 'ALL' ? `・examType には "${tipPromptExamType}" を�
               </div>
 
               <div style={{ display: 'flex', alignItems: 'center', gap: 16, borderTop: '1px solid var(--color-border)', paddingTop: 12 }}>
+                <label style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 13, cursor: 'pointer', color: 'var(--color-text-main)' }}>
+                  <input type="checkbox" checked={dsForm.isActive}
+                    onChange={e => setDsForm(f => ({ ...f, isActive: e.target.checked }))} />
+                  公開（オフにすると抽選・図鑑の母数から外れる）
+                </label>
                 <div style={{ marginLeft: 'auto', display: 'flex', gap: 8 }}>
                   <button onClick={saveDailyService}
                     style={{ padding: '7px 20px', background: '#ff9900', color: '#fff', border: 'none', borderRadius: 9999, cursor: 'pointer', fontWeight: 700, fontSize: 14 }}>
@@ -3332,16 +3476,28 @@ ${tipPromptExamType !== 'ALL' ? `・examType には "${tipPromptExamType}" を�
             <p style={{ color: 'var(--color-text-light)', textAlign: 'center', padding: 40 }}>サービスが登録されていません</p>
           )}
 
-          {!loadingDS && dailyServices.map(ds => (
+          {!loadingDS && sortItems(dailyServices, dsSort, {
+            order: ds => Number(ds.order) || 0,
+            createdAt: ds => ds.createdAt,
+            name: ds => ds.name,
+            category: ds => ds.category,
+          }).map(ds => {
+            const isImg = ds.icon.startsWith('/') || ds.icon.startsWith('http');
+            const broken = dsBrokenIcons.has(ds.serviceId);
+            const hidden = ds.isActive === false;
+            return (
             <div key={ds.serviceId} style={{
-              border: '1px solid var(--color-border)',
+              border: broken ? '1px solid var(--color-danger)' : '1px solid var(--color-border)',
               borderRadius: 6, padding: '12px 16px', marginBottom: 8,
-              background: 'var(--color-bg-white)',
+              background: 'var(--color-bg-white)', opacity: hidden ? 0.6 : 1,
             }}>
               <div style={{ display: 'flex', alignItems: 'flex-start', gap: 12 }}>
                 <div style={{ width: 36, height: 36, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, background: 'var(--color-bg-main)', borderRadius: 6, color: 'var(--color-primary)', fontSize: 22 }}>
-                  {ds.icon.startsWith('/') || ds.icon.startsWith('http')
-                    ? <img src={ds.icon} alt={ds.name} style={{ width: 26, height: 26, objectFit: 'contain' }} />
+                  {isImg
+                    ? (broken
+                        ? <span title="画像を読み込めません" style={{ fontSize: 20 }}>⚠️</span>
+                        : <img src={ds.icon} alt={ds.name} style={{ width: 26, height: 26, objectFit: 'contain' }}
+                            onError={() => setDsBrokenIcons(prev => prev.has(ds.serviceId) ? prev : new Set(prev).add(ds.serviceId))} />)
                     : isServiceIconKey(ds.icon)
                       ? <ServiceIcon name={ds.icon} size={22} />
                       : ds.icon}
@@ -3351,14 +3507,18 @@ ${tipPromptExamType !== 'ALL' ? `・examType には "${tipPromptExamType}" を�
                     <span style={{ fontWeight: 700, fontSize: 15, color: 'var(--color-text-main)' }}>{ds.name}</span>
                     {ds.shortName && <span style={{ fontSize: 11, color: 'var(--color-text-light)', background: 'var(--color-bg-main)', padding: '1px 6px', borderRadius: 4 }}>{ds.shortName}</span>}
                     {ds.category && <span style={{ fontSize: 11, color: 'var(--color-primary)', background: 'var(--color-primary-light)', padding: '1px 7px', borderRadius: 12, fontWeight: 700 }}>{ds.category}</span>}
-                    <span style={{ fontSize: 11, color: 'var(--color-text-light)', marginLeft: 'auto' }}>順: {ds.order}</span>
+                    {broken && <span style={{ fontSize: 11, color: 'var(--color-danger)', border: '1px solid var(--color-danger)', padding: '1px 7px', borderRadius: 12, fontWeight: 700 }}>アイコン欠損</span>}
+                    {hidden && <span style={{ fontSize: 11, color: 'var(--color-text-light)', border: '1px solid var(--color-border)', padding: '1px 7px', borderRadius: 12, fontWeight: 700 }}>非公開</span>}
+                    <span style={{ fontSize: 11, color: 'var(--color-text-light)', marginLeft: 'auto' }}>
+                      順: {ds.order}{ds.createdAt ? `　作成: ${ds.createdAt.slice(0, 10)}` : ''}
+                    </span>
                   </div>
                   <p style={{ margin: '0 0 4px', fontSize: 13, color: 'var(--color-text-sub)', lineHeight: 1.5, wordBreak: 'break-word' }}>{ds.description}</p>
                   {ds.trivia && <p style={{ margin: 0, fontSize: 12, color: 'var(--color-text-light)', lineHeight: 1.5, wordBreak: 'break-word' }}>💡 {ds.trivia}</p>}
                 </div>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 6, flexShrink: 0 }}>
                   <button
-                    onClick={() => { setEditingDS(ds); setDsForm({ name: ds.name, shortName: ds.shortName ?? '', category: ds.category ?? '', icon: ds.icon, description: ds.description, trivia: ds.trivia ?? '', docUrl: ds.docUrl ?? '', order: ds.order, isActive: true }); setShowDSForm(true); }}
+                    onClick={() => { setEditingDS(ds); setDsForm({ name: ds.name, shortName: ds.shortName ?? '', category: ds.category ?? '', icon: ds.icon, description: ds.description, trivia: ds.trivia ?? '', docUrl: ds.docUrl ?? '', order: ds.order, isActive: ds.isActive !== false }); setShowDSForm(true); }}
                     style={{ padding: '4px 10px', border: '1px solid var(--color-border)', borderRadius: 9999, cursor: 'pointer', background: 'transparent', fontSize: 11, fontWeight: 700 }}>
                     編集
                   </button>
@@ -3369,7 +3529,8 @@ ${tipPromptExamType !== 'ALL' ? `・examType には "${tipPromptExamType}" を�
                 </div>
               </div>
             </div>
-          ))}
+            );
+          })}
         </div>
       )}
 
