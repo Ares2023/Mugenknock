@@ -47,15 +47,18 @@ LOG_FILE="$LOG_DIR/validity_${DATE}.log"
 
 show_help() {
   cat << 'EOF'
-usage: check-validity.sh [-n N] [-D HH:MM] [-h]
+usage: check-validity.sh [-n N] [-D HH:MM] [-q FILE] [-h]
 
   -n N       チェック問題数 (default: 30)
   -D HH:MM   処理終了時刻 (JST)。この時刻を過ぎたチャンクはスキップ
+  -q FILE    問題IDを指定してチェック（1行1ID、#開始行は無視）。
+             指定時はソート順を無視しこのリストの問題だけを対象にする
+             （既知パターンの一括修正など、対象を特定できる場合に使う）
   -h         このヘルプを表示
 
 挙動:
-  未チェック（validityCheckedAt なし）を優先
-  全問チェック済みの場合は確認日付が古い順
+  -q 未指定時: 未チェック（validityCheckedAt なし）を優先、全問チェック済みなら確認日付が古い順
+  -q 指定時  : 指定ID群のみを対象（順不同・存在しないIDは無視）
   action=ok  → validityCheckedAt のみ更新
   action=fix → 問題内容を上書き・validityEditLog を記録・updatedAt 更新
   action=delete → DynamoDB から削除
@@ -65,11 +68,13 @@ EOF
 BATCH_SIZE=30
 CHUNK_SIZE=5
 DEADLINE=""
+QID_FILE=""
 
 while [[ $# -gt 0 ]]; do
   case "$1" in
     -n) BATCH_SIZE="${2:?-n requires N}"; shift 2 ;;
     -D) DEADLINE="${2:?-D requires HH:MM}"; shift 2 ;;
+    -q) QID_FILE="${2:?-q requires FILE}"; shift 2 ;;
     -h|--help) show_help; exit 0 ;;
     *) echo "不明なオプション: $1" >&2; show_help >&2; exit 1 ;;
   esac
@@ -126,7 +131,7 @@ if [ ! -s "$DYNAMO_TMP" ]; then
   exit 1
 fi
 
-QUESTIONS_JSON=$(BATCH_SIZE=$BATCH_SIZE DYNAMO_TMP="$DYNAMO_TMP" python3 << 'PYEOF'
+QUESTIONS_JSON=$(BATCH_SIZE=$BATCH_SIZE DYNAMO_TMP="$DYNAMO_TMP" QID_FILE="$QID_FILE" python3 << 'PYEOF'
 import json, os, sys
 from datetime import datetime, timezone, timedelta
 
@@ -155,6 +160,16 @@ def deser(v):
     return None
 
 questions = [{ k: deser(v) for k, v in item.items() } for item in items]
+
+qid_file = os.environ.get('QID_FILE', '').strip()
+if qid_file:
+    # -q 指定時: 対象ID群のみ・ソート無視（既知パターンの一括修正など対象を特定できる場合用）
+    with open(qid_file) as f:
+        target_ids = [l.strip() for l in f if l.strip() and not l.strip().startswith('#')]
+    by_id = {q.get('questionId'): q for q in questions if not q.get('isHidden')}
+    selected = [by_id[qid] for qid in target_ids if qid in by_id]
+    print(json.dumps(selected))
+    sys.exit(0)
 
 EPOCH_ZERO = datetime(1970, 1, 1, tzinfo=timezone.utc)
 candidates = []

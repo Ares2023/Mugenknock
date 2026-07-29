@@ -19,7 +19,11 @@
 - 正解に酷似した紛らわしい選択肢を最低1つ入れること（難易度向上）
 
 ■ 推敲・現行性
-- 現行サービス名を使うこと（例: Amazon Data Firehose、旧Kinesis Data Firehoseは不可）
+- 現行サービス名を使うこと。旧称の使用は事実誤りとして頻出するため特に以下は要注意:
+  - Amazon Data Firehose（旧称 Amazon Kinesis Data Firehose／Kinesis Data Firehose は不可）
+  - AWS Private Certificate Authority／AWS Private CA（旧称 AWS Certificate Manager Private CA／ACM Private CA は不可）
+  - Amazon EventBridge（旧称 CloudWatch Events は不可）
+  - SRT（Shield Response Team）（旧称 DRT／DDoS Response Team は不可。Shield Advanced文脈で頻出）
 - CodeCommitは現行サービス（廃止扱い禁止）
 - 実在しないサービス間の直接連携を前提にしない（中間サービスを省略しない）
 

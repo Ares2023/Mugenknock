@@ -16,10 +16,10 @@ log() { printf '[%s] %s\n' "$(date '+%H:%M:%S')" "$*"; }
 
 mkdir -p ~/.claude "$SC/state" "$SC/instructions" "$SC/logs" "$REPO/prompts/logs"
 
-# ── pull: 資格情報・状態をS3から(S3が単一の正) ──
+# ── pull: 資格情報・状態をS3から ──
+# creds はスマート同期（expiresAtが新しい方を残す＝フレッシュなローカルを古いS3で潰さない）
 log "S3から資格情報・状態を取得..."
-"$AWS" s3 cp "s3://$S3/claude-auth/.credentials.json" ~/.claude/.credentials.json --quiet 2>/dev/null || true
-"$AWS" s3 cp "s3://$S3/claude-auth/.claude.json"       ~/.claude.json               --quiet 2>/dev/null || true
+AWS="$AWS" bash "$REPO/scripts/pull-claude-creds.sh" "$S3" || true
 "$AWS" s3 sync "s3://$S3/state/"        "$SC/state/"        --quiet 2>/dev/null || true
 "$AWS" s3 sync "s3://$S3/instructions/" "$SC/instructions/" --quiet 2>/dev/null || true
 for f in .last_run .claude_history .night_history; do

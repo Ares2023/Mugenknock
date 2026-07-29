@@ -208,6 +208,112 @@ PROMPT
   fi
 fi
 
+# ── 1b. AWSサービス変更ニュース（廃止・新規受付停止など・直近7日）────────
+echo ""
+echo "--- [1b] AWSサービス変更ニュース（直近7日） ---"
+
+# 既存問題の修正が必要になりそうな「サービス側の変更」を拾う。RSS取得+LLM判定でトークンを
+# 使うため週次実行とする。走査窓が7日なので週次なら取りこぼしも重複掲載も起きない。
+# 資格チェック(月曜)と負荷を分散するため木曜に実行する。
+SERVICE_NEWS="変更なし（対応不要）"
+_SVC_DOW=$(date '+%u' 2>/dev/null || echo 4)  # 1=月 .. 7=日
+if [ "$_SVC_DOW" != "4" ]; then
+  SERVICE_NEWS="サービス変更チェックは週次（木曜のみ実行）。今夜はスキップ。"
+  echo "  サービス変更チェック: 週次（木曜のみ実行）。今夜はスキップ（トークン節約）。"
+else
+SVC_ITEMS=$(mktemp /tmp/svc_news_XXXX.txt)
+SVC_SCAN=$(SVC_OUT="$SVC_ITEMS" python3 << 'PYEOF'
+import os, re, datetime, urllib.request
+import xml.etree.ElementTree as ET
+
+FEEDS = [
+    ("What's New", 'https://aws.amazon.com/about-aws/whats-new/recent/feed/'),
+    ('News Blog',  'https://aws.amazon.com/blogs/aws/feed/'),
+]
+# ライフサイクル系の語を広めに拾う。資格問題への影響があるかの最終判定はLLMに任せるので、
+# ここで落としすぎないことを優先する（拾いすぎてもヒット数は1桁で済む）。
+KW = re.compile(r'end of support|end-of-support|end of life|end-of-life|deprecat|retir|sunset'
+                r'|discontinu|no longer (available|supported|accept)|clos(ing|ed) (access|to new)'
+                r'|not available to new customers|will be removed|migrate to', re.I)
+STRIP = re.compile(r'<[^>]+>')
+
+def pubdate(item):
+    t = (item.findtext('pubDate') or '').strip()
+    for fmt in ('%a, %d %b %Y %H:%M:%S', '%a, %d %b %Y %H:%M'):
+        try:
+            return datetime.datetime.strptime(t[:len(datetime.datetime.now().strftime(fmt))], fmt)
+        except Exception:
+            pass
+    return None
+
+cutoff = datetime.datetime.now() - datetime.timedelta(days=7)
+rows, seen, errs = [], set(), []
+for name, url in FEEDS:
+    try:
+        req = urllib.request.Request(url, headers={'User-Agent': 'mugenknock-nightly/1.0'})
+        with urllib.request.urlopen(req, timeout=25) as r:
+            root = ET.fromstring(r.read())
+    except Exception as ex:
+        errs.append(f'{name}: {type(ex).__name__}')
+        continue
+    for it in root.findall('.//item'):
+        d = pubdate(it)
+        if not d or d < cutoff:
+            continue
+        title = (it.findtext('title') or '').strip()
+        desc = STRIP.sub(' ', it.findtext('description') or '')
+        desc = re.sub(r'\s+', ' ', desc).strip()
+        link = (it.findtext('link') or '').strip()
+        if not KW.search(title + ' ' + desc) or link in seen:
+            continue
+        seen.add(link)
+        rows.append(f'- [{d:%Y-%m-%d}][{name}] {title}\n  {desc[:300]}\n  {link}')
+
+# 暴走防止の上限。ライフサイクル系は通常0〜数件で、これを超えるのは絞り込み失敗を意味する
+rows = rows[:12]
+with open(os.environ['SVC_OUT'], 'w') as f:
+    f.write('\n'.join(rows))
+err_note = f'（取得失敗: {", ".join(errs)}）' if errs else ''
+print(f'RSS 2本を走査 → 該当 {len(rows)}件{err_note}')
+PYEOF
+)
+echo "  $SVC_SCAN"
+
+# grep -c は0件時に exit 1 を返して数値と混ざるため awk で数える
+SVC_HIT=$(awk '/^- /{n++} END{print n+0}' "$SVC_ITEMS" 2>/dev/null || echo 0)
+if [ "${SVC_HIT:-0}" -gt 0 ] && [ -n "${CLAUDE_CMD:-}" ] && [ -x "${CLAUDE_CMD:-}" ]; then
+  SVC_PROMPT=$(mktemp /tmp/svc_prompt_XXXX.txt)
+  cat > "$SVC_PROMPT" << PROMPT
+以下はAWS公式RSSから抽出した直近7日以内の「サービス変更の可能性がある」お知らせです。
+このうち、AWS認定試験の既存問題（問題文・選択肢・解説）の修正が必要になりそうなものだけを報告してください。
+
+判断基準:
+- 報告する: サービス/機能の廃止・終了、新規顧客の受付停止、後継サービスへの移行要求、サービス名の改称
+- 報告しない: 単なる新機能追加、リージョン拡大、性能改善、価格改定、SDK/ランタイムのマイナー更新
+
+【出力形式】日本語のマークダウン。該当が1件も無ければ「変更なし（対応不要）」の1行のみ。
+該当がある場合は1件につき以下の3行:
+### <サービス名>: <変更内容の1行要約>
+- 影響サービス: <既存問題に登場しうるサービス・機能名>
+- 修正観点: <問題文/解説をどう直すべきかの指針を1〜2文>
+
+対象のお知らせ:
+$(cat "$SVC_ITEMS")
+PROMPT
+
+  SERVICE_NEWS=$("$CLAUDE_CMD" -p --model claude-haiku-4-5-20251001 --allowed-tools WebFetch < "$SVC_PROMPT" 2>&1 | head -200)
+  rm -f "$SVC_PROMPT"
+  echo "$SERVICE_NEWS" | head -5 | sed 's/^/  /'
+elif [ "${SVC_HIT:-0}" -gt 0 ]; then
+  # Claude未検出でも拾った見出しだけは残す（人間が読めば判断できる）
+  SERVICE_NEWS="Claude 未検出のため要約不可。抽出した見出し:"$'\n'"$(cat "$SVC_ITEMS")"
+  echo "  ⚠️  Claude 未検出（見出しのみ掲載）"
+else
+  echo "  該当ニュースなし"
+fi
+rm -f "$SVC_ITEMS"
+fi
+
 # ── 2. 夜間スクリプト成果をログから集計 ─────────────────────
 echo ""
 echo "--- [2] 夜間スクリプト成果集計 ---"
@@ -625,7 +731,20 @@ except Exception:
 vc = Counter(r.get('verdict') for r in rs)
 exams = sorted({r.get('examType', '') for r in rs if r.get('examType')})
 exam_note = f"（{'/'.join(exams)}）" if exams else ''
-lines = [f"監査 {len(rs)}問{exam_note}: OK {vc.get('ok',0)} / 注意 {vc.get('warn',0)} / 要修正 {vc.get('ng',0)}"]
+# レポート送信(+0分)は監査(+60分)より先に走るため、ここに載るのは通常「前夜の監査」。
+# 件数が偶然一致すると当夜分と誤読するので、元ファイルの実施日時と何日前かを明示する。
+try:
+    _base = datetime.datetime.strptime(os.environ.get('TODAY', ''), '%Y%m%d').date()
+except Exception:
+    _base = datetime.date.today()
+_src = ''
+_m = re.search(r'audit_(\d{8}_\d{6})', os.path.basename(js[-1]))
+if _m:
+    _dt = datetime.datetime.strptime(_m.group(1), '%Y%m%d_%H%M%S')
+    _days = (_base - _dt.date()).days
+    _age = '本日分' if _days <= 0 else ('前夜分' if _days == 1 else f'{_days}日前')
+    _src = f"　［実施 {_dt.strftime('%m/%d %H:%M')} {_age}］"
+lines = [f"監査 {len(rs)}問{exam_note}: OK {vc.get('ok',0)} / 注意 {vc.get('warn',0)} / 要修正 {vc.get('ng',0)}{_src}"]
 
 # 指摘のあった問題を列挙。ng(要修正=自動修正対象)は全文、warn(注意)は1行要約＋上限で
 # レポート量を抑える（トークン不足対策・メール肥大化防止）。
@@ -649,10 +768,6 @@ if flagged:
 
 # 直近3日以内に生成された改良のみ対象にする。最新ファイルを無条件に読むと、
 # 何日も前に一度適用した改良を毎晩「今夜の成果」として重複再掲してしまうため。
-try:
-    _base = datetime.datetime.strptime(os.environ.get('TODAY', ''), '%Y%m%d').date()
-except Exception:
-    _base = datetime.date.today()
 _cutoff = _base - datetime.timedelta(days=3)
 def _imp_date(p):
     m = re.search(r'audit_(\d{8})_', os.path.basename(p))
@@ -945,6 +1060,7 @@ data = {
     'cognito_new':sys.argv[22],
     'canary_auth_d':sys.argv[23],
     'test_user_check':sys.argv[24],
+    'service_news':sys.argv[25],
 }
 with open('$REPORT_DATA_FILE', 'w') as f:
     json.dump(data, f, ensure_ascii=False)
@@ -957,7 +1073,7 @@ with open('$REPORT_DATA_FILE', 'w') as f:
   "$DB_GEN3D" "$DB_CHK3D" \
   "$AUDIT_SUMMARY" "$CANARY_COV_SUMMARY" "$DAILY_SUMMARY" \
   "$BACKEND_HEALTH" "$CANARY_AUTH_RESULT" "$COGNITO_NEW" \
-  "${CANARY_AUTH_DETAIL:-}" "$TEST_USER_CHECK"
+  "${CANARY_AUTH_DETAIL:-}" "$TEST_USER_CHECK" "$SERVICE_NEWS"
 
 # HTML生成＋メール送信を1つのPythonスクリプトで実行
 SEND_RESULT=$(REPORT_DATA_FILE="$REPORT_DATA_FILE" python3 << 'PYEOF'
@@ -1048,6 +1164,7 @@ db_total = e(d['db_total']); db_unchk = e(d['db_unchk'])
 db_rpts  = e(d['db_rpts']);  db_exams = e(d['db_exams'])
 db_gen3d = e(d.get('db_gen3d','?')); db_chk3d = e(d.get('db_chk3d','?'))
 cert_html = md_to_html(d['cert']); jst_now  = e(d['jst_now'])
+service_news_html = md_to_html(d.get('service_news', '変更なし（対応不要）'))
 audit_html      = audit_to_html(d.get('audit', '監査未実施'))
 canary_cov_html = audit_to_html(d.get('canary_cov', '整合性チェック未実施'))
 daily_html      = e_lines(d.get('daily', '日めくり情報なし'))
@@ -1182,8 +1299,13 @@ html_body = f"""<!DOCTYPE html>
   </div>
 </div>
 
-<h2>5. AWS資格 公式情報チェック</h2>
-<div class="card" style="font-size:13px;line-height:1.7">{cert_html}</div>
+<h2>5. AWS公式情報チェック（直近7日）</h2>
+<div class="card" style="font-size:13px;line-height:1.7">
+  <b>資格試験の変更</b>（新設・廃止・出題範囲／週次・月曜）<br>{cert_html}
+  <div style="margin-top:10px;border-top:1px dashed #ddd;padding-top:8px">
+    <b>サービスの変更</b>（廃止・新規受付停止など既存問題に影響しうるもの／週次・木曜）<br>{service_news_html}
+  </div>
+</div>
 
 <h2>6. サイト稼働状況（DynamoDB）</h2>
 <div class="card"><table>

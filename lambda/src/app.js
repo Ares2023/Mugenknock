@@ -95,6 +95,16 @@ async function getDailyServicesAll(docClient) {
   return _dailyServicesCache;
 }
 
+// 抽選・図鑑母数に含めてよいサービスか。
+// アイコン未設定のものを抽選対象にすると、解放しても図鑑に絵が出ず体験が壊れるため除外する。
+// 非アクティブ(isActive:false)も同様に除外する（アイコン欠損を検知したら false にして止める運用）。
+// 除外したものは母数(?list=1)からも外す。母数に残すと 100% に到達できなくなるため。
+function isServiceUnlockable(i) {
+  return i.serviceId !== '_schedule_'
+    && i.isActive !== false
+    && typeof i.icon === 'string' && i.icon.trim() !== '';
+}
+
 // ── 試験種別ごとの全問キャッシュ（Lambda ウォームインスタンス内メモリ・10分TTL） ──
 // 同一インスタンスへの 2 回目以降のリクエストは DynamoDB を読まずに返す。
 // Phase1（metaOnly）→ Phase2（ids+withAnswers）が同インスタンスに当たれば Phase2 も高速化される。
@@ -2385,7 +2395,7 @@ app.get('/daily-service', async (req, res) => {
     if (req.query.list) {
       const allItems = await getDailyServicesAll(docClient);
       const services = allItems
-        .filter(i => i.serviceId !== '_schedule_')
+        .filter(isServiceUnlockable)
         .sort((a, b) => (a.order || 0) - (b.order || 0))
         .map(i => ({
           serviceId: i.serviceId,
@@ -2412,7 +2422,7 @@ app.get('/daily-service', async (req, res) => {
     // '_schedule_' は日付→serviceId のスケジュール管理用アイテム（一般アイテムから除外）
     const scheduleItem = allItems.find(i => i.serviceId === '_schedule_');
     const items = allItems
-      .filter(i => i.serviceId !== '_schedule_')
+      .filter(isServiceUnlockable)
       .sort((a, b) => (a.order || 0) - (b.order || 0));
 
     if (items.length === 0) return res.json({ service: null });
