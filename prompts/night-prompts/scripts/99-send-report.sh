@@ -212,9 +212,15 @@ fi
 echo ""
 echo "--- [1b] AWSサービス変更ニュース（直近7日） ---"
 
-# 既存問題の修正が必要になりそうな「サービス側の変更」を拾う。資格チェック(週次)と違い毎晩
-# 実行するため、RSS取得と絞り込みは決定的に行い、ヒットが無い晩はLLMを一切呼ばない。
+# 既存問題の修正が必要になりそうな「サービス側の変更」を拾う。RSS取得+LLM判定でトークンを
+# 使うため週次実行とする。走査窓が7日なので週次なら取りこぼしも重複掲載も起きない。
+# 資格チェック(月曜)と負荷を分散するため木曜に実行する。
 SERVICE_NEWS="変更なし（対応不要）"
+_SVC_DOW=$(date '+%u' 2>/dev/null || echo 4)  # 1=月 .. 7=日
+if [ "$_SVC_DOW" != "4" ]; then
+  SERVICE_NEWS="サービス変更チェックは週次（木曜のみ実行）。今夜はスキップ。"
+  echo "  サービス変更チェック: 週次（木曜のみ実行）。今夜はスキップ（トークン節約）。"
+else
 SVC_ITEMS=$(mktemp /tmp/svc_news_XXXX.txt)
 SVC_SCAN=$(SVC_OUT="$SVC_ITEMS" python3 << 'PYEOF'
 import os, re, datetime, urllib.request
@@ -306,6 +312,7 @@ else
   echo "  該当ニュースなし"
 fi
 rm -f "$SVC_ITEMS"
+fi
 
 # ── 2. 夜間スクリプト成果をログから集計 ─────────────────────
 echo ""
@@ -1294,9 +1301,9 @@ html_body = f"""<!DOCTYPE html>
 
 <h2>5. AWS公式情報チェック（直近7日）</h2>
 <div class="card" style="font-size:13px;line-height:1.7">
-  <b>資格試験の変更</b>（新設・廃止・出題範囲）<br>{cert_html}
+  <b>資格試験の変更</b>（新設・廃止・出題範囲／週次・月曜）<br>{cert_html}
   <div style="margin-top:10px;border-top:1px dashed #ddd;padding-top:8px">
-    <b>サービスの変更</b>（廃止・新規受付停止など既存問題に影響しうるもの）<br>{service_news_html}
+    <b>サービスの変更</b>（廃止・新規受付停止など既存問題に影響しうるもの／週次・木曜）<br>{service_news_html}
   </div>
 </div>
 
