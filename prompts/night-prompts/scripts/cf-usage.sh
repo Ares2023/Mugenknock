@@ -2,7 +2,7 @@
 # Cloudflare Pages 無料枠使用状況チェック
 #
 # 使い方:
-#   ./prompts/night-prompts/manual/cf-usage.sh
+#   ./prompts/night-prompts/scripts/cf-usage.sh
 
 CF_TOKEN="${CLOUDFLARE_API_TOKEN:-$(grep 'CLOUDFLARE_API_TOKEN' ~/.bashrc | head -1 | sed 's/.*="\(.*\)"/\1/')}"
 CF_ACCOUNT="${CLOUDFLARE_ACCOUNT_ID:-$(grep 'CLOUDFLARE_ACCOUNT_ID' ~/.bashrc | head -1 | sed 's/.*="\(.*\)"/\1/')}"
