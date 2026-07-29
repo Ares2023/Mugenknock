@@ -1,6 +1,6 @@
 # EXAM_GUIDE_URL: https://aws.amazon.com/jp/certification/certified-machine-learning-engineer-associate/
-# DOMAINS: 機械学習のためのデータ準備,MLモデルの開発,MLワークフローのデプロイとオーケストレーション,MLソリューションの監視、メンテナンス、セキュリティ
-# LAST_REFRESHED: 2026-06-21
+# DOMAINS: 機械学習 (ML) のためのデータ準備,ML モデルの開発,ML ワークフローのデプロイとオーケストレーション,ML ソリューションのモニタリング、保守、セキュリティ
+# LAST_REFRESHED: 2026-07-29
 
 あなたはAWS認定試験の問題作成者です。
 AWS Certified Machine Learning Engineer – Associate (MLA-C01) の模擬試験問題を作成してください。
@@ -24,35 +24,47 @@ AWS Certified Machine Learning Engineer – Associate (MLA-C01) の模擬試験�
 - 正解の選択肢の文字数が不正解の選択肢群から浮かないようにすること（正解の文字数を不正解の平均文字数に近づけること）
 - 廃止・非推奨のサービス
 - CLF・AIF レベルの基礎概念説明問題
-- 生成AI専門のBedrockに関する問題（AIF/AIP の領域）
+- 生成AI専門のBedrockに関する問題（AIF/AIP の領域）。ただし SageMaker JumpStart や Bedrock をモデル選択・ファインチューニングの選択肢として比較する問題はMLA範囲として可
 
 ---
 【公式試験ガイド概要 (MLA-C01)】
+■ 出題ドメインと配点
+| ドメイン | 配点 |
+|---|---|
+| コンテンツ分野 1: 機械学習 (ML) のためのデータ準備 | 28% |
+| コンテンツ分野 2: ML モデルの開発 | 26% |
+| コンテンツ分野 3: ML ワークフローのデプロイとオーケストレーション | 22% |
+| コンテンツ分野 4: ML ソリューションのモニタリング、保守、セキュリティ | 24% |
+
 ■ 公式タスク文（出題で必ずカバーすること）
-【第1ドメイン：機械学習のためのデータ準備】
-- Task 1.1: ML向けデータを取り込み・保存する（S3・FSx for Lustre・Redshift・DynamoDB・RDS・SageMaker Feature Store・データレイク設計）
-- Task 1.2: データを変換し特徴量エンジニアリングを行う（SageMaker Data Wrangler・Processing Jobs・Glue ETL・EMR・欠損値処理・スケーリング・エンコーディング）
-- Task 1.3: データの整合性を確保しモデリング向けに準備する（SageMaker Ground Truth・データ品質チェック・クラスバランス調整・訓練/検証/テスト分割）
 
-【第2ドメイン：MLモデルの開発】
-- Task 2.1: モデリングアプローチを選択する（アルゴリズム選択・SageMaker JumpStart・Autopilot・転移学習・アンサンブル・ハイパーパラメータ選択）
-- Task 2.2: モデルをトレーニング・改良する（SageMaker Training Jobs・分散トレーニング・スポットインスタンス・ハイパーパラメータ最適化・SageMaker Debugger）
-- Task 2.3: モデルパフォーマンスを分析する（精度・適合率・再現率・F1スコア・AUC-ROC・混同行列・交差検証・偏差/分散トレードオフ）
+【第1ドメイン：機械学習 (ML) のためのデータ準備（28%）】
+- Task 1.1: データを取り込んで保存する（S3・EFS・FSx・Kinesis・Kafka・Flink・SageMaker Feature Store・Parquet/ORC/Avro/RecordIO などのフォーマット選択・データレイク設計）
+- Task 1.2: データを変換し特徴量エンジニアリングを実行する（SageMaker Data Wrangler・Glue・Glue DataBrew・EMR/Spark・欠損値補完・外れ値処理・スケーリング・エンコーディング・トークン化・SageMaker Feature Store管理・SageMaker Ground Truth/Mechanical Turkによるラベリング）
+- Task 1.3: データの完全性を確保しモデリング向けに準備する（DataBrew・Glue Data Quality によるデータ品質検証・SageMaker Clarifyによるバイアス検出・クラス不均衡対策（合成データ生成・リサンプリング）・PII/PHIのマスキング・暗号化・データセット分割/シャッフル/拡張・EFS/FSxへのデータロード）
 
-【第3ドメイン：MLワークフローのデプロイとオーケストレーション】
-- Task 3.1: 既存のアーキテクチャと要件に基づいてデプロイインフラストラクチャを選択する（SageMaker Endpoint・Lambda・ECS・EC2・Inferentia/Trainium・マルチモデルエンドポイント）
-- Task 3.2: 既存のアーキテクチャと要件に基づいてインフラストラクチャを作成・スクリプト化する（CloudFormation・CDK・SageMaker Pipelines・MLflow）
-- Task 3.3: 継続的トレーニングとデプロイパイプラインを設定する自動化オーケストレーションツールを使用する（SageMaker Pipelines・Step Functions・EventBridge・CodePipeline・MLOps）
+【第2ドメイン：ML モデルの開発（26%）】
+- Task 2.1: モデリングアプローチを選択する（アルゴリズム選択・SageMaker 組み込みアルゴリズム・SageMaker JumpStart・Amazon Bedrock 基盤モデル・転移学習・コスト/解釈可能性に基づく選択・Amazon Translate/Transcribe/Rekognition などのAIサービス活用）
+- Task 2.2: モデルをトレーニングおよび改良する（SageMaker Training Jobs・TensorFlow/PyTorchスクリプトモード・分散トレーニング・スポットインスタンス・SageMaker 自動モデルチューニング(AMT)/ハイパーパラメータ最適化・正則化（ドロップアウト・L1/L2・重み減衰）・アンサンブル/スタッキング/ブースティング・モデル圧縮（プルーニング・データ型変更）・SageMaker Model Registryによるバージョン管理）
+- Task 2.3: モデルのパフォーマンスを分析する（混同行列・F1・精度・適合率・再現率・RMSE・AUC-ROC・SageMaker Clarify によるバイアス検出・SageMaker モデルデバッガーによる収束デバッグ・シャドウバリアント比較・A/Bテスト）
 
-【第4ドメイン：MLソリューションの監視、メンテナンス、セキュリティ】
-- Task 4.1: モデル推論を監視する（SageMaker Model Monitor・データドリフト検出・コンセプトドリフト・CloudWatch メトリクス・アラート・再学習トリガー）
-- Task 4.2: インフラストラクチャとコストを監視・最適化する（SageMaker Savings Plans・推論最適化・モデル圧縮・量子化・知識蒸留・Graviton・Inferentia）
-- Task 4.3: AWSリソースをセキュリティ保護する（IAM・VPC エンドポイント・KMS暗号化・SageMaker VPC・ネットワーク分離・コンプライアンス）
+【第3ドメイン：ML ワークフローのデプロイとオーケストレーション（22%）】
+- Task 3.1: デプロイインフラストラクチャを選択する（SageMaker リアルタイムエンドポイント・バッチ変換・サーバーレス推論・非同期推論・マルチモデルエンドポイント・マルチコンテナデプロイ・Lambda・ECS・EKS・SageMaker Neo によるエッジ最適化・GPU/CPU インスタンスファミリー選択・Apache Airflow / SageMaker Pipelines によるオーケストレーション選択）
+- Task 3.2: インフラストラクチャを作成・スクリプト化する（CloudFormation・CDK・SageMaker AI SDK・ECR/ECS/EKSでのコンテナ管理・BYOC（Bring Your Own Container）・VPC内SageMakerエンドポイント設定・自動スケーリング（SageMakerエンドポイント、モデルレイテンシー/CPU使用率/呼び出し回数メトリクス）・スポットインスタンスの動的追加）
+- Task 3.3: CI/CDパイプラインを設定する（CodePipeline・CodeBuild・CodeDeploy・SageMaker Pipelines・EventBridge・Step Functions・ブルー/グリーン・カナリア・線形デプロイ戦略・ロールバック・Git/GitHub Flowとの連携・自動テスト統合・モデル再トレーニングメカニズム）
+
+【第4ドメイン：ML ソリューションのモニタリング、保守、セキュリティ（24%）】
+- Task 4.1: モデル推論をモニタリングする（SageMaker Model Monitor によるデータ品質・モデル品質・バイアスドリフト・特徴量アトリビューションドリフト検出・SageMaker Clarify によるデータ分布変化検出・A/Bテスト・本番ワークフローの異常/エラー検出）
+- Task 4.2: インフラストラクチャとコストをモニタリング・最適化する（CloudWatch・CloudWatch Logs Insights・AWS X-Ray・CloudWatch Lambda Insights・CloudTrail・Amazon QuickSight/CloudWatchダッシュボード・EventBridge・SageMaker Inference Recommender・Compute Optimizer によるインスタンス適正化・タグ付けによるコスト配分・Cost Explorer・Trusted Advisor・Budgets・スポット/オンデマンド/リザーブド/SageMaker Savings Plans の選択）
+- Task 4.3: AWSリソースのセキュリティを確保する（IAM・SageMaker Role Manager・最小権限アクセス・KMS暗号化・VPC/サブネット/セキュリティグループによるネットワーク分離・CloudTrail による監査・CI/CDパイプラインのセキュリティベストプラクティス・Secrets Manager・Amazon Macie）
 
 ■ 出題範囲の主要サービス
-- MLプラットフォーム: SageMaker (Studio・Autopilot・Ground Truth・Processing・Training・Debugger・Experiments・Model Monitor・Feature Store・Pipelines・JumpStart・Clarify)
-- データ準備: Glue, EMR, Data Wrangler, Athena, Redshift, S3
-- デプロイ: SageMaker Real-time Endpoint, Batch Transform, Serverless Inference, Async Inference, Multi-Model Endpoint
-- 特殊ハードウェア: EC2 GPU (P3/P4/G5), AWS Inferentia/Trainium, Graviton
-- MLOps: SageMaker Pipelines, Step Functions, CodePipeline, EventBridge, MLflow
-- セキュリティ: IAM, KMS, VPC, CloudTrail, SageMaker Role Manager
+- MLプラットフォーム: SageMaker (Studio・Autopilot・Ground Truth・Processing・Training・Debugger・Experiments・Model Monitor・Feature Store・Pipelines・JumpStart・Clarify・Model Registry・Inference Recommender・Neo・Role Manager)
+- AIサービス: Amazon Rekognition・Transcribe・Translate・Comprehend・Comprehend Medical・Textract・Personalize・Kendra・Lex・Polly・Fraud Detector・Lookout for Equipment/Metrics/Vision・Bedrock（モデル選択・ファインチューニング文脈のみ）・A2I・Mechanical Turk
+- データ準備・分析: Glue・Glue DataBrew・Glue Data Quality・EMR・Athena・Redshift・Lake Formation・OpenSearch Service・Kinesis・Managed Service for Apache Flink・Data Firehose
+- ストレージ: S3・EBS・EFS・FSx・S3 Glacier・DynamoDB・RDS・DocumentDB・ElastiCache・Neptune
+- デプロイ・コンピューティング: SageMaker Endpoint (リアルタイム・バッチ・サーバーレス・非同期・マルチモデル)・Lambda・EC2 (P3/P4/G5 GPU・Graviton)・ECS・EKS・ECR・AWS Batch・Serverless Application Repository
+- 特殊ハードウェア: AWS Inferentia/Trainium・Graviton（推論最適化）
+- MLOps・CI/CD: SageMaker Pipelines・Step Functions・CodePipeline・CodeBuild・CodeDeploy・CodeArtifact・EventBridge・MWAA (Apache Airflow)・CloudFormation・CDK・AWS X-Ray
+- モニタリング・コスト: CloudWatch・CloudWatch Logs・CloudTrail・Compute Optimizer・Cost Explorer・Trusted Advisor・Budgets・Billing and Cost Management・AWS Config・Systems Manager
+- セキュリティ: IAM・KMS・Secrets Manager・Macie・VPC・API Gateway・CloudFront・Auto Scaling・Organizations・Service Catalog・Trusted Advisor

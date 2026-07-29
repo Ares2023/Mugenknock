@@ -1,6 +1,6 @@
 # EXAM_GUIDE_URL: https://aws.amazon.com/jp/certification/certified-generative-ai-developer-professional/
-# DOMAINS: 基盤モデルの統合、データ管理、コンプライアンス,実装と統合,AIの安全性、セキュリティ、ガバナンス,生成AIアプリケーションの運用効率と最適化,テスト、検証、トラブルシューティング
-# LAST_REFRESHED: 2026-06-21
+# DOMAINS: 基盤モデルの統合、データ管理、コンプライアンス,実装と統合,AIの安全性・セキュリティ・ガバナンス,GenAIアプリケーションの運用効率と最適化,テスト・検証・トラブルシューティング
+# LAST_REFRESHED: 2026-07-26
 
 あなたはAWS認定試験の問題作成者です。
 AWS Certified Generative AI Developer – Professional (AIP-C01) の模擬試験問題を作成してください。
@@ -8,7 +8,7 @@ AWS Certified Generative AI Developer – Professional (AIP-C01) の模擬試験
 【難易度】
 - Professional レベル：生成AIアプリケーションの設計・実装・最適化の高度な実践知識
 - Amazon Bedrock を中心とした生成AIシステムの構築スキルを問う
-- RAG・エージェント・プロンプト最適化・セキュリティの深い理解が必要
+- RAG・エージェント・プロンプト最適化・セキュリティ・評価の深い理解が必要
 
 【問題スタイル】
 - 4択（単一正解）または5択から2択の複数正解
@@ -28,46 +28,82 @@ AWS Certified Generative AI Developer – Professional (AIP-C01) の模擬試験
 
 ---
 【公式試験ガイド概要 (AIP-C01)】
+
+■ ドメイン配点
+| コンテンツ分野 | 配点 |
+|---|---|
+| 第1分野: 基盤モデルの統合、データ管理、コンプライアンス | 31% |
+| 第2分野: 実装と統合 | 26% |
+| 第3分野: AI の安全性、セキュリティ、ガバナンス | 20% |
+| 第4分野: GenAI アプリケーションの運用効率と最適化 | 12% |
+| 第5分野: テスト、検証、トラブルシューティング | 11% |
+
 ■ 公式タスク文（出題で必ずカバーすること）
-【第1ドメイン：基盤モデルの統合、データ管理、コンプライアンス】
-- Task 1.1: 要件に合った基盤モデルを選択する（Bedrock モデル比較・Claude/Titan/Llama/Mistral/Stable Diffusion・コンテキストウィンドウ・コスト・レイテンシー・モダリティ）
-- Task 1.2: RAGアーキテクチャを設計・実装する（Bedrock Knowledge Bases・ベクターストア（OpenSearch/Pinecone/Aurora pgvector）・チャンキング戦略・埋め込みモデル選択）
-- Task 1.3: データパイプラインを構築する（データ取り込み・前処理・埋め込み生成・インデクシング・S3・Glue・Lambda）
-- Task 1.4: コンプライアンスとデータ管理要件を満たす（データ主権・PII処理・暗号化・アクセス制御・監査ログ・Lake Formation）
 
-【第2ドメイン：実装と統合】
-- Task 2.1: Bedrockエージェントを設計・実装する（Agents for Bedrock・アクショングループ・Lambda ツール定義・オーケストレーション・マルチエージェント）
-- Task 2.2: プロンプトエンジニアリングを高度に活用する（システムプロンプト設計・フューショット・チェーンオブソート・構造化出力・プロンプトキャッシング・Prompt Management）
-- Task 2.3: モデルのカスタマイズを実装する（ファインチューニング・継続事前学習・RLHF・LoRA・SageMaker との統合・カスタムモデルインポート）
-- Task 2.4: 既存システムと統合する（API Gateway・Lambda・EventBridge・SQS・Step Functions・ストリーミングレスポンス）
+【第1分野: 基盤モデルの統合、データ管理、コンプライアンス】
 
-【第3ドメイン：AIの安全性、セキュリティ、ガバナンス】
-- Task 3.1: 生成AIアプリケーションのセキュリティを設計する（Bedrock Guardrails・プロンプトインジェクション対策・コンテンツフィルタリング・機密情報マスキング・IAM）
-- Task 3.2: 責任あるAIの原則を実装する（バイアス検出・公平性・透明性・Guardrails ポリシー・RACI・AIガバナンスフレームワーク）
-- Task 3.3: コンプライアンスとガバナンス要件を満たす（Bedrock Model Evaluation・監査ログ・CloudTrail・SageMaker Role Manager・AI Act対応）
+- Task 1.1: 要件を分析し、GenAI ソリューションを設計する（Well-Architected フレームワーク・Generative AI Lens・概念実証・アーキテクチャ設計・デプロイ戦略）
+- Task 1.2: FM を選定して設定する（パフォーマンスベンチマーク・クロスリージョン推論・サーキットブレーカー・LoRA・モデルライフサイクル・SageMaker Model Registry・カスタムモデルインポート）
+- Task 1.3: FM 消費のためのデータ検証と処理パイプラインを実装する（マルチモーダルデータ処理・Glue Data Quality・SageMaker Data Wrangler・入力フォーマット・品質向上）
+- Task 1.4: ベクトルストアソリューションを設計して実装する（Bedrock Knowledge Bases・OpenSearch Neural プラグイン・pgvector・メタデータフレームワーク・シャーディング・増分更新・リアルタイム同期）
+- Task 1.5: FM 拡張のための検索メカニズムを設計する（チャンキング戦略・Titan 埋め込み・ハイブリッド検索・Bedrock リランカー・クエリ拡張・クエリ分解・MCP クライアント）
+- Task 1.6: FM インタラクションのためのプロンプトエンジニアリング戦略とガバナンスを実施する（Bedrock Prompt Management・Bedrock Prompt Flows・承認ワークフロー・思考連鎖・プロンプト回帰テスト・品質保証）
 
-【第4ドメイン：生成AIアプリケーションの運用効率と最適化】
-- Task 4.1: コストを最適化する（Bedrock プロビジョンドスループット・オンデマンド vs プロビジョンド・プロンプトキャッシング・モデル選択最適化）
-- Task 4.2: パフォーマンスを最適化する（レイテンシー削減・ストリーミング・並列処理・バッチ推論 API・Bedrock Converse API）
-- Task 4.3: 可観測性を実装する（CloudWatch・Bedrock モデル呼び出しログ・トークン使用量監視・エラー率・X-Ray）
+【第2分野: 実装と統合】
 
-【第5ドメイン：テスト、検証、トラブルシューティング】
-- Task 5.1: 生成AIアプリケーションをテスト・検証する（Bedrock Model Evaluation・自動評価・ヒューマン評価・RAGAS・ベンチマーク・A/Bテスト）
-- Task 5.2: 問題をトラブルシューティングする（ハルシネーション対策・RAG精度改善・Guardrails 調整・モデル出力品質・プロンプト改善）
+- Task 2.1: エージェンティック AI ソリューションとツール統合を実装する（Bedrock Agents・AgentCore・自律システム・メモリ/ステート管理・マルチエージェント・ヒューマンインザループ・ツール統合・MCP）
+- Task 2.2: モデルデプロイ戦略を実施する（LLM 固有の課題・プロビジョンドスループット・オンデマンド vs プロビジョンド・容量プランニング・SageMaker JumpStart）
+- Task 2.3: エンタープライズ統合アーキテクチャを設計し実装する（既存システム統合・セキュアアクセスフレームワーク・クロスリージョン・CI/CD パイプライン・GenAI ゲートウェイアーキテクチャ・データコンプライアンス）
+- Task 2.4: FM API 統合を実装する（Bedrock Converse API・ストリーミングレスポンス・レジリエント設計・インテリジェントモデルルーティング・フォールバック）
+- Task 2.5: アプリケーション統合パターンと開発ツールを実装する（SDK・AppSync・Q Developer・Kiro・高度な GenAI アプリケーション・デバッグ・トラブルシューティング効率化）
+
+【第3分野: AI の安全性、セキュリティ、ガバナンス】
+
+- Task 3.1: 入力と出力の安全コントロールを実装する（Bedrock Guardrails・コンテンツフィルタリング・プロンプトインジェクション対策・ハルシネーション低減・多層防御・ジェイルブレイク検出）
+- Task 3.2: データセキュリティとプライバシーコントロールを実装する（VPC エンドポイント・Lake Formation・IAM・Macie・Comprehend PII 検出・データマスキング・S3 ライフサイクル）
+- Task 3.3: AI ガバナンスとコンプライアンスのメカニズムを実装する（Glue Data Catalog・データリネージュ・CloudTrail 監査ログ・モデルカード・バイアスドリフトモニタリング・自動修復）
+- Task 3.4: 責任ある AI の原則を実装する（Bedrock エージェントトレース・公平性評価・LLM-as-a-judge・A/B テスト・ポリシー準拠・透明性・説明可能性）
+
+【第4分野: GenAI アプリケーションの運用効率と最適化】
+
+- Task 4.1: コスト最適化とリソース効率化の戦略を実施する（トークン効率・プロンプト圧縮・コンテキストプルーニング・コスト能力トレードオフ・プロビジョンドスループット最適化・セマンティックキャッシュ・プロンプトキャッシング）
+- Task 4.2: アプリケーションのパフォーマンスを最適化する（レイテンシー削減・ストリーミング・バッチ推論・ハイブリッド検索最適化・Temperature/TopK/TopP・同時呼び出し管理）
+- Task 4.3: GenAI アプリケーションのモニタリングシステムを実装する（CloudWatch・Bedrock モデル呼び出しログ・ハルシネーション率・コスト異常検出・X-Ray・エージェントトレース・ベクターDB パフォーマンス監視）
+
+【第5分野: テスト、検証、トラブルシューティング】
+
+- Task 5.1: GenAI の評価システムを実装する（Bedrock Model Evaluation・関連性/正解率/一貫性/流暢さ・A/B テスト・カナリアテスト・LLM-as-a-judge・RAGAS・RAG 評価・エージェント評価・回帰テスト・デプロイ品質ゲート）
+- Task 5.2: GenAI アプリケーションをトラブルシューティングする（コンテキストウィンドウオーバーフロー・API 統合診断・プロンプトバージョン比較・埋め込み品質診断・ベクター検索最適化・セマンティックドリフト検出）
 
 ■ 出題範囲の主要サービス
-- 生成AI中核: Amazon Bedrock (基盤モデル・Knowledge Bases・Agents・Guardrails・Model Evaluation・Flows・Prompt Management・プロビジョンドスループット)
-- ベクターストア: OpenSearch Serverless, Aurora PostgreSQL (pgvector), RDS PostgreSQL
-- データ処理: S3, Glue, Lambda, SageMaker Processing
-- 統合: API Gateway, Lambda, Step Functions, EventBridge, SQS, AppSync
-- MLOps: SageMaker, CodePipeline, CloudWatch
-- セキュリティ: IAM, KMS, VPC, CloudTrail, Macie
-
-■ カバー薄い出題テーマの優先化（2026-07-23・実データ調査で判明。他テーマに対し出題頻度を上げること）
-- RLHF（人間のフィードバックによる強化学習）: モデルのアラインメント・応答品質改善のシナリオで出題
-- LoRA（Low-Rank Adaptation）: フルファインチューニングとの比較（コスト・時間・ストレージ効率）を軸にしたカスタマイズ手法選定シナリオ
-- Lake Formation: 生成AIのデータパイプラインにおけるアクセス制御・データガバナンスのシナリオ
+- 生成AI中核: Amazon Bedrock（基盤モデル・Knowledge Bases・Agents・AgentCore・Guardrails・Model Evaluation・Flows・Prompt Management・プロビジョンドスループット・クロスリージョン推論）
+- AI アシスタント: Amazon Q Business・Amazon Q Business Apps・Amazon Q Developer
+- ベクターストア: OpenSearch Serverless・Aurora PostgreSQL (pgvector)・Amazon Neptune・Amazon RDS
+- データ処理・分析: S3・Glue・Glue Data Quality・Lambda・SageMaker Processing・SageMaker Data Wrangler・Kinesis・MSK・Athena・EMR
+- ML プラットフォーム: SageMaker AI・SageMaker JumpStart・SageMaker Ground Truth・SageMaker Model Registry・SageMaker Model Monitor・SageMaker Neo・SageMaker Unified Studio・SageMaker Clarify・Augmented AI
+- AI サービス: Comprehend・Kendra・Rekognition・Textract・Transcribe・Lex・Titan・Connect
+- 統合: API Gateway・Lambda・Step Functions・EventBridge・SQS・SNS・AppSync・AppFlow・AppConfig
+- コンテナ・コンピューティング: ECS・EKS・Fargate・EC2・App Runner
+- セキュリティ: IAM・KMS・VPC・CloudTrail・Macie・Cognito・Lake Formation・Secrets Manager・WAF・IAM Identity Center
+- 開発者ツール: CDK・CloudFormation・CodePipeline・CodeBuild・CodeDeploy・Amplify・X-Ray・Kiro
+- モニタリング: CloudWatch・CloudWatch Logs・CloudWatch Synthetics・Managed Grafana・Cost Explorer・コスト異常検出
 
 ■ 生成AIモデル選定問題の作り方（陳腐化・能力誤認の防止）
 - 特定モデル間の絶対的なトークン単価比較を正否の決め手にしない（価格改定で陳腐化する）。相対的な特性（マルチモーダル対応/コンテキスト長/レイテンシ/多言語/用途）で正解が決まる設計にする。
 - 現行世代のモデルを用いる。モデルの能力を正確に：Claude 3.5 Haikuはテキスト専用で画像入力に非対応、Claude 3.5 Sonnetは画像入力対応・200Kコンテキスト。Embeddings系はベクター生成用で説明文生成はできない。誤った能力を正解の根拠にしない。
+- Bedrock AgentCore・MCP・Amazon Q Business Apps・Kiro など2025〜2026年追加の新機能を積極的に出題に含めること。
+
+---
+
+主な更新点（現行からの差分）：
+
+| 項目 | 変更内容 |
+|---|---|
+| ドメイン配点 | 変更なし（31/26/20/12/11%） |
+| Task 1 | 旧4タスク→新6タスク（設計・FM選定・データ処理・ベクターストア・検索・プロンプトガバナンス） |
+| Task 2 | 旧4タスク→新5タスク（エージェント実装・デプロイ戦略・エンタープライズ統合・API統合・開発ツール） |
+| Task 3 | 旧3タスク→新4タスク（安全コントロール・データプライバシー・ガバナンス・責任あるAI） |
+| Task 4 | 旧3タスク→新3タスク（タスク内容は整合、コスト/パフォーマンス/モニタリング） |
+| Task 5 | 旧2タスク→新2タスク（評価スキルが大幅拡充、エージェント評価・デプロイ検証追加） |
+| 新サービス | Bedrock AgentCore・Q Business Apps・Q Developer・Kiro・SageMaker Unified Studio・MSK・Connect・Neptune 追加 |
+| モデル選定注 | 新機能（AgentCore/MCP/Kiro）を積極出題する旨を追記 |

@@ -1,6 +1,6 @@
 # EXAM_GUIDE_URL: https://aws.amazon.com/jp/certification/certified-advanced-networking-specialty/
-# DOMAINS: ネットワーク設計,ネットワーク実装,ネットワーク管理と運用,ネットワークのセキュリティ、コンプライアンス、ガバナンス
-# LAST_REFRESHED: 2026-06-21
+# DOMAINS: ネットワーク設計,ネットワーク実装,ネットワークの管理と運用,ネットワークセキュリティ、コンプライアンス、ガバナンス
+# LAST_REFRESHED: 2026-07-26
 
 あなたはAWS認定試験の問題作成者です。
 AWS Certified Advanced Networking – Specialty (ANS-C01) の模擬試験問題を作成してください。
@@ -40,37 +40,41 @@ AWS Certified Advanced Networking – Specialty (ANS-C01) の模擬試験問題�
 ---
 【公式試験ガイド概要 (ANS-C01)】
 ■ 公式タスク文（出題で必ずカバーすること）
-【第1ドメイン：ネットワーク設計】
-- Task 1.1: グローバルアーキテクチャのユーザーパフォーマンスとトラフィック管理を最適化するエッジネットワークサービスを組み込んだソリューションを設計する（CloudFront・Global Accelerator・Route 53 ルーティングポリシー・レイテンシー最適化）
-- Task 1.2: パブリック・プライベート・ハイブリッド要件を満たすDNSソリューションを設計する（Route 53 Resolver・プライベートホストゾーン・条件付き転送・ハイブリッドDNS・Split-horizon）
-- Task 1.3: 高可用性・スケーラビリティ・セキュリティ要件を満たすロードバランシングを統合したソリューションを設計する（ALB・NLB・GLB・スティッキーセッション・クロスゾーン負荷分散・ターゲットグループ）
-- Task 1.4: AWSとハイブリッドネットワーク全体のロギング・モニタリング要件を定義する（VPC Flow Logs・CloudTrail・CloudWatch・Reachability Analyzer・Network Access Analyzer）
-- Task 1.5: セキュリティとコンプライアンス要件を満たすネットワークアーキテクチャを設計する（Network Firewall・WAF・Shield・Security Groups・NACLs・PrivateLink・VPC Endpoints）
 
-【第2ドメイン：ネットワーク実装】
-- Task 2.1: オンプレミス環境とAWSクラウド間のルーティングと接続性を実装する（Direct Connect・Site-to-Site VPN・Client VPN・BGP・MACsec・LAG・Virtual Interface種類）
-- Task 2.2: 異なる接続パターンをサポートするために複数のAWSアカウント・リージョン・VPC間のルーティングと接続性を実装する（Transit Gateway・VPCピアリング・RAM・PrivateLink・Shared VPC・VPC Lattice）
-- Task 2.3: 複雑なハイブリッドおよびマルチアカウントDNSアーキテクチャを実装する（Route 53 Resolver Endpoints・転送ルール・プライベートゾーン共有・オンプレDNS統合）
-- Task 2.4: ネットワークインフラストラクチャを自動化・設定する（CloudFormation・CDK・Systems Manager・Network Manager・AWS CLI）
+【第1ドメイン：ネットワーク設計】（30%）
+- Task 1.1: グローバルアーキテクチャ向けにユーザーパフォーマンスとトラフィック管理を最適化するためにエッジネットワークサービスを組み込んだソリューションを設計する（CloudFront・Global Accelerator・ELB・API Gateway との統合・インバウンド/アウトバウンドグローバルトラフィック要件の評価）
+- Task 1.2: パブリック、プライベート、ハイブリッドの要件を満たす DNS ソリューションを設計する（Route 53 エイリアスレコード・トラフィックポリシー・Resolver エンドポイント・ヘルスチェック・DNSSEC・プライベートホストゾーン・条件付き転送・ドメイン登録・ハイブリッド/マルチアカウント/マルチリージョン統合）
+- Task 1.3: 高可用性、スケーラビリティ、セキュリティ要件を満たすようにロードバランシングを統合するソリューションを設計する（ALB・NLB・GLB・OSI L3/L4/L7 ロードバランシング・クロスゾーン負荷分散・スティッキーセッション・ルーティングアルゴリズム・TLS終端/パススルー・ACM・EKS 用 AWS Load Balancer Controller・WAF/CloudFront/Global Accelerator/Route 53 との統合）
+- Task 1.4: AWS とハイブリッドネットワーク全体でログ記録とモニタリングの要件を定義する（CloudWatch メトリクス/エージェント/ログ/アラーム/ダッシュボード・Transit Gateway Network Manager・VPC Reachability Analyzer・VPC Flow Logs・Traffic Mirroring・ロードバランサー/CloudFront アクセスログ）
+- Task 1.5: オンプレミスネットワークと AWS クラウド間のルーティング戦略と接続アーキテクチャを設計する（スタティック/ダイナミックルーティング・BGP・VLAN・LAG・GRE・IPsec・AWS RAM・Direct Connect・Site-to-Site VPN・オーバーレイネットワーク・SD-WAN / Transit Gateway Connect 統合・BGP 属性によるトラフィックエンジニアリング）
+- Task 1.6: さまざまな接続パターンをサポートするために複数の AWS アカウント、リージョン、VPC を含むルーティング戦略と接続アーキテクチャを設計する（VPC ピアリング・Transit Gateway・PrivateLink・Shared VPC・AWS RAM・IP CIDR 重複対策・NAT・Transit Gateway ルーティングによる IP 重複管理）
 
-【第3ドメイン：ネットワーク管理と運用】
-- Task 3.1: AWSとハイブリッドネットワーク上のルーティングと接続性を維持する（BGPフェイルオーバー・Direct Connect冗長性・BFD・ルート集約・トラブルシューティング）
-- Task 3.2: 接続パターンを最適化するためにネットワークトラフィックを監視・分析する（VPC Flow Logs分析・Traffic Mirroring・CloudWatch メトリクス・Network Manager・パフォーマンス最適化）
-- Task 3.3: コスト効率・信頼性・パフォーマンスのためにAWSネットワークを最適化する（データ転送コスト・Placement Groups・Enhanced Networking・SR-IOV・ECMP・帯域幅最適化）
+【第2ドメイン：ネットワーク実装】（26%）
+- Task 2.1: オンプレミスネットワークと AWS クラウドの間にルーティングと接続を実装する（Direct Connect・Site-to-Site VPN・Client VPN・BGP・MACsec・LAG・Virtual Interface 種別・Transit Gateway Connect・SD-WAN・Route 53 Resolver 条件付き転送・ロードバランシング実装・Reachability Analyzer/Route Analyzer による接続検証・CloudFormation/CDK 自動化）
+- Task 2.2: 複数の AWS アカウント、リージョン、VPC にルーティングと接続を実装する（VPC ピアリング・Transit Gateway・PrivateLink・VPN・SD-WAN・MPLS・AWS RAM・AWS Organizations・Shared VPC・Security Groups・NACLs・Network Firewall・SAML/Active Directory 認証・Transit VPC・ハブアンドスポーク構成）
+- Task 2.3: 複雑なハイブリッドおよびマルチアカウント DNS アーキテクチャを実装する（Route 53 パブリック/プライベートホストゾーン・DNS 委任・条件付き転送・DNS レコードタイプ（A/AAAA/TXT/PTR/CNAME/エイリアス）・DNSSEC・AWS RAM によるゾーン共有・Resolver インバウンド/アウトバウンドエンドポイント・トラフィック管理ポリシー・DNS モニタリングとログ記録）
+- Task 2.4: ネットワークインフラストラクチャを自動化して構成する（CloudFormation・CDK・AWS CLI・SDK・API・イベント駆動型ネットワーク自動化・IaC テンプレートのハードコード回避・コスト最小化・ネットワークリソース最適化の自動化）
 
-【第4ドメイン：ネットワークのセキュリティ、コンプライアンス、ガバナンス】
-- Task 4.1: セキュリティとコンプライアンスのニーズと要件を満たすネットワーク機能を実装・維持する（Network Firewall・WAF・Shield Advanced・Firewall Manager・AWS Verified Access・PrivateLink）
-- Task 4.2: ネットワークモニタリング・ロギングサービスを使ってセキュリティを検証・監査する（VPC Flow Logs・CloudTrail・Config Rules・Security Hub・GuardDuty・Detective）
-- Task 4.3: 複雑なマルチアカウント環境でVPCを実装・使用する（RAM・Transit Gateway・Shared VPC・PrivateLink・VPC Endpoints・Service Endpoint Policies）
+【第3ドメイン：ネットワークの管理と運用】（20%）
+- Task 3.1: AWS とハイブリッドネットワークでルーティングと接続性を維持する（Direct Connect 経由 BGP・Direct Connect Gateway・Transit Gateway・VIF 種別・PrivateLink・VPC ピアリング・帯域幅/ルート数クォータへの対応・ルートテーブル管理・スタティック/ダイナミックルーティング最適化・リージョン間/リージョン内通信パターン）
+- Task 3.2: ネットワークトラフィックをモニタリングおよび分析して、接続パターンのトラブルシューティングと最適化を行う（CloudWatch メトリクス/ログ・VPC Flow Logs・VPC Traffic Mirroring・Reachability Analyzer・Transit Gateway Network Manager・パケット損失/ルーティング問題分析・MTU/パケットサイズ不一致トラブルシューティング・接続意図検証の自動化）
+- Task 3.3: AWS ネットワークを最適化してパフォーマンス、信頼性、費用対効果を高める（VPC ピアリング vs Transit Gateway の選択・ENI/ENA/EFA ネットワークインターフェイス選択・ジャンボフレーム設定・マルチキャスト実装・Global Accelerator・Route 53 ヘルスチェック・帯域幅削減手法・データ転送コスト最適化・サブネット最適化・IPAM による IP 枯渇防止）
+
+【第4ドメイン：ネットワークセキュリティ、コンプライアンス、ガバナンス】（24%）
+- Task 4.1: セキュリティとコンプライアンスのニーズと要件を満たすためにネットワーク機能を実装し、保守する（AWS WAF・Shield Advanced・Network Firewall・Gateway Load Balancer・Security Groups・NACLs・VPC エンドポイントポリシー・Firewall Manager・Verified Access・インバウンド/アウトバウンドトラフィック保護・境界 VPC・3 層アーキテクチャ・脅威モデルと緩和戦略・フェイルオーバーテスト・セキュリティアラートの自動化）
+- Task 4.2: ネットワークのモニタリングおよびログ記録サービスを使用してセキュリティを検証し、監査する（VPC Flow Logs（ベースフィールド/拡張フィールド）・VPC Traffic Mirroring・CloudWatch アラーム/カスタムメトリクス・CloudTrail・Transit Gateway Network Manager・Amazon Kinesis によるログ配信・Firewall Manager・Trusted Advisor・Security Hub・GuardDuty・マルチアカウント横断ネットワーク監査戦略）
+- Task 4.3: ネットワークのデータと通信の機密性を実装し、保守する（IPsec・TLS 終端/パススルー・Direct Connect 経由 VPN（MACsec 含む）・転送中データ暗号化（CloudFront/ALB/NLB/Transit Gateway/RDS/S3/EC2 カスタム）・ACM・ACM Private CA による証明書管理・DNSSEC によるセキュア DNS 通信・AWS 責任共有モデル下のネットワーク暗号化）
 
 ■ 出題範囲の主要サービスと概念
-- VPC: サブネット設計, CIDR, ルートテーブル, VPCピアリング, VPC Lattice, Shared VPC
-- 接続性: Direct Connect (Gateway・LAG・Virtual Interface・MACsec), Transit Gateway, Site-to-Site VPN, Client VPN, PrivateLink, VPC Endpoints
-- DNS・コンテンツ配信: Route 53 (プライベートホストゾーン・Resolver・ヘルスチェック・ルーティングポリシー), CloudFront, Global Accelerator
-- ロードバランシング: ALB, NLB, Gateway Load Balancer, Elastic IP
-- セキュリティ: Security Groups, NACLs, Network Firewall, WAF, Shield, Firewall Manager, AWS Verified Access
-- ハイブリッド接続: Direct Connect Gateway, Transit VIF, Private VIF, Public VIF, LAG (Link Aggregation Group)
-- ネットワーク最適化: Placement Groups, Enhanced Networking, SR-IOV, ECMP
-- モニタリング: VPC Flow Logs, Reachability Analyzer, Network Access Analyzer, CloudWatch, Traffic Mirroring
-- BGP: AS番号, ルート広告, BGPコミュニティ, フィルタリング, BFD
-- IPアドレス管理: IPAM, IPv6対応, Egress-Only Internet Gateway
+- VPC: サブネット設計, CIDR, ルートテーブル, VPC ピアリング, Shared VPC, VPC Lattice, IPAM
+- 接続性: Direct Connect (Gateway・LAG・Virtual Interface 種別・MACsec), Transit Gateway (Connect・マルチキャスト・ECMP), Site-to-Site VPN, Client VPN, PrivateLink, VPC Endpoints, SD-WAN 統合, Transit VPC
+- DNS・コンテンツ配信: Route 53 (パブリック/プライベートホストゾーン・Resolver エンドポイント・ヘルスチェック・ルーティングポリシー・DNSSEC・トラフィックポリシー), CloudFront, Global Accelerator
+- ロードバランシング: ALB, NLB, Gateway Load Balancer, Elastic IP, EKS 用 AWS Load Balancer Controller
+- セキュリティ: Security Groups, NACLs, Network Firewall, WAF, Shield Advanced, Firewall Manager, AWS Verified Access, Gateway Load Balancer（セキュリティアプライアンス挿入）
+- ハイブリッド接続: Direct Connect Gateway, Transit VIF, Private VIF, Public VIF, LAG (Link Aggregation Group), BGP コミュニティ, MACsec, BFD
+- ネットワーク最適化: Placement Groups, Enhanced Networking (ENA), EFA, SR-IOV, ECMP, ジャンボフレーム, マルチキャスト
+- モニタリング・分析: VPC Flow Logs (拡張フィールド), Traffic Mirroring, Reachability Analyzer, Network Access Analyzer, Transit Gateway Network Manager, CloudWatch, CloudTrail
+- BGP: AS 番号, ルート広告, BGP コミュニティ値, AS-PATH プリペンド, MED, Local Preference, ルートフィルタリング, BFD, フェイルオーバー設計
+- 暗号化: IPsec, TLS, MACsec, ACM, ACM Private CA, DNSSEC
+- 自動化: CloudFormation, CDK, AWS CLI, SDK, イベント駆動型ネットワーク自動化, Network Manager
+- IPアドレス管理: IPAM, IPv6, Egress-Only Internet Gateway, NAT Gateway, IP 重複対策 (NAT/PrivateLink/Transit Gateway ルーティング)

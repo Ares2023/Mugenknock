@@ -1,6 +1,6 @@
 # EXAM_GUIDE_URL: https://aws.amazon.com/jp/certification/certified-cloud-practitioner/
-# DOMAINS: クラウドの概念,セキュリティとコンプライアンス,クラウドのテクノロジーとサービス,請求、料金、およびサポート
-# LAST_REFRESHED: 2026-06-21
+# DOMAINS: Cloud Concepts,Security and Compliance,Cloud Technology and Services,Billing, Pricing, and Support
+# LAST_REFRESHED: 2026-07-27
 
 あなたはAWS認定試験の問題作成者です。
 AWS Certified Cloud Practitioner (CLF-C02) の模擬試験問題を作成してください。
@@ -31,44 +31,49 @@ AWS Certified Cloud Practitioner (CLF-C02) の模擬試験問題を作成して�
 ---
 【公式試験ガイド概要 (CLF-C02)】
 ■ 公式タスク文（出題で必ずカバーすること）
-【第1ドメイン：クラウドの概念】
-- Task 1.1: AWSクラウドのメリットを定義する（スケーラビリティ・俊敏性・高可用性・グローバルリーチ・従量課金等）
-- Task 1.2: AWSクラウドの設計原則を特定する（Well-Architected Framework 6本柱: 運用上の優秀性・セキュリティ・信頼性・パフォーマンス効率・コスト最適化・持続可能性）
-- Task 1.3: AWSクラウドへの移行メリットと戦略を理解する（6R戦略・クラウドアダプションフレームワーク(CAF)）
-- Task 1.4: クラウドエコノミクスの概念を理解する（CapEx vs OpEx・TCO・規模の経済）
 
-【第2ドメイン：セキュリティとコンプライアンス】
-- Task 2.1: AWSの責任共有モデルを理解する（AWSが管理する「クラウドのセキュリティ」vs 顧客が管理する「クラウド内のセキュリティ」）
-- Task 2.2: AWSのセキュリティ・ガバナンス・コンプライアンスの概念を理解する（SOC・PCI DSS・HIPAA・Artifact・Compliance Center）
-- Task 2.3: AWSのアクセス管理機能を特定する（IAM・MFA・ルートユーザーの保護・最小権限の原則・Organizations SCP）
-- Task 2.4: セキュリティのコンポーネントとリソースを特定する（Shield・WAF・GuardDuty・Inspector・Macie・KMS・Secrets Manager・Security Hub）
+【第1ドメイン：Cloud Concepts（クラウドの概念）― 24%】
+- Task 1.1: AWSクラウドのメリットを定義する（グローバルインフラの価値提案: デプロイ速度・グローバルリーチ; 高可用性・弾力性・俊敏性の優位性）
+- Task 1.2: AWSクラウドの設計原則を特定する（Well-Architected Framework 6本柱: 運用上の優秀性・セキュリティ・信頼性・パフォーマンス効率・コスト最適化・持続可能性; 各柱の違いを識別する）
+- Task 1.3: AWSクラウドへの移行メリットと戦略を理解する（AWS CAFの構成要素: ビジネスリスク低減・ESGパフォーマンス向上・収益増加・運用効率向上; 適切な移行戦略: データベースレプリケーション・AWS Snowball活用等）
+- Task 1.4: クラウドエコノミクスの概念を理解する（固定費 vs 変動費; オンプレミス環境のコスト; ライセンス戦略: BYOLモデル vs インクルードライセンス; ライトサイジング; 自動化のメリット; 規模の経済によるコスト削減）
 
-【第3ドメイン：クラウドのテクノロジーとサービス】
-- Task 3.1: AWSクラウドでのデプロイと運用の方法を定義する（マネコン・CLI・SDK・CloudFormation・Elastic Beanstalk）
-- Task 3.2: AWSのグローバルインフラストラクチャを定義する（リージョン・アベイラビリティーゾーン・エッジロケーション・Local Zone・Wavelength Zone）
-- Task 3.3: AWSのコンピューティングサービスを特定する（EC2・Lambda・ECS・Fargate・Batch・Lightsail・App Runner）
-- Task 3.4: AWSのデータベースサービスを特定する（RDS・Aurora・DynamoDB・ElastiCache・Redshift・Neptune・MemoryDB）
-- Task 3.5: AWSのネットワークサービスを特定する（VPC・Route 53・CloudFront・Global Accelerator・Direct Connect・VPN）
-- Task 3.6: AWSのストレージサービスを特定する（S3・EBS・EFS・S3 Glacier・Storage Gateway・Backup）
-- Task 3.7: AWSのAI/ML・分析サービスを特定する（SageMaker・Bedrock・Rekognition・Lex・Polly・Comprehend・Athena・EMR・Glue・QuickSight・Kinesis）
-- Task 3.8: その他のAWSサービスカテゴリを特定する（SNS・SQS・EventBridge・CodePipeline・CodeBuild・CodeDeploy・Amplify・Device Farm）
+【第2ドメイン：Security and Compliance（セキュリティとコンプライアンス）― 30%】
+- Task 2.1: AWSの責任共有モデルを理解する（AWSが管理する「クラウドのセキュリティ」vs 顧客が管理する「クラウド内のセキュリティ」; サービス種別による責任範囲の変化: Amazon RDS・AWS Lambda・Amazon EC2）
+- Task 2.2: AWSのセキュリティ・ガバナンス・コンプライアンスの概念を理解する（コンプライアンス情報の入手先: AWS Artifact; 顧客によるリソース保護: Inspector・Security Hub・GuardDuty・Shield; 暗号化オプション: 転送中・保管中; ガバナンス/監査サービス: CloudWatch・CloudTrail・Audit Manager・Config）
+- Task 2.3: AWSのアクセス管理機能を特定する（IAM・MFA・IAM Identity Center・クロスアカウントIAMロール・最小権限の原則・ルートユーザー保護; 認証情報管理: Secrets Manager・Systems Manager; フェデレーション型 ID 管理）
+- Task 2.4: セキュリティのコンポーネントとリソースを特定する（AWS WAF・Firewall Manager・Shield・GuardDuty のセキュリティ機能; AWS Marketplace のサードパーティセキュリティ製品; Trusted Advisor によるセキュリティ問題の特定）
 
-【第4ドメイン：請求、料金、およびサポート】
-- Task 4.1: AWSの料金モデルを比較する（オンデマンド・リザーブドインスタンス・Savings Plans・スポットインスタンス・Dedicated Host・Dedicated Instance）
-- Task 4.2: 請求・予算・コスト管理のリソースを理解する（Cost Explorer・AWS Budgets・Cost and Usage Report・Compute Optimizer・Pricing Calculator）
-- Task 4.3: AWSのテクニカルリソースとサポートオプションを特定する（Basic/Developer/Business/Enterprise サポートプラン・TAM・APN・AWS IQ・re:Post）
+【第3ドメイン：Cloud Technology and Services（クラウドのテクノロジーとサービス）― 34%】
+- Task 3.1: AWSクラウドでのデプロイと運用の方法を定義する（プログラマティックアクセス: API・SDK・CLI; マネジメントコンソール; IaC（Infrastructure as Code）; デプロイモデル: クラウド・ハイブリッド・オンプレミス）
+- Task 3.2: AWSのグローバルインフラストラクチャを定義する（リージョン・アベイラビリティーゾーン・エッジロケーションの関係; 複数AZによる高可用性; 複数リージョンの用途: DR・BCP・エンドユーザー低レイテンシー・データ主権）
+- Task 3.3: AWSのコンピューティングサービスを特定する（EC2インスタンスタイプ: コンピューティング最適化・ストレージ最適化等; コンテナ: ECS・EKS; サーバーレス: Fargate・Lambda; Auto Scaling による弾力性; ロードバランサーの目的）
+- Task 3.4: AWSのデータベースサービスを特定する（EC2ホスト型 vs AWSマネージド型の判断; リレーショナル: RDS・Aurora; NoSQL: DynamoDB; メモリ型: ElastiCache; 移行ツール: AWS DMS・AWS SCT）
+- Task 3.5: AWSのネットワークサービスを特定する（VPCコンポーネント: サブネット・ゲートウェイ; VPCセキュリティ: ネットワークACL・セキュリティグループ・Inspector; Amazon Route 53; AWSへの接続オプション: AWS VPN・AWS Direct Connect）
+- Task 3.6: AWSのストレージサービスを特定する（S3オブジェクトストレージの用途・ストレージクラス・ライフサイクルポリシー; ブロック: EBS・インスタンスストア; ファイル: EFS・FSx; キャッシュ型ファイルシステム: Storage Gateway; AWS Backup の用途）
+- Task 3.7: AWSのAI/ML・分析サービスを特定する（AI/ML: Amazon SageMaker AI・Amazon Lex・Amazon Kendra; データ分析: Amazon Athena・Amazon Kinesis・AWS Glue・Amazon QuickSight）
+- Task 3.8: その他の対象AWSサービスカテゴリを特定する（アプリケーション統合: EventBridge・SNS・SQS; ビジネスアプリ: Connect・SES; 開発者ツール: CodeBuild・CodePipeline・X-Ray; エンドユーザーコンピューティング: AppStream 2.0・WorkSpaces; フロントエンド/モバイル: Amplify・AppSync; IoT: IoT Core）
 
-■ 出題範囲の主要サービス
-- コンピューティング: EC2, Lambda, Elastic Beanstalk, Batch, Lightsail, Outposts, App Runner
-- ストレージ: S3, EBS, EFS, S3 Glacier, Storage Gateway, Backup
-- ネットワーク: VPC, Route 53, Direct Connect, CloudFront, Global Accelerator
-- データベース: RDS, Aurora, DynamoDB, ElastiCache, Redshift, Neptune
-- セキュリティ: IAM, IAM Identity Center, Cognito, Shield, WAF, Inspector, GuardDuty, Artifact, KMS, Secrets Manager, Security Hub, Detective
-- ガバナンス: Organizations, Control Tower, Trusted Advisor, Compute Optimizer
-- マネジメント: CloudWatch, CloudTrail, CloudFormation, Systems Manager, Health Dashboard
-- 分析: Athena, EMR, Glue, QuickSight, Kinesis
-- AI/ML: SageMaker, Bedrock, Rekognition, Lex, Polly, Comprehend, Translate, Transcribe
+【第4ドメイン：Billing, Pricing, and Support（請求、料金、およびサポート）― 12%】
+- Task 4.1: AWSの料金モデルを比較する（コンピューティング購入オプション: オンデマンド・リザーブドインスタンス・Savings Plans・スポットインスタンス・Dedicated Host・Dedicated Instance・Capacity Reservations; ストレージオプションと階層の料金; データ転送コスト）
+- Task 4.2: 請求・予算・コスト管理のリソースを理解する（Cost Explorer・AWS Budgets・Pricing Calculator・Cost and Usage Report・コスト配分タグ; AWS Organizations 統合請求とコスト配分）
+- Task 4.3: AWSのテクニカルリソースとサポートオプションを特定する（サポートプラン: Basic/Developer/Business/Enterprise On-Ramp/Enterprise; Trusted Advisor・Health Dashboard・Health API による環境管理; AWS Partner Network（APN）・AWS Marketplace（ISV・システムインテグレーター）; AWS Professional Services・AWS Solutions Architects; re:Post・Prescriptive Guidance・Knowledge Center）
+
+■ 出題範囲の主要サービス（公式 In-Scope リスト準拠）
+- コンピューティング: EC2, Lambda, Elastic Beanstalk, Batch, Lightsail, Outposts, Fargate
+- ストレージ: S3, EBS, EFS, FSx, S3 Glacier, Storage Gateway, Backup, Elastic Disaster Recovery
+- ネットワーク: VPC, Route 53, CloudFront, Direct Connect, Global Accelerator, PrivateLink, Transit Gateway, API Gateway, Site-to-Site VPN, Client VPN
+- データベース: RDS, Aurora, DynamoDB, ElastiCache, DocumentDB, Neptune, Redshift
+- セキュリティ: IAM, IAM Identity Center, Cognito, Shield, WAF, Firewall Manager, Inspector, GuardDuty, Detective, Macie, Artifact, Audit Manager, KMS, CloudHSM, Secrets Manager, Certificate Manager (ACM), Security Hub, Directory Service, Resource Access Manager (RAM)
+- ガバナンス: Organizations, Control Tower, Trusted Advisor, Compute Optimizer, Config, License Manager, Service Catalog, Service Quotas, Well-Architected Tool
+- マネジメント: CloudWatch, CloudTrail, CloudFormation, Systems Manager, Health Dashboard, Auto Scaling, Management Console
+- 分析: Athena, EMR, Glue, QuickSight, Kinesis, OpenSearch Service, Redshift
+- AI/ML: SageMaker AI, Rekognition, Lex, Polly, Comprehend, Kendra, Translate, Transcribe, Textract, Amazon Q
 - アプリケーション統合: SNS, SQS, EventBridge, Step Functions
-- コンテナ: ECS, EKS, ECR, Fargate
-- 移行: Application Migration Service (MGN), Database Migration Service (DMS), Snow Family (Snowball/Snowmobile), DataSync, Transfer Family
-- 開発者ツール: CLI, SDKs, CodeBuild, CodeDeploy, CodePipeline
+- コンテナ: ECS, EKS, ECR
+- 移行: Application Migration Service (MGN), Application Discovery Service, Migration Hub, Migration Evaluator, Database Migration Service (DMS), Schema Conversion Tool (SCT), Snow Family (Snowball/Snowmobile)
+- 開発者ツール: CLI, SDKs, CodeBuild, CodePipeline, X-Ray
+- ビジネスアプリ: Connect, SES
+- エンドユーザーコンピューティング: AppStream 2.0, WorkSpaces, WorkSpaces Secure Browser
+- フロントエンド/モバイル: Amplify, AppSync
+- IoT: IoT Core
