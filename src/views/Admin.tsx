@@ -658,6 +658,7 @@ export default function Admin() {
       if (data.formatCheckedCount   != null) setFormatCheckedCount(data.formatCheckedCount);
       setValidityCheckedSinceCount(data.validityCheckedSinceCount ?? null);
       setFormatCheckedSinceCount(data.formatCheckedSinceCount ?? null);
+      setCreatedSinceCount(data.createdSinceCount ?? null);
       setExerciseCounts(data.exerciseCounts || {});
       setExerciseCorrectCounts(data.exerciseCorrectCounts || {});
     } catch (err) {
@@ -947,6 +948,7 @@ export default function Admin() {
   const [sinceDate, setSinceDate] = useState('');
   const [validityCheckedSinceCount, setValidityCheckedSinceCount] = useState<number | null>(null);
   const [formatCheckedSinceCount, setFormatCheckedSinceCount] = useState<number | null>(null);
+  const [createdSinceCount, setCreatedSinceCount] = useState<number | null>(null);
   const [exerciseCounts, setExerciseCounts] = useState<Record<string, number>>({});
   const [exerciseCorrectCounts, setExerciseCorrectCounts] = useState<Record<string, number>>({});
 
@@ -1593,12 +1595,14 @@ export default function Admin() {
                     <div style={{ height: 6, borderRadius: 9999, background: 'var(--color-border)', overflow: 'hidden' }}>
                       <div style={{ height: '100%', borderRadius: 9999, background: color, width: `${Math.min(100, count / totalCount * 100)}%`, transition: 'width 0.4s' }} />
                     </div>
-                    {sinceDate && sinceCount != null && (
+                    {sinceDate && sinceCount != null && createdSinceCount != null && (
                       <div style={{ marginTop: 4, display: 'flex', justifyContent: 'space-between', fontSize: 11, color: 'var(--color-text-sub)' }}>
-                        <span>{sinceDate.replace(/^(\d{4})-(\d{2})-(\d{2})$/, '$2/$3')}以降</span>
+                        <span>{sinceDate.replace(/^(\d{4})-(\d{2})-(\d{2})$/, '$2/$3')}以降の新規問題</span>
                         <span style={{ fontVariantNumeric: 'tabular-nums' }}>
-                          {sinceCount.toLocaleString()} / {totalCount.toLocaleString()}
-                          <span style={{ marginLeft: 6, fontWeight: 700, color }}>{Math.round(sinceCount / totalCount * 100)}%</span>
+                          {sinceCount.toLocaleString()} / {createdSinceCount.toLocaleString()}
+                          {createdSinceCount > 0 && (
+                            <span style={{ marginLeft: 6, fontWeight: 700, color }}>{Math.round(sinceCount / createdSinceCount * 100)}%</span>
+                          )}
                         </span>
                       </div>
                     )}

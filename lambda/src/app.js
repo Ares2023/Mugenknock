@@ -801,7 +801,7 @@ app.get('/admin/questions/summary', async (req, res) => {
         IndexName: 'examType-index',
         KeyConditionExpression: 'examType = :e',
         ExpressionAttributeValues: { ':e': et },
-        ProjectionExpression: 'examType, #dom, isHidden, validityCheckedAt, formatCheckedAt, globalAttempts, globalCorrect',
+        ProjectionExpression: 'examType, #dom, isHidden, validityCheckedAt, formatCheckedAt, createdAt, globalAttempts, globalCorrect',
         ExpressionAttributeNames: { '#dom': 'domain' },
       })
     ));
@@ -824,9 +824,12 @@ app.get('/admin/questions/summary', async (req, res) => {
     const formatCheckedCount   = visible.filter(i => i.formatCheckedAt).length;
     const result = { examCounts, domainCounts, totalCount: visible.length, validityCheckedCount, formatCheckedCount, exerciseCounts, exerciseCorrectCounts };
     if (sinceDate && /^\d{4}-\d{2}-\d{2}$/.test(sinceDate)) {
-      const threshold = sinceDate + 'T00:00:00';
-      result.validityCheckedSinceCount = visible.filter(i => i.validityCheckedAt && i.validityCheckedAt >= threshold).length;
-      result.formatCheckedSinceCount   = visible.filter(i => i.formatCheckedAt   && i.formatCheckedAt   >= threshold).length;
+      // JST 0:00 → UTC に変換してからしきい値比較（TZなし文字列だと JST 0:00〜8:59 が前日UTC扱いで漏れる）
+      const threshold = new Date(sinceDate + 'T00:00:00+09:00').toISOString();
+      const createdSince = visible.filter(i => i.createdAt && i.createdAt >= threshold);
+      result.createdSinceCount         = createdSince.length;
+      result.validityCheckedSinceCount = createdSince.filter(i => i.validityCheckedAt).length;
+      result.formatCheckedSinceCount   = createdSince.filter(i => i.formatCheckedAt).length;
     }
     res.json(result);
   } catch (err) {

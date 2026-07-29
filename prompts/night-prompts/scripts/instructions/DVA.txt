@@ -1,6 +1,6 @@
 # EXAM_GUIDE_URL: https://aws.amazon.com/jp/certification/certified-developer-associate/
-# DOMAINS: AWSのサービスを使用した開発,セキュリティ,デプロイ,トラブルシューティングと最適化
-# LAST_REFRESHED: 2026-06-21
+# DOMAINS: コンテンツ分野 1: AWSのサービスによる開発,コンテンツ分野 2: セキュリティ,コンテンツ分野 3: デプロイ,コンテンツ分野 4: トラブルシューティングと最適化
+# LAST_REFRESHED: 2026-07-28
 
 あなたはAWS認定試験の問題作成者です。
 AWS Certified Developer – Associate (DVA-C02) の模擬試験問題を作成してください。
@@ -29,35 +29,62 @@ AWS Certified Developer – Associate (DVA-C02) の模擬試験問題を作成�
 
 ---
 【公式試験ガイド概要 (DVA-C02)】
+■ 出題ドメインと配点
+- コンテンツ分野 1: AWSのサービスによる開発 (32%)
+- コンテンツ分野 2: セキュリティ (26%)
+- コンテンツ分野 3: デプロイ (24%)
+- コンテンツ分野 4: トラブルシューティングと最適化 (18%)
+
 ■ 公式タスク文（出題で必ずカバーすること）
-【第1ドメイン：AWSのサービスを使用した開発】
-- Task 1.1: AWSでホストされるアプリケーションのコードを開発する（Lambda関数URL・レイヤー・コンカレンシー・デスティネーション・DynamoDB設計・S3署名付きURL）
-- Task 1.2: AWS Lambda のコードを開発する（イベントソースマッピング・デスティネーション・カスタムランタイム・コンテナイメージ・コールドスタート対策）
-- Task 1.3: アプリケーション開発にデータストアを使用する（DynamoDB パーティションキー設計・GSI/LSI・トランザクション・Streams・DAX・S3マルチパートアップロード）
+【第1ドメイン：AWSのサービスによる開発 (32%)】
+- Task 1.1: AWSでホストされているアプリケーション用のコードを開発する（イベント駆動型・マイクロサービス・コレオグラフィー・オーケストレーション・ファンアウト等のアーキテクチャパターン、ステートフル/ステートレス設計、疎結合と密結合の違い、同期/非同期パターン、AWS SDK/APIを使ったAWSサービスとの統合、EventBridgeでのイベント駆動型実装、再試行ロジック・サーキットブレーカー等のレジリエントパターン、Amazon Q Developerによる開発支援）
+- Task 1.2: AWS Lambda用のコードを開発する（VPC内プライベートリソースへのアクセス、メモリ・同時実行・タイムアウト・レイヤー・拡張機能・送信先等のパラメータ設定、Lambda送信先・DLQを使ったイベントライフサイクルとエラー処理、LambdaとAWSサービスの統合、Lambdaパフォーマンスチューニング、ほぼリアルタイムのデータ処理と変換）
+- Task 1.3: アプリケーション開発でデータストアを使用する（DynamoDBの高カーディナリティパーティションキー設計・GSI/LSI・トランザクション・Streams、強整合性と結果整合性モデル、クエリとスキャンの違い、データキャッシュサービス（ElastiCache・DAX）、データライフサイクル管理、アクセスパターンに基づくOpenSearch等の専用データストア選択）
 
-【第2ドメイン：セキュリティ】
-- Task 2.1: アプリケーションとAWSサービスの認証/認可を実装する（IAMロール・AssumeRole・Cognito User Pools/Identity Pools・JWT検証・API Gatewayオーソライザー）
-- Task 2.2: AWSサービスを使用した暗号化を実装する（KMS CMK・エンベロープ暗号化・S3 SSE-KMS・Parameter Store SecureString・RDS暗号化）
-- Task 2.3: アプリケーションコード内の機密データを管理する（Secrets Manager・SSM Parameter Store・環境変数暗号化・認証情報プロバイダーチェーン）
+【第2ドメイン：セキュリティ (26%)】
+- Task 2.1: アプリケーションとAWSサービスの認証/認可を実装する（CognitoおよびIAMによるフェデレーテッドアクセス、ベアラートークン認証、AWSへのプログラムによるアクセス設定、IAMロールのAssumeRole、IAMプリンシパルのアクセス許可定義、API GatewayオーソライザーとJWT検証、マイクロサービスのクロスサービス認証、マルチテナントのきめ細かいアプリケーションレベル認可）
+- Task 2.2: AWSサービスを使用した暗号化を実装する（保管中・転送中の暗号化、KMS CMKとエンベロープ暗号化、SSE-KMS、クライアント側・サーバー側暗号化の違い、AWS Private CAによる証明書管理、開発目的の証明書とSSHキー生成、キーローテーション有効化/無効化、アカウント境界を越えた暗号化）
+- Task 2.3: アプリケーションコードで機密データを管理する（Secrets ManagerとSSM Parameter Store（SecureString）での機密管理、環境変数の暗号化、PII/PHIのデータ分類、機密データのサニタイズ、アプリケーションレベルのデータマスキング、マルチテナントアプリケーションのデータアクセスパターン）
 
-【第3ドメイン：デプロイ】
-- Task 3.1: アプリケーションアーティファクトのデプロイ準備をする（SAM・CloudFormation・コンテナイメージ・Elastic Beanstalk .ebextensions）
-- Task 3.2: 開発環境でアプリケーションをテストする（SAM Local・API Gateway テスト・X-Rayトレーシング）
-- Task 3.3: デプロイテストを自動化する（CodeBuild buildspec・CodePipeline・テスト自動化）
-- Task 3.4: AWS CI/CDサービスを使ってコードをデプロイする（CodePipeline・CodeBuild・CodeDeploy AppSpec・Blue/Green・Canary・Linear・Rolling）
+【第3ドメイン：デプロイ (24%)】
+- Task 3.1: AWSにデプロイするアプリケーションアーティファクトを準備する（コードモジュールの依存関係管理・環境変数・設定ファイル・コンテナイメージ、AWS AppConfigでの環境別構成管理、ファイルとディレクトリ構造の整理、リソース（メモリ・コア）要件のアプリケーションへの適用）
+- Task 3.2: 開発環境でアプリケーションをテストする（SAM Localとデプロイ済みコードのテスト、統合テストとモックAPIの作成、API Gatewayステージを使った開発エンドポイントテスト、SAMテンプレートを別ステージング環境へデプロイ、イベント駆動型アプリケーションのテスト）
+- Task 3.3: デプロイテストを自動化する（Lambda/API Gateway/SAMリソース用JSONペイロードのテストイベント作成、Lambdaエイリアス・コンテナイメージタグ・Amplifyブランチ・AWS Copilot環境での承認済みバージョン管理、SAM/CloudFormationテンプレートの実装とデプロイ、API Gatewayでの開発/テスト/本番環境管理、Amazon Q Developerによる自動テスト生成）
+- Task 3.4: CI/CDサービスを使ってコードをデプロイする（CodePipeline・CodeBuild・CodeDeployのAppSpec設定、ブルー/グリーン・カナリア・ローリング等のデプロイ戦略とロールバック、API GatewayステージとカスタムドメインおよびLambdaエイリアスの組み合わせ、Lambda関数でAPI GatewayのステージングS変数を使った動的デプロイ、ラベルとブランチでのバージョン管理）
 
-【第4ドメイン：トラブルシューティングと最適化】
-- Task 4.1: 根本原因分析を支援する（CloudWatch Logs Insights・X-Ray サービスマップ・Lambda エラーログ・DynamoDBスロットリング診断）
-- Task 4.2: 可観測性のためのコードをインストゥルメント化する（X-Ray SDK・セグメント・サブセグメント・アノテーション・CloudWatch Embedded Metrics）
-- Task 4.3: AWSのサービスと機能を使ってアプリケーションを最適化する（Lambda パワーチューニング・SQSロングポーリング・DynamoDB読み取りキャッシュ・ElastiCache・DAX）
+【第4ドメイン：トラブルシューティングと最適化 (18%)】
+- Task 4.1: 根本原因分析を支援する（CloudWatch Logs InsightsやAmazon Athenaを使ったログクエリ、X-Rayサービスマップとトレースの解釈、CloudWatch EMFカスタムメトリクスの実装、DynamoDBスロットリング・Lambdaエラーログの診断、サービス出力ログを使ったデプロイ失敗のトラブルシューティング、サービス統合問題のデバッグ）
+- Task 4.2: オブザーバビリティのためのコードを計装する（ログ記録・モニタリング・オブザーバビリティの違い、X-Ray SDKによるトレース・セグメント・サブセグメント・アノテーション、CloudWatch EMFカスタムメトリクス出力、効果的な構造化ログ記録戦略、クォータ制限やデプロイ完了の通知アラート、アプリケーションヘルスチェックとレディネスプローブ）
+- Task 4.3: AWSのサービスと機能を使ってアプリケーションを最適化する（Lambdaの同時実行・パワーチューニング・最小メモリ判断、SNSサブスクリプションフィルターポリシーによるメッセージ最適化、リクエストヘッダーに基づくコンテンツキャッシュ設定、ElastiCache/DAXによるアプリケーションレベルキャッシュ、SQSロングポーリング、ログを使ったパフォーマンスボトルネックの特定）
 
 ■ 出題範囲の主要サービスと概念
-- コンピューティング: Lambda（関数URL・レイヤー・コンカレンシー・デスティネーション）, ECS, Fargate, EC2, Elastic Beanstalk, App Runner
-- サーバーレス: Lambda, API Gateway (REST/HTTP), DynamoDB, SQS, SNS, Step Functions, EventBridge, SAM
-- ストレージ・データベース: S3 (署名付きURL・イベント通知・マルチパートアップロード), DynamoDB (パーティションキー設計・GSI・LSI・トランザクション・Streams), RDS, ElastiCache, DAX
-- 開発者ツール: CodeBuild, CodeDeploy (デプロイ戦略・AppSpec), CodePipeline, CodeArtifact, X-Ray, CloudWatch Logs Insights
-- セキュリティ: IAM (ロール・AssumeRole), Cognito (User Pools・Identity Pools・JWT), STS, Secrets Manager, SSM Parameter Store, KMS
-- API・SDK: AWS SDK (認証情報プロバイダーチェーン), API Gateway (オーソライザー・使用量プラン・スロットリング・CORS), REST vs HTTP API
-- メッセージング: SQS (標準・FIFO・可視性タイムアウト・DLQ・ロングポーリング), SNS (フィルタリング), ElastiCache (Redis・Memcached), DAX
-- コンテナ: ECS (タスク定義・サービス), ECR, Fargate, EKS
-- デプロイ戦略: Blue/Green, Canary, Linear, Rolling (Elastic Beanstalk・CodeDeploy・Lambda エイリアス)
+- コンピューティング: Lambda（関数・レイヤー・拡張機能・コンカレンシー・デスティネーション・VPCアクセス・コンテナイメージ）, EC2, Elastic Beanstalk
+- サーバーレス: Lambda, API Gateway（REST/HTTP）, DynamoDB, SQS, SNS, Step Functions, EventBridge, SAM, AWS AppSync
+- ストレージ・データベース: S3（署名付きURL・イベント通知・マルチパートアップロード）, DynamoDB（パーティションキー設計・GSI・LSI・トランザクション・Streams）, Aurora, RDS, ElastiCache, DAX, Amazon OpenSearch Service, EBS, EFS
+- 開発者ツール: CodeBuild, CodeDeploy（デプロイ戦略・AppSpec）, CodePipeline, CodeArtifact, X-Ray, CloudWatch Logs Insights, AWS Amplify, AWS CDK, Amazon Q Developer, AWS CloudShell
+- セキュリティ: IAM（ロール・AssumeRole・プリンシパル権限定義）, Cognito（User Pools・Identity Pools・JWT）, STS, Secrets Manager, SSM Parameter Store（SecureString）, KMS（CMK・エンベロープ暗号化・キーローテーション）, AWS Private CA, AWS WAF
+- API・SDK: AWS SDK（認証情報プロバイダーチェーン）, API Gateway（オーソライザー・使用量プラン・スロットリング・CORS・カスタムドメイン・ステージ変数）
+- メッセージング・ストリーミング: SQS（標準・FIFO・可視性タイムアウト・DLQ・ロングポーリング）, SNS（フィルタリング・サブスクリプション）, Kinesis, EventBridge
+- コンテナ: ECS（タスク定義・サービス）, ECR, Fargate, EKS
+- ネットワーク: VPC, CloudFront, ELB, Route 53
+- デプロイ戦略: Blue/Green, Canary, Linear, Rolling（Elastic Beanstalk・CodeDeploy・Lambdaエイリアス）
+- マネジメント: CloudWatch（メトリクス・ログ・EMF・アラーム・ダッシュボード）, CloudFormation, AppConfig, CloudTrail, Systems Manager, AWS CDK, AWS CLI
+- 分析: Amazon Athena, Amazon Kinesis, Amazon OpenSearch Service
+
+---
+
+**現行との主な差分（参考）：**
+
+| 項目 | 変更内容 |
+|---|---|
+| Amazon Q Developer | 新規スコープ追加（Task 1.1・3.3で出題） |
+| AWS AppSync | 新規スコープ追加（GraphQL API問題） |
+| AWS AppConfig | 新規スコープ追加（Task 3.1） |
+| AWS Private CA | Task 2.2に追加 |
+| Amazon Athena | 分析カテゴリとしてスコープ追加 |
+| AWS CDK | 開発者ツールとしてスコープ追加 |
+| AWS WAF | セキュリティとしてスコープ追加 |
+| Aurora / EBS / EFS / CloudFront / ELB / Route 53 | 新規スコープ追加 |
+| App Runner | スコープ外（削除） |
+| サーキットブレーカーパターン | Task 1.1に追加 |
+| レディネスプローブ / ヘルスチェック | Task 4.2に追加 |

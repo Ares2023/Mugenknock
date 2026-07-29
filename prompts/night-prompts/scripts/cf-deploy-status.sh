@@ -2,10 +2,10 @@
 # Cloudflare Pages デプロイ状況確認スクリプト
 #
 # 使い方:
-#   ./prompts/night-prompts/manual/cf-deploy-status.sh          # 直近5件を表示
-#   ./prompts/night-prompts/manual/cf-deploy-status.sh prod     # 本番（master）のみ
-#   ./prompts/night-prompts/manual/cf-deploy-status.sh staging  # 検証（develop）のみ
-#   ./prompts/night-prompts/manual/cf-deploy-status.sh wait     # 最新ビルドが完了するまで待機して結果表示
+#   ./prompts/night-prompts/scripts/cf-deploy-status.sh          # 直近5件を表示
+#   ./prompts/night-prompts/scripts/cf-deploy-status.sh prod     # 本番（master）のみ
+#   ./prompts/night-prompts/scripts/cf-deploy-status.sh staging  # 検証（develop）のみ
+#   ./prompts/night-prompts/scripts/cf-deploy-status.sh wait     # 最新ビルドが完了するまで待機して結果表示
 
 CF_TOKEN="${CLOUDFLARE_API_TOKEN:-$(grep 'CLOUDFLARE_API_TOKEN' ~/.bashrc | head -1 | sed 's/.*="\(.*\)"/\1/')}"
 CF_ACCOUNT="${CLOUDFLARE_ACCOUNT_ID:-$(grep 'CLOUDFLARE_ACCOUNT_ID' ~/.bashrc | head -1 | sed 's/.*="\(.*\)"/\1/')}"

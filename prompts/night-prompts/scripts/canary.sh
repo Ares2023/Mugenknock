@@ -2,9 +2,9 @@
 # カナリアテスト実行スクリプト
 #
 # 使い方:
-#   ./prompts/night-prompts/manual/canary.sh         → 検証環境 (develop.mugenknock.pages.dev)
-#   ./prompts/night-prompts/manual/canary.sh prod    → 本番環境 (mugenknock.com)
-#   PLAYWRIGHT_BASE_URL=https://xxx.pages.dev ./prompts/night-prompts/manual/canary.sh
+#   ./prompts/night-prompts/scripts/canary.sh         → 検証環境 (develop.mugenknock.pages.dev)
+#   ./prompts/night-prompts/scripts/canary.sh prod    → 本番環境 (mugenknock.com)
+#   PLAYWRIGHT_BASE_URL=https://xxx.pages.dev ./prompts/night-prompts/scripts/canary.sh
 #
 # 実行後、結果を S3 (mugenknock-error-logs/canary-logs/) に自動アップロード
 

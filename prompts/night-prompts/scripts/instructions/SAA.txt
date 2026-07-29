@@ -1,6 +1,6 @@
 # EXAM_GUIDE_URL: https://aws.amazon.com/jp/certification/certified-solutions-architect-associate/
-# DOMAINS: セキュアなアーキテクチャの設計,弾力性に優れたアーキテクチャの設計,高性能なアーキテクチャの設計,コスト最適化されたアーキテクチャの設計
-# LAST_REFRESHED: 2026-06-21
+# DOMAINS: セキュアなアーキテクチャの設計,レジリエントなアーキテクチャの設計,高パフォーマンスなアーキテクチャの設計,コストを最適化したアーキテクチャの設計
+# LAST_REFRESHED: 2026-07-29
 
 あなたはAWS認定試験の問題作成者です。
 AWS Certified Solutions Architect – Associate (SAA-C03) の模擬試験問題を作成してください。
@@ -22,45 +22,51 @@ AWS Certified Solutions Architect – Associate (SAA-C03) の模擬試験問題�
 
 【避けること】
 - 正解の選択肢の文字数が不正解の選択肢群から浮かないようにすること（正解の文字数を不正解の平均文字数に近づけること）
-- 廃止・非推奨のサービス／旧名称を現行として使うこと（例 Kinesis Data Firehose→Amazon Data Firehose、現行名称を使う）
+- 廃止・非推奨のサービス／旧名称を現行として使うこと（例：Kinesis Data Firehose→Amazon Data Firehose、Kinesis Data Analytics→Amazon Managed Service for Apache Flink、現行名称を使う）
 - 単純な知識確認（CLFレベルの問題）
 - 要件キーワードや正解が自明な定番問題（共有ファイル＋マルチAZ＝EFS、単一AZ→マルチAZ＝Multi-AZ RDS 等を、複数要件・トレードオフ無しで出すこと）
 - 正解が複数考えられる曖昧な問題
 
 ---
-【公式試験ガイド概要 (SAA-C03)】
+【公式試験ガイド概要 (SAA-C03 Version 1.1)】
 ■ 公式タスク文（出題で必ずカバーすること）
-【第1ドメイン：セキュアなアーキテクチャの設計】
-- Task 1.1: AWSリソースへのセキュアなアクセスを設計する（IAMロール・ポリシー・SCP・Permission Boundary・クロスアカウントアクセス）
-- Task 1.2: セキュアなワークロードとアプリケーションを設計する（VPCセキュリティ・セキュリティグループ・NACL・PrivateLink・WAF・Shield・暗号化）
-- Task 1.3: 適切なデータセキュリティコントロールを決定する（KMS・Secrets Manager・S3暗号化・バケットポリシー・データ分類・Macie）
 
-【第2ドメイン：弾力性に優れたアーキテクチャの設計】
-- Task 2.1: スケーラブルで疎結合なアーキテクチャを設計する（Auto Scaling・SQS・SNS・EventBridge・Step Functions・ALB/NLB・マイクロサービス）
-- Task 2.2: 高可用性および/またはフォールトトレラントなアーキテクチャを設計する（マルチAZ・マルチリージョン・RDS Multi-AZ・Aurora Global・DynamoDB Global Tables・Route 53フェイルオーバー・バックアップ・DR戦略）
+【第1ドメイン：セキュアなアーキテクチャの設計（30%）】
+- Task 1.1: AWSリソースへのセキュアなアクセスを設計する（IAM ユーザー/グループ/ロール/ポリシー・SCP・Permission Boundary・IAM Identity Center（SSO）・AWS STS・クロスアカウントアクセス・Control Tower・最小権限の原則）
+- Task 1.2: セキュアなワークロードとアプリケーションを設計する（VPCアーキテクチャ・セキュリティグループ・NACL・NATゲートウェイ・パブリック/プライベートサブネット・AWS Shield・WAF・Secrets Manager・Cognito・GuardDuty・Macie・VPN・Direct Connect）
+- Task 1.3: 適切なデータセキュリティコントロールを決定する（KMS・ACM/TLS・データ分類・バックアップとレプリケーション・暗号化キーのローテーション・証明書更新・S3バケットポリシー・データアクセスポリシー）
 
-【第3ドメイン：高性能なアーキテクチャの設計】
-- Task 3.1: 高性能でスケーラブルなストレージソリューションを決定する（S3 Transfer Acceleration・EBS最適化・EFS・FSx・Storage Gateway・DataSync）
-- Task 3.2: 高性能で弾力性に優れたコンピューティングソリューションを設計する（EC2インスタンスタイプ・Lambda・コンテナ・Outposts・Wavelength）
-- Task 3.3: 高性能なデータベースソリューションを決定する（Aurora・DynamoDB DAX・ElastiCache・Read Replica・Redshift・OpenSearch）
-- Task 3.4: 高性能でスケーラブルなネットワークアーキテクチャを決定する（CloudFront・Global Accelerator・Transit Gateway・Direct Connect・VPN・API Gateway）
-- Task 3.5: 高性能なデータ取り込みと変換ソリューションを決定する（Kinesis・Glue・EMR・Athena・Lake Formation）
+【第2ドメイン：レジリエントなアーキテクチャの設計（26%）】
+- Task 2.1: スケーラブルで疎結合なアーキテクチャを設計する（API Gateway・SQS・SNS・EventBridge・Step Functions・ALB/NLB・ECS・EKS・Fargate・Lambda・マイクロサービス・イベント駆動アーキテクチャ・CDN・コンテナ移行・Read Replica・Transfer Family）
+- Task 2.2: 高可用性および/またはフォールトトレラントなアーキテクチャを設計する（マルチAZ・マルチリージョン・Route 53フェイルオーバー・DR戦略〔バックアップ＆リストア・パイロットライト・ウォームスタンバイ・アクティブ-アクティブ〕・RPO/RTO・RDS Proxy・イミュータブルインフラ・サービスクォータ・X-Ray）
 
-【第4ドメイン：コスト最適化されたアーキテクチャの設計】
-- Task 4.1: コスト最適化されたストレージソリューションを設計する（S3ライフサイクル・Glacier・Intelligent-Tiering・EBSスナップショット・EFS・S3インベントリ）
-- Task 4.2: コスト最適化されたコンピューティングソリューションを設計する（リザーブドインスタンス・Savings Plans・スポットインスタンス・Auto Scaling・Lambda・Fargate）
-- Task 4.3: コスト最適化されたデータベースソリューションを設計する（Aurora Serverless・DynamoDB On-Demand・RDS停止・ElastiCache・Reserved DB）
-- Task 4.4: コスト最適化されたネットワークアーキテクチャを設計する（VPCエンドポイント・CloudFront・データ転送コスト最適化・Direct Connect・NAT Gateway代替）
+【第3ドメイン：高パフォーマンスなアーキテクチャの設計（24%）】
+- Task 3.1: 高パフォーマンスおよびスケーラブルなストレージソリューションを決定する（S3・EFS・EBS・FSx・ハイブリッドストレージ・ストレージタイプの特性〔オブジェクト/ファイル/ブロック〕）
+- Task 3.2: 高パフォーマンスで弾力性に優れたコンピューティングソリューションを設計する（EC2インスタンスタイプ・EC2 Auto Scaling・AWS Auto Scaling・Lambda・Fargate・ECS・EKS・AWS Batch・EMR・コンテナ・スケーリング条件とメトリクス）
+- Task 3.3: 高パフォーマンスなデータベースソリューションを決定する（Aurora・DynamoDB・ElastiCache・Read Replica・RDS Proxy・キャパシティプランニング〔キャパシティユニット/インスタンスタイプ/Provisioned IOPS〕・データアクセスパターン〔読み取り集中 vs 書き込み集中〕・インメモリDB・サーバーレスDB）
+- Task 3.4: 高パフォーマンスおよびスケーラブルなネットワークアーキテクチャを決定する（CloudFront・Global Accelerator・ALB/NLB・Transit Gateway・Direct Connect・VPN・PrivateLink・サブネット階層・ルーティング・IPアドレス設計）
+- Task 3.5: 高パフォーマンスなデータ取り込みと変換ソリューションを決定する（Kinesis〔Data Streams・Amazon Data Firehose〕・Amazon Managed Service for Apache Flink・Glue・EMR・Athena・Lake Formation・QuickSight・DataSync・Storage Gateway・データレイク構築・ストリーミングアーキテクチャ・フォーマット変換）
 
-■ 出題範囲の主要サービス
-- コンピューティング: EC2, Lambda, Elastic Beanstalk, Batch, Auto Scaling, Outposts, App Runner
-- ストレージ: S3, EBS, EFS, FSx (Lustre, Windows, NetApp ONTAP), Backup, Storage Gateway
-- ネットワーク: VPC, Route 53, CloudFront, Global Accelerator, Direct Connect, Site-to-Site VPN, Transit Gateway, PrivateLink, API Gateway, Load Balancing (ALB/NLB/GLB)
-- データベース: RDS (Aurora, etc.), DynamoDB, ElastiCache, Redshift, DocumentDB, Neptune
-- セキュリティ: IAM, Organizations, Control Tower, Secrets Manager, KMS, Shield, WAF, GuardDuty, Inspector, Macie, Artifact, Security Hub
-- マネジメント: CloudWatch, CloudTrail, Config, Systems Manager, Trusted Advisor, Service Catalog
-- 分析: Athena, Kinesis (Data Streams, Firehose, Analytics), Glue, EMR, OpenSearch, QuickSight, Lake Formation, MSK
-- アプリケーション統合: SQS, SNS, EventBridge, Step Functions, MQ, AppSync
-- コンテナ: ECS, EKS, ECR, Fargate
-- 移行: Migration Hub, Application Migration Service (MGN), DMS, Snow Family, DataSync, Transfer Family
-- AI/ML: SageMaker, Rekognition, Polly, Lex, Comprehend, Transcribe, Bedrock
+【第4ドメイン：コストを最適化したアーキテクチャの設計（20%）】
+- Task 4.1: コストを最適化したストレージソリューションを設計する（S3ライフサイクル・S3 Glacier・S3 Intelligent-Tiering・EBSスナップショット・EBSボリュームタイプ〔HDD/SSD〕・EFS・FSx・DataSync・Transfer Family・Storage Gateway・Cost Explorer・Budgets・Cost and Usage Report）
+- Task 4.2: コストを最適化したコンピューティングソリューションを設計する（スポットインスタンス・リザーブドインスタンス・Savings Plans・Auto Scaling〔水平/垂直・Hibernation〕・Lambda・Fargate・EC2・Outposts・Snowball Edge・ALB/NLB/GLB〔レイヤー選択〕・インスタンスファミリーとサイズの選定）
+- Task 4.3: コストを最適化したデータベースソリューションを設計する（Aurora Serverless・DynamoDB On-Demand・RDS停止・ElastiCache・Reserved DB・DMS・バックアップポリシー・スナップショット頻度・時系列/カラム形式）
+- Task 4.4: コストを最適化したネットワークアーキテクチャを設計する（VPCエンドポイント・CloudFront・NAT Gatewayコスト最適化〔単一共有 vs AZ毎〕・Transit Gateway・VPCピアリング・Direct Connect vs VPN vs インターネット比較・Global Accelerator・データ転送コスト最小化・スロットリング戦略・帯域幅割り当て）
+
+■ 出題範囲の主要サービス（SAA-C03 Version 1.1 公式リスト）
+- 分析: Amazon Athena, AWS Data Exchange, AWS Data Pipeline, Amazon EMR, AWS Glue, Amazon Kinesis（Data Streams・Amazon Data Firehose・Amazon Managed Service for Apache Flink含む）, AWS Lake Formation, Amazon MSK, Amazon OpenSearch Service, Amazon QuickSight, Amazon Redshift
+- アプリケーション統合: Amazon AppFlow, AWS AppSync, Amazon EventBridge, Amazon MQ, Amazon SNS, Amazon SQS, AWS Step Functions
+- コスト管理: AWS Budgets, AWS Cost and Usage Report, AWS Cost Explorer, Savings Plans
+- コンピューティング: AWS Batch, Amazon EC2, Amazon EC2 Auto Scaling, AWS Elastic Beanstalk, AWS Outposts, AWS Serverless Application Repository, VMware Cloud on AWS, AWS Wavelength
+- コンテナ: Amazon ECR, Amazon ECS（ECS Anywhere含む）, Amazon EKS（EKS Anywhere・EKS Distro含む）
+- データベース: Amazon Aurora, Amazon Aurora Serverless, Amazon DocumentDB, Amazon DynamoDB, Amazon ElastiCache, Amazon Keyspaces, Amazon Neptune, Amazon QLDB, Amazon RDS, Amazon Redshift
+- デベロッパーツール: AWS X-Ray
+- フロントエンド/モバイル: AWS Amplify, Amazon API Gateway, AWS Device Farm, Amazon Pinpoint
+- 機械学習: Amazon Comprehend, Amazon Forecast, Amazon Fraud Detector, Amazon Kendra, Amazon Lex, Amazon Polly, Amazon Rekognition, Amazon SageMaker, Amazon Textract, Amazon Transcribe, Amazon Translate
+- マネジメント/ガバナンス: AWS Auto Scaling, AWS CloudFormation, AWS CloudTrail, Amazon CloudWatch, AWS Compute Optimizer, AWS Config, AWS Control Tower, AWS Health Dashboard, AWS License Manager, Amazon Managed Grafana, Amazon Managed Service for Prometheus, AWS Organizations, AWS Proton, AWS Service Catalog, AWS Systems Manager, AWS Trusted Advisor, AWS Well-Architected Tool
+- メディア: Amazon Elastic Transcoder, Amazon Kinesis Video Streams
+- 移行/転送: AWS Application Discovery Service, AWS Application Migration Service (MGN), AWS DMS, AWS DataSync, AWS Migration Hub, AWS Snow Family, AWS Transfer Family
+- ネットワーク/コンテンツ配信: AWS Client VPN, Amazon CloudFront, AWS Direct Connect, Elastic Load Balancing (ALB/NLB/GLB), AWS Global Accelerator, AWS PrivateLink, Amazon Route 53, AWS Site-to-Site VPN, AWS Transit Gateway, Amazon VPC
+- セキュリティ/ID/コンプライアンス: AWS Artifact, AWS Audit Manager, AWS Certificate Manager (ACM), AWS CloudHSM, Amazon Cognito, Amazon Detective, AWS Directory Service, AWS Firewall Manager, Amazon GuardDuty, AWS IAM Identity Center (SSO), IAM, Amazon Inspector, AWS KMS, Amazon Macie, AWS Network Firewall, AWS RAM, AWS Secrets Manager, AWS Security Hub, AWS Shield, AWS WAF
+- サーバーレス: AWS AppSync, AWS Fargate, AWS Lambda
+- ストレージ: AWS Backup, Amazon EBS, Amazon EFS, Amazon FSx（全タイプ）, Amazon S3, Amazon S3 Glacier, AWS Storage Gateway

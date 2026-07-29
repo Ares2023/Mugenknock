@@ -244,6 +244,10 @@ stop_hook_timers() {
     systemctl --user stop         "${HOOK_PREFIX}-reg-${i}.timer"   2>/dev/null || true
     systemctl --user stop         "${HOOK_PREFIX}-reg-${i}.service" 2>/dev/null || true
     systemctl --user reset-failed "${HOOK_PREFIX}-reg-${i}.service" 2>/dev/null || true
+    # フック数が減ったときに実体スクリプトが残り続けると、
+    # どれが現行か分からなくなる（古いコマンドを指したまま放置される）ので消す。
+    # 現行分(i < n)は登録時に再生成されるため、ここでは触らない。
+    [ "$i" -ge "$n" ] && rm -f "$SCRIPT_DIR/.hook-exec-${i}.sh"
   done
 }
 
