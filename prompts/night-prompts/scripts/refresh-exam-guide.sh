@@ -25,6 +25,8 @@ fi
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 INSTRUCTION_DIR="$(dirname "$SCRIPT_DIR")/scripts/instructions"
+# ドメイン定義の単一マスタ（DynamoDB の domain インデックスの基準）
+EXAM_DOMAINS_JSON="${EXAM_DOMAINS_JSON_PATH:-${SCRIPT_DIR}/../../../src/data/examDomains.json}"
 
 # 全資格の公式URL定義
 declare -A EXAM_URLS
@@ -217,6 +219,26 @@ PROMPT
     echo "   ⚠️  ドメイン名が変更されました！DynamoDB上の既存問題のタグ確認が必要です"
     echo "   旧: $OLD_DOMAINS"
     echo "   新: $NEW_DOMAINS"
+  fi
+
+  # 単一マスタ（examDomains.json）との差分警告
+  # DynamoDB の domain はマスタ配列のインデックスで格納されているため、
+  # マスタを書き換えると既存問題のドメインが全てズレる（migrate-domain-index.py が必要）。
+  # ここではマスタを自動更新せず、不一致を明示するだけに留める。
+  MASTER_DOMAINS=$(EXAM="$exam" python3 - "$EXAM_DOMAINS_JSON" << 'PYEOF' 2>/dev/null
+import json, os, sys
+try:
+    with open(sys.argv[1], encoding='utf-8') as f:
+        print(','.join(x['ja'] for x in json.load(f).get(os.environ['EXAM'], [])))
+except Exception:
+    pass
+PYEOF
+  )
+  if [ -n "$MASTER_DOMAINS" ] && [ "$MASTER_DOMAINS" != "$NEW_DOMAINS" ]; then
+    echo "   ℹ️  マスタ(examDomains.json)とは表記が異なります（集計・割り当てはマスタを使用）"
+    echo "      マスタ: $MASTER_DOMAINS"
+    echo "      ガイド: $NEW_DOMAINS"
+    echo "      ※ マスタを合わせる場合は migrate-domain-index.py での再採番が必須です"
   fi
 done
 
