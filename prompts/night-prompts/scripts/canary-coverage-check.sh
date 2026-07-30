@@ -101,6 +101,29 @@ while true; do
 done
 rm -f "$PROMPT_FILE"
 
+# レート制限（セッション上限）はモデルの判定失敗ではなく「実行できていない」。
+# 区別せずに後段へ流すと "JSON抽出に失敗" として (判定失敗) レポートが残り、
+# exit 0 のため成功したように見えてしまう（2026-07-30 に発生。3秒で終了）。
+if echo "$_STDERR $RESULT" | head -5 | grep -qiE "session limit|usage limit|rate limit|Please run /(login|upgrade)"; then
+  echo "⚠️ レート制限のため判定をスキップしました（次回実行時に再試行）"
+  {
+    echo "# カナリア整合性チェック ($DATE)"
+    echo ""
+    echo "## 所見"
+    echo "(レート制限により未実施)"
+    echo ""
+    echo "## カバー漏れ・陳腐化"
+    echo "- (未判定)"
+    echo ""
+    echo "## 対応"
+    echo "- レート制限のためスキップ。specは変更していません。"
+  } > "$REPORT"
+  echo ""
+  echo "レポート: $REPORT"
+  echo "カナリア整合性チェック 終了: $(date)"
+  exit 0
+fi
+
 # ── 3. 結果を解析し、更新版があれば検証ゲートを通して適用 ─────────
 RESULT="$RESULT" ROOT="$ROOT" SPEC="$SPEC" SPEC_ABS="$SPEC_ABS" LOG_DIR="$LOG_DIR" \
   DATE="$DATE" REPORT="$REPORT" python3 << 'PYEOF'
