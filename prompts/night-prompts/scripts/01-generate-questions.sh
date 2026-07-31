@@ -125,19 +125,33 @@ mkdir -p "$LOG_DIR"
 DATE=$(date '+%Y%m%d_%H%M%S')
 LOG_FILE="$LOG_DIR/generate_${DATE}.log"
 
-# ── ドメイン定義: instructions/*.txt の # DOMAINS: 行から動的に読み込む ─
-# ドメイン名は公式試験ガイドの表記に完全一致させること（DynamoDB タグとして使用される）
-# フォールバック用ハードコーディング（refresh-exam-guide.sh で随時更新される）
+# ── ドメイン定義: src/data/examDomains.json（単一マスタ）から読み込む ─
+# DynamoDB の domain は examDomains.json の配列インデックスで格納される。
+# Lambda 側の import も名前→index を examDomains.json の indexOf で解決するため、
+# 生成・集計・割り当てのすべてでこのマスタと完全一致した名前を使う必要がある。
+#
+# ※ instructions/*.txt の # DOMAINS: 行は LLM プロンプト用の表記であり、
+#   refresh-exam-guide.sh が試験ガイドから更新するとマスタと表記が食い違う。
+#   これを集計フィルタに使うと該当ドメインが 0 問扱いになり重み付けが壊れるため、
+#   ドメイン一覧のソースには使わない（_check_domain_drift で差分のみ警告する）。
 declare -A DOMAINS
-_load_domains_from_instructions() {
+_load_domains() {
   local exam="$1"
-  local inst_file="${INSTRUCTION_DIR}/${exam}.txt"
-  if [ -f "$inst_file" ]; then
-    local d
-    d=$(grep "^# DOMAINS:" "$inst_file" | head -1 | sed 's/^# DOMAINS: *//')
-    [ -n "$d" ] && { echo "$d"; return; }
-  fi
-  # fallback（instructions/*.txt に # DOMAINS: がない場合）
+  local d
+  d=$(EXAM="$exam" python3 - "$EXAM_DOMAINS_JSON_PATH" << 'PYEOF' 2>/dev/null
+import json, os, sys
+try:
+    with open(sys.argv[1], encoding='utf-8') as f:
+        data = json.load(f)
+    names = [x['ja'] for x in data.get(os.environ['EXAM'], [])]
+    if names:
+        print(','.join(names))
+except Exception:
+    pass
+PYEOF
+  )
+  [ -n "$d" ] && { echo "$d"; return; }
+  # fallback（examDomains.json が読めない場合。内容はマスタと同一に保つこと）
   case "$exam" in
     CLF) echo "クラウドの概念,セキュリティとコンプライアンス,クラウドのテクノロジーとサービス,請求、料金、およびサポート" ;;
     SAA) echo "セキュアなアーキテクチャの設計,弾力性に優れたアーキテクチャの設計,高性能なアーキテクチャの設計,コスト最適化されたアーキテクチャの設計" ;;
@@ -158,6 +172,24 @@ _get_exam_guide_url() {
   local exam="$1"
   local inst_file="${INSTRUCTION_DIR}/${exam}.txt"
   [ -f "$inst_file" ] && grep "^# EXAM_GUIDE_URL:" "$inst_file" | head -1 | sed 's/^# EXAM_GUIDE_URL: *//'
+}
+
+# instructions/*.txt の # DOMAINS: がマスタと食い違っていたら警告する。
+# 食い違い自体は動作に影響しない（マスタを使うため）が、放置すると
+# 生成プロンプトに載るドメイン名だけが古くなるため気付けるようにしておく。
+_check_domain_drift() {
+  local exam="$1" master="$2"
+  local inst_file="${INSTRUCTION_DIR}/${exam}.txt"
+  [ -f "$inst_file" ] || return 0
+  local inst
+  inst=$(grep "^# DOMAINS:" "$inst_file" | head -1 | sed 's/^# DOMAINS: *//')
+  [ -n "$inst" ] || return 0
+  [ "$inst" = "$master" ] || {
+    echo "⚠️  instructions/${exam}.txt の # DOMAINS: がマスタ(examDomains.json)と不一致です"
+    echo "    マスタ  : $master"
+    echo "    指示ファイル: $inst"
+    echo "    → 集計・割り当てはマスタを使用します（refresh-exam-guide.sh の出力要確認）"
+  }
 }
 
 {
@@ -275,12 +307,13 @@ PYEOF
   fi
 fi
 
-# ── ドメイン一覧を取得（instructions/*.txt の # DOMAINS: 行を優先）──
-DOMAIN_STR=$(_load_domains_from_instructions "$NEXT_EXAM")
+# ── ドメイン一覧を取得（examDomains.json が単一マスタ）──
+DOMAIN_STR=$(_load_domains "$NEXT_EXAM")
 if [ -z "$DOMAIN_STR" ]; then
-  echo "⚠️  $NEXT_EXAM のドメイン定義がありません（instructions/${NEXT_EXAM}.txt に # DOMAINS: 行を追加するか refresh-exam-guide.sh を実行してください）"
+  echo "⚠️  $NEXT_EXAM のドメイン定義がありません（src/data/examDomains.json に $NEXT_EXAM を追加してください）"
   exit 1
 fi
+_check_domain_drift "$NEXT_EXAM" "$DOMAIN_STR"
 EXAM_GUIDE_URL=$(_get_exam_guide_url "$NEXT_EXAM")
 [ -n "$EXAM_GUIDE_URL" ] && echo "試験ガイドURL: $EXAM_GUIDE_URL"
 
@@ -487,7 +520,21 @@ for item in data.get('Items', []):
         counts[domain_name] += 1
 
 # ドメイン名のみのカウント（逆数割り当て計算用）
-domain_counts = {k: v for k, v in counts.items() if norm(k) in domain_set} if domain_set else dict(counts)
+# 0問のドメインもキーとして残す。落とすと「集計対象外」と「本当に0問」が
+# 区別できず、割り当て表示・キャッシュから消えて重み付けの根拠が見えなくなる。
+domain_order = [d.strip() for d in sys.argv[4].split(',') if d.strip()]
+if domain_order:
+    _by_norm = {}
+    for k, v in counts.items():
+        _by_norm[norm(k)] = _by_norm.get(norm(k), 0) + v
+    domain_counts = {d: _by_norm.get(norm(d), 0) for d in domain_order}
+    # マスタに無い名前で集計された分（旧データ等）は警告として残す
+    orphans = {k: v for k, v in counts.items() if norm(k) not in domain_set}
+    if orphans:
+        for k, v in sorted(orphans.items()):
+            print(f'  ⚠️ マスタ外のドメイン名 "{k}": {v}問（examDomains.json と不一致）')
+else:
+    domain_counts = dict(counts)
 
 # _COUNTS_TMP_EARLY はドメイン名のみ（割り当て計算の入力）
 with open(sys.argv[3], 'w', encoding='utf-8') as f:

@@ -89,6 +89,24 @@ try:
         '--filter-pattern', '?Error ?ERROR ?Exception ?"Task timed out" ?Unhandled',
         '--output', 'json'], capture_output=True, text=True, timeout=45)
     evs = json.loads(r.stdout).get('events', [])
+
+    # CloudWatch の filter-pattern は本文中のどこでも部分一致するため、
+    # 問題文・解答テキストに含まれる語（例: Step Functions の "ErrorEquals"、
+    # "ServiceUnavailableException"）だけで INFO のリクエストダンプが引っかかる。
+    # ログ行のレベル欄を見て本物のエラーだけに絞る。
+    # 形式: "<ISO時刻>\t<requestId>\t<LEVEL>\t<本文>"（ランタイム行は "[ERROR] ..."）
+    def is_real_error(msg):
+        if '[ERROR]' in msg or 'Task timed out' in msg or 'Unhandled' in msg:
+            return True
+        parts = msg.split('\t')
+        if len(parts) >= 4:
+            level, body = parts[2].strip(), parts[3].lstrip()
+            # レベルが ERROR、または INFO でも本文が ERROR: で始まるもの（実エラー）
+            return level == 'ERROR' or body.startswith('ERROR')
+        # タブ形式でない行は素の本文とみなし、先頭が ERROR のときだけ拾う
+        return msg.lstrip().startswith('ERROR')
+
+    evs = [e for e in evs if is_real_error(e.get('message', ''))]
     mark = '⚠️ ' if evs else ''
     out.append(f"{mark}本番エラーログ(prod,24h): {len(evs)}件")
     for ev in evs[:3]:
