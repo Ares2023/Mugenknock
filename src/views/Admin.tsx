@@ -939,6 +939,13 @@ export default function Admin() {
   const [validityTotalCount, setValidityTotalCount] = useState(0);
   const [scanExamFilter, setScanExamFilter] = useState<string>('ALL');
   const [scanSort, setScanSort] = useState<'date_desc' | 'date_asc'>('date_desc');
+  // ページング（全件返すと 17MB になり Lambda の 6MB 上限を超えるため）
+  const [flaggedHasMore, setFlaggedHasMore] = useState(false);
+  const [flaggedMatched, setFlaggedMatched] = useState(0);
+  const [flaggedChecked, setFlaggedChecked] = useState(0);
+  const [flaggedFixedCount, setFlaggedFixedCount] = useState(0);
+  const [loadingMoreFlagged, setLoadingMoreFlagged] = useState(false);
+  const FLAGGED_PAGE_SIZE = 100;
 
   // 問題数カウント
   const [examCounts, setExamCounts] = useState<Record<string, number>>({});
@@ -1036,16 +1043,50 @@ export default function Admin() {
     setEditForm(f => ({ ...f, choices: newChoices, correctAnswers: newCorrect }));
   };
 
-  const fetchFlagged = async (filter: 'all' | 'fixed' | 'hidden' = validityFilter) => {
+  // 絞り込み・並べ替えはサーバ側。ページ内だけに効くと件数表示と食い違うため。
+  const flaggedQuery = (
+    filter: 'all' | 'fixed' | 'hidden',
+    exam: string,
+    sort: 'date_desc' | 'date_asc',
+    offset: number,
+  ) => new URLSearchParams({
+    filter, sort, examType: exam,
+    limit: String(FLAGGED_PAGE_SIZE), offset: String(offset),
+  }).toString();
+
+  const applyFlaggedMeta = (data: any) => {
+    setValidityTotalCount(data.totalCount || 0);
+    setFlaggedMatched(data.matchedCount || 0);
+    setFlaggedChecked(data.checkedCount || 0);
+    setFlaggedFixedCount(data.fixedCount || 0);
+    setFlaggedHasMore(!!data.hasMore);
+  };
+
+  const fetchFlagged = async (
+    filter: 'all' | 'fixed' | 'hidden' = validityFilter,
+    exam: string = scanExamFilter,
+    sort: 'date_desc' | 'date_asc' = scanSort,
+  ) => {
     setLoadingFlagged(true);
     try {
-      const apiParam = filter === 'hidden' ? '?filter=hidden' : '';
-      const res = await adminFetch(`${API_ENDPOINT}/admin/questions/flagged${apiParam}`);
+      const res = await adminFetch(`${API_ENDPOINT}/admin/questions/flagged?${flaggedQuery(filter, exam, sort, 0)}`);
       const data = await res.json();
       setFlaggedQuestions(data.items || []);
-      setValidityTotalCount(data.totalCount || 0);
+      applyFlaggedMeta(data);
     } catch (err) { console.error(err); }
     setLoadingFlagged(false);
+  };
+
+  const fetchMoreFlagged = async () => {
+    setLoadingMoreFlagged(true);
+    try {
+      const res = await adminFetch(
+        `${API_ENDPOINT}/admin/questions/flagged?${flaggedQuery(validityFilter, scanExamFilter, scanSort, flaggedQuestions.length)}`);
+      const data = await res.json();
+      setFlaggedQuestions(prev => [...prev, ...(data.items || [])]);
+      applyFlaggedMeta(data);
+    } catch (err) { console.error(err); }
+    setLoadingMoreFlagged(false);
   };
 
   const handleApplyFix = async (q: FlaggedQuestion) => {
@@ -3075,16 +3116,9 @@ ${tipPromptExamType !== 'ALL' ? `・examType には "${tipPromptExamType}" を�
         </div>
       )}
       {tab === 'scan' && (() => {
-        const filteredFlagged = flaggedQuestions
-          .filter(q => scanExamFilter === 'ALL' || q.examType === scanExamFilter)
-          .filter(q => validityFilter !== 'fixed' || !!q.validityEditLog)
-          .sort((a, b) => {
-            const da = a.validityCheckedAt ? new Date(a.validityCheckedAt).getTime() : 0;
-            const db = b.validityCheckedAt ? new Date(b.validityCheckedAt).getTime() : 0;
-            return scanSort === 'date_asc' ? da - db : db - da;
-          });
-
-        const fixedCount = flaggedQuestions.filter(q => !!q.validityEditLog).length;
+        // 絞り込み・並べ替え・件数はサーバ側で確定済み（ページングのため）。
+        const filteredFlagged = flaggedQuestions;
+        const fixedCount = flaggedFixedCount;
 
         return (
           <div>
@@ -3093,14 +3127,14 @@ ${tipPromptExamType !== 'ALL' ? `・examType には "${tipPromptExamType}" を�
               <div style={{ background: 'var(--color-bg-main)', border: '1px solid #eaeded', borderRadius: 8, padding: '14px 18px', marginBottom: 16 }}>
                 <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10, flexWrap: 'wrap', gap: 8 }}>
                   <div style={{ fontSize: 13, color: 'var(--color-text-sub)' }}>
-                    確認済み <strong style={{ color: 'var(--color-text-main)', fontSize: 15 }}>{flaggedQuestions.length}</strong> / {totalCount} 問
+                    確認済み <strong style={{ color: 'var(--color-text-main)', fontSize: 15 }}>{flaggedChecked}</strong> / {totalCount} 問
                   </div>
                   <div style={{ fontSize: 12, color: 'var(--color-text-light)' }}>
-                    未確認 {totalCount - flaggedQuestions.length} 問
+                    未確認 {totalCount - flaggedChecked} 問
                   </div>
                 </div>
                 <div style={{ height: 8, background: 'var(--color-border)', borderRadius: 9999, overflow: 'hidden' }}>
-                  <div style={{ height: '100%', background: 'var(--color-primary)', borderRadius: 9999, width: `${Math.min(100, (flaggedQuestions.length / totalCount) * 100)}%`, transition: 'width 0.4s' }} />
+                  <div style={{ height: '100%', background: 'var(--color-primary)', borderRadius: 9999, width: `${Math.min(100, (flaggedChecked / totalCount) * 100)}%`, transition: 'width 0.4s' }} />
                 </div>
               </div>
             )}
@@ -3119,7 +3153,7 @@ ${tipPromptExamType !== 'ALL' ? `・examType には "${tipPromptExamType}" を�
                       color: validityFilter === key ? 'var(--color-primary)' : 'var(--color-text-sub)',
                       borderColor: validityFilter === key ? 'var(--color-primary)' : 'var(--color-border)', }}>
                     {label}
-                    {key === 'all' && !loadingFlagged && validityFilter === 'all' && ` (${flaggedQuestions.length})`}
+                    {key === 'all' && !loadingFlagged && validityFilter === 'all' && ` (${flaggedChecked})`}
                   </button>
                 ))}
               </div>
@@ -3129,7 +3163,7 @@ ${tipPromptExamType !== 'ALL' ? `・examType には "${tipPromptExamType}" を�
               </button>
             </div>
 
-            {/* クライアントサイドフィルター */}
+            {/* 絞り込み・並べ替え（サーバ側で適用） */}
             {!loadingFlagged && flaggedQuestions.length > 0 && (
               <div style={{ background: '#f8f9fa', border: '1px solid #eaeded', borderRadius: 8, padding: '12px 16px', marginBottom: 16, display: 'flex', flexWrap: 'wrap', gap: 16, alignItems: 'flex-start' }}>
                 {/* 試験種別 */}
@@ -3138,7 +3172,7 @@ ${tipPromptExamType !== 'ALL' ? `・examType には "${tipPromptExamType}" を�
                   <div style={{ display: 'flex', gap: 4, flexWrap: 'wrap', alignItems: 'center' }}>
                     {(['ALL', ...EXAM_TYPES] as string[]).map(et => (
                       <React.Fragment key={et}>
-                        <button onClick={() => setScanExamFilter(et)}
+                        <button onClick={() => { setScanExamFilter(et); fetchFlagged(validityFilter, et, scanSort); }}
                           style={{ padding: '3px 10px', border: scanExamFilter === et ? '2px solid' : '1.5px solid', borderRadius: 9999, cursor: 'pointer', fontSize: 12, fontWeight: scanExamFilter === et ? 700 : 400,
                             background: scanExamFilter === et ? 'var(--color-secondary)' : 'transparent',
                             color: scanExamFilter === et ? 'white' : 'var(--color-text-sub)',
@@ -3159,7 +3193,7 @@ ${tipPromptExamType !== 'ALL' ? `・examType には "${tipPromptExamType}" を�
                       { key: 'date_desc', label: '新→古' },
                       { key: 'date_asc', label: '古→新' },
                     ] as const).map(({ key, label }) => (
-                      <button key={key} onClick={() => setScanSort(key)}
+                      <button key={key} onClick={() => { setScanSort(key); fetchFlagged(validityFilter, scanExamFilter, key); }}
                         style={{ padding: '3px 10px', border: scanSort === key ? '2px solid' : '1.5px solid', borderRadius: 9999, cursor: 'pointer', fontSize: 12, fontWeight: scanSort === key ? 700 : 400,
                           background: scanSort === key ? 'var(--color-primary-light)' : 'transparent',
                           color: scanSort === key ? 'var(--color-primary)' : 'var(--color-text-sub)',
@@ -3170,9 +3204,9 @@ ${tipPromptExamType !== 'ALL' ? `・examType には "${tipPromptExamType}" を�
                   </div>
                 </div>
 
-                {/* 件数 */}
+                {/* 件数（表示中 / 条件に一致する全件） */}
                 <div style={{ marginLeft: 'auto', alignSelf: 'flex-end', fontSize: 12, color: '#879596' }}>
-                  {filteredFlagged.length} / {flaggedQuestions.length} 件
+                  {flaggedQuestions.length} / {flaggedMatched} 件
                 </div>
               </div>
             )}
@@ -3290,6 +3324,15 @@ ${tipPromptExamType !== 'ALL' ? `・examType には "${tipPromptExamType}" を�
                 </div>
               );
             })}
+
+            {/* ページング（全件一括だと 6MB 上限を超えるため 100件ずつ読む） */}
+            {!loadingFlagged && flaggedHasMore && (
+              <div style={{ textAlign: 'center', padding: 'var(--spacing-md) 0' }}>
+                <Button variant="outline" onClick={fetchMoreFlagged} disabled={loadingMoreFlagged}>
+                  {loadingMoreFlagged ? '読み込み中...' : `もっと読む（残り ${flaggedMatched - flaggedQuestions.length} 件）`}
+                </Button>
+              </div>
+            )}
           </div>
         );
       })()}

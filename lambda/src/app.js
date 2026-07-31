@@ -284,6 +284,21 @@ async function queryAll(docClient, params) {
   return items;
 }
 
+// Select:'COUNT' の Query は1回あたり最大1MB分しか走査せず、それを超えると
+// 件数が途中で打ち切られる（LastEvaluatedKey が返る）。最後までたどって合算する。
+async function queryCountAll(docClient, params) {
+  let count = 0;
+  let lastKey;
+  do {
+    const result = await docClient.send(new QueryCommand({
+      ...params, Select: 'COUNT', ...(lastKey ? { ExclusiveStartKey: lastKey } : {}),
+    }));
+    count += result.Count || 0;
+    lastKey = result.LastEvaluatedKey;
+  } while (lastKey);
+  return count;
+}
+
 // 指定 questionId のみを取得する（問題数に依存しない O(件数) 取得）。
 // exam 全件ロード（getAllQuestionsForExam）を回避し、問題が増えてもプログレッシブロードが
 // 一定時間で済むようにするための根本対策。件数はセッション分（数〜数十件）で有界。
@@ -842,41 +857,76 @@ app.get('/admin/questions/summary', async (req, res) => {
 // ?filter=flagged → rating<=2 または isHidden=true のみ
 // ?filter=hidden  → isHidden=true のみ
 // デフォルト      → validityCheckedAt があるもの全件
+// 妥当性チェック済み問題の一覧（管理画面「妥当性」タブ）
+//
+// 全件を1レスポンスで返していたが、問題数の増加で 17MB に達し Lambda の
+// 6MB 上限を超えて常に 413 で失敗していた（2026-07 時点 3895件）。
+// そのため limit/offset でページングする。あわせて一覧が描画しない
+// choices / correctAnswers / explanation は返さない（openEdit 側が
+// 個別 GET でフルの問題を取り直すため表示上の欠落は起きない）。
+// 絞り込み・並べ替えはページ内だけに効くと誤解を生むのでサーバ側で行う。
 app.get('/admin/questions/flagged', async (req, res) => {
   try {
     const docClient = getClient();
-    const { filter } = req.query;
+    const { filter, examType, sort } = req.query;
+    const limit  = Math.min(Math.max(parseInt(req.query.limit, 10) || 100, 1), 200);
+    const offset = Math.max(parseInt(req.query.offset, 10) || 0, 0);
 
-    let scanParams = { TableName: 'Questions' };
+    const scanParams = { TableName: 'Questions' };
+    const values = {};
+    const conds = [];
     if (filter === 'flagged') {
-      scanParams.FilterExpression = 'validityRating <= :threshold OR isHidden = :hidden';
-      scanParams.ExpressionAttributeValues = { ':threshold': 2, ':hidden': true };
+      conds.push('(validityRating <= :threshold OR isHidden = :hidden)');
+      values[':threshold'] = 2;
+      values[':hidden'] = true;
     } else if (filter === 'hidden') {
-      scanParams.FilterExpression = 'isHidden = :hidden';
-      scanParams.ExpressionAttributeValues = { ':hidden': true };
+      conds.push('isHidden = :hidden');
+      values[':hidden'] = true;
     } else {
-      scanParams.FilterExpression = 'attribute_exists(validityCheckedAt)';
+      conds.push('attribute_exists(validityCheckedAt)');
     }
-    scanParams.ProjectionExpression = 'questionId, examType, questionText, choices, correctAnswers, explanation, #dom, isMultiple, validityCheckedAt, formatCheckedAt, validityEditLog, isHidden, validityRating, validityNote, fixProposalJson';
+    if (examType && examType !== 'ALL') {
+      conds.push('examType = :et');
+      values[':et'] = examType;
+    }
+    scanParams.FilterExpression = conds.join(' AND ');
+    if (Object.keys(values).length) scanParams.ExpressionAttributeValues = values;
+    scanParams.ProjectionExpression = 'questionId, examType, questionText, #dom, validityCheckedAt, formatCheckedAt, validityEditLog, isHidden, validityRating, validityNote, fixProposalJson';
     scanParams.ExpressionAttributeNames = { '#dom': 'domain' };
 
     // フィルタ済みアイテム取得 + 全件数を examType-index Query で並行取得
     const EXAM_TYPE_LIST = Object.keys(EXAM_DOMAINS);
-    const [checkedItems, perExamCounts] = await Promise.all([
+    const [matched, perExamCounts] = await Promise.all([
       scanAll(docClient, scanParams),
       Promise.all(EXAM_TYPE_LIST.map(et =>
-        docClient.send(new QueryCommand({
+        queryCountAll(docClient, {
           TableName: 'Questions',
           IndexName: 'examType-index',
           KeyConditionExpression: 'examType = :e',
           ExpressionAttributeValues: { ':e': et },
-          Select: 'COUNT',
-        })).then(r => r.Count || 0)
+        })
       )),
     ]);
     const totalCount = perExamCounts.reduce((s, c) => s + c, 0);
-    const items = checkedItems.sort((a, b) => (a.validityRating || 9) - (b.validityRating || 9));
-    res.json({ items, count: items.length, totalCount });
+
+    // 「AI修正済み」は validityEditLog の有無で決まる。件数バッジ用に絞り込み前に数える。
+    const fixedCount = matched.filter(q => !!q.validityEditLog).length;
+    const scoped = filter === 'fixed' ? matched.filter(q => !!q.validityEditLog) : matched;
+
+    const ts = q => (q.validityCheckedAt ? new Date(q.validityCheckedAt).getTime() : 0);
+    scoped.sort((a, b) => (sort === 'date_asc' ? ts(a) - ts(b) : ts(b) - ts(a)));
+
+    const items = scoped.slice(offset, offset + limit);
+    res.json({
+      items,
+      count: items.length,
+      matchedCount: scoped.length,
+      checkedCount: matched.length,
+      fixedCount,
+      totalCount,
+      offset,
+      hasMore: offset + items.length < scoped.length,
+    });
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: 'Internal server error' });
