@@ -2289,14 +2289,14 @@ export default function Admin() {
             {/* AIプロンプト生成 */}
             {(() => {
               const examFull = `${EXAM_CONFIGS[importExamType]?.fullName} (${EXAM_CONFIGS[importExamType]?.examCode})`;
-              const topic = promptTopic.trim() || '（トピックを入力してください）';
+              const topic = promptTopic.trim();
               const count = parseInt(promptCount) || 5;
               const prompt = `あなたはAWS認定試験の問題作成の専門家です。
 以下の条件に従い、試験問題を${count}問作成し、JSON配列のみを出力してください（前後の説明文は不要）。
 本サービスは日本語のみで提供します。英語フィールドは出力しないでください。
 
 【試験】${examFull}
-【トピック】${topic}
+${topic ? `【トピック / キーワード】${topic}` : '【トピック / キーワード】指定なし（全ドメインから均等に出題すること）'}
 
 【作問ルール】
 ・選択肢は必ず4つ（ラベルなし・テキストのみ。"A." "B." 等の接頭辞を付けない）
@@ -2335,7 +2335,7 @@ ${EXAM_SUPPLEMENTARY_RULES[importExamType] ? `${EXAM_SUPPLEMENTARY_RULES[importE
 
                   <div style={{ display: 'flex', gap: 12, marginBottom: 12, flexWrap: 'wrap' }}>
                     <div style={{ flex: 1, minWidth: 180 }}>
-                      <div style={{ fontSize: 11, color: 'var(--color-text-light)', marginBottom: 4 }}>トピック / サービス名</div>
+                      <div style={{ fontSize: 11, color: 'var(--color-text-light)', marginBottom: 4 }}>トピック / キーワード（任意）</div>
                       <input value={promptTopic} onChange={e => setPromptTopic(e.target.value)}
                         placeholder="例: S3のセキュリティ、EC2のネットワーク"
                         style={{ width: '100%', padding: '7px 10px', border: '1px solid #d1d5db', borderRadius: 6, fontSize: 14, boxSizing: 'border-box' }} />
@@ -2407,13 +2407,13 @@ ${EXAM_SUPPLEMENTARY_RULES[importExamType] ? `${EXAM_SUPPLEMENTARY_RULES[importE
             const tipExamFull = tipPromptExamType === 'ALL'
               ? 'AWS認定試験全般'
               : `${EXAM_CONFIGS[tipPromptExamType]?.fullName} (${EXAM_CONFIGS[tipPromptExamType]?.examCode})`;
-            const topic = tipPromptTopic.trim() || '（トピックを入力してください）';
+            const topic = tipPromptTopic.trim();
             const count = parseInt(tipPromptCount) || 5;
             const prompt = `あなたはAWSクラウドの教育コンテンツ作成の専門家です。
 以下の条件に従い、学習コラム（豆知識）を${count}件作成し、JSON配列のみを出力してください（前後の説明文は不要）。
 
 【対象試験】${tipExamFull}
-【トピック】${topic}
+${topic ? `【トピック / キーワード】${topic}` : '【トピック / キーワード】指定なし（対象試験の範囲から幅広く作成すること）'}
 
 【作成ルール】
 ・タイトルは30字以内で、内容を端的に表すこと
@@ -2462,7 +2462,7 @@ ${tipPromptExamType !== 'ALL' ? `・examType には "${tipPromptExamType}" を�
                     </div>
                   </div>
                   <div style={{ flex: 1, minWidth: 180 }}>
-                    <div style={{ fontSize: 12, color: 'var(--color-text-sub)', fontWeight: 700, marginBottom: 6 }}>トピック / サービス名</div>
+                    <div style={{ fontSize: 12, color: 'var(--color-text-sub)', fontWeight: 700, marginBottom: 6 }}>トピック / キーワード（任意）</div>
                     <input value={tipPromptTopic} onChange={e => setTipPromptTopic(e.target.value)}
                       placeholder="例: S3のライフサイクル、EC2のインスタンスタイプ"
                       style={{ width: '100%', padding: '7px 10px', border: '1px solid #d1d5db', borderRadius: 6, fontSize: 14, boxSizing: 'border-box', outline: 'none' }}
