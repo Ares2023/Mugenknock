@@ -553,6 +553,8 @@ for r in results:
     reason = r.get('reason', '')
     fix = r.get('fix', {})
     orig = orig_questions.get(qid, {})
+    created_at = orig.get('createdAt', '')[:10] if orig.get('createdAt') else '不明'
+    prev_checked = orig.get('validityCheckedAt', '')[:10] if orig.get('validityCheckedAt') else '未確認'
 
     if action == 'delete':
         subprocess.run([
@@ -561,7 +563,7 @@ for r in results:
             '--key', json.dumps({'questionId': {'S': qid}}),
         ], capture_output=True)
         del_count += 1
-        print(f'  [DELETE] {qid}: {reason}')
+        print(f'  [DELETE] {qid}  生成:{created_at}  前回確認:{prev_checked}: {reason}')
         continue
 
     if action == 'fix' and fix:
@@ -678,7 +680,7 @@ for r in results:
         subprocess.run(cmd, capture_output=True)
         fix_count += 1
         changed_fields = list(changes.keys()) or ['(変更なし)']
-        print(f'  [FIX  ] {qid}: {reason} → 変更: {", ".join(changed_fields)}')
+        print(f'  [FIX  ] {qid}  生成:{created_at}  前回確認:{prev_checked}: {reason} → 変更: {", ".join(changed_fields)}')
 
     else:
         # action == 'ok' (or unrecognized)
@@ -692,7 +694,7 @@ for r in results:
             '--expression-attribute-values', json.dumps(expr_values),
         ], capture_output=True)
         ok_count += 1
-        print(f'  [OK   ] {qid}')
+        print(f'  [OK   ] {qid}  生成:{created_at}  前回確認:{prev_checked}')
 
 print(f'  → 更新完了: OK={ok_count} 修正={fix_count} 削除={del_count}')
 print(f'__STATS__{ok_count},{fix_count},{del_count}')
@@ -714,6 +716,38 @@ PYEOF
 done
 
 rm -rf "$CHUNKS_DIR"
+
+# レート制限 or タイムアウトで 0 件処理のまま終わった場合、
+# このバッチがクレームした ID を解放する（他インスタンスのクレームは維持）
+if [ $(( TOTAL_OK + TOTAL_FIX + TOTAL_DEL )) -eq 0 ] && { [ $RATE_LIMITED -eq 1 ] || [ ${TIMEOUT_HIT:-0} -eq 1 ]; }; then
+  echo ""
+  echo "⚠️  0件処理のためこのバッチのクレームをロールバックします..."
+  echo "$QUESTIONS_JSON" | SESSION_CLAIMED="$SESSION_CLAIMED" SESSION_LOCK="$SESSION_LOCK" python3 << 'PYEOF'
+import json, sys, os, fcntl
+try:
+    selected_ids = {q['questionId'] for q in json.load(sys.stdin)}
+    claimed_path = os.environ.get('SESSION_CLAIMED', '')
+    lock_path    = os.environ.get('SESSION_LOCK', '')
+    if not claimed_path or not lock_path:
+        sys.exit(0)
+    with open(lock_path, 'w') as lf:
+        fcntl.flock(lf, fcntl.LOCK_EX)
+        try:
+            try:
+                with open(claimed_path) as f:
+                    claimed = set(json.load(f))
+            except Exception:
+                claimed = set()
+            new_claimed = list(claimed - selected_ids)
+            with open(claimed_path, 'w') as f:
+                json.dump(new_claimed, f)
+            print(f"  クレームロールバック完了: {len(selected_ids)}件を解放（残: {len(new_claimed)}件）")
+        finally:
+            fcntl.flock(lf, fcntl.LOCK_UN)
+except Exception as e:
+    print(f"  クレームロールバック失敗（無視して続行）: {e}")
+PYEOF
+fi
 
 echo ""
 echo "完了サマリー: 問題なし=${TOTAL_OK}問 / 自動修正=${TOTAL_FIX}問 / 削除=${TOTAL_DEL}問"
