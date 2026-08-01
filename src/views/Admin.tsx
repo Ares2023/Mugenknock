@@ -2280,10 +2280,18 @@ export default function Admin() {
             <div style={{ marginBottom: 12 }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 6 }}>
                 <div style={{ fontSize: 12, color: 'var(--color-text-light)' }}>JSONを貼り付けまたはファイルをアップロード</div>
-                <label style={{ padding: '5px 12px', background: 'var(--color-bg-main)', border: '1px solid #d1d5db', borderRadius: 9999, cursor: 'pointer', fontSize: 12, fontWeight: 700 }}>
-                  ファイルを選択
-                  <input type="file" accept=".json" onChange={handleFileUpload} style={{ display: 'none' }} />
-                </label>
+                <div style={{ display: 'flex', gap: 8 }}>
+                  {importJson && (
+                    <button onClick={() => { setImportJson(''); setImportParsed(null); setImportResult(null); setImportError(''); }}
+                      style={{ padding: '5px 12px', background: 'transparent', border: '1px solid #d1d5db', borderRadius: 9999, cursor: 'pointer', fontSize: 12, fontWeight: 700, color: 'var(--color-text-sub)' }}>
+                      クリア
+                    </button>
+                  )}
+                  <label style={{ padding: '5px 12px', background: 'var(--color-bg-main)', border: '1px solid #d1d5db', borderRadius: 9999, cursor: 'pointer', fontSize: 12, fontWeight: 700 }}>
+                    ファイルを選択
+                    <input type="file" accept=".json" onChange={handleFileUpload} style={{ display: 'none' }} />
+                  </label>
+                </div>
               </div>
               <textarea value={importJson} onChange={e => { setImportJson(e.target.value); setImportParsed(null); setImportResult(null); setImportError(''); }}
                 placeholder={EXAMPLE}
@@ -2372,7 +2380,15 @@ ${EXAM_SUPPLEMENTARY_RULES[importExamType] ? `${EXAM_SUPPLEMENTARY_RULES[importE
 
               return (
                 <div style={{ marginBottom: 16, background: 'var(--color-bg-main)', border: '1px solid #eaeded', borderRadius: 6, padding: '16px', boxShadow: 'var(--box-shadow-sm)' }}>
-                  <div style={{ fontWeight: 'bold', fontSize: 14, color: '#232f3e', marginBottom: 12 }}>AIプロンプト生成</div>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
+                    <div style={{ fontWeight: 'bold', fontSize: 14, color: '#232f3e' }}>AIプロンプト生成</div>
+                    {(promptTopic || promptCount !== '5') && (
+                      <button onClick={() => { setPromptTopic(''); setPromptCount('5'); }}
+                        style={{ padding: '4px 12px', background: 'transparent', border: '1px solid #d1d5db', borderRadius: 9999, cursor: 'pointer', fontSize: 12, fontWeight: 700, color: 'var(--color-text-sub)' }}>
+                        リセット
+                      </button>
+                    )}
+                  </div>
 
                   <div style={{ display: 'flex', gap: 12, marginBottom: 12, flexWrap: 'wrap' }}>
                     <div style={{ flex: 1, minWidth: 180 }}>
