@@ -205,6 +205,11 @@ export const EXAM_SUPPLEMENTARY_RULES: Partial<Record<string, string>> = {
   AIF: `・実際のAIF試験の約40%はAWSサービス非依存の一般的なAI・ML概念（BLEU/BERT/決定木/転移学習等）を問う。AWSサービス問題と適切に混在させること
 ・特にIDP（インテリジェントドキュメント処理）・ネガティブプロンプト・コンバージョン率（ビジネスKPI）は出題頻度が低くなりがちなので優先的に含めること`,
   AIP: `・特にRLHF・LoRA（フルファインチューニングとの比較）・Lake Formation（データガバナンス）は出題頻度が低くなりがちなので優先的に含めること`,
+  DVA: `・DVA本試験は DynamoDB・API Gateway・Cognito の出題比率が特に高い。これらを中心に厚く出題すること
+・DynamoDB: GSIとLSIの使い分け（作成タイミング・キー・整合性・スループットの違い）、パーティションキー/ソートキー/セカンダリインデックスの役割、DynamoDB Streams、クエリvsスキャンを優先的に含めること
+・API Gateway: ステージと「デプロイ」の概念、ステージ変数による環境差分（dev/test/prod）の作り分け、モック統合の用途を優先的に含めること
+・Cognito: ユーザープールとアイデンティティプールの使い分け（認証/JWT vs 一時AWS認証情報の付与）を明確に問うこと
+・その他手薄になりがち: SAMとCloudFormationの併用・sam localでのローカルテスト/デプロイ、プロビジョンド/予約済みコンカレンシーの用途差、Lambdaのメモリ増加による高速化、Secrets Managerのリージョン間レプリケーション、既存S3データの一括暗号化（S3バッチオペレーション）、AppConfigの使い分け、ECSタスク定義`,
 };
 
 export const EXAM_OFFICIAL_URLS: Record<string, { page: string; guide: string }> = {
