@@ -715,8 +715,11 @@ PYEOF
   # --hard（拡張思考）は出力トークンが大幅増大するため半減して上限に収める。
   # チャンクは小さく保つ（6月下旬の高スループット時と同値）。予算は必ず途中で尽きる前提で、
   # 尽きる「前に」完走・バンクできるチャンク数を最大化するのが狙い。大きいチャンクは完走前に落ちる。
+  # SAA は Associate だが1問あたり生成時間が重い資格帯(SAP/ANS 等)に近く(実測 約120〜207秒/問)、
+  # chunk=5 だと1ドメインが600〜1244秒かかりレート制限前に完走できず取りこぼしが多い。
+  # chunk=3 に下げて完走・バンク単位を小さくし、上限に当たる前に確保できる問題数を最大化する。
   case "$NEXT_EXAM" in
-    SAP|ANS|SCS|DOP|SOA|AIP) CHUNK_SIZE=3; MIN_CHUNK_Q=2 ;;
+    SAP|ANS|SCS|DOP|SOA|AIP|SAA) CHUNK_SIZE=3; MIN_CHUNK_Q=2 ;;
     *) CHUNK_SIZE=5; MIN_CHUNK_Q=3 ;;
   esac
   if [ "$HARD_MODE" -eq 1 ]; then
