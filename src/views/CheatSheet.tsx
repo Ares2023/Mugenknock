@@ -133,7 +133,7 @@ const CHEAT_DATA: CheatData = {
       items: [
         { name: 'CloudWatch', desc: 'AWSリソースとアプリの監視サービス。\nメトリクス: CPU使用率・メモリ・ネットワーク等の数値データをグラフで可視化\nログ: アプリやサービスのログを収集・検索\nアラーム: しきい値を超えたらSNS通知やAutoScalingを自動実行', tags: ['メトリクス', 'ログ', 'アラーム'] },
         { name: 'CloudTrail', desc: 'AWSアカウントで実行されたすべてのAPIコールを記録する監査ログサービス。\n誰が・どのリソースに・いつ・何をしたかを追跡でき、デフォルトで90日間保持。S3に証跡を保存すれば無期限に保管できる。', tags: ['監査', 'APIログ', 'コンプライアンス'] },
-        { name: 'AWS Config', desc: 'AWSリソースの設定変更を継続的に記録し、望ましい状態からの逸脱を検出するサービス。\nルール（例: 「S3バケットの公開設定を禁止」）を定義して準拠状況を自動チェックし、違反を通知・自動修復できる。', tags: ['設定管理', 'ルール', 'コンプライアンス'] },
+        { name: 'Config', desc: 'AWSリソースの設定変更を継続的に記録し、望ましい状態からの逸脱を検出するサービス。\nルール（例: 「S3バケットの公開設定を禁止」）を定義して準拠状況を自動チェックし、違反を通知・自動修復できる。', tags: ['設定管理', 'ルール', 'コンプライアンス'] },
         { name: 'Systems Manager', desc: 'EC2などのインフラを一元管理する運用サービス群。\nSession Manager: SSHポートを開けずにブラウザからEC2にアクセス\nPatch Manager: OSのセキュリティパッチを自動適用\nParameter Store: 設定値・秘密情報を安全に保管\nRun Command: 複数EC2に同時コマンド実行', tags: ['パッチ管理', 'Session Manager', '自動化'] },
         { name: 'Organizations', desc: '複数のAWSアカウントを階層的に管理するサービス。\nOU（組織単位）でアカウントをグループ化し、SCP（サービスコントロールポリシー）でOU/アカウントに使用できるサービスや操作を制限できる。請求を一括でまとめられる（コンソリデーテッドビリング）。', tags: ['マルチアカウント', '一括請求', 'SCP'] },
       ],
@@ -173,18 +173,18 @@ const CHEAT_DATA: CheatData = {
     {
       title: 'AWSのAI/MLサービス',
       items: [
-        { name: 'Amazon Bedrock', desc: 'サーバーレスで複数の基盤モデルにAPIアクセスできるサービス。\n利用可能モデル: Anthropic Claude / Meta Llama / Amazon Titan / Mistral / Cohere 等\n追加機能: Knowledge Bases（RAG構築）/ Agents（自律タスク実行）/ Guardrails（有害コンテンツフィルタ）/ Model Evaluation', tags: ['Claude', 'Titan', 'サーバーレス'] },
-        { name: 'Amazon SageMaker', desc: 'ML全ライフサイクルをカバーする統合プラットフォーム。\nデータ準備（Data Wrangler）→ 学習（Training Jobs）→ ハイパーパラメータ調整（AMT）→ モデル登録（Model Registry）→ デプロイ（Endpoints）→ 監視（Model Monitor）まで一気通貫で対応', tags: ['ML全般', 'Studio', 'エンドポイント'] },
-        { name: 'Amazon Rekognition', desc: '事前学習済みコンピュータービジョンAPI（画像・動画の分析）。\n顔認識・物体検出・シーン検出・テキスト抽出・コンテンツモデレーション（不適切コンテンツ検出）・有名人認識・PPE（個人用保護具）検出等', tags: ['画像認識', '顔認識', '物体検出'] },
-        { name: 'Amazon Comprehend', desc: 'テキストのNLP（自然言語処理）API。\n感情分析（ポジティブ/ネガティブ判定）/ エンティティ抽出（人名・地名・組織名等）/ 言語検出 / キーフレーズ検出 / 構文解析\nComprehend Medical: 医療テキスト特化版', tags: ['NLP', '感情分析', 'エンティティ'] },
-        { name: 'Amazon Polly', desc: 'テキストを自然な音声に変換するTTS（Text-to-Speech）サービス。\n60言語以上・多様な声種（ニューラル音声で自然度が高い）に対応。\nSSML（Speech Synthesis Markup Language）で話速・ポーズ・強調等を細かく制御できる。', tags: ['TTS', '音声合成', 'SSML'] },
-        { name: 'Amazon Transcribe', desc: '音声をテキストに変換するSTT（Speech-to-Text）サービス。\n話者分離（誰が話したかを識別）/ カスタム語彙（専門用語の認識精度向上）/ リアルタイム文字起こし / Transcribe Medical（医療特化版）', tags: ['STT', '文字起こし', '話者分離'] },
-        { name: 'Amazon Lex', desc: 'Alexaと同じ技術を使った会話型AIボットの構築サービス。音声・テキスト両対応。\nインテント（ユーザーの意図）/ スロット（情報の収集項目）/ 発話サンプルを設定してチャットボットを作成し、Lambda関数と連携してバックエンド処理を実行する。', tags: ['チャットボット', '会話AI', 'Alexa'] },
-        { name: 'Amazon Kendra', desc: '企業向けインテリジェント検索エンジン。自然言語の質問に対してS3・SharePoint・Confluence・Salesforce等の文書から正確に回答を見つけ出す。\nFAQや手順書の検索・社内ポータルのQ&A機能に活用できる。', tags: ['企業検索', 'ナレッジ', 'RAG'] },
-        { name: 'Amazon Textract', desc: '文書・フォームからテキストやデータを自動抽出するOCR（光学文字認識）サービス。\n単純なOCRと異なりテーブル構造・フォームのキー・バリュー対・署名等も理解して抽出できる。請求書・契約書・医療フォームの処理に使用。', tags: ['OCR', 'フォーム抽出', '文書解析'] },
+        { name: 'Bedrock', desc: 'サーバーレスで複数の基盤モデルにAPIアクセスできるサービス。\n利用可能モデル: Anthropic Claude / Meta Llama / Amazon Titan / Mistral / Cohere 等\n追加機能: Knowledge Bases（RAG構築）/ Agents（自律タスク実行）/ Guardrails（有害コンテンツフィルタ）/ Model Evaluation', tags: ['Claude', 'Titan', 'サーバーレス'] },
+        { name: 'SageMaker', desc: 'ML全ライフサイクルをカバーする統合プラットフォーム。\nデータ準備（Data Wrangler）→ 学習（Training Jobs）→ ハイパーパラメータ調整（AMT）→ モデル登録（Model Registry）→ デプロイ（Endpoints）→ 監視（Model Monitor）まで一気通貫で対応', tags: ['ML全般', 'Studio', 'エンドポイント'] },
+        { name: 'Rekognition', desc: '事前学習済みコンピュータービジョンAPI（画像・動画の分析）。\n顔認識・物体検出・シーン検出・テキスト抽出・コンテンツモデレーション（不適切コンテンツ検出）・有名人認識・PPE（個人用保護具）検出等', tags: ['画像認識', '顔認識', '物体検出'] },
+        { name: 'Comprehend', desc: 'テキストのNLP（自然言語処理）API。\n感情分析（ポジティブ/ネガティブ判定）/ エンティティ抽出（人名・地名・組織名等）/ 言語検出 / キーフレーズ検出 / 構文解析\nComprehend Medical: 医療テキスト特化版', tags: ['NLP', '感情分析', 'エンティティ'] },
+        { name: 'Polly', desc: 'テキストを自然な音声に変換するTTS（Text-to-Speech）サービス。\n60言語以上・多様な声種（ニューラル音声で自然度が高い）に対応。\nSSML（Speech Synthesis Markup Language）で話速・ポーズ・強調等を細かく制御できる。', tags: ['TTS', '音声合成', 'SSML'] },
+        { name: 'Transcribe', desc: '音声をテキストに変換するSTT（Speech-to-Text）サービス。\n話者分離（誰が話したかを識別）/ カスタム語彙（専門用語の認識精度向上）/ リアルタイム文字起こし / Transcribe Medical（医療特化版）', tags: ['STT', '文字起こし', '話者分離'] },
+        { name: 'Lex', desc: 'Alexaと同じ技術を使った会話型AIボットの構築サービス。音声・テキスト両対応。\nインテント（ユーザーの意図）/ スロット（情報の収集項目）/ 発話サンプルを設定してチャットボットを作成し、Lambda関数と連携してバックエンド処理を実行する。', tags: ['チャットボット', '会話AI', 'Alexa'] },
+        { name: 'Kendra', desc: '企業向けインテリジェント検索エンジン。自然言語の質問に対してS3・SharePoint・Confluence・Salesforce等の文書から正確に回答を見つけ出す。\nFAQや手順書の検索・社内ポータルのQ&A機能に活用できる。', tags: ['企業検索', 'ナレッジ', 'RAG'] },
+        { name: 'Textract', desc: '文書・フォームからテキストやデータを自動抽出するOCR（光学文字認識）サービス。\n単純なOCRと異なりテーブル構造・フォームのキー・バリュー対・署名等も理解して抽出できる。請求書・契約書・医療フォームの処理に使用。', tags: ['OCR', 'フォーム抽出', '文書解析'] },
         { name: 'IDP（インテリジェントドキュメント処理）', desc: 'Intelligent Document Processing。AIで文書を自動処理する設計パターン。\nTextract（OCR・フォーム抽出）→ Comprehend（NLP・感情分析・エンティティ抽出）→ Lambda（後処理・振り分け）を組み合わせた典型構成。\n請求書・申請書・医療記録等の大量文書を人手介入なしに処理でき、S3をハブとして各サービスを連携させる。', keyword: 'IDP Textract Comprehend 文書処理 インテリジェントドキュメント', tags: ['IDP', 'Textract+Comprehend', '文書自動化'] },
-        { name: 'Amazon SageMaker Clarify', desc: 'モデルのバイアス検出と説明可能性（XAI）を提供するSageMakerの機能。\nバイアス検出: 訓練データのバイアス（学習前）とモデル予測のバイアス（学習後）を統計指標で測定\nSHAP値: 各特徴量が予測に与えた貢献度を定量化する手法（Shapley Additive exPlanations）\nModel Monitorと連携してデプロイ後のバイアスドリフトを継続監視できる', keyword: 'SageMaker Clarify バイアス検出 SHAP 説明可能性', tags: ['バイアス検出', 'SHAP', 'XAI'] },
-        { name: 'Amazon Translate', desc: '75言語以上に対応するニューラル機械翻訳API。\nカスタム用語集を設定することで専門用語・ブランド名・製品名を正確に翻訳できる。リアルタイム翻訳とバッチ翻訳の両方に対応。', tags: ['翻訳', '多言語', 'ニューラル'] },
+        { name: 'SageMaker Clarify', desc: 'モデルのバイアス検出と説明可能性（XAI）を提供するSageMakerの機能。\nバイアス検出: 訓練データのバイアス（学習前）とモデル予測のバイアス（学習後）を統計指標で測定\nSHAP値: 各特徴量が予測に与えた貢献度を定量化する手法（Shapley Additive exPlanations）\nModel Monitorと連携してデプロイ後のバイアスドリフトを継続監視できる', keyword: 'SageMaker Clarify バイアス検出 SHAP 説明可能性', tags: ['バイアス検出', 'SHAP', 'XAI'] },
+        { name: 'Translate', desc: '75言語以上に対応するニューラル機械翻訳API。\nカスタム用語集を設定することで専門用語・ブランド名・製品名を正確に翻訳できる。リアルタイム翻訳とバッチ翻訳の両方に対応。', tags: ['翻訳', '多言語', 'ニューラル'] },
       ],
     },
     {
@@ -287,7 +287,7 @@ const CHEAT_DATA: CheatData = {
         { name: 'S3', desc: 'プレサインドURL: 一時的なアクセス権限をURLに埋め込み、未認証ユーザーがS3に安全にアクセスできる仕組み\nマルチパートアップロード: 大きなファイルを分割してアップロードし、失敗時のリトライが部分的になるため大容量ファイルに推奨\nS3イベント通知: オブジェクトのPUT/DELETEなどのイベントをLambda・SQS・SNSに転送\nCORS（Cross-Origin Resource Sharing）: 異なるオリジンからのブラウザアクセスを許可する設定', tags: ['プレサインドURL', 'マルチパート', 'CORS'] },
         { name: 'Cognito', desc: 'User Pool（ユーザー認証）:\nサインアップ・サインイン・MFA（多要素認証）・パスワードポリシー管理\nトリガーLambda: サインアップ前・認証後等のタイミングでカスタム処理を実行\nIdentity Pool（AWSアクセス）:\nGoogle・Facebook・User Pool等でフェデレーションして一時的なIAM認証情報を払い出す\nロールマッピングで認証済み/未認証ユーザーに異なる権限を付与', tags: ['User Pool', 'Identity Pool', 'MFA'] },
         { name: 'ElastiCache', desc: 'キャッシュ戦略:\nLazy Loading（キャッシュに無ければDBから取得してキャッシュに保存）: キャッシュミス時のみDBアクセスが発生\nWrite-Through（DB書き込みと同時にキャッシュも更新）: データの鮮度が高いが書き込みのオーバーヘッドあり\nRedis: セッションストア・リアルタイムランキング・Pub/Subに適する\nMemcached: シンプルなキャッシュ・マルチスレッドでの高スループット向け', tags: ['Lazy Loading', 'Write-Through', 'セッション'] },
-        { name: 'AWS App Runner', desc: 'コンテナイメージまたはソースコードから直接Webアプリ・APIをデプロイできるフルマネージドサービス。インフラ管理・ロードバランサー・オートスケール設定が不要。\nデプロイトリガー: 「自動」に設定するとECRイメージの更新やソースリポジトリのプッシュを検知して自動再デプロイ\n用途: EC2やECSほどの制御は不要で、素早くコンテナ化Webアプリを公開したい場合に適する', tags: ['コンテナ', 'フルマネージド', '自動デプロイ'] },
+        { name: 'App Runner', desc: 'コンテナイメージまたはソースコードから直接Webアプリ・APIをデプロイできるフルマネージドサービス。インフラ管理・ロードバランサー・オートスケール設定が不要。\nデプロイトリガー: 「自動」に設定するとECRイメージの更新やソースリポジトリのプッシュを検知して自動再デプロイ\n用途: EC2やECSほどの制御は不要で、素早くコンテナ化Webアプリを公開したい場合に適する', tags: ['コンテナ', 'フルマネージド', '自動デプロイ'] },
       ],
     },
     {
@@ -335,7 +335,7 @@ const CHEAT_DATA: CheatData = {
       items: [
         { name: 'CloudWatch', desc: 'カスタムメトリクス: PutMetricData APIで独自メトリクスを送信。高解像度（1秒）まで対応\nLogs Insights: ロググループに対してSQLライクなクエリで分析するツール\nContributor Insights: 上位N件のトラフィックソース・エラー原因を特定する分析機能\n異常検知: 機械学習でメトリクスの異常（季節性考慮）を自動検出してアラーム\n複合アラーム: 複数アラームをAND/ORで組み合わせた複合条件でアクション実行', tags: ['高解像度', 'Logs Insights', '異常検知'] },
         { name: 'CloudTrail', desc: 'AWSリソースへのAPIコールを記録する監査ログサービス。イベントの種類:\n管理イベント: AWSリソースの作成・削除・設定変更。デフォルトで有効\nデータイベント: S3オブジェクト操作・Lambda関数実行。明示的に有効化が必要\nInsightsイベント: 通常と異なるAPI呼び出しパターン（突然の大量呼び出し等）を自動検出', tags: ['管理イベント', 'データイベント', 'Insights'] },
-        { name: 'AWS Config', desc: 'リソースの設定変更を時系列で記録し、ルールへの準拠状況を継続的に評価するサービス。\nマネージドルール: AWSが事前定義した150以上のコンプライアンスルール\nカスタムルール: Lambda関数で独自のルールを定義\nコンフォーマンスパック: 複数のConfigルールをまとめてパッケージ化して一括展開\n自動修復: ルール違反を検出したらSSM Automationで自動修正', tags: ['設定変更', 'マネージドルール', '自動修復'] },
+        { name: 'Config', desc: 'リソースの設定変更を時系列で記録し、ルールへの準拠状況を継続的に評価するサービス。\nマネージドルール: AWSが事前定義した150以上のコンプライアンスルール\nカスタムルール: Lambda関数で独自のルールを定義\nコンフォーマンスパック: 複数のConfigルールをまとめてパッケージ化して一括展開\n自動修復: ルール違反を検出したらSSM Automationで自動修正', tags: ['設定変更', 'マネージドルール', '自動修復'] },
         { name: 'Health Dashboard', desc: 'Service Health Dashboard（サービス全体の障害ステータス）: AWSサービス全体の稼働状況を公開しているページ\nPersonal Health Dashboard（個人用ヘルスダッシュボード）: 自分のアカウントのリソースへの影響をお知らせするサービス\nEventBridgeと連携してHealth通知を受けたらSlack/SNSに自動転送するパターンが頻出', tags: ['サービス障害', 'アカウント影響', 'EventBridge連携'] },
       ],
     },
@@ -427,7 +427,7 @@ const CHEAT_DATA: CheatData = {
     {
       title: 'データの変換・処理',
       items: [
-        { name: 'AWS Glue', desc: 'サーバーレスETL（Extract・Transform・Load）サービス。インフラ管理不要で大規模データ処理が可能。\nクローラー: S3・RDS・DynamoDB等のデータを自動スキャンしてGlue Data Catalogにスキーマを登録\nETLジョブ: SparkまたはPython ShellベースでデータをS3やRedshiftに変換・格納\nGlue Studio: ビジュアルなUIでETLジョブを構築できるツール\nGlue DataBrew: SQLやコードなしでデータをクリーニング・変換できるノーコードツール', tags: ['ETL', 'クローラー', 'Spark'] },
+        { name: 'Glue', desc: 'サーバーレスETL（Extract・Transform・Load）サービス。インフラ管理不要で大規模データ処理が可能。\nクローラー: S3・RDS・DynamoDB等のデータを自動スキャンしてGlue Data Catalogにスキーマを登録\nETLジョブ: SparkまたはPython ShellベースでデータをS3やRedshiftに変換・格納\nGlue Studio: ビジュアルなUIでETLジョブを構築できるツール\nGlue DataBrew: SQLやコードなしでデータをクリーニング・変換できるノーコードツール', tags: ['ETL', 'クローラー', 'Spark'] },
         { name: 'EMR（Elastic MapReduce）', desc: 'Apache Spark・Hive・Presto・HBaseなどのビッグデータフレームワークをEC2またはFargate上で実行するマネージドクラスタサービス。\nノードの役割:\nマスターノード: クラスタ全体を管理・調整\nコアノード: データ処理＋HDFSデータを保持（削除すると不可）\nタスクノード: データ処理のみ（HDFS保持なし）。スポットEC2を使うことでコスト削減', tags: ['Spark', 'Hive', 'スポット'] },
         { name: 'Lambda（データ処理）', desc: 'Kinesis Data StreamsやDynamoDB Streamsのトリガーで起動してリアルタイムにデータを処理・変換するサーバーレス関数。\n軽量な変換処理やイベント駆動のデータパイプライン（フィルタリング・エンリッチメント・ルーティング）に適している。', tags: ['リアルタイム', 'ストリーム処理', 'イベント駆動'] },
         { name: 'Step Functions（データパイプライン）', desc: 'Glue・EMR・Lambda・Athena等を組み合わせた複雑なETLパイプラインのオーケストレーション（実行順序・状態管理）サービス。\nDAG（有向非巡回グラフ）として処理フローを定義し、並列実行・条件分岐・エラーリトライを自動的に管理する。', tags: ['オーケストレーション', 'パイプライン', 'ワークフロー'] },
@@ -494,7 +494,7 @@ const CHEAT_DATA: CheatData = {
     {
       title: '組織とガバナンス',
       items: [
-        { name: 'AWS Organizations', desc: '複数のAWSアカウントをOU（組織単位）で階層的に管理するサービス。\nSCP（サービスコントロールポリシー）: OU/アカウントに適用するガードレール。IAM許可との AND評価で最大権限を制限するだけで権限を付与する機能はない\nコンソリデーテッドビリング: 全アカウントの請求を1つにまとめてスケールメリットで割引を受けられる', tags: ['SCP', 'OU', 'ガードレール'] },
+        { name: 'Organizations', desc: '複数のAWSアカウントをOU（組織単位）で階層的に管理するサービス。\nSCP（サービスコントロールポリシー）: OU/アカウントに適用するガードレール。IAM許可との AND評価で最大権限を制限するだけで権限を付与する機能はない\nコンソリデーテッドビリング: 全アカウントの請求を1つにまとめてスケールメリットで割引を受けられる', tags: ['SCP', 'OU', 'ガードレール'] },
         { name: 'Control Tower', desc: 'AWS Organizationsの上でマルチアカウント環境の推奨アーキテクチャ（ランディングゾーン）を自動セットアップするサービス。\nGuardrails（ガードレール）: 予防的（SCPで禁止）と検出的（Configルールで違反を検出）の2種類\nAccount Factory: 新しいAWSアカウントを承認済み設定で自動プロビジョニング\nログアーカイブアカウント: CloudTrail・Configのログを集約保存する専用アカウント', tags: ['ランディングゾーン', 'Guardrails', 'Account Factory'] },
         { name: 'RAM（Resource Access Manager）', desc: 'AWS Organizationsまたはアカウント間でAWSリソースを共有するサービス。\n共有可能なリソース例: VPCサブネット・Transit Gateway・Route 53 Resolverルール・ライセンス\nVPCサブネット共有: 別アカウントのリソースを同一VPCのサブネットに配置できる。VPCピアリングやTGWなしで済む', tags: ['リソース共有', 'VPC共有', 'クロスアカウント'] },
         { name: 'Service Catalog', desc: 'ITサービスのポートフォリオを管理してユーザーにセルフサービスで承認済みリソースを提供するサービス。\nCloudFormationテンプレートをベースに「製品」を定義し、ユーザーが承認済み製品だけをデプロイできるガバナンスを実現。コスト管理・コンプライアンス維持に有効。', tags: ['セルフサービス', 'カタログ', 'ガバナンス'] },
@@ -566,7 +566,7 @@ const CHEAT_DATA: CheatData = {
       items: [
         { name: 'コスト最適化', desc: '料金モデルの選択:\nオンデマンド: APIコールごとに課金。小規模・不定期な利用に適する\nプロビジョニドスループット: 一定スループットを月/6か月/1年コミットで割引購入。大規模・定常的な利用に適する\nプロンプトキャッシュ（Prompt Caching）: 同じプレフィックスのプロンプト部分をキャッシュして再利用するとトークンコストを削減できる機能', keyword: 'Bedrock コスト プロビジョニドスループット Prompt Caching', tags: ['プロビジョニドスループット', 'プロンプトキャッシュ', 'コスト'] },
         { name: 'レイテンシ最適化', desc: 'ストリーミングレスポンス: 応答を生成しながらトークン単位で逐次返す。TTFT（Time to First Token: 最初のトークンが届くまでの時間）の体感を改善\n適切なモデルサイズの選択: タスクの複雑さに応じて大きなモデルと小さなモデルを使い分け（小モデルの方が速くコストも安い）\nリージョンの最適化: ユーザーに近いリージョンのBedrockを使用して物理的レイテンシを削減', keyword: 'Bedrock レイテンシ ストリーミングレスポンス TTFT', tags: ['ストリーミング', 'TTFT', 'モデルサイズ'] },
-        { name: 'Amazon Q', desc: 'AWSが提供するAIアシスタント製品ファミリー。\nQ Business: 企業の社内ドキュメント（Confluence・Slack・S3等）に接続して自然言語でナレッジを検索・回答するチャットボット\nQ Developer: コード生成・補完・デバッグ・変換・セキュリティスキャンを行うAIコーディングアシスタント（IDE・AWSコンソール統合）\nQ in Amazon QuickSight: BIダッシュボードのNL2SQL（自然言語からSQLを生成して自動でグラフを作成）', tags: ['Q Business', 'Q Developer', 'NL2SQL'] },
+        { name: 'Q', desc: 'AWSが提供するAIアシスタント製品ファミリー。\nQ Business: 企業の社内ドキュメント（Confluence・Slack・S3等）に接続して自然言語でナレッジを検索・回答するチャットボット\nQ Developer: コード生成・補完・デバッグ・変換・セキュリティスキャンを行うAIコーディングアシスタント（IDE・AWSコンソール統合）\nQ in Amazon QuickSight: BIダッシュボードのNL2SQL（自然言語からSQLを生成して自動でグラフを作成）', tags: ['Q Business', 'Q Developer', 'NL2SQL'] },
       ],
     },
   ],
@@ -629,7 +629,7 @@ const CHEAT_DATA: CheatData = {
         { name: 'Security Hub', desc: 'GuardDuty・Inspector・Macie・Firewall Manager等の検出結果をASFF（Amazon Security Finding Format: セキュリティ検出結果の標準形式）で集約・優先順位付けするサービス。\nコンプライアンス基準への自動チェック:\nCIS AWS Foundations Benchmark: AWSのセキュリティ設定ベースライン\nPCI DSS: クレジットカード業界のデータセキュリティ基準\nNIST 800-53: 米国政府のセキュリティフレームワーク', tags: ['ASFF', 'CIS', 'PCI DSS準拠'], seeAlso: ['GuardDuty', 'Inspector', 'Audit Manager'] },
         { name: 'CloudTrail（SCS観点）', desc: 'セキュリティ監査の中核。イベントの種類:\n管理イベント: リソースの作成・削除・IAM変更等（デフォルト有効）\nデータイベント: S3オブジェクト操作・Lambda実行等（明示的に有効化が必要）\nInsightsイベント: 異常なAPI呼び出しパターンを自動検出\nS3証跡保護: 証跡をS3に保存する場合はMFAによる削除防止・KMS暗号化・ログファイル整合性検証（改ざん検出）を有効化することが重要', tags: ['管理イベント', 'データイベント', '整合性検証'] },
         { name: 'Inspector', desc: '脆弱性（セキュリティの弱点）を継続的にスキャンして優先順位付けするサービス。\nスキャン対象:\nEC2インスタンス: エージェント不要でSSMエージェント経由。OSの既知脆弱性を検出\nECRコンテナイメージ: プッシュ時に自動スキャン\nLambda関数: コードと依存パッケージの脆弱性をスキャン\nCVE（Common Vulnerabilities and Exposures）: 既知の脆弱性のIDデータベースと照合してリスクスコア（CVSS）で優先順位付け', tags: ['脆弱性スキャン', 'CVE', 'コンテナ'], seeAlso: ['GuardDuty', 'Security Hub'] },
-        { name: 'AWS Config（SCS観点）', desc: 'リソース設定変更の継続的記録とコンプライアンス評価。\nルール評価: マネージドルール（AWS事前定義）またはカスタムルール（Lambda）でリソースの準拠状況を常時評価\nコンフォーマンスパック: 複数のConfigルールをまとめて一括適用。CIS・PCIに対応したパックが利用可能\n自動修復: ルール違反検出時にSSM Automationを起動してリソースを自動修正', tags: ['設定記録', 'ルール評価', '自動修復'] },
+        { name: 'Config（SCS観点）', desc: 'リソース設定変更の継続的記録とコンプライアンス評価。\nルール評価: マネージドルール（AWS事前定義）またはカスタムルール（Lambda）でリソースの準拠状況を常時評価\nコンフォーマンスパック: 複数のConfigルールをまとめて一括適用。CIS・PCIに対応したパックが利用可能\n自動修復: ルール違反検出時にSSM Automationを起動してリソースを自動修正', tags: ['設定記録', 'ルール評価', '自動修復'] },
       ],
     },
     {

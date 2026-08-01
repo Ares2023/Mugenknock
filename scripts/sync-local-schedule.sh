@@ -4,7 +4,8 @@
 #
 # ドリフト構成: EventBridgeのピンは at(次回) を保持し、Fargateがピン完了ごとに
 # now+5h へ更新する(5時間ごと・毎日ずれる)。ローカルは次回ピン時刻を読み、
-#   - mugenknock-hook     : 次回ピンの30分前(トークン消化)
+#   - mugenknock-hook     : 次回ピンの30分前(妥当性確認・トークン消化)
+#   - mugenknock-hook2    : 次回ピンの15分前(妥当性確認・hookと並走)
 #   - mugenknock-postping : 次回ピンの10分後(=このスクリプトを再実行して次サイクルへ
 #                           自己再アーム。夜間サイクルなら夜間バッチも実行)
 # を一発(one-shot)で仕込む。postpingが毎サイクル自身を再アームして追従する。
@@ -126,8 +127,9 @@ if [ "$STALE" = "1" ]; then
 またはFargateイメージ/認証(S3のOAuth資格情報)を確認してください。"
 fi
 
-# 次回ピンから hook(-30分) / postping(+10分) の絶対時刻を算出
+# 次回ピンから hook(-30分) / hook2(-15分) / postping(+10分) の絶対時刻を算出
 HOOK_CAL=$(python3 -c "from datetime import datetime,timedelta; print((datetime.strptime('$NEXT_DT','%Y-%m-%dT%H:%M:%S')-timedelta(minutes=30)).strftime('%Y-%m-%d %H:%M:00'))")
+HOOK2_CAL=$(python3 -c "from datetime import datetime,timedelta; print((datetime.strptime('$NEXT_DT','%Y-%m-%dT%H:%M:%S')-timedelta(minutes=15)).strftime('%Y-%m-%d %H:%M:00'))")
 POST_CAL=$(python3 -c "from datetime import datetime,timedelta; print((datetime.strptime('$NEXT_DT','%Y-%m-%dT%H:%M:%S')+timedelta(minutes=10)).strftime('%Y-%m-%d %H:%M:00'))")
 
 # hook タイマー(one-shot)
@@ -146,6 +148,28 @@ Description=mugenknock hook timer (synced from EventBridge ${SCHEDULE_NAME})
 
 [Timer]
 OnCalendar=${HOOK_CAL}
+Persistent=true
+
+[Install]
+WantedBy=timers.target
+EOF
+
+# hook2 タイマー(one-shot): ピン15分前に問題生成
+cat > "$UNIT_DIR/mugenknock-hook2.service" << EOF
+[Unit]
+Description=mugenknock local generate hook (before ping)
+
+[Service]
+Type=oneshot
+WorkingDirectory=${REPO}
+ExecStart=/bin/bash -lc '${REPO}/scripts/local-hook2-run.sh'
+EOF
+cat > "$UNIT_DIR/mugenknock-hook2.timer" << EOF
+[Unit]
+Description=mugenknock hook2 timer (synced from EventBridge ${SCHEDULE_NAME})
+
+[Timer]
+OnCalendar=${HOOK2_CAL}
 Persistent=true
 
 [Install]
@@ -176,13 +200,14 @@ WantedBy=timers.target
 EOF
 
 systemctl --user daemon-reload
-systemctl --user enable mugenknock-hook.timer mugenknock-postping.timer >/dev/null 2>&1 || true
+systemctl --user enable mugenknock-hook.timer mugenknock-hook2.timer mugenknock-postping.timer >/dev/null 2>&1 || true
 # one-shot絶対時刻タイマーは restart で新OnCalendarを反映
-systemctl --user restart mugenknock-hook.timer mugenknock-postping.timer 2>/dev/null || \
-  systemctl --user start mugenknock-hook.timer mugenknock-postping.timer 2>/dev/null || true
+systemctl --user restart mugenknock-hook.timer mugenknock-hook2.timer mugenknock-postping.timer 2>/dev/null || \
+  systemctl --user start mugenknock-hook.timer mugenknock-hook2.timer mugenknock-postping.timer 2>/dev/null || true
 loginctl enable-linger "$USER" 2>/dev/null || true
 
 echo "✓ ローカルタイマーを EventBridge(${EXPR}) に同期"
 echo "  次回ピン : ${NEXT_DT/T/ }"
 echo "  hook     : ${HOOK_CAL}"
+echo "  hook2    : ${HOOK2_CAL}"
 echo "  postping : ${POST_CAL}  (RUN_NIGHT=${RUN_NIGHT})"

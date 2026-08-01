@@ -26,7 +26,7 @@ AWS="$AWS" bash "$REPO/scripts/pull-claude-creds.sh" "$S3" || true
 # フックはピンの30分前に発動するため +30分 = 回復時刻ちょうど。ここから MARGIN_MIN 分手前に置く。
 # -D は「判定時に走行中のチャンクは完走」する仕様なので、そのはみ出し(1チャンク≒数分)も
 # 回復前に収まるよう余裕を確保し、トークン回復後に妥当性チェックが継続しないようにする。
-MARGIN_MIN=5
+MARGIN_MIN=3
 DRAIN_MIN=$((30 - MARGIN_MIN))
 DEADLINE=$(date -d "+${DRAIN_MIN} min" +%H:%M 2>/dev/null || date -v+${DRAIN_MIN}M +%H:%M)
 log "妥当性チェック実行 (deadline=$DEADLINE / 回復の${MARGIN_MIN}分前で停止)..."
