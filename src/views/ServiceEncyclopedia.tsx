@@ -387,7 +387,7 @@ export default function ServiceEncyclopedia() {
 
                 return (
                   <div
-                    key={svc.name}
+                    key={svc.serviceIds?.[0] ?? svc.name}
                     {...(clickable ? { 'data-kbnav': '1' } : {})}
                     onClick={handleClick}
                     style={{
