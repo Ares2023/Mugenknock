@@ -2,6 +2,7 @@
 import React, { useState, useRef, useEffect, useMemo } from 'react';
 import { createPortal } from 'react-dom';
 import { lockBodyScroll } from '../utils/bodyScrollLock';
+import { resetExercisePrefsOnExamChange } from '../utils/preferences';
 import { API_ENDPOINT, EXAM_CONFIGS, EXAM_DOMAINS, DOMAIN_WEIGHTS, PASS_SCORES } from '@/constants';
 import { EXAM_ICON_COMPONENTS, IconBook, IconBookOpenCheck, IconCircleCheck, IconExternalLink, IconFileText } from '@/components/Icons';
 
@@ -520,6 +521,7 @@ export default function ExamSelectOverlay({
                   onClick={() => {
                     if (confirming) return;
                     setConfirming(true);
+                    resetExercisePrefsOnExamChange(uid, localStorage.getItem(`targetExam_${uid}`), exam);
                     localStorage.setItem(`targetExam_${uid}`, exam);
                     window.dispatchEvent(new CustomEvent('targetExamChanged', { detail: exam }));
                     // 押下直後にフリップとパーティクル放散を同時開始

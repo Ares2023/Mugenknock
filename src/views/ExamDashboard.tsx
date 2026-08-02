@@ -10,7 +10,7 @@ import {
   EXAM_TYPES, EXAM_CONFIGS, EXAM_LEVEL, EXAM_DOMAINS, PASS_RATE,
   EXAM_DESC_JA, EXAM_DESC_EN, DOMAIN_WEIGHTS, API_ENDPOINT, EXAM_OFFICIAL_URLS,
 } from '../constants';
-import { syncTargetExamToServer } from '../utils/preferences';
+import { syncTargetExamToServer, resetExercisePrefsOnExamChange } from '../utils/preferences';
 
 const LEVEL_ORDER = ['Foundational', 'Associate', 'Professional', 'Specialty'] as const;
 
@@ -34,6 +34,7 @@ export default function ExamDashboard() {
   );
 
   const handleChange = (et: string) => {
+    resetExercisePrefsOnExamChange(uid, localStorage.getItem(`targetExam_${uid}`), et);
     localStorage.setItem(`targetExam_${uid}`, et);
     setSelectedExam(et);
     window.dispatchEvent(new CustomEvent('targetExamChanged', { detail: et }));

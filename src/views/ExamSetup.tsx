@@ -10,7 +10,7 @@ import Badge from '../components/ui/Badge';
 import DomainSelector from '../components/DomainSelector';
 import { getCached, setCached, SHORT_TTL } from '../utils/cache';
 import { domainBalancedOrder } from '../utils/domainBalance';
-import { syncTargetExamToServer } from '../utils/preferences';
+import { syncTargetExamToServer, resetExercisePrefsOnExamChange } from '../utils/preferences';
 import { IconLightbulb } from '../components/Icons';
 import KeyHint from '../components/KeyHint';
 
@@ -66,6 +66,7 @@ export default function ExamSetup() {
   const [examType, setExamType] = useState<string>(() => localStorage.getItem(`targetExam_${uid}`) || 'SAA');
 
   const handleSelectExamInSetup = (et: string) => {
+    resetExercisePrefsOnExamChange(uid, localStorage.getItem(`targetExam_${uid}`), et);
     localStorage.setItem(`targetExam_${uid}`, et);
     setTargetExamState(et);
     setExamType(et);
