@@ -99,7 +99,7 @@ else
 }
 PROMPT
 
-  SCAN_RESULT=$("$CLAUDE_CMD" -p --model claude-haiku-4-5-20251001 --allowed-tools WebFetch < "$SCAN_PROMPT" 2>&1)
+  SCAN_RESULT=$(timeout -k 30 "${CLAUDE_TIMEOUT:-1800}" "$CLAUDE_CMD" -p --model claude-haiku-4-5-20251001 --allowed-tools WebFetch < "$SCAN_PROMPT" 2>&1)
   rm -f "$SCAN_PROMPT"
 
   # JSONを抽出
@@ -198,7 +198,7 @@ ${CONFIG_SECTION}
 PROMPT
 
     # 60行制限だと変更が多い日に文章が途中で切れるため上限を大きく取る（暴走時の安全弁のみ）
-    CERT_NEWS=$("$CLAUDE_CMD" -p --model sonnet < "$DETAIL_PROMPT" 2>&1 | head -300)
+    CERT_NEWS=$(timeout -k 30 "${CLAUDE_TIMEOUT:-1800}" "$CLAUDE_CMD" -p --model sonnet < "$DETAIL_PROMPT" 2>&1 | head -300)
     rm -f "$DETAIL_PROMPT"
     echo "  フェーズ2完了"
     echo "$CERT_NEWS" | head -5
@@ -301,7 +301,7 @@ if [ "${SVC_HIT:-0}" -gt 0 ] && [ -n "${CLAUDE_CMD:-}" ] && [ -x "${CLAUDE_CMD:-
 $(cat "$SVC_ITEMS")
 PROMPT
 
-  SERVICE_NEWS=$("$CLAUDE_CMD" -p --model claude-haiku-4-5-20251001 --allowed-tools WebFetch < "$SVC_PROMPT" 2>&1 | head -200)
+  SERVICE_NEWS=$(timeout -k 30 "${CLAUDE_TIMEOUT:-1800}" "$CLAUDE_CMD" -p --model claude-haiku-4-5-20251001 --allowed-tools WebFetch < "$SVC_PROMPT" 2>&1 | head -200)
   rm -f "$SVC_PROMPT"
   echo "$SERVICE_NEWS" | head -5 | sed 's/^/  /'
 elif [ "${SVC_HIT:-0}" -gt 0 ]; then

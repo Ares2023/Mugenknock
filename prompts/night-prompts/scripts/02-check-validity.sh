@@ -434,7 +434,7 @@ PYEOF
   while true; do
     _STDOUT_F=$(mktemp /tmp/claude_out_XXXX)
     _STDERR_F=$(mktemp /tmp/claude_err_XXXX)
-    "$CLAUDE_CMD" -p --model sonnet --tools WebFetch --allowed-tools WebFetch < "$PROMPT_FILE" > "$_STDOUT_F" 2> "$_STDERR_F"
+    timeout -k 30 "${CLAUDE_TIMEOUT:-1800}" "$CLAUDE_CMD" -p --model sonnet --tools WebFetch --allowed-tools WebFetch < "$PROMPT_FILE" > "$_STDOUT_F" 2> "$_STDERR_F"
     AI_EXIT=$?
     RESULT=$(cat "$_STDOUT_F")
     _STDERR=$(cat "$_STDERR_F")
@@ -446,7 +446,7 @@ PYEOF
       if [ -x "${CLAUDE_CMD:-}" ]; then
         _STDOUT_F=$(mktemp /tmp/claude_out_XXXX)
         _STDERR_F=$(mktemp /tmp/claude_err_XXXX)
-        "$CLAUDE_CMD" -p --model sonnet --tools WebFetch --allowed-tools WebFetch < "$PROMPT_FILE" > "$_STDOUT_F" 2> "$_STDERR_F"
+        timeout -k 30 "${CLAUDE_TIMEOUT:-1800}" "$CLAUDE_CMD" -p --model sonnet --tools WebFetch --allowed-tools WebFetch < "$PROMPT_FILE" > "$_STDOUT_F" 2> "$_STDERR_F"
         AI_EXIT=$?
         RESULT=$(cat "$_STDOUT_F")
         _STDERR=$(cat "$_STDERR_F")
@@ -493,6 +493,12 @@ PYEOF
   rm -f "$PROMPT_FILE"
 
   [ $_SKIP_CHUNK -eq 1 ] && continue
+
+  # タイムアウト（timeout の exit 124 / KILL後は 137）→ ハング。スキップして続行
+  if [ $AI_EXIT -eq 124 ] || [ $AI_EXIT -eq 137 ]; then
+    echo "⚠️  チャンク $((CHUNK_IDX+1)) が ${CLAUDE_TIMEOUT:-1800}秒 で応答なし（ハング）。スキップして続行"
+    continue
+  fi
 
   # その他の非ゼロ終了 → このチャンクのみスキップして続行
   if [ $AI_EXIT -ne 0 ]; then

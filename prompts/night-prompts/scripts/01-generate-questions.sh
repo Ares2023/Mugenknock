@@ -911,7 +911,7 @@ PYEOF
         echo "  ❌ API エラー (HTTP $_http_code): $_http_body"
       fi
 
-    done < <(CLAUDE_CODE_MAX_OUTPUT_TOKENS=56000 "$CLAUDE_CMD" -p --model sonnet --tools "" < "$PROMPT_FILE" 2>&1)
+    done < <(CLAUDE_CODE_MAX_OUTPUT_TOKENS=56000 timeout -k 30 "${CLAUDE_TIMEOUT:-1800}" "$CLAUDE_CMD" -p --model sonnet --tools "" < "$PROMPT_FILE" 2>&1)
     rm -f "$PROMPT_FILE"
 
     echo "  チャンク${_chunk}: ${_CHUNK_IMPORTED}問インポート  経過=$(( $(date +%s) - _CHUNK_T0 ))秒"

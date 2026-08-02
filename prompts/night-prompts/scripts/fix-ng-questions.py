@@ -72,10 +72,16 @@ def ask_fix(claude_cmd, q, issues):
     with tempfile.NamedTemporaryFile('w', suffix='.txt', delete=False) as f:
         f.write('\n'.join(lines))
         pf = f.name
+    # timeout 必須: 応答が返らないまま claude がハングすると、この1問で夜間バッチ全体が
+    # 止まる（実際に11時間ブロックした事例あり）。落ちた分は None を返して次へ進める。
     try:
         with open(pf) as inp:
             r = subprocess.run([claude_cmd, '-p', '--model', 'sonnet', '--tools', 'WebFetch',
-                                '--allowed-tools', 'WebFetch'], stdin=inp, capture_output=True, text=True)
+                                '--allowed-tools', 'WebFetch'], stdin=inp, capture_output=True, text=True,
+                               timeout=int(os.environ.get('CLAUDE_TIMEOUT', '1800')))
+    except subprocess.TimeoutExpired:
+        print('  ⚠️ claude 応答タイムアウト。この問題はスキップします', flush=True)
+        return None
     finally:
         os.unlink(pf)
     txt = r.stdout

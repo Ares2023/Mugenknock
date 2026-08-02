@@ -803,7 +803,7 @@ with open(out, 'w', encoding='utf-8') as f:
 PYEOF
       rm -f "$_BATCH_JSON_FILE"
 
-      RESULT=$("$CLAUDE_CMD" --model claude-haiku-4-5-20251001 -p < "$PROMPT_FILE" 2>&1)
+      RESULT=$(timeout -k 30 "${CLAUDE_TIMEOUT:-1800}" "$CLAUDE_CMD" --model claude-haiku-4-5-20251001 -p < "$PROMPT_FILE" 2>&1)
       AI_EXIT=$?
       rm -f "$PROMPT_FILE"
 
