@@ -100,7 +100,7 @@ def ask_fix(claude_cmd, q, issues):
             return None
 
 
-def apply_fix(qid, orig, res):
+def apply_fix(qid, orig, res, audit_issues=()):
     now = datetime.now(timezone.utc).strftime('%Y-%m-%dT%H:%M:%SZ')
     action = (res or {}).get('action', 'keep')
     reason = (res or {}).get('reason', '')
@@ -111,7 +111,18 @@ def apply_fix(qid, orig, res):
         return ('delete', reason)
 
     if action != 'fix':
-        # keep: 事実の誤りが無いと判断した。validityCheckedAt は消さない。
+        # keep: 事実の誤りが無いと判断した。ただし監査の指摘（難易度・体裁など）は
+        # 未解決のまま残るので、DBに記録して管理画面から追えるようにする。
+        # ここで残さないと「事実は正しいが出題として不適」な問題が確認済みに紛れて埋もれる。
+        if audit_issues:
+            subprocess.run([AWS, 'dynamodb', 'update-item', '--table-name', 'Questions',
+                            '--key', json.dumps({'questionId': {'S': qid}}),
+                            '--update-expression', 'SET auditNote = :n, auditFlaggedAt = :t',
+                            '--expression-attribute-values', json.dumps({
+                                ':n': {'S': ' / '.join(audit_issues)[:900]},
+                                ':t': {'S': now},
+                            })], capture_output=True)
+        # validityCheckedAt は消さない。
         #
         # 以前はここで REMOVE して 02 の再検査に回していたが、02 と監査は無限に
         # 押し付け合う（監査が「易しすぎ・体裁」で NG → ここが「事実誤りなし」で keep
@@ -164,9 +175,11 @@ def apply_fix(qid, orig, res):
     if len(update_parts) <= 3:  # 実質変更なし
         return ('skip', '有効な変更なし: ' + reason)
 
-    remove_expr = ''
+    # 修正できたので過去の監査指摘は解消済みとして消す（keep 経路で付けた分）
+    remove_fields = ['auditNote', 'auditFlaggedAt']
     if 'choices' in changes or 'correctAnswers' in changes:
-        remove_expr = ' REMOVE globalAttempts, globalCorrect'  # 正答率カウンタをリセット
+        remove_fields += ['globalAttempts', 'globalCorrect']  # 正答率カウンタをリセット
+    remove_expr = ' REMOVE ' + ', '.join(remove_fields)
     expr_values[':log'] = {'S': json.dumps({'action': 'fixed', 'checkedAt': now, 'reason': reason, 'source': 'audit-ng-fix', 'changes': list(changes.keys())}, ensure_ascii=False)}
     subprocess.run([AWS, 'dynamodb', 'update-item', '--table-name', 'Questions',
                     '--key', json.dumps({'questionId': {'S': qid}}),
@@ -199,7 +212,7 @@ def main():
                             '--key', json.dumps({'questionId': {'S': qid}}),
                             '--update-expression', 'REMOVE validityCheckedAt'], capture_output=True)
             print(f"    ⚠️ {qid}: 修正案なし → 再検査キューへ"); counts['recheck'] += 1; continue
-        kind, msg = apply_fix(qid, q, res)
+        kind, msg = apply_fix(qid, q, res, r.get('issues', []))
         counts[kind] = counts.get(kind, 0) + 1
         icon = {'fix': '🔧', 'delete': '🗑️', 'recheck': '🔁', 'skip': '➖'}.get(kind, '?')
         print(f"    {icon} {qid}: {msg[:160]}")

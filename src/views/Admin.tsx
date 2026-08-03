@@ -174,6 +174,9 @@ type FlaggedQuestion = {
   formatCheckedAt?: string;
   validityEditLog?: string;
   isHidden?: boolean;
+  // 監査で指摘されたが事実誤りではないため自動修正されなかった内容（人の判断が要る）
+  auditNote?: string;
+  auditFlaggedAt?: string;
   // 旧フィールド（後方互換）
   validityRating?: number;
   validityNote?: string;
@@ -935,7 +938,7 @@ export default function Admin() {
 
   const [flaggedQuestions, setFlaggedQuestions] = useState<FlaggedQuestion[]>([]);
   const [loadingFlagged, setLoadingFlagged] = useState(false);
-  const [validityFilter, setValidityFilter] = useState<'all' | 'fixed' | 'hidden'>('all');
+  const [validityFilter, setValidityFilter] = useState<'all' | 'fixed' | 'hidden' | 'audit'>('all');
   const [validityTotalCount, setValidityTotalCount] = useState(0);
   const [scanExamFilter, setScanExamFilter] = useState<string>('ALL');
   const [scanSort, setScanSort] = useState<'date_desc' | 'date_asc'>('date_desc');
@@ -944,6 +947,7 @@ export default function Admin() {
   const [flaggedMatched, setFlaggedMatched] = useState(0);
   const [flaggedChecked, setFlaggedChecked] = useState(0);
   const [flaggedFixedCount, setFlaggedFixedCount] = useState(0);
+  const [flaggedAuditCount, setFlaggedAuditCount] = useState(0);
   const [loadingMoreFlagged, setLoadingMoreFlagged] = useState(false);
   const FLAGGED_PAGE_SIZE = 100;
 
@@ -1045,7 +1049,7 @@ export default function Admin() {
 
   // 絞り込み・並べ替えはサーバ側。ページ内だけに効くと件数表示と食い違うため。
   const flaggedQuery = (
-    filter: 'all' | 'fixed' | 'hidden',
+    filter: 'all' | 'fixed' | 'hidden' | 'audit',
     exam: string,
     sort: 'date_desc' | 'date_asc',
     offset: number,
@@ -1059,11 +1063,12 @@ export default function Admin() {
     setFlaggedMatched(data.matchedCount || 0);
     setFlaggedChecked(data.checkedCount || 0);
     setFlaggedFixedCount(data.fixedCount || 0);
+    setFlaggedAuditCount(data.auditCount || 0);
     setFlaggedHasMore(!!data.hasMore);
   };
 
   const fetchFlagged = async (
-    filter: 'all' | 'fixed' | 'hidden' = validityFilter,
+    filter: 'all' | 'fixed' | 'hidden' | 'audit' = validityFilter,
     exam: string = scanExamFilter,
     sort: 'date_desc' | 'date_asc' = scanSort,
   ) => {
@@ -3161,6 +3166,7 @@ ${tipPromptExamType !== 'ALL' ? `・examType には "${tipPromptExamType}" を�
                 {([
                   { key: 'all', label: '全チェック済み' },
                   { key: 'fixed', label: `AI修正済み (${fixedCount})` },
+                  { key: 'audit', label: `監査指摘あり (${flaggedAuditCount})` },
                   { key: 'hidden', label: '非表示中' },
                 ] as const).map(({ key, label }) => (
                   <button key={key} onClick={() => { setValidityFilter(key); fetchFlagged(key); }}
@@ -3266,10 +3272,25 @@ ${tipPromptExamType !== 'ALL' ? `・examType には "${tipPromptExamType}" を�
                     {q.isHidden && (
                       <span style={{ fontSize: 12, fontWeight: 700, color: 'white', background: 'var(--color-danger)', padding: '2px 8px', borderRadius: 6 }}>非表示中</span>
                     )}
+                    {q.auditNote && (
+                      <span style={{ fontSize: 12, fontWeight: 700, color: '#9333ea', background: '#faf5ff', padding: '2px 10px', borderRadius: 6, border: '1px solid #e9d5ff' }}>
+                        監査指摘
+                      </span>
+                    )}
                     <span style={{ fontSize: 11, color: 'var(--color-text-light)', marginLeft: 'auto', flexShrink: 0 }}>
                       AI確認: {q.validityCheckedAt ? new Date(q.validityCheckedAt).toLocaleDateString('ja-JP') : '未チェック'}
                     </span>
                   </div>
+
+                  {/* 監査指摘（事実誤りではないため自動修正されず、人の判断が要る） */}
+                  {q.auditNote && (
+                    <div style={{ margin: '0 0 10px', border: '1px solid #e9d5ff', background: '#faf5ff', borderRadius: 6, padding: '8px 12px' }}>
+                      <div style={{ fontSize: 11, fontWeight: 700, color: '#9333ea', marginBottom: 4 }}>
+                        監査の指摘{q.auditFlaggedAt ? `（${new Date(q.auditFlaggedAt).toLocaleDateString('ja-JP')}）` : ''}
+                      </div>
+                      <div style={{ fontSize: 12, color: 'var(--color-text-sub)', lineHeight: 1.6, whiteSpace: 'pre-wrap' }}>{q.auditNote}</div>
+                    </div>
+                  )}
 
                   {/* 問題文 */}
                   <p style={{ fontSize: 13, color: 'var(--color-text-main)', margin: '0 0 8px', lineHeight: 1.6 }}>{q.questionText}</p>

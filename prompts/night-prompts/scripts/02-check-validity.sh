@@ -108,8 +108,23 @@ _SESSION_DIR="/tmp/validity_session_$(date '+%Y%m%d')"
 mkdir -p "$_SESSION_DIR"
 export SESSION_CLAIMED="$_SESSION_DIR/claimed.json"
 export SESSION_LOCK="$_SESSION_DIR/lock"
-[ -f "$SESSION_CLAIMED" ] || echo '[]' > "$SESSION_CLAIMED"
+[ -f "$SESSION_CLAIMED" ] || echo '{}' > "$SESSION_CLAIMED"
 touch "$SESSION_LOCK"
+
+# レート制限が判明している間はスキップする。
+# hook(ピン-30分) と hook2(ピン-15分) はトークン残量を消化する目的で連続して走るため、
+# 先行runが枯渇を検出したあとも後続がフルテーブルスキャン(4000件超)→100件クレーム→
+# 1チャンク目で即レート制限、を繰り返していた（処理0問でスキャンだけ発生）。
+# 枯渇を検出した run が「回復予定時刻」を残し、それまでは即終了する。
+RATE_LIMIT_MARKER="$_SESSION_DIR/ratelimit_until"
+if [ -f "$RATE_LIMIT_MARKER" ]; then
+  _until=$(cat "$RATE_LIMIT_MARKER" 2>/dev/null || echo 0)
+  if [ "${_until:-0}" -gt "$(date +%s)" ] 2>/dev/null; then
+    echo "⏸  レート制限中のためスキップ（回復予定 $(date -d "@$_until" '+%H:%M' 2>/dev/null || echo "$_until")）"
+    exit 0
+  fi
+  rm -f "$RATE_LIMIT_MARKER"
+fi
 
 {
 echo "=========================================="
@@ -191,26 +206,44 @@ batch = int(os.environ.get('BATCH_SIZE', 30))
 # ── クレーム処理（並列競合防止） ──
 # flock で同日セッションの claimed.json を排他ロックし、
 # 他インスタンスがすでに処理中のIDを除外してからバッチを確定する
-import fcntl
+import fcntl, time
+
+# クレームには取得時刻を持たせ、一定時間を過ぎたものは自動的に再取得可能にする。
+# 実行がハング・強制終了して解放処理まで到達しなかった場合、時刻が無いと
+# その問題は当日ずっと選定対象から外れ「未確認のまま」になるため（実際に
+# dop-q-053 / dop-q-054 が 08-02 のクレームに取り残された）。
+# 1バッチは長くても数十分なので、それを十分に超える 3時間 を期限とする。
+CLAIM_TTL_SEC = int(os.environ.get('CLAIM_TTL_SEC', 3 * 3600))
+now_ts = time.time()
+
+def load_claims(path):
+    """{qid: 取得時刻} を返す。旧形式（IDの配列）は期限切れ扱いにして拾い直す。"""
+    try:
+        with open(path) as f:
+            raw = json.load(f)
+    except Exception:
+        return {}
+    if isinstance(raw, dict):
+        return {k: float(v) for k, v in raw.items()}
+    return {k: 0.0 for k in raw}
+
 session_lock_path = os.environ.get('SESSION_LOCK', '')
 session_claimed_path = os.environ.get('SESSION_CLAIMED', '')
 if session_lock_path and session_claimed_path:
     lock_fd = open(session_lock_path, 'w')
     fcntl.flock(lock_fd, fcntl.LOCK_EX)
     try:
-        claimed = set()
-        try:
-            with open(session_claimed_path) as f:
-                claimed = set(json.load(f))
-        except Exception:
-            pass
-        # 既クレーム済みを除外
-        remaining = [(sk, q) for sk, q in candidates if q.get('questionId') not in claimed]
+        claims = load_claims(session_claimed_path)
+        # 期限切れクレームは落として再取得可能にする
+        claims = {k: t for k, t in claims.items() if now_ts - t < CLAIM_TTL_SEC}
+        # 有効なクレームを除外
+        remaining = [(sk, q) for sk, q in candidates if q.get('questionId') not in claims]
         selected = [q for _, q in remaining[:batch]]
-        # 今回のバッチをクレーム登録
-        new_claimed = list(claimed | {q['questionId'] for q in selected})
+        # 今回のバッチを現在時刻でクレーム登録
+        for q in selected:
+            claims[q['questionId']] = now_ts
         with open(session_claimed_path, 'w') as f:
-            json.dump(new_claimed, f)
+            json.dump(claims, f)
     finally:
         fcntl.flock(lock_fd, fcntl.LOCK_UN)
         lock_fd.close()
@@ -499,6 +532,14 @@ PYEOF
       rm -f "$PROMPT_FILE"
       echo "⚠️  レート制限を検出。残りチャンクをスキップ"
       echo "stdout: $_RESULT_HEAD"
+      # 後続 run が同じことを繰り返さないよう回復予定時刻を残す。
+      # -D の終了時刻がトークン回復の数分前に設定されているので、それを回復目安とする
+      # （-D 未指定なら控えめに30分後）。
+      if [ "$DEADLINE_EPOCH" -gt 0 ]; then
+        echo "$DEADLINE_EPOCH" > "$RATE_LIMIT_MARKER"
+      else
+        echo "$(( $(date +%s) + 1800 ))" > "$RATE_LIMIT_MARKER"
+      fi
       RATE_LIMITED=1
       break 2
     fi
@@ -782,12 +823,15 @@ try:
     with open(lock_path, 'w') as lf:
         fcntl.flock(lf, fcntl.LOCK_EX)
         try:
+            # クレームは {qid: 取得時刻} 形式（旧形式の配列も読めるようにする）
             try:
                 with open(claimed_path) as f:
-                    claimed = set(json.load(f))
+                    raw = json.load(f)
+                claimed = ({k: float(v) for k, v in raw.items()} if isinstance(raw, dict)
+                           else {k: 0.0 for k in raw})
             except Exception:
-                claimed = set()
-            new_claimed = list(claimed - to_release)
+                claimed = {}
+            new_claimed = {k: t for k, t in claimed.items() if k not in to_release}
             with open(claimed_path, 'w') as f:
                 json.dump(new_claimed, f)
             print(f"  クレーム解放: 未解決 {len(to_release)}件を解放 / 解決維持 {len(selected_ids & resolved)}件（残クレーム: {len(new_claimed)}件）")
