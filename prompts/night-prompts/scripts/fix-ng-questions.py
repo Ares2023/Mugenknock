@@ -111,11 +111,15 @@ def apply_fix(qid, orig, res):
         return ('delete', reason)
 
     if action != 'fix':
-        # keep: 事実の誤りが無い判断。次回02の再検査に回すため validityCheckedAt をクリア。
-        subprocess.run([AWS, 'dynamodb', 'update-item', '--table-name', 'Questions',
-                        '--key', json.dumps({'questionId': {'S': qid}}),
-                        '--update-expression', 'REMOVE validityCheckedAt'], capture_output=True)
-        return ('recheck', reason)
+        # keep: 事実の誤りが無いと判断した。validityCheckedAt は消さない。
+        #
+        # 以前はここで REMOVE して 02 の再検査に回していたが、02 と監査は無限に
+        # 押し付け合う（監査が「易しすぎ・体裁」で NG → ここが「事実誤りなし」で keep
+        # → 確認済みを解除 → 02 が「事実として正しい」で ok を付け直す → 監査がまた NG）。
+        # 難易度や体裁の指摘はどちらのスクリプトも解消できないため、再検査に回しても
+        # 同じ結論に戻るだけで、その間その問題は「未確認」に見え続ける。
+        # 事実誤りが無いと判断できた時点で妥当性の確認自体は済んでいるので確認済みのまま残す。
+        return ('skip', reason)
 
     fix = res.get('fix', {}) or {}
     stripped_ca = [_label_re.sub('', str(c)).strip() for c in (fix.get('correctAnswers') or [])]
