@@ -108,8 +108,23 @@ _SESSION_DIR="/tmp/validity_session_$(date '+%Y%m%d')"
 mkdir -p "$_SESSION_DIR"
 export SESSION_CLAIMED="$_SESSION_DIR/claimed.json"
 export SESSION_LOCK="$_SESSION_DIR/lock"
-[ -f "$SESSION_CLAIMED" ] || echo '[]' > "$SESSION_CLAIMED"
+[ -f "$SESSION_CLAIMED" ] || echo '{}' > "$SESSION_CLAIMED"
 touch "$SESSION_LOCK"
+
+# レート制限が判明している間はスキップする。
+# hook(ピン-30分) と hook2(ピン-15分) はトークン残量を消化する目的で連続して走るため、
+# 先行runが枯渇を検出したあとも後続がフルテーブルスキャン(4000件超)→100件クレーム→
+# 1チャンク目で即レート制限、を繰り返していた（処理0問でスキャンだけ発生）。
+# 枯渇を検出した run が「回復予定時刻」を残し、それまでは即終了する。
+RATE_LIMIT_MARKER="$_SESSION_DIR/ratelimit_until"
+if [ -f "$RATE_LIMIT_MARKER" ]; then
+  _until=$(cat "$RATE_LIMIT_MARKER" 2>/dev/null || echo 0)
+  if [ "${_until:-0}" -gt "$(date +%s)" ] 2>/dev/null; then
+    echo "⏸  レート制限中のためスキップ（回復予定 $(date -d "@$_until" '+%H:%M' 2>/dev/null || echo "$_until")）"
+    exit 0
+  fi
+  rm -f "$RATE_LIMIT_MARKER"
+fi
 
 {
 echo "=========================================="
@@ -191,26 +206,44 @@ batch = int(os.environ.get('BATCH_SIZE', 30))
 # ── クレーム処理（並列競合防止） ──
 # flock で同日セッションの claimed.json を排他ロックし、
 # 他インスタンスがすでに処理中のIDを除外してからバッチを確定する
-import fcntl
+import fcntl, time
+
+# クレームには取得時刻を持たせ、一定時間を過ぎたものは自動的に再取得可能にする。
+# 実行がハング・強制終了して解放処理まで到達しなかった場合、時刻が無いと
+# その問題は当日ずっと選定対象から外れ「未確認のまま」になるため（実際に
+# dop-q-053 / dop-q-054 が 08-02 のクレームに取り残された）。
+# 1バッチは長くても数十分なので、それを十分に超える 3時間 を期限とする。
+CLAIM_TTL_SEC = int(os.environ.get('CLAIM_TTL_SEC', 3 * 3600))
+now_ts = time.time()
+
+def load_claims(path):
+    """{qid: 取得時刻} を返す。旧形式（IDの配列）は期限切れ扱いにして拾い直す。"""
+    try:
+        with open(path) as f:
+            raw = json.load(f)
+    except Exception:
+        return {}
+    if isinstance(raw, dict):
+        return {k: float(v) for k, v in raw.items()}
+    return {k: 0.0 for k in raw}
+
 session_lock_path = os.environ.get('SESSION_LOCK', '')
 session_claimed_path = os.environ.get('SESSION_CLAIMED', '')
 if session_lock_path and session_claimed_path:
     lock_fd = open(session_lock_path, 'w')
     fcntl.flock(lock_fd, fcntl.LOCK_EX)
     try:
-        claimed = set()
-        try:
-            with open(session_claimed_path) as f:
-                claimed = set(json.load(f))
-        except Exception:
-            pass
-        # 既クレーム済みを除外
-        remaining = [(sk, q) for sk, q in candidates if q.get('questionId') not in claimed]
+        claims = load_claims(session_claimed_path)
+        # 期限切れクレームは落として再取得可能にする
+        claims = {k: t for k, t in claims.items() if now_ts - t < CLAIM_TTL_SEC}
+        # 有効なクレームを除外
+        remaining = [(sk, q) for sk, q in candidates if q.get('questionId') not in claims]
         selected = [q for _, q in remaining[:batch]]
-        # 今回のバッチをクレーム登録
-        new_claimed = list(claimed | {q['questionId'] for q in selected})
+        # 今回のバッチを現在時刻でクレーム登録
+        for q in selected:
+            claims[q['questionId']] = now_ts
         with open(session_claimed_path, 'w') as f:
-            json.dump(new_claimed, f)
+            json.dump(claims, f)
     finally:
         fcntl.flock(lock_fd, fcntl.LOCK_UN)
         lock_fd.close()
@@ -233,6 +266,15 @@ if [ "$COUNT" -eq 0 ]; then
   echo "チェック対象なし（全問が直近にチェック済み）"
   exit 0
 fi
+
+# 選択済みバッチの questionId を選定直後に保存する。
+# QUESTIONS_JSON は前処理で再代入され run 末尾には空になり得るため、
+# クレーム解放は QUESTIONS_JSON ではなくこの固定リストを正とする（過去のロールバック失敗の原因）。
+SELECTED_IDS_FILE=$(mktemp /tmp/validity_selected_XXXX.txt)
+echo "$QUESTIONS_JSON" | python3 -c "import json,sys
+for q in json.load(sys.stdin):
+    qid=q.get('questionId')
+    if qid: print(qid)" > "$SELECTED_IDS_FILE" 2>/dev/null || true
 
 # ── 前処理: choices のラベル接頭辞自動除去（Claude 不要・確定的修正） ──
 echo "前処理: choices ラベル接頭辞チェック..."
@@ -307,6 +349,12 @@ TOTAL_OK=0
 TOTAL_FIX=0
 TOTAL_DEL=0
 RATE_LIMITED=0
+
+# このrunで実際に「解決」できた問題ID（ok/削除/再チェック不要のfix）を蓄積する。
+# 選択済みだが未解決（部分処理での取りこぼし・再チェック要のfix・LLMが結果を返さなかった等）の
+# クレームは run 終了時に解放し、当日の後続 run で再選定できるようにする。
+RESOLVED_IDS_FILE=$(mktemp /tmp/validity_resolved_XXXX.txt)
+export RESOLVED_IDS_FILE
 
 # 公式試験ガイドURLマップを instructions/*.txt から構築
 EXAM_GUIDE_URLS_JSON=$(INST_DIR="$INSTRUCTION_DIR" python3 << 'PYEOF'
@@ -434,7 +482,7 @@ PYEOF
   while true; do
     _STDOUT_F=$(mktemp /tmp/claude_out_XXXX)
     _STDERR_F=$(mktemp /tmp/claude_err_XXXX)
-    "$CLAUDE_CMD" -p --model sonnet --tools WebFetch --allowed-tools WebFetch < "$PROMPT_FILE" > "$_STDOUT_F" 2> "$_STDERR_F"
+    timeout -k 30 "${CLAUDE_TIMEOUT:-1800}" "$CLAUDE_CMD" -p --model sonnet --tools WebFetch --allowed-tools WebFetch < "$PROMPT_FILE" > "$_STDOUT_F" 2> "$_STDERR_F"
     AI_EXIT=$?
     RESULT=$(cat "$_STDOUT_F")
     _STDERR=$(cat "$_STDERR_F")
@@ -446,7 +494,7 @@ PYEOF
       if [ -x "${CLAUDE_CMD:-}" ]; then
         _STDOUT_F=$(mktemp /tmp/claude_out_XXXX)
         _STDERR_F=$(mktemp /tmp/claude_err_XXXX)
-        "$CLAUDE_CMD" -p --model sonnet --tools WebFetch --allowed-tools WebFetch < "$PROMPT_FILE" > "$_STDOUT_F" 2> "$_STDERR_F"
+        timeout -k 30 "${CLAUDE_TIMEOUT:-1800}" "$CLAUDE_CMD" -p --model sonnet --tools WebFetch --allowed-tools WebFetch < "$PROMPT_FILE" > "$_STDOUT_F" 2> "$_STDERR_F"
         AI_EXIT=$?
         RESULT=$(cat "$_STDOUT_F")
         _STDERR=$(cat "$_STDERR_F")
@@ -484,6 +532,14 @@ PYEOF
       rm -f "$PROMPT_FILE"
       echo "⚠️  レート制限を検出。残りチャンクをスキップ"
       echo "stdout: $_RESULT_HEAD"
+      # 後続 run が同じことを繰り返さないよう回復予定時刻を残す。
+      # -D の終了時刻がトークン回復の数分前に設定されているので、それを回復目安とする
+      # （-D 未指定なら控えめに30分後）。
+      if [ "$DEADLINE_EPOCH" -gt 0 ]; then
+        echo "$DEADLINE_EPOCH" > "$RATE_LIMIT_MARKER"
+      else
+        echo "$(( $(date +%s) + 1800 ))" > "$RATE_LIMIT_MARKER"
+      fi
       RATE_LIMITED=1
       break 2
     fi
@@ -493,6 +549,12 @@ PYEOF
   rm -f "$PROMPT_FILE"
 
   [ $_SKIP_CHUNK -eq 1 ] && continue
+
+  # タイムアウト（timeout の exit 124 / KILL後は 137）→ ハング。スキップして続行
+  if [ $AI_EXIT -eq 124 ] || [ $AI_EXIT -eq 137 ]; then
+    echo "⚠️  チャンク $((CHUNK_IDX+1)) が ${CLAUDE_TIMEOUT:-1800}秒 で応答なし（ハング）。スキップして続行"
+    continue
+  fi
 
   # その他の非ゼロ終了 → このチャンクのみスキップして続行
   if [ $AI_EXIT -ne 0 ]; then
@@ -521,7 +583,7 @@ except: print('{}')
   RESULT_JSON_FILE=$(mktemp /tmp/validity_result_XXXX.json)
   echo "$RESULT_JSON" > "$RESULT_JSON_FILE"
   CHUNK_STATS=$(python3 - "$RESULT_JSON_FILE" "$chunk_file" << 'PYEOF'
-import json, sys, subprocess
+import json, sys, subprocess, os
 from datetime import datetime, timezone
 
 with open(sys.argv[1]) as f:
@@ -534,6 +596,9 @@ with open(sys.argv[2]) as f:
     orig_questions = {q['questionId']: q for q in json.load(f)}
 
 ok_count, fix_count, del_count = 0, 0, 0
+
+# このチャンクで解決した（validityCheckedAt 付与 or 削除）ID。run終了時のクレーム解放判定に使う。
+resolved_ids = []
 
 REMOVE_EXPR = 'REMOVE validityRating, validityNote, fixProposalJson, tags'
 
@@ -563,6 +628,7 @@ for r in results:
             '--key', json.dumps({'questionId': {'S': qid}}),
         ], capture_output=True)
         del_count += 1
+        resolved_ids.append(qid)
         print(f'  [DELETE] {qid}  生成:{created_at}  前回確認:{prev_checked}: {reason}')
         continue
 
@@ -679,6 +745,9 @@ for r in results:
             cmd += ['--expression-attribute-names', '{"#d": "domain"}']
         subprocess.run(cmd, capture_output=True)
         fix_count += 1
+        # needs_recheck の fix は validityCheckedAt を付けない＝未解決。クレームを解放して次回再検査させる。
+        if not needs_recheck:
+            resolved_ids.append(qid)
         changed_fields = list(changes.keys()) or ['(変更なし)']
         print(f'  [FIX  ] {qid}  生成:{created_at}  前回確認:{prev_checked}: {reason} → 変更: {", ".join(changed_fields)}')
 
@@ -694,7 +763,15 @@ for r in results:
             '--expression-attribute-values', json.dumps(expr_values),
         ], capture_output=True)
         ok_count += 1
+        resolved_ids.append(qid)
         print(f'  [OK   ] {qid}  生成:{created_at}  前回確認:{prev_checked}')
+
+# 解決IDを run 共有ファイルに追記（run終了時のクレーム解放判定に使う）
+_resolved_file = os.environ.get('RESOLVED_IDS_FILE', '')
+if _resolved_file and resolved_ids:
+    with open(_resolved_file, 'a') as _rf:
+        for _qid in resolved_ids:
+            _rf.write(_qid + '\n')
 
 print(f'  → 更新完了: OK={ok_count} 修正={fix_count} 削除={del_count}')
 print(f'__STATS__{ok_count},{fix_count},{del_count}')
@@ -717,37 +794,53 @@ done
 
 rm -rf "$CHUNKS_DIR"
 
-# レート制限 or タイムアウトで 0 件処理のまま終わった場合、
-# このバッチがクレームした ID を解放する（他インスタンスのクレームは維持）
-if [ $(( TOTAL_OK + TOTAL_FIX + TOTAL_DEL )) -eq 0 ] && { [ $RATE_LIMITED -eq 1 ] || [ ${TIMEOUT_HIT:-0} -eq 1 ]; }; then
-  echo ""
-  echo "⚠️  0件処理のためこのバッチのクレームをロールバックします..."
-  echo "$QUESTIONS_JSON" | SESSION_CLAIMED="$SESSION_CLAIMED" SESSION_LOCK="$SESSION_LOCK" python3 << 'PYEOF'
+# run 終了時、選択済みバッチのうち「未解決」のクレームを解放する。
+# 解決済み（ok / 削除 / 再チェック不要の fix = validityCheckedAt 付与済み）はクレームを維持し、
+# 未解決（部分処理での取りこぼし・再チェック要の fix・LLMが結果を返さなかった問題）だけ解放する。
+# これにより中断・再チェック分が当日の後続 run で先頭（未チェック優先）から再選定される。
+# 解決済みを維持するのは、並列 run が同一問題を二重チェックしないようにするため。
+echo ""
+echo "未解決クレームの解放処理..."
+SELECTED_IDS_FILE="$SELECTED_IDS_FILE" SESSION_CLAIMED="$SESSION_CLAIMED" SESSION_LOCK="$SESSION_LOCK" RESOLVED_IDS_FILE="$RESOLVED_IDS_FILE" python3 << 'PYEOF'
 import json, sys, os, fcntl
 try:
-    selected_ids = {q['questionId'] for q in json.load(sys.stdin)}
+    selected_path = os.environ.get('SELECTED_IDS_FILE', '')
+    with open(selected_path) as sf:
+        selected_ids = {l.strip() for l in sf if l.strip()}
     claimed_path = os.environ.get('SESSION_CLAIMED', '')
     lock_path    = os.environ.get('SESSION_LOCK', '')
-    if not claimed_path or not lock_path:
+    resolved_path = os.environ.get('RESOLVED_IDS_FILE', '')
+    if not claimed_path or not lock_path or not selected_ids:
         sys.exit(0)
+    resolved = set()
+    try:
+        with open(resolved_path) as rf:
+            resolved = {l.strip() for l in rf if l.strip()}
+    except Exception:
+        pass
+    # 解放対象 = 選択したが解決できなかった ID
+    to_release = selected_ids - resolved
     with open(lock_path, 'w') as lf:
         fcntl.flock(lf, fcntl.LOCK_EX)
         try:
+            # クレームは {qid: 取得時刻} 形式（旧形式の配列も読めるようにする）
             try:
                 with open(claimed_path) as f:
-                    claimed = set(json.load(f))
+                    raw = json.load(f)
+                claimed = ({k: float(v) for k, v in raw.items()} if isinstance(raw, dict)
+                           else {k: 0.0 for k in raw})
             except Exception:
-                claimed = set()
-            new_claimed = list(claimed - selected_ids)
+                claimed = {}
+            new_claimed = {k: t for k, t in claimed.items() if k not in to_release}
             with open(claimed_path, 'w') as f:
                 json.dump(new_claimed, f)
-            print(f"  クレームロールバック完了: {len(selected_ids)}件を解放（残: {len(new_claimed)}件）")
+            print(f"  クレーム解放: 未解決 {len(to_release)}件を解放 / 解決維持 {len(selected_ids & resolved)}件（残クレーム: {len(new_claimed)}件）")
         finally:
             fcntl.flock(lf, fcntl.LOCK_UN)
 except Exception as e:
-    print(f"  クレームロールバック失敗（無視して続行）: {e}")
+    print(f"  クレーム解放失敗（無視して続行）: {e}")
 PYEOF
-fi
+rm -f "$RESOLVED_IDS_FILE" "$SELECTED_IDS_FILE"
 
 echo ""
 echo "完了サマリー: 問題なし=${TOTAL_OK}問 / 自動修正=${TOTAL_FIX}問 / 削除=${TOTAL_DEL}問"

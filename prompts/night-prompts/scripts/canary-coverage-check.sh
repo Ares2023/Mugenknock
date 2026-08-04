@@ -91,7 +91,7 @@ echo "Opusで整合性を判定中..."
 _OV=0
 while true; do
   _O=$(mktemp /tmp/canarycov_out_XXXX); _E=$(mktemp /tmp/canarycov_err_XXXX)
-  "$CLAUDE_CMD" -p --model opus < "$PROMPT_FILE" > "$_O" 2> "$_E"
+  timeout -k 30 "${CLAUDE_TIMEOUT:-1800}" "$CLAUDE_CMD" -p --model opus < "$PROMPT_FILE" > "$_O" 2> "$_E"
   RESULT=$(cat "$_O"); _STDERR=$(cat "$_E"); rm -f "$_O" "$_E"
   _RH=$(echo "$RESULT" | head -3)
   if echo "$_STDERR $_RH" | grep -qiE "529|Overloaded" && [ $_OV -lt 2 ]; then

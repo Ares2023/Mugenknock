@@ -882,6 +882,10 @@ app.get('/admin/questions/flagged', async (req, res) => {
     } else if (filter === 'hidden') {
       conds.push('isHidden = :hidden');
       values[':hidden'] = true;
+    } else if (filter === 'audit') {
+      // 監査で「易しすぎ・体裁・模試不適」等を指摘されたが、事実誤りが無いため
+      // 自動修正されなかった問題。02 も fix-ng も解消できないので人の判断が要る。
+      conds.push('attribute_exists(auditNote)');
     } else {
       conds.push('attribute_exists(validityCheckedAt)');
     }
@@ -891,7 +895,7 @@ app.get('/admin/questions/flagged', async (req, res) => {
     }
     scanParams.FilterExpression = conds.join(' AND ');
     if (Object.keys(values).length) scanParams.ExpressionAttributeValues = values;
-    scanParams.ProjectionExpression = 'questionId, examType, questionText, #dom, validityCheckedAt, formatCheckedAt, validityEditLog, isHidden, validityRating, validityNote, fixProposalJson';
+    scanParams.ProjectionExpression = 'questionId, examType, questionText, #dom, validityCheckedAt, formatCheckedAt, validityEditLog, isHidden, validityRating, validityNote, fixProposalJson, auditNote, auditFlaggedAt';
     scanParams.ExpressionAttributeNames = { '#dom': 'domain' };
 
     // フィルタ済みアイテム取得 + 全件数を examType-index Query で並行取得
@@ -913,7 +917,22 @@ app.get('/admin/questions/flagged', async (req, res) => {
     const fixedCount = matched.filter(q => !!q.validityEditLog).length;
     const scoped = filter === 'fixed' ? matched.filter(q => !!q.validityEditLog) : matched;
 
-    const ts = q => (q.validityCheckedAt ? new Date(q.validityCheckedAt).getTime() : 0);
+    // 監査指摘バッジ用。filter=audit 以外では matched に含まれないことがあるため別途数える。
+    let auditCount;
+    if (filter === 'audit') {
+      auditCount = matched.length;
+    } else {
+      auditCount = (await scanAll(docClient, {
+        TableName: 'Questions',
+        FilterExpression: 'attribute_exists(auditNote)',
+        ProjectionExpression: 'questionId',
+      })).length;
+    }
+
+    // 監査指摘は「いつ指摘されたか」で並べる方が使いやすい
+    const ts = q => (filter === 'audit'
+      ? (q.auditFlaggedAt ? new Date(q.auditFlaggedAt).getTime() : 0)
+      : (q.validityCheckedAt ? new Date(q.validityCheckedAt).getTime() : 0));
     scoped.sort((a, b) => (sort === 'date_asc' ? ts(a) - ts(b) : ts(b) - ts(a)));
 
     const items = scoped.slice(offset, offset + limit);
@@ -923,6 +942,7 @@ app.get('/admin/questions/flagged', async (req, res) => {
       matchedCount: scoped.length,
       checkedCount: matched.length,
       fixedCount,
+      auditCount,
       totalCount,
       offset,
       hasMore: offset + items.length < scoped.length,

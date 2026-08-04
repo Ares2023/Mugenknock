@@ -1,5 +1,26 @@
 import { API_ENDPOINT } from '../constants';
 
+/**
+ * 目標資格を変更したときに「サクッと演習」「しっかり対策」の設定を初期化する。
+ *
+ * これらの設定は資格に紐づく内容（出題ドメイン・出題数・フィルタ）を持つ。
+ * 特に quickExercisePrefs の domains は資格ごとのドメイン配列インデックスで
+ * 保存されるため、資格をまたいで引き継ぐと別ドメインを指してしまう。
+ * キーを削除すると読み出し側が {} を得て既定値に戻る。
+ *
+ * kvSync が removeItem を拾ってサーバへも反映するため、他端末にも初期化が伝播する。
+ * 同じ資格を選び直したときは何もしない（不要な同期を発生させない）。
+ */
+export function resetExercisePrefsOnExamChange(
+  uid: string,
+  prevExam: string | null,
+  nextExam: string,
+): void {
+  if (prevExam === nextExam) return;
+  localStorage.removeItem(`quickExercisePrefs_${uid}`);
+  localStorage.removeItem(`focusedExercisePrefs_${uid}`);
+}
+
 export async function syncTargetExamToServer(userId: string, uid: string, examType: string | null): Promise<void> {
   try {
     await fetch(`${API_ENDPOINT}/users/me/preferences`, {

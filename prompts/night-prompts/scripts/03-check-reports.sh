@@ -448,7 +448,7 @@ run_claude() {
   local prompt_file="$1"
   _STDOUT_F=$(mktemp /tmp/claude_out_XXXX)
   _STDERR_F=$(mktemp /tmp/claude_err_XXXX)
-  CLAUDE_CODE_MAX_OUTPUT_TOKENS=$_MAX_OUT_TOKENS "$CLAUDE_CMD" -p --model sonnet --tools "" < "$prompt_file" > "$_STDOUT_F" 2> "$_STDERR_F"
+  CLAUDE_CODE_MAX_OUTPUT_TOKENS=$_MAX_OUT_TOKENS timeout -k 30 "${CLAUDE_TIMEOUT:-1800}" "$CLAUDE_CMD" -p --model sonnet --tools "" < "$prompt_file" > "$_STDOUT_F" 2> "$_STDERR_F"
   AI_EXIT=$?
   RESULT=$(cat "$_STDOUT_F")
   _STDERR=$(cat "$_STDERR_F")

@@ -578,7 +578,7 @@ rm -f "$_NAMES_TMP" "$_ICONS_TMP" "$_CANDIDATES_TMP"
 
 _STDOUT_F=$(mktemp /tmp/claude_out_XXXX)
 _STDERR_F=$(mktemp /tmp/claude_err_XXXX)
-CLAUDE_CODE_MAX_OUTPUT_TOKENS=32000 "$CLAUDE_CMD" -p --model sonnet --tools "" < "$PROMPT_FILE" > "$_STDOUT_F" 2> "$_STDERR_F"
+CLAUDE_CODE_MAX_OUTPUT_TOKENS=32000 timeout -k 30 "${CLAUDE_TIMEOUT:-1800}" "$CLAUDE_CMD" -p --model sonnet --tools "" < "$PROMPT_FILE" > "$_STDOUT_F" 2> "$_STDERR_F"
 AI_EXIT=$?
 RESULT=$(cat "$_STDOUT_F")
 _STDERR_OUT=$(cat "$_STDERR_F")
@@ -631,7 +631,7 @@ echo "✓ ${SVC_COUNT}件 生成完了"
 echo ""
 echo "--- DynamoDB に登録中 ---"
 
-IMPORT_RESULT=$(python3 - "$SERVICES_JSON" "$ICON_DIR" "$AWS_ICON_KIT_CACHE" << 'PYEOF'
+IMPORT_RESULT=$(python3 - "$SERVICES_JSON" "$ICON_DIR" "$AWS_ICON_KIT_CACHE" "$EXISTING_NAMES" << 'PYEOF'
 import json, sys, subprocess, os, re, zipfile
 from datetime import datetime, timezone
 
@@ -639,6 +639,31 @@ data      = json.loads(sys.argv[1])
 icon_dir  = sys.argv[2]
 zip_cache = sys.argv[3] if len(sys.argv) > 3 else ''
 services  = data.get('services', [])
+
+# AIが「重複禁止」指示を無視して既存サービスを再度提案することがあるため、
+# プロンプトのソフト制約とは別に、登録直前に機械的な正規化名重複チェックで弾く。
+def _norm_name(s):
+    s = (s or '').lower().strip()
+    s = re.sub(r'^(amazon|aws)\s+', '', s)
+    return re.sub(r'[^a-z0-9]', '', s)
+
+_existing_names_json = sys.argv[4] if len(sys.argv) > 4 else '[]'
+try:
+    _existing_norm = {_norm_name(n) for n in json.loads(_existing_names_json)}
+except Exception:
+    _existing_norm = set()
+
+_seen_norm = set()
+_deduped = []
+for svc in services:
+    n = _norm_name(svc.get('name', ''))
+    if n and (n in _existing_norm or n in _seen_norm):
+        print(f"  ⏭  重複のためスキップ: {svc.get('name', '')}")
+        continue
+    if n:
+        _seen_norm.add(n)
+    _deduped.append(svc)
+services = _deduped
 
 now = datetime.now(timezone.utc).strftime('%Y-%m-%dT%H:%M:%S.%f')[:-3] + 'Z'
 slug_re = re.compile(r'[^a-z0-9]+')

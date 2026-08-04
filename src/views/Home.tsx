@@ -29,7 +29,7 @@ import KeyHint from '../components/KeyHint';
 import { CATALOG } from '../data/awsServiceCatalog';
 import { autoScoreAndClearDrafts } from '../utils/sessionUtils';
 import { hydrateDraftsFromServer } from '../utils/sessionResume';
-import { syncTargetExamToServer, loadTargetExamFromServer } from '../utils/preferences';
+import { syncTargetExamToServer, loadTargetExamFromServer, resetExercisePrefsOnExamChange } from '../utils/preferences';
 import { fetchDailyProgress } from '../utils/dailyProgress';
 import { prefetchTypeA, prefetchTypeB, prefetchTypeC, getPrefetchA, getPrefetchB, getPrefetchC } from '../utils/questionPrefetch';
 
@@ -671,6 +671,7 @@ function OnboardingModal({ lang, uid, onComplete }: {
   const navigate = useNavigate();
 
   const handleSelect = (exam: string) => {
+    resetExercisePrefsOnExamChange(uid, localStorage.getItem(`targetExam_${uid}`), exam);
     localStorage.setItem(`targetExam_${uid}`, exam);
     window.dispatchEvent(new CustomEvent('targetExamChanged', { detail: exam }));
     onComplete(exam);

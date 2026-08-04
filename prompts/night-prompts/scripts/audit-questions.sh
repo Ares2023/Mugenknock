@@ -410,14 +410,14 @@ PYEOF
     _STDERR_F=$(mktemp /tmp/audit_err_XXXX)
     # 監査は生成/検証プロンプトを自動改良する仕組みの中核のため opus を明示指定する
     # （アカウント既定モデルへの依存で意図せず変わるのを防ぐ）。
-    "$CLAUDE_CMD" -p --model opus --allowed-tools WebFetch < "$PROMPT_FILE" > "$_STDOUT_F" 2> "$_STDERR_F"
+    timeout -k 30 "${CLAUDE_TIMEOUT:-1800}" "$CLAUDE_CMD" -p --model opus --allowed-tools WebFetch < "$PROMPT_FILE" > "$_STDOUT_F" 2> "$_STDERR_F"
     AI_EXIT=$?
     RESULT=$(cat "$_STDOUT_F"); _STDERR=$(cat "$_STDERR_F")
     rm -f "$_STDOUT_F" "$_STDERR_F"
 
     if [ $AI_EXIT -ne 0 ] && echo "$_STDERR" | grep -q "No such file"; then
       CLAUDE_CMD=$(_find_claude)
-      [ -x "${CLAUDE_CMD:-}" ] && RESULT=$("$CLAUDE_CMD" -p --allowed-tools WebFetch < "$PROMPT_FILE" 2>/dev/null)
+      [ -x "${CLAUDE_CMD:-}" ] && RESULT=$(timeout -k 30 "${CLAUDE_TIMEOUT:-1800}" "$CLAUDE_CMD" -p --allowed-tools WebFetch < "$PROMPT_FILE" 2>/dev/null)
     fi
 
     if echo "$_STDERR" | grep -qiE "command not found|GEMINI_API_KEY|API.?key"; then
@@ -702,7 +702,7 @@ PYEOF
       _IO=$(mktemp /tmp/audit_imp_out_XXXX); _IE=$(mktemp /tmp/audit_imp_err_XXXX)
       # 永続する仕組み（生成・検証プロンプト規則）を書き換えるステップは Opus で実行し誤りを減らす。
       # 出力は「追記する数行」だけなので上限は小さくてよい（トークン節約）。
-      CLAUDE_CODE_MAX_OUTPUT_TOKENS=6000 "$CLAUDE_CMD" -p --model opus --tools "" < "$IMP_PROMPT" > "$_IO" 2> "$_IE"
+      CLAUDE_CODE_MAX_OUTPUT_TOKENS=6000 timeout -k 30 "${CLAUDE_TIMEOUT:-1800}" "$CLAUDE_CMD" -p --model opus --tools "" < "$IMP_PROMPT" > "$_IO" 2> "$_IE"
       RESULT=$(head -c 4000 "$_IO"); _STDERR=$(cat "$_IE"); rm -f "$_IE"  # _IO(全文)はパース用に残す
       _RH=$(echo "$RESULT" | head -3)
       if echo "$_STDERR $_RH" | grep -qiE "529|Overloaded|rate.?limit|session.?limit|hit your|usage limit|too many requests" && [ $_OVERLOAD_RETRY -lt 2 ]; then

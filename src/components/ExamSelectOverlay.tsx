@@ -2,8 +2,9 @@
 import React, { useState, useRef, useEffect, useMemo } from 'react';
 import { createPortal } from 'react-dom';
 import { lockBodyScroll } from '../utils/bodyScrollLock';
+import { resetExercisePrefsOnExamChange } from '../utils/preferences';
 import { API_ENDPOINT, EXAM_CONFIGS, EXAM_DOMAINS, DOMAIN_WEIGHTS, PASS_SCORES } from '@/constants';
-import { EXAM_ICON_COMPONENTS, IconBook, IconBookOpenCheck, IconCircleCheck, IconExternalLink } from '@/components/Icons';
+import { EXAM_ICON_COMPONENTS, IconBook, IconBookOpenCheck, IconCircleCheck, IconExternalLink, IconFileText } from '@/components/Icons';
 
 // テキストの inline 記法（**bold** / *italic* / `code` / [text](url)）をパースして React 要素に変換する
 function parseInline(text: string, keyPrefix: string): React.ReactNode[] {
@@ -161,6 +162,22 @@ export const EXAM_URLS: Record<string, string> = {
   AIP: 'https://aws.amazon.com/jp/certification/certified-generative-ai-developer-professional/',
   ANS: 'https://aws.amazon.com/jp/certification/certified-advanced-networking-specialty/',
   SCS: 'https://aws.amazon.com/jp/certification/certified-security-specialty/',
+};
+
+// AWS公式の日本語版試験ガイドPDF（docs.aws.amazon.com / d1.awsstatic.com、2026-08時点で存在確認済み）
+export const EXAM_GUIDE_PDF_URLS: Record<string, string> = {
+  CLF: 'https://docs.aws.amazon.com/ja_jp/aws-certification/latest/cloud-practitioner-02/cloud-practitioner-02.pdf',
+  SAA: 'https://docs.aws.amazon.com/ja_jp/aws-certification/latest/solutions-architect-associate-03/solutions-architect-associate-03.pdf',
+  SAP: 'https://docs.aws.amazon.com/ja_jp/aws-certification/latest/solutions-architect-professional-02/solutions-architect-professional-02.pdf',
+  DVA: 'https://docs.aws.amazon.com/ja_jp/aws-certification/latest/developer-associate-02/developer-associate-02.pdf',
+  SOA: 'https://d1.awsstatic.com/ja_JP/training-and-certification/docs-sysops-associate/AWS-Certified-SysOps-Administrator-Associate_Exam-Guide.pdf',
+  DOP: 'https://docs.aws.amazon.com/ja_jp/aws-certification/latest/devops-engineer-professional-02/devops-engineer-professional-02.pdf',
+  DEA: 'https://docs.aws.amazon.com/ja_jp/aws-certification/latest/data-engineer-associate-01/data-engineer-associate-01.pdf',
+  AIF: 'https://docs.aws.amazon.com/ja_jp/aws-certification/latest/ai-practitioner-01/ai-practitioner-01.pdf',
+  MLA: 'https://docs.aws.amazon.com/ja_jp/aws-certification/latest/machine-learning-engineer-associate-01/machine-learning-engineer-associate-01.pdf',
+  AIP: 'https://docs.aws.amazon.com/ja_jp/aws-certification/latest/ai-professional-01/ai-professional-01.pdf',
+  ANS: 'https://docs.aws.amazon.com/ja_jp/aws-certification/latest/advanced-networking-specialty-01/advanced-networking-specialty-01.pdf',
+  SCS: 'https://docs.aws.amazon.com/ja_jp/aws-certification/latest/security-specialty-03/security-specialty-03.pdf',
 };
 
 interface ExamSelectOverlayProps {
@@ -392,7 +409,13 @@ export default function ExamSelectOverlay({
                   {EXAM_URLS[exam] && (
                     <a href={EXAM_URLS[exam]} target="_blank" rel="noopener noreferrer"
                       style={{ display: 'inline-flex', alignItems: 'center', gap: 3, marginLeft: 4, color: 'var(--color-primary)', textDecoration: 'none', fontWeight: 600, whiteSpace: 'nowrap' }}>
-                      {ja ? '公式ページ' : 'Official page'}<IconExternalLink size={12} />
+                      {ja ? '認定ページ' : 'Certification page'}<IconExternalLink size={12} />
+                    </a>
+                  )}
+                  {EXAM_GUIDE_PDF_URLS[exam] && (
+                    <a href={EXAM_GUIDE_PDF_URLS[exam]} target="_blank" rel="noopener noreferrer"
+                      style={{ display: 'inline-flex', alignItems: 'center', gap: 3, marginLeft: 10, color: 'var(--color-primary)', textDecoration: 'none', fontWeight: 600, whiteSpace: 'nowrap' }}>
+                      <IconFileText size={12} />{ja ? '試験ガイド(PDF)' : 'Exam Guide (PDF)'}
                     </a>
                   )}
                 </p>
@@ -498,6 +521,7 @@ export default function ExamSelectOverlay({
                   onClick={() => {
                     if (confirming) return;
                     setConfirming(true);
+                    resetExercisePrefsOnExamChange(uid, localStorage.getItem(`targetExam_${uid}`), exam);
                     localStorage.setItem(`targetExam_${uid}`, exam);
                     window.dispatchEvent(new CustomEvent('targetExamChanged', { detail: exam }));
                     // 押下直後にフリップとパーティクル放散を同時開始

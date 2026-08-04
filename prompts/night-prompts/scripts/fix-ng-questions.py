@@ -72,10 +72,16 @@ def ask_fix(claude_cmd, q, issues):
     with tempfile.NamedTemporaryFile('w', suffix='.txt', delete=False) as f:
         f.write('\n'.join(lines))
         pf = f.name
+    # timeout 必須: 応答が返らないまま claude がハングすると、この1問で夜間バッチ全体が
+    # 止まる（実際に11時間ブロックした事例あり）。落ちた分は None を返して次へ進める。
     try:
         with open(pf) as inp:
             r = subprocess.run([claude_cmd, '-p', '--model', 'sonnet', '--tools', 'WebFetch',
-                                '--allowed-tools', 'WebFetch'], stdin=inp, capture_output=True, text=True)
+                                '--allowed-tools', 'WebFetch'], stdin=inp, capture_output=True, text=True,
+                               timeout=int(os.environ.get('CLAUDE_TIMEOUT', '1800')))
+    except subprocess.TimeoutExpired:
+        print('  ⚠️ claude 応答タイムアウト。この問題はスキップします', flush=True)
+        return None
     finally:
         os.unlink(pf)
     txt = r.stdout
@@ -94,7 +100,7 @@ def ask_fix(claude_cmd, q, issues):
             return None
 
 
-def apply_fix(qid, orig, res):
+def apply_fix(qid, orig, res, audit_issues=()):
     now = datetime.now(timezone.utc).strftime('%Y-%m-%dT%H:%M:%SZ')
     action = (res or {}).get('action', 'keep')
     reason = (res or {}).get('reason', '')
@@ -105,11 +111,26 @@ def apply_fix(qid, orig, res):
         return ('delete', reason)
 
     if action != 'fix':
-        # keep: 事実の誤りが無い判断。次回02の再検査に回すため validityCheckedAt をクリア。
-        subprocess.run([AWS, 'dynamodb', 'update-item', '--table-name', 'Questions',
-                        '--key', json.dumps({'questionId': {'S': qid}}),
-                        '--update-expression', 'REMOVE validityCheckedAt'], capture_output=True)
-        return ('recheck', reason)
+        # keep: 事実の誤りが無いと判断した。ただし監査の指摘（難易度・体裁など）は
+        # 未解決のまま残るので、DBに記録して管理画面から追えるようにする。
+        # ここで残さないと「事実は正しいが出題として不適」な問題が確認済みに紛れて埋もれる。
+        if audit_issues:
+            subprocess.run([AWS, 'dynamodb', 'update-item', '--table-name', 'Questions',
+                            '--key', json.dumps({'questionId': {'S': qid}}),
+                            '--update-expression', 'SET auditNote = :n, auditFlaggedAt = :t',
+                            '--expression-attribute-values', json.dumps({
+                                ':n': {'S': ' / '.join(audit_issues)[:900]},
+                                ':t': {'S': now},
+                            })], capture_output=True)
+        # validityCheckedAt は消さない。
+        #
+        # 以前はここで REMOVE して 02 の再検査に回していたが、02 と監査は無限に
+        # 押し付け合う（監査が「易しすぎ・体裁」で NG → ここが「事実誤りなし」で keep
+        # → 確認済みを解除 → 02 が「事実として正しい」で ok を付け直す → 監査がまた NG）。
+        # 難易度や体裁の指摘はどちらのスクリプトも解消できないため、再検査に回しても
+        # 同じ結論に戻るだけで、その間その問題は「未確認」に見え続ける。
+        # 事実誤りが無いと判断できた時点で妥当性の確認自体は済んでいるので確認済みのまま残す。
+        return ('skip', reason)
 
     fix = res.get('fix', {}) or {}
     stripped_ca = [_label_re.sub('', str(c)).strip() for c in (fix.get('correctAnswers') or [])]
@@ -154,9 +175,11 @@ def apply_fix(qid, orig, res):
     if len(update_parts) <= 3:  # 実質変更なし
         return ('skip', '有効な変更なし: ' + reason)
 
-    remove_expr = ''
+    # 修正できたので過去の監査指摘は解消済みとして消す（keep 経路で付けた分）
+    remove_fields = ['auditNote', 'auditFlaggedAt']
     if 'choices' in changes or 'correctAnswers' in changes:
-        remove_expr = ' REMOVE globalAttempts, globalCorrect'  # 正答率カウンタをリセット
+        remove_fields += ['globalAttempts', 'globalCorrect']  # 正答率カウンタをリセット
+    remove_expr = ' REMOVE ' + ', '.join(remove_fields)
     expr_values[':log'] = {'S': json.dumps({'action': 'fixed', 'checkedAt': now, 'reason': reason, 'source': 'audit-ng-fix', 'changes': list(changes.keys())}, ensure_ascii=False)}
     subprocess.run([AWS, 'dynamodb', 'update-item', '--table-name', 'Questions',
                     '--key', json.dumps({'questionId': {'S': qid}}),
@@ -189,7 +212,7 @@ def main():
                             '--key', json.dumps({'questionId': {'S': qid}}),
                             '--update-expression', 'REMOVE validityCheckedAt'], capture_output=True)
             print(f"    ⚠️ {qid}: 修正案なし → 再検査キューへ"); counts['recheck'] += 1; continue
-        kind, msg = apply_fix(qid, q, res)
+        kind, msg = apply_fix(qid, q, res, r.get('issues', []))
         counts[kind] = counts.get(kind, 0) + 1
         icon = {'fix': '🔧', 'delete': '🗑️', 'recheck': '🔁', 'skip': '➖'}.get(kind, '?')
         print(f"    {icon} {qid}: {msg[:160]}")

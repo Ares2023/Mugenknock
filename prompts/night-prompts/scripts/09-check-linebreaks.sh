@@ -243,14 +243,14 @@ PYEOF
   while true; do
     _STDOUT_F=$(mktemp /tmp/linebreak_out_XXXX)
     _STDERR_F=$(mktemp /tmp/linebreak_err_XXXX)
-    "$CLAUDE_CMD" -p --model haiku --tools "" < "$PROMPT_FILE" > "$_STDOUT_F" 2> "$_STDERR_F"
+    timeout -k 30 "${CLAUDE_TIMEOUT:-1800}" "$CLAUDE_CMD" -p --model haiku --tools "" < "$PROMPT_FILE" > "$_STDOUT_F" 2> "$_STDERR_F"
     AI_EXIT=$?
     RESULT=$(cat "$_STDOUT_F"); _STDERR=$(cat "$_STDERR_F")
     rm -f "$_STDOUT_F" "$_STDERR_F"
 
     if [ $AI_EXIT -ne 0 ] && echo "$_STDERR" | grep -q "No such file"; then
       CLAUDE_CMD=$(_find_claude)
-      [ -x "${CLAUDE_CMD:-}" ] && RESULT=$("$CLAUDE_CMD" -p --model haiku --tools "" < "$PROMPT_FILE" 2>/dev/null)
+      [ -x "${CLAUDE_CMD:-}" ] && RESULT=$(timeout -k 30 "${CLAUDE_TIMEOUT:-1800}" "$CLAUDE_CMD" -p --model haiku --tools "" < "$PROMPT_FILE" 2>/dev/null)
     fi
     if echo "$_STDERR" | grep -qiE "command not found|GEMINI_API_KEY|API.?key"; then
       rm -f "$PROMPT_FILE"; echo "❌ claude 実行エラー（認証/コマンド）。終了します"; exit 1

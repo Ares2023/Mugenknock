@@ -15,9 +15,9 @@ import {
   IconCalendarNotebook, IconTarget, IconAnnoyed, IconList,
   IconSparkles, IconChevronRight, IconChevronDown, IconLock, IconFlag, IconStar, IconTrendingUp, IconPenLine,
   IconSprout, IconBox, IconBot, IconCode2, IconCloud, IconDatabase, IconBrain, IconVectorSquare, IconFileCodeCorner, IconAtom, IconShieldIcon, IconWaypoints,
-  EXAM_ICON_COMPONENTS, IconSaveCheck, IconCopy, IconCheck, IconTrophy, IconCircleCheck, IconCircleX, IconExternalLink,
+  EXAM_ICON_COMPONENTS, IconSaveCheck, IconCopy, IconCheck, IconTrophy, IconCircleCheck, IconCircleX, IconExternalLink, IconFileText,
 } from '../components/Icons';
-import ExamSelectOverlay, { EXAM_DESC, EXAM_URLS, ConfirmBurst } from '../components/ExamSelectOverlay';
+import ExamSelectOverlay, { EXAM_DESC, EXAM_URLS, EXAM_GUIDE_PDF_URLS, ConfirmBurst } from '../components/ExamSelectOverlay';
 import Confetti from '../components/Confetti';
 import KeyHint from '../components/KeyHint';
 
@@ -584,12 +584,20 @@ export default function MyPage() {
                                   ))}
                                 </div>
                                 <p style={{ margin: 0, fontSize: 'var(--font-size-sm)', color: 'var(--color-text-sub)', lineHeight: 1.6 }}>{EXAM_DESC[targetExam] ?? ''}</p>
-                                {EXAM_URLS[targetExam] && (
-                                  <a href={EXAM_URLS[targetExam]} target="_blank" rel="noopener noreferrer"
-                                    style={{ display: 'inline-flex', alignItems: 'center', gap: 4, marginTop: 'var(--spacing-sm)', fontSize: 'var(--font-size-sm)', color: 'var(--color-primary)', fontWeight: 600, textDecoration: 'none' }}>
-                                    {ja ? '公式ページを見る' : 'Official page'}<IconExternalLink size={13} />
-                                  </a>
-                                )}
+                                <div style={{ display: 'flex', gap: 16, marginTop: 'var(--spacing-sm)' }}>
+                                  {EXAM_URLS[targetExam] && (
+                                    <a href={EXAM_URLS[targetExam]} target="_blank" rel="noopener noreferrer"
+                                      style={{ display: 'inline-flex', alignItems: 'center', gap: 4, fontSize: 'var(--font-size-sm)', color: 'var(--color-primary)', fontWeight: 600, textDecoration: 'none' }}>
+                                      {ja ? '認定ページ' : 'Certification page'}<IconExternalLink size={13} />
+                                    </a>
+                                  )}
+                                  {EXAM_GUIDE_PDF_URLS[targetExam] && (
+                                    <a href={EXAM_GUIDE_PDF_URLS[targetExam]} target="_blank" rel="noopener noreferrer"
+                                      style={{ display: 'inline-flex', alignItems: 'center', gap: 4, fontSize: 'var(--font-size-sm)', color: 'var(--color-primary)', fontWeight: 600, textDecoration: 'none' }}>
+                                      <IconFileText size={13} />{ja ? '試験ガイド(PDF)' : 'Exam Guide (PDF)'}
+                                    </a>
+                                  )}
+                                </div>
                               </>
                             );
                           })() : (
