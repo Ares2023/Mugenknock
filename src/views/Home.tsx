@@ -4,6 +4,7 @@ import { Helmet } from '@/compat/react-helmet-async';
 import { createPortal } from 'react-dom';
 import { useNavigate, useLocation } from '@/compat/react-router-dom';
 import DailyServiceRevealModal from '../components/DailyServiceRevealModal';
+import FeatureUnlockModal from '../components/FeatureUnlockModal';
 import ExamSelectOverlay, { ConfirmBurst } from '../components/ExamSelectOverlay';
 import StartTutorialSpotlight from '../components/StartTutorialSpotlight';
 
@@ -1488,6 +1489,20 @@ export default function Home() {
   const effectiveFocusedUnlocked = !user ? false : answeredCountReady ? focusedUnlocked : focusedUnlockedCached;
   const primaryMode: 'quick' | 'focused' = lastMode === 'focused' && effectiveFocusedUnlocked ? 'focused' : 'quick';
 
+  // 解放到達を検知して一度だけ祝福ポップアップを出す。
+  // ※このeffectは下の focusedUnlockedCache 書き込みより前に宣言し、上書き前の
+  //   「前回までの解放状態」を読む（今まさに30問を超えた瞬間だけ祝う）。
+  const [showUnlockModal, setShowUnlockModal] = useState(false);
+  useEffect(() => {
+    if (!user || !answeredCountReady || !focusedUnlocked) return;
+    const celebratedKey = `focusedUnlockCelebrated_${uid}`;
+    if (localStorage.getItem(celebratedKey) === '1') return;
+    const wasUnlockedBefore = localStorage.getItem(`focusedUnlockedCache_${uid}`) === '1';
+    localStorage.setItem(celebratedKey, '1');
+    // すでに解放済みだった既存ユーザーには出さず、今回到達した人だけに表示する
+    if (!wasUnlockedBefore) setShowUnlockModal(true);
+  }, [answeredCountReady, focusedUnlocked, user, uid]);
+
   useEffect(() => {
     if (answeredCountReady) {
       localStorage.setItem(`focusedUnlockedCache_${uid}`, focusedUnlocked ? '1' : '0');
@@ -2162,6 +2177,14 @@ export default function Home() {
           onClose={() => { setRevealService(null); navigate('/aws/'); }}
           onNavigateEncyclopedia={() => { setRevealService(null); navigate('/aws/encyclopedia'); }}
           onStartExercise={() => setRevealService(null)}
+        />
+      )}
+
+      {showUnlockModal && (
+        <FeatureUnlockModal
+          lang={lang}
+          onClose={() => setShowUnlockModal(false)}
+          onStart={() => { setShowUnlockModal(false); startFocusedExercise(); }}
         />
       )}
 
