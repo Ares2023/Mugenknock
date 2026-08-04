@@ -548,14 +548,9 @@ app.get('/questions', async (req, res) => {
     // idsOnly=true: 問題IDのみ返す（プログレッシブロード用・フィルタ対応）
     if (req.query.idsOnly === 'true') {
       const { bookmarkOnly, unansweredOnly, incorrectOnly, userId: qUserId } = req.query;
-      const hasStatusFilter = bookmarkOnly === 'true' || unansweredOnly === 'true' || incorrectOnly === 'true';
       let answeredPerDomain = {};
       let scoreFn = null;
-      // フィルタ（ブックマーク/不正解/未回答）が有る時だけユーザー履歴を参照する。
-      // 無フィルタの通常演習では履歴を使わず（answeredPerDomain は空のまま）、
-      // セッション内で各ドメインを均等に round-robin する。これにより
-      // 「過去に多く解いたドメインが抑制されて出題ゼロになる」偏りを防ぐ。
-      if (qUserId && hasStatusFilter) {
+      if (qUserId) {
         const statsResult = await docClient.send(new QueryCommand({
           TableName: T('UserQuestionStats'),
           KeyConditionExpression: 'userId = :uid',
@@ -573,14 +568,15 @@ app.get('/questions', async (req, res) => {
           if (d === undefined) continue;
           answeredPerDomain[d] = (answeredPerDomain[d] || 0) + 1;
         }
-        // フィルタ一致を最優先（フィルタが効く範囲では従来通り）
-        scoreFn = q =>
-          (bookmarkSet  && bookmarkSet.has(q.questionId)   ? 1 : 0) +
-          (wantUnanswered && !answeredSet.has(q.questionId) ? 1 : 0) +
-          (incorrectSet && incorrectSet.has(q.questionId)  ? 1 : 0);
+        // フィルタ指定時はその一致を最優先（フィルタが効く範囲では従来通り）
+        if (bookmarkSet || incorrectSet || wantUnanswered) {
+          scoreFn = q =>
+            (bookmarkSet  && bookmarkSet.has(q.questionId)   ? 1 : 0) +
+            (wantUnanswered && !answeredSet.has(q.questionId) ? 1 : 0) +
+            (incorrectSet && incorrectSet.has(q.questionId)  ? 1 : 0);
+        }
       }
-      // 無フィルタ: 純粋なドメイン均等 round-robin（answeredPerDomain 空）。
-      // フィルタ時: スコア階層内でドメイン均等化しつつ履歴で軽く均す。
+      // フィルタで不可能でない限り、回答数の少ないドメインを優先してドメイン偏りを是正
       const ordered = selectionOrder(items, answeredPerDomain, scoreFn);
       return res.json({ questionIds: ordered.map(q => q.questionId), total: ordered.length });
     }
