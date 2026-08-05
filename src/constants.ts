@@ -210,6 +210,15 @@ export const EXAM_SUPPLEMENTARY_RULES: Partial<Record<string, string>> = {
 ・API Gateway: ステージと「デプロイ」の概念、ステージ変数による環境差分（dev/test/prod）の作り分け、モック統合の用途を優先的に含めること
 ・Cognito: ユーザープールとアイデンティティプールの使い分け（認証/JWT vs 一時AWS認証情報の付与）を明確に問うこと
 ・その他手薄になりがち: SAMとCloudFormationの併用・sam localでのローカルテスト/デプロイ、プロビジョンド/予約済みコンカレンシーの用途差、Lambdaのメモリ増加による高速化、Secrets Managerのリージョン間レプリケーション、既存S3データの一括暗号化（S3バッチオペレーション）、AppConfigの使い分け、ECSタスク定義`,
+  DEA: `・実出題で頻出だが手薄になりがちな詳細トピックを優先的に含めること:
+・Kinesis: 拡張ファンアウト(Enhanced Fan-Out)、KPL/KCLの違い(KPLのバッチ化・集約でスループット向上)
+・Amazon MSK: MSK Replicatorによるクロスリージョン/クラスタ間レプリケーション
+・Redshift運用: VACUUM(recluster)・VACUUM REINDEX・ANALYZE(統計更新)の役割の違い
+・ゼロETL統合(Zero-ETL): Aurora/RDS→Redshift、DynamoDB→Redshift/OpenSearch を自前ETLなしで選ぶ要件
+・Athena: フェデレーテッドクエリ(Lambda Connectorで他データソース横断)
+・Step Functions: ステートの種類(Task/Choice/Map/Parallel)、変換パイプラインでのGlue Workflowとの使い分け
+・S3 Storage Lens(分析ダッシュボード)とS3 Inventory(オブジェクト明細レポート)の使い分け
+・JDBC(Java系)/ODBC(ネイティブ・Windows系)の使い分け、AppFlowのSaaS連携用途、基礎SQL(UNION/ウィンドウ関数等)`,
 };
 
 export const EXAM_OFFICIAL_URLS: Record<string, { page: string; guide: string }> = {

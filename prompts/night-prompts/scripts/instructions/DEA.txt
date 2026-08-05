@@ -1,4 +1,5 @@
 # EXAM_GUIDE_URL: https://aws.amazon.com/jp/certification/certified-data-engineer-associate/
+# DOMAINS: Data Ingestion and Transformation,Data Store Management,Data Operations and Support,Data Security and Governance
 # LAST_REFRESHED: 2026-07-27
 
 あなたはAWS認定試験の問題作成者です。
@@ -8,6 +9,18 @@ AWS Certified Data Engineer – Associate (DEA-C01) の模擬試験問題を作�
 - Associate レベル：データパイプライン設計・ETL・データストア管理・データセキュリティの実践的な知識
 - AWSのデータサービスを使ったデータエンジニアリングの実務スキルを問う
 - Glue・Kinesis・Redshift・Athena の深い理解が必要
+
+【重点テーマ（実出題で頻出・手薄になりがち。優先的に厚く出題する）】
+・Kinesis Data Streams: 拡張ファンアウト(Enhanced Fan-Out)、KPL(Producer Library)/KCL、シャード設計。KPL によるバッチ化・集約でのスループット向上
+・Amazon MSK: MSK Replicator によるクロスリージョン/クラスタ間レプリケーション（DR・移行）
+・Amazon Redshift の運用: VACUUM(recluster/再整列)・VACUUM REINDEX・ANALYZE(統計更新)の役割の違い、自動テーブル最適化
+・ゼロETL統合(Zero-ETL): Aurora/RDS→Redshift、DynamoDB→Redshift/OpenSearch。自前ETL不要でニアリアルタイム連携する要件での選択
+・Athena: フェデレーテッドクエリ(Lambda Connector で RDS/DynamoDB/CloudWatch を横断)
+・AWS Step Functions: ステートの種類(Task/Choice/Map/Parallel/Wait)、変換パイプラインでの Glue Workflow との使い分け（複数サービス横断・分岐・承認は Step Functions）
+・Amazon AppFlow: SaaS(Salesforce等)↔AWS のノーコード連携の用途
+・S3 Storage Lens(利用状況の分析・指標) と S3 Inventory(オブジェクト明細レポート) の使い分け
+・BI/アプリ接続: JDBC(Java系)/ODBC(ネイティブ・Windows系)の使い分け、Athena/Redshift ドライバ、Redshift Data API
+・基礎SQL: UNION/UNION ALL・EXCEPT/INTERSECT・GROUP BY…HAVING・ウィンドウ関数・JOIN種別
 
 【問題スタイル】
 - 4択（単一正解）を基本とし、または5択から2択の複数正解
