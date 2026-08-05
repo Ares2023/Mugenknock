@@ -2091,7 +2091,9 @@ export default function Home() {
                   <IconTrendingUp size={12} />
                 </span>
                 <span style={{ fontSize: 'var(--font-size-xs)', fontWeight: 700, color: 'var(--color-text-sub)', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
-                  {ja ? '予想スコア' : 'Est. Score'}
+                  {/* 集計対象（直近N問）は詳細オーバーレイで切り替えられる。
+                      表示中のスコアが何問を根拠にしているかタイトルで分かるようにする。 */}
+                  {ja ? `予想スコア（直近${nodeWindow}問）` : `Est. Score (last ${nodeWindow})`}
                 </span>
               </div>
               {user && (
