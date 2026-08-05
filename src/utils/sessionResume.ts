@@ -36,6 +36,8 @@ export async function hydrateDraftsFromServer(userId: string): Promise<boolean> 
           sessionId: s.sessionId, examType: s.examType, questions, questionIds: ids, userId,
           currentIndex: s.draft.currentIndex ?? 0, results: s.draft.results ?? [],
           answered: s.draft.answered ?? false, selectedAnswers: s.draft.selectedAnswers ?? [],
+          // 回答済み問題を見返したときの選択肢復元用（欠けると未回答に見える）
+          selectionHistory: s.draft.selectionHistory ?? {},
           isQuick: type === 'quick', isFocused: type === 'focused', isMini: false, savedAt,
         };
       }

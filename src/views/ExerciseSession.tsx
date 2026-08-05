@@ -227,6 +227,7 @@ export default function ExerciseSession() {
     let res: { questionId: string; isCorrect: boolean }[] = state?.resumeResults ?? [];
     let ans: boolean = state?.resumeAnswered ?? false;
     let sel: string[] = state?.resumeSelectedAnswers ?? [];
+    let hist: Record<number, string[]> = state?.resumeSelectionHistory ?? {};
     let qs: Question[] | null = null;
     let qids: string[] | null = null;
     let spares: string[] | null = null;
@@ -244,11 +245,16 @@ export default function ExerciseSession() {
             } catch {}
           }
         }
-        if (best && (best.results?.length ?? 0) > (res?.length ?? 0)) {
+        // 進捗が同数のときも反映する（>= にしている）。
+        // navigate の state は回答済みフラグや選択中の選択肢まで運ばないことがあり、
+        // 「results は同じだが answered/selectedAnswers だけ落ちる」＝回答済みの問題が
+        // 未回答に見える状態になるため、同数ならドラフト側を採用する。
+        if (best && (best.results?.length ?? 0) >= (res?.length ?? 0)) {
           idx = best.currentIndex ?? 0;
           res = best.results ?? [];
           ans = best.answered ?? false;
           sel = best.selectedAnswers ?? [];
+          if (best.selectionHistory && typeof best.selectionHistory === 'object') hist = best.selectionHistory;
           if (best.questions?.length) qs = best.questions;
         }
         // 出題予定ID・予備IDは進捗の多寡に関わらずドラフトから補完する。
@@ -262,7 +268,7 @@ export default function ExerciseSession() {
         }
       } catch {}
     }
-    return { idx, res, ans, sel, qs, qids, spares, orders };
+    return { idx, res, ans, sel, hist, qs, qids, spares, orders };
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   const [sessionId, setSessionId] = useState<string>(state?.sessionId ?? '');
@@ -463,7 +469,10 @@ export default function ExerciseSession() {
     setBookmarkLoading(false);
   };
   const [results, setResults] = useState<{ questionId: string; isCorrect: boolean }[]>(_resumeInit.res);
-  const [selectionHistory, setSelectionHistory] = useState<Record<number, string[]>>({});
+  // 回答済み問題を見返したときに選んだ選択肢を復元するための履歴。
+  // ドラフトに含めないと、再開後に前の問題へ戻ったとき「回答済みなのに何も選ばれていない」
+  // ＝未回答に見える状態になるため、他の進捗と一緒に永続化する。
+  const [selectionHistory, setSelectionHistory] = useState<Record<number, string[]>>(_resumeInit.hist);
   const [hoveredNode, setHoveredNode] = useState<number | null>(null);
   const [reportOpen, setReportOpen] = useState(false);
   const [answerCountError, setAnswerCountError] = useState<string | null>(null);
@@ -477,21 +486,21 @@ export default function ExerciseSession() {
   }, [showAbortConfirm]);
 
   // ドラフト保存 — 常に最新値を ref に保持し、状態変化時と beforeunload 両方で保存する
-  const draftStateRef = useRef({ currentIndex, results, answered, selectedAnswers });
+  const draftStateRef = useRef({ currentIndex, results, answered, selectedAnswers, selectionHistory });
   useEffect(() => {
-    draftStateRef.current = { currentIndex, results, answered, selectedAnswers };
+    draftStateRef.current = { currentIndex, results, answered, selectedAnswers, selectionHistory };
   });
   // 完了/中断後はドラフトを保存し直さない（削除後に再作成される競合＝残存セッション/二重取得を防ぐ）
   const finishedRef = useRef(false);
 
   const saveDraftNow = useCallback(() => {
     if (!sessionId || finishedRef.current) return;
-    const { currentIndex: ci, results: r, answered: a, selectedAnswers: sa } = draftStateRef.current;
+    const { currentIndex: ci, results: r, answered: a, selectedAnswers: sa, selectionHistory: sh } = draftStateRef.current;
     try {
       const draftKey = isFocused ? `focusedExerciseDraft_${userId}` : isQuick ? `quickExerciseDraft_${userId}` : `practiceExerciseDraft_${userId}`;
       localStorage.setItem(draftKey, JSON.stringify({
         sessionId, examType, questions, questionIds: allQuestionIds, spareIds: spareIdsRef.current, userId,
-        currentIndex: ci, results: r, answered: a, selectedAnswers: sa,
+        currentIndex: ci, results: r, answered: a, selectedAnswers: sa, selectionHistory: sh,
         choiceOrders: savedOrdersRef.current,
         isQuick, isFocused, isMini, savedAt: Date.now(),
       }));
@@ -501,7 +510,7 @@ export default function ExerciseSession() {
       const sessionType = isFocused ? 'focused' : isQuick ? 'quick' : 'practice';
       fetch(`${API_ENDPOINT}/sessions/${sessionId}/progress`, {
         method: 'PUT', headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ userId, sessionType, draft: { currentIndex: ci, results: r, answered: a, selectedAnswers: sa } }),
+        body: JSON.stringify({ userId, sessionType, draft: { currentIndex: ci, results: r, answered: a, selectedAnswers: sa, selectionHistory: sh } }),
       }).catch(() => {});
     }
   }, [sessionId, examType, questions, allQuestionIds, userId, isQuick, isFocused, isMini]); // eslint-disable-line react-hooks/exhaustive-deps
@@ -624,6 +633,8 @@ export default function ExerciseSession() {
     setResults(draft.results ?? []);
     setAnswered(draft.answered ?? false);
     setSelectedAnswers(draft.selectedAnswers ?? []);
+    // 回答済み問題を見返したときに選択肢が空にならないよう履歴も復元する
+    if (draft.selectionHistory && typeof draft.selectionHistory === 'object') setSelectionHistory(draft.selectionHistory);
     // 出題予定ID・予備IDも復元する（欠けると totalCount がロード済み分まで縮み、
     // リロード後に設定した問題数より少ない問題数で終了してしまう）
     if (draft.questionIds?.length) setPresentIds(draft.questionIds);
