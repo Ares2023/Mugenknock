@@ -1,5 +1,4 @@
 # EXAM_GUIDE_URL: https://aws.amazon.com/jp/certification/certified-data-engineer-associate/
-# DOMAINS: Data Ingestion and Transformation,Data Store Management,Data Operations and Support,Data Security and Governance
 # LAST_REFRESHED: 2026-07-27
 
 あなたはAWS認定試験の問題作成者です。

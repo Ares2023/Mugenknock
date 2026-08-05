@@ -164,8 +164,6 @@ for exam in "${TARGET_EXAMS[@]}"; do
    - 主要な対象サービス一覧
 3. 以下のフォーマットで出力する（前置き・説明文不要）：
 
----DOMAINS---
-ドメイン1,ドメイン2,ドメイン3
 ---GUIDE_CONTENT---
 （既存の instruction 本文を上記の最新情報で更新した全文。
  問題作成者へのシステムプロンプトとして機能する形式を維持すること。
@@ -186,12 +184,10 @@ PROMPT
     continue
   fi
 
-  # DOMAINS 行を抽出
-  NEW_DOMAINS=$(echo "$RESULT" | sed -n '/^---DOMAINS---/,/^---/{ /^---/d; p }' | head -1 | tr -d '\r')
   # ガイドコンテンツを抽出
   NEW_CONTENT=$(echo "$RESULT" | sed -n '/^---GUIDE_CONTENT---/,$ { /^---GUIDE_CONTENT---/d; p }')
 
-  if [ -z "$NEW_DOMAINS" ] || [ -z "$NEW_CONTENT" ]; then
+  if [ -z "$NEW_CONTENT" ]; then
     echo "⚠️  $exam: 期待するフォーマットで出力されませんでした（スキップ）"
     echo "--- 生出力（先頭200字）---"
     echo "$RESULT" | head -c 200
@@ -202,44 +198,19 @@ PROMPT
   cp "$inst_file" "${inst_file}.bak"
 
   # ファイル書き込み
+  # ドメイン一覧は src/data/examDomains.json が単一マスタ（DynamoDB の domain は
+  # その配列インデックス）。ここで公式ガイドの表記を書き出すとマスタとの二重管理になり、
+  # 表記ゆれが毎月持ち込まれるだけなので # DOMAINS: 行は持たない。
   {
     echo "# EXAM_GUIDE_URL: ${url}"
-    echo "# DOMAINS: ${NEW_DOMAINS}"
     echo "# LAST_REFRESHED: ${TODAY}"
     echo ""
     echo "$NEW_CONTENT"
   } > "$inst_file"
 
-  echo "✅ $exam: 更新完了（ドメイン: $NEW_DOMAINS）"
+  echo "✅ $exam: 更新完了"
   echo "   バックアップ: ${inst_file}.bak"
 
-  # ドメイン変更の警告
-  OLD_DOMAINS=$(grep "^# DOMAINS:" "${inst_file}.bak" 2>/dev/null | sed 's/^# DOMAINS: *//' || echo "")
-  if [ -n "$OLD_DOMAINS" ] && [ "$OLD_DOMAINS" != "$NEW_DOMAINS" ]; then
-    echo "   ⚠️  ドメイン名が変更されました！DynamoDB上の既存問題のタグ確認が必要です"
-    echo "   旧: $OLD_DOMAINS"
-    echo "   新: $NEW_DOMAINS"
-  fi
-
-  # 単一マスタ（examDomains.json）との差分警告
-  # DynamoDB の domain はマスタ配列のインデックスで格納されているため、
-  # マスタを書き換えると既存問題のドメインが全てズレる（migrate-domain-index.py が必要）。
-  # ここではマスタを自動更新せず、不一致を明示するだけに留める。
-  MASTER_DOMAINS=$(EXAM="$exam" python3 - "$EXAM_DOMAINS_JSON" << 'PYEOF' 2>/dev/null
-import json, os, sys
-try:
-    with open(sys.argv[1], encoding='utf-8') as f:
-        print(','.join(x['ja'] for x in json.load(f).get(os.environ['EXAM'], [])))
-except Exception:
-    pass
-PYEOF
-  )
-  if [ -n "$MASTER_DOMAINS" ] && [ "$MASTER_DOMAINS" != "$NEW_DOMAINS" ]; then
-    echo "   ℹ️  マスタ(examDomains.json)とは表記が異なります（集計・割り当てはマスタを使用）"
-    echo "      マスタ: $MASTER_DOMAINS"
-    echo "      ガイド: $NEW_DOMAINS"
-    echo "      ※ マスタを合わせる場合は migrate-domain-index.py での再採番が必須です"
-  fi
 done
 
 echo ""

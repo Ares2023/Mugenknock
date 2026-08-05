@@ -19,11 +19,7 @@
 - 正解に酷似した紛らわしい選択肢を最低1つ入れること（難易度向上）
 
 ■ 推敲・現行性
-- 現行サービス名を使うこと。旧称の使用は事実誤りとして頻出するため特に以下は要注意:
-  - Amazon Data Firehose（旧称 Amazon Kinesis Data Firehose／Kinesis Data Firehose は不可）
-  - AWS Private Certificate Authority／AWS Private CA（旧称 AWS Certificate Manager Private CA／ACM Private CA は不可）
-  - Amazon EventBridge（旧称 CloudWatch Events は不可）
-  - SRT（Shield Response Team）（旧称 DRT／DDoS Response Team は不可。Shield Advanced文脈で頻出）
+- 現行サービス名を使うこと（例: Amazon Data Firehose、旧Kinesis Data Firehoseは不可）
 - CodeCommitは現行サービス（廃止扱い禁止）
 - 実在しないサービス間の直接連携を前提にしない（中間サービスを省略しない）
 
@@ -44,3 +40,15 @@
 - 問題文に正解サービスを一意に特定する固有語（Gremlin=Neptune、MongoDB互換=DocumentDB 等）や正解機能名（Warm Start 等）を書かない。要件は挙動・性質で記述する
 - 正解選択肢に問題文の要件表現をほぼそのまま反復しない（「アーキテクチャを変更せず」→「リフト＆シフト」等の言い換え反復も不可）
 - explanation・choiceExplanations の番号付き手順は必ず連番順（①②③④）で記述する
+
+■ 不正解理由の事実正確性（choiceExplanations）
+- 不正解の失格理由は「その要件を満たさない一点」に限定し事実正確に書く。機能の非対応・複雑さ・非ネイティブ等を一般論で断定しない（例: GitHub ActionsはEnvironmentのrequired reviewersで承認ゲートを標準サポート、TerraformのAWS対応は充実。これらを否定理由にしない）
+- 問題文に正解を導く技術的根拠（数値上限・制約値・「〜が必要な理由」）を書かない。要件・症状のみ提示し、根拠の想起は受験者に委ねる（例: KMSの4KB上限を明記してエンベロープ暗号化へ誘導しない）
+- 単一の用語区別・フェーズ配置（Annotations対Metadata、build対post_build等）を単体で問わず、複数要件・シナリオの中で取捨選択させる
+
+■ 誤答の妥当性・選択肢参照の整合
+- 不正解選択肢自体に虚偽の事実主張（「全て無料」「GitHub ActionsはDocker非対応」「OrganizationsではCloudTrail使用不可」等）を書かない。誤答も現実に選ばれうる妥当な構成とし、対象要件との不一致のみで不正解になるようにする（虚偽で消去法を成立させない）
+- explanation・choiceExplanations 内で個別選択肢を「選択肢A/B/C/D」等のレターで参照しない。choices はUI上番号表示のため不一致になる。各選択肢の違いは対応する choiceExplanations に書く
+
+■ 選択肢別解説の固有性
+- choiceExplanations の各要素は他の選択肢と重複しない固有の内容にする（同一文の使い回し禁止）。各肢の正誤理由をその選択肢固有の観点で書き分けること

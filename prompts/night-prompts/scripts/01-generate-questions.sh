@@ -130,10 +130,9 @@ LOG_FILE="$LOG_DIR/generate_${DATE}.log"
 # Lambda 側の import も名前→index を examDomains.json の indexOf で解決するため、
 # 生成・集計・割り当てのすべてでこのマスタと完全一致した名前を使う必要がある。
 #
-# ※ instructions/*.txt の # DOMAINS: 行は LLM プロンプト用の表記であり、
-#   refresh-exam-guide.sh が試験ガイドから更新するとマスタと表記が食い違う。
-#   これを集計フィルタに使うと該当ドメインが 0 問扱いになり重み付けが壊れるため、
-#   ドメイン一覧のソースには使わない（_check_domain_drift で差分のみ警告する）。
+# ※ 以前は instructions/*.txt の # DOMAINS: 行も持っていたが、公式ガイドの表記が
+#   毎月書き込まれてマスタと食い違い（集計が 0 問扱いになる不具合の原因になった）、
+#   かつマスタ一本化後は警告を出す以外に使い道が無くなったため廃止した。
 declare -A DOMAINS
 _load_domains() {
   local exam="$1"
@@ -174,23 +173,6 @@ _get_exam_guide_url() {
   [ -f "$inst_file" ] && grep "^# EXAM_GUIDE_URL:" "$inst_file" | head -1 | sed 's/^# EXAM_GUIDE_URL: *//'
 }
 
-# instructions/*.txt の # DOMAINS: がマスタと食い違っていたら警告する。
-# 食い違い自体は動作に影響しない（マスタを使うため）が、放置すると
-# 生成プロンプトに載るドメイン名だけが古くなるため気付けるようにしておく。
-_check_domain_drift() {
-  local exam="$1" master="$2"
-  local inst_file="${INSTRUCTION_DIR}/${exam}.txt"
-  [ -f "$inst_file" ] || return 0
-  local inst
-  inst=$(grep "^# DOMAINS:" "$inst_file" | head -1 | sed 's/^# DOMAINS: *//')
-  [ -n "$inst" ] || return 0
-  [ "$inst" = "$master" ] || {
-    echo "⚠️  instructions/${exam}.txt の # DOMAINS: がマスタ(examDomains.json)と不一致です"
-    echo "    マスタ  : $master"
-    echo "    指示ファイル: $inst"
-    echo "    → 集計・割り当てはマスタを使用します（refresh-exam-guide.sh の出力要確認）"
-  }
-}
 
 {
 echo "=========================================="
@@ -329,7 +311,6 @@ if [ -z "$DOMAIN_STR" ]; then
   echo "⚠️  $NEXT_EXAM のドメイン定義がありません（src/data/examDomains.json に $NEXT_EXAM を追加してください）"
   exit 1
 fi
-_check_domain_drift "$NEXT_EXAM" "$DOMAIN_STR"
 EXAM_GUIDE_URL=$(_get_exam_guide_url "$NEXT_EXAM")
 [ -n "$EXAM_GUIDE_URL" ] && echo "試験ガイドURL: $EXAM_GUIDE_URL"
 
