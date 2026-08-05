@@ -231,20 +231,36 @@ else
   # 問題数が最も少ない資格を選択
   _USE_CACHE=0
   if [ "$REBUILD_COUNTS" -eq 0 ] && [ -f "$COUNT_CACHE_FILE" ]; then
-    # 全試験分のデータが揃っているときのみキャッシュ有効
-    if python3 - "$COUNT_CACHE_FILE" "${EXAM_TYPES[@]}" << 'PYEOF' 2>/dev/null
+    # 全試験分のデータが揃っていて、かつ十分に新しいときのみキャッシュ有効。
+    #
+    # 鮮度を見るのは、このキャッシュが更新されても S3 との同期で巻き戻ることがあるため。
+    # state/ は各ラッパー（local-hook-run 等）が起動時に `aws s3 sync s3://... state/` で
+    # 引き直すが、s3 sync は「サイズが違えば古い方でも上書きダウンロード」する。
+    # 夜間バッチ外（手動実行など）で更新した分は次のフックで消え、キャッシュが
+    # 古い日付のまま凍りつく。実際 2026-08-02 の値で止まり、MLA が 311問（実際は334問）
+    # と認識され続けて「最少の資格」に選ばれ続けていた。
+    # 問題数の真実は DynamoDB 側にあるので、古ければ黙って引き直す。
+    if python3 - "$COUNT_CACHE_FILE" "${COUNT_CACHE_MAX_AGE_H:-6}" "${EXAM_TYPES[@]}" << 'PYEOF' 2>/dev/null
 import json, sys
+from datetime import datetime
 with open(sys.argv[1]) as f:
     cache = json.load(f)
+max_age_h = float(sys.argv[2])
 exams_data = cache.get("exams", {})
-missing = [e for e in sys.argv[2:] if e not in exams_data]
+missing = [e for e in sys.argv[3:] if e not in exams_data]
 if missing:
     raise SystemExit(f"missing: {missing}")
+updated = cache.get("updated_at")
+if not updated:
+    raise SystemExit("no updated_at")
+age_h = (datetime.now() - datetime.fromisoformat(updated)).total_seconds() / 3600
+if age_h > max_age_h:
+    raise SystemExit(f"stale: {age_h:.1f}h")
 PYEOF
     then
       _USE_CACHE=1
     else
-      echo "問題数キャッシュが不完全 → DynamoDBから再取得します..."
+      echo "問題数キャッシュが不完全または古い → DynamoDBから再取得します..."
     fi
   fi
 
@@ -1018,6 +1034,20 @@ echo ""
 echo "=========================================="
 echo "完了: $(date)"
 echo "=========================================="
+
+# ── 更新した state を S3 へ書き戻す ────────────────────────────────
+# state/ は各ラッパー（local-hook-run 等）が起動時に S3 から引き直すが、
+# s3 sync は「サイズが違えば古い方でも上書きダウンロード」するため、
+# 夜間バッチ外（手動実行）で更新した question_counts.json / last_domain_idx.json は
+# 次のフックで S3 の古い版に巻き戻る。実際 2026-08-02 の値で凍結していた。
+# 自分が更新した分はここで S3 に反映し、ローカルと S3 を一致させておく。
+if _acct=$(aws sts get-caller-identity --query Account --output text 2>/dev/null) && [ -n "${_acct:-}" ]; then
+  if aws s3 sync "$STATE_DIR/" "s3://mugenknock-fargate-state-${_acct}/state/" --quiet 2>/dev/null; then
+    echo "✓ state を S3 に同期しました"
+  else
+    echo "⚠ state の S3 同期に失敗（ローカルのみ更新）"
+  fi
+fi
 
 } 2>&1 | tee -a "$LOG_FILE"
 
