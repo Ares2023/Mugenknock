@@ -232,6 +232,9 @@ export default function ExerciseSession() {
     let ans: boolean = state?.resumeAnswered ?? false;
     let sel: string[] = state?.resumeSelectedAnswers ?? [];
     let hist: Record<number, string[]> = state?.resumeSelectionHistory ?? {};
+    let qk: boolean = state?.isQuick ?? false;
+    let fc: boolean = state?.isFocused ?? false;
+    let mn: boolean = state?.isMini ?? false;
     let qs: Question[] | null = null;
     let qids: string[] | null = null;
     let spares: string[] | null = null;
@@ -265,6 +268,12 @@ export default function ExerciseSession() {
         // 再開navigateのstateにquestionIdsが含まれない場合でも、これが無いと
         // totalCountがロード済み問題数まで縮み、設定した問題数を満たせなくなる。
         if (best) {
+          // 演習種別もドラフトから補完する。呼び出し側が isFocused を渡し忘れると
+          // しっかり対策の再開なのにサクッと演習として扱われるため、
+          // 進捗と同じくドラフトを正とする。
+          if (typeof best.isQuick === 'boolean') qk = best.isQuick;
+          if (typeof best.isFocused === 'boolean') fc = best.isFocused;
+          if (typeof best.isMini === 'boolean') mn = best.isMini;
           if (best.questionIds?.length) qids = best.questionIds;
           if (best.spareIds?.length) spares = best.spareIds;
           // 選択肢の並び順（同一セッション内で固定）を復元する
@@ -272,7 +281,7 @@ export default function ExerciseSession() {
         }
       } catch {}
     }
-    return { idx, res, ans, sel, hist, qs, qids, spares, orders };
+    return { idx, res, ans, sel, hist, qk, fc, mn, qs, qids, spares, orders };
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   const [sessionId, setSessionId] = useState<string>(state?.sessionId ?? '');
@@ -317,9 +326,9 @@ export default function ExerciseSession() {
   const loadingNextRef = React.useRef(false);
   const [userId, setUserId] = useState<string>(state?.userId ?? '');
   const [examType, setExamType] = useState<string>(state?.examType ?? '');
-  const [isQuick, setIsQuick] = useState<boolean>(state?.isQuick ?? false);
-  const [isFocused, setIsFocused] = useState<boolean>(state?.isFocused ?? false);
-  const [isMini, setIsMini] = useState<boolean>(state?.isMini ?? false);
+  const [isQuick, setIsQuick] = useState<boolean>(_resumeInit.qk);
+  const [isFocused, setIsFocused] = useState<boolean>(_resumeInit.fc);
+  const [isMini, setIsMini] = useState<boolean>(_resumeInit.mn);
   // 消去法機能の有効/無効（デフォルト OFF。明示的に true のときのみ有効）
   const strikeEnabled = (() => {
     if (typeof state?.strikeEnabled === 'boolean') return state.strikeEnabled;
@@ -396,7 +405,10 @@ export default function ExerciseSession() {
       })
       .finally(() => { loadingNextRef.current = false; });
   }, [currentIndex, questions.length, presentIds]); // eslint-disable-line react-hooks/exhaustive-deps
-  const [viewedFrontier, setViewedFrontier] = useState<number>(_resumeInit.idx);
+  // 到達済みの最前線は「今いる位置」と「回答済み数」の大きい方。
+  // 前の問題を見返している最中に中断・再開すると currentIndex が戻っているため、
+  // それだけで復元すると回答済みの先の問題へ移動できなくなる。
+  const [viewedFrontier, setViewedFrontier] = useState<number>(Math.max(_resumeInit.idx, _resumeInit.res.length));
   const [selectedAnswers, setSelectedAnswers] = useState<string[]>(_resumeInit.sel);
   const [answered, setAnswered] = useState<boolean>(_resumeInit.ans);
   const [detail, setDetail] = useState<Question | null>(null);
@@ -675,7 +687,10 @@ export default function ExerciseSession() {
     setIsFocused(draft.isFocused ?? false);
     setIsMini(draft.isMini ?? false);
     setCurrentIndex(draft.currentIndex ?? 0);
-    setViewedFrontier(draft.currentIndex ?? 0);
+    // 到達済みの最前線は「今いる位置」と「回答済み数」の大きい方。
+    // currentIndex だけで復元すると、前の問題を見返している最中にリロードした場合に
+    // 最前線がそこまで縮み、回答済みの先の問題へ戻れなくなる。
+    setViewedFrontier(Math.max(draft.currentIndex ?? 0, (draft.results ?? []).length));
     setResults(draft.results ?? []);
     setAnswered(draft.answered ?? false);
     setSelectedAnswers(draft.selectedAnswers ?? []);
@@ -685,6 +700,9 @@ export default function ExerciseSession() {
     // リロード後に設定した問題数より少ない問題数で終了してしまう）
     if (draft.questionIds?.length) setPresentIds(draft.questionIds);
     if (draft.spareIds?.length) spareIdsRef.current = [...draft.spareIds];
+    // 選択肢の並び順も復元する。これが無いとリロードのたびに再シャッフルされ、
+    // 同じ問題なのに選択肢の位置が変わる（同一セッション内では固定する方針）。
+    if (draft.choiceOrders && typeof draft.choiceOrders === 'object') savedOrdersRef.current = draft.choiceOrders;
     setInitialized(true);
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
