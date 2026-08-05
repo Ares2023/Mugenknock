@@ -1276,10 +1276,19 @@ app.get('/users/me/active-sessions', async (req, res) => {
     });
     const typeOf = (s) => s.sessionType
       || (s.mode === 'exam' ? (s.isMini ? 'mini' : 'exam') : (s.isFocused ? 'focused' : 'practice'));
+    // 何日も放置された active セッションは「再開」候補にしない。
+    // 完了処理を取りこぼした行（別種別の完了時に巻き添えでローカルdraftだけ消え、
+    // サーバ側が active のまま孤児になったもの等）が復元され続け、
+    // 終わったはずの演習が「再開」表示になる原因になっていた。
+    const RESUME_MAX_AGE_MS = 7 * 24 * 60 * 60 * 1000;
+    const cutoff = Date.now() - RESUME_MAX_AGE_MS;
+
     const latest = {};
     for (const s of sessions) {
       // endedAt があるものは完了/中断済み（status 更新が取りこぼされた行の防御）
       if (s.status !== 'active' || s.draft == null || s.endedAt) continue;
+      const savedAt = Date.parse(s.draftSavedAt || s.startedAt || '');
+      if (Number.isFinite(savedAt) && savedAt < cutoff) continue;
       const t = typeOf(s);
       if (!latest[t] || (s.draftSavedAt || '') > (latest[t].draftSavedAt || '')) latest[t] = s;
     }

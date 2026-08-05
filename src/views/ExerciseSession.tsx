@@ -497,11 +497,16 @@ export default function ExerciseSession() {
   // 完了/中断後はドラフトを保存し直さない（削除後に再作成される競合＝残存セッション/二重取得を防ぐ）
   const finishedRef = useRef(false);
 
+  // このセッションのドラフト保存先。保存と後片付けで同じキーを使う。
+  const currentDraftKey = isFocused ? `focusedExerciseDraft_${userId}`
+    : isQuick ? `quickExerciseDraft_${userId}`
+    : `practiceExerciseDraft_${userId}`;
+
   const saveDraftNow = useCallback(() => {
     if (!sessionId || finishedRef.current) return;
     const { currentIndex: ci, results: r, answered: a, selectedAnswers: sa, selectionHistory: sh } = draftStateRef.current;
     try {
-      const draftKey = isFocused ? `focusedExerciseDraft_${userId}` : isQuick ? `quickExerciseDraft_${userId}` : `practiceExerciseDraft_${userId}`;
+      const draftKey = currentDraftKey;
       localStorage.setItem(draftKey, JSON.stringify({
         sessionId, examType, questions, questionIds: allQuestionIds, spareIds: spareIdsRef.current, userId,
         currentIndex: ci, results: r, answered: a, selectedAnswers: sa, selectionHistory: sh,
@@ -831,9 +836,11 @@ export default function ExerciseSession() {
           body: JSON.stringify({ userId, status: 'completed', score, isPassed, examType, answeredCount: results.length })
         });
       } catch (err) { console.error(err); }
-      localStorage.removeItem(`quickExerciseDraft_${userId}`);
-      localStorage.removeItem(`focusedExerciseDraft_${userId}`);
-      localStorage.removeItem(`practiceExerciseDraft_${userId}`);
+      // 終わったセッションの種別のドラフトだけを消す。
+      // 3種すべて消すと、別種別の進行中セッションはローカルの再開情報だけ失われ、
+      // サーバ側は active のまま孤児になる。その孤児を hydrateDraftsFromServer が
+      // 復活させるため「完了したのにボタンが再開のまま」に見えていた。
+      localStorage.removeItem(currentDraftKey);
       localStorage.removeItem(ACTIVE_DRAFT_POINTER);
       // ドメイン別統計を記録（domain_history / domain_results / サーバー同期）
       const dr = recordSessionDomainStats({
@@ -905,9 +912,8 @@ export default function ExerciseSession() {
         body: JSON.stringify({ userId, status: 'completed', score, isPassed, examType, answeredCount: results.length }),
       });
     } catch (err) { console.error(err); }
-    localStorage.removeItem(`quickExerciseDraft_${userId}`);
-    localStorage.removeItem(`focusedExerciseDraft_${userId}`);
-    localStorage.removeItem(`practiceExerciseDraft_${userId}`);
+    // 中断時も、終わらせたセッションの種別だけを消す（理由は完了時と同じ）
+    localStorage.removeItem(currentDraftKey);
     localStorage.removeItem(ACTIVE_DRAFT_POINTER);
     const dr = recordSessionDomainStats({
       examType, userId, results,
