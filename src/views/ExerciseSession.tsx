@@ -545,6 +545,22 @@ export default function ExerciseSession() {
     };
   }, [saveDraftNow]);
 
+  // ブラウザの「戻る」で演習を抜けるときの挙動を明示する。
+  // 何もしないと履歴の直前の画面（演習開始前のモーダル等）に戻ってしまい、
+  // 進捗が残っているのかどうかが利用者から分からない。
+  // ダミーの履歴を1つ積んで戻るを捕捉し、進捗を保存してからホームへ送る
+  // （セッションは中断扱いにせず、ホームの「続きから」で再開できる状態のまま）。
+  useEffect(() => {
+    if (!sessionId) return;
+    window.history.pushState({ exerciseGuard: true }, '');
+    const onPop = () => {
+      saveDraftNow();   // localStorage への保存は同期。遷移前に確実に書き込まれる
+      navigate('/aws/', { replace: true });
+    };
+    window.addEventListener('popstate', onPop);
+    return () => window.removeEventListener('popstate', onPop);
+  }, [sessionId, saveDraftNow]); // eslint-disable-line react-hooks/exhaustive-deps
+
   const currentQuestion = questions[currentIndex];
 
   const CHOICE_LABELS = ['A', 'B', 'C', 'D', 'E'];

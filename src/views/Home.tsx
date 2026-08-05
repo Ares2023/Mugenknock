@@ -1641,6 +1641,7 @@ export default function Home() {
         resumeResults: quickDraft.results,
         resumeAnswered: quickDraft.answered,
         resumeSelectedAnswers: quickDraft.selectedAnswers,
+        resumeSelectionHistory: quickDraft.selectionHistory,
       }
     });
   };
@@ -1662,6 +1663,7 @@ export default function Home() {
         resumeResults: focusedDraft.results,
         resumeAnswered: focusedDraft.answered,
         resumeSelectedAnswers: focusedDraft.selectedAnswers,
+        resumeSelectionHistory: focusedDraft.selectionHistory,
       }
     });
   };
