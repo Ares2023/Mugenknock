@@ -212,6 +212,10 @@ const PromptMenu = ({ questionText, choices, explanation, lang }: { questionText
   );
 };
 
+// いま進行中の演習ドラフトを指すポインタ（種別込み）。
+// リロードで navigate の state が失われても、どの種別の演習を開いていたかを復元できる。
+const ACTIVE_DRAFT_POINTER = 'activeExerciseDraft';
+
 export default function ExerciseSession() {
   const navigate = useNavigate();
   const location = useLocation();
@@ -504,6 +508,12 @@ export default function ExerciseSession() {
         choiceOrders: savedOrdersRef.current,
         isQuick, isFocused, isMini, savedAt: Date.now(),
       }));
+      // いま画面で開いているセッションを指すポインタ。
+      // リロード時は navigate の state が消えるためドラフトの種別を特定できず、
+      // 「savedAt が最新のドラフト」を拾っていた。別種別（サクッと演習・演習）の
+      // ドラフトが残っていてそちらが新しいと、しっかり対策の途中なのに
+      // その演習に化けてしまうため、種別をここで確定させておく。
+      localStorage.setItem(ACTIVE_DRAFT_POINTER, JSON.stringify({ key: draftKey, sessionId }));
     } catch { /* quota over 等は無視 */ }
     // サーバにも進捗を保存（端末跨ぎ/キャッシュ削除でも再開可能に。questionsは送らず軽量に）
     if (userId && userId !== 'guest') {
@@ -616,10 +626,25 @@ export default function ExerciseSession() {
       return cands.sort((a, b) => (b.savedAt ?? 0) - (a.savedAt ?? 0))[0];
     };
 
+    // 直前まで開いていた演習のドラフトを、種別を保ったまま取り出す。
+    // savedAt 最新のドラフトを拾うと、別種別（サクッと演習・演習）のドラフトが
+    // 残っていてそちらが新しい場合に演習の種類がすり替わるため、
+    // ポインタで指された種別を優先する。
+    const findActiveDraft = () => {
+      try {
+        const ptr = JSON.parse(localStorage.getItem(ACTIVE_DRAFT_POINTER) ?? 'null');
+        if (ptr?.key) {
+          const p = JSON.parse(localStorage.getItem(ptr.key) ?? 'null');
+          if (p?.questions?.length > 0 && (!ptr.sessionId || p.sessionId === ptr.sessionId)) return p;
+        }
+      } catch {}
+      return findDraft();
+    };
+
     // state がある場合: 進捗は useState 初期化時（_resumeInit）でドラフト反映済み。
     if (state) { setInitialized(true); return; }
-    // state なし（リロード等）: 最新ドラフトから復元する
-    const draft = findDraft();
+    // state なし（リロード等）: 直前に開いていた演習のドラフトから復元する
+    const draft = findActiveDraft();
     if (!draft) { navigate('/aws/', { replace: true }); return; }
     setSessionId(draft.sessionId ?? '');
     setQuestions(draft.questions);
@@ -793,6 +818,7 @@ export default function ExerciseSession() {
       localStorage.removeItem(`quickExerciseDraft_${userId}`);
       localStorage.removeItem(`focusedExerciseDraft_${userId}`);
       localStorage.removeItem(`practiceExerciseDraft_${userId}`);
+      localStorage.removeItem(ACTIVE_DRAFT_POINTER);
       // ドメイン別統計を記録（domain_history / domain_results / サーバー同期）
       const dr = recordSessionDomainStats({
         examType, userId, results,
@@ -835,7 +861,7 @@ export default function ExerciseSession() {
         addPoints(userId, dailyBonusPts);
       }
       schedulePrefetchAfterSession({ examType, userId, isQuick, isFocused });
-      navigate('/aws/result', { state: { results, questions, score, isPassed, sessionId: sid, userId, examType, isQuick, isMini, earnedPts, dailyBonusPts } });
+      navigate('/aws/result', { state: { results, questions, score, isPassed, sessionId: sid, userId, examType, isQuick, isFocused, isMini, earnedPts, dailyBonusPts } });
     } else {
       setCurrentIndex(prev => prev + 1);
       setSelectedAnswers([]);
@@ -866,6 +892,7 @@ export default function ExerciseSession() {
     localStorage.removeItem(`quickExerciseDraft_${userId}`);
     localStorage.removeItem(`focusedExerciseDraft_${userId}`);
     localStorage.removeItem(`practiceExerciseDraft_${userId}`);
+    localStorage.removeItem(ACTIVE_DRAFT_POINTER);
     const dr = recordSessionDomainStats({
       examType, userId, results,
       questionById: (qId) => questions.find((q: Question) => q.questionId === qId) as any,
@@ -902,7 +929,7 @@ export default function ExerciseSession() {
     }
     const answeredQuestions = questions.slice(0, results.length);
     schedulePrefetchAfterSession({ examType, userId, isQuick, isFocused });
-    navigate('/aws/result', { state: { results, questions: answeredQuestions, score, isPassed, sessionId: sid, userId, examType, isQuick, isMini, aborted: true, earnedPts, dailyBonusPts: dailyBonusPts2 } });
+    navigate('/aws/result', { state: { results, questions: answeredQuestions, score, isPassed, sessionId: sid, userId, examType, isQuick, isFocused, isMini, aborted: true, earnedPts, dailyBonusPts: dailyBonusPts2 } });
   };
 
   // 問題が変わったらカーソルを先頭に戻す

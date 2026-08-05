@@ -37,8 +37,12 @@ const CopyButton = ({ getText }: { getText: () => string }) => {
   );
 };
 
-const QUICK_PREFS_KEY = 'quickExercisePrefs';
-const loadQuickPrefs = () => { try { return JSON.parse(localStorage.getItem(QUICK_PREFS_KEY) ?? '{}'); } catch { return {}; } };
+// 設定は quickExercisePrefs_<userId> で保存されている。
+// ここだけ userId 無しのキーを読んでいたため常に空＝既定値になり、
+// 「もう一度」が設定した問題数やフィルタを無視していた。
+const loadQuickPrefs = (uid: string) => {
+  try { return JSON.parse(localStorage.getItem(`quickExercisePrefs_${uid}`) ?? '{}'); } catch { return {}; }
+};
 function shuffleArray<T>(arr: T[]): T[] { const a = [...arr]; for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; }
 // correctAnswerIndices が稀にスカラー値で保存されており .includes でクラッシュするため必ず配列化する
 const toIdxArr = (v: any): number[] => Array.isArray(v) ? v : (v == null || v === '' ? [] : [v]);
@@ -48,7 +52,7 @@ export default function Result() {
   const location = useLocation();
   // 遷移直後の一瞬、location.state がセッション側の state（results/questions を持たない）に
   // 切り替わって再レンダーされることがあるため、配列系はデフォルトを与えてクラッシュを防ぐ。
-  const { results = [], questions = [], score, isPassed, examType, mode, timeUp, isQuick, isMini, aborted, earnedPts, dailyBonusPts } = (location.state as any) ?? {};
+  const { results = [], questions = [], score, isPassed, examType, mode, timeUp, isQuick, isFocused, isMini, aborted, earnedPts, dailyBonusPts } = (location.state as any) ?? {};
   const { user } = useAuth();
 
   const resolvedExamType = examType ?? questions?.[0]?.examType ?? 'SAA';
@@ -101,8 +105,12 @@ export default function Result() {
   useEffect(() => { const f = () => setIsMobile(window.innerWidth < 768); window.addEventListener('resize', f); return () => window.removeEventListener('resize', f); }, []);
 
   const restartQuick = async () => {
+    // しっかり対策はホーム側に出題選定（苦手・誤答の優先）のロジックがあるため、
+    // ここで簡易版を作らずホームの自動起動に委譲する。
+    // これをやらないと「もう一度」がサクッと演習として始まり、種別が入れ替わる。
+    if (isFocused) { navigate('/aws/', { state: { startFocused: true } }); return; }
     setQuickLoading(true);
-    const qPrefs = loadQuickPrefs();
+    const qPrefs = loadQuickPrefs(user?.userId ?? 'guest');
     try {
       const userId = user?.userId ?? 'guest';
       // metaOnly はサーバ側で validity 済み・questionId/domain のみ返す軽量レスポンス。
