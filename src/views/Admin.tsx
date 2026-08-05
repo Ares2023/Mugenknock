@@ -2266,7 +2266,7 @@ export default function Admin() {
             <div style={{ display: 'flex', gap: 24, marginBottom: 20, flexWrap: 'wrap' }}>
               <div>
                 <div style={{ fontSize: 12, color: 'var(--color-text-light)', marginBottom: 6 }}>試験種別</div>
-                <div style={{ display: 'flex', gap: 6 }}>
+                <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
                   {EXAM_TYPES.map(t => (
                     <button key={t} onClick={() => setImportExamType(t)}
                       style={{ padding: '4px 12px', border: importExamType === t ? '2px solid' : '1.5px solid', borderRadius: 6, cursor: 'pointer', fontSize: 13,
