@@ -1,5 +1,4 @@
 # EXAM_GUIDE_URL: https://aws.amazon.com/jp/certification/certified-advanced-networking-specialty/
-# DOMAINS: ネットワーク設計,ネットワーク実装,ネットワークの管理と運用,ネットワークセキュリティ、コンプライアンス、ガバナンス
 # LAST_REFRESHED: 2026-07-26
 
 あなたはAWS認定試験の問題作成者です。

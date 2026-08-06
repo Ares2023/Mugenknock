@@ -4,6 +4,7 @@ import { Helmet } from '@/compat/react-helmet-async';
 import { createPortal } from 'react-dom';
 import { useNavigate, useLocation } from '@/compat/react-router-dom';
 import DailyServiceRevealModal from '../components/DailyServiceRevealModal';
+import FeatureUnlockModal from '../components/FeatureUnlockModal';
 import ExamSelectOverlay, { ConfirmBurst } from '../components/ExamSelectOverlay';
 import StartTutorialSpotlight from '../components/StartTutorialSpotlight';
 
@@ -1488,6 +1489,20 @@ export default function Home() {
   const effectiveFocusedUnlocked = !user ? false : answeredCountReady ? focusedUnlocked : focusedUnlockedCached;
   const primaryMode: 'quick' | 'focused' = lastMode === 'focused' && effectiveFocusedUnlocked ? 'focused' : 'quick';
 
+  // 解放到達を検知して一度だけ祝福ポップアップを出す。
+  // ※このeffectは下の focusedUnlockedCache 書き込みより前に宣言し、上書き前の
+  //   「前回までの解放状態」を読む（今まさに30問を超えた瞬間だけ祝う）。
+  const [showUnlockModal, setShowUnlockModal] = useState(false);
+  useEffect(() => {
+    if (!user || !answeredCountReady || !focusedUnlocked) return;
+    const celebratedKey = `focusedUnlockCelebrated_${uid}`;
+    if (localStorage.getItem(celebratedKey) === '1') return;
+    const wasUnlockedBefore = localStorage.getItem(`focusedUnlockedCache_${uid}`) === '1';
+    localStorage.setItem(celebratedKey, '1');
+    // すでに解放済みだった既存ユーザーには出さず、今回到達した人だけに表示する
+    if (!wasUnlockedBefore) setShowUnlockModal(true);
+  }, [answeredCountReady, focusedUnlocked, user, uid]);
+
   useEffect(() => {
     if (answeredCountReady) {
       localStorage.setItem(`focusedUnlockedCache_${uid}`, focusedUnlocked ? '1' : '0');
@@ -1626,6 +1641,7 @@ export default function Home() {
         resumeResults: quickDraft.results,
         resumeAnswered: quickDraft.answered,
         resumeSelectedAnswers: quickDraft.selectedAnswers,
+        resumeSelectionHistory: quickDraft.selectionHistory,
       }
     });
   };
@@ -1647,6 +1663,7 @@ export default function Home() {
         resumeResults: focusedDraft.results,
         resumeAnswered: focusedDraft.answered,
         resumeSelectedAnswers: focusedDraft.selectedAnswers,
+        resumeSelectionHistory: focusedDraft.selectionHistory,
       }
     });
   };
@@ -2074,7 +2091,9 @@ export default function Home() {
                   <IconTrendingUp size={12} />
                 </span>
                 <span style={{ fontSize: 'var(--font-size-xs)', fontWeight: 700, color: 'var(--color-text-sub)', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
-                  {ja ? '予想スコア' : 'Est. Score'}
+                  {/* 集計対象（直近N問）は詳細オーバーレイで切り替えられる。
+                      表示中のスコアが何問を根拠にしているかタイトルで分かるようにする。 */}
+                  {ja ? `予想スコア（直近${nodeWindow}問）` : `Est. Score (last ${nodeWindow})`}
                 </span>
               </div>
               {user && (
@@ -2165,6 +2184,14 @@ export default function Home() {
         />
       )}
 
+      {showUnlockModal && (
+        <FeatureUnlockModal
+          lang={lang}
+          onClose={() => setShowUnlockModal(false)}
+          onStart={() => { setShowUnlockModal(false); startFocusedExercise(); }}
+        />
+      )}
+
       {/* ── 非ログイン時バナー（控えめ・閉じ可能。演習はログイン不要で使える前提の案内） ── */}
       {!user && !guestBannerHidden && (
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 'var(--spacing-sm)', marginTop: 'var(--spacing-md)', background: 'var(--color-bg-white)', border: '1px solid var(--color-border)', borderRadius: 'var(--border-radius-md)', padding: '8px var(--spacing-md)', fontSize: 'var(--font-size-sm)', color: 'var(--color-text-sub)' }}>
@@ -2199,18 +2226,18 @@ export default function Home() {
                       <div style={{ marginTop: 6 }}>
                         {primaryMode === 'quick' ? (
                           <>
-                            {focusedUnlocked && <div style={{ textAlign: 'center', fontSize: 'var(--font-size-2xs)', color: 'var(--color-text-light)', marginBottom: 4 }}>{ja ? '苦手・不正解問題を重点演習' : 'Focuses on weak/incorrect questions'}</div>}
+                            {effectiveFocusedUnlocked && <div style={{ textAlign: 'center', fontSize: 'var(--font-size-2xs)', color: 'var(--color-text-light)', marginBottom: 4 }}>{ja ? '苦手・不正解問題を重点演習' : 'Focuses on weak/incorrect questions'}</div>}
                             <button
-                              disabled={!targetExam || !user || !focusedUnlocked}
+                              disabled={!targetExam || !user || !effectiveFocusedUnlocked}
                               onClick={() => { setShowWebQuickMenu(false); switchMode('focused'); }}
-                              style={{ width: '100%', height: 36, padding: '0 12px', border: `1.5px solid ${(!targetExam || !user || !focusedUnlocked) ? 'var(--color-border)' : '#009E9E'}`, borderRadius: 'var(--border-radius-full)', cursor: (!targetExam || !user || !focusedUnlocked) ? 'default' : 'pointer', background: 'transparent', color: (!targetExam || !user || !focusedUnlocked) ? 'var(--color-text-light)' : '#009E9E', fontWeight: 600, fontSize: 'var(--font-size-sm)', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 5 }}
+                              style={{ width: '100%', height: 36, padding: '0 12px', border: `1.5px solid ${(!targetExam || !user || !effectiveFocusedUnlocked) ? 'var(--color-border)' : '#009E9E'}`, borderRadius: 'var(--border-radius-full)', cursor: (!targetExam || !user || !effectiveFocusedUnlocked) ? 'default' : 'pointer', background: 'transparent', color: (!targetExam || !user || !effectiveFocusedUnlocked) ? 'var(--color-text-light)' : '#009E9E', fontWeight: 600, fontSize: 'var(--font-size-sm)', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 5 }}
                             >
-                              {!focusedUnlocked && <IconLock size={13} />}
+                              {!effectiveFocusedUnlocked && <IconLock size={13} />}
                               {ja ? 'しっかり対策モード' : 'Switch to Focused'}
                             </button>
-                            {!focusedUnlocked && user && (
+                            {!effectiveFocusedUnlocked && user && (
                               <div style={{ textAlign: 'center', fontSize: 'var(--font-size-2xs)', color: 'var(--color-text-light)', marginTop: 3 }}>
-                                {ja ? `現在${answeredCount}問 / あと${FOCUSED_UNLOCK_THRESHOLD - answeredCount}問で解放` : `${answeredCount} answered / ${FOCUSED_UNLOCK_THRESHOLD - answeredCount} more to unlock`}
+                                {!answeredCountReady ? (ja ? '演習量を確認中...' : 'Checking progress...') : ja ? `現在${answeredCount}問 / あと${FOCUSED_UNLOCK_THRESHOLD - answeredCount}問で解放` : `${answeredCount} answered / ${FOCUSED_UNLOCK_THRESHOLD - answeredCount} more to unlock`}
                               </div>
                             )}
                             {!user && <div style={{ textAlign: 'center', fontSize: 'var(--font-size-2xs)', color: 'var(--color-text-light)', marginTop: 3 }}>{ja ? 'ログインが必要です' : 'Login required'}</div>}
@@ -2263,18 +2290,18 @@ export default function Home() {
                     <div style={{ position: 'absolute', bottom: '110%', left: 0, right: 0, zIndex: 200, background: 'var(--color-bg-white)', borderRadius: 'var(--border-radius-md)', boxShadow: 'var(--box-shadow-up)', border: '1px solid var(--color-border)', padding: '8px', marginBottom: 6 }}>
                       {primaryMode === 'quick' ? (
                         <>
-                          {focusedUnlocked && <div style={{ textAlign: 'center', fontSize: 'var(--font-size-2xs)', color: 'var(--color-text-light)', marginBottom: 4 }}>{ja ? '苦手・不正解問題を重点演習' : 'Focuses on weak/incorrect questions'}</div>}
+                          {effectiveFocusedUnlocked && <div style={{ textAlign: 'center', fontSize: 'var(--font-size-2xs)', color: 'var(--color-text-light)', marginBottom: 4 }}>{ja ? '苦手・不正解問題を重点演習' : 'Focuses on weak/incorrect questions'}</div>}
                           <button
-                            disabled={!targetExam || !user || !focusedUnlocked}
+                            disabled={!targetExam || !user || !effectiveFocusedUnlocked}
                             onClick={() => { setShowFocusedMenu(false); switchMode('focused'); }}
-                            style={{ width: '100%', height: 36, padding: '0 12px', border: `1.5px solid ${(!targetExam || !user || !focusedUnlocked) ? 'var(--color-border)' : '#009E9E'}`, borderRadius: 'var(--border-radius-full)', cursor: (!targetExam || !user || !focusedUnlocked) ? 'default' : 'pointer', background: 'transparent', color: (!targetExam || !user || !focusedUnlocked) ? 'var(--color-text-light)' : '#009E9E', fontWeight: 600, fontSize: 'var(--font-size-sm)', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 5 }}
+                            style={{ width: '100%', height: 36, padding: '0 12px', border: `1.5px solid ${(!targetExam || !user || !effectiveFocusedUnlocked) ? 'var(--color-border)' : '#009E9E'}`, borderRadius: 'var(--border-radius-full)', cursor: (!targetExam || !user || !effectiveFocusedUnlocked) ? 'default' : 'pointer', background: 'transparent', color: (!targetExam || !user || !effectiveFocusedUnlocked) ? 'var(--color-text-light)' : '#009E9E', fontWeight: 600, fontSize: 'var(--font-size-sm)', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 5 }}
                           >
-                            {!focusedUnlocked && <IconLock size={13} />}
+                            {!effectiveFocusedUnlocked && <IconLock size={13} />}
                             {ja ? 'しっかり対策モード' : 'Switch to Focused'}
                           </button>
-                          {!focusedUnlocked && user && (
+                          {!effectiveFocusedUnlocked && user && (
                             <div style={{ textAlign: 'center', fontSize: 'var(--font-size-2xs)', color: 'var(--color-text-light)', marginTop: 3 }}>
-                              {ja ? `現在${answeredCount}問 / あと${FOCUSED_UNLOCK_THRESHOLD - answeredCount}問で解放` : `${answeredCount} answered / ${FOCUSED_UNLOCK_THRESHOLD - answeredCount} more to unlock`}
+                              {!answeredCountReady ? (ja ? '演習量を確認中...' : 'Checking progress...') : ja ? `現在${answeredCount}問 / あと${FOCUSED_UNLOCK_THRESHOLD - answeredCount}問で解放` : `${answeredCount} answered / ${FOCUSED_UNLOCK_THRESHOLD - answeredCount} more to unlock`}
                             </div>
                           )}
                           {!user && <div style={{ textAlign: 'center', fontSize: 'var(--font-size-2xs)', color: 'var(--color-text-light)', marginTop: 3 }}>{ja ? 'ログインが必要です' : 'Login required'}</div>}
@@ -2367,18 +2394,18 @@ export default function Home() {
                 <div style={{ marginTop: 8 }}>
                   {primaryMode === 'quick' ? (
                     <>
-                      {focusedUnlocked && <div style={{ textAlign: 'center', fontSize: 'var(--font-size-xs)', color: 'var(--color-text-light)', marginBottom: 4 }}>{ja ? '苦手・不正解問題を重点演習' : 'Focuses on weak/incorrect questions'}</div>}
+                      {effectiveFocusedUnlocked && <div style={{ textAlign: 'center', fontSize: 'var(--font-size-xs)', color: 'var(--color-text-light)', marginBottom: 4 }}>{ja ? '苦手・不正解問題を重点演習' : 'Focuses on weak/incorrect questions'}</div>}
                       <button
-                        disabled={!targetExam || !user || !focusedUnlocked}
+                        disabled={!targetExam || !user || !effectiveFocusedUnlocked}
                         onClick={() => { setShowNewPanel(false); switchMode('focused'); }}
-                        style={{ width: '100%', height: 44, border: `1.5px solid ${(!targetExam || !user || !focusedUnlocked) ? 'var(--color-border)' : '#009E9E'}`, borderRadius: 'var(--border-radius-full)', cursor: (!targetExam || !user || !focusedUnlocked) ? 'default' : 'pointer', background: 'transparent', color: (!targetExam || !user || !focusedUnlocked) ? 'var(--color-text-light)' : '#009E9E', fontWeight: 600, fontSize: 'var(--font-size-base)', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6 }}
+                        style={{ width: '100%', height: 44, border: `1.5px solid ${(!targetExam || !user || !effectiveFocusedUnlocked) ? 'var(--color-border)' : '#009E9E'}`, borderRadius: 'var(--border-radius-full)', cursor: (!targetExam || !user || !effectiveFocusedUnlocked) ? 'default' : 'pointer', background: 'transparent', color: (!targetExam || !user || !effectiveFocusedUnlocked) ? 'var(--color-text-light)' : '#009E9E', fontWeight: 600, fontSize: 'var(--font-size-base)', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6 }}
                       >
-                        {!focusedUnlocked && <IconLock size={15} />}
+                        {!effectiveFocusedUnlocked && <IconLock size={15} />}
                         {ja ? 'しっかり対策モード' : 'Switch to Focused'}
                       </button>
-                      {!focusedUnlocked && user && (
+                      {!effectiveFocusedUnlocked && user && (
                         <div style={{ textAlign: 'center', fontSize: 'var(--font-size-xs)', color: 'var(--color-text-light)', marginTop: 4 }}>
-                          {ja ? `現在${answeredCount}問 / あと${FOCUSED_UNLOCK_THRESHOLD - answeredCount}問で解放` : `${answeredCount} answered / ${FOCUSED_UNLOCK_THRESHOLD - answeredCount} more to unlock`}
+                          {!answeredCountReady ? (ja ? '演習量を確認中...' : 'Checking progress...') : ja ? `現在${answeredCount}問 / あと${FOCUSED_UNLOCK_THRESHOLD - answeredCount}問で解放` : `${answeredCount} answered / ${FOCUSED_UNLOCK_THRESHOLD - answeredCount} more to unlock`}
                         </div>
                       )}
                       {!user && <div style={{ textAlign: 'center', fontSize: 'var(--font-size-xs)', color: 'var(--color-text-light)', marginTop: 4 }}>{ja ? 'ログインが必要です' : 'Login required'}</div>}
@@ -2401,18 +2428,18 @@ export default function Home() {
               <div style={{ position: 'fixed', bottom: 116, left: 0, right: 0, zIndex: 211, background: 'var(--color-bg-white)', borderRadius: '14px 14px 0 0', padding: '14px 12px 12px', boxShadow: 'var(--box-shadow-up)', animation: 'slideUp 0.22s ease' }}>
                 {primaryMode === 'quick' ? (
                   <>
-                    {focusedUnlocked && <div style={{ textAlign: 'center', fontSize: 'var(--font-size-xs)', color: 'var(--color-text-light)', marginBottom: 4 }}>{ja ? '苦手・不正解問題を重点演習' : 'Focuses on weak/incorrect questions'}</div>}
+                    {effectiveFocusedUnlocked && <div style={{ textAlign: 'center', fontSize: 'var(--font-size-xs)', color: 'var(--color-text-light)', marginBottom: 4 }}>{ja ? '苦手・不正解問題を重点演習' : 'Focuses on weak/incorrect questions'}</div>}
                     <button
-                      disabled={!targetExam || !user || !focusedUnlocked}
+                      disabled={!targetExam || !user || !effectiveFocusedUnlocked}
                       onClick={() => { setShowFocusedMenu(false); switchMode('focused'); }}
-                      style={{ width: '100%', height: 44, border: `1.5px solid ${(!targetExam || !user || !focusedUnlocked) ? 'var(--color-border)' : '#009E9E'}`, borderRadius: 'var(--border-radius-full)', cursor: (!targetExam || !user || !focusedUnlocked) ? 'default' : 'pointer', background: 'transparent', color: (!targetExam || !user || !focusedUnlocked) ? 'var(--color-text-light)' : '#009E9E', fontWeight: 600, fontSize: 'var(--font-size-base)', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6 }}
+                      style={{ width: '100%', height: 44, border: `1.5px solid ${(!targetExam || !user || !effectiveFocusedUnlocked) ? 'var(--color-border)' : '#009E9E'}`, borderRadius: 'var(--border-radius-full)', cursor: (!targetExam || !user || !effectiveFocusedUnlocked) ? 'default' : 'pointer', background: 'transparent', color: (!targetExam || !user || !effectiveFocusedUnlocked) ? 'var(--color-text-light)' : '#009E9E', fontWeight: 600, fontSize: 'var(--font-size-base)', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6 }}
                     >
-                      {!focusedUnlocked && <IconLock size={15} />}
+                      {!effectiveFocusedUnlocked && <IconLock size={15} />}
                       {ja ? 'しっかり対策モード' : 'Switch to Focused'}
                     </button>
-                    {!focusedUnlocked && user && (
+                    {!effectiveFocusedUnlocked && user && (
                       <div style={{ textAlign: 'center', fontSize: 'var(--font-size-xs)', color: 'var(--color-text-light)', marginTop: 4 }}>
-                        {ja ? `現在${answeredCount}問 / あと${FOCUSED_UNLOCK_THRESHOLD - answeredCount}問で解放` : `${answeredCount} answered / ${FOCUSED_UNLOCK_THRESHOLD - answeredCount} more to unlock`}
+                        {!answeredCountReady ? (ja ? '演習量を確認中...' : 'Checking progress...') : ja ? `現在${answeredCount}問 / あと${FOCUSED_UNLOCK_THRESHOLD - answeredCount}問で解放` : `${answeredCount} answered / ${FOCUSED_UNLOCK_THRESHOLD - answeredCount} more to unlock`}
                       </div>
                     )}
                     {!user && <div style={{ textAlign: 'center', fontSize: 'var(--font-size-xs)', color: 'var(--color-text-light)', marginTop: 4 }}>{ja ? 'ログインが必要です' : 'Login required'}</div>}

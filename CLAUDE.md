@@ -123,14 +123,20 @@
 - `./scripts/deploy-lambda.sh dev`: 強制的に dev へデプロイ
 - `./scripts/deploy-lambda.sh prod`: 強制的に prod へデプロイ
 
-### Lambda 更新ルール（重要）
-- **Lambda は `awsquizHandler-dev` と `awsquizHandler-prod` の2つが独立**している。Lambda コードを変更したら、原則 **dev と prod の両方をデプロイする**こと（`deploy-lambda.sh` を dev・prod それぞれ実行）。
-- **`git push` では Lambda は一切更新されない。** push は Cloudflare のフロントビルドのみ。Lambda は必ず `deploy-lambda.sh` で手動デプロイする。
+### Lambda 更新ルール（必須・厳守）
+- **Lambda を変更したら `awsquizHandler-dev` と `awsquizHandler-prod` の両方を必ずデプロイする。** これは「原則」ではなく必須。`lambda/` 配下を1行でも変更したコミットは、dev・prod 両方に反映するまで作業完了としない。
+  ```
+  ./scripts/deploy-lambda.sh dev    # 検証
+  ./scripts/deploy-lambda.sh prod   # 本番反映（※本番反映はユーザーの明示指示がある時のみ）
+  ```
+  ※ prod への反映自体は「ブランチ・デプロイルール」に従いユーザーの明示指示が必要。ただし **dev だけ出して prod を出し忘れる／その逆で片側が旧コードのまま放置するのを禁止**する、という意味。prod 反映指示が出たら dev も揃っているか必ず確認する。
+- **`git push` では Lambda は一切更新されない。** push は Cloudflare のフロントビルドのみ。Lambda は必ず `deploy-lambda.sh` で手動デプロイする。**「git にマージ済み＝本番反映済み」ではない**点に注意。
 - 各 Lambda の利用者:
   - **`awsquizHandler-prod`（/prod）**: 本番 mugenknock.com。**加えて現状は検証(develop preview)のフロントも /prod を叩く**（`.env.production` が全ビルドで効くため）。デプロイ済みフロントは両環境ともこれを使用。
   - **`awsquizHandler-dev`（/dev）**: ローカル開発（`.env.local`）と**夜間スクリプト**（`01-generate-questions.sh` 等の問題生成・取込）。
-- したがって **prod だけ更新すると夜間生成・ローカルが旧コード / dev だけ更新すると本番が旧コード**になる。推奨は「dev に出して検証 → prod に反映」の二段で両方更新。
+- したがって **prod だけ更新すると夜間生成・ローカルが旧コード / dev だけ更新すると本番が旧コード**になる。手順は「dev に出して検証 → （指示後）prod に反映」の二段で必ず両方更新する。
 - DynamoDB は dev/prod 共通テーブルのためデータは同じ。dev/prod Lambda の違いは「どちらのコードで処理するか」だけ。
+- **デプロイ漏れの実害例（再発防止）**: 出題ドメイン均等化コード（`domainBalancedOrder`, 2026-06-29 に git 追加）を **prod Lambda へ反映し忘れ**、prod が均等化前の旧コードで約1か月ランダム出題を続けた結果、ユーザーの累積ドメイン分布が大きく偏った（最少1問 vs 最多12問）。git にはあるのに本番未デプロイ、が原因。Lambda ロジック変更は「git 反映」で終わらせず必ず **稼働中の Lambda 実機で挙動を確認**する。
 
 ---
 

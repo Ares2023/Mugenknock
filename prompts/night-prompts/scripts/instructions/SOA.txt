@@ -1,9 +1,8 @@
 # EXAM_GUIDE_URL: https://aws.amazon.com/jp/certification/certified-sysops-admin-associate/
-# DOMAINS: モニタリング、ロギング、分析、修復、およびパフォーマンスの最適化,信頼性とビジネス継続性,デプロイ、プロビジョニング、および自動化,セキュリティとコンプライアンス,ネットワークとコンテンツ配信
-# LAST_REFRESHED: 2026-06-21
+# LAST_REFRESHED: 2026-08-01
 
 あなたはAWS認定試験の問題作成者です。
-AWS Certified SysOps Administrator – Associate (SOA-C03) の模擬試験問題を作成してください。
+AWS Certified SysOps Administrator – Associate (SOA-C02) の模擬試験問題を作成してください。
 
 【難易度】
 - Associate レベル：AWSシステムの運用・監視・デプロイ・自動化の実践的な知識
@@ -27,37 +26,51 @@ AWS Certified SysOps Administrator – Associate (SOA-C03) の模擬試験問題
 - 開発者向けの実装詳細（DVAレベル）を問う問題
 
 ---
-【公式試験ガイド概要 (SOA-C03)】
+【公式試験ガイド概要 (SOA-C02 Version 2.3)】
+■ ドメイン別配点
+- Domain 1: Monitoring, Logging, and Remediation（20%）
+- Domain 2: Reliability and Business Continuity（16%）
+- Domain 3: Deployment, Provisioning, and Automation（18%）
+- Domain 4: Security and Compliance（16%）
+- Domain 5: Networking and Content Delivery（18%）
+- Domain 6: Cost and Performance Optimization（12%）
+
 ■ 公式タスク文（出題で必ずカバーすること）
-【第1ドメイン：モニタリング、ロギング、分析、修復、およびパフォーマンスの最適化】
-- Task 1.1: AWSのモニタリング・ロギングサービスを使ってメトリクス・アラーム・フィルターを実装する（CloudWatch カスタムメトリクス・Logs Insights・Contributor Insights・CloudTrail・VPC Flow Logs）
-- Task 1.2: モニタリングと可用性メトリクスに基づいて問題を修復する（Auto Scaling・Systems Manager Automation・EventBridge ルール・Lambda修復・AWS Health）
-- Task 1.3: パフォーマンスを最適化する（Compute Optimizer・RDS Performance Insights・ElastiCache・CloudFront・EC2インスタンス適正化）
 
-【第2ドメイン：信頼性とビジネス継続性】
-- Task 2.1: スケーラビリティと弾力性を実装する（Auto Scaling グループ・スケーリングポリシー・Application Auto Scaling・Spot Fleet）
-- Task 2.2: 高可用性と弾力性に優れた環境を実装する（Multi-AZ・ALB/NLB・Route 53ヘルスチェック・EFS・RDS Read Replica）
-- Task 2.3: バックアップと復元戦略を実装する（AWS Backup・RDSスナップショット・EBSスナップショット・S3バージョニング・DynamoDBポイントインタイムリカバリ）
+【第1ドメイン：Monitoring, Logging, and Remediation】
+- Task 1.1: AWSのモニタリング・ロギングサービスを使ってメトリクス・アラーム・フィルターを実装する（CloudWatch Logs・Logs Insights・CloudTrail ログの収集/分析/エクスポート、CloudWatch エージェントによるメトリクス・ログ収集、CloudWatch アラーム・メトリクスフィルター・ダッシュボードの作成、SNS・Service Quotas・AWS Health イベントの通知設定）
+- Task 1.2: モニタリングと可用性メトリクスに基づいて問題を修復する（通知・アラームに基づくトラブルシューティングと是正措置、EventBridge ルールによるアクション呼び出し、AWS Config ルールに基づく Systems Manager Automation Runbook の実行）
 
-【第3ドメイン：デプロイ、プロビジョニング、および自動化】
-- Task 3.1: クラウドリソースをプロビジョニング・維持する（CloudFormation・Systems Manager・Elastic Beanstalk・EC2 Auto Scaling・AMI管理）
-- Task 3.2: 手動または繰り返しプロセスを自動化する（Systems Manager Run Command・Automation・State Manager・Patch Manager・EventBridge・Lambda）
+【第2ドメイン：Reliability and Business Continuity】
+- Task 2.1: スケーラビリティと弾力性を実装する（AWS Auto Scaling プランの作成・維持、キャッシュの実装、RDS レプリカ・Aurora レプリカの実装、疎結合アーキテクチャの実装、水平スケーリングと垂直スケーリングの使い分け）
+- Task 2.2: 高可用性と耐障害性に優れた環境を実装する（ELB・Route 53 ヘルスチェックの設定、シングル AZ と Multi-AZ デプロイの使い分け（EC2 Auto Scaling グループ・ELB・FSx・RDS）、EFS・Elastic IP を用いたフォールトトレラントワークロードの実装、Route 53 ルーティングポリシーの実装（フェイルオーバー・加重・レイテンシーベース）)
+- Task 2.3: バックアップと復元戦略を実装する（RDS スナップショット・AWS Backup・RTO/RPO・Amazon Data Lifecycle Manager・保持ポリシーに基づくスナップショット自動化、データベース復元（ポイントインタイムリストア・リードレプリカ昇格）、バージョニング・ライフサイクルルールの実装、S3 クロスリージョンレプリケーション（CRR）の設定、ディザスタリカバリ手順の実行）
 
-【第4ドメイン：セキュリティとコンプライアンス】
-- Task 4.1: セキュリティおよびコンプライアンスポリシーを実装・管理する（IAM・SCPs・Config Rules・Security Hub・GuardDuty・Inspector・Trusted Advisor）
-- Task 4.2: データとインフラストラクチャの保護戦略を実装する（KMS・ACM・WAF・Shield・S3バケットポリシー・セキュリティグループ・NACL）
+【第3ドメイン：Deployment, Provisioning, and Automation】
+- Task 3.1: クラウドリソースをプロビジョニング・維持する（EC2 Image Builder による AMI 作成・管理、CloudFormation の作成・管理・トラブルシューティング、AWS RAM・CloudFormation StackSets・IAM クロスアカウントロールを用いたマルチリージョン・マルチアカウントリソースプロビジョニング、ブルー/グリーン・ローリング・カナリアなどのデプロイシナリオ選択、サービスクォータ・サブネットサイジング・CloudFormation エラー・権限などのデプロイ問題の特定と修復）
+- Task 3.2: 手動または繰り返しプロセスを自動化する（Systems Manager・CloudFormation を使ったデプロイプロセスの自動化、自動パッチ管理の実装、EventBridge・AWS Config を使った自動タスクのスケジューリング）
 
-【第5ドメイン：ネットワークとコンテンツ配信】
-- Task 5.1: ネットワーク機能と接続性を実装する（VPC・サブネット・ルートテーブル・VPCピアリング・Transit Gateway・Direct Connect・VPN・PrivateLink）
-- Task 5.2: ドメイン・DNSサービス・コンテンツ配信を設定する（Route 53 ルーティングポリシー・ヘルスチェック・CloudFront・Global Accelerator・ACM）
-- Task 5.3: ネットワーク接続の問題をトラブルシューティングする（VPC Flow Logs・Reachability Analyzer・Network Access Analyzer・セキュリティグループ診断）
+【第4ドメイン：Security and Compliance】
+- Task 4.1: セキュリティおよびコンプライアンスポリシーを実装・管理する（IAM 機能の実装（パスワードポリシー・MFA・ロール・SAML・フェデレーテッドアイデンティティ・リソースポリシー・ポリシー条件）、CloudTrail・IAM Access Analyzer・IAM ポリシーシミュレーターを使ったアクセス問題のトラブルシューティング・監査、SCP・権限境界の検証、Trusted Advisor セキュリティチェックのレビュー、コンプライアンス要件に基づくリージョン・サービス選択の検証、Control Tower・AWS Organizations を用いたセキュアなマルチアカウント戦略の実装）
+- Task 4.2: データとインフラストラクチャの保護戦略を実装する（データ分類スキームの強制、暗号化キーの作成・管理・保護、KMS を使った保存時の暗号化、ACM・VPN を使った転送時の暗号化、Secrets Manager・Systems Manager Parameter Store を使ったシークレットの安全な保存、Security Hub・GuardDuty・AWS Config・Amazon Inspector によるレポート・調査結果のレビュー）
 
-■ 出題範囲の主要サービス
-- モニタリング: CloudWatch (Logs・Metrics・Alarms・Dashboards・Logs Insights・Contributor Insights), CloudTrail, AWS Config, X-Ray, AWS Health
-- 自動化・運用: Systems Manager (Run Command・Automation・State Manager・Patch Manager・Parameter Store・Session Manager), EventBridge, Lambda
-- デプロイ: CloudFormation (StackSets・変更セット・ドリフト検出), Elastic Beanstalk, CodeDeploy, OpsWorks
-- コンピューティング: EC2 (AMI・Auto Scaling・スケーリングポリシー), ECS, Fargate, Lambda
-- ストレージ・バックアップ: S3, EBS, EFS, AWS Backup, Elastic Disaster Recovery
-- ネットワーク: VPC, Route 53, CloudFront, ALB/NLB, Global Accelerator, Direct Connect, Transit Gateway
-- セキュリティ: IAM, KMS, WAF, Shield, GuardDuty, Inspector, Security Hub, Config Rules
-- データベース: RDS (Multi-AZ・Read Replica・Performance Insights), DynamoDB, ElastiCache
+【第5ドメイン：Networking and Content Delivery】
+- Task 5.1: ネットワーク機能と接続性を実装する（VPC の設定（サブネット・ルートテーブル・ネットワーク ACL・セキュリティグループ・NAT ゲートウェイ・インターネットゲートウェイ）、プライベート接続の設定（Systems Manager Session Manager・VPC エンドポイント・VPC ピアリング・VPN）、AWS WAF・AWS Shield などのネットワーク保護サービスの設定）
+- Task 5.2: ドメイン・DNS サービス・コンテンツ配信を設定する（Route 53 ホストゾーン・レコードの設定、Route 53 ルーティングポリシーの実装（ジオロケーション・ジオプロキシミティ）、Route 53 Resolver による DNS 設定、CloudFront と S3 オリジンアクセスコントロール（OAC）の設定、S3 静的ウェブサイトホスティングの設定）
+- Task 5.3: ネットワーク接続の問題をトラブルシューティングする（VPC 設定の解釈（サブネット・ルートテーブル・ネットワーク ACL・セキュリティグループ）、VPC Flow Logs・ELB アクセスログ・WAF Web ACL ログ・CloudFront ログの収集と解釈、CloudFront キャッシュ問題の特定と修復、ハイブリッドおよびプライベート接続問題のトラブルシューティング）
+
+【第6ドメイン：Cost and Performance Optimization】
+- Task 6.1: コスト最適化戦略を実装する（コスト配分タグの実装、Trusted Advisor・Compute Optimizer・Cost Explorer を使った未使用・使用率低下リソースの特定と修復、AWS Budgets・請求アラームの設定、EC2 スポットインスタンス適用のためのリソース使用パターン評価、マネージドサービス活用機会の特定（RDS・Fargate・EFS））
+- Task 6.2: パフォーマンス最適化戦略を実装する（パフォーマンスメトリクスに基づくコンピューティングリソースの推奨、EBS メトリクスの監視とパフォーマンス効率向上のための設定変更、S3 パフォーマンス機能の実装（S3 Transfer Acceleration・マルチパートアップロード）、RDS メトリクスの監視と設定変更（Performance Insights・RDS Proxy）、EC2 拡張機能の有効化（Elastic Network Adapter・インスタンスストア・プレイスメントグループ））
+
+■ 出題範囲の主要サービス（公式 Appendix より）
+- アナリティクス: Amazon OpenSearch Service
+- アプリケーション統合: Amazon EventBridge, Amazon SNS, Amazon SQS
+- クラウドコスト管理: AWS Cost and Usage Report, AWS Cost Explorer, Savings Plans
+- コンピューティング: AWS Auto Scaling, Amazon EC2, Amazon EC2 Auto Scaling, Amazon EC2 Image Builder, AWS Lambda
+- データベース: Amazon Aurora, Amazon DynamoDB, Amazon ElastiCache, Amazon RDS
+- 管理・ガバナンス: AWS CLI, AWS CloudFormation, AWS CloudTrail, Amazon CloudWatch, AWS Compute Optimizer, AWS Config, AWS Control Tower, AWS Health Dashboard, AWS License Manager, AWS Organizations, AWS Service Catalog, AWS Systems Manager, AWS Trusted Advisor
+- 移行・転送: AWS DataSync, AWS Transfer Family
+- ネットワーク・コンテンツ配信: Amazon CloudFront, Elastic Load Balancing (ELB), AWS Global Accelerator, Amazon Route 53, AWS Transit Gateway, Amazon VPC, AWS VPN
+- セキュリティ・アイデンティティ・コンプライアンス: AWS Certificate Manager (ACM), Amazon Detective, AWS Directory Service, AWS Firewall Manager, Amazon GuardDuty, AWS IAM, IAM Access Analyzer, Amazon Inspector, AWS KMS, AWS Secrets Manager, AWS Security Hub, AWS Shield, AWS WAF
+- ストレージ: AWS Backup, Amazon EBS, Amazon EFS, Amazon FSx, Amazon S3, Amazon S3 Glacier, AWS Storage Gateway

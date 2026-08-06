@@ -510,7 +510,17 @@ export default function Admin() {
     window.addEventListener('resize', h);
     return () => window.removeEventListener('resize', h);
   }, []);
-  const [tab, setTab] = useState<Tab>('questions');
+  // 直前に開いていたタブ/画面を復元する（不正・廃止済みのキーは無視して既定へ）
+  const [tab, setTab] = useState<Tab>(() => {
+    try {
+      const saved = localStorage.getItem('adminActiveTab');
+      if (saved && Object.prototype.hasOwnProperty.call(TAB_LABELS, saved)) return saved as Tab;
+    } catch {}
+    return 'questions';
+  });
+  useEffect(() => {
+    try { localStorage.setItem('adminActiveTab', tab); } catch {}
+  }, [tab]);
   const [adminError, setAdminError] = useState<string | null>(null);
   const { customColors, customColorsEnabled, applyColors, setCustomColorsEnabled } = useTheme();
   const [themeColors, setThemeColors] = useState<CustomColors>(() => ({ ...DEFAULT_COLORS, ...customColors }));
@@ -2266,7 +2276,7 @@ export default function Admin() {
             <div style={{ display: 'flex', gap: 24, marginBottom: 20, flexWrap: 'wrap' }}>
               <div>
                 <div style={{ fontSize: 12, color: 'var(--color-text-light)', marginBottom: 6 }}>試験種別</div>
-                <div style={{ display: 'flex', gap: 6 }}>
+                <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
                   {EXAM_TYPES.map(t => (
                     <button key={t} onClick={() => setImportExamType(t)}
                       style={{ padding: '4px 12px', border: importExamType === t ? '2px solid' : '1.5px solid', borderRadius: 6, cursor: 'pointer', fontSize: 13,
