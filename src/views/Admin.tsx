@@ -1723,7 +1723,7 @@ export default function Admin() {
               }
               return (
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 6, marginBottom: 10 }}>
-                  <div style={{ display: 'flex', gap: 6, alignItems: 'center' }}>
+                  <div style={{ display: 'flex', gap: 6, alignItems: 'center', flexWrap: 'wrap' }}>
                     {examBtn('ALL')}
                   </div>
                   {levels.map(lv => byLevel[lv]?.length ? (
@@ -2291,65 +2291,6 @@ export default function Admin() {
               </div>
             </div>
 
-            {/* JSON入力 */}
-            <div style={{ marginBottom: 12 }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 6 }}>
-                <div style={{ fontSize: 12, color: 'var(--color-text-light)' }}>JSONを貼り付けまたはファイルをアップロード</div>
-                <div style={{ display: 'flex', gap: 8 }}>
-                  {importJson && (
-                    <button onClick={() => { setImportJson(''); setImportParsed(null); setImportResult(null); setImportError(''); }}
-                      style={{ padding: '5px 12px', background: 'transparent', border: '1px solid #d1d5db', borderRadius: 9999, cursor: 'pointer', fontSize: 12, fontWeight: 700, color: 'var(--color-text-sub)' }}>
-                      クリア
-                    </button>
-                  )}
-                  <label style={{ padding: '5px 12px', background: 'var(--color-bg-main)', border: '1px solid #d1d5db', borderRadius: 9999, cursor: 'pointer', fontSize: 12, fontWeight: 700 }}>
-                    ファイルを選択
-                    <input type="file" accept=".json" onChange={handleFileUpload} style={{ display: 'none' }} />
-                  </label>
-                </div>
-              </div>
-              <textarea value={importJson} onChange={e => { setImportJson(e.target.value); setImportParsed(null); setImportResult(null); setImportError(''); }}
-                placeholder={EXAMPLE}
-                rows={12}
-                style={{ width: '100%', padding: '10px', border: '1px solid #d1d5db', borderRadius: 6,
-                  fontSize: 13, fontFamily: 'monospace', resize: 'vertical', boxSizing: 'border-box',
-                  background: 'var(--color-bg-main)' }} />
-            </div>
-
-            <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 24 }}>
-              <button onClick={handleParse} disabled={!importJson.trim()}
-                style={{ padding: '8px 20px', background: importJson.trim() ? 'var(--color-text-sub)' : 'var(--color-border)',
-                  color: importJson.trim() ? 'white' : 'var(--color-text-light)', border: 'none', borderRadius: 9999, cursor: importJson.trim() ? 'pointer' : 'default', fontWeight: 700, fontSize: 14 }}>
-                構文チェック
-              </button>
-              {importParsed && (
-                <button onClick={handleImport} disabled={importing}
-                  style={{ padding: '8px 24px', background: importing ? 'var(--color-border)' : 'transparent',
-                    color: importing ? 'var(--color-text-light)' : 'var(--color-primary)', border: `1.5px solid ${importing ? 'var(--color-border)' : 'var(--color-primary)'}`, borderRadius: 9999, cursor: importing ? 'default' : 'pointer', fontWeight: 700, fontSize: 14 }}>
-                  {importing ? 'インポート中...' : `${importParsed.length}件をインポート`}
-                </button>
-              )}
-            </div>
-
-            {importParsed && !importResult && (
-              <div style={{ marginBottom: 16, padding: '10px 14px', background: 'var(--color-primary-light)', border: '1px solid #aab7b8', borderRadius: 6, fontSize: 13, color: 'var(--color-primary)' }}>
-                ✓ {importParsed.length}件の問題を認識しました。「{importExamType}」としてインポートします。
-              </div>
-            )}
-            {importError && (
-              <div style={{ marginBottom: 16, padding: '10px 14px', background: 'var(--color-danger-light)', border: '1px solid #f5a09b', borderRadius: 6, fontSize: 13, color: 'var(--color-danger)' }}>
-                エラー: {importError}
-              </div>
-            )}
-            {importResult && (
-              <div style={{ marginBottom: 16, padding: '14px 16px', background: '#eafaf1', border: '1px solid #6eb57d', borderRadius: 6 }}>
-                <div style={{ fontWeight: 'bold', color: '#27ae60', marginBottom: 6 }}>✓ {importResult.count}件をインポートしました</div>
-                <div style={{ fontSize: 12, color: '#555', fontFamily: 'monospace' }}>{importResult.ids.join(', ')}</div>
-              </div>
-            )}
-
-            <hr style={{ border: 'none', borderTop: '1px solid #e0e0e0', marginBottom: 20 }} />
-
             {/* AIプロンプト生成 */}
             {(() => {
               const examFull = `${EXAM_CONFIGS[importExamType]?.fullName} (${EXAM_CONFIGS[importExamType]?.examCode})`;
@@ -2437,11 +2378,71 @@ ${EXAM_SUPPLEMENTARY_RULES[importExamType] ? `${EXAM_SUPPLEMENTARY_RULES[importE
                     </button>
                   </div>
                   <div style={{ fontSize: 11, color: 'var(--color-text-light)', marginTop: 6 }}>
-                    このプロンプトをChatGPT / Claude / Gemini に貼り付け → 出力JSONをそのまま上のテキストエリアへ
+                    このプロンプトをChatGPT / Claude / Gemini に貼り付け → 出力JSONをそのまま下の「問題インポート」欄へ
                   </div>
                 </div>
               );
             })()}
+
+            <hr style={{ border: 'none', borderTop: '1px solid #e0e0e0', margin: '24px 0 20px' }} />
+
+            {/* 問題インポート（JSON） */}
+            <div style={{ fontSize: 12, color: 'var(--color-text-light)', marginBottom: 6, fontWeight: 700 }}>問題インポート</div>
+            <div style={{ marginBottom: 12 }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 6, gap: 8, flexWrap: 'wrap' }}>
+                <div style={{ fontSize: 12, color: 'var(--color-text-light)' }}>JSONを貼り付けまたはファイルをアップロード</div>
+                <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+                  {importJson && (
+                    <button onClick={() => { setImportJson(''); setImportParsed(null); setImportResult(null); setImportError(''); }}
+                      style={{ padding: '5px 12px', background: 'transparent', border: '1px solid #d1d5db', borderRadius: 9999, cursor: 'pointer', fontSize: 12, fontWeight: 700, color: 'var(--color-text-sub)' }}>
+                      クリア
+                    </button>
+                  )}
+                  <label style={{ padding: '5px 12px', background: 'var(--color-bg-main)', border: '1px solid #d1d5db', borderRadius: 9999, cursor: 'pointer', fontSize: 12, fontWeight: 700 }}>
+                    ファイルを選択
+                    <input type="file" accept=".json" onChange={handleFileUpload} style={{ display: 'none' }} />
+                  </label>
+                </div>
+              </div>
+              <textarea value={importJson} onChange={e => { setImportJson(e.target.value); setImportParsed(null); setImportResult(null); setImportError(''); }}
+                placeholder={EXAMPLE}
+                rows={12}
+                style={{ width: '100%', padding: '10px', border: '1px solid #d1d5db', borderRadius: 6,
+                  fontSize: 13, fontFamily: 'monospace', resize: 'vertical', boxSizing: 'border-box',
+                  background: 'var(--color-bg-main)' }} />
+            </div>
+
+            <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 24, flexWrap: 'wrap' }}>
+              <button onClick={handleParse} disabled={!importJson.trim()}
+                style={{ padding: '8px 20px', background: importJson.trim() ? 'var(--color-text-sub)' : 'var(--color-border)',
+                  color: importJson.trim() ? 'white' : 'var(--color-text-light)', border: 'none', borderRadius: 9999, cursor: importJson.trim() ? 'pointer' : 'default', fontWeight: 700, fontSize: 14 }}>
+                構文チェック
+              </button>
+              {importParsed && (
+                <button onClick={handleImport} disabled={importing}
+                  style={{ padding: '8px 24px', background: importing ? 'var(--color-border)' : 'transparent',
+                    color: importing ? 'var(--color-text-light)' : 'var(--color-primary)', border: `1.5px solid ${importing ? 'var(--color-border)' : 'var(--color-primary)'}`, borderRadius: 9999, cursor: importing ? 'default' : 'pointer', fontWeight: 700, fontSize: 14 }}>
+                  {importing ? 'インポート中...' : `${importParsed.length}件をインポート`}
+                </button>
+              )}
+            </div>
+
+            {importParsed && !importResult && (
+              <div style={{ marginBottom: 16, padding: '10px 14px', background: 'var(--color-primary-light)', border: '1px solid #aab7b8', borderRadius: 6, fontSize: 13, color: 'var(--color-primary)' }}>
+                ✓ {importParsed.length}件の問題を認識しました。「{importExamType}」としてインポートします。
+              </div>
+            )}
+            {importError && (
+              <div style={{ marginBottom: 16, padding: '10px 14px', background: 'var(--color-danger-light)', border: '1px solid #f5a09b', borderRadius: 6, fontSize: 13, color: 'var(--color-danger)' }}>
+                エラー: {importError}
+              </div>
+            )}
+            {importResult && (
+              <div style={{ marginBottom: 16, padding: '14px 16px', background: '#eafaf1', border: '1px solid #6eb57d', borderRadius: 6 }}>
+                <div style={{ fontWeight: 'bold', color: '#27ae60', marginBottom: 6 }}>✓ {importResult.count}件をインポートしました</div>
+                <div style={{ fontSize: 12, color: '#555', fontFamily: 'monospace' }}>{importResult.ids.join(', ')}</div>
+              </div>
+            )}
           </div>
         );
       })()}
@@ -2517,7 +2518,7 @@ ${tipPromptExamType !== 'ALL' ? `・examType には "${tipPromptExamType}" を�
                 <div style={{ display: 'flex', gap: 12, marginBottom: 12, flexWrap: 'wrap', alignItems: 'flex-end' }}>
                   <div>
                     <div style={{ fontSize: 12, color: 'var(--color-text-sub)', fontWeight: 700, marginBottom: 6 }}>対象試験</div>
-                    <div style={{ display: 'flex', gap: 6, alignItems: 'center' }}>
+                    <div style={{ display: 'flex', gap: 6, alignItems: 'center', flexWrap: 'wrap' }}>
                       {['ALL', 'CLF', 'SAA', 'SAP', 'DOP', 'AIF', 'MLA', 'AIP'].map(t => (
                         <React.Fragment key={t}>
                           <button type="button" onClick={() => setTipPromptExamType(t)}
@@ -2586,7 +2587,7 @@ ${tipPromptExamType !== 'ALL' ? `・examType には "${tipPromptExamType}" を�
                 <div style={{ fontSize: 12, color: 'var(--color-text-sub)', fontWeight: 700, marginBottom: 6 }}>
                   デフォルト試験種別 <span style={{ fontWeight: 400 }}>（JSON内に examType がない場合に使用）</span>
                 </div>
-                <div style={{ display: 'flex', gap: 6, alignItems: 'center' }}>
+                <div style={{ display: 'flex', gap: 6, alignItems: 'center', flexWrap: 'wrap' }}>
                   {['ALL', 'CLF', 'SAA', 'SAP'].map(t => (
                     <React.Fragment key={t}>
                       <button type="button" onClick={() => setTipImportExamType(t)}
@@ -2700,7 +2701,7 @@ ${tipPromptExamType !== 'ALL' ? `・examType には "${tipPromptExamType}" を�
           {showTipForm && (
             <div style={{ border: '1px solid #eaeded', borderRadius: 6, padding: 20, marginBottom: 20, background: 'var(--color-bg-main)', boxShadow: 'var(--box-shadow-sm)' }}>
               <h4 style={{ margin: '0 0 14px', fontSize: 15, fontWeight: 700, color: 'var(--color-text-main)' }}>{editingTip ? 'コラムを編集' : '新規コラム'}</h4>
-              <div style={{ display: 'flex', gap: 6, marginBottom: 10, alignItems: 'center' }}>
+              <div style={{ display: 'flex', gap: 6, marginBottom: 10, alignItems: 'center', flexWrap: 'wrap' }}>
                 {['ALL', 'CLF', 'SAA', 'SAP'].map(t => (
                   <React.Fragment key={t}>
                     <button type="button" onClick={() => setTipForm(f => ({ ...f, examType: t }))}
@@ -2809,7 +2810,7 @@ ${tipPromptExamType !== 'ALL' ? `・examType には "${tipPromptExamType}" を�
               <div style={{ display: 'flex', gap: 12, marginBottom: 12, flexWrap: 'wrap', alignItems: 'flex-end' }}>
                 <div>
                   <div style={{ fontSize: 12, color: 'var(--color-text-sub)', fontWeight: 700, marginBottom: 6 }}>対象試験</div>
-                  <div style={{ display: 'flex', gap: 6, alignItems: 'center' }}>
+                  <div style={{ display: 'flex', gap: 6, alignItems: 'center', flexWrap: 'wrap' }}>
                     {['ALL', 'CLF', 'SAA', 'SAP', 'DOP', 'AIF', 'MLA', 'AIP'].map(t => (
                       <React.Fragment key={t}>
                         <button type="button" onClick={() => setCiExamType(t)}
@@ -3474,7 +3475,7 @@ ${tipPromptExamType !== 'ALL' ? `・examType には "${tipPromptExamType}" を�
                 {editingDS ? 'サービス編集' : '新規サービス'}
               </h4>
 
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, marginBottom: 10 }}>
+              <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr', gap: 10, marginBottom: 10 }}>
                 <div>
                   <div style={{ fontSize: 11, fontWeight: 700, color: 'var(--color-text-sub)', marginBottom: 4 }}>アイコン（絵文字）</div>
                   <input value={dsForm.icon} onChange={e => setDsForm(f => ({ ...f, icon: e.target.value }))}
@@ -3487,7 +3488,7 @@ ${tipPromptExamType !== 'ALL' ? `・examType には "${tipPromptExamType}" を�
                 </div>
               </div>
 
-              <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr', gap: 10, marginBottom: 10 }}>
+              <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '2fr 1fr', gap: 10, marginBottom: 10 }}>
                 <div>
                   <div style={{ fontSize: 11, fontWeight: 700, color: 'var(--color-text-sub)', marginBottom: 4 }}>サービス名 *</div>
                   <input value={dsForm.name} onChange={e => setDsForm(f => ({ ...f, name: e.target.value }))}
