@@ -510,7 +510,17 @@ export default function Admin() {
     window.addEventListener('resize', h);
     return () => window.removeEventListener('resize', h);
   }, []);
-  const [tab, setTab] = useState<Tab>('questions');
+  // 直前に開いていたタブ/画面を復元する（不正・廃止済みのキーは無視して既定へ）
+  const [tab, setTab] = useState<Tab>(() => {
+    try {
+      const saved = localStorage.getItem('adminActiveTab');
+      if (saved && Object.prototype.hasOwnProperty.call(TAB_LABELS, saved)) return saved as Tab;
+    } catch {}
+    return 'questions';
+  });
+  useEffect(() => {
+    try { localStorage.setItem('adminActiveTab', tab); } catch {}
+  }, [tab]);
   const [adminError, setAdminError] = useState<string | null>(null);
   const { customColors, customColorsEnabled, applyColors, setCustomColorsEnabled } = useTheme();
   const [themeColors, setThemeColors] = useState<CustomColors>(() => ({ ...DEFAULT_COLORS, ...customColors }));
