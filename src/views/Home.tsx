@@ -1132,24 +1132,28 @@ const FOCUSED_UNLOCK_THRESHOLD = 30;
 function loadQuickPrefs(uid: string) {
   try { return JSON.parse(localStorage.getItem(`quickExercisePrefs_${uid}`) ?? '{}'); } catch { return {}; }
 }
-// サクッと演習の「重点フィルタ」（排他・単一選択）: なし / 未回答 / 不正解 / 未正解(=未回答+不正解) / ブックマーク
-type QuickFilter = 'none' | 'unanswered' | 'incorrect' | 'notcorrect' | 'bookmark';
+// サクッと演習の「重点フィルタ」（排他・単一選択）: なし / 未回答 / 不正解 / 未正解(=未回答+不正解)
+// ※ブックマーク優先はこの排他3択とは別の独立トグル（bookmarkOnly）として併用可能。
+type QuickFilter = 'none' | 'unanswered' | 'incorrect' | 'notcorrect';
 function resolveQuickFilter(p: Record<string, any>): QuickFilter {
   const f = p?.quickFilter;
-  if (f === 'none' || f === 'unanswered' || f === 'incorrect' || f === 'notcorrect' || f === 'bookmark') return f;
-  // 後方互換（旧: 独立トグル unansweredOnly/incorrectOnly/bookmarkOnly）
-  if (p?.bookmarkOnly) return 'bookmark';
+  if (f === 'none' || f === 'unanswered' || f === 'incorrect' || f === 'notcorrect') return f;
+  // 後方互換（旧: 独立トグル unansweredOnly/incorrectOnly、および一時期の quickFilter='bookmark'）
   if (p?.unansweredOnly && p?.incorrectOnly) return 'notcorrect';
   if (p?.incorrectOnly) return 'incorrect';
   if (p?.unansweredOnly) return 'unanswered';
   return 'none';
 }
-// 排他フィルタ → バックエンド送信フラグ（未正解=未回答スコア+不正解スコアの和で和集合を優先）
-function quickFilterFlags(f: QuickFilter): { unansweredOnly: boolean; incorrectOnly: boolean; bookmarkOnly: boolean } {
+// ブックマーク優先は排他3択とは独立したトグル
+function quickBookmark(p: Record<string, any>): boolean {
+  return p?.bookmarkOnly === true || p?.quickFilter === 'bookmark';
+}
+// 排他フィルタ＋ブックマーク → バックエンド送信フラグ（未正解=未回答+不正解の和集合を優先）
+function quickFilterFlags(f: QuickFilter, bookmark: boolean): { unansweredOnly: boolean; incorrectOnly: boolean; bookmarkOnly: boolean } {
   return {
     unansweredOnly: f === 'unanswered' || f === 'notcorrect',
     incorrectOnly:  f === 'incorrect'  || f === 'notcorrect',
-    bookmarkOnly:   f === 'bookmark',
+    bookmarkOnly:   bookmark,
   };
 }
 function loadFocusedPrefs(uid: string) {
@@ -1724,7 +1728,7 @@ export default function Home() {
     setQuickLoadPct(10);
     const qPrefs = loadQuickPrefs(uid);
     const quickFilter = resolveQuickFilter(qPrefs);
-    const qFlags = quickFilterFlags(quickFilter);
+    const qFlags = quickFilterFlags(quickFilter, quickBookmark(qPrefs));
 
     // ── プリフェッチキャッシュを使用 ──
     {
@@ -2631,7 +2635,6 @@ export default function Home() {
                       ['unanswered', ja ? '未回答を優先' : 'Unanswered', ja ? 'まだ解いていない問題' : 'Not yet answered'],
                       ['incorrect',  ja ? '不正解を優先' : 'Incorrect', ja ? '過去に間違えた問題' : 'Previously incorrect'],
                       ['notcorrect', ja ? '未正解を優先' : 'Not Correct', ja ? '未回答＋不正解（まだ正解していない問題）' : 'Unanswered + incorrect'],
-                      ['bookmark',   ja ? 'ブックマークを優先' : 'Bookmarked', ja ? 'ブックマークした問題' : 'Bookmarked questions'],
                     ] as [QuickFilter, string, string][]).map(([val, label, desc]) => {
                       const selected = cur === val;
                       return (
@@ -2640,7 +2643,7 @@ export default function Home() {
                             type="radio"
                             name="quickFilter"
                             checked={selected}
-                            onChange={() => setDraftPrefs(p => ({ ...p, quickFilter: val, unansweredOnly: undefined, incorrectOnly: undefined, bookmarkOnly: undefined }))}
+                            onChange={() => setDraftPrefs(p => ({ ...p, quickFilter: val, unansweredOnly: undefined, incorrectOnly: undefined }))}
                             style={{ width: 16, height: 16, flexShrink: 0, marginTop: desc ? 2 : 0, accentColor: 'var(--color-primary)' }}
                           />
                           <span>
@@ -2651,6 +2654,19 @@ export default function Home() {
                       );
                     });
                   })()}
+                  {/* ブックマーク優先は排他3択とは別の独立トグル（併用可） */}
+                  <label style={{ display: 'flex', alignItems: 'flex-start', gap: 10, padding: '8px 0', marginTop: 4, borderTop: '1px solid var(--color-border)', cursor: 'pointer' }}>
+                    <input
+                      type="checkbox"
+                      checked={quickBookmark(draftPrefs)}
+                      onChange={() => setDraftPrefs(p => ({ ...p, bookmarkOnly: !quickBookmark(p), quickFilter: p.quickFilter === 'bookmark' ? 'none' : p.quickFilter }))}
+                      style={{ width: 16, height: 16, flexShrink: 0, marginTop: 2, accentColor: 'var(--color-primary)' }}
+                    />
+                    <span>
+                      <span style={{ display: 'block', fontSize: 'var(--font-size-sm)', fontWeight: quickBookmark(draftPrefs) ? 700 : 500, color: 'var(--color-text-main)' }}>{ja ? 'ブックマークを優先' : 'Prioritize Bookmarked'}</span>
+                      <span style={{ display: 'block', fontSize: 'var(--font-size-xs)', color: 'var(--color-text-light)' }}>{ja ? '上の選択と併用できます' : 'Can combine with the choice above'}</span>
+                    </span>
+                  </label>
                 </div>
                 {targetExam && (EXAM_DOMAINS[targetExam] ?? []).length > 0 && (
                   <div style={{ padding: '14px 0' }}>
@@ -2765,7 +2781,7 @@ export default function Home() {
                           if (r) setQuickBurst({ x: r.left + r.width / 2, y: r.top + r.height / 2 });
                         }
                         if (targetExam) {
-                          const _qf = quickFilterFlags(resolveQuickFilter(draftPrefs));
+                          const _qf = quickFilterFlags(resolveQuickFilter(draftPrefs), quickBookmark(draftPrefs));
                           const hasFilters = !!(_qf.unansweredOnly || _qf.incorrectOnly || _qf.bookmarkOnly || (draftPrefs.domains?.length ?? 0) > 0);
                           if (hasFilters) { prefetchTypeC(targetExam, uid, draftPrefs); } else { prefetchTypeA(targetExam, uid); }
                         }
