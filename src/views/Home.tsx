@@ -1132,6 +1132,26 @@ const FOCUSED_UNLOCK_THRESHOLD = 30;
 function loadQuickPrefs(uid: string) {
   try { return JSON.parse(localStorage.getItem(`quickExercisePrefs_${uid}`) ?? '{}'); } catch { return {}; }
 }
+// サクッと演習の「重点フィルタ」（排他・単一選択）: なし / 未回答 / 不正解 / 未正解(=未回答+不正解) / ブックマーク
+type QuickFilter = 'none' | 'unanswered' | 'incorrect' | 'notcorrect' | 'bookmark';
+function resolveQuickFilter(p: Record<string, any>): QuickFilter {
+  const f = p?.quickFilter;
+  if (f === 'none' || f === 'unanswered' || f === 'incorrect' || f === 'notcorrect' || f === 'bookmark') return f;
+  // 後方互換（旧: 独立トグル unansweredOnly/incorrectOnly/bookmarkOnly）
+  if (p?.bookmarkOnly) return 'bookmark';
+  if (p?.unansweredOnly && p?.incorrectOnly) return 'notcorrect';
+  if (p?.incorrectOnly) return 'incorrect';
+  if (p?.unansweredOnly) return 'unanswered';
+  return 'none';
+}
+// 排他フィルタ → バックエンド送信フラグ（未正解=未回答スコア+不正解スコアの和で和集合を優先）
+function quickFilterFlags(f: QuickFilter): { unansweredOnly: boolean; incorrectOnly: boolean; bookmarkOnly: boolean } {
+  return {
+    unansweredOnly: f === 'unanswered' || f === 'notcorrect',
+    incorrectOnly:  f === 'incorrect'  || f === 'notcorrect',
+    bookmarkOnly:   f === 'bookmark',
+  };
+}
 function loadFocusedPrefs(uid: string) {
   try { return JSON.parse(localStorage.getItem(`focusedExercisePrefs_${uid}`) ?? '{}'); } catch { return {}; }
 }
@@ -1703,10 +1723,12 @@ export default function Home() {
     setQuickLoading(true);
     setQuickLoadPct(10);
     const qPrefs = loadQuickPrefs(uid);
+    const quickFilter = resolveQuickFilter(qPrefs);
+    const qFlags = quickFilterFlags(quickFilter);
 
     // ── プリフェッチキャッシュを使用 ──
     {
-      const hasFilters = !!(qPrefs.unansweredOnly || qPrefs.incorrectOnly || qPrefs.bookmarkOnly || (qPrefs.domains?.length ?? 0) > 0);
+      const hasFilters = !!(qFlags.unansweredOnly || qFlags.incorrectOnly || qFlags.bookmarkOnly || (qPrefs.domains?.length ?? 0) > 0);
       const cached = hasFilters ? getPrefetchC(targetExam, userId, qPrefs) : getPrefetchA(targetExam);
       if (cached && cached.questions.length > 0) {
         try {
@@ -1729,7 +1751,7 @@ export default function Home() {
 
     try {
       const userId = user?.userId ?? 'guest';
-      const hasStatusFilter = !!(user && (qPrefs.unansweredOnly || qPrefs.incorrectOnly || qPrefs.bookmarkOnly));
+      const hasStatusFilter = !!(user && (qFlags.unansweredOnly || qFlags.incorrectOnly || qFlags.bookmarkOnly));
       const selIdx = domainsToIndices(targetExam, qPrefs.domains ?? []);
       const allDomains = EXAM_DOMAINS[targetExam] ?? [];
       const allSelected = selIdx.length === 0 || selIdx.length >= allDomains.length;
@@ -1741,9 +1763,9 @@ export default function Home() {
       // 回答数の少ないドメインを優先する deficit round-robin が効き、出題が特定ドメインに偏らない。
       const idsParams = new URLSearchParams({ examType: targetExam, shuffle: 'true', idsOnly: 'true' });
       if (!allSelected) idsParams.set('domain', selIdx.join(','));
-      if (user && qPrefs.bookmarkOnly)   idsParams.set('bookmarkOnly',   'true');
-      if (user && qPrefs.unansweredOnly) idsParams.set('unansweredOnly', 'true');
-      if (user && qPrefs.incorrectOnly)  idsParams.set('incorrectOnly',  'true');
+      if (user && qFlags.bookmarkOnly)   idsParams.set('bookmarkOnly',   'true');
+      if (user && qFlags.unansweredOnly) idsParams.set('unansweredOnly', 'true');
+      if (user && qFlags.incorrectOnly)  idsParams.set('incorrectOnly',  'true');
       if (user) idsParams.set('userId', userId); // フィルタ無しでもドメイン均等化のため常に渡す
       const idsData = await fetch(`${API_ENDPOINT}/questions?${idsParams}`).then(r => r.json());
       if (stopAnim) { stopAnim(); setQuickLoadPct(plateau); }
@@ -2596,27 +2618,39 @@ export default function Home() {
                   </div>
                 </div>
                 <div style={{ padding: '14px 0', borderBottom: targetExam && (EXAM_DOMAINS[targetExam] ?? []).length > 0 ? '1px solid var(--color-border)' : 'none' }}>
-                  <div style={{ fontWeight: 500, fontSize: 'var(--font-size-base)', color: 'var(--color-text-main)', marginBottom: 8 }}>
+                  <div style={{ fontWeight: 500, fontSize: 'var(--font-size-base)', color: 'var(--color-text-main)', marginBottom: 2 }}>
                     {ja ? '重点フィルタ' : 'Focus Filter'}
                   </div>
-                  {([
-                    ['unansweredOnly', ja ? '未回答を優先' : 'Unanswered First'],
-                    ['incorrectOnly',  ja ? '不正解を優先'  : 'Incorrect First'],
-                    ['bookmarkOnly',   ja ? 'ブックマークを優先' : 'Bookmarked First'],
-                  ] as [string, string][]).map(([key, label]) => {
-                    const on = !!(draftPrefs[key]);
-                    return (
-                      <label key={key} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '8px 0', cursor: 'pointer' }}>
-                        <input
-                          type="checkbox"
-                          checked={on}
-                          onChange={() => setDraftPrefs(p => ({ ...p, [key]: !on }))}
-                          style={{ width: 16, height: 16, flexShrink: 0, accentColor: 'var(--color-primary)' }}
-                        />
-                        <span style={{ fontSize: 'var(--font-size-sm)', fontWeight: on ? 600 : 400, color: 'var(--color-text-main)' }}>{label}</span>
-                      </label>
-                    );
-                  })}
+                  <div style={{ fontSize: 'var(--font-size-xs)', color: 'var(--color-text-light)', marginBottom: 8 }}>
+                    {ja ? 'いずれか1つを選択（排他）' : 'Choose one (exclusive)'}
+                  </div>
+                  {(() => {
+                    const cur = resolveQuickFilter(draftPrefs);
+                    return ([
+                      ['none',       ja ? 'なし（すべて）' : 'None (All)', ''],
+                      ['unanswered', ja ? '未回答を優先' : 'Unanswered', ja ? 'まだ解いていない問題' : 'Not yet answered'],
+                      ['incorrect',  ja ? '不正解を優先' : 'Incorrect', ja ? '過去に間違えた問題' : 'Previously incorrect'],
+                      ['notcorrect', ja ? '未正解を優先' : 'Not Correct', ja ? '未回答＋不正解（まだ正解していない問題）' : 'Unanswered + incorrect'],
+                      ['bookmark',   ja ? 'ブックマークを優先' : 'Bookmarked', ja ? 'ブックマークした問題' : 'Bookmarked questions'],
+                    ] as [QuickFilter, string, string][]).map(([val, label, desc]) => {
+                      const selected = cur === val;
+                      return (
+                        <label key={val} style={{ display: 'flex', alignItems: 'flex-start', gap: 10, padding: '8px 0', cursor: 'pointer' }}>
+                          <input
+                            type="radio"
+                            name="quickFilter"
+                            checked={selected}
+                            onChange={() => setDraftPrefs(p => ({ ...p, quickFilter: val, unansweredOnly: undefined, incorrectOnly: undefined, bookmarkOnly: undefined }))}
+                            style={{ width: 16, height: 16, flexShrink: 0, marginTop: desc ? 2 : 0, accentColor: 'var(--color-primary)' }}
+                          />
+                          <span>
+                            <span style={{ display: 'block', fontSize: 'var(--font-size-sm)', fontWeight: selected ? 700 : 500, color: 'var(--color-text-main)' }}>{label}</span>
+                            {desc && <span style={{ display: 'block', fontSize: 'var(--font-size-xs)', color: 'var(--color-text-light)' }}>{desc}</span>}
+                          </span>
+                        </label>
+                      );
+                    });
+                  })()}
                 </div>
                 {targetExam && (EXAM_DOMAINS[targetExam] ?? []).length > 0 && (
                   <div style={{ padding: '14px 0' }}>
@@ -2731,7 +2765,8 @@ export default function Home() {
                           if (r) setQuickBurst({ x: r.left + r.width / 2, y: r.top + r.height / 2 });
                         }
                         if (targetExam) {
-                          const hasFilters = !!(draftPrefs.unansweredOnly || draftPrefs.incorrectOnly || draftPrefs.bookmarkOnly || (draftPrefs.domains?.length ?? 0) > 0);
+                          const _qf = quickFilterFlags(resolveQuickFilter(draftPrefs));
+                          const hasFilters = !!(_qf.unansweredOnly || _qf.incorrectOnly || _qf.bookmarkOnly || (draftPrefs.domains?.length ?? 0) > 0);
                           if (hasFilters) { prefetchTypeC(targetExam, uid, draftPrefs); } else { prefetchTypeA(targetExam, uid); }
                         }
                       }}
