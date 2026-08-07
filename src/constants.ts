@@ -219,6 +219,14 @@ export const EXAM_SUPPLEMENTARY_RULES: Partial<Record<string, string>> = {
 ・Step Functions: ステートの種類(Task/Choice/Map/Parallel)、変換パイプラインでのGlue Workflowとの使い分け
 ・S3 Storage Lens(分析ダッシュボード)とS3 Inventory(オブジェクト明細レポート)の使い分け
 ・JDBC(Java系)/ODBC(ネイティブ・Windows系)の使い分け、AppFlowのSaaS連携用途、基礎SQL(UNION/ウィンドウ関数等)`,
+  SOA: `・実出題で頻出だが手薄になりがちな運用トピックを優先的に含めること:
+・CloudWatch: 基本監視(5分)と詳細監視(1分)の違い、標準メトリクスにメモリ/ディスク空きは含まれずCloudWatchエージェントが必要、ステータスチェックと自動復旧
+・AMI管理: copy-image(AMIコピー)の用途、クロスリージョンコピーの注意点(AMI IDはリージョン固有・EBSスナップショット複製・暗号化AMIはコピー先KMSキーで再暗号化・起動権限/タグ非継承)
+・EC2 Image Builder: AMI/コンテナの自動ビルド、レシピ(ベースイメージ+コンポーネント)の概念
+・SSM Distributor: ソフトウェアパッケージの作成・バージョン管理・一括配布
+・Route 53 Resolver: インバウンド(オンプレ→AWS)/アウトバウンド(AWS→オンプレ)エンドポイントの向きと用途
+・S3レプリケーション: ライブ(新規継続) vs バッチ(既存を遡って複製)、RTC(15分SLA)の使い分け
+・CloudFormation: スタック削除でもリソースを残す DeletionPolicy:Retain/Snapshot、終了保護との違い`,
 };
 
 export const EXAM_OFFICIAL_URLS: Record<string, { page: string; guide: string }> = {
