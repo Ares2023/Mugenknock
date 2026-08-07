@@ -72,7 +72,7 @@ const CHEAT_DATA: CheatData = {
     {
       title: 'クラウドの概念',
       items: [
-        { name: '責任共有モデル', desc: 'AWSと顧客でセキュリティ責任を分担するモデル。\nAWS負担: 物理インフラ・ホスト・ネットワーク・ストレージハードウェア\n顧客負担: OS・ミドルウェア・アプリ・データ・IAM設定', keyword: 'AWS 責任共有モデル', tags: ['分担', 'セキュリティ', '範囲'] },
+        { name: '責任共有モデル', desc: 'AWSと顧客でセキュリティ責任を分担するモデル（英語名: Shared Responsibility Model）。\nAWS負担: 物理インフラ・ホスト・ネットワーク・ストレージハードウェア（Security "of" the Cloud）\n顧客負担: OS・ミドルウェア・アプリ・データ・IAM設定（Security "in" the Cloud）', keyword: 'AWS 責任共有モデル', tags: ['分担', 'セキュリティ', 'Shared Responsibility Model'] },
         { name: 'AWS Well-Architectedフレームワーク', desc: '6本柱でクラウド設計を評価するAWS公式のベストプラクティス集。\n① 運用上の優秀性（変化への対応・自動化）\n② セキュリティ（最小権限・暗号化）\n③ 信頼性（障害自動回復・水平スケール）\n④ パフォーマンス効率（適切なリソース選択）\n⑤ コスト最適化（不要リソース排除）\n⑥ 持続可能性（エネルギー効率）', keyword: 'AWS Well-Architected Framework', tags: ['6本柱', '設計', 'ベストプラクティス'] },
         { name: 'AWS CAF（Cloud Adoption Framework）', desc: 'クラウド移行を組織全体で成功させる6つの視点のフレームワーク。\nビジネス: ROI・ビジネスケース\n人: スキル・文化変革\nガバナンス: リスク管理・コンプライアンス\nプラットフォーム: アーキテクチャ基盤\nセキュリティ: セキュリティ管理\n運用: 運用モデル', keyword: 'Cloud Adoption Framework', tags: ['移行', '6視点', 'フレームワーク'] },
         { name: 'サービスモデル', desc: 'IaaS（Infrastructure as a Service）: EC2のような仮想インフラ。OS以上は自分で管理\nPaaS（Platform as a Service）: Elastic Beanstalkのような実行基盤。アプリのみ管理\nSaaS（Software as a Service）: WorkSpacesのような完成品アプリ。設定のみ管理', keyword: 'IaaS PaaS SaaS クラウドサービスモデル', tags: ['IaaS', 'PaaS', 'SaaS'] },
@@ -121,7 +121,7 @@ const CHEAT_DATA: CheatData = {
     {
       title: 'セキュリティ',
       items: [
-        { name: 'AWS IAM', desc: 'AWSリソースへのアクセスを制御するサービス（Identity and Access Management）。\nユーザー: 個人のアカウント\nグループ: 複数ユーザーへのまとめて権限付与\nロール: EC2やLambdaなどのサービスに一時的に権限を付与する仕組み\nポリシー: 「何のリソースに何の操作ができるか」をJSON形式で定義したルール\n最小権限の原則: 必要最小限の権限だけ付与する', tags: ['ポリシー', 'ロール', '最小権限'] },
+        { name: 'AWS IAM', desc: 'AWSリソースへのアクセスを制御するサービス（Identity and Access Management）。\nユーザー: 個人のアカウント\nグループ: 複数ユーザーへのまとめて権限付与\nロール: EC2やLambdaなどのサービスに一時的に権限を付与する仕組み\nポリシー: 「何のリソースに何の操作ができるか」をJSON形式で定義したルール\n最小権限の原則（Least Privilege）: 必要最小限の権限だけ付与する', tags: ['ポリシー', 'ロール', '最小権限 / Least Privilege'] },
         { name: 'AWS Shield', desc: 'DDoS攻撃（大量リクエストによるサービス妨害）を自動で軽減するサービス。\nStandard: すべてのAWSリソースに無料で自動適用。L3/L4攻撃を防御\nAdvanced: 有料オプション。L7攻撃も防御し、AWS Shield応答チーム（SRT）への24時間アクセスとDDoS起因のコスト保護も提供', tags: ['DDoS', 'Standard', 'Advanced'] },
         { name: 'AWS WAF', desc: 'WebアプリケーションへのL7攻撃をフィルタリングするWebアプリケーションファイアウォール。\nSQLインジェクション（DBへの不正クエリ注入）・XSS（クロスサイトスクリプティング）・ボット等の攻撃をルールでブロックする。CloudFront・ALB・API Gatewayに適用できる。', tags: ['Webファイアウォール', 'SQLi', 'XSS'] },
         { name: 'AWS KMS', desc: '暗号化キーを作成・保管・管理するサービス（Key Management Service）。\nS3・EBS・RDS・DynamoDB等のAWSサービスと統合し、データを透過的に暗号化・復号する。CMK（Customer Managed Key）で暗号化ポリシーを細かく制御できる。', tags: ['暗号化', 'CMK', 'キー管理'] },
@@ -202,8 +202,8 @@ const CHEAT_DATA: CheatData = {
     {
       title: 'コンピューティング',
       items: [
-        { name: 'Amazon EC2', desc: 'インスタンスタイプ: 汎用（M系）/ コンピュート最適化（C系）/ メモリ最適化（R系）/ GPU（P・G系）\n配置グループ:\nクラスタ: 同一ラック内に密集配置（超低レイテンシ・HPC向け）\n分散: 各インスタンスを別ラックに分散（可用性向上）\nパーティション: ラックをグループ化して大規模分散DB向け\nインスタンスストア: EC2に物理的に接続されたNVMe SSD（停止/終了するとデータ消失）', tags: ['インスタンスタイプ', '配置グループ', 'スポット'] },
-        { name: 'AWS Auto Scaling', desc: 'スケーリングポリシーの種類:\nターゲット追跡: CPU使用率50%などのメトリクスを目標値に自動調整\nステップ: メトリクスの値の幅に応じてスケール量を段階的に設定\nスケジュール: 特定の日時に事前にスケール\n起動テンプレート: インスタンスタイプ・AMI・セキュリティグループ等の構成を定義したテンプレート\nウォームアップ期間: 新インスタンスが安定するまでメトリクスへの影響を除外する時間', tags: ['ターゲット追跡', '起動テンプレート', 'ウォームアップ'] },
+        { name: 'Amazon EC2', desc: 'インスタンスタイプ: 汎用（M系）/ コンピュート最適化（C系）/ メモリ最適化（R系）/ GPU（P・G系）\n配置グループ（Placement Group）:\nクラスタ（Cluster）: 同一ラック内に密集配置（超低レイテンシ・HPC向け）\n分散（Spread）: 各インスタンスを別ラックに分散（可用性向上）\nパーティション（Partition）: ラックをグループ化して大規模分散DB向け\nインスタンスストア: EC2に物理的に接続されたNVMe SSD（停止/終了するとデータ消失）', tags: ['インスタンスタイプ', '配置グループ / Placement Group', 'スポット'] },
+        { name: 'AWS Auto Scaling', desc: 'スケーリングポリシーの種類:\nターゲット追跡（Target Tracking）: CPU使用率50%などのメトリクスを目標値に自動調整\nステップ（Step Scaling）: メトリクスの値の幅に応じてスケール量を段階的に設定\nスケジュール（Scheduled）: 特定の日時に事前にスケール\n起動テンプレート（Launch Template）: インスタンスタイプ・AMI・セキュリティグループ等の構成を定義したテンプレート\nウォームアップ期間（Instance Warmup）: 新インスタンスが安定するまでメトリクスへの影響を除外する時間', tags: ['ターゲット追跡 / Target Tracking', '起動テンプレート / Launch Template', 'ウォームアップ'] },
         { name: 'AWS Lambda', desc: 'イベント駆動型サーバーレス実行環境。最大実行時間15分・最大メモリ10GB。\n同時実行制限: デフォルト1アカウントあたり1000（緩和申請可）\nプロビジョニング済み同時実行: コールドスタートを防ぐために事前にインスタンスを起動する機能\nレイヤー: 共通ライブラリを複数のLambda関数で共有する仕組み\nDestinations: 非同期呼び出しの成功/失敗時に別サービスへ結果を転送', tags: ['同時実行', 'レイヤー', 'デスティネーション'] },
         { name: 'Amazon ECS / Amazon EKS', desc: 'ECS（Elastic Container Service）:\nTaskDefinition（コンテナ定義）→ Service（実行台数管理）→ Cluster の構成\nFargate起動タイプでサーバー管理不要、EC2起動タイプでカスタマイズ可能\nEKS（Elastic Kubernetes Service）:\nKubernetes（大規模コンテナ管理のOSS）のマネージドクラスタ。eksctlやkubectlでクラスタ管理', tags: ['Fargate', 'TaskDefinition', 'Kubernetes'] },
         { name: 'AWS Batch', desc: 'スポットEC2やFargate上でバッチ処理ジョブを効率的に実行するサービス。\nジョブキュー: ジョブの待ち行列。優先度を設定できる\nコンピューティング環境: 使用するEC2タイプ・スポット率・上限vCPU数等を設定\nジョブ依存関係: 依存するジョブが完了してから実行する順序制御が可能', tags: ['バッチ', 'スポット', 'ジョブキュー'] },
@@ -223,7 +223,7 @@ const CHEAT_DATA: CheatData = {
     {
       title: 'データベース',
       items: [
-        { name: 'Amazon RDS', desc: 'Multi-AZ: プライマリDBの変更をスタンバイDBへ同期レプリケーション。障害時に自動フェイルオーバー（60-120秒程度）。スタンバイは読み取り不可\nリードレプリカ: 非同期レプリケーションで読み取りをスケールアウト。最大5台。マスター昇格も可能\nポイントインタイムリカバリ（PITR）: 任意の時点のデータに最大35日前まで復元可能', tags: ['Multi-AZ', 'リードレプリカ', 'フェイルオーバー'] },
+        { name: 'Amazon RDS', desc: 'Multi-AZ: プライマリDBの変更をスタンバイDBへ同期レプリケーション。障害時に自動フェイルオーバー（Failover・60-120秒程度）。スタンバイは読み取り不可\nリードレプリカ（Read Replica）: 非同期レプリケーションで読み取りをスケールアウト。最大5台。マスター昇格も可能\nポイントインタイムリカバリ（PITR: Point-in-Time Recovery）: 任意の時点のデータに最大35日前まで復元可能', tags: ['Multi-AZ', 'リードレプリカ / Read Replica', 'フェイルオーバー / Failover'] },
         { name: 'Amazon Aurora', desc: '最大15台のリードレプリカをサポート（RDSは最大5台）\nAurora Global Database: 1プライマリリージョン＋最大5セカンダリリージョン。RPO 1秒・RTO 1分以内のDR\nAurora Serverless v2: トラフィックに応じてコンピュートを自動スケール。コスト効率が高い\nストレージ: 6コピーを3つのAZに自動分散。10GBから自動拡張', tags: ['Global Database', 'Serverless v2', '15リードレプリカ'] },
         { name: 'Amazon DynamoDB', desc: 'GSI（グローバルセカンダリインデックス）: 別のパーティションキーでクエリを可能にする。非同期で更新\nLSI（ローカルセカンダリインデックス）: 同一パーティション内で別のソートキーを使用。テーブル作成時のみ定義可能\nDAX（DynamoDB Accelerator）: マイクロ秒レイテンシのインメモリキャッシュ。APIを変えずに使用可能\nStreams: テーブルの変更をリアルタイムにLambdaへ配信\nグローバルテーブル: マルチリージョンのアクティブ-アクティブ構成', tags: ['GSI/LSI', 'DAX', 'グローバルテーブル'] },
         { name: 'Amazon ElastiCache', desc: 'Redis:\nレプリケーション・クラスタモード（シャーディングで水平スケール）\nSentinel（高可用性）・Pub/Sub・Sorted Set等の高度なデータ構造\n永続化（AOF/RDB）でデータを保持\nMemcached:\nマルチスレッドで高スループット。シャーディングで水平スケール\nシンプルなKVストアのみ。永続化なし', tags: ['Redis', 'Memcached', 'クラスタモード'] },
@@ -238,7 +238,7 @@ const CHEAT_DATA: CheatData = {
         { name: 'Amazon VPCピアリング / AWS Transit Gateway（TGW）', desc: 'VPCピアリング: 2つのVPCを1対1で接続。推移的ルーティング不可（A-B-CでAからCには直接ピアリングが必要）\nTransit Gateway（TGW）: ハブ&スポーク型でN個のVPCを一元接続。各VPCはTGWにアタッチするだけでN対N接続が実現。アタッチメント種別: VPC / Site-to-Site VPN / Direct Connect', tags: ['ピアリング', 'TGW', 'ハブ&スポーク'] },
         { name: 'Amazon VPCエンドポイント', desc: 'インターネットを経由せずAWSサービスにプライベートアクセスする仕組み。\nゲートウェイ型: S3・DynamoDBのみ対応。ルートテーブルにエントリを追加。追加料金なし\nインターフェース型（PrivateLink）: その他多数のAWSサービスに対応。ENIをサブネットに作成。時間課金あり', tags: ['ゲートウェイ型', 'PrivateLink', 'インターフェース型'] },
         { name: 'ALB / NLB', desc: 'ALB（Application Load Balancer）: HTTP/HTTPS（L7）\nURLパス・ホストヘッダー・HTTPメソッドでコンテンツベースルーティング\nターゲットグループにEC2・ECS・Lambda・IPを登録\nNLB（Network Load Balancer）: TCP/UDP（L4）\n固定IPを提供（ElasticIPを割り当て可能）\n超低レイテンシ・大量同時接続。TLSパススルーが可能', tags: ['ALB', 'NLB', 'ターゲットグループ'] },
-        { name: 'Amazon Route 53 ルーティング', desc: 'シンプル: 1つのリソースに転送\n重み付け: 複数リソースに比率を指定して分散\nレイテンシ: 最もレイテンシが低いリージョンへ転送\nフェイルオーバー: ヘルスチェック失敗時にセカンダリへ切り替え\n地理的（Geolocation）: ユーザーの所在地（国・州）に基づいて転送\n地理的近接性: ユーザーとリソースの物理的距離に基づいて転送\n多値応答: 複数のIPを返し、ヘルスチェックで正常なもののみ返す', tags: ['フェイルオーバー', 'レイテンシ', '地理的近接性'] },
+        { name: 'Amazon Route 53 ルーティング', desc: 'シンプル（Simple）: 1つのリソースに転送\n重み付け（Weighted）: 複数リソースに比率を指定して分散\nレイテンシ（Latency）: 最もレイテンシが低いリージョンへ転送\nフェイルオーバー（Failover）: ヘルスチェック失敗時にセカンダリへ切り替え\n地理的（Geolocation）: ユーザーの所在地（国・州）に基づいて転送\n地理的近接性（Geoproximity）: ユーザーとリソースの物理的距離に基づいて転送\n多値応答（Multivalue Answer）: 複数のIPを返し、ヘルスチェックで正常なもののみ返す', tags: ['フェイルオーバー / Failover', 'レイテンシ / Latency', '地理的近接性 / Geoproximity'] },
         { name: 'Amazon CloudFront', desc: 'グローバルCDN。AWSバックボーン経由で低レイテンシ配信。\nOAC（Origin Access Control）: CloudFrontを経由したアクセスのみS3バケットに許可する仕組み\nビヘイビア: URLパスパターンごとにオリジン・キャッシュポリシー・関数を設定\nLambda@Edge: CloudFrontのイベント（Viewer Request/Response・Origin Request/Response）でLambdaを実行\nCloudFront Functions: JavaScriptでHTTPヘッダー書き換えやURL変換を低コスト・低レイテンシで実行', tags: ['OAC', 'Lambda@Edge', 'ビヘイビア'] },
         { name: 'AWS Global Accelerator', desc: 'Anycast IPで世界中のユーザーを最寄りAWSエッジロケーションに誘導し、AWSバックボーン経由で最終ターゲットに転送。\n2つの固定グローバルIPを提供（ホワイトリスト管理が容易）。非HTTPプロトコル（TCP/UDP）にも対応。CloudFrontはHTTPコンテンツキャッシュ向けで用途が異なる。', tags: ['Anycast', '固定IP', 'バックボーン'] },
         { name: 'AWS Direct Connect / VPN', desc: 'Direct Connect: 物理専用線でオンプレ↔AWSを接続。BGP（Border Gateway Protocol）でルートを交換。最長一致ルールで転送先を決定。冗長化は複数接続を推奨\nSite-to-Site VPN: インターネット経由の暗号化接続（IPsec）。カスタマーゲートウェイ（CGW）と仮想プライベートゲートウェイ（VGW）を接続\n最大冗長化: DCとVPNの両方を組み合わせて使用', tags: ['BGP', '専用線', '冗長化'] },
@@ -270,7 +270,7 @@ const CHEAT_DATA: CheatData = {
       items: [
         { name: 'Amazon Athena', desc: 'S3上のデータをサーバーレスSQLで直接クエリするサービス。インフラ管理不要で、スキャンしたデータ量（1TB単位）で課金。\nGlueデータカタログと組み合わせてスキーマを管理。Parquet・ORC形式にすると圧縮率が高くスキャン量を削減できてコスト削減になる。', tags: ['サーバーレス', 'S3クエリ', 'Glueカタログ'] },
         { name: 'AWS Glue', desc: 'サーバーレスETL（Extract・Transform・Load: データの抽出・変換・格納）サービス。\nクローラー: S3・RDS等のデータソースを自動スキャンしてGlueデータカタログにスキーマを登録する\nETLジョブ: SparkまたはPythonベースで変換処理を定義・実行する\nGlueデータカタログ: スキーマ・場所・メタデータを一元管理するメタデータリポジトリ', tags: ['ETL', 'クローラー', 'データカタログ'] },
-        { name: 'Amazon CloudWatch', desc: 'カスタムメトリクス: EC2のメモリ等、デフォルトで収集されないメトリクスをPutMetricDataAPIで送信\nLogs Insights: ログをSQLライクなクエリで分析するツール\n複合アラーム: 複数アラームをAND/ORで組み合わせた条件でアクション実行\n異常検知: 機械学習でメトリクスの異常を自動検出\nSynthetics Canary: スクリプトでエンドポイントを定期監視する合成監視', tags: ['カスタムメトリクス', 'Logs Insights', '異常検知'] },
+        { name: 'Amazon CloudWatch', desc: 'カスタムメトリクス: EC2のメモリ等、デフォルトで収集されないメトリクスをPutMetricDataAPIで送信\nLogs Insights: ログをSQLライクなクエリで分析するツール\n複合アラーム（Composite Alarms）: 複数アラームをAND/ORで組み合わせた条件でアクション実行\n異常検知（Anomaly Detection）: 機械学習でメトリクスの異常を自動検出\nSynthetics Canary: スクリプトでエンドポイントを定期監視する合成監視', tags: ['カスタムメトリクス', 'Logs Insights', '異常検知 / Anomaly Detection'] },
         { name: 'AWS CloudFormation', desc: 'IaC（Infrastructure as Code）。YAML/JSONテンプレートでAWSリソースを定義・管理するサービス。\nスタック: CloudFormationで一括管理するリソースのグループ\n変更セット（Change Set）: 変更を実際に適用する前に影響範囲を確認\nStackSets: 複数のAWSアカウント・リージョンに同一スタックを一括展開\nカスタムリソース: Lambda関数を使ってCloudFormationに対応していないリソースも管理', tags: ['IaC', 'スタック', 'StackSets'] },
         { name: 'AWS Lake Formation', desc: 'データレイク（大量の生データを一元格納するS3ベースのストア）の構築・管理・セキュリティを一元化するサービス。\nGlue・S3・Athena・Redshiftとの統合で列/行レベルのきめ細かいアクセス制御が可能。\nBlueprint: S3やRDBのデータを定期的にGlueワークフローでデータレイクに取り込む設定を自動生成', tags: ['データレイク', '列/行レベル', 'アクセス制御'] },
       ],
@@ -333,10 +333,11 @@ const CHEAT_DATA: CheatData = {
     {
       title: 'モニタリング・ロギング',
       items: [
-        { name: 'Amazon CloudWatch', desc: 'カスタムメトリクス: PutMetricData APIで独自メトリクスを送信。高解像度（1秒）まで対応\nLogs Insights: ロググループに対してSQLライクなクエリで分析するツール\nContributor Insights: 上位N件のトラフィックソース・エラー原因を特定する分析機能\n異常検知: 機械学習でメトリクスの異常（季節性考慮）を自動検出してアラーム\n複合アラーム: 複数アラームをAND/ORで組み合わせた複合条件でアクション実行', tags: ['高解像度', 'Logs Insights', '異常検知'] },
+        { name: 'Amazon CloudWatch', desc: 'カスタムメトリクス: PutMetricData APIで独自メトリクスを送信。高解像度（1秒）まで対応\nLogs Insights: ロググループに対してSQLライクなクエリで分析するツール\nContributor Insights: 上位N件のトラフィックソース・エラー原因を特定する分析機能\n異常検知（Anomaly Detection）: 機械学習でメトリクスの異常（季節性考慮）を自動検出してアラーム。英語名「CloudWatch Anomaly Detection」で問われることも多い\n複合アラーム（Composite Alarms）: 複数アラームをAND/ORで組み合わせた複合条件でアクション実行', tags: ['高解像度', 'Logs Insights', '異常検知 / Anomaly Detection'] },
         { name: 'AWS CloudTrail', desc: 'AWSリソースへのAPIコールを記録する監査ログサービス。イベントの種類:\n管理イベント: AWSリソースの作成・削除・設定変更。デフォルトで有効\nデータイベント: S3オブジェクト操作・Lambda関数実行。明示的に有効化が必要\nInsightsイベント: 通常と異なるAPI呼び出しパターン（突然の大量呼び出し等）を自動検出', tags: ['管理イベント', 'データイベント', 'Insights'] },
-        { name: 'AWS Config', desc: 'リソースの設定変更を時系列で記録し、ルールへの準拠状況を継続的に評価するサービス。\nマネージドルール: AWSが事前定義した150以上のコンプライアンスルール\nカスタムルール: Lambda関数で独自のルールを定義\nコンフォーマンスパック: 複数のConfigルールをまとめてパッケージ化して一括展開\n自動修復: ルール違反を検出したらSSM Automationで自動修正', tags: ['設定変更', 'マネージドルール', '自動修復'] },
+        { name: 'AWS Config', desc: 'リソースの設定変更を時系列で記録し、ルールへの準拠状況を継続的に評価するサービス。\nマネージドルール（Managed Rules）: AWSが事前定義した150以上のコンプライアンスルール\nカスタムルール: Lambda関数で独自のルールを定義\nコンフォーマンスパック（Conformance Packs）: 複数のConfigルールをまとめてパッケージ化して一括展開\n自動修復（Auto Remediation）: ルール違反を検出したらSSM Automationで自動修正', tags: ['設定変更', 'マネージドルール / Managed Rules', '自動修復 / Auto Remediation'] },
         { name: 'AWS Health Dashboard', desc: 'Service Health Dashboard（サービス全体の障害ステータス）: AWSサービス全体の稼働状況を公開しているページ\nPersonal Health Dashboard（個人用ヘルスダッシュボード）: 自分のアカウントのリソースへの影響をお知らせするサービス\nEventBridgeと連携してHealth通知を受けたらSlack/SNSに自動転送するパターンが頻出', tags: ['サービス障害', 'アカウント影響', 'EventBridge連携'] },
+        { name: 'CloudWatch 基本監視 vs 詳細監視 / EC2メトリクス', desc: 'EC2のメトリクス収集間隔の違い。\n基本監視（Basic）: 5分間隔。デフォルトで無効課金なし\n詳細監視（Detailed）: 1分間隔。有効化で追加課金。Auto Scaling/障害対応で素早く反応したい場合に有効化\nEC2が標準で送るのはCPU使用率・ネットワーク・ディスクI/O・ステータスチェックまで。メモリ使用率とディスク空き容量(ゲストOS内部の値)は標準メトリクスに含まれず、CloudWatchエージェント(またはprocstat)を入れて初めて取得できる\nステータスチェック: システムステータス(AWS基盤側)とインスタンスステータス(OS/設定側)の2種類。自動復旧(recover)アクションと組み合わせる', tags: ['基本5分', '詳細1分', 'メモリはエージェント'] },
       ],
     },
     {
@@ -346,15 +347,21 @@ const CHEAT_DATA: CheatData = {
         { name: 'Amazon EventBridge（運用自動化）', desc: 'AWSサービスのイベントをトリガーに運用タスクを自動化するパターンが重要。\n例:\nAWS Config違反 → EventBridge → Lambda（自動修復）\nGuardDuty脅威検出 → EventBridge → SNS通知・Lambda隔離\nEC2インスタンス起動 → EventBridge → Systems Manager Automation\nスケジュール → EventBridge → Lambda（定期バックアップ）', tags: ['自動修復', 'Config連携', 'スケジュール'] },
         { name: 'AWS OpsWorks', desc: 'Chef（Rubyベースの設定管理ツール）またはPuppet（宣言型設定管理ツール）を使ったインフラ自動化サービス。\nレシピ: ChefでEC2の設定を定義する手順書\nクックブック: レシピのコレクション\nレイヤー: 同じ役割を持つEC2グループ（Webレイヤー・DBレイヤー等）', tags: ['Chef', 'Puppet', '設定管理'] },
         { name: 'AWS Elastic Beanstalk（SOA観点）', desc: 'Rolling with additional batch: 追加インスタンスを起動してからローリング更新。容量を全量維持したまま更新できる\nImmutable: 新インスタンスを別オートスケーリンググループで起動してから入れ替え。最も安全だが時間がかかる\nDNS CNAME Swap（環境スワップ）: 新旧環境のCNAMEを瞬時に入れ替えるブルーグリーンデプロイ', tags: ['Rolling', 'Immutable', 'DNS CNAME Swap'] },
+        { name: 'SSM Distributor', desc: 'Systems Manager の機能。ソフトウェアパッケージ（エージェント・独自アプリ等）を作成・バージョン管理し、マネージドインスタンス群へ一括インストール/更新するサービス。\nAWS提供パッケージ（CloudWatchエージェント等）と自作パッケージの両方を配布可能\nState Manager と組み合わせて「常に最新版がインストールされている状態」を維持できる\nRun Command で即時配布、または定期スケジュール配布', tags: ['パッケージ配布', 'バージョン管理', 'SSM'] },
+        { name: 'EC2 Image Builder（レシピ）', desc: 'AMIやコンテナイメージのビルド・テスト・配布を自動化するパイプラインサービス。手動でのゴールデンAMI作成・パッチ当てを自動化する。\nレシピ(Recipe): 「ベースイメージ＋コンポーネント(インストール/設定/テストの手順)＋バージョン」の組み合わせ定義。イメージの中身を決める設計図\nコンポーネント: ソフトのインストールや設定、テストを行う個々のステップ\nパイプライン: レシピを元に定期/オンデマンドでビルド→テスト→指定リージョン/アカウントへ配布・共有\nメリット: 常に最新パッチ適用済みのAMIを自動生成し、脆弱性のある古いAMIの手動運用を排除', tags: ['ゴールデンAMI自動化', 'レシピ', 'コンポーネント'] },
+        { name: 'AMI 管理・コピー（クロスリージョン）', desc: 'AMI(Amazonマシンイメージ)はEC2の起動テンプレートとなるスナップショットの集合。\ncopy-image（AMIコピー）の用途: 別リージョン/別アカウントへ横展開、DR用にリージョン間複製、暗号化の付与・KMSキーの切替\nクロスリージョンコピーの注意点:\n- AMI ID はリージョン固有。コピー先で新しいAMI IDが払い出される（既存IDをそのまま参照不可）\n- 紐づくEBSスナップショットも一緒にコピーされ、データ転送・保管コストが発生\n- 暗号化AMIはコピー先リージョンのKMSキーで再暗号化が必要（送信元キーはリージョンをまたげない）\n- 起動権限・タグは自動では引き継がれない（別途設定）\nEC2 Image Builder のパイプライン配布でも複数リージョンへ展開できる', tags: ['copy-image', 'AMI IDはリージョン固有', 'KMS再暗号化'] },
+        { name: 'CloudFormation 削除時のリソース保持', desc: 'スタックを削除しても特定リソース（DBやS3等）を残したい場合の設定。\nDeletionPolicy: Retain: スタック削除時もそのリソースを削除せず残す（DynamoDB/RDS/S3などデータ保持に多用）\nDeletionPolicy: Snapshot: 削除前にスナップショットを取得（RDS/EBS/Redshift等の対応リソース）\nRetainExceptOnCreate: 作成に失敗したロールバック時は削除、通常削除時は残す\nUpdateReplacePolicy: 更新でリソースが置換される際の旧リソースの扱い（Retain/Snapshot）\n※終了保護(Termination Protection)はスタック自体の誤削除防止で、リソース保持とは別物', tags: ['DeletionPolicy Retain', 'Snapshot', '誤削除防止'] },
       ],
     },
     {
       title: '信頼性・可用性',
       items: [
-        { name: 'AWS Auto Scaling', desc: 'ライフサイクルフック: インスタンスの起動時（設定完了まで待機）・終了時（データ退避処理）にカスタムスクリプトを挿入する仕組み\n予測スケーリング: 過去のメトリクスパターンをMLで学習して事前にスケールアウト\nウォームアップ期間（Instance Warmup）: 新インスタンスが準備できるまでメトリクスへの影響を除外する時間', tags: ['ライフサイクルフック', '予測スケーリング', 'ウォームアップ'] },
-        { name: 'Elastic Load Balancing（ELB）', desc: 'ヘルスチェック設定パラメータ:\n正常しきい値（HealthyThreshold）: 正常と判断するまでの連続成功回数\n異常しきい値（UnhealthyThreshold）: 異常と判断するまでの連続失敗回数\nアクセスログ: ELBのアクセスログをS3に保存（デフォルト無効）\nクロスゾーン負荷分散: 複数AZにまたがってトラフィックを均等に分散\nConnection Draining: 登録解除中のターゲットへの既存接続を安全に完了させる猶予時間', tags: ['ヘルスチェック', 'アクセスログ', 'Connection Draining'] },
+        { name: 'AWS Auto Scaling', desc: 'ライフサイクルフック（Lifecycle Hook）: インスタンスの起動時（設定完了まで待機）・終了時（データ退避処理）にカスタムスクリプトを挿入する仕組み\n予測スケーリング（Predictive Scaling）: 過去のメトリクスパターンをMLで学習して事前にスケールアウト\nウォームアップ期間（Instance Warmup）: 新インスタンスが準備できるまでメトリクスへの影響を除外する時間', tags: ['ライフサイクルフック / Lifecycle Hook', '予測スケーリング / Predictive Scaling', 'ウォームアップ'] },
+        { name: 'Elastic Load Balancing（ELB）', desc: 'ヘルスチェック設定パラメータ:\n正常しきい値（HealthyThreshold）: 正常と判断するまでの連続成功回数\n異常しきい値（UnhealthyThreshold）: 異常と判断するまでの連続失敗回数\nアクセスログ: ELBのアクセスログをS3に保存（デフォルト無効）\nクロスゾーン負荷分散（Cross-Zone Load Balancing）: 複数AZにまたがってトラフィックを均等に分散\nConnection Draining（登録解除の遅延 / Deregistration Delay）: 登録解除中のターゲットへの既存接続を安全に完了させる猶予時間', tags: ['ヘルスチェック', 'クロスゾーン / Cross-Zone', 'Connection Draining'] },
         { name: 'Amazon RDS（可用性）', desc: 'Multi-AZフェイルオーバー: 60〜120秒が目安。プライマリ障害時にスタンバイが自動でプライマリに昇格\nスナップショット: 自動（0〜35日間保持）と手動（明示的に削除するまで保持）の2種類\nPITR（ポイントインタイムリカバリ）: 最大35日前の任意の時点のデータに5分以内の精度で復元可能\nリードレプリカのプロモーション: 読み取りレプリカを独立したDBインスタンスに昇格（手動操作）', tags: ['フェイルオーバー', 'ポイントインタイム', 'リードレプリカ'] },
         { name: 'Amazon Route 53（DR構成）', desc: 'DR（災害対策）構成の核。ヘルスチェックの種類:\nエンドポイント監視: HTTP/HTTPS/TCPでエンドポイントの死活を監視\n他ヘルスチェック監視: 複数ヘルスチェックのAND/OR評価\nCloudWatchアラーム監視: アラームの状態に連動\nフェイルオーバールーティングと組み合わせてプライマリ障害時にセカンダリサイトに自動切り替え', tags: ['ヘルスチェック', 'フェイルオーバー', 'DR構成'] },
+        { name: 'Route 53 Resolver エンドポイント（ハイブリッドDNS）', desc: 'オンプレミスとVPC間で相互にDNS名前解決するための仕組み（VPCとオンプレをVPN/Direct Connectで接続した環境で使う）。向きに注意。\nインバウンドエンドポイント: オンプレDNS → AWS への問い合わせを受ける。オンプレからVPC内の名前(privateホストゾーン/AWSリソース)を解決したいとき\nアウトバウンドエンドポイント: AWS(VPC) → オンプレDNS へ転送する。VPC内のリソースからオンプレのドメイン名を解決したいとき（Resolver ルールで転送先を指定）\n覚え方: 「AWSに入ってくる問い合わせ＝インバウンド」「AWSから出ていく問い合わせ＝アウトバウンド」', tags: ['ハイブリッドDNS', 'インバウンド=オンプレ→AWS', 'アウトバウンド=AWS→オンプレ'] },
+        { name: 'S3 レプリケーション（RTC / ライブ vs バッチ）', desc: 'S3のオブジェクト複製。CRR(クロスリージョン)/SRR(同一リージョン)。\nライブレプリケーション: レプリケーション設定後に「新規に作成/更新される」オブジェクトを継続的に自動複製（既存オブジェクトは対象外）\nS3 バッチレプリケーション: 設定より前から存在する「既存オブジェクト」や複製失敗分を遡って複製する（S3 Batch Operations ジョブ）。初回移行・後追い複製に使う\nS3 RTC（Replication Time Control）: 99.99%のオブジェクトを15分以内に複製するSLA付きの機能。複製の遅延をCloudWatchメトリクス(OperationsPendingReplication等)で監視でき、RPO要件が厳しいDRで使う（追加料金）\n使い分け: 通常の継続複製=ライブ / 既存分の穴埋め=バッチ / 時間保証が要る=RTC', tags: ['CRR/SRR', 'RTC=15分SLA', 'バッチ=既存複製'] },
       ],
     },
     {
@@ -381,7 +388,7 @@ const CHEAT_DATA: CheatData = {
     {
       title: 'IaC・構成管理',
       items: [
-        { name: 'AWS CloudFormation', desc: '変更セット（Change Set）: スタック変更を実際に適用する前に影響範囲を確認・レビューできる\nドリフト検出: 実際のリソース設定とCloudFormationテンプレートの差分を検出（手動変更の発見に使用）\nカスタムリソース: Lambda関数でCloudFormationが対応していないリソースを管理する仕組み\nStackSets: 複数のAWSアカウント・リージョンに同一スタックを一括展開\nCloudFormation Hooks: リソース変更前にカスタムバリデーションを実行してポリシー違反を防止', tags: ['変更セット', 'ドリフト検出', 'StackSets'] },
+        { name: 'AWS CloudFormation', desc: '変更セット（Change Set）: スタック変更を実際に適用する前に影響範囲を確認・レビューできる\nドリフト検出（Drift Detection）: 実際のリソース設定とCloudFormationテンプレートの差分を検出（手動変更の発見に使用）\nカスタムリソース: Lambda関数でCloudFormationが対応していないリソースを管理する仕組み\nStackSets: 複数のAWSアカウント・リージョンに同一スタックを一括展開\nCloudFormation Hooks: リソース変更前にカスタムバリデーションを実行してポリシー違反を防止', tags: ['変更セット', 'ドリフト検出', 'StackSets'] },
         { name: 'AWS CDK（Cloud Development Kit）', desc: 'TypeScript・Python・Java・C#等のプログラミング言語でCloudFormationテンプレートを生成するIaCフレームワーク。\nConstruct（コンストラクト）の3層:\nL1: CloudFormationリソースを直接ラップ（低レベル）\nL2: AWSサービスを使いやすくした高レベル抽象（セキュアなデフォルト付き）\nL3: 複数サービスを組み合わせた完全なパターン（例: Static Website Hosting）\nCDK Pipelines: CDKアプリ自体をCI/CDパイプラインで自動デプロイするライブラリ', tags: ['CDK', 'Construct', 'CDK Pipelines'], termKeywords: { 'L1': 'L1（CDK Construct）', 'L2': 'L2（CDK Construct）', 'L3': 'L3（CDK Construct）' } },
         { name: 'AWS Systems Manager（DOP観点）', desc: 'Automation Runbook（旧Document）: 複数ステップの運用タスクをYAMLで定義して自動実行\nState Manager: EC2の設定が常に望ましい状態に保たれることを保証する（設定ドリフトの自動修正）\nRun Command: 複数EC2に対して一括でコマンド実行（パッチ確認・ログ収集等）\nParameter Store: 階層的な設定値・秘密情報の管理。CDK/CloudFormationとの統合でシームレスに利用', tags: ['Automation Runbook', 'State Manager', '設定継続適用'] },
         { name: 'AWS OpsWorks', desc: 'Chef（Rubyベース）またはPuppet（宣言型）を使ったサーバー設定管理サービス。\nDOPでは複雑な設定管理シナリオや既存のChef/Puppetコードベースを継続利用するケースで登場する。', tags: ['Chef', 'Puppet', '設定管理'] },
@@ -399,7 +406,7 @@ const CHEAT_DATA: CheatData = {
     {
       title: '弾力性・セキュリティ',
       items: [
-        { name: 'AWS Auto Scaling（DOP観点）', desc: 'ライフサイクルフック:\n起動時フック（Launching）: インスタンス起動後にアプリ設定・エージェントインストールが完了するまで待機\n終了時フック（Terminating）: ログ退避・セッション切断などの後処理が完了するまで終了を待機\n予測スケーリング: 過去2週間のメトリクスパターンをMLで学習して事前にスケールアウト\nウォームプール（Warm Pool）: 停止済みEC2をプールして起動時間を短縮する仕組み', tags: ['ライフサイクルフック', '予測スケーリング', 'ウォームプール'] },
+        { name: 'AWS Auto Scaling（DOP観点）', desc: 'ライフサイクルフック（Lifecycle Hook）:\n起動時フック（Launching）: インスタンス起動後にアプリ設定・エージェントインストールが完了するまで待機\n終了時フック（Terminating）: ログ退避・セッション切断などの後処理が完了するまで終了を待機\n予測スケーリング（Predictive Scaling）: 過去2週間のメトリクスパターンをMLで学習して事前にスケールアウト\nウォームプール（Warm Pool）: 停止済みEC2をプールして起動時間を短縮する仕組み', tags: ['ライフサイクルフック / Lifecycle Hook', '予測スケーリング / Predictive Scaling', 'ウォームプール'] },
         { name: 'AWS Service Quotas', desc: 'AWSサービスの上限値（クォータ）を一元的に確認・申請するサービス。\nCloudWatchアラームとの統合でクォータ使用率が閾値を超えたら事前に通知\n自動クォータリクエスト: Lambda・Fargateなど一部サービスは使用量に応じて自動で上限引き上げを申請できる', tags: ['上限値', 'クォータ管理', '申請'] },
         { name: 'AWS IAM高度管理', desc: 'Permissions Boundary（アクセス許可の境界）: IAMユーザー/ロールに付与できる権限の最大上限を設定するポリシー。開発者が自分より強い権限を持つロールを作れないよう制限する\nABAC（Attribute-Based Access Control: 属性ベースのアクセス制御）: IAMロール・リソースのタグを使って動的にアクセス許可を決定する仕組み。チーム・環境別の権限管理に有効', keyword: 'IAM Permissions Boundary ABAC 属性ベースアクセス制御', tags: ['Permissions Boundary', 'ABAC', '最小権限'] },
         { name: 'AWS Config + AWS Security Hub（DOP）', desc: 'Configコンフォーマンスパック: 複数のConfigルールをまとめてYAMLでパッケージ化し、組織全体に一括展開できる\nSecurity Hub CIS/PCI自動チェック: CIS AWS Foundations Benchmark（セキュリティのベースライン）やPCI-DSS（クレジットカード業界基準）への準拠状況をAWS Configと連携して自動評価\n自動修復: 違反検出時にSSM Automationで自動修正するパターンが頻出', keyword: 'AWS Config コンフォーマンスパック Security Hub', tags: ['コンフォーマンスパック', 'CISベンチマーク', '自動修復'], seeAlso: ['Inspector / GuardDuty / Security Hub 使い分け', 'GuardDuty（脅威検出）'] },
@@ -531,7 +538,7 @@ const CHEAT_DATA: CheatData = {
         { name: 'Amazon DynamoDB Global Tables', desc: 'マルチリージョンのアクティブ-アクティブ（全リージョンで読み書き可能）DynamoDB構成。\n競合解決: Last-Write-Wins（LWW）方式。最後に書き込んだデータが優先される\nバージョン番号（バージョン衝突回避）: タイムスタンプベースで競合を検出して最新の書き込みを保持\nReplicasに複数リージョンを指定するだけで自動的に双方向レプリケーションが設定される', tags: ['アクティブ-アクティブ', 'Last-Write-Wins', 'マルチリージョン'] },
         { name: 'AWS Elastic Disaster Recovery（DRS）', desc: 'ソースサーバーにエージェントをインストールして継続的にAWSにレプリケーションしPITR（ポイントインタイムリカバリ）を実現するDRサービス。\nRTO（目標復旧時間）数分・低コスト（平常時はストレージのみ課金）のDRソリューション。フェイルオーバー時にEC2を起動してすぐに業務継続できる。', tags: ['PITR', '低コストDR', 'エージェント'] },
         { name: 'AWS Compute Optimizer', desc: 'EC2・Lambda・EBS・ECS・Auto Scalingのリソース使用状況を機械学習で分析してオーバープロビジョニングを検出し適正サイズを推奨するサービス。\n過去14日間（Extended: 93日間）のCloudWatchメトリクスを分析してコスト削減率とパフォーマンスリスクを表示する。', tags: ['適正サイズ', 'ML分析', 'コスト削減'] },
-        { name: 'AWS Cost Anomaly Detection', desc: '機械学習でAWSコストの異常（突然の急増等）を検出してSNS・メールで通知するサービス。\nモニターの種類: AWSサービス別・リンクアカウント別・コストカテゴリ別・タグ別に設定できる\n設定したしきい値（金額または割合）を超えた異常のみアラートするため不要な通知を削減できる', tags: ['異常検出', 'ML', 'SNS通知'] },
+        { name: 'AWS Cost Anomaly Detection', desc: '機械学習でAWSコストの異常（突然の急増等）を検出（Anomaly Detection）してSNS・メールで通知するサービス。\nモニターの種類: AWSサービス別・リンクアカウント別・コストカテゴリ別・タグ別に設定できる\n設定したしきい値（金額または割合）を超えた異常のみアラートするため不要な通知を削減できる', tags: ['異常検出 / Anomaly Detection', 'ML', 'SNS通知'] },
       ],
     },
   ],
@@ -599,7 +606,7 @@ const CHEAT_DATA: CheatData = {
       title: 'DNS・コンテンツ配信',
       items: [
         { name: 'Amazon Route 53詳細', desc: '7種類のルーティングポリシーを状況に応じて使い分ける（詳細はSAAの Route 53 ルーティング参照）。\nDNSSEC: DNS応答にデジタル署名を付加してDNSキャッシュポイズニング攻撃を防止する仕組み\nResolver DNS Firewall: 悪意のあるドメイン（C2サーバー・マルウェア配布元）へのDNS解決をブロックする機能', tags: ['DNSSEC', 'Resolver', 'DNS Firewall'] },
-        { name: 'Amazon Route 53 Resolver（ハイブリッドDNS）', desc: 'オンプレとAWS間のDNS名前解決を統合するサービス。\nインバウンドエンドポイント: オンプレのDNSサーバーからAWS（VPC）のDNSを解決できるようにする\n→ オンプレのサーバーがec2.internal等のAWSのホスト名を解決したい場合\nアウトバウンドエンドポイント: VPC内からオンプレのプライベートDNS（example.internal等）を解決できるようにする\n→ AWS上のアプリがオンプレのDBサーバー名を解決したい場合', tags: ['インバウンド', 'アウトバウンド', 'ハイブリッドDNS'] },
+        { name: 'Amazon Route 53 Resolver（ハイブリッドDNS）', desc: 'オンプレとAWS間のDNS名前解決を統合するサービス。\nインバウンドエンドポイント（Inbound Endpoint）: オンプレのDNSサーバーからAWS（VPC）のDNSを解決できるようにする\n→ オンプレのサーバーがec2.internal等のAWSのホスト名を解決したい場合\nアウトバウンドエンドポイント（Outbound Endpoint）: VPC内からオンプレのプライベートDNS（example.internal等）を解決できるようにする\n→ AWS上のアプリがオンプレのDBサーバー名を解決したい場合', tags: ['インバウンド / Inbound', 'アウトバウンド / Outbound', 'ハイブリッドDNS'] },
         { name: 'Amazon CloudFront詳細（ANS）', desc: 'Origins: S3 / ALB / EC2 / カスタムHTTPサーバー を配信元として設定\nビヘイビア: URLパスパターン（/api/*・/images/*等）ごとにオリジン・キャッシュ・関数を個別設定\nOAC（Origin Access Control）: S3バケットをCloudFront経由アクセス専用に制限する仕組み\nLambda@Edge: CloudFrontの4つのイベント（Viewer Request/Response・Origin Request/Response）でLambdaを実行\nField-Level暗号化: 機密フィールド（クレカ番号等）をエッジで非対称暗号化してバックエンドまで保護', tags: ['OAC', 'Lambda@Edge', 'Field-Level暗号化'] },
         { name: 'AWS Global Accelerator', desc: 'Anycast IP（複数拠点が同一IPを持つ技術）でユーザーを自動的に最寄りのAWSエッジポイントに誘導し、AWSバックボーン経由でエンドポイントに転送。\nエンドポイントグループ: リージョンごとにリソース（ALB・EC2等）をグループ化\nトラフィックダイヤル: グループへのトラフィック割合を0〜100%で調整（Blue/Greenデプロイに活用）', tags: ['Anycast', 'エンドポイントグループ', 'トラフィックダイヤル'] },
       ],

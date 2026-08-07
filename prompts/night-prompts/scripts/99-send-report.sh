@@ -627,6 +627,105 @@ PYEOF
 )
 echo "$COGNITO_NEW" | sed 's/^/  /'
 
+# ── サイト利用状況（ユーザー別演習数）───────────────────────────
+echo ""
+echo "--- [3d] サイト利用状況（ユーザー別演習数） ---"
+USAGE_SUMMARY=$(AWS="$AWS" TODAY="$TODAY" CANARY_EMAIL="$CANARY_EMAIL" python3 << 'PYEOF'
+import subprocess, json, os, datetime as dt
+
+AWS = os.environ.get('AWS', '/home/yuzuki/local/bin/aws')
+REGION = "ap-northeast-1"
+POOL = "ap-northeast-1_KIOFciGhQ"
+TABLE = "UserAnswers-prod"
+JST = dt.timezone(dt.timedelta(hours=9))
+EXCLUDE = {e.strip().lower() for e in [os.environ.get('CANARY_EMAIL', ''), 'e2e-canary@mugenknock.com'] if e.strip()}
+
+# 集計期間（前日 00:00〜当日 00:00 JST）— Cognito 新規と同じ「前日1日分」
+try:
+    base = dt.datetime.strptime(os.environ.get('TODAY', ''), '%Y%m%d').date()
+except Exception:
+    base = dt.datetime.now(JST).date()
+day_lo = dt.datetime.combine(base - dt.timedelta(days=1), dt.time(0, 0), JST)
+day_hi = dt.datetime.combine(base, dt.time(0, 0), JST)
+
+def parse_at(s):
+    try:
+        return dt.datetime.fromisoformat(str(s).replace('Z', '+00:00'))
+    except Exception:
+        return None
+
+# 1) UserAnswers を全スキャンしてユーザー別に集計（累計演習数・ユニーク問題数・前日分）
+per = {}
+start_key = None
+try:
+    while True:
+        cmd = [AWS, "dynamodb", "scan", "--table-name", TABLE, "--region", REGION,
+               "--projection-expression", "userId, questionId, answeredAt", "--max-items", "1000"]
+        if start_key:
+            cmd += ["--starting-token", start_key]
+        r = subprocess.run(cmd, capture_output=True, text=True, timeout=120)
+        dd = json.loads(r.stdout or "{}")
+        for it in dd.get("Items", []):
+            uid = it.get("userId", {}).get("S")
+            if not uid:
+                continue
+            qid = it.get("questionId", {}).get("S", "")
+            at = parse_at(it.get("answeredAt", {}).get("S", ""))
+            ent = per.setdefault(uid, {"total": 0, "q": set(), "day": 0})
+            ent["total"] += 1
+            if qid:
+                ent["q"].add(qid)
+            if at and day_lo <= at.astimezone(JST) < day_hi:
+                ent["day"] += 1
+        start_key = dd.get("NextToken")
+        if not start_key:
+            break
+except Exception as ex:
+    print(f"取得失敗: {ex}")
+    raise SystemExit(0)
+
+# 2) Cognito から sub -> email マップを構築
+email_map = {}
+token = None
+try:
+    while True:
+        cmd = [AWS, "cognito-idp", "list-users", "--user-pool-id", POOL, "--region", REGION,
+               "--attributes-to-get", "email", "--max-items", "60"]
+        if token:
+            cmd += ["--pagination-token", token]
+        r = subprocess.run(cmd, capture_output=True, text=True, timeout=60)
+        dd = json.loads(r.stdout or "{}")
+        for u in dd.get("Users", []):
+            sub = u.get("Username", "")
+            email = next((a["Value"] for a in u.get("Attributes", []) if a.get("Name") == "email"), "")
+            if sub:
+                email_map[sub] = email or "(email不明)"
+        token = dd.get("PaginationToken")
+        if not token:
+            break
+except Exception:
+    pass
+
+# 3) 整形（カナリア除外・累計演習数の多い順）
+rows = []
+for uid, ent in per.items():
+    email = email_map.get(uid, "(未登録/ゲスト)")
+    if email.strip().lower() in EXCLUDE:
+        continue
+    rows.append((ent["total"], len(ent["q"]), ent["day"], email))
+rows.sort(key=lambda x: (-x[0], -x[2]))
+
+tot_users = len(rows)
+tot_answers = sum(r[0] for r in rows)
+tot_day = sum(r[2] for r in rows)
+print(f"稼働ユーザー {tot_users}人 / 累計演習 {tot_answers}問 / 前日 {tot_day}問")
+for total, uniq, day, email in rows[:40]:
+    day_s = f"（前日+{day}）" if day else ""
+    print(f"{email}\t{total}問 / ユニーク{uniq}問{day_s}")
+PYEOF
+)
+echo "$USAGE_SUMMARY" | sed 's/^/  /'
+
 # ── 3. canary テスト ─────────────────────────────────────────
 echo ""
 echo "--- [4] canary テスト ---"
@@ -1065,6 +1164,7 @@ data = {
     'canary_auth_d':sys.argv[23],
     'test_user_check':sys.argv[24],
     'service_news':sys.argv[25],
+    'usage':sys.argv[26],
 }
 with open('$REPORT_DATA_FILE', 'w') as f:
     json.dump(data, f, ensure_ascii=False)
@@ -1077,7 +1177,8 @@ with open('$REPORT_DATA_FILE', 'w') as f:
   "$DB_GEN3D" "$DB_CHK3D" \
   "$AUDIT_SUMMARY" "$CANARY_COV_SUMMARY" "$DAILY_SUMMARY" \
   "$BACKEND_HEALTH" "$CANARY_AUTH_RESULT" "$COGNITO_NEW" \
-  "${CANARY_AUTH_DETAIL:-}" "$TEST_USER_CHECK" "$SERVICE_NEWS"
+  "${CANARY_AUTH_DETAIL:-}" "$TEST_USER_CHECK" "$SERVICE_NEWS" \
+  "$USAGE_SUMMARY"
 
 # HTML生成＋メール送信を1つのPythonスクリプトで実行
 SEND_RESULT=$(REPORT_DATA_FILE="$REPORT_DATA_FILE" python3 << 'PYEOF'
@@ -1259,6 +1360,26 @@ cognito_section = (
 canary_detail_html = f"<br><br><b>失敗詳細:</b><pre>{canary_d}</pre>" if d['canary_d'].strip() else ""
 canary_auth_detail_html = f"<br><b>ログイン後 失敗詳細:</b><pre>{canary_auth_d}</pre>" if d.get('canary_auth_d','').strip() else ""
 
+# サイト利用状況（ユーザー別演習数）
+usage_raw = str(d.get('usage', '')).strip()
+usage_lines = [l for l in usage_raw.split('\n') if l.strip()] if usage_raw else []
+usage_failed = bool(usage_lines) and usage_lines[0].startswith('取得失敗')
+usage_header = e(usage_lines[0]) if usage_lines and not usage_failed else 'データなし'
+def _usage_row(l):
+    parts = l.split('\t', 1)
+    em = e(parts[0].strip())
+    st = e(parts[1].strip()) if len(parts) > 1 else ''
+    return f'<tr><td style="word-break:break-all">{em}</td><td style="white-space:nowrap">{st}</td></tr>'
+usage_rows = ''.join(_usage_row(l) for l in usage_lines[1:]) if not usage_failed else ''
+usage_body = (
+    f'<table><tr><th>メールアドレス</th><th>演習数（累計 / ユニーク）</th></tr>{usage_rows}</table>'
+    if usage_rows else '<div style="font-size:13px;color:#888">演習データなし</div>'
+)
+usage_section = (
+    f'<h2>&#128202; サイト利用状況（ユーザー別演習数）</h2>'
+    f'<div class="card"><div style="margin-bottom:8px;font-size:13px"><b>{usage_header}</b></div>{usage_body}</div>'
+)
+
 html_body = f"""<!DOCTYPE html>
 <html lang="ja"><head><meta charset="UTF-8">
 <style>
@@ -1321,6 +1442,8 @@ html_body = f"""<!DOCTYPE html>
   <tr><td>未解決通報</td><td style="color:{rpts_color}"><b>{db_rpts} 件</b></td></tr>
 </table>
 <br><b>資格別問題数:</b><pre>{db_exams}</pre></div>
+
+{usage_section}
 
 {cognito_section}
 
