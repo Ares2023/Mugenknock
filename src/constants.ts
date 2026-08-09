@@ -226,7 +226,8 @@ export const EXAM_SUPPLEMENTARY_RULES: Partial<Record<string, string>> = {
 ・SSM Distributor: ソフトウェアパッケージの作成・バージョン管理・一括配布
 ・Route 53 Resolver: インバウンド(オンプレ→AWS)/アウトバウンド(AWS→オンプレ)エンドポイントの向きと用途
 ・S3レプリケーション: ライブ(新規継続) vs バッチ(既存を遡って複製)、RTC(15分SLA)の使い分け
-・CloudFormation: スタック削除でもリソースを残す DeletionPolicy:Retain/Snapshot、終了保護との違い`,
+・CloudFormation: スタック削除でもリソースを残す DeletionPolicy:Retain/Snapshot、終了保護との違い
+・トラブルシューティング問題を一定割合で出すこと（症状・エラー・接続不可を提示し根本原因/修正を問う）。例: S3イベントでLambdaが起動しない(リソースベースポリシー欠如)、プライベートEC2からS3に届かない(VPCエンドポイント/NAT不在)、AccessDenied(IAM/SCP/KMS)、CloudWatchにメモリが出ない(エージェント未導入)、ALBターゲットがunhealthy(ヘルスチェック/SG)`,
 };
 
 export const EXAM_OFFICIAL_URLS: Record<string, { page: string; guide: string }> = {
