@@ -754,6 +754,9 @@ export default function CheatSheet() {
   const isMobile = useIsMobile();
   const [activeLevel, setActiveLevel] = useState<LevelKey>('Associate');
   const [selectedExam, setSelectedExam] = useState<string>('SAA');
+  // 資格カードの横スクロール行と選択中カード（選択カードが右端で見切れないよう水平スクロールする）
+  const examRowRef = useRef<HTMLDivElement>(null);
+  const selExamBtnRef = useRef<HTMLButtonElement>(null);
   const [search, setSearch] = useState('');
   const [goalInit, setGoalInit] = useState(false);
   const [copiedTerm, setCopiedTerm] = useState<string | null>(null);
@@ -855,6 +858,24 @@ export default function CheatSheet() {
       setPendingScrollTo(null);
     }
   }, [selectedExam, pendingScrollTo, headerHeight]);
+
+  // 選択中の資格カードが横スクロール行内で見切れないように水平スクロール位置を合わせる
+  // （例: 目標資格=MLA のとき Associate の最後尾 MLA が右端で切れるのを防ぐ）。
+  // 垂直スクロールは動かさず、行内の scrollLeft だけ調整する。
+  useEffect(() => {
+    const row = examRowRef.current;
+    const btn = selExamBtnRef.current;
+    if (!row || !btn) return;
+    const bLeft = btn.offsetLeft;
+    const bRight = bLeft + btn.offsetWidth;
+    const viewLeft = row.scrollLeft;
+    const viewRight = viewLeft + row.clientWidth;
+    if (bRight > viewRight) {
+      row.scrollTo({ left: bRight - row.clientWidth + 8, behavior: 'smooth' });
+    } else if (bLeft < viewLeft) {
+      row.scrollTo({ left: Math.max(0, bLeft - 8), behavior: 'smooth' });
+    }
+  }, [selectedExam, activeLevel, isMobile]);
 
   useEffect(() => {
     if (loading || goalInit) return;
@@ -996,13 +1017,14 @@ export default function CheatSheet() {
           ))}
         </div>
         {/* 試験カード（横スクロール） */}
-        <div style={{ display: 'flex', gap: 8, padding: isMobile ? '8px 0' : '3px 0', overflowX: 'auto', flexShrink: 0 }}>
+        <div ref={examRowRef} style={{ display: 'flex', gap: 8, padding: isMobile ? '8px 0' : '3px 0', overflowX: 'auto', flexShrink: 0 }}>
           {currentLevelExams.filter(e => CHEAT_DATA[e]).map(exam => {
             const isSelected = selectedExam === exam;
             const EIcon = EXAM_ICON_COMPONENTS[exam];
             return (
               <button
                 key={exam}
+                ref={isSelected ? selExamBtnRef : undefined}
                 onClick={() => selectExam(exam)}
                 style={{
                   flexShrink: 0, width: 72, padding: '8px 6px 6px', cursor: 'pointer',
