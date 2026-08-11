@@ -2064,6 +2064,51 @@ app.get('/users/me/incorrect-questions', async (req, res) => {
   }
 });
 
+// 演習フィルタ用のユーザー別問題ステータスを1回のクエリで返す（answered/incorrect/weak/bookmarked）。
+// しっかり対策・演習・模試の個別フェッチ（answered/incorrect/weak/bookmark）を1本に集約し、
+// UserQuestionStats走査と examType 問題ID引きを各1回に抑える。
+// weak = 演習済みで累計正答率(correctCount/総試行) <= WEAK_ACC(0.75)。
+app.get('/users/me/question-status', async (req, res) => {
+  try {
+    const docClient = getClient();
+    const { userId, examType } = req.query;
+    const WEAK_ACC = 0.75;
+
+    const statsResult = await docClient.send(new QueryCommand({
+      TableName: T('UserQuestionStats'),
+      KeyConditionExpression: 'userId = :uid',
+      ExpressionAttributeValues: { ':uid': userId }
+    }));
+    let items = statsResult.Items || [];
+
+    if (examType) {
+      const questionsResult = await docClient.send(new QueryCommand({
+        TableName: 'Questions',
+        IndexName: 'examType-index',
+        KeyConditionExpression: 'examType = :et',
+        ExpressionAttributeValues: { ':et': examType },
+        ProjectionExpression: 'questionId'
+      }));
+      const examQuestionIds = new Set((questionsResult.Items || []).map(q => q.questionId));
+      items = items.filter(s => examQuestionIds.has(s.questionId));
+    }
+
+    const answered = [], incorrect = {}, weak = [], bookmarked = [];
+    for (const s of items) {
+      const c = s.correctCount ?? 0, i = s.incorrectCount ?? 0, total = c + i;
+      answered.push(s.questionId); // 統計行がある=既回答扱い（既存 answered-questions と同一挙動）
+      if (i > 0) incorrect[s.questionId] = i;
+      if (total > 0 && (c / total) <= WEAK_ACC) weak.push(s.questionId);
+      if (s.bookmarked) bookmarked.push(s.questionId);
+    }
+
+    res.json({ answered, incorrect, weak, bookmarked });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
 // 頻出ミス問題（incorrectCount >= minIncorrect）
 app.get('/users/me/weak-questions', async (req, res) => {
   try {

@@ -32,7 +32,6 @@ import { autoScoreAndClearDrafts } from '../utils/sessionUtils';
 import { hydrateDraftsFromServer } from '../utils/sessionResume';
 import { syncTargetExamToServer, loadTargetExamFromServer, resetExercisePrefsOnExamChange } from '../utils/preferences';
 import { fetchDailyProgress } from '../utils/dailyProgress';
-import { prefetchTypeA, prefetchTypeB, prefetchTypeC, getPrefetchA, getPrefetchB, getPrefetchC } from '../utils/questionPrefetch';
 
 type DomainStat = { tagId: string; correctCount?: number; incorrectCount?: number; recentResults?: boolean[] };
 type SessionEntry = { correct: number; total: number };
@@ -1132,29 +1131,9 @@ const FOCUSED_UNLOCK_THRESHOLD = 30;
 function loadQuickPrefs(uid: string) {
   try { return JSON.parse(localStorage.getItem(`quickExercisePrefs_${uid}`) ?? '{}'); } catch { return {}; }
 }
-// サクッと演習の「重点フィルタ」（排他・単一選択）: なし / 未回答 / 不正解 / 未正解(=未回答+不正解)
-// ※ブックマーク優先はこの排他3択とは別の独立トグル（bookmarkOnly）として併用可能。
-type QuickFilter = 'none' | 'unanswered' | 'incorrect' | 'notcorrect';
-function resolveQuickFilter(p: Record<string, any>): QuickFilter {
-  const f = p?.quickFilter;
-  if (f === 'none' || f === 'unanswered' || f === 'incorrect' || f === 'notcorrect') return f;
-  // 後方互換（旧: 独立トグル unansweredOnly/incorrectOnly、および一時期の quickFilter='bookmark'）
-  if (p?.unansweredOnly && p?.incorrectOnly) return 'notcorrect';
-  if (p?.incorrectOnly) return 'incorrect';
-  if (p?.unansweredOnly) return 'unanswered';
-  return 'none';
-}
-// ブックマーク優先は排他3択とは独立したトグル
+// サクッと演習はシンプル・全体演習。弱点フィルタは持たず、ブックマーク優先のみ独立トグルで併用可。
 function quickBookmark(p: Record<string, any>): boolean {
   return p?.bookmarkOnly === true || p?.quickFilter === 'bookmark';
-}
-// 排他フィルタ＋ブックマーク → バックエンド送信フラグ（未正解=未回答+不正解の和集合を優先）
-function quickFilterFlags(f: QuickFilter, bookmark: boolean): { unansweredOnly: boolean; incorrectOnly: boolean; bookmarkOnly: boolean } {
-  return {
-    unansweredOnly: f === 'unanswered' || f === 'notcorrect',
-    incorrectOnly:  f === 'incorrect'  || f === 'notcorrect',
-    bookmarkOnly:   bookmark,
-  };
 }
 function loadFocusedPrefs(uid: string) {
   try { return JSON.parse(localStorage.getItem(`focusedExercisePrefs_${uid}`) ?? '{}'); } catch { return {}; }
@@ -1163,7 +1142,12 @@ function loadFocusedPrefs(uid: string) {
 type FocusPriority = 'unanswered' | 'incorrect' | 'notcorrect';
 function resolveFocusPriority(p: Record<string, any>): FocusPriority {
   if (p?.focusPriority === 'unanswered' || p?.focusPriority === 'incorrect' || p?.focusPriority === 'notcorrect') return p.focusPriority;
-  return 'incorrect'; // 後方互換（旧 focusIncorrect の既定＝不正解優先）
+  return 'incorrect'; // 後方互換（旧 focusIncorrect の既定＝不正解優先。旧 'weak' は下の focusWeakOn で拾う）
+}
+// 「苦手を優先」は排他ラジオとは独立したトグル（累計正答率75%以下を上乗せ）。
+// 旧仕様で focusPriority='weak' を選んでいたユーザーは苦手ONへ移行する。
+function focusWeakOn(p: Record<string, any>): boolean {
+  return p?.focusWeak === true || p?.focusPriority === 'weak';
 }
 function shuffleArray<T>(arr: T[]): T[] {
   const a = [...arr];
@@ -1294,6 +1278,30 @@ export default function Home() {
   const [showFocusedModal, setShowFocusedModal] = useState(false);
   const [draftFocusedPrefs, setDraftFocusedPrefs] = useState<Record<string, any>>({});
   const savedFocusedPrefsRef = useRef<Record<string, any>>({});
+  // しっかり対策 設定モーダルの各優先条件の該当件数（未回答/不正解/未正解/苦手）
+  const [focusedCounts, setFocusedCounts] = useState<{ unanswered?: number; incorrect?: number; notcorrect?: number; weak?: number } | null>(null);
+  useEffect(() => {
+    if (!showFocusedModal || !user || !targetExam) { setFocusedCounts(null); return; }
+    let cancelled = false;
+    const uid2 = user.userId;
+    (async () => {
+      try {
+        const [idsRes, statusRes] = await Promise.all([
+          fetch(`${API_ENDPOINT}/questions?examType=${targetExam}&idsOnly=true`).then(r => r.json()).catch(() => null),
+          fetch(`${API_ENDPOINT}/users/me/question-status?userId=${uid2}&examType=${targetExam}`).then(r => r.json()).catch(() => null),
+        ]);
+        if (cancelled) return;
+        const total = (idsRes?.questionIds ?? []).length;
+        const answered = (statusRes?.answered ?? []).length;
+        const incorrect = Object.keys(statusRes?.incorrect ?? {}).length;
+        const weak = (statusRes?.weak ?? []).length;
+        const unanswered = Math.max(0, total - answered);
+        setFocusedCounts({ unanswered, incorrect, notcorrect: unanswered + incorrect, weak });
+      } catch { if (!cancelled) setFocusedCounts(null); }
+    })();
+    return () => { cancelled = true; };
+  }, [showFocusedModal, user, targetExam]);
+
   const [quickBurst, setQuickBurst] = useState<{ x: number; y: number } | null>(null);
   const [focusedBurst, setFocusedBurst] = useState<{ x: number; y: number } | null>(null);
   const [quickSaving, setQuickSaving] = useState(false);
@@ -1340,12 +1348,6 @@ export default function Home() {
     window.addEventListener('targetExamChanged', handler);
     return () => window.removeEventListener('targetExamChanged', handler);
   }, []);
-
-  // ── タイプAプリフェッチ: targetExam が変化したとき（キャッシュ未存在時のみ生成） ──
-  useEffect(() => {
-    if (!targetExam) return;
-    if (!getPrefetchA(targetExam)) prefetchTypeA(targetExam, uid);
-  }, [targetExam, uid]);
 
   // ── 成績フェッチ（stale-while-revalidate） ─────────────────────────
   const TS_KEY = (uid: string) => `_ts_ustats_${uid}`;
@@ -1727,31 +1729,8 @@ export default function Home() {
     setQuickLoading(true);
     setQuickLoadPct(10);
     const qPrefs = loadQuickPrefs(uid);
-    const quickFilter = resolveQuickFilter(qPrefs);
-    const qFlags = quickFilterFlags(quickFilter, quickBookmark(qPrefs));
-
-    // ── プリフェッチキャッシュを使用 ──
-    {
-      const hasFilters = !!(qFlags.unansweredOnly || qFlags.incorrectOnly || qFlags.bookmarkOnly || (qPrefs.domains?.length ?? 0) > 0);
-      const cached = hasFilters ? getPrefetchC(targetExam, userId, qPrefs) : getPrefetchA(targetExam);
-      if (cached && cached.questions.length > 0) {
-        try {
-          const count = qPrefs.questionCount ?? 5;
-          const items = shuffleArray(cached.questions).slice(0, count);
-          // キャッシュが設定問題数に満たない場合は使わず、通常経路（プール全体）で選定する
-          if (items.length >= count) {
-            setQuickLoadPct(90);
-            const questionIds = items.map((q: any) => q.questionId);
-            setQuickLoading(false); setQuickLoadPct(0);
-            // セッション作成は遷移先で非同期実行（クリティカルパスから除外）
-            navigate('/aws/exercise/session', { state: { createSession: { userId, mode: 'exercise', examType: targetExam, questionIds }, questions: items, userId, mode: 'exercise', examType: targetExam, isQuick: true } });
-            return;
-          }
-        } catch (err) {
-          console.debug('[prefetch] quick cache failed, fallback:', err);
-        }
-      }
-    }
+    // サクッとはシンプル・全体演習。弱点系フィルタは持たず、ブックマーク優先のみ任意。
+    const qFlags = { unansweredOnly: false, incorrectOnly: false, bookmarkOnly: quickBookmark(qPrefs) };
 
     try {
       const userId = user?.userId ?? 'guest';
@@ -1818,30 +1797,6 @@ export default function Home() {
     setFocusedLoadPct(10);
     const fPrefs = loadFocusedPrefs(uid);
 
-    // ── プリフェッチキャッシュを使用 ──
-    {
-      const userId = user.userId;
-      const hasFilters = true; // しっかり対策は常に優先条件（未回答/不正解/未正解）でパーソナライズする
-      const cached = hasFilters ? getPrefetchB(targetExam, userId, fPrefs) : getPrefetchA(targetExam);
-      if (cached && cached.questions.length > 0) {
-        try {
-          const count = fPrefs.questionCount ?? 5;
-          const items = shuffleArray(cached.questions).slice(0, count);
-          // キャッシュが設定問題数に満たない場合は使わず、通常経路（プール全体）で選定する
-          if (items.length >= count) {
-            setFocusedLoadPct(90);
-            const questionIds = items.map((q: any) => q.questionId);
-            setFocusedLoading(false); setFocusedLoadPct(0);
-            // セッション作成は遷移先で非同期実行（クリティカルパスから除外）
-            navigate('/aws/exercise/session', { state: { createSession: { userId, mode: 'exercise', examType: targetExam, questionIds, isFocused: true }, questions: items, userId, mode: 'exercise', examType: targetExam, isQuick: true, isFocused: true } });
-            return;
-          }
-        } catch (err) {
-          console.debug('[prefetch] focused cache failed, fallback:', err);
-        }
-      }
-    }
-
     try {
       const userId = user.userId;
       const qCacheKey = `qlist_${targetExam}`;
@@ -1850,19 +1805,25 @@ export default function Home() {
       const stopAnim = cachedQs ? null : animateLoadPct(setFocusedLoadPct, 10, plateau);
       // プール（フルキャッシュがあればそれを、無ければ metaOnly 軽量取得）と苦手問題データを並行フェッチ。
       // 弱点ドメイン判定は q.domain のみ・苦手判定は questionId のみ使うため metaOnly で足りる。
-      const [data, incorrectRes, answeredRes] = await Promise.all([
+      // 優先する問題（排他）: 未回答 / 不正解 / 未正解(=未回答 or 不正解)
+      const focusPriority = resolveFocusPriority(fPrefs);
+      const focusWeak = focusWeakOn(fPrefs); // 苦手を優先（独立・上乗せ）
+      // プール(metaOnly)＋ユーザー問題ステータス(answered/incorrect/weak)を1本ずつで取得。
+      const [data, statusRes] = await Promise.all([
         cachedQs ? Promise.resolve(cachedQs) : fetch(`${API_ENDPOINT}/questions?examType=${targetExam}&metaOnly=true`).then(r => r.json()),
-        fetch(`${API_ENDPOINT}/users/me/incorrect-questions?userId=${userId}&examType=${targetExam}`).then(r => r.json()),
-        fetch(`${API_ENDPOINT}/users/me/answered-questions?userId=${userId}&examType=${targetExam}`).then(r => r.json()),
+        fetch(`${API_ENDPOINT}/users/me/question-status?userId=${userId}&examType=${targetExam}`).then(r => r.json()).catch(() => null),
       ]);
       if (stopAnim) { stopAnim(); setFocusedLoadPct(plateau); }
       // フルキャッシュ時のみ明示的に validity フィルタ（metaOnly はサーバ側で済み）
       const allItems: any[] = cachedQs ? (data.items ?? []).filter((q: any) => !!q.validityCheckedAt) : (data.items ?? []);
-      const incorrectCounts: Record<string, number> = incorrectRes.counts ?? {};
-      const answeredSet = new Set<string>(answeredRes?.questionIds ?? []);
-      // 優先する問題（排他・3択）: 未回答 / 不正解 / 未正解(=未回答 or 不正解)
-      const focusPriority = resolveFocusPriority(fPrefs);
-      const focusDomain: string = fPrefs.focusDomain ?? 'below60';
+      // プールをキャッシュして次回セッションの全件再取得を省く（短TTL）
+      if (!cachedQs && (data?.items?.length ?? 0) > 0) {
+        setCachedPersist(qCacheKey, { items: data.items, total: data.total ?? data.items.length }, 10 * 60 * 1000);
+      }
+      const incorrectCounts: Record<string, number> = statusRes?.incorrect ?? {};
+      const answeredSet = new Set<string>(statusRes?.answered ?? []);
+      const weakSet = new Set<string>(statusRes?.weak ?? []);
+      const focusDomain: string = fPrefs.focusDomain ?? 'none'; // 既定オフ：選んだ優先条件が素直に効くように（ドメイン重みは明示ONで併用）
 
       // ② 弱点ドメイン判定は「直近10回」(recentResults) の正答率を優先採用。
       //    無ければ累計 correct/incorrect → ドメイン履歴の順にフォールバック。
@@ -1902,7 +1863,7 @@ export default function Home() {
       // ① 蓄積成績で重み付けして抽出：base + 優先集合ヒット×W + ミス回数×W + ドメイン弱点度×W。
       //    選んだ優先条件（未回答/不正解/未正解）に合う問題を強く優先しつつ、base 重みで
       //    条件外の問題も混ぜて充足（count 件）を担保する（少ない場合の補充）。
-      const W_PRIORITY = 8, W_INCORRECT = 4, W_DOMAIN = 6, BASE = 1;
+      const W_PRIORITY = 8, W_WEAK = 8, W_INCORRECT = 4, W_DOMAIN = 6, BASE = 1;
       const count = fPrefs.questionCount ?? 5;
       const pool = Array.from(new Map(allItems.map((q: any) => [q.questionId, q])).values());
       const items = weightedSampleWithoutReplacement(pool, (q: any) => {
@@ -1914,6 +1875,8 @@ export default function Home() {
           : (isUnanswered || isIncorrect); // notcorrect = 未回答 or 不正解
         let w = BASE;
         if (inTarget) w += W_PRIORITY;
+        // 苦手を優先（独立・上乗せ）: 累計正答率75%以下の問題をさらに重視
+        if (focusWeak && weakSet.has(qid)) w += W_WEAK;
         // 不正解を含む優先度では、ミス回数が多い問題ほどさらに優先
         if (focusPriority !== 'unanswered') w += (incorrectCounts[qid] ?? 0) * W_INCORRECT;
         w += domainDeficit(qDomainName(q)) * W_DOMAIN;
@@ -2592,10 +2555,15 @@ export default function Home() {
         >
           <div style={{ background: 'var(--color-bg-white)', borderRadius: 'var(--border-radius-lg)', width: '100%', maxWidth: 420, boxShadow: 'var(--box-shadow-md)', maxHeight: isMobile ? '75vh' : '60vh', display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
             {/* ヘッダー固定 */}
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '20px 24px 0', flexShrink: 0 }}>
-              <h3 style={{ margin: 0, fontSize: 'var(--font-size-h3)', fontWeight: 700, color: 'var(--color-accent)' }}>
-                {ja ? 'サクッと演習 設定' : 'Quick Practice Settings'}
-              </h3>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', padding: '20px 24px 0', flexShrink: 0 }}>
+              <div>
+                <h3 style={{ margin: 0, fontSize: 'var(--font-size-h3)', fontWeight: 700, color: 'var(--color-accent)' }}>
+                  {ja ? 'サクッと演習 設定' : 'Quick Practice Settings'}
+                </h3>
+                <div style={{ fontSize: 'var(--font-size-xs)', color: 'var(--color-text-light)', marginTop: 2 }}>
+                  {ja ? '全ドメインを幅広く均等に出題' : 'Broad, even coverage across domains'}
+                </div>
+              </div>
               <button onClick={() => setShowQuickModal(false)} style={{ border: 'none', background: 'none', fontSize: 'var(--font-size-xl)', cursor: 'pointer', color: 'var(--color-text-sub)', padding: '4px 8px', lineHeight: 1 }}>✕</button>
             </div>
             {/* スクロール可能なコンテンツ */}
@@ -2623,39 +2591,13 @@ export default function Home() {
                 </div>
                 <div style={{ padding: '14px 0', borderBottom: targetExam && (EXAM_DOMAINS[targetExam] ?? []).length > 0 ? '1px solid var(--color-border)' : 'none' }}>
                   <div style={{ fontWeight: 500, fontSize: 'var(--font-size-base)', color: 'var(--color-text-main)', marginBottom: 2 }}>
-                    {ja ? '重点フィルタ' : 'Focus Filter'}
+                    {ja ? 'ブックマーク' : 'Bookmarks'}
                   </div>
                   <div style={{ fontSize: 'var(--font-size-xs)', color: 'var(--color-text-light)', marginBottom: 8 }}>
-                    {ja ? 'いずれか1つを選択（排他）' : 'Choose one (exclusive)'}
+                    {ja ? '苦手・不正解などの絞り込みは「しっかり対策」へ' : 'Weakness filters are in Focused Practice'}
                   </div>
-                  {(() => {
-                    const cur = resolveQuickFilter(draftPrefs);
-                    return ([
-                      ['none',       ja ? 'なし（すべて）' : 'None (All)', ''],
-                      ['unanswered', ja ? '未回答を優先' : 'Unanswered', ja ? 'まだ解いていない問題' : 'Not yet answered'],
-                      ['incorrect',  ja ? '不正解を優先' : 'Incorrect', ja ? '過去に間違えた問題' : 'Previously incorrect'],
-                      ['notcorrect', ja ? '未正解を優先' : 'Not Correct', ja ? '未回答＋不正解（まだ正解していない問題）' : 'Unanswered + incorrect'],
-                    ] as [QuickFilter, string, string][]).map(([val, label, desc]) => {
-                      const selected = cur === val;
-                      return (
-                        <label key={val} style={{ display: 'flex', alignItems: 'flex-start', gap: 10, padding: '8px 0', cursor: 'pointer' }}>
-                          <input
-                            type="radio"
-                            name="quickFilter"
-                            checked={selected}
-                            onChange={() => setDraftPrefs(p => ({ ...p, quickFilter: val, unansweredOnly: undefined, incorrectOnly: undefined }))}
-                            style={{ width: 16, height: 16, flexShrink: 0, marginTop: desc ? 2 : 0, accentColor: 'var(--color-primary)' }}
-                          />
-                          <span>
-                            <span style={{ display: 'block', fontSize: 'var(--font-size-sm)', fontWeight: selected ? 700 : 500, color: 'var(--color-text-main)' }}>{label}</span>
-                            {desc && <span style={{ display: 'block', fontSize: 'var(--font-size-xs)', color: 'var(--color-text-light)' }}>{desc}</span>}
-                          </span>
-                        </label>
-                      );
-                    });
-                  })()}
-                  {/* ブックマーク優先は排他3択とは別の独立トグル（併用可） */}
-                  <label style={{ display: 'flex', alignItems: 'flex-start', gap: 10, padding: '8px 0', marginTop: 4, borderTop: '1px solid var(--color-border)', cursor: 'pointer' }}>
+                  {/* サクッとはシンプル・全体演習。ブックマーク優先だけ任意で使える */}
+                  <label style={{ display: 'flex', alignItems: 'flex-start', gap: 10, padding: '8px 0', cursor: 'pointer' }}>
                     <input
                       type="checkbox"
                       checked={quickBookmark(draftPrefs)}
@@ -2780,11 +2722,6 @@ export default function Home() {
                           const r = saveBtnQuickRef.current?.getBoundingClientRect();
                           if (r) setQuickBurst({ x: r.left + r.width / 2, y: r.top + r.height / 2 });
                         }
-                        if (targetExam) {
-                          const _qf = quickFilterFlags(resolveQuickFilter(draftPrefs), quickBookmark(draftPrefs));
-                          const hasFilters = !!(_qf.unansweredOnly || _qf.incorrectOnly || _qf.bookmarkOnly || (draftPrefs.domains?.length ?? 0) > 0);
-                          if (hasFilters) { prefetchTypeC(targetExam, uid, draftPrefs); } else { prefetchTypeA(targetExam, uid); }
-                        }
                       }}
                       style={{ width: 44, height: 44, flexShrink: 0, padding: 0, border: 'none', background: 'transparent', cursor: (isDisabled || quickSaving) ? 'default' : 'pointer', opacity: isDisabled ? 0.5 : 1, perspective: 600, transition: 'none' }}
                     >
@@ -2817,10 +2754,15 @@ export default function Home() {
         >
           <div style={{ background: 'var(--color-bg-white)', borderRadius: 'var(--border-radius-lg)', width: '100%', maxWidth: 420, boxShadow: 'var(--box-shadow-md)', maxHeight: isMobile ? '75vh' : '60vh', display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
             {/* ヘッダー固定 */}
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '20px 24px 0', flexShrink: 0 }}>
-              <h3 style={{ margin: 0, fontSize: 'var(--font-size-h3)', fontWeight: 700, color: '#009E9E' }}>
-                {ja ? 'しっかり対策 設定' : 'Focused Practice Settings'}
-              </h3>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', padding: '20px 24px 0', flexShrink: 0 }}>
+              <div>
+                <h3 style={{ margin: 0, fontSize: 'var(--font-size-h3)', fontWeight: 700, color: '#009E9E' }}>
+                  {ja ? 'しっかり対策 設定' : 'Focused Practice Settings'}
+                </h3>
+                <div style={{ fontSize: 'var(--font-size-xs)', color: 'var(--color-text-light)', marginTop: 2 }}>
+                  {ja ? '苦手・弱点を集中的に出題' : 'Concentrates on your weak spots'}
+                </div>
+              </div>
               <button onClick={() => setShowFocusedModal(false)} style={{ border: 'none', background: 'none', fontSize: 'var(--font-size-xl)', cursor: 'pointer', color: 'var(--color-text-sub)', padding: '4px 8px', lineHeight: 1 }}>✕</button>
             </div>
             {/* スクロール可能なコンテンツ */}
@@ -2862,6 +2804,7 @@ export default function Home() {
                       ['notcorrect', ja ? '未正解を優先' : 'Not Correct', ja ? '未回答＋不正解（まだ正解していない問題）' : 'Unanswered + incorrect (not yet correct)'],
                     ] as [FocusPriority, string, string][]).map(([val, label, desc]) => {
                       const selected = curPriority === val;
+                      const cnt = focusedCounts ? (focusedCounts as any)[val] as number | undefined : undefined;
                       return (
                         <label key={val} style={{ display: 'flex', alignItems: 'flex-start', gap: 10, padding: '8px 0', cursor: 'pointer' }}>
                           <input
@@ -2871,30 +2814,49 @@ export default function Home() {
                             onChange={() => setDraftFocusedPrefs(p => ({ ...p, focusPriority: val }))}
                             style={{ width: 16, height: 16, flexShrink: 0, marginTop: 2, accentColor: 'var(--color-primary)' }}
                           />
-                          <span>
-                            <span style={{ display: 'block', fontSize: 'var(--font-size-sm)', fontWeight: selected ? 700 : 500, color: 'var(--color-text-main)' }}>{label}</span>
+                          <span style={{ flex: 1 }}>
+                            <span style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', gap: 8, fontSize: 'var(--font-size-sm)', fontWeight: selected ? 700 : 500, color: 'var(--color-text-main)' }}>
+                              <span>{label}</span>
+                              {cnt != null && <span style={{ fontSize: 'var(--font-size-xs)', fontWeight: 700, color: selected ? 'var(--color-primary)' : 'var(--color-text-light)', flexShrink: 0 }}>{cnt}{ja ? '問' : ''}</span>}
+                            </span>
                             <span style={{ display: 'block', fontSize: 'var(--font-size-xs)', color: 'var(--color-text-light)' }}>{desc}</span>
                           </span>
                         </label>
                       );
                     });
                   })()}
+                  {/* 苦手を優先（独立トグル・上乗せ）: 累計正答率75%以下を重視 */}
+                  <label style={{ display: 'flex', alignItems: 'flex-start', gap: 10, padding: '8px 0', marginTop: 4, borderTop: '1px solid var(--color-border)', cursor: 'pointer' }}>
+                    <input
+                      type="checkbox"
+                      checked={focusWeakOn(draftFocusedPrefs)}
+                      onChange={() => setDraftFocusedPrefs(p => ({ ...p, focusWeak: !focusWeakOn(p), focusPriority: p.focusPriority === 'weak' ? 'incorrect' : p.focusPriority }))}
+                      style={{ width: 16, height: 16, flexShrink: 0, marginTop: 2, accentColor: 'var(--color-primary)' }}
+                    />
+                    <span style={{ flex: 1 }}>
+                      <span style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', gap: 8, fontSize: 'var(--font-size-sm)', fontWeight: focusWeakOn(draftFocusedPrefs) ? 700 : 500, color: 'var(--color-text-main)' }}>
+                        <span>{ja ? '苦手を優先' : 'Boost Weak Spots'}</span>
+                        {focusedCounts?.weak != null && <span style={{ fontSize: 'var(--font-size-xs)', fontWeight: 700, color: focusWeakOn(draftFocusedPrefs) ? 'var(--color-primary)' : 'var(--color-text-light)', flexShrink: 0 }}>{focusedCounts.weak}{ja ? '問' : ''}</span>}
+                      </span>
+                      <span style={{ display: 'block', fontSize: 'var(--font-size-xs)', color: 'var(--color-text-light)' }}>{ja ? '累計正答率75%以下を上乗せ（上の選択と併用可）' : 'Boost questions with cumulative accuracy ≤75% (combines with above)'}</span>
+                    </span>
+                  </label>
                 </div>
-                {/* 苦手ドメイン優先 */}
+                {/* 弱点ドメイン（分野別）を上乗せ優先 */}
                 <div style={{ padding: '14px 0' }}>
                   <div style={{ fontWeight: 500, fontSize: 'var(--font-size-base)', color: 'var(--color-text-main)', marginBottom: 4 }}>
-                    {ja ? '苦手ドメインを優先' : 'Prioritize Weak Domains'}
+                    {ja ? '弱点ドメインを上乗せ（任意）' : 'Boost Weak Domains (optional)'}
                   </div>
                   <div style={{ fontSize: 'var(--font-size-xs)', color: 'var(--color-text-light)', marginBottom: 8 }}>
-                    {ja ? 'マイページ「苦手分析」の直近10回分の演習結果を参照' : 'Based on last 10 results in My Page analysis'}
+                    {ja ? '上の優先条件に加えて、分野(ドメイン)別の正答率が低い問題も重視する' : 'On top of the priority above, also weight low-accuracy domains'}
                   </div>
                   {([
-                    ['none',    ja ? '優先しない' : 'Off'],
+                    ['none',    ja ? '上乗せしない' : 'Off'],
                     ['below80', ja ? '正答率80%以下のドメイン（8/10問）' : 'Below 80% (8/10)'],
                     ['below60', ja ? '正答率60%以下のドメイン（6/10問）' : 'Below 60% (6/10)'],
                     ['below40', ja ? '正答率40%以下のドメイン（4/10問）' : 'Below 40% (4/10)'],
                   ] as [string, string][]).map(([val, label]) => {
-                    const selected = (draftFocusedPrefs.focusDomain ?? 'below60') === val;
+                    const selected = (draftFocusedPrefs.focusDomain ?? 'none') === val;
                     return (
                       <label key={val} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '8px 0', cursor: 'pointer' }}>
                         <input
@@ -2979,9 +2941,6 @@ export default function Home() {
                           const r = saveBtnFocusedRef.current?.getBoundingClientRect();
                           if (r) setFocusedBurst({ x: r.left + r.width / 2, y: r.top + r.height / 2 });
                         }
-                        if (targetExam) {
-                          prefetchTypeB(targetExam, uid, draftFocusedPrefs);
-                        }
                       }}
                       disabled={focusedSaving}
                       style={{ width: 44, height: 44, flexShrink: 0, padding: 0, border: 'none', background: 'transparent', cursor: focusedSaving ? 'default' : 'pointer', perspective: 600, transition: 'none' }}
@@ -3021,7 +2980,6 @@ export default function Home() {
           onSelect={(exam) => {
             setTargetExam(exam);
             if (user) syncTargetExamToServer(user.userId, uid, exam);
-            prefetchTypeA(exam, uid);
             // 初回のみ：保存時にパネルを自動で閉じ、ホームの演習開始チュートリアルを開始する
             if (typeof window !== 'undefined' && !localStorage.getItem(ONBOARDING_TUTORIAL_KEY)) {
               localStorage.setItem(ONBOARDING_TUTORIAL_KEY, '1');
