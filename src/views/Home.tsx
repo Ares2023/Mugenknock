@@ -1294,6 +1294,31 @@ export default function Home() {
   const [showFocusedModal, setShowFocusedModal] = useState(false);
   const [draftFocusedPrefs, setDraftFocusedPrefs] = useState<Record<string, any>>({});
   const savedFocusedPrefsRef = useRef<Record<string, any>>({});
+  // しっかり対策 設定モーダルの各優先条件の該当件数（未回答/不正解/未正解/苦手）
+  const [focusedCounts, setFocusedCounts] = useState<{ unanswered?: number; incorrect?: number; notcorrect?: number; weak?: number } | null>(null);
+  useEffect(() => {
+    if (!showFocusedModal || !user || !targetExam) { setFocusedCounts(null); return; }
+    let cancelled = false;
+    const uid2 = user.userId;
+    (async () => {
+      try {
+        const [idsRes, ansRes, incRes, weakRes] = await Promise.all([
+          fetch(`${API_ENDPOINT}/questions?examType=${targetExam}&idsOnly=true`).then(r => r.json()).catch(() => null),
+          fetch(`${API_ENDPOINT}/users/me/answered-questions?userId=${uid2}&examType=${targetExam}`).then(r => r.json()).catch(() => null),
+          fetch(`${API_ENDPOINT}/users/me/incorrect-questions?userId=${uid2}&examType=${targetExam}`).then(r => r.json()).catch(() => null),
+          fetch(`${API_ENDPOINT}/users/me/weak-questions?userId=${uid2}&examType=${targetExam}`).then(r => r.json()).catch(() => null),
+        ]);
+        if (cancelled) return;
+        const total = (idsRes?.questionIds ?? []).length;
+        const answered = (ansRes?.questionIds ?? []).length;
+        const incorrect = (incRes?.questionIds ?? []).length;
+        const weak = (weakRes?.questionIds ?? []).length;
+        const unanswered = Math.max(0, total - answered);
+        setFocusedCounts({ unanswered, incorrect, notcorrect: unanswered + incorrect, weak });
+      } catch { if (!cancelled) setFocusedCounts(null); }
+    })();
+    return () => { cancelled = true; };
+  }, [showFocusedModal, user, targetExam]);
   const [quickBurst, setQuickBurst] = useState<{ x: number; y: number } | null>(null);
   const [focusedBurst, setFocusedBurst] = useState<{ x: number; y: number } | null>(null);
   const [quickSaving, setQuickSaving] = useState(false);
@@ -1867,7 +1892,7 @@ export default function Home() {
       const incorrectCounts: Record<string, number> = incorrectRes.counts ?? {};
       const answeredSet = new Set<string>(answeredRes?.questionIds ?? []);
       const weakSet = new Set<string>(weakRes?.questionIds ?? []);
-      const focusDomain: string = fPrefs.focusDomain ?? 'below60';
+      const focusDomain: string = fPrefs.focusDomain ?? 'none'; // 既定オフ：選んだ優先条件が素直に効くように（ドメイン重みは明示ONで併用）
 
       // ② 弱点ドメイン判定は「直近10回」(recentResults) の正答率を優先採用。
       //    無ければ累計 correct/incorrect → ドメイン履歴の順にフォールバック。
@@ -2869,6 +2894,7 @@ export default function Home() {
                       ['weak',       ja ? '苦手を優先' : 'Weak Spots', ja ? '累計正答率が75%以下の問題を反復' : 'Questions with cumulative accuracy 75% or lower'],
                     ] as [FocusPriority, string, string][]).map(([val, label, desc]) => {
                       const selected = curPriority === val;
+                      const cnt = focusedCounts ? (focusedCounts as any)[val] as number | undefined : undefined;
                       return (
                         <label key={val} style={{ display: 'flex', alignItems: 'flex-start', gap: 10, padding: '8px 0', cursor: 'pointer' }}>
                           <input
@@ -2878,8 +2904,11 @@ export default function Home() {
                             onChange={() => setDraftFocusedPrefs(p => ({ ...p, focusPriority: val }))}
                             style={{ width: 16, height: 16, flexShrink: 0, marginTop: 2, accentColor: 'var(--color-primary)' }}
                           />
-                          <span>
-                            <span style={{ display: 'block', fontSize: 'var(--font-size-sm)', fontWeight: selected ? 700 : 500, color: 'var(--color-text-main)' }}>{label}</span>
+                          <span style={{ flex: 1 }}>
+                            <span style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', gap: 8, fontSize: 'var(--font-size-sm)', fontWeight: selected ? 700 : 500, color: 'var(--color-text-main)' }}>
+                              <span>{label}</span>
+                              {cnt != null && <span style={{ fontSize: 'var(--font-size-xs)', fontWeight: 700, color: selected ? 'var(--color-primary)' : 'var(--color-text-light)', flexShrink: 0 }}>{cnt}{ja ? '問' : ''}</span>}
+                            </span>
                             <span style={{ display: 'block', fontSize: 'var(--font-size-xs)', color: 'var(--color-text-light)' }}>{desc}</span>
                           </span>
                         </label>
@@ -2887,21 +2916,21 @@ export default function Home() {
                     });
                   })()}
                 </div>
-                {/* 苦手ドメイン優先 */}
+                {/* 弱点ドメイン（分野別）を上乗せ優先 */}
                 <div style={{ padding: '14px 0' }}>
                   <div style={{ fontWeight: 500, fontSize: 'var(--font-size-base)', color: 'var(--color-text-main)', marginBottom: 4 }}>
-                    {ja ? '苦手ドメインを優先' : 'Prioritize Weak Domains'}
+                    {ja ? '弱点ドメインを上乗せ（任意）' : 'Boost Weak Domains (optional)'}
                   </div>
                   <div style={{ fontSize: 'var(--font-size-xs)', color: 'var(--color-text-light)', marginBottom: 8 }}>
-                    {ja ? 'マイページ「苦手分析」の直近10回分の演習結果を参照' : 'Based on last 10 results in My Page analysis'}
+                    {ja ? '上の優先条件に加えて、分野(ドメイン)別の正答率が低い問題も重視する' : 'On top of the priority above, also weight low-accuracy domains'}
                   </div>
                   {([
-                    ['none',    ja ? '優先しない' : 'Off'],
+                    ['none',    ja ? '上乗せしない' : 'Off'],
                     ['below80', ja ? '正答率80%以下のドメイン（8/10問）' : 'Below 80% (8/10)'],
                     ['below60', ja ? '正答率60%以下のドメイン（6/10問）' : 'Below 60% (6/10)'],
                     ['below40', ja ? '正答率40%以下のドメイン（4/10問）' : 'Below 40% (4/10)'],
                   ] as [string, string][]).map(([val, label]) => {
-                    const selected = (draftFocusedPrefs.focusDomain ?? 'below60') === val;
+                    const selected = (draftFocusedPrefs.focusDomain ?? 'none') === val;
                     return (
                       <label key={val} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '8px 0', cursor: 'pointer' }}>
                         <input
