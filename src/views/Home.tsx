@@ -1916,7 +1916,7 @@ export default function Home() {
         const isIncorrect = (incorrectCounts[qid] ?? 0) > 0;
         const inTarget = focusPriority === 'unanswered' ? isUnanswered
           : focusPriority === 'incorrect' ? isIncorrect
-          : focusPriority === 'weak' ? weakSet.has(qid) // 苦手 = 正答率75%以下 or 直近ミス後3連正解未達
+          : focusPriority === 'weak' ? weakSet.has(qid) // 苦手 = 累計正答率75%以下
           : (isUnanswered || isIncorrect); // notcorrect = 未回答 or 不正解
         let w = BASE;
         if (inTarget) w += W_PRIORITY;
@@ -2866,7 +2866,7 @@ export default function Home() {
                       ['unanswered', ja ? '未回答を優先' : 'Unanswered', ja ? 'まだ解いていない問題' : 'Questions not yet answered'],
                       ['incorrect',  ja ? '不正解を優先' : 'Incorrect', ja ? '過去に間違えた問題' : 'Previously answered incorrectly'],
                       ['notcorrect', ja ? '未正解を優先' : 'Not Correct', ja ? '未回答＋不正解（まだ正解していない問題）' : 'Unanswered + incorrect (not yet correct)'],
-                      ['weak',       ja ? '苦手を優先' : 'Weak Spots', ja ? '正答率が低い問題を反復（3連続正解で卒業）' : 'Low-accuracy questions (retire after 3 in a row)'],
+                      ['weak',       ja ? '苦手を優先' : 'Weak Spots', ja ? '累計正答率が75%以下の問題を反復' : 'Questions with cumulative accuracy 75% or lower'],
                     ] as [FocusPriority, string, string][]).map(([val, label, desc]) => {
                       const selected = curPriority === val;
                       return (
