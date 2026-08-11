@@ -2851,7 +2851,7 @@ export default function Home() {
                     {ja ? '上の優先条件に加えて、分野(ドメイン)別の正答率が低い問題も重視する' : 'On top of the priority above, also weight low-accuracy domains'}
                   </div>
                   {([
-                    ['none',    ja ? '上乗せしない' : 'Off'],
+                    ['none',    ja ? 'なし' : 'Off'],
                     ['below80', ja ? '正答率80%以下のドメイン（8/10問）' : 'Below 80% (8/10)'],
                     ['below60', ja ? '正答率60%以下のドメイン（6/10問）' : 'Below 60% (6/10)'],
                     ['below40', ja ? '正答率40%以下のドメイン（4/10問）' : 'Below 40% (4/10)'],
