@@ -32,7 +32,6 @@ import { autoScoreAndClearDrafts } from '../utils/sessionUtils';
 import { hydrateDraftsFromServer } from '../utils/sessionResume';
 import { syncTargetExamToServer, loadTargetExamFromServer, resetExercisePrefsOnExamChange } from '../utils/preferences';
 import { fetchDailyProgress } from '../utils/dailyProgress';
-import { prefetchTypeA, prefetchTypeB, prefetchTypeC, getPrefetchA, getPrefetchB, getPrefetchC } from '../utils/questionPrefetch';
 
 type DomainStat = { tagId: string; correctCount?: number; incorrectCount?: number; recentResults?: boolean[] };
 type SessionEntry = { correct: number; total: number };
@@ -1287,17 +1286,15 @@ export default function Home() {
     const uid2 = user.userId;
     (async () => {
       try {
-        const [idsRes, ansRes, incRes, weakRes] = await Promise.all([
+        const [idsRes, statusRes] = await Promise.all([
           fetch(`${API_ENDPOINT}/questions?examType=${targetExam}&idsOnly=true`).then(r => r.json()).catch(() => null),
-          fetch(`${API_ENDPOINT}/users/me/answered-questions?userId=${uid2}&examType=${targetExam}`).then(r => r.json()).catch(() => null),
-          fetch(`${API_ENDPOINT}/users/me/incorrect-questions?userId=${uid2}&examType=${targetExam}`).then(r => r.json()).catch(() => null),
-          fetch(`${API_ENDPOINT}/users/me/weak-questions?userId=${uid2}&examType=${targetExam}`).then(r => r.json()).catch(() => null),
+          fetch(`${API_ENDPOINT}/users/me/question-status?userId=${uid2}&examType=${targetExam}`).then(r => r.json()).catch(() => null),
         ]);
         if (cancelled) return;
         const total = (idsRes?.questionIds ?? []).length;
-        const answered = (ansRes?.questionIds ?? []).length;
-        const incorrect = (incRes?.questionIds ?? []).length;
-        const weak = (weakRes?.questionIds ?? []).length;
+        const answered = (statusRes?.answered ?? []).length;
+        const incorrect = Object.keys(statusRes?.incorrect ?? {}).length;
+        const weak = (statusRes?.weak ?? []).length;
         const unanswered = Math.max(0, total - answered);
         setFocusedCounts({ unanswered, incorrect, notcorrect: unanswered + incorrect, weak });
       } catch { if (!cancelled) setFocusedCounts(null); }
@@ -1351,12 +1348,6 @@ export default function Home() {
     window.addEventListener('targetExamChanged', handler);
     return () => window.removeEventListener('targetExamChanged', handler);
   }, []);
-
-  // ── タイプAプリフェッチ: targetExam が変化したとき（キャッシュ未存在時のみ生成） ──
-  useEffect(() => {
-    if (!targetExam) return;
-    if (!getPrefetchA(targetExam)) prefetchTypeA(targetExam, uid);
-  }, [targetExam, uid]);
 
   // ── 成績フェッチ（stale-while-revalidate） ─────────────────────────
   const TS_KEY = (uid: string) => `_ts_ustats_${uid}`;
@@ -1741,29 +1732,6 @@ export default function Home() {
     // サクッとはシンプル・全体演習。弱点系フィルタは持たず、ブックマーク優先のみ任意。
     const qFlags = { unansweredOnly: false, incorrectOnly: false, bookmarkOnly: quickBookmark(qPrefs) };
 
-    // ── プリフェッチキャッシュを使用 ──
-    {
-      const hasFilters = !!(qFlags.unansweredOnly || qFlags.incorrectOnly || qFlags.bookmarkOnly || (qPrefs.domains?.length ?? 0) > 0);
-      const cached = hasFilters ? getPrefetchC(targetExam, userId, qPrefs) : getPrefetchA(targetExam);
-      if (cached && cached.questions.length > 0) {
-        try {
-          const count = qPrefs.questionCount ?? 5;
-          const items = shuffleArray(cached.questions).slice(0, count);
-          // キャッシュが設定問題数に満たない場合は使わず、通常経路（プール全体）で選定する
-          if (items.length >= count) {
-            setQuickLoadPct(90);
-            const questionIds = items.map((q: any) => q.questionId);
-            setQuickLoading(false); setQuickLoadPct(0);
-            // セッション作成は遷移先で非同期実行（クリティカルパスから除外）
-            navigate('/aws/exercise/session', { state: { createSession: { userId, mode: 'exercise', examType: targetExam, questionIds }, questions: items, userId, mode: 'exercise', examType: targetExam, isQuick: true } });
-            return;
-          }
-        } catch (err) {
-          console.debug('[prefetch] quick cache failed, fallback:', err);
-        }
-      }
-    }
-
     try {
       const userId = user?.userId ?? 'guest';
       const hasStatusFilter = !!(user && (qFlags.unansweredOnly || qFlags.incorrectOnly || qFlags.bookmarkOnly));
@@ -1829,30 +1797,6 @@ export default function Home() {
     setFocusedLoadPct(10);
     const fPrefs = loadFocusedPrefs(uid);
 
-    // ── プリフェッチキャッシュを使用 ──
-    {
-      const userId = user.userId;
-      const hasFilters = true; // しっかり対策は常に優先条件（未回答/不正解/未正解）でパーソナライズする
-      const cached = hasFilters ? getPrefetchB(targetExam, userId, fPrefs) : getPrefetchA(targetExam);
-      if (cached && cached.questions.length > 0) {
-        try {
-          const count = fPrefs.questionCount ?? 5;
-          const items = shuffleArray(cached.questions).slice(0, count);
-          // キャッシュが設定問題数に満たない場合は使わず、通常経路（プール全体）で選定する
-          if (items.length >= count) {
-            setFocusedLoadPct(90);
-            const questionIds = items.map((q: any) => q.questionId);
-            setFocusedLoading(false); setFocusedLoadPct(0);
-            // セッション作成は遷移先で非同期実行（クリティカルパスから除外）
-            navigate('/aws/exercise/session', { state: { createSession: { userId, mode: 'exercise', examType: targetExam, questionIds, isFocused: true }, questions: items, userId, mode: 'exercise', examType: targetExam, isQuick: true, isFocused: true } });
-            return;
-          }
-        } catch (err) {
-          console.debug('[prefetch] focused cache failed, fallback:', err);
-        }
-      }
-    }
-
     try {
       const userId = user.userId;
       const qCacheKey = `qlist_${targetExam}`;
@@ -1864,21 +1808,21 @@ export default function Home() {
       // 優先する問題（排他）: 未回答 / 不正解 / 未正解(=未回答 or 不正解)
       const focusPriority = resolveFocusPriority(fPrefs);
       const focusWeak = focusWeakOn(fPrefs); // 苦手を優先（独立・上乗せ）
-      const [data, incorrectRes, answeredRes, weakRes] = await Promise.all([
+      // プール(metaOnly)＋ユーザー問題ステータス(answered/incorrect/weak)を1本ずつで取得。
+      const [data, statusRes] = await Promise.all([
         cachedQs ? Promise.resolve(cachedQs) : fetch(`${API_ENDPOINT}/questions?examType=${targetExam}&metaOnly=true`).then(r => r.json()),
-        fetch(`${API_ENDPOINT}/users/me/incorrect-questions?userId=${userId}&examType=${targetExam}`).then(r => r.json()),
-        fetch(`${API_ENDPOINT}/users/me/answered-questions?userId=${userId}&examType=${targetExam}`).then(r => r.json()),
-        // 「苦手を優先」ON時のみ、累計正答率が低い問題IDを取得（OFFなら不要）
-        focusWeak
-          ? fetch(`${API_ENDPOINT}/users/me/weak-questions?userId=${userId}&examType=${targetExam}`).then(r => r.json()).catch(() => null)
-          : Promise.resolve(null),
+        fetch(`${API_ENDPOINT}/users/me/question-status?userId=${userId}&examType=${targetExam}`).then(r => r.json()).catch(() => null),
       ]);
       if (stopAnim) { stopAnim(); setFocusedLoadPct(plateau); }
       // フルキャッシュ時のみ明示的に validity フィルタ（metaOnly はサーバ側で済み）
       const allItems: any[] = cachedQs ? (data.items ?? []).filter((q: any) => !!q.validityCheckedAt) : (data.items ?? []);
-      const incorrectCounts: Record<string, number> = incorrectRes.counts ?? {};
-      const answeredSet = new Set<string>(answeredRes?.questionIds ?? []);
-      const weakSet = new Set<string>(weakRes?.questionIds ?? []);
+      // プールをキャッシュして次回セッションの全件再取得を省く（短TTL）
+      if (!cachedQs && (data?.items?.length ?? 0) > 0) {
+        setCachedPersist(qCacheKey, { items: data.items, total: data.total ?? data.items.length }, 10 * 60 * 1000);
+      }
+      const incorrectCounts: Record<string, number> = statusRes?.incorrect ?? {};
+      const answeredSet = new Set<string>(statusRes?.answered ?? []);
+      const weakSet = new Set<string>(statusRes?.weak ?? []);
       const focusDomain: string = fPrefs.focusDomain ?? 'none'; // 既定オフ：選んだ優先条件が素直に効くように（ドメイン重みは明示ONで併用）
 
       // ② 弱点ドメイン判定は「直近10回」(recentResults) の正答率を優先採用。
@@ -2778,10 +2722,6 @@ export default function Home() {
                           const r = saveBtnQuickRef.current?.getBoundingClientRect();
                           if (r) setQuickBurst({ x: r.left + r.width / 2, y: r.top + r.height / 2 });
                         }
-                        if (targetExam) {
-                          const hasFilters = !!(quickBookmark(draftPrefs) || (draftPrefs.domains?.length ?? 0) > 0);
-                          if (hasFilters) { prefetchTypeC(targetExam, uid, draftPrefs); } else { prefetchTypeA(targetExam, uid); }
-                        }
                       }}
                       style={{ width: 44, height: 44, flexShrink: 0, padding: 0, border: 'none', background: 'transparent', cursor: (isDisabled || quickSaving) ? 'default' : 'pointer', opacity: isDisabled ? 0.5 : 1, perspective: 600, transition: 'none' }}
                     >
@@ -3001,9 +2941,6 @@ export default function Home() {
                           const r = saveBtnFocusedRef.current?.getBoundingClientRect();
                           if (r) setFocusedBurst({ x: r.left + r.width / 2, y: r.top + r.height / 2 });
                         }
-                        if (targetExam) {
-                          prefetchTypeB(targetExam, uid, draftFocusedPrefs);
-                        }
                       }}
                       disabled={focusedSaving}
                       style={{ width: 44, height: 44, flexShrink: 0, padding: 0, border: 'none', background: 'transparent', cursor: focusedSaving ? 'default' : 'pointer', perspective: 600, transition: 'none' }}
@@ -3043,7 +2980,6 @@ export default function Home() {
           onSelect={(exam) => {
             setTargetExam(exam);
             if (user) syncTargetExamToServer(user.userId, uid, exam);
-            prefetchTypeA(exam, uid);
             // 初回のみ：保存時にパネルを自動で閉じ、ホームの演習開始チュートリアルを開始する
             if (typeof window !== 'undefined' && !localStorage.getItem(ONBOARDING_TUTORIAL_KEY)) {
               localStorage.setItem(ONBOARDING_TUTORIAL_KEY, '1');

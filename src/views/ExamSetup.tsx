@@ -137,23 +137,22 @@ export default function ExamSetup() {
 
         if (user && (bookmarkOnly || unansweredOnly || incorrectOnly)) {
           const userId = user?.userId;
-          const [qRes, bkmRes, answeredRes, incorrectRes] = await Promise.all([
+          // ステータス(answered/incorrect/bookmarked)は1本の question-status で取得
+          const [qRes, statusRes] = await Promise.all([
             fetch(`${API_ENDPOINT}/questions?${params}`).then(r => r.json()),
-            user && bookmarkOnly ? fetch(`${API_ENDPOINT}/users/me/bookmarks?userId=${userId}`).then(r => r.json()) : Promise.resolve(null),
-            user && unansweredOnly ? fetch(`${API_ENDPOINT}/users/me/answered-questions?userId=${userId}&examType=${examType}`).then(r => r.json()) : Promise.resolve(null),
-            user && incorrectOnly ? fetch(`${API_ENDPOINT}/users/me/incorrect-questions?userId=${userId}&examType=${examType}`).then(r => r.json()) : Promise.resolve(null),
+            fetch(`${API_ENDPOINT}/users/me/question-status?userId=${userId}&examType=${examType}`).then(r => r.json()).catch(() => null),
           ]);
           let items: any[] = qRes.items ?? [];
-          if (bookmarkOnly && bkmRes) {
-            const bookmarkIds = new Set(bkmRes.questionIds ?? []);
+          if (bookmarkOnly) {
+            const bookmarkIds = new Set(statusRes?.bookmarked ?? []);
             items = items.filter((q: any) => bookmarkIds.has(q.questionId));
           }
-          if (unansweredOnly && answeredRes) {
-            const answeredIds = new Set(answeredRes.questionIds ?? []);
+          if (unansweredOnly) {
+            const answeredIds = new Set(statusRes?.answered ?? []);
             items = items.filter((q: any) => !answeredIds.has(q.questionId));
           }
-          if (incorrectOnly && incorrectRes) {
-            const incorrectIds = new Set(incorrectRes.questionIds ?? []);
+          if (incorrectOnly) {
+            const incorrectIds = new Set(Object.keys(statusRes?.incorrect ?? {}));
             items = items.filter((q: any) => incorrectIds.has(q.questionId));
           }
           if (aiVerifiedOnly) items = items.filter((q: any) => q.aiVerified === true);

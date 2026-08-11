@@ -155,17 +155,16 @@ export default function Practice() {
         const allSelected = EXAM_DOMAINS[examType].every(d => selectedDomains.includes(d));
         if (!allSelected) params.set('domain', domainsToIndices(examType, selectedDomains).join(','));
         if (user && (bookmarkOnly || unansweredOnly || incorrectOnly)) {
-          const [qRes, bkmRes, answeredRes, incorrectRes] = await Promise.all([
+          // ステータス(answered/incorrect/bookmarked)は1本の question-status で取得
+          const [qRes, statusRes] = await Promise.all([
             fetch(`${API_ENDPOINT}/questions?${params}`).then(r => r.json()),
-            user && bookmarkOnly ? fetch(`${API_ENDPOINT}/users/me/bookmarks?userId=${user.userId}`).then(r => r.json()) : Promise.resolve(null),
-            user && unansweredOnly ? fetch(`${API_ENDPOINT}/users/me/answered-questions?userId=${user.userId}&examType=${examType}`).then(r => r.json()) : Promise.resolve(null),
-            user && incorrectOnly ? fetch(`${API_ENDPOINT}/users/me/incorrect-questions?userId=${user.userId}&examType=${examType}`).then(r => r.json()) : Promise.resolve(null),
+            fetch(`${API_ENDPOINT}/users/me/question-status?userId=${user.userId}&examType=${examType}`).then(r => r.json()).catch(() => null),
           ]);
           let items: any[] = qRes.items ?? [];
-          if (bookmarkOnly && bkmRes) { const ids = new Set(bkmRes.questionIds ?? []); items = items.filter((q: any) => ids.has(q.questionId)); }
-          if (unansweredOnly && answeredRes) { const ids = new Set(answeredRes.questionIds ?? []); items = items.filter((q: any) => !ids.has(q.questionId)); }
-          if (incorrectOnly && incorrectRes) { const ids = new Set(incorrectRes.questionIds ?? []); items = items.filter((q: any) => ids.has(q.questionId)); }
-          
+          if (bookmarkOnly) { const ids = new Set(statusRes?.bookmarked ?? []); items = items.filter((q: any) => ids.has(q.questionId)); }
+          if (unansweredOnly) { const ids = new Set(statusRes?.answered ?? []); items = items.filter((q: any) => !ids.has(q.questionId)); }
+          if (incorrectOnly) { const ids = new Set(Object.keys(statusRes?.incorrect ?? {})); items = items.filter((q: any) => ids.has(q.questionId)); }
+
           setAvailableCount(items.length);
         } else if (allSelected) {
           const cached = getCached<number>(`qcount_${examType}`);
