@@ -1319,6 +1319,30 @@ export default function Home() {
     })();
     return () => { cancelled = true; };
   }, [showFocusedModal, user, targetExam]);
+
+  // サクッと演習 設定モーダルの重点フィルタ該当件数（なし=全問/未回答/不正解/未正解）
+  const [quickCounts, setQuickCounts] = useState<{ none?: number; unanswered?: number; incorrect?: number; notcorrect?: number } | null>(null);
+  useEffect(() => {
+    if (!showQuickModal || !user || !targetExam) { setQuickCounts(null); return; }
+    let cancelled = false;
+    const uid2 = user.userId;
+    (async () => {
+      try {
+        const [idsRes, ansRes, incRes] = await Promise.all([
+          fetch(`${API_ENDPOINT}/questions?examType=${targetExam}&idsOnly=true`).then(r => r.json()).catch(() => null),
+          fetch(`${API_ENDPOINT}/users/me/answered-questions?userId=${uid2}&examType=${targetExam}`).then(r => r.json()).catch(() => null),
+          fetch(`${API_ENDPOINT}/users/me/incorrect-questions?userId=${uid2}&examType=${targetExam}`).then(r => r.json()).catch(() => null),
+        ]);
+        if (cancelled) return;
+        const total = (idsRes?.questionIds ?? []).length;
+        const answered = (ansRes?.questionIds ?? []).length;
+        const incorrect = (incRes?.questionIds ?? []).length;
+        const unanswered = Math.max(0, total - answered);
+        setQuickCounts({ none: total, unanswered, incorrect, notcorrect: unanswered + incorrect });
+      } catch { if (!cancelled) setQuickCounts(null); }
+    })();
+    return () => { cancelled = true; };
+  }, [showQuickModal, user, targetExam]);
   const [quickBurst, setQuickBurst] = useState<{ x: number; y: number } | null>(null);
   const [focusedBurst, setFocusedBurst] = useState<{ x: number; y: number } | null>(null);
   const [quickSaving, setQuickSaving] = useState(false);
@@ -2623,10 +2647,15 @@ export default function Home() {
         >
           <div style={{ background: 'var(--color-bg-white)', borderRadius: 'var(--border-radius-lg)', width: '100%', maxWidth: 420, boxShadow: 'var(--box-shadow-md)', maxHeight: isMobile ? '75vh' : '60vh', display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
             {/* ヘッダー固定 */}
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '20px 24px 0', flexShrink: 0 }}>
-              <h3 style={{ margin: 0, fontSize: 'var(--font-size-h3)', fontWeight: 700, color: 'var(--color-accent)' }}>
-                {ja ? 'サクッと演習 設定' : 'Quick Practice Settings'}
-              </h3>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', padding: '20px 24px 0', flexShrink: 0 }}>
+              <div>
+                <h3 style={{ margin: 0, fontSize: 'var(--font-size-h3)', fontWeight: 700, color: 'var(--color-accent)' }}>
+                  {ja ? 'サクッと演習 設定' : 'Quick Practice Settings'}
+                </h3>
+                <div style={{ fontSize: 'var(--font-size-xs)', color: 'var(--color-text-light)', marginTop: 2 }}>
+                  {ja ? '全ドメインを幅広く均等に出題' : 'Broad, even coverage across domains'}
+                </div>
+              </div>
               <button onClick={() => setShowQuickModal(false)} style={{ border: 'none', background: 'none', fontSize: 'var(--font-size-xl)', cursor: 'pointer', color: 'var(--color-text-sub)', padding: '4px 8px', lineHeight: 1 }}>✕</button>
             </div>
             {/* スクロール可能なコンテンツ */}
@@ -2654,7 +2683,7 @@ export default function Home() {
                 </div>
                 <div style={{ padding: '14px 0', borderBottom: targetExam && (EXAM_DOMAINS[targetExam] ?? []).length > 0 ? '1px solid var(--color-border)' : 'none' }}>
                   <div style={{ fontWeight: 500, fontSize: 'var(--font-size-base)', color: 'var(--color-text-main)', marginBottom: 2 }}>
-                    {ja ? '重点フィルタ' : 'Focus Filter'}
+                    {ja ? '優先する問題' : 'Prioritize Questions'}
                   </div>
                   <div style={{ fontSize: 'var(--font-size-xs)', color: 'var(--color-text-light)', marginBottom: 8 }}>
                     {ja ? 'いずれか1つを選択（排他）' : 'Choose one (exclusive)'}
@@ -2668,6 +2697,7 @@ export default function Home() {
                       ['notcorrect', ja ? '未正解を優先' : 'Not Correct', ja ? '未回答＋不正解（まだ正解していない問題）' : 'Unanswered + incorrect'],
                     ] as [QuickFilter, string, string][]).map(([val, label, desc]) => {
                       const selected = cur === val;
+                      const cnt = quickCounts ? (quickCounts as any)[val] as number | undefined : undefined;
                       return (
                         <label key={val} style={{ display: 'flex', alignItems: 'flex-start', gap: 10, padding: '8px 0', cursor: 'pointer' }}>
                           <input
@@ -2675,10 +2705,13 @@ export default function Home() {
                             name="quickFilter"
                             checked={selected}
                             onChange={() => setDraftPrefs(p => ({ ...p, quickFilter: val, unansweredOnly: undefined, incorrectOnly: undefined }))}
-                            style={{ width: 16, height: 16, flexShrink: 0, marginTop: desc ? 2 : 0, accentColor: 'var(--color-primary)' }}
+                            style={{ width: 16, height: 16, flexShrink: 0, marginTop: 2, accentColor: 'var(--color-primary)' }}
                           />
-                          <span>
-                            <span style={{ display: 'block', fontSize: 'var(--font-size-sm)', fontWeight: selected ? 700 : 500, color: 'var(--color-text-main)' }}>{label}</span>
+                          <span style={{ flex: 1 }}>
+                            <span style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', gap: 8, fontSize: 'var(--font-size-sm)', fontWeight: selected ? 700 : 500, color: 'var(--color-text-main)' }}>
+                              <span>{label}</span>
+                              {cnt != null && <span style={{ fontSize: 'var(--font-size-xs)', fontWeight: 700, color: selected ? 'var(--color-primary)' : 'var(--color-text-light)', flexShrink: 0 }}>{cnt}{ja ? '問' : ''}</span>}
+                            </span>
                             {desc && <span style={{ display: 'block', fontSize: 'var(--font-size-xs)', color: 'var(--color-text-light)' }}>{desc}</span>}
                           </span>
                         </label>
@@ -2848,10 +2881,15 @@ export default function Home() {
         >
           <div style={{ background: 'var(--color-bg-white)', borderRadius: 'var(--border-radius-lg)', width: '100%', maxWidth: 420, boxShadow: 'var(--box-shadow-md)', maxHeight: isMobile ? '75vh' : '60vh', display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
             {/* ヘッダー固定 */}
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '20px 24px 0', flexShrink: 0 }}>
-              <h3 style={{ margin: 0, fontSize: 'var(--font-size-h3)', fontWeight: 700, color: '#009E9E' }}>
-                {ja ? 'しっかり対策 設定' : 'Focused Practice Settings'}
-              </h3>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', padding: '20px 24px 0', flexShrink: 0 }}>
+              <div>
+                <h3 style={{ margin: 0, fontSize: 'var(--font-size-h3)', fontWeight: 700, color: '#009E9E' }}>
+                  {ja ? 'しっかり対策 設定' : 'Focused Practice Settings'}
+                </h3>
+                <div style={{ fontSize: 'var(--font-size-xs)', color: 'var(--color-text-light)', marginTop: 2 }}>
+                  {ja ? '苦手・弱点を集中的に出題' : 'Concentrates on your weak spots'}
+                </div>
+              </div>
               <button onClick={() => setShowFocusedModal(false)} style={{ border: 'none', background: 'none', fontSize: 'var(--font-size-xl)', cursor: 'pointer', color: 'var(--color-text-sub)', padding: '4px 8px', lineHeight: 1 }}>✕</button>
             </div>
             {/* スクロール可能なコンテンツ */}
