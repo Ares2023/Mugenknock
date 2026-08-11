@@ -1329,10 +1329,14 @@ app.post('/sessions/:id/answers', async (req, res) => {
         Update: {
           TableName: T('UserQuestionStats'),
           Key: { userId, questionId },
+          // correctSinceLastIncorrect = 直近の不正解以降の連続正解数（正解でADD+1・不正解で0リセット）。
+          // 「苦手（正答率低）を優先」の卒業判定（3連続正解でプールから外す）に使う。
           UpdateExpression: isCorrect
-            ? 'ADD correctCount :one SET lastAnsweredAt = :now'
-            : 'ADD incorrectCount :one SET lastAnsweredAt = :now',
-          ExpressionAttributeValues: { ':one': 1, ':now': now }
+            ? 'ADD correctCount :one, correctSinceLastIncorrect :one SET lastAnsweredAt = :now'
+            : 'ADD incorrectCount :one SET correctSinceLastIncorrect = :zero, lastAnsweredAt = :now',
+          ExpressionAttributeValues: isCorrect
+            ? { ':one': 1, ':now': now }
+            : { ':one': 1, ':zero': 0, ':now': now }
         }
       }
     ];
@@ -2058,6 +2062,50 @@ app.get('/users/me/incorrect-questions', async (req, res) => {
     const questionIds = stats.map(s => s.questionId);
     const counts = Object.fromEntries(stats.map(s => [s.questionId, s.incorrectCount ?? 0]));
     res.json({ questionIds, counts });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+// 苦手問題ID一覧（演習済みのうち「正答率が低い or 直近ミス後まだ習得しきれていない」）。
+// 判定: answered かつ ( 正答率 <= WEAK_ACC  ||  過去に不正解あり かつ 直近ミス以降の連続正解 < MASTERY )。
+// 「過去に間違えた問題は追加でMASTERY回正解するまで優先対象であり続ける」を満たす。
+app.get('/users/me/weak-questions', async (req, res) => {
+  try {
+    const docClient = getClient();
+    const { userId, examType } = req.query;
+    const WEAK_ACC = 0.75, MASTERY = 3;
+
+    const statsResult = await docClient.send(new QueryCommand({
+      TableName: T('UserQuestionStats'),
+      KeyConditionExpression: 'userId = :uid',
+      ExpressionAttributeValues: { ':uid': userId }
+    }));
+
+    let stats = (statsResult.Items || []).filter(s => {
+      const c = s.correctCount ?? 0, i = s.incorrectCount ?? 0;
+      const total = c + i;
+      if (total === 0) return false; // 未演習は対象外（未回答は別フィルタで扱う）
+      const acc = c / total;
+      const streak = s.correctSinceLastIncorrect ?? 0;
+      return acc <= WEAK_ACC || (i > 0 && streak < MASTERY);
+    });
+
+    if (examType) {
+      const questionsResult = await docClient.send(new QueryCommand({
+        TableName: 'Questions',
+        IndexName: 'examType-index',
+        KeyConditionExpression: 'examType = :et',
+        ExpressionAttributeValues: { ':et': examType },
+        ProjectionExpression: 'questionId'
+      }));
+      const examQuestionIds = new Set((questionsResult.Items || []).map(q => q.questionId));
+      stats = stats.filter(s => examQuestionIds.has(s.questionId));
+    }
+
+    const questionIds = stats.map(s => s.questionId);
+    res.json({ questionIds });
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: 'Internal server error' });

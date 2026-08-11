@@ -1160,9 +1160,9 @@ function loadFocusedPrefs(uid: string) {
   try { return JSON.parse(localStorage.getItem(`focusedExercisePrefs_${uid}`) ?? '{}'); } catch { return {}; }
 }
 // しっかり対策の「優先する問題」（排他・3択）: 未回答 / 不正解 / 未正解(=未回答+不正解)
-type FocusPriority = 'unanswered' | 'incorrect' | 'notcorrect';
+type FocusPriority = 'unanswered' | 'incorrect' | 'notcorrect' | 'weak';
 function resolveFocusPriority(p: Record<string, any>): FocusPriority {
-  if (p?.focusPriority === 'unanswered' || p?.focusPriority === 'incorrect' || p?.focusPriority === 'notcorrect') return p.focusPriority;
+  if (p?.focusPriority === 'unanswered' || p?.focusPriority === 'incorrect' || p?.focusPriority === 'notcorrect' || p?.focusPriority === 'weak') return p.focusPriority;
   return 'incorrect'; // 後方互換（旧 focusIncorrect の既定＝不正解優先）
 }
 function shuffleArray<T>(arr: T[]): T[] {
@@ -1850,18 +1850,23 @@ export default function Home() {
       const stopAnim = cachedQs ? null : animateLoadPct(setFocusedLoadPct, 10, plateau);
       // プール（フルキャッシュがあればそれを、無ければ metaOnly 軽量取得）と苦手問題データを並行フェッチ。
       // 弱点ドメイン判定は q.domain のみ・苦手判定は questionId のみ使うため metaOnly で足りる。
-      const [data, incorrectRes, answeredRes] = await Promise.all([
+      // 優先する問題（排他）: 未回答 / 不正解 / 未正解(=未回答 or 不正解) / 苦手(正答率低)
+      const focusPriority = resolveFocusPriority(fPrefs);
+      const [data, incorrectRes, answeredRes, weakRes] = await Promise.all([
         cachedQs ? Promise.resolve(cachedQs) : fetch(`${API_ENDPOINT}/questions?examType=${targetExam}&metaOnly=true`).then(r => r.json()),
         fetch(`${API_ENDPOINT}/users/me/incorrect-questions?userId=${userId}&examType=${targetExam}`).then(r => r.json()),
         fetch(`${API_ENDPOINT}/users/me/answered-questions?userId=${userId}&examType=${targetExam}`).then(r => r.json()),
+        // 「苦手」優先時のみ、正答率が低い/未習得の問題IDを取得（他優先度では不要なので呼ばない）
+        focusPriority === 'weak'
+          ? fetch(`${API_ENDPOINT}/users/me/weak-questions?userId=${userId}&examType=${targetExam}`).then(r => r.json()).catch(() => null)
+          : Promise.resolve(null),
       ]);
       if (stopAnim) { stopAnim(); setFocusedLoadPct(plateau); }
       // フルキャッシュ時のみ明示的に validity フィルタ（metaOnly はサーバ側で済み）
       const allItems: any[] = cachedQs ? (data.items ?? []).filter((q: any) => !!q.validityCheckedAt) : (data.items ?? []);
       const incorrectCounts: Record<string, number> = incorrectRes.counts ?? {};
       const answeredSet = new Set<string>(answeredRes?.questionIds ?? []);
-      // 優先する問題（排他・3択）: 未回答 / 不正解 / 未正解(=未回答 or 不正解)
-      const focusPriority = resolveFocusPriority(fPrefs);
+      const weakSet = new Set<string>(weakRes?.questionIds ?? []);
       const focusDomain: string = fPrefs.focusDomain ?? 'below60';
 
       // ② 弱点ドメイン判定は「直近10回」(recentResults) の正答率を優先採用。
@@ -1911,6 +1916,7 @@ export default function Home() {
         const isIncorrect = (incorrectCounts[qid] ?? 0) > 0;
         const inTarget = focusPriority === 'unanswered' ? isUnanswered
           : focusPriority === 'incorrect' ? isIncorrect
+          : focusPriority === 'weak' ? weakSet.has(qid) // 苦手 = 正答率75%以下 or 直近ミス後3連正解未達
           : (isUnanswered || isIncorrect); // notcorrect = 未回答 or 不正解
         let w = BASE;
         if (inTarget) w += W_PRIORITY;
@@ -2860,6 +2866,7 @@ export default function Home() {
                       ['unanswered', ja ? '未回答を優先' : 'Unanswered', ja ? 'まだ解いていない問題' : 'Questions not yet answered'],
                       ['incorrect',  ja ? '不正解を優先' : 'Incorrect', ja ? '過去に間違えた問題' : 'Previously answered incorrectly'],
                       ['notcorrect', ja ? '未正解を優先' : 'Not Correct', ja ? '未回答＋不正解（まだ正解していない問題）' : 'Unanswered + incorrect (not yet correct)'],
+                      ['weak',       ja ? '苦手を優先' : 'Weak Spots', ja ? '正答率が低い問題を反復（3連続正解で卒業）' : 'Low-accuracy questions (retire after 3 in a row)'],
                     ] as [FocusPriority, string, string][]).map(([val, label, desc]) => {
                       const selected = curPriority === val;
                       return (
