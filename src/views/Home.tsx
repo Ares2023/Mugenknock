@@ -3027,37 +3027,33 @@ export default function Home() {
                     ['below80', ja ? '正答率80%以下のドメインを優先' : 'Prioritize domains ≤80%'],
                   ] as [string, string][]).map(([val, label]) => {
                     const selected = (draftFocusedPrefs.focusDomain ?? 'none') === val;
+                    // 各しきい値の直下に、実際に優先対象となるドメインを常時表示（未挑戦は常に対象）。指定なしは表示しない。
+                    const threshold = val === 'below40' ? 0.4 : val === 'below60' ? 0.6 : val === 'below80' ? 0.8 : 0;
+                    const targets = val === 'none' ? [] : focusDomainAcc.filter(d => d.acc == null || d.acc < threshold);
+                    const sep = ja ? '、' : ', ';
+                    const names = targets
+                      .map(d => d.acc == null ? `${d.name}${ja ? '（未挑戦）' : ' (new)'}` : `${d.name} ${Math.round(d.acc * 100)}%`)
+                      .join(sep);
                     return (
-                      <label key={val} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '8px 0', cursor: 'pointer' }}>
+                      <label key={val} style={{ display: 'flex', alignItems: 'flex-start', gap: 10, padding: '8px 0', cursor: 'pointer' }}>
                         <input
                           type="radio"
                           name="focusDomain"
                           checked={selected}
                           onChange={() => setDraftFocusedPrefs(p => ({ ...p, focusDomain: val }))}
-                          style={{ width: 16, height: 16, flexShrink: 0, accentColor: 'var(--color-primary)' }}
+                          style={{ width: 16, height: 16, flexShrink: 0, marginTop: 2, accentColor: 'var(--color-primary)' }}
                         />
-                        <span style={{ fontSize: 'var(--font-size-sm)', fontWeight: selected ? 600 : 400, color: 'var(--color-text-main)' }}>{label}</span>
+                        <span style={{ flex: 1 }}>
+                          <span style={{ display: 'block', fontSize: 'var(--font-size-sm)', fontWeight: selected ? 600 : 400, color: 'var(--color-text-main)' }}>{label}</span>
+                          {val !== 'none' && (
+                            <span style={{ display: 'block', fontSize: 'var(--font-size-xs)', color: 'var(--color-text-light)', lineHeight: 1.5, marginTop: 2 }}>
+                              {targets.length === 0 ? (ja ? '（対象なし）' : '(none)') : `（${names}）`}
+                            </span>
+                          )}
+                        </span>
                       </label>
                     );
                   })}
-                  {/* 選択中のしきい値で実際に優先対象となるドメインを表示（未挑戦は常に対象） */}
-                  {(() => {
-                    const cur = draftFocusedPrefs.focusDomain ?? 'none';
-                    if (cur === 'none') return null;
-                    const threshold = cur === 'below40' ? 0.4 : cur === 'below80' ? 0.8 : 0.6;
-                    const targets = focusDomainAcc.filter(d => d.acc == null || d.acc < threshold);
-                    const sep = ja ? '、' : ', ';
-                    const names = targets
-                      .map(d => d.acc == null ? `${d.name}${ja ? '（未挑戦）' : ' (new)'}` : `${d.name}（${Math.round(d.acc * 100)}%）`)
-                      .join(sep);
-                    return (
-                      <div style={{ fontSize: 'var(--font-size-xs)', color: 'var(--color-text-light)', marginTop: 8, lineHeight: 1.6 }}>
-                        {targets.length === 0
-                          ? (ja ? '対象ドメイン：なし' : 'Target domains: none')
-                          : `${ja ? '対象ドメイン：' : 'Target domains: '}${names}`}
-                      </div>
-                    );
-                  })()}
                 </div>
               </div>
               <div style={{ fontSize: 'var(--font-size-xs)', color: 'var(--color-text-light)', marginBottom: 16 }}>
