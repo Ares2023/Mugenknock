@@ -9,16 +9,18 @@ import { IconChevronLeft, IconChevronDown, IconExternalLink } from '../component
 import {
   EXAM_TYPES, EXAM_CONFIGS, EXAM_LEVEL, EXAM_DOMAINS, PASS_RATE,
   EXAM_DESC_JA, EXAM_DESC_EN, DOMAIN_WEIGHTS, API_ENDPOINT, EXAM_OFFICIAL_URLS,
+  isNonAwsExam,
 } from '../constants';
 import { syncTargetExamToServer, resetExercisePrefsOnExamChange } from '../utils/preferences';
 
-const LEVEL_ORDER = ['Foundational', 'Associate', 'Professional', 'Specialty'] as const;
+const LEVEL_ORDER = ['Foundational', 'Associate', 'Professional', 'Specialty', 'Additional'] as const;
 
 const LEVEL_COLOR: Record<string, { bg: string; text: string; border: string }> = {
   Foundational: { bg: '#f0f8ff', text: '#2563eb', border: '#bfdbfe' },
   Associate:    { bg: '#f0fdf4', text: '#16a34a', border: '#bbf7d0' },
   Professional: { bg: '#fdf4ff', text: '#9333ea', border: '#e9d5ff' },
   Specialty:    { bg: '#fff7ed', text: '#ea580c', border: '#fed7aa' },
+  Additional:   { bg: '#f0fdfa', text: '#0d9488', border: '#99f6e4' },
 };
 
 export default function ExamDashboard() {
@@ -239,6 +241,22 @@ export default function ExamDashboard() {
                 <p style={{ margin: '8px 0 0', fontSize: 'var(--font-size-sm2)', color: 'var(--color-text-sub)', lineHeight: 1.5 }}>
                   {desc}
                 </p>
+              )}
+              {isNonAwsExam(selectedExam) && (
+                <div style={{
+                  marginTop: 12, padding: '10px 12px',
+                  background: LEVEL_COLOR.Additional.bg,
+                  border: `1px solid ${LEVEL_COLOR.Additional.border}`,
+                  borderRadius: 8,
+                  fontSize: 'var(--font-size-sm)', color: 'var(--color-text-sub)', lineHeight: 1.6,
+                }}>
+                  <div style={{ fontWeight: 700, color: LEVEL_COLOR.Additional.text, marginBottom: 4 }}>
+                    {ja ? 'これはAWS認定資格ではありません' : 'This is not an AWS certification'}
+                  </div>
+                  {ja
+                    ? 'AWS資格の多くは、AWSサービス以外の実務知識を前提としています（例：ANSは5年以上のネットワーク実務経験を推奨）。この「Additional」カードは、そうした前提となるAWS外の基礎知識（機械学習・データベース・ネットワーク）を補うための独自の演習で、認定資格そのものではありません。'
+                    : 'Many AWS certifications assume prior non-AWS, hands-on knowledge (e.g., ANS recommends 5+ years of networking experience). These "Additional" cards are our own practice sets to fill that assumed foundational knowledge (ML, databases, networking) — they are not certifications.'}
+                </div>
               )}
               {officialUrls && (
                 <div style={{ display: 'flex', gap: 16, marginTop: 12, flexWrap: 'wrap' }}>

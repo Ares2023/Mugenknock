@@ -117,6 +117,7 @@ const EXAM_LEVELS = [
   { key: 'Associate',    color: '#006CE0', exams: ['SAA', 'DVA', 'SOA', 'DEA', 'MLA'] },
   { key: 'Professional', color: '#8b5cf6', exams: ['SAP', 'DOP', 'AIP'] },
   { key: 'Specialty',    color: '#0ea5e9', exams: ['ANS', 'SCS'] },
+  { key: 'Additional',   color: '#14b8a6', exams: ['ML', 'DB', 'NW'] },
 ] as const;
 
 export const EXAM_DESC: Record<string, string> = {
@@ -132,6 +133,9 @@ export const EXAM_DESC: Record<string, string> = {
   AIP: '生成AIアプリの設計・実装・最適化に特化した新資格。Amazon Bedrockを中心に、プロンプトエンジニアリングやRAGが頻出。',
   ANS: 'ハイブリッドクラウド・DNS・負荷分散・ネットワーク設計の高度な知識を問うSpecialty。Transit Gateway・Direct Connectが中心。',
   SCS: 'セキュリティ設計・実装・インシデント対応・コンプライアンスを問うSpecialty。IAM・KMS・GuardDutyの深い理解が必要。',
+  ML: '【AWS認定ではありません】AIF/MLA/AIP に共通する機械学習の基礎知識（過学習・評価指標・特徴量・生成AI等）を、AWSサービスに依存しない形で横断演習する独自カード。',
+  DB: '【AWS認定ではありません】DEA 対策として、SQL・正規化・インデックス・トランザクションなどデータベースの基礎知識を演習する独自カード。',
+  NW: '【AWS認定ではありません】ANS が前提とするネットワークの実務知識（TCP/IP・サブネット・ルーティング・DNS・VPN等）を、AWSサービスに依存しない形で演習する独自カード。',
 };
 
 const EXAM_CATCHCOPY: Record<string, string> = {
@@ -147,6 +151,9 @@ const EXAM_CATCHCOPY: Record<string, string> = {
   AIP: '生成AIをビジネスへ！AI開発の最前線！',
   SCS: '守れる者だけが任される！AWSセキュリティの番人！',
   ANS: 'ネットワークの深淵へ！AWS屈指の難関資格！',
+  ML: '資格の枠を超えて！機械学習の土台を固めろ！',
+  DB: 'データの基本を制す！SQL・DB設計の地力を鍛えろ！',
+  NW: 'ANSの前提を制覇！ネットワークの地力を鍛えろ！',
 };
 
 export const EXAM_URLS: Record<string, string> = {

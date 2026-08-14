@@ -384,8 +384,9 @@ app.get('/questions/growth-stats', async (req, res) => {
       TableName: 'Questions',
       ProjectionExpression: 'examType, createdAt, validityCheckedAt',
     }));
-    // AWS専用サイトのためAWS以外の試験種別（OCIAA等）を除外
-    const AWS_EXAM_TYPES = new Set(['CLF','AIF','SAA','DVA','SOA','DEA','MLA','SAP','DOP','GAI','AIP','ANS','SCS']);
+    // 有効な試験種別のみ集計（OCIAA等の無効データを除外）。
+    // ML/DB は AWS認定ではないが、当サイトが提供する「Additional」レベルの外部知識カード。
+    const AWS_EXAM_TYPES = new Set(['CLF','AIF','SAA','DVA','SOA','DEA','MLA','SAP','DOP','GAI','AIP','ANS','SCS','ML','DB','NW']);
     const items = allItems.filter(item => !item.examType || AWS_EXAM_TYPES.has(item.examType));
 
     // JST (UTC+9)

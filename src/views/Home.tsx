@@ -650,9 +650,10 @@ const OB_LEVEL: Record<string, string> = {
   SAA: 'Associate', DVA: 'Associate', SOA: 'Associate', DEA: 'Associate', MLA: 'Associate',
   SAP: 'Professional', DOP: 'Professional', AIP: 'Professional',
   ANS: 'Specialty', SCS: 'Specialty',
+  ML: 'Additional', DB: 'Additional', NW: 'Additional',
 };
 const OB_LEVEL_COLOR: Record<string, string> = {
-  Foundational: '#6b9e3a', Associate: '#006CE0', Professional: '#8b5cf6', Specialty: '#e67e22',
+  Foundational: '#6b9e3a', Associate: '#006CE0', Professional: '#8b5cf6', Specialty: '#e67e22', Additional: '#14b8a6',
 };
 const OB_SHORT: Record<string, string> = {
   CLF: 'Cloud Practitioner', AIF: 'AI Practitioner',
@@ -660,6 +661,7 @@ const OB_SHORT: Record<string, string> = {
   SOA: 'CloudOps Engineer', DEA: 'Data Engineer', MLA: 'ML Engineer',
   SAP: 'Solutions Architect Pro', DOP: 'DevOps Engineer', AIP: 'Generative AI Dev',
   ANS: 'Advanced Networking', SCS: 'Security',
+  ML: 'Machine Learning', DB: 'Database', NW: 'Networking',
 };
 
 function OnboardingModal({ lang, uid, onComplete }: {
@@ -677,7 +679,7 @@ function OnboardingModal({ lang, uid, onComplete }: {
     onComplete(exam);
   };
 
-  const levels = ['Foundational', 'Associate', 'Professional', 'Specialty'] as const;
+  const levels = ['Foundational', 'Associate', 'Professional', 'Specialty', 'Additional'] as const;
   const grouped = levels.map(lv => ({
     lv,
     exams: EXAM_TYPES.filter(e => OB_LEVEL[e] === lv),
