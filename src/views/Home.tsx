@@ -1131,9 +1131,9 @@ const FOCUSED_UNLOCK_THRESHOLD = 30;
 function loadQuickPrefs(uid: string) {
   try { return JSON.parse(localStorage.getItem(`quickExercisePrefs_${uid}`) ?? '{}'); } catch { return {}; }
 }
-// サクッと演習のブックマーク優先（独立トグル・併用可）。
+// サクッと演習のブックマーク優先（独立トグル・併用可）: 既定オン（明示的に false のときだけオフ）。
 function quickBookmark(p: Record<string, any>): boolean {
-  return p?.bookmarkOnly === true || p?.quickFilter === 'bookmark';
+  return p?.bookmarkOnly !== false;
 }
 // サクッと演習の回答状況フィルタ（しっかり対策と同一の選択肢・既定は未正解を優先）。
 // FocusPriority は Home 本体で型定義（'none'|'unanswered'|'incorrect'|'notcorrect'）。
@@ -1162,9 +1162,9 @@ function resolveFocusAccuracy(p: Record<string, any>): FocusAccuracy {
 function focusAccuracyThreshold(a: FocusAccuracy): number {
   return a === 'below50' ? 0.5 : a === 'below66' ? 0.66 : a === 'below75' ? 0.75 : 0;
 }
-// ブックマークフィルタ（しっかり対策・独立トグル・上乗せ）: ブックマーク済みを優先
+// ブックマークフィルタ（しっかり対策・独立トグル・上乗せ）: 既定オン（明示的に false のときだけオフ）
 function focusBookmarkOn(p: Record<string, any>): boolean {
-  return p?.focusBookmark === true;
+  return p?.focusBookmark !== false;
 }
 function shuffleArray<T>(arr: T[]): T[] {
   const a = [...arr];
