@@ -1135,12 +1135,12 @@ function loadQuickPrefs(uid: string) {
 function quickBookmark(p: Record<string, any>): boolean {
   return p?.bookmarkOnly === true || p?.quickFilter === 'bookmark';
 }
-// サクッと演習の回答状況フィルタ（しっかり対策と同一の選択肢・既定は指定なし）。
+// サクッと演習の回答状況フィルタ（しっかり対策と同一の選択肢・既定は未正解を優先）。
 // FocusPriority は Home 本体で型定義（'none'|'unanswered'|'incorrect'|'notcorrect'）。
 function resolveQuickPriority(p: Record<string, any>): 'none' | 'unanswered' | 'incorrect' | 'notcorrect' {
   const v = p?.quickPriority;
   if (v === 'none' || v === 'unanswered' || v === 'incorrect' || v === 'notcorrect') return v;
-  return 'none';
+  return 'notcorrect'; // 既定＝未正解を優先（未回答＋不正解）
 }
 function loadFocusedPrefs(uid: string) {
   try { return JSON.parse(localStorage.getItem(`focusedExercisePrefs_${uid}`) ?? '{}'); } catch { return {}; }
@@ -1149,7 +1149,7 @@ function loadFocusedPrefs(uid: string) {
 type FocusPriority = 'none' | 'unanswered' | 'incorrect' | 'notcorrect';
 function resolveFocusPriority(p: Record<string, any>): FocusPriority {
   if (p?.focusPriority === 'none' || p?.focusPriority === 'unanswered' || p?.focusPriority === 'incorrect' || p?.focusPriority === 'notcorrect') return p.focusPriority;
-  return 'incorrect'; // 後方互換（旧既定＝不正解優先。旧 'weak' は正答率フィルタへ移行）
+  return 'notcorrect'; // 既定＝未正解を優先（未回答＋不正解）。旧 'weak' は正答率フィルタへ移行
 }
 // 正答率フィルタ（排他・問題ごとの累計正答率）: 指定なし / 50% / 66% / 75% 未満
 type FocusAccuracy = 'none' | 'below50' | 'below66' | 'below75';
@@ -1157,7 +1157,7 @@ function resolveFocusAccuracy(p: Record<string, any>): FocusAccuracy {
   if (p?.focusAccuracy === 'below50' || p?.focusAccuracy === 'below66' || p?.focusAccuracy === 'below75' || p?.focusAccuracy === 'none') return p.focusAccuracy;
   // 後方互換：旧「苦手を優先」(75%以下トグル) / 旧 focusPriority='weak' は 75%未満へ移行
   if (p?.focusWeak === true || p?.focusPriority === 'weak') return 'below75';
-  return 'none';
+  return 'below75'; // 既定＝正答率75%未満を優先
 }
 function focusAccuracyThreshold(a: FocusAccuracy): number {
   return a === 'below50' ? 0.5 : a === 'below66' ? 0.66 : a === 'below75' ? 0.75 : 0;
@@ -1893,7 +1893,7 @@ export default function Home() {
         if (v == null) return focusAccuracy === 'below75' && weakSet.has(qid);
         return v < accThreshold;
       };
-      const focusDomain: string = fPrefs.focusDomain ?? 'none'; // 既定オフ：選んだ優先条件が素直に効くように（ドメイン重みは明示ONで併用）
+      const focusDomain: string = fPrefs.focusDomain ?? 'below80'; // 既定＝正答率80%以下のドメインを優先
 
       // ② 弱点ドメイン判定は「直近10回」(recentResults) の正答率を優先採用。
       //    無ければ累計 correct/incorrect → ドメイン履歴の順にフォールバック。
@@ -3026,7 +3026,7 @@ export default function Home() {
                     ['below60', ja ? '正答率60%以下のドメインを優先' : 'Prioritize domains ≤60%'],
                     ['below80', ja ? '正答率80%以下のドメインを優先' : 'Prioritize domains ≤80%'],
                   ] as [string, string][]).map(([val, label]) => {
-                    const selected = (draftFocusedPrefs.focusDomain ?? 'none') === val;
+                    const selected = (draftFocusedPrefs.focusDomain ?? 'below80') === val;
                     // 各しきい値の直下に、実際に優先対象となるドメインを常時表示（未挑戦は常に対象）。指定なしは表示しない。
                     const threshold = val === 'below40' ? 0.4 : val === 'below60' ? 0.6 : val === 'below80' ? 0.8 : 0;
                     const targets = val === 'none' ? [] : focusDomainAcc.filter(d => d.acc == null || d.acc < threshold);
