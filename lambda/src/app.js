@@ -210,6 +210,30 @@ async function requireAdmin(req, res, next) {
 // /admin/* へのすべてのリクエストに管理者認証を適用
 app.use('/admin', requireAdmin);
 
+// /users/me/* はログインユーザー本人のデータ専用。Cognito idToken を検証し、
+// userId は「トークンの sub」を唯一の正とする。クライアントが body/query で渡した
+// userId は信用せず常に sub で上書きする（他人の userId を指定した越権操作=IDORを封じる）。
+// ゲストはこれらの機能を使わない（ログイン専用）ため 401 で問題ない。
+async function requireUser(req, res, next) {
+  const auth = req.headers.authorization || '';
+  if (!auth.startsWith('Bearer ')) {
+    return res.status(401).json({ error: 'Unauthorized' });
+  }
+  try {
+    const payload = await jwtVerifier.verify(auth.slice(7));
+    const sub = payload.sub;
+    if (!sub) return res.status(401).json({ error: 'Invalid token' });
+    req.authSub = sub;
+    // クライアント指定の userId を常にトークンの sub で上書き（越権防止の要）
+    if (req.query && typeof req.query === 'object') req.query.userId = sub;
+    if (req.body && typeof req.body === 'object') req.body.userId = sub;
+    next();
+  } catch {
+    return res.status(401).json({ error: 'Invalid token' });
+  }
+}
+app.use('/users/me', requireUser);
+
 function shuffle(array) {
   for (let i = array.length - 1; i > 0; i--) {
     const j = Math.floor(Math.random() * (i + 1));
@@ -616,18 +640,52 @@ app.get('/questions/:id', async (req, res) => {
 });
 
 // 通報
+// 通報投稿。なりすまし・スパム対策:
+//  - client 指定の userId は信用しない。トークンがあれば検証して sub、無ければ 'anonymous'
+//  - カテゴリは既知値のみ許可、message は長さ制限
+//  - ログインユーザーの同一問題への重複通報は排除（連打スパム防止）
+const REPORT_CATEGORIES = ['question_error', 'choice_error', 'explanation_error', 'other'];
 app.post('/questions/:id/report', async (req, res) => {
   try {
     const docClient = getClient();
-    const { userId, category, message } = req.body;
+    const questionId = req.params.id;
+    const { category, message } = req.body || {};
+
+    // client の userId は使わない。有効な idToken があればその sub を通報者とする。
+    let reporterId = 'anonymous';
+    const auth = req.headers.authorization || '';
+    if (auth.startsWith('Bearer ')) {
+      try {
+        const payload = await jwtVerifier.verify(auth.slice(7));
+        if (payload && payload.sub) reporterId = payload.sub;
+      } catch { /* 無効トークンは anonymous 扱い（UXは維持） */ }
+    }
+
+    const cat = REPORT_CATEGORIES.includes(category) ? category : 'other';
+    const msg = (typeof message === 'string' ? message : '').slice(0, 1000);
+
+    // ログインユーザーの重複通報を排除（同一問題に複数回積まない）
+    if (reporterId !== 'anonymous') {
+      const existing = await docClient.send(new QueryCommand({
+        TableName: 'Reports',
+        KeyConditionExpression: 'questionId = :qid',
+        FilterExpression: 'userId = :uid',
+        ExpressionAttributeValues: { ':qid': questionId, ':uid': reporterId },
+        ProjectionExpression: 'reportId',
+      }));
+      if ((existing.Items || []).length > 0) {
+        return res.json({ success: true, deduped: true });
+      }
+    }
+
     await docClient.send(new PutCommand({
       TableName: 'Reports',
       Item: {
-        questionId: req.params.id,
+        questionId,
         reportId: uuidv4(),
-        userId: userId || 'anonymous',
-        category: category || 'other',
-        message: message || '',
+        userId: reporterId,
+        category: cat,
+        message: msg,
         reportedAt: new Date().toISOString()
       }
     }));

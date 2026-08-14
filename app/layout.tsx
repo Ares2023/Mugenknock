@@ -8,9 +8,12 @@ import outputs from '../src/amplify_outputs.json';
 import { AuthProvider } from '../src/contexts/AuthContext';
 import { LanguageProvider } from '../src/contexts/LanguageContext';
 import { ThemeProvider } from '../src/contexts/ThemeContext';
+import { installApiAuth } from '../src/utils/apiAuth';
 import '../src/index.css';
 
 Amplify.configure(outputs);
+// API_ENDPOINT 宛 fetch に Cognito idToken を自動付与（/users/me の越権防止をサーバ側で成立させる）
+installApiAuth();
 
 const openSans = Open_Sans({
   subsets: ['latin'],
