@@ -387,8 +387,8 @@ export default function Portal() {
 
               <p style={{ margin: 0, fontSize: isMobile ? 'var(--font-size-sm2)' : 'var(--font-size-base)', color: 'var(--color-text-main)', fontWeight: 700, whiteSpace: 'pre-wrap' }}>
                 {ja
-                  ? '現在私が取得している資格は\n「CLF」「AIF」「SAA」「SOA」「SAP」「DOP」\nの6つです。\nAWS資格12種を全冠するまではこのサイトを改良し続けるので、私と同じくAWS 資格の取得へ向けて努力している方はどうぞ使ってみてください！'
-                  : 'The certifications I currently hold are CLF, AIF, SAA, SOA, SAP, and DOP — six so far. At least until I earn them all, I\'ll keep improving this site. If you\'re working toward AWS certifications like me, please give it a try. I\'d be grateful for any feedback via the report or message features.'}
+                  ? '現在私が取得している資格は\n「CLF」「AIF」「SAA」「SOA」「DVA」「SAP」「DOP」\nの7つです。\nAWS資格12種を全冠するまではこのサイトを改良し続けるので、私と同じくAWS 資格の取得へ向けて努力している方はどうぞ使ってみてください！'
+                  : 'The certifications I currently hold are CLF, AIF, SAA, SOA, DVA, SAP, and DOP — seven so far. At least until I earn them all, I\'ll keep improving this site. If you\'re working toward AWS certifications like me, please give it a try. I\'d be grateful for any feedback via the report or message features.'}
               </p>
               <p style={{ margin: 'var(--spacing-md) 0 0', textAlign: 'right', fontSize: 'var(--font-size-sm)', color: 'var(--color-text-light)' }}>
                 {ja ? '開発者　大森かいづ' : '— Kaizu Omori, Developer'}
