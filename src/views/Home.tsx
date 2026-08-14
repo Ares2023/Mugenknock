@@ -2860,6 +2860,8 @@ export default function Home() {
                           const r = saveBtnQuickRef.current?.getBoundingClientRect();
                           if (r) setQuickBurst({ x: r.left + r.width / 2, y: r.top + r.height / 2 });
                         }
+                        // 保存アニメーション（約0.6s）完了の1秒後に自動で閉じる（変更保存時のみ）
+                        setTimeout(() => setShowQuickModal(false), 1600);
                       }}
                       style={{ width: 44, height: 44, flexShrink: 0, padding: 0, border: 'none', background: 'transparent', cursor: (isDisabled || quickSaving) ? 'default' : 'pointer', opacity: isDisabled ? 0.5 : 1, perspective: 600, transition: 'none' }}
                     >
@@ -3127,6 +3129,8 @@ export default function Home() {
                           const r = saveBtnFocusedRef.current?.getBoundingClientRect();
                           if (r) setFocusedBurst({ x: r.left + r.width / 2, y: r.top + r.height / 2 });
                         }
+                        // 保存アニメーション（約0.6s）完了の1秒後に自動で閉じる（変更保存時のみ）
+                        setTimeout(() => setShowFocusedModal(false), 1600);
                       }}
                       disabled={focusedSaving}
                       style={{ width: 44, height: 44, flexShrink: 0, padding: 0, border: 'none', background: 'transparent', cursor: focusedSaving ? 'default' : 'pointer', perspective: 600, transition: 'none' }}

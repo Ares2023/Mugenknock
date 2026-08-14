@@ -1,5 +1,5 @@
 'use client';
-import React, { useEffect, useState, useCallback, useMemo } from 'react';
+import React, { useEffect, useState, useCallback, useMemo, useRef } from 'react';
 import { createPortal } from 'react-dom';
 import { Helmet } from '@/compat/react-helmet-async';
 import { useNavigate } from '@/compat/react-router-dom';
@@ -15,7 +15,7 @@ import {
   IconCalendarNotebook, IconTarget, IconAnnoyed, IconList,
   IconSparkles, IconChevronRight, IconChevronDown, IconLock, IconFlag, IconStar, IconTrendingUp, IconPenLine,
   IconSprout, IconBox, IconBot, IconCode2, IconCloud, IconDatabase, IconBrain, IconVectorSquare, IconFileCodeCorner, IconAtom, IconShieldIcon, IconWaypoints,
-  EXAM_ICON_COMPONENTS, IconSaveCheck, IconCopy, IconCheck, IconTrophy, IconCircleCheck, IconCircleX, IconExternalLink, IconFileText,
+  EXAM_ICON_COMPONENTS, IconSave, IconSaveCheck, IconCopy, IconCheck, IconTrophy, IconCircleCheck, IconCircleX, IconExternalLink, IconFileText,
 } from '../components/Icons';
 import ExamSelectOverlay, { EXAM_DESC, EXAM_URLS, EXAM_GUIDE_PDF_URLS, ConfirmBurst } from '../components/ExamSelectOverlay';
 import Confetti from '../components/Confetti';
@@ -103,7 +103,11 @@ export default function MyPage() {
 
   const [tab, setTab] = useState<'target' | 'analysis' | 'history'>('target');
   const [showSettingsEdit, setShowSettingsEdit] = useState(false);
-  const [savedGoal, setSavedGoal] = useState(false);
+  const [settingsSaveMsg, setSettingsSaveMsg] = useState<'saved' | 'already' | null>(null);
+  const [settingsSaving, setSettingsSaving] = useState(false);
+  const [settingsBurst, setSettingsBurst] = useState<{ x: number; y: number } | null>(null);
+  const saveBtnSettingsRef = useRef<HTMLButtonElement>(null);
+  const SETTINGS_BURST_COLOR = '#e74c3c';
   const [editExamDate, setEditExamDate] = useState('');
   const [editDailyGoal, setEditDailyGoal] = useState(10); // min=10
   const [showExamSelect, setShowExamSelect] = useState(false);
@@ -152,6 +156,8 @@ export default function MyPage() {
     localStorage.setItem(`dailyGoal_${uid}`, String(v));
     if (user) syncPreferencesToServer(user.userId, uid, { dailyGoal: v });
   };
+  // 目標設定オーバレイの変更有無（保存アニメ・自動クローズの判定に使う）
+  const settingsDirty = editExamDate !== examDate || editDailyGoal !== dailyGoal;
 
   // ── サーバーから設定を読み込み（ログイン時のデバイス間同期） ──
   useEffect(() => {
@@ -914,24 +920,59 @@ export default function MyPage() {
                       <button onClick={() => setEditDailyGoal(v => Math.min(100, v + 5))} disabled={editDailyGoal >= 100} style={{ width: 36, height: 36, borderRadius: '50%', border: '1px solid var(--color-border)', background: 'transparent', cursor: editDailyGoal >= 100 ? 'default' : 'pointer', fontSize: 'var(--font-size-xl)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: editDailyGoal >= 100 ? 'var(--color-text-light)' : 'var(--color-text-main)' }}>+</button>
                     </div>
                   </div>
-                  {/* 保存ボタン */}
+                  {/* 保存ボタン（変更保存時: 回転＋放散アニメ → 1秒後に自動クローズ。未変更時は閉じない） */}
                   <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: 12, marginTop: 8 }}>
-                    {savedGoal && <span style={{ fontSize: 'var(--font-size-sm2)', fontWeight: 700, color: 'var(--color-success)', animation: 'sherpa-save-msg 2s ease-in-out both' }}>✓ {ja ? '保存しました' : 'Saved'}</span>}
-                    <button
-                      onClick={() => {
-                        handleExamDateChange(editExamDate);
-                        handleDailyGoalChange(editDailyGoal);
-                        setSavedGoal(true);
-                        setTimeout(() => setSavedGoal(false), 2000);
-                      }}
-                      style={{ width: 44, height: 44, borderRadius: '50%', border: 'none', background: 'var(--color-accent)', color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', boxShadow: 'var(--box-shadow-pop)', flexShrink: 0 }}
-                    >
-                      <IconSaveCheck size={22} />
-                    </button>
+                    {settingsSaveMsg && (
+                      <span style={{ fontSize: 'var(--font-size-sm2)', fontWeight: 700, color: settingsSaveMsg === 'saved' ? 'var(--color-success)' : 'var(--color-text-sub)', animation: 'sherpa-save-msg 2s ease-in-out both' }}>
+                        {settingsSaveMsg === 'saved' ? `✓ ${ja ? '保存しました' : 'Saved'}` : (ja ? '保存済です' : 'Already saved')}
+                      </span>
+                    )}
+                    <div style={{ position: 'relative', flexShrink: 0 }}>
+                      {settingsDirty && (
+                        <span style={{ position: 'absolute', top: -2, right: -2, width: 10, height: 10, borderRadius: '50%', background: SETTINGS_BURST_COLOR, border: '1.5px solid var(--color-bg-white)', zIndex: 1, pointerEvents: 'none' }} />
+                      )}
+                      <button
+                        ref={saveBtnSettingsRef}
+                        disabled={settingsSaving}
+                        onClick={() => {
+                          if (!settingsDirty) {
+                            setSettingsSaveMsg('already');
+                            setTimeout(() => setSettingsSaveMsg(null), 2000);
+                            return;
+                          }
+                          handleExamDateChange(editExamDate);
+                          handleDailyGoalChange(editDailyGoal);
+                          setSettingsSaveMsg('saved');
+                          setTimeout(() => setSettingsSaveMsg(null), 2000);
+                          setSettingsSaving(true);
+                          setTimeout(() => setSettingsSaving(false), 600);
+                          const reduceMotion = window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
+                          if (!reduceMotion) {
+                            const r = saveBtnSettingsRef.current?.getBoundingClientRect();
+                            if (r) setSettingsBurst({ x: r.left + r.width / 2, y: r.top + r.height / 2 });
+                          }
+                          // アニメーション（約0.6s）完了の1秒後に自動で閉じる（変更保存時のみ）
+                          setTimeout(() => setShowSettingsEdit(false), 1600);
+                        }}
+                        style={{ width: 44, height: 44, flexShrink: 0, padding: 0, border: 'none', background: 'transparent', cursor: settingsSaving ? 'default' : 'pointer', perspective: 600, transition: 'none' }}
+                      >
+                        <div style={{ position: 'relative', width: '100%', height: '100%', transformStyle: 'preserve-3d', transition: settingsSaving ? 'transform 0.55s cubic-bezier(.45,.05,.3,1)' : 'none', transform: (!settingsDirty || settingsSaving) ? 'rotateY(180deg)' : 'rotateY(0deg)' }}>
+                          {/* 表面：未保存 */}
+                          <span style={{ position: 'absolute', inset: 0, backfaceVisibility: 'hidden', WebkitBackfaceVisibility: 'hidden', display: 'flex', alignItems: 'center', justifyContent: 'center', borderRadius: '50%', border: '2px solid var(--color-accent)', background: 'var(--color-bg-white)', color: 'var(--color-accent)', boxShadow: 'var(--box-shadow-pop)' }}>
+                            <IconSave size={22} />
+                          </span>
+                          {/* 裏面：保存済 */}
+                          <span style={{ position: 'absolute', inset: 0, backfaceVisibility: 'hidden', WebkitBackfaceVisibility: 'hidden', transform: 'rotateY(180deg)', display: 'flex', alignItems: 'center', justifyContent: 'center', borderRadius: '50%', background: 'var(--color-accent)', color: '#fff', boxShadow: 'var(--box-shadow-pop)' }}>
+                            <IconSaveCheck size={22} />
+                          </span>
+                        </div>
+                      </button>
+                    </div>
                   </div>
                 </div>
               </div>
             )}
+            {settingsBurst && <ConfirmBurst x={settingsBurst.x} y={settingsBurst.y} color={SETTINGS_BURST_COLOR} onDone={() => setSettingsBurst(null)} />}
 
             {/* 目標資格選択オーバーレイ */}
             {showExamSelect && (
