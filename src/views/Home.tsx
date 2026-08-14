@@ -3017,8 +3017,13 @@ export default function Home() {
                 </div>
                 {/* ドメインフィルタ（分野別の正答率） */}
                 <div style={{ padding: '14px 0' }}>
-                  <div style={{ fontWeight: 500, fontSize: 'var(--font-size-base)', color: 'var(--color-text-main)', marginBottom: 8 }}>
+                  <div style={{ fontWeight: 500, fontSize: 'var(--font-size-base)', color: 'var(--color-text-main)', marginBottom: 2 }}>
                     {ja ? 'ドメインフィルタ' : 'Domain Filter'}
+                  </div>
+                  <div style={{ fontSize: 'var(--font-size-xs)', color: 'var(--color-text-light)', lineHeight: 1.5, marginBottom: 8 }}>
+                    {ja
+                      ? '各ドメインの直近10回の正答率で苦手を判定（マイページ苦手分析と同じ。未演習は常に対象）'
+                      : "Weakness judged by each domain's last-10 accuracy (same as My Page analysis; unattempted always included)"}
                   </div>
                   {([
                     ['none',    ja ? '指定なし' : 'None'],
