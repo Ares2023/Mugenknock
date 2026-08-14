@@ -1297,6 +1297,8 @@ export default function Home() {
   const savedFocusedPrefsRef = useRef<Record<string, any>>({});
   // しっかり対策 設定モーダルの各優先条件の該当件数（未回答/不正解/未正解/苦手）
   const [statusCounts, setStatusCounts] = useState<{ bookmarked?: number; unanswered?: number; incorrect?: number; notcorrect?: number; below50?: number; below66?: number; below75?: number } | null>(null);
+  // サクッと演習ドメインフィルタ用: 各ドメインに用意された問題数（ドメイン名→問数）
+  const [quickDomainCounts, setQuickDomainCounts] = useState<Record<string, number> | null>(null);
   useEffect(() => {
     if ((!showFocusedModal && !showQuickModal) || !user || !targetExam) { setStatusCounts(null); return; }
     let cancelled = false;
@@ -1324,6 +1326,33 @@ export default function Home() {
     })();
     return () => { cancelled = true; };
   }, [showFocusedModal, showQuickModal, user, targetExam]);
+
+  // サクッと演習ドメインフィルタの各ドメイン問数を集計（ログイン不問・問題メタから算出）
+  useEffect(() => {
+    if (!showQuickModal || !targetExam) { setQuickDomainCounts(null); return; }
+    let cancelled = false;
+    (async () => {
+      try {
+        const cached = getCachedPersist<{ items: any[]; total: number }>(`qlist_${targetExam}`);
+        let items: any[];
+        if (cached?.items?.length) {
+          items = cached.items;
+        } else {
+          const data = await fetch(`${API_ENDPOINT}/questions?examType=${targetExam}&metaOnly=true`).then(r => r.json());
+          items = data?.items ?? [];
+        }
+        if (cancelled) return;
+        const counts: Record<string, number> = {};
+        for (const q of items) {
+          const name = qDomainName(q);
+          if (!name) continue;
+          counts[name] = (counts[name] ?? 0) + 1;
+        }
+        setQuickDomainCounts(counts);
+      } catch { if (!cancelled) setQuickDomainCounts(null); }
+    })();
+    return () => { cancelled = true; };
+  }, [showQuickModal, targetExam]);
 
   const [quickBurst, setQuickBurst] = useState<{ x: number; y: number } | null>(null);
   const [focusedBurst, setFocusedBurst] = useState<{ x: number; y: number } | null>(null);
@@ -2728,11 +2757,15 @@ export default function Home() {
                         }}
                         style={{ width: 16, height: 16, flexShrink: 0, accentColor: 'var(--color-primary)' }}
                       />
-                      <span style={{ fontSize: 'var(--font-size-sm)', fontWeight: 600, color: 'var(--color-text-main)' }}>{ja ? '全て' : 'All'}</span>
+                      <span style={{ flex: 1, display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', gap: 8, fontSize: 'var(--font-size-sm)', fontWeight: 600, color: 'var(--color-text-main)' }}>
+                        <span>{ja ? '全て' : 'All'}</span>
+                        {quickDomainCounts && <span style={{ fontSize: 'var(--font-size-xs)', fontWeight: 700, color: 'var(--color-text-light)', flexShrink: 0 }}>{Object.values(quickDomainCounts).reduce((s, n) => s + n, 0)}{ja ? '問' : ''}</span>}
+                      </span>
                     </label>
                     {(EXAM_DOMAINS[targetExam] ?? []).map(domain => {
                       const selDoms: string[] = draftPrefs.domains ?? [];
                       const checked = selDoms.includes(domain);
+                      const dCnt = quickDomainCounts ? (quickDomainCounts[domain] ?? 0) : undefined;
                       return (
                         <label key={domain} style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '4px 0', cursor: 'pointer' }}>
                           <input
@@ -2744,7 +2777,10 @@ export default function Home() {
                             })}
                             style={{ width: 16, height: 16, flexShrink: 0, accentColor: 'var(--color-primary)' }}
                           />
-                          <span style={{ fontSize: 'var(--font-size-sm)', color: 'var(--color-text-main)', lineHeight: 1.4 }}>{domain}</span>
+                          <span style={{ flex: 1, display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', gap: 8, fontSize: 'var(--font-size-sm)', color: 'var(--color-text-main)', lineHeight: 1.4 }}>
+                            <span>{domain}</span>
+                            {dCnt != null && <span style={{ fontSize: 'var(--font-size-xs)', fontWeight: 700, color: checked ? 'var(--color-primary)' : 'var(--color-text-light)', flexShrink: 0 }}>{dCnt}{ja ? '問' : ''}</span>}
+                          </span>
                         </label>
                       );
                     })}

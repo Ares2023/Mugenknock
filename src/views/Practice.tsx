@@ -88,6 +88,8 @@ export default function Practice() {
   const [strikeEnabled, setStrikeEnabled] = useState<boolean>(() => initPrefs(localStorage.getItem(`targetExam_${uid}`) || 'SAA').strikeEnabled === true);
   const [hideColumn, setHideColumn] = useState<boolean>(() => initPrefs(localStorage.getItem(`targetExam_${uid}`) || 'SAA').hideColumn === true);
   const [availableCount, setAvailableCount] = useState<number | null>(null);
+  // 各フィルタ（未回答/不正解/ブックマーク）の対象問数（試験全体・ログイン専用）
+  const [statusCounts, setStatusCounts] = useState<{ unanswered?: number; incorrect?: number; bookmarked?: number } | null>(null);
   const [exerciseLoading, setExerciseLoading] = useState(false);
   const [exerciseLoadPct, setExerciseLoadPct] = useState(0);
   type DomainStat = { tagId: string; correctCount: number; incorrectCount: number };
@@ -181,6 +183,29 @@ export default function Practice() {
     };
     fetchCounts();
   }, [examType, selectedDomains, user, bookmarkOnly, unansweredOnly, incorrectOnly]);
+
+  // 各フィルタの対象問数（試験全体）。演習・模試タブ共通で使う。ゲストは対象外。
+  useEffect(() => {
+    if (!user || !examType) { setStatusCounts(null); return; }
+    let cancelled = false;
+    (async () => {
+      try {
+        const [idsRes, statusRes] = await Promise.all([
+          fetch(`${API_ENDPOINT}/questions?examType=${examType}&idsOnly=true`).then(r => r.json()).catch(() => null),
+          fetch(`${API_ENDPOINT}/users/me/question-status?userId=${user.userId}&examType=${examType}`).then(r => r.json()).catch(() => null),
+        ]);
+        if (cancelled) return;
+        const total = (idsRes?.questionIds ?? []).length;
+        const answered = (statusRes?.answered ?? []).length;
+        setStatusCounts({
+          unanswered: Math.max(0, total - answered),
+          incorrect: Object.keys(statusRes?.incorrect ?? {}).length,
+          bookmarked: (statusRes?.bookmarked ?? []).length,
+        });
+      } catch { if (!cancelled) setStatusCounts(null); }
+    })();
+    return () => { cancelled = true; };
+  }, [examType, user]);
 
   useEffect(() => {
     if (!user) { setDomainStats([]); return; }
@@ -464,11 +489,15 @@ export default function Practice() {
                   bookmarkOnly:   setBookmarkOnly,
                 };
                 const on = stateMap[key];
+                const cnt = statusCounts ? (key === 'unansweredOnly' ? statusCounts.unanswered : key === 'incorrectOnly' ? statusCounts.incorrect : statusCounts.bookmarked) : undefined;
                 return (
                   <label data-kbnav="1" key={key} style={{ display: 'flex', alignItems: 'center', gap: 10, cursor: 'pointer' }}>
                     <input type="checkbox" checked={on} onChange={e => setterMap[key](e.target.checked)}
                       style={{ width: 16, height: 16, flexShrink: 0, accentColor: 'var(--color-primary)' }} />
-                    <span style={{ fontSize: 'var(--font-size-sm)', fontWeight: on ? 600 : 400, color: 'var(--color-text-main)' }}>{label}</span>
+                    <span style={{ flex: 1, display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', gap: 8, fontSize: 'var(--font-size-sm)', fontWeight: on ? 600 : 400, color: 'var(--color-text-main)' }}>
+                      <span>{label}</span>
+                      {cnt != null && <span style={{ fontSize: 'var(--font-size-xs)', fontWeight: 700, color: on ? 'var(--color-primary)' : 'var(--color-text-light)', flexShrink: 0 }}>{cnt}{ja ? '問' : ''}</span>}
+                    </span>
                   </label>
                 );
               })}
@@ -629,11 +658,15 @@ export default function Practice() {
                       examBookmarkOnly:   setExamBookmarkOnly,
                     };
                     const on = stateMap[key];
+                    const cnt = statusCounts ? (key === 'examUnansweredOnly' ? statusCounts.unanswered : key === 'examIncorrectOnly' ? statusCounts.incorrect : statusCounts.bookmarked) : undefined;
                     return (
                       <label data-kbnav="1" key={key} style={{ display: 'flex', alignItems: 'center', gap: 10, cursor: 'pointer' }}>
                         <input type="checkbox" checked={on} onChange={e => setterMap[key](e.target.checked)}
                           style={{ width: 16, height: 16, flexShrink: 0, accentColor: 'var(--color-primary)' }} />
-                        <span style={{ fontSize: 'var(--font-size-sm)', fontWeight: on ? 600 : 400, color: 'var(--color-text-main)' }}>{label}</span>
+                        <span style={{ flex: 1, display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', gap: 8, fontSize: 'var(--font-size-sm)', fontWeight: on ? 600 : 400, color: 'var(--color-text-main)' }}>
+                          <span>{label}</span>
+                          {cnt != null && <span style={{ fontSize: 'var(--font-size-xs)', fontWeight: 700, color: on ? 'var(--color-primary)' : 'var(--color-text-light)', flexShrink: 0 }}>{cnt}{ja ? '問' : ''}</span>}
+                        </span>
                       </label>
                     );
                   })}
