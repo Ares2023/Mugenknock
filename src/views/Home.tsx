@@ -1131,9 +1131,16 @@ const FOCUSED_UNLOCK_THRESHOLD = 30;
 function loadQuickPrefs(uid: string) {
   try { return JSON.parse(localStorage.getItem(`quickExercisePrefs_${uid}`) ?? '{}'); } catch { return {}; }
 }
-// サクッと演習はシンプル・全体演習。弱点フィルタは持たず、ブックマーク優先のみ独立トグルで併用可。
+// サクッと演習のブックマーク優先（独立トグル・併用可）。
 function quickBookmark(p: Record<string, any>): boolean {
   return p?.bookmarkOnly === true || p?.quickFilter === 'bookmark';
+}
+// サクッと演習の回答状況フィルタ（しっかり対策と同一の選択肢・既定は指定なし）。
+// FocusPriority は Home 本体で型定義（'none'|'unanswered'|'incorrect'|'notcorrect'）。
+function resolveQuickPriority(p: Record<string, any>): 'none' | 'unanswered' | 'incorrect' | 'notcorrect' {
+  const v = p?.quickPriority;
+  if (v === 'none' || v === 'unanswered' || v === 'incorrect' || v === 'notcorrect') return v;
+  return 'none';
 }
 function loadFocusedPrefs(uid: string) {
   try { return JSON.parse(localStorage.getItem(`focusedExercisePrefs_${uid}`) ?? '{}'); } catch { return {}; }
@@ -1154,6 +1161,10 @@ function resolveFocusAccuracy(p: Record<string, any>): FocusAccuracy {
 }
 function focusAccuracyThreshold(a: FocusAccuracy): number {
   return a === 'below50' ? 0.5 : a === 'below66' ? 0.66 : a === 'below75' ? 0.75 : 0;
+}
+// ブックマークフィルタ（しっかり対策・独立トグル・上乗せ）: ブックマーク済みを優先
+function focusBookmarkOn(p: Record<string, any>): boolean {
+  return p?.focusBookmark === true;
 }
 function shuffleArray<T>(arr: T[]): T[] {
   const a = [...arr];
@@ -1285,7 +1296,7 @@ export default function Home() {
   const [draftFocusedPrefs, setDraftFocusedPrefs] = useState<Record<string, any>>({});
   const savedFocusedPrefsRef = useRef<Record<string, any>>({});
   // しっかり対策 設定モーダルの各優先条件の該当件数（未回答/不正解/未正解/苦手）
-  const [focusedCounts, setFocusedCounts] = useState<{ unanswered?: number; incorrect?: number; notcorrect?: number; below50?: number; below66?: number; below75?: number } | null>(null);
+  const [focusedCounts, setFocusedCounts] = useState<{ bookmarked?: number; unanswered?: number; incorrect?: number; notcorrect?: number; below50?: number; below66?: number; below75?: number } | null>(null);
   useEffect(() => {
     if (!showFocusedModal || !user || !targetExam) { setFocusedCounts(null); return; }
     let cancelled = false;
@@ -1307,7 +1318,8 @@ export default function Home() {
         const below50 = accVals.filter(v => v < 0.5).length;
         const below66 = accVals.filter(v => v < 0.66).length;
         const below75 = accVals.length > 0 ? accVals.filter(v => v < 0.75).length : (statusRes?.weak ?? []).length;
-        setFocusedCounts({ unanswered, incorrect, notcorrect: unanswered + incorrect, below50, below66, below75 });
+        const bookmarked = (statusRes?.bookmarked ?? []).length;
+        setFocusedCounts({ bookmarked, unanswered, incorrect, notcorrect: unanswered + incorrect, below50, below66, below75 });
       } catch { if (!cancelled) setFocusedCounts(null); }
     })();
     return () => { cancelled = true; };
@@ -1740,8 +1752,14 @@ export default function Home() {
     setQuickLoading(true);
     setQuickLoadPct(10);
     const qPrefs = loadQuickPrefs(uid);
-    // サクッとはシンプル・全体演習。弱点系フィルタは持たず、ブックマーク優先のみ任意。
-    const qFlags = { unansweredOnly: false, incorrectOnly: false, bookmarkOnly: quickBookmark(qPrefs) };
+    // 回答状況フィルタ（指定なし/未回答/不正解/未正解）＋ブックマーク優先（併用可）。
+    // 未正解=未回答 or 不正解 は両フラグを渡すとサーバ scoreFn が加算し和集合として効く。
+    const qPriority = resolveQuickPriority(qPrefs);
+    const qFlags = {
+      unansweredOnly: qPriority === 'unanswered' || qPriority === 'notcorrect',
+      incorrectOnly:  qPriority === 'incorrect'  || qPriority === 'notcorrect',
+      bookmarkOnly: quickBookmark(qPrefs),
+    };
 
     try {
       const userId = user?.userId ?? 'guest';
@@ -1835,6 +1853,8 @@ export default function Home() {
       }
       const incorrectCounts: Record<string, number> = statusRes?.incorrect ?? {};
       const answeredSet = new Set<string>(statusRes?.answered ?? []);
+      const bookmarkedSet = new Set<string>(statusRes?.bookmarked ?? []);
+      const focusBookmark = focusBookmarkOn(fPrefs); // ブックマークを優先（独立・上乗せ）
       const accMap: Record<string, number> = statusRes?.acc ?? {};
       const weakSet = new Set<string>(statusRes?.weak ?? []); // acc 無し(旧Lambda)時の 75%未満フォールバック
       // 正答率フィルタ該当判定（問題ごと・未満）。acc が無い旧Lambdaでは 75%未満のみ weak で近似。
@@ -1884,7 +1904,7 @@ export default function Home() {
       // ① 蓄積成績で重み付けして抽出：base + 優先集合ヒット×W + ミス回数×W + ドメイン弱点度×W。
       //    選んだ優先条件（未回答/不正解/未正解）に合う問題を強く優先しつつ、base 重みで
       //    条件外の問題も混ぜて充足（count 件）を担保する（少ない場合の補充）。
-      const W_PRIORITY = 8, W_WEAK = 8, W_INCORRECT = 4, W_DOMAIN = 6, BASE = 1;
+      const W_PRIORITY = 8, W_WEAK = 8, W_INCORRECT = 4, W_DOMAIN = 6, W_BOOKMARK = 8, BASE = 1;
       const count = fPrefs.questionCount ?? 5;
       const pool = Array.from(new Map(allItems.map((q: any) => [q.questionId, q])).values());
       const items = weightedSampleWithoutReplacement(pool, (q: any) => {
@@ -1897,6 +1917,8 @@ export default function Home() {
           : (isUnanswered || isIncorrect); // notcorrect = 未回答 or 不正解
         let w = BASE;
         if (inTarget) w += W_PRIORITY;
+        // ブックマークフィルタ（独立・上乗せ）: ブックマーク済みを重視
+        if (focusBookmark && bookmarkedSet.has(qid)) w += W_BOOKMARK;
         // 正答率フィルタ（問題ごと・未満）: 該当問題を上乗せ
         if (accHit(qid)) w += W_WEAK;
         // 不正解を含む優先度では、ミス回数が多い問題ほどさらに優先
@@ -2611,31 +2633,57 @@ export default function Home() {
                     })}
                   </div>
                 </div>
-                <div style={{ padding: '14px 0', borderBottom: targetExam && (EXAM_DOMAINS[targetExam] ?? []).length > 0 ? '1px solid var(--color-border)' : 'none' }}>
-                  <div style={{ fontWeight: 500, fontSize: 'var(--font-size-base)', color: 'var(--color-text-main)', marginBottom: 2 }}>
-                    {ja ? 'ブックマーク' : 'Bookmarks'}
+                {/* ブックマークフィルタ（独立トグル・上乗せ） */}
+                <div style={{ padding: '14px 0', borderBottom: '1px solid var(--color-border)' }}>
+                  <div style={{ fontWeight: 500, fontSize: 'var(--font-size-base)', color: 'var(--color-text-main)', marginBottom: 8 }}>
+                    {ja ? 'ブックマークフィルタ' : 'Bookmark Filter'}
                   </div>
-                  <div style={{ fontSize: 'var(--font-size-xs)', color: 'var(--color-text-light)', marginBottom: 8 }}>
-                    {ja ? '苦手・不正解などの絞り込みは「しっかり対策」へ' : 'Weakness filters are in Focused Practice'}
-                  </div>
-                  {/* サクッとはシンプル・全体演習。ブックマーク優先だけ任意で使える */}
-                  <label style={{ display: 'flex', alignItems: 'flex-start', gap: 10, padding: '8px 0', cursor: 'pointer' }}>
+                  <label style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '8px 0', cursor: 'pointer' }}>
                     <input
                       type="checkbox"
                       checked={quickBookmark(draftPrefs)}
                       onChange={() => setDraftPrefs(p => ({ ...p, bookmarkOnly: !quickBookmark(p), quickFilter: p.quickFilter === 'bookmark' ? 'none' : p.quickFilter }))}
-                      style={{ width: 16, height: 16, flexShrink: 0, marginTop: 2, accentColor: 'var(--color-primary)' }}
+                      style={{ width: 16, height: 16, flexShrink: 0, accentColor: 'var(--color-primary)' }}
                     />
-                    <span>
-                      <span style={{ display: 'block', fontSize: 'var(--font-size-sm)', fontWeight: quickBookmark(draftPrefs) ? 700 : 500, color: 'var(--color-text-main)' }}>{ja ? 'ブックマークを優先' : 'Prioritize Bookmarked'}</span>
-                      <span style={{ display: 'block', fontSize: 'var(--font-size-xs)', color: 'var(--color-text-light)' }}>{ja ? '上の選択と併用できます' : 'Can combine with the choice above'}</span>
-                    </span>
+                    <span style={{ fontSize: 'var(--font-size-sm)', fontWeight: quickBookmark(draftPrefs) ? 700 : 500, color: 'var(--color-text-main)' }}>{ja ? 'ブックマークを優先' : 'Prioritize Bookmarked'}</span>
                   </label>
+                </div>
+                {/* 回答状況フィルタ（排他・しっかり対策と同一） */}
+                <div style={{ padding: '14px 0', borderBottom: targetExam && (EXAM_DOMAINS[targetExam] ?? []).length > 0 ? '1px solid var(--color-border)' : 'none' }}>
+                  <div style={{ fontWeight: 500, fontSize: 'var(--font-size-base)', color: 'var(--color-text-main)', marginBottom: 8 }}>
+                    {ja ? '回答状況フィルタ' : 'Answer-Status Filter'}
+                  </div>
+                  {(() => {
+                    const curQ = resolveQuickPriority(draftPrefs);
+                    return ([
+                      ['none',       ja ? '指定なし' : 'None', ''],
+                      ['unanswered', ja ? '未回答を優先' : 'Unanswered', ja ? 'まだ解いていない問題' : 'Questions not yet answered'],
+                      ['incorrect',  ja ? '不正解を優先' : 'Incorrect', ja ? '過去に間違えた問題' : 'Previously answered incorrectly'],
+                      ['notcorrect', ja ? '未正解を優先' : 'Not Correct', ja ? '未回答＋不正解（まだ正解していない問題）' : 'Unanswered + incorrect (not yet correct)'],
+                    ] as ['none' | 'unanswered' | 'incorrect' | 'notcorrect', string, string][]).map(([val, label, desc]) => {
+                      const selected = curQ === val;
+                      return (
+                        <label key={val} style={{ display: 'flex', alignItems: 'flex-start', gap: 10, padding: '8px 0', cursor: 'pointer' }}>
+                          <input
+                            type="radio"
+                            name="quickPriority"
+                            checked={selected}
+                            onChange={() => setDraftPrefs(p => ({ ...p, quickPriority: val }))}
+                            style={{ width: 16, height: 16, flexShrink: 0, marginTop: 2, accentColor: 'var(--color-primary)' }}
+                          />
+                          <span style={{ flex: 1 }}>
+                            <span style={{ display: 'block', fontSize: 'var(--font-size-sm)', fontWeight: selected ? 700 : 500, color: 'var(--color-text-main)' }}>{label}</span>
+                            {desc && <span style={{ display: 'block', fontSize: 'var(--font-size-xs)', color: 'var(--color-text-light)' }}>{desc}</span>}
+                          </span>
+                        </label>
+                      );
+                    });
+                  })()}
                 </div>
                 {targetExam && (EXAM_DOMAINS[targetExam] ?? []).length > 0 && (
                   <div style={{ padding: '14px 0' }}>
                     <div style={{ fontWeight: 500, fontSize: 'var(--font-size-base)', color: 'var(--color-text-main)', marginBottom: 8 }}>
-                      {ja ? 'ドメイン' : 'Domains'}
+                      {ja ? 'ドメインフィルタ' : 'Domain Filter'}
                     </div>
                     {/* 全て */}
                     <label style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '4px 0', cursor: 'pointer', marginBottom: 4, paddingBottom: 8, borderBottom: '1px solid color-mix(in srgb, var(--color-text-light) 20%, transparent)' }}>
@@ -2810,6 +2858,24 @@ export default function Home() {
                     })}
                   </div>
                 </div>
+                {/* ブックマークフィルタ（独立トグル・上乗せ） */}
+                <div style={{ padding: '14px 0', borderBottom: '1px solid var(--color-border)' }}>
+                  <div style={{ fontWeight: 500, fontSize: 'var(--font-size-base)', color: 'var(--color-text-main)', marginBottom: 8 }}>
+                    {ja ? 'ブックマークフィルタ' : 'Bookmark Filter'}
+                  </div>
+                  <label style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '8px 0', cursor: 'pointer' }}>
+                    <input
+                      type="checkbox"
+                      checked={focusBookmarkOn(draftFocusedPrefs)}
+                      onChange={() => setDraftFocusedPrefs(p => ({ ...p, focusBookmark: !focusBookmarkOn(p) }))}
+                      style={{ width: 16, height: 16, flexShrink: 0, accentColor: 'var(--color-primary)' }}
+                    />
+                    <span style={{ flex: 1, display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', gap: 8, fontSize: 'var(--font-size-sm)', fontWeight: focusBookmarkOn(draftFocusedPrefs) ? 700 : 500, color: 'var(--color-text-main)' }}>
+                      <span>{ja ? 'ブックマークを優先' : 'Prioritize Bookmarked'}</span>
+                      {focusedCounts?.bookmarked != null && <span style={{ fontSize: 'var(--font-size-xs)', fontWeight: 700, color: focusBookmarkOn(draftFocusedPrefs) ? 'var(--color-primary)' : 'var(--color-text-light)', flexShrink: 0 }}>{focusedCounts.bookmarked}{ja ? '問' : ''}</span>}
+                    </span>
+                  </label>
+                </div>
                 {/* 回答状況フィルタ（排他） */}
                 <div style={{ padding: '14px 0', borderBottom: '1px solid var(--color-border)' }}>
                   <div style={{ fontWeight: 500, fontSize: 'var(--font-size-base)', color: 'var(--color-text-main)', marginBottom: 8 }}>
@@ -2886,9 +2952,9 @@ export default function Home() {
                   </div>
                   {([
                     ['none',    ja ? '指定なし' : 'None'],
-                    ['below80', ja ? '正答率80%以下のドメイン（8/10問）' : 'Below 80% (8/10)'],
-                    ['below60', ja ? '正答率60%以下のドメイン（6/10問）' : 'Below 60% (6/10)'],
                     ['below40', ja ? '正答率40%以下のドメイン（4/10問）' : 'Below 40% (4/10)'],
+                    ['below60', ja ? '正答率60%以下のドメイン（6/10問）' : 'Below 60% (6/10)'],
+                    ['below80', ja ? '正答率80%以下のドメイン（8/10問）' : 'Below 80% (8/10)'],
                   ] as [string, string][]).map(([val, label]) => {
                     const selected = (draftFocusedPrefs.focusDomain ?? 'none') === val;
                     return (
