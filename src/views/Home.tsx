@@ -1138,16 +1138,22 @@ function quickBookmark(p: Record<string, any>): boolean {
 function loadFocusedPrefs(uid: string) {
   try { return JSON.parse(localStorage.getItem(`focusedExercisePrefs_${uid}`) ?? '{}'); } catch { return {}; }
 }
-// しっかり対策の「優先する問題」（排他・3択）: 未回答 / 不正解 / 未正解(=未回答+不正解)
-type FocusPriority = 'unanswered' | 'incorrect' | 'notcorrect';
+// 回答状況フィルタ（排他）: 指定なし / 未回答 / 不正解 / 未正解(=未回答+不正解)
+type FocusPriority = 'none' | 'unanswered' | 'incorrect' | 'notcorrect';
 function resolveFocusPriority(p: Record<string, any>): FocusPriority {
-  if (p?.focusPriority === 'unanswered' || p?.focusPriority === 'incorrect' || p?.focusPriority === 'notcorrect') return p.focusPriority;
-  return 'incorrect'; // 後方互換（旧 focusIncorrect の既定＝不正解優先。旧 'weak' は下の focusWeakOn で拾う）
+  if (p?.focusPriority === 'none' || p?.focusPriority === 'unanswered' || p?.focusPriority === 'incorrect' || p?.focusPriority === 'notcorrect') return p.focusPriority;
+  return 'incorrect'; // 後方互換（旧既定＝不正解優先。旧 'weak' は正答率フィルタへ移行）
 }
-// 「苦手を優先」は排他ラジオとは独立したトグル（累計正答率75%以下を上乗せ）。
-// 旧仕様で focusPriority='weak' を選んでいたユーザーは苦手ONへ移行する。
-function focusWeakOn(p: Record<string, any>): boolean {
-  return p?.focusWeak === true || p?.focusPriority === 'weak';
+// 正答率フィルタ（排他・問題ごとの累計正答率）: 指定なし / 50% / 66% / 75% 未満
+type FocusAccuracy = 'none' | 'below50' | 'below66' | 'below75';
+function resolveFocusAccuracy(p: Record<string, any>): FocusAccuracy {
+  if (p?.focusAccuracy === 'below50' || p?.focusAccuracy === 'below66' || p?.focusAccuracy === 'below75' || p?.focusAccuracy === 'none') return p.focusAccuracy;
+  // 後方互換：旧「苦手を優先」(75%以下トグル) / 旧 focusPriority='weak' は 75%未満へ移行
+  if (p?.focusWeak === true || p?.focusPriority === 'weak') return 'below75';
+  return 'none';
+}
+function focusAccuracyThreshold(a: FocusAccuracy): number {
+  return a === 'below50' ? 0.5 : a === 'below66' ? 0.66 : a === 'below75' ? 0.75 : 0;
 }
 function shuffleArray<T>(arr: T[]): T[] {
   const a = [...arr];
@@ -1279,7 +1285,7 @@ export default function Home() {
   const [draftFocusedPrefs, setDraftFocusedPrefs] = useState<Record<string, any>>({});
   const savedFocusedPrefsRef = useRef<Record<string, any>>({});
   // しっかり対策 設定モーダルの各優先条件の該当件数（未回答/不正解/未正解/苦手）
-  const [focusedCounts, setFocusedCounts] = useState<{ unanswered?: number; incorrect?: number; notcorrect?: number; weak?: number } | null>(null);
+  const [focusedCounts, setFocusedCounts] = useState<{ unanswered?: number; incorrect?: number; notcorrect?: number; below50?: number; below66?: number; below75?: number } | null>(null);
   useEffect(() => {
     if (!showFocusedModal || !user || !targetExam) { setFocusedCounts(null); return; }
     let cancelled = false;
@@ -1294,9 +1300,14 @@ export default function Home() {
         const total = (idsRes?.questionIds ?? []).length;
         const answered = (statusRes?.answered ?? []).length;
         const incorrect = Object.keys(statusRes?.incorrect ?? {}).length;
-        const weak = (statusRes?.weak ?? []).length;
         const unanswered = Math.max(0, total - answered);
-        setFocusedCounts({ unanswered, incorrect, notcorrect: unanswered + incorrect, weak });
+        // 正答率フィルタ（問題ごと・未満）の該当数。acc が無い(旧Lambda)場合は weak(75%以下)のみ暫定表示。
+        const accMap: Record<string, number> = statusRes?.acc ?? {};
+        const accVals = Object.values(accMap);
+        const below50 = accVals.filter(v => v < 0.5).length;
+        const below66 = accVals.filter(v => v < 0.66).length;
+        const below75 = accVals.length > 0 ? accVals.filter(v => v < 0.75).length : (statusRes?.weak ?? []).length;
+        setFocusedCounts({ unanswered, incorrect, notcorrect: unanswered + incorrect, below50, below66, below75 });
       } catch { if (!cancelled) setFocusedCounts(null); }
     })();
     return () => { cancelled = true; };
@@ -1805,9 +1816,11 @@ export default function Home() {
       const stopAnim = cachedQs ? null : animateLoadPct(setFocusedLoadPct, 10, plateau);
       // プール（フルキャッシュがあればそれを、無ければ metaOnly 軽量取得）と苦手問題データを並行フェッチ。
       // 弱点ドメイン判定は q.domain のみ・苦手判定は questionId のみ使うため metaOnly で足りる。
-      // 優先する問題（排他）: 未回答 / 不正解 / 未正解(=未回答 or 不正解)
+      // 回答状況フィルタ（排他）: 指定なし / 未回答 / 不正解 / 未正解(=未回答 or 不正解)
       const focusPriority = resolveFocusPriority(fPrefs);
-      const focusWeak = focusWeakOn(fPrefs); // 苦手を優先（独立・上乗せ）
+      // 正答率フィルタ（排他・問題ごとの累計正答率・未満）: 指定なし / 50 / 66 / 75%
+      const focusAccuracy = resolveFocusAccuracy(fPrefs);
+      const accThreshold = focusAccuracyThreshold(focusAccuracy);
       // プール(metaOnly)＋ユーザー問題ステータス(answered/incorrect/weak)を1本ずつで取得。
       const [data, statusRes] = await Promise.all([
         cachedQs ? Promise.resolve(cachedQs) : fetch(`${API_ENDPOINT}/questions?examType=${targetExam}&metaOnly=true`).then(r => r.json()),
@@ -1822,7 +1835,15 @@ export default function Home() {
       }
       const incorrectCounts: Record<string, number> = statusRes?.incorrect ?? {};
       const answeredSet = new Set<string>(statusRes?.answered ?? []);
-      const weakSet = new Set<string>(statusRes?.weak ?? []);
+      const accMap: Record<string, number> = statusRes?.acc ?? {};
+      const weakSet = new Set<string>(statusRes?.weak ?? []); // acc 無し(旧Lambda)時の 75%未満フォールバック
+      // 正答率フィルタ該当判定（問題ごと・未満）。acc が無い旧Lambdaでは 75%未満のみ weak で近似。
+      const accHit = (qid: string): boolean => {
+        if (focusAccuracy === 'none') return false;
+        const v = accMap[qid];
+        if (v == null) return focusAccuracy === 'below75' && weakSet.has(qid);
+        return v < accThreshold;
+      };
       const focusDomain: string = fPrefs.focusDomain ?? 'none'; // 既定オフ：選んだ優先条件が素直に効くように（ドメイン重みは明示ONで併用）
 
       // ② 弱点ドメイン判定は「直近10回」(recentResults) の正答率を優先採用。
@@ -1870,15 +1891,16 @@ export default function Home() {
         const qid = q.questionId;
         const isUnanswered = !answeredSet.has(qid);
         const isIncorrect = (incorrectCounts[qid] ?? 0) > 0;
-        const inTarget = focusPriority === 'unanswered' ? isUnanswered
+        const inTarget = focusPriority === 'none' ? false
+          : focusPriority === 'unanswered' ? isUnanswered
           : focusPriority === 'incorrect' ? isIncorrect
           : (isUnanswered || isIncorrect); // notcorrect = 未回答 or 不正解
         let w = BASE;
         if (inTarget) w += W_PRIORITY;
-        // 苦手を優先（独立・上乗せ）: 累計正答率75%以下の問題をさらに重視
-        if (focusWeak && weakSet.has(qid)) w += W_WEAK;
+        // 正答率フィルタ（問題ごと・未満）: 該当問題を上乗せ
+        if (accHit(qid)) w += W_WEAK;
         // 不正解を含む優先度では、ミス回数が多い問題ほどさらに優先
-        if (focusPriority !== 'unanswered') w += (incorrectCounts[qid] ?? 0) * W_INCORRECT;
+        if (focusPriority === 'incorrect' || focusPriority === 'notcorrect') w += (incorrectCounts[qid] ?? 0) * W_INCORRECT;
         w += domainDeficit(qDomainName(q)) * W_DOMAIN;
         return w;
       }, count);
@@ -2788,17 +2810,15 @@ export default function Home() {
                     })}
                   </div>
                 </div>
-                {/* 優先する問題（排他・1つだけ選択） */}
+                {/* 回答状況フィルタ（排他） */}
                 <div style={{ padding: '14px 0', borderBottom: '1px solid var(--color-border)' }}>
-                  <div style={{ fontWeight: 500, fontSize: 'var(--font-size-base)', color: 'var(--color-text-main)', marginBottom: 2 }}>
-                    {ja ? '優先する問題' : 'Prioritize Questions'}
-                  </div>
-                  <div style={{ fontSize: 'var(--font-size-xs)', color: 'var(--color-text-light)', marginBottom: 8 }}>
-                    {ja ? 'いずれか1つを選択（排他）' : 'Choose one (exclusive)'}
+                  <div style={{ fontWeight: 500, fontSize: 'var(--font-size-base)', color: 'var(--color-text-main)', marginBottom: 8 }}>
+                    {ja ? '回答状況フィルタ' : 'Answer-Status Filter'}
                   </div>
                   {(() => {
                     const curPriority = resolveFocusPriority(draftFocusedPrefs);
                     return ([
+                      ['none',       ja ? '指定なし' : 'None', ''],
                       ['unanswered', ja ? '未回答を優先' : 'Unanswered', ja ? 'まだ解いていない問題' : 'Questions not yet answered'],
                       ['incorrect',  ja ? '不正解を優先' : 'Incorrect', ja ? '過去に間違えた問題' : 'Previously answered incorrectly'],
                       ['notcorrect', ja ? '未正解を優先' : 'Not Correct', ja ? '未回答＋不正解（まだ正解していない問題）' : 'Unanswered + incorrect (not yet correct)'],
@@ -2819,39 +2839,53 @@ export default function Home() {
                               <span>{label}</span>
                               {cnt != null && <span style={{ fontSize: 'var(--font-size-xs)', fontWeight: 700, color: selected ? 'var(--color-primary)' : 'var(--color-text-light)', flexShrink: 0 }}>{cnt}{ja ? '問' : ''}</span>}
                             </span>
-                            <span style={{ display: 'block', fontSize: 'var(--font-size-xs)', color: 'var(--color-text-light)' }}>{desc}</span>
+                            {desc && <span style={{ display: 'block', fontSize: 'var(--font-size-xs)', color: 'var(--color-text-light)' }}>{desc}</span>}
                           </span>
                         </label>
                       );
                     });
                   })()}
-                  {/* 苦手を優先（独立トグル・上乗せ）: 累計正答率75%以下を重視 */}
-                  <label style={{ display: 'flex', alignItems: 'flex-start', gap: 10, padding: '8px 0', marginTop: 4, borderTop: '1px solid var(--color-border)', cursor: 'pointer' }}>
-                    <input
-                      type="checkbox"
-                      checked={focusWeakOn(draftFocusedPrefs)}
-                      onChange={() => setDraftFocusedPrefs(p => ({ ...p, focusWeak: !focusWeakOn(p), focusPriority: p.focusPriority === 'weak' ? 'incorrect' : p.focusPriority }))}
-                      style={{ width: 16, height: 16, flexShrink: 0, marginTop: 2, accentColor: 'var(--color-primary)' }}
-                    />
-                    <span style={{ flex: 1 }}>
-                      <span style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', gap: 8, fontSize: 'var(--font-size-sm)', fontWeight: focusWeakOn(draftFocusedPrefs) ? 700 : 500, color: 'var(--color-text-main)' }}>
-                        <span>{ja ? '苦手を優先' : 'Boost Weak Spots'}</span>
-                        {focusedCounts?.weak != null && <span style={{ fontSize: 'var(--font-size-xs)', fontWeight: 700, color: focusWeakOn(draftFocusedPrefs) ? 'var(--color-primary)' : 'var(--color-text-light)', flexShrink: 0 }}>{focusedCounts.weak}{ja ? '問' : ''}</span>}
-                      </span>
-                      <span style={{ display: 'block', fontSize: 'var(--font-size-xs)', color: 'var(--color-text-light)' }}>{ja ? '累計正答率75%以下を上乗せ（上の選択と併用可）' : 'Boost questions with cumulative accuracy ≤75% (combines with above)'}</span>
-                    </span>
-                  </label>
                 </div>
-                {/* 弱点ドメイン（分野別）を上乗せ優先 */}
-                <div style={{ padding: '14px 0' }}>
-                  <div style={{ fontWeight: 500, fontSize: 'var(--font-size-base)', color: 'var(--color-text-main)', marginBottom: 4 }}>
-                    {ja ? '弱点ドメインを上乗せ（任意）' : 'Boost Weak Domains (optional)'}
+                {/* 正答率フィルタ（排他・問題ごとの累計正答率・未満） */}
+                <div style={{ padding: '14px 0', borderBottom: '1px solid var(--color-border)' }}>
+                  <div style={{ fontWeight: 500, fontSize: 'var(--font-size-base)', color: 'var(--color-text-main)', marginBottom: 8 }}>
+                    {ja ? '正答率フィルタ' : 'Accuracy Filter'}
                   </div>
-                  <div style={{ fontSize: 'var(--font-size-xs)', color: 'var(--color-text-light)', marginBottom: 8 }}>
-                    {ja ? '上の優先条件に加えて、分野(ドメイン)別の正答率が低い問題も重視する' : 'On top of the priority above, also weight low-accuracy domains'}
+                  {(() => {
+                    const curAcc = resolveFocusAccuracy(draftFocusedPrefs);
+                    return ([
+                      ['none',    ja ? '指定なし' : 'None'],
+                      ['below50', ja ? '正答率50%未満を優先' : 'Below 50%'],
+                      ['below66', ja ? '正答率66%未満を優先' : 'Below 66%'],
+                      ['below75', ja ? '正答率75%未満を優先' : 'Below 75%'],
+                    ] as [FocusAccuracy, string][]).map(([val, label]) => {
+                      const selected = curAcc === val;
+                      const cnt = focusedCounts ? (focusedCounts as any)[val] as number | undefined : undefined;
+                      return (
+                        <label key={val} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '8px 0', cursor: 'pointer' }}>
+                          <input
+                            type="radio"
+                            name="focusAccuracy"
+                            checked={selected}
+                            onChange={() => setDraftFocusedPrefs(p => ({ ...p, focusAccuracy: val }))}
+                            style={{ width: 16, height: 16, flexShrink: 0, accentColor: 'var(--color-primary)' }}
+                          />
+                          <span style={{ flex: 1, display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', gap: 8, fontSize: 'var(--font-size-sm)', fontWeight: selected ? 700 : 500, color: 'var(--color-text-main)' }}>
+                            <span>{label}</span>
+                            {cnt != null && <span style={{ fontSize: 'var(--font-size-xs)', fontWeight: 700, color: selected ? 'var(--color-primary)' : 'var(--color-text-light)', flexShrink: 0 }}>{cnt}{ja ? '問' : ''}</span>}
+                          </span>
+                        </label>
+                      );
+                    });
+                  })()}
+                </div>
+                {/* ドメインフィルタ（分野別の正答率） */}
+                <div style={{ padding: '14px 0' }}>
+                  <div style={{ fontWeight: 500, fontSize: 'var(--font-size-base)', color: 'var(--color-text-main)', marginBottom: 8 }}>
+                    {ja ? 'ドメインフィルタ' : 'Domain Filter'}
                   </div>
                   {([
-                    ['none',    ja ? 'なし' : 'Off'],
+                    ['none',    ja ? '指定なし' : 'None'],
                     ['below80', ja ? '正答率80%以下のドメイン（8/10問）' : 'Below 80% (8/10)'],
                     ['below60', ja ? '正答率60%以下のドメイン（6/10問）' : 'Below 60% (6/10)'],
                     ['below40', ja ? '正答率40%以下のドメイン（4/10問）' : 'Below 40% (4/10)'],

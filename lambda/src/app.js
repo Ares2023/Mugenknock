@@ -2093,16 +2093,22 @@ app.get('/users/me/question-status', async (req, res) => {
       items = items.filter(s => examQuestionIds.has(s.questionId));
     }
 
-    const answered = [], incorrect = {}, weak = [], bookmarked = [];
+    // acc = 問題別の累計正答率(correctCount/総試行)。演習フィルタ「正答率フィルタ」が
+    // 50/66/75% 未満などの任意しきい値でクライアント側判定できるよう問題別に返す。
+    const answered = [], incorrect = {}, weak = [], bookmarked = [], acc = {};
     for (const s of items) {
       const c = s.correctCount ?? 0, i = s.incorrectCount ?? 0, total = c + i;
       answered.push(s.questionId); // 統計行がある=既回答扱い（既存 answered-questions と同一挙動）
       if (i > 0) incorrect[s.questionId] = i;
-      if (total > 0 && (c / total) <= WEAK_ACC) weak.push(s.questionId);
+      if (total > 0) {
+        const ratio = c / total;
+        acc[s.questionId] = ratio;
+        if (ratio <= WEAK_ACC) weak.push(s.questionId); // 後方互換（既存の weak 利用箇所を維持）
+      }
       if (s.bookmarked) bookmarked.push(s.questionId);
     }
 
-    res.json({ answered, incorrect, weak, bookmarked });
+    res.json({ answered, incorrect, weak, bookmarked, acc });
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: 'Internal server error' });
