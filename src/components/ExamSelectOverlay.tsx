@@ -532,6 +532,9 @@ export default function ExamSelectOverlay({
                     }
                     // フリップ(0.55s)→「学習中」フェードイン(0.5s遅延)→反映
                     setTimeout(() => { onSelect(exam); setConfirming(false); }, 1100);
+                    // 非オンボーディング（マイページからの目標資格変更等）では、確定アニメ完了の
+                    // 約1秒後にオーバレイを自動で閉じる。オンボーディングは導線が異なるため onSelect 側で制御し除外。
+                    if (!onboarding && onClose) setTimeout(() => onClose(), 2100);
                   }}
                   disabled={confirming}
                   aria-label={ja ? '決定' : 'Confirm'}
