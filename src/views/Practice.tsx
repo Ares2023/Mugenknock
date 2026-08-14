@@ -494,9 +494,9 @@ export default function Practice() {
                   <label data-kbnav="1" key={key} style={{ display: 'flex', alignItems: 'center', gap: 10, cursor: 'pointer' }}>
                     <input type="checkbox" checked={on} onChange={e => setterMap[key](e.target.checked)}
                       style={{ width: 16, height: 16, flexShrink: 0, accentColor: 'var(--color-primary)' }} />
-                    <span style={{ flex: 1, display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', gap: 8, fontSize: 'var(--font-size-sm)', fontWeight: on ? 600 : 400, color: 'var(--color-text-main)' }}>
-                      <span>{label}</span>
-                      {cnt != null && <span style={{ fontSize: 'var(--font-size-xs)', fontWeight: 700, color: on ? 'var(--color-primary)' : 'var(--color-text-light)', flexShrink: 0 }}>{cnt}{ja ? '問' : ''}</span>}
+                    <span style={{ fontSize: 'var(--font-size-sm)', fontWeight: on ? 600 : 400, color: 'var(--color-text-main)' }}>
+                      {label}
+                      {cnt != null && <span style={{ color: 'var(--color-text-light)', fontWeight: 400 }}>{ja ? `（${cnt}問）` : ` (${cnt})`}</span>}
                     </span>
                   </label>
                 );
@@ -663,9 +663,9 @@ export default function Practice() {
                       <label data-kbnav="1" key={key} style={{ display: 'flex', alignItems: 'center', gap: 10, cursor: 'pointer' }}>
                         <input type="checkbox" checked={on} onChange={e => setterMap[key](e.target.checked)}
                           style={{ width: 16, height: 16, flexShrink: 0, accentColor: 'var(--color-primary)' }} />
-                        <span style={{ flex: 1, display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', gap: 8, fontSize: 'var(--font-size-sm)', fontWeight: on ? 600 : 400, color: 'var(--color-text-main)' }}>
-                          <span>{label}</span>
-                          {cnt != null && <span style={{ fontSize: 'var(--font-size-xs)', fontWeight: 700, color: on ? 'var(--color-primary)' : 'var(--color-text-light)', flexShrink: 0 }}>{cnt}{ja ? '問' : ''}</span>}
+                        <span style={{ fontSize: 'var(--font-size-sm)', fontWeight: on ? 600 : 400, color: 'var(--color-text-main)' }}>
+                          {label}
+                          {cnt != null && <span style={{ color: 'var(--color-text-light)', fontWeight: 400 }}>{ja ? `（${cnt}問）` : ` (${cnt})`}</span>}
                         </span>
                       </label>
                     );

@@ -2779,7 +2779,7 @@ export default function Home() {
                           />
                           <span style={{ flex: 1, display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', gap: 8, fontSize: 'var(--font-size-sm)', color: 'var(--color-text-main)', lineHeight: 1.4 }}>
                             <span>{domain}</span>
-                            {dCnt != null && <span style={{ fontSize: 'var(--font-size-xs)', fontWeight: 700, color: checked ? 'var(--color-primary)' : 'var(--color-text-light)', flexShrink: 0 }}>{dCnt}{ja ? '問' : ''}</span>}
+                            {dCnt != null && <span style={{ fontSize: 'var(--font-size-xs)', fontWeight: 700, color: 'var(--color-text-light)', flexShrink: 0 }}>{dCnt}{ja ? '問' : ''}</span>}
                           </span>
                         </label>
                       );
