@@ -1296,9 +1296,9 @@ export default function Home() {
   const [draftFocusedPrefs, setDraftFocusedPrefs] = useState<Record<string, any>>({});
   const savedFocusedPrefsRef = useRef<Record<string, any>>({});
   // しっかり対策 設定モーダルの各優先条件の該当件数（未回答/不正解/未正解/苦手）
-  const [focusedCounts, setFocusedCounts] = useState<{ bookmarked?: number; unanswered?: number; incorrect?: number; notcorrect?: number; below50?: number; below66?: number; below75?: number } | null>(null);
+  const [statusCounts, setStatusCounts] = useState<{ bookmarked?: number; unanswered?: number; incorrect?: number; notcorrect?: number; below50?: number; below66?: number; below75?: number } | null>(null);
   useEffect(() => {
-    if (!showFocusedModal || !user || !targetExam) { setFocusedCounts(null); return; }
+    if ((!showFocusedModal && !showQuickModal) || !user || !targetExam) { setStatusCounts(null); return; }
     let cancelled = false;
     const uid2 = user.userId;
     (async () => {
@@ -1319,11 +1319,11 @@ export default function Home() {
         const below66 = accVals.filter(v => v < 0.66).length;
         const below75 = accVals.length > 0 ? accVals.filter(v => v < 0.75).length : (statusRes?.weak ?? []).length;
         const bookmarked = (statusRes?.bookmarked ?? []).length;
-        setFocusedCounts({ bookmarked, unanswered, incorrect, notcorrect: unanswered + incorrect, below50, below66, below75 });
-      } catch { if (!cancelled) setFocusedCounts(null); }
+        setStatusCounts({ bookmarked, unanswered, incorrect, notcorrect: unanswered + incorrect, below50, below66, below75 });
+      } catch { if (!cancelled) setStatusCounts(null); }
     })();
     return () => { cancelled = true; };
-  }, [showFocusedModal, user, targetExam]);
+  }, [showFocusedModal, showQuickModal, user, targetExam]);
 
   const [quickBurst, setQuickBurst] = useState<{ x: number; y: number } | null>(null);
   const [focusedBurst, setFocusedBurst] = useState<{ x: number; y: number } | null>(null);
@@ -2670,7 +2670,10 @@ export default function Home() {
                       onChange={() => setDraftPrefs(p => ({ ...p, bookmarkOnly: !quickBookmark(p), quickFilter: p.quickFilter === 'bookmark' ? 'none' : p.quickFilter }))}
                       style={{ width: 16, height: 16, flexShrink: 0, accentColor: 'var(--color-primary)' }}
                     />
-                    <span style={{ fontSize: 'var(--font-size-sm)', fontWeight: quickBookmark(draftPrefs) ? 700 : 500, color: 'var(--color-text-main)' }}>{ja ? 'ブックマークを優先' : 'Prioritize Bookmarked'}</span>
+                    <span style={{ flex: 1, display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', gap: 8, fontSize: 'var(--font-size-sm)', fontWeight: quickBookmark(draftPrefs) ? 700 : 500, color: 'var(--color-text-main)' }}>
+                      <span>{ja ? 'ブックマークを優先' : 'Prioritize Bookmarked'}</span>
+                      {statusCounts?.bookmarked != null && <span style={{ fontSize: 'var(--font-size-xs)', fontWeight: 700, color: quickBookmark(draftPrefs) ? 'var(--color-primary)' : 'var(--color-text-light)', flexShrink: 0 }}>{statusCounts.bookmarked}{ja ? '問' : ''}</span>}
+                    </span>
                   </label>
                 </div>
                 {/* 回答状況フィルタ（排他・しっかり対策と同一） */}
@@ -2687,6 +2690,7 @@ export default function Home() {
                       ['notcorrect', ja ? '未正解を優先' : 'Not Correct', ja ? '未回答＋不正解（まだ正解していない問題）' : 'Unanswered + incorrect (not yet correct)'],
                     ] as ['none' | 'unanswered' | 'incorrect' | 'notcorrect', string, string][]).map(([val, label, desc]) => {
                       const selected = curQ === val;
+                      const cnt = statusCounts ? (statusCounts as any)[val] as number | undefined : undefined;
                       return (
                         <label key={val} style={{ display: 'flex', alignItems: 'flex-start', gap: 10, padding: '8px 0', cursor: 'pointer' }}>
                           <input
@@ -2697,7 +2701,10 @@ export default function Home() {
                             style={{ width: 16, height: 16, flexShrink: 0, marginTop: 2, accentColor: 'var(--color-primary)' }}
                           />
                           <span style={{ flex: 1 }}>
-                            <span style={{ display: 'block', fontSize: 'var(--font-size-sm)', fontWeight: selected ? 700 : 500, color: 'var(--color-text-main)' }}>{label}</span>
+                            <span style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', gap: 8, fontSize: 'var(--font-size-sm)', fontWeight: selected ? 700 : 500, color: 'var(--color-text-main)' }}>
+                              <span>{label}</span>
+                              {cnt != null && <span style={{ fontSize: 'var(--font-size-xs)', fontWeight: 700, color: selected ? 'var(--color-primary)' : 'var(--color-text-light)', flexShrink: 0 }}>{cnt}{ja ? '問' : ''}</span>}
+                            </span>
                             {desc && <span style={{ display: 'block', fontSize: 'var(--font-size-xs)', color: 'var(--color-text-light)' }}>{desc}</span>}
                           </span>
                         </label>
@@ -2897,7 +2904,7 @@ export default function Home() {
                     />
                     <span style={{ flex: 1, display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', gap: 8, fontSize: 'var(--font-size-sm)', fontWeight: focusBookmarkOn(draftFocusedPrefs) ? 700 : 500, color: 'var(--color-text-main)' }}>
                       <span>{ja ? 'ブックマークを優先' : 'Prioritize Bookmarked'}</span>
-                      {focusedCounts?.bookmarked != null && <span style={{ fontSize: 'var(--font-size-xs)', fontWeight: 700, color: focusBookmarkOn(draftFocusedPrefs) ? 'var(--color-primary)' : 'var(--color-text-light)', flexShrink: 0 }}>{focusedCounts.bookmarked}{ja ? '問' : ''}</span>}
+                      {statusCounts?.bookmarked != null && <span style={{ fontSize: 'var(--font-size-xs)', fontWeight: 700, color: focusBookmarkOn(draftFocusedPrefs) ? 'var(--color-primary)' : 'var(--color-text-light)', flexShrink: 0 }}>{statusCounts.bookmarked}{ja ? '問' : ''}</span>}
                     </span>
                   </label>
                 </div>
@@ -2915,7 +2922,7 @@ export default function Home() {
                       ['notcorrect', ja ? '未正解を優先' : 'Not Correct', ja ? '未回答＋不正解（まだ正解していない問題）' : 'Unanswered + incorrect (not yet correct)'],
                     ] as [FocusPriority, string, string][]).map(([val, label, desc]) => {
                       const selected = curPriority === val;
-                      const cnt = focusedCounts ? (focusedCounts as any)[val] as number | undefined : undefined;
+                      const cnt = statusCounts ? (statusCounts as any)[val] as number | undefined : undefined;
                       return (
                         <label key={val} style={{ display: 'flex', alignItems: 'flex-start', gap: 10, padding: '8px 0', cursor: 'pointer' }}>
                           <input
@@ -2951,7 +2958,7 @@ export default function Home() {
                       ['below75', ja ? '正答率75%未満を優先' : 'Below 75%'],
                     ] as [FocusAccuracy, string][]).map(([val, label]) => {
                       const selected = curAcc === val;
-                      const cnt = focusedCounts ? (focusedCounts as any)[val] as number | undefined : undefined;
+                      const cnt = statusCounts ? (statusCounts as any)[val] as number | undefined : undefined;
                       return (
                         <label key={val} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '8px 0', cursor: 'pointer' }}>
                           <input
