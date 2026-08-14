@@ -1981,6 +1981,31 @@ export default function Home() {
     });
   }, [targetExam, domains, uid, domainStats]);
 
+  // しっかり対策「ドメインフィルタ」の対象表示用: 選出ロジックと同じ「直近10回優先」で
+  // ドメイン別正答率(0..1、未挑戦は null)を算出する（表示と実際の優先対象を一致させる）。
+  const focusDomainAcc = useMemo(() => {
+    if (!targetExam) return [] as { name: string; acc: number | null }[];
+    const hist = readDomainHistory(targetExam, uid);
+    return (EXAM_DOMAINS[targetExam] ?? []).map((name, idx) => {
+      const stat = domainStats.find(s => tagIdMatches(s.tagId, targetExam, idx));
+      const recent = (stat?.recentResults ?? []).slice(-10);
+      let acc: number | null = null;
+      if (recent.length > 0) {
+        acc = recent.filter(Boolean).length / recent.length;
+      } else if (stat && ((stat.correctCount ?? 0) + (stat.incorrectCount ?? 0)) > 0) {
+        acc = (stat.correctCount ?? 0) / ((stat.correctCount ?? 0) + (stat.incorrectCount ?? 0));
+      } else {
+        const sessions = hist[String(idx)];
+        if (sessions && sessions.length > 0) {
+          const c = sessions.reduce((s, r) => s + r.correct, 0);
+          const t = sessions.reduce((s, r) => s + r.total, 0);
+          acc = t === 0 ? null : c / t;
+        }
+      }
+      return { name, acc };
+    });
+  }, [targetExam, uid, domainStats]);
+
   const hasPrimaryDraft = primaryMode === 'focused' ? hasFocusedDraft : hasQuickDraft;
   const resumePrimary = primaryMode === 'focused' ? resumeFocusedExercise : resumeQuickExercise;
   const primaryLoading = primaryMode === 'focused' ? focusedLoading : quickLoading;
@@ -2952,9 +2977,9 @@ export default function Home() {
                   </div>
                   {([
                     ['none',    ja ? '指定なし' : 'None'],
-                    ['below40', ja ? '正答率40%以下のドメイン（4/10問）' : 'Below 40% (4/10)'],
-                    ['below60', ja ? '正答率60%以下のドメイン（6/10問）' : 'Below 60% (6/10)'],
-                    ['below80', ja ? '正答率80%以下のドメイン（8/10問）' : 'Below 80% (8/10)'],
+                    ['below40', ja ? '正答率40%以下のドメインを優先' : 'Prioritize domains ≤40%'],
+                    ['below60', ja ? '正答率60%以下のドメインを優先' : 'Prioritize domains ≤60%'],
+                    ['below80', ja ? '正答率80%以下のドメインを優先' : 'Prioritize domains ≤80%'],
                   ] as [string, string][]).map(([val, label]) => {
                     const selected = (draftFocusedPrefs.focusDomain ?? 'none') === val;
                     return (
@@ -2970,6 +2995,24 @@ export default function Home() {
                       </label>
                     );
                   })}
+                  {/* 選択中のしきい値で実際に優先対象となるドメインを表示（未挑戦は常に対象） */}
+                  {(() => {
+                    const cur = draftFocusedPrefs.focusDomain ?? 'none';
+                    if (cur === 'none') return null;
+                    const threshold = cur === 'below40' ? 0.4 : cur === 'below80' ? 0.8 : 0.6;
+                    const targets = focusDomainAcc.filter(d => d.acc == null || d.acc < threshold);
+                    const sep = ja ? '、' : ', ';
+                    const names = targets
+                      .map(d => d.acc == null ? `${d.name}${ja ? '（未挑戦）' : ' (new)'}` : `${d.name}（${Math.round(d.acc * 100)}%）`)
+                      .join(sep);
+                    return (
+                      <div style={{ fontSize: 'var(--font-size-xs)', color: 'var(--color-text-light)', marginTop: 8, lineHeight: 1.6 }}>
+                        {targets.length === 0
+                          ? (ja ? '対象ドメイン：なし' : 'Target domains: none')
+                          : `${ja ? '対象ドメイン：' : 'Target domains: '}${names}`}
+                      </div>
+                    );
+                  })()}
                 </div>
               </div>
               <div style={{ fontSize: 'var(--font-size-xs)', color: 'var(--color-text-light)', marginBottom: 16 }}>
