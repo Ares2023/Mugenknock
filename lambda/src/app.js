@@ -210,6 +210,30 @@ async function requireAdmin(req, res, next) {
 // /admin/* へのすべてのリクエストに管理者認証を適用
 app.use('/admin', requireAdmin);
 
+// /users/me/* はログインユーザー本人のデータ専用。Cognito idToken を検証し、
+// userId は「トークンの sub」を唯一の正とする。クライアントが body/query で渡した
+// userId は信用せず常に sub で上書きする（他人の userId を指定した越権操作=IDORを封じる）。
+// ゲストはこれらの機能を使わない（ログイン専用）ため 401 で問題ない。
+async function requireUser(req, res, next) {
+  const auth = req.headers.authorization || '';
+  if (!auth.startsWith('Bearer ')) {
+    return res.status(401).json({ error: 'Unauthorized' });
+  }
+  try {
+    const payload = await jwtVerifier.verify(auth.slice(7));
+    const sub = payload.sub;
+    if (!sub) return res.status(401).json({ error: 'Invalid token' });
+    req.authSub = sub;
+    // クライアント指定の userId を常にトークンの sub で上書き（越権防止の要）
+    if (req.query && typeof req.query === 'object') req.query.userId = sub;
+    if (req.body && typeof req.body === 'object') req.body.userId = sub;
+    next();
+  } catch {
+    return res.status(401).json({ error: 'Invalid token' });
+  }
+}
+app.use('/users/me', requireUser);
+
 function shuffle(array) {
   for (let i = array.length - 1; i > 0; i--) {
     const j = Math.floor(Math.random() * (i + 1));
