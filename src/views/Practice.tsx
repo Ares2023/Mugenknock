@@ -88,6 +88,10 @@ export default function Practice() {
   const [strikeEnabled, setStrikeEnabled] = useState<boolean>(() => initPrefs(localStorage.getItem(`targetExam_${uid}`) || 'SAA').strikeEnabled === true);
   const [hideColumn, setHideColumn] = useState<boolean>(() => initPrefs(localStorage.getItem(`targetExam_${uid}`) || 'SAA').hideColumn === true);
   const [availableCount, setAvailableCount] = useState<number | null>(null);
+  // 各フィルタ（未回答/不正解/ブックマーク）の対象問数（試験全体・ログイン専用）
+  const [statusCounts, setStatusCounts] = useState<{ unanswered?: number; incorrect?: number; bookmarked?: number } | null>(null);
+  // ドメイン別の用意問数（ドメイン名→問数・ログイン不問）
+  const [domainCounts, setDomainCounts] = useState<Record<string, number> | null>(null);
   const [exerciseLoading, setExerciseLoading] = useState(false);
   const [exerciseLoadPct, setExerciseLoadPct] = useState(0);
   type DomainStat = { tagId: string; correctCount: number; incorrectCount: number };
@@ -181,6 +185,49 @@ export default function Practice() {
     };
     fetchCounts();
   }, [examType, selectedDomains, user, bookmarkOnly, unansweredOnly, incorrectOnly]);
+
+  // 各フィルタの対象問数（試験全体）。演習・模試タブ共通で使う。ゲストは対象外。
+  useEffect(() => {
+    if (!user || !examType) { setStatusCounts(null); return; }
+    let cancelled = false;
+    (async () => {
+      try {
+        const [idsRes, statusRes] = await Promise.all([
+          fetch(`${API_ENDPOINT}/questions?examType=${examType}&idsOnly=true`).then(r => r.json()).catch(() => null),
+          fetch(`${API_ENDPOINT}/users/me/question-status?userId=${user.userId}&examType=${examType}`).then(r => r.json()).catch(() => null),
+        ]);
+        if (cancelled) return;
+        const total = (idsRes?.questionIds ?? []).length;
+        const answered = (statusRes?.answered ?? []).length;
+        setStatusCounts({
+          unanswered: Math.max(0, total - answered),
+          incorrect: Object.keys(statusRes?.incorrect ?? {}).length,
+          bookmarked: (statusRes?.bookmarked ?? []).length,
+        });
+      } catch { if (!cancelled) setStatusCounts(null); }
+    })();
+    return () => { cancelled = true; };
+  }, [examType, user]);
+
+  // ドメイン別の用意問数を集計（問題メタから・ログイン不問）
+  useEffect(() => {
+    if (!examType) { setDomainCounts(null); return; }
+    let cancelled = false;
+    (async () => {
+      try {
+        const data = await fetch(`${API_ENDPOINT}/questions?examType=${examType}&metaOnly=true`).then(r => r.json()).catch(() => null);
+        if (cancelled || !data) return;
+        const counts: Record<string, number> = {};
+        for (const q of (data.items ?? [])) {
+          const name = qDomainName(q);
+          if (!name) continue;
+          counts[name] = (counts[name] ?? 0) + 1;
+        }
+        setDomainCounts(counts);
+      } catch { if (!cancelled) setDomainCounts(null); }
+    })();
+    return () => { cancelled = true; };
+  }, [examType]);
 
   useEffect(() => {
     if (!user) { setDomainStats([]); return; }
@@ -464,11 +511,15 @@ export default function Practice() {
                   bookmarkOnly:   setBookmarkOnly,
                 };
                 const on = stateMap[key];
+                const cnt = statusCounts ? (key === 'unansweredOnly' ? statusCounts.unanswered : key === 'incorrectOnly' ? statusCounts.incorrect : statusCounts.bookmarked) : undefined;
                 return (
                   <label data-kbnav="1" key={key} style={{ display: 'flex', alignItems: 'center', gap: 10, cursor: 'pointer' }}>
                     <input type="checkbox" checked={on} onChange={e => setterMap[key](e.target.checked)}
                       style={{ width: 16, height: 16, flexShrink: 0, accentColor: 'var(--color-primary)' }} />
-                    <span style={{ fontSize: 'var(--font-size-sm)', fontWeight: on ? 600 : 400, color: 'var(--color-text-main)' }}>{label}</span>
+                    <span style={{ fontSize: 'var(--font-size-sm)', fontWeight: on ? 600 : 400, color: 'var(--color-text-main)' }}>
+                      {label}
+                      {cnt != null && <span style={{ color: 'var(--color-text-light)', fontWeight: 400 }}>{ja ? `（${cnt}問）` : ` (${cnt})`}</span>}
+                    </span>
                   </label>
                 );
               })}
@@ -541,11 +592,15 @@ export default function Practice() {
                     }}
                     style={{ width: 15, height: 15, flexShrink: 0, accentColor: 'var(--color-primary)' }}
                   />
-                  <span style={{ fontSize: 'var(--font-size-sm)', fontWeight: 600, color: 'var(--color-text-main)' }}>{ja ? '全て' : 'All'}</span>
+                  <span style={{ fontSize: 'var(--font-size-sm)', fontWeight: 600, color: 'var(--color-text-main)' }}>
+                    {ja ? '全て' : 'All'}
+                    {domainCounts && <span style={{ color: 'var(--color-text-light)', fontWeight: 400 }}>{ja ? `（${Object.values(domainCounts).reduce((s, n) => s + n, 0)}問）` : ` (${Object.values(domainCounts).reduce((s, n) => s + n, 0)})`}</span>}
+                  </span>
                 </label>
                 {(EXAM_DOMAINS[examType] ?? []).map(domain => {
                   const checked = selectedDomains.includes(domain);
                   const rate = user ? domainRates[domain] : undefined;
+                  const dCnt = domainCounts ? (domainCounts[domain] ?? 0) : undefined;
                   return (
                     <label data-kbnav="1" key={domain} style={{ display: 'flex', alignItems: 'center', gap: 8, cursor: 'pointer' }}>
                       <input
@@ -556,7 +611,10 @@ export default function Practice() {
                         )}
                         style={{ width: 15, height: 15, flexShrink: 0, accentColor: 'var(--color-primary)' }}
                       />
-                      <span style={{ fontSize: 'var(--font-size-sm)', color: 'var(--color-text-main)', flex: 1 }}>{domain}</span>
+                      <span style={{ fontSize: 'var(--font-size-sm)', color: 'var(--color-text-main)', flex: 1 }}>
+                        {domain}
+                        {dCnt != null && <span style={{ color: 'var(--color-text-light)', fontWeight: 400 }}>{ja ? `（${dCnt}問）` : ` (${dCnt})`}</span>}
+                      </span>
                       {rate != null && (
                         <span style={{ fontSize: 'var(--font-size-2xs)', fontWeight: 700, color: rate < 0.4 ? 'var(--color-danger)' : rate < 0.6 ? 'var(--color-caution)' : 'var(--color-text-sub)', flexShrink: 0 }}>
                           {Math.round(rate * 100)}%
@@ -629,11 +687,15 @@ export default function Practice() {
                       examBookmarkOnly:   setExamBookmarkOnly,
                     };
                     const on = stateMap[key];
+                    const cnt = statusCounts ? (key === 'examUnansweredOnly' ? statusCounts.unanswered : key === 'examIncorrectOnly' ? statusCounts.incorrect : statusCounts.bookmarked) : undefined;
                     return (
                       <label data-kbnav="1" key={key} style={{ display: 'flex', alignItems: 'center', gap: 10, cursor: 'pointer' }}>
                         <input type="checkbox" checked={on} onChange={e => setterMap[key](e.target.checked)}
                           style={{ width: 16, height: 16, flexShrink: 0, accentColor: 'var(--color-primary)' }} />
-                        <span style={{ fontSize: 'var(--font-size-sm)', fontWeight: on ? 600 : 400, color: 'var(--color-text-main)' }}>{label}</span>
+                        <span style={{ fontSize: 'var(--font-size-sm)', fontWeight: on ? 600 : 400, color: 'var(--color-text-main)' }}>
+                          {label}
+                          {cnt != null && <span style={{ color: 'var(--color-text-light)', fontWeight: 400 }}>{ja ? `（${cnt}問）` : ` (${cnt})`}</span>}
+                        </span>
                       </label>
                     );
                   })}

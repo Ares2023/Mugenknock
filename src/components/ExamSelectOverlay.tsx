@@ -404,21 +404,25 @@ export default function ExamSelectOverlay({
                     {(cfg?.fullName ?? exam).replace('AWS Certified ', '')}
                   </div>
                 </div>
-                <p style={{ margin: '0 0 12px', fontSize: 'var(--font-size-sm)', color: 'var(--color-text-sub)', lineHeight: 1.7 }}>
+                <p style={{ margin: '0 0 8px', fontSize: 'var(--font-size-sm)', color: 'var(--color-text-sub)', lineHeight: 1.7 }}>
                   {EXAM_DESC[exam] ?? ''}
-                  {EXAM_URLS[exam] && (
-                    <a href={EXAM_URLS[exam]} target="_blank" rel="noopener noreferrer"
-                      style={{ display: 'inline-flex', alignItems: 'center', gap: 3, marginLeft: 4, color: 'var(--color-primary)', textDecoration: 'none', fontWeight: 600, whiteSpace: 'nowrap' }}>
-                      {ja ? '認定ページ' : 'Certification page'}<IconExternalLink size={12} />
-                    </a>
-                  )}
-                  {EXAM_GUIDE_PDF_URLS[exam] && (
-                    <a href={EXAM_GUIDE_PDF_URLS[exam]} target="_blank" rel="noopener noreferrer"
-                      style={{ display: 'inline-flex', alignItems: 'center', gap: 3, marginLeft: 10, color: 'var(--color-primary)', textDecoration: 'none', fontWeight: 600, whiteSpace: 'nowrap' }}>
-                      <IconFileText size={12} />{ja ? '試験ガイド(PDF)' : 'Exam Guide (PDF)'}
-                    </a>
-                  )}
                 </p>
+                {(EXAM_URLS[exam] || EXAM_GUIDE_PDF_URLS[exam]) && (
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 16, flexWrap: 'nowrap', marginBottom: 12 }}>
+                    {EXAM_URLS[exam] && (
+                      <a href={EXAM_URLS[exam]} target="_blank" rel="noopener noreferrer"
+                        style={{ display: 'inline-flex', alignItems: 'center', gap: 3, color: 'var(--color-primary)', textDecoration: 'none', fontWeight: 600, fontSize: 'var(--font-size-sm)', whiteSpace: 'nowrap' }}>
+                        {ja ? '認定ページ' : 'Certification page'}<IconExternalLink size={12} />
+                      </a>
+                    )}
+                    {EXAM_GUIDE_PDF_URLS[exam] && (
+                      <a href={EXAM_GUIDE_PDF_URLS[exam]} target="_blank" rel="noopener noreferrer"
+                        style={{ display: 'inline-flex', alignItems: 'center', gap: 3, color: 'var(--color-primary)', textDecoration: 'none', fontWeight: 600, fontSize: 'var(--font-size-sm)', whiteSpace: 'nowrap' }}>
+                        <IconFileText size={12} />{ja ? '試験ガイド(PDF)' : 'Exam Guide (PDF)'}
+                      </a>
+                    )}
+                  </div>
+                )}
                 <div style={{ marginBottom: 12, padding: '10px 12px', background: 'var(--color-bg-main)', borderRadius: 8 }}>
                   <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px 20px' }}>
                     {[
@@ -532,6 +536,9 @@ export default function ExamSelectOverlay({
                     }
                     // フリップ(0.55s)→「学習中」フェードイン(0.5s遅延)→反映
                     setTimeout(() => { onSelect(exam); setConfirming(false); }, 1100);
+                    // 非オンボーディング（マイページからの目標資格変更等）では、確定アニメ完了の
+                    // 約1秒後にオーバレイを自動で閉じる。オンボーディングは導線が異なるため onSelect 側で制御し除外。
+                    if (!onboarding && onClose) setTimeout(() => onClose(), 2100);
                   }}
                   disabled={confirming}
                   aria-label={ja ? '決定' : 'Confirm'}
