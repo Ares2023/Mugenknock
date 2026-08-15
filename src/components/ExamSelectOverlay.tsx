@@ -391,9 +391,6 @@ export default function ExamSelectOverlay({
                   </div>
                 )}
                 <div style={{ fontWeight: 800, fontSize: 'var(--font-size-md)', color: isPreviewing ? '#fff' : isSelected ? levelColor : 'var(--color-text-main)', lineHeight: 1 }}>{exam}</div>
-                {isNonAwsExam(exam) && (
-                  <div style={{ fontSize: 9, fontWeight: 700, letterSpacing: '.02em', marginTop: 3, color: isPreviewing ? 'rgba(255,255,255,.85)' : levelColor }}>非公式</div>
-                )}
               </button>
             );
           })}
@@ -409,7 +406,7 @@ export default function ExamSelectOverlay({
                 <div style={{ marginBottom: 10 }}>
                   {isNonAwsExam(exam) && (
                     <div style={{ display: 'inline-flex', alignItems: 'center', gap: 4, background: '#14b8a618', color: '#0d9488', border: '1px dashed #14b8a6', borderRadius: 'var(--border-radius-full)', padding: '2px 10px', fontSize: 'var(--font-size-2xs)', fontWeight: 800, marginBottom: 6 }}>
-                      🧩 オリジナル演習・非公式（AWS認定ではありません）
+                      🧩 オリジナル演習（AWS認定ではありません）
                     </div>
                   )}
                   {EXAM_CATCHCOPY[exam] && (
