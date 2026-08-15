@@ -1,5 +1,5 @@
-# EXAM_GUIDE_URL: https://aws.amazon.com/jp/certification/certified-data-engineer-associate/
 # LAST_REFRESHED: 2026-08-15
+# 注: これはAWS認定ではないため公式試験ガイド(EXAM_GUIDE_URL)は設定しない。
 
 
 あなたはデータベース／SQL の教育コンテンツ作成者です。

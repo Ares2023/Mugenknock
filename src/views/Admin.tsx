@@ -1,7 +1,7 @@
 'use client';
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { fetchAuthSession } from 'aws-amplify/auth';
-import { API_ENDPOINT, ADMIN_EMAIL, EXAM_TYPES, EXAM_DOMAINS, EXAM_CONFIGS, EXAM_LEVEL, EXAM_SUPPLEMENTARY_RULES, toDomainIndex, qDomainName } from '../constants';
+import { API_ENDPOINT, ADMIN_EMAIL, EXAM_TYPES, EXAM_DOMAINS, EXAM_CONFIGS, EXAM_LEVEL, EXAM_SUPPLEMENTARY_RULES, toDomainIndex, qDomainName, isNonAwsExam } from '../constants';
 import Card from '../components/ui/Card';
 import Button from '../components/ui/Button';
 import Badge from '../components/ui/Badge';
@@ -2296,8 +2296,11 @@ export default function Admin() {
               const examFull = `${EXAM_CONFIGS[importExamType]?.fullName} (${EXAM_CONFIGS[importExamType]?.examCode})`;
               const topic = promptTopic.trim();
               const count = parseInt(promptCount) || 5;
-              const prompt = `あなたはAWS認定試験の問題作成の専門家です。
-以下の条件に従い、試験問題を${count}問作成し、JSON配列のみを出力してください（前後の説明文は不要）。
+              const promptIntro = isNonAwsExam(importExamType)
+                ? 'あなたは技術系の学習教材の作成の専門家です。（これはAWS認定資格ではなく、AWSサービスに依存しない基礎知識を問うオリジナル演習です。AWSサービス名を一切登場させないこと）'
+                : 'あなたはAWS認定試験の問題作成の専門家です。';
+              const prompt = `${promptIntro}
+以下の条件に従い、${isNonAwsExam(importExamType) ? '演習' : '試験'}問題を${count}問作成し、JSON配列のみを出力してください（前後の説明文は不要）。
 本サービスは日本語のみで提供します。英語フィールドは出力しないでください。
 
 【試験】${examFull}
