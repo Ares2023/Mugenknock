@@ -1715,7 +1715,7 @@ export default function Admin() {
                   </button>
                 );
               };
-              const levels = ['Foundational', 'Associate', 'Professional', 'Specialty'] as const;
+              const levels = ['Foundational', 'Associate', 'Professional', 'Specialty', 'Additional'] as const;
               const byLevel: Record<string, string[]> = {};
               for (const t of EXAM_TYPES) {
                 const lv = EXAM_LEVEL[t] ?? 'Other';
