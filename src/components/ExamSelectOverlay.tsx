@@ -133,9 +133,9 @@ export const EXAM_DESC: Record<string, string> = {
   AIP: '生成AIアプリの設計・実装・最適化に特化した新資格。Amazon Bedrockを中心に、プロンプトエンジニアリングやRAGが頻出。',
   ANS: 'ハイブリッドクラウド・DNS・負荷分散・ネットワーク設計の高度な知識を問うSpecialty。Transit Gateway・Direct Connectが中心。',
   SCS: 'セキュリティ設計・実装・インシデント対応・コンプライアンスを問うSpecialty。IAM・KMS・GuardDutyの深い理解が必要。',
-  ML: '【AWS認定ではありません】AIF/MLA/AIP に共通する機械学習の基礎知識（過学習・評価指標・特徴量・生成AI等）を、AWSサービスに依存しない形で横断演習する独自カード。',
-  DB: '【AWS認定ではありません】DEA 対策として、SQL・正規化・インデックス・トランザクションなどデータベースの基礎知識を演習する独自カード。',
-  NW: '【AWS認定ではありません】ANS が前提とするネットワークの実務知識（TCP/IP・サブネット・ルーティング・DNS・VPN等）を、AWSサービスに依存しない形で演習する独自カード。',
+  ML: 'AIF/MLA/AIP に共通する機械学習の基礎知識（過学習・評価指標・特徴量・生成AI等）を、AWSサービスに依存しない形で横断演習する独自カード。',
+  DB: 'DEA 対策として、SQL・正規化・インデックス・トランザクションなどデータベースの基礎知識を演習する独自カード。',
+  NW: 'ANS が前提とするネットワークの実務知識（TCP/IP・サブネット・ルーティング・DNS・VPN等）を、AWSサービスに依存しない形で演習する独自カード。',
 };
 
 const EXAM_CATCHCOPY: Record<string, string> = {
@@ -372,7 +372,7 @@ export default function ExamSelectOverlay({
                 style={{
                   flexShrink: 0, width: 80, padding: '10px 6px 8px', cursor: 'pointer',
                   borderRadius: 10, textAlign: 'center', position: 'relative',
-                  border: `2px ${isNonAwsExam(exam) ? 'dashed' : 'solid'} ${isPreviewing || isSelected ? levelColor : 'var(--color-border)'}`,
+                  border: `2px solid ${isPreviewing || isSelected ? levelColor : 'var(--color-border)'}`,
                   background: isPreviewing
                     ? `linear-gradient(145deg, ${levelColor}, ${levelColor}bb)`
                     : isSelected
@@ -404,11 +404,6 @@ export default function ExamSelectOverlay({
             return (
               <div style={{ padding: '16px 20px' }}>
                 <div style={{ marginBottom: 10 }}>
-                  {isNonAwsExam(exam) && (
-                    <div style={{ display: 'inline-flex', alignItems: 'center', gap: 4, background: '#14b8a618', color: '#0d9488', border: '1px dashed #14b8a6', borderRadius: 'var(--border-radius-full)', padding: '2px 10px', fontSize: 'var(--font-size-2xs)', fontWeight: 800, marginBottom: 6 }}>
-                      🧩 オリジナル演習（AWS認定ではありません）
-                    </div>
-                  )}
                   {EXAM_CATCHCOPY[exam] && (
                     <div style={{ fontSize: 'var(--font-size-xs)', color: 'var(--color-text-light)', fontStyle: 'italic', marginBottom: 4 }}>{EXAM_CATCHCOPY[exam]}</div>
                   )}
