@@ -3,7 +3,7 @@ import React, { useEffect, useState, useCallback, useMemo, useRef } from 'react'
 import { createPortal } from 'react-dom';
 import { Helmet } from '@/compat/react-helmet-async';
 import { useNavigate } from '@/compat/react-router-dom';
-import { API_ENDPOINT, EXAM_DOMAINS, EXAM_DOMAIN_SERVICES, EXAM_TYPES, DOMAIN_NAME_EN, EXAM_CONFIGS, DOMAIN_RATE_WARNING, DOMAIN_RATE_CAUTION, PASS_SCORES, EXAM_LEVEL, EXAM_LEVEL_COLORS, tagIdMatches, toDomainIndex } from '../constants';
+import { API_ENDPOINT, EXAM_DOMAINS, EXAM_DOMAIN_SERVICES, EXAM_TYPES, DOMAIN_NAME_EN, EXAM_CONFIGS, DOMAIN_RATE_WARNING, DOMAIN_RATE_CAUTION, PASS_SCORES, EXAM_LEVEL, EXAM_LEVEL_COLORS, tagIdMatches, toDomainIndex, isNonAwsExam } from '../constants';
 import { syncPreferencesToServer, syncTargetExamToServer, collectExamDatesFromLocal } from '../utils/preferences';
 import { lockBodyScroll } from '../utils/bodyScrollLock';
 import { useAuth } from '../contexts/AuthContext';
@@ -518,12 +518,21 @@ export default function MyPage() {
           <>
             {/* 六角形バッジ共通ヘルパー */}
             {(() => {
-              const HexBadge = ({ panelColor, ExamIcon }: { panelColor: string; ExamIcon?: React.FC<{ size?: number }> }) => (
-                <div style={{ width: 46, height: 53, flexShrink: 0, background: panelColor, clipPath: 'polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                  <div style={{ width: 41, height: 48, background: 'var(--color-bg-white)', clipPath: 'polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: panelColor }}>
-                    {ExamIcon && <ExamIcon size={22} />}
-                  </div>
-                </div>
+              const HexBadge = ({ panelColor, ExamIcon, dashed }: { panelColor: string; ExamIcon?: React.FC<{ size?: number }>; dashed?: boolean }) => (
+                dashed
+                  ? (
+                    // 非公式カードは資格エンブレム(六角形)ではなく、破線の角丸コンテナで別物であることを示す
+                    <div style={{ width: 46, height: 53, flexShrink: 0, background: `${panelColor}14`, border: `2px dashed ${panelColor}`, borderRadius: 'var(--border-radius-md)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: panelColor }}>
+                      {ExamIcon && <ExamIcon size={22} />}
+                    </div>
+                  )
+                  : (
+                    <div style={{ width: 46, height: 53, flexShrink: 0, background: panelColor, clipPath: 'polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                      <div style={{ width: 41, height: 48, background: 'var(--color-bg-white)', clipPath: 'polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: panelColor }}>
+                        {ExamIcon && <ExamIcon size={22} />}
+                      </div>
+                    </div>
+                  )
               );
 
               const ExamCardContent = () => {
@@ -536,8 +545,13 @@ export default function MyPage() {
                 const ExamIcon = EXAM_ICON_COMPONENTS[targetExam];
                 return (
                   <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
-                    <HexBadge panelColor={panelColor} ExamIcon={ExamIcon} />
+                    <HexBadge panelColor={panelColor} ExamIcon={ExamIcon} dashed={isNonAwsExam(targetExam)} />
                     <div>
+                      {isNonAwsExam(targetExam) && (
+                        <div style={{ display: 'inline-flex', alignItems: 'center', gap: 4, background: '#14b8a618', color: '#0d9488', border: '1px dashed #14b8a6', borderRadius: 'var(--border-radius-full)', padding: '1px 8px', fontSize: 'var(--font-size-2xs)', fontWeight: 800, marginBottom: 4 }}>
+                          🧩 オリジナル・非公式
+                        </div>
+                      )}
                       <div style={{ fontWeight: 700, fontSize: 'var(--font-size-h3)', color: panelColor, lineHeight: 1.3 }}>{main}</div>
                       {level && <div style={{ fontWeight: 700, fontSize: 'var(--font-size-h3)', color: panelColor, lineHeight: 1.3 }}>{level}</div>}
                     </div>

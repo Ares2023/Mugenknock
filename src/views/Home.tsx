@@ -16,7 +16,7 @@ import {
   API_ENDPOINT, EXAM_TYPES, EXAM_CONFIGS, EXAM_DOMAINS,
   DOMAIN_WEIGHTS, DOMAIN_NAME_EN, PASS_SCORES, qDomainName,
   EXAM_LEVEL, EXAM_LEVEL_COLORS,
-  tagIdMatches, domainsToIndices, storedDomainsToNames,
+  tagIdMatches, domainsToIndices, storedDomainsToNames, isNonAwsExam,
 } from '../constants';
 import { readDomainResults, readDomainHistory } from '../utils/domainStats';
 import { lockBodyScroll } from '../utils/bodyScrollLock';
@@ -710,18 +710,31 @@ function OnboardingModal({ lang, uid, onComplete }: {
 
           {grouped.map(({ lv, exams }) => (
             <div key={lv} style={{ marginBottom: 18 }}>
-              <div style={{ fontSize: 'var(--font-size-xs)', fontWeight: 700, letterSpacing: '.06em', textTransform: 'uppercase', color: OB_LEVEL_COLOR[lv], marginBottom: 8 }}>{lv}</div>
+              <div style={{ fontSize: 'var(--font-size-xs)', fontWeight: 700, letterSpacing: '.06em', textTransform: 'uppercase', color: OB_LEVEL_COLOR[lv], marginBottom: 8 }}>
+                {lv === 'Additional' ? (ja ? '🧩 オリジナル演習（AWS認定外）' : '🧩 Original practice (not AWS certifications)') : lv}
+              </div>
+              {lv === 'Additional' && (
+                <div style={{ fontSize: 'var(--font-size-xs)', color: 'var(--color-text-light)', marginTop: -4, marginBottom: 8, lineHeight: 1.5 }}>
+                  {ja ? 'AWS認定ではなく、各資格の前提となる基礎知識を補う自作カードです' : 'Not AWS certifications — original cards to build the foundational knowledge each exam assumes'}
+                </div>
+              )}
               <div style={{ display: 'flex', flexDirection: 'column', gap: 7 }}>
                 {exams.map(exam => {
                   const cfg = EXAM_CONFIGS[exam];
+                  const nonAws = isNonAwsExam(exam);
                   return (
                     <button
                       key={exam}
                       onClick={() => handleSelect(exam)}
-                      style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '10px 14px', borderRadius: 10, cursor: 'pointer', textAlign: 'left', background: 'var(--color-bg-card)', border: '2px solid var(--color-border)', transition: 'border-color .15s, background .15s' }}
+                      style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '10px 14px', borderRadius: 10, cursor: 'pointer', textAlign: 'left', background: nonAws ? `${OB_LEVEL_COLOR.Additional}0f` : 'var(--color-bg-card)', border: `2px ${nonAws ? 'dashed' : 'solid'} ${nonAws ? OB_LEVEL_COLOR.Additional : 'var(--color-border)'}`, transition: 'border-color .15s, background .15s' }}
                     >
                       <div style={{ flex: 1, minWidth: 0 }}>
-                        <div style={{ fontWeight: 700, fontSize: 'var(--font-size-sm2)', color: 'var(--color-text-main)' }}>{cfg.examCode}</div>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                          <span style={{ fontWeight: 700, fontSize: 'var(--font-size-sm2)', color: 'var(--color-text-main)' }}>{cfg.examCode}</span>
+                          {nonAws && (
+                            <span style={{ fontSize: 9, fontWeight: 800, color: OB_LEVEL_COLOR.Additional, border: `1px dashed ${OB_LEVEL_COLOR.Additional}`, borderRadius: 'var(--border-radius-full)', padding: '0 5px' }}>非公式</span>
+                          )}
+                        </div>
                         <div style={{ fontSize: 'var(--font-size-xs)', color: 'var(--color-text-sub)', marginTop: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{OB_SHORT[exam]}</div>
                       </div>
                     </button>

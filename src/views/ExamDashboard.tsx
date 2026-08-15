@@ -218,7 +218,7 @@ export default function ExamDashboard() {
           </div>
 
           {/* ── 資格情報カード ── */}
-          <div style={{ border: '1px solid var(--color-border)', borderRadius: 12, overflow: 'hidden', background: 'var(--color-bg-white)', boxShadow: 'var(--box-shadow-pop)' }}>
+          <div style={{ border: isNonAwsExam(selectedExam) ? '1px dashed #14b8a6' : '1px solid var(--color-border)', borderRadius: 12, overflow: 'hidden', background: 'var(--color-bg-white)', boxShadow: 'var(--box-shadow-pop)' }}>
 
             {/* カードヘッダー */}
             <div style={{ padding: '20px 20px 16px', borderBottom: '1px solid var(--color-border)' }}>
@@ -226,12 +226,13 @@ export default function ExamDashboard() {
                 <span style={{
                   fontSize: 'var(--font-size-xs)', fontWeight: 700, letterSpacing: '0.4px',
                   padding: '3px 10px', borderRadius: 9999,
-                  background: lc.bg, color: lc.text, border: `1px solid ${lc.border}`,
+                  background: lc.bg, color: lc.text,
+                  border: `1px ${isNonAwsExam(selectedExam) ? 'dashed' : 'solid'} ${lc.border}`,
                 }}>
                   {level}
                 </span>
                 <span style={{ fontSize: 'var(--font-size-sm)', color: 'var(--color-text-light)', fontWeight: 600, fontFamily: 'monospace' }}>
-                  {cfg?.examCode}
+                  {isNonAwsExam(selectedExam) ? (ja ? '🧩 オリジナル・非公式' : '🧩 Original · Unofficial') : cfg?.examCode}
                 </span>
               </div>
               <h1 style={{ margin: 0, fontSize: 'var(--font-size-h3)', fontWeight: 700, color: 'var(--color-text-main)', lineHeight: 1.3 }}>
