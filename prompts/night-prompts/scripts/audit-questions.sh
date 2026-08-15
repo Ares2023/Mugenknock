@@ -141,7 +141,7 @@ QUESTIONS_JSON=$(SAMPLE=$SAMPLE EXAM_FILTER="$EXAM_FILTER" RANDOM_SAMPLE=$RANDOM
 import json, os, sys, random
 from datetime import datetime, timezone
 
-AWS_EXAM_TYPES = {'CLF','AIF','SAA','DVA','SOA','DEA','MLA','SAP','DOP','AIP','ANS','SCS','ML','DB','NW'}
+AWS_EXAM_TYPES = {'CLF','AIF','SAA','DVA','SOA','DEA','MLA','SAP','DOP','AIP','ANS','SCS','ML','DB','NW','SEC'}
 
 with open(os.environ['DYNAMO_TMP']) as f:
     content = f.read()
@@ -607,7 +607,7 @@ from datetime import datetime, timedelta, timezone
 
 rs = json.load(open(os.environ['RESULTS_FILE']))
 inst = os.environ['INSTRUCTION_DIR']
-AWS = {'CLF','AIF','SAA','DVA','SOA','DEA','MLA','SAP','DOP','AIP','ANS','SCS','ML','DB','NW'}
+AWS = {'CLF','AIF','SAA','DVA','SOA','DEA','MLA','SAP','DOP','AIP','ANS','SCS','ML','DB','NW','SEC'}
 flagged = [r for r in rs if r.get('verdict') in ('warn', 'ng')]
 
 # 通報で確定した不具合（直近7日）= 生成・検証をすり抜けた実際の誤り
@@ -744,7 +744,7 @@ if obj is None:
 inst = os.environ['INSTRUCTION_DIR']
 backup = os.environ['BACKUP_DIR']
 report = os.environ['IMPROVE_REPORT']
-AWS = {'CLF','AIF','SAA','DVA','SOA','DEA','MLA','SAP','DOP','AIP','ANS','SCS','ML','DB','NW'}
+AWS = {'CLF','AIF','SAA','DVA','SOA','DEA','MLA','SAP','DOP','AIP','ANS','SCS','ML','DB','NW','SEC'}
 ALLOWED = {'_common-rules.txt', '_validity-extra.txt'} | {f"{e}.txt" for e in AWS}
 
 changes = obj.get('changes') or []

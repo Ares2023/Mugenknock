@@ -650,7 +650,7 @@ const OB_LEVEL: Record<string, string> = {
   SAA: 'Associate', DVA: 'Associate', SOA: 'Associate', DEA: 'Associate', MLA: 'Associate',
   SAP: 'Professional', DOP: 'Professional', AIP: 'Professional',
   ANS: 'Specialty', SCS: 'Specialty',
-  ML: 'Additional', DB: 'Additional', NW: 'Additional',
+  ML: 'Additional', DB: 'Additional', NW: 'Additional', SEC: 'Additional',
 };
 const OB_LEVEL_COLOR: Record<string, string> = {
   Foundational: '#6b9e3a', Associate: '#006CE0', Professional: '#8b5cf6', Specialty: '#e67e22', Additional: '#14b8a6',
@@ -661,7 +661,7 @@ const OB_SHORT: Record<string, string> = {
   SOA: 'CloudOps Engineer', DEA: 'Data Engineer', MLA: 'ML Engineer',
   SAP: 'Solutions Architect Pro', DOP: 'DevOps Engineer', AIP: 'Generative AI Dev',
   ANS: 'Advanced Networking', SCS: 'Security',
-  ML: 'Machine Learning', DB: 'Database', NW: 'Networking',
+  ML: 'Machine Learning', DB: 'Database', NW: 'Networking', SEC: 'Security',
 };
 
 function OnboardingModal({ lang, uid, onComplete }: {

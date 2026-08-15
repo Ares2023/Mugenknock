@@ -644,4 +644,5 @@ export const EXAM_ICON_COMPONENTS: Record<string, React.FC<{ size?: number }>> =
   ML: IconInfinity,
   DB: IconInfinity,
   NW: IconInfinity,
+  SEC: IconInfinity,
 };

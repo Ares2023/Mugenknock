@@ -101,5 +101,13 @@
     { "ja": "DNS・名前解決", "en": "DNS & Name Resolution", "weight": 14, "services": ["レコード種別(A/AAAA/CNAME/MX)", "権威/リゾルバ", "再帰/反復問い合わせ", "TTL", "正引き/逆引き"] },
     { "ja": "トランスポート・アプリ層", "en": "Transport & Application Layer", "weight": 15, "services": ["TCPハンドシェイク", "輻輳制御", "TLS/HTTPS", "HTTP", "ポート番号"] },
     { "ja": "ネットワークセキュリティ・運用", "en": "Network Security & Operations", "weight": 15, "services": ["ファイアウォール/ACL", "VPN/IPsec", "負荷分散", "パケットキャプチャ", "トラブルシュート"] }
+  ],
+  "SEC": [
+    { "ja": "暗号技術の基礎", "en": "Cryptography Fundamentals", "weight": 20, "services": ["対称/非対称暗号", "ハッシュ関数", "鍵管理", "PKI/証明書", "TLS/デジタル署名"] },
+    { "ja": "認証・認可・アイデンティティ", "en": "Authentication, Authorization & Identity", "weight": 20, "services": ["認証要素/MFA", "SSO/フェデレーション", "OAuth/OIDC/SAML", "最小権限", "RBAC/ABAC"] },
+    { "ja": "ネットワークセキュリティ", "en": "Network Security", "weight": 18, "services": ["ファイアウォール", "IDS/IPS", "セグメンテーション", "VPN/IPsec", "ゼロトラスト/DDoS対策"] },
+    { "ja": "脅威・脆弱性・攻撃手法", "en": "Threats, Vulnerabilities & Attacks", "weight": 16, "services": ["OWASP Top10", "マルウェア/フィッシング", "権限昇格", "脆弱性管理", "CVE/CVSS"] },
+    { "ja": "インシデント対応・監視・ログ", "en": "Incident Response, Monitoring & Logging", "weight": 14, "services": ["SIEM/ログ分析", "フォレンジック", "インシデント対応プロセス", "監査証跡", "検知"] },
+    { "ja": "データ保護・ガバナンス・コンプライアンス", "en": "Data Protection, Governance & Compliance", "weight": 12, "services": ["保存時/転送時の暗号化", "データ分類", "鍵ローテーション", "コンプライアンス枠組み", "リスク管理"] }
   ]
 }

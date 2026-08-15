@@ -5,12 +5,12 @@ export const API_ENDPOINT = process.env.NEXT_PUBLIC_API_ENDPOINT
 
 export const ADMIN_EMAIL = 'mugenknock@gmail.com';
 
-export const EXAM_TYPES = ['CLF', 'AIF', 'SAA', 'DVA', 'SOA', 'DEA', 'MLA', 'SAP', 'DOP', 'AIP', 'ANS', 'SCS', 'ML', 'DB', 'NW'] as const;
+export const EXAM_TYPES = ['CLF', 'AIF', 'SAA', 'DVA', 'SOA', 'DEA', 'MLA', 'SAP', 'DOP', 'AIP', 'ANS', 'SCS', 'ML', 'DB', 'NW', 'SEC'] as const;
 export type ExamType = typeof EXAM_TYPES[number];
 
 // 「Additional」レベルの非AWS外部知識カード。AWS認定ではなく、各AWS資格が前提とする
-// AWS外の土台知識（機械学習・データベース・ネットワーク）を補うための独自カード。
-export const NON_AWS_EXAM_TYPES = new Set<string>(['ML', 'DB', 'NW']);
+// AWS外の土台知識（機械学習・データベース・ネットワーク・セキュリティ）を補うための独自カード。
+export const NON_AWS_EXAM_TYPES = new Set<string>(['ML', 'DB', 'NW', 'SEC']);
 export const isNonAwsExam = (examType: string): boolean => NON_AWS_EXAM_TYPES.has(examType);
 
 // 合格スコア（スケールスコア 100〜1000 での公式合格ライン）
@@ -30,6 +30,7 @@ export const PASS_SCORES: Record<string, number> = {
   ML: 700,
   DB: 700,
   NW: 700,
+  SEC: 700,
 };
 
 // 演習モードでの合否判定に使う正答率の目安（スケールスコアの近似値）
@@ -49,6 +50,7 @@ export const PASS_RATE: Record<string, number> = {
   ML: 70,
   DB: 70,
   NW: 70,
+  SEC: 70,
 };
 
 // 試験の出題ドメイン（単一マスタ src/data/examDomains.json から導出）
@@ -142,6 +144,7 @@ export const EXAM_LEVEL: Record<string, string> = {
   ML: 'Additional',
   DB: 'Additional',
   NW: 'Additional',
+  SEC: 'Additional',
 };
 
 export const EXAM_LEVEL_COLORS: Record<string, string> = {
@@ -174,6 +177,7 @@ export const EXAM_DESC_JA: Record<string, string> = {
   ML: '【AWS認定ではありません】AIF/MLA/AIP に共通して問われる機械学習の基礎知識を横断演習する独自カード',
   DB: '【AWS認定ではありません】DEA 対策として問われる SQL・データベースの基礎知識を演習する独自カード',
   NW: '【AWS認定ではありません】ANS 対策として前提となるネットワーク（TCP/IP・サブネット・ルーティング・DNS等）の基礎知識を演習する独自カード',
+  SEC: '【AWS認定ではありません】SCS 対策として前提となるセキュリティ（暗号・認証認可・脅威・インシデント対応等）の基礎知識を演習する独自カード',
 };
 export const EXAM_DESC_EN: Record<string, string> = {
   CLF: 'Foundational certification covering cloud basics',
@@ -191,6 +195,7 @@ export const EXAM_DESC_EN: Record<string, string> = {
   ML: '[Not an AWS certification] Cross-cutting machine learning fundamentals shared across the AIF/MLA/AIP exams',
   DB: '[Not an AWS certification] SQL and database fundamentals for DEA preparation',
   NW: '[Not an AWS certification] Networking fundamentals (TCP/IP, subnetting, routing, DNS) assumed as a prerequisite for the ANS exam',
+  SEC: '[Not an AWS certification] Security fundamentals (cryptography, authN/authZ, threats, incident response) assumed as a prerequisite for the SCS exam',
 };
 
 // ドメイン正答率の色分けしきい値（0–1スケール・全資格共通）
@@ -225,6 +230,7 @@ export const EXAM_CONFIGS: Record<string, {
   ML: { examCode: 'ML', fullName: '【オリジナル基礎演習】機械学習',                                totalQuestions: 65, timeLimitMin: 90  },
   DB: { examCode: 'DB', fullName: '【オリジナル基礎演習】データベース',                            totalQuestions: 65, timeLimitMin: 90  },
   NW: { examCode: 'NW', fullName: '【オリジナル基礎演習】ネットワーク',                            totalQuestions: 65, timeLimitMin: 90  },
+  SEC: { examCode: 'SEC', fullName: '【オリジナル基礎演習】セキュリティ',                          totalQuestions: 65, timeLimitMin: 90  },
 };
 
 // 管理者画面「AIプロンプト生成」用の資格別補足ルール（任意）。
@@ -269,6 +275,9 @@ export const EXAM_SUPPLEMENTARY_RULES: Partial<Record<string, string>> = {
 ・**AWSサービス（VPC・Route 53・Direct Connect 等）が登場してもよいが、AWSサービスそのもの（仕様・選定・使い分け）を主題にしないこと。** 主眼はあくまでベンダー中立なネットワーク理論・プロトコルであり、AWSサービスは例・文脈として補助的に登場する程度にとどめる。
 ・OSI/TCP-IPモデル、TCP/UDP、IPv4/IPv6・CIDR・サブネット計算・NAT、ルーティング(BGP/静的動的・ロンゲストマッチ)、DNS(レコード種別・再帰/反復・TTL)、TLS/HTTPS・TCPハンドシェイク、ファイアウォール/ACL・VPN/IPsec などを扱うこと
 ・サブネット計算やアドレス範囲の判定など、手を動かす計算問題を含めてよい`,
+  SEC: `・これはAWS認定ではなく、SCS が前提とする「セキュリティの基礎知識」を問う独自カードである。
+・**AWSサービス（IAM・KMS・GuardDuty 等）が登場してもよいが、AWSサービスそのもの（仕様・選定・使い分け）を主題にしないこと。** 主眼はあくまでベンダー中立なセキュリティの概念・原則であり、AWSサービスは例・文脈として補助的に登場する程度にとどめる。
+・暗号技術(対称/非対称・ハッシュ・PKI・TLS)、認証認可(MFA・OAuth/OIDC/SAML・最小権限・RBAC/ABAC)、ネットワークセキュリティ(FW・IDS/IPS・ゼロトラスト)、脅威と脆弱性(OWASP Top10・権限昇格・CVSS)、インシデント対応・ログ、データ保護・ガバナンス などを扱うこと`,
 };
 
 export const EXAM_OFFICIAL_URLS: Record<string, { page: string; guide: string }> = {

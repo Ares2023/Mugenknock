@@ -117,7 +117,7 @@ const EXAM_LEVELS = [
   { key: 'Associate',    color: '#006CE0', exams: ['SAA', 'DVA', 'SOA', 'DEA', 'MLA'] },
   { key: 'Professional', color: '#8b5cf6', exams: ['SAP', 'DOP', 'AIP'] },
   { key: 'Specialty',    color: '#0ea5e9', exams: ['ANS', 'SCS'] },
-  { key: 'Additional',   color: '#14b8a6', exams: ['ML', 'DB', 'NW'] },
+  { key: 'Additional',   color: '#14b8a6', exams: ['ML', 'DB', 'NW', 'SEC'] },
 ] as const;
 
 export const EXAM_DESC: Record<string, string> = {
@@ -136,6 +136,7 @@ export const EXAM_DESC: Record<string, string> = {
   ML: 'AIF/MLA/AIP に共通する機械学習の基礎知識（過学習・評価指標・特徴量・生成AI等）を、AWSサービスに依存しない形で横断演習する独自カード。',
   DB: 'DEA 対策として、SQL・正規化・インデックス・トランザクションなどデータベースの基礎知識を演習する独自カード。',
   NW: 'ANS が前提とするネットワークの実務知識（TCP/IP・サブネット・ルーティング・DNS・VPN等）を、AWSサービスに依存しない形で演習する独自カード。',
+  SEC: 'SCS が前提とするセキュリティの基礎知識（暗号・認証認可・脅威と脆弱性・インシデント対応・データ保護等）を、ベンダー中立な観点で演習する独自カード。',
 };
 
 const EXAM_CATCHCOPY: Record<string, string> = {
@@ -154,6 +155,7 @@ const EXAM_CATCHCOPY: Record<string, string> = {
   ML: '資格の枠を超えて！機械学習の土台を固めろ！',
   DB: 'データの基本を制す！SQL・DB設計の地力を鍛えろ！',
   NW: 'ANSの前提を制覇！ネットワークの地力を鍛えろ！',
+  SEC: 'SCSの前提を固めろ！セキュリティの基礎体力を鍛えろ！',
 };
 
 export const EXAM_URLS: Record<string, string> = {
