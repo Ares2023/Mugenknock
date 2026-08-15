@@ -4,7 +4,7 @@ import { useNavigate, useLocation } from '@/compat/react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { useLanguage } from '../contexts/LanguageContext';
 import { useTheme } from '../contexts/ThemeContext';
-import { API_ENDPOINT, EXAM_TYPES, EXAM_CONFIGS, EXAM_LEVEL, EXAM_LEVEL_COLORS } from '../constants';
+import { API_ENDPOINT, EXAM_TYPES, EXAM_CONFIGS, EXAM_LEVEL, EXAM_LEVEL_COLORS, isNonAwsExam } from '../constants';
 import { getPoints, fetchPointsFromServer } from '../utils/points';
 import { loadTargetExamFromServer } from '../utils/preferences';
 import { lockBodyScroll } from '../utils/bodyScrollLock';
@@ -955,7 +955,9 @@ export default function Layout({ children }: { children: React.ReactNode }) {
               }}>
                 {(() => {
                   const examColor = EXAM_LEVEL_COLORS[EXAM_LEVEL[targetExam]] ?? 'var(--color-primary)';
-                  const name = isMobile ? `AWS ${targetExam}` : ((EXAM_CONFIGS[targetExam]?.fullName ?? targetExam).replace('AWS Certified ', ''));
+                  const name = isNonAwsExam(targetExam)
+                    ? `【オリジナル】${targetExam}`
+                    : (isMobile ? `AWS ${targetExam}` : ((EXAM_CONFIGS[targetExam]?.fullName ?? targetExam).replace('AWS Certified ', '')));
                   const ExamIcon = EXAM_ICON_COMPONENTS[targetExam];
                   return <>{'設定目標：'}<span style={{ color: examColor, display: 'inline-flex', alignItems: 'center', gap: 3, verticalAlign: 'middle' }}>{ExamIcon && <ExamIcon size={13} />}{name}</span></>;
                 })()}
