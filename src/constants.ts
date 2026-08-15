@@ -152,6 +152,11 @@ export const EXAM_LEVEL_COLORS: Record<string, string> = {
   Additional:   '#14b8a6',
 };
 
+// レベルの表示ラベル。内部キー 'Additional'（非AWSカード）は「オリジナル」と表示する。
+// 他のレベルは従来どおり英語表記のまま。
+export const levelLabel = (level: string, ja: boolean): string =>
+  level === 'Additional' ? (ja ? 'オリジナル' : 'Original') : level;
+
 // 試験の説明文
 export const EXAM_DESC_JA: Record<string, string> = {
   CLF: 'クラウドの基礎を問う入門レベルの認定',

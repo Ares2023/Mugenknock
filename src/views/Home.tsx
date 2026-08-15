@@ -711,7 +711,7 @@ function OnboardingModal({ lang, uid, onComplete }: {
           {grouped.map(({ lv, exams }) => (
             <div key={lv} style={{ marginBottom: 18 }}>
               <div style={{ fontSize: 'var(--font-size-xs)', fontWeight: 700, letterSpacing: '.06em', textTransform: 'uppercase', color: OB_LEVEL_COLOR[lv], marginBottom: 8 }}>
-                {lv === 'Additional' ? (ja ? '🧩 オリジナル演習（AWS認定外）' : '🧩 Original practice (not AWS certifications)') : lv}
+                {lv === 'Additional' ? (ja ? '🧩 オリジナル（AWS認定外）' : '🧩 Original (not AWS certifications)') : lv}
               </div>
               {lv === 'Additional' && (
                 <div style={{ fontSize: 'var(--font-size-xs)', color: 'var(--color-text-light)', marginTop: -4, marginBottom: 8, lineHeight: 1.5 }}>

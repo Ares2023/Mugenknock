@@ -9,7 +9,7 @@ import { IconChevronLeft, IconChevronDown, IconExternalLink } from '../component
 import {
   EXAM_TYPES, EXAM_CONFIGS, EXAM_LEVEL, EXAM_DOMAINS, PASS_RATE,
   EXAM_DESC_JA, EXAM_DESC_EN, DOMAIN_WEIGHTS, API_ENDPOINT, EXAM_OFFICIAL_URLS,
-  isNonAwsExam,
+  isNonAwsExam, levelLabel,
 } from '../constants';
 import { syncTargetExamToServer, resetExercisePrefsOnExamChange } from '../utils/preferences';
 
@@ -229,7 +229,7 @@ export default function ExamDashboard() {
                   background: lc.bg, color: lc.text,
                   border: `1px ${isNonAwsExam(selectedExam) ? 'dashed' : 'solid'} ${lc.border}`,
                 }}>
-                  {level}
+                  {levelLabel(level, ja)}
                 </span>
                 <span style={{ fontSize: 'var(--font-size-sm)', color: 'var(--color-text-light)', fontWeight: 600, fontFamily: 'monospace' }}>
                   {isNonAwsExam(selectedExam) ? (ja ? '🧩 オリジナル・非公式' : '🧩 Original · Unofficial') : cfg?.examCode}

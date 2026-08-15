@@ -3,7 +3,7 @@ import React, { useState, useRef, useEffect, useMemo } from 'react';
 import { createPortal } from 'react-dom';
 import { lockBodyScroll } from '../utils/bodyScrollLock';
 import { resetExercisePrefsOnExamChange } from '../utils/preferences';
-import { API_ENDPOINT, EXAM_CONFIGS, EXAM_DOMAINS, DOMAIN_WEIGHTS, PASS_SCORES, isNonAwsExam } from '@/constants';
+import { API_ENDPOINT, EXAM_CONFIGS, EXAM_DOMAINS, DOMAIN_WEIGHTS, PASS_SCORES, isNonAwsExam, levelLabel } from '@/constants';
 import { EXAM_ICON_COMPONENTS, IconBook, IconBookOpenCheck, IconCircleCheck, IconExternalLink, IconFileText } from '@/components/Icons';
 
 // テキストの inline 記法（**bold** / *italic* / `code` / [text](url)）をパースして React 要素に変換する
@@ -347,7 +347,7 @@ export default function ExamSelectOverlay({
               fontWeight: activeLevel === key ? 700 : 400,
               fontSize: isMobile ? 'var(--font-size-xs)' : 'var(--font-size-sm2)',
             }}>
-              {key}
+              {levelLabel(key, ja)}
             </button>
           ))}
         </div>
