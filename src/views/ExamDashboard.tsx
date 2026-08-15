@@ -5,6 +5,7 @@ import { useNavigate } from '@/compat/react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { useLanguage } from '../contexts/LanguageContext';
 import { useTheme } from '../contexts/ThemeContext';
+import { useIsMobile } from '../hooks/useWindowWidth';
 import { IconChevronLeft, IconChevronDown, IconExternalLink } from '../components/Icons';
 import {
   EXAM_TYPES, EXAM_CONFIGS, EXAM_LEVEL, EXAM_DOMAINS, PASS_RATE,
@@ -29,6 +30,7 @@ export default function ExamDashboard() {
   useTheme();
   const navigate = useNavigate();
   const ja = lang === 'ja';
+  const isMobile = useIsMobile();
   const uid = user?.userId ?? 'guest';
 
   const [selectedExam, setSelectedExam] = useState<string>(
@@ -218,7 +220,7 @@ export default function ExamDashboard() {
           </div>
 
           {/* ── 資格情報カード ── */}
-          <div style={{ border: isNonAwsExam(selectedExam) ? '1px dashed #14b8a6' : '1px solid var(--color-border)', borderRadius: 12, overflow: 'hidden', background: 'var(--color-bg-white)', boxShadow: 'var(--box-shadow-pop)' }}>
+          <div style={{ border: '1px solid var(--color-border)', borderRadius: 12, overflow: 'hidden', background: 'var(--color-bg-white)', boxShadow: 'var(--box-shadow-pop)' }}>
 
             {/* カードヘッダー */}
             <div style={{ padding: '20px 20px 16px', borderBottom: '1px solid var(--color-border)' }}>
@@ -227,16 +229,27 @@ export default function ExamDashboard() {
                   fontSize: 'var(--font-size-xs)', fontWeight: 700, letterSpacing: '0.4px',
                   padding: '3px 10px', borderRadius: 9999,
                   background: lc.bg, color: lc.text,
-                  border: `1px ${isNonAwsExam(selectedExam) ? 'dashed' : 'solid'} ${lc.border}`,
+                  border: `1px solid ${lc.border}`,
                 }}>
                   {levelLabel(level, ja)}
                 </span>
-                <span style={{ fontSize: 'var(--font-size-sm)', color: 'var(--color-text-light)', fontWeight: 600, fontFamily: 'monospace' }}>
-                  {isNonAwsExam(selectedExam) ? (ja ? '🧩 オリジナル・非公式' : '🧩 Original · Unofficial') : cfg?.examCode}
-                </span>
+                {/* 資格コードは本番試験の情報。オリジナル(非AWS)カードでは表示しない */}
+                {!isNonAwsExam(selectedExam) && (
+                  <span style={{ fontSize: 'var(--font-size-sm)', color: 'var(--color-text-light)', fontWeight: 600, fontFamily: 'monospace' }}>
+                    {cfg?.examCode}
+                  </span>
+                )}
               </div>
               <h1 style={{ margin: 0, fontSize: 'var(--font-size-h3)', fontWeight: 700, color: 'var(--color-text-main)', lineHeight: 1.3 }}>
-                {cfg?.fullName}
+                {(() => {
+                  const name = cfg?.fullName ?? selectedExam;
+                  const bi = name.indexOf('】');
+                  // スマホではオリジナルカード名を【…】の直後で改行する
+                  if (isMobile && isNonAwsExam(selectedExam) && bi >= 0) {
+                    return <>{name.slice(0, bi + 1)}<br />{name.slice(bi + 1)}</>;
+                  }
+                  return name;
+                })()}
               </h1>
               {desc && (
                 <p style={{ margin: '8px 0 0', fontSize: 'var(--font-size-sm2)', color: 'var(--color-text-sub)', lineHeight: 1.5 }}>
