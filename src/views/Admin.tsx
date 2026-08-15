@@ -2297,7 +2297,7 @@ export default function Admin() {
               const topic = promptTopic.trim();
               const count = parseInt(promptCount) || 5;
               const promptIntro = isNonAwsExam(importExamType)
-                ? 'あなたは技術系の学習教材の作成の専門家です。（これはAWS認定資格ではなく、AWSサービスに依存しない基礎知識を問うオリジナル演習です。AWSサービス名を一切登場させないこと）'
+                ? 'あなたは技術系の学習教材の作成の専門家です。（これはAWS認定資格ではなく、基礎知識を問うオリジナル演習です。AWSサービスが登場してもよいが、AWSサービスそのもの（仕様・選定）を主題にせず、あくまで基礎概念を主眼にすること）'
                 : 'あなたはAWS認定試験の問題作成の専門家です。';
               const prompt = `${promptIntro}
 以下の条件に従い、${isNonAwsExam(importExamType) ? '演習' : '試験'}問題を${count}問作成し、JSON配列のみを出力してください（前後の説明文は不要）。
