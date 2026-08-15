@@ -2,6 +2,8 @@
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { fetchAuthSession } from 'aws-amplify/auth';
 import { API_ENDPOINT, ADMIN_EMAIL, EXAM_TYPES, EXAM_DOMAINS, EXAM_CONFIGS, EXAM_LEVEL, EXAM_SUPPLEMENTARY_RULES, toDomainIndex, qDomainName, isNonAwsExam } from '../constants';
+// オリジナルカードの生成プロンプト本文（夜間 instructions/*.txt から prebuild で自動生成・唯一ソース）
+import { ORIGINAL_INSTRUCTIONS } from '../data/originalInstructions';
 import Card from '../components/ui/Card';
 import Button from '../components/ui/Button';
 import Badge from '../components/ui/Badge';
@@ -2296,13 +2298,17 @@ export default function Admin() {
               const examFull = `${EXAM_CONFIGS[importExamType]?.fullName} (${EXAM_CONFIGS[importExamType]?.examCode})`;
               const topic = promptTopic.trim();
               const count = parseInt(promptCount) || 5;
-              const promptIntro = isNonAwsExam(importExamType)
-                ? 'あなたは技術系の学習教材の作成の専門家です。（これはAWS認定資格ではなく、基礎知識を問うオリジナル演習です。AWSサービスが登場してもよいが、AWSサービスそのもの（仕様・選定）を主題にせず、あくまで基礎概念を主眼にすること）'
+              const nonAws = isNonAwsExam(importExamType);
+              // オリジナルカードは夜間生成と同一の本文（instructions/*.txt 由来）を作成方針として使う。
+              // ※ EXAM_SUPPLEMENTARY_RULES はこの本文に内包されるため二重には付けない。
+              const origBody = nonAws ? (ORIGINAL_INSTRUCTIONS[importExamType] ?? '') : '';
+              const promptIntro = nonAws
+                ? 'あなたは技術系の学習教材の作成の専門家です。（これはAWS認定資格ではなく、基礎知識を問うオリジナル演習です）'
                 : 'あなたはAWS認定試験の問題作成の専門家です。';
               const prompt = `${promptIntro}
-以下の条件に従い、${isNonAwsExam(importExamType) ? '演習' : '試験'}問題を${count}問作成し、JSON配列のみを出力してください（前後の説明文は不要）。
+以下の条件に従い、${nonAws ? '演習' : '試験'}問題を${count}問作成し、JSON配列のみを出力してください（前後の説明文は不要）。
 本サービスは日本語のみで提供します。英語フィールドは出力しないでください。
-
+${origBody ? `\n【この演習カードの作成方針（夜間生成と共通）】\n${origBody}\n` : ''}
 【試験】${examFull}
 ${topic ? `【トピック / キーワード】${topic}` : '【トピック / キーワード】指定なし（全ドメインから均等に出題すること）'}
 
@@ -2311,12 +2317,12 @@ ${topic ? `【トピック / キーワード】${topic}` : '【トピック / �
 ・単一正解の場合は isMultiple: false、複数正解は isMultiple: true
 ・正解は correctAnswerIndices（choices 配列内の正解の位置を 0 始まりの整数配列で指定）で表すこと。これが唯一の正解指定です（例: choices[1] が正解なら [1]、複数正解なら [0,2]）。correctAnswers 等の文字列での正解指定は不要
 ・解説は「正解の理由」と「各不正解の理由」を含めること（150字以上）
-・本番試験と同等の難易度・文体で作成すること
+・${nonAws ? '難易度・文体は上記「作成方針」に従うこと' : '本番試験と同等の難易度・文体で作成すること'}
 ・正解の選択肢の文字数が不正解の選択肢群から浮かないようにすること（正解だけが著しく長い・短いと文字数から正解が推測できてしまうため、正解の文字数を不正解の平均に近づけること）
 ・examType には "${importExamType}" を必ず設定すること
 ・domain には以下のいずれかを文字列で設定すること（保存時に内部インデックスへ変換されます）: ${EXAM_DOMAINS[importExamType]?.join(' / ')}
 ・choiceExplanations は choices と必ず同じ順序・同じ数（4つ）で生成すること（正解はなぜ正解か、不正解はなぜ不正解かを100〜150字で。文頭に「正解です」「不正解です」は入れない）
-${EXAM_SUPPLEMENTARY_RULES[importExamType] ? `${EXAM_SUPPLEMENTARY_RULES[importExamType]}\n` : ''}
+${!nonAws && EXAM_SUPPLEMENTARY_RULES[importExamType] ? `${EXAM_SUPPLEMENTARY_RULES[importExamType]}\n` : ''}
 【出力形式】
 [
   {
