@@ -438,6 +438,8 @@ export default function ExamSelectOverlay({
                     )}
                   </div>
                 )}
+                {/* 試験コード・出題割合などの本番試験情報カード。オリジナル(非AWS)カードでは表示しない */}
+                {!isNonAwsExam(exam) && (
                 <div style={{ marginBottom: 12, padding: '10px 12px', background: 'var(--color-bg-main)', borderRadius: 8 }}>
                   <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px 20px' }}>
                     {[
@@ -491,6 +493,7 @@ export default function ExamSelectOverlay({
                     );
                   })()}
                 </div>
+                )}
                 {passComments[exam] && (
                   <div style={{ marginTop: 12, padding: '10px 12px', background: `${levelColor}12`, borderLeft: `3px solid ${levelColor}`, borderRadius: '0 6px 6px 0' }}>
                     <div style={{ fontSize: 'var(--font-size-2xs)', color: levelColor, fontWeight: 700, marginBottom: 4 }}>{ja ? '運営者コメント' : 'From the team'}</div>
