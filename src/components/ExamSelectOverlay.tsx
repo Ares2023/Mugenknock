@@ -328,7 +328,7 @@ export default function ExamSelectOverlay({
 
         {/* レベルタブ */}
         <div
-          style={{ display: 'flex', borderBottom: '2px solid var(--color-border)', flexShrink: 0 }}
+          style={{ display: 'flex', borderBottom: '2px solid var(--color-border)', flexShrink: 0, padding: isMobile ? '0 var(--spacing-sm)' : '0 var(--spacing-lg)' }}
           onTouchStart={e => e.stopPropagation()}
           onTouchMove={e => e.stopPropagation()}
         >

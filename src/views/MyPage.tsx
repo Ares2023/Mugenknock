@@ -590,19 +590,22 @@ export default function MyPage() {
                             const panelColor = EXAM_LEVEL_COLORS[EXAM_LEVEL[targetExam]] ?? 'var(--color-primary)';
                             return (
                               <>
-                                <div style={{ display: 'flex', flexWrap: 'wrap', gap: '4px 20px', marginBottom: 10 }}>
-                                  {[
-                                    { label: ja ? '試験コード' : 'Code',       value: cfg?.examCode ?? '' },
-                                    { label: ja ? '問題数'     : 'Questions',   value: `${cfg?.totalQuestions ?? '—'}${ja ? '問' : 'Q'}` },
-                                    { label: ja ? '試験時間'   : 'Duration',    value: `${cfg?.timeLimitMin ?? '—'}${ja ? '分' : 'min'}` },
-                                    { label: ja ? '合格スコア' : 'Pass Score',  value: `${PASS_SCORES[targetExam] ?? '—'}/1000` },
-                                  ].map(({ label, value }) => (
-                                    <div key={label}>
-                                      <div style={{ fontSize: 'var(--font-size-3xs)', color: 'var(--color-text-light)', marginBottom: 1 }}>{label}</div>
-                                      <div style={{ fontSize: 'var(--font-size-sm2)', fontWeight: 700, color: panelColor }}>{value}</div>
-                                    </div>
-                                  ))}
-                                </div>
+                                {/* 試験コード・問題数・時間・合格スコアは本番形式の情報。オリジナル(非AWS)カードでは表示しない */}
+                                {!isNonAwsExam(targetExam) && (
+                                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: '4px 20px', marginBottom: 10 }}>
+                                    {[
+                                      { label: ja ? '試験コード' : 'Code',       value: cfg?.examCode ?? '' },
+                                      { label: ja ? '問題数'     : 'Questions',   value: `${cfg?.totalQuestions ?? '—'}${ja ? '問' : 'Q'}` },
+                                      { label: ja ? '試験時間'   : 'Duration',    value: `${cfg?.timeLimitMin ?? '—'}${ja ? '分' : 'min'}` },
+                                      { label: ja ? '合格スコア' : 'Pass Score',  value: `${PASS_SCORES[targetExam] ?? '—'}/1000` },
+                                    ].map(({ label, value }) => (
+                                      <div key={label}>
+                                        <div style={{ fontSize: 'var(--font-size-3xs)', color: 'var(--color-text-light)', marginBottom: 1 }}>{label}</div>
+                                        <div style={{ fontSize: 'var(--font-size-sm2)', fontWeight: 700, color: panelColor }}>{value}</div>
+                                      </div>
+                                    ))}
+                                  </div>
+                                )}
                                 <p style={{ margin: 0, fontSize: 'var(--font-size-sm)', color: 'var(--color-text-sub)', lineHeight: 1.6 }}>{EXAM_DESC[targetExam] ?? ''}</p>
                                 <div style={{ display: 'flex', gap: 16, marginTop: 'var(--spacing-sm)' }}>
                                   {EXAM_URLS[targetExam] && (

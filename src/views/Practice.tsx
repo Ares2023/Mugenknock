@@ -4,7 +4,7 @@ import { Helmet } from '@/compat/react-helmet-async';
 import { useNavigate } from '@/compat/react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { useLanguage } from '../contexts/LanguageContext';
-import { API_ENDPOINT, EXAM_CONFIGS, EXAM_DOMAINS, EXAM_TYPES, PASS_SCORES, qDomainName, domainsToIndices, storedDomainsToNames, tagIdMatches } from '../constants';
+import { API_ENDPOINT, EXAM_CONFIGS, EXAM_DOMAINS, EXAM_TYPES, PASS_SCORES, qDomainName, domainsToIndices, storedDomainsToNames, tagIdMatches, isNonAwsExam } from '../constants';
 import Button from '../components/ui/Button';
 import PageLayout from '../components/ui/PageLayout';
 import { getCached, setCached, SHORT_TTL, getCachedPersist, setCachedPersist } from '../utils/cache';
@@ -57,6 +57,11 @@ export default function Practice() {
     const saved = localStorage.getItem(`targetExam_${uid}`);
     if (saved) { setTargetExam(saved); setExamType(saved); }
   }, [uid, authLoading]);
+
+  // オリジナル(非AWS)カードでは模試タブを提供しないため、選択中なら演習へ戻す
+  useEffect(() => {
+    if (isNonAwsExam(targetExam ?? '') && tab === 'exam') setTab('exercise');
+  }, [targetExam, tab]);
 
   useEffect(() => {
     const handler = (e: Event) => {
@@ -481,9 +486,12 @@ export default function Practice() {
         <button data-kbnav="tab" style={tabBtn(tab === 'exercise')} onClick={() => setTab('exercise')}>
           {ja ? '演習' : 'Exercise'}
         </button>
-        <button data-kbnav="tab" style={tabBtn(tab === 'exam')} onClick={() => setTab('exam')}>
-          {ja ? '模試' : 'Mock Exam'}
-        </button>
+        {/* オリジナル(非AWS)カードは本番形式の模試を提供しない */}
+        {!isNonAwsExam(targetExam ?? '') && (
+          <button data-kbnav="tab" style={tabBtn(tab === 'exam')} onClick={() => setTab('exam')}>
+            {ja ? '模試' : 'Mock Exam'}
+          </button>
+        )}
       </div>
 
       {/* ── カスタム演習タブ ── */}

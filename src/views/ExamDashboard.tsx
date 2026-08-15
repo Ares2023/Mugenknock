@@ -289,24 +289,26 @@ export default function ExamDashboard() {
               )}
             </div>
 
-            {/* 試験ルール */}
-            <div style={{ padding: '16px 20px', borderBottom: '1px solid var(--color-border)' }}>
-              <div style={{ fontSize: 'var(--font-size-xs)', fontWeight: 700, color: 'var(--color-text-light)', textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: 12 }}>
-                {ja ? '試験ルール' : 'Exam Rules'}
+            {/* 試験ルール（本番形式の情報。オリジナル(非AWS)カードでは表示しない） */}
+            {!isNonAwsExam(selectedExam) && (
+              <div style={{ padding: '16px 20px', borderBottom: '1px solid var(--color-border)' }}>
+                <div style={{ fontSize: 'var(--font-size-xs)', fontWeight: 700, color: 'var(--color-text-light)', textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: 12 }}>
+                  {ja ? '試験ルール' : 'Exam Rules'}
+                </div>
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 12 }}>
+                  {[
+                    { label: ja ? '問題数' : 'Questions', value: `${cfg?.totalQuestions}${ja ? '問' : ''}` },
+                    { label: ja ? '制限時間' : 'Time Limit', value: `${cfg?.timeLimitMin}${ja ? '分' : ' min'}` },
+                    { label: ja ? '合格点' : 'Pass Score', value: `${passRate}%` },
+                  ].map(({ label, value }) => (
+                    <div key={label} style={{ background: 'var(--color-bg-main)', borderRadius: 8, padding: '12px 14px', textAlign: 'center' }}>
+                      <div style={{ fontSize: 'var(--font-size-xs)', color: 'var(--color-text-light)', fontWeight: 600, marginBottom: 4 }}>{label}</div>
+                      <div style={{ fontSize: 'var(--font-size-xl)', fontWeight: 800, color: 'var(--color-text-main)', fontVariantNumeric: 'tabular-nums' }}>{value}</div>
+                    </div>
+                  ))}
+                </div>
               </div>
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 12 }}>
-                {[
-                  { label: ja ? '問題数' : 'Questions', value: `${cfg?.totalQuestions}${ja ? '問' : ''}` },
-                  { label: ja ? '制限時間' : 'Time Limit', value: `${cfg?.timeLimitMin}${ja ? '分' : ' min'}` },
-                  { label: ja ? '合格点' : 'Pass Score', value: `${passRate}%` },
-                ].map(({ label, value }) => (
-                  <div key={label} style={{ background: 'var(--color-bg-main)', borderRadius: 8, padding: '12px 14px', textAlign: 'center' }}>
-                    <div style={{ fontSize: 'var(--font-size-xs)', color: 'var(--color-text-light)', fontWeight: 600, marginBottom: 4 }}>{label}</div>
-                    <div style={{ fontSize: 'var(--font-size-xl)', fontWeight: 800, color: 'var(--color-text-main)', fontVariantNumeric: 'tabular-nums' }}>{value}</div>
-                  </div>
-                ))}
-              </div>
-            </div>
+            )}
 
             {/* 出題ドメイン */}
             <div style={{ padding: '16px 20px' }}>
