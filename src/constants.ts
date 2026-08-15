@@ -222,9 +222,9 @@ export const EXAM_CONFIGS: Record<string, {
   AIP: { examCode: 'AIP-C01', fullName: 'AWS Certified Generative AI Developer – Professional',   totalQuestions: 75, timeLimitMin: 180 },
   ANS: { examCode: 'ANS-C01', fullName: 'AWS Certified Advanced Networking – Specialty',           totalQuestions: 65, timeLimitMin: 170 },
   SCS: { examCode: 'SCS-C03', fullName: 'AWS Certified Security – Specialty',                     totalQuestions: 65, timeLimitMin: 170 },
-  ML: { examCode: 'ML', fullName: '機械学習 基礎知識（AWS認定外）',                                totalQuestions: 65, timeLimitMin: 90  },
-  DB: { examCode: 'DB', fullName: 'データベース 基礎知識（AWS認定外）',                            totalQuestions: 65, timeLimitMin: 90  },
-  NW: { examCode: 'NW', fullName: 'ネットワーク 基礎知識（AWS認定外）',                            totalQuestions: 65, timeLimitMin: 90  },
+  ML: { examCode: 'ML', fullName: '【オリジナル基礎演習】機械学習',                                totalQuestions: 65, timeLimitMin: 90  },
+  DB: { examCode: 'DB', fullName: '【オリジナル基礎演習】データベース',                            totalQuestions: 65, timeLimitMin: 90  },
+  NW: { examCode: 'NW', fullName: '【オリジナル基礎演習】ネットワーク',                            totalQuestions: 65, timeLimitMin: 90  },
 };
 
 // 管理者画面「AIプロンプト生成」用の資格別補足ルール（任意）。
