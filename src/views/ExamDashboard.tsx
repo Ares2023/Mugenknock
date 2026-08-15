@@ -5,20 +5,23 @@ import { useNavigate } from '@/compat/react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { useLanguage } from '../contexts/LanguageContext';
 import { useTheme } from '../contexts/ThemeContext';
+import { useIsMobile } from '../hooks/useWindowWidth';
 import { IconChevronLeft, IconChevronDown, IconExternalLink } from '../components/Icons';
 import {
   EXAM_TYPES, EXAM_CONFIGS, EXAM_LEVEL, EXAM_DOMAINS, PASS_RATE,
   EXAM_DESC_JA, EXAM_DESC_EN, DOMAIN_WEIGHTS, API_ENDPOINT, EXAM_OFFICIAL_URLS,
+  isNonAwsExam, levelLabel,
 } from '../constants';
 import { syncTargetExamToServer, resetExercisePrefsOnExamChange } from '../utils/preferences';
 
-const LEVEL_ORDER = ['Foundational', 'Associate', 'Professional', 'Specialty'] as const;
+const LEVEL_ORDER = ['Foundational', 'Associate', 'Professional', 'Specialty', 'Additional'] as const;
 
 const LEVEL_COLOR: Record<string, { bg: string; text: string; border: string }> = {
   Foundational: { bg: '#f0f8ff', text: '#2563eb', border: '#bfdbfe' },
   Associate:    { bg: '#f0fdf4', text: '#16a34a', border: '#bbf7d0' },
   Professional: { bg: '#fdf4ff', text: '#9333ea', border: '#e9d5ff' },
   Specialty:    { bg: '#fff7ed', text: '#ea580c', border: '#fed7aa' },
+  Additional:   { bg: '#f0fdfa', text: '#0d9488', border: '#99f6e4' },
 };
 
 export default function ExamDashboard() {
@@ -27,6 +30,7 @@ export default function ExamDashboard() {
   useTheme();
   const navigate = useNavigate();
   const ja = lang === 'ja';
+  const isMobile = useIsMobile();
   const uid = user?.userId ?? 'guest';
 
   const [selectedExam, setSelectedExam] = useState<string>(
@@ -224,21 +228,49 @@ export default function ExamDashboard() {
                 <span style={{
                   fontSize: 'var(--font-size-xs)', fontWeight: 700, letterSpacing: '0.4px',
                   padding: '3px 10px', borderRadius: 9999,
-                  background: lc.bg, color: lc.text, border: `1px solid ${lc.border}`,
+                  background: lc.bg, color: lc.text,
+                  border: `1px solid ${lc.border}`,
                 }}>
-                  {level}
+                  {levelLabel(level, ja)}
                 </span>
-                <span style={{ fontSize: 'var(--font-size-sm)', color: 'var(--color-text-light)', fontWeight: 600, fontFamily: 'monospace' }}>
-                  {cfg?.examCode}
-                </span>
+                {/* 資格コードは本番試験の情報。オリジナル(非AWS)カードでは表示しない */}
+                {!isNonAwsExam(selectedExam) && (
+                  <span style={{ fontSize: 'var(--font-size-sm)', color: 'var(--color-text-light)', fontWeight: 600, fontFamily: 'monospace' }}>
+                    {cfg?.examCode}
+                  </span>
+                )}
               </div>
               <h1 style={{ margin: 0, fontSize: 'var(--font-size-h3)', fontWeight: 700, color: 'var(--color-text-main)', lineHeight: 1.3 }}>
-                {cfg?.fullName}
+                {(() => {
+                  const name = cfg?.fullName ?? selectedExam;
+                  const bi = name.indexOf('】');
+                  // スマホではオリジナルカード名を【…】の直後で改行する
+                  if (isMobile && isNonAwsExam(selectedExam) && bi >= 0) {
+                    return <>{name.slice(0, bi + 1)}<br />{name.slice(bi + 1)}</>;
+                  }
+                  return name;
+                })()}
               </h1>
               {desc && (
                 <p style={{ margin: '8px 0 0', fontSize: 'var(--font-size-sm2)', color: 'var(--color-text-sub)', lineHeight: 1.5 }}>
                   {desc}
                 </p>
+              )}
+              {isNonAwsExam(selectedExam) && (
+                <div style={{
+                  marginTop: 12, padding: '10px 12px',
+                  background: LEVEL_COLOR.Additional.bg,
+                  border: `1px solid ${LEVEL_COLOR.Additional.border}`,
+                  borderRadius: 8,
+                  fontSize: 'var(--font-size-sm)', color: 'var(--color-text-sub)', lineHeight: 1.6,
+                }}>
+                  <div style={{ fontWeight: 700, color: LEVEL_COLOR.Additional.text, marginBottom: 4 }}>
+                    {ja ? 'これはAWS認定資格ではありません' : 'This is not an AWS certification'}
+                  </div>
+                  {ja
+                    ? 'AWS資格の多くは、AWSサービス以外の実務知識を前提としています（例：ANSは5年以上のネットワーク実務経験を推奨）。この「Additional」カードは、そうした前提となるAWS外の基礎知識（機械学習・データベース・ネットワーク）を補うための独自の演習で、認定資格そのものではありません。'
+                    : 'Many AWS certifications assume prior non-AWS, hands-on knowledge (e.g., ANS recommends 5+ years of networking experience). These "Additional" cards are our own practice sets to fill that assumed foundational knowledge (ML, databases, networking) — they are not certifications.'}
+                </div>
               )}
               {officialUrls && (
                 <div style={{ display: 'flex', gap: 16, marginTop: 12, flexWrap: 'wrap' }}>
@@ -270,24 +302,26 @@ export default function ExamDashboard() {
               )}
             </div>
 
-            {/* 試験ルール */}
-            <div style={{ padding: '16px 20px', borderBottom: '1px solid var(--color-border)' }}>
-              <div style={{ fontSize: 'var(--font-size-xs)', fontWeight: 700, color: 'var(--color-text-light)', textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: 12 }}>
-                {ja ? '試験ルール' : 'Exam Rules'}
+            {/* 試験ルール（本番形式の情報。オリジナル(非AWS)カードでは表示しない） */}
+            {!isNonAwsExam(selectedExam) && (
+              <div style={{ padding: '16px 20px', borderBottom: '1px solid var(--color-border)' }}>
+                <div style={{ fontSize: 'var(--font-size-xs)', fontWeight: 700, color: 'var(--color-text-light)', textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: 12 }}>
+                  {ja ? '試験ルール' : 'Exam Rules'}
+                </div>
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 12 }}>
+                  {[
+                    { label: ja ? '問題数' : 'Questions', value: `${cfg?.totalQuestions}${ja ? '問' : ''}` },
+                    { label: ja ? '制限時間' : 'Time Limit', value: `${cfg?.timeLimitMin}${ja ? '分' : ' min'}` },
+                    { label: ja ? '合格点' : 'Pass Score', value: `${passRate}%` },
+                  ].map(({ label, value }) => (
+                    <div key={label} style={{ background: 'var(--color-bg-main)', borderRadius: 8, padding: '12px 14px', textAlign: 'center' }}>
+                      <div style={{ fontSize: 'var(--font-size-xs)', color: 'var(--color-text-light)', fontWeight: 600, marginBottom: 4 }}>{label}</div>
+                      <div style={{ fontSize: 'var(--font-size-xl)', fontWeight: 800, color: 'var(--color-text-main)', fontVariantNumeric: 'tabular-nums' }}>{value}</div>
+                    </div>
+                  ))}
+                </div>
               </div>
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 12 }}>
-                {[
-                  { label: ja ? '問題数' : 'Questions', value: `${cfg?.totalQuestions}${ja ? '問' : ''}` },
-                  { label: ja ? '制限時間' : 'Time Limit', value: `${cfg?.timeLimitMin}${ja ? '分' : ' min'}` },
-                  { label: ja ? '合格点' : 'Pass Score', value: `${passRate}%` },
-                ].map(({ label, value }) => (
-                  <div key={label} style={{ background: 'var(--color-bg-main)', borderRadius: 8, padding: '12px 14px', textAlign: 'center' }}>
-                    <div style={{ fontSize: 'var(--font-size-xs)', color: 'var(--color-text-light)', fontWeight: 600, marginBottom: 4 }}>{label}</div>
-                    <div style={{ fontSize: 'var(--font-size-xl)', fontWeight: 800, color: 'var(--color-text-main)', fontVariantNumeric: 'tabular-nums' }}>{value}</div>
-                  </div>
-                ))}
-              </div>
-            </div>
+            )}
 
             {/* 出題ドメイン */}
             <div style={{ padding: '16px 20px' }}>

@@ -3,7 +3,7 @@ import React, { useEffect, useState, useCallback, useMemo, useRef } from 'react'
 import { createPortal } from 'react-dom';
 import { Helmet } from '@/compat/react-helmet-async';
 import { useNavigate } from '@/compat/react-router-dom';
-import { API_ENDPOINT, EXAM_DOMAINS, EXAM_DOMAIN_SERVICES, EXAM_TYPES, DOMAIN_NAME_EN, EXAM_CONFIGS, DOMAIN_RATE_WARNING, DOMAIN_RATE_CAUTION, PASS_SCORES, EXAM_LEVEL, EXAM_LEVEL_COLORS, tagIdMatches, toDomainIndex } from '../constants';
+import { API_ENDPOINT, EXAM_DOMAINS, EXAM_DOMAIN_SERVICES, EXAM_TYPES, DOMAIN_NAME_EN, EXAM_CONFIGS, DOMAIN_RATE_WARNING, DOMAIN_RATE_CAUTION, PASS_SCORES, EXAM_LEVEL, EXAM_LEVEL_COLORS, tagIdMatches, toDomainIndex, isNonAwsExam } from '../constants';
 import { syncPreferencesToServer, syncTargetExamToServer, collectExamDatesFromLocal } from '../utils/preferences';
 import { lockBodyScroll } from '../utils/bodyScrollLock';
 import { useAuth } from '../contexts/AuthContext';
@@ -534,11 +534,16 @@ export default function MyPage() {
                 const level = dashIdx >= 0 ? '– ' + full.slice(dashIdx + 3) : null;
                 const panelColor = EXAM_LEVEL_COLORS[EXAM_LEVEL[targetExam]] ?? 'var(--color-primary)';
                 const ExamIcon = EXAM_ICON_COMPONENTS[targetExam];
+                // スマホではオリジナルカード名を【…】の直後で改行する
+                const bi = main.indexOf('】');
+                const mainNode = (isMobile && isNonAwsExam(targetExam) && bi >= 0)
+                  ? <>{main.slice(0, bi + 1)}<br />{main.slice(bi + 1)}</>
+                  : main;
                 return (
                   <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
                     <HexBadge panelColor={panelColor} ExamIcon={ExamIcon} />
                     <div>
-                      <div style={{ fontWeight: 700, fontSize: 'var(--font-size-h3)', color: panelColor, lineHeight: 1.3 }}>{main}</div>
+                      <div style={{ fontWeight: 700, fontSize: 'var(--font-size-h3)', color: panelColor, lineHeight: 1.3 }}>{mainNode}</div>
                       {level && <div style={{ fontWeight: 700, fontSize: 'var(--font-size-h3)', color: panelColor, lineHeight: 1.3 }}>{level}</div>}
                     </div>
                   </div>
@@ -576,19 +581,22 @@ export default function MyPage() {
                             const panelColor = EXAM_LEVEL_COLORS[EXAM_LEVEL[targetExam]] ?? 'var(--color-primary)';
                             return (
                               <>
-                                <div style={{ display: 'flex', flexWrap: 'wrap', gap: '4px 20px', marginBottom: 10 }}>
-                                  {[
-                                    { label: ja ? '試験コード' : 'Code',       value: cfg?.examCode ?? '' },
-                                    { label: ja ? '問題数'     : 'Questions',   value: `${cfg?.totalQuestions ?? '—'}${ja ? '問' : 'Q'}` },
-                                    { label: ja ? '試験時間'   : 'Duration',    value: `${cfg?.timeLimitMin ?? '—'}${ja ? '分' : 'min'}` },
-                                    { label: ja ? '合格スコア' : 'Pass Score',  value: `${PASS_SCORES[targetExam] ?? '—'}/1000` },
-                                  ].map(({ label, value }) => (
-                                    <div key={label}>
-                                      <div style={{ fontSize: 'var(--font-size-3xs)', color: 'var(--color-text-light)', marginBottom: 1 }}>{label}</div>
-                                      <div style={{ fontSize: 'var(--font-size-sm2)', fontWeight: 700, color: panelColor }}>{value}</div>
-                                    </div>
-                                  ))}
-                                </div>
+                                {/* 試験コード・問題数・時間・合格スコアは本番形式の情報。オリジナル(非AWS)カードでは表示しない */}
+                                {!isNonAwsExam(targetExam) && (
+                                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: '4px 20px', marginBottom: 10 }}>
+                                    {[
+                                      { label: ja ? '試験コード' : 'Code',       value: cfg?.examCode ?? '' },
+                                      { label: ja ? '問題数'     : 'Questions',   value: `${cfg?.totalQuestions ?? '—'}${ja ? '問' : 'Q'}` },
+                                      { label: ja ? '試験時間'   : 'Duration',    value: `${cfg?.timeLimitMin ?? '—'}${ja ? '分' : 'min'}` },
+                                      { label: ja ? '合格スコア' : 'Pass Score',  value: `${PASS_SCORES[targetExam] ?? '—'}/1000` },
+                                    ].map(({ label, value }) => (
+                                      <div key={label}>
+                                        <div style={{ fontSize: 'var(--font-size-3xs)', color: 'var(--color-text-light)', marginBottom: 1 }}>{label}</div>
+                                        <div style={{ fontSize: 'var(--font-size-sm2)', fontWeight: 700, color: panelColor }}>{value}</div>
+                                      </div>
+                                    ))}
+                                  </div>
+                                )}
                                 <p style={{ margin: 0, fontSize: 'var(--font-size-sm)', color: 'var(--color-text-sub)', lineHeight: 1.6 }}>{EXAM_DESC[targetExam] ?? ''}</p>
                                 <div style={{ display: 'flex', gap: 16, marginTop: 'var(--spacing-sm)' }}>
                                   {EXAM_URLS[targetExam] && (

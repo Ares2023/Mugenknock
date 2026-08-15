@@ -185,7 +185,7 @@ mapfile -t EXAM_TYPES < <(
     | xargs -I{} basename {} .txt \
     | python3 -c "
 import sys
-ORDER = ['CLF', 'SAA', 'SAP', 'DVA', 'SOA', 'DEA', 'DOP', 'AIF', 'MLA', 'AIP', 'ANS', 'SCS']
+ORDER = ['CLF', 'SAA', 'SAP', 'DVA', 'SOA', 'DEA', 'DOP', 'AIF', 'MLA', 'AIP', 'ANS', 'SCS', 'ML', 'DB', 'NW', 'SEC']
 items = [l.strip() for l in sys.stdin if l.strip() and not l.strip().startswith('_')]
 known   = [x for x in ORDER if x in items]
 unknown = sorted(x for x in items if x not in ORDER)

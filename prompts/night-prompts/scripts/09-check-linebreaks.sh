@@ -107,7 +107,7 @@ QUESTIONS_JSON=$(BATCH_SIZE=$BATCH_SIZE DYNAMO_TMP="$DYNAMO_TMP" python3 << 'PYE
 import json, os, sys
 from datetime import datetime, timezone
 
-AWS_EXAM_TYPES = {'CLF','AIF','SAA','DVA','SOA','DEA','MLA','SAP','DOP','AIP','ANS','SCS'}
+AWS_EXAM_TYPES = {'CLF','AIF','SAA','DVA','SOA','DEA','MLA','SAP','DOP','AIP','ANS','SCS','ML','DB','NW','SEC'}
 
 with open(os.environ['DYNAMO_TMP']) as f:
     content = f.read()

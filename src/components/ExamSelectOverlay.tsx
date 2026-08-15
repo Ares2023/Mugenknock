@@ -3,7 +3,7 @@ import React, { useState, useRef, useEffect, useMemo } from 'react';
 import { createPortal } from 'react-dom';
 import { lockBodyScroll } from '../utils/bodyScrollLock';
 import { resetExercisePrefsOnExamChange } from '../utils/preferences';
-import { API_ENDPOINT, EXAM_CONFIGS, EXAM_DOMAINS, DOMAIN_WEIGHTS, PASS_SCORES } from '@/constants';
+import { API_ENDPOINT, EXAM_CONFIGS, EXAM_DOMAINS, DOMAIN_WEIGHTS, PASS_SCORES, isNonAwsExam, levelLabel } from '@/constants';
 import { EXAM_ICON_COMPONENTS, IconBook, IconBookOpenCheck, IconCircleCheck, IconExternalLink, IconFileText } from '@/components/Icons';
 
 // テキストの inline 記法（**bold** / *italic* / `code` / [text](url)）をパースして React 要素に変換する
@@ -117,6 +117,7 @@ const EXAM_LEVELS = [
   { key: 'Associate',    color: '#006CE0', exams: ['SAA', 'DVA', 'SOA', 'DEA', 'MLA'] },
   { key: 'Professional', color: '#8b5cf6', exams: ['SAP', 'DOP', 'AIP'] },
   { key: 'Specialty',    color: '#0ea5e9', exams: ['ANS', 'SCS'] },
+  { key: 'Additional',   color: '#14b8a6', exams: ['ML', 'DB', 'NW', 'SEC'] },
 ] as const;
 
 export const EXAM_DESC: Record<string, string> = {
@@ -132,6 +133,10 @@ export const EXAM_DESC: Record<string, string> = {
   AIP: '生成AIアプリの設計・実装・最適化に特化した新資格。Amazon Bedrockを中心に、プロンプトエンジニアリングやRAGが頻出。',
   ANS: 'ハイブリッドクラウド・DNS・負荷分散・ネットワーク設計の高度な知識を問うSpecialty。Transit Gateway・Direct Connectが中心。',
   SCS: 'セキュリティ設計・実装・インシデント対応・コンプライアンスを問うSpecialty。IAM・KMS・GuardDutyの深い理解が必要。',
+  ML: 'AIF/MLA/AIP に共通する機械学習の基礎知識（過学習・評価指標・特徴量・生成AI等）を、AWSサービスに依存しない形で横断演習する独自カード。',
+  DB: 'DEA 対策として、SQL・正規化・インデックス・トランザクションなどデータベースの基礎知識を演習する独自カード。',
+  NW: 'ANS が前提とするネットワークの実務知識（TCP/IP・サブネット・ルーティング・DNS・VPN等）を、AWSサービスに依存しない形で演習する独自カード。',
+  SEC: 'SCS が前提とするセキュリティの基礎知識（暗号・認証認可・脅威と脆弱性・インシデント対応・データ保護等）を、ベンダー中立な観点で演習する独自カード。',
 };
 
 const EXAM_CATCHCOPY: Record<string, string> = {
@@ -147,6 +152,10 @@ const EXAM_CATCHCOPY: Record<string, string> = {
   AIP: '生成AIをビジネスへ！AI開発の最前線！',
   SCS: '守れる者だけが任される！AWSセキュリティの番人！',
   ANS: 'ネットワークの深淵へ！AWS屈指の難関資格！',
+  ML: '資格の枠を超えて！機械学習の土台を固めろ！',
+  DB: 'データの基本を制す！SQL・DB設計の地力を鍛えろ！',
+  NW: 'ANSの前提を制覇！ネットワークの地力を鍛えろ！',
+  SEC: 'SCSの前提を固めろ！セキュリティの基礎体力を鍛えろ！',
 };
 
 export const EXAM_URLS: Record<string, string> = {
@@ -321,7 +330,7 @@ export default function ExamSelectOverlay({
 
         {/* レベルタブ */}
         <div
-          style={{ display: 'flex', borderBottom: '2px solid var(--color-border)', flexShrink: 0 }}
+          style={{ display: 'flex', borderBottom: '2px solid var(--color-border)', flexShrink: 0, padding: isMobile ? '0 var(--spacing-sm)' : '0 var(--spacing-lg)' }}
           onTouchStart={e => e.stopPropagation()}
           onTouchMove={e => e.stopPropagation()}
         >
@@ -340,7 +349,7 @@ export default function ExamSelectOverlay({
               fontWeight: activeLevel === key ? 700 : 400,
               fontSize: isMobile ? 'var(--font-size-xs)' : 'var(--font-size-sm2)',
             }}>
-              {key}
+              {levelLabel(key, ja)}
             </button>
           ))}
         </div>
@@ -401,7 +410,15 @@ export default function ExamSelectOverlay({
                     <div style={{ fontSize: 'var(--font-size-xs)', color: 'var(--color-text-light)', fontStyle: 'italic', marginBottom: 4 }}>{EXAM_CATCHCOPY[exam]}</div>
                   )}
                   <div style={{ fontWeight: 700, fontSize: 17, color: 'var(--color-text-main)' }}>
-                    {(cfg?.fullName ?? exam).replace('AWS Certified ', '')}
+                    {(() => {
+                      const name = (cfg?.fullName ?? exam).replace('AWS Certified ', '');
+                      // スマホではオリジナルカード名を【…】の直後で改行する
+                      const bi = name.indexOf('】');
+                      if (isMobile && isNonAwsExam(exam) && bi >= 0) {
+                        return <>{name.slice(0, bi + 1)}<br />{name.slice(bi + 1)}</>;
+                      }
+                      return name;
+                    })()}
                   </div>
                 </div>
                 <p style={{ margin: '0 0 8px', fontSize: 'var(--font-size-sm)', color: 'var(--color-text-sub)', lineHeight: 1.7 }}>
@@ -423,6 +440,8 @@ export default function ExamSelectOverlay({
                     )}
                   </div>
                 )}
+                {/* 試験コード・出題割合などの本番試験情報カード。オリジナル(非AWS)カードでは表示しない */}
+                {!isNonAwsExam(exam) && (
                 <div style={{ marginBottom: 12, padding: '10px 12px', background: 'var(--color-bg-main)', borderRadius: 8 }}>
                   <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px 20px' }}>
                     {[
@@ -476,6 +495,7 @@ export default function ExamSelectOverlay({
                     );
                   })()}
                 </div>
+                )}
                 {passComments[exam] && (
                   <div style={{ marginTop: 12, padding: '10px 12px', background: `${levelColor}12`, borderLeft: `3px solid ${levelColor}`, borderRadius: '0 6px 6px 0' }}>
                     <div style={{ fontSize: 'var(--font-size-2xs)', color: levelColor, fontWeight: 700, marginBottom: 4 }}>{ja ? '運営者コメント' : 'From the team'}</div>

@@ -77,5 +77,37 @@
     { "ja": "アイデンティティとアクセス管理", "en": "Identity and Access Management", "weight": 20, "services": ["IAM(ポリシー/ロール/STS)", "IAM Identity Center", "Cognito", "Organizations(SCP)", "RAM", "権限境界"] },
     { "ja": "データ保護", "en": "Data Protection", "weight": 18, "services": ["KMS", "CloudHSM", "ACM", "Secrets Manager", "S3暗号化", "Macie", "TLS"] },
     { "ja": "セキュリティの基盤とガバナンス", "en": "Security Foundations and Governance", "weight": 14, "services": ["Organizations", "Control Tower", "Config", "Audit Manager", "Artifact", "IAM Access Analyzer"] }
+  ],
+  "ML": [
+    { "ja": "AI/MLの基礎概念", "en": "AI/ML Fundamentals", "weight": 15, "services": ["教師あり学習", "教師なし学習", "強化学習", "MLライフサイクル", "ユースケース選定"] },
+    { "ja": "データ準備・特徴量エンジニアリング", "en": "Data Preparation & Feature Engineering", "weight": 20, "services": ["前処理", "欠損値/外れ値", "エンコーディング", "不均衡データ", "データ分割", "正規化/標準化"] },
+    { "ja": "モデル学習と最適化", "en": "Model Training & Optimization", "weight": 20, "services": ["アルゴリズム選択", "ハイパーパラメータ", "過学習/正則化", "バイアス-バリアンス", "学習率", "損失関数"] },
+    { "ja": "モデル評価と指標", "en": "Model Evaluation & Metrics", "weight": 20, "services": ["混同行列", "適合率/再現率/F1", "ROC-AUC", "回帰指標", "BLEU/BERTScore", "交差検証"] },
+    { "ja": "生成AI・基盤モデル", "en": "Generative AI & Foundation Models", "weight": 15, "services": ["大規模言語モデル(LLM)", "プロンプトエンジニアリング", "RAG", "埋め込み(Embedding)", "ファインチューニング", "トークン"] },
+    { "ja": "責任あるAI・運用", "en": "Responsible AI & Operations", "weight": 10, "services": ["公平性/バイアス", "説明可能性", "安全性/プロンプトインジェクション", "ハルシネーション", "ドリフト監視"] }
+  ],
+  "DB": [
+    { "ja": "リレーショナル設計・正規化", "en": "Relational Design & Normalization", "weight": 18, "services": ["正規形(1NF-3NF)", "主キー/外部キー", "ER設計", "参照整合性"] },
+    { "ja": "SQL・クエリ", "en": "SQL & Querying", "weight": 22, "services": ["JOIN/アンチJOIN", "集計/GROUP BY", "サブクエリ", "ウィンドウ関数", "CTE"] },
+    { "ja": "インデックスと性能", "en": "Indexing & Performance", "weight": 20, "services": ["B-treeインデックス", "断片化/再構築", "実行計画", "パーティショニング", "統計情報"] },
+    { "ja": "トランザクション・整合性", "en": "Transactions & Consistency", "weight": 15, "services": ["ACID", "分離レベル", "ロック", "MVCC", "デッドロック"] },
+    { "ja": "データモデリング・分析基盤", "en": "Data Modeling & Analytics", "weight": 15, "services": ["OLTP/OLAP", "スタースキーマ", "列指向/行指向", "非正規化", "ディメンション/ファクト"] },
+    { "ja": "データ処理方式・品質", "en": "Data Processing & Quality", "weight": 10, "services": ["ETL/ELT", "バッチ/ストリーミング", "冪等性", "CDC", "データ品質/検証"] }
+  ],
+  "NW": [
+    { "ja": "ネットワーク基礎（OSI/TCP-IP）", "en": "Networking Fundamentals (OSI/TCP-IP)", "weight": 18, "services": ["OSI参照モデル", "TCP/IP4層モデル", "カプセル化", "TCP/UDP", "MTU/MSS"] },
+    { "ja": "IPアドレッシング・サブネット", "en": "IP Addressing & Subnetting", "weight": 20, "services": ["IPv4/IPv6", "CIDR", "サブネット計算", "NAT/PAT", "プライベート/パブリックIP"] },
+    { "ja": "ルーティング", "en": "Routing", "weight": 18, "services": ["静的/動的ルーティング", "BGP", "ルートテーブル", "経路選択", "ロンゲストマッチ"] },
+    { "ja": "DNS・名前解決", "en": "DNS & Name Resolution", "weight": 14, "services": ["レコード種別(A/AAAA/CNAME/MX)", "権威/リゾルバ", "再帰/反復問い合わせ", "TTL", "正引き/逆引き"] },
+    { "ja": "トランスポート・アプリ層", "en": "Transport & Application Layer", "weight": 15, "services": ["TCPハンドシェイク", "輻輳制御", "TLS/HTTPS", "HTTP", "ポート番号"] },
+    { "ja": "ネットワークセキュリティ・運用", "en": "Network Security & Operations", "weight": 15, "services": ["ファイアウォール/ACL", "VPN/IPsec", "負荷分散", "パケットキャプチャ", "トラブルシュート"] }
+  ],
+  "SEC": [
+    { "ja": "暗号技術の基礎", "en": "Cryptography Fundamentals", "weight": 20, "services": ["対称/非対称暗号", "ハッシュ関数", "鍵管理", "PKI/証明書", "TLS/デジタル署名"] },
+    { "ja": "認証・認可・アイデンティティ", "en": "Authentication, Authorization & Identity", "weight": 20, "services": ["認証要素/MFA", "SSO/フェデレーション", "OAuth/OIDC/SAML", "最小権限", "RBAC/ABAC"] },
+    { "ja": "ネットワークセキュリティ", "en": "Network Security", "weight": 18, "services": ["ファイアウォール", "IDS/IPS", "セグメンテーション", "VPN/IPsec", "ゼロトラスト/DDoS対策"] },
+    { "ja": "脅威・脆弱性・攻撃手法", "en": "Threats, Vulnerabilities & Attacks", "weight": 16, "services": ["OWASP Top10", "マルウェア/フィッシング", "権限昇格", "脆弱性管理", "CVE/CVSS"] },
+    { "ja": "インシデント対応・監視・ログ", "en": "Incident Response, Monitoring & Logging", "weight": 14, "services": ["SIEM/ログ分析", "フォレンジック", "インシデント対応プロセス", "監査証跡", "検知"] },
+    { "ja": "データ保護・ガバナンス・コンプライアンス", "en": "Data Protection, Governance & Compliance", "weight": 12, "services": ["保存時/転送時の暗号化", "データ分類", "鍵ローテーション", "コンプライアンス枠組み", "リスク管理"] }
   ]
 }

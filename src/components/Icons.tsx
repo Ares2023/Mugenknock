@@ -624,6 +624,9 @@ export const IconTrophy = ({ size = 16 }: { size?: number }) => (
   </svg>
 );
 
+// Lucide: infinity。オリジナル(非AWS)カード ML/DB/NW 共通のアイコン（無限ノックの象徴）。
+export const IconInfinity    = ({ size = 16 }: { size?: number }) => (<svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M6 16c5 0 7-8 12-8a4 4 0 0 1 0 8c-5 0-7-8-12-8a4 4 0 1 0 0 8"/></svg>);
+
 export const EXAM_ICON_COMPONENTS: Record<string, React.FC<{ size?: number }>> = {
   CLF: IconSprout,
   AIF: IconBot,
@@ -637,4 +640,9 @@ export const EXAM_ICON_COMPONENTS: Record<string, React.FC<{ size?: number }>> =
   AIP: IconAtom,
   SCS: IconShieldIcon,
   ANS: IconWaypoints,
+  // オリジナル(非AWS)カードは全て infinity アイコン
+  ML: IconInfinity,
+  DB: IconInfinity,
+  NW: IconInfinity,
+  SEC: IconInfinity,
 };
