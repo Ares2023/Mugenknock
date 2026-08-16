@@ -2322,6 +2322,7 @@ ${topic ? `【トピック / キーワード】${topic}` : '【トピック / �
 ・examType には "${importExamType}" を必ず設定すること
 ・domain には以下のいずれかを文字列で設定すること（保存時に内部インデックスへ変換されます）: ${EXAM_DOMAINS[importExamType]?.join(' / ')}
 ・choiceExplanations は choices と必ず同じ順序・同じ数（4つ）で生成すること（正解はなぜ正解か、不正解はなぜ不正解かを100〜150字で。文頭に「正解です」「不正解です」は入れない）
+・選択肢に一般に自明でない略語を重要な語として用いる場合は、初出箇所で正式名称または意味を括弧で補足すること（例: RBAC(ロールベースアクセス制御)、MVCC(多版型同時実行制御)）。S3・VPC 等の周知の略称は不要
 ${!nonAws && EXAM_SUPPLEMENTARY_RULES[importExamType] ? `${EXAM_SUPPLEMENTARY_RULES[importExamType]}\n` : ''}
 【出力形式】
 [
