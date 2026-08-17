@@ -2322,7 +2322,7 @@ ${topic ? `【トピック / キーワード】${topic}` : '【トピック / �
 ・examType には "${importExamType}" を必ず設定すること
 ・domain には以下のいずれかを文字列で設定すること（保存時に内部インデックスへ変換されます）: ${EXAM_DOMAINS[importExamType]?.join(' / ')}
 ・choiceExplanations は choices と必ず同じ順序・同じ数（4つ）で生成すること（正解はなぜ正解か、不正解はなぜ不正解かを100〜150字で。文頭に「正解です」「不正解です」は入れない）
-・その資格にとって重要な略語を選択肢で用いる場合は、登場するすべての選択肢で正式名称または意味を括弧で補足すること（一部の選択肢だけ補足して他を素のままにしない。例: RBAC(ロールベースアクセス制御)、MVCC(多版型同時実行制御)）。全略語ではなく重要語に限り、S3・VPC 等の周知の略称は不要
+・その資格にとって重要な略語を選択肢で用いる場合は、登場するすべての選択肢で、略語の元となる英語のフルスペルを括弧で補足すること（日本語訳ではなく英語の正式名称。1問内の重要略語は漏れなく全て補足し、一部だけ補足して他を素のままにしない。例: BLEU(Bilingual Evaluation Understudy)、ROC-AUC(Receiver Operating Characteristic - Area Under the Curve)、RBAC(Role-Based Access Control)）。全略語ではなく重要語に限り、S3・VPC 等の周知の略称は不要
 ・選択肢にはその用語・答えのみを簡潔に記載し、用語の説明・定義文を選択肢内に含めないこと（説明・比較・理由は choiceExplanations 側に書く）。※上記の略語の短い括弧補足は可だが、それ以上の説明文は付けない
 ${!nonAws && EXAM_SUPPLEMENTARY_RULES[importExamType] ? `${EXAM_SUPPLEMENTARY_RULES[importExamType]}\n` : ''}
 【出力形式】
