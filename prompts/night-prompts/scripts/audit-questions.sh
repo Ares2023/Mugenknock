@@ -772,6 +772,11 @@ for ch in changes:
     # 既存とほぼ同一の観点は追記しない（重複防止）
     if _norm(ap) and _norm(ap) in _norm(old):
         skipped.append((fn, '既存と重複のため追記せず')); continue
+    # 肥大化防止: 上限を超えるファイルへは追記しない（追記のみの自己改変ループが際限なく膨らむのを防ぐ。
+    # 超過時は手動での棚卸し・統合を促す。プロンプトが長大化するとトークン浪費・注意希薄化・矛盾蓄積を招くため）。
+    MAX_CHARS = 16000
+    if len(old) + len(ap) + 1 > MAX_CHARS:
+        skipped.append((fn, f'サイズ上限({MAX_CHARS}字)超過のため追記見送り（現在{len(old)}字）。手動で棚卸し/統合を推奨')); continue
     os.makedirs(backup, exist_ok=True)
     if os.path.isfile(p):
         shutil.copy2(p, os.path.join(backup, fn))
