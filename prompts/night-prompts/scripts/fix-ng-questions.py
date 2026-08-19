@@ -41,8 +41,13 @@ def fetch_question(qid):
 def ask_fix(claude_cmd, q, issues):
     """ng問題1件をClaudeに渡し、修正案を得る。WebFetchで事実の裏取り可。"""
     choices = q.get('choices', [])
-    lines = [
-        'あなたはAWS認定試験の問題を修正する担当者です。以下は監査で「要修正(ng)」と判定された問題です。',
+    et = q.get('examType', '')
+    if et in ('ML', 'DB', 'NW', 'SEC'):
+        intro = ['あなたは技術系の学習問題を修正する担当者です。これはAWS認定ではなく、AWS外の基礎知識(機械学習/データベース/ネットワーク/セキュリティ)を問うオリジナルカードの問題です。',
+                 '- AWSサービスを主題にしないこと。AWSサービスが登場しない/主題でないのは正常であり、それを理由に修正・削除しないこと（事実誤り・破綻のみ修正）。']
+    else:
+        intro = ['あなたはAWS認定試験の問題を修正する担当者です。以下は監査で「要修正(ng)」と判定された問題です。']
+    lines = intro + [
         '監査の指摘を踏まえ、事実誤り・破綻を修正してください。',
         '- AIモデルの能力(画像入力の可否・コンテキスト長)、廃止/現行サービス、数値仕様など、確信が持てない事実は WebFetch で AWS 公式を確認してよい（最大3回）。',
         '- 正解が別の選択肢なら correctAnswers を正しい選択肢テキスト(choices内と完全一致)にし、explanation と choiceExplanations も整合させる。',
