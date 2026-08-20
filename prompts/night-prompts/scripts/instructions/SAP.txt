@@ -1,4 +1,5 @@
 # EXAM_GUIDE_URL: https://aws.amazon.com/jp/certification/certified-solutions-architect-professional/
+# DOMAINS: Design Solutions for Organizational Complexity,Design for New Solutions,Continuous Improvement for Existing Solutions,Accelerate Workload Migration and Modernization
 # LAST_REFRESHED: 2026-07-30
 
 あなたはAWS認定試験の問題作成者です。

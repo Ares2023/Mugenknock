@@ -1,4 +1,5 @@
 # EXAM_GUIDE_URL: https://aws.amazon.com/jp/certification/certified-solutions-architect-associate/
+# DOMAINS: セキュアなアーキテクチャの設計,レジリエントなアーキテクチャの設計,高パフォーマンスなアーキテクチャの設計,コストを最適化したアーキテクチャの設計
 # LAST_REFRESHED: 2026-07-29
 
 あなたはAWS認定試験の問題作成者です。

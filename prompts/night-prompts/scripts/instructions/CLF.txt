@@ -1,4 +1,5 @@
 # EXAM_GUIDE_URL: https://aws.amazon.com/jp/certification/certified-cloud-practitioner/
+# DOMAINS: Cloud Concepts,Security and Compliance,Cloud Technology and Services,Billing, Pricing, and Support
 # LAST_REFRESHED: 2026-07-27
 
 あなたはAWS認定試験の問題作成者です。

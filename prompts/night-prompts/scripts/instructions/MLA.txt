@@ -1,4 +1,5 @@
 # EXAM_GUIDE_URL: https://aws.amazon.com/jp/certification/certified-machine-learning-engineer-associate/
+# DOMAINS: 機械学習 (ML) のためのデータ準備,ML モデルの開発,ML ワークフローのデプロイとオーケストレーション,ML ソリューションのモニタリング、保守、セキュリティ
 # LAST_REFRESHED: 2026-07-29
 
 あなたはAWS認定試験の問題作成者です。
