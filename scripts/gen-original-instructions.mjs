@@ -31,14 +31,22 @@ for (const f of files) {
   map[exam] = body;
 }
 
+// 夜間生成(01)が全問へ付与する共通品質基準。管理画面の生成プロンプトにも同じものを付与して要件を揃える。
+let commonRules = '';
+try {
+  commonRules = readFileSync(join(INSTR_DIR, '_common-rules.txt'), 'utf8').trim();
+} catch { /* 無ければ空 */ }
+
 const keys = Object.keys(map).sort();
 const header = `// AUTO-GENERATED — 編集しないこと。\n`
-  + `// ソース: prompts/night-prompts/scripts/instructions/<EXAM>.txt\n`
+  + `// ソース: prompts/night-prompts/scripts/instructions/<EXAM>.txt および _common-rules.txt\n`
   + `// 再生成: npm run gen:instructions（npm run build 前に prebuild で自動実行）\n`
-  + `// 目的: 夜間生成スクリプトと管理画面のAIプロンプト生成で同一本文を使う。\n\n`;
+  + `// 目的: 夜間生成スクリプトと管理画面のAIプロンプト生成で同一の本文・品質基準を使う。\n\n`;
 const body = `export const ORIGINAL_INSTRUCTIONS: Record<string, string> = {\n`
   + keys.map(k => `  ${JSON.stringify(k)}: ${JSON.stringify(map[k])},`).join('\n')
-  + `\n};\n`;
+  + `\n};\n\n`
+  + `// 夜間生成(01)の【品質基準】= instructions/_common-rules.txt と同一。\n`
+  + `export const COMMON_RULES = ${JSON.stringify(commonRules)};\n`;
 
 writeFileSync(OUT, header + body, 'utf8');
-console.log(`generated ${OUT} (${keys.length} original cards: ${keys.join(', ')})`);
+console.log(`generated ${OUT} (${keys.length} original cards: ${keys.join(', ')}; COMMON_RULES ${commonRules.length}字)`);

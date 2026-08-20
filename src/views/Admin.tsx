@@ -3,7 +3,7 @@ import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { fetchAuthSession } from 'aws-amplify/auth';
 import { API_ENDPOINT, ADMIN_EMAIL, EXAM_TYPES, EXAM_DOMAINS, EXAM_CONFIGS, EXAM_LEVEL, EXAM_SUPPLEMENTARY_RULES, toDomainIndex, qDomainName, isNonAwsExam } from '../constants';
 // オリジナルカードの生成プロンプト本文（夜間 instructions/*.txt から prebuild で自動生成・唯一ソース）
-import { ORIGINAL_INSTRUCTIONS } from '../data/originalInstructions';
+import { ORIGINAL_INSTRUCTIONS, COMMON_RULES } from '../data/originalInstructions';
 import Card from '../components/ui/Card';
 import Button from '../components/ui/Button';
 import Badge from '../components/ui/Badge';
@@ -2324,7 +2324,7 @@ ${topic ? `【トピック / キーワード】${topic}` : '【トピック / �
 ・choiceExplanations は choices と必ず同じ順序・同じ数（4つ）で生成すること（正解はなぜ正解か、不正解はなぜ不正解かを100〜150字で。文頭に「正解です」「不正解です」は入れない）
 ・その資格にとって重要な略語を正解の選択肢で用いる場合は、略語の元となる英語のフルスペルを括弧で補足すること（必須は正解選択肢のみ・正解選択肢内の重要略語は漏れなく全て。不正解選択肢は補足してもよいが必須ではない。日本語訳ではなく英語の正式名称。例: BLEU(Bilingual Evaluation Understudy)、ROC-AUC(Receiver Operating Characteristic - Area Under the Curve)、RBAC(Role-Based Access Control)）。全略語ではなく重要語に限り、S3・VPC 等の周知の略称は不要
 ・選択肢にはその用語・答えのみを簡潔に記載し、用語の説明・定義文を選択肢内に含めないこと（説明・比較・理由は choiceExplanations 側に書く）。※上記の略語の短い括弧補足は可だが、それ以上の説明文は付けない
-${!nonAws && EXAM_SUPPLEMENTARY_RULES[importExamType] ? `${EXAM_SUPPLEMENTARY_RULES[importExamType]}\n` : ''}
+${!nonAws && EXAM_SUPPLEMENTARY_RULES[importExamType] ? `${EXAM_SUPPLEMENTARY_RULES[importExamType]}\n` : ''}${COMMON_RULES ? `\n【品質基準（夜間生成と共通）】\n${COMMON_RULES}\n` : ''}
 【出力形式】
 [
   {
