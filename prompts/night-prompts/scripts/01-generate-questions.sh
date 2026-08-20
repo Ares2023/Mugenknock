@@ -802,8 +802,8 @@ ${EXAM_GUIDE_URL:+【公式試験ガイド】${EXAM_GUIDE_URL}
 - 複数正解: isMultiple true、correctAnswerIndices を複数要素で
 - domain・tags フィールドは不要（インポート時にサーバー側でセットされる）
 - 本サービスは日本語のみ。英語フィールド（questionTextEn 等）は出力しない。
-- 選択肢にはその用語・答えのみを簡潔に記載し、用語の説明・定義文を選択肢内に含めない（説明・比較・理由は choiceExplanations 側へ）
-- その資格にとって重要な略語を正解の選択肢で用いる場合は、略語の元となる英語のフルスペルを括弧補足する（必須は正解選択肢のみ・正解選択肢内の重要略語は漏れなく全て。不正解選択肢は補足してもよいが必須ではない。日本語訳ではなく英語の正式名称。例: BLEU(Bilingual Evaluation Understudy)、ROC-AUC(Receiver Operating Characteristic - Area Under the Curve)、RMSE(Root Mean Squared Error)、RBAC(Role-Based Access Control)、MVCC(Multi-Version Concurrency Control)）。全略語ではなく重要語に限り、S3・VPC等の周知略称は不要
+- 選択肢にはその用語・答えのみを簡潔に記載し、用語の説明・定義文・略語の展開を選択肢内に含めない（不要なヒントになるため。説明・比較・理由・略語の意味は choiceExplanations／explanation 側へ）
+- 略語が何の略かは選択肢ではなく解説側で説明する: explanation・choiceExplanations で重要な略語を初出で英語フルスペル併記して展開する（例 解説内で「BLEU(Bilingual Evaluation Understudy)」）。選択肢本文には展開を入れない
 - 選択肢が単語・用語のみ（説明文でない）の場合は、選択肢の長さバランス規則を適用しない（最長の用語が正解でもよい）
 
 ${LONGEST_DIRECTIVE}
