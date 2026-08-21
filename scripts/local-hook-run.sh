@@ -1,7 +1,8 @@
 #!/bin/bash
 # ローカルフック実行(systemd timerから呼ばれる)
-# 各ピンサイクルの30分前に妥当性チェック(02-check-validity)を走らせ、トークンリセット
+# 各ピンサイクルの30分前に問題生成(01-generate-questions --hard)を走らせ、トークンリセット
 # 直前に残量を消化する。資格情報・状態はS3と同期する。
+# ※ 15分前フック(local-hook2-run.sh)が妥当性チェック(02-check-validity)を担当する。
 set -uo pipefail
 export TZ=Asia/Tokyo
 export PATH="/usr/local/bin:/usr/bin:/bin:$HOME/local/bin:$PATH"
@@ -25,13 +26,13 @@ AWS="$AWS" bash "$REPO/scripts/pull-claude-creds.sh" "$S3" || true
 # deadline = 次のピンサイクル(=トークン回復)の数分前で止める。
 # フックはピンの30分前に発動するため +30分 = 回復時刻ちょうど。ここから MARGIN_MIN 分手前に置く。
 # -D は「判定時に走行中のチャンクは完走」する仕様なので、そのはみ出し(1チャンク≒数分)も
-# 回復前に収まるよう余裕を確保し、トークン回復後に妥当性チェックが継続しないようにする。
+# 回復前に収まるよう余裕を確保し、トークン回復後に生成が継続しないようにする。
 MARGIN_MIN=3
 DRAIN_MIN=$((30 - MARGIN_MIN))
 DEADLINE=$(date -d "+${DRAIN_MIN} min" +%H:%M 2>/dev/null || date -v+${DRAIN_MIN}M +%H:%M)
-log "妥当性チェック実行 (deadline=$DEADLINE / 回復の${MARGIN_MIN}分前で停止)..."
+log "問題生成実行 (--hard / deadline=$DEADLINE / 回復の${MARGIN_MIN}分前で停止)..."
 cd "$REPO"
-FARGATE_MODE=1 bash prompts/night-prompts/scripts/02-check-validity.sh -n 100 -D "$DEADLINE"
+FARGATE_MODE=1 bash prompts/night-prompts/scripts/01-generate-questions.sh -H -n 100 -D "$DEADLINE"
 EC=$?
 log "完了 (exit $EC)"
 
