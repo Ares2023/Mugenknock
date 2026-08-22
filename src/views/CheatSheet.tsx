@@ -1150,7 +1150,7 @@ export default function CheatSheet() {
           />
         </div>
         {/* レベルタブ */}
-        <div style={{ display: 'flex', borderBottom: '2px solid var(--color-border)', marginBottom: 0 }}>
+        <div style={{ display: 'flex', borderBottom: '2px solid var(--color-border)', marginBottom: 0, overflowX: 'auto' }}>
           {EXAM_LEVELS.map(({ key, color }) => (
             <button
               key={key}
