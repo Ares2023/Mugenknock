@@ -949,15 +949,18 @@ PYEOF
 
   done  # チャンクループ終了
 
+  # このドメインでインポートした分を必ず合計へ計上する。レート制限で中断した場合も、
+  # それまでにDB登録済み(HTTP 200)の分は計上する（以前は break が下記加算を飛ばし、
+  # 実際にはインポート済みでも「合計インポート: 0問」と誤表示していた）。
+  echo "  [${domain}] 合計 ${DOMAIN_IMPORTED}/${Q_FOR_DOMAIN}問 インポート"
+  TOTAL_IMPORTED=$(( TOTAL_IMPORTED + DOMAIN_IMPORTED ))
+  echo "  終了=$(date '+%H:%M:%S')  経過=$(( $(date +%s) - _DOMAIN_T0 ))秒"
+
   if [ "$DOMAIN_RATE_LIMITED" -eq 1 ]; then
-    echo "  終了=$(date '+%H:%M:%S')  経過=$(( $(date +%s) - _DOMAIN_T0 ))秒"
     RATE_LIMITED=1
     break
   fi
 
-  echo "  [${domain}] 合計 ${DOMAIN_IMPORTED}/${Q_FOR_DOMAIN}問 インポート"
-  TOTAL_IMPORTED=$(( TOTAL_IMPORTED + DOMAIN_IMPORTED ))
-  echo "  終了=$(date '+%H:%M:%S')  経過=$(( $(date +%s) - _DOMAIN_T0 ))秒"
   _DOMAIN_OFFSET=$(( _DOMAIN_OFFSET + 1 ))
 done
 
