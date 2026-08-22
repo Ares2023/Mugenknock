@@ -2,7 +2,7 @@
 import React, { useState, useMemo, useEffect, useRef } from 'react';
 import { createPortal } from 'react-dom';
 import { Helmet } from '@/compat/react-helmet-async';
-import { EXAM_LEVEL, EXAM_LEVEL_COLORS, API_ENDPOINT } from '../constants';
+import { EXAM_LEVEL, EXAM_LEVEL_COLORS, API_ENDPOINT, levelLabel } from '../constants';
 import { EXAM_ICON_COMPONENTS, IconSearch, IconCopy, IconCheck } from '../components/Icons';
 import { useLanguage } from '../contexts/LanguageContext';
 import { useAuth } from '../contexts/AuthContext';
@@ -893,7 +893,7 @@ const EXAM_LEVELS = [
   { key: 'Associate',    color: '#006CE0', exams: ['SAA', 'DVA', 'SOA', 'DEA', 'MLA'] },
   { key: 'Professional', color: '#8b5cf6', exams: ['SAP', 'DOP', 'AIP'] },
   { key: 'Specialty',    color: '#0ea5e9', exams: ['ANS', 'SCS'] },
-  { key: 'Original',     color: '#14b8a6', exams: ['ML', 'DB', 'NW', 'SEC'] },
+  { key: 'Additional',   color: '#14b8a6', exams: ['ML', 'DB', 'NW', 'SEC'] },
 ] as const;
 
 type LevelKey = typeof EXAM_LEVELS[number]['key'];
@@ -904,7 +904,8 @@ function levelOf(exam: string): LevelKey {
 
 // ── コンポーネント ────────────────────────────────────────────
 export default function CheatSheet() {
-  const { lang: _lang } = useLanguage();
+  const { lang } = useLanguage();
+  const ja = lang === 'ja';
   const { user, loading } = useAuth();
   const isMobile = useIsMobile();
   const [activeLevel, setActiveLevel] = useState<LevelKey>('Associate');
@@ -1149,30 +1150,30 @@ export default function CheatSheet() {
             }}
           />
         </div>
-        {/* レベルタブ */}
-        <div style={{ display: 'flex', borderBottom: '2px solid var(--color-border)', marginBottom: 0, overflowX: 'auto' }}>
+        {/* レベルタブ：目標資格設定オーバーレイ(ExamSelectOverlay)とデザインを統一（flex:1 均等・levelLabel） */}
+        <div style={{ display: 'flex', borderBottom: '2px solid var(--color-border)', marginBottom: 0 }}>
           {EXAM_LEVELS.map(({ key, color }) => (
             <button
               key={key}
               onClick={() => selectLevel(key as LevelKey)}
               style={{
-                padding: '10px 14px',
+                flex: 1, textAlign: 'center',
+                padding: isMobile ? '10px 4px' : '10px 14px',
                 background: 'none', border: 'none', cursor: 'pointer',
                 borderBottom: activeLevel === key ? `2px solid ${color}` : '2px solid transparent',
                 marginBottom: -2,
                 color: activeLevel === key ? color : 'var(--color-text-sub)',
                 fontWeight: activeLevel === key ? 700 : 400,
-                fontSize: 'var(--font-size-sm2)',
-                whiteSpace: 'nowrap', flexShrink: 0,
+                fontSize: isMobile ? 'var(--font-size-xs)' : 'var(--font-size-sm2)',
                 transition: 'all 0.15s',
               }}
             >
-              {key}
+              {levelLabel(key, ja)}
             </button>
           ))}
         </div>
-        {/* 試験カード（横スクロール） */}
-        <div ref={examRowRef} style={{ display: 'flex', gap: 8, padding: isMobile ? '8px 0' : '3px 0', overflowX: 'auto', flexShrink: 0 }}>
+        {/* 試験カード（横スクロール）：目標資格設定オーバーレイ(ExamSelectOverlay)とデザインを統一 */}
+        <div ref={examRowRef} style={{ display: 'flex', gap: 10, padding: '14px 0', overflowX: 'auto', flexShrink: 0 }}>
           {currentLevelExams.filter(e => CHEAT_DATA[e]).map(exam => {
             const isSelected = selectedExam === exam;
             const EIcon = EXAM_ICON_COMPONENTS[exam];
@@ -1182,20 +1183,21 @@ export default function CheatSheet() {
                 ref={isSelected ? selExamBtnRef : undefined}
                 onClick={() => selectExam(exam)}
                 style={{
-                  flexShrink: 0, width: 72, padding: '8px 6px 6px', cursor: 'pointer',
-                  borderRadius: 8, textAlign: 'center',
+                  flexShrink: 0, width: 80, padding: '10px 6px 8px', cursor: 'pointer',
+                  borderRadius: 10, textAlign: 'center', position: 'relative',
                   border: `2px solid ${isSelected ? levelColor : 'var(--color-border)'}`,
                   background: isSelected
                     ? `linear-gradient(145deg, ${levelColor}, ${levelColor}bb)`
-                    : 'var(--color-bg-white)',
-                  color: isSelected ? '#fff' : 'var(--color-text-sub)',
+                    : `linear-gradient(145deg, var(--color-bg-card), ${levelColor}18)`,
                   transition: 'all 0.15s',
                 }}
               >
-                <div style={{ display: 'flex', justifyContent: 'center', marginBottom: 2, opacity: isSelected ? 1 : 0.6 }}>
-                  {EIcon ? <EIcon size={16} /> : null}
-                </div>
-                <div style={{ fontSize: 'var(--font-size-xs)', fontWeight: 700 }}>{exam}</div>
+                {EIcon && (
+                  <div style={{ display: 'flex', justifyContent: 'center', marginBottom: 4, color: isSelected ? '#fff' : 'var(--color-text-light)' }}>
+                    <EIcon size={18} />
+                  </div>
+                )}
+                <div style={{ fontWeight: 800, fontSize: 'var(--font-size-md)', color: isSelected ? '#fff' : 'var(--color-text-main)', lineHeight: 1 }}>{exam}</div>
               </button>
             );
           })}
