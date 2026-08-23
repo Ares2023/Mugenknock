@@ -939,13 +939,20 @@ const EXAM_LEVELS = [
 type LevelKey = typeof EXAM_LEVELS[number]['key'];
 
 // タブ先頭に表示する「このカードの狙い＋関連資格への導線」。
-// オリジナルカードは前提知識の目的と対象資格、AIFは移動したML基礎への導線を示す。
+// オリジナルカード→対象資格（前提の先）、公式資格→前提のオリジナルカードを相互にリンクする。
 const EXAM_INTRO: Record<string, { note: string; links: { exam: string; label: string }[] }> = {
-  AIF: { note: '機械学習の基礎（分類・回帰・評価指標・過学習など）は「ML」カードに集約しています。', links: [{ exam: 'ML', label: 'ML基礎' }] },
+  // オリジナル資格（前提知識カード）→ 対象の公式資格
   ML:  { note: 'AIF/MLA/AIP で共通して問われる機械学習の基礎を、AWSサービスに依存せず学ぶ前提知識カードです。', links: [{ exam: 'AIF', label: 'AIF' }, { exam: 'MLA', label: 'MLA' }, { exam: 'AIP', label: 'AIP' }] },
   DB:  { note: 'DEA が前提とする SQL・データベースの基礎を学ぶ前提知識カードです。', links: [{ exam: 'DEA', label: 'DEA' }] },
   NW:  { note: 'ANS は公式にネットワークの実務経験が前提。TCP/IP・サブネット・ルーティング等の基礎を学ぶ前提知識カードです。', links: [{ exam: 'ANS', label: 'ANS' }] },
   SEC: { note: 'SCS が前提とするセキュリティの基礎（暗号・認証認可・脅威対応など）を学ぶ前提知識カードです。', links: [{ exam: 'SCS', label: 'SCS' }] },
+  // 公式資格 → 前提となるオリジナル資格（基礎固め）
+  AIF: { note: '機械学習の基礎（分類・回帰・評価指標・過学習など）は「ML」カードで先に固められます。', links: [{ exam: 'ML', label: 'ML基礎' }] },
+  MLA: { note: '前提となる機械学習の基礎は「ML」カードで先に固められます。', links: [{ exam: 'ML', label: 'ML基礎' }] },
+  AIP: { note: '前提となる機械学習の基礎は「ML」カードで先に固められます。', links: [{ exam: 'ML', label: 'ML基礎' }] },
+  DEA: { note: '前提となる SQL・データベースの基礎は「DB」カードで先に固められます。', links: [{ exam: 'DB', label: 'DB基礎' }] },
+  ANS: { note: '前提となるネットワークの基礎（TCP/IP・サブネット・ルーティング等）は「NW」カードで先に固められます。', links: [{ exam: 'NW', label: 'NW基礎' }] },
+  SCS: { note: '前提となるセキュリティの基礎（暗号・認証認可・脅威対応など）は「SEC」カードで先に固められます。', links: [{ exam: 'SEC', label: 'SEC基礎' }] },
 };
 
 function levelOf(exam: string): LevelKey {
