@@ -219,7 +219,7 @@ const CHEAT_DATA: CheatData = {
         { name: 'Amazon DynamoDB', desc: 'GSI（グローバルセカンダリインデックス）: 別の**パーティションキー**でクエリを可能にする。非同期で更新\nLSI（ローカルセカンダリインデックス）: 同一パーティション内で別のソートキーを使用。テーブル作成時のみ定義可能\nDAX（DynamoDB Accelerator）: マイクロ秒レイテンシのインメモリキャッシュ。APIを変えずに使用可能\nStreams: テーブルの変更をリアルタイムにLambdaへ配信\nグローバルテーブル: マルチリージョンのアクティブ-アクティブ構成', tags: ['GSI/LSI', 'DAX', 'グローバルテーブル'] },
         { name: 'Amazon ElastiCache', desc: 'インメモリキャッシュ: **Redis** / Memcached で高速アクセス\nRedis:\nレプリケーション・クラスタモード（シャーディングで水平スケール）\nSentinel（高可用性）・Pub/Sub・Sorted Set等の高度なデータ構造\n永続化（AOF/RDB）でデータを保持\nMemcached:\nマルチスレッドで高スループット。シャーディングで水平スケール\nシンプルなKVストアのみ。永続化なし', tags: ['Redis', 'Memcached', 'クラスタモード'] },
         { name: 'Amazon Redshift', desc: '**列指向ストレージ**のDWH（データウェアハウス）。TB〜PBスケールの分析に使用。\nRedshift Spectrum: S3上のデータをRedshiftの外部テーブルとして直接クエリ可能。ETLなしでS3のデータを分析\nAQUA（Advanced Query Accelerator）: 専用ハードウェアでクエリを最大10倍高速化する機能', tags: ['列指向', 'Spectrum', 'AQUA'] },
-        { name: 'Amazon Neptune', desc: '**グラフデータベース**（ノード＝エンティティ、エッジ＝関係性を管理するDB）。\n対応クエリ言語:\nGremlin: Property Graphモデル（汎用グラフ）\nSPARQL（SPARQL Protocol and RDF Query Language）: RDF形式の知識グラフ\nOpenCypher: Cypherクエリ言語\nユースケース: ソーシャルネットワーク・不正検知・レコメンデーション・ナレッジグラフ', tags: ['グラフDB', 'Gremlin', 'SPARQL'] },
+        { name: 'Amazon Neptune', desc: '**グラフデータベース**（ノード＝エンティティ、エッジ＝関係性を管理するDB）。\n対応クエリ言語:\nGremlin: Property Graphモデル（汎用グラフ）\nSPARQL: RDF形式の知識グラフ\nOpenCypher: Cypherクエリ言語\nユースケース: ソーシャルネットワーク・不正検知・レコメンデーション・ナレッジグラフ', tags: ['グラフDB', 'Gremlin', 'SPARQL'] },
       ],
     },
     {
@@ -286,7 +286,7 @@ const CHEAT_DATA: CheatData = {
       items: [
         { name: 'AWS CodeCommit', desc: 'Gitリポジトリ: **IAM連携**のマネージドなプライベートGit\nAWSマネージドのプライベートGitリポジトリ。IAMポリシーで細かいブランチ・ファイルレベルのアクセス制御が可能。HTTPS（Git認証情報）またはSSH（公開鍵）で認証。', tags: ['Git', 'IAM認証', 'プライベートリポジトリ'] },
         { name: 'AWS CodeBuild', desc: '**buildspec.yml** でビルド手順を定義するサーバーレスのビルドサービス。\nフェーズ: install（ランタイム・依存インストール）→ pre_build → build → post_build\nキャッシュ: ローカルキャッシュ（同一ビルドホスト）またはS3キャッシュで依存関係の再ダウンロードを省略\nDockerイメージのビルド・ECRへのプッシュもbuildspec.ymlで記述できる', tags: ['buildspec.yml', 'ビルドフェーズ', 'キャッシュ'] },
-        { name: 'AWS CodeDeploy', desc: 'デプロイ先: **EC2 / ECS** / Lambda / オンプレミスサーバー\nデプロイ種別:\nIn-place: 同じサーバーで旧アプリを停止して新アプリに置き換え（EC2のみ）\nBlue/Green: 新環境を並列に起動してトラフィックを切り替え\nデプロイ戦略:\nAll-at-once（一斉）→ Rolling（順次）→ Rolling with additional batch → Immutable（新インスタンスで並行）\nライフサイクルフック: BeforeInstall・AfterInstall・ApplicationStart等のタイミングでカスタムスクリプトを実行', tags: ['Blue/Green', 'Canary', 'ライフサイクルフック'] },
+        { name: 'AWS CodeDeploy', desc: '**ライフサイクルフック**で各段階に任意処理を挿入。\nEC2/オンプレ: BeforeInstall → AfterInstall → ApplicationStart → ValidateService\nLambda/ECS (Blue/Green): BeforeAllowTraffic（切替前にスモークテスト）/ AfterAllowTraffic（切替後に本番検証）\nトラフィック移行: Canary（一部を先行し問題なければ残り）/ Linear（一定割合ずつ）/ All-at-once（一斉）\nロールバック: CloudWatchアラームのトリガーで自動', tags: ['Blue/Green', 'Canary', 'ライフサイクルフック'] },
         { name: 'AWS CodePipeline', desc: '**ソースコードの変更**を検知して自動でビルド・テスト・デプロイを行うCI/CDパイプライン。\nステージ: Source（CodeCommit/S3/GitHub）→ Build（CodeBuild）→ Test → Deploy（CodeDeploy/ECS/CloudFormation）\n手動承認アクション: 本番デプロイ前に人間の承認を必須にするステップを挿入できる\nクロスアカウントデプロイ: 別AWSアカウントへのデプロイも可能（KMS・S3バケットポリシー設定が必要）', tags: ['ステージ', '手動承認', 'クロスアカウント'] },
         { name: 'AWS SAM（Serverless Application Model）', desc: '**サーバーレスアプリ**（Lambda・API Gateway・DynamoDB等）をCloudFormationの拡張構文で簡潔に定義するIaCフレームワーク。\nsam local invoke / sam local start-api: LambdaとAPI Gatewayをローカル環境でエミュレートして開発・テストが可能\nGlobals セクション: 全Lambda関数に共通のタイムアウト・メモリ等を一括設定', tags: ['サーバーレス', 'sam local', 'テンプレート'] },
         { name: 'AWS Elastic Beanstalk', desc: '**デプロイポリシー**（デプロイ中のダウンタイムとリスクのトレードオフ）:\nAll-at-once: 最速だがデプロイ中にダウンタイムあり\nRolling: 少数ずつ順次更新。容量が一時的に減少\nRolling with additional batch: 余分なインスタンスを追加してから更新。容量を維持\nImmutable: 新インスタンス群を並行起動してから切り替え。最も安全\n.ebextensions: リソースや設定をYAMLで追加カスタマイズするファイル（.ebextensions/xxx.config）', tags: ['デプロイポリシー', '.ebextensions', 'Immutable'] },
@@ -490,6 +490,15 @@ const CHEAT_DATA: CheatData = {
         { name: 'AWS IAM + Amazon VPC統合（SageMaker）', desc: '**SageMaker**のジョブをVPC内で実行することでインターネットアクセスを遮断してネットワーク分離を実現。\n実行ロール（Execution Role）: SageMakerがS3・ECR・CloudWatch等にアクセスするためのIAMロール。最小権限の原則で必要なリソースのみに限定する。\nVPCエンドポイント: VPC内からS3・SageMaker APIにプライベートアクセスするために設定', tags: ['VPC統合', '実行ロール', 'ネットワーク分離'] },
       ],
     },
+    {
+      title: '推論・自動化・コスト',
+      items: [
+        { name: '推論オプションの選択', desc: '**推論方式**を用途で選ぶ。\nリアルタイム推論: 低レイテンシで常時稼働（オンライン予測）\nサーバーレス推論: トラフィックに応じ自動スケール、アイドル時は課金なし（間欠負荷向け）\n非同期推論 (Asynchronous): 大きな入力や長い処理をキュー経由で処理\nバッチ変換 (Batch Transform): 大量データをまとめてオフライン推論', keyword: 'リアルタイム推論 サーバーレス推論 非同期推論 バッチ変換 SageMaker 推論オプション', tags: ['リアルタイム / サーバーレス', '非同期 / バッチ', '推論方式の選択'] },
+        { name: 'エンドポイント運用', desc: '**エンドポイント運用**の実務技術。\nAuto Scaling: リクエスト数などのメトリクスでインスタンス数を自動増減\nマルチモデルエンドポイント: 1エンドポイントに多数モデルを載せコスト削減\nA/Bテスト (本番バリアント): 複数モデルにトラフィックを比率配分して比較\nシャドウテスト: 本番トラフィックを複製し新モデルを無影響で検証', keyword: 'Auto Scaling マルチモデルエンドポイント A/Bテスト 本番バリアント シャドウテスト', tags: ['Auto Scaling', 'マルチモデル', 'A/B・シャドウテスト'] },
+        { name: 'SageMaker JumpStart / Autopilot', desc: '**自動化機能**で開発を高速化。\nJumpStart: 事前学習済みモデルやソリューションテンプレートをすぐ利用\nAutopilot: データを渡すだけで前処理・アルゴリズム選択・調整を自動化するAutoML\n生成物（ノートブック等）を確認・カスタマイズできる', keyword: 'SageMaker JumpStart Autopilot AutoML 事前学習モデル 自動機械学習', tags: ['JumpStart', 'Autopilot / AutoML', 'ノーコード寄り'] },
+        { name: '学習コストの最適化', desc: '**学習コスト最適化**の手法。\nマネージドスポット学習: スポットで学習し最大90%割引（中断はチェックポイントで再開）\nマネージドウォームプール: インスタンス再利用で起動待ちを短縮\n分散学習 (Distributed Training): データ並列・モデル並列で大規模学習を高速化', keyword: 'マネージドスポットトレーニング ウォームプール 分散学習 データ並列 モデル並列', tags: ['スポット学習', 'ウォームプール', '分散学習'] },
+      ],
+    },
   ],
 
   SAP: [
@@ -606,7 +615,7 @@ const CHEAT_DATA: CheatData = {
       title: 'セキュリティ・監視',
       items: [
         { name: 'AWS Network Firewall（ANS）', desc: '**VPC**に集中型ファイアウォールサブネットを作成してデプロイするマネージドIPS/IDS（侵入防止/検知システム）。\nSuricata互換エンジン: オープンソースのSuricataルール形式でL7アプリケーション層のトラフィックを詳細検査\nステートフルルール: 接続状態を追跡しながら深い検査\nステートレスルール: パケット単位の高速フィルタリング\n集中型アーキテクチャ: TGW経由で全VPCのトラフィックを集中ファイアウォールに通す設計が推奨', tags: ['Suricata', 'L7フィルタ', '集中型'] },
-        { name: 'AWS WAF（ANS観点）', desc: '**WebアプリのL7**（アプリ層）攻撃を防御するWebアプリケーションファイアウォール。\nAWS管理ルールグループ: IPレピュテーションリスト（既知の悪意IPをブロック）/ Amazonマネージドルール（OWASPトップ10攻撃）\nBot Control: ボットのスクレイピング・スキャン・ログイン試行を検出・ブロック\nCAPTCHA（Completely Automated Public Turing test to tell Computers and Humans Apart）: 疑わしいリクエストに対してチャレンジを要求\nジオブロッキング: 特定の国・地域からのアクセスをブロック', tags: ['管理ルールグループ', 'Bot Control', 'CAPTCHA'] },
+        { name: 'AWS WAF（ANS観点）', desc: '**WebアプリのL7**（アプリ層）攻撃を防御するWebアプリケーションファイアウォール。\nAWS管理ルールグループ: IPレピュテーションリスト（既知の悪意IPをブロック）/ Amazonマネージドルール（OWASPトップ10攻撃）\nBot Control: ボットのスクレイピング・スキャン・ログイン試行を検出・ブロック\nCAPTCHA: 疑わしいリクエストに対してチャレンジを要求\nジオブロッキング: 特定の国・地域からのアクセスをブロック', tags: ['管理ルールグループ', 'Bot Control', 'CAPTCHA'] },
         { name: 'AWS Shield Advanced', desc: '有料の**DDoS高度保護**サービス。L3（IP層）〜L7（アプリ層）のDDoS攻撃を包括的に保護。\nSRT（Shield Response Team）: AWSのDDoS専門チームへ24時間365日アクセスして攻撃への対応サポートを受けられる\nヘルスベースDDoS検出: CloudWatchのヘルスチェックと連動して正常時のベースラインから検出\nコスト保護: DDoS攻撃起因のEC2・CloudFront・Route 53等のスパイクコストを保護', tags: ['SRT', 'L3-L7保護', 'コスト保護'] },
         { name: 'AWS Firewall Manager', desc: '一元管理: **Organizations**全体にポリシーを強制適用\nAWS Organizations全体で複数のセキュリティサービスのポリシーを一元管理して強制適用するサービス。\n管理対象: WAF / Shield Advanced / Network Firewall / セキュリティグループ / Route 53 Resolver DNS Firewall\n新しいリソースが作成された際に自動的にポリシーを適用する「自動適用」機能が重要', tags: ['一元管理', '自動適用', 'Organizations'] },
         { name: 'Amazon VPCフローログ分析', desc: '**VPCフローログ**を分析ツールと組み合わせてネットワークトラフィックを可視化する。\nAthena: S3に保存したフローログをSQLでアドホッククエリ（特定IPへの通信量を集計等）\nCloudWatch Logs Insights: リアルタイムに近い分析。メトリクスフィルターでアラームにも使用可能\nAmazon OpenSearch: Kibanaダッシュボードでリアルタイム可視化・異常検知', tags: ['Athena', 'Logs Insights', 'OpenSearch'] },
@@ -628,7 +637,7 @@ const CHEAT_DATA: CheatData = {
     {
       title: 'セキュリティ監視・ログ',
       items: [
-        { name: 'AWS Security Hub', desc: 'GuardDuty・Inspector・Macie・Firewall Manager等の検出結果をASFF（Amazon Security Finding Format: **セキュリティ検出結果**の標準形式）で集約・優先順位付けするサービス。\nコンプライアンス基準への自動チェック:\nCIS（Center for Internet Security） AWS Foundations Benchmark: AWSのセキュリティ設定ベースライン\nPCI（Payment Card Industry） DSS: クレジットカード業界のデータセキュリティ基準\nNIST（National Institute of Standards and Technology） 800-53: 米国政府のセキュリティフレームワーク', tags: ['ASFF', 'CIS', 'PCI DSS準拠'], seeAlso: ['GuardDuty', 'Inspector', 'Audit Manager'] },
+        { name: 'AWS Security Hub', desc: 'GuardDuty・Inspector・Macie・Firewall Manager等の検出結果をASFF（Amazon Security Finding Format: **セキュリティ検出結果**の標準形式）で集約・優先順位付けするサービス。\nコンプライアンス基準への自動チェック:\nCIS（Center for Internet Security） AWS Foundations Benchmark: AWSのセキュリティ設定ベースライン\nPCI（Payment Card Industry） DSS: クレジットカード業界のデータセキュリティ基準\nNIST（米国国立標準技術研究所） 800-53: 米国政府のセキュリティフレームワーク', tags: ['ASFF', 'CIS', 'PCI DSS準拠'], seeAlso: ['GuardDuty', 'Inspector', 'Audit Manager'] },
         { name: 'AWS CloudTrail（SCS観点）', desc: '**セキュリティ監査**の中核。イベントの種類:\n管理イベント: リソースの作成・削除・IAM変更等（デフォルト有効）\nデータイベント: S3オブジェクト操作・Lambda実行等（明示的に有効化が必要）\nInsightsイベント: 異常なAPI呼び出しパターンを自動検出\nS3証跡保護: 証跡をS3に保存する場合はMFAによる削除防止・KMS暗号化・ログファイル整合性検証（改ざん検出）を有効化することが重要', tags: ['管理イベント', 'データイベント', '整合性検証'] },
         { name: 'Amazon Inspector', desc: '**脆弱性**（セキュリティの弱点）を継続的にスキャンして優先順位付けするサービス。\nスキャン対象:\nEC2インスタンス: エージェント不要でSSMエージェント経由。OSの既知脆弱性を検出\nECRコンテナイメージ: プッシュ時に自動スキャン\nLambda関数: コードと依存パッケージの脆弱性をスキャン\nCVE（Common Vulnerabilities and Exposures）: 既知の脆弱性のIDデータベースと照合してリスクスコア（CVSS）で優先順位付け', tags: ['脆弱性スキャン', 'CVE', 'コンテナ'], seeAlso: ['GuardDuty', 'Security Hub'] },
         { name: 'AWS Config（SCS観点）', desc: '**リソース設定変更**の継続的記録とコンプライアンス評価。\nルール評価: マネージドルール（AWS事前定義）またはカスタムルール（Lambda）でリソースの準拠状況を常時評価\nコンフォーマンスパック: 複数のConfigルールをまとめて一括適用。CIS・PCIに対応したパックが利用可能\n自動修復: ルール違反検出時にSSM Automationを起動してリソースを自動修正', tags: ['設定記録', 'ルール評価', '自動修復'] },
@@ -672,7 +681,7 @@ const CHEAT_DATA: CheatData = {
         { name: 'モデル評価指標', desc: 'Accuracy（精度）: **全予測中の正解率**。クラス不均衡時は注意\nPrecision（適合率）: 「陽性」と予測した中で実際に陽性の割合（偽陽性を減らしたい時に重視）\nRecall（再現率）: 実際の陽性のうち正しく検出できた割合（見逃しを減らしたい時に重視）\nF1スコア: PrecisionとRecallの調和平均\nAUC-ROC: 閾値変化に対するモデルの識別能力を示す（1に近いほど優秀）', keyword: 'F1スコア Precision Recall AUC-ROC 機械学習評価指標', tags: ['Accuracy', 'F1スコア', 'AUC-ROC'] },
         { name: '過学習と正則化', desc: '過学習（Overfitting）: **訓練データに過剰適合**し、未知データで性能が落ちる問題。\n対策手法:\nL1正則化（Lasso）: 不要な特徴量の重みをゼロにして特徴量選択の効果\nL2正則化（Ridge）: 重みを小さく抑えてモデルを単純化\nドロップアウト: ニューラルネットのニューロンをランダムに無効化して汎化性能を向上\nデータ拡張: 学習データを水増しして多様性を高める', keyword: '過学習 Overfitting L1正則化 L2正則化', tags: ['過学習', 'L1/L2正則化', 'ドロップアウト'] },
         { name: 'MLのライフサイクル', desc: 'MLライフサイクル: **収集→前処理→学習**→評価→デプロイ→監視\n① データ収集・取り込み\n② データ前処理（クリーニング・正規化・欠損値処理）\n③ 特徴量エンジニアリング（モデルの入力に適した形に変換）\n④ モデル学習（アルゴリズムを選んでパラメータを調整）\n⑤ 評価（テストデータで指標を計測）\n⑥ デプロイ（本番環境への公開）\n⑦ 監視（モデルの性能劣化を検出して再学習）', keyword: 'MLOps 機械学習ライフサイクル', tags: ['MLOps', 'ライフサイクル', 'パイプライン'] },
-        { name: '転移学習とモデル評価指標（生成AI）', desc: '転移学習 (Transfer Learning): **大量データ**で事前学習済みのモデルを別タスクに流用する手法。ゼロから学習するより少ないデータで高精度を実現。\n事前トレーニング vs ファインチューニング: 事前トレーニングは大規模データでの汎用学習、ファインチューニングは特定タスクのデータで追加学習してカスタマイズする段階。\n\n生成AIの評価指標:\nBLEU（Bilingual Evaluation Understudy）: 機械翻訳の品質評価。参照訳とのn-gram一致率で測定\nROUGE（Recall-Oriented Understudy for Gisting Evaluation）: 要約品質の評価。参照要約とのn-gram再現率で測定\nBERTScore: BERTの埋め込みを使った意味的類似度評価。表面一致だけでなく意味の近さも考慮\nF1・Precision・Recall: 分類タスクの標準指標\nコンバージョン率: AIを活用したマーケティング・レコメンドの最終ビジネス成果を測定するKPI', keyword: '転移学習 BLEU ROUGE BERTScore ファインチューニング 事前学習', tags: ['転移学習', 'BLEU/ROUGE', 'BERTScore'] },
+        { name: '転移学習とモデル評価指標（生成AI）', desc: '転移学習 (Transfer Learning): **大量データ**で事前学習済みのモデルを別タスクに流用する手法。ゼロから学習するより少ないデータで高精度を実現。\n事前トレーニング vs ファインチューニング: 事前トレーニングは大規模データでの汎用学習、ファインチューニングは特定タスクのデータで追加学習してカスタマイズする段階。\n\n生成AIの評価指標:\nBLEU（Bilingual Evaluation Understudy）: 機械翻訳の品質評価。参照訳とのn-gram一致率で測定\nROUGE: 要約品質の評価。参照要約とのn-gram再現率で測定\nBERTScore: BERTの埋め込みを使った意味的類似度評価。表面一致だけでなく意味の近さも考慮\nF1・Precision・Recall: 分類タスクの標準指標\nコンバージョン率: AIを活用したマーケティング・レコメンドの最終ビジネス成果を測定するKPI', keyword: '転移学習 BLEU ROUGE BERTScore ファインチューニング 事前学習', tags: ['転移学習', 'BLEU/ROUGE', 'BERTScore'] },
       ],
     },
     {
@@ -745,7 +754,7 @@ const CHEAT_DATA: CheatData = {
       items: [
         { name: 'インデックス / Index', desc: '**列の値と行の位置**を対応付け、検索を高速化するデータ構造（本の索引に相当）。\nB-tree インデックス: 範囲検索・等価検索に強い最も一般的な方式\nハッシュインデックス: 等価検索に特化\n複合インデックス: 複数列をまとめて張る（左端の列から順に効く）\nトレードオフ: 検索は速くなるが、書き込み（INSERT/UPDATE）は遅くなり容量も増える', keyword: 'インデックス B-tree 複合インデックス ハッシュインデックス 索引 高速化', tags: ['B-tree', '複合インデックス', '書き込みコスト'] },
         { name: 'クエリ最適化', desc: '実行計画 (Execution Plan): **DBがクエリ**をどう処理するかの計画。EXPLAIN で確認する\nフルスキャン vs インデックススキャン: WHERE句がインデックスを使えず全行走査すると遅い\nN+1問題: 1件取得のたびに関連クエリを繰り返し発行して大量のクエリになる問題（JOINやまとめ取得で解消）\nスロークエリの発見: 実行時間の長いクエリをログで特定して改善', keyword: '実行計画 EXPLAIN フルスキャン N+1問題 クエリ最適化 スロークエリ', tags: ['実行計画 / EXPLAIN', 'フルスキャン', 'N+1問題'] },
-        { name: 'NoSQLとCAP定理', desc: 'NoSQL（Not only SQL）: **RDBの表形式**にとらわれない柔軟なデータベース群。\nキーバリュー型（キーで値を出し入れ）/ ドキュメント型（JSON等の文書単位で格納）/ 列指向型（列ごとに格納し集計に強い）/ グラフ型（ノードと辺で関係性を表現）\nCAP定理: 分散システムは 一貫性(C)・可用性(A)・分断耐性(P) の3つを同時には満たせず、Pを前提にCかAを選ぶ\nBASE（Basically Available, Soft state, Eventually consistent）: 結果整合性を許容する緩い一貫性モデル（ACIDの対比）\n使い分け: 厳密な整合性・結合はRDB、スケールと柔軟なスキーマはNoSQL', keyword: 'NoSQL キーバリュー ドキュメント 列指向 グラフDB CAP定理 結果整合性 BASE', tags: ['NoSQLの種類', 'CAP定理', '結果整合性 / BASE'] },
+        { name: 'NoSQLとCAP定理', desc: 'NoSQL（Not only SQL）: **RDBの表形式**にとらわれない柔軟なデータベース群。\nキーバリュー型（キーで値を出し入れ）/ ドキュメント型（JSON等の文書単位で格納）/ 列指向型（列ごとに格納し集計に強い）/ グラフ型（ノードと辺で関係性を表現）\nCAP定理: 分散システムは 一貫性(C)・可用性(A)・分断耐性(P) の3つを同時には満たせず、Pを前提にCかAを選ぶ\nBASE: 結果整合性を許容する緩い一貫性モデル（ACIDの対比）\n使い分け: 厳密な整合性・結合はRDB、スケールと柔軟なスキーマはNoSQL', keyword: 'NoSQL キーバリュー ドキュメント 列指向 グラフDB CAP定理 結果整合性 BASE', tags: ['NoSQLの種類', 'CAP定理', '結果整合性 / BASE'] },
       ],
     },
     {
@@ -850,7 +859,7 @@ const CHEAT_DATA: CheatData = {
     {
       title: 'インシデント対応・監視',
       items: [
-        { name: 'インシデント対応プロセス', desc: '**セキュリティ事故**に体系的に対応する流れ。\n準備 → 検知・分析 → 封じ込め (Containment) → 根絶 (Eradication) → 復旧 (Recovery) → 事後学習 (Lessons Learned)\nCSIRT（Computer Security Incident Response Team）: インシデント対応を担う専門チーム\nフォレンジック: 証拠保全と原因調査（改ざんを避け証拠の連鎖を維持）', keyword: 'インシデント対応 封じ込め 根絶 復旧 CSIRT フォレンジック 証拠保全', tags: ['対応プロセス', 'CSIRT', 'フォレンジック'] },
+        { name: 'インシデント対応プロセス', desc: '**セキュリティ事故**に体系的に対応する流れ。\n準備 → 検知・分析 → 封じ込め (Containment) → 根絶 (Eradication) → 復旧 (Recovery) → 事後学習 (Lessons Learned)\nCSIRT: インシデント対応を担う専門チーム\nフォレンジック: 証拠保全と原因調査（改ざんを避け証拠の連鎖を維持）', keyword: 'インシデント対応 封じ込め 根絶 復旧 CSIRT フォレンジック 証拠保全', tags: ['対応プロセス', 'CSIRT', 'フォレンジック'] },
         { name: 'ログ管理・監視', desc: 'ログ: **誰が・いつ・何**をしたかの記録。監査・追跡・原因調査の基礎\nSIEM (Security Information and Event Management): 各所のログを集約・相関分析して脅威を検知\nIDS（Intrusion Detection System） / IPS: 侵入検知 (Detection) / 侵入防止 (Prevention)\n監査ログの保護: 改ざん防止・一元管理・保持期間の設定', keyword: 'ログ管理 SIEM IDS IPS 侵入検知 侵入防止 監査ログ 相関分析', tags: ['SIEM', 'IDS / IPS', '監査ログ'] },
         { name: 'リスク管理とコンプライアンス', desc: '**リスク = 脅威** × 脆弱性 × 資産価値。評価して対応（回避・低減・移転・受容）を選ぶ\nリスクアセスメント: リスクの特定・分析・評価\nコンプライアンス基準: ISO 27001（ISMS）/ PCI DSS（カード）/ GDPR（個人データ保護）/ NIST\nセキュリティポリシー: 組織のルールを文書化し教育・監査で維持', keyword: 'リスク管理 リスクアセスメント コンプライアンス ISO27001 PCI DSS GDPR NIST ISMS', tags: ['リスクアセスメント', 'ISO27001 / PCI DSS', 'コンプライアンス'] },
       ],
@@ -928,6 +937,16 @@ const EXAM_LEVELS = [
 ] as const;
 
 type LevelKey = typeof EXAM_LEVELS[number]['key'];
+
+// タブ先頭に表示する「このカードの狙い＋関連資格への導線」。
+// オリジナルカードは前提知識の目的と対象資格、AIFは移動したML基礎への導線を示す。
+const EXAM_INTRO: Record<string, { note: string; links: { exam: string; label: string }[] }> = {
+  AIF: { note: '機械学習の基礎（分類・回帰・評価指標・過学習など）は「ML」カードに集約しています。', links: [{ exam: 'ML', label: 'ML基礎' }] },
+  ML:  { note: 'AIF/MLA/AIP で共通して問われる機械学習の基礎を、AWSサービスに依存せず学ぶ前提知識カードです。', links: [{ exam: 'AIF', label: 'AIF' }, { exam: 'MLA', label: 'MLA' }, { exam: 'AIP', label: 'AIP' }] },
+  DB:  { note: 'DEA が前提とする SQL・データベースの基礎を学ぶ前提知識カードです。', links: [{ exam: 'DEA', label: 'DEA' }] },
+  NW:  { note: 'ANS は公式にネットワークの実務経験が前提。TCP/IP・サブネット・ルーティング等の基礎を学ぶ前提知識カードです。', links: [{ exam: 'ANS', label: 'ANS' }] },
+  SEC: { note: 'SCS が前提とするセキュリティの基礎（暗号・認証認可・脅威対応など）を学ぶ前提知識カードです。', links: [{ exam: 'SCS', label: 'SCS' }] },
+};
 
 function levelOf(exam: string): LevelKey {
   return (EXAM_LEVELS.find(l => (l.exams as readonly string[]).includes(exam))?.key ?? 'Associate') as LevelKey;
@@ -1138,6 +1157,13 @@ export default function CheatSheet() {
     if (first) selectExam(first);
   }
 
+  // 別タブ（関連資格・前提知識カード）へ切り替える導線
+  function switchExam(exam: string) {
+    if (!CHEAT_DATA[exam]) return;
+    setActiveLevel(levelOf(exam) as LevelKey);
+    selectExam(exam);
+  }
+
   const padX = isMobile ? 'var(--page-pad-x-mobile)' : 'var(--page-pad-x)';
   const padY = isMobile ? 'var(--page-pad-y-mobile)' : 'var(--page-pad-y)';
 
@@ -1254,6 +1280,23 @@ export default function CheatSheet() {
         <p style={{ fontSize: 'var(--font-size-xs)', color: '#009E9E', marginBottom: 'var(--spacing-sm)', marginTop: 0 }}>
           色付き太字の用語はタップしてコピーできます（検索向けに文脈補足が付く場合あり）
         </p>
+      )}
+
+      {/* カードの狙い＋関連資格への導線（オリジナルカード / AIF） */}
+      {!q && EXAM_INTRO[selectedExam] && (
+        <div style={{ background: `${examColor}0f`, border: `1px solid ${examColor}55`, borderRadius: 'var(--border-radius-md)', padding: '10px 12px', marginBottom: 'var(--spacing-md)', display: 'flex', flexDirection: 'column', gap: 6 }}>
+          <div style={{ fontSize: 'var(--font-size-xs)', color: 'var(--color-text-sub)', lineHeight: 1.6 }}>{EXAM_INTRO[selectedExam].note}</div>
+          <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', alignItems: 'center' }}>
+            <span style={{ fontSize: 'var(--font-size-2xs)', color: 'var(--color-text-light)', flexShrink: 0 }}>関連:</span>
+            {EXAM_INTRO[selectedExam].links.map(l => (
+              <button
+                key={l.exam}
+                onClick={() => switchExam(l.exam)}
+                style={{ padding: '3px 10px', borderRadius: 'var(--border-radius-full)', border: `1.5px solid ${examColor}`, background: 'var(--color-bg-white)', color: examColor, fontSize: 'var(--font-size-2xs)', fontWeight: 700, cursor: 'pointer', whiteSpace: 'nowrap' }}
+              >{l.label} →</button>
+            ))}
+          </div>
+        </div>
       )}
 
       {/* 検索ヒット数 */}
