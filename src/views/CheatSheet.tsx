@@ -726,7 +726,7 @@ const CHEAT_DATA: CheatData = {
       title: 'SQL基礎',
       items: [
         { name: 'SELECT文の基本', desc: '**SELECT 列** FROM テーブル WHERE 条件 の順で問い合わせる。\nWHERE: 行を絞り込む条件（=, <>, LIKE, IN, BETWEEN, IS NULL）\nORDER BY: 並べ替え（ASC昇順 / DESC降順）\nDISTINCT: 重複行を除去\nLIMIT / OFFSET: 取得件数と開始位置の制御（ページング）', keyword: 'SELECT WHERE ORDER BY DISTINCT LIMIT SQL 問い合わせ', tags: ['SELECT / WHERE', 'ORDER BY', 'DISTINCT / LIMIT'] },
-        { name: 'JOIN（テーブル結合）', desc: '**複数テーブル**を関連キーで結合する。\n内部結合 (INNER JOIN): 両テーブルで条件が一致する行のみ\n左外部結合 (LEFT OUTER JOIN): 左テーブルは全行、右は一致分のみ（無ければNULL）\n右外部結合 (RIGHT JOIN) / 完全外部結合 (FULL OUTER JOIN)\nクロス結合 (CROSS JOIN): 総当たり（直積）', keyword: 'JOIN 内部結合 外部結合 INNER JOIN LEFT JOIN テーブル結合', tags: ['内部結合 / INNER JOIN', '外部結合 / OUTER JOIN', 'CROSS JOIN'] },
+        { name: 'JOIN（テーブル結合）', desc: '**複数テーブル**を関連キーで結合する。\n内部結合 (INNER JOIN): 両テーブルで条件が一致する行のみ\n左外部結合 (LEFT OUTER JOIN): 左テーブルは全行、右は一致分のみ（無ければNULL）\n右外部結合 (RIGHT OUTER JOIN): 右テーブルは全行、左は一致分のみ（無ければNULL）\n完全外部結合 (FULL OUTER JOIN): 両テーブルの全行を結合し一致しない側はNULL\nクロス結合 (CROSS JOIN): 総当たり（直積）', keyword: 'JOIN 内部結合 外部結合 INNER JOIN LEFT JOIN テーブル結合', tags: ['内部結合 / INNER JOIN', '外部結合 / OUTER JOIN', 'CROSS JOIN'] },
         { name: '集約とグループ化', desc: '集約関数: **COUNT**（件数）・SUM（合計）・AVG（平均）・MAX・MIN\nGROUP BY: 指定列ごとにグループ化して集約する\nHAVING: 集約結果に対する絞り込み（WHEREは集約前、HAVINGは集約後）\n実行順序: FROM → WHERE → GROUP BY → HAVING → SELECT → ORDER BY', keyword: 'GROUP BY 集約関数 COUNT SUM AVG HAVING 実行順序', tags: ['集約関数 / COUNT・SUM', 'GROUP BY', 'HAVING'] },
         { name: 'サブクエリ・ビュー・DML/DDL', desc: 'サブクエリ (副問い合わせ): **SQL文の中**に入れ子にした別のSELECT文\nビュー (View): 問い合わせ結果に名前を付けた仮想テーブル。複雑なクエリを再利用\nDML (データ操作言語): SELECT / INSERT / UPDATE / DELETE\nDDL (データ定義言語): CREATE / ALTER / DROP / TRUNCATE\nDCL (データ制御言語): GRANT / REVOKE（権限管理）', keyword: 'サブクエリ ビュー View DML DDL DCL INSERT UPDATE DELETE CREATE', tags: ['サブクエリ', 'ビュー / View', 'DML / DDL'] },
         { name: 'ウィンドウ関数・CTE', desc: '**分析クエリで頻出**の応用SQL。\nウィンドウ関数 (Window Function): 行をグループに畳まず、各行の隣に集計・順位を付ける。OVER(PARTITION BY … ORDER BY …) で範囲を指定\n例: ROW_NUMBER / RANK / DENSE_RANK (順位)・LAG / LEAD (前後行参照)・累計や移動平均 (SUM() OVER)\nCTE (共通テーブル式 / WITH句): クエリ内に一時的な名前付き結果を定義して可読性を上げる。再帰CTEで階層データも扱える', keyword: 'ウィンドウ関数 Window Function OVER PARTITION BY ROW_NUMBER RANK LAG LEAD CTE WITH句 共通テーブル式 再帰', tags: ['ウィンドウ関数 / OVER', 'ROW_NUMBER / RANK', 'CTE / WITH句'] },
@@ -737,7 +737,7 @@ const CHEAT_DATA: CheatData = {
       items: [
         { name: 'ACID特性', desc: '**トランザクション**（一連の処理をまとめた単位）が満たすべき4性質。\n原子性 (Atomicity): 全て成功か全て失敗か（中途半端にしない）\n一貫性 (Consistency): 整合性制約を常に満たす\n分離性 (Isolation): 並行実行しても互いに干渉しない\n永続性 (Durability): コミットした結果は障害後も失われない', keyword: 'ACID 原子性 一貫性 分離性 永続性 トランザクション コミット ロールバック', tags: ['ACID', 'コミット / ロールバック', 'トランザクション'] },
         { name: '分離レベルと並行性の問題', desc: '分離レベル: **同時実行の不整合**を抑える強度設定（弱→強）\n複数トランザクションの同時実行で起きる不整合と、その抑止レベル。\n問題: ダーティリード / ノンリピータブルリード / ファントムリード\n分離レベル（弱→強）: READ UNCOMMITTED < READ COMMITTED < REPEATABLE READ < SERIALIZABLE\n強いほど整合性は高いが並行性能は下がるトレードオフ', keyword: '分離レベル Isolation Level ダーティリード ファントムリード SERIALIZABLE 並行性', tags: ['分離レベル', 'ダーティリード', 'SERIALIZABLE'] },
-        { name: 'ロックとデッドロック', desc: 'ロック: **同時更新の競合**を防ぐためデータへのアクセスを一時的に制限する仕組み。\n共有ロック (読み取り) / 排他ロック (書き込み)\n楽観ロック vs 悲観ロック: 楽観はバージョン番号で競合検出、悲観は先にロック取得\nデッドロック: 互いに相手のロック解放を待ち続けて処理が進まない状態。検出して片方をロールバックする', keyword: 'ロック デッドロック 排他ロック 共有ロック 楽観ロック 悲観ロック', tags: ['排他 / 共有ロック', '楽観 / 悲観ロック', 'デッドロック'] },
+        { name: 'ロックとデッドロック', desc: 'ロック: **同時更新の競合**を防ぐためデータへのアクセスを一時的に制限する仕組み。\n共有ロック（読み取り用・複数で同時取得可）/ 排他ロック（書き込み用・他の取得をブロック）\n楽観ロック vs 悲観ロック: 楽観はバージョン番号で競合検出、悲観は先にロック取得\nデッドロック: 互いに相手のロック解放を待ち続けて処理が進まない状態。検出して片方をロールバックする', keyword: 'ロック デッドロック 排他ロック 共有ロック 楽観ロック 悲観ロック', tags: ['排他 / 共有ロック', '楽観 / 悲観ロック', 'デッドロック'] },
       ],
     },
     {
@@ -745,7 +745,7 @@ const CHEAT_DATA: CheatData = {
       items: [
         { name: 'インデックス / Index', desc: '**列の値と行の位置**を対応付け、検索を高速化するデータ構造（本の索引に相当）。\nB-tree インデックス: 範囲検索・等価検索に強い最も一般的な方式\nハッシュインデックス: 等価検索に特化\n複合インデックス: 複数列をまとめて張る（左端の列から順に効く）\nトレードオフ: 検索は速くなるが、書き込み（INSERT/UPDATE）は遅くなり容量も増える', keyword: 'インデックス B-tree 複合インデックス ハッシュインデックス 索引 高速化', tags: ['B-tree', '複合インデックス', '書き込みコスト'] },
         { name: 'クエリ最適化', desc: '実行計画 (Execution Plan): **DBがクエリ**をどう処理するかの計画。EXPLAIN で確認する\nフルスキャン vs インデックススキャン: WHERE句がインデックスを使えず全行走査すると遅い\nN+1問題: 1件取得のたびに関連クエリを繰り返し発行して大量のクエリになる問題（JOINやまとめ取得で解消）\nスロークエリの発見: 実行時間の長いクエリをログで特定して改善', keyword: '実行計画 EXPLAIN フルスキャン N+1問題 クエリ最適化 スロークエリ', tags: ['実行計画 / EXPLAIN', 'フルスキャン', 'N+1問題'] },
-        { name: 'NoSQLとCAP定理', desc: 'NoSQL（Not only SQL）: **RDBの表形式**にとらわれない柔軟なデータベース群。\nキーバリュー型 / ドキュメント型 / 列指向型 / グラフ型\nCAP定理: 分散システムは 一貫性(C)・可用性(A)・分断耐性(P) の3つを同時には満たせず、Pを前提にCかAを選ぶ\nBASE（Basically Available, Soft state, Eventually consistent）: 結果整合性を許容する緩い一貫性モデル（ACIDの対比）\n使い分け: 厳密な整合性・結合はRDB、スケールと柔軟なスキーマはNoSQL', keyword: 'NoSQL キーバリュー ドキュメント 列指向 グラフDB CAP定理 結果整合性 BASE', tags: ['NoSQLの種類', 'CAP定理', '結果整合性 / BASE'] },
+        { name: 'NoSQLとCAP定理', desc: 'NoSQL（Not only SQL）: **RDBの表形式**にとらわれない柔軟なデータベース群。\nキーバリュー型（キーで値を出し入れ）/ ドキュメント型（JSON等の文書単位で格納）/ 列指向型（列ごとに格納し集計に強い）/ グラフ型（ノードと辺で関係性を表現）\nCAP定理: 分散システムは 一貫性(C)・可用性(A)・分断耐性(P) の3つを同時には満たせず、Pを前提にCかAを選ぶ\nBASE（Basically Available, Soft state, Eventually consistent）: 結果整合性を許容する緩い一貫性モデル（ACIDの対比）\n使い分け: 厳密な整合性・結合はRDB、スケールと柔軟なスキーマはNoSQL', keyword: 'NoSQL キーバリュー ドキュメント 列指向 グラフDB CAP定理 結果整合性 BASE', tags: ['NoSQLの種類', 'CAP定理', '結果整合性 / BASE'] },
       ],
     },
     {
@@ -765,7 +765,7 @@ const CHEAT_DATA: CheatData = {
       items: [
         { name: 'OSI参照モデルとTCP/IP', desc: '**ネットワーク通信**を階層で整理したモデル。\nOSI参照モデル（7層）: 物理→データリンク→ネットワーク→トランスポート→セッション→プレゼンテーション→アプリケーション\nTCP（Transmission Control Protocol）/IPモデル（4層）: ネットワークインターフェース→インターネット→トランスポート→アプリケーション\nカプセル化: 各層でヘッダーを付けてデータを包む処理', keyword: 'OSI参照モデル TCP/IP 7層 プロトコル カプセル化 レイヤー', tags: ['OSI 7層', 'TCP/IP 4層', 'カプセル化'] },
         { name: 'TCPとUDP', desc: '**トランスポート層**の代表プロトコル。\nTCP (Transmission Control Protocol): コネクション型。3ウェイハンドシェイクで接続を確立し、再送・順序保証で信頼性が高い（Web・メール・ファイル転送）\nUDP (User Datagram Protocol): コネクションレス型。確認なしで高速・低遅延だが到達保証なし（動画配信・音声通話・DNS・ゲーム）', keyword: 'TCP UDP 3ウェイハンドシェイク コネクション型 信頼性 トランスポート層', tags: ['TCP / 信頼性', 'UDP / 低遅延', '3ウェイハンドシェイク'] },
-        { name: 'ポート番号', desc: 'ウェルノウンポート: **HTTP=80**/HTTPS=443/SSH=22等の既知ポート\n同一ホスト上のどのアプリ宛かを識別する番号（0〜65535）。\nウェルノウンポート (0-1023): HTTP=80 / HTTPS=443 / SSH=22 / DNS=53 / SMTP=25 / FTP=21\n登録済みポート (1024-49151) / 動的ポート (49152-65535)\nソケット = IPアドレス + ポート番号 の組で通信の端点を一意に表す', keyword: 'ポート番号 ウェルノウンポート ソケット HTTP HTTPS SSH DNS ポート', tags: ['ウェルノウンポート', 'ソケット', '80 / 443 / 22'] },
+        { name: 'ポート番号', desc: 'ウェルノウンポート: **HTTP=80**/HTTPS=443/SSH=22等の既知ポート\n同一ホスト上のどのアプリ宛かを識別する番号（0〜65535）。\nウェルノウンポート (0-1023): HTTP=80 / HTTPS=443 / SSH=22 / DNS=53 / SMTP=25 / FTP=21\n登録済みポート (1024-49151): ソフトに登録された用途 / 動的ポート (49152-65535): 通信時に一時割り当て\nソケット = IPアドレス + ポート番号 の組で通信の端点を一意に表す', keyword: 'ポート番号 ウェルノウンポート ソケット HTTP HTTPS SSH DNS ポート', tags: ['ウェルノウンポート', 'ソケット', '80 / 443 / 22'] },
       ],
     },
     {
@@ -835,7 +835,7 @@ const CHEAT_DATA: CheatData = {
       title: '脅威と攻撃',
       items: [
         { name: 'マルウェアと不正プログラム', desc: 'マルウェア: **悪意あるソフトウェア**の総称。\nウイルス / ワーム（自己増殖）/ トロイの木馬（正規を装う）/ ランサムウェア（暗号化して身代金要求）/ スパイウェア / ボット（遠隔操作されC2から指令を受ける）\n対策: アンチウイルス・パターン更新・振る舞い検知・EDR・バックアップ', keyword: 'マルウェア ウイルス ワーム トロイの木馬 ランサムウェア ボット C2 EDR', tags: ['ランサムウェア', 'ワーム / トロイ', 'ボット / C2'] },
-        { name: 'Web・アプリへの攻撃', desc: 'SQLインジェクション: **入力に不正なSQL**を注入してDBを不正操作（対策: プレースホルダ）\nXSS (クロスサイトスクリプティング): 悪意あるスクリプトを埋め込み他ユーザーで実行（対策: エスケープ）\nCSRF（Cross-Site Request Forgery）: ログイン状態を悪用して意図しない操作をさせる（対策: トークン）\nバッファオーバーフロー / ディレクトリトラバーサル', keyword: 'SQLインジェクション XSS クロスサイトスクリプティング CSRF バッファオーバーフロー 脆弱性', tags: ['SQLi', 'XSS', 'CSRF'] },
+        { name: 'Web・アプリへの攻撃', desc: 'SQLインジェクション: **入力に不正なSQL**を注入してDBを不正操作（対策: プレースホルダ）\nXSS (クロスサイトスクリプティング): 悪意あるスクリプトを埋め込み他ユーザーで実行（対策: エスケープ）\nCSRF（Cross-Site Request Forgery）: ログイン状態を悪用して意図しない操作をさせる（対策: トークン）\nバッファオーバーフロー（確保領域を超える書き込みで不正コードを実行）/ ディレクトリトラバーサル（../等で公開範囲外のファイルに不正アクセス）', keyword: 'SQLインジェクション XSS クロスサイトスクリプティング CSRF バッファオーバーフロー 脆弱性', tags: ['SQLi', 'XSS', 'CSRF'] },
         { name: 'ネットワーク・人的攻撃', desc: 'DoS（Denial of Service） / DDoS: **大量アクセス**でサービスを停止させる攻撃（分散させたものがDDoS）\n中間者攻撃 (MITM): 通信に割り込んで盗聴・改ざん\nフィッシング: 偽サイト・偽メールで認証情報をだまし取る\nソーシャルエンジニアリング: 人の心理につけ込む攻撃（なりすまし電話・肩越しの覗き見）', keyword: 'DoS DDoS 中間者攻撃 MITM フィッシング ソーシャルエンジニアリング', tags: ['DoS / DDoS', '中間者攻撃 / MITM', 'フィッシング'] },
       ],
     },
