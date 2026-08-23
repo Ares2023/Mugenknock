@@ -681,7 +681,8 @@ const CHEAT_DATA: CheatData = {
         { name: 'モデル評価指標', desc: 'Accuracy（精度）：**全予測中の正解率**。クラス不均衡時は注意\nPrecision（適合率）：「陽性」と予測した中で実際に陽性の割合（偽陽性を減らしたい時に重視）\nRecall（再現率）：実際の陽性のうち正しく検出できた割合（見逃しを減らしたい時に重視）\nF1スコア：PrecisionとRecallの調和平均\nAUC-ROC：閾値変化に対するモデルの識別能力を示す（1に近いほど優秀）', keyword: 'F1スコア Precision Recall AUC-ROC 機械学習評価指標', tags: ['Accuracy', 'F1スコア', 'AUC-ROC'] },
         { name: '過学習と正則化', desc: '過学習（Overfitting）：**訓練データに過剰適合**し、未知データで性能が落ちる問題。\n対策手法：\n- L1正則化（Lasso）：不要な特徴量の重みをゼロにして特徴量選択の効果\n- L2正則化（Ridge）：重みを小さく抑えてモデルを単純化\n- ドロップアウト：ニューラルネットのニューロンをランダムに無効化して汎化性能を向上\n- データ拡張：学習データを水増しして多様性を高める', keyword: '過学習 Overfitting L1正則化 L2正則化', tags: ['過学習', 'L1/L2正則化', 'ドロップアウト'] },
         { name: 'MLのライフサイクル', desc: 'MLライフサイクル：**収集→前処理→学習**→評価→デプロイ→監視\n① データ収集・取り込み\n② データ前処理（クリーニング・正規化・欠損値処理）\n③ 特徴量エンジニアリング（モデルの入力に適した形に変換）\n④ モデル学習（アルゴリズムを選んでパラメータを調整）\n⑤ 評価（テストデータで指標を計測）\n⑥ デプロイ（本番環境への公開）\n⑦ 監視（モデルの性能劣化を検出して再学習）', keyword: 'MLOps 機械学習ライフサイクル', tags: ['MLOps', 'ライフサイクル', 'パイプライン'] },
-        { name: '転移学習とモデル評価指標（生成AI）', desc: '転移学習 (Transfer Learning)：**大量データ**で事前学習済みのモデルを別タスクに流用する手法。ゼロから学習するより少ないデータで高精度を実現。\n事前トレーニング vs ファインチューニング：事前トレーニングは大規模データでの汎用学習、ファインチューニングは特定タスクのデータで追加学習してカスタマイズする段階。\n\n生成AIの評価指標：\n- BLEU（Bilingual Evaluation Understudy）：機械翻訳の品質評価。参照訳とのn-gram一致率で測定\n- ROUGE：要約品質の評価。参照要約とのn-gram再現率で測定\n- BERTScore：BERTの埋め込みを使った意味的類似度評価。表面一致だけでなく意味の近さも考慮\n- F1・Precision・Recall：分類タスクの標準指標\n- コンバージョン率：AIを活用したマーケティング・レコメンドの最終ビジネス成果を測定するKPI', keyword: '転移学習 BLEU ROUGE BERTScore ファインチューニング 事前学習', tags: ['転移学習', 'BLEU/ROUGE', 'BERTScore'] },
+        { name: '転移学習とファインチューニング', desc: '転移学習 (Transfer Learning)：**大量データ**で事前学習済みのモデルを別タスクに流用する手法。ゼロから学習するより少ないデータで高精度を実現。\n事前トレーニング vs ファインチューニング：事前トレーニングは大規模データでの汎用学習、ファインチューニングは特定タスクのデータで追加学習してカスタマイズする段階。', keyword: '転移学習 Transfer Learning ファインチューニング 事前学習', tags: ['転移学習', 'ファインチューニング', '事前学習'] },
+        { name: '生成AIの評価指標', desc: '生成AIの品質を測る**代表指標**。\n- BLEU（Bilingual Evaluation Understudy）：機械翻訳の品質評価。参照訳とのn-gram一致率で測定\n- ROUGE：要約品質の評価。参照要約とのn-gram再現率で測定\n- BERTScore：BERTの埋め込みを使った意味的類似度評価。表面一致だけでなく意味の近さも考慮\n- F1・Precision・Recall：分類タスクの標準指標\n- コンバージョン率：AIを活用したマーケティング・レコメンドの最終ビジネス成果を測定するKPI', keyword: 'BLEU ROUGE BERTScore F1 コンバージョン率 生成AI 評価指標', tags: ['BLEU/ROUGE', 'BERTScore', 'ビジネスKPI'] },
       ],
     },
     {
@@ -689,8 +690,8 @@ const CHEAT_DATA: CheatData = {
       items: [
         { name: '回帰 / Regression', desc: '**数値**（連続値）を予測する教師あり学習。\n線形回帰 (Linear Regression)：入力と出力の関係を直線で近似。最小二乗法で誤差を最小化\nロジスティック回帰 (Logistic Regression)：名前は回帰だが分類に使う。シグモイド関数で0〜1の確率を出力\n評価指標：MSE（平均二乗誤差）・RMSE・MAE（平均絶対誤差）・決定係数R²', keyword: '線形回帰 ロジスティック回帰 Linear Regression 最小二乗法 RMSE', tags: ['線形回帰 / Linear Regression', 'ロジスティック回帰', 'RMSE / R²'] },
         { name: '決定木とアンサンブル学習', desc: '決定木 (Decision Tree)：**条件分岐を木構造**で表現。解釈しやすいが単体では過学習しやすい\nアンサンブル学習：複数のモデルを組み合わせて精度を高める手法\n- バギング (Bagging)：復元抽出で並列に多数モデルを学習（例：ランダムフォレスト）\n- ブースティング (Boosting)：前の誤りを次が補正して直列学習（例：勾配ブースティング / XGBoost・LightGBM）', keyword: '決定木 ランダムフォレスト 勾配ブースティング XGBoost バギング ブースティング アンサンブル', tags: ['ランダムフォレスト', '勾配ブースティング / Boosting', 'バギング'] },
-        { name: 'SVM・k近傍法・ナイーブベイズ', desc: 'SVM (Support Vector Machine)：**クラス間のマージン**（余白）を最大化する境界線を引く分類器。カーネル法で非線形分離も可能\nk近傍法 (k-NN)：予測対象に近いk個のデータの多数決で分類する遅延学習\nナイーブベイズ (Naive Bayes)：ベイズの定理を用い、特徴量が独立と仮定する確率的分類器。スパム判定・テキスト分類で高速', keyword: 'SVM サポートベクターマシン k近傍法 kNN ナイーブベイズ Naive Bayes カーネル', tags: ['SVM', 'k近傍法 / k-NN', 'ナイーブベイズ'] },
-        { name: 'クラスタリングと次元削減', desc: '**教師なし学習**の代表タスク。\nk-meansクラスタリング：データをk個のグループに分割。各クラスタの重心を反復更新（エルボー法でk決定）\n階層的クラスタリング：近いデータを順に結合してデンドログラム（樹形図）を作る\n主成分分析 (PCA)：分散が最大になる軸へ射影して次元を削減し、可視化・ノイズ除去に使う', keyword: 'k-means クラスタリング 主成分分析 PCA 次元削減 階層的クラスタリング エルボー法', tags: ['k-means', 'PCA / 主成分分析', '次元削減'] },
+        { name: '主要な分類アルゴリズム', desc: 'SVM (Support Vector Machine)：**クラス間のマージン**（余白）を最大化する境界線を引く分類器。カーネル法で非線形分離も可能\nk近傍法 (k-NN)：予測対象に近いk個のデータの多数決で分類する遅延学習\nナイーブベイズ (Naive Bayes)：ベイズの定理を用い、特徴量が独立と仮定する確率的分類器。スパム判定・テキスト分類で高速', keyword: 'SVM サポートベクターマシン k近傍法 kNN ナイーブベイズ Naive Bayes カーネル', tags: ['SVM', 'k近傍法 / k-NN', 'ナイーブベイズ'] },
+        { name: '教師なし学習の手法', desc: '**教師なし学習**の代表タスク。\nk-meansクラスタリング：データをk個のグループに分割。各クラスタの重心を反復更新（エルボー法でk決定）\n階層的クラスタリング：近いデータを順に結合してデンドログラム（樹形図）を作る\n主成分分析 (PCA)：分散が最大になる軸へ射影して次元を削減し、可視化・ノイズ除去に使う', keyword: 'k-means クラスタリング 主成分分析 PCA 次元削減 階層的クラスタリング エルボー法', tags: ['k-means', 'PCA / 主成分分析', '次元削減'] },
       ],
     },
     {
@@ -698,23 +699,23 @@ const CHEAT_DATA: CheatData = {
       items: [
         { name: 'ニューラルネットワークの基礎', desc: 'パーセプトロン：**入力に重み**を掛けて合計し、活性化関数で出力する最小単位（ニューロン）\n多層パーセプトロン (MLP)：入力層・隠れ層・出力層を重ねたネットワーク\n活性化関数：非線形性を導入する関数。ReLU（勾配消失に強い）・シグモイド・tanh・出力層のSoftmax（多クラス分類の確率化）', keyword: 'ニューラルネットワーク パーセプトロン 活性化関数 ReLU シグモイド Softmax 多層パーセプトロン', tags: ['パーセプトロン', '活性化関数 / ReLU', 'Softmax'] },
         { name: '学習の仕組み（勾配降下法）', desc: '損失関数 (Loss Function)：**予測と正解の誤差**を数値化（回帰=MSE、分類=クロスエントロピー）\n勾配降下法 (Gradient Descent)：損失が小さくなる方向へ重みを更新。学習率 (Learning Rate) が更新幅を決める\n誤差逆伝播 (Backpropagation)：出力の誤差を逆向きに伝えて各重みの勾配を計算\nエポック・バッチ・ミニバッチ：学習データを回す単位。勾配消失/爆発に注意', keyword: '勾配降下法 誤差逆伝播 バックプロパゲーション 損失関数 学習率 クロスエントロピー エポック', tags: ['勾配降下法 / Gradient Descent', '誤差逆伝播 / Backpropagation', '学習率'] },
-        { name: 'CNN・RNN', desc: 'CNN (Convolutional Neural Network / 畳み込みニューラルネットワーク)：**畳み込み層**とプーリング層で画像の局所特徴を抽出。画像認識・物体検出で主流\nRNN (Recurrent Neural Network / 再帰型ニューラルネットワーク)：時系列・系列データを扱い、過去の状態を記憶\nLSTM（Long Short-Term Memory）・GRU：RNNの長期依存を学習しにくい弱点（勾配消失）をゲート機構で改善した派生', keyword: 'CNN 畳み込みニューラルネットワーク RNN 再帰型 LSTM GRU プーリング 画像認識', tags: ['CNN / 畳み込み', 'RNN', 'LSTM / GRU'] },
-        { name: 'Transformer・生成モデル', desc: 'Transformer：**Attention**（自己注意）機構で系列全体の関係を並列に捉えるアーキテクチャ。現代のLLMの基盤\nAttention：入力のどの部分に注目すべきかを重み付けする仕組み\n生成モデル：GAN（生成器と識別器が競い合う）/ VAE（変分オートエンコーダ）/ 拡散モデル (Diffusion) で画像・音声・テキストを生成', keyword: 'Transformer Attention 自己注意 GAN VAE 拡散モデル Diffusion 生成モデル', tags: ['Transformer / Attention', 'GAN', '拡散モデル / Diffusion'] },
+        { name: '画像・系列を扱うニューラルネット', desc: 'CNN (Convolutional Neural Network / 畳み込みニューラルネットワーク)：**畳み込み層**とプーリング層で画像の局所特徴を抽出。画像認識・物体検出で主流\nRNN (Recurrent Neural Network / 再帰型ニューラルネットワーク)：時系列・系列データを扱い、過去の状態を記憶\nLSTM（Long Short-Term Memory）・GRU：RNNの長期依存を学習しにくい弱点（勾配消失）をゲート機構で改善した派生', keyword: 'CNN 畳み込みニューラルネットワーク RNN 再帰型 LSTM GRU プーリング 画像認識', tags: ['CNN / 畳み込み', 'RNN', 'LSTM / GRU'] },
+        { name: '生成モデルのアーキテクチャ', desc: 'Transformer：**Attention**（自己注意）機構で系列全体の関係を並列に捉えるアーキテクチャ。現代のLLMの基盤\nAttention：入力のどの部分に注目すべきかを重み付けする仕組み\n生成モデル：GAN（生成器と識別器が競い合う）/ VAE（変分オートエンコーダ）/ 拡散モデル (Diffusion) で画像・音声・テキストを生成', keyword: 'Transformer Attention 自己注意 GAN VAE 拡散モデル Diffusion 生成モデル', tags: ['Transformer / Attention', 'GAN', '拡散モデル / Diffusion'] },
       ],
     },
     {
       title: 'データ前処理・特徴量エンジニアリング',
       items: [
-        { name: 'スケーリングと正規化', desc: '**モデルが特徴量**の大きさに引きずられないよう数値の範囲をそろえる。\n正規化 (Min-Maxスケーリング)：値を0〜1に変換\n標準化 (Standardization)：平均0・分散1に変換（Zスコア）\n距離ベースの手法（k-NN・k-means・SVM）や勾配降下法では前処理としてほぼ必須', keyword: '正規化 標準化 スケーリング Min-Max Zスコア 標準偏差', tags: ['正規化 / Normalization', '標準化 / Standardization', 'スケーリング'] },
-        { name: '欠損値・外れ値の処理', desc: '欠損値 (Missing Value)：**削除**（行/列除去）または補完（平均値・中央値・最頻値・予測モデル）で対応\n外れ値 (Outlier)：極端に外れた値。四分位範囲(IQR)や標準偏差で検出し、除去・変換・クリッピングする\n放置するとモデルの精度や統計量が大きく歪む', keyword: '欠損値 外れ値 補完 Imputation Outlier IQR 四分位', tags: ['欠損値補完', '外れ値 / Outlier', 'IQR'] },
+        { name: '特徴量のスケーリング', desc: '**モデルが特徴量**の大きさに引きずられないよう数値の範囲をそろえる。\n正規化 (Min-Maxスケーリング)：値を0〜1に変換\n標準化 (Standardization)：平均0・分散1に変換（Zスコア）\n距離ベースの手法（k-NN・k-means・SVM）や勾配降下法では前処理としてほぼ必須', keyword: '正規化 標準化 スケーリング Min-Max Zスコア 標準偏差', tags: ['正規化 / Normalization', '標準化 / Standardization', 'スケーリング'] },
+        { name: 'データクレンジング', desc: '欠損値 (Missing Value)：**削除**（行/列除去）または補完（平均値・中央値・最頻値・予測モデル）で対応\n外れ値 (Outlier)：極端に外れた値。四分位範囲(IQR)や標準偏差で検出し、除去・変換・クリッピングする\n放置するとモデルの精度や統計量が大きく歪む', keyword: '欠損値 外れ値 補完 Imputation Outlier IQR 四分位', tags: ['欠損値補完', '外れ値 / Outlier', 'IQR'] },
         { name: 'カテゴリ変数のエンコーディング', desc: '**文字列など**のカテゴリを数値に変換する。\nOne-Hotエンコーディング：各カテゴリを0/1の列に展開（順序のない名義尺度向け）\nラベルエンコーディング：カテゴリに整数を割り当て（順序のある順序尺度向け）\nターゲットエンコーディング：目的変数の平均値で置換（リークに注意）', keyword: 'One-Hotエンコーディング ラベルエンコーディング カテゴリ変数 特徴量エンジニアリング', tags: ['One-Hot', 'ラベルエンコーディング', 'ターゲットエンコード'] },
-        { name: '不均衡データとデータ分割', desc: 'クラス不均衡 (Imbalanced Data)：**陽性/陰性の件数**が偏ると精度指標が当てにならない。\n対策：オーバーサンプリング（SMOTE等）/ アンダーサンプリング / クラス重み付け / F1・AUCで評価\nデータ分割：訓練・検証・テストに分ける。データリーク（学習に未来/正解情報が混入）を防ぐ\n交差検証 (Cross Validation)：データをk分割して評価を平均し、汎化性能を安定評価', keyword: '不均衡データ SMOTE オーバーサンプリング 交差検証 クロスバリデーション データリーク', tags: ['不均衡データ / SMOTE', '交差検証 / Cross Validation', 'データリーク'] },
+        { name: 'データ分割と不均衡対策', desc: 'クラス不均衡 (Imbalanced Data)：**陽性/陰性の件数**が偏ると精度指標が当てにならない。\n対策：オーバーサンプリング（SMOTE等）/ アンダーサンプリング / クラス重み付け / F1・AUCで評価\nデータ分割：訓練・検証・テストに分ける。データリーク（学習に未来/正解情報が混入）を防ぐ\n交差検証 (Cross Validation)：データをk分割して評価を平均し、汎化性能を安定評価', keyword: '不均衡データ SMOTE オーバーサンプリング 交差検証 クロスバリデーション データリーク', tags: ['不均衡データ / SMOTE', '交差検証 / Cross Validation', 'データリーク'] },
       ],
     },
     {
       title: '評価・チューニングと統計基礎',
       items: [
-        { name: '混同行列と評価の実務', desc: '混同行列 (Confusion Matrix)：**分類結果を TP**(真陽性) / FP(偽陽性) / FN(偽陰性) / TN(真陰性) の4象限で表す表。\nここから Precision = TP/(TP+FP)・Recall = TP/(TP+FN) などを計算する\n閾値 (Threshold)：確率をクラスに変換する境界値。下げると再現率↑・適合率↓のトレードオフ\nROC曲線 / PR曲線：閾値を動かした時の性能推移。クラス不均衡では PR曲線 が有用', keyword: '混同行列 Confusion Matrix TP FP FN TN 閾値 Threshold ROC曲線 PR曲線', tags: ['混同行列 / Confusion Matrix', '閾値 / Threshold', 'ROC / PR曲線'] },
+        { name: '分類モデルの評価', desc: '混同行列 (Confusion Matrix)：**分類結果を TP**(真陽性) / FP(偽陽性) / FN(偽陰性) / TN(真陰性) の4象限で表す表。\nここから Precision = TP/(TP+FP)・Recall = TP/(TP+FN) などを計算する\n閾値 (Threshold)：確率をクラスに変換する境界値。下げると再現率↑・適合率↓のトレードオフ\nROC曲線 / PR曲線：閾値を動かした時の性能推移。クラス不均衡では PR曲線 が有用', keyword: '混同行列 Confusion Matrix TP FP FN TN 閾値 Threshold ROC曲線 PR曲線', tags: ['混同行列 / Confusion Matrix', '閾値 / Threshold', 'ROC / PR曲線'] },
         { name: 'ハイパーパラメータチューニング', desc: 'ハイパーパラメータ：**学習前に人**が決める設定値（学習率・木の深さ・正則化強度・バッチサイズ等）。学習で得る重み(パラメータ)とは別物。\n探索手法：\n- グリッドサーチ：候補の全組み合わせを総当たり\n- ランダムサーチ：ランダムに試す（高次元で効率的）\n- ベイズ最適化：過去の試行から次の有望な候補を推定して効率探索\n- 早期終了 (Early Stopping)：検証スコアが改善しなくなったら学習を打ち切り過学習を防ぐ\n交差検証と組み合わせて汎化性能で選ぶ', keyword: 'ハイパーパラメータ グリッドサーチ ランダムサーチ ベイズ最適化 早期終了 Early Stopping チューニング', tags: ['グリッド / ランダムサーチ', 'ベイズ最適化', '早期終了 / Early Stopping'] },
         { name: '統計・確率の基礎', desc: '**MLの土台**となる統計量。\n代表値：平均 (Mean)・中央値 (Median)・最頻値 (Mode)\nばらつき：分散 (Variance)・標準偏差 (Standard Deviation)\n分布：正規分布 (ガウス分布)・一様分布・ロングテール\n相関 (Correlation)：2変数の関連の強さ (-1〜1)。相関≠因果 に注意\n確率の基礎：条件付き確率・ベイズの定理', keyword: '統計 平均 中央値 分散 標準偏差 正規分布 相関 ベイズの定理 確率', tags: ['平均 / 分散・標準偏差', '正規分布', '相関≠因果'] },
       ],
@@ -725,7 +726,7 @@ const CHEAT_DATA: CheatData = {
     {
       title: 'リレーショナルDBの基礎',
       items: [
-        { name: 'テーブルとキー', desc: 'リレーショナルDB (RDB)：**データを行** (レコード) と列 (カラム) の表で管理するデータベース。\n主キー (Primary Key)：各行を一意に識別する列。重複・NULL不可\n外部キー (Foreign Key)：他テーブルの主キーを参照して関連付ける列。参照整合性を保証\n候補キー / 複合キー：一意識別できる列（の組み合わせ）', keyword: 'リレーショナルデータベース 主キー 外部キー Primary Key Foreign Key 参照整合性', tags: ['主キー / Primary Key', '外部キー / Foreign Key', '参照整合性'] },
+        { name: 'リレーショナルの構成要素', desc: 'リレーショナルDB (RDB)：**データを行** (レコード) と列 (カラム) の表で管理するデータベース。\n主キー (Primary Key)：各行を一意に識別する列。重複・NULL不可\n外部キー (Foreign Key)：他テーブルの主キーを参照して関連付ける列。参照整合性を保証\n候補キー / 複合キー：一意識別できる列（の組み合わせ）', keyword: 'リレーショナルデータベース 主キー 外部キー Primary Key Foreign Key 参照整合性', tags: ['主キー / Primary Key', '外部キー / Foreign Key', '参照整合性'] },
         { name: '正規化 / Normalization', desc: '**データの重複**と更新異常を避けるためテーブルを分割する設計手法。\n第1正規形 (1NF)：繰り返し項目をなくし各セルを単一値にする\n第2正規形 (2NF)：主キーの一部にのみ依存する列を分離（部分関数従属の排除）\n第3正規形 (3NF)：主キー以外の列に依存する列を分離（推移的関数従属の排除）\n非正規化：性能のため意図的に重複を許して結合を減らすこともある', keyword: '正規化 第1正規形 第2正規形 第3正規形 非正規化 関数従属', tags: ['第1〜第3正規形', '関数従属', '非正規化'] },
         { name: 'ER図とスキーマ設計', desc: 'ER図 (Entity-Relationship Diagram)：**エンティティ**（実体）と関連（リレーション）でデータ構造を図示する設計図。\nカーディナリティ（多重度）：1対1・1対多・多対多の関係。多対多は中間（連関）テーブルで表現\nスキーマ：テーブル・列・型・制約の定義。制約には NOT NULL・UNIQUE・CHECK・DEFAULT がある', keyword: 'ER図 エンティティ カーディナリティ スキーマ 多対多 中間テーブル 制約', tags: ['ER図', 'カーディナリティ', '制約 / Constraint'] },
         { name: 'データ型', desc: '**整数** (INT/BIGINT) / 小数 (DECIMAL・FLOAT) / 文字列 (CHAR・VARCHAR・TEXT) / 日付時刻 (DATE・TIMESTAMP) / 論理値 (BOOLEAN)。\nDECIMAL vs FLOAT：金額など誤差が許されない値はDECIMAL（固定小数点）、科学計算はFLOAT（浮動小数点）\nCHAR vs VARCHAR：CHARは固定長、VARCHARは可変長でストレージ効率が良い', keyword: 'データ型 VARCHAR DECIMAL FLOAT TIMESTAMP 固定小数点 浮動小数点', tags: ['DECIMAL / FLOAT', 'CHAR / VARCHAR', 'TIMESTAMP'] },
@@ -737,8 +738,8 @@ const CHEAT_DATA: CheatData = {
         { name: 'SELECT文の基本', desc: '**SELECT 列** FROM テーブル WHERE 条件 の順で問い合わせる。\nWHERE：行を絞り込む条件（=, <>, LIKE, IN, BETWEEN, IS NULL）\nORDER BY：並べ替え（ASC昇順 / DESC降順）\nDISTINCT：重複行を除去\nLIMIT / OFFSET：取得件数と開始位置の制御（ページング）', keyword: 'SELECT WHERE ORDER BY DISTINCT LIMIT SQL 問い合わせ', tags: ['SELECT / WHERE', 'ORDER BY', 'DISTINCT / LIMIT'] },
         { name: 'JOIN（テーブル結合）', desc: '**複数テーブル**を関連キーで結合する。\n内部結合 (INNER JOIN)：両テーブルで条件が一致する行のみ\n左外部結合 (LEFT OUTER JOIN)：左テーブルは全行、右は一致分のみ（無ければNULL）\n右外部結合 (RIGHT OUTER JOIN)：右テーブルは全行、左は一致分のみ（無ければNULL）\n完全外部結合 (FULL OUTER JOIN)：両テーブルの全行を結合し一致しない側はNULL\nクロス結合 (CROSS JOIN)：総当たり（直積）', keyword: 'JOIN 内部結合 外部結合 INNER JOIN LEFT JOIN テーブル結合', tags: ['内部結合 / INNER JOIN', '外部結合 / OUTER JOIN', 'CROSS JOIN'] },
         { name: '集約とグループ化', desc: '集約関数：**COUNT**（件数）・SUM（合計）・AVG（平均）・MAX・MIN\nGROUP BY：指定列ごとにグループ化して集約する\nHAVING：集約結果に対する絞り込み（WHEREは集約前、HAVINGは集約後）\n実行順序：FROM → WHERE → GROUP BY → HAVING → SELECT → ORDER BY', keyword: 'GROUP BY 集約関数 COUNT SUM AVG HAVING 実行順序', tags: ['集約関数 / COUNT・SUM', 'GROUP BY', 'HAVING'] },
-        { name: 'サブクエリ・ビュー・DML/DDL', desc: 'サブクエリ (副問い合わせ)：**SQL文の中**に入れ子にした別のSELECT文\nビュー (View)：問い合わせ結果に名前を付けた仮想テーブル。複雑なクエリを再利用\nDML (データ操作言語)：SELECT / INSERT / UPDATE / DELETE\nDDL (データ定義言語)：CREATE / ALTER / DROP / TRUNCATE\nDCL (データ制御言語)：GRANT / REVOKE（権限管理）', keyword: 'サブクエリ ビュー View DML DDL DCL INSERT UPDATE DELETE CREATE', tags: ['サブクエリ', 'ビュー / View', 'DML / DDL'] },
-        { name: 'ウィンドウ関数・CTE', desc: '**分析クエリで頻出**の応用SQL。\nウィンドウ関数 (Window Function)：行をグループに畳まず、各行の隣に集計・順位を付ける。OVER(PARTITION BY … ORDER BY …) で範囲を指定\n例：ROW_NUMBER / RANK / DENSE_RANK (順位)・LAG / LEAD (前後行参照)・累計や移動平均 (SUM() OVER)\nCTE (共通テーブル式 / WITH句)：クエリ内に一時的な名前付き結果を定義して可読性を上げる。再帰CTEで階層データも扱える', keyword: 'ウィンドウ関数 Window Function OVER PARTITION BY ROW_NUMBER RANK LAG LEAD CTE WITH句 共通テーブル式 再帰', tags: ['ウィンドウ関数 / OVER', 'ROW_NUMBER / RANK', 'CTE / WITH句'] },
+        { name: 'SQLの構成要素', desc: 'サブクエリ (副問い合わせ)：**SQL文の中**に入れ子にした別のSELECT文\nビュー (View)：問い合わせ結果に名前を付けた仮想テーブル。複雑なクエリを再利用\nDML (データ操作言語)：SELECT / INSERT / UPDATE / DELETE\nDDL (データ定義言語)：CREATE / ALTER / DROP / TRUNCATE\nDCL (データ制御言語)：GRANT / REVOKE（権限管理）', keyword: 'サブクエリ ビュー View DML DDL DCL INSERT UPDATE DELETE CREATE', tags: ['サブクエリ', 'ビュー / View', 'DML / DDL'] },
+        { name: '分析向けの応用SQL', desc: '**分析クエリで頻出**の応用SQL。\nウィンドウ関数 (Window Function)：行をグループに畳まず、各行の隣に集計・順位を付ける。OVER(PARTITION BY … ORDER BY …) で範囲を指定\n例：ROW_NUMBER / RANK / DENSE_RANK (順位)・LAG / LEAD (前後行参照)・累計や移動平均 (SUM() OVER)\nCTE (共通テーブル式 / WITH句)：クエリ内に一時的な名前付き結果を定義して可読性を上げる。再帰CTEで階層データも扱える', keyword: 'ウィンドウ関数 Window Function OVER PARTITION BY ROW_NUMBER RANK LAG LEAD CTE WITH句 共通テーブル式 再帰', tags: ['ウィンドウ関数 / OVER', 'ROW_NUMBER / RANK', 'CTE / WITH句'] },
       ],
     },
     {
@@ -746,7 +747,7 @@ const CHEAT_DATA: CheatData = {
       items: [
         { name: 'ACID特性', desc: '**トランザクション**（一連の処理をまとめた単位）が満たすべき4性質。\n原子性 (Atomicity)：全て成功か全て失敗か（中途半端にしない）\n一貫性 (Consistency)：整合性制約を常に満たす\n分離性 (Isolation)：並行実行しても互いに干渉しない\n永続性 (Durability)：コミットした結果は障害後も失われない', keyword: 'ACID 原子性 一貫性 分離性 永続性 トランザクション コミット ロールバック', tags: ['ACID', 'コミット / ロールバック', 'トランザクション'] },
         { name: '分離レベルと並行性の問題', desc: '同時実行で起きる**不整合**を抑えるのが分離レベル。強くするほど整合性↑・並行性能↓のトレードオフ\n並行性の問題（分離レベルが低いと発生）：\n- ダーティリード：未コミットの値を読む\n- ノンリピータブルリード：再読で値が変わる\n- ファントムリード：再読で行数が増減する\n分離レベル（弱→強）：READ UNCOMMITTED < READ COMMITTED < REPEATABLE READ < SERIALIZABLE', keyword: '分離レベル Isolation Level ダーティリード ファントムリード SERIALIZABLE 並行性', tags: ['分離レベル', 'ダーティリード', 'SERIALIZABLE'] },
-        { name: 'ロックとデッドロック', desc: 'ロック：**同時更新の競合**を防ぐためデータへのアクセスを一時的に制限する仕組み。\n共有ロック（読み取り用・複数で同時取得可）/ 排他ロック（書き込み用・他の取得をブロック）\n楽観ロック vs 悲観ロック：楽観はバージョン番号で競合検出、悲観は先にロック取得\nデッドロック：互いに相手のロック解放を待ち続けて処理が進まない状態。検出して片方をロールバックする', keyword: 'ロック デッドロック 排他ロック 共有ロック 楽観ロック 悲観ロック', tags: ['排他 / 共有ロック', '楽観 / 悲観ロック', 'デッドロック'] },
+        { name: '同時実行制御', desc: 'ロック：**同時更新の競合**を防ぐためデータへのアクセスを一時的に制限する仕組み。\n共有ロック（読み取り用・複数で同時取得可）/ 排他ロック（書き込み用・他の取得をブロック）\n楽観ロック vs 悲観ロック：楽観はバージョン番号で競合検出、悲観は先にロック取得\nデッドロック：互いに相手のロック解放を待ち続けて処理が進まない状態。検出して片方をロールバックする', keyword: 'ロック デッドロック 排他ロック 共有ロック 楽観ロック 悲観ロック', tags: ['排他 / 共有ロック', '楽観 / 悲観ロック', 'デッドロック'] },
       ],
     },
     {
@@ -754,16 +755,16 @@ const CHEAT_DATA: CheatData = {
       items: [
         { name: 'インデックス / Index', desc: '**列の値と行の位置**を対応付け、検索を高速化するデータ構造（本の索引に相当）。\nB-tree インデックス：範囲検索・等価検索に強い最も一般的な方式\nハッシュインデックス：等価検索に特化\n複合インデックス：複数列をまとめて張る（左端の列から順に効く）\nトレードオフ：検索は速くなるが、書き込み（INSERT/UPDATE）は遅くなり容量も増える', keyword: 'インデックス B-tree 複合インデックス ハッシュインデックス 索引 高速化', tags: ['B-tree', '複合インデックス', '書き込みコスト'] },
         { name: 'クエリ最適化', desc: '実行計画 (Execution Plan)：**DBがクエリ**をどう処理するかの計画。EXPLAIN で確認する\nフルスキャン vs インデックススキャン：WHERE句がインデックスを使えず全行走査すると遅い\nN+1問題：1件取得のたびに関連クエリを繰り返し発行して大量のクエリになる問題（JOINやまとめ取得で解消）\nスロークエリの発見：実行時間の長いクエリをログで特定して改善', keyword: '実行計画 EXPLAIN フルスキャン N+1問題 クエリ最適化 スロークエリ', tags: ['実行計画 / EXPLAIN', 'フルスキャン', 'N+1問題'] },
-        { name: 'NoSQLとCAP定理', desc: 'NoSQL（Not only SQL）：**RDBの表形式**にとらわれない柔軟なデータベース群。\nキーバリュー型（キーで値を出し入れ）/ ドキュメント型（JSON等の文書単位で格納）/ 列指向型（列ごとに格納し集計に強い）/ グラフ型（ノードと辺で関係性を表現）\nCAP定理：分散システムは 一貫性(C)・可用性(A)・分断耐性(P) の3つを同時には満たせず、Pを前提にCかAを選ぶ\nBASE：結果整合性を許容する緩い一貫性モデル（ACIDの対比）\n使い分け：厳密な整合性・結合はRDB、スケールと柔軟なスキーマはNoSQL', keyword: 'NoSQL キーバリュー ドキュメント 列指向 グラフDB CAP定理 結果整合性 BASE', tags: ['NoSQLの種類', 'CAP定理', '結果整合性 / BASE'] },
+        { name: 'NoSQLと分散DB', desc: 'NoSQL（Not only SQL）：**RDBの表形式**にとらわれない柔軟なデータベース群。\nキーバリュー型（キーで値を出し入れ）/ ドキュメント型（JSON等の文書単位で格納）/ 列指向型（列ごとに格納し集計に強い）/ グラフ型（ノードと辺で関係性を表現）\nCAP定理：分散システムは 一貫性(C)・可用性(A)・分断耐性(P) の3つを同時には満たせず、Pを前提にCかAを選ぶ\nBASE：結果整合性を許容する緩い一貫性モデル（ACIDの対比）\n使い分け：厳密な整合性・結合はRDB、スケールと柔軟なスキーマはNoSQL', keyword: 'NoSQL キーバリュー ドキュメント 列指向 グラフDB CAP定理 結果整合性 BASE', tags: ['NoSQLの種類', 'CAP定理', '結果整合性 / BASE'] },
       ],
     },
     {
       title: '分析・データ基盤の基礎（DEA前提）',
       items: [
-        { name: 'OLTPとOLAP', desc: '**処理特性の異**なる2系統。\nOLTP (Online Transaction Processing)：注文・入出金など小さな更新を大量・高速に捌く業務系。正規化された行指向DBが向く\nOLAP (Online Analytical Processing)：大量データの集計・分析を行う分析系。非正規化・列指向のDWHが向く\n求められるスキーマ・ストレージ・インデックス設計が両者で異なる', keyword: 'OLTP OLAP オンライントランザクション オンライン分析処理 業務系 分析系 DWH データウェアハウス', tags: ['OLTP / 業務系', 'OLAP / 分析系', '行指向 / 列指向'] },
+        { name: '業務系と分析系', desc: '**処理特性の異**なる2系統。\nOLTP (Online Transaction Processing)：注文・入出金など小さな更新を大量・高速に捌く業務系。正規化された行指向DBが向く\nOLAP (Online Analytical Processing)：大量データの集計・分析を行う分析系。非正規化・列指向のDWHが向く\n求められるスキーマ・ストレージ・インデックス設計が両者で異なる', keyword: 'OLTP OLAP オンライントランザクション オンライン分析処理 業務系 分析系 DWH データウェアハウス', tags: ['OLTP / 業務系', 'OLAP / 分析系', '行指向 / 列指向'] },
         { name: 'ディメンショナルモデリング', desc: '**分析**(OLAP/DWH)向けのデータモデル。\nファクトテーブル (Fact)：売上・数量など測定値(メジャー)を保持する中心テーブル\nディメンションテーブル (Dimension)：日付・商品・顧客など「分析の切り口」を保持\nスタースキーマ：ファクトを中心にディメンションを星形に配置(非正規化で高速)\nスノーフレークスキーマ：ディメンションをさらに正規化して枝分かれさせた形\n粒度 (Grain)：ファクト1行が表す詳細さのレベル', keyword: 'ディメンショナルモデリング スタースキーマ スノーフレーク ファクトテーブル ディメンションテーブル 粒度 Grain DWH データモデリング', tags: ['スタースキーマ', 'ファクト / ディメンション', 'スノーフレーク'] },
         { name: 'パーティショニングとデータ分散', desc: '**大規模テーブルを分割**して性能・管理性を上げる。\nレンジパーティション：日付や数値の範囲で分割(例：月ごと)\nリストパーティション：特定の値(地域等)で分割\nハッシュパーティション：ハッシュ値で均等に分散\nパーティションプルーニング (Pruning)：クエリ条件に該当するパーティションだけ読み、スキャン量を削減\nバケッティング / シャーディング：キーでデータを分散配置してスケールさせる', keyword: 'パーティショニング レンジ リスト ハッシュ パーティションプルーニング Pruning バケッティング シャーディング データ分散', tags: ['レンジ / ハッシュ', 'パーティションプルーニング', 'シャーディング'] },
-        { name: 'データ形式とストレージ', desc: '**データ処理**で扱う代表フォーマット。\n行指向 vs 列指向：行指向は1レコードをまとめて保存(OLTP向け)、列指向は同じ列をまとめて保存(集計・圧縮に強くOLAP向け)\nテキスト系：CSV(単純・非圧縮)・JSON(半構造化・ネスト可)・XML\nバイナリ列指向：Parquet・ORC(列指向・高圧縮・分析高速)\n行指向バイナリ：Avro(スキーマ付き・行単位・ストリーミング向け)\n圧縮：gzip / Snappy / Zstd 等でストレージ・転送量を削減', keyword: 'データ形式 CSV JSON Parquet ORC Avro 列指向 行指向 カラムナー 圧縮 Snappy', tags: ['行指向 / 列指向', 'Parquet / ORC', 'CSV / JSON / Avro'] },
+        { name: 'データ形式（ファイル形式）', desc: '**データ処理**で扱う代表フォーマット。\n行指向 vs 列指向：行指向は1レコードをまとめて保存(OLTP向け)、列指向は同じ列をまとめて保存(集計・圧縮に強くOLAP向け)\nテキスト系：CSV(単純・非圧縮)・JSON(半構造化・ネスト可)・XML\nバイナリ列指向：Parquet・ORC(列指向・高圧縮・分析高速)\n行指向バイナリ：Avro(スキーマ付き・行単位・ストリーミング向け)\n圧縮：gzip / Snappy / Zstd 等でストレージ・転送量を削減', keyword: 'データ形式 CSV JSON Parquet ORC Avro 列指向 行指向 カラムナー 圧縮 Snappy', tags: ['行指向 / 列指向', 'Parquet / ORC', 'CSV / JSON / Avro'] },
       ],
     },
   ],
@@ -772,16 +773,16 @@ const CHEAT_DATA: CheatData = {
     {
       title: 'TCP/IPとOSI参照モデル',
       items: [
-        { name: 'OSI参照モデルとTCP/IP', desc: '**ネットワーク通信**を階層で整理したモデル。\nOSI参照モデル（7層）：物理→データリンク→ネットワーク→トランスポート→セッション→プレゼンテーション→アプリケーション\nTCP（Transmission Control Protocol）/IPモデル（4層）：ネットワークインターフェース→インターネット→トランスポート→アプリケーション\nカプセル化：各層でヘッダーを付けてデータを包む処理', keyword: 'OSI参照モデル TCP/IP 7層 プロトコル カプセル化 レイヤー', tags: ['OSI 7層', 'TCP/IP 4層', 'カプセル化'] },
-        { name: 'TCPとUDP', desc: '**トランスポート層**の代表プロトコル。\nTCP (Transmission Control Protocol)：コネクション型。3ウェイハンドシェイクで接続を確立し、再送・順序保証で信頼性が高い（Web・メール・ファイル転送）\nUDP (User Datagram Protocol)：コネクションレス型。確認なしで高速・低遅延だが到達保証なし（動画配信・音声通話・DNS・ゲーム）', keyword: 'TCP UDP 3ウェイハンドシェイク コネクション型 信頼性 トランスポート層', tags: ['TCP / 信頼性', 'UDP / 低遅延', '3ウェイハンドシェイク'] },
+        { name: 'ネットワーク階層モデル', desc: '**ネットワーク通信**を階層で整理したモデル。\nOSI参照モデル（7層）：物理→データリンク→ネットワーク→トランスポート→セッション→プレゼンテーション→アプリケーション\nTCP（Transmission Control Protocol）/IPモデル（4層）：ネットワークインターフェース→インターネット→トランスポート→アプリケーション\nカプセル化：各層でヘッダーを付けてデータを包む処理', keyword: 'OSI参照モデル TCP/IP 7層 プロトコル カプセル化 レイヤー', tags: ['OSI 7層', 'TCP/IP 4層', 'カプセル化'] },
+        { name: 'トランスポート層プロトコル', desc: '**トランスポート層**の代表プロトコル。\nTCP (Transmission Control Protocol)：コネクション型。3ウェイハンドシェイクで接続を確立し、再送・順序保証で信頼性が高い（Web・メール・ファイル転送）\nUDP (User Datagram Protocol)：コネクションレス型。確認なしで高速・低遅延だが到達保証なし（動画配信・音声通話・DNS・ゲーム）', keyword: 'TCP UDP 3ウェイハンドシェイク コネクション型 信頼性 トランスポート層', tags: ['TCP / 信頼性', 'UDP / 低遅延', '3ウェイハンドシェイク'] },
         { name: 'ポート番号', desc: '同一ホスト上のどのアプリ宛かを識別する番号（0〜65535）。**3つの範囲**に分かれる\n- ウェルノウンポート (0-1023)：HTTP=80 / HTTPS=443 / SSH=22 / DNS=53 / SMTP=25\n- 登録済みポート (1024-49151)：ソフトに登録された用途\n- 動的ポート (49152-65535)：通信時に一時的に割り当て\nソケット = IPアドレス + ポート番号 で通信の端点を一意に表す', keyword: 'ポート番号 ウェルノウンポート ソケット HTTP HTTPS SSH DNS ポート', tags: ['ウェルノウンポート', 'ソケット', '80 / 443 / 22'] },
       ],
     },
     {
       title: 'ネットワーク性能・QoS',
       items: [
-        { name: 'MTU・ジャンボフレーム・フラグメンテーション', desc: 'MTU (Maximum Transmission Unit)：**1フレーム**で送れる最大ペイロードサイズ。イーサネットは標準1500バイト\nジャンボフレーム：MTUを約9000バイトに拡大し、大容量転送のオーバーヘッドを削減(高スループット用途)\nフラグメンテーション：MTUを超えるパケットを分割する処理。分割は性能を落とす\nパスMTUディスカバリ (PMTUD)：経路上の最小MTUを検出して分割を回避。ICMPが遮断されると失敗しブラックホール化する', keyword: 'MTU ジャンボフレーム フラグメンテーション パスMTUディスカバリ PMTUD 最大転送単位', tags: ['MTU / 1500', 'ジャンボフレーム / 9000', 'パスMTUディスカバリ'] },
-        { name: '帯域・レイテンシ・スループット', desc: '**ネットワーク性能**を測る基本指標。\n帯域幅 (Bandwidth)：単位時間に送れる理論上の最大量(bps)\nレイテンシ (Latency)：片道/往復(RTT)の遅延時間\nスループット (Throughput)：実際に転送できた実効速度\nTCPスループットは RTT と ウィンドウサイズ に依存する(帯域遅延積 BDP = 帯域 × RTT)\n輻輳制御 (Congestion Control)：混雑時に送信量を調整して破綻を防ぐ仕組み', keyword: '帯域幅 レイテンシ RTT スループット ウィンドウサイズ 帯域遅延積 BDP 輻輳制御', tags: ['帯域 / レイテンシ', 'スループット / RTT', '輻輳制御'] },
+        { name: 'MTUとパケットサイズ', desc: 'MTU (Maximum Transmission Unit)：**1フレーム**で送れる最大ペイロードサイズ。イーサネットは標準1500バイト\nジャンボフレーム：MTUを約9000バイトに拡大し、大容量転送のオーバーヘッドを削減(高スループット用途)\nフラグメンテーション：MTUを超えるパケットを分割する処理。分割は性能を落とす\nパスMTUディスカバリ (PMTUD)：経路上の最小MTUを検出して分割を回避。ICMPが遮断されると失敗しブラックホール化する', keyword: 'MTU ジャンボフレーム フラグメンテーション パスMTUディスカバリ PMTUD 最大転送単位', tags: ['MTU / 1500', 'ジャンボフレーム / 9000', 'パスMTUディスカバリ'] },
+        { name: 'ネットワーク性能指標', desc: '**ネットワーク性能**を測る基本指標。\n帯域幅 (Bandwidth)：単位時間に送れる理論上の最大量(bps)\nレイテンシ (Latency)：片道/往復(RTT)の遅延時間\nスループット (Throughput)：実際に転送できた実効速度\nTCPスループットは RTT と ウィンドウサイズ に依存する(帯域遅延積 BDP = 帯域 × RTT)\n輻輳制御 (Congestion Control)：混雑時に送信量を調整して破綻を防ぐ仕組み', keyword: '帯域幅 レイテンシ RTT スループット ウィンドウサイズ 帯域遅延積 BDP 輻輳制御', tags: ['帯域 / レイテンシ', 'スループット / RTT', '輻輳制御'] },
         { name: 'QoS（サービス品質）', desc: 'QoS (Quality of Service)：**限られた帯域で重要**な通信を優先する制御。\n分類・マーキング：パケットに優先度(DSCP等)を付与\n優先制御 / キューイング：音声・映像などリアルタイム通信を優先的に送出\n帯域制御：シェーピング(平滑化)/ ポリシング(超過分を破棄)で送信レートを管理\n用途：VoIP・ビデオ会議など遅延・ジッタに敏感なトラフィックの品質確保', keyword: 'QoS サービス品質 DSCP 優先制御 キューイング シェーピング ポリシング VoIP ジッタ', tags: ['QoS / 優先制御', 'DSCP / マーキング', 'シェーピング / ポリシング'] },
       ],
     },
@@ -789,17 +790,17 @@ const CHEAT_DATA: CheatData = {
       title: 'IPアドレスとサブネット',
       items: [
         { name: 'IPアドレス（IPv4 / IPv6）', desc: '**ネットワーク上**の機器を識別する住所。\nIPv4（Internet Protocol version 4）：32ビット（例 192.168.1.1）。約43億個で枯渇\nIPv6（Internet Protocol version 6）：128ビットで実質無制限\nグローバルIP（インターネットで一意）vs プライベートIP（組織内で自由に使える 10.0.0.0/8・172.16.0.0/12・192.168.0.0/16）\nループバック 127.0.0.1（自ホスト）', keyword: 'IPアドレス IPv4 IPv6 グローバルIP プライベートIP ループバック', tags: ['IPv4 / IPv6', 'プライベートIP', 'ループバック'] },
-        { name: 'サブネットとCIDR', desc: 'サブネットマスク：**IPアドレス**のうちネットワーク部とホスト部を分ける境界（例 255.255.255.0）\nCIDR表記：/24 のようにネットワーク部のビット数で表す（255.255.255.0 = /24）\nサブネット分割 (Subnetting)：大きなネットワークを小さく区切って管理・セキュリティを向上\nネットワークアドレス（先頭）とブロードキャストアドレス（末尾）は割り当て不可', keyword: 'サブネットマスク CIDR サブネット分割 ネットワークアドレス ブロードキャスト', tags: ['サブネットマスク', 'CIDR / prefix', 'ブロードキャスト'] },
-        { name: 'NATとアドレス変換', desc: 'NAT (Network Address Translation)：**プライベートIP**とグローバルIPを相互変換する仕組み。\nNAPT（Network Address Port Translation） / PAT：ポート番号も使って複数の内部端末を1つのグローバルIPで共有（IPマスカレード）\n用途：IPv4アドレス節約・内部ネットワークの隠蔽によるセキュリティ向上\n静的NAT（1対1）と動的NAT（プールから割当）がある', keyword: 'NAT NAPT PAT IPマスカレード アドレス変換 ポート変換', tags: ['NAT', 'NAPT / PAT', 'アドレス変換'] },
-        { name: 'ユニキャスト・ブロードキャスト・マルチキャスト', desc: '**通信の宛先方式**。\nユニキャスト：1対1の通常通信\nブロードキャスト：同一セグメント全員へ一斉送信(ARP等)。ルーターを越えない\nマルチキャスト：特定グループにのみ配信(1対多)。動画・株価配信などで帯域を節約\nIGMP (Internet Group Management Protocol)：受信者がマルチキャストグループへの参加/離脱を通知するプロトコル\nマルチキャストアドレス：224.0.0.0〜239.255.255.255 (IPv4クラスD)', keyword: 'ユニキャスト ブロードキャスト マルチキャスト IGMP マルチキャストアドレス クラスD 1対多', tags: ['ユニ / ブロード / マルチキャスト', 'IGMP', 'クラスD 224.x'] },
+        { name: 'サブネット設計', desc: 'サブネットマスク：**IPアドレス**のうちネットワーク部とホスト部を分ける境界（例 255.255.255.0）\nCIDR表記：/24 のようにネットワーク部のビット数で表す（255.255.255.0 = /24）\nサブネット分割 (Subnetting)：大きなネットワークを小さく区切って管理・セキュリティを向上\nネットワークアドレス（先頭）とブロードキャストアドレス（末尾）は割り当て不可', keyword: 'サブネットマスク CIDR サブネット分割 ネットワークアドレス ブロードキャスト', tags: ['サブネットマスク', 'CIDR / prefix', 'ブロードキャスト'] },
+        { name: 'アドレス変換（NAT）', desc: 'NAT (Network Address Translation)：**プライベートIP**とグローバルIPを相互変換する仕組み。\nNAPT（Network Address Port Translation） / PAT：ポート番号も使って複数の内部端末を1つのグローバルIPで共有（IPマスカレード）\n用途：IPv4アドレス節約・内部ネットワークの隠蔽によるセキュリティ向上\n静的NAT（1対1）と動的NAT（プールから割当）がある', keyword: 'NAT NAPT PAT IPマスカレード アドレス変換 ポート変換', tags: ['NAT', 'NAPT / PAT', 'アドレス変換'] },
+        { name: '通信の宛先方式', desc: '**通信の宛先方式**。\nユニキャスト：1対1の通常通信\nブロードキャスト：同一セグメント全員へ一斉送信(ARP等)。ルーターを越えない\nマルチキャスト：特定グループにのみ配信(1対多)。動画・株価配信などで帯域を節約\nIGMP (Internet Group Management Protocol)：受信者がマルチキャストグループへの参加/離脱を通知するプロトコル\nマルチキャストアドレス：224.0.0.0〜239.255.255.255 (IPv4クラスD)', keyword: 'ユニキャスト ブロードキャスト マルチキャスト IGMP マルチキャストアドレス クラスD 1対多', tags: ['ユニ / ブロード / マルチキャスト', 'IGMP', 'クラスD 224.x'] },
       ],
     },
     {
       title: 'ルーティングとスイッチング',
       items: [
-        { name: 'ルーターとスイッチ', desc: 'スイッチ (L2)：**同一ネットワーク内**でMACアドレスを見てフレームを転送する機器\nルーター (L3)：異なるネットワーク間をIPアドレスで中継する機器\nデフォルトゲートウェイ：自分のネットワーク外へ出る際の出口となるルーター\nMACアドレス：NICに割り当てられた物理アドレス。ARPでIP↔MACを対応付ける', keyword: 'ルーター スイッチ L2 L3 デフォルトゲートウェイ MACアドレス ARP', tags: ['スイッチ / L2', 'ルーター / L3', 'デフォルトゲートウェイ'] },
+        { name: 'L2/L3の中継機器', desc: 'スイッチ (L2)：**同一ネットワーク内**でMACアドレスを見てフレームを転送する機器\nルーター (L3)：異なるネットワーク間をIPアドレスで中継する機器\nデフォルトゲートウェイ：自分のネットワーク外へ出る際の出口となるルーター\nMACアドレス：NICに割り当てられた物理アドレス。ARPでIP↔MACを対応付ける', keyword: 'ルーター スイッチ L2 L3 デフォルトゲートウェイ MACアドレス ARP', tags: ['スイッチ / L2', 'ルーター / L3', 'デフォルトゲートウェイ'] },
         { name: 'ルーティング', desc: '**パケットを宛先ま**で転送する経路制御。\nルーティングテーブル：宛先ネットワークごとの転送先を記した表。最長一致 (Longest Match) で選択\n静的ルーティング：手動で経路を設定（小規模・固定向け）\n動的ルーティング：プロトコルで経路を自動学習。RIP（距離ベクトル）・OSPF（リンクステート）・BGP（インターネット間の経路制御）', keyword: 'ルーティング ルーティングテーブル 最長一致 静的ルーティング 動的ルーティング OSPF BGP', tags: ['ルーティングテーブル', '静的 / 動的', 'OSPF / BGP'] },
-        { name: 'VLANとネットワーク分割', desc: 'VLAN (Virtual LAN)：**物理構成に関係**なくスイッチを論理的に分割し、ブロードキャストドメインを分けて管理・セキュリティを向上させる技術。\nブロードキャストドメイン：ブロードキャストが届く範囲。ルーターで区切られる\nセグメンテーション：用途や部門ごとにネットワークを分けて、障害・攻撃の影響範囲を限定する', keyword: 'VLAN ブロードキャストドメイン セグメンテーション ネットワーク分割', tags: ['VLAN', 'ブロードキャストドメイン', 'セグメンテーション'] },
+        { name: 'ネットワークセグメンテーション', desc: 'VLAN (Virtual LAN)：**物理構成に関係**なくスイッチを論理的に分割し、ブロードキャストドメインを分けて管理・セキュリティを向上させる技術。\nブロードキャストドメイン：ブロードキャストが届く範囲。ルーターで区切られる\nセグメンテーション：用途や部門ごとにネットワークを分けて、障害・攻撃の影響範囲を限定する', keyword: 'VLAN ブロードキャストドメイン セグメンテーション ネットワーク分割', tags: ['VLAN', 'ブロードキャストドメイン', 'セグメンテーション'] },
         { name: 'BGP（境界ゲートウェイプロトコル）', desc: 'BGP (Border Gateway Protocol)：**インターネット**や組織間(AS間)の経路を交換する動的ルーティングプロトコル。\nAS (自律システム)：単一の管理ポリシーで運用されるネットワークの塊。AS番号で識別\neBGP：異なるAS間 / iBGP：同一AS内\n経路広告 (Advertisement)：自分が到達できるネットワークを隣接ルーターに通知\nパス選択：AS_PATH長・ローカルプリファレンス・MED などの属性で最適経路を決定\n経路集約でルーティングテーブルを縮小する', keyword: 'BGP 境界ゲートウェイプロトコル AS 自律システム eBGP iBGP 経路広告 AS_PATH ローカルプリファレンス MED', tags: ['BGP / AS番号', 'eBGP / iBGP', '経路広告 / パス選択'] },
       ],
     },
@@ -807,8 +808,8 @@ const CHEAT_DATA: CheatData = {
       title: 'DNS・アプリ層プロトコル',
       items: [
         { name: 'DNS（名前解決）', desc: '**ドメイン名**（例 example.com）をIPアドレスに変換する仕組み。\nレコード種別：A（IPv4）/ AAAA（IPv6）/ CNAME（別名）/ MX（メール）/ NS（ネームサーバ）/ TXT / PTR（逆引き）\n名前解決の流れ：リゾルバ → ルート → TLD → 権威DNSサーバへ再帰的に問い合わせ\nTTL（Time To Live）：レコードのキャッシュ有効期間', keyword: 'DNS 名前解決 Aレコード CNAME MXレコード 権威DNS リゾルバ TTL', tags: ['レコード種別 / A・CNAME', '権威 / リゾルバ', 'TTL'] },
-        { name: 'HTTP / HTTPS', desc: 'HTTP（HyperText Transfer Protocol）：**Web**のアプリ層プロトコル。リクエスト/レスポンス型でステートレス\nメソッド：GET（取得）/ POST（送信）/ PUT / DELETE\nステータスコード：2xx成功 / 3xxリダイレクト / 4xxクライアントエラー / 5xxサーバエラー\nHTTPS（HyperText Transfer Protocol Secure）：HTTPをTLSで暗号化。盗聴・改ざん・なりすましを防ぐ', keyword: 'HTTP HTTPS メソッド GET POST ステータスコード リクエスト レスポンス', tags: ['メソッド / GET・POST', 'ステータスコード', 'HTTPS'] },
-        { name: 'DHCP・その他プロトコル', desc: 'DHCP（Dynamic Host Configuration Protocol）：**端末にIPアドレス**・サブネットマスク・デフォルトゲートウェイ・DNSを自動配布する仕組み（DORAの4ステップ）\nARP（Address Resolution Protocol）：同一セグメント内でIPアドレスからMACアドレスを解決\nICMP（Internet Control Message Protocol）：疎通確認 (ping) や経路調査 (traceroute) に使う制御プロトコル\nNTP（Network Time Protocol）：時刻同期プロトコル', keyword: 'DHCP ARP ICMP ping traceroute NTP 時刻同期 IP自動割当', tags: ['DHCP', 'ARP / ICMP', 'ping / traceroute'] },
+        { name: 'Web通信プロトコル', desc: 'HTTP（HyperText Transfer Protocol）：**Web**のアプリ層プロトコル。リクエスト/レスポンス型でステートレス\nメソッド：GET（取得）/ POST（送信）/ PUT / DELETE\nステータスコード：2xx成功 / 3xxリダイレクト / 4xxクライアントエラー / 5xxサーバエラー\nHTTPS（HyperText Transfer Protocol Secure）：HTTPをTLSで暗号化。盗聴・改ざん・なりすましを防ぐ', keyword: 'HTTP HTTPS メソッド GET POST ステータスコード リクエスト レスポンス', tags: ['メソッド / GET・POST', 'ステータスコード', 'HTTPS'] },
+        { name: '補助的な通信プロトコル', desc: 'DHCP（Dynamic Host Configuration Protocol）：**端末にIPアドレス**・サブネットマスク・デフォルトゲートウェイ・DNSを自動配布する仕組み（DORAの4ステップ）\nARP（Address Resolution Protocol）：同一セグメント内でIPアドレスからMACアドレスを解決\nICMP（Internet Control Message Protocol）：疎通確認 (ping) や経路調査 (traceroute) に使う制御プロトコル\nNTP（Network Time Protocol）：時刻同期プロトコル', keyword: 'DHCP ARP ICMP ping traceroute NTP 時刻同期 IP自動割当', tags: ['DHCP', 'ARP / ICMP', 'ping / traceroute'] },
       ],
     },
     {
@@ -816,7 +817,7 @@ const CHEAT_DATA: CheatData = {
       items: [
         { name: 'ファイアウォールとアクセス制御', desc: 'ファイアウォール：**通信を許可/拒否**するルール（IP・ポート・プロトコル）で境界を防御\nステートフルインスペクション：通信の状態を追跡し、戻りパケットを自動許可\nステートレス vs ステートフル：ステートレスは行き・戻りを個別に判定、ステートフルは接続単位で判定\nACL (Access Control List)：通信可否のルールリスト', keyword: 'ファイアウォール ステートフル ステートレス ACL アクセス制御 パケットフィルタ', tags: ['ファイアウォール', 'ステートフル / ステートレス', 'ACL'] },
         { name: 'VPNと暗号化通信', desc: 'VPN (Virtual Private Network)：**公衆網上に暗号化**した仮想的な専用線を作る技術。\nIPsec（IP Security） VPN：L3で暗号化。拠点間接続 (Site-to-Site) に多い\nSSL（Secure Sockets Layer）/TLS VPN：ブラウザベースでリモートアクセス向け\nトンネリング：パケットを別のプロトコルで包んで転送する仕組み', keyword: 'VPN IPsec SSL VPN トンネリング 暗号化通信 拠点間接続', tags: ['VPN', 'IPsec / SSL-TLS', 'トンネリング'] },
-        { name: 'ロードバランサと監視', desc: 'ロードバランサ (LB)：**複数サーバへ通信**を振り分けて負荷分散・可用性を確保\nL4 LB（IP/ポートで分散）vs L7 LB（URL/ヘッダーで分散）\nヘルスチェック：異常なサーバを振り分け対象から自動的に外す\n監視・調査ツール：パケットキャプチャ (Wireshark/tcpdump)・SNMP（機器監視）・フローログ', keyword: 'ロードバランサ 負荷分散 L4 L7 ヘルスチェック パケットキャプチャ SNMP', tags: ['ロードバランサ / L4・L7', 'ヘルスチェック', 'パケットキャプチャ'] },
+        { name: '負荷分散と監視', desc: 'ロードバランサ (LB)：**複数サーバへ通信**を振り分けて負荷分散・可用性を確保\nL4 LB（IP/ポートで分散）vs L7 LB（URL/ヘッダーで分散）\nヘルスチェック：異常なサーバを振り分け対象から自動的に外す\n監視・調査ツール：パケットキャプチャ (Wireshark/tcpdump)・SNMP（機器監視）・フローログ', keyword: 'ロードバランサ 負荷分散 L4 L7 ヘルスチェック パケットキャプチャ SNMP', tags: ['ロードバランサ / L4・L7', 'ヘルスチェック', 'パケットキャプチャ'] },
       ],
     },
   ],
@@ -825,9 +826,9 @@ const CHEAT_DATA: CheatData = {
     {
       title: '暗号技術',
       items: [
-        { name: '共通鍵暗号と公開鍵暗号', desc: '共通鍵暗号 (対称鍵 / Symmetric)：**暗号化と復号**に同じ鍵を使う。高速だが鍵配送が課題（例 AES）\n公開鍵暗号 (非対称鍵 / Asymmetric)：公開鍵で暗号化し秘密鍵で復号。鍵配送問題を解決するが低速（例 RSA・楕円曲線暗号）\nハイブリッド暗号：データ本体は共通鍵で暗号化し、その共通鍵を公開鍵で送る（TLSの方式）', keyword: '共通鍵暗号 公開鍵暗号 対称鍵 非対称鍵 AES RSA ハイブリッド暗号', tags: ['共通鍵 / AES', '公開鍵 / RSA', 'ハイブリッド暗号'] },
+        { name: '暗号化方式（対称/非対称）', desc: '共通鍵暗号 (対称鍵 / Symmetric)：**暗号化と復号**に同じ鍵を使う。高速だが鍵配送が課題（例 AES）\n公開鍵暗号 (非対称鍵 / Asymmetric)：公開鍵で暗号化し秘密鍵で復号。鍵配送問題を解決するが低速（例 RSA・楕円曲線暗号）\nハイブリッド暗号：データ本体は共通鍵で暗号化し、その共通鍵を公開鍵で送る（TLSの方式）', keyword: '共通鍵暗号 公開鍵暗号 対称鍵 非対称鍵 AES RSA ハイブリッド暗号', tags: ['共通鍵 / AES', '公開鍵 / RSA', 'ハイブリッド暗号'] },
         { name: 'ハッシュと完全性', desc: 'ハッシュ関数：**任意長のデータ**を固定長の値に変換する一方向関数（元に戻せない）。\n性質：同じ入力は同じ出力・わずかな変化で大きく変わる・衝突が困難\n用途：パスワード保存（ソルト付きハッシュ）・改ざん検知・完全性検証\n代表：SHA-256（推奨）/ MD5・SHA-1 は脆弱で非推奨', keyword: 'ハッシュ関数 SHA-256 MD5 ソルト 完全性 改ざん検知 一方向関数', tags: ['ハッシュ / SHA-256', 'ソルト', '完全性検証'] },
-        { name: 'デジタル署名・証明書・PKI', desc: 'デジタル署名：**秘密鍵で署名**し公開鍵で検証。送信者のなりすまし防止と改ざん検知を両立\nデジタル証明書：公開鍵とその持ち主を認証局 (CA) が保証する電子文書 (X.509)\nPKI (公開鍵基盤)：CA・証明書・失効リスト(CRL/OCSP) で信頼を担保する仕組み\nTLS（Transport Layer Security）/SSL：サーバ証明書で相手を確認し通信を暗号化', keyword: 'デジタル署名 デジタル証明書 認証局 CA PKI X.509 TLS SSL 失効', tags: ['デジタル署名', '証明書 / CA', 'PKI'] },
+        { name: '電子署名とPKI', desc: 'デジタル署名：**秘密鍵で署名**し公開鍵で検証。送信者のなりすまし防止と改ざん検知を両立\nデジタル証明書：公開鍵とその持ち主を認証局 (CA) が保証する電子文書 (X.509)\nPKI (公開鍵基盤)：CA・証明書・失効リスト(CRL/OCSP) で信頼を担保する仕組み\nTLS（Transport Layer Security）/SSL：サーバ証明書で相手を確認し通信を暗号化', keyword: 'デジタル署名 デジタル証明書 認証局 CA PKI X.509 TLS SSL 失効', tags: ['デジタル署名', '証明書 / CA', 'PKI'] },
         { name: '鍵管理とエンベロープ暗号', desc: '**暗号は「鍵の管理**」が要。鍵が漏れれば暗号は無意味になる。\nキーライフサイクル：生成 → 配布 → 保管 → ローテーション(定期更新) → 失効・廃棄\nエンベロープ暗号 (Envelope Encryption)：データはデータ鍵(DEK)で暗号化し、そのDEKを上位のマスター鍵(KEK)で暗号化する2層構造。大量データを効率よく守り、保護対象をKEKに集約できる\nHSM (Hardware Security Module)：鍵を耐タンパーな専用ハードで生成・保管する装置\n鍵管理システム(KMS)の基本概念', keyword: '鍵管理 キーライフサイクル 鍵ローテーション エンベロープ暗号 Envelope Encryption DEK KEK データ鍵 マスターキー HSM', tags: ['エンベロープ暗号 / DEK・KEK', '鍵ローテーション', 'HSM'] },
         { name: 'TLS/SSLとハンドシェイク', desc: 'TLS (Transport Layer Security)：**通信を暗号化**して盗聴・改ざん・なりすましを防ぐプロトコル(SSLの後継)。HTTPSの土台。\nハンドシェイク概略：\n- ① クライアントが対応する暗号スイートを提示\n- ② サーバが証明書(公開鍵)を提示\n- ③ 証明書を検証し、共通鍵(セッション鍵)を安全に共有\n- ④ 以降はセッション鍵(共通鍵暗号)で高速に暗号化通信\nつまり公開鍵で鍵交換し本文は共通鍵で暗号化するハイブリッド方式。前方秘匿性(PFS)で過去の通信も保護', keyword: 'TLS SSL ハンドシェイク 暗号スイート セッション鍵 証明書検証 ハイブリッド暗号 前方秘匿性 PFS HTTPS', tags: ['TLSハンドシェイク', 'セッション鍵', '前方秘匿性 / PFS'] },
       ],
@@ -835,25 +836,25 @@ const CHEAT_DATA: CheatData = {
     {
       title: '認証と認可',
       items: [
-        { name: '認証と認可の違い', desc: '認証 (Authentication)：**本人確認**（「あなたは誰か」）\n- 認証の3要素：知識（パスワード）/ 所持（トークン・スマホ）/ 生体（指紋・顔）\n- 多要素認証 (MFA)：異なる要素を2つ以上組み合わせて強度を高める\n認可 (Authorization)：アクセス権の制御（「何をしてよいか」）', keyword: '認証 認可 Authentication Authorization MFA 多要素認証 本人確認', tags: ['認証 / Authentication', '認可 / Authorization', 'MFA'] },
+        { name: '認証と認可の基本', desc: '認証 (Authentication)：**本人確認**（「あなたは誰か」）\n- 認証の3要素：知識（パスワード）/ 所持（トークン・スマホ）/ 生体（指紋・顔）\n- 多要素認証 (MFA)：異なる要素を2つ以上組み合わせて強度を高める\n認可 (Authorization)：アクセス権の制御（「何をしてよいか」）', keyword: '認証 認可 Authentication Authorization MFA 多要素認証 本人確認', tags: ['認証 / Authentication', '認可 / Authorization', 'MFA'] },
         { name: 'アクセス制御モデル', desc: '最小権限の原則 (Least Privilege)：**業務に必要な最小限**の権限だけ与える\nRBAC (ロールベースアクセス制御)：役割 (ロール) に権限をまとめ、ユーザーにロールを割り当てる\nABAC (属性ベースアクセス制御)：属性（部署・時間・場所等）の条件で制御\n職務分掌 (Separation of Duties)：権限を分散させ単独での不正を防ぐ', keyword: '最小権限 Least Privilege RBAC ABAC アクセス制御 職務分掌 ロール', tags: ['最小権限', 'RBAC / ABAC', '職務分掌'] },
-        { name: 'フェデレーションとSSO', desc: 'SSO (シングルサインオン)：**一度の認証**で複数サービスを利用できる仕組み\nフェデレーション：組織をまたいで認証情報を信頼・連携する\nSAML（Security Assertion Markup Language）：主に企業向けのXMLベース認証連携\nOAuth（Open Authorization） 2.0：認可の委譲（第三者アプリにAPIアクセスを許可）\nOpenID Connect (OIDC)：OAuth 2.0上に認証を追加した仕様（IDトークン）', keyword: 'SSO シングルサインオン フェデレーション SAML OAuth OpenID Connect OIDC', tags: ['SSO / フェデレーション', 'SAML', 'OAuth / OIDC'] },
+        { name: 'ID連携とSSO', desc: 'SSO (シングルサインオン)：**一度の認証**で複数サービスを利用できる仕組み\nフェデレーション：組織をまたいで認証情報を信頼・連携する\nSAML（Security Assertion Markup Language）：主に企業向けのXMLベース認証連携\nOAuth（Open Authorization） 2.0：認可の委譲（第三者アプリにAPIアクセスを許可）\nOpenID Connect (OIDC)：OAuth 2.0上に認証を追加した仕様（IDトークン）', keyword: 'SSO シングルサインオン フェデレーション SAML OAuth OpenID Connect OIDC', tags: ['SSO / フェデレーション', 'SAML', 'OAuth / OIDC'] },
       ],
     },
     {
       title: '脅威と攻撃',
       items: [
-        { name: 'マルウェアと不正プログラム', desc: 'マルウェア：**悪意あるソフト**の総称。主な種類：\n- ウイルス / ワーム：自己増殖して感染を広げる\n- トロイの木馬：正規プログラムを装って侵入\n- ランサムウェア：データを暗号化して身代金を要求\n- スパイウェア / ボット：情報窃取・遠隔操作（C2から指令）\n対策：アンチウイルス・EDR・パターン更新・振る舞い検知・バックアップ', keyword: 'マルウェア ウイルス ワーム トロイの木馬 ランサムウェア ボット C2 EDR', tags: ['ランサムウェア', 'ワーム / トロイ', 'ボット / C2'] },
+        { name: 'マルウェア', desc: 'マルウェア：**悪意あるソフト**の総称。主な種類：\n- ウイルス / ワーム：自己増殖して感染を広げる\n- トロイの木馬：正規プログラムを装って侵入\n- ランサムウェア：データを暗号化して身代金を要求\n- スパイウェア / ボット：情報窃取・遠隔操作（C2から指令）\n対策：アンチウイルス・EDR・パターン更新・振る舞い検知・バックアップ', keyword: 'マルウェア ウイルス ワーム トロイの木馬 ランサムウェア ボット C2 EDR', tags: ['ランサムウェア', 'ワーム / トロイ', 'ボット / C2'] },
         { name: 'Web・アプリへの攻撃', desc: 'SQLインジェクション：**入力に不正なSQL**を注入してDBを不正操作（対策：プレースホルダ）\nXSS (クロスサイトスクリプティング)：悪意あるスクリプトを埋め込み他ユーザーで実行（対策：エスケープ）\nCSRF（Cross-Site Request Forgery）：ログイン状態を悪用して意図しない操作をさせる（対策：トークン）\nバッファオーバーフロー（確保領域を超える書き込みで不正コードを実行）/ ディレクトリトラバーサル（../等で公開範囲外のファイルに不正アクセス）', keyword: 'SQLインジェクション XSS クロスサイトスクリプティング CSRF バッファオーバーフロー 脆弱性', tags: ['SQLi', 'XSS', 'CSRF'] },
-        { name: 'ネットワーク・人的攻撃', desc: 'DoS（Denial of Service） / DDoS：**大量アクセス**でサービスを停止させる攻撃（分散させたものがDDoS）\n中間者攻撃 (MITM)：通信に割り込んで盗聴・改ざん\nフィッシング：偽サイト・偽メールで認証情報をだまし取る\nソーシャルエンジニアリング：人の心理につけ込む攻撃（なりすまし電話・肩越しの覗き見）', keyword: 'DoS DDoS 中間者攻撃 MITM フィッシング ソーシャルエンジニアリング', tags: ['DoS / DDoS', '中間者攻撃 / MITM', 'フィッシング'] },
+        { name: 'その他の攻撃手法', desc: 'DoS（Denial of Service） / DDoS：**大量アクセス**でサービスを停止させる攻撃（分散させたものがDDoS）\n中間者攻撃 (MITM)：通信に割り込んで盗聴・改ざん\nフィッシング：偽サイト・偽メールで認証情報をだまし取る\nソーシャルエンジニアリング：人の心理につけ込む攻撃（なりすまし電話・肩越しの覗き見）', keyword: 'DoS DDoS 中間者攻撃 MITM フィッシング ソーシャルエンジニアリング', tags: ['DoS / DDoS', '中間者攻撃 / MITM', 'フィッシング'] },
       ],
     },
     {
       title: 'セキュリティ管理・防御',
       items: [
-        { name: 'CIAと基本原則', desc: '**情報セキュリティ**の3要素 (CIA)。\n機密性 (Confidentiality)：認可された者だけがアクセスできる\n完全性 (Integrity)：情報が正確で改ざんされていない\n可用性 (Availability)：必要なときに利用できる\n拡張要素：真正性・責任追跡性 (Accountability)・否認防止 (Non-repudiation)', keyword: 'CIA 機密性 完全性 可用性 情報セキュリティ 否認防止 真正性', tags: ['機密性 / Confidentiality', '完全性 / Integrity', '可用性 / Availability'] },
-        { name: '多層防御とゼロトラスト', desc: '多層防御 (Defense in Depth)：**単一の対策**に頼らず境界・ネットワーク・ホスト・アプリ・データの各層で守る\nゼロトラスト (Zero Trust)：「何も信頼しない」を前提に、社内外を問わず全アクセスを常に検証する\n最小権限・マイクロセグメンテーション・継続的な認証が要素', keyword: '多層防御 Defense in Depth ゼロトラスト Zero Trust マイクロセグメンテーション', tags: ['多層防御', 'ゼロトラスト', '継続的検証'] },
-        { name: '脆弱性・パッチ・データ保護', desc: '脆弱性管理：**既知の弱点** (CVE) をスキャンし、リスク (CVSS) で優先順位を付けてパッチ適用\nパッチ管理：OS・ソフトを最新化して既知の穴をふさぐ\n保存データ暗号化 (at rest) と 通信データ暗号化 (in transit)\nバックアップと 3-2-1ルール（3コピー・2媒体・1オフサイト）', keyword: '脆弱性管理 CVE CVSS パッチ管理 暗号化 バックアップ 3-2-1ルール', tags: ['脆弱性 / CVE・CVSS', 'パッチ管理', 'バックアップ / 3-2-1'] },
+        { name: '情報セキュリティの3要素', desc: '**情報セキュリティ**の3要素 (CIA)。\n機密性 (Confidentiality)：認可された者だけがアクセスできる\n完全性 (Integrity)：情報が正確で改ざんされていない\n可用性 (Availability)：必要なときに利用できる\n拡張要素：真正性・責任追跡性 (Accountability)・否認防止 (Non-repudiation)', keyword: 'CIA 機密性 完全性 可用性 情報セキュリティ 否認防止 真正性', tags: ['機密性 / Confidentiality', '完全性 / Integrity', '可用性 / Availability'] },
+        { name: '防御設計の原則', desc: '多層防御 (Defense in Depth)：**単一の対策**に頼らず境界・ネットワーク・ホスト・アプリ・データの各層で守る\nゼロトラスト (Zero Trust)：「何も信頼しない」を前提に、社内外を問わず全アクセスを常に検証する\n最小権限・マイクロセグメンテーション・継続的な認証が要素', keyword: '多層防御 Defense in Depth ゼロトラスト Zero Trust マイクロセグメンテーション', tags: ['多層防御', 'ゼロトラスト', '継続的検証'] },
+        { name: '脆弱性管理とデータ保護', desc: '脆弱性管理：**既知の弱点** (CVE) をスキャンし、リスク (CVSS) で優先順位を付けてパッチ適用\nパッチ管理：OS・ソフトを最新化して既知の穴をふさぐ\n保存データ暗号化 (at rest) と 通信データ暗号化 (in transit)\nバックアップと 3-2-1ルール（3コピー・2媒体・1オフサイト）', keyword: '脆弱性管理 CVE CVSS パッチ管理 暗号化 バックアップ 3-2-1ルール', tags: ['脆弱性 / CVE・CVSS', 'パッチ管理', 'バックアップ / 3-2-1'] },
       ],
     },
     {
