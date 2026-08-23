@@ -112,7 +112,7 @@ const CHEAT_DATA: CheatData = {
     {
       title: 'データベース',
       items: [
-        { name: 'Amazon RDS', desc: '**マネージド**なリレーショナルDB（表形式でSQLを使うデータベース）。パッチ・バックアップ・フェイルオーバーをAWSが自動管理。\n対応エンジン：MySQL / PostgreSQL / MariaDB / Oracle / SQL Server / Aurora\nMulti-AZ：プライマリDBの変更をスタンバイDBに同期レプリケーションし、障害時に自動フェイルオーバー', tags: ['MySQL', 'Multi-AZ', 'リードレプリカ'] },
+        { name: 'Amazon RDS', desc: '**マネージド**なリレーショナルDB（表形式でSQLを使うデータベース）。パッチ・バックアップ・フェイルオーバーをAWSが自動管理。\n対応エンジン：MySQL・PostgreSQL・MariaDB・Oracle・SQL Server・Aurora\nMulti-AZ：プライマリDBの変更をスタンバイDBに同期レプリケーションし、障害時に自動フェイルオーバー', tags: ['MySQL', 'Multi-AZ', 'リードレプリカ'] },
         { name: 'Amazon DynamoDB', desc: 'NoSQL（Not only SQL）：**一桁ミリ秒**で自動スケールするキーバリューDB\nフルマネージドなNoSQLデータベース（SQLを使わないキーバリュー型・ドキュメント型）。\nパーティションキー（+オプションでソートキー）でデータを管理し、一桁ミリ秒の低レイテンシを維持しながら自動でスケールする。', tags: ['NoSQL', '低レイテンシ', 'スケーラブル'] },
         { name: 'Amazon Aurora', desc: '高性能RDB：**MySQL**・PostgreSQL互換のAWS独自データベース\nAWS独自設計の高性能RDB。MySQL・PostgreSQL互換で既存アプリをそのまま移行できる。\nRDSより最大3倍高速で、6コピーのデータを3つのAZ（アベイラビリティゾーン）に自動分散保存して高耐久性を実現。\nAurora Serverless v2はトラフィックに応じてコンピュートを自動スケールする。', tags: ['MySQL互換', '高性能', 'Aurora Serverless'] },
         { name: 'Amazon ElastiCache', desc: '**インメモリキャッシュ**サービス（データをメモリ上に保持し超高速アクセスを実現）。DBへの繰り返し読み取りをキャッシュで代替してレイテンシとDB負荷を削減する。\nRedis：レプリケーション・永続化・Pub/Sub・Sorted Set等の豊富な機能を持つ\nMemcached：シンプルなマルチスレッドキャッシュ。高スループットが必要な場合に適する', tags: ['Redis', 'Memcached', 'インメモリ'] },
@@ -136,7 +136,7 @@ const CHEAT_DATA: CheatData = {
         { name: 'AWS Shield', desc: '**DDoS攻撃**（大量リクエストによるサービス妨害）を自動で軽減するサービス。\nStandard：すべてのAWSリソースに無料で自動適用。L3/L4攻撃を防御\nAdvanced：有料オプション。L7攻撃も防御し、AWS Shield応答チーム（SRT）への24時間アクセスとDDoS起因のコスト保護も提供', tags: ['DDoS', 'Standard', 'Advanced'] },
         { name: 'AWS WAF', desc: 'Webファイアウォール：**L7攻撃**（SQLi・XSS）をブロック\nWebアプリケーションへのL7攻撃をフィルタリングするWebアプリケーションファイアウォール。\nSQLインジェクション（DBへの不正クエリ注入）・XSS（クロスサイトスクリプティング）・ボット等の攻撃をルールでブロックする。CloudFront・ALB・API Gatewayに適用できる。', tags: ['Webファイアウォール', 'SQLi', 'XSS'] },
         { name: 'AWS KMS', desc: 'Key Management Service：**暗号化キーを一元管理**\n暗号化キーを作成・保管・管理するサービス（Key Management Service）。\nS3・EBS・RDS・DynamoDB等のAWSサービスと統合し、データを透過的に暗号化・復号する。CMK（Customer Managed Key）で暗号化ポリシーを細かく制御できる。', tags: ['暗号化', 'CMK', 'キー管理'] },
-        { name: 'AWS Trusted Advisor', desc: 'ベストプラクティス：**5観点でAWS環境**を自動診断\nAWSのベストプラクティスに基づき改善提案をするアドバイザーツール。\n5つのカテゴリ：コスト最適化 / パフォーマンス / セキュリティ / 耐障害性 / サービス上限\nBasicサポートでも一部のチェックは無料で使用できる。', tags: ['ベストプラクティス', 'コスト', 'セキュリティ'] },
+        { name: 'AWS Trusted Advisor', desc: 'ベストプラクティス：**5観点でAWS環境**を自動診断\nAWSのベストプラクティスに基づき改善提案をするアドバイザーツール。\n5つのカテゴリ：コスト最適化・パフォーマンス・セキュリティ・耐障害性・サービス上限\nBasicサポートでも一部のチェックは無料で使用できる。', tags: ['ベストプラクティス', 'コスト', 'セキュリティ'] },
       ],
     },
     {
@@ -174,12 +174,12 @@ const CHEAT_DATA: CheatData = {
     {
       title: 'AWSのAI/MLサービス',
       items: [
-        { name: 'Amazon Bedrock', desc: '基盤モデルAPI：複数のFMを**サーバーレス**で呼び出す\nサーバーレスで複数の基盤モデルにAPIアクセスできるサービス。\n利用可能モデル：Anthropic Claude / Meta Llama / Amazon Titan / Mistral / Cohere 等\n追加機能：Knowledge Bases（RAG構築）/ Agents（自律タスク実行）/ Guardrails（有害コンテンツフィルタ）/ Model Evaluation', tags: ['Claude', 'Titan', 'サーバーレス'] },
+        { name: 'Amazon Bedrock', desc: '基盤モデルAPI：複数のFMを**サーバーレス**で呼び出す\nサーバーレスで複数の基盤モデルにAPIアクセスできるサービス。\n利用可能モデル：Anthropic Claude・Meta Llama・Amazon Titan・Mistral・Cohere 等\n追加機能：Knowledge Bases（RAG構築）・Agents（自律タスク実行）・Guardrails（有害コンテンツフィルタ）・Model Evaluation', tags: ['Claude', 'Titan', 'サーバーレス'] },
         { name: 'Amazon SageMaker', desc: 'ML統合基盤：データ準備〜学習〜デプロイ〜監視を**一気通貫**\nML全ライフサイクルをカバーする統合プラットフォーム。\nデータ準備（Data Wrangler）→ 学習（Training Jobs）→ ハイパーパラメータ調整（AMT）→ モデル登録（Model Registry）→ デプロイ（Endpoints）→ 監視（Model Monitor）まで一気通貫で対応', tags: ['ML全般', 'Studio', 'エンドポイント'] },
         { name: 'Amazon Rekognition', desc: 'Computer Vision：**顔認識・物体検出**の学習済みAPI\n事前学習済みコンピュータービジョンAPI（画像・動画の分析）。\n顔認識・物体検出・シーン検出・テキスト抽出・コンテンツモデレーション（不適切コンテンツ検出）・有名人認識・PPE（個人用保護具）検出等', tags: ['画像認識', '顔認識', '物体検出'] },
-        { name: 'Amazon Comprehend', desc: '**テキストのNLP**（自然言語処理）API。\n感情分析（ポジティブ/ネガティブ判定）/ エンティティ抽出（人名・地名・組織名等）/ 言語検出 / キーフレーズ検出 / 構文解析\nComprehend Medical：医療テキスト特化版', tags: ['NLP', '感情分析', 'エンティティ'] },
+        { name: 'Amazon Comprehend', desc: '**テキストのNLP**（自然言語処理）API。\n感情分析（ポジティブ/ネガティブ判定）・エンティティ抽出（人名・地名・組織名等）・言語検出・キーフレーズ検出・構文解析\nComprehend Medical：医療テキスト特化版', tags: ['NLP', '感情分析', 'エンティティ'] },
         { name: 'Amazon Polly', desc: 'TTS（Text-to-Speech）：**テキストを自然**な音声に変換\nテキストを自然な音声に変換するTTS（Text-to-Speech）サービス。\n60言語以上・多様な声種（ニューラル音声で自然度が高い）に対応。\nSSML（Speech Synthesis Markup Language）で話速・ポーズ・強調等を細かく制御できる。', tags: ['TTS', '音声合成', 'SSML'] },
-        { name: 'Amazon Transcribe', desc: 'STT（Speech-to-Text）：**音声をテキストに変換**\n音声をテキストに変換するSTT（Speech-to-Text）サービス。\n話者分離（誰が話したかを識別）/ カスタム語彙（専門用語の認識精度向上）/ リアルタイム文字起こし / Transcribe Medical（医療特化版）', tags: ['STT', '文字起こし', '話者分離'] },
+        { name: 'Amazon Transcribe', desc: 'STT（Speech-to-Text）：**音声をテキストに変換**\n音声をテキストに変換するSTT（Speech-to-Text）サービス。\n話者分離（誰が話したかを識別）・カスタム語彙（専門用語の認識精度向上）・リアルタイム文字起こし・Transcribe Medical（医療特化版）', tags: ['STT', '文字起こし', '話者分離'] },
         { name: 'Amazon Lex', desc: '会話AIボット：**音声・テキスト対応**のチャットボット構築\nAlexaと同じ技術を使った会話型AIボットの構築サービス。音声・テキスト両対応。\nインテント（ユーザーの意図）/ スロット（情報の収集項目）/ 発話サンプルを設定してチャットボットを作成し、Lambda関数と連携してバックエンド処理を実行する。', tags: ['チャットボット', '会話AI', 'Alexa'] },
         { name: 'Amazon Kendra', desc: '企業内検索：**自然言語の質問**に社内文書から回答\n企業向けインテリジェント検索エンジン。自然言語の質問に対してS3・SharePoint・Confluence・Salesforce等の文書から正確に回答を見つけ出す。\nFAQや手順書の検索・社内ポータルのQ&A機能に活用できる。', tags: ['企業検索', 'ナレッジ', 'RAG'] },
         { name: 'Amazon Textract', desc: 'OCR（Optical Character Recognition）：**文書・フォーム**から文字と構造を抽出\n文書・フォームからテキストやデータを自動抽出するOCR（光学文字認識）サービス。\n単純なOCRと異なりテーブル構造・フォームのキー・バリュー対・署名等も理解して抽出できる。請求書・契約書・医療フォームの処理に使用。', tags: ['OCR', 'フォーム抽出', '文書解析'] },
@@ -203,7 +203,7 @@ const CHEAT_DATA: CheatData = {
     {
       title: 'コンピューティング',
       items: [
-        { name: 'Amazon EC2', desc: 'インスタンスタイプ：汎用（M系）/ コンピュート最適化（C系）/ メモリ最適化（R系）/ GPU（P・G系）\n配置グループ（Placement Group）：\nクラスタ（Cluster）：同一ラック内に密集配置（超低レイテンシ・HPC向け）\n分散（Spread）：各インスタンスを別ラックに分散（可用性向上）\nパーティション（Partition）：ラックをグループ化して大規模分散DB向け\nインスタンスストア：EC2に物理的に接続されたNVMe SSD（停止/終了すると**データ消失**）', tags: ['インスタンスタイプ', '配置グループ / Placement Group', 'スポット'] },
+        { name: 'Amazon EC2', desc: 'インスタンスタイプ：汎用（M系）・コンピュート最適化（C系）・メモリ最適化（R系）・GPU（P・G系）\n配置グループ（Placement Group）：\nクラスタ（Cluster）：同一ラック内に密集配置（超低レイテンシ・HPC向け）\n分散（Spread）：各インスタンスを別ラックに分散（可用性向上）\nパーティション（Partition）：ラックをグループ化して大規模分散DB向け\nインスタンスストア：EC2に物理的に接続されたNVMe SSD（停止/終了すると**データ消失**）', tags: ['インスタンスタイプ', '配置グループ / Placement Group', 'スポット'] },
         { name: 'AWS Auto Scaling', desc: '**スケーリングポリシー**の種類：\n- ターゲット追跡（Target Tracking）：CPU使用率50%などのメトリクスを目標値に自動調整\n- ステップ（Step Scaling）：メトリクスの値の幅に応じてスケール量を段階的に設定\n- スケジュール（Scheduled）：特定の日時に事前にスケール\n- 起動テンプレート（Launch Template）：インスタンスタイプ・AMI・セキュリティグループ等の構成を定義したテンプレート\n- ウォームアップ期間（Instance Warmup）：新インスタンスが安定するまでメトリクスへの影響を除外する時間', tags: ['ターゲット追跡 / Target Tracking', '起動テンプレート / Launch Template', 'ウォームアップ'] },
         { name: 'AWS Lambda', desc: 'イベント駆動型**サーバーレス実行環境**。最大実行時間15分・最大メモリ10GB。\n同時実行制限：デフォルト1アカウントあたり1000（緩和申請可）\nプロビジョニング済み同時実行：コールドスタートを防ぐために事前にインスタンスを起動する機能\nレイヤー：共通ライブラリを複数のLambda関数で共有する仕組み\nDestinations：非同期呼び出しの成功/失敗時に別サービスへ結果を転送', tags: ['同時実行', 'レイヤー', 'デスティネーション'] },
         { name: 'Amazon ECS / Amazon EKS', desc: 'コンテナ管理：**ECS**（AWS独自）とEKS（Kubernetes）\nECS（Elastic Container Service）：\nTaskDefinition（コンテナ定義）→ Service（実行台数管理）→ Cluster の構成\nFargate起動タイプでサーバー管理不要、EC2起動タイプでカスタマイズ可能\nEKS（Elastic Kubernetes Service）：\nKubernetes（大規模コンテナ管理のOSS）のマネージドクラスタ。eksctlやkubectlでクラスタ管理', tags: ['Fargate', 'TaskDefinition', 'Kubernetes'] },
@@ -236,7 +236,7 @@ const CHEAT_DATA: CheatData = {
       title: 'ネットワーキング',
       items: [
         { name: 'Amazon VPC基礎', desc: 'アクセス制御：**NACL**（ステートレス）とSG（ステートフル）\nNACL（ネットワークアクセスコントロールリスト）：\nステートレス（行き・戻り両方を明示的に許可必要）\nサブネットに適用。番号が小さいルールから順に評価\nSG（セキュリティグループ）：\nステートフル（戻りパケットは自動許可）\nENI（ネットワークインターフェース）に適用。全ルールを評価', keyword: 'Amazon VPC セキュリティグループ NACL', tags: ['NACL', 'セキュリティグループ', 'ステートレス'] },
-        { name: 'Amazon VPCピアリング / AWS Transit Gateway（TGW）', desc: 'VPCピアリング：**2つのVPC**を1対1で接続。推移的ルーティング不可（A-B-CでAからCには直接ピアリングが必要）\nTransit Gateway（TGW）：ハブ&スポーク型でN個のVPCを一元接続。各VPCはTGWにアタッチするだけでN対N接続が実現。アタッチメント種別：VPC / Site-to-Site VPN / Direct Connect', tags: ['ピアリング', 'TGW', 'ハブ&スポーク'] },
+        { name: 'Amazon VPCピアリング / AWS Transit Gateway（TGW）', desc: 'VPCピアリング：**2つのVPC**を1対1で接続。推移的ルーティング不可（A-B-CでAからCには直接ピアリングが必要）\nTransit Gateway（TGW）：ハブ&スポーク型でN個のVPCを一元接続。各VPCはTGWにアタッチするだけでN対N接続が実現。アタッチメント種別：VPC・Site-to-Site VPN・Direct Connect', tags: ['ピアリング', 'TGW', 'ハブ&スポーク'] },
         { name: 'Amazon VPCエンドポイント', desc: '**インターネット**を経由せずAWSサービスにプライベートアクセスする仕組み。\nゲートウェイ型：S3・DynamoDBのみ対応。ルートテーブルにエントリを追加。追加料金なし\nインターフェース型（PrivateLink）：その他多数のAWSサービスに対応。ENIをサブネットに作成。時間課金あり', tags: ['ゲートウェイ型', 'PrivateLink', 'インターフェース型'] },
         { name: 'ALB / NLB', desc: 'ALB（Application Load Balancer）：**HTTP/HTTPS**（L7）\nURLパス・ホストヘッダー・HTTPメソッドでコンテンツベースルーティング\nターゲットグループにEC2・ECS・Lambda・IPを登録\nNLB（Network Load Balancer）：TCP/UDP（L4）\n固定IPを提供（ElasticIPを割り当て可能）\n超低レイテンシ・大量同時接続。TLSパススルーが可能', tags: ['ALB', 'NLB', 'ターゲットグループ'] },
         { name: 'Amazon Route 53 ルーティング', desc: 'シンプル（Simple）：**1つのリソースに転送**\n重み付け（Weighted）：複数リソースに比率を指定して分散\nレイテンシ（Latency）：最もレイテンシが低いリージョンへ転送\nフェイルオーバー（Failover）：ヘルスチェック失敗時にセカンダリへ切り替え\n地理的（Geolocation）：ユーザーの所在地（国・州）に基づいて転送\n地理的近接性（Geoproximity）：ユーザーとリソースの物理的距離に基づいて転送\n多値応答（Multivalue Answer）：複数のIPを返し、ヘルスチェックで正常なもののみ返す', tags: ['フェイルオーバー / Failover', 'レイテンシ / Latency', '地理的近接性 / Geoproximity'] },
@@ -369,7 +369,7 @@ const CHEAT_DATA: CheatData = {
       title: 'セキュリティ・コスト',
       items: [
         { name: 'Amazon GuardDuty', desc: '脅威検出：**ログを機械学習で分析**し脅威を自動検出\nCloudTrail・VPCフローログ・DNSクエリログを機械学習と脅威インテリジェンスフィードで分析して脅威を自動検出するサービス。\nEC2のポートスキャン・認証情報の外部への漏洩・S3への不正アクセス等を検出。\nEventBridge → Lambda で自動隔離・通知のパターンが頻出。マルチアカウント（Organizations）にも一括適用可能。', tags: ['脅威検出', '機械学習', '自動応答'], seeAlso: ['Security Hub'] },
-        { name: 'AWS Security Hub', desc: 'ASFF集約：各セキュリティサービスの検出を**一元化**\nGuardDuty・Inspector・Macie・Firewall Manager等の検出結果をASFF（Amazon Security Finding Format）形式で集約して一元管理するサービス。\nコンプライアンス基準への準拠状況：\nCIS AWS Foundations Benchmark / PCI-DSS / NIST 800-53 への自動チェックが可能', tags: ['集約', 'ASFF', '準拠状況'], seeAlso: ['GuardDuty'] },
+        { name: 'AWS Security Hub', desc: 'ASFF集約：各セキュリティサービスの検出を**一元化**\nGuardDuty・Inspector・Macie・Firewall Manager等の検出結果をASFF（Amazon Security Finding Format）形式で集約して一元管理するサービス。\nコンプライアンス基準への準拠状況：\nCIS AWS Foundations Benchmark・PCI-DSS・NIST 800-53 への自動チェックが可能', tags: ['集約', 'ASFF', '準拠状況'], seeAlso: ['GuardDuty'] },
         { name: 'AWS Cost Explorer', desc: 'コスト可視化：**使用量とコストを分析**\nAWSのコストと使用量を可視化・分析するツール。\nサービス別・リソース別・タグ別・リンクアカウント別にフィルタリング・グループ化が可能。\nRI（リザーブドインスタンス）やSavings Plansの利用率・カバレッジ分析と推奨事項を提示してくれる。', tags: ['コスト可視化', 'RI推奨', 'Savings Plans'] },
         { name: 'AWS Compute Optimizer', desc: '適正サイズ推奨：**使用状況を機械学習**で分析し提案\nEC2・Lambda・EBS・ECS・Auto Scalingリソースの過去の使用状況を機械学習で分析して適正サイズを推奨するサービス。\nオーバープロビジョニング（無駄なリソース）とアンダープロビジョニング（性能不足）の両方を検出してコスト削減と性能改善を同時に達成できる。', tags: ['適正サイズ', 'EC2推奨', 'コスト最適化'] },
       ],
@@ -425,7 +425,7 @@ const CHEAT_DATA: CheatData = {
       title: 'データの取り込み',
       items: [
         { name: 'Amazon Kinesis Data Streams', desc: 'リアルタイム**ストリーミングデータ**の取り込みサービス。\nシャード：スループットの単位。1シャード = 1MB/s書き込み・2MB/s読み取り\n拡張ファンアウト（Enhanced Fan-Out）：各ConsumerアプリがシャードごとにDedicatedで2MB/sで同時読み取り可能にする機能\nKCL（Kinesis Client Library）：複数のConsumerが協調してシャードを処理するためのConsumer側ライブラリ\nKPL（Kinesis Producer Library）：Producer側ライブラリ。複数レコードのバッチ化・集約(aggregation)・非同期送信でスループットとコスト効率を大幅に高める（PutRecords効率化）。トレードオフで若干のレイテンシ増\n保持期間：デフォルト24時間〜最大365日（延長は課金）', tags: ['シャード', '拡張ファンアウト', 'KCL', 'KPL'] },
-        { name: 'Amazon Kinesis Data Firehose', desc: '自動でスケールするマネージドな**ストリーム配信**サービス。シャード管理不要で手軽にデータ配信できる。\n配信先：S3 / Redshift / Amazon OpenSearch / Splunk / HTTP エンドポイント\nLambda変換：配信前にデータをリアルタイムで変換（JSONからParquet変換等）\nバッファリング：サイズ（1〜128MB）または時間（60〜900秒）でまとめて配信', tags: ['自動スケール', 'Lambda変換', 'バッファリング'] },
+        { name: 'Amazon Kinesis Data Firehose', desc: '自動でスケールするマネージドな**ストリーム配信**サービス。シャード管理不要で手軽にデータ配信できる。\n配信先：S3・Redshift・Amazon OpenSearch・Splunk・HTTP エンドポイント\nLambda変換：配信前にデータをリアルタイムで変換（JSONからParquet変換等）\nバッファリング：サイズ（1〜128MB）または時間（60〜900秒）でまとめて配信', tags: ['自動スケール', 'Lambda変換', 'バッファリング'] },
         { name: 'Amazon MSK（Managed Streaming for Apache Kafka）', desc: '**フルマネージド**なApache Kafkaサービス。Kafkaのプロデューサー・コンシューマーAPIをそのまま使えるため既存のKafkaコードを移行しやすい。\nKafka Connect：外部システム（RDS・S3等）とKafkaを接続するコネクタフレームワーク\nKafka Streams：Kafka内でリアルタイム処理を行うストリーム処理ライブラリ\nMSK（Managed Streaming for Apache Kafka） Serverless：キャパシティ管理不要の自動スケール版\nMSK Replicator：クラスタ間・リージョン間でトピックを非同期レプリケーション（MirrorMaker 2ベースをフルマネージド化）。クロスリージョンDR・地理冗長・移行に使う', tags: ['Kafka', 'MSK Serverless', 'Replicator'] },
         { name: 'AWS DMS（Database Migration Service）', desc: '**ソースDB**からターゲットDBへのデータ移行サービス。\n対応：同種DB間（Oracle→Oracle）と異種DB間（Oracle→Aurora）の両方\nCDC（Change Data Capture）：ソースDBの変更をリアルタイムで継続的にキャプチャしてターゲットに適用\nSCT（Schema Conversion Tool）：異種DB間でSQLスキーマを自動変換するツール', tags: ['DB移行', 'CDC', 'SCT'] },
         { name: 'Amazon AppFlow', desc: '**Salesforce**・SAP・Zendesk・Slack等のSaaSアプリとAWSサービス（S3・Redshift・EventBridge）間でノーコードでデータを転送・変換するマネージドサービス。\nトリガー：スケジュール・イベント・オンデマンドの3種類\nデータマッピング：フィールドの変換・フィルタリングをGUIで設定', tags: ['SaaS連携', 'ノーコード', 'フロー'] },
@@ -558,7 +558,7 @@ const CHEAT_DATA: CheatData = {
       title: 'Amazon Bedrock - コア',
       items: [
         { name: 'Amazon Bedrock 基盤モデル', desc: '**単一のAPIで複数**の基盤モデルを呼び出せるサービス。サーバー管理不要。\n利用可能モデル例：\n- Amazon Titan：AWSが独自開発したテキスト・エンベディング・画像生成モデル\n- Anthropic Claude：テキスト理解・生成・コーディング・分析に優れた大規模言語モデル\n- Meta Llama：オープンソースベースの高性能テキスト生成モデル\n- Mistral：軽量・高速・多言語対応の高コスパモデル\n- Cohere：エンタープライズ向けテキスト分類・エンベディング特化モデル\n- Stability AI：画像生成（Stable Diffusion系）モデル', keyword: 'Amazon Bedrock 基盤モデル Claude Titan', tags: ['Claude', 'Titan', 'マルチモデル'] },
-        { name: 'Amazon Bedrock Knowledge Bases', desc: '**RAG**（検索拡張生成）を簡単に構築するマネージドサービス。\n仕組み：\n① S3のドキュメントを適切なサイズの「チャンク」に分割\n② エンベディングモデルで各チャンクをベクトル（数値ベクトル）に変換\n③ ベクトルストアに格納して類似度検索を可能にする\n④ ユーザーの質問ベクトルと近いチャンクを取得してFMへのプロンプトに追加\nベクトルストア選択：OpenSearch Serverless / Aurora PostgreSQL（pgvector）/ Pinecone等', tags: ['RAG', 'ベクトルストア', 'チャンキング'] },
+        { name: 'Amazon Bedrock Knowledge Bases', desc: '**RAG**（検索拡張生成）を簡単に構築するマネージドサービス。\n仕組み：\n① S3のドキュメントを適切なサイズの「チャンク」に分割\n② エンベディングモデルで各チャンクをベクトル（数値ベクトル）に変換\n③ ベクトルストアに格納して類似度検索を可能にする\n④ ユーザーの質問ベクトルと近いチャンクを取得してFMへのプロンプトに追加\nベクトルストア選択：OpenSearch Serverless・Aurora PostgreSQL（pgvector）・Pinecone等', tags: ['RAG', 'ベクトルストア', 'チャンキング'] },
         { name: 'Amazon Bedrock Agents', desc: 'FMを**オーケストレーター**として複数のツールを使って複雑なタスクを自律実行するサービス。\nAction Groups（アクションのグループ）：Lambda関数でバックエンドAPIを呼び出す能力を定義\nKnowledge Base連携：必要に応じて社内ドキュメントを検索\nReActアーキテクチャ：推論（Reason）→行動（Act）→観察（Observe）のループでゴールに向かって自律的に進む\nメモリ：セッション内の会話履歴をコンテキストとして保持するマルチターン対応', tags: ['Action Groups', 'ReAct', 'マルチターン'] },
         { name: 'Amazon Bedrock Guardrails', desc: '**FMの出力**をポリシーに従ってフィルタリングする安全機能。\nコンテンツフィルタリング：暴力・ヘイトスピーチ・性的コンテンツ・誤情報を自動ブロック\nPII（個人識別情報）検出・マスキング：名前・メールアドレス・クレジットカード番号等を検出して匿名化\nグラウンディングチェック：参照ドキュメントに根拠のない回答（ハルシネーション）を検出・ブロック\n特定トピックの拒否：扱ってはいけないテーマ（競合他社の製品等）を定義して拒否', tags: ['コンテンツフィルタ', 'PII', 'グラウンディング'] },
         { name: 'Amazon Bedrock Model Customization', desc: '**FMを自社データ**でカスタマイズする方法：\nファインチューニング（Fine-tuning）：ラベル付きの入出力ペアで追加学習してタスク特化したモデルを作成\n継続事前学習（Continued Pre-training）：ドメイン固有の大量テキストでFMを追加学習して知識を拡充\nDistillation（知識蒸留）：大きなモデル（教師）の出力を使って小さなモデル（生徒）を学習してコンパクト化', tags: ['ファインチューニング', '継続事前学習', 'Distillation'] },
@@ -596,9 +596,9 @@ const CHEAT_DATA: CheatData = {
     {
       title: 'VPC詳細',
       items: [
-        { name: 'Amazon VPC設計', desc: '**CIDRブロック**（IPアドレス範囲）の設計が基本。\nプライベートアドレス空間：10.0.0.0/8 / 172.16.0.0/12 / 192.168.0.0/16 の3範囲\nサブネット分割：VPCの/16 CIDR → AZごとに/24サブネット等に分割してパブリック/プライベートに分ける\nセカンダリCIDR：VPCに後からCIDRを追加追加して既存サブネットと合わせて使用できる\nIPv6（Internet Protocol version 6）：VPCに/56を割り当て、サブネットに/64を割り当てるデュアルスタック構成', keyword: 'VPC CIDR サブネット設計 IPv6', tags: ['CIDR設計', 'IPv6', 'セカンダリCIDR'] },
+        { name: 'Amazon VPC設計', desc: '**CIDRブロック**（IPアドレス範囲）の設計が基本。\nプライベートアドレス空間：10.0.0.0/8・172.16.0.0/12・192.168.0.0/16 の3範囲\nサブネット分割：VPCの/16 CIDR → AZごとに/24サブネット等に分割してパブリック/プライベートに分ける\nセカンダリCIDR：VPCに後からCIDRを追加追加して既存サブネットと合わせて使用できる\nIPv6（Internet Protocol version 6）：VPCに/56を割り当て、サブネットに/64を割り当てるデュアルスタック構成', keyword: 'VPC CIDR サブネット設計 IPv6', tags: ['CIDR設計', 'IPv6', 'セカンダリCIDR'] },
         { name: 'セキュリティグループ vs NACL', desc: 'SG（セキュリティグループ）：ENI（インスタンス）に適用\n- ステートフル：**戻りパケット**は自動許可（行きを許可すれば戻りは自動）\n- 全ルールを評価してから許可/拒否を決定\nNACL（ネットワークアクセスコントロールリスト）：サブネット境界に適用\n- ステートレス：行き・戻りを両方とも明示的に許可が必要\n- 番号の小さいルールから順に評価し最初にマッチを適用', keyword: 'セキュリティグループ NACL ステートフル ステートレス 違い', tags: ['ステートフル', 'ステートレス', '評価順序'] },
-        { name: 'Amazon VPCフローログ', desc: '**VPC内のENI**（ネットワークインターフェース）を通過するIPトラフィックを記録するログ機能。\n取得レベル：ENI単位 / サブネット単位 / VPC単位\n送信先：CloudWatch Logs または S3\nカスタムフォーマット：送信元IP・宛先IP・ポート・プロトコル・許可/拒否等に加えて追加フィールド（pkt-src-aws-service等）を選択できる\nネットワークトラブルシューティング・セキュリティ分析に活用', tags: ['フローログ', 'カスタムフォーマット', 'トラブルシュート'] },
+        { name: 'Amazon VPCフローログ', desc: '**VPC内のENI**（ネットワークインターフェース）を通過するIPトラフィックを記録するログ機能。\n取得レベル：ENI単位・サブネット単位・VPC単位\n送信先：CloudWatch Logs または S3\nカスタムフォーマット：送信元IP・宛先IP・ポート・プロトコル・許可/拒否等に加えて追加フィールド（pkt-src-aws-service等）を選択できる\nネットワークトラブルシューティング・セキュリティ分析に活用', tags: ['フローログ', 'カスタムフォーマット', 'トラブルシュート'] },
         { name: 'Amazon VPCトラフィックミラーリング', desc: '**ENIのインバウンド**/アウトバウンドトラフィックをコピーして別のENI（モニタリングアプライアンス）に転送する機能。\nDPI（Deep Packet Inspection）：パケットの内容まで詳しく検査してセキュリティ分析や侵入検知に活用できる。\nミラーフィルター：特定のプロトコル・ポート・方向のみミラーリングするようフィルタを設定できる', tags: ['ミラーリング', 'DPI', 'ネットワーク分析'] },
       ],
     },
@@ -617,7 +617,7 @@ const CHEAT_DATA: CheatData = {
       items: [
         { name: 'Amazon Route 53詳細', desc: '**7種類**のルーティングポリシーを状況に応じて使い分ける（詳細はSAAの Route 53 ルーティング参照）。\nDNSSEC（DNS Security Extensions）：DNS応答にデジタル署名を付加してDNSキャッシュポイズニング攻撃を防止する仕組み\nResolver DNS Firewall：悪意のあるドメイン（C2サーバー・マルウェア配布元）へのDNS解決をブロックする機能', tags: ['DNSSEC', 'Resolver', 'DNS Firewall'] },
         { name: 'Amazon Route 53 Resolver（ハイブリッドDNS）', desc: '**オンプレとAWS間**のDNS名前解決を統合するサービス。\nインバウンドエンドポイント（Inbound Endpoint）：オンプレのDNSサーバーからAWS（VPC）のDNSを解決できるようにする\n→ オンプレのサーバーがec2.internal等のAWSのホスト名を解決したい場合\nアウトバウンドエンドポイント（Outbound Endpoint）：VPC内からオンプレのプライベートDNS（example.internal等）を解決できるようにする\n→ AWS上のアプリがオンプレのDBサーバー名を解決したい場合', tags: ['インバウンド / Inbound', 'アウトバウンド / Outbound', 'ハイブリッドDNS'] },
-        { name: 'Amazon CloudFront詳細（ANS）', desc: 'Origins：S3 / ALB / EC2 / カスタムHTTPサーバー を**配信元**として設定\nビヘイビア：URLパスパターン（/api/*・/images/*等）ごとにオリジン・キャッシュ・関数を個別設定\nOAC（Origin Access Control）：S3バケットをCloudFront経由アクセス専用に制限する仕組み\nLambda@Edge：CloudFrontの4つのイベント（Viewer Request/Response・Origin Request/Response）でLambdaを実行\nField-Level暗号化：機密フィールド（クレカ番号等）をエッジで非対称暗号化してバックエンドまで保護', tags: ['OAC', 'Lambda@Edge', 'Field-Level暗号化'] },
+        { name: 'Amazon CloudFront詳細（ANS）', desc: 'Origins：S3・ALB・EC2・カスタムHTTPサーバー を**配信元**として設定\nビヘイビア：URLパスパターン（/api/*・/images/*等）ごとにオリジン・キャッシュ・関数を個別設定\nOAC（Origin Access Control）：S3バケットをCloudFront経由アクセス専用に制限する仕組み\nLambda@Edge：CloudFrontの4つのイベント（Viewer Request/Response・Origin Request/Response）でLambdaを実行\nField-Level暗号化：機密フィールド（クレカ番号等）をエッジで非対称暗号化してバックエンドまで保護', tags: ['OAC', 'Lambda@Edge', 'Field-Level暗号化'] },
         { name: 'AWS Global Accelerator', desc: '**Anycast IP**（複数拠点が同一IPを持つ技術）でユーザーを自動的に最寄りのAWSエッジポイントに誘導し、AWSバックボーン経由でエンドポイントに転送。\nエンドポイントグループ：リージョンごとにリソース（ALB・EC2等）をグループ化\nトラフィックダイヤル：グループへのトラフィック割合を0〜100%で調整（Blue/Greenデプロイに活用）', tags: ['Anycast', 'エンドポイントグループ', 'トラフィックダイヤル'] },
       ],
     },
@@ -627,7 +627,7 @@ const CHEAT_DATA: CheatData = {
         { name: 'AWS Network Firewall（ANS）', desc: '**VPC**に集中型ファイアウォールサブネットを作成してデプロイするマネージドIPS/IDS（侵入防止/検知システム）。\nSuricata互換エンジン：オープンソースのSuricataルール形式でL7アプリケーション層のトラフィックを詳細検査\nステートフルルール：接続状態を追跡しながら深い検査\nステートレスルール：パケット単位の高速フィルタリング\n集中型アーキテクチャ：TGW経由で全VPCのトラフィックを集中ファイアウォールに通す設計が推奨', tags: ['Suricata', 'L7フィルタ', '集中型'] },
         { name: 'AWS WAF（ANS観点）', desc: '**WebアプリのL7**（アプリ層）攻撃を防御するWebアプリケーションファイアウォール。\nAWS管理ルールグループ：IPレピュテーションリスト（既知の悪意IPをブロック）/ Amazonマネージドルール（OWASPトップ10攻撃）\nBot Control：ボットのスクレイピング・スキャン・ログイン試行を検出・ブロック\nCAPTCHA：疑わしいリクエストに対してチャレンジを要求\nジオブロッキング：特定の国・地域からのアクセスをブロック', tags: ['管理ルールグループ', 'Bot Control', 'CAPTCHA'] },
         { name: 'AWS Shield Advanced', desc: '有料の**DDoS高度保護**サービス。L3（IP層）〜L7（アプリ層）のDDoS攻撃を包括的に保護。\nSRT（Shield Response Team）：AWSのDDoS専門チームへ24時間365日アクセスして攻撃への対応サポートを受けられる\nヘルスベースDDoS検出：CloudWatchのヘルスチェックと連動して正常時のベースラインから検出\nコスト保護：DDoS攻撃起因のEC2・CloudFront・Route 53等のスパイクコストを保護', tags: ['SRT', 'L3-L7保護', 'コスト保護'] },
-        { name: 'AWS Firewall Manager', desc: '一元管理：**Organizations**全体にポリシーを強制適用\nAWS Organizations全体で複数のセキュリティサービスのポリシーを一元管理して強制適用するサービス。\n管理対象：WAF / Shield Advanced / Network Firewall / セキュリティグループ / Route 53 Resolver DNS Firewall\n新しいリソースが作成された際に自動的にポリシーを適用する「自動適用」機能が重要', tags: ['一元管理', '自動適用', 'Organizations'] },
+        { name: 'AWS Firewall Manager', desc: '一元管理：**Organizations**全体にポリシーを強制適用\nAWS Organizations全体で複数のセキュリティサービスのポリシーを一元管理して強制適用するサービス。\n管理対象：WAF・Shield Advanced・Network Firewall・セキュリティグループ・Route 53 Resolver DNS Firewall\n新しいリソースが作成された際に自動的にポリシーを適用する「自動適用」機能が重要', tags: ['一元管理', '自動適用', 'Organizations'] },
         { name: 'Amazon VPCフローログ分析', desc: '**VPCフローログ**を分析ツールと組み合わせてネットワークトラフィックを可視化する。\nAthena：S3に保存したフローログをSQLでアドホッククエリ（特定IPへの通信量を集計等）\nCloudWatch Logs Insights：リアルタイムに近い分析。メトリクスフィルターでアラームにも使用可能\nAmazon OpenSearch：Kibanaダッシュボードでリアルタイム可視化・異常検知', tags: ['Athena', 'Logs Insights', 'OpenSearch'] },
       ],
     },
@@ -637,11 +637,11 @@ const CHEAT_DATA: CheatData = {
     {
       title: '脅威検出・インシデント対応',
       items: [
-        { name: 'Amazon GuardDuty', desc: '脅威検出：複数ログを機械学習で分析し**脅威を自動検出**\n複数のデータソースを機械学習と脅威インテリジェンスフィードで分析して脅威を自動検出するサービス。\n分析対象：CloudTrail（APIコール）/ VPCフローログ（ネットワーク）/ DNSログ / S3データイベント / EKS監査ログ\n検出例：EC2のポートスキャン・クレデンシャルの外部漏洩・S3への不正アクセス・マイニングマルウェア\nEventBridge → Lambda で自動隔離・SNS通知のパターンが頻出', tags: ['脅威検出', '機械学習', '自動修復'], seeAlso: ['Inspector', 'Security Hub', 'Detective'] },
-        { name: 'Amazon Macie', desc: '機密データ検出：**S3のPII**を機械学習で自動分類\nS3バケット内の機密データを機械学習で自動検出・分類するデータセキュリティサービス。\n検出対象：PII（Personally Identifiable Information：個人識別情報）/ 認証情報 / 金融データ / 医療情報\nバケットの公開設定ミス（パブリックアクセスが開いているバケット）も検出して通知\nGDPR・HIPAAなどのコンプライアンス対応に活用される', tags: ['PII検出', 'S3スキャン', 'データ分類'] },
+        { name: 'Amazon GuardDuty', desc: '脅威検出：複数ログを機械学習で分析し**脅威を自動検出**\n複数のデータソースを機械学習と脅威インテリジェンスフィードで分析して脅威を自動検出するサービス。\n分析対象：CloudTrail（APIコール）・VPCフローログ（ネットワーク）・DNSログ・S3データイベント・EKS監査ログ\n検出例：EC2のポートスキャン・クレデンシャルの外部漏洩・S3への不正アクセス・マイニングマルウェア\nEventBridge → Lambda で自動隔離・SNS通知のパターンが頻出', tags: ['脅威検出', '機械学習', '自動修復'], seeAlso: ['Inspector', 'Security Hub', 'Detective'] },
+        { name: 'Amazon Macie', desc: '機密データ検出：**S3のPII**を機械学習で自動分類\nS3バケット内の機密データを機械学習で自動検出・分類するデータセキュリティサービス。\n検出対象：PII（Personally Identifiable Information：個人識別情報）・認証情報・金融データ・医療情報\nバケットの公開設定ミス（パブリックアクセスが開いているバケット）も検出して通知\nGDPR・HIPAAなどのコンプライアンス対応に活用される', tags: ['PII検出', 'S3スキャン', 'データ分類'] },
         { name: 'Amazon Detective', desc: 'インシデント調査：**ログからグラフを構築**し可視化調査\nGuardDuty・CloudTrail・VPCフローログのデータからグラフデータモデル（振る舞いグラフ）を自動構築してセキュリティインシデントを視覚的に調査・分析するサービス。\n「このEC2インスタンスへの不審な接続はどこから来ているか？」「このIAMユーザーはどのリソースにアクセスしたか？」という調査クエリに素早く回答できる。', tags: ['グラフ分析', 'インシデント調査', '可視化'], seeAlso: ['GuardDuty'] },
         { name: 'AWS Incident Manager', desc: '**Systems** Managerの機能でインシデントを体系的に管理するサービス。\nフロー：インシデント検出（CloudWatchアラーム等） → 対応計画（Response Plan）の自動起動 → Runbook（対応手順）の実行 → エスカレーション（担当者通知） → PIR（Post-Incident Review：事後分析）\nRunbook：Systems Manager Automationドキュメントで対応手順を自動実行', tags: ['対応計画', 'Runbook', 'PIR'] },
-        { name: 'Amazon Security Lake', desc: '**AWSと外部**のセキュリティデータを一元的に収集・正規化してS3データレイクに格納するサービス。\nOCSF（Open Cybersecurity Schema Framework）：セキュリティデータの共通スキーマ規格。異なるソースのデータを統一フォーマットに変換することで横断的な分析が可能\n収集元：CloudTrail / VPCフローログ / GuardDuty / Security Hub / Route 53 / 外部SIEMツール', tags: ['OCSF', 'データ集約', 'セキュリティログ'] },
+        { name: 'Amazon Security Lake', desc: '**AWSと外部**のセキュリティデータを一元的に収集・正規化してS3データレイクに格納するサービス。\nOCSF（Open Cybersecurity Schema Framework）：セキュリティデータの共通スキーマ規格。異なるソースのデータを統一フォーマットに変換することで横断的な分析が可能\n収集元：CloudTrail・VPCフローログ・GuardDuty・Security Hub・Route 53・外部SIEMツール', tags: ['OCSF', 'データ集約', 'セキュリティログ'] },
       ],
     },
     {
@@ -677,7 +677,7 @@ const CHEAT_DATA: CheatData = {
         { name: 'AWS KMS詳細', desc: 'キーポリシー（リソースベースポリシー）：**KMSキー**へのアクセスを定義。IAMポリシーとのAND評価\nマルチリージョンキー：同一のキーIDを複数リージョンでレプリケーション。リージョン間で暗号化したデータを別リージョンで復号可能\nXKS（External Key Store）：AWS外部のHSM（ハードウェアセキュリティモジュール）でキーを管理して規制要件を満たす\nエンベロープ暗号化：DEK（Data Encryption Key）でデータを暗号化し、DEK自体をCMKで暗号化する2層構造', keyword: 'AWS KMS キーポリシー マルチリージョンキー エンベロープ暗号化', tags: ['キーポリシー', 'マルチリージョンキー', 'XKS'] },
         { name: 'AWS Secrets Manager', desc: '**DBパスワード**・APIキー・OAuthトークン等のシークレットを安全に保管・管理するサービス。\n自動ローテーション：Lambda関数でRDS・Redshift・DocumentDB等のパスワードを定期的に自動更新（組み込みサポートあり）\nクロスアカウント共有：リソースベースポリシーで別アカウントからのアクセスを許可\nVPCエンドポイント経由：インターネットを経由せずシークレットにアクセスして安全性を高める', tags: ['自動ローテーション', 'クロスアカウント', 'VPCエンドポイント'] },
         { name: 'Amazon S3データ保護', desc: 'バケットポリシー：**JSON形式**でバケット・オブジェクトへのアクセスを細かく制御\nACL無効化：推奨設定。バケットポリシーのみで一元管理するシンプルな構成\nS3ブロックパブリックアクセス：設定ミスによる意図しない公開を防ぐ4つのブロック設定\nObject Lock（WORM：Write Once Read Many）：一度書いたオブジェクトを一定期間変更・削除できないように保護。コンプライアンス要件に使用\nサーバーサイド暗号化：\n- SSE-S3：AWSがキーを管理する最もシンプルな暗号化\n- SSE-KMS：KMSキーを使用。アクセスログとキーポリシーで細かい制御が可能\n- SSE-C：顧客がキーを管理してAWS側には渡さない（最高の機密性）', keyword: 'S3 Object Lock WORM SSE-KMS バケットポリシー', tags: ['Object Lock', 'WORM', 'SSE-KMS'] },
-        { name: 'AWS Audit Manager', desc: '**AWS**の利用状況から証拠を自動収集して、コンプライアンスフレームワークへの準拠状況をレポート化するサービス。\n対応フレームワーク：PCI DSS / HIPAA / GDPR / ISO 27001 / NIST 等\n証拠収集：Config・CloudTrail・Security Hub・IAM等からデータを自動取得してフレームワーク要件にマッピング\n監査担当者に証拠レポートを提出するまでのプロセスを簡素化する', tags: ['コンプライアンス', 'PCI DSS', '証拠収集'] },
+        { name: 'AWS Audit Manager', desc: '**AWS**の利用状況から証拠を自動収集して、コンプライアンスフレームワークへの準拠状況をレポート化するサービス。\n対応フレームワーク：PCI DSS・HIPAA・GDPR・ISO 27001・NIST 等\n証拠収集：Config・CloudTrail・Security Hub・IAM等からデータを自動取得してフレームワーク要件にマッピング\n監査担当者に証拠レポートを提出するまでのプロセスを簡素化する', tags: ['コンプライアンス', 'PCI DSS', '証拠収集'] },
       ],
     },
   ],
