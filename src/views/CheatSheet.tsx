@@ -68,6 +68,8 @@ const EXTRA_COPYABLE_TERMS = new Set([
 const SIMPLE_TERMS = new Set<string>([
   'ALL', 'ANALYZE', 'AUTO', 'EVEN', 'KEY', 'WHERE', 'HAVING', 'DISTINCT', 'VACUUM', 'GROUP', 'ORDER', 'LIMIT', 'UNION', 'CHAR',
   'Standard', 'Immutable', 'Canary', 'Linear', 'Rolling', 'All-at-once', 'Task', 'Map', 'Choice', 'Parallel', 'Wait', 'install', 'build', 'Advanced', 'L1', 'L2', 'L3',
+  // 基礎的で周知の語（調べる必要が薄い）は黒太字に
+  'HTTP', 'HTTPS', 'URL', 'URI', 'JSON', 'XML', 'HTML', 'CSS', 'CSV', 'CPU', 'OS', 'ID', 'FTP', 'SMTP',
 ]);
 
 // ── 共有アイテム（複数の試験セクションで使い回す場合はここに定義して参照する） ──
