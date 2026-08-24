@@ -969,6 +969,9 @@ const EXAM_LEVELS = [
   { key: 'Additional',   color: '#14b8a6', exams: ['ML', 'DB', 'NW', 'SEC'] },
 ] as const;
 
+// 検索時に横断する全資格の順序
+const ALL_EXAM_ORDER: string[] = EXAM_LEVELS.flatMap(l => [...l.exams]);
+
 type LevelKey = typeof EXAM_LEVELS[number]['key'];
 
 // タブ先頭に表示する「このカードの狙い＋関連資格への導線」。
@@ -1138,38 +1141,37 @@ export default function CheatSheet() {
 
   const examColor = EXAM_LEVEL_COLORS[EXAM_LEVEL[selectedExam]] ?? 'var(--color-primary)';
   const levelColor = EXAM_LEVELS.find(l => l.key === activeLevel)?.color ?? examColor;
-  const rawSections = CHEAT_DATA[selectedExam] ?? [];
   const currentLevelExams = EXAM_LEVELS.find(l => l.key === activeLevel)?.exams ?? [];
   const today = useMemo(() => new Date().toISOString().slice(0, 10), []);
 
   // 削除予定日を過ぎた項目は一覧から除外（ソース側のCHEAT_DATAは変更しない非表示化）
-  const sections = useMemo(() => {
-    return rawSections
-      .map(sec => ({
-        ...sec,
-        items: sec.items.filter(item => {
-          const d = deletionMap[`${selectedExam}::${item.name}`];
-          return !d || d.deleteDate > today;
-        }),
-      }))
-      .filter(sec => sec.items.length > 0);
-  }, [rawSections, deletionMap, selectedExam, today]);
-
   const q = search.trim().toLowerCase();
 
+  // 検索時は全資格を横断して対象にする。非検索時は選択中の資格のみ表示。
+  // 各セクションに exam を持たせ、検索結果を資格ごとにグループ表示する。
   const filteredSections = useMemo(() => {
-    if (!q) return sections;
-    return sections
-      .map(sec => ({
-        ...sec,
-        items: sec.items.filter(item =>
-          item.name.toLowerCase().includes(q) ||
-          item.desc.toLowerCase().includes(q) ||
-          item.tags.some(t => t.toLowerCase().includes(q))
-        ),
-      }))
-      .filter(sec => sec.items.length > 0);
-  }, [sections, q]);
+    const notDeleted = (exam: string, name: string) => {
+      const d = deletionMap[`${exam}::${name}`];
+      return !d || d.deleteDate > today;
+    };
+    if (!q) {
+      return (CHEAT_DATA[selectedExam] ?? [])
+        .map(sec => ({ exam: selectedExam, title: sec.title, items: sec.items.filter(it => notDeleted(selectedExam, it.name)) }))
+        .filter(sec => sec.items.length > 0);
+    }
+    const match = (it: Item) =>
+      it.name.toLowerCase().includes(q) ||
+      it.desc.toLowerCase().includes(q) ||
+      it.tags.some(t => t.toLowerCase().includes(q));
+    const out: { exam: string; title: string; items: Item[] }[] = [];
+    for (const exam of ALL_EXAM_ORDER) {
+      for (const sec of (CHEAT_DATA[exam] ?? [])) {
+        const items = sec.items.filter(it => match(it) && notDeleted(exam, it.name));
+        if (items.length) out.push({ exam, title: sec.title, items });
+      }
+    }
+    return out;
+  }, [q, selectedExam, deletionMap, today]);
 
   const totalHits = filteredSections.reduce((s, sec) => s + sec.items.length, 0);
 
@@ -1233,7 +1235,7 @@ export default function CheatSheet() {
             type="search"
             value={search}
             onChange={e => setSearch(e.target.value)}
-            placeholder="サービス名・キーワードで絞り込み"
+            placeholder="全資格から検索（サービス名・キーワード）"
             style={{
               width: '100%',
               boxSizing: 'border-box',
@@ -1353,29 +1355,34 @@ export default function CheatSheet() {
 
       {/* セクション一覧 */}
       <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--spacing-md)' }}>
-        {filteredSections.map(section => (
-          <div key={section.title}>
+        {filteredSections.map(section => {
+          const secColor = EXAM_LEVEL_COLORS[EXAM_LEVEL[section.exam]] ?? examColor;
+          return (
+          <div key={`${section.exam}-${section.title}`}>
             <h2 style={{
               fontSize: 'var(--font-size-sm)',
               fontWeight: 700,
-              color: examColor,
+              color: secColor,
               margin: '0 0 var(--spacing-sm)',
               paddingBottom: 6,
-              borderBottom: `2px solid ${examColor}30`,
+              borderBottom: `2px solid ${secColor}30`,
               display: 'flex',
               alignItems: 'center',
               gap: 6,
             }}>
-              <span style={{ display: 'inline-block', width: 3, height: 14, background: examColor, borderRadius: 2 }} />
+              <span style={{ display: 'inline-block', width: 3, height: 14, background: secColor, borderRadius: 2 }} />
+              {/* 検索時はどの資格の記事かを示すバッジを表示 */}
+              {q && <span style={{ fontSize: 'var(--font-size-2xs)', fontWeight: 700, color: '#fff', background: secColor, borderRadius: 'var(--border-radius-full)', padding: '1px 8px', flexShrink: 0 }}>{section.exam}</span>}
               {section.title}
             </h2>
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(min(400px, 100%), 1fr))', gap: 'var(--spacing-sm)' }}>
               {section.items.map(item => (
-                <ItemCard key={item.name} item={item} exam={selectedExam} q={q} allNames={allNames} highlightedId={highlightedItem} onCopy={handleTermCopy} onNavigate={navigateToArticle} scheduledDeletion={deletionMap[`${selectedExam}::${item.name}`]} />
+                <ItemCard key={`${section.exam}-${item.name}`} item={item} exam={section.exam} q={q} allNames={allNames} highlightedId={highlightedItem} onCopy={handleTermCopy} onNavigate={navigateToArticle} scheduledDeletion={deletionMap[`${section.exam}::${item.name}`]} />
               ))}
             </div>
           </div>
-        ))}
+          );
+        })}
       </div>
       {/* トップへ戻るボタン */}
       {showScrollTop && (
