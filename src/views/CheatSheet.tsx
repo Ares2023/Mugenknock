@@ -690,8 +690,8 @@ const CHEAT_DATA: CheatData = {
         { name: '機械学習の種類', desc: '教師あり学習 (Supervised Learning)：**正解ラベル付きデータ**で学習\n- 分類：カテゴリを予測（二項分類=2クラス・多クラス分類）\n- 回帰：数値（連続値）を予測\n教師なし学習 (Unsupervised Learning)：ラベルなしデータからパターンを発見\n- クラスタリング（グループ化）・次元削減 が代表\n強化学習 (Reinforcement Learning)：報酬を最大化する行動を試行錯誤で学習。ゲームAI・ロボット制御に使用', keyword: '機械学習 教師あり学習 教師なし学習 強化学習 二項分類 決定木', tags: ['教師あり', '教師なし', '強化学習'] },
         { name: 'モデル評価指標', desc: 'Accuracy（精度）：**全予測中の正解率**。クラス不均衡時は注意\nPrecision（適合率）：「陽性」と予測した中で実際に陽性の割合（偽陽性を減らしたい時に重視）\nRecall（再現率）：実際の陽性のうち正しく検出できた割合（見逃しを減らしたい時に重視）\nF1スコア：PrecisionとRecallの調和平均\nAUC-ROC：閾値変化に対するモデルの識別能力を示す（1に近いほど優秀）', keyword: 'F1スコア Precision Recall AUC-ROC 機械学習評価指標', tags: ['Accuracy', 'F1スコア', 'AUC-ROC'] },
         { name: '過学習と正則化', desc: '過学習（Overfitting）：**訓練データに過剰適合**し、未知データで性能が落ちる問題。\n対策手法：\n- L1正則化（Lasso）：不要な特徴量の重みをゼロにして特徴量選択の効果\n- L2正則化（Ridge）：重みを小さく抑えてモデルを単純化\n- ドロップアウト：ニューラルネットのニューロンをランダムに無効化して汎化性能を向上\n- データ拡張：学習データを水増しして多様性を高める', keyword: '過学習 Overfitting L1正則化 L2正則化', tags: ['過学習', 'L1/L2正則化', 'ドロップアウト'] },
-        { name: 'MLのライフサイクル', desc: 'MLライフサイクル：**収集→前処理→学習**→評価→デプロイ→監視\n① データ収集・取り込み\n② データ前処理（クリーニング・正規化・欠損値処理）\n③ 特徴量エンジニアリング（モデルの入力に適した形に変換）\n④ モデル学習（アルゴリズムを選んでパラメータを調整）\n⑤ 評価（テストデータで指標を計測）\n⑥ デプロイ（本番環境への公開）\n⑦ 監視（モデルの性能劣化を検出して再学習）', keyword: 'MLOps 機械学習ライフサイクル', tags: ['MLOps', 'ライフサイクル', 'パイプライン'] },
-        { name: '転移学習とファインチューニング', desc: '転移学習 (Transfer Learning)：**大量データ**で事前学習済みのモデルを別タスクに流用する手法。ゼロから学習するより少ないデータで高精度を実現。\n事前トレーニング vs ファインチューニング：事前トレーニングは大規模データでの汎用学習、ファインチューニングは特定タスクのデータで追加学習してカスタマイズする段階。', keyword: '転移学習 Transfer Learning ファインチューニング 事前学習', tags: ['転移学習', 'ファインチューニング', '事前学習'] },
+        { name: 'MLのライフサイクル', desc: '① データ収集：ソースから学習データを取り込む\n② データ前処理：クリーニング・正規化・欠損値処理\n③ 特徴量エンジニアリング：モデルの入力に適した形へ変換\n④ モデル学習：アルゴリズムを選びパラメータを調整\n⑤ 評価：テストデータで指標を計測\n⑥ デプロイ：本番環境へ公開\n⑦ 監視：**性能劣化**を検出し再学習（→②へ戻り反復改善）', keyword: 'MLOps 機械学習ライフサイクル', tags: ['MLOps', 'ライフサイクル', 'パイプライン'] },
+        { name: '転移学習の仕組み', desc: '転移学習 (Transfer Learning)：**事前学習済みモデル**を別タスクに流用する手法。ゼロから学習するより少ないデータで高精度を実現。次の2段階で行う\n- 事前学習 (Pre-training)：大規模データで汎用的な基盤モデルを作る（前段）\n- ファインチューニング (Fine-tuning)：その基盤モデルを特定タスクのデータで追加学習して適応（＝転移学習の代表的な実現方法。FTはTLの一手法で並列ではない）', keyword: '転移学習 Transfer Learning ファインチューニング 事前学習', tags: ['転移学習', 'ファインチューニング', '事前学習'] },
         { name: '生成AIの評価指標', desc: '生成AIの品質を測る**代表指標**。\n- BLEU（Bilingual Evaluation Understudy）：機械翻訳の品質評価。参照訳とのn-gram一致率で測定\n- ROUGE：要約品質の評価。参照要約とのn-gram再現率で測定\n- BERTScore：BERTの埋め込みを使った意味的類似度評価。表面一致だけでなく意味の近さも考慮\n- F1・Precision・Recall：分類タスクの標準指標\n- コンバージョン率：AIを活用したマーケティング・レコメンドの最終ビジネス成果を測定するKPI', keyword: 'BLEU ROUGE BERTScore F1 コンバージョン率 生成AI 評価指標', tags: ['BLEU/ROUGE', 'BERTScore', 'ビジネスKPI'] },
       ],
     },
@@ -1428,6 +1428,18 @@ function isCleanTermLabel(t: string): boolean {
   return open === close;
 }
 
+// 括弧の外側にある最初の全角コロンの位置を返す（括弧内グロスの「：」を区切りと誤認しないため）
+function topLevelColonIndex(s: string): number {
+  let depth = 0;
+  for (let i = 0; i < s.length; i++) {
+    const c = s[i];
+    if (c === '（' || c === '(') depth++;
+    else if (c === '）' || c === ')') depth = Math.max(0, depth - 1);
+    else if (c === '：' && depth === 0) return i;
+  }
+  return -1;
+}
+
 function ItemCard({ item, exam, q, allNames, highlightedId, onCopy, onNavigate, scheduledDeletion }: { item: Item; exam: string; q: string; allNames: string[]; highlightedId: string | null; onCopy: (term: string) => void; onNavigate: (id: string) => void; scheduledDeletion?: { reason: string; deleteDate: string } }) {
   const [allCopied, setAllCopied] = useState(false);
   // この記事のグループ情報（表示番号・同じサービスの兄弟記事の解決に使う）
@@ -1506,7 +1518,11 @@ function ItemCard({ item, exam, q, allNames, highlightedId, onCopy, onNavigate, 
   }, [item.seeAlso, autoSeeAlso, article, siblings]);
 
   function copyWithContext(text: string) {
-    const enhanced = text.toLowerCase().includes(item.name.toLowerCase()) ? text : `${text} (${item.name})`;
+    const t = text.toLowerCase();
+    const nm = item.name.toLowerCase();
+    // 用語とタイトルが互いを含む場合は文脈が冗長（単なる繰り返し）になるため用語のみコピー。
+    // それ以外は検索を絞りやすいよう「用語 (記事タイトル)」を付与する。
+    const enhanced = (t.includes(nm) || nm.includes(t)) ? text : `${text} (${item.name})`;
     onCopy(enhanced);
   }
 
@@ -1569,7 +1585,7 @@ function ItemCard({ item, exam, q, allNames, highlightedId, onCopy, onNavigate, 
           // 先頭「- 」は下位概念（子項目）。インデントして親子関係を明示する
           const isChild = line.startsWith('- ');
           const body = isChild ? line.slice(2) : line;
-          const colonIdx = body.indexOf('：');
+          const colonIdx = topLevelColonIndex(body);
           // 用語は既にティール/黒太字で強調されるため、用語内の **強調** 記法は除去して二重強調・記号残りを防ぐ
           const term = colonIdx > 0 ? body.slice(0, colonIdx).replace(/\*\*/g, '') : '';
           // ASCII英字を含む、またはEXTRA_COPYABLE_TERMSに含まれる場合にIT用語として強調
