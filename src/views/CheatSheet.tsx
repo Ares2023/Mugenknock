@@ -203,6 +203,7 @@ const CHEAT_DATA: CheatData = {
     {
       title: 'コンピューティング',
       items: [
+        { name: 'AWS Fargate', desc: '**サーバーレスコンテナ**実行基盤。EC2インスタンスを管理せずコンテナを起動できる。\nECS・EKS の起動タイプとして選択（EC2起動タイプとの対比）\nタスク/Pod 単位で必要なvCPU・メモリを指定し使った分だけ課金\nサーバー管理・パッチ・スケーリングが不要でオーバーヘッドを削減', keyword: 'AWS Fargate サーバーレスコンテナ ECS EKS 起動タイプ', tags: ['サーバーレスコンテナ', 'ECS/EKS起動タイプ', '管理不要'] },
         { name: 'Amazon EC2', desc: 'インスタンスタイプ：汎用（M系）・コンピュート最適化（C系）・メモリ最適化（R系）・GPU（P・G系）\n配置グループ（Placement Group）：\nクラスタ（Cluster）：同一ラック内に密集配置（超低レイテンシ・HPC向け）\n分散（Spread）：各インスタンスを別ラックに分散（可用性向上）\nパーティション（Partition）：ラックをグループ化して大規模分散DB向け\nインスタンスストア：EC2に物理的に接続されたNVMe SSD（停止/終了すると**データ消失**）', tags: ['インスタンスタイプ', '配置グループ / Placement Group', 'スポット'] },
         { name: 'AWS Auto Scaling', desc: '**スケーリングポリシー**の種類：\n- ターゲット追跡（Target Tracking）：CPU使用率50%などのメトリクスを目標値に自動調整\n- ステップ（Step Scaling）：メトリクスの値の幅に応じてスケール量を段階的に設定\n- スケジュール（Scheduled）：特定の日時に事前にスケール\n- 起動テンプレート（Launch Template）：インスタンスタイプ・AMI・セキュリティグループ等の構成を定義したテンプレート\n- ウォームアップ期間（Instance Warmup）：新インスタンスが安定するまでメトリクスへの影響を除外する時間', tags: ['ターゲット追跡 / Target Tracking', '起動テンプレート / Launch Template', 'ウォームアップ'] },
         { name: 'AWS Lambda', desc: 'イベント駆動型**サーバーレス実行環境**。最大実行時間15分・最大メモリ10GB。\n同時実行制限：デフォルト1アカウントあたり1000（緩和申請可）\nプロビジョニング済み同時実行：コールドスタートを防ぐために事前にインスタンスを起動する機能\nレイヤー：共通ライブラリを複数のLambda関数で共有する仕組み\nDestinations：非同期呼び出しの成功/失敗時に別サービスへ結果を転送', tags: ['同時実行', 'レイヤー', 'デスティネーション'] },
@@ -282,6 +283,8 @@ const CHEAT_DATA: CheatData = {
     {
       title: 'コアサービス',
       items: [
+        { name: 'AWS Amplify', desc: '**フルスタック**なWeb/モバイルアプリを素早く構築・ホスティングするサービス。\nAmplify Hosting：GitリポジトリからCI/CDで静的サイト・SPAを自動ビルド/デプロイ（PRプレビュー対応）\nバックエンド：認証（Cognito）・API（AppSync/API Gateway）・ストレージ（S3）をコマンドで自動構築\nフロント開発者がインフラを意識せずフルスタック開発できるのが特徴', keyword: 'AWS Amplify フルスタック ホスティング CI/CD フロントエンド', tags: ['フルスタック', 'Amplify Hosting', 'CI/CD'] },
+        { name: 'AWS AppSync', desc: 'マネージドな**GraphQL** API を構築するサービス。単一エンドポイントで複数データソースを集約。\nデータソース：DynamoDB・Lambda・RDS・HTTP をリゾルバで接続\nSubscription：WebSocketでデータ更新をクライアントへリアルタイムにプッシュ\nオフライン同期：モバイルのオフライン対応に強い\nRESTとの違い：必要なデータだけを1リクエストで取得でき過剰/不足取得を回避', keyword: 'AWS AppSync GraphQL マネージド Subscription オフライン同期', tags: ['マネージドGraphQL', 'Subscription', 'オフライン同期'] },
         { name: 'AWS Lambda', desc: '**最大実行時間15分**・最大メモリ10GB。CPU性能はメモリ量に比例して割り当てられる。\n同時実行制限：デフォルト1アカウント1000（申請で緩和可）。超えると429エラー\nプロビジョニング済み同時実行：あらかじめインスタンスを起動してコールドスタートを防ぐ\nレイヤー：共通ライブラリ・依存関係を複数関数で共有できる仕組み\nDestinations（送信先）：非同期呼び出しの成功/失敗時にSQS・SNS・Lambda・EventBridgeへ自動転送', tags: ['同時実行', 'レイヤー', 'Destinations'] },
         { name: 'Amazon API Gateway', desc: 'マッピングテンプレート：**VTL**（Velocity Template Language）でリクエスト/レスポンスを変換する\nLambdaプロキシ統合：リクエスト全体をLambdaに渡し、Lambdaがレスポンス全体を組み立てる\n使用量プラン＋APIキー：クライアントごとのスロットリング（レート制限）とクォータ（月次制限）を設定\nカスタムオーソライザー：Lambda関数で独自の認証ロジックを実装する\nキャッシュ：ステージごとにレスポンスキャッシュを設定してバックエンドの負荷軽減', tags: ['マッピングテンプレート', 'カスタムオーソライザー', 'キャッシュ'] },
         { name: 'Amazon DynamoDB', desc: 'パーティションキー設計：**特定のキー**にアクセスが集中する「ホットパーティション」を回避するため、カーディナリティの高いキー設計が重要\nGSI（グローバルセカンダリインデックス）：別パーティションキーでのクエリを可能にする\nLSI（ローカルセカンダリインデックス）：同一パーティション内での別ソートキーを使用\nDAX（DynamoDB Accelerator）：マイクロ秒レイテンシのインメモリキャッシュ\nStreams：テーブルの変更を24時間保持してLambdaでリアルタイム処理\nTTL（Time To Live）：有効期限を設定して期限切れアイテムを自動削除', tags: ['パーティション設計', 'DAX', 'Streams'] },
@@ -357,6 +360,7 @@ const CHEAT_DATA: CheatData = {
     {
       title: '信頼性・可用性',
       items: [
+        { name: 'AWS Backup', desc: '**一元的なバックアップ**を複数サービス横断で自動化・管理するフルマネージドサービス。\n対応：EBS・RDS・DynamoDB・EFS・FSx・Storage Gateway 等\nバックアッププラン：スケジュール・保持期間・ライフサイクル（コールドストレージ移行）をポリシーで定義\nBackup Vault：保管先。Vault Lock（WORM）で削除・改ざんを防止\nクロスリージョン/クロスアカウントコピー：DRや組織横断のバックアップ集約', keyword: 'AWS Backup 一元バックアップ Backup Vault Vault Lock クロスリージョン', tags: ['一元バックアップ', 'Backup Vault', 'Vault Lock / WORM'] },
         { name: 'AWS Auto Scaling', desc: 'ライフサイクルフック（Lifecycle Hook）：**インスタンスの起動時**（設定完了まで待機）・終了時（データ退避処理）にカスタムスクリプトを挿入する仕組み\n予測スケーリング（Predictive Scaling）：過去のメトリクスパターンをMLで学習して事前にスケールアウト\nウォームアップ期間（Instance Warmup）：新インスタンスが準備できるまでメトリクスへの影響を除外する時間', tags: ['ライフサイクルフック / Lifecycle Hook', '予測スケーリング / Predictive Scaling', 'ウォームアップ'] },
         { name: 'Elastic Load Balancing（ELB）', desc: '**ヘルスチェック**設定パラメータ：\n- 正常しきい値（HealthyThreshold）：正常と判断するまでの連続成功回数\n- 異常しきい値（UnhealthyThreshold）：異常と判断するまでの連続失敗回数\n- アクセスログ：ELBのアクセスログをS3に保存（デフォルト無効）\n- クロスゾーン負荷分散（Cross-Zone Load Balancing）：複数AZにまたがってトラフィックを均等に分散\n- Connection Draining（登録解除の遅延 / Deregistration Delay）：登録解除中のターゲットへの既存接続を安全に完了させる猶予時間', tags: ['ヘルスチェック', 'クロスゾーン / Cross-Zone', 'Connection Draining'] },
         { name: 'Amazon RDS（可用性）', desc: 'Multi-AZフェイルオーバー：**60〜120秒が目安**。プライマリ障害時にスタンバイが自動でプライマリに昇格\nスナップショット：自動（0〜35日間保持）と手動（明示的に削除するまで保持）の2種類\nPITR（ポイントインタイムリカバリ）：最大35日前の任意の時点のデータに5分以内の精度で復元可能\nリードレプリカのプロモーション：読み取りレプリカを独立したDBインスタンスに昇格（手動操作）', tags: ['フェイルオーバー', 'ポイントインタイム', 'リードレプリカ'] },
@@ -436,6 +440,7 @@ const CHEAT_DATA: CheatData = {
     {
       title: 'データの変換・処理',
       items: [
+        { name: 'Amazon QuickSight', desc: '**サーバーレスBI**（ビジネスインテリジェンス）サービス。データを可視化しダッシュボードを作成・共有。\nSPICE：インメモリの高速計算エンジン。データを取り込み高速に集計\nデータソース：S3・Athena・Redshift・RDS・各種DBを接続\nQ：自然言語の質問からグラフを生成する生成AI機能\nセッション課金で多数の閲覧者にも低コスト', keyword: 'Amazon QuickSight BI ダッシュボード SPICE 可視化', tags: ['サーバーレスBI', 'SPICE', 'ダッシュボード'] },
         { name: 'AWS Glue', desc: '**サーバーレスETL**（Extract・Transform・Load）サービス。インフラ管理不要で大規模データ処理が可能。\nクローラー：S3・RDS・DynamoDB等のデータを自動スキャンしてGlue Data Catalogにスキーマを登録\nETLジョブ：SparkまたはPython ShellベースでデータをS3やRedshiftに変換・格納\nGlue Studio：ビジュアルなUIでETLジョブを構築できるツール\nGlue DataBrew：SQLやコードなしでデータをクリーニング・変換できるノーコードツール', tags: ['ETL', 'クローラー', 'Spark'] },
         { name: 'Amazon EMR（Elastic MapReduce）', desc: '**Apache** Spark・Hive・Presto・HBaseなどのビッグデータフレームワークをEC2またはFargate上で実行するマネージドクラスタサービス。\nノードの役割：\n- マスターノード：クラスタ全体を管理・調整\n- コアノード：データ処理＋HDFSデータを保持（削除すると不可）\n- タスクノード：データ処理のみ（HDFS保持なし）。スポットEC2を使うことでコスト削減', tags: ['Spark', 'Hive', 'スポット'] },
         { name: 'AWS Lambda（データ処理）', desc: 'ストリーム処理：**Streamsトリガー**でリアルタイム変換\nKinesis Data StreamsやDynamoDB Streamsのトリガーで起動してリアルタイムにデータを処理・変換するサーバーレス関数。\n軽量な変換処理やイベント駆動のデータパイプライン（フィルタリング・エンリッチメント・ルーティング）に適している。', tags: ['リアルタイム', 'ストリーム処理', 'イベント駆動'] },
