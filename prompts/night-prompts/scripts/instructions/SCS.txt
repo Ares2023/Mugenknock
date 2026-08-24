@@ -1,4 +1,5 @@
 # EXAM_GUIDE_URL: https://aws.amazon.com/jp/certification/certified-security-specialty/
+# DOMAINS: 脅威検出とインシデント対応,セキュリティロギングとモニタリング,インフラストラクチャのセキュリティ,Identity and Access Management,データ保護,管理とセキュリティガバナンス
 # LAST_REFRESHED: 2026-07-30
 
 あなたはAWS認定試験の問題作成者です。

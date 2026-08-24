@@ -11,6 +11,7 @@
 #   resume       5時間ドリフト再開 (次回ピン=now+5h。以降Fargateが+5hずつ)
 #   cancel       スケジュール停止 (Fargateピン+ローカル)
 #   sync         EventBridgeに合わせてローカルタイマーを再同期
+#   skip         次回のローカルフック(妥当性確認 hook/hook2)を今回だけスキップ
 #   run          今すぐピンを手動実行 (Fargate)
 #   log [-f|-n|-d DATE]   履歴/ログ表示
 #   -l           最終実行時刻のみ  /  -n 次回予定のみ  /  -h ヘルプ
@@ -168,6 +169,24 @@ run_now() {
   echo "  ログ: ct log -f"
 }
 
+# ── ct skip (次回サイクルのローカルフックを今回だけスキップ) ───────
+# hook(-30分)/hook2(-15分) の妥当性確認 one-shot タイマーを停止するだけ。
+# postping(+10分)が sync-local-schedule.sh で次サイクルを再アームするので自動復帰する。
+skip_hooks() {
+  local stopped=0
+  for t in mugenknock-hook.timer mugenknock-hook2.timer; do
+    if systemctl --user is-active --quiet "$t" 2>/dev/null || systemctl --user list-timers "$t" --all --no-legend 2>/dev/null | grep -q "$t"; then
+      systemctl --user stop "$t" 2>/dev/null && stopped=$(( stopped + 1 ))
+    fi
+  done
+  if [ "$stopped" -gt 0 ]; then
+    echo "✓ 次回のローカルフック(妥当性確認 hook/hook2)をスキップします (${stopped}件停止)"
+  else
+    echo "✓ 次回のローカルフックをスキップします (対象タイマーは既に停止/未アーム)"
+  fi
+  echo "  次サイクルは postping(+10分)の再同期で自動復帰します。すぐ元に戻すには ct sync。"
+}
+
 # ── ct log ───────────────────────────────────────────────────
 show_log() {
   local mode="${1:-history}" date_arg="${2:-}"
@@ -207,6 +226,7 @@ while [[ $# -gt 0 ]]; do
     resume) CMD="resume"; shift ;;
     cancel) CMD="cancel"; shift ;;
     sync)   CMD="sync";   shift ;;
+    skip)   CMD="skip";   shift ;;
     run)    CMD="run";    shift ;;
     log)
       CMD="log"; shift
@@ -226,6 +246,7 @@ usage: ct [command]
   resume       5時間ドリフト再開 (次回ピン=now+5h)
   cancel       停止
   sync         ローカルタイマーをEventBridgeに再同期
+  skip         次回のローカルフック(妥当性確認 hook/hook2)を今回だけスキップ
   run          ピン即時実行 (Fargate)
   log [-f|-n|-d DATE]   履歴/ログ
   -l 最終実行  -n 次回予定  -h ヘルプ
@@ -241,6 +262,7 @@ case "$CMD" in
   resume)    resume_schedule ;;
   cancel)    cancel_schedule ;;
   sync)      _sync_local ;;
+  skip)      skip_hooks ;;
   run)       run_now ;;
   log)       show_log "history" ;;
   log-full)  show_log "full" ;;

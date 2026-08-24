@@ -1,4 +1,5 @@
 # EXAM_GUIDE_URL: https://aws.amazon.com/jp/certification/certified-generative-ai-developer-professional/
+# DOMAINS: 基盤モデルの統合、データ管理、コンプライアンス,実装と統合,AIの安全性・セキュリティ・ガバナンス,GenAIアプリケーションの運用効率と最適化,テスト・検証・トラブルシューティング
 # LAST_REFRESHED: 2026-07-26
 
 あなたはAWS認定試験の問題作成者です。

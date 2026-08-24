@@ -802,6 +802,9 @@ ${EXAM_GUIDE_URL:+【公式試験ガイド】${EXAM_GUIDE_URL}
 - 複数正解: isMultiple true、correctAnswerIndices を複数要素で
 - domain・tags フィールドは不要（インポート時にサーバー側でセットされる）
 - 本サービスは日本語のみ。英語フィールド（questionTextEn 等）は出力しない。
+- 選択肢にはその用語・答えのみを簡潔に記載し、用語の説明・定義文・略語の展開を選択肢内に含めない（不要なヒントになるため。説明・比較・理由・略語の意味は choiceExplanations／explanation 側へ）
+- 略語が何の略かは選択肢ではなく解説側で説明する: explanation・choiceExplanations で重要な略語を初出で英語フルスペル併記して展開する（例 解説内で「BLEU(Bilingual Evaluation Understudy)」）。選択肢本文には展開を入れない
+- 選択肢が単語・用語のみ（説明文でない）の場合は、選択肢の長さバランス規則を適用しない（最長の用語が正解でもよい）
 
 ${LONGEST_DIRECTIVE}
 ${HARD_BLOCK}
@@ -813,10 +816,15 @@ PROMPT
     # < <() プロセス置換でサブシェルを作らずに外部変数を更新できる。
     # チャンクを大きくしても途中切れ時の全損がなく、出力済み分はDBに保存済み。
     _CHUNK_RATE_LIMITED=0
+    _CHUNK_OVERLOADED=0
     _CHUNK_IMPORTED=0
-    _line_count=0
+    _OVERLOAD_RETRY=0
     _CHUNK_T0=$(date +%s)
 
+    # 529 Overloaded（一時的なサーバー過負荷）はレート制限ではないので、チャンク単位でリトライする。
+    while :; do
+    _CHUNK_OVERLOADED=0
+    _line_count=0
     while IFS= read -r _line || [ -n "$_line" ]; do
       _line_count=$(( _line_count + 1 ))
 
@@ -839,7 +847,13 @@ PROMPT
           echo "出力: $_head"
           _CHUNK_RATE_LIMITED=1; break
         fi
-        if echo "$_head" | grep -qiE "rate.?limit|too many requests|overload|quota exceeded|usage limit|resource_exhausted|session.?limit|hit your"; then
+        # 529 Overloaded（一時的なサーバー過負荷）はレート制限ではない。リトライ対象として区別する。
+        if echo "$_head" | grep -qiE "529|Overloaded"; then
+          echo "⚠️  サーバー過負荷（529 Overloaded）を検出"
+          echo "出力: $_head"
+          _CHUNK_OVERLOADED=1; break
+        fi
+        if echo "$_head" | grep -qiE "rate.?limit|too many requests|quota exceeded|usage limit|resource_exhausted|session.?limit|hit your"; then
           echo "⚠️  レート制限を検出。残りをスキップ"
           echo "出力: $_head"
           _CHUNK_RATE_LIMITED=1; break
@@ -931,9 +945,27 @@ PYEOF
       fi
 
     done < <(CLAUDE_CODE_MAX_OUTPUT_TOKENS=56000 timeout -k 30 "${CLAUDE_TIMEOUT:-1800}" "$CLAUDE_CMD" -p --model sonnet --tools "" < "$PROMPT_FILE" 2>&1)
+
+    # 529 Overloaded かつ このチャンクでまだ1問も取れていない → 最大3回リトライ（60秒待機）。
+    # deadline を過ぎている場合はリトライせず打ち切る（トークン回復後まで走らせない）。
+    if [ "$_CHUNK_OVERLOADED" -eq 1 ] && [ "$_CHUNK_IMPORTED" -eq 0 ] && [ "$_OVERLOAD_RETRY" -lt 3 ] \
+       && { [ "$DEADLINE_EPOCH" -le 0 ] || [ "$(date +%s)" -lt "$DEADLINE_EPOCH" ]; }; then
+      _OVERLOAD_RETRY=$(( _OVERLOAD_RETRY + 1 ))
+      echo "  ⏳ 529 Overloaded のためリトライ (${_OVERLOAD_RETRY}/3回目・60秒待機)..."
+      sleep 60
+      continue
+    fi
+    break
+    done  # 529リトライループ終了
     rm -f "$PROMPT_FILE"
 
     echo "  チャンク${_chunk}: ${_CHUNK_IMPORTED}問インポート  経過=$(( $(date +%s) - _CHUNK_T0 ))秒"
+
+    # 529 が続いて0問のまま → このチャンクだけ諦めて次チャンクへ続行（残り全チャンクは捨てない）
+    if [ "$_CHUNK_OVERLOADED" -eq 1 ] && [ "$_CHUNK_IMPORTED" -eq 0 ]; then
+      echo "  ⚠️  529 Overloaded が継続。チャンク${_chunk}をスキップして次へ続行"
+      continue
+    fi
 
     if [ "$_CHUNK_IMPORTED" -eq 0 ] && [ "$_line_count" -gt 3 ]; then
       echo "❌ [${domain}] チャンク${_chunk}: {\"q\":...} 形式の問題が取得できませんでした（出力 ${_line_count} 行）"
@@ -946,15 +978,18 @@ PYEOF
 
   done  # チャンクループ終了
 
+  # このドメインでインポートした分を必ず合計へ計上する。レート制限で中断した場合も、
+  # それまでにDB登録済み(HTTP 200)の分は計上する（以前は break が下記加算を飛ばし、
+  # 実際にはインポート済みでも「合計インポート: 0問」と誤表示していた）。
+  echo "  [${domain}] 合計 ${DOMAIN_IMPORTED}/${Q_FOR_DOMAIN}問 インポート"
+  TOTAL_IMPORTED=$(( TOTAL_IMPORTED + DOMAIN_IMPORTED ))
+  echo "  終了=$(date '+%H:%M:%S')  経過=$(( $(date +%s) - _DOMAIN_T0 ))秒"
+
   if [ "$DOMAIN_RATE_LIMITED" -eq 1 ]; then
-    echo "  終了=$(date '+%H:%M:%S')  経過=$(( $(date +%s) - _DOMAIN_T0 ))秒"
     RATE_LIMITED=1
     break
   fi
 
-  echo "  [${domain}] 合計 ${DOMAIN_IMPORTED}/${Q_FOR_DOMAIN}問 インポート"
-  TOTAL_IMPORTED=$(( TOTAL_IMPORTED + DOMAIN_IMPORTED ))
-  echo "  終了=$(date '+%H:%M:%S')  経過=$(( $(date +%s) - _DOMAIN_T0 ))秒"
   _DOMAIN_OFFSET=$(( _DOMAIN_OFFSET + 1 ))
 done
 

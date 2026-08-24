@@ -20,22 +20,6 @@ AWS Certified SysOps Administrator – Associate (SOA-C02) の模擬試験問題
 - 問題文（questionText）: 100〜300字（現在の状況・エラー内容・要件を具体的に記述）
 - 選択肢（choices）: 各30〜80字（サービス名と具体的な操作・設定を明示）
 
-【トラブルシューティング問題（SOAの中核。積極的に出題する）】
-- 一定割合は「症状・エラーメッセージ・接続不可」を提示し、根本原因の特定または修正方法を問う問題にすること。
-- 症状/エラーを具体的に書き、原因を挙動から推論させる（サービス名を直接ヒントにしない）。正解以外も"ありがちな設定ミス"として妥当な原因にし、消去法で当てにくくする。
-- 典型シナリオ例（この種のバリエーションを出す）:
-  ・S3イベントでLambdaが起動しない → S3→Lambdaのリソースベースポリシー(Permission)欠如、イベント通知の未設定、プレフィックス/サフィックス条件の不一致
-  ・LambdaがVPC内のRDS/内部リソースに接続できない/タイムアウト → Lambdaを配置したサブネットのルーティング・SG、ENI用のサブネットIP枯渇、NAT/VPCエンドポイント不足
-  ・プライベートサブネットのEC2からS3/DynamoDBにアクセスできない → ゲートウェイVPCエンドポイント未作成、NATゲートウェイ不在、ルートテーブル/エンドポイントポリシー
-  ・EC2がインターネットに出られない → ルートテーブルにIGW/NATルートが無い、パブリックIP未割当、SG/NACLの送信規則
-  ・API呼び出しがAccessDenied/403 → IAMロール/ポリシーの権限不足、リソースベースポリシー、SCP、KMSキーポリシー
-  ・CloudWatchにメモリ/ディスク使用率が出ない → CloudWatchエージェント未導入（標準メトリクスに含まれない）
-  ・ALB配下のターゲットがunhealthy → ヘルスチェックのパス/ポート/しきい値、SGでALB→ターゲットの許可漏れ、アプリの応答コード
-  ・Route53で名前解決できない → レコード/ルーティング設定、プライベートホストゾーンのVPC関連付け、Resolverエンドポイント
-  ・SSM Session Manager/Run CommandでEC2が「マネージド」にならない → SSM Agent未稼働、インスタンスプロファイル(IAM)欠如、SSM用エンドポイント/アウトバウンド不通
-  ・クロスリージョンコピー/暗号化リソースにアクセスできない → KMSキーがリージョン跨ぎ不可・キーポリシー、権限
-- 「最初に確認すべきこと」「原因はどれか」「解決策はどれか」型を活用する。
-
 【避けること】
 - 正解の選択肢の文字数が不正解の選択肢群から浮かないようにすること（正解の文字数を不正解の平均文字数に近づけること）
 - 廃止・非推奨のサービス
@@ -91,3 +75,9 @@ AWS Certified SysOps Administrator – Associate (SOA-C02) の模擬試験問題
 - ネットワーク・コンテンツ配信: Amazon CloudFront, Elastic Load Balancing (ELB), AWS Global Accelerator, Amazon Route 53, AWS Transit Gateway, Amazon VPC, AWS VPN
 - セキュリティ・アイデンティティ・コンプライアンス: AWS Certificate Manager (ACM), Amazon Detective, AWS Directory Service, AWS Firewall Manager, Amazon GuardDuty, AWS IAM, IAM Access Analyzer, Amazon Inspector, AWS KMS, AWS Secrets Manager, AWS Security Hub, AWS Shield, AWS WAF
 - ストレージ: AWS Backup, Amazon EBS, Amazon EFS, Amazon FSx, Amazon S3, Amazon S3 Glacier, AWS Storage Gateway
+
+■ 定義暗記の禁止（易しすぎ防止・SOA固有）
+- サービス/機能の定義・利点・挙動を単体で問う知識確認（例「Golden AMIの利点は？」「Distributorとは？」「DeletionPolicy: Retainの挙動は？」「RTCの特徴は？」）を作らない。実際の運用インシデント・要件（RTO/RPO・運用負荷・コスト・既存制約）を比較して機能を取捨選択させる運用シナリオにする。
+- 不正解肢は同じ運用課題に対する別の正当な手段（現実に検討されうる代替案）とし、用途が明らかに無関係な機能（Route 53/Auto Scaling/CloudFront等）を消去法用の捨て肢として並べない。
+- 「CloudWatchを使わず」等の人工的な制約で難度を作らない。実運用の定石（CloudWatch Agentでのメモリ取得等）を無視させる不自然な前提を置かない。
+- 同一機能の定義・役割を設定文言だけ変えて複数問作らない（Distributor/Patch Manager等のテーマ重複回避）。

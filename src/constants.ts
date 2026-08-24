@@ -175,7 +175,7 @@ export const EXAM_DESC_JA: Record<string, string> = {
   ANS: 'AWSとハイブリッドネットワークの高度な設計・実装スキルを問うスペシャリティ認定',
   SCS: 'AWSクラウドのセキュリティ専門知識を証明するスペシャリティ認定',
   ML: '【AWS認定ではありません】AIF/MLA/AIP に共通して問われる機械学習の基礎知識を横断演習する独自カード',
-  DB: '【AWS認定ではありません】DEA 対策として問われる SQL・データベースの基礎知識を演習する独自カード',
+  DB: '【AWS認定ではありません】DEA 対策として、SQL・正規化・インデックス・トランザクション等のDB基礎に加え、分析SQL・データモデリング・データ形式などデータエンジニアリングの前提知識を演習する独自カード',
   NW: '【AWS認定ではありません】ANS 対策として前提となるネットワーク（TCP/IP・サブネット・ルーティング・DNS等）の基礎知識を演習する独自カード',
   SEC: '【AWS認定ではありません】SCS 対策として前提となるセキュリティ（暗号・認証認可・脅威・インシデント対応等）の基礎知識を演習する独自カード',
 };
@@ -193,7 +193,7 @@ export const EXAM_DESC_EN: Record<string, string> = {
   ANS: 'Specialty certification for advanced AWS and hybrid network architecture design',
   SCS: 'Specialty certification for AWS cloud security expertise',
   ML: '[Not an AWS certification] Cross-cutting machine learning fundamentals shared across the AIF/MLA/AIP exams',
-  DB: '[Not an AWS certification] SQL and database fundamentals for DEA preparation',
+  DB: '[Not an AWS certification] Database fundamentals (SQL, normalization, indexing, transactions) plus data-engineering prerequisites (analytical SQL, data modeling, data formats) for DEA preparation',
   NW: '[Not an AWS certification] Networking fundamentals (TCP/IP, subnetting, routing, DNS) assumed as a prerequisite for the ANS exam',
   SEC: '[Not an AWS certification] Security fundamentals (cryptography, authN/authZ, threats, incident response) assumed as a prerequisite for the SCS exam',
 };
@@ -266,18 +266,22 @@ export const EXAM_SUPPLEMENTARY_RULES: Partial<Record<string, string>> = {
   ML: `・これはAWS認定ではなく、AIF/MLA/AIP が前提とする「機械学習の基礎知識」を問う独自カードである。
 ・**AWSサービス（SageMaker・Bedrock 等）が登場してもよいが、AWSサービスそのもの（仕様・選定・使い分け）を主題にしないこと。** 主眼はあくまで機械学習の概念・理論・指標であり、AWSサービスは例・文脈として補助的に登場する程度にとどめる。
 ・過学習/正則化、バイアス-バリアンス、適合率/再現率/F1・ROC-AUC・混同行列、特徴量エンジニアリング、交差検証、LLM/RAG/埋め込み/プロンプト、公平性・説明可能性など、汎用的なML/AI理論を扱うこと
-・数式や指標の計算（例: 混同行列から適合率を求める）を含めてよい`,
+・数式や指標の計算（例: 混同行列から適合率を求める）を含めてよい
+・難易度は中級の基礎（暗記でなく理解・適用を問う。入門的な確認も可だが、易しすぎる自明問題は避ける）`,
   DB: `・これはAWS認定ではなく、DEA が前提とする「データベース／SQLの基礎知識」を問う独自カードである。
 ・**AWSサービス（RDS・Aurora・DynamoDB・Redshift 等）が登場してもよいが、AWSサービスそのもの（仕様・選定・使い分け）を主題にしないこと。** 主眼はあくまで汎用的なRDBMS/SQL・データモデリングの概念であり、AWSサービスは例・文脈として補助的に登場する程度にとどめる。
 ・正規化(1NF-3NF)、主キー/外部キー、JOIN/アンチJOIN・サブクエリ・ウィンドウ関数、インデックスと実行計画・断片化、トランザクション/ACID/分離レベル/MVCC、OLTP/OLAP・スタースキーマ、ETL/ELT・冪等性・CDC などを扱うこと
-・具体的なSQL文を提示して結果や誤りを問う形式を含めてよい（PostgreSQL/標準SQL基準）`,
+・具体的なSQL文を提示して結果や誤りを問う形式を含めてよい（PostgreSQL/標準SQL基準）
+・難易度は中級の基礎（暗記でなく理解・適用を問う。入門的な確認も可だが、易しすぎる自明問題は避ける）`,
   NW: `・これはAWS認定ではなく、ANS が前提とする「ネットワークの実務基礎知識」を問う独自カードである（ANSは5年以上のネットワーク実務経験を推奨）。
 ・**AWSサービス（VPC・Route 53・Direct Connect 等）が登場してもよいが、AWSサービスそのもの（仕様・選定・使い分け）を主題にしないこと。** 主眼はあくまでベンダー中立なネットワーク理論・プロトコルであり、AWSサービスは例・文脈として補助的に登場する程度にとどめる。
 ・OSI/TCP-IPモデル、TCP/UDP、IPv4/IPv6・CIDR・サブネット計算・NAT、ルーティング(BGP/静的動的・ロンゲストマッチ)、DNS(レコード種別・再帰/反復・TTL)、TLS/HTTPS・TCPハンドシェイク、ファイアウォール/ACL・VPN/IPsec などを扱うこと
-・サブネット計算やアドレス範囲の判定など、手を動かす計算問題を含めてよい`,
+・サブネット計算やアドレス範囲の判定など、手を動かす計算問題を含めてよい
+・難易度は中級の基礎を下限とする（暗記でなく理解・適用を問う。易しすぎる自明問題は避ける）`,
   SEC: `・これはAWS認定ではなく、SCS が前提とする「セキュリティの基礎知識」を問う独自カードである。
 ・**AWSサービス（IAM・KMS・GuardDuty 等）が登場してもよいが、AWSサービスそのもの（仕様・選定・使い分け）を主題にしないこと。** 主眼はあくまでベンダー中立なセキュリティの概念・原則であり、AWSサービスは例・文脈として補助的に登場する程度にとどめる。
-・暗号技術(対称/非対称・ハッシュ・PKI・TLS)、認証認可(MFA・OAuth/OIDC/SAML・最小権限・RBAC/ABAC)、ネットワークセキュリティ(FW・IDS/IPS・ゼロトラスト)、脅威と脆弱性(OWASP Top10・権限昇格・CVSS)、インシデント対応・ログ、データ保護・ガバナンス などを扱うこと`,
+・暗号技術(対称/非対称・ハッシュ・PKI・TLS)、認証認可(MFA・OAuth/OIDC/SAML・最小権限・RBAC/ABAC)、ネットワークセキュリティ(FW・IDS/IPS・ゼロトラスト)、脅威と脆弱性(OWASP Top10・権限昇格・CVSS)、インシデント対応・ログ、データ保護・ガバナンス などを扱うこと
+・難易度は中級の基礎を下限とする（暗記でなく理解・適用を問う。易しすぎる自明問題は避ける）`,
 };
 
 export const EXAM_OFFICIAL_URLS: Record<string, { page: string; guide: string }> = {

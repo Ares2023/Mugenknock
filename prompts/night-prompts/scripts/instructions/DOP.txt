@@ -1,4 +1,5 @@
 # EXAM_GUIDE_URL: https://aws.amazon.com/jp/certification/certified-devops-engineer-professional/
+# DOMAINS: SDLCの自動化,構成管理とInfrastructure as Code (IaC),弾力性に優れたクラウドソリューション,モニタリングとロギング,インシデントとイベントへの対応,セキュリティとコンプライアンス
 # LAST_REFRESHED: 2026-07-28
 
 あなたはAWS認定試験の問題作成者です。

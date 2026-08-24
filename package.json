@@ -35,7 +35,10 @@
     "e2e:noauth": "bash e2e/run.sh noauth",
     "e2e:visual": "bash e2e/run.sh visual",
     "e2e:ui": "bash e2e/run.sh ui",
-    "e2e:report": "npx playwright show-report e2e/reports"
+    "e2e:report": "npx playwright show-report e2e/reports",
+    "gen:instructions": "node scripts/gen-original-instructions.mjs",
+    "prebuild": "npm run gen:instructions",
+    "predev": "npm run gen:instructions"
   },
   "eslintConfig": {
     "extends": [
