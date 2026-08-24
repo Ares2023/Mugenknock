@@ -893,11 +893,28 @@ const CHEAT_DATA: CheatData = {
 // スラッシュを含む複合名（比較・複合記事）は過剰グルーピングを避けて独立扱い。
 interface Article { id: string; exam: string; secIdx: number; name: string; item: Item; serviceKey: string }
 
+// 同一サービスの記事をまとめるための基底サービス名。詳細記事（「Route 53詳細」「VPC基礎」
+// 「Bedrock Agents」等の括弧なし接尾辞）も本体記事とグループ化して相互リンクさせる。
+const BASE_SERVICES = [
+  'AWS IAM Identity Center', 'Amazon S3 Glacier', 'Amazon Route 53', 'Amazon SageMaker',
+  'Amazon CloudWatch', 'Amazon CloudFront', 'Amazon DynamoDB', 'Amazon Bedrock', 'Amazon Kinesis',
+  'Amazon Aurora', 'Amazon Cognito', 'Amazon Inspector', 'Amazon VPC', 'Amazon S3',
+  'AWS Direct Connect', 'AWS Network Firewall', 'AWS Organizations', 'AWS Shield', 'AWS Config',
+  'AWS Glue', 'AWS IAM', 'AWS KMS', 'AWS Systems Manager', 'Amazon GuardDuty', 'AWS Security Hub',
+];
+
 function serviceKeyOf(name: string): string {
+  // 複合・比較記事（「A / B」「A + B」）は束ねない
+  if (name.includes('/') || name.includes('+')) return name;
+  // 既知の基底サービス名に最長前方一致すれば、その本体でグループ化
+  let best = '';
+  for (const b of BASE_SERVICES) {
+    if (name.startsWith(b) && b.length > best.length) best = b;
+  }
+  if (best) return best;
+  // それ以外は括弧ラベルを除いた名称でグループ化
   const base = name.replace(/[（(].*$/, '').trim();
-  if (!base) return name;
-  if (base.includes('/')) return name; // 複合名（ECS / EKS 等の同一表記のみ束ねる）
-  return base;
+  return base || name;
 }
 
 // serviceKey -> その全記事（CHEAT_DATA の出現順）
