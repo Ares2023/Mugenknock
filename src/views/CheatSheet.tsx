@@ -1448,7 +1448,7 @@ function ItemCard({ item, exam, q, allNames, highlightedId, onCopy, onNavigate, 
   const highlighted = !!article && highlightedId === article.id;
   const handleCopyAll = (e: React.MouseEvent) => {
     e.stopPropagation();
-    navigator.clipboard.writeText(`${item.name}\n\n${item.desc.replace(/\*\*/g, '').replace(/^- /gm, '  ')}`).then(() => {
+    navigator.clipboard.writeText(`${item.name}\n\n${item.desc.replace(/\*\*/g, '').replace(/^- /gm, '・')}`).then(() => {
       setAllCopied(true);
       setTimeout(() => setAllCopied(false), 1500);
     });
@@ -1614,10 +1614,9 @@ function ItemCard({ item, exam, q, allNames, highlightedId, onCopy, onNavigate, 
               {renderRich(body.slice(colonIdx + 1))}
             </>
           ) : renderRich(body);
+          // 子項目(下位概念)は「・」プレフィックスで表示（インデント無し。スマホの横幅対策＆見慣れた記号に）
           const content = isChild ? (
-            <span style={{ display: 'inline-block', paddingLeft: '1.5em' }}>
-              <span style={{ color: 'var(--color-text-light)' }}>└ </span>{inner}
-            </span>
+            <><span style={{ color: 'var(--color-text-light)' }}>・</span>{inner}</>
           ) : inner;
           return (
             <React.Fragment key={i}>
