@@ -816,10 +816,15 @@ PROMPT
     # < <() プロセス置換でサブシェルを作らずに外部変数を更新できる。
     # チャンクを大きくしても途中切れ時の全損がなく、出力済み分はDBに保存済み。
     _CHUNK_RATE_LIMITED=0
+    _CHUNK_OVERLOADED=0
     _CHUNK_IMPORTED=0
-    _line_count=0
+    _OVERLOAD_RETRY=0
     _CHUNK_T0=$(date +%s)
 
+    # 529 Overloaded（一時的なサーバー過負荷）はレート制限ではないので、チャンク単位でリトライする。
+    while :; do
+    _CHUNK_OVERLOADED=0
+    _line_count=0
     while IFS= read -r _line || [ -n "$_line" ]; do
       _line_count=$(( _line_count + 1 ))
 
@@ -842,7 +847,13 @@ PROMPT
           echo "出力: $_head"
           _CHUNK_RATE_LIMITED=1; break
         fi
-        if echo "$_head" | grep -qiE "rate.?limit|too many requests|overload|quota exceeded|usage limit|resource_exhausted|session.?limit|hit your"; then
+        # 529 Overloaded（一時的なサーバー過負荷）はレート制限ではない。リトライ対象として区別する。
+        if echo "$_head" | grep -qiE "529|Overloaded"; then
+          echo "⚠️  サーバー過負荷（529 Overloaded）を検出"
+          echo "出力: $_head"
+          _CHUNK_OVERLOADED=1; break
+        fi
+        if echo "$_head" | grep -qiE "rate.?limit|too many requests|quota exceeded|usage limit|resource_exhausted|session.?limit|hit your"; then
           echo "⚠️  レート制限を検出。残りをスキップ"
           echo "出力: $_head"
           _CHUNK_RATE_LIMITED=1; break
@@ -934,9 +945,27 @@ PYEOF
       fi
 
     done < <(CLAUDE_CODE_MAX_OUTPUT_TOKENS=56000 timeout -k 30 "${CLAUDE_TIMEOUT:-1800}" "$CLAUDE_CMD" -p --model sonnet --tools "" < "$PROMPT_FILE" 2>&1)
+
+    # 529 Overloaded かつ このチャンクでまだ1問も取れていない → 最大3回リトライ（60秒待機）。
+    # deadline を過ぎている場合はリトライせず打ち切る（トークン回復後まで走らせない）。
+    if [ "$_CHUNK_OVERLOADED" -eq 1 ] && [ "$_CHUNK_IMPORTED" -eq 0 ] && [ "$_OVERLOAD_RETRY" -lt 3 ] \
+       && { [ "$DEADLINE_EPOCH" -le 0 ] || [ "$(date +%s)" -lt "$DEADLINE_EPOCH" ]; }; then
+      _OVERLOAD_RETRY=$(( _OVERLOAD_RETRY + 1 ))
+      echo "  ⏳ 529 Overloaded のためリトライ (${_OVERLOAD_RETRY}/3回目・60秒待機)..."
+      sleep 60
+      continue
+    fi
+    break
+    done  # 529リトライループ終了
     rm -f "$PROMPT_FILE"
 
     echo "  チャンク${_chunk}: ${_CHUNK_IMPORTED}問インポート  経過=$(( $(date +%s) - _CHUNK_T0 ))秒"
+
+    # 529 が続いて0問のまま → このチャンクだけ諦めて次チャンクへ続行（残り全チャンクは捨てない）
+    if [ "$_CHUNK_OVERLOADED" -eq 1 ] && [ "$_CHUNK_IMPORTED" -eq 0 ]; then
+      echo "  ⚠️  529 Overloaded が継続。チャンク${_chunk}をスキップして次へ続行"
+      continue
+    fi
 
     if [ "$_CHUNK_IMPORTED" -eq 0 ] && [ "$_line_count" -gt 3 ]; then
       echo "❌ [${domain}] チャンク${_chunk}: {\"q\":...} 形式の問題が取得できませんでした（出力 ${_line_count} 行）"
