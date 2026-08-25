@@ -1474,14 +1474,28 @@ function isParentLine(lines: string[], i: number): boolean {
   return !lines[i].startsWith('- ') && i + 1 < lines.length && lines[i + 1].startsWith('- ');
 }
 
-// desc を表示と同じプレーンテキストへ整形（親概念に「◯」・子概念に「・」を付与）してコピーに使う
+// 「◯」を付ける対象＝トップレベル（子でない）の用語行か判定。
+// 親概念（子を持つ行）に加え、用語見出し行（isITTerm/isBoldTerm 相当）も同じ階層の用語として対象にする。
+function isTopTermLine(lines: string[], i: number): boolean {
+  const l = lines[i];
+  if (l.startsWith('- ')) return false;
+  if (isParentLine(lines, i)) return true; // 子を持つ親（コロン無しの見出しも含む）
+  const ci = topLevelColonIndex(l);
+  if (ci <= 0) return false;
+  const t = l.slice(0, ci).replace(/\*\*/g, '');
+  const isIT = !/。/.test(t) && !SIMPLE_TERMS.has(t) && (/[A-Za-z]/.test(t) || EXTRA_COPYABLE_TERMS.has(t));
+  const isBold = !isIT && isCleanTermLabel(t);
+  return isIT || isBold;
+}
+
+// desc を表示と同じプレーンテキストへ整形（紹介する用語行に「◯ 」・子概念に「・」を付与）してコピーに使う
 function descToPlainText(desc: string): string {
   const lines = desc.split('\n');
   return lines
     .map((line, i) => {
       const body = line.replace(/\*\*/g, '');
       if (body.startsWith('- ')) return '・' + body.slice(2);
-      return isParentLine(lines, i) ? '◯' + body : body;
+      return isTopTermLine(lines, i) ? '◯ ' + body : body;
     })
     .join('\n');
 }
@@ -1630,8 +1644,8 @@ function ItemCard({ item, exam, q, allNames, highlightedId, onCopy, onNavigate, 
         {(() => { const lines = item.desc.split('\n'); return lines.map((line, i) => {
           // 先頭「- 」は下位概念（子項目）。インデントして親子関係を明示する
           const isChild = line.startsWith('- ');
-          // 直後に子項目が続く行は親概念。行頭に「◯」を付与する
-          const isParent = isParentLine(lines, i);
+          // 紹介する用語行（親子関係の有無に関わらず）には行頭に「◯」を付与
+          const hasCircle = isTopTermLine(lines, i);
           const body = isChild ? line.slice(2) : line;
           const colonIdx = topLevelColonIndex(body);
           // 用語は既にティール/黒太字で強調されるため、用語内の **強調** 記法は除去して二重強調・記号残りを防ぐ
@@ -1663,11 +1677,11 @@ function ItemCard({ item, exam, q, allNames, highlightedId, onCopy, onNavigate, 
             </>
           ) : renderRich(body);
           // 子項目(下位概念)は「・」プレフィックスで表示（インデント無し。スマホの横幅対策＆見慣れた記号に）
-          // 親概念は「◯」プレフィックス。◯自体は用語の強調に関わらずただの黒細字
+          // 用語行は「◯ 」プレフィックス（後ろに半角空白）。◯は黒太字（用語自体の強調とは独立）
           const content = isChild ? (
             <><span style={{ color: 'var(--color-text-light)' }}>・</span>{inner}</>
-          ) : isParent ? (
-            <><span style={{ color: 'var(--color-text-main)', fontWeight: 400 }}>◯</span>{inner}</>
+          ) : hasCircle ? (
+            <><span style={{ color: 'var(--color-text-main)', fontWeight: 700 }}>{'◯ '}</span>{inner}</>
           ) : inner;
           return (
             <React.Fragment key={i}>
