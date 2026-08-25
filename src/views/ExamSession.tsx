@@ -780,7 +780,7 @@ export default function ExamSession() {
                       {isSelected && <div style={{ width: 6, height: 6, borderRadius: '50%', background: 'white' }} />}
                     </div>
                   )}
-                  <span style={{ flex: 1, minWidth: 0, overflowWrap: 'break-word', wordBreak: 'break-word' }}>
+                  <span style={{ flex: 1, minWidth: 0, overflowWrap: 'break-word', wordBreak: 'break-word', whiteSpace: 'pre-wrap' }}>
                     <strong style={{ marginRight: 2 }}>{CHOICE_LABELS[displayIdx]}.</strong> {stripLabel(choice)}
                   </span>
                 </div>

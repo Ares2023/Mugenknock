@@ -425,7 +425,7 @@ function QuestionPreviewModal({ onClose, initId = '' }: { onClose: () => void; i
                     }}
                   >
                     <span style={{ fontWeight: 700, fontSize: 13, color: getChoiceColor(c, idx), flexShrink: 0, minWidth: 18 }}>{CHOICE_LABELS_P[idx]}.</span>
-                    <span style={{ fontSize: 14, lineHeight: 1.5, wordBreak: 'break-word' }}>{stripLabelP(c)}</span>
+                    <span style={{ fontSize: 14, lineHeight: 1.5, wordBreak: 'break-word', whiteSpace: 'pre-wrap' }}>{stripLabelP(c)}</span>
                     {answered && isCorrectChoice(c, idx) && <span style={{ marginLeft: 'auto', color: 'var(--color-success)', fontWeight: 700, flexShrink: 0 }}>✓</span>}
                     {answered && selected.includes(c) && !isCorrectChoice(c, idx) && <span style={{ marginLeft: 'auto', color: 'var(--color-danger)', fontWeight: 700, flexShrink: 0 }}>✗</span>}
                   </button>

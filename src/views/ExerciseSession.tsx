@@ -1369,7 +1369,7 @@ export default function ExerciseSession() {
                   <span
                     onClick={!answered && strikeEnabled ? (e) => toggleStrikethrough(choice, e) : undefined}
                     style={{
-                      flex: 1, minWidth: 0, overflowWrap: 'break-word', wordBreak: 'break-word', lineHeight: 1.55,
+                      flex: 1, minWidth: 0, overflowWrap: 'break-word', wordBreak: 'break-word', lineHeight: 1.55, whiteSpace: 'pre-wrap',
                       textDecoration: strikeEnabled && struckChoices.has(choice) && !answered ? 'line-through' : 'none',
                       textDecorationColor: 'var(--color-danger)',
                       textDecorationThickness: '2px',
