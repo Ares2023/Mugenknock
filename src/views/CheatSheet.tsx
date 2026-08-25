@@ -83,11 +83,11 @@ const CHEAT_DATA: CheatData = {
     {
       title: 'クラウドの概念',
       items: [
-        { name: '責任共有モデル', desc: 'AWSと顧客でセキュリティ責任を分担するモデル（英語名：**Shared** Responsibility Model）。\nAWS負担：物理インフラ・ホスト・ネットワーク・ストレージハードウェア（Security "of" the Cloud）\n顧客負担：OS・ミドルウェア・アプリ・データ・IAM設定（Security "in" the Cloud）', keyword: 'AWS 責任共有モデル', tags: ['分担', 'セキュリティ', 'Shared Responsibility Model'] },
+        { name: '責任共有モデル', desc: 'AWSと顧客でセキュリティ責任を分担するモデル（英語名：**Shared** Responsibility Model）。\n責任の分担：\n- AWS負担：物理インフラ・ホスト・ネットワーク・ストレージハードウェア（Security "of" the Cloud）\n- 顧客負担：OS・ミドルウェア・アプリ・データ・IAM設定（Security "in" the Cloud）', keyword: 'AWS 責任共有モデル', tags: ['分担', 'セキュリティ', 'Shared Responsibility Model'] },
         { name: 'AWS Well-Architectedフレームワーク', desc: '6本柱：**運用・セキュリティ**・信頼性・性能・コスト・持続可能性で設計を評価\n6本柱でクラウド設計を評価するAWS公式のベストプラクティス集。\n① 運用上の優秀性（変化への対応・自動化）\n② セキュリティ（最小権限・暗号化）\n③ 信頼性（障害自動回復・水平スケール）\n④ パフォーマンス効率（適切なリソース選択）\n⑤ コスト最適化（不要リソース排除）\n⑥ 持続可能性（エネルギー効率）', keyword: 'AWS Well-Architected Framework', tags: ['6本柱', '設計', 'ベストプラクティス'] },
         { name: 'AWS CAF（Cloud Adoption Framework）', desc: '**クラウド移行**を組織全体で成功させる6つの視点のフレームワーク。\nビジネス：ROI・ビジネスケース\n人：スキル・文化変革\nガバナンス：リスク管理・コンプライアンス\nプラットフォーム：アーキテクチャ基盤\nセキュリティ：セキュリティ管理\n運用：運用モデル', keyword: 'Cloud Adoption Framework', tags: ['移行', '6視点', 'フレームワーク'] },
         { name: 'サービスモデル', desc: 'IaaS（Infrastructure as a Service）：**EC2のよう**な仮想インフラ。OS以上は自分で管理\nPaaS（Platform as a Service）：Elastic Beanstalkのような実行基盤。アプリのみ管理\nSaaS（Software as a Service）：WorkSpacesのような完成品アプリ。設定のみ管理', keyword: 'IaaS PaaS SaaS クラウドサービスモデル', tags: ['IaaS', 'PaaS', 'SaaS'] },
-        { name: 'クラウドメリット', desc: '俊敏性 (Agility)：**数分でリソース調達**（オンプレは数週間）\n弾力性 (Elasticity)：需要に合わせて自動でスケールアップ/ダウン\nグローバル展開：世界中のリージョンに即座にデプロイ\nコスト：CAPEX（設備投資）→ OPEX（運用費）に転換し初期投資不要\nスケールメリット：AWSの大規模調達によりユーザーのコストが下がる', keyword: 'AWSクラウドのメリット', tags: ['俊敏性', '弾力性', 'OPEX'] },
+        { name: 'クラウドメリット', desc: '主なメリット：\n- 俊敏性 (Agility)：**数分でリソース調達**（オンプレは数週間）\n- 弾力性 (Elasticity)：需要に合わせて自動でスケールアップ/ダウン\n- グローバル展開：世界中のリージョンに即座にデプロイ\n- コスト：CAPEX（設備投資）→ OPEX（運用費）に転換し初期投資不要\n- スケールメリット：AWSの大規模調達によりユーザーのコストが下がる', keyword: 'AWSクラウドのメリット', tags: ['俊敏性', '弾力性', 'OPEX'] },
       ],
     },
     {
@@ -217,7 +217,7 @@ const CHEAT_DATA: CheatData = {
         { name: 'Amazon S3', desc: '**ストレージクラス**（アクセス頻度に応じて選択）：\n- Standard：高頻度アクセス向け（デフォルト）\n- IA（Infrequent Access）：低頻度アクセス。取得時に追加課金\n- One Zone-IA：単一AZで低コスト。再作成可能なデータ向け\n- Intelligent-Tiering：アクセスパターンを自動学習してクラスを切り替え\n- Glacier系：アーカイブ（取得時間とコストがトレードオフ）\nCRR（Cross-Region Replication）：別リージョンへの自動レプリケーション\nSRR（Same-Region Replication）：同リージョン内の別バケットへのレプリケーション', tags: ['ストレージクラス', 'ライフサイクル', 'レプリケーション'] },
         { name: 'Amazon EBS', desc: 'gp3：**汎用SSD**。IOPSとスループットを独立して設定可能\nio2：プロビジョニドIOPS SSD。高IOPS・高耐久性。マルチアタッチ対応\nst1：スループット最適化HDD。ログ・ビッグデータの順次読み書き向け\nsc1：コールドHDD。アクセス頻度が最も低いデータ向け\nマルチアタッチ：同一AZ内の複数EC2に同時接続（io1/io2のみ）', tags: ['gp3', 'io2', 'マルチアタッチ'] },
         { name: 'Amazon EFS', desc: 'NFS（Network File System）：自動スケールする**共有ファイルシステム**\n自動でスケールするNFS（Network File System）マネージドファイルシステム。\nInfrequent Accessストレージクラスで低頻度アクセスのファイルを自動的に低コストのクラスに移動してコスト削減できる。EC2・ECS・Lambda・SageMakerなどから同時マウント可能。', tags: ['NFS', 'InfrequentAccess', '自動スケール'] },
-        { name: 'Amazon FSx', desc: 'FSx for Windows File Server：**SMBプロトコル対応**。Active Directory統合。Windowsアプリ・共有フォルダ向け\nFSx for Lustre：高性能並列ファイルシステム。HPC（高性能コンピューティング）・ML学習向け。S3と統合してデータセットを自動読み込み可能', tags: ['Windows', 'Lustre', 'HPC'] },
+        { name: 'Amazon FSx', desc: '主な種類：\n- FSx for Windows File Server：**SMBプロトコル対応**。Active Directory統合。Windowsアプリ・共有フォルダ向け\n- FSx for Lustre：高性能並列ファイルシステム。HPC（高性能コンピューティング）・ML学習向け。S3と統合してデータセットを自動読み込み可能', tags: ['Windows', 'Lustre', 'HPC'] },
         { name: 'Amazon S3 Glacier', desc: 'Instant Retrieval：**ミリ秒で取得**。月1回程度のアクセスに最適\nFlexible Retrieval：数分〜12時間（Bulk選択で最安）\nDeep Archive：最大48時間。7〜10年保持が義務付けられたデータ向けで最安ストレージ', tags: ['Instant', 'Flexible', 'Deep Archive'] },
         { name: 'AWS Storage Gateway', desc: '**オンプレミス**とAWSストレージをブリッジするサービス。\nFile Gateway：NFS/SMBでオンプレからS3にファイル保存。S3のキャッシュをローカルに保持\nVolume Gateway（キャッシュ型）：S3にデータを格納しよく使うデータをローカルキャッシュ\nVolume Gateway（ストア型）：ローカルにデータを保持しS3に非同期バックアップ\nTape Gateway：バックアップソフトからS3 Glacierにテープを仮想化', tags: ['File GW', 'Volume GW', 'ハイブリッド'] },
       ],
@@ -237,13 +237,13 @@ const CHEAT_DATA: CheatData = {
       title: 'ネットワーキング',
       items: [
         { name: 'Amazon VPC基礎', desc: 'アクセス制御：**NACL**（ステートレス）とSG（ステートフル）\nNACL（ネットワークアクセスコントロールリスト）：\nステートレス（行き・戻り両方を明示的に許可必要）\nサブネットに適用。番号が小さいルールから順に評価\nSG（セキュリティグループ）：\nステートフル（戻りパケットは自動許可）\nENI（ネットワークインターフェース）に適用。全ルールを評価', keyword: 'Amazon VPC セキュリティグループ NACL', tags: ['NACL', 'セキュリティグループ', 'ステートレス'] },
-        { name: 'Amazon VPCピアリング / AWS Transit Gateway（TGW）', desc: 'VPCピアリング：**2つのVPC**を1対1で接続。推移的ルーティング不可（A-B-CでAからCには直接ピアリングが必要）\nTransit Gateway（TGW）：ハブ&スポーク型でN個のVPCを一元接続。各VPCはTGWにアタッチするだけでN対N接続が実現。アタッチメント種別：VPC・Site-to-Site VPN・Direct Connect', tags: ['ピアリング', 'TGW', 'ハブ&スポーク'] },
+        { name: 'Amazon VPCピアリング / AWS Transit Gateway（TGW）', desc: '2つの接続方式：\n- VPCピアリング：**2つのVPC**を1対1で接続。推移的ルーティング不可（A-B-CでAからCには直接ピアリングが必要）\n- Transit Gateway（TGW）：ハブ&スポーク型でN個のVPCを一元接続。各VPCはTGWにアタッチするだけでN対N接続が実現。アタッチメント種別：VPC・Site-to-Site VPN・Direct Connect', tags: ['ピアリング', 'TGW', 'ハブ&スポーク'] },
         { name: 'Amazon VPCエンドポイント', desc: '**インターネット**を経由せずAWSサービスにプライベートアクセスする仕組み。\nゲートウェイ型：S3・DynamoDBのみ対応。ルートテーブルにエントリを追加。追加料金なし\nインターフェース型（PrivateLink）：その他多数のAWSサービスに対応。ENIをサブネットに作成。時間課金あり', tags: ['ゲートウェイ型', 'PrivateLink', 'インターフェース型'] },
         { name: 'ALB / NLB', desc: 'ALB（Application Load Balancer）：**HTTP/HTTPS**（L7）\nURLパス・ホストヘッダー・HTTPメソッドでコンテンツベースルーティング\nターゲットグループにEC2・ECS・Lambda・IPを登録\nNLB（Network Load Balancer）：TCP/UDP（L4）\n固定IPを提供（ElasticIPを割り当て可能）\n超低レイテンシ・大量同時接続。TLSパススルーが可能', tags: ['ALB', 'NLB', 'ターゲットグループ'] },
-        { name: 'Amazon Route 53 ルーティング', desc: 'シンプル（Simple）：**1つのリソースに転送**\n重み付け（Weighted）：複数リソースに比率を指定して分散\nレイテンシ（Latency）：最もレイテンシが低いリージョンへ転送\nフェイルオーバー（Failover）：ヘルスチェック失敗時にセカンダリへ切り替え\n地理的（Geolocation）：ユーザーの所在地（国・州）に基づいて転送\n地理的近接性（Geoproximity）：ユーザーとリソースの物理的距離に基づいて転送\n多値応答（Multivalue Answer）：複数のIPを返し、ヘルスチェックで正常なもののみ返す', tags: ['フェイルオーバー / Failover', 'レイテンシ / Latency', '地理的近接性 / Geoproximity'] },
+        { name: 'Amazon Route 53 ルーティング', desc: 'ルーティングポリシー（7種類・状況に応じて使い分ける）：\n- シンプル（Simple）：**1つのリソースに転送**\n- 重み付け（Weighted）：複数リソースに比率を指定して分散\n- レイテンシ（Latency）：最もレイテンシが低いリージョンへ転送\n- フェイルオーバー（Failover）：ヘルスチェック失敗時にセカンダリへ切り替え\n- 地理的（Geolocation）：ユーザーの所在地（国・州）に基づいて転送\n- 地理的近接性（Geoproximity）：ユーザーとリソースの物理的距離に基づいて転送\n- 多値応答（Multivalue Answer）：複数のIPを返し、ヘルスチェックで正常なもののみ返す', tags: ['フェイルオーバー / Failover', 'レイテンシ / Latency', '地理的近接性 / Geoproximity'] },
         { name: 'Amazon CloudFront', desc: '**グローバルCDN**。AWSバックボーン経由で低レイテンシ配信。\nOAC（Origin Access Control）：CloudFrontを経由したアクセスのみS3バケットに許可する仕組み\nビヘイビア：URLパスパターンごとにオリジン・キャッシュポリシー・関数を設定\nLambda@Edge：CloudFrontのイベント（Viewer Request/Response・Origin Request/Response）でLambdaを実行\nCloudFront Functions：JavaScriptでHTTPヘッダー書き換えやURL変換を低コスト・低レイテンシで実行', tags: ['OAC', 'Lambda@Edge', 'ビヘイビア'] },
         { name: 'AWS Global Accelerator', desc: 'Anycast：**最寄りエッジへ誘導**しAWS網で高速転送\nAnycast IPで世界中のユーザーを最寄りAWSエッジロケーションに誘導し、AWSバックボーン経由で最終ターゲットに転送。\n2つの固定グローバルIPを提供（ホワイトリスト管理が容易）。非HTTPプロトコル（TCP/UDP）にも対応。CloudFrontはHTTPコンテンツキャッシュ向けで用途が異なる。', tags: ['Anycast', '固定IP', 'バックボーン'] },
-        { name: 'AWS Direct Connect / VPN', desc: 'Direct Connect：**物理専用線**でオンプレ↔AWSを接続。BGP（Border Gateway Protocol）でルートを交換。最長一致ルールで転送先を決定。冗長化は複数接続を推奨\nSite-to-Site VPN：インターネット経由の暗号化接続（IPsec）。カスタマーゲートウェイ（CGW）と仮想プライベートゲートウェイ（VGW）を接続\n最大冗長化：DCとVPNの両方を組み合わせて使用', tags: ['BGP', '専用線', '冗長化'] },
+        { name: 'AWS Direct Connect / VPN', desc: '主な接続方式：\n- Direct Connect：**物理専用線**でオンプレ↔AWSを接続。BGP（Border Gateway Protocol）でルートを交換。最長一致ルールで転送先を決定。冗長化は複数接続を推奨\n- Site-to-Site VPN：インターネット経由の暗号化接続（IPsec）。カスタマーゲートウェイ（CGW）と仮想プライベートゲートウェイ（VGW）を接続\n- 最大冗長化：DCとVPNの両方を組み合わせて使用', tags: ['BGP', '専用線', '冗長化'] },
       ],
     },
     {
@@ -252,14 +252,14 @@ const CHEAT_DATA: CheatData = {
         { name: 'AWS IAM', desc: 'ポリシー評価順：**① 明示的な拒否**（Deny） → ② 許可（Allow） → ③ 暗黙の拒否\nクロスアカウントアクセス：AssumeRoleでロールを引き受け一時的な認証情報を取得\nリソースベースポリシー：S3バケットポリシー・KMSキーポリシー等。リソース側に直接付与\nアイデンティティベースポリシー：IAMユーザー・グループ・ロールに付与', tags: ['ポリシー評価', 'クロスアカウント', 'リソースベース'] },
         { name: 'AWS KMS', desc: 'AWSマネージドキー：**AWSが自動作成**・管理。キーポリシーのカスタマイズ不可\nCMK（カスタマーマネージドキー）：ユーザーが作成・管理。キーポリシーで細かいアクセス制御が可能\nエンベロープ暗号化：データキー（DEK）でデータを暗号化し、DEK自体をCMKで暗号化する二層構造。大きなデータを効率よく暗号化する仕組み', tags: ['CMK', 'エンベロープ暗号化', 'キーポリシー'] },
         { name: 'AWS Secrets Manager', desc: '**パスワード**・APIキー・DB認証情報等のシークレットを安全に保管・管理するサービス。\n自動ローテーション：Lambda関数を使ってRDS・Redshift・DocumentDB等のパスワードを定期的に自動更新\nSSM（AWS Systems Manager） Parameter Store との違い：Parameter Storeはシークレットの自動ローテーション機能がない。Secrets Managerはローテーションが必要なDB認証情報に適している', tags: ['自動ローテーション', 'DB認証情報', 'Lambda'] },
-        { name: 'Amazon Cognito', desc: 'User Pool：**ユーザー認証**（サインアップ・サインイン）を管理するIDプロバイダー。認証成功時にJWT（IDトークン・アクセストークン・リフレッシュトークン）を発行\nIdentity Pool：フェデレーション（Google・Facebook・User Pool等）した認証情報をもとに一時的なAWS認証情報（IAMロールの権限）を払い出してAWSリソースに直接アクセスさせる', tags: ['User Pool', 'Identity Pool', 'フェデレーション'] },
+        { name: 'Amazon Cognito', desc: '2種類のプール：\n- User Pool：**ユーザー認証**（サインアップ・サインイン）を管理するIDプロバイダー。認証成功時にJWT（IDトークン・アクセストークン・リフレッシュトークン）を発行\n- Identity Pool：フェデレーション（Google・Facebook・User Pool等）した認証情報をもとに一時的なAWS認証情報（IAMロールの権限）を払い出してAWSリソースに直接アクセスさせる', tags: ['User Pool', 'Identity Pool', 'フェデレーション'] },
         { name: 'AWS Organizations / SCP', desc: 'SCP（サービスコントロールポリシー）：OU（組織単位）やアカウントに適用する**ガードレール**。\n最大権限の上限を設定するだけで権限を付与する機能はない（IAM許可とのAND評価）\n例：「このOUでは東京リージョン以外のEC2起動を禁止」というルールを一括適用できる', tags: ['SCP', 'OU', 'ガードレール'] },
       ],
     },
     {
       title: '統合・メッセージング',
       items: [
-        { name: 'Amazon SQS', desc: '標準キュー：**順序不保証・少なく**とも1回配信・ほぼ無制限スループット\nFIFOキュー：順序保証・1回のみ配信・最大3000msg/s（バッチ使用時）\n可視性タイムアウト：メッセージ取得後に他のConsumerから見えなくする時間（処理中の二重処理防止）\nDLQ（Dead Letter Queue）：最大受信回数を超えた処理失敗メッセージを退避するキュー', tags: ['標準', 'FIFO', '可視性タイムアウト'] },
+        { name: 'Amazon SQS', desc: 'キューの種類と主な機能：\n- 標準キュー：**順序不保証・少なく**とも1回配信・ほぼ無制限スループット\n- FIFOキュー：順序保証・1回のみ配信・最大3000msg/s（バッチ使用時）\n- 可視性タイムアウト：メッセージ取得後に他のConsumerから見えなくする時間（処理中の二重処理防止）\n- DLQ（Dead Letter Queue）：最大受信回数を超えた処理失敗メッセージを退避するキュー', tags: ['標準', 'FIFO', '可視性タイムアウト'] },
         { name: 'Amazon SNS', desc: '**Pub/Sub**（パブリッシュ/サブスクライブ）メッセージング。\nトピックに複数のサブスクライバー（SQS・Lambda・HTTP・メール・SMS）を登録してファンアウト（1対多配信）を実現する。\nフィルタポリシー：サブスクライバーごとに受信するメッセージをフィルタリングできる', tags: ['Pub/Sub', 'ファンアウト', 'フィルタポリシー'] },
         { name: 'Amazon EventBridge', desc: '**AWSサービス**・SaaSアプリ・カスタムアプリのイベントをルールでターゲットに転送するイベントバスサービス。\nイベントパターンマッチングで条件にあうイベントだけ転送。スケジューラとしてcron式での定期実行も可能。\nEventBridge Pipes：ソース→フィルタ→変換→ターゲットのパイプラインを簡潔に構築', tags: ['イベントバス', 'ルール', 'スケジューラ'] },
         { name: 'AWS Step Functions', desc: '**Lambda・ECS**・DynamoDB等のAWSサービスを組み合わせたワークフローをステートマシン（状態遷移図）として定義・実行・可視化するサービス。\nStandardワークフロー：最大1年・正確に1回実行・実行履歴を保持\nExpressワークフロー：最大5分・高スループット（1秒間に10万実行）', tags: ['ステートマシン', 'ワークフロー', 'サーバーレス'] },
@@ -310,7 +310,7 @@ const CHEAT_DATA: CheatData = {
       items: [
         { name: 'Amazon SQS', desc: '可視性タイムアウト（Visibility Timeout）：**メッセージ取得後**に他のConsumerから一定時間隠す仕組み。処理が長引く場合はChangeMessageVisibility APIで延長\nDLQ（Dead Letter Queue：デッドレターキュー）：最大受信回数（maxReceiveCount）を超えた処理失敗メッセージを退避するキュー。原因調査に使用\nロングポーリング：最大20秒間メッセージが届くまで待機。空のレスポンスを削減してコスト削減', tags: ['可視性タイムアウト', 'DLQ', 'ロングポーリング'] },
         { name: 'Amazon SNS', desc: 'サブスクリプションフィルタポリシー：**トピック**のサブスクライバーごとに受信するメッセージの属性を絞り込むフィルタを設定できる。\n例：「注文イベント」トピックで「注文確定」だけ受け取るLambdaと「キャンセル」だけ受け取るSQSを別々に設定できる\nSNS（Simple Notification Service） FIFOトピック：SQS FIFOと組み合わせて順序保証・重複排除のファンアウトを実現', tags: ['フィルタポリシー', 'ファンアウト', 'FIFO'] },
-        { name: 'Amazon Kinesis', desc: 'Data Streams：**シャードベース**のストリーミング。KCL（Kinesis Client Library）でConsumerを実装。カスタムな処理・複雑なロジックに向く\nFirehose（Data Firehose）：自動スケールのマネージド配信サービス。S3・Redshift・OpenSearch・Splunkへのデータ配信に特化。Lambda変換とバッファリングが可能\nData Analytics（for Apache Flink）：ストリームデータをSQLまたはFlinkコードでリアルタイム分析', tags: ['シャード', 'Firehose', 'KCL'] },
+        { name: 'Amazon Kinesis', desc: '主なサービス：\n- Data Streams：**シャードベース**のストリーミング。KCL（Kinesis Client Library）でConsumerを実装。カスタムな処理・複雑なロジックに向く\n- Firehose（Data Firehose）：自動スケールのマネージド配信サービス。S3・Redshift・OpenSearch・Splunkへのデータ配信に特化。Lambda変換とバッファリングが可能\n- Data Analytics（for Apache Flink）：ストリームデータをSQLまたはFlinkコードでリアルタイム分析', tags: ['シャード', 'Firehose', 'KCL'] },
         { name: 'Amazon EventBridge', desc: 'イベントパターンマッチング：**イベント**のJSON属性でフィルタリングして条件に合うものだけターゲットに転送\nスケジュール：cron式（例：毎日9時）またはrate式（例：5分ごと）でターゲットを定期実行\nイベントアーカイブ＆リプレイ：イベントを保存しておいて後からリプレイできる（障害時の再処理に便利）\nクロスアカウントイベントバス：別アカウントのイベントバスにイベントを送信できる', tags: ['イベントパターン', 'スケジュール', 'アーカイブ'] },
         { name: 'AWS Step Functions', desc: 'Standardワークフロー：**最大1年実行・正確**に1回実行保証・実行履歴をCloudWatchに保存。長期バッチ処理向け\nExpressワークフロー：最大5分・高スループット（秒間10万実行）・少なくとも1回実行。高頻度のイベント処理向け\nステートマシン：ステートをJSONで定義して並列・条件分岐・エラーハンドリング・リトライを視覚化', tags: ['Express', 'Standard', 'ステートマシン'] },
       ],
@@ -319,7 +319,7 @@ const CHEAT_DATA: CheatData = {
       title: '監視・トレーシング',
       items: [
         { name: 'AWS X-Ray', desc: '**アプリのリクエスト**をエンドツーエンドでトレーシングするサービス。\nサービスマップ：各サービス間の依存関係とレイテンシを視覚化\nアノテーション：インデックス化される任意のキーバリュー（フィルタリング・グループ化に使用）\nメタデータ：インデックス不要の追加情報（デバッグ詳細情報）\nサンプリングルール：トレースするリクエストの割合を設定してコストを調整\nX-Rayデーモン：EC2やECSにインストールしてトレースデータを収集するプロセス', tags: ['トレーシング', 'サービスマップ', 'アノテーション'] },
-        { name: 'Amazon CloudWatch Logs', desc: 'ロググループ：**ログを管理**するコンテナ（保持期間を設定）\nログストリーム：同一リソース（EC2インスタンス等）からのログの流れ\nメトリクスフィルター：ログのパターンに一致した件数をカスタムメトリクスとして記録（アラームのトリガーに使用）\nサブスクリプションフィルター：ログをリアルタイムでLambda・Firehose・OpenSearchに転送する仕組み', tags: ['ロググループ', 'メトリクスフィルター', 'サブスクリプション'] },
+        { name: 'Amazon CloudWatch Logs', desc: '主な構成要素：\n- ロググループ：**ログを管理**するコンテナ（保持期間を設定）\n- ログストリーム：同一リソース（EC2インスタンス等）からのログの流れ\n- メトリクスフィルター：ログのパターンに一致した件数をカスタムメトリクスとして記録（アラームのトリガーに使用）\n- サブスクリプションフィルター：ログをリアルタイムでLambda・Firehose・OpenSearchに転送する仕組み', tags: ['ロググループ', 'メトリクスフィルター', 'サブスクリプション'] },
         { name: 'Amazon CloudWatch Embedded Metrics（EMF）', desc: 'EMF（Embedded Metric Format）：**ログにJSON**でメトリクスを埋め込む形式\nLambdaのログ内に特定のJSON構造でメトリクスデータを埋め込む形式。\nPutMetricData APIを呼び出さずにカスタムメトリクスを記録できるため、Lambdaの実行時間削減とコスト削減が可能。AWS提供のEMFライブラリ（Python・Node.js等）を使うと実装が容易。', tags: ['EMF', '構造化ログ', 'カスタムメトリクス'] },
       ],
     },
@@ -350,7 +350,7 @@ const CHEAT_DATA: CheatData = {
         { name: 'AWS Systems Manager', desc: '主要機能：\n- Session Manager：**SSHポート**を開けずにブラウザまたはCLIからEC2にセキュアに接続\n- Run Command：複数EC2に対して同時にシェルコマンドやスクリプトを実行\n- Patch Manager：OSのセキュリティパッチを自動適用するスケジュール管理\n- State Manager：設定の継続的な適用・維持（例：特定のソフトウェアが常にインストール済みであることを保証）\n- Inventory：EC2のソフトウェア・設定情報を収集\n- OpsCenter：運用上の問題（OpsItem）を一元管理してRunbookで解決\n- Automation：複数ステップの運用タスクを自動化するRunbook（ドキュメント）を定義・実行', tags: ['Session Manager', 'Patch Manager', 'Automation'] },
         { name: 'Amazon EventBridge（運用自動化）', desc: 'イベント駆動：**AWSイベント**を起点に運用を自動化\nAWSサービスのイベントをトリガーに運用タスクを自動化するパターンが重要。\n例：\nAWS Config違反 → EventBridge → Lambda（自動修復）\nGuardDuty脅威検出 → EventBridge → SNS通知・Lambda隔離\nEC2インスタンス起動 → EventBridge → Systems Manager Automation\nスケジュール → EventBridge → Lambda（定期バックアップ）', tags: ['自動修復', 'Config連携', 'スケジュール'] },
         { name: 'AWS OpsWorks', desc: '**Chef**（Rubyベースの設定管理ツール）またはPuppet（宣言型設定管理ツール）を使ったインフラ自動化サービス。\nレシピ：ChefでEC2の設定を定義する手順書\nクックブック：レシピのコレクション\nレイヤー：同じ役割を持つEC2グループ（Webレイヤー・DBレイヤー等）', tags: ['Chef', 'Puppet', '設定管理'] },
-        { name: 'AWS Elastic Beanstalk（SOA観点）', desc: 'Rolling with additional batch：**追加インスタンス**を起動してからローリング更新。容量を全量維持したまま更新できる\nImmutable：新インスタンスを別オートスケーリンググループで起動してから入れ替え。最も安全だが時間がかかる\nDNS（Domain Name System） CNAME Swap（環境スワップ）：新旧環境のCNAMEを瞬時に入れ替えるブルーグリーンデプロイ', tags: ['Rolling', 'Immutable', 'DNS CNAME Swap'] },
+        { name: 'AWS Elastic Beanstalk（SOA観点）', desc: '主なデプロイ方式：\n- Rolling with additional batch：**追加インスタンス**を起動してからローリング更新。容量を全量維持したまま更新できる\n- Immutable：新インスタンスを別オートスケーリンググループで起動してから入れ替え。最も安全だが時間がかかる\n- DNS（Domain Name System） CNAME Swap（環境スワップ）：新旧環境のCNAMEを瞬時に入れ替えるブルーグリーンデプロイ', tags: ['Rolling', 'Immutable', 'DNS CNAME Swap'] },
         { name: 'SSM Distributor', desc: 'ソフト配布：**パッケージを版管理**し一括インストール\nSystems Manager の機能。ソフトウェアパッケージ（エージェント・独自アプリ等）を作成・バージョン管理し、マネージドインスタンス群へ一括インストール/更新するサービス。\nAWS提供パッケージ（CloudWatchエージェント等）と自作パッケージの両方を配布可能\nState Manager と組み合わせて「常に最新版がインストールされている状態」を維持できる\nRun Command で即時配布、または定期スケジュール配布', tags: ['パッケージ配布', 'バージョン管理', 'SSM'] },
         { name: 'EC2 Image Builder（レシピ）', desc: '**AMI**やコンテナイメージのビルド・テスト・配布を自動化するパイプラインサービス。手動でのゴールデンAMI作成・パッチ当てを自動化する。\nレシピ(Recipe)：「ベースイメージ＋コンポーネント(インストール/設定/テストの手順)＋バージョン」の組み合わせ定義。イメージの中身を決める設計図\nコンポーネント：ソフトのインストールや設定、テストを行う個々のステップ\nパイプライン：レシピを元に定期/オンデマンドでビルド→テスト→指定リージョン/アカウントへ配布・共有\nメリット：常に最新パッチ適用済みのAMIを自動生成し、脆弱性のある古いAMIの手動運用を排除', tags: ['ゴールデンAMI自動化', 'レシピ', 'コンポーネント'] },
         { name: 'AMI 管理・コピー（クロスリージョン）', desc: '**AMI**(Amazonマシンイメージ)はEC2の起動テンプレートとなるスナップショットの集合。\ncopy-image（AMIコピー）の用途：別リージョン/別アカウントへ横展開、DR用にリージョン間複製、暗号化の付与・KMSキーの切替\nクロスリージョンコピーの注意点：\n- AMI ID はリージョン固有。コピー先で新しいAMI IDが払い出される（既存IDをそのまま参照不可）\n- 紐づくEBSスナップショットも一緒にコピーされ、データ転送・保管コストが発生\n- 暗号化AMIはコピー先リージョンのKMSキーで再暗号化が必要（送信元キーはリージョンをまたげない）\n- 起動権限・タグは自動では引き継がれない（別途設定）\nEC2 Image Builder のパイプライン配布でも複数リージョンへ展開できる', tags: ['copy-image', 'AMI IDはリージョン固有', 'KMS再暗号化'] },
@@ -363,7 +363,7 @@ const CHEAT_DATA: CheatData = {
         { name: 'AWS Backup', desc: '**一元的なバックアップ**を複数サービス横断で自動化・管理するフルマネージドサービス。\n対応：EBS・RDS・DynamoDB・EFS・FSx・Storage Gateway 等\nバックアッププラン：スケジュール・保持期間・ライフサイクル（コールドストレージ移行）をポリシーで定義\nBackup Vault：保管先。Vault Lock（WORM）で削除・改ざんを防止\nクロスリージョン/クロスアカウントコピー：DRや組織横断のバックアップ集約', keyword: 'AWS Backup 一元バックアップ Backup Vault Vault Lock クロスリージョン', tags: ['一元バックアップ', 'Backup Vault', 'Vault Lock / WORM'] },
         { name: 'AWS Auto Scaling', desc: 'ライフサイクルフック（Lifecycle Hook）：**インスタンスの起動時**（設定完了まで待機）・終了時（データ退避処理）にカスタムスクリプトを挿入する仕組み\n予測スケーリング（Predictive Scaling）：過去のメトリクスパターンをMLで学習して事前にスケールアウト\nウォームアップ期間（Instance Warmup）：新インスタンスが準備できるまでメトリクスへの影響を除外する時間', tags: ['ライフサイクルフック / Lifecycle Hook', '予測スケーリング / Predictive Scaling', 'ウォームアップ'] },
         { name: 'Elastic Load Balancing（ELB）', desc: '**ヘルスチェック**設定パラメータ：\n- 正常しきい値（HealthyThreshold）：正常と判断するまでの連続成功回数\n- 異常しきい値（UnhealthyThreshold）：異常と判断するまでの連続失敗回数\n- アクセスログ：ELBのアクセスログをS3に保存（デフォルト無効）\n- クロスゾーン負荷分散（Cross-Zone Load Balancing）：複数AZにまたがってトラフィックを均等に分散\n- Connection Draining（登録解除の遅延 / Deregistration Delay）：登録解除中のターゲットへの既存接続を安全に完了させる猶予時間', tags: ['ヘルスチェック', 'クロスゾーン / Cross-Zone', 'Connection Draining'] },
-        { name: 'Amazon RDS（可用性）', desc: 'Multi-AZフェイルオーバー：**60〜120秒が目安**。プライマリ障害時にスタンバイが自動でプライマリに昇格\nスナップショット：自動（0〜35日間保持）と手動（明示的に削除するまで保持）の2種類\nPITR（ポイントインタイムリカバリ）：最大35日前の任意の時点のデータに5分以内の精度で復元可能\nリードレプリカのプロモーション：読み取りレプリカを独立したDBインスタンスに昇格（手動操作）', tags: ['フェイルオーバー', 'ポイントインタイム', 'リードレプリカ'] },
+        { name: 'Amazon RDS（可用性）', desc: '可用性の主な機能：\n- Multi-AZフェイルオーバー：**60〜120秒が目安**。プライマリ障害時にスタンバイが自動でプライマリに昇格\n- スナップショット：自動（0〜35日間保持）と手動（明示的に削除するまで保持）の2種類\n- PITR（ポイントインタイムリカバリ）：最大35日前の任意の時点のデータに5分以内の精度で復元可能\n- リードレプリカのプロモーション：読み取りレプリカを独立したDBインスタンスに昇格（手動操作）', tags: ['フェイルオーバー', 'ポイントインタイム', 'リードレプリカ'] },
         { name: 'Amazon Route 53（DR構成）', desc: 'DR（**災害対策**）構成の核。\nヘルスチェックの種類\n- エンドポイント監視：HTTP/HTTPS/TCPでエンドポイントの死活を監視\n- 他ヘルスチェック監視：複数ヘルスチェックのAND/OR評価\n- CloudWatchアラーム監視：アラームの状態に連動\nフェイルオーバールーティングと組み合わせてプライマリ障害時にセカンダリサイトに自動切り替え', tags: ['ヘルスチェック', 'フェイルオーバー', 'DR構成'] },
         { name: 'Route 53 Resolver エンドポイント（ハイブリッドDNS）', desc: '**オンプレミス**とVPC間で相互にDNS名前解決するための仕組み（VPCとオンプレをVPN/Direct Connectで接続した環境で使う）。向きに注意。\nインバウンドエンドポイント：オンプレDNS → AWS への問い合わせを受ける。オンプレからVPC内の名前(privateホストゾーン/AWSリソース)を解決したいとき\nアウトバウンドエンドポイント：AWS(VPC) → オンプレDNS へ転送する。VPC内のリソースからオンプレのドメイン名を解決したいとき（Resolver ルールで転送先を指定）\n覚え方：「AWSに入ってくる問い合わせ＝インバウンド」「AWSから出ていく問い合わせ＝アウトバウンド」', tags: ['ハイブリッドDNS', 'インバウンド=オンプレ→AWS', 'アウトバウンド=AWS→オンプレ'] },
         { name: 'S3 レプリケーション（RTC / ライブ vs バッチ）', desc: 'S3の**オブジェクト複製**。CRR(クロスリージョン)/SRR(同一リージョン)。\nライブレプリケーション：レプリケーション設定後に「新規に作成/更新される」オブジェクトを継続的に自動複製（既存オブジェクトは対象外）\nS3（Simple Storage Service） バッチレプリケーション：設定より前から存在する「既存オブジェクト」や複製失敗分を遡って複製する（S3 Batch Operations ジョブ）。初回移行・後追い複製に使う\nS3 RTC（Replication Time Control）：99.99%のオブジェクトを15分以内に複製するSLA付きの機能。複製の遅延をCloudWatchメトリクス(OperationsPendingReplication等)で監視でき、RPO要件が厳しいDRで使う（追加料金）\n使い分け：通常の継続複製=ライブ / 既存分の穴埋め=バッチ / 時間保証が要る=RTC', tags: ['CRR/SRR', 'RTC=15分SLA', 'バッチ=既存複製'] },
@@ -395,16 +395,16 @@ const CHEAT_DATA: CheatData = {
       items: [
         { name: 'AWS CloudFormation', desc: '変更セット（Change Set）：**スタック変更を実際**に適用する前に影響範囲を確認・レビューできる\nドリフト検出（Drift Detection）：実際のリソース設定とCloudFormationテンプレートの差分を検出（手動変更の発見に使用）\nカスタムリソース：Lambda関数でCloudFormationが対応していないリソースを管理する仕組み\nStackSets：複数のAWSアカウント・リージョンに同一スタックを一括展開\nCloudFormation Hooks：リソース変更前にカスタムバリデーションを実行してポリシー違反を防止', tags: ['変更セット', 'ドリフト検出', 'StackSets'] },
         { name: 'AWS CDK（Cloud Development Kit）', desc: '**TypeScript**・Python・Java・C#等のプログラミング言語でCloudFormationテンプレートを生成するIaCフレームワーク。\nConstruct（コンストラクト）の3層：\n- L1：CloudFormationリソースを直接ラップ（低レベル）\n- L2：AWSサービスを使いやすくした高レベル抽象（セキュアなデフォルト付き）\n- L3：複数サービスを組み合わせた完全なパターン（例：Static Website Hosting）\nCDK（Cloud Development Kit） Pipelines：CDKアプリ自体をCI/CDパイプラインで自動デプロイするライブラリ', tags: ['CDK', 'Construct', 'CDK Pipelines'], termKeywords: { 'L1': 'L1（CDK Construct）', 'L2': 'L2（CDK Construct）', 'L3': 'L3（CDK Construct）' } },
-        { name: 'AWS Systems Manager（DOP観点）', desc: 'Automation Runbook（旧Document）：複数ステップの**運用タスク**をYAMLで定義して自動実行\nState Manager：EC2の設定が常に望ましい状態に保たれることを保証する（設定ドリフトの自動修正）\nRun Command：複数EC2に対して一括でコマンド実行（パッチ確認・ログ収集等）\nParameter Store：階層的な設定値・秘密情報の管理。CDK/CloudFormationとの統合でシームレスに利用', tags: ['Automation Runbook', 'State Manager', '設定継続適用'] },
+        { name: 'AWS Systems Manager（DOP観点）', desc: '主な機能：\n- Automation Runbook（旧Document）：複数ステップの**運用タスク**をYAMLで定義して自動実行\n- State Manager：EC2の設定が常に望ましい状態に保たれることを保証する（設定ドリフトの自動修正）\n- Run Command：複数EC2に対して一括でコマンド実行（パッチ確認・ログ収集等）\n- Parameter Store：階層的な設定値・秘密情報の管理。CDK/CloudFormationとの統合でシームレスに利用', tags: ['Automation Runbook', 'State Manager', '設定継続適用'] },
         { name: 'AWS OpsWorks', desc: '構成管理：**Chef** / Puppet でサーバー設定を自動化\nChef（Rubyベース）またはPuppet（宣言型）を使ったサーバー設定管理サービス。\nDOPでは複雑な設定管理シナリオや既存のChef/Puppetコードベースを継続利用するケースで登場する。', tags: ['Chef', 'Puppet', '設定管理'] },
       ],
     },
     {
       title: '監視・インシデント対応',
       items: [
-        { name: 'Amazon CloudWatch（DOP観点）', desc: 'Contributor Insights：**ネットワーク**・APIの上位N件のアクセス元・エラー原因を特定するルールベース分析\nSynthetics Canary（合成監視）：ヘッドレスブラウザのスクリプトでAPIやWebUIの死活・レスポンスを定期チェック\nEventBridge Pipes：EventBridgeのソース→フィルタ→変換→ターゲットをシンプルなパイプとして構築\n複合アラーム：複数アラームのAND/OR条件で不要なアラートを減らす', tags: ['Contributor Insights', 'Synthetics', 'EventBridge Pipes'] },
-        { name: 'AWS X-Ray（DOP観点）', desc: 'サービスマップ：**マイクロサービス間**の依存関係・レイテンシ・エラー率を視覚化してボトルネックを特定\nアノテーション：インデックス化されるキーバリュー。フィルタクエリでトレースを絞り込める\nサンプリングルール：デフォルト（5%）を変更してコスト・データ量を調整\nグループ：フィルタ式でトレースのサブセットを定義して別々にCloudWatchアラームを設定', tags: ['サービスマップ', 'サンプリング', 'グループ'] },
-        { name: 'Amazon EventBridge（イベントバス）', desc: 'デフォルトイベントバス：**AWSサービス**のイベントを受信\nカスタムイベントバス：アプリや外部システムのカスタムイベントを管理\nパートナーイベントバス：Datadog・SaaSパートナーのイベントを受信\nアーカイブ＆リプレイ：イベントを保存しておき障害時の再処理（リプレイ）が可能\nEventBridge Pipes：SQS/DynamoDB Streams/Kinesis → フィルタ → エンリッチ → Lambda/Step Functions への一連のパイプを簡潔に構築', tags: ['カスタムバス', 'アーカイブ/リプレイ', 'Pipes'] },
+        { name: 'Amazon CloudWatch（DOP観点）', desc: '高度な監視機能：\n- Contributor Insights：**ネットワーク**・APIの上位N件のアクセス元・エラー原因を特定するルールベース分析\n- Synthetics Canary（合成監視）：ヘッドレスブラウザのスクリプトでAPIやWebUIの死活・レスポンスを定期チェック\n- EventBridge Pipes：EventBridgeのソース→フィルタ→変換→ターゲットをシンプルなパイプとして構築\n- 複合アラーム：複数アラームのAND/OR条件で不要なアラートを減らす', tags: ['Contributor Insights', 'Synthetics', 'EventBridge Pipes'] },
+        { name: 'AWS X-Ray（DOP観点）', desc: '主な機能：\n- サービスマップ：**マイクロサービス間**の依存関係・レイテンシ・エラー率を視覚化してボトルネックを特定\n- アノテーション：インデックス化されるキーバリュー。フィルタクエリでトレースを絞り込める\n- サンプリングルール：デフォルト（5%）を変更してコスト・データ量を調整\n- グループ：フィルタ式でトレースのサブセットを定義して別々にCloudWatchアラームを設定', tags: ['サービスマップ', 'サンプリング', 'グループ'] },
+        { name: 'Amazon EventBridge（イベントバス）', desc: 'イベントバスの種類：\n- デフォルトイベントバス：**AWSサービス**のイベントを受信\n- カスタムイベントバス：アプリや外部システムのカスタムイベントを管理\n- パートナーイベントバス：Datadog・SaaSパートナーのイベントを受信\n- アーカイブ＆リプレイ：イベントを保存しておき障害時の再処理（リプレイ）が可能\n- EventBridge Pipes：SQS/DynamoDB Streams/Kinesis → フィルタ → エンリッチ → Lambda/Step Functions への一連のパイプを簡潔に構築', tags: ['カスタムバス', 'アーカイブ/リプレイ', 'Pipes'] },
         { name: 'AWS Incident Manager', desc: 'インシデント管理：**検知→対応計画**→Runbook→エスカレーション\nSystems Managerの一機能。インシデントを体系的に管理するサービス。\nフロー：インシデント検出（CloudWatchアラーム等）→ 対応計画（Response Plan）の自動起動 → Runbookで対応手順を実行 → エスカレーション（担当者通知） → PIR（事後分析：Post-Incident Review）\n対応計画：インシデント発生時に誰が・何をすべきかを定義', tags: ['インシデント管理', '対応計画', 'Runbook'] },
       ],
     },
@@ -414,8 +414,8 @@ const CHEAT_DATA: CheatData = {
         { name: 'AWS Auto Scaling（DOP観点）', desc: '**ライフサイクルフック**（Lifecycle Hook）：\n- 起動時フック（Launching）：インスタンス起動後にアプリ設定・エージェントインストールが完了するまで待機\n- 終了時フック（Terminating）：ログ退避・セッション切断などの後処理が完了するまで終了を待機\n予測スケーリング（Predictive Scaling）：過去2週間のメトリクスパターンをMLで学習して事前にスケールアウト\nウォームプール（Warm Pool）：停止済みEC2をプールして起動時間を短縮する仕組み', tags: ['ライフサイクルフック / Lifecycle Hook', '予測スケーリング / Predictive Scaling', 'ウォームプール'] },
         { name: 'AWS Service Quotas', desc: '**AWSサービス**の上限値（クォータ）を一元的に確認・申請するサービス。\nCloudWatchアラームとの統合でクォータ使用率が閾値を超えたら事前に通知\n自動クォータリクエスト：Lambda・Fargateなど一部サービスは使用量に応じて自動で上限引き上げを申請できる', tags: ['上限値', 'クォータ管理', '申請'] },
         { name: 'AWS IAM高度管理', desc: 'Permissions Boundary（アクセス許可の境界）：**IAMユーザー**/ロールに付与できる権限の最大上限を設定するポリシー。開発者が自分より強い権限を持つロールを作れないよう制限する\nABAC（Attribute-Based Access Control：属性ベースのアクセス制御）：IAMロール・リソースのタグを使って動的にアクセス許可を決定する仕組み。チーム・環境別の権限管理に有効', keyword: 'IAM Permissions Boundary ABAC 属性ベースアクセス制御', tags: ['Permissions Boundary', 'ABAC', '最小権限'] },
-        { name: 'AWS Config + AWS Security Hub（DOP）', desc: 'Configコンフォーマンスパック：複数の**Configルール**をまとめてYAMLでパッケージ化し、組織全体に一括展開できる\nSecurity Hub CIS/PCI自動チェック：CIS AWS Foundations Benchmark（セキュリティのベースライン）やPCI-DSS（クレジットカード業界基準）への準拠状況をAWS Configと連携して自動評価\n自動修復：違反検出時にSSM Automationで自動修正するパターンが頻出', keyword: 'AWS Config コンフォーマンスパック Security Hub', tags: ['コンフォーマンスパック', 'CISベンチマーク', '自動修復'], seeAlso: ['Inspector / GuardDuty / Security Hub 使い分け', 'GuardDuty（脅威検出）'] },
-        { name: 'AWS Organizations（マルチアカウント管理）', desc: 'SCP（サービスコントロールポリシー）：**OU**（組織単位）やアカウントに適用するガードレール。IAM許可とのAND評価で最大権限を制限するだけで権限を付与しない\nOU設計：開発・ステージング・本番アカウントを別OUで分離し、誤操作・権限逸脱を組織レベルで防ぐ\nStackSets：CloudFormationテンプレートを複数アカウント・リージョンに一括デプロイする仕組み\nConfig組織アグリゲーター：全アカウント・全リージョンのConfig設定データを1か所に集約して一元監視\n委任された管理者（Delegated Administrator）：管理アカウント以外のメンバーアカウントにSecurity Hub・GuardDuty・Inspector等の管理権限を委任できる仕組み。セキュリティ専用アカウントに集約して管理アカウントとの職務分離を実現', keyword: 'AWS Organizations SCP OU 委任された管理者 Delegated Administrator マルチアカウント', tags: ['SCP', 'StackSets', '委任された管理者'], seeAlso: ['IAM Identity Center（SSO）+ Organizations'] },
+        { name: 'AWS Config + AWS Security Hub（DOP）', desc: '主な機能：\n- Configコンフォーマンスパック：複数の**Configルール**をまとめてYAMLでパッケージ化し、組織全体に一括展開できる\n- Security Hub CIS/PCI自動チェック：CIS AWS Foundations Benchmark（セキュリティのベースライン）やPCI-DSS（クレジットカード業界基準）への準拠状況をAWS Configと連携して自動評価\n- 自動修復：違反検出時にSSM Automationで自動修正するパターンが頻出', keyword: 'AWS Config コンフォーマンスパック Security Hub', tags: ['コンフォーマンスパック', 'CISベンチマーク', '自動修復'], seeAlso: ['Inspector / GuardDuty / Security Hub 使い分け', 'GuardDuty（脅威検出）'] },
+        { name: 'AWS Organizations（マルチアカウント管理）', desc: '主な機能：\n- SCP（サービスコントロールポリシー）：**OU**（組織単位）やアカウントに適用するガードレール。IAM許可とのAND評価で最大権限を制限するだけで権限を付与しない\n- OU設計：開発・ステージング・本番アカウントを別OUで分離し、誤操作・権限逸脱を組織レベルで防ぐ\n- StackSets：CloudFormationテンプレートを複数アカウント・リージョンに一括デプロイする仕組み\n- Config組織アグリゲーター：全アカウント・全リージョンのConfig設定データを1か所に集約して一元監視\n- 委任された管理者（Delegated Administrator）：管理アカウント以外のメンバーアカウントにSecurity Hub・GuardDuty・Inspector等の管理権限を委任できる仕組み。セキュリティ専用アカウントに集約して管理アカウントとの職務分離を実現', keyword: 'AWS Organizations SCP OU 委任された管理者 Delegated Administrator マルチアカウント', tags: ['SCP', 'StackSets', '委任された管理者'], seeAlso: ['IAM Identity Center（SSO）+ Organizations'] },
         { name: 'AWS IAM Identity Center（SSO）+ AWS Organizations', desc: '複数の**AWSアカウント**へのシングルサインオン（SSO）をOrganizations全体で一元管理するサービス（旧AWS SSO）。\nアイデンティティソース（認証先の選択）：\n- AWS組み込みIDストア：Identity Centerが管理するユーザー/グループ（シンプルな構成）\n- 外部IdP（SAML 2.0）：Okta・Azure AD等のIdPと連携。SCIMで自動プロビジョニング\n- Active Directory：AWS Managed Microsoft ADまたはAD Connectorで社内ADと同期\n- Cognito User Pool連携：CognitoをOIDCアイデンティティソースとしてIdentity Centerに登録することでアプリのユーザーにAWSアカウントアクセスを付与するパターン\n- 権限セット（Permission Set）：アカウントごとに付与するIAMポリシーの組み合わせを定義して一元管理\n- Cognitoとの違い：CognitoはB2Cアプリのエンドユーザー認証（ユーザープール）/ Identity CenterはAWSアカウントへの社員アクセス管理', keyword: 'IAM Identity Center AWS SSO Organizations SSO 権限セット Cognito SAML SCIM', tags: ['SSO', '権限セット', 'SAML/SCIM'], seeAlso: ['Organizations（マルチアカウント管理）'] },
         { name: 'Amazon Inspector / Amazon GuardDuty / AWS Security Hub 使い分け', desc: '**3サービスの役割**の違い：\n- GuardDuty（脅威検出）：CloudTrail・VPCフロー・DNSログをML+脅威インテリジェンスで分析して「今起きている脅威」を検出。ポートスキャン・クレデンシャル漏洩・クリプトマイニングを発見\n- Inspector（脆弱性管理）：EC2・ECR・Lambdaの既知脆弱性（CVE）を継続スキャンして「これから起きうる弱点」を予防的に発見。CVSSスコアで優先順位付け\n- Security Hub（統合・コンプライアンス）：GuardDuty・Inspector・Macie等の検出結果をASFF形式で集約し優先順位付け。CIS AWS Foundations Benchmark・PCI-DSSへの準拠状況を自動評価\n- 典型的な連携パターン：GuardDuty（脅威を検出）→ EventBridge → Lambda（EC2を自動隔離）+ Security Hub（全体の状態を追跡・管理）+ Inspector（悪用された脆弱性を特定）', keyword: 'GuardDuty Inspector Security Hub 使い分け 脅威検出 脆弱性管理 コンプライアンス', tags: ['GuardDuty', 'Inspector', 'Security Hub'], seeAlso: ['Inspector（脆弱性管理）', 'GuardDuty（脅威検出）', 'Config + Security Hub（DOP）'] },
         { name: 'Amazon Inspector（脆弱性管理）', desc: '**脆弱性**（セキュリティの弱点）を継続的にスキャンして優先順位付けするサービス。\nスキャン対象：\n- EC2インスタンス：SSMエージェント経由でエージェントレスにOSの既知脆弱性を検出\n- ECRコンテナイメージ：プッシュ時に自動スキャンして脆弱なイメージのデプロイを防ぐ\n- Lambda関数：コードと依存パッケージの脆弱性をスキャン\nCVSSスコアでリスク優先順位付けし、Security Hubに集約してDOP全体のセキュリティ可視化に活用', tags: ['CVE', 'CVSS', 'コンテナスキャン'], seeAlso: ['GuardDuty（脅威検出）', 'Inspector / GuardDuty / Security Hub 使い分け'] },
@@ -521,10 +521,10 @@ const CHEAT_DATA: CheatData = {
       title: '組織とガバナンス',
       items: [
         { name: 'AWS Organizations', desc: '複数の**AWSアカウント**をOU（組織単位）で階層的に管理するサービス。\nSCP（サービスコントロールポリシー）：OU/アカウントに適用するガードレール。IAM許可との AND評価で最大権限を制限するだけで権限を付与する機能はない\nコンソリデーテッドビリング：全アカウントの請求を1つにまとめてスケールメリットで割引を受けられる', tags: ['SCP', 'OU', 'ガードレール'] },
-        { name: 'AWS Control Tower', desc: '**AWS** Organizationsの上でマルチアカウント環境の推奨アーキテクチャ（ランディングゾーン）を自動セットアップするサービス。\nGuardrails（ガードレール）：予防的（SCPで禁止）と検出的（Configルールで違反を検出）の2種類\nAccount Factory：新しいAWSアカウントを承認済み設定で自動プロビジョニング\nログアーカイブアカウント：CloudTrail・Configのログを集約保存する専用アカウント', tags: ['ランディングゾーン', 'Guardrails', 'Account Factory'] },
-        { name: 'AWS RAM（Resource Access Manager）', desc: '**AWS** Organizationsまたはアカウント間でAWSリソースを共有するサービス。\n共有可能なリソース例：VPCサブネット・Transit Gateway・Route 53 Resolverルール・ライセンス\nVPCサブネット共有：別アカウントのリソースを同一VPCのサブネットに配置できる。VPCピアリングやTGWなしで済む', tags: ['リソース共有', 'VPC共有', 'クロスアカウント'] },
+        { name: 'AWS Control Tower', desc: 'AWS Organizationsの上でマルチアカウント環境の推奨アーキテクチャ（**ランディングゾーン**）を自動セットアップするサービス。\nGuardrails（ガードレール）：予防的（SCPで禁止）と検出的（Configルールで違反を検出）の2種類\nAccount Factory：新しいAWSアカウントを承認済み設定で自動プロビジョニング\nログアーカイブアカウント：CloudTrail・Configのログを集約保存する専用アカウント', tags: ['ランディングゾーン', 'Guardrails', 'Account Factory'] },
+        { name: 'AWS RAM（Resource Access Manager）', desc: 'AWS Organizationsまたは**アカウント間**でAWSリソースを共有するサービス。\n共有可能なリソース例：VPCサブネット・Transit Gateway・Route 53 Resolverルール・ライセンス\nVPCサブネット共有：別アカウントのリソースを同一VPCのサブネットに配置できる。VPCピアリングやTGWなしで済む', tags: ['リソース共有', 'VPC共有', 'クロスアカウント'] },
         { name: 'AWS Service Catalog', desc: 'セルフサービス：**承認済みリソース**を社内に提供\nITサービスのポートフォリオを管理してユーザーにセルフサービスで承認済みリソースを提供するサービス。\nCloudFormationテンプレートをベースに「製品」を定義し、ユーザーが承認済み製品だけをデプロイできるガバナンスを実現。コスト管理・コンプライアンス維持に有効。', tags: ['セルフサービス', 'カタログ', 'ガバナンス'] },
-        { name: 'AWS Config + AWS Organizations', desc: 'Config組織アグリゲーター：**全アカウント**・全リージョンの設定データを1か所に集約して一元管理する機能\nコンフォーマンスパック：複数のConfigルールをまとめてYAMLでパッケージ化し、Organizationsを通じて全アカウントに一括展開する', keyword: 'AWS Config 組織アグリゲーター コンフォーマンスパック', tags: ['アグリゲーター', 'コンフォーマンスパック', '一元管理'] },
+        { name: 'AWS Config + AWS Organizations', desc: '主な機能：\n- Config組織アグリゲーター：**全アカウント**・全リージョンの設定データを1か所に集約して一元管理する機能\n- コンフォーマンスパック：複数のConfigルールをまとめてYAMLでパッケージ化し、Organizationsを通じて全アカウントに一括展開する', keyword: 'AWS Config 組織アグリゲーター コンフォーマンスパック', tags: ['アグリゲーター', 'コンフォーマンスパック', '一元管理'] },
       ],
     },
     {
@@ -591,7 +591,7 @@ const CHEAT_DATA: CheatData = {
       title: '最適化・運用',
       items: [
         { name: 'コスト最適化', desc: '**料金モデルの選択**：\n- オンデマンド：APIコールごとに課金。小規模・不定期な利用に適する\n- プロビジョニドスループット：一定スループットを月/6か月/1年コミットで割引購入。大規模・定常的な利用に適する\n- プロンプトキャッシュ（Prompt Caching）：同じプレフィックスのプロンプト部分をキャッシュして再利用するとトークンコストを削減できる機能', keyword: 'Bedrock コスト プロビジョニドスループット Prompt Caching', tags: ['プロビジョニドスループット', 'プロンプトキャッシュ', 'コスト'] },
-        { name: 'レイテンシ最適化', desc: 'ストリーミングレスポンス：**応答を生成しな**がらトークン単位で逐次返す。TTFT（Time to First Token：最初のトークンが届くまでの時間）の体感を改善\n適切なモデルサイズの選択：タスクの複雑さに応じて大きなモデルと小さなモデルを使い分け（小モデルの方が速くコストも安い）\nリージョンの最適化：ユーザーに近いリージョンのBedrockを使用して物理的レイテンシを削減', keyword: 'Bedrock レイテンシ ストリーミングレスポンス TTFT', tags: ['ストリーミング', 'TTFT', 'モデルサイズ'] },
+        { name: 'レイテンシ最適化', desc: '主な手法：\n- ストリーミングレスポンス：**応答を生成しな**がらトークン単位で逐次返す。TTFT（Time to First Token：最初のトークンが届くまでの時間）の体感を改善\n- 適切なモデルサイズの選択：タスクの複雑さに応じて大きなモデルと小さなモデルを使い分け（小モデルの方が速くコストも安い）\n- リージョンの最適化：ユーザーに近いリージョンのBedrockを使用して物理的レイテンシを削減', keyword: 'Bedrock レイテンシ ストリーミングレスポンス TTFT', tags: ['ストリーミング', 'TTFT', 'モデルサイズ'] },
         { name: 'Amazon Q', desc: '**AWSが提供**するAIアシスタント製品ファミリー。\nQ Business：企業の社内ドキュメント（Confluence・Slack・S3等）に接続して自然言語でナレッジを検索・回答するチャットボット\nQ Developer：コード生成・補完・デバッグ・変換・セキュリティスキャンを行うAIコーディングアシスタント（IDE・AWSコンソール統合）\nQ in Amazon QuickSight：BIダッシュボードのNL2SQL（自然言語からSQLを生成して自動でグラフを作成）', tags: ['Q Business', 'Q Developer', 'NL2SQL'] },
       ],
     },
@@ -610,7 +610,7 @@ const CHEAT_DATA: CheatData = {
     {
       title: '接続・ルーティング',
       items: [
-        { name: 'AWS Transit Gateway（ANS観点）', desc: 'TGWルートテーブル：**アタッチメント**（VPC/VPN/DC）ごとにルーティングを制御。同一ルートテーブルに関連付けないと通信不可\n分離ルーティング：本番VPCと開発VPCを別ルートテーブルに入れて相互通信を禁止する設計\nTGWピアリング：別リージョンのTGWとピアリングしてマルチリージョン接続\nVPN/Direct Connectアタッチメントも統合して中央集権的なハブを実現', tags: ['TGWルートテーブル', 'リージョン間', 'アタッチメント'] },
+        { name: 'AWS Transit Gateway（ANS観点）', desc: '主な機能：\n- TGWルートテーブル：**アタッチメント**（VPC/VPN/DC）ごとにルーティングを制御。同一ルートテーブルに関連付けないと通信不可\n- 分離ルーティング：本番VPCと開発VPCを別ルートテーブルに入れて相互通信を禁止する設計\n- TGWピアリング：別リージョンのTGWとピアリングしてマルチリージョン接続\nVPN/Direct Connectアタッチメントも統合して中央集権的なハブを実現', tags: ['TGWルートテーブル', 'リージョン間', 'アタッチメント'] },
         { name: 'AWS Direct Connect（ANS詳細）', desc: '**Direct** Connect接続の種類：\n- ホスト型：Direct Connectパートナー経由。1/10Gbps等の共有帯域\n- 専用型：AWSのDirect Connect施設に直接接続。1/10/100Gbpsの専用回線\nVIF（Virtual Interface：仮想インターフェース）の種別：\n- プライベートVIF：VPCのプライベートリソースへ接続（VGWまたはTGWに接続）\n- パブリックVIF：S3・DynamoDB等のAWSパブリックエンドポイントへ接続\n- トランジットVIF：Transit Gateway経由で複数VPCへ接続', tags: ['ホスト型', '専用型', 'VIF'] },
         { name: 'AWS Direct Connect 冗長化', desc: '冗長化：**DC複数**やDC+VPNで可用性を高める構成\nDirect Connectの冗長性レベル（AWS推奨）：\n- 最大冗長性：2つのDirect Connectロケーション × 2接続 = 4接続。シングルポイント障害なしの最高冗長\n- 高冗長性：2つのロケーション × 1接続 = 2接続。ロケーション障害に耐性あり\n- 開発/テスト用：1接続のみ。冗長性なし。本番では非推奨', tags: ['最大冗長性', '高冗長性', 'HA'] },
         { name: 'AWS Site-to-Site VPN', desc: '**オンプレとAWS** VPCをインターネット経由のIPsec暗号化トンネルで接続。\nCGW（カスタマーゲートウェイ）：オンプレ側のVPN機器を定義するAWSリソース\nVGW（仮想プライベートゲートウェイ）：VPCにアタッチするAWS側のVPNエンドポイント\nBGP動的ルーティング：ルートを自動的に交換・フェイルオーバー\n加速VPN（Accelerated VPN）：AWSグローバルアクセラレーターでバックボーン経由の高速接続', tags: ['CGW', 'VGW', '加速VPN'] },
@@ -622,7 +622,7 @@ const CHEAT_DATA: CheatData = {
       items: [
         { name: 'Amazon Route 53詳細', desc: '**7種類**のルーティングポリシーを状況に応じて使い分ける（詳細はSAAの Route 53 ルーティング参照）。\nDNSSEC（DNS Security Extensions）：DNS応答にデジタル署名を付加してDNSキャッシュポイズニング攻撃を防止する仕組み\nResolver DNS Firewall：悪意のあるドメイン（C2サーバー・マルウェア配布元）へのDNS解決をブロックする機能', tags: ['DNSSEC', 'Resolver', 'DNS Firewall'] },
         { name: 'Amazon Route 53 Resolver（ハイブリッドDNS）', desc: '**オンプレとAWS間**のDNS名前解決を統合するサービス。\nインバウンドエンドポイント（Inbound Endpoint）：オンプレのDNSサーバーからAWS（VPC）のDNSを解決できるようにする\n→ オンプレのサーバーがec2.internal等のAWSのホスト名を解決したい場合\nアウトバウンドエンドポイント（Outbound Endpoint）：VPC内からオンプレのプライベートDNS（example.internal等）を解決できるようにする\n→ AWS上のアプリがオンプレのDBサーバー名を解決したい場合', tags: ['インバウンド / Inbound', 'アウトバウンド / Outbound', 'ハイブリッドDNS'] },
-        { name: 'Amazon CloudFront詳細（ANS）', desc: 'Origins：S3・ALB・EC2・カスタムHTTPサーバー を**配信元**として設定\nビヘイビア：URLパスパターン（/api/*・/images/*等）ごとにオリジン・キャッシュ・関数を個別設定\nOAC（Origin Access Control）：S3バケットをCloudFront経由アクセス専用に制限する仕組み\nLambda@Edge：CloudFrontの4つのイベント（Viewer Request/Response・Origin Request/Response）でLambdaを実行\nField-Level暗号化：機密フィールド（クレカ番号等）をエッジで非対称暗号化してバックエンドまで保護', tags: ['OAC', 'Lambda@Edge', 'Field-Level暗号化'] },
+        { name: 'Amazon CloudFront詳細（ANS）', desc: '主な構成要素：\n- Origins：S3・ALB・EC2・カスタムHTTPサーバー を**配信元**として設定\n- ビヘイビア：URLパスパターン（/api/*・/images/*等）ごとにオリジン・キャッシュ・関数を個別設定\n- OAC（Origin Access Control）：S3バケットをCloudFront経由アクセス専用に制限する仕組み\n- Lambda@Edge：CloudFrontの4つのイベント（Viewer Request/Response・Origin Request/Response）でLambdaを実行\n- Field-Level暗号化：機密フィールド（クレカ番号等）をエッジで非対称暗号化してバックエンドまで保護', tags: ['OAC', 'Lambda@Edge', 'Field-Level暗号化'] },
         { name: 'AWS Global Accelerator', desc: '**Anycast IP**（複数拠点が同一IPを持つ技術）でユーザーを自動的に最寄りのAWSエッジポイントに誘導し、AWSバックボーン経由でエンドポイントに転送。\nエンドポイントグループ：リージョンごとにリソース（ALB・EC2等）をグループ化\nトラフィックダイヤル：グループへのトラフィック割合を0〜100%で調整（Blue/Greenデプロイに活用）', tags: ['Anycast', 'エンドポイントグループ', 'トラフィックダイヤル'] },
       ],
     },
@@ -679,10 +679,10 @@ const CHEAT_DATA: CheatData = {
     {
       title: 'データ保護',
       items: [
-        { name: 'AWS KMS詳細', desc: 'キーポリシー（リソースベースポリシー）：**KMSキー**へのアクセスを定義。IAMポリシーとのAND評価\nマルチリージョンキー：同一のキーIDを複数リージョンでレプリケーション。リージョン間で暗号化したデータを別リージョンで復号可能\nXKS（External Key Store）：AWS外部のHSM（ハードウェアセキュリティモジュール）でキーを管理して規制要件を満たす\nエンベロープ暗号化：DEK（Data Encryption Key）でデータを暗号化し、DEK自体をCMKで暗号化する2層構造', keyword: 'AWS KMS キーポリシー マルチリージョンキー エンベロープ暗号化', tags: ['キーポリシー', 'マルチリージョンキー', 'XKS'] },
+        { name: 'AWS KMS詳細', desc: '主な機能：\n- キーポリシー（リソースベースポリシー）：**KMSキー**へのアクセスを定義。IAMポリシーとのAND評価\n- マルチリージョンキー：同一のキーIDを複数リージョンでレプリケーション。リージョン間で暗号化したデータを別リージョンで復号可能\n- XKS（External Key Store）：AWS外部のHSM（ハードウェアセキュリティモジュール）でキーを管理して規制要件を満たす\n- エンベロープ暗号化：DEK（Data Encryption Key）でデータを暗号化し、DEK自体をCMKで暗号化する2層構造', keyword: 'AWS KMS キーポリシー マルチリージョンキー エンベロープ暗号化', tags: ['キーポリシー', 'マルチリージョンキー', 'XKS'] },
         { name: 'AWS Secrets Manager', desc: '**DBパスワード**・APIキー・OAuthトークン等のシークレットを安全に保管・管理するサービス。\n自動ローテーション：Lambda関数でRDS・Redshift・DocumentDB等のパスワードを定期的に自動更新（組み込みサポートあり）\nクロスアカウント共有：リソースベースポリシーで別アカウントからのアクセスを許可\nVPCエンドポイント経由：インターネットを経由せずシークレットにアクセスして安全性を高める', tags: ['自動ローテーション', 'クロスアカウント', 'VPCエンドポイント'] },
-        { name: 'Amazon S3データ保護', desc: 'バケットポリシー：**JSON形式**でバケット・オブジェクトへのアクセスを細かく制御\nACL無効化：推奨設定。バケットポリシーのみで一元管理するシンプルな構成\nS3ブロックパブリックアクセス：設定ミスによる意図しない公開を防ぐ4つのブロック設定\nObject Lock（WORM：Write Once Read Many）：一度書いたオブジェクトを一定期間変更・削除できないように保護。コンプライアンス要件に使用\nサーバーサイド暗号化：\n- SSE-S3：AWSがキーを管理する最もシンプルな暗号化\n- SSE-KMS：KMSキーを使用。アクセスログとキーポリシーで細かい制御が可能\n- SSE-C：顧客がキーを管理してAWS側には渡さない（最高の機密性）', keyword: 'S3 Object Lock WORM SSE-KMS バケットポリシー', tags: ['Object Lock', 'WORM', 'SSE-KMS'] },
-        { name: 'AWS Audit Manager', desc: '**AWS**の利用状況から証拠を自動収集して、コンプライアンスフレームワークへの準拠状況をレポート化するサービス。\n対応フレームワーク：PCI DSS・HIPAA・GDPR・ISO 27001・NIST 等\n証拠収集：Config・CloudTrail・Security Hub・IAM等からデータを自動取得してフレームワーク要件にマッピング\n監査担当者に証拠レポートを提出するまでのプロセスを簡素化する', tags: ['コンプライアンス', 'PCI DSS', '証拠収集'] },
+        { name: 'Amazon S3データ保護', desc: '主な保護機能：\n- バケットポリシー：**JSON形式**でバケット・オブジェクトへのアクセスを細かく制御\n- ACL無効化：推奨設定。バケットポリシーのみで一元管理するシンプルな構成\n- S3ブロックパブリックアクセス：設定ミスによる意図しない公開を防ぐ4つのブロック設定\n- Object Lock（WORM：Write Once Read Many）：一度書いたオブジェクトを一定期間変更・削除できないように保護。コンプライアンス要件に使用\nサーバーサイド暗号化：\n- SSE-S3：AWSがキーを管理する最もシンプルな暗号化\n- SSE-KMS：KMSキーを使用。アクセスログとキーポリシーで細かい制御が可能\n- SSE-C：顧客がキーを管理してAWS側には渡さない（最高の機密性）', keyword: 'S3 Object Lock WORM SSE-KMS バケットポリシー', tags: ['Object Lock', 'WORM', 'SSE-KMS'] },
+        { name: 'AWS Audit Manager', desc: 'AWSの利用状況から**証拠を自動収集**して、コンプライアンスフレームワークへの準拠状況をレポート化するサービス。\n対応フレームワーク：PCI DSS・HIPAA・GDPR・ISO 27001・NIST 等\n証拠収集：Config・CloudTrail・Security Hub・IAM等からデータを自動取得してフレームワーク要件にマッピング\n監査担当者に証拠レポートを提出するまでのプロセスを簡素化する', tags: ['コンプライアンス', 'PCI DSS', '証拠収集'] },
       ],
     },
   ],
@@ -693,9 +693,9 @@ const CHEAT_DATA: CheatData = {
       title: 'AI・MLの基礎',
       items: [
         { name: '機械学習の種類', desc: '教師あり学習 (Supervised Learning)：**正解ラベル付きデータ**で学習\n- 分類：カテゴリを予測（二項分類=2クラス・多クラス分類）\n- 回帰：数値（連続値）を予測\n教師なし学習 (Unsupervised Learning)：ラベルなしデータからパターンを発見\n- クラスタリング（グループ化）・次元削減 が代表\n強化学習 (Reinforcement Learning)：報酬を最大化する行動を試行錯誤で学習。ゲームAI・ロボット制御に使用', keyword: '機械学習 教師あり学習 教師なし学習 強化学習 二項分類 決定木', tags: ['教師あり', '教師なし', '強化学習'] },
-        { name: 'モデル評価指標', desc: 'Accuracy（精度）：**全予測中の正解率**。クラス不均衡時は注意\nPrecision（適合率）：「陽性」と予測した中で実際に陽性の割合（偽陽性を減らしたい時に重視）\nRecall（再現率）：実際の陽性のうち正しく検出できた割合（見逃しを減らしたい時に重視）\nF1スコア：PrecisionとRecallの調和平均\nAUC-ROC：閾値変化に対するモデルの識別能力を示す（1に近いほど優秀）', keyword: 'F1スコア Precision Recall AUC-ROC 機械学習評価指標', tags: ['Accuracy', 'F1スコア', 'AUC-ROC'] },
+        { name: 'モデル評価指標', desc: '主な指標：\n- Accuracy（精度）：**全予測中の正解率**。クラス不均衡時は注意\n- Precision（適合率）：「陽性」と予測した中で実際に陽性の割合（偽陽性を減らしたい時に重視）\n- Recall（再現率）：実際の陽性のうち正しく検出できた割合（見逃しを減らしたい時に重視）\n- F1スコア：PrecisionとRecallの調和平均\n- AUC-ROC：閾値変化に対するモデルの識別能力を示す（1に近いほど優秀）', keyword: 'F1スコア Precision Recall AUC-ROC 機械学習評価指標', tags: ['Accuracy', 'F1スコア', 'AUC-ROC'] },
         { name: '過学習と正則化', desc: '過学習（Overfitting）：**訓練データに過剰適合**し、未知データで性能が落ちる問題。\n対策手法：\n- L1正則化（Lasso）：不要な特徴量の重みをゼロにして特徴量選択の効果\n- L2正則化（Ridge）：重みを小さく抑えてモデルを単純化\n- ドロップアウト：ニューラルネットのニューロンをランダムに無効化して汎化性能を向上\n- データ拡張：学習データを水増しして多様性を高める', keyword: '過学習 Overfitting L1正則化 L2正則化', tags: ['過学習', 'L1/L2正則化', 'ドロップアウト'] },
-        { name: 'MLのライフサイクル', desc: '① データ収集：ソースから学習データを取り込む\n② データ前処理：クリーニング・正規化・欠損値処理\n③ 特徴量エンジニアリング：モデルの入力に適した形へ変換\n④ モデル学習：アルゴリズムを選びパラメータを調整\n⑤ 評価：テストデータで指標を計測\n⑥ デプロイ：本番環境へ公開\n⑦ 監視：**性能劣化**を検出し再学習（→②へ戻り反復改善）', keyword: 'MLOps 機械学習ライフサイクル', tags: ['MLOps', 'ライフサイクル', 'パイプライン'] },
+        { name: 'MLのライフサイクル', desc: '工程：\n① データ収集：ソースから学習データを取り込む\n② データ前処理：クリーニング・正規化・欠損値処理\n③ 特徴量エンジニアリング：モデルの入力に適した形へ変換\n④ モデル学習：アルゴリズムを選びパラメータを調整\n⑤ 評価：テストデータで指標を計測\n⑥ デプロイ：本番環境へ公開\n⑦ 監視：**性能劣化**を検出し再学習（→②へ戻り反復改善）', keyword: 'MLOps 機械学習ライフサイクル', tags: ['MLOps', 'ライフサイクル', 'パイプライン'] },
         { name: '転移学習の仕組み', desc: '転移学習 (Transfer Learning)：**事前学習済みモデル**を別タスクに流用する手法。ゼロから学習するより少ないデータで高精度を実現。次の2段階で行う\n- 事前学習 (Pre-training)：大規模データで汎用的な基盤モデルを作る（前段）\n- ファインチューニング (Fine-tuning)：その基盤モデルを特定タスクのデータで追加学習して適応（＝転移学習の代表的な実現方法。FTはTLの一手法で並列ではない）', keyword: '転移学習 Transfer Learning ファインチューニング 事前学習', tags: ['転移学習', 'ファインチューニング', '事前学習'] },
         { name: '生成AIの評価指標', desc: '生成AIの品質を測る**代表指標**。\n- BLEU（Bilingual Evaluation Understudy）：機械翻訳の品質評価。参照訳とのn-gram一致率で測定\n- ROUGE：要約品質の評価。参照要約とのn-gram再現率で測定\n- BERTScore：BERTの埋め込みを使った意味的類似度評価。表面一致だけでなく意味の近さも考慮\n- F1・Precision・Recall：分類タスクの標準指標\n- コンバージョン率：AIを活用したマーケティング・レコメンドの最終ビジネス成果を測定するKPI', keyword: 'BLEU ROUGE BERTScore F1 コンバージョン率 生成AI 評価指標', tags: ['BLEU/ROUGE', 'BERTScore', 'ビジネスKPI'] },
       ],
@@ -704,27 +704,27 @@ const CHEAT_DATA: CheatData = {
       title: '学習アルゴリズム',
       items: [
         { name: '回帰（Regression）', desc: '数値（連続値）を予測する教師あり学習。\n線形回帰 (Linear Regression)：入力と出力の関係を**直線で近似**。最小二乗法で誤差を最小化\nロジスティック回帰 (Logistic Regression)：名前は回帰だが分類に使う。シグモイド関数で0〜1の確率を出力\n評価指標：MSE（平均二乗誤差）・RMSE・MAE（平均絶対誤差）・決定係数R²', keyword: '線形回帰 ロジスティック回帰 Linear Regression 最小二乗法 RMSE', tags: ['線形回帰 / Linear Regression', 'ロジスティック回帰', 'RMSE / R²'] },
-        { name: '決定木とアンサンブル学習', desc: '決定木 (Decision Tree)：**条件分岐を木構造**で表現。解釈しやすいが単体では過学習しやすい\nアンサンブル学習：複数のモデルを組み合わせて精度を高める手法\n- バギング (Bagging)：復元抽出で並列に多数モデルを学習（例：ランダムフォレスト）\n- ブースティング (Boosting)：前の誤りを次が補正して直列学習（例：勾配ブースティング / XGBoost・LightGBM）', keyword: '決定木 ランダムフォレスト 勾配ブースティング XGBoost バギング ブースティング アンサンブル', tags: ['ランダムフォレスト', '勾配ブースティング / Boosting', 'バギング'] },
-        { name: '主要な分類アルゴリズム', desc: 'SVM (Support Vector Machine)：**クラス間のマージン**（余白）を最大化する境界線を引く分類器。カーネル法で非線形分離も可能\nk近傍法 (k-NN)：予測対象に近いk個のデータの多数決で分類する遅延学習\nナイーブベイズ (Naive Bayes)：ベイズの定理を用い、特徴量が独立と仮定する確率的分類器。スパム判定・テキスト分類で高速', keyword: 'SVM サポートベクターマシン k近傍法 kNN ナイーブベイズ Naive Bayes カーネル', tags: ['SVM', 'k近傍法 / k-NN', 'ナイーブベイズ'] },
+        { name: '決定木とアンサンブル学習', desc: '主な手法：\n- 決定木 (Decision Tree)：**条件分岐を木構造**で表現。解釈しやすいが単体では過学習しやすい\n- アンサンブル学習：複数のモデルを組み合わせて精度を高める手法\n- バギング (Bagging)：復元抽出で並列に多数モデルを学習（例：ランダムフォレスト）\n- ブースティング (Boosting)：前の誤りを次が補正して直列学習（例：勾配ブースティング / XGBoost・LightGBM）', keyword: '決定木 ランダムフォレスト 勾配ブースティング XGBoost バギング ブースティング アンサンブル', tags: ['ランダムフォレスト', '勾配ブースティング / Boosting', 'バギング'] },
+        { name: '主要な分類アルゴリズム', desc: '主なアルゴリズム：\n- SVM (Support Vector Machine)：**クラス間のマージン**（余白）を最大化する境界線を引く分類器。カーネル法で非線形分離も可能\n- k近傍法 (k-NN)：予測対象に近いk個のデータの多数決で分類する遅延学習\n- ナイーブベイズ (Naive Bayes)：ベイズの定理を用い、特徴量が独立と仮定する確率的分類器。スパム判定・テキスト分類で高速', keyword: 'SVM サポートベクターマシン k近傍法 kNN ナイーブベイズ Naive Bayes カーネル', tags: ['SVM', 'k近傍法 / k-NN', 'ナイーブベイズ'] },
         { name: '教師なし学習の手法', desc: '**教師なし学習**の代表タスク。\nk-meansクラスタリング：データをk個のグループに分割。各クラスタの重心を反復更新（エルボー法でk決定）\n階層的クラスタリング：近いデータを順に結合してデンドログラム（樹形図）を作る\n主成分分析 (PCA)：分散が最大になる軸へ射影して次元を削減し、可視化・ノイズ除去に使う', keyword: 'k-means クラスタリング 主成分分析 PCA 次元削減 階層的クラスタリング エルボー法', tags: ['k-means', 'PCA / 主成分分析', '次元削減'] },
       ],
     },
     {
       title: '深層学習（ディープラーニング）',
       items: [
-        { name: 'ニューラルネットワークの基礎', desc: 'パーセプトロン：**入力に重み**を掛けて合計し、活性化関数で出力する最小単位（ニューロン）\n多層パーセプトロン (MLP)：入力層・隠れ層・出力層を重ねたネットワーク\n活性化関数：非線形性を導入する関数。ReLU（勾配消失に強い）・シグモイド・tanh・出力層のSoftmax（多クラス分類の確率化）', keyword: 'ニューラルネットワーク パーセプトロン 活性化関数 ReLU シグモイド Softmax 多層パーセプトロン', tags: ['パーセプトロン', '活性化関数 / ReLU', 'Softmax'] },
-        { name: '学習の仕組み（勾配降下法）', desc: '損失関数 (Loss Function)：**予測と正解の誤差**を数値化（回帰=MSE、分類=クロスエントロピー）\n勾配降下法 (Gradient Descent)：損失が小さくなる方向へ重みを更新。学習率 (Learning Rate) が更新幅を決める\n誤差逆伝播 (Backpropagation)：出力の誤差を逆向きに伝えて各重みの勾配を計算\nエポック・バッチ・ミニバッチ：学習データを回す単位。勾配消失/爆発に注意', keyword: '勾配降下法 誤差逆伝播 バックプロパゲーション 損失関数 学習率 クロスエントロピー エポック', tags: ['勾配降下法 / Gradient Descent', '誤差逆伝播 / Backpropagation', '学習率'] },
+        { name: 'ニューラルネットワークの基礎', desc: '主な構成要素：\n- パーセプトロン：**入力に重み**を掛けて合計し、活性化関数で出力する最小単位（ニューロン）\n- 多層パーセプトロン (MLP)：入力層・隠れ層・出力層を重ねたネットワーク\n- 活性化関数：非線形性を導入する関数。ReLU（勾配消失に強い）・シグモイド・tanh・出力層のSoftmax（多クラス分類の確率化）', keyword: 'ニューラルネットワーク パーセプトロン 活性化関数 ReLU シグモイド Softmax 多層パーセプトロン', tags: ['パーセプトロン', '活性化関数 / ReLU', 'Softmax'] },
+        { name: '学習の仕組み（勾配降下法）', desc: '主な要素：\n- 損失関数 (Loss Function)：**予測と正解の誤差**を数値化（回帰=MSE、分類=クロスエントロピー）\n- 勾配降下法 (Gradient Descent)：損失が小さくなる方向へ重みを更新。学習率 (Learning Rate) が更新幅を決める\n- 誤差逆伝播 (Backpropagation)：出力の誤差を逆向きに伝えて各重みの勾配を計算\n- エポック・バッチ・ミニバッチ：学習データを回す単位。勾配消失/爆発に注意', keyword: '勾配降下法 誤差逆伝播 バックプロパゲーション 損失関数 学習率 クロスエントロピー エポック', tags: ['勾配降下法 / Gradient Descent', '誤差逆伝播 / Backpropagation', '学習率'] },
         { name: '画像・系列を扱うニューラルネット', desc: 'CNN (Convolutional Neural Network / 畳み込みニューラルネットワーク)：**畳み込み層**とプーリング層で画像の局所特徴を抽出。画像認識・物体検出で主流\nRNN (Recurrent Neural Network / 再帰型ニューラルネットワーク)：時系列・系列データを扱い、過去の状態を記憶\nLSTM（Long Short-Term Memory）・GRU：RNNの長期依存を学習しにくい弱点（勾配消失）をゲート機構で改善した派生', keyword: 'CNN 畳み込みニューラルネットワーク RNN 再帰型 LSTM GRU プーリング 画像認識', tags: ['CNN / 畳み込み', 'RNN', 'LSTM / GRU'] },
-        { name: '生成モデルのアーキテクチャ', desc: 'Transformer：**Attention**（自己注意）機構で系列全体の関係を並列に捉えるアーキテクチャ。現代のLLMの基盤\nAttention：入力のどの部分に注目すべきかを重み付けする仕組み\n生成モデル：GAN（生成器と識別器が競い合う）・VAE（変分オートエンコーダ）・拡散モデル (Diffusion) で画像・音声・テキストを生成', keyword: 'Transformer Attention 自己注意 GAN VAE 拡散モデル Diffusion 生成モデル', tags: ['Transformer / Attention', 'GAN', '拡散モデル / Diffusion'] },
+        { name: '生成モデルのアーキテクチャ', desc: '主なアーキテクチャ：\n- Transformer：**Attention**（自己注意）機構で系列全体の関係を並列に捉えるアーキテクチャ。現代のLLMの基盤\n- Attention：入力のどの部分に注目すべきかを重み付けする仕組み\n- 生成モデル：GAN（生成器と識別器が競い合う）・VAE（変分オートエンコーダ）・拡散モデル (Diffusion) で画像・音声・テキストを生成', keyword: 'Transformer Attention 自己注意 GAN VAE 拡散モデル Diffusion 生成モデル', tags: ['Transformer / Attention', 'GAN', '拡散モデル / Diffusion'] },
       ],
     },
     {
       title: 'データ前処理・特徴量エンジニアリング',
       items: [
         { name: '特徴量のスケーリング', desc: '**モデルが特徴量**の大きさに引きずられないよう数値の範囲をそろえる。\n正規化 (Min-Maxスケーリング)：値を0〜1に変換\n標準化 (Standardization)：平均0・分散1に変換（Zスコア）\n距離ベースの手法（k-NN・k-means・SVM）や勾配降下法では前処理としてほぼ必須', keyword: '正規化 標準化 スケーリング Min-Max Zスコア 標準偏差', tags: ['正規化 / Normalization', '標準化 / Standardization', 'スケーリング'] },
-        { name: 'データクレンジング', desc: '欠損値 (Missing Value)：削除（行/列除去）または補完（平均値・中央値・最頻値・予測モデル）で対応\n外れ値 (Outlier)：極端に外れた値。**四分位範囲**(IQR)や標準偏差で検出し、除去・変換・クリッピングする\n放置するとモデルの精度や統計量が大きく歪む', keyword: '欠損値 外れ値 補完 Imputation Outlier IQR 四分位', tags: ['欠損値補完', '外れ値 / Outlier', 'IQR'] },
+        { name: 'データクレンジング', desc: '主な観点：\n- 欠損値 (Missing Value)：削除（行/列除去）または補完（平均値・中央値・最頻値・予測モデル）で対応\n- 外れ値 (Outlier)：極端に外れた値。**四分位範囲**(IQR)や標準偏差で検出し、除去・変換・クリッピングする\n放置するとモデルの精度や統計量が大きく歪む', keyword: '欠損値 外れ値 補完 Imputation Outlier IQR 四分位', tags: ['欠損値補完', '外れ値 / Outlier', 'IQR'] },
         { name: 'カテゴリ変数のエンコーディング', desc: '**文字列など**のカテゴリを数値に変換する。\nOne-Hotエンコーディング：各カテゴリを0/1の列に展開（順序のない名義尺度向け）\nラベルエンコーディング：カテゴリに整数を割り当て（順序のある順序尺度向け）\nターゲットエンコーディング：目的変数の平均値で置換（リークに注意）', keyword: 'One-Hotエンコーディング ラベルエンコーディング カテゴリ変数 特徴量エンジニアリング', tags: ['One-Hot', 'ラベルエンコーディング', 'ターゲットエンコード'] },
-        { name: 'データ分割と不均衡対策', desc: 'クラス不均衡 (Imbalanced Data)：陽性/陰性の件数が偏ると精度指標が当てにならない。\n対策：オーバーサンプリング（SMOTE等）・アンダーサンプリング・クラス重み付け / F1・AUCで評価\nデータ分割：訓練・検証・テストに分ける。**データリーク**（学習に未来/正解情報が混入）を防ぐ\n交差検証 (Cross Validation)：データをk分割して評価を平均し、汎化性能を安定評価', keyword: '不均衡データ SMOTE オーバーサンプリング 交差検証 クロスバリデーション データリーク', tags: ['不均衡データ / SMOTE', '交差検証 / Cross Validation', 'データリーク'] },
+        { name: 'データ分割と不均衡対策', desc: 'クラス不均衡 (Imbalanced Data)：陽性/陰性の件数が偏ると精度指標が当てにならない。\n主な観点：\n- 対策：オーバーサンプリング（SMOTE等）・アンダーサンプリング・クラス重み付け / F1・AUCで評価\n- データ分割：訓練・検証・テストに分ける。**データリーク**（学習に未来/正解情報が混入）を防ぐ\n- 交差検証 (Cross Validation)：データをk分割して評価を平均し、汎化性能を安定評価', keyword: '不均衡データ SMOTE オーバーサンプリング 交差検証 クロスバリデーション データリーク', tags: ['不均衡データ / SMOTE', '交差検証 / Cross Validation', 'データリーク'] },
       ],
     },
     {
@@ -741,7 +741,7 @@ const CHEAT_DATA: CheatData = {
     {
       title: 'リレーショナルDBの基礎',
       items: [
-        { name: 'リレーショナルの構成要素', desc: 'リレーショナルDB (RDB)：データを行 (レコード) と列 (カラム) の表で管理するデータベース。\n主キー (Primary Key)：各行を一意に識別する列。重複・NULL不可\n外部キー (Foreign Key)：他テーブルの主キーを参照して関連付ける列。**参照整合性**を保証\n候補キー / 複合キー：一意識別できる列（の組み合わせ）', keyword: 'リレーショナルデータベース 主キー 外部キー Primary Key Foreign Key 参照整合性', tags: ['主キー / Primary Key', '外部キー / Foreign Key', '参照整合性'] },
+        { name: 'リレーショナルの構成要素', desc: 'リレーショナルDB (RDB)：データを行 (レコード) と列 (カラム) の表で管理するデータベース。\n主な構成要素：\n- 主キー (Primary Key)：各行を一意に識別する列。重複・NULL不可\n- 外部キー (Foreign Key)：他テーブルの主キーを参照して関連付ける列。**参照整合性**を保証\n- 候補キー / 複合キー：一意識別できる列（の組み合わせ）', keyword: 'リレーショナルデータベース 主キー 外部キー Primary Key Foreign Key 参照整合性', tags: ['主キー / Primary Key', '外部キー / Foreign Key', '参照整合性'] },
         { name: '正規化（Normalization）', desc: 'データの重複と**更新異常**を避けるためテーブルを分割する設計手法。\n第1正規形 (1NF)：繰り返し項目をなくし各セルを単一値にする\n第2正規形 (2NF)：主キーの一部にのみ依存する列を分離（部分関数従属の排除）\n第3正規形 (3NF)：主キー以外の列に依存する列を分離（推移的関数従属の排除）\n非正規化：性能のため意図的に重複を許して結合を減らすこともある', keyword: '正規化 第1正規形 第2正規形 第3正規形 非正規化 関数従属', tags: ['第1〜第3正規形', '関数従属', '非正規化'] },
         { name: 'ER図とスキーマ設計', desc: 'ER図 (Entity-Relationship Diagram)：**エンティティ**（実体）と関連（リレーション）でデータ構造を図示する設計図。\nカーディナリティ（多重度）：1対1・1対多・多対多の関係。多対多は中間（連関）テーブルで表現\nスキーマ：テーブル・列・型・制約の定義。制約には NOT NULL・UNIQUE・CHECK・DEFAULT がある', keyword: 'ER図 エンティティ カーディナリティ スキーマ 多対多 中間テーブル 制約', tags: ['ER図', 'カーディナリティ', '制約 / Constraint'] },
         { name: 'データ型', desc: '整数 (INT/BIGINT)・小数 (DECIMAL・FLOAT)・文字列 (CHAR・VARCHAR・TEXT)・日付時刻 (DATE・TIMESTAMP)・論理値 (BOOLEAN)。\nDECIMAL vs FLOAT：金額など誤差が許されない値はDECIMAL（**固定小数点**）、科学計算はFLOAT（浮動小数点）\nCHAR vs VARCHAR：CHARは固定長、VARCHARは可変長でストレージ効率が良い', keyword: 'データ型 VARCHAR DECIMAL FLOAT TIMESTAMP 固定小数点 浮動小数点', tags: ['DECIMAL / FLOAT', 'CHAR / VARCHAR', 'TIMESTAMP'] },
@@ -752,8 +752,8 @@ const CHEAT_DATA: CheatData = {
       items: [
         { name: 'SELECT文の基本', desc: '**SELECT 列** FROM テーブル WHERE 条件 の順で問い合わせる。\nWHERE：行を絞り込む条件（=, <>, LIKE, IN, BETWEEN, IS NULL）\nORDER BY：並べ替え（ASC昇順 / DESC降順）\nDISTINCT：重複行を除去\nLIMIT / OFFSET：取得件数と開始位置の制御（ページング）', keyword: 'SELECT WHERE ORDER BY DISTINCT LIMIT SQL 問い合わせ', tags: ['SELECT / WHERE', 'ORDER BY', 'DISTINCT / LIMIT'] },
         { name: 'JOIN（テーブル結合）', desc: '複数テーブルを**関連キー**で結合する。\n内部結合 (INNER JOIN)：両テーブルで条件が一致する行のみ\n左外部結合 (LEFT OUTER JOIN)：左テーブルは全行、右は一致分のみ（無ければNULL）\n右外部結合 (RIGHT OUTER JOIN)：右テーブルは全行、左は一致分のみ（無ければNULL）\n完全外部結合 (FULL OUTER JOIN)：両テーブルの全行を結合し一致しない側はNULL\nクロス結合 (CROSS JOIN)：総当たり（直積）', keyword: 'JOIN 内部結合 外部結合 INNER JOIN LEFT JOIN テーブル結合', tags: ['内部結合 / INNER JOIN', '外部結合 / OUTER JOIN', 'CROSS JOIN'] },
-        { name: '集約とグループ化', desc: '集約関数：**COUNT**（件数）・SUM（合計）・AVG（平均）・MAX・MIN\nGROUP BY：指定列ごとにグループ化して集約する\nHAVING：集約結果に対する絞り込み（WHEREは集約前、HAVINGは集約後）\n実行順序：FROM → WHERE → GROUP BY → HAVING → SELECT → ORDER BY', keyword: 'GROUP BY 集約関数 COUNT SUM AVG HAVING 実行順序', tags: ['集約関数 / COUNT・SUM', 'GROUP BY', 'HAVING'] },
-        { name: 'SQLの構成要素', desc: 'サブクエリ (副問い合わせ)：**SQL文の中**に入れ子にした別のSELECT文\nビュー (View)：問い合わせ結果に名前を付けた仮想テーブル。複雑なクエリを再利用\nDML (データ操作言語)：SELECT・INSERT・UPDATE・DELETE\nDDL (データ定義言語)：CREATE・ALTER・DROP・TRUNCATE\nDCL (データ制御言語)：GRANT / REVOKE（権限管理）', keyword: 'サブクエリ ビュー View DML DDL DCL INSERT UPDATE DELETE CREATE', tags: ['サブクエリ', 'ビュー / View', 'DML / DDL'] },
+        { name: '集約とグループ化', desc: '主な要素：\n- 集約関数：**COUNT**（件数）・SUM（合計）・AVG（平均）・MAX・MIN\n- GROUP BY：指定列ごとにグループ化して集約する\n- HAVING：集約結果に対する絞り込み（WHEREは集約前、HAVINGは集約後）\n- 実行順序：FROM → WHERE → GROUP BY → HAVING → SELECT → ORDER BY', keyword: 'GROUP BY 集約関数 COUNT SUM AVG HAVING 実行順序', tags: ['集約関数 / COUNT・SUM', 'GROUP BY', 'HAVING'] },
+        { name: 'SQLの構成要素', desc: '主な要素：\n- サブクエリ (副問い合わせ)：**SQL文の中**に入れ子にした別のSELECT文\n- ビュー (View)：問い合わせ結果に名前を付けた仮想テーブル。複雑なクエリを再利用\n- DML (データ操作言語)：SELECT・INSERT・UPDATE・DELETE\n- DDL (データ定義言語)：CREATE・ALTER・DROP・TRUNCATE\n- DCL (データ制御言語)：GRANT / REVOKE（権限管理）', keyword: 'サブクエリ ビュー View DML DDL DCL INSERT UPDATE DELETE CREATE', tags: ['サブクエリ', 'ビュー / View', 'DML / DDL'] },
         { name: '分析向けの応用SQL', desc: '**分析クエリで頻出**の応用SQL。\nウィンドウ関数 (Window Function)：行をグループに畳まず、各行の隣に集計・順位を付ける。OVER(PARTITION BY … ORDER BY …) で範囲を指定\n例：ROW_NUMBER・RANK・DENSE_RANK (順位)・LAG / LEAD (前後行参照)・累計や移動平均 (SUM() OVER)\nCTE (共通テーブル式 / WITH句)：クエリ内に一時的な名前付き結果を定義して可読性を上げる。再帰CTEで階層データも扱える', keyword: 'ウィンドウ関数 Window Function OVER PARTITION BY ROW_NUMBER RANK LAG LEAD CTE WITH句 共通テーブル式 再帰', tags: ['ウィンドウ関数 / OVER', 'ROW_NUMBER / RANK', 'CTE / WITH句'] },
       ],
     },
@@ -769,7 +769,7 @@ const CHEAT_DATA: CheatData = {
       title: 'インデックスと性能',
       items: [
         { name: 'インデックス（Index）', desc: '**列の値と行の位置**を対応付け、検索を高速化するデータ構造（本の索引に相当）。\nB-tree インデックス：範囲検索・等価検索に強い最も一般的な方式\nハッシュインデックス：等価検索に特化\n複合インデックス：複数列をまとめて張る（左端の列から順に効く）\nトレードオフ：検索は速くなるが、書き込み（INSERT/UPDATE）は遅くなり容量も増える', keyword: 'インデックス B-tree 複合インデックス ハッシュインデックス 索引 高速化', tags: ['B-tree', '複合インデックス', '書き込みコスト'] },
-        { name: 'クエリ最適化', desc: '実行計画 (Execution Plan)：**DBがクエリ**をどう処理するかの計画。EXPLAIN で確認する\nフルスキャン vs インデックススキャン：WHERE句がインデックスを使えず全行走査すると遅い\nN+1問題：1件取得のたびに関連クエリを繰り返し発行して大量のクエリになる問題（JOINやまとめ取得で解消）\nスロークエリの発見：実行時間の長いクエリをログで特定して改善', keyword: '実行計画 EXPLAIN フルスキャン N+1問題 クエリ最適化 スロークエリ', tags: ['実行計画 / EXPLAIN', 'フルスキャン', 'N+1問題'] },
+        { name: 'クエリ最適化', desc: '主な観点：\n- 実行計画 (Execution Plan)：**DBがクエリ**をどう処理するかの計画。EXPLAIN で確認する\n- フルスキャン vs インデックススキャン：WHERE句がインデックスを使えず全行走査すると遅い\n- N+1問題：1件取得のたびに関連クエリを繰り返し発行して大量のクエリになる問題（JOINやまとめ取得で解消）\n- スロークエリの発見：実行時間の長いクエリをログで特定して改善', keyword: '実行計画 EXPLAIN フルスキャン N+1問題 クエリ最適化 スロークエリ', tags: ['実行計画 / EXPLAIN', 'フルスキャン', 'N+1問題'] },
         { name: 'NoSQLと分散DB', desc: 'NoSQL（Not only SQL）：**RDBの表形式**にとらわれない柔軟なデータベース群。\nキーバリュー型（キーで値を出し入れ）・ドキュメント型（JSON等の文書単位で格納）・列指向型（列ごとに格納し集計に強い）・グラフ型（ノードと辺で関係性を表現）\nCAP定理：分散システムは 一貫性(C)・可用性(A)・分断耐性(P) の3つを同時には満たせず、Pを前提にCかAを選ぶ\nBASE：結果整合性を許容する緩い一貫性モデル（ACIDの対比）\n使い分け：厳密な整合性・結合はRDB、スケールと柔軟なスキーマはNoSQL', keyword: 'NoSQL キーバリュー ドキュメント 列指向 グラフDB CAP定理 結果整合性 BASE', tags: ['NoSQLの種類', 'CAP定理', '結果整合性 / BASE'] },
       ],
     },
@@ -798,14 +798,14 @@ const CHEAT_DATA: CheatData = {
       items: [
         { name: 'MTUとパケットサイズ', desc: 'MTU (Maximum Transmission Unit)：**1フレーム**で送れる最大ペイロードサイズ。イーサネットは標準1500バイト\nジャンボフレーム：MTUを約9000バイトに拡大し、大容量転送のオーバーヘッドを削減(高スループット用途)\nフラグメンテーション：MTUを超えるパケットを分割する処理。分割は性能を落とす\nパスMTUディスカバリ (PMTUD)：経路上の最小MTUを検出して分割を回避。ICMPが遮断されると失敗しブラックホール化する', keyword: 'MTU ジャンボフレーム フラグメンテーション パスMTUディスカバリ PMTUD 最大転送単位', tags: ['MTU / 1500', 'ジャンボフレーム / 9000', 'パスMTUディスカバリ'] },
         { name: 'ネットワーク性能指標', desc: '**ネットワーク性能**を測る基本指標。\n帯域幅 (Bandwidth)：単位時間に送れる理論上の最大量(bps)\nレイテンシ (Latency)：片道/往復(RTT)の遅延時間\nスループット (Throughput)：実際に転送できた実効速度\nTCPスループットは RTT と ウィンドウサイズ に依存する(帯域遅延積 BDP = 帯域 × RTT)\n輻輳制御 (Congestion Control)：混雑時に送信量を調整して破綻を防ぐ仕組み', keyword: '帯域幅 レイテンシ RTT スループット ウィンドウサイズ 帯域遅延積 BDP 輻輳制御', tags: ['帯域 / レイテンシ', 'スループット / RTT', '輻輳制御'] },
-        { name: 'QoS（サービス品質）', desc: 'QoS (Quality of Service)：**限られた帯域で重要**な通信を優先する制御。\n分類・マーキング：パケットに優先度(DSCP等)を付与\n優先制御 / キューイング：音声・映像などリアルタイム通信を優先的に送出\n帯域制御：シェーピング(平滑化)/ ポリシング(超過分を破棄)で送信レートを管理\n用途：VoIP・ビデオ会議など遅延・ジッタに敏感なトラフィックの品質確保', keyword: 'QoS サービス品質 DSCP 優先制御 キューイング シェーピング ポリシング VoIP ジッタ', tags: ['QoS / 優先制御', 'DSCP / マーキング', 'シェーピング / ポリシング'] },
+        { name: 'QoS（サービス品質）', desc: 'QoS (Quality of Service)：**限られた帯域で重要**な通信を優先する制御。\n主な仕組み：\n- 分類・マーキング：パケットに優先度(DSCP等)を付与\n- 優先制御 / キューイング：音声・映像などリアルタイム通信を優先的に送出\n- 帯域制御：シェーピング(平滑化)/ ポリシング(超過分を破棄)で送信レートを管理\n- 用途：VoIP・ビデオ会議など遅延・ジッタに敏感なトラフィックの品質確保', keyword: 'QoS サービス品質 DSCP 優先制御 キューイング シェーピング ポリシング VoIP ジッタ', tags: ['QoS / 優先制御', 'DSCP / マーキング', 'シェーピング / ポリシング'] },
       ],
     },
     {
       title: 'IPアドレスとサブネット',
       items: [
         { name: 'IPアドレス（IPv4 / IPv6）', desc: '**ネットワーク上**の機器を識別する住所。\nIPv4（Internet Protocol version 4）：32ビット（例 192.168.1.1）。約43億個で枯渇\nIPv6（Internet Protocol version 6）：128ビットで実質無制限\nグローバルIP（インターネットで一意）vs プライベートIP（組織内で自由に使える 10.0.0.0/8・172.16.0.0/12・192.168.0.0/16）\nループバック 127.0.0.1（自ホスト）', keyword: 'IPアドレス IPv4 IPv6 グローバルIP プライベートIP ループバック', tags: ['IPv4 / IPv6', 'プライベートIP', 'ループバック'] },
-        { name: 'サブネット設計', desc: 'サブネットマスク：**IPアドレス**のうちネットワーク部とホスト部を分ける境界（例 255.255.255.0）\nCIDR表記：/24 のようにネットワーク部のビット数で表す（255.255.255.0 = /24）\nサブネット分割 (Subnetting)：大きなネットワークを小さく区切って管理・セキュリティを向上\nネットワークアドレス（先頭）とブロードキャストアドレス（末尾）は割り当て不可', keyword: 'サブネットマスク CIDR サブネット分割 ネットワークアドレス ブロードキャスト', tags: ['サブネットマスク', 'CIDR / prefix', 'ブロードキャスト'] },
+        { name: 'サブネット設計', desc: '主な要素：\n- サブネットマスク：**IPアドレス**のうちネットワーク部とホスト部を分ける境界（例 255.255.255.0）\n- CIDR表記：/24 のようにネットワーク部のビット数で表す（255.255.255.0 = /24）\n- サブネット分割 (Subnetting)：大きなネットワークを小さく区切って管理・セキュリティを向上\nネットワークアドレス（先頭）とブロードキャストアドレス（末尾）は割り当て不可', keyword: 'サブネットマスク CIDR サブネット分割 ネットワークアドレス ブロードキャスト', tags: ['サブネットマスク', 'CIDR / prefix', 'ブロードキャスト'] },
         { name: 'アドレス変換（NAT）', desc: 'NAT (Network Address Translation)：**プライベートIP**とグローバルIPを相互変換する仕組み。\nNAPT（Network Address Port Translation） / PAT：ポート番号も使って複数の内部端末を1つのグローバルIPで共有（IPマスカレード）\n用途：IPv4アドレス節約・内部ネットワークの隠蔽によるセキュリティ向上\n静的NAT（1対1）と動的NAT（プールから割当）がある', keyword: 'NAT NAPT PAT IPマスカレード アドレス変換 ポート変換', tags: ['NAT', 'NAPT / PAT', 'アドレス変換'] },
         { name: '通信の宛先方式', desc: '**通信の宛先方式**。\nユニキャスト：1対1の通常通信\nブロードキャスト：同一セグメント全員へ一斉送信(ARP等)。ルーターを越えない\nマルチキャスト：特定グループにのみ配信(1対多)。動画・株価配信などで帯域を節約\nIGMP (Internet Group Management Protocol)：受信者がマルチキャストグループへの参加/離脱を通知するプロトコル\nマルチキャストアドレス：224.0.0.0〜239.255.255.255 (IPv4クラスD)', keyword: 'ユニキャスト ブロードキャスト マルチキャスト IGMP マルチキャストアドレス クラスD 1対多', tags: ['ユニ / ブロード / マルチキャスト', 'IGMP', 'クラスD 224.x'] },
       ],
@@ -813,10 +813,10 @@ const CHEAT_DATA: CheatData = {
     {
       title: 'ルーティングとスイッチング',
       items: [
-        { name: 'L2/L3の中継機器', desc: 'スイッチ (L2)：**同一ネットワーク内**でMACアドレスを見てフレームを転送する機器\nルーター (L3)：異なるネットワーク間をIPアドレスで中継する機器\nデフォルトゲートウェイ：自分のネットワーク外へ出る際の出口となるルーター\nMACアドレス：NICに割り当てられた物理アドレス。ARPでIP↔MACを対応付ける', keyword: 'ルーター スイッチ L2 L3 デフォルトゲートウェイ MACアドレス ARP', tags: ['スイッチ / L2', 'ルーター / L3', 'デフォルトゲートウェイ'] },
+        { name: 'L2/L3の中継機器', desc: '主な機器：\n- スイッチ (L2)：**同一ネットワーク内**でMACアドレスを見てフレームを転送する機器\n- ルーター (L3)：異なるネットワーク間をIPアドレスで中継する機器\n- デフォルトゲートウェイ：自分のネットワーク外へ出る際の出口となるルーター\n- MACアドレス：NICに割り当てられた物理アドレス。ARPでIP↔MACを対応付ける', keyword: 'ルーター スイッチ L2 L3 デフォルトゲートウェイ MACアドレス ARP', tags: ['スイッチ / L2', 'ルーター / L3', 'デフォルトゲートウェイ'] },
         { name: 'ルーティング', desc: '**パケットを宛先ま**で転送する経路制御。\nルーティングテーブル：宛先ネットワークごとの転送先を記した表。最長一致 (Longest Match) で選択\n静的ルーティング：手動で経路を設定（小規模・固定向け）\n動的ルーティング：プロトコルで経路を自動学習。RIP（距離ベクトル）・OSPF（リンクステート）・BGP（インターネット間の経路制御）', keyword: 'ルーティング ルーティングテーブル 最長一致 静的ルーティング 動的ルーティング OSPF BGP', tags: ['ルーティングテーブル', '静的 / 動的', 'OSPF / BGP'] },
-        { name: 'ネットワークセグメンテーション', desc: 'VLAN (Virtual LAN)：**物理構成に関係**なくスイッチを論理的に分割し、ブロードキャストドメインを分けて管理・セキュリティを向上させる技術。\nブロードキャストドメイン：ブロードキャストが届く範囲。ルーターで区切られる\nセグメンテーション：用途や部門ごとにネットワークを分けて、障害・攻撃の影響範囲を限定する', keyword: 'VLAN ブロードキャストドメイン セグメンテーション ネットワーク分割', tags: ['VLAN', 'ブロードキャストドメイン', 'セグメンテーション'] },
-        { name: 'BGP（境界ゲートウェイプロトコル）', desc: 'BGP (Border Gateway Protocol)：**インターネット**や組織間(AS間)の経路を交換する動的ルーティングプロトコル。\nAS (自律システム)：単一の管理ポリシーで運用されるネットワークの塊。AS番号で識別\neBGP：異なるAS間 / iBGP：同一AS内\n経路広告 (Advertisement)：自分が到達できるネットワークを隣接ルーターに通知\nパス選択：AS_PATH長・ローカルプリファレンス・MED などの属性で最適経路を決定\n経路集約でルーティングテーブルを縮小する', keyword: 'BGP 境界ゲートウェイプロトコル AS 自律システム eBGP iBGP 経路広告 AS_PATH ローカルプリファレンス MED', tags: ['BGP / AS番号', 'eBGP / iBGP', '経路広告 / パス選択'] },
+        { name: 'ネットワークセグメンテーション', desc: 'VLAN (Virtual LAN)：**物理構成に関係**なくスイッチを論理的に分割し、ブロードキャストドメインを分けて管理・セキュリティを向上させる技術。\n主な技術：\n- ブロードキャストドメイン：ブロードキャストが届く範囲。ルーターで区切られる\n- セグメンテーション：用途や部門ごとにネットワークを分けて、障害・攻撃の影響範囲を限定する', keyword: 'VLAN ブロードキャストドメイン セグメンテーション ネットワーク分割', tags: ['VLAN', 'ブロードキャストドメイン', 'セグメンテーション'] },
+        { name: 'BGP（境界ゲートウェイプロトコル）', desc: 'BGP (Border Gateway Protocol)：**インターネット**や組織間(AS間)の経路を交換する動的ルーティングプロトコル。\n主な用語：\n- AS (自律システム)：単一の管理ポリシーで運用されるネットワークの塊。AS番号で識別\n- eBGP：異なるAS間 / iBGP：同一AS内\n- 経路広告 (Advertisement)：自分が到達できるネットワークを隣接ルーターに通知\n- パス選択：AS_PATH長・ローカルプリファレンス・MED などの属性で最適経路を決定\n経路集約でルーティングテーブルを縮小する', keyword: 'BGP 境界ゲートウェイプロトコル AS 自律システム eBGP iBGP 経路広告 AS_PATH ローカルプリファレンス MED', tags: ['BGP / AS番号', 'eBGP / iBGP', '経路広告 / パス選択'] },
       ],
     },
     {
@@ -830,8 +830,8 @@ const CHEAT_DATA: CheatData = {
     {
       title: 'ネットワークセキュリティ・監視',
       items: [
-        { name: 'ファイアウォールとアクセス制御', desc: 'ファイアウォール：通信を許可/拒否するルール（IP・ポート・プロトコル）で**境界を防御**\nステートフルインスペクション：通信の状態を追跡し、戻りパケットを自動許可\nステートレス vs ステートフル：ステートレスは行き・戻りを個別に判定、ステートフルは接続単位で判定\nACL (Access Control List)：通信可否のルールリスト', keyword: 'ファイアウォール ステートフル ステートレス ACL アクセス制御 パケットフィルタ', tags: ['ファイアウォール', 'ステートフル / ステートレス', 'ACL'] },
-        { name: 'VPNと暗号化通信', desc: 'VPN (Virtual Private Network)：**公衆網上に暗号化**した仮想的な専用線を作る技術。\nIPsec（IP Security） VPN：L3で暗号化。拠点間接続 (Site-to-Site) に多い\nSSL（Secure Sockets Layer）/TLS VPN：ブラウザベースでリモートアクセス向け\nトンネリング：パケットを別のプロトコルで包んで転送する仕組み', keyword: 'VPN IPsec SSL VPN トンネリング 暗号化通信 拠点間接続', tags: ['VPN', 'IPsec / SSL-TLS', 'トンネリング'] },
+        { name: 'ファイアウォールとアクセス制御', desc: '主な仕組み：\n- ファイアウォール：通信を許可/拒否するルール（IP・ポート・プロトコル）で**境界を防御**\n- ステートフルインスペクション：通信の状態を追跡し、戻りパケットを自動許可\n- ステートレス vs ステートフル：ステートレスは行き・戻りを個別に判定、ステートフルは接続単位で判定\n- ACL (Access Control List)：通信可否のルールリスト', keyword: 'ファイアウォール ステートフル ステートレス ACL アクセス制御 パケットフィルタ', tags: ['ファイアウォール', 'ステートフル / ステートレス', 'ACL'] },
+        { name: 'VPNと暗号化通信', desc: 'VPN (Virtual Private Network)：**公衆網上に暗号化**した仮想的な専用線を作る技術。\n主な種類：\n- IPsec（IP Security） VPN：L3で暗号化。拠点間接続 (Site-to-Site) に多い\n- SSL（Secure Sockets Layer）/TLS VPN：ブラウザベースでリモートアクセス向け\n- トンネリング：パケットを別のプロトコルで包んで転送する仕組み', keyword: 'VPN IPsec SSL VPN トンネリング 暗号化通信 拠点間接続', tags: ['VPN', 'IPsec / SSL-TLS', 'トンネリング'] },
         { name: '負荷分散と監視', desc: 'ロードバランサ (LB)：複数サーバへ通信を振り分けて**負荷分散**・可用性を確保\nL4 LB（IP/ポートで分散）vs L7 LB（URL/ヘッダーで分散）\nヘルスチェック：異常なサーバを振り分け対象から自動的に外す\n監視・調査ツール：パケットキャプチャ (Wireshark/tcpdump)・SNMP（機器監視）・フローログ', keyword: 'ロードバランサ 負荷分散 L4 L7 ヘルスチェック パケットキャプチャ SNMP', tags: ['ロードバランサ / L4・L7', 'ヘルスチェック', 'パケットキャプチャ'] },
       ],
     },
@@ -841,9 +841,9 @@ const CHEAT_DATA: CheatData = {
     {
       title: '暗号技術',
       items: [
-        { name: '暗号化方式（対称/非対称）', desc: '共通鍵暗号 (対称鍵 / Symmetric)：**暗号化と復号**に同じ鍵を使う。高速だが鍵配送が課題（例 AES）\n公開鍵暗号 (非対称鍵 / Asymmetric)：公開鍵で暗号化し秘密鍵で復号。鍵配送問題を解決するが低速（例 RSA・楕円曲線暗号）\nハイブリッド暗号：データ本体は共通鍵で暗号化し、その共通鍵を公開鍵で送る（TLSの方式）', keyword: '共通鍵暗号 公開鍵暗号 対称鍵 非対称鍵 AES RSA ハイブリッド暗号', tags: ['共通鍵 / AES', '公開鍵 / RSA', 'ハイブリッド暗号'] },
-        { name: 'ハッシュと完全性', desc: 'ハッシュ関数：**任意長のデータ**を固定長の値に変換する一方向関数（元に戻せない）。\n性質：同じ入力は同じ出力・わずかな変化で大きく変わる・衝突が困難\n用途：パスワード保存（ソルト付きハッシュ）・改ざん検知・完全性検証\n代表：SHA-256（推奨）/ MD5・SHA-1 は脆弱で非推奨', keyword: 'ハッシュ関数 SHA-256 MD5 ソルト 完全性 改ざん検知 一方向関数', tags: ['ハッシュ / SHA-256', 'ソルト', '完全性検証'] },
-        { name: '電子署名とPKI', desc: 'デジタル署名：**秘密鍵で署名**し公開鍵で検証。送信者のなりすまし防止と改ざん検知を両立\nデジタル証明書：公開鍵とその持ち主を認証局 (CA) が保証する電子文書 (X.509)\nPKI (公開鍵基盤)：CA・証明書・失効リスト(CRL/OCSP) で信頼を担保する仕組み\nTLS（Transport Layer Security）/SSL：サーバ証明書で相手を確認し通信を暗号化', keyword: 'デジタル署名 デジタル証明書 認証局 CA PKI X.509 TLS SSL 失効', tags: ['デジタル署名', '証明書 / CA', 'PKI'] },
+        { name: '暗号化方式（対称/非対称）', desc: '主な方式：\n- 共通鍵暗号 (対称鍵 / Symmetric)：**暗号化と復号**に同じ鍵を使う。高速だが鍵配送が課題（例 AES）\n- 公開鍵暗号 (非対称鍵 / Asymmetric)：公開鍵で暗号化し秘密鍵で復号。鍵配送問題を解決するが低速（例 RSA・楕円曲線暗号）\n- ハイブリッド暗号：データ本体は共通鍵で暗号化し、その共通鍵を公開鍵で送る（TLSの方式）', keyword: '共通鍵暗号 公開鍵暗号 対称鍵 非対称鍵 AES RSA ハイブリッド暗号', tags: ['共通鍵 / AES', '公開鍵 / RSA', 'ハイブリッド暗号'] },
+        { name: 'ハッシュと完全性', desc: 'ハッシュ関数：**任意長のデータ**を固定長の値に変換する一方向関数（元に戻せない）。\n主な性質・用途：\n- 性質：同じ入力は同じ出力・わずかな変化で大きく変わる・衝突が困難\n- 用途：パスワード保存（ソルト付きハッシュ）・改ざん検知・完全性検証\n- 代表：SHA-256（推奨）/ MD5・SHA-1 は脆弱で非推奨', keyword: 'ハッシュ関数 SHA-256 MD5 ソルト 完全性 改ざん検知 一方向関数', tags: ['ハッシュ / SHA-256', 'ソルト', '完全性検証'] },
+        { name: '電子署名とPKI', desc: '主な要素：\n- デジタル署名：**秘密鍵で署名**し公開鍵で検証。送信者のなりすまし防止と改ざん検知を両立\n- デジタル証明書：公開鍵とその持ち主を認証局 (CA) が保証する電子文書 (X.509)\n- PKI (公開鍵基盤)：CA・証明書・失効リスト(CRL/OCSP) で信頼を担保する仕組み\n- TLS（Transport Layer Security）/SSL：サーバ証明書で相手を確認し通信を暗号化', keyword: 'デジタル署名 デジタル証明書 認証局 CA PKI X.509 TLS SSL 失効', tags: ['デジタル署名', '証明書 / CA', 'PKI'] },
         { name: '鍵管理とエンベロープ暗号', desc: '暗号は「鍵の管理」が要。鍵が漏れれば暗号は無意味になる。\nキーライフサイクル：生成 → 配布 → 保管 → ローテーション(定期更新) → 失効・廃棄\nエンベロープ暗号 (Envelope Encryption)：データはデータ鍵(DEK)で暗号化し、そのDEKを上位のマスター鍵(KEK)で暗号化する**2層構造**。大量データを効率よく守り、保護対象をKEKに集約できる\nHSM (Hardware Security Module)：鍵を耐タンパーな専用ハードで生成・保管する装置\n鍵管理システム(KMS)の基本概念', keyword: '鍵管理 キーライフサイクル 鍵ローテーション エンベロープ暗号 Envelope Encryption DEK KEK データ鍵 マスターキー HSM', tags: ['エンベロープ暗号 / DEK・KEK', '鍵ローテーション', 'HSM'] },
         { name: 'TLS/SSLとハンドシェイク', desc: 'TLS (Transport Layer Security)：**通信を暗号化**して盗聴・改ざん・なりすましを防ぐプロトコル(SSLの後継)。HTTPSの土台。\nハンドシェイク概略：\n- ① クライアントが対応する暗号スイートを提示\n- ② サーバが証明書(公開鍵)を提示\n- ③ 証明書を検証し、共通鍵(セッション鍵)を安全に共有\n- ④ 以降はセッション鍵(共通鍵暗号)で高速に暗号化通信\nつまり公開鍵で鍵交換し本文は共通鍵で暗号化するハイブリッド方式。前方秘匿性(PFS)で過去の通信も保護', keyword: 'TLS SSL ハンドシェイク 暗号スイート セッション鍵 証明書検証 ハイブリッド暗号 前方秘匿性 PFS HTTPS', tags: ['TLSハンドシェイク', 'セッション鍵', '前方秘匿性 / PFS'] },
       ],
@@ -852,24 +852,24 @@ const CHEAT_DATA: CheatData = {
       title: '認証と認可',
       items: [
         { name: '認証と認可の基本', desc: '認証 (Authentication)：**本人確認**（「あなたは誰か」）\n- 認証の3要素：知識（パスワード）・所持（トークン・スマホ）・生体（指紋・顔）\n- 多要素認証 (MFA)：異なる要素を2つ以上組み合わせて強度を高める\n認可 (Authorization)：アクセス権の制御（「何をしてよいか」）', keyword: '認証 認可 Authentication Authorization MFA 多要素認証 本人確認', tags: ['認証 / Authentication', '認可 / Authorization', 'MFA'] },
-        { name: 'アクセス制御モデル', desc: '最小権限の原則 (Least Privilege)：**業務に必要な最小限**の権限だけ与える\nRBAC (ロールベースアクセス制御)：役割 (ロール) に権限をまとめ、ユーザーにロールを割り当てる\nABAC (属性ベースアクセス制御)：属性（部署・時間・場所等）の条件で制御\n職務分掌 (Separation of Duties)：権限を分散させ単独での不正を防ぐ', keyword: '最小権限 Least Privilege RBAC ABAC アクセス制御 職務分掌 ロール', tags: ['最小権限', 'RBAC / ABAC', '職務分掌'] },
-        { name: 'ID連携とSSO', desc: 'SSO (シングルサインオン)：**一度の認証**で複数サービスを利用できる仕組み\nフェデレーション：組織をまたいで認証情報を信頼・連携する\nSAML（Security Assertion Markup Language）：主に企業向けのXMLベース認証連携\nOAuth（Open Authorization） 2.0：認可の委譲（第三者アプリにAPIアクセスを許可）\nOpenID Connect (OIDC)：OAuth 2.0上に認証を追加した仕様（IDトークン）', keyword: 'SSO シングルサインオン フェデレーション SAML OAuth OpenID Connect OIDC', tags: ['SSO / フェデレーション', 'SAML', 'OAuth / OIDC'] },
+        { name: 'アクセス制御モデル', desc: '主なモデル：\n- 最小権限の原則 (Least Privilege)：**業務に必要な最小限**の権限だけ与える\n- RBAC (ロールベースアクセス制御)：役割 (ロール) に権限をまとめ、ユーザーにロールを割り当てる\n- ABAC (属性ベースアクセス制御)：属性（部署・時間・場所等）の条件で制御\n- 職務分掌 (Separation of Duties)：権限を分散させ単独での不正を防ぐ', keyword: '最小権限 Least Privilege RBAC ABAC アクセス制御 職務分掌 ロール', tags: ['最小権限', 'RBAC / ABAC', '職務分掌'] },
+        { name: 'ID連携とSSO', desc: '主な仕組み：\n- SSO (シングルサインオン)：**一度の認証**で複数サービスを利用できる仕組み\n- フェデレーション：組織をまたいで認証情報を信頼・連携する\n- SAML（Security Assertion Markup Language）：主に企業向けのXMLベース認証連携\n- OAuth（Open Authorization） 2.0：認可の委譲（第三者アプリにAPIアクセスを許可）\n- OpenID Connect (OIDC)：OAuth 2.0上に認証を追加した仕様（IDトークン）', keyword: 'SSO シングルサインオン フェデレーション SAML OAuth OpenID Connect OIDC', tags: ['SSO / フェデレーション', 'SAML', 'OAuth / OIDC'] },
       ],
     },
     {
       title: '脅威と攻撃',
       items: [
         { name: 'マルウェア', desc: 'マルウェア：**悪意あるソフト**の総称。主な種類：\n- ウイルス / ワーム：自己増殖して感染を広げる\n- トロイの木馬：正規プログラムを装って侵入\n- ランサムウェア：データを暗号化して身代金を要求\n- スパイウェア / ボット：情報窃取・遠隔操作（C2から指令）\n対策：アンチウイルス・EDR・パターン更新・振る舞い検知・バックアップ', keyword: 'マルウェア ウイルス ワーム トロイの木馬 ランサムウェア ボット C2 EDR', tags: ['ランサムウェア', 'ワーム / トロイ', 'ボット / C2'] },
-        { name: 'Web・アプリへの攻撃', desc: 'SQLインジェクション：**入力に不正なSQL**を注入してDBを不正操作（対策：プレースホルダ）\nXSS (クロスサイトスクリプティング)：悪意あるスクリプトを埋め込み他ユーザーで実行（対策：エスケープ）\nCSRF（Cross-Site Request Forgery）：ログイン状態を悪用して意図しない操作をさせる（対策：トークン）\nバッファオーバーフロー（確保領域を超える書き込みで不正コードを実行）/ ディレクトリトラバーサル（../等で公開範囲外のファイルに不正アクセス）', keyword: 'SQLインジェクション XSS クロスサイトスクリプティング CSRF バッファオーバーフロー 脆弱性', tags: ['SQLi', 'XSS', 'CSRF'] },
-        { name: 'その他の攻撃手法', desc: 'DoS（Denial of Service） / DDoS：**大量アクセス**でサービスを停止させる攻撃（分散させたものがDDoS）\n中間者攻撃 (MITM)：通信に割り込んで盗聴・改ざん\nフィッシング：偽サイト・偽メールで認証情報をだまし取る\nソーシャルエンジニアリング：人の心理につけ込む攻撃（なりすまし電話・肩越しの覗き見）', keyword: 'DoS DDoS 中間者攻撃 MITM フィッシング ソーシャルエンジニアリング', tags: ['DoS / DDoS', '中間者攻撃 / MITM', 'フィッシング'] },
+        { name: 'Web・アプリへの攻撃', desc: '主な攻撃：\n- SQLインジェクション：**入力に不正なSQL**を注入してDBを不正操作（対策：プレースホルダ）\n- XSS (クロスサイトスクリプティング)：悪意あるスクリプトを埋め込み他ユーザーで実行（対策：エスケープ）\n- CSRF（Cross-Site Request Forgery）：ログイン状態を悪用して意図しない操作をさせる（対策：トークン）\nバッファオーバーフロー（確保領域を超える書き込みで不正コードを実行）/ ディレクトリトラバーサル（../等で公開範囲外のファイルに不正アクセス）', keyword: 'SQLインジェクション XSS クロスサイトスクリプティング CSRF バッファオーバーフロー 脆弱性', tags: ['SQLi', 'XSS', 'CSRF'] },
+        { name: 'その他の攻撃手法', desc: '主な攻撃：\n- DoS（Denial of Service） / DDoS：**大量アクセス**でサービスを停止させる攻撃（分散させたものがDDoS）\n- 中間者攻撃 (MITM)：通信に割り込んで盗聴・改ざん\n- フィッシング：偽サイト・偽メールで認証情報をだまし取る\n- ソーシャルエンジニアリング：人の心理につけ込む攻撃（なりすまし電話・肩越しの覗き見）', keyword: 'DoS DDoS 中間者攻撃 MITM フィッシング ソーシャルエンジニアリング', tags: ['DoS / DDoS', '中間者攻撃 / MITM', 'フィッシング'] },
       ],
     },
     {
       title: 'セキュリティ管理・防御',
       items: [
         { name: '情報セキュリティの3要素', desc: '情報セキュリティの3要素 (**CIA**)。\n機密性 (Confidentiality)：認可された者だけがアクセスできる\n完全性 (Integrity)：情報が正確で改ざんされていない\n可用性 (Availability)：必要なときに利用できる\n拡張要素：真正性・責任追跡性 (Accountability)・否認防止 (Non-repudiation)', keyword: 'CIA 機密性 完全性 可用性 情報セキュリティ 否認防止 真正性', tags: ['機密性 / Confidentiality', '完全性 / Integrity', '可用性 / Availability'] },
-        { name: '防御設計の原則', desc: '多層防御 (Defense in Depth)：**単一の対策**に頼らず境界・ネットワーク・ホスト・アプリ・データの各層で守る\nゼロトラスト (Zero Trust)：「何も信頼しない」を前提に、社内外を問わず全アクセスを常に検証する\n最小権限・マイクロセグメンテーション・継続的な認証が要素', keyword: '多層防御 Defense in Depth ゼロトラスト Zero Trust マイクロセグメンテーション', tags: ['多層防御', 'ゼロトラスト', '継続的検証'] },
-        { name: '脆弱性管理とデータ保護', desc: '脆弱性管理：**既知の弱点** (CVE) をスキャンし、リスク (CVSS) で優先順位を付けてパッチ適用\nパッチ管理：OS・ソフトを最新化して既知の穴をふさぐ\n保存データ暗号化 (at rest) と 通信データ暗号化 (in transit)\nバックアップと 3-2-1ルール（3コピー・2媒体・1オフサイト）', keyword: '脆弱性管理 CVE CVSS パッチ管理 暗号化 バックアップ 3-2-1ルール', tags: ['脆弱性 / CVE・CVSS', 'パッチ管理', 'バックアップ / 3-2-1'] },
+        { name: '防御設計の原則', desc: '主な原則：\n- 多層防御 (Defense in Depth)：**単一の対策**に頼らず境界・ネットワーク・ホスト・アプリ・データの各層で守る\n- ゼロトラスト (Zero Trust)：「何も信頼しない」を前提に、社内外を問わず全アクセスを常に検証する\n最小権限・マイクロセグメンテーション・継続的な認証が要素', keyword: '多層防御 Defense in Depth ゼロトラスト Zero Trust マイクロセグメンテーション', tags: ['多層防御', 'ゼロトラスト', '継続的検証'] },
+        { name: '脆弱性管理とデータ保護', desc: '主な観点：\n- 脆弱性管理：**既知の弱点** (CVE) をスキャンし、リスク (CVSS) で優先順位を付けてパッチ適用\n- パッチ管理：OS・ソフトを最新化して既知の穴をふさぐ\n保存データ暗号化 (at rest) と 通信データ暗号化 (in transit)\nバックアップと 3-2-1ルール（3コピー・2媒体・1オフサイト）', keyword: '脆弱性管理 CVE CVSS パッチ管理 暗号化 バックアップ 3-2-1ルール', tags: ['脆弱性 / CVE・CVSS', 'パッチ管理', 'バックアップ / 3-2-1'] },
       ],
     },
     {
@@ -1450,8 +1450,14 @@ export default function CheatSheet() {
 }
 
 // 「用語: 説明」の用語らしさ判定（文中コロンの誤検出を除外）。未閉じ括弧・句点・過長は用語ではない。
+// 「〜例」のようにリストの導入に過ぎないラベルは用語扱いしない（強調・◯を付けない）
+function isIntroLabel(t: string): boolean {
+  return /例$/.test(t);
+}
+
 function isCleanTermLabel(t: string): boolean {
   if (t.length > 30 || /[。！？\n]/.test(t)) return false;
+  if (isIntroLabel(t)) return false;
   const open = (t.match(/[（(]/g) || []).length;
   const close = (t.match(/[）)]/g) || []).length;
   return open === close;
@@ -1479,6 +1485,8 @@ function isParentLine(lines: string[], i: number): boolean {
 function isTopTermLine(lines: string[], i: number): boolean {
   const l = lines[i];
   if (l.startsWith('- ')) return false;
+  // ①②…のような丸付き数字始まりの行には◯を重ねない
+  if (/^[①-⑳㉑-㊿]/.test(l)) return false;
   if (isParentLine(lines, i)) return true; // 子を持つ親（コロン無しの見出しも含む）
   const ci = topLevelColonIndex(l);
   if (ci <= 0) return false;
