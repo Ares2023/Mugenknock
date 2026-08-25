@@ -338,7 +338,7 @@ const CHEAT_DATA: CheatData = {
       title: 'モニタリング・ロギング',
       items: [
         { name: 'Amazon CloudWatch', desc: 'カスタムメトリクス：**PutMetricData API**で独自メトリクスを送信。高解像度（1秒）まで対応\nLogs Insights：ロググループに対してSQLライクなクエリで分析するツール\nContributor Insights：上位N件のトラフィックソース・エラー原因を特定する分析機能\n異常検知（Anomaly Detection）：機械学習でメトリクスの異常（季節性考慮）を自動検出してアラーム。英語名「CloudWatch Anomaly Detection」で問われることも多い\n複合アラーム（Composite Alarms）：複数アラームをAND/ORで組み合わせた複合条件でアクション実行', tags: ['高解像度', 'Logs Insights', '異常検知 / Anomaly Detection'] },
-        { name: 'AWS CloudTrail', desc: '**AWSリソース**へのAPIコールを記録する監査ログサービス。イベントの種類：\n- 管理イベント：AWSリソースの作成・削除・設定変更。デフォルトで有効\n- データイベント：S3オブジェクト操作・Lambda関数実行。明示的に有効化が必要\n- Insightsイベント：通常と異なるAPI呼び出しパターン（突然の大量呼び出し等）を自動検出', tags: ['管理イベント', 'データイベント', 'Insights'] },
+        { name: 'AWS CloudTrail', desc: '**AWSリソース**へのAPIコールを記録する監査ログサービス。\nイベントの種類\n- 管理イベント：AWSリソースの作成・削除・設定変更。デフォルトで有効\n- データイベント：S3オブジェクト操作・Lambda関数実行。明示的に有効化が必要\n- Insightsイベント：通常と異なるAPI呼び出しパターン（突然の大量呼び出し等）を自動検出', tags: ['管理イベント', 'データイベント', 'Insights'] },
         { name: 'AWS Config', desc: '**リソースの設定変更**を時系列で記録し、ルールへの準拠状況を継続的に評価するサービス。\nマネージドルール（Managed Rules）：AWSが事前定義した150以上のコンプライアンスルール\nカスタムルール：Lambda関数で独自のルールを定義\nコンフォーマンスパック（Conformance Packs）：複数のConfigルールをまとめてパッケージ化して一括展開\n自動修復（Auto Remediation）：ルール違反を検出したらSSM Automationで自動修正', tags: ['設定変更', 'マネージドルール / Managed Rules', '自動修復 / Auto Remediation'] },
         { name: 'AWS Health Dashboard', desc: 'Service Health Dashboard（サービス全体の障害ステータス）：**AWSサービス全体**の稼働状況を公開しているページ\nPersonal Health Dashboard（個人用ヘルスダッシュボード）：自分のアカウントのリソースへの影響をお知らせするサービス\nEventBridgeと連携してHealth通知を受けたらSlack/SNSに自動転送するパターンが頻出', tags: ['サービス障害', 'アカウント影響', 'EventBridge連携'] },
         { name: 'CloudWatch 基本監視 vs 詳細監視 / EC2メトリクス', desc: '**EC2**のメトリクス収集間隔の違い。\n基本監視（Basic）：5分間隔。デフォルトで無効課金なし\n詳細監視（Detailed）：1分間隔。有効化で追加課金。Auto Scaling/障害対応で素早く反応したい場合に有効化\nEC2が標準で送るのはCPU使用率・ネットワーク・ディスクI/O・ステータスチェックまで。メモリ使用率とディスク空き容量(ゲストOS内部の値)は標準メトリクスに含まれず、CloudWatchエージェント(またはprocstat)を入れて初めて取得できる\nステータスチェック：システムステータス(AWS基盤側)とインスタンスステータス(OS/設定側)の2種類。自動復旧(recover)アクションと組み合わせる', tags: ['基本5分', '詳細1分', 'メモリはエージェント'] },
@@ -364,7 +364,7 @@ const CHEAT_DATA: CheatData = {
         { name: 'AWS Auto Scaling', desc: 'ライフサイクルフック（Lifecycle Hook）：**インスタンスの起動時**（設定完了まで待機）・終了時（データ退避処理）にカスタムスクリプトを挿入する仕組み\n予測スケーリング（Predictive Scaling）：過去のメトリクスパターンをMLで学習して事前にスケールアウト\nウォームアップ期間（Instance Warmup）：新インスタンスが準備できるまでメトリクスへの影響を除外する時間', tags: ['ライフサイクルフック / Lifecycle Hook', '予測スケーリング / Predictive Scaling', 'ウォームアップ'] },
         { name: 'Elastic Load Balancing（ELB）', desc: '**ヘルスチェック**設定パラメータ：\n- 正常しきい値（HealthyThreshold）：正常と判断するまでの連続成功回数\n- 異常しきい値（UnhealthyThreshold）：異常と判断するまでの連続失敗回数\n- アクセスログ：ELBのアクセスログをS3に保存（デフォルト無効）\n- クロスゾーン負荷分散（Cross-Zone Load Balancing）：複数AZにまたがってトラフィックを均等に分散\n- Connection Draining（登録解除の遅延 / Deregistration Delay）：登録解除中のターゲットへの既存接続を安全に完了させる猶予時間', tags: ['ヘルスチェック', 'クロスゾーン / Cross-Zone', 'Connection Draining'] },
         { name: 'Amazon RDS（可用性）', desc: 'Multi-AZフェイルオーバー：**60〜120秒が目安**。プライマリ障害時にスタンバイが自動でプライマリに昇格\nスナップショット：自動（0〜35日間保持）と手動（明示的に削除するまで保持）の2種類\nPITR（ポイントインタイムリカバリ）：最大35日前の任意の時点のデータに5分以内の精度で復元可能\nリードレプリカのプロモーション：読み取りレプリカを独立したDBインスタンスに昇格（手動操作）', tags: ['フェイルオーバー', 'ポイントインタイム', 'リードレプリカ'] },
-        { name: 'Amazon Route 53（DR構成）', desc: 'DR（**災害対策**）構成の核。ヘルスチェックの種類：\n- エンドポイント監視：HTTP/HTTPS/TCPでエンドポイントの死活を監視\n- 他ヘルスチェック監視：複数ヘルスチェックのAND/OR評価\n- CloudWatchアラーム監視：アラームの状態に連動\nフェイルオーバールーティングと組み合わせてプライマリ障害時にセカンダリサイトに自動切り替え', tags: ['ヘルスチェック', 'フェイルオーバー', 'DR構成'] },
+        { name: 'Amazon Route 53（DR構成）', desc: 'DR（**災害対策**）構成の核。\nヘルスチェックの種類\n- エンドポイント監視：HTTP/HTTPS/TCPでエンドポイントの死活を監視\n- 他ヘルスチェック監視：複数ヘルスチェックのAND/OR評価\n- CloudWatchアラーム監視：アラームの状態に連動\nフェイルオーバールーティングと組み合わせてプライマリ障害時にセカンダリサイトに自動切り替え', tags: ['ヘルスチェック', 'フェイルオーバー', 'DR構成'] },
         { name: 'Route 53 Resolver エンドポイント（ハイブリッドDNS）', desc: '**オンプレミス**とVPC間で相互にDNS名前解決するための仕組み（VPCとオンプレをVPN/Direct Connectで接続した環境で使う）。向きに注意。\nインバウンドエンドポイント：オンプレDNS → AWS への問い合わせを受ける。オンプレからVPC内の名前(privateホストゾーン/AWSリソース)を解決したいとき\nアウトバウンドエンドポイント：AWS(VPC) → オンプレDNS へ転送する。VPC内のリソースからオンプレのドメイン名を解決したいとき（Resolver ルールで転送先を指定）\n覚え方：「AWSに入ってくる問い合わせ＝インバウンド」「AWSから出ていく問い合わせ＝アウトバウンド」', tags: ['ハイブリッドDNS', 'インバウンド=オンプレ→AWS', 'アウトバウンド=AWS→オンプレ'] },
         { name: 'S3 レプリケーション（RTC / ライブ vs バッチ）', desc: 'S3の**オブジェクト複製**。CRR(クロスリージョン)/SRR(同一リージョン)。\nライブレプリケーション：レプリケーション設定後に「新規に作成/更新される」オブジェクトを継続的に自動複製（既存オブジェクトは対象外）\nS3（Simple Storage Service） バッチレプリケーション：設定より前から存在する「既存オブジェクト」や複製失敗分を遡って複製する（S3 Batch Operations ジョブ）。初回移行・後追い複製に使う\nS3 RTC（Replication Time Control）：99.99%のオブジェクトを15分以内に複製するSLA付きの機能。複製の遅延をCloudWatchメトリクス(OperationsPendingReplication等)で監視でき、RPO要件が厳しいDRで使う（追加料金）\n使い分け：通常の継続複製=ライブ / 既存分の穴埋め=バッチ / 時間保証が要る=RTC', tags: ['CRR/SRR', 'RTC=15分SLA', 'バッチ=既存複製'] },
       ],
@@ -482,7 +482,7 @@ const CHEAT_DATA: CheatData = {
     {
       title: 'SageMaker - モデル開発',
       items: [
-        { name: 'Amazon SageMaker Studio', desc: '**ML開発のため**の統合IDE（開発環境）。Jupyter Notebookを拡張したWebベースの環境で以下を統一UIで利用：\n- Experiments：複数の学習実行の条件・メトリクスを比較管理\n- Pipelines：MLパイプラインの定義・実行・可視化\n- Model Registry：モデルのバージョン管理・承認\n- Clarify：バイアス・説明可能性の分析', tags: ['IDE', 'Experiments', '統合環境'] },
+        { name: 'Amazon SageMaker Studio', desc: '**ML開発のため**の統合IDE（開発環境）。Jupyter Notebookを拡張したWebベースの環境。\n統一UIで使える主な機能\n- Experiments：複数の学習実行の条件・メトリクスを比較管理\n- Pipelines：MLパイプラインの定義・実行・可視化\n- Model Registry：モデルのバージョン管理・承認\n- Clarify：バイアス・説明可能性の分析', tags: ['IDE', 'Experiments', '統合環境'] },
         { name: 'Amazon SageMaker Training', desc: 'マネージドな**MLモデル学習**サービス。\n組み込みアルゴリズム：XGBoost（勾配ブースティング）/ Linear Learner（線形モデル）/ DeepAR（時系列予測）/ BlazingText（テキスト分類）等\nカスタムコンテナ：独自のTensorFlow・PyTorch等のコードをDockerイメージで実行\n分散学習 (Distributed Training)：データ並列（大量データを複数GPU/インスタンスで分割学習）とモデル並列（大規模モデルを複数GPUに分割）\nスポットトレーニング：EC2スポットインスタンスで最大90%コスト削減（中断を考慮してチェックポイント設定が必要）', tags: ['組み込みアルゴリズム', '分散学習', 'スポット'] },
         { name: 'Amazon SageMaker Automatic Model Tuning（AMT）', desc: '**ハイパーパラメータ**（学習率・バッチサイズ等）を自動探索してモデルを最適化するHPO（Hyperparameter Optimization）機能。\n探索戦略：\n- Bayesian最適化：過去の試行結果を学習して効率的に次のパラメータ候補を選択\n- Grid Search：指定した全パラメータ組み合わせを網羅的に試行\n- Random Search：ランダムにパラメータを選択\nウォームスタート：前回のチューニング結果を引き継いで効率化', tags: ['HPO', 'Bayesian最適化', 'ウォームスタート'] },
         { name: 'Amazon SageMaker Clarify', desc: '**学習前後**のバイアス検出と説明可能性の分析を行うサービス。\nバイアス検出：訓練データのバイアス（学習前）とモデルの予測バイアス（学習後）を統計指標で測定\nSHAP（Shapley Additive exPlanations）値：各特徴量が予測に与えた貢献度を定量化するFeature Importance手法\nModel Monitorと統合してデプロイ後のバイアスドリフトも継続監視', tags: ['バイアス検出', 'SHAP', '説明可能性'] },
@@ -653,7 +653,7 @@ const CHEAT_DATA: CheatData = {
       title: 'セキュリティ監視・ログ',
       items: [
         { name: 'AWS Security Hub', desc: 'GuardDuty・Inspector・Macie・Firewall Manager等の検出結果をASFF（Amazon Security Finding Format：**セキュリティ検出結果**の標準形式）で集約・優先順位付けするサービス。\nコンプライアンス基準への自動チェック：\n- CIS（Center for Internet Security） AWS Foundations Benchmark：AWSのセキュリティ設定ベースライン\n- PCI（Payment Card Industry） DSS：クレジットカード業界のデータセキュリティ基準\n- NIST（米国国立標準技術研究所） 800-53：米国政府のセキュリティフレームワーク', tags: ['ASFF', 'CIS', 'PCI DSS準拠'], seeAlso: ['GuardDuty', 'Inspector', 'Audit Manager'] },
-        { name: 'AWS CloudTrail（SCS観点）', desc: '**セキュリティ監査**の中核。イベントの種類：\n- 管理イベント：リソースの作成・削除・IAM変更等（デフォルト有効）\n- データイベント：S3オブジェクト操作・Lambda実行等（明示的に有効化が必要）\n- Insightsイベント：異常なAPI呼び出しパターンを自動検出\nS3証跡保護：証跡をS3に保存する場合はMFAによる削除防止・KMS暗号化・ログファイル整合性検証（改ざん検出）を有効化することが重要', tags: ['管理イベント', 'データイベント', '整合性検証'] },
+        { name: 'AWS CloudTrail（SCS観点）', desc: '**セキュリティ監査**の中核。\nイベントの種類\n- 管理イベント：リソースの作成・削除・IAM変更等（デフォルト有効）\n- データイベント：S3オブジェクト操作・Lambda実行等（明示的に有効化が必要）\n- Insightsイベント：異常なAPI呼び出しパターンを自動検出\nS3証跡保護：証跡をS3に保存する場合はMFAによる削除防止・KMS暗号化・ログファイル整合性検証（改ざん検出）を有効化することが重要', tags: ['管理イベント', 'データイベント', '整合性検証'] },
         { name: 'Amazon Inspector', desc: '**脆弱性**（セキュリティの弱点）を継続的にスキャンして優先順位付けするサービス。\nスキャン対象：\n- EC2インスタンス：エージェント不要でSSMエージェント経由。OSの既知脆弱性を検出\n- ECRコンテナイメージ：プッシュ時に自動スキャン\n- Lambda関数：コードと依存パッケージの脆弱性をスキャン\n- CVE（Common Vulnerabilities and Exposures）：既知の脆弱性のIDデータベースと照合してリスクスコア（CVSS）で優先順位付け', tags: ['脆弱性スキャン', 'CVE', 'コンテナ'], seeAlso: ['GuardDuty', 'Security Hub'] },
         { name: 'AWS Config（SCS観点）', desc: '**リソース設定変更**の継続的記録とコンプライアンス評価。\nルール評価：マネージドルール（AWS事前定義）またはカスタムルール（Lambda）でリソースの準拠状況を常時評価\nコンフォーマンスパック：複数のConfigルールをまとめて一括適用。CIS・PCIに対応したパックが利用可能\n自動修復：ルール違反検出時にSSM Automationを起動してリソースを自動修正', tags: ['設定記録', 'ルール評価', '自動修復'] },
       ],
@@ -790,7 +790,7 @@ const CHEAT_DATA: CheatData = {
       items: [
         { name: 'ネットワーク階層モデル', desc: '**ネットワーク通信**を階層で整理したモデル。\nOSI参照モデル（7層）：物理→データリンク→ネットワーク→トランスポート→セッション→プレゼンテーション→アプリケーション\nTCP（Transmission Control Protocol）/IPモデル（4層）：ネットワークインターフェース→インターネット→トランスポート→アプリケーション\nカプセル化：各層でヘッダーを付けてデータを包む処理', keyword: 'OSI参照モデル TCP/IP 7層 プロトコル カプセル化 レイヤー', tags: ['OSI 7層', 'TCP/IP 4層', 'カプセル化'] },
         { name: 'トランスポート層プロトコル', desc: '**トランスポート層**の代表プロトコル。\nTCP (Transmission Control Protocol)：コネクション型。3ウェイハンドシェイクで接続を確立し、再送・順序保証で信頼性が高い（Web・メール・ファイル転送）\nUDP (User Datagram Protocol)：コネクションレス型。確認なしで高速・低遅延だが到達保証なし（動画配信・音声通話・DNS・ゲーム）', keyword: 'TCP UDP 3ウェイハンドシェイク コネクション型 信頼性 トランスポート層', tags: ['TCP / 信頼性', 'UDP / 低遅延', '3ウェイハンドシェイク'] },
-        { name: 'ポート番号', desc: '同一ホスト上のどのアプリ宛かを識別する番号（0〜65535）。**3つの範囲**に分かれる\n- ウェルノウンポート (0-1023)：HTTP=80・HTTPS=443・SSH=22・DNS=53・SMTP=25\n- 登録済みポート (1024-49151)：ソフトに登録された用途\n- 動的ポート (49152-65535)：通信時に一時的に割り当て\nソケット = IPアドレス + ポート番号 で通信の端点を一意に表す', keyword: 'ポート番号 ウェルノウンポート ソケット HTTP HTTPS SSH DNS ポート', tags: ['ウェルノウンポート', 'ソケット', '80 / 443 / 22'] },
+        { name: 'ポート番号', desc: '同一ホスト上のどのアプリ宛かを識別する番号（0〜65535）。\n**3つの範囲**（用途別）\n- ウェルノウンポート (0-1023)：HTTP=80・HTTPS=443・SSH=22・DNS=53・SMTP=25\n- 登録済みポート (1024-49151)：ソフトに登録された用途\n- 動的ポート (49152-65535)：通信時に一時的に割り当て\nソケット = IPアドレス + ポート番号 で通信の端点を一意に表す', keyword: 'ポート番号 ウェルノウンポート ソケット HTTP HTTPS SSH DNS ポート', tags: ['ウェルノウンポート', 'ソケット', '80 / 443 / 22'] },
       ],
     },
     {
@@ -1469,6 +1469,23 @@ function topLevelColonIndex(s: string): number {
   return -1;
 }
 
+// 親概念（直後に「- 」子項目が続く行）か判定。親子構造はオリジナル資格に多い
+function isParentLine(lines: string[], i: number): boolean {
+  return !lines[i].startsWith('- ') && i + 1 < lines.length && lines[i + 1].startsWith('- ');
+}
+
+// desc を表示と同じプレーンテキストへ整形（親概念に「◯」・子概念に「・」を付与）してコピーに使う
+function descToPlainText(desc: string): string {
+  const lines = desc.split('\n');
+  return lines
+    .map((line, i) => {
+      const body = line.replace(/\*\*/g, '');
+      if (body.startsWith('- ')) return '・' + body.slice(2);
+      return isParentLine(lines, i) ? '◯' + body : body;
+    })
+    .join('\n');
+}
+
 function ItemCard({ item, exam, q, allNames, highlightedId, onCopy, onNavigate, scheduledDeletion }: { item: Item; exam: string; q: string; allNames: string[]; highlightedId: string | null; onCopy: (term: string) => void; onNavigate: (id: string) => void; scheduledDeletion?: { reason: string; deleteDate: string } }) {
   const [allCopied, setAllCopied] = useState(false);
   // この記事のグループ情報（表示番号・同じサービスの兄弟記事の解決に使う）
@@ -1477,7 +1494,7 @@ function ItemCard({ item, exam, q, allNames, highlightedId, onCopy, onNavigate, 
   const highlighted = !!article && highlightedId === article.id;
   const handleCopyAll = (e: React.MouseEvent) => {
     e.stopPropagation();
-    navigator.clipboard.writeText(`${item.name}\n\n${item.desc.replace(/\*\*/g, '').replace(/^- /gm, '・')}`).then(() => {
+    navigator.clipboard.writeText(`${item.name}\n\n${descToPlainText(item.desc)}`).then(() => {
       setAllCopied(true);
       setTimeout(() => setAllCopied(false), 1500);
     });
@@ -1610,9 +1627,11 @@ function ItemCard({ item, exam, q, allNames, highlightedId, onCopy, onNavigate, 
         </div>
       )}
       <p style={{ fontSize: 'var(--font-size-sm)', color: 'var(--color-text-sub)', margin: 0, lineHeight: 1.6 }}>
-        {item.desc.split('\n').map((line, i) => {
+        {(() => { const lines = item.desc.split('\n'); return lines.map((line, i) => {
           // 先頭「- 」は下位概念（子項目）。インデントして親子関係を明示する
           const isChild = line.startsWith('- ');
+          // 直後に子項目が続く行は親概念。行頭に「◯」を付与する
+          const isParent = isParentLine(lines, i);
           const body = isChild ? line.slice(2) : line;
           const colonIdx = topLevelColonIndex(body);
           // 用語は既にティール/黒太字で強調されるため、用語内の **強調** 記法は除去して二重強調・記号残りを防ぐ
@@ -1644,8 +1663,11 @@ function ItemCard({ item, exam, q, allNames, highlightedId, onCopy, onNavigate, 
             </>
           ) : renderRich(body);
           // 子項目(下位概念)は「・」プレフィックスで表示（インデント無し。スマホの横幅対策＆見慣れた記号に）
+          // 親概念は「◯」プレフィックス。◯自体は用語の強調に関わらずただの黒細字
           const content = isChild ? (
             <><span style={{ color: 'var(--color-text-light)' }}>・</span>{inner}</>
+          ) : isParent ? (
+            <><span style={{ color: 'var(--color-text-main)', fontWeight: 400 }}>◯</span>{inner}</>
           ) : inner;
           return (
             <React.Fragment key={i}>
@@ -1653,7 +1675,7 @@ function ItemCard({ item, exam, q, allNames, highlightedId, onCopy, onNavigate, 
               {content}
             </React.Fragment>
           );
-        })}
+        }); })()}
       </p>
       {(siblings.length > 0 || relatedArticles.length > 0) && (
         <div style={{ marginTop: 8, paddingTop: 6, borderTop: '1px solid var(--color-border)', display: 'flex', flexDirection: 'column', gap: 4 }}>
