@@ -167,7 +167,7 @@ const CHEAT_DATA: CheatData = {
         { name: '基盤モデル（FM）', desc: '基盤モデル（FM）は、大量のテキスト・画像等で事前学習済みの大規模AIモデル（Foundation Model）。LLM（大規模言語モデル）が代表例。\n様々なタスクにファインチューニング（追加学習）やプロンプト（指示文）だけで適用できる汎用性が特徴。', keyword: 'Foundation Model LLM 大規模言語モデル', tags: ['LLM', '事前学習', 'Foundation Model'] },
         { name: 'プロンプトエンジニアリング', desc: 'プロンプトエンジニアリングは、**FMへの指示**（プロンプト）を工夫してより良い出力を引き出す技術。\nZero-shot：例示なしで直接タスクを指示\nFew-shot：入出力例を数件示して形式を教える\nChain-of-Thought（CoT）：「ステップごとに考えてください」と思考過程を明示させる\nSystem prompt：AIの役割・制約・口調を事前に設定する\nネガティブプロンプト：してはいけない制約を明示的に記述して誤動作を防ぐ（「〜するな」「〜は出力しない」等）\nプロンプトインジェクション：悪意あるユーザーがプロンプトに追加指示を埋め込んでシステムプロンプトを無効化する攻撃。Bedrock Guardrailsで対策', keyword: 'プロンプトエンジニアリング Prompt Engineering Chain-of-Thought ネガティブプロンプト プロンプトインジェクション', tags: ['Zero-shot', 'Few-shot', 'ネガティブプロンプト'] },
         { name: 'RAG（検索拡張生成）', desc: 'RAG（検索拡張生成）は、FMが学習していない最新情報や社内情報を検索して回答に活用する仕組み（Retrieval-Augmented Generation）。\n仕組み：ユーザーの質問 → 外部知識ベースをベクトル検索 → 関連情報を取得 → FMへのプロンプトに追加して回答生成\nFMの知識の欠如（学習カットオフ）やハルシネーションを補う', tags: ['検索拡張生成', 'ベクトル検索', '知識ベース'] },
-        { name: 'ハルシネーション', desc: 'ハルシネーションは、**FMが事実と異**なる情報を自信満々に生成してしまう問題（幻覚）。\n対策：\n- グラウンディング：回答を引用元のドキュメントに根拠付ける\n- RAG（Retrieval-Augmented Generation）：検索した文書からのみ回答させる\n- 温度パラメータ（Temperature）を低くする：出力をより決定論的にする\n- ガードレール：誤情報に対してチェックを追加する', keyword: 'LLM ハルシネーション 幻覚 グラウンディング', tags: ['幻覚', 'グラウンディング', '正確性'] },
+        { name: 'ハルシネーション', desc: 'ハルシネーションは、FMが**事実と異なる情報を自信満々に生成**してしまう問題（幻覚）。\n対策：\n- グラウンディング：回答を引用元のドキュメントに根拠付ける\n- RAG（Retrieval-Augmented Generation）：検索した文書からのみ回答させる\n- 温度パラメータ（Temperature）を低くする：出力をより決定論的にする\n- ガードレール：誤情報に対してチェックを追加する', keyword: 'LLM ハルシネーション 幻覚 グラウンディング', tags: ['幻覚', 'グラウンディング', '正確性'] },
         { name: 'ファインチューニング', desc: 'ファインチューニングは、**事前学習済みFM**を特定タスク用のデータで追加学習してカスタマイズする手法。\nRLHF（Reinforcement Learning from Human Feedback）：人間がFMの出力に評価をつけ、その評価を報酬として強化学習で人間の好みに合わせる手法。ChatGPT等で広く使用されている。', keyword: 'Fine-tuning ファインチューニング RLHF', tags: ['追加学習', 'RLHF', 'カスタマイズ'] },
       ],
     },
@@ -591,8 +591,8 @@ const CHEAT_DATA: CheatData = {
       title: '最適化・運用',
       items: [
         { name: 'コスト最適化', desc: '生成AIアプリの費用は、料金モデルの選択やモデル・トークンの使い方を工夫して抑える。\n**料金モデルの選択**：\n- オンデマンド：APIコールごとに課金。小規模・不定期な利用に適する\n- プロビジョニドスループット：一定スループットを月/6か月/1年コミットで割引購入。大規模・定常的な利用に適する\n- プロンプトキャッシュ（Prompt Caching）：同じプレフィックスのプロンプト部分をキャッシュして再利用するとトークンコストを削減できる機能', keyword: 'Bedrock コスト プロビジョニドスループット Prompt Caching', tags: ['プロビジョニドスループット', 'プロンプトキャッシュ', 'コスト'] },
-        { name: 'レイテンシ最適化', desc: '生成AIアプリの応答遅延は、モデル選択・ストリーミング・キャッシュなどで短縮する。\n主な手法：\n- ストリーミングレスポンス：**応答を生成しな**がらトークン単位で逐次返す。TTFT（Time to First Token：最初のトークンが届くまでの時間）の体感を改善\n- 適切なモデルサイズの選択：タスクの複雑さに応じて大きなモデルと小さなモデルを使い分け（小モデルの方が速くコストも安い）\n- リージョンの最適化：ユーザーに近いリージョンのBedrockを使用して物理的レイテンシを削減', keyword: 'Bedrock レイテンシ ストリーミングレスポンス TTFT', tags: ['ストリーミング', 'TTFT', 'モデルサイズ'] },
-        { name: 'Amazon Q', desc: 'Amazon Qは、**AWSが提供**するAIアシスタント製品ファミリー。\nQ Business：企業の社内ドキュメント（Confluence・Slack・S3等）に接続して自然言語でナレッジを検索・回答するチャットボット\nQ Developer：コード生成・補完・デバッグ・変換・セキュリティスキャンを行うAIコーディングアシスタント（IDE・AWSコンソール統合）\nQ in Amazon QuickSight：BIダッシュボードのNL2SQL（自然言語からSQLを生成して自動でグラフを作成）', tags: ['Q Business', 'Q Developer', 'NL2SQL'] },
+        { name: 'レイテンシ最適化', desc: '生成AIアプリの応答遅延は、モデル選択・ストリーミング・キャッシュなどで短縮する。\n主な手法：\n- ストリーミングレスポンス：**応答を生成しながらトークン単位で逐次返す**。TTFT（Time to First Token：最初のトークンが届くまでの時間）の体感を改善\n- 適切なモデルサイズの選択：タスクの複雑さに応じて大きなモデルと小さなモデルを使い分け（小モデルの方が速くコストも安い）\n- リージョンの最適化：ユーザーに近いリージョンのBedrockを使用して物理的レイテンシを削減', keyword: 'Bedrock レイテンシ ストリーミングレスポンス TTFT', tags: ['ストリーミング', 'TTFT', 'モデルサイズ'] },
+        { name: 'Amazon Q', desc: 'Amazon Qは、AWSが提供する**AIアシスタント製品ファミリー**。\nQ Business：企業の社内ドキュメント（Confluence・Slack・S3等）に接続して自然言語でナレッジを検索・回答するチャットボット\nQ Developer：コード生成・補完・デバッグ・変換・セキュリティスキャンを行うAIコーディングアシスタント（IDE・AWSコンソール統合）\nQ in Amazon QuickSight：BIダッシュボードのNL2SQL（自然言語からSQLを生成して自動でグラフを作成）', tags: ['Q Business', 'Q Developer', 'NL2SQL'] },
       ],
     },
   ],
@@ -814,7 +814,7 @@ const CHEAT_DATA: CheatData = {
       title: 'ルーティングとスイッチング',
       items: [
         { name: 'L2/L3の中継機器', desc: 'ネットワークでデータを中継する機器には、L2で動くスイッチや、L3で動くルーターなどがある。\n主な機器：\n- スイッチ (L2)：**同一ネットワーク内**でMACアドレスを見てフレームを転送する機器\n- ルーター (L3)：異なるネットワーク間をIPアドレスで中継する機器\n- デフォルトゲートウェイ：自分のネットワーク外へ出る際の出口となるルーター\n- MACアドレス：NICに割り当てられた物理アドレス。ARPでIP↔MACを対応付ける', keyword: 'ルーター スイッチ L2 L3 デフォルトゲートウェイ MACアドレス ARP', tags: ['スイッチ / L2', 'ルーター / L3', 'デフォルトゲートウェイ'] },
-        { name: 'ルーティング', desc: 'ルーティングは、**パケットを宛先ま**で転送する経路制御。\nルーティングテーブル：宛先ネットワークごとの転送先を記した表。最長一致 (Longest Match) で選択\n静的ルーティング：手動で経路を設定（小規模・固定向け）\n動的ルーティング：プロトコルで経路を自動学習。RIP（距離ベクトル）・OSPF（リンクステート）・BGP（インターネット間の経路制御）', keyword: 'ルーティング ルーティングテーブル 最長一致 静的ルーティング 動的ルーティング OSPF BGP', tags: ['ルーティングテーブル', '静的 / 動的', 'OSPF / BGP'] },
+        { name: 'ルーティング', desc: 'ルーティングは、**パケットを宛先まで転送する経路制御**。\nルーティングテーブル：宛先ネットワークごとの転送先を記した表。最長一致 (Longest Match) で選択\n静的ルーティング：手動で経路を設定（小規模・固定向け）\n動的ルーティング：プロトコルで経路を自動学習。RIP（距離ベクトル）・OSPF（リンクステート）・BGP（インターネット間の経路制御）', keyword: 'ルーティング ルーティングテーブル 最長一致 静的ルーティング 動的ルーティング OSPF BGP', tags: ['ルーティングテーブル', '静的 / 動的', 'OSPF / BGP'] },
         { name: 'ネットワークセグメンテーション', desc: 'ネットワークセグメンテーションは、ネットワークを論理的に分割して管理性とセキュリティを高める技術（VLAN・サブネット等）。\nVLAN (Virtual LAN)：**物理構成に関係**なくスイッチを論理的に分割し、ブロードキャストドメインを分けて管理・セキュリティを向上させる技術。\n主な技術：\n- ブロードキャストドメイン：ブロードキャストが届く範囲。ルーターで区切られる\n- セグメンテーション：用途や部門ごとにネットワークを分けて、障害・攻撃の影響範囲を限定する', keyword: 'VLAN ブロードキャストドメイン セグメンテーション ネットワーク分割', tags: ['VLAN', 'ブロードキャストドメイン', 'セグメンテーション'] },
         { name: 'BGP（境界ゲートウェイプロトコル）', desc: 'BGP（境界ゲートウェイプロトコル）は、**インターネット**や組織間（AS間）の経路を交換する動的ルーティングプロトコル。\n主な用語：\n- AS (自律システム)：単一の管理ポリシーで運用されるネットワークの塊。AS番号で識別\n- eBGP：異なるAS間 / iBGP：同一AS内\n- 経路広告 (Advertisement)：自分が到達できるネットワークを隣接ルーターに通知\n- パス選択：AS_PATH長・ローカルプリファレンス・MED などの属性で最適経路を決定\n経路集約でルーティングテーブルを縮小する', keyword: 'BGP 境界ゲートウェイプロトコル AS 自律システム eBGP iBGP 経路広告 AS_PATH ローカルプリファレンス MED', tags: ['BGP / AS番号', 'eBGP / iBGP', '経路広告 / パス選択'] },
       ],
@@ -1565,7 +1565,11 @@ function ItemCard({ item, exam, q, allNames, highlightedId, onCopy, onNavigate, 
   // 同じサービスの他記事（別資格・別観点版）— 自分を除く
   const siblings = useMemo(() => {
     if (!article) return [] as Article[];
-    return (SERVICE_GROUPS.get(article.serviceKey) ?? []).filter(a => a.id !== article.id);
+    const all = (SERVICE_GROUPS.get(article.serviceKey) ?? []).filter(a => a.id !== article.id);
+    // 1資格につき同一サービスは1記事だけリンクする（リンクの肥大化防止）。
+    // 自分の資格は自分自身が代表なので、同一資格の他記事はリンクに出さない。
+    const seen = new Set<string>([article.exam]);
+    return all.filter(a => { if (seen.has(a.exam)) return false; seen.add(a.exam); return true; });
   }, [article]);
 
   // 関連サービス — seeAlso/自動検出で挙がった各サービスの「全記事」を展開して列挙。
@@ -1706,7 +1710,7 @@ function ItemCard({ item, exam, q, allNames, highlightedId, onCopy, onNavigate, 
             <div style={{ display: 'flex', gap: 4, flexWrap: 'wrap', alignItems: 'center' }}>
               <span style={{ fontSize: 'var(--font-size-2xs)', color: 'var(--color-text-light)' }}>同じサービス:</span>
               {siblings.map(a => (
-                <ArticleChip key={a.id} label={articleTitle(a)} onClick={() => onNavigate(a.id)} />
+                <ArticleChip key={a.id} label={a.exam} onClick={() => onNavigate(a.id)} />
               ))}
             </div>
           )}
