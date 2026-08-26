@@ -482,7 +482,7 @@ const CHEAT_DATA: CheatData = {
     {
       title: 'SageMaker - モデル開発',
       items: [
-        { name: 'Amazon SageMaker Studio', desc: 'Amazon SageMaker Studioは、Jupyter Notebookを拡張した**ML開発のための統合IDE**（Webベースの開発環境）。\n統一UIで使える主な機能\n- Experiments：複数の学習実行の条件・メトリクスを比較管理\n- Pipelines：MLパイプラインの定義・実行・可視化\n- Model Registry：モデルのバージョン管理・承認\n- Clarify：バイアス・説明可能性の分析', tags: ['IDE', 'Experiments', '統合環境'] },
+        { name: 'Amazon SageMaker Studio', desc: 'Amazon SageMaker Studioは、Jupyter Notebookを拡張した**ML開発のための統合IDE**（Webベースの開発環境）。\n主な機能\n- Experiments：複数の学習実行の条件・メトリクスを比較管理\n- Pipelines：MLパイプラインの定義・実行・可視化\n- Model Registry：モデルのバージョン管理・承認\n- Clarify：バイアス・説明可能性の分析', tags: ['IDE', 'Experiments', '統合環境'] },
         { name: 'Amazon SageMaker Training', desc: 'Amazon SageMaker Trainingは、マネージドな**MLモデル学習**サービス。\n組み込みアルゴリズム：XGBoost（勾配ブースティング）/ Linear Learner（線形モデル）/ DeepAR（時系列予測）/ BlazingText（テキスト分類）等\nカスタムコンテナ：独自のTensorFlow・PyTorch等のコードをDockerイメージで実行\n分散学習 (Distributed Training)：データ並列（大量データを複数GPU/インスタンスで分割学習）とモデル並列（大規模モデルを複数GPUに分割）\nスポットトレーニング：EC2スポットインスタンスで最大90%コスト削減（中断を考慮してチェックポイント設定が必要）', tags: ['組み込みアルゴリズム', '分散学習', 'スポット'] },
         { name: 'Amazon SageMaker Automatic Model Tuning（AMT）', desc: 'Amazon SageMaker AMTは、**ハイパーパラメータ**（学習率・バッチサイズ等）を自動探索してモデルを最適化するHPO（Hyperparameter Optimization）機能。\n探索戦略：\n- Bayesian最適化：過去の試行結果を学習して効率的に次のパラメータ候補を選択\n- Grid Search：指定した全パラメータ組み合わせを網羅的に試行\n- Random Search：ランダムにパラメータを選択\nウォームスタート：前回のチューニング結果を引き継いで効率化', tags: ['HPO', 'Bayesian最適化', 'ウォームスタート'] },
         { name: 'Amazon SageMaker Clarify', desc: '**学習前後**のバイアス検出と説明可能性の分析を行うサービス。\nバイアス検出：訓練データのバイアス（学習前）とモデルの予測バイアス（学習後）を統計指標で測定\nSHAP（Shapley Additive exPlanations）値：各特徴量が予測に与えた貢献度を定量化するFeature Importance手法\nModel Monitorと統合してデプロイ後のバイアスドリフトも継続監視', tags: ['バイアス検出', 'SHAP', '説明可能性'] },
@@ -494,7 +494,7 @@ const CHEAT_DATA: CheatData = {
         { name: 'Amazon SageMaker Endpoints（推論）', desc: 'SageMakerは要件に応じて推論エンドポイントの方式を選べる。\n**推論エンドポイント**の4種類：\n- リアルタイムエンドポイント：同期API。低レイテンシが必要な場合\n- 非同期推論：リクエストをキューに積んでバックグラウンドで処理。大きなペイロードや処理時間が長い推論向け\n- サーバーレス推論：トラフィックがゼロの間はコストゼロ。断続的なトラフィック向け\n- バッチ変換：S3のデータをバッチ処理。推論エンドポイントの常時起動不要\n- マルチモデルエンドポイント（MME）：1つのエンドポイントで複数モデルをホスティングしてコスト削減', tags: ['リアルタイム', '非同期', 'バッチ変換'] },
         { name: 'Amazon SageMaker Pipelines', desc: 'SageMakerはMLパイプラインで前処理〜デプロイをCI/CD化する。\nMLパイプライン：**前処理〜デプロイ**をDAGでCI/CD化\nMLワークフロー（データ処理→学習→評価→モデル登録→デプロイ）をDAG（有向非巡回グラフ）として定義してCI/CD化するサービス。\n各ステップはProcessing・Training・Evaluation・Condition・Register等のタイプから選択。\nExperimentsと自動統合して実行履歴・メトリクスを管理する。', tags: ['MLパイプライン', 'CI/CD', 'DAG'] },
         { name: 'Amazon SageMaker Model Registry', desc: 'SageMakerはモデルレジストリでバージョンと承認を管理する。\nモデルレジストリ：**バージョン**・メタデータ・承認を管理\nモデルのバージョン管理・メタデータ（精度・訓練データ・パラメータ）・承認ワークフローを管理するカタログ。\n承認（Approved）/拒否（Rejected）のステータスを管理し、承認済みモデルのみをCodePipeline・Lambda経由で自動デプロイするパターンが重要。', tags: ['モデル管理', 'バージョン管理', '承認ワークフロー'] },
-        { name: 'Amazon SageMaker Model Monitor', desc: 'SageMakerはデプロイ済みモデルを継続的に監視する。\n**デプロイ済みモデル**を継続的に監視する4種類のモニター：\n- データ品質：入力データの統計的特性がベースラインから逸脱していないか（データドリフト）\n- モデル品質：予測精度が劣化していないか\n- バイアスドリフト：特定グループへの偏りが増加していないか\n- 説明可能性ドリフト：Feature Importanceが変化していないか', tags: ['データドリフト', 'モデル品質', '継続的監視'] },
+        { name: 'Amazon SageMaker Model Monitor', desc: 'SageMakerはデプロイ済みモデルを継続的に監視する。\n監視の4種類：\n- データ品質：入力データの統計的特性がベースラインから逸脱していないか（データドリフト）\n- モデル品質：予測精度が劣化していないか\n- バイアスドリフト：特定グループへの偏りが増加していないか\n- 説明可能性ドリフト：Feature Importanceが変化していないか', tags: ['データドリフト', 'モデル品質', '継続的監視'] },
       ],
     },
     {
@@ -566,7 +566,7 @@ const CHEAT_DATA: CheatData = {
         { name: 'Amazon Bedrock Knowledge Bases', desc: 'Amazon Bedrock Knowledge Basesは、**RAG**（検索拡張生成）を簡単に構築するマネージドサービス。\n仕組み：\n① S3のドキュメントを適切なサイズの「チャンク」に分割\n② エンベディングモデルで各チャンクをベクトル（数値ベクトル）に変換\n③ ベクトルストアに格納して類似度検索を可能にする\n④ ユーザーの質問ベクトルと近いチャンクを取得してFMへのプロンプトに追加\nベクトルストア選択：OpenSearch Serverless・Aurora PostgreSQL（pgvector）・Pinecone等', tags: ['RAG', 'ベクトルストア', 'チャンキング'] },
         { name: 'Amazon Bedrock Agents', desc: 'Amazon Bedrock Agentsは、FMを**オーケストレーター**として複数のツールを使い複雑なタスクを自律実行するサービス。\nAction Groups（アクションのグループ）：Lambda関数でバックエンドAPIを呼び出す能力を定義\nKnowledge Base連携：必要に応じて社内ドキュメントを検索\nReActアーキテクチャ：推論（Reason）→行動（Act）→観察（Observe）のループでゴールに向かって自律的に進む\nメモリ：セッション内の会話履歴をコンテキストとして保持するマルチターン対応', tags: ['Action Groups', 'ReAct', 'マルチターン'] },
         { name: 'Amazon Bedrock Guardrails', desc: 'Amazon Bedrock Guardrailsは、**FMの出力**をポリシーに従ってフィルタリングする安全機能。\nコンテンツフィルタリング：暴力・ヘイトスピーチ・性的コンテンツ・誤情報を自動ブロック\nPII（個人識別情報）検出・マスキング：名前・メールアドレス・クレジットカード番号等を検出して匿名化\nグラウンディングチェック：参照ドキュメントに根拠のない回答（ハルシネーション）を検出・ブロック\n特定トピックの拒否：扱ってはいけないテーマ（競合他社の製品等）を定義して拒否', tags: ['コンテンツフィルタ', 'PII', 'グラウンディング'] },
-        { name: 'Amazon Bedrock Model Customization', desc: 'BedrockはFMを自社データでカスタマイズできる。\n**FMを自社データ**でカスタマイズする方法：\n- ファインチューニング（Fine-tuning）：ラベル付きの入出力ペアで追加学習してタスク特化したモデルを作成\n- 継続事前学習（Continued Pre-training）：ドメイン固有の大量テキストでFMを追加学習して知識を拡充\n- Distillation（知識蒸留）：大きなモデル（教師）の出力を使って小さなモデル（生徒）を学習してコンパクト化', tags: ['ファインチューニング', '継続事前学習', 'Distillation'] },
+        { name: 'Amazon Bedrock Model Customization', desc: 'BedrockはFMを自社データでカスタマイズできる。\n主な手法：\n- ファインチューニング（Fine-tuning）：ラベル付きの入出力ペアで追加学習してタスク特化したモデルを作成\n- 継続事前学習（Continued Pre-training）：ドメイン固有の大量テキストでFMを追加学習して知識を拡充\n- Distillation（知識蒸留）：大きなモデル（教師）の出力を使って小さなモデル（生徒）を学習してコンパクト化', tags: ['ファインチューニング', '継続事前学習', 'Distillation'] },
         { name: 'Amazon Bedrock Model Evaluation', desc: 'Bedrockはモデルを比較評価して最適なFMを選定できる。\nモデル評価：自動/人手で比較し**最適なFM**を選定\nモデルを評価・比較してユースケースに最適なモデルを選定するサービス。\n自動評価：精度・堅牢性・毒性等の組み込みメトリクスでモデルをベンチマーク評価\n人間評価：Mechanical Turkや社内チームが出力品質を評価するHuman Evaluationワーカーチームを設定\n評価結果を基に各タスク（要約・分類・Q&A等）に最適なモデルを選定する', tags: ['モデル評価', '自動評価', '比較'] },
       ],
     },
@@ -574,9 +574,9 @@ const CHEAT_DATA: CheatData = {
       title: '生成AIアーキテクチャパターン',
       items: [
         { name: 'RAGパターン', desc: 'RAG（検索拡張生成）を実装する代表的な構成。質問を受けて外部知識を検索し、その根拠をプロンプトに足して回答を生成する。\n検索拡張生成：**質問→検索**→根拠付き生成の実装フロー\nRetrieval-Augmented Generation（検索拡張生成）の実装フロー：\n① ユーザーの質問をエンベディングモデルでベクトルに変換\n② ベクトルDBで類似度検索して関連チャンクを取得\n③ 取得したチャンクをコンテキストとしてプロンプトに追加\n④ FMが根拠のある回答を生成\n精度向上のポイント：チャンクサイズの調整（小さすぎると文脈不足・大きすぎると雑音）/ ハイブリッド検索（ベクトル＋キーワード）/ リランキング（再順位付け）', keyword: 'RAG 検索拡張生成 Retrieval-Augmented Generation', tags: ['チャンキング', 'エンベディング', 'ランク付け'] },
-        { name: 'プロンプトエンジニアリング（AIP）', desc: 'プロンプトエンジニアリングは出力品質を高める技法を体系化する。\n**AIP試験**でよく問われるプロンプト技法：\n- System prompt：AIの役割・制約・口調を定義する（「あなたは医療専門家です」等）\n- Few-shot：入出力例を3〜5件示してフォーマットや判断基準を教える\n- Chain-of-Thought：「ステップごとに考えてください」で複雑な推論精度を向上\n- XML構造：タグでセクションを区切って指示を明確化（Claudeに特に有効）\n- ネガティブプロンプト：してはいけないことを明示して誤動作を防止', keyword: 'プロンプトエンジニアリング Few-shot Chain-of-Thought', tags: ['System prompt', 'Few-shot', 'Chain-of-Thought'] },
+        { name: 'プロンプトエンジニアリング（AIP）', desc: 'プロンプトエンジニアリングは出力品質を高める技法を体系化する。\n主な技法：\n- System prompt：AIの役割・制約・口調を定義する（「あなたは医療専門家です」等）\n- Few-shot：入出力例を3〜5件示してフォーマットや判断基準を教える\n- Chain-of-Thought：「ステップごとに考えてください」で複雑な推論精度を向上\n- XML構造：タグでセクションを区切って指示を明確化（Claudeに特に有効）\n- ネガティブプロンプト：してはいけないことを明示して誤動作を防止', keyword: 'プロンプトエンジニアリング Few-shot Chain-of-Thought', tags: ['System prompt', 'Few-shot', 'Chain-of-Thought'] },
         { name: 'エージェントパターン', desc: 'FMが自律的にタスクを実行するエージェントを組むためのアーキテクチャパターン。\nReActフレームワーク：Reason（推論）→ Act（行動）→ Observe（観察）のループを繰り返してゴールに到達する\nFunction Calling（ツール呼び出し）：FMが外部ツール（天気API・DBクエリ等）をいつ・どのように呼ぶかを決定する能力\nマルチエージェントオーケストレーション：複数のFMエージェントが協調してより複雑なタスクを分担して実行する', keyword: 'AI エージェント ReAct Function Calling Bedrock Agents', tags: ['ReAct', 'Function Calling', 'マルチエージェント'] },
-        { name: 'ベクトルDB選択', desc: 'RAGでは、文章をベクトル化して検索するベクトルDBが必要になる。用途や規模に応じて選ぶ。\n**RAG**のベクトル検索バックエンドを選択する基準：\n- Amazon OpenSearch Serverless（ベクトルエンジン）：サーバーレスで管理不要。大規模対応\n- Aurora PostgreSQL（pgvector拡張）：既存のRDSとの統合・SQLでベクトル検索が可能\n- Amazon MemoryDB（Redis互換）：低レイテンシのインメモリベクトル検索\n- Pinecone・Weaviate・Qdrant：外部マネージドベクトルDBサービス。高精度・高機能', keyword: 'ベクトルデータベース Vector Database pgvector OpenSearch', tags: ['OpenSearch', 'pgvector', 'MemoryDB'] },
+        { name: 'ベクトルDB選択', desc: 'RAGでは、文章をベクトル化して検索するベクトルDBが必要になる。用途や規模に応じて選ぶ。\n主な候補：\n- Amazon OpenSearch Serverless（ベクトルエンジン）：サーバーレスで管理不要。大規模対応\n- Aurora PostgreSQL（pgvector拡張）：既存のRDSとの統合・SQLでベクトル検索が可能\n- Amazon MemoryDB（Redis互換）：低レイテンシのインメモリベクトル検索\n- Pinecone・Weaviate・Qdrant：外部マネージドベクトルDBサービス。高精度・高機能', keyword: 'ベクトルデータベース Vector Database pgvector OpenSearch', tags: ['OpenSearch', 'pgvector', 'MemoryDB'] },
       ],
     },
     {
@@ -696,8 +696,8 @@ const CHEAT_DATA: CheatData = {
         { name: 'モデル評価指標', desc: '学習したモデルの性能は、数値の指標で評価する。回帰では誤差の大きさ、分類では正解率などを用い、タスクによって使う指標が異なる。\n分類の主な指標：\n- Accuracy（精度）：**全予測中の正解率**。クラス不均衡時は注意\n- Precision（適合率）：「陽性」と予測した中で実際に陽性の割合（偽陽性を減らしたい時に重視）\n- Recall（再現率）：実際の陽性のうち正しく検出できた割合（見逃しを減らしたい時に重視）\n- F1スコア：PrecisionとRecallの調和平均\n- AUC-ROC：閾値変化に対するモデルの識別能力を示す（1に近いほど優秀）\n回帰の主な指標：\n- MAE（平均絶対誤差）：予測と実測の絶対誤差の平均。外れ値に頑健\n- MSE（平均二乗誤差）/ RMSE：誤差を二乗して平均（RMSEは平方根で元の単位に戻す）。大きな誤差を強く罰する\n- R²（決定係数）：目的変数の分散をどれだけ説明できるか（1に近いほど良い）', keyword: 'F1スコア Precision Recall AUC-ROC 機械学習評価指標', tags: ['Accuracy', 'F1スコア', 'AUC-ROC'] },
         { name: '過学習と正則化', desc: 'モデルが訓練データに過剰適合すると、未知データで精度が落ちる過学習という問題が起きる。それを抑えるために、正則化という手法を用いる。\n過学習（Overfitting）：**訓練データに過剰適合**し、未知データで性能が落ちる問題。\n対策手法：\n- L1正則化（Lasso）：不要な特徴量の重みをゼロにして特徴量選択の効果\n- L2正則化（Ridge）：重みを小さく抑えてモデルを単純化\n- ドロップアウト：ニューラルネットのニューロンをランダムに無効化して汎化性能を向上\n- データ拡張：学習データを水増しして多様性を高める', keyword: '過学習 Overfitting L1正則化 L2正則化', tags: ['過学習', 'L1/L2正則化', 'ドロップアウト'] },
         { name: 'MLのライフサイクル', desc: '機械学習プロジェクトは、データ収集→前処理→学習→評価→デプロイ→監視という一連の工程を繰り返して進める。\n工程：\n① データ収集：ソースから学習データを取り込む\n② データ前処理：クリーニング・正規化・欠損値処理\n③ 特徴量エンジニアリング：モデルの入力に適した形へ変換\n④ モデル学習：アルゴリズムを選びパラメータを調整\n⑤ 評価：テストデータで指標を計測\n⑥ デプロイ：本番環境へ公開\n⑦ 監視：**性能劣化**を検出し再学習（→②へ戻り反復改善）', keyword: 'MLOps 機械学習ライフサイクル', tags: ['MLOps', 'ライフサイクル', 'パイプライン'] },
-        { name: '転移学習の仕組み', desc: '転移学習は、**事前学習済みモデル**を別タスクに流用して少ないデータで高精度を得る手法。次の2段階で行う。\n- 事前学習 (Pre-training)：大規模データで汎用的な基盤モデルを作る（前段）\n- ファインチューニング (Fine-tuning)：その基盤モデルを特定タスクのデータで追加学習して適応（＝転移学習の代表的な実現方法。FTはTLの一手法で並列ではない）', keyword: '転移学習 Transfer Learning ファインチューニング 事前学習', tags: ['転移学習', 'ファインチューニング', '事前学習'] },
-        { name: '生成AIの評価指標', desc: '生成AIの出力品質は、BLEUやROUGEといった指標や、人手評価で測る。\n- BLEU（Bilingual Evaluation Understudy）：機械翻訳の品質評価。参照訳とのn-gram一致率で測定\n- ROUGE：要約品質の評価。参照要約とのn-gram再現率で測定\n- BERTScore：BERTの埋め込みを使った意味的類似度評価。表面一致だけでなく意味の近さも考慮\n- F1・Precision・Recall：分類タスクの標準指標\n- コンバージョン率：AIを活用したマーケティング・レコメンドの最終ビジネス成果を測定するKPI', keyword: 'BLEU ROUGE BERTScore F1 コンバージョン率 生成AI 評価指標', tags: ['BLEU/ROUGE', 'BERTScore', 'ビジネスKPI'] },
+        { name: '転移学習の仕組み', desc: '転移学習は、**事前学習済みモデル**を別タスクに流用して少ないデータで高精度を得る手法。次の2段階で行う。\n2段階：\n- 事前学習 (Pre-training)：大規模データで汎用的な基盤モデルを作る（前段）\n- ファインチューニング (Fine-tuning)：その基盤モデルを特定タスクのデータで追加学習して適応（＝転移学習の代表的な実現方法。FTはTLの一手法で並列ではない）', keyword: '転移学習 Transfer Learning ファインチューニング 事前学習', tags: ['転移学習', 'ファインチューニング', '事前学習'] },
+        { name: '生成AIの評価指標', desc: '生成AIの出力品質は、BLEUやROUGEといった指標や、人手評価で測る。\n評価指標：\n- BLEU（Bilingual Evaluation Understudy）：機械翻訳の品質評価。参照訳とのn-gram一致率で測定\n- ROUGE：要約品質の評価。参照要約とのn-gram再現率で測定\n- BERTScore：BERTの埋め込みを使った意味的類似度評価。表面一致だけでなく意味の近さも考慮\n- F1・Precision・Recall：分類タスクの標準指標\n- コンバージョン率：AIを活用したマーケティング・レコメンドの最終ビジネス成果を測定するKPI', keyword: 'BLEU ROUGE BERTScore F1 コンバージョン率 生成AI 評価指標', tags: ['BLEU/ROUGE', 'BERTScore', 'ビジネスKPI'] },
       ],
     },
     {
@@ -859,7 +859,7 @@ const CHEAT_DATA: CheatData = {
     {
       title: '脅威と攻撃',
       items: [
-        { name: 'マルウェア', desc: 'マルウェアは、**悪意あるソフト**の総称。主な種類：\n- ウイルス / ワーム：自己増殖して感染を広げる\n- トロイの木馬：正規プログラムを装って侵入\n- ランサムウェア：データを暗号化して身代金を要求\n- スパイウェア / ボット：情報窃取・遠隔操作（C2から指令）\n対策：アンチウイルス・EDR・パターン更新・振る舞い検知・バックアップ', keyword: 'マルウェア ウイルス ワーム トロイの木馬 ランサムウェア ボット C2 EDR', tags: ['ランサムウェア', 'ワーム / トロイ', 'ボット / C2'] },
+        { name: 'マルウェア', desc: 'マルウェアは、**悪意あるソフト**の総称。\n主な種類：\n- ウイルス / ワーム：自己増殖して感染を広げる\n- トロイの木馬：正規プログラムを装って侵入\n- ランサムウェア：データを暗号化して身代金を要求\n- スパイウェア / ボット：情報窃取・遠隔操作（C2から指令）\n対策：アンチウイルス・EDR・パターン更新・振る舞い検知・バックアップ', keyword: 'マルウェア ウイルス ワーム トロイの木馬 ランサムウェア ボット C2 EDR', tags: ['ランサムウェア', 'ワーム / トロイ', 'ボット / C2'] },
         { name: 'Web・アプリへの攻撃', desc: 'Webアプリを狙う攻撃には、SQLインジェクション・XSS・CSRFなど、入力やセッションの弱点を突く手口がある。\n主な攻撃：\n- SQLインジェクション：**入力に不正なSQL**を注入してDBを不正操作（対策：プレースホルダ）\n- XSS (クロスサイトスクリプティング)：悪意あるスクリプトを埋め込み他ユーザーで実行（対策：エスケープ）\n- CSRF（Cross-Site Request Forgery）：ログイン状態を悪用して意図しない操作をさせる（対策：トークン）\nバッファオーバーフロー（確保領域を超える書き込みで不正コードを実行）/ ディレクトリトラバーサル（../等で公開範囲外のファイルに不正アクセス）', keyword: 'SQLインジェクション XSS クロスサイトスクリプティング CSRF バッファオーバーフロー 脆弱性', tags: ['SQLi', 'XSS', 'CSRF'] },
         { name: 'その他の攻撃手法', desc: 'ネットワークや認証を狙う攻撃には、DoS/DDoS・中間者攻撃・ブルートフォースなどがある。\n主な攻撃：\n- DoS（Denial of Service） / DDoS：**大量アクセス**でサービスを停止させる攻撃（分散させたものがDDoS）\n- 中間者攻撃 (MITM)：通信に割り込んで盗聴・改ざん\n- フィッシング：偽サイト・偽メールで認証情報をだまし取る\n- ソーシャルエンジニアリング：人の心理につけ込む攻撃（なりすまし電話・肩越しの覗き見）', keyword: 'DoS DDoS 中間者攻撃 MITM フィッシング ソーシャルエンジニアリング', tags: ['DoS / DDoS', '中間者攻撃 / MITM', 'フィッシング'] },
       ],
@@ -1590,12 +1590,15 @@ function ItemCard({ item, exam, q, allNames, highlightedId, onCopy, onNavigate, 
   }, [item.seeAlso, autoSeeAlso, article, siblings]);
 
   function copyWithContext(text: string) {
+    // termKeywords 等で既に（）文脈が付いている場合はそのままコピー
+    if (text.includes('（') || text.includes('(')) { onCopy(text); return; }
+    // 括弧なし部分だけを文脈ラベルとして使用（"AWS CDK（Cloud Development Kit）" → "AWS CDK"）
+    const context = item.name.replace(/[（(][^）)]*[）)]/g, '').trim();
     const t = text.toLowerCase();
-    const nm = item.name.toLowerCase();
-    // 用語とタイトルが互いを含む場合は文脈が冗長（単なる繰り返し）になるため用語のみコピー。
-    // それ以外は検索を絞りやすいよう「用語 (記事タイトル)」を付与する。
-    const enhanced = (t.includes(nm) || nm.includes(t)) ? text : `${text} (${item.name})`;
-    onCopy(enhanced);
+    const ct = context.toLowerCase();
+    // 用語と文脈ラベルが互いを含む場合は文脈不要
+    if (t.includes(ct) || ct.includes(t)) { onCopy(text); return; }
+    onCopy(`${text}（${context}）`);
   }
 
   return (
