@@ -74,7 +74,9 @@ usage: audit-questions.sh [-n N] [-e EXAM] [-r] [-c C] [-i] [-h]
 
 改善モード(-i):
   監査で見つかった systemic な問題を元に、編集可能なプロンプト規則ファイルを
-  最小限・追記的に改良する（個別問題の修正ではなくルールの改良）。
+  最小限に改良する（個別問題の修正ではなくルールの改良）。
+  末尾への追記(append)だけでなく、冗長・古い既存文の修整/統合(edit)も可能
+  （プロンプトが際限なく肥大化するのを防ぐため）。
     instructions/_common-rules.txt  … 生成(01)の共通ルール
     instructions/<EXAM>.txt          … 生成(01)の資格別指示
     instructions/_validity-extra.txt … 検証(02)に注入される追加確認観点
@@ -664,12 +666,14 @@ for fn in allowed:
 print('''あなたはAWS認定試験の「問題生成・検証プロンプト」を継続的に改良する担当者です。
 以下は、生成・検証を通過した問題を第三者監査した結果、見つかった systemic（傾向的）な品質問題です。
 個別問題を直すのではなく、今後の生成・検証で同種の問題を防ぐよう、編集可能なプロンプト規則ファイルを
-最小限・追記的に改良してください。
+最小限に改良してください。改良は「末尾への追記(append)」だけでなく、必要に応じて「既存文の修整(edit)」も可能です。
 
 【改良の方針】
 - 監査で多かった問題クラスに対応する規則だけを、的確に・簡潔に強化する。
 - 既存ルールと矛盾させない。冗長な重複を増やさない。表現は短く具体的に。
-- 大幅な削除や全面書き換えは禁止（追記・小修正のみ）。改良不要なら changes は空配列。
+- 際限なくプロンプトが伸びるのを避ける: 新しい観点を足す際、既存に似た記述があれば「追記」ではなく既存文の「修整(edit)」で吸収し、全体の分量を増やさないことを優先する。冗長・重複した既存ルールは1つに統合してよい。
+- 修整(edit)が許されるのは次の目的に限る: ①冗長・重複した既存ルールの統合/短縮 ②古く・誤った既存ルールの訂正 ③曖昧な表現の明確化。単なる語調変更や、安全側のルール(公平性・一意の正解・事実確認・冒頭の # コメント等)の骨抜き・削除は禁止。ファイル全体を一度に置き換えるような大改変もしない(対象箇所を絞ったedit)。
+- 改良不要なら changes は空配列。
 - 過剰適合の防止: 今回のサンプルは少数(15問前後)。1〜2件の単発・偶発的な指摘だけでは規則を追加しない。複数問に共通する傾向的な問題、またはユーザー通報で確定した誤りに限って規則化する（単発の指摘は changes に含めない）。
 - 難易度インフレの抑制: 「もっと難しく／ひっかけを増やす」方向の規則ばかり足さないこと。監査で too_hard・過度に紛らわしい・正解が一意に定まらない・実測正答率が極端に低い(20%未満)といった指摘が出ている場合は、逆に公平性・一意の正解・平易さを保つ方向を優先する。難易度は上げ過ぎも品質低下であり、既に十分難しければ難化ルールは追加しない。
 - 各ファイルの役割:
@@ -697,11 +701,14 @@ print('''あなたはAWS認定試験の「問題生成・検証プロンプト�
 【編集可能なファイルの現在の内容】
 ''' + '\n\n'.join(blocks) + '''
 
-【出力形式】次のJSONのみを出力（説明文・前置き・コードブロック不要）。
-トークン節約のため、ファイル全文ではなく「そのファイルの末尾に追記する新しい観点(数行のみ)」を append に入れること。
-既存行の編集・削除はしない。同種の観点が既にあるファイルには追記しない。改良不要なら changes は空配列（[]）。
+【出力形式】次のJSONのみを出力（説明文・前置き・コードブロック不要）。ファイル全文は出力しない（トークン節約）。
+各変更は op で種類を指定する:
+ - "append": ファイル末尾に新しい観点(数行のみ)を追記。既に同種の観点があるファイルには追記しない。
+ - "edit"  : 既存文を修整/統合/訂正。find はそのファイル内に「一度だけ」現れる完全一致の断片、replace は置換後の文言(短縮・統合・訂正。丸ごと削除する場合は空文字 "")。冒頭の # コメント行や安全側ルールは壊さない。
+改良不要なら changes は空配列（[]）。
 {"summary":"改良方針を1〜2文で","changes":[
-  {"file":"_validity-extra.txt","rationale":"どの監査結果に対応するか(短く)","append":"末尾に追記する新しい観点(数行のみ・全文ではない)"}
+  {"file":"_validity-extra.txt","op":"append","rationale":"どの監査結果に対応するか(短く)","text":"末尾に追記する新しい観点(数行のみ・全文ではない)"},
+  {"file":"_common-rules.txt","op":"edit","rationale":"冗長な既存2ルールを1つに統合し肥大化を抑制","find":"置換対象の既存の文言(そのファイル内に一度だけ現れる完全一致の断片)","replace":"統合後の短い文言"}
 ]}''')
 PYEOF
 
@@ -710,7 +717,7 @@ PYEOF
     while true; do
       _IO=$(mktemp /tmp/audit_imp_out_XXXX); _IE=$(mktemp /tmp/audit_imp_err_XXXX)
       # 永続する仕組み（生成・検証プロンプト規則）を書き換えるステップは Opus で実行し誤りを減らす。
-      # 出力は「追記する数行」だけなので上限は小さくてよい（トークン節約）。
+      # 出力は「追記する数行」か「対象を絞ったedit(find/replace)」だけなので上限は小さくてよい（トークン節約）。
       CLAUDE_CODE_MAX_OUTPUT_TOKENS=6000 timeout -k 30 "${CLAUDE_TIMEOUT:-1800}" "$CLAUDE_CMD" -p --model opus --tools "" < "$IMP_PROMPT" > "$_IO" 2> "$_IE"
       RESULT=$(head -c 4000 "$_IO"); _STDERR=$(cat "$_IE"); rm -f "$_IE"  # _IO(全文)はパース用に残す
       _RH=$(echo "$RESULT" | head -3)
@@ -728,7 +735,7 @@ PYEOF
 
     [ $_IMPROVE_SKIP -eq 1 ] && { rm -f "$_IO"; echo "監査終了: $(date)"; exit 0; }
 
-    # 適用（whitelist + バックアップ + 重複ガード + 追記記録）。大きな出力は env ではなくファイルで受け取る。
+    # 適用（whitelist + バックアップ + 追記/修整(edit)の安全ガード + 記録）。大きな出力は env ではなくファイルで受け取る。
     IMP_RESULT_FILE="$_IO" INSTRUCTION_DIR="$INSTRUCTION_DIR" BACKUP_DIR="$BACKUP_DIR" IMPROVE_REPORT="$IMPROVE_REPORT" DATE="$DATE" python3 << 'PYEOF'
 import json, os, sys, shutil
 
@@ -759,41 +766,88 @@ ALLOWED = {'_common-rules.txt', '_validity-extra.txt'} | {f"{e}.txt" for e in AW
 changes = obj.get('changes') or []
 applied, skipped = [], []
 def _norm(s): return ''.join((s or '').split())
+# 肥大化防止の上限。append は超過すると見送り、edit は「縮小 or 現状維持」なら上限超過でも許可
+# （edit による統合・短縮こそが肥大化を解消する手段のため）。
+MAX_CHARS = 16000
 for ch in changes:
     fn = (ch.get('file') or '').strip()
-    ap = ch.get('append')
     rationale = (ch.get('rationale') or '').strip()
+    op = (ch.get('op') or '').strip().lower()
+    # 後方互換: op 未指定でも find があれば edit、append/text があれば append とみなす
+    if not op:
+        op = 'edit' if ch.get('find') is not None else 'append'
     if os.path.basename(fn) != fn or fn not in ALLOWED:
         skipped.append((fn, 'whitelist外')); continue
-    if not ap or not str(ap).strip():
-        skipped.append((fn, 'appendが空')); continue
-    ap = str(ap).rstrip('\n')
-    if len(ap) > 1500:
-        skipped.append((fn, f'追記が長すぎ({len(ap)}字)のため拒否')); continue
     p = os.path.join(inst, fn)
     old = open(p).read() if os.path.isfile(p) else ''
-    # 既存とほぼ同一の観点は追記しない（重複防止）
-    if _norm(ap) and _norm(ap) in _norm(old):
-        skipped.append((fn, '既存と重複のため追記せず')); continue
-    # 肥大化防止: 上限を超えるファイルへは追記しない（追記のみの自己改変ループが際限なく膨らむのを防ぐ。
-    # 超過時は手動での棚卸し・統合を促す。プロンプトが長大化するとトークン浪費・注意希薄化・矛盾蓄積を招くため）。
-    MAX_CHARS = 16000
-    if len(old) + len(ap) + 1 > MAX_CHARS:
-        skipped.append((fn, f'サイズ上限({MAX_CHARS}字)超過のため追記見送り（現在{len(old)}字）。手動で棚卸し/統合を推奨')); continue
-    os.makedirs(backup, exist_ok=True)
-    if os.path.isfile(p):
+
+    if op == 'append':
+        ap = ch.get('text')
+        if ap is None: ap = ch.get('append')  # 旧キー互換
+        if not ap or not str(ap).strip():
+            skipped.append((fn, 'appendが空')); continue
+        ap = str(ap).rstrip('\n')
+        if len(ap) > 1500:
+            skipped.append((fn, f'追記が長すぎ({len(ap)}字)のため拒否')); continue
+        # 既存とほぼ同一の観点は追記しない（重複防止）
+        if _norm(ap) and _norm(ap) in _norm(old):
+            skipped.append((fn, '既存と重複のため追記せず')); continue
+        # 肥大化防止: 上限を超えるファイルへは追記しない。以後は edit(統合/短縮) で分量を減らす方針。
+        if len(old) + len(ap) + 1 > MAX_CHARS:
+            skipped.append((fn, f'サイズ上限({MAX_CHARS}字)超過のため追記見送り（現在{len(old)}字）。edit による統合/短縮を推奨')); continue
+        os.makedirs(backup, exist_ok=True)
+        if os.path.isfile(p):
+            shutil.copy2(p, os.path.join(backup, fn))
+        new_content = old + ('\n' if old and not old.endswith('\n') else '') + ap + '\n'
+        with open(p, 'w') as f:
+            f.write(new_content)
+        applied.append((fn, 'append', rationale, ap))
+
+    elif op == 'edit':
+        find = ch.get('find'); repl = ch.get('replace')
+        if find is None or repl is None:
+            skipped.append((fn, 'find/replace不足のためedit見送り')); continue
+        find = str(find); repl = str(repl)
+        if not find.strip():
+            skipped.append((fn, 'findが空のためedit見送り')); continue
+        if not os.path.isfile(p) or not old:
+            skipped.append((fn, '対象ファイルが空/未作成のためedit不可')); continue
+        cnt = old.count(find)
+        if cnt == 0:
+            skipped.append((fn, 'findがファイル内に見つからずedit見送り')); continue
+        if cnt > 1:
+            skipped.append((fn, f'findが{cnt}箇所に一致し曖昧なためedit見送り')); continue
+        if len(repl) > 1500:
+            skipped.append((fn, f'replaceが長すぎ({len(repl)}字)のためedit拒否')); continue
+        # 全面書き換え相当（ファイルの大半を一度に置換）は破壊的なので拒否
+        if len(find) > max(4000, int(len(old) * 0.6)):
+            skipped.append((fn, 'edit範囲が広すぎ（全面書き換え相当）のため拒否')); continue
+        new_content = old.replace(find, repl, 1)
+        if _norm(new_content) == _norm(old):
+            skipped.append((fn, '実質変化なしのためedit見送り')); continue
+        # 冒頭の # コメント行（検証ファイル等の指示ヘッダ）を壊す edit は拒否
+        if old.lstrip().startswith('#') and not new_content.lstrip().startswith('#'):
+            skipped.append((fn, '先頭コメント行を壊すためedit拒否')); continue
+        # edit は分量を増やさないのが原則。増える場合のみ上限を課す（縮小・維持は常に許可）。
+        if len(new_content) > len(old) and len(new_content) > MAX_CHARS:
+            skipped.append((fn, f'edit後にサイズ上限({MAX_CHARS}字)超過のため見送り')); continue
+        os.makedirs(backup, exist_ok=True)
         shutil.copy2(p, os.path.join(backup, fn))
-    with open(p, 'a') as f:
-        if old and not old.endswith('\n'): f.write('\n')
-        f.write(ap + '\n')
-    applied.append((fn, rationale, ap))
+        with open(p, 'w') as f:
+            f.write(new_content)
+        _delta = len(new_content) - len(old)
+        applied.append((fn, 'edit', rationale, f"- {find}\n+ {repl}\n(差分 {_delta:+d}字)"))
+
+    else:
+        skipped.append((fn, f'未知のop({op})のためスキップ')); continue
 
 # 改良レポート(md)
 lines = [f"# プロンプト改良レポート ({os.environ['DATE']})", '',
          '## 改良方針', obj.get('summary', '(なし)'), '',
          f"## 適用 {len(applied)}件 / 見送り {len(skipped)}件", '']
-for fn, rationale, ap in applied:
-    lines += [f"### ✅ {fn}（末尾に追記）", f"**理由:** {rationale}", '', '```', ap, '```', '']
+for fn, kind, rationale, detail in applied:
+    head = '末尾に追記' if kind == 'append' else '既存文を修整(edit)'
+    lines += [f"### ✅ {fn}（{head}）", f"**理由:** {rationale}", '', '```', detail, '```', '']
 for fn, why in skipped:
     lines.append(f"- ⏭️ {fn}: {why}")
 if applied:
@@ -804,8 +858,8 @@ with open(report, 'w') as f:
 # コンソール出力
 print(f"改良方針: {obj.get('summary','(なし)')}")
 print(f"適用 {len(applied)}件 / 見送り {len(skipped)}件")
-for fn, rationale, _ in applied:
-    print(f"  ✅ {fn} — {rationale[:80]}")
+for fn, kind, rationale, _ in applied:
+    print(f"  ✅ {fn}[{kind}] — {rationale[:80]}")
 for fn, why in skipped:
     print(f"  ⏭️ {fn} — {why}")
 print(f"改良レポート: {report}")
