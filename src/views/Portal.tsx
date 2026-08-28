@@ -455,6 +455,9 @@ export default function Portal() {
         </a>
       </footer>
 
+      {/* 固定CTAバーに隠れないよう末尾にスペース確保 */}
+      <div style={{ height: isMobile ? 90 : 70 }} />
+
       {/* ── 演習開始ボタン（固定） ── */}
       <div style={{
         position: 'fixed', bottom: mounted && !cookieConsent ? 72 : 0, left: 0, right: 0, zIndex: 500,
