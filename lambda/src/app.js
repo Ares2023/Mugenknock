@@ -1602,10 +1602,16 @@ app.get('/users/me/sessions', async (req, res) => {
 });
 
 // 統計取得
+// examType 指定時は、ドメイン別の累計 correctCount/incorrectCount を UserQuestionStats から
+// 集計して返す。UserTagStats には recentResults（直近30件のローリング窓）しか保存しておらず、
+// 累計カウンタは書き込まれたことがないため、これを読む画面（成績のドメイン別・演習/模試設定の
+// ドメイン別正答率）が常に0問表示になっていた。
+// 集計元を「未回答フィルタと同じ UserQuestionStats」に揃えることで、既習数と未演習数が
+// 構造的に整合する（別ソースを持たせると再びズレるため、ここでの導出を正とする）。
 app.get('/users/me/stats', async (req, res) => {
   try {
     const docClient = getClient();
-    const { userId } = req.query;
+    const { userId, examType } = req.query;
     const [statsResult, resetResult] = await Promise.all([
       docClient.send(new QueryCommand({
         TableName: T('UserTagStats'),
@@ -1617,8 +1623,45 @@ app.get('/users/me/stats', async (req, res) => {
         Key: { settingId: `userReset_${userId}` },
       })),
     ]);
+    let stats = statsResult.Items || [];
+
+    if (examType) {
+      const [qStatsResult, questions] = await Promise.all([
+        docClient.send(new QueryCommand({
+          TableName: T('UserQuestionStats'),
+          KeyConditionExpression: 'userId = :uid',
+          ExpressionAttributeValues: { ':uid': userId },
+        })),
+        getAllQuestionsForExam(docClient, examType),
+      ]);
+      // 出題プールと同じ条件で絞る（/questions と揃えないと既習数が未演習数と合わない）
+      const domainOf = new Map(
+        questions
+          .filter(q => !q.isHidden && !!q.validityCheckedAt)
+          .map(q => [q.questionId, qDomainIndex(q.examType, q.domain)])
+      );
+      const agg = new Map(); // domain index → { correctCount, incorrectCount, answeredCount }
+      for (const s of qStatsResult.Items || []) {
+        const d = domainOf.get(s.questionId);
+        if (d === undefined || d < 0) continue;
+        const a = agg.get(d) || { correctCount: 0, incorrectCount: 0, answeredCount: 0 };
+        a.correctCount += s.correctCount ?? 0;
+        a.incorrectCount += s.incorrectCount ?? 0;
+        a.answeredCount += 1;
+        agg.set(d, a);
+      }
+      // 正準 tagId (`${examType}_${idx}`) の行へマージ。該当行が無いドメインは新規に組み立てる
+      // （UserTagStats に行が無くても成績を0問と誤表示させないため）。
+      const byTagId = new Map(stats.map(s => [s.tagId, s]));
+      for (const [d, a] of agg) {
+        const tagId = `${examType}_${d}`;
+        byTagId.set(tagId, { ...(byTagId.get(tagId) || { userId, tagId }), ...a });
+      }
+      stats = [...byTagId.values()];
+    }
+
     res.json({
-      stats: statsResult.Items || [],
+      stats,
       resetAt: resetResult.Item?.resetAt || null,
     });
   } catch (err) {

@@ -24,6 +24,19 @@ export function deleteCached(key: string): void {
   try { sessionStorage.removeItem(`_sc_${key}`); } catch {}
 }
 
+// key と「key から始まる派生キー」をまとめて削除する。
+// 例: ustats_<uid> と、資格別に分かれた ustats_<uid>_MLA を一度に無効化する。
+// 派生キーを増やしたときに個別の deleteCached を書き忘れて古い統計が残るのを防ぐ。
+export function deleteCachedByPrefix(prefix: string): void {
+  try {
+    const full = `_sc_${prefix}`;
+    for (let i = sessionStorage.length - 1; i >= 0; i--) {
+      const k = sessionStorage.key(i);
+      if (k && k.startsWith(full)) sessionStorage.removeItem(k);
+    }
+  } catch {}
+}
+
 // localStorage 永続キャッシュ（ページ/タブ跨ぎで有効・TTL 付き）
 export function getCachedPersist<T>(key: string): T | null {
   try {

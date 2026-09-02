@@ -6,7 +6,7 @@ import { API_ENDPOINT, EXAM_CONFIGS, PASS_RATE, EXAM_LEVEL } from '../constants'
 import { lockBodyScroll } from '../utils/bodyScrollLock';
 import { recordSessionDomainStats } from '../utils/domainStats';
 import { qText, qChoiceAt } from '../utils/i18nQuestion';
-import { deleteCached } from '../utils/cache';
+import { deleteCached, deleteCachedByPrefix } from '../utils/cache';
 import { addPoints } from '../utils/points';
 import { incrementDailyProgress } from '../utils/dailyProgress';
 import { useAuth } from '../contexts/AuthContext';
@@ -331,7 +331,7 @@ export default function ExamSession() {
         examType, userId, results: abortResults,
         questionById: (qId) => qMap.get(qId) as any,
       });
-      deleteCached(`ustats_${userId}`);
+      deleteCachedByPrefix(`ustats_${userId}`);
       window.dispatchEvent(new CustomEvent('qstatsRefresh'));
       localStorage.setItem(`postSessionRefresh_${userId}`, String(Date.now()));
       const ptsPerQAbort = EXAM_LEVEL[examType] === 'Foundational' ? 1 : EXAM_LEVEL[examType] === 'Associate' ? 2 : 3;
@@ -415,7 +415,7 @@ export default function ExamSession() {
         questionById: (qId) => qMapFull.get(qId) as any,
       });
       // セッション完了でキャッシュ破棄 → ホーム画面が最新データをサーバーから再取得
-      deleteCached(`ustats_${userId}`);
+      deleteCachedByPrefix(`ustats_${userId}`);
       window.dispatchEvent(new CustomEvent('qstatsRefresh'));
       localStorage.setItem(`postSessionRefresh_${userId}`, String(Date.now()));
       const ptsPerQ = EXAM_LEVEL[examType] === 'Foundational' ? 1 : EXAM_LEVEL[examType] === 'Associate' ? 2 : 3;

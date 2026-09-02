@@ -4,7 +4,7 @@ import { lockBodyScroll } from '../utils/bodyScrollLock';
 import { useNavigate } from '@/compat/react-router-dom';
 import { updatePassword, deleteUser, updateUserAttributes } from 'aws-amplify/auth';
 import { API_ENDPOINT, EXAM_TYPES, EXAM_LEVEL, EXAM_CONFIGS } from '../constants';
-import { deleteCached } from '../utils/cache';
+import { deleteCached, deleteCachedByPrefix } from '../utils/cache';
 import { useAuth } from '../contexts/AuthContext';
 import { useLanguage } from '../contexts/LanguageContext';
 import { useTheme } from '../contexts/ThemeContext';
@@ -209,7 +209,7 @@ export default function Account() {
       localStorage.removeItem(`score_today_${et}_${uid}`);
       localStorage.removeItem(`score_prev_${et}_${uid}`);
       // domainStats のセッションキャッシュを無効化（Home等が次回再フェッチする）
-      deleteCached(`ustats_${user.userId}`);
+      deleteCachedByPrefix(`ustats_${user.userId}`);
       setDeletedExams(prev => new Set(prev).add(et));
       setSummaries(prev => { const next = { ...prev }; delete next[et]; return next; });
     } catch (err) { console.error(err); }
