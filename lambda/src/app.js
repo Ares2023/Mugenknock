@@ -133,6 +133,24 @@ async function getAllQuestionsForExam(docClient, examType) {
   return items;
 }
 
+// examType に属する questionId の集合を返す（必ず全ページたどる）。
+// examType-index は射影 ALL・1件あたり平均5.5KBあり、単発 Query は1MB上限で
+// 打ち切られる（MLA 333件中162件しか返らない）。この集合で既習/不正解を絞ると
+// 既習数が過少・未回答数が過大になるため、queryAll で全件取得する。
+// poolOnly=true は /questions と同じ出題プール条件に揃える指定。
+// 画面は「未回答 = total(/questions) - answered」で算出するので、母集団を一致させないとズレる。
+async function getExamQuestionIdSet(docClient, examType, { poolOnly = false } = {}) {
+  const items = await queryAll(docClient, {
+    TableName: 'Questions',
+    IndexName: 'examType-index',
+    KeyConditionExpression: 'examType = :et',
+    ExpressionAttributeValues: { ':et': examType },
+    ProjectionExpression: 'questionId, isHidden, validityCheckedAt',
+  });
+  const filtered = poolOnly ? items.filter(q => !q.isHidden && !!q.validityCheckedAt) : items;
+  return new Set(filtered.map(q => q.questionId));
+}
+
 // ── 汎用ウォームキャッシュ（Lambda インスタンス内メモリ・TTL付き） ──
 // read-mostly な全件スキャン（growth-stats / tips / releases 等）の繰り返しを抑え、
 // ユーザー増加時の RCU コストを削減する。更新は TTL 経過後に反映される（最大10分の遅延）。
@@ -1683,14 +1701,9 @@ app.delete('/users/me/data', async (req, res) => {
     };
 
     // 1. examType の questionId 一覧を取得
-    const questionsResult = await docClient.send(new QueryCommand({
-      TableName: 'Questions',
-      IndexName: 'examType-index',
-      KeyConditionExpression: 'examType = :et',
-      ExpressionAttributeValues: { ':et': examType },
-      ProjectionExpression: 'questionId',
-    }));
-    const questionIds = (questionsResult.Items || []).map(q => q.questionId);
+    // 削除対象は非表示・未検証の問題も含める（poolOnly にすると統計行が消し残る）。
+    // 単発 Query では1MBで打ち切られ削除漏れになるため全ページたどる。
+    const questionIds = [...await getExamQuestionIdSet(docClient, examType)];
 
     // 2. UserQuestionStats 削除
     await deleteItems(T('UserQuestionStats'), questionIds.map(qid => ({ userId, questionId: qid })));
@@ -2113,14 +2126,7 @@ app.get('/users/me/answered-questions', async (req, res) => {
     let questionIds = (statsResult.Items || []).map(s => s.questionId);
 
     if (examType) {
-      const questionsResult = await docClient.send(new QueryCommand({
-        TableName: 'Questions',
-        IndexName: 'examType-index',
-        KeyConditionExpression: 'examType = :et',
-        ExpressionAttributeValues: { ':et': examType },
-        ProjectionExpression: 'questionId'
-      }));
-      const examQuestionIds = new Set((questionsResult.Items || []).map(q => q.questionId));
+      const examQuestionIds = await getExamQuestionIdSet(docClient, examType, { poolOnly: true });
       questionIds = questionIds.filter(id => examQuestionIds.has(id));
     }
 
@@ -2146,14 +2152,7 @@ app.get('/users/me/incorrect-questions', async (req, res) => {
     let stats = (statsResult.Items || []).filter(s => (s.incorrectCount ?? 0) > 0);
 
     if (examType) {
-      const questionsResult = await docClient.send(new QueryCommand({
-        TableName: 'Questions',
-        IndexName: 'examType-index',
-        KeyConditionExpression: 'examType = :et',
-        ExpressionAttributeValues: { ':et': examType },
-        ProjectionExpression: 'questionId'
-      }));
-      const examQuestionIds = new Set((questionsResult.Items || []).map(q => q.questionId));
+      const examQuestionIds = await getExamQuestionIdSet(docClient, examType, { poolOnly: true });
       stats = stats.filter(s => examQuestionIds.has(s.questionId));
     }
 
@@ -2184,14 +2183,7 @@ app.get('/users/me/question-status', async (req, res) => {
     let items = statsResult.Items || [];
 
     if (examType) {
-      const questionsResult = await docClient.send(new QueryCommand({
-        TableName: 'Questions',
-        IndexName: 'examType-index',
-        KeyConditionExpression: 'examType = :et',
-        ExpressionAttributeValues: { ':et': examType },
-        ProjectionExpression: 'questionId'
-      }));
-      const examQuestionIds = new Set((questionsResult.Items || []).map(q => q.questionId));
+      const examQuestionIds = await getExamQuestionIdSet(docClient, examType, { poolOnly: true });
       items = items.filter(s => examQuestionIds.has(s.questionId));
     }
 
@@ -2234,14 +2226,7 @@ app.get('/users/me/weak-questions', async (req, res) => {
       .filter(s => (s.incorrectCount ?? 0) >= threshold);
 
     if (examType) {
-      const questionsResult = await docClient.send(new QueryCommand({
-        TableName: 'Questions',
-        IndexName: 'examType-index',
-        KeyConditionExpression: 'examType = :et',
-        ExpressionAttributeValues: { ':et': examType },
-        ProjectionExpression: 'questionId'
-      }));
-      const examQuestionIds = new Set((questionsResult.Items || []).map(q => q.questionId));
+      const examQuestionIds = await getExamQuestionIdSet(docClient, examType, { poolOnly: true });
       candidates = candidates.filter(s => examQuestionIds.has(s.questionId));
     }
 
