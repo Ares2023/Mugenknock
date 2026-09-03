@@ -179,15 +179,15 @@ export default function ExamSetup() {
       ))
       .catch(() => setExamSessions([]))
       .finally(() => setSessionsLoading(false));
-    const cachedStats = getCached<any[]>(`ustats_${user.userId}`);
+    const cachedStats = getCached<any[]>(`ustats_${user.userId}_${examType}`);
     if (cachedStats !== null) {
       setDomainStats(cachedStats);
     } else {
-      fetch(`${API_ENDPOINT}/users/me/stats?userId=${user.userId}`)
+      fetch(`${API_ENDPOINT}/users/me/stats?userId=${user.userId}&examType=${examType}`)
         .then(r => r.json())
         .then(d => {
           setDomainStats(d.stats ?? []);
-          setCached(`ustats_${user.userId}`, d.stats ?? [], SHORT_TTL);
+          setCached(`ustats_${user.userId}_${examType}`, d.stats ?? [], SHORT_TTL);
         })
         .catch(() => setDomainStats([]));
     }

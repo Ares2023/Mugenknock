@@ -20,7 +20,7 @@ import {
 } from '../constants';
 import { readDomainResults, readDomainHistory } from '../utils/domainStats';
 import { lockBodyScroll } from '../utils/bodyScrollLock';
-import { getCached, setCached, deleteCached, DEFAULT_TTL, getCachedPersist, setCachedPersist, deleteCachedPersist } from '../utils/cache';
+import { getCached, setCached, deleteCached, deleteCachedByPrefix, DEFAULT_TTL, getCachedPersist, setCachedPersist, deleteCachedPersist } from '../utils/cache';
 import { animateLoadPct, randomPlateau } from '../utils/loadProgress';
 import { getPoints, deductPoints } from '../utils/points';
 import Card from '../components/ui/Card';
@@ -1458,7 +1458,7 @@ export default function Home() {
 
   const refreshStats = useCallback(() => {
     if (!user || statsLoading || statsRefreshing) return;
-    deleteCached(`ustats_${user.userId}`);
+    deleteCachedByPrefix(`ustats_${user.userId}`);
     sessionStorage.removeItem(TS_KEY(user.userId));
     doFetchStats(user.userId, false);
   }, [user, statsLoading, statsRefreshing, doFetchStats]);

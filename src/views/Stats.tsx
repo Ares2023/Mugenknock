@@ -281,14 +281,14 @@ export default function Stats() {
   // ── ノック成績タブを開いたときに遅延ロード ──
   useEffect(() => {
     if (tab !== 'performance' || perfLoaded || !user || !targetExam) return;
-    const cachedStats = getCached<any[]>(`ustats_${user.userId}`);
+    const cachedStats = getCached<any[]>(`ustats_${user.userId}_${targetExam}`);
     if (cachedStats !== null) { setTagStats(cachedStats); setPerfLoaded(true); return; }
     setPerfLoading(true);
-    fetch(`${API_ENDPOINT}/users/me/stats?userId=${user.userId}`)
+    fetch(`${API_ENDPOINT}/users/me/stats?userId=${user.userId}&examType=${targetExam}`)
       .then(r => r.json())
       .then(d => {
         setTagStats(d.stats ?? []);
-        setCached(`ustats_${user.userId}`, d.stats ?? [], SHORT_TTL);
+        setCached(`ustats_${user.userId}_${targetExam}`, d.stats ?? [], SHORT_TTL);
         setPerfLoaded(true);
       })
       .catch(console.error)

@@ -235,14 +235,14 @@ export default function Practice() {
   }, [examType]);
 
   useEffect(() => {
-    if (!user) { setDomainStats([]); return; }
-    const cached = getCached<any[]>(`ustats_${user.userId}`);
+    if (!user || !examType) { setDomainStats([]); return; }
+    const cached = getCached<any[]>(`ustats_${user.userId}_${examType}`);
     if (cached !== null) { setDomainStats(cached); return; }
-    fetch(`${API_ENDPOINT}/users/me/stats?userId=${user.userId}`)
+    fetch(`${API_ENDPOINT}/users/me/stats?userId=${user.userId}&examType=${examType}`)
       .then(r => r.json())
-      .then(d => { setDomainStats(d.stats ?? []); setCached(`ustats_${user.userId}`, d.stats ?? [], SHORT_TTL); })
+      .then(d => { setDomainStats(d.stats ?? []); setCached(`ustats_${user.userId}_${examType}`, d.stats ?? [], SHORT_TTL); })
       .catch(() => setDomainStats([]));
-  }, [user]);
+  }, [user, examType]);
 
   const domainRates: Record<string, number | null> = {};
   (EXAM_DOMAINS[examType] ?? []).forEach((d, idx) => {

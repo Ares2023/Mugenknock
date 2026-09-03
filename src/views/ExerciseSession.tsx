@@ -5,7 +5,7 @@ import { useNavigate, useLocation } from '@/compat/react-router-dom';
 import { API_ENDPOINT, PASS_RATE, EXAM_DOMAINS, DOMAIN_NAME_EN, EXAM_LEVEL, qDomainName } from '../constants';
 import { recordSessionDomainStats, recentForTag } from '../utils/domainStats';
 import { qText } from '../utils/i18nQuestion';
-import { getCached, setCached, deleteCached, DEFAULT_TTL } from '../utils/cache';
+import { getCached, setCached, deleteCached, deleteCachedByPrefix, DEFAULT_TTL } from '../utils/cache';
 import { addPoints } from '../utils/points';
 import { incrementDailyProgress } from '../utils/dailyProgress';
 import { lockBodyScroll } from '../utils/bodyScrollLock';
@@ -865,18 +865,11 @@ export default function ExerciseSession() {
         examType, userId, results,
         questionById: (qId) => questions.find((q: Question) => q.questionId === qId) as any,
       });
-      try {
-        const existingStats: any[] | null = getCached(`ustats_${userId}`);
-        if (existingStats && existingStats.length > 0) {
-          const updated = existingStats.map((s: any) => ({
-            ...s,
-            recentResults: recentForTag(dr, s.tagId) ?? s.recentResults,
-          }));
-          setCached(`ustats_${userId}`, updated, DEFAULT_TTL);
-        } else {
-          deleteCached(`ustats_${userId}`);
-        }
-      } catch { deleteCached(`ustats_${userId}`); }
+      // 統計キャッシュは破棄して次回参照時にサーバから取り直す。
+      // ドメイン別の累計(correctCount/incorrectCount)はサーバが UserQuestionStats から
+      // 集計して返すため、ここで recentResults だけを継ぎ足すと累計が古いまま残り、
+      // 既習数・正答率が未演習フィルタとズレる。
+      deleteCachedByPrefix(`ustats_${userId}`);
       window.dispatchEvent(new CustomEvent('qstatsRefresh'));
       localStorage.setItem(`postSessionRefresh_${userId}`, String(Date.now()));
       const ptsPerQ = EXAM_LEVEL[examType] === 'Foundational' ? 1 : EXAM_LEVEL[examType] === 'Associate' ? 2 : 3;
@@ -937,15 +930,8 @@ export default function ExerciseSession() {
       examType, userId, results,
       questionById: (qId) => questions.find((q: Question) => q.questionId === qId) as any,
     });
-    try {
-      const existingStats2: any[] | null = getCached(`ustats_${userId}`);
-      if (existingStats2 && existingStats2.length > 0) {
-        const updated2 = existingStats2.map((s: any) => ({ ...s, recentResults: recentForTag(dr, s.tagId) ?? s.recentResults }));
-        setCached(`ustats_${userId}`, updated2, DEFAULT_TTL);
-      } else {
-        deleteCached(`ustats_${userId}`);
-      }
-    } catch { deleteCached(`ustats_${userId}`); }
+    // 上と同じ理由でキャッシュは破棄する（累計はサーバ集計が正）
+    deleteCachedByPrefix(`ustats_${userId}`);
     window.dispatchEvent(new CustomEvent('qstatsRefresh'));
     localStorage.setItem(`postSessionRefresh_${userId}`, String(Date.now()));
     const ptsPerQ = EXAM_LEVEL[examType] === 'Foundational' ? 1 : EXAM_LEVEL[examType] === 'Associate' ? 2 : 3;
