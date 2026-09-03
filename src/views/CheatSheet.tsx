@@ -954,10 +954,18 @@ function circledNumber(n: number): string {
   return n >= 1 && n <= 20 ? String.fromCharCode(0x2460 + n - 1) : `(${n})`;
 }
 
-// 表示タイトル: 複数記事あるサービスは「基底名＋丸数字」、単独記事はそのまま
+// 表示タイトル:
+//   ・feature 記事（name ≠ serviceKey）→ そのまま art.name（"Amazon SageMaker Studio" 等）
+//   ・overview 記事（name = serviceKey）→ 同名が複数 exam に存在する場合のみ番号付き
 function articleTitle(art: Article): string {
   const n = articleNumber(art);
-  return n > 0 ? `${art.serviceKey}${circledNumber(n)}` : art.name;
+  if (n === 0) return art.name;
+  if (art.name !== art.serviceKey) return art.name;
+  // overview が複数 exam に同名で存在する場合のみ番号で区別
+  const overviews = (SERVICE_GROUPS.get(art.serviceKey) ?? []).filter(a => a.name === a.serviceKey);
+  if (overviews.length <= 1) return art.name;
+  const idx = overviews.findIndex(a => a.id === art.id);
+  return `${art.serviceKey}${circledNumber(idx + 1)}`;
 }
 
 // ── レベル定義（ExamSelectOverlay と同じ構成） ─────────────────
@@ -1574,11 +1582,19 @@ function ItemCard({ item, exam, q, allNames, highlightedId, onCopy, onNavigate, 
 
   // 関連サービス — seeAlso/自動検出で挙がった各サービスの「全記事」を展開して列挙。
   // 自分自身と、上の「同じサービス」で既に出す兄弟は除外。
+  // feature 記事（name ≠ serviceKey）の場合、先頭にベースサービス overview を追加する。
+  // siblings にも同記事が exam コードチップで出るが、ここでは正式名称チップとして併記する。
   const relatedArticles = useMemo(() => {
     const seen = new Set<string>();
     if (article) seen.add(article.id);
     siblings.forEach(a => seen.add(a.id));
     const out: Article[] = [];
+    // feature 記事 → ベースサービスの overview を先頭に挿入
+    if (article && article.name !== article.serviceKey) {
+      for (const a of (SERVICE_GROUPS.get(article.serviceKey) ?? [])) {
+        if (a.name === a.serviceKey) out.push(a); // seen チェックなし（siblings と重複 OK）
+      }
+    }
     for (const nm of [...(item.seeAlso ?? []), ...autoSeeAlso]) {
       for (const a of groupOfName(nm)) {
         if (seen.has(a.id)) continue;
