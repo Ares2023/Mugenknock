@@ -1582,17 +1582,18 @@ function ItemCard({ item, exam, q, allNames, highlightedId, onCopy, onNavigate, 
 
   // 関連サービス — seeAlso/自動検出で挙がった各サービスの「全記事」を展開して列挙。
   // 自分自身と、上の「同じサービス」で既に出す兄弟は除外。
+  // 関連サービス — seeAlso/自動検出で挙がった各サービスの「全記事」を展開して列挙。
   // feature 記事（name ≠ serviceKey）の場合、先頭にベースサービス overview を追加する。
-  // siblings にも同記事が exam コードチップで出るが、ここでは正式名称チップとして併記する。
+  // ただし siblings に既に出ている記事は重複しないよう seen チェックで除外。
   const relatedArticles = useMemo(() => {
     const seen = new Set<string>();
     if (article) seen.add(article.id);
     siblings.forEach(a => seen.add(a.id));
     const out: Article[] = [];
-    // feature 記事 → ベースサービスの overview を先頭に挿入
+    // feature 記事 → ベースサービスの overview を先頭に挿入（siblings 未掲載のもののみ）
     if (article && article.name !== article.serviceKey) {
       for (const a of (SERVICE_GROUPS.get(article.serviceKey) ?? [])) {
-        if (a.name === a.serviceKey) out.push(a); // seen チェックなし（siblings と重複 OK）
+        if (a.name === a.serviceKey && !seen.has(a.id)) { seen.add(a.id); out.push(a); }
       }
     }
     for (const nm of [...(item.seeAlso ?? []), ...autoSeeAlso]) {
