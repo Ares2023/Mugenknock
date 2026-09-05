@@ -259,3 +259,28 @@
 
 ### 角丸
 `var(--border-radius-sm|md|lg|full)` を使う。`14px` 等の生値は使わない（pill形ボタンは `full`）。
+
+## 出題ドメイン配分の方針（確定）
+
+無フィルタ（ブックマーク/不正解/未回答フィルタなし）の通常演習のドメイン配分は、**deficit round-robin（累積是正）を維持する**。
+
+- 実装: `lambda/src/app.js` の `domainBalancedOrder` / `selectionOrder`（`answeredPerDomain` を使う）。
+- ログインユーザーは「過去回答が少ないドメインを優先」して累積の偏りを是正する。
+- **1セッション内で特定ドメインが多くなる / 0問になるのは許容する**（「各ドメイン最低1問保証」は検討のうえ不採用）。
+
+## チートシートの用語は別名を併記する
+
+`src/views/CheatSheet.tsx` の `CHEAT_DATA` に用語を書く/追記するときは、**有名な別名（和名⇄英名）があれば必ず併記する**。
+
+- desc 内: `和名（English）` 形式 — 例: 「異常検知（Anomaly Detection）」
+- tags: `和名 / English` 形式 — 例: 「マネージドルール / Managed Rules」
+- 理由: 試験では日本語訳と英語表記が混在して出題される。片方だけだと検索・想起できない。ASCII 技術用語は自動ハイライトされる。
+
+## Additional レベル（表示名「オリジナル」）の非AWSカード
+
+AWS 資格が前提とする **AWS 外の土台知識**を補う独自演習（AWS 認定ではない）。2026-08-15 新設・本番反映済み。
+
+- カード = `examType`: `ML`（AIF/MLA/AIP前提）/ `DB`（DEA前提）/ `NW`（ANS前提）/ `SEC`（SCS前提）。
+- 判定: `constants.ts` の `NON_AWS_EXAM_TYPES` / `isNonAwsExam()`。
+- レベルキーは内部 `'Additional'`、表示は `levelLabel()` で「オリジナル」。
+- **問題文に AWS サービス名を出さない**（AWS 非依存の前提知識を問うため）。既存問題を複製して投入する運用。
