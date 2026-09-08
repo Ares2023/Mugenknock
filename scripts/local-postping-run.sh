@@ -15,12 +15,8 @@ HOOKS_FLAG="$HOME/.config/mugenknock/hooks_enabled"   # 無ければフック無
 
 log() { printf '[%s] %s\n' "$(date '+%H:%M:%S')" "$*"; }
 
-# 0. /usage のトークン回復時刻で EventBridge の次回ピンを微調整(best-effort・常時実行)。
-#    失敗/通信不良時は Fargate が設定済みの now+5h(バックボーン)がそのまま生きる。
-log "次回ピンを /usage 回復時刻へ微調整(apply-usage-schedule)..."
-AWS="$AWS" REPO="$REPO" bash "$REPO/scripts/apply-usage-schedule.sh" || true
-
-# 1. 次サイクルへ再同期(微調整後の次回ピンを読み直してローカルタイマーを整列)。※常時実行(連鎖維持)
+# 1. 再同期(ローカル時計を読み直して localping/衛星タイマーを整列)。※常時実行(連鎖のwatchdog)
+#    次回ピン時刻の更新は localping(local-ping-run.sh)が /usage から行う。ここは整列のみ。
 log "再同期(sync-local-schedule)..."
 bash "$REPO/scripts/sync-local-schedule.sh" || true
 
