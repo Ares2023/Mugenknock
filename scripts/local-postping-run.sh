@@ -11,16 +11,22 @@ REPO=/home/yuzuki/aws-quiz-app
 AWS=/home/yuzuki/local/bin/aws
 ACCT=$("$AWS" sts get-caller-identity --query Account --output text 2>/dev/null || echo "")
 S3="mugenknock-fargate-state-${ACCT}"
+HOOKS_FLAG="$HOME/.config/mugenknock/hooks_enabled"   # 無ければフック無効(夜間バッチしない)
 
 log() { printf '[%s] %s\n' "$(date '+%H:%M:%S')" "$*"; }
 
-# 1. 次サイクルへ再同期(EventBridgeの新しい次回ピンを読み直す)
+# 0. /usage のトークン回復時刻で EventBridge の次回ピンを微調整(best-effort・常時実行)。
+#    失敗/通信不良時は Fargate が設定済みの now+5h(バックボーン)がそのまま生きる。
+log "次回ピンを /usage 回復時刻へ微調整(apply-usage-schedule)..."
+AWS="$AWS" REPO="$REPO" bash "$REPO/scripts/apply-usage-schedule.sh" || true
+
+# 1. 次サイクルへ再同期(微調整後の次回ピンを読み直してローカルタイマーを整列)。※常時実行(連鎖維持)
 log "再同期(sync-local-schedule)..."
 bash "$REPO/scripts/sync-local-schedule.sh" || true
 
-# 2. 夜間バッチ(夜間サイクルかつ当日未実行のみ)
+# 2. 夜間バッチ(夜間サイクル かつ フック有効 かつ 当日未実行のみ)
 RAN_NIGHT=0
-if [ "${RUN_NIGHT:-0}" = "1" ]; then
+if [ "${RUN_NIGHT:-0}" = "1" ] && [ -f "$HOOKS_FLAG" ]; then
   TODAY=$(date +%Y-%m-%d)
   LRD=$("$AWS" s3 cp "s3://$S3/meta/.last_run_date" - --quiet 2>/dev/null | tr -d '\n' || echo "")
   if [ "$LRD" != "$TODAY" ]; then
@@ -30,6 +36,8 @@ if [ "${RUN_NIGHT:-0}" = "1" ]; then
   else
     log "夜間バッチは本日実行済み($LRD) → スキップ"
   fi
+elif [ ! -f "$HOOKS_FLAG" ]; then
+  log "フック無効(ct off) → 再同期のみ(夜間バッチはスキップ)"
 else
   log "夜間サイクルでない → 再同期のみ"
 fi

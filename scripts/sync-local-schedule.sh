@@ -23,6 +23,11 @@ UNIT_DIR="$HOME/.config/systemd/user"
 ACCT=$("$AWS" sts get-caller-identity --query Account --output text --region "$REGION" 2>/dev/null || echo "")
 S3="${PROJECT}-fargate-state-${ACCT}"
 
+# フック有効フラグ(ct on/off が管理)。無ければフック無効。
+# ピンは常時稼働なので、このフラグは hook/hook2/夜間バッチだけを左右する。
+HOOKS_FLAG="$HOME/.config/mugenknock/hooks_enabled"
+_hooks_on() { [ -f "$HOOKS_FLAG" ]; }
+
 # ── メールアラート送信（~/.mugenknock_mail.conf 使用・失敗してもスクリプトは止めない）──
 # ピン連鎖切れ(watchdog)検知時に mugenknock@gmail.com へ通知する。
 _send_alert() {
@@ -63,10 +68,13 @@ STATE=$("$AWS" scheduler get-schedule --name "$SCHEDULE_NAME" --region "$REGION"
 
 mkdir -p "$UNIT_DIR"
 
-# DISABLED(ct cancel)ならローカルタイマーも停止して終了
+# DISABLED = ct cancel による完全停止(ピンも止める例外操作)。
+# この場合のみ postping も含め全ローカルタイマーを停止する。
+# (通常の ct off は State を変えず、下の分岐で hook/hook2 だけ止める)
 if [ "$STATE" = "DISABLED" ]; then
-  systemctl --user disable --now mugenknock-hook.timer mugenknock-postping.timer 2>/dev/null || true
-  echo "スケジュール停止中(DISABLED) → ローカルタイマー停止"
+  systemctl --user disable --now \
+    mugenknock-hook.timer mugenknock-hook2.timer mugenknock-postping.timer 2>/dev/null || true
+  echo "スケジュール完全停止中(DISABLED) → 全ローカルタイマー停止"
   exit 0
 fi
 
@@ -176,7 +184,11 @@ Persistent=true
 WantedBy=timers.target
 EOF
 
-# postping タイマー(one-shot): 再同期 + (夜間サイクルなら)夜間バッチ
+# 夜間バッチはフック有効時のみ。フック無効なら夜間サイクルでも走らせない。
+if _hooks_on; then EFF_RUN_NIGHT="$RUN_NIGHT"; else EFF_RUN_NIGHT=0; fi
+
+# postping タイマー(one-shot): 再同期 + (夜間サイクル かつ フック有効なら)夜間バッチ
+# ※ postping はフック無効でも常時アーム(ピン連鎖のローカルwatchdog兼再アームのため)。
 cat > "$UNIT_DIR/mugenknock-postping.service" << EOF
 [Unit]
 Description=mugenknock post-ping resync (+ night batch on night cycle)
@@ -184,7 +196,7 @@ Description=mugenknock post-ping resync (+ night batch on night cycle)
 [Service]
 Type=oneshot
 WorkingDirectory=${REPO}
-Environment=RUN_NIGHT=${RUN_NIGHT}
+Environment=RUN_NIGHT=${EFF_RUN_NIGHT}
 ExecStart=/bin/bash -lc '${REPO}/scripts/local-postping-run.sh'
 EOF
 cat > "$UNIT_DIR/mugenknock-postping.timer" << EOF
@@ -200,14 +212,25 @@ WantedBy=timers.target
 EOF
 
 systemctl --user daemon-reload
-systemctl --user enable mugenknock-hook.timer mugenknock-hook2.timer mugenknock-postping.timer >/dev/null 2>&1 || true
-# one-shot絶対時刻タイマーは restart で新OnCalendarを反映
-systemctl --user restart mugenknock-hook.timer mugenknock-hook2.timer mugenknock-postping.timer 2>/dev/null || \
-  systemctl --user start mugenknock-hook.timer mugenknock-hook2.timer mugenknock-postping.timer 2>/dev/null || true
+
+# postping は常時アーム(ピン連鎖のローカルwatchdog兼再アーム)。one-shot絶対時刻は restart で反映。
+systemctl --user enable mugenknock-postping.timer >/dev/null 2>&1 || true
+systemctl --user restart mugenknock-postping.timer 2>/dev/null || \
+  systemctl --user start mugenknock-postping.timer 2>/dev/null || true
+
+# hook / hook2 はフック有効時のみアーム。無効なら停止。
+if _hooks_on; then
+  systemctl --user enable mugenknock-hook.timer mugenknock-hook2.timer >/dev/null 2>&1 || true
+  systemctl --user restart mugenknock-hook.timer mugenknock-hook2.timer 2>/dev/null || \
+    systemctl --user start mugenknock-hook.timer mugenknock-hook2.timer 2>/dev/null || true
+  HOOK_STATE="有効 (arm: hook=${HOOK_CAL} / hook2=${HOOK2_CAL})"
+else
+  systemctl --user disable --now mugenknock-hook.timer mugenknock-hook2.timer 2>/dev/null || true
+  HOOK_STATE="無効 (ct on で有効化) — hook/hook2 は停止"
+fi
 loginctl enable-linger "$USER" 2>/dev/null || true
 
 echo "✓ ローカルタイマーを EventBridge(${EXPR}) に同期"
 echo "  次回ピン : ${NEXT_DT/T/ }"
-echo "  hook     : ${HOOK_CAL}"
-echo "  hook2    : ${HOOK2_CAL}"
-echo "  postping : ${POST_CAL}  (RUN_NIGHT=${RUN_NIGHT})"
+echo "  postping : ${POST_CAL}  (RUN_NIGHT=${EFF_RUN_NIGHT}) ※常時"
+echo "  フック   : ${HOOK_STATE}"
