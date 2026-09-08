@@ -20,6 +20,10 @@ DISABLED_FLAG="$CFG/ping_disabled"   # ct cancel で作成(完全停止)
 HOOKS_FLAG="$CFG/hooks_enabled"      # ct on/off が管理(フックのみ切替)
 _hooks_on() { [ -f "$HOOKS_FLAG" ]; }
 
+# フック設定(ピン前に実行するスクリプト群)を読む共有ライブラリ
+MK_REPO="$REPO"
+source "$REPO/scripts/mk-hooks-lib.sh"
+
 mkdir -p "$UNIT_DIR" "$CFG"
 
 # ── ct cancel(完全停止): 全タイマー停止して終了 ──
@@ -59,10 +63,8 @@ if [ "$STALE" = "1" ]; then
   echo "⚠️ 時計が無い/過去 → now+5h に張り直し: ${NEXT_DT/T/ }"
 fi
 
-# 各タイマーの絶対時刻
+# 各タイマーの絶対時刻(ピン本体・postping)。フックは設定に応じて後段で動的生成。
 PING_CAL=$(python3 -c "from datetime import datetime; print(datetime.strptime('$NEXT_DT','%Y-%m-%dT%H:%M:%S').strftime('%Y-%m-%d %H:%M:%S'))")
-HOOK_CAL=$(python3 -c "from datetime import datetime,timedelta; print((datetime.strptime('$NEXT_DT','%Y-%m-%dT%H:%M:%S')-timedelta(minutes=30)).strftime('%Y-%m-%d %H:%M:00'))")
-HOOK2_CAL=$(python3 -c "from datetime import datetime,timedelta; print((datetime.strptime('$NEXT_DT','%Y-%m-%dT%H:%M:%S')-timedelta(minutes=15)).strftime('%Y-%m-%d %H:%M:00'))")
 POST_CAL=$(python3 -c "from datetime import datetime,timedelta; print((datetime.strptime('$NEXT_DT','%Y-%m-%dT%H:%M:%S')+timedelta(minutes=10)).strftime('%Y-%m-%d %H:%M:00'))")
 
 # ── localping タイマー(one-shot): 次回ピン時刻に local-ping-run を発火 ──
@@ -88,49 +90,52 @@ Persistent=true
 WantedBy=timers.target
 EOF
 
-# ── hook タイマー(one-shot): ピン30分前 ──
-cat > "$UNIT_DIR/mugenknock-hook.service" << EOF
+# ── フックタイマー(動的生成): hooks.conf の各行 = ピンのN分前に1つ ──
+# 旧世代のフックユニット(mugenknock-hook*.{service,timer})を一旦全撤去してから作り直す。
+# ※ この glob は localping/postping/canary 等にはマッチしない。
+HOOK_TIMERS=""; HOOK_STATE="無効 (ct on で有効化) — フック停止"
+for u in "$UNIT_DIR"/mugenknock-hook*.timer "$UNIT_DIR"/mugenknock-hook*.service; do
+  [ -e "$u" ] || continue
+  b=$(basename "$u")
+  systemctl --user disable --now "$b" 2>/dev/null || true
+  rm -f "$u"
+done
+if _hooks_on; then
+  _hi=0; _desc=""
+  while IFS="$(printf '\t')" read -r _min _script _label; do
+    [ -n "$_min" ] || continue
+    _hi=$((_hi + 1))
+    _abs=$(hooks_resolve "$_script")
+    _cal=$(python3 -c "from datetime import datetime,timedelta; print((datetime.strptime('$NEXT_DT','%Y-%m-%dT%H:%M:%S')-timedelta(minutes=$_min)).strftime('%Y-%m-%d %H:%M:00'))")
+    cat > "$UNIT_DIR/mugenknock-hook-${_hi}.service" << EOF
 [Unit]
-Description=mugenknock local validity hook (before ping)
+Description=mugenknock hook #${_hi}: ${_label:-$_script} (ping -${_min}min)
 
 [Service]
 Type=oneshot
 WorkingDirectory=${REPO}
-ExecStart=/bin/bash -lc '${REPO}/scripts/local-hook-run.sh'
+ExecStart=/bin/bash -lc '${_abs}'
 EOF
-cat > "$UNIT_DIR/mugenknock-hook.timer" << EOF
+    cat > "$UNIT_DIR/mugenknock-hook-${_hi}.timer" << EOF
 [Unit]
-Description=mugenknock hook timer (local clock -30min)
+Description=mugenknock hook #${_hi} timer (local clock -${_min}min)
 
 [Timer]
-OnCalendar=${HOOK_CAL}
+OnCalendar=${_cal}
 Persistent=true
 
 [Install]
 WantedBy=timers.target
 EOF
-
-# ── hook2 タイマー(one-shot): ピン15分前 ──
-cat > "$UNIT_DIR/mugenknock-hook2.service" << EOF
-[Unit]
-Description=mugenknock local generate hook (before ping)
-
-[Service]
-Type=oneshot
-WorkingDirectory=${REPO}
-ExecStart=/bin/bash -lc '${REPO}/scripts/local-hook2-run.sh'
-EOF
-cat > "$UNIT_DIR/mugenknock-hook2.timer" << EOF
-[Unit]
-Description=mugenknock hook2 timer (local clock -15min)
-
-[Timer]
-OnCalendar=${HOOK2_CAL}
-Persistent=true
-
-[Install]
-WantedBy=timers.target
-EOF
+    HOOK_TIMERS="$HOOK_TIMERS mugenknock-hook-${_hi}.timer"
+    _desc="${_desc}\n    - ${_min}分前 ${_cal##* } : ${_label:-$_script}"
+  done < <(hooks_list)
+  if [ "$_hi" -gt 0 ]; then
+    HOOK_STATE="有効 (${_hi}件)$(printf "$_desc")"
+  else
+    HOOK_STATE="有効だが hooks.conf に有効な行なし"
+  fi
+fi
 
 # 夜間バッチはフック有効時のみ。フック無効なら夜間サイクルでも走らせない。
 if _hooks_on; then EFF_RUN_NIGHT="$RUN_NIGHT"; else EFF_RUN_NIGHT=0; fi
@@ -167,16 +172,11 @@ for t in mugenknock-localping.timer mugenknock-postping.timer; do
   systemctl --user restart "$t" 2>/dev/null || systemctl --user start "$t" 2>/dev/null || true
 done
 
-# hook / hook2 はフック有効時のみアーム。無効なら停止。
-if _hooks_on; then
-  systemctl --user enable mugenknock-hook.timer mugenknock-hook2.timer >/dev/null 2>&1 || true
-  systemctl --user restart mugenknock-hook.timer mugenknock-hook2.timer 2>/dev/null || \
-    systemctl --user start mugenknock-hook.timer mugenknock-hook2.timer 2>/dev/null || true
-  HOOK_STATE="有効 (arm: hook=${HOOK_CAL} / hook2=${HOOK2_CAL})"
-else
-  systemctl --user disable --now mugenknock-hook.timer mugenknock-hook2.timer 2>/dev/null || true
-  HOOK_STATE="無効 (ct on で有効化) — hook/hook2 は停止"
-fi
+# フックタイマー(動的生成分)をアーム。無効時は生成していないので何もしない。
+for t in $HOOK_TIMERS; do
+  systemctl --user enable "$t" >/dev/null 2>&1 || true
+  systemctl --user restart "$t" 2>/dev/null || systemctl --user start "$t" 2>/dev/null || true
+done
 loginctl enable-linger "$USER" 2>/dev/null || true
 
 echo "✓ ローカルタイマーを同期 (時計=${CLOCK})"

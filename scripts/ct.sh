@@ -34,6 +34,9 @@ SELF="$REPO/scripts/ct.sh"
 MODE_RESET_ONCALENDAR="Sat *-*-* 03:00:00"
 
 mkdir -p "$CFG"
+# フック設定の共有ライブラリ(hooks.conf の読み書き)
+MK_REPO="$REPO"
+source "$REPO/scripts/mk-hooks-lib.sh"
 _hooks_on()  { [ -f "$HOOKS_FLAG" ]; }
 _disabled()  { [ -f "$DISABLED_FLAG" ]; }
 _get_next()  { cat "$CLOCK" 2>/dev/null | tr -d '\n'; }
@@ -89,9 +92,16 @@ show_status() {
   printf "  last  %s\n" "$last"
   printf "  clock %s\n" "$(_get_next | tr 'T' ' ')"
 
-  echo "── フックスクリプト (ct on/off で切替) ──"
+  echo "── フックスクリプト (ct on/off で切替 / ct hooks で編集) ──"
   if _hooks_on; then
     echo "  hooks on (有効)"
+    local n=0
+    while IFS="$(printf '\t')" read -r _m _s _l; do
+      [ -n "$_m" ] || continue
+      n=$((n+1))
+      printf "    %d. ピン%s分前  %s\n" "$n" "$_m" "${_l:-$_s}"
+    done < <(hooks_list)
+    [ "$n" -eq 0 ] && echo "    (hooks.conf に有効な行なし)"
     local reset_next
     reset_next=$(systemctl --user list-timers "${PROJECT}-mode-reset.timer" --all --no-legend 2>/dev/null | awk '{print $1" "$2" "$3}')
     [ -n "$reset_next" ] && printf "  reset %s に自動 off(フックのみ)\n" "$reset_next"
@@ -101,7 +111,7 @@ show_status() {
 
   echo "── ローカル systemd タイマー ──"
   systemctl --user list-timers \
-    'mugenknock-localping.timer' 'mugenknock-hook.timer' 'mugenknock-hook2.timer' \
+    'mugenknock-localping.timer' 'mugenknock-hook-*.timer' \
     'mugenknock-postping.timer' 'mugenknock-canary.timer' 'mugenknock-nightly-noai.timer' \
     --all --no-legend 2>/dev/null \
     | awk '{printf "  %-28s next %s %s\n", $NF, $1, $2}' \
@@ -184,18 +194,78 @@ run_now() {
 
 # ── ct skip (次回のフックを今回だけスキップ) ──
 skip_hooks() {
-  local stopped=0
-  for t in mugenknock-hook.timer mugenknock-hook2.timer; do
-    if systemctl --user is-active --quiet "$t" 2>/dev/null || systemctl --user list-timers "$t" --all --no-legend 2>/dev/null | grep -q "$t"; then
-      systemctl --user stop "$t" 2>/dev/null && stopped=$(( stopped + 1 ))
-    fi
+  local stopped=0 u b
+  for u in "$UNIT_DIR"/mugenknock-hook-*.timer; do
+    [ -e "$u" ] || continue
+    b=$(basename "$u")
+    systemctl --user stop "$b" 2>/dev/null && stopped=$(( stopped + 1 ))
   done
   if [ "$stopped" -gt 0 ]; then
-    echo "✓ 次回のフック(hook/hook2)をスキップします (${stopped}件停止)"
+    echo "✓ 次回のフックをスキップします (${stopped}件停止)"
   else
     echo "✓ 次回のフックをスキップします (対象タイマーは既に停止/未アーム)"
   fi
   echo "  次サイクルは postping(+10分)の再同期で自動復帰します。すぐ戻すには ct sync。"
+}
+
+# ── ct hooks [list|add|rm] (フックの設定) ──
+hooks_cmd() {
+  local sub="${1:-list}"; shift || true
+  case "$sub" in
+    list|"")
+      echo "── フック設定 (~/.config/mugenknock/hooks.conf) ──"
+      echo "  実行はピンの指定分前。ct on のとき有効。"
+      local n=0 clk; clk=$(_get_next)
+      printf "  %-3s %-6s %-28s %s\n" "#" "分前" "スクリプト" "ラベル / 次回発火"
+      while IFS="$(printf '\t')" read -r m s l; do
+        [ -n "$m" ] || continue
+        n=$((n+1))
+        local when=""
+        if [ -n "$clk" ]; then
+          when=$(python3 -c "from datetime import datetime,timedelta; print((datetime.strptime('$clk','%Y-%m-%dT%H:%M:%S')-timedelta(minutes=$m)).strftime('%H:%M'))" 2>/dev/null)
+        fi
+        printf "  %-3s %-6s %-28s %s\n" "$n" "$m" "$s" "${l:-}${when:+  (次回 $when)}"
+      done < <(hooks_list)
+      [ "$n" -eq 0 ] && echo "  (有効な行なし)"
+      echo "  操作: ct hooks add <分前> <スクリプト> [ラベル...] / ct hooks rm <#>"
+      ;;
+    add)
+      local minb="${1:-}" script="${2:-}"; shift 2 2>/dev/null || true
+      local label="$*"
+      if ! [[ "$minb" =~ ^[0-9]+$ ]] || [ -z "$script" ]; then
+        echo "❌ 使い方: ct hooks add <分前(正整数)> <スクリプト> [ラベル...]"; return 1
+      fi
+      local abs; abs=$(hooks_resolve "$script")
+      [ -f "$abs" ] || echo "⚠️ 警告: スクリプトが見つかりません: $abs (登録は続行)"
+      hooks_seed_defaults
+      printf '%s|%s|%s\n' "$minb" "$script" "$label" >> "$HOOKS_CONF"
+      echo "✓ 追加: ピン${minb}分前  ${label:-$script}"
+      echo "同期中..."; _sync
+      ;;
+    rm|del|remove)
+      local target="${1:-}"
+      if ! [[ "$target" =~ ^[0-9]+$ ]]; then echo "❌ 使い方: ct hooks rm <#>  (# は ct hooks list の番号)"; return 1; fi
+      # 先に全行を配列へ読み切る(同一ファイルの読みながら書き=競合を避ける)
+      local _lines; mapfile -t _lines < <(hooks_list)
+      local total=${#_lines[@]}
+      if [ "$target" -lt 1 ] || [ "$target" -gt "$total" ]; then
+        echo "❌ #${target} は存在しません (ct hooks list で確認)"; return 1
+      fi
+      local removed; removed=$(printf '%s' "${_lines[$((target-1))]}" | cut -f3)
+      local i=0
+      { for ln in "${_lines[@]}"; do
+          i=$((i+1))
+          [ "$i" -eq "$target" ] && continue
+          printf '%s\n' "$ln"
+        done; } | hooks_rewrite
+      echo "✓ 削除: #${target} ${removed}"
+      echo "同期中..."; _sync
+      ;;
+    edit)
+      hooks_seed_defaults; "${EDITOR:-vi}" "$HOOKS_CONF"; echo "同期中..."; _sync ;;
+    *)
+      echo "ct hooks: 不明なサブコマンド: $sub (list|add|rm|edit)"; return 1 ;;
+  esac
 }
 
 # ── ct log ──
@@ -221,7 +291,7 @@ show_log() {
 }
 
 # ── 引数処理 ──
-CMD="status"; LOG_DATE=""; SET_TIME=""
+CMD="status"; LOG_DATE=""; SET_TIME=""; HOOKS_ARGS=()
 while [[ $# -gt 0 ]]; do
   case "$1" in
     set)    CMD="set"; SET_TIME="${2:?ct: set には HH:MM が必要です}"; shift 2 ;;
@@ -232,6 +302,7 @@ while [[ $# -gt 0 ]]; do
     sync)   CMD="sync";   shift ;;
     skip)   CMD="skip";   shift ;;
     run)    CMD="run";    shift ;;
+    hooks)  CMD="hooks";  shift; HOOKS_ARGS=("$@"); break ;;
     log)
       CMD="log"; shift
       case "${1:-}" in
@@ -246,7 +317,8 @@ usage: ct [command]  (ローカル自己完結版・Fargate不使用)
   (なし)        状況表示
   on           フック有効 (hook/hook2/夜間バッチを実行。ピンは常時稼働)
                ※ 土曜03:00に自動で off(フックのみ) へ戻る
-  off          フック無効 (hook/hook2/夜間バッチを停止。ピンは常時稼働)
+  off          フック無効 (フック/夜間バッチを停止。ピンは常時稼働)
+  hooks        フック設定 (list|add <分前> <script> [label]|rm <#>|edit)
   set HH:MM    次回ピン時刻を変更 (以降は/usage回復時刻で追従)
   resume       ピン再開 (次回=now+5h)
   cancel       完全停止 (ピンもフックも止める)
@@ -271,6 +343,7 @@ case "$CMD" in
   sync)      _sync ;;
   skip)      skip_hooks ;;
   run)       run_now ;;
+  hooks)     hooks_cmd "${HOOKS_ARGS[@]}" ;;
   log)       show_log "history" ;;
   log-full)  show_log "full" ;;
   log-night) show_log "night" ;;
