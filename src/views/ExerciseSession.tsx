@@ -706,9 +706,55 @@ export default function ExerciseSession() {
     setInitialized(true);
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
+  // ── キーボード操作まわりの Hook ──────────────────────────────────
+  // 下の早期リターンより後ろに置くと、レンダーごとに呼ばれる Hook の数が変わり
+  // React が "Rendered more/fewer hooks than during the previous render" で落ちる。
+  // （演習中に2回リロードすると再現した: 1回目は compat 層が sessionStorage から
+  //   location.state を復元するが、その際に消すため2回目は state が無くなり
+  //   initialized=false → 早期リターン → ドラフト復元で true → Hook が増える）
+  // 依存する値（isMobile / currentIndex / cursorIndex / shuffledChoices 等）は
+  // すべてこの位置より前で宣言済みなので、ここに置ける。
+
+  // 問題が変わったらカーソルを先頭に戻す
+  useEffect(() => { setCursorIndex(0); }, [currentIndex]);
+  // カーソルの選択肢が画面内に入るようスクロール追従（Web版）
+  useEffect(() => { if (!isMobile) cursorElRef.current?.scrollIntoView({ block: 'nearest' }); }, [cursorIndex, isMobile]);
+
+  // 実体の代入は toggleAnswer 等の定義後（下の方）で行う。ここは宣言のみ。
+  const keyHandlerRef = useRef<(e: KeyboardEvent) => void>(() => {});
+
+  useEffect(() => {
+    const h = (e: KeyboardEvent) => keyHandlerRef.current(e);
+    window.addEventListener('keydown', h);
+    return () => window.removeEventListener('keydown', h);
+  }, []);
+
+  // Ctrl/Cmd+C: テキスト未選択時は問題文＋選択肢をコピー（上部コピーボタンと同じ・Web版のみ）
+  useEffect(() => {
+    if (isMobile) return;
+    const onCopy = (e: KeyboardEvent) => {
+      if (!((e.ctrlKey || e.metaKey) && (e.key === 'c' || e.key === 'C'))) return;
+      const el = e.target as HTMLElement | null;
+      const tag = el?.tagName;
+      if (tag === 'INPUT' || tag === 'TEXTAREA' || el?.isContentEditable) return;
+      if ((window.getSelection()?.toString() ?? '') !== '') return; // 選択中は通常コピー優先
+      const q = questions[currentIndex];
+      if (!q) return;
+      e.preventDefault();
+      const choicesText = shuffledChoices.map((c, idx) => `${CHOICE_LABELS[idx]}. ${stripLabel(c)}`).join('\n');
+      navigator.clipboard.writeText(`${q.questionText}\n\n${choicesText}`).then(() => {
+        setCopyToast(true);
+        setTimeout(() => setCopyToast(false), 1500);
+      }).catch(() => {});
+    };
+    window.addEventListener('keydown', onCopy);
+    return () => window.removeEventListener('keydown', onCopy);
+  }, [isMobile, currentIndex, shuffledChoices, questions]);
+
   // 全 Hook 呼び出し完了後に computed values を定義
   const totalCount = allQuestionIds.length > 0 ? allQuestionIds.length : questions.length;
 
+  // ここから下に Hook を追加しないこと（上記の理由でクラッシュする）
   if (!initialized) return null;
 
   // プログレッシブロード: 現在問がまだロードされていない場合はスピナーを表示
@@ -958,14 +1004,10 @@ export default function ExerciseSession() {
     navigate('/aws/result', { state: { results, questions: answeredQuestions, score, isPassed, sessionId: sid, userId, examType, isQuick, isFocused, isMini, aborted: true, earnedPts, dailyBonusPts: dailyBonusPts2 } });
   };
 
-  // 問題が変わったらカーソルを先頭に戻す
-  useEffect(() => { setCursorIndex(0); }, [currentIndex]);
-  // カーソルの選択肢が画面内に入るようスクロール追従（Web版）
-  useEffect(() => { if (!isMobile) cursorElRef.current?.scrollIntoView({ block: 'nearest' }); }, [cursorIndex, isMobile]);
-
   // ── キーボード操作（Web版のみ）──
   // ↑↓←→: カーソル移動 / Enter: カーソルの選択肢を選択・トグル / Shift+Enter: 回答→次へ
-  const keyHandlerRef = useRef<(e: KeyboardEvent) => void>(() => {});
+  // ※ useRef の宣言と keydown リスナーの登録は早期リターンより前へ移動済み。
+  //    ここは代入のみ（Hook ではない）。toggleAnswer 等を参照するのでこの位置に残す。
   keyHandlerRef.current = (e: KeyboardEvent) => {
     if (isMobile) return;
     const el = e.target as HTMLElement | null;
@@ -1041,33 +1083,6 @@ export default function ExerciseSession() {
       if (!answered) toggleAnswer(cursorIndex < shuffledChoices.length ? shuffledChoices[cursorIndex] : WAKARANAI);
     }
   };
-  useEffect(() => {
-    const h = (e: KeyboardEvent) => keyHandlerRef.current(e);
-    window.addEventListener('keydown', h);
-    return () => window.removeEventListener('keydown', h);
-  }, []);
-
-  // Ctrl/Cmd+C: テキスト未選択時は問題文＋選択肢をコピー（上部コピーボタンと同じ・Web版のみ）
-  useEffect(() => {
-    if (isMobile) return;
-    const onCopy = (e: KeyboardEvent) => {
-      if (!((e.ctrlKey || e.metaKey) && (e.key === 'c' || e.key === 'C'))) return;
-      const el = e.target as HTMLElement | null;
-      const tag = el?.tagName;
-      if (tag === 'INPUT' || tag === 'TEXTAREA' || el?.isContentEditable) return;
-      if ((window.getSelection()?.toString() ?? '') !== '') return; // 選択中は通常コピー優先
-      const q = questions[currentIndex];
-      if (!q) return;
-      e.preventDefault();
-      const choicesText = shuffledChoices.map((c, idx) => `${CHOICE_LABELS[idx]}. ${stripLabel(c)}`).join('\n');
-      navigator.clipboard.writeText(`${q.questionText}\n\n${choicesText}`).then(() => {
-        setCopyToast(true);
-        setTimeout(() => setCopyToast(false), 1500);
-      }).catch(() => {});
-    };
-    window.addEventListener('keydown', onCopy);
-    return () => window.removeEventListener('keydown', onCopy);
-  }, [isMobile, currentIndex, shuffledChoices, questions]);
 
   const getChoiceStyle = (choice: string): React.CSSProperties => {
     const base: React.CSSProperties = {
