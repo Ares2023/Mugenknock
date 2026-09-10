@@ -1293,14 +1293,14 @@ export default function CheatSheet() {
           />
         </div>
         {/* レベルタブ：目標資格設定オーバーレイ(ExamSelectOverlay)とデザインを統一（flex:1 均等・levelLabel） */}
-        <div style={{ display: 'flex', borderBottom: '2px solid var(--color-border)', marginBottom: 0 }}>
+        <div style={{ display: 'flex', borderBottom: '2px solid var(--color-border)', marginBottom: 0, overflowX: isMobile ? 'auto' : 'visible', scrollbarWidth: 'none' }}>
           {EXAM_LEVELS.map(({ key, color }) => (
             <button
               key={key}
               onClick={() => selectLevel(key as LevelKey)}
               style={{
-                flex: 1, textAlign: 'center',
-                padding: isMobile ? '10px 4px' : '10px 14px',
+                flex: isMobile ? '0 0 auto' : 1, textAlign: 'center', whiteSpace: 'nowrap',
+                padding: isMobile ? '10px 12px' : '10px 14px',
                 background: 'none', border: 'none', cursor: 'pointer',
                 borderBottom: activeLevel === key ? `2px solid ${color}` : '2px solid transparent',
                 marginBottom: -2,
