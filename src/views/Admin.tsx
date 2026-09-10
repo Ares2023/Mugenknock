@@ -1160,7 +1160,7 @@ export default function Admin() {
   useEffect(() => { if (tab === 'dailyservice') fetchDailyServices(); }, [tab]);
   useEffect(() => { fetchDailyServices(); }, []); // pre-fetch for tab count
   useEffect(() => { if (tab === 'admins') fetchAdminEmails(); }, [tab]);
-  useEffect(() => { if (tab === 'growth') fetchGrowthData(); }, [tab]); // eslint-disable-line react-hooks/exhaustive-deps
+  useEffect(() => { if (tab === 'growth') fetchGrowthData(); }, [tab]);
   useEffect(() => { if (tab === 'about') fetchAboutContent(); }, [tab]);
   useEffect(() => {
     if (tab !== 'passcomments') return;
@@ -1176,7 +1176,7 @@ export default function Admin() {
         });
       })
       .catch(() => {});
-  }, [tab]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [tab]);
 
   const fetchGrowthData = async () => {
     setGrowthLoading(true);

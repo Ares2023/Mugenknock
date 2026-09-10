@@ -235,7 +235,7 @@ export default function MyPage() {
       setBarAnimated(true);
     }));
     return () => cancelAnimationFrame(id);
-  }, [serverDayCounts, targetExam]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [serverDayCounts, targetExam]);
 
   useEffect(() => {
     if (!showWeeklyDetail) return;

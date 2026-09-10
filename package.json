@@ -38,12 +38,9 @@
     "e2e:report": "npx playwright show-report e2e/reports",
     "gen:instructions": "node scripts/gen-original-instructions.mjs",
     "prebuild": "npm run gen:instructions",
-    "predev": "npm run gen:instructions"
-  },
-  "eslintConfig": {
-    "extends": [
-      "next/core-web-vitals"
-    ]
+    "predev": "npm run gen:instructions",
+    "lint": "eslint .",
+    "lint:fix": "eslint . --fix"
   },
   "browserslist": {
     "production": [
@@ -59,7 +56,7 @@
   },
   "devDependencies": {
     "@playwright/test": "^1.60.0",
-    "eslint": "^10.5.0",
+    "eslint": "9.39.5",
     "eslint-config-next": "^16.2.9"
   }
 }

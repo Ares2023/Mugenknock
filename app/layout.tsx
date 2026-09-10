@@ -73,7 +73,6 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         {/* AdSense 広告配信: コンテンツページ（AD_CONTENT_PREFIXES）でのみ読み込む。
             演習/模試/図鑑・ログイン・管理・結果/ローディング等の行動・薄い画面では出さない。 */}
         {showAds && (
-          // eslint-disable-next-line @next/next/no-sync-scripts
           <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-7579739275405898" crossOrigin="anonymous" />
         )}
         {/* テーマちらつき防止スクリプト */}

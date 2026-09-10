@@ -1454,7 +1454,7 @@ export default function Home() {
     finally {
       if (!ctrl.signal.aborted) { setStatsLoading(false); setStatsRefreshing(false); }
     }
-  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+  }, []);
 
   const refreshStats = useCallback(() => {
     if (!user || statsLoading || statsRefreshing) return;
@@ -1534,7 +1534,7 @@ export default function Home() {
       })
       // 取得失敗時は同期未完了のまま（追記effectを走らせずサーバー蓄積の上書きを避ける）。
       .catch(() => { setServerScoreHistory(null); setServerSessionHistory(null); setServerSessionScoreLog(null); });
-  }, [user, targetExam]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [user, targetExam]);
 
   // セッション完了イベントで qRefreshTick を更新 → 下の useEffect を再実行
   useEffect(() => {

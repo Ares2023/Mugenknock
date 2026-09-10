@@ -189,7 +189,7 @@ export default function ExamSession() {
         body: JSON.stringify({ userId, sessionType: isMini ? 'mini' : 'exam', draft: { currentIndex: ci, answers: a, timeLeft: timeLeftRef.current } }),
       }).catch(() => {});
     }
-  }, [sessionId, examType, questions, userId, isMini]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [sessionId, examType, questions, userId, isMini]);
   useEffect(() => {
     if (!sessionId) return;
     window.addEventListener('beforeunload', saveExamDraftNow);
