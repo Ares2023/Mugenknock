@@ -1,46 +1,78 @@
-# Getting Started with Create React App
+# 無限ノック（mugenknock）
 
-This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
+AWS 認定資格の演習問題を無限に解ける Web アプリケーション。
+問題は AI が夜間バッチで自動生成し、別の AI 検証ゲートを通過したものだけが出題される。
 
-## Available Scripts
+- 本番: https://mugenknock.com
+- 対応資格: 16カード（AWS認定12種 + 前提知識を補う独自カード4種）
+- 問題数: 約 4,900 件
 
-In the project directory, you can run:
+## ドキュメント
 
-### `npm start`
+**実装に着手する前に読むこと。**
 
-Runs the app in the development mode.\
-Open [http://localhost:3000](http://localhost:3000) to view it in the browser.
+| | |
+|---|---|
+| [`CLAUDE.md`](CLAUDE.md) | 開発時に守るルール（デプロイ手順・デザイン規約・確定方針） |
+| [`docs/`](docs/README.md) | 現状の実装仕様（アーキテクチャ・API・データモデル・画面・運用） |
+| [`specs/`](specs/README.md) | これから作るものの仕様（機能単位） |
+| [`docs/website-manifest.txt`](docs/website-manifest.txt) | 制作意図・哲学（判断に迷ったときの最上位基準） |
 
-The page will reload if you make edits.\
-You will also see any lint errors in the console.
+## セットアップ
 
-### `npm test`
+```bash
+npm install
+```
 
-Launches the test runner in the interactive watch mode.\
-See the section about [running tests](https://facebook.github.io/create-react-app/docs/running-tests) for more information.
+`.env.local` を作成する（gitignore 済み）:
 
-### `npm run build`
+```
+NEXT_PUBLIC_API_ENDPOINT=https://a0q3656qw4.execute-api.ap-northeast-1.amazonaws.com/dev
+```
 
-Builds the app for production to the `build` folder.\
-It correctly bundles React in production mode and optimizes the build for the best performance.
+```bash
+npm run dev     # http://localhost:3000
+```
 
-The build is minified and the filenames include the hashes.\
-Your app is ready to be deployed!
+## よく使うコマンド
 
-See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
+| コマンド | 内容 |
+|---|---|
+| `npm run dev` | 開発サーバー |
+| `npm run build` | 静的エクスポート（出力先 `out/`） |
+| `npm run e2e` | 検証環境に対するカナリアテスト |
+| `npm run e2e:local` | ローカル開発サーバーに対する E2E |
+| `npm run e2e:report` | Playwright の HTML レポート表示 |
+| `./scripts/deploy-lambda.sh dev` | Lambda を検証環境へデプロイ |
+| `./prompts/night-prompts/scripts/cf-deploy-status.sh wait` | Cloudflare Pages のビルド完了を待つ |
+| `ct` | 夜間バッチのスケジュール管理（ローカル運用） |
 
-### `npm run eject`
+> `npm test` は未設定（ユニットテストは未導入。[`docs/08-refactor-plan.md`](docs/08-refactor-plan.md) の A-3 参照）。
 
-**Note: this is a one-way operation. Once you `eject`, you can’t go back!**
+## デプロイ
 
-If you aren’t satisfied with the build tool and configuration choices, you can `eject` at any time. This command will remove the single build dependency from your project.
+作業ブランチは常に `develop`。push すると Cloudflare Pages が検証環境を自動ビルドする。
 
-Instead, it will copy all the configuration files and the transitive dependencies (webpack, Babel, ESLint, etc) right into your project so you have full control over them. All of the commands except `eject` will still work, but they will point to the copied scripts so you can tweak them. At this point you’re on your own.
+```bash
+git push github develop
+./prompts/night-prompts/scripts/cf-deploy-status.sh wait
+```
 
-You don’t have to ever use `eject`. The curated feature set is suitable for small and middle deployments, and you shouldn’t feel obligated to use this feature. However we understand that this tool wouldn’t be useful if you couldn’t customize it when you are ready for it.
+**`lambda/` を変更した場合は `deploy-lambda.sh` で別途デプロイが必要。**
+`git push` では Lambda は一切更新されない。
 
-## Learn More
+本番リリース（`master` へのマージ）は**ユーザーの明示的な指示があるときのみ**行う。
+詳細は [`CLAUDE.md`](CLAUDE.md) の「ブランチ・デプロイルール」。
 
-You can learn more in the [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started).
+## 技術スタック
 
-To learn React, check out the [React documentation](https://reactjs.org/).
+| レイヤー | 技術 |
+|---|---|
+| フロントエンド | Next.js 15 + React 19 + TypeScript（Static Export） |
+| ホスティング | Cloudflare Pages |
+| バックエンド | API Gateway + Lambda (Node.js / express) |
+| DB | DynamoDB |
+| 認証 | AWS Amplify Gen2（Cognito） |
+| E2E | Playwright |
+
+構成の詳細は [`docs/02-architecture.md`](docs/02-architecture.md)。
