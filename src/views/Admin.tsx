@@ -591,6 +591,7 @@ export default function Admin() {
   const [importError, setImportError] = useState('');
   const [importing, setImporting] = useState(false);
   const [importResult, setImportResult] = useState<{ count: number; ids: string[] } | null>(null);
+  const [importMismatchTypes, setImportMismatchTypes] = useState<string[]>([]);
   const [promptTopic, setPromptTopic] = useState('');
   const [promptCount, setPromptCount] = useState('5');
   const [promptCopied, setPromptCopied] = useState(false);
@@ -2217,6 +2218,7 @@ export default function Admin() {
           setImportError('');
           setImportParsed(null);
           setImportResult(null);
+          setImportMismatchTypes([]);
           try {
             const parsed = JSON.parse(importJson);
             if (!Array.isArray(parsed)) throw new Error('配列形式にしてください');
@@ -2231,6 +2233,12 @@ export default function Admin() {
               if (!hasIndices && !hasAnswers) throw new Error('correctAnswerIndices または correctAnswers が必要です');
             }
             setImportParsed(parsed);
+            const mismatched = [...new Set(
+              parsed
+                .filter((q: ImportQuestion) => q.examType && q.examType !== importExamType)
+                .map((q: ImportQuestion) => q.examType as string)
+            )];
+            setImportMismatchTypes(mismatched);
           } catch (e: any) {
             setImportError(e.message || 'JSONの形式が正しくありません');
           }
@@ -2245,6 +2253,7 @@ export default function Admin() {
             setImportParsed(null);
             setImportResult(null);
             setImportError('');
+            setImportMismatchTypes([]);
           };
           reader.readAsText(file);
           e.target.value = '';
@@ -2404,7 +2413,7 @@ ${!nonAws && EXAM_SUPPLEMENTARY_RULES[importExamType] ? `${EXAM_SUPPLEMENTARY_RU
                 <div style={{ fontSize: 12, color: 'var(--color-text-light)' }}>JSONを貼り付けまたはファイルをアップロード</div>
                 <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
                   {importJson && (
-                    <button onClick={() => { setImportJson(''); setImportParsed(null); setImportResult(null); setImportError(''); }}
+                    <button onClick={() => { setImportJson(''); setImportParsed(null); setImportResult(null); setImportError(''); setImportMismatchTypes([]); }}
                       style={{ padding: '5px 12px', background: 'transparent', border: '1px solid #d1d5db', borderRadius: 9999, cursor: 'pointer', fontSize: 12, fontWeight: 700, color: 'var(--color-text-sub)' }}>
                       クリア
                     </button>
@@ -2415,7 +2424,7 @@ ${!nonAws && EXAM_SUPPLEMENTARY_RULES[importExamType] ? `${EXAM_SUPPLEMENTARY_RU
                   </label>
                 </div>
               </div>
-              <textarea value={importJson} onChange={e => { setImportJson(e.target.value); setImportParsed(null); setImportResult(null); setImportError(''); }}
+              <textarea value={importJson} onChange={e => { setImportJson(e.target.value); setImportParsed(null); setImportResult(null); setImportError(''); setImportMismatchTypes([]); }}
                 placeholder={EXAMPLE}
                 rows={12}
                 style={{ width: '100%', padding: '10px', border: '1px solid #d1d5db', borderRadius: 6,
@@ -2439,8 +2448,14 @@ ${!nonAws && EXAM_SUPPLEMENTARY_RULES[importExamType] ? `${EXAM_SUPPLEMENTARY_RU
             </div>
 
             {importParsed && !importResult && (
-              <div style={{ marginBottom: 16, padding: '10px 14px', background: 'var(--color-primary-light)', border: '1px solid #aab7b8', borderRadius: 6, fontSize: 13, color: 'var(--color-primary)' }}>
+              <div style={{ marginBottom: importMismatchTypes.length > 0 ? 8 : 16, padding: '10px 14px', background: 'var(--color-primary-light)', border: '1px solid #aab7b8', borderRadius: 6, fontSize: 13, color: 'var(--color-primary)' }}>
                 ✓ {importParsed.length}件の問題を認識しました。「{importExamType}」としてインポートします。
+              </div>
+            )}
+            {importMismatchTypes.length > 0 && !importResult && (
+              <div style={{ marginBottom: 16, padding: '10px 14px', background: '#fff8e1', border: '1.5px solid #f9a825', borderRadius: 6, fontSize: 13, color: '#7c4d00' }}>
+                ⚠️ JSON内に選択中の試験種別（<strong>{importExamType}</strong>）と異なる examType が含まれています：<strong>{importMismatchTypes.join(', ')}</strong>。
+                該当問題はドロップダウンではなく <strong>JSON内の examType のままインポート</strong>されます。意図的でない場合はドロップダウンを正しい試験種別に切り替えてください。
               </div>
             )}
             {importError && (
