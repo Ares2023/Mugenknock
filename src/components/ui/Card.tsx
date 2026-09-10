@@ -1,6 +1,8 @@
 import React from 'react';
 
-interface CardProps extends React.HTMLAttributes<HTMLDivElement> {
+// title は見出しとして ReactNode を受ける（div の title 属性=ツールチップ文字列とは別物）。
+// そのため HTMLAttributes 側の title を Omit してから独自定義で上書きする。
+interface CardProps extends Omit<React.HTMLAttributes<HTMLDivElement>, 'title'> {
   children: React.ReactNode;
   title?: React.ReactNode;
   footer?: React.ReactNode;

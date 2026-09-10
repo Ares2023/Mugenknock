@@ -14,7 +14,7 @@ import { useAuth, hadPriorSession } from '../contexts/AuthContext';
 import { useLanguage } from '../contexts/LanguageContext';
 import {
   API_ENDPOINT, EXAM_TYPES, EXAM_CONFIGS, EXAM_DOMAINS,
-  DOMAIN_WEIGHTS, DOMAIN_NAME_EN, PASS_SCORES, qDomainName,
+  DOMAIN_WEIGHTS, PASS_SCORES, qDomainName,
   EXAM_LEVEL, EXAM_LEVEL_COLORS,
   tagIdMatches, domainsToIndices, storedDomainsToNames, isNonAwsExam,
 } from '../constants';
@@ -333,7 +333,7 @@ function CombinedDetailModal({ targetExam, domainAccList, estimatedScore, passSc
                   {([5, 10] as const).map(w => {
                     const active = nodeWindow === w;
                     return (
-                      <button key={w} onClick={() => { onNodeWindowChange(w); setNodesVisible(false); requestAnimationFrame(() => requestAnimationFrame(() => setNodesVisible(true))); }}
+                      <button key={w} onClick={() => onNodeWindowChange(w)}
                         style={{ border: 'none', borderLeft: w === 5 ? 'none' : '1px solid var(--color-border)', background: active ? 'var(--color-primary)' : 'transparent', color: active ? 'var(--color-btn-primary-text, #fff)' : 'var(--color-text-sub)', fontSize: 'var(--font-size-xs)', fontWeight: 700, padding: '3px 10px', cursor: 'pointer', transition: 'background 0.15s' }}>
                         {ja ? `直近${w}回` : `Last ${w}`}
                       </button>
@@ -343,7 +343,7 @@ function CombinedDetailModal({ targetExam, domainAccList, estimatedScore, passSc
               </div>
               {domains.map((d, i) => {
                 const fullMaxPts = Math.round(weights[i] / totalAllWeights * 1000);
-                const label = lang === 'en' ? (DOMAIN_NAME_EN[d] ?? d) : d;
+                const label = d;
                 const serverResults = domainStats.find(s => tagIdMatches(s.tagId, targetExam, i))?.recentResults;
                 const nodeResults = (serverResults ?? localDomainResults[String(i)] ?? []).slice(-nodeWindow);
                 const paddedNodes: (boolean | null)[] = [...Array(nodeWindow - nodeResults.length).fill(null), ...nodeResults];
@@ -610,7 +610,7 @@ function DomainDetailModal({ targetExam, domainAccList, lang, onClose }: {
         </div>
         {domains.map((d, i) => {
           const { correct, total, pct } = domainAccList[i] ?? { correct: 0, total: 0, pct: null };
-          const label = lang === 'en' ? (DOMAIN_NAME_EN[d] ?? d) : d;
+          const label = d;
           return (
             <div key={d} style={{ marginBottom: 16, paddingBottom: 16, borderBottom: i < domains.length - 1 ? '1px solid var(--color-border)' : 'none' }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 8 }}>
@@ -2180,7 +2180,7 @@ export default function Home() {
                   const correctInNodes = nodeResults.filter(v => !!v).length;
                   const barPct = nodeResults.length > 0 ? correctInNodes / nodeWindow * 100 : null;
                   const grade = getGrade(barPct);
-                  const label = lang === 'en' ? (DOMAIN_NAME_EN[d] ?? d) : d;
+                  const label = d;
                   return (
                     <div key={d}>
                       <div style={{ display: 'flex', alignItems: 'center', gap: 5, marginBottom: 3 }}>

@@ -3,7 +3,7 @@ import React, { useEffect, useState, useCallback, useMemo, useRef } from 'react'
 import { createPortal } from 'react-dom';
 import { Helmet } from '@/compat/react-helmet-async';
 import { useNavigate } from '@/compat/react-router-dom';
-import { API_ENDPOINT, EXAM_DOMAINS, EXAM_DOMAIN_SERVICES, EXAM_TYPES, DOMAIN_NAME_EN, EXAM_CONFIGS, DOMAIN_RATE_WARNING, DOMAIN_RATE_CAUTION, PASS_SCORES, EXAM_LEVEL, EXAM_LEVEL_COLORS, tagIdMatches, toDomainIndex, isNonAwsExam } from '../constants';
+import { API_ENDPOINT, EXAM_DOMAINS, EXAM_DOMAIN_SERVICES, EXAM_TYPES, EXAM_CONFIGS, DOMAIN_RATE_WARNING, DOMAIN_RATE_CAUTION, PASS_SCORES, EXAM_LEVEL, EXAM_LEVEL_COLORS, tagIdMatches, toDomainIndex, isNonAwsExam } from '../constants';
 import { syncPreferencesToServer, syncTargetExamToServer, collectExamDatesFromLocal } from '../utils/preferences';
 import { lockBodyScroll } from '../utils/bodyScrollLock';
 import { useAuth } from '../contexts/AuthContext';
@@ -1113,7 +1113,7 @@ export default function MyPage() {
                         const isWeak = pct !== null && pct < DOMAIN_RATE_WARNING * 100;
                         const isFair = pct !== null && pct < DOMAIN_RATE_CAUTION * 100 && !isWeak;
                         const color = pct === null ? 'var(--color-text-light)' : isWeak ? 'var(--color-danger)' : isFair ? 'var(--color-caution)' : 'var(--color-success)';
-                        const domainLabel = lang === 'en' ? (DOMAIN_NAME_EN[domain] ?? domain) : domain;
+                        const domainLabel = domain;
                         const services = EXAM_DOMAIN_SERVICES[targetExam ?? '']?.[dIdx] ?? [];
                         const notLast = di < domains.length - 1;
                         return (

@@ -56,7 +56,7 @@ items.filter(q => !q.isHidden && !!q.validityCheckedAt)
 | `choiceExplanations` | L(S) | 選択肢ごとの解説。**存在するなら `choices` と同数** |
 | `explanation` | S | 全体解説 |
 | `isMultiple` | BOOL | 複数選択問題か（未指定なら `indices.length > 1`） |
-| `questionTextEn` / `choicesEn` / `explanationEn` | S/L | 英語版（任意） |
+| `questionTextEn` / `choicesEn` / `explanationEn` | S/L | 英語版（任意）。**英語対応は廃止済みのため現在は表示されない**。データは残存 |
 | `createdAt` / `updatedAt` | S | ISO8601 |
 | `globalAttempts` / `globalCorrect` | N | 全ユーザー累計の試行/正解数（ゲスト含む）。正解・選択肢を編集すると**リセットされる** |
 

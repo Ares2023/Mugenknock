@@ -1230,7 +1230,9 @@ export default function ExerciseSession() {
                         flexShrink: 0,
                         background: isAnswered || isCurrent ? 'var(--color-primary)' : 'transparent',
                         border: `2px solid ${isAnswered || isCurrent ? 'var(--color-primary)' : 'var(--color-text-light)'}`,
-                        opacity: notYetLoaded ? 0.3 : undefined,
+                        // 未ロード(プログレッシブロード待ち)を最優先で薄く、次に回答済みを少し薄く。
+                        // 以前は opacity を2回書いており後者が前者を打ち消していたため、未ロードの淡色が効いていなかった。
+                        opacity: notYetLoaded ? 0.3 : isAnswered && !isCurrent && !isHovered ? 0.75 : 1,
                         boxShadow: isNodeCursor
                           ? '0 0 0 3px var(--color-accent)'
                           : isCurrent
@@ -1240,7 +1242,6 @@ export default function ExerciseSession() {
                           : 'none',
                         cursor: isClickable ? 'pointer' : 'default',
                         transition: 'all 0.15s',
-                        opacity: isAnswered && !isCurrent && !isHovered ? 0.75 : 1,
                       }}
                     />
                     {visIdx < visibleIndices.length - 1 && (

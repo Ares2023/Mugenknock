@@ -6,7 +6,7 @@
 問題は AI（Claude）が夜間バッチで自動生成し、別の AI 検証ゲートを通過したものだけが出題される。
 
 - 提供形態: Webのみ（Next.js 静的エクスポート / Cloudflare Pages）
-- 対応言語: 日本語・英語（i18n あり。実データは日本語が主）
+- 対応言語: **日本語のみ**（英語対応は廃止済み。`src/contexts/LanguageContext.tsx` の `type Lang = 'ja'` が固定）
 - 収益: Google AdSense（`src/components/ui/AdPlaceholder.tsx`）
 - 登録数: 問題 約 4,900 件（`Questions` テーブル・2026-09 時点）
 
