@@ -597,6 +597,39 @@ const CHEAT_DATA: CheatData = {
     },
   ],
 
+  AIB: [
+    {
+      title: 'AI戦略とビジネス価値',
+      items: [
+        { name: 'ROI・KPI・ベースライン', desc: 'AI投資の価値は、**導入前のベースライン**（基準値）を測り、KPIの変化で示す。\nROI（投資収益率）＝（便益 − コスト）÷ コスト。便益は売上増だけでなく、工数削減・エラー削減・対応時間短縮など運用KPIで測る\nベースライン：施策前の現状値を必ず記録し、導入後との差分で効果を評価する（比較対象がないと価値を主張できない）\n代表KPI例：一次対応解決率・平均処理時間（AHT）・コンバージョン率・離脱率・不良検出率', keyword: 'ROI KPI ベースライン 投資収益率', tags: ['ROI / Return on Investment', 'KPI', 'ベースライン / Baseline'] },
+        { name: 'build-buy-partner判断', desc: 'AI機能を「自作（build）／購入（buy）／協業（partner）」のどれで実現するかを、差別化度合いとコスト・スピードで判断する。\n- build（自作）：競争優位の核になる独自機能。コスト・時間・人材が必要\n- buy（購入）：汎用機能はSaaSやマネージドサービスで即時調達（例 Amazon Q・Bedrock）。**AWS Marketplace** でモデル・SaaSを評価調達\n- partner（協業）：専門ベンダーやコンサルと組んで不足を補う\n判断軸：差別化への寄与・Time to Value（価値創出までの時間）・総所有コスト（TCO）・内製スキルの有無', keyword: 'build buy partner 内製 購入 協業', tags: ['build-buy-partner', 'AWS Marketplace', 'TCO'] },
+        { name: 'AI料金モデルとコスト最適化', desc: 'AIサービスの課金は主に3方式。ワークロード特性に合わせて選ぶとコスト最適化できる。\n- 消費ベース（トークン/リクエスト単位）：Bedrock等の生成AI。試作・変動負荷向き\n- インスタンスベース（時間単位）：SageMaker等の常時稼働・大量推論向き。**Savings Plans** で割引\n- シートベース（ユーザー単位）：Amazon Q Business等のSaaS型\nコスト可視化・見積り：**AWS Pricing Calculator**（事前見積り）・**Cost Explorer**（実績分析）', keyword: '料金モデル 消費 インスタンス シート Savings Plans', tags: ['消費ベース / Consumption', 'Savings Plans', 'Pricing Calculator'] },
+      ],
+    },
+    {
+      title: 'ビジネス視点のAWS AIサービス',
+      items: [
+        { name: 'Amazon Bedrock（ビジネス観点）', desc: 'Amazon Bedrockは、**複数の基盤モデル（FM）を単一APIで**利用できるフルマネージドの生成AI基盤。インフラ運用不要で素早く生成AIを事業に組み込める。\nビジネス価値：Time to Value短縮（サーバ管理不要）・モデル選択の柔軟性（用途別に最適モデル）・従量課金で初期投資を抑制\nガバナンス：Guardrailsで有害出力やPII漏えいを抑止、Knowledge Basesで自社データに基づく回答（RAG）', keyword: 'Amazon Bedrock 基盤モデル 生成AI', tags: ['基盤モデル / Foundation Model', 'Guardrails', 'RAG'] },
+        { name: 'Amazon Q（ビジネス観点）', desc: 'Amazon Qは、業務にすぐ使えるAIアシスタント製品ファミリー。**シートベース**で導入しやすい。\nQ Business：社内ドキュメントに接続し自然言語で検索・回答（ナレッジ活用・問い合わせ削減）\nQ Developer：コード生成・補完で開発生産性を向上\nビジネス価値：現場の生産性向上を「買って」実現できる代表例（build不要のbuy選択肢）', keyword: 'Amazon Q Q Business アシスタント', tags: ['Q Business', 'シートベース', '生産性向上'] },
+        { name: 'SageMaker AI（ビジネス観点）', desc: 'Amazon SageMaker AIは、**独自のML**モデルを構築・学習・運用するためのプラットフォーム。\n使いどころの判断：汎用の生成AIやマネージドAIで足りるなら Bedrock/Q（buy）、自社データで差別化する予測モデルが必要なら SageMaker（build）\nビジネス観点：カスタムMLは効果が大きい反面、データ・人材・運用コストが必要。ユースケースの差別化価値で投資判断する', keyword: 'SageMaker カスタムML 予測モデル', tags: ['カスタムML', 'build判断', '予測モデル'] },
+      ],
+    },
+    {
+      title: 'ガバナンスと責任あるAI',
+      items: [
+        { name: '責任あるAIの原則', desc: '責任あるAIは、事業リスクを抑えつつ信頼を得るための原則群。ビジネス判断でトレードオフを扱う。\n主な原則：公平性（バイアス回避）・透明性/説明可能性（判断根拠を示せる）・プライバシー/セキュリティ・堅牢性・ガバナンス/説明責任\n実務：**Bedrock Guardrails** で有害出力・PIIを制御、**Well-Architected 責任あるAIレンズ** でベストプラクティスを点検\nトレードオフ例：精度 vs 説明可能性、スピード vs 安全性を、事業影響とリスク許容度で判断する', keyword: '責任あるAI 公平性 透明性 説明可能性 バイアス', tags: ['公平性 / Fairness', '説明可能性 / Explainability', '責任あるAIレンズ'] },
+        { name: 'AIリスクと規制コンプライアンス', desc: 'エンタープライズAIのリスクを特定し、緩和策を指示するのがビジネスリーダーの役割。\n代表リスク：ハルシネーション（誤情報）・データ漏えい・著作権/知財・バイアスによる差別・規制違反\n緩和：人間の関与（Human in the Loop）・出力の検証・データ最小化・監査ログ\nコンプライアンス：GDPR等の規制、業界基準、社内ポリシーへの適合。**共有責任モデル**（クラウドの責任分界）を前提にガバナンスを設計', keyword: 'AIリスク ハルシネーション コンプライアンス 共有責任モデル', tags: ['ハルシネーション対策', '共有責任モデル', 'コンプライアンス'] },
+      ],
+    },
+    {
+      title: '組織のAI変革',
+      items: [
+        { name: 'AI成熟度評価とCAF', desc: 'AI導入は、組織の準備状況（人・プロセス・技術・ガバナンス）を評価してから進める。\n**AWS Cloud Adoption Framework（CAF）**：ビジネス・人材・ガバナンス・プラットフォーム・セキュリティ・運用の観点で、AI/クラウド導入の計画とスケールを支援するフレームワーク\n成熟度評価：現状のケイパビリティを可視化し、ギャップを埋めるロードマップを描く\nデータ/インフラ基盤：AI活用にはデータの質・アクセス性・基盤整備が前提条件', keyword: 'CAF Cloud Adoption Framework 成熟度 AI変革', tags: ['CAF', 'AI成熟度', 'データ基盤'] },
+        { name: 'チェンジマネジメントとスケール', desc: 'AIを全社に定着させるには、技術だけでなく人と組織の変革が必要。\nチェンジマネジメント：経営の後押し・現場の巻き込み・AIリテラシー教育・スキル育成で抵抗を減らす\nスケール戦略：小さく**パイロット**で検証 → 効果を測定 → 反復改善しながら全社展開（一気に広げない）\n人材育成：AI-ready な組織へ、役割別のリスキリングと責任あるAI教育を進める', keyword: 'チェンジマネジメント パイロット スケール 人材育成', tags: ['パイロット / Pilot', 'チェンジマネジメント', 'スケール'] },
+      ],
+    },
+  ],
+
   ANS: [
     {
       title: 'VPC詳細',
@@ -971,6 +1004,7 @@ function articleTitle(art: Article): string {
 // ── レベル定義（ExamSelectOverlay と同じ構成） ─────────────────
 const EXAM_LEVELS = [
   { key: 'Practitioner', color: '#6b9e3a', exams: ['CLF', 'AIF'] },
+  { key: 'Business',     color: '#db2777', exams: ['AIB'] },
   { key: 'Associate',    color: '#006CE0', exams: ['SAA', 'DVA', 'SOA', 'DEA', 'MLA'] },
   { key: 'Professional', color: '#8b5cf6', exams: ['SAP', 'DOP', 'AIP'] },
   { key: 'Specialty',    color: '#0ea5e9', exams: ['ANS', 'SCS'] },
@@ -994,6 +1028,7 @@ const EXAM_INTRO: Record<string, { note: string; links: { exam: string; label: s
   AIF: { note: '機械学習の基礎（分類・回帰・評価指標・過学習など）は「ML」カードで先に固められます。', links: [{ exam: 'ML', label: 'ML基礎' }] },
   MLA: { note: '前提となる機械学習の基礎は「ML」カードで先に固められます。', links: [{ exam: 'ML', label: 'ML基礎' }] },
   AIP: { note: '前提となる機械学習の基礎は「ML」カードで先に固められます。', links: [{ exam: 'ML', label: 'ML基礎' }] },
+  AIB: { note: 'ビジネス職向けの認定です。AI/MLの基礎用語は「ML」カードで、AI×AWSの全体像は「AIF」カードで先に把握しておくと戦略・ガバナンスの理解が進みます。', links: [{ exam: 'ML', label: 'ML基礎' }, { exam: 'AIF', label: 'AIF' }] },
   DEA: { note: '前提となる SQL・データベースの基礎は「DB」カードで先に固められます。', links: [{ exam: 'DB', label: 'DB基礎' }] },
   ANS: { note: '前提となるネットワークの基礎（TCP/IP・サブネット・ルーティング等）は「NW」カードで先に固められます。', links: [{ exam: 'NW', label: 'NW基礎' }] },
   SCS: { note: '前提となるセキュリティの基礎（暗号・認証認可・脅威対応など）は「SEC」カードで先に固められます。', links: [{ exam: 'SEC', label: 'SEC基礎' }] },

@@ -159,6 +159,7 @@ PYEOF
     SOA) echo "モニタリング、ロギング、分析、修復、およびパフォーマンスの最適化,信頼性とビジネス継続性,デプロイ、プロビジョニング、および自動化,セキュリティとコンプライアンス,ネットワークとコンテンツ配信" ;;
     DOP) echo "SDLC の自動化,構成管理と Infrastructure as Code (IaC),弾力性に優れたクラウドソリューション,モニタリングとロギング,インシデントとイベントへの対応,セキュリティとコンプライアンス" ;;
     AIF) echo "AIとMLの基礎,生成AIの基礎,基盤モデルのアプリケーション,責任あるAIのガイドライン,AIソリューションのセキュリティ、コンプライアンス、ガバナンス" ;;
+    AIB) echo "AIの基礎とリテラシー,AI戦略とビジネス価値創出,AIガバナンスと責任あるAIリーダーシップ,ビジネス準備・リーダーシップ・AI変革" ;;
     MLA) echo "機械学習のためのデータ準備,MLモデルの開発,MLワークフローのデプロイとオーケストレーション,MLソリューションの監視、メンテナンス、セキュリティ" ;;
     AIP) echo "基盤モデルの統合、データ管理、コンプライアンス,実装と統合,AIの安全性、セキュリティ、ガバナンス,生成AIアプリケーションの運用効率と最適化,テスト、検証、トラブルシューティング" ;;
     DEA) echo "データの取り込みと変換,データストアの管理,データオペレーションとサポート,データのセキュリティとガバナンス" ;;
@@ -185,7 +186,7 @@ mapfile -t EXAM_TYPES < <(
     | xargs -I{} basename {} .txt \
     | python3 -c "
 import sys
-ORDER = ['CLF', 'SAA', 'SAP', 'DVA', 'SOA', 'DEA', 'DOP', 'AIF', 'MLA', 'AIP', 'ANS', 'SCS', 'ML', 'DB', 'NW', 'SEC']
+ORDER = ['CLF', 'SAA', 'SAP', 'DVA', 'SOA', 'DEA', 'DOP', 'AIF', 'AIB', 'MLA', 'AIP', 'ANS', 'SCS', 'ML', 'DB', 'NW', 'SEC']
 items = [l.strip() for l in sys.stdin if l.strip() and not l.strip().startswith('_')]
 known   = [x for x in ORDER if x in items]
 unknown = sorted(x for x in items if x not in ORDER)

@@ -647,16 +647,18 @@ function DomainDetailModal({ targetExam, domainAccList, lang, onClose }: {
 // ── オンボーディング ────────────────────────────────────────────
 const OB_LEVEL: Record<string, string> = {
   CLF: 'Foundational', AIF: 'Foundational',
+  AIB: 'Business',
   SAA: 'Associate', DVA: 'Associate', SOA: 'Associate', DEA: 'Associate', MLA: 'Associate',
   SAP: 'Professional', DOP: 'Professional', AIP: 'Professional',
   ANS: 'Specialty', SCS: 'Specialty',
   ML: 'Additional', DB: 'Additional', NW: 'Additional', SEC: 'Additional',
 };
 const OB_LEVEL_COLOR: Record<string, string> = {
-  Foundational: '#6b9e3a', Associate: '#006CE0', Professional: '#8b5cf6', Specialty: '#e67e22', Additional: '#14b8a6',
+  Foundational: '#6b9e3a', Business: '#db2777', Associate: '#006CE0', Professional: '#8b5cf6', Specialty: '#e67e22', Additional: '#14b8a6',
 };
 const OB_SHORT: Record<string, string> = {
   CLF: 'Cloud Practitioner', AIF: 'AI Practitioner',
+  AIB: 'AI Business Strategist',
   SAA: 'Solutions Architect', DVA: 'Developer',
   SOA: 'CloudOps Engineer', DEA: 'Data Engineer', MLA: 'ML Engineer',
   SAP: 'Solutions Architect Pro', DOP: 'DevOps Engineer', AIP: 'Generative AI Dev',
@@ -679,7 +681,7 @@ function OnboardingModal({ lang, uid, onComplete }: {
     onComplete(exam);
   };
 
-  const levels = ['Foundational', 'Associate', 'Professional', 'Specialty', 'Additional'] as const;
+  const levels = ['Foundational', 'Business', 'Associate', 'Professional', 'Specialty', 'Additional'] as const;
   const grouped = levels.map(lv => ({
     lv,
     exams: EXAM_TYPES.filter(e => OB_LEVEL[e] === lv),

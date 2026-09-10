@@ -1717,7 +1717,7 @@ export default function Admin() {
                   </button>
                 );
               };
-              const levels = ['Foundational', 'Associate', 'Professional', 'Specialty', 'Additional'] as const;
+              const levels = ['Foundational', 'Business', 'Associate', 'Professional', 'Specialty', 'Additional'] as const;
               const byLevel: Record<string, string[]> = {};
               for (const t of EXAM_TYPES) {
                 const lv = EXAM_LEVEL[t] ?? 'Other';
@@ -2530,7 +2530,7 @@ ${tipPromptExamType !== 'ALL' ? `・examType には "${tipPromptExamType}" を�
                   <div>
                     <div style={{ fontSize: 12, color: 'var(--color-text-sub)', fontWeight: 700, marginBottom: 6 }}>対象試験</div>
                     <div style={{ display: 'flex', gap: 6, alignItems: 'center', flexWrap: 'wrap' }}>
-                      {['ALL', 'CLF', 'SAA', 'SAP', 'DOP', 'AIF', 'MLA', 'AIP'].map(t => (
+                      {['ALL', 'CLF', 'SAA', 'SAP', 'DOP', 'AIF', 'AIB', 'MLA', 'AIP'].map(t => (
                         <React.Fragment key={t}>
                           <button type="button" onClick={() => setTipPromptExamType(t)}
                             style={{ padding: '4px 12px', border: tipPromptExamType === t ? '2px solid' : '1.5px solid', borderRadius: 6, cursor: 'pointer', fontSize: 13,
@@ -2822,7 +2822,7 @@ ${tipPromptExamType !== 'ALL' ? `・examType には "${tipPromptExamType}" を�
                 <div>
                   <div style={{ fontSize: 12, color: 'var(--color-text-sub)', fontWeight: 700, marginBottom: 6 }}>対象試験</div>
                   <div style={{ display: 'flex', gap: 6, alignItems: 'center', flexWrap: 'wrap' }}>
-                    {['ALL', 'CLF', 'SAA', 'SAP', 'DOP', 'AIF', 'MLA', 'AIP'].map(t => (
+                    {['ALL', 'CLF', 'SAA', 'SAP', 'DOP', 'AIF', 'AIB', 'MLA', 'AIP'].map(t => (
                       <React.Fragment key={t}>
                         <button type="button" onClick={() => setCiExamType(t)}
                           style={{ padding: '4px 12px', border: ciExamType === t ? '2px solid' : '1.5px solid', borderRadius: 6, cursor: 'pointer', fontSize: 13,

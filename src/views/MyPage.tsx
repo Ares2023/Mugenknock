@@ -1269,6 +1269,7 @@ export default function MyPage() {
                       </div>
                       {[
                         { color: '#6b9e3a', exams: ['CLF', 'AIF'] },
+                        { color: '#db2777', exams: ['AIB'] },
                         { color: '#006CE0', exams: ['SAA', 'DVA', 'SOA', 'DEA', 'MLA'] },
                         { color: '#8b5cf6', exams: ['SAP', 'DOP', 'AIP'] },
                         { color: '#0ea5e9', exams: ['ANS', 'SCS'] },
@@ -1290,6 +1291,7 @@ export default function MyPage() {
                   const HEX = 'polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%)';
                   const CERT_LEVELS = [
                     { key: 'Foundational', label: 'Foundational', color: '#6b9e3a', exams: ['CLF', 'AIF'] },
+                    { key: 'Business',     label: 'Business',     color: '#db2777', exams: ['AIB'] },
                     { key: 'Associate',    label: 'Associate',    color: '#006CE0', exams: ['SAA', 'DVA', 'SOA', 'DEA', 'MLA'] },
                     { key: 'Professional', label: 'Professional', color: '#8b5cf6', exams: ['SAP', 'DOP', 'AIP'] },
                     { key: 'Specialty',    label: 'Specialty',    color: '#0ea5e9', exams: ['ANS', 'SCS'] },

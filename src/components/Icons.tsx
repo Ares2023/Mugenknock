@@ -630,6 +630,7 @@ export const IconInfinity    = ({ size = 16 }: { size?: number }) => (<svg width
 export const EXAM_ICON_COMPONENTS: Record<string, React.FC<{ size?: number }>> = {
   CLF: IconSprout,
   AIF: IconBot,
+  AIB: IconChart,
   SAA: IconBox,
   DVA: IconCode2,
   SOA: IconCloud,

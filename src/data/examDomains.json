@@ -58,6 +58,12 @@
     { "ja": "生成AIアプリケーションの運用効率と最適化", "en": "Operational Efficiency and Optimization for GenAI Applications", "weight": 12, "services": ["プロンプト最適化", "モデル選定", "推論キャッシュ", "CloudWatch", "コスト最適化"] },
     { "ja": "テスト、検証、トラブルシューティング", "en": "Testing, Validation, and Troubleshooting", "weight": 11, "services": ["モデル評価", "ハルシネーション対策", "A/Bテスト", "CloudWatch", "X-Ray"] }
   ],
+  "AIB": [
+    { "ja": "AIの基礎とリテラシー", "en": "AI Fundamentals and Literacy", "weight": 24, "services": ["生成AI/従来型MLの違い", "ユースケース分類(推薦/NLP/画像認識/文書抽出)", "プロンプトエンジニアリング(ビジネス活用)", "Amazon Bedrock", "Amazon Q", "SageMaker AI(概要)"] },
+    { "ja": "AI戦略とビジネス価値創出", "en": "AI Strategy and Business Value Creation", "weight": 28, "services": ["ROI/KPI/ベースライン指標", "ビジネスケース策定", "build-buy-partner判断", "AWS Marketplace", "料金モデル(消費/インスタンス/シート)", "Pricing Calculator/Cost Explorer/Savings Plans"] },
+    { "ja": "AIガバナンスと責任あるAIリーダーシップ", "en": "AI Governance and Responsible AI Leadership", "weight": 24, "services": ["責任あるAIの原則(公平性/透明性/説明可能性)", "AIリスクと緩和策", "規制コンプライアンス", "Well-Architected(責任あるAIレンズ)", "共有責任モデル", "Bedrock Guardrails(ガバナンス観点)"] },
+    { "ja": "ビジネス準備・リーダーシップ・AI変革", "en": "Business Readiness, Leadership, and AI Transformation", "weight": 24, "services": ["組織のAI成熟度評価", "AWS Cloud Adoption Framework(CAF)", "チェンジマネジメント", "人材/スキル育成", "データ/インフラ基盤の評価", "パイロットから全社展開へのスケール"] }
+  ],
   "DEA": [
     { "ja": "データの取り込みと変換", "en": "Data Ingestion and Transformation", "weight": 34, "services": ["Glue", "Kinesis(Data Streams/Firehose)", "MSK", "Lambda", "EMR", "Step Functions"] },
     { "ja": "データストアの管理", "en": "Data Store Management", "weight": 26, "services": ["S3", "Redshift", "DynamoDB", "RDS/Aurora", "Lake Formation", "Glue Data Catalog"] },
