@@ -108,6 +108,14 @@ export const IconChart = ({ size = 16 }: { size?: number }) => (
   </svg>
 );
 
+export const IconGhost = ({ size = 16 }: { size?: number }) => (
+  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M15 10v1"/>
+    <path d="M7.528 20.472a1.6 1.6 0 012.277 0l1.057 1.056a1.6 1.6 0 002.276 0l1.057-1.056a1.6 1.6 0 012.277 0l1.114 1.114a1.4 1.4 0 002.414-1V10a8 8 0 00-16 0v10.586a1.4 1.4 0 002.414 1z"/>
+    <path d="M9 10v1"/>
+  </svg>
+);
+
 export const IconCopy = ({ size = 16 }: { size?: number }) => (
   <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
     <rect width="14" height="14" x="8" y="8" rx="2" ry="2"/>
@@ -630,7 +638,7 @@ export const IconInfinity    = ({ size = 16 }: { size?: number }) => (<svg width
 export const EXAM_ICON_COMPONENTS: Record<string, React.FC<{ size?: number }>> = {
   CLF: IconSprout,
   AIF: IconBot,
-  AIB: IconChart,
+  AIB: IconGhost,
   SAA: IconBox,
   DVA: IconCode2,
   SOA: IconCloud,
