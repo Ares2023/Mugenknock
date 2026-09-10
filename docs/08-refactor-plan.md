@@ -7,11 +7,12 @@
 
 ---
 
-## 優先度S — 未修正の実バグ
+## 優先度S — 実バグ
 
-### Bug-1. `ExerciseSession.tsx` でフックが条件付きに呼ばれている
+### Bug-1. 演習中のリロードで画面が落ちる（フック順序）→ **修正済み（2026-09-10）**
 
-ESLint 復活（A-2）で検出。`react-hooks/rules-of-hooks` の error 5件。
+ESLint 復活（A-2）で検出した `react-hooks/rules-of-hooks` の error 5件。
+**Playwright で再現を確認したうえで修正した。**
 
 ```
 src/views/ExerciseSession.tsx:712   if (!initialized) return null;
@@ -31,26 +32,55 @@ React はレンダー間でフック数が変わると例外を投げる
 （"Rendered more/fewer hooks than during the previous render"）。
 早期リターンを通るレンダーと通らないレンダーが同一インスタンスで連続すると落ちる。
 
-**想定される再現条件**（いずれも未検証。修正前に再現を取ること）:
+### 確定した再現手順: **演習中に2回リロードする**
 
-| 経路 | 起きること |
-|---|---|
-| 演習中にリロード／URL直接オープン | `initialized` は `useState(!!state)` なので初回 `false` → 5フックを飛ばす → mount effect が下書きを復元して `setInitialized(true)` → 2回目のレンダーでフックが5つ増える → **more hooks で例外**<br>※下書きが無い場合はホームへ `navigate` して `initialized` が false のままなので落ちない |
-| プログレッシブロードで未ロードの問題へ進む | 通常フローは全フックが走っている状態 → `questions[currentIndex]` が未定義になるとスピナーで早期リターン → フックが5つ減る → **fewer hooks で例外** |
+当初は「1回リロードすれば落ちる」と推測したが、**実際には2回必要**だった。
+理由は compat 層（`src/compat/react-router-dom.tsx`）の `location.state` の扱いにある。
 
-**修正方針**（どちらか）:
+```
+navigate('/aws/exercise/session', { state })
+  → _cachedNavState に保持し、sessionStorage.__nav_state__ にも書く
+  → 初回描画の readNavState() は _navStateLoaded=true なのでキャッシュを返し、
+    sessionStorage には手を付けない（＝残る）
 
-1. 後続5フックを早期リターンより前へ移す。`keyHandlerRef` は `useRef` の宣言だけを上げ、
-   `keyHandlerRef.current = ...` の代入は現在位置に残せる（代入はフックではない）。
-   **描画ロジックに触れないぶんリスクが低い。**
-2. 早期リターンを全フックの後（1159行の JSX return の直前）へ下げる。
-   ただし 712〜1159 の間に `currentQuestion` を前提とする式があると
-   未ロード時に例外になるため、全経路の確認が要る。
+リロード1回目: モジュールが再読込 → sessionStorage から state を復元（ここで消す）
+              → initialized = !!state = true → 早期リターンされない → 落ちない
+リロード2回目: sessionStorage が空 → state = null → initialized = false
+              → 早期リターンでフック5つを飛ばす
+              → mount effect がドラフトを復元し setInitialized(true)
+              → 2回目のレンダーでフックが5つ増える
+              → Rendered more hooks than during the previous render.
+              → 画面が Application error になり、進行中の演習を失う
+```
 
-**着手前にやること**: 実際に再現させる（演習を中断→リロード）。
-「直したつもり」で終わらせないため、修正後も同じ手順で確認する。
+もう一方の経路（プログレッシブロードで未ロードの問題へ進むと
+`questions[currentIndex]` が undefined になり *fewer hooks* で落ちる）は
+個別には再現させていないが、フックを無条件化したことで構造的に解消している。
 
-**コスト**: 小〜中 / **効果**: 大（中断→再開は中核フロー）
+### 修正内容
+
+後続していた5つのフックを早期リターンより前へ移動した（当初案の1）。
+依存する値（`isMobile` / `currentIndex` / `cursorIndex` / `shuffledChoices` 等）は
+すべて移動先より前で宣言済みだったため、**描画ロジックには一切触れていない**。
+`keyHandlerRef` は `useRef` の宣言だけを移し、`toggleAnswer` 等を参照する
+`keyHandlerRef.current = ...` の代入（フックではない）は元の位置に残した。
+
+早期リターンの直前に「ここから下に Hook を追加しないこと」と明記してある。
+
+### 回帰テスト
+
+`e2e/tests/exercise-reload.noauth.spec.ts` を追加した。
+**修正を一時的に戻すとこのテストが落ちることを確認済み**（落ちないテストは無意味なため）。
+
+ゲストのセッション行を1件作るので、夜間カナリア（`canary.noauth.spec.ts` のみを実行）
+には含めていない。手動実行（`npm run e2e:noauth`）を想定。
+
+### 教訓
+
+- 型チェックと ESLint を止めていた期間に入り込んだ不具合であり、
+  **A-1 / A-2 を戻さなければ発見できなかった**
+- 「全 Hook 呼び出し完了後」というコメントが実態とズレていた。
+  コメントは検証されないので、**機械が検査できる形（lint ルール）に落とす**方が強い
 
 ---
 
@@ -502,10 +532,10 @@ compat 層の `useLocation().state` は `sessionStorage.__nav_state__` を**1回
        B-2  調査漏れによる誤指摘。訂正済み           2026-09-10
        A-1  TypeScript 5 化・型チェック復活          2026-09-10
        A-2  ESLint 復活（フラットコンフィグ）        2026-09-10
+       Bug-1 演習中リロードのクラッシュ修正         2026-09-10
+             ← A-1/A-2 が見つけた実バグ。再現→修正→回帰テストまで完了
 
-次     Bug-1 ExerciseSession の条件付きフック
-         ← A-1/A-2 が見つけた実バグ。再現を取ってから直す
-       A-3  純粋関数のユニットテスト6本
+次     A-3  純粋関数のユニットテスト6本
        C-1  optionalUser ミドルウェア
 以降   D-1〜D-3（巨大ファイル分割・テストが揃ってから）
        B-1 / B-3 / F-3 / F-4 / E-1
@@ -522,6 +552,7 @@ compat 層の `useLocation().state` は `sessionStorage.__nav_state__` を**1回
 | ESLint | ✅ 有効（手動実行） | `npm run lint` |
 | ユニットテスト | ❌ 未導入 | — |
 | E2E（カナリア） | ✅ 毎日23:50に自動実行 | `npm run e2e` |
+| E2E（回帰・手動） | ⚠️ 1本のみ（Bug-1） | `npm run e2e:noauth` |
 | CI | ❌ 無し（すべて手動 or ローカル systemd） | — |
 
 ## 調査の信頼性について

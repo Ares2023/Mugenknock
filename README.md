@@ -50,7 +50,8 @@ npm run dev     # http://localhost:3000
 | `ct` | 夜間バッチのスケジュール管理（ローカル運用） |
 
 > `npm test` は未設定（ユニットテストは未導入。[`docs/08-refactor-plan.md`](docs/08-refactor-plan.md) の A-3 参照）。
-> `npm run lint` は現在 error 5件で失敗する。実バグのため（同 Bug-1）。
+> `npm run lint` は error 0 / warning 150。warning は主に React Compiler 世代のルールで、
+> 段階的に潰す方針（同 A-2）。**error は0を維持すること。**
 
 ## デプロイ
 
