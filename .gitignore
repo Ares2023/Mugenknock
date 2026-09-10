@@ -32,8 +32,28 @@ yarn-error.log*
 # 問題JSONファイル（インポート用データ）
 questions/*.json
 
-# プロンプト・スクリプト（ローカル運用のみ）
-prompts/
+# 夜間バッチ（prompts/）
+# スクリプト・生成指示・state は「資産」として追跡する（差分で変化を追うため）。
+# 実行のたびに増減するログとランタイム状態だけを無視する。
+#   ※ 以前は prompts/ ごと無視したうえで末尾に !prompts/ で打ち消しており、
+#     結局全ファイルが追跡され、夜間バッチが走るたび git status が数百行汚れていた。
+prompts/logs/
+prompts/night-prompts/logs/
+prompts/night-prompts/e2e/canary-results/
+prompts/.claude_history
+prompts/.night_history
+prompts/.last_run
+prompts/.last_run_date
+prompts/.ct-hooks
+prompts/.hook-exec-*.sh
+prompts/night-prompts/.oci_rate_limit_reset
+prompts/night-prompts/.claude_rate_limit_reset
+prompts/tips_backup_*.json
+prompts/night-prompts/scripts/__pycache__/
+prompts/night-prompts/scripts/instructions/*.bak
+
+# TypeScript のビルドキャッシュ（生成物）
+tsconfig.tsbuildinfo
 
 # Amplify Gen 1 legacy (archived)
 amplify_gen1/\#current-cloud-backend
@@ -73,9 +93,3 @@ e2e/screenshots/
 .next/
 out/
 e2e/canary-results/
-
-# canary テストスクリプトは追跡する
-!prompts/
-!prompts/night-prompts/
-!prompts/night-prompts/manual/
-!prompts/night-prompts/manual/canary.sh
