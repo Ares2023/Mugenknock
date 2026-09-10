@@ -28,12 +28,21 @@ $ npx tsc --noEmit
 → src/ app/ 由来のエラーは 0 件
 ```
 
-**提案**: `typescript` を 5.x へ上げ、`ignoreBuildErrors` を外す。
-`src/` 側にエラーが出ていないので、移行コストは低い可能性が高い。
-（ただし .d.ts が壊れている間は型が `any` に落ちて下流のエラーが隠れているため、
-アップグレード後に初めて出るエラーはある。段階的に潰す前提で）
+**対応済み（2026-09-10）**: `typescript@5.9.3` / `@types/node@20` へ更新し、
+`typescript.ignoreBuildErrors` を撤去した。エラーは 258 → 0 件。
 
-**コスト**: 小〜中 / **効果**: 大（以後のリグレッションを型で止められる）
+型チェックの復活によって**隠れていた実バグが3件見つかった**:
+
+| 箇所 | 内容 |
+|---|---|
+| `src/views/Home.tsx:336` | `setNodesVisible` が未定義。ホームのスコア内訳モーダルで「直近5回/10回」を切り替えると `ReferenceError` が投げられていた（旧アニメーション実装の残骸） |
+| `src/views/ExerciseSession.tsx:1233,1243` | 同じ style オブジェクトに `opacity` が2回。後者が前者を上書きし、プログレッシブロード待ちノードの淡色表示（`notYetLoaded ? 0.3`）が効いていなかった |
+| `src/components/ui/Card.tsx:3` | `CardProps.title` が `HTMLAttributes.title`（ツールチップ文字列）と衝突。`Omit` で解決 |
+
+あわせて `amplify/`（独自 tsconfig を持つ別プロジェクト）と `capacitor.config.ts`
+（依存が未インストール）をルート tsconfig の `exclude` に追加した。
+
+**残**: ESLint は未対応のため `eslint.ignoreDuringBuilds` は `true` のまま（A-2）。
 
 ### A-2. ESLint が動いていない
 
@@ -233,15 +242,33 @@ app/questions/[examType]/page.tsx  API のフォールバックURLを再定義
 
 ## 優先度E — 一貫性・規約の未強制
 
-### E-1. i18n が2系統
+### E-1. 廃止済みの英語対応の残骸が大量にある
 
-- `src/i18n/translations.ts` + `t('key')` … 136箇所
-- `ja ? '日本語' : 'English'` の三項演算子 … **419箇所**
+> **訂正（2026-09-10）**: 初版では「i18n が2系統」と書いたが、実際は
+> **英語対応そのものが廃止済み**（`src/contexts/LanguageContext.tsx` の `type Lang = 'ja'`）。
+> つまり2系統ではなく、片方は**まるごと到達不能なコード**。
 
-三項演算子が3倍多い。実質「i18n の仕組みはあるが使われていない」状態。
+- `src/i18n/translations.ts` + `t('key')` … 136箇所（生きている）
+- `ja ? '日本語' : 'English'` の三項演算子 … **419箇所（英語側は永久に実行されない）**
 
-**提案**: 新規コードは `t()` に統一するルールを `CLAUDE.md` に追加。既存の一括移行は費用対効果が低いので、
-触ったファイルから直す方針で十分。
+DB 側にも `questionTextEn` / `choicesEn` / `explanationEn` / `titleEn` / `bodyEn`、
+定数側にも `DOMAIN_NAME_EN` / `EXAM_DESC_EN` が残っている。
+
+TypeScript 5 化（A-1）で型検出できた `lang === 'en'` の8箇所は削除済み。
+検出できずに残っているもの:
+
+- `lang === 'en'` … 4箇所（`src/utils/i18nQuestion.ts` / `src/components/DomainSelector.tsx` /
+  `src/views/ExerciseSession.tsx` / `src/constants.ts`）— props や引数が `lang: string` 型のため
+- `ja ? x : y` … 419箇所 — `ja` が `boolean` に広がるため
+
+`lang: string` と宣言している箇所は19。
+
+**提案**:
+1. 各画面の props の `lang: string` を `lang: Lang` に直す → 残りの死んだ分岐が型で検出できるようになる
+2. そのうえで `ja ? x : y` を日本語側に畳む（触ったファイルから順に）
+3. 英語を復活させる予定が無いなら `LanguageContext` ごと削除し `t()` を単なる辞書関数にする
+
+一括変換は差分が巨大になるので、**まず 1 だけやって検出可能にする**のが費用対効果が高い。
 
 ### E-2. デザイントークンが守られていない
 
