@@ -3,7 +3,54 @@
 リバースエンジニアリング（2026-09-10）で見つかった構成上の課題。
 **優先度は「壊れる確率 × 壊れたときの痛さ ÷ 直すコスト」で付けている。**
 
-コードは今回一切変更していない。着手する項目を選んで指示すること。
+着手する項目を選んで指示すること。対応済みの項目は各節に結果を追記している。
+
+---
+
+## 優先度S — 未修正の実バグ
+
+### Bug-1. `ExerciseSession.tsx` でフックが条件付きに呼ばれている
+
+ESLint 復活（A-2）で検出。`react-hooks/rules-of-hooks` の error 5件。
+
+```
+src/views/ExerciseSession.tsx:712   if (!initialized) return null;
+src/views/ExerciseSession.tsx:715   if (!questions[currentIndex]) { return <スピナー>; }
+   ...
+src/views/ExerciseSession.tsx:962   useEffect(...)   ← 早期リターンより後
+src/views/ExerciseSession.tsx:964   useEffect(...)
+src/views/ExerciseSession.tsx:968   useRef(...)
+src/views/ExerciseSession.tsx:1044  useEffect(...)
+src/views/ExerciseSession.tsx:1051  useEffect(...)
+```
+
+709行目に「全 Hook 呼び出し完了後に computed values を定義」というコメントがあり、
+**この位置より後ろにフックは無い前提**で早期リターンが置かれている。実際には5つ後続する。
+
+React はレンダー間でフック数が変わると例外を投げる
+（"Rendered more/fewer hooks than during the previous render"）。
+早期リターンを通るレンダーと通らないレンダーが同一インスタンスで連続すると落ちる。
+
+**想定される再現条件**（いずれも未検証。修正前に再現を取ること）:
+
+| 経路 | 起きること |
+|---|---|
+| 演習中にリロード／URL直接オープン | `initialized` は `useState(!!state)` なので初回 `false` → 5フックを飛ばす → mount effect が下書きを復元して `setInitialized(true)` → 2回目のレンダーでフックが5つ増える → **more hooks で例外**<br>※下書きが無い場合はホームへ `navigate` して `initialized` が false のままなので落ちない |
+| プログレッシブロードで未ロードの問題へ進む | 通常フローは全フックが走っている状態 → `questions[currentIndex]` が未定義になるとスピナーで早期リターン → フックが5つ減る → **fewer hooks で例外** |
+
+**修正方針**（どちらか）:
+
+1. 後続5フックを早期リターンより前へ移す。`keyHandlerRef` は `useRef` の宣言だけを上げ、
+   `keyHandlerRef.current = ...` の代入は現在位置に残せる（代入はフックではない）。
+   **描画ロジックに触れないぶんリスクが低い。**
+2. 早期リターンを全フックの後（1159行の JSX return の直前）へ下げる。
+   ただし 712〜1159 の間に `currentQuestion` を前提とする式があると
+   未ロード時に例外になるため、全経路の確認が要る。
+
+**着手前にやること**: 実際に再現させる（演習を中断→リロード）。
+「直したつもり」で終わらせないため、修正後も同じ手順で確認する。
+
+**コスト**: 小〜中 / **効果**: 大（中断→再開は中核フロー）
 
 ---
 
@@ -51,13 +98,48 @@ $ npx next lint
 → Invalid Options: Unknown options: useEslintrc, extensions, ...
 ```
 
-`eslint: ^10.5.0`（フラットコンフィグ必須）＋ `eslint-config-next: ^16.2.9`（Next 16向け）に対し、
-本体は `next: ^15.5.19`、設定は `package.json` の**レガシー `eslintConfig` キー**。三者が食い違っている。
+**対応済み（2026-09-10）**: `eslint.config.mjs`（フラットコンフィグ）へ移行し、
+`npm run lint` / `npm run lint:fix` で実行できるようにした。
 
-**提案**: `eslint.config.mjs`（フラットコンフィグ）を作り、`eslint-config-next` を Next 15 系に合わせる。
-または Next 16 へ上げて `next lint` を捨て ESLint CLI へ移行する。
+食い違いは3つあった:
 
-**コスト**: 小 / **効果**: 大
+1. **`eslint@10` が早すぎた** — `eslint-plugin-react` / `jsx-a11y` / `import` の peer は
+   `eslint<=9`。実際に ESLint 10 では `contextOrFilename.getFilename is not a function` で
+   クラッシュする（peer 範囲外のまま入っていた）→ `eslint@9.39.5` に固定
+2. **`next lint` は使えない** — Next 15 のラッパーが ESLint 9+ で削除されたオプションを渡す。
+   Next 16 では `next lint` 自体が廃止 → ESLint CLI を直接叩く
+3. **設定がレガシー形式** — `package.json` の `eslintConfig` キーは ESLint 9 では読まれない → 削除
+
+`eslint-config-next@16` はフラットコンフィグをネイティブ提供するのでそのまま使っている。
+
+### ルール severity の方針
+
+`eslint-config-next@16` は Next 16 向けに **React Compiler 世代のルール**
+（`eslint-plugin-react-hooks` v7 の `purity` / `immutability` / `refs` /
+`set-state-in-effect` / `preserve-manual-memoization`）を持ち込む。
+本プロジェクトは Next 15 で React Compiler を使っておらず、既存コードに127件出る。
+「今すぐ直すべきバグ」と区別するため **warn に下げている**（新規コードでは従う）。
+
+`@next/next/no-img-element` は **off**。静的エクスポート + `images.unoptimized` のため
+`next/image` の最適化が効かず、`<img>` のままで実害がない。
+
+**現状**: `155 problems (5 errors, 150 warnings)`
+
+| ルール | 重大度 | 件数 |
+|---|---|---|
+| `react-hooks/set-state-in-effect` | warn | 66 |
+| `react-hooks/purity` | warn | 30 |
+| `react-hooks/exhaustive-deps` | warn | 22 |
+| `react-hooks/immutability` | warn | 16 |
+| `react-hooks/refs` | warn | 13 |
+| **`react-hooks/rules-of-hooks`** | **error** | **5** |
+| `react-hooks/preserve-manual-memoization` | warn | 2 |
+| `import/no-anonymous-default-export` | warn | 1 |
+
+**残**: `eslint.ignoreDuringBuilds` は `true` のまま。`next build` は内部で `next lint` を
+呼ぶため（＝壊れている）、リントはビルドとは独立した `npm run lint` で回す。
+CI が無いので現状は手動実行。error 5件（下記 Bug-1）を解消したら
+pre-commit フックか CI で強制することを検討する。
 
 ### A-3. 自動テストが1本も無い
 
@@ -346,6 +428,7 @@ git rm -r --cached prompts/logs prompts/night-prompts/logs tsconfig.tsbuildinfo
 | `Tags` テーブル | 未使用 |
 | `QuestionTagRelations` テーブル | 新規書き込みなし。削除時の掃除のみ |
 | `README.old.md` | 1行 |
+| `src/aws-exports.js` | Amplify Gen1 の自動生成物。Gen2 移行済みで参照されていない（lint 除外済み） |
 
 **注意**: `@testing-library/*` は A-3（テスト導入）で使う可能性があるので、
 テストを書く方針なら残す（ただし `dependencies` ではなく `devDependencies` へ移す）。
@@ -414,15 +497,42 @@ compat 層の `useLocation().state` は `sessionStorage.__nav_state__` を**1回
 ## まとめ（着手順の推奨）
 
 ```
-済み   F-1（README 書き換え・2026-09-10）
-       F-2（git 追跡の掃除・2026-09-10）
-       B-2（調査の結果すでに実装済みだった。指摘を訂正）
-1週目  A-1（TypeScript 5 へ）→ A-2（ESLint 復活）
-3週目  A-3（純粋関数のユニットテスト6本）
-4週目  C-1（optionalUser ミドルウェア）
+済み   F-1  README 書き換え                          2026-09-10
+       F-2  git 追跡の掃除（1,524→88ファイル）       2026-09-10
+       B-2  調査漏れによる誤指摘。訂正済み           2026-09-10
+       A-1  TypeScript 5 化・型チェック復活          2026-09-10
+       A-2  ESLint 復活（フラットコンフィグ）        2026-09-10
+
+次     Bug-1 ExerciseSession の条件付きフック
+         ← A-1/A-2 が見つけた実バグ。再現を取ってから直す
+       A-3  純粋関数のユニットテスト6本
+       C-1  optionalUser ミドルウェア
 以降   D-1〜D-3（巨大ファイル分割・テストが揃ってから）
-       B-1 / B-3 / F-3 / F-4
+       B-1 / B-3 / F-3 / F-4 / E-1
 ```
 
 **A-3 のテストが揃う前に D（大規模分割）へ行かないこと。**
 安全網なしで3,000行のファイルを割ると、壊れたことに気づけない。
+
+## セーフティネットの現状
+
+| 仕組み | 状態 | 実行方法 |
+|---|---|---|
+| 型チェック | ✅ 有効（ビルドを止める） | `npm run build` / `npx tsc --noEmit` |
+| ESLint | ✅ 有効（手動実行） | `npm run lint` |
+| ユニットテスト | ❌ 未導入 | — |
+| E2E（カナリア） | ✅ 毎日23:50に自動実行 | `npm run e2e` |
+| CI | ❌ 無し（すべて手動 or ローカル systemd） | — |
+
+## 調査の信頼性について
+
+初版（2026-09-10）には**ファイルの一部だけを読んで書いた誤りが3件**あった。
+
+| 項目 | 初版の記述 | 実際 |
+|---|---|---|
+| B-2 | examDomains の同期機構が無い | `deploy-lambda.sh` に実装済み |
+| 対応言語 | 日本語・英語 | 日本語のみ（英語対応は廃止済み） |
+| E-1 | i18n が2系統 | 2系統ではなく、片方はまるごと到達不能 |
+
+**未着手の項目には同種の裏取り不足が残っている可能性がある。**
+着手時は必ず対象コードを最後まで読んでから判断すること。

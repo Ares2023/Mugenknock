@@ -39,7 +39,9 @@ npm run dev     # http://localhost:3000
 | コマンド | 内容 |
 |---|---|
 | `npm run dev` | 開発サーバー |
-| `npm run build` | 静的エクスポート（出力先 `out/`） |
+| `npm run build` | 静的エクスポート（出力先 `out/`）。型エラーがあれば失敗する |
+| `npm run lint` | ESLint（`next lint` は使わない） |
+| `npm run lint:fix` | ESLint の自動修正 |
 | `npm run e2e` | 検証環境に対するカナリアテスト |
 | `npm run e2e:local` | ローカル開発サーバーに対する E2E |
 | `npm run e2e:report` | Playwright の HTML レポート表示 |
@@ -48,6 +50,7 @@ npm run dev     # http://localhost:3000
 | `ct` | 夜間バッチのスケジュール管理（ローカル運用） |
 
 > `npm test` は未設定（ユニットテストは未導入。[`docs/08-refactor-plan.md`](docs/08-refactor-plan.md) の A-3 参照）。
+> `npm run lint` は現在 error 5件で失敗する。実バグのため（同 Bug-1）。
 
 ## デプロイ
 
