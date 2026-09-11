@@ -9,7 +9,7 @@ import Reveal from '../components/Reveal';
 import { SiteArchitecture } from '../components/SiteArchitecture';
 import { EXAM_TYPES } from '../constants';
 
-const QUESTION_COUNT = 4900;
+const QUESTION_COUNT = 5000;
 
 const BENEFITS: { ja: string; en: string }[] = [
   {
