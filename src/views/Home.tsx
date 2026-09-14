@@ -1299,9 +1299,6 @@ export default function Home() {
   const [lastMode, setLastMode] = useState<'quick' | 'focused'>(() => (localStorage.getItem(`lastQuickMode_${uid}`) as 'quick' | 'focused') ?? 'quick');
   const [answeredCount, setAnsweredCount] = useState(0);
   const [answeredCountReady, setAnsweredCountReady] = useState(false);
-  const [guestBannerHidden, setGuestBannerHidden] = useState(() => {
-    try { return localStorage.getItem('guestBannerHidden') === '1'; } catch { return false; }
-  });
   const [qRefreshTick, setQRefreshTick] = useState(0); // セッション完了で +1 → useEffect 再実行
   const [quickSaveMsg, setQuickSaveMsg] = useState<'saved' | 'already' | null>(null);
   const [focusedSaveMsg, setFocusedSaveMsg] = useState<'saved' | 'already' | null>(null);
@@ -2218,13 +2215,17 @@ export default function Home() {
                   {ja ? `予想スコア（直近${nodeWindow}問）` : `Est. Score (last ${nodeWindow})`}
                 </span>
               </div>
-              {user && (
-                <button
-                  onClick={e => { e.stopPropagation(); refreshStats(); }}
-                  disabled={statsLoading || statsRefreshing}
-                  title={ja ? '成績を更新' : 'Refresh stats'}
-                  aria-label={ja ? '成績を更新' : 'Refresh stats'}
-                  style={{
+              {/* 更新ボタンはログイン専用の機能だが、ゲスト時に要素ごと消すと
+                  この行の高さが変わり、以降のセクションの位置がゲスト/ログインでずれる。
+                  領域は常に確保し、ゲストでは不可視＋操作不可にして骨格を揃える。 */}
+              <button
+                onClick={e => { e.stopPropagation(); refreshStats(); }}
+                disabled={!user || statsLoading || statsRefreshing}
+                aria-hidden={!user}
+                tabIndex={user ? undefined : -1}
+                title={ja ? '成績を更新' : 'Refresh stats'}
+                aria-label={ja ? '成績を更新' : 'Refresh stats'}
+                style={{
                     width: 35, height: 35, borderRadius: '50%',
                     border: '1px solid var(--color-border)',
                     background: 'transparent',
@@ -2233,6 +2234,7 @@ export default function Home() {
                     display: 'flex', alignItems: 'center', justifyContent: 'center',
                     opacity: (statsLoading || statsRefreshing) ? 0.5 : 1,
                     flexShrink: 0,
+                    visibility: user ? 'visible' : 'hidden',
                   }}
                 >
                   <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"
@@ -2241,7 +2243,6 @@ export default function Home() {
                     <path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/>
                   </svg>
                 </button>
-              )}
             </div>
             {!targetExam ? (
               <div style={{ color: 'var(--color-text-light)', fontSize: 'var(--font-size-sm)', fontStyle: 'italic' }}>
@@ -2314,20 +2315,9 @@ export default function Home() {
         />
       )}
 
-      {/* ── 非ログイン時バナー（控えめ・閉じ可能。演習はログイン不要で使える前提の案内） ── */}
-      {!user && !guestBannerHidden && (
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 'var(--spacing-sm)', marginTop: 'var(--spacing-md)', background: 'var(--color-bg-white)', border: '1px solid var(--color-border)', borderRadius: 'var(--border-radius-md)', padding: '8px var(--spacing-md)', fontSize: 'var(--font-size-sm)', color: 'var(--color-text-sub)' }}>
-          <span style={{ lineHeight: 1.6 }}>{ja ? 'そのまま演習できます。ログインすると記録の保存や端末間同期ができます。' : 'You can practice right away. Log in to save your records and sync across devices.'}</span>
-          <span style={{ display: 'inline-flex', alignItems: 'center', gap: 'var(--spacing-xs)', flexShrink: 0 }}>
-            <Button variant="outline" size="sm" onClick={() => navigate('/login')}>{ja ? 'ログイン' : 'Log in'}</Button>
-            <button
-              aria-label={ja ? '閉じる' : 'Dismiss'}
-              onClick={() => { setGuestBannerHidden(true); try { localStorage.setItem('guestBannerHidden', '1'); } catch {} }}
-              style={{ border: 'none', background: 'none', cursor: 'pointer', color: 'var(--color-text-light)', fontSize: 'var(--font-size-lg)', lineHeight: 1, padding: '0 var(--spacing-xs)' }}
-            >✕</button>
-          </span>
-        </div>
-      )}
+      {/* 非ログイン時バナーは廃止（ゲスト/ログインで骨格を揃えるため）。
+          ログイン導線はヘッダーのアカウントアイコンと、ロック機能下の
+          「ログインが必要です」の案内が担う。 */}
 
       {/* ── サクッと演習ボタン（デスクトップ固定） ── */}
       {!isMobile && createPortal(
