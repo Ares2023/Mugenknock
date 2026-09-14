@@ -1353,9 +1353,7 @@ export default function CheatSheet() {
                   flexShrink: 0, width: 80, padding: '10px 6px 8px', cursor: 'pointer',
                   borderRadius: 10, textAlign: 'center', position: 'relative',
                   border: `2px solid ${isSelected ? levelColor : 'var(--color-border)'}`,
-                  background: isSelected
-                    ? `linear-gradient(145deg, ${levelColor}, ${levelColor}bb)`
-                    : `linear-gradient(145deg, var(--color-bg-card), ${levelColor}18)`,
+                  background: isSelected ? levelColor : 'var(--color-bg-card)',
                   transition: 'all 0.15s',
                 }}
               >

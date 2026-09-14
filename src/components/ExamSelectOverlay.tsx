@@ -359,10 +359,10 @@ export default function ExamSelectOverlay({
                   borderRadius: 10, textAlign: 'center', position: 'relative',
                   border: `2px solid ${isPreviewing || isSelected ? levelColor : 'var(--color-border)'}`,
                   background: isPreviewing
-                    ? `linear-gradient(145deg, ${levelColor}, ${levelColor}bb)`
+                    ? levelColor
                     : isSelected
-                    ? `linear-gradient(145deg, ${levelColor}22, ${levelColor}44)`
-                    : `linear-gradient(145deg, var(--color-bg-card), ${levelColor}18)`,
+                    ? `${levelColor}33`
+                    : 'var(--color-bg-card)',
                 }}
               >
                 {isSelected && (

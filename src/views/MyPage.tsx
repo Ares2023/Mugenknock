@@ -1332,7 +1332,7 @@ export default function MyPage() {
                               <button
                                 key={exam}
                                 onClick={e => toggleObtainedCert(exam, e.currentTarget)}
-                                style={{ flexShrink: 0, width: 80, padding: '10px 6px 8px', cursor: 'pointer', borderRadius: 10, textAlign: 'center', position: 'relative', border: `2px solid ${obtained ? c : 'var(--color-border)'}`, background: obtained ? `linear-gradient(145deg, ${c}, ${c}bb)` : `linear-gradient(145deg, var(--color-bg-card), ${c}18)`, animation: justObtained === exam ? 'certObtainPop 0.38s cubic-bezier(.36,.07,.19,.97)' : undefined, transition: 'border-color 0.15s, background 0.15s' }}
+                                style={{ flexShrink: 0, width: 80, padding: '10px 6px 8px', cursor: 'pointer', borderRadius: 10, textAlign: 'center', position: 'relative', border: `2px solid ${obtained ? c : 'var(--color-border)'}`, background: obtained ? c : 'var(--color-bg-card)', animation: justObtained === exam ? 'certObtainPop 0.38s cubic-bezier(.36,.07,.19,.97)' : undefined, transition: 'border-color 0.15s, background 0.15s' }}
                               >
                                 {obtained && <div style={{ position: 'absolute', top: 4, right: 4, color: '#fff', lineHeight: 0 }}><IconCheck size={14} /></div>}
                                 {/* 六角形バッジ */}
