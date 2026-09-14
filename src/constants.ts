@@ -177,12 +177,13 @@ export const EXAM_DESC_JA: Record<string, string> = {
   AIB: 'AIをビジネス成果へ結びつける戦略・ガバナンス・組織変革を問うビジネス認定',
   MLA: 'MLモデルの構築・デプロイ・運用を問うアソシエイト認定',
   AIP: 'AWSで生成AIソリューションを実装・デプロイするプロフェッショナル認定',
-  ANS: 'AWSとハイブリッドネットワークの高度な設計・実装スキルを問うスペシャリティ認定',
+  // AWS 公式が廃止を告知済み（英語版 認定ページ / 認定一覧ともに 2026-12-31）
+  ANS: '【2026年12月31日で提供終了】AWSとハイブリッドネットワークの高度な設計・実装スキルを問うスペシャリティ認定',
   SCS: 'AWSクラウドのセキュリティ専門知識を証明するスペシャリティ認定',
-  ML: '【AWS認定ではありません】AIF/MLA/AIP に共通して問われる機械学習の基礎知識を横断演習する独自カード',
+  ML: '【AWS認定ではありません】AIF・MLA・AIP 対策として、共通して問われる機械学習の基礎知識を横断演習する独自カード',
   DB: '【AWS認定ではありません】DEA 対策として、SQL・正規化・インデックス・トランザクション等のDB基礎に加え、分析SQL・データモデリング・データ形式などデータエンジニアリングの前提知識を演習する独自カード',
-  NW: '【AWS認定ではありません】ANS 対策として前提となるネットワーク（TCP/IP・サブネット・ルーティング・DNS等）の基礎知識を演習する独自カード',
-  SEC: '【AWS認定ではありません】SCS 対策として前提となるセキュリティ（暗号・認証認可・脅威・インシデント対応等）の基礎知識を演習する独自カード',
+  NW: '【AWS認定ではありません】ANS 対策として、前提となるネットワーク（TCP/IP・サブネット・ルーティング・DNS等）の基礎知識を演習する独自カード',
+  SEC: '【AWS認定ではありません】SCS 対策として、前提となるセキュリティ（暗号・認証認可・脅威・インシデント対応等）の基礎知識を演習する独自カード',
 };
 export const EXAM_DESC_EN: Record<string, string> = {
   CLF: 'Foundational certification covering cloud basics',
@@ -196,7 +197,7 @@ export const EXAM_DESC_EN: Record<string, string> = {
   AIB: 'Business certification for turning AI capabilities into business outcomes through strategy, governance, and transformation',
   MLA: 'Associate certification for building and operating ML solutions',
   AIP: 'Professional certification for integrating and deploying generative AI solutions on AWS',
-  ANS: 'Specialty certification for advanced AWS and hybrid network architecture design',
+  ANS: '[Retiring December 31, 2026] Specialty certification for advanced AWS and hybrid network architecture design',
   SCS: 'Specialty certification for AWS cloud security expertise',
   ML: '[Not an AWS certification] Cross-cutting machine learning fundamentals shared across the AIF/MLA/AIP exams',
   DB: '[Not an AWS certification] Database fundamentals (SQL, normalization, indexing, transactions) plus data-engineering prerequisites (analytical SQL, data modeling, data formats) for DEA preparation',
