@@ -1192,13 +1192,14 @@ export default function CheatSheet() {
   useEffect(() => {
     if (loading || goalInit) return;
     setGoalInit(true);
-    if (user?.userId) {
-      const goal = localStorage.getItem(`targetExam_${user.userId}`);
-      if (goal && CHEAT_DATA[goal]) {
-        const lv = levelOf(goal) as LevelKey;
-        setActiveLevel(lv);
-        setSelectedExam(goal);
-      }
+    // ゲストも targetExam_guest に目標資格を持つ（オンボーディングで設定される）。
+    // 以前は user がある時だけ読んでいたため、ゲストは目標資格に関係なく常に
+    // 既定の Associate/SAA で開いていた。閲覧はゲストにも開放している機能なので uid で引く。
+    const uid = user?.userId ?? 'guest';
+    const goal = localStorage.getItem(`targetExam_${uid}`);
+    if (goal && CHEAT_DATA[goal]) {
+      setActiveLevel(levelOf(goal) as LevelKey);
+      setSelectedExam(goal);
     }
   }, [user, loading, goalInit]);
 
