@@ -8,6 +8,7 @@ import { useLanguage } from '../contexts/LanguageContext';
 import { useAuth } from '../contexts/AuthContext';
 import PageLayout from '../components/ui/PageLayout';
 import { useIsMobile } from '../hooks/useWindowWidth';
+import { useHorizontalScrollHint } from '../hooks/useHorizontalScrollHint';
 
 // ── データ型 ─────────────────────────────────────────────────
 interface Item { name: string; desc: string; tags: string[]; keyword?: string; seeAlso?: string[]; termKeywords?: Record<string, string> }
@@ -1049,6 +1050,8 @@ export default function CheatSheet() {
   // 資格カードの横スクロール行と選択中カード（選択カードが右端で見切れないよう水平スクロールする）
   const examRowRef = useRef<HTMLDivElement>(null);
   const selExamBtnRef = useRef<HTMLButtonElement>(null);
+  // レベルタブ行（6レベルはモバイル幅に収まらないので横スクロール＋右端フェード）
+  const { ref: levelTabsRef, maskStyle: levelTabsMask } = useHorizontalScrollHint(isMobile);
   const [search, setSearch] = useState('');
   const [goalInit, setGoalInit] = useState(false);
   const [copiedTerm, setCopiedTerm] = useState<string | null>(null);
@@ -1168,6 +1171,23 @@ export default function CheatSheet() {
       row.scrollTo({ left: Math.max(0, bLeft - 8), behavior: 'smooth' });
     }
   }, [selectedExam, activeLevel, isMobile]);
+
+  // 選択中のレベルタブが行内で見切れないよう水平スクロール位置を合わせる。
+  // （例: 目標資格が ML/DB/NW/SEC のとき末尾の「オリジナル」が画面外になるのを防ぐ）
+  // 資格カード行と同じ方式。垂直スクロールは動かさない。
+  useEffect(() => {
+    const row = levelTabsRef.current;
+    const btn = row?.querySelector<HTMLElement>(`[data-level="${activeLevel}"]`);
+    if (!row || !btn) return;
+    const bLeft = btn.offsetLeft;
+    const bRight = bLeft + btn.offsetWidth;
+    const viewLeft = row.scrollLeft;
+    if (bRight > viewLeft + row.clientWidth) {
+      row.scrollTo({ left: bRight - row.clientWidth + 8, behavior: 'smooth' });
+    } else if (bLeft < viewLeft) {
+      row.scrollTo({ left: Math.max(0, bLeft - 8), behavior: 'smooth' });
+    }
+  }, [activeLevel, isMobile, levelTabsRef]);
 
   useEffect(() => {
     if (loading || goalInit) return;
@@ -1293,14 +1313,18 @@ export default function CheatSheet() {
           />
         </div>
         {/* レベルタブ：目標資格設定オーバーレイ(ExamSelectOverlay)とデザインを統一（flex:1 均等・levelLabel） */}
-        <div style={{ display: 'flex', borderBottom: '2px solid var(--color-border)', marginBottom: 0, overflowX: isMobile ? 'auto' : 'visible', scrollbarWidth: 'none' }}>
+        <div
+          ref={levelTabsRef}
+          style={{ display: 'flex', borderBottom: '2px solid var(--color-border)', marginBottom: 0, overflowX: isMobile ? 'auto' : 'visible', scrollbarWidth: 'none', ...levelTabsMask }}
+        >
           {EXAM_LEVELS.map(({ key, color }) => (
             <button
               key={key}
+              data-level={key}
               onClick={() => selectLevel(key as LevelKey)}
               style={{
                 flex: isMobile ? '0 0 auto' : 1, textAlign: 'center', whiteSpace: 'nowrap',
-                padding: isMobile ? '10px 12px' : '10px 14px',
+                padding: isMobile ? '10px 8px' : '10px 14px',
                 background: 'none', border: 'none', cursor: 'pointer',
                 borderBottom: activeLevel === key ? `2px solid ${color}` : '2px solid transparent',
                 marginBottom: -2,

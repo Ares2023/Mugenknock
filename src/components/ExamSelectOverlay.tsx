@@ -5,6 +5,7 @@ import { lockBodyScroll } from '../utils/bodyScrollLock';
 import { resetExercisePrefsOnExamChange } from '../utils/preferences';
 import { API_ENDPOINT, EXAM_CONFIGS, EXAM_DOMAINS, DOMAIN_WEIGHTS, PASS_SCORES, isNonAwsExam, levelLabel } from '@/constants';
 import { EXAM_ICON_COMPONENTS, IconBook, IconBookOpenCheck, IconCircleCheck, IconExternalLink, IconFileText } from '@/components/Icons';
+import { useHorizontalScrollHint } from '@/hooks/useHorizontalScrollHint';
 
 // テキストの inline 記法（**bold** / *italic* / `code` / [text](url)）をパースして React 要素に変換する
 function parseInline(text: string, keyPrefix: string): React.ReactNode[] {
@@ -203,9 +204,9 @@ interface ExamSelectOverlayProps {
   onSelect: (exam: string) => void;
   /** 閉じるボタン用コールバック。未指定の場合は閉じられない（初回オンボーディング用） */
   onClose?: () => void;
-  /** デスクトップ時の最大幅（px）。省略時は 420 */
+  /** デスクトップ時の最大幅（px）。省略時は 760 */
   desktopMaxWidth?: number;
-  /** デスクトップ時の高さ（vh 文字列）。省略時は '60vh' */
+  /** デスクトップ時の高さ（vh 文字列）。省略時は '72vh' */
   desktopHeight?: string;
   /** true のとき確定ボタンをパルスアニメーションで強調（初回オンボーディング時） */
   onboarding?: boolean;
@@ -213,7 +214,10 @@ interface ExamSelectOverlayProps {
 
 export default function ExamSelectOverlay({
   targetExam, uid, lang, isMobile, onSelect, onClose,
-  desktopMaxWidth = 420, desktopHeight = '60vh', onboarding = false,
+  // 既定値がモバイル幅(420)と同じだったため、デスクトップでもスマホと同じ縦長パネルになり、
+  // さらに6レベルのタブが収まらず末尾(Specialty/オリジナル)がクリップされて選べなくなっていた。
+  // デスクトップは横に使える前提の寸法にする。
+  desktopMaxWidth = 760, desktopHeight = '72vh', onboarding = false,
 }: ExamSelectOverlayProps) {
   const ja = lang === 'ja';
   const initLevel = targetExam
@@ -251,6 +255,25 @@ export default function ExamSelectOverlay({
   useEffect(() => {
     return lockBodyScroll();
   }, []);
+
+  // レベルタブ行（6レベルはモバイル幅に収まらないので横スクロール＋右端フェード）
+  const { ref: levelTabsRef, maskStyle: levelTabsMask } = useHorizontalScrollHint(isMobile);
+
+  // 選択中のレベルタブが行内で見切れないよう水平スクロール位置を合わせる。
+  // （例: 目標資格が ML/DB/NW/SEC のとき末尾の「オリジナル」が画面外になるのを防ぐ）
+  useEffect(() => {
+    const row = levelTabsRef.current;
+    const btn = row?.querySelector<HTMLElement>(`[data-level="${activeLevel}"]`);
+    if (!row || !btn) return;
+    const bLeft = btn.offsetLeft;
+    const bRight = bLeft + btn.offsetWidth;
+    const viewLeft = row.scrollLeft;
+    if (bRight > viewLeft + row.clientWidth) {
+      row.scrollTo({ left: bRight - row.clientWidth + 8, behavior: 'smooth' });
+    } else if (bLeft < viewLeft) {
+      row.scrollTo({ left: Math.max(0, bLeft - 8), behavior: 'smooth' });
+    }
+  }, [activeLevel, isMobile, levelTabsRef]);
 
   const currentLevelDef = EXAM_LEVELS.find(l => l.key === activeLevel) ?? EXAM_LEVELS[0];
   const levelColor = currentLevelDef.color;
@@ -335,19 +358,20 @@ export default function ExamSelectOverlay({
 
         {/* レベルタブ */}
         <div
-          style={{ display: 'flex', borderBottom: '2px solid var(--color-border)', flexShrink: 0, padding: isMobile ? '0 var(--spacing-sm)' : '0 var(--spacing-lg)', overflowX: isMobile ? 'auto' : 'visible', scrollbarWidth: 'none' }}
+          ref={levelTabsRef}
+          style={{ display: 'flex', borderBottom: '2px solid var(--color-border)', flexShrink: 0, padding: isMobile ? '0 var(--spacing-sm)' : '0 var(--spacing-lg)', overflowX: isMobile ? 'auto' : 'visible', scrollbarWidth: 'none', ...levelTabsMask }}
           onTouchStart={e => e.stopPropagation()}
           onTouchMove={e => e.stopPropagation()}
         >
           {EXAM_LEVELS.map(({ key, color }) => (
-            <button key={key} data-kbnav="tab" data-kbtab-active={activeLevel === key ? '1' : undefined} onClick={() => {
+            <button key={key} data-level={key} data-kbnav="tab" data-kbtab-active={activeLevel === key ? '1' : undefined} onClick={() => {
               setActiveLevel(key);
               const levelDef = EXAM_LEVELS.find(l => l.key === key);
               const examInLevel = levelDef?.exams.find(e => e === targetExam) ?? levelDef?.exams[0] ?? null;
               setPreviewExam(examInLevel as string | null);
             }} style={{
               flex: isMobile ? '0 0 auto' : 1, textAlign: 'center', whiteSpace: 'nowrap',
-              padding: isMobile ? '10px 12px' : '10px 14px',
+              padding: isMobile ? '10px 8px' : '10px 14px',
               background: 'none', border: 'none', cursor: 'pointer',
               borderBottom: activeLevel === key ? `2px solid ${color}` : '2px solid transparent',
               marginBottom: -2, color: activeLevel === key ? color : 'var(--color-text-sub)',
