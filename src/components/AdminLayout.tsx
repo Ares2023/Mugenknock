@@ -38,7 +38,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
         <span style={{
           background: 'var(--color-accent)', color: 'var(--color-btn-primary-text)',
           fontWeight: 700, fontSize: 'var(--font-size-xs)', letterSpacing: '0.06em', userSelect: 'none',
-          padding: '3px 8px', borderRadius: 'var(--border-radius-full)',
+          padding: '3px 8px', borderRadius: 'var(--border-radius-sm)',
         }}>
           ADMIN
         </span>
@@ -60,7 +60,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
           <button onClick={handleSignOut} style={{
             background: 'none', border: '1.5px solid var(--color-border)',
             color: 'var(--color-text-sub)', fontSize: 'var(--font-size-xs)', padding: '5px 12px',
-            borderRadius: 'var(--border-radius-full)', cursor: 'pointer', fontWeight: 700, whiteSpace: 'nowrap',
+            borderRadius: 'var(--border-radius-md)', cursor: 'pointer', fontWeight: 700, whiteSpace: 'nowrap',
           }}>
             ログアウト
           </button>

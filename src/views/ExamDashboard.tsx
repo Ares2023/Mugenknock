@@ -209,7 +209,7 @@ export default function ExamDashboard() {
                         <span style={{ fontSize: 'var(--font-size-sm)', color: 'var(--color-text-main)', flex: 1, minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                           {EXAM_CONFIGS[et]?.fullName}
                         </span>
-                        <span style={{ fontSize: 'var(--font-size-2xs)', fontWeight: 700, padding: '2px 7px', borderRadius: 9999, background: lc2.bg, color: lc2.text, border: `1px solid ${lc2.border}`, flexShrink: 0 }}>
+                        <span style={{ fontSize: 'var(--font-size-2xs)', fontWeight: 700, padding: '2px 7px', borderRadius: 'var(--border-radius-sm)', background: lc2.bg, color: lc2.text, border: `1px solid ${lc2.border}`, flexShrink: 0 }}>
                           {EXAM_LEVEL[et]}
                         </span>
                       </button>
@@ -228,7 +228,7 @@ export default function ExamDashboard() {
               <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 6, flexWrap: 'wrap' }}>
                 <span style={{
                   fontSize: 'var(--font-size-xs)', fontWeight: 700, letterSpacing: '0.4px',
-                  padding: '3px 10px', borderRadius: 9999,
+                  padding: '3px 10px', borderRadius: 'var(--border-radius-sm)',
                   background: lc.bg, color: lc.text,
                   border: `1px solid ${lc.border}`,
                 }}>

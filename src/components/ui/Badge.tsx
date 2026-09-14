@@ -33,7 +33,7 @@ const Badge: React.FC<BadgeProps> = ({ children, variant = 'neutral', style }) =
         display: 'inline-flex',
         alignItems: 'center',
         padding: '2px 10px',
-        borderRadius: 'var(--border-radius-full)',
+        borderRadius: 'var(--border-radius-sm)',
         fontSize: 'var(--font-size-xs)',
         fontWeight: 700,
         whiteSpace: 'nowrap',

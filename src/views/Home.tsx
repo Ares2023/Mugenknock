@@ -329,7 +329,7 @@ function CombinedDetailModal({ targetExam, domainAccList, estimatedScore, passSc
                 <span style={{ fontSize: 'var(--font-size-xs)', fontWeight: 700, color: 'var(--color-text-sub)', letterSpacing: '0.5px' }}>
                   {ja ? 'ドメイン別スコア内訳' : 'Score by Domain'}
                 </span>
-                <div style={{ display: 'inline-flex', border: '1px solid var(--color-border)', borderRadius: 'var(--border-radius-full)', overflow: 'hidden' }}>
+                <div style={{ display: 'inline-flex', border: '1px solid var(--color-border)', borderRadius: 'var(--border-radius-md)', overflow: 'hidden' }}>
                   {([5, 10] as const).map(w => {
                     const active = nodeWindow === w;
                     return (
@@ -496,7 +496,7 @@ function CombinedDetailModal({ targetExam, domainAccList, estimatedScore, passSc
                         {entry.date}
                       </span>
                       {passScore !== null && (
-                        <span style={{ fontSize: 'var(--font-size-2xs)', fontWeight: 700, padding: '2px 8px', borderRadius: 9999, flexShrink: 0,
+                        <span style={{ fontSize: 'var(--font-size-2xs)', fontWeight: 700, padding: '2px 8px', borderRadius: 'var(--border-radius-sm)', flexShrink: 0,
                           background: isPass ? 'rgba(22,163,74,0.1)' : 'rgba(220,38,38,0.1)',
                           color: isPass ? 'var(--color-success)' : 'var(--color-danger)',
                         }}>
@@ -734,7 +734,7 @@ function OnboardingModal({ lang, uid, onComplete }: {
                         <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
                           <span style={{ fontWeight: 700, fontSize: 'var(--font-size-sm2)', color: 'var(--color-text-main)' }}>{cfg.examCode}</span>
                           {nonAws && (
-                            <span style={{ fontSize: 9, fontWeight: 800, color: OB_LEVEL_COLOR.Additional, border: `1px dashed ${OB_LEVEL_COLOR.Additional}`, borderRadius: 'var(--border-radius-full)', padding: '0 5px' }}>非公式</span>
+                            <span style={{ fontSize: 9, fontWeight: 800, color: OB_LEVEL_COLOR.Additional, border: `1px dashed ${OB_LEVEL_COLOR.Additional}`, borderRadius: 'var(--border-radius-sm)', padding: '0 5px' }}>非公式</span>
                           )}
                         </div>
                         <div style={{ fontSize: 'var(--font-size-xs)', color: 'var(--color-text-sub)', marginTop: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{OB_SHORT[exam]}</div>
@@ -1077,7 +1077,7 @@ function TodayServiceSection({ lang, userId, authReady, onNavigateEncyclopedia, 
           {lang === 'ja' ? '日めくりAWSサービス' : 'Daily AWS Service'}
         </span>
         {displayService.category && (
-          <span style={{ marginLeft: 2, fontSize: 'var(--font-size-2xs)', fontWeight: 700, padding: '1px 7px', borderRadius: 'var(--border-radius-full)', background: 'var(--color-primary-light)', color: 'var(--color-primary)' }}>
+          <span style={{ marginLeft: 2, fontSize: 'var(--font-size-2xs)', fontWeight: 700, padding: '1px 7px', borderRadius: 'var(--border-radius-sm)', background: 'var(--color-primary-light)', color: 'var(--color-primary)' }}>
             {displayService.category}
           </span>
         )}
@@ -2342,7 +2342,7 @@ export default function Home() {
                             <button
                               disabled={!targetExam || !user || !effectiveFocusedUnlocked}
                               onClick={() => { setShowWebQuickMenu(false); switchMode('focused'); }}
-                              style={{ width: '100%', height: 36, padding: '0 12px', border: `1.5px solid ${(!targetExam || !user || !effectiveFocusedUnlocked) ? 'var(--color-border)' : '#009E9E'}`, borderRadius: 'var(--border-radius-full)', cursor: (!targetExam || !user || !effectiveFocusedUnlocked) ? 'default' : 'pointer', background: 'transparent', color: (!targetExam || !user || !effectiveFocusedUnlocked) ? 'var(--color-text-light)' : '#009E9E', fontWeight: 600, fontSize: 'var(--font-size-sm)', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 5 }}
+                              style={{ width: '100%', height: 36, padding: '0 12px', border: `1.5px solid ${(!targetExam || !user || !effectiveFocusedUnlocked) ? 'var(--color-border)' : '#009E9E'}`, borderRadius: 'var(--border-radius-md)', cursor: (!targetExam || !user || !effectiveFocusedUnlocked) ? 'default' : 'pointer', background: 'transparent', color: (!targetExam || !user || !effectiveFocusedUnlocked) ? 'var(--color-text-light)' : '#009E9E', fontWeight: 600, fontSize: 'var(--font-size-sm)', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 5 }}
                             >
                               {!effectiveFocusedUnlocked && <IconLock size={13} />}
                               {ja ? 'しっかり対策モード' : 'Switch to Focused'}
@@ -2357,7 +2357,7 @@ export default function Home() {
                         ) : (
                           <>
                             <div style={{ textAlign: 'center', fontSize: 'var(--font-size-2xs)', color: 'var(--color-text-light)', marginBottom: 4 }}>{ja ? '全ドメインを幅広く均等に出題' : 'Broad, even coverage across domains'}</div>
-                            <button disabled={!targetExam} onClick={() => { setShowWebQuickMenu(false); switchMode('quick'); }} style={{ width: '100%', height: 36, padding: '0 12px', border: '1.5px solid var(--color-accent)', borderRadius: 'var(--border-radius-full)', cursor: !targetExam ? 'default' : 'pointer', background: 'transparent', color: 'var(--color-accent)', fontWeight: 600, fontSize: 'var(--font-size-sm)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                            <button disabled={!targetExam} onClick={() => { setShowWebQuickMenu(false); switchMode('quick'); }} style={{ width: '100%', height: 36, padding: '0 12px', border: '1.5px solid var(--color-accent)', borderRadius: 'var(--border-radius-md)', cursor: !targetExam ? 'default' : 'pointer', background: 'transparent', color: 'var(--color-accent)', fontWeight: 600, fontSize: 'var(--font-size-sm)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                               {ja ? 'サクッと演習モード' : 'Switch to Quick'}
                             </button>
                           </>
@@ -2407,7 +2407,7 @@ export default function Home() {
                           <button
                             disabled={!targetExam || !user || !effectiveFocusedUnlocked}
                             onClick={() => { setShowFocusedMenu(false); switchMode('focused'); }}
-                            style={{ width: '100%', height: 36, padding: '0 12px', border: `1.5px solid ${(!targetExam || !user || !effectiveFocusedUnlocked) ? 'var(--color-border)' : '#009E9E'}`, borderRadius: 'var(--border-radius-full)', cursor: (!targetExam || !user || !effectiveFocusedUnlocked) ? 'default' : 'pointer', background: 'transparent', color: (!targetExam || !user || !effectiveFocusedUnlocked) ? 'var(--color-text-light)' : '#009E9E', fontWeight: 600, fontSize: 'var(--font-size-sm)', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 5 }}
+                            style={{ width: '100%', height: 36, padding: '0 12px', border: `1.5px solid ${(!targetExam || !user || !effectiveFocusedUnlocked) ? 'var(--color-border)' : '#009E9E'}`, borderRadius: 'var(--border-radius-md)', cursor: (!targetExam || !user || !effectiveFocusedUnlocked) ? 'default' : 'pointer', background: 'transparent', color: (!targetExam || !user || !effectiveFocusedUnlocked) ? 'var(--color-text-light)' : '#009E9E', fontWeight: 600, fontSize: 'var(--font-size-sm)', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 5 }}
                           >
                             {!effectiveFocusedUnlocked && <IconLock size={13} />}
                             {ja ? 'しっかり対策モード' : 'Switch to Focused'}
@@ -2422,7 +2422,7 @@ export default function Home() {
                       ) : (
                         <>
                           <div style={{ textAlign: 'center', fontSize: 'var(--font-size-2xs)', color: 'var(--color-text-light)', marginBottom: 4 }}>{ja ? '全ドメインを幅広く均等に出題' : 'Broad, even coverage across domains'}</div>
-                          <button disabled={!targetExam} onClick={() => { setShowFocusedMenu(false); switchMode('quick'); }} style={{ width: '100%', height: 36, padding: '0 12px', border: '1.5px solid var(--color-accent)', borderRadius: 'var(--border-radius-full)', cursor: !targetExam ? 'default' : 'pointer', background: 'transparent', color: 'var(--color-accent)', fontWeight: 600, fontSize: 'var(--font-size-sm)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                          <button disabled={!targetExam} onClick={() => { setShowFocusedMenu(false); switchMode('quick'); }} style={{ width: '100%', height: 36, padding: '0 12px', border: '1.5px solid var(--color-accent)', borderRadius: 'var(--border-radius-md)', cursor: !targetExam ? 'default' : 'pointer', background: 'transparent', color: 'var(--color-accent)', fontWeight: 600, fontSize: 'var(--font-size-sm)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                             {ja ? 'サクッと演習モード' : 'Switch to Quick'}
                           </button>
                         </>
@@ -2512,7 +2512,7 @@ export default function Home() {
                       <button
                         disabled={!targetExam || !user || !effectiveFocusedUnlocked}
                         onClick={() => { setShowNewPanel(false); switchMode('focused'); }}
-                        style={{ width: '100%', height: 44, border: `1.5px solid ${(!targetExam || !user || !effectiveFocusedUnlocked) ? 'var(--color-border)' : '#009E9E'}`, borderRadius: 'var(--border-radius-full)', cursor: (!targetExam || !user || !effectiveFocusedUnlocked) ? 'default' : 'pointer', background: 'transparent', color: (!targetExam || !user || !effectiveFocusedUnlocked) ? 'var(--color-text-light)' : '#009E9E', fontWeight: 600, fontSize: 'var(--font-size-base)', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6 }}
+                        style={{ width: '100%', height: 44, border: `1.5px solid ${(!targetExam || !user || !effectiveFocusedUnlocked) ? 'var(--color-border)' : '#009E9E'}`, borderRadius: 'var(--border-radius-md)', cursor: (!targetExam || !user || !effectiveFocusedUnlocked) ? 'default' : 'pointer', background: 'transparent', color: (!targetExam || !user || !effectiveFocusedUnlocked) ? 'var(--color-text-light)' : '#009E9E', fontWeight: 600, fontSize: 'var(--font-size-base)', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6 }}
                       >
                         {!effectiveFocusedUnlocked && <IconLock size={15} />}
                         {ja ? 'しっかり対策モード' : 'Switch to Focused'}
@@ -2526,7 +2526,7 @@ export default function Home() {
                     </>
                   ) : (
                     <>
-                      <button disabled={!targetExam} onClick={() => { setShowNewPanel(false); switchMode('quick'); }} style={{ width: '100%', height: 44, border: '1.5px solid var(--color-accent)', borderRadius: 'var(--border-radius-full)', cursor: !targetExam ? 'default' : 'pointer', background: 'transparent', color: 'var(--color-accent)', fontWeight: 600, fontSize: 'var(--font-size-base)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                      <button disabled={!targetExam} onClick={() => { setShowNewPanel(false); switchMode('quick'); }} style={{ width: '100%', height: 44, border: '1.5px solid var(--color-accent)', borderRadius: 'var(--border-radius-md)', cursor: !targetExam ? 'default' : 'pointer', background: 'transparent', color: 'var(--color-accent)', fontWeight: 600, fontSize: 'var(--font-size-base)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                         {ja ? 'サクッと演習モード' : 'Switch to Quick'}
                       </button>
                     </>
@@ -2546,7 +2546,7 @@ export default function Home() {
                     <button
                       disabled={!targetExam || !user || !effectiveFocusedUnlocked}
                       onClick={() => { setShowFocusedMenu(false); switchMode('focused'); }}
-                      style={{ width: '100%', height: 44, border: `1.5px solid ${(!targetExam || !user || !effectiveFocusedUnlocked) ? 'var(--color-border)' : '#009E9E'}`, borderRadius: 'var(--border-radius-full)', cursor: (!targetExam || !user || !effectiveFocusedUnlocked) ? 'default' : 'pointer', background: 'transparent', color: (!targetExam || !user || !effectiveFocusedUnlocked) ? 'var(--color-text-light)' : '#009E9E', fontWeight: 600, fontSize: 'var(--font-size-base)', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6 }}
+                      style={{ width: '100%', height: 44, border: `1.5px solid ${(!targetExam || !user || !effectiveFocusedUnlocked) ? 'var(--color-border)' : '#009E9E'}`, borderRadius: 'var(--border-radius-md)', cursor: (!targetExam || !user || !effectiveFocusedUnlocked) ? 'default' : 'pointer', background: 'transparent', color: (!targetExam || !user || !effectiveFocusedUnlocked) ? 'var(--color-text-light)' : '#009E9E', fontWeight: 600, fontSize: 'var(--font-size-base)', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6 }}
                     >
                       {!effectiveFocusedUnlocked && <IconLock size={15} />}
                       {ja ? 'しっかり対策モード' : 'Switch to Focused'}
@@ -2560,7 +2560,7 @@ export default function Home() {
                   </>
                 ) : (
                   <>
-                    <button disabled={!targetExam} onClick={() => { setShowFocusedMenu(false); switchMode('quick'); }} style={{ width: '100%', height: 44, border: '1.5px solid var(--color-accent)', borderRadius: 'var(--border-radius-full)', cursor: !targetExam ? 'default' : 'pointer', background: 'transparent', color: 'var(--color-accent)', fontWeight: 600, fontSize: 'var(--font-size-base)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                    <button disabled={!targetExam} onClick={() => { setShowFocusedMenu(false); switchMode('quick'); }} style={{ width: '100%', height: 44, border: '1.5px solid var(--color-accent)', borderRadius: 'var(--border-radius-md)', cursor: !targetExam ? 'default' : 'pointer', background: 'transparent', color: 'var(--color-accent)', fontWeight: 600, fontSize: 'var(--font-size-base)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                       {ja ? 'サクッと演習モード' : 'Switch to Quick'}
                     </button>
                   </>
@@ -2688,7 +2688,7 @@ export default function Home() {
                         <button
                           key={n}
                           onClick={() => setDraftPrefs(p => ({ ...p, questionCount: n }))}
-                          style={{ flex: 1, height: 36, border: `1.5px solid ${sel ? 'var(--color-primary)' : 'var(--color-border)'}`, borderRadius: 'var(--border-radius-full)', cursor: 'pointer', background: 'transparent', color: 'var(--color-text-main)', fontWeight: sel ? 700 : 600, fontSize: 'var(--font-size-sm)', transition: 'all 0.15s' }}
+                          style={{ flex: 1, height: 36, border: `1.5px solid ${sel ? 'var(--color-primary)' : 'var(--color-border)'}`, borderRadius: 'var(--border-radius-md)', cursor: 'pointer', background: 'transparent', color: 'var(--color-text-main)', fontWeight: sel ? 700 : 600, fontSize: 'var(--font-size-sm)', transition: 'all 0.15s' }}
                         >
                           {n}{ja ? '問' : 'Q'}
                         </button>
@@ -2929,7 +2929,7 @@ export default function Home() {
                         <button
                           key={n}
                           onClick={() => setDraftFocusedPrefs(p => ({ ...p, questionCount: n }))}
-                          style={{ flex: 1, height: 36, border: `1.5px solid ${sel ? 'var(--color-primary)' : 'var(--color-border)'}`, borderRadius: 'var(--border-radius-full)', cursor: 'pointer', background: 'transparent', color: 'var(--color-text-main)', fontWeight: sel ? 700 : 600, fontSize: 'var(--font-size-sm)', transition: 'all 0.15s' }}
+                          style={{ flex: 1, height: 36, border: `1.5px solid ${sel ? 'var(--color-primary)' : 'var(--color-border)'}`, borderRadius: 'var(--border-radius-md)', cursor: 'pointer', background: 'transparent', color: 'var(--color-text-main)', fontWeight: sel ? 700 : 600, fontSize: 'var(--font-size-sm)', transition: 'all 0.15s' }}
                         >
                           {n}{ja ? '問' : 'Q'}
                         </button>

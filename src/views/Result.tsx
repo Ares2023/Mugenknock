@@ -213,7 +213,7 @@ export default function Result() {
             <div style={{ color: 'var(--color-text-sub)', fontSize: 'var(--font-size-sm2)', marginBottom: 16 }}>
               {ja ? '今日の演習目標をクリアしました' : 'You completed your daily exercise goal'}
             </div>
-            <div style={{ display: 'inline-flex', alignItems: 'center', gap: 6, background: 'var(--color-primary-light)', borderRadius: 'var(--border-radius-full)', padding: '6px 20px', marginBottom: 20 }}>
+            <div style={{ display: 'inline-flex', alignItems: 'center', gap: 6, background: 'var(--color-primary-light)', borderRadius: 'var(--border-radius-md)', padding: '6px 20px', marginBottom: 20 }}>
               <span style={{ display: 'inline-flex', color: '#009E9E' }}><IconSparkles size={18} /></span>
               <span style={{ fontWeight: 800, fontSize: 'var(--font-size-xl)', color: 'var(--color-primary)' }}>+{dailyBonusPts}p</span>
             </div>

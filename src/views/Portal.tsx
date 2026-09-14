@@ -9,8 +9,6 @@ import Reveal from '../components/Reveal';
 import { SiteArchitecture } from '../components/SiteArchitecture';
 import { EXAM_TYPES } from '../constants';
 
-const QUESTION_COUNT = 5000;
-
 const BENEFITS: { ja: string; en: string }[] = [
   {
     ja: 'キャリアアップに直結。AWS認定は世界標準のクラウド資格として採用市場で高く評価されています。',
@@ -26,14 +24,9 @@ const BENEFITS: { ja: string; en: string }[] = [
   },
 ];
 
-const FEATURES: { ja_title: string; en_title: string; ja: string; en: string; icon: React.ReactNode }[] = [
-  {
-    icon: <IconBot size={24} />,
-    ja_title: 'AI生成の練習問題',
-    en_title: 'AI-Generated Questions',
-    ja: `Claude AIが作成した全12資格対応の本番同等問題を${QUESTION_COUNT.toLocaleString()}問以上収録。各選択肢ごとの解説付きで、正解だけでなく不正解の理由まで理解できます。`,
-    en: `Over ${QUESTION_COUNT.toLocaleString()} exam-grade questions across all 12 AWS certifications, created by Claude AI with per-choice explanations — learn not just what's right, but why each option is wrong.`,
-  },
+// 問題数（QUESTION_COUNT）に依存する文言は関数コンポーネント内で組み立てる
+// （count は app/page.tsx がビルド時に取得して渡す prop のため）。
+const FEATURES_STATIC: { ja_title: string; en_title: string; ja: string; en: string; icon: React.ReactNode }[] = [
   {
     icon: <IconTarget size={24} />,
     ja_title: '4つの学習モード',
@@ -50,12 +43,6 @@ const FEATURES: { ja_title: string; en_title: string; ja: string; en: string; ic
   },
 ];
 
-const HERO_STATS: { num: string; ja: string; en: string }[] = [
-  { num: `${QUESTION_COUNT.toLocaleString()}+`, ja: '練習問題', en: 'Questions' },
-  { num: '12',  ja: '資格対応',   en: 'Certifications' },
-  { num: '4',   ja: '学習モード', en: 'Study Modes' },
-];
-
 const COMPARE_ROWS: { p: [string, string]; s: [string, string] }[] = [
   { p: ['ロードが遅い', 'Slow loading'], s: ['待たせない表示速度（ローカルに自動プリフェッチ＆キャッシュ）', 'Instant display that never makes you wait (auto local prefetch & cache)'] },
   { p: ['弱点分析が甘い', 'Weak personalization'], s: ['解くほど穴が見える弱点特化（出題ドメイン別に集計・分析）', 'Weak-point focus that sharpens as you solve (tallied & analyzed by exam domain)'] },
@@ -63,11 +50,33 @@ const COMPARE_ROWS: { p: [string, string]; s: [string, string] }[] = [
   { p: ['情報が古い', 'Outdated content'], s: ['最新試験に合わせて作り直し（自動AI監査スクリプトを毎晩実行）', 'Rebuilt to match the latest exams (nightly automated AI audit script)'] },
 ];
 
-export default function Portal() {
+// FALLBACK は app/page.tsx からの props 未指定時（型上は起きない想定）の保険。
+// 実際の値は questionCount.ts が計算し、この関数の呼び出し元(app/page.tsx)が渡す。
+const QUESTION_COUNT_FALLBACK = 4500;
+
+export default function Portal({ questionCount = QUESTION_COUNT_FALLBACK }: { questionCount?: number }) {
   const navigate = useNavigate();
   const { user, loading } = useAuth();
   const { lang } = useLanguage();
   const ja = lang === 'ja';
+  const qCount = questionCount.toLocaleString();
+
+  const FEATURES: { ja_title: string; en_title: string; ja: string; en: string; icon: React.ReactNode }[] = [
+    {
+      icon: <IconBot size={24} />,
+      ja_title: 'AI生成の練習問題',
+      en_title: 'AI-Generated Questions',
+      ja: `Claude AIが作成した全12資格対応の本番同等問題を${qCount}問以上収録。各選択肢ごとの解説付きで、正解だけでなく不正解の理由まで理解できます。`,
+      en: `Over ${qCount} exam-grade questions across all 12 AWS certifications, created by Claude AI with per-choice explanations — learn not just what's right, but why each option is wrong.`,
+    },
+    ...FEATURES_STATIC,
+  ];
+
+  const HERO_STATS: { num: string; ja: string; en: string }[] = [
+    { num: `${qCount}+`, ja: '練習問題', en: 'Questions' },
+    { num: '12',  ja: '資格対応',   en: 'Certifications' },
+    { num: '4',   ja: '学習モード', en: 'Study Modes' },
+  ];
   // SSR安全: 初期値はサーバー/初回クライアントで一致する固定値にし、実値はマウント後に反映する
   // （静的HTMLにランディング本文を出すため、レンダー中は window/localStorage を参照しない）。
   const [isMobile, setIsMobile] = useState(false);
@@ -140,7 +149,7 @@ export default function Portal() {
     <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', background: 'var(--color-bg-main)', color: 'var(--color-text-main)', fontFamily: 'inherit' }}>
       <Helmet>
         <title>無限ノック｜AWS認定試験 練習問題サービス</title>
-        <meta name="description" content={`AWS認定試験（SAA・CLF・SAPなど）の無料練習問題サービス。AI生成の本番同等問題${QUESTION_COUNT.toLocaleString()}問以上・全12資格対応。4つの学習モードとドメイン別弱点分析でスコアアップをサポート。`} />
+        <meta name="description" content={`AWS認定試験（SAA・CLF・SAPなど）の無料練習問題サービス。AI生成の本番同等問題${qCount}問以上・全12資格対応。4つの学習モードとドメイン別弱点分析でスコアアップをサポート。`} />
       </Helmet>
 
       {/* ── ヘッダー ── */}
@@ -236,8 +245,8 @@ export default function Portal() {
                 transition: trans(220),
               }}>
                 {ja
-                  ? `「無限ノック」は、AWS認定全12資格の本番同等問題（${QUESTION_COUNT.toLocaleString()}問以上）から出題する完全解説付きのWeb問題集です。PC・スマホ・タブレットから無料で演習でき、4つの学習モード・ドメイン別の弱点分析・週間目標管理で合格をサポートします。`
-                  : `Mugenknock is a fully-explained web question bank with ${QUESTION_COUNT.toLocaleString()}+ exam-grade questions across all 12 AWS certifications. Practice free on PC, phone, or tablet — with four study modes, per-domain weak-point analysis, and weekly goal tracking to keep you on track.`}
+                  ? `「無限ノック」は、AWS認定全12資格の本番同等問題（${qCount}問以上）から出題する完全解説付きのWeb問題集です。PC・スマホ・タブレットから無料で演習でき、4つの学習モード・ドメイン別の弱点分析・週間目標管理で合格をサポートします。`
+                  : `Mugenknock is a fully-explained web question bank with ${qCount}+ exam-grade questions across all 12 AWS certifications. Practice free on PC, phone, or tablet — with four study modes, per-domain weak-point analysis, and weekly goal tracking to keep you on track.`}
               </p>
 
               {/* 統計バッジ */}

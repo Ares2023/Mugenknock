@@ -65,7 +65,7 @@ const CopyButton = ({ getText, hint }: { getText: () => string; hint?: string })
       onClick={handleCopy}
       title={copied ? 'コピー済み' : 'コピー'}
       style={hint ? {
-        background: 'none', border: `1.5px solid ${color}`, borderRadius: 'var(--border-radius-full)',
+        background: 'none', border: `1.5px solid ${color}`, borderRadius: 'var(--border-radius-md)',
         height: 28, padding: '0 10px', display: 'flex', alignItems: 'center', gap: 5,
         cursor: 'pointer', color, transition: 'all 0.2s', flexShrink: 0, fontSize: 'var(--font-size-xs)', fontWeight: 600,
       } : {
@@ -1428,7 +1428,7 @@ export default function ExerciseSession() {
                 </span>
                 <button
                   onClick={() => { setDetailFetchFailed(false); setDetail(null); }}
-                  style={{ background: 'none', border: '1px solid var(--color-danger)', borderRadius: 'var(--border-radius-full)', padding: '2px 10px', fontSize: 'var(--font-size-xs)', color: 'var(--color-danger)', cursor: 'pointer' }}>
+                  style={{ background: 'none', border: '1px solid var(--color-danger)', borderRadius: 'var(--border-radius-md)', padding: '2px 10px', fontSize: 'var(--font-size-xs)', color: 'var(--color-danger)', cursor: 'pointer' }}>
                   {lang === 'ja' ? '再試行' : 'Retry'}
                 </button>
               </div>
@@ -1467,7 +1467,7 @@ export default function ExerciseSession() {
                     return (
                       <span
                         title={lang === 'ja' ? `全ユーザーの回答 ${ga}件中 ${gc}件正解` : `${gc} of ${ga} answers correct`}
-                        style={{ flexShrink: 0, fontSize: 'var(--font-size-xs)', fontWeight: 700, color: 'var(--color-text-sub)', background: 'var(--color-bg-white)', border: '1px solid var(--color-border)', borderRadius: 'var(--border-radius-full)', padding: '2px 10px', whiteSpace: 'nowrap' }}
+                        style={{ flexShrink: 0, fontSize: 'var(--font-size-xs)', fontWeight: 700, color: 'var(--color-text-sub)', background: 'var(--color-bg-white)', border: '1px solid var(--color-border)', borderRadius: 'var(--border-radius-sm)', padding: '2px 10px', whiteSpace: 'nowrap' }}
                       >
                         {lang === 'ja' ? `受験者正答率 ${Math.round(gc / ga * 100)}%` : `Global accuracy ${Math.round(gc / ga * 100)}%`}
                       </span>
@@ -1538,7 +1538,7 @@ export default function ExerciseSession() {
           <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 'var(--spacing-sm)', marginBottom: 'var(--spacing-sm)' }}>
             <button
               onClick={() => setReportOpen(true)}
-              style={{ background: 'none', border: '1px solid var(--color-border)', borderRadius: 'var(--border-radius-full)', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 4, color: 'var(--color-text-sub)', fontSize: 'var(--font-size-xs)', padding: '3px 10px', transition: 'all 0.2s' }}
+              style={{ background: 'none', border: '1px solid var(--color-border)', borderRadius: 'var(--border-radius-md)', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 4, color: 'var(--color-text-sub)', fontSize: 'var(--font-size-xs)', padding: '3px 10px', transition: 'all 0.2s' }}
               onMouseEnter={e => { e.currentTarget.style.color = 'var(--color-danger)'; e.currentTarget.style.borderColor = 'var(--color-danger)'; }}
               onMouseLeave={e => { e.currentTarget.style.color = 'var(--color-text-sub)'; e.currentTarget.style.borderColor = 'var(--color-border)'; }}
               title={lang === 'ja' ? '問題の不備を通報' : 'Report an issue'}
@@ -1550,7 +1550,7 @@ export default function ExerciseSession() {
               onClick={() => results.length > 0 && setShowAbortConfirm(true)}
               disabled={results.length === 0}
               style={{
-                background: 'none', border: '1px solid var(--color-border)', borderRadius: 'var(--border-radius-full)',
+                background: 'none', border: '1px solid var(--color-border)', borderRadius: 'var(--border-radius-md)',
                 padding: '3px 10px', fontSize: 'var(--font-size-xs)', fontWeight: 600, cursor: results.length === 0 ? 'default' : 'pointer',
                 color: 'var(--color-text-sub)',
                 opacity: results.length === 0 ? 0.45 : 1, whiteSpace: 'nowrap', transition: 'all 0.15s',

@@ -103,7 +103,7 @@ export default function StartTutorialSpotlight({ targetSelector, message, skipLa
       {/* スキップ */}
       <button
         onClick={onClose}
-        style={{ position: 'fixed', top: 12, right: 12, pointerEvents: 'auto', background: 'rgba(0,0,0,0.55)', color: '#fff', border: 'none', borderRadius: 'var(--border-radius-full)', padding: '6px 14px', fontSize: 'var(--font-size-xs)', cursor: 'pointer' }}
+        style={{ position: 'fixed', top: 12, right: 12, pointerEvents: 'auto', background: 'rgba(0,0,0,0.55)', color: '#fff', border: 'none', borderRadius: 'var(--border-radius-md)', padding: '6px 14px', fontSize: 'var(--font-size-xs)', cursor: 'pointer' }}
       >{skipLabel}</button>
     </div>,
     document.body,

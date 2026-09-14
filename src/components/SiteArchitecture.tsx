@@ -104,7 +104,7 @@ function ArchCard({ node, ja, isMobile, delayMs }: { node: ArchNode; ja: boolean
           <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
             <span style={{ fontWeight: 700, fontSize: isMobile ? 'var(--font-size-base)' : 'var(--font-size-lg)', color: 'var(--color-text-main)' }}>{node.title}</span>
             {node.tech && (
-              <span style={{ fontSize: 'var(--font-size-2xs)', fontWeight: 700, color: node.tint, background: `${node.tint}14`, border: `1px solid ${node.tint}33`, borderRadius: 'var(--border-radius-full)', padding: '1px 8px', whiteSpace: 'nowrap' }}>{node.tech}</span>
+              <span style={{ fontSize: 'var(--font-size-2xs)', fontWeight: 700, color: node.tint, background: `${node.tint}14`, border: `1px solid ${node.tint}33`, borderRadius: 'var(--border-radius-sm)', padding: '1px 8px', whiteSpace: 'nowrap' }}>{node.tech}</span>
             )}
           </div>
           <div style={{ fontSize: isMobile ? 'var(--font-size-xs)' : 'var(--font-size-sm)', color: 'var(--color-text-sub)', marginTop: 2 }}>{ja ? node.sub : node.subEn}</div>
@@ -134,7 +134,7 @@ function Connector({ label, delayMs, dashed }: { label: string | null; delayMs: 
     <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 2, padding: '2px 0' }}>
       <span className="arch-line" style={{ width: 0, height: 16, borderLeft: `3px ${dashed ? 'dashed' : 'solid'} var(--color-text-sub)`, display: 'block', animationDelay: `${delayMs}ms` }} />
       {label && (
-        <span className="arch-node" style={{ fontSize: 'var(--font-size-2xs)', fontWeight: 700, color: 'var(--color-text-sub)', background: 'var(--color-bg-main)', border: '1px solid var(--color-text-light)', borderRadius: 'var(--border-radius-full)', padding: '1px 10px', animationDelay: `${delayMs + 60}ms` }}>{label}</span>
+        <span className="arch-node" style={{ fontSize: 'var(--font-size-2xs)', fontWeight: 700, color: 'var(--color-text-sub)', background: 'var(--color-bg-main)', border: '1px solid var(--color-text-light)', borderRadius: 'var(--border-radius-sm)', padding: '1px 10px', animationDelay: `${delayMs + 60}ms` }}>{label}</span>
       )}
       <svg className="arch-line" width="16" height="11" viewBox="0 0 14 10" style={{ animationDelay: `${delayMs + 80}ms` }}><path d="M1 1l6 6 6-6" fill="none" stroke="var(--color-text-sub)" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" /></svg>
     </div>

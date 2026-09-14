@@ -274,7 +274,7 @@ function SortSelect({ value, onChange, options }: { value: string; onChange: (v:
         onChange={e => onChange(e.target.value)}
         style={{
           padding: '5px 10px', border: '1px solid var(--color-border)',
-          borderRadius: 'var(--border-radius-full)', fontSize: 'var(--font-size-sm)',
+          borderRadius: 'var(--border-radius-md)', fontSize: 'var(--font-size-sm)',
           background: 'var(--color-bg-white)', color: 'var(--color-text-main)',
           cursor: 'pointer', outline: 'none',
         }}>
@@ -438,14 +438,14 @@ function QuestionPreviewModal({ onClose, initId = '' }: { onClose: () => void; i
                   <button
                     onClick={() => { if (selected.length > 0) setAnswered(true); }}
                     disabled={selected.length === 0}
-                    style={{ padding: '10px 24px', background: selected.length > 0 ? 'var(--color-accent)' : 'var(--color-border)', color: selected.length > 0 ? 'var(--color-btn-primary-text)' : 'var(--color-text-light)', border: 'none', borderRadius: 9999, fontWeight: 700, cursor: selected.length > 0 ? 'pointer' : 'default', fontSize: 14 }}
+                    style={{ padding: '10px 24px', background: selected.length > 0 ? 'var(--color-accent)' : 'var(--color-border)', color: selected.length > 0 ? 'var(--color-btn-primary-text)' : 'var(--color-text-light)', border: 'none', borderRadius: 'var(--border-radius-md)', fontWeight: 700, cursor: selected.length > 0 ? 'pointer' : 'default', fontSize: 14 }}
                   >
                     回答する
                   </button>
                 ) : (
                   <button
                     onClick={() => { setSelected([]); setAnswered(false); }}
-                    style={{ padding: '8px 18px', background: 'none', border: '1.5px solid var(--color-primary)', color: 'var(--color-primary)', borderRadius: 9999, fontWeight: 700, cursor: 'pointer', fontSize: 13 }}
+                    style={{ padding: '8px 18px', background: 'none', border: '1.5px solid var(--color-primary)', color: 'var(--color-primary)', borderRadius: 'var(--border-radius-md)', fontWeight: 700, cursor: 'pointer', fontSize: 13 }}
                   >
                     リセット
                   </button>
@@ -1592,7 +1592,7 @@ export default function Admin() {
                   key={g.key}
                   onClick={() => setTab(g.tabs[0])}
                   style={{
-                    padding: '5px 16px', border: 'none', borderRadius: 9999, cursor: 'pointer',
+                    padding: '5px 16px', border: 'none', borderRadius: 'var(--border-radius-md)', cursor: 'pointer',
                     fontWeight: 600, fontSize: 'var(--font-size-sm)',
                     background: activeGroup === g.key ? 'var(--color-primary)' : 'var(--color-bg-main)',
                     color: activeGroup === g.key ? '#fff' : 'var(--color-text-sub)',
@@ -1626,12 +1626,12 @@ export default function Admin() {
           <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 8, marginBottom: 10 }}>
             <button
               onClick={() => setShowPreview(true)}
-              style={{ padding: '5px 14px', background: 'transparent', color: 'var(--color-text-sub)', border: '1.5px solid var(--color-border)', borderRadius: 9999, cursor: 'pointer', fontSize: 13, fontWeight: 700 }}>
+              style={{ padding: '5px 14px', background: 'transparent', color: 'var(--color-text-sub)', border: '1.5px solid var(--color-border)', borderRadius: 'var(--border-radius-md)', cursor: 'pointer', fontSize: 13, fontWeight: 700 }}>
               プレビュー
             </button>
             <button
               onClick={() => { fetchQuestions(currentPage); fetchSummary(sinceDate || undefined); }}
-              style={{ padding: '5px 14px', background: 'transparent', color: 'var(--color-primary)', border: '1.5px solid var(--color-primary)', borderRadius: 9999, cursor: 'pointer', fontSize: 13, fontWeight: 700 }}>
+              style={{ padding: '5px 14px', background: 'transparent', color: 'var(--color-primary)', border: '1.5px solid var(--color-primary)', borderRadius: 'var(--border-radius-md)', cursor: 'pointer', fontSize: 13, fontWeight: 700 }}>
               更新
             </button>
           </div>
@@ -1810,7 +1810,7 @@ export default function Admin() {
                 />
                 {keyword && (
                   <div style={{ display: 'flex', gap: 4, marginTop: 4, flexWrap: 'wrap' }}>
-                    <span style={{ display: 'inline-flex', alignItems: 'center', gap: 3, padding: '2px 8px 2px 10px', background: 'var(--color-primary-light)', color: 'var(--color-primary)', borderRadius: 9999, fontSize: 12, fontWeight: 600 }}>
+                    <span style={{ display: 'inline-flex', alignItems: 'center', gap: 3, padding: '2px 8px 2px 10px', background: 'var(--color-primary-light)', color: 'var(--color-primary)', borderRadius: 4, fontSize: 12, fontWeight: 600 }}>
                       {keyword}
                       <button onClick={() => setKeyword('')}
                         style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--color-primary)', fontSize: 15, lineHeight: 1, padding: '0 0 0 2px', display: 'flex', alignItems: 'center' }}>×</button>
@@ -1837,7 +1837,7 @@ export default function Admin() {
                 />
                 {tagFilter && (
                   <div style={{ display: 'flex', gap: 4, marginTop: 4, flexWrap: 'wrap' }}>
-                    <span style={{ display: 'inline-flex', alignItems: 'center', gap: 3, padding: '2px 8px 2px 10px', background: 'var(--color-primary-light)', color: 'var(--color-primary)', borderRadius: 9999, fontSize: 12, fontWeight: 600 }}>
+                    <span style={{ display: 'inline-flex', alignItems: 'center', gap: 3, padding: '2px 8px 2px 10px', background: 'var(--color-primary-light)', color: 'var(--color-primary)', borderRadius: 4, fontSize: 12, fontWeight: 600 }}>
                       {tagFilter}
                       <button onClick={() => setTagFilter('')}
                         style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--color-primary)', fontSize: 15, lineHeight: 1, padding: '0 0 0 2px', display: 'flex', alignItems: 'center' }}>×</button>
@@ -1862,7 +1862,7 @@ export default function Admin() {
                   onClick={handleBulkDelete}
                   disabled={bulkDeleting}
                   style={{
-                    padding: '6px 16px', fontSize: 13, fontWeight: 700, borderRadius: 9999, cursor: bulkDeleting ? 'default' : 'pointer',
+                    padding: '6px 16px', fontSize: 13, fontWeight: 700, borderRadius: 'var(--border-radius-md)', cursor: bulkDeleting ? 'default' : 'pointer',
                     background: bulkDeleting ? 'var(--color-border)' : 'var(--color-bg-white)',
                     color: bulkDeleting ? 'var(--color-text-light)' : 'var(--color-danger)',
                     border: `1.5px solid ${bulkDeleting ? 'var(--color-border)' : 'var(--color-danger)'}`
@@ -1871,7 +1871,7 @@ export default function Admin() {
                 </button>
                 <button
                   onClick={() => setSelectedIds(new Set())}
-                  style={{ padding: '6px 12px', fontSize: 13, fontWeight: 700, borderRadius: 9999, cursor: 'pointer', background: 'transparent', color: 'var(--color-text-sub)', border: '1px solid var(--color-border)' }}>
+                  style={{ padding: '6px 12px', fontSize: 13, fontWeight: 700, borderRadius: 'var(--border-radius-md)', cursor: 'pointer', background: 'transparent', color: 'var(--color-text-sub)', border: '1px solid var(--color-border)' }}>
                   選択解除
                 </button>
               </div>
@@ -1978,12 +1978,12 @@ export default function Admin() {
                 <button
                   onClick={e => { e.stopPropagation(); setPreviewInitId(q.questionId); setShowPreview(true); }}
                   title="演習時の見え方をプレビュー"
-                  style={{ padding: '4px 10px', background: 'transparent', color: 'var(--color-text-sub)', border: '1px solid var(--color-border)', borderRadius: 9999, cursor: 'pointer', fontSize: 12, fontWeight: 700, flexShrink: 0 }}>
+                  style={{ padding: '4px 10px', background: 'transparent', color: 'var(--color-text-sub)', border: '1px solid var(--color-border)', borderRadius: 'var(--border-radius-md)', cursor: 'pointer', fontSize: 12, fontWeight: 700, flexShrink: 0 }}>
                   👁
                 </button>
                 <button
                   onClick={e => { e.stopPropagation(); openEdit(q); }}
-                  style={{ padding: '4px 12px', background: 'transparent', color: 'var(--color-text-sub)', border: '1px solid var(--color-border)', borderRadius: 9999, cursor: 'pointer', fontSize: 12, fontWeight: 700, flexShrink: 0 }}>
+                  style={{ padding: '4px 12px', background: 'transparent', color: 'var(--color-text-sub)', border: '1px solid var(--color-border)', borderRadius: 'var(--border-radius-md)', cursor: 'pointer', fontSize: 12, fontWeight: 700, flexShrink: 0 }}>
                   編集
                 </button>
                 <button
@@ -1994,7 +1994,7 @@ export default function Admin() {
                     background: 'transparent',
                     color: deletingId === q.questionId ? 'var(--color-text-light)' : 'var(--color-danger)',
                     border: `1.5px solid ${deletingId === q.questionId ? 'var(--color-border)' : 'var(--color-danger)'}`,
-                    borderRadius: 9999,
+                    borderRadius: 'var(--border-radius-md)',
                     cursor: deletingId === q.questionId ? 'default' : 'pointer',
                     fontSize: 12,
                     fontWeight: 700,
@@ -2062,7 +2062,7 @@ export default function Admin() {
               <button
                 onClick={() => { fetchQuestions(currentPage - 1); setSelectedIds(new Set()); }}
                 disabled={currentPage === 0}
-                style={{ padding: '6px 16px', borderRadius: 9999, border: '1px solid var(--color-border)', background: currentPage === 0 ? 'var(--color-bg-main)' : 'var(--color-bg-white)', color: currentPage === 0 ? 'var(--color-text-light)' : 'var(--color-text-main)', cursor: currentPage === 0 ? 'default' : 'pointer', fontWeight: 700, fontSize: 13 }}>
+                style={{ padding: '6px 16px', borderRadius: 'var(--border-radius-md)', border: '1px solid var(--color-border)', background: currentPage === 0 ? 'var(--color-bg-main)' : 'var(--color-bg-white)', color: currentPage === 0 ? 'var(--color-text-light)' : 'var(--color-text-main)', cursor: currentPage === 0 ? 'default' : 'pointer', fontWeight: 700, fontSize: 13 }}>
                 ← 前
               </button>
               <span style={{ fontSize: 13, color: 'var(--color-text-sub)' }}>
@@ -2071,7 +2071,7 @@ export default function Admin() {
               <button
                 onClick={() => { fetchQuestions(currentPage + 1); setSelectedIds(new Set()); }}
                 disabled={(currentPage + 1) * PAGE_SIZE >= totalQuestions}
-                style={{ padding: '6px 16px', borderRadius: 9999, border: '1px solid var(--color-border)', background: (currentPage + 1) * PAGE_SIZE >= totalQuestions ? 'var(--color-bg-main)' : 'var(--color-bg-white)', color: (currentPage + 1) * PAGE_SIZE >= totalQuestions ? 'var(--color-text-light)' : 'var(--color-text-main)', cursor: (currentPage + 1) * PAGE_SIZE >= totalQuestions ? 'default' : 'pointer', fontWeight: 700, fontSize: 13 }}>
+                style={{ padding: '6px 16px', borderRadius: 'var(--border-radius-md)', border: '1px solid var(--color-border)', background: (currentPage + 1) * PAGE_SIZE >= totalQuestions ? 'var(--color-bg-main)' : 'var(--color-bg-white)', color: (currentPage + 1) * PAGE_SIZE >= totalQuestions ? 'var(--color-text-light)' : 'var(--color-text-main)', cursor: (currentPage + 1) * PAGE_SIZE >= totalQuestions ? 'default' : 'pointer', fontWeight: 700, fontSize: 13 }}>
                 次 →
               </button>
             </div>
@@ -2085,7 +2085,7 @@ export default function Admin() {
           <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: 10 }}>
             <button
               onClick={fetchGrowthData}
-              style={{ padding: '5px 14px', background: 'transparent', color: 'var(--color-primary)', border: '1.5px solid var(--color-primary)', borderRadius: 9999, cursor: 'pointer', fontSize: 13, fontWeight: 700 }}>
+              style={{ padding: '5px 14px', background: 'transparent', color: 'var(--color-primary)', border: '1.5px solid var(--color-primary)', borderRadius: 'var(--border-radius-md)', cursor: 'pointer', fontSize: 13, fontWeight: 700 }}>
               更新
             </button>
           </div>
@@ -2157,7 +2157,7 @@ export default function Admin() {
                     {r.questionId}
                   </span>
                   {r.category && (
-                    <span style={{ fontSize: 11, background: 'var(--color-bg-warning)', color: 'var(--color-text-warning)', padding: '2px 8px', borderRadius: 9999, fontWeight: 700, border: '1px solid #ffc107' }}>
+                    <span style={{ fontSize: 11, background: 'var(--color-bg-warning)', color: 'var(--color-text-warning)', padding: '2px 8px', borderRadius: 4, fontWeight: 700, border: '1px solid #ffc107' }}>
                       {REPORT_CATEGORY_LABEL[r.category] ?? r.category}
                     </span>
                   )}
@@ -2172,12 +2172,12 @@ export default function Admin() {
                       setKeyword(r.questionId);
                       setTimeout(() => fetchQuestions(), 100);
                     }}
-                    style={{ fontSize: 12, padding: '4px 12px', border: '1.5px solid var(--color-primary)', borderRadius: 9999, cursor: 'pointer', background: 'transparent', color: 'var(--color-primary)', fontWeight: 700 }}>
+                    style={{ fontSize: 12, padding: '4px 12px', border: '1.5px solid var(--color-primary)', borderRadius: 'var(--border-radius-md)', cursor: 'pointer', background: 'transparent', color: 'var(--color-primary)', fontWeight: 700 }}>
                     問題を確認
                   </button>
                   <button
                     onClick={() => deleteReport(r.reportId, r.questionId)}
-                    style={{ fontSize: 12, padding: '4px 12px', border: '1px solid #d1d5db', borderRadius: 9999, cursor: 'pointer', background: 'transparent', color: 'var(--color-text-sub)', fontWeight: 700 }}
+                    style={{ fontSize: 12, padding: '4px 12px', border: '1px solid #d1d5db', borderRadius: 'var(--border-radius-md)', cursor: 'pointer', background: 'transparent', color: 'var(--color-text-sub)', fontWeight: 700 }}
                     title="解決済みとして削除">
                     ✓ 解決済み
                   </button>
@@ -2360,7 +2360,7 @@ ${!nonAws && EXAM_SUPPLEMENTARY_RULES[importExamType] ? `${EXAM_SUPPLEMENTARY_RU
                     <div style={{ fontWeight: 'bold', fontSize: 14, color: '#232f3e' }}>AIプロンプト生成</div>
                     {(promptTopic || promptCount !== '5') && (
                       <button onClick={() => { setPromptTopic(''); setPromptCount('5'); }}
-                        style={{ padding: '4px 12px', background: 'transparent', border: '1px solid #d1d5db', borderRadius: 9999, cursor: 'pointer', fontSize: 12, fontWeight: 700, color: 'var(--color-text-sub)' }}>
+                        style={{ padding: '4px 12px', background: 'transparent', border: '1px solid #d1d5db', borderRadius: 'var(--border-radius-md)', cursor: 'pointer', fontSize: 12, fontWeight: 700, color: 'var(--color-text-sub)' }}>
                         リセット
                       </button>
                     )}
@@ -2389,7 +2389,7 @@ ${!nonAws && EXAM_SUPPLEMENTARY_RULES[importExamType] ? `${EXAM_SUPPLEMENTARY_RU
                     </pre>
                     <button onClick={copyPrompt}
                       style={{ position: 'absolute', top: 8, right: 8,
-                        padding: '4px 12px', fontSize: 12, borderRadius: 9999, cursor: 'pointer',
+                        padding: '4px 12px', fontSize: 12, borderRadius: 'var(--border-radius-md)', cursor: 'pointer',
                         background: promptCopied ? 'var(--color-feedback-correct-bg)' : 'var(--color-bg-white)',
                         color: promptCopied ? 'var(--color-success)' : 'var(--color-primary)',
                         border: `1.5px solid ${promptCopied ? 'var(--color-success)' : 'var(--color-primary)'}`,
@@ -2414,11 +2414,11 @@ ${!nonAws && EXAM_SUPPLEMENTARY_RULES[importExamType] ? `${EXAM_SUPPLEMENTARY_RU
                 <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
                   {importJson && (
                     <button onClick={() => { setImportJson(''); setImportParsed(null); setImportResult(null); setImportError(''); setImportMismatchTypes([]); }}
-                      style={{ padding: '5px 12px', background: 'transparent', border: '1px solid #d1d5db', borderRadius: 9999, cursor: 'pointer', fontSize: 12, fontWeight: 700, color: 'var(--color-text-sub)' }}>
+                      style={{ padding: '5px 12px', background: 'transparent', border: '1px solid #d1d5db', borderRadius: 'var(--border-radius-md)', cursor: 'pointer', fontSize: 12, fontWeight: 700, color: 'var(--color-text-sub)' }}>
                       クリア
                     </button>
                   )}
-                  <label style={{ padding: '5px 12px', background: 'var(--color-bg-main)', border: '1px solid #d1d5db', borderRadius: 9999, cursor: 'pointer', fontSize: 12, fontWeight: 700 }}>
+                  <label style={{ padding: '5px 12px', background: 'var(--color-bg-main)', border: '1px solid #d1d5db', borderRadius: 'var(--border-radius-md)', cursor: 'pointer', fontSize: 12, fontWeight: 700 }}>
                     ファイルを選択
                     <input type="file" accept=".json" onChange={handleFileUpload} style={{ display: 'none' }} />
                   </label>
@@ -2435,13 +2435,13 @@ ${!nonAws && EXAM_SUPPLEMENTARY_RULES[importExamType] ? `${EXAM_SUPPLEMENTARY_RU
             <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 24, flexWrap: 'wrap' }}>
               <button onClick={handleParse} disabled={!importJson.trim()}
                 style={{ padding: '8px 20px', background: importJson.trim() ? 'var(--color-text-sub)' : 'var(--color-border)',
-                  color: importJson.trim() ? 'white' : 'var(--color-text-light)', border: 'none', borderRadius: 9999, cursor: importJson.trim() ? 'pointer' : 'default', fontWeight: 700, fontSize: 14 }}>
+                  color: importJson.trim() ? 'white' : 'var(--color-text-light)', border: 'none', borderRadius: 'var(--border-radius-md)', cursor: importJson.trim() ? 'pointer' : 'default', fontWeight: 700, fontSize: 14 }}>
                 構文チェック
               </button>
               {importParsed && (
                 <button onClick={handleImport} disabled={importing}
                   style={{ padding: '8px 24px', background: importing ? 'var(--color-border)' : 'transparent',
-                    color: importing ? 'var(--color-text-light)' : 'var(--color-primary)', border: `1.5px solid ${importing ? 'var(--color-border)' : 'var(--color-primary)'}`, borderRadius: 9999, cursor: importing ? 'default' : 'pointer', fontWeight: 700, fontSize: 14 }}>
+                    color: importing ? 'var(--color-text-light)' : 'var(--color-primary)', border: `1.5px solid ${importing ? 'var(--color-border)' : 'var(--color-primary)'}`, borderRadius: 'var(--border-radius-md)', cursor: importing ? 'default' : 'pointer', fontWeight: 700, fontSize: 14 }}>
                   {importing ? 'インポート中...' : `${importParsed.length}件をインポート`}
                 </button>
               )}
@@ -2487,15 +2487,15 @@ ${!nonAws && EXAM_SUPPLEMENTARY_RULES[importExamType] ? `${EXAM_SUPPLEMENTARY_RU
                 { key: 'examType_asc', label: '試験種別' },
               ]} />
               <button onClick={() => { setShowTipPrompt(v => !v); setShowTipImport(false); setShowTipForm(false); }}
-                style={{ padding: '7px 16px', background: showTipPrompt ? 'var(--color-primary-light)' : 'transparent', color: 'var(--color-primary)', border: '1.5px solid var(--color-primary)', borderRadius: 9999, cursor: 'pointer', fontSize: 13, fontWeight: 700 }}>
+                style={{ padding: '7px 16px', background: showTipPrompt ? 'var(--color-primary-light)' : 'transparent', color: 'var(--color-primary)', border: '1.5px solid var(--color-primary)', borderRadius: 'var(--border-radius-md)', cursor: 'pointer', fontSize: 13, fontWeight: 700 }}>
                 AIプロンプト
               </button>
               <button onClick={() => { setShowTipImport(v => !v); setShowTipForm(false); setShowTipPrompt(false); }}
-                style={{ padding: '7px 16px', background: showTipImport ? 'var(--color-primary-light)' : 'transparent', color: 'var(--color-primary)', border: '1.5px solid var(--color-primary)', borderRadius: 9999, cursor: 'pointer', fontSize: 13, fontWeight: 700 }}>
+                style={{ padding: '7px 16px', background: showTipImport ? 'var(--color-primary-light)' : 'transparent', color: 'var(--color-primary)', border: '1.5px solid var(--color-primary)', borderRadius: 'var(--border-radius-md)', cursor: 'pointer', fontSize: 13, fontWeight: 700 }}>
                 JSONインポート
               </button>
               <button onClick={() => { setEditingTip(null); setTipForm({ examType: 'ALL', title: '', content: '' }); setShowTipForm(true); setShowTipImport(false); setShowTipPrompt(false); }}
-                style={{ padding: '7px 16px', background: 'transparent', color: 'var(--color-primary)', border: '1.5px solid var(--color-primary)', borderRadius: 9999, cursor: 'pointer', fontSize: 13, fontWeight: 700 }}>
+                style={{ padding: '7px 16px', background: 'transparent', color: 'var(--color-primary)', border: '1.5px solid var(--color-primary)', borderRadius: 'var(--border-radius-md)', cursor: 'pointer', fontSize: 13, fontWeight: 700 }}>
                 ＋ 手動追加
               </button>
             </div>
@@ -2588,7 +2588,7 @@ ${tipPromptExamType !== 'ALL' ? `・examType には "${tipPromptExamType}" を�
                   </pre>
                   <button onClick={copyPrompt}
                     style={{ position: 'absolute', top: 8, right: 8,
-                      padding: '4px 12px', fontSize: 12, borderRadius: 9999, cursor: 'pointer',
+                      padding: '4px 12px', fontSize: 12, borderRadius: 'var(--border-radius-md)', cursor: 'pointer',
                       background: tipPromptCopied ? 'var(--color-feedback-correct-bg)' : 'var(--color-bg-white)',
                       color: tipPromptCopied ? 'var(--color-success)' : 'var(--color-primary)',
                       border: `1.5px solid ${tipPromptCopied ? 'var(--color-success)' : 'var(--color-primary)'}`,
@@ -2681,7 +2681,7 @@ ${tipPromptExamType !== 'ALL' ? `・examType には "${tipPromptExamType}" を�
                     }
                   }}
                   disabled={!tipImportJson.trim()}
-                  style={{ padding: '7px 20px', background: tipImportJson.trim() ? 'var(--color-text-sub)' : 'var(--color-border)', color: tipImportJson.trim() ? 'white' : 'var(--color-text-light)', border: 'none', borderRadius: 9999, cursor: tipImportJson.trim() ? 'pointer' : 'default', fontSize: 13, fontWeight: 700 }}>
+                  style={{ padding: '7px 20px', background: tipImportJson.trim() ? 'var(--color-text-sub)' : 'var(--color-border)', color: tipImportJson.trim() ? 'white' : 'var(--color-text-light)', border: 'none', borderRadius: 'var(--border-radius-md)', cursor: tipImportJson.trim() ? 'pointer' : 'default', fontSize: 13, fontWeight: 700 }}>
                   構文チェック
                 </button>
                 {tipImportParsed && (
@@ -2708,7 +2708,7 @@ ${tipPromptExamType !== 'ALL' ? `・examType には "${tipPromptExamType}" を�
                       }
                     }}
                     disabled={tipImporting}
-                    style={{ padding: '7px 24px', background: tipImporting ? 'var(--color-border)' : 'transparent', color: tipImporting ? 'var(--color-text-light)' : 'var(--color-primary)', border: `1.5px solid ${tipImporting ? 'var(--color-border)' : 'var(--color-primary)'}`, borderRadius: 9999, cursor: tipImporting ? 'default' : 'pointer', fontSize: 13, fontWeight: 700 }}>
+                    style={{ padding: '7px 24px', background: tipImporting ? 'var(--color-border)' : 'transparent', color: tipImporting ? 'var(--color-text-light)' : 'var(--color-primary)', border: `1.5px solid ${tipImporting ? 'var(--color-border)' : 'var(--color-primary)'}`, borderRadius: 'var(--border-radius-md)', cursor: tipImporting ? 'default' : 'pointer', fontSize: 13, fontWeight: 700 }}>
                     {tipImporting ? 'インポート中...' : `${tipImportParsed.length}件をインポート`}
                   </button>
                 )}
@@ -2761,11 +2761,11 @@ ${tipPromptExamType !== 'ALL' ? `・examType には "${tipPromptExamType}" を�
               />
               <div style={{ display: 'flex', gap: 8, marginTop: 12, borderTop: '1px solid #eaeded', paddingTop: 12 }}>
                 <button onClick={handleSaveTip}
-                  style={{ padding: '7px 20px', background: '#ff9900', color: '#fff', border: '1px solid transparent', borderRadius: 9999, cursor: 'pointer', fontWeight: 700, fontSize: 14 }}>
+                  style={{ padding: '7px 20px', background: '#ff9900', color: '#fff', border: '1px solid transparent', borderRadius: 'var(--border-radius-md)', cursor: 'pointer', fontWeight: 700, fontSize: 14 }}>
                   保存
                 </button>
                 <button onClick={() => { setShowTipForm(false); setEditingTip(null); }}
-                  style={{ padding: '7px 16px', border: '1px solid var(--color-border)', borderRadius: 9999, cursor: 'pointer', background: 'transparent', fontWeight: 700, fontSize: 14 }}>
+                  style={{ padding: '7px 16px', border: '1px solid var(--color-border)', borderRadius: 'var(--border-radius-md)', cursor: 'pointer', background: 'transparent', fontWeight: 700, fontSize: 14 }}>
                   キャンセル
                 </button>
               </div>
@@ -2789,11 +2789,11 @@ ${tipPromptExamType !== 'ALL' ? `・examType には "${tipPromptExamType}" を�
                 </div>
                 <div style={{ display: 'flex', gap: 6, flexShrink: 0 }}>
                   <button onClick={() => { setEditingTip(tip); setTipForm({ examType: tip.examType, title: tip.title, content: tip.content }); setShowTipForm(true); }}
-                    style={{ padding: '4px 10px', border: '1px solid var(--color-border)', borderRadius: 9999, cursor: 'pointer', background: 'transparent', fontSize: 12, fontWeight: 700 }}>
+                    style={{ padding: '4px 10px', border: '1px solid var(--color-border)', borderRadius: 'var(--border-radius-md)', cursor: 'pointer', background: 'transparent', fontSize: 12, fontWeight: 700 }}>
                     編集
                   </button>
                   <button onClick={() => handleDeleteTip(tip)}
-                    style={{ padding: '4px 10px', background: 'transparent', color: 'var(--color-danger)', border: '1px solid #d13212', borderRadius: 9999, cursor: 'pointer', fontSize: 12, fontWeight: 700 }}>
+                    style={{ padding: '4px 10px', background: 'transparent', color: 'var(--color-danger)', border: '1px solid #d13212', borderRadius: 'var(--border-radius-md)', cursor: 'pointer', fontSize: 12, fontWeight: 700 }}>
                     削除
                   </button>
                 </div>
@@ -2863,7 +2863,7 @@ ${tipPromptExamType !== 'ALL' ? `・examType には "${tipPromptExamType}" を�
                 </div>
               </div>
               <button onClick={addColumnIdea} disabled={!ciText.trim() || ciSaving}
-                style={{ padding: '8px 24px', background: (!ciText.trim() || ciSaving) ? 'var(--color-border)' : 'var(--color-primary)', color: (!ciText.trim() || ciSaving) ? 'var(--color-text-light)' : 'var(--color-btn-primary-text)', border: 'none', borderRadius: 9999, cursor: (!ciText.trim() || ciSaving) ? 'default' : 'pointer', fontSize: 13, fontWeight: 700 }}>
+                style={{ padding: '8px 24px', background: (!ciText.trim() || ciSaving) ? 'var(--color-border)' : 'var(--color-primary)', color: (!ciText.trim() || ciSaving) ? 'var(--color-text-light)' : 'var(--color-btn-primary-text)', border: 'none', borderRadius: 'var(--border-radius-md)', cursor: (!ciText.trim() || ciSaving) ? 'default' : 'pointer', fontSize: 13, fontWeight: 700 }}>
                 {ciSaving ? '投稿中...' : '＋ ネタを投稿'}
               </button>
             </div>
@@ -2875,9 +2875,9 @@ ${tipPromptExamType !== 'ALL' ? `・examType には "${tipPromptExamType}" を�
               </p>
               <div style={{ display: 'flex', gap: 8 }}>
                 <button onClick={() => setCiShowUsed(false)}
-                  style={{ padding: '6px 14px', background: !ciShowUsed ? 'var(--color-primary-light)' : 'transparent', color: 'var(--color-primary)', border: '1.5px solid var(--color-primary)', borderRadius: 9999, cursor: 'pointer', fontSize: 13, fontWeight: 700 }}>未使用</button>
+                  style={{ padding: '6px 14px', background: !ciShowUsed ? 'var(--color-primary-light)' : 'transparent', color: 'var(--color-primary)', border: '1.5px solid var(--color-primary)', borderRadius: 'var(--border-radius-md)', cursor: 'pointer', fontSize: 13, fontWeight: 700 }}>未使用</button>
                 <button onClick={() => setCiShowUsed(true)}
-                  style={{ padding: '6px 14px', background: ciShowUsed ? 'var(--color-primary-light)' : 'transparent', color: 'var(--color-primary)', border: '1.5px solid var(--color-primary)', borderRadius: 9999, cursor: 'pointer', fontSize: 13, fontWeight: 700 }}>使用済み</button>
+                  style={{ padding: '6px 14px', background: ciShowUsed ? 'var(--color-primary-light)' : 'transparent', color: 'var(--color-primary)', border: '1.5px solid var(--color-primary)', borderRadius: 'var(--border-radius-md)', cursor: 'pointer', fontSize: 13, fontWeight: 700 }}>使用済み</button>
                 <SortSelect value={ciSort} onChange={setCiSort} options={[
                   { key: 'createdAt_desc', label: '投稿日（新しい順）' },
                   { key: 'createdAt_asc', label: '投稿日（古い順）' },
@@ -2893,10 +2893,10 @@ ${tipPromptExamType !== 'ALL' ? `・examType には "${tipPromptExamType}" を�
               }).map(idea => (
                 <div key={idea.ideaId} style={{ border: '1px solid var(--color-border)', borderRadius: 8, padding: '14px 16px', background: 'var(--color-bg-white)', opacity: idea.status === 'used' ? 0.7 : 1 }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 8, flexWrap: 'wrap' }}>
-                    <span style={{ fontSize: 11, fontWeight: 700, color: 'var(--color-primary)', background: 'var(--color-primary-light)', padding: '2px 10px', borderRadius: 9999 }}>{idea.examType || 'ALL'}</span>
+                    <span style={{ fontSize: 11, fontWeight: 700, color: 'var(--color-primary)', background: 'var(--color-primary-light)', padding: '2px 10px', borderRadius: 4 }}>{idea.examType || 'ALL'}</span>
                     {idea.status === 'used'
-                      ? <span style={{ fontSize: 11, fontWeight: 700, color: 'var(--color-text-light)', background: 'var(--color-bg-main)', padding: '2px 10px', borderRadius: 9999, border: '1px solid var(--color-border)' }}>使用済み</span>
-                      : <span style={{ fontSize: 11, fontWeight: 700, color: 'var(--color-success)', background: 'var(--color-feedback-correct-bg)', padding: '2px 10px', borderRadius: 9999 }}>未使用</span>}
+                      ? <span style={{ fontSize: 11, fontWeight: 700, color: 'var(--color-text-light)', background: 'var(--color-bg-main)', padding: '2px 10px', borderRadius: 4, border: '1px solid var(--color-border)' }}>使用済み</span>
+                      : <span style={{ fontSize: 11, fontWeight: 700, color: 'var(--color-success)', background: 'var(--color-feedback-correct-bg)', padding: '2px 10px', borderRadius: 4 }}>未使用</span>}
                     <span style={{ fontSize: 11, color: 'var(--color-text-light)', marginLeft: 'auto' }}>{(idea.createdAt || '').slice(0, 10)}</span>
                   </div>
                   <div style={{ fontSize: 14, color: 'var(--color-text-main)', lineHeight: 1.7, whiteSpace: 'pre-wrap', wordBreak: 'break-word' }}>{idea.text}</div>
@@ -2909,11 +2909,11 @@ ${tipPromptExamType !== 'ALL' ? `・examType には "${tipPromptExamType}" を�
                   <div style={{ display: 'flex', gap: 8, marginTop: 10 }}>
                     {idea.status === 'used'
                       ? <button onClick={() => setColumnIdeaStatus(idea.ideaId, 'pending')}
-                          style={{ padding: '5px 14px', background: 'transparent', color: 'var(--color-primary)', border: '1.5px solid var(--color-primary)', borderRadius: 9999, cursor: 'pointer', fontSize: 12, fontWeight: 700 }}>再有効化</button>
+                          style={{ padding: '5px 14px', background: 'transparent', color: 'var(--color-primary)', border: '1.5px solid var(--color-primary)', borderRadius: 'var(--border-radius-md)', cursor: 'pointer', fontSize: 12, fontWeight: 700 }}>再有効化</button>
                       : <button onClick={() => setColumnIdeaStatus(idea.ideaId, 'used')}
-                          style={{ padding: '5px 14px', background: 'transparent', color: 'var(--color-text-sub)', border: '1.5px solid var(--color-border)', borderRadius: 9999, cursor: 'pointer', fontSize: 12, fontWeight: 700 }}>無効化</button>}
+                          style={{ padding: '5px 14px', background: 'transparent', color: 'var(--color-text-sub)', border: '1.5px solid var(--color-border)', borderRadius: 'var(--border-radius-md)', cursor: 'pointer', fontSize: 12, fontWeight: 700 }}>無効化</button>}
                     <button onClick={() => deleteColumnIdea(idea.ideaId)}
-                      style={{ padding: '5px 14px', background: 'transparent', color: 'var(--color-danger)', border: '1.5px solid var(--color-danger)', borderRadius: 9999, cursor: 'pointer', fontSize: 12, fontWeight: 700 }}>削除</button>
+                      style={{ padding: '5px 14px', background: 'transparent', color: 'var(--color-danger)', border: '1.5px solid var(--color-danger)', borderRadius: 'var(--border-radius-md)', cursor: 'pointer', fontSize: 12, fontWeight: 700 }}>削除</button>
                   </div>
                 </div>
               ))}
@@ -2946,7 +2946,7 @@ ${tipPromptExamType !== 'ALL' ? `・examType には "${tipPromptExamType}" を�
                 setReleaseForm({ date: new Date().toISOString().slice(0, 10), title: '', body: '' });
                 setShowReleaseForm(true);
               }}
-              style={{ padding: '7px 16px', background: 'transparent', color: 'var(--color-primary)', border: '1.5px solid var(--color-primary)', borderRadius: 9999, cursor: 'pointer', fontSize: 13, fontWeight: 700 }}>
+              style={{ padding: '7px 16px', background: 'transparent', color: 'var(--color-primary)', border: '1.5px solid var(--color-primary)', borderRadius: 'var(--border-radius-md)', cursor: 'pointer', fontSize: 13, fontWeight: 700 }}>
               ＋ 新規追加
             </button>
             </div>
@@ -2992,11 +2992,11 @@ ${tipPromptExamType !== 'ALL' ? `・examType には "${tipPromptExamType}" を�
               </div>
               <div style={{ display: 'flex', gap: 8 }}>
                 <button onClick={handleSaveRelease}
-                  style={{ padding: '7px 20px', background: '#ff9900', color: '#fff', border: '1px solid transparent', borderRadius: 9999, cursor: 'pointer', fontWeight: 700, fontSize: 14 }}>
+                  style={{ padding: '7px 20px', background: '#ff9900', color: '#fff', border: '1px solid transparent', borderRadius: 'var(--border-radius-md)', cursor: 'pointer', fontWeight: 700, fontSize: 14 }}>
                   保存
                 </button>
                 <button onClick={() => { setShowReleaseForm(false); setEditingRelease(null); }}
-                  style={{ padding: '7px 16px', border: '1px solid var(--color-border)', borderRadius: 9999, cursor: 'pointer', background: 'transparent', fontWeight: 700, fontSize: 14 }}>
+                  style={{ padding: '7px 16px', border: '1px solid var(--color-border)', borderRadius: 'var(--border-radius-md)', cursor: 'pointer', background: 'transparent', fontWeight: 700, fontSize: 14 }}>
                   キャンセル
                 </button>
               </div>
@@ -3017,12 +3017,12 @@ ${tipPromptExamType !== 'ALL' ? `・examType には "${tipPromptExamType}" を�
                 <div style={{ display: 'flex', gap: 6, flexShrink: 0 }}>
                   <button
                     onClick={() => { setEditingRelease(r); setReleaseForm({ date: r.date, title: r.title, body: r.body }); setShowReleaseForm(true); }}
-                    style={{ padding: '4px 10px', border: '1px solid var(--color-border)', borderRadius: 9999, cursor: 'pointer', background: 'transparent', fontSize: 12, fontWeight: 700 }}>
+                    style={{ padding: '4px 10px', border: '1px solid var(--color-border)', borderRadius: 'var(--border-radius-md)', cursor: 'pointer', background: 'transparent', fontSize: 12, fontWeight: 700 }}>
                     編集
                   </button>
                   <button
                     onClick={() => handleDeleteRelease(r)}
-                    style={{ padding: '4px 10px', background: 'transparent', color: 'var(--color-danger)', border: '1px solid #d13212', borderRadius: 9999, cursor: 'pointer', fontSize: 12, fontWeight: 700 }}>
+                    style={{ padding: '4px 10px', background: 'transparent', color: 'var(--color-danger)', border: '1px solid #d13212', borderRadius: 'var(--border-radius-md)', cursor: 'pointer', fontSize: 12, fontWeight: 700 }}>
                     削除
                   </button>
                 </div>
@@ -3057,7 +3057,7 @@ ${tipPromptExamType !== 'ALL' ? `・examType には "${tipPromptExamType}" を�
                 setAnnForm({ title: '', body: ANNOUNCEMENT_BUG_REPORT_TEMPLATE });
                 setShowAnnForm(true);
               }}
-              style={{ padding: '7px 16px', background: 'transparent', color: 'var(--color-primary)', border: '1.5px solid var(--color-primary)', borderRadius: 9999, cursor: 'pointer', fontSize: 13, fontWeight: 700 }}>
+              style={{ padding: '7px 16px', background: 'transparent', color: 'var(--color-primary)', border: '1.5px solid var(--color-primary)', borderRadius: 'var(--border-radius-md)', cursor: 'pointer', fontSize: 13, fontWeight: 700 }}>
               ＋ 新規追加
             </button>
             </div>
@@ -3094,23 +3094,23 @@ ${tipPromptExamType !== 'ALL' ? `・examType には "${tipPromptExamType}" を�
               <div style={{ display: 'flex', gap: 8 }}>
                 {editingAnnouncement ? (
                   <button onClick={handleSaveAnnouncement}
-                    style={{ padding: '7px 20px', background: '#ff9900', color: '#fff', border: '1px solid transparent', borderRadius: 9999, cursor: 'pointer', fontWeight: 700, fontSize: 14 }}>
+                    style={{ padding: '7px 20px', background: '#ff9900', color: '#fff', border: '1px solid transparent', borderRadius: 'var(--border-radius-md)', cursor: 'pointer', fontWeight: 700, fontSize: 14 }}>
                     保存
                   </button>
                 ) : (
                   <>
                     <button onClick={handleSaveAnnouncement}
-                      style={{ padding: '7px 20px', border: '1px solid var(--color-border)', borderRadius: 9999, cursor: 'pointer', background: 'transparent', fontWeight: 700, fontSize: 14 }}>
+                      style={{ padding: '7px 20px', border: '1px solid var(--color-border)', borderRadius: 'var(--border-radius-md)', cursor: 'pointer', background: 'transparent', fontWeight: 700, fontSize: 14 }}>
                       下書き保存
                     </button>
                     <button onClick={handleSaveAndPublishAnnouncement}
-                      style={{ padding: '7px 20px', background: '#ff9900', color: '#fff', border: '1px solid transparent', borderRadius: 9999, cursor: 'pointer', fontWeight: 700, fontSize: 14 }}>
+                      style={{ padding: '7px 20px', background: '#ff9900', color: '#fff', border: '1px solid transparent', borderRadius: 'var(--border-radius-md)', cursor: 'pointer', fontWeight: 700, fontSize: 14 }}>
                       今すぐ送信
                     </button>
                   </>
                 )}
                 <button onClick={() => { setShowAnnForm(false); setEditingAnnouncement(null); }}
-                  style={{ padding: '7px 16px', border: '1px solid var(--color-border)', borderRadius: 9999, cursor: 'pointer', background: 'transparent', fontWeight: 700, fontSize: 14 }}>
+                  style={{ padding: '7px 16px', border: '1px solid var(--color-border)', borderRadius: 'var(--border-radius-md)', cursor: 'pointer', background: 'transparent', fontWeight: 700, fontSize: 14 }}>
                   キャンセル
                 </button>
               </div>
@@ -3126,7 +3126,7 @@ ${tipPromptExamType !== 'ALL' ? `・examType には "${tipPromptExamType}" を�
             <div key={a.announcementId} style={{ border: '1px solid #eaeded', borderRadius: 6, padding: '12px 14px', marginBottom: 8, background: 'var(--color-bg-white)', boxShadow: 'var(--box-shadow-sm)' }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 4 }}>
                 <span style={{
-                  fontSize: 11, fontWeight: 700, padding: '2px 8px', borderRadius: 9999, flexShrink: 0,
+                  fontSize: 11, fontWeight: 700, padding: '2px 8px', borderRadius: 4, flexShrink: 0,
                   background: a.status === 'published' ? '#e6f4ea' : 'var(--color-bg-main)',
                   color: a.status === 'published' ? 'var(--color-success)' : 'var(--color-text-sub)',
                 }}>
@@ -3143,25 +3143,25 @@ ${tipPromptExamType !== 'ALL' ? `・examType には "${tipPromptExamType}" を�
               <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
                 <button
                   onClick={() => { setEditingAnnouncement(a); setAnnForm({ title: a.title, body: a.body }); setShowAnnForm(true); }}
-                  style={{ padding: '4px 10px', border: '1px solid var(--color-border)', borderRadius: 9999, cursor: 'pointer', background: 'transparent', fontSize: 12, fontWeight: 700 }}>
+                  style={{ padding: '4px 10px', border: '1px solid var(--color-border)', borderRadius: 'var(--border-radius-md)', cursor: 'pointer', background: 'transparent', fontSize: 12, fontWeight: 700 }}>
                   編集
                 </button>
                 {a.status === 'published' ? (
                   <button
                     onClick={() => handleUnpublishAnnouncement(a)}
-                    style={{ padding: '4px 10px', border: '1px solid var(--color-border)', borderRadius: 9999, cursor: 'pointer', background: 'transparent', fontSize: 12, fontWeight: 700 }}>
+                    style={{ padding: '4px 10px', border: '1px solid var(--color-border)', borderRadius: 'var(--border-radius-md)', cursor: 'pointer', background: 'transparent', fontSize: 12, fontWeight: 700 }}>
                     取り下げ
                   </button>
                 ) : (
                   <button
                     onClick={() => handlePublishAnnouncement(a)}
-                    style={{ padding: '4px 10px', background: '#ff9900', color: '#fff', border: '1px solid transparent', borderRadius: 9999, cursor: 'pointer', fontSize: 12, fontWeight: 700 }}>
+                    style={{ padding: '4px 10px', background: '#ff9900', color: '#fff', border: '1px solid transparent', borderRadius: 'var(--border-radius-md)', cursor: 'pointer', fontSize: 12, fontWeight: 700 }}>
                     送信
                   </button>
                 )}
                 <button
                   onClick={() => handleDeleteAnnouncement(a)}
-                  style={{ padding: '4px 10px', background: 'transparent', color: 'var(--color-danger)', border: '1px solid #d13212', borderRadius: 9999, cursor: 'pointer', fontSize: 12, fontWeight: 700 }}>
+                  style={{ padding: '4px 10px', background: 'transparent', color: 'var(--color-danger)', border: '1px solid #d13212', borderRadius: 'var(--border-radius-md)', cursor: 'pointer', fontSize: 12, fontWeight: 700 }}>
                   削除
                 </button>
               </div>
@@ -3207,7 +3207,7 @@ ${tipPromptExamType !== 'ALL' ? `・examType には "${tipPromptExamType}" を�
                   { key: 'hidden', label: '非表示中' },
                 ] as const).map(({ key, label }) => (
                   <button key={key} onClick={() => { setValidityFilter(key); fetchFlagged(key); }}
-                    style={{ padding: '6px 14px', border: validityFilter === key ? '2px solid' : '1.5px solid', borderRadius: 9999, cursor: 'pointer', fontSize: 13, fontWeight: validityFilter === key ? 700 : 400,
+                    style={{ padding: '6px 14px', border: validityFilter === key ? '2px solid' : '1.5px solid', borderRadius: 'var(--border-radius-md)', cursor: 'pointer', fontSize: 13, fontWeight: validityFilter === key ? 700 : 400,
                       background: validityFilter === key ? 'var(--color-primary-light)' : 'transparent',
                       color: validityFilter === key ? 'var(--color-primary)' : 'var(--color-text-sub)',
                       borderColor: validityFilter === key ? 'var(--color-primary)' : 'var(--color-border)', }}>
@@ -3217,7 +3217,7 @@ ${tipPromptExamType !== 'ALL' ? `・examType には "${tipPromptExamType}" を�
                 ))}
               </div>
               <button onClick={() => fetchFlagged(validityFilter)}
-                style={{ padding: '6px 16px', background: 'transparent', color: 'var(--color-primary)', border: '1.5px solid var(--color-primary)', borderRadius: 9999, cursor: 'pointer', fontSize: 13, fontWeight: 700 }}>
+                style={{ padding: '6px 16px', background: 'transparent', color: 'var(--color-primary)', border: '1.5px solid var(--color-primary)', borderRadius: 'var(--border-radius-md)', cursor: 'pointer', fontSize: 13, fontWeight: 700 }}>
                 再読み込み
               </button>
             </div>
@@ -3232,7 +3232,7 @@ ${tipPromptExamType !== 'ALL' ? `・examType には "${tipPromptExamType}" を�
                     {(['ALL', ...EXAM_TYPES] as string[]).map(et => (
                       <React.Fragment key={et}>
                         <button onClick={() => { setScanExamFilter(et); fetchFlagged(validityFilter, et, scanSort); }}
-                          style={{ padding: '3px 10px', border: scanExamFilter === et ? '2px solid' : '1.5px solid', borderRadius: 9999, cursor: 'pointer', fontSize: 12, fontWeight: scanExamFilter === et ? 700 : 400,
+                          style={{ padding: '3px 10px', border: scanExamFilter === et ? '2px solid' : '1.5px solid', borderRadius: 'var(--border-radius-md)', cursor: 'pointer', fontSize: 12, fontWeight: scanExamFilter === et ? 700 : 400,
                             background: scanExamFilter === et ? 'var(--color-secondary)' : 'transparent',
                             color: scanExamFilter === et ? 'white' : 'var(--color-text-sub)',
                             borderColor: scanExamFilter === et ? 'var(--color-secondary)' : 'var(--color-border)', }}>
@@ -3253,7 +3253,7 @@ ${tipPromptExamType !== 'ALL' ? `・examType には "${tipPromptExamType}" を�
                       { key: 'date_asc', label: '古→新' },
                     ] as const).map(({ key, label }) => (
                       <button key={key} onClick={() => { setScanSort(key); fetchFlagged(validityFilter, scanExamFilter, key); }}
-                        style={{ padding: '3px 10px', border: scanSort === key ? '2px solid' : '1.5px solid', borderRadius: 9999, cursor: 'pointer', fontSize: 12, fontWeight: scanSort === key ? 700 : 400,
+                        style={{ padding: '3px 10px', border: scanSort === key ? '2px solid' : '1.5px solid', borderRadius: 'var(--border-radius-md)', cursor: 'pointer', fontSize: 12, fontWeight: scanSort === key ? 700 : 400,
                           background: scanSort === key ? 'var(--color-primary-light)' : 'transparent',
                           color: scanSort === key ? 'var(--color-primary)' : 'var(--color-text-sub)',
                           borderColor: scanSort === key ? 'var(--color-primary)' : 'var(--color-border)', }}>
@@ -3373,15 +3373,15 @@ ${tipPromptExamType !== 'ALL' ? `・examType には "${tipPromptExamType}" を�
 
                   {/* アクションボタン */}
                   <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
-                    <button onClick={() => openEdit(q)} style={{ padding: '4px 12px', fontSize: 12, fontWeight: 700, borderRadius: 9999, cursor: 'pointer', background: 'transparent', color: 'var(--color-text-sub)', border: '1px solid var(--color-border)' }}>
+                    <button onClick={() => openEdit(q)} style={{ padding: '4px 12px', fontSize: 12, fontWeight: 700, borderRadius: 'var(--border-radius-md)', cursor: 'pointer', background: 'transparent', color: 'var(--color-text-sub)', border: '1px solid var(--color-border)' }}>
                       編集
                     </button>
                     {q.isHidden ? (
-                      <button onClick={() => handleVisibility(q, false)} style={{ padding: '4px 12px', fontSize: 12, fontWeight: 700, borderRadius: 9999, cursor: 'pointer', background: 'transparent', color: 'var(--color-success)', border: '1px solid #037f0c' }}>
+                      <button onClick={() => handleVisibility(q, false)} style={{ padding: '4px 12px', fontSize: 12, fontWeight: 700, borderRadius: 'var(--border-radius-md)', cursor: 'pointer', background: 'transparent', color: 'var(--color-success)', border: '1px solid #037f0c' }}>
                         表示に戻す
                       </button>
                     ) : (
-                      <button onClick={() => handleVisibility(q, true)} style={{ padding: '4px 12px', fontSize: 12, fontWeight: 700, borderRadius: 9999, cursor: 'pointer', background: 'transparent', color: '#d47500', border: '1px solid #d47500' }}>
+                      <button onClick={() => handleVisibility(q, true)} style={{ padding: '4px 12px', fontSize: 12, fontWeight: 700, borderRadius: 'var(--border-radius-md)', cursor: 'pointer', background: 'transparent', color: '#d47500', border: '1px solid #d47500' }}>
                         非表示にする
                       </button>
                     )}
@@ -3391,7 +3391,7 @@ ${tipPromptExamType !== 'ALL' ? `・examType には "${tipPromptExamType}" を�
                         await adminFetch(`${API_ENDPOINT}/admin/questions/${q.questionId}`, { method: 'DELETE' });
                         setFlaggedQuestions(prev => prev.filter(x => x.questionId !== q.questionId));
                       }}
-                      style={{ padding: '4px 12px', fontSize: 12, fontWeight: 700, borderRadius: 9999, cursor: 'pointer', background: 'transparent', color: 'var(--color-danger)', border: '1px solid #d13212' }}>
+                      style={{ padding: '4px 12px', fontSize: 12, fontWeight: 700, borderRadius: 'var(--border-radius-md)', cursor: 'pointer', background: 'transparent', color: 'var(--color-danger)', border: '1px solid #d13212' }}>
                       削除
                     </button>
                   </div>
@@ -3424,7 +3424,7 @@ ${tipPromptExamType !== 'ALL' ? `・examType には "${tipPromptExamType}" を�
               { key: 'sentAt_asc', label: '受信日時（古い順）' },
               { key: 'subject_asc', label: '件名（A→Z）' },
             ]} />
-            <button onClick={fetchMessages} style={{ padding: '6px 16px', background: 'transparent', color: 'var(--color-primary)', border: '1.5px solid var(--color-primary)', borderRadius: 9999, cursor: 'pointer', fontSize: 13, fontWeight: 700 }}>
+            <button onClick={fetchMessages} style={{ padding: '6px 16px', background: 'transparent', color: 'var(--color-primary)', border: '1.5px solid var(--color-primary)', borderRadius: 'var(--border-radius-md)', cursor: 'pointer', fontSize: 13, fontWeight: 700 }}>
               更新
             </button>
             </div>
@@ -3445,7 +3445,7 @@ ${tipPromptExamType !== 'ALL' ? `・examType には "${tipPromptExamType}" を�
                 </span>
                 <button
                   onClick={() => handleDeleteMessage(m)}
-                  style={{ padding: '4px 12px', background: 'transparent', color: 'var(--color-danger)', border: '1px solid #d13212', borderRadius: 9999, cursor: 'pointer', fontSize: 12, fontWeight: 700, flexShrink: 0 }}
+                  style={{ padding: '4px 12px', background: 'transparent', color: 'var(--color-danger)', border: '1px solid #d13212', borderRadius: 'var(--border-radius-md)', cursor: 'pointer', fontSize: 12, fontWeight: 700, flexShrink: 0 }}
                 >
                   削除
                 </button>
@@ -3476,12 +3476,12 @@ ${tipPromptExamType !== 'ALL' ? `・examType には "${tipPromptExamType}" を�
                 { key: 'category_asc', label: 'カテゴリ' },
               ]} />
               <button onClick={fetchDailyServices}
-                style={{ padding: '6px 14px', background: 'transparent', color: 'var(--color-primary)', border: '1.5px solid var(--color-primary)', borderRadius: 9999, cursor: 'pointer', fontSize: 13, fontWeight: 700 }}>
+                style={{ padding: '6px 14px', background: 'transparent', color: 'var(--color-primary)', border: '1.5px solid var(--color-primary)', borderRadius: 'var(--border-radius-md)', cursor: 'pointer', fontSize: 13, fontWeight: 700 }}>
                 更新
               </button>
               <button
                 onClick={() => { setEditingDS(null); setDsForm(emptyDSForm); setShowDSForm(true); }}
-                style={{ padding: '6px 16px', background: '#ff9900', color: '#fff', border: 'none', borderRadius: 9999, cursor: 'pointer', fontSize: 13, fontWeight: 700 }}>
+                style={{ padding: '6px 16px', background: '#ff9900', color: '#fff', border: 'none', borderRadius: 'var(--border-radius-md)', cursor: 'pointer', fontSize: 13, fontWeight: 700 }}>
                 + 追加
               </button>
             </div>
@@ -3561,11 +3561,11 @@ ${tipPromptExamType !== 'ALL' ? `・examType には "${tipPromptExamType}" を�
                 </label>
                 <div style={{ marginLeft: 'auto', display: 'flex', gap: 8 }}>
                   <button onClick={saveDailyService}
-                    style={{ padding: '7px 20px', background: '#ff9900', color: '#fff', border: 'none', borderRadius: 9999, cursor: 'pointer', fontWeight: 700, fontSize: 14 }}>
+                    style={{ padding: '7px 20px', background: '#ff9900', color: '#fff', border: 'none', borderRadius: 'var(--border-radius-md)', cursor: 'pointer', fontWeight: 700, fontSize: 14 }}>
                     保存
                   </button>
                   <button onClick={() => { setShowDSForm(false); setEditingDS(null); setDsForm(emptyDSForm); }}
-                    style={{ padding: '7px 16px', border: '1px solid var(--color-border)', borderRadius: 9999, cursor: 'pointer', background: 'transparent', fontWeight: 700, fontSize: 14 }}>
+                    style={{ padding: '7px 16px', border: '1px solid var(--color-border)', borderRadius: 'var(--border-radius-md)', cursor: 'pointer', background: 'transparent', fontWeight: 700, fontSize: 14 }}>
                     キャンセル
                   </button>
                 </div>
@@ -3584,8 +3584,8 @@ ${tipPromptExamType !== 'ALL' ? `・examType には "${tipPromptExamType}" を�
                       <div className="skeleton" style={{ width: '80%', height: 13, borderRadius: 4 }} />
                     </div>
                     <div style={{ display: 'flex', flexDirection: 'column', gap: 6, flexShrink: 0 }}>
-                      <div className="skeleton" style={{ width: 44, height: 26, borderRadius: 9999 }} />
-                      <div className="skeleton" style={{ width: 44, height: 26, borderRadius: 9999 }} />
+                      <div className="skeleton" style={{ width: 44, height: 26, borderRadius: 'var(--border-radius-md)' }} />
+                      <div className="skeleton" style={{ width: 44, height: 26, borderRadius: 'var(--border-radius-md)' }} />
                     </div>
                   </div>
                 </div>
@@ -3640,11 +3640,11 @@ ${tipPromptExamType !== 'ALL' ? `・examType には "${tipPromptExamType}" を�
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 6, flexShrink: 0 }}>
                   <button
                     onClick={() => { setEditingDS(ds); setDsForm({ name: ds.name, shortName: ds.shortName ?? '', category: ds.category ?? '', icon: ds.icon, description: ds.description, trivia: ds.trivia ?? '', docUrl: ds.docUrl ?? '', order: ds.order, isActive: ds.isActive !== false }); setShowDSForm(true); }}
-                    style={{ padding: '4px 10px', border: '1px solid var(--color-border)', borderRadius: 9999, cursor: 'pointer', background: 'transparent', fontSize: 11, fontWeight: 700 }}>
+                    style={{ padding: '4px 10px', border: '1px solid var(--color-border)', borderRadius: 'var(--border-radius-md)', cursor: 'pointer', background: 'transparent', fontSize: 11, fontWeight: 700 }}>
                     編集
                   </button>
                   <button onClick={() => deleteDailyService(ds.serviceId)}
-                    style={{ padding: '4px 10px', background: 'transparent', color: 'var(--color-danger)', border: '1px solid #d13212', borderRadius: 9999, cursor: 'pointer', fontSize: 11, fontWeight: 700 }}>
+                    style={{ padding: '4px 10px', background: 'transparent', color: 'var(--color-danger)', border: '1px solid #d13212', borderRadius: 'var(--border-radius-md)', cursor: 'pointer', fontSize: 11, fontWeight: 700 }}>
                     削除
                   </button>
                 </div>
@@ -3732,7 +3732,7 @@ ${tipPromptExamType !== 'ALL' ? `・examType には "${tipPromptExamType}" を�
                               setThemeColors(reset);
                               applyColors(reset);
                             }}
-                            style={{ fontSize: 11, padding: '3px 8px', border: '1px solid var(--color-border)', borderRadius: 9999, background: 'transparent', cursor: 'pointer', color: 'var(--color-text-light)', whiteSpace: 'nowrap' }}>
+                            style={{ fontSize: 11, padding: '3px 8px', border: '1px solid var(--color-border)', borderRadius: 'var(--border-radius-md)', background: 'transparent', cursor: 'pointer', color: 'var(--color-text-light)', whiteSpace: 'nowrap' }}>
                             リセット
                           </button>
                         </div>
@@ -3762,7 +3762,7 @@ ${tipPromptExamType !== 'ALL' ? `・examType には "${tipPromptExamType}" を�
                 setThemeSaving(false);
               }}
               disabled={themeSaving}
-              style={{ padding: '8px 24px', background: '#ff9900', color: '#fff', border: 'none', borderRadius: 9999, cursor: themeSaving ? 'default' : 'pointer', fontWeight: 700, fontSize: 14 }}>
+              style={{ padding: '8px 24px', background: '#ff9900', color: '#fff', border: 'none', borderRadius: 'var(--border-radius-md)', cursor: themeSaving ? 'default' : 'pointer', fontWeight: 700, fontSize: 14 }}>
               {themeSaving ? '保存中...' : '全ユーザーに適用'}
             </button>
             <button
@@ -3770,7 +3770,7 @@ ${tipPromptExamType !== 'ALL' ? `・examType には "${tipPromptExamType}" を�
                 setThemeColors({ ...DEFAULT_COLORS });
                 applyColors({ ...DEFAULT_COLORS });
               }}
-              style={{ padding: '8px 18px', border: '1px solid var(--color-border)', borderRadius: 9999, cursor: 'pointer', background: 'transparent', fontSize: 13, fontWeight: 700 }}>
+              style={{ padding: '8px 18px', border: '1px solid var(--color-border)', borderRadius: 'var(--border-radius-md)', cursor: 'pointer', background: 'transparent', fontSize: 13, fontWeight: 700 }}>
               すべてデフォルトに戻す
             </button>
             {themeSaved && <span style={{ fontSize: 13, color: 'var(--color-success)', fontWeight: 700 }}>✓ 保存しました</span>}

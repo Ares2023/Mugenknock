@@ -466,7 +466,7 @@ export default function Stats() {
                 {([7, 14, 30, 'all'] as const).map(r => (
                   <button key={r} onClick={() => setActivityRange(r)} style={{
                     padding: '3px 10px', fontSize: 'var(--font-size-xs)', fontWeight: 600, cursor: 'pointer',
-                    borderRadius: 'var(--border-radius-full)',
+                    borderRadius: 'var(--border-radius-md)',
                     border: activityRange === r ? '1.5px solid var(--color-primary)' : '1px solid var(--color-border)',
                     background: activityRange === r ? 'var(--color-primary-light)' : 'transparent',
                     color: activityRange === r ? 'var(--color-primary)' : 'var(--color-text-sub)',
@@ -649,7 +649,7 @@ export default function Stats() {
                         style={{ display: 'flex', alignItems: 'center', gap: 10, cursor: 'pointer', userSelect: 'none' }}
                         onClick={handleToggle}
                       >
-                        <span style={{ fontSize: 'var(--font-size-2xs)', fontWeight: 700, padding: '2px 8px', borderRadius: 'var(--border-radius-full)', background: modeBg, color: modeColor, flexShrink: 0 }}>
+                        <span style={{ fontSize: 'var(--font-size-2xs)', fontWeight: 700, padding: '2px 8px', borderRadius: 'var(--border-radius-sm)', background: modeBg, color: modeColor, flexShrink: 0 }}>
                           {modeLabel}
                         </span>
                         <span style={{ fontSize: 'var(--font-size-xs)', color: 'var(--color-text-sub)', flex: 1, minWidth: 0 }}>
