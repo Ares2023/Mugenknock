@@ -34,6 +34,14 @@ test('演習中に2回リロードしてもフック順序が壊れず継続で�
   await page.waitForURL(/\/aws\/exercise\/session/, { timeout: 60_000 });
   await expect(page.getByText(/問題\s*1/)).toBeVisible({ timeout: 30_000 });
 
+  // ドラフトの保存は非同期。保存前にリロードすると復元対象が無く
+  // ホームへ戻されるため（テスト側の flake）、保存を待ってから進む。
+  await page.waitForFunction(
+    () => Object.keys(localStorage).some(k => k.startsWith('quickExerciseDraft_')),
+    undefined,
+    { timeout: 30_000 },
+  );
+
   // 1回目: compat 層が sessionStorage から state を復元する（同時に消費もする）
   await page.reload();
   await expect(page.getByText(/問題\s*1/)).toBeVisible({ timeout: 30_000 });
