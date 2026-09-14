@@ -194,6 +194,24 @@ S3 `mugenknock-error-logs/canary-logs/` にアップロードする。
 
 > ローカル実行なのは、夜間バッチを動かす環境に Playwright を同梱していないため。
 
+夜間カナリアは systemd ユニットで `canary.sh prod` と明示指定されており、
+**本番（mugenknock.com）のみを監視する**。検証環境は対象外。
+
+### 環境URLの対応（間違えやすい）
+
+| URL | 実体 |
+|---|---|
+| `https://mugenknock.com` | 本番（master） |
+| `https://mugenknock.pages.dev` | **本番（master）** — Cloudflare Pages のプロジェクト既定エイリアス |
+| `https://develop.mugenknock.pages.dev` | **検証（develop）** — ブランチプレビュー |
+| `https://<hash>.mugenknock.pages.dev` | 各デプロイ固有のプレビュー |
+
+`<project>.pages.dev` は production ブランチを配信する。ここを「検証環境」として
+指定すると本番をテストしてしまうため、検証環境は必ず `develop.` 付きを使う。
+
+> 2026-09-14 まで `e2e/run.sh` の `STAGING_URL` と `canary-auth.sh` がこれを取り違えており、
+> `npm run e2e` 系が本番をテストしていた。
+
 `canary-coverage-check.sh` が「現在のサイト構成とカナリアspecの整合性」を opus で確認し、
 カバー漏れがあれば `playwright --list` の検証ゲート付きで spec を自動更新する。
 
