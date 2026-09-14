@@ -6,7 +6,7 @@
  *
  * 実行:
  *   npm run e2e:canary
- *   PLAYWRIGHT_BASE_URL=https://mugenknock.pages.dev npm run e2e:canary
+ *   PLAYWRIGHT_BASE_URL=https://develop.mugenknock.pages.dev npm run e2e:canary
  */
 import { test, expect } from '@playwright/test';
 import { PageMonitor } from '../helpers/monitor';
@@ -67,6 +67,7 @@ test.describe('ページ表示チェック', () => {
     { path: '/about',           label: 'Aboutページ',             check: 'text=プライバシーポリシー' },
     { path: '/encyclopedia',    label: 'サービス図鑑（公開）',    check: 'main' },
     { path: '/privacy-policy',  label: 'プライバシーポリシー',    check: 'h1' },
+    { path: '/architecture',    label: 'サイト構成図（公開）',    check: 'h1' },
     { path: '/exam-guide',      label: '試験別ガイド一覧',        check: 'h1' },
     { path: '/exam-guide/SAA',  label: '試験別ガイド詳細（SAA）', check: 'h1' },
     { path: '/services',        label: 'AWSサービス図鑑（SEO）',  check: 'h1' },

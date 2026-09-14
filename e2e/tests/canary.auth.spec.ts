@@ -6,7 +6,7 @@
  *       本番相当環境で「本当に動いているか」を短時間で確認する。
  *
  * 実行（認証カナリア専用ランナー canary-auth.sh から）:
- *   PLAYWRIGHT_BASE_URL=https://mugenknock.pages.dev \
+ *   PLAYWRIGHT_BASE_URL=https://develop.mugenknock.pages.dev \
  *   PLAYWRIGHT_EMAIL=... PLAYWRIGHT_PASSWORD=... \
  *   npx playwright test e2e/tests/canary.auth.spec.ts --project=chromium
  */

@@ -2,7 +2,7 @@
 # 認証カナリアテスト実行スクリプト（ログイン後の主要フローのスモーク）
 #
 # 使い方:
-#   ./canary-auth.sh         → 検証環境 (mugenknock.pages.dev)
+#   ./canary-auth.sh         → 検証環境 (develop.mugenknock.pages.dev)
 #   ./canary-auth.sh prod    → 本番環境 (mugenknock.com)
 #
 # 認証情報は ~/.mugenknock_canary.conf（gitignore）から読む:
@@ -24,7 +24,8 @@ if [ "$TARGET" = "prod" ]; then
   export PLAYWRIGHT_BASE_URL="${PLAYWRIGHT_BASE_URL:-https://mugenknock.com}"
   ENV_LABEL="prod-auth"
 else
-  export PLAYWRIGHT_BASE_URL="${PLAYWRIGHT_BASE_URL:-https://mugenknock.pages.dev}"
+  # develop ブランチの branch-preview URL（mugenknock.pages.dev は master 専用）
+  export PLAYWRIGHT_BASE_URL="${PLAYWRIGHT_BASE_URL:-https://develop.mugenknock.pages.dev}"
   ENV_LABEL="staging-auth"
 fi
 
