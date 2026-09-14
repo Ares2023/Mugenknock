@@ -14,7 +14,7 @@ import { useAuth, hadPriorSession } from '../contexts/AuthContext';
 import { useLanguage } from '../contexts/LanguageContext';
 import {
   API_ENDPOINT, EXAM_TYPES, EXAM_CONFIGS, EXAM_DOMAINS,
-  DOMAIN_WEIGHTS, DOMAIN_NAME_EN, PASS_SCORES, qDomainName,
+  DOMAIN_WEIGHTS, PASS_SCORES, qDomainName,
   EXAM_LEVEL, EXAM_LEVEL_COLORS,
   tagIdMatches, domainsToIndices, storedDomainsToNames, isNonAwsExam,
 } from '../constants';
@@ -333,7 +333,7 @@ function CombinedDetailModal({ targetExam, domainAccList, estimatedScore, passSc
                   {([5, 10] as const).map(w => {
                     const active = nodeWindow === w;
                     return (
-                      <button key={w} onClick={() => { onNodeWindowChange(w); setNodesVisible(false); requestAnimationFrame(() => requestAnimationFrame(() => setNodesVisible(true))); }}
+                      <button key={w} onClick={() => onNodeWindowChange(w)}
                         style={{ border: 'none', borderLeft: w === 5 ? 'none' : '1px solid var(--color-border)', background: active ? 'var(--color-primary)' : 'transparent', color: active ? 'var(--color-btn-primary-text, #fff)' : 'var(--color-text-sub)', fontSize: 'var(--font-size-xs)', fontWeight: 700, padding: '3px 10px', cursor: 'pointer', transition: 'background 0.15s' }}>
                         {ja ? `直近${w}回` : `Last ${w}`}
                       </button>
@@ -343,7 +343,7 @@ function CombinedDetailModal({ targetExam, domainAccList, estimatedScore, passSc
               </div>
               {domains.map((d, i) => {
                 const fullMaxPts = Math.round(weights[i] / totalAllWeights * 1000);
-                const label = lang === 'en' ? (DOMAIN_NAME_EN[d] ?? d) : d;
+                const label = d;
                 const serverResults = domainStats.find(s => tagIdMatches(s.tagId, targetExam, i))?.recentResults;
                 const nodeResults = (serverResults ?? localDomainResults[String(i)] ?? []).slice(-nodeWindow);
                 const paddedNodes: (boolean | null)[] = [...Array(nodeWindow - nodeResults.length).fill(null), ...nodeResults];
@@ -610,7 +610,7 @@ function DomainDetailModal({ targetExam, domainAccList, lang, onClose }: {
         </div>
         {domains.map((d, i) => {
           const { correct, total, pct } = domainAccList[i] ?? { correct: 0, total: 0, pct: null };
-          const label = lang === 'en' ? (DOMAIN_NAME_EN[d] ?? d) : d;
+          const label = d;
           return (
             <div key={d} style={{ marginBottom: 16, paddingBottom: 16, borderBottom: i < domains.length - 1 ? '1px solid var(--color-border)' : 'none' }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 8 }}>
@@ -647,16 +647,18 @@ function DomainDetailModal({ targetExam, domainAccList, lang, onClose }: {
 // ── オンボーディング ────────────────────────────────────────────
 const OB_LEVEL: Record<string, string> = {
   CLF: 'Foundational', AIF: 'Foundational',
+  AIB: 'Business',
   SAA: 'Associate', DVA: 'Associate', SOA: 'Associate', DEA: 'Associate', MLA: 'Associate',
   SAP: 'Professional', DOP: 'Professional', AIP: 'Professional',
   ANS: 'Specialty', SCS: 'Specialty',
   ML: 'Additional', DB: 'Additional', NW: 'Additional', SEC: 'Additional',
 };
 const OB_LEVEL_COLOR: Record<string, string> = {
-  Foundational: '#6b9e3a', Associate: '#006CE0', Professional: '#8b5cf6', Specialty: '#e67e22', Additional: '#14b8a6',
+  Foundational: '#6b9e3a', Business: '#db2777', Associate: '#006CE0', Professional: '#8b5cf6', Specialty: '#e67e22', Additional: '#14b8a6',
 };
 const OB_SHORT: Record<string, string> = {
   CLF: 'Cloud Practitioner', AIF: 'AI Practitioner',
+  AIB: 'AI Business Strategist',
   SAA: 'Solutions Architect', DVA: 'Developer',
   SOA: 'CloudOps Engineer', DEA: 'Data Engineer', MLA: 'ML Engineer',
   SAP: 'Solutions Architect Pro', DOP: 'DevOps Engineer', AIP: 'Generative AI Dev',
@@ -679,7 +681,7 @@ function OnboardingModal({ lang, uid, onComplete }: {
     onComplete(exam);
   };
 
-  const levels = ['Foundational', 'Associate', 'Professional', 'Specialty', 'Additional'] as const;
+  const levels = ['Foundational', 'Business', 'Associate', 'Professional', 'Specialty', 'Additional'] as const;
   const grouped = levels.map(lv => ({
     lv,
     exams: EXAM_TYPES.filter(e => OB_LEVEL[e] === lv),
@@ -1454,7 +1456,7 @@ export default function Home() {
     finally {
       if (!ctrl.signal.aborted) { setStatsLoading(false); setStatsRefreshing(false); }
     }
-  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+  }, []);
 
   const refreshStats = useCallback(() => {
     if (!user || statsLoading || statsRefreshing) return;
@@ -1534,7 +1536,7 @@ export default function Home() {
       })
       // 取得失敗時は同期未完了のまま（追記effectを走らせずサーバー蓄積の上書きを避ける）。
       .catch(() => { setServerScoreHistory(null); setServerSessionHistory(null); setServerSessionScoreLog(null); });
-  }, [user, targetExam]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [user, targetExam]);
 
   // セッション完了イベントで qRefreshTick を更新 → 下の useEffect を再実行
   useEffect(() => {
@@ -2180,7 +2182,7 @@ export default function Home() {
                   const correctInNodes = nodeResults.filter(v => !!v).length;
                   const barPct = nodeResults.length > 0 ? correctInNodes / nodeWindow * 100 : null;
                   const grade = getGrade(barPct);
-                  const label = lang === 'en' ? (DOMAIN_NAME_EN[d] ?? d) : d;
+                  const label = d;
                   return (
                     <div key={d}>
                       <div style={{ display: 'flex', alignItems: 'center', gap: 5, marginBottom: 3 }}>

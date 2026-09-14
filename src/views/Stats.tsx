@@ -2,7 +2,7 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { Helmet } from '@/compat/react-helmet-async';
 import { useNavigate } from '@/compat/react-router-dom';
-import { API_ENDPOINT, EXAM_DOMAINS, DOMAIN_NAME_EN, tagIdMatches } from '../constants';
+import { API_ENDPOINT, EXAM_DOMAINS, tagIdMatches } from '../constants';
 import { useAuth } from '../contexts/AuthContext';
 import { useLanguage } from '../contexts/LanguageContext';
 import Card from '../components/ui/Card';
@@ -525,7 +525,7 @@ export default function Stats() {
                     <div key={domain} style={{ marginBottom: 'var(--spacing-lg)' }}>
                       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 'var(--spacing-xs)' }}>
                         <span style={{ fontSize: 'var(--font-size-sm)', fontWeight: 700, color: 'var(--color-text-main)' }}>
-                          {lang === 'en' ? (DOMAIN_NAME_EN[domain] ?? domain) : domain}
+                          {domain}
                         </span>
                         <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--spacing-md)', flexShrink: 0 }}>
                           {rate !== null ? (

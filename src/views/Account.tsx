@@ -609,7 +609,8 @@ export default function Account() {
       {showThemeModal && (
         <Modal onClose={() => setShowThemeModal(false)} title={ja ? '外観' : 'Appearance'}>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 0, border: '1px solid var(--color-border)', borderRadius: 'var(--border-radius-lg)', overflow: 'hidden' }}>
-            {([['light', ja ? 'ライト' : 'Light', <IconSun />], ['dark', ja ? 'ダーク' : 'Dark', <IconMoon />]] as const).map(([th, label, icon], i, arr) => (
+            {/* アイコンは要素ではなくコンポーネント参照で持つ（データ配列に JSX を埋めない） */}
+            {([['light', ja ? 'ライト' : 'Light', IconSun], ['dark', ja ? 'ダーク' : 'Dark', IconMoon]] as const).map(([th, label, Icon], i, arr) => (
               <button
                 key={th}
                 onClick={() => { if (theme !== th) toggleTheme(); setShowThemeModal(false); }}
@@ -623,7 +624,7 @@ export default function Account() {
                   fontWeight: theme === th ? 700 : 400,
                 }}
               >
-                <span style={{ color: theme === th ? 'var(--color-primary)' : 'var(--color-text-sub)' }}>{icon}</span>
+                <span style={{ color: theme === th ? 'var(--color-primary)' : 'var(--color-text-sub)' }}><Icon /></span>
                 <span style={{ flex: 1 }}>{label}</span>
                 {theme === th && <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg>}
               </button>

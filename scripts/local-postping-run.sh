@@ -11,16 +11,18 @@ REPO=/home/yuzuki/aws-quiz-app
 AWS=/home/yuzuki/local/bin/aws
 ACCT=$("$AWS" sts get-caller-identity --query Account --output text 2>/dev/null || echo "")
 S3="mugenknock-fargate-state-${ACCT}"
+HOOKS_FLAG="$HOME/.config/mugenknock/hooks_enabled"   # 無ければフック無効(夜間バッチしない)
 
 log() { printf '[%s] %s\n' "$(date '+%H:%M:%S')" "$*"; }
 
-# 1. 次サイクルへ再同期(EventBridgeの新しい次回ピンを読み直す)
+# 1. 再同期(ローカル時計を読み直して localping/衛星タイマーを整列)。※常時実行(連鎖のwatchdog)
+#    次回ピン時刻の更新は localping(local-ping-run.sh)が /usage から行う。ここは整列のみ。
 log "再同期(sync-local-schedule)..."
 bash "$REPO/scripts/sync-local-schedule.sh" || true
 
-# 2. 夜間バッチ(夜間サイクルかつ当日未実行のみ)
+# 2. 夜間バッチ(夜間サイクル かつ フック有効 かつ 当日未実行のみ)
 RAN_NIGHT=0
-if [ "${RUN_NIGHT:-0}" = "1" ]; then
+if [ "${RUN_NIGHT:-0}" = "1" ] && [ -f "$HOOKS_FLAG" ]; then
   TODAY=$(date +%Y-%m-%d)
   LRD=$("$AWS" s3 cp "s3://$S3/meta/.last_run_date" - --quiet 2>/dev/null | tr -d '\n' || echo "")
   if [ "$LRD" != "$TODAY" ]; then
@@ -30,6 +32,8 @@ if [ "${RUN_NIGHT:-0}" = "1" ]; then
   else
     log "夜間バッチは本日実行済み($LRD) → スキップ"
   fi
+elif [ ! -f "$HOOKS_FLAG" ]; then
+  log "フック無効(ct off) → 再同期のみ(夜間バッチはスキップ)"
 else
   log "夜間サイクルでない → 再同期のみ"
 fi

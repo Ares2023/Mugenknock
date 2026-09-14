@@ -3,7 +3,7 @@ import React, { useEffect, useState, useCallback, useMemo, useRef } from 'react'
 import { createPortal } from 'react-dom';
 import { Helmet } from '@/compat/react-helmet-async';
 import { useNavigate } from '@/compat/react-router-dom';
-import { API_ENDPOINT, EXAM_DOMAINS, EXAM_DOMAIN_SERVICES, EXAM_TYPES, DOMAIN_NAME_EN, EXAM_CONFIGS, DOMAIN_RATE_WARNING, DOMAIN_RATE_CAUTION, PASS_SCORES, EXAM_LEVEL, EXAM_LEVEL_COLORS, tagIdMatches, toDomainIndex, isNonAwsExam } from '../constants';
+import { API_ENDPOINT, EXAM_DOMAINS, EXAM_DOMAIN_SERVICES, EXAM_TYPES, EXAM_CONFIGS, DOMAIN_RATE_WARNING, DOMAIN_RATE_CAUTION, PASS_SCORES, EXAM_LEVEL, EXAM_LEVEL_COLORS, tagIdMatches, toDomainIndex, isNonAwsExam } from '../constants';
 import { syncPreferencesToServer, syncTargetExamToServer, collectExamDatesFromLocal } from '../utils/preferences';
 import { lockBodyScroll } from '../utils/bodyScrollLock';
 import { useAuth } from '../contexts/AuthContext';
@@ -235,7 +235,7 @@ export default function MyPage() {
       setBarAnimated(true);
     }));
     return () => cancelAnimationFrame(id);
-  }, [serverDayCounts, targetExam]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [serverDayCounts, targetExam]);
 
   useEffect(() => {
     if (!showWeeklyDetail) return;
@@ -1113,7 +1113,7 @@ export default function MyPage() {
                         const isWeak = pct !== null && pct < DOMAIN_RATE_WARNING * 100;
                         const isFair = pct !== null && pct < DOMAIN_RATE_CAUTION * 100 && !isWeak;
                         const color = pct === null ? 'var(--color-text-light)' : isWeak ? 'var(--color-danger)' : isFair ? 'var(--color-caution)' : 'var(--color-success)';
-                        const domainLabel = lang === 'en' ? (DOMAIN_NAME_EN[domain] ?? domain) : domain;
+                        const domainLabel = domain;
                         const services = EXAM_DOMAIN_SERVICES[targetExam ?? '']?.[dIdx] ?? [];
                         const notLast = di < domains.length - 1;
                         return (
@@ -1269,6 +1269,7 @@ export default function MyPage() {
                       </div>
                       {[
                         { color: '#6b9e3a', exams: ['CLF', 'AIF'] },
+                        { color: '#db2777', exams: ['AIB'] },
                         { color: '#006CE0', exams: ['SAA', 'DVA', 'SOA', 'DEA', 'MLA'] },
                         { color: '#8b5cf6', exams: ['SAP', 'DOP', 'AIP'] },
                         { color: '#0ea5e9', exams: ['ANS', 'SCS'] },
@@ -1290,6 +1291,7 @@ export default function MyPage() {
                   const HEX = 'polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%)';
                   const CERT_LEVELS = [
                     { key: 'Foundational', label: 'Foundational', color: '#6b9e3a', exams: ['CLF', 'AIF'] },
+                    { key: 'Business',     label: 'Business',     color: '#db2777', exams: ['AIB'] },
                     { key: 'Associate',    label: 'Associate',    color: '#006CE0', exams: ['SAA', 'DVA', 'SOA', 'DEA', 'MLA'] },
                     { key: 'Professional', label: 'Professional', color: '#8b5cf6', exams: ['SAP', 'DOP', 'AIP'] },
                     { key: 'Specialty',    label: 'Specialty',    color: '#0ea5e9', exams: ['ANS', 'SCS'] },

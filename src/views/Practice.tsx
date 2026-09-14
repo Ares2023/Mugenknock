@@ -122,7 +122,7 @@ export default function Practice() {
       try { setExerciseDraft(JSON.parse(localStorage.getItem(`practiceExerciseDraft_${user.userId}`) ?? 'null')); } catch {}
       try { setExamDraft(JSON.parse(localStorage.getItem(`examDraft_${user.userId}`) ?? 'null')); } catch {}
     });
-  }, [user]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [user]);
   const [showNewPanel, setShowNewPanel] = useState(false);
   const [showNewExamPanel, setShowNewExamPanel] = useState(false);
   const [showStartConfirm, setShowStartConfirm] = useState(false);

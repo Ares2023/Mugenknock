@@ -57,6 +57,27 @@ fi
 SMTP_USER=""; SMTP_PASS=""; SMTP_TO="mugenknock@gmail.com"
 [ -f "$MAIL_CONF" ] && source "$MAIL_CONF"
 
+# ── 0.5 二重送信防止（S3共有マーカーで冪等化）──────────────────
+# レポート送信元は「ローカルsystemd(mugenknock-nightly-noai)」と「Fargate夜間バッチ」の
+# 2系統あり、別ホストで走るためファイルでは相互に見えない。両者から到達できるS3上の
+# JST日付マーカーで「本日既送信ならスキップ」を実現する。マーカーは送信成功後にのみ
+# 書くので、片方が失敗した晩はもう片方が送信でき「片方落ちても1通は届く」を保つ。
+# 無効化したい場合は REPORT_NO_DEDUP=1 を設定して実行する。
+DEDUP_BUCKET="${FARGATE_STATE_BUCKET:-mugenknock-fargate-state-570827308321}"
+DEDUP_KEY="report-sent/$(TZ='Asia/Tokyo' date '+%Y-%m-%d').marker"
+DEDUP_ENABLE=1
+[ -n "${REPORT_NO_DEDUP:-}" ] && DEDUP_ENABLE=0
+if [ "$DEDUP_ENABLE" = 1 ]; then
+  # head-object が失敗（未送信 or aws不通）した場合は素直に送信側へ進む＝安全側
+  if "$AWS" s3api head-object --bucket "$DEDUP_BUCKET" --key "$DEDUP_KEY" --region "$REGION" >/dev/null 2>&1; then
+    echo "  ⏭️  本日分($DEDUP_KEY)は既に送信済み → 二重送信防止のためスキップ（送信元: 別系統）"
+    echo "=========================================="
+    echo "日次レポート スキップ: $(TZ='Asia/Tokyo' date '+%Y-%m-%d %H:%M JST')"
+    echo "=========================================="
+    exit 0
+  fi
+fi
+
 # ── 1. AWS資格公式情報 変更チェック（最優先: 他スクリプトのトークン消費前に実行）──
 echo ""
 echo "--- [1] AWS資格公式情報 変更チェック ---"
@@ -141,6 +162,7 @@ for c in changes:
 ALL_CONFIG = {
     'CLF': {'code': 'CLF-C02', 'q': 65, 'min': 90,  'pass': 700, 'domains': 'クラウドの概念 / セキュリティとコンプライアンス / クラウドのテクノロジーとサービス / 請求、料金、およびサポート'},
     'AIF': {'code': 'AIF-C01', 'q': 85, 'min': 120, 'pass': 700, 'domains': 'AIとMLの基礎 / 生成AIの基礎 / 基盤モデルのアプリケーション / 責任あるAIのガイドライン / AIソリューションのセキュリティ、コンプライアンス、ガバナンス'},
+    'AIB': {'code': 'AIB-C01', 'q': 85, 'min': 170, 'pass': 700, 'domains': 'AIの基礎とリテラシー / AI戦略とビジネス価値創出 / AIガバナンスと責任あるAIリーダーシップ / ビジネス準備・リーダーシップ・AI変革'},
     'SAA': {'code': 'SAA-C03', 'q': 65, 'min': 130, 'pass': 720, 'domains': 'セキュアなアーキテクチャの設計 / 弾力性に優れたアーキテクチャの設計 / 高性能なアーキテクチャの設計 / コスト最適化されたアーキテクチャの設計'},
     'DVA': {'code': 'DVA-C02', 'q': 65, 'min': 130, 'pass': 720, 'domains': 'AWSのサービスを使用した開発 / セキュリティ / デプロイ / トラブルシューティングと最適化'},
     'SOA': {'code': 'SOA-C03', 'q': 65, 'min': 130, 'pass': 720, 'domains': 'モニタリング、ロギング、分析、修復、およびパフォーマンスの最適化 / 信頼性とビジネス継続性 / デプロイ、プロビジョニング、および自動化 / セキュリティとコンプライアンス / ネットワークとコンテンツ配信'},
@@ -454,7 +476,7 @@ import subprocess, json, sys, os
 
 AWS = "/home/yuzuki/local/bin/aws"
 REGION = "ap-northeast-1"
-EXAMS = ["CLF","AIF","SAA","DVA","SOA","DEA","MLA","SAP","DOP","AIP","SCS","ANS"]
+EXAMS = ["CLF","AIF","AIB","SAA","DVA","SOA","DEA","MLA","SAP","DOP","AIP","SCS","ANS"]
 
 def scan_count(filter_expr=None, expr_vals=None):
     cmd = [AWS, "dynamodb", "scan", "--table-name", "Questions",
@@ -1489,6 +1511,14 @@ rm -f "$REPORT_DATA_FILE"
 
 if [ "$SEND_RESULT" = "OK" ]; then
   echo "  ✅ メール送信完了 → $SMTP_TO"
+  # 送信成功時のみ二重送信防止マーカーを記録（別系統が本日の再送をスキップする）
+  if [ "$DEDUP_ENABLE" = 1 ]; then
+    if "$AWS" s3api put-object --bucket "$DEDUP_BUCKET" --key "$DEDUP_KEY" --region "$REGION" >/dev/null 2>&1; then
+      echo "  🔒 送信マーカー記録: s3://$DEDUP_BUCKET/$DEDUP_KEY"
+    else
+      echo "  ⚠️  送信マーカー記録失敗（別系統が本日もう1通送る可能性あり）"
+    fi
+  fi
 elif [ "$SEND_RESULT" = "NO_SMTP" ]; then
   echo "  ⚠️  SMTP設定なし → メール送信スキップ（$MAIL_CONF を確認してください）"
 else

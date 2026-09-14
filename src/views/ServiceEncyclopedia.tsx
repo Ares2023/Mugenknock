@@ -88,7 +88,7 @@ export default function ServiceEncyclopedia() {
     if (authLoading) return;
     try { setUnlockedMap(JSON.parse(localStorage.getItem(`encyclopediaUnlocked_${uid}`) ?? '{}')); } catch {}
     try { setStoredServices(JSON.parse(localStorage.getItem('encyclopediaServices') ?? '{}')); } catch {}
-  }, [uid, authLoading]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [uid, authLoading]);
 
   useEffect(() => {
     const refresh = () => {
@@ -97,7 +97,7 @@ export default function ServiceEncyclopedia() {
     };
     window.addEventListener('encyclopediaUpdated', refresh);
     return () => window.removeEventListener('encyclopediaUpdated', refresh);
-  }, [uid]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [uid]);
 
   // サーバーから解放済みデータを取得してローカルとマージ
   useEffect(() => {

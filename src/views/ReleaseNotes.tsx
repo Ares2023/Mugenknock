@@ -18,7 +18,7 @@ type Release = {
 const SHOW_DEFAULT = 5;
 
 export default function ReleaseNotes() {
-  const { lang, t } = useLanguage();
+  const { t } = useLanguage();
   const [releases, setReleases] = useState<Release[]>([]);
   const [loading, setLoading] = useState(true);
   const [showAll, setShowAll] = useState(false);
@@ -55,10 +55,10 @@ export default function ReleaseNotes() {
           <div style={{ marginBottom: 'var(--spacing-lg)' }}>
             <div style={{ fontSize: 'var(--font-size-xs)', color: 'var(--color-text-light)', fontWeight: 700, marginBottom: 'var(--spacing-xs)' }}>{r.date}</div>
             <div style={{ fontSize: 'var(--font-size-lg)', fontWeight: 700, color: 'var(--color-text-main)', marginBottom: 'var(--spacing-sm)' }}>
-              {lang === 'en' && r.titleEn ? r.titleEn : r.title}
+              {r.title}
             </div>
             <div style={{ fontSize: 'var(--font-size-base)', color: 'var(--color-text-sub)', lineHeight: 1.8, whiteSpace: 'pre-wrap' }}>
-              {lang === 'en' && r.bodyEn ? r.bodyEn : r.body}
+              {r.body}
             </div>
           </div>
           {i < visible.length - 1 && (

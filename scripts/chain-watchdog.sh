@@ -16,27 +16,26 @@ REPO=/home/yuzuki/aws-quiz-app
 
 log() { printf '[%s] %s\n' "$(date '+%Y-%m-%d %H:%M:%S')" "$*"; }
 
-# DISABLED(ct cancel)中は意図的な停止なので触らない
-STATE=$(/home/yuzuki/local/bin/aws scheduler get-schedule --name mugenknock-ping \
-  --region ap-northeast-1 --query "State" --output text 2>/dev/null || echo "")
-if [ "$STATE" = "DISABLED" ]; then
-  log "スケジュール停止中(DISABLED) → 何もしない"
+# ct cancel(完全停止)中は意図的な停止なので触らない
+if [ -f "$HOME/.config/mugenknock/ping_disabled" ]; then
+  log "完全停止中(ct cancel) → 何もしない"
   exit 0
 fi
 
-# NextElapseUSecRealtime=0 は「次回発火予定なし」
-NEXT=$(systemctl --user show mugenknock-postping.timer \
-  -p NextElapseUSecRealtime --value 2>/dev/null || echo "0")
+# localping と postping の両方に「次回発火予定」があれば連鎖は生きている。
+# NextElapseUSecRealtime=0 は「次回発火予定なし」。どちらか欠けていれば張り直す。
+PNEXT=$(systemctl --user show mugenknock-localping.timer -p NextElapseUSecRealtime --value 2>/dev/null || echo "0")
+NEXT=$(systemctl --user show mugenknock-postping.timer -p NextElapseUSecRealtime --value 2>/dev/null || echo "0")
 
-if [ "${NEXT:-0}" != "0" ] && [ -n "${NEXT:-}" ]; then
-  log "連鎖は正常（postping 次回発火あり） → 何もしない"
+if [ "${PNEXT:-0}" != "0" ] && [ -n "${PNEXT:-}" ] && [ "${NEXT:-0}" != "0" ] && [ -n "${NEXT:-}" ]; then
+  log "連鎖は正常（localping/postping 次回発火あり） → 何もしない"
   exit 0
 fi
 
-log "⚠️ 連鎖切れを検出（postping.timer に次回発火予定なし） → 再アームします"
+log "⚠️ 連鎖切れを検出（localping/postping に次回発火予定なし） → 再アームします"
 bash "$REPO/scripts/sync-local-schedule.sh" || true
 
-NEXT2=$(systemctl --user show mugenknock-postping.timer \
+NEXT2=$(systemctl --user show mugenknock-localping.timer \
   -p NextElapseUSecRealtime --value 2>/dev/null || echo "0")
 if [ "${NEXT2:-0}" = "0" ]; then
   log "❌ 再アームに失敗しました（sync-local-schedule.sh の出力を確認してください）"

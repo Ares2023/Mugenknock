@@ -56,18 +56,17 @@ done
 # run-logs も保存(ct log -d 用)
 aws s3 sync "${PROMPTS_DIR}/logs/" "s3://${S3_BUCKET}/run-logs/" --quiet 2>&1 || true
 
-# ── ドリフト: 次回ピンを now+5h に再スケジュール ──
-# Claudeの5時間利用ウィンドウに合わせ、ピン完了ごとに次回を「今から5時間後」に置く。
-# これにより毎回5時間間隔で、実行時刻は毎日少しずつずれていく(要件どおり)。
+# ── 次回ピン再スケジュール: now+5h(バックボーン) → /usage回復時刻で微調整 ──
+# 2段構え。まず now+5h を必ず設定して有効な未来時刻を担保し(連鎖を絶対切らさない)、
+# その上で apply-usage-schedule.sh が /usage の実回復時刻へ上書きする(取得失敗時は now+5h のまま)。
+# ローカル postping(ピン10分後)も同じ apply-usage を呼ぶ冗長構成(冪等)。PC停止中でも
+# このFargate側だけで /usage 追従が完結する。
 # State=DISABLED(ct cancel)のときは再スケジュールしない(停止を尊重)。
 SCHEDULE_NAME="${FARGATE_PROJECT:-mugenknock}-ping"
 REGION="${AWS_DEFAULT_REGION:-ap-northeast-1}"
 STATE=$(aws scheduler get-schedule --name "$SCHEDULE_NAME" --region "$REGION" \
     --query "State" --output text 2>/dev/null || echo "")
 if [ "$STATE" = "ENABLED" ]; then
-    # セッション開始時刻(=今)の分を一桁切り捨て(10分単位に切り下げ)して +5時間。
-    # Claudeのトークン枠が「開始時刻の分を切り捨て + 5時間」でリセットされる仕様に合わせる
-    # (例: 15:23開始→15:20判定→20:20回復)。実行の所要時間(秒)の累積ズレも同時に解消。
     NEXT=$(python3 -c "from datetime import datetime,timedelta; n=datetime.now(); b=n.replace(minute=(n.minute//10)*10, second=0, microsecond=0); print((b+timedelta(hours=5)).strftime('%Y-%m-%dT%H:%M:%S'))")
     TARGET_JSON=$(aws scheduler get-schedule --name "$SCHEDULE_NAME" --region "$REGION" \
         --output json 2>/dev/null | python3 -c "import sys,json; print(json.dumps(json.load(sys.stdin)['Target']))")
@@ -75,7 +74,10 @@ if [ "$STATE" = "ENABLED" ]; then
         --schedule-expression "at(${NEXT})" --schedule-expression-timezone "Asia/Tokyo" \
         --flexible-time-window '{"Mode":"OFF"}' --state ENABLED --target "$TARGET_JSON" \
         --region "$REGION" > /dev/null 2>&1 \
-    && log "次回ピン: at(${NEXT}) (now+5h ドリフト)" || log "⚠️ 次回ピン再スケジュール失敗"
+    && log "次回ピン(baseline): at(${NEXT}) (now+5h)" || log "⚠️ 次回ピン再スケジュール失敗"
+    # /usage の実回復時刻へ微調整(コンテナのaws/claudeとリポジトリ=/app を使う)
+    AWS=aws REPO=/app FARGATE_PROJECT="${FARGATE_PROJECT:-mugenknock}" \
+        AWS_REGION="$REGION" bash /app/scripts/apply-usage-schedule.sh || true
 else
     log "スケジュールがENABLEDでない(${STATE:-不明})ため再スケジュールしない"
 fi

@@ -52,7 +52,7 @@ export const ThemeProvider = ({ children }: { children: React.ReactNode }) => {
   useEffect(() => {
     const saved = localStorage.getItem('theme');
     if (saved === 'dark' || saved === 'light') setTheme(saved as Theme);
-  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+  }, []);
 
   useEffect(() => {
     try {
@@ -65,7 +65,7 @@ export const ThemeProvider = ({ children }: { children: React.ReactNode }) => {
         }
       }
     } catch {}
-  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+  }, []);
 
   // uidが確定・変更したらアカウント別設定を適用
   useEffect(() => {

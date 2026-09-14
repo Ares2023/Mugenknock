@@ -249,7 +249,7 @@ export default function Result() {
             <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
               {breakdown.map(({ domain, correct, total }) => {
                 const pct = Math.round((correct / total) * 100);
-                const label = lang === 'en' ? (DOMAIN_NAME_EN[domain] ?? domain) : domain;
+                const label = domain;
                 const color = pct >= 70 ? 'var(--color-success)' : pct >= 50 ? '#f59e0b' : 'var(--color-danger)';
                 return (
                   <div key={domain}>

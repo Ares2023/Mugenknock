@@ -5,7 +5,7 @@ export const API_ENDPOINT = process.env.NEXT_PUBLIC_API_ENDPOINT
 
 export const ADMIN_EMAIL = 'mugenknock@gmail.com';
 
-export const EXAM_TYPES = ['CLF', 'AIF', 'SAA', 'DVA', 'SOA', 'DEA', 'MLA', 'SAP', 'DOP', 'AIP', 'ANS', 'SCS', 'ML', 'DB', 'NW', 'SEC'] as const;
+export const EXAM_TYPES = ['CLF', 'AIF', 'AIB', 'SAA', 'DVA', 'SOA', 'DEA', 'MLA', 'SAP', 'DOP', 'AIP', 'ANS', 'SCS', 'ML', 'DB', 'NW', 'SEC'] as const;
 export type ExamType = typeof EXAM_TYPES[number];
 
 // 「Additional」レベルの非AWS外部知識カード。AWS認定ではなく、各AWS資格が前提とする
@@ -23,6 +23,7 @@ export const PASS_SCORES: Record<string, number> = {
   DEA: 720,
   DOP: 750,
   AIF: 700,
+  AIB: 700,
   MLA: 720,
   AIP: 750,
   ANS: 700,
@@ -43,6 +44,7 @@ export const PASS_RATE: Record<string, number> = {
   DEA: 72,
   DOP: 75,
   AIF: 70,
+  AIB: 70,
   MLA: 72,
   AIP: 75,
   ANS: 70,
@@ -137,6 +139,7 @@ export const EXAM_LEVEL: Record<string, string> = {
   DOP: 'Professional',
   DEA: 'Associate',
   AIF: 'Foundational',
+  AIB: 'Business',
   MLA: 'Associate',
   AIP: 'Professional',
   ANS: 'Specialty',
@@ -149,6 +152,7 @@ export const EXAM_LEVEL: Record<string, string> = {
 
 export const EXAM_LEVEL_COLORS: Record<string, string> = {
   Foundational: '#6b9e3a',
+  Business:     '#db2777',
   Associate:    '#006CE0',
   Professional: '#8b5cf6',
   Specialty:    '#0ea5e9',
@@ -170,6 +174,7 @@ export const EXAM_DESC_JA: Record<string, string> = {
   DOP: '開発・運用の高度なスキルを証明するプロ認定',
   DEA: 'データパイプラインの実装・管理・最適化スキルを問うアソシエイト認定',
   AIF: 'AI/MLの概念とAWSサービスを幅広くカバーする入門認定',
+  AIB: 'AIをビジネス成果へ結びつける戦略・ガバナンス・組織変革を問うビジネス認定',
   MLA: 'MLモデルの構築・デプロイ・運用を問うアソシエイト認定',
   AIP: 'AWSで生成AIソリューションを実装・デプロイするプロフェッショナル認定',
   ANS: 'AWSとハイブリッドネットワークの高度な設計・実装スキルを問うスペシャリティ認定',
@@ -188,6 +193,7 @@ export const EXAM_DESC_EN: Record<string, string> = {
   DOP: 'Professional certification for DevOps engineers',
   DEA: 'Associate certification for implementing and managing data pipelines on AWS',
   AIF: 'Foundational certification covering AI/ML concepts and AWS services',
+  AIB: 'Business certification for turning AI capabilities into business outcomes through strategy, governance, and transformation',
   MLA: 'Associate certification for building and operating ML solutions',
   AIP: 'Professional certification for integrating and deploying generative AI solutions on AWS',
   ANS: 'Specialty certification for advanced AWS and hybrid network architecture design',
@@ -223,6 +229,7 @@ export const EXAM_CONFIGS: Record<string, {
   DOP: { examCode: 'DOP-C02', fullName: 'AWS Certified DevOps Engineer – Professional',            totalQuestions: 75, timeLimitMin: 180 },
   DEA: { examCode: 'DEA-C01', fullName: 'AWS Certified Data Engineer – Associate',                 totalQuestions: 65, timeLimitMin: 130 },
   AIF: { examCode: 'AIF-C01', fullName: 'AWS Certified AI Practitioner',                          totalQuestions: 65, timeLimitMin: 90  },
+  AIB: { examCode: 'AIB-C01', fullName: 'AWS Certified AI Business Strategist',                   totalQuestions: 85, timeLimitMin: 170 },
   MLA: { examCode: 'MLA-C01', fullName: 'AWS Certified Machine Learning Engineer – Associate',    totalQuestions: 65, timeLimitMin: 130 },
   AIP: { examCode: 'AIP-C01', fullName: 'AWS Certified Generative AI Developer – Professional',   totalQuestions: 75, timeLimitMin: 180 },
   ANS: { examCode: 'ANS-C01', fullName: 'AWS Certified Advanced Networking – Specialty',           totalQuestions: 65, timeLimitMin: 170 },
@@ -239,6 +246,9 @@ export const EXAM_CONFIGS: Record<string, {
 export const EXAM_SUPPLEMENTARY_RULES: Partial<Record<string, string>> = {
   AIF: `・実際のAIF試験の約40%はAWSサービス非依存の一般的なAI・ML概念（BLEU/BERT/決定木/転移学習等）を問う。AWSサービス問題と適切に混在させること
 ・特にIDP（インテリジェントドキュメント処理）・ネガティブプロンプト・コンバージョン率（ビジネスKPI）は出題頻度が低くなりがちなので優先的に含めること`,
+  AIB: `・これはビジネス職（PM・営業・コンサル・事業責任者等）向けの認定であり、技術実装（コーディング・チューニング・パイプライン構築・インフラ設定）は出題範囲外。戦略的意思決定・ビジネス価値・ガバナンス・組織変革を主眼にすること
+・AWSサービスは「ビジネスレベルで何ができるか」の粒度で扱う（設定手順や技術仕様を問わない）。Bedrock・Amazon Q・SageMaker AI・CAF・Well-Architected(責任あるAIレンズ)・Pricing Calculator/Cost Explorer/Savings Plans・Marketplace など
+・ROI/KPI/ベースライン指標での価値測定、build-buy-partner判断、料金モデル(消費/インスタンス/シート)、責任あるAIのトレードオフ、規制コンプライアンス、AI成熟度評価、チェンジマネジメント、パイロットから全社展開へのスケールは出題頻度が低くなりがちなので優先的に含めること`,
   AIP: `・特にRLHF・LoRA（フルファインチューニングとの比較）・Lake Formation（データガバナンス）は出題頻度が低くなりがちなので優先的に含めること`,
   DVA: `・DVA本試験は DynamoDB・API Gateway・Cognito の出題比率が特に高い。これらを中心に厚く出題すること
 ・DynamoDB: GSIとLSIの使い分け（作成タイミング・キー・整合性・スループットの違い）、パーティションキー/ソートキー/セカンダリインデックスの役割、DynamoDB Streams、クエリvsスキャンを優先的に含めること
@@ -287,6 +297,7 @@ export const EXAM_SUPPLEMENTARY_RULES: Partial<Record<string, string>> = {
 export const EXAM_OFFICIAL_URLS: Record<string, { page: string; guide: string }> = {
   CLF: { page: 'https://aws.amazon.com/certification/certified-cloud-practitioner/',                    guide: 'https://d1.awsstatic.com/training-and-certification/docs-cloud-practitioner/AWS-Certified-Cloud-Practitioner_Exam-Guide.pdf' },
   AIF: { page: 'https://aws.amazon.com/certification/certified-ai-practitioner/',                       guide: 'https://d1.awsstatic.com/training-and-certification/docs-ai-practitioner/AWS-Certified-AI-Practitioner_Exam-Guide.pdf' },
+  AIB: { page: 'https://aws.amazon.com/certification/certified-ai-business-strategist/',                guide: 'https://docs.aws.amazon.com/pdfs/aws-certification/latest/ai-business-strategist-01/ai-business-strategist-01.pdf' },
   SAA: { page: 'https://aws.amazon.com/certification/certified-solutions-architect-associate/',         guide: 'https://d1.awsstatic.com/training-and-certification/docs-sa-assoc/AWS-Certified-Solutions-Architect-Associate_Exam-Guide.pdf' },
   DVA: { page: 'https://aws.amazon.com/certification/certified-developer-associate/',                   guide: 'https://d1.awsstatic.com/training-and-certification/docs-dev-associate/AWS-Certified-Developer-Associate_Exam-Guide.pdf' },
   SOA: { page: 'https://aws.amazon.com/certification/certified-sysops-admin-associate/',                guide: 'https://d1.awsstatic.com/training-and-certification/docs-sysops-associate/AWS-Certified-SysOps-Administrator-Associate_Exam-Guide.pdf' },

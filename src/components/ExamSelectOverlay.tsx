@@ -5,6 +5,7 @@ import { lockBodyScroll } from '../utils/bodyScrollLock';
 import { resetExercisePrefsOnExamChange } from '../utils/preferences';
 import { API_ENDPOINT, EXAM_CONFIGS, EXAM_DOMAINS, DOMAIN_WEIGHTS, PASS_SCORES, isNonAwsExam, levelLabel } from '@/constants';
 import { EXAM_ICON_COMPONENTS, IconBook, IconBookOpenCheck, IconCircleCheck, IconExternalLink, IconFileText } from '@/components/Icons';
+import { useHorizontalScrollHint } from '@/hooks/useHorizontalScrollHint';
 
 // テキストの inline 記法（**bold** / *italic* / `code` / [text](url)）をパースして React 要素に変換する
 function parseInline(text: string, keyPrefix: string): React.ReactNode[] {
@@ -114,6 +115,7 @@ export function ConfirmBurst({ x, y, color, onDone }: { x: number; y: number; co
 
 const EXAM_LEVELS = [
   { key: 'Practitioner', color: '#6b9e3a', exams: ['CLF', 'AIF'] },
+  { key: 'Business',     color: '#db2777', exams: ['AIB'] },
   { key: 'Associate',    color: '#006CE0', exams: ['SAA', 'DVA', 'SOA', 'DEA', 'MLA'] },
   { key: 'Professional', color: '#8b5cf6', exams: ['SAP', 'DOP', 'AIP'] },
   { key: 'Specialty',    color: '#0ea5e9', exams: ['ANS', 'SCS'] },
@@ -129,6 +131,7 @@ export const EXAM_DESC: Record<string, string> = {
   DOP: 'CI/CD・Infrastructure as Code・自動化・監視などDevOps実践を問うプロ資格。CodePipeline・CloudFormation・OpsWorksが重要。',
   DEA: 'データ収集・変換・保管・パイプライン設計などデータエンジニアリング全般を問う。Glue・Kinesis・Redshiftが頻出。',
   AIF: 'AIと機械学習の基礎・AWSのAI/MLサービスの活用知識を問う入門レベルの試験。Bedrock・SageMaker・Rekognitionが中心。',
+  AIB: 'AIをビジネス成果へ変える戦略・投資判断・ガバナンス・組織変革を問うビジネス職向けの新資格。コーディング不要でROI・KPI・責任あるAI・CAFが中心。',
   MLA: 'モデル開発・デプロイ・スケーリング・MLパイプライン構築の実践スキルを問う。SageMakerの深い理解が必要。',
   AIP: '生成AIアプリの設計・実装・最適化に特化した新資格。Amazon Bedrockを中心に、プロンプトエンジニアリングやRAGが頻出。',
   ANS: 'ハイブリッドクラウド・DNS・負荷分散・ネットワーク設計の高度な知識を問うSpecialty。Transit Gateway・Direct Connectが中心。',
@@ -142,6 +145,7 @@ export const EXAM_DESC: Record<string, string> = {
 const EXAM_CATCHCOPY: Record<string, string> = {
   CLF: 'AWS資格の登竜門！誰もがここから！',
   AIF: 'AI時代の新教養！まずはAI×AWSを知ろう！',
+  AIB: 'AIをビジネスの武器に！戦略で価値を生み出せ！',
   SAA: '迷ったらコレ！AWS資格の王道エース！',
   DVA: 'コードでクラウドを動かせ！開発者の定番資格！',
   SOA: '運用の現場力を証明！トラブル対応の第一人者へ！',
@@ -167,6 +171,7 @@ export const EXAM_URLS: Record<string, string> = {
   DOP: 'https://aws.amazon.com/jp/certification/certified-devops-engineer-professional/',
   DEA: 'https://aws.amazon.com/jp/certification/certified-data-engineer-associate/',
   AIF: 'https://aws.amazon.com/jp/certification/certified-ai-practitioner/',
+  AIB: 'https://aws.amazon.com/jp/certification/certified-ai-business-strategist/',
   MLA: 'https://aws.amazon.com/jp/certification/certified-machine-learning-engineer-associate/',
   AIP: 'https://aws.amazon.com/jp/certification/certified-generative-ai-developer-professional/',
   ANS: 'https://aws.amazon.com/jp/certification/certified-advanced-networking-specialty/',
@@ -183,6 +188,7 @@ export const EXAM_GUIDE_PDF_URLS: Record<string, string> = {
   DOP: 'https://docs.aws.amazon.com/ja_jp/aws-certification/latest/devops-engineer-professional-02/devops-engineer-professional-02.pdf',
   DEA: 'https://docs.aws.amazon.com/ja_jp/aws-certification/latest/data-engineer-associate-01/data-engineer-associate-01.pdf',
   AIF: 'https://docs.aws.amazon.com/ja_jp/aws-certification/latest/ai-practitioner-01/ai-practitioner-01.pdf',
+  AIB: 'https://docs.aws.amazon.com/ja_jp/aws-certification/latest/ai-business-strategist-01/ai-business-strategist-01.pdf',
   MLA: 'https://docs.aws.amazon.com/ja_jp/aws-certification/latest/machine-learning-engineer-associate-01/machine-learning-engineer-associate-01.pdf',
   AIP: 'https://docs.aws.amazon.com/ja_jp/aws-certification/latest/ai-professional-01/ai-professional-01.pdf',
   ANS: 'https://docs.aws.amazon.com/ja_jp/aws-certification/latest/advanced-networking-specialty-01/advanced-networking-specialty-01.pdf',
@@ -198,9 +204,9 @@ interface ExamSelectOverlayProps {
   onSelect: (exam: string) => void;
   /** 閉じるボタン用コールバック。未指定の場合は閉じられない（初回オンボーディング用） */
   onClose?: () => void;
-  /** デスクトップ時の最大幅（px）。省略時は 420 */
+  /** デスクトップ時の最大幅（px）。省略時は 760 */
   desktopMaxWidth?: number;
-  /** デスクトップ時の高さ（vh 文字列）。省略時は '60vh' */
+  /** デスクトップ時の高さ（vh 文字列）。省略時は '72vh' */
   desktopHeight?: string;
   /** true のとき確定ボタンをパルスアニメーションで強調（初回オンボーディング時） */
   onboarding?: boolean;
@@ -208,7 +214,10 @@ interface ExamSelectOverlayProps {
 
 export default function ExamSelectOverlay({
   targetExam, uid, lang, isMobile, onSelect, onClose,
-  desktopMaxWidth = 420, desktopHeight = '60vh', onboarding = false,
+  // 既定値がモバイル幅(420)と同じだったため、デスクトップでもスマホと同じ縦長パネルになり、
+  // さらに6レベルのタブが収まらず末尾(Specialty/オリジナル)がクリップされて選べなくなっていた。
+  // デスクトップは横に使える前提の寸法にする。
+  desktopMaxWidth = 760, desktopHeight = '72vh', onboarding = false,
 }: ExamSelectOverlayProps) {
   const ja = lang === 'ja';
   const initLevel = targetExam
@@ -246,6 +255,25 @@ export default function ExamSelectOverlay({
   useEffect(() => {
     return lockBodyScroll();
   }, []);
+
+  // レベルタブ行（6レベルはモバイル幅に収まらないので横スクロール＋右端フェード）
+  const { ref: levelTabsRef, maskStyle: levelTabsMask } = useHorizontalScrollHint(isMobile);
+
+  // 選択中のレベルタブが行内で見切れないよう水平スクロール位置を合わせる。
+  // （例: 目標資格が ML/DB/NW/SEC のとき末尾の「オリジナル」が画面外になるのを防ぐ）
+  useEffect(() => {
+    const row = levelTabsRef.current;
+    const btn = row?.querySelector<HTMLElement>(`[data-level="${activeLevel}"]`);
+    if (!row || !btn) return;
+    const bLeft = btn.offsetLeft;
+    const bRight = bLeft + btn.offsetWidth;
+    const viewLeft = row.scrollLeft;
+    if (bRight > viewLeft + row.clientWidth) {
+      row.scrollTo({ left: bRight - row.clientWidth + 8, behavior: 'smooth' });
+    } else if (bLeft < viewLeft) {
+      row.scrollTo({ left: Math.max(0, bLeft - 8), behavior: 'smooth' });
+    }
+  }, [activeLevel, isMobile, levelTabsRef]);
 
   const currentLevelDef = EXAM_LEVELS.find(l => l.key === activeLevel) ?? EXAM_LEVELS[0];
   const levelColor = currentLevelDef.color;
@@ -330,19 +358,20 @@ export default function ExamSelectOverlay({
 
         {/* レベルタブ */}
         <div
-          style={{ display: 'flex', borderBottom: '2px solid var(--color-border)', flexShrink: 0, padding: isMobile ? '0 var(--spacing-sm)' : '0 var(--spacing-lg)' }}
+          ref={levelTabsRef}
+          style={{ display: 'flex', borderBottom: '2px solid var(--color-border)', flexShrink: 0, padding: isMobile ? '0 var(--spacing-sm)' : '0 var(--spacing-lg)', overflowX: isMobile ? 'auto' : 'visible', scrollbarWidth: 'none', ...levelTabsMask }}
           onTouchStart={e => e.stopPropagation()}
           onTouchMove={e => e.stopPropagation()}
         >
           {EXAM_LEVELS.map(({ key, color }) => (
-            <button key={key} data-kbnav="tab" data-kbtab-active={activeLevel === key ? '1' : undefined} onClick={() => {
+            <button key={key} data-level={key} data-kbnav="tab" data-kbtab-active={activeLevel === key ? '1' : undefined} onClick={() => {
               setActiveLevel(key);
               const levelDef = EXAM_LEVELS.find(l => l.key === key);
               const examInLevel = levelDef?.exams.find(e => e === targetExam) ?? levelDef?.exams[0] ?? null;
               setPreviewExam(examInLevel as string | null);
             }} style={{
-              flex: 1, textAlign: 'center',
-              padding: isMobile ? '10px 4px' : '10px 14px',
+              flex: isMobile ? '0 0 auto' : 1, textAlign: 'center', whiteSpace: 'nowrap',
+              padding: isMobile ? '10px 8px' : '10px 14px',
               background: 'none', border: 'none', cursor: 'pointer',
               borderBottom: activeLevel === key ? `2px solid ${color}` : '2px solid transparent',
               marginBottom: -2, color: activeLevel === key ? color : 'var(--color-text-sub)',

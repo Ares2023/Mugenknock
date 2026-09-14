@@ -15,6 +15,9 @@ SC="$REPO/prompts/night-prompts/scripts"
 
 log() { printf '[%s] %s\n' "$(date '+%H:%M:%S')" "$*"; }
 
+# フック無効(ct off)なら何もしない。タイマー未arm時の保険(stale発火対策)。
+[ -f "$HOME/.config/mugenknock/hooks_enabled" ] || { log "フック無効(ct off) のためスキップ"; exit 0; }
+
 mkdir -p ~/.claude "$SC/state" "$SC/instructions" "$SC/logs"
 
 # pull

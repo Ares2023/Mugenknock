@@ -124,7 +124,7 @@ while IFS=$'\t' read -r IDEA_ID EXAM_TYPE TEXT_B64 NOTE; do
   log "ネタ: $(echo "$TEXT" | head -c 120)"
 
   if [ "$EXAM_TYPE" = "ALL" ]; then
-    EXAM_NOTE='examType には内容に応じて "CLF" / "SAA" / "SAP" / "DOP" / "AIF" / "MLA" / "AIP" / "ALL" のいずれかを設定してください。'
+    EXAM_NOTE='examType には内容に応じて "CLF" / "SAA" / "SAP" / "DOP" / "AIF" / "AIB" / "MLA" / "AIP" / "ALL" のいずれかを設定してください。'
   else
     EXAM_NOTE="examType には \"$EXAM_TYPE\" を設定してください。"
   fi
