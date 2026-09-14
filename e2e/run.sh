@@ -12,7 +12,7 @@
 #   ./e2e/run.sh ui                   → Playwright UI モード
 #
 # URL を直接指定:
-#   PLAYWRIGHT_BASE_URL=https://xxx.pages.dev ./e2e/run.sh canary
+#   PLAYWRIGHT_BASE_URL=https://develop.mugenknock.pages.dev ./e2e/run.sh canary
 
 set -e
 
@@ -22,7 +22,10 @@ TARGET=${2:-staging}  # canary の第2引数: staging / prod
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 cd "$ROOT"
 
-STAGING_URL="https://mugenknock.pages.dev"
+# 検証環境 = develop ブランチの Cloudflare Pages branch-preview URL。
+# mugenknock.pages.dev はプロジェクト既定のエイリアスで master(本番) を配信するため、
+# ここに指定すると「検証環境をテストしているつもりで本番をテストする」ことになる。
+STAGING_URL="https://develop.mugenknock.pages.dev"
 PROD_URL="https://mugenknock.com"
 
 case "$MODE" in

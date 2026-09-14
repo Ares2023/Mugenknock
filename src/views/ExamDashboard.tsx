@@ -7,6 +7,7 @@ import { useLanguage } from '../contexts/LanguageContext';
 import { useTheme } from '../contexts/ThemeContext';
 import { useIsMobile } from '../hooks/useWindowWidth';
 import { IconChevronLeft, IconChevronDown, IconExternalLink } from '../components/Icons';
+import MarkdownText from '../components/ui/MarkdownText';
 import {
   EXAM_TYPES, EXAM_CONFIGS, EXAM_LEVEL, EXAM_DOMAINS, PASS_RATE,
   EXAM_DESC_JA, EXAM_DESC_EN, DOMAIN_WEIGHTS, API_ENDPOINT, EXAM_OFFICIAL_URLS,
@@ -351,9 +352,11 @@ export default function ExamDashboard() {
                 <div style={{ fontSize: 'var(--font-size-xs)', fontWeight: 700, color: 'var(--color-text-light)', textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: 10 }}>
                   {ja ? '合格コメント' : 'Pass Comment'}
                 </div>
-                <p style={{ margin: 0, fontSize: 'var(--font-size-sm2)', color: 'var(--color-text-main)', lineHeight: 1.7, whiteSpace: 'pre-wrap' }}>
-                  {passComment}
-                </p>
+                {/* 管理画面から Markdown で投稿されるため、目標資格設定オーバーレイと同じレンダラーを使う。
+                    以前は生テキスト描画で `**太字**` の記号がそのまま見えていた。 */}
+                <div style={{ fontSize: 'var(--font-size-sm2)', color: 'var(--color-text-main)', lineHeight: 1.7 }}>
+                  <MarkdownText text={passComment} />
+                </div>
               </div>
             )}
 

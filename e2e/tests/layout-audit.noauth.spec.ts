@@ -3,7 +3,7 @@
 // スクリーンショットは e2e/screenshots/audit/ に出力して目視確認に使う。
 //
 // 実行:
-//   PLAYWRIGHT_BASE_URL=https://mugenknock.pages.dev \
+//   PLAYWRIGHT_BASE_URL=https://develop.mugenknock.pages.dev \
 //     npx playwright test e2e/tests/layout-audit.noauth.spec.ts --project=no-auth
 import { test, expect } from '@playwright/test';
 
