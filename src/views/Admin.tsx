@@ -9,6 +9,7 @@ import Button from '../components/ui/Button';
 import Badge from '../components/ui/Badge';
 import { ServiceIcon, isServiceIconKey, IconChevronDown, IconChevronRight, IconCopy, IconCheck } from '../components/Icons';
 import { useTheme, CustomColors } from '../contexts/ThemeContext';
+import { useHorizontalScrollHint } from '../hooks/useHorizontalScrollHint';
 
 const adminFetch = async (url: string, options: RequestInit = {}): Promise<Response> => {
   const session = await fetchAuthSession();
@@ -512,6 +513,11 @@ export default function Admin() {
     window.addEventListener('resize', h);
     return () => window.removeEventListener('resize', h);
   }, []);
+  // サブタブ行(.admin-tabs)は9タブ分あり、モバイル幅には収まらず横スクロールで見せている
+  // （src/index.css の .admin-tabs で overflow-x:auto 済み）が、スクロールバーが出ない
+  // モバイルブラウザでは「続きがある」ことに気づけず、末尾のタブが見切れて見えていた。
+  // チートシート/目標資格オーバーレイのレベルタブと同じ対策（右端フェード）を適用する。
+  const adminTabsHint = useHorizontalScrollHint(isMobile);
   // 直前に開いていたタブ/画面を復元する（不正・廃止済みのキーは無視して既定へ）
   const [tab, setTab] = useState<Tab>(() => {
     try {
@@ -523,6 +529,20 @@ export default function Admin() {
   useEffect(() => {
     try { localStorage.setItem('adminActiveTab', tab); } catch {}
   }, [tab]);
+  // 選択中のサブタブが横スクロール行内で見切れないよう位置を合わせる（資格カード行と同じ方式）
+  useEffect(() => {
+    const row = adminTabsHint.ref.current;
+    const btn = row?.querySelector<HTMLElement>(`[data-tab="${tab}"]`);
+    if (!row || !btn) return;
+    const bLeft = btn.offsetLeft;
+    const bRight = bLeft + btn.offsetWidth;
+    const viewLeft = row.scrollLeft;
+    if (bRight > viewLeft + row.clientWidth) {
+      row.scrollTo({ left: bRight - row.clientWidth + 8, behavior: 'smooth' });
+    } else if (bLeft < viewLeft) {
+      row.scrollTo({ left: Math.max(0, bLeft - 8), behavior: 'smooth' });
+    }
+  }, [tab, isMobile, adminTabsHint.ref]);
   const [adminError, setAdminError] = useState<string | null>(null);
   const { customColors, customColorsEnabled, applyColors, setCustomColorsEnabled } = useTheme();
   const [themeColors, setThemeColors] = useState<CustomColors>(() => ({ ...DEFAULT_COLORS, ...customColors }));
@@ -1604,9 +1624,13 @@ export default function Admin() {
               ))}
             </div>
             {/* サブタブ */}
-            <div className="admin-tabs" style={{ borderBottom: '1px solid var(--color-border)', display: 'flex', overflowX: 'auto', flexWrap: 'nowrap' }}>
+            <div
+              className="admin-tabs"
+              ref={adminTabsHint.ref}
+              style={{ borderBottom: '1px solid var(--color-border)', display: 'flex', overflowX: 'auto', flexWrap: 'nowrap', ...adminTabsHint.maskStyle }}
+            >
               {TAB_GROUPS.find(g => g.key === activeGroup)!.tabs.map(t => (
-                <button key={t} style={tabStyle(t)} onClick={() => setTab(t)}>
+                <button key={t} data-tab={t} style={tabStyle(t)} onClick={() => setTab(t)}>
                   {t === 'messages' && messages.length > 0
                     ? `メッセージ (${messages.length})`
                     : t === 'dailyservice' && dailyServices.length > 0
@@ -1849,14 +1873,16 @@ export default function Admin() {
           </form>
 
           {/* 件数・一括削除バー */}
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
+          {/* コラムのネタタブで同じパターン(外側・内側ともflexWrap無し)がモバイルで
+              テキストの文字単位改行崩れを起こしたため、ここも同様に折り返し可能にしておく。 */}
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12, flexWrap: 'wrap', gap: 8 }}>
             <p style={{ color: 'var(--color-text-sub)', fontSize: 13, margin: 0 }}>
               {loadingQ ? '読み込み中...' : totalQuestions > 0
                 ? `${totalQuestions} 件中 ${currentPage * PAGE_SIZE + 1}–${Math.min((currentPage + 1) * PAGE_SIZE, totalQuestions)} 件表示`
                 : `${questions.length} 件`}
             </p>
             {selectedIds.size > 0 && (
-              <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap' }}>
                 <span style={{ fontSize: 13, color: 'var(--color-primary)', fontWeight: 700 }}>{selectedIds.size}件選択中</span>
                 <button
                   onClick={handleBulkDelete}
@@ -2869,11 +2895,14 @@ ${tipPromptExamType !== 'ALL' ? `・examType には "${tipPromptExamType}" を�
             </div>
 
             {/* 一覧 切替 */}
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
+            {/* モバイル(390px)で外側行・内側ボタン群ともflexWrap無しだったため、
+                「未使用 0 件 / 使用済み 0 件」の長いテキストが幅を奪われて
+                文字単位で改行される崩れが発生していた。両方に折り返しを許可する。 */}
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12, flexWrap: 'wrap', gap: 8 }}>
               <p style={{ color: 'var(--color-text-light)', fontSize: 13, margin: 0 }}>
                 {loadingCI ? '読み込み中...' : `未使用 ${pending.length} 件 / 使用済み ${used.length} 件`}
               </p>
-              <div style={{ display: 'flex', gap: 8 }}>
+              <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
                 <button onClick={() => setCiShowUsed(false)}
                   style={{ padding: '6px 14px', background: !ciShowUsed ? 'var(--color-primary-light)' : 'transparent', color: 'var(--color-primary)', border: '1.5px solid var(--color-primary)', borderRadius: 'var(--border-radius-md)', cursor: 'pointer', fontSize: 13, fontWeight: 700 }}>未使用</button>
                 <button onClick={() => setCiShowUsed(true)}
