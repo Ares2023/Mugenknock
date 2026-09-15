@@ -2165,8 +2165,11 @@ export default function Home() {
       </Helmet>
 
       {/* ダッシュボード本体。デスクトップは 2カラム（左=進捗と成績 / 右=日めくり）、
-          モバイルは従来どおり縦一列。 */}
-      <div style={isMobile ? undefined : { display: 'grid', gridTemplateColumns: 'minmax(0, 2fr) minmax(0, 1fr)', gap: 'var(--spacing-md)', alignItems: 'start' }}>
+          モバイルは従来どおり縦一列。
+          alignItems:'stretch'（既定）で両カラムの高さを揃え、右カラム側は
+          flexDirection:'column'+最後のパネルへの flex:1 で、短い方の最終パネルの
+          下端を左カラムの下端に合わせる（ページ最下部でパネルの底が揃うように）。 */}
+      <div style={isMobile ? undefined : { display: 'grid', gridTemplateColumns: 'minmax(0, 2fr) minmax(0, 1fr)', gap: 'var(--spacing-md)' }}>
       <div>
 
       {/* ── 目標演習量 ── */}
@@ -2344,17 +2347,20 @@ export default function Home() {
 
         </div>
 
+        {/* ── 成績詳細（デスクトップのみ・同一パネル内に続けて展開）──
+            上のサマリーの「続き（内訳）」であることをデザインで示すため、
+            別カードにせず区切り線だけで同じ白パネル内に収める。
+            モバイルは従来通りサマリーをクリックしてモーダル表示。 */}
+        {!isMobile && targetExam && (
+          <div style={{ borderTop: '1px solid var(--color-border)', marginTop: 16, paddingTop: 16 }}>
+            <CombinedDetailModal targetExam={targetExam} domainAccList={domainAccList} estimatedScore={estimatedScore} passScore={passScore} lang={lang} isMobile={isMobile} uid={uid} domainStats={domainStats} scoreHistory={serverScoreHistory ?? undefined} sessionHistory={serverSessionHistory ?? undefined} sessionScoreLog={serverSessionScoreLog ?? undefined} nodeWindow={nodeWindow} onNodeWindowChange={w => { setNodeWindow(w); localStorage.setItem(`scoreWindow_${uid}`, String(w)); }} inline />
+          </div>
+        )}
+
       </Card>
 
-      {/* ── 成績詳細（デスクトップは常時展開。モバイルは上のカードをクリックしてモーダル表示） ── */}
-      {!isMobile && targetExam && (
-        <Card padding="var(--spacing-md)" style={{ marginBottom: 'var(--spacing-md)' }}>
-          <CombinedDetailModal targetExam={targetExam} domainAccList={domainAccList} estimatedScore={estimatedScore} passScore={passScore} lang={lang} isMobile={isMobile} uid={uid} domainStats={domainStats} scoreHistory={serverScoreHistory ?? undefined} sessionHistory={serverSessionHistory ?? undefined} sessionScoreLog={serverSessionScoreLog ?? undefined} nodeWindow={nodeWindow} onNodeWindowChange={w => { setNodeWindow(w); localStorage.setItem(`scoreWindow_${uid}`, String(w)); }} inline />
-        </Card>
-      )}
-
       </div>
-      <div>
+      <div style={isMobile ? undefined : { display: 'flex', flexDirection: 'column' }}>
 
       {/* ── 日めくりAWSサービス ── */}
       <TodayServiceSection
@@ -2367,11 +2373,13 @@ export default function Home() {
       />
 
       {/* ── 苦手分析（デスクトップ・ログイン専用。ゲストは非表示） ──
-          マイページ苦手分析タブの要約。詳細はクリックでマイページへ遷移して見る。 */}
+          マイページ苦手分析タブの要約。詳細はクリックでマイページへ遷移して見る。
+          flex:1 + 中央寄せで、右カラム最後のパネルとして左カラムの下端まで
+          自然に伸ばし、ページ最下部でパネルの底を左カラムに揃える。 */}
       {!isMobile && user && targetExam && (
         <Card
           padding="var(--spacing-md)"
-          style={{ marginTop: 'var(--spacing-md)', cursor: 'pointer' }}
+          style={{ marginTop: 'var(--spacing-md)', cursor: 'pointer', flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'center' }}
           onClick={() => navigate('/aws/mypage', { state: { tab: 'analysis' } })}
         >
           <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 10 }}>
