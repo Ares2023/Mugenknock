@@ -66,6 +66,10 @@
   --bar-gradient-danger:  linear-gradient(90deg, #d13212, #f87171);
   --bar-gradient-teal:    linear-gradient(90deg, #00a8a8, #00cccc);
 
+  /* 予想スコアバーの「合格ゾーン」の地色（合格ライン〜1000の帯）。
+     トラック(--color-border)にアルファを重ねると濁って影に見えるため単色で持つ。 */
+  --color-pass-zone: #b7e4c0;
+
   /* Semantic feedback colors */
   --color-feedback-correct-bg: #f2fcf3;
   --color-feedback-incorrect-bg: #fdf3f1;
@@ -113,6 +117,7 @@
   --color-border: #414d5c;
   --color-secondary: #1c2836;
   --color-primary-light: #071D3A;
+  --color-pass-zone: #2a5137;
   --color-feedback-correct-bg: #0d2114;
   --color-feedback-incorrect-bg: #2d0a07;
   --color-hint-bg: #2d2207;

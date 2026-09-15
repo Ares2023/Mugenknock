@@ -2397,26 +2397,43 @@ export default function Home() {
               </div>
             ) : (
               <>
-                <div style={{ display: 'flex', alignItems: 'baseline', gap: 6, marginBottom: 6 }}>
-                  <span style={{ fontSize: 'var(--font-size-h2)', fontWeight: 800, color: 'var(--color-primary)', letterSpacing: '-0.5px' }}>{estimatedScore}</span>
-                  <span style={{ fontSize: 'var(--font-size-sm)', color: 'var(--color-text-light)' }}>/1000</span>
-                  {scoreDelta !== null && (
-                    <span style={{ fontSize: 'var(--font-size-sm)', fontWeight: 700, color: scoreDelta > 0 ? 'var(--color-success)' : scoreDelta < 0 ? 'var(--color-danger)' : 'var(--color-text-light)' }}>
-                      {scoreDelta > 0 ? `+${scoreDelta}` : scoreDelta < 0 ? `${scoreDelta}` : '±0'}
-                    </span>
-                  )}
-                </div>
-                <div style={{ position: 'relative', height: 7, background: 'var(--color-border)', borderRadius: 4, overflow: 'visible', marginTop: passScore !== null ? 18 : 0 }}>
-                  {passScore !== null && (
-                    <div style={{ position: 'absolute', left: `${(passScore / 1000) * 100}%`, transform: 'translateX(-50%)', top: 0, bottom: 0, zIndex: 2, display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-                      <div style={{ position: 'absolute', bottom: '100%', marginBottom: 3, background: '#f59e0b', color: '#fff', fontSize: 'var(--font-size-3xs)', fontWeight: 700, padding: '1px 5px', borderRadius: 3, whiteSpace: 'nowrap', lineHeight: 1.5 }}>
-                        {ja ? `合格 ${passScore}` : `Pass ${passScore}`}
+                {(() => {
+                  // 合格ラインは「看板」ではなくバーの地色で示す。
+                  // 合格ゾーン(合格点〜1000)を淡い緑で敷き、到達するとバー自体も緑に変わるので、
+                  // 数字を読まなくても「緑の帯に届いているか」だけで合否が分かる。
+                  const reachedPass = passScore !== null && estimatedScore >= passScore;
+                  const passPct = passScore !== null ? (passScore / 1000) * 100 : 0;
+                  return (
+                    <>
+                      <div style={{ display: 'flex', alignItems: 'baseline', gap: 6, marginBottom: 6 }}>
+                        <span style={{ fontSize: 'var(--font-size-h2)', fontWeight: 800, color: reachedPass ? 'var(--color-success)' : 'var(--color-primary)', letterSpacing: '-0.5px' }}>{estimatedScore}</span>
+                        <span style={{ fontSize: 'var(--font-size-sm)', color: 'var(--color-text-light)' }}>/1000</span>
+                        {scoreDelta !== null && (
+                          <span style={{ fontSize: 'var(--font-size-sm)', fontWeight: 700, color: scoreDelta > 0 ? 'var(--color-success)' : scoreDelta < 0 ? 'var(--color-danger)' : 'var(--color-text-light)' }}>
+                            {scoreDelta > 0 ? `+${scoreDelta}` : scoreDelta < 0 ? `${scoreDelta}` : '±0'}
+                          </span>
+                        )}
+                        {passScore !== null && (
+                          <span style={{ marginLeft: 'auto', fontSize: 'var(--font-size-2xs)', fontWeight: 600, color: 'var(--color-text-light)', whiteSpace: 'nowrap' }}>
+                            {ja ? `合格 ${passScore}` : `Pass ${passScore}`}
+                          </span>
+                        )}
                       </div>
-                      <div style={{ width: 2, height: '100%', background: '#f59e0b', borderRadius: 1 }} />
-                    </div>
-                  )}
-                  <div style={{ width: `${Math.min(100, (estimatedScore / 1000) * 100)}%`, height: '100%', borderRadius: 4, background: 'var(--bar-gradient-primary)', transformOrigin: 'left center', animation: 'growWidth 0.6s cubic-bezier(0.34, 1.56, 0.64, 1) both' }} />
-                </div>
+                      <div style={{ position: 'relative', height: 7, background: 'var(--color-border)', borderRadius: 4, overflow: 'hidden' }}>
+                        {/* 合格ゾーンの地色 */}
+                        {passScore !== null && (
+                          <div style={{ position: 'absolute', left: `${passPct}%`, right: 0, top: 0, bottom: 0, background: 'var(--color-pass-zone)' }} />
+                        )}
+                        {/* 実力バー（合格圏で緑に変わる） */}
+                        <div style={{ position: 'relative', width: `${Math.min(100, (estimatedScore / 1000) * 100)}%`, height: '100%', borderRadius: 4, background: reachedPass ? 'var(--bar-gradient-success)' : 'var(--bar-gradient-primary)', transformOrigin: 'left center', animation: 'growWidth 0.6s cubic-bezier(0.34, 1.56, 0.64, 1) both', transition: 'background 0.3s' }} />
+                        {/* 合格ラインの境目 */}
+                        {passScore !== null && (
+                          <div style={{ position: 'absolute', left: `${passPct}%`, top: 0, bottom: 0, width: 2, marginLeft: -1, background: 'var(--color-bg-white)', opacity: 0.9 }} />
+                        )}
+                      </div>
+                    </>
+                  );
+                })()}
               </>
             )}
           </div>
