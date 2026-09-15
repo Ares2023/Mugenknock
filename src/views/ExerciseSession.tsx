@@ -1229,7 +1229,6 @@ export default function ExerciseSession() {
                 const isClickable = i <= viewedFrontier && !isCurrent && isLoaded;
                 const isHovered = hoveredNode === i;
                 const isNodeCursor = nodeCursorActive && i === nodeCursorIdx;
-                const notYetLoaded = !isLoaded && !isCurrent;
                 const dotSize = isCurrent ? 12 : isNodeCursor ? 10 : isHovered ? 9 : 7;
                 return (
                   <React.Fragment key={i}>
@@ -1245,9 +1244,13 @@ export default function ExerciseSession() {
                         flexShrink: 0,
                         background: isAnswered || isCurrent ? 'var(--color-primary)' : 'transparent',
                         border: `2px solid ${isAnswered || isCurrent ? 'var(--color-primary)' : 'var(--color-text-light)'}`,
-                        // 未ロード(プログレッシブロード待ち)を最優先で薄く、次に回答済みを少し薄く。
-                        // 以前は opacity を2回書いており後者が前者を打ち消していたため、未ロードの淡色が効いていなかった。
-                        opacity: notYetLoaded ? 0.3 : isAnswered && !isCurrent && !isHovered ? 0.75 : 1,
+                        // 濃度は全ノードで揃える（間をつなぐ線と同じ不透明度）。
+                        // 以前は未ロード(プログレッシブロード待ち)を 0.3、回答済みを 0.75 に
+                        // 落としていたが、ロード状況という利用者に無関係な内部事情で
+                        // 見た目の濃さが変わり、同じ意味のノードが薄く見えていた。
+                        // 状態の区別は色（primary＝回答済/現在地、text-light＝未回答）と
+                        // サイズ・boxShadow で足りるため、opacity での差は付けない。
+                        opacity: 1,
                         boxShadow: isNodeCursor
                           ? '0 0 0 3px var(--color-accent)'
                           : isCurrent

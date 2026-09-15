@@ -85,8 +85,8 @@ export const EXAM_DESC: Record<string, string> = {
   MLA: 'モデル開発・デプロイ・スケーリング・MLパイプライン構築の実践スキルを問う。SageMakerの深い理解が必要。',
   AIP: '生成AIアプリの設計・実装・最適化に特化した新資格。Amazon Bedrockを中心に、プロンプトエンジニアリングやRAGが頻出。',
   // ANS は AWS 公式が廃止を告知済み（英語版 認定ページ / 認定一覧ともに 2026-12-31）。
-  // 受験を検討する人が期限を見落とさないよう説明の先頭に置く。
-  ANS: '【2026年12月31日で提供終了】最終受験日以降は新規取得できません。ハイブリッドクラウド・DNS・負荷分散・ネットワーク設計の高度な知識を問うSpecialty。Transit Gateway・Direct Connectが中心。',
+  // 受験を検討する人が期限を見落とさないよう説明の先頭に単独行で置く。
+  ANS: '【2026年12月31日で提供終了予定】\nハイブリッドクラウド・DNS・負荷分散・ネットワーク設計の高度な知識を問うSpecialty。Transit Gateway・Direct Connectが中心。',
   SCS: 'セキュリティ設計・実装・インシデント対応・コンプライアンスを問うSpecialty。IAM・KMS・GuardDutyの深い理解が必要。',
   // オリジナル（非AWS認定）カードは「〇〇対策として、」で冒頭を統一し、
   // どの資格の土台を固めるカードなのかを先頭で明示する。
@@ -404,7 +404,9 @@ export default function ExamSelectOverlay({
                     })()}
                   </div>
                 </div>
-                <p style={{ margin: '0 0 8px', fontSize: 'var(--font-size-sm)', color: 'var(--color-text-sub)', lineHeight: 1.7 }}>
+                {/* whiteSpace:'pre-line' … ANS の提供終了告知のように、説明文中の
+                    改行(\n)を意図どおり反映させるため（通常の <p> は改行を無視する） */}
+                <p style={{ margin: '0 0 8px', fontSize: 'var(--font-size-sm)', color: 'var(--color-text-sub)', lineHeight: 1.7, whiteSpace: 'pre-line' }}>
                   {EXAM_DESC[exam] ?? ''}
                 </p>
                 {(EXAM_URLS[exam] || EXAM_GUIDE_PDF_URLS[exam]) && (
