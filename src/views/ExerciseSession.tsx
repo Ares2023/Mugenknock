@@ -15,7 +15,7 @@ import { useLanguage } from '../contexts/LanguageContext';
 import Card from '../components/ui/Card';
 import Button from '../components/ui/Button';
 import ReportModal from '../components/ReportModal';
-import { IconBookOpen, IconBean, IconCopy, IconCheck, IconStar, IconChevronUp, IconChevronDown, IconAlertTriangle, IconCircleCheck, IconCircleX } from '../components/Icons';
+import { IconBookOpen, IconBean, IconCopy, IconCheck, IconCircleCheck, IconCircleX, IconHeart, IconThumbsUp, IconThumbsDown, IconMoreVertical } from '../components/Icons';
 import KeyHint from '../components/KeyHint';
 import { isKbMode } from '../utils/keyboardMode';
 
@@ -50,6 +50,32 @@ type Question = {
 // .includes / .every を呼ぶとクラッシュする。必ず数値配列に正規化する。
 const toIdxArr = (v: any): number[] => Array.isArray(v) ? v : (v == null || v === '' ? [] : [v]);
 
+// 解説下のアクション列で使う丸アイコンボタン（コピーボタンと同じ 28px の枠に合わせる）。
+// active のときだけ色が付き、押していない状態は control 色で統一する。
+const IconActionButton = ({ onClick, disabled, active, activeColor, title, children }: {
+  onClick: () => void; disabled?: boolean; active?: boolean; activeColor: string; title: string; children: React.ReactNode;
+}) => {
+  const color = active ? activeColor : 'var(--color-text-sub)';
+  return (
+    <button
+      onClick={onClick}
+      disabled={disabled}
+      title={title}
+      aria-label={title}
+      aria-pressed={active}
+      style={{
+        background: 'none', border: `1.5px solid ${active ? activeColor : 'var(--color-border)'}`,
+        borderRadius: '50%', width: 28, height: 28,
+        display: 'flex', alignItems: 'center', justifyContent: 'center',
+        cursor: disabled ? 'default' : 'pointer', color,
+        opacity: disabled ? 0.4 : 1, transition: 'all 0.2s', flexShrink: 0, padding: 0,
+      }}
+    >
+      {children}
+    </button>
+  );
+};
+
 const CopyButton = ({ getText, hint }: { getText: () => string; hint?: string }) => {
   const [copied, setCopied] = useState(false);
   const handleCopy = (e: React.MouseEvent) => {
@@ -77,138 +103,6 @@ const CopyButton = ({ getText, hint }: { getText: () => string; hint?: string })
       {copied ? <IconCheck size={13} /> : <IconCopy size={13} />}
       {hint && <KeyHint keys={hint.split('+')} />}
     </button>
-  );
-};
-
-const PromptMenu = ({ questionText, choices, explanation, lang }: { questionText: string; choices: string[]; explanation?: string; lang: string }) => {
-  const [open, setOpen] = useState(false);
-  const [copiedIdx, setCopiedIdx] = useState<number | null>(null);
-  const [infoHovered, setInfoHovered] = useState(false);
-  const ref = React.useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    if (!open) return;
-    const handler = (e: MouseEvent) => {
-      if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false);
-    };
-    document.addEventListener('mousedown', handler);
-    return () => document.removeEventListener('mousedown', handler);
-  }, [open]);
-
-  const isEn = lang === 'en';
-
-  const items = isEn ? [
-    {
-      label: 'Ask for a detailed explanation',
-      text: `Please explain the following AWS certification exam question in detail.\n\n[Question]\n${questionText}\n\n[Choices]\n${choices.join('\n')}\n\nPlease provide a detailed explanation of the correct answer and each choice.`,
-    },
-    {
-      label: 'Check question accuracy',
-      text: `Please verify whether the following AWS certification exam question and explanation are accurate and appropriate.\n\n[Question]\n${questionText}\n\n[Choices]\n${choices.join('\n')}\n\n[Explanation]\n${explanation ?? ''}\n\nPlease evaluate whether the content of this question and explanation is correct and appropriate.`,
-    },
-  ] : [
-    {
-      label: 'この問題に関する詳しい解説を質問',
-      text: `以下のAWS認定試験の問題について、詳しく解説してください。\n\n【問題文】\n${questionText}\n\n【選択肢】\n${choices.join('\n')}\n\n正解と各選択肢についての詳細な解説をお願いします。`,
-    },
-    {
-      label: 'この問題の正当性を確認',
-      text: `以下のAWS認定試験の問題と解説が適切かどうか確認してください。\n\n【問題文】\n${questionText}\n\n【選択肢】\n${choices.join('\n')}\n\n【解説】\n${explanation ?? ''}\n\nこの問題と解説の内容が正確で適切かどうかを評価してください。`,
-    },
-  ];
-
-  const copy = (text: string, idx: number) => {
-    navigator.clipboard.writeText(text).then(() => {
-      setOpen(false);
-      setCopiedIdx(idx);
-      setTimeout(() => { setCopiedIdx(null); }, 1500);
-    });
-  };
-
-  return (
-    <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-      {copiedIdx !== null && (
-        <span style={{
-          fontSize: 'var(--font-size-xs)', color: 'var(--color-primary)',
-          whiteSpace: 'nowrap', animation: 'sherpa-fade-in 0.15s ease',
-        }}>
-          {isEn ? 'Copied ✓' : 'コピーしました ✓'}
-        </span>
-      )}
-      {/* info icon */}
-      <div
-        style={{ position: 'relative', display: 'flex', alignItems: 'center' }}
-        onMouseEnter={() => setInfoHovered(true)}
-        onMouseLeave={() => setInfoHovered(false)}
-      >
-        <span style={{
-          width: 16, height: 16, borderRadius: '50%', border: '1.5px solid var(--color-text-light)',
-          display: 'flex', alignItems: 'center', justifyContent: 'center',
-          fontSize: 'var(--font-size-2xs)', fontWeight: 700, color: 'var(--color-text-light)',
-          cursor: 'default', lineHeight: 1, userSelect: 'none',
-        }}>i</span>
-        {infoHovered && (
-          <div style={{
-            position: 'absolute', bottom: '100%', left: 0, marginBottom: 6,
-            background: 'rgba(30,30,30,0.88)', color: '#fff',
-            fontSize: 'var(--font-size-xs)', lineHeight: 1.6, padding: '7px 11px',
-            borderRadius: 6, whiteSpace: 'pre-wrap', width: 230,
-            pointerEvents: 'none', zIndex: 200,
-            boxShadow: 'var(--box-shadow-pop)',
-          }}>
-            {isEn
-              ? 'Generate and copy a prompt to ask about or verify this question.'
-              : 'この問題に関する質問・確認をするためのプロンプト文を生成・コピーできます。'}
-          </div>
-        )}
-      </div>
-      <div ref={ref} style={{ position: 'relative' }}>
-        <button
-          onClick={() => setOpen(o => !o)}
-          style={{
-            display: 'inline-flex', alignItems: 'center', gap: 6,
-            padding: '5px 10px',
-            border: `1.5px solid ${open ? 'var(--color-primary)' : 'var(--color-border)'}`,
-            borderRadius: 'var(--border-radius-md)',
-            background: 'var(--color-bg-white)',
-            color: open ? 'var(--color-text-main)' : 'var(--color-text-sub)',
-            cursor: 'pointer',
-            fontSize: 'var(--font-size-sm)', fontWeight: 600,
-            whiteSpace: 'nowrap', transition: 'border-color 0.15s, color 0.15s',
-          }}
-        >
-          {isEn ? 'Generate Prompt' : '質問プロンプト生成'}
-          <span style={{ color: 'var(--color-primary)', display: 'flex' }}>{open ? <IconChevronUp size={12} /> : <IconChevronDown size={12} />}</span>
-        </button>
-        {open && (
-          <div style={{
-            position: 'absolute', bottom: '100%', right: 0, marginBottom: 4,
-            background: 'var(--color-bg-white)', border: '1px solid var(--color-border)',
-            borderRadius: 'var(--border-radius-sm)', boxShadow: 'var(--box-shadow-md)',
-            minWidth: 240, zIndex: 100,
-          }}>
-            {items.map((item, i) => (
-              <button
-                key={i}
-                onClick={() => copy(item.text, i)}
-                style={{
-                  display: 'block', width: '100%', textAlign: 'left', padding: '10px 14px',
-                  background: 'none',
-                  border: 'none', borderBottom: i === 0 ? '1px solid var(--color-border)' : 'none',
-                  cursor: 'pointer', fontSize: 'var(--font-size-sm)',
-                  color: 'var(--color-text-main)',
-                  transition: 'background 0.15s',
-                }}
-                onMouseEnter={e => { if (copiedIdx !== i) e.currentTarget.style.background = 'var(--color-bg-sub, #f5f5f5)'; }}
-                onMouseLeave={e => { if (copiedIdx !== i) e.currentTarget.style.background = 'none'; }}
-              >
-                {item.label}
-              </button>
-            ))}
-          </div>
-        )}
-      </div>
-    </div>
   );
 };
 
@@ -416,6 +310,20 @@ export default function ExerciseSession() {
   const [tips, setTips] = useState<Tip[]>([]);
   const [bookmarkedIds, setBookmarkedIds] = useState<Set<string>>(new Set());
   const [bookmarkLoading, setBookmarkLoading] = useState(false);
+  // questionId -> 'up' | 'down'（自分が押したものだけ。合計数はユーザーに見せない）
+  const [reactions, setReactions] = useState<Record<string, 'up' | 'down'>>({});
+  const [actionMenuOpen, setActionMenuOpen] = useState(false);
+  const actionMenuRef = useRef<HTMLDivElement>(null);
+  // ⋮ メニューは外側クリック・問題の切り替えで閉じる
+  useEffect(() => {
+    if (!actionMenuOpen) return;
+    const h = (e: MouseEvent) => {
+      if (actionMenuRef.current && !actionMenuRef.current.contains(e.target as Node)) setActionMenuOpen(false);
+    };
+    document.addEventListener('mousedown', h);
+    return () => document.removeEventListener('mousedown', h);
+  }, [actionMenuOpen]);
+  useEffect(() => { setActionMenuOpen(false); }, [currentIndex]);
 
   useEffect(() => {
     fetch(`${API_ENDPOINT}/tips?examType=${examType}`)
@@ -465,6 +373,42 @@ export default function ExerciseSession() {
       .catch(() => {});
   }, [userId]);
 
+  // 自分が押した👍👎を復元する（合計数は取得しない＝ユーザーには見せない方針）。
+  useEffect(() => {
+    if (!userId) return;
+    fetch(`${API_ENDPOINT}/users/me/question-status?userId=${userId}&examType=${examType}`)
+      .then(r => r.json())
+      .then(d => setReactions(d.reactions ?? {}))
+      .catch(() => {});
+  }, [userId, examType]);
+
+  // 👍/👎。同じものを再度押すと取り消し（null）になる。1ユーザー1問1票。
+  const toggleReaction = async (next: 'up' | 'down') => {
+    if (!userId) return;
+    const qid = currentQuestion.questionId;
+    const current = reactions[qid] ?? null;
+    const value: 'up' | 'down' | null = current === next ? null : next;
+    // 押した瞬間に反映し、失敗したら戻す（体感速度優先）
+    setReactions(prev => {
+      const n = { ...prev };
+      if (value === null) delete n[qid]; else n[qid] = value;
+      return n;
+    });
+    try {
+      await fetch(`${API_ENDPOINT}/questions/${qid}/reaction`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ userId, reaction: value }),
+      });
+    } catch {
+      setReactions(prev => {
+        const n = { ...prev };
+        if (current === null) delete n[qid]; else n[qid] = current;
+        return n;
+      });
+    }
+  };
+
   const toggleBookmark = async () => {
     const qid = currentQuestion.questionId;
     const isBookmarked = bookmarkedIds.has(qid);
@@ -484,6 +428,86 @@ export default function ExerciseSession() {
     } catch (err) { console.error(err); }
     setBookmarkLoading(false);
   };
+
+  // 解説下（回答前は選択肢下）のアクション列 [コピー][♡][👍][👎][⋮]。
+  // 回答前後で並び・位置を変えないよう、同じ関数で両方を描画する。
+  // withActions=false のときはコピーのみ（回答後の「選択肢の下」用）。
+  const renderActionRow = (getCopyText: () => string, withActions: boolean) => (
+    <div style={{ display: 'flex', justifyContent: 'flex-start', alignItems: 'center', gap: 'var(--spacing-sm)', marginTop: 'var(--spacing-md)' }}>
+      <CopyButton getText={getCopyText} hint={!isMobile && !withActions ? undefined : undefined} />
+      {withActions && (
+        <>
+          {/* ♡ = ブックマーク（旧・見出し右の☆）。ログイン専用 */}
+          <IconActionButton
+            onClick={toggleBookmark}
+            disabled={!userId || bookmarkLoading}
+            active={bookmarkedIds.has(currentQuestion.questionId)}
+            activeColor="var(--color-danger)"
+            title={bookmarkedIds.has(currentQuestion.questionId) ? t('exerciseSession.removeBookmark') : t('exerciseSession.bookmark')}
+          >
+            <IconHeart filled={bookmarkedIds.has(currentQuestion.questionId)} size={15} />
+          </IconActionButton>
+          {/* 👍👎 … ログイン専用。合計数は出さず、自分の選択状態のみ示す */}
+          <IconActionButton
+            onClick={() => toggleReaction('up')}
+            disabled={!userId}
+            active={reactions[currentQuestion.questionId] === 'up'}
+            activeColor="var(--color-primary)"
+            title={lang === 'ja' ? '参考になった' : 'Helpful'}
+          >
+            <IconThumbsUp filled={reactions[currentQuestion.questionId] === 'up'} size={15} />
+          </IconActionButton>
+          <IconActionButton
+            onClick={() => toggleReaction('down')}
+            disabled={!userId}
+            active={reactions[currentQuestion.questionId] === 'down'}
+            activeColor="var(--color-text-sub)"
+            title={lang === 'ja' ? '分かりにくい' : 'Not helpful'}
+          >
+            <IconThumbsDown filled={reactions[currentQuestion.questionId] === 'down'} size={15} />
+          </IconActionButton>
+          {/* ⋮ … 通報・途中採点を格納（従来は独立ボタンで並んでいた） */}
+          <div ref={actionMenuRef} style={{ position: 'relative' }}>
+            <IconActionButton
+              onClick={() => setActionMenuOpen(o => !o)}
+              active={actionMenuOpen}
+              activeColor="var(--color-text-main)"
+              title={lang === 'ja' ? 'その他' : 'More'}
+            >
+              <IconMoreVertical size={15} />
+            </IconActionButton>
+            {actionMenuOpen && (
+              <div style={{
+                position: 'absolute', bottom: '100%', left: 0, marginBottom: 4,
+                background: 'var(--color-bg-white)', border: '1px solid var(--color-border)',
+                borderRadius: 'var(--border-radius-md)', boxShadow: 'var(--box-shadow-pop)',
+                minWidth: 180, zIndex: 100, overflow: 'hidden',
+              }}>
+                <button
+                  onClick={() => { setActionMenuOpen(false); setReportOpen(true); }}
+                  style={{ display: 'block', width: '100%', textAlign: 'left', padding: '10px 14px', background: 'none', border: 'none', borderBottom: '1px solid var(--color-border)', cursor: 'pointer', fontSize: 'var(--font-size-sm)', color: 'var(--color-text-main)' }}
+                  onMouseEnter={e => { e.currentTarget.style.background = 'var(--color-bg-main)'; }}
+                  onMouseLeave={e => { e.currentTarget.style.background = 'none'; }}
+                >
+                  {lang === 'ja' ? 'この問題を通報' : 'Report this question'}
+                </button>
+                <button
+                  onClick={() => { setActionMenuOpen(false); if (results.length > 0) setShowAbortConfirm(true); }}
+                  disabled={results.length === 0}
+                  style={{ display: 'block', width: '100%', textAlign: 'left', padding: '10px 14px', background: 'none', border: 'none', cursor: results.length === 0 ? 'default' : 'pointer', fontSize: 'var(--font-size-sm)', color: 'var(--color-text-main)', opacity: results.length === 0 ? 0.45 : 1 }}
+                  onMouseEnter={e => { if (results.length > 0) e.currentTarget.style.background = 'var(--color-bg-main)'; }}
+                  onMouseLeave={e => { e.currentTarget.style.background = 'none'; }}
+                >
+                  {lang === 'ja' ? 'ここまでで採点' : 'Grade up to here'}
+                </button>
+              </div>
+            )}
+          </div>
+        </>
+      )}
+    </div>
+  );
+
   const [results, setResults] = useState<{ questionId: string; isCorrect: boolean }[]>(_resumeInit.res);
   // 回答済み問題を見返したときに選んだ選択肢を復元するための履歴。
   // ドラフトに含めないと、再開後に前の問題へ戻ったとき「回答済みなのに何も選ばれていない」
@@ -1283,22 +1307,11 @@ export default function ExerciseSession() {
         );
       })()}
       <Card padding={isMobile ? 'var(--spacing-md)' : 'var(--spacing-xl)'}>
+        {/* ブックマーク(旧☆)は解説下のアクション列(♡)へ移動した */}
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 'var(--spacing-lg)' }}>
           <h1 style={{ fontSize: 'var(--font-size-h2)', fontWeight: 700, margin: 0, color: 'var(--color-text-main)' }}>
             {t('exerciseSession.qLabel')} {currentIndex + 1}
           </h1>
-          {user && (
-            <button
-              onClick={toggleBookmark}
-              disabled={bookmarkLoading}
-              title={bookmarkedIds.has(currentQuestion.questionId) ? t('exerciseSession.removeBookmark') : t('exerciseSession.bookmark')}
-              style={{ background: 'none', border: 'none', cursor: 'pointer', padding: '4px', display: 'flex', alignItems: 'center', opacity: bookmarkLoading ? 0.5 : 1, transition: 'all 0.2s', flexShrink: 0 }}
-            >
-              <span style={{ color: bookmarkedIds.has(currentQuestion.questionId) ? 'var(--color-warning, #f59e0b)' : 'var(--color-text-light)' }}>
-                <IconStar filled={bookmarkedIds.has(currentQuestion.questionId)} size={20} />
-              </span>
-            </button>
-          )}
         </div>
 
         {currentQuestion.scheduledDeletionDate && (
@@ -1324,10 +1337,7 @@ export default function ExerciseSession() {
                 </span>
               )}
             </div>
-            <CopyButton hint={!isMobile ? 'Ctrl+C' : undefined} getText={() => {
-              const choicesText = shuffledChoices.map((c: string, idx: number) => `${CHOICE_LABELS[idx]}. ${stripLabel(c)}`).join('\n');
-              return `${currentQuestion.questionText}\n\n${choicesText}`;
-            }} />
+            {/* 問題文＋選択肢のコピーは「選択肢の下」へ移動した */}
           </div>
           <p style={{ fontSize: 'var(--font-size-lg)', lineHeight: 1.6, fontWeight: 400, margin: 0, color: 'var(--color-text-main)', overflowWrap: 'break-word', wordBreak: 'break-word', minWidth: 0, whiteSpace: 'pre-wrap' }}>
             {qText(currentQuestion as any, lang)}
@@ -1417,6 +1427,14 @@ export default function ExerciseSession() {
               </button>
             );
           })()}
+          {/* 問題文＋選択肢のコピー（選択肢の下・左揃え）。
+              回答前はここがカード最下部なのでアクション列も一緒に出し、
+              回答後は解説の下に同じ列が出るのでここはコピーのみにする
+              （♡等の位置が回答の前後で変わらないようにするため）。 */}
+          {renderActionRow(() => {
+            const choicesText = shuffledChoices.map((c: string, idx: number) => `${CHOICE_LABELS[idx]}. ${stripLabel(c)}`).join('\n');
+            return `${currentQuestion.questionText}\n\n${choicesText}`;
+          }, !answered)}
         </div>
 
         <div ref={explAnchorRef} style={{ scrollMarginTop: 56 }} />
@@ -1477,17 +1495,7 @@ export default function ExerciseSession() {
                     );
                   })()}
                 </div>
-                <CopyButton getText={() => {
-                  const choicesText = shuffledChoices.map((c: string, ci: number) => `${CHOICE_LABELS[ci]}. ${stripLabel(c)}`).join('\n');
-                  const correctLabels = (displayQ.correctAnswers ?? []).map((ca: string) => {
-                    const si = shuffledChoices.findIndex((c: string) => stripLabel(c) === stripLabel(ca));
-                    return si >= 0 ? `${CHOICE_LABELS[si]}. ${stripLabel(ca)}` : stripLabel(ca);
-                  }).join(', ');
-                  const expl = displayQ.choiceExplanations && displayQ.choiceExplanations.length > 0
-                    ? displayQ.choiceExplanations.map((e: string, i: number) => `${CHOICE_LABELS[i]}. ${e}`).join('\n')
-                    : (displayQ.explanation ?? '');
-                  return `${currentQuestion.questionText}\n\n${choicesText}\n\n${t('exerciseSession.correctAnswer')}${correctLabels}\n\n${t('exerciseSession.explanation')}\n${expl}`;
-                }} />
+                {/* 解答解説込みのコピーは解説下のアクション列へ移動した */}
               </div>
               <div style={{ fontSize: 'var(--font-size-base)', lineHeight: 1.6 }}>
                 <strong>{t('exerciseSession.explanation')}</strong>
@@ -1524,48 +1532,26 @@ export default function ExerciseSession() {
           </div>
         )}
 
-        {answered && (
-          <div style={{ display: 'flex', justifyContent: 'flex-end', alignItems: 'center', gap: 'var(--spacing-sm)', marginTop: 'var(--spacing-sm)' }}>
-            <PromptMenu
-              questionText={currentQuestion.questionText}
-              choices={shuffledChoices.map((c: string, ci: number) => `${CHOICE_LABELS[ci]}. ${c}`)}
-              explanation={((currentQuestion.correctAnswers ? currentQuestion : detail) ?? currentQuestion).explanation}
-              lang={lang}
-            />
-          </div>
-        )}
+        {/* 解説の下のアクション列 [コピー(解説込み)][♡][👍][👎][⋮]（左揃え） */}
+        {answered && (() => {
+          const displayQ = (currentQuestion.correctAnswers ? currentQuestion : detail) ?? currentQuestion;
+          return renderActionRow(() => {
+            const choicesText = shuffledChoices.map((c: string, ci: number) => `${CHOICE_LABELS[ci]}. ${stripLabel(c)}`).join('\n');
+            const correctLabels = (displayQ.correctAnswers ?? []).map((ca: string) => {
+              const si = shuffledChoices.findIndex((c: string) => stripLabel(c) === stripLabel(ca));
+              return si >= 0 ? `${CHOICE_LABELS[si]}. ${stripLabel(ca)}` : stripLabel(ca);
+            }).join(', ');
+            const expl = displayQ.choiceExplanations && displayQ.choiceExplanations.length > 0
+              ? displayQ.choiceExplanations.map((e: string, i: number) => `${CHOICE_LABELS[i]}. ${e}`).join('\n')
+              : (displayQ.explanation ?? '');
+            return `${currentQuestion.questionText}\n\n${choicesText}\n\n${t('exerciseSession.correctAnswer')}${correctLabels}\n\n${t('exerciseSession.explanation')}\n${expl}`;
+          }, true);
+        })()}
 
-        {/* フッター */}
+        {/* フッター。通報・途中採点は解説下の ⋮ メニューへ移動した */}
         <div style={{ marginTop: 'var(--spacing-md)', paddingTop: 'var(--spacing-sm)', borderTop: '1px dashed var(--color-border)' }}>
-          {/* 上段: 中断・通報ボタン（右寄せ） */}
-          <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 'var(--spacing-sm)', marginBottom: 'var(--spacing-sm)' }}>
-            <button
-              onClick={() => setReportOpen(true)}
-              style={{ background: 'none', border: '1px solid var(--color-border)', borderRadius: 'var(--border-radius-md)', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 4, color: 'var(--color-text-sub)', fontSize: 'var(--font-size-xs)', padding: '3px 10px', transition: 'all 0.2s' }}
-              onMouseEnter={e => { e.currentTarget.style.color = 'var(--color-danger)'; e.currentTarget.style.borderColor = 'var(--color-danger)'; }}
-              onMouseLeave={e => { e.currentTarget.style.color = 'var(--color-text-sub)'; e.currentTarget.style.borderColor = 'var(--color-border)'; }}
-              title={lang === 'ja' ? '問題の不備を通報' : 'Report an issue'}
-            >
-              <IconAlertTriangle size={13} />
-              <span>{lang === 'ja' ? '通報' : 'Report'}</span>
-            </button>
-            <button
-              onClick={() => results.length > 0 && setShowAbortConfirm(true)}
-              disabled={results.length === 0}
-              style={{
-                background: 'none', border: '1px solid var(--color-border)', borderRadius: 'var(--border-radius-md)',
-                padding: '3px 10px', fontSize: 'var(--font-size-xs)', fontWeight: 600, cursor: results.length === 0 ? 'default' : 'pointer',
-                color: 'var(--color-text-sub)',
-                opacity: results.length === 0 ? 0.45 : 1, whiteSpace: 'nowrap', transition: 'all 0.15s',
-                display: 'flex', alignItems: 'center', gap: 3,
-              }}
-            >
-              <IconCheck size={11} />
-              {lang === 'ja' ? '途中採点' : 'Grade'}
-            </button>
-          </div>
-          {/* 下段: AI確認情報・問題メタデータ（左寄せ） */}
-          <div style={{ display: 'flex', flexWrap: 'wrap', gap: 'var(--spacing-md)', fontSize: 'var(--font-size-xs)', color: 'var(--color-text-light)' }}>
+          {/* AI確認情報・問題メタデータ（左寄せ） */}
+          <div style={{ display: 'flex', flexWrap: 'wrap', gap: 'var(--spacing-md)', fontSize: 'var(--font-size-xs)', color: 'var(--color-text-sub)' }}>
             <span>
               {lang === 'ja' ? 'AI確認' : 'AI review'}:{' '}
               {currentQuestion.validityCheckedAt

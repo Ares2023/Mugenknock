@@ -201,10 +201,16 @@ navigate('/aws/result', { state: { results, questions, score, ... } })
 
 ### その他の機能
 
-- **コピーボタン** — 問題文・選択肢・解説をクリップボードへ（プロダクト原則2の実装）
-- **PromptMenu** — ChatGPT / Gemini / Claude に貼るプロンプトを生成
-- **ブックマークトグル** — `POST/DELETE /questions/:id/bookmark`
-- **通報** — `ReportModal` → `POST /questions/:id/report`
+- **アクション列** `[コピー][♡][👍][👎][⋮]`（左揃え） — 回答前は選択肢の下、
+  回答後は解説の下に同じ並びで表示する（`renderActionRow()`）。回答の前後で
+  ♡等の位置が変わらないようにするため、共通関数で描画している。
+  - **コピー** — 回答前＝問題文＋選択肢、回答後＝問題文＋選択肢＋解答解説をクリップボードへ
+  - **♡（ブックマーク）** — `POST/DELETE /questions/:id/bookmark`。旧・見出し右の☆から移動
+  - **👍👎（リアクション）** — `PUT /questions/:id/reaction`。ログイン専用・1ユーザー1問1票。
+    詳細は `docs/04-api.md` §4.3b、`specs/002-question-reactions/`
+  - **⋮** — 「この問題を通報」（`ReportModal` → `POST /questions/:id/report`）／
+    「ここまでで採点」（`setShowAbortConfirm`）のメニューを開く
+- **PromptMenu（質問プロンプト生成）** — 2026-09-15 廃止。`specs/002-question-reactions/` 参照
 - **コラム** — `GET /tips?examType=` を問題間に挟む
 - **「わからない」** — 選択肢とは別の回答（`WAKARANAI` 定数）
 

@@ -99,6 +99,17 @@
 | DELETE | `/questions/:id/bookmark?userId=` | なし | `bookmarked = false`（行は残る） |
 | GET | `/users/me/bookmarks?userId=` | ✅ user | `{ questionIds: [...] }` |
 
+## 4.3b 問題へのリアクション（👍👎）
+
+1ユーザー1問1票。`UserQuestionStats.reaction`（`'up' | 'down'`、未設定=無反応）が正。
+合計集計は `Questions.reactionUp` / `reactionDown`（`globalAttempts` と同じく本体書き込みとは
+別トランザクションの条件付き加算）で、**ユーザー向けAPIには合計を出さない**（管理画面専用）。
+
+| メソッド | パス | 認証 | 説明 |
+|---|---|---|---|
+| PUT | `/questions/:id/reaction` | なし（body.userId） | `{ userId, reaction: 'up'\|'down'\|null }`。`null`で取り消し。同じ値の再送は無処理 |
+| GET | `/users/me/question-status?userId=&examType=` | ✅ user | `reactions: Record<questionId, 'up'\|'down'>` を含む（自分の分のみ） |
+
 ---
 
 ## 4.4 セッション
