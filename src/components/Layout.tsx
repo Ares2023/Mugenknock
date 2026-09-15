@@ -807,11 +807,13 @@ export default function Layout({ children }: { children: React.ReactNode }) {
         borderBottom: '1px solid var(--color-border)',
       }}>
 
-        {/* サービス名 */}
-        <div onClick={() => navigate('/aws/')} style={{ display: 'flex', alignItems: 'center', gap: 6, cursor: 'pointer', userSelect: 'none', flexShrink: 0, padding: '0 4px' }}>
-          <img src="/mugen-icon.png"   alt="無限ノック" style={{ height: 28, width: 'auto', display: 'block', flexShrink: 0 }} />
-          {!isMobile && <img src="/mugen-header.png" alt="" style={{ height: 28, width: 'auto', display: 'block', flexShrink: 0 }} />}
-        </div>
+        {/* サービス名（モバイルではロゴアイコンを非表示。ホームへの導線は下部タブバーが担う） */}
+        {!isMobile && (
+          <div onClick={() => navigate('/aws/')} style={{ display: 'flex', alignItems: 'center', gap: 6, cursor: 'pointer', userSelect: 'none', flexShrink: 0, padding: '0 4px' }}>
+            <img src="/mugen-icon.png" alt="無限ノック" style={{ height: 28, width: 'auto', display: 'block', flexShrink: 0 }} />
+            <img src="/mugen-header.png" alt="" style={{ height: 28, width: 'auto', display: 'block', flexShrink: 0 }} />
+          </div>
+        )}
 
         {/* ポイント表示＋アカウントボタン（モバイル・デスクトップ共通） */}
         <div style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: 8, flexShrink: 0 }}>
