@@ -1475,7 +1475,7 @@ export default function MyPage() {
           onClick={() => setQuestionModal(null)}
         >
           <div
-            style={{ background: 'var(--color-bg-white)', borderRadius: isMobile ? '16px 16px 0 0' : 'var(--border-radius-lg)', padding: isMobile ? 'var(--spacing-xl) var(--spacing-xl) var(--spacing-xl)' : 'var(--spacing-xl)', width: '100%', maxWidth: isMobile ? '100%' : 600, maxHeight: isMobile ? '85vh' : '80vh', overflowY: 'auto', boxShadow: 'var(--box-shadow-lg)' }}
+            style={{ background: 'var(--color-bg-white)', borderRadius: isMobile ? 'var(--border-radius-lg) var(--border-radius-lg) 0 0' : 'var(--border-radius-lg)', padding: isMobile ? 'var(--spacing-xl) var(--spacing-xl) var(--spacing-xl)' : 'var(--spacing-xl)', width: '100%', maxWidth: isMobile ? '100%' : 600, maxHeight: isMobile ? '85vh' : '80vh', overflowY: 'auto', boxShadow: 'var(--box-shadow-lg)' }}
             onClick={e => e.stopPropagation()}
           >
             {/* ヘッダー */}

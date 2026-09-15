@@ -27,7 +27,7 @@ const Card: React.FC<CardProps> = ({
       style={{
         background: 'var(--color-bg-white)',
         border: '1px solid var(--color-border)',
-        borderRadius: 'var(--border-radius-md)',
+        borderRadius: 'var(--border-radius-container)',
         boxShadow: 'var(--box-shadow-sm)',
         display: 'flex',
         flexDirection: 'column',
@@ -54,8 +54,8 @@ const Card: React.FC<CardProps> = ({
             padding: 'var(--spacing-md) var(--spacing-lg)',
             borderTop: '1px solid var(--color-border)',
             background: 'var(--color-bg-main)',
-            borderBottomLeftRadius: 'var(--border-radius-md)',
-            borderBottomRightRadius: 'var(--border-radius-md)',
+            borderBottomLeftRadius: 'var(--border-radius-container)',
+            borderBottomRightRadius: 'var(--border-radius-container)',
           }}
         >
           {footer}

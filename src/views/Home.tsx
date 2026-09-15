@@ -25,6 +25,7 @@ import { animateLoadPct, randomPlateau } from '../utils/loadProgress';
 import { getPoints, deductPoints } from '../utils/points';
 import Card from '../components/ui/Card';
 import Button from '../components/ui/Button';
+import PageLayout from '../components/ui/PageLayout';
 import { IconLightbulb, IconBean, IconSettings, IconChevronUp, IconChevronDown, IconLock, IconFileText, IconTrendingUp, IconBookOpen, IconCheck, IconSparkles, IconPointer, IconMousePointerClick, IconCalendarNotebook, IconRefreshCw, IconTarget, IconChart, ServiceIconImg, isServiceIconKey, IconUser, IconSave, IconSaveCheck, IconExternalLink } from '../components/Icons';
 import KeyHint from '../components/KeyHint';
 import { CATALOG } from '../data/awsServiceCatalog';
@@ -32,6 +33,10 @@ import { autoScoreAndClearDrafts } from '../utils/sessionUtils';
 import { hydrateDraftsFromServer } from '../utils/sessionResume';
 import { syncTargetExamToServer, loadTargetExamFromServer, resetExercisePrefsOnExamChange } from '../utils/preferences';
 import { fetchDailyProgress } from '../utils/dailyProgress';
+
+// ダッシュボードはワイドモニタで横を使い切れるよう、他ページ(900px)より広く取る。
+// デスクトップ固定の開始バーも同じ幅で中央寄せするため定数で共有する。
+const HOME_MAX_WIDTH = 1280;
 
 type DomainStat = { tagId: string; correctCount?: number; incorrectCount?: number; recentResults?: boolean[] };
 type SessionEntry = { correct: number; total: number };
@@ -2099,18 +2104,23 @@ export default function Home() {
   // 未ログイン/初回訪問ユーザー(hadPriorSession=false)は従来どおり即表示する。
   if (authLoading && !user && hadPriorSession()) {
     return (
-      <div style={{ maxWidth: 900, margin: '0 auto', padding: 'var(--spacing-lg) var(--spacing-lg)', minHeight: '60vh', display: 'flex', alignItems: 'center', justifyContent: 'center' }} className="page-container">
+      <PageLayout maxWidth={HOME_MAX_WIDTH} style={{ minHeight: '60vh', display: 'flex', alignItems: 'center', justifyContent: 'center' }} className="page-container">
         <div className="sherpa-spinner" style={{ width: 28, height: 28, borderWidth: 3 }} />
-      </div>
+      </PageLayout>
     );
   }
 
   return (
-    <div style={{ maxWidth: 900, margin: '0 auto', padding: 'var(--spacing-lg) var(--spacing-lg)' }} className="page-container">
+    <PageLayout maxWidth={HOME_MAX_WIDTH} className="page-container">
       <Helmet>
         <title>ホーム | 無限ノック</title>
         <meta name="description" content="あなたのAWS試験スコアと学習進捗を確認。ドメイン別正答率・予想スコア・直近の演習結果をひと目で把握できます。" />
       </Helmet>
+
+      {/* ダッシュボード本体。デスクトップは 2カラム（左=進捗と成績 / 右=日めくり）、
+          モバイルは従来どおり縦一列。 */}
+      <div style={isMobile ? undefined : { display: 'grid', gridTemplateColumns: 'minmax(0, 2fr) minmax(0, 1fr)', gap: 'var(--spacing-md)', alignItems: 'start' }}>
+      <div>
 
       {/* ── 目標演習量 ── */}
       <Card
@@ -2287,6 +2297,9 @@ export default function Home() {
 
       </Card>
 
+      </div>
+      <div>
+
       {/* ── 日めくりAWSサービス ── */}
       <TodayServiceSection
         lang={lang}
@@ -2296,6 +2309,9 @@ export default function Home() {
         onReveal={svc => setRevealService(svc)}
         isMobile={isMobile}
       />
+
+      </div>
+      </div>
 
       {revealService && (
         <DailyServiceRevealModal
@@ -2322,7 +2338,7 @@ export default function Home() {
       {/* ── サクッと演習ボタン（デスクトップ固定） ── */}
       {!isMobile && createPortal(
         <div style={{ position: 'fixed', bottom: 16, left: 'var(--content-left, 0px)', right: 0, zIndex: 150 }}>
-          <div style={{ maxWidth: 900, margin: '0 auto', padding: '0 var(--spacing-lg)', display: 'flex', gap: 6 }}>
+          <div style={{ maxWidth: HOME_MAX_WIDTH, margin: '0 auto', padding: '0 var(--spacing-lg)', display: 'flex', gap: 6 }}>
             {hasPrimaryDraft ? (
               <div style={{ flex: 1, position: 'relative' }}>
                 {showWebQuickMenu && (
@@ -2498,7 +2514,7 @@ export default function Home() {
           {hasPrimaryDraft && showNewPanel && (
             <>
               <div onClick={() => setShowNewPanel(false)} style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.4)', zIndex: 210 }} />
-              <div style={{ position: 'fixed', bottom: 116, left: 0, right: 0, zIndex: 211, background: 'var(--color-bg-white)', borderRadius: '14px 14px 0 0', padding: '14px 12px 12px', boxShadow: 'var(--box-shadow-up)', animation: 'slideUp 0.22s ease' }}>
+              <div style={{ position: 'fixed', bottom: 116, left: 0, right: 0, zIndex: 211, background: 'var(--color-bg-white)', borderRadius: 'var(--border-radius-lg) var(--border-radius-lg) 0 0', padding: '14px 12px 12px', boxShadow: 'var(--box-shadow-up)', animation: 'slideUp 0.22s ease' }}>
                 <div style={{ fontSize: 'var(--font-size-sm)', color: 'var(--color-text-sub)', textAlign: 'center', marginBottom: 10 }}>
                   {ja ? 'セッションを上書きして開始します' : 'This will overwrite the current session'}
                 </div>
@@ -2539,7 +2555,7 @@ export default function Home() {
           {!hasPrimaryDraft && showFocusedMenu && (
             <>
               <div onClick={() => setShowFocusedMenu(false)} style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.4)', zIndex: 210 }} />
-              <div style={{ position: 'fixed', bottom: 116, left: 0, right: 0, zIndex: 211, background: 'var(--color-bg-white)', borderRadius: '14px 14px 0 0', padding: '14px 12px 12px', boxShadow: 'var(--box-shadow-up)', animation: 'slideUp 0.22s ease' }}>
+              <div style={{ position: 'fixed', bottom: 116, left: 0, right: 0, zIndex: 211, background: 'var(--color-bg-white)', borderRadius: 'var(--border-radius-lg) var(--border-radius-lg) 0 0', padding: '14px 12px 12px', boxShadow: 'var(--box-shadow-up)', animation: 'slideUp 0.22s ease' }}>
                 {primaryMode === 'quick' ? (
                   <>
                     {effectiveFocusedUnlocked && <div style={{ textAlign: 'center', fontSize: 'var(--font-size-xs)', color: 'var(--color-text-light)', marginBottom: 4 }}>{ja ? '苦手・不正解問題を重点演習' : 'Focuses on weak/incorrect questions'}</div>}
@@ -3204,6 +3220,6 @@ export default function Home() {
       {(quickLoading || focusedLoading) && <div style={{ position: 'fixed', inset: 0, zIndex: 9000, cursor: 'wait' }} onTouchStart={e => e.stopPropagation()} onTouchMove={e => e.stopPropagation()} onTouchEnd={e => e.stopPropagation()} />}
       {quickBurst && <ConfirmBurst x={quickBurst.x} y={quickBurst.y} color={SAVE_BURST_COLOR} onDone={() => setQuickBurst(null)} />}
       {focusedBurst && <ConfirmBurst x={focusedBurst.x} y={focusedBurst.y} color={SAVE_BURST_COLOR} onDone={() => setFocusedBurst(null)} />}
-    </div>
+    </PageLayout>
   );
 }
