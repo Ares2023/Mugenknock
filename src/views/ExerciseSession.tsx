@@ -51,11 +51,11 @@ type Question = {
 const toIdxArr = (v: any): number[] => Array.isArray(v) ? v : (v == null || v === '' ? [] : [v]);
 
 // 解説下のアクション列で使う丸アイコンボタン（コピーボタンと同じ 28px の枠に合わせる）。
-// active のときだけ色が付き、押していない状態は control 色で統一する。
-const IconActionButton = ({ onClick, disabled, active, activeColor, title, children }: {
-  onClick: () => void; disabled?: boolean; active?: boolean; activeColor: string; title: string; children: React.ReactNode;
+// 輪郭は付けず、アイコン色は状態によらず灰色で統一する。押した状態は
+// アイコン自体の塗り(filled)で示す（IconHeart等のfilledプロパティ側で対応）。
+const IconActionButton = ({ onClick, disabled, active, title, children }: {
+  onClick: () => void; disabled?: boolean; active?: boolean; title: string; children: React.ReactNode;
 }) => {
-  const color = active ? activeColor : 'var(--color-text-sub)';
   return (
     <button
       onClick={onClick}
@@ -64,11 +64,11 @@ const IconActionButton = ({ onClick, disabled, active, activeColor, title, child
       aria-label={title}
       aria-pressed={active}
       style={{
-        background: 'none', border: `1.5px solid ${active ? activeColor : 'var(--color-border)'}`,
+        background: 'none', border: 'none',
         borderRadius: '50%', width: 28, height: 28,
         display: 'flex', alignItems: 'center', justifyContent: 'center',
-        cursor: disabled ? 'default' : 'pointer', color,
-        opacity: disabled ? 0.4 : 1, transition: 'all 0.2s', flexShrink: 0, padding: 0,
+        cursor: disabled ? 'default' : 'pointer', color: 'var(--color-text-sub)',
+        opacity: disabled ? 0.4 : 1, transition: 'opacity 0.2s', flexShrink: 0, padding: 0,
       }}
     >
       {children}
@@ -442,7 +442,6 @@ export default function ExerciseSession() {
             onClick={toggleBookmark}
             disabled={!userId || bookmarkLoading}
             active={bookmarkedIds.has(currentQuestion.questionId)}
-            activeColor="var(--color-danger)"
             title={bookmarkedIds.has(currentQuestion.questionId) ? t('exerciseSession.removeBookmark') : t('exerciseSession.bookmark')}
           >
             <IconHeart filled={bookmarkedIds.has(currentQuestion.questionId)} size={15} />
@@ -452,7 +451,6 @@ export default function ExerciseSession() {
             onClick={() => toggleReaction('up')}
             disabled={!userId}
             active={reactions[currentQuestion.questionId] === 'up'}
-            activeColor="var(--color-primary)"
             title={lang === 'ja' ? '参考になった' : 'Helpful'}
           >
             <IconThumbsUp filled={reactions[currentQuestion.questionId] === 'up'} size={15} />
@@ -461,7 +459,6 @@ export default function ExerciseSession() {
             onClick={() => toggleReaction('down')}
             disabled={!userId}
             active={reactions[currentQuestion.questionId] === 'down'}
-            activeColor="var(--color-text-sub)"
             title={lang === 'ja' ? '分かりにくい' : 'Not helpful'}
           >
             <IconThumbsDown filled={reactions[currentQuestion.questionId] === 'down'} size={15} />
@@ -471,7 +468,6 @@ export default function ExerciseSession() {
             <IconActionButton
               onClick={() => setActionMenuOpen(o => !o)}
               active={actionMenuOpen}
-              activeColor="var(--color-text-main)"
               title={lang === 'ja' ? 'その他' : 'More'}
             >
               <IconMoreVertical size={15} />
