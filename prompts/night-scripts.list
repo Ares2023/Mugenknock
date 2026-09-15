@@ -3,7 +3,6 @@
 # コメント行（#）と空行は無視される
 
 0,/home/yuzuki/aws-quiz-app/prompts/night-prompts/scripts/99-send-report.sh
-0,/home/yuzuki/aws-quiz-app/prompts/night-prompts/scripts/generate-release-note.sh
 # 問題の削除予定日（scheduledDeletionDate）チェック・自動削除。決定的でclaude不要のため
 # トークン残量に関わらず毎晩必ず実行する（02/01のトークン律速の影響を受けない）。
 0,/home/yuzuki/aws-quiz-app/prompts/night-prompts/scripts/check-scheduled-deletions.sh
@@ -37,6 +36,12 @@
 # systemicな品質問題があれば生成(01)・検証(02)のプロンプト規則を最小限・追記的に自動改良する。
 # 生成・検証より後（改良は次回夜間から反映）。改良内容は audit_<日時>_improvement.md に出力。
 60,/home/yuzuki/aws-quiz-app/prompts/night-prompts/scripts/audit-questions-nightly.sh
+# リリースノート生成（前日分）。以前は delay=0（夜間サイクル開始直後）だったが、
+# サイクル開始直後は他の夜間タスクと同時にClaude APIへ集中し 529 Overloaded で
+# 失敗しやすく、失敗すると自己修復されずその日のノートが恒久欠落していた
+# （手動再実行の記録: 2026-09-04）。夜間監査(audit-questions-nightly)と同じ
+# 60分待ちにして、サイクル開始直後の混雑を避ける。
+60,/home/yuzuki/aws-quiz-app/prompts/night-prompts/scripts/generate-release-note.sh
 # カナリア整合性チェック: 現在のサイト構成とカナリアtest(no-auth spec)の整合性をOpusで確認し、
 # カバー漏れ/陳腐化があれば検証ゲート(playwright --list)付きでspecを自動更新。結果はメールへ。
 65,/home/yuzuki/aws-quiz-app/prompts/night-prompts/scripts/canary-coverage-check.sh

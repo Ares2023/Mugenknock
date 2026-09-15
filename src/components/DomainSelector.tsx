@@ -22,7 +22,7 @@ const chipStyle: React.CSSProperties = {
   background: 'var(--color-primary-light)',
   color: 'var(--color-primary)',
   border: '1px solid var(--color-primary)',
-  borderRadius: 'var(--border-radius-full)',
+  borderRadius: 'var(--border-radius-md)',
   lineHeight: 1,
 };
 

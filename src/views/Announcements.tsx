@@ -87,7 +87,7 @@ export default function Announcements() {
               onClick={() => { setExpandedId(expanded ? null : a.announcementId); markRead(a.announcementId); }}
             >
               {unread && (
-                <span style={{ fontSize: 'var(--font-size-2xs)', fontWeight: 700, padding: '2px 6px', borderRadius: 'var(--border-radius-full)', background: 'var(--color-danger)', color: '#fff', flexShrink: 0, lineHeight: 1.4 }}>
+                <span style={{ fontSize: 'var(--font-size-2xs)', fontWeight: 700, padding: '2px 6px', borderRadius: 'var(--border-radius-sm)', background: 'var(--color-danger)', color: '#fff', flexShrink: 0, lineHeight: 1.4 }}>
                   NEW
                 </span>
               )}

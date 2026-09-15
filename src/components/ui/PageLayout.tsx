@@ -3,7 +3,7 @@ import { useIsMobile } from '../../hooks/useWindowWidth';
 
 interface PageLayoutProps extends React.HTMLAttributes<HTMLDivElement> {
   children: React.ReactNode;
-  /** コンテンツ最大幅。数値はpx。falseで最大幅なし（フル幅）。既定 960px */
+  /** コンテンツ最大幅。数値はpx。falseで最大幅なし（フル幅）。既定 900px（--page-max-width）*/
   maxWidth?: number | string | false;
   /** true で直下の子を縦方向に一定間隔（--section-gap）で並べる */
   stack?: boolean;
@@ -21,7 +21,7 @@ interface PageLayoutProps extends React.HTMLAttributes<HTMLDivElement> {
  *  - 左右余白: デスクトップ 24px / モバイル 16px
  *  - 上下余白: デスクトップ 32px / モバイル 16px
  *  - セクション間隔(stack): デスクトップ 24px / モバイル 16px
- *  - 最大幅: 960px
+ *  - 最大幅: 900px（--page-max-width）。ダッシュボード等は maxWidth prop で個別に広げる
  */
 const PageLayout: React.FC<PageLayoutProps> = ({
   children,

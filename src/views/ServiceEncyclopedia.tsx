@@ -264,7 +264,7 @@ export default function ServiceEncyclopedia() {
             {ja ? '今日の日めくりAWSサービス' : "Today's Daily AWS Service"}
           </span>
           {todayAlreadyDone && (
-            <span style={{ marginLeft: 2, fontSize: 'var(--font-size-2xs)', fontWeight: 700, padding: '1px 7px', borderRadius: 'var(--border-radius-full)', background: 'var(--color-primary-light)', color: 'var(--color-primary)' }}>
+            <span style={{ marginLeft: 2, fontSize: 'var(--font-size-2xs)', fontWeight: 700, padding: '1px 7px', borderRadius: 'var(--border-radius-sm)', background: 'var(--color-primary-light)', color: 'var(--color-primary)' }}>
               {ja ? '解放済み' : 'Unlocked'}
             </span>
           )}
@@ -450,7 +450,7 @@ export default function ServiceEncyclopedia() {
                   {selected.name}
                 </div>
                 {selected.category && (
-                  <span style={{ fontSize: 'var(--font-size-2xs)', fontWeight: 700, padding: '1px 7px', borderRadius: 'var(--border-radius-full)', background: 'var(--color-primary-light)', color: 'var(--color-primary)' }}>
+                  <span style={{ fontSize: 'var(--font-size-2xs)', fontWeight: 700, padding: '1px 7px', borderRadius: 'var(--border-radius-sm)', background: 'var(--color-primary-light)', color: 'var(--color-primary)' }}>
                     {selected.category}
                   </span>
                 )}

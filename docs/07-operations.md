@@ -89,7 +89,6 @@ ct hooks list / add <分前> <スクリプト> [ラベル] / rm <#>
 | 遅延 | スクリプト | 内容 | claude |
 |---|---|---|---|
 | 0 | `99-send-report.sh` | 日次稼働レポートをメール送信 | ✅ |
-| 0 | `generate-release-note.sh` | 前日のgitコミットからリリースノート生成 → `Releases` | ✅ |
 | 0 | `check-scheduled-deletions.sh` | 予約削除日を過ぎた問題を削除 | ❌ 決定的 |
 | 15 | `03-check-reports.sh` | ユーザー通報の精査（ok/fix/delete + 関連問題） | ✅ |
 | ~~15~~ | ~~`02-check-validity.sh`~~ | **一時停止中**（2026-06-29〜・トークン枯渇のため） | ✅ |
@@ -100,7 +99,13 @@ ct hooks list / add <分前> <スクリプト> [ラベル] / rm <#>
 | 55 | `04-generate-daily-services.sh` | 日めくり記事の生成 | ✅ |
 | 58 | `09-check-linebreaks.sh` | 改行整形（Haiku） | ✅ |
 | 60 | `audit-questions-nightly.sh` | 問題品質監査＋**生成/検証プロンプトの自動改良** | ✅ opus |
+| 60 | `generate-release-note.sh` | 前日のgitコミットからリリースノート生成 → `Releases` | ✅ |
 | 65 | `canary-coverage-check.sh` | カナリアtestとサイト構成の整合性チェック・spec自動更新 | ✅ opus |
+
+> `generate-release-note.sh` は元々 delay=0（サイクル開始直後）だったが、他のタスクと
+> 同時に Claude API へ集中し `529 Overloaded` で失敗しやすく、失敗すると自己修復されず
+> その日のノートが恒久欠落していた（2026-09-15、本節末尾のトラブルシューティング参照）。
+> 夜間監査と同じ 60 分待ちに移し、サイクル開始直後の混雑を避けるようにした。
 
 > **01/02 が一時停止中**である点に注意。再開するには `night-scripts.list` の該当2行の
 > 先頭 `#` を外す。ただし01/02は hook-1 / hook-2（ピン前）でも走っているため、
@@ -234,7 +239,7 @@ S3 `mugenknock-error-logs/canary-logs/` にアップロードする。
 |---|---|
 | 夜間バッチが動いていない | `systemctl --user list-timers` で `Trigger: n/a` が無いか。`ct sync` で張り直す |
 | メールが来ない | 上と同じ（連鎖切れが最も多い原因）。`chain-watchdog.sh` のログも見る |
-| リリースノートが生成されない | **529 エラーは自己修復されない。** 手動で `generate-release-note.sh <日付>` を再実行する |
+| リリースノートが生成されない | **529 エラーは自己修復されない。** 手動で `generate-release-note.sh <日付>` を再実行する（2026-09-15 に delay=0→60 へ変更し発生頻度は軽減見込みだが未検証） |
 | 管理画面の変更が出題に反映されない | Lambda のウォームキャッシュ（最大10分）。[02-architecture.md](02-architecture.md) 2.7 |
 | 本番だけ挙動が古い | `deploy-lambda.sh prod` を打ち忘れていないか |
 | ドメイン配分が偏る | prod Lambda に `domainBalancedOrder` が入っているか実機確認 |

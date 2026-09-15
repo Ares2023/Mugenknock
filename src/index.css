@@ -14,7 +14,10 @@
   --color-text-main: #16191f;
   --color-text-sub: #545b64;
   --color-text-light: #879596;
-  --color-border: #eaeded;
+  /* Cloudscape visual refresh の colorBorderDividerDefault 相当。
+     旧値 #eaeded は classic 世代の色で、背景 #f2f3f3 とのコントラストが低く
+     カードの輪郭が消えていた。 */
+  --color-border: #c6c6cd;
   --color-danger: #d13212;
   --color-success: #037f0c;
   --color-warning: #ff9900;
@@ -82,10 +85,12 @@
   --color-bg-elevated: #ffffff;
 
   /* Others */
-  --border-radius-sm: 4px;
-  --border-radius-md: 6px;
-  --border-radius-lg: 8px;
-  --border-radius-full: 9999px;
+  /* 角丸は Cloudscape の階層に合わせる（Badge 4 / Input・Item 8 / Container・Modal 16 / Button pill）*/
+  --border-radius-sm: 4px;   /* バッジ・ラベル・タグ */
+  --border-radius-md: 8px;   /* 入力欄・ドロップダウン・チップ・リスト項目 */
+  --border-radius-lg: 16px;  /* モーダル・ダイアログ */
+  --border-radius-container: var(--border-radius-lg); /* カード（Container）*/
+  --border-radius-full: 9999px; /* ボタン */
   --box-shadow-sm: 0 1px 1px 0 rgba(0, 28, 36, 0.1);   /* カード（標準） */
   --box-shadow-md: 0 4px 12px rgba(0, 0, 0, 0.08);     /* 浮いたカード・hover */
   --box-shadow-pop: 0 2px 8px rgba(0, 0, 0, 0.15);     /* ドロップダウン・ポップオーバー */
@@ -105,7 +110,7 @@
   --color-text-main: #e6edf3;
   --color-text-sub: #8b949e;
   --color-text-light: #6e7681;
-  --color-border: #30363d;
+  --color-border: #414d5c;
   --color-secondary: #1c2836;
   --color-primary-light: #071D3A;
   --color-feedback-correct-bg: #0d2114;
@@ -454,11 +459,6 @@ button:active:not(:disabled) {
 }
 
 /* ── Portal ランディングページ ── */
-@keyframes portalLogoFloat {
-  0%, 100% { transform: translateY(0px); }
-  50%       { transform: translateY(-6px); }
-}
-
 @keyframes portalStatIn {
   from { opacity: 0; transform: translateY(10px) scale(0.9); }
   to   { opacity: 1; transform: none; }
@@ -471,7 +471,6 @@ button:active:not(:disabled) {
 }
 
 .portal-logo-float {
-  animation: portalLogoFloat 3.8s ease-in-out 0.6s infinite;
   display: inline-flex;
   align-items: center;
   gap: 10px;

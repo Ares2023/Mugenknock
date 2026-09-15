@@ -54,7 +54,7 @@ export default function About() {
             key={s.key}
             onClick={() => setSection(s.key)}
             style={{
-              padding: '6px 18px', borderRadius: 9999, border: 'none', cursor: 'pointer',
+              padding: '6px 18px', borderRadius: 'var(--border-radius-md)', border: 'none', cursor: 'pointer',
               fontSize: 'var(--font-size-sm)', fontWeight: 600,
               background: section === s.key ? 'var(--color-primary)' : 'var(--color-bg-main)',
               color: section === s.key ? '#fff' : 'var(--color-text-sub)',

@@ -1064,7 +1064,7 @@ export default function MyPage() {
                     {/* 直近N問フィルタ：演習開始当初の古いデータを除外して現在の正答率を測る */}
                     <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 14, flexWrap: 'wrap' }}>
                       <span style={{ fontSize: 'var(--font-size-xs)', color: 'var(--color-text-light)', fontWeight: 700 }}>{ja ? '集計対象' : 'Window'}</span>
-                      <div style={{ display: 'inline-flex', border: '1px solid var(--color-border)', borderRadius: 'var(--border-radius-full)', overflow: 'hidden' }}>
+                      <div style={{ display: 'inline-flex', border: '1px solid var(--color-border)', borderRadius: 'var(--border-radius-md)', overflow: 'hidden' }}>
                         {(() => {
                           // 現在の対象資格のドメインだけで最大演習数を算出（domainStatsは全資格横断のため絞り込む）
                           const maxEx = Math.max(0, ...domains.map(d => {
@@ -1225,7 +1225,7 @@ export default function MyPage() {
                 {[1, 2, 3, 4, 5].map(i => (
                   <Card key={i} style={{ marginBottom: 8 }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-                      <div className="skeleton" style={{ height: 20, width: 52, borderRadius: 'var(--border-radius-full)', flexShrink: 0 }} />
+                      <div className="skeleton" style={{ height: 20, width: 52, borderRadius: 'var(--border-radius-sm)', flexShrink: 0 }} />
                       <div className="skeleton" style={{ height: 14, flex: 1, borderRadius: 3 }} />
                       <div className="skeleton" style={{ height: 16, width: 36, borderRadius: 3, flexShrink: 0 }} />
                     </div>
@@ -1332,7 +1332,7 @@ export default function MyPage() {
                               <button
                                 key={exam}
                                 onClick={e => toggleObtainedCert(exam, e.currentTarget)}
-                                style={{ flexShrink: 0, width: 80, padding: '10px 6px 8px', cursor: 'pointer', borderRadius: 10, textAlign: 'center', position: 'relative', border: `2px solid ${obtained ? c : 'var(--color-border)'}`, background: obtained ? `linear-gradient(145deg, ${c}, ${c}bb)` : `linear-gradient(145deg, var(--color-bg-card), ${c}18)`, animation: justObtained === exam ? 'certObtainPop 0.38s cubic-bezier(.36,.07,.19,.97)' : undefined, transition: 'border-color 0.15s, background 0.15s' }}
+                                style={{ flexShrink: 0, width: 80, padding: '10px 6px 8px', cursor: 'pointer', borderRadius: 10, textAlign: 'center', position: 'relative', border: `2px solid ${obtained ? c : 'var(--color-border)'}`, background: obtained ? c : 'var(--color-bg-card)', animation: justObtained === exam ? 'certObtainPop 0.38s cubic-bezier(.36,.07,.19,.97)' : undefined, transition: 'border-color 0.15s, background 0.15s' }}
                               >
                                 {obtained && <div style={{ position: 'absolute', top: 4, right: 4, color: '#fff', lineHeight: 0 }}><IconCheck size={14} /></div>}
                                 {/* 六角形バッジ */}
@@ -1397,7 +1397,7 @@ export default function MyPage() {
                   return (
                     <Card key={s.sessionId} style={{ marginBottom: 8 }}>
                       <div data-kbnav="1" style={{ display: 'flex', alignItems: 'center', gap: 10, cursor: 'pointer', userSelect: 'none' }} onClick={() => handleToggleSession(s)}>
-                        <span style={{ fontSize: 'var(--font-size-2xs)', fontWeight: 700, padding: '2px 8px', borderRadius: 'var(--border-radius-full)', background: modeBg, color: modeColor, flexShrink: 0 }}>
+                        <span style={{ fontSize: 'var(--font-size-2xs)', fontWeight: 700, padding: '2px 8px', borderRadius: 'var(--border-radius-sm)', background: modeBg, color: modeColor, flexShrink: 0 }}>
                           {modeLabel}
                         </span>
                         <span style={{ fontSize: 'var(--font-size-sm)', color: 'var(--color-text-sub)', flex: 1, minWidth: 0 }}>
@@ -1475,7 +1475,7 @@ export default function MyPage() {
           onClick={() => setQuestionModal(null)}
         >
           <div
-            style={{ background: 'var(--color-bg-white)', borderRadius: isMobile ? '16px 16px 0 0' : 'var(--border-radius-lg)', padding: isMobile ? 'var(--spacing-xl) var(--spacing-xl) var(--spacing-xl)' : 'var(--spacing-xl)', width: '100%', maxWidth: isMobile ? '100%' : 600, maxHeight: isMobile ? '85vh' : '80vh', overflowY: 'auto', boxShadow: 'var(--box-shadow-lg)' }}
+            style={{ background: 'var(--color-bg-white)', borderRadius: isMobile ? 'var(--border-radius-lg) var(--border-radius-lg) 0 0' : 'var(--border-radius-lg)', padding: isMobile ? 'var(--spacing-xl) var(--spacing-xl) var(--spacing-xl)' : 'var(--spacing-xl)', width: '100%', maxWidth: isMobile ? '100%' : 600, maxHeight: isMobile ? '85vh' : '80vh', overflowY: 'auto', boxShadow: 'var(--box-shadow-lg)' }}
             onClick={e => e.stopPropagation()}
           >
             {/* ヘッダー */}

@@ -693,7 +693,7 @@ export default function ExamSession() {
                   : (lang === 'ja' ? 'あとで見直す問題としてフラグを立てる（模試のみ・提出前に一覧から戻れます）' : 'Flag this question for later review (exam only)')}
                 style={{
                   display: 'inline-flex', alignItems: 'center', gap: 5, flexShrink: 0,
-                  padding: '4px 12px 4px 10px', borderRadius: 'var(--border-radius-full)', cursor: 'pointer',
+                  padding: '4px 12px 4px 10px', borderRadius: 'var(--border-radius-md)', cursor: 'pointer',
                   border: `1px solid ${flaggedIds.has(currentQ.questionId) ? 'var(--color-accent)' : 'var(--color-border)'}`,
                   background: flaggedIds.has(currentQ.questionId) ? 'color-mix(in srgb, var(--color-accent) 12%, transparent)' : 'transparent',
                   color: flaggedIds.has(currentQ.questionId) ? 'var(--color-accent)' : 'var(--color-text-sub)',
@@ -816,7 +816,7 @@ export default function ExamSession() {
         <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 'var(--spacing-sm)', marginBottom: 'var(--spacing-md)' }}>
           <button
             onClick={() => setReportOpen(true)}
-            style={{ background: 'none', border: '1px solid var(--color-border)', borderRadius: 'var(--border-radius-full)', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 4, color: 'var(--color-text-sub)', fontSize: 'var(--font-size-xs)', padding: '3px 10px', transition: 'all 0.2s' }}
+            style={{ background: 'none', border: '1px solid var(--color-border)', borderRadius: 'var(--border-radius-md)', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 4, color: 'var(--color-text-sub)', fontSize: 'var(--font-size-xs)', padding: '3px 10px', transition: 'all 0.2s' }}
             onMouseEnter={e => { e.currentTarget.style.color = 'var(--color-danger)'; e.currentTarget.style.borderColor = 'var(--color-danger)'; }}
             onMouseLeave={e => { e.currentTarget.style.color = 'var(--color-text-sub)'; e.currentTarget.style.borderColor = 'var(--color-border)'; }}
             title={lang === 'ja' ? '問題の不備を通報' : 'Report an issue'}
@@ -827,7 +827,7 @@ export default function ExamSession() {
           <button
             onClick={() => answeredCount > 0 && setShowAbortConfirm(true)}
             disabled={answeredCount === 0}
-            style={{ background: 'none', border: '1px solid var(--color-border)', borderRadius: 'var(--border-radius-full)', padding: '3px 10px', fontSize: 'var(--font-size-xs)', fontWeight: 600, cursor: answeredCount === 0 ? 'default' : 'pointer', color: 'var(--color-text-sub)', opacity: answeredCount === 0 ? 0.45 : 1, whiteSpace: 'nowrap', transition: 'all 0.15s', display: 'flex', alignItems: 'center', gap: 3 }}
+            style={{ background: 'none', border: '1px solid var(--color-border)', borderRadius: 'var(--border-radius-md)', padding: '3px 10px', fontSize: 'var(--font-size-xs)', fontWeight: 600, cursor: answeredCount === 0 ? 'default' : 'pointer', color: 'var(--color-text-sub)', opacity: answeredCount === 0 ? 0.45 : 1, whiteSpace: 'nowrap', transition: 'all 0.15s', display: 'flex', alignItems: 'center', gap: 3 }}
           >
             <IconCheck size={11} />
             {lang === 'ja' ? '途中採点' : 'Grade'}

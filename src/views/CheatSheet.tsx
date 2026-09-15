@@ -1304,7 +1304,7 @@ export default function CheatSheet() {
               width: '100%',
               boxSizing: 'border-box',
               padding: '8px 12px 8px 34px',
-              borderRadius: 'var(--border-radius-full)',
+              borderRadius: 'var(--border-radius-md)',
               border: '1.5px solid var(--color-border)',
               background: 'var(--color-bg-white)',
               color: 'var(--color-text-main)',
@@ -1353,9 +1353,7 @@ export default function CheatSheet() {
                   flexShrink: 0, width: 80, padding: '10px 6px 8px', cursor: 'pointer',
                   borderRadius: 10, textAlign: 'center', position: 'relative',
                   border: `2px solid ${isSelected ? levelColor : 'var(--color-border)'}`,
-                  background: isSelected
-                    ? `linear-gradient(145deg, ${levelColor}, ${levelColor}bb)`
-                    : `linear-gradient(145deg, var(--color-bg-card), ${levelColor}18)`,
+                  background: isSelected ? levelColor : 'var(--color-bg-card)',
                   transition: 'all 0.15s',
                 }}
               >
@@ -1402,7 +1400,7 @@ export default function CheatSheet() {
               <button
                 key={l.exam}
                 onClick={() => switchExam(l.exam)}
-                style={{ padding: '3px 10px', borderRadius: 'var(--border-radius-full)', border: `1.5px solid ${examColor}`, background: 'var(--color-bg-white)', color: examColor, fontSize: 'var(--font-size-2xs)', fontWeight: 700, cursor: 'pointer', whiteSpace: 'nowrap' }}
+                style={{ padding: '3px 10px', borderRadius: 'var(--border-radius-md)', border: `1.5px solid ${examColor}`, background: 'var(--color-bg-white)', color: examColor, fontSize: 'var(--font-size-2xs)', fontWeight: 700, cursor: 'pointer', whiteSpace: 'nowrap' }}
               >{l.label} →</button>
             ))}
           </div>
@@ -1440,7 +1438,7 @@ export default function CheatSheet() {
             }}>
               <span style={{ display: 'inline-block', width: 3, height: 14, background: secColor, borderRadius: 2 }} />
               {/* 検索時はどの資格の記事かを示すバッジを表示 */}
-              {q && <span style={{ fontSize: 'var(--font-size-2xs)', fontWeight: 700, color: '#fff', background: secColor, borderRadius: 'var(--border-radius-full)', padding: '1px 8px', flexShrink: 0 }}>{section.exam}</span>}
+              {q && <span style={{ fontSize: 'var(--font-size-2xs)', fontWeight: 700, color: '#fff', background: secColor, borderRadius: 'var(--border-radius-sm)', padding: '1px 8px', flexShrink: 0 }}>{section.exam}</span>}
               {section.title}
             </h2>
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(min(400px, 100%), 1fr))', gap: 'var(--spacing-sm)' }}>
@@ -1818,7 +1816,7 @@ function ArticleChip({ label, onClick }: { label: string; onClick: () => void })
         color: '#009E9E',
         background: 'rgba(0,158,158,0.08)',
         border: '1px solid rgba(0,158,158,0.25)',
-        borderRadius: 'var(--border-radius-full)',
+        borderRadius: 'var(--border-radius-md)',
         padding: '1px 8px',
         cursor: 'pointer',
         whiteSpace: 'nowrap',
