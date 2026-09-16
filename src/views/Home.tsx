@@ -1368,7 +1368,7 @@ export default function Home() {
   const [draftFocusedPrefs, setDraftFocusedPrefs] = useState<Record<string, any>>({});
   const savedFocusedPrefsRef = useRef<Record<string, any>>({});
   // しっかり対策 設定モーダルの各優先条件の該当件数（未回答/不正解/未正解/苦手）
-  const [statusCounts, setStatusCounts] = useState<{ bookmarked?: number; unanswered?: number; incorrect?: number; notcorrect?: number; below50?: number; below66?: number; below75?: number } | null>(null);
+  const [statusCounts, setStatusCounts] = useState<{ bookmarked?: number; unanswered?: number; incorrect?: number; notcorrect?: number; below50?: number; below66?: number; below75?: number; companionTotal?: number } | null>(null);
   // サクッと演習ドメインフィルタ用: 各ドメインに用意された問題数（ドメイン名→問数）
   const [quickDomainCounts, setQuickDomainCounts] = useState<Record<string, number> | null>(null);
   useEffect(() => {
@@ -1380,9 +1380,13 @@ export default function Home() {
         // 前提知識(オリジナル資格)混在は既定ONのため、件数表示も既定込みで揃える
         // （出題プール側と母集団をズレさせないため。docs/06-exercise-logic.md §6.1）。
         const companionParam = COMPANION_EXAM[targetExam] ? '&includeCompanion=true' : '';
-        const [idsRes, statusRes] = await Promise.all([
+        const [idsRes, statusRes, companionRes] = await Promise.all([
           fetch(`${API_ENDPOINT}/questions?examType=${targetExam}&idsOnly=true${companionParam}`).then(r => r.json()).catch(() => null),
           fetch(`${API_ENDPOINT}/users/me/question-status?userId=${uid2}&examType=${targetExam}${companionParam}`).then(r => r.json()).catch(() => null),
+          // 基礎知識チェックボックスの問題数表示用: companion資格自体の母数（未回答等とは独立）
+          COMPANION_EXAM[targetExam]
+            ? fetch(`${API_ENDPOINT}/questions?examType=${COMPANION_EXAM[targetExam]}&metaOnly=true`).then(r => r.json()).catch(() => null)
+            : Promise.resolve(null),
         ]);
         if (cancelled) return;
         const total = (idsRes?.questionIds ?? []).length;
@@ -1396,7 +1400,8 @@ export default function Home() {
         const below66 = accVals.filter(v => v < 0.66).length;
         const below75 = accVals.length > 0 ? accVals.filter(v => v < 0.75).length : (statusRes?.weak ?? []).length;
         const bookmarked = (statusRes?.bookmarked ?? []).length;
-        setStatusCounts({ bookmarked, unanswered, incorrect, notcorrect: unanswered + incorrect, below50, below66, below75 });
+        const companionTotal = companionRes?.count ?? undefined;
+        setStatusCounts({ bookmarked, unanswered, incorrect, notcorrect: unanswered + incorrect, below50, below66, below75, companionTotal });
       } catch { if (!cancelled) setStatusCounts(null); }
     })();
     return () => { cancelled = true; };
@@ -2952,6 +2957,35 @@ export default function Home() {
                     })}
                   </div>
                 </div>
+                {/* 基礎知識(オリジナル資格)の混在（対応資格がある場合のみ表示） */}
+                {targetExam && COMPANION_EXAM[targetExam] && (
+                  <div style={{ padding: '14px 0', borderBottom: '1px solid var(--color-border)' }}>
+                    <div style={{ fontWeight: 500, fontSize: 'var(--font-size-base)', color: 'var(--color-text-main)', marginBottom: 8 }}>
+                      {ja ? '基礎知識' : 'Prerequisite Knowledge'}
+                    </div>
+                    <label style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '8px 0', cursor: 'pointer' }}>
+                      <input
+                        type="checkbox"
+                        checked={includeCompanionPref(draftPrefs)}
+                        onChange={() => setDraftPrefs(p => ({ ...p, includeCompanion: !includeCompanionPref(p) }))}
+                        style={{ width: 16, height: 16, flexShrink: 0, accentColor: 'var(--color-primary)' }}
+                      />
+                      <span style={{ flex: 1, display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', gap: 8, fontSize: 'var(--font-size-sm)', fontWeight: includeCompanionPref(draftPrefs) ? 700 : 500, color: 'var(--color-text-main)' }}>
+                        <span>
+                          {ja ? (
+                            <><span style={{ color: EXAM_LEVEL_COLORS.Additional }}>{`基礎知識（${companionLabel(COMPANION_EXAM[targetExam])}）`}</span>を含める</>
+                          ) : (
+                            <>Include <span style={{ color: EXAM_LEVEL_COLORS.Additional }}>{companionLabel(COMPANION_EXAM[targetExam])}</span></>
+                          )}
+                        </span>
+                        {statusCounts?.companionTotal != null && <span style={{ fontSize: 'var(--font-size-xs)', fontWeight: 700, color: includeCompanionPref(draftPrefs) ? EXAM_LEVEL_COLORS.Additional : 'var(--color-text-light)', flexShrink: 0 }}>{statusCounts.companionTotal}{ja ? '問' : ''}</span>}
+                      </span>
+                    </label>
+                    <div style={{ fontSize: 'var(--font-size-xs)', color: 'var(--color-text-light)', marginTop: 2 }}>
+                      {ja ? 'ドメイン別統計・予想スコアには反映されません' : "Doesn't count toward domain stats or estimated score"}
+                    </div>
+                  </div>
+                )}
                 {/* ブックマークフィルタ（独立トグル・上乗せ） */}
                 <div style={{ padding: '14px 0', borderBottom: '1px solid var(--color-border)' }}>
                   <div style={{ fontWeight: 500, fontSize: 'var(--font-size-base)', color: 'var(--color-text-main)', marginBottom: 8 }}>
@@ -2970,37 +3004,6 @@ export default function Home() {
                     </span>
                   </label>
                 </div>
-                {/* 基礎知識(オリジナル資格)の混在（対応資格がある場合のみ表示） */}
-                {targetExam && COMPANION_EXAM[targetExam] && (
-                  <div style={{ padding: '14px 0', borderBottom: '1px solid var(--color-border)' }}>
-                    <div style={{ fontWeight: 500, fontSize: 'var(--font-size-base)', color: 'var(--color-text-main)', marginBottom: 8 }}>
-                      {ja ? '基礎知識' : 'Prerequisite Knowledge'}
-                    </div>
-                    <label style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '8px 0', cursor: 'pointer' }}>
-                      <input
-                        type="checkbox"
-                        checked={includeCompanionPref(draftPrefs)}
-                        onChange={() => setDraftPrefs(p => ({ ...p, includeCompanion: !includeCompanionPref(p) }))}
-                        style={{ width: 16, height: 16, flexShrink: 0, accentColor: 'var(--color-primary)' }}
-                      />
-                      <span style={{ fontSize: 'var(--font-size-sm)', fontWeight: includeCompanionPref(draftPrefs) ? 700 : 500, color: 'var(--color-text-main)' }}>
-                        {ja ? (
-                          <><span style={{ color: EXAM_LEVEL_COLORS.Additional }}>{`基礎知識（${companionLabel(COMPANION_EXAM[targetExam])}）`}</span>を含める</>
-                        ) : (
-                          <>Include <span style={{ color: EXAM_LEVEL_COLORS.Additional }}>{companionLabel(COMPANION_EXAM[targetExam])}</span></>
-                        )}
-                      </span>
-                    </label>
-                    <div style={{ fontSize: 'var(--font-size-xs)', color: 'var(--color-text-light)', marginTop: 2 }}>
-                      {ja ? 'ドメイン別統計・予想スコアには反映されません' : "Doesn't count toward domain stats or estimated score"}
-                    </div>
-                    <div style={{ fontSize: 'var(--font-size-xs)', color: 'var(--color-text-light)', marginTop: 2 }}>
-                      {ja
-                        ? <>※<span style={{ color: EXAM_LEVEL_COLORS.Additional }}>{`基礎知識（${companionLabel(COMPANION_EXAM[targetExam])}）`}</span>を含みます</>
-                        : <>※Includes <span style={{ color: EXAM_LEVEL_COLORS.Additional }}>{companionLabel(COMPANION_EXAM[targetExam])}</span> fundamentals</>}
-                    </div>
-                  </div>
-                )}
                 {/* 基礎知識資格自身が目標の時: 対応する公式資格でも同じ問題が出ることを案内（トグルなし） */}
                 {targetExam && isNonAwsExam(targetExam) && officialExamsForCompanion(targetExam).length > 0 && (
                   <div style={{ padding: '14px 0', borderBottom: '1px solid var(--color-border)' }}>
@@ -3234,6 +3237,35 @@ export default function Home() {
                     })}
                   </div>
                 </div>
+                {/* 基礎知識(オリジナル資格)の混在（対応資格がある場合のみ表示） */}
+                {targetExam && COMPANION_EXAM[targetExam] && (
+                  <div style={{ padding: '14px 0', borderBottom: '1px solid var(--color-border)' }}>
+                    <div style={{ fontWeight: 500, fontSize: 'var(--font-size-base)', color: 'var(--color-text-main)', marginBottom: 8 }}>
+                      {ja ? '基礎知識' : 'Prerequisite Knowledge'}
+                    </div>
+                    <label style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '8px 0', cursor: 'pointer' }}>
+                      <input
+                        type="checkbox"
+                        checked={includeCompanionPref(draftFocusedPrefs)}
+                        onChange={() => setDraftFocusedPrefs(p => ({ ...p, includeCompanion: !includeCompanionPref(p) }))}
+                        style={{ width: 16, height: 16, flexShrink: 0, accentColor: 'var(--color-primary)' }}
+                      />
+                      <span style={{ flex: 1, display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', gap: 8, fontSize: 'var(--font-size-sm)', fontWeight: includeCompanionPref(draftFocusedPrefs) ? 700 : 500, color: 'var(--color-text-main)' }}>
+                        <span>
+                          {ja ? (
+                            <><span style={{ color: EXAM_LEVEL_COLORS.Additional }}>{`基礎知識（${companionLabel(COMPANION_EXAM[targetExam])}）`}</span>を含める</>
+                          ) : (
+                            <>Include <span style={{ color: EXAM_LEVEL_COLORS.Additional }}>{companionLabel(COMPANION_EXAM[targetExam])}</span></>
+                          )}
+                        </span>
+                        {statusCounts?.companionTotal != null && <span style={{ fontSize: 'var(--font-size-xs)', fontWeight: 700, color: includeCompanionPref(draftFocusedPrefs) ? EXAM_LEVEL_COLORS.Additional : 'var(--color-text-light)', flexShrink: 0 }}>{statusCounts.companionTotal}{ja ? '問' : ''}</span>}
+                      </span>
+                    </label>
+                    <div style={{ fontSize: 'var(--font-size-xs)', color: 'var(--color-text-light)', marginTop: 2 }}>
+                      {ja ? 'ドメイン別統計・予想スコアには反映されません' : "Doesn't count toward domain stats or estimated score"}
+                    </div>
+                  </div>
+                )}
                 {/* ブックマークフィルタ（独立トグル・上乗せ） */}
                 <div style={{ padding: '14px 0', borderBottom: '1px solid var(--color-border)' }}>
                   <div style={{ fontWeight: 500, fontSize: 'var(--font-size-base)', color: 'var(--color-text-main)', marginBottom: 8 }}>
@@ -3252,37 +3284,6 @@ export default function Home() {
                     </span>
                   </label>
                 </div>
-                {/* 基礎知識(オリジナル資格)の混在（対応資格がある場合のみ表示） */}
-                {targetExam && COMPANION_EXAM[targetExam] && (
-                  <div style={{ padding: '14px 0', borderBottom: '1px solid var(--color-border)' }}>
-                    <div style={{ fontWeight: 500, fontSize: 'var(--font-size-base)', color: 'var(--color-text-main)', marginBottom: 8 }}>
-                      {ja ? '基礎知識' : 'Prerequisite Knowledge'}
-                    </div>
-                    <label style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '8px 0', cursor: 'pointer' }}>
-                      <input
-                        type="checkbox"
-                        checked={includeCompanionPref(draftFocusedPrefs)}
-                        onChange={() => setDraftFocusedPrefs(p => ({ ...p, includeCompanion: !includeCompanionPref(p) }))}
-                        style={{ width: 16, height: 16, flexShrink: 0, accentColor: 'var(--color-primary)' }}
-                      />
-                      <span style={{ fontSize: 'var(--font-size-sm)', fontWeight: includeCompanionPref(draftFocusedPrefs) ? 700 : 500, color: 'var(--color-text-main)' }}>
-                        {ja ? (
-                          <><span style={{ color: EXAM_LEVEL_COLORS.Additional }}>{`基礎知識（${companionLabel(COMPANION_EXAM[targetExam])}）`}</span>を含める</>
-                        ) : (
-                          <>Include <span style={{ color: EXAM_LEVEL_COLORS.Additional }}>{companionLabel(COMPANION_EXAM[targetExam])}</span></>
-                        )}
-                      </span>
-                    </label>
-                    <div style={{ fontSize: 'var(--font-size-xs)', color: 'var(--color-text-light)', marginTop: 2 }}>
-                      {ja ? 'ドメイン別統計・予想スコアには反映されません' : "Doesn't count toward domain stats or estimated score"}
-                    </div>
-                    <div style={{ fontSize: 'var(--font-size-xs)', color: 'var(--color-text-light)', marginTop: 2 }}>
-                      {ja
-                        ? <>※<span style={{ color: EXAM_LEVEL_COLORS.Additional }}>{`基礎知識（${companionLabel(COMPANION_EXAM[targetExam])}）`}</span>を含みます</>
-                        : <>※Includes <span style={{ color: EXAM_LEVEL_COLORS.Additional }}>{companionLabel(COMPANION_EXAM[targetExam])}</span> fundamentals</>}
-                    </div>
-                  </div>
-                )}
                 {/* 基礎知識資格自身が目標の時: 対応する公式資格でも同じ問題が出ることを案内（トグルなし） */}
                 {targetExam && isNonAwsExam(targetExam) && officialExamsForCompanion(targetExam).length > 0 && (
                   <div style={{ padding: '14px 0', borderBottom: '1px solid var(--color-border)' }}>
