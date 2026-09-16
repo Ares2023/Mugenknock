@@ -205,11 +205,20 @@ navigate('/aws/result', { state: { results, questions, score, ... } })
   回答後は解説の下に同じ並びで表示する（`renderActionRow()`）。回答の前後で
   ♡等の位置が変わらないようにするため、共通関数で描画している。
   - **コピー** — 回答前＝問題文＋選択肢、回答後＝問題文＋選択肢＋解答解説をクリップボードへ
-  - **♡（ブックマーク）** — `POST/DELETE /questions/:id/bookmark`。旧・見出し右の☆から移動
-  - **👍👎（リアクション）** — `PUT /questions/:id/reaction`。ログイン専用・1ユーザー1問1票。
+  - **♡（ブックマーク）** — `POST/DELETE /questions/:id/bookmark`。旧・見出し右の☆から移動。
+    ONにした瞬間だけピンクのパーティクルバースト（`ConfirmBurst` 流用）
+  - **👍👎（リアクション）** — `PUT /questions/:id/reaction`。ログイン専用・1ユーザー1問1票
+    （`UserQuestionStats(userId,questionId)` の単一属性上書きで構造的に保証）。
+    ONにした瞬間だけポップ演出、色は「しっかり対策」開始ボタンと同じ青緑(`#009E9E`)。
     詳細は `docs/04-api.md` §4.3b、`specs/002-question-reactions/`
   - **⋮** — 「この問題を通報」（`ReportModal` → `POST /questions/:id/report`）／
     「ここまでで採点」（`setShowAbortConfirm`）のメニューを開く
+  - **送信はデバウンス**: ♡/👍👎はクリックのたびに送信せず、UIだけ即時反映して
+    実送信は①回答確定②別の問題へ移動③画面離脱、のいずれか最初のタイミングで
+    まとめて1回行う（`pendingBookmarkRef`/`pendingReactionRef` + `flushBookmark`/
+    `flushReaction`）。同一セッション内で前の問題に戻って評価を変更するケースは
+    ②（`currentQuestion.questionId` の変化を監視するeffect）で拾う。
+    詳細は `docs/04-api.md` §4.3b
 - **PromptMenu（質問プロンプト生成）** — 2026-09-15 廃止。`specs/002-question-reactions/` 参照
 - **コラム** — `GET /tips?examType=` を問題間に挟む
 - **「わからない」** — 選択肢とは別の回答（`WAKARANAI` 定数）
