@@ -3,7 +3,7 @@ import React from 'react';
 import { useNavigate } from '@/compat/react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { useTheme } from '../contexts/ThemeContext';
-import { IconSun, IconMoon } from './Icons';
+import { IconSun, IconMoon, IconArrowLeft } from './Icons';
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
   const { user, signOut } = useAuth();
@@ -68,8 +68,10 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
             background: 'none', border: 'none',
             color: 'var(--color-primary)', fontSize: 'var(--font-size-xs)', padding: '4px 6px',
             cursor: 'pointer', fontWeight: 700, whiteSpace: 'nowrap',
+            display: 'inline-flex', alignItems: 'center', gap: 'var(--spacing-xs)',
           }}>
-            {isMobile ? '← サイト' : '← サイトへ戻る'}
+            <IconArrowLeft size={14} />
+            {isMobile ? 'サイト' : 'サイトへ戻る'}
           </button>
         </div>
       </header>
