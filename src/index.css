@@ -67,8 +67,9 @@
   --bar-gradient-teal:    linear-gradient(90deg, #00a8a8, #00cccc);
 
   /* 予想スコアバーの「合格ゾーン」の地色（合格ライン〜1000の帯）。
-     トラック(--color-border)にアルファを重ねると濁って影に見えるため単色で持つ。 */
-  --color-pass-zone: #b7e4c0;
+     トラック(--color-border)にアルファを重ねると濁って影に見えるため単色で持つ。
+     ホーム画面は寒色(青系)で統一する方針のため、緑ではなく淡い水色にする。 */
+  --color-pass-zone: #b8d9f0;
 
   /* Semantic feedback colors */
   --color-feedback-correct-bg: #f2fcf3;
@@ -117,7 +118,7 @@
   --color-border: #414d5c;
   --color-secondary: #1c2836;
   --color-primary-light: #071D3A;
-  --color-pass-zone: #2a5137;
+  --color-pass-zone: #1e3a52;
   --color-feedback-correct-bg: #0d2114;
   --color-feedback-incorrect-bg: #2d0a07;
   --color-hint-bg: #2d2207;
