@@ -393,15 +393,7 @@ export default function ExamSelectOverlay({
                     <div style={{ fontSize: 'var(--font-size-xs)', color: 'var(--color-text-light)', fontStyle: 'italic', marginBottom: 4 }}>{EXAM_CATCHCOPY[exam]}</div>
                   )}
                   <div style={{ fontWeight: 700, fontSize: 17, color: 'var(--color-text-main)' }}>
-                    {(() => {
-                      const name = (cfg?.fullName ?? exam).replace('AWS Certified ', '');
-                      // スマホではオリジナルカード名を【…】の直後で改行する
-                      const bi = name.indexOf('】');
-                      if (isMobile && isNonAwsExam(exam) && bi >= 0) {
-                        return <>{name.slice(0, bi + 1)}<br />{name.slice(bi + 1)}</>;
-                      }
-                      return name;
-                    })()}
+                    {(cfg?.fullName ?? exam).replace('AWS Certified ', '')}
                   </div>
                 </div>
                 {/* whiteSpace:'pre-line' … ANS の提供終了告知のように、説明文中の

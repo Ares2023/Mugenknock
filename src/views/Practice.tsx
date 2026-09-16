@@ -4,7 +4,7 @@ import { Helmet } from '@/compat/react-helmet-async';
 import { useNavigate } from '@/compat/react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { useLanguage } from '../contexts/LanguageContext';
-import { API_ENDPOINT, EXAM_CONFIGS, EXAM_DOMAINS, EXAM_TYPES, PASS_SCORES, qDomainName, domainsToIndices, storedDomainsToNames, tagIdMatches, isNonAwsExam, COMPANION_EXAM, companionLabel } from '../constants';
+import { API_ENDPOINT, EXAM_CONFIGS, EXAM_DOMAINS, EXAM_TYPES, PASS_SCORES, qDomainName, domainsToIndices, storedDomainsToNames, tagIdMatches, isNonAwsExam, COMPANION_EXAM, companionLabel, EXAM_LEVEL_COLORS } from '../constants';
 import Button from '../components/ui/Button';
 import PageLayout from '../components/ui/PageLayout';
 import { getCached, setCached, SHORT_TTL, getCachedPersist, setCachedPersist } from '../utils/cache';
@@ -546,14 +546,18 @@ export default function Practice() {
             </div>
           )}
 
-          {/* 前提知識(オリジナル資格)の混在（対応資格があり、ドメイン絞り込みをしていない時のみ表示） */}
+          {/* 基礎知識(オリジナル資格)の混在（対応資格があり、ドメイン絞り込みをしていない時のみ表示） */}
           {COMPANION_EXAM[examType] && (EXAM_DOMAINS[examType] ?? []).every(d => selectedDomains.includes(d)) && (
             <div style={{ marginBottom: 'var(--spacing-md)' }}>
               <label data-kbnav="1" style={{ display: 'flex', alignItems: 'center', gap: 10, cursor: 'pointer' }}>
                 <input type="checkbox" checked={includeCompanion} onChange={e => setIncludeCompanion(e.target.checked)}
                   style={{ width: 16, height: 16, flexShrink: 0, accentColor: 'var(--color-primary)' }} />
                 <span style={{ fontSize: 'var(--font-size-sm)', fontWeight: includeCompanion ? 600 : 400, color: 'var(--color-text-main)' }}>
-                  {ja ? `前提知識（${companionLabel(COMPANION_EXAM[examType])}）を含める` : `Include prerequisite (${companionLabel(COMPANION_EXAM[examType])})`}
+                  {ja ? (
+                    <><span style={{ color: EXAM_LEVEL_COLORS.Additional }}>{`基礎知識（${companionLabel(COMPANION_EXAM[examType])}）`}</span>を含める</>
+                  ) : (
+                    <>Include <span style={{ color: EXAM_LEVEL_COLORS.Additional }}>{companionLabel(COMPANION_EXAM[examType])}</span></>
+                  )}
                 </span>
               </label>
               <div style={{ fontSize: 'var(--font-size-xs)', color: 'var(--color-text-light)', marginTop: 2, marginLeft: 26 }}>

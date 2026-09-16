@@ -165,10 +165,10 @@ export const EXAM_LEVEL_COLORS: Record<string, string> = {
   Additional:   '#14b8a6',
 };
 
-// レベルの表示ラベル。内部キー 'Additional'（非AWSカード）は「オリジナル」と表示する。
+// レベルの表示ラベル。内部キー 'Additional'（非AWSカード）は「基礎知識」と表示する。
 // 他のレベルは従来どおり英語表記のまま。
 export const levelLabel = (level: string, ja: boolean): string =>
-  level === 'Additional' ? (ja ? 'オリジナル' : 'Original') : level;
+  level === 'Additional' ? (ja ? '基礎知識' : 'Original') : level;
 
 // 試験の説明文
 export const EXAM_DESC_JA: Record<string, string> = {
@@ -241,16 +241,16 @@ export const EXAM_CONFIGS: Record<string, {
   AIP: { examCode: 'AIP-C01', fullName: 'AWS Certified Generative AI Developer – Professional',   totalQuestions: 75, timeLimitMin: 180 },
   ANS: { examCode: 'ANS-C01', fullName: 'AWS Certified Advanced Networking – Specialty',           totalQuestions: 65, timeLimitMin: 170 },
   SCS: { examCode: 'SCS-C03', fullName: 'AWS Certified Security – Specialty',                     totalQuestions: 65, timeLimitMin: 170 },
-  ML: { examCode: 'ML', fullName: '【オリジナル基礎演習】機械学習',                                totalQuestions: 65, timeLimitMin: 90  },
-  DB: { examCode: 'DB', fullName: '【オリジナル基礎演習】データベース',                            totalQuestions: 65, timeLimitMin: 90  },
-  NW: { examCode: 'NW', fullName: '【オリジナル基礎演習】ネットワーク',                            totalQuestions: 65, timeLimitMin: 90  },
-  SEC: { examCode: 'SEC', fullName: '【オリジナル基礎演習】セキュリティ',                          totalQuestions: 65, timeLimitMin: 90  },
+  ML: { examCode: 'ML', fullName: '【基礎知識】機械学習',                                          totalQuestions: 65, timeLimitMin: 90  },
+  DB: { examCode: 'DB', fullName: '【基礎知識】データベース',                                      totalQuestions: 65, timeLimitMin: 90  },
+  NW: { examCode: 'NW', fullName: '【基礎知識】ネットワーク',                                      totalQuestions: 65, timeLimitMin: 90  },
+  SEC: { examCode: 'SEC', fullName: '【基礎知識】セキュリティ',                                    totalQuestions: 65, timeLimitMin: 90  },
 };
 
-// COMPANION_EXAM の表示名（「【オリジナル基礎演習】」を外した短い名称）。
-// 通常演習の設定モーダルで「前提知識（機械学習）を含める」のように使う。
+// COMPANION_EXAM の表示名（「【基礎知識】」を外した短い名称）。
+// 通常演習の設定モーダルで「基礎知識（機械学習）を含める」のように使う。
 export function companionLabel(companionExamType: string): string {
-  return (EXAM_CONFIGS[companionExamType]?.fullName ?? companionExamType).replace('【オリジナル基礎演習】', '');
+  return (EXAM_CONFIGS[companionExamType]?.fullName ?? companionExamType).replace('【基礎知識】', '');
 }
 
 // 管理者画面「AIプロンプト生成」用の資格別補足ルール（任意）。

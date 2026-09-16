@@ -766,7 +766,7 @@ function OnboardingModal({ lang, uid, onComplete }: {
           {grouped.map(({ lv, exams }) => (
             <div key={lv} style={{ marginBottom: 18 }}>
               <div style={{ fontSize: 'var(--font-size-xs)', fontWeight: 700, letterSpacing: '.06em', textTransform: 'uppercase', color: OB_LEVEL_COLOR[lv], marginBottom: 8 }}>
-                {lv === 'Additional' ? (ja ? '🧩 オリジナル（AWS認定外）' : '🧩 Original (not AWS certifications)') : lv}
+                {lv === 'Additional' ? (ja ? '🧩 基礎知識（AWS認定外）' : '🧩 Original (not AWS certifications)') : lv}
               </div>
               {lv === 'Additional' && (
                 <div style={{ fontSize: 'var(--font-size-xs)', color: 'var(--color-text-light)', marginTop: -4, marginBottom: 8, lineHeight: 1.5 }}>
@@ -2970,11 +2970,11 @@ export default function Home() {
                     </span>
                   </label>
                 </div>
-                {/* 前提知識(オリジナル資格)の混在（対応資格がある場合のみ表示） */}
+                {/* 基礎知識(オリジナル資格)の混在（対応資格がある場合のみ表示） */}
                 {targetExam && COMPANION_EXAM[targetExam] && (
                   <div style={{ padding: '14px 0', borderBottom: '1px solid var(--color-border)' }}>
                     <div style={{ fontWeight: 500, fontSize: 'var(--font-size-base)', color: 'var(--color-text-main)', marginBottom: 8 }}>
-                      {ja ? '前提知識' : 'Prerequisite Knowledge'}
+                      {ja ? '基礎知識' : 'Prerequisite Knowledge'}
                     </div>
                     <label style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '8px 0', cursor: 'pointer' }}>
                       <input
@@ -2984,7 +2984,11 @@ export default function Home() {
                         style={{ width: 16, height: 16, flexShrink: 0, accentColor: 'var(--color-primary)' }}
                       />
                       <span style={{ fontSize: 'var(--font-size-sm)', fontWeight: includeCompanionPref(draftPrefs) ? 700 : 500, color: 'var(--color-text-main)' }}>
-                        {ja ? `前提知識（${companionLabel(COMPANION_EXAM[targetExam])}）を含める` : `Include prerequisite (${companionLabel(COMPANION_EXAM[targetExam])})`}
+                        {ja ? (
+                          <><span style={{ color: EXAM_LEVEL_COLORS.Additional }}>{`基礎知識（${companionLabel(COMPANION_EXAM[targetExam])}）`}</span>を含める</>
+                        ) : (
+                          <>Include <span style={{ color: EXAM_LEVEL_COLORS.Additional }}>{companionLabel(COMPANION_EXAM[targetExam])}</span></>
+                        )}
                       </span>
                     </label>
                     <div style={{ fontSize: 'var(--font-size-xs)', color: 'var(--color-text-light)', marginTop: 2 }}>
@@ -3233,11 +3237,11 @@ export default function Home() {
                     </span>
                   </label>
                 </div>
-                {/* 前提知識(オリジナル資格)の混在（対応資格がある場合のみ表示） */}
+                {/* 基礎知識(オリジナル資格)の混在（対応資格がある場合のみ表示） */}
                 {targetExam && COMPANION_EXAM[targetExam] && (
                   <div style={{ padding: '14px 0', borderBottom: '1px solid var(--color-border)' }}>
                     <div style={{ fontWeight: 500, fontSize: 'var(--font-size-base)', color: 'var(--color-text-main)', marginBottom: 8 }}>
-                      {ja ? '前提知識' : 'Prerequisite Knowledge'}
+                      {ja ? '基礎知識' : 'Prerequisite Knowledge'}
                     </div>
                     <label style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '8px 0', cursor: 'pointer' }}>
                       <input
@@ -3247,7 +3251,11 @@ export default function Home() {
                         style={{ width: 16, height: 16, flexShrink: 0, accentColor: 'var(--color-primary)' }}
                       />
                       <span style={{ fontSize: 'var(--font-size-sm)', fontWeight: includeCompanionPref(draftFocusedPrefs) ? 700 : 500, color: 'var(--color-text-main)' }}>
-                        {ja ? `前提知識（${companionLabel(COMPANION_EXAM[targetExam])}）を含める` : `Include prerequisite (${companionLabel(COMPANION_EXAM[targetExam])})`}
+                        {ja ? (
+                          <><span style={{ color: EXAM_LEVEL_COLORS.Additional }}>{`基礎知識（${companionLabel(COMPANION_EXAM[targetExam])}）`}</span>を含める</>
+                        ) : (
+                          <>Include <span style={{ color: EXAM_LEVEL_COLORS.Additional }}>{companionLabel(COMPANION_EXAM[targetExam])}</span></>
+                        )}
                       </span>
                     </label>
                     <div style={{ fontSize: 'var(--font-size-xs)', color: 'var(--color-text-light)', marginTop: 2 }}>

@@ -539,11 +539,7 @@ export default function MyPage() {
                 const level = dashIdx >= 0 ? '– ' + full.slice(dashIdx + 3) : null;
                 const panelColor = EXAM_LEVEL_COLORS[EXAM_LEVEL[targetExam]] ?? 'var(--color-primary)';
                 const ExamIcon = EXAM_ICON_COMPONENTS[targetExam];
-                // スマホではオリジナルカード名を【…】の直後で改行する
-                const bi = main.indexOf('】');
-                const mainNode = (isMobile && isNonAwsExam(targetExam) && bi >= 0)
-                  ? <>{main.slice(0, bi + 1)}<br />{main.slice(bi + 1)}</>
-                  : main;
+                const mainNode = main;
                 return (
                   <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
                     <HexBadge panelColor={panelColor} ExamIcon={ExamIcon} />
