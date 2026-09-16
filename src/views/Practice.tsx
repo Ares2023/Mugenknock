@@ -4,7 +4,7 @@ import { Helmet } from '@/compat/react-helmet-async';
 import { useNavigate } from '@/compat/react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { useLanguage } from '../contexts/LanguageContext';
-import { API_ENDPOINT, EXAM_CONFIGS, EXAM_DOMAINS, EXAM_TYPES, PASS_SCORES, qDomainName, domainsToIndices, storedDomainsToNames, tagIdMatches, isNonAwsExam, COMPANION_EXAM, companionLabel, EXAM_LEVEL_COLORS } from '../constants';
+import { API_ENDPOINT, EXAM_CONFIGS, EXAM_DOMAINS, EXAM_TYPES, PASS_SCORES, qDomainName, domainsToIndices, storedDomainsToNames, tagIdMatches, isNonAwsExam, COMPANION_EXAM, companionLabel, EXAM_LEVEL_COLORS, officialExamsForCompanion } from '../constants';
 import Button from '../components/ui/Button';
 import PageLayout from '../components/ui/PageLayout';
 import { getCached, setCached, SHORT_TTL, getCachedPersist, setCachedPersist } from '../utils/cache';
@@ -563,6 +563,19 @@ export default function Practice() {
               <div style={{ fontSize: 'var(--font-size-xs)', color: 'var(--color-text-light)', marginTop: 2, marginLeft: 26 }}>
                 {ja ? 'ドメイン別統計・予想スコアには反映されません' : "Doesn't count toward domain stats or estimated score"}
               </div>
+              <div style={{ fontSize: 'var(--font-size-xs)', color: 'var(--color-text-light)', marginTop: 2, marginLeft: 26 }}>
+                {ja
+                  ? <>※<span style={{ color: EXAM_LEVEL_COLORS.Additional }}>{`基礎知識（${companionLabel(COMPANION_EXAM[examType])}）`}</span>を含みます</>
+                  : <>※Includes <span style={{ color: EXAM_LEVEL_COLORS.Additional }}>{companionLabel(COMPANION_EXAM[examType])}</span> fundamentals</>}
+              </div>
+            </div>
+          )}
+          {/* 基礎知識資格自身が目標の時: 対応する公式資格でも同じ問題が出ることを案内（トグルなし） */}
+          {isNonAwsExam(examType) && officialExamsForCompanion(examType).length > 0 && (
+            <div style={{ marginBottom: 'var(--spacing-md)', fontSize: 'var(--font-size-xs)', color: 'var(--color-text-light)' }}>
+              {ja
+                ? `※${officialExamsForCompanion(examType).join('、')}でも演習可能です`
+                : `※Also included when practicing ${officialExamsForCompanion(examType).join(', ')}`}
             </div>
           )}
 

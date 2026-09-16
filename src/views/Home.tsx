@@ -16,7 +16,7 @@ import {
   API_ENDPOINT, EXAM_TYPES, EXAM_CONFIGS, EXAM_DOMAINS,
   DOMAIN_WEIGHTS, PASS_SCORES, qDomainName, DOMAIN_RATE_WARNING,
   EXAM_LEVEL, EXAM_LEVEL_COLORS,
-  tagIdMatches, domainsToIndices, storedDomainsToNames, isNonAwsExam, COMPANION_EXAM, companionLabel,
+  tagIdMatches, domainsToIndices, storedDomainsToNames, isNonAwsExam, COMPANION_EXAM, companionLabel, officialExamsForCompanion,
 } from '../constants';
 import { readDomainResults, readDomainHistory } from '../utils/domainStats';
 import { lockBodyScroll } from '../utils/bodyScrollLock';
@@ -2994,6 +2994,21 @@ export default function Home() {
                     <div style={{ fontSize: 'var(--font-size-xs)', color: 'var(--color-text-light)', marginTop: 2 }}>
                       {ja ? 'ドメイン別統計・予想スコアには反映されません' : "Doesn't count toward domain stats or estimated score"}
                     </div>
+                    <div style={{ fontSize: 'var(--font-size-xs)', color: 'var(--color-text-light)', marginTop: 2 }}>
+                      {ja
+                        ? <>※<span style={{ color: EXAM_LEVEL_COLORS.Additional }}>{`基礎知識（${companionLabel(COMPANION_EXAM[targetExam])}）`}</span>を含みます</>
+                        : <>※Includes <span style={{ color: EXAM_LEVEL_COLORS.Additional }}>{companionLabel(COMPANION_EXAM[targetExam])}</span> fundamentals</>}
+                    </div>
+                  </div>
+                )}
+                {/* 基礎知識資格自身が目標の時: 対応する公式資格でも同じ問題が出ることを案内（トグルなし） */}
+                {targetExam && isNonAwsExam(targetExam) && officialExamsForCompanion(targetExam).length > 0 && (
+                  <div style={{ padding: '14px 0', borderBottom: '1px solid var(--color-border)' }}>
+                    <div style={{ fontSize: 'var(--font-size-xs)', color: 'var(--color-text-light)' }}>
+                      {ja
+                        ? `※${officialExamsForCompanion(targetExam).join('、')}でも演習可能です`
+                        : `※Also included when practicing ${officialExamsForCompanion(targetExam).join(', ')}`}
+                    </div>
                   </div>
                 )}
                 {/* 回答状況フィルタ（排他・しっかり対策と同一） */}
@@ -3260,6 +3275,21 @@ export default function Home() {
                     </label>
                     <div style={{ fontSize: 'var(--font-size-xs)', color: 'var(--color-text-light)', marginTop: 2 }}>
                       {ja ? 'ドメイン別統計・予想スコアには反映されません' : "Doesn't count toward domain stats or estimated score"}
+                    </div>
+                    <div style={{ fontSize: 'var(--font-size-xs)', color: 'var(--color-text-light)', marginTop: 2 }}>
+                      {ja
+                        ? <>※<span style={{ color: EXAM_LEVEL_COLORS.Additional }}>{`基礎知識（${companionLabel(COMPANION_EXAM[targetExam])}）`}</span>を含みます</>
+                        : <>※Includes <span style={{ color: EXAM_LEVEL_COLORS.Additional }}>{companionLabel(COMPANION_EXAM[targetExam])}</span> fundamentals</>}
+                    </div>
+                  </div>
+                )}
+                {/* 基礎知識資格自身が目標の時: 対応する公式資格でも同じ問題が出ることを案内（トグルなし） */}
+                {targetExam && isNonAwsExam(targetExam) && officialExamsForCompanion(targetExam).length > 0 && (
+                  <div style={{ padding: '14px 0', borderBottom: '1px solid var(--color-border)' }}>
+                    <div style={{ fontSize: 'var(--font-size-xs)', color: 'var(--color-text-light)' }}>
+                      {ja
+                        ? `※${officialExamsForCompanion(targetExam).join('、')}でも演習可能です`
+                        : `※Also included when practicing ${officialExamsForCompanion(targetExam).join(', ')}`}
                     </div>
                   </div>
                 )}

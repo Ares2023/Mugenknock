@@ -3,7 +3,7 @@ import React, { useState, useRef, useEffect, useMemo } from 'react';
 import { createPortal } from 'react-dom';
 import { lockBodyScroll } from '../utils/bodyScrollLock';
 import { resetExercisePrefsOnExamChange } from '../utils/preferences';
-import { API_ENDPOINT, EXAM_CONFIGS, EXAM_DOMAINS, DOMAIN_WEIGHTS, PASS_SCORES, isNonAwsExam, levelLabel } from '@/constants';
+import { API_ENDPOINT, EXAM_CONFIGS, EXAM_DOMAINS, DOMAIN_WEIGHTS, PASS_SCORES, isNonAwsExam, levelLabel, COMPANION_EXAM, companionLabel, officialExamsForCompanion, EXAM_LEVEL_COLORS } from '@/constants';
 import { EXAM_ICON_COMPONENTS, IconBook, IconBookOpenCheck, IconCircleCheck, IconExternalLink, IconFileText } from '@/components/Icons';
 import { useHorizontalScrollHint } from '@/hooks/useHorizontalScrollHint';
 
@@ -401,6 +401,21 @@ export default function ExamSelectOverlay({
                 <p style={{ margin: '0 0 8px', fontSize: 'var(--font-size-sm)', color: 'var(--color-text-sub)', lineHeight: 1.7, whiteSpace: 'pre-line' }}>
                   {EXAM_DESC[exam] ?? ''}
                 </p>
+                {/* 公式資格↔基礎知識資格の相互案内（specs/003-original-exam-blend） */}
+                {COMPANION_EXAM[exam] && (
+                  <p style={{ margin: '0 0 8px', fontSize: 'var(--font-size-xs)', color: 'var(--color-text-light)' }}>
+                    {ja
+                      ? <>※<span style={{ color: EXAM_LEVEL_COLORS.Additional }}>{`基礎知識（${companionLabel(COMPANION_EXAM[exam])}）`}</span>を含みます</>
+                      : <>※Includes <span style={{ color: EXAM_LEVEL_COLORS.Additional }}>{companionLabel(COMPANION_EXAM[exam])}</span> fundamentals</>}
+                  </p>
+                )}
+                {isNonAwsExam(exam) && officialExamsForCompanion(exam).length > 0 && (
+                  <p style={{ margin: '0 0 8px', fontSize: 'var(--font-size-xs)', color: 'var(--color-text-light)' }}>
+                    {ja
+                      ? `※${officialExamsForCompanion(exam).join('、')}でも演習可能です`
+                      : `※Also included when practicing ${officialExamsForCompanion(exam).join(', ')}`}
+                  </p>
+                )}
                 {(EXAM_URLS[exam] || EXAM_GUIDE_PDF_URLS[exam]) && (
                   <div style={{ display: 'flex', alignItems: 'center', gap: 16, flexWrap: 'nowrap', marginBottom: 12 }}>
                     {EXAM_URLS[exam] && (

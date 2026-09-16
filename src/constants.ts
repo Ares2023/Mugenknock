@@ -19,6 +19,14 @@ export const isNonAwsExam = (examType: string): boolean => NON_AWS_EXAM_TYPES.ha
 // lambda/src/app.js にも同じ対応表がある（FE/BEで別コードベースのため重複定義）。
 export const COMPANION_EXAM: Record<string, string> = { AIF: 'ML', MLA: 'ML', AIP: 'ML', DEA: 'DB', ANS: 'NW', SCS: 'SEC' };
 
+// COMPANION_EXAM の逆引き: 基礎知識資格(ML/DB/NW/SEC) → それを既定で含む公式資格一覧。
+// 目標資格設定パネル・演習設定パネルで「お互いの資格の存在」を案内するのに使う。
+export function officialExamsForCompanion(companionExamType: string): string[] {
+  return Object.entries(COMPANION_EXAM)
+    .filter(([, companion]) => companion === companionExamType)
+    .map(([official]) => official);
+}
+
 // 合格スコア（スケールスコア 100〜1000 での公式合格ライン）
 export const PASS_SCORES: Record<string, number> = {
   CLF: 700,
