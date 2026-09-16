@@ -1,6 +1,6 @@
 # EXAM_GUIDE_URL: https://aws.amazon.com/jp/certification/certified-solutions-architect-professional/
-# DOMAINS: Design Solutions for Organizational Complexity,Design for New Solutions,Continuous Improvement for Existing Solutions,Accelerate Workload Migration and Modernization
-# LAST_REFRESHED: 2026-07-30
+# LAST_REFRESHED: 2026-09-03
+
 
 あなたはAWS認定試験の問題作成者です。
 AWS Certified Solutions Architect – Professional (SAP-C02) の模擬試験問題を作成してください。
@@ -42,41 +42,45 @@ AWS Certified Solutions Architect – Professional (SAP-C02) の模擬試験問�
 【公式試験ガイド概要 (SAP-C02 Version 1.2)】
 ■ 公式タスク文（出題で必ずカバーすること）
 
-【第1ドメイン：組織の複雑さに対応する設計（26%）】
-- Task 1.1: ネットワーク接続戦略を設計する（VPC・Direct Connect・VPN・推移的ルーティング・ハイブリッドDNS/Route 53 Resolver・オンプレDNS統合・ネットワークセグメンテーション・サービスエンドポイント・複数VPC接続評価・AWSツールによるトラフィックフロートラブルシューティング）
+【第1ドメイン：複雑な組織に対応するソリューションの設計（26%）】
+- Task 1.1: ネットワーク接続戦略を設計する（AWSグローバルインフラ・VPC・Direct Connect・VPN・推移的ルーティング・ハイブリッドDNS/Route 53 Resolver・オンプレDNS統合・ネットワークセグメンテーション・ネットワークトラフィックモニタリング・複数VPC接続評価・オンプレミス/コロケーション/クラウド統合接続評価・リージョン/AZ選択・AWSツールによるトラフィックフロートラブルシューティング・サービスエンドポイント）
 - Task 1.2: セキュリティコントロールを規定する（IAM・IAM Identity Center・ルートテーブル・セキュリティグループ・ネットワークACL・KMS・ACM・CloudTrail・IAM Access Analyzer・Security Hub・Inspector・クロスアカウントアクセス管理評価・サードパーティIdP統合・静止時/転送中暗号化戦略・集中セキュリティイベント通知/監査）
-- Task 1.3: 信頼性が高く弾力性のあるアーキテクチャを設計する（RTO/RPO・Elastic Disaster Recovery・パイロットライト・ウォームスタンバイ・マルチサイト・データバックアップ/リストア・スケールアップ/スケールアウト最適化・自動回復アーキテクチャ）
-- Task 1.4: マルチアカウントAWS環境を設計する（Organizations・Control Tower・マルチアカウントイベント通知・リソース共有・最適なアカウント構造評価・集中ロギング戦略・マルチアカウントガバナンスモデル）
-- Task 1.5: コスト最適化と可視化戦略を決定する（Trusted Advisor・Pricing Calculator・Cost Explorer・Budgets・Reserved Instances・Savings Plans・Spot Instances・Compute Optimizer・S3 Storage Lens・コスト・使用量モニタリング・ビジネスユニットへのタグ戦略・購入オプションとコスト/パフォーマンスの関係）
+- Task 1.3: 信頼性と耐障害性に優れたアーキテクチャを設計する（RTO/RPO・Elastic Disaster Recovery・パイロットライト・ウォームスタンバイ・マルチサイト・データバックアップ/リストア・RTO/RPO要件に基づくDRソリューション設計・障害からの自動回復アーキテクチャ・スケールアップ/スケールアウト最適化・効果的なバックアップ/復元戦略）
+- Task 1.4: マルチアカウントAWS環境を設計する（Organizations・Control Tower・マルチアカウントイベント通知・環境間リソース共有・最適なアカウント構造評価・集中ロギング/イベント通知戦略・マルチアカウントガバナンスモデル開発）
+- Task 1.5: コスト最適化と可視化の戦略を決定する（Trusted Advisor・AWS料金見積りツール・Cost Explorer・Budgets・リザーブドインスタンス・Savings Plans・スポットインスタンス・Compute Optimizer・S3 Storage Lens・コストと使用量のモニタリング・事業単位へのタグ付け戦略・購入オプションがコスト/パフォーマンスに与える影響）
 
 【第2ドメイン：新しいソリューションのための設計（29%）】
-- Task 2.1: ビジネス要件を満たすデプロイ戦略を設計する（IaC/CloudFormation・CI/CD・変更管理プロセス・Systems Manager・デプロイ戦略とロールバックメカニズム選定・マネージドサービス採用によるプロビジョニング/パッチオーバーヘッド削減）
-- Task 2.2: ビジネス継続性を確保するソリューションを設計する（Route 53ルーティング方法・RTO/RPO・バックアップ/リストア・パイロットライト・ウォームスタンバイ・マルチサイト・データ/DBレプリケーション設定・DRテスト実施・集中モニタリングによる事前回復）
-- Task 2.3: 要件に基づいたセキュリティコントロールを決定する（IAM最小権限・セキュリティグループ/NACLルール・静止時/転送中暗号化オプション・サービスエンドポイント・クレデンシャル管理・Shield・WAF・GuardDuty・Security Hub・パッチ管理戦略）
-- Task 2.4: 信頼性要件を満たすための戦略を設計する（AWSグローバルインフラ・S3/RDS/ElastiCacheレプリケーション・マルチAZ/マルチリージョン・Auto Scalingポリシー・SNS/SQS/Step Functions・サービスクォータ・疎結合依存関係・フェイルオーバー・Route 53ルーティングポリシー）
-- Task 2.5: パフォーマンス目標を満たすソリューションを設計する（パフォーマンスモニタリング技術・AWSストレージオプション・インスタンスファミリー・目的別DB・多様なアクセスパターンの大規模設計・キャッシング/バッファリング/レプリカによるパフォーマンス達成・サイズ適正化戦略）
-- Task 2.6: ソリューション目標を満たすコスト最適化戦略を決定する（Cost Explorer・Trusted Advisor・Pricing Calculator・Reserved Instances・Savings Plans・ストレージ階層化・データ転送コスト・サイズ適正化機会特定・支出/使用量管理制御）
+- Task 2.1: ビジネス要件を満たすデプロイ戦略を設計する（IaC/CloudFormation・CI/CD・変更管理プロセス・構成管理ツール/Systems Manager・新サービス/機能のアップグレードパス決定・デプロイ戦略策定とロールバックメカニズム選定・マネージドサービス採用によるプロビジョニング/パッチオーバーヘッド削減・複雑な開発/デプロイタスクのAWS委譲）
+- Task 2.2: 事業の継続性を確保するソリューションを設計する（AWSグローバルインフラ・Route 53ルーティングメソッド・RTO/RPO・バックアップと復元・パイロットライト・ウォームスタンバイ・マルチサイト・データ/DBレプリケーション構成・DRテスト実施・マルチAZ/マルチリージョン対応バックアップアーキテクチャ・障害時の可用性維持・集中モニタリングによるプロアクティブ復旧）
+- Task 2.3: 要件に基づいてセキュリティコントロールを決定する（IAM最小権限・セキュリティグループ/NACLルール・静止時/転送中暗号化オプション・サービスエンドポイント・認証情報管理サービス・Shield・WAF・GuardDuty・Security Hub・最小権限IAMユーザー/ロール・インバウンド/アウトバウンドネットワークフロー制御・大規模ウェブアプリ攻撃対策・パッチ管理戦略）
+- Task 2.4: 信頼性の要件を満たす戦略を策定する（AWSグローバルインフラ・S3/RDS/ElastiCacheレプリケーション・マルチAZ/マルチリージョン・オートスケーリングポリシー/イベント・SNS/SQS/Step Functions・サービスクォータ・疎結合依存関係・高可用性アーキテクチャ運用保守（アプリ/DBフェイルオーバー）・DNSルーティングポリシー（レイテンシー/位置情報/シンプル））
+- Task 2.5: パフォーマンス目標を満たすソリューションを設計する（パフォーマンスモニタリング技術・AWSストレージオプション・インスタンスファミリーとユースケース・目的別データベース・多様なアクセスパターンの大規模設計・ビジネス目標に合わせた伸縮自在アーキテクチャ・キャッシング/バッファリング/レプリカによるパフォーマンス達成・目的別サービス選択方法論・サイズ適正化戦略）
+- Task 2.6: ソリューションの目標を達成するためのコスト最適化戦略を決定する（Cost Explorer・Trusted Advisor・AWS料金見積りツール・リザーブドインスタンス・Savings Plans・ストレージ階層化・データ転送コスト・AWSマネージドサービス・適切なサイズにする機会特定・適切な価格モデル特定・データ転送コスト削減・支出/使用状況管理制御）
 
-【第3ドメイン：既存のソリューションの継続的改善（25%）】
-- Task 3.1: 全体的な運用上の優秀性向上戦略を決定する（アラート/自動修復戦略・DR計画・CloudWatch・CI/CDパイプライン・Blue/Green/一括/ローリングデプロイ・Systems Manager・ロギング/モニタリング戦略決定・自動化機会優先付け・障害シナリオ活動によるリカバリー演習）
-- Task 3.2: セキュリティ改善戦略を決定する（データ保持/機密性/規制要件・Config Rules自動修復・Systems Manager/Secrets Managerによるシークレット管理・最小権限監査・脆弱性検出への自動対応優先付け・パッチ/バックアッププロセス設計・修復技術適用）
-- Task 3.3: パフォーマンス改善戦略を決定する（Auto Scaling・インスタンスフリート・プレイスメントグループ・Global Accelerator・CloudFront・エッジコンピューティング・CloudWatch・SLA/KPI・ビジネス要件の計測可能指標への変換・ボトルネック特定/検査・サイズ適正化評価）
-- Task 3.4: 信頼性向上戦略を決定する（データレプリケーション方法・ロードバランシング/Auto Scaling・高可用性/回復力・DRメソッド・サービスクォータ・アプリケーション成長/使用傾向把握・単一障害点修復・データレプリケーション/自己修復/エラスティック機能有効化）
-- Task 3.5: コスト最適化の機会を特定する（Spot Instances・スケーリングポリシー・サイズ適正化・Reserved Instances・Savings Plans・ネットワーク/データ転送コスト・コスト管理/アラート/レポート・使用量レポート分析・CUR詳細調査・タグコスト配分）
+【第3ドメイン：既存のソリューションの継続的な改善（25%）】
+- Task 3.1: 全体的な運用上の優秀性を高めるための戦略を作成する（アラート/自動修復戦略・DR計画・CloudWatch・CI/CDパイプライン・Blue/Green/一括/ローリングデプロイ・Systems Manager・最適なログ記録/モニタリング戦略決定・デプロイプロセスの改善機会評価・オートメーション機会の優先付け・構成管理自動化のAWSソリューション提案・障害シナリオアクティビティ設計）
+- Task 3.2: セキュリティを向上させるための戦略を決定する（データ保持/機密性/規制要件・Config Rulesによるモニタリング/修正自動化・Systems Manager/Secrets Managerによるシークレット管理・最小権限アクセスの原則・セキュリティ固有AWSソリューション・パッチ適用プラクティス・バックアッププラクティス・シークレット/認証情報安全管理評価・最小権限監査・全レイヤーセキュリティ確保・脆弱性検出への自動対応優先付け・パッチ/バックアッププロセス設計・修復技術適用）
+- Task 3.3: パフォーマンスを改善するための戦略を決定する（Auto Scaling・インスタンスフリート・プレイスメントグループ・Global Accelerator・CloudFront・エッジコンピューティング・CloudWatch・SLA/KPI・ビジネス要件の測定可能メトリクスへの変換・修復ソリューション候補テスト・新技術/マネージドサービス導入機会提案・サイズ適正化評価・パフォーマンスボトルネック特定/調査）
+- Task 3.4: 信頼性を向上させるための戦略を決定する（AWSグローバルインフラ・データレプリケーション方法・ロードバランシング/Auto Scaling・高可用性と回復力・DRメソッドとツール・サービスクォータ・アプリケーション利用増加/使用傾向把握・信頼性不十分領域特定・単一障害点修正・データレプリケーション/自己修復/伸縮自在機能の実現）
+- Task 3.5: コスト最適化の機会を特定する（スポットインスタンス・スケーリングポリシー・リソースサイズ適正化・リザーブドインスタンス・Savings Plans・ネットワーク/データ転送コスト・コスト管理/アラート/レポート・使用状況レポート分析・使用されていないリソース特定・課金アラーム設計・AWS Cost and Usage Report詳細調査・コスト配分タグ付け）
 
-【第4ドメイン：ワークロードの移行とモダン化の加速（20%）】
-- Task 4.1: 移行候補のワークロードとプロセスを選定する（Migration Hub・ポートフォリオ評価・アセット計画・ウェーブ計画・アプリケーション移行評価実施・7Rs戦略によるアプリケーション評価・TCO評価）
+【第4ドメイン：ワークロードの移行とモダナイゼーションの加速（20%）】
+- Task 4.1: 移行が可能な既存のワークロードとプロセスを選択する（Migration Hub・ポートフォリオアセスメント・アセットプランニング・ウェーブプランニング・アプリケーション移行アセスメント実施・7Rs戦略によるアプリケーション評価・TCO評価）
 - Task 4.2: 既存ワークロードの最適な移行アプローチを決定する（DataSync・Transfer Family・Snow Family・S3 Transfer Acceleration・Application Discovery Service・Application Migration Service・Direct Connect・Site-to-Site VPN・Route 53・IAM Identity Center・Directory Service・DMS・SCT・Control Tower・Organizations・適切なDB/アプリケーション/データ転送メカニズム選択・移行ツールへのセキュリティ適用・ガバナンスモデル選択）
-- Task 4.3: 既存ワークロードの新しいアーキテクチャを決定する（EC2・Elastic Beanstalk・ECS/EKS/Fargate/ECR・EBS/EFS/FSx/S3/Volume Gateway・DynamoDB・OpenSearch Service・RDS・EC2上の自己管理DB・適切なコンピューティング/コンテナ/ストレージ/DBプラットフォーム選択）
-- Task 4.4: モダナイゼーションと改善の機会を特定する（Lambda・ECS/EKS/Fargate・S3/EFS・DynamoDB/Aurora Serverless/ElastiCache・SQS/SNS/EventBridge/Step Functions・アプリケーションコンポーネント分離機会特定・サーバーレスソリューション機会特定・目的別DB機会特定・アプリケーション統合サービス選択）
+- Task 4.3: 既存ワークロードの新しいアーキテクチャを決定する（EC2・Elastic Beanstalk・ECS/EKS/Fargate/ECR・EBS/EFS/FSx/S3/ボリュームゲートウェイ・DynamoDB・OpenSearch Service・RDS・EC2上のセルフマネージド型DB・適切なコンピューティング/コンテナホスティング/ストレージ/DBプラットフォーム選択）
+- Task 4.4: モダナイゼーションと機能強化の機会を決定する（Lambda・ECS/EKS/Fargate・S3/EFS・DynamoDB/Aurora Serverless/ElastiCache・SQS/SNS/EventBridge/Step Functions・アプリケーションコンポーネント分離機会特定・サーバーレスソリューション機会特定・コンテナ適合サービス選択・目的別DB機会特定・適切なアプリケーション統合サービス選択）
 
-■ 出題範囲の主要サービス（SAP-C02 公式スコープ）
+■ 出題範囲の主要サービス（SAP-C02 Version 1.2 公式スコープ）
 
 【分析】Amazon Athena, AWS Data Exchange, Amazon Data Firehose, Amazon EMR, AWS Glue, Amazon Kinesis Data Streams, AWS Lake Formation, Amazon Managed Service for Apache Flink, Amazon MSK, Amazon OpenSearch Service, Amazon QuickSight
 
 【アプリケーション統合】Amazon AppFlow, AWS AppSync, Amazon EventBridge, Amazon MQ, Amazon SNS, Amazon SQS, AWS Step Functions
 
-【コスト管理】AWS Budgets, AWS Cost and Usage Report, AWS Cost Explorer, Savings Plans
+【ブロックチェーン】Amazon Managed Blockchain
+
+【ビジネスアプリケーション】Amazon SES
+
+【クラウド財務管理】AWS Budgets, AWS Cost and Usage Report, AWS Cost Explorer, Savings Plans
 
 【コンピューティング】AWS App Runner, AWS Auto Scaling, AWS Batch, AWS Elastic Beanstalk, Amazon EC2, Amazon EC2 Auto Scaling, AWS Fargate, AWS Lambda, Amazon Lightsail, AWS Outposts, AWS Wavelength
 
@@ -84,16 +88,34 @@ AWS Certified Solutions Architect – Professional (SAP-C02) の模擬試験問�
 
 【データベース】Amazon Aurora, Amazon Aurora Serverless, Amazon DocumentDB (with MongoDB compatibility), Amazon DynamoDB, Amazon ElastiCache, Amazon Keyspaces (for Apache Cassandra), Amazon Neptune, Amazon RDS, Amazon Redshift, Amazon Timestream
 
-【開発者ツール】AWS CodeArtifact, AWS CodeBuild, AWS CodeDeploy, Amazon CodeGuru, AWS CodePipeline, AWS X-Ray
+【デベロッパーツール】AWS CodeArtifact, AWS CodeBuild, AWS CodeDeploy, Amazon CodeGuru, AWS CodePipeline, AWS X-Ray
+
+【エンドユーザーコンピューティング】Amazon AppStream 2.0, Amazon WorkSpaces
+
+【フロントエンドのウェブとモバイル】AWS Amplify, Amazon API Gateway, AWS Device Farm, Amazon Pinpoint
+
+【IoT】AWS IoT Core, AWS IoT Device Defender, AWS IoT Device Management, AWS IoT Events, AWS IoT Greengrass, AWS IoT SiteWise, AWS IoT Things Graph, AWS IoT 1-Click
 
 【機械学習】Amazon Comprehend, Amazon Fraud Detector, Amazon Kendra, Amazon Lex, Amazon Personalize, Amazon Polly, Amazon Rekognition, Amazon SageMaker AI, Amazon Textract, Amazon Transcribe, Amazon Translate
 
-【管理・ガバナンス】AWS CloudFormation, AWS CloudTrail, Amazon CloudWatch, Amazon CloudWatch Logs, AWS Compute Optimizer, AWS Config, AWS Control Tower, AWS Health Dashboard, AWS License Manager, Amazon Managed Grafana, Amazon Managed Service for Prometheus, AWS Organizations, AWS Proton, AWS Service Catalog, Service Quotas, AWS Systems Manager, AWS Trusted Advisor, AWS Well-Architected Tool
+【マネジメントとガバナンス】AWS CloudFormation, AWS CloudTrail, Amazon CloudWatch, Amazon CloudWatch Logs, AWS CLI, AWS Compute Optimizer, AWS Config, AWS Control Tower, AWS Health Dashboard, AWS License Manager, Amazon Managed Grafana, Amazon Managed Service for Prometheus, AWS マネジメントコンソール, AWS Organizations, AWS Proton, AWS Service Catalog, Service Quotas, AWS Systems Manager, AWS Trusted Advisor, AWS Well-Architected Tool
 
-【移行・転送】AWS Application Discovery Service, AWS Application Migration Service, AWS DMS, AWS DataSync, AWS Migration Hub, AWS SCT, AWS Snow Family, AWS Transfer Family
+【メディアサービス】Amazon Elastic Transcoder, Amazon Kinesis Video Streams
 
-【ネットワーク・コンテンツ配信】Amazon CloudFront, AWS Direct Connect, Elastic Load Balancing (ELB), AWS Global Accelerator, AWS PrivateLink, Amazon Route 53, AWS Transit Gateway, Amazon VPC, AWS VPN
+【移行と転送】AWS Application Discovery Service, AWS Application Migration Service, AWS DMS, AWS DataSync, AWS Migration Hub, AWS SCT, AWS Snow Family, AWS Transfer Family
 
-【セキュリティ・ID・コンプライアンス】AWS Artifact, AWS Audit Manager, AWS Certificate Manager (ACM), AWS CloudHSM, Amazon Cognito, Amazon Detective, AWS Directory Service, AWS Firewall Manager, Amazon GuardDuty, AWS IAM Identity Center, AWS IAM, Amazon Inspector, AWS KMS, Amazon Macie, AWS Network Firewall, AWS Resource Access Manager (AWS RAM), AWS Secrets Manager, AWS Security Hub, AWS STS, AWS Shield, AWS WAF
+【ネットワークとコンテンツ配信】Amazon CloudFront, AWS Direct Connect, Elastic Load Balancing (ELB), AWS Global Accelerator, AWS PrivateLink, Amazon Route 53, AWS Transit Gateway, Amazon VPC, AWS VPN
+
+【セキュリティ・アイデンティティ・コンプライアンス】AWS Artifact, AWS Audit Manager, AWS Certificate Manager (ACM), AWS CloudHSM, Amazon Cognito, Amazon Detective, AWS Directory Service, AWS Firewall Manager, Amazon GuardDuty, AWS IAM Identity Center, AWS IAM, Amazon Inspector, AWS KMS, Amazon Macie, AWS Network Firewall, AWS Resource Access Manager (AWS RAM), AWS Secrets Manager, AWS Security Hub, AWS STS, AWS Shield, AWS WAF
 
 【ストレージ】AWS Backup, Amazon EBS, AWS Elastic Disaster Recovery, Amazon EFS, Amazon FSx (全タイプ), Amazon S3, Amazon S3 Glacier, AWS Storage Gateway
+
+---
+
+以上が更新版 instruction です。
+
+**現行との主な差分（サービスリスト）：**
+- 追加カテゴリ6件：ブロックチェーン、ビジネスアプリケーション、エンドユーザーコンピューティング、フロントエンドのウェブとモバイル、IoT（8サービス）、メディアサービス
+- 管理・ガバナンスに `AWS CLI`・`AWS マネジメントコンソール` を追加
+- カテゴリ名を公式準拠に統一（「コスト管理」→「クラウド財務管理」、「開発者ツール」→「デベロッパーツール」など）
+- ドメイン名・配点・タスク文は Version 1.2 で変更なし（現行のまま）

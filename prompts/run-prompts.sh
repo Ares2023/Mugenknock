@@ -14,6 +14,7 @@ UNIT_NAME="claude-cycle"
 HOOK_PREFIX="claude-cycle-hook"
 HOOKS_FILE="$SCRIPT_DIR/.ct-hooks"        # 1行 = "±N|command"
 SKIP_HOOKS_FILE="$SCRIPT_DIR/.ct-skip-once" # 存在すれば次回フックをスキップ
+WEEKLY_MODE_FILE="$SCRIPT_DIR/.ct-weekly-on" # 存在すれば土曜3am自動OFFの使い切りモードON
 
 mkdir -p "$LOG_DIR"
 export PATH="/home/yuzuki/local/bin:$PATH"
@@ -57,6 +58,8 @@ commands:
   rm N            remove hook at index N
   mv N M          move hook at index N to index M
   skip            skip hooks on next run (run again to cancel)
+  on              enable weekly spend mode (first run: 30min before session end, auto-off at Sat 3am)
+  off             disable weekly spend mode and cancel timer
 
 flags:
   -d HH:MM        with "run": stop processing 3 min before HH:MM (deadline)
@@ -148,6 +151,18 @@ PYEOF
   fi
   printf "last  %s\nnext  %s\n" "$last" "$next_time"
   [ -f "$SKIP_HOOKS_FILE" ] && echo "skip  ON  (次回フックをスキップ)"
+  if [ -f "$WEEKLY_MODE_FILE" ]; then
+    local _wm_expiry; _wm_expiry=$(cat "$WEEKLY_MODE_FILE")
+    local _wm_epoch; _wm_epoch=$(date -d "$_wm_expiry" +%s 2>/dev/null || echo 0)
+    if [ "$(date +%s)" -ge "$_wm_epoch" ]; then
+      echo "weekly OFF (期限切れ: $_wm_expiry)"
+      rm -f "$WEEKLY_MODE_FILE"
+    else
+      printf "weekly ON  (有効期限: %s)\n" "$_wm_expiry"
+    fi
+  else
+    echo "weekly OFF"
+  fi
   if [ -f "$HOOKS_FILE" ] && [ -s "$HOOKS_FILE" ]; then
     local idx=0
     while IFS='|' read -r offset cmd; do
@@ -307,6 +322,18 @@ EOF
 # ── 次の実行時刻を予約する ───────────────────────────────────
 schedule_next() {
   [ "${FARGATE_MODE:-0}" = "1" ] && return 0
+
+  # 週間モードの期限切れチェック: 土曜3am を過ぎていたらOFFにして再スケジュールしない
+  if [ -f "$WEEKLY_MODE_FILE" ]; then
+    local _wm_expiry; _wm_expiry=$(cat "$WEEKLY_MODE_FILE")
+    local _wm_epoch; _wm_epoch=$(date -d "$_wm_expiry" +%s 2>/dev/null || echo 0)
+    if [ "$(date +%s)" -ge "$_wm_epoch" ]; then
+      rm -f "$WEEKLY_MODE_FILE"
+      echo "週間制限リセット: 使い切りモードをOFFにしました (期限: $_wm_expiry)"
+      return 0
+    fi
+  fi
+
   local mode="${1:-cycle}"
   local arg="${2:-}"
   local start_epoch="${3:-}"   # run開始時刻(epoch秒) — cycle自動スケジュール用
@@ -603,7 +630,9 @@ PYEOF
       ) || true
       if [ -z "${_cb:-}" ]; then echo "❌ claude コマンドが見つかりません" >&2; return 1; fi
       local output
-      output=$("$_cb" -p < "$file" 2>&1)
+      # texts/ 配下は判断を要する定型タスク（コラム重複確認・夜間ログレビュー等）のため
+      # 他の夜間バッチと同じ sonnet を明示する（アカウント既定モデル依存を避ける）。
+      output=$("$_cb" -p --model sonnet < "$file" 2>&1)
       local ec=$?
       printf "  → %ds\n" "$(( $(date +%s) - _t0 ))"
       echo "$output"
@@ -664,7 +693,9 @@ PYEOF
         local _n; _n=$(basename "$f")
         echo "$(date +%s)" > "$_ptmpdir/${_n}.t0"
         (
-          _out=$("$_cb" -p < "$f" 2>&1)
+          # texts/ 配下は判断を要する定型タスクのため、他の夜間バッチと同じ sonnet を明示する
+          # （アカウント既定モデル依存を避ける）。
+          _out=$("$_cb" -p --model sonnet < "$f" 2>&1)
           _ec=$?
           printf '%s\n' "$_out" > "$_ptmpdir/${_n}.out"
           if [ $_ec -ne 0 ] || printf '%s\n' "$_out" | grep -qiE "rate.?limit|too many requests|overload|quota exceeded|hit your limit|resource_exhausted"; then
@@ -731,7 +762,9 @@ PYEOF
         local _ping_out _ping_ec
         local _ping_bin
         _ping_bin=$( { [ -x /usr/local/bin/claude ] && echo /usr/local/bin/claude; } || command -v claude 2>/dev/null )
-        _ping_out=$("${_ping_bin:-claude}" --dangerously-skip-permissions -p "." --output-format json 2>&1)
+        # 夜間バッチ本体（sonnet/opus）のセッション可用性を確認するのが目的のため、
+        # 別モデル(haiku等)の枠を見てしまわないよう本体と同じ sonnet を明示する。
+        _ping_out=$("${_ping_bin:-claude}" --dangerously-skip-permissions -p "." --model sonnet --output-format json 2>&1)
         _ping_ec=$?
         local _ping_s=$(( $(date +%s) - _pt0 ))
         printf "  → %ds\n" "$_ping_s"
@@ -1114,6 +1147,8 @@ while [[ $# -gt 0 ]]; do
       shift 3
       ;;
     cancel)  CMD="cancel";  shift ;;
+    on)      CMD="on";      shift ;;
+    off)     CMD="off";     shift ;;
     repair)  CMD="repair";  shift ;;
     night)   CMD="night";   shift ;;
     tonight) CMD="tonight"; shift ;;
@@ -1162,6 +1197,48 @@ PYEOF
     systemctl --user stop "${UNIT_NAME}.timer" 2>/dev/null || true
     stop_hook_timers
     echo "cancelled"
+    ;;
+  on)
+    # 次の土曜3:00 JST を期限として計算
+    _wm_expiry=$(python3 << 'PYEOF'
+from datetime import datetime, timedelta, timezone
+JST = timezone(timedelta(hours=9))
+now = datetime.now(JST).replace(tzinfo=None)
+days_until_sat = (5 - now.weekday()) % 7
+if days_until_sat == 0:
+    sat_3am = now.replace(hour=3, minute=0, second=0, microsecond=0)
+    target = sat_3am if now < sat_3am else sat_3am + timedelta(days=7)
+else:
+    target = (now + timedelta(days=days_until_sat)).replace(hour=3, minute=0, second=0, microsecond=0)
+print(target.strftime('%Y-%m-%d %H:%M:%S'))
+PYEOF
+)
+    echo "$_wm_expiry" > "$WEEKLY_MODE_FILE"
+    # 初回実行: floor(now, 10min) + 4h30m (セッション終了30分前)
+    _wm_fire=$(python3 << 'PYEOF'
+from datetime import datetime, timedelta, timezone
+JST = timezone(timedelta(hours=9))
+now = datetime.now(JST).replace(tzinfo=None)
+base = now.replace(minute=(now.minute // 10) * 10, second=0, microsecond=0)
+fire = base + timedelta(hours=4, minutes=30)
+if (fire - now).total_seconds() < 120:
+    fire = now.replace(second=0, microsecond=0) + timedelta(minutes=2)
+print(fire.strftime('%Y-%m-%d %H:%M:00'))
+PYEOF
+)
+    _setup_cycle_timer "$_wm_fire" "Claude Weekly Spend"
+    schedule_hooks "$_wm_fire"
+    printf "weekly ON\n初回実行: %s\n有効期限: %s (土曜3:00 自動OFF)\n" "$_wm_fire" "$_wm_expiry"
+    ;;
+  off)
+    if [ ! -f "$WEEKLY_MODE_FILE" ]; then
+      echo "weekly OFF (すでに無効)"
+    else
+      rm -f "$WEEKLY_MODE_FILE"
+      systemctl --user stop "${UNIT_NAME}.timer" 2>/dev/null || true
+      stop_hook_timers
+      echo "weekly OFF"
+    fi
     ;;
   hook-add)
     printf '%s|%s\n' "$HOOK_OFFSET" "$HOOK_CMD" >> "$HOOKS_FILE"

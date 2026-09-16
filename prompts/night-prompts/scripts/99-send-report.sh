@@ -561,25 +561,21 @@ echo "  未解決通報: $DB_REPORTS 件"
 echo "  資格別:"
 echo "$DB_EXAM_TABLE"
 
-# ── Portal.tsx 問題数更新 ────────────────────────────────────
-echo ""
-echo "--- [3b] Portal.tsx 問題数更新 ---"
-PORTAL_TSX="$PROJECT_DIR/src/views/Portal.tsx"
-if [ "$DB_TOTAL" != "?" ] && [ -n "$DB_TOTAL" ] && echo "$DB_TOTAL" | grep -qE '^[0-9]+$'; then
-  PORTAL_COUNT=$(( (DB_TOTAL / 100) * 100 ))
-  CURRENT_COUNT=$(grep -oP 'const QUESTION_COUNT = \K[0-9]+' "$PORTAL_TSX" 2>/dev/null || echo "0")
-  if [ "$PORTAL_COUNT" != "$CURRENT_COUNT" ]; then
-    sed -i "s/const QUESTION_COUNT = [0-9]*/const QUESTION_COUNT = $PORTAL_COUNT/" "$PORTAL_TSX"
-    git -C "$PROJECT_DIR" add src/views/Portal.tsx
-    git -C "$PROJECT_DIR" commit -m "chore(portal): 問題数を ${CURRENT_COUNT} → ${PORTAL_COUNT} に更新 (DB実績: ${DB_TOTAL}問)"
-    git -C "$PROJECT_DIR" push github develop
-    echo "  ✅ Portal.tsx 更新・push完了: ${CURRENT_COUNT} → ${PORTAL_COUNT} (DB: ${DB_TOTAL}問)"
-  else
-    echo "  ℹ️  変更なし: ${CURRENT_COUNT}問 (100問刻み未達)"
-  fi
-else
-  echo "  ⚠️  DB_TOTAL取得失敗のためスキップ (DB_TOTAL='${DB_TOTAL}')"
-fi
+# ── Portal.tsx 問題数更新は廃止（2026-09-15） ──────────────────
+# 旧実装は DB_TOTAL（validityCheckedAt 未設定＝未検証、isHidden＝非表示も
+# 含む生の全件数）を 100問単位に丸めて `const QUESTION_COUNT = ...` を
+# sed で直接書き換え、git commit & push していた。
+# 02-check-validity（検証）が2026-06-29から停止中で未検証分が積み上がり
+#続けていたため、生の総数が「実際に出題される問題数」を上回ってしまい、
+# ランディングページが実数（totalVerified）に届く前に「5000問以上」と
+# 表示する事故が起きた（2026-09-15発覚）。
+#
+# 対策として QUESTION_COUNT 定数は廃止し、ランディングページ
+# （app/page.tsx・src/views/Portal.tsx）はビルドのたびに
+# GET /questions/growth-stats の totalVerified を取得して表示するように
+# 変更した（src/utils/questionCount.ts）。develop/master への push で
+# Cloudflare Pages が再ビルドするたび自動的に最新化されるため、
+# この夜間スクリプトでの手動更新・自動コミットは不要になった。
 
 # ── Cognito 新規ユーザー（前日1日分・JST） ────────────────────
 echo ""

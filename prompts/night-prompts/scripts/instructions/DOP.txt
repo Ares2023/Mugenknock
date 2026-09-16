@@ -1,6 +1,6 @@
 # EXAM_GUIDE_URL: https://aws.amazon.com/jp/certification/certified-devops-engineer-professional/
-# DOMAINS: SDLCの自動化,構成管理とInfrastructure as Code (IaC),弾力性に優れたクラウドソリューション,モニタリングとロギング,インシデントとイベントへの対応,セキュリティとコンプライアンス
-# LAST_REFRESHED: 2026-07-28
+# LAST_REFRESHED: 2026-08-28
+
 
 あなたはAWS認定試験の問題作成者です。
 AWS Certified DevOps Engineer – Professional (DOP-C02) の模擬試験問題を作成してください。
@@ -48,46 +48,48 @@ AWS Certified DevOps Engineer – Professional (DOP-C02) の模擬試験問題�
 ---
 【公式試験ガイド概要 (DOP-C02)】
 ■ 公式タスク文（出題で必ずカバーすること）
-【第1ドメイン：SDLCの自動化（22%）】
-- Task 1.1: CI/CDパイプラインを実装する（コード・イメージ・アーティファクトリポジトリの設定、バージョン管理との統合、CodeBuild・CodeDeploy・Secrets Manager・Systems Manager Parameter Store）
-- Task 1.2: CI/CDパイプラインに自動テストを統合する（単体テスト・統合テスト・受け入れテスト・UIテスト・セキュリティスキャン、各ステージでの適切なテスト種別の選択、ロードテスト・コードカバレッジ自動化）
-- Task 1.3: アーティファクトをビルドおよび管理する（CodeArtifact・Amazon S3・ECR によるリポジトリ設定、CodeBuild・Lambda によるビルド、EC2 Image Builder によるインスタンス/コンテナイメージビルド自動化）
-- Task 1.4: インスタンス・コンテナ・サーバーレス環境のデプロイ戦略を実装する（EC2・ECS・EKS・Lambda 向けデプロイ手法、ミュータブル vs イミュータブルパターン、Blue/Green・Canary・Rolling・All-at-once、CodeDeploy・EC2 Image Builder）
 
-【第2ドメイン：構成管理とInfrastructure as Code (IaC)（17%）】
-- Task 2.1: クラウドインフラストラクチャと再利用可能なコンポーネントを定義する（AWS SAM・CloudFormation・AWS CDK による IaC テンプレート、StackSets によるマルチアカウント/リージョン展開、OpsWorks・Systems Manager・Config・AppConfig による構成管理、Service Catalog・CloudFormation モジュール・CDK によるガバナンス統合）
-- Task 2.2: マルチアカウント/マルチリージョン環境のAWSアカウント導入・オンボーディング・セキュリティを自動化する（Organizations・Control Tower によるアカウント統合・集中管理、SCP・ロール引き受けによる IAM ソリューション、Config・Control Tower・Security Hub・Detective・GuardDuty・Service Catalog・SCP によるガバナンスとセキュリティコントロール）
-- Task 2.3: 複雑なタスクと大規模環境の自動化ソリューションを設計・構築する（Systems Manager・Config によるシステムインベントリ・設定・パッチ管理の自動化、AWS SDK・Lambda・Step Functions による複雑なシナリオの自動化、OpsWorks・Systems Manager State Manager による望ましい状態への設定自動化、Systems Manager によるソフトウェアコンプライアンス維持）
+【コンテンツ分野 1: SDLC のオートメーション（22%）】
+- タスク 1.1: CI/CD パイプラインを実装する（コード・イメージ・アーティファクトリポジトリの設定、バージョン管理との統合、CodeBuild・CodeDeploy・Secrets Manager・Systems Manager Parameter Storeの活用、適切なデプロイ戦略の決定）
+- タスク 1.2: 自動テストを CI/CD パイプラインに統合する（単体テスト・統合テスト・受け入れテスト・UIテスト・セキュリティスキャン、プルリクエスト/コードマージ時のビルド・テスト実行、負荷/ストレステスト・パフォーマンスベンチマーキング、アプリケーション終了コードによるヘルス測定、コードカバレッジ自動化）
+- タスク 1.3: アーティファクトを構築して管理する（CodeArtifact・S3・ECR によるリポジトリ設定、CodeBuild・Lambda によるビルド、EC2 Image Builder によるインスタンス/コンテナイメージビルド自動化、アーティファクトのライフサイクル管理）
+- タスク 1.4: インスタンス・コンテナ・サーバーレス環境のデプロイ戦略を実装する（EC2・ECS・EKS・Lambda 向けデプロイ手法、アプリケーションストレージパターン EFS/S3/EBS、ミュータブル vs イミュータブルパターン、Blue/Green・Canary・Rolling、デプロイエージェントの設定・トラブルシューティング）
 
-【第3ドメイン：弾力性に優れたクラウドソリューション（15%）】
-- Task 3.1: 弾力性とビジネス継続性の要件を満たす高可用性ソリューションを実装する（Multi-AZ・マルチリージョン展開、ステートフルサービスのレプリケーション・フェイルオーバー手法、DynamoDB・RDS・Route 53・S3・CloudFront のクロスリージョン対応、ALB によるクロスAZサービス支援）
-- Task 3.2: スケーラブルなソリューションを実装してビジネス要件を満たす（適切なスケーリングメトリクスの特定・修正、Auto Scaling・ロードバランサ・キャッシュの実装、コンテナベースアプリのデプロイ、グローバルスケーラビリティのためのマルチリージョン展開、API Gateway・Lambda・Fargate によるサーバーレス設定）
-- Task 3.3: RTO・RPO要件を満たす自動化された復旧プロセスを実装する（DR概念・バックアップ/復旧戦略、パイロットライト・ウォームスタンバイ手法、RDS・Aurora・Route 53・CloudFront のMulti-AZ/マルチリージョンフェイルオーバーテスト、AWS Backup・S3・Systems Manager によるクロスリージョンバックアップ・復旧戦略）
+【コンテンツ分野 2: 設定管理と IaC（17%）】
+- タスク 2.1: クラウドインフラストラクチャと再利用可能なコンポーネントを定義してライフサイクル全体でシステムをプロビジョニング・管理する（AWS SAM・CloudFormation・AWS CDK による IaC テンプレート、StackSets によるマルチアカウント/リージョン展開、OpsWorks・Systems Manager・Config・AppConfig による構成管理の最適選択、Service Catalog・CloudFormation モジュール・CDK によるガバナンス統合）
+- タスク 2.2: オートメーションをデプロイしてマルチアカウント/マルチリージョン環境で AWS アカウントを作成・オンボーディング・保護する（アカウントプロビジョニングと設定の標準化・自動化、Organizations・Control Tower によるアカウント統合・集中管理、SCP・ロール引き受けによる IAM ソリューション、Config・Control Tower・Security Hub・Detective・GuardDuty・Service Catalog・SCP によるガバナンスとセキュリティコントロール）
+- タスク 2.3: 複雑なタスクと大規模環境の自動化ソリューションを設計・構築する（Systems Manager・Config によるシステムインベントリ・設定・パッチ管理の自動化、AWS SDK・Lambda・Step Functions による複雑なシナリオの自動化、OpsWorks・Systems Manager State Manager による望ましい状態への設定自動化、Systems Manager によるソフトウェアコンプライアンス維持）
 
-【第4ドメイン：モニタリングとロギング（15%）】
-- Task 4.1: ログとメトリクスの収集・集約・保存を設定する（CloudWatch メトリクス名前空間・ディメンション・解像度、リアルタイムログ取り込み、メトリクスフィルタ・メトリクスストリーム・カスタムメトリクス、S3ライフサイクル・CloudWatch ログループ保持、CloudWatch サブスクリプションによる Kinesis/Lambda/OpenSearch 連携、KMS による暗号化）
-- Task 4.2: 問題を検出するためにログとメトリクスを監査・モニタリング・分析する（CloudWatch 異常検知アラーム、EC2 CPU/RDS キュー長/ALB 5xxエラー等の標準メトリクス、Amazon Inspector・Config Rules・CloudTrail ログイベント、CloudWatch ダッシュボード・QuickSight 可視化、X-Ray によるコンテナ/API Gateway/Lambda トレース、Kinesis Data Streams によるリアルタイムログ分析、Athena・CloudWatch Logs Insights）
-- Task 4.3: 複雑な環境のモニタリングとイベント管理を自動化する（EventBridge イベント/S3 イベント通知と SNS・Lambda の連携、EC2 Auto Scaling・RDS・DynamoDB・ECS・EKS の自動スケーリング設定、CloudWatch アラームから SNS・Lambda・EC2 自動復旧へのアクション、ALB ターゲットグループ・Route 53 ヘルスチェック）
+【コンテンツ分野 3: レジリエントなクラウドソリューション（15%）】
+- タスク 3.1: レジリエンスとビジネス要件を満たす高可用性ソリューションを実装する（ビジネス要件を技術的レジリエンスのニーズに変換、既存ワークロードの単一障害点の特定・修正、DynamoDB・RDS・Route 53・S3・CloudFront のクロスリージョン対応の有効化、ALB によるクロスAZサービス支援、マルチAZ・マルチリージョン対応のアプリケーション設定）
+- タスク 3.2: ビジネス要件を満たすスケーラブルなソリューションを実装する（スケーリング問題の特定・修正、適切なスケーリングメトリクスの選定、Auto Scaling・ロードバランサ・キャッシュの実装、コンテナベースアプリのデプロイ ECS/EKS、グローバルスケーラビリティのためのマルチリージョン展開、API Gateway・Lambda・Fargate によるサーバーレス設定）
+- タスク 3.3: RTO・RPO 要件を満たす自動化された復旧プロセスを実装する（DR概念・バックアップ/復旧戦略、パイロットライト・ウォームスタンバイ手法、RDS・Aurora・Route 53・CloudFront のMulti-AZ/マルチリージョンフェイルオーバーテスト、AWS Backup・S3・Systems Manager によるクロスリージョンバックアップ・復旧戦略、バックエンド障害からの復旧のためのロードバランサー設定）
 
-【第5ドメイン：インシデントとイベントへの対応（14%）】
-- Task 5.1: イベントソースを管理してイベントに対して通知・アクションを実行する（AWS Health・EventBridge・CloudTrail によるイベント生成・捕捉・処理、ファンアウト・イベントストリーミング・キューイングのイベント駆動アーキテクチャ、SQS・Kinesis・SNS・Lambda・Step Functions によるワークフロー構築）
-- Task 5.2: イベントに対応した設定変更を実装する（Systems Manager・Auto Scaling によるフリート管理、Config によるシステム設定管理、システムへの設定変更の適用、インフラ設定のイベント対応修正、非望ましい状態の修復）
-- Task 5.3: 問題をトラブルシューティングして解決方法を決定する（CloudWatch・X-Ray によるメトリクス/ロギング、AWS Health・CloudWatch・Systems Manager OpsCenter によるサービス正常性、根本原因分析、CodePipeline・CodeBuild・CodeDeploy・CloudFormation・CloudWatch Synthetics の失敗デプロイ分析、Auto Scaling・ECS の障害プロセス分析）
+【コンテンツ分野 4: モニタリングとロギング（15%）】
+- タスク 4.1: ログとメトリクスの収集・集約・保存を設定する（CloudWatch メトリクス名前空間・ディメンション・解像度、リアルタイムログ取り込み、メトリクスフィルタ・メトリクスストリーム S3/Kinesis Data Firehose・カスタムメトリクス、S3ライフサイクル・CloudWatch ログループ保持によるログストレージライフサイクル管理、CloudWatch サブスクリプションによる Kinesis/Lambda/OpenSearch 連携、KMS による暗号化）
+- タスク 4.2: ログとメトリクスを監査・モニタリング・分析して問題を検出する（CloudWatch 異常検知アラーム、EC2 CPU/RDS キュー長/ALB 5xxエラー等の標準メトリクス、Amazon Inspector・Config Rules・CloudTrail ログイベント、CloudWatch ダッシュボード・QuickSight 可視化、X-Ray によるコンテナ/API Gateway/Lambda トレース、Kinesis Data Streams によるリアルタイムログ分析、Athena・CloudWatch Logs Insights）
+- タスク 4.3: 複雑な環境のモニタリングとイベント管理を自動化する（EventBridge イベント/S3 イベント通知と SNS・Lambda の連携、EC2 Auto Scaling・RDS・DynamoDB・ECS・EKS の自動スケーリング設定、CloudWatch アラームから SNS・Lambda・EC2 自動復旧へのアクション、ALB ターゲットグループ・Route 53 ヘルスチェック、Config ルールによる問題修復、SSM Agent/CloudWatch エージェントのEC2インストール）
 
-【第6ドメイン：セキュリティとコンプライアンス（17%）】
-- Task 6.1: 大規模なアイデンティティとアクセス管理の技術を実装する（ユーザー/グループ/ロール/IDプロバイダー/IDベースポリシー/リソースベースポリシー/セッションポリシーの適切な使用、IAM IDプロバイダー・IAM Identity Center によるIDフェデレーション、IAM Permissions Boundary による委任、組織 SCP、最小権限設計・RBAC/ABAC パターン、Secrets Manager による機械IDの認証情報自動ローテーション、MFA・AWS STS・IAM プロファイルによる権限管理）
-- Task 6.2: セキュリティコントロールとデータ保護の自動化を適用する（セキュリティグループ・ネットワーク ACL・ルーティング・Network Firewall・WAF・Shield によるネットワークセキュリティ、ACM・PKI による証明書管理、データ分類・暗号化・キー管理・アクセスコントロール、Security Hub・Organizations・Control Tower・Systems Manager によるマルチアカウント/リージョンへのセキュリティコントロール適用、ACM・WAF・Config・Config Rules・Security Hub・GuardDuty・セキュリティグループ・Network Firewall・Detective による多層防御、Amazon Macie による機密データ検出、KMS・CloudHSM・ACM による転送中/保存中データの暗号化）
-- Task 6.3: セキュリティモニタリングと監査ソリューションを実装する（CloudTrail・Config・VPC Flow Logs・CloudFormation ドリフト検出によるセキュリティ監査、GuardDuty・Inspector・IAM Access Analyzer・Config による脆弱性/イベント特定、不正/異常なセキュリティイベントへのアラート設定、CloudTrail・CloudWatch Logs によるサービス/アプリケーションロギング、ログ/メトリクス/セキュリティ検出結果の分析）
+【コンテンツ分野 5: インシデントとイベントへの対応（14%）】
+- タスク 5.1: イベントソースを管理してイベントを処理・通知し、イベントに応じてアクションを実行する（AWS Health・EventBridge・CloudTrail によるイベント生成・捕捉・処理、ファンアウト・イベントストリーミング・キューイングのイベント駆動アーキテクチャ、SQS・Kinesis・SNS・Lambda・Step Functions によるイベント処理ワークフロー構築）
+- タスク 5.2: イベントに応じて設定の変更を実装する（Systems Manager・Auto Scaling によるフリート管理、Config による設定管理、システムへの設定変更の適用、イベントに応じたインフラ設定変更、望ましくない状態の修復）
+- タスク 5.3: システムとアプリケーションの障害をトラブルシューティングする（CloudWatch・X-Ray によるメトリクス/ロギング、AWS Health・CloudWatch・Systems Manager OpsCenter によるサービス正常性確認、根本原因分析、CodePipeline・CodeBuild・CodeDeploy・CloudFormation・CloudWatch Synthetics の失敗デプロイ分析、Auto Scaling・ECS/EKS の障害プロセス分析）
 
-■ 出題範囲の主要サービス
-- 開発者ツール: CodeBuild, CodeDeploy, CodePipeline, CodeArtifact, CodeGuru, CodeStar, AWS CDK, CloudShell, AWS Fault Injection Simulator (FIS), AWS X-Ray
-- IaC・構成管理: CloudFormation (StackSets・ネストスタック・モジュール), AWS CDK, AWS SAM, Systems Manager (Automation・Run Command・Patch Manager・State Manager・OpsCenter), OpsWorks, Elastic Beanstalk, AWS Config, AWS AppConfig, Service Catalog
-- モニタリング・ロギング: CloudWatch (Logs・Metrics・Alarms・EventBridge・Logs Insights・Synthetics・ServiceLens・Contributor Insights・異常検知), CloudTrail, X-Ray, Amazon Managed Grafana, Amazon Managed Service for Prometheus, AWS Health
-- コンピューティング・コンテナ: EC2, EC2 Image Builder, Lambda, ECS, EKS, EKS Distro, Fargate, App Runner, Elastic Beanstalk, AWS Serverless Application Repository
-- セキュリティ・ガバナンス: IAM, IAM Identity Center, Secrets Manager, KMS, CloudHSM, ACM, Security Hub, GuardDuty, Inspector, Macie, WAF, Shield, Network Firewall, Firewall Manager, Config, Detective, Organizations, Control Tower, Directory Service, Cognito, Resource Access Manager (RAM), STS
+【コンテンツ分野 6: セキュリティとコンプライアンス（17%）】
+- タスク 6.1: Identity and Access Management の手法を大規模環境に実装する（ユーザー/グループ/ロール/IDプロバイダー/アイデンティティベースポリシー/リソースベースポリシー/セッションポリシーの適切な使用、IAM IDプロバイダー・IAM Identity Center によるIDフェデレーション、IAM Permissions Boundary による委任、組織 SCP、最小権限設計・RBAC/ABAC パターン、Secrets Manager による機械IDの認証情報自動ローテーション、MFA・AWS STS・IAM プロファイルによる権限管理）
+- タスク 6.2: セキュリティコントロールとデータ保護のオートメーションを適用する（セキュリティグループ・ネットワーク ACL・ルーティング・Network Firewall・WAF・Shield によるネットワークセキュリティ、ACM・PKI による証明書管理、データ分類・暗号化・キー管理・アクセスコントロール、Security Hub・Organizations・Control Tower・Systems Manager によるマルチアカウント/リージョンへのセキュリティコントロール自動適用、ACM・WAF・Config・Config Rules・Security Hub・GuardDuty・Detective・Network Firewall による多層防御、Amazon Macie による機密データ検出の大規模自動化、KMS・CloudHSM・ACM による転送中/保存中データの暗号化）
+- タスク 6.3: セキュリティモニタリングと監査ソリューションを実装する（CloudTrail・Config・VPC Flow Logs・CloudFormation ドリフト検出によるセキュリティ監査、GuardDuty・Inspector・IAM Access Analyzer・Config による脆弱性/イベント特定、不正/異常なセキュリティイベントへのアラート設定、CloudTrail・CloudWatch Logs によるサービス/アプリケーションロギング、ログ/メトリクス/セキュリティ検出結果の分析）
+
+■ 出題範囲の主要サービス（公式対象サービス一覧）
+- デベロッパーツール: CodeBuild, CodeDeploy, CodePipeline, CodeArtifact, CodeGuru, CodeStar, AWS CDK, CloudShell, AWS Fault Injection Simulator (FIS), AWS X-Ray, AWS SDK
+- IaC・構成管理: CloudFormation (StackSets・ネストスタック・モジュール), AWS CDK, AWS SAM, AWS Serverless Application Repository, Systems Manager (Automation・Run Command・Patch Manager・State Manager・OpsCenter・SSM Agent), OpsWorks, Elastic Beanstalk, AWS Config, AWS AppConfig, Service Catalog, AWS Proton
+- モニタリング・ロギング: CloudWatch (Logs・Metrics・Alarms・Dashboards・Logs Insights・Synthetics・ServiceLens・Contributor Insights・異常検知・メトリクスストリーム), CloudTrail, X-Ray, Amazon Managed Grafana, Amazon Managed Service for Prometheus, AWS Health
+- コンピューティング: EC2, EC2 Auto Scaling, EC2 Image Builder, Lambda, Elastic Beanstalk, App Runner, AWS Serverless Application Repository
+- コンテナ: ECS, EKS, EKS Distro, Fargate, ECR, AWS Copilot, App2Container, Red Hat OpenShift Service on AWS (ROSA)
+- セキュリティ・ガバナンス: IAM, IAM Identity Center, Secrets Manager, KMS, CloudHSM, ACM, Security Hub, GuardDuty, Inspector, Macie, WAF, Shield, Network Firewall, AWS Firewall Manager, Config, Detective, Organizations, Control Tower, Directory Service, Cognito, Resource Access Manager (RAM), STS
 - ネットワーク: VPC, Route 53, API Gateway, CloudFront, ELB (ALB/NLB), PrivateLink, Transit Gateway, Client VPN, Site-to-Site VPN
-- データ・分析: DynamoDB, RDS, Aurora, ElastiCache, MemoryDB for Redis, Kinesis Data Streams, Kinesis Data Firehose, OpenSearch Service, Athena, QuickSight, S3
-- ストレージ・バックアップ: S3, EBS, EFS, AWS Backup, Elastic Disaster Recovery, FSx, S3 Glacier, Storage Gateway
-- アプリ統合・サーバーレス: SNS, SQS, Step Functions, EventBridge, AppFlow
-- ガバナンス・最適化: Auto Scaling, CloudFormation, Resilience Hub, Compute Optimizer, Trusted Advisor, License Manager, Proton, AWS Resilience Hub
+- データ・分析: DynamoDB, RDS, Aurora, Aurora Serverless v2, ElastiCache, MemoryDB for Redis, DocumentDB, Redshift, Kinesis Data Streams, Kinesis Data Firehose, OpenSearch Service, Athena, QuickSight, AWS DMS, EMR, AppFlow
+- ストレージ・バックアップ: S3, EBS, EFS, AWS Backup, Elastic Disaster Recovery, FSx (Lustre/NetApp ONTAP/OpenZFS/Windows File Server), S3 Glacier, Storage Gateway
+- アプリ統合・サーバーレス: SNS, SQS, Step Functions, EventBridge
+- ガバナンス・最適化: Auto Scaling, CloudFormation, Resilience Hub, Compute Optimizer, Trusted Advisor, License Manager
 - デプロイ戦略: Blue/Green, Canary, Linear, Rolling, All-at-once（Elastic Beanstalk・CodeDeploy・CloudFormation・ECS/EKS での実現手法）

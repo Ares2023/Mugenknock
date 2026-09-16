@@ -325,7 +325,6 @@ export default function ExerciseSession() {
   const [detailFetchFailed, setDetailFetchFailed] = useState(false);
   const [tips, setTips] = useState<Tip[]>([]);
   const [bookmarkedIds, setBookmarkedIds] = useState<Set<string>>(new Set());
-  const [bookmarkLoading, setBookmarkLoading] = useState(false);
   // questionId -> 'up' | 'down'（自分が押したものだけ。合計数はユーザーに見せない）
   const [reactions, setReactions] = useState<Record<string, 'up' | 'down'>>({});
   const [actionMenuOpen, setActionMenuOpen] = useState(false);
@@ -399,51 +398,69 @@ export default function ExerciseSession() {
       .catch(() => {});
   }, [userId, examType]);
 
+  // ♡/👍👎は連打のたびに送信せず、UIだけ即時反映して実際の送信は
+  // ①この問題の回答確定(スコアのコミット)時 ②次の問題へ移動する時
+  // ③画面を離れる時 のいずれか最初のタイミングでまとめて行う。
+  // 同じ問題を表示中に何度も押し直しても、最後に確定した値だけが1回送られる。
+  const pendingBookmarkRef = useRef<Record<string, boolean>>({});
+  const pendingReactionRef = useRef<Record<string, 'up' | 'down' | null>>({});
+  const userIdRef = useRef(userId);
+  useEffect(() => { userIdRef.current = userId; }, [userId]);
+
+  const flushBookmark = useCallback((qid: string) => {
+    const val = pendingBookmarkRef.current[qid];
+    if (val === undefined) return;
+    delete pendingBookmarkRef.current[qid];
+    const uid = userIdRef.current;
+    if (!uid) return;
+    if (val) {
+      fetch(`${API_ENDPOINT}/questions/${qid}/bookmark`, {
+        method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ userId: uid }),
+      }).catch(() => {});
+    } else {
+      fetch(`${API_ENDPOINT}/questions/${qid}/bookmark?userId=${uid}`, { method: 'DELETE' }).catch(() => {});
+    }
+  }, []);
+
+  const flushReaction = useCallback((qid: string) => {
+    const val = pendingReactionRef.current[qid];
+    if (val === undefined) return;
+    delete pendingReactionRef.current[qid];
+    const uid = userIdRef.current;
+    if (!uid) return;
+    fetch(`${API_ENDPOINT}/questions/${qid}/reaction`, {
+      method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ userId: uid, reaction: val }),
+    }).catch(() => {});
+  }, []);
+
+  // 画面離脱（③）時に残っている保留分を送る
+  useEffect(() => {
+    return () => {
+      Object.keys(pendingBookmarkRef.current).forEach(flushBookmark);
+      Object.keys(pendingReactionRef.current).forEach(flushReaction);
+    };
+  }, [flushBookmark, flushReaction]);
+
   // 👍/👎。同じものを再度押すと取り消し（null）になる。1ユーザー1問1票。
-  const toggleReaction = async (next: 'up' | 'down') => {
+  const toggleReaction = (next: 'up' | 'down') => {
     if (!userId) return;
     const qid = currentQuestion.questionId;
     const current = reactions[qid] ?? null;
     const value: 'up' | 'down' | null = current === next ? null : next;
-    // 押した瞬間に反映し、失敗したら戻す（体感速度優先）
     setReactions(prev => {
       const n = { ...prev };
       if (value === null) delete n[qid]; else n[qid] = value;
       return n;
     });
-    try {
-      await fetch(`${API_ENDPOINT}/questions/${qid}/reaction`, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ userId, reaction: value }),
-      });
-    } catch {
-      setReactions(prev => {
-        const n = { ...prev };
-        if (current === null) delete n[qid]; else n[qid] = current;
-        return n;
-      });
-    }
+    pendingReactionRef.current[qid] = value;
   };
 
-  const toggleBookmark = async () => {
+  const toggleBookmark = () => {
+    if (!userId) return;
     const qid = currentQuestion.questionId;
-    const isBookmarked = bookmarkedIds.has(qid);
-    setBookmarkLoading(true);
-    try {
-      if (isBookmarked) {
-        await fetch(`${API_ENDPOINT}/questions/${qid}/bookmark?userId=${userId}`, { method: 'DELETE' });
-        setBookmarkedIds(prev => { const next = new Set(prev); next.delete(qid); return next; });
-      } else {
-        await fetch(`${API_ENDPOINT}/questions/${qid}/bookmark`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ userId }),
-        });
-        setBookmarkedIds(prev => { const next = new Set(prev); next.add(qid); return next; });
-      }
-    } catch (err) { console.error(err); }
-    setBookmarkLoading(false);
+    const next = !bookmarkedIds.has(qid);
+    setBookmarkedIds(prev => { const n = new Set(prev); if (next) n.add(qid); else n.delete(qid); return n; });
+    pendingBookmarkRef.current[qid] = next;
   };
 
   // 解説下（回答前は選択肢下）のアクション列 [コピー][♡][👍][👎][⋮]。
@@ -465,7 +482,7 @@ export default function ExerciseSession() {
               }
               toggleBookmark();
             }}
-            disabled={!userId || bookmarkLoading}
+            disabled={!userId}
             active={bookmarkedIds.has(currentQuestion.questionId)}
             activeColor={HEART_ACTIVE_COLOR}
             title={bookmarkedIds.has(currentQuestion.questionId) ? t('exerciseSession.removeBookmark') : t('exerciseSession.bookmark')}
@@ -628,6 +645,19 @@ export default function ExerciseSession() {
   }, [sessionId, saveDraftNow]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const currentQuestion = questions[currentIndex];
+
+  // 問題が切り替わったら、直前の問題の保留中の♡/👍👎をまとめて送信する
+  // （②「次の問題へ移動する時」を goToQuestion 等の呼び出し箇所によらず一元的に処理）。
+  const flushedQuestionIdRef = useRef<string | null>(null);
+  useEffect(() => {
+    const qid = currentQuestion?.questionId;
+    const prevQid = flushedQuestionIdRef.current;
+    if (prevQid && prevQid !== qid) {
+      flushBookmark(prevQid);
+      flushReaction(prevQid);
+    }
+    flushedQuestionIdRef.current = qid ?? null;
+  }, [currentQuestion?.questionId, flushBookmark, flushReaction]);
 
   const CHOICE_LABELS = ['A', 'B', 'C', 'D', 'E'];
 
@@ -867,6 +897,10 @@ export default function ExerciseSession() {
     setAnswered(true);
     setJudgmentAnim(isCorrect ? 'correct' : 'incorrect');
     setTimeout(() => setJudgmentAnim(null), 600);
+
+    // ①この問題のスコアがコミットされるタイミングで、保留中の♡/👍👎もまとめて送信する
+    flushBookmark(currentQuestion.questionId);
+    flushReaction(currentQuestion.questionId);
 
     const answerPayload = {
       userId,

@@ -3,6 +3,7 @@
 # その「次回ピン時刻」に同期する。EventBridge/Fargateには依存しない(ローカル自己完結)。
 #
 # 構成(5時間サイクルをローカルで再現):
+#   - mugenknock-prelog    : 次回ピンの1分前(枠の終わり際に /usage を記録=使用量ログ)   ※常時
 #   - mugenknock-localping : 次回ピン時刻ちょうど(ピン実行→次回時刻を再計算して自己再アーム)
 #   - mugenknock-hook      : 次回ピンの30分前(妥当性確認・トークン消化)   ※フック有効時のみ
 #   - mugenknock-hook2     : 次回ピンの15分前(問題生成・hookと並走)        ※フック有効時のみ
@@ -18,6 +19,7 @@ CFG="$HOME/.config/mugenknock"
 CLOCK="$CFG/next_ping"
 DISABLED_FLAG="$CFG/ping_disabled"   # ct cancel で作成(完全停止)
 HOOKS_FLAG="$CFG/hooks_enabled"      # ct on/off が管理(フックのみ切替)
+PRELOG_MIN="${MK_PRELOG_MIN:-1}"     # 使用量ログをピンの何分前に取るか(枠の終わり際)
 _hooks_on() { [ -f "$HOOKS_FLAG" ]; }
 
 # フック設定(ピン前に実行するスクリプト群)を読む共有ライブラリ
@@ -29,7 +31,7 @@ mkdir -p "$UNIT_DIR" "$CFG"
 # ── ct cancel(完全停止): 全タイマー停止して終了 ──
 if [ -f "$DISABLED_FLAG" ]; then
   systemctl --user disable --now \
-    mugenknock-localping.timer mugenknock-hook.timer mugenknock-hook2.timer mugenknock-postping.timer 2>/dev/null || true
+    mugenknock-prelog.timer mugenknock-localping.timer mugenknock-hook.timer mugenknock-hook2.timer mugenknock-postping.timer 2>/dev/null || true
   echo "完全停止中(ct cancel) → 全ローカルタイマー停止"
   exit 0
 fi
@@ -66,6 +68,7 @@ fi
 # 各タイマーの絶対時刻(ピン本体・postping)。フックは設定に応じて後段で動的生成。
 PING_CAL=$(python3 -c "from datetime import datetime; print(datetime.strptime('$NEXT_DT','%Y-%m-%dT%H:%M:%S').strftime('%Y-%m-%d %H:%M:%S'))")
 POST_CAL=$(python3 -c "from datetime import datetime,timedelta; print((datetime.strptime('$NEXT_DT','%Y-%m-%dT%H:%M:%S')+timedelta(minutes=10)).strftime('%Y-%m-%d %H:%M:00'))")
+PRELOG_CAL=$(python3 -c "from datetime import datetime,timedelta; print((datetime.strptime('$NEXT_DT','%Y-%m-%dT%H:%M:%S')-timedelta(minutes=$PRELOG_MIN)).strftime('%Y-%m-%d %H:%M:00'))")
 
 # ── localping タイマー(one-shot): 次回ピン時刻に local-ping-run を発火 ──
 cat > "$UNIT_DIR/mugenknock-localping.service" << EOF
@@ -84,6 +87,30 @@ Description=mugenknock local ping timer
 
 [Timer]
 OnCalendar=${PING_CAL}
+Persistent=true
+
+[Install]
+WantedBy=timers.target
+EOF
+
+# ── prelog タイマー(one-shot): ピンの${PRELOG_MIN}分前に使用量ログを記録 ──
+# 「枠の終わり際」で /usage を取るため session% が満タンに近く、測定に使える。
+# フック無効(ct off)でも常時アーム(使用量測定はフックのON/OFFと無関係)。
+cat > "$UNIT_DIR/mugenknock-prelog.service" << EOF
+[Unit]
+Description=mugenknock pre-ping usage logger (ping -${PRELOG_MIN}min, end-of-window /usage)
+
+[Service]
+Type=oneshot
+WorkingDirectory=${REPO}
+ExecStart=/bin/bash -lc '${REPO}/scripts/log-usage.sh'
+EOF
+cat > "$UNIT_DIR/mugenknock-prelog.timer" << EOF
+[Unit]
+Description=mugenknock pre-ping usage logger timer (local clock -${PRELOG_MIN}min)
+
+[Timer]
+OnCalendar=${PRELOG_CAL}
 Persistent=true
 
 [Install]
@@ -166,8 +193,8 @@ EOF
 
 systemctl --user daemon-reload
 
-# localping と postping は常時アーム。one-shot絶対時刻は restart で新OnCalendarを反映。
-for t in mugenknock-localping.timer mugenknock-postping.timer; do
+# prelog/localping/postping は常時アーム。one-shot絶対時刻は restart で新OnCalendarを反映。
+for t in mugenknock-prelog.timer mugenknock-localping.timer mugenknock-postping.timer; do
   systemctl --user enable "$t" >/dev/null 2>&1 || true
   systemctl --user restart "$t" 2>/dev/null || systemctl --user start "$t" 2>/dev/null || true
 done
@@ -180,6 +207,7 @@ done
 loginctl enable-linger "$USER" 2>/dev/null || true
 
 echo "✓ ローカルタイマーを同期 (時計=${CLOCK})"
+echo "  prelog   : ${PRELOG_CAL}  (使用量ログ・ピン-${PRELOG_MIN}分) ※常時"
 echo "  次回ピン : ${NEXT_DT/T/ }  (localping)"
 echo "  postping : ${POST_CAL}  (RUN_NIGHT=${EFF_RUN_NIGHT}) ※常時"
 echo "  フック   : ${HOOK_STATE}"
