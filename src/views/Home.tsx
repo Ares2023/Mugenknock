@@ -16,7 +16,7 @@ import {
   API_ENDPOINT, EXAM_TYPES, EXAM_CONFIGS, EXAM_DOMAINS,
   DOMAIN_WEIGHTS, PASS_SCORES, qDomainName, DOMAIN_RATE_WARNING,
   EXAM_LEVEL, EXAM_LEVEL_COLORS,
-  tagIdMatches, domainsToIndices, storedDomainsToNames, isNonAwsExam,
+  tagIdMatches, domainsToIndices, storedDomainsToNames, isNonAwsExam, COMPANION_EXAM, companionLabel,
 } from '../constants';
 import { readDomainResults, readDomainHistory } from '../utils/domainStats';
 import { lockBodyScroll } from '../utils/bodyScrollLock';
@@ -1205,6 +1205,11 @@ function loadQuickPrefs(uid: string) {
 function quickBookmark(p: Record<string, any>): boolean {
   return p?.bookmarkOnly !== false;
 }
+// 前提知識(オリジナル資格)の混在: 既定オン（明示的に false のときだけオフ）。
+// サクッと演習・しっかり対策・トレーニング演習タブで共通の意味（specs/003-original-exam-blend）。
+function includeCompanionPref(p: Record<string, any>): boolean {
+  return p?.includeCompanion !== false;
+}
 // サクッと演習の回答状況フィルタ（しっかり対策と同一の選択肢・既定は未正解を優先）。
 // FocusPriority は Home 本体で型定義（'none'|'unanswered'|'incorrect'|'notcorrect'）。
 function resolveQuickPriority(p: Record<string, any>): 'none' | 'unanswered' | 'incorrect' | 'notcorrect' {
@@ -1372,9 +1377,12 @@ export default function Home() {
     const uid2 = user.userId;
     (async () => {
       try {
+        // 前提知識(オリジナル資格)混在は既定ONのため、件数表示も既定込みで揃える
+        // （出題プール側と母集団をズレさせないため。docs/06-exercise-logic.md §6.1）。
+        const companionParam = COMPANION_EXAM[targetExam] ? '&includeCompanion=true' : '';
         const [idsRes, statusRes] = await Promise.all([
-          fetch(`${API_ENDPOINT}/questions?examType=${targetExam}&idsOnly=true`).then(r => r.json()).catch(() => null),
-          fetch(`${API_ENDPOINT}/users/me/question-status?userId=${uid2}&examType=${targetExam}`).then(r => r.json()).catch(() => null),
+          fetch(`${API_ENDPOINT}/questions?examType=${targetExam}&idsOnly=true${companionParam}`).then(r => r.json()).catch(() => null),
+          fetch(`${API_ENDPOINT}/users/me/question-status?userId=${uid2}&examType=${targetExam}${companionParam}`).then(r => r.json()).catch(() => null),
         ]);
         if (cancelled) return;
         const total = (idsRes?.questionIds ?? []).length;
@@ -1896,11 +1904,15 @@ export default function Home() {
       const count = qPrefs.questionCount ?? 5;
       const plateau = randomPlateau();
       const stopAnim = animateLoadPct(setQuickLoadPct, 10, plateau);
+      // 前提知識(オリジナル資格)の混在: 対応資格があり、ドメイン絞り込みをしていない時のみ
+      // （絞り込んだ公式ドメインに対応するオリジナル資格のドメインは無いため）
+      const useCompanion = allSelected && !!COMPANION_EXAM[targetExam] && includeCompanionPref(qPrefs);
 
       // IDのみ取得（Lambda 側でフィルタ・ドメイン均等化）。フィルタ無しでも userId を渡すと
       // 回答数の少ないドメインを優先する deficit round-robin が効き、出題が特定ドメインに偏らない。
       const idsParams = new URLSearchParams({ examType: targetExam, shuffle: 'true', idsOnly: 'true' });
       if (!allSelected) idsParams.set('domain', selIdx.join(','));
+      if (useCompanion) idsParams.set('includeCompanion', 'true');
       if (user && qFlags.bookmarkOnly)   idsParams.set('bookmarkOnly',   'true');
       if (user && qFlags.unansweredOnly) idsParams.set('unansweredOnly', 'true');
       if (user && qFlags.incorrectOnly)  idsParams.set('incorrectOnly',  'true');
@@ -1913,6 +1925,7 @@ export default function Home() {
       if (selectedIds.length < count && hasStatusFilter) {
         const fillParams = new URLSearchParams({ examType: targetExam, shuffle: 'true', idsOnly: 'true' });
         if (!allSelected) fillParams.set('domain', selIdx.join(','));
+        if (useCompanion) fillParams.set('includeCompanion', 'true');
         if (user) fillParams.set('userId', userId);
         try {
           const fillData = await fetch(`${API_ENDPOINT}/questions?${fillParams}`).then(r => r.json());
@@ -1930,7 +1943,9 @@ export default function Home() {
       const _usedSel = new Set(questionIds);
       const spareQuestionIds = allIds.filter(id => !_usedSel.has(id)).slice(0, 10);
       // セッション作成は遷移先で非同期実行。1 問目だけ取得して残りはプログレッシブロード。
-      const q1Data = await fetch(`${API_ENDPOINT}/questions?ids=${questionIds[0]}&withAnswers=true&examType=${targetExam}`).then(r => r.json());
+      // ids指定時は examType 一致フィルタを付けない（前提知識混在時、1問目が companion
+      // 側のexamTypeを持つ可能性があり、targetExamで絞ると誤って0件になるため）。
+      const q1Data = await fetch(`${API_ENDPOINT}/questions?ids=${questionIds[0]}&withAnswers=true`).then(r => r.json());
       navigate('/aws/exercise/session', { state: { createSession: { userId, mode: 'exercise', examType: targetExam, questionIds }, questions: q1Data.items ?? [], questionIds, spareQuestionIds, userId, mode: 'exercise', examType: targetExam, isQuick: true } });
     } catch (err) { console.error(err); alert(ja ? '演習の開始に失敗しました' : 'Failed to start exercise'); }
     finally { setQuickLoading(false); setQuickLoadPct(0); }
@@ -1952,9 +1967,14 @@ export default function Home() {
     setFocusedLoadPct(10);
     const fPrefs = loadFocusedPrefs(uid);
 
+    // 前提知識(オリジナル資格)の混在: 対応資格がある場合のみ。しっかり対策にドメイン絞り込みは無い。
+    const useCompanion = !!COMPANION_EXAM[targetExam] && includeCompanionPref(fPrefs);
+
     try {
       const userId = user.userId;
-      const qCacheKey = `qlist_${targetExam}`;
+      // 混在有無でプールの中身が変わるため、トグル切替時に誤って古いキャッシュを
+      // 使わないようキャッシュキーを分ける。
+      const qCacheKey = `qlist_${targetExam}${useCompanion ? '_companion' : ''}`;
       const cachedQs = getCachedPersist<{ items: any[]; total: number }>(qCacheKey);
       const plateau = randomPlateau();
       const stopAnim = cachedQs ? null : animateLoadPct(setFocusedLoadPct, 10, plateau);
@@ -1965,10 +1985,11 @@ export default function Home() {
       // 正答率フィルタ（排他・問題ごとの累計正答率・未満）: 指定なし / 50 / 66 / 75%
       const focusAccuracy = resolveFocusAccuracy(fPrefs);
       const accThreshold = focusAccuracyThreshold(focusAccuracy);
+      const companionParam = useCompanion ? '&includeCompanion=true' : '';
       // プール(metaOnly)＋ユーザー問題ステータス(answered/incorrect/weak)を1本ずつで取得。
       const [data, statusRes] = await Promise.all([
-        cachedQs ? Promise.resolve(cachedQs) : fetch(`${API_ENDPOINT}/questions?examType=${targetExam}&metaOnly=true`).then(r => r.json()),
-        fetch(`${API_ENDPOINT}/users/me/question-status?userId=${userId}&examType=${targetExam}`).then(r => r.json()).catch(() => null),
+        cachedQs ? Promise.resolve(cachedQs) : fetch(`${API_ENDPOINT}/questions?examType=${targetExam}&metaOnly=true${companionParam}`).then(r => r.json()),
+        fetch(`${API_ENDPOINT}/users/me/question-status?userId=${userId}&examType=${targetExam}${companionParam}`).then(r => r.json()).catch(() => null),
       ]);
       if (stopAnim) { stopAnim(); setFocusedLoadPct(plateau); }
       // フルキャッシュ時のみ明示的に validity フィルタ（metaOnly はサーバ側で済み）
@@ -2049,7 +2070,10 @@ export default function Home() {
         if (accHit(qid)) w += W_WEAK;
         // 不正解を含む優先度では、ミス回数が多い問題ほどさらに優先
         if (focusPriority === 'incorrect' || focusPriority === 'notcorrect') w += (incorrectCounts[qid] ?? 0) * W_INCORRECT;
-        w += domainDeficit(qDomainName(q)) * W_DOMAIN;
+        // ドメイン弱点度は targetExam 自身のドメイン体系に基づく重み付けなので、
+        // 前提知識(companion)の問題（別examType・別ドメイン体系）には適用しない
+        // （domainAcc に無いドメイン名で誤って「未演習=最優先」扱いになるのを防ぐ）。
+        if (q.examType === targetExam) w += domainDeficit(qDomainName(q)) * W_DOMAIN;
         return w;
       }, count);
       if (items.length === 0) { alert(ja ? '条件に合う問題がありません' : 'No questions match the criteria'); return; }
@@ -2064,7 +2088,8 @@ export default function Home() {
       if (cachedQs) {
         navigate('/aws/exercise/session', { state: { createSession: { userId, mode: 'exercise', examType: targetExam, questionIds, isFocused: true }, questions: items, spareQuestionIds, userId, mode: 'exercise', examType: targetExam, isQuick: true, isFocused: true } });
       } else {
-        const q1Data = await fetch(`${API_ENDPOINT}/questions?ids=${questionIds[0]}&withAnswers=true&examType=${targetExam}`).then(r => r.json());
+        // 前提知識混在時、1問目が companion 側の examType を持ちうるため examType 絞り込みは付けない。
+        const q1Data = await fetch(`${API_ENDPOINT}/questions?ids=${questionIds[0]}&withAnswers=true`).then(r => r.json());
         navigate('/aws/exercise/session', { state: { createSession: { userId, mode: 'exercise', examType: targetExam, questionIds, isFocused: true }, questions: q1Data.items ?? [], questionIds, spareQuestionIds, userId, mode: 'exercise', examType: targetExam, isQuick: true, isFocused: true } });
       }
     } catch (err) { console.error(err); alert(ja ? '演習の開始に失敗しました' : 'Failed to start exercise'); }
@@ -2945,6 +2970,28 @@ export default function Home() {
                     </span>
                   </label>
                 </div>
+                {/* 前提知識(オリジナル資格)の混在（対応資格がある場合のみ表示） */}
+                {targetExam && COMPANION_EXAM[targetExam] && (
+                  <div style={{ padding: '14px 0', borderBottom: '1px solid var(--color-border)' }}>
+                    <div style={{ fontWeight: 500, fontSize: 'var(--font-size-base)', color: 'var(--color-text-main)', marginBottom: 8 }}>
+                      {ja ? '前提知識' : 'Prerequisite Knowledge'}
+                    </div>
+                    <label style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '8px 0', cursor: 'pointer' }}>
+                      <input
+                        type="checkbox"
+                        checked={includeCompanionPref(draftPrefs)}
+                        onChange={() => setDraftPrefs(p => ({ ...p, includeCompanion: !includeCompanionPref(p) }))}
+                        style={{ width: 16, height: 16, flexShrink: 0, accentColor: 'var(--color-primary)' }}
+                      />
+                      <span style={{ fontSize: 'var(--font-size-sm)', fontWeight: includeCompanionPref(draftPrefs) ? 700 : 500, color: 'var(--color-text-main)' }}>
+                        {ja ? `前提知識（${companionLabel(COMPANION_EXAM[targetExam])}）を含める` : `Include prerequisite (${companionLabel(COMPANION_EXAM[targetExam])})`}
+                      </span>
+                    </label>
+                    <div style={{ fontSize: 'var(--font-size-xs)', color: 'var(--color-text-light)', marginTop: 2 }}>
+                      {ja ? 'ドメイン別統計・予想スコアには反映されません' : "Doesn't count toward domain stats or estimated score"}
+                    </div>
+                  </div>
+                )}
                 {/* 回答状況フィルタ（排他・しっかり対策と同一） */}
                 <div style={{ padding: '14px 0', borderBottom: targetExam && (EXAM_DOMAINS[targetExam] ?? []).length > 0 ? '1px solid var(--color-border)' : 'none' }}>
                   <div style={{ fontWeight: 500, fontSize: 'var(--font-size-base)', color: 'var(--color-text-main)', marginBottom: 8 }}>
@@ -3186,6 +3233,28 @@ export default function Home() {
                     </span>
                   </label>
                 </div>
+                {/* 前提知識(オリジナル資格)の混在（対応資格がある場合のみ表示） */}
+                {targetExam && COMPANION_EXAM[targetExam] && (
+                  <div style={{ padding: '14px 0', borderBottom: '1px solid var(--color-border)' }}>
+                    <div style={{ fontWeight: 500, fontSize: 'var(--font-size-base)', color: 'var(--color-text-main)', marginBottom: 8 }}>
+                      {ja ? '前提知識' : 'Prerequisite Knowledge'}
+                    </div>
+                    <label style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '8px 0', cursor: 'pointer' }}>
+                      <input
+                        type="checkbox"
+                        checked={includeCompanionPref(draftFocusedPrefs)}
+                        onChange={() => setDraftFocusedPrefs(p => ({ ...p, includeCompanion: !includeCompanionPref(p) }))}
+                        style={{ width: 16, height: 16, flexShrink: 0, accentColor: 'var(--color-primary)' }}
+                      />
+                      <span style={{ fontSize: 'var(--font-size-sm)', fontWeight: includeCompanionPref(draftFocusedPrefs) ? 700 : 500, color: 'var(--color-text-main)' }}>
+                        {ja ? `前提知識（${companionLabel(COMPANION_EXAM[targetExam])}）を含める` : `Include prerequisite (${companionLabel(COMPANION_EXAM[targetExam])})`}
+                      </span>
+                    </label>
+                    <div style={{ fontSize: 'var(--font-size-xs)', color: 'var(--color-text-light)', marginTop: 2 }}>
+                      {ja ? 'ドメイン別統計・予想スコアには反映されません' : "Doesn't count toward domain stats or estimated score"}
+                    </div>
+                  </div>
+                )}
                 {/* 回答状況フィルタ（排他） */}
                 <div style={{ padding: '14px 0', borderBottom: '1px solid var(--color-border)' }}>
                   <div style={{ fontWeight: 500, fontSize: 'var(--font-size-base)', color: 'var(--color-text-main)', marginBottom: 8 }}>

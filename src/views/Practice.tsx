@@ -4,7 +4,7 @@ import { Helmet } from '@/compat/react-helmet-async';
 import { useNavigate } from '@/compat/react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { useLanguage } from '../contexts/LanguageContext';
-import { API_ENDPOINT, EXAM_CONFIGS, EXAM_DOMAINS, EXAM_TYPES, PASS_SCORES, qDomainName, domainsToIndices, storedDomainsToNames, tagIdMatches, isNonAwsExam } from '../constants';
+import { API_ENDPOINT, EXAM_CONFIGS, EXAM_DOMAINS, EXAM_TYPES, PASS_SCORES, qDomainName, domainsToIndices, storedDomainsToNames, tagIdMatches, isNonAwsExam, COMPANION_EXAM, companionLabel } from '../constants';
 import Button from '../components/ui/Button';
 import PageLayout from '../components/ui/PageLayout';
 import { getCached, setCached, SHORT_TTL, getCachedPersist, setCachedPersist } from '../utils/cache';
@@ -90,6 +90,8 @@ export default function Practice() {
   const [bookmarkOnly, setBookmarkOnly] = useState<boolean>(() => initPrefs(localStorage.getItem(`targetExam_${uid}`) || 'SAA').bookmarkOnly ?? false);
   const [unansweredOnly, setUnansweredOnly] = useState<boolean>(() => initPrefs(localStorage.getItem(`targetExam_${uid}`) || 'SAA').unansweredOnly ?? false);
   const [incorrectOnly, setIncorrectOnly] = useState<boolean>(() => initPrefs(localStorage.getItem(`targetExam_${uid}`) || 'SAA').incorrectOnly ?? false);
+  // 前提知識(オリジナル資格)の混在（既定ON。明示的に false の時だけ除外・specs/003-original-exam-blend）
+  const [includeCompanion, setIncludeCompanion] = useState<boolean>(() => initPrefs(localStorage.getItem(`targetExam_${uid}`) || 'SAA').includeCompanion !== false);
   const [strikeEnabled, setStrikeEnabled] = useState<boolean>(() => initPrefs(localStorage.getItem(`targetExam_${uid}`) || 'SAA').strikeEnabled === true);
   const [hideColumn, setHideColumn] = useState<boolean>(() => initPrefs(localStorage.getItem(`targetExam_${uid}`) || 'SAA').hideColumn === true);
   const [availableCount, setAvailableCount] = useState<number | null>(null);
@@ -141,13 +143,14 @@ export default function Practice() {
     setBookmarkOnly(prefs.bookmarkOnly ?? false);
     setUnansweredOnly(prefs.unansweredOnly ?? false);
     setIncorrectOnly(prefs.incorrectOnly ?? false);
+    setIncludeCompanion(prefs.includeCompanion !== false);
     setStrikeEnabled(prefs.strikeEnabled === true);
     setHideColumn(prefs.hideColumn === true);
   }, [examType]);
 
   useEffect(() => {
-    saveExercisePrefs(examType, uid, { domains: domainsToIndices(examType, selectedDomains), limit, bookmarkOnly, unansweredOnly, incorrectOnly, strikeEnabled, hideColumn });
-  }, [examType, selectedDomains, limit, bookmarkOnly, unansweredOnly, incorrectOnly, strikeEnabled]);
+    saveExercisePrefs(examType, uid, { domains: domainsToIndices(examType, selectedDomains), limit, bookmarkOnly, unansweredOnly, incorrectOnly, includeCompanion, strikeEnabled, hideColumn });
+  }, [examType, selectedDomains, limit, bookmarkOnly, unansweredOnly, incorrectOnly, includeCompanion, strikeEnabled]);
 
   // 画面表示中にキャッシュを事前ウォームアップ
   useEffect(() => {
@@ -163,11 +166,14 @@ export default function Practice() {
         const params = new URLSearchParams({ examType, metaOnly: 'true' });
         const allSelected = EXAM_DOMAINS[examType].every(d => selectedDomains.includes(d));
         if (!allSelected) params.set('domain', domainsToIndices(examType, selectedDomains).join(','));
+        // 前提知識(オリジナル資格)の混在: 対応資格があり、ドメイン絞り込みをしていない時のみ
+        const useCompanionEx = allSelected && includeCompanion && !!COMPANION_EXAM[examType];
+        if (useCompanionEx) params.set('includeCompanion', 'true');
         if (user && (bookmarkOnly || unansweredOnly || incorrectOnly)) {
           // ステータス(answered/incorrect/bookmarked)は1本の question-status で取得
           const [qRes, statusRes] = await Promise.all([
             fetch(`${API_ENDPOINT}/questions?${params}`).then(r => r.json()),
-            fetch(`${API_ENDPOINT}/users/me/question-status?userId=${user.userId}&examType=${examType}`).then(r => r.json()).catch(() => null),
+            fetch(`${API_ENDPOINT}/users/me/question-status?userId=${user.userId}&examType=${examType}${useCompanionEx ? '&includeCompanion=true' : ''}`).then(r => r.json()).catch(() => null),
           ]);
           let items: any[] = qRes.items ?? [];
           if (bookmarkOnly) { const ids = new Set(statusRes?.bookmarked ?? []); items = items.filter((q: any) => ids.has(q.questionId)); }
@@ -176,11 +182,12 @@ export default function Practice() {
 
           setAvailableCount(items.length);
         } else if (allSelected) {
-          const cached = getCached<number>(`qcount_${examType}`);
+          const qcountKey = `qcount_${examType}${useCompanionEx ? '_companion' : ''}`;
+          const cached = getCached<number>(qcountKey);
           if (cached !== null) { setAvailableCount(cached); return; }
-          const qRes = await fetch(`${API_ENDPOINT}/questions?examType=${examType}&metaOnly=true`).then(r => r.json());
+          const qRes = await fetch(`${API_ENDPOINT}/questions?examType=${examType}&metaOnly=true${useCompanionEx ? '&includeCompanion=true' : ''}`).then(r => r.json());
           const count = qRes.count ?? qRes.items?.length ?? 0;
-          setCached(`qcount_${examType}`, count);
+          setCached(qcountKey, count);
           setAvailableCount(count);
         } else {
           const qRes = await fetch(`${API_ENDPOINT}/questions?${params}`).then(r => r.json());
@@ -189,7 +196,7 @@ export default function Practice() {
       } catch { setAvailableCount(0); }
     };
     fetchCounts();
-  }, [examType, selectedDomains, user, bookmarkOnly, unansweredOnly, incorrectOnly]);
+  }, [examType, selectedDomains, user, bookmarkOnly, unansweredOnly, incorrectOnly, includeCompanion]);
 
   // 各フィルタの対象問数（試験全体）。演習・模試タブ共通で使う。ゲストは対象外。
   useEffect(() => {
@@ -197,9 +204,10 @@ export default function Practice() {
     let cancelled = false;
     (async () => {
       try {
+        const companionParam = (includeCompanion && COMPANION_EXAM[examType]) ? '&includeCompanion=true' : '';
         const [idsRes, statusRes] = await Promise.all([
-          fetch(`${API_ENDPOINT}/questions?examType=${examType}&idsOnly=true`).then(r => r.json()).catch(() => null),
-          fetch(`${API_ENDPOINT}/users/me/question-status?userId=${user.userId}&examType=${examType}`).then(r => r.json()).catch(() => null),
+          fetch(`${API_ENDPOINT}/questions?examType=${examType}&idsOnly=true${companionParam}`).then(r => r.json()).catch(() => null),
+          fetch(`${API_ENDPOINT}/users/me/question-status?userId=${user.userId}&examType=${examType}${companionParam}`).then(r => r.json()).catch(() => null),
         ]);
         if (cancelled) return;
         const total = (idsRes?.questionIds ?? []).length;
@@ -212,7 +220,7 @@ export default function Practice() {
       } catch { if (!cancelled) setStatusCounts(null); }
     })();
     return () => { cancelled = true; };
-  }, [examType, user]);
+  }, [examType, user, includeCompanion]);
 
   // ドメイン別の用意問数を集計（問題メタから・ログイン不問）
   useEffect(() => {
@@ -262,6 +270,8 @@ export default function Practice() {
     try {
       if (selectedDomains.length === 0) { alert(ja ? '出題ドメインを1つ以上選択してください' : 'Please select at least one domain'); return; }
       const allSelected = EXAM_DOMAINS[examType].every(d => selectedDomains.includes(d));
+      // 前提知識(オリジナル資格)の混在: 対応資格があり、ドメイン絞り込みをしていない時のみ
+      const useCompanionEx = allSelected && includeCompanion && !!COMPANION_EXAM[examType];
 
       // ── プリフェッチキャッシュを使用 ──
       const hasFilters = !!(user && (bookmarkOnly || unansweredOnly || incorrectOnly)) || !allSelected;
@@ -300,6 +310,7 @@ export default function Practice() {
       // 1. IDのみ取得（Lambda側でフィルタ・優先度ソート）
       const idsParams = new URLSearchParams({ examType, shuffle: 'true', idsOnly: 'true' });
       if (!allSelected) idsParams.set('domain', domainsToIndices(examType, selectedDomains).join(','));
+      if (useCompanionEx) idsParams.set('includeCompanion', 'true');
       if (user && bookmarkOnly)   idsParams.set('bookmarkOnly',  'true');
       if (user && unansweredOnly) idsParams.set('unansweredOnly', 'true');
       if (user && incorrectOnly)  idsParams.set('incorrectOnly',  'true');
@@ -311,6 +322,7 @@ export default function Practice() {
       if (selectedIds.length < limit && hasStatusFilter) {
         const fillParams = new URLSearchParams({ examType, shuffle: 'true', idsOnly: 'true' });
         if (!allSelected) fillParams.set('domain', domainsToIndices(examType, selectedDomains).join(','));
+        if (useCompanionEx) fillParams.set('includeCompanion', 'true');
         if (user) fillParams.set('userId', userId);
         try {
           const fillData = await fetch(`${API_ENDPOINT}/questions?${fillParams}`).then(r => r.json());
@@ -531,6 +543,22 @@ export default function Practice() {
                   </label>
                 );
               })}
+            </div>
+          )}
+
+          {/* 前提知識(オリジナル資格)の混在（対応資格があり、ドメイン絞り込みをしていない時のみ表示） */}
+          {COMPANION_EXAM[examType] && (EXAM_DOMAINS[examType] ?? []).every(d => selectedDomains.includes(d)) && (
+            <div style={{ marginBottom: 'var(--spacing-md)' }}>
+              <label data-kbnav="1" style={{ display: 'flex', alignItems: 'center', gap: 10, cursor: 'pointer' }}>
+                <input type="checkbox" checked={includeCompanion} onChange={e => setIncludeCompanion(e.target.checked)}
+                  style={{ width: 16, height: 16, flexShrink: 0, accentColor: 'var(--color-primary)' }} />
+                <span style={{ fontSize: 'var(--font-size-sm)', fontWeight: includeCompanion ? 600 : 400, color: 'var(--color-text-main)' }}>
+                  {ja ? `前提知識（${companionLabel(COMPANION_EXAM[examType])}）を含める` : `Include prerequisite (${companionLabel(COMPANION_EXAM[examType])})`}
+                </span>
+              </label>
+              <div style={{ fontSize: 'var(--font-size-xs)', color: 'var(--color-text-light)', marginTop: 2, marginLeft: 26 }}>
+                {ja ? 'ドメイン別統計・予想スコアには反映されません' : "Doesn't count toward domain stats or estimated score"}
+              </div>
             </div>
           )}
 

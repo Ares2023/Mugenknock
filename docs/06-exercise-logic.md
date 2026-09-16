@@ -14,6 +14,43 @@ items.filter(q => !q.isHidden && !!q.validityCheckedAt)
 
 サーバ側の各所（`getExamQuestionIdSet(poolOnly: true)` など）が同じ条件を使うのはこのため。
 
+### 前提知識(オリジナル資格)の混在（`includeCompanion`）
+
+`GET /questions` に `includeCompanion=true` を渡すと、対応する前提知識(オリジナル資格)の
+問題も母集団に合流する（`specs/003-original-exam-blend`）。**完全にオプトイン**で、
+パラメータを渡さない既存の呼び出し元（Stats/Admin/SSG/模擬試験など）には影響しない。
+
+| 公式資格 | 前提知識(オリジナル資格) |
+|---|---|
+| AIF / MLA / AIP | ML |
+| DEA | DB |
+| ANS | NW |
+| SCS | SEC |
+
+- `lambda/src/app.js` の `COMPANION_EXAM` が対応表の正本（FE側 `src/constants.ts` にも同名で複製）
+- `domain`（ドメイン絞り込み）を同時指定した場合は `includeCompanion` を無視する
+  （絞り込んだ公式ドメインに対応するオリジナル資格のドメインは存在しないため）
+- `GET /users/me/question-status` にも同じ `includeCompanion` があり、出題プールと
+  母集団（未回答数等の分母）を一致させるために使う
+- `UserTagStats` のキー `tagId = ${question.examType}_${domainIdx}` は常に
+  **問題自身の examType** を基準とする設計（セッションの target examType ではない）。
+  これにより「targetExam側のドメイン統計に不算入」かつ「companion(オリジナル資格)自身の
+  ドメイン統計には正しく算入」の両方が両立する
+  （AIF演習中にML問題へ回答しても `ML_*` の tagId に記録され、AIF側の画面は `AIF_*` のみ読む）
+- ただし**この設計の実現には `src/utils/domainStats.ts` の `recordSessionDomainStats` 側で
+  対応が必要だった**（当初「追加実装なしで成立する」と見込んでいたが誤りだった・2026-09-16訂正）。
+  同関数はセッション完了時に `answeredPerDomain`/`UserTagStats` 更新用の delta を組み立てる際、
+  **セッションの target examType を全回答に一律適用**していたため、companion 問題を回答すると
+  `targetExam_<companionのdomain index>` という誤った tagId（例: AIFの5ドメインしか
+  無いのに companion側の6番目のdomain indexが渡ると意味不明な組み合わせになる）で記録され、
+  (a) targetExam側の統計を汚染し (b) companion自身の統計には一切反映されない、という
+  二重の不具合があった。**修正: 回答結果を「回答した問題自身の examType」でグループ化してから
+  domain_history/domain_results(localStorage)・UserTagStats(サーバー)を記録する**よう変更。
+  `PUT /users/me/domain-results` はtagIdをキーに汎用マージするだけで examType 自体は使わないため、
+  1回のリクエストに複数examType分のtagIdが混在してもサーバー側の変更は不要だった。
+- 模擬試験（`ExamSetup.tsx` / `Practice.tsx` の模試タブ）は `includeCompanion` を渡さない
+  （現状維持・対象外）
+
 ---
 
 ## 6.2 ドメイン均等化（deficit round-robin）
@@ -30,6 +67,12 @@ items.filter(q => !q.isHidden && !!q.validityCheckedAt)
 4. 空でないバケットのうち running が最小のドメインから1問取り出す
 5. running[d] += 1 して 4 に戻る
 ```
+
+バケットキー `d` は `${examType}:${domain}` の複合キー（`domainBucketKey`）。
+単一examTypeの呼び出しでは常に同じ examType なので従来と挙動は変わらないが、
+`includeCompanion` で公式資格とオリジナル資格の問題を混在させたとき、
+両者の `domain`（整数インデックス）は別体系なのに同じ数値を取りうるため、
+examType を含めないと誤って同一ドメイン扱いになってしまう。
 
 - **過去の回答が少ないドメインが優先される**＝累積の偏りが是正される
 - **1セッション内で特定ドメインが多くなる / 0問になるのは許容する**
@@ -62,6 +105,12 @@ scoreFn の加算により和集合として機能する。
 
 **片方だけ直すと挙動が食い違う。** → [08-refactor-plan.md](08-refactor-plan.md) の Dup-1
 
+> `includeCompanion` 対応のバケットキー複合化（`domainBucketKey`）は **lambda 側のみ**実施した。
+> `src/utils/domainBalance.ts` 側は `getPrefetchA`/`getPrefetchC`（現状スタブで常に `null` を返す
+> ＝プリフェッチ機能自体が無効化済み）経由でのみ使われるため、混在プールがこの実装に渡ることは
+> 現状無い。**将来プリフェッチを復活させる場合は同じ複合キー化が必要**（そうしないと
+> `includeCompanion` 使用時にドメイン偏り是正が壊れる）。
+
 > 実害の記録: この均等化コードを prod Lambda へ反映し忘れ、約1か月ランダム出題が続いた結果、
 > ユーザーの累積ドメイン分布が最少1問 vs 最多12問まで偏った。
 
@@ -73,19 +122,23 @@ scoreFn の加算により和集合として機能する。
 
 ```
 1. localStorage.quickExercisePrefs_<uid> を読む
-   { questionCount, domains, bookmarkOnly, priority }
+   { questionCount, domains, bookmarkOnly, priority, includeCompanion }
 2. priority を2フラグへ展開
    'unanswered'  → unansweredOnly
    'incorrect'   → incorrectOnly
    'notcorrect'  → 両方（= 和集合）
    'none'        → どちらも false
 3. GET /questions?examType=&shuffle=true&idsOnly=true
-      &domain=<index,...>&bookmarkOnly=&unansweredOnly=&incorrectOnly=&userId=
+      &domain=<index,...>&bookmarkOnly=&unansweredOnly=&incorrectOnly=&userId=&includeCompanion=
    ※ userId はフィルタ無しでも必ず渡す（ドメイン均等化のため）
+   ※ includeCompanion は「対応資格があり」「ドメイン絞り込み(domain)をしていない」時のみ付与
+      （既定 true。§6.1「前提知識の混在」参照）
 4. 先頭 count 件を採用
 5. 足りなければ フィルタ無しの同条件で再取得し、重複を避けて補充
 6. 余ったIDの先頭10件を spareQuestionIds として渡す（読めないIDが出たときの控え）
 7. GET /questions?ids=<1問目>&withAnswers=true → 遷移
+   ※ includeCompanion 混在時、1問目が companion 側の examType を持ちうるため
+      この呼び出しに examType 絞り込みは付けない（付けると誤って0件になる）
 ```
 
 ---
@@ -97,11 +150,15 @@ scoreFn の加算により和集合として機能する。
 ### 入力
 
 ```
-GET /questions?examType=&metaOnly=true         … プール（localStorage キャッシュ10分）
-GET /users/me/question-status?userId=&examType= … answered / incorrect / weak / bookmarked / acc
+GET /questions?examType=&metaOnly=true&includeCompanion=         … プール（localStorage キャッシュ10分）
+GET /users/me/question-status?userId=&examType=&includeCompanion= … answered / incorrect / weak / bookmarked / acc
 domainStats（GET /users/me/stats の recentResults）
 localStorage.domain_history_<et>_<uid>          … フォールバック
 ```
+
+`includeCompanion` は対応資格があり `focusedExercisePrefs_<uid>.includeCompanion !== false`
+の時に付与（既定 true）。プールのキャッシュキーは `qlist_<examType>` に `_companion` を
+サフィックスし、トグル切替時に混在有無の異なる古いキャッシュを誤って使わないようにしている。
 
 ### ドメイン弱点度
 
@@ -130,11 +187,17 @@ w(q) = BASE
      + (ブックマーク優先ON かつ 該当  ? W_BOOKMARK : 0)
      + (正答率フィルタに一致          ? W_WEAK     : 0)
      + (優先度が incorrect/notcorrect ? ミス回数 × W_INCORRECT : 0)
-     + domainDeficit(ドメイン名) × W_DOMAIN
+     + (q.examType === targetExam ? domainDeficit(ドメイン名) × W_DOMAIN : 0)
 ```
 
 `BASE = 1` があるため**条件に合わない問題も混ざる**。これは意図的で、
 フィルタが厳しすぎて問題数が足りなくなるのを防いでいる（充足の担保）。
+
+`domainDeficit` 項は `q.examType === targetExam`（公式資格自身の問題）の時のみ加算する。
+`qDomainName(q)` は問題自身の examType でドメイン名を解決するため、companion(前提知識)の
+問題は targetExam のドメイン名一覧に存在しない名前を返し、ガード無しだと
+`domainAcc.get(name) === undefined` → 常に「未演習=最優先(1)」として過大な重みが付いてしまう。
+ガードにより companion 問題は `BASE` 基準の中立な重みで参加する（不当な優遇も冷遇もしない）。
 
 `weightedSampleWithoutReplacement(pool, w, count)` で count 件を抽出。
 

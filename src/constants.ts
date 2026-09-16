@@ -13,6 +13,12 @@ export type ExamType = typeof EXAM_TYPES[number];
 export const NON_AWS_EXAM_TYPES = new Set<string>(['ML', 'DB', 'NW', 'SEC']);
 export const isNonAwsExam = (examType: string): boolean => NON_AWS_EXAM_TYPES.has(examType);
 
+// 公式資格 → 前提知識(オリジナル資格)の対応表。通常演習（サクッと演習/しっかり対策/
+// トレーニング演習タブ）で、対応する公式資格を対象にすると既定でこのオリジナル資格の
+// 問題も出題プールに混ざる（specs/003-original-exam-blend）。模擬試験には適用しない。
+// lambda/src/app.js にも同じ対応表がある（FE/BEで別コードベースのため重複定義）。
+export const COMPANION_EXAM: Record<string, string> = { AIF: 'ML', MLA: 'ML', AIP: 'ML', DEA: 'DB', ANS: 'NW', SCS: 'SEC' };
+
 // 合格スコア（スケールスコア 100〜1000 での公式合格ライン）
 export const PASS_SCORES: Record<string, number> = {
   CLF: 700,
@@ -240,6 +246,12 @@ export const EXAM_CONFIGS: Record<string, {
   NW: { examCode: 'NW', fullName: '【オリジナル基礎演習】ネットワーク',                            totalQuestions: 65, timeLimitMin: 90  },
   SEC: { examCode: 'SEC', fullName: '【オリジナル基礎演習】セキュリティ',                          totalQuestions: 65, timeLimitMin: 90  },
 };
+
+// COMPANION_EXAM の表示名（「【オリジナル基礎演習】」を外した短い名称）。
+// 通常演習の設定モーダルで「前提知識（機械学習）を含める」のように使う。
+export function companionLabel(companionExamType: string): string {
+  return (EXAM_CONFIGS[companionExamType]?.fullName ?? companionExamType).replace('【オリジナル基礎演習】', '');
+}
 
 // 管理者画面「AIプロンプト生成」用の資格別補足ルール（任意）。
 // 夜間バッチの生成ルール(prompts/night-prompts/scripts/instructions/*.txt)で

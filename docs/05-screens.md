@@ -121,6 +121,10 @@ authLoading 解除
 - 演習開始時は `autoScoreAndClearDrafts(userId, [quick, focused])` で**プライマリ枠2種のみ**確定。
   practice / exam のドラフトは残す
 - ドラフト破棄と `targetExamChanged` / `pointsChanged` / `kvSynced` の CustomEvent 購読が多数ある
+- サクッと演習・しっかり対策の設定モーダルには、対応する前提知識(オリジナル資格)がある
+  targetExam（AIF/MLA/AIP/DEA/ANS/SCS）の時のみ「前提知識を含める」トグルが出る（既定ON）。
+  出題プールへの混在の仕組みは → [06-exercise-logic.md](06-exercise-logic.md) §6.1・
+  `specs/003-original-exam-blend`
 
 ---
 
@@ -131,7 +135,8 @@ authLoading 解除
 
 ### 演習タブ
 
-設定: 資格 / ドメイン選択 / 問題数 / 回答状況フィルタ（未回答・不正解・未正解）/ ブックマーク優先。
+設定: 資格 / ドメイン選択 / 問題数 / 回答状況フィルタ（未回答・不正解・未正解）/ ブックマーク優先 /
+前提知識を含める（対応資格があり、全ドメイン選択時のみ表示・既定ON）。
 設定は `localStorage.exercisePrefs_<uid>` に保存され kvSync で同期される。
 
 開始時のフロー:
